@@ -20,8 +20,11 @@ if (scalar @programme == 0) {
 
 open(my $file, "<", $arguments) or die "couldn't open $arguments";
 
+my $command;
 for (<$file>) {
   chomp;
   s/\s*,\s*/ /g;
-  system("$programme $_");
+  $command .= " '$programme $_'"
 }
+#print "parallel $programme :::$command";
+system("parallel :::$command")
