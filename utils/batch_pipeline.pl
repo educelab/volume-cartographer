@@ -27,4 +27,4 @@ for (<$file>) {
   $command .= " '$programme $_'"
 }
 #print "parallel $programme :::$command";
-system("parallel :::$command")
+system("parallel -j+0 :::$command")
