@@ -12,7 +12,5 @@ IF(NOT CMAKE_BUILD_TYPE)
 ENDIF(NOT CMAKE_BUILD_TYPE)
 
 add_executable(Histogram Histogram.cxx)
-add_executable(MutualInformation MutualInformation.cxx)
 
 target_link_libraries(Histogram ${ITK_LIBRARIES})
-target_link_libraries(MutualInformation ${ITK_LIBRARIES})
