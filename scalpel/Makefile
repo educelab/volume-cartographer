@@ -1,4 +1,4 @@
-OBJECTS=main.o
+OBJECTS=scalpel.o
 CC=clang++
 CFLAGS=-g -Wall -Werror -Wextra -Wshadow `pkg-config --cflags opencv`
 LIBS=`pkg-config --libs opencv`
