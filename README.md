@@ -13,6 +13,11 @@ registration
 
 Programs used for actual registration of images.
 
+scalpel
+-------
+
+Analysis of volumetric data sets, edge detection and unwrapping.
+
 utils
 -----
 
