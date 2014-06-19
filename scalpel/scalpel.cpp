@@ -6,7 +6,7 @@
 
 // behavior defnines
 #define BLUR_SIZE 13
-#define THRESHOLD 50000
+#define THRESHOLD 9.96659e+04
 #define DEPTH CV_64F
 #define PIXEL_DEPTH CV_64FC3
 
@@ -20,7 +20,7 @@
 #define KERNEL cv::Size(BLUR_SIZE,BLUR_SIZE)
 
 // misc defines
-#define ARROW_SCALE 10
+#define ARROW_SCALE 1
 
 // typedefs for clarity
 typedef cv::Matx<double, DIMENSION, DIMENSION> StructureTensor;
@@ -83,14 +83,13 @@ int main(int argc, char* argv[]) {
     cvtColor(center_image, center_image, CV_BGR2GRAY);
     cvtColor(right_image, right_image, CV_BGR2GRAY);
 
-    equalizeHist(left_image, left_image);
-    equalizeHist(center_image,center_image);
-    equalizeHist(right_image, right_image);
-
     GaussianBlur(left_image, left_image, KERNEL, 0);
     GaussianBlur(center_image, center_image, KERNEL, 0);
     GaussianBlur(right_image, right_image, KERNEL, 0);
 
+    equalizeHist(left_image, left_image);
+    equalizeHist(center_image,center_image);
+    equalizeHist(right_image, right_image);
 
     // calculate xy gradients
     cv::Mat x_gradient, y_gradient;
@@ -186,8 +185,8 @@ int main(int argc, char* argv[]) {
 
     // run analysis on averaged tensors
     cv::Mat arrow       = cv::Mat::zeros(center_image.size(), PIXEL_DEPTH);
-    for (int i = 0; i < center_image.rows; i += 5) {
-      for (int j = 0; j < center_image.cols; j += 5) {
+    for (int i = 0; i < center_image.rows; ++i) {
+      for (int j = 0; j < center_image.cols; ++j) {
         int index;
         EigenValues eigen_values;
         EigenVectors eigen_vectors;
@@ -215,16 +214,10 @@ int main(int argc, char* argv[]) {
           vector_color(Y_COMPONENT) = std::abs(vector_color(Y_COMPONENT));
           vector_color(Z_COMPONENT) = std::abs(vector_color(Z_COMPONENT));
 
-          if (arrow_offset.dot(scroll_center-cv::Point(j,i)) > 0)
-            line(arrow,
-                 cv::Point(j, i),
-                 cv::Point(j, i) + arrow_offset,
-                 cv::Scalar(vector_color));
-          else
-            line(arrow,
-                 cv::Point(j,i),
-                 cv::Point(j, i) - arrow_offset,
-                 cv::Scalar(vector_color));
+          line(arrow,
+               cv::Point(j, i),
+               cv::Point(j, i) + arrow_offset,
+               cv::Scalar(vector_color));
         }
       }
     }
