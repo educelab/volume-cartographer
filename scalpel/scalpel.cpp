@@ -8,7 +8,7 @@
 
 // behavior defnines
 #define BLUR_SIZE 13
-#define THRESHOLD 9.96659e+04
+#define THRESHOLD 5.06659e+05
 #define DEPTH CV_64F
 #define PIXEL_DEPTH CV_64FC3
 
@@ -47,11 +47,15 @@ int scan_eigenvalues(EigenValues e) {
   e(0) = std::abs(e(0));
   e(1) = std::abs(e(1));
   e(2) = std::abs(e(2));
-  double m = std::max(e(0), std::max(e(1), e(2)));
+  double a = std::abs(e(0) - e(1));
+  double b = std::abs(e(1) - e(2));
+  double c = std::abs(e(2) - e(0));
+  double m = std::max(a, std::max(b, c));
+  double max = std::max(e(0), std::max(e(1), e(2)));
   if  (m < THRESHOLD) { return -1; }
-  if      (m == e(0)) { return 0; }
-  if      (m == e(1)) { return 1; }
-  if      (m == e(2)) { return 2; }
+  if      (max == e(0)) { return 0; }
+  if      (max == e(1)) { return 1; }
+  if      (max == e(2)) { return 2; }
   return -1;
 }
 
@@ -222,26 +226,26 @@ int main(int argc, char* argv[]) {
                cv::Point(j, i) + arrow_offset,
                cv::Scalar(vector_color));
 
-          pcl::PointXYZRGBNormal thingy;
+          pcl::PointXYZRGBNormal point;
           uint32_t color =
             (uint32_t)vector_color(X_COMPONENT) |
             (uint32_t)vector_color(Y_COMPONENT) << 8 |
             (uint32_t)vector_color(Z_COMPONENT) << 16;
-          thingy.x = i;
-          thingy.y = j;
-          thingy.z = 0;
-          thingy.rgb = *reinterpret_cast<float*>(&color);
-          thingy.normal[0] = normal_vector(X_COMPONENT);
-          thingy.normal[1] = normal_vector(Y_COMPONENT);
-          thingy.normal[2] = normal_vector(Z_COMPONENT);
-          cloud.push_back(thingy);
+          point.x = i;
+          point.y = j;
+          point.z = atoi(argv[5]);
+          point.rgb = *reinterpret_cast<float*>(&color);
+          point.normal[0] = normal_vector(X_COMPONENT);
+          point.normal[1] = normal_vector(Y_COMPONENT);
+          point.normal[2] = normal_vector(Z_COMPONENT);
+          cloud.push_back(point);
 
         }
       }
     }
 
     // write images to disk
-    pcl::io::savePCDFileASCII("cloud.pcd", cloud);
+    pcl::io::savePCDFileASCII((std::string)"cloud"+ argv[5] +".pcd", cloud);
     cv::imwrite(argv[4], arrow);
   }
 
