@@ -3,6 +3,8 @@
 #include <algorithm>
 
 #include <opencv2/opencv.hpp>
+#include <pcl/io/pcd_io.h>
+#include <pcl/point_types.h>
 
 // behavior defnines
 #define BLUR_SIZE 13
@@ -184,7 +186,9 @@ int main(int argc, char* argv[]) {
     }
 
     // run analysis on averaged tensors
-    cv::Mat arrow       = cv::Mat::zeros(center_image.size(), PIXEL_DEPTH);
+    cv::Mat arrow = cv::Mat::zeros(center_image.size(), PIXEL_DEPTH);
+    pcl::PointCloud<pcl::PointXYZRGBNormal> cloud;
+
     for (int i = 0; i < center_image.rows; ++i) {
       for (int j = 0; j < center_image.cols; ++j) {
         int index;
@@ -196,7 +200,6 @@ int main(int argc, char* argv[]) {
 
         if (index != -1) {
           cv::Matx<double, 1, DIMENSION> normal_vector = eigen_vectors.row(index);
-          cv::Point scroll_center(center_image.rows / 2, center_image.cols / 2);
 
           cv::Point arrow_offset(normal_vector(X_COMPONENT) * ARROW_SCALE,
                                  normal_vector(Y_COMPONENT) * ARROW_SCALE);
@@ -218,11 +221,27 @@ int main(int argc, char* argv[]) {
                cv::Point(j, i),
                cv::Point(j, i) + arrow_offset,
                cv::Scalar(vector_color));
+
+          pcl::PointXYZRGBNormal thingy;
+          uint32_t color =
+            (uint32_t)vector_color(X_COMPONENT) |
+            (uint32_t)vector_color(Y_COMPONENT) << 8 |
+            (uint32_t)vector_color(Z_COMPONENT) << 16;
+          thingy.x = i;
+          thingy.y = j;
+          thingy.z = 0;
+          thingy.rgb = *reinterpret_cast<float*>(&color);
+          thingy.normal[0] = normal_vector(X_COMPONENT);
+          thingy.normal[1] = normal_vector(Y_COMPONENT);
+          thingy.normal[2] = normal_vector(Z_COMPONENT);
+          cloud.push_back(thingy);
+
         }
       }
     }
 
     // write images to disk
+    pcl::io::savePCDFileASCII("cloud.pcd", cloud);
     cv::imwrite(argv[4], arrow);
   }
 
