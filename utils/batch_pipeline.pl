@@ -18,7 +18,7 @@ my $command;
 for (<$file>) {
   chomp;
   s/\s*,\s*/ /g;
-  $command .= " '$programme $_'"
+  $command .= " '$programme $_’”
 }
-#print "parallel $programme :::$command";
+#print "parallel $programme :::$command”;
 system("parallel -j+0 :::$command")
