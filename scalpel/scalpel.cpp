@@ -7,7 +7,7 @@
 #include <pcl/point_types.h>
 
 // behavior defnines
-#define BLUR_SIZE 13
+#define BLUR_SIZE 3
 #define THRESHOLD 5.06659e+05
 #define DEPTH CV_64F
 #define PIXEL_DEPTH CV_64FC3
@@ -204,6 +204,14 @@ int main(int argc, char* argv[]) {
 
         if (index != -1) {
           cv::Matx<double, 1, DIMENSION> normal_vector = eigen_vectors.row(index);
+          cv::Matx<double, 1, DIMENSION> gravity;
+          gravity(X_COMPONENT) = 0;
+          gravity(Y_COMPONENT) = 0;
+          gravity(Z_COMPONENT) = 1;
+
+          // project gravity onto the plane defined by each normal
+          normal_vector = gravity - (gravity.dot(normal_vector)) / (normal_vector.dot(normal_vector)) * normal_vector;
+
 
           cv::Point arrow_offset(normal_vector(X_COMPONENT) * ARROW_SCALE,
                                  normal_vector(Y_COMPONENT) * ARROW_SCALE);
@@ -215,6 +223,8 @@ int main(int argc, char* argv[]) {
           cv::Vec3d vector_color(normal_vector(X_COMPONENT) / vector_length,
                                  normal_vector(Y_COMPONENT) / vector_length,
                                  normal_vector(Z_COMPONENT) / vector_length);
+
+          normal_vector = (1/vector_length) * normal_vector;
 
           vector_color *= 255;
           vector_color(X_COMPONENT) = std::abs(vector_color(X_COMPONENT));
