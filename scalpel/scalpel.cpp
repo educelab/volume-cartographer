@@ -3,10 +3,12 @@
 #include <algorithm>
 
 #include <opencv2/opencv.hpp>
+#include <pcl/io/pcd_io.h>
+#include <pcl/point_types.h>
 
 // behavior defnines
-#define BLUR_SIZE 13
-#define THRESHOLD 9.96659e+04
+#define BLUR_SIZE 3
+#define THRESHOLD 5.06659e+05
 #define DEPTH CV_64F
 #define PIXEL_DEPTH CV_64FC3
 
@@ -45,11 +47,15 @@ int scan_eigenvalues(EigenValues e) {
   e(0) = std::abs(e(0));
   e(1) = std::abs(e(1));
   e(2) = std::abs(e(2));
-  double m = std::max(e(0), std::max(e(1), e(2)));
+  double a = std::abs(e(0) - e(1));
+  double b = std::abs(e(1) - e(2));
+  double c = std::abs(e(2) - e(0));
+  double m = std::max(a, std::max(b, c));
+  double max = std::max(e(0), std::max(e(1), e(2)));
   if  (m < THRESHOLD) { return -1; }
-  if      (m == e(0)) { return 0; }
-  if      (m == e(1)) { return 1; }
-  if      (m == e(2)) { return 2; }
+  if      (max == e(0)) { return 0; }
+  if      (max == e(1)) { return 1; }
+  if      (max == e(2)) { return 2; }
   return -1;
 }
 
@@ -184,7 +190,9 @@ int main(int argc, char* argv[]) {
     }
 
     // run analysis on averaged tensors
-    cv::Mat arrow       = cv::Mat::zeros(center_image.size(), PIXEL_DEPTH);
+    cv::Mat arrow = cv::Mat::zeros(center_image.size(), PIXEL_DEPTH);
+    pcl::PointCloud<pcl::PointXYZRGBNormal> cloud;
+
     for (int i = 0; i < center_image.rows; ++i) {
       for (int j = 0; j < center_image.cols; ++j) {
         int index;
@@ -196,7 +204,14 @@ int main(int argc, char* argv[]) {
 
         if (index != -1) {
           cv::Matx<double, 1, DIMENSION> normal_vector = eigen_vectors.row(index);
-          cv::Point scroll_center(center_image.rows / 2, center_image.cols / 2);
+          cv::Matx<double, 1, DIMENSION> gravity;
+          gravity(X_COMPONENT) = 0;
+          gravity(Y_COMPONENT) = 0;
+          gravity(Z_COMPONENT) = 1;
+
+          // project gravity onto the plane defined by each normal
+          normal_vector = gravity - (gravity.dot(normal_vector)) / (normal_vector.dot(normal_vector)) * normal_vector;
+
 
           cv::Point arrow_offset(normal_vector(X_COMPONENT) * ARROW_SCALE,
                                  normal_vector(Y_COMPONENT) * ARROW_SCALE);
@@ -209,6 +224,8 @@ int main(int argc, char* argv[]) {
                                  normal_vector(Y_COMPONENT) / vector_length,
                                  normal_vector(Z_COMPONENT) / vector_length);
 
+          normal_vector = (1/vector_length) * normal_vector;
+
           vector_color *= 255;
           vector_color(X_COMPONENT) = std::abs(vector_color(X_COMPONENT));
           vector_color(Y_COMPONENT) = std::abs(vector_color(Y_COMPONENT));
@@ -218,11 +235,27 @@ int main(int argc, char* argv[]) {
                cv::Point(j, i),
                cv::Point(j, i) + arrow_offset,
                cv::Scalar(vector_color));
+
+          pcl::PointXYZRGBNormal point;
+          uint32_t color =
+            (uint32_t)vector_color(X_COMPONENT) |
+            (uint32_t)vector_color(Y_COMPONENT) << 8 |
+            (uint32_t)vector_color(Z_COMPONENT) << 16;
+          point.x = i;
+          point.y = j;
+          point.z = atoi(argv[5]);
+          point.rgb = *reinterpret_cast<float*>(&color);
+          point.normal[0] = normal_vector(X_COMPONENT);
+          point.normal[1] = normal_vector(Y_COMPONENT);
+          point.normal[2] = normal_vector(Z_COMPONENT);
+          cloud.push_back(point);
+
         }
       }
     }
 
     // write images to disk
+    pcl::io::savePCDFileASCII((std::string)"cloud"+ argv[5] +".pcd", cloud);
     cv::imwrite(argv[4], arrow);
   }
 

@@ -14,3 +14,6 @@ ENDIF(NOT CMAKE_BUILD_TYPE)
 add_executable(Histogram Histogram.cxx)
 
 target_link_libraries(Histogram ${ITK_LIBRARIES})
+find_package(OpenCV REQUIRED)
+add_executable(automask automask.cpp)
+target_link_libraries(automask ${OpenCV_LIBS})
