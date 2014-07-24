@@ -8,7 +8,9 @@
 #define REFERENCE "/Users/mike/Desktop/italia/003.tif"
 
 #define FIELDSIZE 400
-#define ITERATION 200
+#define ITERATION 1000
+
+#define SCALE 10
 
 #define SPRING_CONSTANT_K -0.1
 #define SPRING_RESTING_X 1
@@ -139,13 +141,13 @@ int main(int argc, char* argv[]) {
 
       for (point = cloud->begin(); point != cloud->end(); ++point) {
         int x, y, z;
-        x = point->x;
-        y = point->y;
+        y = point->x;
+        x = point->y;
         z = point->z;
 
-        field[x][y][z](0) = point->normal[0];
-        field[x][y][z](1) = point->normal[1];
-        field[x][y][z](2) = point->normal[2];
+        field[x][y][z](0) = point->normal[0]/SCALE;
+        field[x][y][z](1) = point->normal[1]/SCALE;
+        field[x][y][z](2) = point->normal[2]/SCALE;
 
         point_counter++;
 
