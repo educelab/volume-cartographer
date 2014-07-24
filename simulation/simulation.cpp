@@ -5,16 +5,20 @@
 #include <pcl/point_types.h>
 
 #define FIELDSIZE 400
-#define ITERATION 200
+#define ITERATION 400
+
+#define SPRING_CONSTANT_K -0.1
+#define SPRING_RESTING_X 1
 
 typedef cv::Vec3f Particle;
 typedef Particle Force;
 
 Force*** field;
+std::vector<Particle> particle;
 
 // based on the interpolation formula from
 // http://paulbourke.net/miscellaneous/interpolation/
-Force interpolate_force(Particle point) {
+Force interpolate_field(Particle point) {
   double dx, dy, dz, int_part;
   dx = modf(point(0), &int_part);
   dy = modf(point(1), &int_part);
@@ -39,6 +43,31 @@ Force interpolate_force(Particle point) {
     field[x_max][y_max][z_max] * dx       * dy       * dz;
 
   return vector;
+}
+
+Force spring_force(int index) {
+  Force f(0,0,0);
+  if (index != particle.size() - 1) {
+    Particle to_right = particle[index] - particle[index + 1];
+    double length = sqrt(to_right.dot(to_right));
+    normalize(to_right, to_right, SPRING_CONSTANT_K * (length - SPRING_RESTING_X));
+    f += to_right;
+  }
+  if (index != 0) {
+    Particle to_left = particle[index] - particle[index - 1];
+    double length = sqrt(to_left.dot(to_left));
+    normalize(to_left, to_left, SPRING_CONSTANT_K * (length - SPRING_RESTING_X));
+    f += to_left;
+  }
+  return f;
+}
+
+void update_particles() {
+  std::vector<Force> workspace(particle.size());
+  for(int i = 0; i < particle.size(); ++i)
+    workspace[i] = interpolate_field(particle[i]) + spring_force(i);
+  for(int i = 0; i < particle.size(); ++i)
+    particle[i] += workspace[i];
 }
 
 int main(int argc, char* argv[]) {
@@ -92,17 +121,10 @@ int main(int argc, char* argv[]) {
   // particles can be started anywhere
   // z=2 is the first index with nonzero
   // force field vectors in my test data
-  std::vector<Particle> particle;
+
   for (int i = 0; i < FIELDSIZE - 1; ++i) {
-    for (int j = 0; j < FIELDSIZE - 1; ++j) {
-      Particle p (i, j, 2);
-      Force force = interpolate_force(p);
-
-      if (force.dot(force) != 0) {
-        particle.push_back(p);
-      }
-
-    }
+    Particle p(i, 50, 2);
+    particle.push_back(p);
   }
 
   std::cout << std::endl << "running particle simulation" << std::endl;
@@ -116,12 +138,13 @@ int main(int argc, char* argv[]) {
 
     std::ofstream csv;
     csv.open((std::string)"particle.csv." + std::to_string(step));
-    csv << "x,y,z" <<std::endl;
+    csv << "x,y,z" << std::endl;
 
     for (int i = 0; i < particle.size(); ++i) {
       csv << particle[i](0) << "," << particle[i](1) << "," << particle[i](2) << std::endl;
-      particle[i] += interpolate_force(particle[i]);
     }
+
+    update_particles();
 
     csv.close();
   }
