@@ -10,9 +10,11 @@
 #define FIELDSIZE 400
 #define ITERATION 2000
 
+#define CHARGE 0.5
+
 #define SCALE 10
 
-#define SPRING_CONSTANT_K -0.1
+#define SPRING_CONSTANT_K -0.3
 #define SPRING_RESTING_X 0.25
 
 typedef uchar Color;
@@ -54,7 +56,7 @@ Force interpolate_field(Particle point) {
   return vector;
 }
 
-Color interpolate_intensity(Particle point) {
+double interpolate_intensity(Particle point) {
   double dx, dy, dz, int_part;
   dx = modf(point(0), &int_part);
   dy = modf(point(1), &int_part);
@@ -78,7 +80,7 @@ Color interpolate_intensity(Particle point) {
     color[x_max][y_max][z_min] * dx       * dy       * (1 - dz) +
     color[x_max][y_max][z_max] * dx       * dy       * dz;
 
-  return (Color)c;
+  return c;
 }
 
 Force spring_force(int index) {
@@ -98,10 +100,47 @@ Force spring_force(int index) {
   return f;
 }
 
+// lr force for page particle interaction
+Force intensity_charge(Particle point) {
+  Force f(0,0,0);
+  double interp = interpolate_intensity(point);
+  int x_min, x_max, y_min, y_max, z_min, z_max;
+  x_min = (int)point(0);
+  x_max = x_min + 1;
+  y_min = (int)point(1);
+  y_max = y_min + 1;
+  z_min = (int)point(2);
+  z_max = z_min + 1;
+
+  Force neighbor[8] = {
+    Force(x_min, y_min, z_min),
+    Force(x_max, y_min, z_min),
+    Force(x_min, y_max, z_min),
+    Force(x_min, y_min, z_max),
+    Force(x_max, y_max, z_min),
+    Force(x_max, y_min, z_max),
+    Force(x_min, y_max, z_max),
+    Force(x_max, y_max, z_max),
+  };
+
+  for (int i = 0; i < 8; ++i) {
+    if (interpolate_intensity(neighbor[i]) < interp) {
+      neighbor[i] = Force(0,0,0);
+    } else {
+      f += (neighbor[i] - point);
+    }
+  }
+  f(2) = 0;
+  if (f.dot(f) > CHARGE)
+    normalize(f, f, CHARGE);
+
+  return f;
+}
+
 void update_particles() {
   std::vector<Force> workspace(particle.size());
   for(int i = 0; i < particle.size(); ++i)
-    workspace[i] = interpolate_field(particle[i]) + spring_force(i);
+    workspace[i] = interpolate_field(particle[i]) + spring_force(i);// + intensity_charge(particle[i]);
   for(int i = 0; i < particle.size(); ++i)
     particle[i] += workspace[i];
 }
@@ -208,7 +247,7 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < particle.size(); ++i) {
       csv << particle[i](0) << "," << particle[i](1) << "," << particle[i](2) << std::endl;
 
-      uint32_t intensity = interpolate_intensity(particle[i]);
+      uint32_t intensity = (Color)interpolate_intensity(particle[i]);
 
       pcl::PointXYZRGB point;
       uint32_t color = intensity | intensity << 8 | intensity << 16;
