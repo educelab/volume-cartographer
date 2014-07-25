@@ -8,17 +8,20 @@
 #define REFERENCE "/Users/mike/Desktop/italia/003.tif"
 
 #define FIELDSIZE 400
-#define ITERATION 1000
+#define ITERATION 2000
 
 #define SCALE 10
 
 #define SPRING_CONSTANT_K -0.1
-#define SPRING_RESTING_X 1
+#define SPRING_RESTING_X 0.25
 
+typedef uchar Color;
 typedef cv::Vec3f Particle;
 typedef Particle Force;
 
 Force*** field;
+Color*** color;
+
 std::vector<Particle> particle;
 std::vector<cv::Point> click_list;
 
@@ -49,6 +52,33 @@ Force interpolate_field(Particle point) {
     field[x_max][y_max][z_max] * dx       * dy       * dz;
 
   return vector;
+}
+
+Color interpolate_intensity(Particle point) {
+  double dx, dy, dz, int_part;
+  dx = modf(point(0), &int_part);
+  dy = modf(point(1), &int_part);
+  dz = modf(point(2), &int_part);
+
+  int x_min, x_max, y_min, y_max, z_min, z_max;
+  x_min = (int)point(0);
+  x_max = x_min + 1;
+  y_min = (int)point(1);
+  y_max = y_min + 1;
+  z_min = (int)point(2);
+  z_max = z_min + 1;
+
+  double c =
+    color[x_min][y_min][z_min] * (1 - dx) * (1 - dy) * (1 - dz) +
+    color[x_max][y_min][z_min] * dx       * (1 - dy) * (1 - dz) +
+    color[x_min][y_max][z_min] * (1 - dx) * dy       * (1 - dz) +
+    color[x_min][y_min][z_max] * (1 - dx) * (1 - dy) * dz +
+    color[x_max][y_min][z_max] * dx       * (1 - dy) * dz +
+    color[x_min][y_max][z_max] * (1 - dx) * dy       * dz +
+    color[x_max][y_max][z_min] * dx       * dy       * (1 - dz) +
+    color[x_max][y_max][z_max] * dx       * dy       * dz;
+
+  return (Color)c;
 }
 
 Force spring_force(int index) {
@@ -109,25 +139,31 @@ int main(int argc, char* argv[]) {
     while (it.pos() != click_list[i]) {
       cv::Point pos = it.pos();
       particle.push_back(Particle(pos.x, pos.y, 3));
+      particle.push_back(Particle(pos.x+0.25, pos.y, 3));
+      particle.push_back(Particle(pos.x+0.5, pos.y, 3));
+      particle.push_back(Particle(pos.x+0.75, pos.y, 3));
       it++;
     }
   }
 
 
-  // allocate and initalize force field
+  // allocate and initalize force field/color field
   field = new Force**[FIELDSIZE];
+  color = new Color**[FIELDSIZE];
   for (int i = 0; i < FIELDSIZE; ++i) {
     field[i] = new Force*[FIELDSIZE];
+    color[i] = new Color*[FIELDSIZE];
     for (int j = 0; j < FIELDSIZE; ++j) {
       field[i][j] = new Force[FIELDSIZE];
+      color[i][j] = new Color[FIELDSIZE];
       for (int k = 0; k < FIELDSIZE; ++k) {
         field[i][j][k] = Force(0,0,0);
+        color[i][j][k] = 0;
       }
     }
   }
 
   // read points from files and add to force field
-  int point_counter = 0;
   pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGBNormal>);
   for (int i = 1; i < argc; ++i) {
     if (i && i % 10 == 0) {
@@ -149,27 +185,19 @@ int main(int argc, char* argv[]) {
         field[x][y][z](1) = point->normal[1]/SCALE;
         field[x][y][z](2) = point->normal[2]/SCALE;
 
-        point_counter++;
+        color[x][y][z] = (uchar)(*reinterpret_cast<uint32_t*>(&point->rgb) & 0x0000ff);
 
       }
     }
   }
 
-  // particles can be started anywhere
-  // z=2 is the first index with nonzero
-  // force field vectors in my test data
-
-  // for (int i = 0; i < FIELDSIZE - 1; ++i) {
-  //   Particle p(i, 50, 2);
-  //   particle.push_back(p);
-  // }
-
   std::cout << std::endl << "running particle simulation" << std::endl;
 
   // run particle simulation
+  pcl::PointCloud<pcl::PointXYZRGB> page;
   for (int step = 0; step < ITERATION; ++step) {
 
-    if (step && step % 10 == 0) {
+    if (step && step % 100 == 0) {
       std::cout << "step " << step << " completed" << std::endl;
     }
 
@@ -179,12 +207,26 @@ int main(int argc, char* argv[]) {
 
     for (int i = 0; i < particle.size(); ++i) {
       csv << particle[i](0) << "," << particle[i](1) << "," << particle[i](2) << std::endl;
+
+      uint32_t intensity = interpolate_intensity(particle[i]);
+
+      pcl::PointXYZRGB point;
+      uint32_t color = intensity | intensity << 8 | intensity << 16;
+      point.x = particle[i](0);
+      point.y = particle[i](1);
+      point.z = particle[i](2);
+      point.rgb = *reinterpret_cast<float*>(&color);
+
+      page.push_back(point);
+
     }
 
     update_particles();
 
     csv.close();
   }
+
+  pcl::io::savePCDFileASCII("page.pcd", page);
 
   exit(EXIT_SUCCESS);
 }
