@@ -4,17 +4,12 @@
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
 
-// TEMPORARY
-#define WINDOW "select"
-#define REFERENCE "/Users/mike/Desktop/italia/003.tif"
-
 // behavior defines
 #define FIELDSIZE 400
 #define ITERATION 3000
 #define CHARGE 0.01
 #define SCALE 10
 #define SPRING_CONSTANT_K -0.5
-#define SPRING_RESTING_X 0.25
 
 typedef uchar Color;
 typedef cv::Vec3f Particle;
@@ -28,13 +23,13 @@ Force spring_force(int);
 
 // support functions
 double interpolate_intensity(Particle);
-void add_particle_click(int, int, int, int, void*);
 
 // look but don't touch
 Force*** field;
 Color*** color;
 std::vector<Particle> particle_chain;
-std::vector<cv::Point> chain_landmark;
+std::vector<Particle> chain_landmark;
+double spring_resting_x;
 
 int main(int argc, char* argv[]) {
   if (argc == 1) {
@@ -42,37 +37,34 @@ int main(int argc, char* argv[]) {
     exit(EXIT_FAILURE);
   }
 
-  // TEMPORARY //
-  // manually pick landmarks on volume slice
-  cv::Mat ref = cv::imread(REFERENCE);
-  if(!ref.data) {
-    std::cout << "Error loading reference image" << std::endl;
-    return -1;
+  std::ifstream landmarks_file;
+  landmarks_file.open("landmarks.txt");
+  if (landmarks_file.fail()) {
+    std::cout << "landmarks.txt could not be opened" << std::endl;
+    exit(EXIT_FAILURE);
   }
-  cv::namedWindow(WINDOW, 1);
-  cv::setMouseCallback(WINDOW, add_particle_click, NULL);
-  imshow(WINDOW, ref);
-  cv::waitKey(0);
-  for (int i = 1; i < chain_landmark.size(); ++i) {
-    cv::line(ref, chain_landmark[i-1], chain_landmark[i], cv::Scalar(0,255,0));
+  while (!landmarks_file.eof()) {
+    double a, b;
+    landmarks_file >> a;
+    landmarks_file.get();
+    landmarks_file >> b;
+    chain_landmark.push_back(Particle(a, b, 3));
   }
-  imshow(WINDOW, ref);
-  cv::waitKey(0);
-  cv::destroyWindow(WINDOW);
-  // END TEMPORARY //
+  landmarks_file.close();
 
   // use landmarks to create chain of particles
+  particle_chain.push_back(chain_landmark[0]);
+  double total_delta = 0;
   for (int i = 1; i < chain_landmark.size(); ++i) {
-    cv::LineIterator it(ref, chain_landmark[i-1], chain_landmark[i]);
-    while (it.pos() != chain_landmark[i]) {
-      cv::Point pos = it.pos();
-      particle_chain.push_back(Particle(pos.x, pos.y, 3));
-      particle_chain.push_back(Particle(pos.x+0.25, pos.y, 3));
-      particle_chain.push_back(Particle(pos.x+0.5, pos.y, 3));
-      particle_chain.push_back(Particle(pos.x+0.75, pos.y, 3));
-      it++;
-    }
+    Force quarter = (chain_landmark[i] - chain_landmark[i-1]) / 4;
+    total_delta += sqrt(quarter.dot(quarter));
+
+    particle_chain.push_back(chain_landmark[i-1] + quarter);
+    particle_chain.push_back(chain_landmark[i-1] + quarter*2);
+    particle_chain.push_back(chain_landmark[i-1] + quarter*3);
+    particle_chain.push_back(chain_landmark[i]);
   }
+  spring_resting_x = total_delta / chain_landmark.size();
 
   // allocate and initalize force/color fields
   field = new Force**[FIELDSIZE];
@@ -251,13 +243,13 @@ Force spring_force(int index) {
   if (index != particle_chain.size() - 1) {
     Particle to_right = particle_chain[index] - particle_chain[index + 1];
     double length = sqrt(to_right.dot(to_right));
-    normalize(to_right, to_right, SPRING_CONSTANT_K * (length - SPRING_RESTING_X));
+    normalize(to_right, to_right, SPRING_CONSTANT_K * (length - spring_resting_x));
     f += to_right;
   }
   if (index != 0) {
     Particle to_left = particle_chain[index] - particle_chain[index - 1];
     double length = sqrt(to_left.dot(to_left));
-    normalize(to_left, to_left, SPRING_CONSTANT_K * (length - SPRING_RESTING_X));
+    normalize(to_left, to_left, SPRING_CONSTANT_K * (length - spring_resting_x));
     f += to_left;
   }
   return f;
@@ -289,10 +281,4 @@ double interpolate_intensity(Particle point) {
     color[x_max][y_max][z_max] * dx       * dy       * dz;
 
   return c;
-}
-
-// callback function for manual landmark picking
-void add_particle_click(int event, int x, int y, int flags, void* userdata) {
-  if  (event == cv::EVENT_LBUTTONDOWN)
-    chain_landmark.push_back(cv::Point(x, y));
 }
