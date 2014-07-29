@@ -129,8 +129,6 @@ int main(int argc, char* argv[]) {
     }
   }
 
-
-
   std::cout << std::endl << "running particle simulation" << std::endl;
   pcl::PointCloud<pcl::PointXYZRGB> page;
   for (int step = 0; step < ITERATION; ++step) {
