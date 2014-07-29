@@ -202,6 +202,17 @@ int main(int argc, char* argv[]) {
         EigenValues eigen_values;
         EigenVectors eigen_vectors;
 
+        pcl::PointXYZRGBNormal point;
+        uchar c = intensity.at<uchar>(i,j);
+        uint32_t color =
+          (uint32_t)c |
+          (uint32_t)c << 8 |
+          (uint32_t)c << 16;
+        point.rgb = *reinterpret_cast<float*>(&color);
+        point.x = i;
+        point.y = j;
+        point.z = atoi(argv[5]);
+
         eigen(*average[i][j], eigen_values, eigen_vectors);
         index = scan_eigenvalues(eigen_values);
 
@@ -215,23 +226,16 @@ int main(int argc, char* argv[]) {
           // project gravity onto the plane defined by each normal
           normal_vector = gravity - (gravity.dot(normal_vector)) / (normal_vector.dot(normal_vector)) * normal_vector;
 
-          uchar c = intensity.at<uchar>(i,j);
-
-          pcl::PointXYZRGBNormal point;
-          uint32_t color =
-            (uint32_t)c |
-            (uint32_t)c << 8 |
-            (uint32_t)c << 16;
-          point.x = i;
-          point.y = j;
-          point.z = atoi(argv[5]);
-          point.rgb = *reinterpret_cast<float*>(&color);
           point.normal[0] = normal_vector(X_COMPONENT);
           point.normal[1] = normal_vector(Y_COMPONENT);
           point.normal[2] = normal_vector(Z_COMPONENT);
-          cloud.push_back(point);
 
+        } else {
+          point.normal[0] = 0;
+          point.normal[1] = 0;
+          point.normal[2] = 0;
         }
+        cloud.push_back(point);
       }
     }
 
