@@ -24,7 +24,9 @@ typedef struct {
   uint v1, v2, v3;
 } Face;
 
-void update_mesh();
+void add_vertex(pcl::PointXYZRGB);
+void add_face(int, int, int);
+void write_mesh();
 
 // forces and particle management
 void update_particles();
@@ -154,30 +156,39 @@ int main(int argc, char* argv[]) {
       page.push_back(point);
 
       // build mesh
-      Vertex v;
-      v.x = point.x;
-      v.y = point.y;
-      v.z = point.z;
-      v.nx = 0;
-      v.ny = 0;
-      v.nz = 0;
-      v.s = 0;
-      v.t = 0;
-      v.r = point.r;
-      v.g = point.g;
-      v.b = point.b;
-      vertices.push_back(v);
+      add_vertex(point);
+      if (step > 0) {
+	if (i > 0) {
+	  int v1, v2, v3, v4, chain_length;
+	  chain_length = particle_chain.size();
+	  v1 = step * chain_length + i;
+	  v2 = v1 - 1;
+	  v3 = v2 - chain_length;
+	  v4 = v1 - chain_length;
+	  add_face(v1, v2, v3);
+	  add_face(v1, v3, v4);
+	}
+      }
     }
 
     update_particles();
-    update_mesh();
 
     csv.close();
   }
 
+  write_mesh();
+
+  pcl::io::savePCDFileASCII("page.pcd", page);
+  std::cout << "done" << std::endl;
+  exit(EXIT_SUCCESS);
+}
+
+void write_mesh() {
   std::ofstream meshFile;
   meshFile.open("mesh.ply");
-  std::cout << "Creating mesh file" << std::endl;
+  std::cout << "creating mesh file" << std::endl;
+
+  // write header
   meshFile << "ply" << std::endl
 	   << "format ascii 1.0" << std::endl
 	   << "comment Created by particle simulation https://github.com/viscenter/registration-toolkit" << std::endl
@@ -197,16 +208,53 @@ int main(int argc, char* argv[]) {
 	   << "property list uchar int vertex_indices" << std::endl
 	   << "end_header" << std::endl;
 
-  meshFile.close();
+  // write vertex information
+  for (int i = 0; i < vertices.size(); i++) {
+    Vertex v = vertices[i];
+    meshFile << v.x << " "
+	     << v.y << " "
+	     << v.z << " "
+	     << v.nx << " "
+	     << v.ny << " "
+	     << v.nz << " "
+	     << v.s << " "
+	     << v.t << " "
+	     << v.r << " "
+	     << v.g << " "
+	     << v.b << std::endl;
+  }
 
-  pcl::io::savePCDFileASCII("page.pcd", page);
-  std::cout << "done" << std::endl;
-  exit(EXIT_SUCCESS);
+  // write face information
+  for (int i = 0; i < faces.size(); i++) {
+    Face f = faces[i];
+    meshFile << "3 " << f.v1 << " " << f.v2 << " " << f.v3 << std::endl;
+  }
+
+  meshFile.close();
 }
 
-// called once for every timestep
-void update_mesh() {
-  
+void add_face(int v1, int v2, int v3) {
+  Face f;
+  f.v1 = v1;
+  f.v2 = v2;
+  f.v3 = v3;
+  faces.push_back(f);
+}
+
+void add_vertex(pcl::PointXYZRGB point) {
+  Vertex v;
+  v.x = point.x;
+  v.y = point.y;
+  v.z = point.z;
+  v.nx = 0;
+  v.ny = 0;
+  v.nz = 0;
+  v.s = 0;
+  v.t = 0;
+  v.r = point.r;
+  v.g = point.g;
+  v.b = point.b;
+  vertices.push_back(v);
 }
 
 // called once for every timestep
