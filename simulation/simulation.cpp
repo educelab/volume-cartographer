@@ -15,6 +15,17 @@ typedef uchar Color;
 typedef cv::Vec3f Particle;
 typedef Particle Force;
 
+typedef struct {
+  float x, y, z, nx, ny, nz, s, t;
+  uchar r, g, b;
+} Vertex;
+
+typedef struct {
+  uint v1, v2, v3;
+} Face;
+
+void update_mesh();
+
 // forces and particle management
 void update_particles();
 Force interpolate_field(Particle);
@@ -30,6 +41,8 @@ Color*** color;
 std::vector<Particle> particle_chain;
 std::vector<Particle> chain_landmark;
 double spring_resting_x;
+std::vector<Vertex> vertices;
+std::vector<Face> faces;
 
 int main(int argc, char* argv[]) {
   if (argc == 1) {
@@ -114,6 +127,8 @@ int main(int argc, char* argv[]) {
     }
   }
 
+
+
   std::cout << std::endl << "running particle simulation" << std::endl;
   pcl::PointCloud<pcl::PointXYZRGB> page;
   for (int step = 0; step < ITERATION; ++step) {
@@ -137,16 +152,61 @@ int main(int argc, char* argv[]) {
       point.z = particle_chain[i](2);
       point.rgb = *reinterpret_cast<float*>(&color);
       page.push_back(point);
+
+      // build mesh
+      Vertex v;
+      v.x = point.x;
+      v.y = point.y;
+      v.z = point.z;
+      v.nx = 0;
+      v.ny = 0;
+      v.nz = 0;
+      v.s = 0;
+      v.t = 0;
+      v.r = point.r;
+      v.g = point.g;
+      v.b = point.b;
+      vertices.push_back(v);
     }
 
     update_particles();
+    update_mesh();
 
     csv.close();
   }
 
+  std::ofstream meshFile;
+  meshFile.open("mesh.ply");
+  std::cout << "Creating mesh file" << std::endl;
+  meshFile << "ply" << std::endl
+	   << "format ascii 1.0" << std::endl
+	   << "comment Created by particle simulation https://github.com/viscenter/registration-toolkit" << std::endl
+	   << "element vertex " << vertices.size() << std::endl
+	   << "property float x" << std::endl
+	   << "property float y" << std::endl
+	   << "property float z" << std::endl
+	   << "property float nx" << std::endl
+	   << "property float ny" << std::endl
+	   << "property float nz" << std::endl
+	   << "property float s" << std::endl
+	   << "property float t" << std::endl
+	   << "property uchar red" << std::endl
+	   << "property uchar green" << std::endl
+	   << "property uchar blue" << std::endl
+	   << "element face " << faces.size() << std::endl
+	   << "property list uchar int vertex_indices" << std::endl
+	   << "end_header" << std::endl;
+
+  meshFile.close();
+
   pcl::io::savePCDFileASCII("page.pcd", page);
   std::cout << "done" << std::endl;
   exit(EXIT_SUCCESS);
+}
+
+// called once for every timestep
+void update_mesh() {
+  
 }
 
 // called once for every timestep
