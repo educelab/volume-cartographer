@@ -133,17 +133,9 @@ int main(int argc, char* argv[]) {
   std::cout << std::endl << "running particle simulation" << std::endl;
   pcl::PointCloud<pcl::PointXYZRGB> page;
   for (int step = 0; step < ITERATION; ++step) {
-    // print out csv at each timestep for particle visualization
-    std::ofstream csv;
-    csv.open((std::string)"particle.csv." + std::to_string(step));
-    csv << "x,y,z" << std::endl;
 
     // print data for looking at results
     for (int i = 0; i < particle_chain.size(); ++i) {
-      csv << particle_chain[i](0) << ","
-          << particle_chain[i](1) << ","
-          << particle_chain[i](2) << std::endl;
-
       uint32_t intensity = (Color)interpolate_intensity(particle_chain[i]);
       uint32_t color = intensity | intensity << 8 | intensity << 16;
 
@@ -171,8 +163,6 @@ int main(int argc, char* argv[]) {
     }
 
     update_particles();
-
-    csv.close();
   }
 
   write_mesh();

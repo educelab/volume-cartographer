@@ -240,7 +240,9 @@ int main(int argc, char* argv[]) {
     }
 
     // write images to disk
-    pcl::io::savePCDFileASCII((std::string)"cloud"+ argv[5] +".pcd", cloud);
+    char* cloud_level = (char*)malloc(32);
+    sprintf(cloud_level, "%03d", atoi(argv[5]));
+    pcl::io::savePCDFileASCII((std::string)"cloud"+ (std::string)cloud_level +".pcd", cloud);
   }
 
   exit(EXIT_SUCCESS);
