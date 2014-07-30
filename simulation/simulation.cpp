@@ -242,7 +242,7 @@ void add_face(int v1, int v2, int v3) {
   // calculate vertex normals (average of surface normals of each triangle)
 
   // get surface normal of this triangle
-  // variable names from http://math.stackexchange.com/questions/305642/how-to-find-surface-normal-of-a-triangle
+  // variable names from http://math.stackexchange.com/questions/305642
   double nx, ny, nz, vx, vy, vz, wx, wy, wz, magnitude;
 
   Vertex vt1 = vertices[v1];
