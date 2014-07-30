@@ -16,7 +16,7 @@ typedef cv::Vec3f Particle;
 typedef Particle Force;
 
 typedef struct {
-  float x, y, z, nx, ny, nz, s, t;
+  double x, y, z, nx, ny, nz, s, t;
   uint r, g, b, face_count;
 } Vertex;
 
@@ -26,7 +26,7 @@ typedef struct {
 
 void add_vertex(pcl::PointXYZRGB);
 void add_face(int, int, int);
-void update_normal(int, float, float, float);
+void update_normal(int, double, double, double);
 void write_mesh();
 
 // forces and particle management
@@ -243,7 +243,7 @@ void add_face(int v1, int v2, int v3) {
 
   // get surface normal of this triangle
   // variable names from http://math.stackexchange.com/questions/305642/how-to-find-surface-normal-of-a-triangle
-  float nx, ny, nz, vx, vy, vz, wx, wy, wz, magnitude;
+  double nx, ny, nz, vx, vy, vz, wx, wy, wz, magnitude;
 
   Vertex vt1 = vertices[v1];
   Vertex vt2 = vertices[v2];
@@ -273,8 +273,14 @@ void add_face(int v1, int v2, int v3) {
   update_normal(v3, nx, ny, nz);
 }
 
-void update_normal(int vertex, float nx, float ny, float nz) {
-
+void update_normal(int vertex, double nx_in, double ny_in, double nz_in) {
+  // recalculate average (unaverage, add new component, recalculate average)
+  Vertex v = vertices[vertex];
+  v.nx = (v.nx * v.face_count + nx_in) / (v.face_count + 1);
+  v.ny = (v.ny * v.face_count + ny_in) / (v.face_count + 1);
+  v.nz = (v.nz * v.face_count + nz_in) / (v.face_count + 1);
+  v.face_count++;
+  vertices[vertex] = v;
 }
 
 void add_vertex(pcl::PointXYZRGB point) {
