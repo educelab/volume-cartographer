@@ -47,6 +47,10 @@ double spring_resting_x;
 std::vector<Vertex> vertices;
 std::vector<Face> faces;
 
+std::set<std::string> field_slices;
+std::set<int> slices_loaded;
+std::set<int> slices_seen;
+
 int main(int argc, char* argv[]) {
   if (argc == 1) {
     std::cout << "FEED MEEE" << std::endl;
@@ -98,17 +102,21 @@ int main(int argc, char* argv[]) {
     }
   }
 
+  for (int i = 1; i < argc; ++i) {
+    field_slices.insert((std::string)argv[i]);
+  }
+
   // read points and add to force field
   pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGBNormal>);
-  for (int i = 1; i < argc; ++i) {
+  for (std::set<std::string>::iterator it = field_slices.begin(); it != field_slices.end(); ++it) {
 
     // reading the force field takes a while
     // let the user know that something is happening
-    if (i && i % 10 == 0) {
-      std::cout << i << " files read" << std::endl;
-    }
+    // if (i && i % 10 == 0) {
+    //   std::cout << i << " files read" << std::endl;
+    // }
 
-    if (pcl::io::loadPCDFile<pcl::PointXYZRGBNormal> (argv[i], *cloud) == -1) {
+    if (pcl::io::loadPCDFile<pcl::PointXYZRGBNormal> (*it, *cloud) == -1) {
       PCL_ERROR ("couldn't read file\n");
       exit(EXIT_FAILURE);
     }
@@ -293,7 +301,7 @@ void add_vertex(pcl::PointXYZRGB point) {
 // called once for every timestep
 void update_particles() {
   std::vector<Force> workspace(particle_chain.size());
-
+  slices_seen.clear();
   for(int i = 0; i < particle_chain.size(); ++i)
     particle_chain[i] += intensity_field(particle_chain[i]);
 
@@ -323,6 +331,9 @@ Force interpolate_field(Particle point) {
   y_max = y_min + 1;
   z_min = (int)point(2);
   z_max = z_min + 1;
+
+  slices_seen.insert(z_min);
+  slices_seen.insert(z_max);
 
   Force vector =
     field[x_min][y_min][z_min] * (1 - dx) * (1 - dy) * (1 - dz) +
