@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
     landmarks_file >> a;
     landmarks_file.get();
     landmarks_file >> b;
-    chain_landmark.push_back(Particle(a, b, 3));
+    chain_landmark.push_back(Particle(3, a, b));
   }
   landmarks_file.close();
 
@@ -110,12 +110,6 @@ int main(int argc, char* argv[]) {
   pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGBNormal>);
   for (std::set<std::string>::iterator it = field_slices.begin(); it != field_slices.end(); ++it) {
 
-    // reading the force field takes a while
-    // let the user know that something is happening
-    // if (i && i % 10 == 0) {
-    //   std::cout << i << " files read" << std::endl;
-    // }
-
     if (pcl::io::loadPCDFile<pcl::PointXYZRGBNormal> (*it, *cloud) == -1) {
       PCL_ERROR ("couldn't read file\n");
       exit(EXIT_FAILURE);
@@ -125,13 +119,13 @@ int main(int argc, char* argv[]) {
       pcl::PointCloud<pcl::PointXYZRGBNormal>::iterator point;
       for (point = cloud->begin(); point != cloud->end(); ++point) {
         int x, y, z;
-        y = point->x; // you monster
-        x = point->y;
-        z = point->z;
+        x = point->z; // you monster
+        y = point->y;
+        z = point->x;
 
-        field[x][y][z](0) = point->normal[0]/SCALE;
-        field[x][y][z](1) = point->normal[1]/SCALE;
-        field[x][y][z](2) = point->normal[2]/SCALE;
+        field[x][y][z](0) = point->normal[2]/SCALE;
+        field[x][y][z](1) = point->normal[0]/SCALE;
+        field[x][y][z](2) = point->normal[1]/SCALE;
 
         color[x][y][z] = (uchar)(*reinterpret_cast<uint32_t*>(&point->rgb) & 0x0000ff);
       }
