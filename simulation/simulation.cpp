@@ -31,6 +31,7 @@ void write_mesh();
 
 // forces and particle management
 void update_particles();
+void update_field();
 Force interpolate_field(Particle);
 Force intensity_field(Particle);
 Force spring_force(int);
@@ -92,6 +93,7 @@ int main(int argc, char* argv[]) {
   for (int i = 0; i < FIELDSIZE; ++i) {
     field[i] = new Force*[FIELDSIZE];
     color[i] = new Color*[FIELDSIZE];
+    slices_loaded.insert(i);
     for (int j = 0; j < FIELDSIZE; ++j) {
       field[i][j] = new Force[FIELDSIZE];
       color[i][j] = new Color[FIELDSIZE];
@@ -135,7 +137,6 @@ int main(int argc, char* argv[]) {
   std::cout << std::endl << "running particle simulation" << std::endl;
   pcl::PointCloud<pcl::PointXYZRGB> page;
   for (int step = 0; step < ITERATION; ++step) {
-
     // print data for looking at results
     for (int i = 0; i < particle_chain.size(); ++i) {
       uint32_t intensity = (Color)interpolate_intensity(particle_chain[i]);
@@ -151,20 +152,21 @@ int main(int argc, char* argv[]) {
       // build mesh
       add_vertex(point);
       if (step > 0) {
-	if (i > 0) {
-	  int v1, v2, v3, v4, chain_length;
-	  chain_length = particle_chain.size();
-	  v1 = step * chain_length + i;
-	  v2 = v1 - 1;
-	  v3 = v2 - chain_length;
-	  v4 = v1 - chain_length;
-	  add_face(v1, v2, v3);
-	  add_face(v1, v3, v4);
-	}
+        if (i > 0) {
+          int v1, v2, v3, v4, chain_length;
+          chain_length = particle_chain.size();
+          v1 = step * chain_length + i;
+          v2 = v1 - 1;
+          v3 = v2 - chain_length;
+          v4 = v1 - chain_length;
+          add_face(v1, v2, v3);
+          add_face(v1, v3, v4);
+        }
       }
     }
 
     update_particles();
+    update_field();
   }
 
   write_mesh();
@@ -181,38 +183,38 @@ void write_mesh() {
 
   // write header
   meshFile << "ply" << std::endl
-	   << "format ascii 1.0" << std::endl
-	   << "comment Created by particle simulation https://github.com/viscenter/registration-toolkit" << std::endl
-	   << "element vertex " << vertices.size() << std::endl
-	   << "property float x" << std::endl
-	   << "property float y" << std::endl
-	   << "property float z" << std::endl
-	   << "property float nx" << std::endl
-	   << "property float ny" << std::endl
-	   << "property float nz" << std::endl
-	   << "property float s" << std::endl
-	   << "property float t" << std::endl
-	   << "property uchar red" << std::endl
-	   << "property uchar green" << std::endl
-	   << "property uchar blue" << std::endl
-	   << "element face " << faces.size() << std::endl
-	   << "property list uchar int vertex_indices" << std::endl
-	   << "end_header" << std::endl;
+           << "format ascii 1.0" << std::endl
+           << "comment Created by particle simulation https://github.com/viscenter/registration-toolkit" << std::endl
+           << "element vertex " << vertices.size() << std::endl
+           << "property float x" << std::endl
+           << "property float y" << std::endl
+           << "property float z" << std::endl
+           << "property float nx" << std::endl
+           << "property float ny" << std::endl
+           << "property float nz" << std::endl
+           << "property float s" << std::endl
+           << "property float t" << std::endl
+           << "property uchar red" << std::endl
+           << "property uchar green" << std::endl
+           << "property uchar blue" << std::endl
+           << "element face " << faces.size() << std::endl
+           << "property list uchar int vertex_indices" << std::endl
+           << "end_header" << std::endl;
 
   // write vertex information
   for (int i = 0; i < vertices.size(); i++) {
     Vertex v = vertices[i];
     meshFile << v.x << " "
-	     << v.y << " "
-	     << v.z << " "
-	     << v.nx << " "
-	     << v.ny << " "
-	     << v.nz << " "
-	     << v.s << " "
-	     << v.t << " "
-	     << v.r << " "
-	     << v.g << " "
-	     << v.b << std::endl;
+             << v.y << " "
+             << v.z << " "
+             << v.nx << " "
+             << v.ny << " "
+             << v.nz << " "
+             << v.s << " "
+             << v.t << " "
+             << v.r << " "
+             << v.g << " "
+             << v.b << std::endl;
   }
 
   // write face information
@@ -240,7 +242,7 @@ void add_face(int v1, int v2, int v3) {
   Vertex vt1 = vertices[v1];
   Vertex vt2 = vertices[v2];
   Vertex vt3 = vertices[v3];
-  
+
   vx = vt2.x - vt1.x;
   vy = vt2.y - vt1.y;
   vz = vt2.z - vt1.z;
@@ -309,6 +311,26 @@ void update_particles() {
     particle_chain[i] += spring_force(i);
 }
 
+void update_field() {
+  int first_seen = *slices_seen.begin();
+  std::vector<int> to_erase;
+  for (std::set<int>::iterator it = slices_loaded.begin(); it != slices_loaded.end(); ++it) {
+    if (*it < first_seen) {
+      to_erase.push_back(*it);
+
+      for (int i = 0; i < FIELDSIZE; ++i) {
+        delete field[*it][i];
+      }
+      delete field[*it];
+      field[*it] = NULL;
+    }
+  }
+
+  for (int i = 0; i < to_erase.size(); ++i) {
+    slices_loaded.erase(to_erase[i]);
+  }
+}
+
 
 // based on the interpolation formula from
 // http://paulbourke.net/miscellaneous/interpolation/
@@ -326,8 +348,8 @@ Force interpolate_field(Particle point) {
   z_min = (int)point(2);
   z_max = z_min + 1;
 
-  slices_seen.insert(z_min);
-  slices_seen.insert(z_max);
+  slices_seen.insert(x_min);
+  slices_seen.insert(x_max);
 
   Force vector =
     field[x_min][y_min][z_min] * (1 - dx) * (1 - dy) * (1 - dz) +
