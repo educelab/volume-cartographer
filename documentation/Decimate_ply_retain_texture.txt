@@ -1,4 +1,4 @@
-Steps to start with a Standford .ply mesh file with verteex coloring, and end with a decimated Wavefront .obj mesh and texture image.
+Steps to start with a Standford .ply mesh file with vertex coloring, and end with a decimated Wavefront .obj mesh and texture image.
 Used for flattening.
 
 1. Open MeshLab
