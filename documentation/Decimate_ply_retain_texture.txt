@@ -13,3 +13,5 @@ Used for flattening.
 10. Filters -> Texture -> Transfer Vertex Attributes to Texture (between 2 meshes) (Source Mesh = original, Target Mesh = decimated copy, Color Data Source = Vertex Color, Texture Width/height = 4096 px, Assign Texture = Yes, Fill Texture = Yes)
 11. Make original mesh invisible and admire your work
 12. Export mesh as... (.obj again, save the texture image as well)
+
+MeshLab occasionally complains about running out of memory, for no apparent reason.
