@@ -6,6 +6,8 @@
 
 // behavior defines
 #define FIELDSIZE 400
+#define NUMSLICES 400
+#define LOADFILES 3
 #define ITERATION 3000
 #define CHARGE 0.01
 #define SCALE 10
@@ -32,6 +34,7 @@ void write_mesh();
 // forces and particle management
 void update_particles();
 void update_field();
+void add_slices();
 Force interpolate_field(Particle);
 Force intensity_field(Particle);
 Force spring_force(int);
@@ -49,6 +52,7 @@ std::vector<Vertex> vertices;
 std::vector<Face> faces;
 
 std::set<std::string> field_slices;
+std::set<std::string>::iterator slice_iterator;
 std::set<int> slices_loaded;
 std::set<int> slices_seen;
 
@@ -88,56 +92,25 @@ int main(int argc, char* argv[]) {
   spring_resting_x = total_delta / chain_landmark.size();
 
   // allocate and initalize force/color fields
-  field = new Force**[FIELDSIZE];
-  color = new Color**[FIELDSIZE];
-  for (int i = 0; i < FIELDSIZE; ++i) {
-    field[i] = new Force*[FIELDSIZE];
-    color[i] = new Color*[FIELDSIZE];
-    slices_loaded.insert(i);
-    for (int j = 0; j < FIELDSIZE; ++j) {
-      field[i][j] = new Force[FIELDSIZE];
-      color[i][j] = new Color[FIELDSIZE];
-      for (int k = 0; k < FIELDSIZE; ++k) {
-        field[i][j][k] = Force(0,0,0);
-        color[i][j][k] = 0;
-      }
-    }
+  field = new Force**[NUMSLICES];
+  color = new Color**[NUMSLICES];
+  for (int i = 0; i < NUMSLICES; ++i) {
+    field[i] = NULL;
+    color[i] = NULL;
   }
 
   for (int i = 1; i < argc; ++i) {
     field_slices.insert((std::string)argv[i]);
   }
 
-  // read points and add to force field
-  pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGBNormal>);
-  for (std::set<std::string>::iterator it = field_slices.begin(); it != field_slices.end(); ++it) {
+  slice_iterator = field_slices.begin();
 
-    if (pcl::io::loadPCDFile<pcl::PointXYZRGBNormal> (*it, *cloud) == -1) {
-      PCL_ERROR ("couldn't read file\n");
-      exit(EXIT_FAILURE);
-    }
-
-    else {
-      pcl::PointCloud<pcl::PointXYZRGBNormal>::iterator point;
-      for (point = cloud->begin(); point != cloud->end(); ++point) {
-        int x, y, z;
-        x = point->z; // you monster
-        y = point->y;
-        z = point->x;
-
-        field[x][y][z](0) = point->normal[2]/SCALE;
-        field[x][y][z](1) = point->normal[0]/SCALE;
-        field[x][y][z](2) = point->normal[1]/SCALE;
-
-        color[x][y][z] = (uchar)(*reinterpret_cast<uint32_t*>(&point->rgb) & 0x0000ff);
-      }
-    }
+  for (int i = 0; i < 3; ++i) {
+    add_slices();
   }
 
-  std::cout << std::endl << "running particle simulation" << std::endl;
   pcl::PointCloud<pcl::PointXYZRGB> page;
   for (int step = 0; step < ITERATION; ++step) {
-    // print data for looking at results
     for (int i = 0; i < particle_chain.size(); ++i) {
       uint32_t intensity = (Color)interpolate_intensity(particle_chain[i]);
       uint32_t color = intensity | intensity << 8 | intensity << 16;
@@ -164,7 +137,6 @@ int main(int argc, char* argv[]) {
         }
       }
     }
-
     update_particles();
     update_field();
   }
@@ -317,17 +289,65 @@ void update_field() {
   for (std::set<int>::iterator it = slices_loaded.begin(); it != slices_loaded.end(); ++it) {
     if (*it < first_seen) {
       to_erase.push_back(*it);
-
       for (int i = 0; i < FIELDSIZE; ++i) {
         delete field[*it][i];
+        delete color[*it][i];
       }
       delete field[*it];
+      delete color[*it];
       field[*it] = NULL;
+      color[*it] = NULL;
     }
   }
-
   for (int i = 0; i < to_erase.size(); ++i) {
+    std::cout << "deleting slice " << to_erase[i] << std::endl;
     slices_loaded.erase(to_erase[i]);
+  }
+  if (*slices_loaded.rbegin() == *slices_seen.rbegin()) {
+    add_slices();
+  }
+}
+
+void add_slices() {
+  pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGBNormal>);
+  int last_x = 0;
+  for (int i = 0; i < LOADFILES && slice_iterator != field_slices.end(); ++i , ++slice_iterator) {
+    std::cout << "loading " << *slice_iterator << std::endl;
+    if (pcl::io::loadPCDFile<pcl::PointXYZRGBNormal> (*slice_iterator, *cloud) == -1) {
+      PCL_ERROR ("couldn't read file\n");
+      exit(EXIT_FAILURE);
+    }
+
+    else {
+      pcl::PointCloud<pcl::PointXYZRGBNormal>::iterator point;
+      for (point = cloud->begin(); point != cloud->end(); ++point) {
+        int x, y, z;
+        x = point->z; // you monster
+        y = point->y;
+        z = point->x;
+
+        if (field[x] == NULL) {
+          slices_loaded.insert(x);
+          last_x = x;
+          field[x] = new Force*[FIELDSIZE];
+          color[x] = new Color*[FIELDSIZE];
+          for (int j = 0; j < FIELDSIZE; ++j) {
+            field[x][j] = new Force[FIELDSIZE];
+            color[x][j] = new Color[FIELDSIZE];
+            for (int k = 0; k < FIELDSIZE; ++k) {
+              field[x][j][k] = Force(0,0,0);
+              color[x][j][k] = 0;
+            }
+          }
+        }
+
+        field[x][y][z](0) = point->normal[2]/SCALE;
+        field[x][y][z](1) = point->normal[0]/SCALE;
+        field[x][y][z](2) = point->normal[1]/SCALE;
+
+        color[x][y][z] = (uchar)(*reinterpret_cast<uint32_t*>(&point->rgb) & 0x0000ff);
+      }
+    }
   }
 }
 
@@ -350,6 +370,10 @@ Force interpolate_field(Particle point) {
 
   slices_seen.insert(x_min);
   slices_seen.insert(x_max);
+
+  if (field[x_max] == NULL ||
+      field[x_max][y_max] == NULL)
+    return Force(0,0,0);
 
   Force vector =
     field[x_min][y_min][z_min] * (1 - dx) * (1 - dy) * (1 - dz) +
@@ -437,6 +461,10 @@ double interpolate_intensity(Particle point) {
   y_max = y_min + 1;
   z_min = (int)point(2);
   z_max = z_min + 1;
+
+  if (color[x_max] == NULL ||
+      color[x_max][y_max] == NULL)
+    return 0;
 
   double c =
     color[x_min][y_min][z_min] * (1 - dx) * (1 - dy) * (1 - dz) +
