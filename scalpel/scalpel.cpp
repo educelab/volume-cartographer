@@ -190,14 +190,28 @@ int main(int argc, char* argv[]) {
     }
 
     // run analysis on averaged tensors
-    cv::Mat arrow = cv::Mat::zeros(center_image.size(), PIXEL_DEPTH);
-    pcl::PointCloud<pcl::PointXYZRGBNormal> cloud;
+    std::string original = argv[2];
+    original.resize(original.length() - 3);
+    cv::Mat intensity = cv::imread(original + "tif");
+    cvtColor(intensity, intensity, CV_BGR2GRAY);
 
+    pcl::PointCloud<pcl::PointXYZRGBNormal> cloud;
     for (int i = 0; i < center_image.rows; ++i) {
       for (int j = 0; j < center_image.cols; ++j) {
         int index;
         EigenValues eigen_values;
         EigenVectors eigen_vectors;
+
+        pcl::PointXYZRGBNormal point;
+        uchar c = intensity.at<uchar>(i,j);
+        uint32_t color =
+          (uint32_t)c |
+          (uint32_t)c << 8 |
+          (uint32_t)c << 16;
+        point.rgb = *reinterpret_cast<float*>(&color);
+        point.x = i;
+        point.y = j;
+        point.z = atoi(argv[5]);
 
         eigen(*average[i][j], eigen_values, eigen_vectors);
         index = scan_eigenvalues(eigen_values);
@@ -212,51 +226,23 @@ int main(int argc, char* argv[]) {
           // project gravity onto the plane defined by each normal
           normal_vector = gravity - (gravity.dot(normal_vector)) / (normal_vector.dot(normal_vector)) * normal_vector;
 
-
-          cv::Point arrow_offset(normal_vector(X_COMPONENT) * ARROW_SCALE,
-                                 normal_vector(Y_COMPONENT) * ARROW_SCALE);
-
-          double vector_length = sqrt(normal_vector(X_COMPONENT) * normal_vector(X_COMPONENT) +
-                                      normal_vector(Y_COMPONENT) * normal_vector(Y_COMPONENT) +
-                                      normal_vector(Z_COMPONENT) * normal_vector(Z_COMPONENT));
-
-          cv::Vec3d vector_color(normal_vector(X_COMPONENT) / vector_length,
-                                 normal_vector(Y_COMPONENT) / vector_length,
-                                 normal_vector(Z_COMPONENT) / vector_length);
-
-          normal_vector = (1/vector_length) * normal_vector;
-
-          vector_color *= 255;
-          vector_color(X_COMPONENT) = std::abs(vector_color(X_COMPONENT));
-          vector_color(Y_COMPONENT) = std::abs(vector_color(Y_COMPONENT));
-          vector_color(Z_COMPONENT) = std::abs(vector_color(Z_COMPONENT));
-
-          line(arrow,
-               cv::Point(j, i),
-               cv::Point(j, i) + arrow_offset,
-               cv::Scalar(vector_color));
-
-          pcl::PointXYZRGBNormal point;
-          uint32_t color =
-            (uint32_t)vector_color(X_COMPONENT) |
-            (uint32_t)vector_color(Y_COMPONENT) << 8 |
-            (uint32_t)vector_color(Z_COMPONENT) << 16;
-          point.x = i;
-          point.y = j;
-          point.z = atoi(argv[5]);
-          point.rgb = *reinterpret_cast<float*>(&color);
           point.normal[0] = normal_vector(X_COMPONENT);
           point.normal[1] = normal_vector(Y_COMPONENT);
           point.normal[2] = normal_vector(Z_COMPONENT);
-          cloud.push_back(point);
 
+        } else {
+          point.normal[0] = 0;
+          point.normal[1] = 0;
+          point.normal[2] = 0;
         }
+        cloud.push_back(point);
       }
     }
 
     // write images to disk
-    pcl::io::savePCDFileASCII((std::string)"cloud"+ argv[5] +".pcd", cloud);
-    cv::imwrite(argv[4], arrow);
+    char* cloud_level = (char*)malloc(32);
+    sprintf(cloud_level, "%03d", atoi(argv[5]));
+    pcl::io::savePCDFileASCII((std::string)"cloud"+ (std::string)cloud_level +".pcd", cloud);
   }
 
   exit(EXIT_SUCCESS);

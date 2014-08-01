@@ -1,0 +1,15 @@
+Steps to start with a Standford .ply mesh file with vertex coloring, and end with a decimated Wavefront .obj mesh and texture image.
+Used for flattening.
+
+1. Open MeshLab
+2. Import Mesh
+3. Show Layer Dialog
+4. Right click on layer -> Duplicate current layer
+5. Select duplicate layer
+6. Filters -> Remeshing, Simplification and Reconstruction -> Quadric Edge Collapse Decimation (Percentage Reduction = 0.1, Uncheck all boxes)
+7. Apply twice (End result is 0.01 reduction but two steps of 0.1 gives better result)
+8. Filters -> Texture -> Parametrization: Trivial Per-Triangle (Texture Dimension = 4096 px)
+9. Export mesh as... (save as .obj format so it has texture information)
+10. Filters -> Texture -> Transfer Vertex Attributes to Texture (between 2 meshes) (Source Mesh = original, Target Mesh = decimated copy, Color Data Source = Vertex Color, Texture Width/height = 4096 px, Assign Texture = Yes, Fill Texture = Yes)
+11. Make original mesh invisible and admire your work
+12. Export mesh as... (.obj again, save the texture image as well)
