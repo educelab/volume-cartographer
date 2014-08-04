@@ -62,16 +62,16 @@ int scan_eigenvalues(EigenValues e) {
 // import scroll
 // scroll.unwrap()
 int main(int argc, char* argv[]) {
-  if (argc < 5) {
+  if (argc < 4) {
     std::cout << "Usage: "
               << argv[0]
-              << " leftimage centerimage rightimage outputimage [tensor?]"
+              << " leftimage centerimage rightimage [tensor?]"
               << std::endl;
     exit(EXIT_FAILURE);
   }
 
   // create gradient images
-  if (argc == 5) {
+  if (argc == 4) {
     std::cout << "creating gradient image of " << argv[2] << std::endl;
 
     // load images
@@ -125,13 +125,15 @@ int main(int argc, char* argv[]) {
     }
 
     // write gradient image to disk
-    cv::FileStorage fs(argv[4], cv::FileStorage::WRITE);
+    std::string original = argv[2];
+    original.resize(original.length() - 3);
+    cv::FileStorage fs(original + "yml", cv::FileStorage::WRITE);
     fs << "gradient" << xyz_gradient;
   }
 
   // construct and analyze structure tensors
   else {
-    std::cout << "analyzing gradient images to produce " << argv[4] << std::endl;
+    std::cout << "running tensor analysis on " << argv[2] << std::endl;
 
     cv::Mat left_image, center_image, right_image;
     cv::FileStorage left(argv[1], cv::FileStorage::READ);
@@ -211,7 +213,7 @@ int main(int argc, char* argv[]) {
         point.rgb = *reinterpret_cast<float*>(&color);
         point.x = i;
         point.y = j;
-        point.z = atoi(argv[5]);
+        point.z = atoi(argv[4]);
 
         eigen(*average[i][j], eigen_values, eigen_vectors);
         index = scan_eigenvalues(eigen_values);
@@ -241,7 +243,7 @@ int main(int argc, char* argv[]) {
 
     // write images to disk
     char* cloud_level = (char*)malloc(32);
-    sprintf(cloud_level, "%03d", atoi(argv[5]));
+    sprintf(cloud_level, "%03d", atoi(argv[4]));
     pcl::io::savePCDFileASCII((std::string)"cloud"+ (std::string)cloud_level +".pcd", cloud);
   }
 

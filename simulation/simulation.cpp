@@ -26,6 +26,7 @@ typedef struct {
   uint v1, v2, v3;
 } Face;
 
+// mesh generation
 void add_vertex(pcl::PointXYZRGB);
 void add_face(int, int, int);
 void update_normal(int, double, double, double);
@@ -45,9 +46,11 @@ double interpolate_intensity(Particle);
 // look but don't touch
 Force*** field;
 Color*** color;
+
 std::vector<Particle> particle_chain;
 std::vector<Particle> chain_landmark;
 double spring_resting_x;
+
 std::vector<Vertex> vertices;
 std::vector<Face> faces;
 
@@ -62,6 +65,7 @@ int main(int argc, char* argv[]) {
     exit(EXIT_FAILURE);
   }
 
+  // read particle chain landmarks
   std::ifstream landmarks_file;
   landmarks_file.open("landmarks.txt");
   if (landmarks_file.fail()) {
@@ -99,16 +103,18 @@ int main(int argc, char* argv[]) {
     color[i] = NULL;
   }
 
+  // save command line arguments for iteration
   for (int i = 1; i < argc; ++i) {
     field_slices.insert((std::string)argv[i]);
   }
-
   slice_iterator = field_slices.begin();
 
+  // add some slices to start the simulation
   for (int i = 0; i < 3; ++i) {
     add_slices();
   }
 
+  // run particle simulation
   pcl::PointCloud<pcl::PointXYZRGB> page;
   for (int step = 0; step < ITERATION; ++step) {
     for (int i = 0; i < particle_chain.size(); ++i) {
@@ -141,10 +147,11 @@ int main(int argc, char* argv[]) {
     update_field();
   }
 
+  // write results to disk
   write_mesh();
-
   pcl::io::savePCDFileASCII("page.pcd", page);
   std::cout << "done" << std::endl;
+
   exit(EXIT_SUCCESS);
 }
 
@@ -268,7 +275,6 @@ void add_vertex(pcl::PointXYZRGB point) {
 
 // called once for every timestep
 void update_particles() {
-  std::vector<Force> workspace(particle_chain.size());
   slices_seen.clear();
   for(int i = 0; i < particle_chain.size(); ++i)
     particle_chain[i] += intensity_field(particle_chain[i]);
@@ -283,6 +289,7 @@ void update_particles() {
     particle_chain[i] += spring_force(i);
 }
 
+// remove/add slices as needed
 void update_field() {
   int first_seen = *slices_seen.begin();
   std::vector<int> to_erase;
@@ -344,7 +351,6 @@ void add_slices() {
         field[x][y][z](0) = point->normal[2]/SCALE;
         field[x][y][z](1) = point->normal[0]/SCALE;
         field[x][y][z](2) = point->normal[1]/SCALE;
-
         color[x][y][z] = (uchar)(*reinterpret_cast<uint32_t*>(&point->rgb) & 0x0000ff);
       }
     }
