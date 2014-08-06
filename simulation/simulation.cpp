@@ -377,8 +377,8 @@ Force interpolate_field(Particle point) {
   slices_seen.insert(x_min);
   slices_seen.insert(x_max);
 
-  if (field[x_max] == NULL ||
-      field[x_max][y_max] == NULL)
+  if (field[x_min] == NULL ||
+      field[x_max] == NULL)
     return Force(0,0,0);
 
   Force vector =
@@ -468,8 +468,8 @@ double interpolate_intensity(Particle point) {
   z_min = (int)point(2);
   z_max = z_min + 1;
 
-  if (color[x_max] == NULL ||
-      color[x_max][y_max] == NULL)
+  if (color[x_min] == NULL ||
+      color[x_max] == NULL)
     return 0;
 
   double c =
