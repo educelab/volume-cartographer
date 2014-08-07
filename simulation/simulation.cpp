@@ -60,14 +60,14 @@ std::set<int> slices_loaded;
 std::set<int> slices_seen;
 
 int main(int argc, char* argv[]) {
-  if (argc == 1) {
+  if (argc < 3) {
     std::cout << "FEED MEEE" << std::endl;
     exit(EXIT_FAILURE);
   }
 
   // read particle chain landmarks
   std::ifstream landmarks_file;
-  landmarks_file.open("landmarks.txt");
+  landmarks_file.open(argv[1]);
   if (landmarks_file.fail()) {
     std::cout << "landmarks.txt could not be opened" << std::endl;
     exit(EXIT_FAILURE);
@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
   }
 
   // save command line arguments for iteration
-  for (int i = 1; i < argc; ++i) {
+  for (int i = 2; i < argc; ++i) {
     field_slices.insert((std::string)argv[i]);
   }
   slice_iterator = field_slices.begin();

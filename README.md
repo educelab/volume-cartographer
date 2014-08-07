@@ -21,7 +21,7 @@ Analysis of volumetric data sets, creates force field for use with the particle 
 simulation
 ----------
 
-Run particle simulation through force field created by scalpel. The simulation can be viewed with [paraview](http://www.paraview.org).
+Run particle simulation through force field created by scalpel.
 
 utils
 -----
