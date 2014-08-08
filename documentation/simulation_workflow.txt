@@ -1,0 +1,43 @@
+================================================================================
+Workflow for Particle Simulations
+================================================================================
+
+The following are the steps required (at the moment) for running particle
+simulations. Parts 1 and 2 only have to be done once for each data set so I
+usually just apply some perl to generate command line arguments that will be
+passed on to scalpel via batch_pipeline. batch_pipeline is nifty but might not be
+ideal for tensor analysis in step 2: If your input images are large they'll take
+up a lot of memory and batch pipeline will be trying to run a bunch of those at
+once. check yo algorithm before yo wreck yo algorithm.
+
+1. Scalpel first pass - Produces gradient images (yml)
+
+   $ perl -e 'for (`ls`) {chomp; push @a, $_ if /tif/} while (scalar @a >= 3) {print "$a[0] $a[1] $a[2]\n";shift @a}' >gradient.csv
+
+2. Scalpel second pass - Produces force field cloud files (pcd)
+
+   $ perl -e 'for (`ls`) {chomp; push @a, $_ if /yml/} while (scalar @a >= 3) {++$c; print "$a[0] $a[1] $a[2] $c\n"; shift @a}' >force.csv
+
+3. Create list of landmarks - This one has to be done by hand.
+   We've been creating vector lines with Illustrator and then iterating over them.
+   Ask Seth how this works. This will hopefully be automated in the future.
+
+4. Simulation
+   One of your landmark files needs to be the first command line argument.
+   It outputs a ply surface and a pcd that has a colored point for each particle
+   at each time step in the simulation. The pcd can be viewed with pcl_viewer.
+   
+   $ simulation path/to/landmarks.txt path/to/cloud*
+
+================================================================================
+TODO / Areas to Improve
+================================================================================
+
+Particle access/update patterns -- I hacked together the particle update function.
+Particle motion was pretty erratic when trying to calculate all of the forces at once.
+
+Force constants -- They all right for the Italian data set. That doesn't mean that
+they can't be changed per volume or improved overall.
+
+SIMULATION SERVER -- This is a really important goal. Loading the force field every
+time a simulation is run dwarfs the time actually needed to run a simulation.
