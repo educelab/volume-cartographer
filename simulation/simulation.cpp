@@ -3,14 +3,12 @@
 #include <opencv2/opencv.hpp>
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
+#include <pcl/console/parse.h>
 
 // behavior defines
-#define FIELDSIZE 400
-#define NUMSLICES 400
+#define FIELDSIZE 800
 #define LOADFILES 3
-#define ITERATION 3000
 #define CHARGE 0.01
-#define SCALE 10
 #define SPRING_CONSTANT_K -0.5
 
 typedef uchar Color;
@@ -54,22 +52,34 @@ double spring_resting_x;
 std::vector<Vertex> vertices;
 std::vector<Face> faces;
 
+int scale;
+// seed with buffer space for particles after they've passed through all slices
+int numslices = 10;
+int iteration = 0;
+
 std::set<std::string> field_slices;
 std::set<std::string>::iterator slice_iterator;
 std::set<int> slices_loaded;
 std::set<int> slices_seen;
 
 int main(int argc, char* argv[]) {
-  if (argc < 3) {
-    std::cout << "FEED MEEE" << std::endl;
-    exit(EXIT_FAILURE);
+  if (argc < 5) {
+    std::cerr << "Usage:" << std::endl;
+    std::cerr << argv[0] << " --quality [1-10] [Path.txt] cloud[001...n].pcd" << std::endl;
+    return (1);  }
+
+  // get scale value from command line
+  pcl::console::parse_argument (argc, argv, "--quality", scale);
+  if (!((scale>=1)&&(scale<=10))) {
+    std::cerr << "ERROR: Incorrect/missing quality value!" << std::endl;
+    return (1);
   }
 
   // read particle chain landmarks
   std::ifstream landmarks_file;
-  landmarks_file.open(argv[1]);
+  landmarks_file.open(argv[3]);
   if (landmarks_file.fail()) {
-    std::cout << "landmarks.txt could not be opened" << std::endl;
+    std::cout << "Path text file could not be opened" << std::endl;
     exit(EXIT_FAILURE);
   }
   while (!landmarks_file.eof()) {
@@ -95,28 +105,33 @@ int main(int argc, char* argv[]) {
   }
   spring_resting_x = total_delta / chain_landmark.size();
 
+  // save command line arguments for iteration
+  for (int i = 4; i < argc; ++i) {
+    ++numslices;
+    field_slices.insert((std::string)argv[i]);
+  }
+
+  // estimate number of iterations needed
+  // TO-DO: Simulation should stop when particles reach the bottom.
+  iteration = numslices * scale * 2;
+  slice_iterator = field_slices.begin();
+
   // allocate and initalize force/color fields
-  field = new Force**[NUMSLICES];
-  color = new Color**[NUMSLICES];
-  for (int i = 0; i < NUMSLICES; ++i) {
+  field = new Force**[numslices];
+  color = new Color**[numslices];
+  for (int i = 0; i < numslices; ++i) {
     field[i] = NULL;
     color[i] = NULL;
   }
 
-  // save command line arguments for iteration
-  for (int i = 2; i < argc; ++i) {
-    field_slices.insert((std::string)argv[i]);
-  }
-  slice_iterator = field_slices.begin();
-
   // add some slices to start the simulation
-  for (int i = 0; i < 3; ++i) {
+  for (int i = 0; i < 4; ++i) {
     add_slices();
   }
 
   // run particle simulation
   pcl::PointCloud<pcl::PointXYZRGB> page;
-  for (int step = 0; step < ITERATION; ++step) {
+  for (int step = 0; step < iteration; ++step) {
     for (int i = 0; i < particle_chain.size(); ++i) {
       uint32_t intensity = (Color)interpolate_intensity(particle_chain[i]);
       uint32_t color = intensity | intensity << 8 | intensity << 16;
@@ -348,9 +363,9 @@ void add_slices() {
           }
         }
 
-        field[x][y][z](0) = point->normal[2]/SCALE;
-        field[x][y][z](1) = point->normal[0]/SCALE;
-        field[x][y][z](2) = point->normal[1]/SCALE;
+        field[x][y][z](0) = point->normal[2]/scale;
+        field[x][y][z](1) = point->normal[0]/scale;
+        field[x][y][z](2) = point->normal[1]/scale;
         color[x][y][z] = (uchar)(*reinterpret_cast<uint32_t*>(&point->rgb) & 0x0000ff);
       }
     }
