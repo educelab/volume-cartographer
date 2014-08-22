@@ -2,11 +2,11 @@
 
 #include <opencv2/opencv.hpp>
 #include <pcl/io/pcd_io.h>
+#include <pcl/common/common.h>
 #include <pcl/point_types.h>
 #include <pcl/console/parse.h>
 
 // behavior defines
-#define FIELDSIZE 800
 #define LOADFILES 3
 #define CHARGE 0.01
 #define SPRING_CONSTANT_K -0.5
@@ -56,6 +56,7 @@ int scale;
 // seed with buffer space for particles after they've passed through all slices
 int numslices = 10;
 int iteration = 0;
+int fieldsize;
 
 std::set<std::string> field_slices;
 std::set<std::string>::iterator slice_iterator;
@@ -109,6 +110,14 @@ int main(int argc, char* argv[]) {
   for (int i = 4; i < argc; ++i) {
     ++numslices;
     field_slices.insert((std::string)argv[i]);
+    // get slice maximum dimension
+    if (i == 4) {
+      pcl::PointXYZRGBNormal tempmin, tempmax;
+      pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr tempcloud (new pcl::PointCloud<pcl::PointXYZRGBNormal>);
+      pcl::io::loadPCDFile<pcl::PointXYZRGBNormal> ((std::string)argv[i], *tempcloud);
+      pcl::getMinMax3D (*tempcloud, tempmin, tempmax);
+      if (tempmax.x > tempmax.y) {fieldsize = tempmax.x + 10;} else {fieldsize = tempmax.y + 10;}
+    }
   }
 
   // estimate number of iterations needed
@@ -311,7 +320,7 @@ void update_field() {
   for (std::set<int>::iterator it = slices_loaded.begin(); it != slices_loaded.end(); ++it) {
     if (*it < first_seen) {
       to_erase.push_back(*it);
-      for (int i = 0; i < FIELDSIZE; ++i) {
+      for (int i = 0; i < fieldsize; ++i) {
         delete field[*it][i];
         delete color[*it][i];
       }
@@ -351,12 +360,12 @@ void add_slices() {
         if (field[x] == NULL) {
           slices_loaded.insert(x);
           last_x = x;
-          field[x] = new Force*[FIELDSIZE];
-          color[x] = new Color*[FIELDSIZE];
-          for (int j = 0; j < FIELDSIZE; ++j) {
-            field[x][j] = new Force[FIELDSIZE];
-            color[x][j] = new Color[FIELDSIZE];
-            for (int k = 0; k < FIELDSIZE; ++k) {
+          field[x] = new Force*[fieldsize];
+          color[x] = new Color*[fieldsize];
+          for (int j = 0; j < fieldsize; ++j) {
+            field[x][j] = new Force[fieldsize];
+            color[x][j] = new Color[fieldsize];
+            for (int k = 0; k < fieldsize; ++k) {
               field[x][j][k] = Force(0,0,0);
               color[x][j][k] = 0;
             }
