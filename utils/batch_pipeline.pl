@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/local/Cellar/perl518/5.18.2/bin/perl
 use warnings;
 
 #used to run multiple landmark processes at once 
