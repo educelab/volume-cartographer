@@ -109,8 +109,12 @@ for i in range(len(slices)):
 	'0'*(len(str(config_dict["number of slices"]))-len(str(i))) + \
 	str(i) + '.tif')
 
-# create the volumepkg
-os.system('tar -zcvf ' + outpath + ' tmp/*')
+# compress the volumepkg
+# os.system('tar -zcvf ' + outpath + ' tmp/*')
 
-#delete the tmp directory
-shutil.rmtree('tmp')
+# move the volumepkg as a folder
+os.system('mv tmp ' + str(outpath))
+
+#delete the tmp directory if it still exists
+if os.path.isdir("tmp"):
+	shutil.rmtree("tmp")
