@@ -1,0 +1,26 @@
+*.png
+*.jpg
+*.mhd
+*.raw
+utils/bin/
+scalpel/bin/
+simulation/
+!simulation/simulation.cpp
+!simulation/CMakeLists.txt
+flycheck*
+*.o
+
+# Emacs
+*~
+
+# Intellij
+.idea/
+*.iml
+*.iws
+
+# Mac
+.DS_Store
+
+# Maven
+log/
+target/
