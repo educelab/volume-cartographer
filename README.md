@@ -1,17 +1,12 @@
-registration-toolkit
-====================
+Volume Cartographer
+===================
 
-Toolkit to handle the registration of multipage, diachronic image sets.
+Toolkit to segment and analyze volumetric datasets.
 
-LandmarkGenerator
------------------
+Volume Packager
+---------------
 
-Graphical program used to manually identify shared landmark points between two images.
-
-registration
-------------
-
-Programs used for actual registration of images.
+Convert slice data to VC's package format.
 
 scalpel
 -------
@@ -21,7 +16,12 @@ Analysis of volumetric data sets, creates force field for use with the particle 
 simulation
 ----------
 
-Run particle simulation through force field created by scalpel.
+Run particle simulation through force field created by scalpel to create segmented surface.  
+  
+texture
+-------
+  
+Extract texture data from volume set using segmented surface as a guide.
 
 utils
 -----
