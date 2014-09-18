@@ -82,11 +82,11 @@ if len(slices) < 1:
 # parse arguements to see if we need to give the output file a certain name
 # default is just output.volumepkg
 if "-of" in sys.argv:
-	outpath = sys.argv[sys.argv.find("-f") + 1]
+	outpath = sys.argv[sys.argv.find("-of") + 1]
 elif "--ouput-file" in sys.argv:
-	outpath = sys.argv[sys.argv.find("--output-file") + 1] + '.volumepkg'
+	outpath = sys.argv[sys.argv.find("--output-file") + 1]
 else:
-	outpath = os.getcwd() + "/output.volumepkg"
+	outpath = os.getcwd() + "/volumepkg"
 
 # create the config options and save it to the config file
 config_dict = {
