@@ -211,9 +211,10 @@ int main(int argc, char* argv[]) {
           (uint32_t)c << 8 |
           (uint32_t)c << 16;
         point.rgb = *reinterpret_cast<float*>(&color);
-        point.x = i;
+		// point.xyz <=> image.index/col/row
+        point.x = atoi(argv[4]);
         point.y = j;
-        point.z = atoi(argv[4]);
+        point.z = i;
 
         eigen(*average[i][j], eigen_values, eigen_vectors);
         index = scan_eigenvalues(eigen_values);
@@ -228,9 +229,10 @@ int main(int argc, char* argv[]) {
           // project gravity onto the plane defined by each normal
           normal_vector = gravity - (gravity.dot(normal_vector)) / (normal_vector.dot(normal_vector)) * normal_vector;
 
-          point.normal[0] = normal_vector(X_COMPONENT);
-          point.normal[1] = normal_vector(Y_COMPONENT);
-          point.normal[2] = normal_vector(Z_COMPONENT);
+		  // normal_vector.xyz <=> image.col/row/index
+          point.normal[0] = normal_vector( Z_COMPONENT );
+          point.normal[1] = normal_vector( X_COMPONENT );
+          point.normal[2] = normal_vector( Y_COMPONENT );
 
         } else {
           point.normal[0] = 0;

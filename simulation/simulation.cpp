@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
       pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr tempcloud (new pcl::PointCloud<pcl::PointXYZRGBNormal>);
       pcl::io::loadPCDFile<pcl::PointXYZRGBNormal> ((std::string)argv[i], *tempcloud);
       pcl::getMinMax3D (*tempcloud, tempmin, tempmax);
-      if (tempmax.x > tempmax.y) {fieldsize = tempmax.x + 10;} else {fieldsize = tempmax.y + 10;}
+      if (tempmax.y > tempmax.z) {fieldsize = tempmax.y + 10;} else {fieldsize = tempmax.z + 10;}
     }
   }
 
@@ -353,9 +353,9 @@ void add_slices() {
       pcl::PointCloud<pcl::PointXYZRGBNormal>::iterator point;
       for (point = cloud->begin(); point != cloud->end(); ++point) {
         int x, y, z;
-        x = point->z; // you monster
+        x = point->x; // you monster
         y = point->y;
-        z = point->x;
+        z = point->z;
 
         if (field[x] == NULL) {
           slices_loaded.insert(x);
@@ -372,9 +372,9 @@ void add_slices() {
           }
         }
 
-        field[x][y][z](0) = point->normal[2]/scale;
-        field[x][y][z](1) = point->normal[0]/scale;
-        field[x][y][z](2) = point->normal[1]/scale;
+        field[x][y][z](0) = point->normal[0]/scale;
+        field[x][y][z](1) = point->normal[1]/scale;
+        field[x][y][z](2) = point->normal[2]/scale;
         color[x][y][z] = (uchar)(*reinterpret_cast<uint32_t*>(&point->rgb) & 0x0000ff);
       }
     }
