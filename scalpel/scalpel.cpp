@@ -43,20 +43,24 @@ StructureTensor* gradient_to_tensor(Gradient g) {
 }
 
 // find and chomp maximum eigenvalue
-int scan_eigenvalues(EigenValues e) {
+std::pair<int,int> scan_eigenvalues(EigenValues e) {
+  std::pair<int,double> result;
+
   e(0) = std::abs(e(0));
   e(1) = std::abs(e(1));
   e(2) = std::abs(e(2));
+
+  double max = std::max(e(0), std::max(e(1), e(2)));
+  if      (max == e(0)) { result.first = 0; }
+  if      (max == e(1)) { result.first = 1; }
+  if      (max == e(2)) { result.first = 2; }
+
   double a = std::abs(e(0) - e(1));
   double b = std::abs(e(1) - e(2));
   double c = std::abs(e(2) - e(0));
-  double m = std::max(a, std::max(b, c));
-  double max = std::max(e(0), std::max(e(1), e(2)));
-  if  (m < THRESHOLD) { return -1; }
-  if      (max == e(0)) { return 0; }
-  if      (max == e(1)) { return 1; }
-  if      (max == e(2)) { return 2; }
-  return -1;
+  result.second = std::max(a, std::max(b, c));
+
+  return result;
 }
 
 // import scroll
@@ -192,53 +196,43 @@ int main(int argc, char* argv[]) {
     }
 
     // run analysis on averaged tensors
-    std::string original = argv[2];
-    original.resize(original.length() - 3);
-    cv::Mat intensity = cv::imread(original + "tif");
-    cvtColor(intensity, intensity, CV_BGR2GRAY);
-
     pcl::PointCloud<pcl::PointXYZRGBNormal> cloud;
     for (int i = 0; i < center_image.rows; ++i) {
       for (int j = 0; j < center_image.cols; ++j) {
-        int index;
+
         EigenValues eigen_values;
         EigenVectors eigen_vectors;
+        eigen(*average[i][j], eigen_values, eigen_vectors);
 
+        std::pair<int,double> eigen_data;
+        eigen_data = scan_eigenvalues(eigen_values);
+
+        cv::Matx<double, 1, DIMENSION> normal_vector = eigen_vectors.row(eigen_data.first);
         pcl::PointXYZRGBNormal point;
-        uchar c = intensity.at<uchar>(i,j);
-        uint32_t color =
-          (uint32_t)c |
-          (uint32_t)c << 8 |
-          (uint32_t)c << 16;
-        point.rgb = *reinterpret_cast<float*>(&color);
-		// point.xyz <=> image.index/col/row
+
+        // texturing is going to happen later so the rgb field
+        // will be for the difference of the two highest eigenvalues
+        point.rgb = eigen_data.second;
+
+        // point.xyz <=> image.index/col/row
         point.x = atoi(argv[4]);
         point.y = j;
         point.z = i;
 
-        eigen(*average[i][j], eigen_values, eigen_vectors);
-        index = scan_eigenvalues(eigen_values);
+        ////////////////////////////////////////////////////////////////////////////////
+        // project gravity onto the plane defined by each normal
+        // THIS SHOULD HAPPEN IN SIMULATION AND NOT HERE
+        cv::Matx<double, 1, DIMENSION> gravity;
+        gravity(X_COMPONENT) = 0;
+        gravity(Y_COMPONENT) = 0;
+        gravity(Z_COMPONENT) = 1;
+        normal_vector = gravity - (gravity.dot(normal_vector)) / (normal_vector.dot(normal_vector)) * normal_vector;
+        ////////////////////////////////////////////////////////////////////////////////
 
-        if (index != -1) {
-          cv::Matx<double, 1, DIMENSION> normal_vector = eigen_vectors.row(index);
-          cv::Matx<double, 1, DIMENSION> gravity;
-          gravity(X_COMPONENT) = 0;
-          gravity(Y_COMPONENT) = 0;
-          gravity(Z_COMPONENT) = 1;
+        point.normal[0] = normal_vector(X_COMPONENT);
+        point.normal[1] = normal_vector(Y_COMPONENT);
+        point.normal[2] = normal_vector(Z_COMPONENT);
 
-          // project gravity onto the plane defined by each normal
-          normal_vector = gravity - (gravity.dot(normal_vector)) / (normal_vector.dot(normal_vector)) * normal_vector;
-
-		  // normal_vector.xyz <=> image.col/row/index
-          point.normal[0] = normal_vector( Z_COMPONENT );
-          point.normal[1] = normal_vector( X_COMPONENT );
-          point.normal[2] = normal_vector( Y_COMPONENT );
-
-        } else {
-          point.normal[0] = 0;
-          point.normal[1] = 0;
-          point.normal[2] = 0;
-        }
         cloud.push_back(point);
       }
     }
