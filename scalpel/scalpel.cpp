@@ -62,22 +62,29 @@ int scan_eigenvalues(EigenValues e) {
 // import scroll
 // scroll.unwrap()
 int main(int argc, char* argv[]) {
-  if (argc < 4) {
+
+  if (argc != 6) {
     std::cout << "Usage: "
               << argv[0]
-              << " leftimage centerimage rightimage [tensor?]"
+              << " Calulation_type leftimage centerimage rightimage output_file"
               << std::endl;
     exit(EXIT_FAILURE);
   }
 
+  std::string calculation = argv[1];
+  std::string input_file_left = argv[2];
+  std::string input_file_center = argv[3];
+  std::string input_file_right = argv[4];
+  std::string output_file = argv[5];
+
   // create gradient images
-  if (argc == 4) {
+  if (calculation == "Gradient") {
     std::cout << "creating gradient image of " << argv[2] << std::endl;
 
     // load images
-    cv::Mat left_image = cv::imread(argv[1]);
-    cv::Mat center_image = cv::imread(argv[2]);
-    cv::Mat right_image = cv::imread(argv[3]);
+    cv::Mat left_image = cv::imread(input_file_left);
+    cv::Mat center_image = cv::imread(input_file_center);
+    cv::Mat right_image = cv::imread(input_file_right);
 
     if (!left_image.data) { std::cout << argv[1] << " could not be read" << std::endl; exit(EXIT_FAILURE); }
     if (!center_image.data) { std::cout << argv[2] << " could not be read" << std::endl; exit(EXIT_FAILURE); }
@@ -124,10 +131,7 @@ int main(int argc, char* argv[]) {
       }
     }
 
-    // write gradient image to disk
-    std::string original = argv[2];
-    original.resize(original.length() - 3);
-    cv::FileStorage fs(original + "yml", cv::FileStorage::WRITE);
+    cv::FileStorage fs(output_file, cv::FileStorage::WRITE);
     fs << "gradient" << xyz_gradient;
   }
 
