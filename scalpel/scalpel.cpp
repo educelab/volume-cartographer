@@ -233,9 +233,9 @@ int main(int argc, char* argv[]) {
         normal_vector = gravity - (gravity.dot(normal_vector)) / (normal_vector.dot(normal_vector)) * normal_vector;
         ////////////////////////////////////////////////////////////////////////////////
 
-        point.normal[0] = normal_vector(X_COMPONENT);
-        point.normal[1] = normal_vector(Y_COMPONENT);
-        point.normal[2] = normal_vector(Z_COMPONENT);
+        point.normal[0] = normal_vector(Z_COMPONENT);
+        point.normal[1] = normal_vector(X_COMPONENT);
+        point.normal[2] = normal_vector(Y_COMPONENT);
 
         cloud.push_back(point);
       }
