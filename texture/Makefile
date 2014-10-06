@@ -12,5 +12,8 @@ CXXFLAGS = -Wall
 sliceIntersection: $(OBJECTS)
 	g++ $(CXXFLAGS) $^ $(LIBS) -o sliceIntersection
 
+pathGen: pathGen.o
+	g++ $(CXXFLAGS) $^ $(LIBS) -o pathGen
+
 clean:
 	rm *.o
