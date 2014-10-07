@@ -144,9 +144,9 @@ int main(int argc, char* argv[]) {
     std::cout << "running tensor analysis on " << argv[2] << std::endl;
 
     cv::Mat left_image, center_image, right_image;
-    cv::FileStorage left(argv[1], cv::FileStorage::READ);
-    cv::FileStorage cent(argv[2], cv::FileStorage::READ);
-    cv::FileStorage righ(argv[3], cv::FileStorage::READ);
+    cv::FileStorage left(input_file_left, cv::FileStorage::READ);
+    cv::FileStorage cent(input_file_center, cv::FileStorage::READ);
+    cv::FileStorage righ(input_file_right, cv::FileStorage::READ);
     left["gradient"] >> left_image;
     cent["gradient"] >> center_image;
     righ["gradient"] >> right_image;
@@ -233,18 +233,16 @@ int main(int argc, char* argv[]) {
         normal_vector = gravity - (gravity.dot(normal_vector)) / (normal_vector.dot(normal_vector)) * normal_vector;
         ////////////////////////////////////////////////////////////////////////////////
 
-        point.normal[0] = normal_vector(X_COMPONENT);
-        point.normal[1] = normal_vector(Y_COMPONENT);
-        point.normal[2] = normal_vector(Z_COMPONENT);
+        point.normal[0] = normal_vector(Z_COMPONENT);
+        point.normal[1] = normal_vector(X_COMPONENT);
+        point.normal[2] = normal_vector(Y_COMPONENT);
 
         cloud.push_back(point);
       }
     }
 
     // write images to disk
-    char* cloud_level = (char*)malloc(32);
-    sprintf(cloud_level, "%03d", atoi(argv[4]));
-    pcl::io::savePCDFileASCII((std::string)"cloud"+ (std::string)cloud_level +".pcd", cloud);
+    pcl::io::savePCDFileASCII(output_file, cloud);
   }
 
   exit(EXIT_SUCCESS);
