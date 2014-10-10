@@ -415,6 +415,10 @@ Force interpolate_field(Particle point) {
     field[x_max][y_max][z_min] * dx       * dy       * (1 - dz) +
     field[x_max][y_max][z_max] * dx       * dy       * dz;
 
+  //flip the normal vector to simulate gravity
+  Force gravity = Force(0,0,1);
+  vector = gravity - (gravity.dot(vector)) / (vector.dot(vector)) * vector;
+
   return vector;
 }
 

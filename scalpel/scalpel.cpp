@@ -222,17 +222,6 @@ int main(int argc, char* argv[]) {
         point.x = atoi(argv[4]);
         point.y = j;
         point.z = i;
-
-        ////////////////////////////////////////////////////////////////////////////////
-        // project gravity onto the plane defined by each normal
-        // THIS SHOULD HAPPEN IN SIMULATION AND NOT HERE
-        cv::Matx<double, 1, DIMENSION> gravity;
-        gravity(X_COMPONENT) = 0;
-        gravity(Y_COMPONENT) = 0;
-        gravity(Z_COMPONENT) = 1;
-        normal_vector = gravity - (gravity.dot(normal_vector)) / (normal_vector.dot(normal_vector)) * normal_vector;
-        ////////////////////////////////////////////////////////////////////////////////
-
         point.normal[0] = normal_vector(Z_COMPONENT);
         point.normal[1] = normal_vector(X_COMPONENT);
         point.normal[2] = normal_vector(Y_COMPONENT);
