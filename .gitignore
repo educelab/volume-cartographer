@@ -2,12 +2,7 @@
 *.jpg
 *.mhd
 *.raw
-utils/bin/
-scalpel/bin/
-simulation/
-Reslicer/bin/
-!simulation/simulation.cpp
-!simulation/CMakeLists.txt
+bin/
 flycheck*
 *.o
 *.gch
