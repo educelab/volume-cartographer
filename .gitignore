@@ -5,10 +5,12 @@
 utils/bin/
 scalpel/bin/
 simulation/
+Reslicer/bin/
 !simulation/simulation.cpp
 !simulation/CMakeLists.txt
 flycheck*
 *.o
+*.gch
 
 # Emacs
 *~
