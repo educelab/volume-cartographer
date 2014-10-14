@@ -1,20 +1,15 @@
 // David Pennington
 // 10/7/2014
-// dont try to run this yet
-// things to do
-// - create a cmake file
-// - build the volumepkg to get specific slices
-// - debug
 
+#include "../VolumePackager/volumepkg.h"
 #include <opencv2/opencv.hpp>
 #include <cstdlib>
 #include <cmath>
 
-// [TODO] make all of these work
 static int     lower_slice_index;
-static cv::mat lower_slice;
-static cv::mat upper_slice;
-static cv::mat output_slice;
+static cv::Mat lower_slice;
+static cv::Mat upper_slice;
+static cv::Mat output_slice;
 
 struct DoublePoint3D {
 	double x;
@@ -193,7 +188,7 @@ double calculateArea(
 
 void inOrderPerformSampling(
 		// file path to ordered slices
-		volumePKG volume,
+		VolumePkg volume,
 
 		// the current tree
 		IntPoint2DBinaryTree tree,
@@ -208,7 +203,11 @@ void inOrderPerformSampling(
 		double xv_x, double xv_y, double xv_z,
 
 		// Y_vector, change in vector over the y direction in new mapping
-		double yv_x, double yv_y, double yv_z) {
+		double yv_x, double yv_y, double yv_z,
+
+		// Offset for the bounds of the output image
+		int min_x, int min_y
+		) {
 
 	// peform sampling on values less than current node
 	if (tree.root->left_child != NULL)
@@ -218,7 +217,8 @@ void inOrderPerformSampling(
 			px, py,
 			m_x, m_y, m_z,
 			xv_x, xv_y, xv_z,
-			yv_x, yv_y, yv_z);
+			yv_x, yv_y, yv_z,
+			min_x, min_y);
 
 
 	// get the parameterized points from the root node
@@ -268,15 +268,15 @@ void inOrderPerformSampling(
 	int forward = back + 1;
 
 	// think of a 2 x 2 rubix cube pointing forwards
-	double up_left_back       = upper_slice.at<double>(left, back)
-	double up_left_forward    = upper_slice.at<double>(left, forward)
-	double up_right_back      = upper_slice.at<double>(right, back)
-	double up_right_forward   = upper_slice.at<double>(right, forward)
+	double up_left_back       = upper_slice.at<double>(left, back);
+	double up_left_forward    = upper_slice.at<double>(left, forward);
+	double up_right_back      = upper_slice.at<double>(right, back);
+	double up_right_forward   = upper_slice.at<double>(right, forward);
 
-	double down_left_back     = lower_slice.at<double>(left, back)
-	double down_left_forward  = lower_slice.at<double>(left, forward)
-	double down_right_back    = lower_slice.at<double>(right, back)
-	double down_right_forward = lower_slice.at<double>(right, forward)
+	double down_left_back     = lower_slice.at<double>(left, back);
+	double down_left_forward  = lower_slice.at<double>(left, forward);
+	double down_right_back    = lower_slice.at<double>(right, back);
+	double down_right_forward = lower_slice.at<double>(right, forward);
 
 	// calculate the areas
 	double up_left_back_area       = 
@@ -331,7 +331,7 @@ void inOrderPerformSampling(
 
 	// create sampled value
 	// place sample value in the output file
-	sampled_value = 
+	double sampled_value = 
 		up_left_back * up_left_back_area +
 		up_left_forward * up_left_forward_area +
 		up_right_back * up_right_back_area +
@@ -342,8 +342,8 @@ void inOrderPerformSampling(
 		down_right_forward * down_right_forward_area;
 
 	output_slice.at<double>(
-			parameterized_point.x,
-			parameterized_point.y) = sampled_value;
+			parameterized_point.x - min_x,
+			parameterized_point.y - min_y) = sampled_value;
 
 	// peform sampling on values greater than current node
 	if (tree.root->right_child != NULL)
@@ -353,34 +353,28 @@ void inOrderPerformSampling(
 			px, py,
 			m_x, m_y, m_z,
 			xv_x, xv_y, xv_z,
-			yv_x, yv_y, yv_z);
+			yv_x, yv_y, yv_z,
+			min_x, min_y);
 }
 
 void resliceGivenXY(
+		// file path to ordered slices
+		VolumePkg volume,
+
 		// midpoint values
-		double m_x,
-		double m_y,
-		double m_z,
+		double m_x,double m_y,double m_z,
 
 		// X_vector, change in vector over the x direction in new mapping
-		double xv_x,
-		double xv_y,
-		double xv_z,
+		double xv_x,double xv_y,double xv_z,
 
 		// Y_vector, change in vector over the y direction in new mapping
-		double yv_x,
-		double yv_y,
-		double yv_z,
+		double yv_x,double yv_y,double yv_z,
 
 		// Box Point 1, should be min_x , min_y, min_z, of box
-		double b1_x,
-		double b1_y,
-		double b1_z,
+		double b1_x,double b1_y,double b1_z,
 
 		// Box Point 2, should be max_x , max_y, max_z, of box 
-		double b2_x,
-		double b2_y,
-		double b2_z) {
+		double b2_x,double b2_y,double b2_z) {
 
 	// build a list of paramterized points to map sorted on z coordinate
 	// before paramterization
@@ -483,6 +477,9 @@ void resliceGivenXY(
 				if (min_py > py) min_py = py;
 				if (max_px < px) max_px = px;
 				if (max_py < py) max_py = py;
+
+				points_to_calc_list.add(IntPoint2D(px, py), point.z);
+
 				points_in_px = true;
 			}
 			else break;
@@ -504,6 +501,9 @@ void resliceGivenXY(
 				if (min_py > py) min_py = py;
 				if (max_px < px) max_px = px;
 				if (max_py < py) max_py = py;
+
+				points_to_calc_list.add(IntPoint2D(px, py), point.z);
+
 				points_in_px = true;
 			}
 			else break;
@@ -518,9 +518,23 @@ void resliceGivenXY(
 		px -= 1;
 	}
 
+	// initialize the output file
+	output_slice = cv::Mat(max_px-min_px,max_py-min_py,cv::DataType<double>::type);
 
 	// perform an inorder traversal of the tree containing parameterized
 	// values and return the output
 
+	inOrderPerformSampling(
+		volume,
+		points_to_calc_list,
+		px, py,
+		m_x, m_y, m_z,
+		xv_x, xv_y, xv_z,
+		yv_x, yv_y, yv_z,
+		min_px, min_py);
+}
+
+int main() {
+	VolumePkg vpkg = VolumePkg("/Users/david/Desktop//volumepkg/");
 
 }

@@ -26,8 +26,13 @@ int VolumePkgCfg::getInt(std::string identifier) {
 double VolumePkgCfg::getDouble(std::string identifier) {
 	return json_data.get(identifier).get<double>();
 }
-std::string VolumePkgCfg::getString(std::string identifier) {
-	return json_data.get(identifier).get<std::string>();
+std::string VolumePkgCfg::getString(std::string identifier, std::string default_output = "") {
+	try {
+		return json_data.get(identifier).get<std::string>();
+	}
+	catch(...) {
+		return default_output;
+	}
 }
 
 VolumePkgCfg VolumePkgCfg::getInnerElement(std::string identifier) {
