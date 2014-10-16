@@ -1,0 +1,23 @@
+cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
+
+project(texture)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
+find_package(PCL 1.7 REQUIRED)
+find_package(OpenCV REQUIRED)
+find_package(Boost REQUIRED)
+find_package(OpenNI)
+find_package(OpenNI2)
+
+
+include_directories(${PCL_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
+link_directories(${PCL_LIBRARY_DIRS} ${Boost_LIBRARY_DIRS} ${O})
+add_definitions(${PCL_DEFINITIONS})
+
+add_executable(sliceIntersection CMesh.cpp CPlyHelper.cpp sliceIntersection.cpp)
+
+target_link_libraries(sliceIntersection ${PCL_LIBRARIES})
+target_link_libraries(sliceIntersection ${OpenCV_LIBS})
+target_link_libraries(sliceIntersection ${Boost_LIBRARIES})
+target_link_libraries(sliceIntersection ${OPENNI_LIBRARIES})
+target_link_libraries(sliceIntersection ${OPENNI2_LIBRARIES})

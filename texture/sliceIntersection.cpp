@@ -4,6 +4,9 @@
 // find the texture on it, so we can tell whether the mesh
 // grows as the slices indicated.
 
+#define png_infopp_NULL (png_infopp)NULL
+#define int_p_NULL (int*)NULL
+
 #include <stdio.h>
 #include <stdlib.h>
 
