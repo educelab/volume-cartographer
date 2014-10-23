@@ -1,7 +1,7 @@
 // David Pennington
 // 10/7/2014
 
-#include "../VolumePackager/volumepkg.h"
+#include "volumepkg.h"
 #include <opencv2/opencv.hpp>
 #include <cstdlib>
 #include <cmath>

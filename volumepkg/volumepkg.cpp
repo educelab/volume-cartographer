@@ -36,10 +36,10 @@ cv::Mat VolumePkg::getSliceAtIndex(int index) {
 }
 
 
-int main() {
-	VolumePkg vpkg = VolumePkg("/Users/david/Desktop//volumepkg/");
-	std::cout << "Number of Slices: " << vpkg.getNumberOfSlices() << std::endl;
-	cv::namedWindow( "Display window", cv::WINDOW_AUTOSIZE );// Create a window for display.
-    cv::imshow( "Display window", vpkg.getSliceAtIndex(1) );
-    cv::waitKey(0); 
-}
+// int main() {
+// 	VolumePkg vpkg = VolumePkg("/Users/david/Desktop//volumepkg/");
+// 	std::cout << "Number of Slices: " << vpkg.getNumberOfSlices() << std::endl;
+// 	cv::namedWindow( "Display window", cv::WINDOW_AUTOSIZE );// Create a window for display.
+//     cv::imshow( "Display window", vpkg.getSliceAtIndex(1) );
+//     cv::waitKey(0); 
+// }
