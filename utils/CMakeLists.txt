@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 2.8)
 
 project(Utils)
 
+find_package(OpenCV REQUIRED)
+
 find_package(ITK REQUIRED)
 include(${ITK_USE_FILE})
 
@@ -12,8 +14,7 @@ IF(NOT CMAKE_BUILD_TYPE)
 ENDIF(NOT CMAKE_BUILD_TYPE)
 
 add_executable(Histogram Histogram.cxx)
-
 target_link_libraries(Histogram ${ITK_LIBRARIES})
-find_package(OpenCV REQUIRED)
+
 add_executable(automask automask.cpp)
 target_link_libraries(automask ${OpenCV_LIBS})
