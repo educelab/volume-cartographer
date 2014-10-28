@@ -88,7 +88,7 @@ int main(int argc, char* argv[]) {
     landmarks_file >> a;
     landmarks_file.get();
     landmarks_file >> b;
-    chain_landmark.push_back(Particle(3, a, b));
+    chain_landmark.push_back(Particle(4, a, b));
   }
   landmarks_file.close();
 
@@ -300,8 +300,8 @@ void add_vertex(pcl::PointXYZRGB point) {
 // called once for every timestep
 void update_particles() {
   slices_seen.clear();
-  for(int i = 0; i < particle_chain.size(); ++i)
-    particle_chain[i] += intensity_field(particle_chain[i]);
+  // for(int i = 0; i < particle_chain.size(); ++i)
+  //   particle_chain[i] += intensity_field(particle_chain[i]);
 
   for(int i = 0; i < particle_chain.size(); ++i)
     particle_chain[i] += spring_force(i);
@@ -372,9 +372,9 @@ void add_slices() {
           }
         }
 
-        field[x][y][z](0) = point->normal[0]/scale;
-        field[x][y][z](1) = point->normal[1]/scale;
-        field[x][y][z](2) = point->normal[2]/scale;
+        field[x][y][z](0) = point->normal[0];
+        field[x][y][z](1) = point->normal[1];
+        field[x][y][z](2) = point->normal[2];
         color[x][y][z] = (uchar)(*reinterpret_cast<uint32_t*>(&point->rgb) & 0x0000ff);
       }
     }
@@ -416,8 +416,11 @@ Force interpolate_field(Particle point) {
     field[x_max][y_max][z_max] * dx       * dy       * dz;
 
   //flip the normal vector to simulate gravity
-  Force gravity = Force(0,0,1);
+  Force gravity = Force(1,0,0);
   vector = gravity - (gravity.dot(vector)) / (vector.dot(vector)) * vector;
+
+  cv::normalize(vector);
+  vector /= scale;
 
   return vector;
 }
