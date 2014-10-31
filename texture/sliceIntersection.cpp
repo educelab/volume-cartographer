@@ -11,10 +11,6 @@
 #include <string>
 #include <vector>
 
-#include <boost/gil/image.hpp>
-#include <boost/gil/typedefs.hpp>
-#include <boost/gil/extension/io/png_io.hpp>
-
 #include <opencv2/opencv.hpp>
 
 #include "CMesh.h"
@@ -29,14 +25,14 @@ typedef struct pt_tag {
 
 
 bool OpenSliceImgFile( const std::string &nFileName,
-						boost::gil::rgb8_image_t &nImg );
+						cv::Mat &nImg );
 
 void GetMeshSliceIntersection( int nSliceIndex,
 								const ChaoVis::CMesh &nMesh,
 								std::vector< ChaoVis::CPoint2f > &nPath );
 
 void OutputIntersectionOnSlice( const std::string &nFileName,
-								const boost::gil::rgb8_image_t &nImg,
+								const cv::Mat &nImg,
 								const std::vector< ChaoVis::CPoint2f > &nPath );
 
 void FindBetterTexture( ChaoVis::CMesh &nMesh,
@@ -167,9 +163,10 @@ int main( int argc, char *argv[] )
 	//     mesh intersection on that slice and draw path
 	// REVISIT - the slice on each end of the mesh may or may not have triangle on it
 	int aNumSlices = aMaxSliceIndex - aMinSliceIndex + 1;
-	// REVISIT - image size
-	std::vector< boost::gil::rgb8_image_t > aIntrsctColor( aNumSlices,
-														boost::gil::rgb8_image_t(aImgVol[ 0 ].cols, aImgVol[ 0 ].rows) );
+	std::vector< cv::Mat > aIntrsctColor;
+	for ( size_t i = 0; i < aNumSlices; ++i ) {
+		aIntrsctColor.push_back( cv::Mat( aImgVol[ 0 ].cols, aImgVol[ 0 ].rows, CV_8UC3 ) );
+	}
 	std::vector< std::vector< pt > > aIntrsctPos( aNumSlices );
 
 	// iterate through all the edges
@@ -190,7 +187,7 @@ int main( int argc, char *argv[] )
 		// interpolate all the intersection points
 		for ( int i = aStartIndx; i <= aEndIndx; ++i ) {
     
-			boost::gil::rgb8_pixel_t aPixel;
+			cv::Vec3b aPixel;
 			int aRow, aCol;
 			if ( fabs( aV2.x - aV1.x ) < 1e-6 ) {
 				if ( fabs( aV2.x - i ) < 1e-6 ) {
@@ -207,7 +204,7 @@ int main( int argc, char *argv[] )
 					aPt.color = ( unsigned char )aV2.b;
 					aIntrsctPos[ i - aMinSliceIndex ].push_back( aPt );
         
-					boost::gil::view( aIntrsctColor[ i - aMinSliceIndex ] )( aRow, aCol ) = aPixel;
+					aIntrsctColor[ i - aMinSliceIndex ].at< cv::Vec3b >( aRow, aCol ) = aPixel;
 
 					// point 2
 					aRow = round( aV1.y );
@@ -221,7 +218,7 @@ int main( int argc, char *argv[] )
 					aPt.color = ( unsigned char )aV1.b;
 					aIntrsctPos[ i - aMinSliceIndex ].push_back( aPt );
 
-					boost::gil::view( aIntrsctColor[ i - aMinSliceIndex ] )( aRow, aCol ) = aPixel;
+					aIntrsctColor[ i - aMinSliceIndex ].at< cv::Vec3b >( aRow, aCol ) = aPixel;
 				}
 				continue;
 			}
@@ -239,7 +236,7 @@ int main( int argc, char *argv[] )
 			aPt.color = ( unsigned char )( d * aV1.b + ( 1.0 - d ) * aV2.b );
 			aIntrsctPos[ i - aMinSliceIndex ].push_back( aPt );
     
-			boost::gil::view( aIntrsctColor[ i - aMinSliceIndex ] )( aRow, aCol ) = aPixel;
+			aIntrsctColor[ i - aMinSliceIndex ].at< cv::Vec3b >( aRow, aCol ) = aPixel;
 
 		} // for
 
@@ -247,7 +244,7 @@ int main( int argc, char *argv[] )
 
 #ifdef _DEBUG
 	// output all the path in each slices
-	std::vector< boost::gil::rgb8_image_t >::iterator aStackIter;
+	std::vector< cv::Mat >::iterator aStackIter;
 	int aCnt = 0;
 	char aImgPrefix[128];
 	char aImgFileName[128];
@@ -255,7 +252,7 @@ int main( int argc, char *argv[] )
 	for ( aStackIter = aIntrsctColor.begin(); aStackIter != aIntrsctColor.end(); ++aStackIter, ++aCnt ) {
 
 		sprintf( aImgFileName, aImgPrefix, aCnt + MIN_SLICE );
-		boost::gil::png_write_view( aImgFileName, boost::gil::view( *aStackIter ) );
+		cv::imwrite( aImgFileName, *aStackIter );
 
 		// REVISIT - debug, overlay the path to the original image
 		std::cout << "Overlaying image " << aCnt << std::endl;
@@ -300,7 +297,7 @@ int main( int argc, char *argv[] )
 
 // open slice image file and store as rgb8_image_t
 bool OpenSliceImgFile( const std::string &nFileName,
-						boost::gil::rgb8_image_t &nImg )
+						cv::Mat &nImg )
 {
 	return false;
 }
@@ -314,7 +311,7 @@ void GetMeshSliceIntersection( int nSliceIndex,
 
 // draw intersection path on the particular slice
 void OutputIntersectionOnSlice( const std::string &nFileName,
-								const boost::gil::rgb8_image_t &nImg,
+								const cv::Mat &nImg,
 								const std::vector< ChaoVis::CPoint2f > &nPath )
 {
 }
