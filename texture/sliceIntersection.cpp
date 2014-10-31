@@ -76,14 +76,14 @@ double interpolate_intensity( const cv::Vec3f &point,
   }
 
   double result =
-    nImgVol[ x_min ].at< cv::Vec3b >( y_min, z_min )[ 0 ] * (1 - dx) * (1 - dy) * (1 - dz) +
-    nImgVol[ x_max ].at< cv::Vec3b >( y_min, z_min )[ 0 ] * dx       * (1 - dy) * (1 - dz) +
-    nImgVol[ x_min ].at< cv::Vec3b >( y_max, z_min )[ 0 ] * (1 - dx) * dy       * (1 - dz) +
-    nImgVol[ x_min ].at< cv::Vec3b >( y_min, z_max )[ 0 ] * (1 - dx) * (1 - dy) * dz +
-    nImgVol[ x_max ].at< cv::Vec3b >( y_min, z_max )[ 0 ] * dx       * (1 - dy) * dz +
-    nImgVol[ x_min ].at< cv::Vec3b >( y_max, z_max )[ 0 ] * (1 - dx) * dy       * dz +
-    nImgVol[ x_max ].at< cv::Vec3b >( y_max, z_min )[ 0 ] * dx       * dy       * (1 - dz) +
-    nImgVol[ x_max ].at< cv::Vec3b >( y_max, z_max )[ 0 ] * dx       * dy       * dz;
+    nImgVol[ x_min ].at< unsigned char/*cv::Vec3b*/ >( y_min, z_min )/*[ 0 ]*/ * (1 - dx) * (1 - dy) * (1 - dz) +
+    nImgVol[ x_max ].at< unsigned char/*cv::Vec3b*/ >( y_min, z_min )/*[ 0 ]*/ * dx       * (1 - dy) * (1 - dz) +
+    nImgVol[ x_min ].at< unsigned char/*cv::Vec3b*/ >( y_max, z_min )/*[ 0 ]*/ * (1 - dx) * dy       * (1 - dz) +
+    nImgVol[ x_min ].at< unsigned char/*cv::Vec3b*/ >( y_min, z_max )/*[ 0 ]*/ * (1 - dx) * (1 - dy) * dz +
+    nImgVol[ x_max ].at< unsigned char/*cv::Vec3b*/ >( y_min, z_max )/*[ 0 ]*/ * dx       * (1 - dy) * dz +
+    nImgVol[ x_min ].at< unsigned char/*cv::Vec3b*/ >( y_max, z_max )/*[ 0 ]*/ * (1 - dx) * dy       * dz +
+    nImgVol[ x_max ].at< unsigned char/*cv::Vec3b*/ >( y_max, z_min )/*[ 0 ]*/ * dx       * dy       * (1 - dz) +
+    nImgVol[ x_max ].at< unsigned char/*cv::Vec3b*/ >( y_max, z_max )/*[ 0 ]*/ * dx       * dy       * dz;
 
   return result;
 }
@@ -124,9 +124,9 @@ int main( int argc, char *argv[] )
 	aMinSliceIndex = ( int )floor( aPoints.begin()->x );
 
 
-	if ( aMinSliceIndex < MIN_SLICE ) {
+/*	if ( aMinSliceIndex < MIN_SLICE ) {
 		aMinSliceIndex = MIN_SLICE;
-	}
+	}*/
 	aMaxSliceIndex = ( int )ceil( aPoints.back().x );
 
 	// REVISIT - for debug
@@ -142,9 +142,18 @@ int main( int argc, char *argv[] )
 	// REVISIT - replace this with VolumePackager
 	strcpy( aOriginalImgPrefix, argv[ 5 ] );
 	std::vector< cv::Mat > aImgVol;
-	for ( int i = 0; i < aMaxSliceIndex + 2; ++i ) {
-		sprintf( aOriginalImgFileName, aOriginalImgPrefix, i );
+	for ( int i = 0; i < aMaxSliceIndex /*+ 2*/; ++i ) {
+		sprintf( aOriginalImgFileName, aOriginalImgPrefix, i + MIN_SLICE );
 		cv::Mat aImg = cv::imread( aOriginalImgFileName );
+
+#define _LIKE_SCALPEL
+#ifdef _LIKE_SCALPEL
+		cvtColor( aImg, aImg, CV_BGR2GRAY );
+		//printf( "channels: %d, depth: %d\n", aImg.channels(), aImg.depth() );
+		GaussianBlur( aImg, aImg, cv::Size( 3, 3 ), 0);
+		equalizeHist( aImg, aImg );
+#endif // _LIKE_SCALPEL
+
 		aImgVol.push_back( aImg );
 	}
 
@@ -155,6 +164,7 @@ int main( int argc, char *argv[] )
 							radius,//3.0,
 							MIN_SLICE,
 							NonMaximumSuppression );
+		printf( "writing result\n" );
 		ChaoVis::CPlyHelper::WritePlyFile( aFileName + "_mod.ply", aMesh );
 	}
 

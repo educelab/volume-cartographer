@@ -6,9 +6,6 @@
 #include <fstream>
 #include <string>
 
-#include <boost/lexical_cast.hpp>
-#include <boost/algorithm/string.hpp>
-
 #include <opencv2/opencv.hpp>
 
 #include <pcl/point_types.h>
@@ -16,7 +13,6 @@
 
 namespace ChaoVis {
 
-using namespace boost;
 using namespace pcl;
 using namespace std;
 
@@ -25,8 +21,10 @@ bool CPlyHelper::ReadPlyFile( const string &nFileName,
 								CMesh &nMesh )
 {
 	// open file
-	ifstream aMeshFile;
-	aMeshFile.open( nFileName.c_str(), ifstream::in );
+	ifstream aMeshFile( nFileName.c_str() );
+
+	// REVISIT - for debug
+//	cout << "File name: " << nFileName << endl;
 
 	if ( !aMeshFile.is_open() ) {
 		cerr << "Open file " << nFileName << " failed." << endl;
@@ -39,60 +37,53 @@ bool CPlyHelper::ReadPlyFile( const string &nFileName,
 
 	// read header
 	int aNumVertices, aNumFaces;
-	for ( int i = 0; i < 18; ++i ) {
+	const int NUM_LINES_IN_HEADER = 18;
+	const int NUM_VERTEX_POS = 15;
+	const int NUM_FACE_POS   = 13;
+	for ( int i = 0; i < NUM_LINES_IN_HEADER; ++i ) {
 		getline( aMeshFile, aLine );
 		if ( aLine.find( "element vertex " ) != string::npos ) {
-			aNumVertices = lexical_cast< int >( aLine.substr( 15 ) );
+			aNumVertices = std::atoi( aLine.substr( NUM_VERTEX_POS ).c_str() );
 		}
 		if ( aLine.find( "element face " ) != string::npos ) {
-			aNumFaces = lexical_cast< int >( aLine.substr( 13 ) );
+			aNumFaces = std::atoi( aLine.substr( NUM_FACE_POS ).c_str() );
 		}
 	}
 	// REVISIT - for debug
 	cout << "# of vertices to be read: " << aNumVertices << endl;
 	cout << "# of faces to be read: " << aNumFaces << endl;
 
-	// read body
-	vector< string > aStrings;
-	while ( getline( aMeshFile, aLine ) ) {
-		split( aStrings, aLine, is_any_of( "\t " ) );
-		if ( aStrings.size() == 11 ) {			// vertex
-			PointXYZRGBNormal aPoint;
-			aPoint.x = lexical_cast< float >( aStrings[ 0 ] );
-			aPoint.y = lexical_cast< float >( aStrings[ 1 ] );
-			aPoint.z = lexical_cast< float >( aStrings[ 2 ] );
-			aPoint.normal[ 0 ] = lexical_cast< float >( aStrings[ 3 ] );
-			aPoint.normal[ 1 ] = lexical_cast< float >( aStrings[ 4 ] );
-			aPoint.normal[ 2 ] = lexical_cast< float >( aStrings[ 5 ] );
-			aPoint.r = lexical_cast< float >( aStrings[ 8 ] );
-			aPoint.g = lexical_cast< float >( aStrings[ 9 ] );
-			aPoint.b = lexical_cast< float >( aStrings[ 10 ] );
-			nMesh.fPoints.push_back( aPoint );
-		} else if ( aStrings.size() == 4 ) {	// face
-			nMesh.fFaces.push_back( cv::Vec3i( lexical_cast< int >( aStrings[ 1 ] ),
-											   lexical_cast< int >( aStrings[ 2 ] ),
-											   lexical_cast< int >( aStrings[ 3 ] ) ) );
-			// add edges
-			cv::Vec2i aEdge( nMesh.fFaces.back()[ 0 ], nMesh.fFaces.back()[ 1 ] );
-			// make sure edge vertices are ordered
-			if ( aEdge[ 0 ] > aEdge[ 1 ] ) {
-				aEdge = cv::Vec2i( aEdge[ 1 ], aEdge[ 0 ] );
-			}
-			nMesh.fEdges.insert( aEdge );
-			aEdge = cv::Vec2i( nMesh.fFaces.back()[ 1 ], nMesh.fFaces.back()[ 2 ] );
-			if ( aEdge[ 0 ] > aEdge[ 1 ] ) {
-				aEdge = cv::Vec2i( aEdge[ 1 ], aEdge[ 0 ] );
-			}
-			nMesh.fEdges.insert( aEdge );
-			aEdge = cv::Vec2i( nMesh.fFaces.back()[ 2 ], nMesh.fFaces.back()[ 0 ] );
-			if ( aEdge[ 0 ] > aEdge[ 1 ] ) {
-				aEdge = cv::Vec2i( aEdge[ 1 ], aEdge[ 0 ] );
-			}
-			nMesh.fEdges.insert( aEdge );
-		} else {
-			std::cerr << "Invalide mesh data." << std::endl;
-			return false;
-		}
+	// read vertices
+	double x, y, z, nx, ny, nz, s, t;
+	int red, green, blue;
+	for ( int i = 0; i < aNumVertices; ++i ) {
+		PointXYZRGBNormal aPoint;
+		aMeshFile >> x >> y >> z >> nx >> ny >> nz >> s >> t >> red >> green >> blue;
+		aPoint.x = x;
+		aPoint.y = y;
+		aPoint.z = z;
+		aPoint.normal[ 0 ] = nx;
+		aPoint.normal[ 1 ] = ny;
+		aPoint.normal[ 2 ] = nz;
+		aPoint.r = red;
+		aPoint.g = green;
+		aPoint.b = blue;
+		nMesh.fPoints.push_back( aPoint );
+	}
+	
+	// read faces
+	int aTmpInt, p1, p2, p3;
+	for ( int i = 0; i < aNumFaces; ++i ) {
+		aMeshFile >> aTmpInt >> p1 >> p2 >> p3;
+		nMesh.fFaces.push_back( cv::Vec3i( p1, p2, p3 ) );
+		// add edges
+		// make sure edge vertices are ordered
+		nMesh.fEdges.insert( p1 > p2 ? cv::Vec2i( p2, p1 ) : cv::Vec2i( p1, p2 ) );
+		nMesh.fEdges.insert( p2 > p3 ? cv::Vec2i( p3, p2 ) : cv::Vec2i( p2, p3 ) );
+		nMesh.fEdges.insert( p3 > p1 ? cv::Vec2i( p1, p3 ) : cv::Vec2i( p3, p1 ) );
+		// REVISIT - for debug
+	//	printf( "p1p2p3: %d %d %d edge #: %d, ", p1, p2, p3, nMesh.fEdges.size() );
+	//	char x = getc(stdin);
 	}
 
 	aMeshFile.close();
@@ -103,6 +94,54 @@ bool CPlyHelper::ReadPlyFile( const string &nFileName,
 bool CPlyHelper::WritePlyFile( const std::string &nFileName,
 								const CMesh &nMesh )
 {
+  std::ofstream meshFile;
+  meshFile.open( nFileName.c_str() );
+  std::cout << "creating mesh file" << std::endl;
+
+  // write header
+  meshFile << "ply" << std::endl
+           << "format ascii 1.0" << std::endl
+           << "comment Created by particle simulation https://github.com/viscenter/registration-toolkit" << std::endl
+           << "element vertex " << nMesh.fPoints.size() << std::endl
+           << "property float x" << std::endl
+           << "property float y" << std::endl
+           << "property float z" << std::endl
+           << "property float nx" << std::endl
+           << "property float ny" << std::endl
+           << "property float nz" << std::endl
+           << "property float s" << std::endl
+           << "property float t" << std::endl
+           << "property uchar red" << std::endl
+           << "property uchar green" << std::endl
+           << "property uchar blue" << std::endl
+           << "element face " << nMesh.fFaces.size() << std::endl
+           << "property list uchar int vertex_indices" << std::endl
+           << "end_header" << std::endl;
+
+  // write vertex information
+  for ( size_t i = 0; i < nMesh.fPoints.size(); i++ ) {
+	pcl::PointXYZRGBNormal aP = nMesh.fPoints[ i ];
+	unsigned char c = ( unsigned char )( *reinterpret_cast< uint32_t* >( &( aP.rgb ) ) & 0x0000FF );
+    meshFile << aP.x << " "
+             << aP.y << " "
+             << aP.z << " "
+             << aP.normal[ 0 ] << " "
+             << aP.normal[ 1 ] << " "
+             << aP.normal[ 2 ] << " "
+             << 0 << " "
+             << 0 << " "
+             << ( uint )c << " "
+             << ( uint )c << " "
+             << ( uint )c << std::endl;
+  }
+
+  // write face information
+  for ( size_t i = 0; i < nMesh.fFaces.size(); i++ ) {
+	cv::Vec3i aFace = nMesh.fFaces[ i ];
+    meshFile << "3 " << aFace[ 0 ] << " " << aFace[ 1 ] << " " << aFace[ 2 ] << std::endl;
+  }
+
+  meshFile.close();
 	return false;
 }
 
