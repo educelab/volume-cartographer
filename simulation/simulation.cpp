@@ -84,11 +84,14 @@ int main(int argc, char* argv[]) {
     exit(EXIT_FAILURE);
   }
   while (!landmarks_file.eof()) {
-    double a, b;
+	// REVISIT - Chao 20141104 - new path file format
+    double index, a, b;
+    landmarks_file >> index;
+    landmarks_file.get();
     landmarks_file >> a;
     landmarks_file.get();
     landmarks_file >> b;
-    chain_landmark.push_back(Particle(4, a, b));
+    chain_landmark.push_back(Particle(index, a, b));
   }
   landmarks_file.close();
 
@@ -96,12 +99,18 @@ int main(int argc, char* argv[]) {
   particle_chain.push_back(chain_landmark[0]);
   double total_delta = 0;
   for (int i = 1; i < chain_landmark.size(); ++i) {
+	// REVISIT - Chao 20141104 - turned interpolation off here, dense path is generated in pathGen
+/*
     Force quarter = (chain_landmark[i] - chain_landmark[i-1]) / 4;
     total_delta += sqrt(quarter.dot(quarter));
 
     particle_chain.push_back(chain_landmark[i-1] + quarter);
     particle_chain.push_back(chain_landmark[i-1] + quarter*2);
     particle_chain.push_back(chain_landmark[i-1] + quarter*3);
+*/
+    Force seg = chain_landmark[ i ] - chain_landmark[ i - 1 ];
+    total_delta += sqrt( seg.dot( seg ) );
+
     particle_chain.push_back(chain_landmark[i]);
   }
   spring_resting_x = total_delta / chain_landmark.size();

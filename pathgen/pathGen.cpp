@@ -5,6 +5,8 @@
 
 #include <opencv2/opencv.hpp>
 
+#include "volumepkg.h"
+
 using namespace std;
 using namespace cv;
 
@@ -21,13 +23,14 @@ typedef struct pt_tuple_tag {
 	Vec2f end;
 } pt_tuple;
 
-int gTupleIndex;
-pt_tuple gTmpTuple;
-vector<  pt_tuple > gPath;
-vector< Vec2f > gInterPath;
+int					gTupleIndex;
+pt_tuple			gTmpTuple;
+vector< pt_tuple >	gPath;
+vector< Vec2f >		gInterPath;
 
-Mat gImg;
-Mat gImgCache;
+Mat					gImg;		// the volume slice
+Mat					gImgCache;
+int					gZ;			// the slice index on which the path is drawn
 
 
 // Bezier point
@@ -89,7 +92,10 @@ void savePath( void )
     
 			float x = getPt( xa, xb, i * aInterval );
 			float y = getPt( ya, yb, i * aInterval );
-			aOut << x << "," << y << " ";
+
+			// REVISIT - Chao 20141103 - new path format: x y z x y z...
+			//           x y z = slice index, image column, image row
+			aOut << gZ << " " << x << " " << y << " ";
 		}
 	}
 
@@ -160,16 +166,20 @@ void MouseClickCallBackFunc( int e, int x, int y, int flags, void *userdata )
 
 int main( int argc, char *argv[] )
 {
-	if ( argc != 2 ) {
-		cout << " Insufficient arguments. Usage: pathGen ImageToLoad " << endl;
+	if ( argc != 3 ) {
+		cout << " Insufficient arguments. Usage: pathGen volumePkgPath sliceIndex " << endl;
 		return -1;
 	}
 
-	gImg = imread( argv[ 1 ], CV_LOAD_IMAGE_COLOR );
+	gZ = atoi( argv[ 2 ] );
+
+	VolumePkg vpkg = VolumePkg( argv[ 1 ] );
+
+	vpkg.getSliceAtIndex( gZ ).copyTo( gImg );
 	gImg.copyTo( gImgCache );
 
 	if ( !gImg.data ) {
-		cout << " Error. Could not open or find the image" << endl;
+		cout << " Error. Image is not loaded properly. " << endl;
 		return -2;
 	}
 

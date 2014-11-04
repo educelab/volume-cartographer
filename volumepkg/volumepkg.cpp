@@ -31,8 +31,21 @@ cv::Mat VolumePkg::getSliceAtIndex(int index) {
 	slice_location += ".tif";
 
 	std::cout << "Location: " << slice_location << std::endl;
+
 	//load the mat and return it
-	return cv::imread(slice_location);
+	// REVISIT - Chao 20141104 - image format unified to 16UC1. An image is read as is,
+	//           and converted to unsigned short grayscale (CV_16U) single channel.
+	//           Without ANYCOLOR|ANYDEPTH, OpenCV will return 16UC1 TIFF as 8UC3.
+	cv::Mat aSrcImg = cv::imread( slice_location, CV_LOAD_IMAGE_ANYCOLOR | CV_LOAD_IMAGE_ANYDEPTH );
+	cv::Mat aDstImg, aIntermediateImg;
+	if ( aSrcImg.depth() == CV_8U ) {
+		aSrcImg.convertTo( aIntermediateImg, CV_16U );
+	}
+	if ( aIntermediateImg.channels() > 1 ) {
+		cv::cvtColor( aIntermediateImg, aDstImg, CV_BGR2GRAY ); // OpenCV use BGR to represent color image
+	}
+	
+	return aDstImg;
 }
 
 
