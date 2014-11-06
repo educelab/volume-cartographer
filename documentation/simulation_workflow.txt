@@ -12,11 +12,11 @@ once. check yo algorithm before yo wreck yo algorithm.
 
 1. Scalpel first pass - Produces gradient images (yml)
 
-   $ perl -e 'for (`ls`) {chomp; push @a, $_ if /tif/} while (scalar @a >= 3) {print "$a[0] $a[1] $a[2]\n";shift @a}' >gradient.csv
+   perl -e 'for (`ls`) {chomp; push @a, $_ if /tif/} while (scalar @a >= 3) {$outname = $a[1];$outname =~ s{\.[^.]+$}{};print "Gradient $a[0] $a[1] $a[2] $outname.yml\n";shift @a}' >gradient.csv
 
 2. Scalpel second pass - Produces force field cloud files (pcd)
 
-   $ perl -e 'for (`ls`) {chomp; push @a, $_ if /yml/} while (scalar @a >= 3) {++$c; print "$a[0] $a[1] $a[2] $c\n"; shift @a}' >force.csv
+   perl -e 'for (`ls`) {chomp; push @a, $_ if /yml/} while (scalar @a >= 3) {$outname = $a[1];$outname =~ s{\.[^.]+$}{}; print "Tensor $a[0] $a[1] $a[2] $outname.pcd\n"; shift @a}' >force.csv
 
 3. Create list of landmarks - This one has to be done by hand.
    We've been creating vector lines with Illustrator and then iterating over them.
