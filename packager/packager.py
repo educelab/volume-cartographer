@@ -92,7 +92,7 @@ else:
 config_dict = {
 	# number of slices
 	"number of slices": len(slices),
-	"slice location": "slices/"
+	"slice location": "slices/",
 	# size of the images.
 	# currently no easy way to do this for .tiffs without
 	# third party libs
