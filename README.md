@@ -24,5 +24,12 @@ Toolkit to segment and analyze volumetric datasets.
 * Meshlab - Recommended for viewing meshes only
 
 **Installation**
-  
-Coming soon...  
+```
+git clone https://code.vis.uky.edu/seales-research/volume-cartographer.git
+cd volume-cartographer
+mkdir build
+cd build
+cmake ..
+make -j4
+sudo make install
+```

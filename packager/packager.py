@@ -1,4 +1,4 @@
-# September 15 2014
+#!/usr/bin/env python
 
 # this program takes in "unformatted" scroll data
 # and turns it into a .volumepkg
