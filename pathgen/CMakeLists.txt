@@ -7,6 +7,6 @@ add_subdirectory(./../volumepkg volumepkg)
 include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(${VOLUMEPKG_INCLUDE_DIR})
 
-add_executable(pathgen pathGen.cpp)
+add_executable(vc_pathgen pathGen.cpp)
 
-target_link_libraries(pathgen volumepkg ${OpenCV_LIBS})
+target_link_libraries(vc_pathgen volumepkg ${OpenCV_LIBS})

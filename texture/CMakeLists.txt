@@ -12,7 +12,7 @@ include_directories(${PCL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS} ${O})
 add_definitions(${PCL_DEFINITIONS})
 
-add_executable(sliceIntersection CMesh.cpp CPlyHelper.cpp sliceIntersection.cpp)
+add_executable(vc_texture CMesh.cpp CPlyHelper.cpp sliceIntersection.cpp)
 
-target_link_libraries(sliceIntersection ${PCL_LIBRARIES})
-target_link_libraries(sliceIntersection ${OpenCV_LIBS})
+target_link_libraries(vc_texture ${PCL_LIBRARIES})
+target_link_libraries(vc_texture ${OpenCV_LIBS})

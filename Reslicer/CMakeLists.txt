@@ -8,6 +8,6 @@ find_package(OpenCV REQUIRED)
 
 include_directories(${OpenCV_INCLUDE_DIRS})
 
-add_executable(reslicer reslicer.cpp)
+add_executable(vc_reslicer reslicer.cpp)
 
-target_link_libraries(reslicer volumepkg ${OpenCV_LIBS})
+target_link_libraries(vc_reslicer volumepkg ${OpenCV_LIBS})

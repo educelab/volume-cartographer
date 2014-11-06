@@ -11,3 +11,14 @@ add_subdirectory(reslicer)
 add_subdirectory(scalpel)
 add_subdirectory(simulation)
 add_subdirectory(texture)
+
+install(PROGRAMS "${CMAKE_BINARY_DIR}/pathgen/vc_pathgen" "${CMAKE_BINARY_DIR}/scalpel/vc_scalpel" "${CMAKE_BINARY_DIR}/simulation/vc_simulation" "${CMAKE_BINARY_DIR}/texture/vc_texture" DESTINATION bin)
+
+# uninstall target
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+    IMMEDIATE @ONLY)
+
+add_custom_target(uninstall
+    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)

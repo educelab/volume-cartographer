@@ -8,7 +8,7 @@ include_directories(${PCL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
-add_executable(simulation simulation.cpp)
+add_executable(vc_simulation simulation.cpp)
 
-target_link_libraries(simulation ${PCL_LIBRARIES})
-target_link_libraries(simulation ${OpenCV_LIBS})
+target_link_libraries(vc_simulation ${PCL_LIBRARIES})
+target_link_libraries(vc_simulation ${OpenCV_LIBS})
