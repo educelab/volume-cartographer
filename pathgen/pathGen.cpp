@@ -31,6 +31,7 @@ vector< Vec2f >		gInterPath;
 Mat					gImg;		// the volume slice
 Mat					gImgCache;
 int					gZ;			// the slice index on which the path is drawn
+string				gVolPkgName;
 
 
 // Bezier point
@@ -66,6 +67,7 @@ void drawBezier( Vec2f &start, Vec2f &middle, Vec2f &end )
 void savePath( void )
 {
 	ofstream aOut;
+	// REVISIT - TODO change the path file name to [volumePackageName]_[dateTime]
 	aOut.open( "path.txt", ofstream::out );
 
 	if ( !aOut.is_open() ) {
@@ -95,7 +97,7 @@ void savePath( void )
 
 			// REVISIT - Chao 20141103 - new path format: x y z x y z...
 			//           x y z = slice index, image column, image row
-			aOut << gZ << " " << x << " " << y << " ";
+			aOut << gZ << " " << x << " " << y << endl;
 		}
 	}
 

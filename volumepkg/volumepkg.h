@@ -1,3 +1,6 @@
+#ifndef _VOLUMEPKG_H_
+#define _VOLUMEPKG_H_
+
 #include <opencv2/opencv.hpp>
 #include "volumepkgcfg.h"
 #include <stdlib.h>
@@ -12,3 +15,5 @@ private:
 	std::string location;
 	int getNumberOfSliceCharacters();
 };
+
+#endif // _VOLUMEPKG_H_
