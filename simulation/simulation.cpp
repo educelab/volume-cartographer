@@ -86,11 +86,7 @@ int main(int argc, char* argv[]) {
   while (!landmarks_file.eof()) {
 	// REVISIT - Chao 20141104 - new path file format
     double index, a, b;
-    landmarks_file >> index;
-    landmarks_file.get();
-    landmarks_file >> a;
-    landmarks_file.get();
-    landmarks_file >> b;
+    landmarks_file >> index >> a >> b;
     chain_landmark.push_back(Particle(index, a, b));
   }
   landmarks_file.close();

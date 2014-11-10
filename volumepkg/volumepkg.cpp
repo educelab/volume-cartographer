@@ -40,9 +40,13 @@ cv::Mat VolumePkg::getSliceAtIndex(int index) {
 	cv::Mat aDstImg, aIntermediateImg;
 	if ( aSrcImg.depth() == CV_8U ) {
 		aSrcImg.convertTo( aIntermediateImg, CV_16U );
+	} else {
+		aSrcImg.copyTo( aIntermediateImg );
 	}
 	if ( aIntermediateImg.channels() > 1 ) {
 		cv::cvtColor( aIntermediateImg, aDstImg, CV_BGR2GRAY ); // OpenCV use BGR to represent color image
+	} else {
+		aIntermediateImg.copyTo( aDstImg );
 	}
 	
 	return aDstImg;

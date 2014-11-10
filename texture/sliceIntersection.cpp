@@ -4,53 +4,31 @@
 // find the texture on it, so we can tell whether the mesh
 // grows as the slices indicated.
 
+#include "sliceIntersection.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <fstream>
 
 #include <string>
-#include <vector>
-
-#include <opencv2/opencv.hpp>
 
 #include "CMesh.h"
 #include "CPlyHelper.h"
 #include "CPoint.h"
 
+#include "volumepkg.h"
 
-typedef struct pt_tag {
-	unsigned char color;
-	cv::Vec2i loc;
-} pt;
+#ifdef _NEED_DENOISE_
+#include "denoiose_tvl1.h"
+#endif // _NEED_DENOISE_
 
+//#define gNumHistBin	65536//256 // REVISIT - gNumHistBin = 1 << 8 * sizeof( typename )
+unsigned int gNumHistBin;
 
-bool OpenSliceImgFile( const std::string &nFileName,
-						cv::Mat &nImg );
-
-void GetMeshSliceIntersection( int nSliceIndex,
-								const ChaoVis::CMesh &nMesh,
-								std::vector< ChaoVis::CPoint2f > &nPath );
-
-void OutputIntersectionOnSlice( const std::string &nFileName,
-								const cv::Mat &nImg,
-								const std::vector< ChaoVis::CPoint2f > &nPath );
-
-void FindBetterTexture( ChaoVis::CMesh &nMesh,
-						const std::vector< cv::Mat > &nImgVol,
-						float nRadius,
-						int nStartIndex,
-						double (*BetterTextureFunc)(double *nData, int nSize) );
-
-double NonMaximumSuppression( double *nData,
-								int nSize );
-
-double NonLocalMaximumSuppression( double *nData,
-								int nSize );
 
 // estimate intensity of volume at particle
-double interpolate_intensity( const cv::Vec3f &point,
-								const std::vector< cv::Mat > &nImgVol,
-								int nStartIndex )
+double interpolate_intensity( const cv::Vec3f					&point,
+								const std::vector< cv::Mat >	&nImgVol )
 {
   double dx, dy, dz, int_part;
   // for new data
@@ -59,7 +37,7 @@ double interpolate_intensity( const cv::Vec3f &point,
   dz = modf(point[(1)], &int_part);
 
   int x_min, x_max, y_min, y_max, z_min, z_max;
-  x_min = (int)point(0);
+  x_min = (int)point(0) - 1; // REVISIT - this is because volpkg shifted the index by 1
   x_max = x_min + 1;
   y_min = (int)point(2);
   y_max = y_min + 1;
@@ -76,14 +54,14 @@ double interpolate_intensity( const cv::Vec3f &point,
   }
 
   double result =
-    nImgVol[ x_min ].at< unsigned char/*cv::Vec3b*/ >( y_min, z_min )/*[ 0 ]*/ * (1 - dx) * (1 - dy) * (1 - dz) +
-    nImgVol[ x_max ].at< unsigned char/*cv::Vec3b*/ >( y_min, z_min )/*[ 0 ]*/ * dx       * (1 - dy) * (1 - dz) +
-    nImgVol[ x_min ].at< unsigned char/*cv::Vec3b*/ >( y_max, z_min )/*[ 0 ]*/ * (1 - dx) * dy       * (1 - dz) +
-    nImgVol[ x_min ].at< unsigned char/*cv::Vec3b*/ >( y_min, z_max )/*[ 0 ]*/ * (1 - dx) * (1 - dy) * dz +
-    nImgVol[ x_max ].at< unsigned char/*cv::Vec3b*/ >( y_min, z_max )/*[ 0 ]*/ * dx       * (1 - dy) * dz +
-    nImgVol[ x_min ].at< unsigned char/*cv::Vec3b*/ >( y_max, z_max )/*[ 0 ]*/ * (1 - dx) * dy       * dz +
-    nImgVol[ x_max ].at< unsigned char/*cv::Vec3b*/ >( y_max, z_min )/*[ 0 ]*/ * dx       * dy       * (1 - dz) +
-    nImgVol[ x_max ].at< unsigned char/*cv::Vec3b*/ >( y_max, z_max )/*[ 0 ]*/ * dx       * dy       * dz;
+    nImgVol[ x_min ].at< unsigned char >( y_min, z_min ) * (1 - dx) * (1 - dy) * (1 - dz) +
+    nImgVol[ x_max ].at< unsigned char >( y_min, z_min ) * dx       * (1 - dy) * (1 - dz) +
+    nImgVol[ x_min ].at< unsigned char >( y_max, z_min ) * (1 - dx) * dy       * (1 - dz) +
+    nImgVol[ x_min ].at< unsigned char >( y_min, z_max ) * (1 - dx) * (1 - dy) * dz +
+    nImgVol[ x_max ].at< unsigned char >( y_min, z_max ) * dx       * (1 - dy) * dz +
+    nImgVol[ x_min ].at< unsigned char >( y_max, z_max ) * (1 - dx) * dy       * dz +
+    nImgVol[ x_max ].at< unsigned char >( y_max, z_min ) * dx       * dy       * (1 - dz) +
+    nImgVol[ x_max ].at< unsigned char >( y_max, z_max ) * dx       * dy       * dz;
 
   return result;
 }
@@ -94,242 +72,10 @@ bool CompareXLess( const pcl::PointXYZRGBNormal &nP1,
 	return( nP1.x < nP2.x );
 }
 
-int main( int argc, char *argv[] )
-{
-	double radius;
-	if ( argc < 5 ) {
-		std::cout << "Usage: sliceIntersection mesh.ply radius wantBetterTexture(y/n) startSliceIndex imgNameTemplate" << std::endl;
-		exit( -1 );
-	}
-
-	radius = atof( argv[ 2 ] );
-	const int MIN_SLICE = atoi( argv[ 4 ] );
-
-	bool aIsToFindBetterTexture = ( argv[ 3 ][ 0 ] == 'y' || argv[ 3 ][ 0 ] == 'Y' );
-	// (1) read in ply mesh file
-	ChaoVis::CMesh aMesh;
-	std::string aFileName( argv[ 1 ] );
-	ChaoVis::CPlyHelper::ReadPlyFile( aFileName, aMesh );
-	std::cout << "Mesh file loaded" << std::endl;
-	// REVISIT - for debug
-	aMesh.Dump();
-
-	// copy and sort the vertices
-	std::vector< pcl::PointXYZRGBNormal > aPoints( aMesh.fPoints.size() );
-	std::copy( aMesh.fPoints.begin(), aMesh.fPoints.end(), aPoints.begin() );
-	std::sort( aPoints.begin(), aPoints.end(), CompareXLess );
-
-	int aMinSliceIndex, aMaxSliceIndex;
-
-	aMinSliceIndex = ( int )floor( aPoints.begin()->x );
-
-
-/*	if ( aMinSliceIndex < MIN_SLICE ) {
-		aMinSliceIndex = MIN_SLICE;
-	}*/
-	aMaxSliceIndex = ( int )ceil( aPoints.back().x );
-
-	// REVISIT - for debug
-	std::cout << "Min slice index: " << aMinSliceIndex << 
-				" Max slice index: " << aMaxSliceIndex << std::endl;
-
-	// (1.5) do non-maximum suppression and find the better texture for each vertices
-	// REVISIT - improve: to save the time for reading images, read the TIF files at the same time
-	//           which would be a heavy burden on memory
-	char aOriginalImgPrefix[128];
-	char aOriginalImgFileName[128];
-
-	// REVISIT - replace this with VolumePackager
-	strcpy( aOriginalImgPrefix, argv[ 5 ] );
-	std::vector< cv::Mat > aImgVol;
-	for ( int i = 0; i < aMaxSliceIndex /*+ 2*/; ++i ) {
-		sprintf( aOriginalImgFileName, aOriginalImgPrefix, i + MIN_SLICE );
-		cv::Mat aImg = cv::imread( aOriginalImgFileName );
-
-#define _LIKE_SCALPEL
-#ifdef _LIKE_SCALPEL
-		cvtColor( aImg, aImg, CV_BGR2GRAY );
-		//printf( "channels: %d, depth: %d\n", aImg.channels(), aImg.depth() );
-		GaussianBlur( aImg, aImg, cv::Size( 3, 3 ), 0);
-		equalizeHist( aImg, aImg );
-#endif // _LIKE_SCALPEL
-
-		aImgVol.push_back( aImg );
-	}
-
-	if ( aIsToFindBetterTexture ) {
-		printf( "find better texture\n" );
-		FindBetterTexture( aMesh,
-							aImgVol,
-							radius,//3.0,
-							MIN_SLICE,
-							NonMaximumSuppression );
-		printf( "writing result\n" );
-		ChaoVis::CPlyHelper::WritePlyFile( aFileName + "_mod.ply", aMesh );
-	}
-
-	
-	// (2) for each slice, do not read in slice texture file, but directly find
-	//     mesh intersection on that slice and draw path
-	// REVISIT - the slice on each end of the mesh may or may not have triangle on it
-	int aNumSlices = aMaxSliceIndex - aMinSliceIndex + 1;
-	std::vector< cv::Mat > aIntrsctColor;
-	for ( size_t i = 0; i < aNumSlices; ++i ) {
-		aIntrsctColor.push_back( cv::Mat( aImgVol[ 0 ].cols, aImgVol[ 0 ].rows, CV_8UC3 ) );
-	}
-	std::vector< std::vector< pt > > aIntrsctPos( aNumSlices );
-
-	// iterate through all the edges
-	std::set< cv::Vec2i, ChaoVis::EdgeCompareLess >::iterator aIter;
-	for ( aIter = aMesh.fEdges.begin(); aIter != aMesh.fEdges.end(); ++aIter ) {
-
-		pcl::PointXYZRGBNormal aV1 = aMesh.fPoints[ ( *aIter )[ 0 ] ];
-		pcl::PointXYZRGBNormal aV2 = aMesh.fPoints[ ( *aIter )[ 1 ] ];
-
-		int aStartIndx = ( int )ceil( aV1.x );
-		int aEndIndx = ( int )floor( aV2.x );
-
-		// safe net
-		if ( aStartIndx < aMinSliceIndex || aEndIndx > aMaxSliceIndex - 1 ) {
-			continue;
-		}
-
-		// interpolate all the intersection points
-		for ( int i = aStartIndx; i <= aEndIndx; ++i ) {
-    
-			cv::Vec3b aPixel;
-			int aRow, aCol;
-			if ( fabs( aV2.x - aV1.x ) < 1e-6 ) {
-				if ( fabs( aV2.x - i ) < 1e-6 ) {
-					// point 1
-					aRow = round( aV2.y );
-					aCol = round( aV2.z );
-
-					aPixel[ 0 ] = ( unsigned char )aV2.r;
-					aPixel[ 1 ] = ( unsigned char )aV2.g;
-					aPixel[ 2 ] = ( unsigned char )aV2.b;
-
-					pt aPt;
-					aPt.loc = cv::Vec2i( aRow, aCol );
-					aPt.color = ( unsigned char )aV2.b;
-					aIntrsctPos[ i - aMinSliceIndex ].push_back( aPt );
-        
-					aIntrsctColor[ i - aMinSliceIndex ].at< cv::Vec3b >( aRow, aCol ) = aPixel;
-
-					// point 2
-					aRow = round( aV1.y );
-					aCol = round( aV1.z );
-
-					aPixel[ 0 ] = ( unsigned char )aV1.r;
-					aPixel[ 1 ] = ( unsigned char )aV1.g;
-					aPixel[ 2 ] = ( unsigned char )aV1.b;
-        
-					aPt.loc = cv::Vec2i( aRow, aCol );
-					aPt.color = ( unsigned char )aV1.b;
-					aIntrsctPos[ i - aMinSliceIndex ].push_back( aPt );
-
-					aIntrsctColor[ i - aMinSliceIndex ].at< cv::Vec3b >( aRow, aCol ) = aPixel;
-				}
-				continue;
-			}
-			double d = ( aV2.x - i ) / ( aV2.x - aV1.x );
-    
-			aRow = round( d * aV1.y + ( 1.0 - d ) * aV2.y );
-			aCol = round( d * aV1.z + ( 1.0 - d ) * aV2.z );
-
-			aPixel[ 0 ] = ( unsigned char )( d * aV1.r + ( 1.0 - d ) * aV2.r );
-			aPixel[ 1 ] = ( unsigned char )( d * aV1.g + ( 1.0 - d ) * aV2.g );
-			aPixel[ 2 ] = ( unsigned char )( d * aV1.b + ( 1.0 - d ) * aV2.b );
-
-			pt aPt;
-			aPt.loc = cv::Vec2i( aRow, aCol );
-			aPt.color = ( unsigned char )( d * aV1.b + ( 1.0 - d ) * aV2.b );
-			aIntrsctPos[ i - aMinSliceIndex ].push_back( aPt );
-    
-			aIntrsctColor[ i - aMinSliceIndex ].at< cv::Vec3b >( aRow, aCol ) = aPixel;
-
-		} // for
-
-	} // for
-
-#ifdef _DEBUG
-	// output all the path in each slices
-	std::vector< cv::Mat >::iterator aStackIter;
-	int aCnt = 0;
-	char aImgPrefix[128];
-	char aImgFileName[128];
-	strcpy( aImgPrefix, "/home/chaodu/Research/Scroll/TestData/Sphere_Papyri-Sample-2005/texture/XY%04d.png" );
-	for ( aStackIter = aIntrsctColor.begin(); aStackIter != aIntrsctColor.end(); ++aStackIter, ++aCnt ) {
-
-		sprintf( aImgFileName, aImgPrefix, aCnt + MIN_SLICE );
-		cv::imwrite( aImgFileName, *aStackIter );
-
-		// REVISIT - debug, overlay the path to the original image
-		std::cout << "Overlaying image " << aCnt << std::endl;
-		char aOriginalImgPrefix[128];
-		char aOriginalImgFileName[128];
-		strcpy( aOriginalImgPrefix, argv[ 5 ] );
-		sprintf( aOriginalImgFileName, aOriginalImgPrefix, aCnt + MIN_SLICE );
-		// REVISIT - since we have aImgVol, don't need to read image again
-		cv::Mat aOriginalImg;
-		aImgVol.at( aCnt ).copyTo( aOriginalImg );
-		for ( std::vector< /*cv::Vec2i*/pt >::iterator aPathPtIter = aIntrsctPos[ aCnt ].begin(); 
-				aPathPtIter != aIntrsctPos[ aCnt ].end(); 
-				++aPathPtIter ) {
-			
-			aOriginalImg.at< cv::Vec3b >( ( *aPathPtIter ).loc[ 1 ], ( *aPathPtIter ).loc[ 0 ] ) = cv::Vec3b( 0, 0, 255 );
-
-		}
-
-		char aOutputImgPrefix[128];
-		char aOutputImgFileName[128];
-		strcpy( aOutputImgPrefix, "/home/chaodu/Research/Scroll/TestData/Sphere_Papyri-Sample-2005/texture/XY%04d.png" );
-		sprintf( aOutputImgFileName, aOutputImgPrefix, aCnt + MIN_SLICE );
-		cv::imwrite( aOutputImgFileName, aOriginalImg );
-
-		// for debug
-//		system( "ffmpeg -framerate 25 -start_number 3 -i ../../scroll_sample_data/texture/scroll2_239um_oversize_offset_take2_%03d.tif -c:v libx264 ../../scroll_sample_data/texture/out.mp4" );
-//		system( "ffmpeg -framerate 25 -start_number 0 -i \"/home/chaodu/Desktop/Franklin Samples/Franklin_Scan1_10um_2240x600+0+525.volumepkg/texture/%04d.tif\" -c:v libx264 \"/home/chaodu/Desktop/Franklin Samples/Franklin_Scan1_10um_2240x600+0+525.volumepkg/texture/out.mp4\"" );
-
-	}
-#endif // _DEBUG
-
-
-
-	// create mp4 movie
-	// note: with -pix_fmt option the generated file can have the largest compatibility, however,
-	//       we have to make the dimensions to be even numbers
-	// for compatible output
-//	system( "ffmpeg -framerate 25 -start_number 3 -i ../../scroll_sample_data/texture/scroll2_239um_oversize_offset_take2_%03d.tif -c:v libx264 -pix_fmt yuv420p -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" ../../scroll_sample_data/texture/out.mp4" );
-
-	return 0;
-}
-
-// open slice image file and store as rgb8_image_t
-bool OpenSliceImgFile( const std::string &nFileName,
-						cv::Mat &nImg )
-{
-	return false;
-}
-
-// get the intersection of the mesh and the particular slice
-void GetMeshSliceIntersection( int nSliceIndex,
-								const ChaoVis::CMesh &nMesh,
-								std::vector< ChaoVis::CPoint2f > &nPath )
-{
-}
-
-// draw intersection path on the particular slice
-void OutputIntersectionOnSlice( const std::string &nFileName,
-								const cv::Mat &nImg,
-								const std::vector< ChaoVis::CPoint2f > &nPath )
-{
-}
-
 void FindBetterTexture( ChaoVis::CMesh &nMesh,
 						const std::vector< cv::Mat > &nImgVol,
 						float nRadius,
-						int nStartIndex,
+						//int nStartIndex,
 						double (*BetterTextureFunc)(double *nData, int nSize) )
 {
 	// find the NEAREST local maximum, with regular sampling
@@ -368,8 +114,7 @@ void FindBetterTexture( ChaoVis::CMesh &nMesh,
 			cv::Vec3f aP = aFarthest2 + i * aNormalVec * SAMPLE_RATE;
 
 			aSamples[ i ] = interpolate_intensity( aP,
-													nImgVol,
-													nStartIndex );
+													nImgVol );
 
 		}
 
@@ -389,8 +134,8 @@ void FindBetterTexture( ChaoVis::CMesh &nMesh,
 }
 
 // function pointer for selecting the best texture
-double NonMaximumSuppression( double *nData,
-								int nSize )
+double FilterNonMaximumSuppression( double	*nData,
+									int		nSize )
 {
 	double aResult = 0.0;
 
@@ -398,6 +143,9 @@ double NonMaximumSuppression( double *nData,
 	for ( int i = 0; i < nSize; ++i ) {
 		if ( nData[ i ] > aResult ) {
 			aResult = nData[ i ];
+
+			// REVISIT - TODO update the vertex position
+
 		}
 	}
 
@@ -405,7 +153,7 @@ double NonMaximumSuppression( double *nData,
 }
 
 // function pointer for selecting the best texture
-double NonLocalMaximumSuppression( double *nData,
+double FilterNonLocalMaximumSuppression( double *nData,
 								int nSize )
 {
 	int TOTAL_SAMPLING_NUM = nSize - 2;
@@ -422,22 +170,20 @@ double NonLocalMaximumSuppression( double *nData,
 		if ( aIsLocalMax[ aCenterIndex + i ] || aIsLocalMax[ aCenterIndex - i ] ) {
 			int index;
 			if ( aIsLocalMax[ aCenterIndex + i ] && aIsLocalMax[ aCenterIndex - i ] ) {
-				index = nData/*aSamples*/[ aCenterIndex + i ] > nData/*aSamples*/[ aCenterIndex - i ] ?
+				index = nData[ aCenterIndex + i ] > nData[ aCenterIndex - i ] ?
 						aCenterIndex + i : aCenterIndex - i;
 			} else if ( aIsLocalMax[ aCenterIndex + i ] ) {
 				index = aCenterIndex + i;
 			} else if ( aIsLocalMax[ aCenterIndex - i ] ) {
 				index = aCenterIndex - i;
 			}
-			unsigned char c = nData/*aSamples*/[ index ];
+			unsigned char c = nData[ index ];
 
-//			if ( c > aIter->b ) { // only update when we see something brighter
 			if ( c > aResult ) {
 				uint32_t color =
 							c |
 							c << 8 |
 							c << 16;
-//				aIter->rgb = *reinterpret_cast<float*>(&color);
 				aResult = c;
 				// REVISIT - update particle's location
 //				cv::Vec3f aNewPos = aFarthest2 + index * aNormalVec * SAMPLE_RATE;
@@ -445,7 +191,6 @@ double NonLocalMaximumSuppression( double *nData,
 //				aIter->y = aNewPos[ 1 ];
 //				aIter->z = aNewPos[ 2 ];
                 
-				// break: nearest local maxima; don't break: global maxima
 				//break;
 			}
 		}
@@ -458,4 +203,196 @@ double NonLocalMaximumSuppression( double *nData,
 	}
 
 	return aResult;
+}
+
+double FilterDummy( double *nData,
+					int nSize )
+{
+	return nData[ nSize / 2 ];
+}
+
+// global histogram equalization
+template< typename HistT, typename ImgT >
+void GetGlobalHistogram( const std::vector< cv::Mat > &nImgVol,
+						HistT *nHist )
+{
+	HistT *aNewHist = new HistT[ gNumHistBin ];
+	memset( aNewHist, 0, sizeof( HistT ) * gNumHistBin );
+
+	for ( std::vector< cv::Mat >::const_iterator aIter = nImgVol.begin(); aIter != nImgVol.end(); ++aIter ) {
+		for ( int aRow = 0; aRow < aIter->rows; ++aRow ) {
+			for ( int aCol = 0; aCol < aIter->cols; ++aCol ) {
+				//int index = aIter->at< cv::Vec3b >( aRow, aCol )[ 0 ];
+				int index = aIter->at< ImgT >( aRow, aCol );
+    
+				assert( index >= 0 && index < gNumHistBin );
+    
+				aNewHist[ index ]++;
+			}
+		}
+	}
+
+	// first average to avoid overflow
+	// REVISIT - do division first will lose some accuracy
+	for ( int i = 0; i < gNumHistBin; ++i ) {
+		aNewHist[ i ] /= nImgVol.size();
+	}
+
+	// do accumulation
+	for ( int i = 1; i < gNumHistBin; ++i ) {
+		aNewHist[ i ] = aNewHist[ i - 1 ] + aNewHist[ i ];
+	}
+
+	// normalize the new histogram to [ 0, 255 ]
+	// REVISIT - aFactor == 0?
+	unsigned int aFactor = aNewHist[ gNumHistBin - 1] - aNewHist[ 0 ];
+	for ( int i = 0; i < gNumHistBin; ++i ) {
+		// REVISIT - casting to integer still has the danger that it's out of range of 8-bit char
+		nHist[ i ] = static_cast< HistT >( ( aNewHist[ i ] - aNewHist[ 0 ] ) * ( gNumHistBin - 1.0 ) / aFactor );
+	}
+
+	delete []aNewHist;
+}
+
+// do image histogram equalization
+// now only works on grayscale images, cv::Mat of cv::Vec3b
+template< typename HistT, typename ImgT >
+void DoHistogramEqualization( HistT *nHist,
+								const cv::Mat &nSrc,
+								cv::Mat &nDest )
+{
+	// remap the image values
+	for ( int aRow = 0; aRow < nSrc.rows; ++aRow ) {
+		for ( int aCol = 0; aCol < nSrc.cols; ++aCol ) {
+			ImgT aNewColor = nHist[ nSrc.at< ImgT >( aRow, aCol ) ];
+			nDest.at< ImgT >( aRow, aCol ) = aNewColor;
+		}
+	}
+}
+
+template< typename ImgT >
+void DoNormalization( std::vector< cv::Mat > &nImgVol )
+{
+	ImgT aMin, aMax;
+	aMin = gNumHistBin;
+	aMax = 0;
+	// linearly map [min, max] to [0, gNumHistBin]
+	for ( std::vector< cv::Mat >::iterator aIter = nImgVol.begin(); aIter != nImgVol.end(); ++aIter ) {
+		for ( int aRow = 0; aRow < ( *aIter ).rows; ++aRow ) {
+			for ( int aCol = 0; aCol < ( *aIter ).cols; ++aCol ) {
+				ImgT aValue = aIter->at< ImgT >( aRow, aCol );
+				if ( aValue > aMax ) {
+					aMax = aValue;
+				}
+				if ( aValue < aMin ) {
+					aMin = aValue;
+				}
+			}
+		}
+	}
+
+	for ( std::vector< cv::Mat >::iterator aIter = nImgVol.begin(); aIter != nImgVol.end(); ++aIter ) {
+		for ( int aRow = 0; aRow < ( *aIter ).rows; ++aRow ) {
+			for ( int aCol = 0; aCol < ( *aIter ).cols; ++aCol ) {
+				ImgT aValue = aIter->at< ImgT >( aRow, aCol );
+				aIter->at< ImgT >( aRow, aCol ) = ( double )( aValue - aMin ) / ( aMax - aMin ) * ( gNumHistBin - 0 - 1.0 );
+			}
+		}
+	}
+}
+
+template< typename HistT, typename ImgT >
+void DoGlobalHistogramEqualization( std::vector< cv::Mat > &nImgVol )
+{
+	HistT *aGlobalHist = new HistT[ gNumHistBin ];
+	memset( aGlobalHist, 0, sizeof( HistT ) * gNumHistBin );
+
+#ifdef _NEED_DENOISE_
+	// denoise
+	for ( vector< Mat >::iterator aIter = nImgVol.begin(); aIter != nImgVol.end(); ++aIter ) {
+		vector< Mat > aMatVec;
+		aMatVec.push_back( *aIter );
+		denoise_TVL1( aMatVec,//aImgVol,
+						*aIter, 0.5 );
+	}
+#endif // _NEED_DENOISE_
+
+	// get histogram and mapping
+	GetGlobalHistogram< HistT, ImgT >( nImgVol,
+										aGlobalHist );
+
+#ifdef _DEBUG
+	// plot the new histogram
+	for ( int i = 0; i < gNumHistBin; ++i ) {
+		printf( "%03d %d", i, aGlobalHist[ i ] );
+/*		for ( int j = 0; j < aGlobalHist[ i ]; ++j ) {
+			printf( "*" );
+		}
+		*/
+		printf( "\n" );
+	}
+#endif // _DEBUG
+
+	int aCnt = 0;
+	cv::Mat aOutImg( nImgVol[ 0 ].rows, nImgVol[ 0 ].cols, nImgVol[ 0 ].type() );
+	for ( std::vector< cv::Mat >::iterator aIter = nImgVol.begin(); aIter != nImgVol.end(); ++aIter, ++aCnt ) {
+		
+		aIter->copyTo( aOutImg );
+
+		DoHistogramEqualization< HistT, ImgT >( aGlobalHist,
+												*aIter,
+												aOutImg );
+
+		aOutImg.copyTo( *aIter );
+#ifdef _DEBUG
+		char filename[ 50 ];
+		sprintf( filename, "%03d.png", aCnt );
+		cv::imwrite( filename, aOutImg );
+#endif // _DEBUG
+	}
+
+	// clean up
+	delete []aGlobalHist;
+}
+
+void ConvertData16Uto8U( std::vector< cv::Mat > &nImgVol ) {
+	for ( size_t i = 0; i < nImgVol.size(); ++i ) {
+		cv::Mat aOriginImg( nImgVol[ i ].rows, nImgVol[ i ].cols, CV_16UC1 );
+		nImgVol[ i ].copyTo( aOriginImg );
+		nImgVol[ i ].convertTo( nImgVol[ i ], CV_8U );
+
+		for ( int row = 0; row < aOriginImg.rows; ++row ) {
+			for ( int col = 0; col < aOriginImg.cols; ++col ) {
+				nImgVol[ i ].at< unsigned char >( row, col ) = aOriginImg.at< unsigned short >( row, col ) / 256.0;
+			}
+		}
+	}
+}
+
+void ProcessVolume( /*const*/ VolumePkg &nVpkg, 
+					std::vector< cv::Mat > &nImgVol,
+					bool nNeedEqualize,
+					bool nNeedNormalize )
+{
+	int aNumSlices = nVpkg.getNumberOfSlices();
+	for ( int i = 0; i < aNumSlices; ++i ) {
+		nImgVol.push_back( nVpkg.getSliceAtIndex( i ).clone() );
+	}
+	gNumHistBin = 1 << ( NUM_BITS_PER_BYTE * sizeof( unsigned short ) );
+#ifdef _DEBUG
+	printf( "# of bin: %d\n", gNumHistBin );
+#endif // _DEBUG
+	// optional histogram equalization
+	// REVISIT - we have multiple choices: histogram equalization, normalization
+	//           this function is always called because 8-bit images are upgraded and stored in 16-bit images,
+	//           naively map them back to 8-bit images will generate undesired dark effect
+	//           without the second parameter, DoGlobalHistogramEqualization only find the range
+	//           of the color intensity and do a equalization
+	if ( nNeedEqualize ) {
+		DoGlobalHistogramEqualization< unsigned int, unsigned short >( nImgVol );
+	}
+	if ( nNeedNormalize ) {
+		DoNormalization< unsigned short >( nImgVol );
+	}
+	ConvertData16Uto8U( nImgVol );
 }

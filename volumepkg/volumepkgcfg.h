@@ -1,3 +1,6 @@
+#ifndef _VOLUMEPKGCFG_H_
+#define _VOLUMEPKGCFG_H_
+
 #include <iostream>
 #include <fstream>
 
@@ -14,3 +17,5 @@ public:
 private:
 	picojson::value json_data;
 };
+
+#endif // _VOLUMEPKGCFG_H_
