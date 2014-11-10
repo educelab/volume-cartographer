@@ -51,7 +51,7 @@ int main( int argc, char *argv[] )
 	// REVISIT - replace this with VolumePackager
 	VolumePkg vpkg = VolumePkg( argv[ 4 ] );
 	std::vector< cv::Mat > aImgVol;
-	ProcessVolume( vpkg, aImgVol, true, true );
+	ProcessVolume( vpkg, aImgVol, false, false );
 
 	if ( aIsToFindBetterTexture ) {
 		printf( "find better texture\n" );

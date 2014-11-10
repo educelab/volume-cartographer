@@ -30,7 +30,7 @@ cv::Mat VolumePkg::getSliceAtIndex(int index) {
 	slice_location += str_index;
 	slice_location += ".tif";
 
-	std::cout << "Location: " << slice_location << std::endl;
+	//std::cout << "Location: " << slice_location << std::endl;
 
 	//load the mat and return it
 	// REVISIT - Chao 20141104 - image format unified to 16UC1. An image is read as is,
