@@ -39,7 +39,9 @@ cv::Mat VolumePkg::getSliceAtIndex(int index) {
 	cv::Mat aSrcImg = cv::imread( slice_location, CV_LOAD_IMAGE_ANYCOLOR | CV_LOAD_IMAGE_ANYDEPTH );
 	cv::Mat aDstImg, aIntermediateImg;
 	if ( aSrcImg.depth() == CV_8U ) {
-		aSrcImg.convertTo( aIntermediateImg, CV_16U );
+		double minVal, maxVal;
+		cv::minMaxLoc(aSrcImg, &minVal, &maxVal);
+		aSrcImg.convertTo( aIntermediateImg, CV_16U, 65535.0/(maxVal - minVal), -minVal * 65535.0/(maxVal - minVal));
 	} else {
 		aSrcImg.copyTo( aIntermediateImg );
 	}
