@@ -9,7 +9,7 @@ int VolumePkg::getNumberOfSlices() {
 }
 
 std::string VolumePkg::getPkgName() {
-	return config.getString("volumepkg name");
+	return config.getString("volumepkg name", "UnnamedVolume");
 }
 
 int VolumePkg::getNumberOfSliceCharacters() {
