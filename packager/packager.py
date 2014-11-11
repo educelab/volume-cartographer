@@ -96,6 +96,10 @@ else:
 
 # create the config options and save it to the config file
 config_dict = {
+
+    # name
+    "volumepkg name": outpath.split('/')[-1],
+
     # number of slices
     "number of slices": len(slices),
     "slice location": "slices/",
