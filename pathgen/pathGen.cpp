@@ -60,7 +60,7 @@ void drawBezier( Vec2f &start, Vec2f &middle, Vec2f &end )
 		float x = getPt( xa, xb, i * aInterval );
 		float y = getPt( ya, yb, i * aInterval );
 
-		circle( gImg, Point2f( x, y ), 1, Scalar( 0, 0, 255 ) );
+		circle( gImg, Point2f( x, y ), 1, Scalar( 0, 0, 65535 ) );
 	}
 }
 
@@ -177,7 +177,8 @@ int main( int argc, char *argv[] )
 
 	VolumePkg vpkg = VolumePkg( argv[ 1 ] );
 
-	vpkg.getSliceAtIndex( gZ ).copyTo( gImg );
+	vpkg.getSliceAtIndex( gZ ).copyTo ( gImg );
+	cvtColor( gImg, gImg, CV_GRAY2BGR );
 	gImg.copyTo( gImgCache );
 
 	if ( !gImg.data ) {
