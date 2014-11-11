@@ -8,6 +8,10 @@ int VolumePkg::getNumberOfSlices() {
 	return config.getInt("number of slices");
 }
 
+std::string VolumePkg::getPkgName() {
+	return config.getString("volumepkg name", "UnnamedVolume");
+}
+
 int VolumePkg::getNumberOfSliceCharacters() {
 	int num_slices = getNumberOfSlices();
 	int num_characters = 0;

@@ -9,6 +9,7 @@ class VolumePkg {
 public:
 	VolumePkg(std::string);
 	int getNumberOfSlices();
+	std::string getPkgName();
 	cv::Mat getSliceAtIndex(int);
 private:
 	VolumePkgCfg config;
