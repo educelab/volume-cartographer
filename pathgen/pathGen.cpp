@@ -6,6 +6,7 @@
 #include <opencv2/opencv.hpp>
 
 #include "volumepkg.h"
+#include "timeUtils.h"
 
 using namespace std;
 using namespace cv;
@@ -67,8 +68,7 @@ void drawBezier( Vec2f &start, Vec2f &middle, Vec2f &end )
 void savePath( void )
 {
 	ofstream aOut;
-	// REVISIT - TODO change the path file name to [volumePackageName]_[dateTime]
-	aOut.open( "path.txt", ofstream::out );
+	aOut.open( gVolPkgName + "_" + currentDateTime() + ".txt", ofstream::out );
 
 	if ( !aOut.is_open() ) {
 		std::cerr << "Open file " << "path.txt" << " failed" << endl;
@@ -127,7 +127,7 @@ void MouseClickCallBackFunc( int e, int x, int y, int flags, void *userdata )
 {
 	if ( e == EVENT_LBUTTONDOWN ) {
 		// REVISIT - fill me here
-		cout << "x: " << x << ", y: " << y << endl;
+//		cout << "x: " << x << ", y: " << y << endl;
 		if ( gTupleIndex == 0 ) {
 			gTmpTuple.start[ 0 ] = x;
 			gTmpTuple.start[ 1 ] = y;
@@ -147,7 +147,7 @@ void MouseClickCallBackFunc( int e, int x, int y, int flags, void *userdata )
 		}
 		gTupleIndex = ( gTupleIndex + 1 ) % 3;
 
-		cout << "Index: " << gTupleIndex << endl;
+//		cout << "Index: " << gTupleIndex << endl;
 	} else if ( e == EVENT_LBUTTONUP ) {
 		// REVISIT - fill me here
 	} else if ( e == EVENT_MOUSEMOVE ) {
@@ -175,7 +175,14 @@ int main( int argc, char *argv[] )
 
 	gZ = atoi( argv[ 2 ] );
 
+	// REVISIT - should VolumePkg be singleton?
 	VolumePkg vpkg = VolumePkg( argv[ 1 ] );
+	gVolPkgName = vpkg.getPkgName();
+
+	if ( gZ < 3 || gZ > vpkg.getNumberOfSlices() - 2 ) {
+		cout << "ERROR: slice index out of range. Please select a number between " << 3 << " and " << vpkg.getNumberOfSlices() - 2 << endl;
+		return -2;
+	}
 
 	vpkg.getSliceAtIndex( gZ ).copyTo ( gImg );
 	cvtColor( gImg, gImg, CV_GRAY2BGR );
