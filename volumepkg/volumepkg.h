@@ -11,6 +11,7 @@ public:
 	int getNumberOfSlices();
 	std::string getPkgName();
 	cv::Mat getSliceAtIndex(int);
+	std::string getNormalAtIndex(int);
 private:
 	VolumePkgCfg config;
 	std::string location;
