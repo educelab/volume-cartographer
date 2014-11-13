@@ -4,7 +4,9 @@ SET(CMAKE_CXX_FLAGS "-std=c++11")
 find_package(PCL 1.7 REQUIRED)
 find_package(OpenCV REQUIRED)
 
-include_directories(${PCL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
+add_subdirectory(./../volumepkg volumepkg)
+
+include_directories(${PCL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} ${VOLUMEPKG_INCLUDE_DIR})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
@@ -12,3 +14,4 @@ add_executable(simulation simulation.cpp)
 
 target_link_libraries(simulation ${PCL_LIBRARIES})
 target_link_libraries(simulation ${OpenCV_LIBS})
+target_link_libraries(simulation volumepkg)
