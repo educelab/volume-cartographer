@@ -36,8 +36,9 @@ StructureTensor gradient_to_tensor(Gradient);
 std::pair<int,double> scan_eigenvalues(EigenValues);
 
 int main(int argc, char* argv[]) {
+  std::cout << "vc_scalpel" << std::endl;
   if (argc != 2) {
-    std::cout << "Usage: " << argv[0] << "volpkgpath" << std::endl;
+    std::cout << "Usage: " << argv[0] << " volpkgpath" << std::endl;
     exit(EXIT_FAILURE);
   }
 
@@ -46,6 +47,7 @@ int main(int argc, char* argv[]) {
 
   MatDeque volume;
   TensorDeque field;
+  int totalTensors = volpkg.getNumberOfSlices() - 4;
   for(int i = 0; i < volpkg.getNumberOfSlices(); ++i) {
     volume.push_back(volpkg.getSliceAtIndex(i));
 
@@ -61,12 +63,12 @@ int main(int argc, char* argv[]) {
 
       std::stringstream outfile;
       outfile << std::setw(3) << std::setfill('0') << index << ".pcd";
-      
+      std::cout << "\rSaving tensor " << index - 1 << "/" << totalTensors << std::flush;
       pcl::io::savePCDFileASCII(path + "surface_normals/"+ outfile.str(), process_tensors(field, index));
       field.pop_front();
     }
   }
-
+  printf("\nTensor calculation complete.");
   exit(EXIT_SUCCESS);
 }
 
