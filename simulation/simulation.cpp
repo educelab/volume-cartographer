@@ -6,6 +6,8 @@
 #include <pcl/point_types.h>
 #include <pcl/console/parse.h>
 
+#include "volumepkg.h"
+
 // behavior defines
 #define LOADFILES 3
 #define CHARGE 0.01
@@ -83,7 +85,7 @@ void write_ordered_pcd(std::vector<std::vector<pcl::PointXYZRGB>> storage)
 int main(int argc, char* argv[]) {
   if (argc < 5) {
     std::cerr << "Usage:" << std::endl;
-    std::cerr << argv[0] << " --quality [1-10] [Path.txt] cloud[001...n].pcd" << std::endl;
+    std::cerr << argv[0] << " --quality [1-10] [Path.txt] volpkgpath" << std::endl;
     return (1);  }
 
   // get scale value from command line
@@ -108,6 +110,8 @@ int main(int argc, char* argv[]) {
   }
   landmarks_file.close();
 
+  std::string path = argv[4];
+  VolumePkg volpkg(path);
 
   // use landmarks to create chain of particles
   particle_chain.push_back(chain_landmark[0]);
@@ -130,14 +134,14 @@ int main(int argc, char* argv[]) {
   spring_resting_x = total_delta / chain_landmark.size();
 
   // save command line arguments for iteration
-  for (int i = 4; i < argc; ++i) {
+  for (int i = 2; i < volpkg.getNumberOfSlices() - 2; ++i) {
     ++numslices;
-    field_slices.insert((std::string)argv[i]);
+    field_slices.insert(volpkg.getNormalAtIndex(i));
     // get slice maximum dimension
-    if (i == 4) {
+    if (i == 2) {
       pcl::PointXYZRGBNormal tempmin, tempmax;
       pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr tempcloud (new pcl::PointCloud<pcl::PointXYZRGBNormal>);
-      pcl::io::loadPCDFile<pcl::PointXYZRGBNormal> ((std::string)argv[i], *tempcloud);
+      pcl::io::loadPCDFile<pcl::PointXYZRGBNormal> (volpkg.getNormalAtIndex(i), *tempcloud);
       pcl::getMinMax3D (*tempcloud, tempmin, tempmax);
       if (tempmax.y > tempmax.z) {fieldsize = tempmax.y + 10;} else {fieldsize = tempmax.z + 10;}
     }
@@ -284,7 +288,7 @@ void update_field() {
     std::cout << "deleting slice " << to_erase[i] << std::endl;
     slices_loaded.erase(to_erase[i]);
   }
-  if (*slices_loaded.rbegin() == *slices_seen.rbegin()) {
+  if (*slices_loaded.rbegin() == *slices_seen.rbegin() && *slices_loaded.rbegin() <= numslices) {
     add_slices();
   }
 }
