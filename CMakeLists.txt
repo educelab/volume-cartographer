@@ -10,6 +10,7 @@ add_subdirectory(pathgen)
 add_subdirectory(reslicer)
 add_subdirectory(scalpel)
 add_subdirectory(simulation)
+add_subdirectory(mesher)
 add_subdirectory(texture)
 
 # Copy packager files. This is a hack.
@@ -17,7 +18,14 @@ file(MAKE_DIRECTORY packager)
 file(COPY packager/packager.py DESTINATION ${CMAKE_BINARY_DIR}/packager)
 file(RENAME ${CMAKE_BINARY_DIR}/packager/packager.py ${CMAKE_BINARY_DIR}/packager/vc_packager)
 
-install(PROGRAMS "${CMAKE_BINARY_DIR}/packager/vc_packager" "${CMAKE_BINARY_DIR}/pathgen/vc_pathgen" "${CMAKE_BINARY_DIR}/scalpel/vc_scalpel" "${CMAKE_BINARY_DIR}/simulation/vc_simulation" "${CMAKE_BINARY_DIR}/texture/vc_texture" DESTINATION bin)
+install(PROGRAMS 
+"${CMAKE_BINARY_DIR}/packager/vc_packager" 
+"${CMAKE_BINARY_DIR}/pathgen/vc_pathgen" 
+"${CMAKE_BINARY_DIR}/scalpel/vc_scalpel" 
+"${CMAKE_BINARY_DIR}/simulation/vc_simulation" 
+"${CMAKE_BINARY_DIR}/mesher/vc_mesher" 
+"${CMAKE_BINARY_DIR}/texture/vc_texture" 
+DESTINATION bin)
 
 # Uninstall target
 configure_file(
