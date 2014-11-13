@@ -51,7 +51,6 @@ std::vector<Face> faces;
 int scale;
 // NICK: Not sure why we preloaded numslices before. We can count the args
 int numslices = 0;
-int iteration = 0;
 int fieldsize;
 
 std::set<std::string> field_slices;
@@ -78,11 +77,12 @@ void write_ordered_pcd(std::vector<std::vector<pcl::PointXYZRGB>> storage)
       cloud.points[j+(i*cloud.width)] = storage[i][j];
     }
   }
-  pcl::io::savePCDFileASCII("orderedTest.pcd", cloud);
+  pcl::io::savePCDFileASCII("segmented_untextured.pcd", cloud);
 }
 
 
 int main(int argc, char* argv[]) {
+  std::cout << "vc_simulation" << std::endl;
   if (argc < 5) {
     std::cerr << "Usage:" << std::endl;
     std::cerr << argv[0] << " --quality [1-10] [Path.txt] volpkgpath" << std::endl;
@@ -97,6 +97,7 @@ int main(int argc, char* argv[]) {
 
   // read particle chain landmarks
   std::ifstream landmarks_file;
+  int lowestIndex;
   landmarks_file.open(argv[3]);
   if (landmarks_file.fail()) {
     std::cout << "Path text file could not be opened" << std::endl;
@@ -149,7 +150,6 @@ int main(int argc, char* argv[]) {
 
   // estimate number of iterations needed
   // TO-DO: Simulation should stop when particles reach the bottom.
-  iteration = numslices * scale * 2;
   slice_iterator = field_slices.begin();
 
   // allocate and initalize force/color fields
@@ -246,8 +246,9 @@ int main(int argc, char* argv[]) {
       }
     }
   }
+  printf("Writing point cloud to file...\n");
   write_ordered_pcd(VoV);
-
+  printf("Segmentation complete!\n");
   exit(EXIT_SUCCESS);
 }
 
