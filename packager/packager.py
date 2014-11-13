@@ -85,18 +85,13 @@ if len(slices) < 1:
 # default is just output.volumepkg
 if "-of" in sys.argv:
     outpath = sys.argv[sys.argv.index("-of") + 1]
-    if outpath.endswith(".volpkg") != True:
-        outpath = outpath + ".volpkg"
 elif "--output-file" in sys.argv:
     outpath = sys.argv[sys.argv.index("--output-file") + 1]
-    if outpath.endswith(".volpkg") != True:
-        outpath = outpath + ".volpkg"
 else:
-    outpath = os.getcwd() + "/volume.volpkg"
+    outpath = os.getcwd() + "/volume"
 
 # create the config options and save it to the config file
 config_dict = {
-
     # name
     "volumepkg name": outpath.split('/')[-1],
 
@@ -122,6 +117,10 @@ for i in range(len(slices)):
     str(i) + '.tif')
     sys.stdout.flush()
 sys.stdout.write('\n\n')
+
+#create the volumepkg file
+if outpath.endswith(".volpkg") != True:
+    outpath = outpath + ".volpkg"
 
 # compress the volumepkg
 # os.system('tar -zcvf ' + outpath + ' tmp/*')
