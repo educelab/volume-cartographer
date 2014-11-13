@@ -44,6 +44,13 @@ int main(int argc, char* argv[]) {
   std::string path = argv[1];
   VolumePkg volpkg(path);
 
+  int num_slices = volpkg.getNumberOfSlices();
+  int num_characters = 0;
+  while (num_slices > 0) {
+    num_characters += 1;
+    num_slices /= 10;
+  }
+
   MatDeque volume;
   TensorDeque field;
   for(int i = 0; i < volpkg.getNumberOfSlices(); ++i) {
@@ -60,7 +67,7 @@ int main(int argc, char* argv[]) {
       int index = i - 2;
 
       std::stringstream outfile;
-      outfile << std::setw(3) << std::setfill('0') << index << ".pcd";
+      outfile << std::setw(num_characters) << std::setfill('0') << index << ".pcd";
       
       pcl::io::savePCDFileASCII(path + "surface_normals/"+ outfile.str(), process_tensors(field, index));
       field.pop_front();
