@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
       field.pop_front();
     }
   }
-  printf("\nTensor calculation complete.");
+  printf("\nTensor calculation complete.\n");
   exit(EXIT_SUCCESS);
 }
 
