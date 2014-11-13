@@ -24,12 +24,6 @@ typedef struct {
   uint v1, v2, v3;
 } Face;
 
-// mesh generation
-void add_vertex(pcl::PointXYZRGB);
-void add_face(int, int, int);
-void update_normal(int, double, double, double);
-void write_mesh();
-
 // forces and particle management
 void update_particles();
 void update_field();
@@ -53,8 +47,8 @@ std::vector<Vertex> vertices;
 std::vector<Face> faces;
 
 int scale;
-// seed with buffer space for particles after they've passed through all slices
-int numslices = 10;
+// NICK: Not sure why we preloaded numslices before. We can count the args
+int numslices = 0;
 int iteration = 0;
 int fieldsize;
 
@@ -62,6 +56,29 @@ std::set<std::string> field_slices;
 std::set<std::string>::iterator slice_iterator;
 std::set<int> slices_loaded;
 std::set<int> slices_seen;
+
+int THRESHOLD = 1;
+int realIterations = 0;
+
+//Use this function to produce an ordered PCD where height is the number of iterations
+//and width is the size of the particle chain. Invalid locations should be (-1,0,0)
+void write_ordered_pcd(std::vector<std::vector<pcl::PointXYZRGB>> storage)
+{
+  //We usually start at 3, but for the mesher's sanity, assume we start at 1
+  pcl::PointCloud<pcl::PointXYZRGB> cloud;
+  cloud.height = realIterations;
+  cloud.width = particle_chain.size();
+  cloud.points.resize(cloud.height * cloud.width);
+  for (int i = 0; i < cloud.height; ++i)
+  {
+    for (int j = 0; j < cloud.width; ++j)
+    {
+      cloud.points[j+(i*cloud.width)] = storage[i][j];
+    }
+  }
+  pcl::io::savePCDFileASCII("orderedTest.pcd", cloud);
+}
+
 
 int main(int argc, char* argv[]) {
   if (argc < 5) {
@@ -90,6 +107,7 @@ int main(int argc, char* argv[]) {
     chain_landmark.push_back(Particle(index, a, b));
   }
   landmarks_file.close();
+
 
   // use landmarks to create chain of particles
   particle_chain.push_back(chain_landmark[0]);
@@ -143,163 +161,90 @@ int main(int argc, char* argv[]) {
     add_slices();
   }
 
+  //particle_status is a bool representing if a particle has passed through the last slice
+  std::vector<bool> particle_status;
+  for (int i = 0; i < particle_chain.size(); ++i) {
+    particle_status.push_back(false);
+  }
+  //status for the entire chain, this is true until they're all done
+  bool particles_status = true;
+  //debug value
+  int iteration_count = 0;
+  //vector of number of stalled iterations per particle. Fixed to 25000 iterations for now.
+  std::vector<int> particle_stall_count;
+  for (int i = 0; i < particle_chain.size(); ++i) {
+    particle_stall_count.push_back(0);
+  }
+  //This is how we will maintain our ordered structure, vectors of particle chains for each real iteration
+  //This has the size of realIterations x particle_chain.size. We assume all slices are loaded
+  std::vector<std::vector<pcl::PointXYZRGB>> VoV;
+  
+  //TODO: Configurable distance threshold
+  realIterations = int(numslices/THRESHOLD);
+  for (int i = 0; i < realIterations; ++i)
+  {
+    std::vector<pcl::PointXYZRGB> temp;
+    //Invalid particles have x of -1
+    for (int j = 0; j <particle_chain.size(); ++j)
+    {
+      pcl::PointXYZRGB point;
+      point.x = -1;
+      temp.push_back(point);
+    }
+    VoV.push_back(temp);
+  }
+  
   // run particle simulation
-  pcl::PointCloud<pcl::PointXYZRGB> page;
-  for (int step = 0; step < iteration; ++step) {
-    for (int i = 0; i < particle_chain.size(); ++i) {
+  while (particles_status)
+  {
+    iteration_count++;
+    for (int i = 0; i < particle_chain.size(); ++i)
+    {
+      if (particle_chain[i](0) >= numslices || particle_status[i])
+      {
+        particle_status[i] = true;
+        continue;
+      }
+      if (particle_stall_count[i] > 25000)
+      {
+        particle_status[i] = true;
+      }
+      //TODO: What do we define as a stall? How many stalls?
+      particle_stall_count[i] += 1;
+      
       uint32_t intensity = (Color)interpolate_intensity(particle_chain[i]);
       uint32_t color = intensity | intensity << 8 | intensity << 16;
-
-      pcl::PointXYZRGB point;
-      point.x = particle_chain[i](0);
-      point.y = particle_chain[i](1);
-      point.z = particle_chain[i](2);
-      point.rgb = *reinterpret_cast<float*>(&color);
-      page.push_back(point);
-
-      // build mesh
-      add_vertex(point);
-      if (step > 0) {
-        if (i > 0) {
-          int v1, v2, v3, v4, chain_length;
-          chain_length = particle_chain.size();
-          v1 = step * chain_length + i;
-          v2 = v1 - 1;
-          v3 = v2 - chain_length;
-          v4 = v1 - chain_length;
-          add_face(v1, v2, v3);
-          add_face(v1, v3, v4);
-        }
+      
+      //see if a particle has been placed in this slice yet at this chain index
+      if (VoV[int(floor(particle_chain[i](0))) - 1][i].x == -1)
+      {
+        pcl::PointXYZRGB point;
+        point.x = particle_chain[i](0);
+        point.y = particle_chain[i](1);
+        point.z = particle_chain[i](2);
+        point.rgb = *reinterpret_cast<float*>(&color);
+        VoV[int(floor(particle_chain[i](0))) - 1][i] = point;
       }
     }
     update_particles();
     update_field();
+    
+    //If all particles are not done, continue
+    for (int i = 0; i < particle_chain.size(); i++)
+    {
+      if (!particle_status[i])
+      {
+        break;
+      }
+      if ((i == (particle_chain.size() - 1)) && particle_status[i])
+      {
+        particles_status = false;
+      }
+    }
   }
-
-  // write results to disk
-  write_mesh();
-  pcl::io::savePCDFileASCII("page.pcd", page);
-  std::cout << "done" << std::endl;
+  write_ordered_pcd(VoV);
 
   exit(EXIT_SUCCESS);
-}
-
-void write_mesh() {
-  std::ofstream meshFile;
-  meshFile.open("mesh.ply");
-  std::cout << "creating mesh file" << std::endl;
-
-  // write header
-  meshFile << "ply" << std::endl
-           << "format ascii 1.0" << std::endl
-           << "comment Created by particle simulation https://github.com/viscenter/registration-toolkit" << std::endl
-           << "element vertex " << vertices.size() << std::endl
-           << "property float x" << std::endl
-           << "property float y" << std::endl
-           << "property float z" << std::endl
-           << "property float nx" << std::endl
-           << "property float ny" << std::endl
-           << "property float nz" << std::endl
-           << "property float s" << std::endl
-           << "property float t" << std::endl
-           << "property uchar red" << std::endl
-           << "property uchar green" << std::endl
-           << "property uchar blue" << std::endl
-           << "element face " << faces.size() << std::endl
-           << "property list uchar int vertex_indices" << std::endl
-           << "end_header" << std::endl;
-
-  // write vertex information
-  for (int i = 0; i < vertices.size(); i++) {
-    Vertex v = vertices[i];
-    meshFile << v.x << " "
-             << v.y << " "
-             << v.z << " "
-             << v.nx << " "
-             << v.ny << " "
-             << v.nz << " "
-             << v.s << " "
-             << v.t << " "
-             << v.r << " "
-             << v.g << " "
-             << v.b << std::endl;
-  }
-
-  // write face information
-  for (int i = 0; i < faces.size(); i++) {
-    Face f = faces[i];
-    meshFile << "3 " << f.v1 << " " << f.v2 << " " << f.v3 << std::endl;
-  }
-
-  meshFile.close();
-}
-
-void add_face(int v1, int v2, int v3) {
-  Face f;
-  f.v1 = v1;
-  f.v2 = v2;
-  f.v3 = v3;
-  faces.push_back(f);
-
-  // calculate vertex normals (average of surface normals of each triangle)
-
-  // get surface normal of this triangle
-  // variable names from http://math.stackexchange.com/questions/305642
-  double nx, ny, nz, vx, vy, vz, wx, wy, wz, magnitude;
-
-  Vertex vt1 = vertices[v1];
-  Vertex vt2 = vertices[v2];
-  Vertex vt3 = vertices[v3];
-
-  vx = vt2.x - vt1.x;
-  vy = vt2.y - vt1.y;
-  vz = vt2.z - vt1.z;
-
-  wx = vt3.x - vt1.x;
-  wy = vt3.y - vt1.y;
-  wz = vt3.z - vt1.z;
-
-  nx = (vy * wz) - (vz * wy);
-  ny = (vz * wx) - (vx * wz);
-  nz = (vx * wy) - (vy * wx);
-
-  // normalize
-  magnitude = sqrt(nx*nx + ny*ny + nz*nz);
-  nx /= magnitude;
-  ny /= magnitude;
-  nz /= magnitude;
-
-  // update the vertex normals
-  update_normal(v1, nx, ny, nz);
-  update_normal(v2, nx, ny, nz);
-  update_normal(v3, nx, ny, nz);
-}
-
-void update_normal(int vertex, double nx_in, double ny_in, double nz_in) {
-  // recalculate average (unaverage, add new component, recalculate average)
-  Vertex v = vertices[vertex];
-  v.nx = (v.nx * v.face_count + nx_in) / (v.face_count + 1);
-  v.ny = (v.ny * v.face_count + ny_in) / (v.face_count + 1);
-  v.nz = (v.nz * v.face_count + nz_in) / (v.face_count + 1);
-  v.face_count++;
-  vertices[vertex] = v;
-}
-
-void add_vertex(pcl::PointXYZRGB point) {
-  Vertex v;
-  v.x = point.x;
-  v.y = point.y;
-  v.z = point.z;
-  v.nx = 0;
-  v.ny = 0;
-  v.nz = 0;
-  v.s = 0;
-  v.t = 0;
-  v.r = point.r;
-  v.g = point.g;
-  v.b = point.b;
-  v.face_count = 0;
-  vertices.push_back(v);
 }
 
 // called once for every timestep
