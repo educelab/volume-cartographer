@@ -58,6 +58,20 @@ cv::Mat VolumePkg::getSliceAtIndex(int index) {
 	return aDstImg;
 }
 
+std::string VolumePkg::getNormalAtIndex(int index) {
+
+	std::string ply_location(location);
+	ply_location += config.getString("ply location", "/surface_normals/");
+
+	int num_ply_chars = getNumberOfSliceCharacters();
+	std::string str_index = std::to_string(index);
+	int num_leading_zeroes = num_ply_chars - str_index.length();
+	for (int i = 0; i < num_leading_zeroes; i++) {ply_location += '0';}
+	ply_location += str_index;
+	ply_location += ".pcd";
+
+	return ply_location;
+}
 
 // int main() {
 // 	VolumePkg vpkg = VolumePkg("/Users/david/Desktop//volumepkg/");
