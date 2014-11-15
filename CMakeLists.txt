@@ -39,16 +39,17 @@ configure_file(
 add_custom_target(uninstall
     COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 
+set(CPACK_GENERATOR "ZIP;TGZ")
 set(CPACK_COMPONENTS_ALL Programs)
-
-set(CPACK_PACKAGE_NAME "VolumeCartographer")
+set(CPACK_PACKAGE_NAME "VC")
 set(CPACK_PACKAGE_VENDOR "UK VisCenter")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Volume Cartographer")
 set(CPACK_PACKAGE_VERSION "1.0.0")
 set(CPACK_PACKAGE_VERSION_MAJOR "1")
 set(CPACK_PACKAGE_VERSION_MINOR "0")
 set(CPACK_PACKAGE_VERSION_PATCH "0")
-set(CPACK_PACKAGE_INSTALL_DIRECTORY "CPack Component Example")
+set(CPACK_MONOLITHIC_INSTALL)
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "/usr/local/")
 
 # This must always be last!
 include(CPack)
