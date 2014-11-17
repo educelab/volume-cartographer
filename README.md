@@ -19,8 +19,7 @@ Toolkit to segment and analyze volumetric datasets.
 * OpenCV compiled with libtiff support
 	* If you want static VC binaries, you must build OpenCV with static libraries: `cmake -DBUILD_SHARED_LIBS=OFF ${OPENCV_SOURCE_PATH}`
 * Point Cloud Library (pcl)
-    * PCL Requirements: boost, eigen
-    * Our Requirements: qt
+    * PCL Requirements: boost, eigen, flann
     * If you want static VC binaries, you must build PCL with static libraries: `cmake -DPCL_SHARED_LIBS=OFF ${PCL_SOURCE_PATH}`
 * Insight Toolkit (itk)
 * Meshlab - Recommended for viewing meshes only

@@ -60,7 +60,6 @@ int main(int argc, char* argv[]) {
 
   // read particle chain landmarks
   std::ifstream landmarks_file;
-  int lowestIndex;
   landmarks_file.open(argv[3]);
   if (landmarks_file.fail()) {
     std::cout << "Path text file could not be opened" << std::endl;
