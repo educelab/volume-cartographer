@@ -44,6 +44,7 @@ int realIterations = 0;
 uint32_t COLOR = 0x00777777;
 
 int main(int argc, char* argv[]) {
+  std::cout << "vc_simulation" << std::endl;
   if (argc < 5) {
     std::cerr << "Usage:" << std::endl;
     std::cerr << argv[0] << " --gravity_scale [1-10] [Path.txt] volpkgpath" << std::endl;
@@ -177,8 +178,9 @@ int main(int argc, char* argv[]) {
     update_particles();
     update_field();
   }
+  printf("Writing point cloud to file...\n");
   write_ordered_pcd(VoV);
-
+  printf("Segmentation complete!\n");
   exit(EXIT_SUCCESS);
 }
 
@@ -335,5 +337,5 @@ void write_ordered_pcd(std::vector<std::vector<pcl::PointXYZRGB> > storage) {
       cloud.points[j+(i*cloud.width)] = storage[i][j];
     }
   }
-  pcl::io::savePCDFileASCII("orderedTest.pcd", cloud);
+  pcl::io::savePCDFileASCII("segmented_cloud.pcd", cloud);
 }

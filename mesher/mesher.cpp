@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
   std::string outfile = argv[1];
   //replace the extension
   int dot = outfile.find_last_of(".");
-  outfile = outfile.substr(0,dot) + ".pcl";
+  outfile = outfile.substr(0,dot) + ".ply";
   
   write_mesh(outfile);
   exit(EXIT_SUCCESS);

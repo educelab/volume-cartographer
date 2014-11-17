@@ -179,12 +179,12 @@ int main( int argc, char *argv[] )
 	VolumePkg vpkg = VolumePkg( argv[ 1 ] );
 	gVolPkgName = vpkg.getPkgName();
 
-	if ( gZ < 3 || gZ > vpkg.getNumberOfSlices() - 2 ) {
-		cout << "ERROR: slice index out of range. Please select a number between " << 3 << " and " << vpkg.getNumberOfSlices() - 2 << endl;
+	if ( gZ < 2 || gZ > vpkg.getNumberOfSlices() - 3 ) {
+		cout << "ERROR: Slice index out of range. Please select a number between " << 2 << " and " << vpkg.getNumberOfSlices() - 3 << "!" << endl;
 		return -2;
 	}
 
-	vpkg.getSliceAtIndex( gZ ).copyTo ( gImg );
+	vpkg.getSliceAtIndex( gZ ).copyTo( gImg );
 	cvtColor( gImg, gImg, CV_GRAY2BGR );
 	gImg.copyTo( gImgCache );
 

@@ -34,7 +34,7 @@ cv::Mat VolumePkg::getSliceAtIndex(int index) {
 	slice_location += str_index;
 	slice_location += ".tif";
 
-	std::cout << "Location: " << slice_location << std::endl;
+	//std::cout << "Location: " << slice_location << std::endl;
 
 	//load the mat and return it
 	// REVISIT - Chao 20141104 - image format unified to 16UC1. An image is read as is,
@@ -60,17 +60,17 @@ cv::Mat VolumePkg::getSliceAtIndex(int index) {
 
 std::string VolumePkg::getNormalAtIndex(int index) {
 
-	std::string ply_location(location);
-	ply_location += config.getString("ply location", "/surface_normals/");
+	std::string pcd_location(location);
+	pcd_location += config.getString("pcd location", "/surface_normals/");
 
-	int num_ply_chars = getNumberOfSliceCharacters();
+	int num_pcd_chars = getNumberOfSliceCharacters();
 	std::string str_index = std::to_string(index);
-	int num_leading_zeroes = num_ply_chars - str_index.length();
-	for (int i = 0; i < num_leading_zeroes; i++) {ply_location += '0';}
-	ply_location += str_index;
-	ply_location += ".pcd";
+	int num_leading_zeroes = num_pcd_chars - str_index.length();
+	for (int i = 0; i < num_leading_zeroes; i++) {pcd_location += '0';}
+	pcd_location += str_index;
+	pcd_location += ".pcd";
 
-	return ply_location;
+	return pcd_location;
 }
 
 // int main() {

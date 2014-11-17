@@ -13,8 +13,8 @@ include_directories(${VOLUMEPKG_INCLUDE_DIR})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
-add_executable(scalpel scalpel.cpp)
+add_executable(vc_scalpel scalpel.cpp)
 
-target_link_libraries(scalpel ${PCL_LIBRARIES})
-target_link_libraries(scalpel ${OpenCV_LIBS})
-target_link_libraries(scalpel volumepkg)
+target_link_libraries(vc_scalpel ${PCL_LIBRARIES})
+target_link_libraries(vc_scalpel ${OpenCV_LIBS})
+target_link_libraries(vc_scalpel volumepkg)
