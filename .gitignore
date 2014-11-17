@@ -2,13 +2,10 @@
 *.jpg
 *.mhd
 *.raw
-utils/bin/
-scalpel/bin/
-simulation/
-!simulation/simulation.cpp
-!simulation/CMakeLists.txt
+bin/
 flycheck*
 *.o
+*.gch
 
 # Emacs
 *~
@@ -24,3 +21,11 @@ flycheck*
 # Maven
 log/
 target/
+
+# CMake
+*CMakeCache.txt
+*CMakeFiles
+*Makefile
+*cmake_install.cmake
+*install_manifest.txt
+*build/

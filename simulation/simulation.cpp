@@ -6,74 +6,56 @@
 #include <pcl/point_types.h>
 #include <pcl/console/parse.h>
 
+#include "volumepkg.h"
+
 // behavior defines
 #define LOADFILES 3
-#define CHARGE 0.01
 #define SPRING_CONSTANT_K -0.5
 
-typedef uchar Color;
 typedef cv::Vec3f Particle;
 typedef Particle Force;
-
-typedef struct {
-  double x, y, z, nx, ny, nz, s, t;
-  uint r, g, b, face_count;
-} Vertex;
-
-typedef struct {
-  uint v1, v2, v3;
-} Face;
-
-// mesh generation
-void add_vertex(pcl::PointXYZRGB);
-void add_face(int, int, int);
-void update_normal(int, double, double, double);
-void write_mesh();
 
 // forces and particle management
 void update_particles();
 void update_field();
 void add_slices();
 Force interpolate_field(Particle);
-Force intensity_field(Particle);
 Force spring_force(int);
+bool ps_nand(std::vector<bool>);
+void write_ordered_pcd(std::vector<std::vector<pcl::PointXYZRGB> >);
 
-// support functions
-double interpolate_intensity(Particle);
-
-// look but don't touch
+// field globals
 Force*** field;
-Color*** color;
-
-std::vector<Particle> particle_chain;
-std::vector<Particle> chain_landmark;
-double spring_resting_x;
-
-std::vector<Vertex> vertices;
-std::vector<Face> faces;
-
-int scale;
-// seed with buffer space for particles after they've passed through all slices
-int numslices = 10;
-int iteration = 0;
 int fieldsize;
-
 std::set<std::string> field_slices;
 std::set<std::string>::iterator slice_iterator;
 std::set<int> slices_loaded;
 std::set<int> slices_seen;
 
+// force globals
+std::vector<Particle> particle_chain;
+double spring_resting_x;
+int gravity_scale;
+
+// misc globals
+int numslices;
+int THRESHOLD = 1;
+int realIterations = 0;
+uint32_t COLOR = 0x00777777;
+
 int main(int argc, char* argv[]) {
+  std::cout << "vc_simulation" << std::endl;
   if (argc < 5) {
     std::cerr << "Usage:" << std::endl;
-    std::cerr << argv[0] << " --quality [1-10] [Path.txt] cloud[001...n].pcd" << std::endl;
-    return (1);  }
+    std::cerr << argv[0] << " --gravity_scale [1-10] [Path.txt] volpkgpath" << std::endl;
+    exit(EXIT_FAILURE);
+  }
 
-  // get scale value from command line
-  pcl::console::parse_argument (argc, argv, "--quality", scale);
-  if (!((scale>=1)&&(scale<=10))) {
-    std::cerr << "ERROR: Incorrect/missing quality value!" << std::endl;
-    return (1);
+  // get gravity scale value from command line
+  pcl::console::parse_argument (argc, argv, "--gravity_scale", gravity_scale);
+  if (gravity_scale < 1 || gravity_scale > 10) {
+    std::cerr << "ERROR: Incorrect/missing gravity_scale value!" << std::endl;
+    exit(EXIT_FAILURE);
   }
 
   // read particle chain landmarks
@@ -83,225 +65,128 @@ int main(int argc, char* argv[]) {
     std::cout << "Path text file could not be opened" << std::endl;
     exit(EXIT_FAILURE);
   }
+
+  // REVISIT - Chao 20141104 - new path file format
+  std::vector<double> indexes;
   while (!landmarks_file.eof()) {
-    double a, b;
-    landmarks_file >> a;
-    landmarks_file.get();
-    landmarks_file >> b;
-    chain_landmark.push_back(Particle(3, a, b));
+    double index, a, b;
+    landmarks_file >> index >> a >> b;
+    particle_chain.push_back(Particle(index, a, b));
+    indexes.push_back(index);
   }
   landmarks_file.close();
 
-  // use landmarks to create chain of particles
-  particle_chain.push_back(chain_landmark[0]);
-  double total_delta = 0;
-  for (int i = 1; i < chain_landmark.size(); ++i) {
-    Force quarter = (chain_landmark[i] - chain_landmark[i-1]) / 4;
-    total_delta += sqrt(quarter.dot(quarter));
-
-    particle_chain.push_back(chain_landmark[i-1] + quarter);
-    particle_chain.push_back(chain_landmark[i-1] + quarter*2);
-    particle_chain.push_back(chain_landmark[i-1] + quarter*3);
-    particle_chain.push_back(chain_landmark[i]);
-  }
-  spring_resting_x = total_delta / chain_landmark.size();
-
-  // save command line arguments for iteration
-  for (int i = 4; i < argc; ++i) {
-    ++numslices;
-    field_slices.insert((std::string)argv[i]);
-    // get slice maximum dimension
-    if (i == 4) {
-      pcl::PointXYZRGBNormal tempmin, tempmax;
-      pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr tempcloud (new pcl::PointCloud<pcl::PointXYZRGBNormal>);
-      pcl::io::loadPCDFile<pcl::PointXYZRGBNormal> ((std::string)argv[i], *tempcloud);
-      pcl::getMinMax3D (*tempcloud, tempmin, tempmax);
-      if (tempmax.x > tempmax.y) {fieldsize = tempmax.x + 10;} else {fieldsize = tempmax.y + 10;}
+  // figure out which slice to load first
+  int min_index = indexes[0];
+  for (int i = 0; i < indexes.size(); ++i) {
+    if (min_index > indexes[i]) {
+      min_index = indexes[i];
     }
   }
 
-  // estimate number of iterations needed
-  // TO-DO: Simulation should stop when particles reach the bottom.
-  iteration = numslices * scale * 2;
-  slice_iterator = field_slices.begin();
+  // we lose 4 slices calculating normals
+  std::string path = argv[4];
+  VolumePkg volpkg(path);
+  numslices = volpkg.getNumberOfSlices() - 4;
 
-  // allocate and initalize force/color fields
-  field = new Force**[numslices];
-  color = new Color**[numslices];
-  for (int i = 0; i < numslices; ++i) {
-    field[i] = NULL;
-    color[i] = NULL;
+  // calculate spring resting distance
+  double total_delta = 0;
+  for (int i = 1; i < particle_chain.size(); ++i) {
+    Force seg = particle_chain[ i ] - particle_chain[ i - 1 ];
+    total_delta += sqrt( seg.dot( seg ) );
+  }
+  spring_resting_x = total_delta / (particle_chain.size() - 1);
+
+  // save normal filepaths for iteration
+  for (int i = min_index; i < volpkg.getNumberOfSlices() - 2; ++i) {
+    field_slices.insert(volpkg.getNormalAtIndex(i));
   }
 
+  // find out how big the slices need to be
+  {
+    pcl::PointXYZRGBNormal tempmin, tempmax;
+    pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr tempcloud (new pcl::PointCloud<pcl::PointXYZRGBNormal>);
+    pcl::io::loadPCDFile<pcl::PointXYZRGBNormal> (volpkg.getNormalAtIndex(2), *tempcloud);
+    pcl::getMinMax3D (*tempcloud, tempmin, tempmax);
+    if (tempmax.y > tempmax.z)
+      fieldsize = tempmax.y + 10;
+    else
+      fieldsize = tempmax.z + 10;
+  }
+
+  // allocate and initalize force field
+  field = new Force**[volpkg.getNumberOfSlices()];
+  for (int i = 0; i < volpkg.getNumberOfSlices(); ++i)
+    field[i] = NULL;
+
   // add some slices to start the simulation
-  for (int i = 0; i < 4; ++i) {
+  slice_iterator = field_slices.begin();
+  for (int i = 0; i < 4; ++i)
     add_slices();
+
+  //particle_status is a bool representing if a particle has passed through the last slice
+  std::vector<bool> particle_status;
+  for (int i = 0; i < particle_chain.size(); ++i)
+    particle_status.push_back(false);
+
+  //vector of number of stalled iterations per particle. Fixed to 25000 iterations for now.
+  std::vector<int> particle_stall_count;
+  for (int i = 0; i < particle_chain.size(); ++i)
+    particle_stall_count.push_back(0);
+
+  //This is how we will maintain our ordered structure, vectors of particle chains for each real iteration
+  //This has the size of realIterations x particle_chain.size. We assume all slices are loaded
+  std::vector<std::vector<pcl::PointXYZRGB> > VoV;
+
+  //TODO: Configurable distance threshold
+  //Invalid particles have x of -1
+  realIterations = int(numslices/THRESHOLD);
+  for (int i = 0; i < realIterations; ++i) {
+    std::vector<pcl::PointXYZRGB> tmp;
+    for (int j = 0; j <particle_chain.size(); ++j) {
+      pcl::PointXYZRGB point;
+      point.x = -1;
+      tmp.push_back(point);
+    }
+    VoV.push_back(tmp);
   }
 
   // run particle simulation
-  pcl::PointCloud<pcl::PointXYZRGB> page;
-  for (int step = 0; step < iteration; ++step) {
+  while (ps_nand(particle_status)) {
     for (int i = 0; i < particle_chain.size(); ++i) {
-      uint32_t intensity = (Color)interpolate_intensity(particle_chain[i]);
-      uint32_t color = intensity | intensity << 8 | intensity << 16;
+      if (particle_chain[i](0) >= numslices || particle_status[i]) {
+        particle_status[i] = true;
+        continue;
+      }
+      if (particle_stall_count[i] > 25000) {
+        particle_status[i] = true;
+      }
 
-      pcl::PointXYZRGB point;
-      point.x = particle_chain[i](0);
-      point.y = particle_chain[i](1);
-      point.z = particle_chain[i](2);
-      point.rgb = *reinterpret_cast<float*>(&color);
-      page.push_back(point);
+      //TODO: What do we define as a stall? How many stalls?
+      particle_stall_count[i] += 1;
 
-      // build mesh
-      add_vertex(point);
-      if (step > 0) {
-        if (i > 0) {
-          int v1, v2, v3, v4, chain_length;
-          chain_length = particle_chain.size();
-          v1 = step * chain_length + i;
-          v2 = v1 - 1;
-          v3 = v2 - chain_length;
-          v4 = v1 - chain_length;
-          add_face(v1, v2, v3);
-          add_face(v1, v3, v4);
-        }
+      //see if a particle has been placed in this slice yet at this chain index
+      if (VoV[int(floor(particle_chain[i](0))) - 1][i].x == -1) {
+        pcl::PointXYZRGB point;
+        point.x = particle_chain[i](0);
+        point.y = particle_chain[i](1);
+        point.z = particle_chain[i](2);
+        point.rgb = *reinterpret_cast<float*>(&COLOR);
+        VoV[int(floor(particle_chain[i](0))) - 1][i] = point;
       }
     }
     update_particles();
     update_field();
   }
-
-  // write results to disk
-  write_mesh();
-  pcl::io::savePCDFileASCII("page.pcd", page);
-  std::cout << "done" << std::endl;
-
+  printf("Writing point cloud to file...\n");
+  write_ordered_pcd(VoV);
+  printf("Segmentation complete!\n");
   exit(EXIT_SUCCESS);
-}
-
-void write_mesh() {
-  std::ofstream meshFile;
-  meshFile.open("mesh.ply");
-  std::cout << "creating mesh file" << std::endl;
-
-  // write header
-  meshFile << "ply" << std::endl
-           << "format ascii 1.0" << std::endl
-           << "comment Created by particle simulation https://github.com/viscenter/registration-toolkit" << std::endl
-           << "element vertex " << vertices.size() << std::endl
-           << "property float x" << std::endl
-           << "property float y" << std::endl
-           << "property float z" << std::endl
-           << "property float nx" << std::endl
-           << "property float ny" << std::endl
-           << "property float nz" << std::endl
-           << "property float s" << std::endl
-           << "property float t" << std::endl
-           << "property uchar red" << std::endl
-           << "property uchar green" << std::endl
-           << "property uchar blue" << std::endl
-           << "element face " << faces.size() << std::endl
-           << "property list uchar int vertex_indices" << std::endl
-           << "end_header" << std::endl;
-
-  // write vertex information
-  for (int i = 0; i < vertices.size(); i++) {
-    Vertex v = vertices[i];
-    meshFile << v.x << " "
-             << v.y << " "
-             << v.z << " "
-             << v.nx << " "
-             << v.ny << " "
-             << v.nz << " "
-             << v.s << " "
-             << v.t << " "
-             << v.r << " "
-             << v.g << " "
-             << v.b << std::endl;
-  }
-
-  // write face information
-  for (int i = 0; i < faces.size(); i++) {
-    Face f = faces[i];
-    meshFile << "3 " << f.v1 << " " << f.v2 << " " << f.v3 << std::endl;
-  }
-
-  meshFile.close();
-}
-
-void add_face(int v1, int v2, int v3) {
-  Face f;
-  f.v1 = v1;
-  f.v2 = v2;
-  f.v3 = v3;
-  faces.push_back(f);
-
-  // calculate vertex normals (average of surface normals of each triangle)
-
-  // get surface normal of this triangle
-  // variable names from http://math.stackexchange.com/questions/305642
-  double nx, ny, nz, vx, vy, vz, wx, wy, wz, magnitude;
-
-  Vertex vt1 = vertices[v1];
-  Vertex vt2 = vertices[v2];
-  Vertex vt3 = vertices[v3];
-
-  vx = vt2.x - vt1.x;
-  vy = vt2.y - vt1.y;
-  vz = vt2.z - vt1.z;
-
-  wx = vt3.x - vt1.x;
-  wy = vt3.y - vt1.y;
-  wz = vt3.z - vt1.z;
-
-  nx = (vy * wz) - (vz * wy);
-  ny = (vz * wx) - (vx * wz);
-  nz = (vx * wy) - (vy * wx);
-
-  // normalize
-  magnitude = sqrt(nx*nx + ny*ny + nz*nz);
-  nx /= magnitude;
-  ny /= magnitude;
-  nz /= magnitude;
-
-  // update the vertex normals
-  update_normal(v1, nx, ny, nz);
-  update_normal(v2, nx, ny, nz);
-  update_normal(v3, nx, ny, nz);
-}
-
-void update_normal(int vertex, double nx_in, double ny_in, double nz_in) {
-  // recalculate average (unaverage, add new component, recalculate average)
-  Vertex v = vertices[vertex];
-  v.nx = (v.nx * v.face_count + nx_in) / (v.face_count + 1);
-  v.ny = (v.ny * v.face_count + ny_in) / (v.face_count + 1);
-  v.nz = (v.nz * v.face_count + nz_in) / (v.face_count + 1);
-  v.face_count++;
-  vertices[vertex] = v;
-}
-
-void add_vertex(pcl::PointXYZRGB point) {
-  Vertex v;
-  v.x = point.x;
-  v.y = point.y;
-  v.z = point.z;
-  v.nx = 0;
-  v.ny = 0;
-  v.nz = 0;
-  v.s = 0;
-  v.t = 0;
-  v.r = point.r;
-  v.g = point.g;
-  v.b = point.b;
-  v.face_count = 0;
-  vertices.push_back(v);
 }
 
 // called once for every timestep
 void update_particles() {
   slices_seen.clear();
-  for(int i = 0; i < particle_chain.size(); ++i)
-    particle_chain[i] += intensity_field(particle_chain[i]);
 
   for(int i = 0; i < particle_chain.size(); ++i)
     particle_chain[i] += spring_force(i);
@@ -322,67 +207,56 @@ void update_field() {
       to_erase.push_back(*it);
       for (int i = 0; i < fieldsize; ++i) {
         delete field[*it][i];
-        delete color[*it][i];
       }
       delete field[*it];
-      delete color[*it];
       field[*it] = NULL;
-      color[*it] = NULL;
     }
   }
   for (int i = 0; i < to_erase.size(); ++i) {
     std::cout << "deleting slice " << to_erase[i] << std::endl;
     slices_loaded.erase(to_erase[i]);
   }
-  if (*slices_loaded.rbegin() == *slices_seen.rbegin()) {
+  if (*slices_loaded.rbegin() == *slices_seen.rbegin() && *slices_loaded.rbegin() <= numslices) {
     add_slices();
   }
 }
 
 void add_slices() {
   pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGBNormal>);
-  int last_x = 0;
   for (int i = 0; i < LOADFILES && slice_iterator != field_slices.end(); ++i , ++slice_iterator) {
     std::cout << "loading " << *slice_iterator << std::endl;
+
     if (pcl::io::loadPCDFile<pcl::PointXYZRGBNormal> (*slice_iterator, *cloud) == -1) {
       PCL_ERROR ("couldn't read file\n");
       exit(EXIT_FAILURE);
-    }
-
-    else {
+    } else {
       pcl::PointCloud<pcl::PointXYZRGBNormal>::iterator point;
       for (point = cloud->begin(); point != cloud->end(); ++point) {
         int x, y, z;
-        x = point->z; // you monster
+        x = point->x;
         y = point->y;
-        z = point->x;
+        z = point->z;
 
         if (field[x] == NULL) {
           slices_loaded.insert(x);
-          last_x = x;
           field[x] = new Force*[fieldsize];
-          color[x] = new Color*[fieldsize];
           for (int j = 0; j < fieldsize; ++j) {
             field[x][j] = new Force[fieldsize];
-            color[x][j] = new Color[fieldsize];
             for (int k = 0; k < fieldsize; ++k) {
               field[x][j][k] = Force(0,0,0);
-              color[x][j][k] = 0;
             }
           }
         }
 
-        field[x][y][z](0) = point->normal[2]/scale;
-        field[x][y][z](1) = point->normal[0]/scale;
-        field[x][y][z](2) = point->normal[1]/scale;
-        color[x][y][z] = (uchar)(*reinterpret_cast<uint32_t*>(&point->rgb) & 0x0000ff);
+        field[x][y][z](0) = point->normal[0];
+        field[x][y][z](1) = point->normal[1];
+        field[x][y][z](2) = point->normal[2];
       }
     }
   }
 }
 
-
-// based on the interpolation formula from
+// interpolation formula from
 // http://paulbourke.net/miscellaneous/interpolation/
 Force interpolate_field(Particle point) {
   double dx, dy, dz, int_part;
@@ -415,47 +289,12 @@ Force interpolate_field(Particle point) {
     field[x_max][y_max][z_min] * dx       * dy       * (1 - dz) +
     field[x_max][y_max][z_max] * dx       * dy       * dz;
 
+  Force gravity = Force(1,0,0);
+  vector = gravity - (gravity.dot(vector)) / (vector.dot(vector)) * vector;
+  cv::normalize(vector);
+  vector /= gravity_scale;
+
   return vector;
-}
-
-// artificially atract particles to high
-// intensity areas
-Force intensity_field(Particle point) {
-  Force f(0,0,0);
-  double interp = interpolate_intensity(point);
-  int x_min, x_max, y_min, y_max, z_min, z_max;
-  x_min = (int)point(0);
-  x_max = x_min + 1;
-  y_min = (int)point(1);
-  y_max = y_min + 1;
-  z_min = (int)point(2);
-  z_max = z_min + 1;
-
-  Force neighbor[8] = {
-    Force(x_min, y_min, z_min),
-    Force(x_max, y_min, z_min),
-    Force(x_min, y_max, z_min),
-    Force(x_min, y_min, z_max),
-    Force(x_max, y_max, z_min),
-    Force(x_max, y_min, z_max),
-    Force(x_min, y_max, z_max),
-    Force(x_max, y_max, z_max),
-  };
-
-  for (int i = 0; i < 8; ++i) {
-    if (interpolate_intensity(neighbor[i]) < interp) {
-      neighbor[i] = Force(0,0,0);
-    } else {
-      f += (neighbor[i] - point);
-    }
-  }
-
-  // don't let particles move too far
-  f(2) = 0;
-  if (f.dot(f) > CHARGE)
-    normalize(f, f, CHARGE);
-
-  return f;
 }
 
 // particles resist getting too close or too far
@@ -477,34 +316,26 @@ Force spring_force(int index) {
   return f;
 }
 
-// estimate intensity of volume at particle
-double interpolate_intensity(Particle point) {
-  double dx, dy, dz, int_part;
-  dx = modf(point(0), &int_part);
-  dy = modf(point(1), &int_part);
-  dz = modf(point(2), &int_part);
+// nand together particle status
+bool ps_nand(std::vector<bool> status) {
+  bool result = true;
+  for (int i = 0; i < particle_chain.size(); ++i)
+    result &= status[i];
+  return !result;
+}
 
-  int x_min, x_max, y_min, y_max, z_min, z_max;
-  x_min = (int)point(0);
-  x_max = x_min + 1;
-  y_min = (int)point(1);
-  y_max = y_min + 1;
-  z_min = (int)point(2);
-  z_max = z_min + 1;
-
-  if (color[x_min] == NULL ||
-      color[x_max] == NULL)
-    return 0;
-
-  double c =
-    color[x_min][y_min][z_min] * (1 - dx) * (1 - dy) * (1 - dz) +
-    color[x_max][y_min][z_min] * dx       * (1 - dy) * (1 - dz) +
-    color[x_min][y_max][z_min] * (1 - dx) * dy       * (1 - dz) +
-    color[x_min][y_min][z_max] * (1 - dx) * (1 - dy) * dz +
-    color[x_max][y_min][z_max] * dx       * (1 - dy) * dz +
-    color[x_min][y_max][z_max] * (1 - dx) * dy       * dz +
-    color[x_max][y_max][z_min] * dx       * dy       * (1 - dz) +
-    color[x_max][y_max][z_max] * dx       * dy       * dz;
-
-  return c;
+//Use this function to produce an ordered PCD where height is the number of iterations
+//and width is the size of the particle chain. Invalid locations should be (-1,0,0)
+//We usually start at 3, but for the mesher's sanity, assume we start at 1
+void write_ordered_pcd(std::vector<std::vector<pcl::PointXYZRGB> > storage) {
+  pcl::PointCloud<pcl::PointXYZRGB> cloud;
+  cloud.height = realIterations;
+  cloud.width = particle_chain.size();
+  cloud.points.resize(cloud.height * cloud.width);
+  for (int i = 0; i < cloud.height; ++i) {
+    for (int j = 0; j < cloud.width; ++j) {
+      cloud.points[j+(i*cloud.width)] = storage[i][j];
+    }
+  }
+  pcl::io::savePCDFileASCII("segmented_cloud.pcd", cloud);
 }
