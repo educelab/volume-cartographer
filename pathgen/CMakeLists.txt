@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 SET(CMAKE_CXX_FLAGS "-std=c++11")
 
-PROJECT(PathGen)
 FIND_PACKAGE(Qt4 REQUIRED)
 find_package(OpenCV REQUIRED)
 
