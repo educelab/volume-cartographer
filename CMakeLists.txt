@@ -26,7 +26,8 @@ install(PROGRAMS
 "${CMAKE_BINARY_DIR}/scalpel/vc_scalpel" 
 "${CMAKE_BINARY_DIR}/simulation/vc_simulation" 
 "${CMAKE_BINARY_DIR}/mesher/vc_mesher" 
-"${CMAKE_BINARY_DIR}/texture/vc_texture" 
+"${CMAKE_BINARY_DIR}/texture/vc_texture"
+"${CMAKE_BINARY_DIR}/texture/vc_meshnorm"
 DESTINATION bin
 COMPONENT Programs)
 

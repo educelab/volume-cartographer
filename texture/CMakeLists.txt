@@ -17,3 +17,9 @@ add_executable(vc_texture main.cpp CMesh.cpp CPlyHelper.cpp sliceIntersection.cp
 target_link_libraries(vc_texture ${PCL_LIBRARIES})
 target_link_libraries(vc_texture ${OpenCV_LIBS})
 target_link_libraries(vc_texture volumepkg)
+
+add_executable(vc_meshnorm mesh_normalize.cpp CMesh.cpp CPlyHelper.cpp)
+
+target_link_libraries(vc_meshnorm ${PCL_LIBRARIES})
+target_link_libraries(vc_meshnorm ${OpenCV_LIBS})
+target_link_libraries(vc_meshnorm volumepkg)
