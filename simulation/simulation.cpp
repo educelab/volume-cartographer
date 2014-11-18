@@ -35,11 +35,13 @@ std::set<int> slices_seen;
 // force globals
 std::vector<Particle> particle_chain;
 double spring_resting_x;
-int gravity_scale;
+int gravity_scale = -1;
 
 // misc globals
 int numslices;
-double THRESHOLD;
+double THRESHOLD = -1;
+std::string pathLocation = "";
+std::string volpkgLocation = "";
 int realIterations;
 uint32_t COLOR = 0x00777777;
 
@@ -47,25 +49,38 @@ int main(int argc, char* argv[]) {
   std::cout << "vc_simulation" << std::endl;
   if (argc < 5) {
     std::cerr << "Usage:" << std::endl;
-    std::cerr << argv[0] << " --gravity_scale [1-10] --threshold [1-10] [Path.txt] volpkgpath" << std::endl;
+    std::cerr << argv[0] << " {--gravity_scale [1-10] --threshold [1-10]} --path [Path.txt] --volpkg [volpkgpath]" << std::endl;
     exit(EXIT_FAILURE);
   }
 
   // get gravity scale value from command line
   pcl::console::parse_argument (argc, argv, "--gravity_scale", gravity_scale);
-  if (gravity_scale < 1 || gravity_scale > 10) {
-    std::cerr << "ERROR: Incorrect/missing gravity_scale value!" << std::endl;
-    exit(EXIT_FAILURE);
+  if (gravity_scale == -1) {
+    std::cout << "No Gravity Scale value given, defaulting to 2" << std::endl;
+    gravity_scale = 2;
   }
 
   pcl::console::parse_argument (argc, argv, "--threshold", THRESHOLD);
-  if (THRESHOLD < 0.0 || THRESHOLD > 10.0) {
-    std::cerr << "ERROR: Incorrect/missing threshold value!" << std::endl;
+  if (THRESHOLD == -1) {
+    std::cout << "No Distance Threshold value given, defaulting to 1" << std::endl;
+    THRESHOLD = 1;
+  }
+  
+  pcl::console::parse_argument (argc, argv, "--path", pathLocation);
+  if (pathLocation == "") {
+    std::cerr << "ERROR: Incorrect/missing path location!" << std::endl;
     exit(EXIT_FAILURE);
   }
+  
+  pcl::console::parse_argument (argc, argv, "--volpkg", volpkgLocation);
+  if (volpkgLocation == "") {
+    std::cerr << "ERROR: Incorrect/missing volpkg location!" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+  
   // read particle chain landmarks
   std::ifstream landmarks_file;
-  landmarks_file.open(argv[5]);
+  landmarks_file.open(pathLocation);
   if (landmarks_file.fail()) {
     std::cout << "Path text file could not be opened" << std::endl;
     exit(EXIT_FAILURE);
@@ -90,8 +105,7 @@ int main(int argc, char* argv[]) {
   }
 
   // we lose 4 slices calculating normals
-  std::string path = argv[6];
-  VolumePkg volpkg(path);
+  VolumePkg volpkg(volpkgLocation);
   numslices = volpkg.getNumberOfSlices() - 4;
 
   // calculate spring resting distance
