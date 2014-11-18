@@ -26,6 +26,8 @@ public:
 
 public:
 	CQtImageViewer( void );
+	CQtImageViewer( const std::string &nVpkgPath,
+					int nPathOnSliceIndex );
 	~CQtImageViewer( void );
 
 	void mousePressEvent( QMouseEvent *nEvent );
@@ -57,7 +59,9 @@ private:
 
 
 	bool InitializeVolumePkg( const std::string &nVpkgPath );
+	void OpenSlice( int nPathOnSliceIndex );
 	void UpdateView( void );
+	void InitializeView( void );
 
 private:
 	// Qt GUI

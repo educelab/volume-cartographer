@@ -6,16 +6,33 @@
 
 #include "CQtImageViewer.h"
 
+#include <string>
+
 int main( int argc, char *argv[] )
 {
     QApplication app( argc, argv );
-	CQtImageViewer aImageViewer;
+	CQtImageViewer *aImageViewer = NULL;
+	if ( argc > 1 ) {	// with extra parameters
+		if ( argc != 3 || strncmp( argv[ 1 ], "--help", 6 ) == 0 ) {
+			printf( "Usage: vc_pathgen pathToVolPkg sliceIndex\n" );
+			exit( -1 );
+		}
+		aImageViewer = new CQtImageViewer( std::string( argv[ 1 ] ), atoi( argv[ 2 ] ) );
+	} else {
+		aImageViewer = new CQtImageViewer();
+	}
 
 #if defined( Q_OS_SYMBIAN )
-	aImageViewer.showMaximized();
+	aImageViewer->showMaximized();
 #else
-	aImageViewer.show();
+	aImageViewer->show();
 #endif
 
-	return app.exec();
+	int aResult = app.exec();
+
+	if ( aImageViewer != NULL ) {
+		delete aImageViewer;
+		aImageViewer = NULL;
+	}
+	return aResult;
 }

@@ -23,3 +23,9 @@ add_executable(vc_meshnorm mesh_normalize.cpp CMesh.cpp CPlyHelper.cpp)
 target_link_libraries(vc_meshnorm ${PCL_LIBRARIES})
 target_link_libraries(vc_meshnorm ${OpenCV_LIBS})
 target_link_libraries(vc_meshnorm volumepkg)
+
+add_executable(vc_sliceProjection sliceProjection.cpp CMesh.cpp CPlyHelper.cpp sliceIntersection.cpp)
+
+target_link_libraries(vc_sliceProjection ${PCL_LIBRARIES})
+target_link_libraries(vc_sliceProjection ${OpenCV_LIBS})
+target_link_libraries(vc_sliceProjection volumepkg)

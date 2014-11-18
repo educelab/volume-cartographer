@@ -28,10 +28,48 @@ bool CQtImageViewer::InitializeVolumePkg( const std::string &nVpkgPath )
 		return false;
 	}
 
+	fVpkgPath = QString::fromStdString( nVpkgPath );
 	fVpkgName = fVpkg->getPkgName();
 	return true;
 }
 
+// show slice
+void CQtImageViewer::OpenSlice( int nPathOnSliceIndex )
+{
+	// get image as cv::Mat
+	fVpkg->getSliceAtIndex( fPathOnSliceIndex ).copyTo( fImgMat );
+
+	// convert 16-bit Mat to 8-bit 3-channel Mat
+	// REVISIT - !!! for display purpose, we need to convert 16-bit volume slice to 8-bit image here
+	//           this should be the same as the conversion in texturing program
+	// TODO refactor the conversion-for-display functions and reuse here
+	fImgMat.convertTo( fImgMat, CV_8U, 1.0/256.0 );
+	cvtColor( fImgMat, fImgMat, CV_GRAY2BGR );
+	fImgMat.copyTo( fImgMatCache ); // save a copy of previous state
+
+	// convert cv::Mat to Qt::QImage
+	fImgQImage = Mat2QImage( fImgMat );
+}
+
+// initialize view
+void CQtImageViewer::InitializeView( void )
+{
+	fImageLabel->setPixmap( QPixmap::fromImage( fImgQImage ) );
+	fScaleFactor = 1.0;
+
+    fPrintAct->setEnabled( true );
+	fFitToWindowAct->setEnabled( true );
+	UpdateActions();
+
+    if ( !fFitToWindowAct->isChecked() ) {
+		fImageLabel->adjustSize();
+	}
+
+	// enable mouse tracking
+	setMouseTracking( true );
+	fScrollArea->setMouseTracking( true );
+	fImageLabel->setMouseTracking( true );
+}
 
 // update the view
 void CQtImageViewer::UpdateView( void )
@@ -111,10 +149,46 @@ CQtImageViewer::CQtImageViewer( void ) :
 
 	setWindowTitle( tr( "Image Viewer" ) );
 	resize( 500, 400 );
+}
 
-	setMouseTracking( true ); // enable mouse tracking
-	fScrollArea->setMouseTracking( true );
-	fImageLabel->setMouseTracking( true );
+// Constructor
+CQtImageViewer::CQtImageViewer( const std::string &nVpkgPath,
+								int nPathOnSliceIndex ) :
+	fImageLabel( NULL ),
+	fScrollArea( NULL ),
+	fVpkg( NULL ),
+	fPathOnSliceIndex( -1 ),
+	fTupleIndex( 0 )
+{
+	fImageLabel = new QLabel;
+	fImageLabel->setBackgroundRole( QPalette::Base );
+	fImageLabel->setSizePolicy( QSizePolicy::Ignored, QSizePolicy::Ignored );
+	fImageLabel->setScaledContents( true );
+
+	fScrollArea = new QScrollArea;
+	fScrollArea->setBackgroundRole( QPalette::Dark );
+    fScrollArea->setWidget( fImageLabel );
+    setCentralWidget( fScrollArea );
+
+    CreateActions();
+    CreateMenus();
+
+	setWindowTitle( tr( "Image Viewer" ) );
+	resize( 500, 400 );
+
+	// open volume package and load slice
+	if ( !InitializeVolumePkg( nVpkgPath ) ) {
+		printf( "ERROR: cannot open the volume package at the specified location.\n" );
+		return;
+	}
+	if ( nPathOnSliceIndex < 2 || nPathOnSliceIndex > fVpkg->getNumberOfSlices() - 3 ) {
+		printf( "ERROR: cannot load the slice at the specified index.\n" );
+		return;
+	} else {
+		fPathOnSliceIndex = nPathOnSliceIndex;
+		OpenSlice( fPathOnSliceIndex );
+		InitializeView();
+	}
 }
 
 // Destructor
@@ -129,12 +203,16 @@ CQtImageViewer::~CQtImageViewer( void )
 // Open
 void CQtImageViewer::Open( void )
 {
-	fVpkgPath = QFileDialog::getExistingDirectory( this,
+	QString aVpkgPath = QString( "" );
+	aVpkgPath = QFileDialog::getExistingDirectory( this,
 													tr( "Open Directory" ),
 													QDir::homePath(),
 													QFileDialog::ShowDirsOnly |
 													QFileDialog::DontResolveSymlinks );
-	if ( !InitializeVolumePkg( fVpkgPath.toStdString() + "/" ) ) {
+	if ( aVpkgPath.length() == 0 ) { // canceled
+		return;
+	}
+	if ( !InitializeVolumePkg( aVpkgPath.toStdString() + "/" ) ) {
 		printf( "ERROR: cannot open the volume package at the specified location.\n" );
 		return;
 	}
@@ -154,35 +232,11 @@ void CQtImageViewer::Open( void )
 		return;
 	}
 
-	// get image as cv::Mat
-	fVpkg->getSliceAtIndex( fPathOnSliceIndex ).copyTo( fImgMat );
-
-	// convert 16-bit Mat to 8-bit 3-channel Mat
-	// REVISIT - !!! for display purpose, we need to convert 16-bit volume slice to 8-bit image here
-	//           this should be the same as the conversion in texturing program
-	// TODO refactor the conversion-for-display functions and reuse here
-	fImgMat.convertTo( fImgMat, CV_8U, 1.0/256.0 );
-	cvtColor( fImgMat, fImgMat, CV_GRAY2BGR );
-	fImgMat.copyTo( fImgMatCache ); // save a copy of previous state
-
-	// convert cv::Mat to Qt::QImage
-	fImgQImage = Mat2QImage( fImgMat );
-
+	// read slice
+	OpenSlice( fPathOnSliceIndex );
 
 	// set up view
-	fImageLabel->setPixmap( QPixmap::fromImage( fImgQImage ) );
-	fScaleFactor = 1.0;
-
-    fPrintAct->setEnabled( true );
-	fFitToWindowAct->setEnabled( true );
-	UpdateActions();
-
-    if ( !fFitToWindowAct->isChecked() ) {
-		fImageLabel->adjustSize();
-	}
-
-	// REVISIT - duplicate
-//	fImageLabel->setMouseTracking( true );	// enable mouse tracking to update the Bezier curve live
+	InitializeView();
 }
 
 // Print
@@ -452,7 +506,7 @@ void CQtImageViewer::mousePressEvent( QMouseEvent *nEvent )
 		SavePath( fVpkgName + "_" + currentDateTime() + ".txt",
 					fPath,
 					fPathOnSliceIndex );
-		exit( 0 );
+		QApplication::quit(); // use quit() instead of exit() to terminate decently, check MacOSX
 	}
 
 	UpdateView();
