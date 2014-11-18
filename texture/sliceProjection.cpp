@@ -37,6 +37,9 @@ int main( int argc, char *argv[] )
 	int aMinSliceIndex, aMaxSliceIndex;
 
 	aMinSliceIndex = ( int )floor( aPoints.begin()->x );
+  if (aMinSliceIndex == -1 ){
+    aMinSliceIndex = 0;
+  }
 	aMaxSliceIndex = ( int )ceil( aPoints.back().x );
 
 	// REVISIT - for debug

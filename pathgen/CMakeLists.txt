@@ -22,4 +22,4 @@ include_directories(${VOLUMEPKG_INCLUDE_DIR})
 # build
 add_executable(vc_pathgen ${PathGen_SOURCES} ${PathGen_HEADERS_MOC})
 
-target_link_libraries(vc_pathgen volumepkg ${OpenCV_LIBS} ${QT_LIBRARIES})
+target_link_libraries(vc_pathgen volumepkg ${OpenCV_LIBS} Qt4::QtCore Qt4::QtGui)

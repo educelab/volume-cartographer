@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 cmake_policy(SET CMP0048 NEW)
 SET(CMAKE_CXX_FLAGS "-std=c++11")
 
-project(VC VERSION 1.0)
+project(VC VERSION 1.0.1)
 
 set(Boost_USE_STATIC_LIBS ON)
 
@@ -28,6 +28,7 @@ install(PROGRAMS
 "${CMAKE_BINARY_DIR}/mesher/vc_mesher" 
 "${CMAKE_BINARY_DIR}/texture/vc_texture"
 "${CMAKE_BINARY_DIR}/texture/vc_meshnorm"
+"${CMAKE_BINARY_DIR}/texture/vc_sliceProjection"
 DESTINATION bin
 COMPONENT Programs)
 
@@ -45,10 +46,10 @@ set(CPACK_COMPONENTS_ALL Programs)
 set(CPACK_PACKAGE_NAME "VC")
 set(CPACK_PACKAGE_VENDOR "UK VisCenter")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Volume Cartographer")
-set(CPACK_PACKAGE_VERSION "1.0.0")
+set(CPACK_PACKAGE_VERSION "1.0.1")
 set(CPACK_PACKAGE_VERSION_MAJOR "1")
 set(CPACK_PACKAGE_VERSION_MINOR "0")
-set(CPACK_PACKAGE_VERSION_PATCH "0")
+set(CPACK_PACKAGE_VERSION_PATCH "1")
 set(CPACK_MONOLITHIC_INSTALL)
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "/usr/local/")
 
