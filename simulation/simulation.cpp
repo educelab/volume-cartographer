@@ -39,15 +39,15 @@ int gravity_scale;
 
 // misc globals
 int numslices;
-int THRESHOLD = 1;
-int realIterations = 0;
+double THRESHOLD;
+int realIterations;
 uint32_t COLOR = 0x00777777;
 
 int main(int argc, char* argv[]) {
   std::cout << "vc_simulation" << std::endl;
   if (argc < 5) {
     std::cerr << "Usage:" << std::endl;
-    std::cerr << argv[0] << " --gravity_scale [1-10] [Path.txt] volpkgpath" << std::endl;
+    std::cerr << argv[0] << " --gravity_scale [1-10] --threshold [1-10] [Path.txt] volpkgpath" << std::endl;
     exit(EXIT_FAILURE);
   }
 
@@ -58,9 +58,14 @@ int main(int argc, char* argv[]) {
     exit(EXIT_FAILURE);
   }
 
+  pcl::console::parse_argument (argc, argv, "--threshold", THRESHOLD);
+  if (THRESHOLD < 0.0 || THRESHOLD > 10.0) {
+    std::cerr << "ERROR: Incorrect/missing threshold value!" << std::endl;
+    exit(EXIT_FAILURE);
+  }
   // read particle chain landmarks
   std::ifstream landmarks_file;
-  landmarks_file.open(argv[3]);
+  landmarks_file.open(argv[5]);
   if (landmarks_file.fail()) {
     std::cout << "Path text file could not be opened" << std::endl;
     exit(EXIT_FAILURE);
@@ -85,7 +90,7 @@ int main(int argc, char* argv[]) {
   }
 
   // we lose 4 slices calculating normals
-  std::string path = argv[4];
+  std::string path = argv[6];
   VolumePkg volpkg(path);
   numslices = volpkg.getNumberOfSlices() - 4;
 
@@ -138,9 +143,9 @@ int main(int argc, char* argv[]) {
   //This has the size of realIterations x particle_chain.size. We assume all slices are loaded
   std::vector<std::vector<pcl::PointXYZRGB> > VoV;
 
-  //TODO: Configurable distance threshold
+  realIterations = int(ceil(numslices/THRESHOLD));
+  
   //Invalid particles have x of -1
-  realIterations = int(numslices/THRESHOLD);
   for (int i = 0; i < realIterations; ++i) {
     std::vector<pcl::PointXYZRGB> tmp;
     for (int j = 0; j <particle_chain.size(); ++j) {
@@ -164,15 +169,17 @@ int main(int argc, char* argv[]) {
 
       //TODO: What do we define as a stall? How many stalls?
       particle_stall_count[i] += 1;
-
+      
+      //Current particle's slice value (minus 1 for array indices) over threshold
+      int currentCell = int(((particle_chain[i](0)) - 1)/THRESHOLD);
       //see if a particle has been placed in this slice yet at this chain index
-      if (VoV[int(floor(particle_chain[i](0))) - 1][i].x == -1) {
+      if (VoV[currentCell][i].x == -1) {
         pcl::PointXYZRGB point;
         point.x = particle_chain[i](0);
         point.y = particle_chain[i](1);
         point.z = particle_chain[i](2);
         point.rgb = *reinterpret_cast<float*>(&COLOR);
-        VoV[int(floor(particle_chain[i](0))) - 1][i] = point;
+        VoV[currentCell][i] = point;
       }
     }
     update_particles();
