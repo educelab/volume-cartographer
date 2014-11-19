@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
   std::cout << "vc_simulation" << std::endl;
   if (argc < 5) {
     std::cerr << "Usage:" << std::endl;
-    std::cerr << argv[0] << " {--gravity [1-10] --threshold [1-10] --endSlice [value]} --path [Path.txt] --volpkg [volpkgpath]" << std::endl;
+    std::cerr << argv[0] << " {--gravity [1-10] --threshold [1-10] --endAfter [value]} --path [Path.txt] --volpkg [volpkgpath]" << std::endl;
     exit(EXIT_FAILURE);
   }
 
@@ -68,8 +68,8 @@ int main(int argc, char* argv[]) {
     THRESHOLD = 1;
   }
   
-  pcl::console::parse_argument (argc, argv, "--endSlice", endSlice);
-  
+  pcl::console::parse_argument (argc, argv, "--endAfter", endSlice);
+
   pcl::console::parse_argument (argc, argv, "--path", pathLocation);
   if (pathLocation == "") {
     std::cerr << "ERROR: Incorrect/missing path location!" << std::endl;
@@ -114,7 +114,11 @@ int main(int argc, char* argv[]) {
 
   // we lose 4 slices calculating normals
   VolumePkg volpkg(volpkgLocation);
-  numslices = volpkg.getNumberOfSlices() - 4;
+  //if we set the number of slices to load, use that value, otherwise pull from volpkg
+  if (endSlice == -1)
+    numslices = volpkg.getNumberOfSlices() - 4;
+  else
+    numslices = endSlice + min_index;
 
   // calculate spring resting distance
   double total_delta = 0;
@@ -245,7 +249,7 @@ void update_field() {
     std::cout << "deleting slice " << to_erase[i] << std::endl;
     slices_loaded.erase(to_erase[i]);
   }
-  if (*slices_loaded.rbegin() == *slices_seen.rbegin() && *slices_loaded.rbegin() <= endSlice) {
+  if (*slices_loaded.rbegin() == *slices_seen.rbegin() && *slices_loaded.rbegin() <= numslices) {
     add_slices();
   }
 }
