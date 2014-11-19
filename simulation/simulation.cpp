@@ -44,13 +44,14 @@ std::string pathLocation = "";
 std::string volpkgLocation = "";
 std::string outputName = "";
 int realIterations;
+int endSlice = -1;
 uint32_t COLOR = 0x00777777;
 
 int main(int argc, char* argv[]) {
   std::cout << "vc_simulation" << std::endl;
   if (argc < 5) {
     std::cerr << "Usage:" << std::endl;
-    std::cerr << argv[0] << " {--gravity [1-10] --threshold [1-10]} --path [Path.txt] --volpkg [volpkgpath]" << std::endl;
+    std::cerr << argv[0] << " {--gravity [1-10] --threshold [1-10] --endSlice [value]} --path [Path.txt] --volpkg [volpkgpath]" << std::endl;
     exit(EXIT_FAILURE);
   }
 
@@ -66,6 +67,8 @@ int main(int argc, char* argv[]) {
     std::cout << "No Distance Threshold value given, defaulting to 1" << std::endl;
     THRESHOLD = 1;
   }
+  
+  pcl::console::parse_argument (argc, argv, "--endSlice", endSlice);
   
   pcl::console::parse_argument (argc, argv, "--path", pathLocation);
   if (pathLocation == "") {
@@ -242,7 +245,7 @@ void update_field() {
     std::cout << "deleting slice " << to_erase[i] << std::endl;
     slices_loaded.erase(to_erase[i]);
   }
-  if (*slices_loaded.rbegin() == *slices_seen.rbegin() && *slices_loaded.rbegin() <= numslices) {
+  if (*slices_loaded.rbegin() == *slices_seen.rbegin() && *slices_loaded.rbegin() <= endSlice) {
     add_slices();
   }
 }
