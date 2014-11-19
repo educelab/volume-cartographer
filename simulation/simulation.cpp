@@ -42,6 +42,7 @@ int numslices;
 double THRESHOLD = -1;
 std::string pathLocation = "";
 std::string volpkgLocation = "";
+std::string outputName = "";
 int realIterations;
 uint32_t COLOR = 0x00777777;
 
@@ -49,12 +50,12 @@ int main(int argc, char* argv[]) {
   std::cout << "vc_simulation" << std::endl;
   if (argc < 5) {
     std::cerr << "Usage:" << std::endl;
-    std::cerr << argv[0] << " {--gravity_scale [1-10] --threshold [1-10]} --path [Path.txt] --volpkg [volpkgpath]" << std::endl;
+    std::cerr << argv[0] << " {--gravity [1-10] --threshold [1-10]} --path [Path.txt] --volpkg [volpkgpath]" << std::endl;
     exit(EXIT_FAILURE);
   }
 
   // get gravity scale value from command line
-  pcl::console::parse_argument (argc, argv, "--gravity_scale", gravity_scale);
+  pcl::console::parse_argument (argc, argv, "--gravity", gravity_scale);
   if (gravity_scale == -1) {
     std::cout << "No Gravity Scale value given, defaulting to 2" << std::endl;
     gravity_scale = 2;
@@ -78,6 +79,10 @@ int main(int argc, char* argv[]) {
     exit(EXIT_FAILURE);
   }
   
+  // generate output name from path file
+  outputName = pathLocation.substr(pathLocation.find_last_of("/\\")+1);
+  outputName = outputName.substr(0,outputName.find_last_of("."));
+
   // read particle chain landmarks
   std::ifstream landmarks_file;
   landmarks_file.open(pathLocation);
@@ -358,5 +363,5 @@ void write_ordered_pcd(std::vector<std::vector<pcl::PointXYZRGB> > storage) {
       cloud.points[j+(i*cloud.width)] = storage[i][j];
     }
   }
-  pcl::io::savePCDFileASCII("segmented_cloud.pcd", cloud);
+  pcl::io::savePCDFileASCII(outputName + "_segmented.pcd", cloud);
 }
