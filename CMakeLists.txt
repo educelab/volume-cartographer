@@ -11,7 +11,7 @@ add_subdirectory(volumepkg)
 add_subdirectory(pathgen)
 add_subdirectory(reslicer)
 add_subdirectory(scalpel)
-add_subdirectory(simulation)
+add_subdirectory(segmentation)
 add_subdirectory(mesher)
 add_subdirectory(texture)
 
@@ -24,7 +24,7 @@ install(PROGRAMS
 "${CMAKE_BINARY_DIR}/packager/vc_packager" 
 "${CMAKE_BINARY_DIR}/pathgen/vc_pathgen" 
 "${CMAKE_BINARY_DIR}/scalpel/vc_scalpel" 
-"${CMAKE_BINARY_DIR}/simulation/vc_simulation" 
+"${CMAKE_BINARY_DIR}/segmentation/vc_segment" 
 "${CMAKE_BINARY_DIR}/mesher/vc_mesher" 
 "${CMAKE_BINARY_DIR}/texture/vc_texture"
 "${CMAKE_BINARY_DIR}/texture/vc_meshnorm"

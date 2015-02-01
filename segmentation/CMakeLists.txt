@@ -10,8 +10,8 @@ include_directories(${PCL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} ${VOLUMEPKG_INCLU
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
-add_executable(vc_simulation simulation.cpp)
+add_executable(vc_segment modules/structureTensorParticleSim.cpp segment.cpp)
 
-target_link_libraries(vc_simulation ${PCL_LIBRARIES})
-target_link_libraries(vc_simulation ${OpenCV_LIBS})
-target_link_libraries(vc_simulation volumepkg)
+target_link_libraries(vc_segment ${PCL_LIBRARIES})
+target_link_libraries(vc_segment ${OpenCV_LIBS})
+target_link_libraries(vc_segment volumepkg)

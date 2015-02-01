@@ -1,28 +1,19 @@
-#include <iostream>
+// Structure Tensor-Directed Particle Segmentation
 
-#include <opencv2/opencv.hpp>
-#include <pcl/io/pcd_io.h>
-#include <pcl/common/common.h>
-#include <pcl/point_types.h>
-#include <pcl/console/parse.h>
-
-#include "volumepkg.h"
+#include "structureTensorParticleSim.h"
 
 // behavior defines
 #define LOADFILES 3
 #define SPRING_CONSTANT_K -0.5
 
-typedef cv::Vec3f Particle;
-typedef Particle Force;
-
 // forces and particle management
-void update_particles();
+void update_particles(int);
 void update_field();
 void add_slices();
-Force interpolate_field(Particle);
+Force interpolate_field(Particle, int);
 Force spring_force(int);
 bool ps_nand(std::vector<bool>);
-void write_ordered_pcd(std::vector<std::vector<pcl::PointXYZRGB> >);
+pcl::PointCloud<pcl::PointXYZRGB> returnPointCloud(std::vector<std::vector<pcl::PointXYZRGB> >);
 
 // field globals
 Force*** field;
@@ -35,66 +26,23 @@ std::set<int> slices_seen;
 // force globals
 std::vector<Particle> particle_chain;
 double spring_resting_x;
-int gravity_scale = -1;
 
 // misc globals
 int numslices;
-double THRESHOLD = -1;
-std::string pathLocation = "";
-std::string volpkgLocation = "";
-std::string outputName = "";
 int realIterations;
-int endSlice = -1;
 uint32_t COLOR = 0x00777777;
 
-int main(int argc, char* argv[]) {
-  std::cout << "vc_simulation" << std::endl;
-  if (argc < 5) {
-    std::cerr << "Usage:" << std::endl;
-    std::cerr << argv[0] << " {--gravity [1-10] --threshold [1-10] --endAfter [value]} --path [Path.txt] --volpkg [volpkgpath]" << std::endl;
-    exit(EXIT_FAILURE);
-  }
+pcl::PointCloud<pcl::PointXYZRGB> structureTensorParticleSim(std::string landmark_path, VolumePkg volpkg, int gravity_scale, int threshold, int endSlice) {
 
-  // get gravity scale value from command line
-  pcl::console::parse_argument (argc, argv, "--gravity", gravity_scale);
-  if (gravity_scale == -1) {
-    std::cout << "No Gravity Scale value given, defaulting to 2" << std::endl;
-    gravity_scale = 2;
-  }
-
-  pcl::console::parse_argument (argc, argv, "--threshold", THRESHOLD);
-  if (THRESHOLD == -1) {
-    std::cout << "No Distance Threshold value given, defaulting to 1" << std::endl;
-    THRESHOLD = 1;
-  }
-  
-  pcl::console::parse_argument (argc, argv, "--endAfter", endSlice);
-
-  pcl::console::parse_argument (argc, argv, "--path", pathLocation);
-  if (pathLocation == "") {
-    std::cerr << "ERROR: Incorrect/missing path location!" << std::endl;
-    exit(EXIT_FAILURE);
-  }
-  
-  pcl::console::parse_argument (argc, argv, "--volpkg", volpkgLocation);
-  if (volpkgLocation == "") {
-    std::cerr << "ERROR: Incorrect/missing volpkg location!" << std::endl;
-    exit(EXIT_FAILURE);
-  }
-  
-  // generate output name from path file
-  outputName = pathLocation.substr(pathLocation.find_last_of("/\\")+1);
-  outputName = outputName.substr(0,outputName.find_last_of("."));
-
-  // read particle chain landmarks
+  // read landmarks file
   std::ifstream landmarks_file;
-  landmarks_file.open(pathLocation);
+  landmarks_file.open(landmark_path);
   if (landmarks_file.fail()) {
     std::cout << "Path text file could not be opened" << std::endl;
     exit(EXIT_FAILURE);
   }
 
-  // REVISIT - Chao 20141104 - new path file format
+  // Create chain from landmarks file
   std::vector<double> indexes;
   while (!landmarks_file.eof()) {
     double index, a, b;
@@ -113,7 +61,6 @@ int main(int argc, char* argv[]) {
   }
 
   // we lose 4 slices calculating normals
-  VolumePkg volpkg(volpkgLocation);
   //if we set the number of slices to load, use that value, otherwise pull from volpkg
   if (endSlice == -1)
     numslices = volpkg.getNumberOfSlices() - 4;
@@ -169,7 +116,7 @@ int main(int argc, char* argv[]) {
   //This has the size of realIterations x particle_chain.size. We assume all slices are loaded
   std::vector<std::vector<pcl::PointXYZRGB> > VoV;
 
-  realIterations = int(ceil(numslices/THRESHOLD));
+  realIterations = int(ceil(numslices/threshold));
   
   //Invalid particles have x of -1
   for (int i = 0; i < realIterations; ++i) {
@@ -197,7 +144,7 @@ int main(int argc, char* argv[]) {
       particle_stall_count[i] += 1;
       
       //Current particle's slice value (minus 1 for array indices) over threshold
-      int currentCell = int(((particle_chain[i](0)) - 1)/THRESHOLD);
+      int currentCell = int(((particle_chain[i](0)) - 1)/threshold);
       //see if a particle has been placed in this slice yet at this chain index
       if (VoV[currentCell][i].x == -1) {
         pcl::PointXYZRGB point;
@@ -208,24 +155,23 @@ int main(int argc, char* argv[]) {
         VoV[currentCell][i] = point;
       }
     }
-    update_particles();
+    update_particles(gravity_scale);
     update_field();
   }
-  printf("Writing point cloud to file...\n");
-  write_ordered_pcd(VoV);
-  printf("Segmentation complete!\n");
-  exit(EXIT_SUCCESS);
+  pcl::PointCloud<pcl::PointXYZRGB> segmentedCloud = returnPointCloud(VoV);
+  return segmentedCloud;
 }
 
 // called once for every timestep
-void update_particles() {
+// TO-DO: pretty sure this is the worst possible way to pass the gravity scale down to where it's needed
+void update_particles(int gravity_scale) {
   slices_seen.clear();
 
   for(int i = 0; i < particle_chain.size(); ++i)
     particle_chain[i] += spring_force(i);
 
   for(int i = 0; i < particle_chain.size(); ++i)
-    particle_chain[i] += interpolate_field(particle_chain[i]);
+    particle_chain[i] += interpolate_field(particle_chain[i], gravity_scale);
 
   for(int i = 0; i < particle_chain.size(); ++i)
     particle_chain[i] += spring_force(i);
@@ -291,7 +237,7 @@ void add_slices() {
 
 // interpolation formula from
 // http://paulbourke.net/miscellaneous/interpolation/
-Force interpolate_field(Particle point) {
+Force interpolate_field(Particle point, int gravity_scale) {
   double dx, dy, dz, int_part;
   dx = modf(point(0), &int_part);
   dy = modf(point(1), &int_part);
@@ -360,7 +306,7 @@ bool ps_nand(std::vector<bool> status) {
 //Use this function to produce an ordered PCD where height is the number of iterations
 //and width is the size of the particle chain. Invalid locations should be (-1,0,0)
 //We usually start at 3, but for the mesher's sanity, assume we start at 1
-void write_ordered_pcd(std::vector<std::vector<pcl::PointXYZRGB> > storage) {
+pcl::PointCloud<pcl::PointXYZRGB> returnPointCloud(std::vector<std::vector<pcl::PointXYZRGB> > storage) {
   pcl::PointCloud<pcl::PointXYZRGB> cloud;
   cloud.height = realIterations;
   cloud.width = particle_chain.size();
@@ -370,5 +316,5 @@ void write_ordered_pcd(std::vector<std::vector<pcl::PointXYZRGB> > storage) {
       cloud.points[j+(i*cloud.width)] = storage[i][j];
     }
   }
-  pcl::io::savePCDFileASCII(outputName + "_segmented.pcd", cloud);
+  return cloud;
 }
