@@ -12,7 +12,7 @@ add_subdirectory(pathgen)
 add_subdirectory(reslicer)
 add_subdirectory(scalpel)
 add_subdirectory(segmentation)
-add_subdirectory(mesher)
+add_subdirectory(meshing)
 add_subdirectory(texture)
 
 # Copy packager files. This is a hack.
@@ -25,7 +25,7 @@ install(PROGRAMS
 "${CMAKE_BINARY_DIR}/pathgen/vc_pathgen" 
 "${CMAKE_BINARY_DIR}/scalpel/vc_scalpel" 
 "${CMAKE_BINARY_DIR}/segmentation/vc_segment" 
-"${CMAKE_BINARY_DIR}/mesher/vc_mesher" 
+"${CMAKE_BINARY_DIR}/meshing/vc_mesher" 
 "${CMAKE_BINARY_DIR}/texture/vc_texture"
 "${CMAKE_BINARY_DIR}/texture/vc_meshnorm"
 "${CMAKE_BINARY_DIR}/texture/vc_sliceProjection"

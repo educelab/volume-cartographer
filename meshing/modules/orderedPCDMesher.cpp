@@ -1,11 +1,5 @@
-#include <iostream>
-#include <string>
 
-#include <pcl/io/pcd_io.h>
-#include <pcl/common/common.h>
-#include <pcl/point_types.h>
-#include <pcl/console/parse.h>
-#include <pcl/io/ply_io.h>
+#include "orderedPCDMesher.h"
 
 typedef struct {
   double x, y, z, nx, ny, nz, s, t;
@@ -25,22 +19,9 @@ void write_mesh(std::string);
 std::vector<Vertex> vertices;
 std::vector<Face> faces;
 
-int main(int argc, char* argv[]) {
-  if (argc < 2)
-  {
-    std::cerr << "Usage:" << std::endl;
-    std::cerr << argv[0] << " orderedFile.pcd" << std::endl;
-    return (1);
-  }
+int orderedPCDMesher(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::string outFile){
   
   std::vector<std::vector<pcl::PointXYZRGB>> VoV;
-  pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
-  
-  if (pcl::io::loadPCDFile<pcl::PointXYZRGB> (argv[1], *cloud) == -1) //* load the file
-  {
-    PCL_ERROR ("Couldn't read file \n");
-    return (-1);
-  }
 
   for (int i = 0; i < cloud->height; ++i)
   {
@@ -75,15 +56,10 @@ int main(int argc, char* argv[]) {
       }
     }
   }
-  std::string outfile = argv[1];
-  //replace the extension
-  int dot = outfile.find_last_of(".");
-  outfile = outfile.substr(0,dot) + ".ply";
   
-  write_mesh(outfile);
-  exit(EXIT_SUCCESS);
+  write_mesh(outFile);
+  return EXIT_SUCCESS;
 }
-
 
 void write_mesh(std::string name) {
   std::ofstream meshFile;

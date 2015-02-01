@@ -10,7 +10,7 @@ include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
-add_executable(vc_mesher mesher.cpp)
+add_executable(vc_mesher modules/orderedPCDMesher.cpp mesher.cpp)
 
 target_link_libraries(vc_mesher ${PCL_LIBRARIES})
 target_link_libraries(vc_mesher ${OpenCV_LIBS})
