@@ -9,7 +9,11 @@
 #ifdef _WINDOWS
 #include <Windows.h>
 #endif // _WINDOWS
-#include <GL/gl.h>
+#ifdef __APPLE__
+#  include <OpenGL/gl.h>
+#else
+#  include <GL/gl.h>
+#endif // __APPLE__
 
 namespace ChaoVis {
 
