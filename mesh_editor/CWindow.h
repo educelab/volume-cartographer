@@ -60,6 +60,8 @@ private slots:
     void OpenMesh( void );
     void OpenVol( void );
 
+    void SaveMesh( void );
+
     void Close( void );
 
 	void GetIntersection( void );
@@ -85,6 +87,7 @@ private:
 
     QAction		*fOpenMeshAct;
     QAction		*fOpenVolAct;
+    QAction     *fSaveMeshAct;
     QAction		*fExitAct;
 	QAction		*fGetIntersectionAct;
 

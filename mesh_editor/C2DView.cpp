@@ -7,6 +7,7 @@
 #include "CXCurve.h"
 #include "CMeshGL.h"
 
+
 using namespace ChaoVis;
 
 C2DView::C2DView( QWidget *parent ) :
@@ -174,8 +175,21 @@ void C2DView::mouseMoveEvent( QMouseEvent *event )
 	// REVISIT - should take scale factor into account
 	if ( fSelectedPointIndex != -1 ) {
 		// update curve
-		Vec2< int > aOldPt( fCurve->GetPoint( fSelectedPointIndex )[ 0 ], fCurve->GetPoint( fSelectedPointIndex )[ 1 ] );
-		fCurve->SetPoint( fSelectedPointIndex, Vec2< float >( aOldPt[ 0 ] + aDx, aOldPt[ 1 ] + aDy ) );
+        //Vec2< int > aOldPt( fCurve->GetPoint( fSelectedPointIndex )[ 0 ], fCurve->GetPoint( fSelectedPointIndex )[ 1 ] );
+        //fCurve->SetPoint( fSelectedPointIndex, Vec2< float >( aOldPt[ 0 ] + aDx, aOldPt[ 1 ] + aDy ) );
+        // REVISIT - instead of changing the point directly, we pass the difference and change the point and its neighbor
+
+//#define _DEBUG
+#ifdef _DEBUG
+        qDebug() << "Pos: " << aNewPosOnImg.x() << " " << aNewPosOnImg.y() << "\n";
+        qDebug() << "D: " << aDx << " " << aDy << "\n";
+        qDebug() << "Point: " << fCurve->GetPoint( fSelectedPointIndex )[ 0 ] << " " << fCurve->GetPoint( fSelectedPointIndex )[ 1 ] << "\n";
+#endif // _DEBUG
+//#undef _DEBUG
+        fCurve->SetPointByDifference( fSelectedPointIndex,
+                                      Vec2< float >( aDx, aDy ),
+                                      CosineImpactFunc,
+                                      17 );// fCurve->GetPointsNum() / 2 ); // REVISIT - impact range should be adjustable
 
 		// update view
 		update();
@@ -196,8 +210,11 @@ void C2DView::mouseReleaseEvent( QMouseEvent *event )
 		//                   the texture is generated again at last
 		// REVISIT - change mesh vertex, this need careful design
 		//           after this, the 3D view should be notified for update
-        fMeshModelRef->ChangeVertex( fCurve->Get3DIndex( fSelectedPointIndex ),
-                                     Vec3< float >( fCurrentSliceIndex, fLastPos.x(), fLastPos.y() ) );
+
+        //fMeshModelRef->ChangeVertex( fCurve->Get3DIndex( fSelectedPointIndex ),
+        //                             Vec3< float >( fCurrentSliceIndex, fLastPos.x(), fLastPos.y() ) );
+        // REVISIT - instead of updating only one point, we update the whole curve
+        fMeshModelRef->ChangeVertex( fCurve, fCurrentSliceIndex + 2 ); // REVISIT - -1 because the slices in vpkg starts from 1
 
         // since we hold the reference of the data in CWindow, the mesh is updated, and 3D view is refreshed
         emit SendSignalMeshChanged();

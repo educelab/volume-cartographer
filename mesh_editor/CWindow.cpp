@@ -20,9 +20,6 @@
 using namespace ChaoVis;
 
 
-#define VOLPKG_SLICE_MIN_INDEX 2
-
-
 // Constructor
 CWindow::CWindow( void ) :
     f3DView( NULL ),
@@ -84,6 +81,71 @@ CWindow::CWindow( void ) :
 
     // create menus
     CreateMenus();
+
+//#define _DEBUG
+#ifdef _DEBUG
+    // REVISIT - for debug purpose, hard code load
+
+    // open model
+    QString aMeshName("/home/chaodu/Research/Scroll/meshEditor/PHerc3-ItalianScan-PhaseContrast-Sample-2013_Path12_segmented_textured_forOpenGL.obj");
+
+    // open mesh model
+    if ( aMeshName.length() != 0 ) {
+        if ( f3DView->InitializeMeshModel( aMeshName.toStdString() ) ) {
+            if ( f2DView != NULL ) {
+                f2DView->SetMeshModel( f3DView->GetMeshModel() );
+            }
+        }
+    }
+
+    // open volume package
+    QString aVpkgPath = QString( "/home/chaodu/Research/Scroll/TestData/PHerc3-ItalianScan-PhaseContrast-Sample-2013/PHerc3-ItalianScan/" );
+    if ( aVpkgPath.length() == 0 ) { // cancelled
+        return;
+    }
+
+    if ( !InitializeVolumePkg( aVpkgPath.toStdString() + "/" ) ) {
+        printf( "ERROR: cannot open the volume package at the specified location.\n" );
+        return;
+    }
+
+    // get slice index
+    fCurrentSliceIndex = 33;
+
+    // read slice
+    OpenSlice( fCurrentSliceIndex );
+
+    // setup cross section plane for 3D rendering
+    // REVISIT
+//#define _IMG_POWER_2
+#ifdef _IMG_POWER_2
+    // REVISIT - image size if not power of 2.
+    int width = pow( 2, ( int )( log( fSliceImage.width() ) / M_LN2/*log( 2 )*/ + 1 ) ); // REVISIT - store log(2) as constant, or use bit-wise shift
+    int height = pow( 2, ( int )( log( fSliceImage.height() ) / M_LN2/*log( 2 )*/ + 1 ) ); // REVISIT - store log(2) as constant, or use bit-wise shift
+    QImage aImgForOpenGL( QSize( width, height ), QImage::Format_ARGB32 );
+    // use QPainter to paste the image into the larger one
+    QPainter painter( &aImgForOpenGL );
+    painter.drawImage( QPoint( 0, 0 ), fSliceImage );
+    painter.end();
+
+    QImage aImg( fSliceImage );
+    f3DView->InitializeXsectionPlane( fCurrentSliceIndex,
+                                      aImg, //aImgForOpenGL,
+                                      aImgForOpenGL.width(),  // REVISTI - image width and height should be acquired from vpkg
+                                      aImgForOpenGL.height() );
+#endif // _IMG_POWER_2
+//    f3DView->InitializeXsectionPlane( fCurrentSliceIndex,
+//                                      aImg,//fSliceImage,
+//                                      fSliceImage.width(),  // REVISTI - image width and height should be acquired from vpkg
+//                                      fSliceImage.height() );
+    // REVISIT - 20150203 Chao - bind texture in constructor failed because the OpenGL context is not initialized
+    //           yet (which is done in initializeGL()).
+
+    // set up view
+    Initialize2DView();
+    f2DView->SetSliceIndex( fCurrentSliceIndex );
+#endif // _DEBUG
+#undef _DEBUG
 }
 
 // Destructor
@@ -111,6 +173,15 @@ void CWindow::OnLoadNextSlice( void )
 
     OpenSlice( fCurrentSliceIndex );
     f2DView->SetImage( fSliceImage );
+
+    // REVSIIT - FILL ME HERE
+    f3DView->SetSliceIndexDiff( +1 );
+    // REVISIT - probably we should further decompose and refactor the function and make one separate "setTexture" function
+    f3DView->InitializeXsectionPlane( fCurrentSliceIndex,
+                                      fSliceImage,
+                                      fSliceImage.width(),
+                                      fSliceImage.height() );
+
     update();
 }
 
@@ -128,6 +199,15 @@ void CWindow::OnLoadPrevSlice( void )
 
     OpenSlice( fCurrentSliceIndex );
     f2DView->SetImage( fSliceImage );
+
+    // REVSIIT - FILL ME HERE
+    f3DView->SetSliceIndexDiff( -1 );
+    // REVISIT - probably we should further decompose and refactor the function and make one separate "setTexture" function
+    f3DView->InitializeXsectionPlane( fCurrentSliceIndex,
+                                      fSliceImage,
+                                      fSliceImage.width(),
+                                      fSliceImage.height() );
+
     update();
 }
 
@@ -150,6 +230,8 @@ void CWindow::CreateMenus( void )
     fFileMenu->addAction( fOpenMeshAct );
     fFileMenu->addAction( fOpenVolAct );
     fFileMenu->addSeparator();
+    fFileMenu->addAction( fSaveMeshAct );
+    fFileMenu->addSeparator();
     fFileMenu->addAction( fExitAct );
 
 	fEditMenu = new QMenu( tr( "&Edit" ), this );
@@ -170,11 +252,16 @@ void CWindow::CreateActions( void )
     fOpenVolAct->setShortcut( tr( "Ctrl+V" ) );
     connect( fOpenVolAct, SIGNAL( triggered() ), this, SLOT( OpenVol() ) );
 
+    fSaveMeshAct = new QAction( tr( "&Save mesh..." ), this );
+    fSaveMeshAct->setShortcut( tr( "Ctrl+S" ) );
+    connect( fSaveMeshAct, SIGNAL( triggered() ), this, SLOT( SaveMesh() ) );
+
     fExitAct = new QAction( tr( "E&xit" ), this );
     fExitAct->setShortcut( tr( "Ctrl+Q" ) );
     connect( fExitAct, SIGNAL( triggered() ), this, SLOT( Close() ) );
 
 	fGetIntersectionAct = new QAction( tr( "&Calculate intersections" ), this );
+    fGetIntersectionAct->setShortcut( tr( "Ctrl+C" ) );
 	connect( fGetIntersectionAct, SIGNAL( triggered() ), this , SLOT( GetIntersection() ) );
 }
 
@@ -489,16 +576,32 @@ void CWindow::OpenVol( void )
         return;
     }
 
-    // setup cross section plane for 3D rendering
-	// REVISIT
-    f3DView->InitializeXsectionPlane();
-
     // read slice
-	OpenSlice( fCurrentSliceIndex );
+    OpenSlice( fCurrentSliceIndex );
 
+    // setup cross section plane for 3D rendering
+    // REVISIT
+    f3DView->InitializeXsectionPlane( fCurrentSliceIndex,
+                                      fSliceImage,
+                                      fSliceImage.width(),  // REVISTI - image width and height should be acquired from vpkg
+                                      fSliceImage.height() );
     // set up view
     Initialize2DView();
     f2DView->SetSliceIndex( fCurrentSliceIndex );
+}
+
+// Save mesh
+void CWindow::SaveMesh( void )
+{
+    QString aMeshName = QFileDialog::getSaveFileName( this,
+                                                      tr( "Save Mesh File" ),
+                                                      QDir::currentPath(),
+                                                      tr( "Mesh (*.ply *.obj)" ) );
+
+    // save mesh model
+    if ( aMeshName.length() != 0 ) {
+        f3DView->SaveMeshModel( aMeshName.toStdString() );
+    }
 }
 
 // Close application

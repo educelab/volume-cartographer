@@ -11,7 +11,10 @@ bool ReadObjFile( const char *nFileName,
                   int *nNumFace,
                   float **nV, /* v1x v1y v1z v2x v2y v2z ... */
                   int **nF,/* f1a f1b f1c f2a f2b f2c ... */
-                  float **nUV )
+                  float **nUV,
+                  std::vector< Vec3< int > > &nFaces,
+                  std::vector< PointXYZRGBNormal > &nPoints,
+                  std::vector< std::vector< int > > &nVDupList )
 {
     // use objLoader
     // http://www.kixor.net/dev/objloader/
@@ -20,6 +23,17 @@ bool ReadObjFile( const char *nFileName,
     objData->load( nFileName );
 
     int aNumVertex = objData->vertexCount;
+
+    // allocate space for the duplicated vertex indices
+    nVDupList.resize( aNumVertex );
+    PointXYZRGBNormal aPt;
+    for ( int i = 0; i < aNumVertex; ++i ) {
+        aPt.x = objData->vertexList[ i ]->e[ 0 ];
+        aPt.y = objData->vertexList[ i ]->e[ 1 ];
+        aPt.z = objData->vertexList[ i ]->e[ 2 ];
+        nPoints.push_back( aPt );
+    }
+
     int aNumFace = objData->faceCount;
 
     // REVISIT - note that the texture coordinates read from obj file does not have the same index with vertex index!
@@ -58,6 +72,15 @@ bool ReadObjFile( const char *nFileName,
 
         }
 
+        // REVISIT - we keep the information of the real vertex indices for each face
+        nFaces.push_back( Vec3< int >( objData->faceList[ i ]->vertex_index[ 0 ],
+                                        objData->faceList[ i ]->vertex_index[ 1 ],
+                                        objData->faceList[ i ]->vertex_index[ 2 ] ) );
+        nVDupList[ objData->faceList[ i ]->vertex_index[ 0 ] ].push_back( 3 * i     );
+        nVDupList[ objData->faceList[ i ]->vertex_index[ 1 ] ].push_back( 3 * i + 1 );
+        nVDupList[ objData->faceList[ i ]->vertex_index[ 2 ] ].push_back( 3 * i + 2 );
+
+        // the face for OpenGL rendering
         ( *nF )[ i * 3     ] = 3 * i;
         ( *nF )[ i * 3 + 1 ] = 3 * i + 1;
         ( *nF )[ i * 3 + 2 ] = 3 * i + 2;
@@ -68,6 +91,17 @@ bool ReadObjFile( const char *nFileName,
     delete objData;
 
     return true;
+}
+
+bool SaveObjFile( const char *nFileName,
+                  int nNumVertex,
+				  int nNumFace,
+				  float *nV,
+				  float *nF,
+				  float *nUV )
+{
+    // REVISIT - FILL ME HERE
+	return false;
 }
 
 } // namespace ChaoVis

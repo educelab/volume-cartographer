@@ -21,7 +21,8 @@ bool SplitVertexAndElementBuffer( int				nVertexNum,
                                   int				**nElementBufferSize,
                                   int				**nVertexBufferSize,
                                   int				**nUVBufferSize,
-                                  int				*nElementArrayNum );
+                                  int				*nElementArrayNum,
+                                  std::vector< std::vector< int > > &nVDupList  );
 
 cv::Mat QImage2Mat( const QImage &nSrc );
 

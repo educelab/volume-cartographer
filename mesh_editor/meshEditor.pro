@@ -22,7 +22,8 @@ HEADERS = CMesh.h \
     objTester/objTester/obj_parser.h \
     objTester/objTester/objLoader.h \
     objTester/objTester/string_extra.h \
-    MeshEditorHeader.h
+    MeshEditorHeader.h \
+    CPlyHelper.h
 SOURCES = CMesh.cpp \
           CXCurve.cpp \
           C3DView.cpp \
@@ -43,7 +44,8 @@ SOURCES = CMesh.cpp \
     objTester/objTester/list.cpp \
     objTester/objTester/obj_parser.cpp \
     objTester/objTester/objLoader.cpp \
-    objTester/objTester/string_extra.cpp
+    objTester/objTester/string_extra.cpp \
+    CPlyHelper.cpp
 
 INCLUDEPATH += "/usr/include/"
 INCLUDEPATH += "./objTester/objTester"

@@ -20,7 +20,12 @@ public:
     ~C3DView( void );
 
     bool InitializeMeshModel( const std::string &nModelFileName );
-    bool InitializeXsectionPlane( void );
+    bool InitializeXsectionPlane( int nSliceIndex,
+                                  const QImage &nTexture,
+                                  int nWidth,
+                                  int nHeight );
+
+	bool SaveMeshModel( const std::string &nModelFileName );
 
     void ProcessKeyEvent( QKeyEvent *nEvent );
 
@@ -28,8 +33,12 @@ public:
 	void SetYRotation( int nAngle );
 	void SetZRotation( int nAngle );
 
+    void Zoom( int nDist );
+
     const CMeshGL* GetMeshModelConst( void ) const { return fMeshModel; }
     CMeshGL* GetMeshModel( void ) { return fMeshModel; }
+
+    void SetSliceIndexDiff( int nSliceIndexDiff );
 
 protected:
     // overwrite OpenGL related functions
@@ -41,6 +50,7 @@ protected:
     // overwrite mouse handling functions
     void mousePressEvent( QMouseEvent *event );
     void mouseMoveEvent( QMouseEvent *event );
+    void wheelEvent( QWheelEvent *event );
 
 private:
     // model
@@ -52,6 +62,8 @@ private:
     int fXRot;
     int fYRot;
     int fZRot;
+    // REVISIT - refactor and replace the control of the camera with a dedicated trackball
+    int fZoom;
 
     QPoint fLastPos;
 

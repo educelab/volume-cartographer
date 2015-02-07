@@ -27,8 +27,9 @@ public:
 	const T operator[]( int i ) const { return val[ i ]; }
 	T& operator[]( int i ) { return val[ i ]; }	// left value, http://stackoverflow.com/questions/6692982/how-to-assign-value-to-left-side-using-overload-operator
 	void operator+=( const Vec2< T > &nRHS ) { val[ 0 ] += nRHS[ 0 ]; val[ 1 ] += nRHS[ 1 ]; }
-    Vec2< T > operator+( const Vec2< T > &nRHS ) { return Vec2< T >( val[ 0 ] + nRHS[ 0 ], val[ 1 ] + nRHS[ 1 ] ); }
-    Vec2< T > operator-( const Vec2< T > &nRHS ) { return Vec2< T >( val[ 0 ] - nRHS[ 0 ], val[ 1 ] - nRHS[ 1 ] ); }
+    Vec2< T > operator+( const Vec2< T > &nRHS ) const { return Vec2< T >( val[ 0 ] + nRHS[ 0 ], val[ 1 ] + nRHS[ 1 ] ); }
+    Vec2< T > operator-( const Vec2< T > &nRHS ) const { return Vec2< T >( val[ 0 ] - nRHS[ 0 ], val[ 1 ] - nRHS[ 1 ] ); }
+    Vec2< T > operator*( T nRHS ) const { return Vec2< T >( val[ 0 ] * nRHS, val[ 1 ] * nRHS ); }
 };
 
 template < typename T >

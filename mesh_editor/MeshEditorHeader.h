@@ -6,4 +6,7 @@
 
 #define _QT4_
 
+
+#define VOLPKG_SLICE_MIN_INDEX 3
+
 #endif // MESHEDITORHEADER_H

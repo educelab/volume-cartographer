@@ -34,7 +34,7 @@ class CMesh {
 
 public:
 	CMesh( void );
-	~CMesh( void );
+    virtual ~CMesh( void );
 
 	// REVISIT - for debugging purpose
 	void Dump( void ) {

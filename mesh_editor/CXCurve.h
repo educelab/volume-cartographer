@@ -23,6 +23,10 @@ public:
 	
 	Vec2< float > GetPoint( int nIndex ) const { return fPoints[ nIndex ]; }
 	void SetPoint( int nIndex, const Vec2< float > &nPt ) { fPoints[ nIndex ] = nPt; }
+    void SetPointByDifference( int nIndex,
+                               const Vec2< float > &nDiff,
+                               double ( *ImpactFunc )( double, double, double ),
+                               int nImpactRange = 0 );
 
 	int Get3DIndex( int nIndex ) const { return f3DPointsIndex[ nIndex ]; }
 	void Set3DIndex( int nIndex, int n3DIndex ) { f3DPointsIndex[ nIndex ] = n3DIndex; }
