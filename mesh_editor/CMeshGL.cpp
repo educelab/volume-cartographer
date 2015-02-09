@@ -215,6 +215,30 @@ bool CMeshGL::ReadModel( const std::string &nModelFileName )
             return false;
         }
 
+        // find bounding box
+        for ( size_t j = 0; j < fPoints.size(); ++j ) {
+
+            // find bounding box
+            if ( fPoints[ j ].x < fLB[ 0 ] ) {
+                fLB[ 0 ] = fPoints[ j ].x;
+            }
+            if ( fPoints[ j ].x > fUB[ 0 ] ) {
+                fUB[ 0 ] = fPoints[ j ].x;
+            }
+            if ( fPoints[ j ].y < fLB[ 1 ] ) {
+                fLB[ 1 ] = fPoints[ j ].y;
+            }
+            if ( fPoints[ j ].y > fUB[ 1 ] ) {
+                fUB[ 1 ] = fPoints[ j ].y;
+            }
+            if ( fPoints[ j ].z < fLB[ 2 ] ) {
+                fLB[ 2 ] = fPoints[ j ].z;
+            }
+            if ( fPoints[ j ].z > fUB[ 2 ] ) {
+                fUB[ 2 ] = fPoints[ j ].z;
+            }
+        }
+
         // besides read the data for OpenGL, we need to store the data in CMesh
         // REVISIT - UPDATE 2015-02-04, this is also done in ReadObjFile()
         //           So now { fFaces, fPoints, fEdges } are original information
@@ -243,8 +267,7 @@ bool CMeshGL::ReadModel( const std::string &nModelFileName )
                                        &fElementBufferSize,//&nData.g_element_buffer_size,
                                        &fVertexBufferSize,//&nData.g_vertex_buffer_size,
                                        &fUVBufferSize,//&nData.g_uv_buffer_size,
-                                       &fElementArrayNum,//&nData.g_element_array_num ) ) {
-                                       fVDupList ) ) {
+                                       &fElementArrayNum ) ) {//&nData.g_element_array_num ) ) {
         // clean up
         delete[ ]aElementBufferTmp;
         delete[ ]aVertexBufferTmp;

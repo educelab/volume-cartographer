@@ -168,7 +168,8 @@ void CWindow::OnLoadNextSlice( void )
 	//       (2) update intersection curve 
     //       (3) notify 3D view to update the location of the slice plane proxy
     fCurrentSliceIndex++; // REVISIT - FILL ME HERE - safe net needed, overflow
-    f2DView->SetIntersection( fIntersections[ fCurrentSliceIndex ] );
+//    f2DView->SetIntersection( fIntersections[ fCurrentSliceIndex - VOLPKG_SLICE_MIN_INDEX ] );
+    f2DView->SetIntersection( fIntersections, fCurrentSliceIndex - VOLPKG_SLICE_MIN_INDEX );
     f2DView->SetSliceIndex( fCurrentSliceIndex );
 
     OpenSlice( fCurrentSliceIndex );
@@ -194,7 +195,8 @@ void CWindow::OnLoadPrevSlice( void )
 	//       (2) update intersection curve 
     //       (3) notify 3D view to update the location of the slice plane proxy
     fCurrentSliceIndex--; // REVISIT - FILL ME HERE - safe net needed, overflow
-    f2DView->SetIntersection( fIntersections[ fCurrentSliceIndex ] );
+//    f2DView->SetIntersection( fIntersections[ fCurrentSliceIndex - VOLPKG_SLICE_MIN_INDEX ] );
+    f2DView->SetIntersection( fIntersections, fCurrentSliceIndex - VOLPKG_SLICE_MIN_INDEX );
     f2DView->SetSliceIndex( fCurrentSliceIndex );
 
     OpenSlice( fCurrentSliceIndex );
@@ -634,7 +636,8 @@ void CWindow::GetIntersection( void )
 	// correspondences of intersection curve and mesh model were set up when finding them
     CalcIntersection( fIntersections, fVpkg, f3DView->GetMeshModelConst() );
 
-    f2DView->SetIntersection( fIntersections[ fCurrentSliceIndex - VOLPKG_SLICE_MIN_INDEX ] );
+//    f2DView->SetIntersection( fIntersections[ fCurrentSliceIndex - VOLPKG_SLICE_MIN_INDEX ] );
+    f2DView->SetIntersection( fIntersections, fCurrentSliceIndex - VOLPKG_SLICE_MIN_INDEX );
     f2DView->SetSliceIndex( fCurrentSliceIndex );
 
     update();

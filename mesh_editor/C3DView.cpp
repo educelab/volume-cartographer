@@ -75,7 +75,7 @@ bool C3DView::InitializeXsectionPlane( int nSliceIndex,
                                             -( fMeshModel->GetLB()[ 1 ] + fMeshModel->GetUB()[ 1 ] ) / 2.0,
                                             -( fMeshModel->GetLB()[ 2 ] + fMeshModel->GetUB()[ 2 ] ) / 2.0 - 40.0 ) );
     } else {
-        fPlane->SetTranslation( Vec3< float >( -88.0 + nSliceIndex, -99.0, -80.0 ) );
+        fPlane->SetTranslation( Vec3< float >( -88.0 + nSliceIndex, -99.0, -80.0 ) ); // REVISIT - wrong place
     }
     // REVISIT - http://qt-project.org/doc/qt-4.8/opengl-textures.html
     //           we use QGLWidget::bindTexture() to bind texture, instead of binding it manually
@@ -188,8 +188,11 @@ void C3DView::initializeGL( void )
     glEnable( GL_LIGHTING );
     glEnable( GL_LIGHT0 );
     glEnable( GL_MULTISAMPLE );
-    static GLfloat aLightPosition[ 4 ] = { 0.5, 5.0, 7.0, 1.0 };
+    // position light
+    static GLfloat aLightPosition[ 4 ] = { 0, -1, -1, 1.0};//{ 0.5, 5.0, 7.0, 1.0 };
+    static GLfloat aLightColor[ 4 ] = { 0.5, 0.5, 0.5, 1.0 };
     glLightfv( GL_LIGHT0, GL_POSITION, aLightPosition );
+    glLightfv( GL_LIGHT0, GL_DIFFUSE, aLightColor );
 
 }
 
@@ -229,6 +232,8 @@ void C3DView::paintGL( void )
 //    glTranslatef( -88.0, -99.0, -80.0 ); // position the scene in the center
                                      // REVISIT - FILL ME HERE - hard coded
 
+    GLfloat ambientColor[ 4 ] = { 20, 20, 20, 1.0 };
+    glLightModelfv( GL_LIGHT_MODEL_AMBIENT, ambientColor );
 
     if ( fMeshModel != NULL ) {
         fMeshModel->Draw();

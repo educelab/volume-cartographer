@@ -124,6 +124,28 @@ void C2DView::SetIntersection( CXCurve* nCurve )
     fCurve = nCurve;
 }
 
+// Set intersection curve, and also the neighboring curves
+void C2DView::SetIntersection( const std::vector< CXCurve* > &nCurves,
+                                int nIndex )
+{
+    // REVISIT - assigning the actual curves may be wasteful, consider
+    //           changing this to assigning the reference of the curves and index
+    fCurve = nCurves[ nIndex ];
+    // REVISIT - clean this magic number 17!
+    fCurvesLower.clear();
+    fCurvesUpper.clear();
+    for ( int i = 0; i < ( 17 - 1 ) / 2; ++i ) {
+        // lower
+        if ( nIndex - i - 1 > -1 ) {
+            fCurvesLower.push_back( nCurves[ nIndex - i - 1 ] );
+        }
+        // upper
+        if ( nIndex + i + 1 < nCurves.size() ) {
+            fCurvesUpper.push_back( nCurves[ nIndex + i + 1 ] );
+        }
+    }
+}
+
 // Set current slice index
 void C2DView::SetSliceIndex( int nCurrentSliceIndex )
 {
@@ -190,6 +212,32 @@ void C2DView::mouseMoveEvent( QMouseEvent *event )
                                       Vec2< float >( aDx, aDy ),
                                       CosineImpactFunc,
                                       17 );// fCurve->GetPointsNum() / 2 ); // REVISIT - impact range should be adjustable
+        // REVISIT - change neighboring curves, assume the point index of different curves are the same (actually, they may not be so)
+        // fCurrentSliceIndex - 1, fCurrentSliceIndex - 2, ...
+        float aWeight = 1.0;
+        for ( size_t i = 0; i < fCurvesLower.size(); ++i ) {
+            if ( fCurvesLower[ i ] != NULL ) {
+                aWeight = CosineImpactFunc( 1.0,
+                                            i + 1,
+                                            ( 17 + 1 ) / 2 );
+                fCurvesLower[ i ]->SetPointByDifference( fSelectedPointIndex,
+                                              Vec2< float >( aDx, aDy ) * aWeight,
+                                              CosineImpactFunc,
+                                              17 );// fCurve->GetPointsNum() / 2 ); // REVISIT - impact range should be adjustable
+            }
+        }
+        // fCurrentSliceIndex + 1, fCurrentSliceIndex + 2, ...
+        for ( size_t i = 0; i < fCurvesUpper.size(); ++i ) {
+            if ( fCurvesUpper[ i ] != NULL ) {
+                aWeight = CosineImpactFunc( 1.0,
+                                            i + 1,
+                                            ( 17 + 1 ) / 2 );
+                fCurvesUpper[ i ]->SetPointByDifference( fSelectedPointIndex,
+                                              Vec2< float >( aDx, aDy ) * aWeight,
+                                              CosineImpactFunc,
+                                              17 );// fCurve->GetPointsNum() / 2 ); // REVISIT - impact range should be adjustable
+            }
+        }
 
 		// update view
 		update();
@@ -214,7 +262,20 @@ void C2DView::mouseReleaseEvent( QMouseEvent *event )
         //fMeshModelRef->ChangeVertex( fCurve->Get3DIndex( fSelectedPointIndex ),
         //                             Vec3< float >( fCurrentSliceIndex, fLastPos.x(), fLastPos.y() ) );
         // REVISIT - instead of updating only one point, we update the whole curve
-        fMeshModelRef->ChangeVertex( fCurve, fCurrentSliceIndex + 2 ); // REVISIT - -1 because the slices in vpkg starts from 1
+        fMeshModelRef->ChangeVertex( fCurve, fCurrentSliceIndex - 1 ); // REVISIT - -1 because the slices in vpkg starts from 1
+        // REVISIT - change neighboring curves
+        // fCurrentSliceIndex - 1, fCurrentSliceIndex - 2, ...
+        for ( size_t i = 0; i < fCurvesLower.size(); ++i ) {
+            if ( fCurvesLower[ i ] != NULL ) {
+                fMeshModelRef->ChangeVertex( fCurvesLower[ i ], fCurrentSliceIndex - 1 - i - 1 );
+            }
+        }
+        // fCurrentSliceIndex + 1, fCurrentSliceIndex + 2, ...
+        for ( size_t i = 0; i < fCurvesUpper.size(); ++i ) {
+            if ( fCurvesUpper[ i ] != NULL ) {
+                fMeshModelRef->ChangeVertex( fCurvesUpper[ i ], fCurrentSliceIndex - 1 + i + 1 );
+            }
+        }
 
         // since we hold the reference of the data in CWindow, the mesh is updated, and 3D view is refreshed
         emit SendSignalMeshChanged();
@@ -326,7 +387,7 @@ void C2DView::DrawCurve( void )
 		QPainter aPainter( &aImgCache );
 
         aPainter.setPen( Qt::green );
-        for ( size_t i = 0; i < fCurve->GetPointsNum() - 1; ++i ) {
+        for ( int i = 0; i < fCurve->GetPointsNum() - 1; ++i ) { // REVISIT - when fCurve->GetPointsNum() is 0, using size_t and subtract 1 will under flow.
 			aPainter.drawLine( QPointF( fCurve->GetPoint( i )[ 0 ], fCurve->GetPoint( i )[ 1 ] ), 
 							   QPointF( fCurve->GetPoint( i + 1 )[ 0 ], fCurve->GetPoint( i + 1 )[ 1 ] ) );
 		}

@@ -27,6 +27,8 @@ public:
 	void SetImage( const QImage &nSrc );
 
     void SetIntersection( CXCurve* nCurve );
+    void SetIntersection( const std::vector< CXCurve* > &nCurves,
+                          int nIndex );
     void SetSliceIndex( int nCurrentSliceIndex );
 
     void SetMeshModel( CMeshGL *nMeshModel );
@@ -79,6 +81,8 @@ private:
 	double fScaleFactor;
 
     CXCurve *fCurve; // intersection curve, reference to the actual data so we can update curve
+    std::vector< CXCurve * > fCurvesLower; // neighboring curves // fCurrentSliceIndex - 1, fCurrentSliceIndex - 2, ...
+    std::vector< CXCurve * > fCurvesUpper;                       // fCurrentSliceIndex + 1, fCurrentSliceIndex + 2, ...
 	CMeshGL *fMeshModelRef; // reference to the mesh model
     int fCurrentSliceIndex;
 
