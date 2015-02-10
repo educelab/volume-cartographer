@@ -3,6 +3,7 @@ SET(CMAKE_CXX_FLAGS "-std=c++11")
 
 FIND_PACKAGE(Qt4 REQUIRED)
 find_package(OpenCV REQUIRED)
+find_package(OpenGL REQUIRED)
 
 IF(APPLE)
 FIND_LIBRARY(SECURITY_LIBRARY Security)
@@ -27,4 +28,4 @@ include_directories(${VOLUMEPKG_INCLUDE_DIR})
 # build
 add_executable(vc_meshEditor ${meshEditor_SOURCES} ${meshEditor_HEADERS_MOC})
 
-target_link_libraries(vc_meshEditor volumepkg -lQtOpenGL -lGL ${OpenCV_LIBS} ${QT_LIBRARIES} ${EXTRA_LIBS})
+target_link_libraries(vc_meshEditor volumepkg Qt4::QtOpenGL ${OPENGL_LIBRARIES} ${OpenCV_LIBS} ${QT_LIBRARIES} ${EXTRA_LIBS})

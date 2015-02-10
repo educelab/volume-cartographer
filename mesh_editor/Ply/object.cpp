@@ -132,7 +132,7 @@ namespace PLY {
 	// Get a collection of Objects.
 	Array* Storage::get_collection(const Header& header, const Element& elem) {
 		size_t index;
-		if (!header.find_index(elem.name.c_str(), index)) return false;
+		if (!header.find_index(elem.name.c_str(), index)) {};
 		if (collect[index] == 0) {
 			collect[index] = new AnyArray;
 			unknown[index] = true;

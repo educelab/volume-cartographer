@@ -3,8 +3,8 @@
 #ifndef _C3DVIEW_H_
 #define _C3DVIEW_H_
 
-#include <Qt/qgl.h> // Qt4
-//#include <QtOpenGL/QGLWidget> // Qt5
+//#include <QtOpenGL> // Qt4
+#include <QtOpenGL/QGLWidget> // Qt5
 
 
 namespace ChaoVis {

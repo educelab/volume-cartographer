@@ -10,7 +10,7 @@
 #include <QtGui>
 #include <QtWidgets>
 #else // _QT4_
-#include <qt4/Qt/QtGui>
+#include <QtGui>
 #endif
 
 #include "mathUtils.h"

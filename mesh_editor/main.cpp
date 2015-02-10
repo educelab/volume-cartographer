@@ -1,10 +1,7 @@
 // main.cpp
 // Chao Du 2014 Dec
-#ifdef _WINDOWS
-#include <qApplication>
-#else
-#include <qt4/Qt/qapplication.h>
-#endif // _WINDOWS
+
+#include <QApplication>
 #include <QDesktopWidget>
 #include "CWindow.h"
 

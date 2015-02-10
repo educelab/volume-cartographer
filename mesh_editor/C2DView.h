@@ -8,7 +8,7 @@
 #ifdef _QT5_
 #include <QtWidgets>
 #else // _QT4_
-#include <qt4/Qt/QtGui>
+#include <QtGui>
 #endif
 
 namespace ChaoVis {
