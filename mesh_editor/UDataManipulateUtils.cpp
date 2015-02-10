@@ -18,20 +18,10 @@ bool SplitVertexAndElementBuffer( int				nVertexNum,
                                   int				**nElementBufferSize,
                                   int				**nVertexBufferSize,
                                   int				**nUVBufferSize,
-                                  int				*nElementArrayNum,
-                                  std::vector< std::vector< int > > &nVDupList )
+                                  int				*nElementArrayNum )
 {
     const unsigned short MAX_NUM_FACE_IN_ARRAY = USHORT_SIZE / 3;
     const unsigned short MAX_NUM_VERTEX_IN_ARRAY = MAX_NUM_FACE_IN_ARRAY * 3;
-
-    // update vertex duplication list because we are going to split the array into chunks, so the indices should be changed
-    // REVISIT - 2015-02-04 actually, we don't need, because we can determine which array the vertex is in when we change it
-    //           remember modify the function signature too
-//    for ( size_t i = 0; i < nVDupList.size(); ++i ) {
-//        for ( size_t j = 0; j < nVDupList[ i ].size(); ++j ) {
-//            nVDupList[ i ][ j ] = nVDupList[ i ][ j ] % MAX_NUM_VERTEX_IN_ARRAY;
-//        }
-//    }
 
     int aArraySize = ( nFaceNum * 3 / USHORT_SIZE ) + 1;
     *nElementArrayNum = aArraySize;
