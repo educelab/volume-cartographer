@@ -106,9 +106,7 @@ void C2DView::SetImage( const QImage &nSrc )
 	}
 
 	fImageLabel->setPixmap( QPixmap::fromImage( *fImage ) );
-	fScaleFactor = 1.0;
-
-	fImageLabel->adjustSize();
+	fImageLabel->resize( fScaleFactor * fImageLabel->pixmap()->size() );
 
 	update(); // repaint the widget
 	UpdateButtons();
@@ -318,6 +316,8 @@ void C2DView::OnResetClicked( void )
 {
 	fImageLabel->adjustSize();
 	fScaleFactor = 1.0;
+
+	UpdateButtons();
 }
 
 // Handle next slice click
