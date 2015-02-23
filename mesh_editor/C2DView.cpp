@@ -214,7 +214,7 @@ void C2DView::mouseMoveEvent( QMouseEvent *event )
         // fCurrentSliceIndex - 1, fCurrentSliceIndex - 2, ...
         float aWeight = 1.0;
         for ( size_t i = 0; i < fCurvesLower.size(); ++i ) {
-            if ( fCurvesLower[ i ] != NULL ) {
+            if ( fCurvesLower[ i ] != NULL && fCurvesLower[ i ]->GetPointsNum() > 0 ) {
                 aWeight = CosineImpactFunc( 1.0,
                                             i + 1,
                                             ( 17 + 1 ) / 2 );
@@ -226,7 +226,7 @@ void C2DView::mouseMoveEvent( QMouseEvent *event )
         }
         // fCurrentSliceIndex + 1, fCurrentSliceIndex + 2, ...
         for ( size_t i = 0; i < fCurvesUpper.size(); ++i ) {
-            if ( fCurvesUpper[ i ] != NULL ) {
+            if ( fCurvesUpper[ i ] != NULL && fCurvesUpper[ i ]->GetPointsNum() > 0 ) {
                 aWeight = CosineImpactFunc( 1.0,
                                             i + 1,
                                             ( 17 + 1 ) / 2 );
@@ -387,7 +387,7 @@ void C2DView::DrawCurve( void )
 		QPainter aPainter( &aImgCache );
 
         aPainter.setPen( Qt::green );
-        for ( int i = 0; i < fCurve->GetPointsNum() - 1; ++i ) { // REVISIT - when fCurve->GetPointsNum() is 0, using size_t and subtract 1 will under flow.
+        for ( int i = 0; i < ( int )( fCurve->GetPointsNum() ) - 1; ++i ) { // REVISIT - when fCurve->GetPointsNum() is 0, using size_t and subtract 1 will under flow.
 			aPainter.drawLine( QPointF( fCurve->GetPoint( i )[ 0 ], fCurve->GetPoint( i )[ 1 ] ), 
 							   QPointF( fCurve->GetPoint( i + 1 )[ 0 ], fCurve->GetPoint( i + 1 )[ 1 ] ) );
 		}
