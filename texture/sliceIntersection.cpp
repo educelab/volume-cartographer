@@ -18,6 +18,8 @@
 
 #include "volumepkg.h"
 
+#include "QuickSort.h"
+
 #ifdef _NEED_DENOISE_
 #include "denoiose_tvl1.h"
 #endif // _NEED_DENOISE_
@@ -27,6 +29,7 @@ unsigned int gNumHistBin;
 
 
 // estimate intensity of volume at particle
+inline
 double interpolate_intensity( const cv::Vec3f					&point,
 								const std::vector< cv::Mat >	&nImgVol )
 {
@@ -131,6 +134,50 @@ void FindBetterTexture( ChaoVis::CMesh &nMesh,
 		delete []aSamples;
 		aSamples = NULL;
 	}
+}
+
+void FindBetterTextureMedianFilter( ChaoVis::CMesh &nMesh,
+						const std::vector< cv::Mat > &nImgVol,
+						float nMajorAxisLen,
+                        float nMinorAxisLen,
+						//int nStartIndex,
+						double (*BetterTextureFunc)(double *nData, int nSize) )
+{
+    const int MAX_ARRAY_CAPACITY = 50000;
+	const double SAMPLE_RATE = 0.1;
+	double *aSamples = new double[ MAX_ARRAY_CAPACITY ];
+    int aSize;
+
+	std::vector< pcl::PointXYZRGBNormal >::iterator aIter;
+	for ( aIter = nMesh.fPoints.begin(); aIter != nMesh.fPoints.end(); ++aIter ) {
+		cv::Vec3f aNormalVec( aIter->normal[ 0 ], aIter->normal[ 1 ], aIter->normal[ 2 ] );
+		cv::normalize( aNormalVec, aNormalVec );
+		cv::Vec3f aPos( aIter->x, aIter->y, aIter->z );
+
+        SamplingWithinEllipse( nMajorAxisLen,
+                               nMinorAxisLen,
+                               SAMPLE_RATE,
+                               aPos,
+                               aNormalVec,
+                               nImgVol,
+                               aSamples,
+                               &aSize );
+
+        if ( aSize > 0 ) {
+            unsigned char c = ( unsigned char )( BetterTextureFunc( aSamples, aSize ) );
+            uint32_t color =
+             	   	   	c |
+             	   	   	c << 8 |
+                       	c << 16;
+            aIter->rgb = *reinterpret_cast<float*>(&color);
+        }
+	}
+
+    // clean up
+    if ( aSamples != NULL ) {
+    	delete []aSamples;
+    	aSamples = NULL;
+    }
 }
 
 // function pointer for selecting the best texture
@@ -395,4 +442,120 @@ void ProcessVolume( /*const*/ VolumePkg &nVpkg,
 		DoNormalization< unsigned short >( nImgVol );
 	}
 	ConvertData16Uto8U( nImgVol );
+}
+
+void SamplingWithinEllipse( double nA, // major axis
+                            double nB, // minor axis
+                            double nDensity, // sample rate
+                            const cv::Vec3f &nCenter, // ellipse center
+                            const cv::Vec3f &nMajorAxisDir, // ellipse major axis direction
+                            const std::vector< cv::Mat > &nImgVol,
+                            double *nData,
+                            int *nSize )
+{
+    // uniformly sample within the ellipse
+    // uniformly sample along the major axis
+    int aSizeMajor = nA / nDensity;
+    int aSizeMinor = nB / nDensity;
+
+    cv::Vec3f aMinorAxisDir1;
+    if ( fabs( nMajorAxisDir[ 2 ] ) > 1e-6 ) {
+        aMinorAxisDir1[ 0 ] = 0.0;
+        aMinorAxisDir1[ 1 ] = 1.0;
+        aMinorAxisDir1[ 2 ] = -nMajorAxisDir[ 1 ] / nMajorAxisDir[ 2 ];
+    } else if ( fabs( nMajorAxisDir[ 1 ] ) > 1e-6 ) {
+        aMinorAxisDir1[ 0 ] = 1.0;
+        aMinorAxisDir1[ 1 ] = -nMajorAxisDir[ 0 ] / nMajorAxisDir[ 1 ];
+        aMinorAxisDir1[ 2 ] = 0.0;
+    } else if ( fabs( nMajorAxisDir[ 0 ] ) > 1e-6 ) {
+        aMinorAxisDir1[ 0 ] = 0.0;
+        aMinorAxisDir1[ 1 ] = 1.0;
+        aMinorAxisDir1[ 2 ] = 0.0;
+    } else {
+        printf( "ERROR: zero normal vector.\n" );
+        *nSize = 0;
+        return;
+    }
+//    aMinorAxisDir1 = cv::normalize( aMinorAxisDir1 );
+    cv::normalize( aMinorAxisDir1, aMinorAxisDir1 );
+    cv::Vec3f aMinorAxisDir2 = aMinorAxisDir1.cross( nMajorAxisDir );
+
+    int aDataCnt = 0;
+//    std::vector< double > aDataArray;
+    cv::Vec3f aPos;
+    cv::Vec3f aDir;
+
+    int aSign[ 8 ][ 3 ] = { {  1,  1,  1 }, {  1,  1, -1 }, {  1, -1,  1 }, { -1,  1,  1 },
+                            {  1, -1, -1 }, { -1,  1, -1 }, { -1, -1,  1 }, { -1, -1, -1 } };
+
+    // add the points on axis first
+    //
+
+    for ( int i = 1; i < aSizeMajor; ++i ) {
+        // uniformly sample the circle slice
+        for ( int j = 1; j < aSizeMinor; ++j ) {
+            for ( int k = 1; k < aSizeMinor; ++k ) {
+                double aEllipseDist = nB * sqrt( 1. - ( i * nDensity - nA ) * ( i * nDensity - nA ) );
+                if ( j * nDensity < aEllipseDist ) { // must satisfy ellipse constraint, (x/a)^2+(y/b)^2)=1
+                    for ( int t = 0; t < 8; ++t ) {
+                        aDir = i * nDensity * aSign[ t ][ 0 ] * nMajorAxisDir + 
+                               j * nDensity * aSign[ t ][ 1 ] * aMinorAxisDir1 +
+                               k * nDensity * aSign[ t ][ 2 ] * aMinorAxisDir2;
+                        // REVISIT - note that the points along the axis are counted multiple times
+                        //           fixed this by starting from 1 instead of 0, and add the points on axis first
+                        aPos[ 0 ] = nCenter[ 0 ] + aDir[ 0 ];
+                        aPos[ 1 ] = nCenter[ 1 ] + aDir[ 1 ];
+                        aPos[ 2 ] = nCenter[ 2 ] + aDir[ 2 ];
+                        double tmp = interpolate_intensity( aPos, nImgVol );
+//                        aDataArray.push_back( interpolate_intensity( aPos, nImgVol ) ); // REVISIT - FILL ME HERE
+//                        aDataArray.push_back( tmp ); // REVISIT - FILL ME HERE
+                        // REVISIT - using vector crashes
+                        nData[ aDataCnt ] = tmp; // we assume we have enough space
+                        aDataCnt++;
+                    }
+                }
+            }
+        }
+    }
+
+    *nSize = aDataCnt;
+/*
+    for ( size_t i = 0; i < aDataArray.size(); ++i ) {
+        nData[ i ] = aDataArray[ i ];
+    }
+*/
+}
+
+bool IsLess( const double &nV1,
+             const double &nV2 )
+{
+    return( nV1 < nV2 );
+}
+
+double FilterMedianAverage( double *nData,
+                            int    nSize )
+{
+    double *aData = new double[ nSize ];
+    memcpy( aData, nData, sizeof( double ) * nSize );
+    // sort the data array
+    ChaoVis::QuickSort< double >( aData,
+                                   0,
+                                   nSize,
+                                   IsLess );
+
+    // find the median, here we use the average of 10% of the data array
+    int aRange = nSize * 0.05;
+    int aCenter = nSize / 2;
+    double aResult = aData[ aCenter ];
+    int aCnt = 1;
+    for ( int i = 1; i <= aRange; ++i ) {
+        aResult += aData[ aCenter + i ]; 
+        aResult += aData[ aCenter - i ]; 
+        aCnt += 2;
+    }
+
+    // clean up
+    delete []aData;
+
+    return( aResult / aCnt );
 }

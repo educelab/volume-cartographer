@@ -20,6 +20,7 @@ typedef struct pt_tag {
 } pt;
 
 // estimate intensity of volume at particle
+inline
 double interpolate_intensity( const cv::Vec3f					&point,
 								const std::vector< cv::Mat >	&nImgVol );
 
@@ -30,6 +31,13 @@ void FindBetterTexture( ChaoVis::CMesh					&nMesh,
 						const std::vector< cv::Mat >	&nImgVol,
 						float							nRadius,
 						double							(*BetterTextureFunc)(double *nData, int nSize) );
+
+void FindBetterTextureMedianFilter( ChaoVis::CMesh &nMesh,
+						const std::vector< cv::Mat > &nImgVol,
+						float nMajorAxislen,
+                        float nMinorAxisLen,
+						//int nStartIndex,
+						double (*BetterTextureFunc)(double *nData, int nSize) );
 
 double FilterNonMaximumSuppression( double	*nData,
 									int		nSize );
@@ -44,5 +52,17 @@ void ProcessVolume( /*const*/ VolumePkg		&nVpkg,
 					std::vector< cv::Mat >	&nImgVol,
 					bool					nNeedEqualize = false,
 					bool					nNeedNormalize = true );
+
+void SamplingWithinEllipse( double nA,
+                            double nB,
+                            double nDensity,
+                            const cv::Vec3f &nCenter,
+                            const cv::Vec3f &nMajorAxisDir,
+                            const std::vector< cv::Mat > &nImgVol,
+                            double *nData,
+                            int *nSize );
+
+double FilterMedianAverage( double *nData,
+                            int    nSize );
 
 #endif // _SLICEINTERSECTION_H_

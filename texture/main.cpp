@@ -15,13 +15,13 @@ int main( int argc, char *argv[] )
 {
     double radius;
     if ( argc < 5 ) {
-        std::cout << "Usage: sliceIntersection mesh.ply radius wantBetterTexture(y/n) volPkgPath" << std::endl;
+        std::cout << "Usage: sliceIntersection mesh.ply radius wantBetterTexture(0=no, 1=non-maximum suppression, 2=median filter) volPkgPath" << std::endl;
         exit( -1 );
     }
 
     radius = atof( argv[ 2 ] );
 
-    bool aIsToFindBetterTexture = ( argv[ 3 ][ 0 ] == 'y' || argv[ 3 ][ 0 ] == 'Y' );
+    int aFindBetterTextureMethod = atoi( argv[ 3 ] );
     // (1) read in ply mesh file
     ChaoVis::CMesh aMesh;
     std::string aFileName( argv[ 1 ] );
@@ -56,12 +56,23 @@ int main( int argc, char *argv[] )
     std::vector< cv::Mat > aImgVol;
     ProcessVolume( vpkg, aImgVol, false, false );
 
-    if ( aIsToFindBetterTexture ) {
-        printf( "find better texture\n" );
+    if ( aFindBetterTextureMethod == 1 ) { // non-maximum suppression
+        printf( "find better texture: non-maximum suppression\n" );
         FindBetterTexture( aMesh,
                             aImgVol,
                             radius,//3.0,
                             FilterNonMaximumSuppression );
+
+        printf( "writing result\n" );
+        ChaoVis::CPlyHelper::WritePlyFile( outputName + "_textured.ply", aMesh );
+    } else if ( aFindBetterTextureMethod == 2 ) { // median filter
+        printf( "find better texture: median filtering\n" );
+        FindBetterTextureMedianFilter( aMesh,
+                                       aImgVol,
+                                       radius,
+                                       radius / 3.0,
+                                       FilterMedianAverage );
+
         printf( "writing result\n" );
         ChaoVis::CPlyHelper::WritePlyFile( outputName + "_textured.ply", aMesh );
     } else {
