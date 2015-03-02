@@ -65,4 +65,13 @@ void SamplingWithinEllipse( double nA,
 double FilterMedianAverage( double *nData,
                             int    nSize );
 
+double FilterMin( double *nData,
+                  int    nSize );
+
+double FilterMedian( double *nData,
+                     int    nSize );
+
+double FilterMean( double *nData,
+                   int    nSize );
+
 #endif // _SLICEINTERSECTION_H_

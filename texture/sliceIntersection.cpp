@@ -559,3 +559,44 @@ double FilterMedianAverage( double *nData,
 
     return( aResult / aCnt );
 }
+
+double FilterMin( double *nData,
+                  int    nSize )
+{
+    double aResult = nData[ 0 ];
+    for ( int i = 1; i < nSize; ++i ) {
+        if ( nData[ i ] < aResult ) {
+            aResult = nData[ i ];
+        }
+    }
+    return( aResult );
+}
+
+double FilterMedian( double *nData,
+                     int    nSize )
+{
+    double *aData = new double[ nSize ];
+    memcpy( aData, nData, sizeof( double ) * nSize );
+    // sort the data array
+    ChaoVis::QuickSort< double >( aData,
+                                   0,
+                                   nSize,
+                                   IsLess );
+
+    double aResult = aData[ nSize / 2 ];
+
+    // clean up
+    delete []aData;
+
+    return( aResult );
+}
+
+double FilterMean( double *nData,
+                   int    nSize )
+{
+    double aResult = 0.0;
+    for ( int i = 0; i < nSize; ++i ) {
+        aResult += nData[ i ]; 
+    }
+    return( aResult / nSize );
+}
