@@ -589,7 +589,7 @@ double FilterMedianAverage( double *nData,
     // sort the data array
     ChaoVis::QuickSort< double >( aData,
                                    0,
-                                   nSize,
+                                   nSize - 1,
                                    IsLess );
 
     // find the median, here we use the average of 10% of the data array
@@ -629,7 +629,7 @@ double FilterMedian( double *nData,
     // sort the data array
     ChaoVis::QuickSort< double >( aData,
                                    0,
-                                   nSize,
+                                   nSize - 1,
                                    IsLess );
 
     double aResult = aData[ nSize / 2 ];
