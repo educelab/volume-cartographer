@@ -14,8 +14,8 @@
 int main( int argc, char *argv[] )
 {
     double radius;
-    if ( argc < 5 ) {
-        std::cout << "Usage: sliceIntersection mesh.ply radius wantBetterTexture(0=no, 1=non-maximum suppression, 2=median filter, 3=min, 4=median (without averaging), 5=mean) volPkgPath" << std::endl;
+    if ( argc < 6 ) {
+        std::cout << "Usage: sliceIntersection mesh.ply radius wantBetterTexture(0=no, 1=non-maximum suppression, 2=median filter, 3=min, 4=median (without averaging), 5=mean) volPkgPath sampleDirection(0=omni, 1=positive, 2=negative)" << std::endl;
         exit( -1 );
     }
 
@@ -56,11 +56,14 @@ int main( int argc, char *argv[] )
     std::vector< cv::Mat > aImgVol;
     ProcessVolume( vpkg, aImgVol, false, false );
 
+    int aSampleDir = atoi( argv[ 5 ] ); // sampleDirection (0=omni, 1=positive, 2=negative)
+
     if ( aFindBetterTextureMethod == 1 ) { // non-maximum suppression
         printf( "find better texture: non-maximum suppression\n" );
         FindBetterTexture( aMesh,
                             aImgVol,
                             radius,//3.0,
+                            aSampleDir,
                             FilterNonMaximumSuppression );
     } else if ( aFindBetterTextureMethod == 2 ) { // median filter
         printf( "find better texture: median filtering\n" );
@@ -68,6 +71,7 @@ int main( int argc, char *argv[] )
                                        aImgVol,
                                        radius,
                                        radius / 3.0,
+                                       aSampleDir,
                                        FilterMedianAverage );
     } else if ( aFindBetterTextureMethod == 3 ) { // mininum filter
         printf( "find better texture: median filtering\n" );
@@ -75,6 +79,7 @@ int main( int argc, char *argv[] )
                                        aImgVol,
                                        radius,
                                        radius / 3.0,
+                                       aSampleDir,
                                        FilterMin );
     } else if ( aFindBetterTextureMethod == 4 ) { // median (without averaging) filter
         printf( "find better texture: median filtering\n" );
@@ -82,6 +87,7 @@ int main( int argc, char *argv[] )
                                        aImgVol,
                                        radius,
                                        radius / 3.0,
+                                       aSampleDir,
                                        FilterMedian );
     } else if ( aFindBetterTextureMethod == 5 ) { // mean filter
         printf( "find better texture: median filtering\n" );
@@ -89,12 +95,14 @@ int main( int argc, char *argv[] )
                                        aImgVol,
                                        radius,
                                        radius / 3.0,
+                                       aSampleDir,
                                        FilterMean );
     } else {
         printf( "equalized texture\n" );
         FindBetterTexture( aMesh,
                             aImgVol,
                             radius,//3.0,
+                            aSampleDir,
                             FilterDummy );
     }
 

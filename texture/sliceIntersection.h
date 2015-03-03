@@ -30,6 +30,7 @@ bool CompareXLess( const pcl::PointXYZRGBNormal &nP1,
 void FindBetterTexture( ChaoVis::CMesh					&nMesh,
 						const std::vector< cv::Mat >	&nImgVol,
 						float							nRadius,
+                        int                             nSamplingDir,
 						double							(*BetterTextureFunc)(double *nData, int nSize) );
 
 void FindBetterTextureMedianFilter( ChaoVis::CMesh &nMesh,
@@ -37,6 +38,7 @@ void FindBetterTextureMedianFilter( ChaoVis::CMesh &nMesh,
 						float nMajorAxislen,
                         float nMinorAxisLen,
 						//int nStartIndex,
+                        int   nSamplingDir,
 						double (*BetterTextureFunc)(double *nData, int nSize) );
 
 double FilterNonMaximumSuppression( double	*nData,
@@ -59,6 +61,7 @@ void SamplingWithinEllipse( double nA,
                             const cv::Vec3f &nCenter,
                             const cv::Vec3f &nMajorAxisDir,
                             const std::vector< cv::Mat > &nImgVol,
+                            int nSamplingDir,
                             double *nData,
                             int *nSize );
 
