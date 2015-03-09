@@ -25,7 +25,8 @@ C2DView::C2DView( QWidget *parent ) :
 	fMeshModelRef( NULL ),
 	fVertexIsChanged( false ),
     fSelectedPointIndex( -1 ),
-    fCurrentSliceIndex( -1 )
+    fCurrentSliceIndex( -1 ),
+    fImpactRange( 17 )
 {
 	// buttons
 	fZoomInBtn = new QPushButton( tr( "Zoom In" ), this );
@@ -62,7 +63,12 @@ C2DView::C2DView( QWidget *parent ) :
 	connect( fNextBtn, SIGNAL( clicked() ), this, SLOT( OnNextClicked() ) );
 	connect( fPrevBtn, SIGNAL( clicked() ), this, SLOT( OnPrevClicked() ) );
 
-	// scroll aread and image label
+    // context menu action item
+    fSetImpactRangeAct = new QAction( tr( "Set Impact &Range" ), this );
+    fSetImpactRangeAct->setStatusTip( tr( "Set the impact range of a control point" ) );
+    connect( fSetImpactRangeAct, SIGNAL( triggered() ), this, SLOT( SetImpactRange() ) );
+
+	// scroll area and image label
 	fImageLabel = new QLabel;
 	fImageLabel->setBackgroundRole( QPalette::Base );
 	fImageLabel->setSizePolicy( QSizePolicy::Ignored, QSizePolicy::Ignored );
@@ -89,6 +95,8 @@ C2DView::~C2DView( void )
 	deleteNULL( fZoomInBtn );
 	deleteNULL( fZoomOutBtn );
 	deleteNULL( fResetBtn );
+
+    deleteNULL( fSetImpactRangeAct );
 
     // NOTE: since we only hold a reference (pointer) to the actual curve data,
     //       we don't need to delete the content now.
@@ -132,7 +140,7 @@ void C2DView::SetIntersection( const std::vector< CXCurve* > &nCurves,
     // REVISIT - clean this magic number 17!
     fCurvesLower.clear();
     fCurvesUpper.clear();
-    for ( int i = 0; i < ( 17 - 1 ) / 2; ++i ) {
+    for ( int i = 0; i < ( fImpactRange - 1 ) / 2; ++i ) {
         // lower
         if ( nIndex - i - 1 > -1 ) {
             fCurvesLower.push_back( nCurves[ nIndex - i - 1 ] );
@@ -209,7 +217,7 @@ void C2DView::mouseMoveEvent( QMouseEvent *event )
         fCurve->SetPointByDifference( fSelectedPointIndex,
                                       Vec2< float >( aDx, aDy ),
                                       CosineImpactFunc,
-                                      17 );// fCurve->GetPointsNum() / 2 ); // REVISIT - impact range should be adjustable
+                                      fImpactRange );// fCurve->GetPointsNum() / 2 ); // REVISIT - impact range should be adjustable
         // REVISIT - change neighboring curves, assume the point index of different curves are the same (actually, they may not be so)
         // fCurrentSliceIndex - 1, fCurrentSliceIndex - 2, ...
         float aWeight = 1.0;
@@ -217,11 +225,11 @@ void C2DView::mouseMoveEvent( QMouseEvent *event )
             if ( fCurvesLower[ i ] != NULL && fCurvesLower[ i ]->GetPointsNum() > 0 ) {
                 aWeight = CosineImpactFunc( 1.0,
                                             i + 1,
-                                            ( 17 + 1 ) / 2 );
+                                            ( fImpactRange + 1 ) / 2 );
                 fCurvesLower[ i ]->SetPointByDifference( fSelectedPointIndex,
                                               Vec2< float >( aDx, aDy ) * aWeight,
                                               CosineImpactFunc,
-                                              17 );// fCurve->GetPointsNum() / 2 ); // REVISIT - impact range should be adjustable
+                                              fImpactRange );// fCurve->GetPointsNum() / 2 ); // REVISIT - impact range should be adjustable
             }
         }
         // fCurrentSliceIndex + 1, fCurrentSliceIndex + 2, ...
@@ -229,11 +237,11 @@ void C2DView::mouseMoveEvent( QMouseEvent *event )
             if ( fCurvesUpper[ i ] != NULL && fCurvesUpper[ i ]->GetPointsNum() > 0 ) {
                 aWeight = CosineImpactFunc( 1.0,
                                             i + 1,
-                                            ( 17 + 1 ) / 2 );
+                                            ( fImpactRange + 1 ) / 2 );
                 fCurvesUpper[ i ]->SetPointByDifference( fSelectedPointIndex,
                                               Vec2< float >( aDx, aDy ) * aWeight,
                                               CosineImpactFunc,
-                                              17 );// fCurve->GetPointsNum() / 2 ); // REVISIT - impact range should be adjustable
+                                              fImpactRange );// fCurve->GetPointsNum() / 2 ); // REVISIT - impact range should be adjustable
             }
         }
 
@@ -299,6 +307,14 @@ void C2DView::resizeEvent( QResizeEvent *event )
 	// REVISIT - FILL ME HERE
 }
 
+// Handle context menu event
+void C2DView::contextMenuEvent( QContextMenuEvent *event )
+{
+    QMenu menu(this);
+    menu.addAction( fSetImpactRangeAct );
+    menu.exec( event->globalPos() );
+}
+
 // Handle zoom in click
 void C2DView::OnZoomInClicked( void )
 {
@@ -344,6 +360,28 @@ void C2DView::OnPrevClicked( void )
 	//QMessageBox::information( this, tr( "clicked" ), tr( "PrevSlice clicked" ) );
 
 	emit SendSignalOnPrevClicked();
+}
+
+// Set the impact range of a control point
+void C2DView::SetImpactRange( void )
+{
+    // get impact range
+    bool aIsOkPressed = false;
+    int aNewRange = QInputDialog::getInt( this,
+                                          tr( "Input" ),
+                                          tr( "Please enter the number of points a control point can affect: " ),
+                                          fImpactRange, // default value
+                                          1, // minimum value
+                                          50, // maximum value
+                                          1, // step
+                                          &aIsOkPressed );
+    if ( aIsOkPressed ) {
+        // update range
+        fImpactRange = aNewRange;
+        // reset intersections
+        emit SendSignalOnUpdateImpactRange();
+    }
+    return;
 }
 
 // Scale image

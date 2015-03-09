@@ -34,6 +34,7 @@ CWindow::CWindow( void ) :
 	connect( f2DView, SIGNAL( SendSignalOnNextClicked() ), this, SLOT( OnLoadNextSlice() ) );
 	connect( f2DView, SIGNAL( SendSignalOnPrevClicked() ), this, SLOT( OnLoadPrevSlice() ) );
     connect( f2DView, SIGNAL( SendSignalMeshChanged() ), f3DView, SLOT( updateGL() ) );
+	connect( f2DView, SIGNAL( SendSignalOnUpdateImpactRange() ), this, SLOT( OnUpdateImpactRange() ) );
 
     // create 3D view
     QVBoxLayout *a3DViewLayout = new QVBoxLayout;
@@ -213,6 +214,13 @@ void CWindow::OnLoadPrevSlice( void )
     update();
 }
 
+// Handle updating impact range
+void CWindow::OnUpdateImpactRange( void )
+{
+    // update because the impact range is changed
+    f2DView->SetIntersection( fIntersections, fCurrentSliceIndex - VOLPKG_SLICE_MIN_INDEX );
+}
+
 // Handle key press event
 void CWindow::keyPressEvent( QKeyEvent *event )
 {
@@ -375,7 +383,7 @@ void CWindow::CalcIntersection( std::vector< CXCurve* > &nIntersections,
 			aRow = round( d * aV1.y + ( 1.0 - d ) * aV2.y );
 			aCol = round( d * aV1.z + ( 1.0 - d ) * aV2.z );
 
-            assert( aRow > 0 && aCol > 0 );
+            assert( aRow >= 0 && aCol >= 0 );
 
 			Vec2< float > aPt( aRow, aCol );
 			aIntrsctPos[ i - aMinSliceIndex ].push_back( aPt );

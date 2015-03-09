@@ -39,6 +39,7 @@ protected:
 	void mouseReleaseEvent( QMouseEvent *event );
 	void paintEvent( QPaintEvent *event );
 	void resizeEvent( QResizeEvent *event );
+    void contextMenuEvent( QContextMenuEvent *event );
 
 private slots:
 	void OnZoomInClicked( void );
@@ -47,10 +48,13 @@ private slots:
 	void OnNextClicked( void );
 	void OnPrevClicked( void );
 
+    void SetImpactRange( void );
+
 signals:
 	void SendSignalOnNextClicked( void );
 	void SendSignalOnPrevClicked( void );
     void SendSignalMeshChanged( void );
+    void SendSignalOnUpdateImpactRange( void );
 
 private:
 	void ScaleImage( double nFactor );
@@ -77,6 +81,8 @@ private:
 	QPushButton *fPrevBtn;
     QTextEdit *fSliceIndexEdit;
 
+    QAction *fSetImpactRangeAct;
+
 	// data model
 	double fScaleFactor;
 
@@ -90,6 +96,8 @@ private:
 	int fSelectedPointIndex;
 
     QPoint fLastPos; // last postion on the image (absolute coordinates)
+
+    int fImpactRange; // how many points a control point movement will affect
 
 }; // class C2DView
 

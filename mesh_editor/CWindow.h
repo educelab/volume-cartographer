@@ -68,6 +68,7 @@ private slots:
 
 	void OnLoadNextSlice( void );
 	void OnLoadPrevSlice( void );
+    void OnUpdateImpactRange( void );
 
 private:
 	// data model
