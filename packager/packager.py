@@ -73,9 +73,9 @@ else:
     mypath = os.getcwd()
 
 slices = sorted(
-    filter(lambda f: f[-4::] == '.tif' and len(re.findall('\d+', f)) > 0, 
-        os.listdir(mypath)),
-    key=lambda f: int(re.findall('\d+', f)[-1]))
+    filter(lambda f: f[-4::] == '.tif', 
+        os.listdir(mypath))
+    )
 
 if len(slices) < 1:
     print "[Input Error] No Slices"
@@ -112,7 +112,7 @@ f.close()
 for i in range(len(slices)):
     sys.stdout.write('\r')
     sys.stdout.write('Copying slice ' + str(i + 1) + '/' + str(len(slices)))
-    os.system('cp ' + mypath + slices[i] + ' tmp/slices/' + \
+    os.system('cp "' + mypath + slices[i] + '" tmp/slices/' + \
     '0'*(len(str(config_dict["number of slices"]))-len(str(i))) + \
     str(i) + '.tif')
     sys.stdout.flush()
@@ -126,7 +126,7 @@ if outpath.endswith(".volpkg") != True:
 # os.system('tar -zcvf ' + outpath + ' tmp/*')
 
 # move the volumepkg as a folder
-os.system('mv tmp ' + str(outpath))
+os.system('mv tmp "' + str(outpath) + '"')
 
 #delete the tmp directory if it still exists
 if os.path.isdir("tmp"):
