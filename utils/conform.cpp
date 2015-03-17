@@ -23,7 +23,7 @@ int main( int argc, char *argv[] )
       minVal = 0;
       maxVal = 255;
       inImage.convertTo( workImage, CV_16U, 65535.0/(maxVal - minVal), -minVal * 65535.0/(maxVal - minVal));
-  // TODO: need to account for 32 bit images
+  // TODO: need to account for CV_8S and 32-bit images
   } else {
       inImage.copyTo( workImage );
   }

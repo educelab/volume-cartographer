@@ -19,7 +19,7 @@ import re
 import json
 import time
 
-sys.stdout.write('vc_packager\n')
+sys.stdout.write('vc_packager\n\n')
 
 # check for help
 if '-h' in sys.argv or '--help' in sys.argv:
@@ -38,15 +38,6 @@ if '-h' in sys.argv or '--help' in sys.argv:
 """
     sys.exit()
 
-# create the folder structure
-if os.path.isdir("tmp"):
-    shutil.rmtree("tmp")
-os.mkdir("tmp")
-os.mkdir("tmp/slices")
-os.mkdir("tmp/gradients")
-os.mkdir("tmp/paths")
-os.mkdir("tmp/surface_normals")
-
 # get the scroll location from the cli arguements
 # or by default from the current file
 # if there arent any .tiff files then throw an error
@@ -63,8 +54,7 @@ slices = sorted(
     )
 
 if len(slices) < 1:
-    print "[Input Error] No Slices"
-    sys.exit()
+    sys.exit("[Input Error] No Slices")
 
 # parse arguements to see if we need to give the output file a certain name
 # default is just output.volumepkg
@@ -75,20 +65,46 @@ elif "--output-file" in sys.argv:
 else:
     outpath = os.getcwd() + "/volume"
 
-# analyze the volume //TODO: Need to check entire volume for consistency
-# get width/height
-size = subprocess.check_output('vc_analyze "' + mypath+slices[0] + '" size', shell=True)
-width, height = map(int, size.split());
+# analyze the volume
+for i in range(len(slices)):
+    sys.stdout.write('\r')
+    sys.stdout.write('Analyzing slice ' + str(i + 1) + '/' + str(len(slices)))
+    # get width/height
+    info = subprocess.check_output('vc_analyze "' + mypath+slices[i] + '" all', shell=True)
+    thisWidth, thisHeight, thisDepth, thisMin, thisMax = info.split()
+    
+    # cast to the proper type
+    thisWidth = int(thisWidth)
+    thisHeight = int(thisHeight)
+    thisDepth = int(thisDepth)
+    thisMin = float(thisMin)
+    thisMax = float(thisMax)
 
-# get depth in OpenCV's mapping
-# 0 = CV_8U  - 8-bit  unsigned
-# 1 = CV_8S  - 8-bit  signed
-# 2 = CV_16U - 16-bit unsigned
-# 3 = CV_16S - 16-bit signed
-# 4 = CV_32S - 32-bit signed integers
-# 5 = CV_32F - 32-bit floating-point
-# 6 = CV_64F - 64-bit floating-point
-depth = int(subprocess.check_output('vc_analyze "' + mypath+slices[0] + '" depth', shell=True))
+    # set intial values from first slice 
+    if i == 0:
+        width = thisWidth
+        height = thisHeight
+        depth = thisDepth
+        volMin = thisMin
+        volMax = thisMax
+    else:
+        # width, height, and depth must match slice 0
+        if (thisWidth != width or
+            thisHeight != height or
+            thisDepth != depth):
+                sys.exit('\nError: "' + mypath+slices[i] + '" does not match size/depth of volume!\n')
+        # update volume min and max intensities if they're lower/higher respectively
+        if thisMin < volMin:
+            volMin = thisMin
+        if thisMax > volMax:
+            volMax = thisMax
+    sys.stdout.flush()
+sys.stdout.write('\n')
+
+# scale min and max to 16-bit if 8-bit unsigned
+if depth == 0:
+    volMin = volMin*65535.00/255.00
+    volMax = volMax*65535.00/255.00
 
 # create the config options and save it to the config file
 config_dict = {
@@ -101,10 +117,21 @@ config_dict = {
     "number of slices": len(slices),
     "slice location": "slices/",
 
-    # size of the images.
+    # size and intensity info for volume
     "width": width,
-    "height": height
+    "height": height,
+    "min": volMin,
+    "max": volMax 
 }
+
+# create the folder structure
+if os.path.isdir("tmp"):
+    shutil.rmtree("tmp")
+os.mkdir("tmp")
+os.mkdir("tmp/slices")
+os.mkdir("tmp/gradients")
+os.mkdir("tmp/paths")
+os.mkdir("tmp/surface_normals")
 
 f = open('tmp/config.json','w')
 f.write(json.dumps(config_dict))
