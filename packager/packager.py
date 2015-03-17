@@ -15,9 +15,9 @@
 # first we should get a list of all of our slices
 # we can start the index at 0
 
-
 import sys
 import os
+import subprocess
 import shutil
 import re
 import json
@@ -90,6 +90,10 @@ elif "--output-file" in sys.argv:
 else:
     outpath = os.getcwd() + "/volume"
 
+# get width/height
+size = subprocess.check_output('vc_analyze ' + mypath+slices[0], shell=True)
+width, height = map(int, size.split());
+
 # create the config options and save it to the config file
 config_dict = {
     # name
@@ -101,7 +105,8 @@ config_dict = {
     # size of the images.
     # currently no easy way to do this for .tiffs without
     # third party libs
-    "dimensions": None,
+    "width": width,
+    "height": height
 }
 
 f = open('tmp/config.json','w')
@@ -111,8 +116,8 @@ f.close()
 #copy the slices to the slices folder and reformat the names
 for i in range(len(slices)):
     sys.stdout.write('\r')
-    sys.stdout.write('Copying slice ' + str(i + 1) + '/' + str(len(slices)))
-    os.system('cp "' + mypath + slices[i] + '" tmp/slices/' + \
+    sys.stdout.write('Conforming slice ' + str(i + 1) + '/' + str(len(slices)))
+    os.system('vc_conform "' + mypath + slices[i] + '" tmp/slices/' + \
     '0'*(len(str(config_dict["number of slices"]))-len(str(i))) + \
     str(i) + '.tif')
     sys.stdout.flush()

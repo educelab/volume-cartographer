@@ -14,6 +14,7 @@ add_subdirectory(scalpel)
 add_subdirectory(simulation)
 add_subdirectory(mesher)
 add_subdirectory(texture)
+add_subdirectory(utils)
 
 # Copy packager files. This is a hack.
 file(MAKE_DIRECTORY packager)
@@ -29,6 +30,8 @@ install(PROGRAMS
 "${CMAKE_BINARY_DIR}/texture/vc_texture"
 "${CMAKE_BINARY_DIR}/texture/vc_meshnorm"
 "${CMAKE_BINARY_DIR}/texture/vc_sliceProjection"
+"${CMAKE_BINARY_DIR}/utils/vc_analyze"
+"${CMAKE_BINARY_DIR}/utils/vc_conform"
 DESTINATION bin
 COMPONENT Programs)
 
