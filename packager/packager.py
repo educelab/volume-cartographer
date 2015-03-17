@@ -1,19 +1,15 @@
 #!/usr/bin/env python
 
 # this program takes in "unformatted" scroll data
-# and turns it into a .volumepkg
-# a .volumepkg has these properties
+# and turns it into a .volpkg
+# a .volpkg has these properties
 #  - 1 config file (config.json)
 #    - number of slices
 #    - dimensions
 #    - 
 #  - 1 folder containing scroll files in .tiff format
 #    - the scroll naming convention will be the slices number
-#  - 1 folder containing the gradient .ymls by slice number
 #  - 1 folder containing the point cloud file
-
-# first we should get a list of all of our slices
-# we can start the index at 0
 
 import sys
 import os
@@ -28,18 +24,7 @@ sys.stdout.write('vc_packager\n')
 # check for help
 if '-h' in sys.argv or '--help' in sys.argv:
     print \
-"""[NOTE] you are running the formatter right now :p
-this program takes in as input the location of slices
-in .tif format with the index as the last integers
-in the filename (i.e '10.tif' or 'WOWTHISISSCROLL505.tif')
-
-[USAGE] vc_packager [-sp | --slices-path] <path to slices> [-of | --output-file] <name of output file>
-OR
-[USAGE] python packager.py  [-sp | --slices-path] <path to slices> [-of | --output-file] <name of output file>
-
-[NOTE] I recommend putting
-alias vc_packager='python <absolute path to this program>'
-into your .bashrc/.bash_profile
+"""[USAGE] vc_packager [-sp | --slices-path] <path to slices> [-of | --output-file] <name of output file>
 
 [OPTIONS] 
 [-sp | --slice-path] <path to slices>
@@ -90,21 +75,33 @@ elif "--output-file" in sys.argv:
 else:
     outpath = os.getcwd() + "/volume"
 
+# analyze the volume //TODO: Need to check entire volume for consistency
 # get width/height
-size = subprocess.check_output('vc_analyze ' + mypath+slices[0], shell=True)
+size = subprocess.check_output('vc_analyze "' + mypath+slices[0] + '" size', shell=True)
 width, height = map(int, size.split());
+
+# get depth in OpenCV's mapping
+# 0 = CV_8U  - 8-bit  unsigned
+# 1 = CV_8S  - 8-bit  signed
+# 2 = CV_16U - 16-bit unsigned
+# 3 = CV_16S - 16-bit signed
+# 4 = CV_32S - 32-bit signed integers
+# 5 = CV_32F - 32-bit floating-point
+# 6 = CV_64F - 64-bit floating-point
+depth = int(subprocess.check_output('vc_analyze "' + mypath+slices[0] + '" depth', shell=True))
 
 # create the config options and save it to the config file
 config_dict = {
+    # volumepkg version
+    "version": 1.0,
     # name
     "volumepkg name": outpath.split('/')[-1],
 
     # number of slices
     "number of slices": len(slices),
     "slice location": "slices/",
+
     # size of the images.
-    # currently no easy way to do this for .tiffs without
-    # third party libs
     "width": width,
     "height": height
 }
@@ -116,10 +113,16 @@ f.close()
 #copy the slices to the slices folder and reformat the names
 for i in range(len(slices)):
     sys.stdout.write('\r')
-    sys.stdout.write('Conforming slice ' + str(i + 1) + '/' + str(len(slices)))
-    os.system('vc_conform "' + mypath + slices[i] + '" tmp/slices/' + \
-    '0'*(len(str(config_dict["number of slices"]))-len(str(i))) + \
-    str(i) + '.tif')
+    if depth != 2:
+        sys.stdout.write('Conforming slice ' + str(i + 1) + '/' + str(len(slices)))
+        os.system('vc_conform "' + mypath + slices[i] + '" tmp/slices/' + \
+        '0'*(len(str(config_dict["number of slices"]))-len(str(i))) + \
+        str(i) + '.tif')
+    else:
+        sys.stdout.write('Copying slice ' + str(i + 1) + '/' + str(len(slices)))
+        os.system('cp "' + mypath + slices[i] + '" tmp/slices/' + \
+        '0'*(len(str(config_dict["number of slices"]))-len(str(i))) + \
+        str(i) + '.tif')
     sys.stdout.flush()
 sys.stdout.write('\n\n')
 
