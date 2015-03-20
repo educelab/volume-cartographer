@@ -157,7 +157,11 @@ int main( int argc, char *argv[] )
 				aPathPtIter != aIntrsctPos[ aCnt ].end(); 
 				++aPathPtIter ) {
 			
-			aOverlayImg.at< cv::Vec3b >( ( *aPathPtIter ).loc[ 1 ], ( *aPathPtIter ).loc[ 0 ] ) = cv::Vec3b( 0, 0, 255 );
+			if ( ( *aPathPtIter ).loc[ 0 ] >= 0 && ( *aPathPtIter ).loc[ 0 ] < aOverlayImg.cols &&
+				 ( *aPathPtIter ).loc[ 1 ] >= 0 && ( *aPathPtIter ).loc[ 1 ] < aOverlayImg.rows ) {
+				
+				aOverlayImg.at< cv::Vec3b >( ( *aPathPtIter ).loc[ 1 ], ( *aPathPtIter ).loc[ 0 ] ) = cv::Vec3b( 0, 0, 255 );
+			}
 
 		}
 
