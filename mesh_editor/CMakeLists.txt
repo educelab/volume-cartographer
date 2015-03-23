@@ -11,8 +11,8 @@ SET(EXTRA_LIBS ${SECURITY_LIBRARY})
 ENDIF(APPLE)
 
 # only include the headers that needs to be processed by moc
-SET(meshEditor_SOURCES Ply/base.cpp Ply/header.cpp Ply/io.cpp Ply/object.cpp Ply/unknown.cpp objTester/list.cpp objTester/objLoader.cpp objTester/obj_parser.cpp objTester/string_extra.cpp main.cpp C2DView.cpp C3DView.cpp CMesh.cpp CMeshGL.cpp CMeshIO.cpp CWindow.cpp CXCurve.cpp UDataManipulateUtils.cpp UObjHelper.cpp CPlyHelper.cpp)
-SET(meshEditor_HEADERS Ply/base.h Ply/header.h Ply/io.h Ply/object.h Ply/unknown.h objTester/list.h objTester/objLoader.h objTester/obj_parser.h objTester/string_extra.h C2DView.h C3DObj.h C3DView.h CLinkedList.h CMeshGL.h CMesh.h CMeshIO.h CVec.h CPoint.h CWindow.h CXCurve.h HBase.h mathUtils.h UDataManipulateUtils.h UObjHelper.h CPlyHelper.h)
+SET(meshEditor_SOURCES Ply/base.cpp Ply/header.cpp Ply/io.cpp Ply/object.cpp Ply/unknown.cpp objTester/list.cpp objTester/objLoader.cpp objTester/obj_parser.cpp objTester/string_extra.cpp main.cpp CSimpleNumEditBox.cpp C2DView.cpp C3DView.cpp CMesh.cpp CMeshGL.cpp CMeshIO.cpp CWindow.cpp CXCurve.cpp UDataManipulateUtils.cpp UObjHelper.cpp CPlyHelper.cpp)
+SET(meshEditor_HEADERS Ply/base.h Ply/header.h Ply/io.h Ply/object.h Ply/unknown.h objTester/list.h objTester/objLoader.h objTester/obj_parser.h objTester/string_extra.h CSimpleNumEditBox.h C2DView.h C3DObj.h C3DView.h CLinkedList.h CMeshGL.h CMesh.h CMeshIO.h CVec.h CPoint.h CWindow.h CXCurve.h HBase.h mathUtils.h UDataManipulateUtils.h UObjHelper.h CPlyHelper.h)
 
 # invoke moc
 QT4_WRAP_CPP(meshEditor_HEADERS_MOC ${meshEditor_HEADERS})

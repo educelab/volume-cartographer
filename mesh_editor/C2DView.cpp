@@ -36,18 +36,9 @@ C2DView::C2DView( QWidget *parent ) :
 	fPrevBtn = new QPushButton( tr( "Previous Slice" ), this );
     // text edit
     // REVISIT - you may want to refactor this to a "CreateSingleLineTextEdit()" function
-    fSliceIndexEdit = new QTextEdit( this );
-    fSliceIndexEdit->setText( tr( "0" ) );
+    fSliceIndexEdit = new CSimpleNumEditBox( this );
     fSliceIndexEdit->setEnabled( false );
-    fSliceIndexEdit->setWordWrapMode( QTextOption::NoWrap );
-    fSliceIndexEdit->setHorizontalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
-    fSliceIndexEdit->setVerticalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
-    QFontMetrics fm( font() );
-    int h = qMax( fm.height(), 14 ) + 4;
-    int w = fm.width( QLatin1Char( 'x' ) ) * 17 + 4;
-    QStyleOptionFrameV2 opt;
-    opt.initFrom( this );
-    fSliceIndexEdit->setFixedHeight( style()->sizeFromContents( QStyle::CT_LineEdit, &opt, QSize( w, h ).expandedTo( QApplication::globalStrut()), this ).height() );
+    connect( fSliceIndexEdit, SIGNAL( SendSignalOnTextChanged() ), this, SLOT( OnSliceIndexEditTextChanged() ) );
 	
 	QHBoxLayout *aButtonsLayout = new QHBoxLayout;
 	aButtonsLayout->addWidget( fZoomInBtn );
@@ -362,6 +353,13 @@ void C2DView::OnPrevClicked( void )
 	emit SendSignalOnPrevClicked();
 }
 
+// Handle slice index change
+void C2DView::OnSliceIndexEditTextChanged( void )
+{
+//    QMessageBox::information( this, tr( "message" ), tr( "text changed" ) );
+    emit SendSignalOnLoadAnySlice( fSliceIndexEdit->GetSliceIndex() );
+}
+
 // Set the impact range of a control point
 void C2DView::SetImpactRange( void )
 {
@@ -415,6 +413,7 @@ void C2DView::UpdateButtons( void )
 	fResetBtn->setEnabled( fImage != NULL && fabs( fScaleFactor - 1.0 ) > 1e-6 );
 	fNextBtn->setEnabled( fImage != NULL );
 	fPrevBtn->setEnabled( fImage != NULL );
+    fSliceIndexEdit->setEnabled( fImage != NULL );
 }
 
 // Draw curve

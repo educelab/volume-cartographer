@@ -4,6 +4,7 @@
 #define _C2DVIEW_H_
 
 #include "MeshEditorHeader.h"
+#include "CSimpleNumEditBox.h"
 
 #ifdef _QT5_
 #include <QtWidgets>
@@ -47,6 +48,7 @@ private slots:
 	void OnResetClicked( void );
 	void OnNextClicked( void );
 	void OnPrevClicked( void );
+    void OnSliceIndexEditTextChanged( void );
 
     void SetImpactRange( void );
 
@@ -55,6 +57,7 @@ signals:
 	void SendSignalOnPrevClicked( void );
     void SendSignalMeshChanged( void );
     void SendSignalOnUpdateImpactRange( void );
+    void SendSignalOnLoadAnySlice( int nSliceIndex );
 
 private:
 	void ScaleImage( double nFactor );
@@ -78,8 +81,8 @@ private:
 	QPushButton *fZoomOutBtn;
 	QPushButton *fResetBtn;
 	QPushButton *fNextBtn;
-	QPushButton *fPrevBtn;
-    QTextEdit *fSliceIndexEdit;
+    QPushButton *fPrevBtn;
+    CSimpleNumEditBox *fSliceIndexEdit;
 
     QAction *fSetImpactRangeAct;
 

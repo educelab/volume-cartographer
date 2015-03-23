@@ -66,6 +66,7 @@ private slots:
 
 	void GetIntersection( void );
 
+    void OnLoadAnySlice( int nSliceIndex );
 	void OnLoadNextSlice( void );
 	void OnLoadPrevSlice( void );
     void OnUpdateImpactRange( void );

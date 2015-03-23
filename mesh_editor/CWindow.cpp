@@ -31,6 +31,7 @@ CWindow::CWindow( void ) :
     f3DView = new C3DView( this );
     f2DView = new C2DView( this );
 
+    connect( f2DView, SIGNAL( SendSignalOnLoadAnySlice(int) ), this, SLOT( OnLoadAnySlice(int) ) );
 	connect( f2DView, SIGNAL( SendSignalOnNextClicked() ), this, SLOT( OnLoadNextSlice() ) );
 	connect( f2DView, SIGNAL( SendSignalOnPrevClicked() ), this, SLOT( OnLoadPrevSlice() ) );
     connect( f2DView, SIGNAL( SendSignalMeshChanged() ), f3DView, SLOT( updateGL() ) );
@@ -158,6 +159,29 @@ CWindow::~CWindow( void )
 	for ( size_t i = 0; i < fIntersections.size(); ++i ) {
 		deleteNULL( fIntersections[ i ] );
 	}
+}
+
+// Handle loading any slice
+void CWindow::OnLoadAnySlice( int nSliceIndex )
+{
+    int aDiff = nSliceIndex - fCurrentSliceIndex;
+    fCurrentSliceIndex = nSliceIndex;
+//    f2DView->SetIntersection( fIntersections[ fCurrentSliceIndex - VOLPKG_SLICE_MIN_INDEX ] );
+    f2DView->SetIntersection( fIntersections, fCurrentSliceIndex - VOLPKG_SLICE_MIN_INDEX );
+    f2DView->SetSliceIndex( fCurrentSliceIndex );
+
+    OpenSlice( fCurrentSliceIndex );
+    f2DView->SetImage( fSliceImage );
+
+    // REVSIIT - FILL ME HERE
+    f3DView->SetSliceIndexDiff( aDiff );
+    // REVISIT - probably we should further decompose and refactor the function and make one separate "setTexture" function
+    f3DView->InitializeXsectionPlane( fCurrentSliceIndex,
+                                      fSliceImage,
+                                      fSliceImage.width(),
+                                      fSliceImage.height() );
+
+    update();
 }
 
 // Handle loading next slice
