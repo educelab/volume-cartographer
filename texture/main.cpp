@@ -74,7 +74,7 @@ int main( int argc, char *argv[] )
                                        aSampleDir,
                                        FilterMedianAverage );
     } else if ( aFindBetterTextureMethod == 3 ) { // mininum filter
-        printf( "find better texture: median filtering\n" );
+        printf( "find better texture: minimum filtering\n" );
         FindBetterTextureMedianFilter( aMesh,
                                        aImgVol,
                                        radius,
@@ -82,7 +82,7 @@ int main( int argc, char *argv[] )
                                        aSampleDir,
                                        FilterMin );
     } else if ( aFindBetterTextureMethod == 4 ) { // median (without averaging) filter
-        printf( "find better texture: median filtering\n" );
+        printf( "find better texture: median (without averaging) filtering\n" );
         FindBetterTextureMedianFilter( aMesh,
                                        aImgVol,
                                        radius,
@@ -90,7 +90,7 @@ int main( int argc, char *argv[] )
                                        aSampleDir,
                                        FilterMedian );
     } else if ( aFindBetterTextureMethod == 5 ) { // mean filter
-        printf( "find better texture: median filtering\n" );
+        printf( "find better texture: mean filtering\n" );
         FindBetterTextureMedianFilter( aMesh,
                                        aImgVol,
                                        radius,
