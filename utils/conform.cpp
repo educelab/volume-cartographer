@@ -29,7 +29,7 @@ int main( int argc, char *argv[] )
   }
 
   // Convert colorspace to grayscale
-  if ( outImage.channels() > 1 ) {
+  if ( inImage.channels() > 1 ) {
       cv::cvtColor( workImage, outImage, CV_BGR2GRAY ); // OpenCV use BGR to represent color image
   } else {
       workImage.copyTo( outImage );
