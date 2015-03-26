@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
       std::stringstream outfile;
       outfile << std::setw(num_characters) << std::setfill('0') << index << ".pcd";
       std::cout << "\rSaving tensor " << index - 1 << "/" << totalTensors << std::flush;
-      pcl::io::savePCDFileASCII(path + "surface_normals/" + outfile.str(), process_tensors(field, index));
+      pcl::io::savePCDFileBinaryCompressed(path + "surface_normals/" + outfile.str(), process_tensors(field, index));
       field.pop_front();
     }
   }

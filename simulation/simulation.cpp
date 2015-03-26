@@ -370,5 +370,5 @@ void write_ordered_pcd(std::vector<std::vector<pcl::PointXYZRGB> > storage) {
       cloud.points[j+(i*cloud.width)] = storage[i][j];
     }
   }
-  pcl::io::savePCDFileASCII(outputName + "_segmented.pcd", cloud);
+  pcl::io::savePCDFileBinaryCompressed(outputName + "_segmented.pcd", cloud);
 }
