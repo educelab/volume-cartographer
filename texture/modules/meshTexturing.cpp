@@ -102,13 +102,18 @@ void FindBetterTexture( ChaoVis::CMesh &nMesh,
         cv::Vec3f aFarthest1;
         cv::Vec3f aFarthest2;
 
+        int aTotalSampleNum;
+
         if ( nSamplingDir == 0 ) { // sample both positive and negative direction
+            aTotalSampleNum = TOTAL_SAMPLING_NUM;
             aFarthest1 = aPos + nRadius * ( 1 + SAMPLE_RATE ) * aNormalVec;
             aFarthest2 = aPos - nRadius * ( 1 + SAMPLE_RATE ) * aNormalVec;
         } else if ( nSamplingDir == 1 ) { // sample along positive direction
+            aTotalSampleNum = TOTAL_SAMPLING_NUM / 2;
             aFarthest1 = aPos + nRadius * ( 1 + SAMPLE_RATE ) * aNormalVec;
             aFarthest2 = aPos;
         } else if ( nSamplingDir == 2 ) { // sample along negative direction
+            aTotalSampleNum = TOTAL_SAMPLING_NUM / 2;
             aFarthest1 = aPos;
             aFarthest2 = aPos - nRadius * ( 1 + SAMPLE_RATE ) * aNormalVec;
         } else {
@@ -117,7 +122,7 @@ void FindBetterTexture( ChaoVis::CMesh &nMesh,
         }
 
         // sample the voxel surrounding the point and find the local maxima
-        for ( int i = 0; i < TOTAL_SAMPLING_NUM + 2; ++i ) {
+        for ( int i = 0; i < aTotalSampleNum + 2; ++i ) {
 
             cv::Vec3f aP = aFarthest2 + i * aNormalVec * SAMPLE_RATE;
 
@@ -126,7 +131,7 @@ void FindBetterTexture( ChaoVis::CMesh &nMesh,
 
         }
 
-        unsigned char c = ( unsigned char )( BetterTextureFunc( aSamples, TOTAL_SAMPLING_NUM + 2 ) );
+        unsigned char c = ( unsigned char )( BetterTextureFunc( aSamples, aTotalSampleNum + 2 ) );
         uint32_t color =
                     c |
                     c << 8 |
@@ -706,7 +711,7 @@ void meshTexturing( ChaoVis::CMesh      &nMesh,     // mesh
                                        FilterMedianAverage );
         break;
     default:
-        printf( "ERROR: unknonw filter option.\n" );
+        printf( "ERROR: unknown filter option.\n" );
         break;
     } // switch nFilter
 }
