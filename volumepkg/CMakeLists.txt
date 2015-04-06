@@ -5,6 +5,7 @@ set(VOLUMEPKG_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(VOLUMEPKG_INCLUDE_DIR ${VOLUMEPKG_INCLUDE_DIR} PARENT_SCOPE)
 
 find_package(OpenCV REQUIRED)
+find_package(Boost REQUIRED)
 
 if(TARGET volumepkg)
 message("volumepkg is already defined")

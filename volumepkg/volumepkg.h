@@ -1,9 +1,14 @@
 #ifndef _VOLUMEPKG_H_
 #define _VOLUMEPKG_H_
 
+#include <stdlib.h>
+#include <time.h>
+
+#include "boost/filesystem.hpp"
 #include <opencv2/opencv.hpp>
 #include "volumepkgcfg.h"
-#include <stdlib.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/point_types.h>
 
 class VolumePkg {
 public:
@@ -14,7 +19,7 @@ public:
 	std::string getNormalAtIndex(int);
 
 	// Segmentation functions
-	std::vector<int> getSegmentations();
+	std::vector<std::string> getSegmentations();
 	int setActiveSegmentation(int);
 	int newSegmentation();
 	pcl::PointCloud<pcl::PointXYZRGB> openCloud();
@@ -23,8 +28,10 @@ public:
 private:
 	VolumePkgCfg config;
 	std::string location;
+    boost::filesystem::path segdir;
 	int getNumberOfSliceCharacters();
-	int activeSeg;
+	int activeSeg = -1;
+	std::vector<std::string> segmentations;
 };
 
 #endif // _VOLUMEPKG_H_

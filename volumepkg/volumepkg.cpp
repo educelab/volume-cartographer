@@ -1,7 +1,10 @@
 #include "volumepkg.h"
 
-VolumePkg::VolumePkg(std::string file_location) : config(file_location + "/config.json"){
+VolumePkg::VolumePkg(std::string file_location) : config(file_location + "/config.json") {
     location = file_location;
+    segdir = file_location + config.getString("segpath", "/paths/");
+
+    //iterate over paths in segdir, push_back to segmentations
 }
 
 // Returns # of slices from JSON config
@@ -60,20 +63,35 @@ std::string VolumePkg::getNormalAtIndex(int index) {
 }
 
 // To-Do: Return a vector of ints representing the number of segmentations in the volpkg
-std::vector<int> getSegmentations(){};
+std::vector<std::string> VolumePkg::getSegmentations() {
+
+};
 
 // To-Do: Set the private variable activeSeg to the seg we want to work with
-int setActiveSegmentation(int){};
+int VolumePkg::setActiveSegmentation(int) {
+
+};
 
 // To-Do - Needs to make a new folder inside the volume package to house everything for this segmentation
 int VolumePkg::newSegmentation() {
     //get the file name
-    std::string slice_location(location);
-    slice_location += config.getString("segpath", "/paths/");
+    boost::filesystem::path newSeg(segdir);
+
+    //make a new dir based off the current date and time
+    time_t now = time( 0 );
+    struct tm tstruct;
+    char buf[ 80 ];
+    tstruct = *localtime( &now );
+    std::string segName = strftime( buf, sizeof( buf ), "%Y%m%d%H%M%S", &tstruct );
+    newSeg += segName;
+
+    if (boost::filesystem::create_directory(newSeg)) {
+        segmentations.push_back(segName);
+    };
 }
 
 // To-Do: Return the point cloud currently on disk for the activeSegmentation
-pcl::PointCloud<pcl::PointXYZRGB> openCloud(){};
+pcl::PointCloud<pcl::PointXYZRGB> VolumePkg::openCloud() {};
 
 // To-Do: Update the point cloud on the disk
-int saveCloud(pcl::PointCloud<pcl::PointXYZRGB>){};
+int VolumePkg::saveCloud(pcl::PointCloud<pcl::PointXYZRGB>){};
