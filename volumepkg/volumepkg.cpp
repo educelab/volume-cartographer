@@ -100,7 +100,7 @@ std::string VolumePkg::newSegmentation() {
 
 // To-Do: Return the point cloud currently on disk for the activeSegmentation
 pcl::PointCloud<pcl::PointXYZRGB>::Ptr VolumePkg::openCloud() {
-  std::string outputName = getPkgName() + "-" + activeSeg + "_segmented.pcd";
+  std::string outputName = segdir.string() + "/" + activeSeg + "/" + getPkgName() + "-" + activeSeg + "_segmented.pcd";
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
   pcl::io::loadPCDFile<pcl::PointXYZRGB> (outputName, *cloud);
   return cloud;
