@@ -67,17 +67,18 @@ std::string VolumePkg::getNormalAtIndex(int index) {
     return pcd_location;
 }
 
-// To-Do: Return a vector of strings representing the number of segmentations in the volpkg
+// Return a vector of strings representing the names of segmentations in the volpkg
 std::vector<std::string> VolumePkg::getSegmentations() {
     return segmentations;
 };
 
-// To-Do: Set the private variable activeSeg to the seg we want to work with
+// Set the private variable activeSeg to the seg we want to work with
 void VolumePkg::setActiveSegmentation(std::string name) {
     activeSeg = name;
 };
 
-// To-Do - Needs to make a new folder inside the volume package to house everything for this segmentation
+// Make a new folder inside the volume package to house everything for this segmentation
+// and push back the new segmentation into our vector of segmentations
 std::string VolumePkg::newSegmentation() {
     //get the file name
     boost::filesystem::path newSeg(segdir);
@@ -98,19 +99,18 @@ std::string VolumePkg::newSegmentation() {
   return segName;
 }
 
-// To-Do: Return the point cloud currently on disk for the activeSegmentation
+// Return the point cloud currently on disk for the activeSegmentation
 pcl::PointCloud<pcl::PointXYZRGB>::Ptr VolumePkg::openCloud() {
-  std::string outputName = segdir.string() + "/" + activeSeg + "/" + getPkgName() + "-" + activeSeg + "_segmented.pcd";
+  std::string outputName = segdir.string() + "/" + activeSeg + "/cloud.pcd";
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
   pcl::io::loadPCDFile<pcl::PointXYZRGB> (outputName, *cloud);
   return cloud;
 };
 
-// To-Do: Update the point cloud on the disk
+// Save a point cloud back to the volumepkg
 void VolumePkg::saveCloud(pcl::PointCloud<pcl::PointXYZRGB> segmentedCloud){
-  std::string outputName = segdir.string() + "/" + activeSeg + "/" + getPkgName() + "-" + activeSeg + "_segmented.pcd";
-  std::cout << outputName << std::endl;
+  std::string outputName = segdir.string() + "/" + activeSeg + "/cloud.pcd";
   printf("Writing point cloud to file...\n");
-  pcl::io::savePCDFileASCII(outputName, segmentedCloud);
-  printf("Segmentation complete!\n");
+  pcl::io::savePCDFileBinaryCompressed(outputName, segmentedCloud);
+  printf("Point cloud saved.\n");
 };
