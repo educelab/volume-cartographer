@@ -6,7 +6,13 @@
 
 #include <iostream>
 #include <boost/filesystem.hpp>
-#include <boost/foreach.hpp>
+
+// boost/foreach.hpp causes problems with QT4 + Boost 1.57. This is a workaround.
+// https://bugreports.qt.io/browse/QTBUG-22829
+#ifndef Q_MOC_RUN
+    #include <boost/foreach.hpp>
+#endif
+
 #include <opencv2/opencv.hpp>
 #include <pcl/point_types.h>
 #include <pcl/io/pcd_io.h>

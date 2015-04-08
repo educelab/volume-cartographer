@@ -1,9 +1,6 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 SET(CMAKE_CXX_FLAGS "-std=c++11")
 
-FIND_PACKAGE(Qt4 REQUIRED)
-find_package(OpenCV REQUIRED)
-
 IF(APPLE)
 FIND_LIBRARY(SECURITY_LIBRARY Security)
 SET(EXTRA_LIBS ${SECURITY_LIBRARY})
@@ -20,11 +17,7 @@ QT4_WRAP_CPP(PathGen_HEADERS_MOC ${PathGen_HEADERS})
 INCLUDE(${QT_USE_FILE})
 ADD_DEFINITIONS(${QT_DEFINITIONS})
 
-add_subdirectory(./../volumepkg volumepkg)
-include_directories(${OpenCV_INCLUDE_DIRS})
-include_directories(${VOLUMEPKG_INCLUDE_DIR})
-
 # build
 add_executable(vc_pathgen ${PathGen_SOURCES} ${PathGen_HEADERS_MOC})
 
-target_link_libraries(vc_pathgen volumepkg ${OpenCV_LIBS} ${QT_LIBRARIES} ${EXTRA_LIBS})
+target_link_libraries(vc_pathgen volumepkg ${OpenCV_LIBS} ${QT_LIBRARIES} ${EXTRA_LIBS} ${PCL_LIBRARIES})

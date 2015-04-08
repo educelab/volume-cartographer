@@ -7,7 +7,7 @@
 #include <pcl/console/parse.h>
 #include <pcl/io/ply_io.h>
 
-#include "modules/orderedPCDMesher.h"
+#include "orderedPCDMesher.h"
 
 int main(int argc, char* argv[]) {
   if (argc < 2)

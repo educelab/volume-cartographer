@@ -1,16 +1,10 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(MESHING_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(MESHING_INCLUDE_DIR ${MESHING_INCLUDE_DIR} PARENT_SCOPE)
 
-find_package(PCL 1.7 REQUIRED)
-find_package(OpenCV REQUIRED)
-
-
-include_directories(${PCL_INCLUDE_DIRS})
-link_directories(${PCL_LIBRARY_DIRS})
-add_definitions(${PCL_DEFINITIONS})
-
-add_executable(vc_mesher modules/orderedPCDMesher.cpp mesher.cpp)
-
-target_link_libraries(vc_mesher ${PCL_LIBRARIES})
-target_link_libraries(vc_mesher ${OpenCV_LIBS})
+if(TARGET meshing)
+message("meshing is already defined")
+else()
+add_library(meshing STATIC orderedPCDMesher.cpp)
+endif()

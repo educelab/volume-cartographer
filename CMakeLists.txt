@@ -4,16 +4,34 @@ SET(CMAKE_CXX_FLAGS "-std=c++11")
 
 project(VC VERSION 1.0.1)
 
+
+# Prerequisite libraries
 set(Boost_USE_STATIC_LIBS ON)
 
-add_subdirectory(volumepkg)
+find_package(Qt4 REQUIRED)
+find_package(PCL 1.7 REQUIRED)
+find_package(OpenCV REQUIRED)
+find_package(Boost REQUIRED)
 
+include_directories(${Boost_INCLUDE_DIR} ${PCL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
+link_directories(${PCL_LIBRARY_DIRS})
+add_definitions(${PCL_DEFINITIONS})
+
+# VC Libraries
+add_subdirectory(volumepkg)
+include_directories(${VOLUMEPKG_INCLUDE_DIR})
+
+add_subdirectory(meshing)
+add_subdirectory(segmentation)
+
+include_directories(${MESHING_INCLUDE_DIR} ${SEGMENTATION_INCLUDE_DIR})
+
+# VC Apps
 add_subdirectory(pathgen)
 add_subdirectory(reslicer)
 add_subdirectory(scalpel)
-add_subdirectory(segmentation)
-add_subdirectory(meshing)
 add_subdirectory(texture)
+add_subdirectory(apps)
 add_subdirectory(utils)
 
 # Copy packager files. This is a hack.
@@ -25,8 +43,8 @@ install(PROGRAMS
 "${CMAKE_BINARY_DIR}/packager/vc_packager" 
 "${CMAKE_BINARY_DIR}/pathgen/vc_pathgen" 
 "${CMAKE_BINARY_DIR}/scalpel/vc_scalpel" 
-"${CMAKE_BINARY_DIR}/segmentation/vc_segment" 
-"${CMAKE_BINARY_DIR}/meshing/vc_mesher" 
+"${CMAKE_BINARY_DIR}/apps/vc_segment" 
+"${CMAKE_BINARY_DIR}/apps/vc_mesher" 
 "${CMAKE_BINARY_DIR}/texture/vc_texture"
 "${CMAKE_BINARY_DIR}/texture/vc_meshnorm"
 "${CMAKE_BINARY_DIR}/texture/vc_sliceProjection"

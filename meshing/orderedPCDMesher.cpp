@@ -21,7 +21,7 @@ std::vector<Face> faces;
 
 int orderedPCDMesher(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::string outFile){
   
-  std::vector<std::vector<pcl::PointXYZRGB>> VoV;
+  std::vector< std::vector< pcl::PointXYZRGB > > VoV;
 
   for (int i = 0; i < cloud->height; ++i)
   {

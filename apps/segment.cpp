@@ -7,7 +7,7 @@
 #include <pcl/console/parse.h>
 
 #include "volumepkg.h"
-#include "modules/structureTensorParticleSim.h"
+#include "structureTensorParticleSim.h"
 
 // Landmarks
 std::vector<Particle> landmark_chain;

@@ -1,17 +1,10 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
-SET(CMAKE_CXX_FLAGS "-std=c++11")
 
-find_package(PCL 1.7 REQUIRED)
-find_package(OpenCV REQUIRED)
+set(SEGMENTATION_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(SEGMENTATION_INCLUDE_DIR ${SEGMENTATION_INCLUDE_DIR} PARENT_SCOPE)
 
-add_subdirectory(./../volumepkg volumepkg)
-
-include_directories(${PCL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} ${VOLUMEPKG_INCLUDE_DIR})
-link_directories(${PCL_LIBRARY_DIRS})
-add_definitions(${PCL_DEFINITIONS})
-
-add_executable(vc_segment modules/structureTensorParticleSim.cpp segment.cpp)
-
-target_link_libraries(vc_segment ${PCL_LIBRARIES})
-target_link_libraries(vc_segment ${OpenCV_LIBS})
-target_link_libraries(vc_segment volumepkg)
+if(TARGET segmentation)
+message("segmentation is already defined")
+else()
+add_library(segmentation STATIC structureTensorParticleSim.cpp)
+endif()
