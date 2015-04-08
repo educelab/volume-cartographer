@@ -4,11 +4,13 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "boost/filesystem.hpp"
+#include <iostream>
+#include <boost/filesystem.hpp>
+#include <boost/foreach.hpp>
 #include <opencv2/opencv.hpp>
-#include "volumepkgcfg.h"
-#include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
+#include <pcl/io/pcd_io.h>
+#include "volumepkgcfg.h"
 
 class VolumePkg {
 public:
@@ -20,17 +22,17 @@ public:
 
 	// Segmentation functions
 	std::vector<std::string> getSegmentations();
-	int setActiveSegmentation(int);
-	int newSegmentation();
-	pcl::PointCloud<pcl::PointXYZRGB> openCloud();
-	int saveCloud(pcl::PointCloud<pcl::PointXYZRGB>);
+	void setActiveSegmentation(std::string);
+  std::string newSegmentation();
+	pcl::PointCloud<pcl::PointXYZRGB>::Ptr openCloud();
+	void saveCloud(pcl::PointCloud<pcl::PointXYZRGB>);
 	
 private:
 	VolumePkgCfg config;
 	std::string location;
-    boost::filesystem::path segdir;
+  boost::filesystem::path segdir;
 	int getNumberOfSliceCharacters();
-	int activeSeg = -1;
+  std::string activeSeg = "";
 	std::vector<std::string> segmentations;
 };
 

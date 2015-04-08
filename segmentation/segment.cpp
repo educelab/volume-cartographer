@@ -58,8 +58,8 @@ int main(int argc, char* argv[]) {
   }
   
   // generate output name from path file
-  outputName = pathLocation.substr(pathLocation.find_last_of("/\\")+1);
-  outputName = outputName.substr(0,outputName.find_last_of("."));
+//  outputName = pathLocation.substr(pathLocation.find_last_of("/\\")+1);
+//  outputName = outputName.substr(0,outputName.find_last_of("."));
 
   // Load volume package
   VolumePkg volpkg(volpkgLocation);
@@ -69,9 +69,8 @@ int main(int argc, char* argv[]) {
   segmentedCloud = structureTensorParticleSim(pathLocation, volpkg, gravity_scale, threshold, endSlice);
 
   // Save point cloud
-  printf("Writing point cloud to file...\n");
-  pcl::io::savePCDFileASCII(outputName + "_segmented.pcd", segmentedCloud);
-
-  printf("Segmentation complete!\n");
+  std::string output = volpkg.newSegmentation();
+  volpkg.setActiveSegmentation(output);
+  volpkg.saveCloud(segmentedCloud);
   exit(EXIT_SUCCESS);
 }
