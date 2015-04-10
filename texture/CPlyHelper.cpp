@@ -37,7 +37,7 @@ bool CPlyHelper::ReadPlyFile( const string &nFileName,
 
 	// read header
 	int aNumVertices, aNumFaces;
-	const int NUM_LINES_IN_HEADER = 18;
+	const int NUM_LINES_IN_HEADER = 21;
 	const int NUM_VERTEX_POS = 15;
 	const int NUM_FACE_POS   = 13;
 	for ( int i = 0; i < NUM_LINES_IN_HEADER; ++i ) {
@@ -52,6 +52,12 @@ bool CPlyHelper::ReadPlyFile( const string &nFileName,
 	// REVISIT - for debug
 	cout << "# of vertices to be read: " << aNumVertices << endl;
 	cout << "# of faces to be read: " << aNumFaces << endl;
+	
+	// get the dimensions of the mesh from the header
+	int width, height;
+	aMeshFile >> width >> height;
+	cout << "width: " << width << endl;
+	cout << "height: " << height << endl;
 
 	// read vertices
 	double x, y, z, nx, ny, nz, s, t;

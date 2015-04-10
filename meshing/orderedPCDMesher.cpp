@@ -18,10 +18,15 @@ void write_mesh(std::string);
 
 std::vector<Vertex> vertices;
 std::vector<Face> faces;
+int width, height;
 
 int orderedPCDMesher(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::string outFile){
   
   std::vector< std::vector< pcl::PointXYZRGB > > VoV;
+
+  // Keep the w+h of our ordered pcd
+  width = cloud->width;
+  height = cloud->height;
 
   for (int i = 0; i < cloud->height; ++i)
   {
@@ -70,6 +75,9 @@ void write_mesh(std::string name) {
   meshFile << "ply" << std::endl
            << "format ascii 1.0" << std::endl
            << "comment Created by particle simulation https://github.com/viscenter/registration-toolkit" << std::endl
+           << "element dimensions 1" << std::endl
+           << "property float width" << std::endl
+           << "property float height" << std::endl
            << "element vertex " << vertices.size() << std::endl
            << "property float x" << std::endl
            << "property float y" << std::endl
@@ -85,6 +93,9 @@ void write_mesh(std::string name) {
            << "element face " << faces.size() << std::endl
            << "property list uchar int vertex_indices" << std::endl
            << "end_header" << std::endl;
+  
+  // write dimensions
+  meshFile << width << " " << height << std::endl;
 
   // write vertex information
   for (int i = 0; i < vertices.size(); i++) {
