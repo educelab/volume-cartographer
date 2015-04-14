@@ -74,6 +74,7 @@ std::vector<std::string> VolumePkg::getSegmentations() {
 
 // Set the private variable activeSeg to the seg we want to work with
 void VolumePkg::setActiveSegmentation(std::string name) {
+    // To-Do: Check that this seg actually exists in the volume
     activeSeg = name;
 };
 

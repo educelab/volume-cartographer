@@ -32,25 +32,14 @@ int numslices;
 int realIterations;
 uint32_t COLOR = 0x00777777;
 
-pcl::PointCloud<pcl::PointXYZRGB> structureTensorParticleSim(std::string landmark_path, VolumePkg volpkg, int gravity_scale, int threshold, int endSlice) {
+pcl::PointCloud<pcl::PointXYZRGB> structureTensorParticleSim(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg volpkg, int gravity_scale, int threshold, int endSlice) {
 
-  // read landmarks file
-  std::ifstream landmarks_file;
-  landmarks_file.open(landmark_path);
-  if (landmarks_file.fail()) {
-    std::cout << "Path text file could not be opened" << std::endl;
-    exit(EXIT_FAILURE);
-  }
-
-  // Create chain from landmarks file
+  // Create chain from segPath cloud
   std::vector<double> indexes;
-  while (!landmarks_file.eof()) {
-    double index, a, b;
-    landmarks_file >> index >> a >> b;
-    particle_chain.push_back(Particle(index, a, b));
-    indexes.push_back(index);
+  for(pcl::PointCloud<pcl::PointXYZRGB>::iterator path_it = segPath->begin(); path_it != segPath->end(); ++path_it){
+        particle_chain.push_back(Particle(path_it->x, path_it->y, path_it->z));
+        indexes.push_back(path_it->x);
   }
-  landmarks_file.close();
 
   // figure out which slice to load first
   int min_index = indexes[0];

@@ -43,17 +43,11 @@ void DrawBezier( cv::Vec2f &start,
 	}
 }
 
-bool SavePath( const std::string &nOutFileName,
+bool SavePath( VolumePkg *vpkg,
 				const std::vector< pt_tuple > &nPath,
 				int nPathOnSliceIndex )
 {
-	ofstream aOut;
-	aOut.open( nOutFileName, ofstream::out );
-
-	if ( !aOut.is_open() ) {
-		std::cerr << "ERROR: Open file " << nOutFileName << " failed" << endl;
-		return false;
-	}
+	pcl::PointCloud<pcl::PointXYZRGB> pathCloud;
 
 	for ( size_t i = 0; i < nPath.size(); ++i ) {
 		Vec2f p1 = nPath[ i ].start;
@@ -77,10 +71,16 @@ bool SavePath( const std::string &nOutFileName,
 
 			// REVISIT - Chao 20141103 - new path format: x y z x y z...
 			//           x y z = slice index, image column, image row
-			aOut << nPathOnSliceIndex << " " << x << " " << y << endl;
+			pcl::PointXYZRGB point;
+      		point.x = nPathOnSliceIndex;
+      		point.y = x;
+      		point.z = y;
+			pathCloud.push_back(point);
 		}
 	}
 
-	aOut.close();
+	vpkg->setActiveSegmentation(vpkg->newSegmentation());
+	vpkg->saveCloud(pathCloud);
+
 	return true;
 }
