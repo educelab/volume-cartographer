@@ -14,6 +14,6 @@
 typedef cv::Vec3f Particle;
 typedef Particle Force;
 
-pcl::PointCloud<pcl::PointXYZRGB> structureTensorParticleSim(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg volpkg, int gravity_scale = 2, int threshold = 1, int endSlice = -1);
+pcl::PointCloud<pcl::PointXYZRGB> structureTensorParticleSim(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg volpkg, int gravity_scale = 2, int threshold = 1, int endOffset = -1);
 
 #endif

@@ -29,10 +29,11 @@ double spring_resting_x;
 
 // misc globals
 int numslices;
+int min_index, max_index;
 int realIterations;
 uint32_t COLOR = 0x00777777;
 
-pcl::PointCloud<pcl::PointXYZRGB> structureTensorParticleSim(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg volpkg, int gravity_scale, int threshold, int endSlice) {
+pcl::PointCloud<pcl::PointXYZRGB> structureTensorParticleSim(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg volpkg, int gravity_scale, int threshold, int endOffset) {
 
   // Create chain from segPath cloud
   std::vector<double> indexes;
@@ -41,20 +42,44 @@ pcl::PointCloud<pcl::PointXYZRGB> structureTensorParticleSim(pcl::PointCloud<pcl
         indexes.push_back(path_it->x);
   }
 
-  // figure out which slice to load first
-  int min_index = indexes[0];
+  // find the starting index based on the z-index's of the starting path
+  min_index = indexes[0];
   for (int i = 0; i < indexes.size(); ++i) {
     if (min_index > indexes[i]) {
       min_index = indexes[i];
     }
   }
 
-  // we lose 4 slices calculating normals
-  //if we set the number of slices to load, use that value, otherwise pull from volpkg
-  if (endSlice == -1)
-    numslices = volpkg.getNumberOfSlices() - 4;
-  else
-    numslices = endSlice + min_index;
+  // define the end index. simulation will end once it passes through this index value
+  if (endOffset == -1) {
+    // we lose 2 slices to normal calculation, then subtract 1 more to account for 0-index
+    max_index = volpkg.getNumberOfSlices() - 3;
+  } else {
+    // user-specified index based on offset from starting path
+    max_index = min_index + endOffset;
+  }
+  // we always need one more slice than the difference of the max and min (for the starting slice)
+  numslices = (max_index - min_index) + 1;
+
+  //This is how we will maintain our ordered structure, vectors of particle chains for each real iteration
+  //This has the size of realIterations x particle_chain.size. We assume all slices are loaded
+  std::vector<std::vector<pcl::PointXYZRGB> > VoV;
+
+  // user-specified threshold reduces number of iterations that are saved
+  realIterations = int(ceil(numslices/threshold));
+  
+  // Invalid particles have x of -1
+  // They must at least exist to maintain ordered pcd structure so we allocate
+  // all possible points now
+  for (int i = 0; i < realIterations; ++i) {
+    std::vector<pcl::PointXYZRGB> tmp;
+    for (int j = 0; j < particle_chain.size(); ++j) {
+      pcl::PointXYZRGB point;
+      point.x = -1;
+      tmp.push_back(point);
+    }
+    VoV.push_back(tmp);
+  }
 
   // calculate spring resting distance
   double total_delta = 0;
@@ -65,7 +90,7 @@ pcl::PointCloud<pcl::PointXYZRGB> structureTensorParticleSim(pcl::PointCloud<pcl
   spring_resting_x = total_delta / (particle_chain.size() - 1);
 
   // save normal filepaths for iteration
-  for (int i = min_index; i < volpkg.getNumberOfSlices() - 2; ++i) {
+  for (int i = min_index; i <= max_index; ++i) {
     field_slices.insert(volpkg.getNormalAtIndex(i));
   }
 
@@ -101,30 +126,17 @@ pcl::PointCloud<pcl::PointXYZRGB> structureTensorParticleSim(pcl::PointCloud<pcl
   for (int i = 0; i < particle_chain.size(); ++i)
     particle_stall_count.push_back(0);
 
-  //This is how we will maintain our ordered structure, vectors of particle chains for each real iteration
-  //This has the size of realIterations x particle_chain.size. We assume all slices are loaded
-  std::vector<std::vector<pcl::PointXYZRGB> > VoV;
-
-  realIterations = int(ceil(numslices/threshold));
-  
-  //Invalid particles have x of -1
-  for (int i = 0; i < realIterations; ++i) {
-    std::vector<pcl::PointXYZRGB> tmp;
-    for (int j = 0; j <particle_chain.size(); ++j) {
-      pcl::PointXYZRGB point;
-      point.x = -1;
-      tmp.push_back(point);
-    }
-    VoV.push_back(tmp);
-  }
-
   // run particle simulation
   while (ps_nand(particle_status)) {
     for (int i = 0; i < particle_chain.size(); ++i) {
-      if (particle_chain[i](0) >= numslices || particle_status[i]) {
+      // particle_chain[i](0) is the particle's position in z space
+      // if it's larger than the max index, stop the particle
+      // Note: particle z-index can exist between voxels (e.g. 151.25) so we have to round down for comparison
+      if (floor(particle_chain[i](0)) > max_index || particle_status[i]) {
         particle_status[i] = true;
         continue;
       }
+      
       if (particle_stall_count[i] > 25000) {
         particle_status[i] = true;
       }
@@ -132,8 +144,8 @@ pcl::PointCloud<pcl::PointXYZRGB> structureTensorParticleSim(pcl::PointCloud<pcl
       //TODO: What do we define as a stall? How many stalls?
       particle_stall_count[i] += 1;
       
-      //Current particle's slice value (minus 1 for array indices) over threshold
-      int currentCell = int(((particle_chain[i](0)) - 1)/threshold);
+      //Current particle's slice value minus starting index over threshold = VoV width position
+      int currentCell = int(((particle_chain[i](0)) - min_index/threshold));
       //see if a particle has been placed in this slice yet at this chain index
       if (VoV[currentCell][i].x == -1) {
         pcl::PointXYZRGB point;
@@ -181,10 +193,10 @@ void update_field() {
     }
   }
   for (int i = 0; i < to_erase.size(); ++i) {
-    std::cout << "deleting slice " << to_erase[i] << std::endl;
+    std::cout << "unloading slice " << to_erase[i] << std::endl;
     slices_loaded.erase(to_erase[i]);
   }
-  if (*slices_loaded.rbegin() == *slices_seen.rbegin() && *slices_loaded.rbegin() <= numslices) {
+  if (*slices_loaded.rbegin() == *slices_seen.rbegin() && *slices_loaded.rbegin() <= max_index) {
     add_slices();
   }
 }
