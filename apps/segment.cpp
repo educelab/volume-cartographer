@@ -99,6 +99,15 @@ int main(int argc, char* argv[]) {
   // apply filter
   pathFilter.filter (*segPath);
 
+  // starting paths must have the same number of points as the input width to maintain ordering
+  if ( segPath->width != chainLength ) {
+    std::cerr << std::endl << "ERROR: Starting chain length does not match expected chain length." << std::endl;
+    std::cerr << "           Expected: " << chainLength << std::endl;
+    std::cerr << "           Actual: " << segPath->width << std::endl;
+    std::cerr << "       Consider using a lower starting index value." << std::endl << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
   // Conditions for being a point before the starting path: pt.x < startIndex
   pcl::ConditionAnd<pcl::PointXYZRGB>::Ptr staticCond (new pcl::ConditionAnd<pcl::PointXYZRGB> ());
   staticCond->addComparison (pcl::FieldComparison<pcl::PointXYZRGB>::ConstPtr (new pcl::FieldComparison<pcl::PointXYZRGB> ("x", pcl::ComparisonOps::LT, startIndex)));
