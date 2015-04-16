@@ -50,6 +50,7 @@ install(PROGRAMS
 "${CMAKE_BINARY_DIR}/texture/vc_sliceProjection"
 "${CMAKE_BINARY_DIR}/utils/vc_analyze"
 "${CMAKE_BINARY_DIR}/utils/vc_conform"
+"${CMAKE_BINARY_DIR}/utils/vc_txt2pcd"
 DESTINATION bin
 COMPONENT Programs)
 
