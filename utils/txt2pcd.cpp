@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
   landmarks_file.close();
 
   printf("Writing point cloud to file...\n");
-  pcl::io::savePCDFileASCII(outputName, *outputCloud);
+  pcl::io::savePCDFileBinaryCompressed(outputName, *outputCloud);
   printf("Point cloud saved.\n");
 
 }
