@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
-SET(CMAKE_CXX_FLAGS "-std=c++11")
 
 add_executable(vc_reslicer reslicer.cpp)
 

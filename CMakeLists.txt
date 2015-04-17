@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 cmake_policy(SET CMP0048 NEW)
-SET(CMAKE_CXX_FLAGS "-std=c++11")
+add_definitions("-std=c++11")
 
 project(VC VERSION 1.0.1)
 

@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
-SET(CMAKE_CXX_FLAGS "-std=c++11")
 
 IF(APPLE)
 FIND_LIBRARY(SECURITY_LIBRARY Security)
