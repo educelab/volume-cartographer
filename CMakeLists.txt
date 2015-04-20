@@ -15,7 +15,7 @@ add_subdirectory(simulation)
 add_subdirectory(mesher)
 add_subdirectory(texture)
 add_subdirectory(utils)
-add_subdirectory(seti)
+add_subdirectory(region)
 
 # Copy packager files. This is a hack.
 file(MAKE_DIRECTORY packager)
@@ -33,7 +33,7 @@ install(PROGRAMS
 "${CMAKE_BINARY_DIR}/texture/vc_sliceProjection"
 "${CMAKE_BINARY_DIR}/utils/vc_analyze"
 "${CMAKE_BINARY_DIR}/utils/vc_conform"
-"${CMAKE_BINARY_DIR}/seti/vc_seti"
+"${CMAKE_BINARY_DIR}/region/vc_region"
 DESTINATION bin
 COMPONENT Programs)
 

@@ -10,8 +10,10 @@ include_directories(${PCL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} ${VOLUMEPKG_INCLU
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
-add_executable(vc_seti seti.cpp)
 
-target_link_libraries(vc_seti ${PCL_LIBRARIES})
-target_link_libraries(vc_seti ${OpenCV_LIBS})
-target_link_libraries(vc_seti volumepkg)
+set(SOURCES main.cpp voxel.cpp region.cpp voxel.h region.h)
+add_executable(vc_region ${SOURCES})
+
+target_link_libraries(vc_region ${PCL_LIBRARIES})
+target_link_libraries(vc_region ${OpenCV_LIBS})
+target_link_libraries(vc_region volumepkg)
