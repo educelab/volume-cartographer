@@ -48,6 +48,9 @@ public:
 	std::vector< cv::Vec3i > fFaces;
 	// edge list
 	std::set< cv::Vec2i, EdgeCompareLess > fEdges;
+	// dimensions
+	int fWidth;
+	int fHeight;
 
 }; // class CMesh
 
