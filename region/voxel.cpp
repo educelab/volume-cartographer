@@ -43,14 +43,14 @@ bool connector(Voxel x, Voxel y) {
   vround(negative_intersect_to_y_);
 
   if ((positive_gravity_to_x_ == x.position || negative_gravity_to_x_ == x.position) ||
-      (negative_gravity_to_y_ == y.position || negative_gravity_to_y_ == y.position)) {
+      (positive_gravity_to_y_ == y.position || negative_gravity_to_y_ == y.position)) {
     return true;
   }
 
-  // if ((positive_intersect_to_x_ == x.position || negative_intersect_to_x_ == x.position) &&
-  //     (positive_intersect_to_y_ == y.position || negative_intersect_to_x_ == y.position)) {
-  //   return true;
-  // }
+  if ((positive_intersect_to_x_ == x.position || negative_intersect_to_x_ == x.position) &&
+      (positive_intersect_to_y_ == y.position || negative_intersect_to_y_ == y.position)) {
+    return true;
+  }
   return false;
 }
   
