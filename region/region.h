@@ -12,12 +12,17 @@
 
 extern Voxel**** volume;
 
+typedef enum {
+  CONNECTOR = 'KNCT',
+  GRAV_ONLY = 'GRAV'
+} regionMetric;
+
 class Region {
   std::vector<Voxel*> regionv;
 public:
   Region(Voxel* v);
   void insert(Voxel* v);
-  int grow();
+  int growWith(regionMetric);
   void write();
 };
 

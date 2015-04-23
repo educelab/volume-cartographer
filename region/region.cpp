@@ -1,5 +1,61 @@
 #include "region.h"
 
+static void vround(Vector& v) {
+  v = Vector(round(v(0)), round(v(1)), round(v(2)));
+}
+
+static bool connector(Voxel x, Voxel y) {
+  x.project();
+  y.project();
+
+  // look for a connection based on gravity
+  Vector positive_gravity_to_x_ = y.pos() + y.grav();
+  Vector negative_gravity_to_x_ = y.pos() - y.grav();
+  vround(positive_gravity_to_x_);
+  vround(negative_gravity_to_x_);
+  Vector positive_gravity_to_y_ = x.pos() + x.grav();
+  Vector negative_gravity_to_y_ = x.pos() - x.grav();
+  vround(positive_gravity_to_y_);
+  vround(negative_gravity_to_y_);
+
+  // look for connection on slice intersection
+  Vector positive_intersect_to_x_ = y.pos() + y.slice();
+  Vector negative_intersect_to_x_ = y.pos() - y.slice();
+  vround(positive_intersect_to_x_);
+  vround(negative_intersect_to_x_);
+  Vector positive_intersect_to_y_ = x.pos() + x.slice();
+  Vector negative_intersect_to_y_ = x.pos() - x.slice();
+  vround(positive_intersect_to_y_);
+  vround(negative_intersect_to_y_);
+
+  if ((positive_gravity_to_x_ == x.pos() || negative_gravity_to_x_ == x.pos()) ||
+      (positive_gravity_to_y_ == y.pos() || negative_gravity_to_y_ == y.pos())) {
+    return true;
+  }
+
+  if ((positive_intersect_to_x_ == x.pos() || negative_intersect_to_x_ == x.pos()) &&
+      (positive_intersect_to_y_ == y.pos() || negative_intersect_to_y_ == y.pos())) {
+    return true;
+  }
+  return false;
+}
+
+static bool grav_only(Voxel x, Voxel y) {
+  Vector positive_gravity_to_x_ = y.pos() + y.grav();
+  Vector negative_gravity_to_x_ = y.pos() - y.grav();
+  vround(positive_gravity_to_x_);
+  vround(negative_gravity_to_x_);
+  Vector positive_gravity_to_y_ = x.pos() + x.grav();
+  Vector negative_gravity_to_y_ = x.pos() - x.grav();
+  vround(positive_gravity_to_y_);
+  vround(negative_gravity_to_y_);
+  if ((positive_gravity_to_x_ == x.pos() || negative_gravity_to_x_ == x.pos()) ||
+      (positive_gravity_to_y_ == y.pos() || negative_gravity_to_y_ == y.pos())) {
+    return true;
+  }
+  return false;
+}
+
 Region::Region(Voxel* v) {
   regionv.push_back(v);
   Vector pos = v->pos();
@@ -18,9 +74,25 @@ void Region::insert(Voxel* v) {
   volume[x][y][z] = NULL;
 }
 
-int Region::grow() {
+int Region::growWith(regionMetric m) {
+  bool (*metric)(Voxel,Voxel);
+  std::cout << ((char*)&m)[3]
+            << ((char*)&m)[2]
+            << ((char*)&m)[1]
+            << ((char*)&m)[0] << std::endl;
+  switch(m) {
+  case CONNECTOR:
+    metric = &connector;
+    break;
+  case GRAV_ONLY:
+    metric = &grav_only;
+    break;
+  default:
+    std::cout << "ILLEGAL REGION METRIC" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
   int regsize = regionv.size();
-  int counter = 0;
   for (int i = 0; i < regsize; ++i) {
     Vector pos = regionv[i]->pos();
     int x = pos(0);
@@ -31,15 +103,13 @@ int Region::grow() {
       int dy = ((loci % 9) / 3) - 1;
       int dz = ((loci % 9) % 3) - 1;
       if (volume[x + dx][y + dy][z + dz] != NULL &&
-          connector(*(regionv[i]), *(volume[x + dx][y + dy][z + dz]))) {
-        // std::cout << "adding " << *(volume[x + dx][y + dy][z + dz]) << std::endl;
+          metric(*(regionv[i]), *(volume[x + dx][y + dy][z + dz]))) {
         regionv.push_back(volume[x + dx][y + dy][z + dz]);
         volume[x + dx][y + dy][z + dz] = NULL;
-        counter++;
       }
     }
   }
-  return counter;
+  return regionv.size() - regsize;
 }
 
 void Region::write() {

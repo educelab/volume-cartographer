@@ -51,7 +51,9 @@ void start_region() {
   int z = pos(2);
   Region r(volume[x][y][z]);
 
-  for (int i = 0; i < 4096; ++i) {
+
+  int maxindex = pow(2,12);
+  for (int i = 0; i < maxindex; ++i) {
     Voxel master = pq.top();
     pq.pop();
     Vector pos = master.pos();
@@ -62,8 +64,8 @@ void start_region() {
   }
   pq = std::priority_queue<Voxel>();
 
-  for (int i = 0; i < 8; ++i) {
-    n = r.grow();
+  for (int i = 0; i < 4; ++i) {
+    r.growWith(CONNECTOR);
   }
   r.write();
 }

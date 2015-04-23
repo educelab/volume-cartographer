@@ -10,10 +10,13 @@ class Voxel {
  public:
   Voxel(Vector, Vector, float);
   void project();
-  friend bool connector(Voxel, Voxel);
+
   Vector pos();
   Vector norm();
+  Vector grav();
+  Vector slice();
   float eig();
+
   friend bool operator<(const Voxel&, const Voxel&);
   friend Vector offset(Voxel, Voxel);
   friend std::ostream& operator<<(std::ostream& os, const Voxel& v);

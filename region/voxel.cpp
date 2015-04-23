@@ -13,46 +13,6 @@ void Voxel::project() {
   normalize(gravity);
   normalize(slice_intersect);
 }
-
-static void vround(Vector& v) {
-  v = Vector(round(v(0)), round(v(1)), round(v(2)));
-}
-
-bool connector(Voxel x, Voxel y) {
-  x.project();
-  y.project();
-
-  // look for a connection based on gravity
-  Vector positive_gravity_to_x_ = y.position + y.gravity;
-  Vector negative_gravity_to_x_ = y.position - y.gravity;
-  vround(positive_gravity_to_x_);
-  vround(negative_gravity_to_x_);
-  Vector positive_gravity_to_y_ = x.position + x.gravity;
-  Vector negative_gravity_to_y_ = x.position - x.gravity;
-  vround(positive_gravity_to_y_);
-  vround(negative_gravity_to_y_);
-    
-  // look for connection on slice intersection
-  Vector positive_intersect_to_x_ = y.position + y.slice_intersect;
-  Vector negative_intersect_to_x_ = y.position - y.slice_intersect;
-  vround(positive_intersect_to_x_);
-  vround(negative_intersect_to_x_);
-  Vector positive_intersect_to_y_ = x.position + x.slice_intersect;
-  Vector negative_intersect_to_y_ = x.position - x.slice_intersect;
-  vround(positive_intersect_to_y_);
-  vround(negative_intersect_to_y_);
-
-  if ((positive_gravity_to_x_ == x.position || negative_gravity_to_x_ == x.position) ||
-      (positive_gravity_to_y_ == y.position || negative_gravity_to_y_ == y.position)) {
-    return true;
-  }
-
-  if ((positive_intersect_to_x_ == x.position || negative_intersect_to_x_ == x.position) &&
-      (positive_intersect_to_y_ == y.position || negative_intersect_to_y_ == y.position)) {
-    return true;
-  }
-  return false;
-}
   
 Vector Voxel::pos() {
   return position;
@@ -60,6 +20,14 @@ Vector Voxel::pos() {
 
 Vector Voxel::norm() {
   return normal;
+}
+
+Vector Voxel::grav() {
+  return gravity;
+}
+
+Vector Voxel::slice() {
+  return  slice_intersect;
 }
 
 float Voxel::eig() {
