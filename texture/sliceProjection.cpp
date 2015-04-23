@@ -14,6 +14,7 @@
 int main( int argc, char *argv[] )
 {
     printf( "Running tool: sliceProjection\n" );
+    std::cout << std::endl;
     if ( argc < 4 ) {
         printf( "Usage: sliceProjection mesh.ply volPkgPath outputPath\n" );
         exit( -1 );
@@ -24,10 +25,11 @@ int main( int argc, char *argv[] )
     std::string aFileName( argv[ 1 ] );
     // REVISIT - IMPORTANT!!! if the mesh ply file contains "nan", the mesh won't be read in correctly
     //           this typically happens for the normals of vertices
+    std::cout << "Loading mesh..." << std::endl;
     ChaoVis::CPlyHelper::ReadPlyFile( aFileName, aMesh );
-    std::cout << "Mesh file loaded" << std::endl;
     // REVISIT - for debug
     aMesh.Dump();
+    std::cout << "Mesh file loaded" << std::endl;
 
     // copy and sort the vertices
     std::vector< pcl::PointXYZRGBNormal > aPoints( aMesh.fPoints.size() );
@@ -37,12 +39,13 @@ int main( int argc, char *argv[] )
     int aMinSliceIndex, aMaxSliceIndex;
 
     aMinSliceIndex = ( int )floor( aPoints.begin()->x );
-  if (aMinSliceIndex == -1 ){
-    aMinSliceIndex = 0;
-  }
+    if (aMinSliceIndex == -1 ){
+        aMinSliceIndex = 0;
+    }
     aMaxSliceIndex = ( int )ceil( aPoints.back().x );
 
     // REVISIT - for debug
+    std::cout << std::endl;
     std::cout << "Min slice index: " << aMinSliceIndex << 
                 " Max slice index: " << aMaxSliceIndex << std::endl;
 
@@ -50,6 +53,7 @@ int main( int argc, char *argv[] )
     VolumePkg aVpkg = VolumePkg( argv[ 2 ] );
     std::vector< cv::Mat > aImgVol;
     ProcessVolume( aVpkg, aImgVol, false, false );
+    std::cout << std::endl;
 
     // (3) for each slice, do not read in slice texture file, but directly find
     //     mesh intersection on that slice and draw path
@@ -62,6 +66,7 @@ int main( int argc, char *argv[] )
     std::vector< std::vector< pt > > aIntrsctPos( aNumSlices );
 
     // iterate through all the edges
+    std::cout << "Calculating intersections..." << std::endl;
     std::set< cv::Vec2i, ChaoVis::EdgeCompareLess >::iterator aIter;
     for ( aIter = aMesh.fEdges.begin(); aIter != aMesh.fEdges.end(); ++aIter ) {
 
@@ -133,6 +138,7 @@ int main( int argc, char *argv[] )
         } // for
 
     } // for
+    std::cout << std::endl;
 
     // (4) output all the path in each slices
     std::vector< cv::Mat >::iterator aStackIter;
@@ -142,12 +148,17 @@ int main( int argc, char *argv[] )
     strcpy( aOutputPath, argv[ 3 ] );
     strcat( aOutputPath, "/proj%04d.png" );
 
+    //PNG Compression params
+    std::vector<int> compression_params;
+    compression_params.push_back(CV_IMWRITE_PNG_COMPRESSION);
+    compression_params.push_back(9);
+
     // REVISIT - aIntrsctColor recorded the appearance of the intersections of the mesh with each slice
     //           however we don't save it out, instead we overlay the paths on each slice
     for ( aStackIter = aIntrsctColor.begin(); aStackIter != aIntrsctColor.end(); ++aStackIter, ++aCnt ) {
 
         // overlay the path to the original image
-        std::cout << "Overlaying image " << aCnt << std::endl;
+        std::cout << "\rOverlaying image " << aCnt << "..." << std::flush;
 
         cv::Mat aOverlayImg;
         aImgVol[ aCnt + aMinSliceIndex ].copyTo( aOverlayImg );
@@ -164,8 +175,9 @@ int main( int argc, char *argv[] )
         }
 
         sprintf( aOutputImgFileName, aOutputPath, aCnt + aMinSliceIndex );
-        cv::imwrite( aOutputImgFileName, aOverlayImg );
+        cv::imwrite( aOutputImgFileName, aOverlayImg, compression_params);
     }
+    std::cout << std::endl;
 
     // create mp4 movie
     // note: with -pix_fmt option the generated file can have the largest compatibility, however,
@@ -175,7 +187,7 @@ int main( int argc, char *argv[] )
     strcpy( aOutputVideoName, argv[ 3 ] );
     strcat( aOutputVideoName, "/compositeVideo.mp4" );
     char aCmdStr[ 512 ];
-    sprintf( aCmdStr, "ffmpeg -framerate 25 -start_number %d -i %s -c:v libx264 -pix_fmt yuv420p -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" %s", aMinSliceIndex, aOutputPath, aOutputVideoName );
+    sprintf( aCmdStr, "ffmpeg -framerate 30000/1001 -start_number %d -i %s -c:v libx264 -pix_fmt yuv420p -vf \"scale=iw*sar:ih, scale=\'w=if(lt(dar, 16/9), trunc(oh*a/2)*2, min(1920,ceil(iw/2)*2)):h=if(gte(dar, 16/9), trunc(ow/a/2)*2, min(1080,ceil(ih/2)*2))\', setsar=1\" -movflags faststart %s", aMinSliceIndex, aOutputPath, aOutputVideoName );
     system( aCmdStr );
 
     return 0;
