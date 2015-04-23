@@ -23,6 +23,7 @@ include_directories(${VOLUMEPKG_INCLUDE_DIR})
 
 add_subdirectory(meshing)
 add_subdirectory(segmentation)
+add_subdirectory(examples)
 
 include_directories(${MESHING_INCLUDE_DIR} ${SEGMENTATION_INCLUDE_DIR})
 

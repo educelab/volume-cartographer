@@ -21,8 +21,24 @@
 class VolumePkg {
 public:
     VolumePkg(std::string);
+
+    // Debug
+    void printObject();
+
+    // Metadata Retrieval
     int getNumberOfSlices();
     std::string getPkgName();
+
+    // Metadata Assignment
+    void setMetadata(std::string, int);
+    void setMetadata(std::string, double);
+    void setMetadata(std::string, std::string);
+
+    // Metadata Export
+    void saveMetadata();
+    void saveMetadata(std::string filePath);
+
+    // Data Retrieval
     cv::Mat getSliceAtIndex(int);
     std::string getNormalAtIndex(int);
 

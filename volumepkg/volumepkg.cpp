@@ -12,7 +12,15 @@ VolumePkg::VolumePkg(std::string file_location) : config(file_location + "/confi
     }
 }
 
-// Returns # of slices from JSON config
+// DEBUG FUNCTIONS //
+// Print the currently stored PicoJson Object
+void VolumePkg::printObject() {
+    config.printObject();
+}
+
+
+// METADATA RETRIEVAL //
+// Returns no. of slices from JSON config
 int VolumePkg::getNumberOfSlices() {
     return config.getInt("number of slices");
 }
@@ -22,6 +30,38 @@ std::string VolumePkg::getPkgName() {
     return config.getString("volumepkg name", "UnnamedVolume");
 }
 
+
+// METADATA ASSIGNMENT //
+void VolumePkg::setMetadata(std::string key, int value) {
+    // To-Do: set active metadata
+    config.setValue(key,value);
+}
+
+void VolumePkg::setMetadata(std::string key, double value) {
+    // To-Do: set active metadata
+    config.setValue(key,value);
+}
+
+void VolumePkg::setMetadata(std::string key, std::string value) {
+    // To-Do: set active metadata
+    config.setValue(key,value);
+}
+
+
+// METADATA EXPORT //
+// Save metadata to volpkg config.json
+void VolumePkg::saveMetadata() {
+    std::string filePath = location + "/config.json";
+    config.saveCfg(filePath);
+}
+
+// Save metadata to any file
+void VolumePkg::saveMetadata(std::string filePath) {
+    config.saveCfg(filePath);
+}
+
+
+// DATA RETRIEVAL //
 // Returns # of significant digits for # of slices
 int VolumePkg::getNumberOfSliceCharacters() {
     int num_slices = getNumberOfSlices();
@@ -35,7 +75,6 @@ int VolumePkg::getNumberOfSliceCharacters() {
 
 // Returns slice at specific slice index
 cv::Mat VolumePkg::getSliceAtIndex(int index) {
-
     //get the file name
     std::string slice_location(location);
     slice_location += config.getString("slice location", "/slices/");
@@ -67,6 +106,8 @@ std::string VolumePkg::getNormalAtIndex(int index) {
     return pcd_location;
 }
 
+
+// SEGMENTATION FUNCTIONS //
 // Return a vector of strings representing the names of segmentations in the volpkg
 std::vector<std::string> VolumePkg::getSegmentations() {
     return segmentations;
