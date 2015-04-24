@@ -14,7 +14,7 @@
 #include "region.h"
 
 Voxel**** volume;
-int fieldsize = 400;
+int fieldsize = 650;
 int number_of_slices;
 void prep(VolumePkg);
 void start_region();
@@ -42,7 +42,8 @@ void start_region() {
       for (int k = 0; k < fieldsize; ++k) {
         if (volume[i][j][k] != NULL) {
           pq.push(*volume[i][j][k]);}}}}
-  
+
+  // create a region
   Voxel master = pq.top();
   pq.pop();
   Vector pos = master.pos();
@@ -51,8 +52,8 @@ void start_region() {
   int z = pos(2);
   Region r(volume[x][y][z]);
 
-
-  int maxindex = pow(2,12);
+  // add some more seed points
+  int maxindex = pow(2,5);
   for (int i = 0; i < maxindex; ++i) {
     Voxel master = pq.top();
     pq.pop();
@@ -64,9 +65,13 @@ void start_region() {
   }
   pq = std::priority_queue<Voxel>();
 
-  for (int i = 0; i < 4; ++i) {
-    r.growWith(CONNECTOR);
+  // run forever
+  for (;;) {
+    if (0 == r.growWith(CONNECTOR)) {
+      break;
+    }
   }
+
   r.write();
 }
 

@@ -57,7 +57,7 @@ static bool grav_only(Voxel x, Voxel y) {
 }
 
 Region::Region(Voxel* v) {
-  regionv.push_back(v);
+  live.push(v);
   Vector pos = v->pos();
   int x = pos(0);
   int y = pos(1);
@@ -66,7 +66,7 @@ Region::Region(Voxel* v) {
 }
 
 void Region::insert(Voxel* v) {
-  regionv.push_back(v);
+  live.push(v);
   Vector pos = v->pos();
   int x = pos(0);
   int y = pos(1);
@@ -76,10 +76,7 @@ void Region::insert(Voxel* v) {
 
 int Region::growWith(regionMetric m) {
   bool (*metric)(Voxel,Voxel);
-  std::cout << ((char*)&m)[3]
-            << ((char*)&m)[2]
-            << ((char*)&m)[1]
-            << ((char*)&m)[0] << std::endl;
+
   switch(m) {
   case CONNECTOR:
     metric = &connector;
@@ -92,39 +89,69 @@ int Region::growWith(regionMetric m) {
     exit(EXIT_FAILURE);
   }
 
-  int regsize = regionv.size();
-  for (int i = 0; i < regsize; ++i) {
-    Vector pos = regionv[i]->pos();
+  int counter = 0;
+  std::list<Voxel*> asdfwtf;
+  while (!live.empty()) {
+    Voxel* it = live.front();
+    live.pop();
+    dead.push_back(it);
+
+    Vector pos = it->pos();
     int x = pos(0);
     int y = pos(1);
     int z = pos(2);
+
     for (int loci = 0; loci < 27; ++loci) {
       int dx = (loci / 9) - 1;
       int dy = ((loci % 9) / 3) - 1;
       int dz = ((loci % 9) % 3) - 1;
+
       if (volume[x + dx][y + dy][z + dz] != NULL &&
-          metric(*(regionv[i]), *(volume[x + dx][y + dy][z + dz]))) {
-        regionv.push_back(volume[x + dx][y + dy][z + dz]);
+          metric(*it, *(volume[x + dx][y + dy][z + dz]))) {
+
+        asdfwtf.push_back(volume[x + dx][y + dy][z + dz]);
         volume[x + dx][y + dy][z + dz] = NULL;
+
+        counter++;
       }
     }
   }
-  return regionv.size() - regsize;
+
+  for (std::list<Voxel*>::iterator it = asdfwtf.begin(); it != asdfwtf.end(); ++it) {
+    live.push(*it);
+  }
+
+  return counter;
 }
 
 void Region::write() {
   pcl::PointCloud<pcl::PointXYZRGBNormal> cloud;
-  for (int i = 0; i < regionv.size(); ++i) {
+  while (!live.empty()) {
     pcl::PointXYZRGBNormal point;
-    Vector pos = regionv[i]->pos();
+    Voxel* it = live.front();
+    live.pop();
+    Vector pos = it->pos();
     point.x = pos(0);
     point.y = pos(1);
     point.z = pos(2);
-    Vector norm = regionv[i]->norm();
+    Vector norm = it->norm();
     point.normal[0] = norm(0);
     point.normal[1] = norm(1);
     point.normal[2] = norm(2);
-    point.rgb = regionv[i]->eig();
+    point.rgb = it->eig();
+    cloud.push_back(point);
+  }
+  for (std::list<Voxel*>::iterator it = dead.begin(); it != dead.end(); ++it) {
+    pcl::PointXYZRGBNormal point;
+    Vector pos = (*it)->pos();
+    point.x = pos(0);
+    point.y = pos(1);
+    point.z = pos(2);
+    Vector norm = (*it)->norm();
+    point.normal[0] = norm(0);
+    point.normal[1] = norm(1);
+    point.normal[2] = norm(2);
+    point.rgb = (*it)->eig();
     cloud.push_back(point);
   }
   pcl::io::savePCDFileBinaryCompressed("output.pcd", cloud);

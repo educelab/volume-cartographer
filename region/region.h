@@ -1,7 +1,8 @@
 #ifndef _REGION_
 #define _REGION_
 
-#include <vector>
+#include <list>
+#include <queue>
 
 #include <pcl/io/pcd_io.h>
 #include <pcl/common/common.h>
@@ -18,7 +19,8 @@ typedef enum {
 } regionMetric;
 
 class Region {
-  std::vector<Voxel*> regionv;
+  std::queue<Voxel*> live;
+  std::list<Voxel*> dead;
 public:
   Region(Voxel* v);
   void insert(Voxel* v);
