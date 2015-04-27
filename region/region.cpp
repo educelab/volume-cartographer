@@ -90,7 +90,7 @@ int Region::growWith(regionMetric m) {
   }
 
   int counter = 0;
-  std::list<Voxel*> asdfwtf;
+  std::list<Voxel*> edge;
   while (!live.empty()) {
     Voxel* it = live.front();
     live.pop();
@@ -109,7 +109,7 @@ int Region::growWith(regionMetric m) {
       if (volume[x + dx][y + dy][z + dz] != NULL &&
           metric(*it, *(volume[x + dx][y + dy][z + dz]))) {
 
-        asdfwtf.push_back(volume[x + dx][y + dy][z + dz]);
+        edge.push_back(volume[x + dx][y + dy][z + dz]);
         volume[x + dx][y + dy][z + dz] = NULL;
 
         counter++;
@@ -117,7 +117,7 @@ int Region::growWith(regionMetric m) {
     }
   }
 
-  for (std::list<Voxel*>::iterator it = asdfwtf.begin(); it != asdfwtf.end(); ++it) {
+  for (std::list<Voxel*>::iterator it = edge.begin(); it != edge.end(); ++it) {
     live.push(*it);
   }
 
