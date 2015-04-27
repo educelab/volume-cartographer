@@ -32,6 +32,7 @@ add_subdirectory(pathgen)
 add_subdirectory(reslicer)
 add_subdirectory(scalpel)
 add_subdirectory(texture)
+add_subdirectory(texturing)
 add_subdirectory(apps)
 add_subdirectory(utils)
 
