@@ -1,10 +1,5 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
-IF(APPLE)
-FIND_LIBRARY(SECURITY_LIBRARY Security)
-SET(EXTRA_LIBS ${SECURITY_LIBRARY})
-ENDIF(APPLE)
-
 # only include the headers that needs to be processed by moc
 SET(PathGen_SOURCES main.cpp CQtImageViewer.cpp timeUtils.cpp bezierUtils.cpp)
 SET(PathGen_HEADERS CQtImageViewer.h)

@@ -17,6 +17,11 @@ include_directories(${Boost_INCLUDE_DIR} ${PCL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DI
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
+IF(APPLE)
+	FIND_LIBRARY(SECURITY_LIBRARY Security)
+	SET(EXTRA_LIBS ${SECURITY_LIBRARY})
+ENDIF(APPLE)
+
 # VC Libraries
 add_subdirectory(volumepkg)
 include_directories(${VOLUMEPKG_INCLUDE_DIR})
@@ -45,7 +50,8 @@ install(PROGRAMS
 "${CMAKE_BINARY_DIR}/pathgen/vc_pathgen" 
 "${CMAKE_BINARY_DIR}/scalpel/vc_scalpel" 
 "${CMAKE_BINARY_DIR}/apps/vc_segment" 
-"${CMAKE_BINARY_DIR}/apps/vc_mesher" 
+"${CMAKE_BINARY_DIR}/apps/vc_mesher"
+"${CMAKE_BINARY_DIR}/apps/vc_meshEditor" 
 "${CMAKE_BINARY_DIR}/texture/vc_texture"
 "${CMAKE_BINARY_DIR}/texture/vc_meshnorm"
 "${CMAKE_BINARY_DIR}/texture/vc_sliceProjection"
