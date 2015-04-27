@@ -27,69 +27,95 @@ bool CPlyHelper::ReadPlyFile( const string &nFileName,
 	}
 
 	// parse content
-	// REVISIT - quick and dirty read, specific for the file written by write_mesh() in simulation/simulation.cpp
 	string aLine;
 
-	// read header
-	int aNumVertices, aNumFaces;
-	const int NUM_LINES_IN_HEADER = 21;
-	const int NUM_VERTEX_POS = 15;
-	const int NUM_FACE_POS   = 13;
-	for ( int i = 0; i < NUM_LINES_IN_HEADER; ++i ) {
-		getline( aMeshFile, aLine );
-		if ( aLine.find( "element vertex " ) != string::npos ) {
-			aNumVertices = std::atoi( aLine.substr( NUM_VERTEX_POS ).c_str() );
-		}
-		if ( aLine.find( "element face " ) != string::npos ) {
-			aNumFaces = std::atoi( aLine.substr( NUM_FACE_POS ).c_str() );
-		}
-	}
-	// REVISIT - for debug
-	cout << "# of vertices to be read: " << aNumVertices << endl;
-	cout << "# of faces to be read: " << aNumFaces << endl;
+    // read header
+    int elementValue, aNumVertices, aNumFaces;
+    string elementID;
+    std::vector<int> aElements;
+    std::vector<string> aElementIDs, parsed;
 
-	// get the dimensions of the mesh from the header
-	int width, height;
-	aMeshFile >> width >> height;
-	cout << "width: " << width << endl;
-	cout << "height: " << height << endl;
+    getline( aMeshFile, aLine );
+    // Read until we hit the end of the header
+    while ( aLine.find("end_header") == string::npos ) {
+        // For each "element" line in the ply header, parse that line to get the name of that
+        // element and the number of that element that should be in the file
+        if ( aLine.find ("element") != string::npos ) { 
+            size_t lpos = 0;
+            size_t pos = aLine.find(" ", lpos);
+            
+            while(pos != string::npos) { 
+                parsed.push_back(aLine.substr(lpos, pos-lpos));
+                lpos = pos+1;
+                pos = aLine.find(" ",pos+1);
+            }
+            
+            // pickup the last element
+            parsed.push_back(aLine.substr(lpos, pos-lpos));
+            
+            // assumes element declaration in ply header == "element [elementID] [num_of_element]"
+            elementID = parsed[1];
+            elementValue = std::atoi(parsed[2].c_str());
 
-	// read vertices
-	double x, y, z, nx, ny, nz, s, t;
-	int red, green, blue;
-	for ( int i = 0; i < aNumVertices; ++i ) {
-		PointXYZRGBNormal aPoint;
-		aMeshFile >> x >> y >> z >> nx >> ny >> nz >> s >> t >> red >> green >> blue;
-		aPoint.x = x;
-		aPoint.y = y;
-		aPoint.z = z;
-		aPoint.normal[ 0 ] = nx;
-		aPoint.normal[ 1 ] = ny;
-		aPoint.normal[ 2 ] = nz;
-        aPoint.argb[ 0 ] = 255; // a
-        aPoint.argb[ 1 ] = red; // r
-        aPoint.argb[ 2 ] = green;   // g
-        aPoint.argb[ 3 ] = blue;    // b
-		nMesh.fPoints.push_back( aPoint );
-	}
-	
-	// read faces
-	int aTmpInt, p1, p2, p3;
-	for ( int i = 0; i < aNumFaces; ++i ) {
-		aMeshFile >> aTmpInt >> p1 >> p2 >> p3;
-        nMesh.fFaces.push_back( Vec3< int >( p1, p2, p3 ) );
-		// add edges
-		// make sure edge vertices are ordered
-        nMesh.fEdges.insert( p1 > p2 ? Vec2< int >( p2, p1 ) : Vec2< int >( p1, p2 ) );
-        nMesh.fEdges.insert( p2 > p3 ? Vec2< int >( p3, p2 ) : Vec2< int >( p2, p3 ) );
-        nMesh.fEdges.insert( p3 > p1 ? Vec2< int >( p1, p3 ) : Vec2< int >( p3, p1 ) );
-		// REVISIT - for debug
-	//	printf( "p1p2p3: %d %d %d edge #: %d, ", p1, p2, p3, nMesh.fEdges.size() );
-	//	char x = getc(stdin);
-	}
+            aElementIDs.push_back( elementID );
+            aElements.push_back(elementValue);
 
-	aMeshFile.close();
-	return true;
+            parsed.clear();
+        }
+        getline( aMeshFile, aLine );
+    }
+
+    for (int i = 0; i < aElements.size(); ++i) {
+        cout << "Reading element: " << aElementIDs[i] << ", Number to be Read: " << aElements[i] << endl;
+        for (int j = 0; j < aElements[i]; ++j) {
+            // get the dimensions of the mesh
+            if (aElementIDs[i] == "dimensions") {
+                int width, height;
+
+                aMeshFile >> width >> height;
+                nMesh.fWidth = width;
+                nMesh.fHeight = height;
+            }
+
+            // read vertices
+            if (aElementIDs[i] == "vertex") {
+                double x, y, z, nx, ny, nz, s, t;
+                int red, green, blue;
+                PointXYZRGBNormal aPoint;
+
+                aMeshFile >> x >> y >> z >> nx >> ny >> nz >> s >> t >> red >> green >> blue;
+                aPoint.x = x;
+                aPoint.y = y;
+                aPoint.z = z;
+                aPoint.normal[ 0 ] = nx;
+                aPoint.normal[ 1 ] = ny;
+                aPoint.normal[ 2 ] = nz;
+                aPoint.argb[ 0 ] = 255; // a
+                aPoint.argb[ 1 ] = red; // r
+                aPoint.argb[ 2 ] = green;   // g
+                aPoint.argb[ 3 ] = blue;    // b
+                nMesh.fPoints.push_back( aPoint );
+            }
+            
+            // read faces
+            if (aElementIDs[i] == "face") {
+                int aTmpInt, p1, p2, p3;
+                aMeshFile >> aTmpInt >> p1 >> p2 >> p3;
+                nMesh.fFaces.push_back( Vec3< int >( p1, p2, p3 ) );
+                // add edges
+                // make sure edge vertices are ordered
+                nMesh.fEdges.insert( p1 > p2 ? Vec2< int >( p2, p1 ) : Vec2< int >( p1, p2 ) );
+                nMesh.fEdges.insert( p2 > p3 ? Vec2< int >( p3, p2 ) : Vec2< int >( p2, p3 ) );
+                nMesh.fEdges.insert( p3 > p1 ? Vec2< int >( p1, p3 ) : Vec2< int >( p3, p1 ) );
+                // REVISIT - for debug
+                //  printf( "p1p2p3: %d %d %d edge #: %d, ", p1, p2, p3, nMesh.fEdges.size() );
+                //  char x = getc(stdin);
+            }
+        }
+    }
+
+    aMeshFile.close();
+    return true;
 }
 
 // write ply file

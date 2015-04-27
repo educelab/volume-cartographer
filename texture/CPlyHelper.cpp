@@ -40,8 +40,6 @@ bool CPlyHelper::ReadPlyFile( const string &nFileName,
     string elementID;
     std::vector<int> aElements;
     std::vector<string> aElementIDs, parsed;
-	const int NUM_VERTEX_POS = 15;
-	const int NUM_FACE_POS   = 13;
 
     getline( aMeshFile, aLine );
     // Read until we hit the end of the header

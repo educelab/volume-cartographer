@@ -499,7 +499,7 @@ void CWindow::MakeChain( std::vector< Vec2< float > > &nPts,
 			aIndexList.Append( &nIndices[ aNearPtIndex ] );
 
 			aProcessed[ aNearPtIndex ] = 1;
-			aNumPointsToProcess--;
+            aNumPointsToProcess--;
 
             if ( aPtsList.GetSize() == 1 ) {
                 aDistThreshold = Norm< float >( nPts[ aNearPtIndex ] - aCurPt );
@@ -508,7 +508,9 @@ void CWindow::MakeChain( std::vector< Vec2< float > > &nPts,
                 aDistThreshold += ( Norm< float >( nPts[ aNearPtIndex ] - aCurPt ) - aDistThreshold ) / aPtsList.GetSize();
                 aCurPt = nPts[ aNearPtIndex ];
             }
-		}
+		} else {
+            break;
+        }
 	}
 
 	aCurPt = nPts[ 0 ];
@@ -528,7 +530,11 @@ void CWindow::MakeChain( std::vector< Vec2< float > > &nPts,
 			// threshold = ( threshold * (n - 1) + newDist ) / n
 			aDistThreshold += ( Norm< float >( nPts[ aNearPtIndex ] - aCurPt ) - aDistThreshold ) / aPtsList.GetSize();
 			aCurPt = nPts[ aNearPtIndex ];
-		}
+		} else {
+            // To-Do: Issue #16 (https://code.vis.uky.edu/seales-research/volume-cartographer/issues/16)
+            QMessageBox::warning( this, tr( "WARNING" ), tr( "This is a broken mesh. Attempting to edit this mesh will probably crash the program." ) );
+            break;
+        }
 	}
 
 	// finally, store back to points and indices
