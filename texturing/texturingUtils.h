@@ -64,14 +64,14 @@ inline double interpolate_intensity( const cv::Vec3f				&point,
     }
     
     double result =
-        nImgVol[ x_min ].at< unsigned char >( y_min, z_min ) * (1 - dx) * (1 - dy) * (1 - dz) +
-        nImgVol[ x_max ].at< unsigned char >( y_min, z_min ) * dx       * (1 - dy) * (1 - dz) +
-        nImgVol[ x_min ].at< unsigned char >( y_max, z_min ) * (1 - dx) * dy       * (1 - dz) +
-        nImgVol[ x_min ].at< unsigned char >( y_min, z_max ) * (1 - dx) * (1 - dy) * dz +
-        nImgVol[ x_max ].at< unsigned char >( y_min, z_max ) * dx       * (1 - dy) * dz +
-        nImgVol[ x_min ].at< unsigned char >( y_max, z_max ) * (1 - dx) * dy       * dz +
-        nImgVol[ x_max ].at< unsigned char >( y_max, z_min ) * dx       * dy       * (1 - dz) +
-        nImgVol[ x_max ].at< unsigned char >( y_max, z_max ) * dx       * dy       * dz;
+        nImgVol[ x_min ].at< unsigned short >( y_min, z_min ) * (1 - dx) * (1 - dy) * (1 - dz) +
+        nImgVol[ x_max ].at< unsigned short >( y_min, z_min ) * dx       * (1 - dy) * (1 - dz) +
+        nImgVol[ x_min ].at< unsigned short >( y_max, z_min ) * (1 - dx) * dy       * (1 - dz) +
+        nImgVol[ x_min ].at< unsigned short >( y_min, z_max ) * (1 - dx) * (1 - dy) * dz +
+        nImgVol[ x_max ].at< unsigned short >( y_min, z_max ) * dx       * (1 - dy) * dz +
+        nImgVol[ x_min ].at< unsigned short >( y_max, z_max ) * (1 - dx) * dy       * dz +
+        nImgVol[ x_max ].at< unsigned short >( y_max, z_min ) * dx       * dy       * (1 - dz) +
+        nImgVol[ x_max ].at< unsigned short >( y_max, z_max ) * dx       * dy       * dz;
     
     return result;
 }
@@ -230,7 +230,7 @@ inline double FilterIntersection( const cv::Vec3f              &nPoint,
 
     }
 
-    return( interpolate_intensity( nPoint, nImgVol ) );
+    return interpolate_intensity( nPoint, nImgVol );
 }
 
 // Filter by non maximum suppression
