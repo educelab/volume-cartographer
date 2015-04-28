@@ -19,6 +19,8 @@
 
 #include "volumepkgcfg.h"
 #include "orderedPCDMesher.h"
+#include "../texture/CMesh.h"
+#include "../texture/CPlyHelper.h"
 
 class VolumePkg {
 public:
@@ -49,8 +51,11 @@ public:
     void setActiveSegmentation(std::string);
     std::string newSegmentation();
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr openCloud();
+    ChaoVis::CMesh openMesh();
+    ChaoVis::CMesh openTexturedMesh();
     void saveCloud(pcl::PointCloud<pcl::PointXYZRGB>);
     void saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr);
+    void saveTexturedMesh(ChaoVis::CMesh);
     
 private:
     VolumePkgCfg config;

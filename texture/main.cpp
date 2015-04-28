@@ -15,43 +15,49 @@ int main( int argc, char *argv[] )
 {
     double radius;
     if ( argc < 6 ) {
-        std::cout << "Usage: sliceIntersection mesh.ply radius wantBetterTexture(0=no, 1=non-maximum suppression, 2=min, 3=median filter, 4=median (without averaging), 5=mean) volPkgPath sampleDirection(0=omni, 1=positive, 2=negative)" << std::endl;
+        std::cout << "Usage: vc_texture volpkg seg-id radius texture-method sample-direction" << std::endl;
+        std::cout << "Texture methods: " << std::endl;
+        std::cout << "      0 = Intersection" << std::endl;
+        std::cout << "      1 = Non-Maximum Suppression" << std::endl;
+        std::cout << "      2 = Minimum" << std::endl;
+        std::cout << "      3 = Median w/ Averaging" << std::endl;
+        std::cout << "      4 = Median w/o Averaging" << std::endl;
+        std::cout << "      5 = Mean" << std::endl;
+        std::cout << std::endl;
+        std::cout << "Sample Direction: " << std::endl;
+        std::cout << "      0 = Omni" << std::endl;
+        std::cout << "      1 = Positive" << std::endl;
+        std::cout << "      2 = Negative" << std::endl;
         exit( -1 );
     }
 
-    radius = atof( argv[ 2 ] );
+    VolumePkg volpkg = VolumePkg( argv[ 1 ] );
+    std::string segID = argv[ 2 ];
+    if (segID == "") {
+        std::cerr << "ERROR: Incorrect/missing segmentation ID!" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    volpkg.setActiveSegmentation(segID);
 
-    // (1) read in ply mesh file
-    ChaoVis::CMesh aMesh;
-    std::string aFileName( argv[ 1 ] );
-    ChaoVis::CPlyHelper::ReadPlyFile( aFileName, aMesh );
-    std::cout << "Mesh file loaded" << std::endl;
-    // REVISIT - for debug
-    aMesh.Dump();
+    ChaoVis::CMesh aMesh = volpkg.openMesh();
 
-    //set output name
-    std::string outputName = aFileName.substr(aFileName.find_last_of("/\\")+1);
-    outputName = outputName.substr(0,outputName.find_last_of("."));
+    radius = atof( argv[ 3 ] );
 
-
-    // REVISIT - refactored to module
-    VolumePkg vpkg = VolumePkg( argv[ 4 ] );
-
-    int aFindBetterTextureMethod = atoi( argv[ 3 ] );
+    int aFindBetterTextureMethod = atoi( argv[ 4 ] );
     EFilterOption aFilterOption = ( EFilterOption )aFindBetterTextureMethod;
 
     int aSampleDir = atoi( argv[ 5 ] ); // sampleDirection (0=omni, 1=positive, 2=negative)
     EDirectionOption aDirectionOption = ( EDirectionOption )aSampleDir;
 
     meshTexturing( aMesh, // mesh
-                   vpkg, // volume package
+                   volpkg, // volume package
                    radius, // radius 1
                    radius / 3.0, // REVISIT - radius 2
                    aFilterOption,
                    aDirectionOption );
 
     printf( "writing result\n" );
-    ChaoVis::CPlyHelper::WritePlyFile( outputName + "_textured.ply", aMesh );
+    volpkg.saveTexturedMesh(aMesh);
 
     return 0;
 }
