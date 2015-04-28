@@ -25,6 +25,14 @@ int VolumePkg::getNumberOfSlices() {
     return config.getInt("number of slices");
 }
 
+int VolumePkg::getSliceWidth() {
+    return config.getInt("width");
+}
+
+int VolumePkg::getSliceHeight() {
+    return config.getInt("height");
+}
+
 // Returns Volume Name from JSON config
 std::string VolumePkg::getPkgName() {
     return config.getString("volumepkg name", "UnnamedVolume");

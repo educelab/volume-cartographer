@@ -31,6 +31,8 @@ public:
 
     // Metadata Retrieval
     int getNumberOfSlices();
+    int getSliceWidth();
+    int getSliceHeight();
     std::string getPkgName();
 
     // Metadata Assignment
