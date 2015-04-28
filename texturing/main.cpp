@@ -40,10 +40,7 @@ int main(int argc, char* argv[])
     int meshHeight = -1;
 
     // try to convert the ply to an ITK mesh
-    int *mWpoint, *mHpoint;
-    mWpoint = &meshWidth;
-    mHpoint = &meshHeight;
-    if (!ply2itkmesh(fileName, mesh, mWpoint, mHpoint)){
+    if (!ply2itkmesh(fileName, mesh, meshWidth, meshHeight)){
         exit( -1 );
     };
 

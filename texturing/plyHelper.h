@@ -18,6 +18,9 @@ typedef itk::Mesh< PixelType, Dimension >   MeshType;   // declare Mesh object u
 typedef MeshType::CellType                CellType;
 typedef itk::TriangleCell< CellType >     TriangleType;
 
-bool ply2itkmesh (std::string, MeshType::Pointer, int *, int *);
+bool ply2itkmesh (std::string plyPath,
+                  itk::Mesh<::itk::Vector<double, 3>, 3>::Pointer mesh,
+                  int &width,
+                  int &height);
 
 #endif //VC_PLYHELPER_H

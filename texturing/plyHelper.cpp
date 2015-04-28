@@ -4,7 +4,7 @@
 
 #include "plyHelper.h"
 
-bool ply2itkmesh(std::string plyPath, itk::Mesh<::itk::Vector<double, 3>, 3>::Pointer mesh, int *width, int *height) {
+bool ply2itkmesh(std::string plyPath, itk::Mesh<::itk::Vector<double, 3>, 3>::Pointer mesh, int &width, int &height) {
     // open ply file
     std::ifstream plyFile( plyPath.c_str() );
     if ( !plyFile.is_open() ) {
@@ -67,8 +67,8 @@ bool ply2itkmesh(std::string plyPath, itk::Mesh<::itk::Vector<double, 3>, 3>::Po
             // get the dimensions of the mesh
             if (aElementIDs[i] == "dimensions") {
                 plyFile >> w >> h;
-                *width = w;
-                *height = h;
+                width = w;
+                height = h;
             }
 
             // read vertices
@@ -101,7 +101,7 @@ bool ply2itkmesh(std::string plyPath, itk::Mesh<::itk::Vector<double, 3>, 3>::Po
     }
 
     // if we don't have the meshWidth and meshHeight, exit
-    if (*width == -1 || *height == -1) {
+    if (width == -1 || height == -1) {
         std::cerr << "ERROR: Mesh does not contain width and/or height metadata." << std::endl;
         return false;
     }
