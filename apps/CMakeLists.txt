@@ -4,13 +4,13 @@ cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 add_executable(vc_mesher mesher.cpp)
 target_link_libraries(vc_mesher ${PCL_LIBRARIES})
 target_link_libraries(vc_mesher ${OpenCV_LIBS})
-target_link_libraries(vc_mesher meshing)
+target_link_libraries(vc_mesher ${VC_LIBS})
 
 # Segment
 add_executable(vc_segment segment.cpp)
 target_link_libraries(vc_segment ${PCL_LIBRARIES})
 target_link_libraries(vc_segment ${OpenCV_LIBS})
-target_link_libraries(vc_segment volumepkg segmentation)
+target_link_libraries(vc_segment ${VC_LIBS})
 
 # Mesh Editor
 # only include the headers that needs to be processed by moc
@@ -22,4 +22,4 @@ QT4_WRAP_CPP(meshEditor_HEADERS_MOC ${meshEditor_HEADERS})
 INCLUDE(${QT_USE_FILE})
 ADD_DEFINITIONS(${QT_DEFINITIONS})
 add_executable(vc_meshEditor ${meshEditor_SOURCES} ${meshEditor_HEADERS_MOC})
-target_link_libraries(vc_meshEditor volumepkg Qt4::QtOpenGL ${OPENGL_LIBRARIES} ${OpenCV_LIBS} ${QT_LIBRARIES} ${EXTRA_LIBS} ${PCL_LIBRARIES})
+target_link_libraries(vc_meshEditor ${VC_LIBS} Qt4::QtOpenGL ${OPENGL_LIBRARIES} ${OpenCV_LIBS} ${QT_LIBRARIES} ${EXTRA_LIBS} ${PCL_LIBRARIES})

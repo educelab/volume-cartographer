@@ -24,23 +24,26 @@ IF(APPLE)
 ENDIF(APPLE)
 
 # VC Libraries
+add_subdirectory(meshing)
+include_directories(${MESHING_INCLUDE_DIR})
+
 add_subdirectory(volumepkg)
 include_directories(${VOLUMEPKG_INCLUDE_DIR})
 
-add_subdirectory(meshing)
 add_subdirectory(segmentation)
-add_subdirectory(examples)
+include_directories(${SEGMENTATION_INCLUDE_DIR})
 
-include_directories(${MESHING_INCLUDE_DIR} ${SEGMENTATION_INCLUDE_DIR})
+set(VC_LIBS volumepkg meshing segmentation)
 
 # VC Apps
 add_subdirectory(pathgen)
-add_subdirectory(reslicer)
+# add_subdirectory(reslicer)
 add_subdirectory(scalpel)
 add_subdirectory(texture)
 add_subdirectory(texturing)
 add_subdirectory(apps)
 add_subdirectory(utils)
+add_subdirectory(examples)
 
 # Copy packager files. This is a hack.
 file(MAKE_DIRECTORY packager)

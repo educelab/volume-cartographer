@@ -14,4 +14,4 @@ ADD_DEFINITIONS(${QT_DEFINITIONS})
 # build
 add_executable(vc_pathgen ${PathGen_SOURCES} ${PathGen_HEADERS_MOC})
 
-target_link_libraries(vc_pathgen volumepkg ${OpenCV_LIBS} ${QT_LIBRARIES} ${EXTRA_LIBS} ${PCL_LIBRARIES})
+target_link_libraries(vc_pathgen ${VC_LIBS} ${OpenCV_LIBS} ${QT_LIBRARIES} ${EXTRA_LIBS} ${PCL_LIBRARIES})

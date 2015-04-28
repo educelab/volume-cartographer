@@ -6,16 +6,16 @@ add_executable(vc_texture main.cpp CMesh.cpp CPlyHelper.cpp modules/meshTexturin
 
 target_link_libraries(vc_texture ${PCL_LIBRARIES})
 target_link_libraries(vc_texture ${OpenCV_LIBS})
-target_link_libraries(vc_texture volumepkg)
+target_link_libraries(vc_texture ${VC_LIBS})
 
 add_executable(vc_meshnorm mesh_normalize.cpp CMesh.cpp CPlyHelper.cpp)
 
 target_link_libraries(vc_meshnorm ${PCL_LIBRARIES})
 target_link_libraries(vc_meshnorm ${OpenCV_LIBS})
-target_link_libraries(vc_meshnorm volumepkg)
+target_link_libraries(vc_meshnorm ${VC_LIBS})
 
 add_executable(vc_sliceProjection sliceProjection.cpp CMesh.cpp CPlyHelper.cpp sliceIntersection.cpp)
 
 target_link_libraries(vc_sliceProjection ${PCL_LIBRARIES})
 target_link_libraries(vc_sliceProjection ${OpenCV_LIBS})
-target_link_libraries(vc_sliceProjection volumepkg)
+target_link_libraries(vc_sliceProjection ${VC_LIBS})

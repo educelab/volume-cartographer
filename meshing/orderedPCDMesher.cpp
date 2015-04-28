@@ -21,7 +21,7 @@ std::vector<Face> faces;
 int width, height;
 
 int orderedPCDMesher(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::string outFile){
-  
+  std::cout << "Creating mesh from points..." << std::endl;
   std::vector< std::vector< pcl::PointXYZRGB > > VoV;
 
   // Keep the w+h of our ordered pcd
@@ -69,7 +69,7 @@ int orderedPCDMesher(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::string o
 void write_mesh(std::string name) {
   std::ofstream meshFile;
   meshFile.open(name);
-  std::cout << "creating mesh file" << std::endl;
+  std::cout << "Writing mesh to file..." << std::endl;
 
   // write header
   meshFile << "ply" << std::endl

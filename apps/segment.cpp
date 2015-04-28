@@ -139,7 +139,9 @@ int main(int argc, char* argv[]) {
   masterCloud->height = masterCloud->points.size()/masterCloud->width;
   masterCloud->points.resize (masterCloud->width * masterCloud->height);
 
-// Save point cloud
+// Save point cloud and mesh
   volpkg.saveCloud(*masterCloud);
+  volpkg.saveMesh(masterCloud);
+
   exit(EXIT_SUCCESS);
 }

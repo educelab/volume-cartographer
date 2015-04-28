@@ -156,3 +156,9 @@ void VolumePkg::saveCloud(pcl::PointCloud<pcl::PointXYZRGB> segmentedCloud){
   pcl::io::savePCDFileBinaryCompressed(outputName, segmentedCloud);
   printf("Point cloud saved.\n");
 };
+
+void VolumePkg::saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segmentedCloud) {
+    std::string outputName = segdir.string() + "/" + activeSeg + "/cloud.ply";
+    orderedPCDMesher(segmentedCloud, outputName);
+    printf("Mesh file saved.\n");
+}

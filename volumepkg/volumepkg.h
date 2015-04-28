@@ -16,7 +16,9 @@
 #include <opencv2/opencv.hpp>
 #include <pcl/point_types.h>
 #include <pcl/io/pcd_io.h>
+
 #include "volumepkgcfg.h"
+#include "orderedPCDMesher.h"
 
 class VolumePkg {
 public:
@@ -48,6 +50,7 @@ public:
     std::string newSegmentation();
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr openCloud();
     void saveCloud(pcl::PointCloud<pcl::PointXYZRGB>);
+    void saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr);
     
 private:
     VolumePkgCfg config;
