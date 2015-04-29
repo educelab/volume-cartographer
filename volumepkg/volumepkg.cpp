@@ -140,7 +140,7 @@ int VolumePkg::getNumberOfSliceCharacters() {
 }
 
 // Returns slice image at specific slice index
-cv::Mat VolumePkg::getRawData(int index) {
+cv::Mat VolumePkg::getSliceData(int index) {
     //get the file name
     std::string slice_location(location);
     slice_location += config.getString("slice location", "/slices/");
@@ -158,7 +158,7 @@ cv::Mat VolumePkg::getRawData(int index) {
 
 // Deprecated method for returning slice image at a specific index
 cv::Mat VolumePkg::getSliceAtIndex(int index) {
-    return this->getRawData(index);
+    return this->getSliceData(index);
 }
 
 // Returns slice at specific slice index
