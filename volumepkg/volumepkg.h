@@ -7,10 +7,11 @@
 #include <iostream>
 #include <boost/filesystem.hpp>
 
-// boost/foreach.hpp causes problems with QT4 + Boost 1.57. This is a workaround.
+// These boost libraries cause problems with QT4 + Boost 1.57. This is a workaround.
 // https://bugreports.qt.io/browse/QTBUG-22829
 #ifndef Q_MOC_RUN
     #include <boost/foreach.hpp>
+    #include <boost/lexical_cast.hpp>
 #endif
 
 #include <opencv2/opencv.hpp>
@@ -18,6 +19,7 @@
 #include <pcl/io/pcd_io.h>
 
 #include "volumepkgcfg.h"
+#include "volumepkg_version.h"
 #include "orderedPCDMesher.h"
 #include "../texture/CMesh.h"
 #include "../texture/CPlyHelper.h"
@@ -30,15 +32,16 @@ public:
     void printObject();
 
     // Metadata Retrieval
+    double getVersion();
     int getNumberOfSlices();
     int getSliceWidth();
     int getSliceHeight();
     std::string getPkgName();
 
     // Metadata Assignment
-    void setMetadata(std::string, int);
-    void setMetadata(std::string, double);
-    void setMetadata(std::string, std::string);
+    int setMetadata(std::string, int);
+    int setMetadata(std::string, double);
+    int setMetadata(std::string, std::string);
 
     // Metadata Export
     void saveMetadata();
@@ -66,6 +69,8 @@ private:
     int getNumberOfSliceCharacters();
     std::string activeSeg = "";
     std::vector<std::string> segmentations;
+
+    std::string findKeyType(std::string);
 };
 
 #endif // _VOLUMEPKG_H_

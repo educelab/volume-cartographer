@@ -63,6 +63,7 @@ install(PROGRAMS
 "${CMAKE_BINARY_DIR}/utils/vc_analyze"
 "${CMAKE_BINARY_DIR}/utils/vc_conform"
 "${CMAKE_BINARY_DIR}/utils/vc_txt2pcd"
+"${CMAKE_BINARY_DIR}/utils/vc_metadata"
 DESTINATION bin
 COMPONENT Programs)
 

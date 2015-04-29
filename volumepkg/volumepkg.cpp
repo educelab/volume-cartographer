@@ -1,13 +1,13 @@
 #include "volumepkg.h"
+#include "volumepkg_version.h"
 
 VolumePkg::VolumePkg(std::string file_location) : config(file_location + "/config.json") {
     location = file_location;
     segdir = file_location + config.getString("segpath", "/paths/");
-    boost::filesystem::directory_iterator it(segdir), eod;
     //iterate over paths in segdir, push_back to segmentations
-    for(boost::filesystem::recursive_directory_iterator iter(segdir), end; iter != end; ++iter)
+    for(boost::filesystem::directory_iterator iter(segdir), end; iter != end; ++iter)
     {
-      std::string path = iter->path().string();
+      std::string path = boost::filesystem::basename(iter->path());
       segmentations.push_back(path);
     }
 }
@@ -18,8 +18,11 @@ void VolumePkg::printObject() {
     config.printObject();
 }
 
-
 // METADATA RETRIEVAL //
+double VolumePkg::getVersion() {
+    return config.getDouble("version");
+};
+
 // Returns no. of slices from JSON config
 int VolumePkg::getNumberOfSlices() {
     return config.getInt("number of slices");
@@ -40,19 +43,71 @@ std::string VolumePkg::getPkgName() {
 
 
 // METADATA ASSIGNMENT //
-void VolumePkg::setMetadata(std::string key, int value) {
-    // To-Do: set active metadata
-    config.setValue(key,value);
+int VolumePkg::setMetadata(std::string key, int value) {
+    std::string keyType = findKeyType(key);
+    if (keyType == "int") {
+        config.setValue(key, value);
+        return EXIT_SUCCESS;
+    }
+    else if (keyType == "") {
+        return EXIT_FAILURE;
+    }
+    else {
+        std::cerr << "ERROR: Value \"" << value << "\" not of type specified by dictionary (" << keyType << ")" << std::endl;
+        return EXIT_FAILURE;
+    }
 }
 
-void VolumePkg::setMetadata(std::string key, double value) {
-    // To-Do: set active metadata
-    config.setValue(key,value);
+int VolumePkg::setMetadata(std::string key, double value) {
+    std::string keyType = findKeyType(key);
+    if (keyType == "double") {
+        config.setValue(key, value);
+        return EXIT_SUCCESS;
+    }
+    else if (keyType == "") {
+        return EXIT_FAILURE;
+    }
+    else {
+        std::cerr << "ERROR: Value \"" << value << "\" not of type specified by dictionary (" << keyType << ")" << std::endl;
+        return EXIT_FAILURE;
+    }
 }
 
-void VolumePkg::setMetadata(std::string key, std::string value) {
-    // To-Do: set active metadata
-    config.setValue(key,value);
+int VolumePkg::setMetadata(std::string key, std::string value) {
+    std::string keyType = findKeyType(key);
+    if (keyType == "string") {
+        config.setValue(key, value);
+        return EXIT_SUCCESS;
+    }
+    else if (keyType == "int") {
+        try {
+            int castValue = boost::lexical_cast<int>(value);
+            config.setValue(key, castValue);
+            return EXIT_SUCCESS;
+        }
+        catch(const boost::bad_lexical_cast &) {
+            std::cerr << "ERROR: Given value \"" << value << "\" cannot be cast to type specified by dictionary (" << keyType << ")" << std::endl;
+            return EXIT_FAILURE;
+        }
+    }
+    else if (keyType == "double") {
+        try {
+            double castValue = boost::lexical_cast<double>(value);
+            config.setValue(key, castValue);
+            return EXIT_SUCCESS;
+        }
+        catch(const boost::bad_lexical_cast &) {
+            std::cerr << "ERROR: Given value \"" << value << "\" cannot be cast to type specified by dictionary (" << keyType << ")" << std::endl;
+            return EXIT_FAILURE;
+        }
+    }
+    else if (keyType == "") {
+        return EXIT_FAILURE;
+    }
+    else {
+        std::cerr << "ERROR: Value \"" << value << "\" not of type specified by dictionary (" << keyType << ")" << std::endl;
+        return EXIT_FAILURE;
+    }
 }
 
 
@@ -138,7 +193,7 @@ std::string VolumePkg::newSegmentation() {
     struct tm tstruct;
     char buf[ 80 ];
     tstruct = *localtime( &now );
-    int result = strftime( buf, sizeof( buf ), "%Y%m%d%H%M%S", &tstruct );
+    strftime( buf, sizeof( buf ), "%Y%m%d%H%M%S", &tstruct );
     std::string segName(buf);
     newSeg += segName;
 
@@ -194,4 +249,24 @@ void VolumePkg::saveTexturedMesh(ChaoVis::CMesh mesh) {
     std::string outputName = segdir.string() + "/" + activeSeg + "/textured.ply";
     ChaoVis::CPlyHelper::WritePlyFile( outputName, mesh );
     printf("Mesh file saved.\n");
+}
+
+// See if the given key exists in the volumepkg dictionary and return its type
+std::string VolumePkg::findKeyType(std::string key) {
+    std::unordered_map <double, VolCart::VersionDict>::const_iterator vFind = VolCart::versionsList.find(this->getVersion());
+    if ( vFind == VolCart::versionsList.end() ) {
+        std::cerr << "ERROR: No dictionary found for volpkg v." << this->getVersion() << std::endl;
+        return "";
+    }
+    else {
+        VolCart::VersionDict dict = vFind->second;
+        std::unordered_map <std::string, std::string>::const_iterator kFind = dict.find(key);
+        if ( kFind == dict.end() ) {
+            std::cerr << "ERROR: Key \"" << key << "\" not found in dictionary for volpkg v." << this->getVersion() << std::endl;
+            return "";
+        }
+        else {
+            return kFind->second;
+        }
+    }
 }
