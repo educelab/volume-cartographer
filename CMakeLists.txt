@@ -4,6 +4,8 @@ add_definitions("-std=c++11")
 
 project(VC VERSION 1.0.1)
 
+SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
+SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 
 # Prerequisite libraries
 set(Boost_USE_STATIC_LIBS ON)
@@ -33,7 +35,7 @@ include_directories(${VOLUMEPKG_INCLUDE_DIR})
 add_subdirectory(segmentation)
 include_directories(${SEGMENTATION_INCLUDE_DIR})
 
-set(VC_LIBS volumepkg meshing segmentation)
+set(VC_LIBS vc_volumepkg vc_meshing vc_segmentation)
 
 # VC Apps
 add_subdirectory(pathgen)
@@ -47,25 +49,39 @@ add_subdirectory(examples)
 
 # Copy packager files. This is a hack.
 file(MAKE_DIRECTORY packager)
-file(COPY packager/packager.py DESTINATION ${CMAKE_BINARY_DIR}/packager)
-file(RENAME ${CMAKE_BINARY_DIR}/packager/packager.py ${CMAKE_BINARY_DIR}/packager/vc_packager)
+file(COPY packager/packager.py DESTINATION ${CMAKE_BINARY_DIR}/bin)
+file(RENAME ${CMAKE_BINARY_DIR}/bin/packager.py ${CMAKE_BINARY_DIR}/bin/vc_packager)
 
 install(PROGRAMS 
-"${CMAKE_BINARY_DIR}/packager/vc_packager" 
-"${CMAKE_BINARY_DIR}/pathgen/vc_pathgen" 
-"${CMAKE_BINARY_DIR}/scalpel/vc_scalpel" 
-"${CMAKE_BINARY_DIR}/apps/vc_segment" 
-"${CMAKE_BINARY_DIR}/apps/vc_mesher"
-"${CMAKE_BINARY_DIR}/apps/vc_meshEditor" 
-"${CMAKE_BINARY_DIR}/texture/vc_texture"
-"${CMAKE_BINARY_DIR}/texture/vc_meshnorm"
-"${CMAKE_BINARY_DIR}/texture/vc_sliceProjection"
-"${CMAKE_BINARY_DIR}/utils/vc_analyze"
-"${CMAKE_BINARY_DIR}/utils/vc_conform"
-"${CMAKE_BINARY_DIR}/utils/vc_txt2pcd"
-"${CMAKE_BINARY_DIR}/utils/vc_metadata"
-DESTINATION bin
-COMPONENT Programs)
+            "${CMAKE_BINARY_DIR}/bin/vc_packager"
+            "${CMAKE_BINARY_DIR}/bin/vc_pathgen"
+            "${CMAKE_BINARY_DIR}/bin/vc_scalpel"
+            "${CMAKE_BINARY_DIR}/bin/vc_segment"
+            "${CMAKE_BINARY_DIR}/bin/vc_mesher"
+            "${CMAKE_BINARY_DIR}/bin/vc_meshEditor"
+            "${CMAKE_BINARY_DIR}/bin/vc_texture"
+            "${CMAKE_BINARY_DIR}/bin/vc_meshnorm"
+            "${CMAKE_BINARY_DIR}/bin/vc_sliceProjection"
+            "${CMAKE_BINARY_DIR}/bin/vc_analyze"
+            "${CMAKE_BINARY_DIR}/bin/vc_conform"
+            "${CMAKE_BINARY_DIR}/bin/vc_txt2pcd"
+            "${CMAKE_BINARY_DIR}/bin/vc_metadata"
+        DESTINATION bin
+        COMPONENT Programs)
+
+#install(FILES
+#            "${CMAKE_BINARY_DIR}/lib/libvc_volumepkg.a"
+#            "${CMAKE_BINARY_DIR}/lib/libvc_meshing.a"
+#            "${CMAKE_BINARY_DIR}/lib/libvc_segmentation.a"
+#        DESTINATION lib/vc
+#        COMPONENT Libraries)
+
+#install(FILES
+#            "${PROJECT_SOURCE_DIR}/volumepkg/volumepkg.h"
+#            "${PROJECT_SOURCE_DIR}/meshing/orderedPCDMesher.h"
+#            "${PROJECT_SOURCE_DIR}/segmentation/structureTensorParticleSim.h"
+#        DESTINATION include/vc
+#        COMPONENT Includes)
 
 # Uninstall target
 configure_file(
@@ -81,10 +97,10 @@ set(CPACK_COMPONENTS_ALL Programs)
 set(CPACK_PACKAGE_NAME "VC")
 set(CPACK_PACKAGE_VENDOR "UK VisCenter")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Volume Cartographer")
-set(CPACK_PACKAGE_VERSION "1.0.1")
-set(CPACK_PACKAGE_VERSION_MAJOR "1")
-set(CPACK_PACKAGE_VERSION_MINOR "0")
-set(CPACK_PACKAGE_VERSION_PATCH "1")
+set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
+set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
+set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
+set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
 set(CPACK_MONOLITHIC_INSTALL)
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "/usr/local/")
 

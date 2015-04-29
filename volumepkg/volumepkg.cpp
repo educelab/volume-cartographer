@@ -1,5 +1,4 @@
 #include "volumepkg.h"
-#include "volumepkg_version.h"
 
 VolumePkg::VolumePkg(std::string file_location) : config(file_location + "/config.json") {
     location = file_location;
