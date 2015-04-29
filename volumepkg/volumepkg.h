@@ -32,11 +32,12 @@ public:
     void printObject();
 
     // Metadata Retrieval
+    std::string getPkgName();
     double getVersion();
     int getNumberOfSlices();
     int getSliceWidth();
     int getSliceHeight();
-    std::string getPkgName();
+    double getVoxelSize();
 
     // Metadata Assignment
     int setMetadata(std::string, int);

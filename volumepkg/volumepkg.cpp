@@ -19,6 +19,11 @@ void VolumePkg::printObject() {
 }
 
 // METADATA RETRIEVAL //
+// Returns Volume Name from JSON config
+std::string VolumePkg::getPkgName() {
+    return config.getString("volumepkg name", "UnnamedVolume");
+}
+
 double VolumePkg::getVersion() {
     return config.getDouble("version");
 };
@@ -36,10 +41,9 @@ int VolumePkg::getSliceHeight() {
     return config.getInt("height");
 }
 
-// Returns Volume Name from JSON config
-std::string VolumePkg::getPkgName() {
-    return config.getString("volumepkg name", "UnnamedVolume");
-}
+double VolumePkg::getVoxelSize() {
+    return config.getDouble("voxelsize");
+};
 
 
 // METADATA ASSIGNMENT //
