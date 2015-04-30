@@ -90,7 +90,7 @@ private:
     CVolumeViewerWithCurve
                 *fVolumeViewerWidget;
 
-    Ui::Form    ui;
+    Ui::VCMainWindow    ui;
 
 }; // class CWindow
 

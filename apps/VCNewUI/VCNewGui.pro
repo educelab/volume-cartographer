@@ -1,25 +1,23 @@
 HEADERS = CMesh.h \
           CXCurve.h \
           CWindow.h \
-          C3DObj.h \
     UDataManipulateUtils.h \
     UObjHelper.h \
-          CMeshGL.h \
           mathUtils.h \
-    CMeshIO.h \
-    Ply/base.h \
-    Ply/header.h \
-    Ply/io.h \
-    Ply/object.h \
-    Ply/unknown.h \
-    volumepkg/picojson.h \
-    volumepkg/volumepkg.h \
-    volumepkg/volumepkgcfg.h \
+    ../../meshing/orderedPCDMesher.h \
+    ../meshEditor/Ply/base.h \
+    ../meshEditor/Ply/header.h \
+    ../meshEditor/Ply/io.h \
+    ../meshEditor/Ply/object.h \
+    ../meshEditor/Ply/unknown.h \
+    ../../volumepkg/picojson.h \
+    ../../volumepkg/volumepkg.h \
+    ../../volumepkg/volumepkgcfg.h \
     HBase.h \
-    objTester/objTester/list.h \
-    objTester/objTester/obj_parser.h \
-    objTester/objTester/objLoader.h \
-    objTester/objTester/string_extra.h \
+    ../meshEditor/objTester/list.h \
+    ../meshEditor/objTester/obj_parser.h \
+    ../meshEditor/objTester/objLoader.h \
+    ../meshEditor/objTester/string_extra.h \
     VCNewGuiHeader.h \
     CPlyHelper.h \
     CBezierCurve.h \
@@ -34,20 +32,19 @@ SOURCES = CMesh.cpp \
           CWindow.cpp \
     UDataManipulateUtils.cpp \
     UObjHelper.cpp \
-          CMeshGL.cpp \
           main.cpp \
-    CMeshIO.cpp \
-    Ply/base.cpp \
-    Ply/header.cpp \
-    Ply/io.cpp \
-    Ply/object.cpp \
-    Ply/unknown.cpp \
-    volumepkg/volumepkg.cpp \
-    volumepkg/volumepkgcfg.cpp \
-    objTester/objTester/list.cpp \
-    objTester/objTester/obj_parser.cpp \
-    objTester/objTester/objLoader.cpp \
-    objTester/objTester/string_extra.cpp \
+    ../../meshing/orderedPCDMesher.cpp \
+    ../meshEditor/Ply/base.cpp \
+    ../meshEditor/Ply/header.cpp \
+    ../meshEditor/Ply/io.cpp \
+    ../meshEditor/Ply/object.cpp \
+    ../meshEditor/Ply/unknown.cpp \
+    ../../volumepkg/volumepkg.cpp \
+    ../../volumepkg/volumepkgcfg.cpp \
+    ../meshEditor/objTester/list.cpp \
+    ../meshEditor/objTester/obj_parser.cpp \
+    ../meshEditor/objTester/objLoader.cpp \
+    ../meshEditor/objTester/string_extra.cpp \
     CPlyHelper.cpp \
     CBezierCurve.cpp \
     CBSpline.cpp \
@@ -56,9 +53,14 @@ SOURCES = CMesh.cpp \
     CVolumeViewerWithCurve.cpp
 
 INCLUDEPATH += "/usr/include/"
-INCLUDEPATH += "./objTester/objTester"
+INCLUDEPATH += "../meshEditor/objTester/"
+INCLUDEPATH += "../meshEditor/"
+INCLUDEPATH += "/usr/include/pcl-1.7/"
+INCLUDEPATH += "/usr/include/eigen3/"
+INCLUDEPATH += "../../"
+INCLUDEPATH += "../../meshing/"
 
-LIBS += -L"/usr/lib/x84_64-linux-gnu/" -lopencv_core -lopencv_highgui -lopencv_imgproc
+LIBS += -L"/usr/lib/x84_64-linux-gnu/" -lopencv_core -lopencv_highgui -lopencv_imgproc -lboost_system -lboost_filesystem -lpcl_io -lpcl_common
 QT += widgets opengl
 QMAKE_CXXFLAGS += -std=c++11
 

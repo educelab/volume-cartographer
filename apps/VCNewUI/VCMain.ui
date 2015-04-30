@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Form</class>
- <widget class="QMainWindow" name="Form">
+ <class>VCMainWindow</class>
+ <widget class="QMainWindow" name="VCMainWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>Volume Cartographer</string>
   </property>
   <widget class="QWidget" name="horizontalLayoutWidget">
    <property name="sizePolicy">
