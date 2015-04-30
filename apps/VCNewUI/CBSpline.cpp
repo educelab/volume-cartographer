@@ -61,13 +61,17 @@ void CBSpline::SetControlPoints( const std::vector< cv::Vec2f > &nControlPoints 
 // Get sample points
 void CBSpline::GetSamplePoints( std::vector< Vec2< double > > &nSamplePoints )
 {
-    // REVISIT - FILL ME HERE
+    for ( size_t i = 0; i < fCurveSegments.size(); ++i ) {
+        fCurveSegments[ i ].GetSamplePoints( nSamplePoints );
+    }
 }
 
 // Get sample points
 void CBSpline::GetSamplePoints( std::vector< cv::Vec2f > &nSamplePoints )
 {
-    // REVISIT - FILL ME HERE
+    for ( size_t i = 0; i < fCurveSegments.size(); ++i ) {
+        fCurveSegments[ i ].GetSamplePoints( nSamplePoints );
+    }
 }
 
 // Update curve

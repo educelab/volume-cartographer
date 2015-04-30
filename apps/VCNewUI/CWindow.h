@@ -48,13 +48,14 @@ private:
 
     bool InitializeVolumePkg( const std::string &nVpkgPath );
 
-    void SavePath( void );
     void DoSegmentation( void );
 
 private slots:
     void Open( void );
     void Close( void );
     void About( void );
+
+    void OnNewPathClicked( void );
 
 private:
 	// data model

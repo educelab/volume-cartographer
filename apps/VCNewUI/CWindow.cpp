@@ -37,6 +37,9 @@ CWindow::CWindow( void ) :
 
     fVolumeViewerWidget->SetCurve( fCurve );
 
+    QPushButton *aBtnNewPath = this->findChild< QPushButton * >( "btnNewPath" );
+    connect( aBtnNewPath, SIGNAL( clicked() ), this, SLOT( OnNewPathClicked() ) );
+
     CreateActions();
     CreateMenus();
 
@@ -124,21 +127,6 @@ bool CWindow::InitializeVolumePkg( const std::string &nVpkgPath )
     return true;
 }
 
-// Save path to point cloud
-void CWindow::SavePath( void )
-{
-    /*
-    pcl::PointCloud< pcl::PointXYZRGB > aPathCloud;
-
-    // REVISIT - FILL ME HERE
-    // calculate the path and save that to aPathCloud
-    fCurve.GetPoints( aPathCloud );
-
-    fvpkg->setActiveSegmentation( vpkg->newSegmentation() );
-    fvpkg->saveCloud( aPathCloud );
-    */
-}
-
 // Do segmentation given the starting point cloud
 void CWindow::DoSegmentation( void )
 {
@@ -188,4 +176,25 @@ void CWindow::Close( void )
 void CWindow::About( void )
 {
     // REVISIT - FILL ME HERE
+}
+
+// Create new path
+void CWindow::OnNewPathClicked( void )
+{
+    pcl::PointCloud< pcl::PointXYZRGB > aPathCloud;
+
+    // calculate the path and save that to aPathCloud
+    std::vector< cv::Vec2f > aSamplePts;
+    fCurve.GetSamplePoints( aSamplePts );
+
+    pcl::PointXYZRGB point;
+    for ( size_t i = 0; i < aSamplePts.size(); ++i ) {
+        point.x = fPathOnSliceIndex;
+        point.y = aSamplePts[ i ][ 0 ];
+        point.z = aSamplePts[ i ][ 1 ];
+        aPathCloud.push_back( point );
+    }
+
+    fVpkg->setActiveSegmentation( fVpkg->newSegmentation() );
+    fVpkg->saveCloud( aPathCloud );
 }

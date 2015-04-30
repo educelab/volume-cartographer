@@ -54,6 +54,16 @@ void CBezierCurve::SetControlPoints( const std::vector< Vec2< double > > &nContr
     }
 }
 
+// Set control points
+void CBezierCurve::SetControlPoints( const std::vector< cv::Vec2f > &nControlPoints )
+{
+    assert( nControlPoints.size() == fNumControlPoints ); // 4
+
+    for ( int i = 0; i < fNumControlPoints; ++i ) {
+        fControlPoints[ i ] = Vec2< double >( nControlPoints[ i ][ 0 ], nControlPoints[ i ][ 1 ] );
+    }
+}
+
 // Get sample points
 void CBezierCurve::GetSamplePoints( std::vector< Vec2< double > > &nSamplePoints )
 {
@@ -64,8 +74,60 @@ void CBezierCurve::GetSamplePoints( std::vector< Vec2< double > > &nSamplePoints
                           pythag< double >( fControlPoints[ 2 ][ 0 ] - fControlPoints[ 3 ][ 0 ], 
                                             fControlPoints[ 2 ][ 1 ] - fControlPoints[ 3 ][ 1 ] );
 
-    int aNumOfPoints = aTotalLength / fSampleInterval;
-    int aParameterInterval = 1.0 / aNumOfPoints;
+    int aNumOfPts = aTotalLength / fSampleInterval;
+    float aInterval = 1.0 / aNumOfPts;
+
+    for ( int i = 0; i < aNumOfPts; i++ ) {
+        float xa = GetPt( fControlPoints[ 0 ][ 0 ], fControlPoints[ 1 ][ 0 ], i * aInterval );
+        float ya = GetPt( fControlPoints[ 0 ][ 1 ], fControlPoints[ 1 ][ 1 ], i * aInterval );
+        float xb = GetPt( fControlPoints[ 1 ][ 0 ], fControlPoints[ 2 ][ 0 ], i * aInterval );
+        float yb = GetPt( fControlPoints[ 1 ][ 1 ], fControlPoints[ 2 ][ 1 ], i * aInterval );
+        float xc = GetPt( fControlPoints[ 2 ][ 0 ], fControlPoints[ 3 ][ 0 ], i * aInterval );
+        float yc = GetPt( fControlPoints[ 2 ][ 1 ], fControlPoints[ 3 ][ 1 ], i * aInterval );
+
+        float xxa = GetPt( xa, xb, i * aInterval );
+        float yya = GetPt( ya, yb, i * aInterval );
+        float xxb = GetPt( xb, xc, i * aInterval );
+        float yyb = GetPt( yb, yc, i * aInterval );
+
+        float xxx = GetPt( xxa, xxb, i * aInterval );
+        float yyy = GetPt( yya, yyb, i * aInterval );
+
+        nSamplePoints.push_back( Vec2< double >( xxx, yyy ) );
+    }
+}
+
+// Get sample points
+void CBezierCurve::GetSamplePoints( std::vector< cv::Vec2f > &nSamplePoints )
+{
+    double aTotalLength = pythag< double >( fControlPoints[ 0 ][ 0 ] - fControlPoints[ 1 ][ 0 ],
+                                            fControlPoints[ 0 ][ 1 ] - fControlPoints[ 1 ][ 1 ] ) +
+                          pythag< double >( fControlPoints[ 1 ][ 0 ] - fControlPoints[ 2 ][ 0 ],
+                                            fControlPoints[ 1 ][ 1 ] - fControlPoints[ 2 ][ 1 ] ) +
+                          pythag< double >( fControlPoints[ 2 ][ 0 ] - fControlPoints[ 3 ][ 0 ],
+                                            fControlPoints[ 2 ][ 1 ] - fControlPoints[ 3 ][ 1 ] );
+
+    int aNumOfPts = aTotalLength / fSampleInterval;
+    float aInterval = 1.0 / aNumOfPts;
+
+    for ( int i = 0; i < aNumOfPts; i++ ) {
+        float xa = GetPt( fControlPoints[ 0 ][ 0 ], fControlPoints[ 1 ][ 0 ], i * aInterval );
+        float ya = GetPt( fControlPoints[ 0 ][ 1 ], fControlPoints[ 1 ][ 1 ], i * aInterval );
+        float xb = GetPt( fControlPoints[ 1 ][ 0 ], fControlPoints[ 2 ][ 0 ], i * aInterval );
+        float yb = GetPt( fControlPoints[ 1 ][ 1 ], fControlPoints[ 2 ][ 1 ], i * aInterval );
+        float xc = GetPt( fControlPoints[ 2 ][ 0 ], fControlPoints[ 3 ][ 0 ], i * aInterval );
+        float yc = GetPt( fControlPoints[ 2 ][ 1 ], fControlPoints[ 3 ][ 1 ], i * aInterval );
+
+        float xxa = GetPt( xa, xb, i * aInterval );
+        float yya = GetPt( ya, yb, i * aInterval );
+        float xxb = GetPt( xb, xc, i * aInterval );
+        float yyb = GetPt( yb, yc, i * aInterval );
+
+        float xxx = GetPt( xxa, xxb, i * aInterval );
+        float yyy = GetPt( yya, yyb, i * aInterval );
+
+        nSamplePoints.push_back( cv::Vec2f( xxx, yyy ) );
+    }
 }
 
 // Draw curve on image
@@ -86,8 +148,8 @@ void CBezierCurve::DrawOnImage( cv::Mat &nImg,
                               fControlPoints[ 1 ][ 1 ] - fControlPoints[ 2 ][ 1 ] ) +
                       pythag( fControlPoints[ 2 ][ 0 ] - fControlPoints[ 3 ][ 0 ], 
                               fControlPoints[ 2 ][ 1 ] - fControlPoints[ 3 ][ 1 ] );
-    const double CURVE_SAMPLE_RATE = 0.05;
-    int aNumOfPts = aTotalLen / CURVE_SAMPLE_RATE;
+
+    int aNumOfPts = aTotalLen / fSampleInterval;
     float aInterval = 1.0 / aNumOfPts;
 
     float prev_x, prev_y;
