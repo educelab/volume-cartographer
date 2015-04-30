@@ -49,7 +49,9 @@ public:
     void saveMetadata(std::string filePath);
 
     // Data Retrieval
-    cv::Mat getSliceAtIndex(int);
+    cv::Mat getSliceData(int);
+    cv::Mat getSliceAtIndex(int) __attribute__ ((deprecated));
+    std::string getSlicePath(int);
     std::string getNormalAtIndex(int);
 
     // Segmentation functions

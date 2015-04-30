@@ -139,8 +139,8 @@ int VolumePkg::getNumberOfSliceCharacters() {
     return num_characters;
 }
 
-// Returns slice at specific slice index
-cv::Mat VolumePkg::getSliceAtIndex(int index) {
+// Returns slice image at specific slice index
+cv::Mat VolumePkg::getSliceData(int index) {
     //get the file name
     std::string slice_location(location);
     slice_location += config.getString("slice location", "/slices/");
@@ -154,6 +154,26 @@ cv::Mat VolumePkg::getSliceAtIndex(int index) {
     cv::Mat sliceImg = cv::imread( slice_location, CV_LOAD_IMAGE_ANYCOLOR | CV_LOAD_IMAGE_ANYDEPTH );
     
     return sliceImg;
+}
+
+// Deprecated method for returning slice image at a specific index
+cv::Mat VolumePkg::getSliceAtIndex(int index) {
+    return this->getSliceData(index);
+}
+
+// Returns slice at specific slice index
+std::string VolumePkg::getSlicePath(int index) {
+    //get the file name
+    std::string slice_location(location);
+    slice_location += config.getString("slice location", "/slices/");
+    int num_slice_characters = getNumberOfSliceCharacters();
+    std::string str_index = std::to_string(index);
+    int num_leading_zeroes = num_slice_characters - str_index.length();
+    for (int i = 0; i < num_leading_zeroes; i++) {slice_location += '0';}
+    slice_location += str_index;
+    slice_location += ".tif";
+
+    return slice_location;
 }
 
 // Returns surface normal PCD file path for slice at index
