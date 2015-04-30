@@ -23,3 +23,18 @@ INCLUDE(${QT_USE_FILE})
 ADD_DEFINITIONS(${QT_DEFINITIONS})
 add_executable(vc_meshEditor ${meshEditor_SOURCES} ${meshEditor_HEADERS_MOC})
 target_link_libraries(vc_meshEditor ${VC_LIBS} Qt4::QtOpenGL ${OPENGL_LIBRARIES} ${OpenCV_LIBS} ${QT_LIBRARIES} ${EXTRA_LIBS} ${PCL_LIBRARIES})
+
+# VCNewUI
+# only include the headers that needs to be processed by moc
+SET(VCNewUI_SOURCES meshEditor/Ply/base.cpp meshEditor/Ply/header.cpp meshEditor/Ply/io.cpp meshEditor/Ply/object.cpp meshEditor/Ply/unknown.cpp meshEditor/objTester/list.cpp meshEditor/objTester/objLoader.cpp meshEditor/objTester/obj_parser.cpp meshEditor/objTester/string_extra.cpp VCNewUI/main.cpp VCNewUI/CSimpleNumEditBox.cpp VCNewUI/CMesh.cpp VCNewUI/CWindow.cpp VCNewUI/CXCurve.cpp VCNewUI/UDataManipulateUtils.cpp VCNewUI/UObjHelper.cpp VCNewUI/CPlyHelper.cpp VCNewUI/CVolumeViewer.cpp VCNewUI/CVolumeViewerWithCurve.cpp VCNewUI/CBSpline.cpp VCNewUI/CBezierCurve.cpp)
+SET(VCNewUI_HEADERS meshEditor/Ply/base.h meshEditor/Ply/header.h meshEditor/Ply/io.h meshEditor/Ply/object.h meshEditor/Ply/unknown.h meshEditor/objTester/list.h meshEditor/objTester/objLoader.h meshEditor/objTester/obj_parser.h meshEditor/objTester/string_extra.h VCNewUI/CSimpleNumEditBox.h VCNewUI/CLinkedList.h VCNewUI/CMesh.h VCNewUI/CVec.h VCNewUI/CPoint.h VCNewUI/CWindow.h VCNewUI/CXCurve.h VCNewUI/HBase.h VCNewUI/mathUtils.h VCNewUI/UDataManipulateUtils.h VCNewUI/UObjHelper.h VCNewUI/CPlyHelper.h VCNewUI/CVolumeViewer.h VCNewUI/CVolumeViewerWithCurve.h VCNewUI/CBSpline.h VCNewUI/CBezierCurve.h)
+SET(VCNewUI_UIS VCNewUI/VCMain.ui)
+# invoke moc
+QT4_WRAP_UI(VCNewUI_UIS_HDS ${VCNewUI_UIS})
+QT4_WRAP_CPP(VCNewUI_HEADERS_MOC ${VCNewUI_HEADERS})
+#Qt include directories
+INCLUDE(${QT_USE_FILE})
+ADD_DEFINITIONS(${QT_DEFINITIONS})
+add_executable(vc_VCNewUI ${VCNewUI_UIS_HDS} ${VCNewUI_SOURCES} ${VCNewUI_HEADERS_MOC})
+include_directories(${PCL_INCLUDE_DIRS} ../meshing/ meshEditor/ meshEditor/objTester/ ../)
+target_link_libraries(vc_VCNewUI ${VC_LIBS} Qt4::QtOpenGL ${OPENGL_LIBRARIES} ${OpenCV_LIBS} ${QT_LIBRARIES} ${EXTRA_LIBS} ${PCL_LIBRARIES} pthread ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY})
