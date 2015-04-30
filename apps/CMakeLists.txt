@@ -38,3 +38,7 @@ ADD_DEFINITIONS(${QT_DEFINITIONS})
 add_executable(vc_VCNewUI ${VCNewUI_UIS_HDS} ${VCNewUI_SOURCES} ${VCNewUI_HEADERS_MOC})
 include_directories(${PCL_INCLUDE_DIRS} ../meshing/ meshEditor/ meshEditor/objTester/ ../)
 target_link_libraries(vc_VCNewUI ${VC_LIBS} Qt4::QtOpenGL ${OPENGL_LIBRARIES} ${OpenCV_LIBS} ${QT_LIBRARIES} ${EXTRA_LIBS} ${PCL_LIBRARIES} pthread ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY})
+
+# Metadata Editor
+add_executable(vc_metaedit metadata.cpp)
+target_link_libraries(vc_metaedit ${VC_LIBS} ${PCL_LIBRARIES} ${OpenCV_LIBS})
