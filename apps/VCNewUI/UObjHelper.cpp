@@ -2,7 +2,7 @@
 // Chao Du 2014 Dec
 #include "UObjHelper.h"
 
-#include "objLoader.h"
+#include "objTester/objLoader.h"
 
 namespace ChaoVis {
 

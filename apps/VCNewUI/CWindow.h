@@ -10,13 +10,13 @@
 #include <QtGui>
 #include <QtWidgets>
 #else // _QT4_
-#include <qt4/Qt/QtGui>
+#include <QtGui>
 #endif
 
 #include "mathUtils.h"
 #include "CBSpline.h"
 
-#include "../ui_VCMain.h"
+#include "ui_VCMain.h"
 
 #include <opencv2/opencv.hpp>
 

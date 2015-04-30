@@ -7,7 +7,7 @@
 #include <QtCore>
 #include <QtGui>
 
-#include "volumepkg/volumepkg.h"
+#include "volumepkg.h"
 #include "CVolumeViewerWithCurve.h"
 
 #include "UDataManipulateUtils.h"

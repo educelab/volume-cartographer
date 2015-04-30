@@ -16,6 +16,9 @@ find_package(OpenCV REQUIRED)
 find_package(Boost REQUIRED)
 find_package(ITK REQUIRED)
 
+include(${QT_USE_FILE})
+add_definitions(${QT_DEFINITIONS})
+
 include_directories(${Boost_INCLUDE_DIR} ${PCL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
@@ -26,6 +29,9 @@ IF(APPLE)
 ENDIF(APPLE)
 
 # VC Libraries
+add_subdirectory(common)
+include_directories(${VC_COMMON_INCLUDE_DIR})
+
 add_subdirectory(meshing)
 include_directories(${MESHING_INCLUDE_DIR})
 
@@ -35,7 +41,7 @@ include_directories(${VOLUMEPKG_INCLUDE_DIR})
 add_subdirectory(segmentation)
 include_directories(${SEGMENTATION_INCLUDE_DIR})
 
-set(VC_LIBS vc_volumepkg vc_meshing vc_segmentation)
+set(VC_LIBS vc_volumepkg vc_meshing vc_segmentation vc_common)
 
 # VC Apps
 add_subdirectory(pathgen)
