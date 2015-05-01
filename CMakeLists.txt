@@ -7,6 +7,9 @@ project(VC VERSION 1.0.1)
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 
+# Option for building apps
+option(BUILD_OSX_APPS "Build OSX App Bundle" OFF)
+
 # Prerequisite libraries
 set(Boost_USE_STATIC_LIBS ON)
 
@@ -23,10 +26,15 @@ include_directories(${Boost_INCLUDE_DIR} ${PCL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DI
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
+# OS Specific Changes
 IF(APPLE)
 	FIND_LIBRARY(SECURITY_LIBRARY Security)
 	SET(EXTRA_LIBS ${SECURITY_LIBRARY})
 ENDIF(APPLE)
+
+if(UNIX AND NOT ANDROID)
+  set(Boost_LIBRARIES ${Boost_LIBRARIES} pthread)
+endif()
 
 # VC Libraries
 add_subdirectory(common)
@@ -98,7 +106,7 @@ configure_file(
 add_custom_target(uninstall
     COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 
-set(CPACK_GENERATOR "ZIP;TGZ")
+set(CPACK_GENERATOR "TGZ;ZIP")
 set(CPACK_COMPONENTS_ALL Programs)
 set(CPACK_PACKAGE_NAME "VC")
 set(CPACK_PACKAGE_VENDOR "UK VisCenter")

@@ -36,7 +36,7 @@ QT4_WRAP_CPP(meshEditor_HEADERS_MOC ${meshEditor_HEADERS})
 add_executable(vc_meshEditor ${meshEditor_SOURCES} ${meshEditor_HEADERS_MOC})
 target_link_libraries(vc_meshEditor ${VC_LIBS} Qt4::QtOpenGL ${OPENGL_LIBRARIES} ${OpenCV_LIBS} ${QT_LIBRARIES} ${EXTRA_LIBS} ${PCL_LIBRARIES})
 
-# VCNewUI
+# VCNewUI - I'm sorry for everything below this line. - SP
 # only include the headers that needs to be processed by moc
 SET(VCNewUI_SOURCES     meshEditor/Ply/base.cpp meshEditor/Ply/header.cpp meshEditor/Ply/io.cpp meshEditor/Ply/object.cpp
                         meshEditor/Ply/unknown.cpp VCNewUI/main.cpp VCNewUI/CSimpleNumEditBox.cpp VCNewUI/CMesh.cpp
@@ -57,26 +57,28 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 QT4_WRAP_UI(VCNewUI_UIS_HDS ${VCNewUI_UIS})
 QT4_WRAP_CPP(VCNewUI_HEADERS_MOC ${VCNewUI_HEADERS})
 
-IF(APPLE)
-  # set how it shows up in the Info.plist file
-  SET(MACOSX_BUNDLE_ICON_FILE vc-logo.icns)
-  # set where in the bundle to put the icns file
-  SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_SOURCE_DIR}/VCNewUI/vc-logo.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
-  # include the icns file in the target
-  SET(VCNewUI_SOURCES ${VCNewUI_SOURCES} VCNewUI/vc-logo.icns)
-ENDIF(APPLE)
+if(APPLE AND BUILD_OSX_APPS)
+    # set how it shows up in the Info.plist file
+    SET(MACOSX_BUNDLE_ICON_FILE vc-logo.icns)
+    # set where in the bundle to put the icns file
+    SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_SOURCE_DIR}/VCNewUI/vc-logo.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+    # include the icns file in the target
+    SET(VCNewUI_SOURCES ${VCNewUI_SOURCES} VCNewUI/vc-logo.icns)
+    add_executable(VC MACOSX_BUNDLE ${VCNewUI_UIS_HDS} ${VCNewUI_SOURCES} ${VCNewUI_HEADERS_MOC})
+else()
+    add_executable(VC ${VCNewUI_UIS_HDS} ${VCNewUI_SOURCES} ${VCNewUI_HEADERS_MOC})
+endif(APPLE AND BUILD_OSX_APPS)
 
-add_executable(VC MACOSX_BUNDLE ${VCNewUI_UIS_HDS} ${VCNewUI_SOURCES} ${VCNewUI_HEADERS_MOC})
 target_link_libraries(VC ${VC_LIBS} Qt4::QtOpenGL ${OPENGL_LIBRARIES} ${OpenCV_LIBS} ${QT_LIBRARIES} ${EXTRA_LIBS} ${PCL_LIBRARIES} ${Boost_LIBRARIES})
-
-SET(plugin_dest_dir VC.app/Contents/MacOS)
-SET(qtconf_dest_dir VC.app/Contents/Resources)
-SET(APPS "\${CMAKE_INSTALL_PREFIX}/VC.app")
-
 INSTALL(TARGETS VC
     BUNDLE DESTINATION . COMPONENT Runtime
     RUNTIME DESTINATION bin COMPONENT Runtime
     )
+
+if(BUILD_OSX_APPS)
+SET(plugin_dest_dir VC.app/Contents/MacOS)
+SET(qtconf_dest_dir VC.app/Contents/Resources)
+SET(APPS "\${CMAKE_INSTALL_PREFIX}/VC.app")
 
 #--------------------------------------------------------------------------------
 # Install needed Qt plugins by copying directories from the qt installation
@@ -96,7 +98,7 @@ INSTALL(CODE "
 # for dependencies.  If they are not system dependencies, they are copied.
 
 # directories to look for dependencies
-SET(DIRS ${QT_LIBRARY_DIRS})
+SET(DIRS ${QT_LIBRARY_DIRS} ${PCL_LIBRARY_DIRS})
 
 # Now the work of copying dependencies into the bundle/package
 # The quotes are escaped and variables to use at install time have their $ escaped
@@ -104,9 +106,8 @@ SET(DIRS ${QT_LIBRARY_DIRS})
 # Note that the image plugins depend on QtSvg and QtXml, and it got those copied
 # over.
 INSTALL(CODE "
-    file(GLOB_RECURSE QTPLUGINS
-      \"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/plugins/*${CMAKE_SHARED_LIBRARY_SUFFIX}\")
+    file(GLOB_RECURSE QTPLUGINS \"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/plugins/*${CMAKE_SHARED_LIBRARY_SUFFIX}\")
     include(BundleUtilities)
-    fixup_bundle(\"${APPS}\" \"\${QTPLUGINS}\" \"${DIRS}\")
-    " COMPONENT Runtime)
+    fixup_bundle(\"${APPS}\" \"\${QTPLUGINS}\" \"${DIRS}\" COMPONENT Runtime)")
 set(CPACK_BINARY_DRAGNDROP ON)
+endif(BUILD_OSX_APPS)
