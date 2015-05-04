@@ -2,15 +2,11 @@ cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
 # Mesher
 add_executable(vc_mesher mesher.cpp)
-target_link_libraries(vc_mesher ${PCL_LIBRARIES})
-target_link_libraries(vc_mesher ${OpenCV_LIBS})
-target_link_libraries(vc_mesher ${VC_LIBS})
+target_link_libraries(vc_mesher ${VC_LIBS} ${VC_REQ_LIBS})
 
 # Segment
 add_executable(vc_segment segment.cpp)
-target_link_libraries(vc_segment ${PCL_LIBRARIES})
-target_link_libraries(vc_segment ${OpenCV_LIBS})
-target_link_libraries(vc_segment ${VC_LIBS})
+target_link_libraries(vc_segment ${VC_LIBS} ${VC_REQ_LIBS})
 
 # Metadata Editor
 add_executable(vc_metaedit metadata.cpp)
@@ -34,7 +30,7 @@ SET(meshEditor_HEADERS  meshEditor/Ply/base.h meshEditor/Ply/header.h meshEditor
 QT4_WRAP_CPP(meshEditor_HEADERS_MOC ${meshEditor_HEADERS})
 
 add_executable(vc_meshEditor ${meshEditor_SOURCES} ${meshEditor_HEADERS_MOC})
-target_link_libraries(vc_meshEditor ${VC_LIBS} Qt4::QtOpenGL ${OPENGL_LIBRARIES} ${OpenCV_LIBS} ${QT_LIBRARIES} ${EXTRA_LIBS} ${PCL_LIBRARIES})
+target_link_libraries(vc_meshEditor ${VC_LIBS} ${VC_REQ_LIBS} Qt4::QtOpenGL ${OPENGL_LIBRARIES} ${QT_LIBRARIES} ${EXTRA_LIBS})
 
 # VCNewUI - I'm sorry for everything below this line. - SP
 # only include the headers that needs to be processed by moc
@@ -69,7 +65,7 @@ else()
     add_executable(VC ${VCNewUI_UIS_HDS} ${VCNewUI_SOURCES} ${VCNewUI_HEADERS_MOC})
 endif(APPLE AND BUILD_OSX_APPS)
 
-target_link_libraries(VC ${VC_LIBS} Qt4::QtOpenGL ${OPENGL_LIBRARIES} ${OpenCV_LIBS} ${QT_LIBRARIES} ${EXTRA_LIBS} ${PCL_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(VC ${VC_LIBS} ${VC_REQ_LIBS} Qt4::QtOpenGL ${OPENGL_LIBRARIES} ${QT_LIBRARIES} ${EXTRA_LIBS})
 INSTALL(TARGETS VC
     BUNDLE DESTINATION . COMPONENT Runtime
     RUNTIME DESTINATION bin COMPONENT Runtime

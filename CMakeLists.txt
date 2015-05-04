@@ -9,9 +9,7 @@ SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 
 # Option for building apps
 option(BUILD_OSX_APPS "Build OSX App Bundle" OFF)
-
-# Prerequisite libraries
-set(Boost_USE_STATIC_LIBS ON)
+option(Boost_USE_STATIC_LIBS "Link against static Boost libs" OFF)
 
 find_package(Qt4 REQUIRED)
 find_package(PCL 1.7 REQUIRED)
@@ -23,7 +21,8 @@ include(${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
 
 include_directories(${Boost_INCLUDE_DIR} ${PCL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
-link_directories(${PCL_LIBRARY_DIRS})
+link_directories(${PCL_LIBRARY_DIRS} ${Boost_LIBRARY_DIR})
+set(VC_REQ_LIBS ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES})
 add_definitions(${PCL_DEFINITIONS})
 
 # OS Specific Changes
@@ -31,10 +30,6 @@ IF(APPLE)
 	FIND_LIBRARY(SECURITY_LIBRARY Security)
 	SET(EXTRA_LIBS ${SECURITY_LIBRARY})
 ENDIF(APPLE)
-
-if(UNIX AND NOT ANDROID)
-  set(Boost_LIBRARIES ${Boost_LIBRARIES} pthread)
-endif()
 
 # VC Libraries
 add_subdirectory(common)
