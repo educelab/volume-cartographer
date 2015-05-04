@@ -416,7 +416,7 @@ void DoGlobalHistogramEqualization( std::vector< cv::Mat > &nImgVol )
 
 void ConvertData16Uto8U( std::vector< cv::Mat > &nImgVol ) {
     for ( size_t i = 0; i < nImgVol.size(); ++i ) {
-        std::cout << "\rDownsampling slices to 8U1C: " << i + 1 << "/" << nImgVol.size() << std::flush;
+        std::cout << "\rDownsampling slices to 8U: " << i + 1 << "/" << nImgVol.size() << std::flush;
         cv::Mat aOriginImg( nImgVol[ i ].rows, nImgVol[ i ].cols, CV_16UC1 );
         nImgVol[ i ].copyTo( aOriginImg );
         nImgVol[ i ].convertTo( nImgVol[ i ], CV_8U );
@@ -430,17 +430,42 @@ void ConvertData16Uto8U( std::vector< cv::Mat > &nImgVol ) {
     std::cout << std::endl;
 }
 
-void ProcessVolume( /*const*/ VolumePkg &nVpkg, 
-                    std::vector< cv::Mat > &nImgVol,
+void ProcessVolume( /*const*/ VolumePkg     &nVpkg,
+                    const ChaoVis::CMesh    &nMesh,
+                    std::vector< cv::Mat >  &nImgVol,
+                    const double            &nRadius,
                     bool nNeedEqualize,
                     bool nNeedNormalize )
 {
+    /*  This fucntion is a hack to avoid a refactoring the texturing
+        methods. See Issue #12 for more details. */
+    // Setup
+    int meshLowIndex = (int) nMesh.fPoints.begin()->x;
+    int meshHighIndex = meshLowIndex + nMesh.fHeight;
     int aNumSlices = nVpkg.getNumberOfSlices();
-    for ( int i = 0; i < aNumSlices; ++i ) {
-        std::cout << "\rLoading slice: " << i + 1 << "/" << aNumSlices << std::flush;
-        nImgVol.push_back( nVpkg.getSliceAtIndex( i ).clone() );
+
+    int bufferLowIndex = meshLowIndex - (int) nRadius;
+    if (bufferLowIndex < 0) bufferLowIndex = 0;
+
+    int bufferHighIndex = meshHighIndex + (int) nRadius;
+    if (bufferHighIndex >= nVpkg.getNumberOfSlices()) bufferHighIndex = nVpkg.getNumberOfSlices();
+
+    // Load null mats into the vector
+    cv::Mat nullMat = cv::Mat::zeros(10, 10, CV_8UC1);
+    for ( int i = 0; i < bufferLowIndex; ++i ) {
+        std::cout << "\rLoading null buffer slices: " << i + 1 << "/" << bufferLowIndex << std::flush;
+        nImgVol.push_back( nullMat.clone() );
     }
     std::cout << std::endl;
+
+    // Load the actual volume into a tempVol with a buffer of nRadius
+    std::vector< cv::Mat > tempVol;
+    for ( int i = bufferLowIndex; i < bufferHighIndex; ++i ) {
+        std::cout << "\rLoading real slices: " << i - bufferLowIndex + 1 << "/" << bufferHighIndex - bufferLowIndex << std::flush;
+        tempVol.push_back( nVpkg.getSliceAtIndex( i ).clone() );
+    }
+    std::cout << std::endl;
+
     gNumHistBin = 1 << ( NUM_BITS_PER_BYTE * sizeof( unsigned short ) );
     #ifdef _DEBUG
     printf( "# of bin: %d\n", gNumHistBin );
@@ -452,12 +477,13 @@ void ProcessVolume( /*const*/ VolumePkg &nVpkg,
     //           without the second parameter, DoGlobalHistogramEqualization only find the range
     //           of the color intensity and do a equalization
     if ( nNeedEqualize ) {
-        DoGlobalHistogramEqualization< unsigned int, unsigned short >( nImgVol );
+        DoGlobalHistogramEqualization< unsigned int, unsigned short >( tempVol );
     }
     if ( nNeedNormalize ) {
-        DoNormalization< unsigned short >( nImgVol );
+        DoNormalization< unsigned short >( tempVol );
     }
-    ConvertData16Uto8U( nImgVol );
+    ConvertData16Uto8U( tempVol );
+    nImgVol.insert( nImgVol.end(), tempVol.begin(), tempVol.end() );
 }
 
 void SamplingWithinEllipse( double nA, // major axis
@@ -657,7 +683,8 @@ void meshTexturing( ChaoVis::CMesh      &nMesh,     // mesh
                     EDirectionOption    nDir )      // direction option
 {
     std::vector< cv::Mat > aImgVol;
-    ProcessVolume( nVpkg, aImgVol, false, false );
+    ProcessVolume( nVpkg, nMesh, aImgVol, nR1, false, false );
+    std::cout << "Virtual volume size: " << aImgVol.size() << std::endl;
 
     switch ( nFilter ) {
     case EFilterOption::FilterOptionIntersection:

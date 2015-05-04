@@ -70,8 +70,10 @@ double FilterNonLocalMaximumSuppression( double *nData,
 double FilterDummy ( double	*nData,
 					int		nSize );
 
-void ProcessVolume( /*const*/ VolumePkg		&nVpkg, 
+void ProcessVolume( /*const*/ VolumePkg		&nVpkg,
+                    const ChaoVis::CMesh    &nMesh,
 					std::vector< cv::Mat >	&nImgVol,
+                    const double            &nRadius,
 					bool					nNeedEqualize = false,
 					bool					nNeedNormalize = true );
 
