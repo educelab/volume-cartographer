@@ -14,10 +14,10 @@ HEADERS = CMesh.h \
     ../../volumepkg/volumepkg.h \
     ../../volumepkg/volumepkgcfg.h \
     HBase.h \
-    ../meshEditor/objTester/list.h \
-    ../meshEditor/objTester/obj_parser.h \
-    ../meshEditor/objTester/objLoader.h \
-    ../meshEditor/objTester/string_extra.h \
+    ../../common/objTester/list.h \
+    ../../common/objTester/obj_parser.h \
+    ../../common/objTester/objLoader.h \
+    ../../common/objTester/string_extra.h \
     VCNewGuiHeader.h \
     CPlyHelper.h \
     CBezierCurve.h \
@@ -26,7 +26,8 @@ HEADERS = CMesh.h \
     CMatrixMN.h \
     CVolumeViewer.h \
     CSimpleNumEditBox.h \
-    CVolumeViewerWithCurve.h
+    CVolumeViewerWithCurve.h \
+    ../../segmentation/structureTensorParticleSim.h
 SOURCES = CMesh.cpp \
           CXCurve.cpp \
           CWindow.cpp \
@@ -41,24 +42,27 @@ SOURCES = CMesh.cpp \
     ../meshEditor/Ply/unknown.cpp \
     ../../volumepkg/volumepkg.cpp \
     ../../volumepkg/volumepkgcfg.cpp \
-    ../meshEditor/objTester/list.cpp \
-    ../meshEditor/objTester/obj_parser.cpp \
-    ../meshEditor/objTester/objLoader.cpp \
-    ../meshEditor/objTester/string_extra.cpp \
+    ../../common/objTester/list.cpp \
+    ../../common/objTester/obj_parser.cpp \
+    ../../common/objTester/objLoader.cpp \
+    ../../common/objTester/string_extra.cpp \
     CPlyHelper.cpp \
     CBezierCurve.cpp \
     CBSpline.cpp \
     CVolumeViewer.cpp \
     CSimpleNumEditBox.cpp \
-    CVolumeViewerWithCurve.cpp
+    CVolumeViewerWithCurve.cpp \
+    ../../segmentation/structureTensorParticleSim.cpp
 
 INCLUDEPATH += "/usr/include/"
-INCLUDEPATH += "../meshEditor/objTester/"
+INCLUDEPATH += "../../common/"
 INCLUDEPATH += "../meshEditor/"
 INCLUDEPATH += "/usr/include/pcl-1.7/"
 INCLUDEPATH += "/usr/include/eigen3/"
 INCLUDEPATH += "../../"
 INCLUDEPATH += "../../meshing/"
+INCLUDEPATH += "../../volumepkg/"
+INCLUDEPATH += "../../segmentation/"
 
 LIBS += -L"/usr/lib/x84_64-linux-gnu/" -lopencv_core -lopencv_highgui -lopencv_imgproc -lboost_system -lboost_filesystem -lpcl_io -lpcl_common
 QT += widgets opengl
