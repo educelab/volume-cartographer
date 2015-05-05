@@ -61,9 +61,11 @@ public:
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr openCloud();
     ChaoVis::CMesh openMesh();
     ChaoVis::CMesh openTexturedMesh();
+    cv::Mat getTextureData();
     void saveCloud(pcl::PointCloud<pcl::PointXYZRGB>);
     void saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr);
     void saveTexturedMesh(ChaoVis::CMesh);
+    void saveTextureData(cv::Mat);
     
 private:
     VolumePkgCfg config;

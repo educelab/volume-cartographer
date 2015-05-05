@@ -254,6 +254,13 @@ ChaoVis::CMesh VolumePkg::openTexturedMesh() {
     return mesh;
 }
 
+// Return the texture image as a CV mat
+cv::Mat VolumePkg::getTextureData() {
+    std::string texturePath = segdir.string() + "/" + activeSeg + "/texture.tif";
+    cv::Mat texture = cv::imread( texturePath, CV_LOAD_IMAGE_ANYCOLOR | CV_LOAD_IMAGE_ANYDEPTH );
+    return cv::imread( texturePath, CV_LOAD_IMAGE_ANYCOLOR | CV_LOAD_IMAGE_ANYDEPTH );
+}
+
 // Save a point cloud back to the volumepkg
 void VolumePkg::saveCloud(pcl::PointCloud<pcl::PointXYZRGB> segmentedCloud){
     std::string outputName = segdir.string() + "/" + activeSeg + "/cloud.pcd";
@@ -272,6 +279,12 @@ void VolumePkg::saveTexturedMesh(ChaoVis::CMesh mesh) {
     std::string outputName = segdir.string() + "/" + activeSeg + "/textured.ply";
     ChaoVis::CPlyHelper::WritePlyFile( outputName, mesh );
     printf("Mesh file saved.\n");
+}
+
+void VolumePkg::saveTextureData(cv::Mat texture){
+    std::string texturePath = segdir.string() + "/" + activeSeg + "/texture.tif";
+    cv::imwrite(texturePath, texture);
+    printf("Texture image saved.\n");
 }
 
 // See if the given key exists in the volumepkg dictionary and return its type
