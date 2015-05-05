@@ -30,7 +30,7 @@ SET(meshEditor_HEADERS  meshEditor/Ply/base.h meshEditor/Ply/header.h meshEditor
 QT4_WRAP_CPP(meshEditor_HEADERS_MOC ${meshEditor_HEADERS})
 
 add_executable(vc_meshEditor ${meshEditor_SOURCES} ${meshEditor_HEADERS_MOC})
-target_link_libraries(vc_meshEditor ${VC_LIBS} ${VC_REQ_LIBS} Qt4::QtOpenGL ${OPENGL_LIBRARIES} GL ${QT_LIBRARIES} ${EXTRA_LIBS})
+target_link_libraries(vc_meshEditor ${VC_LIBS} ${VC_REQ_LIBS} Qt4::QtOpenGL ${OPENGL_LIBRARIES} ${QT_LIBRARIES} ${EXTRA_LIBS})
 
 # VCNewUI - I'm sorry for everything below this line. - SP
 # only include the headers that needs to be processed by moc
