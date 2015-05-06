@@ -198,14 +198,18 @@ void CWindow::UpdateView( void )
     // REVISIT - FILL ME HERE
     fEdtGravity->setText( QString( "%1" ).arg( fSegParams.fGravityScale ) );
     fEdtSampleDist->setText( QString( "%1" ).arg( fSegParams.fThreshold ) );
-    fEdtStartIndex->setText( QString( "%1" ).arg( 0/*fSegParams.fGravityScale*/ ) );
-    fEdtEndIndex->setText( QString( "%1" ).arg( 0/*fSegParams.fGravityScale*/ ) );
+    fEdtStartIndex->setText( QString( "%1" ).arg( fPathOnSliceIndex ) );
+    fEdtEndIndex->setText( QString( "%1" ).arg( fSegParams.fEndOffset ) );
 }
 
 // Do segmentation given the starting point cloud
 void CWindow::DoSegmentation( void )
 {
-    SetUpSegParams(); // REVISIT - do we need to get the latest value from the widgets since we constantly get the values?
+    // REVISIT - do we need to get the latest value from the widgets since we constantly get the values?
+    if ( !SetUpSegParams() ) {
+        QMessageBox::information( this, tr( "Info" ), tr( "Invalid parameter for segmentation" ) );
+        return;
+    }
 
     // how to create pcl::PointCloud::Ptr from a pcl::PointCloud?
     // stackoverflow.com/questions/10644429/create-a-pclpointcloudptr-from-a-pclpointcloud
@@ -221,6 +225,7 @@ bool CWindow::SetUpSegParams( void )
 {
     bool aIsOk;
 
+    // gravity value
     int aNewVal = fEdtGravity->text().toInt( &aIsOk );
     if ( aIsOk ) {
         fSegParams.fGravityScale = aNewVal;
@@ -228,6 +233,7 @@ bool CWindow::SetUpSegParams( void )
         return false;
     }
 
+    // sample distance
     aNewVal = fEdtSampleDist->text().toInt( &aIsOk );
     if ( aIsOk ) {
         fSegParams.fThreshold = aNewVal;
@@ -235,13 +241,9 @@ bool CWindow::SetUpSegParams( void )
         return false;
     }
 
-    aNewVal = fEdtStartIndex->text().toInt( &aIsOk );
-    if ( aIsOk ) {
-//        fSegParams.fEndOffset = aNewVal; // REVISIT - FILL ME HERE
-    } else {
-        return false;
-    }
+    // starting slice index is fPathOnSliceIndex
 
+    // ending slice index
     aNewVal = fEdtEndIndex->text().toInt( &aIsOk );
     if ( aIsOk ) {
         fSegParams.fEndOffset = aNewVal;

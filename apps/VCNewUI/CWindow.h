@@ -15,6 +15,7 @@
 
 #include "mathUtils.h"
 #include "CBSpline.h"
+#include "CXCurve.h"
 
 #include "ui_VCMain.h"
 
@@ -34,8 +35,8 @@ class CWindow : public QMainWindow {
 
 public:
     // REVISIT - states not used, remove me
-    enum EWindowtate { WindowStateSegment,      // under segmentation state
-                       WindowStateRefine };     // under mesh refinemen state
+    enum EWindowState { WindowStateSegment,      // under segmentation state
+                        WindowStateRefine };     // under mesh refinemen state
 
     typedef struct SSegParams_tag {
         int fGravityScale;
@@ -83,7 +84,7 @@ private slots:
 
 private:
 	// data model
-    EWindowtate fWindowState;
+    EWindowState fWindowState;
 
     VolumePkg   *fVpkg;
     QString     fVpkgPath;
@@ -91,10 +92,15 @@ private:
 
     std::string fSegmentationId;
 
-    int         fPathOnSliceIndex;
+    int         fPathOnSliceIndex; // effectively equivalent to the starting slice index
 
-    CBSpline    fCurve;
+    CBSpline    fCurve; // the curve at current slice
+    std::vector< CXCurve > fIntersections; // curves of all the slices
+    std::vector< CXCurve > fCurvesLower; // neighboring curves, { -1, -2, ... }
+    std::vector< CXCurve > fCurvesUpper; // neighboring curves, { +1, +2, ... }
 
+    // REVSIIT - the state of the application should be unique and consistent
+    //           that means these mode should be mutually exclusive; consider using one variable, see EWindowState
     bool        fIsInDrawingMode;
     bool        fIsInEditingMode;
 
@@ -106,8 +112,21 @@ private:
     //           and then let the user start segmentation again from this slice. We allow the user to select how many sliced
     //           he want to iterate through, however the newly generated point cloud will overwrite these and the rest data
     //           in the previous point cloud.
-    pcl::PointCloud< pcl::PointXYZRGB > fICloud; // immutable cloud
-    pcl::PointCloud< pcl::PointXYZRGB > fPathCloud; // path cloud
+    //           Terminologies:
+    //           For our current particle simulation method, we can represent the point cloud with width (# of particles in one slice) and
+    //           height (# of iterations). So we can start segmentation from any slice given these two parameters. We call
+    //           the point cloud before current slice (3 ~ fPathOnSliceIndex-1) the "upper part", and the newly generated
+    //           point cloud from segmentation routine the "lower part". The upper part is from the original point cloud (if there was one)
+    //           and the final point cloud is the concatenation of the two parts.
+    //           We call the point cloud loaded from disk the "immutable cloud". We only save to disk after the concatenation.
+    //           Previously we use a txt file to store vertices of the path where the particle simulation starts. Now they are
+    //           stored in "path cloud".
+    // REVISIT - maybe redundant
+    pcl::PointCloud< pcl::PointXYZRGB > fICloud;    // immutable cloud, load from disk
+    pcl::PointCloud< pcl::PointXYZRGB > fPathCloud; // path cloud, particle simulation seed
+    pcl::PointCloud< pcl::PointXYZRGB > fUpperPart; // upper part of immutable cloud, not changed
+    pcl::PointCloud< pcl::PointXYZRGB > fLowerPart; // newly generated point cloud, from segmentation
+    pcl::PointCloud< pcl::PointXYZRGB > fMasterCloud;  // concatenation of upper part and lower part
 
     // window components
     QMenu		*fFileMenu;
@@ -121,7 +140,7 @@ private:
     CVolumeViewerWithCurve
                 *fVolumeViewerWidget;
     QListWidget *fPathListWidget;
-    QPushButton *fPenTool;
+    QPushButton *fPenTool; // REVISIT - change me to QToolButton
     QPushButton *fEditTool;
 
     QLineEdit   *fEdtGravity;
