@@ -76,6 +76,7 @@ install(PROGRAMS
             "${CMAKE_BINARY_DIR}/bin/vc_conform"
             "${CMAKE_BINARY_DIR}/bin/vc_txt2pcd"
             "${CMAKE_BINARY_DIR}/bin/vc_metaedit"
+            "${CMAKE_BINARY_DIR}/bin/vc_addScale"
         DESTINATION bin
         COMPONENT Programs)
 
