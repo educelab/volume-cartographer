@@ -199,7 +199,7 @@ void CWindow::UpdateView( void )
     fEdtGravity->setText( QString( "%1" ).arg( fSegParams.fGravityScale ) );
     fEdtSampleDist->setText( QString( "%1" ).arg( fSegParams.fThreshold ) );
     fEdtStartIndex->setText( QString( "%1" ).arg( fPathOnSliceIndex ) );
-    fEdtEndIndex->setText( QString( "%1" ).arg( fSegParams.fEndOffset ) );
+    fEdtEndIndex->setText( QString( "%1" ).arg( fSegParams.fEndOffset + fPathOnSliceIndex ) ); // offset + starting index
 }
 
 // Do segmentation given the starting point cloud
@@ -211,13 +211,34 @@ void CWindow::DoSegmentation( void )
         return;
     }
 
+
+    // REVISIT - we need to notify the user somewhere that segmentation can't be done when the selected path has -1(s)
+    //           this can only happen in editing mode but not in drawing new path mode
+
+
+    // 1) keep the immutable/upper part of the point cloud
+    // see apps/segment.cpp for reference
+    fUpperPart.clear();
+    int aTotalNumOfImmutablePts = fMasterCloud.width * ( fPathOnSliceIndex - VOLPKG_SLICE_MIN_INDEX );
+    for ( int i = 0; i < aTotalNumOfImmutablePts; ++i ) {
+        fUpperPart.push_back( fMasterCloud.points[ i ] );
+    }
+    // resize so the parts can be concatenated
+    fUpperPart.width = fMasterCloud.width;
+    fUpperPart.height = fUpperPart.points.size() / fUpperPart.width;
+    fUpperPart.points.resize( fUpperPart.width * fUpperPart.height );
+
+    // 2) do segmentation from the starting slice
     // how to create pcl::PointCloud::Ptr from a pcl::PointCloud?
     // stackoverflow.com/questions/10644429/create-a-pclpointcloudptr-from-a-pclpointcloud
-    fICloud = structureTensorParticleSim( pcl::PointCloud< pcl::PointXYZRGB >::Ptr( &fPathCloud ),
-                                            *fVpkg,
-                                            fSegParams.fGravityScale,
-                                            fSegParams.fThreshold,
-                                            fSegParams.fEndOffset );
+    fLowerPart = structureTensorParticleSim( pcl::PointCloud< pcl::PointXYZRGB >::Ptr( &fPathCloud ),
+                                             *fVpkg,
+                                             fSegParams.fGravityScale,
+                                             fSegParams.fThreshold,
+                                             fSegParams.fEndOffset );
+
+    // 3) concatenate the two parts to form the complete point cloud
+    fMasterCloud = fUpperPart + fLowerPart;
 }
 
 // Set up the parameters for doing segmentation
@@ -245,8 +266,8 @@ bool CWindow::SetUpSegParams( void )
 
     // ending slice index
     aNewVal = fEdtEndIndex->text().toInt( &aIsOk );
-    if ( aIsOk ) {
-        fSegParams.fEndOffset = aNewVal;
+    if ( aIsOk && aNewVal > fPathOnSliceIndex ) {
+        fSegParams.fEndOffset = aNewVal - fPathOnSliceIndex; // difference between the starting slice and ending slice
     } else {
         return false;
     }
@@ -254,6 +275,26 @@ bool CWindow::SetUpSegParams( void )
     return true;
 }
 
+// Get the curves for all the slices
+void CWindow::SetUpCurves( void )
+{
+    if ( fVpkg == NULL || fMasterCloud.size() == 0 ) {
+        QMessageBox::information( this, tr( "Info" ), tr( "Either volume package or point cloud is not loaded" ) );
+        return;
+    }
+
+    // assign rows of particles to the curves
+    for ( size_t i = 0; i < fMasterCloud.height; ++i ) {
+        CXCurve aCurve;
+        aCurve.SetSliceIndex( i + VOLPKG_SLICE_MIN_INDEX );
+        for ( size_t j = 0; j < fMasterCloud.width; ++i ) {
+            aCurve.InsertPoint( Vec2< float >( fMasterCloud.points[ 0 ].y, fMasterCloud.points[ 0 ].z ) );
+        }
+        fIntersections.push_back( aCurve );
+    }
+}
+
+// Open volume package
 void CWindow::Open( void )
 {
     QString aVpkgPath = QString( "" );
@@ -376,12 +417,14 @@ void CWindow::OnEdtSampleDistValChange( QString nText )
 void CWindow::OnEdtStartingSliceValChange( QString nText )
 {
     // REVISIT - FILL ME HERE
+    // REVISIT - should be equivalent to "set current slice", the same as navigation through slices
 }
 
 // Handle ending slice value change
 void CWindow::OnEdtEndingSliceValChange( QString nText )
 {
     // REVISIT - FILL ME HERE
+    // REVISIT - NOTE - this is not fEndOffset for segmentation parameter
 }
 
 // Handle start segmentation

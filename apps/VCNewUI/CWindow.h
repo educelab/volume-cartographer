@@ -64,6 +64,8 @@ private:
     void DoSegmentation( void );
     bool SetUpSegParams( void );
 
+    void SetUpCurves( void );
+
 private slots:
     void Open( void );
     void Close( void );
@@ -122,11 +124,12 @@ private:
     //           Previously we use a txt file to store vertices of the path where the particle simulation starts. Now they are
     //           stored in "path cloud".
     // REVISIT - maybe redundant
-    pcl::PointCloud< pcl::PointXYZRGB > fICloud;    // immutable cloud, load from disk
     pcl::PointCloud< pcl::PointXYZRGB > fPathCloud; // path cloud, particle simulation seed
-    pcl::PointCloud< pcl::PointXYZRGB > fUpperPart; // upper part of immutable cloud, not changed
+    pcl::PointCloud< pcl::PointXYZRGB > fUpperPart; // upper part of master cloud, not changed, same as immutable cloud
     pcl::PointCloud< pcl::PointXYZRGB > fLowerPart; // newly generated point cloud, from segmentation
-    pcl::PointCloud< pcl::PointXYZRGB > fMasterCloud;  // concatenation of upper part and lower part
+    pcl::PointCloud< pcl::PointXYZRGB > fMasterCloud;  // master cloud, the one and only point cloud
+                                                       // can be loaded from disk, or generated from new path
+                                                       // or concatenation of upper part and lower part in editing mode
 
     // window components
     QMenu		*fFileMenu;
