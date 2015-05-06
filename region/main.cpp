@@ -14,7 +14,8 @@
 #include "region.h"
 
 Voxel**** volume;
-int fieldsize = 650;
+int imgwidth = 600;
+int imgheight = 42;
 int number_of_slices;
 void prep(VolumePkg);
 void start_region();
@@ -38,10 +39,11 @@ int main(int argc, char** argv) {
 void start_region() {
   std::priority_queue<Voxel> pq;
   for (int i = 0; i < number_of_slices; ++i) {
-    for (int j = 0; j < fieldsize; ++j) {
-      for (int k = 0; k < fieldsize; ++k) {
+    for (int j = 0; j < imgwidth; ++j) {
+      for (int k = 0; k < imgheight; ++k) {
         if (volume[i][j][k] != NULL) {
           pq.push(*volume[i][j][k]);}}}}
+
 
   // create a region
   Voxel master = pq.top();
@@ -51,18 +53,6 @@ void start_region() {
   int y = pos(1);
   int z = pos(2);
   Region r(volume[x][y][z]);
-
-  // add some more seed points
-  int maxindex = pow(2,5);
-  for (int i = 0; i < maxindex; ++i) {
-    Voxel master = pq.top();
-    pq.pop();
-    Vector pos = master.pos();
-    int x = pos(0);
-    int y = pos(1);
-    int z = pos(2);
-    r.insert(volume[x][y][z]);
-  }
   pq = std::priority_queue<Voxel>();
 
   // run forever
@@ -79,10 +69,10 @@ void start_region() {
 void prep(VolumePkg volpkg) {
   volume = new Voxel***[number_of_slices];
   for (int i = 0; i < number_of_slices; ++i) {
-    volume[i] = new Voxel**[fieldsize];
-    for (int j = 0; j < fieldsize; ++j) {
-      volume[i][j] = new Voxel*[fieldsize];
-      for (int k = 0; k < fieldsize; ++k) {
+    volume[i] = new Voxel**[imgwidth];
+    for (int j = 0; j < imgwidth; ++j) {
+      volume[i][j] = new Voxel*[imgheight];
+      for (int k = 0; k < imgheight; ++k) {
         volume[i][j][k] = NULL;
       }
     }
@@ -96,7 +86,9 @@ void prep(VolumePkg volpkg) {
       PCL_ERROR ("couldn't read file\n");
       exit(EXIT_FAILURE);
     } else {
+
       pcl::PointCloud<pcl::PointXYZRGBNormal>::iterator point;
+      cv::Mat colors = volpkg.getSliceAtIndex(i);
       for (point = cloud->begin(); point != cloud->end(); ++point) {
         int x = point->x;
         int y = point->y;
@@ -107,7 +99,8 @@ void prep(VolumePkg volpkg) {
                                      Vector(point->normal[0],
                                             point->normal[1],
                                             point->normal[2]),
-                                     point->rgb);
+                                     point->rgb,
+                                     colors.at<unsigned short>(z,y));
       }
     }
   }

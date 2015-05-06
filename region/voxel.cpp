@@ -1,9 +1,10 @@
 #include "voxel.h"
 
-Voxel::Voxel(Vector pos, Vector n, float e) {
+Voxel::Voxel(Vector pos, Vector n, float e, unsigned short c) {
   position = pos;
   normal = n;
   eigen = e;
+  color = c;
 }
 
 void Voxel::project() {
@@ -13,7 +14,7 @@ void Voxel::project() {
   normalize(gravity);
   normalize(slice_intersect);
 }
-  
+
 Vector Voxel::pos() {
   return position;
 }
@@ -30,8 +31,10 @@ Vector Voxel::slice() {
   return  slice_intersect;
 }
 
-float Voxel::eig() {
-  return eigen;
+float Voxel::packedColor() {
+  uint8_t intensity = (uint8_t)(255 * (color / 65535.0));
+  uint32_t rgb = ((uint32_t)intensity << 16) | ((uint32_t)intensity << 8) | (uint32_t)intensity;
+  return *(float*)&rgb;
 }
 
 bool operator<(const Voxel& x, const Voxel& y) {

@@ -8,14 +8,14 @@ typedef cv::Vec3f Vector;
 
 class Voxel {
  public:
-  Voxel(Vector, Vector, float);
+  Voxel(Vector, Vector, float, unsigned short);
   void project();
 
   Vector pos();
   Vector norm();
   Vector grav();
   Vector slice();
-  float eig();
+  float packedColor();
 
   friend bool operator<(const Voxel&, const Voxel&);
   friend Vector offset(Voxel, Voxel);
@@ -27,6 +27,8 @@ class Voxel {
   Vector gravity;
   Vector slice_intersect;
   float eigen;
+
+  unsigned short color;
 };
 
 #endif // _VOXEL_

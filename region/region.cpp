@@ -138,7 +138,7 @@ void Region::write() {
     point.normal[0] = norm(0);
     point.normal[1] = norm(1);
     point.normal[2] = norm(2);
-    point.rgb = it->eig();
+    point.rgb = it->packedColor();
     cloud.push_back(point);
   }
   for (std::list<Voxel*>::iterator it = dead.begin(); it != dead.end(); ++it) {
@@ -151,7 +151,7 @@ void Region::write() {
     point.normal[0] = norm(0);
     point.normal[1] = norm(1);
     point.normal[2] = norm(2);
-    point.rgb = (*it)->eig();
+    point.rgb = (*it)->packedColor();
     cloud.push_back(point);
   }
   pcl::io::savePCDFileBinaryCompressed("output.pcd", cloud);
