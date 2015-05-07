@@ -66,8 +66,10 @@ private:
 
     void SetUpCurves( void );
 
+    void OpenSlice( void );
+
 private slots:
-    void Open( void );
+    void OpenVolume( void );
     void Close( void );
     void About( void );
     void SavePointCloud( void );
@@ -85,6 +87,10 @@ private slots:
 
     void OnBtnStartSegClicked( void );
 
+    void OnLoadAnySlice( int nSliceIndex );
+    void OnLoadNextSlice( void );
+    void OnLoadPrevSlice( void );
+
 private:
 	// data model
     EWindowState fWindowState;
@@ -97,7 +103,10 @@ private:
 
     int         fPathOnSliceIndex; // effectively equivalent to the starting slice index
 
+    // for drawing mode
     CBSpline    fSplineCurve; // the curve at current slice
+    // for editing mode
+    CXCurve     fIntersectionCurve;
     std::vector< CXCurve > fIntersections; // curves of all the slices
 //    std::vector< CXCurve > fCurvesLower; // neighboring curves, { -1, -2, ... }
 //    std::vector< CXCurve > fCurvesUpper; // neighboring curves, { +1, +2, ... }

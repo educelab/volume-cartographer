@@ -29,8 +29,12 @@ public:
 
     virtual void SetImage( const QImage &nSrc );
 
+    // for drawing mode
     void SetSplineCurve( CBSpline &nCurve );
     void UpdateSplineCurve( void );
+    // for editing mode
+    void SetIntersectionCurve( CXCurve &nCurve );
+
     void UpdateView( void );
 
     void SetViewState( EViewState nViewState ) { fViewState = nViewState; }

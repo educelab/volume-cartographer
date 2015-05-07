@@ -48,16 +48,9 @@ CWindow::CWindow( void ) :
     if ( fVolumeViewerWidget == NULL ) {
         QMessageBox::information( this, tr( "WARNING" ), tr( "Widget not found" ) );
     } else {
-        Open(); // REVISIT - for debug only!
+        OpenVolume(); // REVISIT - for debug only!
 
-        cv::Mat aImgMat;
-        fVpkg->getSliceAtIndex( fPathOnSliceIndex ).copyTo( aImgMat );
-        aImgMat.convertTo( aImgMat, CV_8UC3, 1.0 / 256.0 );
-        cvtColor( aImgMat, aImgMat, CV_GRAY2BGR );
-
-        QImage aImgQImage;
-        aImgQImage = Mat2QImage( aImgMat );
-        fVolumeViewerWidget->SetImage( aImgQImage );
+        OpenSlice();
 
         update();
     }
@@ -101,6 +94,11 @@ void CWindow::CreateWidgets( void )
 
     // pass the reference of the curve to the widget
     fVolumeViewerWidget->SetSplineCurve( fSplineCurve );
+    fVolumeViewerWidget->SetIntersectionCurve( fIntersectionCurve );
+
+    connect( fVolumeViewerWidget, SIGNAL( SendSignalOnNextClicked() ), this, SLOT( OnLoadNextSlice() ) );
+    connect( fVolumeViewerWidget, SIGNAL( SendSignalOnPrevClicked() ), this, SLOT( OnLoadPrevSlice() ) );
+    connect( fVolumeViewerWidget, SIGNAL( SendSignalOnLoadAnyImage(int) ), this, SLOT( OnLoadAnySlice(int) ) );
 
     // new path button
     QPushButton *aBtnNewPath = this->findChild< QPushButton * >( "btnNewPath" );
@@ -160,7 +158,7 @@ void CWindow::CreateMenus( void )
 void CWindow::CreateActions( void )
 {
     fOpenVolAct = new QAction( tr( "&Open volume..." ), this );
-    connect( fOpenVolAct, SIGNAL( triggered() ), this, SLOT( Open() ) );
+    connect( fOpenVolAct, SIGNAL( triggered() ), this, SLOT( OpenVolume() ) );
     fExitAct = new QAction( tr( "E&xit..." ), this );
     connect( fExitAct, SIGNAL( triggered() ), this, SLOT( Close() ) );
     fAboutAct = new QAction( tr( "&About..." ), this );
@@ -307,8 +305,21 @@ void CWindow::SetUpCurves( void )
     }
 }
 
+// Open slice
+void CWindow::OpenSlice( void )
+{
+    cv::Mat aImgMat;
+    fVpkg->getSliceAtIndex( fPathOnSliceIndex ).copyTo( aImgMat );
+    aImgMat.convertTo( aImgMat, CV_8UC3, 1.0 / 256.0 );
+    cvtColor( aImgMat, aImgMat, CV_GRAY2BGR );
+
+    QImage aImgQImage;
+    aImgQImage = Mat2QImage( aImgMat );
+    fVolumeViewerWidget->SetImage( aImgQImage );
+}
+
 // Open volume package
-void CWindow::Open( void )
+void CWindow::OpenVolume( void )
 {
     QString aVpkgPath = QString( "" );
     aVpkgPath = QFileDialog::getExistingDirectory( this,
@@ -391,11 +402,10 @@ void CWindow::OnNewPathClicked( void )
 // Handle path item click event
 void CWindow::OnPathItemClicked( QListWidgetItem* nItem )
 {
-//    QMessageBox::information( this, tr( "Info" ), nItem->text() );
-    QString aPathFileName = fVpkgPath + "/" + nItem->text() + "/" + "path.pcd"; // REVISIT - naming convention
-//    QMessageBox::information( this, tr( "Info" ), aPathFileName );
+    QString aPathFileName = fVpkgPath + "/" + nItem->text() + "/" + "cloud.pcd"; // REVISIT - naming convention
 
-    // REVISIT - load proper point cloud
+    // load proper point cloud
+    pcl::io::loadPCDFile< pcl::PointXYZRGB >( aPathFileName.toStdString(), fMasterCloud );
 }
 
 // Toggle the status of the pen tool
@@ -455,4 +465,28 @@ void CWindow::OnEdtEndingSliceValChange( QString nText )
 void CWindow::OnBtnStartSegClicked( void )
 {
     DoSegmentation();
+}
+
+// Handle loading any slice
+void CWindow::OnLoadAnySlice( int nSliceIndex )
+{
+    fPathOnSliceIndex = nSliceIndex;
+    OpenSlice();
+    update();
+}
+
+// Handle loading the next slice
+void CWindow::OnLoadNextSlice( void )
+{
+    fPathOnSliceIndex++;
+    OpenSlice();
+    update();
+}
+
+// Handle loading the previous slice
+void CWindow::OnLoadPrevSlice( void )
+{
+    fPathOnSliceIndex--;
+    OpenSlice();
+    update();
 }
