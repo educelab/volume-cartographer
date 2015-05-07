@@ -34,9 +34,11 @@ class CWindow : public QMainWindow {
     Q_OBJECT
 
 public:
-    // REVISIT - states not used, remove me
-    enum EWindowState { WindowStateSegment,      // under segmentation state
-                        WindowStateRefine };     // under mesh refinemen state
+    enum EWindowState { WindowStateSegment,     // under segmentation state
+                        WindowStateRefine,      // under mesh refinemen state
+                        WindowStateDrawPath,    // draw new path
+                        WindowStateEditCurve,   // edit curve
+                        WindowStateIdle };      // idle
 
     typedef struct SSegParams_tag {
         int fGravityScale;
@@ -65,8 +67,13 @@ private:
     bool SetUpSegParams( void );
 
     void SetUpCurves( void );
+    void SetCurrentCurve( int nCurrentSliceIndex );
 
     void OpenSlice( void );
+
+    void InitPathList( void );
+
+    void SetPathPointCloud( void );
 
 private slots:
     void OpenVolume( void );
@@ -110,11 +117,6 @@ private:
     std::vector< CXCurve > fIntersections; // curves of all the slices
 //    std::vector< CXCurve > fCurvesLower; // neighboring curves, { -1, -2, ... }
 //    std::vector< CXCurve > fCurvesUpper; // neighboring curves, { +1, +2, ... }
-
-    // REVSIIT - the state of the application should be unique and consistent
-    //           that means these mode should be mutually exclusive; consider using one variable, see EWindowState
-    bool        fIsInDrawingMode;
-    bool        fIsInEditingMode;
 
     SSegParams  fSegParams;
 
