@@ -100,7 +100,7 @@ void CWindow::CreateWidgets( void )
     aTabSegment->setLayout( aWidgetLayout );
 
     // pass the reference of the curve to the widget
-    fVolumeViewerWidget->SetCurve( fCurve );
+    fVolumeViewerWidget->SetSplineCurve( fSplineCurve );
 
     // new path button
     QPushButton *aBtnNewPath = this->findChild< QPushButton * >( "btnNewPath" );
@@ -165,6 +165,8 @@ void CWindow::CreateActions( void )
     connect( fExitAct, SIGNAL( triggered() ), this, SLOT( Close() ) );
     fAboutAct = new QAction( tr( "&About..." ), this );
     connect( fAboutAct, SIGNAL( triggered() ), this, SLOT( About() ) );
+    fSavePointCloudAct = new QAction( tr( "&Save point cloud..." ), this );
+    connect( fSavePointCloudAct, SIGNAL( triggered() ), this, SLOT( SavePointCloud() ) );
 }
 
 bool CWindow::InitializeVolumePkg( const std::string &nVpkgPath )
@@ -200,6 +202,17 @@ void CWindow::UpdateView( void )
     fEdtSampleDist->setText( QString( "%1" ).arg( fSegParams.fThreshold ) );
     fEdtStartIndex->setText( QString( "%1" ).arg( fPathOnSliceIndex ) );
     fEdtEndIndex->setText( QString( "%1" ).arg( fSegParams.fEndOffset + fPathOnSliceIndex ) ); // offset + starting index
+
+    // REVISIT - these two states should be mutually exclusive, we guarantee this when we toggle the button, BUGGY!
+    if ( !fIsInDrawingMode && !fIsInEditingMode ) {
+        fVolumeViewerWidget->SetViewState( CVolumeViewerWithCurve::EViewState::ViewStateIdle );
+    }
+    if ( fIsInDrawingMode ) {
+        fVolumeViewerWidget->SetViewState( CVolumeViewerWithCurve::EViewState::ViewStateDraw );
+    }
+    if ( fIsInEditingMode ) {
+        fVolumeViewerWidget->SetViewState( CVolumeViewerWithCurve::EViewState::ViewStateEdit );
+    }
 }
 
 // Do segmentation given the starting point cloud
@@ -349,12 +362,20 @@ void CWindow::About( void )
     QMessageBox::information( this, tr( "About Volume Cartographer" ), tr( "Vis Center, University of Kentucky" ) );
 }
 
+// Save point cloud to path directory
+void CWindow::SavePointCloud( void )
+{
+    fVpkg->saveCloud( fMasterCloud );
+    // REVISIT - do we need to save mesh?
+    // fVpkg->saveMesh( fMasterCloud );
+}
+
 // Create new path
 void CWindow::OnNewPathClicked( void )
 {
     // calculate the path and save that to aPathCloud
     std::vector< cv::Vec2f > aSamplePts;
-    fCurve.GetSamplePoints( aSamplePts );
+    fSplineCurve.GetSamplePoints( aSamplePts );
 
     pcl::PointXYZRGB point;
     for ( size_t i = 0; i < aSamplePts.size(); ++i ) {
@@ -365,7 +386,6 @@ void CWindow::OnNewPathClicked( void )
     }
 
     fVpkg->setActiveSegmentation( fVpkg->newSegmentation() );
-    fVpkg->saveCloud( fPathCloud );
 }
 
 // Handle path item click event
@@ -383,6 +403,8 @@ void CWindow::TogglePenTool( void )
 {
 //    QMessageBox::information( this, tr( "info" ), tr( "Pen tool status toggled" ) );
     fIsInDrawingMode = fPenTool->isChecked();
+
+    UpdateView();
 }
 
 // Toggle the status of the edit tool
@@ -390,6 +412,8 @@ void CWindow::ToggleEditTool( void )
 {
 //    QMessageBox::information( this, tr( "info" ), tr( "Edit tool status toggled" ) );
     fIsInEditingMode = fEditTool->isChecked();
+
+    UpdateView();
 }
 
 // Handle gravity value change

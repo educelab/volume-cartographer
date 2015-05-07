@@ -5,12 +5,23 @@
 
 #include "CVolumeViewer.h"
 #include "CBSpline.h"
+#include "CXCurve.h"
 #include <vector>
 #include <opencv2/opencv.hpp>
+#include <pcl/common/common.h>
+#include <pcl/point_types.h>
 
 namespace ChaoVis {
 
+// REVISIT - NOTE - since there are two modes, edit and draw, for the application,
+//           we need to add corresponding modes to the widget, too.
+
 class CVolumeViewerWithCurve : public CVolumeViewer {
+
+public:
+    enum EViewState { ViewStateEdit,    // edit mode
+                      ViewStateDraw,    // draw mode
+                      ViewStateIdle };  // idle mode
 
 public:
     CVolumeViewerWithCurve( void );
@@ -18,29 +29,55 @@ public:
 
     virtual void SetImage( const QImage &nSrc );
 
-    void SetCurve( CBSpline &nCurve );
-    void UpdateCurve( void );
+    void SetSplineCurve( CBSpline &nCurve );
+    void UpdateSplineCurve( void );
     void UpdateView( void );
+
+    void SetViewState( EViewState nViewState ) { fViewState = nViewState; }
+    EViewState GetViewState( void ) { return fViewState; }
 
 protected:
     void mousePressEvent( QMouseEvent *event );
     void mouseMoveEvent( QMouseEvent *event );
+    void mouseReleaseEvent( QMouseEvent *event );
     void paintEvent( QPaintEvent *event );
 
 private:
     void WidgetLoc2ImgLoc( const cv::Vec2f &nWidgetLoc,
                            cv::Vec2f       &nImgLoc );
 
+    int SelectPointOnCurve( const CXCurve   *nCurve,
+                            const cv::Vec2f &nPt );
+
+    void UpdatePathCloud( void );
+
+    void DrawIntersectionCurve( void );
+
 private slots:
 
 signals:
 
 private:
-    CBSpline    *fCurveRef;
+    // for drawing
+    CBSpline    *fSplineCurveRef;
     std::vector< cv::Vec2f >
                 fControlPoints;
+
+    // for editing
+    CXCurve     *fIntersectionCurveRef;
+    int         fSelectedPointIndex;
+    pcl::PointCloud< pcl::PointXYZRGB >::Ptr
+                fPathCloudRef;
+    bool        fVertexIsChanged;
+
+    QPoint      fLastPos; // last mouse position on the image
+    int         fImpactRange; // how many points a control point movement can affect
+
+    // image drawn
     cv::Mat     fImgMat;
     cv::Mat     fImgMatCache;
+
+    EViewState  fViewState;
 
 }; // class CVolumeViewerWithCurve
 

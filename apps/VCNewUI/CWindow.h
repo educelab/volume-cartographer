@@ -70,6 +70,7 @@ private slots:
     void Open( void );
     void Close( void );
     void About( void );
+    void SavePointCloud( void );
 
     void OnNewPathClicked( void );
     void OnPathItemClicked( QListWidgetItem* nItem );
@@ -96,10 +97,10 @@ private:
 
     int         fPathOnSliceIndex; // effectively equivalent to the starting slice index
 
-    CBSpline    fCurve; // the curve at current slice
+    CBSpline    fSplineCurve; // the curve at current slice
     std::vector< CXCurve > fIntersections; // curves of all the slices
-    std::vector< CXCurve > fCurvesLower; // neighboring curves, { -1, -2, ... }
-    std::vector< CXCurve > fCurvesUpper; // neighboring curves, { +1, +2, ... }
+//    std::vector< CXCurve > fCurvesLower; // neighboring curves, { -1, -2, ... }
+//    std::vector< CXCurve > fCurvesUpper; // neighboring curves, { +1, +2, ... }
 
     // REVSIIT - the state of the application should be unique and consistent
     //           that means these mode should be mutually exclusive; consider using one variable, see EWindowState
@@ -137,6 +138,7 @@ private:
     QMenu       *fHelpMenu;
 
     QAction		*fOpenVolAct;
+    QAction     *fSavePointCloudAct;
     QAction		*fExitAct;
     QAction     *fAboutAct;
 

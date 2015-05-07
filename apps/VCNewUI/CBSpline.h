@@ -19,6 +19,9 @@ public:
     CBSpline( void );
     ~CBSpline( void );
 
+    size_t GetNumOfControlPoints( void ) const { return fControlPoints.size(); }
+    Vec2< double > GetPoint( int nIndex ) const { return fControlPoints[ nIndex ]; }
+
     void SetControlPoints( const std::vector< Vec2< double > > &nControlPoints );
     void SetControlPoints( const std::vector< cv::Vec2f > &nControlPoints );
     void GetSamplePoints( std::vector< Vec2< double > > &nSamplePoints );
