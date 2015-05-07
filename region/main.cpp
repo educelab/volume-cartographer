@@ -14,8 +14,8 @@
 #include "region.h"
 
 Voxel**** volume;
-int imgwidth = 600;
-int imgheight = 42;
+int imgwidth;
+int imgheight;
 int number_of_slices;
 void prep(VolumePkg);
 void start_region();
@@ -29,6 +29,8 @@ int main(int argc, char** argv) {
   std::string volpkgpath(argv[1]);
   VolumePkg volpkg(volpkgpath);
   number_of_slices = volpkg.getNumberOfSlices();
+  imgwidth = volpkg.getSliceWidth();
+  imgheight = volpkg.getSliceHeight();
 
   prep(volpkg);
   start_region();

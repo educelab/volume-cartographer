@@ -51,6 +51,7 @@ set(VC_LIBS vc_volumepkg vc_meshing vc_segmentation vc_common)
 add_subdirectory(pathgen)
 # add_subdirectory(reslicer)
 add_subdirectory(scalpel)
+add_subdirectory(region)
 add_subdirectory(texture)
 add_subdirectory(texturing)
 add_subdirectory(apps)
@@ -67,6 +68,7 @@ install(PROGRAMS
             "${CMAKE_BINARY_DIR}/bin/vc_pathgen"
             "${CMAKE_BINARY_DIR}/bin/vc_scalpel"
             "${CMAKE_BINARY_DIR}/bin/vc_segment"
+            "${CMAKE_BINARY_DIR}/bin/vc_region"
             "${CMAKE_BINARY_DIR}/bin/vc_mesher"
             "${CMAKE_BINARY_DIR}/bin/vc_meshEditor"
             "${CMAKE_BINARY_DIR}/bin/vc_texture"
