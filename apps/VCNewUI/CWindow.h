@@ -37,7 +37,7 @@ public:
     enum EWindowState { WindowStateSegment,     // under segmentation state
                         WindowStateRefine,      // under mesh refinemen state
                         WindowStateDrawPath,    // draw new path
-                        WindowStateEditCurve,   // edit curve
+                        WindowStateSegmentation,// segmentation mode
                         WindowStateIdle };      // idle
 
     typedef struct SSegParams_tag {
@@ -75,8 +75,12 @@ private:
 
     void SetPathPointCloud( void );
 
-private slots:
     void OpenVolume( void );
+
+    void ResetPointCloud( void );
+
+private slots:
+    void Open( void );
     void Close( void );
     void About( void );
     void SavePointCloud( void );
@@ -85,7 +89,7 @@ private slots:
     void OnPathItemClicked( QListWidgetItem* nItem );
 
     void TogglePenTool( void );
-    void ToggleEditTool( void );
+    void ToggleSegmentationTool( void );
 
     void OnEdtGravityValChange( QString nText );
     void OnEdtSampleDistValChange( QString nText );
@@ -98,6 +102,8 @@ private slots:
     void OnLoadNextSlice( void );
     void OnLoadPrevSlice( void );
 
+    void OnPathChanged( void );
+
 private:
 	// data model
     EWindowState fWindowState;
@@ -108,6 +114,8 @@ private:
 
     std::string fSegmentationId;
 
+    int         fMinSliceIndex;
+    int         fMaxSliceIndex;
     int         fPathOnSliceIndex; // effectively equivalent to the starting slice index
 
     // for drawing mode
@@ -136,7 +144,6 @@ private:
     //           Previously we use a txt file to store vertices of the path where the particle simulation starts. Now they are
     //           stored in "path cloud".
     // REVISIT - maybe redundant
-    pcl::PointCloud< pcl::PointXYZRGB > fPathCloud; // path cloud, particle simulation seed
     pcl::PointCloud< pcl::PointXYZRGB > fUpperPart; // upper part of master cloud, not changed, same as immutable cloud
     pcl::PointCloud< pcl::PointXYZRGB > fLowerPart; // newly generated point cloud, from segmentation
     pcl::PointCloud< pcl::PointXYZRGB > fMasterCloud;  // master cloud, the one and only point cloud
@@ -157,7 +164,7 @@ private:
                 *fVolumeViewerWidget;
     QListWidget *fPathListWidget;
     QPushButton *fPenTool; // REVISIT - change me to QToolButton
-    QPushButton *fEditTool;
+    QPushButton *fSegTool;
 
     QLineEdit   *fEdtGravity;
     QLineEdit   *fEdtSampleDist;

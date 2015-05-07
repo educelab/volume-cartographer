@@ -32,7 +32,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
-         <widget class="QPushButton" name="btnEditTool">
+         <widget class="QPushButton" name="btnSegTool">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -40,7 +40,7 @@
            </sizepolicy>
           </property>
           <property name="text">
-           <string>Edit Tool</string>
+           <string>Segmentation Tool</string>
           </property>
           <property name="checkable">
            <bool>true</bool>

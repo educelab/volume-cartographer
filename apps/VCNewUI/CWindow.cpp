@@ -25,9 +25,11 @@ CWindow::CWindow( void ) :
     fVolumeViewerWidget( NULL ),
     fPathListWidget( NULL ),
     fPenTool( NULL ),
-    fEditTool( NULL ),
+    fSegTool( NULL ),
     fWindowState( EWindowState::WindowStateIdle ),
-    fSegmentationId( "" )
+    fSegmentationId( "" ),
+    fMinSliceIndex( VOLPKG_SLICE_MIN_INDEX ),
+    fMaxSliceIndex( VOLPKG_SLICE_MIN_INDEX )
 {
     ui.setupUi( this );
 
@@ -35,7 +37,7 @@ CWindow::CWindow( void ) :
     // REVISIT - refactor me
     fSegParams.fGravityScale = 1;
     fSegParams.fThreshold = 1;
-    fSegParams.fEndOffset = -1;
+    fSegParams.fEndOffset = 5;
 
     // create UI widgets
     CreateWidgets();
@@ -48,9 +50,7 @@ CWindow::CWindow( void ) :
     if ( fVolumeViewerWidget == NULL ) {
         QMessageBox::information( this, tr( "WARNING" ), tr( "Widget not found" ) );
     } else {
-        OpenVolume(); // REVISIT - for debug only!
-
-        OpenSlice();
+        Open(); // REVISIT - for debug only!
 
         update();
     }
@@ -60,6 +60,7 @@ CWindow::CWindow( void ) :
 // Destructor
 CWindow::~CWindow( void )
 {
+    deleteNULL( fVpkg );
 }
 
 // Handle mouse press event
@@ -99,6 +100,7 @@ void CWindow::CreateWidgets( void )
     connect( fVolumeViewerWidget, SIGNAL( SendSignalOnNextClicked() ), this, SLOT( OnLoadNextSlice() ) );
     connect( fVolumeViewerWidget, SIGNAL( SendSignalOnPrevClicked() ), this, SLOT( OnLoadPrevSlice() ) );
     connect( fVolumeViewerWidget, SIGNAL( SendSignalOnLoadAnyImage(int) ), this, SLOT( OnLoadAnySlice(int) ) );
+    connect( fVolumeViewerWidget, SIGNAL( SendSignalPathChanged() ), this, SLOT( OnPathChanged() ) );
 
     // new path button
     QPushButton *aBtnNewPath = this->findChild< QPushButton * >( "btnNewPath" );
@@ -106,9 +108,9 @@ void CWindow::CreateWidgets( void )
 
     // pen tool and edit tool
     fPenTool = this->findChild< QPushButton * >( "btnPenTool" );
-    fEditTool = this->findChild< QPushButton * >( "btnEditTool" );
+    fSegTool = this->findChild< QPushButton * >( "btnSegTool" );
     connect( fPenTool, SIGNAL( clicked() ), this, SLOT( TogglePenTool() ) );
-    connect( fEditTool, SIGNAL( clicked() ), this, SLOT( ToggleEditTool() ) );
+    connect( fSegTool, SIGNAL( clicked() ), this, SLOT( ToggleSegmentationTool() ) );
 
     // list of paths
     fPathListWidget = this->findChild< QListWidget * >( "lstPaths" );
@@ -140,6 +142,7 @@ void CWindow::CreateMenus( void )
 {
     fFileMenu = new QMenu( tr( "&File" ), this );
     fFileMenu->addAction( fOpenVolAct );
+    fFileMenu->addAction( fSavePointCloudAct );
     fFileMenu->addSeparator();
     fFileMenu->addAction( fExitAct );
 
@@ -158,7 +161,7 @@ void CWindow::CreateMenus( void )
 void CWindow::CreateActions( void )
 {
     fOpenVolAct = new QAction( tr( "&Open volume..." ), this );
-    connect( fOpenVolAct, SIGNAL( triggered() ), this, SLOT( OpenVolume() ) );
+    connect( fOpenVolAct, SIGNAL( triggered() ), this, SLOT( Open() ) );
     fExitAct = new QAction( tr( "E&xit..." ), this );
     connect( fExitAct, SIGNAL( triggered() ), this, SLOT( Close() ) );
     fAboutAct = new QAction( tr( "&About..." ), this );
@@ -196,9 +199,9 @@ void CWindow::UpdateView( void )
     fEdtEndIndex->setText( QString( "%1" ).arg( fSegParams.fEndOffset + fPathOnSliceIndex ) ); // offset + starting index
 
     if ( fMasterCloud.points.size() == 0 ) { // no point cloud is loaded
-        fEditTool->setEnabled( false );
+        fSegTool->setEnabled( false );
     } else {
-        fEditTool->setEnabled( true );
+        fSegTool->setEnabled( true );
     }
 
     if ( fSegmentationId.length() == 0 ||   // no new path added
@@ -212,21 +215,23 @@ void CWindow::UpdateView( void )
     if ( fWindowState == EWindowState::WindowStateIdle ) {
         fVolumeViewerWidget->SetViewState( CVolumeViewerWithCurve::EViewState::ViewStateIdle );
         this->findChild< QGroupBox * >( "grpVolManager" )->setEnabled( true );
-        this->findChild< QGroupBox * >( "grpSeg" )->setEnabled( true );
+        this->findChild< QGroupBox * >( "grpSeg" )->setEnabled( false );
     } else if ( fWindowState == EWindowState::WindowStateDrawPath ) {
         fVolumeViewerWidget->SetViewState( CVolumeViewerWithCurve::EViewState::ViewStateDraw );
         this->findChild< QGroupBox * >( "grpVolManager" )->setEnabled( false );
         this->findChild< QGroupBox * >( "grpSeg" )->setEnabled( false );
-    } else if ( fWindowState == EWindowState::WindowStateEditCurve ) {
+    } else if ( fWindowState == EWindowState::WindowStateSegmentation ) {
         fVolumeViewerWidget->SetViewState( CVolumeViewerWithCurve::EViewState::ViewStateEdit );
         this->findChild< QGroupBox * >( "grpVolManager" )->setEnabled( false );
-        this->findChild< QGroupBox * >( "grpSeg" )->setEnabled( false );
+        this->findChild< QGroupBox * >( "grpSeg" )->setEnabled( true ); // segmentation can be done only when seg tool is selected
     } else {
         // something else
     }
 
     fEdtStartIndex->setEnabled( false ); // starting slice is always the current slice
     fEdtSampleDist->setEnabled( false ); // currently we cannot let the user change the sample distance
+
+    fVolumeViewerWidget->UpdateView();
 
     update();
 }
@@ -247,24 +252,36 @@ void CWindow::DoSegmentation( void )
 
     // 1) keep the immutable/upper part of the point cloud
     // see apps/segment.cpp for reference
+    int minIndex, maxIndex;
+    if ( fMasterCloud.points.size() == 0 ) {
+        minIndex = maxIndex = fPathOnSliceIndex;
+    } else {
+        pcl::PointXYZRGB min_p, max_p;
+        pcl::getMinMax3D( fMasterCloud, min_p, max_p );
+        minIndex = floor( fMasterCloud.points[ 0 ].x );
+        maxIndex = floor( max_p.x );
+    }
+
     fUpperPart.clear();
-    int aTotalNumOfImmutablePts = fMasterCloud.width * ( fPathOnSliceIndex - VOLPKG_SLICE_MIN_INDEX );
+    int aTotalNumOfImmutablePts = fMasterCloud.width * ( fPathOnSliceIndex - minIndex );
     for ( int i = 0; i < aTotalNumOfImmutablePts; ++i ) {
         fUpperPart.push_back( fMasterCloud.points[ i ] );
     }
     // resize so the parts can be concatenated
     fUpperPart.width = fMasterCloud.width;
-    if ( fUpperPart.width == 0 ) { // new path mode
-        fUpperPart.height = 0;
-    } else {
-        fUpperPart.height = fUpperPart.points.size() / fUpperPart.width;
-    }
+    fUpperPart.height = fUpperPart.points.size() / fUpperPart.width;
     fUpperPart.points.resize( fUpperPart.width * fUpperPart.height );
+
+    // lower part, the starting slice
+    fLowerPart.clear();
+    for ( int i = 0; i < fMasterCloud.width; ++i ) {
+        fLowerPart.push_back( fMasterCloud.points[ i + aTotalNumOfImmutablePts ] );
+    }
 
     // 2) do segmentation from the starting slice
     // how to create pcl::PointCloud::Ptr from a pcl::PointCloud?
     // stackoverflow.com/questions/10644429/create-a-pclpointcloudptr-from-a-pclpointcloud
-    fLowerPart = structureTensorParticleSim( pcl::PointCloud< pcl::PointXYZRGB >::Ptr( &fPathCloud ),
+    fLowerPart = structureTensorParticleSim( pcl::PointCloud< pcl::PointXYZRGB >::Ptr( new pcl::PointCloud< pcl::PointXYZRGB >( fLowerPart ) ),
                                              *fVpkg,
                                              fSegParams.fGravityScale,
                                              fSegParams.fThreshold,
@@ -272,6 +289,8 @@ void CWindow::DoSegmentation( void )
 
     // 3) concatenate the two parts to form the complete point cloud
     fMasterCloud = fUpperPart + fLowerPart;
+    fMasterCloud.width = fUpperPart.width;
+    fMasterCloud.height = fMasterCloud.size() / fMasterCloud.width;
 }
 
 // Set up the parameters for doing segmentation
@@ -316,12 +335,26 @@ void CWindow::SetUpCurves( void )
         return;
     }
 
+    int minIndex, maxIndex;
+    if ( fMasterCloud.points.size() == 0 ) {
+        minIndex = maxIndex = fPathOnSliceIndex;
+    } else {
+        pcl::PointXYZRGB min_p, max_p;
+        pcl::getMinMax3D( fMasterCloud, min_p, max_p );
+        minIndex = floor( fMasterCloud.points[ 0 ].x );
+        maxIndex = floor( max_p.x );
+    }
+    fMinSliceIndex = minIndex;
+    fMaxSliceIndex = maxIndex;
+
     // assign rows of particles to the curves
     for ( size_t i = 0; i < fMasterCloud.height; ++i ) {
         CXCurve aCurve;
-        aCurve.SetSliceIndex( i + VOLPKG_SLICE_MIN_INDEX );
-        for ( size_t j = 0; j < fMasterCloud.width; ++i ) {
-            aCurve.InsertPoint( Vec2< float >( fMasterCloud.points[ 0 ].y, fMasterCloud.points[ 0 ].z ) );
+        int aPointIndex;
+        aCurve.SetSliceIndex( i + fMinSliceIndex );
+        for ( size_t j = 0; j < fMasterCloud.width; ++j ) {
+            aPointIndex = i * fMasterCloud.width + j;
+            aCurve.InsertPoint( Vec2< float >( fMasterCloud.points[ aPointIndex ].y, fMasterCloud.points[ aPointIndex ].z ) );
         }
         fIntersections.push_back( aCurve );
     }
@@ -330,7 +363,10 @@ void CWindow::SetUpCurves( void )
 // Set the current curve
 void CWindow::SetCurrentCurve( int nCurrentSliceIndex )
 {
-    fIntersectionCurve = fIntersections[ nCurrentSliceIndex - VOLPKG_SLICE_MIN_INDEX ];
+    if ( nCurrentSliceIndex >= fMinSliceIndex &&
+         nCurrentSliceIndex <= fMaxSliceIndex ) {
+        fIntersectionCurve = fIntersections[ nCurrentSliceIndex - fMinSliceIndex ];
+    }
 }
 
 // Open slice
@@ -363,12 +399,18 @@ void CWindow::SetPathPointCloud( void )
     fSplineCurve.GetSamplePoints( aSamplePts );
 
     pcl::PointXYZRGB point;
+    pcl::PointCloud< pcl::PointXYZRGB > aPathCloud;
     for ( size_t i = 0; i < aSamplePts.size(); ++i ) {
         point.x = fPathOnSliceIndex;
         point.y = aSamplePts[ i ][ 0 ];
         point.z = aSamplePts[ i ][ 1 ];
-        fPathCloud.push_back( point );
+        aPathCloud.push_back( point );
     }
+    aPathCloud.width = aSamplePts.size();
+    aPathCloud.height = 1;
+    aPathCloud.resize( aPathCloud.width * aPathCloud.height );
+
+    fMasterCloud = aPathCloud;
 }
 
 // Open volume package
@@ -409,7 +451,21 @@ void CWindow::OpenVolume( void )
         printf( "WARNING: nothing was loaded because no slice index was specified.\n" );
         return;
     }
+}
 
+// Reset point cloud
+void CWindow::ResetPointCloud( void )
+{
+    fMasterCloud.clear();
+    fUpperPart.clear();
+    fLowerPart.clear();
+}
+
+// Handle open request
+void CWindow::Open( void )
+{
+    OpenVolume();
+    OpenSlice();
     InitPathList();
     UpdateView(); // update the panel when volume package is loaded
 }
@@ -452,11 +508,13 @@ void CWindow::OnNewPathClicked( void )
 // Handle path item click event
 void CWindow::OnPathItemClicked( QListWidgetItem* nItem )
 {
-    QString aPathFileName = fVpkgPath + "/" + nItem->text() + "/" + "cloud.pcd"; // REVISIT - naming convention
+    QString aPathFileName = fVpkgPath + "/paths/" + nItem->text() + "/" + "cloud.pcd"; // REVISIT - naming convention
 
     // set active segmentation
     fSegmentationId = nItem->text().toStdString();
     fVpkg->setActiveSegmentation( nItem->text().toStdString() );
+
+    ResetPointCloud();
 
     // load proper point cloud
     pcl::io::loadPCDFile< pcl::PointXYZRGB >( aPathFileName.toStdString(), fMasterCloud );
@@ -472,7 +530,7 @@ void CWindow::TogglePenTool( void )
         fWindowState = EWindowState::WindowStateDrawPath;
 
         // turn off edit tool
-        fEditTool->setChecked( false );
+        fSegTool->setChecked( false );
     } else {
         fWindowState = EWindowState::WindowStateIdle;
 
@@ -484,11 +542,11 @@ void CWindow::TogglePenTool( void )
     UpdateView();
 }
 
-// Toggle the status of the edit tool
-void CWindow::ToggleEditTool( void )
+// Toggle the status of the segmentation tool
+void CWindow::ToggleSegmentationTool( void )
 {
-    if ( fEditTool->isChecked() ) {
-        fWindowState = EWindowState::WindowStateEditCurve;
+    if ( fSegTool->isChecked() ) {
+        fWindowState = EWindowState::WindowStateSegmentation;
 
         // turn off edit tool
         fPenTool->setChecked( false );
@@ -534,8 +592,6 @@ void CWindow::OnEdtEndingSliceValChange( QString nText )
     int aNewVal = nText.toInt( &aIsOk );
     if ( aIsOk && aNewVal > fPathOnSliceIndex ) {
         fSegParams.fEndOffset = aNewVal - fPathOnSliceIndex; // difference between the starting slice and ending slice
-    } else {
-        QMessageBox::information( this, tr( "Info" ), tr( "Please enter a value larger than the starting index." ) );
     }
 }
 
@@ -551,7 +607,7 @@ void CWindow::OnLoadAnySlice( int nSliceIndex )
     fPathOnSliceIndex = nSliceIndex;
     OpenSlice();
     SetCurrentCurve( fPathOnSliceIndex );
-    update();
+    UpdateView();
 }
 
 // Handle loading the next slice
@@ -560,7 +616,7 @@ void CWindow::OnLoadNextSlice( void )
     fPathOnSliceIndex++;
     OpenSlice();
     SetCurrentCurve( fPathOnSliceIndex );
-    update();
+    UpdateView();
 }
 
 // Handle loading the previous slice
@@ -569,5 +625,18 @@ void CWindow::OnLoadPrevSlice( void )
     fPathOnSliceIndex--;
     OpenSlice();
     SetCurrentCurve( fPathOnSliceIndex );
-    update();
+    UpdateView();
+}
+
+// Handle path change event
+void CWindow::OnPathChanged( void )
+{
+    // update current slice
+    int aPointIndex;
+    int aSliceIndex = fIntersectionCurve.GetSliceIndex() - fMinSliceIndex;
+    for ( size_t i = 0; i < fMasterCloud.width; ++i ) {
+        aPointIndex = aSliceIndex * fMasterCloud.width + i;
+        fMasterCloud.points[ aPointIndex ].y = fIntersectionCurve.GetPoint( i )[ 0 ];
+        fMasterCloud.points[ aPointIndex ].z = fIntersectionCurve.GetPoint( i )[ 1 ];
+    }
 }

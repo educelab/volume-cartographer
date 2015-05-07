@@ -933,7 +933,7 @@ inline void ThomasTriDiagonal( const CMatrixMN< T > &nA,
 
     CVectorN< T > aC( aSize ), aD( aSize );
     aC[ 0 ] = nA( 0, 1 ) / nA( 0, 0 );
-    for ( int i = 1; i < aSize; ++i ) {
+    for ( int i = 1; i < aSize - 1; ++i ) {
         aC[ i ] = nA( i, i + 1 ) / ( nA( i, i ) - nA( i, i - 1 ) * aC[ i - 1 ] );
     }
     aD[ 0 ] = nB[ 0 ] / nA( 0, 0 );
