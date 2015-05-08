@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
-include(${ITK_USE_FILE})
+add_executable(vc_texture2 main.cpp UPointMapping.cpp plyHelper.cpp)
 
-add_executable(GenMesh main.cpp UPointMapping.cpp plyHelper.cpp)
-
-target_link_libraries(GenMesh ${ITK_LIBRARIES})
-target_link_libraries(GenMesh ${VC_LIBS} ${VC_REQ_LIBS})
+target_link_libraries(vc_texture2 ${ITK_LIBRARIES})
+target_link_libraries(vc_texture2 ${VC_LIBS} ${VC_REQ_LIBS})

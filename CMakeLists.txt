@@ -19,6 +19,7 @@ find_package(ITK REQUIRED)
 find_package(OpenGL REQUIRED)
 
 include(${QT_USE_FILE})
+include(${ITK_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
 
 include_directories(${Boost_INCLUDE_DIR} ${PCL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
@@ -72,6 +73,7 @@ install(PROGRAMS
             "${CMAKE_BINARY_DIR}/bin/vc_mesher"
             "${CMAKE_BINARY_DIR}/bin/vc_meshEditor"
             "${CMAKE_BINARY_DIR}/bin/vc_texture"
+            "${CMAKE_BINARY_DIR}/bin/vc_texture2"
             "${CMAKE_BINARY_DIR}/bin/vc_meshnorm"
             "${CMAKE_BINARY_DIR}/bin/vc_sliceProjection"
             "${CMAKE_BINARY_DIR}/bin/vc_analyze"
