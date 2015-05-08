@@ -19,6 +19,42 @@
 
 int main(int argc, char* argv[])
 {
+    if ( argc < 6 ) {
+        std::cout << "Usage: vc_texture volpkg seg-id radius texture-method sample-direction" << std::endl;
+        std::cout << "Texture methods: " << std::endl;
+        std::cout << "      0 = Intersection" << std::endl;
+        std::cout << "      1 = Non-Maximum Suppression" << std::endl;
+        std::cout << "      2 = Maximum" << std::endl;
+        std::cout << "      3 = Minimum" << std::endl;
+        std::cout << "      4 = Median w/ Averaging" << std::endl;
+        std::cout << "      5 = Median" << std::endl;
+        std::cout << "      6 = Mean" << std::endl;
+        std::cout << std::endl;
+        std::cout << "Sample Direction: " << std::endl;
+        std::cout << "      0 = Omni" << std::endl;
+        std::cout << "      1 = Positive" << std::endl;
+        std::cout << "      2 = Negative" << std::endl;
+        exit( -1 );
+    }
+
+    VolumePkg vpkg = VolumePkg( argv[ 1 ] );
+    std::string segID = argv[ 2 ];
+    if (segID == "") {
+        std::cerr << "ERROR: Incorrect/missing segmentation ID!" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    vpkg.setActiveSegmentation(segID);
+    std::string meshName = vpkg.getMeshPath();
+    double radius, minorRadius;
+    radius = atof( argv[ 3 ] );
+    if((minorRadius = radius / 3) < 1) minorRadius = 1;
+
+    int aFindBetterTextureMethod = atoi( argv[ 4 ] );
+    EFilterOption aFilterOption = ( EFilterOption )aFindBetterTextureMethod;
+
+    int aSampleDir = atoi( argv[ 5 ] ); // sampleDirection (0=omni, 1=positive, 2=negative)
+    EDirectionOption aDirectionOption = ( EDirectionOption )aSampleDir;
+
     typedef itk::Vector< double, 3 >    PixelType;  // A vector to hold the normals along with the points of each vertice in the mesh
     const unsigned int Dimension = 3;   // Need a 3 Dimensional Mesh
 
@@ -28,19 +64,11 @@ int main(int argc, char* argv[])
     // declare pointer to new Mesh object
     MeshType::Pointer  mesh = MeshType::New();
 
-    if( argc < 3 ) {
-        std::cout << "Usage: GenMesh mesh.ply volpkg" << std::endl;
-            exit( -1 );
-        }
-
-    // open ply file
-    std::string fileName( argv[ 1 ] );
-
     int meshWidth = -1;
     int meshHeight = -1;
 
     // try to convert the ply to an ITK mesh
-    if (!ply2itkmesh(fileName, mesh, meshWidth, meshHeight)){
+    if (!ply2itkmesh(meshName, mesh, meshWidth, meshHeight)){
         exit( -1 );
     };
 
@@ -60,7 +88,7 @@ int main(int argc, char* argv[])
     // Matrix to store the output texture
     int textureW = meshWidth;
     int textureH = meshHeight;
-    cv::Mat outputTexture( textureH, textureW, CV_16UC1 );
+    cv::Mat outputTexture = cv::Mat::zeros( textureH, textureW, CV_16UC1 );
 
     // pointID == point's position in 1D list of points
     // [meshX, meshY] == point's position if list was a 2D matrix
@@ -71,15 +99,36 @@ int main(int argc, char* argv[])
     double Max = 0, Min = 8000;
         
     // Load the slices from the volumepkg
-    VolumePkg vpkg = VolumePkg( argv[ 2 ] );
     std::vector< cv::Mat > aImgVol;
+
+    /*  This function is a hack to avoid a refactoring the texturing
+        methods. See Issue #12 for more details. */
+    // Setup
+    int meshLowIndex = (int) mesh->GetPoint(0)[0];
+    int meshHighIndex = meshLowIndex + meshHeight;
     int aNumSlices = vpkg.getNumberOfSlices();
-    for ( int i = 0; i < aNumSlices; ++i ) 
-    {
-        std::cout << "\rLoading slice: " << i << std::flush;
-        aImgVol.push_back( vpkg.getSliceAtIndex( i ).clone() );
+
+    int bufferLowIndex = meshLowIndex - (int) radius;
+    if (bufferLowIndex < 0) bufferLowIndex = 0;
+
+    int bufferHighIndex = meshHighIndex + (int) radius;
+    if (bufferHighIndex >= vpkg.getNumberOfSlices()) bufferHighIndex = vpkg.getNumberOfSlices();
+
+    // Load null mats into the vector
+    cv::Mat nullMat = cv::Mat::zeros(vpkg.getSliceHeight(), vpkg.getSliceWidth(), CV_16U);
+    for ( int i = 0; i < bufferLowIndex; ++i ) {
+        std::cout << "\rLoading null buffer slices: " << i + 1 << "/" << bufferLowIndex << std::flush;
+        aImgVol.push_back( nullMat.clone() );
     }
     std::cout << std::endl;
+
+    // Load the actual volume into a tempVol with a buffer of nRadius
+    for ( int i = bufferLowIndex; i < bufferHighIndex; ++i ) {
+        std::cout << "\rLoading real slices: " << i - bufferLowIndex + 1 << "/" << bufferHighIndex - bufferLowIndex << std::flush;
+        aImgVol.push_back( vpkg.getSliceData( i ).clone() );
+    }
+    std::cout << std::endl;
+
 
     // Initialize iterators
     CellIterator  cellIterator = mesh->GetCells()->Begin();
@@ -94,6 +143,7 @@ int main(int argc, char* argv[])
         // Link the pointer to our current cell
         cell = cellIterator.Value();
         //cell.TakeOwnership( new TriangleType );
+        std::cout << "Texturing face " << cellIterator.Index() << "/" << cellEnd.Index() << "\r" << std::flush;
 
         // Iterate over the vertices of the current cell
         pointsIterator = cell->PointIdsBegin();
@@ -115,8 +165,15 @@ int main(int argc, char* argv[])
 
             // Fill in the output pixel with a value
 			// cv::Mat.at uses (row, column)
-            double value = FilterIntersection( cv::Vec3f( p[0], p[1], p[2] ), aImgVol );
-            outputTexture.at< unsigned short >( v, u ) = (unsigned short) value;
+                double value = textureWithMethod(cv::Vec3f(p[0], p[1], p[2]),
+                                                 cv::Vec3f(normal[1], normal[2], normal[0]),
+                                                 aImgVol,
+                                                 aFilterOption,
+                                                 radius,
+                                                 minorRadius,
+                                                 0.2,
+                                                 aDirectionOption);
+                outputTexture.at < unsigned short > (v, u) = (unsigned short) value;
 
     //      if(M.at< double >( u, v ) > Max)
     //          Max = M.at< double >( u, v );
@@ -139,6 +196,7 @@ int main(int argc, char* argv[])
 
         ++cellIterator;
     }
+    std::cout << std::endl;
 
     // interpolate intensity values for the rest of the matrix M
 //  cellIterator = mesh->GetCells()->Begin();
@@ -187,7 +245,7 @@ int main(int argc, char* argv[])
     //std::cout << "Max: " << Max << " Min: " << Min << std::endl;
     //M.convertTo(B, CV_16U);
     //cvtColor(M, M, CV_BGR2Luv);
-    cv::imwrite("texture.tiff", outputTexture);
+    vpkg.saveTextureData(outputTexture);
 
     return 0;
 } // end main

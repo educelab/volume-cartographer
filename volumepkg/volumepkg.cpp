@@ -254,6 +254,12 @@ ChaoVis::CMesh VolumePkg::openTexturedMesh() {
     return mesh;
 }
 
+// Return the path to the active segmentation's mesh
+std::string VolumePkg::getMeshPath(){
+    std::string meshName = segdir.string() + "/" + activeSeg + "/cloud.ply";
+    return meshName;
+}
+
 // Return the texture image as a CV mat
 cv::Mat VolumePkg::getTextureData() {
     std::string texturePath = segdir.string() + "/" + activeSeg + "/texture.tif";

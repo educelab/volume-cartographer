@@ -524,4 +524,82 @@ inline double FilterMean( const cv::Vec3f              &nPoint,    // point loca
     return aResult;
 }
 
+inline double textureWithMethod(   const cv::Vec3f              &nPoint,    // point location
+                                   const cv::Vec3f              &nNormal,   // point normal direction
+                                   const std::vector< cv::Mat > &nImgVol,   // data volume
+                                   EFilterOption                nFilter,    // filter option
+                                   double                       nR1 = 3.0,  // sample region radius 1, major axis
+                                   double                       nR2 = 1.0,  // sample region radius 2, minor axis
+                                   double                       nSampleDist = 0.2, // interval between samples
+                                   EDirectionOption             nSamplingDir = DirectionOptionBoth ) // sample direction
+{
+    switch ( nFilter ) {
+    case EFilterOption::FilterOptionIntersection:
+        return FilterIntersection( nPoint,
+                                   nImgVol);
+
+        break;
+    case EFilterOption::FilterOptionMean:
+        return FilterMean(  nPoint,
+                            nNormal,
+                            nImgVol,
+                            nR1,
+                            nR2,
+                            nSampleDist,
+                            nSamplingDir);
+        break;
+    case EFilterOption::FilterOptionNonMaximumSuppression:
+        return FilterNonMaximumSuppression(  nPoint,
+                                             nNormal,
+                                             nImgVol,
+                                             nR1,
+                                             nR2,
+                                             nSampleDist,
+                                             nSamplingDir);
+        break;
+    case EFilterOption::FilterOptionMax:
+        return FilterMax(  nPoint,
+                           nNormal,
+                           nImgVol,
+                           nR1,
+                           nR2,
+                           nSampleDist,
+                           nSamplingDir);
+        break;
+    case EFilterOption::FilterOptionMin:
+        return FilterMin(  nPoint,
+                           nNormal,
+                           nImgVol,
+                           nR1,
+                           nR2,
+                           nSampleDist,
+                           nSamplingDir);
+        break;
+    case EFilterOption::FilterOptionMedian:
+        return FilterMax(  nPoint,
+                           nNormal,
+                           nImgVol,
+                           nR1,
+                           nR2,
+                           nSampleDist,
+                           nSamplingDir);
+        break;
+    case EFilterOption::FilterOptionMedianAverage:
+        return FilterMedianAverage( nPoint,
+                                    nNormal,
+                                    nImgVol,
+                                    nR1,
+                                    nR2,
+                                    nSampleDist,
+                                    nSamplingDir);
+        break;
+    default:
+        return FilterIntersection( nPoint,
+                                   nImgVol);
+
+        break;
+    } // switch nFilter
+}
+
+
 #endif // _TEXTURINGUTILS_H_
