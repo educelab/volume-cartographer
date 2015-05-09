@@ -18,6 +18,8 @@ namespace ChaoVis {
 
 class CVolumeViewerWithCurve : public CVolumeViewer {
 
+    Q_OBJECT
+
 public:
     enum EViewState { ViewStateEdit,    // edit mode
                       ViewStateDraw,    // draw mode
@@ -53,13 +55,12 @@ private:
     int SelectPointOnCurve( const CXCurve   *nCurve,
                             const cv::Vec2f &nPt );
 
-    void UpdatePathCloud( void );
-
     void DrawIntersectionCurve( void );
 
 private slots:
 
 signals:
+    void SendSignalPathChanged( void );
 
 private:
     // for drawing
@@ -70,8 +71,6 @@ private:
     // for editing
     CXCurve     *fIntersectionCurveRef;
     int         fSelectedPointIndex;
-    pcl::PointCloud< pcl::PointXYZRGB >::Ptr
-                fPathCloudRef;
     bool        fVertexIsChanged;
 
     QPoint      fLastPos; // last mouse position on the image

@@ -11,7 +11,8 @@ CVolumeViewerWithCurve::CVolumeViewerWithCurve( void ) :
     fIntersectionCurveRef( NULL ),
     fViewState( EViewState::ViewStateIdle ),
     fSelectedPointIndex( -1 ),
-    fVertexIsChanged( false )
+    fVertexIsChanged( false ),
+    fImpactRange( 25 )
 {
 }
 
@@ -97,6 +98,8 @@ void CVolumeViewerWithCurve::mousePressEvent( QMouseEvent *event )
 
     WidgetLoc2ImgLoc( aWidgetLoc, aImgLoc );
 
+    fLastPos = QPoint( aImgLoc[ 0 ], aImgLoc[ 1 ] );
+
     if ( fViewState == EViewState::ViewStateDraw ) {
         if ( event->buttons() & Qt::LeftButton ) { // add points
 
@@ -155,7 +158,8 @@ void CVolumeViewerWithCurve::mouseMoveEvent( QMouseEvent *event )
     fLastPos = QPoint( aImgLoc[ 0 ], aImgLoc[ 1 ] );
 
     // update view
-    update();
+//    update();
+    UpdateView();
 }
 
 // Handle mouse release event
@@ -163,11 +167,10 @@ void CVolumeViewerWithCurve::mouseReleaseEvent( QMouseEvent *event )
 {
     if ( fViewState == EViewState::ViewStateEdit &&
          fIntersectionCurveRef != NULL &&
-         fPathCloudRef &&
          fVertexIsChanged ) {
 
         // update the point positions in the path point cloud
-        UpdatePathCloud();
+        emit SendSignalPathChanged();
 
         fVertexIsChanged = false;
         fSelectedPointIndex = -1;
@@ -221,20 +224,11 @@ int CVolumeViewerWithCurve::SelectPointOnCurve( const CXCurve   *nCurve,
     return -1;
 }
 
-// Update the path point cloud
-void CVolumeViewerWithCurve::UpdatePathCloud( void )
-{
-    for ( size_t i = 0; i < fPathCloudRef->size(); ++i ) {
-        fPathCloudRef->points[ i ].y = fIntersectionCurveRef->GetPoint( i )[ 0 ];
-        fPathCloudRef->points[ i ].z = fIntersectionCurveRef->GetPoint( i )[ 1 ];
-    }
-}
-
 // Draw intersection curve on the slice
 void CVolumeViewerWithCurve::DrawIntersectionCurve( void )
 {
     if ( fIntersectionCurveRef != NULL ) {
-        for ( size_t i = 0; i < fControlPoints.size(); ++i ) {
+        for ( size_t i = 0; i < fIntersectionCurveRef->GetPointsNum(); ++i ) {
             cv::circle( fImgMat, cv::Point2f( fIntersectionCurveRef->GetPoint( i )[ 0 ], fIntersectionCurveRef->GetPoint( i )[ 1 ] ), 1, cv::Scalar( 255, 0, 0 ) );
         }
     }
