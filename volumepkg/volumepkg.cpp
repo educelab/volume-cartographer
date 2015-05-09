@@ -7,7 +7,7 @@ VolumePkg::VolumePkg(std::string file_location) : config(file_location + "/confi
     for(boost::filesystem::directory_iterator iter(segdir), end; iter != end; ++iter)
     {
       std::string path = boost::filesystem::basename(iter->path());
-      segmentations.push_back(path);
+      if (path != "" ) segmentations.push_back(path);
     }
 }
 

@@ -114,8 +114,8 @@ private:
 
     std::string fSegmentationId;
 
-    int         fMinSliceIndex;
-    int         fMaxSliceIndex;
+    int         fMinSegIndex;
+    int         fMaxSegIndex;
     int         fPathOnSliceIndex; // effectively equivalent to the starting slice index
 
     // for drawing mode
@@ -144,8 +144,6 @@ private:
     //           Previously we use a txt file to store vertices of the path where the particle simulation starts. Now they are
     //           stored in "path cloud".
     // REVISIT - maybe redundant
-    pcl::PointCloud< pcl::PointXYZRGB > fUpperPart; // upper part of master cloud, not changed, same as immutable cloud
-    pcl::PointCloud< pcl::PointXYZRGB > fLowerPart; // newly generated point cloud, from segmentation
     pcl::PointCloud< pcl::PointXYZRGB > fMasterCloud;  // master cloud, the one and only point cloud
                                                        // can be loaded from disk, or generated from new path
                                                        // or concatenation of upper part and lower part in editing mode

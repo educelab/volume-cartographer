@@ -18,7 +18,7 @@ CVolumeViewer::CVolumeViewer( QWidget *parent ) :
     fNextBtn( NULL ),
     fPrevBtn( NULL ),
     fScaleFactor( 1.0 ),
-    fImageIndex( -1 )
+    fImageIndex( 0 )
 {
     // buttons
     fZoomInBtn = new QPushButton( tr( "Zoom In" ), this );
@@ -91,8 +91,8 @@ void CVolumeViewer::SetImage( const QImage &nSrc )
     fCanvas->setPixmap( QPixmap::fromImage( *fImgQImage ) );
     fCanvas->resize( fScaleFactor * fCanvas->pixmap()->size() );
 
-    update();
     UpdateButtons();
+    update();
 }
 
 // Handle mouse press event
@@ -176,7 +176,8 @@ void CVolumeViewer::UpdateButtons( void )
     fResetBtn->setEnabled( fImgQImage != NULL && fabs( fScaleFactor - 1.0 ) > 1e-6 );
     fNextBtn->setEnabled( fImgQImage != NULL );
     fPrevBtn->setEnabled( fImgQImage != NULL );
-    fImageIndexEdit->setEnabled( fImgQImage != NULL );
+    //fImageIndexEdit->setEnabled( false );
+    fImageIndexEdit->SetImageIndex( fImageIndex );
 }
 
 // Adjust scroll bar of scroll area

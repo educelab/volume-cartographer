@@ -25,7 +25,7 @@ public:
     ~CVolumeViewer( void );
 
     virtual void SetImage( const QImage &nSrc );
-    void SetImageIndex( int nImageIndex );
+    void SetImageIndex( int nImageIndex ) { fImageIndex = nImageIndex; UpdateButtons();}
 
 protected:
     void mousePressEvent( QMouseEvent *event );

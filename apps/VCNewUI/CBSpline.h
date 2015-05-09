@@ -30,6 +30,8 @@ public:
     void DrawOnImage( cv::Mat &nImg,
                       const cv::Scalar &nColor = cv::Scalar( 0, 0, 255 ) );
 
+    void Clear() { fControlPoints.clear(); fCurveSegments.clear(); }
+
 protected:
 
 private:

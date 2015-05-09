@@ -8,6 +8,6 @@
 //#define _QT5_
 
 
-#define VOLPKG_SLICE_MIN_INDEX 3
+#define VOLPKG_SLICE_MIN_INDEX 2
 
 #endif // VCNEWGUIHEADERHEADER_H

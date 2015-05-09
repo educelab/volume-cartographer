@@ -36,8 +36,7 @@ void CVolumeViewerWithCurve::SetImage( const QImage &nSrc )
     fImgMat = QImage2Mat( *fImgQImage );
     fImgMat.copyTo( fImgMatCache );
 
-    update();
-    UpdateButtons();
+    UpdateView();
 }
 
 // Set the curve, we only hold a pointer to the original one so the data can be synchronized
@@ -73,18 +72,18 @@ void CVolumeViewerWithCurve::UpdateView( void )
         for ( size_t i = 0; i < fControlPoints.size(); ++i ) {
             cv::circle( fImgMat, cv::Point2f( fControlPoints[ i ] ), 1, cv::Scalar( 255, 0, 0 ) );
         }
-    } else if ( fViewState == EViewState::ViewStateEdit ) {
+    } else {
         if ( fIntersectionCurveRef != NULL ) {
             DrawIntersectionCurve();
         }
-    } else {
-        // idle state, do nothing
     }
 
     *fImgQImage = Mat2QImage( fImgMat );
 
     fCanvas->setPixmap( QPixmap::fromImage( *fImgQImage ) );
     fCanvas->resize( fScaleFactor * fCanvas->pixmap()->size() );
+
+    CVolumeViewerWithCurve::UpdateButtons();
 
     update(); // repaint the widget
 }
@@ -158,7 +157,6 @@ void CVolumeViewerWithCurve::mouseMoveEvent( QMouseEvent *event )
     fLastPos = QPoint( aImgLoc[ 0 ], aImgLoc[ 1 ] );
 
     // update view
-//    update();
     UpdateView();
 }
 
@@ -232,4 +230,16 @@ void CVolumeViewerWithCurve::DrawIntersectionCurve( void )
             cv::circle( fImgMat, cv::Point2f( fIntersectionCurveRef->GetPoint( i )[ 0 ], fIntersectionCurveRef->GetPoint( i )[ 1 ] ), 1, cv::Scalar( 255, 0, 0 ) );
         }
     }
+}
+
+// Update the status of the buttons
+void CVolumeViewerWithCurve::UpdateButtons( void )
+{
+    fZoomInBtn->setEnabled( fImgQImage != NULL && fScaleFactor < 3.0 );
+    fZoomOutBtn->setEnabled( fImgQImage != NULL && fScaleFactor > 0.3333 );
+    fResetBtn->setEnabled( fImgQImage != NULL && fabs( fScaleFactor - 1.0 ) > 1e-6 );
+    fNextBtn->setEnabled( fImgQImage != NULL && fViewState == EViewState::ViewStateIdle ); // Button doesn't disable for some reason
+    fPrevBtn->setEnabled( fImgQImage != NULL && fViewState == EViewState::ViewStateIdle );
+    //fImageIndexEdit->setEnabled( false );
+    fImageIndexEdit->SetImageIndex( fImageIndex );
 }

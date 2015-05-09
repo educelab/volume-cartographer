@@ -34,6 +34,7 @@ public:
     // for drawing mode
     void SetSplineCurve( CBSpline &nCurve );
     void UpdateSplineCurve( void );
+    void ResetSplineCurve ( void ) { fControlPoints.clear();}
     // for editing mode
     void SetIntersectionCurve( CXCurve &nCurve );
 
@@ -47,6 +48,7 @@ protected:
     void mouseMoveEvent( QMouseEvent *event );
     void mouseReleaseEvent( QMouseEvent *event );
     void paintEvent( QPaintEvent *event );
+    void UpdateButtons( void );
 
 private:
     void WidgetLoc2ImgLoc( const cv::Vec2f &nWidgetLoc,
