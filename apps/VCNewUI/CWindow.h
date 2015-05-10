@@ -63,7 +63,9 @@ private:
 
     void UpdateView( void );
 
+    void SplitCloud( void );
     void DoSegmentation( void );
+    void CleanupSegmentation ( void );
     bool SetUpSegParams( void );
 
     void SetUpCurves( void );
@@ -147,6 +149,8 @@ private:
     pcl::PointCloud< pcl::PointXYZRGB > fMasterCloud;  // master cloud, the one and only point cloud
                                                        // can be loaded from disk, or generated from new path
                                                        // or concatenation of upper part and lower part in editing mode
+    pcl::PointCloud< pcl::PointXYZRGB > fUpperPart;
+    pcl::PointCloud< pcl::PointXYZRGB > fLowerPart;
 
     // window components
     QMenu		*fFileMenu;

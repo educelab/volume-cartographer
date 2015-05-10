@@ -238,6 +238,31 @@ void CWindow::UpdateView( void )
     update();
 }
 
+// Split fMasterCloud into fUpperCloud and fLowerCloud
+void CWindow::SplitCloud( void )
+{
+    int aTotalNumOfImmutablePts = fMasterCloud.width * ( fPathOnSliceIndex - fMinSegIndex );
+    for ( int i = 0; i < aTotalNumOfImmutablePts; ++i ) {
+        fUpperPart.push_back( fMasterCloud.points[ i ] );
+    }
+    // resize so the parts can be concatenated
+    fUpperPart.width = fMasterCloud.width;
+    fUpperPart.height = fUpperPart.points.size() / fUpperPart.width;
+    fUpperPart.points.resize( fUpperPart.width * fUpperPart.height );
+
+    // lower part, the starting slice
+    for ( int i = 0; i < fMasterCloud.width; ++i ) {
+        if ( fMasterCloud.points[ i + aTotalNumOfImmutablePts ].x != -1 )
+            fLowerPart.push_back( fMasterCloud.points[ i + aTotalNumOfImmutablePts ] );
+    }
+
+    if ( fLowerPart.width != fMasterCloud.width ){
+        QMessageBox::information( this, tr( "Error" ), tr( "Starting chain length has null points. Try segmenting from an earlier slice." ) );
+        CleanupSegmentation();
+        return;
+    }
+}
+
 // Do segmentation given the starting point cloud
 void CWindow::DoSegmentation( void )
 {
@@ -247,41 +272,30 @@ void CWindow::DoSegmentation( void )
         return;
     }
 
-    pcl::PointCloud< pcl::PointXYZRGB >::Ptr fUpperPart (new pcl::PointCloud<pcl::PointXYZRGB>);
-    pcl::PointCloud< pcl::PointXYZRGB >::Ptr fLowerPart (new pcl::PointCloud<pcl::PointXYZRGB>);
-
-    int aTotalNumOfImmutablePts = fMasterCloud.width * ( fPathOnSliceIndex - fMinSegIndex );
-    for ( int i = 0; i < aTotalNumOfImmutablePts; ++i ) {
-        fUpperPart->push_back( fMasterCloud.points[ i ] );
-    }
-    // resize so the parts can be concatenated
-    fUpperPart->width = fMasterCloud.width;
-    fUpperPart->height = fUpperPart->points.size() / fUpperPart->width;
-    fUpperPart->points.resize( fUpperPart->width * fUpperPart->height );
-
-    // lower part, the starting slice
-    for ( int i = 0; i < fMasterCloud.width; ++i ) {
-        if ( fMasterCloud.points[ i + aTotalNumOfImmutablePts ].x != -1 )
-            fLowerPart->push_back( fMasterCloud.points[ i + aTotalNumOfImmutablePts ] );
-    }
-    if ( fLowerPart->width != fMasterCloud.width ){
-        QMessageBox::information( this, tr( "Error" ), tr( "Starting chain length has null points. Try segmenting from a lower slice." ) );
-        return;
-    }
-
     // 2) do segmentation from the starting slice
     // how to create pcl::PointCloud::Ptr from a pcl::PointCloud?
     // stackoverflow.com/questions/10644429/create-a-pclpointcloudptr-from-a-pclpointcloud
-    *fLowerPart = structureTensorParticleSim( fLowerPart,
+    fLowerPart = structureTensorParticleSim( pcl::PointCloud< pcl::PointXYZRGB >::Ptr( new pcl::PointCloud< pcl::PointXYZRGB >( fLowerPart )),
                                              *fVpkg,
                                              fSegParams.fGravityScale,
                                              fSegParams.fThreshold,
                                              fSegParams.fEndOffset );
 
     // 3) concatenate the two parts to form the complete point cloud
-    fMasterCloud = *fUpperPart + *fLowerPart;
-    fMasterCloud.width = fUpperPart->width;
+    fMasterCloud = fUpperPart + fLowerPart;
+    fMasterCloud.width = fUpperPart.width;
     fMasterCloud.height = fMasterCloud.size() / fMasterCloud.width;
+}
+
+void CWindow::CleanupSegmentation( void )
+{
+    fUpperPart.clear();
+    fLowerPart.clear();
+    fSegTool->setChecked( false );
+    fWindowState = EWindowState::WindowStateIdle;
+    SetUpCurves();
+    OpenSlice();
+    SetCurrentCurve( fPathOnSliceIndex );
 }
 
 // Set up the parameters for doing segmentation
@@ -325,7 +339,7 @@ void CWindow::SetUpCurves( void )
         QMessageBox::information( this, tr( "Warning" ), tr( "Point cloud for this segmentation is empty." ) );
         return;
     }
-
+    fIntersections.clear();
     int minIndex, maxIndex;
     if ( fMasterCloud.points.size() == 0 ) {
         minIndex = maxIndex = fPathOnSliceIndex;
@@ -450,6 +464,8 @@ void CWindow::OpenVolume( void )
 void CWindow::ResetPointCloud( void )
 {
     fMasterCloud.clear();
+    fUpperPart.clear();
+    fLowerPart.clear();
     fIntersections.clear();
     CXCurve emptyCurve;
     fIntersectionCurve = emptyCurve;
@@ -554,14 +570,14 @@ void CWindow::ToggleSegmentationTool( void )
 {
     if ( fSegTool->isChecked() ) {
         fWindowState = EWindowState::WindowStateSegmentation;
+        fUpperPart.clear();
+        fLowerPart.clear();
+        SplitCloud();
 
         // turn off edit tool
         fPenTool->setChecked( false );
     } else {
-        fWindowState = EWindowState::WindowStateIdle;
-        SetUpCurves();
-        OpenSlice();
-        SetCurrentCurve( fPathOnSliceIndex );
+        CleanupSegmentation();
     }
     UpdateView();
 }
@@ -609,11 +625,7 @@ void CWindow::OnEdtEndingSliceValChange( QString nText )
 void CWindow::OnBtnStartSegClicked( void )
 {
     DoSegmentation();
-    fSegTool->setChecked( false );
-    fWindowState = EWindowState::WindowStateIdle;
-    SetUpCurves();
-    OpenSlice();
-    SetCurrentCurve( fPathOnSliceIndex );
+    CleanupSegmentation();
     UpdateView();
 }
 
@@ -651,12 +663,15 @@ void CWindow::OnLoadPrevSlice( void )
 // Handle path change event
 void CWindow::OnPathChanged( void )
 {
-    // update current slice
-    int aPointIndex;
-    int aSliceIndex = fIntersectionCurve.GetSliceIndex() - fMinSegIndex;
-    for ( size_t i = 0; i < fMasterCloud.width; ++i ) {
-        aPointIndex = aSliceIndex * fMasterCloud.width + i;
-        fMasterCloud.points[ aPointIndex ].y = fIntersectionCurve.GetPoint( i )[ 0 ];
-        fMasterCloud.points[ aPointIndex ].z = fIntersectionCurve.GetPoint( i )[ 1 ];
+    if (fWindowState == EWindowState::WindowStateSegmentation) {
+        // update current slice
+        fLowerPart.clear();
+        for (size_t i = 0; i < fIntersectionCurve.GetPointsNum(); ++i) {
+            pcl::PointXYZRGB tempPt;
+            tempPt.x = fPathOnSliceIndex;
+            tempPt.y = fIntersectionCurve.GetPoint(i)[0];
+            tempPt.z = fIntersectionCurve.GetPoint(i)[1];
+            fLowerPart.push_back(tempPt);
+        }
     }
 }
