@@ -33,6 +33,9 @@ int min_index, max_index;
 int realIterations;
 uint32_t COLOR = 0x00777777;
 
+// cleanup
+void emptyGlobals( void );
+
 pcl::PointCloud<pcl::PointXYZRGB> structureTensorParticleSim(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg volpkg, int gravity_scale, int threshold, int endOffset) {
 
   // Create chain from segPath cloud
@@ -160,6 +163,7 @@ pcl::PointCloud<pcl::PointXYZRGB> structureTensorParticleSim(pcl::PointCloud<pcl
     update_field();
   }
   pcl::PointCloud<pcl::PointXYZRGB> segmentedCloud = returnPointCloud(VoV);
+  emptyGlobals();
   return segmentedCloud;
 }
 
@@ -319,3 +323,26 @@ pcl::PointCloud<pcl::PointXYZRGB> returnPointCloud(std::vector<std::vector<pcl::
   }
   return cloud;
 }
+
+// Empty all of our globals so that we don't have issues later
+void emptyGlobals( void ){
+  // field globals
+  for (std::set<int>::iterator it = slices_loaded.begin(); it != slices_loaded.end(); ++it) {
+      delete field[*it];
+  }
+  fieldsize = 0;
+  field_slices.clear();
+  slice_iterator = field_slices.begin();
+  slices_loaded.clear();
+  slices_seen.clear();
+
+// force globals
+  particle_chain.clear();
+  spring_resting_x = 0;
+
+// misc globals
+  numslices = 0;
+  min_index = 0;
+  max_index = 0;
+  realIterations = 0;
+};

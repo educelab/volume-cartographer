@@ -8,7 +8,10 @@ SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 
 # Option for building apps
+if(APPLE)
 option(BUILD_OSX_APPS "Build OSX App Bundle" OFF)
+option(BUILD_DragNDrop "Build OSX DMG Installer" OFF)
+endif(APPLE)
 option(Boost_USE_STATIC_LIBS "Link against static Boost libs" OFF)
 
 find_package(Qt4 REQUIRED)
@@ -107,7 +110,12 @@ configure_file(
 add_custom_target(uninstall
     COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 
+if(BUILD_DragNDrop)
+set(CPACK_GENERATOR "DragNDrop;TGZ;ZIP")
+else()
 set(CPACK_GENERATOR "TGZ;ZIP")
+endif(BUILD_DragNDrop)
+
 set(CPACK_COMPONENTS_ALL Programs)
 set(CPACK_PACKAGE_NAME "VC")
 set(CPACK_PACKAGE_VENDOR "UK VisCenter")
