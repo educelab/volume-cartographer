@@ -171,7 +171,7 @@ int main(int argc, char* argv[])
                                                  aFilterOption,
                                                  radius,
                                                  minorRadius,
-                                                 0.2,
+                                                 0.5,
                                                  aDirectionOption);
                 outputTexture.at < unsigned short > (v, u) = (unsigned short) value;
 

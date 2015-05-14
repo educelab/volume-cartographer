@@ -98,11 +98,10 @@ inline bool IsLocalMaximum( const cv::Vec3f              &nPoint,
 }
 
 // Sample the volume data withing ellipse region
-inline void SamplingWithinEllipse( double                       nA,             // major axis
-                                   double                       nB,             // minor axis
+inline void SamplingAlongNormal(   double                       nA,             // normal length
                                    double                       nSampleInterval,// sample interval
-                                   const cv::Vec3f              &nCenter,       // ellipse center
-                                   const cv::Vec3f              &nMajorAxisDir, // ellipse major axis direction
+                                   const cv::Vec3f              &nCenter,       // center
+                                   const cv::Vec3f              &nMajorAxisDir, // normal
                                    const std::vector< cv::Mat > &nImgVol,       // volume data
                                    int                          nSamplingDir,   // sampling direction
                                    double                       *nData,         // [out] samples
@@ -112,29 +111,90 @@ inline void SamplingWithinEllipse( double                       nA,             
     // uniformly sample within the ellipse
     // uniformly sample along the major axis
     int aSizeMajor = nA / nSampleInterval;
-    int aSizeMinor = nB / nSampleInterval;
 
-    cv::Vec3f aMinorAxisDir1;
-    if ( fabs( nMajorAxisDir[ 2 ] ) > 1e-6 ) {
-        aMinorAxisDir1[ 0 ] = 0.0;
-        aMinorAxisDir1[ 1 ] = 1.0;
-        aMinorAxisDir1[ 2 ] = -nMajorAxisDir[ 1 ] / nMajorAxisDir[ 2 ];
-    } else if ( fabs( nMajorAxisDir[ 1 ] ) > 1e-6 ) {
-        aMinorAxisDir1[ 0 ] = 1.0;
-        aMinorAxisDir1[ 1 ] = -nMajorAxisDir[ 0 ] / nMajorAxisDir[ 1 ];
-        aMinorAxisDir1[ 2 ] = 0.0;
-    } else if ( fabs( nMajorAxisDir[ 0 ] ) > 1e-6 ) {
-        aMinorAxisDir1[ 0 ] = 0.0;
-        aMinorAxisDir1[ 1 ] = 1.0;
-        aMinorAxisDir1[ 2 ] = 0.0;
-    } else {
-        printf( "ERROR: zero normal vector.\n" );
-        *nSize = 0;
-        return;
+    if (nMajorAxisDir == cv::Vec3f(0,0,0)) {
+      printf( "ERROR: zero normal vector.\n" );
+      *nSize = 0;
+      return;
     }
 
-    cv::normalize( aMinorAxisDir1, aMinorAxisDir1 );
-    cv::Vec3f aMinorAxisDir2 = aMinorAxisDir1.cross( nMajorAxisDir );
+    int aDataCnt = 0;
+    cv::Vec3f aPos;
+    cv::Vec3f aDir;
+
+    // Loop over the number of samples required on the normal vector
+    for ( int i = 0; i < aSizeMajor; ++i ) {
+        aDir = nSampleInterval * nMajorAxisDir;
+
+        if ((nSamplingDir == 0) || (nSamplingDir == 1)) {
+          // Calculate point as scaled and sampled normal vector + center
+          aPos[ 0 ] = nCenter[ 0 ] + aDir[ 0 ];
+          aPos[ 1 ] = nCenter[ 1 ] + aDir[ 1 ];
+          aPos[ 2 ] = nCenter[ 2 ] + aDir[ 2 ];
+
+          // Get interpolated intensity at point
+          double tmp = interpolate_intensity( aPos, nImgVol );
+
+          // Store point in return array
+          nData[ aDataCnt ] = tmp; // REVISIT - we assume we have enough space
+          aDataCnt++;
+        }
+
+        if ((nSamplingDir == 0) || (nSamplingDir == 2)) {
+
+          aPos[ 0 ] = -1 * nCenter[ 0 ] + aDir[ 0 ];
+          aPos[ 1 ] = -1 * nCenter[ 1 ] + aDir[ 1 ];
+          aPos[ 2 ] = -1 * nCenter[ 2 ] + aDir[ 2 ];
+
+          // Get interpolated intensity at point
+          double tmp = interpolate_intensity( aPos, nImgVol );
+  
+          // Store point in return array
+          nData[ aDataCnt ] = tmp; // REVISIT - we assume we have enough space
+          aDataCnt++;
+        }
+
+    } // for i
+
+    *nSize = aDataCnt;
+}
+
+inline void SamplingWithinEllipse( double                       nA,             // normal length
+                                   double                       nB,             // normal length
+                                   double                       nSampleInterval,// sample interval
+                                   const cv::Vec3f              &nCenter,       // center
+                                   const cv::Vec3f              &nMajorAxisDir, // normal
+                                   const std::vector< cv::Mat > &nImgVol,       // volume data
+                                   int                          nSamplingDir,   // sampling direction
+                                   double                       *nData,         // [out] samples
+                                   int                          *nSize,         // [out] number of samples
+                                   bool                         nWithNonMaxSuppression = false ) // ONLY FOR NON-MAXIMUM SUPPRESSION
+{
+
+    // uniformly sample within the ellipse
+    // uniformly sample along the major axis
+    int aSizeMajor = nA / nSampleInterval;
+    int aSizeMinor = nB / nSampleInterval;
+
+    /* vector used to parameterize surface defined by nMajorAxisDir */
+    /* need to create two vectors that are orthogonal to one another */
+    /* and orthogonal to nMajorAxisDir */
+    cv::Vec3f G(1,0,0);
+
+    /* project G onto plane defined by nMajorAxisDir */
+    /*                                   */
+    /*                       n * G       */
+    /* aMinorAxisDir1 = G - ------- * n  */
+    /*                       n * n       */
+    /*                                   */
+    cv::Vec3f aMinorAxisDir1 = G - (nMajorAxisDir.dot(G)/nMajorAxisDir.dot(nMajorAxisDir)) * nMajorAxisDir;
+
+    /* cross product of G and nMajorAxisDir, simplifies nicely to the following */
+    cv::Vec3f aMinorAxisDir2 = cv::Vec3f(0, -nMajorAxisDir(2), nMajorAxisDir(1));
+
+    cv::normalize(aMinorAxisDir1);
+    cv::normalize(aMinorAxisDir2);
+    /* cv::Vec3f aMinorAxisDir2 = aMinorAxisDir1.cross( nMajorAxisDir ); */
 
     int aDataCnt = 0;
     cv::Vec3f aPos;
@@ -155,7 +215,7 @@ inline void SamplingWithinEllipse( double                       nA,             
                 if ( j * nSampleInterval < aEllipseDist ) { // must satisfy ellipse constraint, (x/a)^2+(y/b)^2)=1
                     if ( nSamplingDir == 0 ) { // sample along both positive and negative directions
                         for ( int t = 0; t < 8; ++t ) {
-                            aDir = i * nSampleInterval * aSign[ t ][ 0 ] * nMajorAxisDir + 
+                            aDir = i * nSampleInterval * aSign[ t ][ 0 ] * nMajorAxisDir +
                                    j * nSampleInterval * aSign[ t ][ 1 ] * aMinorAxisDir1 +
                                    k * nSampleInterval * aSign[ t ][ 2 ] * aMinorAxisDir2;
                             // REVISIT - note that the points along the axis are counted multiple times
@@ -174,7 +234,7 @@ inline void SamplingWithinEllipse( double                       nA,             
                         } // for t
                     } else if ( nSamplingDir == 1 ) { // sample along positive direction
                         for ( int t = 0; t < 4; ++t ) {
-                            aDir = i * nSampleInterval * aSign[ aSamplingPositive[ t ] ][ 0 ] * nMajorAxisDir + 
+                            aDir = i * nSampleInterval * aSign[ aSamplingPositive[ t ] ][ 0 ] * nMajorAxisDir +
                                    j * nSampleInterval * aSign[ aSamplingPositive[ t ] ][ 1 ] * aMinorAxisDir1 +
                                    k * nSampleInterval * aSign[ aSamplingPositive[ t ] ][ 2 ] * aMinorAxisDir2;
                             aPos[ 0 ] = nCenter[ 0 ] + aDir[ 0 ];
@@ -191,7 +251,7 @@ inline void SamplingWithinEllipse( double                       nA,             
                         } // for t
                     } else if ( nSamplingDir == 2 ) { // sample along negative direction
                         for ( int t = 0; t < 4; ++t ) {
-                            aDir = i * nSampleInterval * aSign[ aSamplingNegative[ t ] ][ 0 ] * nMajorAxisDir + 
+                            aDir = i * nSampleInterval * aSign[ aSamplingNegative[ t ] ][ 0 ] * nMajorAxisDir +
                                    j * nSampleInterval * aSign[ aSamplingNegative[ t ] ][ 1 ] * aMinorAxisDir1 +
                                    k * nSampleInterval * aSign[ aSamplingNegative[ t ] ][ 2 ] * aMinorAxisDir2;
                             aPos[ 0 ] = nCenter[ 0 ] + aDir[ 0 ];
@@ -247,17 +307,15 @@ inline double FilterNonMaximumSuppression( const cv::Vec3f              &nPoint,
     int        aNumSamples = -1;
     double     aResult = -1.0;
 
-    // sampling
-    SamplingWithinEllipse( nR1,
-                           nR2,
-                           nSampleDist,
-                           nPoint,
-                           nNormal,
-                           nImgVol,
-                           nSamplingDir,
-                           aSamples,
-                           &aNumSamples,
-                           true ); // perform non-maximum suppression for the samples
+    SamplingAlongNormal( nR1,
+                         nSampleDist,
+                         nPoint,
+                         nNormal,
+                         nImgVol,
+                         nSamplingDir,
+                         aSamples,
+                         &aNumSamples,
+                         true );
 
     // find maximum
     if ( aNumSamples > 0 ) {
@@ -293,15 +351,15 @@ inline double FilterMax( const cv::Vec3f              &nPoint,    // point locat
     double     aResult = -1.0;
 
     // sampling
-    SamplingWithinEllipse( nR1,
-                           nR2,
-                           nSampleDist,
-                           nPoint,
-                           nNormal,
-                           nImgVol,
-                           nSamplingDir,
-                           aSamples,
-                           &aNumSamples );
+    SamplingAlongNormal( nR1,
+                         nSampleDist,
+                         nPoint,
+                         nNormal,
+                         nImgVol,
+                         nSamplingDir,
+                         aSamples,
+                         &aNumSamples,
+                         false );
 
     // find maximum
     if ( aNumSamples > 0 ) {
@@ -338,15 +396,15 @@ inline double FilterMin( const cv::Vec3f              &nPoint,    // point locat
     double     aResult = -1.0;
 
     // sampling
-    SamplingWithinEllipse( nR1,
-                           nR2,
-                           nSampleDist,
-                           nPoint,
-                           nNormal,
-                           nImgVol,
-                           nSamplingDir,
-                           aSamples,
-                           &aNumSamples );
+    SamplingAlongNormal( nR1,
+                         nSampleDist,
+                         nPoint,
+                         nNormal,
+                         nImgVol,
+                         nSamplingDir,
+                         aSamples,
+                         &aNumSamples,
+                         false );
 
     // find minimum
     if ( aNumSamples > 0 ) {
@@ -382,15 +440,15 @@ inline double FilterMedianAverage( const cv::Vec3f              &nPoint,    // p
     double     aResult = -1.0;
 
     // sampling
-    SamplingWithinEllipse( nR1,
-                           nR2,
-                           nSampleDist,
-                           nPoint,
-                           nNormal,
-                           nImgVol,
-                           nSamplingDir,
-                           aSamples,
-                           &aNumSamples );
+    SamplingAlongNormal( nR1,
+                         nSampleDist,
+                         nPoint,
+                         nNormal,
+                         nImgVol,
+                         nSamplingDir,
+                         aSamples,
+                         &aNumSamples,
+                         false );
 
     // find median
     if ( aNumSamples > 0 ) {
@@ -408,17 +466,17 @@ inline double FilterMedianAverage( const cv::Vec3f              &nPoint,    // p
         aResult = aData[ aCenter ];
         int aCnt = 1;
         for ( int i = 1; i <= aRange; ++i ) {
-            aResult += aData[ aCenter + i ]; 
-            aResult += aData[ aCenter - i ]; 
+            aResult += aData[ aCenter + i ];
+            aResult += aData[ aCenter - i ];
             aCnt += 2;
         }
-        
+
         aResult /= aCnt;
-        
+
         // clean up
         delete []aData;
     }
-    
+
 
     // clean up
     if ( aSamples != NULL ) {
@@ -444,15 +502,15 @@ inline double FilterMedian( const cv::Vec3f              &nPoint,    // point lo
     double     aResult = -1.0;
 
     // sampling
-    SamplingWithinEllipse( nR1,
-                           nR2,
-                           nSampleDist,
-                           nPoint,
-                           nNormal,
-                           nImgVol,
-                           nSamplingDir,
-                           aSamples,
-                           &aNumSamples );
+    SamplingAlongNormal( nR1,
+                         nSampleDist,
+                         nPoint,
+                         nNormal,
+                         nImgVol,
+                         nSamplingDir,
+                         aSamples,
+                         &aNumSamples,
+                         false );
 
     // find median
     if ( aNumSamples > 0 ) {
@@ -463,13 +521,13 @@ inline double FilterMedian( const cv::Vec3f              &nPoint,    // point lo
                                       0,
                                       aNumSamples - 1,
                                       IsLess );
-        
+
         aResult = aData[ aNumSamples / 2 ];
-        
+
         // clean up
         delete []aData;
     }
-    
+
 
     // clean up
     if ( aSamples != NULL ) {
@@ -495,25 +553,25 @@ inline double FilterMean( const cv::Vec3f              &nPoint,    // point loca
     double     aResult = -1.0;
 
     // sampling
-    SamplingWithinEllipse( nR1,
-                           nR2,
-                           nSampleDist,
-                           nPoint,
-                           nNormal,
-                           nImgVol,
-                           nSamplingDir,
-                           aSamples,
-                           &aNumSamples );
+    SamplingAlongNormal( nR1,
+                         nSampleDist,
+                         nPoint,
+                         nNormal,
+                         nImgVol,
+                         nSamplingDir,
+                         aSamples,
+                         &aNumSamples,
+                         false );
 
     // calculate mean
     if ( aNumSamples > 0 ) {
         aResult = 0.0;
         for ( int i = 0; i < aNumSamples; ++i ) {
-            aResult += aSamples[ i ]; 
+            aResult += aSamples[ i ];
         }
         aResult /= aNumSamples;
     }
-    
+
 
     // clean up
     if ( aSamples != NULL ) {
