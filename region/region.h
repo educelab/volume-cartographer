@@ -10,6 +10,7 @@
 #include <pcl/console/parse.h>
 
 #include "voxel.h"
+#include "../texturing/texturingUtils.h"
 
 extern Voxel**** volume;
 
@@ -25,6 +26,7 @@ public:
   Region(Voxel* v);
   void insert(Voxel* v);
   int growWith(regionMetric);
+  void texture(std::vector<cv::Mat>&);
   void write();
 };
 

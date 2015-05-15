@@ -18,7 +18,7 @@ int imgwidth;
 int imgheight;
 int number_of_slices;
 void prep(VolumePkg);
-void start_region();
+Region start_region();
 
 int main(int argc, char** argv) {
   if (argc != 2) {
@@ -33,12 +33,34 @@ int main(int argc, char** argv) {
   imgheight = volpkg.getSliceHeight();
 
   prep(volpkg);
-  start_region();
+  Region r = start_region();
 
+  
+  for (int i = 0; i < number_of_slices; ++i) {
+    for (int j = 0; j < imgwidth; ++j) {
+      for (int k = 0; k < imgheight; ++k) {
+        if (volume[i][j][k] != NULL) {
+          delete volume[i][j][k];
+        }
+      }
+      delete[] volume[i][j];
+    }
+    delete[] volume[i];
+  }
+  delete[] volume;
+
+  std::vector<cv::Mat> volume;
+  for (int i = 0; i < number_of_slices; ++i) {
+    volume.push_back(volpkg.getSliceAtIndex(i));
+  }
+  
+  r.texture(volume);
+  r.write();
+  
   exit(EXIT_SUCCESS);
 }
 
-void start_region() {
+Region start_region() {
   std::priority_queue<Voxel> pq;
   for (int i = 0; i < number_of_slices; ++i) {
     for (int j = 0; j < imgwidth; ++j) {
@@ -64,7 +86,7 @@ void start_region() {
     }
   }
 
-  r.write();
+  return r;
 }
 
 // allocate volume to store data
@@ -90,7 +112,6 @@ void prep(VolumePkg volpkg) {
     } else {
 
       pcl::PointCloud<pcl::PointXYZRGBNormal>::iterator point;
-      cv::Mat colors = volpkg.getSliceAtIndex(i);
       for (point = cloud->begin(); point != cloud->end(); ++point) {
         int x = point->x;
         int y = point->y;
@@ -101,8 +122,7 @@ void prep(VolumePkg volpkg) {
                                      Vector(point->normal[0],
                                             point->normal[1],
                                             point->normal[2]),
-                                     point->rgb,
-                                     colors.at<unsigned short>(z,y));
+                                     point->rgb);
       }
     }
   }

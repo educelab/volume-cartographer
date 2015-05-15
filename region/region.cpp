@@ -124,6 +124,17 @@ int Region::growWith(regionMetric m) {
   return counter;
 }
 
+void Region::texture(std::vector<cv::Mat>& m) {
+  while (!live.empty()) {
+    dead.push_back(live.front());
+  }
+
+  for (std::list<Voxel*>::iterator it = dead.begin(); it != dead.end(); ++it) {
+    double color = textureWithMethod((*it)->pos(), (*it)->norm(), m, EFilterOption::FilterOptionIntersection);
+    (*it)->overwriteEigen(color);
+  }  
+}
+
 void Region::write() {
   pcl::PointCloud<pcl::PointXYZRGBNormal> cloud;
   while (!live.empty()) {
@@ -138,7 +149,7 @@ void Region::write() {
     point.normal[0] = norm(0);
     point.normal[1] = norm(1);
     point.normal[2] = norm(2);
-    point.rgb = it->packedColor();
+    point.rgb = it->eig();
     cloud.push_back(point);
   }
   for (std::list<Voxel*>::iterator it = dead.begin(); it != dead.end(); ++it) {
@@ -151,7 +162,7 @@ void Region::write() {
     point.normal[0] = norm(0);
     point.normal[1] = norm(1);
     point.normal[2] = norm(2);
-    point.rgb = (*it)->packedColor();
+    point.rgb = (*it)->eig();
     cloud.push_back(point);
   }
   pcl::io::savePCDFileBinaryCompressed("output.pcd", cloud);
