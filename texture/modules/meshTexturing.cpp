@@ -451,7 +451,7 @@ void ProcessVolume( /*const*/ VolumePkg     &nVpkg,
     if (bufferHighIndex >= nVpkg.getNumberOfSlices()) bufferHighIndex = nVpkg.getNumberOfSlices();
 
     // Load null mats into the vector
-    cv::Mat nullMat = cv::Mat::zeros(10, 10, CV_8UC1);
+    cv::Mat nullMat = cv::Mat::zeros(1, 1, CV_8UC1);
     for ( int i = 0; i < bufferLowIndex; ++i ) {
         std::cout << "\rLoading null buffer slices: " << i + 1 << "/" << bufferLowIndex << std::flush;
         nImgVol.push_back( nullMat.clone() );

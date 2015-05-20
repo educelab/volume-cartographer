@@ -114,8 +114,9 @@ int main(int argc, char* argv[])
     int bufferHighIndex = meshHighIndex + (int) radius;
     if (bufferHighIndex >= vpkg.getNumberOfSlices()) bufferHighIndex = vpkg.getNumberOfSlices();
 
-    // Load null mats into the vector
-    cv::Mat nullMat = cv::Mat::zeros(vpkg.getSliceHeight(), vpkg.getSliceWidth(), CV_16U);
+    // Slices must be loaded into aImgVol at the correct index: slice 005 == aImgVol[5]
+    // To avoid loading the whole volume, pad the beginning indices with 1x1 null mats
+    cv::Mat nullMat = cv::Mat::zeros(1, 1, CV_16U);
     for ( int i = 0; i < bufferLowIndex; ++i ) {
         std::cout << "\rLoading null buffer slices: " << i + 1 << "/" << bufferLowIndex << std::flush;
         aImgVol.push_back( nullMat.clone() );
@@ -153,7 +154,7 @@ int main(int argc, char* argv[])
 
             MeshType::PointType p = mesh->GetPoint(pointID);
             MeshType::PixelType normal;
-            mesh->GetPointData(pointID, &normal );
+            mesh->GetPointData( pointID, &normal );
 
             // Calculate the point's [meshX, meshY] position based on its pointID
             meshX = pointID % meshWidth;

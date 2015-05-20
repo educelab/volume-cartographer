@@ -118,13 +118,16 @@ inline void SamplingAlongNormal(   double                       nA,             
       return;
     }
 
+    cv::Vec3f aNormalVec( nMajorAxisDir[ 0 ], nMajorAxisDir[ 1 ], nMajorAxisDir[ 2 ] );
+    cv::normalize( aNormalVec, aNormalVec );
+
     int aDataCnt = 0;
     cv::Vec3f aPos;
     cv::Vec3f aDir;
 
     // Loop over the number of samples required on the normal vector
     for ( int i = 0; i < aSizeMajor; ++i ) {
-        aDir = nSampleInterval * nMajorAxisDir;
+        aDir = i * nSampleInterval * aNormalVec;
 
         if ((nSamplingDir == 0) || (nSamplingDir == 1)) {
           // Calculate point as scaled and sampled normal vector + center
@@ -142,9 +145,9 @@ inline void SamplingAlongNormal(   double                       nA,             
 
         if ((nSamplingDir == 0) || (nSamplingDir == 2)) {
 
-          aPos[ 0 ] = -1 * nCenter[ 0 ] + aDir[ 0 ];
-          aPos[ 1 ] = -1 * nCenter[ 1 ] + aDir[ 1 ];
-          aPos[ 2 ] = -1 * nCenter[ 2 ] + aDir[ 2 ];
+          aPos[ 0 ] = nCenter[ 0 ] - aDir[ 0 ];
+          aPos[ 1 ] = nCenter[ 1 ] - aDir[ 1 ];
+          aPos[ 2 ] = nCenter[ 2 ] - aDir[ 2 ];
 
           // Get interpolated intensity at point
           double tmp = interpolate_intensity( aPos, nImgVol );
@@ -282,6 +285,8 @@ inline void SamplingWithinEllipse( double                       nA,             
 inline double FilterIntersection( const cv::Vec3f              &nPoint,
                                   const std::vector< cv::Mat > &nImgVol )
 {
+/* interpolate_intensity already does a better check for whether the point exists within the volume
+ * Commenting this out in lieu of deletion. - SP
     if ( nPoint[ 0 ] < 0 || nPoint[ 0 ] > nImgVol.size() - 1 ||
          nPoint[ 1 ] < 0 || nPoint[ 1 ] > nImgVol[ 0 ].cols - 1 ||
          nPoint[ 2 ] < 0 || nPoint[ 2 ] > nImgVol[ 0 ].rows - 1 ) {
@@ -289,6 +294,7 @@ inline double FilterIntersection( const cv::Vec3f              &nPoint,
         return -1.0;
 
     }
+*/
 
     return interpolate_intensity( nPoint, nImgVol );
 }
