@@ -4,6 +4,10 @@
 #define _BEZIERUTILS_H_
 
 #include <opencv2/opencv.hpp>
+#include <pcl/io/pcd_io.h>
+#include <pcl/common/common.h>
+#include <pcl/point_types.h>
+#include "volumepkg.h"
 
 
 #define CURVE_SAMPLE_RATE 1//0.5
@@ -24,7 +28,7 @@ void DrawBezier( cv::Vec2f &start,
 				cv::Vec2f &end,
 				cv::Mat &nImg );
 
-bool SavePath( const std::string &nOutFileName,
+bool SavePath( VolumePkg *vpkg,
 				const std::vector< pt_tuple > &nPath,
 				int nPathOnSliceIndex );
 

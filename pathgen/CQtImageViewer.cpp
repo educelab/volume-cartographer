@@ -503,7 +503,7 @@ void CQtImageViewer::mousePressEvent( QMouseEvent *nEvent )
 	} else if ( nEvent->buttons() & Qt::RightButton ) {
 		printf( "Save path to file and exit\n" );
 		// REVISIT - should check if we are in the middle of a creating a Bezier curve
-		SavePath( fVpkgName + "_" + currentDateTime() + ".txt",
+		SavePath( fVpkg,
 					fPath,
 					fPathOnSliceIndex );
 		QApplication::quit(); // use quit() instead of exit() to terminate decently, check MacOSX

@@ -1,0 +1,14 @@
+1. Pipeline of the tool
+(1) Load 3D model. The model G will be shown in the 3D view.
+(2) Load volume packager and specify the slice index. The slice image will be shown in the 2D view and the slice plane will
+    be overlaid in the 3D view.
+
+2. UI of the tool
+3D view: shows mesh model and slice plane and responds to user interaction.
+2D view: shows the cross section curve and responds to user interaction.
+
+Specific design:
+1. Mouse drag and drop on 2D to change 3D:
+(1) use mouse to change the 2D curve (in C2DView)
+(2) update corresponding 3D mesh (in CMeshGL)
+(3) re-generate the texture (run textureGen again)

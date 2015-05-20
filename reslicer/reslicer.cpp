@@ -183,7 +183,7 @@ DoublePoint3D calculateDeParameterizedPoint(
 double calculateArea(
 		double p1x, double p1y, double p1z,
 		double p2x, double p2y, double p2z) {
-	return abs((p2x-p1x) * (p2y-p1y) * (p2z-p1z));
+	return std::abs((p2x-p1x) * (p2y-p1y) * (p2z-p1z));
 }
 
 void inOrderPerformSampling(
