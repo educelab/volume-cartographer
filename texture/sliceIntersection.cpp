@@ -357,7 +357,8 @@ void DoGlobalHistogramEqualization( std::vector< cv::Mat > &nImgVol )
 
 void ConvertData16Uto8U( std::vector< cv::Mat > &nImgVol ) {
 	for ( size_t i = 0; i < nImgVol.size(); ++i ) {
-		cv::Mat aOriginImg( nImgVol[ i ].rows, nImgVol[ i ].cols, CV_16UC1 );
+		std::cout << "\rDownsampling slices to 8bpc: " << i+1 << "/" << nImgVol.size() << std::flush;
+        cv::Mat aOriginImg( nImgVol[ i ].rows, nImgVol[ i ].cols, CV_16UC1 );
 		nImgVol[ i ].copyTo( aOriginImg );
 		nImgVol[ i ].convertTo( nImgVol[ i ], CV_8U );
 
@@ -367,6 +368,7 @@ void ConvertData16Uto8U( std::vector< cv::Mat > &nImgVol ) {
 			}
 		}
 	}
+    std::cout << std::endl;
 }
 
 void ProcessVolume( /*const*/ VolumePkg &nVpkg, 
@@ -374,10 +376,12 @@ void ProcessVolume( /*const*/ VolumePkg &nVpkg,
 					bool nNeedEqualize,
 					bool nNeedNormalize )
 {
-	int aNumSlices = nVpkg.getNumberOfSlices();
+    int aNumSlices = nVpkg.getNumberOfSlices();
 	for ( int i = 0; i < aNumSlices; ++i ) {
+        std::cout << "\rLoading slice: " << i+1 << "/" << aNumSlices << std::flush;
 		nImgVol.push_back( nVpkg.getSliceAtIndex( i ).clone() );
 	}
+    std::cout << std::endl;
 	gNumHistBin = 1 << ( NUM_BITS_PER_BYTE * sizeof( unsigned short ) );
 #ifdef _DEBUG
 	printf( "# of bin: %d\n", gNumHistBin );

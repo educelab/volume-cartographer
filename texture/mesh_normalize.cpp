@@ -32,7 +32,6 @@ int main( int argc, char *argv[] ) {
   printf( "Lowest intensity: %d\n", low);
   printf( "Highest intensity: %d\n", high);
 
-
   // Normalize
   int newRGB;
   for ( int i = 0; i < thisMesh.fPoints.size(); ++i ) {
