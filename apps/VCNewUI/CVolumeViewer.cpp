@@ -29,7 +29,7 @@ CVolumeViewer::CVolumeViewer( QWidget *parent ) :
 
     // text edit
     fImageIndexEdit = new CSimpleNumEditBox( this );
-    fImageIndexEdit->setEnabled( false );
+    fImageIndexEdit->setEnabled( true );
     connect( fImageIndexEdit, SIGNAL( SendSignalOnTextChanged() ), this, SLOT( OnImageIndexEditTextChanged() ) );
 
     // create image label

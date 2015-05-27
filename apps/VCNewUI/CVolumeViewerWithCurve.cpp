@@ -51,6 +51,12 @@ void CVolumeViewerWithCurve::SetIntersectionCurve( CXCurve &nCurve )
     fIntersectionCurveRef = &nCurve;
 }
 
+// Set the impact range, for editing
+void CVolumeViewerWithCurve::SetImpactRange( int nImpactRange )
+{
+    fImpactRange = nImpactRange;
+}
+
 // Update the B-spline curve
 void CVolumeViewerWithCurve::UpdateSplineCurve( void )
 {
