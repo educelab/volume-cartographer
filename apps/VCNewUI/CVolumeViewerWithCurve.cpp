@@ -150,11 +150,13 @@ void CVolumeViewerWithCurve::mouseMoveEvent( QMouseEvent *event )
         // REVISIT - FILL ME HERE
     } else if ( fViewState == EViewState::ViewStateEdit ) {
         if ( aDx != 0 || aDy != 0 ) {
-            fIntersectionCurveRef->SetPointByDifference( fSelectedPointIndex,
-                                                         Vec2< float >( aDx, aDy ),
-                                                         CosineImpactFunc,
-                                                         fImpactRange );
-            fVertexIsChanged = true;
+            if ( fSelectedPointIndex != -1 ) { // To-Do: change this -1 to a constant
+                fIntersectionCurveRef->SetPointByDifference(fSelectedPointIndex,
+                                                            Vec2<float>(aDx, aDy),
+                                                            CosineImpactFunc,
+                                                            fImpactRange);
+                fVertexIsChanged = true;
+            }
         }
     } else {
         // idle state, do nothing
@@ -225,7 +227,7 @@ int CVolumeViewerWithCurve::SelectPointOnCurve( const CXCurve   *nCurve,
             return i;
         }
     }
-    return -1;
+    return -1; // To-Do: Change this -1 to a constant
 }
 
 // Draw intersection curve on the slice
