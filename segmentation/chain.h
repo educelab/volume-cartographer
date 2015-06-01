@@ -11,17 +11,22 @@
 
 class Chain {
  public:
-  Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr, double = -0.5);
-  void update(Field&,int);
+  Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr,VolumePkg*,int,int,int,double = -0.5);
+  void update(Field&);
   bool isMoving();
-  int size();
-  int minIndex();
-  Particle operator[](int);
   cv::Vec3f springForce(int);
+  pcl::PointCloud<pcl::PointXYZRGB> orderedPCD();
+
  private:
-  std::vector<Particle> _chain;
-  double _spring_resting_x;
+  std::list<std::vector<Particle> > _history;
   double _spring_constant_k;
+  double _spring_resting_x;
+  int _gravity_scale;
+  int _chain_length;
+  int _real_iterations;
+  int _min_index;
+  int _max_index;
+  int _threshold;
 };
 
 #endif

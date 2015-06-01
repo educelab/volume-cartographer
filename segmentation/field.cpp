@@ -38,7 +38,7 @@ void Field::clean() {
 
 // interpolation formula from
 // http://paulbourke.net/miscellaneous/interpolation/
-cv::Vec3f Field::interpolate_at(cv::Vec3f point, int gravity_scale) {
+cv::Vec3f Field::interpolate_at(cv::Vec3f point) {
   double dx, dy, dz, int_part;
   dx = modf(point(0), &int_part);
   dy = modf(point(1), &int_part);
@@ -64,11 +64,6 @@ cv::Vec3f Field::interpolate_at(cv::Vec3f point, int gravity_scale) {
     _field[x_min][y_max][z_max] * (1 - dx) * dy       * dz +
     _field[x_max][y_max][z_min] * dx       * dy       * (1 - dz) +
     _field[x_max][y_max][z_max] * dx       * dy       * dz;
-
-  cv::Vec3f gravity = cv::Vec3f(1,0,0);
-  vector = gravity - (gravity.dot(vector)) / (vector.dot(vector)) * vector;
-  cv::normalize(vector);
-  vector /= gravity_scale;
 
   return vector;
 }

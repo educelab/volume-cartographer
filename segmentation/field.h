@@ -13,7 +13,7 @@ class Field {
   Field(VolumePkg*);
   ~Field();
   void clean();
-  cv::Vec3f interpolate_at(cv::Vec3f, int);
+  cv::Vec3f interpolate_at(cv::Vec3f);
  private:
   VolumePkg* _volpkg;
   cv::Vec3f*** _field;
