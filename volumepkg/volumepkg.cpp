@@ -44,6 +44,9 @@ double VolumePkg::getVoxelSize() {
     return config.getDouble("voxelsize");
 };
 
+double VolumePkg::getMaterialThickness() {
+    return config.getDouble("materialthickness");
+};
 
 // METADATA ASSIGNMENT //
 int VolumePkg::setMetadata(std::string key, int value) {
@@ -287,8 +290,8 @@ void VolumePkg::saveTexturedMesh(ChaoVis::CMesh mesh) {
     printf("Mesh file saved.\n");
 }
 
-void VolumePkg::saveTextureData(cv::Mat texture){
-    std::string texturePath = segdir.string() + "/" + activeSeg + "/texture.tif";
+void VolumePkg::saveTextureData(cv::Mat texture, std::string name){
+    std::string texturePath = segdir.string() + "/" + activeSeg + "/" + name + ".tif";
     cv::imwrite(texturePath, texture);
     printf("Texture image saved.\n");
 }

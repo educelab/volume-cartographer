@@ -98,6 +98,65 @@ inline bool IsLocalMaximum( const cv::Vec3f              &nPoint,
 }
 
 // Sample the volume data withing ellipse region
+inline void Layering(   	   double                       nSections,      // number of sections
+				   double			range,		// range (thickness) of material
+                                   const cv::Vec3f              &nCenter,       // given point
+                                   const cv::Vec3f              &nMajorAxisDir, // normal
+                                   const std::vector< cv::Mat > &nImgVol,       // volume data
+                                   double                       nA,		// neighborhood's radius (Axis)
+                                   int                          nSamplingDir,   // sampling direction
+                                   double                       *nData )        // [out] samples
+{
+    if (nMajorAxisDir == cv::Vec3f(0,0,0)) {
+      printf( "ERROR: zero normal vector.\n" );
+      return;
+    }
+
+    cv::Vec3f aNormalVec( nMajorAxisDir[ 0 ], nMajorAxisDir[ 1 ], nMajorAxisDir[ 2 ] );
+    cv::normalize( aNormalVec, aNormalVec );
+
+    // DEBUG (REVISIT) - need to accomodate for size of interval (10^-6 ?)
+    double nSampleInterval = range / nSections;
+    int aDataCnt = 0;
+    cv::Vec3f aPos;
+    cv::Vec3f aDir;
+
+    // Loop over the number of samples required on the normal vector
+    for ( int i = 0; aDataCnt < nSections; ++i ) {
+        aDir = i * nSampleInterval * aNormalVec;
+
+        if ((nSamplingDir == 0) || (nSamplingDir == 1)) {
+          // Calculate point as scaled and sampled normal vector + center
+          aPos[ 0 ] = nCenter[ 0 ] + aDir[ 0 ];
+          aPos[ 1 ] = nCenter[ 1 ] + aDir[ 1 ];
+          aPos[ 2 ] = nCenter[ 2 ] + aDir[ 2 ];
+
+          // Get interpolated intensity at point
+          double tmp = interpolate_intensity( aPos, nImgVol );
+
+          // Store point in return array
+          nData[ aDataCnt ] = tmp; // REVISIT - we assume we have enough space
+          aDataCnt++;
+        }
+
+        if ((nSamplingDir == 0) || (nSamplingDir == 2)) {
+
+          aPos[ 0 ] = nCenter[ 0 ] - aDir[ 0 ];
+          aPos[ 1 ] = nCenter[ 1 ] - aDir[ 1 ];
+          aPos[ 2 ] = nCenter[ 2 ] - aDir[ 2 ];
+
+          // Get interpolated intensity at point
+          double tmp = interpolate_intensity( aPos, nImgVol );
+
+          // Store point in return array
+          nData[ aDataCnt ] = tmp; // REVISIT - we assume we have enough space
+          aDataCnt++;
+        }
+
+    } // for i
+}
+
+// Sample the volume data along the normal
 inline void SamplingAlongNormal(   double                       nA,             // normal length
                                    double                       nSampleInterval,// sample interval
                                    const cv::Vec3f              &nCenter,       // center
@@ -108,8 +167,7 @@ inline void SamplingAlongNormal(   double                       nA,             
                                    int                          *nSize,         // [out] number of samples
                                    bool                         nWithNonMaxSuppression = false ) // ONLY FOR NON-MAXIMUM SUPPRESSION
 {
-    // uniformly sample within the ellipse
-    // uniformly sample along the major axis
+    // uniformly sample along the normal
     int aSizeMajor = nA / nSampleInterval;
 
     if (nMajorAxisDir == cv::Vec3f(0,0,0)) {

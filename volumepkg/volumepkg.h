@@ -38,6 +38,7 @@ public:
     int getSliceWidth();
     int getSliceHeight();
     double getVoxelSize();
+    double getMaterialThickness();
 
     // Metadata Assignment
     int setMetadata(std::string, int);
@@ -66,7 +67,7 @@ public:
     void saveCloud(pcl::PointCloud<pcl::PointXYZRGB>);
     void saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr);
     void saveTexturedMesh(ChaoVis::CMesh);
-    void saveTextureData(cv::Mat);
+    void saveTextureData(cv::Mat, std::string);
     
 private:
     VolumePkgCfg config;
