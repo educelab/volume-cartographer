@@ -100,6 +100,8 @@ private slots:
 
     void OnBtnStartSegClicked( void );
 
+    void OnEdtImpactRange( int nImpactRange);
+
     void OnLoadAnySlice( int nSliceIndex );
     void OnLoadNextSlice( void );
     void OnLoadPrevSlice( void );
@@ -172,6 +174,8 @@ private:
     QLineEdit   *fEdtSampleDist;
     QLineEdit   *fEdtStartIndex;
     QLineEdit   *fEdtEndIndex;
+
+    QSlider     *fEdtImpactRange;
 
     Ui::VCMainWindow    ui;
 

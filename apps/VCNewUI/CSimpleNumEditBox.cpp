@@ -61,7 +61,7 @@ void CSimpleNumEditBox::SetImageIndex( int nImageIndex )
 // Handle key press event
 void CSimpleNumEditBox::keyPressEvent( QKeyEvent *event )
 {
-    if ( event->key() == Qt::Key_Enter ) {
+    if ( event->key() == Qt::Key_Enter || event->key() == Qt::Key_Return ) {
 //        QMessageBox::information( this, tr( "message" ), tr( "key press detected in edit box" ) );
         int aNewIndex = GetImageIndexFromText();
         if ( aNewIndex != fImageIndex ) {
