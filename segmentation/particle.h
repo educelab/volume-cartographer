@@ -1,3 +1,5 @@
+// What am I?
+
 #ifndef _PARTICLE_
 #define _PARTICLE_
 

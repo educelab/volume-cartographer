@@ -1,15 +1,18 @@
 #include "field.h"
-
+// Constructor
 Field::Field(VolumePkg* v) {
   _volpkg = v;
+  // Set _blocksize to be the largest dimension of the slice data
   _blocksize = std::max(_volpkg->getSliceWidth(), _volpkg->getSliceHeight());
+  // Allocate space in _field to store each slice
   _field = new cv::Vec3f**[_volpkg->getNumberOfSlices()];
-
+  // Set to NULL so we can tell what's loaded
   for (int i = 0; i < _volpkg->getNumberOfSlices(); ++i) {
     _field[i] = NULL;
   }
 }
 
+// Destructor
 Field::~Field() {
   for (int i = 0; i < _volpkg->getNumberOfSlices(); ++i) {
     if (_field[i] != NULL) {
@@ -22,9 +25,12 @@ Field::~Field() {
   delete[] _field;
 }
 
+// What does this do?*
 void Field::clean() {
+  // The lowest slice index currently in use
   int top = *_indexes_used_since_last_clean.begin();
 
+  // Unload slices that are above "top"/not in use
   for (int index = top-1 ; _field[index]; --index) {
     for (int x = 0; x < _blocksize; ++x) {
       delete[] _field[index][x];
@@ -33,9 +39,11 @@ void Field::clean() {
     _field[index] = NULL;
   }
 
+  // Reset for the next iteration
   _indexes_used_since_last_clean.clear();
 }
 
+// What will this be used for?*
 // interpolation formula from
 // http://paulbourke.net/miscellaneous/interpolation/
 cv::Vec3f Field::interpolate_at(cv::Vec3f point) {
@@ -68,8 +76,11 @@ cv::Vec3f Field::interpolate_at(cv::Vec3f point) {
   return vector;
 }
 
+// Load surface normals into _field from _volpkg
 void Field::loadSlice(int index) {
+  // Only load if we haven't already done so. _field[index] is empty if NULL 
   if (_field[index] == NULL) {
+    // Preallocate empty field
     _field[index] = new cv::Vec3f*[_blocksize];
     for (int j = 0; j < _blocksize; ++j) {
       _field[index][j] = new cv::Vec3f[_blocksize];
@@ -78,12 +89,14 @@ void Field::loadSlice(int index) {
       }
     }
 
+    // Load the surface normal cloud from _volpkg
     pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGBNormal>);
     if (pcl::io::loadPCDFile<pcl::PointXYZRGBNormal> (_volpkg->getNormalAtIndex(index), *cloud) == -1) {
       PCL_ERROR ("couldn't read file\n");
       exit(EXIT_FAILURE);
     }
 
+    // Assign the normals into their correct position in _field
     pcl::PointCloud<pcl::PointXYZRGBNormal>::iterator point;
     for (point = cloud->begin(); point != cloud->end(); ++point) {
       int x, y, z;
@@ -97,5 +110,6 @@ void Field::loadSlice(int index) {
     }
   }
 
+  // Add this index to the set of slices that are currently in use
   _indexes_used_since_last_clean.insert(index);
 }

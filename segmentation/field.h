@@ -1,3 +1,6 @@
+// Overview of this object*
+
+
 #ifndef _FIELD_
 #define _FIELD_
 
@@ -16,10 +19,13 @@ class Field {
   cv::Vec3f interpolate_at(cv::Vec3f);
  private:
   VolumePkg* _volpkg;
+  // This stores the vector field of surface normals
   cv::Vec3f*** _field;
+  // Largest dimension of the CT slices
   int _blocksize;
+  // Slices not in this set will be removed by clean()
   std::set<int> _indexes_used_since_last_clean;
-  void loadSlice(int);
+  void loadSlice(int); // To-Do: Is this name clear enough?
 };
 
 #endif
