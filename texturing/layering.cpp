@@ -123,6 +123,9 @@ int main(int argc, char* argv[])
 
     // Get range (thickness) of material
     double range = vpkg.getMaterialThickness();
+    std::cout << "Material thickness: " << range << std::endl;
+    range = range / vpkg.getVoxelSize();
+    std::cout << "Range: " << range << std::endl;
 
     // Initialize iterators
     CellIterator  cellIterator = mesh->GetCells()->Begin();
@@ -146,7 +149,7 @@ int main(int argc, char* argv[])
 
             MeshType::PointType p = mesh->GetPoint(pointID);
             MeshType::PixelType normal;
-            mesh->GetPointData( pointID, &normal );
+            mesh->GetPointData( pointID, &normal );  
 
             // Calculate the point's [meshX, meshY] position based on its pointID
             meshX = pointID % meshWidth;

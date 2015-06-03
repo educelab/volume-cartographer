@@ -112,11 +112,13 @@ inline void Layering(   	   double                       nSections,      // numb
       return;
     }
 
+    // Normalize normal to be the length of half of the material's thickness (pixels)
     cv::Vec3f aNormalVec( nMajorAxisDir[ 0 ], nMajorAxisDir[ 1 ], nMajorAxisDir[ 2 ] );
-    cv::normalize( aNormalVec, aNormalVec );
+    cv::normalize( aNormalVec, aNormalVec, 0, range / 2, cv::NORM_MINMAX, CV_32F);
 
-    // DEBUG (REVISIT) - need to accomodate for size of interval (10^-6 ?)
     double nSampleInterval = range / nSections;
+    nSampleInterval = nSampleInterval / 2; // Assume given point is in the middle of the material
+
     int aDataCnt = 0;
     cv::Vec3f aPos;
     cv::Vec3f aDir;
