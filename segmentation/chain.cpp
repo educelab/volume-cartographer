@@ -1,4 +1,5 @@
 #include "chain.h"
+
 // Why the parameters that we're giving it?
 Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg* volpkg, int gravity_scale, int threshold, int endOffset, double spring_constant_k) {
   // Convert the point cloud segPath into a vector of Particles
@@ -23,57 +24,58 @@ Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg* volpkg, 
   _threshold         = threshold;
 
   // Find the lowest slice index in the starting chain 
-  _min_index = _history.front()[0](0);
+  _start_index = _history.front()[0](0);
   for (int i = 0; i < _chain_length; ++i)
-    if (_history.front()[i](0) < _min_index)
-      _min_index = _history.front()[i](0);
+    if (_history.front()[i](0) < _start_index)
+      _start_index = _history.front()[i](0);
 
   // Set the slice index we will end at
   // If user does not define endOffset, target index == last slice with a surface normal file
-  _max_index = ((endOffset == -1) // *To-Do: Make -1 a constant
-                ? (volpkg->getNumberOfSlices() - 3) // Account for zero-indexing and slices lost in calculating normal vector
-                : (_min_index + endOffset));
+  _target_index = ((endOffset == DEFAULT_OFFSET)
+                   ? (volpkg->getNumberOfSlices() - 3) // Account for zero-indexing and slices lost in calculating normal vector
+                   : (_start_index + endOffset));
   
   // Set _real_iterations based on starting index, target index, and how frequently we want to sample the segmentation
-  _real_iterations = (int)(ceil(((_max_index - _min_index) + 1) / _threshold));
+  _real_iterations = (int)(ceil(((_target_index - _start_index) + 1) / _threshold));
 }
 
 
-// What do I do? *To-Do: Only iterate over particles once
-void Chain::update(Field& field) {
+// This function defines how particles are updated
+// To-Do: Only iterate over particles once
+void Chain::step(Field& field) {
   // Pull the most recent iteration from _history
   std::vector<Particle> update_chain = _history.front();
 
   // Apply the springForce to each Particle
   for(int i = 0; i < _chain_length; ++i) {
-    if (update_chain[i].status()) continue;
+    if (update_chain[i].isStopped()) continue;
     update_chain[i] += this->springForce(i);
   }
 
   // Move each particle along plane defined by estimated surface normal
   cv::Vec3f gravity = cv::Vec3f(1,0,0); // To-Do: Rename gravity?
   for(int i = 0; i < _chain_length; ++i) {
-    if (update_chain[i].status())
+    if (update_chain[i].isStopped())
       continue;
 
     // Project known vector onto estimated plane
-    cv::Vec3f vector = field.interpolate_at(update_chain[i].position()); // To-Do: Rename vector to offsetVector?
-    vector = gravity - (gravity.dot(vector)) / (vector.dot(vector)) * vector;
-    cv::normalize(vector);
-    vector /= _gravity_scale;
-    update_chain[i] += vector;
+    cv::Vec3f offset = field.interpolate_at(update_chain[i].position());
+    offset = gravity - (gravity.dot(offset)) / (offset.dot(offset)) * offset;
+    cv::normalize(offset);
+    offset /= _gravity_scale;
+    update_chain[i] += offset;
   }
 
   // Apply the springForce to each Particle again because why?
   for(int i = 0; i < _chain_length; ++i) {
-    if (update_chain[i].status()) continue;
+    if (update_chain[i].isStopped()) continue;
     update_chain[i] += this->springForce(i);
   }
 
   // Stop each particle if it's hit the target slice index
   for (int i = 0; i < _chain_length; ++i) {
-    if (floor(update_chain[i](0)) >= _max_index) {
-      update_chain[i].invalidate();
+    if (floor(update_chain[i](0)) >= _target_index) {
+      update_chain[i].stop();
     }
   }
 
@@ -85,12 +87,17 @@ void Chain::update(Field& field) {
 bool Chain::isMoving() {
   bool result = true;
   for (int i = 0; i < _chain_length; ++i)
-    result &= _history.front()[i].status();
+    result &= _history.front()[i].isStopped();
   return !result;
 }
 
 // Returns vector offset that tries to maintain distance between particles as _spring_resting_x
-// * To-Do: Explain the equation here
+// The spring equation (Hooke's law) is -kx where
+// k is the spring constant (stiffness)
+// x is displacement from rest (starting distance between points)
+//
+// There are two if blocks to account for the first and last particles in the chain
+// only having one neighbor.
 cv::Vec3f Chain::springForce(int index) {
   cv::Vec3f f(0,0,0);
   // Adjust particle with a neighbor to the right
@@ -137,7 +144,7 @@ pcl::PointCloud<pcl::PointXYZRGB> Chain::orderedPCD() {
 
     // Add each Particle in the row into storage at the correct position
     for (int i = 0; i < _chain_length; ++i) {
-      int currentCell = (int)(((row_at[i](0)) - _min_index/_threshold)); // *To-Do: Something seems wrong here.
+      int currentCell = (int)(((row_at[i](0)) - _start_index/_threshold)); // *To-Do: Something seems wrong here.
       pcl::PointXYZRGB point;
       point.x = row_at[i](0);
       point.y = row_at[i](1);

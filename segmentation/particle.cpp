@@ -2,7 +2,7 @@
 
 Particle::Particle(cv::Vec3f position) {
   _position = position;
-  _status = false;
+  _is_stopped = false;
 }
 
 // Position in 3D space (Slice, X, Y)
@@ -10,14 +10,14 @@ cv::Vec3f Particle::position() {
   return _position;
 }
 
-// Returns true if particle is stopped //*To-Do: Should return false if particle is stopped. Typedef it son.
-bool Particle::status() {
-  return _status;
+// Returns true if particle is stopped
+bool Particle::isStopped() {
+  return _is_stopped;
 }
 
 // Sets particle as being stopped
-void Particle::invalidate() { //To-Do: Change to stop()
-  _status = true;
+void Particle::stop() {
+  _is_stopped = true;
 }
 
 // Component wise operators

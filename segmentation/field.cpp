@@ -25,7 +25,9 @@ Field::~Field() {
   delete[] _field;
 }
 
-// What does this do?*
+// Unload slices that haven't been seen lately.
+// Used for keeping the memory used for the normal
+// vectors under control. 
 void Field::clean() {
   // The lowest slice index currently in use
   int top = *_indexes_used_since_last_clean.begin();
@@ -43,9 +45,11 @@ void Field::clean() {
   _indexes_used_since_last_clean.clear();
 }
 
-// What will this be used for?*
-// interpolation formula from
-// http://paulbourke.net/miscellaneous/interpolation/
+// Trilinear Interpolation: Particles are not required
+// to be at integer positions so we estimate their
+// normals with their neighbors's known normals.
+//
+// formula from http://paulbourke.net/miscellaneous/interpolation/
 cv::Vec3f Field::interpolate_at(cv::Vec3f point) {
   double dx, dy, dz, int_part;
   dx = modf(point(0), &int_part);

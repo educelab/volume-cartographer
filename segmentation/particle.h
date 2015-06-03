@@ -5,12 +5,14 @@
 
 #include <opencv2/opencv.hpp>
 
+typedef bool ParticleStopped;
+
 class Particle {
  public:
   Particle(cv::Vec3f);
   cv::Vec3f position();
-  bool status();
-  void invalidate();
+  bool isStopped();
+  void stop();
 
   void operator+=(cv::Vec3f);
   float operator()(int);
@@ -18,7 +20,7 @@ class Particle {
 
  private:
   cv::Vec3f _position;
-  bool _status;
+  bool _is_stopped;
 };
 
 #endif

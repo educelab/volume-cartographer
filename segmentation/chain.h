@@ -1,7 +1,11 @@
-// Overview of this object*
+// Chain object maintains a vector of points and their histories.
+// step() updates the postitions of particles based on their normal
+// vectors. Nighboring particles are kept in line with a "spring".
 
 #ifndef _CHAIN_
 #define _CHAIN_
+
+#define DEFAULT_OFFSET -1
 
 #include <opencv2/opencv.hpp>
 #include <pcl/io/pcd_io.h>
@@ -14,7 +18,7 @@
 class Chain {
  public:
   Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr,VolumePkg*,int,int,int,double = -0.5);
-  void update(Field&);
+  void step(Field&);
   bool isMoving();
   cv::Vec3f springForce(int);
   pcl::PointCloud<pcl::PointXYZRGB> orderedPCD();
@@ -31,8 +35,8 @@ class Chain {
   // -- Chain Size Information -- //
   int _chain_length; // Number of particles in the chain & width of output PCD
   int _real_iterations; // Height of the output PCD To-Do: Do we need this?
-  int _min_index; // Starting slice index *To-do: Rename?
-  int _max_index; // Target slice index
+  int _start_index; // Starting slice index
+  int _target_index; // Target slice index
   int _threshold; // To-Do: What is this for now? We may not need this.
 };
 

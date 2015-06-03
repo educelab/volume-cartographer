@@ -1,5 +1,6 @@
-// Overview of this object*
-
+// Field object maintains a sliding window of loaded normal vectors in the volume
+// Normals are read from disk when they're needed and can be deleted with clean()
+// to keep the memory used to a minimum.
 
 #ifndef _FIELD_
 #define _FIELD_
