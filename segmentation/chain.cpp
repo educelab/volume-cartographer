@@ -1,6 +1,6 @@
 #include "chain.h"
 
-// Why the parameters that we're giving it?
+// (doc) Why the parameters that we're giving it?
 Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg* volpkg, int gravity_scale, int threshold, int endOffset, double spring_constant_k) {
   // Convert the point cloud segPath into a vector of Particles
   std::vector<Particle> init_chain;

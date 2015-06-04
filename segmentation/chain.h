@@ -1,6 +1,6 @@
 // Chain object maintains a vector of points and their histories.
 // step() updates the postitions of particles based on their normal
-// vectors. Nighboring particles are kept in line with a "spring".
+// vectors. Neighboring particles are kept in line with a "spring".
 
 #ifndef _CHAIN_
 #define _CHAIN_
