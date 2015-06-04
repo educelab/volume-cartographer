@@ -16,14 +16,14 @@ Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg* volpkg, 
   }
   _spring_resting_x  = total_delta / (init_chain.size() - 1);
   _spring_constant_k = spring_constant_k;
-  
+
   // Add starting chain to _history and setup other parameters
   _history.push_front(init_chain);
   _chain_length      = init_chain.size();
   _gravity_scale     = gravity_scale;
   _threshold         = threshold;
 
-  // Find the lowest slice index in the starting chain 
+  // Find the lowest slice index in the starting chain
   _start_index = _history.front()[0](0);
   for (int i = 0; i < _chain_length; ++i)
     if (_history.front()[i](0) < _start_index)
@@ -34,46 +34,30 @@ Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg* volpkg, 
   _target_index = ((endOffset == DEFAULT_OFFSET)
                    ? (volpkg->getNumberOfSlices() - 3) // Account for zero-indexing and slices lost in calculating normal vector
                    : (_start_index + endOffset));
-  
+
   // Set _real_iterations based on starting index, target index, and how frequently we want to sample the segmentation
   _real_iterations = (int)(ceil(((_target_index - _start_index) + 1) / _threshold));
 }
-
 
 // This function defines how particles are updated
 // To-Do: Only iterate over particles once
 void Chain::step(Field& field) {
   // Pull the most recent iteration from _history
   std::vector<Particle> update_chain = _history.front();
+  std::vector<cv::Vec3f> force_vector(_chain_length, cv::Vec3f(0,0,0));
 
-  // Apply the springForce to each Particle
-  for(int i = 0; i < _chain_length; ++i) {
-    if (update_chain[i].isStopped()) continue;
-    update_chain[i] += this->springForce(i);
-  }
-
-  // Move each particle along plane defined by estimated surface normal
-  cv::Vec3f gravity = cv::Vec3f(1,0,0); // To-Do: Rename gravity?
+  // calculate forces acting on particles
   for(int i = 0; i < _chain_length; ++i) {
     if (update_chain[i].isStopped())
       continue;
 
-    // Project known vector onto estimated plane
-    cv::Vec3f offset = field.interpolate_at(update_chain[i].position());
-    offset = gravity - (gravity.dot(offset)) / (offset.dot(offset)) * offset;
-    cv::normalize(offset);
-    offset /= _gravity_scale;
-    update_chain[i] += offset;
+    force_vector[i] += this->springForce(i);
+    force_vector[i] += this->gravity(i, field);
   }
 
-  // Apply the springForce to each Particle again because why?
-  for(int i = 0; i < _chain_length; ++i) {
-    if (update_chain[i].isStopped()) continue;
-    update_chain[i] += this->springForce(i);
-  }
-
-  // Stop each particle if it's hit the target slice index
+  // update the chain
   for (int i = 0; i < _chain_length; ++i) {
+    update_chain[i] += force_vector[i];
     if (floor(update_chain[i](0)) >= _target_index) {
       update_chain[i].stop();
     }
@@ -115,6 +99,15 @@ cv::Vec3f Chain::springForce(int index) {
     f += to_left;
   }
   return f;
+}
+
+// Project a vector onto the plane described by the normals
+cv::Vec3f Chain::gravity(int index, Field& field) {
+  cv::Vec3f gravity = cv::Vec3f(1,0,0); // To-Do: Rename gravity?
+  cv::Vec3f offset = field.interpolate_at(_history.front()[index].position());
+  offset = gravity - (gravity.dot(offset)) / (offset.dot(offset)) * offset;
+  cv::normalize(offset);
+  return offset / _gravity_scale;
 }
 
 // Convert Chain's _history to an ordered Point Cloud object

@@ -21,6 +21,7 @@ class Chain {
   void step(Field&);
   bool isMoving();
   cv::Vec3f springForce(int);
+  cv::Vec3f gravity(int,Field&);
   pcl::PointCloud<pcl::PointXYZRGB> orderedPCD();
 
  private:
