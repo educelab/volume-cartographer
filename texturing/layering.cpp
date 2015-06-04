@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <cmath>
 
 #include <opencv2/opencv.hpp>
 
@@ -35,8 +36,13 @@ int main(int argc, char* argv[])
         std::cerr << "ERROR: Incorrect/missing segmentation ID!" << std::endl;
         exit(EXIT_FAILURE);
     }
+    if( vpkg.getVersion() != 2.0){
+	std::cerr << "ERROR: Volume package version should be version 2" << std::endl;
+	exit(EXIT_FAILURE);
+    } 
     vpkg.setActiveSegmentation(segID);
     std::string meshName = vpkg.getMeshPath();
+    
     double radius, minorRadius;
     radius = atof( argv[ 3 ] );
     if((minorRadius = radius / 3) < 1) minorRadius = 1;
@@ -64,7 +70,7 @@ int main(int argc, char* argv[])
     };
 
     // Define iterators
-    typedef CellType::PointIdIterator     PointsIterator2;
+    typedef CellType::PointIdIterator     PointsIterator;
     typedef MeshType::CellsContainer::Iterator  CellIterator;
 
     // Misc. vectors
@@ -131,7 +137,14 @@ int main(int argc, char* argv[])
     CellIterator  cellIterator = mesh->GetCells()->Begin();
     CellIterator  cellEnd      = mesh->GetCells()->End();
     CellType * cell;
-    PointsIterator2 pointsIterator;
+    CellType * cell2;
+    PointsIterator pointsIterator, pointsIterator2; 
+
+    // Variables for normal smoothing
+    bool isWithin = false;
+    cv::Vec3d faceAvg, neighborAvg;
+    double neighborCount, distance;
+    unsigned long pointID2;
 
     // Iterate over all of the cells to lay out the faces in the output texture
     while( cellIterator != cellEnd )
@@ -150,6 +163,68 @@ int main(int argc, char* argv[])
             MeshType::PointType p = mesh->GetPoint(pointID);
             MeshType::PixelType normal;
             mesh->GetPointData( pointID, &normal );  
+
+	    neighborCount = 0;
+	    neighborAvg[0] = 0;
+            neighborAvg[1] = 0;
+            neighborAvg[2] = 0;
+	    CellIterator  cellIterator2 = mesh->GetCells()->Begin();
+	    // Generate neighborhood for current point (p)
+	    while( cellIterator2 != cellEnd )
+    	    {
+		cell2 = cellIterator2.Value();
+		pointsIterator2 = cell2->PointIdsBegin();
+		faceAvg[0] = 0;
+                faceAvg[1] = 0;
+                faceAvg[2] = 0;
+        	while( pointsIterator2 != cell2->PointIdsEnd())
+        	{
+		    pointID2 = *pointsIterator2;
+
+            	    MeshType::PointType p2 = mesh->GetPoint(pointID2);
+            	    MeshType::PixelType normal2;
+            	    mesh->GetPointData( pointID2, &normal2 );
+
+		    // Add normals of current face to be averaged
+		    faceAvg[0] = faceAvg[0] + normal2[0];
+		    faceAvg[1] = faceAvg[1] + normal2[1];
+		    faceAvg[2] = faceAvg[2] + normal2[2];	
+		    // Calculate distance of neighbor candidate to initial point (p)
+		    // Add normals of current face to be averaged
+		    faceAvg[0] = faceAvg[0] + normal2[0];
+		    faceAvg[1] = faceAvg[1] + normal2[1];
+		    faceAvg[2] = faceAvg[2] + normal2[2];	
+		    // Calculate distance of neighbor candidate to initial point (p)
+		    distance = pow((p2[0]-p[0]),2) + pow((p2[1]-p[1]),2) +  pow((p2[2]-p[2]),2);
+		    if( distance < pow(radius,2) ) {
+			isWithin = true;
+		    }
+		    ++pointsIterator2;
+		}
+			
+		// If current face is within desired neighborhood
+		// Add the face's normal to the normals used in smoothing
+		if( isWithin == true) {
+		    faceAvg[0] = faceAvg[0] / 3.0;
+		    faceAvg[1] = faceAvg[1] / 3.0;
+		    faceAvg[2] = faceAvg[2] / 3.0;
+		    neighborAvg = neighborAvg + faceAvg;
+		    ++neighborCount;
+		}
+		isWithin = false; // Reset for next face's calculation
+		++cellIterator2;
+	    }
+	    if( neighborCount > 0) {
+	    	// Calculate neighborhood's normal average and smooth
+	    	neighborAvg[0] = neighborAvg[0] / neighborCount;
+            	neighborAvg[1] = neighborAvg[1] / neighborCount;
+            	neighborAvg[2] = neighborAvg[2] / neighborCount;
+	    	// Update current points normal to smoothed normal
+	    	normal[0] = neighborAvg[0];
+            	normal[1] = neighborAvg[1];
+            	normal[2] = neighborAvg[2];
+	    	mesh->SetPointData( pointID, normal );
+	    }
 
             // Calculate the point's [meshX, meshY] position based on its pointID
             meshX = pointID % meshWidth;
