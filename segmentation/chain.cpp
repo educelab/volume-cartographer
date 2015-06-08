@@ -1,7 +1,7 @@
 #include "chain.h"
 
 // (doc) Why the parameters that we're giving it?
-Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg* volpkg, int gravity_scale, int threshold, int endOffset, double spring_constant_k) {
+Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg* volpkg, double gravity_scale, int threshold, int endOffset, double spring_constant_k) {
   // Convert the point cloud segPath into a vector of Particles
   std::vector<Particle> init_chain;
   for(pcl::PointCloud<pcl::PointXYZRGB>::iterator path_it = segPath->begin(); path_it != segPath->end(); ++path_it){
@@ -107,7 +107,7 @@ cv::Vec3f Chain::gravity(int index, Field& field) {
   cv::Vec3f offset = field.interpolate_at(_history.front()[index].position());
   offset = gravity - (gravity.dot(offset)) / (offset.dot(offset)) * offset;
   cv::normalize(offset);
-  return offset / _gravity_scale;
+  return offset * _gravity_scale;
 }
 
 // Convert Chain's _history to an ordered Point Cloud object

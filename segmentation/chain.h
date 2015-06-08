@@ -17,7 +17,7 @@
 
 class Chain {
  public:
-  Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr,VolumePkg*,int,int,int,double = -0.5);
+  Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr,VolumePkg*,double,int,int,double = -0.5);
   void step(Field&);
   bool isMoving();
   cv::Vec3f springForce(int);
@@ -31,7 +31,7 @@ class Chain {
   double _spring_constant_k;
   double _spring_resting_x;
   // Limits the effect of the normal vector
-  int _gravity_scale; // To-Do: Rename. Redefine how this is used
+  double _gravity_scale; // To-Do: Rename.
 
   // -- Chain Size Information -- //
   int _chain_length; // Number of particles in the chain & width of output PCD

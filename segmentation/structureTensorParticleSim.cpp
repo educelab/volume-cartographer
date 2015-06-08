@@ -8,7 +8,7 @@
 //
 //
 
-pcl::PointCloud<pcl::PointXYZRGB> structureTensorParticleSim(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg volpkg, int gravity_scale, int threshold, int endOffset) {
+pcl::PointCloud<pcl::PointXYZRGB> structureTensorParticleSim(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg volpkg, double gravity_scale, int threshold, int endOffset) {
   // Load the surface normal field from volpkg
   // Field object handles which files will be loaded and when
   Field normal_field(&volpkg);
