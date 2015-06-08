@@ -98,7 +98,7 @@ inline bool IsLocalMaximum( const cv::Vec3f              &nPoint,
 }
 
 // Sample the volume data withing ellipse region
-inline void Layering(   	   double                       nSections,      // number of sections
+inline void Sectioning(   	   double                       nSections,      // number of sections
 				   double			range,		// range (thickness) of material
                                    const cv::Vec3f              &nCenter,       // given point
                                    const cv::Vec3f              &nMajorAxisDir, // normal
@@ -127,7 +127,36 @@ inline void Layering(   	   double                       nSections,      // numb
     for ( int i = 0; aDataCnt < nSections; ++i ) {
         aDir = i * nSampleInterval * aNormalVec;
 
-        if ((nSamplingDir == 0) || (nSamplingDir == 1)) {
+	// Both directions
+	if ( nSamplingDir == 0 ) {
+	  // Calculate point as scaled and sampled normal vector + center
+          aPos[ 0 ] = nCenter[ 0 ] + aDir[ 0 ];
+          aPos[ 1 ] = nCenter[ 1 ] + aDir[ 1 ];
+          aPos[ 2 ] = nCenter[ 2 ] + aDir[ 2 ];
+
+          // Get interpolated intensity at point
+          double tmp = interpolate_intensity( aPos, nImgVol );
+
+          // Store point in return array
+          nData[ aDataCnt ] = tmp; 
+          aDataCnt++;
+
+	  // Eliminates duplicate image at starting index
+	  if ( i > 0 && aDataCnt < nSections ) {
+	    aPos[ 0 ] = nCenter[ 0 ] - aDir[ 0 ];
+            aPos[ 1 ] = nCenter[ 1 ] - aDir[ 1 ];
+            aPos[ 2 ] = nCenter[ 2 ] - aDir[ 2 ];
+
+            // Get interpolated intensity at point
+            double tmp = interpolate_intensity( aPos, nImgVol );
+
+            // Store point in return array
+            nData[ aDataCnt ] = tmp; // REVISIT - we assume we have enough space
+            aDataCnt++;
+	  }
+	}
+	// Positive direction only
+        else if ( nSamplingDir == 1 ) {
           // Calculate point as scaled and sampled normal vector + center
           aPos[ 0 ] = nCenter[ 0 ] + aDir[ 0 ];
           aPos[ 1 ] = nCenter[ 1 ] + aDir[ 1 ];
@@ -137,12 +166,11 @@ inline void Layering(   	   double                       nSections,      // numb
           double tmp = interpolate_intensity( aPos, nImgVol );
 
           // Store point in return array
-          nData[ aDataCnt ] = tmp; // REVISIT - we assume we have enough space
+          nData[ aDataCnt ] = tmp;
           aDataCnt++;
         }
-
-        if ((nSamplingDir == 0) || (nSamplingDir == 2)) {
-
+	// Negative direction only
+        else if ( nSamplingDir == 2 ) {
           aPos[ 0 ] = nCenter[ 0 ] - aDir[ 0 ];
           aPos[ 1 ] = nCenter[ 1 ] - aDir[ 1 ];
           aPos[ 2 ] = nCenter[ 2 ] - aDir[ 2 ];

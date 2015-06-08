@@ -5,7 +5,6 @@
 #include <fstream>
 
 #include <itkMesh.h>
-#include <itkRGBPixel.h>
 #include <itkTriangleCell.h>
 
 #ifndef VC_PLYHELPER_H

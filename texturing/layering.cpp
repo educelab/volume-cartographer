@@ -10,23 +10,22 @@
 
 #include "texturingUtils.h"
 #include "volumepkg.h"
-#include "checkPtInTriangleUtil.h"
 #include "plyHelper.h"
+#include "meshUtils.h"
 
 #include <itkMesh.h>
-#include <itkRGBPixel.h>
 #include <itkTriangleCell.h>
-
-#include "UPointMapping.h"
 
 int main(int argc, char* argv[])
 {
     if ( argc < 6 ) {
-        std::cout << "Usage: vc_texture2 volpkg seg-id radius sample-direction number-of-layers" << std::endl;
+        std::cout << "Usage: vc_texture2 volpkg seg-id smoothing-factor sample-direction ";
+	std::cout << "number-of-sections sectioning-scale" << std::endl;
         std::cout << "Sample Direction: " << std::endl;
         std::cout << "      0 = Omni" << std::endl;
         std::cout << "      1 = Positive" << std::endl;
         std::cout << "      2 = Negative" << std::endl;
+	std::cout << "Sectioning scale optional, defaults to 1" << std::endl;
         exit( -1 );
     }
 
@@ -36,23 +35,27 @@ int main(int argc, char* argv[])
         std::cerr << "ERROR: Incorrect/missing segmentation ID!" << std::endl;
         exit(EXIT_FAILURE);
     }
-    if( vpkg.getVersion() != 2.0){
+    if ( vpkg.getVersion() != 2.0) {
 	std::cerr << "ERROR: Volume package version should be version 2" << std::endl;
 	exit(EXIT_FAILURE);
     } 
-    vpkg.setActiveSegmentation(segID);
+    vpkg.setActiveSegmentation( segID );
     std::string meshName = vpkg.getMeshPath();
     
-    double radius, minorRadius;
-    radius = atof( argv[ 3 ] );
-    if((minorRadius = radius / 3) < 1) minorRadius = 1;
+    double smoothingFactor;
+    smoothingFactor = atof( argv[ 3 ] );
 
     int aSampleDir = atoi( argv[ 4 ] ); // sampleDirection (0=omni, 1=positive, 2=negative)
     EDirectionOption aDirectionOption = ( EDirectionOption )aSampleDir;
 
     int sections = atoi( argv[ 5 ] );
 
-    typedef itk::Vector< double, 3 >    PixelType;  // A vector to hold the normals along with the points of each vertice in the mesh
+    // Sectioning scale is 1 by default, otherwise set by user
+    double scale = 1;
+    if ( argc > 6 )
+	scale = atof( argv[ 6 ] );
+
+    typedef itk::Vector< double, 3 >  PixelType;  // A vector to hold the normals along with the points of each vertice in the mesh
     const unsigned int Dimension = 3;   // Need a 3 Dimensional Mesh
 
     // declare Mesh object using template parameters 
@@ -60,12 +63,13 @@ int main(int argc, char* argv[])
     
     // declare pointer to new Mesh object
     MeshType::Pointer  mesh = MeshType::New();
+    MeshType::Pointer  smoothedMesh = MeshType::New();
 
     int meshWidth = -1;
     int meshHeight = -1;
 
     // try to convert the ply to an ITK mesh
-    if (!ply2itkmesh(meshName, mesh, meshWidth, meshHeight)){
+    if ( !ply2itkmesh(meshName, mesh, meshWidth, meshHeight) ) {
         exit( -1 );
     };
 
@@ -73,19 +77,15 @@ int main(int argc, char* argv[])
     typedef CellType::PointIdIterator     PointsIterator;
     typedef MeshType::CellsContainer::Iterator  CellIterator;
 
-    // Misc. vectors
-    std::vector< cv::Vec3d > my3DPoints;    // 3D vector to hold 3D points
-    std::vector< cv::Vec3d > my2DPoints;    // 3D vector to hold 2D points along with a 1 in the z coordinate
-    cv::Vec3d my3DPoint;
-    cv::Vec3d my2DPoint;
-
-    // Matrix to store the output textures
+    // Matrices to store the output textures
     int textureW = meshWidth;
     int textureH = meshHeight;
+    // Essential data structure that will be saved as images after sectioning
+    // Each matrix represent a section
     cv::Mat *outputTextures = new cv::Mat[ sections ];
 
     // Allocate each output texture to exact width and height
-    for ( int i = 0; i < sections; ++i){
+    for ( int i = 0; i < sections; ++i) {
 	outputTextures[ i ] = cv::Mat::zeros( textureH, textureW, CV_16UC1 );
     }
 
@@ -94,6 +94,10 @@ int main(int argc, char* argv[])
     // [u, v] == point's position in the output matrix
     unsigned long pointID, meshX, meshY;
     double u, v;
+
+    // Get range (thickness) of material
+    double range = vpkg.getMaterialThickness();
+    range = range / vpkg.getVoxelSize(); // convert range from microns to pixels
     
     // Load the slices from the volumepkg
     std::vector< cv::Mat > aImgVol;
@@ -105,10 +109,10 @@ int main(int argc, char* argv[])
     int meshHighIndex = meshLowIndex + meshHeight;
     int aNumSlices = vpkg.getNumberOfSlices();
 
-    int bufferLowIndex = meshLowIndex - (int) radius;
+    int bufferLowIndex = meshLowIndex - (int) range;
     if (bufferLowIndex < 0) bufferLowIndex = 0;
 
-    int bufferHighIndex = meshHighIndex + (int) radius;
+    int bufferHighIndex = meshHighIndex + (int) range;
     if (bufferHighIndex >= vpkg.getNumberOfSlices()) bufferHighIndex = vpkg.getNumberOfSlices();
 
     // Slices must be loaded into aImgVol at the correct index: slice 005 == aImgVol[5]
@@ -127,24 +131,15 @@ int main(int argc, char* argv[])
     }
     std::cout << std::endl;
 
-    // Get range (thickness) of material
-    double range = vpkg.getMaterialThickness();
-    std::cout << "Material thickness: " << range << std::endl;
-    range = range / vpkg.getVoxelSize();
-    std::cout << "Range: " << range << std::endl;
+    // smooth normals
+    smoothedMesh = smoothNormals( mesh, smoothingFactor);
+
 
     // Initialize iterators
     CellIterator  cellIterator = mesh->GetCells()->Begin();
     CellIterator  cellEnd      = mesh->GetCells()->End();
     CellType * cell;
-    CellType * cell2;
-    PointsIterator pointsIterator, pointsIterator2; 
-
-    // Variables for normal smoothing
-    bool isWithin = false;
-    cv::Vec3d faceAvg, neighborAvg;
-    double neighborCount, distance;
-    unsigned long pointID2;
+    PointsIterator pointsIterator; 
 
     // Iterate over all of the cells to lay out the faces in the output texture
     while( cellIterator != cellEnd )
@@ -162,69 +157,7 @@ int main(int argc, char* argv[])
 
             MeshType::PointType p = mesh->GetPoint(pointID);
             MeshType::PixelType normal;
-            mesh->GetPointData( pointID, &normal );  
-
-	    neighborCount = 0;
-	    neighborAvg[0] = 0;
-            neighborAvg[1] = 0;
-            neighborAvg[2] = 0;
-	    CellIterator  cellIterator2 = mesh->GetCells()->Begin();
-	    // Generate neighborhood for current point (p)
-	    while( cellIterator2 != cellEnd )
-    	    {
-		cell2 = cellIterator2.Value();
-		pointsIterator2 = cell2->PointIdsBegin();
-		faceAvg[0] = 0;
-                faceAvg[1] = 0;
-                faceAvg[2] = 0;
-        	while( pointsIterator2 != cell2->PointIdsEnd())
-        	{
-		    pointID2 = *pointsIterator2;
-
-            	    MeshType::PointType p2 = mesh->GetPoint(pointID2);
-            	    MeshType::PixelType normal2;
-            	    mesh->GetPointData( pointID2, &normal2 );
-
-		    // Add normals of current face to be averaged
-		    faceAvg[0] = faceAvg[0] + normal2[0];
-		    faceAvg[1] = faceAvg[1] + normal2[1];
-		    faceAvg[2] = faceAvg[2] + normal2[2];	
-		    // Calculate distance of neighbor candidate to initial point (p)
-		    // Add normals of current face to be averaged
-		    faceAvg[0] = faceAvg[0] + normal2[0];
-		    faceAvg[1] = faceAvg[1] + normal2[1];
-		    faceAvg[2] = faceAvg[2] + normal2[2];	
-		    // Calculate distance of neighbor candidate to initial point (p)
-		    distance = pow((p2[0]-p[0]),2) + pow((p2[1]-p[1]),2) +  pow((p2[2]-p[2]),2);
-		    if( distance < pow(radius,2) ) {
-			isWithin = true;
-		    }
-		    ++pointsIterator2;
-		}
-			
-		// If current face is within desired neighborhood
-		// Add the face's normal to the normals used in smoothing
-		if( isWithin == true) {
-		    faceAvg[0] = faceAvg[0] / 3.0;
-		    faceAvg[1] = faceAvg[1] / 3.0;
-		    faceAvg[2] = faceAvg[2] / 3.0;
-		    neighborAvg = neighborAvg + faceAvg;
-		    ++neighborCount;
-		}
-		isWithin = false; // Reset for next face's calculation
-		++cellIterator2;
-	    }
-	    if( neighborCount > 0) {
-	    	// Calculate neighborhood's normal average and smooth
-	    	neighborAvg[0] = neighborAvg[0] / neighborCount;
-            	neighborAvg[1] = neighborAvg[1] / neighborCount;
-            	neighborAvg[2] = neighborAvg[2] / neighborCount;
-	    	// Update current points normal to smoothed normal
-	    	normal[0] = neighborAvg[0];
-            	normal[1] = neighborAvg[1];
-            	normal[2] = neighborAvg[2];
-	    	mesh->SetPointData( pointID, normal );
-	    }
+            smoothedMesh->GetPointData( pointID, &normal );
 
             // Calculate the point's [meshX, meshY] position based on its pointID
             meshX = pointID % meshWidth;
@@ -237,12 +170,12 @@ int main(int argc, char* argv[])
 	    // pointer to array that holds intensity values calculated from texturing
     	    double *nData = new double[ sections ];
 
-	    Layering( sections,
+	    Sectioning( sections,
 			range,
 			cv::Vec3f(p[0], p[1], p[2]),
 			cv::Vec3f(normal[1], normal[2], normal[0]),
 			aImgVol,
-			radius,
+			smoothingFactor,
 			aDirectionOption,
 			nData);           
 
