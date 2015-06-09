@@ -13,6 +13,7 @@ itk::Mesh<::itk::Vector<double, 3>, 3>::Pointer smoothNormals ( itk::Mesh<::itk:
 
     // declare pointer to new Mesh object to be returned
     MeshType::Pointer  outputMesh = MeshType::New();
+    outputMesh = inputMesh; // copy faces, points, and old normals from input mesh
 
     // Define iterators
     typedef MeshType::PointsContainer::Iterator     PointsIterator;

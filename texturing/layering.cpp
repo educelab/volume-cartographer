@@ -62,14 +62,14 @@ int main(int argc, char* argv[])
     typedef itk::Mesh< PixelType, Dimension >   MeshType;
     
     // declare pointer to new Mesh object
-    MeshType::Pointer  mesh = MeshType::New();
+    MeshType::Pointer  inputMesh = MeshType::New();
     MeshType::Pointer  smoothedMesh = MeshType::New();
 
     int meshWidth = -1;
     int meshHeight = -1;
 
     // try to convert the ply to an ITK mesh
-    if ( !ply2itkmesh(meshName, mesh, meshWidth, meshHeight) ) {
+    if ( !ply2itkmesh(meshName, inputMesh, meshWidth, meshHeight) ) {
         exit( -1 );
     };
 
@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
     /*  This function is a hack to avoid a refactoring the texturing
         methods. See Issue #12 for more details. */
     // Setup
-    int meshLowIndex = (int) mesh->GetPoint(0)[0];
+    int meshLowIndex = (int) inputMesh->GetPoint(0)[0];
     int meshHighIndex = meshLowIndex + meshHeight;
     int aNumSlices = vpkg.getNumberOfSlices();
 
@@ -133,12 +133,14 @@ int main(int argc, char* argv[])
 
     // smooth normals if smoothing factor is not 0
     if ( smoothingFactor > 0 ) {
-    	smoothedMesh = smoothNormals( mesh, smoothingFactor);
+    	smoothedMesh = smoothNormals( inputMesh, smoothingFactor);
     }
+    else
+	smoothedMesh = inputMesh;
 
     // Initialize iterators
-    CellIterator  cellIterator = mesh->GetCells()->Begin();
-    CellIterator  cellEnd      = mesh->GetCells()->End();
+    CellIterator  cellIterator = smoothedMesh->GetCells()->Begin();
+    CellIterator  cellEnd      = smoothedMesh->GetCells()->End();
     CellType * cell;
     PointsIterator pointsIterator; 
 
@@ -156,16 +158,11 @@ int main(int argc, char* argv[])
         {
             pointID = *pointsIterator;
 
-            MeshType::PointType p = mesh->GetPoint(pointID);
+            MeshType::PointType p = smoothedMesh->GetPoint(pointID);
             MeshType::PixelType normal;
-	    // use new normals if smoothed, otherwise use normals from ply input
-	    if ( smoothingFactor > 0 ) {
-            	smoothedMesh->GetPointData( pointID, &normal );
-	    }
-	    else
-		mesh->GetPointData( pointID, &normal );
-
-            // Calculate the point's [meshX, meshY] position based on its pointID
+	    smoothedMesh->GetPointData( pointID, &normal );
+            
+	    // Calculate the point's [meshX, meshY] position based on its pointID
             meshX = pointID % meshWidth;
             meshY = (pointID - meshX) / meshWidth;
 
