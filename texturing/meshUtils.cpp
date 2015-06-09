@@ -2,7 +2,6 @@
 // Abigail Coleman June 2015
 
 #include "meshUtils.h"
-#include <opencv2/opencv.hpp>
 
 itk::Mesh<::itk::Vector<double, 3>, 3>::Pointer smoothNormals ( itk::Mesh<::itk::Vector<double, 3>, 3>::Pointer inputMesh, 
 								double						smoothingFactor ) {
@@ -17,62 +16,67 @@ itk::Mesh<::itk::Vector<double, 3>, 3>::Pointer smoothNormals ( itk::Mesh<::itk:
 
     // Define iterators
     typedef MeshType::PointsContainer::Iterator     PointsIterator;
-    PointsIterator pointsIterator, pointsIterator2;
-    pointsIterator = inputMesh->GetPoints()->Begin();
-    PointsIterator end = inputMesh->GetPoints()->End();
+    PointsIterator currentPoint, neighborPoint;
+    currentPoint = inputMesh->GetPoints()->Begin();
+    PointsIterator pointsEnd = inputMesh->GetPoints()->End();
     
     // Variables for normal smoothing
     cv::Vec3d neighborAvg;
     double neighborCount, distance;
 
-    // Iterate over all of the cells to lay out the faces in the output texture
-    while ( pointsIterator != end )
-    {
-        std::cout << "Smoothing normals for point " << pointsIterator.Index() << "/" << end.Index() << "\r" << std::flush;
+    // file to write old and new normals too
+    std::ofstream myfile;
+    myfile.open( "normals.txt" );
 
-        MeshType::PointType p = pointsIterator.Value();
-        MeshType::PixelType normal;
-	inputMesh->GetPointData( pointsIterator.Index(), &normal );
+    // Iterate over all of the cells to lay out the faces in the output texture
+    while ( currentPoint != pointsEnd )
+    {
+        std::cout << "Smoothing normals for point " << currentPoint.Index() << "/" << pointsEnd.Index() << "\r" << std::flush;
+
+        MeshType::PointType p = currentPoint.Value();
+        MeshType::PixelType currentNormal;
+	inputMesh->GetPointData( currentPoint.Index(), &currentNormal );
+
+	myfile << "Old: " << currentNormal[0] << ", " << currentNormal[1] << ", " << currentNormal[2] << "    ";
 
         neighborCount = 0;
         neighborAvg[0] = 0;
         neighborAvg[1] = 0;
         neighborAvg[2] = 0;
-        pointsIterator2 = inputMesh->GetPoints()->Begin();
+        neighborPoint = inputMesh->GetPoints()->Begin();
         
 	// Generate neighborhood for current point (p)
-	while ( pointsIterator2 != end )
+	while ( neighborPoint != pointsEnd )
         {
-            MeshType::PointType p2 = pointsIterator2.Value();
-	    MeshType::PixelType normal2;
-            inputMesh->GetPointData( pointsIterator.Index(), &normal2 );
+            MeshType::PointType p2 = neighborPoint.Value();
+	    MeshType::PixelType neighborNormal;
+            inputMesh->GetPointData( neighborPoint.Index(), &neighborNormal );
 
 	    // Calculate distance of neighbor candidate to initial point (p)
             distance = pow((p2[0]-p[0]),2) + pow((p2[1]-p[1]),2) +  pow((p2[2]-p[2]),2);
             if ( distance < pow(smoothingFactor,2) ) {
-            	neighborAvg[0] = neighborAvg[0] + normal2[0];
-               	neighborAvg[1] = neighborAvg[1] + normal2[1];
-		neighborAvg[2] = neighborAvg[2] + normal2[2];
+            	neighborAvg[0] += neighborNormal[0];
+               	neighborAvg[1] += neighborNormal[1];
+		neighborAvg[2] += neighborNormal[2];
 		++neighborCount;
             }
 
-            ++pointsIterator2;
+            ++neighborPoint;
         }
 	if( neighborCount > 0) {
             // Calculate neighborhood's normal average and smooth
-            neighborAvg[0] = neighborAvg[0] / neighborCount;
-            neighborAvg[1] = neighborAvg[1] / neighborCount;
-            neighborAvg[2] = neighborAvg[2] / neighborCount;
-	    // Update current points normal to smoothed normal
-            normal[0] = neighborAvg[0];
-            normal[1] = neighborAvg[1];
-            normal[2] = neighborAvg[2];
-            outputMesh->SetPointData( pointsIterator.Index(), normal );
+            currentNormal[0] = neighborAvg[0] / neighborCount;
+            currentNormal[1] = neighborAvg[1] / neighborCount;
+            currentNormal[2] = neighborAvg[2] / neighborCount;
+            outputMesh->SetPointData( currentPoint.Index(), currentNormal );
+	    myfile << "New: " << currentNormal[0] << ", " << currentNormal[1] << ", " << currentNormal[2] << "    ";
+	    myfile << "Neighbor Count: " << neighborCount << "\n";
         }
 
-	++pointsIterator;
+	++currentPoint;
     }
     std::cout << std::endl;
+    myfile.close();
 	
     return outputMesh;
 }

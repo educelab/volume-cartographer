@@ -131,9 +131,10 @@ int main(int argc, char* argv[])
     }
     std::cout << std::endl;
 
-    // smooth normals
-    smoothedMesh = smoothNormals( mesh, smoothingFactor);
-
+    // smooth normals if smoothing factor is not 0
+    if ( smoothingFactor > 0 ) {
+    	smoothedMesh = smoothNormals( mesh, smoothingFactor);
+    }
 
     // Initialize iterators
     CellIterator  cellIterator = mesh->GetCells()->Begin();
@@ -157,7 +158,12 @@ int main(int argc, char* argv[])
 
             MeshType::PointType p = mesh->GetPoint(pointID);
             MeshType::PixelType normal;
-            smoothedMesh->GetPointData( pointID, &normal );
+	    // use new normals if smoothed, otherwise use normals from ply input
+	    if ( smoothingFactor > 0 ) {
+            	smoothedMesh->GetPointData( pointID, &normal );
+	    }
+	    else
+		mesh->GetPointData( pointID, &normal );
 
             // Calculate the point's [meshX, meshY] position based on its pointID
             meshX = pointID % meshWidth;
