@@ -137,6 +137,10 @@ void CWindow::CreateWidgets( void )
     // start segmentation button
     QPushButton *aBtnStartSeg = this->findChild< QPushButton * >( "btnStartSeg" );
     connect( aBtnStartSeg, SIGNAL( clicked() ), this, SLOT( OnBtnStartSegClicked() ) );
+
+    // Impact Range slider
+    QSlider *fEdtImpactRange = this->findChild< QSlider * >( "sldImpactRange" );
+    connect( fEdtImpactRange, SIGNAL( valueChanged(int) ), this, SLOT( OnEdtImpactRange( int ) ) );
 }
 
 // Create menus
@@ -168,7 +172,7 @@ void CWindow::CreateActions( void )
     connect( fExitAct, SIGNAL( triggered() ), this, SLOT( Close() ) );
     fAboutAct = new QAction( tr( "&About..." ), this );
     connect( fAboutAct, SIGNAL( triggered() ), this, SLOT( About() ) );
-    fSavePointCloudAct = new QAction( tr( "&Save point cloud..." ), this );
+    fSavePointCloudAct = new QAction( tr( "&Save volume..." ), this );
     connect( fSavePointCloudAct, SIGNAL( triggered() ), this, SLOT( SavePointCloud() ) );
 }
 
@@ -627,6 +631,12 @@ void CWindow::OnBtnStartSegClicked( void )
     DoSegmentation();
     CleanupSegmentation();
     UpdateView();
+}
+
+// Handle start segmentation
+void CWindow::OnEdtImpactRange( int nImpactRange )
+{
+    fVolumeViewerWidget->SetImpactRange( nImpactRange );
 }
 
 // Handle loading any slice

@@ -37,6 +37,7 @@ public:
     void ResetSplineCurve ( void ) { fControlPoints.clear();}
     // for editing mode
     void SetIntersectionCurve( CXCurve &nCurve );
+    void SetImpactRange( int nImpactRange );
 
     void UpdateView( void );
 
