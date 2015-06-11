@@ -41,7 +41,7 @@ public:
                         WindowStateIdle };      // idle
 
     typedef struct SSegParams_tag {
-        int fGravityScale;
+        double fGravityScale;
         int fThreshold;
         int fEndOffset;
     } SSegParams;
@@ -93,7 +93,7 @@ private slots:
     void TogglePenTool( void );
     void ToggleSegmentationTool( void );
 
-    void OnEdtGravityValChange( QString nText );
+    void OnEdtGravityValChange();
     void OnEdtSampleDistValChange( QString nText );
     void OnEdtStartingSliceValChange( QString nText );
     void OnEdtEndingSliceValChange( QString nText );

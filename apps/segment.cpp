@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
   std::cout << "vc_segment" << std::endl;
   if (argc < 5) {
     std::cerr << "Usage:" << std::endl;
-    std::cerr << argv[0] << " {--gravity [1-10] --startIndex [Z-Index #] --stopOffset [value]} --seg [Seg ID #] --volpkg [volpkgpath]" << std::endl;
+    std::cerr << argv[0] << " {--gravity [0.1 - 0.8] --startIndex [Z-Index #] --stopOffset [value]} --seg [Seg ID #] --volpkg [volpkgpath]" << std::endl;
     exit(EXIT_FAILURE);
   }
 
