@@ -3,6 +3,7 @@
 //
 #include <iostream>
 #include <fstream>
+#include <cmath>
 
 #include <itkMesh.h>
 #include <itkTriangleCell.h>

@@ -5,9 +5,12 @@
 #include <fstream>
 
 #include <opencv2/opencv.hpp>
+#include <vector>
 
 #include <itkMesh.h>
 #include <itkTriangleCell.h>
+#include "itkPointsLocator.h"
+#include "itkMapContainer.h"
 
 #ifndef VC_MESHUTILS_H
 #define VC_MESHUTILS_H

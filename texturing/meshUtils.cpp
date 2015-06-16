@@ -22,12 +22,21 @@ itk::Mesh<::itk::Vector<double, 3>, 3>::Pointer smoothNormals ( itk::Mesh<::itk:
     PointsIterator pointsEnd = inputMesh->GetPoints()->End();
     
     // Variables for normal smoothing
-    cv::Vec3d neighborAvg;
-    double neighborCount, distance;
+    // cv::Vec3d neighborAvg;
+    std::vector< long double > neighborAvg ( 3, 0 );
+    double neighborCount, distance, pointID;
 
     // file to write old and new normals too
     std::ofstream myfile;
     myfile.open( "normals.txt" );
+
+    // Use pointsLocator to find neighborhood within given radius
+    typedef MeshType::PointsContainer PointsContainerType;
+    typedef itk::PointsLocator<PointsContainerType> PointsLocatorType;
+    typename PointsLocatorType::Pointer pointsLocator = PointsLocatorType::New();
+    pointsLocator->SetPoints( inputMesh->GetPoints() );
+    pointsLocator->Initialize();
+    typename PointsLocatorType::NeighborsIdentifierType neighborhood;
 
     // Iterate over all of the cells to lay out the faces in the output texture
     while ( currentPoint != pointsEnd )
@@ -44,34 +53,30 @@ itk::Mesh<::itk::Vector<double, 3>, 3>::Pointer smoothNormals ( itk::Mesh<::itk:
         neighborAvg[0] = 0;
         neighborAvg[1] = 0;
         neighborAvg[2] = 0;
-        neighborPoint = inputMesh->GetPoints()->Begin();
+        neighborPoint = inputMesh->GetPoints()->Begin(); 
         
-	// Generate neighborhood for current point (p)
-	while ( neighborPoint != pointsEnd )
-        {
-            MeshType::PointType p2 = neighborPoint.Value();
+	// find neighborhood for current point (p) within radius
+	pointsLocator->FindPointsWithinRadius( p, smoothingFactor, neighborhood );
+	neighborCount = neighborhood.size();
+
+	for ( int i = 0; i < neighborCount; ++i ) {
+	    pointID = neighborhood[i];
+	    MeshType::PointType p2 = inputMesh->GetPoint( pointID );
 	    MeshType::PixelType neighborNormal;
             inputMesh->GetPointData( neighborPoint.Index(), &neighborNormal );
 
-	    // Calculate distance of neighbor candidate to initial point (p)
-            distance = pow((p2[0]-p[0]),2) + pow((p2[1]-p[1]),2) +  pow((p2[2]-p[2]),2);
-            if ( distance < pow(smoothingFactor,2) ) {
-            	neighborAvg[0] += neighborNormal[0];
-               	neighborAvg[1] += neighborNormal[1];
-		neighborAvg[2] += neighborNormal[2];
-		++neighborCount;
-            }
-
-            ++neighborPoint;
-        }
-	if( neighborCount > 0) {
+            neighborAvg[0] += neighborNormal[0];
+            neighborAvg[1] += neighborNormal[1];
+            neighborAvg[2] += neighborNormal[2];
+	}
+        if( neighborCount > 0) {
             // Calculate neighborhood's normal average and smooth
             currentNormal[0] = neighborAvg[0] / neighborCount;
             currentNormal[1] = neighborAvg[1] / neighborCount;
             currentNormal[2] = neighborAvg[2] / neighborCount;
             outputMesh->SetPointData( currentPoint.Index(), currentNormal );
-	    myfile << "New: " << currentNormal[0] << ", " << currentNormal[1] << ", " << currentNormal[2] << "    ";
-	    myfile << "Neighbor Count: " << neighborCount << "\n";
+            myfile << "New: " << currentNormal[0] << ", " << currentNormal[1] << ", " << currentNormal[2] << "    ";
+            myfile << "Neighbor Count: " << neighborCount << "\n";
         }
 
 	++currentPoint;
