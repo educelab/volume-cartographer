@@ -37,8 +37,8 @@ inline bool IsLess( const double &nV1,
 }
 
 // estimate intensity of volume at particle
-inline double interpolate_intensity( const cv::Vec3f				&point,
-								     const std::vector< cv::Mat >	&nImgVol )
+inline double interpolate_intensity( const cv::Vec3f                            &point,
+                                                                     const std::vector< cv::Mat >       &nImgVol )
 {
     double dx, dy, dz, int_part;
     // for new data
@@ -98,12 +98,12 @@ inline bool IsLocalMaximum( const cv::Vec3f              &nPoint,
 }
 
 // Sample the volume data withing ellipse region
-inline void Sectioning(   	   double                       nSections,      // number of sections
-				   double			range,		// range (thickness) of material
+inline void Sectioning(            double                       nSections,      // number of sections
+                                   double                       range,          // range (thickness) of material
                                    const cv::Vec3f              &nCenter,       // given point
                                    const cv::Vec3f              &nMajorAxisDir, // normal
                                    const std::vector< cv::Mat > &nImgVol,       // volume data
-                                   double                       nA,		// neighborhood's radius (Axis)
+                                   double                       nA,             // neighborhood's radius (Axis)
                                    int                          nSamplingDir,   // sampling direction
                                    double                       *nData )        // [out] samples
 {
@@ -127,9 +127,9 @@ inline void Sectioning(   	   double                       nSections,      // nu
     for ( int i = 0; aDataCnt < nSections; ++i ) {
         aDir = i * nSampleInterval * aNormalVec;
 
-	// Both directions
-	if ( nSamplingDir == 0 ) {
-	  // Calculate point as scaled and sampled normal vector + center
+        // Both directions
+        if ( nSamplingDir == 0 ) {
+          // Calculate point as scaled and sampled normal vector + center
           aPos[ 0 ] = nCenter[ 0 ] + aDir[ 0 ];
           aPos[ 1 ] = nCenter[ 1 ] + aDir[ 1 ];
           aPos[ 2 ] = nCenter[ 2 ] + aDir[ 2 ];
@@ -141,9 +141,9 @@ inline void Sectioning(   	   double                       nSections,      // nu
           nData[ aDataCnt ] = tmp; 
           aDataCnt++;
 
-	  // Eliminates duplicate image at starting index
-	  if ( i > 0 && aDataCnt < nSections ) {
-	    aPos[ 0 ] = nCenter[ 0 ] - aDir[ 0 ];
+          // Eliminates duplicate image at starting index
+          if ( i > 0 && aDataCnt < nSections ) {
+            aPos[ 0 ] = nCenter[ 0 ] - aDir[ 0 ];
             aPos[ 1 ] = nCenter[ 1 ] - aDir[ 1 ];
             aPos[ 2 ] = nCenter[ 2 ] - aDir[ 2 ];
 
@@ -153,9 +153,9 @@ inline void Sectioning(   	   double                       nSections,      // nu
             // Store point in return array
             nData[ aDataCnt ] = tmp; // REVISIT - we assume we have enough space
             aDataCnt++;
-	  }
-	}
-	// Positive direction only
+          }
+        }
+        // Positive direction only
         else if ( nSamplingDir == 1 ) {
           // Calculate point as scaled and sampled normal vector + center
           aPos[ 0 ] = nCenter[ 0 ] + aDir[ 0 ];
@@ -169,7 +169,7 @@ inline void Sectioning(   	   double                       nSections,      // nu
           nData[ aDataCnt ] = tmp;
           aDataCnt++;
         }
-	// Negative direction only
+        // Negative direction only
         else if ( nSamplingDir == 2 ) {
           aPos[ 0 ] = nCenter[ 0 ] - aDir[ 0 ];
           aPos[ 1 ] = nCenter[ 1 ] - aDir[ 1 ];

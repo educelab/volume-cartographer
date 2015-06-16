@@ -16,6 +16,6 @@
 #define VC_MESHUTILS_H
 
 itk::Mesh<::itk::Vector<double, 3>, 3>::Pointer smoothNormals ( itk::Mesh<::itk::Vector<double, 3>, 3>::Pointer inputMesh,
-								double smoothingFactor );
+                                                                double smoothingFactor );
 
 #endif // VC_MESHUTILS_H

@@ -4,7 +4,7 @@
 #include "meshUtils.h"
 
 itk::Mesh<::itk::Vector<double, 3>, 3>::Pointer smoothNormals ( itk::Mesh<::itk::Vector<double, 3>, 3>::Pointer inputMesh, 
-								double						smoothingFactor ) {
+                                                                double                                          smoothingFactor ) {
     typedef itk::Vector< double, 3 >  PixelType;  // A vector to hold the normals along with the points of each vertice in the mesh
     const unsigned int Dimension = 3;   // Need a 3 Dimensional Mesh
 
@@ -45,9 +45,9 @@ itk::Mesh<::itk::Vector<double, 3>, 3>::Pointer smoothNormals ( itk::Mesh<::itk:
 
         MeshType::PointType p = currentPoint.Value();
         MeshType::PixelType currentNormal;
-	inputMesh->GetPointData( currentPoint.Index(), &currentNormal );
+        inputMesh->GetPointData( currentPoint.Index(), &currentNormal );
 
-	myfile << "Old: " << currentNormal[0] << ", " << currentNormal[1] << ", " << currentNormal[2] << "    ";
+        myfile << "Old: " << currentNormal[0] << ", " << currentNormal[1] << ", " << currentNormal[2] << "    ";
 
         neighborCount = 0;
         neighborAvg[0] = 0;
@@ -55,20 +55,20 @@ itk::Mesh<::itk::Vector<double, 3>, 3>::Pointer smoothNormals ( itk::Mesh<::itk:
         neighborAvg[2] = 0;
         neighborPoint = inputMesh->GetPoints()->Begin(); 
         
-	// find neighborhood for current point (p) within radius
-	pointsLocator->FindPointsWithinRadius( p, smoothingFactor, neighborhood );
-	neighborCount = neighborhood.size();
+        // find neighborhood for current point (p) within radius
+        pointsLocator->FindPointsWithinRadius( p, smoothingFactor, neighborhood );
+        neighborCount = neighborhood.size();
 
-	for ( int i = 0; i < neighborCount; ++i ) {
-	    pointID = neighborhood[i];
-	    MeshType::PointType p2 = inputMesh->GetPoint( pointID );
-	    MeshType::PixelType neighborNormal;
+        for ( int i = 0; i < neighborCount; ++i ) {
+            pointID = neighborhood[i];
+            MeshType::PointType p2 = inputMesh->GetPoint( pointID );
+            MeshType::PixelType neighborNormal;
             inputMesh->GetPointData( neighborPoint.Index(), &neighborNormal );
 
             neighborAvg[0] += neighborNormal[0];
             neighborAvg[1] += neighborNormal[1];
             neighborAvg[2] += neighborNormal[2];
-	}
+        }
         if( neighborCount > 0) {
             // Calculate neighborhood's normal average and smooth
             currentNormal[0] = neighborAvg[0] / neighborCount;
@@ -79,10 +79,10 @@ itk::Mesh<::itk::Vector<double, 3>, 3>::Pointer smoothNormals ( itk::Mesh<::itk:
             myfile << "Neighbor Count: " << neighborCount << "\n";
         }
 
-	++currentPoint;
+        ++currentPoint;
     }
     std::cout << std::endl;
     myfile.close();
-	
+        
     return outputMesh;
 }

@@ -20,12 +20,12 @@ int main(int argc, char* argv[])
 {
     if ( argc < 6 ) {
         std::cout << "Usage: vc_texture2 volpkg seg-id smoothing-factor sample-direction ";
-	std::cout << "number-of-sections sectioning-scale" << std::endl;
+        std::cout << "number-of-sections sectioning-scale" << std::endl;
         std::cout << "Sample Direction: " << std::endl;
         std::cout << "      0 = Omni" << std::endl;
         std::cout << "      1 = Positive" << std::endl;
         std::cout << "      2 = Negative" << std::endl;
-	std::cout << "Sectioning scale optional, defaults to 1" << std::endl;
+        std::cout << "Sectioning scale optional, defaults to 1" << std::endl;
         exit( -1 );
     }
 
@@ -36,8 +36,8 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
     if ( vpkg.getVersion() != 2.0) {
-	std::cerr << "ERROR: Volume package version should be version 2" << std::endl;
-	exit(EXIT_FAILURE);
+        std::cerr << "ERROR: Volume package version should be version 2" << std::endl;
+        exit(EXIT_FAILURE);
     } 
     vpkg.setActiveSegmentation( segID );
     std::string meshName = vpkg.getMeshPath();
@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
     // Sectioning scale is 1 by default, otherwise set by user
     double scale = 1;
     if ( argc > 6 )
-	scale = atof( argv[ 6 ] );
+        scale = atof( argv[ 6 ] );
 
     typedef itk::Vector< double, 3 >  PixelType;  // A vector to hold the normals along with the points of each vertice in the mesh
     const unsigned int Dimension = 3;   // Need a 3 Dimensional Mesh
@@ -86,7 +86,7 @@ int main(int argc, char* argv[])
 
     // Allocate each output texture to exact width and height
     for ( int i = 0; i < sections; ++i) {
-	outputTextures[ i ] = cv::Mat::zeros( textureH, textureW, CV_16UC1 );
+        outputTextures[ i ] = cv::Mat::zeros( textureH, textureW, CV_16UC1 );
     }
 
     // pointID == point's position in 1D list of points
@@ -133,10 +133,10 @@ int main(int argc, char* argv[])
 
     // smooth normals if smoothing factor is not 0
     if ( smoothingFactor > 0 ) {
-    	smoothedMesh = smoothNormals( inputMesh, smoothingFactor);
+        smoothedMesh = smoothNormals( inputMesh, smoothingFactor);
     }
     else
-	smoothedMesh = inputMesh;
+        smoothedMesh = inputMesh;
 
     // Initialize iterators
     CellIterator  cellIterator = smoothedMesh->GetCells()->Begin();
@@ -160,9 +160,9 @@ int main(int argc, char* argv[])
 
             MeshType::PointType p = smoothedMesh->GetPoint(pointID);
             MeshType::PixelType normal;
-	    smoothedMesh->GetPointData( pointID, &normal );
+            smoothedMesh->GetPointData( pointID, &normal );
             
-	    // Calculate the point's [meshX, meshY] position based on its pointID
+            // Calculate the point's [meshX, meshY] position based on its pointID
             meshX = pointID % meshWidth;
             meshY = (pointID - meshX) / meshWidth;
 
@@ -170,23 +170,23 @@ int main(int argc, char* argv[])
             u =  (double) textureW * (double) meshX / (double) meshWidth;
             v =  (double) textureH * (double) meshY / (double) meshHeight;
 
-	    // pointer to array that holds intensity values calculated from texturing
-    	    double *nData = new double[ sections ];
+            // pointer to array that holds intensity values calculated from texturing
+            double *nData = new double[ sections ];
 
-	    Sectioning( sections,
-			range,
-			cv::Vec3f(p[0], p[1], p[2]),
-			cv::Vec3f(normal[1], normal[2], normal[0]),
-			aImgVol,
-			smoothingFactor,
-			aDirectionOption,
-			nData);           
+            Sectioning( sections,
+                        range,
+                        cv::Vec3f(p[0], p[1], p[2]),
+                        cv::Vec3f(normal[1], normal[2], normal[0]),
+                        aImgVol,
+                        smoothingFactor,
+                        aDirectionOption,
+                        nData);           
 
-	    // Fill in the output pixels with the values from Layering
-	    for ( int i = 0; i < sections; ++i ) {
-		// cv::Mat.at uses (row, column)
-		outputTextures[ i ].at < unsigned short > (v, u) = (unsigned short) nData[ i ];
-	    }
+            // Fill in the output pixels with the values from Layering
+            for ( int i = 0; i < sections; ++i ) {
+                // cv::Mat.at uses (row, column)
+                outputTextures[ i ].at < unsigned short > (v, u) = (unsigned short) nData[ i ];
+            }
 
             ++pointsIterator;
         }
@@ -196,7 +196,7 @@ int main(int argc, char* argv[])
     std::cout << std::endl;
 
     for ( int i = 0; i < sections; ++i ){
-    	vpkg.saveTextureData( outputTextures[ i ], std::to_string( i ) );
+        vpkg.saveTextureData( outputTextures[ i ], std::to_string( i ) );
     }
 
     return 0;
