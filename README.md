@@ -22,6 +22,7 @@ Toolkit to segment and analyze volumetric datasets.
     * PCL Requirements: boost, eigen, flann
     * If you want static VC binaries, you must build PCL with static libraries: `cmake -DPCL_SHARED_LIBS=OFF ${PCL_SOURCE_PATH}`
 * Insight Toolkit (itk)
+* Boost
 * Meshlab - Recommended for viewing meshes only
 
 **Installation**
