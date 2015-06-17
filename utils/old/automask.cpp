@@ -12,14 +12,18 @@
 #define WHITE3 cv::Scalar(WHITE,WHITE,WHITE)
 #define GRAY 200
 #define GRAY3 cv::Scalar(GRAY,GRAY,GRAY)
+#define RED cv::Scalar(0,0,255)
 
 int main(int argc, char* argv[]) {
   if (argc < 3) {
-    std::cout << "Usage " << argv[0] << " original" << " /masked/image/destination" << std::endl;
+    std::cout << "Usage " << argv[0] << " original" << " /output/dir/" << std::endl;
     exit(EXIT_FAILURE);
   }
 
-  cv::Mat original = cv::imread(argv[1]);
+  std::string inputFile = argv[1];
+  std::string outputDir = argv[2];
+
+  cv::Mat original = cv::imread(inputFile);
   cv::Mat workspace;
   cvtColor(original, workspace, CV_BGR2GRAY);
   
@@ -48,6 +52,7 @@ int main(int argc, char* argv[]) {
   // the outermost hull is the border of the scroll mask
   cv::Mat mask = cv::Mat::zeros(workspace.size(), CV_8UC3);  
   drawContours(mask, hull, 0, GRAY3, 1, 8, std::vector<cv::Vec4i>(), 0, cv::Point());
+  drawContours(original, hull, 0, RED, 2, 8, std::vector<cv::Vec4i>(), 0, cv::Point());
 
   // and again
   floodFill(mask, cv::Point(0,0), WHITE3);
@@ -55,10 +60,11 @@ int main(int argc, char* argv[]) {
 
   // invert and apply mask
   bitwise_not(mask, mask);
-  bitwise_and(original, mask, mask);
+  //bitwise_and(original, mask, mask);
 
   // write image to disk
-  cv::imwrite(argv[2], mask);
+  cv::imwrite( outputDir + "/" + inputFile, mask);
+  cv::imwrite( outputDir + "/contour_" + inputFile, original);
 
   exit(EXIT_SUCCESS);
 }
