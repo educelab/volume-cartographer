@@ -8,6 +8,8 @@
 
 // used for tangent calculation
 #define DELTA 0.01
+#define COLOR_NORMAL cv::Scalar(0, 255, 255)
+#define COLOR_TANGENT cv::Scalar(255, 0, 255)
 
 // (x, y, slice)
 #define SLICE_DIR cv::Vec3f(0,0,1)
@@ -57,7 +59,7 @@ void mouse(int event, int x, int y, int flags, void* param) {
       cv::Vec3f right = click_list[size - 2];
       cv::Vec3f y4 = click_list[size - 1];
 
-      for (int i = 0; i < 10; ++i) {
+      for (int i = 1; i < 10; ++i) {
         cv::Vec3f v = interpolate(y1, left, right, y4, i / 10.0);
         cv::Point p((int)v(0),(int)v(1));
         circle(img, p, 2, cv::Scalar(255,255,0),1);
@@ -72,8 +74,8 @@ void mouse(int event, int x, int y, int flags, void* param) {
       cv::Point start((int)v(0),(int)v(1));
       cv::Point tan((int)t(0)  ,(int)t(1));
       cv::Point norm((int)n(0) ,(int)n(1));
-      arrowedLine(img,start,start + tan,cv::Scalar(255,0,255));
-      arrowedLine(img,start,start + norm,cv::Scalar(0,255,255));
+      arrowedLine(img,start,start + tan, COLOR_TANGENT);
+      arrowedLine(img,start,start + norm, COLOR_NORMAL);
     }
     imshow("IMAGE", img);
     break;
@@ -82,6 +84,8 @@ void mouse(int event, int x, int y, int flags, void* param) {
 
 
 pcl::PointCloud<pcl::PointXYZRGB> structureTensorParticleSim(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg volpkg, double gravity_scale, int threshold, int endOffset) {
+
+  Field f(&volpkg);
 
   cv::Mat in = volpkg.getSliceAtIndex(42);
   in *= 1./255;
@@ -93,8 +97,25 @@ pcl::PointCloud<pcl::PointXYZRGB> structureTensorParticleSim(pcl::PointCloud<pcl
   namedWindow("IMAGE", cv::WINDOW_AUTOSIZE);
   cv::setMouseCallback("IMAGE", mouse, &slice);
   imshow("IMAGE", slice);
-
   cv::waitKey(0);
+
+  cv::Vec3f p(160,210,50);
+  cv::Vec3f n(1,0,0);
+  
+  cv::Mat m = f.reslice(p, n);
+  m *= 1./255;
+  cv::Mat reslice;
+  m.convertTo(reslice, CV_8UC3);
+  cvtColor(reslice, reslice, CV_GRAY2BGR);
+
+  cv::Point imcenter(RESLICE_WIDTH/2, p(2));
+  arrowedLine(reslice, imcenter, imcenter + cv::Point(RESLICE_WIDTH/2 - 1, 0), COLOR_NORMAL);
+  circle(reslice, imcenter, 2, COLOR_TANGENT, -1);
+  
+  namedWindow("RESLICE", cv::WINDOW_AUTOSIZE);
+  imshow("RESLICE", reslice);
+  cv::waitKey(0);
+  
 
   return pcl::PointCloud<pcl::PointXYZRGB>();
 }

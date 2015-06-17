@@ -12,21 +12,23 @@
 
 #include "volumepkg.h"
 
+#define RESLICE_WIDTH 64
+
 class Field {
  public:
   Field(VolumePkg*);
-  ~Field();
-  void clean();
-  cv::Vec3f interpolate_at(cv::Vec3f);
+  //  ~Field();
+  //  void clean();
+  unsigned short interpolate_at(cv::Vec3f);
+  cv::Mat reslice(cv::Vec3f,cv::Vec3f);
  private:
   VolumePkg* _volpkg;
-  // This stores the vector field of surface normals
-  cv::Vec3f*** _field;
+  std::vector<cv::Mat> _field;
   // Largest dimension of the CT slices
-  int _blocksize;
+  //  int _blocksize;
   // Slices not in this set will be removed by clean()
-  std::set<int> _indexes_used_since_last_clean;
-  void loadSlice(int); // To-Do: Is this name clear enough?
+  //  std::set<int> _indexes_used_since_last_clean;
+  //  void loadSlice(int); // To-Do: Is this name clear enough?
 };
 
 #endif
