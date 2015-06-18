@@ -35,7 +35,7 @@ CWindow::CWindow( void ) :
 
     // default parameters for segmentation method
     // REVISIT - refactor me
-    fSegParams.fGravityScale = 3;
+    fSegParams.fGravityScale = 0.3;
     fSegParams.fThreshold = 1;
     fSegParams.fEndOffset = 5;
 
@@ -129,7 +129,7 @@ void CWindow::CreateWidgets( void )
     // REVISIT - consider switching to CSimpleNumEditBox
     // see QLineEdit doc to see the difference of textEdited() and textChanged()
     // doc.qt.io/qt-4.8/qlineedit.html#textEdited
-    connect( fEdtGravity, SIGNAL( textEdited(QString) ), this, SLOT( OnEdtGravityValChange( QString ) ) );
+    connect( fEdtGravity, SIGNAL( editingFinished() ), this, SLOT( OnEdtGravityValChange() ) );
     connect( fEdtSampleDist, SIGNAL( textEdited(QString) ), this, SLOT( OnEdtSampleDistValChange( QString ) ) );
     connect( fEdtStartIndex, SIGNAL( textEdited(QString) ), this, SLOT( OnEdtStartingSliceValChange( QString ) ) );
     connect( fEdtEndIndex, SIGNAL( textEdited(QString) ), this, SLOT( OnEdtEndingSliceValChange( QString ) ) );
@@ -308,15 +308,15 @@ bool CWindow::SetUpSegParams( void )
     bool aIsOk;
 
     // gravity value
-    int aNewVal = fEdtGravity->text().toInt( &aIsOk );
+    double aGravVal = fEdtGravity->text().toDouble( &aIsOk );
     if ( aIsOk ) {
-        fSegParams.fGravityScale = aNewVal;
+        fSegParams.fGravityScale = aGravVal;
     } else {
         return false;
     }
 
     // sample distance
-    aNewVal = fEdtSampleDist->text().toInt( &aIsOk );
+    int aNewVal = fEdtSampleDist->text().toInt( &aIsOk );
     if ( aIsOk ) {
         fSegParams.fThreshold = aNewVal;
     } else {
@@ -587,11 +587,19 @@ void CWindow::ToggleSegmentationTool( void )
 }
 
 // Handle gravity value change
-void CWindow::OnEdtGravityValChange( QString nText )
+void CWindow::OnEdtGravityValChange()
 {
     bool aIsOk;
-    int aNewVal = nText.toInt( &aIsOk );
+    double aNewVal = fEdtGravity->text().toDouble( &aIsOk );
     if ( aIsOk ) {
+        if ( aNewVal <= 0.0 ) {
+            aNewVal = 0.1;
+            fEdtGravity->setText(QString::number(aNewVal));
+        }
+        else if ( aNewVal > 0.8 ) {
+            aNewVal = 0.8;
+            fEdtGravity->setText(QString::number(aNewVal));
+        }
         fSegParams.fGravityScale = aNewVal;
     }
 }

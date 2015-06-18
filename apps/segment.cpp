@@ -19,7 +19,7 @@ std::string volpkgLocation = "";
 std::string outputName = "";
 
 // Options
-int gravity_scale = -1;
+double gravity_scale = -1;
 int threshold = 1;
 double startIndex = -1.0;
 int stopOffset = -1;
@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
   std::cout << "vc_segment" << std::endl;
   if (argc < 5) {
     std::cerr << "Usage:" << std::endl;
-    std::cerr << argv[0] << " {--gravity [1-10] --startIndex [Z-Index #] --stopOffset [value]} --seg [Seg ID #] --volpkg [volpkgpath]" << std::endl;
+    std::cerr << argv[0] << " {--gravity [0.1 - 0.8] --startIndex [Z-Index #] --stopOffset [value]} --seg [Seg ID #] --volpkg [volpkgpath]" << std::endl;
     exit(EXIT_FAILURE);
   }
 
@@ -36,8 +36,8 @@ int main(int argc, char* argv[]) {
   // get gravity scale value from command line
   pcl::console::parse_argument (argc, argv, "--gravity", gravity_scale);
   if (gravity_scale == -1) {
-    std::cout << "No Gravity Scale value given, defaulting to 2" << std::endl;
-    gravity_scale = 2;
+    std::cout << "No Gravity Scale value given, defaulting to 0.5" << std::endl;
+    gravity_scale = 0.5;
   }
 
   // NOTE: Distance thresholding causes problems for resumable segmentations 
