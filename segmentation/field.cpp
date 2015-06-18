@@ -94,7 +94,7 @@ cv::Mat Field::reslice(cv::Vec3f center, cv::Vec3f n) {
 
   cv::Mat m(_volpkg->getNumberOfSlices(), RESLICE_WIDTH, CV_16UC1);
   cv::Vec3f output_origin = center - (RESLICE_WIDTH / 2) * normal;
-  output_origin(2) = 0;  
+  output_origin(2) = 0;  //To-Do: Currently our 3D origin is always on the first slice
   
   for (int height = 0; height < _volpkg->getNumberOfSlices(); ++height) {
     for (int width = 0; width < RESLICE_WIDTH; ++width) {
