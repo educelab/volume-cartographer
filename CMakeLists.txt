@@ -20,6 +20,7 @@ find_package(OpenCV REQUIRED)
 find_package(Boost REQUIRED)
 find_package(ITK REQUIRED)
 find_package(OpenGL REQUIRED)
+find_package(ACVD REQUIRED)
 
 include(${QT_USE_FILE})
 include(${ITK_USE_FILE})
