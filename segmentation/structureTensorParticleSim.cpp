@@ -8,8 +8,14 @@
 
 // used for tangent calculation
 #define DELTA 0.01
-#define COLOR_NORMAL cv::Scalar(0, 255, 255)
-#define COLOR_TANGENT cv::Scalar(255, 0, 255)
+
+#define BGR_GREEN cv::Scalar(0,255,0)
+#define BGR_CYAN cv::Scalar(255,255,0)
+#define BGR_YELLOW cv::Scalar(0, 255, 255)
+#define BGR_MAGENTA cv::Scalar(255, 0, 255)
+
+#define COLOR_NORMAL BGR_YELLOW
+#define COLOR_TANGENT BGR_MAGENTA
 
 // (x, y, slice)
 #define SLICE_DIR cv::Vec3f(0,0,1)
@@ -49,7 +55,7 @@ void mouse(int event, int x, int y, int flags, void* param) {
   switch (event) {
   case cv::EVENT_LBUTTONDOWN:
     cv::Mat img = *((cv::Mat*)(param));
-    circle(img, cv::Point(x,y), 5, cv::Scalar(0,255,0),1);
+    circle(img, cv::Point(x,y), 5, BGR_GREEN,1);
     click_list.push_back(cv::Vec3f(x,y,0));
 
     int size = click_list.size();
@@ -62,7 +68,7 @@ void mouse(int event, int x, int y, int flags, void* param) {
       for (int i = 1; i < 10; ++i) {
         cv::Vec3f v = interpolate(y1, left, right, y4, i / 10.0);
         cv::Point p((int)v(0),(int)v(1));
-        circle(img, p, 2, cv::Scalar(255,255,0),1);
+        circle(img, p, 2, BGR_CYAN,1);
       }
 
       cv::Vec3f v = interpolate(y1, left, right, y4, 0.5);
