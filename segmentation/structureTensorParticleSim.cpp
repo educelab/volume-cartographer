@@ -4,7 +4,7 @@
 // A Particle Chain maintains their ordering and is responsible for updating their
 // positions. This update moves particles according to the estimated normal vector.
 //
-//
+//NOTE: This segmentation stores points as XYZ!!!
 
 // used for tangent calculation
 #define DELTA 0.01
@@ -47,6 +47,7 @@ cv::Vec3f normal(cv::Vec3f y1, cv::Vec3f left, cv::Vec3f right, cv::Vec3f y4, do
   return t.cross(SLICE_DIR);
 }
 
+// For testing only: Control points list
 std::vector<cv::Vec3f> click_list;
 
 // callback for getting control points
