@@ -2,48 +2,10 @@
 // Constructor
 Field::Field(VolumePkg* v) {
   _volpkg = v;
-  // Set _blocksize to be the largest dimension of the slice data
-  //  _blocksize = std::max(_volpkg->getSliceWidth(), _volpkg->getSliceHeight());
-  // Allocate space in _field to store each slice
-  //  _field = new cv::Vec3f**[_volpkg->getNumberOfSlices()];
-  // Set to NULL so we can tell what's loaded
   for (int i = 0; i < _volpkg->getNumberOfSlices(); ++i) {
     _field.push_back(v->getSliceAtIndex(i));
   }
 }
-
-// Destructor
-// Field::~Field() {
-//   for (int i = 0; i < _volpkg->getNumberOfSlices(); ++i) {
-//     if (_field[i] != NULL) {
-//       for (int x = 0; x < _blocksize; ++x) {
-//         delete[] _field[i][x];
-//       }
-//       delete[] _field[i];
-//     }
-//   }
-//   delete[] _field;
-// }
-
-// Unload slices that haven't been seen lately.
-// Used for keeping the memory used for the normal
-// vectors under control. 
-// void Field::clean() {
-//   // The lowest slice index currently in use
-//   int top = *_indexes_used_since_last_clean.begin();
-
-//   // Unload slices that are above "top"/not in use
-//   for (int index = top-1 ; _field[index]; --index) {
-//     for (int x = 0; x < _blocksize; ++x) {
-//       delete[] _field[index][x];
-//     }
-//     delete[] _field[index];
-//     _field[index] = NULL;
-//   }
-
-//   // Reset for the next iteration
-//   _indexes_used_since_last_clean.clear();
-// }
 
 // Trilinear Interpolation: Particles are not required
 // to be at integer positions so we estimate their
@@ -89,57 +51,18 @@ unsigned short Field::interpolate_at(cv::Vec3f point) {
 #define SLICE_DIR cv::Vec3f(0,0,1)
 #endif
 
-cv::Mat Field::reslice(cv::Vec3f center, cv::Vec3f n) {
+cv::Mat Field::reslice(cv::Vec3f center, cv::Vec3f n, int reslice_height, int reslice_width) {
   cv::Vec3f normal = normalize(n);
 
-  cv::Mat m(_volpkg->getNumberOfSlices(), RESLICE_WIDTH, CV_16UC1);
-  cv::Vec3f output_origin = center - (RESLICE_WIDTH / 2) * normal;
-  output_origin(2) = 0;  
-  
-  for (int height = 0; height < _volpkg->getNumberOfSlices(); ++height) {
-    for (int width = 0; width < RESLICE_WIDTH; ++width) {
+  cv::Mat m(reslice_height, reslice_width, CV_16UC1);
+  cv::Vec3f output_origin = center - ((reslice_width / 2) * normal + (reslice_height / 2) * SLICE_DIR);
+
+  for (int height = 0; height < reslice_height; ++height) {
+    for (int width = 0; width < reslice_width; ++width) {
       cv::Vec3f v = output_origin + (height * SLICE_DIR) + (width * normal);
       m.at<unsigned short>(height, width) = this->interpolate_at(v);
     }
   }
-  
+
   return m;
 }
-
-// Load surface normals into _field from _volpkg
-// void Field::loadSlice(int index) {
-//   // Only load if we haven't already done so. _field[index] is empty if NULL 
-//   if (_field[index] == NULL) {
-//     // Preallocate empty field
-//     _field[index] = new cv::Vec3f*[_blocksize];
-//     for (int j = 0; j < _blocksize; ++j) {
-//       _field[index][j] = new cv::Vec3f[_blocksize];
-//       for (int k = 0; k < _blocksize; ++k) {
-//         _field[index][j][k] = cv::Vec3f(0,0,0);
-//       }
-//     }
-
-//     // Load the surface normal cloud from _volpkg
-//     pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGBNormal>);
-//     if (pcl::io::loadPCDFile<pcl::PointXYZRGBNormal> (_volpkg->getNormalAtIndex(index), *cloud) == -1) {
-//       PCL_ERROR ("couldn't read file\n");
-//       exit(EXIT_FAILURE);
-//     }
-
-//     // Assign the normals into their correct position in _field
-//     pcl::PointCloud<pcl::PointXYZRGBNormal>::iterator point;
-//     for (point = cloud->begin(); point != cloud->end(); ++point) {
-//       int x, y, z;
-//       x = point->x;
-//       y = point->y;
-//       z = point->z;
-
-//       _field[x][y][z](0) = point->normal[0];
-//       _field[x][y][z](1) = point->normal[1];
-//       _field[x][y][z](2) = point->normal[2];
-//     }
-//   }
-
-//   // Add this index to the set of slices that are currently in use
-//   _indexes_used_since_last_clean.insert(index);
-// }

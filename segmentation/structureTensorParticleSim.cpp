@@ -88,40 +88,42 @@ void mouse(int event, int x, int y, int flags, void* param) {
   }
 }
 
+void scan_reslice(cv::Mat slice, VolumePkg volpkg) {
+  cv::Mat grad_x;
+  
+  Sobel(slice, grad_x, CV_16S,1,0,3,1,0, cv::BORDER_DEFAULT);
+  Sobel(grad_x, grad_x, CV_16S,1,0,3,1,0, cv::BORDER_DEFAULT);
+
+  namedWindow("SCAN", cv::WINDOW_AUTOSIZE);
+  imshow("SCAN", grad_x);
+  cv::waitKey(0);
+}
 
 pcl::PointCloud<pcl::PointXYZRGB> structureTensorParticleSim(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg volpkg, double gravity_scale, int threshold, int endOffset) {
 
   Field f(&volpkg);
 
-  cv::Mat in = volpkg.getSliceAtIndex(42);
-  in *= 1./255;
-
-  cv::Mat slice;
-  in.convertTo(slice, CV_8UC3);
-  cvtColor(slice, slice, CV_GRAY2BGR);
-
-  namedWindow("IMAGE", cv::WINDOW_AUTOSIZE);
-  cv::setMouseCallback("IMAGE", mouse, &slice);
-  imshow("IMAGE", slice);
-  cv::waitKey(0);
-
   cv::Vec3f p(160,210,50);
   cv::Vec3f n(1,0,0);
-  
+
   cv::Mat m = f.reslice(p, n);
-  m *= 1./255;
+  scan_reslice(m, volpkg);
+
+   m *= 1./255;
   cv::Mat reslice;
   m.convertTo(reslice, CV_8UC3);
   cvtColor(reslice, reslice, CV_GRAY2BGR);
 
-  cv::Point imcenter(RESLICE_WIDTH/2, p(2));
-  arrowedLine(reslice, imcenter, imcenter + cv::Point(RESLICE_WIDTH/2 - 1, 0), COLOR_NORMAL);
+  // reslice defaults to 64x64
+  // this will be moved to be debug output later
+  cv::Point imcenter(64/2, 64/2);
+  arrowedLine(reslice, imcenter, imcenter + cv::Point(64/2 - 1, 0), COLOR_NORMAL);
   circle(reslice, imcenter, 2, COLOR_TANGENT, -1);
-  
+
   namedWindow("RESLICE", cv::WINDOW_AUTOSIZE);
   imshow("RESLICE", reslice);
   cv::waitKey(0);
-  
+
 
   return pcl::PointCloud<pcl::PointXYZRGB>();
 }
