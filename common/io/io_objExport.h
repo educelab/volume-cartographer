@@ -1,4 +1,4 @@
-//
+// VC OBJ Exporter v1.0
 // Created by Media Team on 6/24/15.
 //
 
@@ -16,8 +16,6 @@
 #include <boost/filesystem.hpp>
 
 namespace volcart {
-
-
 namespace io {
 
   class objWriter {
@@ -30,24 +28,23 @@ namespace io {
     int writeTexture();
 
   protected:
-
+    // ITK typedefs to setup the mesh. This class only supports meshes used by VC software.
     typedef itk::Vector< double, 3 >            PixelType;
     typedef itk::Mesh< PixelType, 3 >           MeshType;
     typedef MeshType::CellType                  CellType;
-    typedef itk::TriangleCell< CellType >       TriangleType;
 
     typedef MeshType::PointsContainer::ConstIterator   PointsInMeshIterator;
     typedef MeshType::CellsContainer::Iterator         CellIterator;
     typedef CellType::PointIdIterator                  PointsInCellIterator;
 
   private:
-    boost::filesystem::path _outputPath;
+    boost::filesystem::path _outputPath; // The desired filepath. This should include the .obj extension.
     std::ofstream           _outputMesh;
     std::ofstream           _outputMTL;
 
-    itk::Mesh<::itk::Vector<double, 3>, 3>::Pointer _mesh;
-    std::unordered_map<unsigned long, cv::Vec2d> _textCoords;
-    cv::Mat _texture;
+    itk::Mesh< PixelType, 3 >::Pointer _mesh;
+    std::unordered_map<unsigned long, cv::Vec2d> _textCoords; // UV map for points accessed by point index
+    cv::Mat _texture; // output texture image
 
     int _writeHeader();
     int _writeVertices();
@@ -57,8 +54,6 @@ namespace io {
 
 
 } // namespace io
-
-
 } //namespace volcart
 
 #endif //VC_IO_OBJEXPORT_H
