@@ -23,7 +23,9 @@ find_package(VTK REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(ACVD REQUIRED)
 
-include(${QT_USE_FILE} ${ITK_USE_FILE} ${VTK_USE_FILE})
+include(${QT_USE_FILE})
+include(${ITK_USE_FILE})
+include(${VTK_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
 
 include_directories(${Boost_INCLUDE_DIR} ${PCL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} ${ACVD_INCLUDE_DIRS})
