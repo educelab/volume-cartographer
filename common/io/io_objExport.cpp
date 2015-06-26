@@ -7,36 +7,54 @@
 namespace volcart {
     namespace io {
 
-    ///// Constructors //////
-    objWriter::objWriter( std::string outputPath, itk::Mesh<::itk::Vector<double, 3>, 3>::Pointer mesh ) {
+    ///// Constructors /////
+    objWriter::objWriter() {};
+
+    objWriter::objWriter( std::string outputPath, itk::Mesh<PixelType, 3>::Pointer mesh ) {
         _outputPath = outputPath;
         _mesh = mesh;
     };
 
-    objWriter::objWriter( std::string outputPath, itk::Mesh<::itk::Vector<double, 3>, 3>::Pointer mesh, std::unordered_map<unsigned long, cv::Vec2d> uvMap, cv::Mat uvImg ) {
+    objWriter::objWriter( std::string outputPath, itk::Mesh<PixelType, 3>::Pointer mesh, std::map<unsigned long, cv::Vec2d> uvMap, cv::Mat uvImg ) {
         _outputPath = outputPath;
         _mesh = mesh;
         _textCoords = uvMap;
         _texture = uvImg;
     };
 
-    ///// Output Methods /////
+    ///// Validators /////
+    // Make sure that all required parameters have been set and are okay
+    bool objWriter::validate() {
 
+        // Make sure the output path has a file extension for the OBJ
+        bool hasExt = ( _outputPath.extension() == ".OBJ" || _outputPath.extension() == ".obj" );
+        // Make sure the output directory exists
+        bool pathExists = boost::filesystem::is_directory( boost::filesystem::canonical( _outputPath.parent_path() ) );
+        // Check that the mesh exists and has points
+        bool meshHasPoints = ( _mesh.IsNotNull() && _mesh->GetNumberOfPoints() != 0 ) ;
+
+        return ( hasExt && pathExists && meshHasPoints ) ;
+    };
+
+    ///// Output Methods /////
     // Write everything (OBJ, MTL, and PNG) to disk
     int objWriter::write() {
+        if ( !validate() ) return EXIT_FAILURE; // Must pass validation test
 
-        writeMesh();
+        // Write the OBJ
+        writeOBJ();
 
+        // Write texture stuff if we have a UV coordinate map
         if ( !_textCoords.empty() ) {
             writeMTL();
             writeTexture();
         }
 
         return EXIT_SUCCESS;
-    }
+    };
 
     // Write the OBJ file to disk
-    int objWriter::writeMesh() {
+    int objWriter::writeOBJ() {
         _outputMesh.open( _outputPath.string() ); // Open the file stream
         if(!_outputMesh.is_open()) return EXIT_FAILURE; // Return error if we can't open the file
 
@@ -66,7 +84,8 @@ namespace volcart {
         _outputMTL << "illum 2" << std::endl;          // Illumination mode
         _outputMTL << "d 1.0" << std::endl;            // Dissolve. 1.0 == opaque
 
-        _outputMTL << "map_Kd " << _outputPath.stem().string() + ".png" << std::endl; // Path to the texture file, relative to the MTL file
+        if ( !_texture.empty() )
+            _outputMTL << "map_Kd " << _outputPath.stem().string() + ".png" << std::endl; // Path to the texture file, relative to the MTL file
 
         _outputMTL.close(); // Close the file stream
         return EXIT_SUCCESS;
@@ -94,10 +113,10 @@ namespace volcart {
     // Write the vertex information: 'v x y z'
     //                               'vn nx ny nz'
     int objWriter::_writeVertices() {
-        if(!_outputMesh.is_open()) return EXIT_FAILURE;
+        if( !_outputMesh.is_open() || _mesh->GetNumberOfPoints() == 0 ) return EXIT_FAILURE;
         std::cerr << "Writing vertices..." << std::endl;
 
-        _outputMesh << "# Vertices: " << _mesh->GetPoints()->Size() << std::endl;
+        _outputMesh << "# Vertices: " << _mesh->GetNumberOfPoints() << std::endl;
 
         // Iterate over all of the points
         PointsInMeshIterator point = _mesh->GetPoints()->Begin();
@@ -118,8 +137,9 @@ namespace volcart {
     };
 
     // Write the UV coordinates that will be attached to points: 'vt u v'
+    // To-Do: Separate out the mtllib and mtl assignment
     int objWriter::_writeTextureCoordinates() {
-        if(!_outputMesh.is_open()) return EXIT_FAILURE;
+        if( !_outputMesh.is_open() || _textCoords.empty() ) return EXIT_FAILURE;
         std::cerr << "Writing texture coordinates..." << std::endl;
 
         _outputMesh << "# Texture information" << std::endl;
@@ -136,16 +156,16 @@ namespace volcart {
         }
 
         return EXIT_SUCCESS;
-    }
+    };
 
     // Write the face information: 'f v/vt/vn'
     // Note: This method currently assumes that *every* point in the mesh has an associated normal and texture map
     // This will definitely not always be the case and should be fixed. - SP
     int objWriter::_writeFaces() {
-        if(!_outputMesh.is_open()) return EXIT_FAILURE;
+        if( !_outputMesh.is_open() || _mesh->GetNumberOfCells() == 0 ) return EXIT_FAILURE;
         std::cerr << "Writing faces..." << std::endl;
 
-        _outputMesh << "# Faces: " << _mesh->GetCells()->size() << std::endl;
+        _outputMesh << "# Faces: " << _mesh->GetNumberOfCells() << std::endl;
 
         // Iterate over the faces of the mesh
         CellIterator cell = _mesh->GetCells()->Begin();
@@ -161,8 +181,8 @@ namespace volcart {
                 std::string textureIndex = "";
 
                 // Set the texture index if we have texture coordinates
-                // To-Do: Set the texture index only if this point has a texture coordinate
-                if ( !_textCoords.empty() )
+                // To-Do: This assumes that textureIndex == pointIndex, which may not be the case
+                if ( !_textCoords.empty() && _textCoords.find( *point ) != _textCoords.end() )
                    textureIndex = std::to_string(pointIndex);
 
                 _outputMesh << pointIndex << "/" << textureIndex << "/" << pointIndex << " ";
@@ -174,7 +194,7 @@ namespace volcart {
         }
 
         return EXIT_SUCCESS;
-    }
+    };
 
     } // namespace io
 } //namespace volcart

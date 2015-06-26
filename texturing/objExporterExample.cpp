@@ -4,7 +4,6 @@
 
 #include "io/io_objExport.h"
 #include "plyHelper.h"
-#include <unordered_map>
 
 #include <itkMesh.h>
 #include <itkTriangleCell.h>
@@ -12,7 +11,7 @@
 int main( int argc, char* argv[] ) {
 
   std::string meshName = argv[1];
-  cv::Mat uvImg = cv::imread( argv[2] );
+  cv::Mat uvImg = cv::imread( argv[2], CV_LOAD_IMAGE_ANYCOLOR | CV_LOAD_IMAGE_ANYDEPTH );
 
   // define ITK classes
   typedef itk::Vector< double, 3 >  PixelType;  // A vector to hold the normals along with the points of each vertex in the mesh
@@ -37,7 +36,7 @@ int main( int argc, char* argv[] ) {
   // [u, v] == point's position in the output matrix
   unsigned long pointID, meshX, meshY;
   double u, v;
-  std::unordered_map<unsigned long, cv::Vec2d> uvMap;
+  std::map<unsigned long, cv::Vec2d> uvMap;
 
   // Initialize iterators
   PointsInMeshIterator point = inputMesh->GetPoints()->Begin();
@@ -65,9 +64,20 @@ int main( int argc, char* argv[] ) {
   }
   std::cerr << std::endl;
 
-  volcart::io::objWriter objWriter( "mesh.obj", inputMesh, uvMap, uvImg );
+  volcart::io::objWriter mesh_writer;
+  mesh_writer.setPath( "nothing" );
+  mesh_writer.setUVMap( uvMap );
+  mesh_writer.setTexture( uvImg );
 
-  objWriter.write();
+  // mesh_writer.write() runs validate() as well, but this lets us handle a mesh that can't be validated.
+  if ( mesh_writer.validate() )
+    mesh_writer.write();
+  else {
+    mesh_writer.setPath( "output.obj" );
+    mesh_writer.setMesh( inputMesh );
+    mesh_writer.write();
+  }
+
 
   return EXIT_SUCCESS;
 }
