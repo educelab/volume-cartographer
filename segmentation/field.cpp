@@ -47,11 +47,7 @@ unsigned short Field::interpolate_at(cv::Vec3f point) {
   return vector;
 }
 
-#ifndef SLICE_DIR
-#define SLICE_DIR cv::Vec3f(0,0,1)
-#endif
-
-cv::Mat Field::reslice(cv::Vec3f center, cv::Vec3f n, int reslice_height, int reslice_width) {
+Slice Field::reslice(cv::Vec3f center, cv::Vec3f n, int reslice_height, int reslice_width) {
   cv::Vec3f normal = normalize(n);
 
   cv::Mat m(reslice_height, reslice_width, CV_16UC1);
@@ -64,5 +60,5 @@ cv::Mat Field::reslice(cv::Vec3f center, cv::Vec3f n, int reslice_height, int re
     }
   }
 
-  return m;
+  return Slice(m, output_origin, normal);
 }

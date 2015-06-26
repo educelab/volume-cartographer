@@ -16,7 +16,7 @@
 #include "particle.h"
 
 class Chain {
- public:
+public:
   Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr,VolumePkg*,double,int,int,double = -0.5);
   void step(Field&);
   bool isMoving();
@@ -24,7 +24,7 @@ class Chain {
   cv::Vec3f gravity(int,Field&);
   pcl::PointCloud<pcl::PointXYZRGB> orderedPCD();
 
- private:
+private:
   // History of the chain at each iteration
   std::list<std::vector<Particle> > _history;
   // Parameters for calculating the spring effects

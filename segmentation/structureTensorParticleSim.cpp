@@ -4,11 +4,15 @@
 // A Particle Chain maintains their ordering and is responsible for updating their
 // positions. This update moves particles according to the estimated normal vector.
 //
-//NOTE: This segmentation stores points as XYZ!!!
+// NOTE: This segmentation stores points as XYZ!!!
+// field.h defines slice direction this way
+// it will eventually be moved to volumepkg
 
 // used for tangent calculation
 #define DELTA 0.01
 
+// color defines so we don't have to keep track of 255s
+#define WHITE 255
 #define BGR_GREEN cv::Scalar(0,255,0)
 #define BGR_CYAN cv::Scalar(255,255,0)
 #define BGR_YELLOW cv::Scalar(0, 255, 255)
@@ -17,10 +21,8 @@
 #define COLOR_NORMAL BGR_YELLOW
 #define COLOR_TANGENT BGR_MAGENTA
 
-// (x, y, slice)
-#define SLICE_DIR cv::Vec3f(0,0,1)
-
 // cubic interpolation
+// requires 4 points to estimate slope
 template<typename T> T
 interpolate(T y0, T y1 ,T y2, T y3, double p) {
   double mu = p;
@@ -41,7 +43,7 @@ tangent(T y1, T left, T right, T y4, double p) {
   return rhs - lhs;
 }
 
-// paths don't really have "normal" vectors so we that it only has components in the xy plane
+// paths don't really have "normal" vectors so we assume that it only has components in the xy plane
 cv::Vec3f normal(cv::Vec3f y1, cv::Vec3f left, cv::Vec3f right, cv::Vec3f y4, double p) {
   cv::Vec3f t = tangent(y1, left, right, y4, p);
   return t.cross(SLICE_DIR);
@@ -52,7 +54,7 @@ std::vector<cv::Vec3f> click_list;
 
 // callback for getting control points
 // will likely be removed later
-void mouse(int event, int x, int y, int flags, void* param) {
+void mouse_callback(int event, int x, int y, int flags, void* param) {
   switch (event) {
   case cv::EVENT_LBUTTONDOWN:
     cv::Mat img = *((cv::Mat*)(param));
@@ -84,47 +86,35 @@ void mouse(int event, int x, int y, int flags, void* param) {
       arrowedLine(img,start,start + tan, COLOR_TANGENT);
       arrowedLine(img,start,start + norm, COLOR_NORMAL);
     }
-    imshow("IMAGE", img);
+    imshow("SPLINE DEMO", img);
     break;
   }
-}
-
-void scan_reslice(cv::Mat slice, VolumePkg volpkg) {
-  cv::Mat grad_x;
-  
-  Sobel(slice, grad_x, CV_16S,1,0,3,1,0, cv::BORDER_DEFAULT);
-  Sobel(grad_x, grad_x, CV_16S,1,0,3,1,0, cv::BORDER_DEFAULT);
-
-  namedWindow("SCAN", cv::WINDOW_AUTOSIZE);
-  imshow("SCAN", grad_x);
-  cv::waitKey(0);
 }
 
 pcl::PointCloud<pcl::PointXYZRGB> structureTensorParticleSim(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg volpkg, double gravity_scale, int threshold, int endOffset) {
 
   Field f(&volpkg);
 
-  cv::Vec3f p(160,210,50);
+  // SPLINE DEMO
+  // convert to color so drawing is more useful
+  cv::Mat slice42 = volpkg.getSliceData(42);
+  slice42 *= 1.0/255;
+  slice42.convertTo(slice42, CV_8UC3);
+  cvtColor(slice42, slice42, CV_GRAY2BGR);
+  namedWindow("SPLINE DEMO", cv::WINDOW_AUTOSIZE);
+  setMouseCallback("SPLINE DEMO", mouse_callback, &slice42);
+  imshow("SPLINE DEMO", slice42);
+
+  // RESLICE DEMO
+  // test point and normal for checking with fiji
+  cv::Vec3f p(168,200,50);
   cv::Vec3f n(1,0,0);
+  Slice s = f.reslice(p, n);
+  s.scan();
+  s.debugDraw();
 
-  cv::Mat m = f.reslice(p, n);
-  scan_reslice(m, volpkg);
-
-   m *= 1./255;
-  cv::Mat reslice;
-  m.convertTo(reslice, CV_8UC3);
-  cvtColor(reslice, reslice, CV_GRAY2BGR);
-
-  // reslice defaults to 64x64
-  // this will be moved to be debug output later
-  cv::Point imcenter(64/2, 64/2);
-  arrowedLine(reslice, imcenter, imcenter + cv::Point(64/2 - 1, 0), COLOR_NORMAL);
-  circle(reslice, imcenter, 2, COLOR_TANGENT, -1);
-
-  namedWindow("RESLICE", cv::WINDOW_AUTOSIZE);
-  imshow("RESLICE", reslice);
+  // stop running when the user presses a key
   cv::waitKey(0);
-
 
   return pcl::PointCloud<pcl::PointXYZRGB>();
 }
