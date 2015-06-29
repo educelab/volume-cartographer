@@ -3,6 +3,9 @@
 
 #include <opencv2/opencv.hpp>
 
+
+// defines for uniform indexing
+// should be moved somewhere more global
 #define VC_INDEX_X 0
 #define VC_INDEX_Y 1
 #define VC_INDEX_Z 2
@@ -13,11 +16,14 @@
 
 #define SLICE_DIR VC_DIRECTION_K
 
+// slice class used for keeping track of 2d sections
+// in 3d space
 class Slice {
 public:
   Slice(cv::Mat,cv::Vec3f,cv::Vec3f);
   cv::Vec3f findNextPosition();
   void debugDraw();
+  void debugFloodFill();
 private:
   cv::Mat slice_;
   cv::Vec3f origin_;

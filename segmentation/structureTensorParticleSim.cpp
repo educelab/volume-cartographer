@@ -109,18 +109,13 @@ pcl::PointCloud<pcl::PointXYZRGB> structureTensorParticleSim(pcl::PointCloud<pcl
   // test point and normal for checking with fiji
   cv::Vec3f p(168,200,50);
   cv::Vec3f n(1,0,0);
-  for (int i = 0; i < 10; ++i) {
-    std::cout << p << std::endl;
+  for (int i = 0; i < 100; ++i) {
     Slice s = f.reslice(p, n);
     p = s.findNextPosition();
     s.debugDraw();
+    s.debugFloodFill();
     cv::waitKey(0);
   }
-
-
-
-  // stop running when the user presses a key
-  //  cv::waitKey(0);
 
   return pcl::PointCloud<pcl::PointXYZRGB>();
 }
