@@ -14,16 +14,16 @@ Field::Field(VolumePkg* v) {
 // formula from http://paulbourke.net/miscellaneous/interpolation/
 unsigned short Field::interpolate_at(cv::Vec3f point) {
   double dx, dy, dz, int_part;
-  dx = modf(point(0), &int_part);
-  dy = modf(point(1), &int_part);
-  dz = modf(point(2), &int_part);
+  dx = modf(point(VC_INDEX_X), &int_part);
+  dy = modf(point(VC_INDEX_Y), &int_part);
+  dz = modf(point(VC_INDEX_Z), &int_part);
 
   int x_min, x_max, y_min, y_max, z_min, z_max;
-  x_min = (int)point(0);
+  x_min = (int)point(VC_INDEX_X);
   x_max = x_min + 1;
-  y_min = (int)point(1);
+  y_min = (int)point(VC_INDEX_Y);
   y_max = y_min + 1;
-  z_min = (int)point(2);
+  z_min = (int)point(VC_INDEX_Z);
   z_max = z_min + 1;
 
   // insert safety net

@@ -9,8 +9,6 @@
 #include "volumepkg.h"
 #include "slice.h"
 
-#define SLICE_DIR cv::Vec3f(0,0,1)
-
 class Field {
 public:
   Field(VolumePkg*);
