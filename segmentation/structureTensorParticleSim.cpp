@@ -95,26 +95,32 @@ pcl::PointCloud<pcl::PointXYZRGB> structureTensorParticleSim(pcl::PointCloud<pcl
 
   Field f(&volpkg);
 
-  // SPLINE DEMO
-  // convert to color so drawing is more useful
-  cv::Mat slice42 = volpkg.getSliceData(42);
-  slice42 *= 1.0/255;
-  slice42.convertTo(slice42, CV_8UC3);
-  cvtColor(slice42, slice42, CV_GRAY2BGR);
-  namedWindow("SPLINE DEMO", cv::WINDOW_AUTOSIZE);
-  setMouseCallback("SPLINE DEMO", mouse_callback, &slice42);
-  imshow("SPLINE DEMO", slice42);
+  // // SPLINE DEMO
+  // // convert to color so drawing is more useful
+  // cv::Mat slice42 = volpkg.getSliceData(42);
+  // slice42 *= 1.0/255;
+  // slice42.convertTo(slice42, CV_8UC3);
+  // cvtColor(slice42, slice42, CV_GRAY2BGR);
+  // namedWindow("SPLINE DEMO", cv::WINDOW_AUTOSIZE);
+  // setMouseCallback("SPLINE DEMO", mouse_callback, &slice42);
+  // imshow("SPLINE DEMO", slice42);
 
   // RESLICE DEMO
   // test point and normal for checking with fiji
   cv::Vec3f p(168,200,50);
   cv::Vec3f n(1,0,0);
-  Slice s = f.reslice(p, n);
-  s.scan();
-  s.debugDraw();
+  for (int i = 0; i < 10; ++i) {
+    std::cout << p << std::endl;
+    Slice s = f.reslice(p, n);
+    p = s.findNextPosition();
+    s.debugDraw();
+    cv::waitKey(0);
+  }
+
+
 
   // stop running when the user presses a key
-  cv::waitKey(0);
+  //  cv::waitKey(0);
 
   return pcl::PointCloud<pcl::PointXYZRGB>();
 }

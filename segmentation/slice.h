@@ -6,7 +6,7 @@
 class Slice {
 public:
   Slice(cv::Mat,cv::Vec3f,cv::Vec3f);
-  void scan();
+  cv::Vec3f findNextPosition();
   void debugDraw();
 private:
   cv::Mat slice_;
