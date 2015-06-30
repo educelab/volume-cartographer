@@ -36,7 +36,7 @@ int main( int argc, char* argv[] ) {
   // [u, v] == point's position in the output matrix
   unsigned long pointID, meshX, meshY;
   double u, v;
-  std::map<unsigned long, cv::Vec2d> uvMap;
+  std::map<double, cv::Vec2d> uvMap;
 
   // Initialize iterators
   PointsInMeshIterator point = inputMesh->GetPoints()->Begin();

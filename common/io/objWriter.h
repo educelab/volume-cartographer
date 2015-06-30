@@ -13,6 +13,7 @@
 
 #include <opencv2/opencv.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/lexical_cast.hpp>
 
 namespace volcart {
 namespace io {
@@ -32,11 +33,11 @@ namespace io {
   public:
     objWriter();
     objWriter( std::string outputPath, itk::Mesh<PixelType, 3>::Pointer mesh );
-    objWriter( std::string outputPath, itk::Mesh<PixelType, 3>::Pointer mesh, std::map<unsigned long, cv::Vec2d> uvMap, cv::Mat uvImg);
+    objWriter( std::string outputPath, itk::Mesh<PixelType, 3>::Pointer mesh, std::map<double, cv::Vec2d> uvMap, cv::Mat uvImg);
 
     void setPath( std::string path ) { _outputPath = path; };
     void setMesh( itk::Mesh<PixelType, 3>::Pointer mesh ) { _mesh = mesh; };
-    void setUVMap( std::map<unsigned long, cv::Vec2d> uvMap ) { _textCoords = uvMap; };
+    void setUVMap( std::map<double, cv::Vec2d> uvMap ) { _textCoords = uvMap; };
     void setTexture( cv::Mat uvImg ) { _texture = uvImg; };
 
     bool validate(); // make sure all required output parameters have been set
@@ -51,8 +52,10 @@ namespace io {
     std::ofstream           _outputMesh;
     std::ofstream           _outputMTL;
 
+    std::map<double, cv::Vec3d> _point_links;
+
     itk::Mesh< PixelType, 3 >::Pointer _mesh;
-    std::map<unsigned long, cv::Vec2d> _textCoords; // UV map for points accessed by point index
+    std::map<double, cv::Vec2d> _textCoords; // UV map for points accessed by point index
     cv::Mat _texture; // output texture image
 
     int _writeHeader();

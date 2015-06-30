@@ -15,7 +15,7 @@ namespace volcart {
         _mesh = mesh;
     };
 
-    objWriter::objWriter( std::string outputPath, itk::Mesh<PixelType, 3>::Pointer mesh, std::map<unsigned long, cv::Vec2d> uvMap, cv::Mat uvImg ) {
+    objWriter::objWriter( std::string outputPath, itk::Mesh<PixelType, 3>::Pointer mesh, std::map<double, cv::Vec2d> uvMap, cv::Mat uvImg ) {
         _outputPath = outputPath;
         _mesh = mesh;
         _textCoords = uvMap;
@@ -175,15 +175,15 @@ namespace volcart {
 
             // Iterate over the points of this face
             for ( point = cell.Value()->PointIdsBegin(); point != cell.Value()->PointIdsEnd(); ++point ) {
-                unsigned long pointIndex = *point + 1; // OBJ elements are indexed from 1, not 0
+                double pointIndex = *point + 1; // OBJ elements are indexed from 1, not 0
                 std::string textureIndex = "";
 
                 // Set the texture index if we have texture coordinates
                 // To-Do: This assumes that textureIndex == pointIndex, which may not be the case
                 if ( !_textCoords.empty() && _textCoords.count( *point ) > 0 )
-                    textureIndex = std::to_string( pointIndex );
+                    textureIndex = boost::lexical_cast<std::string>(pointIndex);
 
-                _outputMesh << pointIndex << "/" << textureIndex << "/" << pointIndex << " ";
+                _outputMesh << boost::lexical_cast<std::string>(pointIndex) << "/" << textureIndex << "/" << boost::lexical_cast<std::string>(pointIndex) << " ";
             }
             _outputMesh << std::endl;
         }
