@@ -2,12 +2,11 @@
 // Created by Media Team on 6/24/15.
 //
 
-#ifndef VC_IO_OBJEXPORT_H
-#define VC_IO_OBJEXPORT_H
+#ifndef VC_IO_OBJWRITER_H
+#define VC_IO_OBJWRITER_H
 
 #include <iostream>
 #include <fstream>
-#include <unordered_map>
 
 #include <itkMesh.h>
 #include <itkTriangleCell.h>
@@ -66,4 +65,4 @@ namespace io {
 } // namespace io
 } //namespace volcart
 
-#endif //VC_IO_OBJEXPORT_H
+#endif //VC_IO_OBJWRITER_H

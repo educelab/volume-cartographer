@@ -2,7 +2,7 @@
 // Created by Media Team on 6/24/15.
 //
 
-#include "io_objExport.h"
+#include "objWriter.h"
 
 namespace volcart {
     namespace io {
@@ -22,7 +22,7 @@ namespace volcart {
         _texture = uvImg;
     };
 
-    ///// Validators /////
+    ///// Validation /////
     // Make sure that all required parameters have been set and are okay
     bool objWriter::validate() {
 
@@ -168,29 +168,24 @@ namespace volcart {
         _outputMesh << "# Faces: " << _mesh->GetNumberOfCells() << std::endl;
 
         // Iterate over the faces of the mesh
-        CellIterator cell = _mesh->GetCells()->Begin();
         PointsInCellIterator point;
 
-        while ( cell != _mesh->GetCells()->End() ) {
+        for ( CellIterator cell = _mesh->GetCells()->Begin(); cell != _mesh->GetCells()->End(); ++cell ) {
             _outputMesh << "f "; // Starts a new face line
 
             // Iterate over the points of this face
-            point = cell.Value()->PointIdsBegin();
-            while ( point != cell.Value()->PointIdsEnd() ) {
+            for ( point = cell.Value()->PointIdsBegin(); point != cell.Value()->PointIdsEnd(); ++point ) {
                 unsigned long pointIndex = *point + 1; // OBJ elements are indexed from 1, not 0
                 std::string textureIndex = "";
 
                 // Set the texture index if we have texture coordinates
                 // To-Do: This assumes that textureIndex == pointIndex, which may not be the case
-                if ( !_textCoords.empty() && _textCoords.find( *point ) != _textCoords.end() )
-                   textureIndex = std::to_string(pointIndex);
+                if ( !_textCoords.empty() && _textCoords.count( *point ) > 0 )
+                    textureIndex = std::to_string( pointIndex );
 
                 _outputMesh << pointIndex << "/" << textureIndex << "/" << pointIndex << " ";
-
-                ++point;
             }
             _outputMesh << std::endl;
-            ++cell;
         }
 
         return EXIT_SUCCESS;

@@ -2,7 +2,7 @@
 // Created by Media Team on 6/24/15.
 //
 
-#include "io/io_objExport.h"
+#include "io/objWriter.h"
 #include "plyHelper.h"
 
 #include <itkMesh.h>
