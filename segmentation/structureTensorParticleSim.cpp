@@ -46,7 +46,7 @@ tangent(T y1, T left, T right, T y4, double p) {
 // paths don't really have "normal" vectors so we assume that it only has components in the xy plane
 cv::Vec3f normal(cv::Vec3f y1, cv::Vec3f left, cv::Vec3f right, cv::Vec3f y4, double p) {
   cv::Vec3f t = tangent(y1, left, right, y4, p);
-  return t.cross(SLICE_DIR);
+  return t.cross(VC_DIRECTION_K);
 }
 
 // For testing only: Control points list
@@ -110,7 +110,7 @@ pcl::PointCloud<pcl::PointXYZRGB> structureTensorParticleSim(pcl::PointCloud<pcl
   cv::Vec3f p(168,200,50);
   cv::Vec3f n(1,0,0);
   for (int i = 0; i < 100; ++i) {
-    Slice s = f.reslice(p, n);
+    Slice s = f.reslice(p, n, VC_DIRECTION_K);
     p = s.findNextPosition();
     s.debugDraw();
     s.debugFloodFill();

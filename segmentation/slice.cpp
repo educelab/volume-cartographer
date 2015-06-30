@@ -10,10 +10,11 @@
 #define COLOR_TANGENT BGR_MAGENTA
 
 // basic constructor
-Slice::Slice(cv::Mat slice, cv::Vec3f origin, cv::Vec3f direction) {
+Slice::Slice(cv::Mat slice, cv::Vec3f origin, cv::Vec3f x_direction, cv::Vec3f y_direction) {
   slice_ = slice;
   origin_ = origin;
-  x_component_ = direction;
+  x_component_ = x_direction;
+  y_component_ = y_direction;
 }
 
 cv::Vec3f Slice::findNextPosition() {
@@ -55,7 +56,7 @@ cv::Vec3f Slice::findNextPosition() {
 
   // map the pixel coordinate back into 3d space
   // we may want to make this its own method
-  cv::Vec3f xyzPosition = origin_ + (newPosition.x * x_component_ + newPosition.y * cv::Vec3f(0,0,1));
+  cv::Vec3f xyzPosition = origin_ + (newPosition.x * x_component_ + newPosition.y * y_component_);
 
   return xyzPosition;
 }
