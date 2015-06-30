@@ -79,7 +79,7 @@ void Slice::debugDraw() {
 
 // show the last step before deciding where to go next in findNextPosition()
 void Slice::debugFloodFill() {
-    cv::Mat temp_slice = slice_.clone();
+  cv::Mat temp_slice = slice_.clone();
   cv::Mat grad_x;
   GaussianBlur(temp_slice, grad_x, cv::Size(3,3), 0);
   Sobel(grad_x, grad_x, CV_16S,1,0,3,1,0, cv::BORDER_DEFAULT);
@@ -95,4 +95,8 @@ void Slice::debugFloodFill() {
 
   namedWindow("DEBUG FILL", cv::WINDOW_AUTOSIZE);
   imshow("DEBUG FILL", fill);
+}
+
+cv::Mat Slice::mat() {
+  return slice_.clone();
 }

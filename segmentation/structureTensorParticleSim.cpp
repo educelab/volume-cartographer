@@ -91,8 +91,19 @@ void mouse_callback(int event, int x, int y, int flags, void* param) {
   }
 }
 
-pcl::PointCloud<pcl::PointXYZRGB> structureTensorParticleSim(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg volpkg, double gravity_scale, int threshold, int endOffset) {
+void core_callback(int event, int x, int y, int flags, void* point) {
+  switch (event) {
+  case cv::EVENT_LBUTTONDOWN:
+    cv::Point *p = (cv::Point*)point;
+    p->x = x;
+    p->y = y;
 
+    std::cout << "point " << *p << std::endl;
+    break;
+  }
+}
+
+pcl::PointCloud<pcl::PointXYZRGB> structureTensorParticleSim(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg volpkg, double gravity_scale, int threshold, int endOffset) {
   Field f(&volpkg);
 
   // // SPLINE DEMO
@@ -105,15 +116,45 @@ pcl::PointCloud<pcl::PointXYZRGB> structureTensorParticleSim(pcl::PointCloud<pcl
   // setMouseCallback("SPLINE DEMO", mouse_callback, &slice42);
   // imshow("SPLINE DEMO", slice42);
 
-  // RESLICE DEMO
-  // test point and normal for checking with fiji
-  cv::Vec3f p(168,200,50);
-  cv::Vec3f n(1,0,0);
-  for (int i = 0; i < 100; ++i) {
-    Slice s = f.reslice(p, n, VC_DIRECTION_K);
-    p = s.findNextPosition();
-    s.debugDraw();
-    s.debugFloodFill();
+  // // RESLICE DEMO
+  // // test point and normal for checking with fiji
+  // cv::Vec3f p(168,200,50);
+  // cv::Vec3f n(1,0,0);
+  // for (int i = 0; i < 100; ++i) {
+  //   Slice s = f.reslice(p, n, VC_DIRECTION_K);
+  //   p = s.findNextPosition();
+  //   s.debugDraw();
+  //   s.debugFloodFill();
+  //   cv::waitKey(0);
+  // }
+
+  // RADIAL CORE RESLICE DEMO
+  cv::Point core_fst;
+  cv::Mat first_slice = volpkg.getSliceData(0);
+  namedWindow("FIRST SLICE", cv::WINDOW_AUTOSIZE);
+  cv::setMouseCallback("FIRST SLICE", core_callback, &core_fst);
+  imshow("FIRST SLICE", first_slice);
+
+  cv::Point core_lst;
+  cv::Mat last_slice = volpkg.getSliceData(volpkg.getNumberOfSlices() - 1);
+  namedWindow("LAST SLICE", cv::WINDOW_AUTOSIZE);
+  cv::setMouseCallback("LAST SLICE", core_callback, &core_lst);
+  imshow("LAST SLICE", last_slice);
+
+  cv::waitKey(0);
+  cv::destroyAllWindows();
+
+  cv::Point diff = core_lst - core_fst;
+  cv::Vec3f axis(diff.x, diff.y, volpkg.getNumberOfSlices() - 1);
+  cv::Vec3f origin(core_fst.x, core_fst.y, 0);
+
+  double PI = 3.14159;
+  int slice_num = 0;
+  imshow("RADIAL DEMO", last_slice);
+  for (double theta = 0; theta < 2*PI; theta += (PI / 180.0), slice_num++) {
+    Slice s = f.resliceRadial(origin, axis, theta, 400, 400);
+    cv::Mat r = s.mat();
+    imshow("RADIAL DEMO", r);
     cv::waitKey(0);
   }
 

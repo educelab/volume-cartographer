@@ -22,6 +22,7 @@ public:
   cv::Vec3f findNextPosition();
   void debugDraw();
   void debugFloodFill();
+  cv::Mat mat();
 private:
   cv::Mat slice_;
   cv::Vec3f origin_;

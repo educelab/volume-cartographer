@@ -52,14 +52,31 @@ Slice Field::reslice(cv::Vec3f center, cv::Vec3f x_dir, cv::Vec3f y_dir, int res
   cv::Vec3f y_direction = normalize(y_dir);
 
   cv::Mat m(reslice_height, reslice_width, CV_16UC1);
-  cv::Vec3f output_origin = center - ((reslice_width / 2) * x_direction + (reslice_height / 2) * y_direction);
+  cv::Vec3f origin = center - ((reslice_width / 2) * x_direction + (reslice_height / 2) * y_direction);
 
   for (int height = 0; height < reslice_height; ++height) {
     for (int width = 0; width < reslice_width; ++width) {
-      cv::Vec3f v = output_origin + (height * y_direction) + (width * x_direction);
+      cv::Vec3f v = origin + (height * y_direction) + (width * x_direction);
       m.at<unsigned short>(height, width) = this->interpolate_at(v);
     }
   }
 
-  return Slice(m, output_origin, x_direction, y_direction);
+  return Slice(m, origin, x_direction, y_direction);
+}
+
+Slice Field::resliceRadial(cv::Vec3f origin, cv::Vec3f rotation_axis, double theta, int reslice_height, int reslice_width) {
+  cv::Vec3f slice_direcion(cos(theta),sin(theta),0);
+  slice_direcion = slice_direcion - (rotation_axis.dot(slice_direcion)/rotation_axis.dot(rotation_axis)) * rotation_axis;
+  cv::Vec3f x_direction = normalize(slice_direcion);
+  cv::Vec3f y_direction = normalize(rotation_axis);
+
+  cv::Mat m(reslice_height, reslice_width, CV_16UC1);
+  for (int height = 0; height < reslice_height; ++height) {
+    for (int width = 0; width < reslice_width; ++width) {
+      cv::Vec3f v = origin + (height * y_direction) + (width * x_direction);
+      m.at<unsigned short>(height, width) = this->interpolate_at(v);
+    }
+  }
+
+  return Slice(m, origin, x_direction, y_direction);
 }
