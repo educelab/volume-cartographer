@@ -4,10 +4,19 @@
 // mostly the same as what's in structureTensorParticleSim.cpp
 // both should be moved somewhere more global
 #define WHITE 255
+
+#define BGR_BLUE cv::Scalar(255, 0, 0)
+#define BGR_GREEN cv::Scalar(0, 255, 0)
+#define BGR_RED cv::Scalar(0, 0, 255)
+
+#define BGR_CYAN cv::Scalar(255, 255, 0)
 #define BGR_YELLOW cv::Scalar(0, 255, 255)
 #define BGR_MAGENTA cv::Scalar(255, 0, 255)
-#define COLOR_NORMAL BGR_YELLOW
-#define COLOR_TANGENT BGR_MAGENTA
+
+#define BGR_WHITE cv::Scalar(255, 255, 255)
+
+
+#define DEBUG_ARROW_SCALAR 20
 
 // basic constructor
 Slice::Slice(cv::Mat slice, cv::Vec3f origin, cv::Vec3f x_direction, cv::Vec3f y_direction) {
@@ -61,17 +70,51 @@ cv::Vec3f Slice::findNextPosition() {
   return xyzPosition;
 }
 
-// debug draw uses the same normal and tangent coloring
-// scheme to stay consistent with how we're reslicing
-void Slice::debugDraw() {
+void Slice::debugDraw(bool drawBoundCoordinates) {
   cv::Mat debug = slice_.clone();
   debug *= 1./255;
   debug.convertTo(debug, CV_8UC3);
   cvtColor(debug, debug, CV_GRAY2BGR);
 
-  cv::Point imcenter(debug.cols/2, debug.rows/2);
-  arrowedLine(debug, imcenter, imcenter + cv::Point(debug.cols/2 - 1, 0), COLOR_NORMAL);
-  circle(debug, imcenter, 2, COLOR_TANGENT, -1);
+  cv::Vec3f slice_normal = x_component_.cross(y_component_);
+  cv::Vec3f project_i_direction = DEBUG_ARROW_SCALAR * (VC_DIRECTION_I - (slice_normal.dot(VC_DIRECTION_I)/slice_normal.dot(slice_normal)) * slice_normal);
+  cv::Vec3f project_j_direction = DEBUG_ARROW_SCALAR * (VC_DIRECTION_J - (slice_normal.dot(VC_DIRECTION_J)/slice_normal.dot(slice_normal)) * slice_normal);
+  cv::Vec3f project_k_direction = DEBUG_ARROW_SCALAR * (VC_DIRECTION_K - (slice_normal.dot(VC_DIRECTION_K)/slice_normal.dot(slice_normal)) * slice_normal);
+
+  cv::Point x_arrow_offset(project_i_direction(VC_INDEX_X), project_i_direction(VC_INDEX_Y));
+  cv::Point y_arrow_offset(project_j_direction(VC_INDEX_X), project_j_direction(VC_INDEX_Y));
+  cv::Point z_arrow_offset(project_k_direction(VC_INDEX_X), project_k_direction(VC_INDEX_Y));
+
+  cv::Point coordinate_origin(DEBUG_ARROW_SCALAR, DEBUG_ARROW_SCALAR);
+  rectangle(debug, cv::Point(0,0), 2*cv::Point(DEBUG_ARROW_SCALAR, DEBUG_ARROW_SCALAR),BGR_WHITE);
+  arrowedLine(debug, coordinate_origin, coordinate_origin + x_arrow_offset, BGR_RED);
+  arrowedLine(debug, coordinate_origin, coordinate_origin + y_arrow_offset, BGR_GREEN);
+  arrowedLine(debug, coordinate_origin, coordinate_origin + z_arrow_offset, BGR_BLUE);
+
+  std::stringstream trc;
+  cv::Vec3f top_right_corner = origin_ + debug.cols * x_component_;
+  trc << "(" << (int)top_right_corner(VC_INDEX_X)
+      << "," << (int)top_right_corner(VC_INDEX_Y)
+      << "," << (int)top_right_corner(VC_INDEX_Z) << ")";
+
+  std::stringstream blc;
+  cv::Vec3f bottom_left_corner = origin_ + debug.rows * y_component_;
+  blc << "(" << (int)bottom_left_corner(VC_INDEX_X)
+      << "," << (int)bottom_left_corner(VC_INDEX_Y)
+      << "," << (int)bottom_left_corner(VC_INDEX_Z) << ")";
+
+  if (drawBoundCoordinates) {
+    putText(debug, trc.str(), cv::Point(debug.cols - 125, 20), cv::FONT_HERSHEY_SIMPLEX, 0.5, BGR_WHITE);
+    putText(debug, blc.str(), cv::Point(5,debug.rows - 5), cv::FONT_HERSHEY_SIMPLEX, 0.5, BGR_WHITE);
+  } else {
+    std::cout << trc.str() << std::endl;
+    std::cout << blc.str() << std::endl;
+  }
+
+
+  // now frame arrows
+  // arrowedLine(debug, cv::Point(5*DEBUG_ARROW_SCALAR,DEBUG_ARROW_SCALAR), coordinate_origin + cv::Point(100,0), BGR_YELLOW);
+  // arrowedLine(debug, cv::Point(DEBUG_ARROW_SCALAR,5*DEBUG_ARROW_SCALAR), coordinate_origin + cv::Point(0,100), BGR_CYAN);
 
   namedWindow("DEBUG DRAW", cv::WINDOW_AUTOSIZE);
   imshow("DEBUG DRAW", debug);

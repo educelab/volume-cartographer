@@ -149,12 +149,9 @@ pcl::PointCloud<pcl::PointXYZRGB> structureTensorParticleSim(pcl::PointCloud<pcl
   cv::Vec3f origin(core_fst.x, core_fst.y, 0);
 
   double PI = 3.14159;
-  int slice_num = 0;
-  imshow("RADIAL DEMO", last_slice);
-  for (double theta = 0; theta < 2*PI; theta += (PI / 180.0), slice_num++) {
-    Slice s = f.resliceRadial(origin, axis, theta, 400, 400);
-    cv::Mat r = s.mat();
-    imshow("RADIAL DEMO", r);
+  for (double theta = 0; theta < 2*PI; theta += (PI / 360.0)) {
+    Slice s = f.resliceRadial(origin, axis, theta, 250, 300);
+    s.debugDraw();
     cv::waitKey(0);
   }
 

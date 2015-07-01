@@ -20,7 +20,7 @@ class Slice {
 public:
   Slice(cv::Mat,cv::Vec3f,cv::Vec3f,cv::Vec3f);
   cv::Vec3f findNextPosition();
-  void debugDraw();
+  void debugDraw(bool=true);
   void debugFloodFill();
   cv::Mat mat();
 private:
