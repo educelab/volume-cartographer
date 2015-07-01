@@ -52,7 +52,7 @@ namespace io {
     std::ofstream           _outputMesh;
     std::ofstream           _outputMTL;
 
-    std::map<double, cv::Vec3d> _point_links;
+    std::map<double, cv::Vec3d> _point_links; // Keeps track of what we know about each point in the mesh: [ pointID, (v, vt, vn) ]
 
     itk::Mesh< PixelType, 3 >::Pointer _mesh;
     std::map<double, cv::Vec2d> _textCoords; // UV map for points accessed by point index

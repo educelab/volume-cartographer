@@ -120,6 +120,7 @@ namespace volcart {
 
         // Iterate over all of the points
         PointsInMeshIterator point = _mesh->GetPoints()->Begin();
+        double v_Index = 1;
         while ( point != _mesh->GetPoints()->End() ) {
 
             // Get the point's normal
@@ -130,6 +131,11 @@ namespace volcart {
             _outputMesh << "v "  << point.Value()[0] << " " << point.Value()[1] << " " << point.Value()[2] << std::endl;
             _outputMesh << "vn " << normal[0] << " " << normal[1] << " " << normal[2] << std::endl;
 
+            // Make a new point link for this point
+            cv::Vec3d point_link( v_Index, NULL, v_Index);
+            _point_links.insert( { point.Index(), point_link } );
+
+            ++v_Index;
             ++point;
         }
 
@@ -147,11 +153,17 @@ namespace volcart {
         _outputMesh << "usemtl default" << std::endl;  // Use the material named 'default' in the MTL file
 
         // Iterate over all of the saved coordinates in our coordinate map
+        double vt_Index = 1;
         auto coordinate = _textCoords.begin(); // The map iterator
         while ( coordinate != _textCoords.end() ) {
             // Map iterators return pairs: {first = key, second = cv::Vec2d}
             // [u, v] == [ second[0], second[1] ]
             _outputMesh << "vt " << coordinate->second[0] << " " << coordinate->second[1] << std::endl;
+
+            // Find this UV map's point in _point_links and set its vt value to our current position in the vt list
+            _point_links.find( coordinate->first )->second[1] = vt_Index;
+
+            ++vt_Index;
             ++coordinate;
         }
 
@@ -175,15 +187,17 @@ namespace volcart {
 
             // Iterate over the points of this face
             for ( point = cell.Value()->PointIdsBegin(); point != cell.Value()->PointIdsEnd(); ++point ) {
-                double pointIndex = *point + 1; // OBJ elements are indexed from 1, not 0
-                std::string textureIndex = "";
+                std::string v_Index = "";
+                std::string vt_Index = "";
+                std::string vn_Index = "";
 
-                // Set the texture index if we have texture coordinates
-                // To-Do: This assumes that textureIndex == pointIndex, which may not be the case
-                if ( !_textCoords.empty() && _textCoords.count( *point ) > 0 )
-                    textureIndex = boost::lexical_cast<std::string>(pointIndex);
+                cv::Vec3d point_link = _point_links.find(*point)->second;
 
-                _outputMesh << boost::lexical_cast<std::string>(pointIndex) << "/" << textureIndex << "/" << boost::lexical_cast<std::string>(pointIndex) << " ";
+                v_Index = boost::lexical_cast<std::string>( point_link[0] );
+                if (point_link[1] != NULL) vt_Index = boost::lexical_cast<std::string>( point_link[1] );
+                vn_Index = boost::lexical_cast<std::string>( point_link[2] );
+
+                _outputMesh << v_Index << "/" << vt_Index << "/" << vn_Index << " ";
             }
             _outputMesh << std::endl;
         }
