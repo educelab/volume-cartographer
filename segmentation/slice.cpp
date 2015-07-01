@@ -70,26 +70,28 @@ cv::Vec3f Slice::findNextPosition() {
   return xyzPosition;
 }
 
-void Slice::debugDraw(bool drawBoundCoordinates) {
+void Slice::debugDraw(int debugDrawOptions) {
   cv::Mat debug = slice_.clone();
   debug *= 1./255;
   debug.convertTo(debug, CV_8UC3);
   cvtColor(debug, debug, CV_GRAY2BGR);
 
-  cv::Vec3f slice_normal = x_component_.cross(y_component_);
-  cv::Vec3f project_i_direction = DEBUG_ARROW_SCALAR * (VC_DIRECTION_I - (slice_normal.dot(VC_DIRECTION_I)/slice_normal.dot(slice_normal)) * slice_normal);
-  cv::Vec3f project_j_direction = DEBUG_ARROW_SCALAR * (VC_DIRECTION_J - (slice_normal.dot(VC_DIRECTION_J)/slice_normal.dot(slice_normal)) * slice_normal);
-  cv::Vec3f project_k_direction = DEBUG_ARROW_SCALAR * (VC_DIRECTION_K - (slice_normal.dot(VC_DIRECTION_K)/slice_normal.dot(slice_normal)) * slice_normal);
+  if (debugDrawOptions & DEBUG_DRAW_XYZ) {
+    cv::Vec3f slice_normal = x_component_.cross(y_component_);
+    cv::Vec3f project_i_direction = DEBUG_ARROW_SCALAR * (VC_DIRECTION_I - (slice_normal.dot(VC_DIRECTION_I)/slice_normal.dot(slice_normal)) * slice_normal);
+    cv::Vec3f project_j_direction = DEBUG_ARROW_SCALAR * (VC_DIRECTION_J - (slice_normal.dot(VC_DIRECTION_J)/slice_normal.dot(slice_normal)) * slice_normal);
+    cv::Vec3f project_k_direction = DEBUG_ARROW_SCALAR * (VC_DIRECTION_K - (slice_normal.dot(VC_DIRECTION_K)/slice_normal.dot(slice_normal)) * slice_normal);
 
-  cv::Point x_arrow_offset(project_i_direction(VC_INDEX_X), project_i_direction(VC_INDEX_Y));
-  cv::Point y_arrow_offset(project_j_direction(VC_INDEX_X), project_j_direction(VC_INDEX_Y));
-  cv::Point z_arrow_offset(project_k_direction(VC_INDEX_X), project_k_direction(VC_INDEX_Y));
+    cv::Point x_arrow_offset(project_i_direction(VC_INDEX_X), project_i_direction(VC_INDEX_Y));
+    cv::Point y_arrow_offset(project_j_direction(VC_INDEX_X), project_j_direction(VC_INDEX_Y));
+    cv::Point z_arrow_offset(project_k_direction(VC_INDEX_X), project_k_direction(VC_INDEX_Y));
 
-  cv::Point coordinate_origin(DEBUG_ARROW_SCALAR, DEBUG_ARROW_SCALAR);
-  rectangle(debug, cv::Point(0,0), 2*cv::Point(DEBUG_ARROW_SCALAR, DEBUG_ARROW_SCALAR),BGR_WHITE);
-  arrowedLine(debug, coordinate_origin, coordinate_origin + x_arrow_offset, BGR_RED);
-  arrowedLine(debug, coordinate_origin, coordinate_origin + y_arrow_offset, BGR_GREEN);
-  arrowedLine(debug, coordinate_origin, coordinate_origin + z_arrow_offset, BGR_BLUE);
+    cv::Point coordinate_origin(DEBUG_ARROW_SCALAR, DEBUG_ARROW_SCALAR);
+    rectangle(debug, cv::Point(0,0), 2*cv::Point(DEBUG_ARROW_SCALAR, DEBUG_ARROW_SCALAR),BGR_WHITE);
+    arrowedLine(debug, coordinate_origin, coordinate_origin + x_arrow_offset, BGR_RED);
+    arrowedLine(debug, coordinate_origin, coordinate_origin + y_arrow_offset, BGR_GREEN);
+    arrowedLine(debug, coordinate_origin, coordinate_origin + z_arrow_offset, BGR_BLUE);
+  }
 
   std::stringstream trc;
   cv::Vec3f top_right_corner = origin_ + debug.cols * x_component_;
@@ -103,18 +105,16 @@ void Slice::debugDraw(bool drawBoundCoordinates) {
       << "," << (int)bottom_left_corner(VC_INDEX_Y)
       << "," << (int)bottom_left_corner(VC_INDEX_Z) << ")";
 
-  if (drawBoundCoordinates) {
+  if (debugDrawOptions & DEBUG_DRAW_CORNER_COORDINATES) {
     putText(debug, trc.str(), cv::Point(debug.cols - 125, 20), cv::FONT_HERSHEY_SIMPLEX, 0.5, BGR_WHITE);
     putText(debug, blc.str(), cv::Point(5,debug.rows - 5), cv::FONT_HERSHEY_SIMPLEX, 0.5, BGR_WHITE);
-  } else {
-    std::cout << trc.str() << std::endl;
-    std::cout << blc.str() << std::endl;
   }
 
-
-  // now frame arrows
-  // arrowedLine(debug, cv::Point(5*DEBUG_ARROW_SCALAR,DEBUG_ARROW_SCALAR), coordinate_origin + cv::Point(100,0), BGR_YELLOW);
-  // arrowedLine(debug, cv::Point(DEBUG_ARROW_SCALAR,5*DEBUG_ARROW_SCALAR), coordinate_origin + cv::Point(0,100), BGR_CYAN);
+  if (debugDrawOptions & DEBUG_DRAW_CENTER) {
+    cv::Point imcenter(debug.cols/2, debug.rows/2);
+    arrowedLine(debug, imcenter, imcenter + cv::Point(debug.cols/2 - 1, 0), BGR_YELLOW);
+    circle(debug, imcenter, 2, BGR_MAGENTA, -1);
+  }
 
   namedWindow("DEBUG DRAW", cv::WINDOW_AUTOSIZE);
   imshow("DEBUG DRAW", debug);

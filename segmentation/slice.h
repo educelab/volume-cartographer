@@ -16,11 +16,19 @@
 
 // slice class used for keeping track of 2d sections
 // in 3d space
+
+#define DEBUG_DRAW_NONE                    0
+#define DEBUG_DRAW_CENTER             1 << 0
+#define DEBUG_DRAW_XYZ                1 << 1
+#define DEBUG_DRAW_CORNER_COORDINATES 1 << 2
+
+#define DEBUG_DRAW_ALL DEBUG_DRAW_CENTER | DEBUG_DRAW_XYZ | DEBUG_DRAW_CORNER_COORDINATES
+
 class Slice {
 public:
   Slice(cv::Mat,cv::Vec3f,cv::Vec3f,cv::Vec3f);
   cv::Vec3f findNextPosition();
-  void debugDraw(bool=true);
+  void debugDraw(int = DEBUG_DRAW_NONE);
   void debugFloodFill();
   cv::Mat mat();
 private:

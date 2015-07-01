@@ -117,43 +117,43 @@ pcl::PointCloud<pcl::PointXYZRGB> structureTensorParticleSim(pcl::PointCloud<pcl
   // imshow("SPLINE DEMO", slice42);
 
   // // RESLICE DEMO
-  // // test point and normal for checking with fiji
-  // cv::Vec3f p(168,200,50);
-  // cv::Vec3f n(1,0,0);
-  // for (int i = 0; i < 100; ++i) {
-  //   Slice s = f.reslice(p, n, VC_DIRECTION_K);
-  //   p = s.findNextPosition();
-  //   s.debugDraw();
-  //   s.debugFloodFill();
-  //   cv::waitKey(0);
-  // }
-
-  // RADIAL CORE RESLICE DEMO
-  cv::Point core_fst;
-  cv::Mat first_slice = volpkg.getSliceData(0);
-  namedWindow("FIRST SLICE", cv::WINDOW_AUTOSIZE);
-  cv::setMouseCallback("FIRST SLICE", core_callback, &core_fst);
-  imshow("FIRST SLICE", first_slice);
-
-  cv::Point core_lst;
-  cv::Mat last_slice = volpkg.getSliceData(volpkg.getNumberOfSlices() - 1);
-  namedWindow("LAST SLICE", cv::WINDOW_AUTOSIZE);
-  cv::setMouseCallback("LAST SLICE", core_callback, &core_lst);
-  imshow("LAST SLICE", last_slice);
-
-  cv::waitKey(0);
-  cv::destroyAllWindows();
-
-  cv::Point diff = core_lst - core_fst;
-  cv::Vec3f axis(diff.x, diff.y, volpkg.getNumberOfSlices() - 1);
-  cv::Vec3f origin(core_fst.x, core_fst.y, 0);
-
-  double PI = 3.14159;
-  for (double theta = 0; theta < 2*PI; theta += (PI / 360.0)) {
-    Slice s = f.resliceRadial(origin, axis, theta, 250, 300);
-    s.debugDraw();
+  // test point and normal for checking with fiji
+  cv::Vec3f p(168,200,50);
+  cv::Vec3f n(1,0,0);
+  for (int i = 0; i < 100; ++i) {
+    Slice s = f.reslice(p, n, VC_DIRECTION_K);
+    p = s.findNextPosition();
+    s.debugDraw(DEBUG_DRAW_CENTER);
+    s.debugFloodFill();
     cv::waitKey(0);
   }
+
+  // // RADIAL CORE RESLICE DEMO
+  // cv::Point core_fst;
+  // cv::Mat first_slice = volpkg.getSliceData(0);
+  // namedWindow("FIRST SLICE", cv::WINDOW_AUTOSIZE);
+  // cv::setMouseCallback("FIRST SLICE", core_callback, &core_fst);
+  // imshow("FIRST SLICE", first_slice);
+
+  // cv::Point core_lst;
+  // cv::Mat last_slice = volpkg.getSliceData(volpkg.getNumberOfSlices() - 1);
+  // namedWindow("LAST SLICE", cv::WINDOW_AUTOSIZE);
+  // cv::setMouseCallback("LAST SLICE", core_callback, &core_lst);
+  // imshow("LAST SLICE", last_slice);
+
+  // cv::waitKey(0);
+  // cv::destroyAllWindows();
+
+  // cv::Point diff = core_lst - core_fst;
+  // cv::Vec3f axis(diff.x, diff.y, volpkg.getNumberOfSlices() - 1);
+  // cv::Vec3f origin(core_fst.x, core_fst.y, 0);
+
+  // double PI = 3.14159;
+  // for (double theta = 0; theta < 2*PI; theta += (PI / 360.0)) {
+  //   Slice s = f.resliceRadial(origin, axis, theta, 250, 300);
+  //   s.debugDraw(DEBUG_DRAW_XYZ | DEBUG_DRAW_CORNER_COORDINATES);
+  //   cv::waitKey(0);
+  // }
 
   return pcl::PointCloud<pcl::PointXYZRGB>();
 }
