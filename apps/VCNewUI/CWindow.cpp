@@ -256,7 +256,7 @@ void CWindow::SplitCloud( void )
 
     // lower part, the starting slice
     for ( int i = 0; i < fMasterCloud.width; ++i ) {
-        if ( fMasterCloud.points[ i + aTotalNumOfImmutablePts ].x != -1 )
+        if ( fMasterCloud.points[ i + aTotalNumOfImmutablePts ].z != -1 )
             fLowerPart.push_back( fMasterCloud.points[ i + aTotalNumOfImmutablePts ] );
     }
 
@@ -350,8 +350,8 @@ void CWindow::SetUpCurves( void )
     } else {
         pcl::PointXYZRGB min_p, max_p;
         pcl::getMinMax3D( fMasterCloud, min_p, max_p );
-        minIndex = floor( fMasterCloud.points[ 0 ].x );
-        maxIndex = floor( max_p.x );
+        minIndex = floor( fMasterCloud.points[ 0 ].z );
+        maxIndex = floor( max_p.z );
     }
     fMinSegIndex = minIndex;
     fMaxSegIndex = maxIndex;
@@ -361,8 +361,8 @@ void CWindow::SetUpCurves( void )
         CXCurve aCurve;
         for ( int j = 0; j < fMasterCloud.width; ++j ) {
             int pointIndex = j + (i * fMasterCloud.width);
-            aCurve.SetSliceIndex((int) floor(fMasterCloud.points[pointIndex].x));
-            aCurve.InsertPoint(Vec2<float>(fMasterCloud.points[pointIndex].y, fMasterCloud.points[pointIndex].z));
+            aCurve.SetSliceIndex((int) floor(fMasterCloud.points[pointIndex].z));
+            aCurve.InsertPoint(Vec2<float>(fMasterCloud.points[pointIndex].x, fMasterCloud.points[pointIndex].y));
         }
         fIntersections.push_back( aCurve );
     }
@@ -414,9 +414,9 @@ void CWindow::SetPathPointCloud( void )
     pcl::PointXYZRGB point;
     pcl::PointCloud< pcl::PointXYZRGB > aPathCloud;
     for ( size_t i = 0; i < aSamplePts.size(); ++i ) {
-        point.x = fPathOnSliceIndex;
-        point.y = aSamplePts[ i ][ 0 ];
-        point.z = aSamplePts[ i ][ 1 ];
+        point.x = aSamplePts[ i ][ 0 ];
+        point.y = aSamplePts[ i ][ 1 ];
+        point.z = fPathOnSliceIndex;
         aPathCloud.push_back( point );
     }
     aPathCloud.width = aSamplePts.size();
@@ -424,7 +424,7 @@ void CWindow::SetPathPointCloud( void )
     aPathCloud.resize( aPathCloud.width * aPathCloud.height );
 
     fMasterCloud = aPathCloud;
-    fMinSegIndex = floor(fMasterCloud.points[0].x);
+    fMinSegIndex = floor(fMasterCloud.points[0].z);
     fMaxSegIndex = fMinSegIndex;
 }
 
@@ -686,9 +686,9 @@ void CWindow::OnPathChanged( void )
         fLowerPart.clear();
         for (size_t i = 0; i < fIntersectionCurve.GetPointsNum(); ++i) {
             pcl::PointXYZRGB tempPt;
-            tempPt.x = fPathOnSliceIndex;
-            tempPt.y = fIntersectionCurve.GetPoint(i)[0];
-            tempPt.z = fIntersectionCurve.GetPoint(i)[1];
+            tempPt.x = fIntersectionCurve.GetPoint(i)[0];
+            tempPt.y = fIntersectionCurve.GetPoint(i)[1];
+            tempPt.z = fPathOnSliceIndex;
             fLowerPart.push_back(tempPt);
         }
     }

@@ -156,7 +156,7 @@ private:
 
     // window components
     QMenu		*fFileMenu;
-	QMenu		*fEditMenu;
+	  QMenu		*fEditMenu;
     QMenu       *fHelpMenu;
 
     QAction		*fOpenVolAct;
