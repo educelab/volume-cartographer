@@ -20,7 +20,9 @@ class Field {
   cv::Vec3f interpolate_at(cv::Vec3f);
  private:
   VolumePkg* _volpkg;
-  // This stores the vector field of surface normals
+  // This stores the vector field of surface normals.
+  // Field coordinates are parallel to volume coordinates
+  // field[z][x][y] == vol[x][y][z]
   cv::Vec3f*** _field;
   // Largest dimension of the CT slices
   int _blocksize;

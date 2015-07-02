@@ -10,9 +10,6 @@
 #include "volumepkg.h"
 #include "structureTensorParticleSim.h"
 
-// Landmarks
-std::vector<Particle> landmark_chain;
-
 // File paths
 std::string segID = "";
 std::string volpkgLocation = "";
@@ -80,8 +77,8 @@ int main(int argc, char* argv[]) {
   int iterations = masterCloud->height;
   pcl::PointXYZRGB min_p, max_p;
   pcl::getMinMax3D (*masterCloud, min_p, max_p);
-  int minIndex = floor(masterCloud->points[0].x);
-  int maxIndex = floor(max_p.x);
+  int minIndex = floor(masterCloud->points[0].z);
+  int maxIndex = floor(max_p.z);
 
   // Setup the temp clouds
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr immutableCloud (new pcl::PointCloud<pcl::PointXYZRGB>);
@@ -101,7 +98,7 @@ int main(int argc, char* argv[]) {
   for (int i = 0; i < chainLength; ++i) {
     pcl::PointXYZRGB temp_pt;
     temp_pt = masterCloud->points[i+(pathRow*chainLength)];
-    if (temp_pt.x != -1) {
+    if (temp_pt.z != -1) {
         segPath->push_back(temp_pt);
     } 
   }

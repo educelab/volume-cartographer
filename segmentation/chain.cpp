@@ -4,8 +4,12 @@
 Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg* volpkg, double gravity_scale, int threshold, int endOffset, double spring_constant_k) {
   // Convert the point cloud segPath into a vector of Particles
   std::vector<Particle> init_chain;
+
+  // NOTE: This algorithm uses slice index position as the primary index for points (e.g. point[z][x][y])
+  // However, the rest of volpkg stores point information as point[x][y][z]. We must make the swap here and
+  // also when we generate our output point cloud in this.orderedPCD()
   for(pcl::PointCloud<pcl::PointXYZRGB>::iterator path_it = segPath->begin(); path_it != segPath->end(); ++path_it){
-    init_chain.push_back(cv::Vec3f(path_it->x, path_it->y, path_it->z));
+    init_chain.push_back(cv::Vec3f(path_it->z, path_it->x, path_it->y));
   }
 
   // Calculate the spring resting position
@@ -116,7 +120,7 @@ pcl::PointCloud<pcl::PointXYZRGB> Chain::orderedPCD() {
   std::vector<pcl::PointXYZRGB> storage_row;
   for (int i = 0; i < _chain_length; ++i) {
     pcl::PointXYZRGB point;
-    point.x = -1; // To-Do: Make this a constant
+    point.z = -1; // To-Do: Make this a constant
     storage_row.push_back(point);
   }
 
@@ -136,12 +140,13 @@ pcl::PointCloud<pcl::PointXYZRGB> Chain::orderedPCD() {
     std::vector<Particle> row_at = *it;
 
     // Add each Particle in the row into storage at the correct position
+    // Note: This is where we convert the internal cloud's coordinate ordering back to volume ordering
     for (int i = 0; i < _chain_length; ++i) {
       int currentCell = (int)(((row_at[i](0)) - _start_index/_threshold)); // *To-Do: Something seems wrong here.
       pcl::PointXYZRGB point;
-      point.x = row_at[i](0);
-      point.y = row_at[i](1);
-      point.z = row_at[i](2);
+      point.x = row_at[i](1); // point.x == vol[x][ ][ ] == field[ ][x][ ]
+      point.y = row_at[i](2); // point.y == vol[ ][y][ ] == field[ ][ ][y]
+      point.z = row_at[i](0); // point.z == vol[ ][ ][z] == field[z][ ][ ]
       point.rgb = *(float*)&COLOR;
       storage[currentCell][i] = point;
     }

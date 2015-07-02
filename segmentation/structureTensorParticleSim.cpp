@@ -6,7 +6,14 @@
 // and according to a "spring force" that helps to keep them ordered. The spring
 // force also encourages stagnated particles to move through the volume.
 //
-//
+// Note: Internally this algorithm tracks a point's position by slice index first: p[z][x][y]
+// This means that internally, all pcl Points are using the following mapping:
+//      p.x == slice index/z pos
+//      p.y == slice x pos
+//      p.z == slice y pos
+// VolPkg clouds, however, use p.x, p.y, and p.z as their expected coordinates in slice space, x, y, and z respectively.
+// To account for this, the Chain class makes the coordinate swap to ZXY ordering in its constructor
+// and back to XYZ ordering in Chain.orderedPCD().
 
 pcl::PointCloud<pcl::PointXYZRGB> structureTensorParticleSim(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg volpkg, double gravity_scale, int threshold, int endOffset) {
   // Load the surface normal field from volpkg
