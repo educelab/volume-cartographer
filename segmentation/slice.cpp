@@ -48,15 +48,15 @@ cv::Vec3f Slice::findNextPosition() {
   threshold(fill, fill, WHITE - 1, WHITE, cv::THRESH_BINARY);
 
   // find the new position in the reslice
-  cv::Point newPosition;
+  cv::Point newPosition(0,1);
   for (int xoffset = 0; xoffset < fill.cols/2; ++xoffset) {
-    cv::Point positive_offset(xoffset,1);
+    cv::Point positive_offset(xoffset, 1);
     if (fill.at<uchar>(center + positive_offset)) {
       newPosition = center + positive_offset;
       break;
     }
 
-    cv::Point negative_offset(-xoffset,1);
+    cv::Point negative_offset(-xoffset, 1);
     if (fill.at<uchar>(center + negative_offset)) {
       newPosition = center + negative_offset;
       break;
@@ -76,36 +76,39 @@ void Slice::debugDraw(int debugDrawOptions) {
   debug.convertTo(debug, CV_8UC3);
   cvtColor(debug, debug, CV_GRAY2BGR);
 
-  if (debugDrawOptions & DEBUG_DRAW_XYZ) {
-    cv::Vec3f slice_normal = x_component_.cross(y_component_);
-    cv::Vec3f project_i_direction = DEBUG_ARROW_SCALAR * (VC_DIRECTION_I - (slice_normal.dot(VC_DIRECTION_I)/slice_normal.dot(slice_normal)) * slice_normal);
-    cv::Vec3f project_j_direction = DEBUG_ARROW_SCALAR * (VC_DIRECTION_J - (slice_normal.dot(VC_DIRECTION_J)/slice_normal.dot(slice_normal)) * slice_normal);
-    cv::Vec3f project_k_direction = DEBUG_ARROW_SCALAR * (VC_DIRECTION_K - (slice_normal.dot(VC_DIRECTION_K)/slice_normal.dot(slice_normal)) * slice_normal);
 
-    cv::Point x_arrow_offset(project_i_direction(VC_INDEX_X), project_i_direction(VC_INDEX_Y));
-    cv::Point y_arrow_offset(project_j_direction(VC_INDEX_X), project_j_direction(VC_INDEX_Y));
-    cv::Point z_arrow_offset(project_k_direction(VC_INDEX_X), project_k_direction(VC_INDEX_Y));
+  // project xyz coordinate reference onto viewing plane with the formula
+  //
+  // [x_component_] [x]
+  // [y_component_] [y]
+  //                [z]
+  //
+  // which becomes componentwise pairs (x_1, x_2) (y_1, y_2) (z_1, z_2) when we only care about i, j, and k
+  if (debugDrawOptions & DEBUG_DRAW_XYZ) {
+    cv::Point x_arrow_offset(DEBUG_ARROW_SCALAR * x_component_(VC_INDEX_X), DEBUG_ARROW_SCALAR * y_component_(VC_INDEX_X));
+    cv::Point y_arrow_offset(DEBUG_ARROW_SCALAR * x_component_(VC_INDEX_Y), DEBUG_ARROW_SCALAR * y_component_(VC_INDEX_Y));
+    cv::Point z_arrow_offset(DEBUG_ARROW_SCALAR * x_component_(VC_INDEX_Z), DEBUG_ARROW_SCALAR * y_component_(VC_INDEX_Z));
 
     cv::Point coordinate_origin(DEBUG_ARROW_SCALAR, DEBUG_ARROW_SCALAR);
-    rectangle(debug, cv::Point(0,0), 2*cv::Point(DEBUG_ARROW_SCALAR, DEBUG_ARROW_SCALAR),BGR_WHITE);
+    rectangle(debug, cv::Point(0,0), 2*cv::Point(DEBUG_ARROW_SCALAR, DEBUG_ARROW_SCALAR), BGR_WHITE);
     arrowedLine(debug, coordinate_origin, coordinate_origin + x_arrow_offset, BGR_RED);
     arrowedLine(debug, coordinate_origin, coordinate_origin + y_arrow_offset, BGR_GREEN);
     arrowedLine(debug, coordinate_origin, coordinate_origin + z_arrow_offset, BGR_BLUE);
   }
 
-  std::stringstream trc;
-  cv::Vec3f top_right_corner = origin_ + debug.cols * x_component_;
-  trc << "(" << (int)top_right_corner(VC_INDEX_X)
-      << "," << (int)top_right_corner(VC_INDEX_Y)
-      << "," << (int)top_right_corner(VC_INDEX_Z) << ")";
-
-  std::stringstream blc;
-  cv::Vec3f bottom_left_corner = origin_ + debug.rows * y_component_;
-  blc << "(" << (int)bottom_left_corner(VC_INDEX_X)
-      << "," << (int)bottom_left_corner(VC_INDEX_Y)
-      << "," << (int)bottom_left_corner(VC_INDEX_Z) << ")";
-
   if (debugDrawOptions & DEBUG_DRAW_CORNER_COORDINATES) {
+    std::stringstream trc;
+    cv::Vec3f top_right_corner = origin_ + debug.cols * x_component_;
+    trc << "(" << (int)top_right_corner(VC_INDEX_X)
+        << "," << (int)top_right_corner(VC_INDEX_Y)
+        << "," << (int)top_right_corner(VC_INDEX_Z) << ")";
+
+    std::stringstream blc;
+    cv::Vec3f bottom_left_corner = origin_ + debug.rows * y_component_;
+    blc << "(" << (int)bottom_left_corner(VC_INDEX_X)
+        << "," << (int)bottom_left_corner(VC_INDEX_Y)
+        << "," << (int)bottom_left_corner(VC_INDEX_Z) << ")";
+
     putText(debug, trc.str(), cv::Point(debug.cols - 125, 20), cv::FONT_HERSHEY_SIMPLEX, 0.5, BGR_WHITE);
     putText(debug, blc.str(), cv::Point(5,debug.rows - 5), cv::FONT_HERSHEY_SIMPLEX, 0.5, BGR_WHITE);
   }
