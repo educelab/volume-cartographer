@@ -364,8 +364,8 @@ void CWindow::CalcIntersection( std::vector< CXCurve* > &nIntersections,
             swap< PointXYZRGBNormal >( aV1, aV2 );
         }
 
-		int aStartIndx = ( int )ceil( aV1.x );
-        int aEndIndx = ( int )floor( aV2.x );
+		int aStartIndx = ( int )ceil( aV1.z );
+    int aEndIndx = ( int )floor( aV2.z );
 
 		// safe net
 		if ( aStartIndx < aMinSliceIndex || aEndIndx > aMaxSliceIndex - 1 ) {
@@ -376,11 +376,11 @@ void CWindow::CalcIntersection( std::vector< CXCurve* > &nIntersections,
         for ( int i = aStartIndx; i <= aEndIndx; ++i ) {
 
 			int aRow, aCol;
-			if ( fabs( aV2.x - aV1.x ) < 1e-6 ) {
-				if ( fabs( aV2.x - i ) < 1e-6 ) {
+			if ( fabs( aV2.z - aV1.z ) < 1e-6 ) {
+				if ( fabs( aV2.z - i ) < 1e-6 ) {
 					// point 1
-					aRow = round( aV2.y );
-					aCol = round( aV2.z );
+					aRow = round( aV2.x );
+					aCol = round( aV2.y );
 
                     assert( aRow > 0 && aCol > 0 );
 
@@ -389,8 +389,8 @@ void CWindow::CalcIntersection( std::vector< CXCurve* > &nIntersections,
                     aIntrsctIndex[ i - aMinSliceIndex ].push_back( aIndex2 );
 
 					// point 2
-					aRow = round( aV1.y );
-					aCol = round( aV1.z );
+					aRow = round( aV1.x );
+					aCol = round( aV1.y );
 
                     assert( aRow > 0 && aCol > 0 );
 
@@ -402,10 +402,10 @@ void CWindow::CalcIntersection( std::vector< CXCurve* > &nIntersections,
 				continue;
 			} // if
 
-			double d = ( aV2.x - i ) / ( aV2.x - aV1.x );
+			double d = ( aV2.z - i ) / ( aV2.z - aV1.z );
 
-			aRow = round( d * aV1.y + ( 1.0 - d ) * aV2.y );
-			aCol = round( d * aV1.z + ( 1.0 - d ) * aV2.z );
+			aRow = round( d * aV1.x + ( 1.0 - d ) * aV2.x );
+			aCol = round( d * aV1.y + ( 1.0 - d ) * aV2.y );
 
             assert( aRow >= 0 && aCol >= 0 );
 
