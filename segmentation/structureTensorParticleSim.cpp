@@ -116,17 +116,17 @@ pcl::PointCloud<pcl::PointXYZRGB> structureTensorParticleSim(pcl::PointCloud<pcl
   // setMouseCallback("SPLINE DEMO", mouse_callback, &slice42);
   // imshow("SPLINE DEMO", slice42);
 
-  // // RESLICE DEMO
-  // test point and normal for checking with fiji
-  cv::Vec3f p(168,200,50);
-  cv::Vec3f n(1,0,0);
-  for (int i = 0; i < 100; ++i) {
-    Slice s = f.reslice(p, n, VC_DIRECTION_K);
-    p = s.findNextPosition();
-    s.debugDraw(DEBUG_DRAW_CENTER);
-    s.debugFloodFill();
-    cv::waitKey(0);
-  }
+  // // // RESLICE DEMO
+  // // test point and normal for checking with fiji
+  // cv::Vec3f p(168,200,50);
+  // cv::Vec3f n(1,0,0);
+  // for (int i = 0; i < 100; ++i) {
+  //   Slice s = f.reslice(p, n, VC_DIRECTION_K);
+  //   p = s.findNextPosition();
+  //   s.debugDraw(DEBUG_DRAW_CENTER);
+  //   s.debugAnalysis();
+  //   cv::waitKey(0);
+  // }
 
   // // RADIAL CORE RESLICE DEMO
   // cv::Point core_fst;
@@ -155,5 +155,10 @@ pcl::PointCloud<pcl::PointXYZRGB> structureTensorParticleSim(pcl::PointCloud<pcl
   //   cv::waitKey(0);
   // }
 
-  return pcl::PointCloud<pcl::PointXYZRGB>();
+  Chain c(segPath, &volpkg, threshold, endOffset);
+
+  for (int i = 0; c.isMoving() && i < 200; ++i)
+    c.step(f);
+
+  return c.orderedPCD();
 }

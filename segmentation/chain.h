@@ -17,21 +17,17 @@
 
 class Chain {
 public:
-  Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr,VolumePkg*,double,int,int,double = -0.5);
+  Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr,VolumePkg*,int,int);
   void step(Field&);
   bool isMoving();
-  cv::Vec3f springForce(int);
-  cv::Vec3f gravity(int,Field&);
+  void debug();
   pcl::PointCloud<pcl::PointXYZRGB> orderedPCD();
 
 private:
   // History of the chain at each iteration
   std::list<std::vector<Particle> > _history;
-  // Parameters for calculating the spring effects
-  double _spring_constant_k;
-  double _spring_resting_x;
-  // Limits the effect of the normal vector
-  double _gravity_scale; // To-Do: Rename.
+
+  VolumePkg* _volpkg;
 
   // -- Chain Size Information -- //
   int _chain_length; // Number of particles in the chain & width of output PCD
