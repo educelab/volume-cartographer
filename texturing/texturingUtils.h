@@ -270,7 +270,7 @@ inline void SamplingWithinEllipse( double                       nA,             
     /* vector used to parameterize surface defined by nMajorAxisDir */
     /* need to create two vectors that are orthogonal to one another */
     /* and orthogonal to nMajorAxisDir */
-    cv::Vec3f G(1,0,0);
+    cv::Vec3f G(0,0,1);
 
     /* project G onto plane defined by nMajorAxisDir */
     /*                                   */
