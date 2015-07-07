@@ -3,23 +3,17 @@
 
 #include "meshUtils.h"
 
-itk::Mesh<::itk::Vector<double, 3>, 3>::Pointer smoothNormals ( itk::Mesh<::itk::Vector<double, 3>, 3>::Pointer inputMesh, 
-                                                                double                                          smoothingFactor ) {
-    typedef itk::Vector< double, 3 >  PixelType;  // A vector to hold the normals along with the points of each vertice in the mesh
-    const unsigned int Dimension = 3;   // Need a 3 Dimensional Mesh
-
-    // declare Mesh object using template parameters 
-    typedef itk::Mesh< PixelType, Dimension >   MeshType;
+VC_MeshType::Pointer smoothNormals ( VC_MeshType::Pointer  inputMesh,
+                                     double                smoothingFactor ) {
 
     // declare pointer to new Mesh object to be returned
-    MeshType::Pointer  outputMesh = MeshType::New();
+    VC_MeshType::Pointer  outputMesh = VC_MeshType::New();
     outputMesh = inputMesh; // copy faces, points, and old normals from input mesh
 
     // Define iterators
-    typedef MeshType::PointsContainer::Iterator     PointsIterator;
-    PointsIterator currentPoint, neighborPoint;
+    VC_PointsInMeshIterator currentPoint, neighborPoint;
     currentPoint = inputMesh->GetPoints()->Begin();
-    PointsIterator pointsEnd = inputMesh->GetPoints()->End();
+    VC_PointsInMeshIterator pointsEnd = inputMesh->GetPoints()->End();
     
     // Variables for normal smoothing
     // cv::Vec3d neighborAvg;
@@ -31,20 +25,18 @@ itk::Mesh<::itk::Vector<double, 3>, 3>::Pointer smoothNormals ( itk::Mesh<::itk:
     myfile.open( "normals.txt" );
 
     // Use pointsLocator to find neighborhood within given radius
-    typedef MeshType::PointsContainer PointsContainerType;
-    typedef itk::PointsLocator<PointsContainerType> PointsLocatorType;
-    typename PointsLocatorType::Pointer pointsLocator = PointsLocatorType::New();
+    typename VC_PointsLocatorType::Pointer pointsLocator = VC_PointsLocatorType::New();
     pointsLocator->SetPoints( inputMesh->GetPoints() );
     pointsLocator->Initialize();
-    typename PointsLocatorType::NeighborsIdentifierType neighborhood;
+    typename VC_PointsLocatorType::NeighborsIdentifierType neighborhood;
 
     // Iterate over all of the cells to lay out the faces in the output texture
     while ( currentPoint != pointsEnd )
     {
         std::cout << "Smoothing normals for point " << currentPoint.Index() << "/" << pointsEnd.Index() << "\r" << std::flush;
 
-        MeshType::PointType p = currentPoint.Value();
-        MeshType::PixelType currentNormal;
+        VC_PointType p = currentPoint.Value();
+        VC_PixelType currentNormal;
         inputMesh->GetPointData( currentPoint.Index(), &currentNormal );
 
         myfile << "Old: " << currentNormal[0] << ", " << currentNormal[1] << ", " << currentNormal[2] << "    ";
@@ -61,8 +53,8 @@ itk::Mesh<::itk::Vector<double, 3>, 3>::Pointer smoothNormals ( itk::Mesh<::itk:
 
         for ( int i = 0; i < neighborCount; ++i ) {
             pointID = neighborhood[i];
-            MeshType::PointType p2 = inputMesh->GetPoint( pointID );
-            MeshType::PixelType neighborNormal;
+            VC_PointType p2 = inputMesh->GetPoint( pointID );
+            VC_PixelType neighborNormal;
             inputMesh->GetPointData( neighborPoint.Index(), &neighborNormal );
 
             neighborAvg[0] += neighborNormal[0];
@@ -87,21 +79,16 @@ itk::Mesh<::itk::Vector<double, 3>, 3>::Pointer smoothNormals ( itk::Mesh<::itk:
     return outputMesh;
 }
 
-itk::Mesh<::itk::Vector<double, 3>, 3>::Pointer resample ( itk::Mesh<::itk::Vector<double, 3>, 3>::Pointer inputMesh,
-                                                           int NumberOfSamples, float Gradation ) {
+VC_MeshType::Pointer resample ( VC_MeshType::Pointer  inputMesh,
+                                int                   NumberOfSamples,
+                                float                 Gradation ) {
 
-    typedef itk::Vector< double, 3 >  PixelType;  // A vector to hold the normals along with the points of each vertice in the mesh
-    const unsigned int Dimension = 3;   // Need a 3 Dimensional Mesh
-    
-    // declare Mesh object using template parameters 
-    typedef itk::Mesh< PixelType, Dimension >   MeshType;
-            
     // declare pointer to new Mesh object to be returned
-    MeshType::Pointer  outputMesh = MeshType::New();
+    VC_MeshType::Pointer  outputMesh = VC_MeshType::New();
 
     // export mesh to stl, stl needed to import into ACVD's vtkSurface class    
     itk::STLMeshIOFactory::RegisterOneFactory();
-    typedef itk::MeshFileWriter< MeshType > WriterType;
+    typedef itk::MeshFileWriter< VC_MeshType > WriterType;
     WriterType::Pointer writer = WriterType::New();
     writer->SetFileName( "temp.stl" );
     writer->SetInput( inputMesh );
@@ -213,7 +200,7 @@ itk::Mesh<::itk::Vector<double, 3>, 3>::Pointer resample ( itk::Mesh<::itk::Vect
     // try to convert the ply to an ITK mesh
     int meshWidth = -1;
     int meshHeight = -1;
-    if ( !ply2itkmesh("simplification.ply", outputMesh, meshWidth, meshHeight) ) {
+    if ( !volcart::io::ply2itkmesh("simplification.ply", outputMesh, meshWidth, meshHeight) ) {
         exit( -1 );
     };
 

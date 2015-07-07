@@ -10,12 +10,12 @@ namespace volcart {
     ///// Constructors /////
     objWriter::objWriter() {};
 
-    objWriter::objWriter( std::string outputPath, itk::Mesh<PixelType, 3>::Pointer mesh ) {
+    objWriter::objWriter( std::string outputPath, VC_MeshType::Pointer mesh ) {
         _outputPath = outputPath;
         _mesh = mesh;
     };
 
-    objWriter::objWriter( std::string outputPath, itk::Mesh<PixelType, 3>::Pointer mesh, std::map<double, cv::Vec2d> uvMap, cv::Mat uvImg ) {
+    objWriter::objWriter( std::string outputPath, VC_MeshType::Pointer mesh, std::map<double, cv::Vec2d> uvMap, cv::Mat uvImg ) {
         _outputPath = outputPath;
         _mesh = mesh;
         _textCoords = uvMap;
@@ -119,12 +119,12 @@ namespace volcart {
         _outputMesh << "# Vertices: " << _mesh->GetNumberOfPoints() << std::endl;
 
         // Iterate over all of the points
-        PointsInMeshIterator point = _mesh->GetPoints()->Begin();
+        VC_PointsInMeshIterator point = _mesh->GetPoints()->Begin();
         double v_Index = 1;
         while ( point != _mesh->GetPoints()->End() ) {
 
             // Get the point's normal
-            MeshType::PixelType normal;
+            VC_PixelType normal;
             _mesh->GetPointData(point.Index(), &normal);
 
             // Write the point position components and its normal components.
@@ -180,9 +180,9 @@ namespace volcart {
         _outputMesh << "# Faces: " << _mesh->GetNumberOfCells() << std::endl;
 
         // Iterate over the faces of the mesh
-        PointsInCellIterator point;
+        VC_PointsInCellIterator point;
 
-        for ( CellIterator cell = _mesh->GetCells()->Begin(); cell != _mesh->GetCells()->End(); ++cell ) {
+        for ( VC_CellIterator cell = _mesh->GetCells()->Begin(); cell != _mesh->GetCells()->End(); ++cell ) {
             _outputMesh << "f "; // Starts a new face line
 
             // Iterate over the points of this face

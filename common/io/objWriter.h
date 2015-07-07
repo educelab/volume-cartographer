@@ -8,35 +8,24 @@
 #include <iostream>
 #include <fstream>
 
-#include <itkMesh.h>
-#include <itkTriangleCell.h>
-
 #include <opencv2/opencv.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
+
+#include "../vc_defines.h"
 
 namespace volcart {
 namespace io {
 
   class objWriter {
 
-  protected:
-    // ITK typedefs to setup the mesh. This class only supports meshes used by VC software.
-    typedef itk::Vector< double, 3 >                   PixelType;
-    typedef itk::Mesh< PixelType, 3 >                  MeshType;
-    typedef MeshType::CellType                         CellType;
-
-    typedef MeshType::PointsContainer::ConstIterator   PointsInMeshIterator;
-    typedef MeshType::CellsContainer::Iterator         CellIterator;
-    typedef CellType::PointIdIterator                  PointsInCellIterator;
-
   public:
     objWriter();
-    objWriter( std::string outputPath, itk::Mesh<PixelType, 3>::Pointer mesh );
-    objWriter( std::string outputPath, itk::Mesh<PixelType, 3>::Pointer mesh, std::map<double, cv::Vec2d> uvMap, cv::Mat uvImg);
+    objWriter( std::string outputPath, VC_MeshType::Pointer mesh );
+    objWriter( std::string outputPath, VC_MeshType::Pointer mesh, std::map<double, cv::Vec2d> uvMap, cv::Mat uvImg);
 
     void setPath( std::string path ) { _outputPath = path; };
-    void setMesh( itk::Mesh<PixelType, 3>::Pointer mesh ) { _mesh = mesh; };
+    void setMesh( VC_MeshType::Pointer mesh ) { _mesh = mesh; };
     void setUVMap( std::map<double, cv::Vec2d> uvMap ) { _textCoords = uvMap; };
     void setTexture( cv::Mat uvImg ) { _texture = uvImg; };
 
@@ -54,7 +43,7 @@ namespace io {
 
     std::map<double, cv::Vec3d> _point_links; // Keeps track of what we know about each point in the mesh: [ pointID, (v, vt, vn) ]
 
-    itk::Mesh< PixelType, 3 >::Pointer _mesh;
+    VC_MeshType::Pointer _mesh;
     std::map<double, cv::Vec2d> _textCoords; // UV map for points accessed by point index
     cv::Mat _texture; // output texture image
 

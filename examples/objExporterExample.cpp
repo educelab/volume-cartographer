@@ -2,32 +2,24 @@
 // Created by Media Team on 6/24/15.
 //
 
-#include "io/objWriter.h"
-#include "plyHelper.h"
+#include "vc_defines.h"
 
-#include <itkMesh.h>
-#include <itkTriangleCell.h>
+#include "io/objWriter.h"
+#include "io/ply2itk.h"
 
 int main( int argc, char* argv[] ) {
 
   std::string meshName = argv[1];
   cv::Mat uvImg = cv::imread( argv[2], CV_LOAD_IMAGE_ANYCOLOR | CV_LOAD_IMAGE_ANYDEPTH );
 
-  // define ITK classes
-  typedef itk::Vector< double, 3 >  PixelType;  // A vector to hold the normals along with the points of each vertex in the mesh
-  const unsigned int Dimension = 3;   // Need a 3 Dimensional Mesh
-  typedef itk::Mesh< PixelType, Dimension >   MeshType;
-
-  typedef MeshType::PointsContainer::ConstIterator   PointsInMeshIterator;
-
   // declare pointer to new Mesh object
-  MeshType::Pointer  inputMesh = MeshType::New();
+  VC_MeshType::Pointer  inputMesh = VC_MeshType::New();
 
   int meshWidth = -1;
   int meshHeight = -1;
 
   // try to convert the ply to an ITK mesh
-  if ( !ply2itkmesh( meshName, inputMesh, meshWidth, meshHeight ) ) {
+  if ( !volcart::io::ply2itkmesh( meshName, inputMesh, meshWidth, meshHeight ) ) {
     exit( EXIT_SUCCESS );
   };
 
@@ -39,7 +31,7 @@ int main( int argc, char* argv[] ) {
   std::map<double, cv::Vec2d> uvMap;
 
   // Initialize iterators
-  PointsInMeshIterator point = inputMesh->GetPoints()->Begin();
+  VC_PointsInMeshIterator point = inputMesh->GetPoints()->Begin();
   std::cerr << "Calculating UV positions..." << std::endl;
   while ( point != inputMesh->GetPoints()->End() ) {
 
