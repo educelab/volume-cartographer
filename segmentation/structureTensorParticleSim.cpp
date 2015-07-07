@@ -124,7 +124,7 @@ pcl::PointCloud<pcl::PointXYZRGB> structureTensorParticleSim(pcl::PointCloud<pcl
   //   Slice s = f.reslice(p, n, VC_DIRECTION_K);
   //   p = s.findNextPosition();
   //   s.debugDraw(DEBUG_DRAW_CENTER);
-  //   s.debugFloodFill();
+  //   s.debugAnalysis();
   //   cv::waitKey(0);
   // }
 
@@ -157,7 +157,7 @@ pcl::PointCloud<pcl::PointXYZRGB> structureTensorParticleSim(pcl::PointCloud<pcl
 
   Chain c(segPath, &volpkg, threshold, endOffset);
 
-  for (int i = 0; i < 200; ++i)
+  for (int i = 0; c.isMoving() && i < 200; ++i)
     c.step(f);
 
   return c.orderedPCD();

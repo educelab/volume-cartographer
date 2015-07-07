@@ -48,24 +48,25 @@ cv::Vec3f Slice::findNextPosition() {
   threshold(fill, fill, WHITE - 1, WHITE, cv::THRESH_BINARY);
 
   // find the new position in the reslice
-  cv::Point newPosition(0,1);
+  cv::Point offset(0,1);
   for (int xoffset = 0; xoffset < fill.cols/2; ++xoffset) {
     cv::Point positive_offset(xoffset, 1);
     if (fill.at<uchar>(center + positive_offset)) {
-      newPosition = center + positive_offset;
+      offset = positive_offset;
       break;
     }
 
     cv::Point negative_offset(-xoffset, 1);
     if (fill.at<uchar>(center + negative_offset)) {
-      newPosition = center + negative_offset;
+      offset = negative_offset;
       break;
     }
   }
+  center += offset;
 
   // map the pixel coordinate back into 3d space
   // we may want to make this its own method
-  cv::Vec3f xyzPosition = origin_ + (newPosition.x * x_component_ + newPosition.y * y_component_);
+  cv::Vec3f xyzPosition = origin_ + (center.x * x_component_ + center.y * y_component_);
 
   return xyzPosition;
 }
@@ -124,7 +125,7 @@ void Slice::debugDraw(int debugDrawOptions) {
 }
 
 // show the last step before deciding where to go next in findNextPosition()
-void Slice::debugFloodFill() {
+void Slice::debugAnalysis() {
   cv::Mat temp_slice = slice_.clone();
   cv::Mat grad_x;
   GaussianBlur(temp_slice, grad_x, cv::Size(3,3), 0);
@@ -139,8 +140,8 @@ void Slice::debugFloodFill() {
   floodFill(fill, center, WHITE);
   threshold(fill, fill, WHITE - 1, WHITE, cv::THRESH_BINARY);
 
-  namedWindow("DEBUG FILL", cv::WINDOW_AUTOSIZE);
-  imshow("DEBUG FILL", fill);
+  namedWindow("DEBUG ANALYSIS", cv::WINDOW_AUTOSIZE);
+  imshow("DEBUG ANALYSIS", fill);
 }
 
 cv::Mat Slice::mat() {

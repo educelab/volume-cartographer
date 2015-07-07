@@ -8,6 +8,8 @@ Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg* volpkg, 
     init_chain.push_back(cv::Vec3f(path_it->x, path_it->y, path_it->z));
   }
 
+  _volpkg = volpkg;
+
   // Add starting chain to _history and setup other parameters
   _history.push_front(init_chain);
   _chain_length      = init_chain.size();
@@ -29,18 +31,38 @@ Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg* volpkg, 
   _real_iterations = (int)(ceil(((_target_index - _start_index) + 1) / _threshold));
 }
 
+#define NORMAL(i) do {                                          \
+    cv::Vec3f tangent = update_chain[i+1]-update_chain[i-1];    \
+    normal = tangent.cross(VC_DIRECTION_K);                     \
+  } while (0)
+
 // This function defines how particles are updated
-// To-Do: Only iterate over particles once
 void Chain::step(Field& field) {
   // Pull the most recent iteration from _history
   std::vector<Particle> update_chain = _history.front();
   std::vector<cv::Vec3f> force_vector(_chain_length, cv::Vec3f(0,0,0));
 
-  // calculate forces acting on particles
+  // this->debug();
+
   for(int i = 0; i < _chain_length; ++i) {
     if (update_chain[i].isStopped())
       continue;
-    force_vector[i] += VC_DIRECTION_K;
+
+    cv::Vec3f normal;
+    if (i == 0) {
+      NORMAL(1);
+    } else if (i == _chain_length - 1) {
+      NORMAL(_chain_length - 2);
+    } else {
+      NORMAL(i);
+    }
+
+    Slice s = field.reslice(update_chain[i].position(), normal, VC_DIRECTION_K);
+    // s.debugDraw(DEBUG_DRAW_XYZ | DEBUG_DRAW_CENTER);
+    // s.debugAnalysis();
+    // cv::waitKey(0);
+
+    force_vector[i] += (s.findNextPosition() - update_chain[i].position());
   }
 
   // update the chain
@@ -61,6 +83,28 @@ bool Chain::isMoving() {
   for (int i = 0; i < _chain_length; ++i)
     result &= _history.front()[i].isStopped();
   return !result;
+}
+
+void Chain::debug() {
+  std::vector<Particle> recent = _history.front();
+  int z_index = recent[0](VC_INDEX_Z);
+
+  cv::Mat debug = _volpkg->getSliceData(z_index);
+  debug *= 1./255;
+  debug.convertTo(debug, CV_8UC3);
+  cvtColor(debug, debug, CV_GRAY2BGR);
+
+  for (int i = 0; i < recent.size(); ++i) {
+    cv::Point position(recent[i](VC_INDEX_X), recent[i](VC_INDEX_Y));
+    if ((int)recent[i](VC_INDEX_Z) == z_index)
+      circle(debug, position, 2, cv::Scalar(0,255,0), -1);
+    else
+      circle(debug, position, 2, cv::Scalar(0,255,255), -1);
+  }
+
+  namedWindow("DEBUG CHAIN", cv::WINDOW_AUTOSIZE);
+  imshow("DEBUG CHAIN", debug);
+  cv::waitKey(0);
 }
 
 // Convert Chain's _history to an ordered Point Cloud object

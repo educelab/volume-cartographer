@@ -29,7 +29,7 @@ public:
   Slice(cv::Mat,cv::Vec3f,cv::Vec3f,cv::Vec3f);
   cv::Vec3f findNextPosition();
   void debugDraw(int = DEBUG_DRAW_NONE);
-  void debugFloodFill();
+  void debugAnalysis();
   cv::Mat mat();
 private:
   cv::Mat slice_;

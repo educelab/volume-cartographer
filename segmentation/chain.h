@@ -20,11 +20,14 @@ public:
   Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr,VolumePkg*,int,int);
   void step(Field&);
   bool isMoving();
+  void debug();
   pcl::PointCloud<pcl::PointXYZRGB> orderedPCD();
 
 private:
   // History of the chain at each iteration
   std::list<std::vector<Particle> > _history;
+
+  VolumePkg* _volpkg;
 
   // -- Chain Size Information -- //
   int _chain_length; // Number of particles in the chain & width of output PCD
