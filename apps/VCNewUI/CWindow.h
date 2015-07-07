@@ -23,6 +23,8 @@
 #include <pcl/common/common.h>
 #include <pcl/point_types.h>
 
+#include "structureTensorParticleSim/structureTensorParticleSim.h"
+
 class VolumePkg;
 
 namespace ChaoVis {

@@ -1,4 +1,4 @@
-#include "structureTensorParticleSim.h"
+#include "localResliceParticleSim.h"
 
 // structureTensorParticleSim uses "particles" to trace out the surfaces in a volume.
 // A Particle Chain maintains their ordering and is responsible for updating their
@@ -102,63 +102,66 @@ void core_callback(int event, int x, int y, int flags, void* point) {
     break;
   }
 }
+namespace volcart {
+    namespace segmentation {
+        pcl::PointCloud<pcl::PointXYZRGB> localResliceParticleSim(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg volpkg, double gravity_scale, int threshold, int endOffset) {
+          Field f(&volpkg);
 
-pcl::PointCloud<pcl::PointXYZRGB> structureTensorParticleSim(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg volpkg, double gravity_scale, int threshold, int endOffset) {
-  Field f(&volpkg);
+          // // SPLINE DEMO
+          // // convert to color so drawing is more useful
+          // cv::Mat slice42 = volpkg.getSliceData(42);
+          // slice42 *= 1.0/255;
+          // slice42.convertTo(slice42, CV_8UC3);
+          // cvtColor(slice42, slice42, CV_GRAY2BGR);
+          // namedWindow("SPLINE DEMO", cv::WINDOW_AUTOSIZE);
+          // setMouseCallback("SPLINE DEMO", mouse_callback, &slice42);
+          // imshow("SPLINE DEMO", slice42);
 
-  // // SPLINE DEMO
-  // // convert to color so drawing is more useful
-  // cv::Mat slice42 = volpkg.getSliceData(42);
-  // slice42 *= 1.0/255;
-  // slice42.convertTo(slice42, CV_8UC3);
-  // cvtColor(slice42, slice42, CV_GRAY2BGR);
-  // namedWindow("SPLINE DEMO", cv::WINDOW_AUTOSIZE);
-  // setMouseCallback("SPLINE DEMO", mouse_callback, &slice42);
-  // imshow("SPLINE DEMO", slice42);
+          // // // RESLICE DEMO
+          // // test point and normal for checking with fiji
+          // cv::Vec3f p(168,200,50);
+          // cv::Vec3f n(1,0,0);
+          // for (int i = 0; i < 100; ++i) {
+          //   Slice s = f.reslice(p, n, VC_DIRECTION_K);
+          //   p = s.findNextPosition();
+          //   s.debugDraw(DEBUG_DRAW_CENTER);
+          //   s.debugAnalysis();
+          //   cv::waitKey(0);
+          // }
 
-  // // // RESLICE DEMO
-  // // test point and normal for checking with fiji
-  // cv::Vec3f p(168,200,50);
-  // cv::Vec3f n(1,0,0);
-  // for (int i = 0; i < 100; ++i) {
-  //   Slice s = f.reslice(p, n, VC_DIRECTION_K);
-  //   p = s.findNextPosition();
-  //   s.debugDraw(DEBUG_DRAW_CENTER);
-  //   s.debugAnalysis();
-  //   cv::waitKey(0);
-  // }
+          // // RADIAL CORE RESLICE DEMO
+          // cv::Point core_fst;
+          // cv::Mat first_slice = volpkg.getSliceData(0);
+          // namedWindow("FIRST SLICE", cv::WINDOW_AUTOSIZE);
+          // cv::setMouseCallback("FIRST SLICE", core_callback, &core_fst);
+          // imshow("FIRST SLICE", first_slice);
 
-  // // RADIAL CORE RESLICE DEMO
-  // cv::Point core_fst;
-  // cv::Mat first_slice = volpkg.getSliceData(0);
-  // namedWindow("FIRST SLICE", cv::WINDOW_AUTOSIZE);
-  // cv::setMouseCallback("FIRST SLICE", core_callback, &core_fst);
-  // imshow("FIRST SLICE", first_slice);
+          // cv::Point core_lst;
+          // cv::Mat last_slice = volpkg.getSliceData(volpkg.getNumberOfSlices() - 1);
+          // namedWindow("LAST SLICE", cv::WINDOW_AUTOSIZE);
+          // cv::setMouseCallback("LAST SLICE", core_callback, &core_lst);
+          // imshow("LAST SLICE", last_slice);
 
-  // cv::Point core_lst;
-  // cv::Mat last_slice = volpkg.getSliceData(volpkg.getNumberOfSlices() - 1);
-  // namedWindow("LAST SLICE", cv::WINDOW_AUTOSIZE);
-  // cv::setMouseCallback("LAST SLICE", core_callback, &core_lst);
-  // imshow("LAST SLICE", last_slice);
+          // cv::waitKey(0);
+          // cv::destroyAllWindows();
 
-  // cv::waitKey(0);
-  // cv::destroyAllWindows();
+          // cv::Point diff = core_lst - core_fst;
+          // cv::Vec3f axis(diff.x, diff.y, volpkg.getNumberOfSlices() - 1);
+          // cv::Vec3f origin(core_fst.x, core_fst.y, 0);
 
-  // cv::Point diff = core_lst - core_fst;
-  // cv::Vec3f axis(diff.x, diff.y, volpkg.getNumberOfSlices() - 1);
-  // cv::Vec3f origin(core_fst.x, core_fst.y, 0);
+          // double PI = 3.14159;
+          // for (double theta = 0; theta < 2*PI; theta += (PI / 360.0)) {
+          //   Slice s = f.resliceRadial(origin, axis, theta, 250, 300);
+          //   s.debugDraw(DEBUG_DRAW_XYZ | DEBUG_DRAW_CORNER_COORDINATES);
+          //   cv::waitKey(0);
+          // }
 
-  // double PI = 3.14159;
-  // for (double theta = 0; theta < 2*PI; theta += (PI / 360.0)) {
-  //   Slice s = f.resliceRadial(origin, axis, theta, 250, 300);
-  //   s.debugDraw(DEBUG_DRAW_XYZ | DEBUG_DRAW_CORNER_COORDINATES);
-  //   cv::waitKey(0);
-  // }
+          Chain c(segPath, &volpkg, threshold, endOffset);
 
-  Chain c(segPath, &volpkg, threshold, endOffset);
+          for (int i = 0; c.isMoving() && i < 200; ++i)
+            c.step(f);
 
-  for (int i = 0; c.isMoving() && i < 200; ++i)
-    c.step(f);
-
-  return c.orderedPCD();
-}
+          return c.orderedPCD();
+        }
+    }// namespace segmentation
+}// namespace volcart

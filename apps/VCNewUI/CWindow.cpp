@@ -11,7 +11,6 @@
 #include "CVolumeViewerWithCurve.h"
 
 #include "UDataManipulateUtils.h"
-#include "structureTensorParticleSim.h"
 
 #define _DEBUG
 
@@ -279,7 +278,7 @@ void CWindow::DoSegmentation( void )
     // 2) do segmentation from the starting slice
     // how to create pcl::PointCloud::Ptr from a pcl::PointCloud?
     // stackoverflow.com/questions/10644429/create-a-pclpointcloudptr-from-a-pclpointcloud
-    fLowerPart = structureTensorParticleSim( pcl::PointCloud< pcl::PointXYZRGB >::Ptr( new pcl::PointCloud< pcl::PointXYZRGB >( fLowerPart )),
+    fLowerPart = volcart::segmentation::structureTensorParticleSim( pcl::PointCloud< pcl::PointXYZRGB >::Ptr( new pcl::PointCloud< pcl::PointXYZRGB >( fLowerPart )),
                                              *fVpkg,
                                              fSegParams.fGravityScale,
                                              fSegParams.fThreshold,

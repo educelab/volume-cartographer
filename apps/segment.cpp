@@ -8,7 +8,7 @@
 #include <pcl/filters/conditional_removal.h>
 
 #include "volumepkg.h"
-#include "structureTensorParticleSim.h"
+#include "structureTensorParticleSim/structureTensorParticleSim.h"
 
 // File paths
 std::string segID = "";
@@ -129,7 +129,7 @@ int main(int argc, char* argv[]) {
   
 // Run segmentation using path as our starting points
   pcl::PointCloud<pcl::PointXYZRGB> mutableCloud;
-  mutableCloud = structureTensorParticleSim(segPath, volpkg, gravity_scale, threshold, stopOffset);
+  mutableCloud = volcart::segmentation::structureTensorParticleSim(segPath, volpkg, gravity_scale, threshold, stopOffset);
 
   // Update the master cloud with the points we saved and concat the new points into the space
   *masterCloud = *immutableCloud;
