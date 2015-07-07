@@ -26,8 +26,24 @@ namespace VolCart {
             {"voxelsize",        "double"}
             };
 
+    // Version 2.0
+    const VersionDict _2_0 =
+            {
+            {"volumepkg name",   "string"},
+            {"version",          "double"},
+            {"width",            "int"},
+            {"height",           "int"},
+            {"number of slices", "int"},
+            {"slice location",   "string"},
+            {"min",              "double"},
+            {"max",              "double"},
+            {"voxelsize",        "double"},
+            {"materialthickness","double"}
+            };
+
     // Add the Version Dict's to a list of possible versions
-    const std::unordered_map < double, VersionDict > versionsList = {{1.0, _1_0}};;
+    const std::unordered_map < double, VersionDict > versionsList = {{1.0, _1_0},
+                                                                     {2.0, _2_0}};;
 }
 
 #endif //VC_VOLUMEPKG_VERSION_H
