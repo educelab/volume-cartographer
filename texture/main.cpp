@@ -38,7 +38,7 @@ int main( int argc, char *argv[] )
         exit(EXIT_FAILURE);
     }
     if ( volpkg.getVersion() < 2.0) {
-        std::cerr << "ERROR: Volume package is version " << << volpkg.getVersion() << " but this program requires a version >= 2.0."  << std::endl;
+        std::cerr << "ERROR: Volume package is version " << volpkg.getVersion() << " but this program requires a version >= 2.0."  << std::endl;
         exit(EXIT_FAILURE);
     }
     volpkg.setActiveSegmentation(segID);
