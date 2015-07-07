@@ -597,7 +597,13 @@ void CWindow::OpenVol( void )
     }
 
     if ( !InitializeVolumePkg( aVpkgPath.toStdString() + "/" ) ) {
-        printf( "ERROR: cannot open the volume package at the specified location.\n" );
+        std::cerr << "ERROR: Cannot open the volume package at the specified location." << std::endl;
+        return;
+    }
+
+    if ( fVpkg->getVersion() < 2.0) {
+        std::cerr << "ERROR: Volume package is version " << fVpkg->getVersion() << " but this program requires a version >= 2.0." << std::endl;
+        QMessageBox::warning( this, tr( "ERROR" ), "Volume package is version " + QString::number(fVpkg->getVersion()) + " but this program requires a version >= 2.0." );
         return;
     }
 

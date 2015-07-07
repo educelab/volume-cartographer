@@ -385,9 +385,12 @@ void CWindow::SetCurrentCurve( int nCurrentSliceIndex )
 void CWindow::OpenSlice( void )
 {
     cv::Mat aImgMat;
-    fVpkg->getSliceData( fPathOnSliceIndex ).copyTo( aImgMat );
-    aImgMat.convertTo( aImgMat, CV_8UC3, 1.0 / 256.0 );
-    cvtColor( aImgMat, aImgMat, CV_GRAY2BGR );
+    if ( fVpkg != NULL ) {
+        fVpkg->getSliceData( fPathOnSliceIndex ).copyTo( aImgMat );
+        aImgMat.convertTo( aImgMat, CV_8UC3, 1.0 / 256.0 );
+        cvtColor( aImgMat, aImgMat, CV_GRAY2BGR );
+    } else
+        aImgMat = cv::Mat::zeros(10, 10, CV_8UC3 );
 
     QImage aImgQImage;
     aImgQImage = Mat2QImage( aImgMat );
@@ -396,11 +399,13 @@ void CWindow::OpenSlice( void )
 }
 
 // Initialize path list
-void CWindow::InitPathList( void )
-{
-    // show the existing paths
-    for ( size_t i = 0; i < fVpkg->getSegmentations().size(); ++i ) {
-        fPathListWidget->addItem( new QListWidgetItem( QString( fVpkg->getSegmentations()[ i ].c_str() ) ) );
+void CWindow::InitPathList( void ) {
+    fPathListWidget->clear();
+    if (fVpkg != NULL) {
+        // show the existing paths
+        for (size_t i = 0; i < fVpkg->getSegmentations().size(); ++i) {
+            fPathListWidget->addItem(new QListWidgetItem(QString(fVpkg->getSegmentations()[i].c_str())));
+        }
     }
 }
 
@@ -438,30 +443,25 @@ void CWindow::OpenVolume( void )
                                                    QFileDialog::ShowDirsOnly |
                                                    QFileDialog::DontResolveSymlinks );
     if ( aVpkgPath.length() == 0 ) { // canceled
-        QApplication::quit(); // REVISIT - Not closing correctly on Cancel
+        std::cerr << "ERROR: No volume package selected." << std::endl;
+        return;
     }
 
     if ( !InitializeVolumePkg( aVpkgPath.toStdString() + "/" ) ) {
-        printf( "cannot open the volume package at the specified location.\n" );
+        printf( "ERROR: Cannot open the volume package at the specified location.\n" );
+        return;
+    }
+
+    if ( fVpkg->getVersion() < 2.0) {
+        std::cerr << "ERROR: Volume package is version " << fVpkg->getVersion() << " but this program requires a version >= 2.0." << std::endl;
+        QMessageBox::warning( this, tr( "ERROR" ), "Volume package is version " + QString::number(fVpkg->getVersion()) + " but this program requires a version >= 2.0." );
+        fVpkg = NULL;
         return;
     }
 
     fVpkgPath = aVpkgPath;
 
-    // get the slice index
-    bool aIsIndexOk = false;
-    fPathOnSliceIndex = QInputDialog::getInt( this,
-                                              tr( "Input" ),
-                                              tr( "Please enter the index of the slice you want to draw path on: " ),
-                                              2,                    // default value
-                                              2,                    // minimum value
-                                              fVpkg->getNumberOfSlices() - 3,   // maximum vlaue
-                                              1,                    // step
-                                              &aIsIndexOk );
-    if ( !aIsIndexOk ) {
-        printf( "WARNING: nothing was loaded because no slice index was specified.\n" );
-        return;
-    }
+    fPathOnSliceIndex = 2;
 }
 
 // Reset point cloud

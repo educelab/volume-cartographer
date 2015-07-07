@@ -35,10 +35,10 @@ int main(int argc, char* argv[])
         std::cerr << "ERROR: Incorrect/missing segmentation ID!" << std::endl;
         exit(EXIT_FAILURE);
     }
-    if ( vpkg.getVersion() != 2.0) {
-        std::cerr << "ERROR: Volume package version should be version 2" << std::endl;
+    if ( vpkg.getVersion() < 2.0) {
+        std::cerr << "ERROR: Volume package is version " << << vpkg.getVersion() << " but this program requires a version >= 2.0."  << std::endl;
         exit(EXIT_FAILURE);
-    } 
+    }
     vpkg.setActiveSegmentation( segID );
     std::string meshName = vpkg.getMeshPath();
     
