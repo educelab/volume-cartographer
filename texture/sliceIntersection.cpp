@@ -41,7 +41,7 @@ double interpolate_intensity( const cv::Vec3f					&point,
   x_max = x_min + 1;
   y_min = (int)point(1);
   y_max = y_min + 1;
-  z_min = (int)point(2) - 1; // REVISIT - this is because volpkg shifted the index by 1
+  z_min = (int)point(2);
   z_max = z_min + 1;
 
   // safe net

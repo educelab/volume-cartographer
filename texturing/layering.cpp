@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
     /*  This function is a hack to avoid a refactoring the texturing
         methods. See Issue #12 for more details. */
     // Setup
-    int meshLowIndex = (int) inputMesh->GetPoint(0)[0];
+    int meshLowIndex = (int) inputMesh->GetPoint(0)[2];
     int meshHighIndex = meshLowIndex + meshHeight;
     int aNumSlices = vpkg.getNumberOfSlices();
 
@@ -176,7 +176,7 @@ int main(int argc, char* argv[])
             Sectioning( sections,
                         range,
                         cv::Vec3f(p[0], p[1], p[2]),
-                        cv::Vec3f(normal[1], normal[2], normal[0]),
+                        cv::Vec3f(normal[0], normal[1], normal[2]),
                         aImgVol,
                         smoothingFactor,
                         aDirectionOption,

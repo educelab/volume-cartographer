@@ -81,12 +81,12 @@ bool ply2itkmesh(std::string plyPath, itk::Mesh<::itk::Vector<double, 3>, 3>::Po
                 p[1] = y;
                 p[2] = z;
                 if ( isnan( nx ) )
-		    nx = 0;
-		if ( isnan( ny ) )
+                    nx = 0;
+                if ( isnan( ny ) )
                     ny = 0;
-		if ( isnan( nz ) )
+                if ( isnan( nz ) )
                     nz = 0;
-		n[0] = nx;
+                n[0] = nx;
                 n[1] = ny;
                 n[2] = nz;
                 mesh->SetPoint( j, p );

@@ -20,7 +20,7 @@
 int main(int argc, char* argv[])
 {
     if ( argc < 6 ) {
-        std::cout << "Usage: vc_texture volpkg seg-id radius texture-method sample-direction" << std::endl;
+        std::cout << "Usage: vc_texture2 volpkg seg-id radius texture-method sample-direction" << std::endl;
         std::cout << "Texture methods: " << std::endl;
         std::cout << "      0 = Intersection" << std::endl;
         std::cout << "      1 = Non-Maximum Suppression" << std::endl;
@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
     /*  This function is a hack to avoid a refactoring the texturing
         methods. See Issue #12 for more details. */
     // Setup
-    int meshLowIndex = (int) mesh->GetPoint(0)[0];
+    int meshLowIndex = (int) mesh->GetPoint(0)[2];
     int meshHighIndex = meshLowIndex + meshHeight;
     int aNumSlices = vpkg.getNumberOfSlices();
 
@@ -162,15 +162,15 @@ int main(int argc, char* argv[])
             v =  (double) textureH * (double) meshY / (double) meshHeight;
 
             // Fill in the output pixel with a value
-			// cv::Mat.at uses (row, column)
-            double value = textureWithMethod(cv::Vec3f(p[0], p[1], p[2]),
-                                                 cv::Vec3f(normal[1], normal[2], normal[0]),
-                                                 aImgVol,
-                                                 aFilterOption,
-                                                 radius,
-                                                 minorRadius,
-                                                 0.5,
-                                                 aDirectionOption);
+            // cv::Mat.at uses (row, column)
+            double value = textureWithMethod( cv::Vec3f(p[0], p[1], p[2]),
+                                              cv::Vec3f(normal[0], normal[1], normal[2]),
+                                              aImgVol,
+                                              aFilterOption,
+                                              radius,
+                                              minorRadius,
+                                              0.5,
+                                              aDirectionOption);
             outputTexture.at < unsigned short > (v, u) = (unsigned short) value;
 
             ++pointsIterator;
