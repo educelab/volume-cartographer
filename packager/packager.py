@@ -65,6 +65,10 @@ elif "--output-file" in sys.argv:
 else:
     outpath = os.getcwd() + "/volume"
 
+# get scan information
+voxelSize = float(raw_input("Enter the voxel size in microns (um): "))
+materialThickness = float(raw_input("Enter the estimated material thickness in microns (um): "))
+
 # analyze the volume
 for i in range(len(slices)):
     sys.stdout.write('\r')
@@ -109,7 +113,7 @@ if depth == 0:
 # create the config options and save it to the config file
 config_dict = {
     # volumepkg version
-    "version": 1.0,
+    "version": 2.0,
     # name
     "volumepkg name": outpath.split('/')[-1],
 
@@ -121,7 +125,11 @@ config_dict = {
     "width": width,
     "height": height,
     "min": volMin,
-    "max": volMax 
+    "max": volMax,
+    "voxelsize": voxelSize,
+
+    # material information
+    "materialthickness": materialThickness
 }
 
 # create the folder structure
@@ -129,7 +137,6 @@ if os.path.isdir("tmp"):
     shutil.rmtree("tmp")
 os.mkdir("tmp")
 os.mkdir("tmp/slices")
-os.mkdir("tmp/gradients")
 os.mkdir("tmp/paths")
 os.mkdir("tmp/surface_normals")
 
