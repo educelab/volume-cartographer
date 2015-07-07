@@ -2,47 +2,9 @@
 // Constructor
 Field::Field(VolumePkg* v) {
   _volpkg = v;
-  // Set _blocksize to be the largest dimension of the slice data
-  _blocksize = std::max(_volpkg->getSliceWidth(), _volpkg->getSliceHeight());
-  // Allocate space in _field to store each slice
-  _field = new cv::Vec3f**[_volpkg->getNumberOfSlices()];
-  // Set to NULL so we can tell what's loaded
   for (int i = 0; i < _volpkg->getNumberOfSlices(); ++i) {
-    _field[i] = NULL;
+    _field.push_back(v->getSliceAtIndex(i));
   }
-}
-
-// Destructor
-Field::~Field() {
-  for (int i = 0; i < _volpkg->getNumberOfSlices(); ++i) {
-    if (_field[i] != NULL) {
-      for (int x = 0; x < _blocksize; ++x) {
-        delete[] _field[i][x];
-      }
-      delete[] _field[i];
-    }
-  }
-  delete[] _field;
-}
-
-// Unload slices that haven't been seen lately.
-// Used for keeping the memory used for the normal
-// vectors under control. 
-void Field::clean() {
-  // The lowest slice index currently in use
-  int top = *_indexes_used_since_last_clean.begin();
-
-  // Unload slices that are above "top"/not in use
-  for (int index = top-1 ; _field[index]; --index) {
-    for (int x = 0; x < _blocksize; ++x) {
-      delete[] _field[index][x];
-    }
-    delete[] _field[index];
-    _field[index] = NULL;
-  }
-
-  // Reset for the next iteration
-  _indexes_used_since_last_clean.clear();
 }
 
 // Trilinear Interpolation: Particles are not required
@@ -50,70 +12,71 @@ void Field::clean() {
 // normals with their neighbors's known normals.
 //
 // formula from http://paulbourke.net/miscellaneous/interpolation/
-cv::Vec3f Field::interpolate_at(cv::Vec3f point) {
+unsigned short Field::interpolate_at(cv::Vec3f point) {
   double dx, dy, dz, int_part;
-  dx = modf(point(0), &int_part);
-  dy = modf(point(1), &int_part);
-  dz = modf(point(2), &int_part);
+  dx = modf(point(VC_INDEX_X), &int_part);
+  dy = modf(point(VC_INDEX_Y), &int_part);
+  dz = modf(point(VC_INDEX_Z), &int_part);
 
   int x_min, x_max, y_min, y_max, z_min, z_max;
-  x_min = (int)point(0);
+  x_min = (int)point(VC_INDEX_X);
   x_max = x_min + 1;
-  y_min = (int)point(1);
+  y_min = (int)point(VC_INDEX_Y);
   y_max = y_min + 1;
-  z_min = (int)point(2);
+  z_min = (int)point(VC_INDEX_Z);
   z_max = z_min + 1;
 
-  this->loadSlice(x_min);
-  this->loadSlice(x_max);
+  // insert safety net
+  if (x_min < 0 || y_min < 0 || z_min < 0)
+    return 0;
+  if (x_max >= _field[0].cols || y_max >= _field[0].rows)
+    return 0;
+  if (z_max >= _field.size())
+    return 0;
 
-  cv::Vec3f vector =
-    _field[x_min][y_min][z_min] * (1 - dx) * (1 - dy) * (1 - dz) +
-    _field[x_max][y_min][z_min] * dx       * (1 - dy) * (1 - dz) +
-    _field[x_min][y_max][z_min] * (1 - dx) * dy       * (1 - dz) +
-    _field[x_min][y_min][z_max] * (1 - dx) * (1 - dy) * dz +
-    _field[x_max][y_min][z_max] * dx       * (1 - dy) * dz +
-    _field[x_min][y_max][z_max] * (1 - dx) * dy       * dz +
-    _field[x_max][y_max][z_min] * dx       * dy       * (1 - dz) +
-    _field[x_max][y_max][z_max] * dx       * dy       * dz;
+  unsigned short vector =
+    _field[z_min].at<unsigned short>(y_min, x_min) * (1 - dx) * (1 - dy) * (1 - dz) +
+    _field[z_max].at<unsigned short>(y_min, x_min) * dx       * (1 - dy) * (1 - dz) +
+    _field[z_min].at<unsigned short>(y_max, x_min) * (1 - dx) * dy       * (1 - dz) +
+    _field[z_min].at<unsigned short>(y_min, x_max) * (1 - dx) * (1 - dy) * dz +
+    _field[z_max].at<unsigned short>(y_min, x_max) * dx       * (1 - dy) * dz +
+    _field[z_min].at<unsigned short>(y_max, x_max) * (1 - dx) * dy       * dz +
+    _field[z_max].at<unsigned short>(y_max, x_min) * dx       * dy       * (1 - dz) +
+    _field[z_max].at<unsigned short>(y_max, x_max) * dx       * dy       * dz;
 
   return vector;
 }
 
-// Load surface normals into _field from _volpkg
-void Field::loadSlice(int index) {
-  // Only load if we haven't already done so. _field[index] is empty if NULL 
-  if (_field[index] == NULL) {
-    // Preallocate empty field
-    _field[index] = new cv::Vec3f*[_blocksize];
-    for (int j = 0; j < _blocksize; ++j) {
-      _field[index][j] = new cv::Vec3f[_blocksize];
-      for (int k = 0; k < _blocksize; ++k) {
-        _field[index][j][k] = cv::Vec3f(0,0,0);
-      }
-    }
+Slice Field::reslice(cv::Vec3f center, cv::Vec3f x_dir, cv::Vec3f y_dir, int reslice_height, int reslice_width) {
+  cv::Vec3f x_direction = normalize(x_dir);
+  cv::Vec3f y_direction = normalize(y_dir);
 
-    // Load the surface normal cloud from _volpkg
-    pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGBNormal>);
-    if (pcl::io::loadPCDFile<pcl::PointXYZRGBNormal> (_volpkg->getNormalAtIndex(index), *cloud) == -1) {
-      PCL_ERROR ("couldn't read file\n");
-      exit(EXIT_FAILURE);
-    }
+  cv::Mat m(reslice_height, reslice_width, CV_16UC1);
+  cv::Vec3f origin = center - ((reslice_width / 2) * x_direction + (reslice_height / 2) * y_direction);
 
-    // Assign the normals into their correct position in _field
-    pcl::PointCloud<pcl::PointXYZRGBNormal>::iterator point;
-    for (point = cloud->begin(); point != cloud->end(); ++point) {
-      int x, y, z;
-      x = point->x;
-      y = point->y;
-      z = point->z;
-
-      _field[x][y][z](0) = point->normal[0];
-      _field[x][y][z](1) = point->normal[1];
-      _field[x][y][z](2) = point->normal[2];
+  for (int height = 0; height < reslice_height; ++height) {
+    for (int width = 0; width < reslice_width; ++width) {
+      cv::Vec3f v = origin + (height * y_direction) + (width * x_direction);
+      m.at<unsigned short>(height, width) = this->interpolate_at(v);
     }
   }
 
-  // Add this index to the set of slices that are currently in use
-  _indexes_used_since_last_clean.insert(index);
+  return Slice(m, origin, x_direction, y_direction);
+}
+
+Slice Field::resliceRadial(cv::Vec3f origin, cv::Vec3f rotation_axis, double theta, int reslice_height, int reslice_width) {
+  cv::Vec3f slice_direcion(cos(theta),sin(theta),0);
+  slice_direcion = slice_direcion - (rotation_axis.dot(slice_direcion)/rotation_axis.dot(rotation_axis)) * rotation_axis;
+  cv::Vec3f x_direction = normalize(slice_direcion);
+  cv::Vec3f y_direction = normalize(rotation_axis);
+
+  cv::Mat m(reslice_height, reslice_width, CV_16UC1);
+  for (int height = 0; height < reslice_height; ++height) {
+    for (int width = 0; width < reslice_width; ++width) {
+      cv::Vec3f v = origin + (height * y_direction) + (width * x_direction);
+      m.at<unsigned short>(height, width) = this->interpolate_at(v);
+    }
+  }
+
+  return Slice(m, origin, x_direction, y_direction);
 }

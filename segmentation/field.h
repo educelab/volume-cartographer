@@ -1,7 +1,3 @@
-// Field object maintains a sliding window of loaded normal vectors in the volume
-// Normals are read from disk when they're needed and can be deleted with clean()
-// to keep the memory used to a minimum.
-
 #ifndef _FIELD_
 #define _FIELD_
 
@@ -11,24 +7,17 @@
 #include <pcl/point_types.h>
 
 #include "volumepkg.h"
+#include "slice.h"
 
 class Field {
- public:
+public:
   Field(VolumePkg*);
-  ~Field();
-  void clean();
-  cv::Vec3f interpolate_at(cv::Vec3f);
- private:
+  unsigned short interpolate_at(cv::Vec3f);
+  Slice reslice(cv::Vec3f,cv::Vec3f,cv::Vec3f,int = 64, int = 64);
+  Slice resliceRadial(cv::Vec3f,cv::Vec3f,double,int = 64, int = 64);
+private:
   VolumePkg* _volpkg;
-  // This stores the vector field of surface normals.
-  // Field coordinates are parallel to volume coordinates
-  // field[z][x][y] == vol[x][y][z]
-  cv::Vec3f*** _field;
-  // Largest dimension of the CT slices
-  int _blocksize;
-  // Slices not in this set will be removed by clean()
-  std::set<int> _indexes_used_since_last_clean;
-  void loadSlice(int); // To-Do: Is this name clear enough?
+  std::vector<cv::Mat> _field;
 };
 
 #endif

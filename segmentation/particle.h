@@ -8,7 +8,7 @@
 typedef bool ParticleStopped;
 
 class Particle {
- public:
+public:
   Particle(cv::Vec3f);
   cv::Vec3f position();
   bool isStopped();
@@ -18,7 +18,7 @@ class Particle {
   float operator()(int);
   cv::Vec3f operator-(Particle);
 
- private:
+private:
   cv::Vec3f _position;
   bool _is_stopped;
 };
