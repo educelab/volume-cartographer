@@ -291,7 +291,7 @@ void VolumePkg::saveTexturedMesh(ChaoVis::CMesh mesh) {
 }
 
 void VolumePkg::saveTextureData(cv::Mat texture, std::string name){
-    std::string texturePath = segdir.string() + "/" + activeSeg + "/" + name + ".tif";
+    std::string texturePath = segdir.string() + "/" + activeSeg + "/" + name + ".png";
     cv::imwrite(texturePath, texture);
     printf("Texture image saved.\n");
 }

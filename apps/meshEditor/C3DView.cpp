@@ -52,8 +52,8 @@ bool C3DView::InitializeMeshModel( const std::string &nModelFileName )
     // REVISIT - set rotation and translation
 //    fMeshModel->SetTranslation( Vec3< float >( -88.0, -99.0, -80.0 ) );
     fMeshModel->SetTranslation( Vec3< float >( -( fMeshModel->GetLB()[ 0 ] + fMeshModel->GetUB()[ 0 ] ) / 2.0,
-                                               -( fMeshModel->GetLB()[ 1 ] + fMeshModel->GetUB()[ 1 ] ) / 2.0,
-                                               -( fMeshModel->GetLB()[ 2 ] + fMeshModel->GetUB()[ 2 ] ) / 2.0 - 40.0 ) );
+                                               -( fMeshModel->GetLB()[ 1 ] + fMeshModel->GetUB()[ 1 ] ) / 2.0 - 40.0,
+                                               -( fMeshModel->GetLB()[ 2 ] + fMeshModel->GetUB()[ 2 ] ) / 2.0) );
 
     return true;
 }
@@ -67,15 +67,15 @@ bool C3DView::InitializeXsectionPlane( int nSliceIndex,
     // set up intersection plane
 	deleteNULL( fPlane );
     fPlane = new CMeshGL();
-    fPlane->ComposeVirtualRectangle( 2.0 /* REVISIT */, nWidth, nHeight );	// REVISIT - modify me, FILL ME HERE
+    fPlane->ComposeVirtualRectangle( nWidth, nHeight, 2.0 );	// REVISIT - modify me, FILL ME HERE
 
     // REVISIT - set rotation and translation
     if ( fMeshModel != NULL ) {
-        fPlane->SetTranslation( Vec3< float >(-( fMeshModel->GetLB()[ 0 ] + fMeshModel->GetUB()[ 0 ] ) / 2.0 + nSliceIndex,
-                                            -( fMeshModel->GetLB()[ 1 ] + fMeshModel->GetUB()[ 1 ] ) / 2.0,
-                                            -( fMeshModel->GetLB()[ 2 ] + fMeshModel->GetUB()[ 2 ] ) / 2.0 - 40.0 ) );
+        fPlane->SetTranslation( Vec3< float >(-( fMeshModel->GetLB()[ 0 ] + fMeshModel->GetUB()[ 0 ] ) / 2.0,
+                                              -( fMeshModel->GetLB()[ 1 ] + fMeshModel->GetUB()[ 1 ] ) / 2.0 - 40.0,
+                                              -( fMeshModel->GetLB()[ 2 ] + fMeshModel->GetUB()[ 2 ] ) / 2.0 + nSliceIndex));
     } else {
-        fPlane->SetTranslation( Vec3< float >( -88.0 + nSliceIndex, -99.0, -80.0 ) ); // REVISIT - wrong place
+        fPlane->SetTranslation( Vec3< float >( -99.0, -80.0,  -88.0 + nSliceIndex ) ); // REVISIT - wrong place
     }
     // REVISIT - http://qt-project.org/doc/qt-4.8/opengl-textures.html
     //           we use QGLWidget::bindTexture() to bind texture, instead of binding it manually
@@ -169,7 +169,7 @@ void C3DView::SetSliceIndexDiff( int nSliceIndexDiff )
     // REVISIT - FILL ME HERE
     // REVISIT - we have two ways to translate a model:
     //           1) use glTranslatef() 2) actually change the data, we prefer the first one
-    fPlane->ChangeTranslationByDifference( Vec3< float >( nSliceIndexDiff, 0, 0 ) );
+    fPlane->ChangeTranslationByDifference( Vec3< float >( 0, 0, nSliceIndexDiff ) );
     updateGL();
 }
 

@@ -1,4 +1,4 @@
-// CXCurve.cpp
+ // CXCurve.cpp
 // Chao Du 2014 Dec
 #include "CXCurve.h"
 

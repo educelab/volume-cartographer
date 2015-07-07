@@ -53,11 +53,11 @@ inline double Dot( const Vec &nV1,
 inline Vec Cross( const Vec &nV1,
                   const Vec &nV2 )
 {
-	Vec aResult;
-	aResult.data[ 0 ] = nV1.data[ 1 ] * nV2.data[ 2 ] - nV1.data[ 2 ] * nV2.data[ 1 ];
-	aResult.data[ 1 ] = nV1.data[ 2 ] * nV2.data[ 0 ] - nV1.data[ 0 ] * nV2.data[ 2 ];
-	aResult.data[ 2 ] = nV1.data[ 0 ] * nV2.data[ 1 ] - nV1.data[ 1 ] * nV2.data[ 0 ];
-	return aResult;
+    Vec aResult;
+    aResult.data[ 0 ] = nV1.data[ 1 ] * nV2.data[ 2 ] - nV1.data[ 2 ] * nV2.data[ 1 ];
+    aResult.data[ 1 ] = nV1.data[ 2 ] * nV2.data[ 0 ] - nV1.data[ 0 ] * nV2.data[ 2 ];
+    aResult.data[ 2 ] = nV1.data[ 0 ] * nV2.data[ 1 ] - nV1.data[ 1 ] * nV2.data[ 0 ];
+    return aResult;
 }
 
 

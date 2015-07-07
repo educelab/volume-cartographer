@@ -19,7 +19,7 @@
 int main(int argc, char* argv[])
 {
     if ( argc < 6 ) {
-        std::cout << "Usage: vc_texture2 volpkg seg-id smoothing-factor sample-direction ";
+        std::cout << "Usage: vc_layering volpkg seg-id smoothing-factor sample-direction ";
         std::cout << "number-of-sections sectioning-scale" << std::endl;
         std::cout << "Sample Direction: " << std::endl;
         std::cout << "      0 = Omni" << std::endl;
@@ -35,10 +35,10 @@ int main(int argc, char* argv[])
         std::cerr << "ERROR: Incorrect/missing segmentation ID!" << std::endl;
         exit(EXIT_FAILURE);
     }
-    if ( vpkg.getVersion() != 2.0) {
-        std::cerr << "ERROR: Volume package version should be version 2" << std::endl;
+    if ( vpkg.getVersion() < 2.0) {
+        std::cerr << "ERROR: Volume package is version " << vpkg.getVersion() << " but this program requires a version >= 2.0."  << std::endl;
         exit(EXIT_FAILURE);
-    } 
+    }
     vpkg.setActiveSegmentation( segID );
     std::string meshName = vpkg.getMeshPath();
     
@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
     /*  This function is a hack to avoid a refactoring the texturing
         methods. See Issue #12 for more details. */
     // Setup
-    int meshLowIndex = (int) inputMesh->GetPoint(0)[0];
+    int meshLowIndex = (int) inputMesh->GetPoint(0)[2];
     int meshHighIndex = meshLowIndex + meshHeight;
     int aNumSlices = vpkg.getNumberOfSlices();
 
@@ -176,7 +176,7 @@ int main(int argc, char* argv[])
             Sectioning( sections,
                         range,
                         cv::Vec3f(p[0], p[1], p[2]),
-                        cv::Vec3f(normal[1], normal[2], normal[0]),
+                        cv::Vec3f(normal[0], normal[1], normal[2]),
                         aImgVol,
                         smoothingFactor,
                         aDirectionOption,

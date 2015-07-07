@@ -10,23 +10,28 @@ typedef struct {
   uint v1, v2, v3;
 } Face;
 
-// mesh generation
-void add_vertex(pcl::PointXYZRGB);
-void add_face(int, int, int);
-void update_normal(int, double, double, double);
-void write_mesh(std::string);
-
-std::vector<Vertex> vertices;
-std::vector<Face> faces;
-int width, height;
+class Mesh {
+  public:
+  // mesh generation
+    void add_vertex(pcl::PointXYZRGB);
+    void add_face(int, int, int);
+    void update_normal(int, double, double, double);
+    void write_mesh(std::string);
+    void setDimensions( int lWidth, int lHeight ) { width = lWidth; height = lHeight; };
+  private:
+    int width, height;
+    std::vector<Vertex> vertices;
+    std::vector<Face> faces;
+};
 
 int orderedPCDMesher(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::string outFile){
   std::cout << "Creating mesh from points..." << std::endl;
+
   std::vector< std::vector< pcl::PointXYZRGB > > VoV;
+  Mesh mesh;
 
   // Keep the w+h of our ordered pcd
-  width = cloud->width;
-  height = cloud->height;
+  mesh.setDimensions( cloud->width, cloud->height );
 
   for (int i = 0; i < cloud->height; ++i)
   {
@@ -34,7 +39,7 @@ int orderedPCDMesher(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::string o
     for (int j = 0; j < cloud->width; ++j)
     {
       current.push_back(cloud->points[j+(i*cloud->width)]);
-      add_vertex(cloud->points[j+(i*cloud->width)]);
+      mesh.add_vertex(cloud->points[j+(i*cloud->width)]);
     }
     VoV.push_back(current);
   }
@@ -45,7 +50,8 @@ int orderedPCDMesher(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::string o
     {
       if (i > 0 && j > 0)
       {
-        if ( (VoV[i][j].x <= 0) || (VoV[i][j-1].x <= 0) || (VoV[i-1][j].x <= 0) || (VoV[i-1][j-1].x <= 0) )
+        // (p.z == -1) is a null point flag from structureTensorParticleSim()
+        if ( (VoV[i][j].z == -1) || (VoV[i][j-1].z == -1) || (VoV[i-1][j].z == -1) || (VoV[i-1][j-1].z == -1) )
         {
 //          std::cout << "bad vertex in face" << std:: endl;
           continue;
@@ -56,17 +62,17 @@ int orderedPCDMesher(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::string o
         v2 = v1 - 1;
         v3 = v2 - chain_length;
         v4 = v1 - chain_length;
-        add_face(v1, v2, v3);
-        add_face(v1, v3, v4);
+        mesh.add_face(v1, v2, v3);
+        mesh.add_face(v1, v3, v4);
       }
     }
   }
   
-  write_mesh(outFile);
+  mesh.write_mesh(outFile);
   return EXIT_SUCCESS;
 }
 
-void write_mesh(std::string name) {
+void Mesh::write_mesh(std::string name) {
   std::ofstream meshFile;
   meshFile.open(name);
   std::cout << "Writing mesh to file..." << std::endl;
@@ -122,7 +128,7 @@ void write_mesh(std::string name) {
   meshFile.close();
 }
 
-void add_face(int v1, int v2, int v3) {
+void Mesh::add_face(int v1, int v2, int v3) {
   Face f;
   f.v1 = v1;
   f.v2 = v2;
@@ -163,7 +169,7 @@ void add_face(int v1, int v2, int v3) {
   update_normal(v3, nx, ny, nz);
 }
 
-void update_normal(int vertex, double nx_in, double ny_in, double nz_in) {
+void Mesh::update_normal(int vertex, double nx_in, double ny_in, double nz_in) {
   // recalculate average (unaverage, add new component, recalculate average)
   Vertex v = vertices[vertex];
   v.nx = (v.nx * v.face_count + nx_in) / (v.face_count + 1);
@@ -173,7 +179,7 @@ void update_normal(int vertex, double nx_in, double ny_in, double nz_in) {
   vertices[vertex] = v;
 }
 
-void add_vertex(pcl::PointXYZRGB point) {
+void Mesh::add_vertex(pcl::PointXYZRGB point) {
   Vertex v;
   v.x = point.x;
   v.y = point.y;

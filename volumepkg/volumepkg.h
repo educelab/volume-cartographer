@@ -67,7 +67,7 @@ public:
     void saveCloud(pcl::PointCloud<pcl::PointXYZRGB>);
     void saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr);
     void saveTexturedMesh(ChaoVis::CMesh);
-    void saveTextureData(cv::Mat, std::string);
+    void saveTextureData(cv::Mat, std::string = "texture");
     
 private:
     VolumePkgCfg config;
