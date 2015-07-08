@@ -4,9 +4,11 @@
 #define _CMESH_H_
 
 #include <iostream>
+#ifndef Q_MOC_RUN
 #include <pcl/point_types.h>
+#endif
 #include <opencv2/opencv.hpp>
-#include <map>
+#include <set>
 
 namespace ChaoVis {
 

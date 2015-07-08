@@ -9,8 +9,10 @@
 
 #include <opencv2/opencv.hpp>
 
+#ifndef Q_MOC_RUN
 #include "volumepkg.h"
 #include "bezierUtils.h"
+#endif
 
 class QScrollBar;
 class QLabel;
