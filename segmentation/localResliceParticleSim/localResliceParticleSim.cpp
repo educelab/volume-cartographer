@@ -105,7 +105,7 @@ void core_callback(int event, int x, int y, int flags, void* point) {
 namespace volcart {
     namespace segmentation {
         pcl::PointCloud<pcl::PointXYZRGB> localResliceParticleSim(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg volpkg, double gravity_scale, int threshold, int endOffset) {
-          Field f(&volpkg);
+          DEMO::Field f(&volpkg);
 
           // // SPLINE DEMO
           // // convert to color so drawing is more useful
@@ -156,10 +156,12 @@ namespace volcart {
           //   cv::waitKey(0);
           // }
 
-          Chain c(segPath, &volpkg, threshold, endOffset);
+          DEMO::Chain c(segPath, &volpkg, threshold, endOffset);
 
-          for (int i = 0; c.isMoving() && i < 200; ++i)
+          for (int i = 0; c.isMoving() && i < 200; ++i) {
             c.step(f);
+            c.debug();
+          }
 
           return c.orderedPCD();
         }

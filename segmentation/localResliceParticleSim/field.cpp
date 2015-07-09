@@ -1,6 +1,6 @@
 #include "field.h"
 // Constructor
-Field::Field(VolumePkg* v) {
+DEMO::Field::Field(VolumePkg* v) {
   _volpkg = v;
   for (int i = 0; i < _volpkg->getNumberOfSlices(); ++i) {
     _field.push_back(v->getSliceAtIndex(i));
@@ -12,7 +12,7 @@ Field::Field(VolumePkg* v) {
 // normals with their neighbors's known normals.
 //
 // formula from http://paulbourke.net/miscellaneous/interpolation/
-unsigned short Field::interpolate_at(cv::Vec3f point) {
+unsigned short DEMO::Field::interpolate_at(cv::Vec3f point) {
   double dx, dy, dz, int_part;
   dx = modf(point(VC_INDEX_X), &int_part);
   dy = modf(point(VC_INDEX_Y), &int_part);
@@ -47,7 +47,7 @@ unsigned short Field::interpolate_at(cv::Vec3f point) {
   return vector;
 }
 
-Slice Field::reslice(cv::Vec3f center, cv::Vec3f x_dir, cv::Vec3f y_dir, int reslice_height, int reslice_width) {
+Slice DEMO::Field::reslice(cv::Vec3f center, cv::Vec3f x_dir, cv::Vec3f y_dir, int reslice_height, int reslice_width) {
   cv::Vec3f x_direction = normalize(x_dir);
   cv::Vec3f y_direction = normalize(y_dir);
 
@@ -64,7 +64,7 @@ Slice Field::reslice(cv::Vec3f center, cv::Vec3f x_dir, cv::Vec3f y_dir, int res
   return Slice(m, origin, x_direction, y_direction);
 }
 
-Slice Field::resliceRadial(cv::Vec3f origin, cv::Vec3f rotation_axis, double theta, int reslice_height, int reslice_width) {
+Slice DEMO::Field::resliceRadial(cv::Vec3f origin, cv::Vec3f rotation_axis, double theta, int reslice_height, int reslice_width) {
   cv::Vec3f slice_direcion(cos(theta),sin(theta),0);
   slice_direcion = slice_direcion - (rotation_axis.dot(slice_direcion)/rotation_axis.dot(rotation_axis)) * rotation_axis;
   cv::Vec3f x_direction = normalize(slice_direcion);
