@@ -14,6 +14,11 @@ option(BUILD_DragNDrop "Build OSX DMG Installer" OFF)
 endif(APPLE)
 option(Boost_USE_STATIC_LIBS "Link against static Boost libs" OFF)
 
+# Choose what to install
+option(INSTALL_VC_CORE "Install VC core apps" ON)
+option(INSTALL_VC_UTIL "Install VC util apps" ON)
+option(INSTALL_VC_DEMO "Install VC demo apps" OFF)
+
 find_package(Qt4 REQUIRED)
 find_package(PCL 1.7 REQUIRED)
 find_package(OpenCV REQUIRED)
@@ -35,8 +40,8 @@ add_definitions(${PCL_DEFINITIONS})
 
 # OS Specific Changes
 IF(APPLE)
-	FIND_LIBRARY(SECURITY_LIBRARY Security)
-	SET(EXTRA_LIBS ${SECURITY_LIBRARY})
+    FIND_LIBRARY(SECURITY_LIBRARY Security)
+    SET(EXTRA_LIBS ${SECURITY_LIBRARY})
 ENDIF(APPLE)
 
 # VC Libraries
@@ -70,25 +75,47 @@ file(MAKE_DIRECTORY packager)
 file(COPY packager/packager.py DESTINATION ${CMAKE_BINARY_DIR}/bin)
 file(RENAME ${CMAKE_BINARY_DIR}/bin/packager.py ${CMAKE_BINARY_DIR}/bin/vc_packager)
 
-install(PROGRAMS 
-            "${CMAKE_BINARY_DIR}/bin/vc_packager"
-            "${CMAKE_BINARY_DIR}/bin/vc_pathgen"
-            "${CMAKE_BINARY_DIR}/bin/vc_scalpel"
-            "${CMAKE_BINARY_DIR}/bin/vc_segment"
-            "${CMAKE_BINARY_DIR}/bin/vc_region"
-            "${CMAKE_BINARY_DIR}/bin/vc_mesher"
-            "${CMAKE_BINARY_DIR}/bin/vc_meshEditor"
-            "${CMAKE_BINARY_DIR}/bin/vc_texture"
-            "${CMAKE_BINARY_DIR}/bin/vc_texture2"
-            "${CMAKE_BINARY_DIR}/bin/vc_meshnorm"
-            "${CMAKE_BINARY_DIR}/bin/vc_sliceProjection"
-            "${CMAKE_BINARY_DIR}/bin/vc_analyze"
-            "${CMAKE_BINARY_DIR}/bin/vc_conform"
-            "${CMAKE_BINARY_DIR}/bin/vc_txt2pcd"
-            "${CMAKE_BINARY_DIR}/bin/vc_metaedit"
-            "${CMAKE_BINARY_DIR}/bin/vc_addScale"
+# Create some install targets
+set(VC_CORE_PROGRAMS ${CMAKE_BINARY_DIR}/bin/vc_packager
+                     ${CMAKE_BINARY_DIR}/bin/vc_scalpel
+                     ${CMAKE_BINARY_DIR}/bin/vc_pathgen
+                     ${CMAKE_BINARY_DIR}/bin/vc_segment
+                     ${CMAKE_BINARY_DIR}/bin/vc_mesher
+                     ${CMAKE_BINARY_DIR}/bin/vc_texture
+                     ${CMAKE_BINARY_DIR}/bin/vc_analyze
+                     ${CMAKE_BINARY_DIR}/bin/vc_conform
+                     ${CMAKE_BINARY_DIR}/bin/vc_metaedit)
+
+set(VC_UTIL_PROGRAMS ${CMAKE_BINARY_DIR}/bin/vc_meshEditor
+                     ${CMAKE_BINARY_DIR}/bin/vc_meshnorm
+                     ${CMAKE_BINARY_DIR}/bin/vc_sliceProjection
+                     ${CMAKE_BINARY_DIR}/bin/vc_txt2pcd
+                     ${CMAKE_BINARY_DIR}/bin/vc_zxy2xyz)
+
+set(VC_DEMO_PROGRAMS ${CMAKE_BINARY_DIR}/bin/vc_region
+                     ${CMAKE_BINARY_DIR}/bin/vc_texture2
+                     ${CMAKE_BINARY_DIR}/bin/vc_addScale)
+
+if(INSTALL_VC_CORE)
+install(PROGRAMS ${VC_CORE_PROGRAMS}
         DESTINATION bin
         COMPONENT Programs)
+set(INSTALL_COMPONENTS "${INSTALL_COMPONENTS} Programs")
+endif(INSTALL_VC_CORE)
+
+if(INSTALL_VC_UTIL)
+install(PROGRAMS ${VC_UTIL_PROGRAMS}
+        DESTINATION bin
+        COMPONENT Utilities)
+set(INSTALL_COMPONENTS "${INSTALL_COMPONENTS} Utilities")
+endif(INSTALL_VC_UTIL)
+
+if(INSTALL_VC_DEMO)
+install(PROGRAMS ${VC_DEMO_PROGRAMS}
+        DESTINATION bin
+        COMPONENT Demos)
+set(INSTALL_COMPONENTS "${INSTALL_COMPONENTS} Demos")
+endif(INSTALL_VC_DEMO)
 
 #install(FILES
 #            "${CMAKE_BINARY_DIR}/lib/libvc_volumepkg.a"
@@ -119,7 +146,7 @@ else()
 set(CPACK_GENERATOR "TGZ;ZIP")
 endif(BUILD_DragNDrop)
 
-set(CPACK_COMPONENTS_ALL Programs)
+set(CPACK_COMPONENTS_ALL ${INSTALL_COMPONENTS})
 set(CPACK_PACKAGE_NAME "VC")
 set(CPACK_PACKAGE_VENDOR "UK VisCenter")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Volume Cartographer")
