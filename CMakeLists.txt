@@ -59,63 +59,25 @@ include_directories(${SEGMENTATION_INCLUDE_DIR})
 
 set(VC_LIBS vc_volumepkg vc_meshing vc_segmentation vc_common)
 
-# VC Apps
+# VC Core Apps
 add_subdirectory(pathgen)
-# add_subdirectory(reslicer)
 add_subdirectory(scalpel)
-add_subdirectory(region)
 add_subdirectory(texture)
-add_subdirectory(texturing)
 add_subdirectory(apps)
 add_subdirectory(utils)
-add_subdirectory(examples)
 
-# Copy packager files. This is a hack.
+# Special rules for packager since it's a Python script
 file(MAKE_DIRECTORY packager)
 file(COPY packager/packager.py DESTINATION ${CMAKE_BINARY_DIR}/bin)
 file(RENAME ${CMAKE_BINARY_DIR}/bin/packager.py ${CMAKE_BINARY_DIR}/bin/vc_packager)
 
-# Create some install targets
-set(VC_CORE_PROGRAMS ${CMAKE_BINARY_DIR}/bin/vc_packager
-                     ${CMAKE_BINARY_DIR}/bin/vc_scalpel
-                     ${CMAKE_BINARY_DIR}/bin/vc_pathgen
-                     ${CMAKE_BINARY_DIR}/bin/vc_segment
-                     ${CMAKE_BINARY_DIR}/bin/vc_mesher
-                     ${CMAKE_BINARY_DIR}/bin/vc_texture
-                     ${CMAKE_BINARY_DIR}/bin/vc_analyze
-                     ${CMAKE_BINARY_DIR}/bin/vc_conform
-                     ${CMAKE_BINARY_DIR}/bin/vc_metaedit)
+install(PROGRAMS ${CMAKE_BINARY_DIR}/bin/vc_packager
+        DESTINATION bin COMPONENT Programs)
 
-set(VC_UTIL_PROGRAMS ${CMAKE_BINARY_DIR}/bin/vc_meshEditor
-                     ${CMAKE_BINARY_DIR}/bin/vc_meshnorm
-                     ${CMAKE_BINARY_DIR}/bin/vc_sliceProjection
-                     ${CMAKE_BINARY_DIR}/bin/vc_txt2pcd
-                     ${CMAKE_BINARY_DIR}/bin/vc_zxy2xyz)
-
-set(VC_DEMO_PROGRAMS ${CMAKE_BINARY_DIR}/bin/vc_region
-                     ${CMAKE_BINARY_DIR}/bin/vc_texture2
-                     ${CMAKE_BINARY_DIR}/bin/vc_addScale)
-
-if(INSTALL_VC_CORE)
-install(PROGRAMS ${VC_CORE_PROGRAMS}
-        DESTINATION bin
-        COMPONENT Programs)
-set(INSTALL_COMPONENTS "${INSTALL_COMPONENTS} Programs")
-endif(INSTALL_VC_CORE)
-
-if(INSTALL_VC_UTIL)
-install(PROGRAMS ${VC_UTIL_PROGRAMS}
-        DESTINATION bin
-        COMPONENT Utilities)
-set(INSTALL_COMPONENTS "${INSTALL_COMPONENTS} Utilities")
-endif(INSTALL_VC_UTIL)
-
-if(INSTALL_VC_DEMO)
-install(PROGRAMS ${VC_DEMO_PROGRAMS}
-        DESTINATION bin
-        COMPONENT Demos)
-set(INSTALL_COMPONENTS "${INSTALL_COMPONENTS} Demos")
-endif(INSTALL_VC_DEMO)
+# VC Demo Apps
+add_subdirectory(region)
+add_subdirectory(texturing)
+add_subdirectory(examples)
 
 #install(FILES
 #            "${CMAKE_BINARY_DIR}/lib/libvc_volumepkg.a"
@@ -145,6 +107,16 @@ set(CPACK_GENERATOR "DragNDrop;TGZ;ZIP")
 else()
 set(CPACK_GENERATOR "TGZ;ZIP")
 endif(BUILD_DragNDrop)
+
+if(INSTALL_VC_CORE)
+    set(INSTALL_COMPONENTS "${INSTALL_COMPONENTS}" "Programs")
+endif(INSTALL_VC_CORE)
+if(INSTALL_VC_UTIL)
+    set(INSTALL_COMPONENTS "${INSTALL_COMPONENTS}" "Utilities")
+endif(INSTALL_VC_UTIL)
+if(INSTALL_VC_DEMO)
+    set(INSTALL_COMPONENTS "${INSTALL_COMPONENTS}" "Demos")
+endif(INSTALL_VC_DEMO)
 
 set(CPACK_COMPONENTS_ALL ${INSTALL_COMPONENTS})
 set(CPACK_PACKAGE_NAME "VC")

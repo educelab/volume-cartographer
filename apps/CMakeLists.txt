@@ -12,6 +12,10 @@ target_link_libraries(vc_segment ${VC_LIBS} ${VC_REQ_LIBS})
 add_executable(vc_metaedit metadata.cpp)
 target_link_libraries(vc_metaedit ${VC_LIBS} ${PCL_LIBRARIES} ${OpenCV_LIBS})
 
+# Install targets
+install(TARGETS vc_mesher vc_segment vc_metaedit
+        RUNTIME DESTINATION bin COMPONENT Programs)
+
 # Mesh Editor
 # only include the headers that needs to be processed by moc
 SET(meshEditor_SOURCES  meshEditor/Ply/base.cpp meshEditor/Ply/header.cpp meshEditor/Ply/io.cpp meshEditor/Ply/object.cpp
@@ -31,6 +35,10 @@ QT4_WRAP_CPP(meshEditor_HEADERS_MOC ${meshEditor_HEADERS})
 
 add_executable(vc_meshEditor ${meshEditor_SOURCES} ${meshEditor_HEADERS_MOC})
 target_link_libraries(vc_meshEditor ${VC_LIBS} ${VC_REQ_LIBS} Qt4::QtOpenGL ${OPENGL_LIBRARIES} ${QT_LIBRARIES} ${EXTRA_LIBS})
+
+# Install targets
+install(TARGETS vc_meshEditor
+        RUNTIME DESTINATION bin COMPONENT Demos)
 
 # VCNewUI - I'm sorry for everything below this line. - SP
 # only include the headers that needs to be processed by moc
@@ -67,9 +75,8 @@ endif(APPLE AND BUILD_OSX_APPS)
 
 target_link_libraries(VC ${VC_LIBS} ${VC_REQ_LIBS} Qt4::QtOpenGL ${OPENGL_LIBRARIES} ${QT_LIBRARIES} ${EXTRA_LIBS})
 INSTALL(TARGETS VC
-    BUNDLE DESTINATION . COMPONENT Programs
-    RUNTIME DESTINATION bin COMPONENT Programs
-    )
+        BUNDLE DESTINATION . COMPONENT Programs
+        RUNTIME DESTINATION bin COMPONENT Programs)
 
 if(BUILD_OSX_APPS)
 SET(plugin_dest_dir VC.app/Contents/MacOS)
