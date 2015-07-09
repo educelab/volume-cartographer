@@ -2,8 +2,8 @@
 // step() updates the postitions of particles based on their normal
 // vectors. Neighboring particles are kept in line with a "spring".
 
-#ifndef _CHAIN_
-#define _CHAIN_
+#ifndef _DEMO_CHAIN_
+#define _DEMO_CHAIN_
 
 #define DEFAULT_OFFSET -1
 
@@ -14,6 +14,8 @@
 
 #include "field.h"
 #include "particle.h"
+
+namespace DEMO {
 
 class Chain {
 public:
@@ -36,5 +38,7 @@ private:
   int _target_index; // Target slice index
   int _threshold; // To-Do: What is this for now? We may not need this.
 };
+
+}
 
 #endif
