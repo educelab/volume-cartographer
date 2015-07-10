@@ -30,7 +30,7 @@ int main(int argc, char* argv[]) {
   int dot = outfile.find_last_of(".");
   outfile = outfile.substr(0,dot) + ".ply";
   
-  orderedPCDMesher(inputCloud, outfile);
+  volcart::meshing::orderedPCDMesher(inputCloud, outfile);
 
   exit(EXIT_SUCCESS);
 }
