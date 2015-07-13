@@ -2,7 +2,7 @@
 
 
 // (doc) Why the parameters that we're giving it?
-DEMO::Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg* volpkg, int threshold, int endOffset) {
+DEMO::Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg* volpkg, int threshold, int endOffset, int steps_before_reslice) {
   // Convert the point cloud segPath into a vector of Particles
   std::vector<Particle> init_chain;
 
@@ -10,12 +10,20 @@ DEMO::Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg* vo
     init_chain.push_back(cv::Vec3f(path_it->x, path_it->y, path_it->z));
   }
 
+  // used for getting slices for debug output
   _volpkg = volpkg;
+
+  // keeps track of how many iterations have been performed
+  _update_count = 0;
 
   // Add starting chain to _history and setup other parameters
   _history.push_front(init_chain);
   _chain_length      = init_chain.size();
   _threshold         = threshold;
+
+  // normals are updated every iteration by default
+  _steps_before_reslice = steps_before_reslice;
+  _saved_normals = std::vector<cv::Vec3f>(_chain_length, cv::Vec3f(0,0,0));
 
   // Find the lowest slice index in the starting chain
   _start_index = _history.front()[0](VC_INDEX_Z);
@@ -35,7 +43,7 @@ DEMO::Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg* vo
 
 #define NORMAL(i) do {                                          \
     cv::Vec3f tangent = update_chain[i+1]-update_chain[i-1];    \
-    normal = tangent.cross(VC_DIRECTION_K);                     \
+    _saved_normals[i] = tangent.cross(VC_DIRECTION_K);          \
   } while (0)
 
 // This function defines how particles are updated
@@ -44,26 +52,25 @@ void DEMO::Chain::step(DEMO::Field& field) {
   std::vector<Particle> update_chain = _history.front();
   std::vector<cv::Vec3f> force_vector(_chain_length, cv::Vec3f(0,0,0));
 
-  // this->debug();
-
   for(int i = 0; i < _chain_length; ++i) {
     if (update_chain[i].isStopped())
       continue;
 
-    cv::Vec3f normal;
-    if (i == 0) {
-      NORMAL(1);
-    } else if (i == _chain_length - 1) {
-      NORMAL(_chain_length - 2);
-    } else {
-      NORMAL(i);
+    // update normals every _steps_before_reslice steps
+    if (_update_count % _steps_before_reslice == 0) {
+      // pretend that the normals at the end of the chain
+      // are the same as the ones adjacent
+      if (i == 0) {
+        NORMAL(1);
+      } else if (i == _chain_length - 1) {
+        NORMAL(_chain_length - 2);
+      } else {
+        NORMAL(i);
+      }
     }
 
-    Slice s = field.reslice(update_chain[i].position(), normal, VC_DIRECTION_K);
-    // s.debugDraw(DEBUG_DRAW_XYZ | DEBUG_DRAW_CENTER);
-    // s.debugAnalysis();
-    // cv::waitKey(0);
-
+    // reslice and find next position
+    Slice s = field.reslice(update_chain[i].position(), _saved_normals[i], VC_DIRECTION_K);
     force_vector[i] += (s.findNextPosition() - update_chain[i].position());
   }
 
@@ -76,6 +83,7 @@ void DEMO::Chain::step(DEMO::Field& field) {
   }
 
   // Add the modified chain back to _history
+  _update_count++;
   _history.push_front(update_chain);
 }
 
@@ -87,7 +95,7 @@ bool DEMO::Chain::isMoving() {
   return !result;
 }
 
-void DEMO::Chain::debug() {
+void DEMO::Chain::debug(bool saveOutput) {
   std::vector<Particle> recent = _history.front();
   int z_index = recent[0](VC_INDEX_Z);
 
@@ -96,6 +104,7 @@ void DEMO::Chain::debug() {
   debug.convertTo(debug, CV_8UC3);
   cvtColor(debug, debug, CV_GRAY2BGR);
 
+  // draw circles on the debug window for each point
   for (int i = 0; i < recent.size(); ++i) {
     cv::Point position(recent[i](VC_INDEX_X), recent[i](VC_INDEX_Y));
     if ((int)recent[i](VC_INDEX_Z) == z_index)
@@ -106,6 +115,14 @@ void DEMO::Chain::debug() {
 
   namedWindow("DEBUG CHAIN", cv::WINDOW_AUTOSIZE);
   imshow("DEBUG CHAIN", debug);
+
+  // option to save output to disk
+  if (saveOutput) {
+    std::stringstream ss;
+    ss << "debug_chain_" << std::setw(3) << std::setfill('0') << _update_count << ".tif";
+    cv::imwrite(ss.str(), debug);
+  }
+
   cv::waitKey(0);
 }
 

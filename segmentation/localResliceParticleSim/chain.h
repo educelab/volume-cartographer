@@ -1,7 +1,3 @@
-// Chain object maintains a vector of points and their histories.
-// step() updates the postitions of particles based on their normal
-// vectors. Neighboring particles are kept in line with a "spring".
-
 #ifndef _DEMO_CHAIN_
 #define _DEMO_CHAIN_
 
@@ -19,17 +15,23 @@ namespace DEMO {
 
 class Chain {
 public:
-  Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr,VolumePkg*,int,int);
+  Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr,VolumePkg*,int,int,int = 1);
   void step(Field&);
   bool isMoving();
-  void debug();
+  void debug(bool = false);
   pcl::PointCloud<pcl::PointXYZRGB> orderedPCD();
 
 private:
   // History of the chain at each iteration
   std::list<std::vector<Particle> > _history;
-
   VolumePkg* _volpkg;
+  int _update_count;
+
+  // "reslicing" happens when we update the normals
+  // we have to reslice every iteration regardless
+  // since offets are from the center of the slice
+  int _steps_before_reslice;
+  std::vector<cv::Vec3f> _saved_normals;
 
   // -- Chain Size Information -- //
   int _chain_length; // Number of particles in the chain & width of output PCD
