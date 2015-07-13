@@ -7,9 +7,7 @@
 namespace volcart {
     namespace meshing {
 
-        pcl::PolygonMesh greedyProjectionMeshing ( pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr input, unsigned maxNeighbors, double neighborhoodSize, double maxEdgeLength ) {
-
-            std::cerr << input->size() << std::endl;
+        pcl::PolygonMesh greedyProjectionMeshing ( pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr input, unsigned maxNeighbors, double radius, double radiusMultiplier ) {
 
             // Make a Kd-tree for the input cloud
             pcl::search::KdTree<pcl::PointXYZRGBNormal>::Ptr input_tree (new pcl::search::KdTree<pcl::PointXYZRGBNormal>() );
@@ -20,11 +18,11 @@ namespace volcart {
             pcl::PolygonMesh output;
 
             // Maximum distance between connected points
-            greedyProjection.setSearchRadius(maxEdgeLength);
+            greedyProjection.setSearchRadius(radius);
 
             // Max number of neighbors and the maximum distance from the center point
             greedyProjection.setMaximumNearestNeighbors(maxNeighbors);
-            greedyProjection.setMu(neighborhoodSize);
+            greedyProjection.setMu(radiusMultiplier);
 
             // Defaults for the rest
             greedyProjection.setMinimumAngle(M_PI/18); // 10 degrees - min angle in triangle
