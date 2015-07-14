@@ -4,6 +4,7 @@
 // mostly the same as what's in structureTensorParticleSim.cpp
 // both should be moved somewhere more global
 #define WHITE 255
+#define BLACK 0
 
 #define BGR_BLUE cv::Scalar(255, 0, 0)
 #define BGR_GREEN cv::Scalar(0, 255, 0)
@@ -139,6 +140,60 @@ void Slice::debugAnalysis() {
   cv::Point center(fill.cols/2, fill.rows/2);
   floodFill(fill, center, WHITE);
   threshold(fill, fill, WHITE - 1, WHITE, cv::THRESH_BINARY);
+
+  // for each row of the image find a the centers of
+  // the white parts
+  for (int y = 0; y < fill.rows; ++y) {
+    int xindex = 0;
+
+    // don't start on a white cell
+    while (fill.at<unsigned char>(cv::Point(xindex, y)) == WHITE) {
+      xindex++;
+    }
+
+    while (xindex < fill.cols) {
+      int left_side;
+      int right_side;
+
+      // only used for skipping bound_invalid
+      goto bound_valid;
+
+      // go the the next y in the slice
+    bound_invalid:
+      break;
+
+    bound_valid:
+      // find the left side of a white region
+      while (fill.at<unsigned char>(cv::Point(xindex, y)) != WHITE) {
+        xindex++;
+        if (xindex >= fill.cols)
+          goto bound_invalid;
+      }
+      left_side = xindex;
+
+      // find the right side of a white region
+      while (fill.at<unsigned char>(cv::Point(xindex+1, y)) != BLACK) {
+        xindex++;
+        if (xindex >= fill.cols)
+          goto bound_invalid;
+      }
+      right_side = xindex;
+
+      // black out everything in the region
+      // except the center
+      for (int i = left_side; i <= right_side; ++i) {
+        fill.at<unsigned char>(cv::Point(i ,y)) = BLACK;
+      }
+      fill.at<unsigned char>(cv::Point((right_side + left_side) / 2, y)) = WHITE;
+      // putting in two points should probably be an option for when
+      // there is not integer valued center
+      // if ((left_side + right_side) % 2 == 1)
+      //   fill.at<unsigned char>(cv::Point((right_side + left_side + 1) / 2, y)) = WHITE;
+
+      // we can get stuck if we don't do another increment
+      xindex++;
+    }
+  }
 
   namedWindow("DEBUG ANALYSIS", cv::WINDOW_AUTOSIZE);
   imshow("DEBUG ANALYSIS", fill);
