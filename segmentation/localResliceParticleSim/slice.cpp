@@ -16,7 +16,6 @@
 
 #define BGR_WHITE cv::Scalar(255, 255, 255)
 
-
 #define DEBUG_ARROW_SCALAR 20
 
 // basic constructor
@@ -28,37 +27,20 @@ Slice::Slice(cv::Mat slice, cv::Vec3f origin, cv::Vec3f x_direction, cv::Vec3f y
 }
 
 cv::Vec3f Slice::findNextPosition() {
-  // second derivative gives us a nice void space
-  // around the pages of the scroll
-  cv::Mat temp_slice = slice_.clone();
-  cv::Mat grad_x;
-  GaussianBlur(temp_slice, grad_x, cv::Size(3,3), 0);
-  Sobel(grad_x, grad_x, CV_16S,1,0,3,1,0, cv::BORDER_DEFAULT);
-  Sobel(grad_x, grad_x, CV_16S,1,0,3,1,0, cv::BORDER_DEFAULT);
-
-  // when this is moved to production there may need to be
-  // an if to make sure the pixel in question is black
-
-  cv::Mat fill;
-  grad_x *= 1./255;
-  grad_x.convertTo(fill, CV_8UC1);
-
-  // slice is easier to work with when it's just black and white
-  cv::Point center(fill.cols/2, fill.rows/2);
-  floodFill(fill, center, WHITE);
-  threshold(fill, fill, WHITE - 1, WHITE, cv::THRESH_BINARY);
+  cv::Mat analysis = this->analyze();
+  cv::Point center(analysis.cols/2, analysis.rows/2);
 
   // find the new position in the reslice
   cv::Point offset(0,1);
-  for (int xoffset = 0; xoffset < fill.cols/2; ++xoffset) {
+  for (int xoffset = 0; xoffset < analysis.cols/2; ++xoffset) {
     cv::Point positive_offset(xoffset, 1);
-    if (fill.at<uchar>(center + positive_offset)) {
+    if (analysis.at<uchar>(center + positive_offset)) {
       offset = positive_offset;
       break;
     }
 
     cv::Point negative_offset(-xoffset, 1);
-    if (fill.at<uchar>(center + negative_offset)) {
+    if (analysis.at<uchar>(center + negative_offset)) {
       offset = negative_offset;
       break;
     }
@@ -125,8 +107,23 @@ void Slice::debugDraw(int debugDrawOptions) {
   imshow("DEBUG DRAW", debug);
 }
 
-// show the last step before deciding where to go next in findNextPosition()
 void Slice::debugAnalysis() {
+  cv::Mat analysis = this->analyze();
+  namedWindow("DEBUG ANALYSIS", cv::WINDOW_AUTOSIZE);
+  imshow("DEBUG ANALYSIS", analysis);
+}
+
+cv::Mat Slice::mat() {
+  return slice_.clone();
+}
+
+
+// function for analyzing the slice
+// returns a cv::Mat for viewing in a debug window
+// or finding out where to move next
+cv::Mat Slice::analyze() {
+  // second derivative gives us a nice void space
+  // around the pages of the scroll
   cv::Mat temp_slice = slice_.clone();
   cv::Mat grad_x;
   GaussianBlur(temp_slice, grad_x, cv::Size(3,3), 0);
@@ -137,12 +134,13 @@ void Slice::debugAnalysis() {
   grad_x *= 1./255;
   grad_x.convertTo(fill, CV_8UC1);
 
+  // slice is easier to work with when it's just black and white
   cv::Point center(fill.cols/2, fill.rows/2);
   floodFill(fill, center, WHITE);
   threshold(fill, fill, WHITE - 1, WHITE, cv::THRESH_BINARY);
 
-  // for each row of the image find a the centers of
-  // the white parts
+  // skeletonize the slice
+  // there might be a way to get the same effect with an opencv erode
   for (int y = 0; y < fill.rows; ++y) {
     int xindex = 0;
 
@@ -158,7 +156,7 @@ void Slice::debugAnalysis() {
       // only used for skipping bound_invalid
       goto bound_valid;
 
-      // go the the next y in the slice
+      // go the the next row in the slice
     bound_invalid:
       break;
 
@@ -185,8 +183,9 @@ void Slice::debugAnalysis() {
         fill.at<unsigned char>(cv::Point(i ,y)) = BLACK;
       }
       fill.at<unsigned char>(cv::Point((right_side + left_side) / 2, y)) = WHITE;
-      // putting in two points should probably be an option for when
-      // there is not integer valued center
+
+      // putting in two points might be useful when
+      // there isn't an integer valued center
       // if ((left_side + right_side) % 2 == 1)
       //   fill.at<unsigned char>(cv::Point((right_side + left_side + 1) / 2, y)) = WHITE;
 
@@ -195,10 +194,5 @@ void Slice::debugAnalysis() {
     }
   }
 
-  namedWindow("DEBUG ANALYSIS", cv::WINDOW_AUTOSIZE);
-  imshow("DEBUG ANALYSIS", fill);
-}
-
-cv::Mat Slice::mat() {
-  return slice_.clone();
+  return fill;
 }

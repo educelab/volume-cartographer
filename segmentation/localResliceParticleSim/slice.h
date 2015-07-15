@@ -32,6 +32,7 @@ public:
   void debugAnalysis();
   cv::Mat mat();
 private:
+  cv::Mat analyze();
   cv::Mat slice_;
   cv::Vec3f origin_;
   cv::Vec3f x_component_;
