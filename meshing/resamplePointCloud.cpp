@@ -24,6 +24,11 @@ namespace volcart {
             mls_mesher.setSearchMethod(input_tree);
             mls_mesher.setSearchRadius(radius);
 
+            // Upsampling Parameters
+            //mls_mesher.setUpsamplingMethod (pcl::MovingLeastSquares<pcl::PointXYZRGB, pcl::PointXYZRGBNormal>::SAMPLE_LOCAL_PLANE);
+            //mls_mesher.setUpsamplingRadius(5);
+            //mls_mesher.setUpsamplingStepSize(5);
+
             // Run MLS
             std::cerr << "volcart::meshing::running MLS..." << std::endl;
             mls_mesher.process(mls_results);

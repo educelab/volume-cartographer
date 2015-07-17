@@ -1,5 +1,5 @@
-// layering.cpp
-// Abigail Coleman June 2015
+// resampling.cpp
+// Abigail Coleman July 2015
 
 #include <iostream>
 #include <fstream>
@@ -7,7 +7,8 @@
 #include <cmath>
 
 #include <opencv2/opencv.hpp>
-#include <itkOBJMeshIO.h>
+
+#include <itkMeshFileReader.h>
 
 #include "volumepkg.h"
 #include "vc_defines.h"
@@ -20,7 +21,7 @@
 int main(int argc, char* argv[])
 {
     if ( argc < 6 ) {
-        std::cout << "Usage: vc_layering volpkg seg-id smoothing-factor sample-direction ";
+        std::cout << "Usage: vc_resampling volpkg seg-id smoothing-factor sample-direction ";
         std::cout << "number-of-sections sectioning-scale" << std::endl;
         std::cout << "Sample Direction: " << std::endl;
         std::cout << "      0 = Omni" << std::endl;
@@ -63,15 +64,19 @@ int main(int argc, char* argv[])
     VC_MeshType::Pointer  inputMesh = VC_MeshType::New();
     VC_MeshType::Pointer  smoothedMesh = VC_MeshType::New();
 
-    int meshWidth = -1;
-    int meshHeight = -1;
+        // Filter NaN out of mls_points cloud
 
-    // try to convert the ply to an ITK mesh
-    if ( !volcart::io::ply2itkmesh(meshName, inputMesh, meshWidth, meshHeight) ) {
-        exit( -1 );
-    };
+    typedef itk::MeshFileReader< VC_MeshType >  ReaderType;
+    ReaderType::Pointer reader = ReaderType::New();
+    reader->SetFileName( "greedy.obj" );
+    reader->Update();
+      
+    inputMesh = reader->GetOutput(); 
+   
+    int meshWidth = 1658;
+    int meshHeight = 2427;
 
-    // Matrices to store the output textures
+    //Matrices to store the output textures
     int textureW = meshWidth;
     int textureH = meshHeight;
     // Essential data structure that will be saved as images after sectioning

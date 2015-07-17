@@ -20,10 +20,6 @@ VC_MeshType::Pointer smoothNormals ( VC_MeshType::Pointer  inputMesh,
     std::vector< long double > neighborAvg ( 3, 0 );
     double neighborCount, distance, pointID;
 
-    // file to write old and new normals too
-    std::ofstream myfile;
-    myfile.open( "normals.txt" );
-
     // Use pointsLocator to find neighborhood within given radius
     typename VC_PointsLocatorType::Pointer pointsLocator = VC_PointsLocatorType::New();
     pointsLocator->SetPoints( inputMesh->GetPoints() );
@@ -38,8 +34,6 @@ VC_MeshType::Pointer smoothNormals ( VC_MeshType::Pointer  inputMesh,
         VC_PointType p = currentPoint.Value();
         VC_PixelType currentNormal;
         inputMesh->GetPointData( currentPoint.Index(), &currentNormal );
-
-        myfile << "Old: " << currentNormal[0] << ", " << currentNormal[1] << ", " << currentNormal[2] << "    ";
 
         neighborCount = 0;
         neighborAvg[0] = 0;
@@ -67,14 +61,11 @@ VC_MeshType::Pointer smoothNormals ( VC_MeshType::Pointer  inputMesh,
             currentNormal[1] = neighborAvg[1] / neighborCount;
             currentNormal[2] = neighborAvg[2] / neighborCount;
             outputMesh->SetPointData( currentPoint.Index(), currentNormal );
-            myfile << "New: " << currentNormal[0] << ", " << currentNormal[1] << ", " << currentNormal[2] << "    ";
-            myfile << "Neighbor Count: " << neighborCount << "\n";
         }
 
         ++currentPoint;
     }
     std::cout << std::endl;
-    myfile.close();
         
     return outputMesh;
 }
