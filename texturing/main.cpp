@@ -123,14 +123,33 @@ int main(int argc, char* argv[])
     }
     std::cout << std::endl;
 
+    // Generate per point uv coordinates specifically for the OBJ
+    VC_UVMap uvMap;
+    std::cerr << "Calculating UV coordinates for final mesh..." << std::endl;
+    for ( VC_PointsInMeshIterator point = mesh->GetPoints()->Begin(); point != mesh->GetPoints()->End(); ++point ) {
+        pointID = point.Index();
+
+        // Calculate the point's [meshX, meshY] position based on its pointID
+        meshX = pointID % meshWidth;
+        meshY = (pointID - meshX) / meshWidth;
+
+        // Calculate the point's UV position
+        u =  (double) meshX / (double) meshWidth;
+        v =  (double) meshY / (double) meshHeight;
+
+        // OBJ UV coordinates start in the bottom-left of an image, but we're calculating them from the top-left
+        // Subtract v from 1.0 to account for this
+        cv::Vec2d uv( u, 1.0 - v );
+
+        // Add the uv coordinates into our map at the point index specified
+        uvMap.insert( {pointID, uv} );
+    }
 
     // Initialize iterators
     VC_CellIterator  cellIterator = mesh->GetCells()->Begin();
     VC_CellIterator  cellEnd      = mesh->GetCells()->End();
     VC_CellType *    cell;
     VC_PointsInCellIterator pointsIterator;
-
-    VC_UVMap uvMap;
 
     // Iterate over all of the cells to lay out the faces in the output texture
     while( cellIterator != cellEnd )
@@ -155,18 +174,8 @@ int main(int argc, char* argv[])
             meshY = (pointID - meshX) / meshWidth;
 
             // Calculate the point's pixel position in the output texture
-            u =  (double) meshX / (double) meshWidth;
-            v =  (double) meshY / (double) meshHeight;
-
-            // OBJ UV coordinates start in the bottom-left of an image, but we're calculating them from the top-left
-            // Subtract v from 1.0 to account for this
-            cv::Vec2d uv( u, 1.0 - v );
-
-            uvMap.insert( {pointID, uv} );
-
-            // Convert normalized uv to output texture uv
-            u = (double) textureW * u;
-            v = (double) textureH * v;
+            u = (double) textureW * (double) meshX / (double) meshWidth;
+            v = (double) textureH * (double) meshY / (double) meshHeight;
 
             // Fill in the output pixel with a value
             // cv::Mat.at uses (row, column)
