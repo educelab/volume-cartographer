@@ -23,4 +23,6 @@ typedef VC_MeshType::PointsContainer::ConstIterator   VC_PointsInMeshIterator;
 typedef VC_MeshType::CellsContainer::Iterator         VC_CellIterator;
 typedef VC_CellType::PointIdIterator                  VC_PointsInCellIterator;
 
+typedef std::map<double, cv::Vec2d>                   VC_UVMap;
+
 #endif //VC_DEFINES_H

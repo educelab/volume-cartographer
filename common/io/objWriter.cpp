@@ -15,7 +15,7 @@ namespace volcart {
         _mesh = mesh;
     };
 
-    objWriter::objWriter( std::string outputPath, VC_MeshType::Pointer mesh, std::map<double, cv::Vec2d> uvMap, cv::Mat uvImg ) {
+    objWriter::objWriter( std::string outputPath, VC_MeshType::Pointer mesh, VC_UVMap uvMap, cv::Mat uvImg ) {
         _outputPath = outputPath;
         _mesh = mesh;
         _textCoords = uvMap;

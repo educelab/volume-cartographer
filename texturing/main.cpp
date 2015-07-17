@@ -9,6 +9,7 @@
 #include "volumepkg.h"
 #include "vc_defines.h"
 #include "io/ply2itk.h"
+#include "io/objWriter.h"
 
 #include "checkPtInTriangleUtil.h"
 #include "texturingUtils.h"
@@ -129,6 +130,8 @@ int main(int argc, char* argv[])
     VC_CellType *    cell;
     VC_PointsInCellIterator pointsIterator;
 
+    VC_UVMap uvMap;
+
     // Iterate over all of the cells to lay out the faces in the output texture
     while( cellIterator != cellEnd )
     {
@@ -152,8 +155,18 @@ int main(int argc, char* argv[])
             meshY = (pointID - meshX) / meshWidth;
 
             // Calculate the point's pixel position in the output texture
-            u =  (double) textureW * (double) meshX / (double) meshWidth;
-            v =  (double) textureH * (double) meshY / (double) meshHeight;
+            u =  (double) meshX / (double) meshWidth;
+            v =  (double) meshY / (double) meshHeight;
+
+            // OBJ UV coordinates start in the bottom-left of an image, but we're calculating them from the top-left
+            // Subtract v from 1.0 to account for this
+            cv::Vec2d uv( u, 1.0 - v );
+
+            uvMap.insert( {pointID, uv} );
+
+            // Convert normalized uv to output texture uv
+            u = (double) textureW * u;
+            v = (double) textureH * v;
 
             // Fill in the output pixel with a value
             // cv::Mat.at uses (row, column)
@@ -174,7 +187,11 @@ int main(int argc, char* argv[])
     }
     std::cout << std::endl;
 
-    vpkg.saveTextureData(outputTexture);
+    volcart::io::objWriter objwriter("textured.obj", mesh, uvMap, outputTexture);
+
+    objwriter.write();
+
+    //vpkg.saveTextureData(outputTexture);
 
     return 0;
 } // end main
