@@ -71,6 +71,12 @@ void DEMO::Chain::step(DEMO::Field& field) {
 
     // reslice and find next position
     Slice s = field.reslice(update_chain[i].position(), _saved_normals[i], VC_DIRECTION_K);
+
+    if (i == 32) {
+      s.debugDraw(DEBUG_DRAW_CENTER);
+      s.debugAnalysis();
+    }
+
     force_vector[i] += (s.findNextPosition() - update_chain[i].position());
   }
 
@@ -107,10 +113,10 @@ void DEMO::Chain::debug(bool saveOutput) {
   // draw circles on the debug window for each point
   for (int i = 0; i < recent.size(); ++i) {
     cv::Point position(recent[i](VC_INDEX_X), recent[i](VC_INDEX_Y));
-    if ((int)recent[i](VC_INDEX_Z) == z_index)
-      circle(debug, position, 2, cv::Scalar(0,255,0), -1);
-    else
+    if (i == 32)
       circle(debug, position, 2, cv::Scalar(0,255,255), -1);
+    else
+      circle(debug, position, 2, cv::Scalar(0,255,0), -1);
   }
 
   namedWindow("DEBUG CHAIN", cv::WINDOW_AUTOSIZE);

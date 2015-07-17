@@ -91,6 +91,7 @@ void mouse_callback(int event, int x, int y, int flags, void* param) {
   }
 }
 
+// used for clicking on center of scroll for radial reslice demo
 void core_callback(int event, int x, int y, int flags, void* point) {
   switch (event) {
   case cv::EVENT_LBUTTONDOWN:
@@ -102,6 +103,7 @@ void core_callback(int event, int x, int y, int flags, void* point) {
     break;
   }
 }
+
 namespace volcart {
     namespace segmentation {
         pcl::PointCloud<pcl::PointXYZRGB> localResliceParticleSim(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg volpkg, double gravity_scale, int threshold, int endOffset) {
@@ -117,7 +119,7 @@ namespace volcart {
           // setMouseCallback("SPLINE DEMO", mouse_callback, &slice42);
           // imshow("SPLINE DEMO", slice42);
 
-          // // // RESLICE DEMO
+          // // RESLICE DEMO
           // // test point and normal for checking with fiji
           // cv::Vec3f p(168,200,50);
           // cv::Vec3f n(1,0,0);
@@ -156,7 +158,7 @@ namespace volcart {
           //   cv::waitKey(0);
           // }
 
-          DEMO::Chain c(segPath, &volpkg, threshold, endOffset);
+          DEMO::Chain c(segPath, &volpkg, threshold, endOffset, 10);
 
           for (int i = 0; c.isMoving() && i < 200; ++i) {
             c.step(f);
