@@ -5,10 +5,16 @@
 #ifndef VC_DEFINES_H
 #define VC_DEFINES_H
 
+// VC - System
+#include <map>
+
 // VC - ITK Mesh Defaults
 #include <itkMesh.h>
 #include "itkPointsLocator.h"
 #include <itkTriangleCell.h>
+
+// VC - OpenCV
+#include <opencv2/opencv.hpp>
 
 typedef itk::Vector< double, 3 >                      VC_PixelType;
 typedef itk::Mesh< VC_PixelType, 3 >                  VC_MeshType;
