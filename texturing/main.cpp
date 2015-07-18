@@ -21,7 +21,7 @@
 int main(int argc, char* argv[])
 {
     if ( argc < 6 ) {
-        std::cout << "Usage: vc_texture2 volpkg seg-id radius texture-method sample-direction" << std::endl;
+        std::cout << "Usage: vc_texture2 volpkg seg-id radius step-size texture-method sample-direction" << std::endl;
         std::cout << "Texture methods: " << std::endl;
         std::cout << "      0 = Intersection" << std::endl;
         std::cout << "      1 = Non-Maximum Suppression" << std::endl;
@@ -54,10 +54,12 @@ int main(int argc, char* argv[])
     radius = atof( argv[ 3 ] );
     if((minorRadius = radius / 3) < 1) minorRadius = 1;
 
-    int aFindBetterTextureMethod = atoi( argv[ 4 ] );
+    double step_size = atof( argv[ 4 ] );
+
+    int aFindBetterTextureMethod = atoi( argv[ 5 ] );
     EFilterOption aFilterOption = ( EFilterOption )aFindBetterTextureMethod;
 
-    int aSampleDir = atoi( argv[ 5 ] ); // sampleDirection (0=omni, 1=positive, 2=negative)
+    int aSampleDir = atoi( argv[ 6 ] ); // sampleDirection (0=omni, 1=positive, 2=negative)
     EDirectionOption aDirectionOption = ( EDirectionOption )aSampleDir;
     
     // declare pointer to new Mesh object
@@ -149,6 +151,7 @@ int main(int argc, char* argv[])
     VC_CellIterator  cellIterator = mesh->GetCells()->Begin();
     VC_CellIterator  cellEnd      = mesh->GetCells()->End();
     VC_CellType *    cell;
+    VC_CellType *    next_cell;
     VC_PointsInCellIterator pointsIterator;
 
     // Iterate over all of the cells to lay out the faces in the output texture
@@ -156,6 +159,16 @@ int main(int argc, char* argv[])
     {
         // Link the pointer to our current cell
         cell = cellIterator.Value();
+
+        // Get next needed triangle for interpolation
+        // Only consider every other triangle
+        ++cellIterator;
+        ++cellIterator;
+        next_cell = cellIterator.Value();
+        // Get next point needed for interpolation
+        pointsIterator = next_cell->PointIdsBegin();
+        pointID = *pointsIterator;
+        VC_PointType next_p = mesh->GetPoint(pointID);
         
         std::cout << "Texturing face " << cellIterator.Index() << "/" << cellEnd.Index() << "\r" << std::flush;
 
@@ -192,9 +205,6 @@ int main(int argc, char* argv[])
             pointsIterator += 3; // Only consider top left vertices of triangles
         }
 
-        // Only consider every other triangle
-        ++cellIterator;
-        ++cellIterator;
     }
     std::cout << std::endl;
 
