@@ -144,36 +144,7 @@ int main(int argc, char* argv[])
   VC_CellType *    next_cell;
   VC_PointsInCellIterator pointsIterator;
 
-  // double total_dist = 0;
-  // for (int i = 0; i < (meshWidth / 2); ++i) {
-  //   VC_CellType* cell;
-  //   cell = cellIterator.Value();
-  //   pointsIterator = cell->PointIdsBegin();
 
-  //   unsigned long left_pointID = *pointsIterator;
-  //   VC_PointType p = mesh->GetPoint(left_pointID);
-
-  //   cv::Vec3f left(p[0],p[1],p[2]);
-
-  //   ++cellIterator;
-  //   ++cellIterator;
-  //   next_cell = cellIterator.Value();
-  //   pointsIterator = next_cell->PointIdsBegin();
-  //   unsigned long right_pointID = *pointsIterator;
-  //   VC_PointType next_p = mesh->GetPoint(right_pointID);
-
-
-  //   cv::Vec3f right(next_p[0],next_p[1],next_p[2]);
-
-  //   cv::Vec3f offset = (right - left);
-  //   total_dist += sqrt(offset.dot(offset));
-  // }
-
-  // int outputWidth = total_dist / step_size; // IMPORTANTE
-
-  cv::Mat outputTexture = cv::Mat::zeros(textureH, textureW, CV_16UC1);  // maybe add buffer here
-
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   std::vector<std::vector<cv::Vec3f> > points;
   std::vector<std::vector<cv::Vec3f> > normals;
@@ -206,138 +177,72 @@ int main(int argc, char* argv[])
       break;
   }
 
-  double length_of_first_row = 0;
-  for (int i = 0; i < points[0].size() - 1; ++i) {
-    cv::Vec3f diff = points[0][i+1] - points[0][i];
-    length_of_first_row += sqrt(diff.dot(diff));
-  }
-
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   std::vector<std::vector<double> > difference_array;
   for (int i = 0; i < points.size(); ++i) {
     std::vector<double> diff_row;
+
     for (int x = 0; x < points[i].size()-1; ++x) {
+
       cv::Vec3f offset = points[i][x+1] - points[i][x];
       double len = sqrt(offset.dot(offset));
+
       diff_row.push_back(len);
+
       if (x != 0) {
         diff_row[x] += diff_row[x-1];
       }
     }
+    
     difference_array.push_back(diff_row);
   }
+  
+  double real_chain_length = difference_array[0][difference_array[0].size() - 1];
 
-  SAY("length of first row " << length_of_first_row);
+  SAY(real_chain_length);
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   
-  
+  cv::Mat outputTexture = cv::Mat::zeros(textureH, (int)real_chain_length+20, CV_16UC1);
+
   for (int i = 0; i < points.size(); ++i) {
-    for (int x = 0; x < points[i].size(); ++x) {
-      double value = textureWithMethod( points[i][x],
-                                        cv::Vec3f(1,1,1),
+    for (int x = 0; x < (int)real_chain_length; ++x) {
+      double delta = x;
+      int upper_bound = 0;
+      int lower_bound;
+      while (delta > difference_array[i][upper_bound]) {
+        ++upper_bound;
+      }
+      lower_bound = upper_bound - 1;
+
+      cv::Vec3f left = points[i][lower_bound];
+      cv::Vec3f right = points[i][upper_bound];
+      
+      cv::Vec3f l2r = (right - left);
+      // double length_of_l2r = sqrt(l2r.dot(l2r));
+      double scale_factor = (delta - lower_bound) / (difference_array[i][upper_bound] - difference_array[i][lower_bound]);
+      std::cout << scale_factor << std::endl;
+
+      cv::Vec3f normal_left = normals[i][lower_bound];
+      cv::Vec3f normal_right = normals[i][upper_bound];
+      
+
+      cv::Vec3f CORRECT_POINT = scale_factor * l2r + left;
+      cv::Vec3f CORRECT_NORMAL = (normal_right + normal_left) / 2;
+
+      double value = textureWithMethod( CORRECT_POINT,
+                                        CORRECT_NORMAL,
                                         aImgVol,
                                         aFilterOption,
                                         radius,
                                         minorRadius,
                                         0.5,
                                         aDirectionOption);
-      outputTexture.at<unsigned short>(i, x) = (unsigned short)value;
+      outputTexture.at<unsigned short>(i, x) = (unsigned short)value;      
     }
   }
   
-vpkg.saveTextureData(outputTexture);
+  vpkg.saveTextureData(outputTexture);
 
-exit(EXIT_FAILURE);
-
-// ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  
-//   cellIterator = mesh->GetCells()->Begin();
-//   while( cellIterator != cellEnd ) {
-//     goto heaven;
-//   hell:
-//     SAY("SEE YA");
-//     break;
-//   heaven:
-
-//     if (cellIterator == cellEnd)                
-//       goto hell;                                
-//     cell = cellIterator.Value();
-//     pointsIterator = cell->PointIdsBegin();
-//     unsigned long left_pointID = *pointsIterator;
-//     VC_PointType p = mesh->GetPoint(left_pointID);
-//     left = cv::Vec3f(p[0],p[1],p[2]);
-//     pass_counter++;
-
-//     SKIPCELL;
-//     next_cell = cellIterator.Value();
-//     pointsIterator = next_cell->PointIdsBegin();
-//     unsigned long right_pointID = *pointsIterator;
-//     VC_PointType next_p = mesh->GetPoint(right_pointID);
-//     right = cv::Vec3f(next_p[0],next_p[1],next_p[2]);
-
-//     cv::Vec3f offset = (right - left);
-//     double distance = sqrt(offset.dot(offset));
-
-//     // FOR WHEN WE'RE STILL IN THE SAME ROW
-//   restart:
-//     double delta = step_size;
-//     while (distance < delta) {
-//       delta = delta - distance;
-//       left = right;
-//       left_pointID = right_pointID;
-
-//       // ONE NEW POINT
-//       SKIPCELL;
-//       next_cell = cellIterator.Value();
-//       pointsIterator = next_cell->PointIdsBegin();
-//       right_pointID = *pointsIterator;
-//       next_p = mesh->GetPoint(right_pointID);
-//       right = cv::Vec3f(next_p[0],next_p[1],next_p[2]);
-
-//       // CALCULATE OFFSET AGAIN
-//       offset = (right - left);
-//       distance = sqrt(offset.dot(offset));
-//     }
-//     cv::normalize(offset,offset,delta);
-//     cv::Vec3f CORRECT_POINT = offset + left;
-//     left = CORRECT_POINT;
-
-//     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//     std::cout << "Texturing face " << cellIterator.Index() << "/" << cellEnd.Index() << "\r" << std::flush;
-
-//     VC_PixelType left_normal;
-//     VC_PixelType right_normal;
-//     mesh->GetPointData( left_pointID, &left_normal );
-//     mesh->GetPointData( right_pointID, &right_normal );
-
-//     //just average these, not the best way
-//     cv::Vec3f NORMAL((left_normal[0] + right_normal[0]) / 2,
-//                      (left_normal[1] + right_normal[1]) / 2,
-//                      (left_normal[2] + right_normal[2]) / 2);
-
-//     // Fill in the output pixel with a value
-//     // cv::Mat.at uses (row, column)
-//     double value = textureWithMethod( CORRECT_POINT,
-//                                       NORMAL,
-//                                       aImgVol,
-//                                       aFilterOption,
-//                                       radius,
-//                                       minorRadius,
-//                                       0.5,
-//                                       aDirectionOption);
-//     outputTexture.at<unsigned short>(row_counter, width_counter) = (unsigned short)value;
-
-//     width_counter++;
-//     if (width_counter == outputWidth || pass_counter == meshWidth) {
-//       row_counter++;
-//       pass_counter = 0;
-//       width_counter = 0;
-//     } else {
-//       goto restart;
-//     }
-//   }
-//   std::cout << std::endl;
-
-vpkg.saveTextureData(outputTexture);
-
-return 0;
+  return 0;
 } // end main
