@@ -175,16 +175,23 @@ int main(int argc, char* argv[])
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  std::vector<std::vector<cv::Vec3f> > stuff;
+  std::vector<std::vector<cv::Vec3f> > points;
+  std::vector<std::vector<cv::Vec3f> > normals;
   for (int i = 0; i < meshHeight; ++i) {
-    std::vector<cv::Vec3f> row;
+    std::vector<cv::Vec3f> point_row;
+    std::vector<cv::Vec3f> normal_row;
 
     for (int k = 0; k < meshWidth - 1; ++k) {
       cell = cellIterator.Value();
       pointsIterator = cell->PointIdsBegin();
-      unsigned long left_pointID = *pointsIterator;
-      VC_PointType p = mesh->GetPoint(left_pointID);
-      row.push_back(cv::Vec3f(p[0],p[1],p[2]));
+      unsigned long pointID = *pointsIterator;
+      VC_PointType p = mesh->GetPoint(pointID);
+      VC_PixelType n;
+      mesh->GetPointData(pointID, &n);
+
+      point_row.push_back(cv::Vec3f(p[0],p[1],p[2]));
+      normal_row.push_back(cv::Vec3f(n[0],n[1],n[2]));
+
       cellIterator++;
       if (cellIterator == cellEnd)
         break;
@@ -193,14 +200,39 @@ int main(int argc, char* argv[])
         break;
     }
     
-    stuff.push_back(row);
+    points.push_back(point_row);
+    normals.push_back(normal_row);
     if (cellIterator == cellEnd)
       break;
   }
+
+  double length_of_first_row = 0;
+  for (int i = 0; i < points[0].size() - 1; ++i) {
+    cv::Vec3f diff = points[0][i+1] - points[0][i];
+    length_of_first_row += sqrt(diff.dot(diff));
+  }
+
+  std::vector<std::vector<double> > difference_array;
+  for (int i = 0; i < points.size(); ++i) {
+    std::vector<double> diff_row;
+    for (int x = 0; x < points[i].size()-1; ++x) {
+      cv::Vec3f offset = points[i][x+1] - points[i][x];
+      double len = sqrt(offset.dot(offset));
+      diff_row.push_back(len);
+      if (x != 0) {
+        diff_row[x] += diff_row[x-1];
+      }
+    }
+    difference_array.push_back(diff_row);
+  }
+
+  SAY("length of first row " << length_of_first_row);
+
   
-  for (int i = 0; i < stuff.size(); ++i) {
-    for (int x = 0; x < stuff[i].size(); ++x) {
-      double value = textureWithMethod( stuff[i][x],
+  
+  for (int i = 0; i < points.size(); ++i) {
+    for (int x = 0; x < points[i].size(); ++x) {
+      double value = textureWithMethod( points[i][x],
                                         cv::Vec3f(1,1,1),
                                         aImgVol,
                                         aFilterOption,
