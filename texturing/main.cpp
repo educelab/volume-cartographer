@@ -189,9 +189,11 @@ int main(int argc, char* argv[])
                                               aDirectionOption);
             outputTexture.at < unsigned short > (v, u) = (unsigned short) value;
 
-            ++pointsIterator;
+            pointsIterator += 3; // Only consider top left vertices of triangles
         }
 
+        // Only consider every other triangle
+        ++cellIterator;
         ++cellIterator;
     }
     std::cout << std::endl;
@@ -200,7 +202,7 @@ int main(int argc, char* argv[])
 
     objwriter.write();
 
-    //vpkg.saveTextureData(outputTexture);
+    vpkg.saveTextureData(outputTexture);
 
     return 0;
 } // end main
