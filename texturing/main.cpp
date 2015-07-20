@@ -11,6 +11,9 @@
 #include "io/ply2itk.h"
 #include "io/objWriter.h"
 
+#include <pcl/point_types.h>
+#include <pcl/io/pcd_io.h>
+
 #include "checkPtInTriangleUtil.h"
 #include "texturingUtils.h"
 
@@ -185,6 +188,8 @@ int main(int argc, char* argv[])
   for (int i = 0; i < points.size(); ++i) {
     std::vector<double> diff_row;
 
+    double sum = 0;
+    diff_row.push_back(sum);
     for (int x = 0; x < points[i].size()-1; ++x) {
 
       // find the distance between neighboring points
@@ -192,13 +197,8 @@ int main(int argc, char* argv[])
       cv::Vec3f offset = points[i][x+1] - points[i][x];
       double len = sqrt(offset.dot(offset));
 
-      diff_row.push_back(len);
-
-      // add the distance to total distance of the last point
-      // if we aren't looking at the first point
-      if (x != 0) {
-        diff_row[x] += diff_row[x-1];
-      }
+      sum += len;
+      diff_row.push_back(sum);
     }
 
     difference_array.push_back(diff_row);
@@ -209,6 +209,7 @@ int main(int argc, char* argv[])
 
   // create an output texture with a little wiggle room
   cv::Mat outputTexture = cv::Mat::zeros(textureH, (int)real_chain_length+20, CV_16UC1);
+  pcl::PointCloud<pcl::PointNormal>::Ptr new_cloud ( new pcl::PointCloud<pcl::PointNormal> );
 
   for (int i = 0; i < points.size(); ++i) {
     for (int x = 0; x < (int)real_chain_length; ++x) {
@@ -219,11 +220,11 @@ int main(int argc, char* argv[])
 
       // increase the index until the interpolated position is between
       // two existing points (by their accumulated distance)
-      int upper_bound = 0;
-      while (delta > difference_array[i][upper_bound]) {
-        ++upper_bound;
+      int lower_bound = 0;
+      while (lower_bound < difference_array[i].size() && delta > difference_array[i][lower_bound]) {
+        ++lower_bound;
       }
-      int lower_bound = upper_bound - 1;
+      int upper_bound = lower_bound + 1;
 
       // find out how far the new point is past the low index
       //  new_x - low_x
@@ -244,6 +245,16 @@ int main(int argc, char* argv[])
       cv::Vec3f normal_right = normals[i][upper_bound];
       cv::Vec3f CORRECT_NORMAL = (normal_right + normal_left) / 2;
 
+      pcl::PointNormal p;
+      p.x = CORRECT_POINT[0];
+      p.y = CORRECT_POINT[1];
+      p.z = CORRECT_POINT[2];
+      p.normal[0] = CORRECT_NORMAL[0];
+      p.normal[1] = CORRECT_NORMAL[1];
+      p.normal[2] = CORRECT_NORMAL[2];
+
+      new_cloud->push_back(p);
+
       // texture the point like normal and add it to the output image
       double value = textureWithMethod( CORRECT_POINT,
                                         CORRECT_NORMAL,
@@ -258,6 +269,7 @@ int main(int argc, char* argv[])
   }
 
   vpkg.saveTextureData(outputTexture);
+  pcl::io::savePCDFileASCII("resampled.pcd", *new_cloud);
 
   return 0;
 } // end main
