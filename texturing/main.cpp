@@ -21,16 +21,44 @@
 
 #include "UPointMapping.h"
 
-#define SKIPCELL do {                           \
-    ++cellIterator;                             \
-    if (cellIterator == cellEnd)                \
-      goto hell;                                \
-                                                \
-    ++cellIterator;                             \
-    if (cellIterator == cellEnd)                \
-      goto hell;                                \
-    pass_counter++;                             \
-  } while (0)
+class LineSegment {
+public:
+  LineSegment(cv::Vec3f left, cv::Vec3f right, cv::Vec3f left_normal, cv::Vec3f right_normal) {
+    _left = left;
+    _right = right;
+    _left_normal = left_normal;
+    _right_normal = right_normal;
+  }
+
+  bool aroundPlane(cv::Vec3f point, cv::Vec3f normal) {
+    cv::Vec3f left_offset = _left - point;
+    cv::Vec3f right_offset = _right - point;
+
+    if (left_offset.dot(normal) * right_offset.dot(normal) < 0) {
+      return true;
+    }
+    return false;
+  }
+
+  cv::Vec3f intersectWithPlane(cv::Vec3f point, cv::Vec3f normal) {
+    cv::Vec3f l2r = (_right - _left);
+    double scale_factor = (point - _left).dot(normal) / l2r.dot(normal);
+    return scale_factor * l2r + _left;
+  }
+
+  // not the most sophitocated normal estimation
+  cv::Vec3f normal() {
+    return (_left_normal + _right_normal) / 2;
+  }
+  
+private:
+  cv::Vec3f _left;
+  cv::Vec3f _right;
+  cv::Vec3f _left_normal;
+  cv::Vec3f _right_normal;
+};
+
+
 
 int main(int argc, char* argv[])
 {
@@ -184,92 +212,183 @@ int main(int argc, char* argv[])
   }
 
   // calculate running length of line segments for each row
-  std::vector<std::vector<double> > difference_array;
-  for (int i = 0; i < points.size(); ++i) {
-    std::vector<double> diff_row;
+  std::vector<cv::Vec3f> first_row = points[0];
+  std::vector<double> diff_row;
+  double sum = 0;
+  diff_row.push_back(sum);
+  for (int x = 0; x < first_row.size()-1; ++x) {
 
-    double sum = 0;
+    // find the distance between neighboring points
+    //  | b - a | = sqrt ((b - a) . (b - a))
+    cv::Vec3f offset = first_row[x+1] - first_row[x];
+    double len = sqrt(offset.dot(offset));
+
+    sum += len;
     diff_row.push_back(sum);
-    for (int x = 0; x < points[i].size()-1; ++x) {
-
-      // find the distance between neighboring points
-      //  | b - a | = sqrt ((b - a) . (b - a))
-      cv::Vec3f offset = points[i][x+1] - points[i][x];
-      double len = sqrt(offset.dot(offset));
-
-      sum += len;
-      diff_row.push_back(sum);
-    }
-
-    difference_array.push_back(diff_row);
   }
 
-  // total length of the first row of points
-  double real_chain_length = difference_array[0][difference_array[0].size() - 1];
+  std::cout << diff_row[diff_row.size() - 1] << std::endl;
 
-  // create an output texture with a little wiggle room
-  cv::Mat outputTexture = cv::Mat::zeros(textureH, (int)real_chain_length+20, CV_16UC1);
-  pcl::PointCloud<pcl::PointNormal>::Ptr new_cloud ( new pcl::PointCloud<pcl::PointNormal> );
+  // resample first row
+  std::vector<cv::Vec3f> resampled_first_row;
+  for (int x = 0; x < (int)diff_row[diff_row.size() - 1] / step_size; ++x) {
+    // we want to make sure this will work with a step size
+    // of one before we get fancy
+    double delta = x * step_size;
 
-  for (int i = 0; i < points.size(); ++i) {
-    for (int x = 0; x < (int)real_chain_length; ++x) {
-      // we want to make sure this will work with a step size
-      // of one before we get fancy
-      double delta = x;
-      std::cout << "delta " << delta << std::endl;
+    // increase the index until the interpolated position is between
+    // two existing points (by their accumulated distance)
+    int lower_bound = 0;
+    while (lower_bound < diff_row.size() && delta > diff_row[lower_bound]) {
+      ++lower_bound;
+    }
+    int upper_bound = lower_bound + 1;
 
-      // increase the index until the interpolated position is between
-      // two existing points (by their accumulated distance)
-      int lower_bound = 0;
-      while (lower_bound < difference_array[i].size() && delta > difference_array[i][lower_bound]) {
-        ++lower_bound;
+    // find out how far the new point is past the low index
+    //  new_x - low_x
+    // ---------------
+    // high_x - low_x
+    double scale_factor = (delta - diff_row[lower_bound]) / (diff_row[upper_bound] - diff_row[lower_bound]);
+
+    // points from mesh that are around the interpolated point
+    cv::Vec3f left = first_row[lower_bound];
+    cv::Vec3f right = first_row[upper_bound];
+
+    // find the new point
+    // t*(p1 - p0) + p0
+    cv::Vec3f CORRECT_POINT = scale_factor * (right - left) + left;
+    resampled_first_row.push_back(CORRECT_POINT);
+
+    // normal vectors // we're just averaging the normals for now
+    // cv::Vec3f normal_left = normals[i][lower_bound];
+    // cv::Vec3f normal_right = normals[i][upper_bound];
+    // cv::Vec3f CORRECT_NORMAL = (normal_right + normal_left) / 2;
+  }
+
+
+  cv::Mat outputTexture = cv::Mat::zeros(textureH, resampled_first_row.size() +20, CV_16UC1);
+  std::cout << "texture size is: " << textureH << "x(" << resampled_first_row.size() << "+20)" << std::endl;
+
+#define NORMAL_AT(x) n = resampled_first_row[x+1] - resampled_first_row[x-1]  
+
+  // for each row after the first one
+  for (int row = 1; row < points.size(); ++row) {
+    // for each point in the resampled first row
+    for (int p = 0; p < resampled_first_row.size(); ++p) {
+      cv::Vec3f reference_point = resampled_first_row[p];
+      cv::Vec3f n;
+      if (p == 0) {
+        NORMAL_AT(p + 1);
+      } else if (p == resampled_first_row.size() - 1) {
+        NORMAL_AT(p - 1);
+      } else {
+        NORMAL_AT(p);
       }
-      int upper_bound = lower_bound + 1;
 
-      // find out how far the new point is past the low index
-      //  new_x - low_x
-      // ---------------
-      // high_x - low_x
-      double scale_factor = (delta - difference_array[i][lower_bound]) / (difference_array[i][upper_bound] - difference_array[i][lower_bound]);
+      // find intersection of plane with row
+      std::vector<LineSegment> potential;
+      for (int i = 0; i < points[row].size() - 1; ++i) {
+        LineSegment ls(points[row][i], points[row][i+1], normals[row][i], normals[row][i+1]);
+        if (ls.aroundPlane(reference_point, n)) {
+          potential.push_back(ls);
+        }
+      }
 
-      // points from mesh that are around the interpolated point
-      cv::Vec3f left = points[i][lower_bound];
-      cv::Vec3f right = points[i][upper_bound];
+      int index = -1;
+      double distance = 10000;
+      for (int i = 0; i < potential.size(); ++i) {
+        cv::Vec3f intersect = potential[i].intersectWithPlane(reference_point, n);
+        double thisDistance = cv::norm(reference_point - intersect);
+        if (thisDistance < distance) {
+          distance = thisDistance;
+          index = i;
+        }
+      }
 
-      // find the new point
-      // t*(p1 - p0) + p0
-      cv::Vec3f CORRECT_POINT = scale_factor * (right - left) + left;
-
-      // normal vectors // we're just averaging the normals for now
-      cv::Vec3f normal_left = normals[i][lower_bound];
-      cv::Vec3f normal_right = normals[i][upper_bound];
-      cv::Vec3f CORRECT_NORMAL = (normal_right + normal_left) / 2;
-
-      pcl::PointNormal p;
-      p.x = CORRECT_POINT[0];
-      p.y = CORRECT_POINT[1];
-      p.z = CORRECT_POINT[2];
-      p.normal[0] = CORRECT_NORMAL[0];
-      p.normal[1] = CORRECT_NORMAL[1];
-      p.normal[2] = CORRECT_NORMAL[2];
-
-      new_cloud->push_back(p);
-
-      // texture the point like normal and add it to the output image
-      double value = textureWithMethod( CORRECT_POINT,
-                                        CORRECT_NORMAL,
-                                        aImgVol,
-                                        aFilterOption,
-                                        radius,
-                                        minorRadius,
-                                        0.5,
-                                        aDirectionOption);
-      outputTexture.at<unsigned short>(i, x) = (unsigned short)value;
+      if (index != -1) {
+        cv::Vec3f intersect = potential[index].intersectWithPlane(reference_point, n);
+        cv::Vec3f NORMAL = potential[index].normal();
+        double value = textureWithMethod( intersect,
+                                          NORMAL,
+                                          aImgVol,
+                                          aFilterOption,
+                                          radius,
+                                          minorRadius,
+                                          0.5,
+                                          aDirectionOption);
+        outputTexture.at<unsigned short>(row, p) = (unsigned short)value;
+      }
+      
+      
     }
   }
+
+  // // total length of the first row of points
+  // double real_chain_length = difference_array[0][difference_array[0].size() - 1];
+
+  // // create an output texture with a little wiggle room
+  // cv::Mat outputTexture = cv::Mat::zeros(textureH, (int)real_chain_length+20, CV_16UC1);
+  // pcl::PointCloud<pcl::PointNormal>::Ptr new_cloud ( new pcl::PointCloud<pcl::PointNormal> );
+
+  // for (int i = 0; i < points.size(); ++i) {
+  //   for (int x = 0; x < (int)real_chain_length; ++x) {
+  //     // we want to make sure this will work with a step size
+  //     // of one before we get fancy
+  //     double delta = x;
+  //     std::cout << "delta " << delta << std::endl;
+
+  //     // increase the index until the interpolated position is between
+  //     // two existing points (by their accumulated distance)
+  //     int lower_bound = 0;
+  //     while (lower_bound < difference_array[i].size() && delta > difference_array[i][lower_bound]) {
+  //       ++lower_bound;
+  //     }
+  //     int upper_bound = lower_bound + 1;
+
+  //     // find out how far the new point is past the low index
+  //     //  new_x - low_x
+  //     // ---------------
+  //     // high_x - low_x
+  //     double scale_factor = (delta - difference_array[i][lower_bound]) / (difference_array[i][upper_bound] - difference_array[i][lower_bound]);
+
+  //     // points from mesh that are around the interpolated point
+  //     cv::Vec3f left = points[i][lower_bound];
+  //     cv::Vec3f right = points[i][upper_bound];
+
+  //     // find the new point
+  //     // t*(p1 - p0) + p0
+  //     cv::Vec3f CORRECT_POINT = scale_factor * (right - left) + left;
+
+  //     // normal vectors // we're just averaging the normals for now
+  //     cv::Vec3f normal_left = normals[i][lower_bound];
+  //     cv::Vec3f normal_right = normals[i][upper_bound];
+  //     cv::Vec3f CORRECT_NORMAL = (normal_right + normal_left) / 2;
+
+  //     pcl::PointNormal p;
+  //     p.x = CORRECT_POINT[0];
+  //     p.y = CORRECT_POINT[1];
+  //     p.z = CORRECT_POINT[2];
+  //     p.normal[0] = CORRECT_NORMAL[0];
+  //     p.normal[1] = CORRECT_NORMAL[1];
+  //     p.normal[2] = CORRECT_NORMAL[2];
+
+  //     new_cloud->push_back(p);
+
+  //     // texture the point like normal and add it to the output image
+  //     double value = textureWithMethod( CORRECT_POINT,
+  //                                       CORRECT_NORMAL,
+  //                                       aImgVol,
+  //                                       aFilterOption,
+  //                                       radius,
+  //                                       minorRadius,
+  //                                       0.5,
+  //                                       aDirectionOption);
+  //     outputTexture.at<unsigned short>(i, x) = (unsigned short)value;
+  //   }
+  // }
 
   vpkg.saveTextureData(outputTexture);
-  pcl::io::savePCDFileASCII("resampled.pcd", *new_cloud);
+  // pcl::io::savePCDFileASCII("resampled.pcd", *new_cloud);
 
   return 0;
 } // end main
