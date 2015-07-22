@@ -172,6 +172,7 @@ int main(int argc, char* argv[])
   VC_CellType *    cell;
   VC_CellType *    next_cell;
   VC_PointsInCellIterator pointsIterator;
+  pcl::PointCloud<pcl::PointNormal>::Ptr new_cloud ( new pcl::PointCloud<pcl::PointNormal> );
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -259,10 +260,6 @@ int main(int argc, char* argv[])
     cv::Vec3f CORRECT_POINT = scale_factor * (right - left) + left;
     resampled_first_row.push_back(CORRECT_POINT);
 
-    // normal vectors // we're just averaging the normals for now
-    // cv::Vec3f normal_left = normals[i][lower_bound];
-    // cv::Vec3f normal_right = normals[i][upper_bound];
-    // cv::Vec3f CORRECT_NORMAL = (normal_right + normal_left) / 2;
   }
 
 
@@ -284,6 +281,8 @@ int main(int argc, char* argv[])
       } else {
         NORMAL_AT(p);
       }
+
+      n(2) = 0;
 
       // find intersection of plane with row
       std::vector<LineSegment> potential;
@@ -317,6 +316,14 @@ int main(int argc, char* argv[])
                                           0.5,
                                           aDirectionOption);
         outputTexture.at<unsigned short>(row, p) = (unsigned short)value;
+        pcl::PointNormal p;
+        p.x = intersect[0];
+        p.y = intersect[1];
+        p.z = intersect[2];
+        p.normal[0] = NORMAL[0];
+        p.normal[1] = NORMAL[1];
+        p.normal[2] = NORMAL[2];
+        new_cloud->push_back(p);
       }
       
       
@@ -328,7 +335,7 @@ int main(int argc, char* argv[])
 
   // // create an output texture with a little wiggle room
   // cv::Mat outputTexture = cv::Mat::zeros(textureH, (int)real_chain_length+20, CV_16UC1);
-  // pcl::PointCloud<pcl::PointNormal>::Ptr new_cloud ( new pcl::PointCloud<pcl::PointNormal> );
+
 
   // for (int i = 0; i < points.size(); ++i) {
   //   for (int x = 0; x < (int)real_chain_length; ++x) {
@@ -388,7 +395,7 @@ int main(int argc, char* argv[])
   // }
 
   vpkg.saveTextureData(outputTexture);
-  // pcl::io::savePCDFileASCII("resampled.pcd", *new_cloud);
+  pcl::io::savePCDFileASCII("resampled.pcd", *new_cloud);
 
   return 0;
 } // end main
