@@ -7,10 +7,10 @@
 
 void CalcHomographyFromPoints( const std::vector< cv::Vec3d > &nPtSrc,
                                const std::vector< cv::Vec3d > &nPtTgt,
-				  			   cv::Mat &nH );
+                               cv::Mat &nH );
 
 void CalcMappedPoint( const std::vector< cv::Vec3d > &nPtSrc,
                       std::vector< cv::Vec3d > &nPtTgt,
-					  const cv::Mat &nH );
+                      const cv::Mat &nH );
 
 #endif // _UPOINTMAPPING_H_

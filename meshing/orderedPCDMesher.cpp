@@ -50,7 +50,8 @@ int orderedPCDMesher(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::string o
     {
       if (i > 0 && j > 0)
       {
-        if ( (VoV[i][j].x <= 0) || (VoV[i][j-1].x <= 0) || (VoV[i-1][j].x <= 0) || (VoV[i-1][j-1].x <= 0) )
+        // (p.z == -1) is a null point flag from structureTensorParticleSim()
+        if ( (VoV[i][j].z == -1) || (VoV[i][j-1].z == -1) || (VoV[i-1][j].z == -1) || (VoV[i-1][j-1].z == -1) )
         {
 //          std::cout << "bad vertex in face" << std:: endl;
           continue;

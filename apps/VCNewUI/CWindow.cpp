@@ -11,7 +11,6 @@
 #include "CVolumeViewerWithCurve.h"
 
 #include "UDataManipulateUtils.h"
-#include "structureTensorParticleSim.h"
 
 #define _DEBUG
 
@@ -256,7 +255,7 @@ void CWindow::SplitCloud( void )
 
     // lower part, the starting slice
     for ( int i = 0; i < fMasterCloud.width; ++i ) {
-        if ( fMasterCloud.points[ i + aTotalNumOfImmutablePts ].x != -1 )
+        if ( fMasterCloud.points[ i + aTotalNumOfImmutablePts ].z != -1 )
             fLowerPart.push_back( fMasterCloud.points[ i + aTotalNumOfImmutablePts ] );
     }
 
@@ -279,7 +278,7 @@ void CWindow::DoSegmentation( void )
     // 2) do segmentation from the starting slice
     // how to create pcl::PointCloud::Ptr from a pcl::PointCloud?
     // stackoverflow.com/questions/10644429/create-a-pclpointcloudptr-from-a-pclpointcloud
-    fLowerPart = structureTensorParticleSim( pcl::PointCloud< pcl::PointXYZRGB >::Ptr( new pcl::PointCloud< pcl::PointXYZRGB >( fLowerPart )),
+    fLowerPart = volcart::segmentation::structureTensorParticleSim( pcl::PointCloud< pcl::PointXYZRGB >::Ptr( new pcl::PointCloud< pcl::PointXYZRGB >( fLowerPart )),
                                              *fVpkg,
                                              fSegParams.fGravityScale,
                                              fSegParams.fThreshold,
@@ -350,8 +349,8 @@ void CWindow::SetUpCurves( void )
     } else {
         pcl::PointXYZRGB min_p, max_p;
         pcl::getMinMax3D( fMasterCloud, min_p, max_p );
-        minIndex = floor( fMasterCloud.points[ 0 ].x );
-        maxIndex = floor( max_p.x );
+        minIndex = floor( fMasterCloud.points[ 0 ].z );
+        maxIndex = floor( max_p.z );
     }
     fMinSegIndex = minIndex;
     fMaxSegIndex = maxIndex;
@@ -361,8 +360,8 @@ void CWindow::SetUpCurves( void )
         CXCurve aCurve;
         for ( int j = 0; j < fMasterCloud.width; ++j ) {
             int pointIndex = j + (i * fMasterCloud.width);
-            aCurve.SetSliceIndex((int) floor(fMasterCloud.points[pointIndex].x));
-            aCurve.InsertPoint(Vec2<float>(fMasterCloud.points[pointIndex].y, fMasterCloud.points[pointIndex].z));
+            aCurve.SetSliceIndex((int) floor(fMasterCloud.points[pointIndex].z));
+            aCurve.InsertPoint(Vec2<float>(fMasterCloud.points[pointIndex].x, fMasterCloud.points[pointIndex].y));
         }
         fIntersections.push_back( aCurve );
     }
@@ -385,9 +384,12 @@ void CWindow::SetCurrentCurve( int nCurrentSliceIndex )
 void CWindow::OpenSlice( void )
 {
     cv::Mat aImgMat;
-    fVpkg->getSliceData( fPathOnSliceIndex ).copyTo( aImgMat );
-    aImgMat.convertTo( aImgMat, CV_8UC3, 1.0 / 256.0 );
-    cvtColor( aImgMat, aImgMat, CV_GRAY2BGR );
+    if ( fVpkg != NULL ) {
+        fVpkg->getSliceData( fPathOnSliceIndex ).copyTo( aImgMat );
+        aImgMat.convertTo( aImgMat, CV_8UC3, 1.0 / 256.0 );
+        cvtColor( aImgMat, aImgMat, CV_GRAY2BGR );
+    } else
+        aImgMat = cv::Mat::zeros(10, 10, CV_8UC3 );
 
     QImage aImgQImage;
     aImgQImage = Mat2QImage( aImgMat );
@@ -396,11 +398,13 @@ void CWindow::OpenSlice( void )
 }
 
 // Initialize path list
-void CWindow::InitPathList( void )
-{
-    // show the existing paths
-    for ( size_t i = 0; i < fVpkg->getSegmentations().size(); ++i ) {
-        fPathListWidget->addItem( new QListWidgetItem( QString( fVpkg->getSegmentations()[ i ].c_str() ) ) );
+void CWindow::InitPathList( void ) {
+    fPathListWidget->clear();
+    if (fVpkg != NULL) {
+        // show the existing paths
+        for (size_t i = 0; i < fVpkg->getSegmentations().size(); ++i) {
+            fPathListWidget->addItem(new QListWidgetItem(QString(fVpkg->getSegmentations()[i].c_str())));
+        }
     }
 }
 
@@ -414,9 +418,9 @@ void CWindow::SetPathPointCloud( void )
     pcl::PointXYZRGB point;
     pcl::PointCloud< pcl::PointXYZRGB > aPathCloud;
     for ( size_t i = 0; i < aSamplePts.size(); ++i ) {
-        point.x = fPathOnSliceIndex;
-        point.y = aSamplePts[ i ][ 0 ];
-        point.z = aSamplePts[ i ][ 1 ];
+        point.x = aSamplePts[ i ][ 0 ];
+        point.y = aSamplePts[ i ][ 1 ];
+        point.z = fPathOnSliceIndex;
         aPathCloud.push_back( point );
     }
     aPathCloud.width = aSamplePts.size();
@@ -424,7 +428,7 @@ void CWindow::SetPathPointCloud( void )
     aPathCloud.resize( aPathCloud.width * aPathCloud.height );
 
     fMasterCloud = aPathCloud;
-    fMinSegIndex = floor(fMasterCloud.points[0].x);
+    fMinSegIndex = floor(fMasterCloud.points[0].z);
     fMaxSegIndex = fMinSegIndex;
 }
 
@@ -438,30 +442,25 @@ void CWindow::OpenVolume( void )
                                                    QFileDialog::ShowDirsOnly |
                                                    QFileDialog::DontResolveSymlinks );
     if ( aVpkgPath.length() == 0 ) { // canceled
-        QApplication::quit(); // REVISIT - Not closing correctly on Cancel
+        std::cerr << "ERROR: No volume package selected." << std::endl;
+        return;
     }
 
     if ( !InitializeVolumePkg( aVpkgPath.toStdString() + "/" ) ) {
-        printf( "cannot open the volume package at the specified location.\n" );
+        printf( "ERROR: Cannot open the volume package at the specified location.\n" );
+        return;
+    }
+
+    if ( fVpkg->getVersion() < 2.0) {
+        std::cerr << "ERROR: Volume package is version " << fVpkg->getVersion() << " but this program requires a version >= 2.0." << std::endl;
+        QMessageBox::warning( this, tr( "ERROR" ), "Volume package is version " + QString::number(fVpkg->getVersion()) + " but this program requires a version >= 2.0." );
+        fVpkg = NULL;
         return;
     }
 
     fVpkgPath = aVpkgPath;
 
-    // get the slice index
-    bool aIsIndexOk = false;
-    fPathOnSliceIndex = QInputDialog::getInt( this,
-                                              tr( "Input" ),
-                                              tr( "Please enter the index of the slice you want to draw path on: " ),
-                                              2,                    // default value
-                                              2,                    // minimum value
-                                              fVpkg->getNumberOfSlices() - 3,   // maximum vlaue
-                                              1,                    // step
-                                              &aIsIndexOk );
-    if ( !aIsIndexOk ) {
-        printf( "WARNING: nothing was loaded because no slice index was specified.\n" );
-        return;
-    }
+    fPathOnSliceIndex = 2;
 }
 
 // Reset point cloud
@@ -686,9 +685,9 @@ void CWindow::OnPathChanged( void )
         fLowerPart.clear();
         for (size_t i = 0; i < fIntersectionCurve.GetPointsNum(); ++i) {
             pcl::PointXYZRGB tempPt;
-            tempPt.x = fPathOnSliceIndex;
-            tempPt.y = fIntersectionCurve.GetPoint(i)[0];
-            tempPt.z = fIntersectionCurve.GetPoint(i)[1];
+            tempPt.x = fIntersectionCurve.GetPoint(i)[0];
+            tempPt.y = fIntersectionCurve.GetPoint(i)[1];
+            tempPt.z = fPathOnSliceIndex;
             fLowerPart.push_back(tempPt);
         }
     }

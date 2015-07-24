@@ -1,33 +1,27 @@
 #include "chain.h"
 
+
 // (doc) Why the parameters that we're giving it?
-Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg* volpkg, double gravity_scale, int threshold, int endOffset, double spring_constant_k) {
+DEMO::Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg* volpkg, int threshold, int endOffset) {
   // Convert the point cloud segPath into a vector of Particles
   std::vector<Particle> init_chain;
+
   for(pcl::PointCloud<pcl::PointXYZRGB>::iterator path_it = segPath->begin(); path_it != segPath->end(); ++path_it){
     init_chain.push_back(cv::Vec3f(path_it->x, path_it->y, path_it->z));
   }
 
-  // Calculate the spring resting position
-  double total_delta = 0;
-  for (int i = 1; i < init_chain.size(); ++i) {
-    cv::Vec3f segment = init_chain[i] - init_chain[i-1];
-    total_delta += sqrt(segment.dot(segment));
-  }
-  _spring_resting_x  = total_delta / (init_chain.size() - 1);
-  _spring_constant_k = spring_constant_k;
+  _volpkg = volpkg;
 
   // Add starting chain to _history and setup other parameters
   _history.push_front(init_chain);
   _chain_length      = init_chain.size();
-  _gravity_scale     = gravity_scale;
   _threshold         = threshold;
 
   // Find the lowest slice index in the starting chain
-  _start_index = _history.front()[0](0);
+  _start_index = _history.front()[0](VC_INDEX_Z);
   for (int i = 0; i < _chain_length; ++i)
-    if (_history.front()[i](0) < _start_index)
-      _start_index = _history.front()[i](0);
+    if (_history.front()[i](VC_INDEX_Z) < _start_index)
+      _start_index = _history.front()[i](VC_INDEX_Z);
 
   // Set the slice index we will end at
   // If user does not define endOffset, target index == last slice with a surface normal file
@@ -39,26 +33,44 @@ Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg* volpkg, 
   _real_iterations = (int)(ceil(((_target_index - _start_index) + 1) / _threshold));
 }
 
+#define NORMAL(i) do {                                          \
+    cv::Vec3f tangent = update_chain[i+1]-update_chain[i-1];    \
+    normal = tangent.cross(VC_DIRECTION_K);                     \
+  } while (0)
+
 // This function defines how particles are updated
-// To-Do: Only iterate over particles once
-void Chain::step(Field& field) {
+void DEMO::Chain::step(DEMO::Field& field) {
   // Pull the most recent iteration from _history
   std::vector<Particle> update_chain = _history.front();
   std::vector<cv::Vec3f> force_vector(_chain_length, cv::Vec3f(0,0,0));
 
-  // calculate forces acting on particles
+  // this->debug();
+
   for(int i = 0; i < _chain_length; ++i) {
     if (update_chain[i].isStopped())
       continue;
 
-    force_vector[i] += this->springForce(i);
-    force_vector[i] += this->gravity(i, field);
+    cv::Vec3f normal;
+    if (i == 0) {
+      NORMAL(1);
+    } else if (i == _chain_length - 1) {
+      NORMAL(_chain_length - 2);
+    } else {
+      NORMAL(i);
+    }
+
+    Slice s = field.reslice(update_chain[i].position(), normal, VC_DIRECTION_K);
+    // s.debugDraw(DEBUG_DRAW_XYZ | DEBUG_DRAW_CENTER);
+    // s.debugAnalysis();
+    // cv::waitKey(0);
+
+    force_vector[i] += (s.findNextPosition() - update_chain[i].position());
   }
 
   // update the chain
   for (int i = 0; i < _chain_length; ++i) {
     update_chain[i] += force_vector[i];
-    if (floor(update_chain[i](0)) >= _target_index) {
+    if (floor(update_chain[i](VC_INDEX_Z)) >= _target_index) {
       update_chain[i].stop();
     }
   }
@@ -68,55 +80,42 @@ void Chain::step(Field& field) {
 }
 
 // Returns true if any Particle in the chain is still moving
-bool Chain::isMoving() {
+bool DEMO::Chain::isMoving() {
   bool result = true;
   for (int i = 0; i < _chain_length; ++i)
     result &= _history.front()[i].isStopped();
   return !result;
 }
 
-// Returns vector offset that tries to maintain distance between particles as _spring_resting_x
-// The spring equation (Hooke's law) is -kx where
-// k is the spring constant (stiffness)
-// x is displacement from rest (starting distance between points)
-//
-// There are two if blocks to account for the first and last particles in the chain
-// only having one neighbor.
-cv::Vec3f Chain::springForce(int index) {
-  cv::Vec3f f(0,0,0);
-  // Adjust particle with a neighbor to the right
-  if (index != _chain_length - 1) {
-    cv::Vec3f to_right = _history.front()[index] - _history.front()[index+1];
-    double length = sqrt(to_right.dot(to_right));
-    normalize(to_right, to_right, _spring_constant_k * (length - _spring_resting_x));
-    f += to_right;
-  }
-  // Adjust particle with a neighbor to the left
-  if (index != 0) {
-    cv::Vec3f to_left = _history.front()[index] - _history.front()[index - 1];
-    double length = sqrt(to_left.dot(to_left));
-    normalize(to_left, to_left, _spring_constant_k * (length - _spring_resting_x));
-    f += to_left;
-  }
-  return f;
-}
+void DEMO::Chain::debug() {
+  std::vector<Particle> recent = _history.front();
+  int z_index = recent[0](VC_INDEX_Z);
 
-// Project a vector onto the plane described by the normals
-cv::Vec3f Chain::gravity(int index, Field& field) {
-  cv::Vec3f gravity = cv::Vec3f(1,0,0); // To-Do: Rename gravity?
-  cv::Vec3f offset = field.interpolate_at(_history.front()[index].position());
-  offset = gravity - (gravity.dot(offset)) / (offset.dot(offset)) * offset;
-  cv::normalize(offset);
-  return offset * _gravity_scale;
+  cv::Mat debug = _volpkg->getSliceData(z_index);
+  debug *= 1./255;
+  debug.convertTo(debug, CV_8UC3);
+  cvtColor(debug, debug, CV_GRAY2BGR);
+
+  for (int i = 0; i < recent.size(); ++i) {
+    cv::Point position(recent[i](VC_INDEX_X), recent[i](VC_INDEX_Y));
+    if ((int)recent[i](VC_INDEX_Z) == z_index)
+      circle(debug, position, 2, cv::Scalar(0,255,0), -1);
+    else
+      circle(debug, position, 2, cv::Scalar(0,255,255), -1);
+  }
+
+  namedWindow("DEBUG CHAIN", cv::WINDOW_AUTOSIZE);
+  imshow("DEBUG CHAIN", debug);
+  cv::waitKey(0);
 }
 
 // Convert Chain's _history to an ordered Point Cloud object
-pcl::PointCloud<pcl::PointXYZRGB> Chain::orderedPCD() {
+pcl::PointCloud<pcl::PointXYZRGB> DEMO::Chain::orderedPCD() {
   // Allocate space for one row of the output cloud
   std::vector<pcl::PointXYZRGB> storage_row;
   for (int i = 0; i < _chain_length; ++i) {
     pcl::PointXYZRGB point;
-    point.x = -1; // To-Do: Make this a constant
+    point.z = -1; // To-Do: Make this a constant
     storage_row.push_back(point);
   }
 
@@ -136,12 +135,13 @@ pcl::PointCloud<pcl::PointXYZRGB> Chain::orderedPCD() {
     std::vector<Particle> row_at = *it;
 
     // Add each Particle in the row into storage at the correct position
+    // Note: This is where we convert the internal cloud's coordinate ordering back to volume ordering
     for (int i = 0; i < _chain_length; ++i) {
-      int currentCell = (int)(((row_at[i](0)) - _start_index/_threshold)); // *To-Do: Something seems wrong here.
+      int currentCell = (int)(((row_at[i](VC_INDEX_Z)) - _start_index/_threshold)); // *To-Do: Something seems wrong here.
       pcl::PointXYZRGB point;
-      point.x = row_at[i](0);
-      point.y = row_at[i](1);
-      point.z = row_at[i](2);
+      point.x = row_at[i](VC_INDEX_X);
+      point.y = row_at[i](VC_INDEX_Y);
+      point.z = row_at[i](VC_INDEX_Z);
       point.rgb = *(float*)&COLOR;
       storage[currentCell][i] = point;
     }

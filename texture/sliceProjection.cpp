@@ -38,11 +38,11 @@ int main( int argc, char *argv[] )
 
     int aMinSliceIndex, aMaxSliceIndex;
 
-    aMinSliceIndex = ( int )floor( aPoints.begin()->x );
+    aMinSliceIndex = ( int )floor( aPoints.begin()->z );
     if (aMinSliceIndex == -1 ){
         aMinSliceIndex = 0;
     }
-    aMaxSliceIndex = ( int )ceil( aPoints.back().x );
+    aMaxSliceIndex = ( int )ceil( aPoints.back().z );
 
     // REVISIT - for debug
     std::cout << std::endl;
@@ -73,8 +73,8 @@ int main( int argc, char *argv[] )
         pcl::PointXYZRGBNormal aV1 = aMesh.fPoints[ ( *aIter )[ 0 ] ];
         pcl::PointXYZRGBNormal aV2 = aMesh.fPoints[ ( *aIter )[ 1 ] ];
 
-        int aStartIndx = ( int )ceil( aV1.x );
-        int aEndIndx = ( int )floor( aV2.x );
+        int aStartIndx = ( int )ceil( aV1.z );
+        int aEndIndx = ( int )floor( aV2.z );
 
         // safe net
         if ( aStartIndx < aMinSliceIndex || aEndIndx > aMaxSliceIndex - 1 ) {
@@ -86,11 +86,11 @@ int main( int argc, char *argv[] )
     
             cv::Vec3b aPixel;
             int aRow, aCol;
-            if ( fabs( aV2.x - aV1.x ) < 1e-6 ) {
-                if ( fabs( aV2.x - i ) < 1e-6 ) {
+            if ( fabs( aV2.z - aV1.z ) < 1e-6 ) {
+                if ( fabs( aV2.z - i ) < 1e-6 ) {
                     // point 1
-                    aRow = round( aV2.y );
-                    aCol = round( aV2.z );
+                    aRow = round( aV2.x );
+                    aCol = round( aV2.y );
 
                     aPixel[ 0 ] = ( unsigned char )aV2.r;
                     aPixel[ 1 ] = ( unsigned char )aV2.g;
@@ -104,8 +104,8 @@ int main( int argc, char *argv[] )
                     aIntrsctColor[ i - aMinSliceIndex ].at< cv::Vec3b >( aRow, aCol ) = aPixel;
 
                     // point 2
-                    aRow = round( aV1.y );
-                    aCol = round( aV1.z );
+                    aRow = round( aV1.x );
+                    aCol = round( aV1.y );
 
                     aPixel[ 0 ] = ( unsigned char )aV1.r;
                     aPixel[ 1 ] = ( unsigned char )aV1.g;
@@ -119,10 +119,10 @@ int main( int argc, char *argv[] )
                 }
                 continue;
             }
-            double d = ( aV2.x - i ) / ( aV2.x - aV1.x );
+            double d = ( aV2.z - i ) / ( aV2.z - aV1.z );
     
-            aRow = round( d * aV1.y + ( 1.0 - d ) * aV2.y );
-            aCol = round( d * aV1.z + ( 1.0 - d ) * aV2.z );
+            aRow = round( d * aV1.x + ( 1.0 - d ) * aV2.x );
+            aCol = round( d * aV1.y + ( 1.0 - d ) * aV2.y );
 
             aPixel[ 0 ] = ( unsigned char )( d * aV1.r + ( 1.0 - d ) * aV2.r );
             aPixel[ 1 ] = ( unsigned char )( d * aV1.g + ( 1.0 - d ) * aV2.g );
@@ -183,12 +183,12 @@ int main( int argc, char *argv[] )
     // note: with -pix_fmt option the generated file can have the largest compatibility, however,
     //       we have to make the dimensions to be even numbers
     // for compatible output
-    char aOutputVideoName[ 128 ];
-    strcpy( aOutputVideoName, argv[ 3 ] );
-    strcat( aOutputVideoName, "/compositeVideo.mp4" );
-    char aCmdStr[ 512 ];
-    sprintf( aCmdStr, "ffmpeg -framerate 30000/1001 -start_number %d -i %s -c:v libx264 -pix_fmt yuv420p -vf \"scale=iw*sar:ih, scale=\'w=if(lt(dar, 16/9), trunc(oh*a/2)*2, min(1920,ceil(iw/2)*2)):h=if(gte(dar, 16/9), trunc(ow/a/2)*2, min(1080,ceil(ih/2)*2))\', setsar=1\" -movflags faststart %s", aMinSliceIndex, aOutputPath, aOutputVideoName );
-    system( aCmdStr );
+    // char aOutputVideoName[ 128 ];
+    // strcpy( aOutputVideoName, argv[ 3 ] );
+    // strcat( aOutputVideoName, "/compositeVideo.mp4" );
+    // char aCmdStr[ 512 ];
+    // sprintf( aCmdStr, "ffmpeg -framerate 30000/1001 -start_number %d -i %s -c:v libx264 -pix_fmt yuv420p -vf \"scale=iw*sar:ih, scale=\'w=if(lt(dar, 16/9), trunc(oh*a/2)*2, min(1920,ceil(iw/2)*2)):h=if(gte(dar, 16/9), trunc(ow/a/2)*2, min(1080,ceil(ih/2)*2))\', setsar=1\" -movflags faststart %s", aMinSliceIndex, aOutputPath, aOutputVideoName );
+    // system( aCmdStr );
 
     return 0;
 }

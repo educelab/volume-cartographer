@@ -300,16 +300,16 @@ bool CMeshGL::SaveModel( const std::string &nModelFileName )
 }
 
 // Compose a virtual rectangle
-void CMeshGL::ComposeVirtualRectangle( int nSliceIndex,	// x
-										int nImgW,			// y
-										int nImgH )		// z
+void CMeshGL::ComposeVirtualRectangle( int nImgW,	// x
+                                       int nImgH, // y
+                                       int nSliceIndex)		// z
 {
 	// (1) fill the member variables
 	PointXYZRGBNormal aPt;
-    aPt.x = nSliceIndex; aPt.y = 0.0;   aPt.z = 0.0;   fPoints.push_back( aPt );
-    aPt.x = nSliceIndex; aPt.y = 0.0;   aPt.z = nImgH; fPoints.push_back( aPt );
-    aPt.x = nSliceIndex; aPt.y = nImgW; aPt.z = 0.0;   fPoints.push_back( aPt );
-    aPt.x = nSliceIndex; aPt.y = nImgW; aPt.z = nImgH; fPoints.push_back( aPt );
+    aPt.z = nSliceIndex; aPt.x = 0.0;   aPt.y = 0.0;   fPoints.push_back( aPt );
+    aPt.z = nSliceIndex; aPt.x = 0.0;   aPt.y = nImgH; fPoints.push_back( aPt );
+    aPt.z = nSliceIndex; aPt.x = nImgW; aPt.y = 0.0;   fPoints.push_back( aPt );
+    aPt.z = nSliceIndex; aPt.x = nImgW; aPt.y = nImgH; fPoints.push_back( aPt );
 
     fFaces.push_back( Vec3< int >( 0, 1, 2 ) );
 	fFaces.push_back( Vec3< int >( 1, 3, 2 ) );
@@ -357,9 +357,9 @@ void CMeshGL::ComposeVirtualRectangle( int nSliceIndex,	// x
 
 			fElementBufferData[ 0 ][ aVertexIndexNew ] = ( unsigned short )( aVertexIndexNew );
 
-			fVertexBufferData[ 0 ][ aVertexIndexNew * 4 ] = nSliceIndex;
-			fVertexBufferData[ 0 ][ aVertexIndexNew * 4 + 1 ] = aCoordCombo[ aVertexIndexCombo[ i ][ j ] ][ 0 ] * nImgW;
-            fVertexBufferData[ 0 ][ aVertexIndexNew * 4 + 2 ] = aCoordCombo[ aVertexIndexCombo[ i ][ j ] ][ 1 ] * nImgH;
+			fVertexBufferData[ 0 ][ aVertexIndexNew * 4 + 2 ] = nSliceIndex;
+			fVertexBufferData[ 0 ][ aVertexIndexNew * 4     ] = aCoordCombo[ aVertexIndexCombo[ i ][ j ] ][ 0 ] * nImgW;
+      fVertexBufferData[ 0 ][ aVertexIndexNew * 4 + 1 ] = aCoordCombo[ aVertexIndexCombo[ i ][ j ] ][ 1 ] * nImgH;
 			fVertexBufferData[ 0 ][ aVertexIndexNew * 4 + 3 ] = 1.0;
 
             // REVISIT - 20150202 the problem of the texture could not be rendered, probably is the endianess problem
@@ -418,7 +418,7 @@ void CMeshGL::ChangeVertex( const CXCurve *nCurve,
 {
     for ( size_t i = 0; i < nCurve->GetPointsNum(); ++i ) {
 		ChangeVertex( nCurve->Get3DIndex( i ),
-						Vec3< float >( nSliceIndex, nCurve->GetPoint( i )[ 0 ], nCurve->GetPoint( i )[ 1 ] ) );
+						Vec3< float >( nCurve->GetPoint( i )[ 0 ], nCurve->GetPoint( i )[ 1 ], nSliceIndex ) );
 	}
 }
 

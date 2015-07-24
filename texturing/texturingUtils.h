@@ -37,43 +37,43 @@ inline bool IsLess( const double &nV1,
 }
 
 // estimate intensity of volume at particle
-inline double interpolate_intensity( const cv::Vec3f				&point,
-								     const std::vector< cv::Mat >	&nImgVol )
+inline double interpolate_intensity( const cv::Vec3f                 &point,
+                                     const std::vector< cv::Mat >    &nImgVol )
 {
-    double dx, dy, dz, int_part;
-    // for new data
-    dx = modf(point[(0)], &int_part);
-    dy = modf(point[(2)], &int_part);
-    dz = modf(point[(1)], &int_part);
-    
-    int x_min, x_max, y_min, y_max, z_min, z_max;
-    x_min = (int)point(0);
-    x_max = x_min + 1;
-    y_min = (int)point(2);
-    y_max = y_min + 1;
-    z_min = (int)point(1);
-    z_max = z_min + 1;
-    
-    // safe net
-    if ( x_min < 0 || x_max > nImgVol.size() - 1 ||
-         y_min < 0 || y_max > nImgVol[ x_min ].rows - 1 ||
-         z_min < 0 || z_max > nImgVol[ x_min ].cols - 1 ) {
-    
-        return 0;
-    
-    }
-    
-    double result =
-        nImgVol[ x_min ].at< unsigned short >( y_min, z_min ) * (1 - dx) * (1 - dy) * (1 - dz) +
-        nImgVol[ x_max ].at< unsigned short >( y_min, z_min ) * dx       * (1 - dy) * (1 - dz) +
-        nImgVol[ x_min ].at< unsigned short >( y_max, z_min ) * (1 - dx) * dy       * (1 - dz) +
-        nImgVol[ x_min ].at< unsigned short >( y_min, z_max ) * (1 - dx) * (1 - dy) * dz +
-        nImgVol[ x_max ].at< unsigned short >( y_min, z_max ) * dx       * (1 - dy) * dz +
-        nImgVol[ x_min ].at< unsigned short >( y_max, z_max ) * (1 - dx) * dy       * dz +
-        nImgVol[ x_max ].at< unsigned short >( y_max, z_min ) * dx       * dy       * (1 - dz) +
-        nImgVol[ x_max ].at< unsigned short >( y_max, z_max ) * dx       * dy       * dz;
-    
-    return result;
+  double dx, dy, dz, int_part;
+  // for new data
+  dx = modf(point[(0)], &int_part);
+  dy = modf(point[(1)], &int_part);
+  dz = modf(point[(2)], &int_part);
+
+  int x_min, x_max, y_min, y_max, z_min, z_max;
+  x_min = (int)point(0);
+  x_max = x_min + 1;
+  y_min = (int)point(1);
+  y_max = y_min + 1;
+  z_min = (int)point(2);
+  z_max = z_min + 1;
+
+  // safe net
+  if ( z_min < 0 || z_max > nImgVol.size() - 1 ||
+       x_min < 0 || x_max > nImgVol[ z_min ].cols - 1 ||
+       y_min < 0 || y_max > nImgVol[ z_min ].rows - 1 ) {
+
+    return 0;
+
+  }
+
+  double result =
+    nImgVol[ z_min ].at< unsigned short >( y_min, x_min ) * (1 - dx) * (1 - dy) * (1 - dz) +
+    nImgVol[ z_min ].at< unsigned short >( y_min, x_max ) * dx       * (1 - dy) * (1 - dz) +
+    nImgVol[ z_min ].at< unsigned short >( y_max, x_min ) * (1 - dx) * dy       * (1 - dz) +
+    nImgVol[ z_max ].at< unsigned short >( y_min, x_min ) * (1 - dx) * (1 - dy) * dz +
+    nImgVol[ z_max ].at< unsigned short >( y_min, x_max ) * dx       * (1 - dy) * dz +
+    nImgVol[ z_max ].at< unsigned short >( y_max, x_min ) * (1 - dx) * dy       * dz +
+    nImgVol[ z_min ].at< unsigned short >( y_max, x_max ) * dx       * dy       * (1 - dz) +
+    nImgVol[ z_max ].at< unsigned short >( y_max, x_max ) * dx       * dy       * dz;
+
+  return result;
 }
 
 // Check whether the point is local maximum
@@ -98,6 +98,95 @@ inline bool IsLocalMaximum( const cv::Vec3f              &nPoint,
 }
 
 // Sample the volume data withing ellipse region
+inline void Sectioning(            double                       nSections,      // number of sections
+                                   double                       range,          // range (thickness) of material
+                                   const cv::Vec3f              &nCenter,       // given point
+                                   const cv::Vec3f              &nMajorAxisDir, // normal
+                                   const std::vector< cv::Mat > &nImgVol,       // volume data
+                                   double                       nA,             // neighborhood's radius (Axis)
+                                   int                          nSamplingDir,   // sampling direction
+                                   double                       *nData )        // [out] samples
+{
+    if (nMajorAxisDir == cv::Vec3f(0,0,0)) {
+      printf( "ERROR: zero normal vector.\n" );
+      return;
+    }
+
+    // Normalize normal to be the length of half of the material's thickness (pixels)
+    cv::Vec3f aNormalVec( nMajorAxisDir[ 0 ], nMajorAxisDir[ 1 ], nMajorAxisDir[ 2 ] );
+    cv::normalize( aNormalVec, aNormalVec, 0, range / 2, cv::NORM_MINMAX, CV_32F);
+
+    double nSampleInterval = range / nSections;
+    nSampleInterval = nSampleInterval / 2; // Assume given point is in the middle of the material
+
+    int aDataCnt = 0;
+    cv::Vec3f aPos;
+    cv::Vec3f aDir;
+
+    // Loop over the number of samples required on the normal vector
+    for ( int i = 0; aDataCnt < nSections; ++i ) {
+        aDir = i * nSampleInterval * aNormalVec;
+
+        // Both directions
+        if ( nSamplingDir == 0 ) {
+          // Calculate point as scaled and sampled normal vector + center
+          aPos[ 0 ] = nCenter[ 0 ] + aDir[ 0 ];
+          aPos[ 1 ] = nCenter[ 1 ] + aDir[ 1 ];
+          aPos[ 2 ] = nCenter[ 2 ] + aDir[ 2 ];
+
+          // Get interpolated intensity at point
+          double tmp = interpolate_intensity( aPos, nImgVol );
+
+          // Store point in return array
+          nData[ aDataCnt ] = tmp; 
+          aDataCnt++;
+
+          // Eliminates duplicate image at starting index
+          if ( i > 0 && aDataCnt < nSections ) {
+            aPos[ 0 ] = nCenter[ 0 ] - aDir[ 0 ];
+            aPos[ 1 ] = nCenter[ 1 ] - aDir[ 1 ];
+            aPos[ 2 ] = nCenter[ 2 ] - aDir[ 2 ];
+
+            // Get interpolated intensity at point
+            double tmp = interpolate_intensity( aPos, nImgVol );
+
+            // Store point in return array
+            nData[ aDataCnt ] = tmp; // REVISIT - we assume we have enough space
+            aDataCnt++;
+          }
+        }
+        // Positive direction only
+        else if ( nSamplingDir == 1 ) {
+          // Calculate point as scaled and sampled normal vector + center
+          aPos[ 0 ] = nCenter[ 0 ] + aDir[ 0 ];
+          aPos[ 1 ] = nCenter[ 1 ] + aDir[ 1 ];
+          aPos[ 2 ] = nCenter[ 2 ] + aDir[ 2 ];
+
+          // Get interpolated intensity at point
+          double tmp = interpolate_intensity( aPos, nImgVol );
+
+          // Store point in return array
+          nData[ aDataCnt ] = tmp;
+          aDataCnt++;
+        }
+        // Negative direction only
+        else if ( nSamplingDir == 2 ) {
+          aPos[ 0 ] = nCenter[ 0 ] - aDir[ 0 ];
+          aPos[ 1 ] = nCenter[ 1 ] - aDir[ 1 ];
+          aPos[ 2 ] = nCenter[ 2 ] - aDir[ 2 ];
+
+          // Get interpolated intensity at point
+          double tmp = interpolate_intensity( aPos, nImgVol );
+
+          // Store point in return array
+          nData[ aDataCnt ] = tmp; // REVISIT - we assume we have enough space
+          aDataCnt++;
+        }
+
+    } // for i
+}
+
+// Sample the volume data along the normal
 inline void SamplingAlongNormal(   double                       nA,             // normal length
                                    double                       nSampleInterval,// sample interval
                                    const cv::Vec3f              &nCenter,       // center
@@ -108,8 +197,7 @@ inline void SamplingAlongNormal(   double                       nA,             
                                    int                          *nSize,         // [out] number of samples
                                    bool                         nWithNonMaxSuppression = false ) // ONLY FOR NON-MAXIMUM SUPPRESSION
 {
-    // uniformly sample within the ellipse
-    // uniformly sample along the major axis
+    // uniformly sample along the normal
     int aSizeMajor = nA / nSampleInterval;
 
     if (nMajorAxisDir == cv::Vec3f(0,0,0)) {
@@ -182,7 +270,7 @@ inline void SamplingWithinEllipse( double                       nA,             
     /* vector used to parameterize surface defined by nMajorAxisDir */
     /* need to create two vectors that are orthogonal to one another */
     /* and orthogonal to nMajorAxisDir */
-    cv::Vec3f G(1,0,0);
+    cv::Vec3f G(0,0,1);
 
     /* project G onto plane defined by nMajorAxisDir */
     /*                                   */
@@ -285,17 +373,6 @@ inline void SamplingWithinEllipse( double                       nA,             
 inline double FilterIntersection( const cv::Vec3f              &nPoint,
                                   const std::vector< cv::Mat > &nImgVol )
 {
-/* interpolate_intensity already does a better check for whether the point exists within the volume
- * Commenting this out in lieu of deletion. - SP
-    if ( nPoint[ 0 ] < 0 || nPoint[ 0 ] > nImgVol.size() - 1 ||
-         nPoint[ 1 ] < 0 || nPoint[ 1 ] > nImgVol[ 0 ].cols - 1 ||
-         nPoint[ 2 ] < 0 || nPoint[ 2 ] > nImgVol[ 0 ].rows - 1 ) {
-
-        return -1.0;
-
-    }
-*/
-
     return interpolate_intensity( nPoint, nImgVol );
 }
 

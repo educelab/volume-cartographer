@@ -10,3 +10,7 @@ QT4_WRAP_CPP(PathGen_HEADERS_MOC ${PathGen_HEADERS})
 # build
 add_executable(vc_pathgen ${PathGen_SOURCES} ${PathGen_HEADERS_MOC})
 target_link_libraries(vc_pathgen ${VC_LIBS} ${VC_REQ_LIBS} ${QT_LIBRARIES} ${EXTRA_LIBS})
+
+# Install targets
+install(TARGETS vc_pathgen
+        RUNTIME DESTINATION bin COMPONENT Programs)

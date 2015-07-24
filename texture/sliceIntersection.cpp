@@ -28,40 +28,40 @@ unsigned int gNumHistBin;
 
 // estimate intensity of volume at particle
 double interpolate_intensity( const cv::Vec3f					&point,
-								const std::vector< cv::Mat >	&nImgVol )
+															const std::vector< cv::Mat >	&nImgVol )
 {
   double dx, dy, dz, int_part;
   // for new data
   dx = modf(point[(0)], &int_part);
-  dy = modf(point[(2)], &int_part);
-  dz = modf(point[(1)], &int_part);
+  dy = modf(point[(1)], &int_part);
+  dz = modf(point[(2)], &int_part);
 
   int x_min, x_max, y_min, y_max, z_min, z_max;
-  x_min = (int)point(0) - 1; // REVISIT - this is because volpkg shifted the index by 1
+  x_min = (int)point(0);
   x_max = x_min + 1;
-  y_min = (int)point(2);
+  y_min = (int)point(1);
   y_max = y_min + 1;
-  z_min = (int)point(1);
+  z_min = (int)point(2);
   z_max = z_min + 1;
 
   // safe net
-  if ( x_min < 0 || x_max > nImgVol.size() - 1 ||
-	  y_min < 0 || y_max > nImgVol[ x_min ].rows - 1 ||
-	  z_min < 0 || z_max > nImgVol[ x_min ].cols - 1 ) {
+	if ( z_min < 0 || z_max > nImgVol.size() - 1 ||
+	     x_min < 0 || x_max > nImgVol[ z_min ].cols - 1 ||
+	     y_min < 0 || y_max > nImgVol[ z_min ].rows - 1 ) {
 
 	  return 0;
 
   }
 
   double result =
-    nImgVol[ x_min ].at< unsigned char >( y_min, z_min ) * (1 - dx) * (1 - dy) * (1 - dz) +
-    nImgVol[ x_max ].at< unsigned char >( y_min, z_min ) * dx       * (1 - dy) * (1 - dz) +
-    nImgVol[ x_min ].at< unsigned char >( y_max, z_min ) * (1 - dx) * dy       * (1 - dz) +
-    nImgVol[ x_min ].at< unsigned char >( y_min, z_max ) * (1 - dx) * (1 - dy) * dz +
-    nImgVol[ x_max ].at< unsigned char >( y_min, z_max ) * dx       * (1 - dy) * dz +
-    nImgVol[ x_min ].at< unsigned char >( y_max, z_max ) * (1 - dx) * dy       * dz +
-    nImgVol[ x_max ].at< unsigned char >( y_max, z_min ) * dx       * dy       * (1 - dz) +
-    nImgVol[ x_max ].at< unsigned char >( y_max, z_max ) * dx       * dy       * dz;
+    nImgVol[ z_min ].at< unsigned char >( y_min, x_min ) * (1 - dx) * (1 - dy) * (1 - dz) +
+    nImgVol[ z_min ].at< unsigned char >( y_min, x_max ) * dx       * (1 - dy) * (1 - dz) +
+    nImgVol[ z_min ].at< unsigned char >( y_max, x_min ) * (1 - dx) * dy       * (1 - dz) +
+    nImgVol[ z_max ].at< unsigned char >( y_min, x_min ) * (1 - dx) * (1 - dy) * dz +
+    nImgVol[ z_max ].at< unsigned char >( y_min, x_max ) * dx       * (1 - dy) * dz +
+    nImgVol[ z_max ].at< unsigned char >( y_max, x_min ) * (1 - dx) * dy       * dz +
+    nImgVol[ z_min ].at< unsigned char >( y_max, x_max ) * dx       * dy       * (1 - dz) +
+    nImgVol[ z_max ].at< unsigned char >( y_max, x_max ) * dx       * dy       * dz;
 
   return result;
 }
@@ -69,7 +69,7 @@ double interpolate_intensity( const cv::Vec3f					&point,
 bool CompareXLess( const pcl::PointXYZRGBNormal &nP1,
 				   const pcl::PointXYZRGBNormal &nP2 )
 {
-	return( nP1.x < nP2.x );
+	return( nP1.z < nP2.z );
 }
 
 void FindBetterTexture( ChaoVis::CMesh &nMesh,

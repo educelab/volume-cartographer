@@ -20,41 +20,41 @@ unsigned int gNumHistBin;
 
 // estimate intensity of volume at particle
 inline
-double interpolate_intensity( const cv::Vec3f                    &point,
-                                const std::vector< cv::Mat >    &nImgVol )
+double interpolate_intensity( const cv::Vec3f					&point,
+															const std::vector< cv::Mat >	&nImgVol )
 {
   double dx, dy, dz, int_part;
   // for new data
   dx = modf(point[(0)], &int_part);
-  dy = modf(point[(2)], &int_part);
-  dz = modf(point[(1)], &int_part);
+  dy = modf(point[(1)], &int_part);
+  dz = modf(point[(2)], &int_part);
 
   int x_min, x_max, y_min, y_max, z_min, z_max;
-  x_min = (int)point(0) - 1; // REVISIT - this is because volpkg shifted the index by 1
+  x_min = (int)point(0);
   x_max = x_min + 1;
-  y_min = (int)point(2);
+  y_min = (int)point(1);
   y_max = y_min + 1;
-  z_min = (int)point(1);
+  z_min = (int)point(2);
   z_max = z_min + 1;
 
   // safe net
-  if ( x_min < 0 || x_max > nImgVol.size() - 1 ||
-      y_min < 0 || y_max > nImgVol[ x_min ].rows - 1 ||
-      z_min < 0 || z_max > nImgVol[ x_min ].cols - 1 ) {
+  if ( z_min < 0 || z_max > nImgVol.size() - 1 ||
+       x_min < 0 || x_max > nImgVol[ z_min ].cols - 1 ||
+       y_min < 0 || y_max > nImgVol[ z_min ].rows - 1 ) {
 
-      return 0;
+	  return 0;
 
   }
 
   double result =
-    nImgVol[ x_min ].at< unsigned char >( y_min, z_min ) * (1 - dx) * (1 - dy) * (1 - dz) +
-    nImgVol[ x_max ].at< unsigned char >( y_min, z_min ) * dx       * (1 - dy) * (1 - dz) +
-    nImgVol[ x_min ].at< unsigned char >( y_max, z_min ) * (1 - dx) * dy       * (1 - dz) +
-    nImgVol[ x_min ].at< unsigned char >( y_min, z_max ) * (1 - dx) * (1 - dy) * dz +
-    nImgVol[ x_max ].at< unsigned char >( y_min, z_max ) * dx       * (1 - dy) * dz +
-    nImgVol[ x_min ].at< unsigned char >( y_max, z_max ) * (1 - dx) * dy       * dz +
-    nImgVol[ x_max ].at< unsigned char >( y_max, z_min ) * dx       * dy       * (1 - dz) +
-    nImgVol[ x_max ].at< unsigned char >( y_max, z_max ) * dx       * dy       * dz;
+    nImgVol[ z_min ].at< unsigned char >( y_min, x_min ) * (1 - dx) * (1 - dy) * (1 - dz) +
+    nImgVol[ z_min ].at< unsigned char >( y_min, x_max ) * dx       * (1 - dy) * (1 - dz) +
+    nImgVol[ z_min ].at< unsigned char >( y_max, x_min ) * (1 - dx) * dy       * (1 - dz) +
+    nImgVol[ z_max ].at< unsigned char >( y_min, x_min ) * (1 - dx) * (1 - dy) * dz +
+    nImgVol[ z_max ].at< unsigned char >( y_min, x_max ) * dx       * (1 - dy) * dz +
+    nImgVol[ z_max ].at< unsigned char >( y_max, x_min ) * (1 - dx) * dy       * dz +
+    nImgVol[ z_min ].at< unsigned char >( y_max, x_max ) * dx       * dy       * (1 - dz) +
+    nImgVol[ z_max ].at< unsigned char >( y_max, x_max ) * dx       * dy       * dz;
 
   return result;
 }
@@ -62,7 +62,7 @@ double interpolate_intensity( const cv::Vec3f                    &point,
 bool CompareXLess( const pcl::PointXYZRGBNormal &nP1,
                    const pcl::PointXYZRGBNormal &nP2 )
 {
-    return( nP1.x < nP2.x );
+    return( nP1.z < nP2.z );
 }
 
 void FindBetterTexture( ChaoVis::CMesh &nMesh,
@@ -83,7 +83,7 @@ void FindBetterTexture( ChaoVis::CMesh &nMesh,
     const int TOTAL_SAMPLING_NUM = 2 * nRadius / SAMPLE_RATE + 1; // 1 more at the center
     double *aSamples = new double[ TOTAL_SAMPLING_NUM + 2 ]; // 1 more at each end
 
-    // do non-maximum suppression around a point to find the best texture value for it 
+    // do non-maximum suppression around a point to find the best texture value for it
     std::vector< pcl::PointXYZRGBNormal >::iterator aIter;
     for ( aIter = nMesh.fPoints.begin(); aIter != nMesh.fPoints.end(); ++aIter ) {
 
@@ -249,7 +249,7 @@ double FilterNonLocalMaximumSuppression( double *nData,
 //                aIter->x = aNewPos[ 0 ];
 //                aIter->y = aNewPos[ 1 ];
 //                aIter->z = aNewPos[ 2 ];
-                
+
                 //break;
             }
         }
@@ -283,9 +283,9 @@ void GetGlobalHistogram( const std::vector< cv::Mat > &nImgVol,
             for ( int aCol = 0; aCol < aIter->cols; ++aCol ) {
                 //int index = aIter->at< cv::Vec3b >( aRow, aCol )[ 0 ];
                 int index = aIter->at< ImgT >( aRow, aCol );
-    
+
                 assert( index >= 0 && index < gNumHistBin );
-    
+
                 aNewHist[ index ]++;
             }
         }
@@ -395,7 +395,7 @@ void DoGlobalHistogramEqualization( std::vector< cv::Mat > &nImgVol )
     int aCnt = 0;
     cv::Mat aOutImg( nImgVol[ 0 ].rows, nImgVol[ 0 ].cols, nImgVol[ 0 ].type() );
     for ( std::vector< cv::Mat >::iterator aIter = nImgVol.begin(); aIter != nImgVol.end(); ++aIter, ++aCnt ) {
-        
+
         aIter->copyTo( aOutImg );
 
         DoHistogramEqualization< HistT, ImgT >( aGlobalHist,
@@ -440,7 +440,7 @@ void ProcessVolume( /*const*/ VolumePkg     &nVpkg,
     /*  This fucntion is a hack to avoid a refactoring the texturing
         methods. See Issue #12 for more details. */
     // Setup
-    int meshLowIndex = (int) nMesh.fPoints.begin()->x;
+    int meshLowIndex = (int) nMesh.fPoints.begin()->z;
     int meshHighIndex = meshLowIndex + nMesh.fHeight;
     int aNumSlices = nVpkg.getNumberOfSlices();
 
@@ -544,7 +544,7 @@ void SamplingWithinEllipse( double nA, // major axis
                 if ( j * nDensity < aEllipseDist ) { // must satisfy ellipse constraint, (x/a)^2+(y/b)^2)=1
                     if ( nSamplingDir == 0 ) { // sample along both positive and negative directions
                         for ( int t = 0; t < 8; ++t ) {
-                            aDir = i * nDensity * aSign[ t ][ 0 ] * nMajorAxisDir + 
+                            aDir = i * nDensity * aSign[ t ][ 0 ] * nMajorAxisDir +
                                    j * nDensity * aSign[ t ][ 1 ] * aMinorAxisDir1 +
                                    k * nDensity * aSign[ t ][ 2 ] * aMinorAxisDir2;
                             // REVISIT - note that the points along the axis are counted multiple times
@@ -561,7 +561,7 @@ void SamplingWithinEllipse( double nA, // major axis
                         } // for t
                     } else if ( nSamplingDir == 1 ) { // sample along positive direction
                         for ( int t = 0; t < 4; ++t ) {
-                            aDir = i * nDensity * aSign[ aSamplingPositive[ t ] ][ 0 ] * nMajorAxisDir + 
+                            aDir = i * nDensity * aSign[ aSamplingPositive[ t ] ][ 0 ] * nMajorAxisDir +
                                    j * nDensity * aSign[ aSamplingPositive[ t ] ][ 1 ] * aMinorAxisDir1 +
                                    k * nDensity * aSign[ aSamplingPositive[ t ] ][ 2 ] * aMinorAxisDir2;
                             aPos[ 0 ] = nCenter[ 0 ] + aDir[ 0 ];
@@ -573,7 +573,7 @@ void SamplingWithinEllipse( double nA, // major axis
                         } // for t
                     } else if ( nSamplingDir == 2 ) { // sample along negative direction
                         for ( int t = 0; t < 4; ++t ) {
-                            aDir = i * nDensity * aSign[ aSamplingNegative[ t ] ][ 0 ] * nMajorAxisDir + 
+                            aDir = i * nDensity * aSign[ aSamplingNegative[ t ] ][ 0 ] * nMajorAxisDir +
                                    j * nDensity * aSign[ aSamplingNegative[ t ] ][ 1 ] * aMinorAxisDir1 +
                                    k * nDensity * aSign[ aSamplingNegative[ t ] ][ 2 ] * aMinorAxisDir2;
                             aPos[ 0 ] = nCenter[ 0 ] + aDir[ 0 ];
@@ -623,8 +623,8 @@ double FilterMedianAverage( double *nData,
     double aResult = aData[ aCenter ];
     int aCnt = 1;
     for ( int i = 1; i <= aRange; ++i ) {
-        aResult += aData[ aCenter + i ]; 
-        aResult += aData[ aCenter - i ]; 
+        aResult += aData[ aCenter + i ];
+        aResult += aData[ aCenter - i ];
         aCnt += 2;
     }
 
@@ -670,7 +670,7 @@ double FilterMean( double *nData,
 {
     double aResult = 0.0;
     for ( int i = 0; i < nSize; ++i ) {
-        aResult += nData[ i ]; 
+        aResult += nData[ i ];
     }
     return( aResult / nSize );
 }
