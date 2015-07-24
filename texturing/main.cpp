@@ -331,7 +331,7 @@ int main(int argc, char* argv[]) {
         MIKE::Triangle tri = triangle_row[t];
         cv::Vec3f p = tri.intersect(origin,direction);
 
-        if (tri.pointInTriangle(p)) {
+        if (tri.pointInTriangle(p) && direction.dot(tri.normal()) >= 0) {
           double color = textureWithMethod( p,
                                             tri.normal(),
                                             aImgVol,
