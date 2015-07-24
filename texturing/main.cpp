@@ -50,6 +50,12 @@ namespace MIKE {
       return point;
     }
 
+    cv::Vec3f normal() {
+      cv::Vec3f a2b = corner[1] - corner[0];
+      cv::Vec3f a2c = corner[2] - corner[0];
+      return a2b.cross(a2c);
+    }
+
   private:
 
     // a Barycentric method will probably be faster but this works for the time being.
@@ -72,11 +78,17 @@ namespace MIKE {
     TriangleStore(double e = 0.1) {
       epsilon_ = e;
 
-      lower_bound_x_ = std::numeric_limits<double>::max();
-      lower_bound_y_ = std::numeric_limits<double>::max();;
       upper_bound_x_ = 0;
+      lower_bound_x_ = std::numeric_limits<double>::max();
+
       upper_bound_y_ = 0;
+      lower_bound_y_ = std::numeric_limits<double>::max();
+
+      upper_bound_z_ = 0;
+      lower_bound_z_ = std::numeric_limits<double>::max();
+
     }
+
     void push_back(Triangle t) {
       double minZ = t.minBy(VC_INDEX_Z);
       double maxZ = t.maxBy(VC_INDEX_Z);
@@ -101,6 +113,13 @@ namespace MIKE {
       if (t.maxBy(VC_INDEX_Y) > upper_bound_y_) {
         upper_bound_y_ = t.maxBy(VC_INDEX_Y);
       }
+      if (minZ < lower_bound_z_) {
+        lower_bound_z_ = minZ;
+      }
+      if (maxZ > upper_bound_z_) {
+        upper_bound_z_ = maxZ;
+      }
+
 
     }
 
@@ -110,14 +129,15 @@ namespace MIKE {
       std::cout << "y bounds: [" << lower_bound_y_ << " .. " << upper_bound_y_ << "]" << std::endl;
 
     }
-  private:
     double epsilon_;
-
+    double upper_bound_x_;
     double lower_bound_x_;
+
+    double upper_bound_y_;
     double lower_bound_y_;
 
-    double upper_bound_x_;
-    double upper_bound_y_;
+    double upper_bound_z_;
+    double lower_bound_z_;
 
     std::map<int,std::vector<Triangle> > bin_;
   };
@@ -179,7 +199,7 @@ int main(int argc, char* argv[]) {
   // Matrix to store the output texture
   int textureW = meshWidth;
   int textureH = meshHeight;
-  cv::Mat outputTexture = cv::Mat::zeros( textureH, textureW, CV_16UC1 );
+  //  cv::Mat outputTexture = cv::Mat::zeros( textureH, textureW, CV_16UC1 );
 
   // pointID == point's position in 1D list of points
   // [meshX, meshY] == point's position if list was a 2D matrix
@@ -246,6 +266,72 @@ int main(int argc, char* argv[]) {
 
   // now we have the triangles
   // do ray tracing
+
+  FILE* file_points;
+  file_points = fopen("points.txt","r");
+  if (file_points == NULL) {
+    std::cout << "couldn't open points.txt" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+  FILE* file_normals;
+  file_normals = fopen("normals.txt","r");
+  if(file_normals == NULL) {
+    std::cout << "couldn't open normals.txt" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+
+
+  struct {
+    std::vector<cv::Vec3f> origin;
+    std::vector<cv::Vec3f> direction;
+  } rays;
+
+  while (!feof(file_points) && !feof(file_normals)) {
+    float a, b, c;
+
+    fscanf(file_points, "[%f, %f, %f]\n", &a, &b, &c);
+    rays.origin.push_back(cv::Vec3f(a,b,c));
+
+    fscanf(file_normals, "[%f, %f, %f]\n", &a, &b, &c);
+    rays.direction.push_back(cv::Vec3f(a,b,c).cross(VC_DIRECTION_K));
+  }
+
+  std::cout << rays.origin.size() << std::endl;
+  std::cout << rays.direction.size() << std::endl;
+
+  std::cout << "storage " << storage.upper_bound_z_ << "\t" << storage.lower_bound_z_ << std::endl;
+
+  cv::Mat outputTexture = cv::Mat::zeros( (int)storage.upper_bound_z_ + 20, rays.origin.size() + 20, CV_16UC1 );
+
+  for (int z = (int)storage.lower_bound_z_; z < (int)storage.upper_bound_z_; ++z) {
+    std::vector<MIKE::Triangle> triangle_row = storage.bin_[z];
+    for (int r = 0; r < rays.origin.size(); ++r) {
+      cv::Vec3f origin = rays.origin[r];
+      origin(VC_INDEX_Z) = z;
+      cv::Vec3f direction = rays.direction[r];
+
+      // should do something to deal with multiple intersections
+      for (int t = 0; t < triangle_row.size(); ++t) {
+        MIKE::Triangle tri = triangle_row[t];
+        cv::Vec3f p = tri.intersect(origin,direction);
+
+        if (tri.pointInTriangle(p)) {
+          double color = textureWithMethod( p,
+                                            tri.normal(),
+                                            aImgVol,
+                                            aFilterOption,
+                                            radius,
+                                            minorRadius,
+                                            0.5,
+                                            aDirectionOption);
+          outputTexture.at<unsigned short>(z, r) = (unsigned short)color;
+          break;
+        }
+      }
+
+    }
+  }
 
   vpkg.saveTextureData(outputTexture);
   return 0;
