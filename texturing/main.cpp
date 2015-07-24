@@ -36,32 +36,51 @@ namespace MIKE {
     }
 
     bool pointInTriangle(cv::Vec3f point) {
-      return(pointBetweenVectors(point, corner[1], corner[0], corner[2]) && pointBetweenVectors(point, corner[0], corner[1], corner[2]));
+      if (sameSide(point, corner[0], corner[1], corner[2]) &&
+          sameSide(point, corner[1], corner[0], corner[2]) &&
+          sameSide(point, corner[2], corner[0], corner[1])) {
+        return true;
+      }
+      return false;
+    }
+
+    cv::Vec3f intersect(cv::Vec3f ray_origin, cv::Vec3f ray_direction) {
+      cv::Vec3f normal = (corner[2] - corner[0]).cross(corner[1] - corner[0]);
+      double scale_factor = (corner[0] - ray_origin).dot(normal) / ray_direction.dot(normal);
+      cv::Vec3f point = scale_factor * ray_direction + ray_origin;
+      return point;
     }
 
   private:
-    bool pointBetweenVectors(cv::Vec3f point, cv::Vec3f alpha, cv::Vec3f beta, cv::Vec3f gamma) {
-      cv::Vec3f aAB = beta - alpha;
-      cv::Vec3f aAC = gamma - alpha;
-      cv::Vec3f pointOffset = point - alpha;
-      return( (aAB.cross(pointOffset)[2] * aAC.cross(pointOffset)[2]) < 0 );
+
+    // a Barycentric method will probably be faster but this works for the time being.
+    bool sameSide(cv::Vec3f point0, cv::Vec3f point1, cv::Vec3f alpha, cv::Vec3f beta) {
+      cv::Vec3f a2b = beta - alpha;
+      cv::Vec3f a2_point0 = point0 - alpha;
+      cv::Vec3f a2_point1 = point1 - alpha;
+      cv::Vec3f cp0 = a2b.cross(a2_point0);
+      cv::Vec3f cp1 = a2b.cross(a2_point1);
+
+      if (cp0.dot(cp1) >= 0) {
+        return true;
+      }
+      return false;
     }
   };
 
-  class BINZ {
+  class TriangleStore {
   public:
-    BINZ(double e) {
+    TriangleStore(double e) {
       epsilon = e;
     }
     void push_back(Triangle t) {
       double min = t.minZ();
       double max = t.maxZ();
 
-      // multiply these by scale factor
       min -= epsilon;
       max += epsilon;
 
-      for (int i = std::ceil(min); i < max; ++i) {
+      for (int i = std::floor(min); i < std::ceil(max); ++i) {
         bin[i].push_back(t);
       }
     }
@@ -69,10 +88,6 @@ namespace MIKE {
     void info() {
       std::cout << bin.size() << " bins used" << std::endl;
 
-      for (std::map<int, std::vector<Triangle> >::iterator it = bin.begin(); it != bin.end(); ++it) {
-        std::cout << " --BIN(" << it->first << ") " << it->second.size() << std::endl;
-      }
-      
     }
   private:
     double epsilon;
@@ -123,7 +138,7 @@ int main(int argc, char* argv[]) {
 
   int aSampleDir = atoi( argv[ 5 ] ); // sampleDirection (0=omni, 1=positive, 2=negative)
   EDirectionOption aDirectionOption = ( EDirectionOption )aSampleDir;
-    
+
   // declare pointer to new Mesh object
   VC_MeshType::Pointer mesh = VC_MeshType::New();
   int meshWidth = -1;
@@ -143,7 +158,7 @@ int main(int argc, char* argv[]) {
   // [u, v] == point's position in the output matrix
   unsigned long pointID, meshX, meshY;
   double u, v;
-    
+
   // Load the slices from the volumepkg
   std::vector< cv::Mat > aImgVol;
 
@@ -182,11 +197,11 @@ int main(int argc, char* argv[]) {
 
   double epsilon = 0.1;
 
-  MIKE::BINZ storage(epsilon);
-  
+  MIKE::TriangleStore storage(epsilon);
+
   VC_CellIterator cellIterator = mesh->GetCells()->Begin();
   while(cellIterator != mesh->GetCells()->End()) {
-    VC_CellType* cell = cellIterator.Value();        
+    VC_CellType* cell = cellIterator.Value();
     VC_PointsInCellIterator pointsIterator = cell->PointIdsBegin();
 
     MIKE::Triangle tri;
@@ -212,12 +227,13 @@ int main(int argc, char* argv[]) {
                                        aDirectionOption);
 
       outputTexture.at<unsigned short>(v, u) = (unsigned short)color;
+
       tri.corner.push_back(cv::Vec3f(p[0], p[1], p[2]));
       tri.color.push_back(color);
       ++pointsIterator;
     }
 
-    storage.push_back(tri);    
+    storage.push_back(tri);
     ++cellIterator;
   }
 
