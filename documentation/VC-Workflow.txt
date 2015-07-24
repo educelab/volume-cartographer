@@ -1,5 +1,5 @@
 -----------------------------------------
----- Volume Cartographer v2.0.0 ---------
+---- Volume Cartographer v2.1.0 ---------
 -----------------------------------------
 
 
@@ -67,7 +67,7 @@
 
         vc_sliceProjection [pathname]_segmented.ply [volume package].volpkg/ [path to output directory]/
 
-    This will produce PNGs with the mesh projected onto the slices and an MP4 of those projections for easy review [Requires ffmpeg be installed to PATH]
+    This will produce PNGs with the mesh projected onto the slices for easy review
 
 
 
