@@ -26,13 +26,12 @@ namespace MIKE {
   class Triangle {
   public:
     std::vector<cv::Vec3f> corner;
-    std::vector<unsigned short> color;
 
-    double minZ() {
-      return std::min(corner[0](VC_INDEX_Z), std::min(corner[1](VC_INDEX_Z), corner[2](VC_INDEX_Z)));
+    double minBy(int index) {
+      return std::min(corner[0](index), std::min(corner[1](index), corner[2](index)));
     }
-    double maxZ() {
-      return std::max(corner[0](VC_INDEX_Z), std::max(corner[1](VC_INDEX_Z), corner[2](VC_INDEX_Z)));
+    double maxBy(int index) {
+      return std::max(corner[0](index), std::max(corner[1](index), corner[2](index)));
     }
 
     bool pointInTriangle(cv::Vec3f point) {
@@ -70,28 +69,57 @@ namespace MIKE {
 
   class TriangleStore {
   public:
-    TriangleStore(double e) {
-      epsilon = e;
+    TriangleStore(double e = 0.1) {
+      epsilon_ = e;
+
+      lower_bound_x_ = std::numeric_limits<double>::max();
+      lower_bound_y_ = std::numeric_limits<double>::max();;
+      upper_bound_x_ = 0;
+      upper_bound_y_ = 0;
     }
     void push_back(Triangle t) {
-      double min = t.minZ();
-      double max = t.maxZ();
+      double minZ = t.minBy(VC_INDEX_Z);
+      double maxZ = t.maxBy(VC_INDEX_Z);
 
-      min -= epsilon;
-      max += epsilon;
+      minZ -= epsilon_;
+      maxZ += epsilon_;
 
-      for (int i = std::floor(min); i < std::ceil(max); ++i) {
-        bin[i].push_back(t);
+      for (int i = std::floor(minZ); i < std::ceil(maxZ); ++i) {
+        bin_[i].push_back(t);
       }
+
+      // record upper and lower bounds of triangle Xs and Ys
+      if (t.minBy(VC_INDEX_X) < lower_bound_x_) {
+        lower_bound_x_ = t.minBy(VC_INDEX_X);
+      }
+      if (t.maxBy(VC_INDEX_X) > upper_bound_x_) {
+        upper_bound_x_ = t.maxBy(VC_INDEX_X);
+      }
+      if (t.minBy(VC_INDEX_Y) < lower_bound_y_) {
+        lower_bound_y_ = t.minBy(VC_INDEX_Y);
+      }
+      if (t.maxBy(VC_INDEX_Y) > upper_bound_y_) {
+        upper_bound_y_ = t.maxBy(VC_INDEX_Y);
+      }
+
     }
 
     void info() {
-      std::cout << bin.size() << " bins used" << std::endl;
+      std::cout << bin_.size() << " bins used" << std::endl;
+      std::cout << "x bounds: [" << lower_bound_x_ << " .. " << upper_bound_x_ << "]" << std::endl;
+      std::cout << "y bounds: [" << lower_bound_y_ << " .. " << upper_bound_y_ << "]" << std::endl;
 
     }
   private:
-    double epsilon;
-    std::map<int,std::vector<Triangle> > bin;
+    double epsilon_;
+
+    double lower_bound_x_;
+    double lower_bound_y_;
+
+    double upper_bound_x_;
+    double upper_bound_y_;
+
+    std::map<int,std::vector<Triangle> > bin_;
   };
 
 
@@ -195,9 +223,7 @@ int main(int argc, char* argv[]) {
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  double epsilon = 0.1;
-
-  MIKE::TriangleStore storage(epsilon);
+  MIKE::TriangleStore storage;
 
   VC_CellIterator cellIterator = mesh->GetCells()->Begin();
   while(cellIterator != mesh->GetCells()->End()) {
@@ -208,28 +234,7 @@ int main(int argc, char* argv[]) {
     while (pointsIterator != cell->PointIdsEnd()) {
       pointID = *pointsIterator;
       VC_PointType p = mesh->GetPoint(pointID);
-      VC_PixelType normal;
-
-      mesh->GetPointData( pointID, &normal );
-      meshX = pointID % meshWidth;
-      meshY = (pointID - meshX) / meshWidth;
-
-      u = (double)textureW * (double)meshX / (double)meshWidth;
-      v = (double)textureH * (double)meshY / (double)meshHeight;
-
-      double color = textureWithMethod(cv::Vec3f(p[0], p[1], p[2]),
-                                       cv::Vec3f(normal[0], normal[1], normal[2]),
-                                       aImgVol,
-                                       aFilterOption,
-                                       radius,
-                                       minorRadius,
-                                       0.5,
-                                       aDirectionOption);
-
-      outputTexture.at<unsigned short>(v, u) = (unsigned short)color;
-
       tri.corner.push_back(cv::Vec3f(p[0], p[1], p[2]));
-      tri.color.push_back(color);
       ++pointsIterator;
     }
 
@@ -239,6 +244,30 @@ int main(int argc, char* argv[]) {
 
   storage.info();
 
+  // now we have the triangles
+  // do ray tracing
+
   vpkg.saveTextureData(outputTexture);
   return 0;
 }
+
+
+// VC_PixelType normal;
+
+// mesh->GetPointData( pointID, &normal );
+// meshX = pointID % meshWidth;
+// meshY = (pointID - meshX) / meshWidth;
+
+// u = (double)textureW * (double)meshX / (double)meshWidth;
+// v = (double)textureH * (double)meshY / (double)meshHeight;
+
+// double color = textureWithMethod(cv::Vec3f(p[0], p[1], p[2]),
+//                                  cv::Vec3f(normal[0], normal[1], normal[2]),
+//                                  aImgVol,
+//                                  aFilterOption,
+//                                  radius,
+//                                  minorRadius,
+//                                  0.5,
+//                                  aDirectionOption);
+
+// outputTexture.at<unsigned short>(v, u) = (unsigned short)color;
