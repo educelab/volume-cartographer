@@ -44,7 +44,7 @@ namespace MIKE {
     }
 
     cv::Vec3f intersect(cv::Vec3f ray_origin, cv::Vec3f ray_direction) {
-      cv::Vec3f normal = (corner[2] - corner[0]).cross(corner[1] - corner[0]);
+      cv::Vec3f normal = this->normal();
       double scale_factor = (corner[0] - ray_origin).dot(normal) / ray_direction.dot(normal);
       cv::Vec3f point = scale_factor * ray_direction + ray_origin;
       return point;
@@ -62,9 +62,20 @@ namespace MIKE {
     bool sameSide(cv::Vec3f point0, cv::Vec3f point1, cv::Vec3f alpha, cv::Vec3f beta) {
       cv::Vec3f a2b = beta - alpha;
       cv::Vec3f a2_point0 = point0 - alpha;
+
+      double epsilon = 0.00001;
+
+      if (cv::norm(a2_point0) <= epsilon) {
+        return true;
+      }
+
       cv::Vec3f a2_point1 = point1 - alpha;
       cv::Vec3f cp0 = a2b.cross(a2_point0);
       cv::Vec3f cp1 = a2b.cross(a2_point1);
+
+      if (cv::norm(cp0) < epsilon) {
+        return true;
+      }
 
       if (cp0.dot(cp1) >= 0) {
         return true;
@@ -302,9 +313,13 @@ int main(int argc, char* argv[]) {
 
   std::cout << "storage " << storage.upper_bound_z_ << "\t" << storage.lower_bound_z_ << std::endl;
 
-  cv::Mat outputTexture = cv::Mat::zeros( (int)storage.upper_bound_z_ + 20, rays.origin.size() + 20, CV_16UC1 );
+  pcl::PointCloud<pcl::PointNormal>::Ptr new_cloud ( new pcl::PointCloud<pcl::PointNormal> );
+
+  cv::Mat outputTexture = cv::Mat::zeros( (int)(storage.upper_bound_z_ - storage.lower_bound_z_), rays.origin.size(), CV_16UC1 );
+
 
   for (int z = (int)storage.lower_bound_z_; z < (int)storage.upper_bound_z_; ++z) {
+    int counter = 0;
     std::vector<MIKE::Triangle> triangle_row = storage.bin_[z];
     for (int r = 0; r < rays.origin.size(); ++r) {
       cv::Vec3f origin = rays.origin[r];
@@ -325,14 +340,26 @@ int main(int argc, char* argv[]) {
                                             minorRadius,
                                             0.5,
                                             aDirectionOption);
-          outputTexture.at<unsigned short>(z, r) = (unsigned short)color;
+          outputTexture.at<unsigned short>(z - storage.lower_bound_z_, r) = (unsigned short)color;
+
+          pcl::PointNormal asdf;
+          asdf.x = p[0];
+          asdf.y = p[1];
+          asdf.z = p[2];
+          new_cloud->push_back(asdf);
           break;
+        } else {
+          if (t == triangle_row.size() - 1) {
+            counter++;
+          }
         }
       }
-
     }
+    std::cout << "line " << z << ": " << counter << " misses" <<  "\t\t" << counter / (double)rays.origin.size() << std::endl;
   }
 
+
+  pcl::io::savePCDFileASCII("resampled.pcd", *new_cloud);
   vpkg.saveTextureData(outputTexture);
   return 0;
 }
