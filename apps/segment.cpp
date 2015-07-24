@@ -8,10 +8,7 @@
 #include <pcl/filters/conditional_removal.h>
 
 #include "volumepkg.h"
-#include "structureTensorParticleSim.h"
-
-// Landmarks
-std::vector<Particle> landmark_chain;
+#include "structureTensorParticleSim/structureTensorParticleSim.h"
 
 // File paths
 std::string segID = "";
@@ -19,7 +16,7 @@ std::string volpkgLocation = "";
 std::string outputName = "";
 
 // Options
-int gravity_scale = -1;
+double gravity_scale = -1;
 int threshold = 1;
 double startIndex = -1.0;
 int stopOffset = -1;
@@ -28,7 +25,7 @@ int main(int argc, char* argv[]) {
   std::cout << "vc_segment" << std::endl;
   if (argc < 5) {
     std::cerr << "Usage:" << std::endl;
-    std::cerr << argv[0] << " {--gravity [1-10] --startIndex [Z-Index #] --stopOffset [value]} --seg [Seg ID #] --volpkg [volpkgpath]" << std::endl;
+    std::cerr << argv[0] << " {--gravity [0.1 - 0.8] --startIndex [Z-Index #] --stopOffset [value]} --seg [Seg ID #] --volpkg [volpkgpath]" << std::endl;
     exit(EXIT_FAILURE);
   }
 
@@ -36,8 +33,8 @@ int main(int argc, char* argv[]) {
   // get gravity scale value from command line
   pcl::console::parse_argument (argc, argv, "--gravity", gravity_scale);
   if (gravity_scale == -1) {
-    std::cout << "No Gravity Scale value given, defaulting to 2" << std::endl;
-    gravity_scale = 2;
+    std::cout << "No Gravity Scale value given, defaulting to 0.5" << std::endl;
+    gravity_scale = 0.5;
   }
 
   // NOTE: Distance thresholding causes problems for resumable segmentations 
@@ -69,6 +66,10 @@ int main(int argc, char* argv[]) {
     std::cerr << "ERROR: Incorrect/missing segmentation ID!" << std::endl;
     exit(EXIT_FAILURE);
   }
+  if ( volpkg.getVersion() < 2.0) {
+    std::cerr << "ERROR: Volume package is version " << volpkg.getVersion() << " but this program requires a version >= 2.0."  << std::endl;
+    exit(EXIT_FAILURE);
+  }
 
 // Setup
   // Load the activeSegmentation's current cloud
@@ -80,8 +81,8 @@ int main(int argc, char* argv[]) {
   int iterations = masterCloud->height;
   pcl::PointXYZRGB min_p, max_p;
   pcl::getMinMax3D (*masterCloud, min_p, max_p);
-  int minIndex = floor(masterCloud->points[0].x);
-  int maxIndex = floor(max_p.x);
+  int minIndex = floor(masterCloud->points[0].z);
+  int maxIndex = floor(max_p.z);
 
   // Setup the temp clouds
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr immutableCloud (new pcl::PointCloud<pcl::PointXYZRGB>);
@@ -101,7 +102,7 @@ int main(int argc, char* argv[]) {
   for (int i = 0; i < chainLength; ++i) {
     pcl::PointXYZRGB temp_pt;
     temp_pt = masterCloud->points[i+(pathRow*chainLength)];
-    if (temp_pt.x != -1) {
+    if (temp_pt.z != -1) {
         segPath->push_back(temp_pt);
     } 
   }
@@ -128,7 +129,7 @@ int main(int argc, char* argv[]) {
   
 // Run segmentation using path as our starting points
   pcl::PointCloud<pcl::PointXYZRGB> mutableCloud;
-  mutableCloud = structureTensorParticleSim(segPath, volpkg, gravity_scale, threshold, stopOffset);
+  mutableCloud = volcart::segmentation::structureTensorParticleSim(segPath, volpkg, gravity_scale, threshold, stopOffset);
 
   // Update the master cloud with the points we saved and concat the new points into the space
   *masterCloud = *immutableCloud;

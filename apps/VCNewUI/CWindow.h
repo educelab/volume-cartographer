@@ -20,8 +20,13 @@
 #include "ui_VCMain.h"
 
 #include <opencv2/opencv.hpp>
+
+#ifndef Q_MOC_RUN
 #include <pcl/common/common.h>
 #include <pcl/point_types.h>
+
+#include "structureTensorParticleSim/structureTensorParticleSim.h"
+#endif
 
 class VolumePkg;
 
@@ -41,7 +46,7 @@ public:
                         WindowStateIdle };      // idle
 
     typedef struct SSegParams_tag {
-        int fGravityScale;
+        double fGravityScale;
         int fThreshold;
         int fEndOffset;
     } SSegParams;
@@ -93,12 +98,14 @@ private slots:
     void TogglePenTool( void );
     void ToggleSegmentationTool( void );
 
-    void OnEdtGravityValChange( QString nText );
+    void OnEdtGravityValChange();
     void OnEdtSampleDistValChange( QString nText );
     void OnEdtStartingSliceValChange( QString nText );
     void OnEdtEndingSliceValChange( QString nText );
 
     void OnBtnStartSegClicked( void );
+
+    void OnEdtImpactRange( int nImpactRange);
 
     void OnLoadAnySlice( int nSliceIndex );
     void OnLoadNextSlice( void );
@@ -154,7 +161,7 @@ private:
 
     // window components
     QMenu		*fFileMenu;
-	QMenu		*fEditMenu;
+	  QMenu		*fEditMenu;
     QMenu       *fHelpMenu;
 
     QAction		*fOpenVolAct;
@@ -172,6 +179,8 @@ private:
     QLineEdit   *fEdtSampleDist;
     QLineEdit   *fEdtStartIndex;
     QLineEdit   *fEdtEndIndex;
+
+    QSlider     *fEdtImpactRange;
 
     Ui::VCMainWindow    ui;
 

@@ -72,9 +72,9 @@ bool SavePath( VolumePkg *vpkg,
 			// REVISIT - Chao 20141103 - new path format: x y z x y z...
 			//           x y z = slice index, image column, image row
 			pcl::PointXYZRGB point;
-      		point.x = nPathOnSliceIndex;
-      		point.y = x;
-      		point.z = y;
+      		point.x = x;
+      		point.y = y;
+      		point.z = nPathOnSliceIndex;
 			pathCloud.push_back(point);
 		}
 	}

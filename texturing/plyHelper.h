@@ -3,9 +3,9 @@
 //
 #include <iostream>
 #include <fstream>
+#include <cmath>
 
 #include <itkMesh.h>
-#include <itkRGBPixel.h>
 #include <itkTriangleCell.h>
 
 #ifndef VC_PLYHELPER_H

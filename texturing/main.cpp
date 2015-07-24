@@ -20,7 +20,7 @@
 int main(int argc, char* argv[])
 {
     if ( argc < 6 ) {
-        std::cout << "Usage: vc_texture volpkg seg-id radius texture-method sample-direction" << std::endl;
+        std::cout << "Usage: vc_texture2 volpkg seg-id radius texture-method sample-direction" << std::endl;
         std::cout << "Texture methods: " << std::endl;
         std::cout << "      0 = Intersection" << std::endl;
         std::cout << "      1 = Non-Maximum Suppression" << std::endl;
@@ -41,6 +41,10 @@ int main(int argc, char* argv[])
     std::string segID = argv[ 2 ];
     if (segID == "") {
         std::cerr << "ERROR: Incorrect/missing segmentation ID!" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    if ( vpkg.getVersion() < 2.0) {
+        std::cerr << "ERROR: Volume package is version " << vpkg.getVersion() << " but this program requires a version >= 2.0."  << std::endl;
         exit(EXIT_FAILURE);
     }
     vpkg.setActiveSegmentation(segID);
@@ -95,16 +99,14 @@ int main(int argc, char* argv[])
     // [u, v] == point's position in the output matrix
     unsigned long pointID, meshX, meshY;
     double u, v;
-
-    double Max = 0, Min = 8000;
-        
+    
     // Load the slices from the volumepkg
     std::vector< cv::Mat > aImgVol;
 
     /*  This function is a hack to avoid a refactoring the texturing
         methods. See Issue #12 for more details. */
     // Setup
-    int meshLowIndex = (int) mesh->GetPoint(0)[0];
+    int meshLowIndex = (int) mesh->GetPoint(0)[2];
     int meshHighIndex = meshLowIndex + meshHeight;
     int aNumSlices = vpkg.getNumberOfSlices();
 
@@ -134,16 +136,15 @@ int main(int argc, char* argv[])
     // Initialize iterators
     CellIterator  cellIterator = mesh->GetCells()->Begin();
     CellIterator  cellEnd      = mesh->GetCells()->End();
-
-    // Iterate over all of the cells
     CellType * cell;
     PointsIterator2 pointsIterator;
 
+    // Iterate over all of the cells to lay out the faces in the output texture
     while( cellIterator != cellEnd )
     {
         // Link the pointer to our current cell
         cell = cellIterator.Value();
-        //cell.TakeOwnership( new TriangleType );
+        
         std::cout << "Texturing face " << cellIterator.Index() << "/" << cellEnd.Index() << "\r" << std::flush;
 
         // Iterate over the vertices of the current cell
@@ -165,87 +166,24 @@ int main(int argc, char* argv[])
             v =  (double) textureH * (double) meshY / (double) meshHeight;
 
             // Fill in the output pixel with a value
-			// cv::Mat.at uses (row, column)
-                double value = textureWithMethod(cv::Vec3f(p[0], p[1], p[2]),
-                                                 cv::Vec3f(normal[1], normal[2], normal[0]),
-                                                 aImgVol,
-                                                 aFilterOption,
-                                                 radius,
-                                                 minorRadius,
-                                                 0.5,
-                                                 aDirectionOption);
-                outputTexture.at < unsigned short > (v, u) = (unsigned short) value;
-
-    //      if(M.at< double >( u, v ) > Max)
-    //          Max = M.at< double >( u, v );
-    //      else if(M.at< double >( u, v ) < Min)
-    //          Min = M.at< double >( u, v );
-
-            /* Store points to be used in calculating Homography matrix
-            my3DPoint = cv::Vec3d( p[0], p[1], p[2] );
-            my2DPoint = cv::Vec3d( u, v, 1.0 );
-            my3DPoints.push_back( my3DPoint );
-            my2DPoints.push_back( my2DPoint );*/
+            // cv::Mat.at uses (row, column)
+            double value = textureWithMethod( cv::Vec3f(p[0], p[1], p[2]),
+                                              cv::Vec3f(normal[0], normal[1], normal[2]),
+                                              aImgVol,
+                                              aFilterOption,
+                                              radius,
+                                              minorRadius,
+                                              0.5,
+                                              aDirectionOption);
+            outputTexture.at < unsigned short > (v, u) = (unsigned short) value;
 
             ++pointsIterator;
         }
-
-        /* Generate Homography matrix for current cell/face
-        CalcHomographyFromPoints( my3DPoints, my2DPoints, myH );
-        my3DPoints.clear();
-        my2DPoints.clear();*/
 
         ++cellIterator;
     }
     std::cout << std::endl;
 
-    // interpolate intensity values for the rest of the matrix M
-//  cellIterator = mesh->GetCells()->Begin();
-//  int k = 0;
-//  for(int i = 0; i < 1024; ++i)
-//  {
-//      for(int j = 0; j < 1024; ++j)
-//      {
-//          while( cellIterator != cellEnd )
-//                  {
-//                      CellType * cell = cellIterator.Value();
-//                      PointsIterator2 pointsIterator = cell->PointIdsBegin();
-//                      PointsIterator2 pointEnd = cell->PointIdsEnd();
-//                      cellpointer.TakeOwnership( new TriangleType );
-//              checkPtInTriangleUtil::Point A, B, C, P;
-//              P.data[0] = i; P.data[1] = j; P.data[2] = 0.0;
-//                      while( pointsIterator != pointEnd)
-//                      {
-//                              id = *pointsIterator;
-//                              MeshType::PointType p = mesh->GetPoint(id);
-//                  u =  1024 * (id % meshWidth) / meshWidth;           // u
-//                              v =  1024 * ((id - u) / width) / height;        // v
-//                  A.data[0] = u; A.data[1] = v; A.data[2] = 0.0;
-//                  ++id;
-//                  u =  1024 * (id % width) / width;               // u
-//                                        v =  1024 * ((id - u) / width) / height;        // v
-//                  B.data[0] = u; B.data[1] = v; B.data[2] = 0.0;
-//                  ++id;
-//                                        u =  1024 * (id % width) / width;               // u
-//                                        v =  1024 * ((id - u) / width) / height;        // v
-//                  C.data[0] = u; C.data[1] = v; C.data[2] = 0.0;
-//                  pointsIterator = pointsIterator + 3;
-//              }
-//              //printf( "P is %s of the triangle ABC.\n", IsPtInTriangle( P, A, B, C ) ? "inside" : "outside" );
-//              bool inTriangle = IsPtInTriangle( P, A, B, C );
-//              if( inTriangle == true){
-//                  std::cout << "Point is inside triangle" << std::endl;
-//              }
-//              ++cellIterator;
-//          }
-//      }
-//  }
-
-
-    //cv::Mat B;
-    //std::cout << "Max: " << Max << " Min: " << Min << std::endl;
-    //M.convertTo(B, CV_16U);
-    //cvtColor(M, M, CV_BGR2Luv);
     vpkg.saveTextureData(outputTexture);
 
     return 0;
