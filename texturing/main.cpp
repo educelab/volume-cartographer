@@ -315,23 +315,30 @@ int main(int argc, char* argv[]) {
 
   pcl::PointCloud<pcl::PointNormal>::Ptr new_cloud ( new pcl::PointCloud<pcl::PointNormal> );
 
-  cv::Mat outputTexture = cv::Mat::zeros( (int)(storage.upper_bound_z_ - storage.lower_bound_z_), rays.origin.size(), CV_16UC1 );
+#define PI_X2 (2 * 3.1415926)
+#define OUT_X 2000
+#define D_THETA (PI_X2 / OUT_X)
 
-
+  cv::Mat outputTexture = cv::Mat::zeros( (int)(storage.upper_bound_z_ - storage.lower_bound_z_), OUT_X, CV_16UC1 );
+  
   for (int z = (int)storage.lower_bound_z_; z < (int)storage.upper_bound_z_; ++z) {
     int counter = 0;
     std::vector<MIKE::Triangle> triangle_row = storage.bin_[z];
-    for (int r = 0; r < rays.origin.size(); ++r) {
-      cv::Vec3f origin = rays.origin[r];
+
+    int ycount = 0;
+    for (double r = 0; r < PI_X2; r += D_THETA, ycount++) {
+      cv::Vec3f origin;
+      origin(VC_INDEX_X) = (storage.lower_bound_x_ + storage.upper_bound_x_) / 2;
+      origin(VC_INDEX_Y) = (storage.lower_bound_y_ + storage.upper_bound_y_) / 2;
       origin(VC_INDEX_Z) = z;
-      cv::Vec3f direction = rays.direction[r];
+      cv::Vec3f direction(cos(r), sin(r), 0);
 
       // should do something to deal with multiple intersections
       for (int t = 0; t < triangle_row.size(); ++t) {
         MIKE::Triangle tri = triangle_row[t];
         cv::Vec3f p = tri.intersect(origin,direction);
 
-        if (tri.pointInTriangle(p) && direction.dot(tri.normal()) >= 0) {
+        if (tri.pointInTriangle(p) && direction.dot(tri.normal()) < 0) {
           double color = textureWithMethod( p,
                                             tri.normal(),
                                             aImgVol,
@@ -340,7 +347,7 @@ int main(int argc, char* argv[]) {
                                             minorRadius,
                                             0.5,
                                             aDirectionOption);
-          outputTexture.at<unsigned short>(z - storage.lower_bound_z_, r) = (unsigned short)color;
+          outputTexture.at<unsigned short>(z - storage.lower_bound_z_, ycount) = (unsigned short)color;
 
           pcl::PointNormal asdf;
           asdf.x = p[0];
