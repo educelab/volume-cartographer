@@ -250,6 +250,8 @@ inline void SamplingAlongNormal(   double                       nA,             
     *nSize = aDataCnt;
 }
 
+// NOTE: The following method produces bad textures in an extremely ineffcient amount of time.
+// Use SamplingAlongNormal instead, or refactor this code.
 inline void SamplingWithinEllipse( double                       nA,             // normal length
                                    double                       nB,             // normal length
                                    double                       nSampleInterval,// sample interval
