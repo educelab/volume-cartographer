@@ -22,7 +22,7 @@
 #define VC_DIRECTION_J cv::Vec3f(0,1,0)
 #define VC_DIRECTION_K cv::Vec3f(0,0,1)
 
-namespace MIKE {
+namespace rayTrace {
   class Triangle {
   public:
     std::vector<cv::Vec3f> corner;
@@ -34,6 +34,9 @@ namespace MIKE {
       return std::max(corner[0](index), std::max(corner[1](index), corner[2](index)));
     }
 
+    // Determine if a point is within a triangle by checking if the point
+    // is on the same side of each line of the triangle in reference to
+    // the third point of the triangle
     bool pointInTriangle(cv::Vec3f point) {
       if (sameSide(point, corner[0], corner[1], corner[2]) &&
           sameSide(point, corner[1], corner[0], corner[2]) &&
@@ -43,6 +46,7 @@ namespace MIKE {
       return false;
     }
 
+    // Determine intersection point using the origin and direction of the ray
     cv::Vec3f intersect(cv::Vec3f ray_origin, cv::Vec3f ray_direction) {
       cv::Vec3f normal = this->normal();
       double scale_factor = (corner[0] - ray_origin).dot(normal) / ray_direction.dot(normal);
@@ -50,6 +54,7 @@ namespace MIKE {
       return point;
     }
 
+    // Calculate the normal of the triangle
     cv::Vec3f normal() {
       cv::Vec3f a2b = corner[1] - corner[0];
       cv::Vec3f a2c = corner[2] - corner[0];
@@ -58,13 +63,17 @@ namespace MIKE {
 
   private:
 
-    // a Barycentric method will probably be faster but this works for the time being.
+    // Simple same side technique, Barycentric would be more robust
+    // beta and alpha are the two points that form the line to check the side of the reference point
+    // point0 is the reference point and point1 is the third point of the triangle
     bool sameSide(cv::Vec3f point0, cv::Vec3f point1, cv::Vec3f alpha, cv::Vec3f beta) {
       cv::Vec3f a2b = beta - alpha;
       cv::Vec3f a2_point0 = point0 - alpha;
 
+      // Margin used to check if a reference point lies on a line of a triangle
       double epsilon = 0.00001;
 
+      // Check if the vector to the reference point is very close to zero
       if (cv::norm(a2_point0) <= epsilon) {
         return true;
       }
@@ -73,22 +82,27 @@ namespace MIKE {
       cv::Vec3f cp0 = a2b.cross(a2_point0);
       cv::Vec3f cp1 = a2b.cross(a2_point1);
 
+      // check if the reference point is on the line
       if (cv::norm(cp0) < epsilon) {
         return true;
       }
 
-      if (cp0.dot(cp1) >= 0) {
+      // Check if the vectors are facing the same way
+      // to see if the reference point is on the same side
+      if (cp0.dot(cp1) >= (0 - epsilon)) {
         return true;
       }
       return false;
     }
-  };
+  }; // Triangle class
 
+  // The triangles are stored in bins where each bin represents a row/slice 
   class TriangleStore {
   public:
     TriangleStore(double e = 0.1) {
       epsilon_ = e;
 
+      // Used to keep track of the dimensions of the mesh
       upper_bound_x_ = 0;
       lower_bound_x_ = std::numeric_limits<double>::max();
 
@@ -111,7 +125,7 @@ namespace MIKE {
         bin_[i].push_back(t);
       }
 
-      // record upper and lower bounds of triangle Xs and Ys
+      // record upper and lower bounds of triangle Xs, Ys, and Zs
       if (t.minBy(VC_INDEX_X) < lower_bound_x_) {
         lower_bound_x_ = t.minBy(VC_INDEX_X);
       }
@@ -130,16 +144,15 @@ namespace MIKE {
       if (maxZ > upper_bound_z_) {
         upper_bound_z_ = maxZ;
       }
-
-
     }
 
     void info() {
       std::cout << bin_.size() << " bins used" << std::endl;
       std::cout << "x bounds: [" << lower_bound_x_ << " .. " << upper_bound_x_ << "]" << std::endl;
       std::cout << "y bounds: [" << lower_bound_y_ << " .. " << upper_bound_y_ << "]" << std::endl;
-
+      std::cout << "z bounds: [" << lower_bound_z_ << " .. " << upper_bound_z_ << "]" << std::endl
     }
+
     double epsilon_;
     double upper_bound_x_;
     double lower_bound_x_;
@@ -151,10 +164,9 @@ namespace MIKE {
     double lower_bound_z_;
 
     std::map<int,std::vector<Triangle> > bin_;
-  };
+  }; // TriangleStore class
 
-
-}
+} // namespace rayTrace
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char* argv[]) {
@@ -252,16 +264,20 @@ int main(int argc, char* argv[]) {
   }
   std::cout << std::endl;
 
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  MIKE::TriangleStore storage;
+  // Important data structure used to search for a
+  // ray's intersection within a triangle
+  rayTrace::TriangleStore storage;
 
+  // Load triangles into the storage data structure
+  // according to the z index of the triangle's points
   VC_CellIterator cellIterator = mesh->GetCells()->Begin();
   while(cellIterator != mesh->GetCells()->End()) {
     VC_CellType* cell = cellIterator.Value();
     VC_PointsInCellIterator pointsIterator = cell->PointIdsBegin();
 
-    MIKE::Triangle tri;
+    rayTrace::Triangle tri;
     while (pointsIterator != cell->PointIdsEnd()) {
       pointID = *pointsIterator;
       VC_PointType p = mesh->GetPoint(pointID);
@@ -273,71 +289,43 @@ int main(int argc, char* argv[]) {
     ++cellIterator;
   }
 
+  // print the bounds of the storage data structure
   storage.info();
 
-  // now we have the triangles
-  // do ray tracing
-
-  FILE* file_points;
-  file_points = fopen("points.txt","r");
-  if (file_points == NULL) {
-    std::cout << "couldn't open points.txt" << std::endl;
-    exit(EXIT_FAILURE);
-  }
-  FILE* file_normals;
-  file_normals = fopen("normals.txt","r");
-  if(file_normals == NULL) {
-    std::cout << "couldn't open normals.txt" << std::endl;
-    exit(EXIT_FAILURE);
-  }
-
-
-
-  struct {
-    std::vector<cv::Vec3f> origin;
-    std::vector<cv::Vec3f> direction;
-  } rays;
-
-  while (!feof(file_points) && !feof(file_normals)) {
-    float a, b, c;
-
-    fscanf(file_points, "[%f, %f, %f]\n", &a, &b, &c);
-    rays.origin.push_back(cv::Vec3f(a,b,c));
-
-    fscanf(file_normals, "[%f, %f, %f]\n", &a, &b, &c);
-    rays.direction.push_back(cv::Vec3f(a,b,c).cross(VC_DIRECTION_K));
-  }
-
-  std::cout << rays.origin.size() << std::endl;
-  std::cout << rays.direction.size() << std::endl;
-
-  std::cout << "storage " << storage.upper_bound_z_ << "\t" << storage.lower_bound_z_ << std::endl;
-
+  // Create point cloud to save new interpolated points into
+  // mainly used for debugging
   pcl::PointCloud<pcl::PointNormal>::Ptr new_cloud ( new pcl::PointCloud<pcl::PointNormal> );
 
+// Parameters used to create cylindrical ray tracing
 #define PI_X2 (2 * 3.1415926)
 #define OUT_X 2000
 #define D_THETA (PI_X2 / OUT_X)
 
   cv::Mat outputTexture = cv::Mat::zeros( (int)(storage.upper_bound_z_ - storage.lower_bound_z_), OUT_X, CV_16UC1 );
   
+  // For each slice/row generate rays and interpolate new points
   for (int z = (int)storage.lower_bound_z_; z < (int)storage.upper_bound_z_; ++z) {
     int counter = 0;
-    std::vector<MIKE::Triangle> triangle_row = storage.bin_[z];
+    // grab current row from the storage data structure
+    std::vector<rayTrace::Triangle> triangle_row = storage.bin_[z];
 
     int ycount = 0;
+    // generate rays cylindrically
     for (double r = 0; r < PI_X2; r += D_THETA, ycount++) {
+      // Calculate the origin by averaging the bounds of each coordinate
       cv::Vec3f origin;
       origin(VC_INDEX_X) = (storage.lower_bound_x_ + storage.upper_bound_x_) / 2;
       origin(VC_INDEX_Y) = (storage.lower_bound_y_ + storage.upper_bound_y_) / 2;
       origin(VC_INDEX_Z) = z;
+      // Calculate direction of ray according to current degree of rotation along the cylinder
       cv::Vec3f direction(cos(r), sin(r), 0);
 
-      // should do something to deal with multiple intersections
+      // Check if each triangle in the current storage bin intersects with the current ray
       for (int t = 0; t < triangle_row.size(); ++t) {
-        MIKE::Triangle tri = triangle_row[t];
+        rayTrace::Triangle tri = triangle_row[t];
         cv::Vec3f p = tri.intersect(origin,direction);
 
+        // If the ray intersects with current triangle then texture the intersecting point
         if (tri.pointInTriangle(p) && direction.dot(tri.normal()) < 0) {
           double color = textureWithMethod( p,
                                             tri.normal(),
@@ -349,6 +337,7 @@ int main(int argc, char* argv[]) {
                                             aDirectionOption);
           outputTexture.at<unsigned short>(z - storage.lower_bound_z_, ycount) = (unsigned short)color;
 
+          // Generate pcl point cloud
           pcl::PointNormal asdf;
           asdf.x = p[0];
           asdf.y = p[1];
@@ -356,6 +345,7 @@ int main(int argc, char* argv[]) {
           new_cloud->push_back(asdf);
           break;
         } else {
+          // Keep track of how many rays had no intersections
           if (t == triangle_row.size() - 1) {
             counter++;
           }
@@ -365,29 +355,7 @@ int main(int argc, char* argv[]) {
     std::cout << "line " << z << ": " << counter << " misses" <<  "\t\t" << counter / (double)rays.origin.size() << std::endl;
   }
 
-
   pcl::io::savePCDFileASCII("resampled.pcd", *new_cloud);
   vpkg.saveTextureData(outputTexture);
   return 0;
-}
-
-
-// VC_PixelType normal;
-
-// mesh->GetPointData( pointID, &normal );
-// meshX = pointID % meshWidth;
-// meshY = (pointID - meshX) / meshWidth;
-
-// u = (double)textureW * (double)meshX / (double)meshWidth;
-// v = (double)textureH * (double)meshY / (double)meshHeight;
-
-// double color = textureWithMethod(cv::Vec3f(p[0], p[1], p[2]),
-//                                  cv::Vec3f(normal[0], normal[1], normal[2]),
-//                                  aImgVol,
-//                                  aFilterOption,
-//                                  radius,
-//                                  minorRadius,
-//                                  0.5,
-//                                  aDirectionOption);
-
-// outputTexture.at<unsigned short>(v, u) = (unsigned short)color;
+} // main
