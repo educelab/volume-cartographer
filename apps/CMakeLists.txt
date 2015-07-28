@@ -31,10 +31,10 @@ SET(meshEditor_HEADERS  meshEditor/Ply/base.h meshEditor/Ply/header.h meshEditor
                         meshEditor/mathUtils.h meshEditor/UDataManipulateUtils.h meshEditor/UObjHelper.h meshEditor/CPlyHelper.h)
 
 # invoke moc
-QT4_WRAP_CPP(meshEditor_HEADERS_MOC ${meshEditor_HEADERS})
+QT5_WRAP_CPP(meshEditor_HEADERS_MOC ${meshEditor_HEADERS})
 
 add_executable(vc_meshEditor ${meshEditor_SOURCES} ${meshEditor_HEADERS_MOC})
-target_link_libraries(vc_meshEditor ${VC_LIBS} ${VC_REQ_LIBS} Qt4::QtOpenGL ${OPENGL_LIBRARIES} ${QT_LIBRARIES} ${EXTRA_LIBS})
+target_link_libraries(vc_meshEditor ${VC_LIBS} ${VC_REQ_LIBS} Qt5::Core Qt5::Gui Qt5::Widgets Qt5::OpenGL ${OPENGL_LIBRARIES} ${QT_LIBRARIES} ${EXTRA_LIBS})
 
 # Install targets
 install(TARGETS vc_meshEditor
@@ -58,8 +58,8 @@ SET(VCNewUI_UIS VCNewUI/VCMain.ui)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 # invoke moc
-QT4_WRAP_UI(VCNewUI_UIS_HDS ${VCNewUI_UIS})
-QT4_WRAP_CPP(VCNewUI_HEADERS_MOC ${VCNewUI_HEADERS})
+QT5_WRAP_UI(VCNewUI_UIS_HDS ${VCNewUI_UIS})
+QT5_WRAP_CPP(VCNewUI_HEADERS_MOC ${VCNewUI_HEADERS})
 
 if(APPLE AND BUILD_OSX_APPS)
     # set where in the bundle to put the icns file
@@ -83,7 +83,7 @@ else()
     add_executable(VC ${VCNewUI_UIS_HDS} ${VCNewUI_SOURCES} ${VCNewUI_HEADERS_MOC})
 endif(APPLE AND BUILD_OSX_APPS)
 
-target_link_libraries(VC ${VC_LIBS} ${VC_REQ_LIBS} Qt4::QtOpenGL ${OPENGL_LIBRARIES} ${QT_LIBRARIES} ${EXTRA_LIBS})
+target_link_libraries(VC ${VC_LIBS} ${VC_REQ_LIBS} Qt5::Core Qt5::Gui Qt5::Widgets ${OPENGL_LIBRARIES} ${QT_LIBRARIES} ${EXTRA_LIBS})
 INSTALL(TARGETS VC
         BUNDLE DESTINATION . COMPONENT Programs
         RUNTIME DESTINATION bin COMPONENT Programs)

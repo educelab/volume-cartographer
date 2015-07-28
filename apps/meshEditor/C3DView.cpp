@@ -4,7 +4,7 @@
 
 #include "C3DView.h"
 #include <QtCore>
-#include <QtGui>
+#include <QtWidgets>
 #include <QtOpenGL/QGLWidget>
 
 #include "CMeshGL.h"

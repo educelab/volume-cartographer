@@ -11,7 +11,7 @@
 #include "CLinkedList.h"
 
 #include <QtCore>
-#include <QtGui>
+#include <QtWidgets>
 
 #include "UDataManipulateUtils.h"
 

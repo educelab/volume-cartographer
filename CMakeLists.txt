@@ -19,7 +19,8 @@ option(INSTALL_VC_CORE "Install VC core apps" ON)
 option(INSTALL_VC_UTIL "Install VC util apps" ON)
 option(INSTALL_VC_DEMO "Install VC demo apps" OFF)
 
-find_package(Qt4 REQUIRED)
+find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets OpenGL PrintSupport)
+
 find_package(PCL 1.7 REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(Boost REQUIRED)
@@ -28,7 +29,6 @@ find_package(ITK REQUIRED)
 find_package(OpenGL REQUIRED)
 #find_package(ACVD REQUIRED)
 
-include(${QT_USE_FILE})
 include(${ITK_USE_FILE})
 #include(${VTK_USE_FILE})
 add_definitions(${QT_DEFINITIONS})

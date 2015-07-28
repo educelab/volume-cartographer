@@ -3,7 +3,7 @@
 #include "CSimpleNumEditBox.h"
 
 #include <QtCore>
-#include <QtGui>
+#include <QtWidgets>
 
 using namespace ChaoVis;
 
