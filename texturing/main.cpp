@@ -150,7 +150,7 @@ namespace rayTrace {
       std::cout << bin_.size() << " bins used" << std::endl;
       std::cout << "x bounds: [" << lower_bound_x_ << " .. " << upper_bound_x_ << "]" << std::endl;
       std::cout << "y bounds: [" << lower_bound_y_ << " .. " << upper_bound_y_ << "]" << std::endl;
-      std::cout << "z bounds: [" << lower_bound_z_ << " .. " << upper_bound_z_ << "]" << std::endl
+      std::cout << "z bounds: [" << lower_bound_z_ << " .. " << upper_bound_z_ << "]" << std::endl;
     }
 
     double epsilon_;
@@ -352,7 +352,7 @@ int main(int argc, char* argv[]) {
         }
       }
     }
-    std::cout << "line " << z << ": " << counter << " misses" <<  "\t\t" << counter / (double)rays.origin.size() << std::endl;
+    std::cout << "line " << z << ": " << counter << " misses" <<  "\t\t" << counter / (OUT_X / PI_X2) << std::endl;
   }
 
   pcl::io::savePCDFileASCII("resampled.pcd", *new_cloud);
