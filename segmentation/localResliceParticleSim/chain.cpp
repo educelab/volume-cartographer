@@ -1,7 +1,6 @@
 #include "chain.h"
 
 
-// (doc) Why the parameters that we're giving it?
 DEMO::Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg* volpkg, int threshold, int endOffset, int steps_before_reslice) {
   // Convert the point cloud segPath into a vector of Particles
   std::vector<Particle> init_chain;
@@ -101,6 +100,7 @@ bool DEMO::Chain::isMoving() {
   return !result;
 }
 
+// draw a debug window with an option to write to disk
 void DEMO::Chain::debug(bool saveOutput) {
   std::vector<Particle> recent = _history.front();
   int z_index = recent[0](VC_INDEX_Z);

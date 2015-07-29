@@ -47,6 +47,7 @@ unsigned short DEMO::Field::interpolate_at(cv::Vec3f point) {
   return vector;
 }
 
+// create a Slice from explicit component directions, height and witdh default to 64x64
 Slice DEMO::Field::reslice(cv::Vec3f center, cv::Vec3f x_dir, cv::Vec3f y_dir, int reslice_height, int reslice_width) {
   cv::Vec3f x_direction = normalize(x_dir);
   cv::Vec3f y_direction = normalize(y_dir);
@@ -64,6 +65,7 @@ Slice DEMO::Field::reslice(cv::Vec3f center, cv::Vec3f x_dir, cv::Vec3f y_dir, i
   return Slice(m, origin, x_direction, y_direction);
 }
 
+// create a Slice from an axis of rotation and an angle
 Slice DEMO::Field::resliceRadial(cv::Vec3f origin, cv::Vec3f rotation_axis, double theta, int reslice_height, int reslice_width) {
   cv::Vec3f slice_direcion(cos(theta),sin(theta),0);
   slice_direcion = slice_direcion - (rotation_axis.dot(slice_direcion)/rotation_axis.dot(rotation_axis)) * rotation_axis;

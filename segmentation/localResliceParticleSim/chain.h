@@ -11,6 +11,10 @@
 #include "field.h"
 #include "particle.h"
 
+// this is similar to the chain class in structureTensor
+// it tries to find the next position of the particles
+// based on slices orthogonal to the chain
+
 namespace DEMO {
 
 class Chain {
