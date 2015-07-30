@@ -1,5 +1,30 @@
 #include "volumepkg.h"
 
+// CONSTRUCTORS //
+
+// Make a volpkg of a particular version number
+VolumePkg::VolumePkg(std::string file_location, double version ) {
+
+    // Lookup the metadata template from our library of versions
+    volcart::Library::const_iterator findDict = volcart::VersionLibrary.find(version);
+    if ( findDict == volcart::VersionLibrary.end() ) {
+        std::cerr << "ERROR: No dictionary found for volpkg v." << version << std::endl;
+        // To-Do: Throw an exception in the event we have no dictionary
+    } else {
+        config = VolumePkgCfg(findDict->second, version);
+    }
+
+    location = file_location;
+    segdir = file_location + config.getString("segpath", "/paths/");
+};
+
+// Make a volpkg using a particular VolumePkgCfg for the metadata
+VolumePkg::VolumePkg(std::string file_location, VolumePkgCfg cfg ) : config(cfg) {
+    location = file_location;
+    segdir = file_location + config.getString("segpath", "/paths/");
+};
+
+// Use this when reading a volpkg from a file
 VolumePkg::VolumePkg(std::string file_location) : config(file_location + "/config.json") {
     location = file_location;
     segdir = file_location + config.getString("segpath", "/paths/");
@@ -9,7 +34,7 @@ VolumePkg::VolumePkg(std::string file_location) : config(file_location + "/confi
       std::string path = boost::filesystem::basename(iter->path());
       if (path != "" ) segmentations.push_back(path);
     }
-}
+};
 
 // DEBUG FUNCTIONS //
 // Print the currently stored PicoJson Object
@@ -21,7 +46,7 @@ void VolumePkg::printObject() {
 // Returns Volume Name from JSON config
 std::string VolumePkg::getPkgName() {
     return config.getString("volumepkg name", "UnnamedVolume");
-}
+};
 
 double VolumePkg::getVersion() {
     return config.getDouble("version");
@@ -298,14 +323,14 @@ void VolumePkg::saveTextureData(cv::Mat texture, std::string name){
 
 // See if the given key exists in the volumepkg dictionary and return its type
 std::string VolumePkg::findKeyType(std::string key) {
-    std::unordered_map <double, VolCart::VersionDict>::const_iterator vFind = VolCart::versionsList.find(this->getVersion());
-    if ( vFind == VolCart::versionsList.end() ) {
+    volcart::Library::const_iterator vFind = volcart::VersionLibrary.find(this->getVersion());
+    if ( vFind == volcart::VersionLibrary.end() ) {
         std::cerr << "ERROR: No dictionary found for volpkg v." << this->getVersion() << std::endl;
         return "";
     }
     else {
-        VolCart::VersionDict dict = vFind->second;
-        std::unordered_map <std::string, std::string>::const_iterator kFind = dict.find(key);
+        volcart::Dictionary dict = vFind->second;
+        volcart::Dictionary::const_iterator kFind = dict.find(key);
         if ( kFind == dict.end() ) {
             std::cerr << "ERROR: Key \"" << key << "\" not found in dictionary for volpkg v." << this->getVersion() << std::endl;
             return "";

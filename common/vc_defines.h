@@ -5,6 +5,9 @@
 #ifndef VC_DEFINES_H
 #define VC_DEFINES_H
 
+// This define determines the default dictionary used when creating a new volumepkg
+#define VOLPKG_VERSION 2.0
+
 // VC - ITK Mesh Defaults
 #include <itkMesh.h>
 #include "itkPointsLocator.h"

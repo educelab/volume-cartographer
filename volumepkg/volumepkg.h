@@ -17,6 +17,7 @@
 #include <opencv2/opencv.hpp>
 #include <pcl/point_types.h>
 #include <pcl/io/pcd_io.h>
+#include "picojson.h"
 
 #include "volumepkgcfg.h"
 #include "volumepkg_version.h"
@@ -26,7 +27,10 @@
 
 class VolumePkg {
 public:
-    VolumePkg(std::string);
+    // Constructors
+    VolumePkg(std::string file_location, double version); // New volpkg, V.[version]
+    VolumePkg(std::string file_location, VolumePkgCfg cfg); // New volpkg, V.[cfg]
+    VolumePkg(std::string file_location); // Existing VolPkgs
 
     // Debug
     void printObject();

@@ -6,10 +6,18 @@
 
 #include "picojson.h"
 
+#include "vc_defines.h"
+#include "volumepkg_version.h"
+
 class VolumePkgCfg {
 public:
+    VolumePkgCfg();
+    VolumePkgCfg(VolumePkgCfg& cfg);
     VolumePkgCfg(std::string);
     VolumePkgCfg(picojson::value);
+    VolumePkgCfg(picojson::object);
+    VolumePkgCfg(volcart::Dictionary dict, double version = VOLPKG_VERSION);
+
     void saveCfg(std::string);
 
     // Debug functions
@@ -20,7 +28,7 @@ public:
     int getInt(std::string);
     double getDouble(std::string);
     std::string getString(std::string, std::string);
-    VolumePkgCfg getInnerElement(std::string);
+    //VolumePkgCfg getInnerElement(std::string);
 
     // Assignment
     void setValue(std::string, int);
@@ -28,8 +36,7 @@ public:
     void setValue(std::string, std::string);
 
 private:
-    picojson::value jsonString;
-    picojson::object jsonObject;
+    picojson::value _json;
 };
 
 #endif // _VOLUMEPKGCFG_H_

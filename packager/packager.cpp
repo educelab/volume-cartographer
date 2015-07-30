@@ -18,8 +18,7 @@ int main ( int argc, char* argv[]) {
 
         // parsedOptions will hold the values of all parsed options as a Map
         boost::program_options::variables_map parsedOptions;
-        boost::program_options::store(
-                boost::program_options::command_line_parser(argc, argv).options(options).run(), parsedOptions);
+        boost::program_options::store(boost::program_options::command_line_parser(argc, argv).options(options).run(), parsedOptions);
         boost::program_options::notify(parsedOptions);
 
         // Show the help message
@@ -58,6 +57,7 @@ int main ( int argc, char* argv[]) {
         std::cerr << "This program does not currently allow for modification of existing volume packages." << std::endl;
         return EXIT_FAILURE;
     }
+    VolumePkg volpkg(volpkgPath.string(), VOLPKG_VERSION);
 
     // Filter the slice path directory
     std::vector<Slice> slices;
@@ -88,13 +88,12 @@ int main ( int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
     // Sort the Slices by their filenames
-    std::cout << "Sorting..." << std::endl;
     std::sort(slices.begin(), slices.end(), SliceLess);
-    std::cout << "Sorted." << std::endl;
 
     // Print the ordered paths
     for ( auto slice = slices.begin(); slice != slices.end(); ++slice ) {
         std::cout << slice->path.string() << std::endl;
     }
 
+    return EXIT_SUCCESS;
 }
