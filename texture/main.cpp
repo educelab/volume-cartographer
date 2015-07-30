@@ -31,7 +31,7 @@ int main( int argc, char *argv[] )
         exit( -1 );
     }
 
-    VolumePkg volpkg = VolumePkg( argv[ 1 ] );
+    VolumePkg volpkg( argv[ 1 ] );
     std::string segID = argv[ 2 ];
     if (segID == "") {
         std::cerr << "ERROR: Incorrect/missing segmentation ID!" << std::endl;
