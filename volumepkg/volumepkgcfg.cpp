@@ -1,15 +1,13 @@
 #include "volumepkgcfg.h"
 
+///// CONSTRUCTORS /////
 VolumePkgCfg::VolumePkgCfg() {
     picojson::object obj;
     obj["version"] = picojson::value(VOLPKG_VERSION);
     _json = picojson::value(obj);
 }
 
-VolumePkgCfg::VolumePkgCfg(VolumePkgCfg& cfg) {
-    this->_json = cfg._json;
-}
-
+// Read a json config from disk
 VolumePkgCfg::VolumePkgCfg(std::string file_location) {
 
     // open the file
@@ -27,18 +25,7 @@ VolumePkgCfg::VolumePkgCfg(std::string file_location) {
 
 }
 
-VolumePkgCfg::VolumePkgCfg(picojson::value val) {
-    if (val.is<picojson::object>()) {
-        _json = val;
-    } else {
-        std::cout << "input is not a json object" << std::endl;
-    }
-};
-
-VolumePkgCfg::VolumePkgCfg(picojson::object obj) {
-    _json = picojson::value(obj);
-};
-
+// Construct a new json config using a Dictionary as a template
 VolumePkgCfg::VolumePkgCfg(volcart::Dictionary dict, double version) {
 
     // Populate the cfg with keys from the dict
@@ -76,6 +63,25 @@ VolumePkgCfg::VolumePkgCfg(volcart::Dictionary dict, double version) {
     _json = picojson::value(obj);
 };
 
+/* Untested so disabled - SP, 072015
+VolumePkgCfg::VolumePkgCfg(VolumePkgCfg& cfg) {
+    this->_json = cfg._json;
+}
+
+VolumePkgCfg::VolumePkgCfg(picojson::value val) {
+    if (val.is<picojson::object>()) {
+        _json = val;
+    } else {
+        std::cout << "input is not a json object" << std::endl;
+    }
+};
+
+VolumePkgCfg::VolumePkgCfg(picojson::object obj) {
+    _json = picojson::value(obj);
+}; */
+
+
+// save the JSON file to disk
 void VolumePkgCfg::saveCfg(std::string file_location) {
     
     // open the file

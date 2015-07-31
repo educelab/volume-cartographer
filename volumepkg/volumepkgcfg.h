@@ -12,11 +12,12 @@
 class VolumePkgCfg {
 public:
     VolumePkgCfg();
-    VolumePkgCfg(VolumePkgCfg& cfg);
     VolumePkgCfg(std::string);
-    VolumePkgCfg(picojson::value);
-    VolumePkgCfg(picojson::object);
     VolumePkgCfg(volcart::Dictionary dict, double version = VOLPKG_VERSION);
+    /* Untested, so disabled. - SP, 072015
+    VolumePkgCfg(VolumePkgCfg& cfg);
+    VolumePkgCfg(picojson::value);
+    VolumePkgCfg(picojson::object);*/
 
     void saveCfg(std::string);
 

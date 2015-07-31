@@ -1,7 +1,6 @@
 #include "volumepkg.h"
 
 // CONSTRUCTORS //
-
 // Make a volpkg of a particular version number
 VolumePkg::VolumePkg(std::string file_location, double version ) {
 
@@ -18,11 +17,12 @@ VolumePkg::VolumePkg(std::string file_location, double version ) {
     segdir = file_location + config.getString("segpath", "/paths/");
 };
 
-// Make a volpkg using a particular VolumePkgCfg for the metadata
-VolumePkg::VolumePkg(std::string file_location, VolumePkgCfg cfg ) : config(cfg) {
-    location = file_location;
-    segdir = file_location + config.getString("segpath", "/paths/");
-};
+// Untested so disabled - SP, 072015
+//// Make a volpkg using a particular VolumePkgCfg for the metadata
+//VolumePkg::VolumePkg(std::string file_location, VolumePkgCfg cfg ) : config(cfg) {
+//    location = file_location;
+//    segdir = file_location + config.getString("segpath", "/paths/");
+//};
 
 // Use this when reading a volpkg from a file
 VolumePkg::VolumePkg(std::string file_location) : config(file_location + "/config.json") {
@@ -35,12 +35,6 @@ VolumePkg::VolumePkg(std::string file_location) : config(file_location + "/confi
       if (path != "" ) segmentations.push_back(path);
     }
 };
-
-// DEBUG FUNCTIONS //
-// Print the currently stored PicoJson Object
-void VolumePkg::printObject() {
-    config.printObject();
-}
 
 // METADATA RETRIEVAL //
 // Returns Volume Name from JSON config
@@ -75,6 +69,11 @@ double VolumePkg::getMaterialThickness() {
 
 // METADATA ASSIGNMENT //
 int VolumePkg::setMetadata(std::string key, int value) {
+    if (_readOnly) {
+        std::cerr << VC_ERR_READONLY << std::endl;
+        return EXIT_FAILURE;
+    }
+
     std::string keyType = findKeyType(key);
     if (keyType == "int") {
         config.setValue(key, value);
@@ -90,6 +89,11 @@ int VolumePkg::setMetadata(std::string key, int value) {
 }
 
 int VolumePkg::setMetadata(std::string key, double value) {
+    if (_readOnly) {
+        std::cerr << VC_ERR_READONLY << std::endl;
+        return EXIT_FAILURE;
+    }
+
     std::string keyType = findKeyType(key);
     if (keyType == "double") {
         config.setValue(key, value);
@@ -105,6 +109,11 @@ int VolumePkg::setMetadata(std::string key, double value) {
 }
 
 int VolumePkg::setMetadata(std::string key, std::string value) {
+    if (_readOnly) {
+        std::cerr << VC_ERR_READONLY << std::endl;
+        return EXIT_FAILURE;
+    }
+
     std::string keyType = findKeyType(key);
     if (keyType == "string") {
         config.setValue(key, value);
@@ -143,15 +152,14 @@ int VolumePkg::setMetadata(std::string key, std::string value) {
 
 
 // METADATA EXPORT //
-// Save metadata to volpkg config.json
-void VolumePkg::saveMetadata() {
-    std::string filePath = location + "/config.json";
-    config.saveCfg(filePath);
-}
-
 // Save metadata to any file
 void VolumePkg::saveMetadata(std::string filePath) {
     config.saveCfg(filePath);
+}
+
+// Alias for saving to the default config.json
+void VolumePkg::saveMetadata() {
+    saveMetadata(location + "/config.json");
 }
 
 

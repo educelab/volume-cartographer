@@ -29,11 +29,11 @@ class VolumePkg {
 public:
     // Constructors
     VolumePkg(std::string file_location, double version); // New volpkg, V.[version]
-    VolumePkg(std::string file_location, VolumePkgCfg cfg); // New volpkg, V.[cfg]
+    //VolumePkg(std::string file_location, VolumePkgCfg cfg); // New volpkg, V.[cfg] - Untested, so disabled - SP, 072015
     VolumePkg(std::string file_location); // Existing VolPkgs
 
     // Debug
-    void printObject();
+    void printJSON() { config.printObject(); };
 
     // Metadata Retrieval
     std::string getPkgName();
@@ -45,13 +45,16 @@ public:
     double getMaterialThickness();
 
     // Metadata Assignment
+    bool readOnly()         { return _readOnly; };
+    void readOnly(bool b)   { _readOnly = b; };
+
     int setMetadata(std::string, int);
     int setMetadata(std::string, double);
     int setMetadata(std::string, std::string);
 
     // Metadata Export
-    void saveMetadata();
     void saveMetadata(std::string filePath);
+    void saveMetadata();
 
     // Data Retrieval
     cv::Mat getSliceData(int);
@@ -74,6 +77,8 @@ public:
     void saveTextureData(cv::Mat, std::string = "texture");
     
 private:
+    bool _readOnly = true;
+
     VolumePkgCfg config;
     std::string location;
     boost::filesystem::path segdir;

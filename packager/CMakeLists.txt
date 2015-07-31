@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
-add_executable(vc_packager packager.h packager.cpp)
+add_executable(vc_packager slice.h slice.cpp packager.h packager.cpp)
 target_link_libraries(vc_packager ${VC_LIBS} ${VC_REQ_LIBS})
 
 # Install targets
