@@ -104,6 +104,7 @@ int main(int argc, char* argv[]) {
             std::cout << std::endl;
             return EXIT_SUCCESS;
         } else if( mode == "-w"){
+            volpkg.readOnly(false);
             // save the new json file to test.json
             std::cout << "Writing metadata to file..." << std::endl;
             volpkg.saveMetadata();

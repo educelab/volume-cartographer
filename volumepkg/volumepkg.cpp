@@ -16,6 +16,7 @@ VolumePkg::VolumePkg(std::string file_location, double version ) {
     root_dir = file_location;
     segs_dir = file_location + config.getString("segpath", "/paths/");
     slice_dir = file_location + "/slices/";
+    config.setValue("slice location", "/slices/"); // To-Do: We need a better way of handling default values
     norm_dir = file_location + "/surface_normals/";
 };
 
@@ -105,80 +106,6 @@ double VolumePkg::getMaterialThickness() {
     return config.getDouble("materialthickness");
 };
 
-// METADATA ASSIGNMENT //
-int VolumePkg::setMetadata(std::string key, int value) {
-    if (_readOnly) VC_ERR_READONLY();
-
-    std::string keyType = findKeyType(key);
-    if (keyType == "int") {
-        config.setValue(key, value);
-        return EXIT_SUCCESS;
-    }
-    else if (keyType == "") {
-        return EXIT_FAILURE;
-    }
-    else {
-        std::cerr << "ERROR: Value \"" << value << "\" not of type specified by dictionary (" << keyType << ")" << std::endl;
-        return EXIT_FAILURE;
-    }
-}
-
-int VolumePkg::setMetadata(std::string key, double value) {
-    if (_readOnly) VC_ERR_READONLY();
-
-    std::string keyType = findKeyType(key);
-    if (keyType == "double") {
-        config.setValue(key, value);
-        return EXIT_SUCCESS;
-    }
-    else if (keyType == "") {
-        return EXIT_FAILURE;
-    }
-    else {
-        std::cerr << "ERROR: Value \"" << value << "\" not of type specified by dictionary (" << keyType << ")" << std::endl;
-        return EXIT_FAILURE;
-    }
-}
-
-int VolumePkg::setMetadata(std::string key, std::string value) {
-    if (_readOnly) VC_ERR_READONLY();
-
-    std::string keyType = findKeyType(key);
-    if (keyType == "string") {
-        config.setValue(key, value);
-        return EXIT_SUCCESS;
-    }
-    else if (keyType == "int") {
-        try {
-            int castValue = boost::lexical_cast<int>(value);
-            config.setValue(key, castValue);
-            return EXIT_SUCCESS;
-        }
-        catch(const boost::bad_lexical_cast &) {
-            std::cerr << "ERROR: Given value \"" << value << "\" cannot be cast to type specified by dictionary (" << keyType << ")" << std::endl;
-            return EXIT_FAILURE;
-        }
-    }
-    else if (keyType == "double") {
-        try {
-            double castValue = boost::lexical_cast<double>(value);
-            config.setValue(key, castValue);
-            return EXIT_SUCCESS;
-        }
-        catch(const boost::bad_lexical_cast &) {
-            std::cerr << "ERROR: Given value \"" << value << "\" cannot be cast to type specified by dictionary (" << keyType << ")" << std::endl;
-            return EXIT_FAILURE;
-        }
-    }
-    else if (keyType == "") {
-        return EXIT_FAILURE;
-    }
-    else {
-        std::cerr << "ERROR: Value \"" << value << "\" not of type specified by dictionary (" << keyType << ")" << std::endl;
-        return EXIT_FAILURE;
-    }
-}
-
 
 // METADATA EXPORT //
 // Save metadata to any file
@@ -257,6 +184,27 @@ std::string VolumePkg::getNormalAtIndex(int index) {
     return pcd_location;
 }
 
+
+// DATA ASSIGNMENT //
+int VolumePkg::setSliceData(unsigned long index, cv::Mat slice) {
+
+    if (_readOnly) VC_ERR_READONLY();
+    if ( index >= getNumberOfSlices() ) {
+        std::cerr << "ERROR: Atttempted to save a slice image to an out of bounds index." << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    std::string filepath  = slice_dir.string();
+    std::string index_str = std::to_string(index);
+
+    int leading_zeroes = getNumberOfSliceCharacters() - index_str.length();
+    for (int i = 0; i < leading_zeroes; ++i) filepath += '0';
+    filepath += index_str + ".tif";
+
+    cv::imwrite(filepath, slice);
+
+    return EXIT_SUCCESS;
+}
 
 // SEGMENTATION FUNCTIONS //
 // Return a vector of strings representing the names of segmentations in the volpkg

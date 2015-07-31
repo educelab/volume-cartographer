@@ -20,6 +20,7 @@ namespace volcart {
         bool operator!=(const Slice& b) const { return !operator==(b); }
 
         bool analyze();
+        cv::Mat image();
         int width() { return _w; };
         int height() { return _h; };
         int depth() { return _depth; };

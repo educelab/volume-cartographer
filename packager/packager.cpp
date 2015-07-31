@@ -50,15 +50,19 @@ int main ( int argc, char* argv[]) {
     }
 
     ///// Setup /////
+    // Check the extension and make sure the pkg doesn't already exist
     if ( volpkgPath.extension().string() != ".volpkg" ) volpkgPath.replace_extension(".volpkg");
     if (boost::filesystem::exists(volpkgPath)) {
         std::cerr << "ERROR: Volume package already exists at path specified." << std::endl;
         std::cerr << "This program does not currently allow for modification of existing volume packages." << std::endl;
         return EXIT_FAILURE;
     }
+
+    // Generate an empty volpkg and save it to disk
     VolumePkg volpkg(volpkgPath.string(), VOLPKG_VERSION);
     volpkg.readOnly(false);
-
+    volpkg.setMetadata("volumepkg name", volpkgPath.stem().string());
+    volpkg.initialize();
 
     // Filter the slice path directory by extension and sort the vector of files
     std::vector<volcart::Slice> slices;
@@ -94,21 +98,57 @@ int main ( int argc, char* argv[]) {
 
     ///// Analyze the slices /////
     bool vol_consistent = true;
+    double vol_min, vol_max;
     for ( auto slice = slices.begin(); slice != slices.end(); ++slice ) {
         if (!slice->analyze()) continue; // skip if we can't analyze
 
         // Compare all slices to the properties of the first slice
-        if (slice != slices.begin()) {
+        if (slice == slices.begin()) {
+            vol_min = slice->min();
+            vol_max = slice->max();
+        }
+        else {
+            // Check for consistency first
             if (*slice != *slices.begin()) {
                 vol_consistent = false;
                 std::cerr << slice->path.filename() << " does not match the initial slice of the volume." << std::endl;
+                continue;
             }
+
+            // Update the volume's min and max
+            if ( slice->min() < vol_min ) vol_min = slice->min();
+            if ( slice->max() > vol_max ) vol_max = slice->max();
         }
+
     }
     if (!vol_consistent) {
         std::cerr << "ERROR: Slices in slice directory do not have matching properties (width/height/depth)." << std::endl;
         return EXIT_FAILURE;
     }
 
+    ///// Add data to the volume package /////
+    // Metadata
+    volpkg.setMetadata("number of slices", slices.size());
+    volpkg.setMetadata("width", slices.begin()->width());
+    volpkg.setMetadata("height", slices.begin()->height());
+
+    // Scale 8-bit min/max values
+    // To-Do: Handle other bit depths
+    if ( slices.begin()->depth() == 0 ) {
+        vol_min = vol_min * 65535.00/255.00;
+        vol_max = vol_max * 65535.00/255.00;
+    }
+    volpkg.setMetadata("min", vol_min);
+    volpkg.setMetadata("max", vol_max);
+
+    std::cout << "Saving slice images to " << volpkg.getPkgName() << "..." << std::endl;
+    unsigned long count = 0;
+    for ( auto slice = slices.begin(); slice != slices.end(); ++slice ) {
+        volpkg.setSliceData(count, slice->image());
+        ++count;
+    }
+
+    // Save final metadata changes to disk
+    volpkg.saveMetadata();
     return EXIT_SUCCESS;
 }

@@ -52,9 +52,54 @@ public:
     bool readOnly()         { return _readOnly; };
     void readOnly(bool b)   { _readOnly = b; };
 
-    int setMetadata(std::string, int);
-    int setMetadata(std::string, double);
-    int setMetadata(std::string, std::string);
+    // set a metadata key to a value
+    // Sorry for this templated mess. - SP 072015
+    template<typename T>
+    int setMetadata(std::string key, T value) {
+        if (_readOnly) VC_ERR_READONLY();
+
+        std::string keyType = findKeyType(key);
+        if (keyType == "string") {
+            try {
+                std::string castValue = boost::lexical_cast<std::string>(value);
+                config.setValue(key, castValue);
+                return EXIT_SUCCESS;
+            }
+            catch(const boost::bad_lexical_cast &) {
+                std::cerr << "ERROR: Given value \"" << value << "\" cannot be cast to type specified by dictionary (" << keyType << ")" << std::endl;
+                return EXIT_FAILURE;
+            }
+        }
+        else if (keyType == "int") {
+            try {
+                int castValue = boost::lexical_cast<int>(value);
+                config.setValue(key, castValue);
+                return EXIT_SUCCESS;
+            }
+            catch(const boost::bad_lexical_cast &) {
+                std::cerr << "ERROR: Given value \"" << value << "\" cannot be cast to type specified by dictionary (" << keyType << ")" << std::endl;
+                return EXIT_FAILURE;
+            }
+        }
+        else if (keyType == "double") {
+            try {
+                double castValue = boost::lexical_cast<double>(value);
+                config.setValue(key, castValue);
+                return EXIT_SUCCESS;
+            }
+            catch(const boost::bad_lexical_cast &) {
+                std::cerr << "ERROR: Given value \"" << value << "\" cannot be cast to type specified by dictionary (" << keyType << ")" << std::endl;
+                return EXIT_FAILURE;
+            }
+        }
+        else if (keyType == "") {
+            return EXIT_FAILURE;
+        }
+        else {
+            std::cerr << "ERROR: Value \"" << value << "\" not of type specified by dictionary (" << keyType << ")" << std::endl;
+            return EXIT_FAILURE;
+        }
+    };
 
     // Metadata Export
     void saveMetadata(std::string filePath);
@@ -65,6 +110,9 @@ public:
     cv::Mat getSliceAtIndex(int) __attribute__ ((deprecated));
     std::string getSlicePath(int);
     std::string getNormalAtIndex(int);
+
+    // Data Assignment
+    int setSliceData(unsigned long index, cv::Mat slice);
 
     // Segmentation functions
     std::vector<std::string> getSegmentations();
