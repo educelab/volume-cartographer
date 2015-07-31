@@ -29,7 +29,7 @@ typedef VC_CellType::PointIdIterator                  VC_PointsInCellIterator;
 
 
 ///// ERROR MESSAGES /////
-#define VC_ERR_READONLY         "ERROR: Volume Package is set to Read-Only. Metadata cannot be written."
+#define VC_ERR_READONLY() { std::cerr << "ERROR: Volume Package is set to Read-Only. Metadata cannot be written." << std::endl; return EXIT_FAILURE; }
 #define VC_ERR_SLICE_ANALYZE    "ERROR: Slice file does not exist/isn't a regular file and cannot be analyze."
 
 #endif //VC_DEFINES_H

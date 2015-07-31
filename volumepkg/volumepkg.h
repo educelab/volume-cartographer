@@ -32,8 +32,12 @@ public:
     //VolumePkg(std::string file_location, VolumePkgCfg cfg); // New volpkg, V.[cfg] - Untested, so disabled - SP, 072015
     VolumePkg(std::string file_location); // Existing VolPkgs
 
+    // Write to Disk
+    int initialize();
+
     // Debug
     void printJSON() { config.printObject(); };
+    void printDirs() { std::cout << "root: " << root_dir << " seg: " << segs_dir << " slice: " << slice_dir << " norm: " << norm_dir << std::endl; };
 
     // Metadata Retrieval
     std::string getPkgName();
@@ -80,8 +84,14 @@ private:
     bool _readOnly = true;
 
     VolumePkgCfg config;
-    std::string location;
-    boost::filesystem::path segdir;
+
+    // Directory tree
+    int _build();
+    boost::filesystem::path root_dir;
+    boost::filesystem::path segs_dir;
+    boost::filesystem::path slice_dir;
+    boost::filesystem::path norm_dir;
+
     int getNumberOfSliceCharacters();
     std::string activeSeg = "";
     std::vector<std::string> segmentations;

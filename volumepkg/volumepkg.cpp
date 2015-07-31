@@ -13,27 +13,65 @@ VolumePkg::VolumePkg(std::string file_location, double version ) {
         config = VolumePkgCfg(findDict->second, version);
     }
 
-    location = file_location;
-    segdir = file_location + config.getString("segpath", "/paths/");
+    root_dir = file_location;
+    segs_dir = file_location + config.getString("segpath", "/paths/");
+    slice_dir = file_location + "/slices/";
+    norm_dir = file_location + "/surface_normals/";
 };
 
 // Untested so disabled - SP, 072015
 //// Make a volpkg using a particular VolumePkgCfg for the metadata
 //VolumePkg::VolumePkg(std::string file_location, VolumePkgCfg cfg ) : config(cfg) {
 //    location = file_location;
-//    segdir = file_location + config.getString("segpath", "/paths/");
+//    segs_dir = file_location + config.getString("segpath", "/paths/");
 //};
 
 // Use this when reading a volpkg from a file
 VolumePkg::VolumePkg(std::string file_location) : config(file_location + "/config.json") {
-    location = file_location;
-    segdir = file_location + config.getString("segpath", "/paths/");
-    //iterate over paths in segdir, push_back to segmentations
-    for(boost::filesystem::directory_iterator iter(segdir), end; iter != end; ++iter)
+    root_dir = file_location;
+    segs_dir = file_location + config.getString("segpath", "/paths/");
+    slice_dir = file_location + "/slices/";
+    norm_dir = file_location + "/surface_normals/";
+
+    //iterate over paths in segs_dir, push_back to segmentations
+    for(boost::filesystem::directory_iterator iter(segs_dir), end; iter != end; ++iter)
     {
       std::string path = boost::filesystem::basename(iter->path());
       if (path != "" ) segmentations.push_back(path);
     }
+};
+
+// WRITE TO DISK //
+int VolumePkg::initialize() {
+    if (_readOnly) VC_ERR_READONLY();
+
+    // Build the directory tree
+    _build();
+
+    // Save the JSON to disk
+    saveMetadata();
+
+    return EXIT_SUCCESS;
+};
+
+int VolumePkg::_build() {
+
+    // Dirs we need to make
+    std::vector<boost::filesystem::path> dirs;
+    dirs.push_back(root_dir);
+    dirs.push_back(segs_dir);
+    dirs.push_back(slice_dir);
+    dirs.push_back(norm_dir);
+
+    // Make dirs that don't exist
+    for ( auto dir = dirs.begin(); dir != dirs.end(); ++dir) {
+        if (boost::filesystem::exists(*dir))
+            std::cerr << "WARNING: " << *dir << " already exists. Skipping folder creation." << std::endl;
+        else
+            boost::filesystem::create_directory(*dir);
+    }
+
+    return EXIT_SUCCESS;
 };
 
 // METADATA RETRIEVAL //
@@ -69,10 +107,7 @@ double VolumePkg::getMaterialThickness() {
 
 // METADATA ASSIGNMENT //
 int VolumePkg::setMetadata(std::string key, int value) {
-    if (_readOnly) {
-        std::cerr << VC_ERR_READONLY << std::endl;
-        return EXIT_FAILURE;
-    }
+    if (_readOnly) VC_ERR_READONLY();
 
     std::string keyType = findKeyType(key);
     if (keyType == "int") {
@@ -89,10 +124,7 @@ int VolumePkg::setMetadata(std::string key, int value) {
 }
 
 int VolumePkg::setMetadata(std::string key, double value) {
-    if (_readOnly) {
-        std::cerr << VC_ERR_READONLY << std::endl;
-        return EXIT_FAILURE;
-    }
+    if (_readOnly) VC_ERR_READONLY();
 
     std::string keyType = findKeyType(key);
     if (keyType == "double") {
@@ -109,10 +141,7 @@ int VolumePkg::setMetadata(std::string key, double value) {
 }
 
 int VolumePkg::setMetadata(std::string key, std::string value) {
-    if (_readOnly) {
-        std::cerr << VC_ERR_READONLY << std::endl;
-        return EXIT_FAILURE;
-    }
+    if (_readOnly) VC_ERR_READONLY();
 
     std::string keyType = findKeyType(key);
     if (keyType == "string") {
@@ -159,7 +188,7 @@ void VolumePkg::saveMetadata(std::string filePath) {
 
 // Alias for saving to the default config.json
 void VolumePkg::saveMetadata() {
-    saveMetadata(location + "/config.json");
+    saveMetadata(root_dir.string() + "/config.json");
 }
 
 
@@ -178,7 +207,7 @@ int VolumePkg::getNumberOfSliceCharacters() {
 // Returns slice image at specific slice index
 cv::Mat VolumePkg::getSliceData(int index) {
     //get the file name
-    std::string slice_location(location);
+    std::string slice_location(root_dir.string());
     slice_location += config.getString("slice location", "/slices/");
     int num_slice_characters = getNumberOfSliceCharacters();
     std::string str_index = std::to_string(index);
@@ -200,7 +229,7 @@ cv::Mat VolumePkg::getSliceAtIndex(int index) {
 // Returns slice at specific slice index
 std::string VolumePkg::getSlicePath(int index) {
     //get the file name
-    std::string slice_location(location);
+    std::string slice_location(root_dir.string());
     slice_location += config.getString("slice location", "/slices/");
     int num_slice_characters = getNumberOfSliceCharacters();
     std::string str_index = std::to_string(index);
@@ -215,7 +244,7 @@ std::string VolumePkg::getSlicePath(int index) {
 // Returns surface normal PCD file path for slice at index
 std::string VolumePkg::getNormalAtIndex(int index) {
 
-    std::string pcd_location(location);
+    std::string pcd_location(root_dir.string());
     pcd_location += config.getString("pcd location", "/surface_normals/");
 
     int num_pcd_chars = getNumberOfSliceCharacters();
@@ -245,7 +274,7 @@ void VolumePkg::setActiveSegmentation(std::string name) {
 // and push back the new segmentation into our vector of segmentations
 std::string VolumePkg::newSegmentation() {
     //get the file name
-    boost::filesystem::path newSeg(segdir);
+    boost::filesystem::path newSeg(segs_dir);
 
     //make a new dir based off the current date and time
     time_t now = time( 0 );
@@ -266,7 +295,7 @@ std::string VolumePkg::newSegmentation() {
 // Return the point cloud currently on disk for the activeSegmentation
 pcl::PointCloud<pcl::PointXYZRGB>::Ptr VolumePkg::openCloud() {
     // To-Do: Error if activeSeg not set
-    std::string outputName = segdir.string() + "/" + activeSeg + "/cloud.pcd";
+    std::string outputName = segs_dir.string() + "/" + activeSeg + "/cloud.pcd";
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
     pcl::io::loadPCDFile<pcl::PointXYZRGB> (outputName, *cloud);
     return cloud;
@@ -275,7 +304,7 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr VolumePkg::openCloud() {
 // Return the untextured mesh from the volpkg
 ChaoVis::CMesh VolumePkg::openMesh() {
     ChaoVis::CMesh mesh;
-    std::string outputName = segdir.string() + "/" + activeSeg + "/cloud.ply";
+    std::string outputName = segs_dir.string() + "/" + activeSeg + "/cloud.ply";
     ChaoVis::CPlyHelper::ReadPlyFile( outputName, mesh );
     std::cout << "Mesh file loaded." << std::endl;
     return mesh;
@@ -284,7 +313,7 @@ ChaoVis::CMesh VolumePkg::openMesh() {
 // Return the textured mesh from the volpkg
 ChaoVis::CMesh VolumePkg::openTexturedMesh() {
     ChaoVis::CMesh mesh;
-    std::string outputName = segdir.string() + "/" + activeSeg + "/textured.ply";
+    std::string outputName = segs_dir.string() + "/" + activeSeg + "/textured.ply";
     ChaoVis::CPlyHelper::ReadPlyFile( outputName, mesh );
     std::cout << "Mesh file loaded." << std::endl;
     return mesh;
@@ -292,39 +321,39 @@ ChaoVis::CMesh VolumePkg::openTexturedMesh() {
 
 // Return the path to the active segmentation's mesh
 std::string VolumePkg::getMeshPath(){
-    std::string meshName = segdir.string() + "/" + activeSeg + "/cloud.ply";
+    std::string meshName = segs_dir.string() + "/" + activeSeg + "/cloud.ply";
     return meshName;
 }
 
 // Return the texture image as a CV mat
 cv::Mat VolumePkg::getTextureData() {
-    std::string texturePath = segdir.string() + "/" + activeSeg + "/texture.tif";
+    std::string texturePath = segs_dir.string() + "/" + activeSeg + "/texture.tif";
     cv::Mat texture = cv::imread( texturePath, CV_LOAD_IMAGE_ANYCOLOR | CV_LOAD_IMAGE_ANYDEPTH );
     return cv::imread( texturePath, CV_LOAD_IMAGE_ANYCOLOR | CV_LOAD_IMAGE_ANYDEPTH );
 }
 
 // Save a point cloud back to the volumepkg
 void VolumePkg::saveCloud(pcl::PointCloud<pcl::PointXYZRGB> segmentedCloud){
-    std::string outputName = segdir.string() + "/" + activeSeg + "/cloud.pcd";
+    std::string outputName = segs_dir.string() + "/" + activeSeg + "/cloud.pcd";
     printf("Writing point cloud to file...\n");
     pcl::io::savePCDFileBinaryCompressed(outputName, segmentedCloud);
     printf("Point cloud saved.\n");
 }
 
 void VolumePkg::saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segmentedCloud) {
-    std::string outputName = segdir.string() + "/" + activeSeg + "/cloud.ply";
+    std::string outputName = segs_dir.string() + "/" + activeSeg + "/cloud.ply";
     orderedPCDMesher(segmentedCloud, outputName);
     printf("Mesh file saved.\n");
 }
 
 void VolumePkg::saveTexturedMesh(ChaoVis::CMesh mesh) {
-    std::string outputName = segdir.string() + "/" + activeSeg + "/textured.ply";
+    std::string outputName = segs_dir.string() + "/" + activeSeg + "/textured.ply";
     ChaoVis::CPlyHelper::WritePlyFile( outputName, mesh );
     printf("Mesh file saved.\n");
 }
 
 void VolumePkg::saveTextureData(cv::Mat texture, std::string name){
-    std::string texturePath = segdir.string() + "/" + activeSeg + "/" + name + ".png";
+    std::string texturePath = segs_dir.string() + "/" + activeSeg + "/" + name + ".png";
     cv::imwrite(texturePath, texture);
     printf("Texture image saved.\n");
 }
