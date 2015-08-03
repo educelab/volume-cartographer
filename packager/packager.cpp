@@ -18,7 +18,10 @@ int main ( int argc, char* argv[]) {
 
         // parsedOptions will hold the values of all parsed options as a Map
         boost::program_options::variables_map parsedOptions;
-        boost::program_options::store(boost::program_options::command_line_parser(argc, argv).options(options).run(), parsedOptions);
+        boost::program_options::store(boost::program_options::command_line_parser(argc, argv)
+                                              .options(options)
+                                              .run(),
+                                      parsedOptions);
         boost::program_options::notify(parsedOptions);
 
         // Show the help message
@@ -32,6 +35,7 @@ int main ( int argc, char* argv[]) {
             slicesPath = parsedOptions["slices"].as<std::string>();
         } else {
             std::cerr << "ERROR: Path to slices directory not supplied!" << std::endl;
+            std::cout << options << std::endl;
             return EXIT_FAILURE;
         }
 
@@ -40,6 +44,7 @@ int main ( int argc, char* argv[]) {
             volpkgPath = parsedOptions["volpkg"].as<std::string>();
         } else {
             std::cerr << "ERROR: Output Volume Package path not supplied!" << std::endl;
+            std::cout << options << std::endl;
             return EXIT_FAILURE;
         }
     }
