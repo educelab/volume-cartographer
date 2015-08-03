@@ -49,6 +49,22 @@ int main ( int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
+    ///// Get metadata values that have to be manually set /////
+    std::string input;
+    double voxelsize, thickness;
+
+    // get voxel size
+    do {
+        std::cout << "Please enter the voxel size of the volume in microns (e.g. 13.546): ";
+        std::getline(std::cin, input);
+    } while (!boost::conversion::try_lexical_convert(input, voxelsize));
+    // get material thickness
+    do {
+        std::cout << "Please enter the estimated material thickness of the volume in microns (e.g. 56.026): ";
+        std::getline(std::cin, input);
+    } while (!boost::conversion::try_lexical_convert(input, thickness));
+
+
     ///// Setup /////
     // Check the extension and make sure the pkg doesn't already exist
     if ( volpkgPath.extension().string() != ".volpkg" ) volpkgPath.replace_extension(".volpkg");
@@ -62,6 +78,8 @@ int main ( int argc, char* argv[]) {
     VolumePkg volpkg(volpkgPath.string(), VOLPKG_VERSION);
     volpkg.readOnly(false);
     volpkg.setMetadata("volumepkg name", volpkgPath.stem().string());
+    volpkg.setMetadata("voxelsize", voxelsize);
+    volpkg.setMetadata("materialthickness", thickness);
     volpkg.initialize();
 
     // Filter the slice path directory by extension and sort the vector of files
@@ -141,7 +159,7 @@ int main ( int argc, char* argv[]) {
     volpkg.setMetadata("min", vol_min);
     volpkg.setMetadata("max", vol_max);
 
-    std::cout << "Saving slice images to " << volpkg.getPkgName() << "..." << std::endl;
+    std::cout << "Saving slice images to \"" << volpkg.getPkgName() << "\"..." << std::endl;
     unsigned long count = 0;
     for ( auto slice = slices.begin(); slice != slices.end(); ++slice ) {
         volpkg.setSliceData(count, slice->image());

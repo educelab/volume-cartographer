@@ -29,7 +29,6 @@ class VolumePkg {
 public:
     // Constructors
     VolumePkg(std::string file_location, double version); // New volpkg, V.[version]
-    //VolumePkg(std::string file_location, VolumePkgCfg cfg); // New volpkg, V.[cfg] - Untested, so disabled - SP, 072015
     VolumePkg(std::string file_location); // Existing VolPkgs
 
     // Write to Disk

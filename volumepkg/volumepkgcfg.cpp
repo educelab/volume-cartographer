@@ -63,23 +63,6 @@ VolumePkgCfg::VolumePkgCfg(volcart::Dictionary dict, double version) {
     _json = picojson::value(obj);
 };
 
-/* Untested so disabled - SP, 072015
-VolumePkgCfg::VolumePkgCfg(VolumePkgCfg& cfg) {
-    this->_json = cfg._json;
-}
-
-VolumePkgCfg::VolumePkgCfg(picojson::value val) {
-    if (val.is<picojson::object>()) {
-        _json = val;
-    } else {
-        std::cout << "input is not a json object" << std::endl;
-    }
-};
-
-VolumePkgCfg::VolumePkgCfg(picojson::object obj) {
-    _json = picojson::value(obj);
-}; */
-
 
 // save the JSON file to disk
 void VolumePkgCfg::saveCfg(std::string file_location) {

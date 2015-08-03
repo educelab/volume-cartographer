@@ -10,6 +10,7 @@
 #include "boost/filesystem.hpp"
 #include "boost/program_options.hpp"
 #include "boost/algorithm/string.hpp"
+#include "boost/lexical_cast.hpp"
 
 #include "vc_defines.h"
 #include "volumepkg.h"

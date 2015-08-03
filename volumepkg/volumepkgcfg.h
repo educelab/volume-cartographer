@@ -14,10 +14,6 @@ public:
     VolumePkgCfg();
     VolumePkgCfg(std::string);
     VolumePkgCfg(volcart::Dictionary dict, double version = VOLPKG_VERSION);
-    /* Untested, so disabled. - SP, 072015
-    VolumePkgCfg(VolumePkgCfg& cfg);
-    VolumePkgCfg(picojson::value);
-    VolumePkgCfg(picojson::object);*/
 
     void saveCfg(std::string);
 

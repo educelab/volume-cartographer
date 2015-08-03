@@ -20,13 +20,6 @@ VolumePkg::VolumePkg(std::string file_location, double version ) {
     norm_dir = file_location + "/surface_normals/";
 };
 
-// Untested so disabled - SP, 072015
-//// Make a volpkg using a particular VolumePkgCfg for the metadata
-//VolumePkg::VolumePkg(std::string file_location, VolumePkgCfg cfg ) : config(cfg) {
-//    location = file_location;
-//    segs_dir = file_location + config.getString("segpath", "/paths/");
-//};
-
 // Use this when reading a volpkg from a file
 VolumePkg::VolumePkg(std::string file_location) : config(file_location + "/config.json") {
     root_dir = file_location;
