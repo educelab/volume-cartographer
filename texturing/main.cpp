@@ -170,8 +170,8 @@ namespace rayTrace {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char* argv[]) {
-  if ( argc < 6 ) {
-    std::cout << "Usage: vc_texture2 volpkg seg-id radius texture-method sample-direction" << std::endl;
+  if ( argc < 7 ) {
+    std::cout << "Usage: vc_texture2 volpkg seg-id radius texture-method sample-direction tracing-direction" << std::endl;
     std::cout << "Texture methods: " << std::endl;
     std::cout << "      0 = Intersection" << std::endl;
     std::cout << "      1 = Non-Maximum Suppression" << std::endl;
@@ -185,6 +185,9 @@ int main(int argc, char* argv[]) {
     std::cout << "      0 = Omni" << std::endl;
     std::cout << "      1 = Positive" << std::endl;
     std::cout << "      2 = Negative" << std::endl;
+    std::cout << "Ray Tracing Direction: " << std::endl;
+    std::cout << "      0 = Clockwise" << std::endl;
+    std::cout << "      1 = Counterclockwise" << std::endl;
     exit( -1 );
   }
 
@@ -209,6 +212,8 @@ int main(int argc, char* argv[]) {
 
   int aSampleDir = atoi( argv[ 5 ] ); // sampleDirection (0=omni, 1=positive, 2=negative)
   EDirectionOption aDirectionOption = ( EDirectionOption )aSampleDir;
+
+  int aTraceDir = atoi( argv[ 6 ] ); //rayTracingDirection (0=clockwise, 1=counterclockwise)
 
   // declare pointer to new Mesh object
   VC_MeshType::Pointer mesh = VC_MeshType::New();
@@ -310,15 +315,24 @@ int main(int argc, char* argv[]) {
     std::vector<rayTrace::Triangle> triangle_row = storage.bin_[z];
 
     int ycount = 0;
+    double radian = 0;
     // generate rays cylindrically
     for (double r = 0; r < PI_X2; r += D_THETA, ycount++) {
+      // Calculate the ray according to ray tracing direction
+      if (aTraceDir == 1) {
+        // counterclockwise
+        radian -= D_THETA;
+      } else {
+        // clockwise (default)
+        radian += D_THETA;
+      }
       // Calculate the origin by averaging the bounds of each coordinate
       cv::Vec3f origin;
       origin(VC_INDEX_X) = (storage.lower_bound_x_ + storage.upper_bound_x_) / 2;
       origin(VC_INDEX_Y) = (storage.lower_bound_y_ + storage.upper_bound_y_) / 2;
       origin(VC_INDEX_Z) = z;
       // Calculate direction of ray according to current degree of rotation along the cylinder
-      cv::Vec3f direction(cos(r), sin(r), 0);
+      cv::Vec3f direction(cos(radian), sin(radian), 0);
 
       // Check if each triangle in the current storage bin intersects with the current ray
       for (int t = 0; t < triangle_row.size(); ++t) {
