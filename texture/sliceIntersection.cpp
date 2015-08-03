@@ -379,7 +379,7 @@ void ProcessVolume( /*const*/ VolumePkg &nVpkg,
     int aNumSlices = nVpkg.getNumberOfSlices();
 	for ( int i = 0; i < aNumSlices; ++i ) {
         std::cout << "\rLoading slice: " << i+1 << "/" << aNumSlices << std::flush;
-		nImgVol.push_back( nVpkg.getSliceAtIndex( i ).clone() );
+		nImgVol.push_back( nVpkg.getSliceData( i ).clone() );
 	}
     std::cout << std::endl;
 	gNumHistBin = 1 << ( NUM_BITS_PER_BYTE * sizeof( unsigned short ) );
