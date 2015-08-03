@@ -6,5 +6,10 @@ set(MESHING_INCLUDE_DIR ${MESHING_INCLUDE_DIR} PARENT_SCOPE)
 if(TARGET vc_meshing)
 message("meshing is already defined")
 else()
-add_library(vc_meshing STATIC orderedPCDMesher.h orderedPCDMesher.cpp resamplePointCloud.h resamplePointCloud.cpp greedyProjectionMeshing.h greedyProjectionMeshing.cpp poissonReconstruction.h poissonReconstruction.cpp)
+add_library(vc_meshing STATIC
+                    orderedPCDMesher.h orderedPCDMesher.cpp
+                    resamplePointCloud.h resamplePointCloud.cpp
+                    greedyProjectionMeshing.h greedyProjectionMeshing.cpp
+                    poissonReconstruction.h poissonReconstruction.cpp
+                    itk2vtk.h itk2vtk.cpp)
 endif()
