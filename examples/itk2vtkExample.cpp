@@ -8,6 +8,7 @@
 #include "itk2vtk.h"
 
 #include "vtkPLYWriter.h"
+#include "itkMeshFileWriter.h"
 
 int main( int argc, char* argv[] ) {
 
@@ -24,15 +25,25 @@ int main( int argc, char* argv[] ) {
     exit( EXIT_SUCCESS );
   };
 
-  vtkPolyData *outputMesh = vtkPolyData::New();
+  // Test the itk2vtk converter
+  vtkPolyData *outputVTK = vtkPolyData::New();
+  volcart::meshing::itk2vtk(inputMesh, outputVTK);
 
-  volcart::meshing::itk2vtk(inputMesh, outputMesh);
+  vtkPLYWriter *vtkwriter = vtkPLYWriter::New();
+  vtkwriter->SetInputData(outputVTK);
+  vtkwriter->SetFileTypeToASCII();
+  vtkwriter->SetFileName("vtk.ply");
+  vtkwriter->Write();
 
-  vtkPLYWriter *writer = vtkPLYWriter::New();
-  writer->SetInputData(outputMesh);
-  writer->SetFileTypeToASCII();
-  writer->SetFileName("vtk.ply");
-  writer->Write();
+  // Test the vtk2itk converter
+  VC_MeshType::Pointer outputITK = VC_MeshType::New();
+  volcart::meshing::vtk2itk(outputVTK, outputITK);
+
+  itk::MeshFileWriter<VC_MeshType>::Pointer itkwriter = itk::MeshFileWriter<VC_MeshType>::New();
+  itkwriter->SetInput(outputITK);
+  itkwriter->SetFileTypeAsASCII();
+  itkwriter->SetFileName("itk.obj");
+  itkwriter->Write();
 
   return EXIT_SUCCESS;
 }

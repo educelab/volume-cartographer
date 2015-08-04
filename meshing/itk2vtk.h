@@ -24,7 +24,8 @@ namespace volcart {
         };
 
         class vtk2itk {
-            vtk2itk( vtkPolyData* input );
+        public:
+            vtk2itk( vtkPolyData* input, VC_MeshType::Pointer output );
         };
 
     } // namespace meshing

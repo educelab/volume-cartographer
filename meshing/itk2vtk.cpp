@@ -46,7 +46,34 @@ namespace volcart {
 
         };
 
-        vtk2itk::vtk2itk( vtkPolyData* input ) {};
+        vtk2itk::vtk2itk( vtkPolyData* input, VC_MeshType::Pointer output ) {
+
+            // points + normals
+            vtkDataArray *pointNormals = input->GetPointData()->GetNormals();
+            for ( vtkIdType p_id = 0; p_id < input->GetNumberOfPoints(); ++p_id ) {
+
+                VC_PointType point = input->GetPoint(p_id);
+                VC_PixelType normal = pointNormals->GetTuple(p_id);
+
+                output->SetPoint(p_id, point);
+                output->SetPointData(p_id, normal);
+            }
+
+            // cells
+            VC_CellType::CellAutoPointer cell;
+            for ( vtkIdType c_id = 0; c_id < input->GetNumberOfCells(); ++c_id ) {
+
+                vtkCell *inputCell = input->GetCell(c_id); // input cell
+                cell.TakeOwnership( new VC_TriangleType ); // output cell
+
+                for ( vtkIdType p_id = 0; p_id < inputCell->GetNumberOfPoints(); ++p_id ) {
+                    cell->SetPointId(p_id, inputCell->GetPointId(p_id)); // assign the point id's
+                }
+
+                output->SetCell( c_id, cell );
+            }
+
+        };
 
     } // namespace meshing
 } // namespace volcart
