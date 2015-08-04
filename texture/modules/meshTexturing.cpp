@@ -462,7 +462,7 @@ void ProcessVolume( /*const*/ VolumePkg     &nVpkg,
     std::vector< cv::Mat > tempVol;
     for ( int i = bufferLowIndex; i < bufferHighIndex; ++i ) {
         std::cout << "\rLoading real slices: " << i - bufferLowIndex + 1 << "/" << bufferHighIndex - bufferLowIndex << std::flush;
-        tempVol.push_back( nVpkg.getSliceAtIndex( i ).clone() );
+        tempVol.push_back( nVpkg.getSliceData( i ).clone() );
     }
     std::cout << std::endl;
 
