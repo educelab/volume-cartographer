@@ -26,6 +26,7 @@ namespace volcart {
         int depth() { return _depth; };
         double min() { return _min; };
         double max() { return _max; };
+        bool needsConvert() { return _convert; };
 
         boost::filesystem::path path;
 

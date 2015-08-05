@@ -29,6 +29,7 @@ bool Slice::analyze() {
     // 5 = CV_32F - 32-bit floating-point
     // 6 = CV_64F - 64-bit floating-point
     _depth = image.depth();
+    if ( _depth != 2 ) _convert = true;
 
     cv::minMaxLoc(image, &_min, &_max);
 

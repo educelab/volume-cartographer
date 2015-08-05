@@ -169,16 +169,19 @@ int main ( int argc, char* argv[]) {
     }
     volpkg.setMetadata("min", vol_min);
     volpkg.setMetadata("max", vol_max);
+    volpkg.saveMetadata(); // Save final metadata changes to disk
 
     counter = 0;
     for ( auto slice = slices.begin(); slice != slices.end(); ++slice ) {
         std::cout << "Saving slice image to volume package: " << counter+1 << "/" << slices.size() << "\r" << std::flush;
-        volpkg.setSliceData(counter, slice->image());
+        if ( slice->needsConvert() )
+            volpkg.setSliceData(counter, slice->image()); // slice->image() returns conformed image
+        else
+            boost::filesystem::copy( slice->path, volpkg.getSlicePath(counter) );
+
         ++counter;
     }
     std::cout << std::endl;
 
-    // Save final metadata changes to disk
-    volpkg.saveMetadata();
     return EXIT_SUCCESS;
 }

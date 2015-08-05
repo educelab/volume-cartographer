@@ -126,34 +126,26 @@ int VolumePkg::getNumberOfSliceCharacters() {
 
 // Returns slice image at specific slice index
 cv::Mat VolumePkg::getSliceData(int index) {
-    //get the file name
-    std::string slice_location(root_dir.string());
-    slice_location += config.getString("slice location", "/slices/");
-    int num_slice_characters = getNumberOfSliceCharacters();
-    std::string str_index = std::to_string(index);
-    int num_leading_zeroes = num_slice_characters - str_index.length();
-    for (int i = 0; i < num_leading_zeroes; i++) {slice_location += '0';}
-    slice_location += str_index;
-    slice_location += ".tif";
 
-    cv::Mat sliceImg = cv::imread( slice_location, CV_LOAD_IMAGE_ANYCOLOR | CV_LOAD_IMAGE_ANYDEPTH );
-    
-    return sliceImg;
+    std::string filepath = getSlicePath(index);
+
+    if ( boost::filesystem::exists(filepath) )
+        return cv::imread( filepath, CV_LOAD_IMAGE_ANYCOLOR | CV_LOAD_IMAGE_ANYDEPTH );
+//    else
+//        // To-Do: Throw an exception/error
 }
 
 // Returns slice at specific slice index
 std::string VolumePkg::getSlicePath(int index) {
-    //get the file name
-    std::string slice_location(root_dir.string());
-    slice_location += config.getString("slice location", "/slices/");
-    int num_slice_characters = getNumberOfSliceCharacters();
-    std::string str_index = std::to_string(index);
-    int num_leading_zeroes = num_slice_characters - str_index.length();
-    for (int i = 0; i < num_leading_zeroes; i++) {slice_location += '0';}
-    slice_location += str_index;
-    slice_location += ".tif";
 
-    return slice_location;
+    std::string filepath  = slice_dir.string();
+    std::string index_str = std::to_string(index);
+
+    int leading_zeroes = getNumberOfSliceCharacters() - index_str.length();
+    for (int i = 0; i < leading_zeroes; ++i) filepath += '0';
+    filepath += index_str + ".tif";
+
+    return filepath;
 }
 
 // Returns surface normal PCD file path for slice at index
@@ -182,12 +174,7 @@ int VolumePkg::setSliceData(unsigned long index, cv::Mat slice) {
         return EXIT_FAILURE;
     }
 
-    std::string filepath  = slice_dir.string();
-    std::string index_str = std::to_string(index);
-
-    int leading_zeroes = getNumberOfSliceCharacters() - index_str.length();
-    for (int i = 0; i < leading_zeroes; ++i) filepath += '0';
-    filepath += index_str + ".tif";
+    std::string filepath = getSlicePath(index);
 
     cv::imwrite(filepath, slice);
 
