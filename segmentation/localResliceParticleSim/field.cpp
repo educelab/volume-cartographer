@@ -3,7 +3,7 @@
 DEMO::Field::Field(VolumePkg* v) {
   _volpkg = v;
   for (int i = 0; i < _volpkg->getNumberOfSlices(); ++i) {
-    _field.push_back(v->getSliceAtIndex(i));
+    _field.push_back(v->getSliceData(i));
   }
 }
 
