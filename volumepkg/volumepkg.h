@@ -106,7 +106,6 @@ public:
 
     // Data Retrieval
     cv::Mat getSliceData(int);
-    cv::Mat getSliceAtIndex(int) __attribute__ ((deprecated));
     std::string getSlicePath(int);
     std::string getNormalAtIndex(int);
 

@@ -141,11 +141,6 @@ cv::Mat VolumePkg::getSliceData(int index) {
     return sliceImg;
 }
 
-// Deprecated method for returning slice image at a specific index
-cv::Mat VolumePkg::getSliceAtIndex(int index) {
-    return this->getSliceData(index);
-}
-
 // Returns slice at specific slice index
 std::string VolumePkg::getSlicePath(int index) {
     //get the file name
