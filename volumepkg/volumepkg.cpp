@@ -40,7 +40,7 @@ int VolumePkg::initialize() {
     if (_readOnly) VC_ERR_READONLY();
 
     // Build the directory tree
-    _build();
+    _makeDirTree();
 
     // Save the JSON to disk
     saveMetadata();
@@ -48,7 +48,7 @@ int VolumePkg::initialize() {
     return EXIT_SUCCESS;
 };
 
-int VolumePkg::_build() {
+int VolumePkg::_makeDirTree() {
 
     // Dirs we need to make
     std::vector<boost::filesystem::path> dirs;

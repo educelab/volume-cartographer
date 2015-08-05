@@ -132,7 +132,7 @@ private:
     VolumePkgCfg config;
 
     // Directory tree
-    int _build();
+    int _makeDirTree();
     boost::filesystem::path root_dir;
     boost::filesystem::path segs_dir;
     boost::filesystem::path slice_dir;

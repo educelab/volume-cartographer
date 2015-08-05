@@ -88,6 +88,7 @@ int main ( int argc, char* argv[]) {
     volpkg.initialize();
 
     // Filter the slice path directory by extension and sort the vector of files
+    std::cout << "Reading the slice directory..." << std::endl;
     std::vector<volcart::Slice> slices;
     if (boost::filesystem::exists(slicesPath) && boost::filesystem::is_directory(slicesPath)) {
 
@@ -117,12 +118,15 @@ int main ( int argc, char* argv[]) {
     }
     // Sort the Slices by their filenames
     std::sort(slices.begin(), slices.end(), SliceLess);
+    std::cout << "Slice images found: " << slices.size() << std::endl;
 
 
     ///// Analyze the slices /////
     bool vol_consistent = true;
     double vol_min, vol_max;
+    unsigned long counter = 1;
     for ( auto slice = slices.begin(); slice != slices.end(); ++slice ) {
+        std::cout << "Analyzing slice: " << counter << "/" << slices.size() << "\r" << std::flush;
         if (!slice->analyze()) continue; // skip if we can't analyze
 
         // Compare all slices to the properties of the first slice
@@ -131,10 +135,10 @@ int main ( int argc, char* argv[]) {
             vol_max = slice->max();
         }
         else {
-            // Check for consistency first
+            // Check for consistency of slices
             if (*slice != *slices.begin()) {
                 vol_consistent = false;
-                std::cerr << slice->path.filename() << " does not match the initial slice of the volume." << std::endl;
+                std::cerr << std::endl << slice->path.filename() << " does not match the initial slice of the volume." << std::endl;
                 continue;
             }
 
@@ -143,7 +147,9 @@ int main ( int argc, char* argv[]) {
             if ( slice->max() > vol_max ) vol_max = slice->max();
         }
 
+        ++counter;
     }
+    std::cout << std::endl;
     if (!vol_consistent) {
         std::cerr << "ERROR: Slices in slice directory do not have matching properties (width/height/depth)." << std::endl;
         return EXIT_FAILURE;
@@ -164,12 +170,13 @@ int main ( int argc, char* argv[]) {
     volpkg.setMetadata("min", vol_min);
     volpkg.setMetadata("max", vol_max);
 
-    std::cout << "Saving slice images to \"" << volpkg.getPkgName() << "\"..." << std::endl;
-    unsigned long count = 0;
+    counter = 0;
     for ( auto slice = slices.begin(); slice != slices.end(); ++slice ) {
-        volpkg.setSliceData(count, slice->image());
-        ++count;
+        std::cout << "Saving slice image to volume package: " << counter+1 << "/" << slices.size() << "\r" << std::flush;
+        volpkg.setSliceData(counter, slice->image());
+        ++counter;
     }
+    std::cout << std::endl;
 
     // Save final metadata changes to disk
     volpkg.saveMetadata();
