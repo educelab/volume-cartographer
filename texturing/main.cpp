@@ -385,8 +385,8 @@ int main(int argc, char* argv[]) {
   obbTree->SetDataSet(vtkMesh);
   obbTree->BuildLocator();
 
-  vtkSmartPointer<vtkPoints> intersectPoints = vtkSmartPointer<vtkPoints>::New();
-  vtkSmartPointer<vtkCellArray> intersectCells = vtkSmartPointer<vtkCellArray>::New();
+  vtkSmartPointer<vtkPoints> intersectPoints = vtkPoints::New();
+  vtkSmartPointer<vtkIdList> intersectCells = vtkIdList::New();
 
   // For each slice/row generate rays and interpolate new points
   for (int z = (int)storage.lower_bound_z_; z < (int)storage.upper_bound_z_; ++z) {
@@ -412,24 +412,24 @@ int main(int argc, char* argv[]) {
       // Calculate direction of ray according to current degree of rotation along the cylinder
       cv::Vec3f direction(cos(radian), sin(radian), 0);
       cv::normalize(direction);
+
       // Create a second point along the ray using the origin and direction
-      cv::Vec3f end_point;
-      end_point = origin + 1000*direction;
+      cv::Vec3f end_point = origin + 1000*direction;
       origin = origin - 1000*direction;
+
       double start[3] = {origin[0], origin[1], origin[2]};
       double end[3] = {end_point[0], end_point[1], end_point[2]};
 
-      obbTree->IntersectWithLine(start, end, intersectPoints, NULL);
+      obbTree->IntersectWithLine(start, end, intersectPoints, intersectCells);
 
-      std::cout << "NumPoints: " << intersectPoints->GetNumberOfPoints() <<  " | Z: " << z << std::endl;
+      std::cout << "NumPoints: " << intersectPoints->GetNumberOfPoints() <<  " | Z: " << z << " | R: " << r << std::endl;
 
       if ( intersectPoints->GetNumberOfPoints() > 0 ) {
-        cv::Vec3f p = intersectPoints[0];
-        pcl::PointNormal asdf;
-        asdf.x = p[0];
-        asdf.y = p[1];
-        asdf.z = p[2];
-        new_cloud->push_back(asdf);
+        pcl::PointNormal pt;
+        pt.x = intersectPoints->GetPoint(0)[0];
+        pt.y = intersectPoints->GetPoint(0)[1];
+        pt.z = intersectPoints->GetPoint(0)[2];
+        new_cloud->push_back(pt);
       }
     }
   }
