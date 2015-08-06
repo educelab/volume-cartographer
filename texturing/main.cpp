@@ -379,6 +379,15 @@ int main(int argc, char* argv[]) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // Using vtk's OBBTree to test a ray's intersection with the faces/cells/triangles in the mesh
+
+  // Creat vtk OBBTree
+  vtkSmartPointer<vtkOBBTree> obbTree = vtkSmartPointer<vtkOBBTree>::New();
+  obbTree->SetDataSet(vtkMesh);
+  obbTree->BuildLocator();
+
+  vtkSmartPointer<vtkPoints> intersectPoints = vtkSmartPointer<vtkPoints>::New();
+  vtkSmartPointer<vtkCellArray> intersectCells = vtkSmartPointer<vtkCellArray>::New();
+
   // For each slice/row generate rays and interpolate new points
   for (int z = (int)storage.lower_bound_z_; z < (int)storage.upper_bound_z_; ++z) {
     int counter = 0;
@@ -396,29 +405,32 @@ int main(int argc, char* argv[]) {
         radian += D_THETA;
       }
       // Calculate the origin by averaging the bounds of each coordinate
-      double origin[3];
-      origin[VC_INDEX_X] = (storage.lower_bound_x_ + storage.upper_bound_x_) / 2;
-      origin[VC_INDEX_Y] = (storage.lower_bound_y_ + storage.upper_bound_y_) / 2;
-      origin[VC_INDEX_Z] = z;
+      cv::Vec3f origin;
+      origin(VC_INDEX_X) = (storage.lower_bound_x_ + storage.upper_bound_x_) / 2;
+      origin(VC_INDEX_Y) = (storage.lower_bound_y_ + storage.upper_bound_y_) / 2;
+      origin(VC_INDEX_Z) = z;
       // Calculate direction of ray according to current degree of rotation along the cylinder
       cv::Vec3f direction(cos(radian), sin(radian), 0);
+      cv::normalize(direction);
       // Create a second point along the ray using the origin and direction
-      double  end_point[3];
-      end_point[0] = origin[0] + 1000*direction[0];
-      end_point[1] = origin[1] + 1000*direction[1];
-      end_point[2] = origin[2] + 1000*direction[2];
+      cv::Vec3f end_point;
+      end_point = origin + 1000*direction;
+      origin = origin - 1000*direction;
+      double start[3] = {origin[0], origin[1], origin[2]};
+      double end[3] = {end_point[0], end_point[1], end_point[2]};
 
-      // Creat vtk OBBTree
-      vtkSmartPointer<vtkOBBTree> obbTree = vtkSmartPointer<vtkOBBTree>::New();
-      obbTree->SetDataSet(vtkMesh);
-      obbTree->BuildLocator();
+      obbTree->IntersectWithLine(start, end, intersectPoints, NULL);
 
-      vtkSmartPointer<vtkPoints> intersectPoints = vtkSmartPointer<vtkPoints>::New();
-      vtkSmartPointer<vtkCellArray> intersectCells = vtkSmartPointer<vtkCellArray>::New();
+      std::cout << "NumPoints: " << intersectPoints->GetNumberOfPoints() <<  " | Z: " << z << std::endl;
 
-      obbTree->IntersectWithLine(origin, end_point, intersectPoints, NULL);
-
-      std::cout << "NumPoints: " << intersectPoints->GetNumberOfPoints() << std::endl;
+      if ( intersectPoints->GetNumberOfPoints() > 0 ) {
+        cv::Vec3f p = intersectPoints[0];
+        pcl::PointNormal asdf;
+        asdf.x = p[0];
+        asdf.y = p[1];
+        asdf.z = p[2];
+        new_cloud->push_back(asdf);
+      }
     }
   }
 
