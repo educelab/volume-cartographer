@@ -9,10 +9,14 @@
 #include "volumepkg.h"
 #include "vc_defines.h"
 #include "io/ply2itk.h"
+#include "itk2vtk.h"
 
 #include "texturingUtils.h"
 #include <itkRGBPixel.h>
 #include "UPointMapping.h"
+
+#include <vtkSmartPointer.h>
+#include <vtkOBBTree.h>
 
 #define VC_INDEX_X 0
 #define VC_INDEX_Y 1
@@ -224,6 +228,10 @@ int main(int argc, char* argv[]) {
     exit(-1);
   }
 
+  // Convert the itk mesh to a vtk mesh
+  vtkPolyData *vtkMesh = vtkPolyData::New();
+  volcart::meshing::itk2vtk(mesh, vtkMesh);
+
   // Matrix to store the output texture
   int textureW = meshWidth;
   int textureH = meshHeight;
@@ -308,11 +316,72 @@ int main(int argc, char* argv[]) {
 
   cv::Mat outputTexture = cv::Mat::zeros( (int)(storage.upper_bound_z_ - storage.lower_bound_z_), OUT_X, CV_16UC1 );
   
+  // // For each slice/row generate rays and interpolate new points
+  // for (int z = (int)storage.lower_bound_z_; z < (int)storage.upper_bound_z_; ++z) {
+  //   int counter = 0;
+  //   // grab current row from the storage data structure
+  //   std::vector<rayTrace::Triangle> triangle_row = storage.bin_[z];
+
+  //   int ycount = 0;
+  //   double radian = 0;
+  //   // generate rays cylindrically
+  //   for (double r = 0; r < PI_X2; r += D_THETA, ycount++) {
+  //     // Calculate the ray according to ray tracing direction
+  //     if (aTraceDir == 1) {
+  //       // counterclockwise
+  //       radian -= D_THETA;
+  //     } else {
+  //       // clockwise (default)
+  //       radian += D_THETA;
+  //     }
+  //     // Calculate the origin by averaging the bounds of each coordinate
+  //     cv::Vec3f origin;
+  //     origin(VC_INDEX_X) = (storage.lower_bound_x_ + storage.upper_bound_x_) / 2;
+  //     origin(VC_INDEX_Y) = (storage.lower_bound_y_ + storage.upper_bound_y_) / 2;
+  //     origin(VC_INDEX_Z) = z;
+  //     // Calculate direction of ray according to current degree of rotation along the cylinder
+  //     cv::Vec3f direction(cos(radian), sin(radian), 0);
+
+  //     // Check if each triangle in the current storage bin intersects with the current ray
+  //     for (int t = 0; t < triangle_row.size(); ++t) {
+  //       rayTrace::Triangle tri = triangle_row[t];
+  //       cv::Vec3f p = tri.intersect(origin,direction);
+
+  //       // If the ray intersects with current triangle then texture the intersecting point
+  //       if (tri.pointInTriangle(p) && direction.dot(tri.normal()) < 0) {
+  //         double color = textureWithMethod( p,
+  //                                           tri.normal(),
+  //                                           aImgVol,
+  //                                           aFilterOption,
+  //                                           radius,
+  //                                           minorRadius,
+  //                                           0.5,
+  //                                           aDirectionOption);
+  //         outputTexture.at<unsigned short>(z - storage.lower_bound_z_, ycount) = (unsigned short)color;
+
+  //         // Generate pcl point cloud
+  //         pcl::PointNormal asdf;
+  //         asdf.x = p[0];
+  //         asdf.y = p[1];
+  //         asdf.z = p[2];
+  //         new_cloud->push_back(asdf);
+  //         break;
+  //       } else {
+  //         // Keep track of how many rays had no intersections
+  //         if (t == triangle_row.size() - 1) {
+  //           counter++;
+  //         }
+  //       }
+  //     }
+  //   }
+  //   std::cout << "line " << z << ": " << counter << " misses" <<  "\t\t" << counter / (OUT_X / PI_X2) << std::endl;
+  // }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // Using vtk's OBBTree to test a ray's intersection with the faces/cells/triangles in the mesh
   // For each slice/row generate rays and interpolate new points
   for (int z = (int)storage.lower_bound_z_; z < (int)storage.upper_bound_z_; ++z) {
     int counter = 0;
-    // grab current row from the storage data structure
-    std::vector<rayTrace::Triangle> triangle_row = storage.bin_[z];
 
     int ycount = 0;
     double radian = 0;
@@ -327,47 +396,32 @@ int main(int argc, char* argv[]) {
         radian += D_THETA;
       }
       // Calculate the origin by averaging the bounds of each coordinate
-      cv::Vec3f origin;
-      origin(VC_INDEX_X) = (storage.lower_bound_x_ + storage.upper_bound_x_) / 2;
-      origin(VC_INDEX_Y) = (storage.lower_bound_y_ + storage.upper_bound_y_) / 2;
-      origin(VC_INDEX_Z) = z;
+      double origin[3];
+      origin[VC_INDEX_X] = (storage.lower_bound_x_ + storage.upper_bound_x_) / 2;
+      origin[VC_INDEX_Y] = (storage.lower_bound_y_ + storage.upper_bound_y_) / 2;
+      origin[VC_INDEX_Z] = z;
       // Calculate direction of ray according to current degree of rotation along the cylinder
       cv::Vec3f direction(cos(radian), sin(radian), 0);
+      // Create a second point along the ray using the origin and direction
+      double  end_point[3];
+      end_point[0] = origin[0] + 1000*direction[0];
+      end_point[1] = origin[1] + 1000*direction[1];
+      end_point[2] = origin[2] + 1000*direction[2];
 
-      // Check if each triangle in the current storage bin intersects with the current ray
-      for (int t = 0; t < triangle_row.size(); ++t) {
-        rayTrace::Triangle tri = triangle_row[t];
-        cv::Vec3f p = tri.intersect(origin,direction);
+      // Creat vtk OBBTree
+      vtkSmartPointer<vtkOBBTree> obbTree = vtkSmartPointer<vtkOBBTree>::New();
+      obbTree->SetDataSet(vtkMesh);
+      obbTree->BuildLocator();
 
-        // If the ray intersects with current triangle then texture the intersecting point
-        if (tri.pointInTriangle(p) && direction.dot(tri.normal()) < 0) {
-          double color = textureWithMethod( p,
-                                            tri.normal(),
-                                            aImgVol,
-                                            aFilterOption,
-                                            radius,
-                                            minorRadius,
-                                            0.5,
-                                            aDirectionOption);
-          outputTexture.at<unsigned short>(z - storage.lower_bound_z_, ycount) = (unsigned short)color;
+      vtkSmartPointer<vtkPoints> intersectPoints = vtkSmartPointer<vtkPoints>::New();
+      vtkSmartPointer<vtkCellArray> intersectCells = vtkSmartPointer<vtkCellArray>::New();
 
-          // Generate pcl point cloud
-          pcl::PointNormal asdf;
-          asdf.x = p[0];
-          asdf.y = p[1];
-          asdf.z = p[2];
-          new_cloud->push_back(asdf);
-          break;
-        } else {
-          // Keep track of how many rays had no intersections
-          if (t == triangle_row.size() - 1) {
-            counter++;
-          }
-        }
-      }
+      obbTree->IntersectWithLine(origin, end_point, intersectPoints, NULL);
+
+      std::cout << "NumPoints: " << intersectPoints->GetNumberOfPoints() << std::endl;
     }
-    std::cout << "line " << z << ": " << counter << " misses" <<  "\t\t" << counter / (OUT_X / PI_X2) << std::endl;
   }
+
 
   pcl::io::savePCDFileASCII("resampled.pcd", *new_cloud);
   vpkg.saveTextureData(outputTexture);
