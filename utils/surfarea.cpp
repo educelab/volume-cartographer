@@ -1,5 +1,5 @@
-// main.cpp
-// Abigail Coleman Feb. 2015
+// surfarea.cpp
+// Seth Parker, Aug 2015
 
 #include <iostream>
 #include <fstream>

@@ -17,6 +17,7 @@
 
 #include <vtkSmartPointer.h>
 #include <vtkOBBTree.h>
+#include <vtkPolyDataNormals.h>
 
 #define VC_INDEX_X 0
 #define VC_INDEX_Y 1
@@ -380,13 +381,20 @@ int main(int argc, char* argv[]) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // Using vtk's OBBTree to test a ray's intersection with the faces/cells/triangles in the mesh
 
+  // Generate normals for the cells of the mesh
+  vtkSmartPointer<vtkPolyDataNormals> calcNormals = vtkSmartPointer<vtkPolyDataNormals>::New();
+  calcNormals->SetInputData(vtkMesh);
+  calcNormals->ComputeCellNormalsOn();
+  calcNormals->Update();
+  vtkMesh = calcNormals->GetOutput();
+
   // Creat vtk OBBTree
   vtkSmartPointer<vtkOBBTree> obbTree = vtkSmartPointer<vtkOBBTree>::New();
   obbTree->SetDataSet(vtkMesh);
   obbTree->BuildLocator();
 
-  vtkSmartPointer<vtkPoints> intersectPoints = vtkPoints::New();
-  vtkSmartPointer<vtkIdList> intersectCells = vtkIdList::New();
+  vtkSmartPointer<vtkPoints> intersectPoints = vtkSmartPointer<vtkPoints>::New();
+  vtkSmartPointer<vtkIdList> intersectCells = vtkSmartPointer<vtkIdList>::New();
 
   // For each slice/row generate rays and interpolate new points
   for (int z = (int)storage.lower_bound_z_; z < (int)storage.upper_bound_z_; ++z) {
@@ -415,7 +423,7 @@ int main(int argc, char* argv[]) {
 
       // Create a second point along the ray using the origin and direction
       cv::Vec3f end_point = origin + 1000*direction;
-      origin = origin - 1000*direction;
+      //origin = origin - 1000*direction;
 
       double start[3] = {origin[0], origin[1], origin[2]};
       double end[3] = {end_point[0], end_point[1], end_point[2]};
@@ -425,11 +433,37 @@ int main(int argc, char* argv[]) {
       std::cout << "NumPoints: " << intersectPoints->GetNumberOfPoints() <<  " | Z: " << z << " | R: " << r << std::endl;
 
       if ( intersectPoints->GetNumberOfPoints() > 0 ) {
+
+        cv::Vec3f pt_pos;
+        cv::Vec3f pt_norm;
+
+        pt_pos[0] = intersectPoints->GetPoint(0)[0];
+        pt_pos[1] = intersectPoints->GetPoint(0)[1];
+        pt_pos[2] = intersectPoints->GetPoint(0)[2];
+        pt_norm[0] = vtkMesh->GetCellData()->GetNormals()->GetTuple(intersectCells->GetId(0))[0];
+        pt_norm[1] = vtkMesh->GetCellData()->GetNormals()->GetTuple(intersectCells->GetId(0))[1];
+        pt_norm[2] = vtkMesh->GetCellData()->GetNormals()->GetTuple(intersectCells->GetId(0))[2];
+
         pcl::PointNormal pt;
-        pt.x = intersectPoints->GetPoint(0)[0];
-        pt.y = intersectPoints->GetPoint(0)[1];
-        pt.z = intersectPoints->GetPoint(0)[2];
+        pt.x = pt_pos[0];
+        pt.y = pt_pos[1];
+        pt.z = pt_pos[2];
+        pt.normal_x = pt_norm[0];
+        pt.normal_y = pt_norm[1];
+        pt.normal_z = pt_norm[2];
+
         new_cloud->push_back(pt);
+
+        // Texturing needs to move once we figure out how to uv map this stuff
+        double color = textureWithMethod(pt_pos,
+                                         pt_norm,
+                                         aImgVol,
+                                         aFilterOption,
+                                         radius,
+                                         minorRadius,
+                                         0.5,
+                                         aDirectionOption);
+        outputTexture.at < unsigned short > (z - storage.lower_bound_z_, ycount) = (unsigned short) color;
       }
     }
   }
