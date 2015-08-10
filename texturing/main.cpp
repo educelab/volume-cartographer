@@ -176,7 +176,7 @@ namespace rayTrace {
 
 int main(int argc, char* argv[]) {
   if ( argc < 7 ) {
-    std::cout << "Usage: vc_texture2 volpkg seg-id radius texture-method sample-direction tracing-direction" << std::endl;
+    std::cout << "Usage: vc_texture2 volpkg seg-id radius texture-method sample-direction tracing-direction number-of-sections" << std::endl;
     std::cout << "Texture methods: " << std::endl;
     std::cout << "      0 = Intersection" << std::endl;
     std::cout << "      1 = Non-Maximum Suppression" << std::endl;
@@ -220,6 +220,8 @@ int main(int argc, char* argv[]) {
 
   int aTraceDir = atoi( argv[ 6 ] ); //rayTracingDirection (0=clockwise, 1=counterclockwise)
 
+  int sections = atoi( argv[7] ); // The number of sections (images) to generate
+
   // declare pointer to new Mesh object
   VC_MeshType::Pointer mesh = VC_MeshType::New();
   int meshWidth = -1;
@@ -246,6 +248,10 @@ int main(int argc, char* argv[]) {
 
   // Load the slices from the volumepkg
   std::vector< cv::Mat > aImgVol;
+
+  // Get range (thickness) of material
+  double range = vpkg.getMaterialThickness();
+  range = range / vpkg.getVoxelSize(); // convert range from microns to pixels
 
   /*  This function is a hack to avoid a refactoring the texturing
       methods. See Issue #12 for more details. */
@@ -315,68 +321,15 @@ int main(int argc, char* argv[]) {
 #define OUT_X 2000
 #define D_THETA (PI_X2 / OUT_X)
 
-  cv::Mat outputTexture = cv::Mat::zeros( (int)(storage.upper_bound_z_ - storage.lower_bound_z_), OUT_X, CV_16UC1 );
-  
-  // // For each slice/row generate rays and interpolate new points
-  // for (int z = (int)storage.lower_bound_z_; z < (int)storage.upper_bound_z_; ++z) {
-  //   int counter = 0;
-  //   // grab current row from the storage data structure
-  //   std::vector<rayTrace::Triangle> triangle_row = storage.bin_[z];
+  // cv::Mat outputTexture = cv::Mat::zeros( (int)(storage.upper_bound_z_ - storage.lower_bound_z_), OUT_X, CV_16UC1 );
+  // Essential data structure that will be saved as images after sectioning
+  // Each matrix represent a section
+  cv::Mat *outputTextures = new cv::Mat[ sections ];
 
-  //   int ycount = 0;
-  //   double radian = 0;
-  //   // generate rays cylindrically
-  //   for (double r = 0; r < PI_X2; r += D_THETA, ycount++) {
-  //     // Calculate the ray according to ray tracing direction
-  //     if (aTraceDir == 1) {
-  //       // counterclockwise
-  //       radian -= D_THETA;
-  //     } else {
-  //       // clockwise (default)
-  //       radian += D_THETA;
-  //     }
-  //     // Calculate the origin by averaging the bounds of each coordinate
-  //     cv::Vec3f origin;
-  //     origin(VC_INDEX_X) = (storage.lower_bound_x_ + storage.upper_bound_x_) / 2;
-  //     origin(VC_INDEX_Y) = (storage.lower_bound_y_ + storage.upper_bound_y_) / 2;
-  //     origin(VC_INDEX_Z) = z;
-  //     // Calculate direction of ray according to current degree of rotation along the cylinder
-  //     cv::Vec3f direction(cos(radian), sin(radian), 0);
-
-  //     // Check if each triangle in the current storage bin intersects with the current ray
-  //     for (int t = 0; t < triangle_row.size(); ++t) {
-  //       rayTrace::Triangle tri = triangle_row[t];
-  //       cv::Vec3f p = tri.intersect(origin,direction);
-
-  //       // If the ray intersects with current triangle then texture the intersecting point
-  //       if (tri.pointInTriangle(p) && direction.dot(tri.normal()) < 0) {
-  //         double color = textureWithMethod( p,
-  //                                           tri.normal(),
-  //                                           aImgVol,
-  //                                           aFilterOption,
-  //                                           radius,
-  //                                           minorRadius,
-  //                                           0.5,
-  //                                           aDirectionOption);
-  //         outputTexture.at<unsigned short>(z - storage.lower_bound_z_, ycount) = (unsigned short)color;
-
-  //         // Generate pcl point cloud
-  //         pcl::PointNormal asdf;
-  //         asdf.x = p[0];
-  //         asdf.y = p[1];
-  //         asdf.z = p[2];
-  //         new_cloud->push_back(asdf);
-  //         break;
-  //       } else {
-  //         // Keep track of how many rays had no intersections
-  //         if (t == triangle_row.size() - 1) {
-  //           counter++;
-  //         }
-  //       }
-  //     }
-  //   }
-  //   std::cout << "line " << z << ": " << counter << " misses" <<  "\t\t" << counter / (OUT_X / PI_X2) << std::endl;
-  // }
+  // Allocate each output texture to exact width and height
+  for ( int i = 0; i < sections; ++i) {
+    outputTextures[ i ] = cv::Mat::zeros( (int)(storage.upper_bound_z_ - storage.lower_bound_z_), OUT_X, CV_16UC1 );
+  }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // Using vtk's OBBTree to test a ray's intersection with the faces/cells/triangles in the mesh
@@ -455,21 +408,42 @@ int main(int argc, char* argv[]) {
         new_cloud->push_back(pt);
 
         // Texturing needs to move once we figure out how to uv map this stuff
-        double color = textureWithMethod(pt_pos,
-                                         pt_norm,
-                                         aImgVol,
-                                         aFilterOption,
-                                         radius,
-                                         minorRadius,
-                                         0.5,
-                                         aDirectionOption);
-        outputTexture.at < unsigned short > (z - storage.lower_bound_z_, ycount) = (unsigned short) color;
+        // double color = textureWithMethod(pt_pos,
+        //                                  pt_norm,
+        //                                  aImgVol,
+        //                                  aFilterOption,
+        //                                  radius,
+        //                                  minorRadius,
+        //                                  0.5,
+        //                                  aDirectionOption);
+        // outputTexture.at < unsigned short > (z - storage.lower_bound_z_, ycount) = (unsigned short) color;
+
+        // pointer to array that holds intensity values calculated from texturing
+        double *nData = new double[ sections ];
+
+        Sectioning( sections,
+                    range,
+                    pt_pos,
+                    pt_norm,
+                    aImgVol,
+                    radius,
+                    aDirectionOption,
+                    nData);
+
+        // Fill in the output pixels with the values from Layering
+        for ( int i = 0; i < sections; ++i ) {
+          // cv::Mat.at uses (row, column)
+          outputTextures[ i ].at < unsigned short > (z - storage.lower_bound_z_, ycount) = (unsigned short) nData[ i ];
+        }
       }
     }
   }
 
 
   pcl::io::savePCDFileASCII("resampled.pcd", *new_cloud);
-  vpkg.saveTextureData(outputTexture);
+  // vpkg.saveTextureData(outputTexture);
+  for ( int i = 0; i < sections; ++i ){
+    vpkg.saveTextureData( outputTextures[ i ], std::to_string( i ) );
+  }
   return 0;
 } // main
