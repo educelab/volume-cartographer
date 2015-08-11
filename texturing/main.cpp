@@ -19,161 +19,6 @@
 #include <vtkOBBTree.h>
 #include <vtkPolyDataNormals.h>
 
-#define VC_INDEX_X 0
-#define VC_INDEX_Y 1
-#define VC_INDEX_Z 2
-
-#define VC_DIRECTION_I cv::Vec3f(1,0,0)
-#define VC_DIRECTION_J cv::Vec3f(0,1,0)
-#define VC_DIRECTION_K cv::Vec3f(0,0,1)
-
-namespace rayTrace {
-  class Triangle {
-  public:
-    std::vector<cv::Vec3f> corner;
-
-    double minBy(int index) {
-      return std::min(corner[0](index), std::min(corner[1](index), corner[2](index)));
-    }
-    double maxBy(int index) {
-      return std::max(corner[0](index), std::max(corner[1](index), corner[2](index)));
-    }
-
-    // Determine if a point is within a triangle by checking if the point
-    // is on the same side of each line of the triangle in reference to
-    // the third point of the triangle
-    bool pointInTriangle(cv::Vec3f point) {
-      if (sameSide(point, corner[0], corner[1], corner[2]) &&
-          sameSide(point, corner[1], corner[0], corner[2]) &&
-          sameSide(point, corner[2], corner[0], corner[1])) {
-        return true;
-      }
-      return false;
-    }
-
-    // Determine intersection point using the origin and direction of the ray
-    cv::Vec3f intersect(cv::Vec3f ray_origin, cv::Vec3f ray_direction) {
-      cv::Vec3f normal = this->normal();
-      double scale_factor = (corner[0] - ray_origin).dot(normal) / ray_direction.dot(normal);
-      cv::Vec3f point = scale_factor * ray_direction + ray_origin;
-      return point;
-    }
-
-    // Calculate the normal of the triangle
-    cv::Vec3f normal() {
-      cv::Vec3f a2b = corner[1] - corner[0];
-      cv::Vec3f a2c = corner[2] - corner[0];
-      return a2b.cross(a2c);
-    }
-
-  private:
-
-    // Simple same side technique, Barycentric would be more robust
-    // beta and alpha are the two points that form the line to check the side of the reference point
-    // point0 is the reference point and point1 is the third point of the triangle
-    bool sameSide(cv::Vec3f point0, cv::Vec3f point1, cv::Vec3f alpha, cv::Vec3f beta) {
-      cv::Vec3f a2b = beta - alpha;
-      cv::Vec3f a2_point0 = point0 - alpha;
-
-      // Margin used to check if a reference point lies on a line of a triangle
-      double epsilon = 0.00001;
-
-      // Check if the vector to the reference point is very close to zero
-      if (cv::norm(a2_point0) <= epsilon) {
-        return true;
-      }
-
-      cv::Vec3f a2_point1 = point1 - alpha;
-      cv::Vec3f cp0 = a2b.cross(a2_point0);
-      cv::Vec3f cp1 = a2b.cross(a2_point1);
-
-      // check if the reference point is on the line
-      if (cv::norm(cp0) < epsilon) {
-        return true;
-      }
-
-      // Check if the vectors are facing the same way
-      // to see if the reference point is on the same side
-      if (cp0.dot(cp1) >= (0 - epsilon)) {
-        return true;
-      }
-      return false;
-    }
-  }; // Triangle class
-
-  // The triangles are stored in bins where each bin represents a row/slice 
-  class TriangleStore {
-  public:
-    TriangleStore(double e = 0.1) {
-      epsilon_ = e;
-
-      // Used to keep track of the dimensions of the mesh
-      upper_bound_x_ = 0;
-      lower_bound_x_ = std::numeric_limits<double>::max();
-
-      upper_bound_y_ = 0;
-      lower_bound_y_ = std::numeric_limits<double>::max();
-
-      upper_bound_z_ = 0;
-      lower_bound_z_ = std::numeric_limits<double>::max();
-
-    }
-
-    void push_back(Triangle t) {
-      double minZ = t.minBy(VC_INDEX_Z);
-      double maxZ = t.maxBy(VC_INDEX_Z);
-
-      minZ -= epsilon_;
-      maxZ += epsilon_;
-
-      for (int i = std::floor(minZ); i < std::ceil(maxZ); ++i) {
-        bin_[i].push_back(t);
-      }
-
-      // record upper and lower bounds of triangle Xs, Ys, and Zs
-      if (t.minBy(VC_INDEX_X) < lower_bound_x_) {
-        lower_bound_x_ = t.minBy(VC_INDEX_X);
-      }
-      if (t.maxBy(VC_INDEX_X) > upper_bound_x_) {
-        upper_bound_x_ = t.maxBy(VC_INDEX_X);
-      }
-      if (t.minBy(VC_INDEX_Y) < lower_bound_y_) {
-        lower_bound_y_ = t.minBy(VC_INDEX_Y);
-      }
-      if (t.maxBy(VC_INDEX_Y) > upper_bound_y_) {
-        upper_bound_y_ = t.maxBy(VC_INDEX_Y);
-      }
-      if (minZ < lower_bound_z_) {
-        lower_bound_z_ = minZ;
-      }
-      if (maxZ > upper_bound_z_) {
-        upper_bound_z_ = maxZ;
-      }
-    }
-
-    void info() {
-      std::cout << bin_.size() << " bins used" << std::endl;
-      std::cout << "x bounds: [" << lower_bound_x_ << " .. " << upper_bound_x_ << "]" << std::endl;
-      std::cout << "y bounds: [" << lower_bound_y_ << " .. " << upper_bound_y_ << "]" << std::endl;
-      std::cout << "z bounds: [" << lower_bound_z_ << " .. " << upper_bound_z_ << "]" << std::endl;
-    }
-
-    double epsilon_;
-    double upper_bound_x_;
-    double lower_bound_x_;
-
-    double upper_bound_y_;
-    double lower_bound_y_;
-
-    double upper_bound_z_;
-    double lower_bound_z_;
-
-    std::map<int,std::vector<Triangle> > bin_;
-  }; // TriangleStore class
-
-} // namespace rayTrace
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 int main(int argc, char* argv[]) {
   if ( argc < 7 ) {
     std::cout << "Usage: vc_texture2 volpkg seg-id radius texture-method sample-direction tracing-direction number-of-sections" << std::endl;
@@ -235,10 +80,9 @@ int main(int argc, char* argv[]) {
   vtkPolyData *vtkMesh = vtkPolyData::New();
   volcart::meshing::itk2vtk(mesh, vtkMesh);
 
-  // Matrix to store the output texture
-  int textureW = meshWidth;
-  int textureH = meshHeight;
-  //  cv::Mat outputTexture = cv::Mat::zeros( textureH, textureW, CV_16UC1 );
+  // Get the bounds of the mesh, needed for ray tracing
+  double bounds[6];
+  vtkMesh->GetBounds(bounds);
 
   // pointID == point's position in 1D list of points
   // [meshX, meshY] == point's position if list was a 2D matrix
@@ -284,34 +128,6 @@ int main(int argc, char* argv[]) {
   }
   std::cout << std::endl;
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-  // Important data structure used to search for a
-  // ray's intersection within a triangle
-  rayTrace::TriangleStore storage;
-
-  // Load triangles into the storage data structure
-  // according to the z index of the triangle's points
-  VC_CellIterator cellIterator = mesh->GetCells()->Begin();
-  while(cellIterator != mesh->GetCells()->End()) {
-    VC_CellType* cell = cellIterator.Value();
-    VC_PointsInCellIterator pointsIterator = cell->PointIdsBegin();
-
-    rayTrace::Triangle tri;
-    while (pointsIterator != cell->PointIdsEnd()) {
-      pointID = *pointsIterator;
-      VC_PointType p = mesh->GetPoint(pointID);
-      tri.corner.push_back(cv::Vec3f(p[0], p[1], p[2]));
-      ++pointsIterator;
-    }
-
-    storage.push_back(tri);
-    ++cellIterator;
-  }
-
-  // print the bounds of the storage data structure
-  storage.info();
-
   // Create point cloud to save new interpolated points into
   // mainly used for debugging
   pcl::PointCloud<pcl::PointNormal>::Ptr new_cloud ( new pcl::PointCloud<pcl::PointNormal> );
@@ -321,14 +137,13 @@ int main(int argc, char* argv[]) {
 #define OUT_X 2000
 #define D_THETA (PI_X2 / OUT_X)
 
-  // cv::Mat outputTexture = cv::Mat::zeros( (int)(storage.upper_bound_z_ - storage.lower_bound_z_), OUT_X, CV_16UC1 );
   // Essential data structure that will be saved as images after sectioning
   // Each matrix represent a section
   cv::Mat *outputTextures = new cv::Mat[ sections ];
 
   // Allocate each output texture to exact width and height
   for ( int i = 0; i < sections; ++i) {
-    outputTextures[ i ] = cv::Mat::zeros( (int)(storage.upper_bound_z_ - storage.lower_bound_z_), OUT_X, CV_16UC1 );
+    outputTextures[ i ] = cv::Mat::zeros( (int)(bounds[5] - bounds[4]), OUT_X, CV_16UC1 );
   }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -350,7 +165,7 @@ int main(int argc, char* argv[]) {
   vtkSmartPointer<vtkIdList> intersectCells = vtkSmartPointer<vtkIdList>::New();
 
   // For each slice/row generate rays and interpolate new points
-  for (int z = (int)storage.lower_bound_z_; z < (int)storage.upper_bound_z_; ++z) {
+  for (int z = (int)bounds[4]; z < (int)bounds[5]; ++z) {
     int counter = 0;
 
     int ycount = 0;
@@ -367,9 +182,9 @@ int main(int argc, char* argv[]) {
       }
       // Calculate the origin by averaging the bounds of each coordinate
       cv::Vec3f origin;
-      origin(VC_INDEX_X) = (storage.lower_bound_x_ + storage.upper_bound_x_) / 2;
-      origin(VC_INDEX_Y) = (storage.lower_bound_y_ + storage.upper_bound_y_) / 2;
-      origin(VC_INDEX_Z) = z;
+      origin(0) = (bounds[0] + bounds[1]) / 2;
+      origin(1) = (bounds[2] + bounds[3]) / 2;
+      origin(2) = z;
       // Calculate direction of ray according to current degree of rotation along the cylinder
       cv::Vec3f direction(cos(radian), sin(radian), 0);
       cv::normalize(direction);
@@ -407,17 +222,6 @@ int main(int argc, char* argv[]) {
 
         new_cloud->push_back(pt);
 
-        // Texturing needs to move once we figure out how to uv map this stuff
-        // double color = textureWithMethod(pt_pos,
-        //                                  pt_norm,
-        //                                  aImgVol,
-        //                                  aFilterOption,
-        //                                  radius,
-        //                                  minorRadius,
-        //                                  0.5,
-        //                                  aDirectionOption);
-        // outputTexture.at < unsigned short > (z - storage.lower_bound_z_, ycount) = (unsigned short) color;
-
         // pointer to array that holds intensity values calculated from texturing
         double *nData = new double[ sections ];
 
@@ -433,7 +237,7 @@ int main(int argc, char* argv[]) {
         // Fill in the output pixels with the values from Layering
         for ( int i = 0; i < sections; ++i ) {
           // cv::Mat.at uses (row, column)
-          outputTextures[ i ].at < unsigned short > (z - storage.lower_bound_z_, ycount) = (unsigned short) nData[ i ];
+          outputTextures[ i ].at < unsigned short > (z - bounds[4], ycount) = (unsigned short) nData[ i ];
         }
       }
     }
