@@ -115,16 +115,17 @@ int main(int argc, char* argv[]) {
   // paramaters needed for rayTrace function
   int rayWidth = -1;
   int rayHeight = -1;
+  std::map<int, cv::Vec2d> uvMap;
   std::vector< std::vector<cv::Vec3f> > textureInfo;
 
-  textureInfo = volcart::meshing::rayTrace(mesh, aTraceDir, rayWidth, rayHeight);
+  textureInfo = volcart::meshing::rayTrace(mesh, aTraceDir, rayWidth, rayHeight, uvMap);
 
   cv::Mat outputTexture = cv::Mat::zeros( rayHeight, rayWidth, CV_16UC1 );
 
   for(int i = 0; i < textureInfo.size(); ++i) {
     cv::Vec3f pt_pos = textureInfo[i][0];
     cv::Vec3f pt_norm = textureInfo[i][1];
-    cv::Vec3f uv = textureInfo[i][2];
+    cv::Vec2f uv = uvMap.find(i)->second;
 
     double color = textureWithMethod( pt_pos,
                                       pt_norm,
@@ -140,5 +141,5 @@ int main(int argc, char* argv[]) {
   
   vpkg.saveTextureData(outputTexture);
 
-  // return 0;
+  return 0;
 } // main

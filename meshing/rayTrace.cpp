@@ -12,7 +12,7 @@
 namespace volcart {
   namespace meshing {
   	// returns a vector of vectors that holds the points of intersections and the corresponding normals
-  	std::vector< std::vector<cv::Vec3f> > rayTrace(VC_MeshType::Pointer itkMesh, int aTraceDir, int &width, int &height) {
+  	std::vector< std::vector<cv::Vec3f> > rayTrace(VC_MeshType::Pointer itkMesh, int aTraceDir, int &width, int &height, std::map<int, cv::Vec2d> &uvMap) {
 
   	  // Convert the itk mesh to a vtk mesh
   	  vtkPolyData *vtkMesh = vtkPolyData::New();
@@ -49,9 +49,10 @@ namespace volcart {
   	  // Essential data structure to return points and normals
   	  std::vector< std::vector<cv::Vec3f> > intersections;
 
+      int pointID = 0;
+
   	  // For each slice/row generate rays and interpolate new points
   	  for (int z = (int)bounds[4]; z < (int)bounds[5]; ++z) {
-      	int counter = 0;
 
       	int ycount = 0;
       	double radian = 0;
@@ -89,7 +90,10 @@ namespace volcart {
             std::vector<cv::Vec3f> textureInfo;
       	  	cv::Vec3f pt_pos;
         		cv::Vec3f pt_norm;
-            cv::Vec3f uv_coord;
+
+            // Add the uv coordinates into our map at the point index specified
+            cv::Vec2d uv( ycount, z - bounds[4] );
+            uvMap.insert( {pointID, uv} );
 
         		pt_pos[0] = intersectPoints->GetPoint(0)[0];
         		pt_pos[1] = intersectPoints->GetPoint(0)[1];
@@ -98,14 +102,14 @@ namespace volcart {
         		pt_norm[1] = vtkMesh->GetCellData()->GetNormals()->GetTuple(intersectCells->GetId(0))[1];
 	        	pt_norm[2] = vtkMesh->GetCellData()->GetNormals()->GetTuple(intersectCells->GetId(0))[2];
             // REVISIT - unconventional way to store uv coordinates
-            uv_coord[0] = ycount; // u coordinate
-            uv_coord[1] = z - bounds[4];
-            uv_coord[2] = 0;
+            // uv_coord[0] = ycount; // u coordinate
+            // uv_coord[1] = z - bounds[4];
+            // uv_coord[2] = 0;
 
 	        	textureInfo.push_back(pt_pos);
 	        	textureInfo.push_back(pt_norm);
-            textureInfo.push_back(uv_coord);
 	        	intersections.push_back(textureInfo);
+            ++pointID;
       	  }
       	}
       }
