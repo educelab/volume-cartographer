@@ -101,10 +101,6 @@ namespace volcart {
         		pt_norm[0] = vtkMesh->GetCellData()->GetNormals()->GetTuple(intersectCells->GetId(0))[0];
         		pt_norm[1] = vtkMesh->GetCellData()->GetNormals()->GetTuple(intersectCells->GetId(0))[1];
 	        	pt_norm[2] = vtkMesh->GetCellData()->GetNormals()->GetTuple(intersectCells->GetId(0))[2];
-            // REVISIT - unconventional way to store uv coordinates
-            // uv_coord[0] = ycount; // u coordinate
-            // uv_coord[1] = z - bounds[4];
-            // uv_coord[2] = 0;
 
 	        	textureInfo.push_back(pt_pos);
 	        	textureInfo.push_back(pt_norm);
