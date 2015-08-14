@@ -11,5 +11,6 @@ add_library(vc_meshing STATIC
                     resamplePointCloud.h resamplePointCloud.cpp
                     greedyProjectionMeshing.h greedyProjectionMeshing.cpp
                     poissonReconstruction.h poissonReconstruction.cpp
-                    itk2vtk.h itk2vtk.cpp)
+                    itk2vtk.h itk2vtk.cpp
+                    rayTrace.h rayTrace.cpp)
 endif()
