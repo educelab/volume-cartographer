@@ -39,7 +39,9 @@ namespace volcart {
       // Creat vtk OBBTree
       vtkSmartPointer<vtkOBBTree> obbTree = vtkSmartPointer<vtkOBBTree>::New();
       obbTree->SetDataSet(vtkMesh);
+      obbTree->SetNumberOfCellsPerNode(2); // Increases BuildLocator time, but its worth it for large meshes
       obbTree->SetMaxLevel(48);
+      std::cout << "volcart::rayTrace :: Building locator..." << std::endl;
       obbTree->BuildLocator();
 
       vtkSmartPointer<vtkPoints> intersectPoints = vtkSmartPointer<vtkPoints>::New();
@@ -55,7 +57,7 @@ namespace volcart {
 
       // For each slice/row generate rays and interpolate new points
       for (int z = (int)bounds[4]; z < (int)bounds[5]; ++z) {
-        std::cout << "\rRay tracing for Z index: " << z << "/" << (int)bounds[5] - 1 << std::flush;
+        std::cout << "\rvolcart::rayTrace :: Ray tracing for Z index: " << z << "/" << (int)bounds[5] - 1 << std::flush;
 
         origin(2) = z; // update the z-component of the origin
 
