@@ -115,17 +115,17 @@ int main(int argc, char* argv[]) {
   // paramaters needed for rayTrace function
   int rayWidth = -1;
   int rayHeight = -1;
-  std::map<int, cv::Vec2d> uvMap;
-  std::vector< std::vector<cv::Vec3f> > textureInfo;
+  std::map<int, cv::Vec2d> uvMap; // mapping to XY pixel positions in output texture
+  std::vector<cv::Vec6f> resampledPoints;
 
-  textureInfo = volcart::meshing::rayTrace(mesh, aTraceDir, rayWidth, rayHeight, uvMap);
+  resampledPoints = volcart::meshing::rayTrace(mesh, aTraceDir, rayWidth, rayHeight, uvMap);
 
   cv::Mat outputTexture = cv::Mat::zeros( rayHeight, rayWidth, CV_16UC1 );
 
-  for(int i = 0; i < textureInfo.size(); ++i) {
-    cv::Vec3f pt_pos = textureInfo[i][0];
-    cv::Vec3f pt_norm = textureInfo[i][1];
-    cv::Vec2f uv = uvMap.find(i)->second;
+  for(int i = 0; i < resampledPoints.size(); ++i) {
+    cv::Vec3f pt_pos(resampledPoints[i](0), resampledPoints[i](1), resampledPoints[i](2));
+    cv::Vec3f pt_norm(resampledPoints[i](3), resampledPoints[i](4), resampledPoints[i](5));
+    cv::Vec2f uv = uvMap.find(i)->second; // To-Do: Make sure this actually finds a point
 
     double color = textureWithMethod( pt_pos,
                                       pt_norm,
