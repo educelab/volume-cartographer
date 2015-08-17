@@ -39,6 +39,7 @@ namespace volcart {
       // Creat vtk OBBTree
       vtkSmartPointer<vtkOBBTree> obbTree = vtkSmartPointer<vtkOBBTree>::New();
       obbTree->SetDataSet(vtkMesh);
+      obbTree->SetMaxLevel(48);
       obbTree->BuildLocator();
 
       vtkSmartPointer<vtkPoints> intersectPoints = vtkSmartPointer<vtkPoints>::New();
