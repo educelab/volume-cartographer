@@ -183,12 +183,12 @@ int main( int argc, char *argv[] )
     // note: with -pix_fmt option the generated file can have the largest compatibility, however,
     //       we have to make the dimensions to be even numbers
     // for compatible output
-    char aOutputVideoName[ 128 ];
-    strcpy( aOutputVideoName, argv[ 3 ] );
-    strcat( aOutputVideoName, "/compositeVideo.mp4" );
-    char aCmdStr[ 512 ];
-    sprintf( aCmdStr, "ffmpeg -framerate 30000/1001 -start_number %d -i %s -c:v libx264 -pix_fmt yuv420p -vf \"scale=iw*sar:ih, scale=\'w=if(lt(dar, 16/9), trunc(oh*a/2)*2, min(1920,ceil(iw/2)*2)):h=if(gte(dar, 16/9), trunc(ow/a/2)*2, min(1080,ceil(ih/2)*2))\', setsar=1\" -movflags faststart %s", aMinSliceIndex, aOutputPath, aOutputVideoName );
-    system( aCmdStr );
+    // char aOutputVideoName[ 128 ];
+    // strcpy( aOutputVideoName, argv[ 3 ] );
+    // strcat( aOutputVideoName, "/compositeVideo.mp4" );
+    // char aCmdStr[ 512 ];
+    // sprintf( aCmdStr, "ffmpeg -framerate 30000/1001 -start_number %d -i %s -c:v libx264 -pix_fmt yuv420p -vf \"scale=iw*sar:ih, scale=\'w=if(lt(dar, 16/9), trunc(oh*a/2)*2, min(1920,ceil(iw/2)*2)):h=if(gte(dar, 16/9), trunc(ow/a/2)*2, min(1080,ceil(ih/2)*2))\', setsar=1\" -movflags faststart %s", aMinSliceIndex, aOutputPath, aOutputVideoName );
+    // system( aCmdStr );
 
     return 0;
 }
