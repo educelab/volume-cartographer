@@ -13,13 +13,17 @@ namespace DEMO {
 
 class Field {
 public:
-  Field(VolumePkg*);
-  unsigned short interpolate_at(cv::Vec3f);
-  Slice reslice(cv::Vec3f,cv::Vec3f,cv::Vec3f,int = 64, int = 64);
-  Slice resliceRadial(cv::Vec3f,cv::Vec3f,double,int = 64, int = 64);
+    Field(VolumePkg *);
+
+    uint16_t interpolate_at(cv::Vec3f);
+
+    Slice reslice(cv::Vec3f, cv::Vec3f, cv::Vec3f, int32_t=64, int32_t=64);
+
+    Slice resliceRadial(cv::Vec3f, cv::Vec3f, double, int32_t=64, int32_t=64);
+
 private:
-  VolumePkg* _volpkg;
-  std::vector<cv::Mat> _field;
+    VolumePkg* _volpkg;
+    std::vector<cv::Mat> _field;
 };
 
 }

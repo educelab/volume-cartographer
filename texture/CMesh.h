@@ -7,6 +7,7 @@
 #include <pcl/point_types.h>
 #include <opencv2/opencv.hpp>
 #include <map>
+#include <set>
 
 namespace ChaoVis {
 

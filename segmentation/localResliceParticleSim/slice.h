@@ -26,17 +26,23 @@
 
 class Slice {
 public:
-  Slice(cv::Mat,cv::Vec3f,cv::Vec3f,cv::Vec3f);
-  cv::Vec3f findNextPosition();
-  void debugDraw(int = DEBUG_DRAW_NONE);
-  void debugAnalysis();
-  cv::Mat mat();
+    Slice(cv::Mat, cv::Vec3f, cv::Vec3f, cv::Vec3f);
+
+    cv::Vec3f findNextPosition();
+
+    void debugDraw(int = DEBUG_DRAW_NONE);
+
+    void debugAnalysis();
+
+    cv::Mat mat();
+
 private:
-  cv::Mat analyze();
-  cv::Mat slice_;
-  cv::Vec3f origin_;
-  cv::Vec3f x_component_;
-  cv::Vec3f y_component_;
+    cv::Mat analyze();
+
+    cv::Mat slice_;
+    cv::Vec3f origin_;
+    cv::Vec3f x_component_;
+    cv::Vec3f y_component_;
 };
 
 #endif

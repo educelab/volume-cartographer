@@ -16,7 +16,7 @@ option(Boost_USE_STATIC_LIBS "Link against static Boost libs" OFF)
 
 find_package(Qt4 REQUIRED)
 find_package(PCL 1.7 REQUIRED)
-find_package(OpenCV REQUIRED)
+find_package(OpenCV 3.0 REQUIRED)
 find_package(Boost REQUIRED)
 find_package(ITK REQUIRED)
 #find_package(VTK REQUIRED)

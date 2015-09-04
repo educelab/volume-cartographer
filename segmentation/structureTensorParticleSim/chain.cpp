@@ -39,7 +39,7 @@ Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg* volpkg, 
                    ? (volpkg->getNumberOfSlices() - 3) // Account for zero-indexing and slices lost in calculating normal vector
                    : (_start_index + endOffset));
 
-  // Set _real_iterations based on starting index, target index, and how frequently we want to sample the segmentation
+  // Set _realIterationsCount based on starting index, target index, and how frequently we want to sample the segmentation
   _real_iterations = (int)(ceil(((_target_index - _start_index) + 1) / _threshold));
 }
 
