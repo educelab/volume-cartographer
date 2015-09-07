@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
 
   std::vector<cv::Mat> volume;
   for (int i = 0; i < number_of_slices; ++i) {
-    volume.push_back(volpkg.getSliceAtIndex(i));
+    volume.push_back(volpkg.getSliceData(i));
   }
   
   r.texture(volume);

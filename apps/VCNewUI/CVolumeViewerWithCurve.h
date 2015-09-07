@@ -8,9 +8,10 @@
 #include "CXCurve.h"
 #include <vector>
 #include <opencv2/opencv.hpp>
+#ifndef Q_MOC_RUN
 #include <pcl/common/common.h>
 #include <pcl/point_types.h>
-
+#endif
 namespace ChaoVis {
 
 // REVISIT - NOTE - since there are two modes, edit and draw, for the application,

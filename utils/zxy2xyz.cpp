@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
     PCL_ERROR ("Couldn't read file \n");
     return (-1);
   }
-  pcl::io::savePCDFileASCII("cloud_zxy.pcd", *inputCloud); // Go ahead and save the original cloud
+  pcl::io::savePCDFileBinaryCompressed("cloud_zxy.pcd", *inputCloud); // Go ahead and save the original cloud
 
   pcl::PointCloud<pcl::PointXYZRGB>::iterator origPoint = inputCloud->begin();
   for (; origPoint != inputCloud->end(); ++origPoint) {
@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
   outputCloud->points.resize(outputCloud->height * outputCloud->width);
 
   printf("Writing point cloud to file...\n");
-  pcl::io::savePCDFileASCII(outputpath, *outputCloud);
+  pcl::io::savePCDFileBinaryCompressed(outputpath, *outputCloud);
   printf("Point cloud saved.\n");
 
 }

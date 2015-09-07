@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 cmake_policy(SET CMP0048 NEW)
-add_definitions("-std=c++11")
 
 project(VC VERSION 2.1.0)
+set(CMAKE_CXX_STANDARD 11)
 
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
@@ -14,6 +14,11 @@ option(BUILD_DragNDrop "Build OSX DMG Installer" OFF)
 endif(APPLE)
 option(Boost_USE_STATIC_LIBS "Link against static Boost libs" OFF)
 
+# Choose what to install
+option(INSTALL_VC_CORE "Install VC core apps" ON)
+option(INSTALL_VC_UTIL "Install VC util apps" ON)
+option(INSTALL_VC_DEMO "Install VC demo apps" OFF)
+
 find_package(Qt4 REQUIRED)
 find_package(PCL 1.7 REQUIRED)
 find_package(OpenCV 3.0 REQUIRED)
@@ -21,11 +26,11 @@ find_package(Boost REQUIRED)
 find_package(ITK REQUIRED)
 #find_package(VTK REQUIRED)
 find_package(OpenGL REQUIRED)
-# find_package(ACVD REQUIRED)
+#find_package(ACVD REQUIRED)
 
 include(${QT_USE_FILE})
 include(${ITK_USE_FILE})
-# include(${VTK_USE_FILE})
+#include(${VTK_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
 
 include_directories(${Boost_INCLUDE_DIR} ${PCL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} ${ACVD_INCLUDE_DIRS})
@@ -35,8 +40,8 @@ add_definitions(${PCL_DEFINITIONS})
 
 # OS Specific Changes
 IF(APPLE)
-	FIND_LIBRARY(SECURITY_LIBRARY Security)
-	SET(EXTRA_LIBS ${SECURITY_LIBRARY})
+    FIND_LIBRARY(SECURITY_LIBRARY Security)
+    SET(EXTRA_LIBS ${SECURITY_LIBRARY})
 ENDIF(APPLE)
 
 # VC Libraries
@@ -54,41 +59,25 @@ include_directories(${SEGMENTATION_INCLUDE_DIR})
 
 set(VC_LIBS vc_volumepkg vc_meshing vc_segmentation vc_common)
 
-# VC Apps
+# VC Core Apps
 add_subdirectory(pathgen)
-# add_subdirectory(reslicer)
 add_subdirectory(scalpel)
-add_subdirectory(region)
 add_subdirectory(texture)
-add_subdirectory(texturing)
 add_subdirectory(apps)
 add_subdirectory(utils)
-add_subdirectory(examples)
 
-# Copy packager files. This is a hack.
+# Special rules for packager since it's a Python script
 file(MAKE_DIRECTORY packager)
 file(COPY packager/packager.py DESTINATION ${CMAKE_BINARY_DIR}/bin)
 file(RENAME ${CMAKE_BINARY_DIR}/bin/packager.py ${CMAKE_BINARY_DIR}/bin/vc_packager)
 
-install(PROGRAMS 
-            "${CMAKE_BINARY_DIR}/bin/vc_packager"
-            "${CMAKE_BINARY_DIR}/bin/vc_pathgen"
-            "${CMAKE_BINARY_DIR}/bin/vc_scalpel"
-            "${CMAKE_BINARY_DIR}/bin/vc_segment"
-            "${CMAKE_BINARY_DIR}/bin/vc_region"
-            "${CMAKE_BINARY_DIR}/bin/vc_mesher"
-            "${CMAKE_BINARY_DIR}/bin/vc_meshEditor"
-            "${CMAKE_BINARY_DIR}/bin/vc_texture"
-            "${CMAKE_BINARY_DIR}/bin/vc_texture2"
-            "${CMAKE_BINARY_DIR}/bin/vc_meshnorm"
-            "${CMAKE_BINARY_DIR}/bin/vc_sliceProjection"
-            "${CMAKE_BINARY_DIR}/bin/vc_analyze"
-            "${CMAKE_BINARY_DIR}/bin/vc_conform"
-            "${CMAKE_BINARY_DIR}/bin/vc_txt2pcd"
-            "${CMAKE_BINARY_DIR}/bin/vc_metaedit"
-            "${CMAKE_BINARY_DIR}/bin/vc_addScale"
-        DESTINATION bin
-        COMPONENT Programs)
+install(PROGRAMS ${CMAKE_BINARY_DIR}/bin/vc_packager
+        DESTINATION bin COMPONENT Programs)
+
+# VC Demo Apps
+add_subdirectory(region)
+add_subdirectory(texturing)
+add_subdirectory(examples)
 
 #install(FILES
 #            "${CMAKE_BINARY_DIR}/lib/libvc_volumepkg.a"
@@ -119,7 +108,17 @@ else()
 set(CPACK_GENERATOR "TGZ;ZIP")
 endif(BUILD_DragNDrop)
 
-set(CPACK_COMPONENTS_ALL Programs)
+if(INSTALL_VC_CORE)
+    set(INSTALL_COMPONENTS "${INSTALL_COMPONENTS}" "Programs")
+endif(INSTALL_VC_CORE)
+if(INSTALL_VC_UTIL)
+    set(INSTALL_COMPONENTS "${INSTALL_COMPONENTS}" "Utilities")
+endif(INSTALL_VC_UTIL)
+if(INSTALL_VC_DEMO)
+    set(INSTALL_COMPONENTS "${INSTALL_COMPONENTS}" "Demos")
+endif(INSTALL_VC_DEMO)
+
+set(CPACK_COMPONENTS_ALL ${INSTALL_COMPONENTS})
 set(CPACK_PACKAGE_NAME "VC")
 set(CPACK_PACKAGE_VENDOR "UK VisCenter")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Volume Cartographer")

@@ -316,7 +316,7 @@ void CWindow::OpenSlice( int nSliceIndex )
 {
     // get image as cv::Mat
 	cv::Mat aImgMat;
-	fVpkg->getSliceAtIndex( nSliceIndex ).copyTo( aImgMat );
+	fVpkg->getSliceData( nSliceIndex ).copyTo( aImgMat );
 
 	// REVISIT - we need to convert 16-bit Mat to 8-bit 3-channel Mat
 	//           for display purpose
