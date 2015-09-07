@@ -15,7 +15,6 @@ std::string volpkgLocation = "";
 std::string outputName = "";
 
 // Options
-double gravity_scale = -1;
 int threshold = 1;
 double startIndex = -1.0;
 int stopOffset = -1;
@@ -53,7 +52,7 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-// Load volume package
+    // Load volume package
     VolumePkg volpkg(volpkgLocation);
     // To-Do: Check to make sure the Seg ID is actually in the volpkg
     volpkg.setActiveSegmentation(segID);

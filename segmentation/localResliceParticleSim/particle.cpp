@@ -11,12 +11,12 @@ Particle::Particle(float x, float y, float z) : _isStopped(false) {
 }
 
 // Position in 3D space (Slice, X, Y)
-cv::Vec3f Particle::position() {
+cv::Vec3f Particle::position() const {
     return _position;
 }
 
 // Returns true if particle is stopped
-bool Particle::isStopped() {
+bool Particle::isStopped() const {
     return _isStopped;
 }
 
@@ -30,7 +30,7 @@ void Particle::operator+=(cv::Vec3f v) {
     _position += v;
 }
 
-float Particle::operator()(int index) {
+float Particle::operator()(int index) const {
     return _position(index);
 }
 

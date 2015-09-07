@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "chain.h"
 
 using namespace volcart::segmentation;
@@ -19,12 +21,9 @@ Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg& volpkg, 
     _savedNormals = std::vector<cv::Vec3f>(_chainLength, cv::Vec3f(0, 0, 0));
 
     // Find the lowest slice index in the starting chain
-    _startIdx = uint32_t(_history.front()[0](VC_INDEX_Z));
-    for (int i = 0; i < _chainLength; ++i) {
-        if (_history.front()[i](VC_INDEX_Z) < _startIdx) {
-            _startIdx = uint32_t(_history.front()[i](VC_INDEX_Z));
-        }
-    }
+    auto minParticle = *std::min_element(initChain.begin(), initChain.end(),
+                                  [](const Particle& a, const Particle& b) { return a(VC_INDEX_Z) < b(VC_INDEX_Z); });
+    _startIdx = uint32_t(minParticle(VC_INDEX_Z));
 
     // Set the slice index we will end at
     // If user does not define endOffset, target index == last slice with a surface normal file
@@ -45,11 +44,11 @@ void Chain::updateNormal(uint64_t i) {
 // This function defines how particles are updated
 void Chain::step(Field& field) {
     // Pull the most recent iteration from _history
-    auto update_chain = _history.front();
-    std::vector<cv::Vec3f> force_vector(_chainLength, cv::Vec3f(0, 0, 0));
+    auto updateChain = _history.front();
+    std::vector<cv::Vec3f> forceVector(_chainLength, cv::Vec3f(0, 0, 0));
 
-    for (int i = 0; i < _chainLength; ++i) {
-        if (update_chain[i].isStopped())
+    for (uint32_t i = 0; i < _chainLength; ++i) {
+        if (updateChain[i].isStopped())
             continue;
 
         // update normals every _stepsBeforeReslice steps
@@ -66,33 +65,33 @@ void Chain::step(Field& field) {
         }
 
         // reslice and find next position
-        Slice s = field.reslice(update_chain[i].position(), _savedNormals[i], VC_DIRECTION_K);
+        Slice s = field.reslice(updateChain[i].position(), _savedNormals[i], VC_DIRECTION_K);
 
         if (i == 32) {
             s.debugDraw(DEBUG_DRAW_CENTER);
             s.debugAnalysis();
         }
 
-        force_vector[i] += (s.findNextPosition() - update_chain[i].position());
+        forceVector[i] += (s.findNextPosition() - updateChain[i].position());
     }
 
     // update the chain
-    for (int i = 0; i < _chainLength; ++i) {
-        update_chain[i] += force_vector[i];
-        if (floor(update_chain[i](VC_INDEX_Z)) >= _targetIdx) {
-            update_chain[i].stop();
+    for (uint32_t i = 0; i < _chainLength; ++i) {
+        updateChain[i] += forceVector[i];
+        if (floor(updateChain[i](VC_INDEX_Z)) >= _targetIdx) {
+            updateChain[i].stop();
         }
     }
 
     // Add the modified chain back to _history
     _updateCount++;
-    _history.push_front(update_chain);
+    _history.push_front(updateChain);
 }
 
 // Returns true if any Particle in the chain is still moving
 bool Chain::isMoving() {
     bool result = true;
-    for (int i = 0; i < _chainLength; ++i) {
+    for (uint32_t i = 0; i < _chainLength; ++i) {
         result &= _history.front()[i].isStopped();
     }
     return !result;
@@ -109,7 +108,7 @@ void Chain::debug(bool saveOutput) {
     cvtColor(debug, debug, CV_GRAY2BGR);
 
     // draw circles on the debug window for each point
-    for (int i = 0; i < recent.size(); ++i) {
+    for (uint32_t i = 0; i < recent.size(); ++i) {
         cv::Point position(recent[i](VC_INDEX_X), recent[i](VC_INDEX_Y));
         if (i == 32)
             circle(debug, position, 2, cv::Scalar(0, 255, 255), -1);
@@ -134,7 +133,7 @@ void Chain::debug(bool saveOutput) {
 pcl::PointCloud<pcl::PointXYZRGB> Chain::orderedPCD() {
     // Allocate space for one row of the output cloud
     std::vector<pcl::PointXYZRGB> storage_row;
-    for (int i = 0; i < _chainLength; ++i) {
+    for (uint32_t i = 0; i < _chainLength; ++i) {
         pcl::PointXYZRGB point;
         point.z = -1; // To-Do: Make this a constant
         storage_row.push_back(point);
@@ -143,7 +142,7 @@ pcl::PointCloud<pcl::PointXYZRGB> Chain::orderedPCD() {
     // Allocate space for all rows of the output cloud
     // storage will represent the cloud with 2D indexes
     std::vector<std::vector<pcl::PointXYZRGB>> storage;
-    for (int i = 0; i < _realIterationsCount; ++i) {
+    for (uint32_t i = 0; i < _realIterationsCount; ++i) {
         storage.push_back(storage_row);
     }
 
@@ -154,7 +153,7 @@ pcl::PointCloud<pcl::PointXYZRGB> Chain::orderedPCD() {
     for (auto v : _history) {
         // Add each Particle in the row into storage at the correct position
         // Note: This is where we convert the internal cloud's coordinate ordering back to volume ordering
-        for (int i = 0; i < _chainLength; ++i) {
+        for (uint32_t i = 0; i < _chainLength; ++i) {
             int currentCell = int(((v[i](VC_INDEX_Z)) - _startIdx / _threshold)); //TODO: Something seems wrong here.
             pcl::PointXYZRGB point;
             point.x = v[i](VC_INDEX_X);
@@ -163,17 +162,17 @@ pcl::PointCloud<pcl::PointXYZRGB> Chain::orderedPCD() {
             point.rgb = *(float *) &COLOR;
             storage[currentCell][i] = point;
         }
-
-        // Move points out of storage into the point cloud
-        pcl::PointCloud <pcl::PointXYZRGB> cloud;
-        cloud.height = _realIterationsCount;
-        cloud.width = uint32_t(_chainLength);
-        cloud.points.resize(cloud.height * cloud.width);
-        for (int i = 0; i < cloud.height; ++i) {
-            for (int j = 0; j < cloud.width; ++j) {
-                cloud.points[j + (i * cloud.width)] = storage[i][j];
-            }
-        }
-        return cloud;
     }
+
+    // Move points out of storage into the point cloud
+    pcl::PointCloud<pcl::PointXYZRGB> cloud;
+    cloud.height = _realIterationsCount;
+    cloud.width = uint32_t(_chainLength);
+    cloud.points.resize(cloud.height * cloud.width);
+    for (uint32_t i = 0; i < cloud.height; ++i) {
+        for (uint32_t j = 0; j < cloud.width; ++j) {
+            cloud.points[j + (i * cloud.width)] = storage[i][j];
+        }
+    }
+    return cloud;
 }

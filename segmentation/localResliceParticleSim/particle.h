@@ -12,15 +12,15 @@ public:
 
     Particle(float, float, float);
 
-    cv::Vec3f position();
+    cv::Vec3f position() const;
 
-    bool isStopped();
+    bool isStopped() const;
 
     void stop();
 
     void operator+=(cv::Vec3f);
 
-    float operator()(int);
+    float operator()(int) const;
 
     cv::Vec3f operator-(Particle&);
 
