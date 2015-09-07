@@ -1,10 +1,11 @@
 #include "field.h"
 
+using namespace volcart::segmentation;
+
 // Constructor
-DEMO::Field::Field(VolumePkg *v) {
-    _volpkg = v;
-    for (int i = 0; i < _volpkg->getNumberOfSlices(); ++i) {
-        _field.push_back(v->getSliceAtIndex(i));
+Field::Field(VolumePkg& v) : _volpkg(v) {
+    for (int i = 0; i < _volpkg.getNumberOfSlices(); ++i) {
+        _field.push_back(_volpkg.getSliceData(i));
     }
 }
 
@@ -13,7 +14,7 @@ DEMO::Field::Field(VolumePkg *v) {
 // normals with their neighbors's known normals.
 //
 // formula from http://paulbourke.net/miscellaneous/interpolation/
-uint16_t DEMO::Field::interpolate_at(cv::Vec3f point) {
+uint16_t Field::interpolate_at(cv::Vec3f point) {
     double int_part;
     double dx = modf(point(VC_INDEX_X), &int_part);
     double dy = modf(point(VC_INDEX_Y), &int_part);
@@ -33,7 +34,7 @@ uint16_t DEMO::Field::interpolate_at(cv::Vec3f point) {
         return 0;
     }
 
-    uint16_t vector = uint16_t(
+    return uint16_t(
         _field[z_min].at<uint16_t>(y_min, x_min) * (1 - dx) * (1 - dy) * (1 - dz) +
         _field[z_max].at<uint16_t>(y_min, x_min) * dx       * (1 - dy) * (1 - dz) +
         _field[z_min].at<uint16_t>(y_max, x_min) * (1 - dx) * dy       * (1 - dz) +
@@ -42,12 +43,10 @@ uint16_t DEMO::Field::interpolate_at(cv::Vec3f point) {
         _field[z_min].at<uint16_t>(y_max, x_max) * (1 - dx) * dy       * dz +
         _field[z_max].at<uint16_t>(y_max, x_min) * dx       * dy       * (1 - dz) +
         _field[z_max].at<uint16_t>(y_max, x_max) * dx       * dy       * dz);
-
-    return vector;
 }
 
 // create a Slice from explicit component directions, height and width default to 64x64
-Slice DEMO::Field::reslice(cv::Vec3f center, cv::Vec3f xv, cv::Vec3f yv, int32_t resliceHeight, int32_t resliceWidth) {
+Slice Field::reslice(cv::Vec3f center, cv::Vec3f xv, cv::Vec3f yv, int32_t resliceHeight, int32_t resliceWidth) {
     cv::Vec3f xnorm = normalize(xv);
     cv::Vec3f ynorm = normalize(yv);
 
@@ -65,7 +64,7 @@ Slice DEMO::Field::reslice(cv::Vec3f center, cv::Vec3f xv, cv::Vec3f yv, int32_t
 }
 
 // create a Slice from an axis of rotation and an angle
-Slice DEMO::Field::resliceRadial(cv::Vec3f origin, cv::Vec3f rotation_axis, double theta, int32_t reslice_height,
+Slice Field::resliceRadial(cv::Vec3f origin, cv::Vec3f rotation_axis, double theta, int32_t reslice_height,
                                  int32_t reslice_width) {
     cv::Vec3f slice_direcion(cos(theta), sin(theta), 0);
     slice_direcion =

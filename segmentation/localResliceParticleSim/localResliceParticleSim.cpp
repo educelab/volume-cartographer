@@ -27,11 +27,13 @@ void core_callback(int event, int x, int y, int flags, void *point) {
  */
 
 namespace volcart {
+
 namespace segmentation {
+
 pcl::PointCloud<pcl::PointXYZRGB> localResliceParticleSim(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath,
-                                                          VolumePkg volpkg, double gravity_scale, int threshold,
+                                                          VolumePkg& volpkg, int threshold,
                                                           int endOffset) {
-    DEMO::Field f(&volpkg);
+    Field f(volpkg);
 
     // // RESLICE DEMO
     // // test point and normal for checking with fiji
@@ -78,7 +80,7 @@ pcl::PointCloud<pcl::PointXYZRGB> localResliceParticleSim(pcl::PointCloud<pcl::P
     // CHAIN DEMO
     // try to find the surface from slices along the chain
     std::cout << "Using local reslice particle sim algorithm" << std::endl;
-    DEMO::Chain c(segPath, &volpkg, threshold, endOffset, 10);
+    Chain c(segPath, volpkg, threshold, endOffset, 10);
     for (int i = 0; c.isMoving() && i < 200; ++i) {
         c.step(f);
         c.debug();

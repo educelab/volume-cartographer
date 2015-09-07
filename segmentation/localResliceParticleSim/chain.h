@@ -1,5 +1,4 @@
-#ifndef _DEMO_CHAIN_
-#define _DEMO_CHAIN_
+#pragma once
 
 #define DEFAULT_OFFSET -1
 
@@ -15,13 +14,15 @@
 // it tries to find the next position of the particles
 // based on slices orthogonal to the chain
 
-namespace DEMO {
+namespace volcart {
+
+namespace segmentation {
 
 class Chain {
 public:
-    Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr, VolumePkg *, int, int, int=1);
+    Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr, VolumePkg&, int, int, int=1);
 
-    void step(Field &);
+    void step(Field&);
 
     bool isMoving();
 
@@ -32,7 +33,7 @@ public:
 private:
     // History of the chain at each iteration
     std::list<std::vector<Particle>> _history;
-    VolumePkg *_volpkg;
+    VolumePkg&_volpkg;
     int _updateCount;
 
     // "reslicing" happens when we update the normals
@@ -53,4 +54,4 @@ private:
 
 }
 
-#endif
+}

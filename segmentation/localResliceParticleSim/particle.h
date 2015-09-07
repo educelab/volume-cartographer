@@ -1,9 +1,10 @@
-// What am I?
-
-#ifndef _PARTICLE_
-#define _PARTICLE_
+#pragma once
 
 #include <opencv2/opencv.hpp>
+
+namespace volcart {
+
+namespace segmentation {
 
 class Particle {
 public:
@@ -21,11 +22,13 @@ public:
 
     float operator()(int);
 
-    cv::Vec3f operator-(Particle);
+    cv::Vec3f operator-(Particle&);
 
 private:
     cv::Vec3f _position;
     bool _isStopped;
 };
 
-#endif
+}
+
+}

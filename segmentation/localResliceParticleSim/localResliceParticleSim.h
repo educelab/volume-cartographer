@@ -1,5 +1,4 @@
-#ifndef TENSORPARTICLE_H
-#define TENSORPARTICLE_H
+#pragma once
 
 #include <iostream>
 
@@ -17,11 +16,11 @@
 #include "slice.h"
 
 namespace volcart {
-    namespace segmentation {
-        pcl::PointCloud<pcl::PointXYZRGB> localResliceParticleSim(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath,
-                                                                  VolumePkg volpkg, double gravity_scale = 0.5,
-                                                                  int threshold = 1, int endOffset = -1);
-    }
+
+namespace segmentation {
+
+pcl::PointCloud<pcl::PointXYZRGB> localResliceParticleSim(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath,
+                                                          VolumePkg& volpkg, int threshold = 1, int endOffset = -1);
 }
 
-#endif
+}

@@ -25,18 +25,12 @@ int main(int argc, char *argv[]) {
     if (argc < 5) {
         std::cerr << "Usage:" << std::endl;
         std::cerr << argv[0] <<
-        " {--gravity [0.1 - 0.8] --startIndex [Z-Index #] --stopOffset [value]} --seg [Seg ID #] --volpkg [volpkgpath]" <<
+        " --startIndex [Z-Index #] --stopOffset [value]} --seg [Seg ID #] --volpkg [volpkgpath]" <<
         std::endl;
         exit(EXIT_FAILURE);
     }
 
     // Option parsing
-    // get gravity scale value from command line
-    pcl::console::parse_argument(argc, argv, "--gravity", gravity_scale);
-    if (gravity_scale == -1) {
-        std::cout << "No Gravity Scale value given, defaulting to 0.5" << std::endl;
-        gravity_scale = 0.5;
-    }
 
     // NOTE: Distance thresholding causes problems for resumable segmentations
     //       because you currently need to know the previous step distance.
@@ -130,8 +124,7 @@ int main(int argc, char *argv[]) {
 
     // Run segmentation using path as our starting points
     pcl::PointCloud<pcl::PointXYZRGB> mutableCloud;
-    mutableCloud = volcart::segmentation::localResliceParticleSim(segPath, volpkg, gravity_scale, threshold,
-                                                                  stopOffset);
+    mutableCloud = volcart::segmentation::localResliceParticleSim(segPath, volpkg, threshold, stopOffset);
 
     // Update the master cloud with the points we saved and concat the new points into the space
     *masterCloud = *immutableCloud;

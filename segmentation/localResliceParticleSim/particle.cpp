@@ -1,5 +1,7 @@
 #include "particle.h"
 
+using namespace volcart::segmentation;
+
 Particle::Particle(cv::Vec3f position) : _isStopped(false) {
     _position = position;
 }
@@ -32,6 +34,6 @@ float Particle::operator()(int index) {
     return _position(index);
 }
 
-cv::Vec3f Particle::operator-(Particle p) {
+cv::Vec3f Particle::operator-(Particle& p) {
     return _position - p.position();
 }

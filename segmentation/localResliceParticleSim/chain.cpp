@@ -1,7 +1,8 @@
 #include "chain.h"
 
+using namespace volcart::segmentation;
 
-DEMO::Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg* volpkg, int threshold, int endOffset,
+Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg& volpkg, int threshold, int endOffset,
                    int stepsBeforeReslice) :
     _volpkg(volpkg), _updateCount(0), _threshold(threshold), _stepsBeforeReslice(stepsBeforeReslice) {
     // Convert the point cloud segPath into a vector of Particles
@@ -28,21 +29,21 @@ DEMO::Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg* vo
     // Set the slice index we will end at
     // If user does not define endOffset, target index == last slice with a surface normal file
     _targetIdx = ((endOffset == DEFAULT_OFFSET)
-                     ? (volpkg->getNumberOfSlices() - 3U) // Account for zero-indexing and slices lost in calculating normal vector
+                     ? (volpkg.getNumberOfSlices() - 3U) // Account for zero-indexing and slices lost in calculating normal vector
                      : (_startIdx + endOffset));
 
     // Set _realIterationsCount based on starting index, target index, and how frequently we want to sample the segmentation
     _realIterationsCount = uint32_t(ceil(((_targetIdx - _startIdx) + 1) / _threshold));
 }
 
-void DEMO::Chain::updateNormal(uint64_t i) {
+void Chain::updateNormal(uint64_t i) {
     auto updatingChain = _history.front();
     cv::Vec3f tangent = updatingChain[i+1] - updatingChain[i-1];
     _savedNormals[i] = tangent.cross(VC_DIRECTION_K);
 }
 
 // This function defines how particles are updated
-void DEMO::Chain::step(DEMO::Field& field) {
+void Chain::step(Field& field) {
     // Pull the most recent iteration from _history
     auto update_chain = _history.front();
     std::vector<cv::Vec3f> force_vector(_chainLength, cv::Vec3f(0, 0, 0));
@@ -89,7 +90,7 @@ void DEMO::Chain::step(DEMO::Field& field) {
 }
 
 // Returns true if any Particle in the chain is still moving
-bool DEMO::Chain::isMoving() {
+bool Chain::isMoving() {
     bool result = true;
     for (int i = 0; i < _chainLength; ++i) {
         result &= _history.front()[i].isStopped();
@@ -98,11 +99,11 @@ bool DEMO::Chain::isMoving() {
 }
 
 // draw a debug window with an option to write to disk
-void DEMO::Chain::debug(bool saveOutput) {
+void Chain::debug(bool saveOutput) {
     std::vector<Particle> recent = _history.front();
     int z_index = recent[0](VC_INDEX_Z);
 
-    cv::Mat debug = _volpkg->getSliceData(z_index);
+    cv::Mat debug = _volpkg.getSliceData(z_index);
     debug *= 1. / 255;
     debug.convertTo(debug, CV_8UC3);
     cvtColor(debug, debug, CV_GRAY2BGR);
@@ -130,7 +131,7 @@ void DEMO::Chain::debug(bool saveOutput) {
 }
 
 // Convert Chain's _history to an ordered Point Cloud object
-pcl::PointCloud<pcl::PointXYZRGB> DEMO::Chain::orderedPCD() {
+pcl::PointCloud<pcl::PointXYZRGB> Chain::orderedPCD() {
     // Allocate space for one row of the output cloud
     std::vector<pcl::PointXYZRGB> storage_row;
     for (int i = 0; i < _chainLength; ++i) {
