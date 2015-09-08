@@ -57,6 +57,9 @@ void Chain::step(Field& field) {
 
     force_vector[i] += this->springForce(i);
     force_vector[i] += this->gravity(i, field);
+
+    // Force a move in the positive z-direction
+    if ( force_vector[i][0] < 0 ) force_vector[i][0] = force_vector[i][0] * -1;
   }
 
   // update the chain
