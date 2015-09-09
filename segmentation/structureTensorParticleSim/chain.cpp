@@ -38,15 +38,15 @@ Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg* volpkg, 
   _target_index = ((endOffset == DEFAULT_OFFSET)
                    ? (volpkg->getNumberOfSlices() - 3) // Account for zero-indexing and slices lost in calculating normal vector
                    : (_start_index + endOffset));
+  if ( _target_index > volpkg->getNumberOfSlices() - 3 ) _target_index = volpkg->getNumberOfSlices() - 3;
 
   // Set _real_iterations based on starting index, target index, and how frequently we want to sample the segmentation
   _real_iterations = (int)(ceil(((_target_index - _start_index) + 1) / _threshold));
 
   // Go ahead and stop any particles that are already at the target index
-  if ( _start_index == _target_index )
-    for ( int i = 0; i < _chain_length; ++i )
-      if (_history.front()[i](0) >= _target_index)
-        _history.front()[i].stop();
+  for ( int i = 0; i < _chain_length; ++i )
+    if (_history.front()[i](0) >= _target_index)
+      _history.front()[i].stop();
 }
 
 // This function defines how particles are updated
