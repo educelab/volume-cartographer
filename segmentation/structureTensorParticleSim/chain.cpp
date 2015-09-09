@@ -41,6 +41,12 @@ Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg* volpkg, 
 
   // Set _real_iterations based on starting index, target index, and how frequently we want to sample the segmentation
   _real_iterations = (int)(ceil(((_target_index - _start_index) + 1) / _threshold));
+
+  // Go ahead and stop any particles that are already at the target index
+  if ( _start_index == _target_index )
+    for ( int i = 0; i < _chain_length; ++i )
+      if (_history.front()[i](0) >= _target_index)
+        _history.front()[i].stop();
 }
 
 // This function defines how particles are updated
@@ -57,9 +63,6 @@ void Chain::step(Field& field) {
 
     force_vector[i] += this->springForce(i);
     force_vector[i] += this->gravity(i, field);
-
-    // Force a move in the positive z-direction
-    if ( force_vector[i][0] < 0 ) force_vector[i][0] = force_vector[i][0] * -1;
   }
 
   // update the chain
@@ -134,7 +137,7 @@ pcl::PointCloud<pcl::PointXYZRGB> Chain::orderedPCD() {
     storage.push_back(storage_row);
   }
 
-  // Give the output points an abitrary color. *To-Do: This is not used ever.
+  // Give the output points an arbitrary color. *To-Do: This is not used ever.
   uint32_t COLOR = 0x00777777; // grey in PCL's packed RGB representation
 
   // Push each point in _history into its ordered position in storage if it passes the distance threshold
