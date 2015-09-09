@@ -1,15 +1,13 @@
 #include "chain.h"
 
+
 // (doc) Why the parameters that we're giving it?
-Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg* volpkg, int threshold, int endOffset) {
+DEMO::Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg* volpkg, int threshold, int endOffset) {
   // Convert the point cloud segPath into a vector of Particles
   std::vector<Particle> init_chain;
 
-  // NOTE: This algorithm uses slice index position as the primary index for points (e.g. point[z][x][y])
-  // However, the rest of volpkg stores point information as point[x][y][z]. We must make the swap here and
-  // also when we generate our output point cloud in this.orderedPCD()
   for(pcl::PointCloud<pcl::PointXYZRGB>::iterator path_it = segPath->begin(); path_it != segPath->end(); ++path_it){
-    init_chain.push_back(cv::Vec3f(path_it->z, path_it->x, path_it->y));
+    init_chain.push_back(cv::Vec3f(path_it->x, path_it->y, path_it->z));
   }
 
   _volpkg = volpkg;
@@ -41,7 +39,7 @@ Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg* volpkg, 
   } while (0)
 
 // This function defines how particles are updated
-void Chain::step(Field& field) {
+void DEMO::Chain::step(DEMO::Field& field) {
   // Pull the most recent iteration from _history
   std::vector<Particle> update_chain = _history.front();
   std::vector<cv::Vec3f> force_vector(_chain_length, cv::Vec3f(0,0,0));
@@ -82,14 +80,14 @@ void Chain::step(Field& field) {
 }
 
 // Returns true if any Particle in the chain is still moving
-bool Chain::isMoving() {
+bool DEMO::Chain::isMoving() {
   bool result = true;
   for (int i = 0; i < _chain_length; ++i)
     result &= _history.front()[i].isStopped();
   return !result;
 }
 
-void Chain::debug() {
+void DEMO::Chain::debug() {
   std::vector<Particle> recent = _history.front();
   int z_index = recent[0](VC_INDEX_Z);
 
@@ -112,7 +110,7 @@ void Chain::debug() {
 }
 
 // Convert Chain's _history to an ordered Point Cloud object
-pcl::PointCloud<pcl::PointXYZRGB> Chain::orderedPCD() {
+pcl::PointCloud<pcl::PointXYZRGB> DEMO::Chain::orderedPCD() {
   // Allocate space for one row of the output cloud
   std::vector<pcl::PointXYZRGB> storage_row;
   for (int i = 0; i < _chain_length; ++i) {

@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
   TensorDeque field;
   int totalTensors = volpkg.getNumberOfSlices() - 4;
   for(int i = 0; i < volpkg.getNumberOfSlices(); ++i) {
-    volume.push_back(volpkg.getSliceAtIndex(i));
+    volume.push_back(volpkg.getSliceData(i));
 
     // we need three ct slices to calculate the gradient
     if (volume.size() == 3) {

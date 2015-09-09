@@ -1,5 +1,5 @@
-#ifndef _FIELD_
-#define _FIELD_
+#ifndef _DEMO_FIELD_
+#define _DEMO_FIELD_
 
 #include <opencv2/opencv.hpp>
 #include <pcl/io/pcd_io.h>
@@ -8,6 +8,8 @@
 
 #include "volumepkg.h"
 #include "slice.h"
+
+namespace DEMO {
 
 class Field {
 public:
@@ -19,5 +21,7 @@ private:
   VolumePkg* _volpkg;
   std::vector<cv::Mat> _field;
 };
+
+}
 
 #endif

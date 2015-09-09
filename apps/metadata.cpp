@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
                     return EXIT_FAILURE;
                 }
             } */
-            parsedMetadata.erase(versionFind);
+            parsedMetadata.erase((*versionFind).first);
             std::cout << std::endl;
         }
 

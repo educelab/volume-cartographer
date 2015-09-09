@@ -20,10 +20,13 @@
 #include "ui_VCMain.h"
 
 #include <opencv2/opencv.hpp>
+
+#ifndef Q_MOC_RUN
 #include <pcl/common/common.h>
 #include <pcl/point_types.h>
 
 #include "structureTensorParticleSim/structureTensorParticleSim.h"
+#endif
 
 class VolumePkg;
 
