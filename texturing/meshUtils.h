@@ -18,6 +18,7 @@
 
 #include "vc_defines.h"
 #include "io/ply2itk.h"
+#include "itk2vtk.h"
 
 #ifndef VC_MESHUTILS_H
 #define VC_MESHUTILS_H
@@ -25,6 +26,8 @@
 VC_MeshType::Pointer smoothNormals ( VC_MeshType::Pointer  inputMesh,
                                      double                smoothingFactor );
 
-VC_MeshType::Pointer resample ( VC_MeshType::Pointer inputMesh );
+VC_MeshType::Pointer resample ( VC_MeshType::Pointer inputMesh, 
+								int                  NumberOfSamples,
+                                float                Gradation );
 
 #endif // VC_MESHUTILS_H

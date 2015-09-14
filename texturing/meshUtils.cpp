@@ -83,29 +83,13 @@ VC_MeshType::Pointer resample ( VC_MeshType::Pointer  inputMesh,
                                 int                   NumberOfSamples,
                                 float                 Gradation ) {
 
-    // declare pointer to new Mesh object to be returned
-    VC_MeshType::Pointer  outputMesh = VC_MeshType::New();
+    // Convert the itk mesh to a vtk mesh
+    vtkPolyData *vtkMesh = vtkPolyData::New();
+    volcart::meshing::itk2vtk(inputMesh, vtkMesh);
 
-    // export mesh to stl, stl needed to import into ACVD's vtkSurface class    
-    itk::STLMeshIOFactory::RegisterOneFactory();
-    typedef itk::MeshFileWriter< VC_MeshType > WriterType;
-    WriterType::Pointer writer = WriterType::New();
-    writer->SetFileName( "temp.stl" );
-    writer->SetInput( inputMesh );
-    try
-    {
-        writer->Update();
-    }
-    catch( itk::ExceptionObject & excp )
-    {
-        std::cerr << excp << std::endl;
-    }
-    itk::STLMeshIO::Pointer meshIO = itk::STLMeshIO::New();
-    meshIO->Print( std::cout );
-   
     // ACVD's vtkSurface class used for resampling
     vtkSurface *Mesh = vtkSurface::New();
-    Mesh->CreateFromFile( "temp.stl" );
+    Mesh->CreateFromPolyData( vtkMesh );
     Mesh->GetCellData()->Initialize();
     Mesh->GetPointData()->Initialize();
 
@@ -193,16 +177,12 @@ VC_MeshType::Pointer resample ( VC_MeshType::Pointer  inputMesh,
 
     Remesh->GetOutput()->WriteToFile(REALFILE);
 
+    //convert vtk mesh to itk mesh
+    VC_MeshType::Pointer  outputMesh = VC_MeshType::New();
+    volcart::meshing::vtk2itk(Remesh->GetOutput(), outputMesh);
+
     Remesh->Delete();
     Mesh->Delete();
-
-    // Read in resampled mesh and return it
-    // try to convert the ply to an ITK mesh
-    int meshWidth = -1;
-    int meshHeight = -1;
-    if ( !volcart::io::ply2itkmesh("simplification.ply", outputMesh, meshWidth, meshHeight) ) {
-        exit( -1 );
-    };
 
     return outputMesh;
 }
