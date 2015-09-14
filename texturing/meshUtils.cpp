@@ -177,9 +177,15 @@ VC_MeshType::Pointer resample ( VC_MeshType::Pointer  inputMesh,
 
     Remesh->GetOutput()->WriteToFile(REALFILE);
 
+    vtkSmartPointer<vtkPolyDataNormals> normalGenerator = vtkSmartPointer<vtkPolyDataNormals>::New();
+    normalGenerator->SetInputData(Remesh->GetOutput());
+    normalGenerator->ComputePointNormalsOn();
+    normalGenerator->ComputeCellNormalsOn();
+    normalGenerator->Update();
+
     //convert vtk mesh to itk mesh
     VC_MeshType::Pointer  outputMesh = VC_MeshType::New();
-    volcart::meshing::vtk2itk(Remesh->GetOutput(), outputMesh);
+    volcart::meshing::vtk2itk(normalGenerator->GetOutput(), outputMesh);
 
     Remesh->Delete();
     Mesh->Delete();

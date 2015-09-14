@@ -14,6 +14,7 @@
 #include <itkSTLMeshIOFactory.h>
 #include <itkSTLMeshIO.h>
 
+#include <vtkPolyDataNormals.h>
 #include "vtkIsotropicDiscreteRemeshing.h"
 
 #include "vc_defines.h"
