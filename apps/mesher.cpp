@@ -9,8 +9,6 @@
 #include <pcl/io/obj_io.h>
 
 #include "orderedPCDMesher.h"
-#include "resamplePointCloud.h"
-#include "greedyProjectionMeshing.h"
 
 int main(int argc, char* argv[]) {
   if (argc < 2)
@@ -34,20 +32,6 @@ int main(int argc, char* argv[]) {
   outfile = outfile.substr(0,dot) + ".ply";
   
   volcart::meshing::orderedPCDMesher(inputCloud, outfile);
-
-  // TEMP - test resampling
-  pcl::PointCloud<pcl::PointXYZRGBNormal> output = volcart::meshing::resamplePointCloud(inputCloud);
-  pcl::io::savePLYFile ("resampled.ply", output);
-  //pcl::io::saveOBJFile ("resampled.ply", output);
-
-  // TEMP - test greedy projection
-  pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr resampled(&output);
-  pcl::PolygonMesh mesh = volcart::meshing::greedyProjectionMeshing(resampled, 100, 7, 10);
-  pcl::io::savePLYFile ("greedy.ply", mesh);
-  pcl::io::saveOBJFile ("greedy.obj", mesh);
-
-  // TEMP - test poisson
-  
 
   exit(EXIT_SUCCESS);
 }

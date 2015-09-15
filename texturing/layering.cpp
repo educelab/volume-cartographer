@@ -7,7 +7,6 @@
 #include <cmath>
 
 #include <opencv2/opencv.hpp>
-#include <itkOBJMeshIO.h>
 
 #include "volumepkg.h"
 #include "vc_defines.h"
