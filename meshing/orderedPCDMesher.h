@@ -10,6 +10,12 @@
 #include <pcl/console/parse.h>
 #include <pcl/io/ply_io.h>
 
-int orderedPCDMesher(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::string outFile);
+namespace volcart {
+    namespace meshing {
+
+        int orderedPCDMesher(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::string outFile);
+
+    }// namespace meshing
+}// namespace volcart
 
 #endif
