@@ -7,8 +7,10 @@
 namespace volcart {
 	namespace meshing {
 		VC_MeshType::Pointer ACVD ( VC_MeshType::Pointer  inputMesh,
-                                		int                   NumberOfSamples,
-                                		float                 Gradation ) {
+                                		int               NumberOfSamples,
+                                		float             Gradation,
+                                		int 							ConsoleOutput,
+                                		int 							SubsamplingThreshold) {
 			// Convert the itk mesh to a vtk mesh
     	vtkPolyData *vtkMesh = vtkPolyData::New();
     	volcart::meshing::itk2vtk(inputMesh, vtkMesh);
@@ -20,33 +22,28 @@ namespace volcart {
     	Mesh->GetPointData()->Initialize();
 
     	// initialize paramaters needed for ACVD resampling 
-    	int SubsamplingThreshold = 10;
     	int QuadricsOptimizationLevel = 1;
-    	char outputfile[500];
-    	strcpy (outputfile, "simplification.ply");
 
     	vtkIsotropicDiscreteRemeshing *Remesh = vtkIsotropicDiscreteRemeshing::New();
 
     	Remesh->SetInput(Mesh);
     	Remesh->SetFileLoadSaveOption(0);
     	Remesh->SetNumberOfClusters(NumberOfSamples);
-    	Remesh->SetConsoleOutput(2);
+    	Remesh->SetConsoleOutput(ConsoleOutput);
     	Remesh->SetSubsamplingThreshold(SubsamplingThreshold);
     	Remesh->GetMetric()->SetGradation(Gradation);
     	Remesh->Remesh();
 
     	// code from ACVD.cxx example, optimization of resampled mesh
+    	// This is the iterative process discussed in:
+    	//		Valette, Sébastien, and Jean‐Marc Chassery. "Approximated centroidal 
+    	//		voronoi diagrams for uniform polygonal mesh coarsening." Computer 
+    	//		Graphics Forum. Vol. 23. No. 3. Blackwell Publishing, Inc, 2004. 
+    	// that repeats until the areas of each region (triangle) are approximately the same
     	if (QuadricsOptimizationLevel != 0) {
         // Note : this is an adaptation of Siggraph 2000 Paper :
         // Out-of-core simplification of large polygonal models
         vtkIntArray *Clustering = Remesh->GetClustering();
-
-        char REALFILE[5000];
-        char FileBeforeProcessing[500];
-        strcpy (FileBeforeProcessing,"smooth_");
-        strcat (FileBeforeProcessing, outputfile);
-        strcpy (REALFILE, FileBeforeProcessing);
-        Remesh->GetOutput()->WriteToFile(REALFILE);
 
         int Cluster,NumberOfMisclassedItems = 0;
 
@@ -95,13 +92,6 @@ namespace volcart {
         Remesh->GetOutput()->DisplayMeshProperties();
 
     	}
-
-    	// save the output mesh to .ply format
-    	char REALFILE[500];
-    	strcpy (REALFILE, "");
-    	strcat (REALFILE, outputfile);
-
-    	Remesh->GetOutput()->WriteToFile(REALFILE);
 
     	vtkSmartPointer<vtkPolyDataNormals> normalGenerator = vtkSmartPointer<vtkPolyDataNormals>::New();
     	normalGenerator->SetInputData(Remesh->GetOutput());
