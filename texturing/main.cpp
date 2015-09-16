@@ -11,7 +11,7 @@
 #include "io/ply2itk.h"
 #include "io/objWriter.h"
 
-#include "meshUtils.h"
+#include "ACVD.h"
 #include "texturingUtils.h"
 
 #include <itkRGBPixel.h>
@@ -140,7 +140,7 @@ int main(int argc, char* argv[])
     int numOfSamples = 3000;
     float gradation = 0;
 
-    mesh = resample(mesh, numOfSamples, gradation);
+    mesh = volcart::meshing::ACVD(mesh, numOfSamples, gradation);
 
 
     // Initialize iterators
