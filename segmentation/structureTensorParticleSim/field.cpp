@@ -93,6 +93,9 @@ void Field::loadSlice(int index) {
       }
     }
 
+    // If index is out of bounds, leave it empty
+    if ( index < 2 || index > _volpkg->getNumberOfSlices() - 3 ) return;
+
     // Load the surface normal cloud from _volpkg
     pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGBNormal>);
     if (pcl::io::loadPCDFile<pcl::PointXYZRGBNormal> (_volpkg->getNormalAtIndex(index), *cloud) == -1) {
