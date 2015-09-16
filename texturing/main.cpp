@@ -114,33 +114,33 @@ int main(int argc, char* argv[])
     }
     std::cout << std::endl;
 
-    // // Generate per point uv coordinates specifically for the OBJ
-    // VC_UVMap uvMap;
-    // std::cerr << "Calculating UV coordinates for final mesh..." << std::endl;
-    // for ( VC_PointsInMeshIterator point = mesh->GetPoints()->Begin(); point != mesh->GetPoints()->End(); ++point ) {
-    //     pointID = point.Index();
+    // Generate per point uv coordinates specifically for the OBJ
+    VC_UVMap uvMap;
+    std::cerr << "Calculating UV coordinates for final mesh..." << std::endl;
+    for ( VC_PointsInMeshIterator point = mesh->GetPoints()->Begin(); point != mesh->GetPoints()->End(); ++point ) {
+        pointID = point.Index();
 
-    //     // Calculate the point's [meshX, meshY] position based on its pointID
-    //     meshX = pointID % meshWidth;
-    //     meshY = (pointID - meshX) / meshWidth;
+        // Calculate the point's [meshX, meshY] position based on its pointID
+        meshX = pointID % meshWidth;
+        meshY = (pointID - meshX) / meshWidth;
 
-    //     // Calculate the point's UV position
-    //     u =  (double) meshX / (double) meshWidth;
-    //     v =  (double) meshY / (double) meshHeight;
+        // Calculate the point's UV position
+        u =  (double) meshX / (double) meshWidth;
+        v =  (double) meshY / (double) meshHeight;
 
-    //     // OBJ UV coordinates start in the bottom-left of an image, but we're calculating them from the top-left
-    //     // Subtract v from 1.0 to account for this
-    //     cv::Vec2d uv( u, 1.0 - v );
+        // OBJ UV coordinates start in the bottom-left of an image, but we're calculating them from the top-left
+        // Subtract v from 1.0 to account for this
+        cv::Vec2d uv( u, 1.0 - v );
 
-    //     // Add the uv coordinates into our map at the point index specified
-    //     uvMap.insert( {pointID, uv} );
-    // }
+        // Add the uv coordinates into our map at the point index specified
+        uvMap.insert( {pointID, uv} );
+    }
 
     // Remesh using ACVD
     int numOfSamples = 3000;
     float gradation = 0;
 
-    resample(mesh, numOfSamples, gradation);
+    mesh = resample(mesh, numOfSamples, gradation);
 
 
     // Initialize iterators
