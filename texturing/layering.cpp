@@ -8,13 +8,13 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "texturingUtils.h"
 #include "volumepkg.h"
-#include "plyHelper.h"
-#include "meshUtils.h"
+#include "vc_defines.h"
+#include "io/ply2itk.h"
 
-#include <itkMesh.h>
-#include <itkTriangleCell.h>
+#include "meshUtils.h"
+#include "texturingUtils.h"
+
 
 int main(int argc, char* argv[])
 {
@@ -46,6 +46,9 @@ int main(int argc, char* argv[])
     smoothingFactor = atof( argv[ 3 ] );
 
     int aSampleDir = atoi( argv[ 4 ] ); // sampleDirection (0=omni, 1=positive, 2=negative)
+    if ( aSampleDir != 0 || aSampleDir != 1 || aSampleDir != 2 ) {
+        std::cerr << "ERROR: Selected sample direction not recognized." << std::endl;
+    }
     EDirectionOption aDirectionOption = ( EDirectionOption )aSampleDir;
 
     int sections = atoi( argv[ 5 ] );
@@ -54,28 +57,18 @@ int main(int argc, char* argv[])
     double scale = 1;
     if ( argc > 6 )
         scale = atof( argv[ 6 ] );
-
-    typedef itk::Vector< double, 3 >  PixelType;  // A vector to hold the normals along with the points of each vertice in the mesh
-    const unsigned int Dimension = 3;   // Need a 3 Dimensional Mesh
-
-    // declare Mesh object using template parameters 
-    typedef itk::Mesh< PixelType, Dimension >   MeshType;
     
     // declare pointer to new Mesh object
-    MeshType::Pointer  inputMesh = MeshType::New();
-    MeshType::Pointer  smoothedMesh = MeshType::New();
+    VC_MeshType::Pointer  inputMesh = VC_MeshType::New();
+    VC_MeshType::Pointer  smoothedMesh = VC_MeshType::New();
 
     int meshWidth = -1;
     int meshHeight = -1;
 
     // try to convert the ply to an ITK mesh
-    if ( !ply2itkmesh(meshName, inputMesh, meshWidth, meshHeight) ) {
+    if ( !volcart::io::ply2itkmesh(meshName, inputMesh, meshWidth, meshHeight) ) {
         exit( -1 );
     };
-
-    // Define iterators
-    typedef CellType::PointIdIterator     PointsIterator;
-    typedef MeshType::CellsContainer::Iterator  CellIterator;
 
     // Matrices to store the output textures
     int textureW = meshWidth;
@@ -139,10 +132,10 @@ int main(int argc, char* argv[])
         smoothedMesh = inputMesh;
 
     // Initialize iterators
-    CellIterator  cellIterator = smoothedMesh->GetCells()->Begin();
-    CellIterator  cellEnd      = smoothedMesh->GetCells()->End();
-    CellType * cell;
-    PointsIterator pointsIterator; 
+    VC_CellIterator  cellIterator = smoothedMesh->GetCells()->Begin();
+    VC_CellIterator  cellEnd      = smoothedMesh->GetCells()->End();
+    VC_CellType * cell;
+    VC_PointsInCellIterator pointsIterator;
 
     // Iterate over all of the cells to lay out the faces in the output texture
     while( cellIterator != cellEnd )
@@ -158,8 +151,8 @@ int main(int argc, char* argv[])
         {
             pointID = *pointsIterator;
 
-            MeshType::PointType p = smoothedMesh->GetPoint(pointID);
-            MeshType::PixelType normal;
+            VC_PointType p = smoothedMesh->GetPoint(pointID);
+            VC_PixelType normal;
             smoothedMesh->GetPointData( pointID, &normal );
             
             // Calculate the point's [meshX, meshY] position based on its pointID

@@ -6,14 +6,14 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "texturingUtils.h"
 #include "volumepkg.h"
-#include "checkPtInTriangleUtil.h"
-#include "plyHelper.h"
+#include "vc_defines.h"
+#include "io/ply2itk.h"
 
-#include <itkMesh.h>
+#include "checkPtInTriangleUtil.h"
+#include "texturingUtils.h"
+
 #include <itkRGBPixel.h>
-#include <itkTriangleCell.h>
 
 #include "UPointMapping.h"
 
@@ -58,27 +58,17 @@ int main(int argc, char* argv[])
 
     int aSampleDir = atoi( argv[ 5 ] ); // sampleDirection (0=omni, 1=positive, 2=negative)
     EDirectionOption aDirectionOption = ( EDirectionOption )aSampleDir;
-
-    typedef itk::Vector< double, 3 >    PixelType;  // A vector to hold the normals along with the points of each vertice in the mesh
-    const unsigned int Dimension = 3;   // Need a 3 Dimensional Mesh
-
-    // declare Mesh object using template parameters 
-    typedef itk::Mesh< PixelType, Dimension >   MeshType;
     
     // declare pointer to new Mesh object
-    MeshType::Pointer  mesh = MeshType::New();
+    VC_MeshType::Pointer  mesh = VC_MeshType::New();
 
     int meshWidth = -1;
     int meshHeight = -1;
 
     // try to convert the ply to an ITK mesh
-    if (!ply2itkmesh(meshName, mesh, meshWidth, meshHeight)){
+    if (!volcart::io::ply2itkmesh(meshName, mesh, meshWidth, meshHeight)){
         exit( -1 );
     };
-
-    // Define iterators
-    typedef CellType::PointIdIterator     PointsIterator2;
-    typedef MeshType::CellsContainer::Iterator  CellIterator;
 
     // Misc. vectors
     std::vector< cv::Vec3d > my3DPoints;    // 3D vector to hold 3D points
@@ -134,10 +124,10 @@ int main(int argc, char* argv[])
 
 
     // Initialize iterators
-    CellIterator  cellIterator = mesh->GetCells()->Begin();
-    CellIterator  cellEnd      = mesh->GetCells()->End();
-    CellType * cell;
-    PointsIterator2 pointsIterator;
+    VC_CellIterator  cellIterator = mesh->GetCells()->Begin();
+    VC_CellIterator  cellEnd      = mesh->GetCells()->End();
+    VC_CellType *    cell;
+    VC_PointsInCellIterator pointsIterator;
 
     // Iterate over all of the cells to lay out the faces in the output texture
     while( cellIterator != cellEnd )
@@ -153,8 +143,8 @@ int main(int argc, char* argv[])
         {
             pointID = *pointsIterator;
 
-            MeshType::PointType p = mesh->GetPoint(pointID);
-            MeshType::PixelType normal;
+            VC_PointType p = mesh->GetPoint(pointID);
+            VC_PixelType normal;
             mesh->GetPointData( pointID, &normal );
 
             // Calculate the point's [meshX, meshY] position based on its pointID
