@@ -9,3 +9,6 @@ target_link_libraries(vc_objExporterExample ${VC_LIBS} ${VC_REQ_LIBS})
 
 add_executable(vc_itk2vtkExample itk2vtkExample.cpp)
 target_link_libraries(vc_itk2vtkExample ${VC_LIBS} ${VC_REQ_LIBS})
+
+add_executable(vc_objExporterTest testing/objExporterTest.cpp )
+target_link_libraries(vc_objExporterTest ${VC_LIBS} ${VC_REQ_LIBS})
