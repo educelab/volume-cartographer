@@ -74,7 +74,7 @@ int main(int argc, char *argv[]){
         mesh_writer.setMesh( inputMesh );
         mesh_writer.write();
     }
-
+    
     VC_PointsInMeshIterator begin, end;
     begin = inputMesh->GetPoints()->Begin();
     end = inputMesh->GetPoints()->End();
