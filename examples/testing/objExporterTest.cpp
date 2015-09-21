@@ -75,7 +75,17 @@ int main(int argc, char *argv[]){
         mesh_writer.write();
     }
 
-    mesh_writer.
+    VC_PointsInMeshIterator begin, end;
+    begin = inputMesh->GetPoints()->Begin();
+    end = inputMesh->GetPoints()->End();
+
+    while( begin != end )
+    {
+        VC_PointType point_value = begin.Value();
+        std::cout << "Point:" << point_value << std::endl;
+        ++begin;
+    }
+
     return EXIT_SUCCESS;
 }
 
