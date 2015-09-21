@@ -81,9 +81,10 @@ pcl::PointCloud<pcl::PointXYZRGB> localResliceParticleSim(pcl::PointCloud<pcl::P
     // try to find the surface from slices along the chain
     std::cout << "Using local reslice particle sim algorithm" << std::endl;
     Chain c(segPath, volpkg, threshold, endOffset, 10);
-    for (int i = 0; c.isMoving() && i < 200; ++i) {
+
+    for (int i = 0; c.hasMovingParticle() && i < 200; ++i) {
         c.step(f);
-        c.debug();
+        //c.debug();
     }
 
     return c.orderedPCD();

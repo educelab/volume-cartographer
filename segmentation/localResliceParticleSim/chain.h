@@ -24,9 +24,11 @@ public:
 
     void step(Field&);
 
-    bool isMoving();
+    bool hasMovingParticle();
 
     void debug(bool=false);
+
+    void drawChainOnSlice(std::vector<Particle>);
 
     pcl::PointCloud<pcl::PointXYZRGB> orderedPCD();
 
@@ -40,16 +42,15 @@ private:
     // we have to reslice every iteration regardless
     // since offets are from the center of the slice
     int _stepsBeforeReslice;
-    std::vector<cv::Vec3f> _savedNormals;
 
     // -- Chain Size Information -- //
     uint64_t _chainLength; // Number of particles in the chain & width of output PCD
     uint32_t _realIterationsCount; // Height of the output PCD To-Do: Do we need this?
     uint32_t _startIdx; // Starting slice index
     int32_t _targetIdx; // Target slice index
-    int32_t _threshold; // To-Do: What is this for now? We may not need this.
+    int32_t _stepSize; // To-Do: What is this for now? We may not need this.
 
-    void updateNormal(uint64_t);
+    cv::Vec3f calculateNormal(uint64_t, std::vector<Particle>);
 };
 
 }

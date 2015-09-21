@@ -30,7 +30,7 @@ uint16_t Field::interpolate_at(cv::Vec3f point) {
     // insert safety net
     if (x_min < 0 || y_min < 0 || z_min < 0 ||
         x_max >= _field[0].cols || y_max >= _field[0].rows ||
-        z_max >= _field.size()) {
+        uint32_t(z_max) >= _field.size()) {
         return 0;
     }
 
@@ -60,10 +60,11 @@ Slice Field::reslice(cv::Vec3f center, cv::Vec3f xv, cv::Vec3f yv, int32_t resli
         }
     }
 
-    return Slice(m, origin, xnorm, ynorm);
+    return Slice(m, origin, center, xnorm, ynorm);
 }
 
 // create a Slice from an axis of rotation and an angle
+/*
 Slice Field::resliceRadial(cv::Vec3f origin, cv::Vec3f rotation_axis, double theta, int32_t reslice_height,
                                  int32_t reslice_width) {
     cv::Vec3f slice_direcion(cos(theta), sin(theta), 0);
@@ -82,3 +83,4 @@ Slice Field::resliceRadial(cv::Vec3f origin, cv::Vec3f rotation_axis, double the
 
     return Slice(m, origin, x_direction, y_direction);
 }
+*/

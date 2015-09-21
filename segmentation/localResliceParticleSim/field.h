@@ -20,7 +20,7 @@ public:
 
     Slice reslice(cv::Vec3f, cv::Vec3f, cv::Vec3f, int32_t= 64, int32_t= 64);
 
-    Slice resliceRadial(cv::Vec3f, cv::Vec3f, double, int32_t= 64, int32_t= 64);
+    //Slice resliceRadial(cv::Vec3f, cv::Vec3f, double, int32_t= 64, int32_t= 64);
 
 private:
     VolumePkg&_volpkg;

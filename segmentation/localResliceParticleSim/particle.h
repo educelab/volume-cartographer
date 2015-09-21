@@ -14,7 +14,7 @@ public:
 
     cv::Vec3f position() const;
 
-    bool isStopped() const;
+    bool isMoving() const;
 
     void stop();
 

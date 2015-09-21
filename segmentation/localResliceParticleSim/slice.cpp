@@ -1,4 +1,5 @@
 #include "slice.h"
+#include "NormalizedIntensityMap.h"
 
 // color defines
 // mostly the same as what's in structureTensorParticleSim.cpp
@@ -18,44 +19,55 @@
 
 #define DEBUG_ARROW_SCALAR 20
 
+using namespace volcart::segmentation;
+
 // basic constructor
-Slice::Slice(cv::Mat slice, cv::Vec3f origin, cv::Vec3f x_direction, cv::Vec3f y_direction) {
-    slice_ = slice;
-    origin_ = origin;
-    x_component_ = x_direction;
-    y_component_ = y_direction;
+Slice::Slice(cv::Mat slice, cv::Vec3f origin, cv::Vec3f center, cv::Vec3f x_direction, cv::Vec3f y_direction)
+    : _slice(slice), _origin(origin), _center(center), _xvec(x_direction), _yvec(y_direction) {
 }
 
 cv::Vec3f Slice::findNextPosition() {
-    cv::Mat analysis = this->analyze();
-    cv::Point center(analysis.cols / 2, analysis.rows / 2);
+    constexpr auto lookaheadDepth = 5;
+    auto map = NormalizedIntensityMap(_slice.row(_slice.rows / 2 + lookaheadDepth));
 
-    // find the new position in the reslice
-    cv::Point offset(0, 1);
-    for (int xoffset = 0; xoffset < analysis.cols / 2; ++xoffset) {
-        cv::Point positive_offset(xoffset, 1);
-        if (analysis.at<uchar>(center + positive_offset)) {
-            offset = positive_offset;
-            break;
-        }
+    map.draw(400, 400);
+    std::cout << map << std::endl;
+    drawSliceAndCenter();
+    cv::waitKey(0);
 
-        cv::Point negative_offset(-xoffset, 1);
-        if (analysis.at<uchar>(center + negative_offset)) {
-            offset = negative_offset;
-            break;
-        }
-    }
-    center += offset;
+    return cv::Vec3f(0, 0, 0);
+}
 
-    // map the pixel coordinate back into 3d space
-    // we may want to make this its own method
-    cv::Vec3f xyzPosition = origin_ + (center.x * x_component_ + center.y * y_component_);
+void Slice::drawSliceAndCenter() {
+    auto debug = _slice.clone();
+    debug /= 255.0;
+    debug.convertTo(debug, CV_8UC3);
+    cvtColor(debug, debug, CV_GRAY2BGR);
+    cv::Point imcenter(debug.cols / 2, debug.rows / 2);
 
-    return xyzPosition;
+    // Draw circle at pixel representing center
+    circle(debug, imcenter, 0, BGR_MAGENTA, -1);
+
+    // Draw line over column of imcenter
+    /*
+    auto p1 = cv::Point(debug.cols / 2, 0);
+    auto p2 = cv::Point(debug.cols / 2, debug.rows);
+    cv::line(debug, p1, p2, BGR_CYAN);
+     */
+
+    // Draw line over row for intensity map
+    /*
+    auto imapP1 = cv::Point(0, debug.rows / 2 + 5);
+    auto imapP2 = cv::Point(debug.rows, debug.rows / 2 + 5);
+    cv::line(debug, imapP1, imapP2, BGR_RED);
+     */
+
+    namedWindow("DEBUG SLICE", cv::WINDOW_NORMAL);
+    imshow("DEBUG SLICE", debug);
 }
 
 void Slice::debugDraw(int debugDrawOptions) {
-    cv::Mat debug = slice_.clone();
+    cv::Mat debug = _slice.clone();
     debug *= 1. / 255;
     debug.convertTo(debug, CV_8UC3);
     cvtColor(debug, debug, CV_GRAY2BGR);
@@ -63,18 +75,18 @@ void Slice::debugDraw(int debugDrawOptions) {
 
     // project xyz coordinate reference onto viewing plane with the formula
     //
-    // [x_component_] [x]
-    // [y_component_] [y]
+    // [_xvec] [x]
+    // [_yvec] [y]
     //                [z]
     //
     // which becomes componentwise pairs (x_1, x_2) (y_1, y_2) (z_1, z_2) when we only care about i, j, and k
     if (debugDrawOptions & DEBUG_DRAW_XYZ) {
-        cv::Point x_arrow_offset(DEBUG_ARROW_SCALAR * x_component_(VC_INDEX_X),
-                                 DEBUG_ARROW_SCALAR * y_component_(VC_INDEX_X));
-        cv::Point y_arrow_offset(DEBUG_ARROW_SCALAR * x_component_(VC_INDEX_Y),
-                                 DEBUG_ARROW_SCALAR * y_component_(VC_INDEX_Y));
-        cv::Point z_arrow_offset(DEBUG_ARROW_SCALAR * x_component_(VC_INDEX_Z),
-                                 DEBUG_ARROW_SCALAR * y_component_(VC_INDEX_Z));
+        cv::Point x_arrow_offset(DEBUG_ARROW_SCALAR * _xvec(VC_INDEX_X),
+                                 DEBUG_ARROW_SCALAR * _yvec(VC_INDEX_X));
+        cv::Point y_arrow_offset(DEBUG_ARROW_SCALAR * _xvec(VC_INDEX_Y),
+                                 DEBUG_ARROW_SCALAR * _yvec(VC_INDEX_Y));
+        cv::Point z_arrow_offset(DEBUG_ARROW_SCALAR * _xvec(VC_INDEX_Z),
+                                 DEBUG_ARROW_SCALAR * _yvec(VC_INDEX_Z));
 
         cv::Point coordinate_origin(DEBUG_ARROW_SCALAR, DEBUG_ARROW_SCALAR);
         rectangle(debug, cv::Point(0, 0), 2 * cv::Point(DEBUG_ARROW_SCALAR, DEBUG_ARROW_SCALAR), BGR_WHITE);
@@ -85,13 +97,13 @@ void Slice::debugDraw(int debugDrawOptions) {
 
     if (debugDrawOptions & DEBUG_DRAW_CORNER_COORDINATES) {
         std::stringstream trc;
-        cv::Vec3f top_right_corner = origin_ + debug.cols * x_component_;
+        cv::Vec3f top_right_corner = _origin + debug.cols * _xvec;
         trc << "(" << (int) top_right_corner(VC_INDEX_X)
         << "," << (int) top_right_corner(VC_INDEX_Y)
         << "," << (int) top_right_corner(VC_INDEX_Z) << ")";
 
         std::stringstream blc;
-        cv::Vec3f bottom_left_corner = origin_ + debug.rows * y_component_;
+        cv::Vec3f bottom_left_corner = _origin + debug.rows * _yvec;
         blc << "(" << (int) bottom_left_corner(VC_INDEX_X)
         << "," << (int) bottom_left_corner(VC_INDEX_Y)
         << "," << (int) bottom_left_corner(VC_INDEX_Z) << ")";
@@ -110,92 +122,6 @@ void Slice::debugDraw(int debugDrawOptions) {
     imshow("DEBUG DRAW", debug);
 }
 
-void Slice::debugAnalysis() {
-    cv::Mat analysis = this->analyze();
-    namedWindow("DEBUG ANALYSIS", cv::WINDOW_AUTOSIZE);
-    imshow("DEBUG ANALYSIS", analysis);
-}
-
 cv::Mat Slice::mat() {
-    return slice_.clone();
-}
-
-
-// function for analyzing the slice
-// returns a cv::Mat for viewing in a debug window
-// or finding out where to move next
-cv::Mat Slice::analyze() {
-    // second derivative gives us a nice void space
-    // around the pages of the scroll
-    cv::Mat temp_slice = slice_.clone();
-    cv::Mat grad_x;
-    GaussianBlur(temp_slice, grad_x, cv::Size(3, 3), 0);
-    Sobel(grad_x, grad_x, CV_16S, 1, 0, 3, 1, 0, cv::BORDER_DEFAULT);
-    Sobel(grad_x, grad_x, CV_16S, 1, 0, 3, 1, 0, cv::BORDER_DEFAULT);
-
-    cv::Mat fill;
-    grad_x *= 1. / 255;
-    grad_x.convertTo(fill, CV_8UC1);
-
-    // slice is easier to work with when it's just black and white
-    cv::Point center(fill.cols / 2, fill.rows / 2);
-    floodFill(fill, center, WHITE);
-    threshold(fill, fill, WHITE - 1, WHITE, cv::THRESH_BINARY);
-
-    // skeletonize the slice
-    // there might be a way to get the same effect with an opencv erode
-    for (int y = 0; y < fill.rows; ++y) {
-        int xindex = 0;
-
-        // don't start on a white cell
-        while (fill.at<uint8_t>(cv::Point(xindex, y)) == WHITE) {
-            xindex++;
-        }
-
-        while (xindex < fill.cols) {
-            int left_side;
-            int right_side;
-
-            // only used for skipping bound_invalid
-            goto bound_valid;
-
-            // go the the next row in the slice
-            bound_invalid:
-            break;
-
-            bound_valid:
-            // find the left side of a white region
-            while (fill.at<uint8_t>(cv::Point(xindex, y)) != WHITE) {
-                xindex++;
-                if (xindex >= fill.cols)
-                    goto bound_invalid;
-            }
-            left_side = xindex;
-
-            // find the right side of a white region
-            while (fill.at<uint8_t>(cv::Point(xindex + 1, y)) != BLACK) {
-                xindex++;
-                if (xindex >= fill.cols)
-                    goto bound_invalid;
-            }
-            right_side = xindex;
-
-            // black out everything in the region
-            // except the center
-            for (int i = left_side; i <= right_side; ++i) {
-                fill.at<uint8_t>(cv::Point(i, y)) = BLACK;
-            }
-            fill.at<uint8_t>(cv::Point((right_side + left_side) / 2, y)) = WHITE;
-
-            // putting in two points might be useful when
-            // there isn't an integer valued center
-            // if ((left_side + right_side) % 2 == 1)
-            //   fill.at<unsigned char>(cv::Point((right_side + left_side + 1) / 2, y)) = WHITE;
-
-            // we can get stuck if we don't do another increment
-            xindex++;
-        }
-    }
-
-    return fill;
+    return _slice.clone();
 }

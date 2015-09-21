@@ -2,8 +2,7 @@
 
 using namespace volcart::segmentation;
 
-Particle::Particle(cv::Vec3f position) : _isStopped(false) {
-    _position = position;
+Particle::Particle(cv::Vec3f position) : _position(position), _isStopped(false) {
 }
 
 Particle::Particle(float x, float y, float z) : _isStopped(false) {
@@ -16,8 +15,8 @@ cv::Vec3f Particle::position() const {
 }
 
 // Returns true if particle is stopped
-bool Particle::isStopped() const {
-    return _isStopped;
+bool Particle::isMoving() const {
+    return !_isStopped;
 }
 
 // Sets particle as being stopped
@@ -35,5 +34,5 @@ float Particle::operator()(int index) const {
 }
 
 cv::Vec3f Particle::operator-(Particle& p) {
-    return _position - p.position();
+    return cv::Vec3f(_position - p.position());
 }

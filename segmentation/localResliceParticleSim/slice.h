@@ -1,8 +1,10 @@
-#ifndef _SLICE_
-#define _SLICE_
+#pragma once
 
 #include <opencv2/opencv.hpp>
 
+namespace volcart {
+
+namespace segmentation {
 
 // defines for uniform indexing
 // should be moved somewhere more global
@@ -26,23 +28,24 @@
 
 class Slice {
 public:
-    Slice(cv::Mat, cv::Vec3f, cv::Vec3f, cv::Vec3f);
+    Slice(cv::Mat, cv::Vec3f, cv::Vec3f, cv::Vec3f, cv::Vec3f);
 
     cv::Vec3f findNextPosition();
 
     void debugDraw(int = DEBUG_DRAW_NONE);
 
-    void debugAnalysis();
-
     cv::Mat mat();
 
-private:
-    cv::Mat analyze();
+    void drawSliceAndCenter();
 
-    cv::Mat slice_;
-    cv::Vec3f origin_;
-    cv::Vec3f x_component_;
-    cv::Vec3f y_component_;
+private:
+    cv::Mat _slice;
+    cv::Vec3f _origin;
+    cv::Vec3f _center;
+    cv::Vec3f _xvec;
+    cv::Vec3f _yvec;
 };
 
-#endif
+}
+
+}

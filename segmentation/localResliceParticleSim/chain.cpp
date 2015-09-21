@@ -1,12 +1,13 @@
 #include <algorithm>
+#include <functional>
 
 #include "chain.h"
 
 using namespace volcart::segmentation;
 
-Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg& volpkg, int threshold, int endOffset,
+Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg& volpkg, int stepSize, int endOffset,
                    int stepsBeforeReslice) :
-    _volpkg(volpkg), _updateCount(0), _threshold(threshold), _stepsBeforeReslice(stepsBeforeReslice) {
+    _volpkg(volpkg), _updateCount(0), _stepsBeforeReslice(stepsBeforeReslice), _stepSize(stepSize) {
     // Convert the point cloud segPath into a vector of Particles
     std::vector<Particle> initChain;
     for (auto path : *segPath) {
@@ -16,9 +17,6 @@ Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg& volpkg, 
     // Add starting chain to _history and setup other parameters
     _history.push_front(initChain);
     _chainLength = initChain.size();
-
-    // normals are updated every iteration by default
-    _savedNormals = std::vector<cv::Vec3f>(_chainLength, cv::Vec3f(0, 0, 0));
 
     // Find the lowest slice index in the starting chain
     auto minParticle = *std::min_element(initChain.begin(), initChain.end(),
@@ -32,44 +30,44 @@ Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg& volpkg, 
                      : (_startIdx + endOffset));
 
     // Set _realIterationsCount based on starting index, target index, and how frequently we want to sample the segmentation
-    _realIterationsCount = uint32_t(ceil(((_targetIdx - _startIdx) + 1) / _threshold));
+    _realIterationsCount = uint32_t(ceil(((_targetIdx - _startIdx) + 1) / _stepSize));
 }
 
-void Chain::updateNormal(uint64_t i) {
-    auto updatingChain = _history.front();
-    cv::Vec3f tangent = updatingChain[i+1] - updatingChain[i-1];
-    _savedNormals[i] = tangent.cross(VC_DIRECTION_K);
+cv::Vec3f Chain::calculateNormal(uint64_t i, std::vector<Particle> prevChain) {
+    auto tangent = prevChain.at(i+1) - prevChain.at(i-1);
+    return tangent.cross(VC_DIRECTION_K);
 }
 
 // This function defines how particles are updated
 void Chain::step(Field& field) {
     // Pull the most recent iteration from _history
     auto updateChain = _history.front();
+    drawChainOnSlice(updateChain);
     std::vector<cv::Vec3f> forceVector(_chainLength, cv::Vec3f(0, 0, 0));
 
     for (uint32_t i = 0; i < _chainLength; ++i) {
-        if (updateChain[i].isStopped())
+        if (!updateChain[i].isMoving())
             continue;
 
         // update normals every _stepsBeforeReslice steps
+        auto particleNormal = cv::Vec3f(0, 0, 0);
         if (_updateCount % _stepsBeforeReslice == 0) {
-            // pretend that the normals at the end of the chain
-            // are the same as the ones adjacent
+            // pretend that the normals at the end of the chain are the same as the ones adjacent
             if (i == 0) {
-                updateNormal(1);
+                particleNormal = calculateNormal(1, updateChain);
             } else if (i == _chainLength - 1) {
-                updateNormal(_chainLength - 2);
+                particleNormal = calculateNormal(_chainLength-2, updateChain);
             } else {
-                updateNormal(uint64_t(i));
+                particleNormal = calculateNormal(i, updateChain);
             }
         }
 
         // reslice and find next position
-        Slice s = field.reslice(updateChain[i].position(), _savedNormals[i], VC_DIRECTION_K);
+        Slice s = field.reslice(updateChain[i].position(), particleNormal, VC_DIRECTION_K);
 
         if (i == 32) {
             s.debugDraw(DEBUG_DRAW_CENTER);
-            s.debugAnalysis();
+            s.drawSliceAndCenter();
         }
 
         forceVector[i] += (s.findNextPosition() - updateChain[i].position());
@@ -86,15 +84,32 @@ void Chain::step(Field& field) {
     // Add the modified chain back to _history
     _updateCount++;
     _history.push_front(updateChain);
+    cv::waitKey(0);
 }
 
 // Returns true if any Particle in the chain is still moving
-bool Chain::isMoving() {
-    bool result = true;
-    for (uint32_t i = 0; i < _chainLength; ++i) {
-        result &= _history.front()[i].isStopped();
+bool Chain::hasMovingParticle() {
+    return std::any_of(_history.front().begin(), _history.front().end(), [](Particle p) { return p.isMoving(); });
+}
+
+void Chain::drawChainOnSlice(std::vector<Particle> v) {
+    auto zidx = v[0](VC_INDEX_Z);
+    auto debug = _volpkg.getSliceData(zidx);
+    debug /= 255.0;
+    debug.convertTo(debug, CV_8UC3);
+    cvtColor(debug, debug, CV_GRAY2BGR);
+
+    // draw circles on the debug window for each point
+    for (uint32_t i = 0; i < v.size(); ++i) {
+        cv::Point position(v[i](VC_INDEX_X), v[i](VC_INDEX_Y));
+        if (i == 32)
+            circle(debug, position, 2, cv::Scalar(0, 255, 255), -1);
+        else
+            circle(debug, position, 2, cv::Scalar(0, 255, 0), -1);
     }
-    return !result;
+
+    namedWindow("DEBUG CHAIN", cv::WINDOW_AUTOSIZE);
+    imshow("DEBUG CHAIN", debug);
 }
 
 // draw a debug window with an option to write to disk
@@ -154,7 +169,7 @@ pcl::PointCloud<pcl::PointXYZRGB> Chain::orderedPCD() {
         // Add each Particle in the row into storage at the correct position
         // Note: This is where we convert the internal cloud's coordinate ordering back to volume ordering
         for (uint32_t i = 0; i < _chainLength; ++i) {
-            int currentCell = int(((v[i](VC_INDEX_Z)) - _startIdx / _threshold)); //TODO: Something seems wrong here.
+            int currentCell = int(((v[i](VC_INDEX_Z)) - _startIdx / _stepSize)); //TODO: Something seems wrong here.
             pcl::PointXYZRGB point;
             point.x = v[i](VC_INDEX_X);
             point.y = v[i](VC_INDEX_Y);
