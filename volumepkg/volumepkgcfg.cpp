@@ -63,14 +63,14 @@ int VolumePkgCfg::getInt(std::string identifier) {
     if ( jsonString.get(identifier).is<double>() )
         return (int) jsonString.get(identifier).get<double>();
     else
-        return NULL;
+        return 0;
 }
 
 double VolumePkgCfg::getDouble(std::string identifier) {
     if ( jsonString.get(identifier).is<double>() )
         return jsonString.get(identifier).get<double>();
     else
-        return NULL;
+        return 0.0;
 }
 
 std::string VolumePkgCfg::getString(std::string identifier, std::string default_output) {
