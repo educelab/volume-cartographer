@@ -12,6 +12,7 @@
 #include "io/objWriter.h"
 
 #include "ACVD.h"
+#include "smoothNormals.h"
 #include "texturingUtils.h"
 
 #include <itkRGBPixel.h>
@@ -81,6 +82,12 @@ int main(int argc, char* argv[])
     // [u, v] == point's position in the output matrix
     unsigned long pointID, meshX, meshY;
     double u, v;
+
+    // Remesh using ACVD
+    int numOfSamples = 10000;
+    float gradation = 0;
+
+    mesh = volcart::meshing::ACVD(mesh, numOfSamples, gradation);
     
     // Load the slices from the volumepkg
     std::vector< cv::Mat > aImgVol;
@@ -136,13 +143,6 @@ int main(int argc, char* argv[])
         uvMap.insert( {pointID, uv} );
     }
 
-    // Remesh using ACVD
-    int numOfSamples = 3000;
-    float gradation = 0;
-
-    mesh = volcart::meshing::ACVD(mesh, numOfSamples, gradation);
-
-
     // Initialize iterators
     VC_CellIterator  cellIterator = mesh->GetCells()->Begin();
     VC_CellIterator  cellEnd      = mesh->GetCells()->End();
@@ -155,7 +155,7 @@ int main(int argc, char* argv[])
         // Link the pointer to our current cell
         cell = cellIterator.Value();
         
-        std::cout << "Texturing face " << cellIterator.Index() << "/" << cellEnd.Index() << "\r" << std::flush;
+        //std::cout << "Texturing face " << cellIterator.Index() << "/" << cellEnd.Index() << "\r" << std::flush;
 
         // Iterate over the vertices of the current cell
         pointsIterator = cell->PointIdsBegin();
@@ -167,6 +167,8 @@ int main(int argc, char* argv[])
             VC_PixelType normal;
             mesh->GetPointData( pointID, &normal );
 
+            //std::cout << "Point: " << p << " | Normal: " << normal << std::endl;
+
             // Calculate the point's [meshX, meshY] position based on its pointID
             meshX = pointID % meshWidth;
             meshY = (pointID - meshX) / meshWidth;
@@ -174,6 +176,9 @@ int main(int argc, char* argv[])
             // Calculate the point's pixel position in the output texture
             u = (double) textureW * (double) meshX / (double) meshWidth;
             v = (double) textureH * (double) meshY / (double) meshHeight;
+
+            //std::cout << "u, v: " << u << ", " << v << std::endl;
+
 
             // Fill in the output pixel with a value
             // cv::Mat.at uses (row, column)
@@ -185,13 +190,16 @@ int main(int argc, char* argv[])
                                               minorRadius,
                                               0.5,
                                               aDirectionOption);
+
+            //std::cout << "Intensity: " << value << std::endl;
+
             outputTexture.at < unsigned short > (v, u) = (unsigned short) value;
 
             pointsIterator += 3; // Only consider top left vertices of triangles
         }
 
         // Only consider every other triangle
-        ++cellIterator;
+        //++cellIterator;
         ++cellIterator;
     }
     std::cout << std::endl;
@@ -204,4 +212,3 @@ int main(int argc, char* argv[])
 
     return 0;
 } // end main
-
