@@ -54,23 +54,10 @@ inline double interpolate_intensity( const cv::Vec3f                 &point,
   z_min = (int)point(2);
   z_max = z_min + 1;
 
-  // std::cout << "X min: " << x_min << " | X max: " << x_max << " | ";
-  // std::cout << "Y min: " << y_min << " | Y max: " << y_max << " | ";
-  // std::cout << "Z min: " << z_min << " | Z max: " << z_max << " | ";
-  // std::cout << "Point: " << point << std::endl;
-
-  // std::cout << "Image Volume size: " << nImgVol.size() - 1 << " | ";
-  // std::cout << "Columns: " << nImgVol[ z_min ].cols - 1 << " | ";
-  // std::cout << "Z min: " << z_min << std::endl;
-
   // safe net
   if ( z_min < 0 || z_max > nImgVol.size() - 1 ||
        x_min < 0 || x_max > nImgVol[ z_min ].cols - 1 ||
        y_min < 0 || y_max > nImgVol[ z_min ].cols - 1 ) {
-
-    std::cout << "Out of bounds!" << " | ";
-    std::cout << "Columns: " << nImgVol[ z_min ].cols - 1 << " | ";
-    std::cout << "Z min: " << z_min << std::endl;
 
     return 0;
 
