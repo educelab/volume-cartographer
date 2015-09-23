@@ -22,7 +22,7 @@ deploy_it_osx:
         - mkdir build
         - cd build/
         - echo "---- Make it better. ----"
-        - cmake -DBUILD_DragNDrop=ON -DBUILD_OSX_APPS=ON -DBoost_USE_STATIC_LIBS=ON -DINSTALL_VC_DEMO=ON ..
+        - cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_DragNDrop=ON -DBUILD_OSX_APPS=ON -DBoost_USE_STATIC_LIBS=ON -DINSTALL_VC_DEMO=ON ..
         - echo "---- Do it faster. ----"
         - make package -j8
         - echo "---- Makes us stronger. ----"
