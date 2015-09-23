@@ -38,6 +38,8 @@ public:
 
     void drawSliceAndCenter();
 
+    cv::Vec3f sliceCoordToVoxelCoord(cv::Point);
+
 private:
     cv::Mat _slice;
     cv::Vec3f _origin;

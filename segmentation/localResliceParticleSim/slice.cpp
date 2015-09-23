@@ -1,3 +1,4 @@
+#include <cmath>
 #include "slice.h"
 #include "NormalizedIntensityMap.h"
 
@@ -28,17 +29,32 @@ Slice::Slice(cv::Mat slice, cv::Vec3f origin, cv::Vec3f center, cv::Vec3f x_dire
 
 cv::Vec3f Slice::findNextPosition() {
     constexpr auto lookaheadDepth = 5;
-    auto map = NormalizedIntensityMap(_slice.row(_slice.rows / 2 + lookaheadDepth));
+    auto center = cv::Point(_slice.cols / 2, _slice.rows / 2);
 
-    map.draw(400, 400);
-    std::cout << map << std::endl;
-    drawSliceAndCenter();
-    cv::waitKey(0);
+    const auto map = NormalizedIntensityMap(_slice.row(center.y + lookaheadDepth));
+    auto maxima = map.findNMaxima(4);
+    for (auto p : maxima) {
+        std::cout << "idx = " << p.first << ", intensity = " << p.second << std::endl;
+    }
 
-    return cv::Vec3f(0, 0, 0);
+    // Sort maxima by whichever is closest to current index of center (using standard euclidean 1D distance)
+    using Pair = std::pair<uint32_t, double>;
+    std::sort(maxima.begin(), maxima.end(), [center](Pair lhs, Pair rhs) {
+        auto x = center.x;
+        auto ldist2 = int32_t(std::sqrt(double((lhs.first - x)) * (lhs.first - x)));
+        auto rdist2 = int32_t(std::sqrt(double((rhs.first - x)) * (rhs.first - x)));
+        return ldist2 < rdist2;
+    });
+
+    // Find next point in slice space
+    auto nextPoint = cv::Point(maxima.at(0).first, center.y + lookaheadDepth);
+    std::cout << _center << " -> " << sliceCoordToVoxelCoord(nextPoint) << std::endl;
+    return sliceCoordToVoxelCoord(nextPoint);
 }
 
 void Slice::drawSliceAndCenter() {
+    const auto map = NormalizedIntensityMap(_slice.row(_slice.rows / 2 + 5));
+    map.draw(400, 400);
     auto debug = _slice.clone();
     debug /= 255.0;
     debug.convertTo(debug, CV_8UC3);
@@ -47,21 +63,6 @@ void Slice::drawSliceAndCenter() {
 
     // Draw circle at pixel representing center
     circle(debug, imcenter, 0, BGR_MAGENTA, -1);
-
-    // Draw line over column of imcenter
-    /*
-    auto p1 = cv::Point(debug.cols / 2, 0);
-    auto p2 = cv::Point(debug.cols / 2, debug.rows);
-    cv::line(debug, p1, p2, BGR_CYAN);
-     */
-
-    // Draw line over row for intensity map
-    /*
-    auto imapP1 = cv::Point(0, debug.rows / 2 + 5);
-    auto imapP2 = cv::Point(debug.rows, debug.rows / 2 + 5);
-    cv::line(debug, imapP1, imapP2, BGR_RED);
-     */
-
     namedWindow("DEBUG SLICE", cv::WINDOW_NORMAL);
     imshow("DEBUG SLICE", debug);
 }
@@ -124,4 +125,8 @@ void Slice::debugDraw(int debugDrawOptions) {
 
 cv::Mat Slice::mat() {
     return _slice.clone();
+}
+
+cv::Vec3f Slice::sliceCoordToVoxelCoord(cv::Point point) {
+    return _origin + (point.x * _xvec + point.y * _yvec);
 }
