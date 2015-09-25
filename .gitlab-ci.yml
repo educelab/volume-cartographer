@@ -1,0 +1,37 @@
+stages:
+    - test
+    - deploy
+
+build_it_test_it:
+    stage: test
+    script:
+        - echo "---- Work it. Make it. ----"
+        - mkdir build
+        - cd build/
+        - cmake ..
+        - make
+        - echo "---- Do it. Makes us. ----"
+        - echo "Testing coming soon..."
+    tags:
+        - test
+
+deploy_it_osx:
+    stage: deploy
+    script:
+        - echo "---- Work it harder. ----"
+        - mkdir build
+        - cd build/
+        - echo "---- Make it better. ----"
+        - cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_DragNDrop=ON -DBUILD_OSX_APPS=ON -DBoost_USE_STATIC_LIBS=ON -DINSTALL_VC_DEMO=ON ..
+        - echo "---- Do it faster. ----"
+        - make package -j8
+        - echo "---- Makes us stronger. ----"
+        - version=$(../utils/scripts/version-gen.sh)
+        - mkdir -p ~/Dropbox/VC-Releases/v${version}
+        - cp VC* ~/Dropbox/VC-Releases/v${version}
+    only:
+        - master
+    tags:
+        - deploy
+        - osx
+        - static
