@@ -46,6 +46,9 @@ int main(int argc, char* argv[])
     smoothingFactor = atof( argv[ 3 ] );
 
     int aSampleDir = atoi( argv[ 4 ] ); // sampleDirection (0=omni, 1=positive, 2=negative)
+    if ( aSampleDir != 0 || aSampleDir != 1 || aSampleDir != 2 ) {
+        std::cerr << "ERROR: Selected sample direction not recognized." << std::endl;
+    }
     EDirectionOption aDirectionOption = ( EDirectionOption )aSampleDir;
 
     int sections = atoi( argv[ 5 ] );
