@@ -44,6 +44,9 @@ IF(APPLE)
     SET(EXTRA_LIBS ${SECURITY_LIBRARY})
 ENDIF(APPLE)
 
+#for unit testing
+enable_testing()
+
 # VC Libraries
 add_subdirectory(common)
 include_directories(${VC_COMMON_INCLUDE_DIR})
