@@ -41,6 +41,14 @@ public:
     cv::Vec3f sliceCoordToVoxelCoord(cv::Point);
 
 private:
+    friend std::ostream& operator<<(std::ostream& s, Slice& t) {
+        s << "origin = " << t._origin << std::endl;
+        s << "center = " << t._center << std::endl;
+        s << "xvec   = " << t._xvec << std::endl;
+        s << "yvec   = " << t._yvec << std::endl;
+        return s;
+    }
+
     cv::Mat _slice;
     cv::Vec3f _origin;
     cv::Vec3f _center;

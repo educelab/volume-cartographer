@@ -49,6 +49,7 @@ private:
     uint32_t _startIdx; // Starting slice index
     int32_t _targetIdx; // Target slice index
     int32_t _stepSize; // To-Do: What is this for now? We may not need this.
+    std::vector<cv::Vec3f> _savedNormals;
 
     cv::Vec3f calculateNormal(uint64_t, std::vector<Particle>);
 };

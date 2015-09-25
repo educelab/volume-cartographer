@@ -18,6 +18,9 @@ Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg& volpkg, 
     _history.push_front(initChain);
     _chainLength = initChain.size();
 
+    // Saved particle normals for when they're updated every N slices
+    _savedNormals = std::vector<cv::Vec3f>(_chainLength, cv::Vec3f(0, 0, 0));
+
     // Find the lowest slice index in the starting chain
     auto minParticle = *std::min_element(initChain.begin(), initChain.end(),
                                   [](const Particle& a, const Particle& b) { return a(VC_INDEX_Z) < b(VC_INDEX_Z); });
@@ -44,32 +47,32 @@ void Chain::step(Field& field) {
     auto updateChain = _history.front();
     drawChainOnSlice(updateChain);
     std::vector<cv::Vec3f> forceVector(_chainLength, cv::Vec3f(0, 0, 0));
+    //std::for_each(updateChain.begin(), updateChain.end(), [](Particle p) { std::cout << p << ", "; });
 
     for (uint32_t i = 0; i < _chainLength; ++i) {
         if (!updateChain[i].isMoving())
             continue;
 
         // update normals every _stepsBeforeReslice steps
-        auto particleNormal = cv::Vec3f(0, 0, 0);
         if (_updateCount % _stepsBeforeReslice == 0) {
             // pretend that the normals at the end of the chain are the same as the ones adjacent
             if (i == 0) {
-                particleNormal = calculateNormal(1, updateChain);
+                _savedNormals[i] = calculateNormal(1, updateChain);
             } else if (i == _chainLength - 1) {
-                particleNormal = calculateNormal(_chainLength-2, updateChain);
+                _savedNormals[i] = calculateNormal(_chainLength-2, updateChain);
             } else {
-                particleNormal = calculateNormal(i, updateChain);
+                _savedNormals[i] = calculateNormal(i, updateChain);
             }
         }
 
         // reslice and find next position
-        Slice s = field.reslice(updateChain[i].position(), particleNormal, VC_DIRECTION_K);
+        Slice s = field.reslice(updateChain[i].position(), _savedNormals[i], VC_DIRECTION_K);
 
-        if (i == 32) {
+        if (i == 0) {
+            std::cout << "i = " << i << std::endl;
             s.debugDraw(DEBUG_DRAW_CENTER);
             s.drawSliceAndCenter();
         }
-
         forceVector[i] += (s.findNextPosition() - updateChain[i].position());
     }
 
@@ -82,6 +85,7 @@ void Chain::step(Field& field) {
     }
 
     // Add the modified chain back to _history
+    //std::for_each(updateChain.begin(), updateChain.end(), [](Particle p) { std::cout << p << ", "; });
     _updateCount++;
     _history.push_front(updateChain);
     cv::waitKey(0);

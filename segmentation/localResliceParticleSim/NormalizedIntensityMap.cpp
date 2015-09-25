@@ -54,14 +54,9 @@ std::vector<std::pair<uint32_t, double>> NormalizedIntensityMap::findNMaxima(con
         }
     }
     std::sort(crossings.begin(), crossings.end(), [](Pair lhs, Pair rhs) { return lhs.second > rhs.second; });
-    for (auto c : crossings) {
-        std::cout << "(" << c.first << ", " << c.second << ") ";
-    }
-    std::cout << std::endl;
 
     // Take first (up to) N points
-    auto nPoints = std::vector<Pair>();
-    std::cout << "Crossings length: " << crossings.size() << std::endl;
-    std::copy_n(crossings.begin(), std::min({n, uint32_t(crossings.size())}), std::back_inserter(nPoints));
+    auto nPoints = std::vector<Pair>(n);
+    std::copy_n(crossings.begin(), std::min({n, uint32_t(crossings.size())}), nPoints.begin());
     return nPoints;
 }

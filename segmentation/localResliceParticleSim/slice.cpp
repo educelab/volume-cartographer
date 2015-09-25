@@ -28,32 +28,28 @@ Slice::Slice(cv::Mat slice, cv::Vec3f origin, cv::Vec3f center, cv::Vec3f x_dire
 }
 
 cv::Vec3f Slice::findNextPosition() {
-    constexpr auto lookaheadDepth = 5;
+    constexpr auto lookaheadDepth = 2;
     auto center = cv::Point(_slice.cols / 2, _slice.rows / 2);
 
     const auto map = NormalizedIntensityMap(_slice.row(center.y + lookaheadDepth));
-    auto maxima = map.findNMaxima(4);
-    for (auto p : maxima) {
-        std::cout << "idx = " << p.first << ", intensity = " << p.second << std::endl;
-    }
+    auto maxima = map.findNMaxima(5);
 
     // Sort maxima by whichever is closest to current index of center (using standard euclidean 1D distance)
     using Pair = std::pair<uint32_t, double>;
     std::sort(maxima.begin(), maxima.end(), [center](Pair lhs, Pair rhs) {
         auto x = center.x;
-        auto ldist2 = int32_t(std::sqrt(double((lhs.first - x)) * (lhs.first - x)));
-        auto rdist2 = int32_t(std::sqrt(double((rhs.first - x)) * (rhs.first - x)));
-        return ldist2 < rdist2;
+        auto ldist = std::abs(lhs.first - x);
+        auto rdist = std::abs(rhs.first - x);
+        return ldist < rdist;
     });
 
     // Find next point in slice space
     auto nextPoint = cv::Point(maxima.at(0).first, center.y + lookaheadDepth);
-    std::cout << _center << " -> " << sliceCoordToVoxelCoord(nextPoint) << std::endl;
     return sliceCoordToVoxelCoord(nextPoint);
 }
 
 void Slice::drawSliceAndCenter() {
-    const auto map = NormalizedIntensityMap(_slice.row(_slice.rows / 2 + 5));
+    const auto map = NormalizedIntensityMap(_slice.row(_slice.rows / 2 + 2));
     map.draw(400, 400);
     auto debug = _slice.clone();
     debug /= 255.0;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include <opencv2/opencv.hpp>
 
 namespace volcart {
@@ -25,6 +26,10 @@ public:
     cv::Vec3f operator-(Particle&);
 
 private:
+    friend std::ostream& operator<<(std::ostream& s, Particle& p) {
+        return s << p._position;
+    }
+
     cv::Vec3f _position;
     bool _isStopped;
 };
