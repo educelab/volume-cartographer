@@ -1,4 +1,5 @@
 #include <cmath>
+#include <cstdlib>
 #include "slice.h"
 #include "NormalizedIntensityMap.h"
 
