@@ -1,5 +1,3 @@
-#include <cmath>
-#include <cstdlib>
 #include "slice.h"
 #include "NormalizedIntensityMap.h"
 
@@ -39,8 +37,8 @@ cv::Vec3f Slice::findNextPosition() {
     using Pair = std::pair<uint32_t, double>;
     std::sort(maxima.begin(), maxima.end(), [center](Pair lhs, Pair rhs) {
         auto x = center.x;
-        auto ldist = std::abs(lhs.first - x);
-        auto rdist = std::abs(rhs.first - x);
+        auto ldist = std::abs(int32_t(lhs.first - x));
+        auto rdist = std::abs(int32_t(rhs.first - x));
         return ldist < rdist;
     });
 
