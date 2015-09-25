@@ -19,6 +19,7 @@ deploy_it_osx:
     stage: deploy
     script:
         - echo "---- Work it harder. ----"
+        - version=$(utils/scripts/version-gen.sh)
         - mkdir build
         - cd build/
         - echo "---- Make it better. ----"
@@ -26,7 +27,6 @@ deploy_it_osx:
         - echo "---- Do it faster. ----"
         - make package -j8
         - echo "---- Makes us stronger. ----"
-        - version=$(../utils/scripts/version-gen.sh)
         - mkdir -p ~/Dropbox/VC-Releases/v${version}
         - cp VC* ~/Dropbox/VC-Releases/v${version}
     only:
@@ -35,3 +35,14 @@ deploy_it_osx:
         - deploy
         - osx
         - static
+
+archive_it:
+    stage: deploy
+    script:
+        - version=$(utils/scripts/version-gen.sh)
+        - vershort=$(utils/scripts/version-gen.sh --short)
+        - git archive --format=tar.gz -o VC-${vershort}-source.tar.gz HEAD
+        - mkdir -p ~/Dropbox/VC-Releases/v${version}
+        - cp VC-${vershort}-source.tar.gz ~/Dropbox/VC-Releases/v${version}
+    only:
+        - master
