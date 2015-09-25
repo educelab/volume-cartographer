@@ -54,7 +54,7 @@ void Chain::step(Field& field) {
             continue;
 
         // update normals every _stepsBeforeReslice steps
-        if (_updateCount % _stepsBeforeReslice == 0) {
+        //if (_updateCount % _stepsBeforeReslice == 0) {
             // pretend that the normals at the end of the chain are the same as the ones adjacent
             if (i == 0) {
                 _savedNormals[i] = calculateNormal(1, updateChain);
@@ -63,13 +63,12 @@ void Chain::step(Field& field) {
             } else {
                 _savedNormals[i] = calculateNormal(i, updateChain);
             }
-        }
+        //}
 
         // reslice and find next position
         Slice s = field.reslice(updateChain[i].position(), _savedNormals[i], VC_DIRECTION_K);
 
-        if (i == 0) {
-            std::cout << "i = " << i << std::endl;
+        if (i == 29) {
             s.debugDraw(DEBUG_DRAW_CENTER);
             s.drawSliceAndCenter();
         }
@@ -112,7 +111,7 @@ void Chain::drawChainOnSlice(std::vector<Particle> v) {
             circle(debug, position, 2, cv::Scalar(0, 255, 0), -1);
     }
 
-    namedWindow("DEBUG CHAIN", cv::WINDOW_AUTOSIZE);
+    namedWindow("DEBUG CHAIN", cv::WINDOW_NORMAL);
     imshow("DEBUG CHAIN", debug);
 }
 

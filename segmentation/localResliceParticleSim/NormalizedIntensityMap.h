@@ -16,7 +16,7 @@ public:
 
     void draw(const uint32_t, const uint32_t) const;
 
-    std::vector<std::pair<uint32_t, double>> findNMaxima(const uint32_t n=4) const;
+    std::vector<std::pair<uint32_t, double>> findMaxima(void) const;
 
 private:
     friend std::ostream& operator<<(std::ostream& s, const NormalizedIntensityMap& m) {

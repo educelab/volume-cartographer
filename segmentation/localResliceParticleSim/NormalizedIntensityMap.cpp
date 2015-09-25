@@ -2,8 +2,9 @@
 
 using namespace volcart::segmentation;
 
-const auto BGR_RED    = cv::Scalar(0, 0   , 0xFF);
-const auto BGR_YELLOW = cv::Scalar(0, 0xFF, 0xFF);
+const auto BGR_RED    = cv::Scalar(0,    0   , 0xFF);
+const auto BGR_YELLOW = cv::Scalar(0,    0xFF, 0xFF);
+const auto BGR_BLUE   = cv::Scalar(0xFF, 0,    0   );
 
 NormalizedIntensityMap::NormalizedIntensityMap(cv::Mat r) {
     cv::normalize(r, _intensities, 0, 1, CV_MINMAX, CV_64FC1);
@@ -21,13 +22,26 @@ void NormalizedIntensityMap::draw(const uint32_t displayWidth, const uint32_t di
     }
 
     // DEBUG: draw vertical lines at maxima points
-    auto maxima = findNMaxima();
+    auto maxima = findMaxima();
+    /*
     for (auto m : maxima) {
         cv::line(mapImage, cv::Point(binWidth * m.first, 0), cv::Point(binWidth * m.first, mapImage.rows), BGR_RED);
+    }*/
+
+    // Sort by closest maxima available and draw line on that
+    auto centerX = _intensities.cols / 2;
+    auto minDist = std::numeric_limits<int32_t>::max();
+    auto minIdx = -1;
+    for (auto i = 0; i < maxima.size(); ++i) {
+        auto currentDist = std::abs(int32_t(maxima[i].first - centerX));
+        if (currentDist < minDist) {
+            minDist = currentDist;
+            minIdx = i;
+        }
     }
+    cv::line(mapImage, cv::Point(binWidth * maxima[minIdx].first, 0), cv::Point(binWidth * maxima[minIdx].first, mapImage.rows), BGR_BLUE);
 
     // Vertical line at particle's current x position
-    auto centerX = _intensities.cols / 2;
     cv::line(mapImage, cv::Point(binWidth * centerX, 0), cv::Point(binWidth * centerX, mapImage.rows), BGR_YELLOW);
 
     cv::namedWindow("Intensity Map", cv::WINDOW_AUTOSIZE);
@@ -35,17 +49,17 @@ void NormalizedIntensityMap::draw(const uint32_t displayWidth, const uint32_t di
 }
 
 // Finds the top 'N' maxima in the row being processed
-std::vector<std::pair<uint32_t, double>> NormalizedIntensityMap::findNMaxima(const uint32_t n) const {
+std::vector<std::pair<uint32_t, double>> NormalizedIntensityMap::findMaxima(void) const {
     using Pair = std::pair<uint32_t, double>;
     // Find derivative of intensity curve
     cv::Mat sobelDerivatives;
     cv::Sobel(_intensities, sobelDerivatives, CV_64FC1, 1, 0);
 
-    // Get indices of positive -> negative/negative -> positive transitions, store in pairs (index, intensity), then
-    // sort in reverse.
+    // Get indices of positive -> negative transitions, store in pairs (index, intensity)
     auto crossings = std::vector<Pair>();
     for (auto i = 0; i < sobelDerivatives.cols - 1; ++i) {
-        if (sobelDerivatives.at<double>(i) * sobelDerivatives.at<double>(i+1) < 0) {
+        if (sobelDerivatives.at<double>(i) * sobelDerivatives.at<double>(i+1) <= 0 &&
+            sobelDerivatives.at<double>(i) > sobelDerivatives.at<double>(i+1)) {
             if (_intensities.at<double>(i) > _intensities.at<double>(i+1)) {
                 crossings.push_back(std::make_pair(i, _intensities.at<double>(i)));
             } else {
@@ -53,10 +67,11 @@ std::vector<std::pair<uint32_t, double>> NormalizedIntensityMap::findNMaxima(con
             }
         }
     }
-    std::sort(crossings.begin(), crossings.end(), [](Pair lhs, Pair rhs) { return lhs.second > rhs.second; });
 
-    // Take first (up to) N points
-    auto nPoints = std::vector<Pair>(n);
-    std::copy_n(crossings.begin(), std::min({n, uint32_t(crossings.size())}), nPoints.begin());
-    return nPoints;
+    // Remove the intensities that are smaller than wherever the particle is currently
+    std::remove_if(crossings.begin(), crossings.end(), [this](Pair p) {
+        return p.second < _intensities.at<double>(_intensities.cols / 2);
+    });
+
+    return crossings;
 }

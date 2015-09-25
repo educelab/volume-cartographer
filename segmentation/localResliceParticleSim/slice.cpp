@@ -26,12 +26,14 @@ Slice::Slice(cv::Mat slice, cv::Vec3f origin, cv::Vec3f center, cv::Vec3f x_dire
     : _slice(slice), _origin(origin), _center(center), _xvec(x_direction), _yvec(y_direction) {
 }
 
+
+
 cv::Vec3f Slice::findNextPosition() {
     constexpr auto lookaheadDepth = 2;
     auto center = cv::Point(_slice.cols / 2, _slice.rows / 2);
 
     const auto map = NormalizedIntensityMap(_slice.row(center.y + lookaheadDepth));
-    auto maxima = map.findNMaxima(5);
+    auto maxima = map.findMaxima();
 
     // Sort maxima by whichever is closest to current index of center (using standard euclidean 1D distance)
     using Pair = std::pair<uint32_t, double>;
