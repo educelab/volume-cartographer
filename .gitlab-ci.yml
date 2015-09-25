@@ -8,12 +8,13 @@ build_it_test_it:
         - echo "---- Work it. Make it. ----"
         - mkdir build
         - cd build/
-        - cmake ..
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 ..
         - make
         - echo "---- Do it. Makes us. ----"
         - echo "Testing coming soon..."
     tags:
         - test
+        - homebrew
 
 deploy_it_osx:
     stage: deploy
