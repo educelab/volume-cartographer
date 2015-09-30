@@ -37,8 +37,18 @@ Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg& volpkg, 
 }
 
 cv::Vec3f Chain::calculateNormal(uint64_t i, std::vector<Particle> prevChain) {
-    auto tangent = prevChain.at(i+1) - prevChain.at(i-1);
-    return tangent.cross(VC_DIRECTION_K);
+    // Create N x 3 matrix from chain
+    auto matChain = cv::Mat(prevChain.size(), 2, CV_32F);
+    auto matChainZ = cv::Mat(prevChain.size(), 1, CV_32F);
+    for (auto i = 0; i < prevChain.size(); ++i) {
+        matChain.at<float>(i, VC_INDEX_X) = prevChain[i].position()(VC_INDEX_X);
+        matChain.at<float>(i, VC_INDEX_Y) = prevChain[i].position()(VC_INDEX_Y);
+        matChainZ.at<float>(i, 0) = prevChain[i].position()(VC_INDEX_Z);
+    }
+    auto mean = cv::mean(matChainZ)(0);
+    auto tangent = cv::Point2f(matChain.at<float>(i+1) - matChain.at<float>(i-1));
+    auto tanVec = cv::Vec3f(tangent.x, tangent.y, mean);
+    return tanVec.cross(VC_DIRECTION_K);
 }
 
 // This function defines how particles are updated
