@@ -225,6 +225,63 @@ std::string VolumePkg::newSegmentation() {
   return segName;
 }
 
+Slice VolumePkg::reslice(cv::Vec3f origin, cv::Vec3f xvec, cv::Vec3f yvec, uint32_t width, uint32_t height) {
+    auto xnorm = cv::normalize(xvec);
+    auto ynorm = cv::normalize(yvec);
+
+    cv::Mat m(height, width, CV_16UC1);
+
+    for (int h = 0; h < height; ++h) {
+        for (int w = 0; w < width; ++w) {
+            cv::Vec3f v = origin + (h * ynorm) + (w * xnorm);
+            m.at<uint16_t>(h, w) = interpolateAt(v);
+        }
+    }
+
+    return Slice(m, origin, xnorm, ynorm);
+}
+
+// Trilinear Interpolation: Particles are not required
+// to be at integer positions so we estimate their
+// normals with their neighbors's known normals.
+//
+// formula from http://paulbourke.net/miscellaneous/interpolation/
+uint16_t VolumePkg::interpolateAt(cv::Vec3f point) {
+    double int_part;
+    double dx = modf(point(VC_INDEX_X), &int_part);
+    double dy = modf(point(VC_INDEX_Y), &int_part);
+    double dz = modf(point(VC_INDEX_Z), &int_part);
+
+    int x_min = (int) point(VC_INDEX_X);
+    int x_max = x_min + 1;
+    int y_min = (int) point(VC_INDEX_Y);
+    int y_max = y_min + 1;
+    int z_min = (int) point(VC_INDEX_Z);
+    int z_max = z_min + 1;
+
+    // Slice data for certain slices
+    auto slice0 = getSliceData(0);
+    auto sliceZmin = getSliceData(z_min);
+    auto sliceZmax = getSliceData(z_max);
+
+    // insert safety net
+    if (x_min < 0 || y_min < 0 || z_min < 0 ||
+        x_max >= slice0.cols || y_max >= slice0.rows ||
+        uint32_t(z_max) >= getNumberOfSlices()) {
+        return 0;
+    }
+
+    return uint16_t(
+            sliceZmin.at<uint16_t>(y_min, x_min) * (1 - dx) * (1 - dy) * (1 - dz) +
+            sliceZmax.at<uint16_t>(y_min, x_min) * dx       * (1 - dy) * (1 - dz) +
+            sliceZmin.at<uint16_t>(y_max, x_min) * (1 - dx) * dy       * (1 - dz) +
+            sliceZmin.at<uint16_t>(y_min, x_max) * (1 - dx) * (1 - dy) * dz +
+            sliceZmax.at<uint16_t>(y_min, x_max) * dx       * (1 - dy) * dz +
+            sliceZmin.at<uint16_t>(y_max, x_max) * (1 - dx) * dy       * dz +
+            sliceZmax.at<uint16_t>(y_max, x_min) * dx       * dy       * (1 - dz) +
+            sliceZmax.at<uint16_t>(y_max, x_max) * dx       * dy       * dz);
+}
+
 // Return the point cloud currently on disk for the activeSegmentation
 pcl::PointCloud<pcl::PointXYZRGB>::Ptr VolumePkg::openCloud() {
     // To-Do: Error if activeSeg not set

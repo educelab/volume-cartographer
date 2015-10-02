@@ -20,9 +20,15 @@
 
 #include "volumepkgcfg.h"
 #include "volumepkg_version.h"
+#include "Slice.h"
 #include "orderedPCDMesher.h"
 #include "../texture/CMesh.h"
 #include "../texture/CPlyHelper.h"
+
+// Indices for indexing into vectors
+#define VC_INDEX_X 0
+#define VC_INDEX_Y 1
+#define VC_INDEX_Z 2
 
 class VolumePkg {
 public:
@@ -67,7 +73,8 @@ public:
     void saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr);
     void saveTexturedMesh(ChaoVis::CMesh);
     void saveTextureData(cv::Mat, std::string = "texture");
-    
+    Slice reslice(cv::Vec3f, cv::Vec3f, cv::Vec3f, uint32_t, uint32_t);
+
 private:
     VolumePkgCfg config;
     std::string location;
@@ -77,6 +84,7 @@ private:
     std::vector<std::string> segmentations;
 
     std::string findKeyType(std::string);
+    uint16_t interpolateAt(cv::Vec3f point);
 };
 
 #endif // _VOLUMEPKG_H_
