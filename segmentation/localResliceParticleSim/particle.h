@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef _VOLCART_SEGMENTATION_PARTICLE_H_
+#define _VOLCART_SEGMENTATION_PARTICLE_H_
+
 #include <iostream>
 #include <opencv2/opencv.hpp>
 
@@ -19,21 +22,27 @@ public:
 
     void stop();
 
-    void operator+=(cv::Vec3f);
+    Particle& operator+=(const Particle&);
+
+    Particle operator+(const Particle, const Particle&);
 
     float operator()(int) const;
 
-    cv::Vec3f operator-(Particle&);
+    Particle& operator-=(const Particle&);
+
+    Particle operator-(const Particle, const Particle&);
 
 private:
     friend std::ostream& operator<<(std::ostream& s, Particle& p) {
-        return s << p._position;
+        return s << p.position_;
     }
 
-    cv::Vec3f _position;
-    bool _isStopped;
+    cv::Vec3f position_;
+    bool isStopped_;
 };
 
 }
 
 }
+
+#endif

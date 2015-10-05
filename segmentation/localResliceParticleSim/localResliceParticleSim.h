@@ -11,7 +11,7 @@
 #include "volumepkg.h"
 
 #include "field.h"
-#include "particle.h"
+#include "Particle.h"
 #include "chain.h"
 #include "slice.h"
 

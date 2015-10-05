@@ -5,6 +5,13 @@
 
 using namespace volcart::segmentation;
 
+Chain::Chain(VolumePkg& volpkg) : volpkg_(volpkg), particleVecIsSet_(false) {
+    auto segmentationPath = volpkg_.openCloud();
+    for (auto path : *segmentationPath) {
+        particles_.push_back(Particle(path.x, path.y, path.z));
+    }
+}
+
 Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg& volpkg, int stepSize, int endOffset,
                    int stepsBeforeReslice) :
     _volpkg(volpkg), _updateCount(0), _stepsBeforeReslice(stepsBeforeReslice), _stepSize(stepSize) {
@@ -203,4 +210,35 @@ pcl::PointCloud<pcl::PointXYZRGB> Chain::orderedPCD() {
         }
     }
     return cloud;
+}
+
+// Converts the chain (vector<Particle>) to a cv::Mat for more efficient computation
+// Caches conversion
+cv::Mat Chain::particleChainToMat() {
+    if (particleVecIsSet_) {
+        return particleVec_;
+    }
+    particleVec_ = cv::Mat(particles_.size(), 3, CV_32F);
+    for (int32_t i = 0; i < particles_.size(); ++i) {
+        particleVec_.at<cv::Vec3f>(i) = particles_.at(i).position();
+    }
+    return particleVec_;
+}
+
+// Calculuates the order'th derivative of the chain
+cv::Mat Chain::deriv(uint32_t order) {
+    auto particleVec = particleChainToMat();
+    cv::Mat d;
+    cv::Sobel(particleVec, d, CV_32F, 0, order, 1);
+    return d;
+}
+
+double Chain::tension() {
+    auto firstDeriv = deriv(1);
+    return cv::norm(firstDeriv, cv::NORM_L2SQR);
+}
+
+double Chain::stiffness() {
+    auto secondDeriv = deriv(2);
+    return cv::norm(secondDeriv, cv::NORM_L2SQR);
 }

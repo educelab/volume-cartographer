@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef _VOLCART_SEGMENTATION_CHAIN_H_
+#define _VOLCART_SEGMENTATION_CHAIN_H_
+
 #define DEFAULT_OFFSET -1
 
 #include <opencv2/opencv.hpp>
@@ -8,7 +11,7 @@
 #include <pcl/point_types.h>
 
 #include "field.h"
-#include "particle.h"
+#include "Particle.h"
 
 // this is similar to the chain class in structureTensor
 // it tries to find the next position of the particles
@@ -20,6 +23,17 @@ namespace segmentation {
 
 class Chain {
 public:
+    Chain(VolumePkg& pkg);
+
+    // First derivative
+    double tension();
+
+    // Second derivative
+    double stiffness();
+
+    cv::Mat deriv(uint32_t order=1);
+
+    ///////////////////////////////////////////////////////////////////////////////////////
     Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr, VolumePkg&, int, int, int=1);
 
     void step(Field&);
@@ -33,9 +47,16 @@ public:
     pcl::PointCloud<pcl::PointXYZRGB> orderedPCD();
 
 private:
+    std::vector<Particle> particles_;
+    VolumePkg& volpkg_;
+    bool particleVecIsSet_;
+    cv::Mat particleVec_;
+
+    cv::Mat particleChainToMat();
+
+    ///////////////////////////////////////////////////////////////////////////////
     // History of the chain at each iteration
     std::list<std::vector<Particle>> _history;
-    VolumePkg&_volpkg;
     int _updateCount;
 
     // "reslicing" happens when we update the normals
@@ -52,8 +73,11 @@ private:
     std::vector<cv::Vec3f> _savedNormals;
 
     cv::Vec3f calculateNormal(uint64_t, std::vector<Particle>);
+
 };
 
 }
 
 }
+
+#endif
