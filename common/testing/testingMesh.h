@@ -16,6 +16,8 @@ namespace testing {
         testingMesh();
 
         VC_MeshType::Pointer itkMesh();
+        std::vector<VC_Vertex> getPoints() {return _points;}
+        std::vector<VC_Cell> getCells() {return _cells;}
 
     private:
         std::vector<VC_Vertex> _points;
