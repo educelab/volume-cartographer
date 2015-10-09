@@ -11,7 +11,7 @@ add_executable(vc_itk2vtkExample itk2vtkExample.cpp)
 target_link_libraries(vc_itk2vtkExample ${VC_LIBS} ${VC_REQ_LIBS})
 
 
-add_executable(vc_sampleTest ${CMAKE_CURRENT_SOURCE_DIR}/testing/sampleTest.cpp)
+add_executable(vc_sampleTest ../testing/examples/sampleTest.cpp)
 target_link_libraries(vc_sampleTest ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 
 add_test(sample ${CMAKE_CURRENT_SOURCE_DIR}/testing/sampleTest.cpp})

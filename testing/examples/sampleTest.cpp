@@ -4,17 +4,55 @@
 
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE sample
+
 #include <boost/test/unit_test.hpp>
-#include <boost/test/test_tools.hpp>
+#include <boost/test/unit_test_log.hpp>
 #include "testing/testingMesh.h"
-#include <vc_defines.h>
+#include "vc_defines.h"
 #include "io/objWriter.h"
-#include "io/ply2itk.h"
 
 
-//TODO: confirm includes above...probably don't need all these 
+/************************************************************************************
+ *                                                                                  *
+ *  This is a sample test using boost.test unit testing framework. The ultimate     *
+ *  goal of this file is the following:                                             *
+ *                                                                                  *
+ *        1. check whether a testing mesh, created by                               *
+ *           common/testing/testingMesh.cpp, can be written into                    *
+ *           an object file by common/io/objWriter.cpp.                             *
+ *                                                                                  *
+ *        2. read contents of obj file and compare data with testing mesh           *
+ *                                                                                  *
+ *  This file is broken up into a testing fixture, meshFix, which initializes the   *
+ *  objects used in each of the two test cases.                                     *
+ *                                                                                  *
+ *  writeTest (test case):                                                          *
+ *                                                                                  *
+ *      attempts to write a testing mesh to file and compares final output path     *
+ *      as a check for success. Note, this test always outputs the file as          *
+ *      "output.obj" because there is no texture information included when writing. *
+ *                                                                                  *
+ *  compareElements (test case):                                                    *
+ *                                                                                  *
+ *      Attempts to read in information from obj file using boost::path variable.   *
+ *      As data is read in from the obj file, collections of points and faces are   *
+ *      created to compare against points and faces created during initialization   *
+ *      of the testing mesh by meshFix. The test then compares all non-commented    *
+ *      data from the file against the testing mesh data to ensure equality.        *
+ *                                                                                  *
+ * Input:                                                                           *
+ *     No required inputs for this sample test.                                     *
+ *                                                                                  *
+ * Test-Specific Output:                                                            *
+ *     Specific test output only given on failure of any tests. Otherwise, general  *
+ *     number of testing errors is output.                                          *
+ *                                                                                  *
+ * ************************************************************************************/
 
-//helper function to split lines read in from obj file
+
+
+
+//  helper function to split lines read in from obj file  //
 std::vector<std::string> split_string(std::string);
 
 /*
@@ -54,7 +92,6 @@ BOOST_FIXTURE_TEST_CASE(writeTest, meshFix) {
 
         objPath = mesh_writer.getPath();
         objPath = boost::filesystem::absolute(objPath);
-        std::cout << "File path of mesh obj: " << objPath << std::endl;
 
 
         // mesh_writer.write() runs validate() as well, but this lets us handle a mesh that can't be validated.
@@ -84,7 +121,6 @@ BOOST_FIXTURE_TEST_CASE(compareElements, meshFix){
 
     objPath = mesh_writer.getPath();
     objPath = boost::filesystem::absolute(objPath);
-    std::cout << "File path of mesh obj: " << objPath << std::endl;
 
 
     //   Now to get the points and cells from the saved obj file   //
@@ -130,7 +166,7 @@ BOOST_FIXTURE_TEST_CASE(compareElements, meshFix){
         }
 
 
-        //Normal
+        // Normal
         else if (objLine[0] == "vn"){
             objVertex.nx = std::stod(objLine[1]);
             objVertex.ny = std::stod(objLine[2]);
@@ -140,7 +176,7 @@ BOOST_FIXTURE_TEST_CASE(compareElements, meshFix){
             objPoints.push_back(objVertex);
         }
 
-        //Face
+        // Face
         else if (objLine[0] == "f"){
 
             // obj file format of 'v/vt/vn' 'v/vt/vn' 'v/vt/vn'
@@ -155,8 +191,8 @@ BOOST_FIXTURE_TEST_CASE(compareElements, meshFix){
 
                 pos = objLine[faceVertex].find("//", lpos);
 
-                // assign the v1,v2,v3 values...subtract 1 from each of the values to account
-                // for off by one error
+                // assign the v1,v2,v3 values //
+
                 if (faceVertex == 1)
                     objCell.v1 = std::stoul(objLine[faceVertex].substr(lpos, pos - lpos));
                 else if (faceVertex == 2)
@@ -168,41 +204,50 @@ BOOST_FIXTURE_TEST_CASE(compareElements, meshFix){
             objCells.push_back(objCell);
         }
 
+        // get next line of obj file
         line.clear();
         getline( inputMesh, line );
     }
 
     // Now to test the objPoints created during fixture init vs points read in from file.
-    for (size_t testPoint = 0; testPoint <= sizeof(testPoints); testPoint++){
+    for (size_t p = 0; p < testPoints.size(); p++){
 
-        BOOST_MESSAGE("Checking Point " << testPoint);
+        BOOST_TEST_MESSAGE("Checking Point " << p);
 
         //checking the x,y,z,nx,ny,nz components
 
-        BOOST_CHECK_EQUAL(testPoints[testPoint].x, objPoints[testPoint].x);
-        BOOST_CHECK_EQUAL(testPoints[testPoint].y, objPoints[testPoint].y);
-        BOOST_CHECK_EQUAL(testPoints[testPoint].z, objPoints[testPoint].z);
+        BOOST_CHECK_EQUAL(testPoints[p].x, objPoints[p].x);
+        BOOST_CHECK_EQUAL(testPoints[p].y, objPoints[p].y);
+        BOOST_CHECK_EQUAL(testPoints[p].z, objPoints[p].z);
 
-        BOOST_CHECK_EQUAL(testPoints[testPoint].nx, objPoints[testPoint].nx);
-        BOOST_CHECK_EQUAL(testPoints[testPoint].ny, objPoints[testPoint].ny);
-        BOOST_CHECK_EQUAL(testPoints[testPoint].nz, objPoints[testPoint].nz);
+        BOOST_CHECK_EQUAL(testPoints[p].nx, objPoints[p].nx);
+        BOOST_CHECK_EQUAL(testPoints[p].ny, objPoints[p].ny);
+        BOOST_CHECK_EQUAL(testPoints[p].nz, objPoints[p].nz);
 
     }
 
     // Now to test the objPoints created during fixture init vs points read in from file.
-    for (size_t testCell = 0; testCell <= sizeof(testCells); testCell++){
+    for (size_t c = 0; c < testCells.size(); c++){
 
-        BOOST_MESSAGE("Checking Cell: " << testCell);
+        BOOST_MESSAGE("Checking Cell: " << c);
 
         //checking the v1,v2,v3 components
 
-        BOOST_CHECK_EQUAL(testCells[testCell].v1, objCells[testCell].v1 - 1);
-        BOOST_CHECK_EQUAL(testCells[testCell].v2, objCells[testCell].v2 - 1);
-        BOOST_CHECK_EQUAL(testCells[testCell].v3, objCells[testCell].v3 - 1);
+        BOOST_CHECK_EQUAL(testCells[c].v1, objCells[c].v1 - 1);
+        BOOST_CHECK_EQUAL(testCells[c].v2, objCells[c].v2 - 1);
+        BOOST_CHECK_EQUAL(testCells[c].v3, objCells[c].v3 - 1);
 
     }
 
 }
+
+
+/*
+ *   Helper function to parse input lines based on space delimiter.
+ *   Pieces are placed in string vector for later usage.
+ *   Maybe this can be updated to take a char arg that can reference any character
+ *   delimiter necessary for a possible parse.
+ */
 
 std::vector<std::string> split_string(std::string input)
 {
