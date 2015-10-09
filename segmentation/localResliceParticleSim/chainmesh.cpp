@@ -10,16 +10,22 @@ ChainMesh::ChainMesh() : height_(0), width_(0) { }
 
 // NOTE: OpenCV does rows first, then columns, so need to flip the order of width/height when passing to Mat constructor
 ChainMesh::ChainMesh(uint32_t width, uint32_t height) : width_(width), height_(height) {
-    positions_ = cv::Mat(height, width, CV_32FC3);
+    positions_ = cv::Mat(height, width, CV_64FC3);
 }
 
 // Pushes a chain back into the ChainMesh
 void ChainMesh::addChain(Chain row) {
     for (auto i = 0; i < row.particleCount(); ++i) {
         for (auto component = VC_INDEX_X; component <= VC_INDEX_Z; ++component) {
-            positions_.at(row.zIndex, i)(component) = row.at(i);
+            positions_.at(row.zIndex(), i)(component) = row.at(i);
         }
     }
+}
+
+// Resets size of matrix. NOTE: Deletes current matrix in chainmesh
+void ChainMesh::setSize(uint32_t width, uint32_t height)
+{
+    positions_ = cv::Mat(height, width, CV_64FC3);
 }
 
 // Export the mesh as an ordered PCD

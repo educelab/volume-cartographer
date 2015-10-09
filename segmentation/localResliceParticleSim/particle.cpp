@@ -1,4 +1,4 @@
-#include "Particle.h"
+#include "particle.h"
 
 using namespace volcart::segmentation;
 
@@ -24,20 +24,22 @@ void Particle::stop() {
     isStopped_ = true;
 }
 
-Particle& operator+=(const Particle& rhs) {
-    return position_ += rhs.position();
+Particle& Particle::operator+=(const Particle& rhs) {
+    position_ += rhs.position();
+    return *this;
 }
 
-Particle operator+(const Particle lhs, const Particle& rhs) {
+Particle operator+(Particle lhs, const Particle& rhs) {
     lhs += rhs;
     return lhs;
 }
 
-Particle& operator-=(const Particle& rhs) {
-    return position_ -= rhs.position();
+Particle& Particle::operator-=(const Particle& rhs) {
+    position_ -= rhs.position();
+    return *this;
 }
 
-Particle operator-(const Particle lhs, const Particle& rhs) {
+Particle operator-(Particle lhs, const Particle& rhs) {
     lhs -= rhs;
     return lhs;
 }

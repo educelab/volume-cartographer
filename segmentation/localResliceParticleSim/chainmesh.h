@@ -23,6 +23,8 @@ public:
 
     void addChain(Chain c);
 
+    void ChainMesh::setSize(uint32_t width, uint32_t height);
+
     cv::Mat positions() const { return positions_; }
 
     uint32_t width() const { return width_; }

@@ -24,13 +24,9 @@ public:
 
     Particle& operator+=(const Particle&);
 
-    Particle operator+(const Particle, const Particle&);
-
     float operator()(int) const;
 
     Particle& operator-=(const Particle&);
-
-    Particle operator-(const Particle, const Particle&);
 
 private:
     friend std::ostream& operator<<(std::ostream& s, Particle& p) {
