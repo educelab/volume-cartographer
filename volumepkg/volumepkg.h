@@ -31,7 +31,7 @@ public:
     VolumePkg(std::string file_location, double version); // New volpkg, V.[version]
     VolumePkg(std::string file_location); // Existing VolPkgs
 
-    // Write to Disk
+    // Write to disk for the first time
     int initialize();
 
     // Debug
@@ -125,7 +125,7 @@ public:
     void saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr);
     void saveTexturedMesh(ChaoVis::CMesh);
     void saveTextureData(cv::Mat, std::string = "texture");
-    
+
 private:
     bool _readOnly = true;
 

@@ -20,23 +20,15 @@ bool Slice::analyze() {
     _w = image.cols;
     _h = image.rows;
 
-    //The depth of the image as OpenCV int ID
-    // 0 = CV_8U  - 8-bit unsigned
-    // 1 = CV_8S  - 8-bit signed
-    // 2 = CV_16U - 16-bit unsigned
-    // 3 = CV_16S - 16-bit signed
-    // 4 = CV_32S - 32-bit signed integers
-    // 5 = CV_32F - 32-bit floating-point
-    // 6 = CV_64F - 64-bit floating-point
     _depth = image.depth();
-    if ( _depth != 2 ) _convert = true;
+    if ( _depth != CV_16U ) _convert = true; //Convert if not a 16-bit, unsigned image
 
     cv::minMaxLoc(image, &_min, &_max);
 
     return true;
 };
 
-cv::Mat Slice::image() {
+cv::Mat Slice::conformedImage() {
 
     // Load the input
     cv::Mat input = cv::imread( path.string(), CV_LOAD_IMAGE_ANYCOLOR | CV_LOAD_IMAGE_ANYDEPTH );

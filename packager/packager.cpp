@@ -175,7 +175,7 @@ int main ( int argc, char* argv[]) {
     for ( auto slice = slices.begin(); slice != slices.end(); ++slice ) {
         std::cout << "Saving slice image to volume package: " << counter+1 << "/" << slices.size() << "\r" << std::flush;
         if ( slice->needsConvert() )
-            volpkg.setSliceData(counter, slice->image()); // slice->image() returns conformed image
+            volpkg.setSliceData(counter, slice->conformedImage());
         else
             boost::filesystem::copy( slice->path, volpkg.getSlicePath(counter) );
 
