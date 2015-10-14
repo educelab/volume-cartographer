@@ -20,7 +20,7 @@
 
 #include "volumepkgcfg.h"
 #include "volumepkg_version.h"
-#include "Slice.h"
+#include "reslice.h"
 #include "orderedPCDMesher.h"
 #include "../texture/CMesh.h"
 #include "../texture/CPlyHelper.h"
@@ -73,7 +73,7 @@ public:
     void saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr);
     void saveTexturedMesh(ChaoVis::CMesh);
     void saveTextureData(cv::Mat, std::string = "texture");
-    Slice reslice(cv::Vec3f, cv::Vec3f, cv::Vec3f, uint32_t, uint32_t);
+    Reslice reslice(cv::Vec3f, cv::Vec3f, cv::Vec3f, uint32_t, uint32_t);
 
 private:
     VolumePkgCfg config;

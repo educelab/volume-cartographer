@@ -225,7 +225,7 @@ std::string VolumePkg::newSegmentation() {
   return segName;
 }
 
-Slice VolumePkg::reslice(cv::Vec3f origin, cv::Vec3f xvec, cv::Vec3f yvec, uint32_t width, uint32_t height) {
+Reslice VolumePkg::reslice(cv::Vec3f origin, cv::Vec3f xvec, cv::Vec3f yvec, uint32_t width, uint32_t height) {
     auto xnorm = cv::normalize(xvec);
     auto ynorm = cv::normalize(yvec);
 
@@ -238,7 +238,7 @@ Slice VolumePkg::reslice(cv::Vec3f origin, cv::Vec3f xvec, cv::Vec3f yvec, uint3
         }
     }
 
-    return Slice(m, origin, xnorm, ynorm);
+    return Reslice(m, origin, xnorm, ynorm);
 }
 
 // Trilinear Interpolation: Particles are not required
