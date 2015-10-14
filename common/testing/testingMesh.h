@@ -16,8 +16,12 @@ namespace testing {
         testingMesh();
 
         VC_MeshType::Pointer itkMesh();
+
+        //overload
         std::vector<VC_Vertex> getPoints() {return _points;}
         std::vector<VC_Cell> getCells() {return _cells;}
+
+        //pcl exporter
 
     private:
         std::vector<VC_Vertex> _points;

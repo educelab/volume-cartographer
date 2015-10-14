@@ -68,10 +68,10 @@ struct meshFix {
         //create the mesh for all the test cases to use
         _mesh = mesh.itkMesh();
 
-        std::cerr << "setting up mesh" <<std::endl;
+        BOOST_TEST_MESSAGE("setting up mesh");
     }
 
-    ~meshFix(){ std::cerr << "cleaning up meshFix" << std::endl;}
+    ~meshFix(){ BOOST_TEST_MESSAGE("cleaning up meshFix"); }
 
     //file path and objwriter to be used in cases
     volcart::io::objWriter mesh_writer;
