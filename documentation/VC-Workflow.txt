@@ -6,7 +6,7 @@
 ---- Step 1: Package and analyze --------
     All samples must be packaged into our volume package format and run through vc_scalpel for analysis:
 
-        vc_packager -sp [path of folder containing slices] -of [identifying name of volume package]
+        vc_packager --slices [path of folder containing slices] --volpkg [identifying name of volume package]
         vc_scalpel [volume package].volpkg/
 
 
