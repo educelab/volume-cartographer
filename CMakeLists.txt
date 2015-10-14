@@ -68,6 +68,7 @@ add_subdirectory(scalpel)
 add_subdirectory(texture)
 add_subdirectory(apps)
 add_subdirectory(utils)
+add_subdirectory(testing)
 
 # Special rules for packager since it's a Python script
 file(MAKE_DIRECTORY packager)
