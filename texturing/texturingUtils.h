@@ -99,7 +99,7 @@ inline bool IsLocalMaximum( const cv::Vec3f              &nPoint,
 
 // Sample the volume data withing ellipse region
 inline void Sectioning(            double                       nSections,      // number of sections
-                                   double                       range,          // range (thickness) of material
+                                   double                       range,          // thickness of material in voxels
                                    const cv::Vec3f              &nCenter,       // given point
                                    const cv::Vec3f              &nMajorAxisDir, // normal
                                    const std::vector< cv::Mat > &nImgVol,       // volume data
