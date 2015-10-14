@@ -1,4 +1,5 @@
 #include <list>
+#include <tuple>
 
 #include "localResliceParticleSim.h"
 #include "common.h"
@@ -23,7 +24,7 @@ LocalResliceSegmentation::segmentLayer(const double driftTolerance,
                                        const int32_t stepNumLayers,
                                        const int32_t maxIterations)
 {
-    startIndex_ = currentChain_.findMinZIndex() + startOffset;
+    startIndex_ = currentChain_.zIndex() + startOffset;
     // Account for zero-indexing and slices lost in calculating normal vector
     endIndex_ = pkg_.getNumberOfSlices() - 3 - endOffset;
 
@@ -66,7 +67,7 @@ LocalResliceSegmentation::segmentLayer(const double driftTolerance,
             badStepIndices.pop_front();
 
             // Get indices of neighbors
-            auto neighborIndices = _getNeighborIndicies(elem, neighborhoodRadius);
+            auto neighborIndices = _getNeighborIndices(elem, neighborhoodRadius);
             if (neighborIndices.size() < neighborhoodRadius * 2) {
                 badStepIndices.push_back(elem);
                 continue;
@@ -110,7 +111,7 @@ LocalResliceSegmentation::segmentLayer(const double driftTolerance,
 }
 
 std::vector<int32_t>
-LocalResliceSegmentation::_getNeighborIndicies(int32_t index, int32_t radius)
+LocalResliceSegmentation::_getNeighborIndices(const int32_t index, const int32_t radius)
 {
     // Fill nbors with the neighboring indices from each side of {index}
     auto nbors = std::vector<int32_t>(radius * 2);

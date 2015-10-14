@@ -225,12 +225,13 @@ std::string VolumePkg::newSegmentation() {
   return segName;
 }
 
-Reslice VolumePkg::reslice(cv::Vec3f origin, cv::Vec3f xvec, cv::Vec3f yvec, uint32_t width, uint32_t height) {
+Reslice VolumePkg::reslice(const cv::Vec3f center, const cv::Vec3f xvec, const cv::Vec3f yvec,
+                           const uint32_t width, const uint32_t height) {
     auto xnorm = cv::normalize(xvec);
     auto ynorm = cv::normalize(yvec);
+    auto origin = center - ((width / 2) * xnorm + (height / 2) * ynorm);
 
     cv::Mat m(height, width, CV_16UC1);
-
     for (int h = 0; h < height; ++h) {
         for (int w = 0; w < width; ++w) {
             cv::Vec3f v = origin + (h * ynorm) + (w * xnorm);

@@ -2,6 +2,7 @@
 #include <functional>
 
 #include "chain.h"
+#include "NormalizedIntensityMap.h"
 
 using namespace volcart::segmentation;
 
@@ -13,12 +14,12 @@ Chain::Chain(VolumePkg& volpkg) : volpkg_(volpkg) {
     }
 }
 
-Particle Chain::at(uint32_t idx) const
+Particle Chain::at(const uint32_t idx) const
 {
     return particles_.at(idx);
 }
 
-int32_t Chain::zIndex(void) const
+const int32_t Chain::zIndex(void) const
 {
     double meanZIdx = 0.0;
     for (auto p : particles_) {
@@ -27,109 +28,121 @@ int32_t Chain::zIndex(void) const
     return cvRound(meanZIdx);
 }
 
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg& volpkg, int stepSize, int endOffset,
-                   int stepsBeforeReslice) :
-    _volpkg(volpkg), _updateCount(0), _stepsBeforeReslice(stepsBeforeReslice), _stepSize(stepSize) {
-    // Convert the point cloud segPath into a vector of Particles
-    std::vector<Particle> initChain;
-    for (auto path : *segPath) {
-        initChain.push_back(Particle(path.x, path.y, path.z));
+void Chain::setNewPositions(std::vector<cv::Vec3f> newPositions)
+{
+    if (particles_.size() != newPositions.size()) {
+        std::cerr << "newPositions vector is not the same size as current particles size" << std::endl;
+        return;
     }
-
-    // Add starting chain to _history and setup other parameters
-    _history.push_front(initChain);
-    _chainLength = initChain.size();
-
-    // Saved particle normals for when they're updated every N slices
-    _savedNormals = std::vector<cv::Vec3f>(_chainLength, cv::Vec3f(0, 0, 0));
-
-    // Find the lowest slice index in the starting chain
-    auto minParticle = *std::min_element(initChain.begin(), initChain.end(),
-                                  [](const Particle& a, const Particle& b) { return a(VC_INDEX_Z) < b(VC_INDEX_Z); });
-    _startIdx = uint32_t(minParticle(VC_INDEX_Z));
-
-    // Set the slice index we will end at
-    // If user does not define endOffset, target index == last slice with a surface normal file
-    _targetIdx = ((endOffset == DEFAULT_OFFSET)
-                     ? (volpkg.getNumberOfSlices() - 3U) // Account for zero-indexing and slices lost in calculating normal vector
-                     : (_startIdx + endOffset));
-
-    // Set _realIterationsCount based on starting index, target index, and how frequently we want to sample the segmentation
-    _realIterationsCount = uint32_t(ceil(((_targetIdx - _startIdx) + 1) / _stepSize));
+    for (auto i = 0; i < particleCount_; ++i) {
+        particles_[i] = newPositions.at(i);
+    }
 }
 
-cv::Vec3f Chain::calculateNormal(uint64_t i, std::vector<Particle> prevChain) {
+// Steps all particles (with no constraints)
+std::pair<std::vector<Direction>, std::vector<cv::Vec3f>> Chain::stepAll() const
+{
+    auto positions = std::vector<cv::Vec3f>(particleCount_);
+    auto directions = std::vector<Direction>(particleCount_);
+    for (auto i = 0; i < particleCount_; ++i) {
+        std::tie(directions[i], positions[i]) = step(i);
+    }
+    return std::make_pair<decltype(directions), decltype(positions)>(directions, positions);
+}
+
+cv::Vec3f Chain::calculateNormal(const uint32_t index) const
+{
     // Create N x 3 matrix from chain
-    auto matChain = cv::Mat(prevChain.size(), 2, CV_32F);
-    auto matChainZ = cv::Mat(prevChain.size(), 1, CV_32F);
-    for (auto i = 0; i < prevChain.size(); ++i) {
-        matChain.at<float>(i, VC_INDEX_X) = prevChain[i].position()(VC_INDEX_X);
-        matChain.at<float>(i, VC_INDEX_Y) = prevChain[i].position()(VC_INDEX_Y);
-        matChainZ.at<float>(i, 0) = prevChain[i].position()(VC_INDEX_Z);
+    auto matChain = cv::Mat(particles_.size(), 2, CV_32F);
+    auto matChainZ = cv::Mat(particles_.size(), 1, CV_32F);
+    for (auto i = 0; i < particles_.size(); ++i) {
+        matChain.at<float>(i, VC_INDEX_X) = particles_[i].position()(VC_INDEX_X);
+        matChain.at<float>(i, VC_INDEX_Y) = particles_[i].position()(VC_INDEX_Y);
+        matChainZ.at<float>(i, 0) = particles_[i].position()(VC_INDEX_Z);
     }
     auto mean = cv::mean(matChainZ)(0);
+
+    // Change indexing if we're at the front or back particle
+    int32_t i = index;
+    if (index == 0) {
+        i = 1;
+    } else if (index == particles_.size() - 1) {
+        i = particleCount_ - 2;
+    }
+
     auto tangent = cv::Point2f(matChain.at<float>(i+1) - matChain.at<float>(i-1));
     auto tanVec = cv::Vec3f(tangent.x, tangent.y, mean);
     return tanVec.cross(VC_DIRECTION_K);
 }
 
-// This function defines how particles are updated
-void Chain::step(Field& field) {
-    // Pull the most recent iteration from _history
-    auto updateChain = _history.front();
-    drawChainOnSlice(updateChain);
-    std::vector<cv::Vec3f> forceVector(_chainLength, cv::Vec3f(0, 0, 0));
-    //std::for_each(updateChain.begin(), updateChain.end(), [](Particle p) { std::cout << p << ", "; });
-
-    for (uint32_t i = 0; i < _chainLength; ++i) {
-        if (!updateChain[i].isMoving())
-            continue;
-
-        // update normals every _stepsBeforeReslice steps
-        //if (_updateCount % _stepsBeforeReslice == 0) {
-            // pretend that the normals at the end of the chain are the same as the ones adjacent
-            if (i == 0) {
-                _savedNormals[i] = calculateNormal(1, updateChain);
-            } else if (i == _chainLength - 1) {
-                _savedNormals[i] = calculateNormal(_chainLength-2, updateChain);
-            } else {
-                _savedNormals[i] = calculateNormal(i, updateChain);
-            }
-        //}
-
-        // reslice and find next position
-        Slice s = field.reslice(updateChain[i].position(), _savedNormals[i], VC_DIRECTION_K);
-
-        if (i == 29) {
-            s.debugDraw(DEBUG_DRAW_CENTER);
-            s.drawSliceAndCenter();
-        }
-        forceVector[i] += (s.findNextPosition() - updateChain[i].position());
+// Step an individual particle with optional direction and drift constraints
+std::pair<Direction, cv::Vec3f> Chain::step(const int32_t index, const Direction dirConstraint, double maxDrift) const
+{
+    auto currentParticle = particles_[index];
+    if (!currentParticle.isMoving()) {
+        // XXX What to return here if it's not moving? Assume they all move continuously for now
     }
 
-    // update the chain
-    for (uint32_t i = 0; i < _chainLength; ++i) {
-        updateChain[i] += forceVector[i];
-        if (floor(updateChain[i](VC_INDEX_Z)) >= _targetIdx) {
-            updateChain[i].stop();
+    // Get reslice in k-direction at this point.
+    const auto normal = calculateNormal(index);
+    auto reslice = volpkg_.reslice(currentParticle.position(), normal, VC_DIRECTION_K);
+    if (index == 29) {
+        reslice.draw();
+    }
+    auto mat = reslice.sliceData();
+
+    // Calculate the next position for this particle
+    constexpr auto lookaheadDepth = 2;
+    auto center = cv::Point(mat.cols / 2, mat.rows / 2);
+
+    const auto map = NormalizedIntensityMap(mat.row(center.y + lookaheadDepth));
+    auto maxima = map.findMaxima();
+
+    // Sort maxima by whichever is closest to current index of center (using standard euclidean 1D distance)
+    using IndexDistPair = std::pair<uint32_t, double>;
+    std::sort(maxima.begin(), maxima.end(), [center](IndexDistPair lhs, IndexDistPair rhs) {
+        auto x = center.x;
+        auto ldist = std::abs(int32_t(lhs.first - x));
+        auto rdist = std::abs(int32_t(rhs.first - x));
+        return ldist < rdist;
+    });
+
+    // Convert from pixel space to voxel space to enforce constraints (if necessary)
+    using DirPosPair = std::pair<Direction, cv::Vec3f>;
+    auto voxelMaxima = std::vector<DirPosPair>(maxima.size());
+    std::transform(maxima.begin(), maxima.end(), std::back_inserter(voxelMaxima), [reslice, center](IndexDistPair p) {
+        Direction d = Direction::kNone;
+        if (p.first - center.y > 0) {
+            d = Direction::kLeft;
+        } else if (p.first - center.y < 0) {
+            d = Direction::kRight;
+        } else {
+            d = Direction::kNone;
         }
+        auto voxel = reslice.sliceCoordToVoxelCoord(cv::Point(p.first, center.y + lookaheadDepth));
+        return std::make_pair(d, voxel);
+    });
+
+    // Remove any pairs that don't satisfy the direction constraint (default behavior is to not remove any)
+    // XXX assumes that dirConstraint is either Direction::kLeft or Direction::kRight
+    std::remove_if(maxima.begin(), maxima.end(), [center, dirConstraint](IndexDistPair p) {
+        return (p.first != Direction::kNone) && (dirConstraint != p.first);
+    });
+
+    // Remove any pairs that don't satisfy the position constraint
+    if (maxDrift != kDefaultMaxDrift) {
+        std::remove_if(voxelMaxima.begin(), voxelMaxima.end(), [maxDrift, currentParticle](DirPosPair p) {
+            return cv::norm(p.second - currentParticle.position()) > maxDrift;
+        });
     }
 
-    // Add the modified chain back to _history
-    //std::for_each(updateChain.begin(), updateChain.end(), [](Particle p) { std::cout << p << ", "; });
-    _updateCount++;
-    _history.push_front(updateChain);
-    cv::waitKey(0);
+    // XXX What do we do if there's nothing left in the voxelMaxima at this point?
+
+    // Find next point in slice space
+    return voxelMaxima.at(0);
 }
 
-// Returns true if any Particle in the chain is still moving
-bool Chain::hasMovingParticle() {
-    return std::any_of(_history.front().begin(), _history.front().end(), [](Particle p) { return p.isMoving(); });
-}
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Chain::drawChainOnSlice(std::vector<Particle> v) {
     auto zidx = v[0](VC_INDEX_Z);
     auto debug = _volpkg.getSliceData(zidx);

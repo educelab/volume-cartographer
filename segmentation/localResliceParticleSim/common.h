@@ -9,6 +9,7 @@ namespace segmentation {
 
 enum Direction {
     kLeft = -1,
+    kNone = 0,
     kRight = 1
 };
 

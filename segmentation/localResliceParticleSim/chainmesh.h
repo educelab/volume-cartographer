@@ -17,13 +17,13 @@ class ChainMesh {
 public:
     ChainMesh();
 
-    ChainMesh(uint32_t width, uint32_t height);
+    ChainMesh(const uint32_t width, const uint32_t height);
 
     pcl::PointCloud<pcl::PointXYZRGB> exportAsOrderedPCD() const;
 
     void addChain(Chain c);
 
-    void ChainMesh::setSize(uint32_t width, uint32_t height);
+    void setSize(const uint32_t width, const uint32_t height);
 
     cv::Mat positions() const { return positions_; }
 

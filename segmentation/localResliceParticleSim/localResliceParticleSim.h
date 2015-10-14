@@ -35,7 +35,7 @@ public:
     ChainMesh mesh() const { return mesh_; }
 
 private:
-    std::vector<int32_t> _getNeighborIndicies(int32_t index, int32_t neighborhoodRadius);
+    std::vector<int32_t> _getNeighborIndices(const int32_t index, const int32_t neighborhoodRadius);
 
     Chain currentChain_;
     ChainMesh mesh_;

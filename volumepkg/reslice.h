@@ -15,6 +15,8 @@ public:
 
     cv::Vec3f sliceCoordToVoxelCoord(cv::Point);
 
+    const cv::Mat sliceData() const { return sliceData_; }
+
 private:
     cv::Mat sliceData_;
     cv::Vec3f origin_;
