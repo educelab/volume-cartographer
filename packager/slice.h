@@ -40,7 +40,7 @@ namespace volcart {
 
 // Compare slices by their filepaths for sorting. Lexicographical comparison, but doesn't
 // handle non-padded numbers (e.g. file8, file9, file10, file11)
-inline bool SliceLess( const volcart::Slice& a, const volcart::Slice& b ) {
+inline bool SlicePathLessThan( const volcart::Slice& a, const volcart::Slice& b ) {
     std::string a_filename = boost::to_lower_copy<std::string>(a.path.filename().native());
     std::string b_filename = boost::to_lower_copy<std::string>(b.path.filename().native());
     return a_filename < b_filename;

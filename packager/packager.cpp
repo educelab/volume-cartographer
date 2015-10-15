@@ -117,7 +117,7 @@ int main ( int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
     // Sort the Slices by their filenames
-    std::sort(slices.begin(), slices.end(), SliceLess);
+    std::sort(slices.begin(), slices.end(), SlicePathLessThan);
     std::cout << "Slice images found: " << slices.size() << std::endl;
 
 
