@@ -1,9 +1,9 @@
 #pragma once
 
-#ifndef VC_CHAINMESH_H
-#define VC_CHAINMESH_H
+#ifndef _VC_SEGMENTATION_CHAINMESH_H_
+#define _VC_SEGMENTATION_CHAINMESH_H_
 
-#include <opencv2/core/mat.hpp>
+#include <opencv2/opencv.hpp>
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 

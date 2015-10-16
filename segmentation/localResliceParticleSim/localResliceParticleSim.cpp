@@ -83,7 +83,7 @@ LocalResliceSegmentation::segmentLayer(const double driftTolerance,
                            [xyDrift](int32_t i) { return xyDrift[i]; });
 
             // Get the majority direction and maximum drift value from neighbors
-            Direction majorityDirection;
+            Direction majorityDirection = Direction::kNone;
             auto directionSum = std::accumulate(neighborDirections.begin(), neighborDirections.end(), 0);
             if (directionSum > 0) {
                 majorityDirection = Direction::kRight;

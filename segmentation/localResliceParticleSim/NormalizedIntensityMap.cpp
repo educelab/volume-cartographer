@@ -30,7 +30,7 @@ void NormalizedIntensityMap::draw(const int32_t displayWidth, const int32_t disp
     auto centerX = _intensities.cols / 2;
     auto minDist = std::numeric_limits<int32_t>::max();
     auto minIdx = -1;
-    for (auto i = 0; i < maxima.size(); ++i) {
+    for (int32_t i = 0; i < maxima.size(); ++i) {
         auto currentDist = std::abs(int32_t(maxima[i].first - centerX));
         if (currentDist < minDist) {
             minDist = currentDist;
