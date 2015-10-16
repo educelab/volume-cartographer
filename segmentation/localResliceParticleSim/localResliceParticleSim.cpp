@@ -1,8 +1,9 @@
 #include <list>
 #include <tuple>
+#include <numeric>
 
 #include "localResliceParticleSim.h"
-#include "common.h"
+
 
 using namespace volcart::segmentation;
 
