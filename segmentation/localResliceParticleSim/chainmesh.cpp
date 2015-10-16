@@ -2,29 +2,49 @@
 
 using namespace volcart::segmentation;
 
-ChainMesh::ChainMesh() : height_(0), width_(0) { }
+ChainMesh::ChainMesh() : width_(0), height_(0) { }
 
 // NOTE: OpenCV does rows first, then columns, so need to flip the order of width/height when passing to Mat constructor
-ChainMesh::ChainMesh(const uint32_t width, const uint32_t height) : width_(width), height_(height) {
+ChainMesh::ChainMesh(const int32_t width, const int32_t height) : width_(width), height_(height) {
     positions_ = cv::Mat(height, width, CV_64FC3);
 }
 
 // Pushes a chain back into the ChainMesh
 void ChainMesh::addChain(Chain row) {
-    for (auto i = 0; i < row.size(); ++i) {
-        for (auto component = VC_INDEX_X; component <= VC_INDEX_Z; ++component) {
-            positions_.at(row.zIndex(), i)(component) = row.at(i);
-        }
+    auto zidx = row.zIndex();
+    for (int32_t i = 0; i < row.size(); ++i) {
+        positions_.at<cv::Vec3f>(zidx, i) = cv::Vec3f(row.at(i).position());
     }
 }
 
 // Resets size of matrix. NOTE: Deletes current matrix in chainmesh
-void ChainMesh::setSize(const uint32_t width, const uint32_t height)
+void ChainMesh::setSize(const int32_t width, const int32_t height)
 {
     positions_ = cv::Mat(height, width, CV_64FC3);
 }
 
 // Export the mesh as an ordered PCD
-pcl::PointCloud<pcl::PointXYZRGB> exportAsOrderedPCD() const {
-    // TODO: Implement
+// Note: Need to export as PointXYZRGB since that's how it's stored in VolumePkg
+pcl::PointCloud<pcl::PointXYZRGB> ChainMesh::exportAsPCD() const {
+    pcl::PointCloud<pcl::PointXYZRGB> cloud;
+
+    // Set size. Since this is unordered (for now...) just set the width to be the number of points and the height
+    // (by convention) is set to 1
+    cloud.width = uint32_t(positions_.cols * positions_.rows);
+    cloud.height = 1;
+    cloud.is_dense = false;
+
+    for (int32_t i = 0; i < positions_.rows; ++i) {
+        for (int32_t j = 0; j < positions_.cols; ++j) {
+            pcl::PointXYZRGB p;
+            p.x = positions_.at<cv::Vec3f>(i, j)(VC_INDEX_X);
+            p.y = positions_.at<cv::Vec3f>(i, j)(VC_INDEX_Y);
+            p.z = positions_.at<cv::Vec3f>(i, j)(VC_INDEX_Z);
+            p.r = 0xFF;
+            p.g = 0xFF;
+            p.b = 0xFF;
+            cloud.push_back(p);
+        }
+    }
+    return cloud;
 }

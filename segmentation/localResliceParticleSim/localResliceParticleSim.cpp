@@ -6,11 +6,10 @@
 
 using namespace volcart::segmentation;
 
-LocalResliceSegmentation::LocalResliceSegmentation(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segpath, VolumePkg& pkg) :
-        startIndex_(0), endIndex_(0), pkg_(pkg)
+LocalResliceSegmentation::LocalResliceSegmentation(VolumePkg& pkg) :
+        pkg_(pkg), startIndex_(0), endIndex_(0), currentChain_(Chain(pkg))
 {
     // Construct chain of particles
-    currentChain_ = Chain(segpath);
     mesh_ = ChainMesh();
 }
 
@@ -30,9 +29,10 @@ LocalResliceSegmentation::segmentLayer(const double driftTolerance,
 
     // Set mesh size
     mesh_.setSize(currentChain_.size(), endIndex_ - startIndex_);
+    mesh_.addChain(currentChain_);
 
     // Go through every iteration (from start to end index)
-    for (int32_t iter = startIndex_; iter < endIndex_; ++iter) {
+    for (int32_t sliceIndex = startIndex_; sliceIndex < endIndex_; sliceIndex += stepNumLayers) {
 
         // Get predicted directions and positions
         std::vector<Direction> predictedDirections;
@@ -41,7 +41,7 @@ LocalResliceSegmentation::segmentLayer(const double driftTolerance,
         auto N = int32_t(predictedPositions.size());
 
         // Get XY drift of newPositions from currentPositions
-        auto xyDrift = std::vector<double>(predictedPositions.size());
+        auto xyDrift = std::vector<double>(N);
         for (auto i = 0; i < N; ++i) {
             xyDrift[i] = cv::norm(predictedPositions[i] - currentChain_.at(i).position());
         }
@@ -54,9 +54,9 @@ LocalResliceSegmentation::segmentLayer(const double driftTolerance,
                 badStepIndices.push_back(i);
             }
         }
-        std::sort(badStepIndices.begin(), badStepIndices.end(), [N](int32_t a, int32_t b) {
+        badStepIndices.sort([N](int32_t a, int32_t b) {
             auto mid = N / 2;
-            return ((std::abs(a - mid) < std::abs(b - mid)) ? a : b);
+            return std::abs(a - mid) < std::abs(b - mid);
         });
 
         // Iterate over the bad step list, settling each particle
@@ -68,7 +68,7 @@ LocalResliceSegmentation::segmentLayer(const double driftTolerance,
 
             // Get indices of neighbors
             auto neighborIndices = _getNeighborIndices(elem, neighborhoodRadius);
-            if (neighborIndices.size() < neighborhoodRadius * 2) {
+            if (int32_t(neighborIndices.size()) < neighborhoodRadius * 2) {
                 badStepIndices.push_back(elem);
                 continue;
             }
@@ -82,7 +82,7 @@ LocalResliceSegmentation::segmentLayer(const double driftTolerance,
                            [xyDrift](int32_t i) { return xyDrift[i]; });
 
             // Get the majority direction and maximum drift value from neighbors
-            auto majorityDirection = 0;
+            Direction majorityDirection;
             auto directionSum = std::accumulate(neighborDirections.begin(), neighborDirections.end(), 0);
             if (directionSum > 0) {
                 majorityDirection = Direction::kRight;
@@ -97,17 +97,18 @@ LocalResliceSegmentation::segmentLayer(const double driftTolerance,
             auto maxDrift = *std::max_element(neighborDrift.begin(), neighborDrift.end());
 
             // Restep this particle using new constraints
-            cv::Vec3f newPosition;
-            Direction newDirection;
-            std::tie(predictedDirections[i], predictedPositions[i]) = currentChain_.step(i, majorityDirection, maxDrift);
+            std::tie(predictedDirections[elem], predictedPositions[elem]) =
+                    currentChain_.step(elem, majorityDirection, maxDrift);
 
             iterationCount++;
         }
 
         // Push old positions back into chainmesh
-        mesh_.addChain(currentChain_);
         currentChain_.setNewPositions(predictedPositions);
+        mesh_.addChain(currentChain_);
     }
+
+    return mesh_.exportAsPCD();
 }
 
 std::vector<int32_t>

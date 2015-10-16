@@ -226,7 +226,7 @@ std::string VolumePkg::newSegmentation() {
 }
 
 Reslice VolumePkg::reslice(const cv::Vec3f center, const cv::Vec3f xvec, const cv::Vec3f yvec,
-                           const uint32_t width, const uint32_t height) {
+                           const int32_t width, const int32_t height) {
     auto xnorm = cv::normalize(xvec);
     auto ynorm = cv::normalize(yvec);
     auto origin = center - ((width / 2) * xnorm + (height / 2) * ynorm);

@@ -10,8 +10,8 @@
 #include <pcl/common/common.h>
 #include <pcl/point_types.h>
 
-#include "field.h"
 #include "particle.h"
+#include "volumepkg.h"
 #include "common.h"
 
 
@@ -30,11 +30,11 @@ public:
 
     Chain(VolumePkg& pkg);
 
-    const int32_t size(void) const { return particleCount_; }
+    int32_t size(void) const { return particleCount_; }
 
-    Particle at(const uint32_t idx) const;
+    Particle at(const int32_t idx) const;
 
-    const int32_t zIndex(void) const;
+    int32_t zIndex(void) const;
 
     // Iterator functions that reach through to the underlying vector so we can use range-based for with Chain
     TConstIterator begin() const { return particles_.begin(); }
@@ -45,21 +45,23 @@ public:
 
     TIterator end() { return particles_.end(); }
 
-    std::pair<std::vector<Direction>, std::vector<cv::Vec3f>> stepAll() const;
+    std::tuple<std::vector<Direction>, std::vector<cv::Vec3f>> stepAll() const;
 
-    std::pair<Direction, cv::Vec3f> step(const int32_t index, const Direction d=Direction::kNone,
+    std::tuple<Direction, cv::Vec3f> step(const int32_t index, const Direction d=Direction::kNone,
                                          const double maxDrift=kDefaultMaxDrift) const;
 
     void setNewPositions(std::vector<cv::Vec3f> newPositions);
+
+    void draw() const;
 
 private:
     std::vector<Particle> particles_;
     int32_t particleCount_;
     VolumePkg& volpkg_;
 
-    constexpr auto kDefaultMaxDrift = 0.0;
+    constexpr static double kDefaultMaxDrift = 0.0;
 
-    cv::Vec3f calculateNormal(const uint32_t index) const;
+    cv::Vec3f calculateNormal(const int32_t index) const;
 
 };
 

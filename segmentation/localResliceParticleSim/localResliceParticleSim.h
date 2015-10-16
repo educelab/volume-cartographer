@@ -37,19 +37,19 @@ public:
 private:
     std::vector<int32_t> _getNeighborIndices(const int32_t index, const int32_t neighborhoodRadius);
 
-    Chain currentChain_;
-    ChainMesh mesh_;
     VolumePkg& pkg_;
-    std::vector<cv::Vec3f> normals_;
+    //std::vector<cv::Vec3f> normals_;
     int32_t startIndex_;
     int32_t endIndex_;
+    ChainMesh mesh_;
+    Chain currentChain_;
 
-    constexpr int32_t kDefaultNeighborhoodRadius = 3;
-    constexpr int32_t kDefaultStepsBeforeReslice = 1;
-    constexpr int32_t kDefaultStartOffset        = 0;
-    constexpr int32_t kDefaultEndOffset          = 0;
-    constexpr int32_t kDefaultStepNumLayers      = 1;
-    constexpr int32_t kDefaultMaxIterations      = 100;
+    constexpr static int32_t kDefaultNeighborhoodRadius = 3;
+    constexpr static int32_t kDefaultStepsBeforeReslice = 1;
+    constexpr static int32_t kDefaultStartOffset        = 0;
+    constexpr static int32_t kDefaultEndOffset          = 0;
+    constexpr static int32_t kDefaultStepNumLayers      = 1;
+    constexpr static int32_t kDefaultMaxIterations      = 100;
 
 };
 

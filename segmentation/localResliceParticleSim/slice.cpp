@@ -36,7 +36,7 @@ cv::Vec3f Slice::findNextPosition() {
     auto maxima = map.findMaxima();
 
     // Sort maxima by whichever is closest to current index of center (using standard euclidean 1D distance)
-    using Pair = std::pair<uint32_t, double>;
+    using Pair = std::pair<int32_t, double>;
     std::sort(maxima.begin(), maxima.end(), [center](Pair lhs, Pair rhs) {
         auto x = center.x;
         auto ldist = std::abs(int32_t(lhs.first - x));

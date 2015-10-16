@@ -17,24 +17,24 @@ class ChainMesh {
 public:
     ChainMesh();
 
-    ChainMesh(const uint32_t width, const uint32_t height);
+    ChainMesh(const int32_t width, const int32_t height);
 
-    pcl::PointCloud<pcl::PointXYZRGB> exportAsOrderedPCD() const;
+    pcl::PointCloud<pcl::PointXYZRGB> exportAsPCD() const;
 
     void addChain(Chain c);
 
-    void setSize(const uint32_t width, const uint32_t height);
+    void setSize(const int32_t width, const int32_t height);
 
     cv::Mat positions() const { return positions_; }
 
-    uint32_t width() const { return width_; }
+    int32_t width() const { return width_; }
 
-    uint32_t height() const { return height_; }
+    int32_t height() const { return height_; }
 
 private:
     cv::Mat positions_;
-    uint32_t width_;
-    uint32_t height_;
+    int32_t width_;
+    int32_t height_;
 
 };
 

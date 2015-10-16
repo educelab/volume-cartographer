@@ -1,17 +1,15 @@
 #include "NormalizedIntensityMap.h"
+#include "common.h"
+
 
 using namespace volcart::segmentation;
-
-const auto BGR_RED    = cv::Scalar(0,    0   , 0xFF);
-const auto BGR_YELLOW = cv::Scalar(0,    0xFF, 0xFF);
-const auto BGR_BLUE   = cv::Scalar(0xFF, 0,    0   );
 
 NormalizedIntensityMap::NormalizedIntensityMap(cv::Mat r) {
     cv::normalize(r, _intensities, 0, 1, CV_MINMAX, CV_64FC1);
 }
 
-void NormalizedIntensityMap::draw(const uint32_t displayWidth, const uint32_t displayHeight) const {
-    int32_t binWidth = cvRound(float(displayWidth) / _intensities.cols);
+void NormalizedIntensityMap::draw(const int32_t displayWidth, const int32_t displayHeight) const {
+    auto binWidth = cvRound(float(displayWidth) / _intensities.cols);
 
     // Build intensity map
     cv::Mat mapImage(displayWidth, displayHeight, CV_8UC3, cv::Scalar(0, 0, 0));
@@ -49,8 +47,8 @@ void NormalizedIntensityMap::draw(const uint32_t displayWidth, const uint32_t di
 }
 
 // Finds the top 'N' maxima in the row being processed
-std::vector<std::pair<uint32_t, double>> NormalizedIntensityMap::findMaxima(void) const {
-    using Pair = std::pair<uint32_t, double>;
+std::vector<std::pair<int32_t, double>> NormalizedIntensityMap::findMaxima(void) const {
+    using Pair = std::pair<int32_t, double>;
     // Find derivative of intensity curve
     cv::Mat sobelDerivatives;
     cv::Sobel(_intensities, sobelDerivatives, CV_64FC1, 1, 0);

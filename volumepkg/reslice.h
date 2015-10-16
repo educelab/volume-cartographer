@@ -1,6 +1,3 @@
-//
-// Created by Sean Karlage on 10/2/15.
-//
 #pragma once
 
 #ifndef VC_SLICE_H
@@ -13,9 +10,11 @@ class Reslice {
 public:
     Reslice(cv::Mat, cv::Vec3f, cv::Vec3f, cv::Vec3f);
 
-    cv::Vec3f sliceCoordToVoxelCoord(cv::Point);
+    cv::Vec3f sliceCoordToVoxelCoord(const cv::Point) const;
 
     const cv::Mat sliceData() const { return sliceData_; }
+
+    void draw() const;
 
 private:
     cv::Mat sliceData_;
