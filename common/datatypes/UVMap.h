@@ -49,6 +49,6 @@ namespace volcart {
         cv::Vec2d _origin; // origin inserted and retrieved points are relative to
     };
 
-}
+} // volcart
 
 #endif //VC_UVMAP_H

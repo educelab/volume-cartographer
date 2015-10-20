@@ -3,7 +3,7 @@
 //
 
 #include "vc_defines.h"
-#include "datatypes.h"
+#include "vc_datatypes.h"
 
 int main( int argc, char* argv[] ) {
 

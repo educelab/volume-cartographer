@@ -22,8 +22,8 @@
 #include "volumepkgcfg.h"
 #include "volumepkg_version.h"
 #include "orderedPCDMesher.h"
-#include "../texture/CMesh.h"
-#include "../texture/CPlyHelper.h"
+#include "../texture_old/CMesh.h"
+#include "../texture_old/CPlyHelper.h"
 
 class VolumePkg {
 public:

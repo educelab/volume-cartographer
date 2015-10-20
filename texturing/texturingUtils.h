@@ -6,28 +6,12 @@
 #include <vector>
 #include <opencv2/opencv.hpp>
 #include "QuickSort.h"
+#include "vc_defines.h"
 
 //#define _DEBUG
 
 // REVISIT - NOTE - All the filtering functions return double, whose value should be within the range of 0~65535,
 //           because our volume data is from 16-bit (unsigned short) grayscale images. Returning negative value means error.
-
-
-enum EFilterOption {
-    FilterOptionIntersection = 0,
-    FilterOptionNonMaximumSuppression,
-    FilterOptionMax,
-    FilterOptionMin,
-    FilterOptionMedianAverage,
-    FilterOptionMedian,
-    FilterOptionMean
-};
-
-enum EDirectionOption {
-    DirectionOptionBoth = 0,
-    DirectionOptionPositive,
-    DirectionOptionNegative
-};
 
 
 inline bool IsLess( const double &nV1,
@@ -383,7 +367,7 @@ inline double FilterNonMaximumSuppression( const cv::Vec3f              &nPoint,
                                            double                       nR1 = 3.0,  // sample region radius 1, major axis
                                            double                       nR2 = 1.0,  // sample region radius 2, minor axis
                                            double                       nSampleDist = 0.2, // interval between samples
-                                           EDirectionOption             nSamplingDir = DirectionOptionBoth ) // sample direction
+                                           VC_Direction_Option          nSamplingDir = DirectionOptionBoth ) // sample direction
 {
     const int  MAX_ARRAY_CAPACITY = 50000;
     double     *aSamples = new double[ MAX_ARRAY_CAPACITY ];
@@ -426,7 +410,7 @@ inline double FilterMax( const cv::Vec3f              &nPoint,    // point locat
                          double                       nR1 = 3.0,  // sample region radius 1, major axis
                          double                       nR2 = 1.0,  // sample region radius 2, minor axis
                          double                       nSampleDist = 0.2, // interval between samples
-                         EDirectionOption             nSamplingDir = DirectionOptionBoth ) // sample direction
+                         VC_Direction_Option          nSamplingDir = DirectionOptionBoth ) // sample direction
 {
     const int  MAX_ARRAY_CAPACITY = 50000;
     double     *aSamples = new double[ MAX_ARRAY_CAPACITY ];
@@ -470,7 +454,7 @@ inline double FilterMin( const cv::Vec3f              &nPoint,    // point locat
                          double                       nR1 = 3.0,  // sample region radius 1, major axis
                          double                       nR2 = 1.0,  // sample region radius 2, minor axis
                          double                       nSampleDist = 0.2, // interval between samples
-                         EDirectionOption             nSamplingDir = DirectionOptionBoth ) // sample direction
+                         VC_Direction_Option          nSamplingDir = DirectionOptionBoth ) // sample direction
 
 {
     const int  MAX_ARRAY_CAPACITY = 50000;
@@ -515,7 +499,7 @@ inline double FilterMedianAverage( const cv::Vec3f              &nPoint,    // p
                                    double                       nR1 = 3.0,  // sample region radius 1, major axis
                                    double                       nR2 = 1.0,  // sample region radius 2, minor axis
                                    double                       nSampleDist = 0.2, // interval between samples
-                                   EDirectionOption             nSamplingDir = DirectionOptionBoth ) // sample direction
+                                   VC_Direction_Option          nSamplingDir = DirectionOptionBoth ) // sample direction
 {
     const int  MAX_ARRAY_CAPACITY = 50000;
     double     *aSamples = new double[ MAX_ARRAY_CAPACITY ];
@@ -577,7 +561,7 @@ inline double FilterMedian( const cv::Vec3f              &nPoint,    // point lo
                             double                       nR1 = 3.0,  // sample region radius 1, major axis
                             double                       nR2 = 1.0,  // sample region radius 2, minor axis
                             double                       nSampleDist = 0.2, // interval between samples
-                            EDirectionOption             nSamplingDir = DirectionOptionBoth ) // sample direction
+                            VC_Direction_Option          nSamplingDir = DirectionOptionBoth ) // sample direction
 {
     const int  MAX_ARRAY_CAPACITY = 50000;
     double     *aSamples = new double[ MAX_ARRAY_CAPACITY ];
@@ -628,7 +612,7 @@ inline double FilterMean( const cv::Vec3f              &nPoint,    // point loca
                           double                       nR1 = 3.0,  // sample region radius 1, major axis
                           double                       nR2 = 1.0,  // sample region radius 2, minor axis
                           double                       nSampleDist = 0.2, // interval between samples
-                          EDirectionOption             nSamplingDir = DirectionOptionBoth ) // sample direction
+                          VC_Direction_Option          nSamplingDir = DirectionOptionBoth ) // sample direction
 {
     const int  MAX_ARRAY_CAPACITY = 50000;
     double     *aSamples = new double[ MAX_ARRAY_CAPACITY ];
@@ -668,19 +652,19 @@ inline double FilterMean( const cv::Vec3f              &nPoint,    // point loca
 inline double textureWithMethod(   const cv::Vec3f              &nPoint,    // point location
                                    const cv::Vec3f              &nNormal,   // point normal direction
                                    const std::vector< cv::Mat > &nImgVol,   // data volume
-                                   EFilterOption                nFilter,    // filter option
+                                   VC_Composite_Option          nFilter,    // filter option
                                    double                       nR1 = 3.0,  // sample region radius 1, major axis
                                    double                       nR2 = 1.0,  // sample region radius 2, minor axis
                                    double                       nSampleDist = 0.2, // interval between samples
-                                   EDirectionOption             nSamplingDir = DirectionOptionBoth ) // sample direction
+                                   VC_Direction_Option          nSamplingDir = DirectionOptionBoth ) // sample direction
 {
     switch ( nFilter ) {
-    case EFilterOption::FilterOptionIntersection:
+    case VC_Composite_Option::CompositeOptionIntersection:
         return FilterIntersection( nPoint,
                                    nImgVol);
 
         break;
-    case EFilterOption::FilterOptionMean:
+    case VC_Composite_Option::CompositeOptionMean:
         return FilterMean(  nPoint,
                             nNormal,
                             nImgVol,
@@ -689,7 +673,7 @@ inline double textureWithMethod(   const cv::Vec3f              &nPoint,    // p
                             nSampleDist,
                             nSamplingDir);
         break;
-    case EFilterOption::FilterOptionNonMaximumSuppression:
+    case VC_Composite_Option::CompositeOptionNonMaximumSuppression:
         return FilterNonMaximumSuppression(  nPoint,
                                              nNormal,
                                              nImgVol,
@@ -698,7 +682,7 @@ inline double textureWithMethod(   const cv::Vec3f              &nPoint,    // p
                                              nSampleDist,
                                              nSamplingDir);
         break;
-    case EFilterOption::FilterOptionMax:
+    case VC_Composite_Option::CompositeOptionMax:
         return FilterMax(  nPoint,
                            nNormal,
                            nImgVol,
@@ -707,7 +691,7 @@ inline double textureWithMethod(   const cv::Vec3f              &nPoint,    // p
                            nSampleDist,
                            nSamplingDir);
         break;
-    case EFilterOption::FilterOptionMin:
+    case VC_Composite_Option::CompositeOptionMin:
         return FilterMin(  nPoint,
                            nNormal,
                            nImgVol,
@@ -716,7 +700,7 @@ inline double textureWithMethod(   const cv::Vec3f              &nPoint,    // p
                            nSampleDist,
                            nSamplingDir);
         break;
-    case EFilterOption::FilterOptionMedian:
+    case VC_Composite_Option::CompositeOptionMedian:
         return FilterMax(  nPoint,
                            nNormal,
                            nImgVol,
@@ -725,7 +709,7 @@ inline double textureWithMethod(   const cv::Vec3f              &nPoint,    // p
                            nSampleDist,
                            nSamplingDir);
         break;
-    case EFilterOption::FilterOptionMedianAverage:
+    case VC_Composite_Option::CompositeOptionMedianAverage:
         return FilterMedianAverage( nPoint,
                                     nNormal,
                                     nImgVol,

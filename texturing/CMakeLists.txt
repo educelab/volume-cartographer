@@ -1,11 +1,10 @@
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
-add_executable(vc_texture2 main.cpp UPointMapping.cpp)
-target_link_libraries(vc_texture2 ${VC_LIBS} ${VC_REQ_LIBS})
+set(TEXTURING_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(TEXTURING_INCLUDE_DIR ${TEXTURE_INCLUDE_DIR} PARENT_SCOPE)
 
-add_executable(vc_layering layering.cpp meshUtils.cpp)
-target_link_libraries(vc_layering ${VC_LIBS} ${VC_REQ_LIBS})
-
-# Install targets
-install(TARGETS vc_texture2 vc_layering
-        RUNTIME DESTINATION bin COMPONENT Demos)
+if(TARGET texturing)
+    message("Texturing library is already defined")
+else()
+    add_library(vc_texturing STATIC compositeTexture.cpp compositeTexture.h)
+endif()

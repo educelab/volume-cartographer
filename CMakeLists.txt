@@ -57,19 +57,20 @@ include_directories(${VOLUMEPKG_INCLUDE_DIR})
 add_subdirectory(segmentation)
 include_directories(${SEGMENTATION_INCLUDE_DIR})
 
-set(VC_LIBS vc_volumepkg vc_meshing vc_segmentation vc_common)
+add_subdirectory(texturing)
+include_directories(${TEXTURING_INCLUDE_DIR})
+
+set(VC_LIBS vc_volumepkg vc_meshing vc_segmentation vc_texturing vc_common)
 
 # VC Core Apps
 add_subdirectory(packager)
 add_subdirectory(pathgen)
 add_subdirectory(scalpel)
-add_subdirectory(texture)
 add_subdirectory(apps)
 add_subdirectory(utils)
 
 # VC Demo Apps
 add_subdirectory(region)
-add_subdirectory(texturing)
 add_subdirectory(examples)
 
 #install(FILES

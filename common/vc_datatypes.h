@@ -6,5 +6,6 @@
 #define VC_DATATYPES_H
 
 #include "datatypes/UVMap.h"
+#include "datatypes/Texture.h"
 
 #endif //VC_DATATYPES_H
