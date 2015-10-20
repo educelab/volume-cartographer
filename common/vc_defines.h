@@ -32,4 +32,15 @@ typedef VC_CellType::PointIdIterator                  VC_PointsInCellIterator;
 #define VC_ERR_READONLY()       { std::cerr << "ERROR: Volume Package is set to Read-Only. Cannot write to file." << std::endl; return EXIT_FAILURE; }
 #define VC_ERR_SLICE_ANALYZE    "ERROR: Slice file does not exist/isn't a regular file and cannot be analyze."
 
+///// UV Map Stuff /////
+#include <opencv2/opencv.hpp>
+
+typedef cv::Vec2d VC_Origin;
+#define VC_ORIGIN_TOP_LEFT     VC_Origin(0,0)
+#define VC_ORIGIN_TOP_RIGHT    VC_Origin(1,0)
+#define VC_ORIGIN_BOTTOM_LEFT  VC_Origin(0,1)
+#define VC_ORIGIN_BOTTOM_RIGHT VC_Origin(1,1)
+
+#define VC_NULL_MAPPING cv::Vec2d(-1, -1)
+
 #endif //VC_DEFINES_H
