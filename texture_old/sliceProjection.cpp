@@ -50,7 +50,7 @@ int main( int argc, char *argv[] )
                 " Max slice index: " << aMaxSliceIndex << std::endl;
 
     // (2) load in volume package
-    VolumePkg aVpkg = VolumePkg( argv[ 2 ] );
+    VolumePkg aVpkg( argv[ 2 ] );
     std::vector< cv::Mat > aImgVol;
     ProcessVolume( aVpkg, aImgVol, false, false );
     std::cout << std::endl;

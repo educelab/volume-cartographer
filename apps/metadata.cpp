@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
 
     if( mode == "-p"){
         std::cout << "INITIAL METADATA: " << std::endl;
-        volpkg.printObject();
+        volpkg.printJSON();
         std::cout << std::endl;
         return EXIT_SUCCESS;
     }
@@ -100,10 +100,11 @@ int main(int argc, char* argv[]) {
 
         if( mode == "-t"){
             std::cout << "FINAL METADATA: " << std::endl;
-            volpkg.printObject();
+            volpkg.printJSON();
             std::cout << std::endl;
             return EXIT_SUCCESS;
         } else if( mode == "-w"){
+            volpkg.readOnly(false);
             // save the new json file to test.json
             std::cout << "Writing metadata to file..." << std::endl;
             volpkg.saveMetadata();

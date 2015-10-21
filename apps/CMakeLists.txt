@@ -11,6 +11,10 @@ target_link_libraries(vc_mesher ${VC_LIBS} ${VC_REQ_LIBS})
 add_executable(vc_segment segment.cpp)
 target_link_libraries(vc_segment ${VC_LIBS} ${VC_REQ_LIBS})
 
+# Texture
+add_executable(vc_render render.cpp)
+target_link_libraries(vc_render ${VC_LIBS} ${VC_REQ_LIBS})
+
 # Metadata Editor
 add_executable(vc_metaedit metadata.cpp)
 target_link_libraries(vc_metaedit ${VC_LIBS} ${PCL_LIBRARIES} ${OpenCV_LIBS})

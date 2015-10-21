@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 cmake_policy(SET CMP0048 NEW)
 
-project(VC VERSION 2.1.1)
+project(VC VERSION 2.1.2)
 set(CMAKE_CXX_STANDARD 11)
 
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
@@ -23,7 +23,7 @@ find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets OpenGL PrintSupport)
 
 find_package(PCL 1.7 REQUIRED)
 find_package(OpenCV REQUIRED)
-find_package(Boost REQUIRED)
+find_package(Boost REQUIRED COMPONENTS system filesystem program_options iostreams)
 find_package(ITK REQUIRED)
 find_package(VTK REQUIRED)
 find_package(OpenGL REQUIRED)
@@ -57,26 +57,20 @@ include_directories(${VOLUMEPKG_INCLUDE_DIR})
 add_subdirectory(segmentation)
 include_directories(${SEGMENTATION_INCLUDE_DIR})
 
-set(VC_LIBS vc_volumepkg vc_meshing vc_segmentation vc_common)
+add_subdirectory(texturing)
+include_directories(${TEXTURING_INCLUDE_DIR})
+
+set(VC_LIBS vc_volumepkg vc_meshing vc_segmentation vc_texturing vc_common)
 
 # VC Core Apps
+add_subdirectory(packager)
 add_subdirectory(pathgen)
 add_subdirectory(scalpel)
-add_subdirectory(texture)
 add_subdirectory(apps)
 add_subdirectory(utils)
 
-# Special rules for packager since it's a Python script
-file(MAKE_DIRECTORY packager)
-file(COPY packager/packager.py DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(RENAME ${CMAKE_BINARY_DIR}/bin/packager.py ${CMAKE_BINARY_DIR}/bin/vc_packager)
-
-install(PROGRAMS ${CMAKE_BINARY_DIR}/bin/vc_packager
-        DESTINATION bin COMPONENT Programs)
-
 # VC Demo Apps
 add_subdirectory(region)
-add_subdirectory(texturing)
 add_subdirectory(examples)
 
 #install(FILES

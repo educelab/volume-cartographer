@@ -1,4 +1,5 @@
 #include "region.h"
+#include "vc_defines.h"
 
 static void vround(Vector& v) {
   v = Vector(round(v(0)), round(v(1)), round(v(2)));
@@ -130,7 +131,7 @@ void Region::texture(std::vector<cv::Mat>& m) {
   }
 
   for (std::list<Voxel*>::iterator it = dead.begin(); it != dead.end(); ++it) {
-    double color = textureWithMethod((*it)->pos(), (*it)->norm(), m, EFilterOption::FilterOptionIntersection);
+    double color = textureWithMethod((*it)->pos(), (*it)->norm(), m, VC_Composite_Option::CompositeOptionIntersection);
     (*it)->overwriteEigen(color);
   }  
 }
