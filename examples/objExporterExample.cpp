@@ -3,6 +3,7 @@
 //
 
 #include "vc_defines.h"
+#include "vc_datatypes.h"
 
 #include "io/objWriter.h"
 #include "io/ply2itk.h"
@@ -28,7 +29,7 @@ int main( int argc, char* argv[] ) {
   // [u, v] == point's position in the output matrix
   unsigned long pointID, meshX, meshY;
   double u, v;
-  std::map<double, cv::Vec2d> uvMap;
+  volcart::UVMap uvMap;
 
   // Initialize iterators
   VC_PointsInMeshIterator point = inputMesh->GetPoints()->Begin();
@@ -47,10 +48,10 @@ int main( int argc, char* argv[] ) {
 
     // OBJ UV coordinates start in the bottom-left of an image, but we're calculating them from the top-left
     // Subtract v from 1.0 to account for this
-    cv::Vec2d uv( u, 1.0 - v );
+    cv::Vec2d uv( u, v );
 
     // Add the uv coordinates into our map at the point index specified
-    uvMap.insert( {pointID, uv} );
+    uvMap.set(pointID, uv);
 
     ++point;
   }

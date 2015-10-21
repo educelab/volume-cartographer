@@ -11,7 +11,7 @@
 
 #include "../vc_defines.h"
 #include <opencv2/opencv.hpp>
-#include <map>
+#include <unordered_map>
 
 namespace volcart {
 
@@ -20,8 +20,8 @@ namespace volcart {
         UVMap() { _origin = VC_ORIGIN_TOP_LEFT; };
         UVMap(VC_Origin o) { _origin = o; };
 
-        //To-Do: Add iterator support
         size_t size() { return _map.size(); };
+        bool empty() { return _map.empty(); };
 
         // Get and set origin
         VC_Origin  origin() { return _origin; };
@@ -46,7 +46,7 @@ namespace volcart {
         };
 
     private:
-        std::map<double, cv::Vec2d> _map; // holds the mapping
+        std::unordered_map<double, cv::Vec2d> _map; // holds the mapping
         cv::Vec2d _origin; // origin inserted and retrieved points are relative to
     };
 

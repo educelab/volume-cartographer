@@ -7,7 +7,7 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "vc_defines.h"
+#include "../vc_defines.h"
 #include "UVMap.h"
 
 namespace volcart {
