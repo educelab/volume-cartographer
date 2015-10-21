@@ -19,9 +19,12 @@
 #include <pcl/io/pcd_io.h>
 #include "picojson.h"
 
+#include "vc_defines.h"
+#include "vc_datatypes.h"
 #include "volumepkgcfg.h"
 #include "volumepkg_version.h"
 #include "orderedPCDMesher.h"
+#include "io/objWriter.h"
 
 class VolumePkg {
 public:
@@ -119,6 +122,7 @@ public:
     cv::Mat getTextureData();
     void saveCloud(pcl::PointCloud<pcl::PointXYZRGB>);
     void saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr);
+    void saveMesh(VC_MeshType::Pointer mesh, volcart::Texture texture);
     void saveTextureData(cv::Mat, std::string = "texture");
 
 private:

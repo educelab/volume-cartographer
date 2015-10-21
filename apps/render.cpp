@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
     volcart::Texture newTexture;
     newTexture = volcart::texturing::compositeTexture( mesh, vpkg, meshWidth, meshHeight, radius, aFilterOption, aDirectionOption );
 
-    vpkg.saveTextureData(newTexture.getImage(0));
+    vpkg.saveMesh(mesh, newTexture);
 
     return 0;
 } // end main

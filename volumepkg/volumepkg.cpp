@@ -1,3 +1,4 @@
+#include <io/objWriter.h>
 #include "volumepkg.h"
 
 // CONSTRUCTORS //
@@ -250,6 +251,15 @@ void VolumePkg::saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segmentedCloud) 
     volcart::meshing::orderedPCDMesher(segmentedCloud, outputName);
     printf("Mesh file saved.\n");
 }
+
+void VolumePkg::saveMesh(VC_MeshType::Pointer mesh, volcart::Texture texture) {
+    volcart::io::objWriter writer;
+    writer.setPath(segs_dir.string() + "/" + activeSeg + "/texture.obj");
+    writer.setMesh(mesh);
+    writer.setTexture(texture.getImage(0));
+    writer.setUVMap(texture.uvMap());
+    writer.write();
+};
 
 void VolumePkg::saveTextureData(cv::Mat texture, std::string name){
     std::string texturePath = segs_dir.string() + "/" + activeSeg + "/" + name + ".png";
