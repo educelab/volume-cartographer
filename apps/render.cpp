@@ -66,6 +66,9 @@ int main(int argc, char* argv[])
     volcart::Texture newTexture;
     newTexture = volcart::texturing::compositeTexture( mesh, vpkg, meshWidth, meshHeight, radius, aFilterOption, aDirectionOption );
 
+    // Display this. This is a 16-bit, single channel image.
+    cv::Mat texture = newTexture.getImage(0);
+    // Save back to the volpkg with this
     vpkg.saveMesh(mesh, newTexture);
 
     return 0;

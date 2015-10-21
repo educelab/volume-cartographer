@@ -50,7 +50,6 @@ private:
     QVBoxLayout *image_Management;
 
     double scaleFactor;
-    QSize imageSize;
 
     QAction *open_Action;
     QAction *zoomInAction;
