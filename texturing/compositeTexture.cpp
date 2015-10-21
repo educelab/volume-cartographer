@@ -1,5 +1,5 @@
 //
-// Created by Media Team on 10/20/15.
+// Created by Seth Parker on 10/20/15.
 //
 
 #include "compositeTexture.h"
@@ -60,6 +60,7 @@ namespace volcart {
 
             volcart::UVMap uvMap;
             unsigned long pointID, meshX, meshY;
+            int meshWidth = output_w; int meshHeight = output_h;
             double u, v;
 
             // Generate UV coord for each point in mesh
@@ -69,12 +70,12 @@ namespace volcart {
                 pointID = point.Index();
 
                 // Calculate the point's [meshX, meshY] position based on its pointID
-                meshX = pointID % output_w;
-                meshY = (pointID - meshX) / output_h;
+                meshX = pointID % meshWidth;
+                meshY = (pointID - meshX) / meshWidth;
 
                 // Calculate the point's UV position
-                u =  (double) meshX / (double) output_w;
-                v =  (double) meshY / (double) output_h;
+                u =  (double) meshX / (double) meshWidth;
+                v =  (double) meshY / (double) meshHeight;
 
                 cv::Vec2d uv( u, v );
 
@@ -127,14 +128,15 @@ namespace volcart {
                                                       compositeDirection);
 
                     // Retrieve the point's uv position from the UV Map
-                    u =  uvMap.get(pointID)[0];
-                    v =  uvMap.get(pointID)[1];
+                    u =  round(uvMap.get(pointID)[0] * output_w);
+                    v =  round(uvMap.get(pointID)[1] * output_h);
 
                     // Assign the intensity value at the UV position
                     textureImage.at < unsigned short > (v, u) = (unsigned short) value;
 
                 }
             }
+            std::cout << std::endl;
 
             // Assign and return the output
             outputTexture.addImage(textureImage);

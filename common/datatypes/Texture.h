@@ -1,5 +1,5 @@
 //
-// Created by Media Team on 10/20/15.
+// Created by Seth Parker on 10/20/15.
 //
 
 #ifndef VC_TEXTURE_H
@@ -21,7 +21,7 @@ namespace volcart {
         int height() { return _height; };
 
         // Get/Set UV Map
-        volcart::UVMap* uvMap(){ return &_uvMap; };
+        volcart::UVMap& uvMap(){ return _uvMap; };
         void uvMap(volcart::UVMap uvMap) { _uvMap = uvMap; };
 
         // Get/Add Texture Image
