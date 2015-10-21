@@ -254,7 +254,7 @@ void VolumePkg::saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segmentedCloud) 
 
 void VolumePkg::saveMesh(VC_MeshType::Pointer mesh, volcart::Texture texture) {
     volcart::io::objWriter writer;
-    writer.setPath(segs_dir.string() + "/" + activeSeg + "/texture.obj");
+    writer.setPath(segs_dir.string() + "/" + activeSeg + "/textured.obj");
     writer.setMesh(mesh);
     writer.setTexture(texture.getImage(0));
     writer.setUVMap(texture.uvMap());

@@ -123,7 +123,7 @@ public:
     void saveCloud(pcl::PointCloud<pcl::PointXYZRGB>);
     void saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr);
     void saveMesh(VC_MeshType::Pointer mesh, volcart::Texture texture);
-    void saveTextureData(cv::Mat, std::string = "texture");
+    void saveTextureData(cv::Mat, std::string = "textured");
 
 private:
     bool _readOnly = true;
