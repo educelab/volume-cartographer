@@ -14,5 +14,6 @@ add_library(vc_meshing STATIC
                     itk2vtk.h itk2vtk.cpp
                     rayTrace.h rayTrace.cpp
                     smoothNormals.h smoothNormals.cpp
-                    ACVD.h ACVD.cpp)
+                    ACVD.h ACVD.cpp
+                    itk2bullet.h itk2bullet.cpp)
 endif()
