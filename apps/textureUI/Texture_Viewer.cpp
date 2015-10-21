@@ -77,14 +77,14 @@ void Texture_Viewer::open()
 
 void Texture_Viewer::zoom_In()
 {
-    scale_Texture(0.195);
+    scale_Texture(1.25);
 
 }// End of Texture_Viewer::zoom_In()
 
 
 void Texture_Viewer::zoom_Out()
 {
-    scale_Texture(-0.195);
+    scale_Texture(0.8);
 
 }// End of Texture_Viewer::zoom_Out()
 
@@ -138,15 +138,15 @@ void Texture_Viewer::adjustScrollBar(QScrollBar *scrollBar, double factor)
 
 void Texture_Viewer::scale_Texture(double factor)
 {
-
-    if(scaleFactor+factor<=2.0 && scaleFactor+factor>=0.024)
+    if(scaleFactor*factor <= 2.0 && scaleFactor*factor >=0.15)
     {
-        scaleFactor = scaleFactor+factor;
-        imageLabel->resize(scaleFactor * imageSize);
-    }
+        scaleFactor *= factor;
+        imageLabel->resize(scaleFactor * imageLabel->pixmap()->size());
 
-    adjustScrollBar(scrollArea->horizontalScrollBar(), factor);
-    adjustScrollBar(scrollArea->verticalScrollBar(), factor);
+        adjustScrollBar(scrollArea->horizontalScrollBar(), factor);
+        adjustScrollBar(scrollArea->verticalScrollBar(), factor);
+
+    }
 
 }// End of Texture_Viewer::scale_Texture(double factor)
 
