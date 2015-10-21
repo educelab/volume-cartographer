@@ -224,24 +224,6 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr VolumePkg::openCloud() {
     return cloud;
 }
 
-// Return the untextured mesh from the volpkg
-ChaoVis::CMesh VolumePkg::openMesh() {
-    ChaoVis::CMesh mesh;
-    std::string outputName = segs_dir.string() + "/" + activeSeg + "/cloud.ply";
-    ChaoVis::CPlyHelper::ReadPlyFile( outputName, mesh );
-    std::cout << "Mesh file loaded." << std::endl;
-    return mesh;
-}
-
-// Return the textured mesh from the volpkg
-ChaoVis::CMesh VolumePkg::openTexturedMesh() {
-    ChaoVis::CMesh mesh;
-    std::string outputName = segs_dir.string() + "/" + activeSeg + "/textured.ply";
-    ChaoVis::CPlyHelper::ReadPlyFile( outputName, mesh );
-    std::cout << "Mesh file loaded." << std::endl;
-    return mesh;
-}
-
 // Return the path to the active segmentation's mesh
 std::string VolumePkg::getMeshPath(){
     std::string meshName = segs_dir.string() + "/" + activeSeg + "/cloud.ply";
@@ -266,12 +248,6 @@ void VolumePkg::saveCloud(pcl::PointCloud<pcl::PointXYZRGB> segmentedCloud){
 void VolumePkg::saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segmentedCloud) {
     std::string outputName = segs_dir.string() + "/" + activeSeg + "/cloud.ply";
     volcart::meshing::orderedPCDMesher(segmentedCloud, outputName);
-    printf("Mesh file saved.\n");
-}
-
-void VolumePkg::saveTexturedMesh(ChaoVis::CMesh mesh) {
-    std::string outputName = segs_dir.string() + "/" + activeSeg + "/textured.ply";
-    ChaoVis::CPlyHelper::WritePlyFile( outputName, mesh );
     printf("Mesh file saved.\n");
 }
 
