@@ -5,10 +5,13 @@
 #include <stdio.h>
 
 #include "vc_defines.h"
+#include "vc_datatypes.h"
 #include "volumepkg.h"
+
 #include "io/ply2itk.h"
 #include "io/objWriter.h"
 #include "scaleMesh.h"
+#include "simpleUV.h"
 
 int main (int argc, char* argv[]) {
     if (argc < 3) {
@@ -32,6 +35,10 @@ int main (int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
+    // Generate UV map and get texture image
+    volcart::UVMap uvMap = volcart::texturing::simpleUV(mesh, width, height);
+    cv::Mat texture = volpkg.getTextureData();
+
     // Perform the scale
     double scale_factor = volpkg.getVoxelSize() * 0.001; // pixel->um->mm unit conversion
     volcart::meshing::scaleMesh(mesh, scaled, scale_factor);
@@ -39,5 +46,7 @@ int main (int argc, char* argv[]) {
     // Write the mesh
     std::cout << "Writing scaled mesh..." << std::endl;
     volcart::io::objWriter objWriter(outputName, scaled);
+    objWriter.setUVMap(uvMap);
+    objWriter.setTexture(texture);
     objWriter.write();
 }

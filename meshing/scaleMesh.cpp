@@ -27,11 +27,9 @@ namespace volcart {
             scaleFilter->SetTransform(scaleTransform);
 
             scaleFilter->SetInput(input);
+            scaleFilter->SetOutput(output); // This method is deprecated. Need to find a better solution. - SP, 10/2015
             scaleFilter->Update();
 
-            output = scaleFilter->GetOutput();
-
-            return;
         };
 
     } // meshing

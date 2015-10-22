@@ -233,8 +233,7 @@ std::string VolumePkg::getMeshPath(){
 
 // Return the texture image as a CV mat
 cv::Mat VolumePkg::getTextureData() {
-    std::string texturePath = segs_dir.string() + "/" + activeSeg + "/texture.tif";
-    cv::Mat texture = cv::imread( texturePath, CV_LOAD_IMAGE_ANYCOLOR | CV_LOAD_IMAGE_ANYDEPTH );
+    std::string texturePath = segs_dir.string() + "/" + activeSeg + "/textured.png";
     return cv::imread( texturePath, CV_LOAD_IMAGE_ANYCOLOR | CV_LOAD_IMAGE_ANYDEPTH );
 }
 
