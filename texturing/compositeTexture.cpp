@@ -59,31 +59,9 @@ namespace volcart {
             // To-Do: Generate this map independent of point ordering - SP, 10/2015
 
             volcart::UVMap uvMap;
-            unsigned long pointID, meshX, meshY;
             int meshWidth = output_w; int meshHeight = output_h;
-            double u, v;
 
-            // Generate UV coord for each point in mesh
-            VC_PointsInMeshIterator point = inputMesh->GetPoints()->Begin();
-            while ( point != inputMesh->GetPoints()->End() ) {
-
-                pointID = point.Index();
-
-                // Calculate the point's [meshX, meshY] position based on its pointID
-                meshX = pointID % meshWidth;
-                meshY = (pointID - meshX) / meshWidth;
-
-                // Calculate the point's UV position
-                u =  (double) meshX / (double) meshWidth;
-                v =  (double) meshY / (double) meshHeight;
-
-                cv::Vec2d uv( u, v );
-
-                // Add the uv coordinates into our map at the point index specified
-                uvMap.set( pointID, uv );
-
-                ++point;
-            }
+            uvMap = volcart::texturing::simpleUV(inputMesh, meshWidth, meshHeight);
 
             ///// Generate Texture Image /////
 
@@ -98,7 +76,9 @@ namespace volcart {
             VC_CellIterator  cellEnd      = inputMesh->GetCells()->End();
             VC_CellType *    cell;
             VC_PointsInCellIterator pointsIterator;
-            pointID = 0;
+
+            unsigned long pointID;
+            double u, v;
 
             // Iterate over all of the cells to lay out the faces in the output texture
             for( ; cellIterator != cellEnd; ++cellIterator ) {

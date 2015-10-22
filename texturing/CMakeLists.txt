@@ -6,5 +6,6 @@ set(TEXTURING_INCLUDE_DIR ${TEXTURING_INCLUDE_DIR} PARENT_SCOPE)
 if(TARGET texturing)
     message("Texturing library is already defined")
 else()
-    add_library(vc_texturing STATIC compositeTexture.cpp compositeTexture.h)
+    add_library(vc_texturing STATIC compositeTexture.cpp compositeTexture.h
+                                    simpleUV.h simpleUV.cpp)
 endif()
