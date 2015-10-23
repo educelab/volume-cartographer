@@ -77,7 +77,7 @@ namespace testing {
         vtkPoints *points = vtkPoints::New();
         vtkSmartPointer<vtkDoubleArray> pointNormals = vtkSmartPointer<vtkDoubleArray>::New();
         pointNormals->SetNumberOfComponents(3);
-        pointNormals->SetNumberOfTuples(getPoints().size());
+        pointNormals->SetNumberOfTuples( _points.size() );
 
         for ( unsigned long p_id = 0; p_id < _points.size(); ++p_id ) {
 
@@ -90,15 +90,13 @@ namespace testing {
         }
 
         // polys
-        VC_CellType::CellAutoPointer cell;
         vtkCellArray *polys = vtkCellArray::New();
-
-        for (unsigned long c_id = 0; c_id < _cells.size(); c_id++){
+        for ( unsigned long c_id = 0; c_id < _cells.size(); ++c_id ){
 
             vtkIdList *poly = vtkIdList::New();
-            for (unsigned long pointID; pointID < 3; pointID++){
-                poly->InsertNextId(pointID);
-            }
+            poly->InsertNextId(_cells[c_id].v1);
+            poly->InsertNextId(_cells[c_id].v2);
+            poly->InsertNextId(_cells[c_id].v3);
 
             polys->InsertNextCell(poly);
 
