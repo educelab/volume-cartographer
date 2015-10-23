@@ -33,6 +33,7 @@ public:
 
 private:
     cv::Mat positions_;
+    int32_t nextRow_;
     int32_t width_;
     int32_t height_;
 

@@ -23,10 +23,10 @@ public:
     LocalResliceSegmentation(VolumePkg& pkg);
 
     pcl::PointCloud<pcl::PointXYZRGB> segmentLayer(const double driftTolerance,
+                                                   const int32_t startIndex=kDefaultStartIndex,
+                                                   const int32_t endIndex=kDefaultEndIndex,
                                                    const int32_t neighborhoodRadius=kDefaultNeighborhoodRadius,
                                                    const int32_t stepsBeforeReslice=kDefaultStepsBeforeReslice,
-                                                   const int32_t startOffset=kDefaultStartOffset,
-                                                   const int32_t endOffset=kDefaultEndOffset,
                                                    const int32_t stepNumLayers=kDefaultStepNumLayers,
                                                    const int32_t maxIterations=kDefaultMaxIterations);
 
@@ -35,19 +35,18 @@ public:
     ChainMesh mesh() const { return mesh_; }
 
 private:
-    std::vector<int32_t> _getNeighborIndices(const int32_t index, const int32_t neighborhoodRadius);
-
     VolumePkg& pkg_;
-    //std::vector<cv::Vec3f> normals_;
     int32_t startIndex_;
     int32_t endIndex_;
     ChainMesh mesh_;
     Chain currentChain_;
 
+    std::vector<int32_t> _getNeighborIndices(const int32_t index, const int32_t neighborhoodRadius);
+
     constexpr static int32_t kDefaultNeighborhoodRadius = 3;
     constexpr static int32_t kDefaultStepsBeforeReslice = 1;
-    constexpr static int32_t kDefaultStartOffset        = 0;
-    constexpr static int32_t kDefaultEndOffset          = 0;
+    constexpr static int32_t kDefaultStartIndex         = 0;
+    constexpr static int32_t kDefaultEndIndex           = -1;
     constexpr static int32_t kDefaultStepNumLayers      = 1;
     constexpr static int32_t kDefaultMaxIterations      = 100;
 

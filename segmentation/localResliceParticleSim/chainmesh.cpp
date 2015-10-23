@@ -2,19 +2,23 @@
 
 using namespace volcart::segmentation;
 
-ChainMesh::ChainMesh() : width_(0), height_(0) { }
+ChainMesh::ChainMesh() : nextRow_(0), width_(0), height_(0) { }
 
-// NOTE: OpenCV does rows first, then columns, so need to flip the order of width/height when passing to Mat constructor
-ChainMesh::ChainMesh(const int32_t width, const int32_t height) : width_(width), height_(height) {
+// NOTE: OpenCV does rows first, then columns, so need to flip the order of
+// width/height when passing to Mat constructor
+ChainMesh::ChainMesh(const int32_t width, const int32_t height) :
+        nextRow_(0), width_(width), height_(height)
+{
     positions_ = cv::Mat(height, width, CV_64FC3);
 }
 
 // Pushes a chain back into the ChainMesh
-void ChainMesh::addChain(Chain row) {
-    auto zidx = row.zIndex();
+void ChainMesh::addChain(Chain row)
+{
     for (int32_t i = 0; i < row.size(); ++i) {
-        positions_.at<cv::Vec3f>(zidx, i) = cv::Vec3f(row.at(i).position());
+        positions_.at<cv::Vec3f>(nextRow_, i) = cv::Vec3f(row.at(i).position());
     }
+    nextRow_++;
 }
 
 // Resets size of matrix. NOTE: Deletes current matrix in chainmesh
@@ -28,8 +32,8 @@ void ChainMesh::setSize(const int32_t width, const int32_t height)
 pcl::PointCloud<pcl::PointXYZRGB> ChainMesh::exportAsPCD() const {
     pcl::PointCloud<pcl::PointXYZRGB> cloud;
 
-    // Set size. Since this is unordered (for now...) just set the width to be the number of points and the height
-    // (by convention) is set to 1
+    // Set size. Since this is unordered (for now...) just set the width to be the
+    // number of points and the height (by convention) is set to 1
     cloud.width = uint32_t(positions_.cols * positions_.rows);
     cloud.height = 1;
     cloud.is_dense = false;

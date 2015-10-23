@@ -10,25 +10,27 @@ using namespace volcart::segmentation;
 LocalResliceSegmentation::LocalResliceSegmentation(VolumePkg& pkg) :
         pkg_(pkg), startIndex_(0), endIndex_(0), currentChain_(Chain(pkg))
 {
-    // Construct chain of particles
     mesh_ = ChainMesh();
 }
 
-
 pcl::PointCloud<pcl::PointXYZRGB>
 LocalResliceSegmentation::segmentLayer(const double driftTolerance,
+                                       const int32_t startIndex,
+                                       const int32_t endIndex,
                                        const int32_t neighborhoodRadius,
                                        const int32_t stepsBeforeReslice,
-                                       const int32_t startOffset,
-                                       const int32_t endOffset,
                                        const int32_t stepNumLayers,
                                        const int32_t maxIterations)
 {
-    startIndex_ = currentChain_.zIndex() + startOffset;
+    startIndex_ = startIndex;
     // Account for zero-indexing and slices lost in calculating normal vector
-    endIndex_ = pkg_.getNumberOfSlices() - 3 - endOffset;
+    endIndex_ = pkg_.getNumberOfSlices() - 3;
+    if (endIndex != kDefaultEndIndex) {
+        endIndex_ = endIndex;
+    }
 
     // Set mesh size
+    std::cout << currentChain_.size() << std::endl;
     mesh_.setSize(currentChain_.size(), endIndex_ - startIndex_);
     mesh_.addChain(currentChain_);
 
@@ -47,8 +49,9 @@ LocalResliceSegmentation::segmentLayer(const double driftTolerance,
             xyDrift[i] = cv::norm(predictedPositions[i] - currentChain_.at(i).position());
         }
 
-        // "Bad" step indices. A "bad" step is categorized by one that went above {driftTolerance}. Sort them by
-        // distance to middle element (so we start with the middle elements first and expand to endpoints)
+        // "Bad" step indices. A "bad" step is categorized by one that went above
+        // {driftTolerance}. Sort them by distance to middle element (so we start
+        // with the middle elements first and expand to endpoints)
         auto badStepIndices = std::list<int32_t>();
         for (auto i = 0; i < N; ++i) {
             if (xyDrift[i] > driftTolerance) {
@@ -77,25 +80,30 @@ LocalResliceSegmentation::segmentLayer(const double driftTolerance,
             // Directions and drifts of neighbors
             auto neighborDirections = std::vector<int8_t>(neighborIndices.size());
             auto neighborDrift = std::vector<double>(neighborIndices.size());
-            std::transform(neighborIndices.begin(), neighborIndices.end(), std::back_inserter(neighborDirections),
+            std::transform(neighborIndices.begin(), neighborIndices.end(),
+                           std::back_inserter(neighborDirections),
                            [predictedDirections](int32_t i) { return predictedDirections[i]; });
-            std::transform(neighborIndices.begin(), neighborIndices.end(), std::back_inserter(neighborDrift),
+            std::transform(neighborIndices.begin(), neighborIndices.end(),
+                           std::back_inserter(neighborDrift),
                            [xyDrift](int32_t i) { return xyDrift[i]; });
 
             // Get the majority direction and maximum drift value from neighbors
             Direction majorityDirection = Direction::kNone;
-            auto directionSum = std::accumulate(neighborDirections.begin(), neighborDirections.end(), 0);
+            auto directionSum = std::accumulate(neighborDirections.begin(),
+                                                neighborDirections.end(), 0);
             if (directionSum > 0) {
                 majorityDirection = Direction::kRight;
             } else if (directionSum < 0) {
                 majorityDirection = Direction::kLeft;
             } else {
-                // print something indicating no consensus from neighbors. Could do a couple things here:
+                // print something indicating no consensus from neighbors. Could do a
+                // couple things here:
                 // 1. Expand neighborhood boundaries, retry
                 // 2. Go with some default behavior
                 // 3. ???
             }
-            auto maxDrift = *std::max_element(neighborDrift.begin(), neighborDrift.end());
+            auto maxDrift = *std::max_element(neighborDrift.begin(),
+                                              neighborDrift.end());
 
             // Restep this particle using new constraints
             std::tie(predictedDirections[elem], predictedPositions[elem]) =
@@ -119,15 +127,17 @@ LocalResliceSegmentation::_getNeighborIndices(const int32_t index, const int32_t
     auto nbors = std::vector<int32_t>(radius * 2);
     auto nborCount = 0;
     auto nborOffset = 0;
-    while (nborCount < radius * 2 && index + nborOffset < currentChain_.size() && index - nborOffset > 0) {
+    while (nborCount < radius * 2 &&
+           index + nborOffset < currentChain_.size() &&
+           index - nborOffset > 0) {
         nbors.push_back(index + nborOffset);
         nbors.push_back(index - nborOffset);
         nborCount += 2;
         nborOffset++;
     }
 
-    // If we couldn't add neighbors fully on one side of the index, then fill it in with more neighbors from the other
-    // side
+    // If we couldn't add neighbors fully on one side of the index, then fill it in with more
+    // neighbors from the other side
     if (nborCount < radius * 2) {
         if (index + nborOffset >= currentChain_.size()) {
             while (nborCount < radius * 2 && index - nborOffset > 0) {

@@ -4,13 +4,15 @@
 #include "chain.h"
 #include "NormalizedIntensityMap.h"
 
+
 using namespace volcart::segmentation;
 
 // Main constructor
-Chain::Chain(VolumePkg& volpkg) : volpkg_(volpkg) {
+Chain::Chain(VolumePkg& volpkg) : volpkg_(volpkg), particleCount_(0) {
     auto segmentationPath = volpkg_.openCloud();
     for (auto path : *segmentationPath) {
         particles_.push_back(Particle(path.x, path.y, path.z));
+        particleCount_++;
     }
 }
 
@@ -25,7 +27,7 @@ int32_t Chain::zIndex(void) const
     for (auto p : particles_) {
         meanZIdx += p(VC_INDEX_Z);
     }
-    return cvRound(meanZIdx);
+    return cvRound(meanZIdx / particleCount_);
 }
 
 void Chain::setNewPositions(std::vector<cv::Vec3f> newPositions)
@@ -40,7 +42,7 @@ void Chain::setNewPositions(std::vector<cv::Vec3f> newPositions)
 }
 
 // Steps all particles (with no constraints)
-std::tuple<std::vector<Direction>, std::vector<cv::Vec3f>> Chain::stepAll() const
+Chain::DirPosVecPair Chain::stepAll() const
 {
     auto positions = std::vector<cv::Vec3f>(particleCount_);
     auto directions = std::vector<Direction>(particleCount_);
@@ -77,7 +79,7 @@ cv::Vec3f Chain::calculateNormal(const int32_t index) const
 }
 
 // Step an individual particle with optional direction and drift constraints
-std::tuple<Direction, cv::Vec3f> Chain::step(const int32_t index, const Direction dirConstraint, double maxDrift) const
+Chain::DirPosPair Chain::step(const int32_t index, const Direction dirConstraint, double maxDrift) const
 {
     auto currentParticle = particles_[index];
     if (!currentParticle.isMoving()) {
@@ -102,27 +104,28 @@ std::tuple<Direction, cv::Vec3f> Chain::step(const int32_t index, const Directio
     // Sort maxima by whichever is closest to current index of center (using standard euclidean 1D distance)
     using IndexDistPair = std::pair<int32_t, double>;
     std::sort(maxima.begin(), maxima.end(), [center](IndexDistPair lhs, IndexDistPair rhs) {
-        auto x = center.x;
-        auto ldist = std::abs(int32_t(lhs.first - x));
-        auto rdist = std::abs(int32_t(rhs.first - x));
+        const auto x = center.x;
+        const auto ldist = std::abs(int32_t(lhs.first - x));
+        const auto rdist = std::abs(int32_t(rhs.first - x));
         return ldist < rdist;
     });
 
     // Convert from pixel space to voxel space to enforce constraints (if necessary)
-    using DirPosPair = std::tuple<Direction, cv::Vec3f>;
     auto voxelMaxima = std::vector<DirPosPair>(maxima.size());
-    std::transform(maxima.begin(), maxima.end(), std::back_inserter(voxelMaxima), [reslice, center](IndexDistPair p) {
-        Direction d;
-        if (int32_t(std::get<0>(p) - center.y) > 0) {
-            d = Direction::kLeft;
-        } else if (int32_t(std::get<0>(p) - center.y) < 0) {
-            d = Direction::kRight;
-        } else {
-            d = Direction::kNone;
-        }
-        auto voxel = reslice.sliceCoordToVoxelCoord(cv::Point(std::get<0>(p), center.y + lookaheadDepth));
-        return std::make_tuple(d, voxel);
-    });
+    std::transform(maxima.begin(), maxima.end(), std::back_inserter(voxelMaxima),
+        [reslice, center](IndexDistPair p) {
+            Direction d;
+            if (int32_t(std::get<0>(p) - center.y) > 0) {
+                d = Direction::kLeft;
+            } else if (int32_t(std::get<0>(p) - center.y) < 0) {
+                d = Direction::kRight;
+            } else {
+                d = Direction::kNone;
+            }
+            auto voxel = reslice.sliceCoordToVoxelCoord(cv::Point(std::get<0>(p),
+                                                                  center.y + lookaheadDepth));
+            return std::make_tuple(d, voxel);
+        });
 
     // Remove any pairs that don't satisfy the direction constraint (default behavior is to not remove any)
     // XXX assumes that dirConstraint is either Direction::kLeft or Direction::kRight

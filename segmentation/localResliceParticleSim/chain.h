@@ -27,6 +27,10 @@ class Chain {
 public:
     using TIterator = std::vector<Particle>::iterator;
     using TConstIterator = std::vector<Particle>::const_iterator;
+    using DirPosPair = std::tuple<Direction, cv::Vec3f>;
+    using DirPosVecPair = std::tuple<std::vector<Direction>, std::vector<cv::Vec3f>>;
+
+    Chain();
 
     Chain(VolumePkg& pkg);
 
@@ -36,7 +40,8 @@ public:
 
     int32_t zIndex(void) const;
 
-    // Iterator functions that reach through to the underlying vector so we can use range-based for with Chain
+    // Iterator functions that reach through to the underlying vector so we can
+    // use range-based for with Chain
     TConstIterator begin() const { return particles_.begin(); }
 
     TConstIterator end() const { return particles_.end(); }
@@ -45,10 +50,11 @@ public:
 
     TIterator end() { return particles_.end(); }
 
-    std::tuple<std::vector<Direction>, std::vector<cv::Vec3f>> stepAll() const;
+    DirPosVecPair stepAll() const;
 
-    std::tuple<Direction, cv::Vec3f> step(const int32_t index, const Direction d=Direction::kNone,
-                                         const double maxDrift=kDefaultMaxDrift) const;
+    DirPosPair step(const int32_t particleIndex,
+                    const Direction d=Direction::kNone,
+                    const double maxDrift=kDefaultMaxDrift) const;
 
     void setNewPositions(std::vector<cv::Vec3f> newPositions);
 
@@ -56,8 +62,8 @@ public:
 
 private:
     std::vector<Particle> particles_;
-    int32_t particleCount_;
     VolumePkg& volpkg_;
+    int32_t particleCount_;
 
     constexpr static double kDefaultMaxDrift = 0.0;
 

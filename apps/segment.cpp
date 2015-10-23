@@ -16,15 +16,15 @@ std::string outputName = "";
 
 // Options
 int threshold = 1;
-double startIndex = -1.0;
-int stopOffset = -1;
+int startIndex = -1;
+int endIndex = -1;
 
 int main(int argc, char *argv[]) {
     std::cout << "vc_segment" << std::endl;
     if (argc < 5) {
         std::cerr << "Usage:" << std::endl;
         std::cerr << argv[0] <<
-        " --startIndex [Z-Index #] --stopOffset [value]} --seg [Seg ID #] --volpkg [volpkgpath]" <<
+        " --startIndex [Z-Index #] --endIndex [value]} --seg [Seg ID #] --volpkg [volpkgpath]" <<
         std::endl;
         exit(EXIT_FAILURE);
     }
@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
 
     pcl::console::parse_argument(argc, argv, "--startIndex", startIndex);
 
-    pcl::console::parse_argument(argc, argv, "--stopOffset", stopOffset);
+    pcl::console::parse_argument(argc, argv, "--endIndex", endIndex);
 
     pcl::console::parse_argument(argc, argv, "--seg", segID);
 
@@ -124,7 +124,7 @@ int main(int argc, char *argv[]) {
     // Run segmentation using path as our starting points
     pcl::PointCloud<pcl::PointXYZRGB> mutableCloud;
     volcart::segmentation::LocalResliceSegmentation segmentation(volpkg);
-    mutableCloud = segmentation.segmentLayer(0.05);
+    mutableCloud = segmentation.segmentLayer(0.05, startIndex, endIndex);
 
     // Update the master cloud with the points we saved and concat the new points into the space
     *masterCloud = *immutableCloud;
