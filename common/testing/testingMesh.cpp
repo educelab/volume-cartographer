@@ -70,7 +70,7 @@ namespace testing {
 
     // initialize a vtk mesh //
 
-    vtkPolyData* testingMesh::vtkMesh() {
+  /*  vtkPolyData* testingMesh::vtkMesh() {
         vtkPolyData* output = vtkPolyData::New();
 
         // points + normals
@@ -82,18 +82,18 @@ namespace testing {
         for ( unsigned long p_id = 0; p_id < _points.size(); ++p_id ) {
 
             //put normals for the current point in an array
-            double ptNorm[3] = {_points[p_id].nx, _points[p_id].ny, _points[p_id].nz};
+            double ptNorm[3] = { _points[p_id].nx, _points[p_id].ny, _points[p_id].nz };
 
             //set the point and normal values for each point
             points->InsertPoint(p_id, _points[p_id].x, _points[p_id].y, _points[p_id].z);
             pointNormals->SetTuple(p_id, ptNorm);
         }
 
-        // cells
+        // polys
         VC_CellType::CellAutoPointer cell;
         vtkCellArray *polys = vtkCellArray::New();
 
-        for (VC_CellIterator cell = getCells()->Begin(); cell != getCells()->End(); ++cell ) {
+        for (VC_CellIterator cell = getCells().begin(); cell != getCells().end(); ++cell ) {
 
             vtkIdList *poly = vtkIdList::New();
             for ( VC_PointsInCellIterator point = cell.Value()->PointIdsBegin(); point != cell.Value()->PointIdsEnd(); ++point )
@@ -109,7 +109,7 @@ namespace testing {
 
         return output;
     }
-
+*/
 
     ///// Mesh Generation Helper Functions /////
     void testingMesh::_add_vertex(double x, double y, double z) {
