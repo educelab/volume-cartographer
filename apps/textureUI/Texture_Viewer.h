@@ -1,6 +1,6 @@
 //----------------------------------------------------------------------------------------------------------------------------------------
-// Texture_Viewer.h file for Texture_View Class
-// Purpose: Create header file for Texture_View Class
+// Texture_Viewer.h file for Texture_Viewer Class
+// Purpose: Create header file for Texture_Viewer Class
 // Developer: Michael Royal - mgro224@g.uky.edu
 // October 12, 2015 - Spring Semester 2016
 // Last Updated 10/16/2015 by: Michael Royal
@@ -15,6 +15,7 @@
 #include <QAction>
 #include <QPushButton>
 #include <QLayout>
+#include "DefaultValues.h"
 
 #ifndef VC_TEXTURE_VIEWER_H
 #define VC_TEXTURE_VIEWER_H
@@ -24,7 +25,7 @@ class Texture_Viewer:QObject
     Q_OBJECT
 
 public:
-    Texture_Viewer();
+    Texture_Viewer(DefaultValues *values);
     QVBoxLayout * getLayout();
 
 private slots:
@@ -35,7 +36,6 @@ private slots:
 
 private:
     void create_Actions();
-    void update_Actions();
     void scale_Texture(double factor);
     void adjustScrollBar(QScrollBar *scrollBar, double factor);
 
@@ -50,6 +50,8 @@ private:
     QVBoxLayout *image_Management;
 
     double scaleFactor;
+
+    DefaultValues *defaultVals;
 
     QAction *open_Action;
     QAction *zoomInAction;

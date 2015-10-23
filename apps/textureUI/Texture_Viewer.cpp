@@ -3,17 +3,17 @@
 // Purpose: Define Texture_Viewer Class
 // Developer: Michael Royal - mgro224@g.uky.edu
 // October 12, 2015 - Spring Semester 2016
-// Last Updated 10/16/2015 by: Michael Royal
+// Last Updated 10/23/2015 by: Michael Royal
 // Code Reference: http://doc.qt.io/qt-5/qtwidgets-widgets-imageviewer-example.html ---(I edited/formatted the code to suit our purposes)
 //-----------------------------------------------------------------------------------------------------------------------------------------
 
 #include <qmainwindow.h>
 #include "Texture_Viewer.h"
-#include <iostream>
 
-
-Texture_Viewer::Texture_Viewer()
+Texture_Viewer::Texture_Viewer(DefaultValues *values)
 {
+    defaultVals = values;
+
     //LEFT SIDE OF GUI
     //*****************************************************************************************
 
@@ -89,8 +89,8 @@ void Texture_Viewer::zoom_Out()
 
 void Texture_Viewer::reset_Size()
 {
-    zoomIn->setStyleSheet("background-color:none;");
-    zoomOut->setStyleSheet("background-color:none;");
+    zoomIn->setEnabled(true);
+    zoomOut->setEnabled(true);
     imageLabel->adjustSize();
     scaleFactor = 1.0;
 
@@ -121,13 +121,7 @@ void Texture_Viewer::create_Actions()
     resetSizeAction->setEnabled(false);
     connect(refresh, SIGNAL(released()), this, SLOT(reset_Size()));
 
-}// End of Texture_Viewer::create_Actions()*/
-
-void Texture_Viewer::update_Actions()
-{
-    //zoomInAction->setEnabled(!fitToWindowAct->isChecked());
-
-}// End of Texture_Viewer_update_Actions()
+}// End of Texture_Viewer::create_Actions()
 
 void Texture_Viewer::adjustScrollBar(QScrollBar *scrollBar, double factor)
 {
@@ -144,15 +138,15 @@ void Texture_Viewer::scale_Texture(double factor)
 
         if(scaleFactor*1.25>2.0)
         {
-            zoomIn->setStyleSheet("background-color:grey;");
+            zoomIn->setEnabled(false);
 
-        }else zoomIn->setStyleSheet("background-color:none;");
+        }else zoomIn->setEnabled(true);
 
         if(scaleFactor*0.8<0.15)
         {
-            zoomOut->setStyleSheet("background-color:grey;");
+            zoomOut->setEnabled(false);
 
-        }else zoomOut->setStyleSheet("background-color:none;");
+        }else zoomOut->setEnabled(true);
 
         imageLabel->resize(scaleFactor * imageLabel->pixmap()->size());
 
