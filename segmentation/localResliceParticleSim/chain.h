@@ -32,13 +32,11 @@ public:
 
     Chain();
 
-    Chain(VolumePkg& pkg);
+    Chain(VolumePkg& pkg, int32_t zIndex);
 
     int32_t size(void) const { return particleCount_; }
 
     Particle at(const int32_t idx) const;
-
-    int32_t zIndex(void) const;
 
     // Iterator functions that reach through to the underlying vector so we can
     // use range-based for with Chain
@@ -64,10 +62,11 @@ private:
     std::vector<Particle> particles_;
     VolumePkg& volpkg_;
     int32_t particleCount_;
+    int32_t zIndex_;
 
     constexpr static double kDefaultMaxDrift = 0.0;
 
-    cv::Vec3f calculateNormal(const int32_t index) const;
+    const cv::Vec3f calculateNormal(const int32_t index) const;
 
 };
 

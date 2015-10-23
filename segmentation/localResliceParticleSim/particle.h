@@ -22,11 +22,11 @@ public:
 
     void stop();
 
-    Particle& operator+=(const Particle&);
+    Particle& operator+=(const Particle&) const;
 
     float operator()(int) const;
 
-    Particle& operator-=(const Particle&);
+    Particle& operator-=(const Particle&) const;
 
 private:
     friend std::ostream& operator<<(std::ostream& s, Particle& p) {

@@ -24,7 +24,7 @@ void Particle::stop() {
     isStopped_ = true;
 }
 
-Particle& Particle::operator+=(const Particle& rhs) {
+Particle& Particle::operator+=(const Particle& rhs) const {
     position_ += rhs.position();
     return *this;
 }
@@ -34,7 +34,7 @@ Particle operator+(Particle lhs, const Particle& rhs) {
     return lhs;
 }
 
-Particle& Particle::operator-=(const Particle& rhs) {
+Particle& Particle::operator-=(const Particle& rhs) const {
     position_ -= rhs.position();
     return *this;
 }

@@ -8,7 +8,9 @@
 using namespace volcart::segmentation;
 
 // Main constructor
-Chain::Chain(VolumePkg& volpkg) : volpkg_(volpkg), particleCount_(0) {
+Chain::Chain(VolumePkg& volpkg, int32_t zIndex) :
+    volpkg_(volpkg), particleCount_(0), zIndex_(zIndex)
+{
     auto segmentationPath = volpkg_.openCloud();
     for (auto path : *segmentationPath) {
         particles_.push_back(Particle(path.x, path.y, path.z));
@@ -19,15 +21,6 @@ Chain::Chain(VolumePkg& volpkg) : volpkg_(volpkg), particleCount_(0) {
 Particle Chain::at(const int32_t idx) const
 {
     return particles_.at(idx);
-}
-
-int32_t Chain::zIndex(void) const
-{
-    double meanZIdx = 0.0;
-    for (auto p : particles_) {
-        meanZIdx += p(VC_INDEX_Z);
-    }
-    return cvRound(meanZIdx / particleCount_);
 }
 
 void Chain::setNewPositions(std::vector<cv::Vec3f> newPositions)
@@ -52,29 +45,18 @@ Chain::DirPosVecPair Chain::stepAll() const
     return std::make_tuple(directions, positions);
 }
 
-cv::Vec3f Chain::calculateNormal(const int32_t index) const
+const cv::Vec3f Chain::calculateNormal(const int32_t index) const
 {
-    // Create N x 3 matrix from chain
-    int32_t N = int32_t(particles_.size());
-    auto matChain = cv::Mat(N, 2, CV_32F);
-    auto matChainZ = cv::Mat(N, 1, CV_32F);
-    for (int32_t i = 0; i < N; ++i) {
-        matChain.at<float>(i, VC_INDEX_X) = particles_[i].position()(VC_INDEX_X);
-        matChain.at<float>(i, VC_INDEX_Y) = particles_[i].position()(VC_INDEX_Y);
-        matChainZ.at<float>(i, 0) = particles_[i].position()(VC_INDEX_Z);
-    }
-    auto mean = cv::mean(matChainZ)(0);
-
     // Change indexing if we're at the front or back particle
-    int32_t i = index;
+    auto i = index;
     if (index == 0) {
         i = 1;
-    } else if (index == N - 1) {
+    } else if (index == particleCount_ - 1) {
         i = particleCount_ - 2;
     }
 
-    auto tangent = cv::Point2f(matChain.at<float>(i+1) - matChain.at<float>(i-1));
-    auto tanVec = cv::Vec3f(tangent.x, tangent.y, mean);
+    auto diff = particles_[i+1] - particles_[i-1];
+    auto tanVec = cv::Vec3f(diff(VC_INDEX_X), diff(VC_INDEX_Y), zIndex_);
     return tanVec.cross(VC_DIRECTION_K);
 }
 
@@ -89,6 +71,8 @@ Chain::DirPosPair Chain::step(const int32_t index, const Direction dirConstraint
     // Get reslice in k-direction at this point.
     const auto normal = calculateNormal(index);
     auto reslice = volpkg_.reslice(currentParticle.position(), normal, VC_DIRECTION_K);
+    reslice.draw();
+    cv::waitKey(0);
     if (index == 29) {
         reslice.draw();
     }
@@ -147,8 +131,7 @@ Chain::DirPosPair Chain::step(const int32_t index, const Direction dirConstraint
 }
 
 void Chain::draw() const {
-    auto zidx = zIndex();
-    auto pkgSlice = volpkg_.getSliceData(zidx);
+    auto pkgSlice = volpkg_.getSliceData(zIndex_);
     pkgSlice /= 255.0;
     pkgSlice.convertTo(pkgSlice, CV_8UC3);
     cvtColor(pkgSlice, pkgSlice, CV_GRAY2BGR);

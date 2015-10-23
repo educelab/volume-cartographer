@@ -8,7 +8,7 @@
 using namespace volcart::segmentation;
 
 LocalResliceSegmentation::LocalResliceSegmentation(VolumePkg& pkg) :
-        pkg_(pkg), startIndex_(0), endIndex_(0), currentChain_(Chain(pkg))
+        pkg_(pkg), startIndex_(0), endIndex_(0)
 {
     mesh_ = ChainMesh();
 }
@@ -22,6 +22,9 @@ LocalResliceSegmentation::segmentLayer(const double driftTolerance,
                                        const int32_t stepNumLayers,
                                        const int32_t maxIterations)
 {
+    // The main chain that we'll be mutating on each iteration
+    auto currentChain = Chain(pkg_, startIndex);
+
     startIndex_ = startIndex;
     // Account for zero-indexing and slices lost in calculating normal vector
     endIndex_ = pkg_.getNumberOfSlices() - 3;
@@ -30,9 +33,9 @@ LocalResliceSegmentation::segmentLayer(const double driftTolerance,
     }
 
     // Set mesh size
-    std::cout << currentChain_.size() << std::endl;
-    mesh_.setSize(currentChain_.size(), endIndex_ - startIndex_);
-    mesh_.addChain(currentChain_);
+    std::cout << currentChain.size() << std::endl;
+    mesh_.setSize(currentChain.size(), endIndex_ - startIndex_);
+    mesh_.addChain(currentChain);
 
     // Go through every iteration (from start to end index)
     for (int32_t sliceIndex = startIndex_; sliceIndex < endIndex_; sliceIndex += stepNumLayers) {
@@ -40,13 +43,13 @@ LocalResliceSegmentation::segmentLayer(const double driftTolerance,
         // Get predicted directions and positions
         std::vector<Direction> predictedDirections;
         std::vector<cv::Vec3f> predictedPositions;
-        std::tie(predictedDirections, predictedPositions) = currentChain_.stepAll();
+        std::tie(predictedDirections, predictedPositions) = currentChain.stepAll();
         auto N = int32_t(predictedPositions.size());
 
         // Get XY drift of newPositions from currentPositions
         auto xyDrift = std::vector<double>(N);
         for (auto i = 0; i < N; ++i) {
-            xyDrift[i] = cv::norm(predictedPositions[i] - currentChain_.at(i).position());
+            xyDrift[i] = cv::norm(predictedPositions[i] - currentChain.at(i).position());
         }
 
         // "Bad" step indices. A "bad" step is categorized by one that went above
@@ -71,7 +74,7 @@ LocalResliceSegmentation::segmentLayer(const double driftTolerance,
             badStepIndices.pop_front();
 
             // Get indices of neighbors
-            auto neighborIndices = _getNeighborIndices(elem, neighborhoodRadius);
+            auto neighborIndices = _getNeighborIndices(currentChain, elem, neighborhoodRadius);
             if (int32_t(neighborIndices.size()) < neighborhoodRadius * 2) {
                 badStepIndices.push_back(elem);
                 continue;
@@ -107,28 +110,29 @@ LocalResliceSegmentation::segmentLayer(const double driftTolerance,
 
             // Restep this particle using new constraints
             std::tie(predictedDirections[elem], predictedPositions[elem]) =
-                    currentChain_.step(elem, majorityDirection, maxDrift);
+                    currentChain.step(elem, majorityDirection, maxDrift);
 
             iterationCount++;
         }
 
         // Push old positions back into chainmesh
-        currentChain_.setNewPositions(predictedPositions);
-        mesh_.addChain(currentChain_);
+        currentChain.setNewPositions(predictedPositions);
+        mesh_.addChain(currentChain);
     }
 
     return mesh_.exportAsPCD();
 }
 
 std::vector<int32_t>
-LocalResliceSegmentation::_getNeighborIndices(const int32_t index, const int32_t radius)
+LocalResliceSegmentation::_getNeighborIndices(
+        const Chain c, const int32_t index, const int32_t radius)
 {
     // Fill nbors with the neighboring indices from each side of {index}
     auto nbors = std::vector<int32_t>(radius * 2);
     auto nborCount = 0;
     auto nborOffset = 0;
     while (nborCount < radius * 2 &&
-           index + nborOffset < currentChain_.size() &&
+           index + nborOffset < c.size() &&
            index - nborOffset > 0) {
         nbors.push_back(index + nborOffset);
         nbors.push_back(index - nborOffset);
@@ -139,14 +143,14 @@ LocalResliceSegmentation::_getNeighborIndices(const int32_t index, const int32_t
     // If we couldn't add neighbors fully on one side of the index, then fill it in with more
     // neighbors from the other side
     if (nborCount < radius * 2) {
-        if (index + nborOffset >= currentChain_.size()) {
+        if (index + nborOffset >= c.size()) {
             while (nborCount < radius * 2 && index - nborOffset > 0) {
                 nbors.push_back(index - nborOffset);
                 nborOffset++;
                 nborCount++;
             }
         } else if (index - nborOffset <= 0) {
-            while (nborCount < radius * 2 && index + nborOffset < currentChain_.size()) {
+            while (nborCount < radius * 2 && index + nborOffset < c.size()) {
                 nbors.push_back(index + nborOffset);
                 nborOffset++;
                 nborCount++;

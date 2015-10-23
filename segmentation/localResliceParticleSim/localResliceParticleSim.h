@@ -22,15 +22,14 @@ class LocalResliceSegmentation {
 public:
     LocalResliceSegmentation(VolumePkg& pkg);
 
-    pcl::PointCloud<pcl::PointXYZRGB> segmentLayer(const double driftTolerance,
-                                                   const int32_t startIndex=kDefaultStartIndex,
-                                                   const int32_t endIndex=kDefaultEndIndex,
-                                                   const int32_t neighborhoodRadius=kDefaultNeighborhoodRadius,
-                                                   const int32_t stepsBeforeReslice=kDefaultStepsBeforeReslice,
-                                                   const int32_t stepNumLayers=kDefaultStepNumLayers,
-                                                   const int32_t maxIterations=kDefaultMaxIterations);
-
-    Chain currentChain() const { return currentChain_; }
+    pcl::PointCloud<pcl::PointXYZRGB> segmentLayer(
+            const double driftTolerance,
+            const int32_t startIndex=kDefaultStartIndex,
+            const int32_t endIndex=kDefaultEndIndex,
+            const int32_t neighborhoodRadius=kDefaultNeighborhoodRadius,
+            const int32_t stepsBeforeReslice=kDefaultStepsBeforeReslice,
+            const int32_t stepNumLayers=kDefaultStepNumLayers,
+            const int32_t maxIterations=kDefaultMaxIterations);
 
     ChainMesh mesh() const { return mesh_; }
 
@@ -39,9 +38,9 @@ private:
     int32_t startIndex_;
     int32_t endIndex_;
     ChainMesh mesh_;
-    Chain currentChain_;
 
-    std::vector<int32_t> _getNeighborIndices(const int32_t index, const int32_t neighborhoodRadius);
+    std::vector<int32_t> _getNeighborIndices(
+            const Chain c, const int32_t index, const int32_t neighborhoodRadius);
 
     constexpr static int32_t kDefaultNeighborhoodRadius = 3;
     constexpr static int32_t kDefaultStepsBeforeReslice = 1;
