@@ -68,6 +68,49 @@ namespace testing {
         return output;
     }
 
+    // initialize a vtk mesh //
+
+    vtkPolyData* testingMesh::vtkMesh() {
+        vtkPolyData* output = vtkPolyData::New();
+
+        // points + normals
+        vtkPoints *points = vtkPoints::New();
+        vtkSmartPointer<vtkDoubleArray> pointNormals = vtkSmartPointer<vtkDoubleArray>::New();
+        pointNormals->SetNumberOfComponents(3);
+        pointNormals->SetNumberOfTuples(getPoints().size());
+
+        for ( unsigned long p_id = 0; p_id < _points.size(); ++p_id ) {
+
+            //put normals for the current point in an array
+            double ptNorm[3] = {_points[p_id].nx, _points[p_id].ny, _points[p_id].nz};
+
+            //set the point and normal values for each point
+            points->InsertPoint(p_id, _points[p_id].x, _points[p_id].y, _points[p_id].z);
+            pointNormals->SetTuple(p_id, ptNorm);
+        }
+
+        // cells
+        VC_CellType::CellAutoPointer cell;
+        vtkCellArray *polys = vtkCellArray::New();
+
+        for (VC_CellIterator cell = getCells()->Begin(); cell != getCells()->End(); ++cell ) {
+
+            vtkIdList *poly = vtkIdList::New();
+            for ( VC_PointsInCellIterator point = cell.Value()->PointIdsBegin(); point != cell.Value()->PointIdsEnd(); ++point )
+                poly->InsertNextId(*point);
+
+            polys->InsertNextCell(poly);
+        }
+
+        //assign to the mesh
+        output->SetPoints(points);
+        output->SetPolys(polys);
+        output->GetPointData()->SetNormals(pointNormals);
+
+        return output;
+    }
+
+
     ///// Mesh Generation Helper Functions /////
     void testingMesh::_add_vertex(double x, double y, double z) {
         VC_Vertex v;

@@ -6,6 +6,14 @@
 #define VC_TESTINGMESH_H
 
 #include "../vc_defines.h"
+#include <vtkCellData.h>
+#include <vtkCellArray.h>
+#include <vtkDoubleArray.h>
+#include <vtkPoints.h>
+#include <vtkPolyData.h>
+#include <vtkPointData.h>
+#include <vtkSmartPointer.h>
+
 
 namespace volcart {
 namespace testing {
@@ -16,6 +24,7 @@ namespace testing {
         testingMesh();
 
         VC_MeshType::Pointer itkMesh();
+        vtkPolyData* vtkMesh();
 
         //overload
         std::vector<VC_Vertex> getPoints() {return _points;}
