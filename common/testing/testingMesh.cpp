@@ -70,7 +70,7 @@ namespace testing {
 
     // initialize a vtk mesh //
 
-  /*  vtkPolyData* testingMesh::vtkMesh() {
+    vtkPolyData* testingMesh::vtkMesh() {
         vtkPolyData* output = vtkPolyData::New();
 
         // points + normals
@@ -93,13 +93,15 @@ namespace testing {
         VC_CellType::CellAutoPointer cell;
         vtkCellArray *polys = vtkCellArray::New();
 
-        for (VC_CellIterator cell = getCells().begin(); cell != getCells().end(); ++cell ) {
+        for (unsigned long c_id = 0; c_id < _cells.size(); c_id++){
 
             vtkIdList *poly = vtkIdList::New();
-            for ( VC_PointsInCellIterator point = cell.Value()->PointIdsBegin(); point != cell.Value()->PointIdsEnd(); ++point )
-                poly->InsertNextId(*point);
+            for (unsigned long pointID; pointID < 3; pointID++){
+                poly->InsertNextId(pointID);
+            }
 
             polys->InsertNextCell(poly);
+
         }
 
         //assign to the mesh
@@ -109,7 +111,7 @@ namespace testing {
 
         return output;
     }
-*/
+
 
     ///// Mesh Generation Helper Functions /////
     void testingMesh::_add_vertex(double x, double y, double z) {

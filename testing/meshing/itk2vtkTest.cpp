@@ -64,7 +64,7 @@ struct ivFix {
         _mesh = mesh.itkMesh();
         _vtk = vtkPolyData::New();
 
-        //vtk and itkMesh are used in v2i
+        //vtk and itkMesh are used in v2i test case
         vtk = mesh.vtkMesh();
         itkMesh = VC_MeshType::New();
 
@@ -73,7 +73,7 @@ struct ivFix {
 
     ~ivFix(){ std::cerr << "cleaning up itk2vtkTest objects" << std::endl; }
 
-    VC_MeshType::Pointer _mesh, itkMesh;
+    VC_MeshType::Pointer _mesh ,itkMesh;
     volcart::testing::testingMesh mesh;
     vtkPolyData* _vtk;
     vtkPolyData* vtk;
