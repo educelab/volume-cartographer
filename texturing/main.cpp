@@ -146,7 +146,6 @@ int main(int argc, char* argv[])
 
     // itk2bullet converter test //
     int size = mesh->GetNumberOfPoints();
-    std::cout << "Number of points: " << size << std::endl;
     btScalar bulletPoints[size*3];
     size = mesh->GetNumberOfCells();
     int bulletFaces[size][3];
@@ -157,6 +156,7 @@ int main(int argc, char* argv[])
     for(int i = 0; i < mesh->GetNumberOfCells(); ++i) {
         std::cout << bulletFaces[i][0] << ", " << bulletFaces[i][1] << ", " << bulletFaces[i][2] << std::endl;
     }
+    // itk2bullet converter test //
 
 
     // Iterate over all of the cells to lay out the faces in the output texture

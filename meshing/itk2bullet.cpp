@@ -9,7 +9,6 @@ namespace volcart {
 
     itk2bullet::itk2bullet( VC_MeshType::Pointer input, btScalar vertices[], int faces[][3] ) {
 
-    	std::cout << "converting..." << std::endl;
     	int i = 0;
     	// copy point vertices from itk mesh to array of btScalar type
     	VC_PointsInMeshIterator point = input->GetPoints()->Begin();
