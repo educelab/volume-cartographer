@@ -7,11 +7,14 @@
 namespace volcart {
   namespace meshing {
 
-    itk2bullet::itk2bullet( VC_MeshType::Pointer input, btScalar* vertices, int faces[][3] ) {
+    itk2bullet::itk2bullet( VC_MeshType::Pointer input, btScalar vertices[], int faces[][3] ) {
 
+    	std::cout << "converting..." << std::endl;
     	int i = 0;
     	// copy point vertices from itk mesh to array of btScalar type
-    	for ( VC_PointsInMeshIterator point = input->GetPoints()->Begin(); point != input->GetPoints()->End(); ++point ) {
+    	VC_PointsInMeshIterator point = input->GetPoints()->Begin();
+    	VC_PointsInMeshIterator end = input->GetPoints()->End();
+    	while (point != end) {
                 
         VC_MeshType::PointType p = point.Value();
 
@@ -20,8 +23,11 @@ namespace volcart {
         vertices[i+1] = ( btScalar(p[1]) );
         vertices[i+2] = ( btScalar(p[2]) );
 
-        ++i;
+        i += 3;
+        ++point;
       }
+
+     //  std::cout << "VERTICES CHECK" << std::endl;
 
       int j = 0;
     	// Iterate over all of the cells to copy the indices of each vertice to multidimensional int array

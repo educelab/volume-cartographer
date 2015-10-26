@@ -13,7 +13,7 @@ namespace volcart {
 
     class itk2bullet {
     public:
-    	itk2bullet( VC_MeshType::Pointer input, btScalar* vertices, int faces[][3] );
+    	itk2bullet( VC_MeshType::Pointer input, btScalar vertices[], int faces[][3] );
     };
 
   } // namespace meshing

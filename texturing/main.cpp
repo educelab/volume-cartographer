@@ -13,6 +13,9 @@
 
 #include "texturingUtils.h"
 
+// bullet converter
+#include "itk2bullet.h"
+
 #include <itkRGBPixel.h>
 
 #include "UPointMapping.h"
@@ -140,6 +143,21 @@ int main(int argc, char* argv[])
     VC_CellIterator  cellEnd      = mesh->GetCells()->End();
     VC_CellType *    cell;
     VC_PointsInCellIterator pointsIterator;
+
+    // itk2bullet converter test //
+    int size = mesh->GetNumberOfPoints();
+    std::cout << "Number of points: " << size << std::endl;
+    btScalar bulletPoints[size*3];
+    size = mesh->GetNumberOfCells();
+    int bulletFaces[size][3];
+    volcart::meshing::itk2bullet::itk2bullet(mesh, bulletPoints, bulletFaces);
+    for(int i = 0; i < mesh->GetNumberOfPoints(); i += 3) {
+        std::cout << bulletPoints[i] << ", " << bulletPoints[i+1] << ", " << bulletPoints[i+2] << std::endl;
+    }
+    for(int i = 0; i < mesh->GetNumberOfCells(); ++i) {
+        std::cout << bulletFaces[i][0] << ", " << bulletFaces[i][1] << ", " << bulletFaces[i][2] << std::endl;
+    }
+
 
     // Iterate over all of the cells to lay out the faces in the output texture
     while( cellIterator != cellEnd )
