@@ -13,6 +13,7 @@
 #include <vtkPolyData.h>
 #include <vtkPointData.h>
 #include <vtkSmartPointer.h>
+#include <vtkPolyDataReader.h>
 
 
 namespace volcart {
@@ -24,7 +25,7 @@ namespace testing {
         testingMesh();
 
         VC_MeshType::Pointer itkMesh();
-        vtkPolyData* vtkMesh();
+        vtkSmartPointer<vtkPolyData> vtkMesh();
 
         //overload
         std::vector<VC_Vertex> getPoints() {return _points;}

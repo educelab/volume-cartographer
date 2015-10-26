@@ -70,8 +70,10 @@ namespace testing {
 
     // initialize a vtk mesh //
 
-    vtkPolyData* testingMesh::vtkMesh() {
-        vtkPolyData* output = vtkPolyData::New();
+    vtkSmartPointer<vtkPolyData> testingMesh::vtkMesh() {
+
+        //construct new pointer to output mesh
+        vtkSmartPointer<vtkPolyData> output = vtkSmartPointer<vtkPolyData>::New();
 
         // points + normals
         vtkPoints *points = vtkPoints::New();

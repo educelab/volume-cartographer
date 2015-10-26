@@ -22,8 +22,8 @@
  *           common/testing/testingMesh.cpp, can be written into                    *
  *                                                                                  *
  *                                                                                  *
- *  This file is broken up into a testing fixture, ivFix, which initializes the     *
- *  objects used in each of the two test cases.                                     *
+ *  This file is broken up into two test fixtures (ivFix & viFix) which initialize  *
+ *  the objects used in each of the two test cases.                                 *
  *                                                                                  *
  *  i2v (test case):                                                                *
  *                                                                                  *
@@ -51,7 +51,7 @@
 
 
 /*
- * This builds objects for the test cases below that reference
+ * This builds objects for the i2v case below that reference
  * the fixture as their second argument
  *
  */
@@ -60,25 +60,42 @@ struct ivFix {
 
     ivFix() {
 
-        //_mesh and _vtk are used in i2v test case
         _mesh = mesh.itkMesh();
         _vtk = vtkPolyData::New();
 
-        //vtk and itkMesh are used in v2i test case
+        std::cerr << "setting up itk2vtk objects" << std::endl;
+    }
+
+    ~ivFix(){ std::cerr << "cleaning up itk2vtk objects" << std::endl; }
+
+    VC_MeshType::Pointer _mesh;
+    volcart::testing::testingMesh mesh;
+    vtkPolyData* _vtk;
+};
+
+/*
+ * This builds objects for the v2i test case below that reference
+ * the fixture as their second argument
+ *
+ */
+
+
+struct viFix {
+
+    viFix() {
+
         vtk = mesh.vtkMesh();
         itkMesh = VC_MeshType::New();
 
-        std::cerr << "setting up itk2vtkTest objects" << std::endl;
+        std::cerr << "setting up vtk2itk objects" << std::endl;
     }
 
-    ~ivFix(){ std::cerr << "cleaning up itk2vtkTest objects" << std::endl; }
+    ~viFix(){ std::cerr << "cleaning up vtk2itk objects" << std::endl; }
 
-    VC_MeshType::Pointer _mesh ,itkMesh;
+    VC_MeshType::Pointer itkMesh;
     volcart::testing::testingMesh mesh;
-    vtkPolyData* _vtk;
-    vtkPolyData* vtk;
+    vtkSmartPointer<vtkPolyData> vtk;
 };
-
 
 
 //
@@ -156,48 +173,76 @@ BOOST_FIXTURE_TEST_CASE(i2v, ivFix){
 //       _vtk is a vtk mesh created in ivFix
 //
 
-BOOST_FIXTURE_TEST_CASE(v2i, ivFix){
+
+BOOST_FIXTURE_TEST_CASE(v2i, viFix){
+
+    // Get smartpointer data into vtkPolyData*
+    vtkPolyData* vtkRead = vtk.GetPointer();
 
     // initialize a new vtkPolydata pointer
     // this will hold the values for the new vtk mesh that
     // is to be compared with _vtk created in test fixture
+    // NOTE: shouldn't have to use smart pointer here
 
     vtkPolyData* _newVtk = vtkPolyData::New();
 
     // convert from itk mesh to vtk and back again
-    volcart::meshing::vtk2itk(vtk, itkMesh);
+    // GetPointer() from smart pointer, vtk, to pass
+    volcart::meshing::vtk2itk(vtkRead, itkMesh);
     volcart::meshing::itk2vtk(itkMesh, _newVtk);
 
     // points + normals
-    vtkDataArray *originalNormals = vtk->GetPointData()->GetNormals();
+    vtkDataArray *originalNormals = vtkRead->GetPointData()->GetNormals();
     vtkDataArray *_newVtkNormals = _newVtk->GetPointData()->GetNormals();
 
-    //Used in 'Cells' while loop below
-    vtkIdType c_id = 0;
-    VC_CellType::CellAutoPointer cell;
-    VC_PointsInCellIterator _vtkPointsIterator;
+    // Points
+    //std::cerr << "Points:" << std::endl;
+    for ( vtkIdType p_id = 0; p_id < vtkRead->GetNumberOfPoints(); ++p_id) {
 
-    //Used in 'Points' while loop below
-    vtkIdType p_id = 0;
+        //check the points in both vtk meshes
+        BOOST_CHECK_EQUAL(vtkRead->GetPoint(p_id)[0], _newVtk->GetPoint(p_id)[0]);
+        BOOST_CHECK_EQUAL(vtkRead->GetPoint(p_id)[1], _newVtk->GetPoint(p_id)[1]);
+        BOOST_CHECK_EQUAL(vtkRead->GetPoint(p_id)[2], _newVtk->GetPoint(p_id)[2]);
 
-    while( c_id != vtk->GetNumberOfCells() ) {
-
-        _vtkPointsIterator = cell->PointIdsBegin();
-
-        while (_vtkPointsIterator != cell->PointIdsEnd()) {
-
-            p_id = *_vtkPointsIterator;
-
-            //Now check to see that the original and _newVtk points match
-            BOOST_CHECK_EQUAL(vtk->GetPoint(p_id), _newVtk->GetPoint(p_id));
-            BOOST_CHECK_EQUAL(originalNormals->GetTuple(p_id), _newVtkNormals->GetTuple(p_id));
-
-            std::cerr << "Point " << p_id << ": " << *vtk->GetPoint(p_id) << std::endl;
-
-            ++_vtkPointsIterator;
-        }
-
-        ++c_id;
+        /* Uncomment below to see output of a test point from vtkRead */
+        //std::cerr << vtkRead->GetPoint(p_id)[0] << " | "
+        //          << vtkRead->GetPoint(p_id)[1] << " | "
+        //          << vtkRead->GetPoint(p_id)[2] << " | " << std::endl;
     }
 
+    //Normals
+    //std::cerr << "Normals:" << std::endl;
+    for (vtkIdType n_id = 0; n_id < vtkRead->GetNumberOfPoints(); n_id++){
+
+        //Check normals (nx,ny,nz)
+        BOOST_CHECK_EQUAL(originalNormals->GetTuple(n_id)[0], _newVtkNormals->GetTuple(n_id)[0]);
+        BOOST_CHECK_EQUAL(originalNormals->GetTuple(n_id)[1], _newVtkNormals->GetTuple(n_id)[1]);
+        BOOST_CHECK_EQUAL(originalNormals->GetTuple(n_id)[2], _newVtkNormals->GetTuple(n_id)[2]);
+
+        /* Uncomment below to see output of a test normal from vtkRead */
+        //std::cerr << originalNormals->GetTuple(n_id)[0] << " | "
+        //          << originalNormals->GetTuple(n_id)[1] << " | "
+        //          << originalNormals->GetTuple(n_id)[2] << " | " << std::endl;
+    }
+
+
+    //Cells
+    //std::cerr << "Cells:" << std::endl;
+    for ( vtkIdType c_id = 0; c_id < vtkRead->GetNumberOfCells(); c_id++){
+
+        vtkCell *inputCell = vtkRead->GetCell(c_id);
+        vtkCell *_newVtkCell = _newVtk->GetCell(c_id);
+
+        //Check that points in each cell are equal
+        //We have three checks since there are three points that make up a cell
+        BOOST_CHECK_EQUAL(inputCell->GetPointIds()->GetId(0), _newVtkCell->GetPointIds()->GetId(0));
+        BOOST_CHECK_EQUAL(inputCell->GetPointIds()->GetId(1), _newVtkCell->GetPointIds()->GetId(1));
+        BOOST_CHECK_EQUAL(inputCell->GetPointIds()->GetId(2), _newVtkCell->GetPointIds()->GetId(2));
+
+
+        /* Uncomment below to see output of a test normal from vtkRead */
+        //std::cerr << inputCell->GetPointIds()->GetId(0) << " | "
+        //          << inputCell->GetPointIds()->GetId(1) << " | "
+        //          << inputCell->GetPointIds()->GetId(2) << " | " << std::endl;
+    }
 }
