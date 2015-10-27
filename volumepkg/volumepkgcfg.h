@@ -4,36 +4,16 @@
 #include <iostream>
 #include <fstream>
 
-#include "picojson.h"
-
 #include "vc_defines.h"
+#include "vc_datatypes.h"
+
 #include "volumepkg_version.h"
 
-class VolumePkgCfg {
+class VolumePkgCfg : public volcart::Metadata {
 public:
-    VolumePkgCfg();
-    VolumePkgCfg(std::string);
+    VolumePkgCfg() : Metadata(){};
+    VolumePkgCfg( std::string path ) : Metadata( path ){};
     VolumePkgCfg(volcart::Dictionary dict, double version = VOLPKG_VERSION);
-
-    void saveCfg(std::string);
-
-    // Debug functions
-    void printString();
-    void printObject();
-
-    // Retrieval
-    int getInt(std::string);
-    double getDouble(std::string);
-    std::string getString(std::string, std::string);
-    //VolumePkgCfg getInnerElement(std::string);
-
-    // Assignment
-    void setValue(std::string, int);
-    void setValue(std::string, double);
-    void setValue(std::string, std::string);
-
-private:
-    picojson::value _json;
 };
 
 #endif // _VOLUMEPKGCFG_H_

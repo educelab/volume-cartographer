@@ -5,6 +5,7 @@
 #ifndef VC_DATATYPES_H
 #define VC_DATATYPES_H
 
+#include "datatypes/Metadata.h"
 #include "datatypes/UVMap.h"
 #include "datatypes/Texture.h"
 

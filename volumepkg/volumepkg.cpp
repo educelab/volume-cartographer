@@ -104,7 +104,7 @@ double VolumePkg::getMaterialThickness() {
 // METADATA EXPORT //
 // Save metadata to any file
 void VolumePkg::saveMetadata(std::string filePath) {
-    config.saveCfg(filePath);
+    config.save(filePath);
 }
 
 // Alias for saving to the default config.json
