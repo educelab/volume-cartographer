@@ -1,3 +1,5 @@
+#include <chrono>
+
 #include "volumepkg.h"
 
 VolumePkg::VolumePkg(std::string file_location) : config(file_location + "/config.json") {
@@ -144,6 +146,12 @@ int VolumePkg::getNumberOfSliceCharacters() {
 
 // Returns slice image at specific slice index
 cv::Mat VolumePkg::getSliceData(int index) {
+    // Take advantage of caching layer
+    auto possibleSlice = cache.get(index);
+    if (possibleSlice != nullptr) {
+        return *possibleSlice;
+    }
+
     //get the file name
     std::string slice_location(location);
     slice_location += config.getString("slice location", "/slices/");
@@ -155,6 +163,9 @@ cv::Mat VolumePkg::getSliceData(int index) {
     slice_location += ".tif";
 
     cv::Mat sliceImg = cv::imread( slice_location, CV_LOAD_IMAGE_ANYCOLOR | CV_LOAD_IMAGE_ANYDEPTH );
+    
+    // Put into cache so we can use it later
+    cache.put(index, sliceImg);
     
     return sliceImg;
 }
@@ -190,12 +201,17 @@ std::string VolumePkg::getNormalAtIndex(int index) {
     return pcd_location;
 }
 
+void VolumePkg::setCacheSize(size_t size)
+{
+    cache.setSize(size);
+}
+
 
 // SEGMENTATION FUNCTIONS //
 // Return a vector of strings representing the names of segmentations in the volpkg
 std::vector<std::string> VolumePkg::getSegmentations() {
     return segmentations;
-};
+}
 
 // Set the private variable activeSeg to the seg we want to work with
 void VolumePkg::setActiveSegmentation(std::string name) {
@@ -227,9 +243,9 @@ std::string VolumePkg::newSegmentation() {
 
 Reslice VolumePkg::reslice(const cv::Vec3f center, const cv::Vec3f xvec, const cv::Vec3f yvec,
                            const int32_t width, const int32_t height) {
-    auto xnorm = cv::normalize(xvec);
-    auto ynorm = cv::normalize(yvec);
-    auto origin = center - ((width / 2) * xnorm + (height / 2) * ynorm);
+    const auto xnorm = cv::normalize(xvec);
+    const auto ynorm = cv::normalize(yvec);
+    const auto origin = center - ((width / 2) * xnorm + (height / 2) * ynorm);
 
     cv::Mat m(height, width, CV_16UC1);
     for (int h = 0; h < height; ++h) {
@@ -260,17 +276,16 @@ uint16_t VolumePkg::interpolateAt(cv::Vec3f point) {
     int z_min = (int) point(VC_INDEX_Z);
     int z_max = z_min + 1;
 
-    // Slice data for certain slices
-    auto slice0 = getSliceData(0);
-    auto sliceZmin = getSliceData(z_min);
-    auto sliceZmax = getSliceData(z_max);
-
     // insert safety net
-    if (x_min < 0 || y_min < 0 || z_min < 0 ||
-        x_max >= slice0.cols || y_max >= slice0.rows ||
-        uint32_t(z_max) >= getNumberOfSlices()) {
+    if (x_min < 0 || y_min < 0 || z_min < 0 || z_max < 0 ||
+        x_max >= getSliceWidth() || y_max >= getSliceHeight() ||
+        z_max >= getNumberOfSlices()) {
         return 0;
     }
+
+    // Slice data for certain slices
+    auto sliceZmin = getSliceData(z_min);
+    auto sliceZmax = getSliceData(z_max);
 
     return uint16_t(
             sliceZmin.at<uint16_t>(y_min, x_min) * (1 - dx) * (1 - dy) * (1 - dz) +

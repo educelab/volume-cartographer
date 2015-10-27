@@ -21,6 +21,7 @@
 #include "volumepkgcfg.h"
 #include "volumepkg_version.h"
 #include "reslice.h"
+#include "slicecache.h"
 #include "orderedPCDMesher.h"
 #include "../texture/CMesh.h"
 #include "../texture/CPlyHelper.h"
@@ -59,6 +60,7 @@ public:
     cv::Mat getSliceData(int);
     std::string getSlicePath(int);
     std::string getNormalAtIndex(int);
+    void setCacheSize(size_t size);
 
     // Segmentation functions
     std::vector<std::string> getSegmentations();
@@ -82,6 +84,7 @@ private:
     int getNumberOfSliceCharacters();
     std::string activeSeg = "";
     std::vector<std::string> segmentations;
+    SliceCache<int32_t, cv::Mat> cache;
 
     std::string findKeyType(std::string);
     uint16_t interpolateAt(cv::Vec3f point);
