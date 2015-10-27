@@ -1,5 +1,7 @@
 #include <algorithm>
 #include <functional>
+#include <chrono>
+#include <cassert>
 
 #include "chain.h"
 #include "NormalizedIntensityMap.h"
@@ -13,9 +15,10 @@ Chain::Chain(VolumePkg& volpkg, int32_t zIndex) :
 {
     auto segmentationPath = volpkg_.openCloud();
     for (auto path : *segmentationPath) {
-        particles_.push_back(Particle(path.x, path.y, path.z));
+        particles_.emplace_back(path.x, path.y, path.z);
         particleCount_++;
     }
+    std::cout << "particleCount_ = " << particleCount_ << std::endl;
 }
 
 Particle Chain::at(const int32_t idx) const
@@ -25,11 +28,8 @@ Particle Chain::at(const int32_t idx) const
 
 void Chain::setNewPositions(std::vector<cv::Vec3f> newPositions)
 {
-    if (particles_.size() != newPositions.size()) {
-        std::cerr << "newPositions vector is not the same size as current particles size" << std::endl;
-        return;
-    }
-    for (auto i = 0; i < particleCount_; ++i) {
+    assert(particleCount_ == newPositions.size() && "New chain positions length != particleCount_");
+    for (size_t i = 0; i < particleCount_; ++i) {
         particles_[i] = newPositions.at(i);
     }
 }
@@ -37,9 +37,11 @@ void Chain::setNewPositions(std::vector<cv::Vec3f> newPositions)
 // Steps all particles (with no constraints)
 Chain::DirPosVecPair Chain::stepAll() const
 {
-    auto positions = std::vector<cv::Vec3f>(particleCount_);
-    auto directions = std::vector<Direction>(particleCount_);
-    for (auto i = 0; i < particleCount_; ++i) {
+    auto positions = std::vector<cv::Vec3f>();
+    positions.reserve(particleCount_);
+    auto directions = std::vector<Direction>();
+    directions.reserve(particleCount_);
+    for (size_t i = 0; i < particleCount_; ++i) {
         std::tie(directions[i], positions[i]) = step(i);
     }
     return std::make_tuple(directions, positions);
@@ -51,7 +53,7 @@ const cv::Vec3f Chain::calculateNormal(const int32_t index) const
     auto i = index;
     if (index == 0) {
         i = 1;
-    } else if (index == particleCount_ - 1) {
+    } else if (uint32_t(index) == particleCount_ - 1) {
         i = particleCount_ - 2;
     }
 
@@ -71,8 +73,6 @@ Chain::DirPosPair Chain::step(const int32_t index, const Direction dirConstraint
     // Get reslice in k-direction at this point.
     const auto normal = calculateNormal(index);
     auto reslice = volpkg_.reslice(currentParticle.position(), normal, VC_DIRECTION_K);
-    reslice.draw();
-    cv::waitKey(0);
     if (index == 29) {
         reslice.draw();
     }
@@ -80,8 +80,7 @@ Chain::DirPosPair Chain::step(const int32_t index, const Direction dirConstraint
 
     // Calculate the next position for this particle
     constexpr auto lookaheadDepth = 2;
-    auto center = cv::Point(mat.cols / 2, mat.rows / 2);
-
+    const auto center = cv::Point(mat.cols / 2, mat.rows / 2);
     const auto map = NormalizedIntensityMap(mat.row(center.y + lookaheadDepth));
     auto maxima = map.findMaxima();
 
@@ -94,8 +93,9 @@ Chain::DirPosPair Chain::step(const int32_t index, const Direction dirConstraint
         return ldist < rdist;
     });
 
-    // Convert from pixel space to voxel space to enforce constraints (if necessary)
-    auto voxelMaxima = std::vector<DirPosPair>(maxima.size());
+    // Convert from pixel space to voxel space and enforce constraints
+    auto voxelMaxima = std::vector<DirPosPair>();
+    voxelMaxima.reserve(maxima.size());
     std::transform(maxima.begin(), maxima.end(), std::back_inserter(voxelMaxima),
         [reslice, center](IndexDistPair p) {
             Direction d;
@@ -106,16 +106,19 @@ Chain::DirPosPair Chain::step(const int32_t index, const Direction dirConstraint
             } else {
                 d = Direction::kNone;
             }
-            auto voxel = reslice.sliceCoordToVoxelCoord(cv::Point(std::get<0>(p),
-                                                                  center.y + lookaheadDepth));
+            const auto voxel = reslice.sliceCoordToVoxelCoord(
+                    cv::Point(std::get<0>(p), center.y + lookaheadDepth));
             return std::make_tuple(d, voxel);
         });
 
-    // Remove any pairs that don't satisfy the direction constraint (default behavior is to not remove any)
+    // Remove any pairs that don't satisfy the direction constraint
+    // (doesn't remove Direction::kNone by default)
     // XXX assumes that dirConstraint is either Direction::kLeft or Direction::kRight
-    std::remove_if(voxelMaxima.begin(), voxelMaxima.end(), [center, dirConstraint](DirPosPair p) {
-        return (std::get<0>(p) != Direction::kNone) && (dirConstraint != std::get<0>(p));
-    });
+    if (dirConstraint != Direction::kNone) {
+        std::remove_if(voxelMaxima.begin(), voxelMaxima.end(), [center, dirConstraint](DirPosPair p) {
+            return (std::get<0>(p) != Direction::kNone) && (dirConstraint != std::get<0>(p));
+        });
+    }
 
     // Remove any pairs that don't satisfy the position constraint
     if (maxDrift != kDefaultMaxDrift) {
@@ -124,10 +127,13 @@ Chain::DirPosPair Chain::step(const int32_t index, const Direction dirConstraint
         });
     }
 
-    // XXX What do we do if there's nothing left in the voxelMaxima at this point?
-
-    // Find next point in slice space
-    return voxelMaxima.at(0);
+    // XXX Go straight down if no maxima to choose from?
+    if (voxelMaxima.empty()) {
+        auto newPoint = cv::Point(center.x, center.y + lookaheadDepth);
+        return std::make_tuple(Direction::kNone, reslice.sliceCoordToVoxelCoord(newPoint));
+    } else {
+        return voxelMaxima.at(0);
+    }
 }
 
 void Chain::draw() const {
@@ -137,7 +143,7 @@ void Chain::draw() const {
     cvtColor(pkgSlice, pkgSlice, CV_GRAY2BGR);
 
     // draw circles on the pkgSlice window for each point
-    for (int32_t i = 0; i < particleCount_; ++i) {
+    for (size_t i = 0; i < particleCount_; ++i) {
         cv::Point position(particles_.at(i)(VC_INDEX_X), particles_.at(i)(VC_INDEX_Y));
         if (i == 32) {
             circle(pkgSlice, position, 2, BGR_YELLOW, -1);

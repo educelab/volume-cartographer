@@ -6,6 +6,8 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 
+#include "common.h"
+
 namespace volcart {
 
 namespace segmentation {
@@ -22,11 +24,15 @@ public:
 
     void stop();
 
-    Particle& operator+=(const Particle&) const;
-
     float operator()(int) const;
 
-    Particle& operator-=(const Particle&) const;
+    Particle& operator+=(const Particle&);
+
+    Particle& operator-=(const Particle&);
+
+    Particle operator+(const Particle& rhs) const;
+
+    Particle operator-(const Particle& rhs) const;
 
 private:
     friend std::ostream& operator<<(std::ostream& s, Particle& p) {

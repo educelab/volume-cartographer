@@ -55,7 +55,6 @@ int main(int argc, char *argv[]) {
     // Load volume package
     VolumePkg volpkg(volpkgLocation);
     // To-Do: Check to make sure the Seg ID is actually in the volpkg
-    volpkg.setActiveSegmentation(segID);
     if (segID == "") {
         std::cerr << "ERROR: Incorrect/missing segmentation ID!" << std::endl;
         exit(EXIT_FAILURE);
@@ -65,6 +64,7 @@ int main(int argc, char *argv[]) {
         " but this program requires a version >= 2.0." << std::endl;
         exit(EXIT_FAILURE);
     }
+    volpkg.setActiveSegmentation(segID);
 
     // Setup
     // Load the activeSegmentation's current cloud
@@ -87,7 +87,6 @@ int main(int argc, char *argv[]) {
         startIndex = maxIndex;
         std::cout << "No starting index given, defaulting to Highest-Z: " << startIndex << std::endl;
     }
-
 
     // Prepare our clouds
     // Get the starting path pts.

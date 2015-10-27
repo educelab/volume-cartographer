@@ -61,7 +61,7 @@ public:
 private:
     std::vector<Particle> particles_;
     VolumePkg& volpkg_;
-    int32_t particleCount_;
+    size_t particleCount_;
     int32_t zIndex_;
 
     constexpr static double kDefaultMaxDrift = 0.0;

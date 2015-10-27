@@ -24,26 +24,25 @@ void Particle::stop() {
     isStopped_ = true;
 }
 
-Particle& Particle::operator+=(const Particle& rhs) const {
+Particle& Particle::operator+=(const Particle& rhs) {
     position_ += rhs.position();
     return *this;
 }
 
-Particle operator+(Particle lhs, const Particle& rhs) {
-    lhs += rhs;
-    return lhs;
+Particle Particle::operator+(const Particle& rhs) const
+{
+    return Particle(*this) += rhs;
 }
 
-Particle& Particle::operator-=(const Particle& rhs) const {
+Particle& Particle::operator-=(const Particle& rhs) {
     position_ -= rhs.position();
     return *this;
 }
 
-Particle operator-(Particle lhs, const Particle& rhs) {
-    lhs -= rhs;
-    return lhs;
+Particle Particle::operator-(const Particle& rhs) const {
+    return Particle(*this) -= rhs;
 }
 
-float Particle::operator()(int index) const {
+float Particle::operator()(const int index) const {
     return position_(index);
 }

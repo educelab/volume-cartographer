@@ -33,14 +33,15 @@ LocalResliceSegmentation::segmentLayer(const double driftTolerance,
     }
 
     // Set mesh size
-    std::cout << currentChain.size() << std::endl;
     mesh_.setSize(currentChain.size(), endIndex_ - startIndex_);
     mesh_.addChain(currentChain);
 
     // Go through every iteration (from start to end index)
-    for (int32_t sliceIndex = startIndex_; sliceIndex < endIndex_; sliceIndex += stepNumLayers) {
-
+    auto sliceIndex = startIndex_;
+    while (sliceIndex < endIndex_) {
         // Get predicted directions and positions
+        currentChain.draw();
+        cv::waitKey(0);
         std::vector<Direction> predictedDirections;
         std::vector<cv::Vec3f> predictedPositions;
         std::tie(predictedDirections, predictedPositions) = currentChain.stepAll();
@@ -49,8 +50,11 @@ LocalResliceSegmentation::segmentLayer(const double driftTolerance,
         // Get XY drift of newPositions from currentPositions
         auto xyDrift = std::vector<double>(N);
         for (auto i = 0; i < N; ++i) {
-            xyDrift[i] = cv::norm(predictedPositions[i] - currentChain.at(i).position());
+            auto p1 = cv::Vec2f(predictedPositions[i](VC_INDEX_X), predictedPositions[i](VC_INDEX_Y));
+            auto p2 = cv::Vec2f(currentChain.at(i)(VC_INDEX_X), currentChain.at(i)(VC_INDEX_Y));
+            xyDrift[i] = cv::norm(p1, p2);
         }
+        std::for_each(xyDrift.begin(), xyDrift.end(), [](double d) { std::cout << d << " "; });
 
         // "Bad" step indices. A "bad" step is categorized by one that went above
         // {driftTolerance}. Sort them by distance to middle element (so we start
@@ -113,11 +117,13 @@ LocalResliceSegmentation::segmentLayer(const double driftTolerance,
                     currentChain.step(elem, majorityDirection, maxDrift);
 
             iterationCount++;
+            std::cout << "iteration: " << iterationCount << std::endl;
         }
 
         // Push old positions back into chainmesh
         currentChain.setNewPositions(predictedPositions);
         mesh_.addChain(currentChain);
+        sliceIndex += stepNumLayers;
     }
 
     return mesh_.exportAsPCD();
