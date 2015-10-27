@@ -9,6 +9,11 @@
 // This define determines the default dictionary used when creating a new volumepkg
 #define VOLPKG_VERSION 2.0
 
+// VC standard component access positions for XYZ
+#define VC_INDEX_X 0
+#define VC_INDEX_Y 1
+#define VC_INDEX_Z 2
+
 ///// VC - ITK Mesh Defaults /////
 #include <itkMesh.h>
 #include "itkPointsLocator.h"

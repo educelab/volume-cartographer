@@ -23,6 +23,10 @@
 #include "vc_datatypes.h"
 #include "volumepkgcfg.h"
 #include "volumepkg_version.h"
+
+//#include "reslice.h"
+#include "slicecache.h"
+
 #include "orderedPCDMesher.h"
 #include "io/objWriter.h"
 
@@ -109,6 +113,7 @@ public:
     cv::Mat getSliceData(int);
     std::string getSlicePath(int);
     std::string getNormalAtIndex(int);
+    void setCacheSize(size_t size);
 
     // Data Assignment
     int setSliceData(unsigned long index, cv::Mat slice);
@@ -124,6 +129,7 @@ public:
     void saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr);
     void saveMesh(VC_MeshType::Pointer mesh, volcart::Texture texture);
     void saveTextureData(cv::Mat, std::string = "textured");
+    //Reslice reslice(const cv::Vec3f, const cv::Vec3f, const cv::Vec3f, const int32_t=64, const int32_t=64);
 
 private:
     bool _readOnly = true;
@@ -140,8 +146,10 @@ private:
     int getNumberOfSliceCharacters();
     std::string activeSeg = "";
     std::vector<std::string> segmentations;
+    SliceCache<int32_t, cv::Mat> cache;
 
     std::string findKeyType(std::string);
+    uint16_t interpolateAt(cv::Vec3f point);
 };
 
 #endif // _VOLUMEPKG_H_
