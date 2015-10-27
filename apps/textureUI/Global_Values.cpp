@@ -1,15 +1,15 @@
 //----------------------------------------------------------------------------------------------------------------------------------------
-// DefaultValues.cpp file for DefaultValues Class
-// Purpose: Implements DefaultValues Class
+// Global_Values.cpp file for Global_Values Class
+// Purpose: Implements Global_Values Class
 // Developer: Michael Royal - mgro224@g.uky.edu
 // October 12, 2015 - Spring Semester 2016
 // Last Updated 10/23/2015 by: Michael Royal
 //----------------------------------------------------------------------------------------------------------------------------------------
 
-#include "DefaultValues.h"
+#include "Global_Values.h"
 
 
-DefaultValues::DefaultValues(QRect rec)
+Global_Values::Global_Values(QRect rec)
 {
     // GETS THE MONITOR'S SCREEN Length & Width
     height = rec.height();
@@ -17,12 +17,17 @@ DefaultValues::DefaultValues(QRect rec)
 
 }// End of Default Constructor()
 
-int DefaultValues::getHeight()
+int Global_Values::getHeight()
 {
     return height;
 }
 
-int DefaultValues::getWidth()
+int Global_Values::getWidth()
 {
     return width;
+}
+
+void Global_Values::setPath(QString newPath)
+{
+    path = newPath;
 }

@@ -3,30 +3,28 @@
 // GUI Layout
 // Developer: Michael Royal - mgro224@g.uky.edu
 // October 7, 2015 - Spring Semester 2016
-// Last Updated 10/23/2015 by: Michael Royal
+// Last Updated 10/27/2015 by: Michael Royal
 //-----------------------------------------------------------
-
-#include <QApplication>
+#include <mainwindow.h>
 #include <QtWidgets>
 #include "Texture_Viewer.h"
 #include "Segmentations_Viewer.h"
 
-
-int main(int argc, char* argv[])
+int main(int argc, char **argv)
 {
-    QApplication application(argc, argv);// Creates Event Loop()
-
+    QApplication application(argc, argv);
     QRect rec = QApplication::desktop()->screenGeometry();
 
-    //Create new DefaultValues Object
-    DefaultValues *passValues = new DefaultValues(rec);
+    //Create new Global_Values Object
+    Global_Values *passValues = new Global_Values(rec);
     //Create new Texture_Viewer Object
     Texture_Viewer *texture_Image = new Texture_Viewer(passValues);
     //Create new Segmentations_Viewer Object
     Segmentations_Viewer *segmentations = new Segmentations_Viewer(passValues);
 
-    // GRAPHICAL USER INTERFACE LAYOUT && FORMATTING
-    //---------------------------------------------------------------------
+    //MAIN WINDOW
+    //---------------------------------------------------
+    MainWindow *window = new MainWindow(passValues);
 
     QHBoxLayout *mainLayout = new QHBoxLayout();
     mainLayout->addLayout(texture_Image->getLayout());// Adds Image_Management Layout (Left Side of Screen)
@@ -35,24 +33,11 @@ int main(int argc, char* argv[])
     QWidget *w = new QWidget();// Creates the Primary Widget to display GUI Functionality
     w->setLayout(mainLayout);// w(the main window) gets assigned the mainLayout
 
-    // Window Title
-    w->setWindowTitle("VC_Starter Project");// Sets the title for the main window
-
-    //MAX DIMENSIONS
-    w->setMinimumHeight(passValues->getHeight()/4);
-    w->setMinimumWidth(passValues->getWidth()/4);
-
-    //MIN DIMENSIONS
-    w->setMaximumHeight(passValues->getHeight());
-    w->setMaximumWidth(passValues->getWidth());
-
     // Display Window
-    w->show();
-    //----------------------------------------------------------------------
-    //---------------------------------------------------- END OF GUI LAYOUT
+    //------------------------------
+    window->setCentralWidget(w);
+    window->show();
 
-    //Event Loop()
-    return application.exec();// Executes the Application/Program
-
+    return application.exec();
 
 }// End of main()

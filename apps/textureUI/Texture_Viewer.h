@@ -15,7 +15,10 @@
 #include <QAction>
 #include <QPushButton>
 #include <QLayout>
-#include "DefaultValues.h"
+#include "Global_Values.h"
+#include <QAction>
+#include <QMenuBar>
+#include <QMenu>
 
 #ifndef VC_TEXTURE_VIEWER_H
 #define VC_TEXTURE_VIEWER_H
@@ -25,7 +28,7 @@ class Texture_Viewer:QObject
     Q_OBJECT
 
 public:
-    Texture_Viewer(DefaultValues *values);
+    Texture_Viewer(Global_Values *globals);
     QVBoxLayout * getLayout();
 
 private slots:
@@ -51,7 +54,7 @@ private:
 
     double scaleFactor;
 
-    DefaultValues *defaultVals;
+    Global_Values *_globals;
 
     QAction *open_Action;
     QAction *zoomInAction;

@@ -10,9 +10,9 @@
 #include <qmainwindow.h>
 #include "Texture_Viewer.h"
 
-Texture_Viewer::Texture_Viewer(DefaultValues *values)
+Texture_Viewer::Texture_Viewer(Global_Values *globals)
 {
-    defaultVals = values;
+    _globals = globals;
 
     //LEFT SIDE OF GUI
     //*****************************************************************************************
@@ -20,7 +20,7 @@ Texture_Viewer::Texture_Viewer(DefaultValues *values)
     scaleFactor=1;// Instantiates scaleFactor to 1 for Resizing
 
     QPixmap pix;
-    pix.load("/Users/Royal/Desktop/Volume_Car/volume-cartographer/apps/textureUI/Space.jpg");
+    //pix.load("");
 
     imageLabel = new QLabel;
     imageLabel->setBackgroundRole(QPalette::Base);
@@ -105,7 +105,6 @@ QVBoxLayout * Texture_Viewer::getLayout()
     return image_Management;
 
 }// End of Texture_Viewer::getLayout()
-
 
 void Texture_Viewer::create_Actions()
 {

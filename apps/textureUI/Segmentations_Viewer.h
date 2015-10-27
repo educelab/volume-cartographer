@@ -13,7 +13,7 @@
 #include "volumepkg.h"
 #include "io/ply2itk.h"
 #include "compositeTexture.h"
-#include "DefaultValues.h"
+#include "Global_Values.h"
 #include <QVBoxLayout>
 #include <QSpinBox>
 #include <QComboBox>
@@ -29,7 +29,7 @@ class Segmentations_Viewer:QObject
 {
 
 public:
-    Segmentations_Viewer(DefaultValues *values);
+    Segmentations_Viewer(Global_Values *values);
     QVBoxLayout * getLayout();
 
 private:
@@ -40,7 +40,7 @@ private:
     QListWidget *segmentations;
 
     QLabel *parameters;
-    DefaultValues *defaultVals;
+    Global_Values *defaultVals;
     QSpinBox *radius;
     QComboBox *texture_Method;
     QComboBox *sample_Direction;

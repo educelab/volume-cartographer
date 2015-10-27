@@ -8,7 +8,7 @@
 
 #include "Segmentations_Viewer.h"
 
-Segmentations_Viewer::Segmentations_Viewer(DefaultValues *values)
+Segmentations_Viewer::Segmentations_Viewer(Global_Values *values)
 {
     defaultVals = values;
 
