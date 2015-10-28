@@ -241,7 +241,7 @@ std::string VolumePkg::newSegmentation() {
   return segName;
 }
 
-Reslice VolumePkg::reslice(const cv::Vec3f center, const cv::Vec3f xvec, const cv::Vec3f yvec,
+Reslice VolumePkg::reslice(const cv::Vec3d center, const cv::Vec3d xvec, const cv::Vec3d yvec,
                            const int32_t width, const int32_t height) {
     const auto xnorm = cv::normalize(xvec);
     const auto ynorm = cv::normalize(yvec);
@@ -250,7 +250,7 @@ Reslice VolumePkg::reslice(const cv::Vec3f center, const cv::Vec3f xvec, const c
     cv::Mat m(height, width, CV_16UC1);
     for (int h = 0; h < height; ++h) {
         for (int w = 0; w < width; ++w) {
-            cv::Vec3f v = origin + (h * ynorm) + (w * xnorm);
+            cv::Vec3d v = origin + (h * ynorm) + (w * xnorm);
             m.at<uint16_t>(h, w) = interpolateAt(v);
         }
     }
@@ -263,23 +263,21 @@ Reslice VolumePkg::reslice(const cv::Vec3f center, const cv::Vec3f xvec, const c
 // normals with their neighbors's known normals.
 //
 // formula from http://paulbourke.net/miscellaneous/interpolation/
-uint16_t VolumePkg::interpolateAt(cv::Vec3f point) {
+uint16_t VolumePkg::interpolateAt(cv::Vec3d point) {
     double int_part;
     double dx = modf(point(VC_INDEX_X), &int_part);
-    double dy = modf(point(VC_INDEX_Y), &int_part);
-    double dz = modf(point(VC_INDEX_Z), &int_part);
-
-    int x_min = (int) point(VC_INDEX_X);
+    int x_min = (int) int_part;
     int x_max = x_min + 1;
-    int y_min = (int) point(VC_INDEX_Y);
+    double dy = modf(point(VC_INDEX_Y), &int_part);
+    int y_min = (int) int_part;
     int y_max = y_min + 1;
-    int z_min = (int) point(VC_INDEX_Z);
+    double dz = modf(point(VC_INDEX_Z), &int_part);
+    int z_min = (int) int_part;
     int z_max = z_min + 1;
 
     // insert safety net
-    if (x_min < 0 || y_min < 0 || z_min < 0 || z_max < 0 ||
-        x_max >= getSliceWidth() || y_max >= getSliceHeight() ||
-        z_max >= getNumberOfSlices()) {
+    if (x_min < 0 || y_min < 0 || z_min < 0 ||
+        x_max > getSliceWidth() || y_max > getSliceHeight() || z_max > getNumberOfSlices()) {
         return 0;
     }
 
@@ -289,12 +287,12 @@ uint16_t VolumePkg::interpolateAt(cv::Vec3f point) {
 
     return uint16_t(
             sliceZmin.at<uint16_t>(y_min, x_min) * (1 - dx) * (1 - dy) * (1 - dz) +
-            sliceZmax.at<uint16_t>(y_min, x_min) * dx       * (1 - dy) * (1 - dz) +
+            sliceZmin.at<uint16_t>(y_min, x_max) * dx       * (1 - dy) * (1 - dz) +
             sliceZmin.at<uint16_t>(y_max, x_min) * (1 - dx) * dy       * (1 - dz) +
-            sliceZmin.at<uint16_t>(y_min, x_max) * (1 - dx) * (1 - dy) * dz +
+            sliceZmax.at<uint16_t>(y_min, x_min) * (1 - dx) * (1 - dy) * dz +
             sliceZmax.at<uint16_t>(y_min, x_max) * dx       * (1 - dy) * dz +
-            sliceZmin.at<uint16_t>(y_max, x_max) * (1 - dx) * dy       * dz +
-            sliceZmax.at<uint16_t>(y_max, x_min) * dx       * dy       * (1 - dz) +
+            sliceZmax.at<uint16_t>(y_max, x_min) * (1 - dx) * dy       * dz +
+            sliceZmin.at<uint16_t>(y_max, x_max) * dx       * dy       * (1 - dz) +
             sliceZmax.at<uint16_t>(y_max, x_max) * dx       * dy       * dz);
 }
 

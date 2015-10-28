@@ -75,7 +75,7 @@ public:
     void saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr);
     void saveTexturedMesh(ChaoVis::CMesh);
     void saveTextureData(cv::Mat, std::string = "texture");
-    Reslice reslice(const cv::Vec3f, const cv::Vec3f, const cv::Vec3f, const int32_t=64, const int32_t=64);
+    Reslice reslice(const cv::Vec3d, const cv::Vec3d, const cv::Vec3d, const int32_t=64, const int32_t=64);
 
 private:
     VolumePkgCfg config;
@@ -87,7 +87,7 @@ private:
     SliceCache<int32_t, cv::Mat> cache;
 
     std::string findKeyType(std::string);
-    uint16_t interpolateAt(cv::Vec3f point);
+    uint16_t interpolateAt(cv::Vec3d point);
 };
 
 #endif // _VOLUMEPKG_H_
