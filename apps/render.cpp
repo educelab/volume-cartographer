@@ -14,7 +14,7 @@
 int main(int argc, char* argv[])
 {
     if ( argc < 6 ) {
-        std::cout << "Usage: vc_texture2 volpkg seg-id radius texture-method sample-direction" << std::endl;
+        std::cout << "Usage: vc_render volpkg seg-id radius texture-method sample-direction" << std::endl;
         std::cout << "Texture methods: " << std::endl;
         std::cout << "      0 = Intersection" << std::endl;
         std::cout << "      1 = Non-Maximum Suppression" << std::endl;

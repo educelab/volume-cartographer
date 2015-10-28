@@ -1,4 +1,5 @@
 #include <io/objWriter.h>
+//#include <chrono>
 #include "volumepkg.h"
 
 // CONSTRUCTORS //
@@ -104,7 +105,7 @@ double VolumePkg::getMaterialThickness() {
 // METADATA EXPORT //
 // Save metadata to any file
 void VolumePkg::saveMetadata(std::string filePath) {
-    config.saveCfg(filePath);
+    config.save(filePath);
 }
 
 // Alias for saving to the default config.json
@@ -128,12 +129,18 @@ int VolumePkg::getNumberOfSliceCharacters() {
 // Returns slice image at specific slice index
 cv::Mat VolumePkg::getSliceData(int index) {
 
-    std::string filepath = getSlicePath(index);
+    // Take advantage of caching layer
+    auto possibleSlice = cache.get(index);
+    if (possibleSlice != nullptr) {
+        return *possibleSlice;
+    }
 
-    if ( boost::filesystem::exists(filepath) )
-        return cv::imread( filepath, CV_LOAD_IMAGE_ANYCOLOR | CV_LOAD_IMAGE_ANYDEPTH );
-//    else
-//        // To-Do: Throw an exception/error
+    cv::Mat sliceImg = cv::imread( getSlicePath(index), CV_LOAD_IMAGE_ANYCOLOR | CV_LOAD_IMAGE_ANYDEPTH );
+    
+    // Put into cache so we can use it later
+    cache.put(index, sliceImg);
+    
+    return sliceImg;
 }
 
 // Returns slice at specific slice index
@@ -165,6 +172,11 @@ std::string VolumePkg::getNormalAtIndex(int index) {
     return pcd_location;
 }
 
+void VolumePkg::setCacheSize(size_t size)
+{
+    cache.setSize(size);
+}
+
 
 // DATA ASSIGNMENT //
 int VolumePkg::setSliceData(unsigned long index, cv::Mat slice) {
@@ -186,7 +198,7 @@ int VolumePkg::setSliceData(unsigned long index, cv::Mat slice) {
 // Return a vector of strings representing the names of segmentations in the volpkg
 std::vector<std::string> VolumePkg::getSegmentations() {
     return segmentations;
-};
+}
 
 // Set the private variable activeSeg to the seg we want to work with
 void VolumePkg::setActiveSegmentation(std::string name) {
@@ -216,6 +228,63 @@ std::string VolumePkg::newSegmentation() {
   return segName;
 }
 
+//Reslice VolumePkg::reslice(const cv::Vec3f center, const cv::Vec3f xvec, const cv::Vec3f yvec,
+//                           const int32_t width, const int32_t height) {
+//    const auto xnorm = cv::normalize(xvec);
+//    const auto ynorm = cv::normalize(yvec);
+//    const auto origin = center - ((width / 2) * xnorm + (height / 2) * ynorm);
+//
+//    cv::Mat m(height, width, CV_16UC1);
+//    for (int h = 0; h < height; ++h) {
+//        for (int w = 0; w < width; ++w) {
+//            cv::Vec3f v = origin + (h * ynorm) + (w * xnorm);
+//            m.at<uint16_t>(h, w) = interpolateAt(v);
+//        }
+//    }
+//
+//    return Reslice(m, origin, xnorm, ynorm);
+//}
+
+// Trilinear Interpolation: Particles are not required
+// to be at integer positions so we estimate their
+// normals with their neighbors's known normals.
+//
+// formula from http://paulbourke.net/miscellaneous/interpolation/
+uint16_t VolumePkg::interpolateAt(cv::Vec3f point) {
+    double int_part;
+    double dx = modf(point(VC_INDEX_X), &int_part);
+    double dy = modf(point(VC_INDEX_Y), &int_part);
+    double dz = modf(point(VC_INDEX_Z), &int_part);
+
+    int x_min = (int) point(VC_INDEX_X);
+    int x_max = x_min + 1;
+    int y_min = (int) point(VC_INDEX_Y);
+    int y_max = y_min + 1;
+    int z_min = (int) point(VC_INDEX_Z);
+    int z_max = z_min + 1;
+
+    // insert safety net
+    if (x_min < 0 || y_min < 0 || z_min < 0 || z_max < 0 ||
+        x_max >= getSliceWidth() || y_max >= getSliceHeight() ||
+        z_max >= getNumberOfSlices()) {
+        return 0;
+    }
+
+    // Slice data for certain slices
+    auto sliceZmin = getSliceData(z_min);
+    auto sliceZmax = getSliceData(z_max);
+
+    return uint16_t(
+            sliceZmin.at<uint16_t>(y_min, x_min) * (1 - dx) * (1 - dy) * (1 - dz) +
+            sliceZmin.at<uint16_t>(y_min, x_max) * dx       * (1 - dy) * (1 - dz) +
+            sliceZmin.at<uint16_t>(y_max, x_min) * (1 - dx) * dy       * (1 - dz) +
+            sliceZmax.at<uint16_t>(y_min, x_min) * (1 - dx) * (1 - dy) * dz +
+            sliceZmax.at<uint16_t>(y_min, x_max) * dx       * (1 - dy) * dz +
+            sliceZmax.at<uint16_t>(y_max, x_min) * (1 - dx) * dy       * dz +
+            sliceZmin.at<uint16_t>(y_max, x_max) * dx       * dy       * (1 - dz) +
+            sliceZmax.at<uint16_t>(y_max, x_max) * dx       * dy       * dz);
+}
+
 // Return the point cloud currently on disk for the activeSegmentation
 pcl::PointCloud<pcl::PointXYZRGB>::Ptr VolumePkg::openCloud() {
     // To-Do: Error if activeSeg not set
@@ -233,8 +302,7 @@ std::string VolumePkg::getMeshPath(){
 
 // Return the texture image as a CV mat
 cv::Mat VolumePkg::getTextureData() {
-    std::string texturePath = segs_dir.string() + "/" + activeSeg + "/texture.tif";
-    cv::Mat texture = cv::imread( texturePath, CV_LOAD_IMAGE_ANYCOLOR | CV_LOAD_IMAGE_ANYDEPTH );
+    std::string texturePath = segs_dir.string() + "/" + activeSeg + "/textured.png";
     return cv::imread( texturePath, CV_LOAD_IMAGE_ANYCOLOR | CV_LOAD_IMAGE_ANYDEPTH );
 }
 
@@ -254,7 +322,7 @@ void VolumePkg::saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segmentedCloud) 
 
 void VolumePkg::saveMesh(VC_MeshType::Pointer mesh, volcart::Texture texture) {
     volcart::io::objWriter writer;
-    writer.setPath(segs_dir.string() + "/" + activeSeg + "/texture.obj");
+    writer.setPath(segs_dir.string() + "/" + activeSeg + "/textured.obj");
     writer.setMesh(mesh);
     writer.setTexture(texture.getImage(0));
     writer.setUVMap(texture.uvMap());

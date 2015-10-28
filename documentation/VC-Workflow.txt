@@ -33,9 +33,9 @@
 
 ---- Step 4: Create a textured mesh -----
     Texture the resulting mesh using some sort of texturing filter: 
-        vc_texture [volpkg.volpkg/] [Segmentation ID #] radius texture-method sample-direction
+        vc_render [volpkg.volpkg/] [Segmentation ID #] radius texture-method sample-direction
 
-    This will output a textured mesh called "textured.ply" inside of the segmentation's subdirectory. vc_texture requires all arguments to be present and in the specified order.
+    This will output a textured mesh called "textured.obj" inside of the segmentation's subdirectory. vc_render requires all arguments to be present and in the specified order.
 
     Arguments:
         radius: radius in pixels of ellipsoid used for complex filtering

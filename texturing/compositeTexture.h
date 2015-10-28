@@ -10,6 +10,7 @@
 #include "volumepkg.h"
 
 #include "texturingUtils.h"
+#include "simpleUV.h"
 
 namespace volcart {
     namespace texturing {
