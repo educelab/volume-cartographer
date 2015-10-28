@@ -113,6 +113,7 @@ public:
     cv::Mat getSliceData(int);
     std::string getSlicePath(int);
     std::string getNormalAtIndex(int);
+    uint16_t intensity(cv::Vec3f point) { return interpolateAt(point); };
     void setCacheSize(size_t size);
 
     // Data Assignment

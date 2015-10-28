@@ -70,7 +70,7 @@ add_subdirectory(apps)
 add_subdirectory(utils)
 
 # VC Demo Apps
-add_subdirectory(region)
+#add_subdirectory(region)
 add_subdirectory(examples)
 
 #install(FILES

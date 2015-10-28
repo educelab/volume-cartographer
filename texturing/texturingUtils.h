@@ -7,6 +7,7 @@
 #include <opencv2/opencv.hpp>
 #include "QuickSort.h"
 #include "vc_defines.h"
+#include "volumepkg.h"
 
 //#define _DEBUG
 
@@ -20,49 +21,9 @@ inline bool IsLess( const double &nV1,
     return( nV1 < nV2 );
 }
 
-// estimate intensity of volume at particle
-inline double interpolate_intensity( const cv::Vec3f                 &point,
-                                     const std::vector< cv::Mat >    &nImgVol )
-{
-  double dx, dy, dz, int_part;
-  // for new data
-  dx = modf(point[(0)], &int_part);
-  dy = modf(point[(1)], &int_part);
-  dz = modf(point[(2)], &int_part);
-
-  int x_min, x_max, y_min, y_max, z_min, z_max;
-  x_min = (int)point(0);
-  x_max = x_min + 1;
-  y_min = (int)point(1);
-  y_max = y_min + 1;
-  z_min = (int)point(2);
-  z_max = z_min + 1;
-
-  // safe net
-  if ( z_min < 0 || z_max > nImgVol.size() - 1 ||
-       x_min < 0 || x_max > nImgVol[ z_min ].cols - 1 ||
-       y_min < 0 || y_max > nImgVol[ z_min ].rows - 1 ) {
-
-    return 0;
-
-  }
-
-  double result =
-    nImgVol[ z_min ].at< unsigned short >( y_min, x_min ) * (1 - dx) * (1 - dy) * (1 - dz) +
-    nImgVol[ z_min ].at< unsigned short >( y_min, x_max ) * dx       * (1 - dy) * (1 - dz) +
-    nImgVol[ z_min ].at< unsigned short >( y_max, x_min ) * (1 - dx) * dy       * (1 - dz) +
-    nImgVol[ z_max ].at< unsigned short >( y_min, x_min ) * (1 - dx) * (1 - dy) * dz +
-    nImgVol[ z_max ].at< unsigned short >( y_min, x_max ) * dx       * (1 - dy) * dz +
-    nImgVol[ z_max ].at< unsigned short >( y_max, x_min ) * (1 - dx) * dy       * dz +
-    nImgVol[ z_min ].at< unsigned short >( y_max, x_max ) * dx       * dy       * (1 - dz) +
-    nImgVol[ z_max ].at< unsigned short >( y_max, x_max ) * dx       * dy       * dz;
-
-  return result;
-}
-
 // Check whether the point is local maximum
 inline bool IsLocalMaximum( const cv::Vec3f              &nPoint,
-                            const std::vector< cv::Mat > &nImgVol,
+                            VolumePkg                    &VolPkg,
                             double                       nSampleInterval = 0.2 )
 {
     // uniformly sample around the point in 3D and check the intensity value
@@ -70,10 +31,10 @@ inline bool IsLocalMaximum( const cv::Vec3f              &nPoint,
     cv::Vec3f aVecs[ 6 ] = { cv::Vec3f( nSampleInterval, 0, 0 ), cv::Vec3f( -nSampleInterval, 0, 0 ),
                              cv::Vec3f( 0, nSampleInterval, 0 ), cv::Vec3f( 0, -nSampleInterval, 0 ),
                              cv::Vec3f( 0, 0, nSampleInterval ), cv::Vec3f( 0, 0, -nSampleInterval ) };
-    double aCurValue = interpolate_intensity( nPoint, nImgVol );
+    double aCurValue = VolPkg.intensity( nPoint );
 
     for ( int i = 0; i < 6; ++i ) {
-        if ( aCurValue < interpolate_intensity( nPoint + aVecs[ i ], nImgVol )) {
+        if ( aCurValue < VolPkg.intensity( nPoint + aVecs[ i ] )) {
             aIsLocalMax = false;
             break;
         }
@@ -86,7 +47,7 @@ inline void Sectioning(            double                       nSections,      
                                    double                       range,          // thickness of material in voxels
                                    const cv::Vec3f              &nCenter,       // given point
                                    const cv::Vec3f              &nMajorAxisDir, // normal
-                                   const std::vector< cv::Mat > &nImgVol,       // volume data
+                                   VolumePkg                    &VolPkg,        // volume package
                                    double                       nA,             // neighborhood's radius (Axis)
                                    int                          nSamplingDir,   // sampling direction
                                    double                       *nData )        // [out] samples
@@ -119,7 +80,7 @@ inline void Sectioning(            double                       nSections,      
           aPos[ 2 ] = nCenter[ 2 ] + aDir[ 2 ];
 
           // Get interpolated intensity at point
-          double tmp = interpolate_intensity( aPos, nImgVol );
+          double tmp = VolPkg.intensity( aPos );
 
           // Store point in return array
           nData[ aDataCnt ] = tmp; 
@@ -132,7 +93,7 @@ inline void Sectioning(            double                       nSections,      
             aPos[ 2 ] = nCenter[ 2 ] - aDir[ 2 ];
 
             // Get interpolated intensity at point
-            double tmp = interpolate_intensity( aPos, nImgVol );
+            double tmp = VolPkg.intensity( aPos );
 
             // Store point in return array
             nData[ aDataCnt ] = tmp; // REVISIT - we assume we have enough space
@@ -147,7 +108,7 @@ inline void Sectioning(            double                       nSections,      
           aPos[ 2 ] = nCenter[ 2 ] + aDir[ 2 ];
 
           // Get interpolated intensity at point
-          double tmp = interpolate_intensity( aPos, nImgVol );
+          double tmp = VolPkg.intensity( aPos );
 
           // Store point in return array
           nData[ aDataCnt ] = tmp;
@@ -160,7 +121,7 @@ inline void Sectioning(            double                       nSections,      
           aPos[ 2 ] = nCenter[ 2 ] - aDir[ 2 ];
 
           // Get interpolated intensity at point
-          double tmp = interpolate_intensity( aPos, nImgVol );
+          double tmp = VolPkg.intensity( aPos );
 
           // Store point in return array
           nData[ aDataCnt ] = tmp; // REVISIT - we assume we have enough space
@@ -175,7 +136,7 @@ inline void SamplingAlongNormal(   double                       nA,             
                                    double                       nSampleInterval,// sample interval
                                    const cv::Vec3f              &nCenter,       // center
                                    const cv::Vec3f              &nMajorAxisDir, // normal
-                                   const std::vector< cv::Mat > &nImgVol,       // volume data
+                                   VolumePkg                    &VolPkg,        // volume package
                                    int                          nSamplingDir,   // sampling direction
                                    double                       *nData,         // [out] samples
                                    int                          *nSize,         // [out] number of samples
@@ -208,7 +169,7 @@ inline void SamplingAlongNormal(   double                       nA,             
           aPos[ 2 ] = nCenter[ 2 ] + aDir[ 2 ];
 
           // Get interpolated intensity at point
-          double tmp = interpolate_intensity( aPos, nImgVol );
+          double tmp = VolPkg.intensity( aPos );
 
           // Store point in return array
           nData[ aDataCnt ] = tmp; // REVISIT - we assume we have enough space
@@ -222,7 +183,7 @@ inline void SamplingAlongNormal(   double                       nA,             
           aPos[ 2 ] = nCenter[ 2 ] - aDir[ 2 ];
 
           // Get interpolated intensity at point
-          double tmp = interpolate_intensity( aPos, nImgVol );
+          double tmp = VolPkg.intensity( aPos );
   
           // Store point in return array
           nData[ aDataCnt ] = tmp; // REVISIT - we assume we have enough space
@@ -239,7 +200,7 @@ inline void SamplingWithinEllipse( double                       nA,             
                                    double                       nSampleInterval,// sample interval
                                    const cv::Vec3f              &nCenter,       // center
                                    const cv::Vec3f              &nMajorAxisDir, // normal
-                                   const std::vector< cv::Mat > &nImgVol,       // volume data
+                                   VolumePkg                    &VolPkg,        // volume package
                                    int                          nSamplingDir,   // sampling direction
                                    double                       *nData,         // [out] samples
                                    int                          *nSize,         // [out] number of samples
@@ -299,9 +260,9 @@ inline void SamplingWithinEllipse( double                       nA,             
                             aPos[ 1 ] = nCenter[ 1 ] + aDir[ 1 ];
                             aPos[ 2 ] = nCenter[ 2 ] + aDir[ 2 ];
 
-                            double tmp = interpolate_intensity( aPos, nImgVol );
+                            double tmp = VolPkg.intensity( aPos );
                             // suppress the data if it's not local maximum
-                            if ( nWithNonMaxSuppression && !IsLocalMaximum( aPos, nImgVol) ) {
+                            if ( nWithNonMaxSuppression && !IsLocalMaximum( aPos, VolPkg) ) {
                                 tmp = 0.0;
                             }
                             nData[ aDataCnt ] = tmp; // REVISIT - we assume we have enough space
@@ -316,9 +277,9 @@ inline void SamplingWithinEllipse( double                       nA,             
                             aPos[ 1 ] = nCenter[ 1 ] + aDir[ 1 ];
                             aPos[ 2 ] = nCenter[ 2 ] + aDir[ 2 ];
 
-                            double tmp = interpolate_intensity( aPos, nImgVol );
+                            double tmp = VolPkg.intensity( aPos );
                             // suppress the data if it's not local maximum
-                            if ( nWithNonMaxSuppression && !IsLocalMaximum( aPos, nImgVol) ) {
+                            if ( nWithNonMaxSuppression && !IsLocalMaximum( aPos, VolPkg) ) {
                                 tmp = 0.0;
                             }
                             nData[ aDataCnt ] = tmp; // REVISIT - we assume we have enough space
@@ -333,9 +294,9 @@ inline void SamplingWithinEllipse( double                       nA,             
                             aPos[ 1 ] = nCenter[ 1 ] + aDir[ 1 ];
                             aPos[ 2 ] = nCenter[ 2 ] + aDir[ 2 ];
 
-                            double tmp = interpolate_intensity( aPos, nImgVol );
+                            double tmp = VolPkg.intensity( aPos );
                             // suppress the data if it's not local maximum
-                            if ( nWithNonMaxSuppression && !IsLocalMaximum( aPos, nImgVol) ) {
+                            if ( nWithNonMaxSuppression && !IsLocalMaximum( aPos, VolPkg) ) {
                                 tmp = 0.0;
                             }
                             nData[ aDataCnt ] = tmp; // REVISIT - we assume we have enough space
@@ -355,15 +316,15 @@ inline void SamplingWithinEllipse( double                       nA,             
 
 // Filter by returning the color at the point location
 inline double FilterIntersection( const cv::Vec3f              &nPoint,
-                                  const std::vector< cv::Mat > &nImgVol )
+                                  VolumePkg                    &VolPkg )
 {
-    return interpolate_intensity( nPoint, nImgVol );
+    return VolPkg.intensity( nPoint );
 }
 
 // Filter by non maximum suppression
 inline double FilterNonMaximumSuppression( const cv::Vec3f              &nPoint,    // point location
                                            const cv::Vec3f              &nNormal,   // point normal direction
-                                           const std::vector< cv::Mat > &nImgVol,   // data volume
+                                           VolumePkg                    &VolPkg,        // volume package
                                            double                       nR1 = 3.0,  // sample region radius 1, major axis
                                            double                       nR2 = 1.0,  // sample region radius 2, minor axis
                                            double                       nSampleDist = 0.2, // interval between samples
@@ -378,7 +339,7 @@ inline double FilterNonMaximumSuppression( const cv::Vec3f              &nPoint,
                          nSampleDist,
                          nPoint,
                          nNormal,
-                         nImgVol,
+                         VolPkg,
                          nSamplingDir,
                          aSamples,
                          &aNumSamples,
@@ -406,7 +367,7 @@ inline double FilterNonMaximumSuppression( const cv::Vec3f              &nPoint,
 // Filter by finding the maximum
 inline double FilterMax( const cv::Vec3f              &nPoint,    // point location
                          const cv::Vec3f              &nNormal,   // point normal direction
-                         const std::vector< cv::Mat > &nImgVol,   // data volume
+                         VolumePkg                    &VolPkg,        // volume package
                          double                       nR1 = 3.0,  // sample region radius 1, major axis
                          double                       nR2 = 1.0,  // sample region radius 2, minor axis
                          double                       nSampleDist = 0.2, // interval between samples
@@ -422,7 +383,7 @@ inline double FilterMax( const cv::Vec3f              &nPoint,    // point locat
                          nSampleDist,
                          nPoint,
                          nNormal,
-                         nImgVol,
+                         VolPkg,
                          nSamplingDir,
                          aSamples,
                          &aNumSamples,
@@ -450,7 +411,7 @@ inline double FilterMax( const cv::Vec3f              &nPoint,    // point locat
 // Filter by finding the minimum
 inline double FilterMin( const cv::Vec3f              &nPoint,    // point location
                          const cv::Vec3f              &nNormal,   // point normal direction
-                         const std::vector< cv::Mat > &nImgVol,   // data volume
+                         VolumePkg                    &VolPkg,        // volume package
                          double                       nR1 = 3.0,  // sample region radius 1, major axis
                          double                       nR2 = 1.0,  // sample region radius 2, minor axis
                          double                       nSampleDist = 0.2, // interval between samples
@@ -467,7 +428,7 @@ inline double FilterMin( const cv::Vec3f              &nPoint,    // point locat
                          nSampleDist,
                          nPoint,
                          nNormal,
-                         nImgVol,
+                         VolPkg,
                          nSamplingDir,
                          aSamples,
                          &aNumSamples,
@@ -495,7 +456,7 @@ inline double FilterMin( const cv::Vec3f              &nPoint,    // point locat
 // Filter by finding the median, then do the averaging
 inline double FilterMedianAverage( const cv::Vec3f              &nPoint,    // point location
                                    const cv::Vec3f              &nNormal,   // point normal direction
-                                   const std::vector< cv::Mat > &nImgVol,   // data volume
+                                   VolumePkg                    &VolPkg,        // volume package
                                    double                       nR1 = 3.0,  // sample region radius 1, major axis
                                    double                       nR2 = 1.0,  // sample region radius 2, minor axis
                                    double                       nSampleDist = 0.2, // interval between samples
@@ -511,7 +472,7 @@ inline double FilterMedianAverage( const cv::Vec3f              &nPoint,    // p
                          nSampleDist,
                          nPoint,
                          nNormal,
-                         nImgVol,
+                         VolPkg,
                          nSamplingDir,
                          aSamples,
                          &aNumSamples,
@@ -557,7 +518,7 @@ inline double FilterMedianAverage( const cv::Vec3f              &nPoint,    // p
 // Filter by finding the median
 inline double FilterMedian( const cv::Vec3f              &nPoint,    // point location
                             const cv::Vec3f              &nNormal,   // point normal direction
-                            const std::vector< cv::Mat > &nImgVol,   // data volume
+                            VolumePkg                    &VolPkg,        // volume package
                             double                       nR1 = 3.0,  // sample region radius 1, major axis
                             double                       nR2 = 1.0,  // sample region radius 2, minor axis
                             double                       nSampleDist = 0.2, // interval between samples
@@ -573,7 +534,7 @@ inline double FilterMedian( const cv::Vec3f              &nPoint,    // point lo
                          nSampleDist,
                          nPoint,
                          nNormal,
-                         nImgVol,
+                         VolPkg,
                          nSamplingDir,
                          aSamples,
                          &aNumSamples,
@@ -608,7 +569,7 @@ inline double FilterMedian( const cv::Vec3f              &nPoint,    // point lo
 // Filter by calculating the mean
 inline double FilterMean( const cv::Vec3f              &nPoint,    // point location
                           const cv::Vec3f              &nNormal,   // point normal direction
-                          const std::vector< cv::Mat > &nImgVol,   // data volume
+                          VolumePkg                    &VolPkg,        // volume package
                           double                       nR1 = 3.0,  // sample region radius 1, major axis
                           double                       nR2 = 1.0,  // sample region radius 2, minor axis
                           double                       nSampleDist = 0.2, // interval between samples
@@ -624,7 +585,7 @@ inline double FilterMean( const cv::Vec3f              &nPoint,    // point loca
                          nSampleDist,
                          nPoint,
                          nNormal,
-                         nImgVol,
+                         VolPkg,
                          nSamplingDir,
                          aSamples,
                          &aNumSamples,
@@ -651,7 +612,7 @@ inline double FilterMean( const cv::Vec3f              &nPoint,    // point loca
 
 inline double textureWithMethod(   const cv::Vec3f              &nPoint,    // point location
                                    const cv::Vec3f              &nNormal,   // point normal direction
-                                   const std::vector< cv::Mat > &nImgVol,   // data volume
+                                   VolumePkg                    &VolPkg,        // volume package
                                    VC_Composite_Option          nFilter,    // filter option
                                    double                       nR1 = 3.0,  // sample region radius 1, major axis
                                    double                       nR2 = 1.0,  // sample region radius 2, minor axis
@@ -661,13 +622,13 @@ inline double textureWithMethod(   const cv::Vec3f              &nPoint,    // p
     switch ( nFilter ) {
     case VC_Composite_Option::CompositeOptionIntersection:
         return FilterIntersection( nPoint,
-                                   nImgVol);
+                                   VolPkg);
 
         break;
     case VC_Composite_Option::CompositeOptionMean:
         return FilterMean(  nPoint,
                             nNormal,
-                            nImgVol,
+                            VolPkg,
                             nR1,
                             nR2,
                             nSampleDist,
@@ -676,7 +637,7 @@ inline double textureWithMethod(   const cv::Vec3f              &nPoint,    // p
     case VC_Composite_Option::CompositeOptionNonMaximumSuppression:
         return FilterNonMaximumSuppression(  nPoint,
                                              nNormal,
-                                             nImgVol,
+                                             VolPkg,
                                              nR1,
                                              nR2,
                                              nSampleDist,
@@ -685,7 +646,7 @@ inline double textureWithMethod(   const cv::Vec3f              &nPoint,    // p
     case VC_Composite_Option::CompositeOptionMax:
         return FilterMax(  nPoint,
                            nNormal,
-                           nImgVol,
+                           VolPkg,
                            nR1,
                            nR2,
                            nSampleDist,
@@ -694,7 +655,7 @@ inline double textureWithMethod(   const cv::Vec3f              &nPoint,    // p
     case VC_Composite_Option::CompositeOptionMin:
         return FilterMin(  nPoint,
                            nNormal,
-                           nImgVol,
+                           VolPkg,
                            nR1,
                            nR2,
                            nSampleDist,
@@ -703,7 +664,7 @@ inline double textureWithMethod(   const cv::Vec3f              &nPoint,    // p
     case VC_Composite_Option::CompositeOptionMedian:
         return FilterMax(  nPoint,
                            nNormal,
-                           nImgVol,
+                           VolPkg,
                            nR1,
                            nR2,
                            nSampleDist,
@@ -712,7 +673,7 @@ inline double textureWithMethod(   const cv::Vec3f              &nPoint,    // p
     case VC_Composite_Option::CompositeOptionMedianAverage:
         return FilterMedianAverage( nPoint,
                                     nNormal,
-                                    nImgVol,
+                                    VolPkg,
                                     nR1,
                                     nR2,
                                     nSampleDist,
@@ -720,7 +681,7 @@ inline double textureWithMethod(   const cv::Vec3f              &nPoint,    // p
         break;
     default:
         return FilterIntersection( nPoint,
-                                   nImgVol);
+                                   VolPkg);
 
         break;
     } // switch nFilter

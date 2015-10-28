@@ -17,44 +17,6 @@ namespace volcart {
             ///// Create the output texture object /////
             volcart::Texture outputTexture(output_w, output_h);
 
-            //////////////////// BEGINNING OF HACK ////////////////////
-
-            //// Load the slices from the volumepkg
-            //// This block is a hack until VolumePkg can handle caching slice data.
-            //// See Issue #12 for more details.
-
-                std::vector< cv::Mat > aImgVol;
-
-                // Setup
-                int meshLowIndex = (int) inputMesh->GetPoint(0)[2];
-                int meshHighIndex = meshLowIndex + output_h;
-                int aNumSlices = volpkg.getNumberOfSlices();
-
-                int bufferLowIndex = meshLowIndex - (int) searchMajorRadius;
-                if (bufferLowIndex < 0) bufferLowIndex = 0;
-
-                int bufferHighIndex = meshHighIndex + (int) searchMajorRadius;
-                if (bufferHighIndex >= volpkg.getNumberOfSlices()) bufferHighIndex = volpkg.getNumberOfSlices();
-
-                // Slices must be loaded into aImgVol at the correct index: slice 005 == aImgVol[5]
-                // To avoid loading the whole volume, pad the beginning indices with 1x1 null mats
-                cv::Mat nullMat = cv::Mat::zeros(1, 1, CV_16U);
-                for ( int i = 0; i < bufferLowIndex; ++i ) {
-                    std::cout << "\rLoading null buffer slices: " << i + 1 << "/" << bufferLowIndex << std::flush;
-                    aImgVol.push_back( nullMat.clone() );
-                }
-                std::cout << std::endl;
-
-                // Load the actual volume into a tempVol with a buffer of nRadius
-                for ( int i = bufferLowIndex; i < bufferHighIndex; ++i ) {
-                    std::cout << "\rLoading real slices: " << i - bufferLowIndex + 1 << "/" << bufferHighIndex - bufferLowIndex << std::flush;
-                    aImgVol.push_back( volpkg.getSliceData( i ).clone() );
-                }
-                std::cout << std::endl;
-
-            /////////////////////// END OF HACK ///////////////////////
-
-
             ///// Generate UV Map /////
             // To-Do: Generate this map independent of point ordering - SP, 10/2015
 
@@ -100,7 +62,7 @@ namespace volcart {
                     // cv::Mat.at uses (row, column)
                     double value = textureWithMethod( cv::Vec3f(p[0], p[1], p[2]),
                                                       cv::Vec3f(normal[0], normal[1], normal[2]),
-                                                      aImgVol,
+                                                      volpkg,
                                                       compositeMethod,
                                                       searchMajorRadius,
                                                       searchMinorRadius,
