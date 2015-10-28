@@ -276,12 +276,12 @@ uint16_t VolumePkg::interpolateAt(cv::Vec3f point) {
 
     return uint16_t(
             sliceZmin.at<uint16_t>(y_min, x_min) * (1 - dx) * (1 - dy) * (1 - dz) +
-            sliceZmax.at<uint16_t>(y_min, x_min) * dx       * (1 - dy) * (1 - dz) +
+            sliceZmin.at<uint16_t>(y_min, x_max) * dx       * (1 - dy) * (1 - dz) +
             sliceZmin.at<uint16_t>(y_max, x_min) * (1 - dx) * dy       * (1 - dz) +
-            sliceZmin.at<uint16_t>(y_min, x_max) * (1 - dx) * (1 - dy) * dz +
+            sliceZmax.at<uint16_t>(y_min, x_min) * (1 - dx) * (1 - dy) * dz +
             sliceZmax.at<uint16_t>(y_min, x_max) * dx       * (1 - dy) * dz +
-            sliceZmin.at<uint16_t>(y_max, x_max) * (1 - dx) * dy       * dz +
-            sliceZmax.at<uint16_t>(y_max, x_min) * dx       * dy       * (1 - dz) +
+            sliceZmax.at<uint16_t>(y_max, x_min) * (1 - dx) * dy       * dz +
+            sliceZmin.at<uint16_t>(y_max, x_max) * dx       * dy       * (1 - dz) +
             sliceZmax.at<uint16_t>(y_max, x_max) * dx       * dy       * dz);
 }
 
