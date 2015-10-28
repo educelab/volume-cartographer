@@ -25,7 +25,6 @@
 #include "volumepkg_version.h"
 
 //#include "reslice.h"
-#include "slicecache.h"
 
 #include "orderedPCDMesher.h"
 #include "io/objWriter.h"
@@ -147,7 +146,7 @@ private:
     int getNumberOfSliceCharacters();
     std::string activeSeg = "";
     std::vector<std::string> segmentations;
-    SliceCache<int32_t, cv::Mat> cache;
+    volcart::LRUCache<int32_t, cv::Mat> cache;
 
     std::string findKeyType(std::string);
     uint16_t interpolateAt(cv::Vec3f point);
