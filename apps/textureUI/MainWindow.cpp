@@ -28,9 +28,11 @@ void MainWindow::getFilePath()
 
     if(filename!=NULL)
     {
-        QMessageBox::information(this,tr("File Path"),filename);
+        QMessageBox::information(this, tr("File Path"), filename);
         _globals->setPath(filename);
-        //VolumePkg vpkg( _globals->getPath()->toStdString());
+        _globals->createVolumePackage();
+        _globals->getMySegmentations();
+
     }
 }
 

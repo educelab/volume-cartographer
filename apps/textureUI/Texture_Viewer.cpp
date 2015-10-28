@@ -20,7 +20,7 @@ Texture_Viewer::Texture_Viewer(Global_Values *globals)
     scaleFactor=1;// Instantiates scaleFactor to 1 for Resizing
 
     QPixmap pix;
-    //pix.load("");
+    pix.load("/Users/Royal/Desktop/Volume_Car/volume-cartographer/apps/textureUI/Space.jpg");
 
     imageLabel = new QLabel;
     imageLabel->setBackgroundRole(QPalette::Base);

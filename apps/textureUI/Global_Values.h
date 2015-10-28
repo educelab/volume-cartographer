@@ -8,6 +8,7 @@
 
 #include <QApplication>
 #include <QRect>
+#include "volumepkg.h"
 
 
 #ifndef VC_DEFAULTVALUES_H
@@ -22,12 +23,16 @@ public:
     int getHeight();
     int getWidth();
     void setPath(QString newPath);
+    void createVolumePackage();
+    void getMySegmentations();
 
 private:
 
     int height;
     int width;
     QString path;
+    VolumePkg *vpkg;
+    std::vector<std::string> segmentations;
 
 };
 #endif //VC_DEFAULTVALUES_H

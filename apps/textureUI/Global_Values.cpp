@@ -8,7 +8,6 @@
 
 #include "Global_Values.h"
 
-
 Global_Values::Global_Values(QRect rec)
 {
     // GETS THE MONITOR'S SCREEN Length & Width
@@ -30,4 +29,18 @@ int Global_Values::getWidth()
 void Global_Values::setPath(QString newPath)
 {
     path = newPath;
+}
+
+void Global_Values::createVolumePackage()
+{
+    *vpkg = VolumePkg(path.toStdString());// Creates a Volume Package
+}
+
+void Global_Values::getMySegmentations()
+{
+    segmentations = vpkg->getSegmentations();
+    for(int i=0; i<segmentations.size(); i++)
+    {
+        std::cout<<segmentations[i]<<"   ";
+    }
 }
