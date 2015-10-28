@@ -116,52 +116,91 @@ BOOST_FIXTURE_TEST_CASE(i2v, ivFix){
     volcart::meshing::itk2vtk(_mesh, _vtk);
     volcart::meshing::vtk2itk(_vtk, _itk);
 
-    VC_PointsContainerType::Pointer _meshPoints = _mesh->GetPoints();
-    VC_PointsContainerType::Pointer _itkPoints = _itk->GetPoints();
+
+    /* Now the original _mesh and the converted _itk
+     * mesh should contain the same data. The following three for loops
+     * check to see if this is true...and if the itk2vtk() constructor functions
+     * properly. Uncomment the std<<cerr lines to see the example data being tested.
+     *
+     */
+
+    // Points //
+
+    //Confirm equal number of points in both meshes
+    BOOST_CHECK_EQUAL(_mesh->GetNumberOfPoints(), _itk->GetNumberOfPoints());
+    
+
+    //std::cerr << "Points:" << std::endl;
+    for ( size_t p_id = 0; p_id < _mesh->GetNumberOfPoints(); ++p_id) {
+
+        //check the points in both vtk meshes
+        BOOST_CHECK_EQUAL(_mesh->GetPoint(p_id)[0], _itk->GetPoint(p_id)[0]);
+        BOOST_CHECK_EQUAL(_mesh->GetPoint(p_id)[1], _itk->GetPoint(p_id)[1]);
+        BOOST_CHECK_EQUAL(_mesh->GetPoint(p_id)[2], _itk->GetPoint(p_id)[2]);
+
+        /* Uncomment below to see output of the test point set from _mesh*/
+        //std::cerr << _mesh->GetPoint(p_id)[0] << " | "
+        //         << _mesh->GetPoint(p_id)[1] << " | "
+        //          << _mesh->GetPoint(p_id)[2] << " | " << std::endl;
+    }
 
 
-    // Initialize iterators
-    VC_CellIterator  _meshCellIterator = _mesh->GetCells()->Begin();
-    VC_CellIterator  _meshCellEnd      = _mesh->GetCells()->End();
+    // Normals //
 
-    VC_CellIterator  _itkCellIterator = _itk->GetCells()->Begin();
-    VC_CellIterator  _itkCellEnd = _itk->GetCells()->End();
+    //std::cerr << "Normals:" << std::endl;
+    for ( VC_PointsInMeshIterator point = _mesh->GetPoints()->Begin(); point != _mesh->GetPoints()->End(); ++point ) {
+        // get the point's normal
 
-    VC_CellType * _meshCell;
-    VC_CellType * _itkCell;
+        VC_PixelType _meshNormal, _itkNormal;
+        _mesh->GetPointData(point.Index(), &_meshNormal);
+        _itk->GetPointData(point.Index(), &_itkNormal);
 
-    VC_PointsInCellIterator _meshPointsIterator;
+        double ptNorm[3] = {_meshNormal[0], _meshNormal[1], _meshNormal[2]};
+        double _itkPtNorm[3] = {_itkNormal[0], _itkNormal[1], _itkNormal[2]};
 
-    VC_PointType _meshP;
-    VC_PointType _itkP;
+        //Now compare the normals for the two meshes
+        BOOST_CHECK_EQUAL(_meshNormal[0], _itkNormal[0]);
+        BOOST_CHECK_EQUAL(_meshNormal[1], _itkNormal[1]);
+        BOOST_CHECK_EQUAL(_meshNormal[2], _itkNormal[2]);
 
-    unsigned long _meshPointID;
+        //std::cerr << ptNorm[0] << " | " << ptNorm[1]  <<  " | " << ptNorm[2] << std::endl;
+    }
 
-    // Iterate over all of the cells in the mesh to compare values
-    while( ( _meshCellIterator != _meshCellEnd ) &&
-                    ( _itkCellIterator != _itkCellEnd) )
-    {
-        // Link the pointer to our current cell
-        _meshCell = _meshCellIterator.Value();
-        _itkCell = _itkCellIterator.Value();
 
-        // Iterate over the vertices of the current cell for both meshes
-        _meshPointsIterator = _meshCell->PointIdsBegin();
+    //Cells //
 
-        // Until we reach the final point, get the point id and compare the values
-        // of the points in the original (_mesh) and new (_itk) meshes. Advance iterator
-        //and continue this process until all the cells in each mesh have been visited (first while loop)
-        while( _meshPointsIterator != _meshCell->PointIdsEnd() ) {
+    // Initialize Cell Iterators
+    VC_CellIterator _itkCell = _itk->GetCells()->Begin();
+    VC_CellIterator _meshCell = _mesh->GetCells()->Begin();
 
-            _meshPointID = *_meshPointsIterator;
 
-            BOOST_CHECK_EQUAL(_mesh->GetPoint(_meshPointID), _itk->GetPoint(_meshPointID));
+    //compare number of cells in each itk mesh
+    BOOST_CHECK_EQUAL(_mesh->GetNumberOfCells(), _itk->GetNumberOfCells());
 
-            ++_meshPointsIterator;
+    //While we have unvisited cells in the mesh
+    while (_meshCell != _mesh->GetCells()->End()) {
+
+        //Initialize Iterators for Points in a Cell
+        VC_PointsInCellIterator point = _meshCell.Value()->PointIdsBegin();
+        VC_PointsInCellIterator _itkPoint = _itkCell.Value()->PointIdsBegin();
+
+        //while we have points in the cell
+        while ( point != _meshCell.Value()->PointIdsEnd() ) {
+
+
+            //Now to check the points within the cells
+            BOOST_CHECK_EQUAL(*point, *_itkPoint);
+
+            //increment points
+            point++;
+            _itkPoint++;
+
         }
 
-        ++_meshCellIterator;
-        ++_itkCellIterator;
+        //increment cells
+        ++_meshCell;
+        ++_itkCell;
+
     }
 
 }
