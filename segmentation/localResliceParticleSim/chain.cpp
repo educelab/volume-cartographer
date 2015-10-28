@@ -67,14 +67,15 @@ Chain::DirPosPair Chain::step(const int32_t index, const int32_t stepNumLayers, 
     // Get reslice in k-direction at this point.
     const auto normal = calculateNormal(index);
     auto reslice = volpkg_.reslice(currentParticle.position(), normal, VC_DIRECTION_K);
-    if (index == 29) {
-        reslice.draw();
-    }
     auto mat = reslice.sliceData();
 
     // Calculate the next position for this particle
     const auto center = cv::Point(mat.cols / 2, mat.rows / 2);
     const auto map = NormalizedIntensityMap(mat.row(center.y + stepNumLayers));
+    if (index == 29) {
+        reslice.draw();
+        map.draw();
+    }
     auto maxima = map.findMaxima();
 
     // Sort maxima by whichever is closest to current index of center (using standard euclidean 1D distance)

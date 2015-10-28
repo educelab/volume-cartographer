@@ -15,7 +15,7 @@ class NormalizedIntensityMap {
 public:
     NormalizedIntensityMap(cv::Mat);
 
-    void draw(const int32_t, const int32_t) const;
+    void draw(const int32_t=100, const int32_t=100) const;
 
     std::vector<std::pair<int32_t, double>> findMaxima(void) const;
 

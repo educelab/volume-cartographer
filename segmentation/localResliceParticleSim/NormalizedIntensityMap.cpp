@@ -19,18 +19,12 @@ void NormalizedIntensityMap::draw(const int32_t displayWidth, const int32_t disp
         cv::line(mapImage, p1, p2, cv::Scalar(0, 255, 0));
     }
 
-    // DEBUG: draw vertical lines at maxima points
-    auto maxima = findMaxima();
-    /*
-    for (auto m : maxima) {
-        cv::line(mapImage, cv::Point(binWidth * m.first, 0), cv::Point(binWidth * m.first, mapImage.rows), BGR_RED);
-    }*/
-
     // Sort by closest maxima available and draw line on that
+    auto maxima = findMaxima();
     auto centerX = _intensities.cols / 2;
     auto minDist = std::numeric_limits<int32_t>::max();
     auto minIdx = -1;
-    for (int32_t i = 0; i < maxima.size(); ++i) {
+    for (size_t i = 0; i < maxima.size(); ++i) {
         auto currentDist = std::abs(int32_t(maxima[i].first - centerX));
         if (currentDist < minDist) {
             minDist = currentDist;
@@ -42,7 +36,7 @@ void NormalizedIntensityMap::draw(const int32_t displayWidth, const int32_t disp
     // Vertical line at particle's current x position
     cv::line(mapImage, cv::Point(binWidth * centerX, 0), cv::Point(binWidth * centerX, mapImage.rows), BGR_YELLOW);
 
-    cv::namedWindow("Intensity Map", cv::WINDOW_AUTOSIZE);
+    cv::namedWindow("Intensity Map", cv::WINDOW_NORMAL);
     cv::imshow("Intensity Map", mapImage);
 }
 
