@@ -128,7 +128,7 @@ BOOST_FIXTURE_TEST_CASE(i2v, ivFix){
 
     //Confirm equal number of points in both meshes
     BOOST_CHECK_EQUAL(_mesh->GetNumberOfPoints(), _itk->GetNumberOfPoints());
-    
+
 
     //std::cerr << "Points:" << std::endl;
     for ( size_t p_id = 0; p_id < _mesh->GetNumberOfPoints(); ++p_id) {

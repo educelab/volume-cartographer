@@ -7,13 +7,13 @@
 namespace volcart {
     namespace meshing {
 
-        pcl::PointCloud<pcl::PointXYZRGBNormal> resamplePointCloud ( pcl::PointCloud<pcl::PointXYZRGB>::Ptr input, double radius ) {
+        pcl::PointCloud<pcl::PointNormal> resamplePointCloud ( pcl::PointCloud<pcl::PointNormal>::Ptr input, double radius ) {
 
-            pcl::search::KdTree<pcl::PointXYZRGB>::Ptr input_tree ( new pcl::search::KdTree<pcl::PointXYZRGB>() );
+            pcl::search::KdTree<pcl::PointNormal>::Ptr input_tree ( new pcl::search::KdTree<pcl::PointNormal>() );
 
-            pcl::PointCloud<pcl::PointXYZRGBNormal> mls_results;
+            pcl::PointCloud<pcl::PointNormal> mls_results;
 
-            pcl::MovingLeastSquares<pcl::PointXYZRGB, pcl::PointXYZRGBNormal> mls_mesher;
+            pcl::MovingLeastSquares<pcl::PointNormal, pcl::PointNormal> mls_mesher;
 
             // Assign the input
             mls_mesher.setInputCloud(input);
