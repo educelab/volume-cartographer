@@ -16,7 +16,7 @@ ChainMesh::ChainMesh(const int32_t width, const int32_t height) :
 void ChainMesh::addChain(Chain row)
 {
     for (int32_t i = 0; i < row.size(); ++i) {
-        positions_.at<cv::Vec3f>(nextRow_, i) = cv::Vec3f(row.at(i).position());
+        positions_.at<cv::Vec3d>(nextRow_, i) = cv::Vec3d(row.at(i).position());
     }
     nextRow_++;
 }
@@ -41,9 +41,9 @@ pcl::PointCloud<pcl::PointXYZRGB> ChainMesh::exportAsPCD() const {
     for (int32_t i = 0; i < positions_.rows; ++i) {
         for (int32_t j = 0; j < positions_.cols; ++j) {
             pcl::PointXYZRGB p;
-            p.x = positions_.at<cv::Vec3f>(i, j)(VC_INDEX_X);
-            p.y = positions_.at<cv::Vec3f>(i, j)(VC_INDEX_Y);
-            p.z = positions_.at<cv::Vec3f>(i, j)(VC_INDEX_Z);
+            p.x = positions_.at<cv::Vec3d>(i, j)(VC_INDEX_X);
+            p.y = positions_.at<cv::Vec3d>(i, j)(VC_INDEX_Y);
+            p.z = positions_.at<cv::Vec3d>(i, j)(VC_INDEX_Z);
             p.r = 0xFF;
             p.g = 0xFF;
             p.b = 0xFF;

@@ -19,12 +19,13 @@ namespace segmentation {
 #define VC_INDEX_Z 2
 #endif
 
-#define VC_DIRECTION_K cv::Vec3f(0.0, 0.0, 1.0)
+#define VC_DIRECTION_K cv::Vec3d(0.0, 0.0, 1.0)
 
 enum Direction {
     kLeft = -1,
     kNone = 0,
-    kRight = 1
+    kRight = 1,
+    kDefault = 10
 };
 
 }

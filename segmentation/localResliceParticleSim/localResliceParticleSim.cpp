@@ -33,7 +33,8 @@ LocalResliceSegmentation::segmentLayer(const double driftTolerance,
     }
 
     // Set mesh size
-    mesh_.setSize(currentChain.size(), endIndex_ - startIndex_);
+    auto zidx = endIndex_ - startIndex_;
+    mesh_.setSize(currentChain.size(), zidx);
     mesh_.addChain(currentChain);
 
     // Go through every iteration (from start to end index)
@@ -43,8 +44,8 @@ LocalResliceSegmentation::segmentLayer(const double driftTolerance,
         currentChain.draw();
         cv::waitKey(0);
         std::vector<Direction> predictedDirections;
-        std::vector<cv::Vec3f> predictedPositions;
-        std::tie(predictedDirections, predictedPositions) = currentChain.stepAll();
+        std::vector<cv::Vec3d> predictedPositions;
+        std::tie(predictedDirections, predictedPositions) = currentChain.stepAll(stepNumLayers);
         auto N = int32_t(predictedPositions.size());
 
         // Get XY drift of newPositions from currentPositions
@@ -54,7 +55,6 @@ LocalResliceSegmentation::segmentLayer(const double driftTolerance,
             auto p2 = cv::Vec2f(currentChain.at(i)(VC_INDEX_X), currentChain.at(i)(VC_INDEX_Y));
             xyDrift[i] = cv::norm(p1, p2);
         }
-        std::for_each(xyDrift.begin(), xyDrift.end(), [](double d) { std::cout << d << " "; });
 
         // "Bad" step indices. A "bad" step is categorized by one that went above
         // {driftTolerance}. Sort them by distance to middle element (so we start
@@ -103,27 +103,24 @@ LocalResliceSegmentation::segmentLayer(const double driftTolerance,
             } else if (directionSum < 0) {
                 majorityDirection = Direction::kLeft;
             } else {
-                // print something indicating no consensus from neighbors. Could do a
-                // couple things here:
-                // 1. Expand neighborhood boundaries, retry
-                // 2. Go with some default behavior
-                // 3. ???
+                majorityDirection = Direction::kNone;
             }
             auto maxDrift = *std::max_element(neighborDrift.begin(),
                                               neighborDrift.end());
 
             // Restep this particle using new constraints
             std::tie(predictedDirections[elem], predictedPositions[elem]) =
-                    currentChain.step(elem, majorityDirection, maxDrift);
+                    currentChain.step(elem, stepNumLayers, majorityDirection, maxDrift);
 
             iterationCount++;
-            std::cout << "iteration: " << iterationCount << std::endl;
         }
 
         // Push old positions back into chainmesh
         currentChain.setNewPositions(predictedPositions);
         mesh_.addChain(currentChain);
         sliceIndex += stepNumLayers;
+        zidx += stepNumLayers;
+        currentChain.setZIndex(zidx);
     }
 
     return mesh_.exportAsPCD();

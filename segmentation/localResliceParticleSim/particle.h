@@ -14,17 +14,17 @@ namespace segmentation {
 
 class Particle {
 public:
-    Particle(cv::Vec3f);
+    Particle(cv::Vec3d);
 
-    Particle(float, float, float);
+    Particle(double, double, double);
 
-    cv::Vec3f position() const;
+    cv::Vec3d position() const;
 
     bool isMoving() const;
 
     void stop();
 
-    float operator()(int) const;
+    double operator()(int) const;
 
     Particle& operator+=(const Particle&);
 
@@ -39,7 +39,7 @@ private:
         return s << p.position_;
     }
 
-    cv::Vec3f position_;
+    cv::Vec3d position_;
     bool isStopped_;
 };
 

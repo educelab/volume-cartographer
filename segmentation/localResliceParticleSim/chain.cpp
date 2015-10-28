@@ -18,15 +18,9 @@ Chain::Chain(VolumePkg& volpkg, int32_t zIndex) :
         particles_.emplace_back(path.x, path.y, path.z);
         particleCount_++;
     }
-    std::cout << "particleCount_ = " << particleCount_ << std::endl;
 }
 
-Particle Chain::at(const int32_t idx) const
-{
-    return particles_.at(idx);
-}
-
-void Chain::setNewPositions(std::vector<cv::Vec3f> newPositions)
+void Chain::setNewPositions(std::vector<cv::Vec3d> newPositions)
 {
     assert(particleCount_ == newPositions.size() && "New chain positions length != particleCount_");
     for (size_t i = 0; i < particleCount_; ++i) {
@@ -35,19 +29,17 @@ void Chain::setNewPositions(std::vector<cv::Vec3f> newPositions)
 }
 
 // Steps all particles (with no constraints)
-Chain::DirPosVecPair Chain::stepAll() const
+Chain::DirPosVecPair Chain::stepAll(const int32_t stepNumLayers) const
 {
-    auto positions = std::vector<cv::Vec3f>();
-    positions.reserve(particleCount_);
-    auto directions = std::vector<Direction>();
-    directions.reserve(particleCount_);
+    auto positions = std::vector<cv::Vec3d>(particleCount_);
+    auto directions = std::vector<Direction>(particleCount_);
     for (size_t i = 0; i < particleCount_; ++i) {
-        std::tie(directions[i], positions[i]) = step(i);
+        std::tie(directions[i], positions[i]) = step(i, stepNumLayers);
     }
     return std::make_tuple(directions, positions);
 }
 
-const cv::Vec3f Chain::calculateNormal(const int32_t index) const
+const cv::Vec3d Chain::calculateNormal(const int32_t index) const
 {
     // Change indexing if we're at the front or back particle
     auto i = index;
@@ -56,14 +48,16 @@ const cv::Vec3f Chain::calculateNormal(const int32_t index) const
     } else if (uint32_t(index) == particleCount_ - 1) {
         i = particleCount_ - 2;
     }
+    double zMean = std::accumulate(particles_.begin(), particles_.end(), 0,
+            [](double sum, Particle p) { return sum + p(VC_INDEX_Z); }) / double(particleCount_);
 
     auto diff = particles_[i+1] - particles_[i-1];
-    auto tanVec = cv::Vec3f(diff(VC_INDEX_X), diff(VC_INDEX_Y), zIndex_);
+    auto tanVec = cv::Vec3d(diff(VC_INDEX_X), diff(VC_INDEX_Y), zMean);
     return tanVec.cross(VC_DIRECTION_K);
 }
 
 // Step an individual particle with optional direction and drift constraints
-Chain::DirPosPair Chain::step(const int32_t index, const Direction dirConstraint, double maxDrift) const
+Chain::DirPosPair Chain::step(const int32_t index, const int32_t stepNumLayers, const Direction dirConstraint, double maxDrift) const
 {
     auto currentParticle = particles_[index];
     if (!currentParticle.isMoving()) {
@@ -79,9 +73,8 @@ Chain::DirPosPair Chain::step(const int32_t index, const Direction dirConstraint
     auto mat = reslice.sliceData();
 
     // Calculate the next position for this particle
-    constexpr auto lookaheadDepth = 2;
     const auto center = cv::Point(mat.cols / 2, mat.rows / 2);
-    const auto map = NormalizedIntensityMap(mat.row(center.y + lookaheadDepth));
+    const auto map = NormalizedIntensityMap(mat.row(center.y + stepNumLayers));
     auto maxima = map.findMaxima();
 
     // Sort maxima by whichever is closest to current index of center (using standard euclidean 1D distance)
@@ -97,7 +90,7 @@ Chain::DirPosPair Chain::step(const int32_t index, const Direction dirConstraint
     auto voxelMaxima = std::vector<DirPosPair>();
     voxelMaxima.reserve(maxima.size());
     std::transform(maxima.begin(), maxima.end(), std::back_inserter(voxelMaxima),
-        [reslice, center](IndexDistPair p) {
+        [reslice, center, stepNumLayers](IndexDistPair p) {
             Direction d;
             if (int32_t(std::get<0>(p) - center.y) > 0) {
                 d = Direction::kLeft;
@@ -107,16 +100,16 @@ Chain::DirPosPair Chain::step(const int32_t index, const Direction dirConstraint
                 d = Direction::kNone;
             }
             const auto voxel = reslice.sliceCoordToVoxelCoord(
-                    cv::Point(std::get<0>(p), center.y + lookaheadDepth));
+                    cv::Point(std::get<0>(p), center.y + stepNumLayers));
             return std::make_tuple(d, voxel);
         });
 
     // Remove any pairs that don't satisfy the direction constraint
     // (doesn't remove Direction::kNone by default)
     // XXX assumes that dirConstraint is either Direction::kLeft or Direction::kRight
-    if (dirConstraint != Direction::kNone) {
+    if (dirConstraint != Direction::kDefault) {
         std::remove_if(voxelMaxima.begin(), voxelMaxima.end(), [center, dirConstraint](DirPosPair p) {
-            return (std::get<0>(p) != Direction::kNone) && (dirConstraint != std::get<0>(p));
+            return dirConstraint != std::get<0>(p);
         });
     }
 
@@ -129,7 +122,7 @@ Chain::DirPosPair Chain::step(const int32_t index, const Direction dirConstraint
 
     // XXX Go straight down if no maxima to choose from?
     if (voxelMaxima.empty()) {
-        auto newPoint = cv::Point(center.x, center.y + lookaheadDepth);
+        auto newPoint = cv::Point(center.x, center.y + stepNumLayers);
         return std::make_tuple(Direction::kNone, reslice.sliceCoordToVoxelCoord(newPoint));
     } else {
         return voxelMaxima.at(0);

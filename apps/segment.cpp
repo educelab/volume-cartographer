@@ -123,7 +123,7 @@ int main(int argc, char *argv[]) {
     // Run segmentation using path as our starting points
     pcl::PointCloud<pcl::PointXYZRGB> mutableCloud;
     volcart::segmentation::LocalResliceSegmentation segmentation(volpkg);
-    mutableCloud = segmentation.segmentLayer(0.05, startIndex, endIndex);
+    mutableCloud = segmentation.segmentLayer(2.0, startIndex, endIndex);
 
     // Update the master cloud with the points we saved and concat the new points into the space
     *masterCloud = *immutableCloud;

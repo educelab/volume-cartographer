@@ -27,8 +27,8 @@ class Chain {
 public:
     using TIterator = std::vector<Particle>::iterator;
     using TConstIterator = std::vector<Particle>::const_iterator;
-    using DirPosPair = std::tuple<Direction, cv::Vec3f>;
-    using DirPosVecPair = std::tuple<std::vector<Direction>, std::vector<cv::Vec3f>>;
+    using DirPosPair = std::tuple<Direction, cv::Vec3d>;
+    using DirPosVecPair = std::tuple<std::vector<Direction>, std::vector<cv::Vec3d>>;
 
     Chain();
 
@@ -36,7 +36,9 @@ public:
 
     int32_t size(void) const { return particleCount_; }
 
-    Particle at(const int32_t idx) const;
+    Particle at(const int32_t idx) const { return particles_.at(idx); }
+
+    void setZIndex(int32_t zIndex) { zIndex_ = zIndex; }
 
     // Iterator functions that reach through to the underlying vector so we can
     // use range-based for with Chain
@@ -48,13 +50,14 @@ public:
 
     TIterator end() { return particles_.end(); }
 
-    DirPosVecPair stepAll() const;
+    DirPosVecPair stepAll(const int32_t stepNumLayers) const;
 
     DirPosPair step(const int32_t particleIndex,
-                    const Direction d=Direction::kNone,
+                    const int32_t stepNumLayers,
+                    const Direction d=Direction::kDefault,
                     const double maxDrift=kDefaultMaxDrift) const;
 
-    void setNewPositions(std::vector<cv::Vec3f> newPositions);
+    void setNewPositions(std::vector<cv::Vec3d> newPositions);
 
     void draw() const;
 
@@ -66,7 +69,7 @@ private:
 
     constexpr static double kDefaultMaxDrift = 0.0;
 
-    const cv::Vec3f calculateNormal(const int32_t index) const;
+    const cv::Vec3d calculateNormal(const int32_t index) const;
 
 };
 

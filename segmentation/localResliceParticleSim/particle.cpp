@@ -2,15 +2,15 @@
 
 using namespace volcart::segmentation;
 
-Particle::Particle(cv::Vec3f position) : position_(position), isStopped_(false) {
+Particle::Particle(cv::Vec3d position) : position_(position), isStopped_(false) {
 }
 
-Particle::Particle(float x, float y, float z) : isStopped_(false) {
-    position_ = cv::Vec3f(x, y, z);
+Particle::Particle(double x, double y, double z) : isStopped_(false) {
+    position_ = cv::Vec3d(x, y, z);
 }
 
 // Position in 3D space (Slice, X, Y)
-cv::Vec3f Particle::position() const {
+cv::Vec3d Particle::position() const {
     return position_;
 }
 
@@ -43,6 +43,6 @@ Particle Particle::operator-(const Particle& rhs) const {
     return Particle(*this) -= rhs;
 }
 
-float Particle::operator()(const int index) const {
+double Particle::operator()(const int index) const {
     return position_(index);
 }
