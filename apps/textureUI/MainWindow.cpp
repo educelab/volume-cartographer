@@ -2,7 +2,6 @@
 
 #include <mainwindow.h>
 #include <QtWidgets>
-#include "Segmentations_Viewer.h"
 
 MainWindow::MainWindow(Global_Values *globals)
 {
@@ -24,7 +23,7 @@ MainWindow::MainWindow(Global_Values *globals)
 void MainWindow::getFilePath()
 {
     QFileDialog *dialogBox= new QFileDialog();
-    QString filename = dialogBox->getOpenFileName();
+    QString filename = dialogBox->getExistingDirectory();
 
     if(filename!=NULL)
     {
@@ -32,6 +31,7 @@ void MainWindow::getFilePath()
         _globals->setPath(filename);
         _globals->createVolumePackage();
         _globals->getMySegmentations();
+        //_globals(segmenations)->setSegmentations();
 
     }
 }

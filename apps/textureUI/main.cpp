@@ -22,9 +22,12 @@ int main(int argc, char **argv)
     //Create new Segmentations_Viewer Object
     Segmentations_Viewer *segmentations = new Segmentations_Viewer(passValues);
 
+    passValues->setTexture_Viewer(texture_Image);
+    passValues->setSegmentations_Viewer(segmentations);
+
     //MAIN WINDOW
     //---------------------------------------------------
-    MainWindow *window = new MainWindow(passValues);
+    MainWindow *window = new MainWindow(passValues, texture_Image, segmentations);
 
     QHBoxLayout *mainLayout = new QHBoxLayout();
     mainLayout->addLayout(texture_Image->getLayout());// Adds Image_Management Layout (Left Side of Screen)

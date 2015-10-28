@@ -29,8 +29,9 @@ class Segmentations_Viewer:QObject
 {
 
 public:
-    Segmentations_Viewer(Global_Values *values);
+    Segmentations_Viewer(Global_Values *globals);
     QVBoxLayout * getLayout();
+    void setSegmentations();
 
 private:
 
@@ -40,7 +41,7 @@ private:
     QListWidget *segmentations;
 
     QLabel *parameters;
-    Global_Values *defaultVals;
+    Global_Values *_globals;
     QSpinBox *radius;
     QComboBox *texture_Method;
     QComboBox *sample_Direction;

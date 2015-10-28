@@ -8,9 +8,9 @@
 
 #include "Segmentations_Viewer.h"
 
-Segmentations_Viewer::Segmentations_Viewer(Global_Values *values)
+Segmentations_Viewer::Segmentations_Viewer(Global_Values *globals)
 {
-    defaultVals = values;
+    _globals = globals;
 
     //RIGHT SIDE OF GUI
     //********************************************************************************************
@@ -21,7 +21,7 @@ Segmentations_Viewer::Segmentations_Viewer(Global_Values *values)
     //----------------------------------------------------------
     volume_Package = new QLabel("Volume_Package");
     segmentations = new QListWidget();
-    segmentations->setMaximumSize(250,defaultVals->getHeight());
+    segmentations->setMaximumSize(250,_globals->getHeight());
 
     panels->addWidget(volume_Package);
     panels->addWidget(segmentations);
@@ -60,4 +60,18 @@ Segmentations_Viewer::Segmentations_Viewer(Global_Values *values)
 QVBoxLayout * Segmentations_Viewer::getLayout()
 {
     return panels;
+}
+
+void Segmentations_Viewer::setSegmentations()
+{
+    segmentations->clear();
+
+    std::vector<std::string> segments = _globals->getSegmentations();
+    QString qstr;
+
+    for(int i=0; i<_globals->getSegmentations().size(); i++)
+    {
+        qstr = QString::fromStdString(segments[i]);
+        segmentations->addItem(qstr);
+    }
 }

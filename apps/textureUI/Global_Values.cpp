@@ -33,14 +33,25 @@ void Global_Values::setPath(QString newPath)
 
 void Global_Values::createVolumePackage()
 {
-    *vpkg = VolumePkg(path.toStdString());// Creates a Volume Package
+    vpkg = new VolumePkg(path.toStdString());// Creates a Volume Package
 }
 
 void Global_Values::getMySegmentations()
 {
     segmentations = vpkg->getSegmentations();
-    for(int i=0; i<segmentations.size(); i++)
-    {
-        std::cout<<segmentations[i]<<"   ";
-    }
+}
+
+std::vector<std::string> Global_Values::getSegmentations()
+{
+    return segmentations;
+}
+
+void Global_Values::setTexture_Viewer(Texture_Viewer * texture_Viewer)
+{
+    _texture_Viewer = texture_Viewer;
+}
+
+void Global_Values::setSegmentations_Viewer(Segmentations_Viewer *segmentations_Viewer)
+{
+    _segmentations_Viewer = segmentations_Viewer;
 }

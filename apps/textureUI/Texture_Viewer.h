@@ -52,11 +52,12 @@ private:
     QHBoxLayout *zoom;
     QVBoxLayout *image_Management;
 
+    QPixmap pix;
+
     double scaleFactor;
 
     Global_Values *_globals;
 
-    QAction *open_Action;
     QAction *zoomInAction;
     QAction *zoomOutAction;
     QAction *resetSizeAction;

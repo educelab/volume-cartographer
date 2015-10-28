@@ -9,6 +9,8 @@
 #include <QApplication>
 #include <QRect>
 #include "volumepkg.h"
+#include "Texture_Viewer.h"
+#include "Segmentations_Viewer.h"
 
 
 #ifndef VC_DEFAULTVALUES_H
@@ -25,6 +27,9 @@ public:
     void setPath(QString newPath);
     void createVolumePackage();
     void getMySegmentations();
+    std::vector<std::string> getSegmentations();
+    void setTexture_Viewer(Texture_Viewer * texture_Viewer);
+    void setSegmentations_Viewer(Segmentations_Viewer *segmentations_Viewer);
 
 private:
 
@@ -33,6 +38,10 @@ private:
     QString path;
     VolumePkg *vpkg;
     std::vector<std::string> segmentations;
+
+    Texture_Viewer *_texture_Viewer;
+    Segmentations_Viewer *_segmentations_Viewer;
+
 
 };
 #endif //VC_DEFAULTVALUES_H
