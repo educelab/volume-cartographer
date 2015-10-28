@@ -14,6 +14,8 @@
 #include <vtkPointData.h>
 #include <vtkSmartPointer.h>
 #include <vtkPolyDataReader.h>
+#include <pcl/common/common.h>
+#include <pcl/point_types.h>
 
 
 namespace volcart {
@@ -26,6 +28,7 @@ namespace testing {
 
         VC_MeshType::Pointer itkMesh();
         vtkSmartPointer<vtkPolyData> vtkMesh();
+        pcl::PointCloud<pcl::PointNormal> pointCloud();
 
         //overload
         std::vector<VC_Vertex> getPoints() {return _points;}

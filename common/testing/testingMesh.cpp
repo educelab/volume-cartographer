@@ -3,6 +3,7 @@
 //
 
 #include "testingMesh.h"
+#include "../vc_defines.h"
 
 namespace volcart {
 namespace testing {
@@ -112,6 +113,25 @@ namespace testing {
         return output;
     }
 
+    // Return Point Cloud
+    pcl::PointCloud<pcl::PointNormal> testingMesh::pointCloud(){
+
+        pcl::PointCloud<pcl::PointNormal> output;
+
+        for ( auto p_id = _points.begin(); p_id != _points.end(); ++p_id ) {
+            pcl::PointNormal point;
+            point.x = p_id->x;
+            point.y = p_id->y;
+            point.z = p_id->z;
+            point.normal_x = p_id->nx;
+            point.normal_y = p_id->ny;
+            point.normal_z = p_id->nz;
+
+            output.push_back(point);
+        }
+
+        return output;
+    };
 
     ///// Mesh Generation Helper Functions /////
     void testingMesh::_add_vertex(double x, double y, double z) {
