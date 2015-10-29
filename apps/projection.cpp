@@ -13,7 +13,7 @@
 #include "io/ply2itk.h"
 #include "volumepkg.h"
 
-#define RED cv::Vec3b( 0, 0, 255 );
+#define RED cv::Scalar( 0, 0, 255 )
 
 int main( int argc, char *argv[] ) {
     printf("Running tool: vc_projection\n");
@@ -69,17 +69,18 @@ int main( int argc, char *argv[] ) {
         // get the slice image and cvt to CV_8UC3
         // .clone() to make sure we don't modify the cached version
         cv::Mat slice = volpkg.getSliceData(z_id->first).clone();
-        slice.convertTo( slice, CV_8U, 0.00390625);
+        slice.convertTo( slice, CV_8U, 255.0/65535.0);
         cv::cvtColor( slice, slice, CV_GRAY2BGR );
 
         // Iterate over the points for this z-index and project the points
         for ( auto p_id = z_id->second.begin(); p_id != z_id->second.end(); ++p_id ) {
 
             VC_PointType point = mesh->GetPoint(*p_id);
-            int x = cvRound(point[VC_INDEX_X]);
-            int y = cvRound(point[VC_INDEX_Y]);
+            cv::Point pos;
+            pos.x = cvRound(point[VC_INDEX_X]);
+            pos.y = cvRound(point[VC_INDEX_Y]);
 
-            slice.at< cv::Vec3b >(y, x) = RED;
+            cv::circle(slice, pos, 1, RED, -1);
         }
 
         // Generate an output path from the z-index
