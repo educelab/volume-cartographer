@@ -114,6 +114,8 @@ public:
     std::string getNormalAtIndex(int);
     uint16_t intensity(cv::Vec3f point) { return interpolateAt(point); };
     void setCacheSize(size_t size);
+    size_t getCacheSize() const { return cache.size(); };
+    void setCacheMemory(size_t size);
 
     // Data Assignment
     int setSliceData(unsigned long index, cv::Mat slice);

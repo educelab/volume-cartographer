@@ -172,10 +172,17 @@ std::string VolumePkg::getNormalAtIndex(int index) {
     return pcd_location;
 }
 
-void VolumePkg::setCacheSize(size_t size)
-{
+// Limit the number of elements in the cache
+void VolumePkg::setCacheSize(size_t size) {
     cache.setSize(size);
 }
+
+// Limit the size of the cache in megabytes
+void VolumePkg::setCacheMemory(size_t size) {
+    size_t byte_limit = size * 1000 * 1000;
+    size_t slice_size = getSliceData(0).step[0] * getSliceData(0).rows;
+    setCacheSize(byte_limit/slice_size);
+};
 
 
 // DATA ASSIGNMENT //

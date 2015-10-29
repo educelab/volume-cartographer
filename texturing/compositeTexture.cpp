@@ -51,7 +51,7 @@ namespace volcart {
 
                 // Iterate over the vertices of the current cell
                 pointsIterator = cell->PointIdsBegin();
-                for( ; pointsIterator != cell->PointIdsEnd(); ++pointsIterator ) {
+                for( ; pointsIterator != cell->PointIdsEnd(); pointsIterator = cell->PointIdsEnd() ) {
                     pointID = *pointsIterator;
 
                     VC_PointType p = inputMesh->GetPoint(pointID);
@@ -75,7 +75,6 @@ namespace volcart {
 
                     // Assign the intensity value at the UV position
                     textureImage.at < unsigned short > (v, u) = (unsigned short) value;
-
                 }
             }
             std::cout << std::endl;
