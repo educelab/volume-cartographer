@@ -5,6 +5,8 @@
 #ifndef VC_DEFINES_H
 #define VC_DEFINES_H
 
+#include "getMemorySize.h"
+
 ///// GLOBAL VARIABLES /////
 // This define determines the default dictionary used when creating a new volumepkg
 #define VOLPKG_VERSION 2.0

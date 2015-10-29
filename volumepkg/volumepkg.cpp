@@ -177,11 +177,10 @@ void VolumePkg::setCacheSize(size_t size) {
     cache.setSize(size);
 }
 
-// Limit the size of the cache in megabytes
+// Limit the size of the cache in bytes
 void VolumePkg::setCacheMemory(size_t size) {
-    size_t byte_limit = size * 1000 * 1000;
     size_t slice_size = getSliceData(0).step[0] * getSliceData(0).rows;
-    setCacheSize(byte_limit/slice_size);
+    setCacheSize(size/slice_size);
 };
 
 
@@ -271,7 +270,7 @@ uint16_t VolumePkg::interpolateAt(cv::Vec3f point) {
     int z_max = z_min + 1;
 
     // insert safety net
-    if (x_min < 0 || y_min < 0 || z_min < 0 || z_max < 0 ||
+    if (x_min < 0 || y_min < 0 || z_min < 0 ||
         x_max >= getSliceWidth() || y_max >= getSliceHeight() ||
         z_max >= getNumberOfSlices()) {
         return 0;

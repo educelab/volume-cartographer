@@ -32,7 +32,8 @@ int main(int argc, char* argv[])
     }
 
     VolumePkg vpkg( argv[ 1 ] );
-    vpkg.setCacheMemory(4000);
+    vpkg.setCacheMemory(systemMemorySize());
+
     std::string segID = argv[ 2 ];
     if (segID == "") {
         std::cerr << "ERROR: Incorrect/missing segmentation ID!" << std::endl;
