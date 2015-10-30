@@ -48,9 +48,12 @@ typedef cv::Vec2d VC_Origin;
 #define VC_ORIGIN_BOTTOM_LEFT  VC_Origin(0,1)
 #define VC_ORIGIN_BOTTOM_RIGHT VC_Origin(1,1)
 
-#define VC_NULL_MAPPING cv::Vec2d(-1, -1)
+#define VC_UVMAP_NULL_MAPPING cv::Vec2d(-1, -1)
 
 ///// Texture Compositing /////
+
+#define VC_TEXTURE_NO_VALUE -1.0
+
 enum VC_Composite_Option {
     CompositeOptionIntersection = 0,
     CompositeOptionNonMaximumSuppression,

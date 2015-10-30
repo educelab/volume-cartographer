@@ -42,7 +42,7 @@ namespace volcart {
                 cv::absdiff(it->second, _origin, transformed); // transform to be relative to _origin
                 return transformed;
             }
-            else return VC_NULL_MAPPING;
+            else return VC_UVMAP_NULL_MAPPING;
         };
 
     private:
