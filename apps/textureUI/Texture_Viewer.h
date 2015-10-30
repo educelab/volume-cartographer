@@ -7,11 +7,14 @@
 // Code Reference: http://doc.qt.io/qt-5/qtwidgets-widgets-imageviewer-example.html ---(I edited/formatted the code to suit our purposes)
 //----------------------------------------------------------------------------------------------------------------------------------------
 
+#ifndef VC_TEXTURE_VIEWER_H
+#define VC_TEXTURE_VIEWER_H
+
 #include <qmainwindow.h>
 #include <QScrollBar>
 #include <QLabel>
 #include <QScrollArea>
-# include <qnumeric.h>
+#include <qnumeric.h>
 #include <QAction>
 #include <QPushButton>
 #include <QLayout>
@@ -20,9 +23,6 @@
 #include <QMenuBar>
 #include <QMenu>
 
-#ifndef VC_TEXTURE_VIEWER_H
-#define VC_TEXTURE_VIEWER_H
-
 class Texture_Viewer:QObject
 {
     Q_OBJECT
@@ -30,6 +30,7 @@ class Texture_Viewer:QObject
 public:
     Texture_Viewer(Global_Values *globals);
     QVBoxLayout * getLayout();
+    void setImage();
 
 private slots:
     void open();

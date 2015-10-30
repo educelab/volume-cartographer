@@ -6,16 +6,14 @@
 // Last Updated 10/23/2015 by: Michael Royal
 //----------------------------------------------------------------------------------------------------------------------------------------
 
-#include <QApplication>
-#include <QRect>
-#include "volumepkg.h"
-#include "Texture_Viewer.h"
-#include "Segmentations_Viewer.h"
-
-
 #ifndef VC_DEFAULTVALUES_H
 #define VC_DEFAULTVALUES_H
 
+#include <QApplication>
+#include <QRect>
+#include "volumepkg.h"
+#include <QImage>
+#include <QPixmap>
 
 class Global_Values
 {
@@ -24,12 +22,14 @@ public:
     Global_Values(QRect rec);
     int getHeight();
     int getWidth();
+    VolumePkg *getVolPkg();
     void setPath(QString newPath);
+    void setTexture(cv::Mat *texture);
     void createVolumePackage();
     void getMySegmentations();
     std::vector<std::string> getSegmentations();
-    void setTexture_Viewer(Texture_Viewer * texture_Viewer);
-    void setSegmentations_Viewer(Segmentations_Viewer *segmentations_Viewer);
+    void setQPixMapImage(QImage image);
+    QPixmap getQPixMapImage();
 
 private:
 
@@ -37,11 +37,9 @@ private:
     int width;
     QString path;
     VolumePkg *vpkg;
+    cv::Mat *_texture;
     std::vector<std::string> segmentations;
-
-    Texture_Viewer *_texture_Viewer;
-    Segmentations_Viewer *_segmentations_Viewer;
-
+    QPixmap pix;
 
 };
 #endif //VC_DEFAULTVALUES_H

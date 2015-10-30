@@ -26,9 +26,19 @@ int Global_Values::getWidth()
     return width;
 }
 
+VolumePkg * Global_Values::getVolPkg()
+{
+    return vpkg;
+}
+
 void Global_Values::setPath(QString newPath)
 {
     path = newPath;
+}
+
+void Global_Values::setTexture(cv::Mat *texture)
+{
+    _texture = texture;
 }
 
 void Global_Values::createVolumePackage()
@@ -46,12 +56,12 @@ std::vector<std::string> Global_Values::getSegmentations()
     return segmentations;
 }
 
-void Global_Values::setTexture_Viewer(Texture_Viewer * texture_Viewer)
+void Global_Values::setQPixMapImage(QImage image)
 {
-    _texture_Viewer = texture_Viewer;
+    pix = QPixmap::fromImage(image);
 }
 
-void Global_Values::setSegmentations_Viewer(Segmentations_Viewer *segmentations_Viewer)
+QPixmap Global_Values::getQPixMapImage()
 {
-    _segmentations_Viewer = segmentations_Viewer;
+    return pix;
 }

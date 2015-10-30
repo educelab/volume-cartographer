@@ -6,6 +6,10 @@
 // Last Updated 10/23/2015 by: Michael Royal
 //----------------------------------------------------------------------------------------------------------------------------------------
 
+#ifndef VC_SEGMENTATIONS_VIEWER_H
+#define VC_SEGMENTATIONS_VIEWER_H
+
+#include <QObject>
 #include <QLabel>
 #include <QListWidget>
 #include "vc_defines.h"
@@ -14,26 +18,32 @@
 #include "io/ply2itk.h"
 #include "compositeTexture.h"
 #include "Global_Values.h"
+#include "Texture_Viewer.h"
 #include <QVBoxLayout>
 #include <QSpinBox>
 #include <QComboBox>
 #include <QPushButton>
 #include <QFormLayout>
 
-
-#ifndef VC_SEGMENTATIONS_VIEWER_H
-#define VC_SEGMENTATIONS_VIEWER_H
-
-
 class Segmentations_Viewer:QObject
 {
+    // NOTICE THIS MACRO
+    Q_OBJECT
+    //
 
 public:
-    Segmentations_Viewer(Global_Values *globals);
+    Segmentations_Viewer(Global_Values *globals, Texture_Viewer *texture_Viewer);
     QVBoxLayout * getLayout();
     void setSegmentations();
+    bool loadImage();
+    void generateTextureImage();
+
+    public slots:
+        void itemClickedSlot();
 
 private:
+
+    Texture_Viewer *_texture_Viewer;
 
     QVBoxLayout *panels;// Main Layout for Right Side of GUI
 
@@ -50,7 +60,7 @@ private:
     QFormLayout *inputs;
     QVBoxLayout *user_input;
 
-
+    QImage newImage;
 
 };
 

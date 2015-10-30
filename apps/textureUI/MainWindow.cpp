@@ -3,9 +3,11 @@
 #include <mainwindow.h>
 #include <QtWidgets>
 
-MainWindow::MainWindow(Global_Values *globals)
+MainWindow::MainWindow(Global_Values *globals,Texture_Viewer *texture_Viewer, Segmentations_Viewer *segmentations_Viewer)
 {
     _globals = globals;
+    _texture_Viewer = texture_Viewer;
+    _segmentations_Viewer = segmentations_Viewer;
 
     setWindowTitle("VC_Starter Project");// Set Window Title
     //MAX DIMENSIONS
@@ -31,8 +33,7 @@ void MainWindow::getFilePath()
         _globals->setPath(filename);
         _globals->createVolumePackage();
         _globals->getMySegmentations();
-        //_globals(segmenations)->setSegmentations();
-
+        _segmentations_Viewer->setSegmentations();
     }
 }
 

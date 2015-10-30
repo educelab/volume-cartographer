@@ -23,11 +23,9 @@ Texture_Viewer::Texture_Viewer(Global_Values *globals)
     imageLabel->setBackgroundRole(QPalette::Base);
     imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
     imageLabel->setScaledContents(true);
-    imageLabel->setPixmap(pix);
 
     scrollArea = new QScrollArea;
     scrollArea->setBackgroundRole(QPalette::Dark);
-    scrollArea->setWidget(imageLabel);
     scrollArea->show();
 
     // Create Buttons
@@ -102,6 +100,13 @@ QVBoxLayout * Texture_Viewer::getLayout()
     return image_Management;
 
 }// End of Texture_Viewer::getLayout()
+
+void Texture_Viewer::setImage()
+{
+    pix = _globals->getQPixMapImage();
+    imageLabel->setPixmap(pix);
+    scrollArea->setWidget(imageLabel);
+}
 
 void Texture_Viewer::create_Actions()
 {

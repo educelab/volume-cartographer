@@ -1,6 +1,9 @@
 
 
 
+#ifndef VC_MAINWINDOW_H
+#define VC_MAINWINDOW_H
+
 #include <QApplication>
 #include <QtGui>
 #include <QObject>
@@ -9,7 +12,8 @@
 #include <QAction>
 #include <QMenuBar>
 #include "Global_Values.h"
-
+#include "Texture_Viewer.h"
+#include "Segmentations_Viewer.h"
 
 class MainWindow : public QMainWindow
 {
@@ -18,7 +22,7 @@ class MainWindow : public QMainWindow
     //
 
 public:
-    MainWindow(Global_Values *globals);
+    MainWindow(Global_Values *globals,Texture_Viewer *texture_Viewer, Segmentations_Viewer *segmentations_Viewer );
 
 public slots:
     void getFilePath();
@@ -35,4 +39,8 @@ private:
     QAction* actionNotes;
 
     Global_Values *_globals;
+    Texture_Viewer *_texture_Viewer;
+    Segmentations_Viewer *_segmentations_Viewer;
 };
+
+#endif //VC_TEXTURE_VIEWER_H

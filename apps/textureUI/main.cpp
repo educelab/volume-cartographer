@@ -7,8 +7,6 @@
 //-----------------------------------------------------------
 #include <mainwindow.h>
 #include <QtWidgets>
-#include "Texture_Viewer.h"
-#include "Segmentations_Viewer.h"
 
 int main(int argc, char **argv)
 {
@@ -20,10 +18,7 @@ int main(int argc, char **argv)
     //Create new Texture_Viewer Object
     Texture_Viewer *texture_Image = new Texture_Viewer(passValues);
     //Create new Segmentations_Viewer Object
-    Segmentations_Viewer *segmentations = new Segmentations_Viewer(passValues);
-
-    passValues->setTexture_Viewer(texture_Image);
-    passValues->setSegmentations_Viewer(segmentations);
+    Segmentations_Viewer *segmentations = new Segmentations_Viewer(passValues, texture_Image);
 
     //MAIN WINDOW
     //---------------------------------------------------

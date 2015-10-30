@@ -8,9 +8,10 @@
 
 #include "Segmentations_Viewer.h"
 
-Segmentations_Viewer::Segmentations_Viewer(Global_Values *globals)
+Segmentations_Viewer::Segmentations_Viewer(Global_Values *globals, Texture_Viewer *texture_Viewer)
 {
     _globals = globals;
+    _texture_Viewer = texture_Viewer;
 
     //RIGHT SIDE OF GUI
     //********************************************************************************************
@@ -21,7 +22,7 @@ Segmentations_Viewer::Segmentations_Viewer(Global_Values *globals)
     //----------------------------------------------------------
     volume_Package = new QLabel("Volume_Package");
     segmentations = new QListWidget();
-    segmentations->setMaximumSize(250,_globals->getHeight());
+    segmentations->setMaximumSize(350,_globals->getHeight());
 
     panels->addWidget(volume_Package);
     panels->addWidget(segmentations);
@@ -36,6 +37,18 @@ Segmentations_Viewer::Segmentations_Viewer(Global_Values *globals)
     texture_Method = new QComboBox();
     sample_Direction = new QComboBox();
     generate = new QPushButton("Generate Texture");
+
+    texture_Method->addItem("Intersection"); 
+    texture_Method->addItem("Non-Maximum Suppression"); 
+    texture_Method->addItem("Maximum"); 
+    texture_Method->addItem("Minimum"); 
+    texture_Method->addItem("Median w/ Averaging"); 
+    texture_Method->addItem("Median"); 
+    texture_Method->addItem("Mean");
+
+    sample_Direction->addItem("Omni");
+    sample_Direction->addItem("Positive");
+    sample_Direction->addItem("Negative");
 
     inputs = new QFormLayout();
     inputs->addRow("Radius: (Voxels)", radius);
@@ -52,10 +65,54 @@ Segmentations_Viewer::Segmentations_Viewer(Global_Values *globals)
     //End of Parameters Section
     //-------------------------------------------------------------
 
+    connect(segmentations, SIGNAL(itemClicked(QListWidgetItem *)), this, SLOT(itemClickedSlot()));
+    connect(generate, SIGNAL(released()),this, SLOT(generateTextureImage()));
+
     // END OF RIGHT SIDE OF GUI
     //********************************************************************************************
 
 }// End of Default Constructor()
+
+void Segmentations_Viewer::itemClickedSlot()
+{
+    QString s = segmentations->currentItem()->text();// Gets a QString for the Current Item Selected
+    _globals->getVolPkg()->setActiveSegmentation(s.toStdString());// Sets the active Segmentation
+
+    bool test = loadImage();
+
+    if(test==true)
+    {
+        _texture_Viewer->setImage();
+    }
+}
+
+void Segmentations_Viewer::generateTextureImage()
+{
+    //Implement Code Here
+}
+
+bool Segmentations_Viewer::loadImage()
+{
+    cv::Mat texture = _globals->getVolPkg()->getTextureData();
+    if ( texture.data == nullptr )
+    {
+        std::cout<<"Error"<<std::endl; // Output Warning
+        std::cout<<"There is no Current Texture Image"<<std::endl;
+        return false;
+
+    } else
+    {
+        //Convert to QPixMap and Display
+        std::cout<<"Working";
+        texture.convertTo( texture, CV_8U, 255.0/65535.0);
+        cv::cvtColor( texture, texture, CV_GRAY2RGB );
+
+        QImage Image( texture.data, texture.cols, texture.rows, texture.step, QImage::Format_RGB888 );
+        newImage = Image;
+        _globals->setQPixMapImage(newImage);
+        return true;
+    }
+}
 
 QVBoxLayout * Segmentations_Viewer::getLayout()
 {
@@ -75,3 +132,5 @@ void Segmentations_Viewer::setSegmentations()
         segmentations->addItem(qstr);
     }
 }
+
+
