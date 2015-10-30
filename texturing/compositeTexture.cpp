@@ -51,7 +51,7 @@ namespace volcart {
 
                 // Iterate over the vertices of the current cell
                 pointsIterator = cell->PointIdsBegin();
-                for( ; pointsIterator != cell->PointIdsEnd(); pointsIterator = cell->PointIdsEnd() ) {
+                for( ; pointsIterator != cell->PointIdsEnd(); ++pointsIterator ) {
                     pointID = *pointsIterator;
 
                     VC_PointType p = inputMesh->GetPoint(pointID);
