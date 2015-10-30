@@ -15,7 +15,9 @@ namespace volcart {
 
         pcl::PolygonMesh greedyProjectionMeshing ( pcl::PointCloud<pcl::PointNormal>::Ptr input, unsigned maxNeighbors = 100, double radius = 2.0, double radiusMultiplier = 2.5 );
 
+
     } // namespace meshing
+
 } // namespace volcart
 
 #endif //VC_GREEDYPROJECTIONMESHING_H
