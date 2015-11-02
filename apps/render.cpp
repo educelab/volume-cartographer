@@ -1,4 +1,4 @@
-// main.cpp
+// render.cpp
 // Abigail Coleman Feb. 2015
 
 #include <iostream>
@@ -12,13 +12,15 @@
 #include "volumepkg.h"
 
 #include "io/ply2itk.h"
+#include "io/plyWriter.h"
+#include "io/objWriter.h"
 #include "compositeTexture.h"
 
 int main(int argc, char* argv[])
 {
     std::cout << "vc_render" << std::endl;
     ///// Parse the command line options /////
-    boost::filesystem::path volpkgPath;
+    boost::filesystem::path volpkgPath, outputPath;
     std::string segID;
     double radius;
     VC_Composite_Option aFilterOption;
@@ -43,7 +45,8 @@ int main(int argc, char* argv[])
                   ("direction,d", boost::program_options::value<int>()->default_value(0), "Sample Direction:\n"
                                                                    "  0 = Omni\n"
                                                                    "  1 = Positive\n"
-                                                                   "  2 = Negative\n");
+                                                                   "  2 = Negative\n")
+                  ("output-file,o", boost::program_options::value<std::string>(), "Output file path. If not specified, file will be saved to volume package.");
                   //("format, f", boost::program_options::value<std::string>()->default_value("obj"), "Output format (obj/ply)");
 
         // parsedOptions will hold the values of all parsed options as a Map
@@ -67,13 +70,22 @@ int main(int argc, char* argv[])
         radius = parsedOptions["radius"].as<int>();
         aFilterOption = (VC_Composite_Option) parsedOptions["method"].as<int>();
         aDirectionOption = (VC_Direction_Option) parsedOptions["direction"].as<int>();
+
+        // Check for output file
+        if ( parsedOptions.count("output-file") ) {
+            outputPath = parsedOptions["output-file"].as<std::string>();
+            if ( boost::filesystem::exists(boost::filesystem::canonical(outputPath.parent_path())) )
+                outputPath = boost::filesystem::canonical(outputPath.parent_path()).string() + "/" + outputPath.filename().string();
+            else
+                std::cerr << "ERROR: Cannot write to provided output file. Output directory does not exist." << std::endl;
+        }
+
     }
     catch(std::exception& e)
     {
         std::cerr << "ERROR: " << e.what() << std::endl;
         return EXIT_FAILURE;
     }
-
 
     ///// Load the volume package /////
     if ( boost::filesystem::exists(volpkgPath) || (boost::filesystem::canonical(volpkgPath).extension() != ".volpkg" ) ) {
@@ -108,8 +120,19 @@ int main(int argc, char* argv[])
     volcart::Texture newTexture;
     newTexture = volcart::texturing::compositeTexture( mesh, vpkg, meshWidth, meshHeight, radius, aFilterOption, aDirectionOption );
 
-    vpkg.saveMesh(mesh, newTexture);
+    if ( outputPath.extension() == ".PLY" || outputPath.extension() == ".ply" ) {
+        std::cout << "Writing to PLY..." << std::endl;
+        volcart::io::plyWriter writer(outputPath.string(), mesh, newTexture);
+        writer.write();
+    } else if ( outputPath.extension() == ".OBJ" || outputPath.extension() == ".obj") {
+        std::cout << "Writing to OBJ..." << std::endl;
+        volcart::io::objWriter writer(outputPath.string(), mesh, newTexture.uvMap(), newTexture.getImage(0) );
+        writer.write();
+    } else {
+        std::cout << "Writing to Volume Package..." << std::endl;
+        vpkg.saveMesh(mesh, newTexture);
+    }
 
-    return 0;
+    return EXIT_SUCCESS;
 } // end main
 
