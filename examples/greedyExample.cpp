@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
 
     // Take input (a Point Cloud)
     volcart::testing::testingMesh mesh;
-    pcl::PointCloud<pcl::PointNormal> cloud_PointNormal = mesh.pointCloud();
+    pcl::PointCloud<pcl::PointNormal> cloud_PointNormal = mesh.pointCloudNormal();
 
     // Create pointer for the input point cloud to pass to greedyProjectionMeshing
     pcl::PointCloud<pcl::PointNormal>::Ptr input(&cloud_PointNormal);
