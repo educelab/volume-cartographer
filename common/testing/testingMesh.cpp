@@ -119,7 +119,7 @@ namespace testing {
         pcl::PointCloud<pcl::PointXYZ> output;
 
         double offset = 0.0;
-        if (noisify) offset = 0.5;
+        if (noisify) offset = 50.0;
 
         int point_counter = 0; // This is the worst. // SP
         for ( auto p_id = _points.begin(); p_id != _points.end(); ++p_id ) {

@@ -11,6 +11,15 @@
 #include "testing/testingMesh.h"
 #include "resamplePointCloud.h"
 
+/*
+ *
+ * THIS IS GARBAGE.
+ *
+ * CAN NOT FIND A TEST CASE THAT ACTUALLY CHANGES THE POINTS IN THE RESAMPLED
+ * POINT CLOUD FROM THE ORIGINAL....SO IT'S CURRENTLY DISABLED IN THE CMAKELIST.
+ *
+ *
+ */
 
 
 /************************************************************************************
@@ -111,7 +120,7 @@ BOOST_FIXTURE_TEST_CASE(PCTest, resampleFix){
     }
 
     //Let's loop through various radius values to see how the resulting PC looks
-    for (radius = 2.0; radius <  6.0; radius ++) {
+    for (radius = 50.0; radius <  55.0; radius ++) {
 
         //call resample PC
        newCloud = volcart::meshing::resamplePointCloud(cloud, radius);
