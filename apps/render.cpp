@@ -47,7 +47,6 @@ int main(int argc, char* argv[])
                                                                    "  1 = Positive\n"
                                                                    "  2 = Negative\n")
                   ("output-file,o", boost::program_options::value<std::string>(), "Output file path. If not specified, file will be saved to volume package.");
-                  //("format, f", boost::program_options::value<std::string>()->default_value("obj"), "Output format (obj/ply)");
 
         // parsedOptions will hold the values of all parsed options as a Map
         boost::program_options::variables_map parsedOptions;

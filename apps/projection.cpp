@@ -1,6 +1,6 @@
 // projection.cpp
 // Seth Parker 10/2015
-// Project the mesh onto each slices in order to check the quality of segmentation
+// Project the mesh onto each slice in order to check the quality of segmentation
 #include <stdio.h>
 #include <map>
 

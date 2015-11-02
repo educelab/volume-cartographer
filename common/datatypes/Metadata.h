@@ -1,3 +1,10 @@
+// VC Metadata
+// Generic interface for storing metadata as a JSON payload.
+// Created by Seth Parker on 10/27/15.
+
+// Can (and perhaps should) be extended to support more specific functionality.
+// See "volumepackage/volumepkgcfg.h" as an example.
+
 #ifndef _VC_METADATA_H_
 #define _VC_METADATA_H_
 
