@@ -30,7 +30,8 @@ int main(int argc, char* argv[]) {
     pcl::PointCloud<pcl::PointNormal> cloud_PointNormal = mesh.pointCloudNormal();
 
     // Create pointer for the input point cloud to pass to greedyProjectionMeshing
-    pcl::PointCloud<pcl::PointNormal>::Ptr input(&cloud_PointNormal);
+    pcl::PointCloud<pcl::PointNormal>::Ptr input( new pcl::PointCloud<pcl::PointNormal>);
+    *input = mesh.pointCloud();
 
 
     // Call function from namespace in header file
@@ -43,6 +44,31 @@ int main(int argc, char* argv[]) {
     std::cout << "File saved as greedyExample.obj" << std::endl;
     //std::cout << input->size() << std::endl;
 
+    // To check for accurate results, compare each point and each cell
+    // Iterate through each of the vertices of both new and old mesh and compare
+    // Example: output.polygons[0].vertices[0]; // Very first vertices
+    pcl::io::loadOBJFile(argv[1], &old_mesh );
+
+    if ( output.polygons.size() != old_mesh.polygons.size() ){
+        std::cout << "Vectors are different sizes, therefore they're not equal." << endl;
+        return 1;
+    }
+
+    else {
+
+        for ( int i=0; i < output.polygons.size(); i++ ){
+
+            for ( int j=0; j < output.polygons[i].vertices.size(); j++ ){
+
+                if ( output.polygons[i].vertices[j] != old_mesh.polygons[i].vertices[j] ){
+                    std::cout << "Difference at polygon " << i << " at vertex " << j << endl;
+                    return 2;
+                }
+            }
+        }
+    }
+
+    std::cout << "The meshes are the same!" << endl;
 
 
     return 0;
