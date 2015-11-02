@@ -15,7 +15,7 @@
 
 namespace volcart {
     namespace meshing {
-        pcl::PointCloud<pcl::PointNormal> resamplePointCloud ( pcl::PointCloud<pcl::PointNormal>::Ptr input, double radius = 2.0 );
+        pcl::PointCloud<pcl::PointNormal> resamplePointCloud ( pcl::PointCloud<pcl::PointXYZ>::Ptr input, double radius = 2.0 );
     }
 }
 

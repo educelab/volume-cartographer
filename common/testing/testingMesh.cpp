@@ -114,7 +114,32 @@ namespace testing {
     }
 
     // Return Point Cloud
-    pcl::PointCloud<pcl::PointNormal> testingMesh::pointCloud(){
+    pcl::PointCloud<pcl::PointXYZ> testingMesh::pointCloudXYZ(bool noisify){
+
+        pcl::PointCloud<pcl::PointXYZ> output;
+
+        double offset = 0.0;
+        if (noisify) offset = 0.5;
+
+        int point_counter = 0; // This is the worst. // SP
+        for ( auto p_id = _points.begin(); p_id != _points.end(); ++p_id ) {
+            pcl::PointXYZ point;
+            point.x = p_id->x;
+            point.y = p_id->y;
+            if ( noisify && (point_counter % 2 == 0) )
+                point.z = p_id->z + offset;
+            else
+                point.z = p_id->z;
+
+            output.push_back(point);
+            ++point_counter;
+        }
+
+        return output;
+    };
+
+    // Return Point Cloud
+    pcl::PointCloud<pcl::PointNormal> testingMesh::pointCloudNormal(){
 
         pcl::PointCloud<pcl::PointNormal> output;
 

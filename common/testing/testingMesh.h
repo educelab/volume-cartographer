@@ -28,7 +28,8 @@ namespace testing {
 
         VC_MeshType::Pointer itkMesh();
         vtkSmartPointer<vtkPolyData> vtkMesh();
-        pcl::PointCloud<pcl::PointNormal> pointCloud();
+        pcl::PointCloud<pcl::PointXYZ> pointCloudXYZ(bool noisify = true);
+        pcl::PointCloud<pcl::PointNormal> pointCloudNormal();
 
         //overload
         std::vector<VC_Vertex> getPoints() {return _points;}

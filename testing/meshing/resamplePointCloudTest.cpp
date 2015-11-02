@@ -29,18 +29,28 @@
  *  PCTest (test case):                                                             *
  *                                                                                  *
  *      Takes a point cloud created from fixture via testingMesh::pointCloud()      *
- *
+ *      This test is simply looking into the points of the resulting PC.            *
  *                                                                                  *
+ *  Properties (test case):                                                         *
  *                                                                                  *
- * Input:                                                                           *
- *     No required inputs for this sample test. Any test objects are created        *
- *     internally.                                                                  *
+ *      Takes a point cloud created from fixture via testingMesh::pointCloud()      *
+ *      Checks the resulting PC's properties, i.e., height, width, size, etc.,      *
+ *      against the input PC.                                                       *
  *                                                                                  *
- * Test-Specific Output:                                                            *
+ *  Magnitude (test case):                                                          *
+ *                                                                                  *
+ *      Takes a point cloud created from fixture via testingMesh::pointCloud()      *
+ *      Checks that the normals in the resulting PC are unit normals.               *
+ *                                                                                  *
+ *  Input:                                                                          *
+ *     No required inputs for the test cases. Any test objects are created          *
+ *     internally by resampleFix().                                                 *
+ *                                                                                  *
+ *  Test-Specific Output:                                                           *
  *     Specific test output only given on failure of any tests. Otherwise, general  *
  *     number of testing errors is output.                                          *
  *                                                                                  *
- * Miscellaneous:                                                                   *
+ *  Miscellaneous:                                                                  *
  *     See the /testing/meshing wiki for more information on this test              *
  * **********************************************************************************/
 
@@ -55,47 +65,56 @@ struct resampleFix {
 
     resampleFix() {
 
-        pCloud = mesh.pointCloud();
+        pCloud = mesh.pointCloudXYZ();
 
-        std::cerr << "setting up resamplePCTest objects" << std::endl;
+        std::cerr << "\nsetting up resamplePCTest objects" << std::endl;
     }
 
-    ~resampleFix(){ std::cerr << "cleaning up resamplePCTest objects" << std::endl; }
+    ~resampleFix(){ std::cerr << "\ncleaning up resamplePCTest objects" << std::endl; }
 
-    pcl::PointCloud<pcl::PointNormal> pCloud;
+    pcl::PointCloud<pcl::PointXYZ> pCloud;
     volcart::testing::testingMesh mesh;
+
+    // Note, radius between (0,1] returns an empty PC
+    // Additionally, radius less than or equal to 0 will throw error
+    // during resampling as defined by PCL
+    double radius;
+
+    //init new PC
+    pcl::PointCloud<pcl::PointNormal> newCloud;
 
 };
 
 BOOST_FIXTURE_TEST_CASE(PCTest, resampleFix){
 
     //init new PC
-    pcl::PointCloud<pcl::PointNormal> newCloud;
+    //pcl::PointCloud<pcl::PointNormal> newCloud;
 
     //convert pCloud to Ptr for resample() call
-    pcl::PointCloud<pcl::PointNormal>::Ptr cloud(&pCloud);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
+    *cloud = pCloud;
 
-    //Let's look at the original points
+
+/*************************************************
+ * Looking at the original and resulting PC data *
+ *************************************************/
+
     //place cloud points in vector
-    std::vector<pcl::PointNormal, Eigen::aligned_allocator<pcl::PointNormal> > cloudData = cloud->points;
+    std::vector<pcl::PointXYZ, Eigen::aligned_allocator<pcl::PointXYZ> > cloudData = cloud->points;
     std::cerr << "Original Cloud Points: " << std::endl;
 
-    for (int c = 0; c < cloudData.size(); c++){
+    for (int c = 0; c < cloudData.size(); c++) {
         std::cerr << "Point " << c << ": "
         << cloudData[c].x << " | "
         << cloudData[c].y << " | "
-        << cloudData[c].z << " | "
-        << cloudData[c].normal_x << " | "
-        << cloudData[c].normal_y << " | "
-        << cloudData[c].normal_z << " | "  << std::endl;
+        << cloudData[c].z << " | " << std::endl;
     }
-    double radius;
 
     //Let's loop through various radius values to see how the resulting PC looks
-    for (radius = 5; radius >= 0; radius--) {
+    for (radius = 2.0; radius <  6.0; radius ++) {
 
         //call resample PC
-        newCloud = volcart::meshing::resamplePointCloud(cloud, radius);
+       newCloud = volcart::meshing::resamplePointCloud(cloud, radius);
 
         //place newCloud points in vector
         std::vector<pcl::PointNormal, Eigen::aligned_allocator<pcl::PointNormal> > newCloudData = newCloud.points;
@@ -117,5 +136,66 @@ BOOST_FIXTURE_TEST_CASE(PCTest, resampleFix){
     //holder for test
     BOOST_CHECK(true);
 
+
+}
+
+/******************************************************
+ * Check core properties of original and resampled PC *
+ ******************************************************/
+
+BOOST_FIXTURE_TEST_CASE(properties, resampleFix){
+
+    std::cerr << "Testing resampled properties..." << std::endl;
+    //convert pCloud to Ptr for resample() call
+    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
+    *cloud = pCloud;
+
+    //set search radius and call resample()
+    radius = 2.0;
+    newCloud = volcart::meshing::resamplePointCloud(cloud, radius);
+
+    //check that pc props match
+    BOOST_CHECK_EQUAL(newCloud.height, cloud->height);
+    BOOST_CHECK_EQUAL(newCloud.width, cloud->width);
+    BOOST_CHECK_EQUAL(newCloud.is_dense, cloud->is_dense);
+    BOOST_CHECK_EQUAL(newCloud.size(), cloud->size());
+
+}
+
+/*******************************************************************
+ * Check magnitude of normals in resampled PC based on original PC *
+ *******************************************************************/
+BOOST_FIXTURE_TEST_CASE(magnitude, resampleFix){
+
+    std::cerr << "Testing resampled normal magnitudes..." << std::endl;
+    std::cerr << "Normal magnitude tested against 1.0 with tolerance of 0.0000001" << std::endl;
+
+    //convert pCloud to Ptr for resample() call
+    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
+    *cloud = pCloud;
+
+    //set search radius and call resample()
+    radius = 2.0;
+    newCloud = volcart::meshing::resamplePointCloud(cloud, radius);
+
+    //normals should be unit normals, so we're testing to confirm this below
+    //for each of the normals created by resampling.
+
+    float magnitude;
+    int pctr = 0;
+
+    //loop through the newCloud and check normal exists for each point
+    for (auto n = newCloud.points.begin(); n != newCloud.points.end(); n++){
+
+        magnitude = sqrt( pow((n->normal_x),2) + pow((n->normal_y),2)  + pow((n->normal_z),2) );
+
+       // std::cerr << "Normal " << pctr <<  *n << ": " << magnitude << std::endl;
+
+        //checks magnitude with tolerance of 0.0000001 against 1.0
+        BOOST_CHECK_CLOSE(magnitude, 1.0, 0.0000001);
+
+        pctr++;
+
+    }
 
 }
