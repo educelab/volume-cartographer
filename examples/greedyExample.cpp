@@ -12,6 +12,7 @@
 #include "greedyProjectionMeshing.h"
 
 using namespace volcart::meshing;
+void compareMeshes (const ::pcl::PolygonMesh &output, const ::pcl::PolygonMesh &old_mesh);
 
 int main(int argc, char* argv[]) {
 
@@ -44,32 +45,42 @@ int main(int argc, char* argv[]) {
     std::cout << "File saved as greedyExample.obj" << std::endl;
     //std::cout << input->size() << std::endl;
 
-    // To check for accurate results, compare each point and each cell
-    // Iterate through each of the vertices of both new and old mesh and compare
-    // Example: output.polygons[0].vertices[0]; // Very first vertices
-    pcl::io::loadOBJFile(argv[1], &old_mesh );
 
-    if ( output.polygons.size() != old_mesh.polygons.size() ){
+    pcl::PolygonMesh old_mesh ;
+    pcl::io::loadOBJFile(argv[1], old_mesh );
+    compareMeshes(output, old_mesh);
+
+   return 0;
+}
+
+// Comparison function to check for accurate results, compare each point and each cell
+// Iterate through each of the vertices of both new and old mesh and compare
+// Example: output.polygons[0].vertices[0]; // Very first vertices
+void compareMeshes (const ::pcl::PolygonMesh &output, const ::pcl::PolygonMesh &old_mesh) {
+
+    //std::cout << "output size " << output.polygons.size() << " oldmesh size " << old_mesh.polygons.size() << endl;
+    if (output.polygons.size() != old_mesh.polygons.size()) {
         std::cout << "Vectors are different sizes, therefore they're not equal." << endl;
-        return 1;
+        return;
     }
 
     else {
 
-        for ( int i=0; i < output.polygons.size(); i++ ){
+        for (int i = 0; i < output.polygons.size(); i++) {
 
-            for ( int j=0; j < output.polygons[i].vertices.size(); j++ ){
+            for (int j = 0; j < output.polygons[i].vertices.size(); j++) {
 
-                if ( output.polygons[i].vertices[j] != old_mesh.polygons[i].vertices[j] ){
+                //std::cout << "Polygon " << i << " at vertex " << j << endl;
+                std::cout << output.polygons[i].vertices[j] << " " << old_mesh.polygons[i].vertices[j] << endl;
+
+                if (output.polygons[i].vertices[j] != old_mesh.polygons[i].vertices[j]) {
                     std::cout << "Difference at polygon " << i << " at vertex " << j << endl;
-                    return 2;
+
+                    return;
                 }
             }
         }
     }
 
     std::cout << "The meshes are the same!" << endl;
-
-
-    return 0;
 }
