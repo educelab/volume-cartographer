@@ -6,6 +6,8 @@
 #include <pcl/point_types.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/io/obj_io.h>
+#include <pcl/PCLPointField.h>
+#include <pcl/PCLPointCloud2.h>
 
 #include "vc_defines.h"
 #include "testing/testingMesh.h"
@@ -32,7 +34,7 @@ int main(int argc, char* argv[]) {
 
     // Create pointer for the input point cloud to pass to greedyProjectionMeshing
     pcl::PointCloud<pcl::PointNormal>::Ptr input( new pcl::PointCloud<pcl::PointNormal>);
-    *input = mesh.pointCloud();
+    *input = cloud_PointNormal;
 
 
     // Call function from namespace in header file
@@ -64,20 +66,45 @@ void compareMeshes (const ::pcl::PolygonMesh &output, const ::pcl::PolygonMesh &
         return;
     }
 
-    else {
+    // Check points in cloud
+    std::cout << "Height " << output.cloud.height << endl;
+    std::cout << "Width  " << output.cloud.width << endl;
+    std::cout << "Height " << old_mesh.cloud.height << endl;
+    std::cout << "Width  " << old_mesh.cloud.width << endl;
 
-        for (int i = 0; i < output.polygons.size(); i++) {
+    std::vector<::pcl::PCLPointField>  fields;
 
-            for (int j = 0; j < output.polygons[i].vertices.size(); j++) {
+    /*
+    for (int i = 0; i < output.fields.size (); ++i) {
+        std::cout << "  fields[" << i << "]: ";
+        std::cout << std::endl;
+        std::cout << "    " << output.fields[i] << endl;
+    } */
 
-                //std::cout << "Polygon " << i << " at vertex " << j << endl;
-                std::cout << output.polygons[i].vertices[j] << " " << old_mesh.polygons[i].vertices[j] << endl;
+    /*
+    for (int i = 0; i < output.cloud.size(); i++) {
 
-                if (output.polygons[i].vertices[j] != old_mesh.polygons[i].vertices[j]) {
-                    std::cout << "Difference at polygon " << i << " at vertex " << j << endl;
+        if( output.cloud.[i] != old_mesh.cloud.points.x[i] )
+            return;
+        if( output.cloud.points.y[i] != old_mesh.cloud.points.y[i] )
+            return;
+        if( output.cloud.points.z[i] != old_mesh.cloud.points.z[i] )
+            return;
+    } */
 
-                    return;
-                }
+
+    // Check faces
+    for (int i = 0; i < output.polygons.size(); i++) {
+
+        for (int j = 0; j < output.polygons[i].vertices.size(); j++) {
+
+            //std::cout << "Polygon " << i << " at vertex " << j << endl;
+            std::cout << output.polygons[i].vertices[j] << " " << old_mesh.polygons[i].vertices[j] << endl;
+
+            if (output.polygons[i].vertices[j] != old_mesh.polygons[i].vertices[j]) {
+                std::cout << "Difference at polygon " << i << " at vertex " << j << endl;
+
+                return;
             }
         }
     }
