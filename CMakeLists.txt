@@ -21,6 +21,7 @@ option(INSTALL_VC_UTIL "Install VC util apps" ON)
 option(INSTALL_VC_DEMO "Install VC demo apps" OFF)
 
 IF(VC_PREBUILT_LIBS)
+    set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/)
     set(CMAKE_PREFIX_PATH ${PROJECT_SOURCE_DIR}/deps/)
 ENDIF(VC_PREBUILT_LIBS)
 
@@ -31,7 +32,7 @@ find_package(Boost REQUIRED COMPONENTS system filesystem program_options iostrea
 find_package(ITK REQUIRED)
 find_package(VTK REQUIRED)
 find_package(OpenGL REQUIRED)
-#find_package(ACVD REQUIRED)
+find_package(ACVD REQUIRED)
 
 include(${QT_USE_FILE})
 include(${ITK_USE_FILE})
