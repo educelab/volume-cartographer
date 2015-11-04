@@ -62,18 +62,25 @@ void compareMeshes (const ::pcl::PolygonMesh &output, const ::pcl::PolygonMesh &
     //std::cout << output.cloud << endl;
     //std::cout << old_mesh.cloud << endl;
 
-    // Check points in cloud
-    for (int i = 0; i < output.cloud.data.size(); i++) {
+    //check size of data in both meshes
+    if (output.cloud.data.size() != old_mesh.cloud.data.size()){
+        std::cout << "cloud.data.size() mismatch. " << std::endl;
+        //return;
+    }
+    //Otherwise, compare points
+    else {
+        // Check points in cloud
+        for (int i = 0; i < output.cloud.data.size(); i++) {
 
-        std::cout << static_cast<unsigned>(output.cloud.data[i]) << " " <<
+            std::cout << static_cast<unsigned>(output.cloud.data[i]) << " " <<
             static_cast<unsigned>(old_mesh.cloud.data[i]) << endl;
-        if( output.cloud.data[i] != old_mesh.cloud.data[i] ){
-            std::cout << "Cloud points do not match at " << i << endl;
-            //std::cout << output.cloud.data[i] << " " << old_mesh.cloud.data[i] << endl;
-            int val =  output.cloud.data[i];
-            int val2 = old_mesh.cloud.data[i];
-            //std::cout << val << " " << val2 << std::endl;
-
+            if (output.cloud.data[i] != old_mesh.cloud.data[i]) {
+                std::cout << "Cloud points do not match at " << i << endl;
+                //std::cout << output.cloud.data[i] << " " << old_mesh.cloud.data[i] << endl;
+                int val = output.cloud.data[i];
+                int val2 = old_mesh.cloud.data[i];
+                //std::cout << val << " " << val2 << std::endl;
+            }
         }
     }
 
