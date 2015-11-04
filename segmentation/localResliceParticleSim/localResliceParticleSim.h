@@ -40,7 +40,8 @@ private:
     ChainMesh mesh_;
 
     std::vector<int32_t> _getNeighborIndices(
-            const Chain c, const int32_t index, const int32_t neighborhoodRadius);
+            const Chain c, const std::list<int32_t>& badIndices,
+            const int32_t index, const int32_t neighborhoodRadius);
 
     constexpr static int32_t kDefaultNeighborhoodRadius = 3;
     constexpr static int32_t kDefaultStepsBeforeReslice = 1;
@@ -48,6 +49,7 @@ private:
     constexpr static int32_t kDefaultEndIndex           = -1;
     constexpr static int32_t kDefaultStepNumLayers      = 1;
     constexpr static int32_t kDefaultMaxIterations      = 100;
+    constexpr static float   kExceedsNeighborRatioRetry = 0.5;
 
 };
 

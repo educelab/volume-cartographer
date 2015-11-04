@@ -42,7 +42,7 @@ LocalResliceSegmentation::segmentLayer(const double driftTolerance,
     while (sliceIndex < endIndex_) {
         // Get predicted directions and positions
         currentChain.draw();
-        cv::waitKey(0);
+        //cv::waitKey(0);
         std::vector<Direction> predictedDirections;
         std::vector<cv::Vec3d> predictedPositions;
         std::tie(predictedDirections, predictedPositions) = currentChain.stepAll(stepNumLayers);
@@ -78,8 +78,9 @@ LocalResliceSegmentation::segmentLayer(const double driftTolerance,
             badStepIndices.pop_front();
 
             // Get indices of neighbors
-            auto neighborIndices = _getNeighborIndices(currentChain, elem, neighborhoodRadius);
-            if (int32_t(neighborIndices.size()) < neighborhoodRadius * 2) {
+            auto neighborIndices = _getNeighborIndices(
+                    currentChain, badStepIndices, elem, neighborhoodRadius);
+            if (int32_t(neighborIndices.size()) < neighborhoodRadius * 2 * kExceedsNeighborRatioRetry) {
                 badStepIndices.push_back(elem);
                 continue;
             }
@@ -128,36 +129,27 @@ LocalResliceSegmentation::segmentLayer(const double driftTolerance,
 
 std::vector<int32_t>
 LocalResliceSegmentation::_getNeighborIndices(
-        const Chain c, const int32_t index, const int32_t radius)
+        const Chain c, const std::list<int32_t>& badIndices,
+        const int32_t index, const int32_t radius)
 {
-    // Fill nbors with the neighboring indices from each side of {index}
-    auto nbors = std::vector<int32_t>(radius * 2);
-    auto nborCount = 0;
-    auto nborOffset = 0;
-    while (nborCount < radius * 2 &&
-           index + nborOffset < c.size() &&
-           index - nborOffset > 0) {
-        nbors.push_back(index + nborOffset);
-        nbors.push_back(index - nborOffset);
-        nborCount += 2;
-        nborOffset++;
+    // Set up start and end indices, accounting for if the neighborhood goes
+    // off the end of the chain
+    int32_t start = index - radius;
+    int32_t end   = index + radius;
+    if (start < 0) {
+        end += -start;
+        start = 0;
+    } else if (end >= c.size()) {
+        start -= (end - c.size() + 1);
+        end = c.size() - 1;
     }
 
-    // If we couldn't add neighbors fully on one side of the index, then fill it in with more
-    // neighbors from the other side
-    if (nborCount < radius * 2) {
-        if (index + nborOffset >= c.size()) {
-            while (nborCount < radius * 2 && index - nborOffset > 0) {
-                nbors.push_back(index - nborOffset);
-                nborOffset++;
-                nborCount++;
-            }
-        } else if (index - nborOffset <= 0) {
-            while (nborCount < radius * 2 && index + nborOffset < c.size()) {
-                nbors.push_back(index + nborOffset);
-                nborOffset++;
-                nborCount++;
-            }
+    // Add neighbors, but only if they're not in the bad indices list
+    auto nbors = std::vector<int32_t>();
+    for (int32_t i = start; i <= end; ++ i) {
+        auto loc = std::find(std::begin(badIndices), std::end(badIndices), i);
+        if (loc == std::end(badIndices)) {
+            nbors.push_back(i);
         }
     }
 
