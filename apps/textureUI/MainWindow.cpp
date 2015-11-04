@@ -31,15 +31,21 @@ void MainWindow::getFilePath()
     {
         if ((file_Name.substr(file_Name.length()-7, file_Name.length())).compare(".volpkg") == 0)
         {
-            QMessageBox::information(this, tr("File Path"), filename);
-            _globals->setPath(filename);
-            _globals->createVolumePackage();
-            _globals->getMySegmentations();
-            _segmentations_Viewer->setSegmentations();
+            try {
+                    _globals->setPath(filename);
+                    _globals->createVolumePackage();
+                    _globals->getMySegmentations();
+                    _segmentations_Viewer->setSegmentations();
+                    _segmentations_Viewer->setVol_Package_Name(filename);
+
+                }catch(...)
+                        {
+                            QMessageBox::warning(this, tr("Error Message"), "Error Opening File.");
+                        };
+
 
         } else {
                     QMessageBox::warning(this, tr("Error Message"), "Invalid File.");
-                    //std::cout << "INVALID FILE!!!";
                }
     }
 }

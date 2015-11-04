@@ -38,6 +38,7 @@ public:
     QVBoxLayout * getLayout();
     void setSegmentations();
     bool loadImage(cv::Mat texture);
+    void setVol_Package_Name(QString name);
 
     public slots:
         void itemClickedSlot();
