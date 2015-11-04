@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
     if (argc < 5) {
         std::cerr << "Usage:" << std::endl;
         std::cerr << argv[0] <<
-        " --startIndex [Z-Index #] --endIndex [value]} --seg [Seg ID #] --volpkg [volpkgpath]" <<
+        " --startIndex [Z-Index #] --endIndex [value]} --seg [Seg ID #] --volpkg [volpkgpath] --output [outputname]" <<
         std::endl;
         exit(EXIT_FAILURE);
     }
@@ -47,8 +47,14 @@ int main(int argc, char *argv[]) {
     pcl::console::parse_argument(argc, argv, "--seg", segID);
 
     pcl::console::parse_argument(argc, argv, "--volpkg", volpkgLocation);
+
+    pcl::console::parse_argument(argc, argv, "--output", outputName);
     if (volpkgLocation == "") {
         std::cerr << "ERROR: Incorrect/missing volpkg location!" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    if (outputName.empty()) {
+        std::cerr << "ERROR: Missing output filename" << std::endl;
         exit(EXIT_FAILURE);
     }
 
@@ -72,7 +78,6 @@ int main(int argc, char *argv[]) {
 
     // Get some info about the cloud, including chain length and z-index's represented by seg.
     int chainLength = masterCloud->width;
-    int iterations = masterCloud->height;
     pcl::PointXYZRGB min_p, max_p;
     pcl::getMinMax3D(*masterCloud, min_p, max_p);
     int minIndex = floor(masterCloud->points[0].z);
@@ -121,9 +126,8 @@ int main(int argc, char *argv[]) {
     immutableCloud->points.resize(immutableCloud->width * immutableCloud->height);
 
     // Run segmentation using path as our starting points
-    pcl::PointCloud<pcl::PointXYZRGB> mutableCloud;
     volcart::segmentation::LocalResliceSegmentation segmentation(volpkg);
-    mutableCloud = segmentation.segmentLayer(2.0, startIndex, endIndex);
+    auto mutableCloud = segmentation.segmentLayer(2.0, startIndex, endIndex);
 
     // Update the master cloud with the points we saved and concat the new points into the space
     *masterCloud = *immutableCloud;
@@ -135,7 +139,9 @@ int main(int argc, char *argv[]) {
     masterCloud->points.resize(masterCloud->width * masterCloud->height);
 
     // Save point cloud and mesh
-    volpkg.saveCloud(*masterCloud);
+    //volpkg.saveCloud(*masterCloud);
+    std::cout << "Saving mutableCloud" << std::endl;
+    pcl::io::savePCDFileBinaryCompressed(outputName, mutableCloud);
     volpkg.saveMesh(masterCloud);
 
     exit(EXIT_SUCCESS);
