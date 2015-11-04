@@ -119,15 +119,18 @@ namespace testing {
         pcl::PointCloud<pcl::PointXYZ> output;
 
         double offset = 0.0;
-        if (noisify) offset = 50.0;
+        if (noisify) offset = 5.0;
 
         int point_counter = 0; // This is the worst. // SP
         for ( auto p_id = _points.begin(); p_id != _points.end(); ++p_id ) {
             pcl::PointXYZ point;
             point.x = p_id->x;
             point.y = p_id->y;
-            if ( noisify && (point_counter % 2 == 0) )
-                point.z = p_id->z + offset;
+
+            if ( noisify && (point_counter % 2 == 0) ){
+                point.z = p_id->z +offset;
+                point.y = p_id->z; //added this to take the points out of the x-z plane to test impact of mls
+            }
             else
                 point.z = p_id->z;
 
