@@ -22,11 +22,11 @@ class MainWindow : public QMainWindow
     //
 
 public:
-    MainWindow(Global_Values *globals,Texture_Viewer *texture_Viewer, Segmentations_Viewer *segmentations_Viewer );
+    MainWindow(Global_Values *globals, Segmentations_Viewer *segmentations_Viewer );
 
 public slots:
     void getFilePath();
-    void showNotes();
+    void save();
 
 private:
     void create_Actions();
@@ -36,10 +36,9 @@ private:
     QMenu* fileMenu;
     QMenu* optionsMenu;
     QAction* actionGetFilePath;
-    QAction* actionNotes;
+    QAction* actionSave;
 
     Global_Values *_globals;
-    Texture_Viewer *_texture_Viewer;
     Segmentations_Viewer *_segmentations_Viewer;
 };
 

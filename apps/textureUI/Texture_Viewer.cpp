@@ -37,6 +37,11 @@ Texture_Viewer::Texture_Viewer(Global_Values *globals)
     zoomOut->setMaximumSize(150,50);// Sets Max Size for Zoom_Out Button
     refresh->setMaximumSize(150,50);// Sets Max Size for Refresh Button
 
+    //Default Not Enabled
+    zoomIn->setEnabled(false);
+    zoomOut->setEnabled(false);
+    refresh->setEnabled(false);
+
     viewer = new QLabel("Viewer");
     viewer->setMaximumSize(50,30);
 
@@ -84,8 +89,6 @@ void Texture_Viewer::zoom_Out()
 
 void Texture_Viewer::reset_Size()
 {
-    zoomIn->setEnabled(true);
-    zoomOut->setEnabled(true);
     imageLabel->adjustSize();
     scaleFactor = 1.0;
 
@@ -101,11 +104,35 @@ QVBoxLayout * Texture_Viewer::getLayout()
 
 }// End of Texture_Viewer::getLayout()
 
-void Texture_Viewer::setImage()
+void Texture_Viewer::setImage() // Minor Glitch, delay zooms, ext. Still needs some Fixing
 {
+    imageLabel = new QLabel;
+    imageLabel->setBackgroundRole(QPalette::Base);
+    imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+    imageLabel->setScaledContents(true);
+
     pix = _globals->getQPixMapImage();
     imageLabel->setPixmap(pix);
     scrollArea->setWidget(imageLabel);
+
+    if(imageLabel->pixmap()!= nullptr)
+    {
+        zoomIn->setEnabled(true);
+        zoomOut->setEnabled(true);
+        refresh->setEnabled(true);
+    }
+
+    reset_Size();
+}
+
+void Texture_Viewer::clearImageLabel()
+{
+    reset_Size();
+
+    imageLabel->close();
+    zoomIn->setEnabled(false);
+    zoomOut->setEnabled(false);
+    refresh->setEnabled(false);
 }
 
 void Texture_Viewer::create_Actions()

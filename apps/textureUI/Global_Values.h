@@ -14,6 +14,7 @@
 #include "volumepkg.h"
 #include <QImage>
 #include <QPixmap>
+#include <QMainWindow>
 
 class Global_Values
 {
@@ -24,22 +25,25 @@ public:
     int getWidth();
     VolumePkg *getVolPkg();
     void setPath(QString newPath);
-    void setTexture(cv::Mat *texture);
     void createVolumePackage();
     void getMySegmentations();
     std::vector<std::string> getSegmentations();
     void setQPixMapImage(QImage image);
     QPixmap getQPixMapImage();
+    bool isVPKG_Intantiated();
+    void setWindow(QMainWindow *window);
+    QMainWindow *getWindow();
 
 private:
 
+    bool VPKG_Instantiated = false;
     int height;
     int width;
     QString path;
     VolumePkg *vpkg;
-    cv::Mat *_texture;
     std::vector<std::string> segmentations;
     QPixmap pix;
+    QMainWindow *_window;
 
 };
 #endif //VC_DEFAULTVALUES_H

@@ -24,6 +24,8 @@
 #include <QComboBox>
 #include <QPushButton>
 #include <QFormLayout>
+#include <QSize>
+#include <QMessageBox>
 
 class Segmentations_Viewer:QObject
 {
@@ -35,11 +37,11 @@ public:
     Segmentations_Viewer(Global_Values *globals, Texture_Viewer *texture_Viewer);
     QVBoxLayout * getLayout();
     void setSegmentations();
-    bool loadImage();
-    void generateTextureImage();
+    bool loadImage(cv::Mat texture);
 
     public slots:
         void itemClickedSlot();
+        void generateTextureImage();
 
 private:
 

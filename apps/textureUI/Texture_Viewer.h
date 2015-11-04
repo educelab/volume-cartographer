@@ -31,6 +31,7 @@ public:
     Texture_Viewer(Global_Values *globals);
     QVBoxLayout * getLayout();
     void setImage();
+    void clearImageLabel();
 
 private slots:
     void open();
@@ -49,6 +50,7 @@ private:
     QLabel *spacer;
     QLabel *viewer;
     QLabel *imageLabel;
+    QLabel *temp;
     QScrollArea *scrollArea;
     QHBoxLayout *zoom;
     QVBoxLayout *image_Management;

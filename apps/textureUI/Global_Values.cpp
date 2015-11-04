@@ -36,14 +36,10 @@ void Global_Values::setPath(QString newPath)
     path = newPath;
 }
 
-void Global_Values::setTexture(cv::Mat *texture)
-{
-    _texture = texture;
-}
-
 void Global_Values::createVolumePackage()
 {
     vpkg = new VolumePkg(path.toStdString());// Creates a Volume Package
+    VPKG_Instantiated = true;
 }
 
 void Global_Values::getMySegmentations()
@@ -64,4 +60,19 @@ void Global_Values::setQPixMapImage(QImage image)
 QPixmap Global_Values::getQPixMapImage()
 {
     return pix;
+}
+
+bool Global_Values::isVPKG_Intantiated()
+{
+    return VPKG_Instantiated;
+}
+
+void Global_Values::setWindow(QMainWindow *window)
+{
+    _window = window;
+}
+
+QMainWindow *Global_Values::getWindow()
+{
+    return _window;
 }

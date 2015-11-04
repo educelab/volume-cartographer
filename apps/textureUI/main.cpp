@@ -22,7 +22,8 @@ int main(int argc, char **argv)
 
     //MAIN WINDOW
     //---------------------------------------------------
-    MainWindow *window = new MainWindow(passValues, texture_Image, segmentations);
+    MainWindow *window = new MainWindow(passValues, segmentations);
+    passValues->setWindow(window);
 
     QHBoxLayout *mainLayout = new QHBoxLayout();
     mainLayout->addLayout(texture_Image->getLayout());// Adds Image_Management Layout (Left Side of Screen)
