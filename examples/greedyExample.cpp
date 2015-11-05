@@ -63,6 +63,8 @@ void compareMeshes (const ::pcl::PolygonMesh &output, const ::pcl::PolygonMesh &
     //std::cout << old_mesh.cloud << endl;
 
     //check size of data in both meshes
+
+    /* current sizes: output = 1200 old_mesh=600*/
     if (output.cloud.data.size() != old_mesh.cloud.data.size()){
         std::cout << "cloud.data.size() mismatch. " << std::endl;
         //return;
