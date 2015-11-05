@@ -9,6 +9,7 @@
 #include <pcl/PCLHeader.h>
 #include <pcl/PCLPointField.h>
 #include <pcl/PCLPointCloud2.h>
+#include "pcl/conversions.h"
 
 #include "vc_defines.h"
 #include "testing/testingMesh.h"
@@ -62,29 +63,40 @@ void compareMeshes (const ::pcl::PolygonMesh &output, const ::pcl::PolygonMesh &
     //std::cout << output.cloud << endl;
     //std::cout << old_mesh.cloud << endl;
 
+    //try this conversion stuff out
+    pcl::PointCloud<pcl::PointNormal> convOutputCloud;
+    pcl::fromPCLPointCloud2(output.cloud, convOutputCloud);
+
+    pcl::PointCloud<pcl::PointNormal> convOldCloud;
+    pcl::fromPCLPointCloud2(output.cloud, convOldCloud);
+
     //check size of data in both meshes
 
     /* current sizes: output = 1200 old_mesh=600*/
-    if (output.cloud.data.size() != old_mesh.cloud.data.size()){
+    if (convOutputCloud.points.size() != convOldCloud.points.size()){
         std::cout << "cloud.data.size() mismatch. " << std::endl;
         //return;
     }
     //Otherwise, compare points
     else {
         // Check points in cloud
-        for (int i = 0; i < output.cloud.data.size(); i++) {
+        for (int i = 0; i < convOutputCloud.points.size(); i++) {
 
-            std::cout << static_cast<unsigned>(output.cloud.data[i]) << " " <<
-            static_cast<unsigned>(old_mesh.cloud.data[i]) << endl;
-            if (output.cloud.data[i] != old_mesh.cloud.data[i]) {
-                std::cout << "Cloud points do not match at " << i << endl;
-                //std::cout << output.cloud.data[i] << " " << old_mesh.cloud.data[i] << endl;
-                int val = output.cloud.data[i];
-                int val2 = old_mesh.cloud.data[i];
-                //std::cout << val << " " << val2 << std::endl;
+            // 4th thing in data array is a type, so don't use it
+            for (int m = 0; m < 3; m++ ) {
+
+                if (convOutputCloud.points[i].data[m] != convOldCloud.points[i].data[m]) {
+                    std::cout << "Cloud points do not match at points[" << i << "].data[" << m << "]" << std::endl;
+                    std::cout << convOutputCloud.points[i].data[0] << convOutputCloud.points[i].data[1] <<
+                    convOutputCloud.points[i].data[2] << convOutputCloud.points[i].data[3]
+                    << " || " << convOldCloud.points[i].data[0] << convOldCloud.points[i].data[1] <<
+                    convOldCloud.points[i].data[2] << convOldCloud.points[i].data[3] << std::endl;
+
+                }
             }
         }
     }
+
 
     //std::cout << "output size " << output.polygons.size() << " oldmesh size " << old_mesh.polygons.size() << endl;
     if (output.polygons.size() != old_mesh.polygons.size()) {
