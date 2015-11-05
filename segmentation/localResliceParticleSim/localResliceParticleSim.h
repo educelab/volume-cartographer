@@ -31,13 +31,10 @@ public:
             const int32_t stepNumLayers=kDefaultStepNumLayers,
             const int32_t maxIterations=kDefaultMaxIterations);
 
-    ChainMesh mesh() const { return mesh_; }
-
 private:
     VolumePkg& pkg_;
     int32_t startIndex_;
     int32_t endIndex_;
-    ChainMesh mesh_;
 
     std::vector<int32_t> _getNeighborIndices(
             const Chain c, const std::list<int32_t>& badIndices,

@@ -15,15 +15,11 @@ namespace segmentation {
 
 class ChainMesh {
 public:
-    ChainMesh();
-
     ChainMesh(const int32_t width, const int32_t height);
 
-    pcl::PointCloud<pcl::PointXYZRGB> exportAsPCD() const;
+    pcl::PointCloud<pcl::PointXYZRGB> exportAsPointCloud();
 
     void addChain(Chain c);
-
-    void setSize(const int32_t width, const int32_t height);
 
     cv::Mat positions() const { return positions_; }
 

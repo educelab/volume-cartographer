@@ -1,15 +1,14 @@
 #include "chainmesh.h"
 
-using namespace volcart::segmentation;
 
-ChainMesh::ChainMesh() : nextRow_(0), width_(0), height_(0) { }
+using namespace volcart::segmentation;
 
 // NOTE: OpenCV does rows first, then columns, so need to flip the order of
 // width/height when passing to Mat constructor
 ChainMesh::ChainMesh(const int32_t width, const int32_t height) :
         nextRow_(0), width_(width), height_(height)
 {
-    positions_ = cv::Mat(height, width, CV_64FC3);
+    positions_ = cv::Mat(height, width, CV_64FC3, cv::Scalar::all(0.0));
 }
 
 // Pushes a chain back into the ChainMesh
@@ -21,22 +20,14 @@ void ChainMesh::addChain(Chain row)
     nextRow_++;
 }
 
-// Resets size of matrix. NOTE: Deletes current matrix in chainmesh
-void ChainMesh::setSize(const int32_t width, const int32_t height)
-{
-    positions_ = cv::Mat(height, width, CV_64FC3);
-}
-
 // Export the mesh as an ordered PCD
 // Note: Need to export as PointXYZRGB since that's how it's stored in VolumePkg
-pcl::PointCloud<pcl::PointXYZRGB> ChainMesh::exportAsPCD() const {
+pcl::PointCloud<pcl::PointXYZRGB> ChainMesh::exportAsPointCloud() {
     pcl::PointCloud<pcl::PointXYZRGB> cloud;
+    cloud.reserve(positions_.cols * positions_.rows);
 
     // Set size. Since this is unordered (for now...) just set the width to be the
     // number of points and the height (by convention) is set to 1
-    cloud.width = uint32_t(positions_.cols * positions_.rows);
-    cloud.height = 1;
-    cloud.is_dense = false;
 
     for (int32_t i = 0; i < positions_.rows; ++i) {
         for (int32_t j = 0; j < positions_.cols; ++j) {

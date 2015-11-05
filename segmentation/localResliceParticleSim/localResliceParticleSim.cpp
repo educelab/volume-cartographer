@@ -8,10 +8,7 @@
 using namespace volcart::segmentation;
 
 LocalResliceSegmentation::LocalResliceSegmentation(VolumePkg& pkg) :
-        pkg_(pkg), startIndex_(0), endIndex_(0)
-{
-    mesh_ = ChainMesh();
-}
+        pkg_(pkg), startIndex_(0), endIndex_(0) { }
 
 pcl::PointCloud<pcl::PointXYZRGB>
 LocalResliceSegmentation::segmentLayer(const double driftTolerance,
@@ -32,10 +29,10 @@ LocalResliceSegmentation::segmentLayer(const double driftTolerance,
         endIndex_ = endIndex;
     }
 
-    // Set mesh size
-    auto zidx = endIndex_ - startIndex_;
-    mesh_.setSize(currentChain.size(), zidx);
-    mesh_.addChain(currentChain);
+    // ChainMesh that holds the segment
+    std::cout << "width = " << currentChain.size() << ", height = " << endIndex - startIndex << std::endl;
+    auto mesh = ChainMesh(currentChain.size(), endIndex - startIndex);
+    mesh.addChain(currentChain);
 
     // Go through every iteration (from start to end index)
     auto sliceIndex = startIndex_;
@@ -115,16 +112,17 @@ LocalResliceSegmentation::segmentLayer(const double driftTolerance,
 
             iterationCount++;
         }
+        std::cout << "Got through " << iterationCount << " iterations" << std::endl;
 
         // Push old positions back into chainmesh
         currentChain.setNewPositions(predictedPositions);
-        mesh_.addChain(currentChain);
+        mesh.addChain(currentChain);
         sliceIndex += stepNumLayers;
-        zidx += stepNumLayers;
-        currentChain.setZIndex(zidx);
+        currentChain.setZIndex(sliceIndex);
     }
 
-    return mesh_.exportAsPCD();
+    std::cout << "returning mesh as PointCloud" << std::endl;
+    return mesh.exportAsPointCloud();
 }
 
 std::vector<int32_t>

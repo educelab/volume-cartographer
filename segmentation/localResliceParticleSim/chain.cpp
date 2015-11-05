@@ -58,7 +58,8 @@ const cv::Vec3d Chain::calculateNormal(const int32_t index) const
 }
 
 // Step an individual particle with optional direction and drift constraints
-Chain::DirPosPair Chain::step(const int32_t index, const int32_t stepNumLayers, const Direction dirConstraint, double maxDrift) const
+Chain::DirPosPair Chain::step(const int32_t index, const int32_t stepNumLayers,
+        const Direction dirConstraint, double maxDrift) const
 {
     auto currentParticle = particles_[index];
     if (!currentParticle.isMoving()) {
