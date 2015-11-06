@@ -6,6 +6,7 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
+#include <opencv2/opencv.hpp>
 
 #include "vc_defines.h"
 #include "vc_datatypes.h"
@@ -127,6 +128,9 @@ int main(int argc, char* argv[])
         std::cout << "Writing to OBJ..." << std::endl;
         volcart::io::objWriter writer(outputPath.string(), mesh, newTexture.uvMap(), newTexture.getImage(0) );
         writer.write();
+    } else if ( outputPath.extension() == ".PNG" || outputPath.extension() == ".png") {
+        std::cout << "Writing to PNG..." << std::endl;
+        cv::imwrite( outputPath.string(), newTexture.getImage(0) );
     } else {
         std::cout << "Writing to Volume Package..." << std::endl;
         vpkg.saveMesh(mesh, newTexture);
