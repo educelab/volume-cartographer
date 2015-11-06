@@ -124,7 +124,7 @@ void Segmentations_Viewer::generateTextureImage()
 
     if(_globals->isVPKG_Intantiated() && _globals->getSegmentations().size()>0)
     {
-        _texture_Viewer->progressActive(true);
+        _texture_Viewer->progressActive(true);// Show Progress Loading Bar
         QMessageBox::information(_globals->getWindow(), "Generating", "Image is Generating...Click \"OK\" .");// Necessary for the ProgressBar to Show
 
         //QApplication::changeOverrideCursor(Qt::ArrowCursor);

@@ -23,6 +23,7 @@
 #include <QMenuBar>
 #include <QMenu>
 #include <QProgressBar>
+#include "MyThread.h"
 
 class Texture_Viewer:QObject
 {
@@ -68,6 +69,8 @@ private:
     QAction *zoomInAction;
     QAction *zoomOutAction;
     QAction *resetSizeAction;
+
+    MyThread *loading;
 
 };
 

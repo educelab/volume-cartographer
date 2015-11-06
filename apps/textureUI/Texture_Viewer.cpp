@@ -46,7 +46,7 @@ Texture_Viewer::Texture_Viewer(Global_Values *globals)
 
     progress = new QLabel();
     progress->setVisible(false);
-    progress->setText("Loading...");
+    progress->setText("Loading");
 
     //Default Not Enabled
     zoomIn->setEnabled(false);
@@ -205,6 +205,16 @@ void Texture_Viewer::progressActive(bool value)
 {
     progressBar->setVisible(value);
     progress->setVisible(value);
+
+    if(value == true)
+    {
+        loading = new MyThread("Loading", progress);
+        loading->start();
+
+    }else {
+            loading->terminate();
+            progress->setText("Loading");
+          }
 }
 
 
