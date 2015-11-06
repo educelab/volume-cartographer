@@ -30,11 +30,11 @@ int main(int argc, char* argv[]) {
     double radiusMultiplier = argv[4];
     */
 
-    // Take input (a Point Cloud)
+    // Create a mesh
     volcart::testing::testingMesh mesh;
     pcl::PointCloud<pcl::PointNormal> cloud_PointNormal = mesh.pointCloudNormal();
 
-    // Create pointer for the input point cloud to pass to greedyProjectionMeshing
+    // Create pointer for the mesh to pass to greedyProjectionMeshing
     pcl::PointCloud<pcl::PointNormal>::Ptr input( new pcl::PointCloud<pcl::PointNormal>);
     *input = cloud_PointNormal;
 
@@ -47,37 +47,34 @@ int main(int argc, char* argv[]) {
     pcl::io::saveOBJFile ( "greedyExample.obj", output);
 
     std::cout << "File saved as greedyExample.obj" << std::endl;
-    //std::cout << input->size() << std::endl;
 
-
+    // Load in old mesh for comparison
     pcl::PolygonMesh old_mesh ;
     pcl::io::loadOBJFile(argv[1], old_mesh );
+
+    // Call comparison function
     compareMeshes(output, old_mesh);
 
    return 0;
 }
 
-// Comparison function to check for accurate results, compare each point and each cell
+// Comparison function to check for accurate results, compare each point and each cell/face
 void compareMeshes (const ::pcl::PolygonMesh &output, const ::pcl::PolygonMesh &old_mesh) {
 
-    //std::cout << output.cloud << endl;
-    //std::cout << old_mesh.cloud << endl;
-
-    //try this conversion stuff out
+    // Convert each mesh to obtain the correct points/data
     pcl::PointCloud<pcl::PointNormal> convOutputCloud;
     pcl::fromPCLPointCloud2(output.cloud, convOutputCloud);
 
     pcl::PointCloud<pcl::PointNormal> convOldCloud;
     pcl::fromPCLPointCloud2(output.cloud, convOldCloud);
 
-    //check size of data in both meshes
-
-    /* current sizes: output = 1200 old_mesh=600*/
+    // Check size of data in both meshes
     if (convOutputCloud.points.size() != convOldCloud.points.size()){
-        std::cout << "cloud.data.size() mismatch. " << std::endl;
-        //return;
+        std::cout << "Points vectors are different sizes, therefore they're not equal. " << std::endl;
+        return;
     }
-    //Otherwise, compare points
+
+    // Otherwise, compare points
     else {
         // Check points in cloud
         for (int i = 0; i < convOutputCloud.points.size(); i++) {
@@ -97,30 +94,26 @@ void compareMeshes (const ::pcl::PolygonMesh &output, const ::pcl::PolygonMesh &
         }
     }
 
-
-    //std::cout << "output size " << output.polygons.size() << " oldmesh size " << old_mesh.polygons.size() << endl;
+    // Compare size of polygon vectors
     if (output.polygons.size() != old_mesh.polygons.size()) {
-        std::cout << "Vectors are different sizes, therefore they're not equal." << endl;
+        std::cout << "Polygon vectors are different sizes, therefore they're not equal." << endl;
         return;
     }
 
     // Check faces
     // Iterate through each of the vertices of both new and old mesh and compare
-    // Example: output.polygons[0].vertices[0]; // Very first vertices
     for (int i = 0; i < output.polygons.size(); i++) {
 
         for (int j = 0; j < output.polygons[i].vertices.size(); j++) {
 
-            //std::cout << "Polygon " << i << " at vertex " << j << endl;
-            //std::cout << output.polygons[i].vertices[j] << " " << old_mesh.polygons[i].vertices[j] << endl;
-
             if (output.polygons[i].vertices[j] != old_mesh.polygons[i].vertices[j]) {
                 std::cout << "Difference at polygon " << i << " at vertex " << j << endl;
-
                 return;
             }
         }
     }
 
-    std::cout << "The meshes are the same!" << endl;
+    std::cout << std::endl << "The meshes are the same!" << std::endl;
+
+    return;
 }
