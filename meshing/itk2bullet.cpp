@@ -26,8 +26,6 @@ namespace volcart {
         ++point;
       }
 
-     //  std::cout << "VERTICES CHECK" << std::endl;
-
       int j = 0;
     	// Iterate over all of the cells to copy the indices of each vertice to multidimensional int array
     	for ( VC_CellIterator cell = input->GetCells()->Begin(); cell != input->GetCells()->End(); ++cell ) {

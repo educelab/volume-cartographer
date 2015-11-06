@@ -17,7 +17,7 @@ install(TARGETS vc_analyze vc_conform
         RUNTIME DESTINATION bin COMPONENT Programs)
 
 install(TARGETS vc_txt2pcd vc_zxy2xyz
-        RUNTIME DESTINATION bin COMPONENT Utilities)
+    RUNTIME DESTINATION bin COMPONENT Utilities)
 
 install(TARGETS vc_addScale
         RUNTIME DESTINATION bin COMPONENT Demos)

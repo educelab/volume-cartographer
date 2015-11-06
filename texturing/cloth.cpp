@@ -123,13 +123,14 @@ int main(int argc, char* argv[])
   int NUM_OF_CELLS = mesh->GetNumberOfCells();
   int bulletFaces[NUM_OF_CELLS][3];
   volcart::meshing::itk2bullet::itk2bullet(mesh, bulletPoints, bulletFaces);
-  for(int i = 0; i < mesh->GetNumberOfPoints(); i += 3) {
-    std::cout << bulletPoints[i] << ", " << bulletPoints[i+1] << ", " << bulletPoints[i+2] << std::endl;
-  }
-  for(int i = 0; i < mesh->GetNumberOfCells(); ++i) {
-    std::cout << bulletFaces[i][0] << ", " << bulletFaces[i][1] << ", " << bulletFaces[i][2] << std::endl;
-  }
-
+  // for(int i = 0; i < mesh->GetNumberOfPoints(); i += 3) {
+  //   std::cout << bulletPoints[i] << ", " << bulletPoints[i+1] << ", " << bulletPoints[i+2] << std::endl;
+  // }
+  // for(int i = 0; i < mesh->GetNumberOfCells(); ++i) {
+  //   std::cout << bulletFaces[i][0] << ", " << bulletFaces[i][1] << ", " << bulletFaces[i][2] << std::endl;
+  // };
+  
+  std::cout << "Bullet Mesh...........CHECK" << std::endl;
   // Create Dynamic world for bullet cloth simulation
   btBroadphaseInterface* broadphase = new btDbvtBroadphase();
 
@@ -142,28 +143,35 @@ int main(int argc, char* argv[])
 
   dynamicsWorld->setGravity(btVector3(0, -10, 0));
 
-  // SoftDemo* pdemo = new SoftDemo;
-  // pdemo->initPhysics();
+  // btSoftBody*	psb = btSoftBodyHelpers::CreateFromTriMesh(*(psb->getWorldInfo()), bulletPoints,
+		// 																										 &bulletFaces[0][0],
+		// 																									 	 NUM_OF_CELLS);
 
-  btSoftBody*	psb = btSoftBodyHelpers::CreateFromTriMesh(dynamicsWorld->m_softBodyWorldInfo, bulletPoints,
+  btSoftBody*	psb = btSoftBodyHelpers::CreateFromTriMesh(dynamicsWorld->getWorldInfo(), bulletPoints,
 																												 &bulletFaces[0][0],
 																											 	 NUM_OF_CELLS);
 
+  std::cout << "Bullet Soft Body...........CHECK" << std::endl;
+
   dynamicsWorld->addSoftBody(psb);
+
+  std::cout << "Bullet Soft Body Added to World...........CHECK" << std::endl;
 
   // step simulation
   for (int i = 0; i < 300; i++) {
     dynamicsWorld->stepSimulation(1 / 60.f, 10);
 
     btTransform trans;
-    psb->getMotionState()->getWorldTransform(trans);
+    trans = psb->getWorldTransform();
 
     std::cout << "sphere height: " << trans.getOrigin().getY() << std::endl;
   }
 
+  std::cout << "Simulation...........CHECK" << std::endl;
+
   // bullet clean up
   dynamicsWorld->removeSoftBody(psb);
-  delete psb->getMotionState();
+  // delete psb->getMotionState();
   delete psb;
   delete dynamicsWorld;
   delete solver;

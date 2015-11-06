@@ -7,5 +7,5 @@ target_link_libraries(vc_volpkg_example ${VC_LIBS} ${VC_REQ_LIBS})
 add_executable(vc_objExporterExample objExporterExample.cpp)
 target_link_libraries(vc_objExporterExample ${ITK_LIBRARIES} ${VC_LIBS} ${VC_REQ_LIBS})
 
-add_executable(vc_ACVD ACVDExample.cpp)
-target_link_libraries(vc_ACVD ${ITK_LIBRARIES} ${VC_LIBS} ${VC_REQ_LIBS})
+#add_executable(vc_ACVD ACVDExample.cpp)
+#target_link_libraries(vc_ACVD ${ITK_LIBRARIES} ${VC_LIBS} ${VC_REQ_LIBS})

@@ -31,13 +31,13 @@ find_package(Boost REQUIRED)
 find_package(ITK REQUIRED)
 find_package(VTK REQUIRED)
 find_package(OpenGL REQUIRED)
-find_package(ACVD REQUIRED)
+#find_package(ACVD REQUIRED)
 find_package(Bullet REQUIRED)
 
-include(${QT_USE_FILE})
+#include(${QT_USE_FILE})
 include(${ITK_USE_FILE})
 include(${VTK_USE_FILE})
-add_definitions(${QT_DEFINITIONS})
+#add_definitions(${QT_DEFINITIONS})
 
 include_directories(${Boost_INCLUDE_DIR} ${PCL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} ${ACVD_INCLUDE_DIRS} ${BULLET_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS} ${Boost_LIBRARY_DIR})
@@ -66,10 +66,10 @@ include_directories(${SEGMENTATION_INCLUDE_DIR})
 set(VC_LIBS vc_volumepkg vc_meshing vc_segmentation vc_common)
 
 # VC Core Apps
-add_subdirectory(pathgen)
+#add_subdirectory(pathgen)
 add_subdirectory(scalpel)
 add_subdirectory(texture)
-add_subdirectory(apps)
+#add_subdirectory(apps)
 add_subdirectory(utils)
 
 # Special rules for packager since it's a Python script
