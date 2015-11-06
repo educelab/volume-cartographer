@@ -11,44 +11,35 @@
 #include "testing/testingMesh.h"
 #include "resamplePointCloud.h"
 
-/*
- *
- * THIS IS GARBAGE.
- *
- * CAN NOT FIND A TEST CASE THAT ACTUALLY CHANGES THE POINTS IN THE RESAMPLED
- * POINT CLOUD FROM THE ORIGINAL....SO IT'S CURRENTLY DISABLED IN THE CMAKELIST.
- *
- *
- */
-
 
 /************************************************************************************
  *                                                                                  *
  *  resamplePointCloudTest.cpp - tests the functionality of                         *
- *  v-c/meshing/resamplePointCloud.cpp with the ultimate goal of the following:     *
+ *  v-c/meshing/resamplePointCloud.cpp                                              *
  *                                                                                  *
- *        1. Comparing a resampled Point Cloud (PC) to an input PC                  *
- *           - the output PC should contain only the neighbors within the           *
- *             passed radius parameter in resamplePointCloud().                     *
- *           - RESULTING NORMALS NEED TO BE CHECKED HOW?                            *
  *                                                                                  *
- *  This file is broken up into two test fixtures resampleFix which initialize      *
- *  the objects used in the test cases.                                             *
+ *  This file is broken up into a test fixture, resampleFix, which initializes      *
+ *  some of the objects used in the fixture test cases:                             *
  *                                                                                  *
- *  PCTest (test case):                                                             *
+ *  1. PCTest:                                                                      *
  *                                                                                  *
- *      Takes a point cloud created from fixture via testingMesh::pointCloud()      *
+ *      Takes a point cloud created from fixture via testingMesh::pointCloudXYZ()   *
  *      This test is simply looking into the points of the resulting PC.            *
  *                                                                                  *
- *  Properties (test case):                                                         *
+ *  2. compareTwoResamples:                                                         *
+ *      Takes a point cloud created from fixture via testingMesh::pointCloudXYZ()   *
+ *      and checks that two resampled PointNormal clouds created using the same     *
+ *      search radius and input cloud match pointwise.                              *
  *                                                                                  *
- *      Takes a point cloud created from fixture via testingMesh::pointCloud()      *
+ *  3. Properties:                                                                  *
+ *                                                                                  *
+ *      Takes a point cloud created from fixture via testingMesh::pointCloudXYZ()   *
  *      Checks the resulting PC's properties, i.e., height, width, size, etc.,      *
  *      against the input PC.                                                       *
  *                                                                                  *
- *  Magnitude (test case):                                                          *
+ *  4. Magnitude:                                                                   *
  *                                                                                  *
- *      Takes a point cloud created from fixture via testingMesh::pointCloud()      *
+ *      Takes a point cloud created from fixture via testingMesh::pointCloudXYZ()   *
  *      Checks that the normals in the resulting PC are unit normals.               *
  *                                                                                  *
  *  Input:                                                                          *
@@ -96,9 +87,6 @@ struct resampleFix {
 
 BOOST_FIXTURE_TEST_CASE(PCTest, resampleFix){
 
-    //init new PC
-    //pcl::PointCloud<pcl::PointNormal> newCloud;
-
     //convert pCloud to Ptr for resample() call
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
     *cloud = pCloud;
@@ -142,10 +130,71 @@ BOOST_FIXTURE_TEST_CASE(PCTest, resampleFix){
 
     }
 
-    //holder for test
-    BOOST_CHECK(true);
+}
 
+/*******************************************
+ * Check equivalency of two resampled PCs  *
+ *******************************************/
 
+BOOST_FIXTURE_TEST_CASE(compareTwoResamples, resampleFix){
+
+    //init PC for later resample call
+    pcl::PointCloud<pcl::PointNormal> otherCloud;
+
+    //convert pCloud to Ptr for resample() call
+    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
+    *cloud = pCloud;
+
+    /*
+     * Determine the ideal search radius for the resample call
+     */
+
+    float avgDistance = 0;
+    int count = 0;
+
+    //This is assuming a quadratic basis for the points
+    //For linear, multiply the avgDistance by 1.2
+    //Get the avg distance from points in the point cloud
+    for (auto a = cloud->begin(); a != cloud->end(); a++){
+        for (auto b = cloud->begin(); b != cloud->end(); b++){
+
+            float pDistance = 0;
+            if (a != b)
+                pDistance = sqrt(pow(a->x - b->x, 2) + pow(a->y - b->y, 2) + pow(a->z - b->z, 2));
+
+            count++;
+            avgDistance += pDistance;
+        }
+    }
+
+    avgDistance /= count;
+
+    //set search radius based on 2.5(avgDistance) and call resample()
+    radius = 2.5 * avgDistance;
+
+    /*
+     * Now, call resample twice on the same input cloud and assign to separate PCs
+     */
+
+    //call resample PC twice
+    newCloud = volcart::meshing::resamplePointCloud(cloud, radius);
+    otherCloud = volcart::meshing::resamplePointCloud(cloud, radius);
+
+    //place resampled points in vectors
+    std::vector<pcl::PointNormal, Eigen::aligned_allocator<pcl::PointNormal> > newCloudData = newCloud.points;
+    std::vector<pcl::PointNormal, Eigen::aligned_allocator<pcl::PointNormal> > otherCloudData = otherCloud.points;
+
+    //Check that the cloud data matches for both resampled clouds
+    for (int i = 0; i < newCloudData.size(); i ++) {
+
+        BOOST_CHECK_EQUAL(newCloudData[i].x, otherCloudData[i].x);
+        BOOST_CHECK_EQUAL(newCloudData[i].y, otherCloudData[i].y);
+        BOOST_CHECK_EQUAL(newCloudData[i].z, otherCloudData[i].z);
+        BOOST_CHECK_EQUAL(newCloudData[i].normal_x, otherCloudData[i].normal_x);
+        BOOST_CHECK_EQUAL(newCloudData[i].normal_y, otherCloudData[i].normal_y);
+        BOOST_CHECK_EQUAL(newCloudData[i].normal_z, otherCloudData[i].normal_z);
+
+    }
 }
 
 /******************************************************

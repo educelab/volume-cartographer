@@ -20,7 +20,7 @@ namespace volcart {
 
             // Parameters
             mls_mesher.setComputeNormals(true);
-            mls_mesher.setPolynomialFit(false);
+            mls_mesher.setPolynomialFit(true);
             mls_mesher.setPolynomialOrder(4);   //See paper referenced by PCL in wiki. Recommends 3 or 4.
             mls_mesher.setSearchMethod(input_tree);
             mls_mesher.setSearchRadius(radius);
