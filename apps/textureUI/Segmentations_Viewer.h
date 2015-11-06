@@ -26,11 +26,12 @@
 #include <QFormLayout>
 #include <QSize>
 #include <QMessageBox>
+#include <QThread>
 
 class Segmentations_Viewer:QObject
 {
     // NOTICE THIS MACRO
-    Q_OBJECT
+Q_OBJECT
     //
 
 public:
@@ -43,6 +44,7 @@ public:
     public slots:
         void itemClickedSlot();
         void generateTextureImage();
+
 
 private:
 
