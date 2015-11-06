@@ -21,8 +21,9 @@ Segmentations_Viewer::Segmentations_Viewer(Global_Values *globals, Texture_Viewe
     //Volume_Package Section
     //----------------------------------------------------------
     volume_Package = new QLabel("Volume_Package");
+    volume_Package->setMaximumWidth(400);
     segmentations = new QListWidget();
-    segmentations->setMaximumSize(350,_globals->getHeight());
+    segmentations->setMaximumSize(400,_globals->getHeight());
 
     panels->addWidget(volume_Package);
     panels->addWidget(segmentations);
@@ -75,6 +76,8 @@ Segmentations_Viewer::Segmentations_Viewer(Global_Values *globals, Texture_Viewe
 
 void Segmentations_Viewer::itemClickedSlot()
 {
+    _texture_Viewer->clearImageLabel();
+
     QString s = segmentations->currentItem()->text();// Gets a QString for the Current Item Selected
     _globals->getVolPkg()->setActiveSegmentation(s.toStdString());// Sets the active Segmentation
 
@@ -86,71 +89,125 @@ void Segmentations_Viewer::itemClickedSlot()
     {
         _texture_Viewer->setImage();
 
-    }else _texture_Viewer->clearImageLabel();
+    }
+}
+
+void Segmentations_Viewer::setVol_Package_Name(QString name)
+{
+    const QChar test = '/';
+    const QString _name = name;
+    QString file = _name;
+    int index = -1;
+
+    for(int i=0; i<_name.length();i++)
+    {
+        if(_name[i]== test)
+        {
+            index = i;
+        }
+    }
+
+    std::string filename = _name.toStdString();
+
+    if(index != -1)
+    {
+        filename = filename.substr(index+1,filename.length());
+    }
+
+    const QString _filename = QString::fromStdString(filename);
+    volume_Package->setText("Volume Package: " + _filename );
 }
 
 void Segmentations_Viewer::generateTextureImage()
 {
+    bool cloudProblem = false;
+
     if(_globals->isVPKG_Intantiated() && _globals->getSegmentations().size()>0)
     {
-        QMessageBox::information(_globals->getWindow(), "Generating", "Please click \"OK\" to begin Generating your Texture Image.");
+        _texture_Viewer->progressActive(true);
+        QMessageBox::information(_globals->getWindow(), "Generating", "Image is Generating...Click \"OK\" .");// Necessary for the ProgressBar to Show
 
-        double _radius = radius->text().toDouble();
-        int meshWidth = -1;
-        int meshHeight = -1;
+        //QApplication::changeOverrideCursor(Qt::ArrowCursor);
+    }
 
-        std::string meshName = _globals->getVolPkg()->getMeshPath();
+    try {
 
-        VC_Composite_Option aFilterOption = ( VC_Composite_Option )texture_Method->currentIndex();
-        VC_Direction_Option aDirectionOption = ( VC_Direction_Option )sample_Direction->currentIndex();
+            if(_globals->isVPKG_Intantiated() && _globals->getSegmentations().size()>0)
+            {
+                double _radius = radius->text().toDouble();
+                int meshWidth = -1;
+                int meshHeight = -1;
 
-        // declare pointer to new Mesh object
-        VC_MeshType::Pointer  mesh = VC_MeshType::New();
+                std::string meshName = _globals->getVolPkg()->getMeshPath();
 
-        // try to convert the ply to an ITK mesh
-        if (!volcart::io::ply2itkmesh(meshName, mesh, meshWidth, meshHeight))
+                VC_Composite_Option aFilterOption = (VC_Composite_Option) texture_Method->currentIndex();
+                VC_Direction_Option aDirectionOption = (VC_Direction_Option) sample_Direction->currentIndex();
+
+                // declare pointer to new Mesh object
+                VC_MeshType::Pointer mesh = VC_MeshType::New();
+
+                // try to convert the ply to an ITK mesh
+                if (!volcart::io::ply2itkmesh(meshName, mesh, meshWidth, meshHeight))
+                {
+                    cloudProblem = true;
+                    QMessageBox::warning(_globals->getWindow(),"Error", "Failed to Generate Texture [cloud.ply] error.");
+                    throw(__EXCEPTIONS);// Error
+
+                };
+
+                volcart::Texture newTexture;
+                newTexture = volcart::texturing::compositeTexture(mesh, *_globals->getVolPkg(), meshWidth, meshHeight, _radius, aFilterOption, aDirectionOption);
+
+                // Display this. This is a 16-bit, single channel image.
+                cv::Mat texture = newTexture.getImage(0).clone();
+
+                bool test = loadImage(texture);
+
+                if (test == true)
+                {
+                    _texture_Viewer->progressActive(false);
+                    _texture_Viewer->setImage();
+                    QMessageBox::warning(_globals->getWindow(), "Warning", "The Generated Image is not Saved, if you wish to save it, please select \"Options\" then \"Save Texture\".");
+                }
+
+            }else QMessageBox::warning(_globals->getWindow(),"Error", "No Segmentation has been loaded, Please load Segmentation.");
+
+    }catch(...)
         {
-            exit( -1 );
+            if(cloudProblem == false)
+            QMessageBox::warning(_globals->getWindow(),"Error", "Failed to Generate Texture.");
         };
 
-        volcart::Texture newTexture;
-        newTexture = volcart::texturing::compositeTexture( mesh, *_globals->getVolPkg(), meshWidth, meshHeight, _radius, aFilterOption, aDirectionOption );
-
-        // Display this. This is a 16-bit, single channel image.
-        cv::Mat texture = newTexture.getImage(0).clone();
-
-        bool test = loadImage(texture);
-
-        if(test == true)
-        {
-            _texture_Viewer->setImage();
-            QMessageBox::warning(_globals->getWindow(),"Warning", "The Generated Image is not Saved, if you wish to save it, please select \"Options\" -> \"Save Texture\".");
-        }
-
-    }else QMessageBox::warning(_globals->getWindow(),"Error", "No Segmentation has been loaded, Please load Segmentation.");
-
-}
+}// End of generateTextureImage()
 
 bool Segmentations_Viewer::loadImage(cv::Mat texture)
 {
-    cv::Mat _texture = texture;
-    if ( texture.data == nullptr )
+    try
     {
-        _texture_Viewer->clearImageLabel();
-        QMessageBox::warning(_globals->getWindow(), "Error", "There is no Current Texture Image");
-        return false;
+        cv::Mat _texture = texture;
+        if (texture.data == nullptr)
+        {
+            _texture_Viewer->clearImageLabel();
+            QMessageBox::warning(_globals->getWindow(), "Error", "There is no Current Texture Image");
+            return false;
 
-    } else
-    {
-        //Convert to QPixMap and Display
-        texture.convertTo( texture, CV_8U, 255.0/65535.0);
-        cv::cvtColor( texture, texture, CV_GRAY2RGB );
+        } else
+            {
+                //Convert to QPixMap and Display
+                texture.convertTo(texture, CV_8U, 255.0 / 65535.0);
+                cv::cvtColor(texture, texture, CV_GRAY2RGB);
 
-        QImage Image( texture.data, texture.cols, texture.rows, texture.step, QImage::Format_RGB888 );
-        newImage = Image;
-        _globals->setQPixMapImage(newImage);
-        return true;
-    }
+                QImage Image(texture.data, texture.cols, texture.rows, texture.step, QImage::Format_RGB888);
+                newImage = Image;
+                _globals->setQPixMapImage(newImage);
+                return true;
+            }
+
+    }catch(...)
+        {
+            QMessageBox::warning(_globals->getWindow(), "Error", "Failed to Load Image Properly");
+        }
+
 }
 
 QVBoxLayout * Segmentations_Viewer::getLayout()
@@ -161,6 +218,7 @@ QVBoxLayout * Segmentations_Viewer::getLayout()
 void Segmentations_Viewer::setSegmentations()
 {
     segmentations->clear();
+    _texture_Viewer->clearImageLabel();
 
     std::vector<std::string> segments = _globals->getSegmentations();
     QString qstr;

@@ -45,5 +45,6 @@ private:
     QPixmap pix;
     QMainWindow *_window;
 
+
 };
 #endif //VC_DEFAULTVALUES_H

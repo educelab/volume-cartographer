@@ -10,8 +10,8 @@ MainWindow::MainWindow(Global_Values *globals, Segmentations_Viewer *segmentatio
 
     setWindowTitle("VC_Starter Project");// Set Window Title
     //MAX DIMENSIONS
-    window()->setMinimumHeight(_globals->getHeight()/4);
-    window()->setMinimumWidth(_globals->getWidth()/4);
+    window()->setMinimumHeight(_globals->getHeight()/3);
+    window()->setMinimumWidth(_globals->getWidth()/3);
     //MIN DIMENSIONS
     window()->setMaximumHeight(_globals->getHeight());
     window()->setMaximumWidth(_globals->getWidth());
@@ -31,22 +31,31 @@ void MainWindow::getFilePath()
     {
         if ((file_Name.substr(file_Name.length()-7, file_Name.length())).compare(".volpkg") == 0)
         {
-            QMessageBox::information(this, tr("File Path"), filename);
-            _globals->setPath(filename);
-            _globals->createVolumePackage();
-            _globals->getMySegmentations();
-            _segmentations_Viewer->setSegmentations();
+            try {
+                    _globals->setPath(filename);
+                    _globals->createVolumePackage();
+                    _globals->getMySegmentations();
+                    _segmentations_Viewer->setSegmentations();
+                    _segmentations_Viewer->setVol_Package_Name(filename);
+
+                }catch(...)
+                        {
+                            QMessageBox::warning(this, tr("Error Message"), "Error Opening File.");
+                        };
+
 
         } else {
                     QMessageBox::warning(this, tr("Error Message"), "Invalid File.");
-                    //std::cout << "INVALID FILE!!!";
                }
     }
 }
 
-void MainWindow::save()
+void MainWindow::save() // Need a try catch for failure
 {
-    std::cout<<"Saving.........";
+    // NEEDS TO BE CONFIGURED
+    QString imagePath = QFileDialog::getSaveFileName(this, tr("Save File"), "", "PNG (*.png)");
+    // Needs to be configured
+    _globals->getQPixMapImage().save(imagePath, "PNG");
 }
 
 void MainWindow::create_Actions()

@@ -26,11 +26,12 @@
 #include <QFormLayout>
 #include <QSize>
 #include <QMessageBox>
+#include <QThread>
 
 class Segmentations_Viewer:QObject
 {
     // NOTICE THIS MACRO
-    Q_OBJECT
+Q_OBJECT
     //
 
 public:
@@ -38,10 +39,12 @@ public:
     QVBoxLayout * getLayout();
     void setSegmentations();
     bool loadImage(cv::Mat texture);
+    void setVol_Package_Name(QString name);
 
     public slots:
         void itemClickedSlot();
         void generateTextureImage();
+
 
 private:
 

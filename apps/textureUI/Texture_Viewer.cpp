@@ -37,6 +37,17 @@ Texture_Viewer::Texture_Viewer(Global_Values *globals)
     zoomOut->setMaximumSize(150,50);// Sets Max Size for Zoom_Out Button
     refresh->setMaximumSize(150,50);// Sets Max Size for Refresh Button
 
+    progressBar = new QProgressBar();
+    progressBar->setVisible(false);
+    progressBar->setMinimumWidth(25);
+    progressBar->setMinimumHeight(5);
+    progressBar->setMinimum(0);
+    progressBar->setMaximum(0);
+
+    progress = new QLabel();
+    progress->setVisible(false);
+    progress->setText("Loading...");
+
     //Default Not Enabled
     zoomIn->setEnabled(false);
     zoomOut->setEnabled(false);
@@ -47,6 +58,8 @@ Texture_Viewer::Texture_Viewer(Global_Values *globals)
 
     zoom = new QHBoxLayout();// Lines Up the Following Buttons Horizontally
     zoom->addWidget(spacer);
+    zoom->addWidget(progress);
+    zoom->addWidget(progressBar);
     zoom->addWidget(zoomIn);// Zoom_In Button added to Horizontal_Layout
     zoom->addWidget(zoomOut);// Zoom_Out Button added to Horizontal_Layout
     zoom->addWidget(refresh);// Refresh Button added to Horizontal_Layout
@@ -91,6 +104,8 @@ void Texture_Viewer::reset_Size()
 {
     imageLabel->adjustSize();
     scaleFactor = 1.0;
+    zoomIn->setEnabled(true);
+    zoomOut->setEnabled(true);
 
 }// End of Texture_Viewer::reset_Size()
 
@@ -122,13 +137,14 @@ void Texture_Viewer::setImage() // Minor Glitch, delay zooms, ext. Still needs s
         refresh->setEnabled(true);
     }
 
-    reset_Size();
+    imageLabel->adjustSize();
+    scaleFactor = 1.0;
 }
 
 void Texture_Viewer::clearImageLabel()
 {
-    reset_Size();
-
+    imageLabel->adjustSize();
+    scaleFactor = 1.0;
     imageLabel->close();
     zoomIn->setEnabled(false);
     zoomOut->setEnabled(false);
@@ -184,6 +200,12 @@ void Texture_Viewer::scale_Texture(double factor)
     }
 
 }// End of Texture_Viewer::scale_Texture(double factor)
+
+void Texture_Viewer::progressActive(bool value)
+{
+    progressBar->setVisible(value);
+    progress->setVisible(value);
+}
 
 
 

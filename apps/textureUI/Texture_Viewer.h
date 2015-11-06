@@ -22,6 +22,7 @@
 #include <QAction>
 #include <QMenuBar>
 #include <QMenu>
+#include <QProgressBar>
 
 class Texture_Viewer:QObject
 {
@@ -32,6 +33,7 @@ public:
     QVBoxLayout * getLayout();
     void setImage();
     void clearImageLabel();
+    void progressActive(bool value);
 
 private slots:
     void open();
@@ -54,6 +56,8 @@ private:
     QScrollArea *scrollArea;
     QHBoxLayout *zoom;
     QVBoxLayout *image_Management;
+    QProgressBar *progressBar;
+    QLabel *progress;
 
     QPixmap pix;
 
