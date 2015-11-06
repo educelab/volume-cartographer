@@ -13,14 +13,18 @@ option(BUILD_OSX_APPS "Build OSX App Bundle" OFF)
 option(BUILD_DragNDrop "Build OSX DMG Installer" OFF)
 endif(APPLE)
 option(Boost_USE_STATIC_LIBS "Link against static Boost libs" OFF)
+option(VC_PREBUILT_LIBS "Link against prebuilt dependencies" OFF)
 
 # Choose what to install
 option(INSTALL_VC_CORE "Install VC core apps" ON)
 option(INSTALL_VC_UTIL "Install VC util apps" ON)
 option(INSTALL_VC_DEMO "Install VC demo apps" OFF)
 
-find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets OpenGL PrintSupport)
+IF(VC_PREBUILT_LIBS)
+    set(CMAKE_PREFIX_PATH ${PROJECT_SOURCE_DIR}/deps/)
+ENDIF(VC_PREBUILT_LIBS)
 
+find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets OpenGL PrintSupport)
 find_package(PCL 1.7 REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system filesystem program_options iostreams)
