@@ -16,6 +16,7 @@
 
 #include <btBulletDynamicsCommon.h>
 #include <BulletSoftBody/btSoftRigidDynamicsWorld.h>
+#include <BulletSoftBody/btDefaultSoftBodySolver.h>
 #include <BulletSoftBody/btSoftBodyRigidBodyCollisionConfiguration.h>
 #include <BulletSoftBody/btSoftBodyHelpers.h>
 
@@ -130,53 +131,66 @@ int main(int argc, char* argv[])
   //   std::cout << bulletFaces[i][0] << ", " << bulletFaces[i][1] << ", " << bulletFaces[i][2] << std::endl;
   // };
   
-  std::cout << "Bullet Mesh...........CHECK" << std::endl;
   // Create Dynamic world for bullet cloth simulation
   btBroadphaseInterface* broadphase = new btDbvtBroadphase();
 
-  btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
+  btDefaultCollisionConfiguration* collisionConfiguration = new btSoftBodyRigidBodyCollisionConfiguration();
   btCollisionDispatcher* dispatcher = new btCollisionDispatcher(collisionConfiguration);
 
-  btSequentialImpulseConstraintSolver* solver = new btSequentialImpulseConstraintSolver;
+  btSequentialImpulseConstraintSolver* solver = new btSequentialImpulseConstraintSolver();
 
-  btSoftRigidDynamicsWorld* dynamicsWorld = new btSoftRigidDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
+  btSoftBodySolver* softBodySolver = new btDefaultSoftBodySolver();
+
+  btSoftRigidDynamicsWorld* dynamicsWorld = new btSoftRigidDynamicsWorld(dispatcher,
+  																																							 broadphase, 
+  																																							 solver, 
+  																																							 collisionConfiguration, 
+  																																							 softBodySolver);
 
   dynamicsWorld->setGravity(btVector3(0, -10, 0));
-
-  // btSoftBody*	psb = btSoftBodyHelpers::CreateFromTriMesh(*(psb->getWorldInfo()), bulletPoints,
-		// 																										 &bulletFaces[0][0],
-		// 																									 	 NUM_OF_CELLS);
 
   btSoftBody*	psb = btSoftBodyHelpers::CreateFromTriMesh(dynamicsWorld->getWorldInfo(), bulletPoints,
 																												 &bulletFaces[0][0],
 																											 	 NUM_OF_CELLS);
 
-  std::cout << "Bullet Soft Body...........CHECK" << std::endl;
+  psb->m_cfg.viterations = 50;
+  psb->m_cfg.piterations = 50;
 
   dynamicsWorld->addSoftBody(psb);
 
-  std::cout << "Bullet Soft Body Added to World...........CHECK" << std::endl;
+  // Constraints for the mesh as a soft body
+  // These needed to be tested to find optimal values
+  // this iterates through all the links/faces and randomly swaps them
+  // psb->randomizeConstraints();
+  // sets the mass of the whole soft body, true considers the faces along with the vertices
+ //  psb->setTotalMass(100, true);
+  btTransform tr;
+	tr.setIdentity();
+	tr.setOrigin(btVector3(0,100,0));
+	psb->setWorldTransform(tr);
+	psb->setInterpolationWorldTransform(tr);
 
   // step simulation
   for (int i = 0; i < 300; i++) {
-    dynamicsWorld->stepSimulation(1 / 60.f, 10);
+    dynamicsWorld->stepSimulation(1/ 60.f, 10);
+    psb->solveConstraints();
 
     btTransform trans;
     trans = psb->getWorldTransform();
 
-    std::cout << "sphere height: " << trans.getOrigin().getY() << std::endl;
+    std::cout << "sphere height: " << trans.getOrigin().getX()  << ", " << trans.getOrigin().getY() << ", " << trans.getOrigin().getZ() << std::endl;
   }
 
   std::cout << "Simulation...........CHECK" << std::endl;
 
   // bullet clean up
   dynamicsWorld->removeSoftBody(psb);
-  // delete psb->getMotionState();
   delete psb;
   delete dynamicsWorld;
+  delete softBodySolver;
   delete solver;
-  delete collisionConfiguration;
   delete dispatcher;
+  delete collisionConfiguration;
   delete broadphase;
 
 	return 0;
