@@ -21,7 +21,7 @@ add_executable(vc_projection projection.cpp)
 target_link_libraries(vc_projection ${VC_LIBS} ${VC_REQ_LIBS})
 
 # Install targets
-install(TARGETS vc_mesher vc_segment vc_metaedit
+install(TARGETS vc_mesher vc_segment vc_metaedit vc_projection
         RUNTIME DESTINATION bin COMPONENT Programs)
 
 # Mesh Editor
