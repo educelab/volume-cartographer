@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
 
     // Load in old mesh for comparison
     pcl::PolygonMesh old_mesh ;
-    pcl::io::loadOBJFile(argv[1], old_mesh );
+    pcl::io::loadOBJFile("greedyExampleChanged.obj", old_mesh );
 
     // Call comparison function
     compareMeshes(output, old_mesh);

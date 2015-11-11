@@ -68,67 +68,45 @@ struct Fix {
     Fix() {
 
         std::cerr << "Setting up greedyProjectionMeshingTest objects." << std::endl;
+        // Create a mesh
+
+        pcl::PointCloud<pcl::PointNormal> cloud_PointNormal = mesh.pointCloudNormal();
+
+        // Create pointer for the mesh to pass to greedyProjectionMeshing
+        pcl::PointCloud<pcl::PointNormal>::Ptr input( new pcl::PointCloud<pcl::PointNormal>);
+        *input = cloud_PointNormal;
+
+        // Call function from namespace in header file
+        std::cout << "Being greedy..." << std::endl;
+        output = volcart::meshing::greedyProjectionMeshing(input, 100, 2.0, 2.5);
+
+        // Write mesh to file
+        pcl::io::saveOBJFile ( "greedyExample.obj", output);
+        std::cout << "File saved as greedyExample.obj" << std::endl;
+
+        // Load in old mesh for comparison
+        pcl::io::loadOBJFile("greedyExampleChanged.obj", old_mesh );
+
     }
 
     ~Fix(){ std::cerr << "Cleaning up greedyProjectionMeshing objects" << std::endl; }
 
-    pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr new_mesh, known_mesh;
+    volcart::testing::testingMesh mesh;
+    pcl::PolygonMesh old_mesh ;
+    pcl::PolygonMesh output ;
 };
 
 
-
-using namespace volcart::meshing;
-void compareMeshes (const ::pcl::PolygonMesh &output, const ::pcl::PolygonMesh &old_mesh);
-
-int main(int argc, char* argv[]) {
-
-    /* If arguments changed from the set values in greedyProjectionMeshing.h
-    if ( argc != 5 ) {
-        std::cout << "Incorrect arguments" << endl;
-        return 1;
-    }
-    unsigned max = argv[2];
-    double radius = argv[3];
-    double radiusMultiplier = argv[4];
-    */
-
-    // Create a mesh
-    volcart::testing::testingMesh mesh;
-    pcl::PointCloud<pcl::PointNormal> cloud_PointNormal = mesh.pointCloudNormal();
-
-    // Create pointer for the mesh to pass to greedyProjectionMeshing
-    pcl::PointCloud<pcl::PointNormal>::Ptr input( new pcl::PointCloud<pcl::PointNormal>);
-    *input = cloud_PointNormal;
-
-
-    // Call function from namespace in header file
-    std::cout << "Being greedy..." << std::endl;
-    pcl::PolygonMesh output = greedyProjectionMeshing(input, 100, 2.0, 2.5);
-
-    // Write mesh to file
-    pcl::io::saveOBJFile ( "greedyExample.obj", output);
-
-    std::cout << "File saved as greedyExample.obj" << std::endl;
-
-    // Load in old mesh for comparison
-    pcl::PolygonMesh old_mesh ;
-    pcl::io::loadOBJFile(argv[1], old_mesh );
-
-    // Call comparison function
-    compareMeshes(output, old_mesh);
-
-    return 0;
-}
-
 // Comparison function to check for accurate results, compare each point and each cell/face
-void compareMeshes (const ::pcl::PolygonMesh &output, const ::pcl::PolygonMesh &old_mesh) {
+BOOST_FIXTURE_TEST_CASE(compareMeshes, Fix)
+{
 
     // Convert each mesh to obtain the correct points/data
     pcl::PointCloud<pcl::PointNormal> convOutputCloud;
     pcl::fromPCLPointCloud2(output.cloud, convOutputCloud);
 
     pcl::PointCloud<pcl::PointNormal> convOldCloud;
-    pcl::fromPCLPointCloud2(output.cloud, convOldCloud);
+    pcl::fromPCLPointCloud2(old_mesh.cloud, convOldCloud);
 
     // Check size of data in both meshes
     BOOST_CHECK_EQUAL (convOutputCloud.points.size(), convOldCloud.points.size());
