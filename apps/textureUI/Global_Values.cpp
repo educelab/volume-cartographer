@@ -116,3 +116,23 @@ int Global_Values::getSampleDirection()
 {
     return _sampleDirection;
 }
+
+void Global_Values::setProcessing(bool active)
+{
+    _active = active;
+}
+
+bool Global_Values::getProcessing()
+{
+    return _active;
+}
+
+void Global_Values::setForcedClose(bool forcedClose)
+{
+    _forcedClose = forcedClose;
+}
+
+bool Global_Values::getForcedClose()
+{
+    return _forcedClose;
+}

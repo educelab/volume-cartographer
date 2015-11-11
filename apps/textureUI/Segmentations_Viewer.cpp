@@ -135,7 +135,7 @@ void Segmentations_Viewer::generateTextureImage()
         processing = new MyThread(_globals);// Creates new thread
         connect(processing, SIGNAL(finished()), processing, SLOT(deleteLater()));// Deletes Thread After Completion
 
-        while(processing->getStatus()==0)
+        while(_globals->getProcessing())
         {
             //_texture_Viewer->setLabel();
             sleep(1);
@@ -150,6 +150,14 @@ void Segmentations_Viewer::generateTextureImage()
             sleep(1);
             _texture_Viewer->getLabel()->setText("Loading");
             qApp->processEvents();//Updates GUI Window
+        }
+
+        // Set Processing Status to -999 if Cancelled...
+        if(_globals->getForcedClose())
+        {
+            processing->setStatus(-999);
+            processing->terminate();
+            processing->wait();
         }
 
         _texture_Viewer->getLabel()->setText("Loading");// Reset to "Loading"
@@ -170,7 +178,6 @@ void Segmentations_Viewer::generateTextureImage()
         if(processing->getStatus()==1 && test)// If Processing successfully loaded an Image
             {
                 QMessageBox::warning(_globals->getWindow(), "Warning", "The Generated Image is not Saved, if you wish to save it, please select \"Options\" then \"Save Texture\".");
-                setEnabled(true);// Allow User to Use Buttons
 
             }else if(processing->getStatus()==-1)
                     {
@@ -179,11 +186,15 @@ void Segmentations_Viewer::generateTextureImage()
                     }else if(processing->getStatus()==-2)
                             {
                                 QMessageBox::warning(_globals->getWindow(),"Error", "Failed to Generate Texture.");
-                            }
+
+                            }else if(processing->getStatus()==-999)
+                                    {
+                                        QMessageBox::warning(_globals->getWindow(),"Cancelled", "Successfully Cancelled.");
+                                    }
+
+        setEnabled(true);// Allow User to Use Buttons
 
     }else QMessageBox::warning(_globals->getWindow(),"Error", "No Segmentation has been loaded, Please load Segmentation.");
-
-
 
 }// End of generateTextureImage()
 

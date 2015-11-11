@@ -5,6 +5,8 @@ MyThread::MyThread(Global_Values *globals)
 {
     _globals = globals;
     _status = 0; // Status Running/Active
+    _globals->setProcessing(true);
+    _globals->setForcedClose(false);
     this->start();
 }
 
@@ -57,6 +59,13 @@ void MyThread::run()
     {
         _status = 1;
     }
+
+    _globals->setProcessing(false);
+}
+
+void MyThread::setStatus(int status)
+{
+    _status = status;
 }
 
 int MyThread::getStatus()

@@ -44,6 +44,7 @@ private slots:
     void zoom_In();
     void zoom_Out();
     void reset_Size();
+    void quitThread();
 
 private:
     void create_Actions();
@@ -53,7 +54,7 @@ private:
     QPushButton *zoomIn;
     QPushButton *zoomOut;
     QPushButton *refresh;
-
+    QPushButton *cancel;
     QLabel *spacer;
     QLabel *viewer;
     QLabel *imageLabel;
@@ -73,6 +74,7 @@ private:
     QAction *zoomInAction;
     QAction *zoomOutAction;
     QAction *resetSizeAction;
+    QAction *_cancel;
 
 };
 

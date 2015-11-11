@@ -29,20 +29,24 @@ Texture_Viewer::Texture_Viewer(Global_Values *globals)
     scrollArea->show();
 
     // Create Buttons
+    //------------------------------------------------------------------------
     zoomIn = new QPushButton("Zoom In");// Creates a QPushButton - Zoom_In
     zoomOut = new QPushButton("Zoom Out");// Creates a QPushButton - Zoom_Out
     refresh = new QPushButton ("Reset");// Create a QPushButton - Refresh
     spacer = new QLabel();
+
     zoomIn->setMaximumSize(150,50);// Sets Max Size for Zoom_In Button
     zoomOut->setMaximumSize(150,50);// Sets Max Size for Zoom_Out Button
     refresh->setMaximumSize(150,50);// Sets Max Size for Refresh Button
-    //------------------------------------------------------------------
     zoomIn->setMinimumSize(150,50);// Sets Min Size for Zoom_In Button
     zoomOut->setMinimumSize(150,50);// Sets Min Size for Zoom_Out Button
     refresh->setMinimumSize(150,50);// Sets Min Size for Refresh Button
 
-
-
+    cancel = new QPushButton("Cancel");
+    cancel->setMaximumSize(150,50);// Sets Max Size for Cancel Button
+    cancel->setMinimumSize(150,50);// Sets Min Size for Cancel Button
+    cancel->setVisible(false);
+    //----------------------------------------------------------------------
 
     progressBar = new QProgressBar();
     progressBar->setVisible(false);
@@ -60,6 +64,7 @@ Texture_Viewer::Texture_Viewer(Global_Values *globals)
     zoomIn->setEnabled(false);
     zoomOut->setEnabled(false);
     refresh->setEnabled(false);
+    cancel->setEnabled(false);
 
     viewer = new QLabel("Viewer");
     viewer->setMaximumSize(50,30);
@@ -68,6 +73,7 @@ Texture_Viewer::Texture_Viewer(Global_Values *globals)
     zoom->addWidget(spacer);
     zoom->addWidget(progress);
     zoom->addWidget(progressBar);
+    zoom->addWidget(cancel);
     zoom->addWidget(zoomIn);// Zoom_In Button added to Horizontal_Layout
     zoom->addWidget(zoomOut);// Zoom_Out Button added to Horizontal_Layout
     zoom->addWidget(refresh);// Refresh Button added to Horizontal_Layout
@@ -116,6 +122,12 @@ void Texture_Viewer::reset_Size()
     zoomOut->setEnabled(true);
 
 }// End of Texture_Viewer::reset_Size()
+
+void Texture_Viewer::quitThread()
+{
+    _globals->setForcedClose(true);
+    _globals->setProcessing(false);
+}
 
 
 // END OF PRIVATE SLOTS
@@ -173,6 +185,10 @@ void Texture_Viewer::create_Actions()
     resetSizeAction->setEnabled(false);
     connect(refresh, SIGNAL(released()), this, SLOT(reset_Size()));
 
+    _cancel = new QAction("Cancel", this);
+    _cancel->setEnabled(true);
+    connect(cancel, SIGNAL(released()), this, SLOT(quitThread()));
+
 }// End of Texture_Viewer::create_Actions()
 
 void Texture_Viewer::adjustScrollBar(QScrollBar *scrollBar, double factor)
@@ -213,6 +229,8 @@ void Texture_Viewer::progressActive(bool value)
 {
     progressBar->setVisible(value);
     progress->setVisible(value);
+    cancel->setVisible(value);
+    cancel->setEnabled(value);
 }
 
 void Texture_Viewer::setEnabled(bool value)

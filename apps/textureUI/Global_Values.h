@@ -59,6 +59,12 @@ public:
     void setSampleDirection(int sampleDirection);
     int getSampleDirection();
 
+    void setProcessing(bool active);
+    bool getProcessing();
+
+    void setForcedClose(bool forcedClose);
+    bool getForcedClose();
+
 private:
 
     bool VPKG_Instantiated = false;
@@ -73,6 +79,9 @@ private:
     double _radius;
     int _textureMethod;
     int _sampleDirection;
+
+    bool _active;
+    bool _forcedClose;
 
 };
 #endif //VC_DEFAULTVALUES_H
