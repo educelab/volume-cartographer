@@ -85,7 +85,7 @@ struct Fix {
         std::cout << "File saved as greedyExample.obj" << std::endl;
 
         // Load in old mesh for comparison
-        pcl::io::loadOBJFile("greedyExampleChanged.obj", old_mesh );
+        pcl::io::loadOBJFile("greedyExample.obj", old_mesh );
 
     }
 
