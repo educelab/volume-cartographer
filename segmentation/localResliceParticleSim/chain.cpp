@@ -136,7 +136,7 @@ Chain::DirPosPair Chain::step(const int32_t index, const int32_t stepNumLayers,
 }
 
 void Chain::draw() const {
-    auto pkgSlice = volpkg_.getSliceData(zIndex_);
+    auto pkgSlice = volpkg_.getSliceData(zIndex_).clone();
     pkgSlice /= 255.0;
     pkgSlice.convertTo(pkgSlice, CV_8UC3);
     cvtColor(pkgSlice, pkgSlice, CV_GRAY2BGR);

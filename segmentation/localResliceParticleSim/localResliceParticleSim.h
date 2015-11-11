@@ -44,7 +44,7 @@ private:
     constexpr static int32_t kDefaultStepsBeforeReslice = 1;
     constexpr static int32_t kDefaultStartIndex         = 0;
     constexpr static int32_t kDefaultEndIndex           = -1;
-    constexpr static int32_t kDefaultStepNumLayers      = 1;
+    constexpr static int32_t kDefaultStepNumLayers      = 2;
     constexpr static int32_t kDefaultMaxIterations      = 100;
     constexpr static float   kExceedsNeighborRatioRetry = 0.5;
 
