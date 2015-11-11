@@ -10,8 +10,8 @@ MainWindow::MainWindow(Global_Values *globals, Segmentations_Viewer *segmentatio
 
     setWindowTitle("VC_Starter Project");// Set Window Title
     //MAX DIMENSIONS
-    window()->setMinimumHeight(_globals->getHeight()/3);
-    window()->setMinimumWidth(_globals->getWidth()/3);
+    window()->setMinimumHeight(_globals->getHeight()/2);
+    window()->setMinimumWidth(_globals->getWidth()/2);
     //MIN DIMENSIONS
     window()->setMaximumHeight(_globals->getHeight());
     window()->setMaximumWidth(_globals->getWidth());

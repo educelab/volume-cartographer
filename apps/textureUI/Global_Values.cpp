@@ -76,3 +76,43 @@ QMainWindow *Global_Values::getWindow()
 {
     return _window;
 }
+
+void Global_Values::setTexture(volcart::Texture texture)
+{
+    _texture = texture;
+}
+
+volcart::Texture Global_Values::getTexture()
+{
+    return _texture;
+}
+
+void Global_Values::setRadius(double radius)
+{
+    _radius = radius;
+}
+
+double Global_Values::getRadius()
+{
+    return _radius;
+}
+
+void Global_Values::setTextureMethod(int textureMethod)
+{
+    _textureMethod = textureMethod;
+}
+
+int Global_Values::getTextureMethod()
+{
+    return _textureMethod;
+}
+
+void Global_Values::setSampleDirection(int sampleDirection)
+{
+    _sampleDirection = sampleDirection;
+}
+
+int Global_Values::getSampleDirection()
+{
+    return _sampleDirection;
+}

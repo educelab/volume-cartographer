@@ -26,7 +26,7 @@
 #include <QFormLayout>
 #include <QSize>
 #include <QMessageBox>
-#include <QThread>
+#include "MyThread.h"
 
 class Segmentations_Viewer:QObject
 {
@@ -44,9 +44,11 @@ public:
     public slots:
         void itemClickedSlot();
         void generateTextureImage();
-
+        void setEnabled(bool value);
 
 private:
+
+    MyThread *processing;
 
     Texture_Viewer *_texture_Viewer;
 

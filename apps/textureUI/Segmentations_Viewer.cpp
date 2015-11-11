@@ -77,6 +77,7 @@ Segmentations_Viewer::Segmentations_Viewer(Global_Values *globals, Texture_Viewe
 void Segmentations_Viewer::itemClickedSlot()
 {
     _texture_Viewer->clearImageLabel();
+    // Need to Clear Texture Data to nullptr
 
     QString s = segmentations->currentItem()->text();// Gets a QString for the Current Item Selected
     _globals->getVolPkg()->setActiveSegmentation(s.toStdString());// Sets the active Segmentation
@@ -85,7 +86,7 @@ void Segmentations_Viewer::itemClickedSlot()
 
     bool test = loadImage(texture);
 
-    if(test==true)
+    if(test)
     {
         _texture_Viewer->setImage();
 
@@ -120,63 +121,69 @@ void Segmentations_Viewer::setVol_Package_Name(QString name)
 
 void Segmentations_Viewer::generateTextureImage()
 {
-    bool cloudProblem = false;
-
     if(_globals->isVPKG_Intantiated() && _globals->getSegmentations().size()>0)
     {
+        _globals->setRadius(radius->text().toDouble());
+        _globals->setTextureMethod(texture_Method->currentIndex());
+        _globals->setSampleDirection(sample_Direction->currentIndex());
+
+        setEnabled(false);
+
         _texture_Viewer->progressActive(true);// Show Progress Loading Bar
-        QMessageBox::information(_globals->getWindow(), "Generating", "Image is Generating...Click \"OK\" .");// Necessary for the ProgressBar to Show
+        qApp->processEvents();//Updates GUI Window
 
-        //QApplication::changeOverrideCursor(Qt::ArrowCursor);
-    }
+        processing = new MyThread(_globals);// Creates new thread
+        connect(processing, SIGNAL(finished()), processing, SLOT(deleteLater()));// Deletes Thread After Completion
 
-    try {
-
-            if(_globals->isVPKG_Intantiated() && _globals->getSegmentations().size()>0)
-            {
-                double _radius = radius->text().toDouble();
-                int meshWidth = -1;
-                int meshHeight = -1;
-
-                std::string meshName = _globals->getVolPkg()->getMeshPath();
-
-                VC_Composite_Option aFilterOption = (VC_Composite_Option) texture_Method->currentIndex();
-                VC_Direction_Option aDirectionOption = (VC_Direction_Option) sample_Direction->currentIndex();
-
-                // declare pointer to new Mesh object
-                VC_MeshType::Pointer mesh = VC_MeshType::New();
-
-                // try to convert the ply to an ITK mesh
-                if (!volcart::io::ply2itkmesh(meshName, mesh, meshWidth, meshHeight))
-                {
-                    cloudProblem = true;
-                    QMessageBox::warning(_globals->getWindow(),"Error", "Failed to Generate Texture [cloud.ply] error.");
-                    throw(__EXCEPTIONS);// Error
-
-                };
-
-                volcart::Texture newTexture;
-                newTexture = volcart::texturing::compositeTexture(mesh, *_globals->getVolPkg(), meshWidth, meshHeight, _radius, aFilterOption, aDirectionOption);
-
-                // Display this. This is a 16-bit, single channel image.
-                cv::Mat texture = newTexture.getImage(0).clone();
-
-                bool test = loadImage(texture);
-
-                if (test == true)
-                {
-                    _texture_Viewer->progressActive(false);
-                    _texture_Viewer->setImage();
-                    QMessageBox::warning(_globals->getWindow(), "Warning", "The Generated Image is not Saved, if you wish to save it, please select \"Options\" then \"Save Texture\".");
-                }
-
-            }else QMessageBox::warning(_globals->getWindow(),"Error", "No Segmentation has been loaded, Please load Segmentation.");
-
-    }catch(...)
+        while(processing->getStatus()==0)
         {
-            if(cloudProblem == false)
-            QMessageBox::warning(_globals->getWindow(),"Error", "Failed to Generate Texture.");
-        };
+            //_texture_Viewer->setLabel();
+            sleep(1);
+            _texture_Viewer->getLabel()->setText("Loading.");
+            qApp->processEvents();//Updates GUI Window
+            sleep(1);
+            _texture_Viewer->getLabel()->setText("Loading..");
+            qApp->processEvents();//Updates GUI Window
+            sleep(1);
+            _texture_Viewer->getLabel()->setText("Loading...");
+            qApp->processEvents();//Updates GUI Window
+            sleep(1);
+            _texture_Viewer->getLabel()->setText("Loading");
+            qApp->processEvents();//Updates GUI Window
+        }
+
+        _texture_Viewer->getLabel()->setText("Loading");// Reset to "Loading"
+        _texture_Viewer->progressActive(false);// Hide Progress Loading Bar
+
+        bool test = false;
+
+        if(processing->getStatus()==1)
+        {
+            test = loadImage(_globals->getTexture().getImage(0).clone());
+
+            if (test)
+            {
+                _texture_Viewer->setImage();
+            }
+        }
+
+        if(processing->getStatus()==1 && test)// If Processing successfully loaded an Image
+            {
+                QMessageBox::warning(_globals->getWindow(), "Warning", "The Generated Image is not Saved, if you wish to save it, please select \"Options\" then \"Save Texture\".");
+                setEnabled(true);// Allow User to Use Buttons
+
+            }else if(processing->getStatus()==-1)
+                    {
+                        QMessageBox::warning(_globals->getWindow(),"Error", "Failed to Generate Texture [cloud.ply] error.");
+
+                    }else if(processing->getStatus()==-2)
+                            {
+                                QMessageBox::warning(_globals->getWindow(),"Error", "Failed to Generate Texture.");
+                            }
+
+    }else QMessageBox::warning(_globals->getWindow(),"Error", "No Segmentation has been loaded, Please load Segmentation.");
+
+
 
 }// End of generateTextureImage()
 
@@ -208,6 +215,8 @@ bool Segmentations_Viewer::loadImage(cv::Mat texture)
             QMessageBox::warning(_globals->getWindow(), "Error", "Failed to Load Image Properly");
         }
 
+    return false; // Should not reach here if successful
+
 }
 
 QVBoxLayout * Segmentations_Viewer::getLayout()
@@ -238,4 +247,18 @@ void Segmentations_Viewer::setSegmentations()
 
 }
 
+void Segmentations_Viewer::setEnabled(bool value)
+{
+    segmentations->setEnabled(value);
+    radius->setEnabled(value);
+    texture_Method->setEnabled(value);
+    sample_Direction->setEnabled(value);
+    generate->setEnabled(value);
 
+if(value==false)
+    {
+        _texture_Viewer->clearLabel();
+    }
+
+    _texture_Viewer->setEnabled(value);
+}

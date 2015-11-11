@@ -36,17 +36,25 @@ Texture_Viewer::Texture_Viewer(Global_Values *globals)
     zoomIn->setMaximumSize(150,50);// Sets Max Size for Zoom_In Button
     zoomOut->setMaximumSize(150,50);// Sets Max Size for Zoom_Out Button
     refresh->setMaximumSize(150,50);// Sets Max Size for Refresh Button
+    //------------------------------------------------------------------
+    zoomIn->setMinimumSize(150,50);// Sets Min Size for Zoom_In Button
+    zoomOut->setMinimumSize(150,50);// Sets Min Size for Zoom_Out Button
+    refresh->setMinimumSize(150,50);// Sets Min Size for Refresh Button
+
+
+
 
     progressBar = new QProgressBar();
     progressBar->setVisible(false);
-    progressBar->setMinimumWidth(25);
-    progressBar->setMinimumHeight(5);
+    progressBar->setMinimumWidth(100);
+    progressBar->setMinimumHeight(10);
     progressBar->setMinimum(0);
     progressBar->setMaximum(0);
 
     progress = new QLabel();
     progress->setVisible(false);
     progress->setText("Loading");
+    progress->setMinimumSize(75,10);
 
     //Default Not Enabled
     zoomIn->setEnabled(false);
@@ -205,16 +213,25 @@ void Texture_Viewer::progressActive(bool value)
 {
     progressBar->setVisible(value);
     progress->setVisible(value);
+}
 
-    if(value == true)
-    {
-        loading = new MyThread("Loading", progress);
-        loading->start();
+void Texture_Viewer::setEnabled(bool value)
+{
+    zoomIn->setEnabled(value);
+    zoomOut->setEnabled(value);
+    refresh->setEnabled(value);
+}
 
-    }else {
-            loading->terminate();
-            progress->setText("Loading");
-          }
+void Texture_Viewer::clearLabel()// Clears Label
+{
+    imageLabel->adjustSize();
+    scaleFactor = 1.0;
+    imageLabel->close();
+}
+
+QLabel *Texture_Viewer::getLabel()
+{
+    return progress;
 }
 
 

@@ -23,7 +23,6 @@
 #include <QMenuBar>
 #include <QMenu>
 #include <QProgressBar>
-#include "MyThread.h"
 
 class Texture_Viewer:QObject
 {
@@ -35,6 +34,10 @@ public:
     void setImage();
     void clearImageLabel();
     void progressActive(bool value);
+    void setEnabled(bool value);
+    void clearLabel();
+    QLabel *getLabel();
+
 
 private slots:
     void open();
@@ -50,6 +53,7 @@ private:
     QPushButton *zoomIn;
     QPushButton *zoomOut;
     QPushButton *refresh;
+
     QLabel *spacer;
     QLabel *viewer;
     QLabel *imageLabel;
@@ -69,8 +73,6 @@ private:
     QAction *zoomInAction;
     QAction *zoomOutAction;
     QAction *resetSizeAction;
-
-    MyThread *loading;
 
 };
 

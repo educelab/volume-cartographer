@@ -15,24 +15,49 @@
 #include <QImage>
 #include <QPixmap>
 #include <QMainWindow>
+#include "vc_defines.h"
+#include "vc_datatypes.h"
+#include "volumepkg.h"
+#include "io/ply2itk.h"
+#include <QLabel>
+#include "compositeTexture.h"
 
 class Global_Values
 {
 
 public:
     Global_Values(QRect rec);
+
     int getHeight();
     int getWidth();
-    VolumePkg *getVolPkg();
-    void setPath(QString newPath);
+
     void createVolumePackage();
+    VolumePkg *getVolPkg();
+
+    void setPath(QString newPath);
+
     void getMySegmentations();
     std::vector<std::string> getSegmentations();
+
     void setQPixMapImage(QImage image);
     QPixmap getQPixMapImage();
+
     bool isVPKG_Intantiated();
+
     void setWindow(QMainWindow *window);
     QMainWindow *getWindow();
+
+    void setTexture(volcart::Texture texture);
+    volcart::Texture getTexture();
+
+    void setRadius(double radius);
+    double getRadius();
+
+    void setTextureMethod(int textureMethod);
+    int getTextureMethod();
+
+    void setSampleDirection(int sampleDirection);
+    int getSampleDirection();
 
 private:
 
@@ -44,7 +69,10 @@ private:
     std::vector<std::string> segmentations;
     QPixmap pix;
     QMainWindow *_window;
-
+    volcart::Texture _texture;
+    double _radius;
+    int _textureMethod;
+    int _sampleDirection;
 
 };
 #endif //VC_DEFAULTVALUES_H
