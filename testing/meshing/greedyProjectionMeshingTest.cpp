@@ -11,6 +11,16 @@
 #include "testing/testingMesh.h"
 #include "greedyProjectionMeshing.h"
 
+#include <pcl/common/common.h>
+#include <pcl/point_types.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/io/obj_io.h>
+#include <pcl/PCLHeader.h>
+#include <pcl/PCLPointField.h>
+#include <pcl/PCLPointCloud2.h>
+#include "pcl/conversions.h"
+
+
 /****************************************************************************************
  *                                                                                      *
  *  greedyProjectionMeshingTest.cpp -  tests the functionality of changes to            *
@@ -65,39 +75,93 @@ struct Fix {
     pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr new_mesh, known_mesh;
 };
 
-BOOST_FIXTURE_TEST_CASE(new_mesh, Fix){
 
-    // Get the points for each mesh to use for comparison
-    VC_PointsContainerType::Pointer _newMeshPoints = new_mesh->GetPoints();
-    VC_PointsContainerType::Pointer _knownMeshPoints = known_mesh->GetPoints();
 
-    // Initialize iterators for comparison
-    VC_CellIterator _newMeshCellIterator = new_mesh->GetCells()->Begin();
-    VC_CellIterator _newMeshCellEnd new_mesh->GetCells()->End();
+using namespace volcart::meshing;
+void compareMeshes (const ::pcl::PolygonMesh &output, const ::pcl::PolygonMesh &old_mesh);
 
-    VC_CellIterator _knownMeshCellIterator = known_mesh->GetCells()->Begin();
-    VC_CellIterator _knownMeshCellEnd = known_mesh->GetCells()->End;
+int main(int argc, char* argv[]) {
 
-    VC_PointsInCellIterator _meshPointsIterator;
+    /* If arguments changed from the set values in greedyProjectionMeshing.h
+    if ( argc != 5 ) {
+        std::cout << "Incorrect arguments" << endl;
+        return 1;
+    }
+    unsigned max = argv[2];
+    double radius = argv[3];
+    double radiusMultiplier = argv[4];
+    */
 
-    VC_CellType * _meshCell;
+    // Create a mesh
+    volcart::testing::testingMesh mesh;
+    pcl::PointCloud<pcl::PointNormal> cloud_PointNormal = mesh.pointCloudNormal();
 
-    unsigned long _meshPointID;
+    // Create pointer for the mesh to pass to greedyProjectionMeshing
+    pcl::PointCloud<pcl::PointNormal>::Ptr input( new pcl::PointCloud<pcl::PointNormal>);
+    *input = cloud_PointNormal;
 
-    // Iterate over all of the cells in the mesh to compare values
-    while( ( _newMeshCellIterator != _newMeshCellEnd ) &&
-            ( _knownMeshCellIterator != _knownMeshCellEnd) )
-    {
-        //Link the pointer to our current cell
-        _meshCell = _newMeshCellIterator.Value();
 
-        // Iterate over the vertices of the current cell for both meshes
-        _meshPointsIterator = _meshCell->PointIdsBegin();
+    // Call function from namespace in header file
+    std::cout << "Being greedy..." << std::endl;
+    pcl::PolygonMesh output = greedyProjectionMeshing(input, 100, 2.0, 2.5);
 
-        //Until we reach the final point, get the point id and compare the values
-        // of the points in the original (_mesh) and new (_itk) meshes. Advance iterator
-        //and continue this process until all the cells in each mesh have been visited (first while loop)
+    // Write mesh to file
+    pcl::io::saveOBJFile ( "greedyExample.obj", output);
+
+    std::cout << "File saved as greedyExample.obj" << std::endl;
+
+    // Load in old mesh for comparison
+    pcl::PolygonMesh old_mesh ;
+    pcl::io::loadOBJFile(argv[1], old_mesh );
+
+    // Call comparison function
+    compareMeshes(output, old_mesh);
+
+    return 0;
+}
+
+// Comparison function to check for accurate results, compare each point and each cell/face
+void compareMeshes (const ::pcl::PolygonMesh &output, const ::pcl::PolygonMesh &old_mesh) {
+
+    // Convert each mesh to obtain the correct points/data
+    pcl::PointCloud<pcl::PointNormal> convOutputCloud;
+    pcl::fromPCLPointCloud2(output.cloud, convOutputCloud);
+
+    pcl::PointCloud<pcl::PointNormal> convOldCloud;
+    pcl::fromPCLPointCloud2(output.cloud, convOldCloud);
+
+    // Check size of data in both meshes
+    BOOST_CHECK_EQUAL (convOutputCloud.points.size(), convOldCloud.points.size());
+
+        // Otherwise, compare points
+
+    // Check points in cloud
+    for (int i = 0; i < convOutputCloud.points.size(); i++) {
+
+        // 4th thing in data array is a type, so don't use it
+        for (int m = 0; m < 3; m++ ) {
+
+            BOOST_CHECK_EQUAL (convOutputCloud.points[i].data[m], convOldCloud.points[i].data[m]) ;
+        }
     }
 
+
+    // Compare size of polygon vectors
+    BOOST_CHECK_EQUAL (output.polygons.size(), old_mesh.polygons.size());
+
+    // Check faces
+    // Iterate through each of the vertices of both new and old mesh and compare
+    for (int i = 0; i < output.polygons.size(); i++) {
+
+        for (int j = 0; j < output.polygons[i].vertices.size(); j++) {
+
+            BOOST_CHECK_EQUAL (output.polygons[i].vertices[j] , old_mesh.polygons[i].vertices[j]);
+        }
+    }
+
+    std::cout << std::endl << "The meshes are the same!" << std::endl;
+
+    return;
+}
 
 
