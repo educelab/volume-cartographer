@@ -57,7 +57,7 @@ public:
     void saveMetadata(std::string filePath);
 
     // Data Retrieval
-    cv::Mat getSliceData(int);
+    const cv::Mat getSliceData(int);
     std::string getSlicePath(int);
     std::string getNormalAtIndex(int);
     void setCacheSize(size_t size);
@@ -76,6 +76,7 @@ public:
     void saveTexturedMesh(ChaoVis::CMesh);
     void saveTextureData(cv::Mat, std::string = "texture");
     Reslice reslice(const cv::Vec3d, const cv::Vec3d, const cv::Vec3d, const int32_t=64, const int32_t=64);
+    uint16_t getIntensity(const int32_t x, const int32_t y, const int32_t z);
 
 private:
     VolumePkgCfg config;
