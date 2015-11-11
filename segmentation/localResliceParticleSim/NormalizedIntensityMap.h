@@ -17,7 +17,7 @@ public:
 
     void draw(const int32_t=100, const int32_t=100) const;
 
-    std::vector<std::pair<int32_t, double>> findMaxima(void) const;
+    std::vector<std::pair<int32_t, double>> findMaxima(int32_t index) const;
 
 private:
     friend std::ostream& operator<<(std::ostream& s, const NormalizedIntensityMap& m) {

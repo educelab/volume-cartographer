@@ -14,13 +14,15 @@ void NormalizedIntensityMap::draw(const int32_t displayWidth, const int32_t disp
     // Build intensity map
     cv::Mat mapImage(displayWidth, displayHeight, CV_8UC3, cv::Scalar(0, 0, 0));
     for (int32_t i = 1; i < _intensities.cols; ++i) {
-        auto p1 = cv::Point(binWidth * (i-1), displayHeight - cvRound(displayHeight * _intensities.at<double>(i-1)));
-        auto p2 = cv::Point(binWidth * (i)  , displayHeight - cvRound(displayHeight * _intensities.at<double>(i)));
+        auto p1 = cv::Point(binWidth * (i-1),
+				displayHeight - cvRound(displayHeight * _intensities.at<double>(i-1)));
+        auto p2 = cv::Point(binWidth * (i),
+				displayHeight - cvRound(displayHeight * _intensities.at<double>(i)));
         cv::line(mapImage, p1, p2, cv::Scalar(0, 255, 0));
     }
 
     // Sort by closest maxima available and draw line on that
-    auto maxima = findMaxima();
+    auto maxima = findMaxima(0);
     auto centerX = _intensities.cols / 2;
     auto minDist = std::numeric_limits<int32_t>::max();
     auto minIdx = -1;
@@ -31,27 +33,64 @@ void NormalizedIntensityMap::draw(const int32_t displayWidth, const int32_t disp
             minIdx = i;
         }
     }
-    cv::line(mapImage, cv::Point(binWidth * maxima[minIdx].first, 0), cv::Point(binWidth * maxima[minIdx].first, mapImage.rows), BGR_BLUE);
+    cv::line(mapImage, cv::Point(binWidth * maxima[minIdx].first, 0),
+		cv::Point(binWidth * maxima[minIdx].first, mapImage.rows), BGR_BLUE);
 
     // Vertical line at particle's current x position
-    cv::line(mapImage, cv::Point(binWidth * centerX, 0), cv::Point(binWidth * centerX, mapImage.rows), BGR_YELLOW);
+    cv::line(mapImage, cv::Point(binWidth * centerX, 0),
+		cv::Point(binWidth * centerX, mapImage.rows), BGR_YELLOW);
 
     cv::namedWindow("Intensity Map", cv::WINDOW_NORMAL);
     cv::imshow("Intensity Map", mapImage);
 }
 
 // Finds the top 'N' maxima in the row being processed
-std::vector<std::pair<int32_t, double>> NormalizedIntensityMap::findMaxima(void) const {
+std::vector<std::pair<int32_t, double>> NormalizedIntensityMap::findMaxima(int32_t index) const {
     using Pair = std::pair<int32_t, double>;
+	//std::cout << _intensities << std::endl;
+	
+	// Scan through array looking for peaks
+	/*
+	const double kCurveNoiseTolerance = 0.15;
+	auto peaks = std::vector<Pair>();
+	int32_t i = 0;
+	int32_t plateauWidth = 0;
+	while (i++ < _intensities.cols - 1) {
+		while (_intensities.at<double>(i) - _intensities.at<double>(i+1) < -kCurveNoiseTolerance) {
+			++i;
+		}
+		while (std::fabs(_intensities.at<double>(i) - _intensities.at<double>(i+1)) < kCurveNoiseTolerance) {
+			++i;
+			++plateauWidth;
+		}
+		if (plateauWidth > 0) {
+			peaks.emplace_back(i, _intensities.at<double>(i - plateauWidth / 2));
+			plateauWidth = 0;
+		} else {
+			peaks.emplace_back(i, _intensities.at<double>(i));
+		}
+		while (_intensities.at<double>(i) - _intensities.at<double>(i+1) > kCurveNoiseTolerance) {
+			++i;
+		}
+	}
+	*/
+
     // Find derivative of intensity curve
     cv::Mat sobelDerivatives;
     cv::Sobel(_intensities, sobelDerivatives, CV_64FC1, 1, 0);
+	if (index == 33) {
+		//std::cout << _intensities << std::endl;
+		//std::cout << sobelDerivatives << std::endl;
+	}
 
     // Get indices of positive -> negative transitions, store in pairs (index, intensity)
     auto crossings = std::vector<Pair>();
     for (auto i = 0; i < sobelDerivatives.cols - 1; ++i) {
         if (sobelDerivatives.at<double>(i) * sobelDerivatives.at<double>(i+1) <= 0 &&
             sobelDerivatives.at<double>(i) > sobelDerivatives.at<double>(i+1)) {
+			if (index == 33) {
+				//std::cout << i << ": " << sobelDerivatives.at<double>(i) << ", " << i+1 << ": " << sobelDerivatives.at<double>(i+1) << std::endl;
+			}
             if (_intensities.at<double>(i) > _intensities.at<double>(i+1)) {
                 crossings.push_back(std::make_pair(i, _intensities.at<double>(i)));
             } else {
@@ -64,6 +103,5 @@ std::vector<std::pair<int32_t, double>> NormalizedIntensityMap::findMaxima(void)
     std::remove_if(crossings.begin(), crossings.end(), [this](Pair p) {
         return p.second < _intensities.at<double>(_intensities.cols / 2);
     });
-
     return crossings;
 }

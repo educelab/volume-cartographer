@@ -30,16 +30,16 @@ LocalResliceSegmentation::segmentLayer(const double driftTolerance,
     }
 
     // ChainMesh that holds the segment
-    std::cout << "width = " << currentChain.size() << ", height = " << endIndex - startIndex << std::endl;
     auto mesh = ChainMesh(currentChain.size(), endIndex - startIndex);
     mesh.addChain(currentChain);
 
     // Go through every iteration (from start to end index)
     auto sliceIndex = startIndex_;
     while (sliceIndex < endIndex_) {
+		std::cout << "slice: " << sliceIndex << std::endl;
         // Get predicted directions and positions
         currentChain.draw();
-        //cv::waitKey(0);
+        cv::waitKey(0);
         std::vector<Direction> predictedDirections;
         std::vector<cv::Vec3d> predictedPositions;
         std::tie(predictedDirections, predictedPositions) = currentChain.stepAll(stepNumLayers);
@@ -48,8 +48,8 @@ LocalResliceSegmentation::segmentLayer(const double driftTolerance,
         // Get XY drift of newPositions from currentPositions
         auto xyDrift = std::vector<double>(N);
         for (auto i = 0; i < N; ++i) {
-            auto p1 = cv::Vec2f(predictedPositions[i](VC_INDEX_X), predictedPositions[i](VC_INDEX_Y));
-            auto p2 = cv::Vec2f(currentChain.at(i)(VC_INDEX_X), currentChain.at(i)(VC_INDEX_Y));
+            auto p1 = cv::Vec2d(predictedPositions[i](VC_INDEX_X), predictedPositions[i](VC_INDEX_Y));
+            auto p2 = cv::Vec2d(currentChain.at(i)(VC_INDEX_X), currentChain.at(i)(VC_INDEX_Y));
             xyDrift[i] = cv::norm(p1, p2);
         }
 
@@ -59,6 +59,7 @@ LocalResliceSegmentation::segmentLayer(const double driftTolerance,
         auto badStepIndices = std::list<int32_t>();
         for (auto i = 0; i < N; ++i) {
             if (xyDrift[i] > driftTolerance) {
+				//std::cout << "badstep: " << i << std::endl;
                 badStepIndices.push_back(i);
             }
         }
@@ -112,7 +113,7 @@ LocalResliceSegmentation::segmentLayer(const double driftTolerance,
 
             iterationCount++;
         }
-        std::cout << "Got through " << iterationCount << " iterations" << std::endl;
+        //std::cout << "Got through " << iterationCount << " iterations" << std::endl;
 
         // Push old positions back into chainmesh
         currentChain.setNewPositions(predictedPositions);
@@ -121,7 +122,6 @@ LocalResliceSegmentation::segmentLayer(const double driftTolerance,
         currentChain.setZIndex(sliceIndex);
     }
 
-    std::cout << "returning mesh as PointCloud" << std::endl;
     return mesh.exportAsPointCloud();
 }
 
@@ -144,7 +144,10 @@ LocalResliceSegmentation::_getNeighborIndices(
 
     // Add neighbors, but only if they're not in the bad indices list
     auto nbors = std::vector<int32_t>();
-    for (int32_t i = start; i <= end; ++ i) {
+    for (int32_t i = start; i <= end; ++i) {
+		if (i == index) {
+			continue;
+		}
         auto loc = std::find(std::begin(badIndices), std::end(badIndices), i);
         if (loc == std::end(badIndices)) {
             nbors.push_back(i);

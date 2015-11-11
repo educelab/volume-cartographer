@@ -266,18 +266,18 @@ Reslice VolumePkg::reslice(const cv::Vec3d center, const cv::Vec3d xvec, const c
 uint16_t VolumePkg::interpolateAt(cv::Vec3d point) {
     double int_part;
     double dx = modf(point(VC_INDEX_X), &int_part);
-    int x_min = (int) int_part;
+    int x_min = int(int_part);
     int x_max = x_min + 1;
     double dy = modf(point(VC_INDEX_Y), &int_part);
-    int y_min = (int) int_part;
+    int y_min = int(int_part);
     int y_max = y_min + 1;
     double dz = modf(point(VC_INDEX_Z), &int_part);
-    int z_min = (int) int_part;
+    int z_min = int(int_part);
     int z_max = z_min + 1;
 
     // insert safety net
     if (x_min < 0 || y_min < 0 || z_min < 0 ||
-        x_max > getSliceWidth() || y_max > getSliceHeight() || z_max > getNumberOfSlices()) {
+        x_max > getSliceWidth() || y_max > getSliceHeight() || z_max >= getNumberOfSlices()) {
         return 0;
     }
 

@@ -74,11 +74,11 @@ Chain::DirPosPair Chain::step(const int32_t index, const int32_t stepNumLayers,
     // Calculate the next position for this particle
     const auto center = cv::Point(mat.cols / 2, mat.rows / 2);
     const auto map = NormalizedIntensityMap(mat.row(center.y + stepNumLayers));
-    if (index == 29) {
+    if (index == 33) {
         reslice.draw();
         map.draw();
     }
-    auto maxima = map.findMaxima();
+    auto maxima = map.findMaxima(index);
 
     // Sort maxima by whichever is closest to current index of center (using standard euclidean 1D distance)
     using IndexDistPair = std::pair<int32_t, double>;
@@ -88,6 +88,9 @@ Chain::DirPosPair Chain::step(const int32_t index, const int32_t stepNumLayers,
         const auto rdist = std::abs(int32_t(rhs.first - x));
         return ldist < rdist;
     });
+	if (index == 33) {
+		//std::cout << "index = 33: (" << maxima[0].first << ", " << maxima[0].second << ")" << std::endl;
+	}
 
     // Convert from pixel space to voxel space and enforce constraints
     auto voxelMaxima = std::vector<DirPosPair>();
@@ -141,11 +144,7 @@ void Chain::draw() const {
     // draw circles on the pkgSlice window for each point
     for (size_t i = 0; i < particleCount_; ++i) {
         cv::Point position(particles_.at(i)(VC_INDEX_X), particles_.at(i)(VC_INDEX_Y));
-        if (i == 32) {
-            circle(pkgSlice, position, 2, BGR_YELLOW, -1);
-        } else {
-            circle(pkgSlice, position, 2, BGR_GREEN, -1);
-        }
+        circle(pkgSlice, position, 2, BGR_GREEN, -1);
     }
 
     namedWindow("Volpkg Slice", cv::WINDOW_NORMAL);
