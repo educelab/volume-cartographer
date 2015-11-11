@@ -7,8 +7,8 @@
 #include <pcl/filters/conditional_removal.h>
 
 #include "volumepkg.h"
-//#include "localResliceParticleSim/localResliceParticleSim.h"
-#include "structureTensorParticleSim/structureTensorParticleSim.h"
+#include "localResliceParticleSim/localResliceParticleSim.h"
+//#include "structureTensorParticleSim/structureTensorParticleSim.h"
 
 // File paths
 std::string segID = "";
@@ -75,9 +75,9 @@ int main(int argc, char *argv[]) {
 
     // Setup
     // Run segmentation using path as our starting points
-    //volcart::segmentation::LocalResliceSegmentation segmentation(volpkg);
-    //auto segment = segmentation.segmentLayer(3.0, startIndex, endIndex);
-	auto segment = volcart::segmentation::structureTensorParticleSim(volpkg.openCloud(), volpkg, 0.5, 1, endIndex);
+    volcart::segmentation::LocalResliceSegmentation segmentation(volpkg);
+    auto segment = segmentation.segmentLayer(3.0, startIndex, endIndex);
+	//auto segment = volcart::segmentation::structureTensorParticleSim(volpkg.openCloud(), volpkg, 0.5, 1, endIndex);
     std::cout << "done with segmentation" << std::endl;
 
     // Save point cloud and mesh
