@@ -12,6 +12,8 @@
 #include "testing/testingMesh.h"
 #include "poissonReconstruction.h"
 #include "pcl/conversions.h"
+#include <pcl/io/obj_io.h>
+#include <pcl/io/pcd_io.h>
 
 
 /************************************************************************************
@@ -28,10 +30,11 @@
  *                                                                                  *
  *  Test Cases:                                                                     *
  *  1. poissonTest (fixture test case)                                              *
- *  2. surfaceComparison (fixture test case)                                        *
- *  3. emptyCloud (auto test case)                                                  *
- *  4. onePoint (auto test case)                                                    *
- *  5. moreThanOnePoint (auto test case)                                            *
+ *  2. fromFileSurfaceComparison (fixture test case)
+ *  3. surfaceComparison (fixture test case)                                        *
+ *  4. emptyCloud (auto test case)                                                  *
+ *  5. onePoint (auto test case)                                                    *
+ *  6. moreThanOnePoint (auto test case)                                            *
  *                                                                                  *                                                                            *
  *  Input:                                                                          *
  *     No required inputs for the test cases. Any test objects are created          *
@@ -63,6 +66,36 @@ struct poissonFix {
 
 };
 
+/*
+ * Only difference here is that we call poissonRecon within the file and save it away
+ * for later comparison within fromFileSurfaceComparison() test case
+ */
+
+struct savedPoissonFix {
+
+    savedPoissonFix() {
+
+        pCloud = mesh.pointCloudNormal();
+        pcl::PointCloud<pcl::PointNormal>::Ptr cloud(new pcl::PointCloud<pcl::PointNormal>);
+        *cloud = pCloud;
+        polyMesh = volcart::meshing::poissonReconstruction(cloud);
+
+        // Write polygons to file
+        pcl::io::saveOBJFile( "poissonSurface.obj", polyMesh);
+
+        // Write cloud data to file
+        pcl::io::savePCDFile("poissonSurface.pcd", polyMesh.cloud);
+
+        std::cerr << "\nsetting up savedPoissonReconstructionTest objects" << std::endl;
+    }
+
+    ~savedPoissonFix(){ std::cerr << "\ncleaning up savedPoissonReconstructionTest objects" << std::endl; }
+
+    pcl::PointCloud<pcl::PointNormal> pCloud;
+    volcart::testing::testingMesh mesh;
+    pcl::PolygonMesh polyMesh;
+
+};
 /*
  * Not so much a test as it is checking out the polys of the resulting
  * poissonRecon mesh from an input cloud
@@ -101,7 +134,68 @@ BOOST_FIXTURE_TEST_CASE(poissonTest, poissonFix) {
 
 /*
    Goal of this test is to confirm that the same surface is reconstructed given
-   the same input point cloud.
+   the same input point cloud. One surface is created with poissonReconstruction()
+   and then compared to a saved OBJ file representing a surface called from the
+   same input point cloud.
+
+*/
+
+BOOST_FIXTURE_TEST_CASE(fromFileSurfaceComparison, savedPoissonFix){
+
+    pcl::PolygonMesh otherPoly;
+
+
+    // Load in polygonMesh saved from fixture
+    pcl::PolygonMesh savedSurface;
+    pcl::io::loadOBJFile("poissonSurface.obj", savedSurface );
+
+    // Load pcd file points
+    pcl::PCLPointCloud2 savedPoints;
+    pcl::io::loadPCDFile("poissonSurface.pcd", savedPoints);
+
+    //convert pCloud to Ptr for poisson() call
+    pcl::PointCloud<pcl::PointNormal>::Ptr testCloud(new pcl::PointCloud<pcl::PointNormal>);
+    *testCloud = pCloud;
+
+    //call recon and assign
+    otherPoly = volcart::meshing::poissonReconstruction(testCloud);
+
+    /* First, let's check the values of the polygon vertices in each of the PolygonMesh objects*/
+
+    //check number of polys and cloud.data sizes for each poissonRecon mesh
+    BOOST_CHECK_EQUAL(savedSurface.polygons.size(), otherPoly.polygons.size());
+
+    for (int p = 0; p < savedSurface.polygons.size(); p++) {
+        for (int v = 0; v < savedSurface.polygons[p].vertices.size(); v++) {
+
+            BOOST_CHECK_EQUAL(savedSurface.polygons[p].vertices[v], otherPoly.polygons[p].vertices[v]);
+        }
+    }
+
+    /* Now, let's check the converted clouds from both meshes to check for equality */
+
+    //convert poly meshes clouds to PC<PointNormal>
+    pcl::PointCloud<pcl::PointNormal> convCloud1, convCloud2 ;
+    pcl::fromPCLPointCloud2(otherPoly.cloud, convCloud1);
+    pcl::fromPCLPointCloud2(savedPoints, convCloud2);
+
+    //check the sizes of the new point clouds for equality
+    BOOST_CHECK_EQUAL(convCloud1.size(), convCloud2.size());
+
+    //now check the points in each of the converted clouds for equality
+    for (int i = 0; i < convCloud1.points.size(); i++ ){
+        //std::cout << "Point " << i << ": " << std::endl;
+        for (int j = 0; j < 3; j ++) {
+
+            BOOST_CHECK_CLOSE(convCloud1.points[i].data[j], convCloud2.points[i].data[j], 0.01);
+        }
+    }
+
+}
+
+/*
+   Goal of this test is to confirm that the same surface is reconstructed given
+   the same input point cloud (within the test)
 */
 
 BOOST_FIXTURE_TEST_CASE(surfaceComparison, poissonFix){
