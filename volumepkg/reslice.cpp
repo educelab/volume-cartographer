@@ -6,11 +6,11 @@
 #define BGR_MAGENTA cv::Scalar(0xFF, 0,    0xFF)
 
 
-Reslice::Reslice(cv::Mat data, cv::Vec3f origin, cv::Vec3f xvec, cv::Vec3f yvec) :
+Reslice::Reslice(cv::Mat data, cv::Vec3d origin, cv::Vec3d xvec, cv::Vec3d yvec) :
         sliceData_(data), origin_(origin), xvec_(xvec), yvec_(yvec) {
 }
 
-cv::Vec3f Reslice::sliceCoordToVoxelCoord(const cv::Point sliceCoords) const {
+cv::Vec3d Reslice::sliceCoordToVoxelCoord(const cv::Point sliceCoords) const {
     return origin_ + (sliceCoords.x * xvec_ + sliceCoords.y * yvec_);
 }
 

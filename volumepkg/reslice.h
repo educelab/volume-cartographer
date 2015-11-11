@@ -8,9 +8,9 @@
 // A simple wrapper around a cv::Mat of data sliced from the volume at an arbitrary x and y vector and an origin point.
 class Reslice {
 public:
-    Reslice(cv::Mat, cv::Vec3f, cv::Vec3f, cv::Vec3f);
+    Reslice(cv::Mat, cv::Vec3d, cv::Vec3d, cv::Vec3d);
 
-    cv::Vec3f sliceCoordToVoxelCoord(const cv::Point) const;
+    cv::Vec3d sliceCoordToVoxelCoord(const cv::Point) const;
 
     const cv::Mat sliceData() const { return sliceData_; }
 
@@ -18,9 +18,9 @@ public:
 
 private:
     cv::Mat sliceData_;
-    cv::Vec3f origin_;
-    cv::Vec3f xvec_;
-    cv::Vec3f yvec_;
+    cv::Vec3d origin_;
+    cv::Vec3d xvec_;
+    cv::Vec3d yvec_;
 };
 
 #endif //VC_SLICE_H
