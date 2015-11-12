@@ -4,39 +4,39 @@
 
 
 /* PURPOSE:
- *   Create a PolygonMesh from volcart::meshing::poissonReconstruction()
- *   Save resulting mesh as an obj file
- *   This file is loaded by poissonReconstructionTest
+ *   Create a point cloud with points of the XYZRGB variety
+ *   Save the resulting pcd using the volcart::meshing::orderedPCDMesher()
+ *   This outfile is loaded by orderedPCDMesherTest for later comparison
  */
 
 #include "testing/testingMesh.h"
 #include "orderedPCDMesher.h"
 
-int orderedPCD(int argc, char** argv) {
+int main(/*int argc, char** argv*/) {
 
     volcart::testing::testingMesh mesh;
     //Create point cloud from mesh
-    pcl::PointCloud <pcl::PointNormal> pCloud = mesh.pointCloudXYZRGB();
+    pcl::PointCloud <pcl::PointXYZRGB> pCloud = mesh.pointCloudXYZRGB();
 
     //convert pCloud to Ptr for orderedPCD() call
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud <pcl::PointXYZRGB>);
     *cloud = pCloud;
 
-
-    std::string outfile;
-
-    if (argc == 1){  //no outfile filename provided
-        outfile = "orderedPCDExample.pcd";
-    }
-    else if (argc == 2){
-        outfile = argv[1];
-    }
-    else{
-        return 1;
-    }
+//
+//    std::string outfile;
+//
+//    if (argc == 1){  //no outfile filename provided
+//        outfile = "orderedPCDExample.pcd";
+//    }
+//    else if (argc == 2){
+//        outfile = argv[1];
+//    }
+//    else{
+//        return 1;
+//    }
 
     //call orderedPCDMesher()
-    volcart::meshing::orderedPCDMesher(cloud, outfile);
+    volcart::meshing::orderedPCDMesher(cloud, "orderedPCDExample.ply");
 
     return 0;
 }

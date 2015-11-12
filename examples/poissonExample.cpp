@@ -8,11 +8,11 @@
  *   This file is loaded by poissonReconstructionTest
  */
 
-#include "testingMesh.h"
-#include "meshing/poissonReconstruction.h"
+#include "testing/testingMesh.h"
+#include "poissonReconstruction.h"
 #include <pcl/io/obj_io.h>
 
-int poisson(int argc, char** argv){
+int main(/*int argc, char** argv*/){
 
 
 
@@ -24,16 +24,20 @@ int poisson(int argc, char** argv){
 
     pcl::PolygonMesh polyMesh;
     polyMesh = volcart::meshing::poissonReconstruction(cloud);
+    pcl::io::saveOBJFile( "poissonExample.obj", polyMesh);
 
-    if (argc == 1){  //no outfile filename provided
-        pcl::io::saveOBJFile( "poissonSurface.obj", polyMesh);
-    }
-    else if (argc == 2){
-        pcl::io::saveOBJFile(argv[1], polyMesh);
-    }
-    else{
-        return 1;
-    }
+//
+//    if (argc == 1){  //no outfile filename provided
+//        pcl::io::saveOBJFile( "poissonSurface.obj", polyMesh);
+//    }
+//    else if (argc == 2){
+//        pcl::io::saveOBJFile(argv[1], polyMesh);
+//    }
+//    else{
+//        return 1;
+//    }
+
+    std::cerr << "File written to poissonSurface.obj" << std::endl;
 
     return 0;
 

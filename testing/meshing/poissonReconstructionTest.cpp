@@ -141,14 +141,14 @@ BOOST_FIXTURE_TEST_CASE(poissonTest, poissonFix) {
 
 */
 
-BOOST_FIXTURE_TEST_CASE(fromFileSurfaceComparison, savedPoissonFix){
+BOOST_FIXTURE_TEST_CASE(fromFileSurfaceComparison, poissonFix){
 
     pcl::PolygonMesh otherPoly;
 
 
     // Load in polygonMesh saved from fixture
     pcl::PolygonMesh savedSurface;
-    pcl::io::loadOBJFile("poissonSurface.obj", savedSurface );
+    pcl::io::loadOBJFile("poissonExample.obj", savedSurface );
 
 //    // Load pcd file points
 //    pcl::PCLPointCloud2 savedPoints;
@@ -178,7 +178,7 @@ BOOST_FIXTURE_TEST_CASE(fromFileSurfaceComparison, savedPoissonFix){
     //convert poly meshes clouds to PC<PointNormal>
     pcl::PointCloud<pcl::PointNormal> convCloud1, convCloud2 ;
     pcl::fromPCLPointCloud2(otherPoly.cloud, convCloud1);
-    pcl::fromPCLPointCloud2(savedPoints, convCloud2);
+    pcl::fromPCLPointCloud2(savedSurface.cloud, convCloud2);
 
     //check the sizes of the new point clouds for equality
     BOOST_CHECK_EQUAL(convCloud1.size(), convCloud2.size());
