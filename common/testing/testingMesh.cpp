@@ -139,7 +139,32 @@ namespace testing {
         }
 
         return output;
-    };
+    }
+
+    //Return Point Cloud
+    pcl::PointCloud<pcl::PointXYZRGB> testingMesh::pointCloudXYZRGB(){
+
+        pcl::PointCloud<pcl::PointXYZRGB> output;
+
+        for ( auto p_id = _points.begin(); p_id != _points.end(); ++p_id ) {
+
+            pcl::PointXYZRGB point;
+
+            //Assign Point Values
+            point.x = p_id->x;
+            point.y = p_id->y;
+            point.z = p_id->z;
+            point.r = p_id->r;
+            point.g = p_id->g;
+            point.b = p_id->b;
+
+            output.push_back(point);
+
+        }
+
+        return output;
+
+    }
 
     // Return Point Cloud
     pcl::PointCloud<pcl::PointNormal> testingMesh::pointCloudNormal(){

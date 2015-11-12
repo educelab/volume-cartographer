@@ -13,7 +13,7 @@
 #include "poissonReconstruction.h"
 #include "pcl/conversions.h"
 #include <pcl/io/obj_io.h>
-#include <pcl/io/pcd_io.h>
+
 
 
 /************************************************************************************
@@ -80,11 +80,12 @@ struct savedPoissonFix {
         *cloud = pCloud;
         polyMesh = volcart::meshing::poissonReconstruction(cloud);
 
-        // Write polygons to file
-        pcl::io::saveOBJFile( "poissonSurface.obj", polyMesh);
-
-        // Write cloud data to file
-        pcl::io::savePCDFile("poissonSurface.pcd", polyMesh.cloud);
+//Need to create and save file elsewhere to load it in here
+//        // Write polygons to file
+//        pcl::io::saveOBJFile( "poissonSurface.obj", polyMesh);
+//
+//        // Write cloud data to file
+//        pcl::io::savePCDFile("poissonSurface.pcd", polyMesh.cloud);
 
         std::cerr << "\nsetting up savedPoissonReconstructionTest objects" << std::endl;
     }
@@ -149,9 +150,9 @@ BOOST_FIXTURE_TEST_CASE(fromFileSurfaceComparison, savedPoissonFix){
     pcl::PolygonMesh savedSurface;
     pcl::io::loadOBJFile("poissonSurface.obj", savedSurface );
 
-    // Load pcd file points
-    pcl::PCLPointCloud2 savedPoints;
-    pcl::io::loadPCDFile("poissonSurface.pcd", savedPoints);
+//    // Load pcd file points
+//    pcl::PCLPointCloud2 savedPoints;
+//    pcl::io::loadPCDFile("poissonSurface.pcd", savedPoints);
 
     //convert pCloud to Ptr for poisson() call
     pcl::PointCloud<pcl::PointNormal>::Ptr testCloud(new pcl::PointCloud<pcl::PointNormal>);

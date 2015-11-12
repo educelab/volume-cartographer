@@ -16,6 +16,7 @@
 #include <vtkPolyDataReader.h>
 #include <pcl/common/common.h>
 #include <pcl/point_types.h>
+#include <pcl/impl/point_types.hpp>
 
 
 namespace volcart {
@@ -28,8 +29,9 @@ namespace testing {
 
         VC_MeshType::Pointer itkMesh();
         vtkSmartPointer<vtkPolyData> vtkMesh();
-        pcl::PointCloud<pcl::PointXYZ> pointCloudXYZ(bool noisify = true);
-        pcl::PointCloud<pcl::PointNormal> pointCloudNormal();
+        pcl::PointCloud<pcl::PointXYZ> pointCloudXYZ(bool noisify = true); //resamplePointCloud
+        pcl::PointCloud<pcl::PointNormal> pointCloudNormal(); //poissonRecon, greedyProjMeshing
+        pcl::PointCloud<pcl::PointXYZRGB> pointCloudXYZRGB(); //for orderedPCDMesher
 
         //overload
         std::vector<VC_Vertex> getPoints() {return _points;}

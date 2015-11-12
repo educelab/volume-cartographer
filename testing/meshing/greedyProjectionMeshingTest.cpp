@@ -78,22 +78,24 @@ struct Fix {
 
         // Call function from namespace in header file
         std::cout << "Being greedy..." << std::endl;
-        output = volcart::meshing::greedyProjectionMeshing(input, 100, 2.0, 2.5);
+        new_mesh = volcart::meshing::greedyProjectionMeshing(input, 100, 2.0, 2.5);
 
+        //uncomment to enable inline obj file generation
         // Write mesh to file
-        pcl::io::saveOBJFile ( "greedyExample.obj", output);
-        std::cout << "File saved as greedyExample.obj" << std::endl;
+        // pcl::io::saveOBJFile ( "greedyExample.obj", output);
+        //std::cout << "File saved as greedyExample.obj" << std::endl;
 
-        // Load in old mesh for comparison
-        pcl::io::loadOBJFile("greedyExample.obj", old_mesh );
+
+        // Load in old mesh for comparison in the compareMeshes test case below
+        pcl::io::loadOBJFile("greedyExample.obj", saved_mesh);
 
     }
 
     ~Fix(){ std::cerr << "Cleaning up greedyProjectionMeshing objects" << std::endl; }
 
     volcart::testing::testingMesh mesh;
-    pcl::PolygonMesh old_mesh ;
-    pcl::PolygonMesh output ;
+    pcl::PolygonMesh saved_mesh;
+    pcl::PolygonMesh new_mesh;
 };
 
 
@@ -103,20 +105,19 @@ BOOST_FIXTURE_TEST_CASE(compareMeshes, Fix)
 
     // Convert each mesh to obtain the correct points/data
     pcl::PointCloud<pcl::PointNormal> convOutputCloud;
-    pcl::fromPCLPointCloud2(output.cloud, convOutputCloud);
+    pcl::fromPCLPointCloud2(new_mesh.cloud, convOutputCloud);
 
     pcl::PointCloud<pcl::PointNormal> convOldCloud;
-    pcl::fromPCLPointCloud2(old_mesh.cloud, convOldCloud);
+    pcl::fromPCLPointCloud2(saved_mesh.cloud, convOldCloud);
 
-    // Check size of data in both meshes
+    // Compare size of points in each of the PolygonMesh objects
     BOOST_CHECK_EQUAL (convOutputCloud.points.size(), convOldCloud.points.size());
 
-        // Otherwise, compare points
 
     // Check points in cloud
     for (int i = 0; i < convOutputCloud.points.size(); i++) {
 
-        // 4th thing in data array is a type, so don't use it
+        // 4th element in data array is a type, so don't use it
         for (int m = 0; m < 3; m++ ) {
 
             BOOST_CHECK_EQUAL (convOutputCloud.points[i].data[m], convOldCloud.points[i].data[m]) ;
@@ -124,16 +125,16 @@ BOOST_FIXTURE_TEST_CASE(compareMeshes, Fix)
     }
 
 
-    // Compare size of polygon vectors
-    BOOST_CHECK_EQUAL (output.polygons.size(), old_mesh.polygons.size());
+    // Compare size of polygons in each of the PolygonMesh objects
+    BOOST_CHECK_EQUAL (new_mesh.polygons.size(), saved_mesh.polygons.size());
 
-    // Check faces
-    // Iterate through each of the vertices of both new and old mesh and compare
-    for (int i = 0; i < output.polygons.size(); i++) {
+    // Checking faces for equality
+    // Compare each of the vertices of both new and saved meshes
+    for (int i = 0; i < new_mesh.polygons.size(); i++) {
 
-        for (int j = 0; j < output.polygons[i].vertices.size(); j++) {
+        for (int j = 0; j < new_mesh.polygons[i].vertices.size(); j++) {
 
-            BOOST_CHECK_EQUAL (output.polygons[i].vertices[j] , old_mesh.polygons[i].vertices[j]);
+            BOOST_CHECK_EQUAL (new_mesh.polygons[i].vertices[j] , saved_mesh.polygons[i].vertices[j]);
         }
     }
 

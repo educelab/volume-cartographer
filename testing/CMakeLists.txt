@@ -28,9 +28,12 @@ add_test(NAME Sample WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_S
 #    meshing Folder     #
 #-----------------------#
 
+# Copy the test case to the build dir
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/greedyExample.obj DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 add_executable(vc_test_greedyProjectionMeshing meshing/greedyProjectionMeshingTest.cpp)
 target_link_libraries(vc_test_greedyProjectionMeshing ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME greedyProjectionMeshing WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_greedyProjectionMeshing)
+
 
 add_executable(vc_test_itk2vtk meshing/itk2vtkTest.cpp)
 target_link_libraries(vc_test_itk2vtk ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
@@ -40,6 +43,7 @@ add_test(NAME itk2vtk WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_
 #target_link_libraries(vc_test_orderedPCDMesher ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 #add_test(NAME orderedPCDMesher WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_orderedPCDMesher )
 
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/.obj DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 add_executable(vc_test_poissonReconstruction meshing/poissonReconstructionTest.cpp)
 target_link_libraries(vc_test_poissonReconstruction ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME poissonReconstruction WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_poissonReconstruction )
