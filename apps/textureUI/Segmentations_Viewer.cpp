@@ -39,12 +39,12 @@ Segmentations_Viewer::Segmentations_Viewer(Global_Values *globals, Texture_Viewe
     sample_Direction = new QComboBox();
     generate = new QPushButton("Generate Texture");
 
-    texture_Method->addItem("Intersection"); 
-    texture_Method->addItem("Non-Maximum Suppression"); 
-    texture_Method->addItem("Maximum"); 
-    texture_Method->addItem("Minimum"); 
-    texture_Method->addItem("Median w/ Averaging"); 
-    texture_Method->addItem("Median"); 
+    texture_Method->addItem("Intersection");
+    texture_Method->addItem("Non-Maximum Suppression");
+    texture_Method->addItem("Maximum");
+    texture_Method->addItem("Minimum");
+    texture_Method->addItem("Median w/ Averaging");
+    texture_Method->addItem("Median");
     texture_Method->addItem("Mean");
 
     sample_Direction->addItem("Omni");
@@ -194,6 +194,7 @@ void Segmentations_Viewer::generateTextureImage()
 
         setEnabled(true);// Allow User to Use Buttons
 
+
     }else QMessageBox::warning(_globals->getWindow(),"Error", "No Segmentation has been loaded, Please load Segmentation.");
 
 }// End of generateTextureImage()
@@ -266,10 +267,10 @@ void Segmentations_Viewer::setEnabled(bool value)
     sample_Direction->setEnabled(value);
     generate->setEnabled(value);
 
-if(value==false)
+if(!value)
     {
         _texture_Viewer->clearLabel();
+        _texture_Viewer->setEnabled(value);
     }
 
-    _texture_Viewer->setEnabled(value);
 }
