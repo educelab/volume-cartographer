@@ -4,7 +4,7 @@
 MyThread::MyThread(Global_Values *globals)
 {
     _globals = globals;
-    _status = 0; // Status Running/Active
+    _globals->setStatus(0); // Status Running/Active
     _globals->setProcessing(true);
     _globals->setForcedClose(false);
     this->start();
@@ -47,28 +47,18 @@ void MyThread::run()
     {
         if(cloudProblem)
         {
-            _status = -1;
+            _globals->setStatus(-1);
 
         }else {
-                _status = -2;
+                _globals->setStatus(-2);
               }
 
     };
 
-    if(_status==0)
+    if(_globals->getStatus()==0)
     {
-        _status = 1;
+        _globals->setStatus(1);
     }
 
     _globals->setProcessing(false);
-}
-
-void MyThread::setStatus(int status)
-{
-    _status = status;
-}
-
-int MyThread::getStatus()
-{
-    return _status;
 }

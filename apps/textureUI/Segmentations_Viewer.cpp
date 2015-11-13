@@ -133,7 +133,7 @@ void Segmentations_Viewer::generateTextureImage()
         qApp->processEvents();//Updates GUI Window
 
         processing = new MyThread(_globals);// Creates new thread
-        connect(processing, SIGNAL(finished()), processing, SLOT(deleteLater()));// Deletes Thread After Completion
+        connect(processing, SIGNAL(finished()), processing, SLOT(deleteLater()));// Deletes Thread After Completion (Clean-Up)
 
         while(_globals->getProcessing())
         {
@@ -155,8 +155,8 @@ void Segmentations_Viewer::generateTextureImage()
         // Set Processing Status to -999 if Cancelled...
         if(_globals->getForcedClose())
         {
-            processing->setStatus(-999);
-            processing->terminate();
+            _globals->setStatus(-999);
+            processing->terminate();// Clean up Threading
             processing->wait();
         }
 
@@ -165,7 +165,9 @@ void Segmentations_Viewer::generateTextureImage()
 
         bool test = false;
 
-        if(processing->getStatus()==1)
+        std::cout<<"Status"<<_globals->getStatus()<<std::endl;
+
+        if(_globals->getStatus()==1)
         {
             test = loadImage(_globals->getTexture().getImage(0).clone());
 
@@ -175,25 +177,24 @@ void Segmentations_Viewer::generateTextureImage()
             }
         }
 
-        if(processing->getStatus()==1 && test)// If Processing successfully loaded an Image
+        if(_globals->getStatus()==1 && test)// If Processing successfully loaded an Image
             {
                 QMessageBox::warning(_globals->getWindow(), "Warning", "The Generated Image is not Saved, if you wish to save it, please select \"Options\" then \"Save Texture\".");
 
-            }else if(processing->getStatus()==-1)
+            }else if(_globals->getStatus()==-1)
                     {
                         QMessageBox::warning(_globals->getWindow(),"Error", "Failed to Generate Texture [cloud.ply] error.");
 
-                    }else if(processing->getStatus()==-2)
+                    }else if(_globals->getStatus()==-2)
                             {
                                 QMessageBox::warning(_globals->getWindow(),"Error", "Failed to Generate Texture.");
 
-                            }else if(processing->getStatus()==-999)
+                            }else if(_globals->getStatus()==-999)
                                     {
                                         QMessageBox::warning(_globals->getWindow(),"Cancelled", "Successfully Cancelled.");
                                     }
 
         setEnabled(true);// Allow User to Use Buttons
-
 
     }else QMessageBox::warning(_globals->getWindow(),"Error", "No Segmentation has been loaded, Please load Segmentation.");
 

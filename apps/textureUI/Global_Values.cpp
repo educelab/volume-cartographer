@@ -136,3 +136,13 @@ bool Global_Values::getForcedClose()
 {
     return _forcedClose;
 }
+
+void Global_Values::setStatus(int status)
+{
+    _status = status;
+}
+
+int Global_Values::getStatus()
+{
+    return _status;
+}

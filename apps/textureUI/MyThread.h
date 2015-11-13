@@ -15,14 +15,9 @@ public:
 
     explicit MyThread(Global_Values *globals);
     void run();
-    void setStatus(int status);
-    int getStatus();
-
-    signals:
-
 
 private:
-    int _status;
+
     Global_Values *_globals;
 
 };

@@ -65,6 +65,9 @@ public:
     void setForcedClose(bool forcedClose);
     bool getForcedClose();
 
+    void setStatus(int status);
+    int getStatus();
+
 private:
 
     bool VPKG_Instantiated = false;
@@ -79,6 +82,7 @@ private:
     double _radius;
     int _textureMethod;
     int _sampleDirection;
+    int _status;
 
     bool _active;
     bool _forcedClose;
