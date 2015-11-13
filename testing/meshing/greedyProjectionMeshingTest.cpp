@@ -31,20 +31,11 @@
  *         correct mesh based on a previously created, correct mesh.                    *
  *                                                                                      *
  *  Input:                                                                              *
- *      - Point Cloud Pointer for the point cloud undergoing greedyProjectionMeshing    *
- *          - pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr                              *
- *      - Max number of neighbors                                                       *
- *          - unsigned                                                                  *
- *      - Radius to determine the maximum distance between connected parts              *
- *          - double                                                                    *
- *      - Radius multiplier to determine the maximum distance from the center point     *
- *          - double                                                                    *
- *      - Point Cloud Pointer to the known point cloud                                  *
- *          - pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr                              *
+ *      - OBJ file to be loaded in as a PCL::PolygonMesh                                *
  *                                                                                      *
  *  Test-Specific Output:                                                               *
- *      Specific test output only given on failure of any test. Others, general number  *
- *      of testing errors is output.                                                    *
+ *      Either a message stating the meshes are the same or error messages according    *
+ *      to Boost.                                                                       *
  *                                                                                      *
  *  Miscellaneous:                                                                      *
  *      See the /testing/meshing wiki for more information on this test.                *
@@ -52,10 +43,11 @@
  ***************************************************************************************/
 
 // General outline for test
-//   Take in input for test
 //   Create new mesh using greedyProjectionMeshing
+//   Take in input for test comparision
+//   Convert both meshes to correct types
 //   Compare new mesh with known mesh for equivalency
-//   If errors occur, output them
+//   If errors occur, output them. Otherwise give success message.
 
 
 /*
