@@ -38,7 +38,6 @@ public:
     void clearLabel();
     QLabel *getLabel();
 
-
 private slots:
     void open();
     void zoom_In();

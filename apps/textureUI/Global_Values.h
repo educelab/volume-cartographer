@@ -1,10 +1,10 @@
-//----------------------------------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------------------------------
 // Global_Values.h file for Global_Values Class
-// Purpose: Used to pass values through the program
+// Purpose: Used to pass values through the Program, Data that needs to be shared between several Objects should be declared in globals
 // Developer: Michael Royal - mgro224@g.uky.edu
 // October 12, 2015 - Spring Semester 2016
 // Last Updated 10/23/2015 by: Michael Royal
-//----------------------------------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------------------------------
 
 #ifndef VC_DEFAULTVALUES_H
 #define VC_DEFAULTVALUES_H
@@ -21,6 +21,7 @@
 #include "io/ply2itk.h"
 #include <QLabel>
 #include "compositeTexture.h"
+#include <QMenuBar>
 
 class Global_Values
 {
@@ -68,6 +69,11 @@ public:
     void setStatus(int status);
     int getStatus();
 
+    void setOptionsMenu(QMenu *optionsMenu);
+    void setFileMenu(QMenu *fileMenu);
+
+    void enableMenus(bool value);
+
 private:
 
     bool VPKG_Instantiated = false;
@@ -83,6 +89,9 @@ private:
     int _textureMethod;
     int _sampleDirection;
     int _status;
+
+    QMenu *_optionsMenu;
+    QMenu *_fileMenu;
 
     bool _active;
     bool _forcedClose;

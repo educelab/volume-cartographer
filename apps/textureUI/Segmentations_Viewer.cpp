@@ -3,7 +3,7 @@
 // Purpose: Create Segmentations_Viewer Class
 // Developer: Michael Royal - mgro224@g.uky.edu
 // October 12, 2015 - Spring Semester 2016
-// Last Updated 10/23/2015 by: Michael Royal
+// Last Updated 11/13/2015 by: Michael Royal
 //----------------------------------------------------------------------------------------------------------------------------------------
 
 #include "Segmentations_Viewer.h"
@@ -134,6 +134,7 @@ void Segmentations_Viewer::generateTextureImage()
 
         processing = new MyThread(_globals);// Creates new thread
         connect(processing, SIGNAL(finished()), processing, SLOT(deleteLater()));// Deletes Thread After Completion (Clean-Up)
+        //connect(qApp,SIGNAL(aboutToQuit()), processing, SLOT(deleteLater())); - CORRECT*********************************************
 
         while(_globals->getProcessing())
         {
@@ -164,8 +165,6 @@ void Segmentations_Viewer::generateTextureImage()
         _texture_Viewer->progressActive(false);// Hide Progress Loading Bar
 
         bool test = false;
-
-        std::cout<<"Status"<<_globals->getStatus()<<std::endl;
 
         if(_globals->getStatus()==1)
         {
@@ -267,6 +266,8 @@ void Segmentations_Viewer::setEnabled(bool value)
     texture_Method->setEnabled(value);
     sample_Direction->setEnabled(value);
     generate->setEnabled(value);
+
+    _globals->enableMenus(value);
 
 if(!value)
     {

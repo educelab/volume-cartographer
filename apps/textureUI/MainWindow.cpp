@@ -1,24 +1,39 @@
+//----------------------------------------------------------------------------------------------------------------------------------------
+// MainWindow.cpp file for MainWindow Class , (Implements QMainWindow)
+// Purpose: Create a Main Window for the GUI
+// Developer: Michael Royal - mgro224@g.uky.edu
+// October 12, 2015 - Spring Semester 2016
+// Last Updated 11/13/2015 by: Michael Royal
 
+// Copy Right ©2015 (Brent Seales: Volume Cartography Research) - University of Kentucky Center for Visualization and Virtualization
+//----------------------------------------------------------------------------------------------------------------------------------------
 
 #include <mainwindow.h>
 #include <QtWidgets>
 
-MainWindow::MainWindow(Global_Values *globals, Segmentations_Viewer *segmentations_Viewer)
+MainWindow::MainWindow(Global_Values *globals, Segmentations_Viewer *segmentations_Viewer) // Purpose: MainWindow Constructor
 {
-    _globals = globals;
-    _segmentations_Viewer = segmentations_Viewer;
+    _globals = globals; // Enables access to Global Values Object
+    _segmentations_Viewer = segmentations_Viewer; // Enables access to Segmentations Viewer Object
 
     setWindowTitle("VC_Starter Project");// Set Window Title
+
+    //NOTE: Minimum Height and Width -------------------------
+    // will be different on other display screens,
+    // if Resolution is too small may cause distortion
+    // of Buttons Visually when Program first Initiates
+    //----------------------------------------------------------
+
     //MAX DIMENSIONS
     window()->setMinimumHeight(_globals->getHeight()/2);
     window()->setMinimumWidth(_globals->getWidth()/2);
     //MIN DIMENSIONS
     window()->setMaximumHeight(_globals->getHeight());
     window()->setMaximumWidth(_globals->getWidth());
-    //----------------------------------------------------
+    //---------------------------------------------------------
 
-    create_Actions();
-    create_Menus();
+    create_Actions(); // Creates the Actions for the File Menu
+    create_Menus(); // Creates the Menus and adds them to the Menu Bar
 }
 
 void MainWindow::getFilePath()
@@ -76,7 +91,11 @@ void MainWindow::create_Menus()
     fileMenu->addAction(actionGetFilePath);
     menu_Bar->addMenu(fileMenu);
 
+    _globals->setFileMenu(fileMenu);
+
     optionsMenu = new QMenu("Options");
     optionsMenu->addAction(actionSave);
     menu_Bar->addMenu(optionsMenu);
+
+    _globals->setOptionsMenu(optionsMenu);
 }

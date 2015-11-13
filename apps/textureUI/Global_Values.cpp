@@ -146,3 +146,19 @@ int Global_Values::getStatus()
 {
     return _status;
 }
+
+void Global_Values::setOptionsMenu(QMenu *optionsMenu)
+{
+    _optionsMenu = optionsMenu;
+}
+
+void Global_Values::setFileMenu(QMenu *fileMenu)
+{
+    _fileMenu = fileMenu;
+}
+
+void Global_Values::enableMenus(bool value)
+{
+    _fileMenu->setEnabled(value);
+    _optionsMenu->setEnabled(value);
+}
