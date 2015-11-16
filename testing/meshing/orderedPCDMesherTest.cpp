@@ -65,7 +65,7 @@ struct orderedPCDFix {
         outfile = "fixOrderedPCD.pcd";
 
         //call orderedPCD()
-        volcart::meshing::orderedPCDMesher(cloud, outfile)
+        volcart::meshing::orderedPCDMesher(cloud, outfile);
 
         std::cerr << "\nsetting up orderedPCDMesherTest objects" << std::endl;
     }
