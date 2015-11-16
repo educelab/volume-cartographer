@@ -82,7 +82,7 @@ struct savedPoissonFix {
 
 //Need to create and save file elsewhere to load it in here
 //        // Write polygons to file
-        pcl::io::saveOBJFile( "poissonSurface.obj", polyMesh);
+        pcl::io::saveOBJFile( "poissonExample.obj", polyMesh);
 //
 //        // Write cloud data to file
 //        pcl::io::savePCDFile("poissonSurface.pcd", polyMesh.cloud);
@@ -141,14 +141,14 @@ BOOST_FIXTURE_TEST_CASE(poissonTest, poissonFix) {
 
 */
 
-BOOST_FIXTURE_TEST_CASE(fromFileSurfaceComparison, poissonFix){
+BOOST_FIXTURE_TEST_CASE(fromFileSurfaceComparison, savedPoissonFix){
 
     pcl::PolygonMesh otherPoly;
 
 
     // Load in polygonMesh saved from fixture
     pcl::PolygonMesh savedSurface;
-    pcl::io::loadOBJFile("poissonSurface.obj", savedSurface );
+    pcl::io::loadOBJFile("poissonExample.obj", savedSurface );
 
     //convert pCloud to Ptr for poisson() call
     pcl::PointCloud<pcl::PointNormal>::Ptr testCloud(new pcl::PointCloud<pcl::PointNormal>);
