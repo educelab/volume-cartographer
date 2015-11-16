@@ -37,7 +37,7 @@ int main(/*int argc, char** argv*/){
 //        return 1;
 //    }
 
-    std::cerr << "File written to poissonSurface.obj" << std::endl;
+    std::cerr << "File written to poissonExample.obj" << std::endl;
 
     return 0;
 

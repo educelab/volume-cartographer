@@ -69,6 +69,11 @@ struct poissonFix {
 /*
  * Only difference here is that we call poissonRecon within the file and save it away
  * for later comparison within fromFileSurfaceComparison() test case
+ *
+ * This fixture is currently not in use but can be added to a test case if you want
+ * to save the poissonExample.obj inline and load it in the test case. Currently, the idea is
+ * to create and save a the poisson example file in examples/poissonExample.cpp. Might need to copy over the
+ * created file to testing/test_data.
  */
 
 struct savedPoissonFix {
@@ -82,7 +87,7 @@ struct savedPoissonFix {
 
 //Need to create and save file elsewhere to load it in here
 //        // Write polygons to file
-        pcl::io::saveOBJFile( "poissonExample.obj", polyMesh);
+//        pcl::io::saveOBJFile( "poissonExample.obj", polyMesh);
 //
 //        // Write cloud data to file
 //        pcl::io::savePCDFile("poissonSurface.pcd", polyMesh.cloud);
@@ -141,12 +146,13 @@ BOOST_FIXTURE_TEST_CASE(poissonTest, poissonFix) {
 
 */
 
-BOOST_FIXTURE_TEST_CASE(fromFileSurfaceComparison, savedPoissonFix){
+BOOST_FIXTURE_TEST_CASE(fromFileSurfaceComparison, poissonFix){
 
     pcl::PolygonMesh otherPoly;
 
 
-    // Load in polygonMesh saved from fixture
+    // Load in polygonMesh saved from poissonExample.cpp
+    // Cmake should be copying the poissonExample.obj file to the current binary directory
     pcl::PolygonMesh savedSurface;
     pcl::io::loadOBJFile("poissonExample.obj", savedSurface );
 
