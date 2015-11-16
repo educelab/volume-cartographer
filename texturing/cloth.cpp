@@ -20,6 +20,8 @@
 #include <BulletSoftBody/btSoftBodyRigidBodyCollisionConfiguration.h>
 #include <BulletSoftBody/btSoftBodyHelpers.h>
 
+void helloWorld();
+
 int main(int argc, char* argv[])
 {
 	if ( argc < 4 ) {
@@ -153,35 +155,71 @@ int main(int argc, char* argv[])
 																												 &bulletFaces[0][0],
 																											 	 NUM_OF_CELLS);
 
-  psb->m_cfg.viterations = 50;
-  psb->m_cfg.piterations = 50;
-
   dynamicsWorld->addSoftBody(psb);
+
+  // float s=4;
+  // float h=20;
+  // btSoftBody* psb=btSoftBodyHelpers::CreatePatch(
+  // dynamicsWorld->getWorldInfo(),btVector3(-s,h,-s),btVector3(s,h,-s), btVector3(-s,h,s),btVector3(s,h,s),50,50,4+8,true);
+  // psb->m_cfg.viterations=50;
+  // psb->m_cfg.piterations=50;
+  // psb->setTotalMass(3.0);
+  // psb->setMass(100,100);
+  // dynamicsWorld->addSoftBody(psb); //cloth
+
+  // btSoftBody* psb=btSoftBodyHelpers::CreateEllipsoid(world->getWorldInfo(),
+  // btVector3(10,10,10),btVector3(2,2,2),1000);
+  // psb->m_cfg.viterations=50;
+  // psb->m_cfg.piterations=50;
+  // psb->m_cfg.kPR=1000;
+  // psb->setTotalMass(3.0);
+  // psb->setMass(0,0);
+  // dynamicsWorld->addSoftBody(psb);
+
+  // psb->m_cfg.viterations = 50;
+  // psb->m_cfg.piterations = 50;
+
+  // dynamicsWorld->addSoftBody(psb);
 
   // Constraints for the mesh as a soft body
   // These needed to be tested to find optimal values
   // this iterates through all the links/faces and randomly swaps them
   // psb->randomizeConstraints();
   // sets the mass of the whole soft body, true considers the faces along with the vertices
- //  psb->setTotalMass(100, true);
-  btTransform tr;
-	tr.setIdentity();
-	tr.setOrigin(btVector3(0,100,0));
-	psb->setWorldTransform(tr);
-	psb->setInterpolationWorldTransform(tr);
+  // psb->setTotalMass(100, true);
 
   // step simulation
   for (int i = 0; i < 300; i++) {
     dynamicsWorld->stepSimulation(1/ 60.f, 10);
     psb->solveConstraints();
 
-    btTransform trans;
-    trans = psb->getWorldTransform();
-
-    std::cout << "sphere height: " << trans.getOrigin().getX()  << ", " << trans.getOrigin().getY() << ", " << trans.getOrigin().getZ() << std::endl;
+    //check if mesh is moving/falling
+    std::cout << "Cloth coordinate: " << psb->m_nodes[1000].m_x.x() << ", " << psb->m_nodes[1000].m_x.y() << ", " << psb->m_nodes[1000].m_x.z() << std::endl;
   }
 
   std::cout << "Simulation...........CHECK" << std::endl;
+
+  // // Convert soft body to bullet mesh
+  // NUM_OF_POINTS = psb->m_nodes.size();
+  // btScalar softBodyPoints[NUM_OF_POINTS*3];
+  // NUM_OF_CELLS = psb->m_faces.size();
+  // int softBodyFaces[NUM_OF_CELLS][3];
+
+  // //Vertices
+  // for(int i = 0; i < NUM_OF_POINTS; ++i) {
+  //   softBodyPoints[i] = psb->m_nodes[i].m_x.x();
+  //   softBodyPoints[i+1] = psb->m_nodes[i].m_x.y();
+  //   softBodyPoints[i+2] = psb->m_nodes[i].m_x.z();                           
+  // }
+  // //Faces
+  // for(int i = 0; i < NUM_OF_CELLS; ++i) {
+  //   for(int j = 0; j < 3; ++j) {
+  //     softBodyFaces[i][j] = psb->m_faces[i].m_n[j]->m_x.x();
+  //       softBodyFaces[i][j] = psb->m_faces[i].m_n[j]->m_x.y();
+  //       softBodyFaces[i][j] = psb->m_faces[i].m_n[j]->m_x.z();
+
+  //   }                             
+  // }
 
   // bullet clean up
   dynamicsWorld->removeSoftBody(psb);
@@ -193,5 +231,72 @@ int main(int argc, char* argv[])
   delete collisionConfiguration;
   delete broadphase;
 
+  // helloWorld();
+
 	return 0;
 } // end main
+
+void helloWorld() {
+	btBroadphaseInterface* broadphase = new btDbvtBroadphase();
+
+        btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
+        btCollisionDispatcher* dispatcher = new btCollisionDispatcher(collisionConfiguration);
+
+        btSequentialImpulseConstraintSolver* solver = new btSequentialImpulseConstraintSolver;
+
+        btDiscreteDynamicsWorld* dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
+
+        dynamicsWorld->setGravity(btVector3(0, -10, 0));
+
+
+        btCollisionShape* groundShape = new btStaticPlaneShape(btVector3(0, 1, 0), 1);
+
+        btCollisionShape* fallShape = new btSphereShape(1);
+
+
+        btDefaultMotionState* groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -1, 0)));
+        btRigidBody::btRigidBodyConstructionInfo
+                groundRigidBodyCI(0, groundMotionState, groundShape, btVector3(0, 0, 0));
+        btRigidBody* groundRigidBody = new btRigidBody(groundRigidBodyCI);
+        dynamicsWorld->addRigidBody(groundRigidBody);
+
+
+        btDefaultMotionState* fallMotionState =
+                new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 50, 0)));
+        btScalar mass = 1;
+        btVector3 fallInertia(0, 0, 0);
+        fallShape->calculateLocalInertia(mass, fallInertia);
+        btRigidBody::btRigidBodyConstructionInfo fallRigidBodyCI(mass, fallMotionState, fallShape, fallInertia);
+        btRigidBody* fallRigidBody = new btRigidBody(fallRigidBodyCI);
+        dynamicsWorld->addRigidBody(fallRigidBody);
+
+
+        for (int i = 0; i < 300; i++) {
+                dynamicsWorld->stepSimulation(1 / 60.f, 10);
+
+                btTransform trans;
+                fallRigidBody->getMotionState()->getWorldTransform(trans);
+
+                std::cout << "sphere height: " << trans.getOrigin().getY() << std::endl;
+        }
+
+        dynamicsWorld->removeRigidBody(fallRigidBody);
+        delete fallRigidBody->getMotionState();
+        delete fallRigidBody;
+
+        dynamicsWorld->removeRigidBody(groundRigidBody);
+        delete groundRigidBody->getMotionState();
+        delete groundRigidBody;
+
+
+        delete fallShape;
+
+        delete groundShape;
+
+
+        delete dynamicsWorld;
+        delete solver;
+        delete collisionConfiguration;
+        delete dispatcher;
+        delete broadphase;
+}

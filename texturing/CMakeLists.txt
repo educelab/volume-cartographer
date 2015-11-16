@@ -7,7 +7,7 @@ add_executable(vc_layering layering.cpp meshUtils.cpp)
 target_link_libraries(vc_layering ${VC_LIBS} ${VC_REQ_LIBS} ${ITK_LIBRARIES})
 
 add_executable(vc_cloth cloth.cpp)
-target_link_libraries(vc_cloth ${VC_LIBS} ${VC_REQ_LIBS} ${ITK_LIBRARIES})
+target_link_libraries(vc_cloth ${VC_LIBS} ${VC_REQ_LIBS} ${ITK_LIBRARIES} ${OPENGL_LIBRARIES})
 
 # Install targets
 install(TARGETS vc_texture2
