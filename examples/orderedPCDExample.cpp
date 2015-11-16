@@ -38,5 +38,7 @@ int main(/*int argc, char** argv*/) {
     //call orderedPCDMesher()
     volcart::meshing::orderedPCDMesher(cloud, "orderedPCDExample.ply");
 
+    std::cerr << "File written as orderedPCDExample.ply" << std::cout;
+
     return 0;
 }

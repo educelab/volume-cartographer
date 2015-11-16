@@ -89,6 +89,7 @@ BOOST_FIXTURE_TEST_CASE(orderedPCDTest, orderedPCDFix){
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr testCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
     *testCloud = pCloud;
 
+    std::string out = "test"
     //just using literal for outfile here
     volcart::meshing::orderedPCDMesher(testCloud, "testOrderedPCD.pcd");
 

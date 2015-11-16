@@ -4,6 +4,16 @@ cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 # tests split up below by folder withing v-c/testing/
 # this cmake list should include all of the initial tests to be implemented
 
+
+# executable location:
+# currently, the tests are being built and placed in build/bin via the ${CMAKE_BINARY_DIR}/bin variable.
+# In order to change this so that each of the executables is placed in a separate folder under testing,
+# e.g., build/testing/meshing, the ${CMAKE_BINARY_DIR}/bin variable should be changed to
+# ${CMAKE_CURRENT_BINARY_DIR} in the add_test(). If there are test_data files being copied into the
+# executable location, that binary_dir variable will also need to be updated to reflect the change and
+# ensure the project builds correctly for the tests.
+
+
 #-----------------------#
 #    common Folder      #
 #-----------------------#
@@ -39,10 +49,10 @@ add_executable(vc_test_itk2vtk meshing/itk2vtkTest.cpp)
 target_link_libraries(vc_test_itk2vtk ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME itk2vtk WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_itk2vtk )
 
-#file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/orderedPCDExample.ply DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-#add_executable(vc_test_orderedPCDMesher meshing/orderedPCDMesherTest.cpp)
-#target_link_libraries(vc_test_orderedPCDMesher ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-#add_test(NAME orderedPCDMesher WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_orderedPCDMesher )
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/orderedPCDExample.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
+add_executable(vc_test_orderedPCDMesher meshing/orderedPCDMesherTest.cpp)
+target_link_libraries(vc_test_orderedPCDMesher ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+add_test(NAME orderedPCDMesher WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_orderedPCDMesher )
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/poissonExample.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
 add_executable(vc_test_poissonReconstruction meshing/poissonReconstructionTest.cpp)
@@ -53,6 +63,7 @@ add_test(NAME poissonReconstruction WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin CO
 #target_link_libraries(vc_test_rayTrace ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 #add_test(NAME rayTrace WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_rayTrace )
 
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/resampleExample.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
 add_executable(vc_test_resamplePointCloud meshing/resamplePointCloudTest.cpp)
 target_link_libraries(vc_test_resamplePointCloud ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME resamplePointCloud WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_resamplePointCloud )

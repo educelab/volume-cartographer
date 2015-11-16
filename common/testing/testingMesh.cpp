@@ -154,9 +154,13 @@ namespace testing {
             point.x = p_id->x;
             point.y = p_id->y;
             point.z = p_id->z;
-            point.r = p_id->r;
-            point.g = p_id->g;
-            point.b = p_id->b;
+
+            //assign color values
+            //this is just for setting up testing values
+            //values must fall within 0-255 range
+            point.r = p_id->x + p_id->z;
+            point.g = 35 * p_id->x + p_id->z;
+            point.b = p_id->x + p_id->z * 45;
 
             output.push_back(point);
 
