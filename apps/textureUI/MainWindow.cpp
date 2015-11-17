@@ -1,14 +1,10 @@
-
-
 #include <mainwindow.h>
-#include <QtWidgets>
 
-MainWindow::MainWindow(Global_Values *globals, Segmentations_Viewer *segmentations_Viewer)
+MainWindow::MainWindow(Global_Values *globals)
 {
     _globals = globals;
-    _segmentations_Viewer = segmentations_Viewer;
 
-    setWindowTitle("VC_Starter Project");// Set Window Title
+    setWindowTitle("VC Texture");// Set Window Title
     //MAX DIMENSIONS
     window()->setMinimumHeight(_globals->getHeight()/3);
     window()->setMinimumWidth(_globals->getWidth()/3);
@@ -16,6 +12,23 @@ MainWindow::MainWindow(Global_Values *globals, Segmentations_Viewer *segmentatio
     window()->setMaximumHeight(_globals->getHeight());
     window()->setMaximumWidth(_globals->getWidth());
     //----------------------------------------------------
+
+    //Create new Texture_Viewer Object
+    Texture_Viewer *texture_Image = new Texture_Viewer(globals);
+    //Create new Segmentations_Viewer Object
+    Segmentations_Viewer *segmentations = new Segmentations_Viewer(globals, texture_Image);
+    _segmentations_Viewer = segmentations;
+
+    QHBoxLayout *mainLayout = new QHBoxLayout();
+    mainLayout->addLayout(texture_Image->getLayout());// Adds Image_Management Layout (Left Side of Screen)
+    mainLayout->addLayout(segmentations->getLayout());
+
+    QWidget *w = new QWidget();// Creates the Primary Widget to display GUI Functionality
+    w->setLayout(mainLayout);// w(the main window) gets assigned the mainLayout
+
+    // Display Window
+    //------------------------------
+    setCentralWidget(w);
 
     create_Actions();
     create_Menus();
@@ -61,22 +74,17 @@ void MainWindow::save() // Need a try catch for failure
 void MainWindow::create_Actions()
 {
     actionGetFilePath = new QAction( "Load VC_Volume Package", this );
-    actionSave = new QAction( "Save Texture", this );
-
     connect( actionGetFilePath, SIGNAL( triggered() ), this, SLOT( getFilePath() ) );
 
+    actionSave = new QAction( "Save Texture", this );
     connect( actionSave, SIGNAL( triggered() ), this, SLOT( save() ) );
 }
 
 void MainWindow::create_Menus()
 {
-    menu_Bar = new QMenuBar( this );
-
-    fileMenu = new QMenu("File");
+    fileMenu = new QMenu( tr( "&File" ), this );
     fileMenu->addAction(actionGetFilePath);
-    menu_Bar->addMenu(fileMenu);
+    fileMenu->addAction(actionSave);
 
-    optionsMenu = new QMenu("Options");
-    optionsMenu->addAction(actionSave);
-    menu_Bar->addMenu(optionsMenu);
+    menuBar()->addMenu(fileMenu);
 }

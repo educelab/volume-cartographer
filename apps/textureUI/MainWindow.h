@@ -5,12 +5,8 @@
 #define VC_MAINWINDOW_H
 
 #include <QApplication>
-#include <QtGui>
+#include <QtWidgets>
 #include <QObject>
-#include <QMainWindow>
-#include <QMenu>
-#include <QAction>
-#include <QMenuBar>
 #include "Global_Values.h"
 #include "Texture_Viewer.h"
 #include "Segmentations_Viewer.h"
@@ -22,7 +18,7 @@ class MainWindow : public QMainWindow
     //
 
 public:
-    MainWindow(Global_Values *globals, Segmentations_Viewer *segmentations_Viewer );
+    MainWindow(Global_Values *globals);
 
 public slots:
     void getFilePath();
@@ -32,9 +28,8 @@ private:
     void create_Actions();
     void create_Menus();
 
-    QMenuBar* menu_Bar;
     QMenu* fileMenu;
-    QMenu* optionsMenu;
+
     QAction* actionGetFilePath;
     QAction* actionSave;
 
