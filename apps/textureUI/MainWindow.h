@@ -1,5 +1,10 @@
-
-
+//----------------------------------------------------------------------------------------------------------------------------------------
+// MainWindow.h file for MainWindow Class , (Implements QMainWindow)
+// Purpose: Create a Main Window for the GUI
+// Developer: Michael Royal - mgro224@g.uky.edu
+// October 12, 2015 - Spring Semester 2016
+// Last Updated 11/13/2015 by: Michael Royal
+//----------------------------------------------------------------------------------------------------------------------------------------
 
 #ifndef VC_MAINWINDOW_H
 #define VC_MAINWINDOW_H
@@ -18,6 +23,7 @@ class MainWindow : public QMainWindow
     //
 
 public:
+    // Creates a Constructor for the MainWindow Class that takes in The Global_Values as a *pointer and Segmentations_Viewer as a *pointer so that it can have access to these Objects.
     MainWindow(Global_Values *globals);
 
 public slots:

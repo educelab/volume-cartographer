@@ -1,37 +1,54 @@
+//----------------------------------------------------------------------------------------------------------------------------------------
+// MainWindow.cpp file for MainWindow Class , (Implements QMainWindow)
+// Purpose: Create a Main Window for the GUI
+// Developer: Michael Royal - mgro224@g.uky.edu
+// October 12, 2015 - Spring Semester 2016
+// Last Updated 11/13/2015 by: Michael Royal
+
+// Copy Right ©2015 (Brent Seales: Volume Cartography Research) - University of Kentucky Center for Visualization and Virtualization
+//----------------------------------------------------------------------------------------------------------------------------------------
+
 #include <mainwindow.h>
 
 MainWindow::MainWindow(Global_Values *globals)
 {
-    _globals = globals;
+    _globals = globals; // Enables access to Global Values Object
 
     setWindowTitle("VC Texture");// Set Window Title
+
+    //NOTE: Minimum Height and Width -------------------------
+    // will be different on other display screens,
+    // if Resolution is too small may cause distortion
+    // of Buttons Visually when Program first Initiates
+    //----------------------------------------------------------
+
     //MAX DIMENSIONS
-    window()->setMinimumHeight(_globals->getHeight()/3);
-    window()->setMinimumWidth(_globals->getWidth()/3);
+    window()->setMinimumHeight(_globals->getHeight()/2);
+    window()->setMinimumWidth(_globals->getWidth()/2);
     //MIN DIMENSIONS
     window()->setMaximumHeight(_globals->getHeight());
     window()->setMaximumWidth(_globals->getWidth());
-    //----------------------------------------------------
+    //---------------------------------------------------------
 
-    //Create new Texture_Viewer Object
+    //Create new Texture_Viewer Object (Left Side of GUI Display)
     Texture_Viewer *texture_Image = new Texture_Viewer(globals);
-    //Create new Segmentations_Viewer Object
+    //Create new Segmentations_Viewer Object (Right Side of GUI Display)
     Segmentations_Viewer *segmentations = new Segmentations_Viewer(globals, texture_Image);
     _segmentations_Viewer = segmentations;
 
     QHBoxLayout *mainLayout = new QHBoxLayout();
-    mainLayout->addLayout(texture_Image->getLayout());// Adds Image_Management Layout (Left Side of Screen)
-    mainLayout->addLayout(segmentations->getLayout());
+    mainLayout->addLayout(texture_Image->getLayout()); // THIS LAYOUT HOLDS THE WIDGETS FOR THE OBJECT "Texture_Viewer" which Enables the user to view images, zoom in, zoom out, and reset the image.
+    mainLayout->addLayout(segmentations->getLayout()); // THIS LAYOUT HOLDS THE WIDGETS FOR THE OBJECT "Segmentations_Viewer" which Enables the user to load segmentations, and generate new texture images.
 
     QWidget *w = new QWidget();// Creates the Primary Widget to display GUI Functionality
     w->setLayout(mainLayout);// w(the main window) gets assigned the mainLayout
 
     // Display Window
     //------------------------------
-    setCentralWidget(w);
+    setCentralWidget(w); // w is a wrapper widget for all of the widgets in the main window.
 
-    create_Actions();
-    create_Menus();
+    create_Actions(); // Creates the Actions for the File Menu
+    create_Menus(); // Creates the Menus and adds them to the Menu Bar
 }
 
 void MainWindow::getFilePath()
@@ -73,10 +90,10 @@ void MainWindow::save() // Need a try catch for failure
 
 void MainWindow::create_Actions()
 {
-    actionGetFilePath = new QAction( "Load VC_Volume Package", this );
+    actionGetFilePath = new QAction( "Open volume package...", this );
     connect( actionGetFilePath, SIGNAL( triggered() ), this, SLOT( getFilePath() ) );
 
-    actionSave = new QAction( "Save Texture", this );
+    actionSave = new QAction( "Export Texture", this );
     connect( actionSave, SIGNAL( triggered() ), this, SLOT( save() ) );
 }
 

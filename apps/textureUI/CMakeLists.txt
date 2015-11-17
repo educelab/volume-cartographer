@@ -18,10 +18,10 @@ if(APPLE)
     # set how it shows up in the Info.plist file
     set_target_properties(${texture_TARGET} PROPERTIES
             MACOSX_BUNDLE_ICON_FILE vc-texture.icns
-            MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME}${DBG_EXTENSION} Version ${PROJECT_VERSION}, Copyright 2015 University of Kentucky."
-            MACOSX_BUNDLE_GUI_IDENTIFIER "${PROJECT_NAME}${DBG_EXTENSION}"
-            MACOSX_BUNDLE_LONG_VERSION_STRING "${PROJECT_NAME}${DBG_EXTENSION} Version ${PROJECT_VERSION}"
-            MACOSX_BUNDLE_BUNDLE_NAME ${PROJECT_NAME}${DBG_EXTENSION}
+            MACOSX_BUNDLE_INFO_STRING "VC Texture${DBG_EXTENSION} Version ${PROJECT_VERSION}, Copyright 2015 University of Kentucky."
+            MACOSX_BUNDLE_GUI_IDENTIFIER "VC Texture${DBG_EXTENSION}"
+            MACOSX_BUNDLE_LONG_VERSION_STRING "VC Texture${DBG_EXTENSION} Version ${PROJECT_VERSION}"
+            MACOSX_BUNDLE_BUNDLE_NAME "VC Texture${DBG_EXTENSION}"
             MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
             MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
             MACOSX_BUNDLE_COPYRIGHT "Copyright 2015, University of Kentucky."

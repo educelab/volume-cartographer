@@ -5,6 +5,7 @@
 #include <QString>
 #include <QThread>
 #include <QLabel>
+#include "Global_Values.h"
 
 
 class MyThread : public QThread
@@ -12,12 +13,12 @@ class MyThread : public QThread
 
 public:
 
-    explicit MyThread(QString s, QLabel *label);
+    explicit MyThread(Global_Values *globals);
     void run();
 
 private:
-    QString name;
-    QLabel *_label;
+
+    Global_Values *_globals;
 
 };
 

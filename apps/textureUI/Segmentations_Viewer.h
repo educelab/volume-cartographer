@@ -3,7 +3,7 @@
 // Purpose: Create header file for Segmentations_Viewer Class
 // Developer: Michael Royal - mgro224@g.uky.edu
 // October 12, 2015 - Spring Semester 2016
-// Last Updated 10/23/2015 by: Michael Royal
+// Last Updated 11/13/2015 by: Michael Royal
 //----------------------------------------------------------------------------------------------------------------------------------------
 
 #ifndef VC_SEGMENTATIONS_VIEWER_H
@@ -26,7 +26,7 @@
 #include <QFormLayout>
 #include <QSize>
 #include <QMessageBox>
-#include <QThread>
+#include "MyThread.h"
 
 class Segmentations_Viewer:QObject
 {
@@ -44,9 +44,11 @@ public:
     public slots:
         void itemClickedSlot();
         void generateTextureImage();
-
+        void setEnabled(bool value);
 
 private:
+
+    MyThread *processing;
 
     Texture_Viewer *_texture_Viewer;
 

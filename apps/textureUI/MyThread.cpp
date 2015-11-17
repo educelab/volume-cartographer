@@ -1,27 +1,64 @@
 
 #include "MyThread.h"
-#include <iostream>
 
-MyThread::MyThread(QString s, QLabel *label)
+MyThread::MyThread(Global_Values *globals)
 {
-    name = s;
-    _label = label;
+    _globals = globals;
+    _globals->setStatus(0); // Status Running/Active
+    _globals->setProcessing(true);
+    _globals->setForcedClose(false);
+    this->start();
 }
 
 void MyThread::run()
 {
-    ;
 
-    //Testing
-    while(true)
+    bool cloudProblem = false;
+
+    try {
+            double _radius = _globals->getRadius();
+            int meshWidth = -1;
+            int meshHeight = -1;
+
+            std::string meshName = _globals->getVolPkg()->getMeshPath();
+
+            VC_Composite_Option aFilterOption = (VC_Composite_Option) _globals->getTextureMethod();
+            VC_Direction_Option aDirectionOption = (VC_Direction_Option) _globals->getSampleDirection();
+
+            // declare pointer to new Mesh object
+            VC_MeshType::Pointer mesh = VC_MeshType::New();
+
+            // try to convert the ply to an ITK mesh
+            if (!volcart::io::ply2itkmesh(meshName, mesh, meshWidth, meshHeight))
+            {
+                cloudProblem = true;
+                throw(__EXCEPTIONS);// Error
+            };
+
+            volcart::Texture newTexture;
+            newTexture = volcart::texturing::compositeTexture(mesh, *_globals->getVolPkg(), meshWidth, meshHeight, _radius, aFilterOption, aDirectionOption);// Save to Globals
+
+            _globals->setTexture(newTexture);
+
+            // Display this. This is a 16-bit, single channel image.
+            cv::Mat texture = newTexture.getImage(0).clone();// Use to get Image
+
+    }catch(...)
     {
-        sleep(1);
-        _label->setText("Loading.");
-        sleep(1);
-        _label->setText("Loading..");
-        sleep(1);
-        _label->setText("Loading...");
+        if(cloudProblem)
+        {
+            _globals->setStatus(-1);
 
-        std::cout<<"Hello World";
+        }else {
+                _globals->setStatus(-2);
+              }
+
+    };
+
+    if(_globals->getStatus()==0)
+    {
+        _globals->setStatus(1);
     }
+
+    _globals->setProcessing(false);
 }
