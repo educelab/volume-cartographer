@@ -207,7 +207,7 @@ BOOST_FIXTURE_TEST_CASE(compareSavedResample, resampleFix){
     pcl::PointCloud<pcl::PointNormal> newCloud;
     pcl::PCLPointCloud2 savedCloud;   //<pcl::PointNormal> savedCloud;
 
-    std::cerr << "Reading in resampleExample.ply" << std::endl;
+    std::cerr << "Reading in resampleExample.pcd" << std::endl;
 
     //load in the saved PointCloud .pcd file created by resamplePointCloudExample.cpp
     pcl::io::loadPCDFile("resampleExample.pcd", savedCloud);

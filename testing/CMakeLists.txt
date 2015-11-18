@@ -65,7 +65,7 @@ add_test(NAME poissonReconstruction WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin CO
 #add_test(NAME rayTrace WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_rayTrace )
 
 # Copy the test case to the build dir
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/resampleExample.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/resampleExample.pcd DESTINATION ${CMAKE_BINARY_DIR}/bin)
 add_executable(vc_test_resamplePointCloud meshing/resamplePointCloudTest.cpp)
 target_link_libraries(vc_test_resamplePointCloud ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME resamplePointCloud WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_resamplePointCloud )
