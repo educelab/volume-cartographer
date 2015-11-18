@@ -69,7 +69,6 @@ public:
     void setStatus(int status);
     int getStatus();
 
-    void setOptionsMenu(QMenu *optionsMenu);
     void setFileMenu(QMenu *fileMenu);
 
     void enableMenus(bool value);
@@ -90,7 +89,6 @@ private:
     int _sampleDirection;
     int _status;
 
-    QMenu *_optionsMenu;
     QMenu *_fileMenu;
 
     bool _active;

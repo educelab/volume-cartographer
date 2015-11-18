@@ -90,7 +90,7 @@ void MainWindow::save() // Need a try catch for failure
 
 void MainWindow::create_Actions()
 {
-    actionGetFilePath = new QAction( "Open volume package...", this );
+    actionGetFilePath = new QAction( "Open Volume Package...", this );
     connect( actionGetFilePath, SIGNAL( triggered() ), this, SLOT( getFilePath() ) );
 
     actionSave = new QAction( "Export Texture", this );
@@ -100,6 +100,7 @@ void MainWindow::create_Actions()
 void MainWindow::create_Menus()
 {
     fileMenu = new QMenu( tr( "&File" ), this );
+    _globals->setFileMenu(fileMenu);
     fileMenu->addAction(actionGetFilePath);
     fileMenu->addAction(actionSave);
 

@@ -12,7 +12,6 @@ MyThread::MyThread(Global_Values *globals)
 
 void MyThread::run()
 {
-
     bool cloudProblem = false;
 
     try {
@@ -36,12 +35,9 @@ void MyThread::run()
             };
 
             volcart::Texture newTexture;
-            newTexture = volcart::texturing::compositeTexture(mesh, *_globals->getVolPkg(), meshWidth, meshHeight, _radius, aFilterOption, aDirectionOption);// Save to Globals
+            newTexture = volcart::texturing::compositeTexture(mesh, *_globals->getVolPkg(), meshWidth, meshHeight, _radius, aFilterOption, aDirectionOption);// Line Causes delays closing
 
             _globals->setTexture(newTexture);
-
-            // Display this. This is a 16-bit, single channel image.
-            cv::Mat texture = newTexture.getImage(0).clone();// Use to get Image
 
     }catch(...)
     {

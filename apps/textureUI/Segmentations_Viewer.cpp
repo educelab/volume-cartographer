@@ -134,11 +134,9 @@ void Segmentations_Viewer::generateTextureImage()
 
         processing = new MyThread(_globals);// Creates new thread
         connect(processing, SIGNAL(finished()), processing, SLOT(deleteLater()));// Deletes Thread After Completion (Clean-Up)
-        //connect(qApp,SIGNAL(aboutToQuit()), processing, SLOT(deleteLater())); - CORRECT*********************************************
 
         while(_globals->getProcessing())
         {
-            //_texture_Viewer->setLabel();
             sleep(1);
             _texture_Viewer->getLabel()->setText("Loading.");
             qApp->processEvents();//Updates GUI Window
@@ -178,7 +176,7 @@ void Segmentations_Viewer::generateTextureImage()
 
         if(_globals->getStatus()==1 && test)// If Processing successfully loaded an Image
             {
-                QMessageBox::warning(_globals->getWindow(), "Warning", "The Generated Image is not Saved, if you wish to save it, please select \"Options\" then \"Save Texture\".");
+                QMessageBox::warning(_globals->getWindow(), "Warning", "The Generated Image is not Saved, if you wish to save it, please select \"Options\" then \"Export Texture\".");
 
             }else if(_globals->getStatus()==-1)
                     {
