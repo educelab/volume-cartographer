@@ -58,7 +58,7 @@ struct orderedPCDFix {
         pCloud = mesh.pointCloudXYZRGB();
 
         //convert pCloud to Ptr for orderedPCD() call
-        pcl::PointCloud<pcl::PointXYZRGB>::Ptr testCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+        pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
         *cloud = pCloud;
 
         //assign outfile name
@@ -72,7 +72,7 @@ struct orderedPCDFix {
 
     ~orderedPCDFix(){ std::cerr << "\ncleaning up orderedPCDMesherTest objects" << std::endl; }
 
-    pcl::PointCloud<pcl::PointNormal> pCloud;
+    pcl::PointCloud<pcl::PointXYZRGB> pCloud;
     volcart::testing::testingMesh mesh;
     std::string outfile;
 
@@ -89,7 +89,7 @@ BOOST_FIXTURE_TEST_CASE(orderedPCDTest, orderedPCDFix){
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr testCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
     *testCloud = pCloud;
 
-    std::string out = "test"
+    std::string out = "test";
     //just using literal for outfile here
     volcart::meshing::orderedPCDMesher(testCloud, "testOrderedPCD.pcd");
 
