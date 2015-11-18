@@ -131,6 +131,7 @@ public:
     void saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr);
     void saveMesh(VC_MeshType::Pointer mesh, volcart::Texture texture);
     void saveTextureData(cv::Mat, std::string = "textured");
+    void saveTextureData(volcart::Texture texture, int index = 0) { saveTextureData(texture.getImage(index)); }
     //Reslice reslice(const cv::Vec3f, const cv::Vec3f, const cv::Vec3f, const int32_t=64, const int32_t=64);
 
 private:

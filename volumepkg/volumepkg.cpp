@@ -134,7 +134,7 @@ cv::Mat VolumePkg::getSliceData(int index) {
         return *possibleSlice;
     }
 
-    cv::Mat sliceImg = cv::imread( getSlicePath(index), CV_LOAD_IMAGE_ANYCOLOR | CV_LOAD_IMAGE_ANYDEPTH );
+    cv::Mat sliceImg = cv::imread( getSlicePath(index), -1 );
     
     // Put into cache so we can use it later
     cache.put(index, sliceImg);
@@ -308,7 +308,7 @@ std::string VolumePkg::getMeshPath(){
 // Return the texture image as a CV mat
 cv::Mat VolumePkg::getTextureData() {
     std::string texturePath = segs_dir.string() + "/" + activeSeg + "/textured.png";
-    return cv::imread( texturePath, CV_LOAD_IMAGE_ANYCOLOR | CV_LOAD_IMAGE_ANYDEPTH );
+    return cv::imread( texturePath, -1 );
 }
 
 // Save a point cloud back to the volumepkg
