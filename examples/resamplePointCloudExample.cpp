@@ -6,6 +6,7 @@
 #include "testing/testingMesh.h"
 #include "resamplePointCloud.h"
 #include <pcl/io/pcd_io.h>
+#include <pcl/io/ply_io.h>
 
 /*
  * The purpose of this file is to generate a pcl::PointCloud<pcl::PointNormal> object
@@ -58,10 +59,10 @@ int main() {
     resampledCloud = volcart::meshing::resamplePointCloud(cloud, radius);
 
     //write the resampled PointCloud data to file
-    pcl::io::savePCDFileASCII("resampleExample.pcd", resampledCloud);
+    pcl::io::savePLYFileASCII("resampleExample.ply", resampledCloud);
 
 
-    std::cerr << "File written to resampleExample.pcd" << std::endl;
+    std::cerr << "File written to resampleExample.ply" << std::endl;
 
     return 0;
 }

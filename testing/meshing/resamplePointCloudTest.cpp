@@ -10,8 +10,7 @@
 #include "vc_defines.h"
 #include "testing/testingMesh.h"
 #include "resamplePointCloud.h"
-#include <pcl/io/pcd_io.h>
-
+#include <pcl/io/ply_io.h>
 
 /************************************************************************************
  *                                                                                  *
@@ -205,14 +204,13 @@ BOOST_FIXTURE_TEST_CASE(compareTwoResamples, resampleFix){
 BOOST_FIXTURE_TEST_CASE(compareSavedResample, resampleFix){
 
     //init PC for later resample call
-    pcl::PointCloud<pcl::PointNormal> newCloud, savedCloud;
+    pcl::PointCloud<pcl::PointNormal> newCloud;
+    pcl::PointCloud<pcl::PointNormal> savedCloud;
 
-    std::cerr << "Reading in resampleExample.pcd" << std::endl;
-
-    std::string infile = "resampleExample.pcd";
+    std::cerr << "Reading in resampleExample.ply" << std::endl;
 
     //load in the saved PointCloud .pcd file created by resamplePointCloudExample.cpp
-    pcl::io::loadPCDFile(infile, savedCloud);
+    pcl::io::loadPLYFile("resampleExample.ply", savedCloud);
 
     //convert pCloud to Ptr for resample() call
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
