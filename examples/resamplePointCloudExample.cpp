@@ -61,7 +61,7 @@ int main() {
     pcl::io::savePCDFile("resampleExample.pcd", resampledCloud);
 
 
-    std::cerr << "File written to resampleExample.ply" << std::endl;
+    std::cerr << "File written to resampleExample.pcd" << std::endl;
 
     return 0;
 }

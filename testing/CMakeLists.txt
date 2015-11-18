@@ -49,10 +49,10 @@ target_link_libraries(vc_test_itk2vtk ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TES
 add_test(NAME itk2vtk WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_itk2vtk )
 
 # Copy the test case to the build dir
-#file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/orderedPCDExample.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
-#add_executable(vc_test_orderedPCDMesher meshing/orderedPCDMesherTest.cpp)
-#target_link_libraries(vc_test_orderedPCDMesher ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-#add_test(NAME orderedPCDMesher WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_orderedPCDMesher )
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/orderedPCDExample.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
+add_executable(vc_test_orderedPCDMesher meshing/orderedPCDMesherTest.cpp)
+target_link_libraries(vc_test_orderedPCDMesher ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+add_test(NAME orderedPCDMesher WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_orderedPCDMesher )
 
 # Copy the test case to the build dir
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/poissonExample.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)

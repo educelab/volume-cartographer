@@ -11,6 +11,8 @@
 
 #include "testing/testingMesh.h"
 #include "orderedPCDMesher.h"
+#include <pcl/io/ply_io.h>
+#include <pcl/io/pcd_io.h>
 
 int main(/*int argc, char** argv*/) {
 
@@ -36,9 +38,14 @@ int main(/*int argc, char** argv*/) {
 //    }
 
     //call orderedPCDMesher()
+    //Will need to convert the ply data to pcd when reading in via orderedPCDMesherTest
+    //Issues with ply reader:
+        //http://answers.ros.org/question/136916/conversion-from-sensor_msgspointcloud2-to-pclpointcloudt/
+
     volcart::meshing::orderedPCDMesher(cloud, "orderedPCDExample.ply");
 
-    std::cerr << "File written as orderedPCDExample.ply" << std::cout;
+    std::cerr << "File written as orderedPCDExample.ply" << std::endl;
+
 
     return 0;
 }
