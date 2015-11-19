@@ -7,9 +7,10 @@
 #define BOOST_TEST_MODULE poissonReconstruction
 
 #include <boost/test/unit_test.hpp>
+#include <boost/test/included/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
 #include "vc_defines.h"
-#include "testing/testingMesh.h"
+#include "shapes.h"
 #include "poissonReconstruction.h"
 #include "pcl/conversions.h"
 #include <pcl/io/obj_io.h>
@@ -61,7 +62,7 @@ struct poissonFix {
     ~poissonFix(){ std::cerr << "\ncleaning up poissonReconstructionTest objects" << std::endl; }
 
     pcl::PointCloud<pcl::PointNormal> pCloud;
-    volcart::testing::testingMesh mesh;
+    volcart::shapes::Plane mesh;
     pcl::PolygonMesh polyMesh;
 
 };
@@ -98,7 +99,7 @@ struct savedPoissonFix {
     ~savedPoissonFix(){ std::cerr << "\ncleaning up savedPoissonReconstructionTest objects" << std::endl; }
 
     pcl::PointCloud<pcl::PointNormal> pCloud;
-    volcart::testing::testingMesh mesh;
+    volcart::shapes::Plane mesh;
     pcl::PolygonMesh polyMesh;
 
 };

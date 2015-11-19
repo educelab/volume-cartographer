@@ -6,9 +6,10 @@
 #define BOOST_TEST_MODULE orderedPCDMesher
 
 #include <boost/test/unit_test.hpp>
+#include <boost/test/included/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
 #include "vc_defines.h"
-#include "testing/testingMesh.h"
+#include "shapes.h"
 #include "orderedPCDMesher.h"
 #include <pcl/io/pcd_io.h>
 #include <pcl/io/ply_io.h>
@@ -78,7 +79,7 @@ struct orderedPCDFix {
     ~orderedPCDFix(){ std::cerr << "\ncleaning up orderedPCDMesherTest objects" << std::endl; }
 
     pcl::PointCloud<pcl::PointXYZRGB> pCloud;
-    volcart::testing::testingMesh mesh;
+    volcart::shapes::Plane mesh;
     std::string outfile;
 
 };

@@ -6,9 +6,10 @@
 #define BOOST_TEST_MODULE itk2vtk
 
 #include <boost/test/unit_test.hpp>
+#include <boost/test/included/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
 #include "vc_defines.h"
-#include "testing/testingMesh.h"
+#include "shapes.h"
 #include "itk2vtk.h"
 
 
@@ -19,7 +20,7 @@
  *                                                                                  *
  *        1. check whether an itk mesh can be converted to a vtk mesh               *
  *           and vice versa.                                                        *
- *           common/testing/testingMesh.cpp, can be written into                    *
+ *           common/shapes/Plane.h, can be written into                             *
  *                                                                                  *
  *                                                                                  *
  *  This file is broken up into two test fixtures (ivFix & viFix) which initialize  *
@@ -69,7 +70,7 @@ struct ivFix {
     ~ivFix(){ std::cerr << "cleaning up itk2vtk objects" << std::endl; }
 
     VC_MeshType::Pointer _mesh;
-    volcart::testing::testingMesh mesh;
+    volcart::shapes::Plane mesh;
     vtkPolyData* _vtk;
 };
 
@@ -93,7 +94,7 @@ struct viFix {
     ~viFix(){ std::cerr << "cleaning up vtk2itk objects" << std::endl; }
 
     VC_MeshType::Pointer itkMesh;
-    volcart::testing::testingMesh mesh;
+    volcart::shapes::Plane mesh;
     vtkSmartPointer<vtkPolyData> vtk;
 };
 

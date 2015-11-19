@@ -8,15 +8,13 @@
  *   This file is loaded by poissonReconstructionTest
  */
 
-#include "testing/testingMesh.h"
+#include "shapes.h"
 #include "poissonReconstruction.h"
 #include <pcl/io/obj_io.h>
 
 int main(/*int argc, char** argv*/){
 
-
-
-    volcart::testing::testingMesh mesh;
+    volcart::shapes::Plane mesh;
     pcl::PointCloud<pcl::PointNormal> pCloud = mesh.pointCloudNormal();
 
     pcl::PointCloud<pcl::PointNormal>::Ptr cloud(new pcl::PointCloud<pcl::PointNormal>);

@@ -11,7 +11,7 @@ build_it_test_it:
         - cmake ..
         - make
         - echo "---- Do it. Makes us. ----"
-        - echo "Testing coming soon..."
+        - make test
     tags:
         - test
 

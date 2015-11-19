@@ -12,7 +12,7 @@
 #include "pcl/conversions.h"
 
 #include "vc_defines.h"
-#include "testing/testingMesh.h"
+#include "shapes.h"
 #include "greedyProjectionMeshing.h"
 
 using namespace volcart::meshing;
@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
     */
 
     // Create a mesh
-    volcart::testing::testingMesh mesh;
+    volcart::shapes::Plane mesh;
     pcl::PointCloud<pcl::PointNormal> cloud_PointNormal = mesh.pointCloudNormal();
 
     // Create pointer for the mesh to pass to greedyProjectionMeshing

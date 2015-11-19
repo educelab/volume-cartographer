@@ -3,7 +3,7 @@
 //
 
 #include "vc_defines.h"
-#include "testing/testingMesh.h"
+#include "shapes.h"
 #include "resamplePointCloud.h"
 #include <pcl/io/pcd_io.h>
 
@@ -16,7 +16,7 @@
 int main() {
 
     //Construct a testingMesh and convert to <PointXYZ> point cloud
-    volcart::testing::testingMesh mesh;
+    volcart::shapes::Plane mesh;
     pcl::PointCloud <pcl::PointXYZ> pCloud;
     pCloud = mesh.pointCloudXYZ();
 

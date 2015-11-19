@@ -6,8 +6,9 @@
 #define BOOST_TEST_MODULE sample
 
 #include <boost/test/unit_test.hpp>
+#include <boost/test/included/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
-#include "testing/testingMesh.h"
+#include "shapes.h"
 #include "vc_defines.h"
 #include "io/objWriter.h"
 
@@ -18,7 +19,7 @@
  *  goal of this file is the following:                                             *
  *                                                                                  *
  *        1. check whether a testing mesh, created by                               *
- *           common/testing/testingMesh.cpp, can be written into                    *
+ *           common/shapes/Plane.h, can be written into                             *
  *           an object file by common/io/objWriter.cpp.                             *
  *                                                                                  *
  *        2. read contents of obj file and compare data with testing mesh           *
@@ -77,7 +78,7 @@ struct meshFix {
     volcart::io::objWriter mesh_writer;
     boost::filesystem::path objPath;
     VC_MeshType::Pointer _mesh ;
-    volcart::testing::testingMesh mesh;
+    volcart::shapes::Plane mesh;
 };
 
 
