@@ -97,10 +97,6 @@ BOOST_FIXTURE_TEST_CASE(orderedPCDTest, orderedPCDFix){
     //just using literal for outfile here
     volcart::meshing::orderedPCDMesher(testCloud, "testOrderedPCD.ply");
 
-    //Declare PointCloud2 for read from PLY
-    pcl::PCLPointCloud2 cloudData;
-    pcl::PointCloud<pcl::PointXYZRGB> savedCloud;
-
     std::vector<VC_Vertex> savedPoints, currentPoints;
 
     currentPoints = parsePlyFile("testOrderedPCD.ply");
@@ -179,7 +175,10 @@ std::vector<VC_Vertex> parsePlyFile(std::string filename){
             continue;
         }
 
+
         // Width height line
+        // Not doing anything with this currently
+
         else if (plyLine.size() == 2){
             width = std::stof(plyLine[0]);
             height = std::stof(plyLine[1]);
