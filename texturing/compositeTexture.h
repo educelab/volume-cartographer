@@ -1,6 +1,6 @@
-//
-// Created by Media Team on 10/20/15.
-//
+// volcart::texturing::compositeTexture
+// Generate a Texture object using one of the various filters in texturingUtils.h.
+// Created by Seth Parker on 10/20/15.
 
 #ifndef VC_COMPOSITETEXTURE_H
 #define VC_COMPOSITETEXTURE_H

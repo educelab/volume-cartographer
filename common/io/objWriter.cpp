@@ -149,6 +149,7 @@ namespace volcart {
         std::cerr << "Writing texture coordinates..." << std::endl;
 
         // Ensure coordinates are relative to bottom left
+        VC_Origin starting_origin = _textCoords.origin(); // Capture the starting origin
         _textCoords.origin(VC_ORIGIN_BOTTOM_LEFT);
 
         _outputMesh << "# Texture information" << std::endl;
@@ -167,6 +168,7 @@ namespace volcart {
             ++vt_Index;
         }
 
+        _textCoords.origin(starting_origin); // Restore the starting origin
         return EXIT_SUCCESS;
     };
 

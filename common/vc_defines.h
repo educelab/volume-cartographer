@@ -5,6 +5,8 @@
 #ifndef VC_DEFINES_H
 #define VC_DEFINES_H
 
+#include "getMemorySize.h"
+
 ///// GLOBAL VARIABLES /////
 // This define determines the default dictionary used when creating a new volumepkg
 #define VOLPKG_VERSION 2.0
@@ -46,9 +48,12 @@ typedef cv::Vec2d VC_Origin;
 #define VC_ORIGIN_BOTTOM_LEFT  VC_Origin(0,1)
 #define VC_ORIGIN_BOTTOM_RIGHT VC_Origin(1,1)
 
-#define VC_NULL_MAPPING cv::Vec2d(-1, -1)
+#define VC_UVMAP_NULL_MAPPING cv::Vec2d(-1, -1)
 
 ///// Texture Compositing /////
+
+#define VC_TEXTURE_NO_VALUE -1.0
+
 enum VC_Composite_Option {
     CompositeOptionIntersection = 0,
     CompositeOptionNonMaximumSuppression,

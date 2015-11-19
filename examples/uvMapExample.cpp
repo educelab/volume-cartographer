@@ -39,7 +39,7 @@ int main( int argc, char* argv[] ) {
 
   std::cout << std::endl;
 
-  if ( uvMap.get(uvMap.size()) == VC_NULL_MAPPING )
+  if ( uvMap.get(uvMap.size()) == VC_UVMAP_NULL_MAPPING )
     std::cout << "UV Mapping not found for p_id: " << uvMap.size() << std::endl;
 
   return EXIT_SUCCESS;

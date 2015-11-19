@@ -21,6 +21,7 @@ option(INSTALL_VC_UTIL "Install VC util apps" ON)
 option(INSTALL_VC_DEMO "Install VC demo apps" OFF)
 
 IF(VC_PREBUILT_LIBS)
+    set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/)
     set(CMAKE_PREFIX_PATH ${PROJECT_SOURCE_DIR}/deps/)
 ENDIF(VC_PREBUILT_LIBS)
 

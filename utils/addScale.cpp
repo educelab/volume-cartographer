@@ -71,7 +71,7 @@ int main( int argc, char *argv[] )
     cv::Mat outROI = outImage(cv::Rect(originX, originY, resizedScale.cols, resizedScale.rows));
     cv::add(outROI, resizedScale, outROI);
 
-    cv::imwrite( "texture_with_scale.tif", outImage );
+    cv::imwrite( "texture_with_scale.png", outImage );
     
 return EXIT_SUCCESS;
 }
