@@ -3,6 +3,9 @@
 #ifndef _VC_COMMON_H_
 #define _VC_COMMON_H_
 
+#include <vector>
+#include <tuple>
+
 namespace volcart {
 
 namespace segmentation {
@@ -20,6 +23,9 @@ namespace segmentation {
 #endif
 
 #define VC_DIRECTION_K cv::Vec3d(0.0, 0.0, 1.0)
+
+using IndexDistPair = std::pair<int32_t, double>;
+using IndexDistPairVec = typename std::vector<IndexDistPair>;
 
 enum Direction {
     kLeft = -1,
