@@ -6,14 +6,14 @@
 
 #include "io/ply2itk.h"
 #include "itk2vtk.h"
-#include "testing/testingMesh.h"
+#include "shapes.h"
 
 #include "vtkPLYWriter.h"
 #include "itkMeshFileWriter.h"
 
 int main( int argc, char* argv[] ) {
 
-  volcart::testing::testingMesh inputMesh;
+  volcart::shapes::Plane inputMesh;
 
   // Test the itk2vtk converter
   vtkPolyData *outputVTK = vtkPolyData::New();

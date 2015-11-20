@@ -20,13 +20,11 @@
 
 
 namespace volcart {
-namespace testing {
+namespace shapes {
 
     // To-Do: Make this a base class so that the constructor can easily be reimplemented for different shapes
-    class testingMesh {
+    class ShapePrimitive {
     public:
-        testingMesh();
-
         VC_MeshType::Pointer itkMesh();
         vtkSmartPointer<vtkPolyData> vtkMesh();
         pcl::PointCloud<pcl::PointXYZ> pointCloudXYZ(bool noisify = true); //resamplePointCloud
@@ -37,9 +35,7 @@ namespace testing {
         std::vector<VC_Vertex> getPoints() {return _points;}
         std::vector<VC_Cell> getCells() {return _cells;}
 
-        //pcl exporter
-
-    private:
+    protected:
         std::vector<VC_Vertex> _points;
         std::vector<VC_Cell> _cells;
 
@@ -48,7 +44,7 @@ namespace testing {
         void _update_normal(int vertex, double nx_in, double ny_in, double nz_in);
     };
 
-} // namespace testing
+} // namespace shapes
 } // namespace volcart
 
 #endif //VC_TESTINGMESH_H

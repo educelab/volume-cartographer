@@ -6,9 +6,10 @@
 #define BOOST_TEST_MODULE greedyProjectionMeshing
 
 #include <boost/test/unit_test.hpp>
+#include <boost/test/included/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
 #include "vc_defines.h"
-#include "testing/testingMesh.h"
+#include "shapes.h"
 #include "greedyProjectionMeshing.h"
 
 #include <pcl/common/common.h>
@@ -85,7 +86,7 @@ struct Fix {
 
     ~Fix(){ std::cerr << "Cleaning up greedyProjectionMeshing objects" << std::endl; }
 
-    volcart::testing::testingMesh mesh;
+    volcart::shapes::Plane mesh;
     pcl::PolygonMesh saved_mesh;
     pcl::PolygonMesh new_mesh;
 };

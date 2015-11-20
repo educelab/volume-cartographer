@@ -6,9 +6,10 @@
 #define BOOST_TEST_MODULE resamplePointCloud
 
 #include <boost/test/unit_test.hpp>
+#include <boost/test/included/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
 #include "vc_defines.h"
-#include "testing/testingMesh.h"
+#include "shapes.h"
 #include "resamplePointCloud.h"
 #include <pcl/io/pcd_io.h>
 #include <pcl/conversions.h>
@@ -24,23 +25,23 @@
  *                                                                                  *
  *  1. PCTest:                                                                      *
  *                                                                                  *
- *      Takes a point cloud created from fixture via testingMesh::pointCloudXYZ()   *
+ *      Takes a point cloud created from fixture via Plane::pointCloudXYZ()   *
  *      This test is simply looking into the points of the resulting PC.            *
  *                                                                                  *
  *  2. compareTwoResamples:                                                         *
- *      Takes a point cloud created from fixture via testingMesh::pointCloudXYZ()   *
+ *      Takes a point cloud created from fixture via Plane::pointCloudXYZ()   *
  *      and checks that two resampled PointNormal clouds created using the same     *
  *      search radius and input cloud match pointwise.                              *
  *                                                                                  *
  *  3. Properties:                                                                  *
  *                                                                                  *
- *      Takes a point cloud created from fixture via testingMesh::pointCloudXYZ()   *
+ *      Takes a point cloud created from fixture via Plane::pointCloudXYZ()   *
  *      Checks the resulting PC's properties, i.e., height, width, size, etc.,      *
  *      against the input PC.                                                       *
  *                                                                                  *
  *  4. Magnitude:                                                                   *
  *                                                                                  *
- *      Takes a point cloud created from fixture via testingMesh::pointCloudXYZ()   *
+ *      Takes a point cloud created from fixture via Plane::pointCloudXYZ()   *
  *      Checks that the normals in the resulting PC are unit normals.               *
  *                                                                                  *
  *  Input:                                                                          *
@@ -74,7 +75,7 @@ struct resampleFix {
     ~resampleFix(){ std::cerr << "\ncleaning up resamplePCTest objects" << std::endl; }
 
     pcl::PointCloud<pcl::PointXYZ> pCloud;
-    volcart::testing::testingMesh mesh;
+    volcart::shapes::Plane mesh;
 
     // Note, radius between (0,1] returns an empty PC
     // Additionally, radius less than or equal to 0 will throw error

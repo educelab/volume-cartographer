@@ -2,43 +2,14 @@
 // Created by Seth Parker on 9/18/15.
 //
 
-#include "testingMesh.h"
-#include "../vc_defines.h"
+#include "ShapePrimitive.h"
 
 namespace volcart {
-namespace testing {
-
-    ///// Constructor /////
-    testingMesh::testingMesh() {
-
-        // dimensions of the mesh plane
-        int width = 5, height = 5;
-
-        // generate the points along the y-axis
-        double y = 0;
-        for ( double x = 0; x < width; ++x) {
-            for ( double z = 0; z < height; ++z ) {
-                _add_vertex(x, y, z);
-            }
-        }
-
-        // generate the cells
-        for (int i = 1; i < height; ++i) {
-            for (int j = 1; j < width; ++j) {
-                int v1, v2, v3, v4;
-                v1 = i * width + j;
-                v2 = v1 - 1;
-                v3 = v2 - width;
-                v4 = v1 - width;
-                _add_cell(v1, v2, v3);
-                _add_cell(v1, v3, v4);
-            }
-        }
-    }
+namespace shapes {
 
     ///// Type Conversions /////
     // return an itk mesh
-    VC_MeshType::Pointer testingMesh::itkMesh() {
+    VC_MeshType::Pointer ShapePrimitive::itkMesh() {
         VC_MeshType::Pointer output = VC_MeshType::New();
 
         // points + normals
@@ -71,7 +42,7 @@ namespace testing {
 
     // initialize a vtk mesh //
 
-    vtkSmartPointer<vtkPolyData> testingMesh::vtkMesh() {
+    vtkSmartPointer<vtkPolyData> ShapePrimitive::vtkMesh() {
 
         //construct new pointer to output mesh
         vtkSmartPointer<vtkPolyData> output = vtkSmartPointer<vtkPolyData>::New();
@@ -114,7 +85,7 @@ namespace testing {
     }
 
     // Return Point Cloud
-    pcl::PointCloud<pcl::PointXYZ> testingMesh::pointCloudXYZ(bool noisify){
+    pcl::PointCloud<pcl::PointXYZ> ShapePrimitive::pointCloudXYZ(bool noisify){
 
         pcl::PointCloud<pcl::PointXYZ> output;
 
@@ -142,7 +113,7 @@ namespace testing {
     }
 
     //Return Point Cloud
-    pcl::PointCloud<pcl::PointXYZRGB> testingMesh::pointCloudXYZRGB(){
+    pcl::PointCloud<pcl::PointXYZRGB> ShapePrimitive::pointCloudXYZRGB(){
 
         pcl::PointCloud<pcl::PointXYZRGB> output;
 
@@ -171,7 +142,7 @@ namespace testing {
     }
 
     // Return Point Cloud
-    pcl::PointCloud<pcl::PointNormal> testingMesh::pointCloudNormal(){
+    pcl::PointCloud<pcl::PointNormal> ShapePrimitive::pointCloudNormal(){
 
         pcl::PointCloud<pcl::PointNormal> output;
 
@@ -191,7 +162,7 @@ namespace testing {
     };
 
     ///// Mesh Generation Helper Functions /////
-    void testingMesh::_add_vertex(double x, double y, double z) {
+    void ShapePrimitive::_add_vertex(double x, double y, double z) {
         VC_Vertex v;
         v.x = x;
         v.y = y;
@@ -203,7 +174,7 @@ namespace testing {
         _points.push_back(v);
     }
 
-    void testingMesh::_add_cell(int v1, int v2, int v3) {
+    void ShapePrimitive::_add_cell(int v1, int v2, int v3) {
         VC_Cell f;
         f.v1 = v1;
         f.v2 = v2;
@@ -242,7 +213,7 @@ namespace testing {
         _update_normal(v3, nx, ny, nz);
     }
 
-    void testingMesh::_update_normal(int vertex, double nx_in, double ny_in, double nz_in) {
+    void ShapePrimitive::_update_normal(int vertex, double nx_in, double ny_in, double nz_in) {
         // recalculate average (unaverage, add new component, recalculate average)
         VC_Vertex v = _points[vertex];
         v.nx = (v.nx * v.face_count + nx_in) / (v.face_count + 1);
@@ -253,5 +224,5 @@ namespace testing {
     }
 
 
-} // namespace testing
+} // namespace shapes
 } // namespace volcart
