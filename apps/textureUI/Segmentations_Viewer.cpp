@@ -146,17 +146,6 @@ void Segmentations_Viewer::generateTextureImage()
 
         while(_globals->getProcessing())
         {
-            sleep(1);
-            _texture_Viewer->getLabel()->setText("Loading.");
-            qApp->processEvents();//Updates GUI Window
-            sleep(1);
-            _texture_Viewer->getLabel()->setText("Loading..");
-            qApp->processEvents();//Updates GUI Window
-            sleep(1);
-            _texture_Viewer->getLabel()->setText("Loading...");
-            qApp->processEvents();//Updates GUI Window
-            sleep(1);
-            _texture_Viewer->getLabel()->setText("Loading");
             qApp->processEvents();//Updates GUI Window
         }
 
@@ -168,7 +157,6 @@ void Segmentations_Viewer::generateTextureImage()
             processing->wait();
         }
 
-        _texture_Viewer->getLabel()->setText("Loading");// Reset to "Loading"
         _texture_Viewer->progressActive(false);// Hide Progress Loading Bar
 
         bool test = false;

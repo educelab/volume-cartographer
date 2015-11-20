@@ -57,11 +57,6 @@ Texture_Viewer::Texture_Viewer(Global_Values *globals)
     progressBar->setMinimum(0);
     progressBar->setMaximum(0);
 
-    progress = new QLabel();
-    progress->setVisible(false);
-    progress->setText("Loading");
-    progress->setMinimumSize(75,10);
-
     //Default Not Enabled
     zoomIn->setEnabled(false);
     zoomOut->setEnabled(false);
@@ -230,7 +225,6 @@ void Texture_Viewer::scale_Texture(double factor)
 void Texture_Viewer::progressActive(bool value)
 {
     progressBar->setVisible(value);
-    progress->setVisible(value);
     //cancel->setVisible(value);
     //cancel->setEnabled(value);
 }
