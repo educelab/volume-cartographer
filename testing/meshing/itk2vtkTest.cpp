@@ -405,7 +405,7 @@ BOOST_FIXTURE_TEST_CASE(compareSavedVTK, ivFix){
 
     //Read in the vtk.ply file
     //parsePlyFile() found in parsingHelpers.cpp
-    parsePlyFile("vtk.ply", savedVTKPoints, savedVTKCells);
+    volcart::testing::parsePlyFile     ("vtk.ply", savedVTKPoints, savedVTKCells);
 
     /*
      * Now the comparison can occur between the saved .ply file and the

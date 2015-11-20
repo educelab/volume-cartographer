@@ -24,7 +24,13 @@
  *       testing files when reading in mesh or point cloud data
  */
 
- void parsePlyFile(std::string filename, std::vector <VC_Vertex>&, std::vector <VC_Cell>&);
- std::vector <std::string> split_string(std::string input);
+namespace volcart {
+    namespace testing {
 
+            void parsePlyFile(std::string string, std::vector<VC_Vertex> &verts, std::vector<VC_Cell> &faces);
+
+            std::vector<std::string> split_string(std::string input);
+
+    }
+}
 #endif //VC_PARSINGHELPERS_H
