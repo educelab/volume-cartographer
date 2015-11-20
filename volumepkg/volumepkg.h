@@ -114,6 +114,8 @@ public:
     std::string getNormalAtIndex(int);
     uint16_t intensity(cv::Vec3f point) { return interpolateAt(point); };
     void setCacheSize(size_t size);
+    size_t getCacheSize() const { return cache.size(); };
+    void setCacheMemory(size_t size);
 
     // Data Assignment
     int setSliceData(unsigned long index, cv::Mat slice);
@@ -129,6 +131,7 @@ public:
     void saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr);
     void saveMesh(VC_MeshType::Pointer mesh, volcart::Texture texture);
     void saveTextureData(cv::Mat, std::string = "textured");
+    void saveTextureData(volcart::Texture texture, int index = 0) { saveTextureData(texture.getImage(index)); }
     //Reslice reslice(const cv::Vec3f, const cv::Vec3f, const cv::Vec3f, const int32_t=64, const int32_t=64);
 
 private:

@@ -1,5 +1,4 @@
 #include <io/objWriter.h>
-//#include <chrono>
 #include "volumepkg.h"
 
 // CONSTRUCTORS //
@@ -135,7 +134,7 @@ cv::Mat VolumePkg::getSliceData(int index) {
         return *possibleSlice;
     }
 
-    cv::Mat sliceImg = cv::imread( getSlicePath(index), CV_LOAD_IMAGE_ANYCOLOR | CV_LOAD_IMAGE_ANYDEPTH );
+    cv::Mat sliceImg = cv::imread( getSlicePath(index), -1 );
     
     // Put into cache so we can use it later
     cache.put(index, sliceImg);
@@ -172,10 +171,16 @@ std::string VolumePkg::getNormalAtIndex(int index) {
     return pcd_location;
 }
 
-void VolumePkg::setCacheSize(size_t size)
-{
+// Limit the number of elements in the cache
+void VolumePkg::setCacheSize(size_t size) {
     cache.setSize(size);
 }
+
+// Limit the size of the cache in bytes
+void VolumePkg::setCacheMemory(size_t size) {
+    size_t slice_size = getSliceData(0).step[0] * getSliceData(0).rows;
+    setCacheSize(size/slice_size);
+};
 
 
 // DATA ASSIGNMENT //
@@ -264,7 +269,7 @@ uint16_t VolumePkg::interpolateAt(cv::Vec3f point) {
     int z_max = z_min + 1;
 
     // insert safety net
-    if (x_min < 0 || y_min < 0 || z_min < 0 || z_max < 0 ||
+    if (x_min < 0 || y_min < 0 || z_min < 0 ||
         x_max >= getSliceWidth() || y_max >= getSliceHeight() ||
         z_max >= getNumberOfSlices()) {
         return 0;
@@ -303,7 +308,7 @@ std::string VolumePkg::getMeshPath(){
 // Return the texture image as a CV mat
 cv::Mat VolumePkg::getTextureData() {
     std::string texturePath = segs_dir.string() + "/" + activeSeg + "/textured.png";
-    return cv::imread( texturePath, CV_LOAD_IMAGE_ANYCOLOR | CV_LOAD_IMAGE_ANYDEPTH );
+    return cv::imread( texturePath, -1 );
 }
 
 // Save a point cloud back to the volumepkg

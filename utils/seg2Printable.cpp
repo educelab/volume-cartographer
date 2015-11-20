@@ -1,4 +1,4 @@
-//
+// Generate a textured mesh, scaled from voxel units to mm units
 // Created by Seth Parker on 9/15/15.
 //
 

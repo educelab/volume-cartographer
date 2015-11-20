@@ -1,56 +1,110 @@
-// main.cpp
+// render.cpp
 // Abigail Coleman Feb. 2015
 
 #include <iostream>
 #include <fstream>
+
+#include <boost/filesystem.hpp>
+#include <boost/program_options.hpp>
+#include <opencv2/opencv.hpp>
 
 #include "vc_defines.h"
 #include "vc_datatypes.h"
 #include "volumepkg.h"
 
 #include "io/ply2itk.h"
+#include "io/plyWriter.h"
+#include "io/objWriter.h"
 #include "compositeTexture.h"
 
 int main(int argc, char* argv[])
 {
-    if ( argc < 6 ) {
-        std::cout << "Usage: vc_render volpkg seg-id radius texture-method sample-direction" << std::endl;
-        std::cout << "Texture methods: " << std::endl;
-        std::cout << "      0 = Intersection" << std::endl;
-        std::cout << "      1 = Non-Maximum Suppression" << std::endl;
-        std::cout << "      2 = Maximum" << std::endl;
-        std::cout << "      3 = Minimum" << std::endl;
-        std::cout << "      4 = Median w/ Averaging" << std::endl;
-        std::cout << "      5 = Median" << std::endl;
-        std::cout << "      6 = Mean" << std::endl;
-        std::cout << std::endl;
-        std::cout << "Sample Direction: " << std::endl;
-        std::cout << "      0 = Omni" << std::endl;
-        std::cout << "      1 = Positive" << std::endl;
-        std::cout << "      2 = Negative" << std::endl;
-        exit( -1 );
+    std::cout << "vc_render" << std::endl;
+    ///// Parse the command line options /////
+    boost::filesystem::path volpkgPath, outputPath;
+    std::string segID;
+    double radius;
+    VC_Composite_Option aFilterOption;
+    VC_Direction_Option aDirectionOption;
+
+    try {
+        // All command line options
+          boost::program_options::options_description options("Options");
+          options.add_options()
+                  ("help,h", "Show this message")
+                  ("volpkg,v", boost::program_options::value<std::string>()->required(), "Path to the volume package")
+                  ("seg,s",    boost::program_options::value<std::string>()->required(), "Segmenation ID number")
+                  ("radius,r", boost::program_options::value<int>()->required(), "Texture search radius")
+                  ("method,m", boost::program_options::value<int>()->default_value(1), "Texture method:\n"
+                                                                   "  0 = Intersection\n"
+                                                                   "  1 = Non-Maximum Suppression\n"
+                                                                   "  2 = Maximum\n"
+                                                                   "  3 = Minimum\n"
+                                                                   "  4 = Median w/ Averaging\n"
+                                                                   "  5 = Median\n"
+                                                                   "  6 = Mean\n")
+                  ("direction,d", boost::program_options::value<int>()->default_value(0), "Sample Direction:\n"
+                                                                   "  0 = Omni\n"
+                                                                   "  1 = Positive\n"
+                                                                   "  2 = Negative\n")
+                  ("output-file,o", boost::program_options::value<std::string>(), "Output file path. If not specified, file will be saved to volume package.");
+
+        // parsedOptions will hold the values of all parsed options as a Map
+        boost::program_options::variables_map parsedOptions;
+        boost::program_options::store(boost::program_options::command_line_parser(argc, argv)
+                                              .options(options)
+                                              .run(),
+                                      parsedOptions);
+
+        // Show the help message
+        if (parsedOptions.count("help") || argc < 2) {
+            std::cout << options << std::endl;
+            return EXIT_SUCCESS;
+        }
+        // Warn of missing options
+        boost::program_options::notify(parsedOptions);
+
+        // Get the parsed options
+        volpkgPath = parsedOptions["volpkg"].as<std::string>();
+        segID = parsedOptions["seg"].as<std::string>();
+        radius = parsedOptions["radius"].as<int>();
+        aFilterOption = (VC_Composite_Option) parsedOptions["method"].as<int>();
+        aDirectionOption = (VC_Direction_Option) parsedOptions["direction"].as<int>();
+
+        // Check for output file
+        if ( parsedOptions.count("output-file") ) {
+            outputPath = parsedOptions["output-file"].as<std::string>();
+            if ( boost::filesystem::exists(boost::filesystem::canonical(outputPath.parent_path())) )
+                outputPath = boost::filesystem::canonical(outputPath.parent_path()).string() + "/" + outputPath.filename().string();
+            else
+                std::cerr << "ERROR: Cannot write to provided output file. Output directory does not exist." << std::endl;
+        }
+
+    }
+    catch(std::exception& e)
+    {
+        std::cerr << "ERROR: " << e.what() << std::endl;
+        return EXIT_FAILURE;
     }
 
-    VolumePkg vpkg( argv[ 1 ] );
-    std::string segID = argv[ 2 ];
-    if (segID == "") {
-        std::cerr << "ERROR: Incorrect/missing segmentation ID!" << std::endl;
-        exit(EXIT_FAILURE);
+    ///// Load the volume package /////
+    if ( boost::filesystem::exists(volpkgPath) || (boost::filesystem::canonical(volpkgPath).extension() != ".volpkg" ) ) {
+        volpkgPath = boost::filesystem::canonical(volpkgPath);
+    } else {
+        std::cerr << "ERROR: Volume package does not exist/not recognized at provided path: " << volpkgPath << std::endl;
+        return EXIT_FAILURE;
     }
+
+    VolumePkg vpkg( volpkgPath.string() );
     if ( vpkg.getVersion() < 2.0) {
         std::cerr << "ERROR: Volume package is version " << vpkg.getVersion() << " but this program requires a version >= 2.0."  << std::endl;
-        exit(EXIT_FAILURE);
+        return EXIT_FAILURE;
     }
+    vpkg.setCacheMemory(systemMemorySize());
+
+    ///// Set the segmentation ID /////
     vpkg.setActiveSegmentation(segID);
     std::string meshName = vpkg.getMeshPath();
-
-    double radius = atof( argv[3] );
-
-    int aFindBetterTextureMethod = atoi( argv[ 4 ] );
-    VC_Composite_Option aFilterOption = ( VC_Composite_Option )aFindBetterTextureMethod;
-
-    int aSampleDir = atoi( argv[ 5 ] ); // sampleDirection (0=omni, 1=positive, 2=negative)
-    VC_Direction_Option aDirectionOption = ( VC_Direction_Option )aSampleDir;
     
     // declare pointer to new Mesh object
     VC_MeshType::Pointer  mesh = VC_MeshType::New();
@@ -66,11 +120,22 @@ int main(int argc, char* argv[])
     volcart::Texture newTexture;
     newTexture = volcart::texturing::compositeTexture( mesh, vpkg, meshWidth, meshHeight, radius, aFilterOption, aDirectionOption );
 
-    // Display this. This is a 16-bit, single channel image.
-    cv::Mat texture = newTexture.getImage(0);
-    // Save back to the volpkg with this
-    vpkg.saveMesh(mesh, newTexture);
+    if ( outputPath.extension() == ".PLY" || outputPath.extension() == ".ply" ) {
+        std::cout << "Writing to PLY..." << std::endl;
+        volcart::io::plyWriter writer(outputPath.string(), mesh, newTexture);
+        writer.write();
+    } else if ( outputPath.extension() == ".OBJ" || outputPath.extension() == ".obj") {
+        std::cout << "Writing to OBJ..." << std::endl;
+        volcart::io::objWriter writer(outputPath.string(), mesh, newTexture.uvMap(), newTexture.getImage(0) );
+        writer.write();
+    } else if ( outputPath.extension() == ".PNG" || outputPath.extension() == ".png") {
+        std::cout << "Writing to PNG..." << std::endl;
+        cv::imwrite( outputPath.string(), newTexture.getImage(0) );
+    } else {
+        std::cout << "Writing to Volume Package..." << std::endl;
+        vpkg.saveMesh(mesh, newTexture);
+    }
 
-    return 0;
+    return EXIT_SUCCESS;
 } // end main
 

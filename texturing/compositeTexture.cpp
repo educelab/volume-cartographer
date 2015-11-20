@@ -75,7 +75,6 @@ namespace volcart {
 
                     // Assign the intensity value at the UV position
                     textureImage.at < unsigned short > (v, u) = (unsigned short) value;
-
                 }
             }
             std::cout << std::endl;
