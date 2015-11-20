@@ -16,7 +16,7 @@
 class parsingHelpers {
 
     public:
-        void parsePlyFile(std::string filename, std::vector<VC_Vertex>&, std::vector<VC_Cell>&);
+        void parsePlyFile(std::string filename, std::vector<VC_Vertex>, std::vector<VC_Cell>);
         std::vector<std::string> split_string(std::string input);
 };
 

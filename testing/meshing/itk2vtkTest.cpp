@@ -11,7 +11,7 @@
 #include "vc_defines.h"
 #include "shapes.h"
 #include "itk2vtk.h"
-#include "helpers.h"
+#include "parsingHelpers.h"
 
 
 /************************************************************************************
@@ -382,7 +382,7 @@ BOOST_FIXTURE_TEST_CASE(compareSavedVTK, ivFix){
     std::vector<VC_Cell> savedVTKCells;
 
     //Read in the vtk.ply file
-    volcart::testing::helpers::parsePlyFile("vtk.ply", savedVTKPoints, savedVTKCells);
+    parsePlyFile("vtk.ply", &savedVTKPoints, &savedVTKCells);
 
 
     /* Now the original _mesh and the converted _itk

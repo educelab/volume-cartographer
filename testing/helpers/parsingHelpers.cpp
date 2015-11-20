@@ -4,7 +4,7 @@
 
 #include "parsingHelpers.h"
 
-void parsePlyFile(std::string filename, std::vector<VC_Vertex> &verts, std::vector<VC_Cell> &faces){
+void parsePlyFile(std::string filename, std::vector<VC_Vertex> verts, std::vector<VC_Cell> faces){
 
     std::ifstream inputMesh;
     inputMesh.open(filename);
@@ -19,10 +19,6 @@ void parsePlyFile(std::string filename, std::vector<VC_Vertex> &verts, std::vect
 
     //   Vector will hold pieces of line delimited by space (filled by split_string())
     std::vector<std::string> plyLine;
-
-    //   Declare vectors to hold mesh points and cells from obj file
-    std::vector<VC_Vertex> plyPoints;
-    std::vector<VC_Cell> plyCells;
 
     //   VC types to put store appropriate values read in from file
     VC_Vertex plyVertex ;
@@ -84,7 +80,7 @@ void parsePlyFile(std::string filename, std::vector<VC_Vertex> &verts, std::vect
                 }
 
                 //push vertex onto objPoints
-                plyPoints.push_back(plyVertex);
+                verts.push_back(plyVertex);
 
                 line.clear();
                 getline(inputMesh, line);
@@ -103,7 +99,7 @@ void parsePlyFile(std::string filename, std::vector<VC_Vertex> &verts, std::vect
                 plyCell.v2 = std::stoul(plyLine[2]);
                 plyCell.v3 = std::stoul(plyLine[3]);
 
-                plyCells.push_back(plyCell);
+                faces.push_back(plyCell);
 
                 line.clear();
                 getline(inputMesh, line);
