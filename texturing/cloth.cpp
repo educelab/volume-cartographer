@@ -14,12 +14,6 @@
 // bullet converter
 #include "itk2bullet.h"
 
-#include <btBulletDynamicsCommon.h>
-#include <BulletSoftBody/btSoftRigidDynamicsWorld.h>
-#include <BulletSoftBody/btDefaultSoftBodySolver.h>
-#include <BulletSoftBody/btSoftBodyRigidBodyCollisionConfiguration.h>
-#include <BulletSoftBody/btSoftBodyHelpers.h>
-
 void helloWorld();
 
 int main(int argc, char* argv[])
@@ -157,36 +151,21 @@ int main(int argc, char* argv[])
 
   dynamicsWorld->addSoftBody(psb);
 
-  // float s=4;
-  // float h=20;
-  // btSoftBody* psb=btSoftBodyHelpers::CreatePatch(
-  // dynamicsWorld->getWorldInfo(),btVector3(-s,h,-s),btVector3(s,h,-s), btVector3(-s,h,s),btVector3(s,h,s),50,50,4+8,true);
-  // psb->m_cfg.viterations=50;
-  // psb->m_cfg.piterations=50;
-  // psb->setTotalMass(3.0);
-  // psb->setMass(100,100);
-  // dynamicsWorld->addSoftBody(psb); //cloth
-
-  // btSoftBody* psb=btSoftBodyHelpers::CreateEllipsoid(world->getWorldInfo(),
-  // btVector3(10,10,10),btVector3(2,2,2),1000);
-  // psb->m_cfg.viterations=50;
-  // psb->m_cfg.piterations=50;
-  // psb->m_cfg.kPR=1000;
-  // psb->setTotalMass(3.0);
-  // psb->setMass(0,0);
-  // dynamicsWorld->addSoftBody(psb);
-
-  // psb->m_cfg.viterations = 50;
-  // psb->m_cfg.piterations = 50;
-
-  // dynamicsWorld->addSoftBody(psb);
-
   // Constraints for the mesh as a soft body
   // These needed to be tested to find optimal values
   // this iterates through all the links/faces and randomly swaps them
   // psb->randomizeConstraints();
   // sets the mass of the whole soft body, true considers the faces along with the vertices
   // psb->setTotalMass(100, true);
+  // psb->m_cfg.viterations = 50;
+  // psb->m_cfg.piterations = 50;
+
+  // Set the top row of vertices such that they wont move/fall
+  for(int i = 0; i < NUM_OF_POINTS; ++i) {
+  	if( (int)psb->m_nodes[i].m_x.z() <= 2) {
+  		psb->setMass(i, 0);
+  	}
+  }
 
   // step simulation
   for (int i = 0; i < 300; i++) {
@@ -194,32 +173,38 @@ int main(int argc, char* argv[])
     psb->solveConstraints();
 
     //check if mesh is moving/falling
-    std::cout << "Cloth coordinate: " << psb->m_nodes[1000].m_x.x() << ", " << psb->m_nodes[1000].m_x.y() << ", " << psb->m_nodes[1000].m_x.z() << std::endl;
+    // std::cout << "Cloth coordinate: " << psb->m_nodes[10000].m_x.x() << ", " << psb->m_nodes[10000].m_x.y() << ", " << psb->m_nodes[10000].m_x.z() << std::endl;
   }
 
   std::cout << "Simulation...........CHECK" << std::endl;
 
-  // // Convert soft body to bullet mesh
-  // NUM_OF_POINTS = psb->m_nodes.size();
-  // btScalar softBodyPoints[NUM_OF_POINTS*3];
-  // NUM_OF_CELLS = psb->m_faces.size();
-  // int softBodyFaces[NUM_OF_CELLS][3];
+  // Convert soft body to itk mesh
+  // declare pointer to new Mesh object
+  VC_MeshType::Pointer  output = VC_MeshType::New();
+  volcart::meshing::bullet2itk::bullet2itk(output, psb);
 
-  // //Vertices
-  // for(int i = 0; i < NUM_OF_POINTS; ++i) {
-  //   softBodyPoints[i] = psb->m_nodes[i].m_x.x();
-  //   softBodyPoints[i+1] = psb->m_nodes[i].m_x.y();
-  //   softBodyPoints[i+2] = psb->m_nodes[i].m_x.z();                           
-  // }
-  // //Faces
-  // for(int i = 0; i < NUM_OF_CELLS; ++i) {
-  //   for(int j = 0; j < 3; ++j) {
-  //     softBodyFaces[i][j] = psb->m_faces[i].m_n[j]->m_x.x();
-  //       softBodyFaces[i][j] = psb->m_faces[i].m_n[j]->m_x.y();
-  //       softBodyFaces[i][j] = psb->m_faces[i].m_n[j]->m_x.z();
+  // Check if converter worked
+  VC_CellIterator  cellIterator = output->GetCells()->Begin();
+  VC_CellIterator  cellEnd      = output->GetCells()->End();
+  VC_CellType *    cell;
+  VC_PointsInCellIterator pointsIterator;
 
-  //   }                             
-  // }
+  while( cellIterator != cellEnd ) {
+
+  	// Link the pointer to our current cell
+    cell = cellIterator.Value();
+        
+    // Iterate over the vertices of the current cell
+    pointsIterator = cell->PointIdsBegin();
+    while( pointsIterator != cell->PointIdsEnd()) {
+    	pointID = *pointsIterator;
+			VC_PointType p = output->GetPoint(pointID);
+    	std::cout << p << " ";
+      ++pointsIterator;
+    }
+    std::cout << std::endl;
+    ++cellIterator;
+  }
 
   // bullet clean up
   dynamicsWorld->removeSoftBody(psb);

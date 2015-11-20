@@ -46,9 +46,37 @@ namespace volcart {
 
     };
 
-    bullet2itk::bullet2itk( VC_MeshType::Pointer output, btScalar vertices[], int faces[][3] ) {
-    	
-    }
+    bullet2itk::bullet2itk( VC_MeshType::Pointer output, btSoftBody* softBody ) {
+
+    	VC_CellType::CellAutoPointer cellpointer;
+    	VC_PointType p;
+    	VC_PixelType n;
+    	int NUM_OF_CELLS = softBody->m_faces.size();
+
+    	// iterate through faces of bullet mesh (softBody)
+  		for(int i = 0; i < NUM_OF_CELLS; ++i) {
+
+  			cellpointer.TakeOwnership( new VC_TriangleType );
+
+    		for(int j = 0; j < 3; ++j) {
+
+      		p[0] = softBody->m_faces[i].m_n[j]->m_x.x();
+      		p[1] = softBody->m_faces[i].m_n[j]->m_x.y();
+					p[2] = softBody->m_faces[i].m_n[j]->m_x.z();
+
+					n[0] = softBody->m_faces[i].m_normal.x();
+      		n[1] = softBody->m_faces[i].m_normal.y();
+					n[2] = softBody->m_faces[i].m_normal.z();
+					
+					output->SetPoint( (i * 3 + j), p );
+					output->SetPointData( (i * 3 + j), n );
+
+					cellpointer->SetPointId( j, (i * 3 + j));
+    		}
+
+    		output->SetCell( i, cellpointer );
+  		}
+    };
 
   } // namespace meshing
 } //  namespace volcart
