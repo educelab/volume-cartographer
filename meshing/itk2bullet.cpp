@@ -51,30 +51,22 @@ namespace volcart {
     	VC_CellType::CellAutoPointer cellpointer;
     	VC_PointType p;
     	VC_PixelType n;
-    	int NUM_OF_CELLS = softBody->m_faces.size();
+    	int NUM_OF_POINTS = softBody->m_nodes.size();
 
-    	// iterate through faces of bullet mesh (softBody)
-  		for(int i = 0; i < NUM_OF_CELLS; ++i) {
+    	// iterate through points of bullet mesh (softBody)
+  		for(int i = 0; i < NUM_OF_POINTS; ++i) {
 
-  			cellpointer.TakeOwnership( new VC_TriangleType );
+  			p[0] = softBody->m_nodes[i].m_x.x();
+        p[1] = softBody->m_nodes[i].m_x.y();
+        p[2] = softBody->m_nodes[i].m_x.z();
 
-    		for(int j = 0; j < 3; ++j) {
+        n[0] = softBody->m_nodes[i].m_n.x();
+        n[1] = softBody->m_nodes[i].m_n.y();
+        n[2] = softBody->m_nodes[i].m_n.z();
 
-      		p[0] = softBody->m_faces[i].m_n[j]->m_x.x();
-      		p[1] = softBody->m_faces[i].m_n[j]->m_x.y();
-					p[2] = softBody->m_faces[i].m_n[j]->m_x.z();
+        output->SetPoint( i, p );
+        output->SetPointData( i, n );
 
-					n[0] = softBody->m_faces[i].m_normal.x();
-      		n[1] = softBody->m_faces[i].m_normal.y();
-					n[2] = softBody->m_faces[i].m_normal.z();
-					
-					output->SetPoint( (i * 3 + j), p );
-					output->SetPointData( (i * 3 + j), n );
-
-					cellpointer->SetPointId( j, (i * 3 + j));
-    		}
-
-    		output->SetCell( i, cellpointer );
   		}
     };
 

@@ -168,7 +168,7 @@ int main(int argc, char* argv[])
   }
 
   // step simulation
-  for (int i = 0; i < 300; i++) {
+  for (int i = 0; i < 100; i++) {
     dynamicsWorld->stepSimulation(1/ 60.f, 10);
     psb->solveConstraints();
 
@@ -179,32 +179,11 @@ int main(int argc, char* argv[])
   std::cout << "Simulation...........CHECK" << std::endl;
 
   // Convert soft body to itk mesh
-  // declare pointer to new Mesh object
-  VC_MeshType::Pointer  output = VC_MeshType::New();
-  volcart::meshing::bullet2itk::bullet2itk(output, psb);
+  volcart::meshing::bullet2itk::bullet2itk(mesh, psb);
 
-  // Check if converter worked
-  VC_CellIterator  cellIterator = output->GetCells()->Begin();
-  VC_CellIterator  cellEnd      = output->GetCells()->End();
-  VC_CellType *    cell;
-  VC_PointsInCellIterator pointsIterator;
+  volcart::io::objWriter objwriter("cloth.obj", mesh);
 
-  while( cellIterator != cellEnd ) {
-
-  	// Link the pointer to our current cell
-    cell = cellIterator.Value();
-        
-    // Iterate over the vertices of the current cell
-    pointsIterator = cell->PointIdsBegin();
-    while( pointsIterator != cell->PointIdsEnd()) {
-    	pointID = *pointsIterator;
-			VC_PointType p = output->GetPoint(pointID);
-    	std::cout << p << " ";
-      ++pointsIterator;
-    }
-    std::cout << std::endl;
-    ++cellIterator;
-  }
+  objwriter.write();
 
   // bullet clean up
   dynamicsWorld->removeSoftBody(psb);
@@ -215,8 +194,6 @@ int main(int argc, char* argv[])
   delete dispatcher;
   delete collisionConfiguration;
   delete broadphase;
-
-  // helloWorld();
 
 	return 0;
 } // end main
