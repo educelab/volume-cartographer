@@ -19,6 +19,7 @@ std::string outputName = "";
 int threshold = 1;
 int startIndex = -1;
 int endIndex = -1;
+bool showVisualization = false;
 
 int main(int argc, char *argv[]) {
     std::cout << "vc_segment" << std::endl;
@@ -50,6 +51,7 @@ int main(int argc, char *argv[]) {
     pcl::console::parse_argument(argc, argv, "--volpkg", volpkgLocation);
 
     pcl::console::parse_argument(argc, argv, "--output", outputName);
+
     if (volpkgLocation == "") {
         std::cerr << "ERROR: Incorrect/missing volpkg location!" << std::endl;
         exit(EXIT_FAILURE);
@@ -58,6 +60,9 @@ int main(int argc, char *argv[]) {
         std::cerr << "ERROR: Missing output filename" << std::endl;
         exit(EXIT_FAILURE);
     }
+
+    // Check if we need to do visualization
+    showVisualization = pcl::console::find_switch(argc, argv, "--visualize");
 
     // Load volume package
     VolumePkg volpkg(volpkgLocation);
@@ -76,7 +81,7 @@ int main(int argc, char *argv[]) {
     // Setup
     // Run segmentation using path as our starting points
     volcart::segmentation::LocalResliceSegmentation segmentation(volpkg);
-    auto segment = segmentation.segmentLayer(3.0, startIndex, endIndex);
+    auto segment = segmentation.segmentLayer(showVisualization, 3.0, startIndex, endIndex);
 	//auto segment = volcart::segmentation::structureTensorParticleSim(volpkg.openCloud(), volpkg, 0.5, 1, endIndex);
     std::cout << "done with segmentation" << std::endl;
 

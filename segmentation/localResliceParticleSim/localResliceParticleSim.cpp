@@ -11,7 +11,8 @@ LocalResliceSegmentation::LocalResliceSegmentation(VolumePkg& pkg) :
         pkg_(pkg), startIndex_(0), endIndex_(0) { }
 
 pcl::PointCloud<pcl::PointXYZRGB>
-LocalResliceSegmentation::segmentLayer(const double driftTolerance,
+LocalResliceSegmentation::segmentLayer(const bool showVisualization,
+                                       const double driftTolerance,
                                        const int32_t startIndex,
                                        const int32_t endIndex,
                                        const int32_t neighborhoodRadius,
@@ -38,8 +39,10 @@ LocalResliceSegmentation::segmentLayer(const double driftTolerance,
     while (sliceIndex < endIndex_) {
 		std::cout << "slice: " << sliceIndex << std::endl;
         // Get predicted directions and positions
-        currentChain.draw();
-        cv::waitKey(0);
+        if (showVisualization) {
+            currentChain.draw();
+            cv::waitKey(0);
+        }
         std::vector<Direction> predictedDirections;
         std::vector<cv::Vec3d> predictedPositions;
         std::tie(predictedDirections, predictedPositions) = currentChain.stepAll(stepNumLayers);

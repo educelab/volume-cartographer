@@ -23,6 +23,7 @@ public:
     LocalResliceSegmentation(VolumePkg& pkg);
 
     pcl::PointCloud<pcl::PointXYZRGB> segmentLayer(
+            const bool showVisualization,
             const double driftTolerance,
             const int32_t startIndex=kDefaultStartIndex,
             const int32_t endIndex=kDefaultEndIndex,
