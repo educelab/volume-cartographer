@@ -29,7 +29,7 @@ public:
     using TIterator = std::vector<Particle>::iterator;
     using TConstIterator = std::vector<Particle>::const_iterator;
     using DirPosPair = std::tuple<Direction, cv::Vec3d>;
-    using DirPosVecPair = std::tuple<std::vector<Direction>, std::vector<cv::Vec3d>>;
+    using DirPosPairVec = std::tuple<std::vector<Direction>, std::vector<cv::Vec3d>>;
 
     Chain();
 
@@ -51,7 +51,7 @@ public:
 
     TIterator end() { return particles_.end(); }
 
-    DirPosVecPair stepAll(const int32_t stepNumLayers) const;
+    DirPosPairVec stepAll(const int32_t stepNumLayers) const;
 
     DirPosPair step(const int32_t particleIndex,
                     const int32_t stepNumLayers,

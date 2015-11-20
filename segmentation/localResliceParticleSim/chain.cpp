@@ -29,14 +29,15 @@ Chain::Chain(VolumePkg& volpkg, int32_t zIndex) :
 
 void Chain::setNewPositions(std::vector<cv::Vec3d> newPositions)
 {
-    assert(particleCount_ == newPositions.size() && "New chain positions length != particleCount_");
+    assert(particleCount_ == newPositions.size() &&
+            "New chain positions length != particleCount_");
     for (size_t i = 0; i < particleCount_; ++i) {
         particles_[i] = newPositions.at(i);
     }
 }
 
 // Steps all particles (with no constraints)
-Chain::DirPosVecPair Chain::stepAll(const int32_t stepNumLayers) const
+Chain::DirPosPairVec Chain::stepAll(const int32_t stepNumLayers) const
 {
     auto positions = std::vector<cv::Vec3d>(particleCount_);
     auto directions = std::vector<Direction>(particleCount_);
@@ -50,7 +51,7 @@ const cv::Vec3d Chain::calculateNormal(const size_t index) const
 {
     // Get average z voxel value (makes generating the reslice a little more accurate)
     double zMean = std::accumulate(particles_.begin(), particles_.end(), 0,
-            [](double sum, Particle p) { return sum + p.z(); }) / double(particleCount_);
+            [](double sum, Particle p) { return sum + p.z(); }) / particleCount_;
 
     // For boundary conditions, do a simple linear interpolation of the first/last 2
     // points and set the appropriate variable based on that difference in x direction.
@@ -96,13 +97,15 @@ Chain::DirPosPair Chain::step(const int32_t index, const int32_t stepNumLayers,
     }
     auto maxima = map.findMaxima(index);
 
-    // Sort maxima by whichever is closest to current index of center (using standard euclidean 1D distance)
-    std::sort(maxima.begin(), maxima.end(), [center](IndexDistPair lhs, IndexDistPair rhs) {
-        const auto x = center.x;
-        const auto ldist = std::abs(int32_t(lhs.first - x));
-        const auto rdist = std::abs(int32_t(rhs.first - x));
-        return ldist < rdist;
-    });
+    // Sort maxima by whichever is closest to current index of center (using
+    // standard euclidean 1D distance)
+    std::sort(maxima.begin(), maxima.end(),
+        [center](IndexDistPair lhs, IndexDistPair rhs) {
+            const auto x = center.x;
+            const auto ldist = std::abs(int32_t(lhs.first - x));
+            const auto rdist = std::abs(int32_t(rhs.first - x));
+            return ldist < rdist;
+        });
 
     // Convert from pixel space to voxel space and enforce constraints
     auto voxelMaxima = std::vector<DirPosPair>();
