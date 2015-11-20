@@ -26,6 +26,12 @@ public:
 
     double operator()(int) const;
 
+    double x() const { return position_(VC_INDEX_X); }
+
+    double y() const { return position_(VC_INDEX_Y); }
+
+    double z() const { return position_(VC_INDEX_Z); }
+
     Particle& operator+=(const Particle&);
 
     Particle& operator-=(const Particle&);
