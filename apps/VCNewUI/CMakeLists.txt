@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
+# VC.app
 
-# VCNewUI - I'm sorry for everything below this line. - SP
+# autorun MOC when needed
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
 # only include the headers that needs to be processed by moc
 SET(VCNewUI_SOURCES     CSimpleNumEditBox.cpp main.cpp CMesh.cpp
                         CWindow.cpp CXCurve.cpp UDataManipulateUtils.cpp
@@ -13,74 +18,44 @@ SET(VCNewUI_HEADERS     CSimpleNumEditBox.h CMesh.h CVectorN.h CMatrixMN.h UVecM
                         UDataManipulateUtils.h CVolumeViewer.h
                         CVolumeViewerWithCurve.h CBSpline.h CBezierCurve.h)
 
-SET(VCNewUI_UIS VCMain.ui)
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
+# Always build .app if APPLE
+if(APPLE)
+  # Add the icon to the app bundle
+  SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_SOURCE_DIR}/vc-logo.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+  SET(VCNewUI_SOURCES ${VCNewUI_SOURCES} vc-logo.icns)
 
-# invoke moc
-QT4_WRAP_UI(VCNewUI_UIS_HDS ${VCNewUI_UIS})
-QT4_WRAP_CPP(VCNewUI_HEADERS_MOC ${VCNewUI_HEADERS})
+  # set how it shows up in the Info.plist file
+  set(MACOSX_BUNDLE_ICON_FILE "vc-logo.icns")
+  set(MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME}${DBG_EXTENSION} Version ${PROJECT_VERSION}, Copyright 2015 University of Kentucky.")
+  set(MACOSX_BUNDLE_GUI_IDENTIFIER "${PROJECT_NAME}${DBG_EXTENSION}")
+  set(MACOSX_BUNDLE_LONG_VERSION_STRING "${PROJECT_NAME}${DBG_EXTENSION} Version ${PROJECT_VERSION}")
+  set(MACOSX_BUNDLE_BUNDLE_NAME ${PROJECT_NAME}${DBG_EXTENSION})
+  set(MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION})
+  set(MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION})
+  set(MACOSX_BUNDLE_COPYRIGHT "Copyright 2015, University of Kentucky.")
+endif(APPLE)
 
-if(APPLE AND BUILD_OSX_APPS)
-    # set where in the bundle to put the icns file
-    SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_SOURCE_DIR}/vc-logo.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
-    # include the icns file in the target
-    SET(VCNewUI_SOURCES ${VCNewUI_SOURCES} vc-logo.icns)
-    add_executable(VC MACOSX_BUNDLE ${VCNewUI_UIS_HDS} ${VCNewUI_SOURCES} ${VCNewUI_HEADERS_MOC})
-
-    # set how it shows up in the Info.plist file
-    set_target_properties(VC PROPERTIES
-            MACOSX_BUNDLE_ICON_FILE vc-logo.icns
-            MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME}${DBG_EXTENSION} Version ${PROJECT_VERSION}, Copyright 2015 University of Kentucky."
-            MACOSX_BUNDLE_GUI_IDENTIFIER "${PROJECT_NAME}${DBG_EXTENSION}"
-            MACOSX_BUNDLE_LONG_VERSION_STRING "${PROJECT_NAME}${DBG_EXTENSION} Version ${PROJECT_VERSION}"
-            MACOSX_BUNDLE_BUNDLE_NAME ${PROJECT_NAME}${DBG_EXTENSION}
-            MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
-            MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
-            MACOSX_BUNDLE_COPYRIGHT "Copyright 2015, University of Kentucky."
-            )
-else()
-    add_executable(VC ${VCNewUI_UIS_HDS} ${VCNewUI_SOURCES} ${VCNewUI_HEADERS_MOC})
-endif(APPLE AND BUILD_OSX_APPS)
-
+add_executable(VC MACOSX_BUNDLE WIN32 ${VCNewUI_SOURCES} ${VCNewUI_HEADERS})
 target_link_libraries(VC ${VC_LIBS} ${VC_REQ_LIBS} Qt4::QtOpenGL ${OPENGL_LIBRARIES} ${QT_LIBRARIES} ${EXTRA_LIBS})
-INSTALL(TARGETS VC
+
+set(VC_EXECUTABLE "VC")
+if(APPLE)
+    set(VC_EXECUTABLE "VC.app")
+elseif(WIN32)
+    set(VC_EXECUTABLE "VC.exe")
+endif()
+
+#set(PLUGINS)
+#set(LIBS)
+#set(PLUGINS_DIR)
+#set(REQUEST_QT_CONF)
+set(DIRS "${CMAKE_PREFIX_PATH}")
+
+install(TARGETS VC
         BUNDLE DESTINATION . COMPONENT Programs
         RUNTIME DESTINATION bin COMPONENT Programs)
 
-if(BUILD_OSX_APPS)
-    SET(plugin_dest_dir VC.app/Contents/MacOS)
-    SET(qtconf_dest_dir VC.app/Contents/Resources)
-    SET(APPS "\${CMAKE_INSTALL_PREFIX}/VC.app")
-
-    #--------------------------------------------------------------------------------
-    # Install needed Qt plugins by copying directories from the qt installation
-    # One can cull what gets copied by using 'REGEX "..." EXCLUDE'
-    INSTALL(DIRECTORY "${QT_PLUGINS_DIR}/imageformats" DESTINATION ${plugin_dest_dir}/plugins COMPONENT Runtime)
-
-    #--------------------------------------------------------------------------------
-    # install a qt.conf file
-    # this inserts some cmake code into the install script to write the file
-    INSTALL(CODE "
-    file(WRITE \"\${CMAKE_INSTALL_PREFIX}/${qtconf_dest_dir}/qt.conf\" \"\")
-    " COMPONENT Runtime)
-
-    #--------------------------------------------------------------------------------
-    # Use BundleUtilities to get all other dependencies for the application to work.
-    # It takes a bundle or executable along with possible plugins and inspects it
-    # for dependencies.  If they are not system dependencies, they are copied.
-
-    # directories to look for dependencies
-    SET(DIRS ${QT_LIBRARY_DIRS} ${PCL_LIBRARY_DIRS})
-
-    # Now the work of copying dependencies into the bundle/package
-    # The quotes are escaped and variables to use at install time have their $ escaped
-    # An alternative is the do a configure_file() on a script and use install(SCRIPT  ...).
-    # Note that the image plugins depend on QtSvg and QtXml, and it got those copied
-    # over.
-    INSTALL(CODE "
-    file(GLOB_RECURSE QTPLUGINS \"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/plugins/*${CMAKE_SHARED_LIBRARY_SUFFIX}\")
-    set(BU_CHMOD_BUNDLE_ITEMS ON)
-    include(BundleUtilities)
-    fixup_bundle(\"${APPS}\" \"\${QTPLUGINS}\" \"${DIRS}\" COMPONENT Runtime)")
-    set(CPACK_BINARY_DRAGNDROP ON)
-endif(BUILD_OSX_APPS)
+if(APPLE OR WIN32)
+    include(DeployQt4)
+    install_qt4_executable("${VC_EXECUTABLE}" "" "" "${DIRS}" "" "" "Programs")
+endif()
