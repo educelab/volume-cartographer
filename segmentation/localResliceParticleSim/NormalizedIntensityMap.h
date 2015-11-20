@@ -4,6 +4,8 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 
+#include "common.h"
+
 
 namespace volcart {
 
@@ -17,7 +19,7 @@ public:
 
     void draw(const int32_t=100, const int32_t=100) const;
 
-    std::vector<std::pair<int32_t, double>> findMaxima(int32_t index) const;
+    IndexDistPairVec findMaxima(int32_t index) const;
 
 private:
     friend std::ostream& operator<<(std::ostream& s, const NormalizedIntensityMap& m) {

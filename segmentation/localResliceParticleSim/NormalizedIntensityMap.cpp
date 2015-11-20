@@ -4,11 +4,14 @@
 
 using namespace volcart::segmentation;
 
-NormalizedIntensityMap::NormalizedIntensityMap(cv::Mat r) {
+NormalizedIntensityMap::NormalizedIntensityMap(cv::Mat r)
+{
     cv::normalize(r, _intensities, 0, 1, CV_MINMAX, CV_64FC1);
 }
 
-void NormalizedIntensityMap::draw(const int32_t displayWidth, const int32_t displayHeight) const {
+void NormalizedIntensityMap::draw(const int32_t displayWidth,
+                                  const int32_t displayHeight) const
+{
     auto binWidth = cvRound(float(displayWidth) / _intensities.cols);
 
     // Build intensity map
@@ -45,63 +48,24 @@ void NormalizedIntensityMap::draw(const int32_t displayWidth, const int32_t disp
 }
 
 // Finds the top 'N' maxima in the row being processed
-std::vector<std::pair<int32_t, double>> NormalizedIntensityMap::findMaxima(int32_t index) const {
-    using Pair = std::pair<int32_t, double>;
-	//std::cout << _intensities << std::endl;
-	
-	// Scan through array looking for peaks
-	/*
-	const double kCurveNoiseTolerance = 0.15;
-	auto peaks = std::vector<Pair>();
-	int32_t i = 0;
-	int32_t plateauWidth = 0;
-	while (i++ < _intensities.cols - 1) {
-		while (_intensities.at<double>(i) - _intensities.at<double>(i+1) < -kCurveNoiseTolerance) {
-			++i;
-		}
-		while (std::fabs(_intensities.at<double>(i) - _intensities.at<double>(i+1)) < kCurveNoiseTolerance) {
-			++i;
-			++plateauWidth;
-		}
-		if (plateauWidth > 0) {
-			peaks.emplace_back(i, _intensities.at<double>(i - plateauWidth / 2));
-			plateauWidth = 0;
-		} else {
-			peaks.emplace_back(i, _intensities.at<double>(i));
-		}
-		while (_intensities.at<double>(i) - _intensities.at<double>(i+1) > kCurveNoiseTolerance) {
-			++i;
-		}
-	}
-	*/
-
+IndexDistPairVec NormalizedIntensityMap::findMaxima(int32_t index) const
+{
     // Find derivative of intensity curve
     cv::Mat sobelDerivatives;
     cv::Sobel(_intensities, sobelDerivatives, CV_64FC1, 1, 0);
-	if (index == 33) {
-		//std::cout << _intensities << std::endl;
-		//std::cout << sobelDerivatives << std::endl;
-	}
 
     // Get indices of positive -> negative transitions, store in pairs (index, intensity)
-    auto crossings = std::vector<Pair>();
+    auto crossings = IndexDistPairVec();
     for (auto i = 0; i < sobelDerivatives.cols - 1; ++i) {
         if (sobelDerivatives.at<double>(i) * sobelDerivatives.at<double>(i+1) <= 0 &&
             sobelDerivatives.at<double>(i) > sobelDerivatives.at<double>(i+1)) {
-			if (index == 33) {
-				//std::cout << i << ": " << sobelDerivatives.at<double>(i) << ", " << i+1 << ": " << sobelDerivatives.at<double>(i+1) << std::endl;
-			}
             if (_intensities.at<double>(i) > _intensities.at<double>(i+1)) {
-                crossings.push_back(std::make_pair(i, _intensities.at<double>(i)));
+                crossings.emplace_back(i, _intensities.at<double>(i));
             } else {
-                crossings.push_back(std::make_pair(i+1, _intensities.at<double>(i+1)));
+                crossings.emplace_back(i+1, _intensities.at<double>(i+1));
             }
         }
     }
 
-    // Remove the intensities that are smaller than wherever the particle is currently
-    std::remove_if(crossings.begin(), crossings.end(), [this](Pair p) {
-        return p.second < _intensities.at<double>(_intensities.cols / 2);
-    });
     return crossings;
 }
