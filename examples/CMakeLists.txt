@@ -25,5 +25,5 @@ target_link_libraries(vc_poissonExample ${VC_LIBS} ${VC_REQ_LIBS})
 add_executable(vc_resamplePointCloudExample resamplePointCloudExample.cpp)
 target_link_libraries(vc_resamplePointCloudExample ${VC_LIBS} ${VC_REQ_LIBS})
 
-#add_executable(vc_orderedPCDExample orderedPCDExample.cpp)
-#target_link_libraries(vc_orderedPCDExample ${VC_LIBS} ${VC_REQ_LIBS})
+add_executable(vc_orderedPCDExample orderedPCDExample.cpp)
+target_link_libraries(vc_orderedPCDExample ${VC_LIBS} ${VC_REQ_LIBS})

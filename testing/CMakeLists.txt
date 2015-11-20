@@ -13,6 +13,13 @@ cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 # executable location, that binary_dir variable will also need to be updated to reflect the change and
 # ensure the project builds correctly for the tests.
 
+set(TESTING_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(TESTING_INCLUDE_DIR ${TESTING_INCLUDE_DIR} PARENT_SCOPE)
+include_directories(${TESTING_INCLUDE_DIR})
+
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/vtk.ply DESTINATION ${CMAKE_BINARY_DIR}/testing)
+add_executable(vc_parsingHelpers parsingHelpers.cpp)
+target_link_libraries(vc_parsingHelpers ${VC_LIBS} ${VC_REQ_LIBS} )
 
 #-----------------------#
 #    common Folder      #
@@ -151,3 +158,6 @@ add_test(NAME resamplePointCloud WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMA
 #add_executable(vc_test_volumepkgcfg volumepkg/volumepkgcfgTest.cpp)
 #target_link_libraries(vc_test_volumepkgcfg ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 #add_test(NAME volumepkgcfg WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_volumepkgcfg )
+
+
+

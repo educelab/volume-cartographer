@@ -4,7 +4,10 @@
 
 #include "parsingHelpers.h"
 
-void parsePlyFile(std::string filename, std::vector<VC_Vertex> verts, std::vector<VC_Cell> faces){
+
+
+
+void parsePlyFile(std::string filename, std::vector<VC_Vertex> &verts, std::vector<VC_Cell> &faces){
 
     std::ifstream inputMesh;
     inputMesh.open(filename);
@@ -36,17 +39,20 @@ void parsePlyFile(std::string filename, std::vector<VC_Vertex> verts, std::vecto
         //skip header information not pertaining to vertex/face
         if (plyLine[0] == "ply"
             || plyLine[0] == "format"
-            || plyLine[0] == "comment") {
+            || plyLine[0] == "comment"
+            || plyLine[0] == "obj_info") {
 
             getline(inputMesh, line);
             continue;
         }
-            //Get number of vertices
+            //Get number of vertices and faces
         else if (plyLine[0] == "element" && plyLine[1] == "vertex") {
             numVertices = stoi(plyLine[2]);
 
             line.clear();
             getline(inputMesh, line);
+
+            plyLine = split_string(line);
             while (plyLine[0] == "property") {
 
                 typeOfPointInformation.push_back(plyLine[plyLine.size() - 1]);
@@ -57,10 +63,10 @@ void parsePlyFile(std::string filename, std::vector<VC_Vertex> verts, std::vecto
                 plyLine = split_string(line);
             }
 
-        }
             //Get the face information
-        else if (plyLine[0] == "element" && plyLine[1] == "face") {
-            numFaces = stoi(plyLine[2]);
+            if (plyLine[0] == "element" && plyLine[1] == "face") {
+                numFaces = stoi(plyLine[2]);
+            }
         }
 
 
@@ -76,7 +82,30 @@ void parsePlyFile(std::string filename, std::vector<VC_Vertex> verts, std::vecto
             for (int v = 0; v < numVertices; v++) {
                 for (int i = 0; i < typeOfPointInformation.size(); i++) {
 
-                    plyVertex.typeOfInformation[i] = std::stof(plyLine[i]);
+                    if (typeOfPointInformation[i] == "x")
+                        plyVertex.x  = std::stof(plyLine[i]);
+                    else if (typeOfPointInformation[i] == "y")
+                        plyVertex.y  = std::stof(plyLine[i]);
+                    else if (typeOfPointInformation[i] == "z")
+                        plyVertex.z  = std::stof(plyLine[i]);
+                    else if (typeOfPointInformation[i] == "s")
+                        plyVertex.s  = std::stof(plyLine[i]);
+                    else if (typeOfPointInformation[i] == "t")
+                        plyVertex.t  = std::stof(plyLine[i]);
+                    else if (typeOfPointInformation[i] == "r")
+                        plyVertex.r  = std::stof(plyLine[i]);
+                    else if (typeOfPointInformation[i] == "g")
+                        plyVertex.g  = std::stof(plyLine[i]);
+                    else if (typeOfPointInformation[i] == "b")
+                        plyVertex.b  = std::stof(plyLine[i]);
+                    else if (typeOfPointInformation[i] == "nx")
+                        plyVertex.nx  = std::stof(plyLine[i]);
+                    else if (typeOfPointInformation[i] == "ny")
+                        plyVertex.ny  = std::stof(plyLine[i]);
+                    else if (typeOfPointInformation[i] == "nz")
+                        plyVertex.nz  = std::stof(plyLine[i]);
+
+
                 }
 
                 //push vertex onto objPoints
@@ -87,7 +116,7 @@ void parsePlyFile(std::string filename, std::vector<VC_Vertex> verts, std::vecto
                 plyLine = split_string(line);
             }
 
-            int numPointsInCell = plyLine.size();
+            int numPointsInCell = std::stoi(plyLine[0]);
 
             //Read in the face information
             for (int f = 0; f < numFaces; f++) {
@@ -113,6 +142,8 @@ void parsePlyFile(std::string filename, std::vector<VC_Vertex> verts, std::vecto
         getline(inputMesh, line);
 
     }
+
+    inputMesh.close();
 
 }
 
@@ -148,6 +179,36 @@ std::vector<std::string> split_string(std::string input)
 
     return line;
 
+}
+
+//just a simple tester to see if the parser is working
+
+int main(int argc, char** argv){
+
+    VC_MeshType::Pointer _mesh;
+    volcart::shapes::Plane mesh;
+    vtkPolyData* _vtk;
+
+    _mesh = mesh.itkMesh();
+    _vtk = vtkPolyData::New();
+    volcart::meshing::itk2vtk(_mesh, _vtk);
+
+    std::vector<VC_Vertex> savedVTKPoints;
+    std::vector<VC_Cell> savedVTKCells;
+
+    parsePlyFile("vtk.ply", savedVTKPoints, savedVTKCells);
+
+
+    for (int p = 0; p < savedVTKPoints.size(); p++){
+        cout << savedVTKPoints[p].x << " | " << savedVTKPoints[p].y << " | " << savedVTKPoints[p].z << std::endl;
+    }
+
+
+    for (int c = 0; c < savedVTKCells.size(); c++){
+        cout << savedVTKCells[c].v1 << " | " << savedVTKCells[c].v2 << " | " << savedVTKCells[c].v3 << std::endl;
+    }
+
+    return 0;
 }
 
 
