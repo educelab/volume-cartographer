@@ -80,10 +80,30 @@ void MainWindow::getFilePath()
     }
 }
 
-void MainWindow::save() // Need a try catch for failure
+void MainWindow::saveTexture()
+{
+    if(_globals->isVPKG_Intantiated() && _globals->getVolPkg()->getSegmentations().size()!=0)
+    {
+        if(_globals->getTexture().hasImages())// Checks to see if there are images
+        {
+            try{
+                _globals->getVolPkg()->saveTextureData(_globals->getTexture());
+                QMessageBox::information(this, tr("Error Message"), "Saved Successfully.");
+
+                }catch(...)
+                    {
+                        QMessageBox::warning(_globals->getWindow(), "Error", "Failed to Save Texture Image Properly!");
+                    }
+
+        }else QMessageBox::information(this, tr("Error Message"), "Please Generate a New Texture Image.");
+
+    }else QMessageBox::warning(this, tr("Error Message"), "There is no Texture Image to Save!");
+}
+
+void MainWindow::exportTexture()
 {
     // NEEDS TO BE CONFIGURED
-    QString imagePath = QFileDialog::getSaveFileName(this, tr("Save File"), "", "PNG (*.png)");
+    QString imagePath = QFileDialog::getSaveFileName(this, tr("Save File"), "", "Images (*.png *jpg *jpeg *tif *tiff)");
     // Needs to be configured
     _globals->getQPixMapImage().save(imagePath, "PNG");
 }
@@ -91,10 +111,13 @@ void MainWindow::save() // Need a try catch for failure
 void MainWindow::create_Actions()
 {
     actionGetFilePath = new QAction( "Open Volume Package...", this );
-    connect( actionGetFilePath, SIGNAL( triggered() ), this, SLOT( getFilePath() ) );
+    connect( actionGetFilePath, SIGNAL( triggered() ), this, SLOT(getFilePath()));
 
-    actionSave = new QAction( "Export Texture", this );
-    connect( actionSave, SIGNAL( triggered() ), this, SLOT( save() ) );
+    actionSave = new QAction( "Save Texture", this );
+    connect( actionSave, SIGNAL( triggered() ), this, SLOT(saveTexture()));
+
+    actionExport = new QAction( "Export Texture", this);
+    connect( actionExport, SIGNAL(triggered()), this, SLOT(exportTexture()));
 }
 
 void MainWindow::create_Menus()
@@ -104,6 +127,7 @@ void MainWindow::create_Menus()
 
     fileMenu->addAction(actionGetFilePath);
     fileMenu->addAction(actionSave);
+    fileMenu->addAction(actionExport);
 
     menuBar()->addMenu(fileMenu);
 }

@@ -78,20 +78,23 @@ Segmentations_Viewer::Segmentations_Viewer(Global_Values *globals, Texture_Viewe
 
 void Segmentations_Viewer::itemClickedSlot()
 {
-    _texture_Viewer->clearImageLabel();
-    // Need to Clear Texture Data to nullptr
-
-    QString s = segmentations->currentItem()->text();// Gets a QString for the Current Item Selected
-    _globals->getVolPkg()->setActiveSegmentation(s.toStdString());// Sets the active Segmentation
-
-    cv::Mat texture = _globals->getVolPkg()->getTextureData();
-
-    bool test = loadImage(texture);
-
-    if(test)
+    if(currentSegmentation != segmentations->currentItem()->text())
     {
-        _texture_Viewer->setImage();
+        currentSegmentation = segmentations->currentItem()->text();
+        _globals->clearTexture();
+        _texture_Viewer->clearImageLabel();
 
+        QString s = segmentations->currentItem()->text();// Gets a QString for the Current Item Selected
+        _globals->getVolPkg()->setActiveSegmentation(s.toStdString());// Sets the active Segmentation
+
+        cv::Mat texture = _globals->getVolPkg()->getTextureData();
+
+        bool test = loadImage(texture);
+
+        if(test)
+        {
+            _texture_Viewer->setImage();
+        }
     }
 }
 
@@ -173,15 +176,15 @@ void Segmentations_Viewer::generateTextureImage()
 
         if(_globals->getStatus()==1 && test)// If Processing successfully loaded an Image
             {
-                QMessageBox::warning(_globals->getWindow(), "Warning", "The Generated Image is not Saved, if you wish to save it, please select \"Options\" then \"Export Texture\".");
+                QMessageBox::warning(_globals->getWindow(), "Warning", "The Generated Texture Image is not Saved, if you wish to save it, please select \"File\" -> \"Save Texture\".");
 
             }else if(_globals->getStatus()==-1)
                     {
-                        QMessageBox::warning(_globals->getWindow(),"Error", "Failed to Generate Texture [cloud.ply] error.");
+                        QMessageBox::warning(_globals->getWindow(),"Error", "Failed to Generate Texture Image [cloud.ply] error.");
 
                     }else if(_globals->getStatus()==-2)
                             {
-                                QMessageBox::warning(_globals->getWindow(),"Error", "Failed to Generate Texture.");
+                                QMessageBox::warning(_globals->getWindow(),"Error", "Failed to Generate Texture Image.");
 
                             }else if(_globals->getStatus()==-999)
                                     {
@@ -200,7 +203,6 @@ bool Segmentations_Viewer::loadImage(cv::Mat texture)
 {
     try
     {
-        cv::Mat _texture = texture;
         if (texture.data == nullptr)
         {
             _texture_Viewer->clearImageLabel();
@@ -221,7 +223,7 @@ bool Segmentations_Viewer::loadImage(cv::Mat texture)
 
     }catch(...)
         {
-            QMessageBox::warning(_globals->getWindow(), "Error", "Failed to Load Image Properly");
+                QMessageBox::warning(_globals->getWindow(), "Error", "Failed to Load Image Properly!");
         }
 
     return false; // Should not reach here if successful
@@ -247,10 +249,10 @@ void Segmentations_Viewer::setSegmentations()
         segmentations->addItem(qstr);
     }
 
-
     if(_globals->getSegmentations().size()>0)// Loads first Image to Screen by default
     {
         segmentations->setCurrentRow(0);
+        currentSegmentation = "null";
         itemClickedSlot();
     }
 }

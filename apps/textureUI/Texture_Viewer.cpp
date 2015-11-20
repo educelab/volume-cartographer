@@ -68,7 +68,6 @@ Texture_Viewer::Texture_Viewer(Global_Values *globals)
 
     zoom = new QHBoxLayout();// Lines Up the Following Buttons Horizontally
     zoom->addWidget(spacer);
-    zoom->addWidget(progress);
     zoom->addWidget(progressBar);
     zoom->addWidget(cancel);
     zoom->addWidget(zoomIn);// Zoom_In Button added to Horizontal_Layout
@@ -242,12 +241,6 @@ void Texture_Viewer::clearLabel()// Clears Label
     scaleFactor = 1.0;
     imageLabel->close();
 }
-
-QLabel *Texture_Viewer::getLabel()
-{
-    return progress;
-}
-
 
 
 

@@ -51,6 +51,7 @@ public:
     QMainWindow *getWindow();
 
     void setTexture(volcart::Texture texture);
+    void clearTexture();
     volcart::Texture getTexture();
 
     void setRadius(double radius);
@@ -72,7 +73,6 @@ public:
     int getStatus();
 
     void setFileMenu(QMenu *fileMenu);
-    void setMenuBar(QMenuBar *menuBar);
 
     void enableMenus(bool value);
 
@@ -93,7 +93,6 @@ private:
     int _status;
 
     QMenu *_fileMenu;
-    QMenuBar *_menuBar;
 
     bool _active;
     bool _forcedClose;

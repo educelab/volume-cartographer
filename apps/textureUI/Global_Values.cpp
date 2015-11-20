@@ -84,6 +84,12 @@ void Global_Values::setTexture(volcart::Texture texture)
     _texture = texture;
 }
 
+void Global_Values::clearTexture()
+{
+    volcart::Texture *empty = new volcart::Texture;
+    _texture = *empty;
+}
+
 volcart::Texture Global_Values::getTexture()
 {
     return _texture;
@@ -152,11 +158,6 @@ int Global_Values::getStatus()
 void Global_Values::setFileMenu(QMenu *fileMenu)
 {
     _fileMenu = fileMenu;
-}
-
-void Global_Values::setMenuBar(QMenuBar *menuBar)
-{
-    _menuBar = menuBar;
 }
 
 void Global_Values::enableMenus(bool value)

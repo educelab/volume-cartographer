@@ -30,7 +30,8 @@ public:
 
 public slots:
     void getFilePath();
-    void save();
+    void saveTexture();
+    void exportTexture();
 
 private:
     void create_Actions();
@@ -41,6 +42,7 @@ private:
 
     QAction* actionGetFilePath;
     QAction* actionSave;
+    QAction* actionExport;
 
     Global_Values *_globals;
     Segmentations_Viewer *_segmentations_Viewer;

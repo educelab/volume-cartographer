@@ -56,6 +56,7 @@ private:
 
     QLabel *volume_Package;
     QListWidget *segmentations;
+    QString currentSegmentation;
 
     QLabel *parameters;
     Global_Values *_globals;

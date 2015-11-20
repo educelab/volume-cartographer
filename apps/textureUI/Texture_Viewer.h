@@ -64,7 +64,6 @@ private:
     QHBoxLayout *zoom;
     QVBoxLayout *image_Management;
     QProgressBar *progressBar;
-    QLabel *progress;
 
     QPixmap pix;
 
