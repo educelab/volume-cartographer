@@ -11,6 +11,7 @@
 #include <pcl/point_types.h>
 
 #include "particle.h"
+#include "fittedcurve.h"
 #include "volumepkg.h"
 #include "common.h"
 
@@ -66,10 +67,14 @@ private:
     VolumePkg& volpkg_;
     size_t particleCount_;
     int32_t zIndex_;
+    // XXX 4th degree interpolation is about as large as we can go currently.
+    // Higher than that and the voxel positions get to be too large when
+    // exponentiated.
+    FittedCurve<double, 4> curve_;
 
     constexpr static double kDefaultMaxDrift = 0.0;
 
-    const cv::Vec3d calculateNormal(const int32_t index) const;
+    const cv::Vec3d calculateNormal(const size_t index) const;
 
 };
 

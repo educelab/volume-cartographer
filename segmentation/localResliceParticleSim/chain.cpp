@@ -3,8 +3,10 @@
 #include <numeric>
 #include <chrono>
 #include <cassert>
+#include <tuple>
 
 #include "chain.h"
+#include "common.h"
 #include "NormalizedIntensityMap.h"
 
 
@@ -15,10 +17,14 @@ Chain::Chain(VolumePkg& volpkg, int32_t zIndex) :
     volpkg_(volpkg), particleCount_(0), zIndex_(zIndex)
 {
     auto segmentationPath = volpkg_.openCloud();
+    auto curvePoints = std::vector<std::tuple<double, double>>();
+    curvePoints.reserve(segmentationPath->size());
     for (auto path : *segmentationPath) {
         particles_.emplace_back(path.x, path.y, path.z);
         particleCount_++;
+        curvePoints.emplace_back(path.x, path.y);
     }
+    curve_.fitPoints(curvePoints);
 }
 
 void Chain::setNewPositions(std::vector<cv::Vec3d> newPositions)
@@ -40,20 +46,30 @@ Chain::DirPosVecPair Chain::stepAll(const int32_t stepNumLayers) const
     return std::make_tuple(directions, positions);
 }
 
-const cv::Vec3d Chain::calculateNormal(const int32_t index) const
+const cv::Vec3d Chain::calculateNormal(const size_t index) const
 {
-    // Change indexing if we're at the front or back particle
-    auto i = index;
-    if (index == 0) {
-        i = 1;
-    } else if (uint32_t(index) == particleCount_ - 1) {
-        i = particleCount_ - 2;
-    }
+    // Get average z voxel value (makes generating the reslice a little more accurate)
     double zMean = std::accumulate(particles_.begin(), particles_.end(), 0,
-            [](double sum, Particle p) { return sum + p(VC_INDEX_Z); }) / double(particleCount_);
+            [](double sum, Particle p) { return sum + p.z(); }) / double(particleCount_);
 
-    auto diff = particles_[i+1] - particles_[i-1];
-    auto tanVec = cv::Vec3d(diff(VC_INDEX_X), diff(VC_INDEX_Y), zMean);
+    // For boundary conditions, do a simple linear interpolation of the first/last 2
+    // points and set the appropriate variable based on that difference in x direction.
+    // y direction is handled by interpolation.
+    double before, after;
+    if (index == 0) {
+        auto xdiff = particles_[1].x() - particles_[0].x();
+        before = particles_[0].x() - xdiff;
+    } else {
+        before = particles_[index-1].x();
+    }
+    if (index == particleCount_-1) {
+        auto xdiff = particles_[particleCount_-1].x() - particles_[particleCount_-2].x();
+        after = particles_[particleCount_-1].x() + xdiff;
+    } else{
+        after = particles_[index+1].x();
+    }
+
+    auto tanVec = cv::Vec3d(after - before, curve_.at(after) - curve_.at(before), zMean);
     return tanVec.cross(VC_DIRECTION_K);
 }
 
@@ -81,16 +97,12 @@ Chain::DirPosPair Chain::step(const int32_t index, const int32_t stepNumLayers,
     auto maxima = map.findMaxima(index);
 
     // Sort maxima by whichever is closest to current index of center (using standard euclidean 1D distance)
-    using IndexDistPair = std::pair<int32_t, double>;
     std::sort(maxima.begin(), maxima.end(), [center](IndexDistPair lhs, IndexDistPair rhs) {
         const auto x = center.x;
         const auto ldist = std::abs(int32_t(lhs.first - x));
         const auto rdist = std::abs(int32_t(rhs.first - x));
         return ldist < rdist;
     });
-	if (index == 33) {
-		//std::cout << "index = 33: (" << maxima[0].first << ", " << maxima[0].second << ")" << std::endl;
-	}
 
     // Convert from pixel space to voxel space and enforce constraints
     auto voxelMaxima = std::vector<DirPosPair>();
@@ -114,22 +126,26 @@ Chain::DirPosPair Chain::step(const int32_t index, const int32_t stepNumLayers,
     // (doesn't remove Direction::kNone by default)
     // XXX assumes that dirConstraint is either Direction::kLeft or Direction::kRight
     if (dirConstraint != Direction::kDefault) {
-        std::remove_if(voxelMaxima.begin(), voxelMaxima.end(), [center, dirConstraint](DirPosPair p) {
-            return dirConstraint != std::get<0>(p);
-        });
+        std::remove_if(voxelMaxima.begin(), voxelMaxima.end(),
+            [center, dirConstraint](DirPosPair p) {
+                return dirConstraint != std::get<0>(p);
+            });
     }
 
     // Remove any pairs that don't satisfy the position constraint
     if (maxDrift != kDefaultMaxDrift) {
-        std::remove_if(voxelMaxima.begin(), voxelMaxima.end(), [maxDrift, currentParticle](DirPosPair p) {
-            return cv::norm(std::get<1>(p) - currentParticle.position()) > maxDrift;
-        });
+        std::remove_if(voxelMaxima.begin(), voxelMaxima.end(),
+            [maxDrift, currentParticle](DirPosPair p) {
+                return cv::norm(std::get<1>(p) - currentParticle.position()) > maxDrift;
+            });
     }
 
     // XXX Go straight down if no maxima to choose from?
     if (voxelMaxima.empty()) {
         auto newPoint = cv::Point(center.x, center.y + stepNumLayers);
-        return std::make_tuple(Direction::kNone, reslice.sliceCoordToVoxelCoord(newPoint));
+        return std::make_tuple(
+                Direction::kNone,
+                reslice.sliceCoordToVoxelCoord(newPoint));
     } else {
         return voxelMaxima.at(0);
     }
@@ -143,8 +159,12 @@ void Chain::draw() const {
 
     // draw circles on the pkgSlice window for each point
     for (size_t i = 0; i < particleCount_; ++i) {
-        cv::Point position(particles_.at(i)(VC_INDEX_X), particles_.at(i)(VC_INDEX_Y));
-        circle(pkgSlice, position, 2, BGR_GREEN, -1);
+        auto x = particles_.at(i).x();
+        auto y = particles_.at(i).y();
+        cv::Point real(x, y);
+        cv::Point interpolated(x, curve_.at(x));
+        circle(pkgSlice, real, 2, BGR_GREEN, -1);
+        circle(pkgSlice, interpolated, 2, BGR_BLUE, -1);
     }
 
     namedWindow("Volpkg Slice", cv::WINDOW_NORMAL);
