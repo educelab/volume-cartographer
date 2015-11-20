@@ -101,6 +101,7 @@ void MainWindow::create_Menus()
 {
     fileMenu = new QMenu( tr( "&File" ), this );
     _globals->setFileMenu(fileMenu);
+
     fileMenu->addAction(actionGetFilePath);
     fileMenu->addAction(actionSave);
 

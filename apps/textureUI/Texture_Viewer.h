@@ -5,6 +5,8 @@
 // October 12, 2015 - Spring Semester 2016
 // Last Updated 10/16/2015 by: Michael Royal
 // Code Reference: http://doc.qt.io/qt-5/qtwidgets-widgets-imageviewer-example.html ---(I edited/formatted the code to suit our purposes)
+
+// Copy Right ©2015 (Brent Seales: Volume Cartography Research) - University of Kentucky Center for Visualization and Virtualization
 //----------------------------------------------------------------------------------------------------------------------------------------
 
 #ifndef VC_TEXTURE_VIEWER_H

@@ -4,6 +4,8 @@
 // Developer: Michael Royal - mgro224@g.uky.edu
 // October 12, 2015 - Spring Semester 2016
 // Last Updated 10/23/2015 by: Michael Royal
+
+// Copy Right ©2015 (Brent Seales: Volume Cartography Research) - University of Kentucky Center for Visualization and Virtualization
 //---------------------------------------------------------------------------------------------------------------------------------------------
 
 #ifndef VC_DEFAULTVALUES_H
@@ -70,6 +72,7 @@ public:
     int getStatus();
 
     void setFileMenu(QMenu *fileMenu);
+    void setMenuBar(QMenuBar *menuBar);
 
     void enableMenus(bool value);
 
@@ -90,6 +93,7 @@ private:
     int _status;
 
     QMenu *_fileMenu;
+    QMenuBar *_menuBar;
 
     bool _active;
     bool _forcedClose;

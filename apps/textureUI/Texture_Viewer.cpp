@@ -5,6 +5,8 @@
 // October 12, 2015 - Spring Semester 2016
 // Last Updated 10/23/2015 by: Michael Royal
 // Code Reference: http://doc.qt.io/qt-5/qtwidgets-widgets-imageviewer-example.html ---(I edited/formatted the code to suit our purposes)
+
+// Copy Right ©2015 (Brent Seales: Volume Cartography Research) - University of Kentucky Center for Visualization and Virtualization
 //-----------------------------------------------------------------------------------------------------------------------------------------
 
 #include <qmainwindow.h>
@@ -229,8 +231,8 @@ void Texture_Viewer::progressActive(bool value)
 {
     progressBar->setVisible(value);
     progress->setVisible(value);
-    cancel->setVisible(value);
-    cancel->setEnabled(value);
+    //cancel->setVisible(value);
+    //cancel->setEnabled(value);
 }
 
 void Texture_Viewer::setEnabled(bool value)

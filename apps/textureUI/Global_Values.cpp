@@ -4,6 +4,8 @@
 // Developer: Michael Royal - mgro224@g.uky.edu
 // October 12, 2015 - Spring Semester 2016
 // Last Updated 10/23/2015 by: Michael Royal
+
+// Copy Right ©2015 (Brent Seales: Volume Cartography Research) - University of Kentucky Center for Visualization and Virtualization
 //----------------------------------------------------------------------------------------------------------------------------------------
 
 #include "Global_Values.h"
@@ -150,6 +152,11 @@ int Global_Values::getStatus()
 void Global_Values::setFileMenu(QMenu *fileMenu)
 {
     _fileMenu = fileMenu;
+}
+
+void Global_Values::setMenuBar(QMenuBar *menuBar)
+{
+    _menuBar = menuBar;
 }
 
 void Global_Values::enableMenus(bool value)

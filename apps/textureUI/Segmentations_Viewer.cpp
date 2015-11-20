@@ -4,6 +4,8 @@
 // Developer: Michael Royal - mgro224@g.uky.edu
 // October 12, 2015 - Spring Semester 2016
 // Last Updated 11/13/2015 by: Michael Royal
+
+// Copy Right ©2015 (Brent Seales: Volume Cartography Research) - University of Kentucky Center for Visualization and Virtualization
 //----------------------------------------------------------------------------------------------------------------------------------------
 
 #include "Segmentations_Viewer.h"
@@ -123,6 +125,13 @@ void Segmentations_Viewer::generateTextureImage()
 {
     if(_globals->isVPKG_Intantiated() && _globals->getSegmentations().size()>0)
     {
+        auto flags = _globals->getWindow()->windowFlags();//save current configuration
+        QSize size = _globals->getWindow()->frameSize();
+
+        _globals->getWindow()->setWindowFlags ( Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMinimizeButtonHint | Qt::WindowMaximizeButtonHint);
+        _globals->getWindow()->resize(size);// Resizes
+        _globals->getWindow()->show();// Show Screen
+
         _globals->setRadius(radius->text().toDouble());
         _globals->setTextureMethod(texture_Method->currentIndex());
         _globals->setSampleDirection(sample_Direction->currentIndex());
@@ -192,6 +201,8 @@ void Segmentations_Viewer::generateTextureImage()
                                     }
 
         setEnabled(true);// Allow User to Use Buttons
+        _globals->getWindow()->setWindowFlags(flags);//restore
+        _globals->getWindow()->show();
 
     }else QMessageBox::warning(_globals->getWindow(),"Error", "No Segmentation has been loaded, Please load Segmentation.");
 
@@ -254,7 +265,6 @@ void Segmentations_Viewer::setSegmentations()
         segmentations->setCurrentRow(0);
         itemClickedSlot();
     }
-
 }
 
 void Segmentations_Viewer::setEnabled(bool value)
