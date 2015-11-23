@@ -27,3 +27,6 @@ target_link_libraries(vc_resamplePointCloudExample ${VC_LIBS} ${VC_REQ_LIBS})
 
 add_executable(vc_orderedPCDExample orderedPCDExample.cpp)
 target_link_libraries(vc_orderedPCDExample ${VC_LIBS} ${VC_REQ_LIBS})
+
+add_executable(vc_parsingHelpers parsingHelperExample.cpp ../testing/parsingHelpers.cpp ../testing/parsingHelpers.h)
+target_link_libraries(vc_parsingHelpers ${VC_LIBS} ${VC_REQ_LIBS} )

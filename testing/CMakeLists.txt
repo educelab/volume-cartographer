@@ -17,10 +17,6 @@ set(TESTING_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(TESTING_INCLUDE_DIR ${TESTING_INCLUDE_DIR} PARENT_SCOPE)
 include_directories(${TESTING_INCLUDE_DIR})
 
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/vtk.ply DESTINATION ${CMAKE_BINARY_DIR}/testing)
-add_executable(vc_parsingHelpers parsingHelpers.cpp)
-target_link_libraries(vc_parsingHelpers ${VC_LIBS} ${VC_REQ_LIBS} )
-
 #-----------------------#
 #    common Folder      #
 #-----------------------#
@@ -54,7 +50,7 @@ add_test(NAME greedyProjectionMeshing WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
 #copy vtk and itk test case files to build dir
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/vtk.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/itk.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
-add_executable(vc_test_itk2vtk meshing/itk2vtkTest.cpp)
+add_executable(vc_test_itk2vtk meshing/itk2vtkTest.cpp parsingHelpers.cpp)
 target_link_libraries(vc_test_itk2vtk ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME itk2vtk WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_itk2vtk )
 

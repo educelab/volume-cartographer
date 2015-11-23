@@ -9,14 +9,14 @@
  *   This outfile is loaded by orderedPCDMesherTest for later comparison
  */
 
-#include "testing/testingMesh.h"
+#include "shapes.h"
 #include "orderedPCDMesher.h"
 #include <pcl/io/ply_io.h>
 #include <pcl/io/pcd_io.h>
 
 int main(/*int argc, char** argv*/) {
 
-    volcart::testing::testingMesh mesh;
+    volcart::shapes::Plane mesh;
     //Create point cloud from mesh
     pcl::PointCloud <pcl::PointXYZRGB> pCloud = mesh.pointCloudXYZRGB();
 

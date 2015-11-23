@@ -6,7 +6,7 @@
 #define BOOST_TEST_MODULE itk2vtk
 
 #include <boost/test/unit_test.hpp>
-#include <boost/test/included/unit_test.hpp>
+//#include <boost/test/included/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
 #include <vc_defines.h>
 #include "vc_defines.h"
@@ -306,85 +306,88 @@ BOOST_FIXTURE_TEST_CASE(compareSavedITK, viFix){
     //itkMesh now contains the data that will be compared to the
     //itk.obj file saved in testing/test_data
 
-    //First, read the .obj file
-    typedef itk::MeshFileReader< VC_MeshType > ReaderType; 
-    ReaderType::Pointer reader = ReaderType::New(); 
-    reader->SetFileName("itk.obj");
-    reader->Update();
-    
-    VC_MeshType::Pointer savedITKMesh = reader->GetOutput();
+    //init vectors to hold points and cells from savedITK data file
+    std::vector<VC_Vertex> savedITKPoints;
+    std::vector<VC_Cell> savedITKCells;
 
-    /* 
+    //First, read the .obj file
+    volcart::testing::parseObjFile("itk.obj", savedITKPoints, savedITKCells);
+
+    /*
      * Now the comparisons between the test-created-itk mesh (itkMesh)
-     * and the saved itk data from itk.obj (stored in savedITKMesh)
-     * will occur. First, points then normals then faces. 
+     * and the saved itk data from itk.obj (stored in savedITKPoints and saveITKCells)
+     * will occur. First, points then normals then faces.
      */
 
     //Check number of points in each mesh
-    BOOST_CHECK_EQUAL( itkMesh->GetNumberOfPoints(), savedITKMesh->GetNumberOfPoints() );
+    BOOST_CHECK_EQUAL( itkMesh->GetNumberOfPoints(), savedITKPoints.size() );
 
-    std::cerr << "Compraring points..." << std::endl;
+    std::cerr << "Comparing points..." << std::endl;
     //Now iterate over point sets and compare x/y/z values
     for ( size_t p_id = 0; p_id < itkMesh ->GetNumberOfPoints(); ++p_id) {
-        
-        BOOST_CHECK_EQUAL( itkMesh->GetPoint(p_id)[0], savedITKMesh->GetPoint(p_id)[0] );
-        BOOST_CHECK_EQUAL( itkMesh->GetPoint(p_id)[1], savedITKMesh->GetPoint(p_id)[1] );
-        BOOST_CHECK_EQUAL( itkMesh->GetPoint(p_id)[2], savedITKMesh->GetPoint(p_id)[2] );
+
+        BOOST_CHECK_EQUAL( itkMesh->GetPoint(p_id)[0], savedITKPoints[p_id].x);
+        BOOST_CHECK_EQUAL( itkMesh->GetPoint(p_id)[1], savedITKPoints[p_id].y);
+        BOOST_CHECK_EQUAL( itkMesh->GetPoint(p_id)[2], savedITKPoints[p_id].z);
+
     }
 
-    
     // Normals //
-    std::cerr << "Compraring normals..." << std::endl;
-
+    std::cerr << "Comparing normals..." << std::endl;
+    int p = 0;
     for ( VC_PointsInMeshIterator point = itkMesh->GetPoints()->Begin(); point != itkMesh->GetPoints()->End(); ++point ) {
 
-        VC_PixelType itkMeshNormal, savedITKNormal;
+        VC_PixelType itkMeshNormal;
         itkMesh->GetPointData(point.Index(), &itkMeshNormal);
-        savedITKMesh->GetPointData(point.Index(), &savedITKNormal);
 
         double ptNorm[3] = {itkMeshNormal[0], itkMeshNormal[1], itkMeshNormal[2]};
-        double _itkPtNorm[3] = {savedITKNormal[0], savedITKNormal[1], savedITKNormal[2]};
 
         //Now compare the normals for the two meshes
-        BOOST_CHECK_EQUAL(itkMeshNormal[0], savedITKNormal[0]);
-        BOOST_CHECK_EQUAL(itkMeshNormal[1], savedITKNormal[1]);
-        BOOST_CHECK_EQUAL(itkMeshNormal[2], savedITKNormal[2]);
+        BOOST_CHECK_EQUAL(itkMeshNormal[0], savedITKPoints[p].nx);
+        BOOST_CHECK_EQUAL(itkMeshNormal[1], savedITKPoints[p].ny);
+        BOOST_CHECK_EQUAL(itkMeshNormal[2], savedITKPoints[p].nz);
+
+        p++;
 
     }
-    
+
     //Cells
-    std::cerr << "Compraring cells..." << std::endl;
+    std::cerr << "Comparing cells..." << std::endl;
+
+    //compare number of cells in each itk mesh
+    BOOST_CHECK_EQUAL(itkMesh->GetNumberOfCells(), savedITKCells.size());
 
     // Initialize Cell Iterators
     VC_CellIterator itkMeshCell = itkMesh->GetCells()->Begin();
-    VC_CellIterator savedITKCell = savedITKMesh->GetCells()->Begin();
 
-    //compare number of cells in each itk mesh
-    BOOST_CHECK_EQUAL(itkMesh->GetNumberOfCells(), savedITKMesh->GetNumberOfCells());
+    int c = 0;
 
     while (itkMeshCell != itkMesh->GetCells()->End()) {
 
         //Initialize Iterators for Points in a Cell
         VC_PointsInCellIterator itkMeshPoint = itkMeshCell.Value()->PointIdsBegin();
-        VC_PointsInCellIterator savedITKPoint = savedITKCell.Value()->PointIdsBegin();
 
+        int counter = 0;
         //while we have points in the cell
         while ( itkMeshPoint != itkMeshCell.Value()->PointIdsEnd() ) {
 
-
             //Now to check the points within the cells
-            BOOST_CHECK_EQUAL(*itkMeshPoint, *savedITKPoint);
+            if (counter == 0)
+                BOOST_CHECK_EQUAL(*itkMeshPoint, savedITKCells[c].v1 - 1);
+            else if(counter == 1)
+                BOOST_CHECK_EQUAL(*itkMeshPoint, savedITKCells[c].v2 - 1);
+            else if (counter == 2)
+                BOOST_CHECK_EQUAL(*itkMeshPoint, savedITKCells[c].v3 - 1);
 
             //increment points
             itkMeshPoint++;
-            savedITKPoint++;
+            counter++;
 
         }
 
         //increment cells
         ++itkMeshCell;
-        ++savedITKCell;
-
+        ++c;
     }
 
 }
@@ -405,8 +408,7 @@ BOOST_FIXTURE_TEST_CASE(compareSavedVTK, ivFix){
 
     //Read in the vtk.ply file
     //parsePlyFile() found in parsingHelpers.cpp
-    volcart::testing::parsePlyFile     ("vtk.ply", savedVTKPoints, savedVTKCells);
-
+    volcart::testing::parsePlyFile("vtk.ply", savedVTKPoints, savedVTKCells);
     /*
      * Now the comparison can occur between the saved .ply file and the
      * test-case-created _vtk mesh. First, we check the points and then

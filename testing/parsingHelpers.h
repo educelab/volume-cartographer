@@ -27,9 +27,9 @@
 namespace volcart {
     namespace testing {
 
-            void parsePlyFile(std::string string, std::vector<VC_Vertex> &verts, std::vector<VC_Cell> &faces);
-
-            std::vector<std::string> split_string(std::string input);
+        void parsePlyFile(std::string filepath, std::vector<VC_Vertex> &verts, std::vector<VC_Cell> &faces);
+        void parseObjFile(std::string filepath, std::vector<VC_Vertex> &points, std::vector<VC_Cell> &cells);
+        std::vector<std::string> split_string(std::string input);
 
     }
 }
