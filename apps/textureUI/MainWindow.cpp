@@ -3,7 +3,7 @@
 // Purpose: Create a Main Window for the GUI
 // Developer: Michael Royal - mgro224@g.uky.edu
 // October 12, 2015 - Spring Semester 2016
-// Last Updated 11/13/2015 by: Michael Royal
+// Last Updated 11/23/2015 by: Michael Royal
 
 // Copy Right ©2015 (Brent Seales: Volume Cartography Research) - University of Kentucky Center for Visualization and Virtualization
 //----------------------------------------------------------------------------------------------------------------------------------------
@@ -22,10 +22,10 @@ MainWindow::MainWindow(Global_Values *globals)
     // of Buttons Visually when Program first Initiates
     //----------------------------------------------------------
 
-    //MAX DIMENSIONS
+    //MIN DIMENSIONS
     window()->setMinimumHeight(_globals->getHeight()/2);
     window()->setMinimumWidth(_globals->getWidth()/2);
-    //MIN DIMENSIONS
+    //MAX DIMENSIONS
     window()->setMaximumHeight(_globals->getHeight());
     window()->setMaximumWidth(_globals->getWidth());
     //---------------------------------------------------------
@@ -47,26 +47,26 @@ MainWindow::MainWindow(Global_Values *globals)
     //------------------------------
     setCentralWidget(w); // w is a wrapper widget for all of the widgets in the main window.
 
-    create_Actions(); // Creates the Actions for the File Menu
+    create_Actions(); // Creates the Actions for the Menu Bar & Sub-Menus
     create_Menus(); // Creates the Menus and adds them to the Menu Bar
 }
 
-void MainWindow::getFilePath()
+void MainWindow::getFilePath()// Gets the Folder Path of the Volume Package location, and initiates a Volume Package.
 {
     QFileDialog *dialogBox= new QFileDialog();
     QString filename = dialogBox->getExistingDirectory();
     std::string file_Name = filename.toStdString();
 
-    if(filename!=NULL)
+    if(filename!=NULL)// If the user selected a Folder Path
     {
-        if ((file_Name.substr(file_Name.length()-7, file_Name.length())).compare(".volpkg") == 0)
+        if ((file_Name.substr(file_Name.length()-7, file_Name.length())).compare(".volpkg") == 0)// Checks the Folder Path for .volpkg extension
         {
             try {
-                    _globals->setPath(filename);
-                    _globals->createVolumePackage();
-                    _globals->getMySegmentations();
-                    _segmentations_Viewer->setSegmentations();
-                    _segmentations_Viewer->setVol_Package_Name(filename);
+                    _globals->setPath(filename);// Sets Folder Path in Globals
+                    _globals->createVolumePackage();// Creates a Volume Package Object
+                    _globals->getMySegmentations();// Gets Segmentations and assigns them to "segmentations" in Globals
+                    _segmentations_Viewer->setSegmentations();// Sets the Segmentations for the Segmentation Viewer and assigns the
+                    _segmentations_Viewer->setVol_Package_Name(filename);// Sets the name of the Volume Package to Display on the GUI
 
                 }catch(...)
                         {
@@ -80,14 +80,14 @@ void MainWindow::getFilePath()
     }
 }
 
-void MainWindow::saveTexture()
+void MainWindow::saveTexture()// Overrides the Current Texture Image in the Segmentation's Folder with the newly Generated Texture Image.
 {
     if(_globals->isVPKG_Intantiated() && _globals->getVolPkg()->getSegmentations().size()!=0)//If A Volume Package is Loaded and there are Segmentations (continue)
     {
         if(_globals->getTexture().hasImages())// Checks to see if there are images
         {
             try{
-                _globals->getVolPkg()->saveTextureData(_globals->getTexture());
+                _globals->getVolPkg()->saveTextureData(_globals->getTexture());// Saves Texture Image
                 QMessageBox::information(this, tr("Error Message"), "Saved Successfully.");
 
                 }catch(...)
@@ -100,13 +100,13 @@ void MainWindow::saveTexture()
     }else QMessageBox::warning(this, tr("Error Message"), "There is no Texture Image to Save!");
 }
 
-void MainWindow::exportTexture()
+void MainWindow::exportTexture()// Exports the Image as .tif, .tiff, .png, .jpg, and .jpeg
 {
     if(_globals->isVPKG_Intantiated() && _globals->getVolPkg()->getSegmentations().size()!=0) //If A Volume Package is Loaded and there are Segmentations (continue)
     {
         if(_globals->getTexture().hasImages())// Checks to see if there are images
         {
-            bool path = false;
+            bool path = false;// Used to determine whether to output error message
 
             try
             {
@@ -138,7 +138,7 @@ void MainWindow::exportTexture()
                 try
                 {
                     if (texture.data == nullptr)
-                    {
+                        {
                         QMessageBox::warning(this, "Error", "There is no Texture Image to Export!");
 
                     } else

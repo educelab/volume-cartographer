@@ -3,7 +3,7 @@
 // GUI Layout
 // Developer: Michael Royal - mgro224@g.uky.edu
 // October 7, 2015 - Spring Semester 2016
-// Last Updated 10/27/2015 by: Michael Royal
+// Last Updated 11/23/2015 by: Michael Royal
 
 // Copyright ©2015 (Brent Seales: Volume Cartography Research) - University of Kentucky Center for Visualization and Virtualization
 //----------------------------------------------------------------------------------------------------------------------------------------

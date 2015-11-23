@@ -38,7 +38,6 @@ private:
     void create_Menus();
 
     QMenu* fileMenu;
-    //QMenuBar *menuBar;
 
     QAction* actionGetFilePath;
     QAction* actionSave;
