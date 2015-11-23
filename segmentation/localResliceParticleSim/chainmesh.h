@@ -21,6 +21,8 @@ public:
 
     void addChain(Chain c);
 
+    void addPositions(Positions ps);
+
     cv::Mat positions() const { return positions_; }
 
     int32_t width() const { return width_; }

@@ -20,6 +20,15 @@ void ChainMesh::addChain(Chain row)
     nextRow_++;
 }
 
+// Adds vector of positions to the matrix
+void ChainMesh::addPositions(Positions ps)
+{
+    for (uint32_t i = 0; i < ps.size(); ++i) {
+        positions_.at<cv::Vec3d>(nextRow_, i) = ps.at(i);
+    }
+    nextRow_++;
+}
+
 // Export the mesh as an ordered PCD
 // Note: Need to export as PointXYZRGB since that's how it's stored in VolumePkg
 pcl::PointCloud<pcl::PointXYZRGB> ChainMesh::exportAsPointCloud() {

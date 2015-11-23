@@ -1,6 +1,7 @@
 #include <list>
 #include <tuple>
 #include <numeric>
+#include <memory>
 
 #include "localResliceParticleSim.h"
 
@@ -21,7 +22,7 @@ LocalResliceSegmentation::segmentLayer(const bool showVisualization,
                                        const int32_t maxIterations)
 {
     // The main chain that we'll be mutating on each iteration
-    auto currentChain = Chain(pkg_, startIndex);
+    auto currentChain = std::unique_ptr<Chain>(new Chain(pkg_, startIndex));
 
     startIndex_ = startIndex;
     // Account for zero-indexing and slices lost in calculating normal vector
@@ -31,28 +32,66 @@ LocalResliceSegmentation::segmentLayer(const bool showVisualization,
     }
 
     // ChainMesh that holds the segment
-    auto mesh = ChainMesh(currentChain.size(), endIndex - startIndex);
-    mesh.addChain(currentChain);
+    auto mesh = ChainMesh(currentChain->size(), endIndex - startIndex);
+    mesh.addChain(*currentChain);
+
+    // Get current derivatives
+    int32_t N = currentChain->size();
+    std::vector<double> currentDerivatives(N);
+    for (int32_t i = 0; i < N; ++i) {
+        currentDerivatives.at(i) = fivePointStencil(i, currentChain->positions());
+    }
 
     // Go through every iteration (from start to end index)
-    auto sliceIndex = startIndex_;
-    while (sliceIndex < endIndex_) {
+    for (int32_t sliceIndex = startIndex_;
+         sliceIndex <= endIndex_;
+         sliceIndex += stepNumLayers) {
+
 		std::cout << "slice: " << sliceIndex << std::endl;
+
         // Get predicted directions and positions
         if (showVisualization) {
-            currentChain.draw();
+            currentChain->draw();
             cv::waitKey(0);
         }
-        std::vector<Direction> predictedDirections;
-        std::vector<cv::Vec3d> predictedPositions;
-        std::tie(predictedDirections, predictedPositions) = currentChain.stepAll(stepNumLayers);
-        auto N = int32_t(predictedPositions.size());
+        std::vector<Positions> allPredictedPositions =
+            currentChain->stepAll(stepNumLayers);
 
+        // Let's start picking new positions from the middle to the outside. Sort
+        // indices based on distance from the center
+        std::vector<int32_t> particleIndices(N);
+        std::iota(particleIndices.begin(), particleIndices.end(), 0);
+        std::sort(particleIndices.begin(), particleIndices.end(),
+            [N](int32_t a, int32_t b) {
+                int32_t mid = N / 2;
+                return std::abs(a - mid) < std::abs(b - mid);
+            });
+
+        // Initialize current positions to first predicted (and likely best) position
+        // in all positions structure
+        // XXX Does this do move constructor or copy constructor?
+        Positions currentPositions(allPredictedPositions.at(0));
+        Positions minPositions(allPredictedPositions.at(0));
+
+        // Exhaustive search for minimal change in chain derivative over all
+        // combinations of predicted positions
+        // XXX Make this faster by doing numerical optimization/gradient descent
+        std::vector<double> currentDerivatives(N);
+        std::vector<double> minDerivatives(N, std::numeric_limits<double>::max());
+        for (int32_t i = 0; i < N; ++i) {
+            for (int32_t j = 0; allPredictedPositions.at(i).size(); ++j) {
+                currentPositions.at(i) = allPredictedPositions.at(i).at(j);
+            }
+        }
+
+
+
+        /*
         // Get XY drift of newPositions from currentPositions
         auto xyDrift = std::vector<double>(N);
         for (auto i = 0; i < N; ++i) {
             auto p1 = cv::Vec2d(predictedPositions[i](VC_INDEX_X), predictedPositions[i](VC_INDEX_Y));
-            auto p2 = cv::Vec2d(currentChain.at(i)(VC_INDEX_X), currentChain.at(i)(VC_INDEX_Y));
+            auto p2 = cv::Vec2d(currentChain->at(i)(VC_INDEX_X), currentChain->at(i)(VC_INDEX_Y));
             xyDrift[i] = cv::norm(p1, p2);
         }
 
@@ -112,17 +151,18 @@ LocalResliceSegmentation::segmentLayer(const bool showVisualization,
 
             // Restep this particle using new constraints
             std::tie(predictedDirections[elem], predictedPositions[elem]) =
-                    currentChain.step(elem, stepNumLayers, majorityDirection, maxDrift);
+                    currentChain->step(elem, stepNumLayers, majorityDirection, maxDrift);
 
             iterationCount++;
         }
         //std::cout << "Got through " << iterationCount << " iterations" << std::endl;
+        */
 
         // Push old positions back into chainmesh
-        currentChain.setNewPositions(predictedPositions);
-        mesh.addChain(currentChain);
-        sliceIndex += stepNumLayers;
-        currentChain.setZIndex(sliceIndex);
+        mesh.addPositions(minPositions);
+
+        // Make a new chain for the next positions
+        currentChain = std::unique_ptr<Chain>(new Chain(pkg_, sliceIndex));
     }
 
     return mesh.exportAsPointCloud();
@@ -158,4 +198,53 @@ LocalResliceSegmentation::_getNeighborIndices(
     }
 
     return nbors;
+}
+
+// Uses the five point stencil equation as given here:
+// https://en.wikipedia.org/wiki/Five-point_stencil
+double fivePointStencil(uint32_t center, const Positions& ps)
+{
+
+    // Average difference in x dimension across entire chain
+    const double avgXDiff = std::accumulate(ps.begin(), ps.end(), 0,
+            [](double sum, cv::Vec3d p) { return sum + p(VC_INDEX_X); }) / ps.size();
+
+    // Fit curve to new predicted ps.
+    FittedCurve<> f;
+    FittedCurve<>::TInputPoints newPoints(ps.size());
+    for (auto& p : ps) {
+        newPoints.emplace_back(p(VC_INDEX_X), p(VC_INDEX_Y));
+    }
+    f.fitPoints(newPoints);
+
+    // Take care of any out of bounds accesses
+    double twoBefore, oneBefore, oneAfter, twoAfter;
+    if (center == 0) {
+        twoBefore = f.at(ps.at(0)(VC_INDEX_X) - 2 * avgXDiff);
+        oneBefore = f.at(ps.at(0)(VC_INDEX_X) - avgXDiff);
+        oneAfter  = ps.at(center + 1)(VC_INDEX_Y);
+        twoAfter  = ps.at(center + 2)(VC_INDEX_Y);
+    } else if (center == 1) {
+        twoBefore = f.at(ps.at(0)(VC_INDEX_X) - avgXDiff);
+        oneBefore = ps.at(0)(VC_INDEX_Y);
+        oneAfter  = ps.at(center + 1)(VC_INDEX_Y);
+        twoAfter  = ps.at(center + 2)(VC_INDEX_Y);
+    } else if (center == ps.size() - 2) {
+        twoBefore = ps.at(center - 2)(VC_INDEX_Y);
+        oneBefore = ps.at(center - 1)(VC_INDEX_Y);
+        oneAfter  = ps.at(ps.size() - 1)(VC_INDEX_Y);
+        twoAfter  = f.at(ps.at(ps.size() -1)(VC_INDEX_X) + avgXDiff);
+    } else if (center == ps.size() - 1) {
+        twoBefore = ps.at(center - 2)(VC_INDEX_Y);
+        oneBefore = ps.at(center - 1)(VC_INDEX_Y);
+        oneAfter  = f.at(ps.at(ps.size() -1)(VC_INDEX_X) + avgXDiff);
+        twoAfter  = f.at(ps.at(ps.size() -1)(VC_INDEX_X) + 2 * avgXDiff);
+    } else {
+        twoBefore = ps.at(center - 2)(VC_INDEX_Y);
+        oneBefore = ps.at(center - 1)(VC_INDEX_Y);
+        oneAfter  = ps.at(center + 1)(VC_INDEX_Y);
+        twoAfter  = ps.at(center + 2)(VC_INDEX_Y);
+    }
+
+    return (-twoAfter + 8 * oneAfter - 8 * oneBefore + twoBefore) / (12 * avgXDiff);
 }

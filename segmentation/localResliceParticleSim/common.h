@@ -6,6 +6,8 @@
 #include <vector>
 #include <tuple>
 
+#include <opencv2/opencv.hpp>
+
 namespace volcart {
 
 namespace segmentation {
@@ -26,6 +28,7 @@ namespace segmentation {
 
 using IndexDistPair = std::pair<int32_t, double>;
 using IndexDistPairVec = typename std::vector<IndexDistPair>;
+using Positions = std::vector<cv::Vec3d>;
 
 enum Direction {
     kLeft = -1,

@@ -26,18 +26,22 @@ namespace segmentation {
 
 class Chain {
 public:
-    using TIterator = std::vector<Particle>::iterator;
+    using TIterator      = std::vector<Particle>::iterator;
     using TConstIterator = std::vector<Particle>::const_iterator;
-    using DirPosPair = std::tuple<Direction, cv::Vec3d>;
-    using DirPosPairVec = std::tuple<std::vector<Direction>, std::vector<cv::Vec3d>>;
+    using DirPosPair     = std::tuple<Direction, cv::Vec3d>;
+    using DirPosPairVec  = std::tuple<std::vector<Direction>, std::vector<cv::Vec3d>>;
 
     Chain();
 
-    Chain(VolumePkg& pkg, int32_t zIndex);
+    Chain(const VolumePkg& pkg, int32_t zIndex);
+
+    Chain(const VolumePkg& pkg, Positions pos, int32_t zIndex);
 
     int32_t size(void) const { return particleCount_; }
 
     Particle at(const int32_t idx) const { return particles_.at(idx); }
+
+    Positions positions() const;
 
     void setZIndex(int32_t zIndex) { zIndex_ = zIndex; }
 
@@ -51,20 +55,20 @@ public:
 
     TIterator end() { return particles_.end(); }
 
-    DirPosPairVec stepAll(const int32_t stepNumLayers) const;
+    const FittedCurve<double, 4>& fittedCurve() const { return curve_; }
 
-    DirPosPair step(const int32_t particleIndex,
-                    const int32_t stepNumLayers,
-                    const Direction d=Direction::kDefault,
-                    const double maxDrift=kDefaultMaxDrift) const;
+    std::vector<Positions> stepAll(const int32_t stepNumLayers) const;
 
-    void setNewPositions(std::vector<cv::Vec3d> newPositions);
+    Positions step(const int32_t particleIndex,
+                   const int32_t stepNumLayers) const;
+
+    void setNewPositions(const std::vector<cv::Vec3d> newPositions);
 
     void draw() const;
 
 private:
     std::vector<Particle> particles_;
-    VolumePkg& volpkg_;
+    const VolumePkg& volpkg_;
     size_t particleCount_;
     int32_t zIndex_;
     // XXX 4th degree interpolation is about as large as we can go currently.
