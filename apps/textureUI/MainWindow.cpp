@@ -116,7 +116,9 @@ void MainWindow::exportTexture()
                 if(imagePath!="")
                 {
                     path = true;
-                    cv::imwrite( imagePath.toStdString(), _globals->getTexture().getImage(0).clone() );
+                    cv::Mat texture = _globals->getTexture().getImage(0).clone();
+                    texture.convertTo(texture, CV_8U, 255.0 / 65535.0);
+                    cv::imwrite( imagePath.toStdString(), texture );
                     QMessageBox::information(this,"Successful","Successfully Exported Image");
                 }
 
@@ -147,6 +149,7 @@ void MainWindow::exportTexture()
                               if(imagePath!="")
                               {
                                   path = true;
+                                  texture.convertTo(texture, CV_8U, 255.0 / 65535.0);
                                   cv::imwrite( imagePath.toStdString(), texture);
                                   QMessageBox::information(this,"Successful","Successfully Exported Image");
                               }
