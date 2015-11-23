@@ -82,7 +82,7 @@ void MainWindow::getFilePath()
 
 void MainWindow::saveTexture()
 {
-    if(_globals->isVPKG_Intantiated() && _globals->getVolPkg()->getSegmentations().size()!=0)
+    if(_globals->isVPKG_Intantiated() && _globals->getVolPkg()->getSegmentations().size()!=0)//If A Volume Package is Loaded and there are Segmentations (continue)
     {
         if(_globals->getTexture().hasImages())// Checks to see if there are images
         {
@@ -102,10 +102,66 @@ void MainWindow::saveTexture()
 
 void MainWindow::exportTexture()
 {
-    // NEEDS TO BE CONFIGURED
-    QString imagePath = QFileDialog::getSaveFileName(this, tr("Save File"), "", "Images (*.png *jpg *jpeg *tif *tiff)");
-    // Needs to be configured
-    _globals->getQPixMapImage().save(imagePath, "PNG");
+    if(_globals->isVPKG_Intantiated() && _globals->getVolPkg()->getSegmentations().size()!=0) //If A Volume Package is Loaded and there are Segmentations (continue)
+    {
+        if(_globals->getTexture().hasImages())// Checks to see if there are images
+        {
+            bool path = false;
+
+            try
+            {
+                QString imagePath = "";
+                imagePath = QFileDialog::getSaveFileName(this, tr("Export Texture Image"), "",tr("Images (*.png *jpg *jpeg *tif *tiff)"));
+
+                if(imagePath!="")
+                {
+                    path = true;
+                    cv::imwrite( imagePath.toStdString(), _globals->getTexture().getImage(0).clone() );
+                    QMessageBox::information(this,"Successful","Successfully Exported Image");
+                }
+
+            }catch(...)
+                {
+                    if(path)
+                    {
+                        QMessageBox::warning(this, "Error", "Error Exporting Texture Image Properly! Acceptable: ( .jpg, .jpeg, .png, .tif, .tiff)");
+                    }
+                }
+
+        }else
+            {
+                bool path = false;
+                cv::Mat texture = _globals->getVolPkg()->getTextureData();
+
+                try
+                {
+                    if (texture.data == nullptr)
+                    {
+                        QMessageBox::warning(this, "Error", "There is no Texture Image to Export!");
+
+                    } else
+                          {
+                              QString imagePath = "";
+                              imagePath = QFileDialog::getSaveFileName(this, tr("Export Texture Image"), "", tr("Images (*.png *jpg *jpeg *tif *tiff)"));
+
+                              if(imagePath!="")
+                              {
+                                  path = true;
+                                  cv::imwrite( imagePath.toStdString(), texture);
+                                  QMessageBox::information(this,"Successful","Successfully Exported Image");
+                              }
+                          }
+
+                }catch(...)
+                    {
+                        if(path)
+                        {
+                            QMessageBox::warning(this, "Error", "Error Exporting Texture Image Properly! Acceptable: ( .jpg, .jpeg, .png, .tif, .tiff)");
+                        }
+                    }
+            }
+
+    }else QMessageBox::warning(this, "Error", "There is no Texture Image to Export!");
 }
 
 void MainWindow::create_Actions()

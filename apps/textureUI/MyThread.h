@@ -19,5 +19,6 @@ public:
 private:
 
     Global_Values *_globals;
+
 };
 #endif //VC_MYTHREAD_H

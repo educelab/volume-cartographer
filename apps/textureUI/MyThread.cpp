@@ -35,7 +35,7 @@ void MyThread::run()
             };
 
             volcart::Texture newTexture;
-            newTexture = volcart::texturing::compositeTexture(mesh, *_globals->getVolPkg(), meshWidth, meshHeight, _radius, aFilterOption, aDirectionOption);// Line Causes delays closing
+            newTexture = volcart::texturing::compositeTexture(mesh, *_globals->getVolPkg(), meshWidth, meshHeight, _radius, aFilterOption, aDirectionOption);
 
             _globals->setTexture(newTexture);
 
