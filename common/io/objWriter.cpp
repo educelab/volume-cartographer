@@ -4,6 +4,8 @@
 
 #include "objWriter.h"
 
+#define UNSET_VALUE -1
+
 namespace volcart {
     namespace io {
 
@@ -132,7 +134,7 @@ namespace volcart {
             _outputMesh << "vn " << normal[0] << " " << normal[1] << " " << normal[2] << std::endl;
 
             // Make a new point link for this point
-            cv::Vec3d point_link( v_Index, NULL, v_Index);
+            cv::Vec3d point_link( v_Index, UNSET_VALUE, v_Index);
             _point_links.insert( { point.Index(), point_link } );
 
             ++v_Index;
@@ -194,7 +196,7 @@ namespace volcart {
                 cv::Vec3d point_link = _point_links.find(*point)->second;
 
                 v_Index = boost::lexical_cast<std::string>( point_link[0] );
-                if (point_link[1] != NULL) vt_Index = boost::lexical_cast<std::string>( point_link[1] );
+                if (point_link[1] != UNSET_VALUE) vt_Index = boost::lexical_cast<std::string>( point_link[1] );
                 vn_Index = boost::lexical_cast<std::string>( point_link[2] );
 
                 _outputMesh << v_Index << "/" << vt_Index << "/" << vn_Index << " ";
