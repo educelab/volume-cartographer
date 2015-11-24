@@ -138,7 +138,7 @@ void MainWindow::exportTexture() {
 
     ///// Deal with edge cases /////
     // Default to png if no extension provided
-    if ( outputPath.extension().empty() ) {}
+    if ( outputPath.extension().empty() )
         outputPath = outputPath.string() + ".png";
 
     // For convenience
