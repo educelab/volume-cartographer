@@ -61,14 +61,14 @@ namespace volcart {
         if ( _json.get(identifier).is<double>() )
             return (int) _json.get(identifier).get<double>();
         else
-            return NULL;
+            return 0;
     }
 
     double Metadata::getDouble(std::string identifier) {
         if ( _json.get(identifier).is<double>() )
             return _json.get(identifier).get<double>();
         else
-            return NULL;
+            return 0.0;
     }
 
     std::string Metadata::getString(std::string identifier, std::string default_output) {
