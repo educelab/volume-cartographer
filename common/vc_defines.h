@@ -5,7 +5,11 @@
 #ifndef VC_DEFINES_H
 #define VC_DEFINES_H
 
-// VC - ITK Mesh Defaults
+///// GLOBAL VARIABLES /////
+// This define determines the default dictionary used when creating a new volumepkg
+#define VOLPKG_VERSION 2.0
+
+///// VC - ITK Mesh Defaults /////
 #include <itkMesh.h>
 #include "itkPointsLocator.h"
 #include <itkTriangleCell.h>
@@ -22,5 +26,10 @@ typedef itk::PointsLocator<VC_PointsContainerType>    VC_PointsLocatorType;
 typedef VC_MeshType::PointsContainer::ConstIterator   VC_PointsInMeshIterator;
 typedef VC_MeshType::CellsContainer::Iterator         VC_CellIterator;
 typedef VC_CellType::PointIdIterator                  VC_PointsInCellIterator;
+
+
+///// ERROR MESSAGES /////
+#define VC_ERR_READONLY()       { std::cerr << "ERROR: Volume Package is set to Read-Only. Cannot write to file." << std::endl; return EXIT_FAILURE; }
+#define VC_ERR_SLICE_ANALYZE    "ERROR: Slice file does not exist/isn't a regular file and cannot be analyze."
 
 #endif //VC_DEFINES_H

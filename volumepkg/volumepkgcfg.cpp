@@ -1,6 +1,14 @@
 #include "volumepkgcfg.h"
 
-VolumePkgCfg::VolumePkgCfg(std::string file_location){
+///// CONSTRUCTORS /////
+VolumePkgCfg::VolumePkgCfg() {
+    picojson::object obj;
+    obj["version"] = picojson::value(VOLPKG_VERSION);
+    _json = picojson::value(obj);
+}
+
+// Read a json config from disk
+VolumePkgCfg::VolumePkgCfg(std::string file_location) {
 
     // open the file
     std::ifstream json_file(file_location);
@@ -10,34 +18,60 @@ VolumePkgCfg::VolumePkgCfg(std::string file_location){
     }
 
     // try to push into a picojson value
-    json_file >> jsonString;
+    json_file >> _json;
     if (json_file.fail()) {
         std::cerr << picojson::get_last_error() << std::endl;
     }
 
-    if (jsonString.is<picojson::object>()) {
-        jsonObject = jsonString.get<picojson::object>();
-    } else {
-        std::cout << "input is not a json object" << std::endl;
-    }
 }
 
-VolumePkgCfg::VolumePkgCfg(picojson::value val) {
+// Construct a new json config using a Dictionary as a template
+VolumePkgCfg::VolumePkgCfg(volcart::Dictionary dict, double version) {
 
-    if (val.is<picojson::object>()) {
-        jsonObject = val.get<picojson::object>();
-    } else {
-        std::cout << "input is not a json object" << std::endl;
+    // Populate the cfg with keys from the dict
+    picojson::object obj;
+    volcart::Dictionary::const_iterator entry = dict.begin();
+    while ( entry != dict.end() ) {
+
+        // Version must be populated correctly for volumepkg setMetadata() functions to work
+        if ( entry->first == "version" ) {
+            obj["version"] = picojson::value(version);
+
+            ++entry;
+            continue;
+        }
+
+        // Default values
+        std::string type = entry->second;
+        if ( type == "int" ) {
+            int initValue = 0;
+            obj[entry->first] = picojson::value(double(initValue));
+        }
+        else
+        if ( type == "double" ) {
+            double initValue = 0.0;
+            obj[entry->first] = picojson::value(initValue);
+        }
+        else {
+            std::string initValue = "";
+            obj[entry->first] = picojson::value(initValue);
+        }
+
+        ++entry;
     }
-}
 
+    _json = picojson::value(obj);
+};
+
+
+// save the JSON file to disk
 void VolumePkgCfg::saveCfg(std::string file_location) {
     
     // open the file
     std::ofstream json_file (file_location, std::ofstream::out);
 
     // try to push into the json file
-    json_file << jsonString << std::endl;
+    json_file << _json << std::endl;
     if (json_file.fail()) {
         std::cerr << picojson::get_last_error() << std::endl;
     }
@@ -48,11 +82,11 @@ void VolumePkgCfg::saveCfg(std::string file_location) {
 
 // debug
 void VolumePkgCfg::printString() {
-    std::cout << jsonString << std::endl;
+    std::cout << _json << std::endl;
 }
 
 void VolumePkgCfg::printObject() {
-    for (picojson::object::const_iterator i = jsonObject.begin(); i != jsonObject.end(); ++i) {
+    for (picojson::object::const_iterator i = _json.get<picojson::object>().begin(); i != _json.get<picojson::object>().end(); ++i) {
         std::cout << i->first << "  " << i->second << std::endl;
     }
 }
@@ -60,46 +94,50 @@ void VolumePkgCfg::printObject() {
 
 // retrieval
 int VolumePkgCfg::getInt(std::string identifier) {
-    if ( jsonString.get(identifier).is<double>() )
-        return (int) jsonString.get(identifier).get<double>();
+    if ( _json.get(identifier).is<double>() )
+        return (int) _json.get(identifier).get<double>();
     else
         return 0;
 }
 
 double VolumePkgCfg::getDouble(std::string identifier) {
-    if ( jsonString.get(identifier).is<double>() )
-        return jsonString.get(identifier).get<double>();
+    if ( _json.get(identifier).is<double>() )
+        return _json.get(identifier).get<double>();
     else
         return 0.0;
 }
 
 std::string VolumePkgCfg::getString(std::string identifier, std::string default_output) {
     try {
-        return jsonString.get(identifier).get<std::string>();
+        return _json.get(identifier).get<std::string>();
     }
     catch(...) {
         return default_output;
     }
 }
 
-VolumePkgCfg VolumePkgCfg::getInnerElement(std::string identifier) {
-    return VolumePkgCfg(jsonString.get(identifier));
-}
+// This is unused and needs to be rethought
+//VolumePkgCfg VolumePkgCfg::getInnerElement(std::string identifier) {
+//    return VolumePkgCfg(_json.get(identifier));
+//}
 
 
 // assignment
 void VolumePkgCfg::setValue(std::string identifier, int value) {
     // picojson requires int be cast to double
+    picojson::object jsonObject = _json.get<picojson::object>();
     jsonObject[identifier] = picojson::value(double(value));
-    jsonString = picojson::value(jsonObject);
+    _json = picojson::value(jsonObject);
 }
 
 void VolumePkgCfg::setValue(std::string identifier, double value) {
+    picojson::object jsonObject = _json.get<picojson::object>();
     jsonObject[identifier] = picojson::value(value);
-    jsonString = picojson::value(jsonObject);
+    _json = picojson::value(jsonObject);
 }
 
 void VolumePkgCfg::setValue(std::string identifier, std::string value) {
+    picojson::object jsonObject = _json.get<picojson::object>();
     jsonObject[identifier] = picojson::value(value);
-    jsonString = picojson::value(jsonObject);
+    _json = picojson::value(jsonObject);
 }

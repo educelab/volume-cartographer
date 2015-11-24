@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 cmake_policy(SET CMP0048 NEW)
 
-project(VC VERSION 2.1.1)
+project(VC VERSION 2.1.2)
 set(CMAKE_CXX_STANDARD 11)
 
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
@@ -13,20 +13,26 @@ option(BUILD_OSX_APPS "Build OSX App Bundle" OFF)
 option(BUILD_DragNDrop "Build OSX DMG Installer" OFF)
 endif(APPLE)
 option(Boost_USE_STATIC_LIBS "Link against static Boost libs" OFF)
+option(VC_PREBUILT_LIBS "Link against prebuilt dependencies" OFF)
 
 # Choose what to install
 option(INSTALL_VC_CORE "Install VC core apps" ON)
 option(INSTALL_VC_UTIL "Install VC util apps" ON)
 option(INSTALL_VC_DEMO "Install VC demo apps" OFF)
 
+IF(VC_PREBUILT_LIBS)
+    set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/)
+    set(CMAKE_PREFIX_PATH ${PROJECT_SOURCE_DIR}/deps/)
+ENDIF(VC_PREBUILT_LIBS)
+
 find_package(Qt4 REQUIRED)
 find_package(PCL 1.7 REQUIRED)
 find_package(OpenCV REQUIRED)
-find_package(Boost REQUIRED)
+find_package(Boost REQUIRED COMPONENTS system filesystem program_options iostreams)
 find_package(ITK REQUIRED)
 find_package(VTK REQUIRED)
 find_package(OpenGL REQUIRED)
-#find_package(ACVD REQUIRED)
+find_package(ACVD REQUIRED)
 
 include(${QT_USE_FILE})
 include(${ITK_USE_FILE})
@@ -60,19 +66,12 @@ include_directories(${SEGMENTATION_INCLUDE_DIR})
 set(VC_LIBS vc_volumepkg vc_meshing vc_segmentation vc_common)
 
 # VC Core Apps
+add_subdirectory(packager)
 add_subdirectory(pathgen)
 add_subdirectory(scalpel)
 add_subdirectory(texture)
 add_subdirectory(apps)
 add_subdirectory(utils)
-
-# Special rules for packager since it's a Python script
-file(MAKE_DIRECTORY packager)
-file(COPY packager/packager.py DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(RENAME ${CMAKE_BINARY_DIR}/bin/packager.py ${CMAKE_BINARY_DIR}/bin/vc_packager)
-
-install(PROGRAMS ${CMAKE_BINARY_DIR}/bin/vc_packager
-        DESTINATION bin COMPONENT Programs)
 
 # VC Demo Apps
 add_subdirectory(region)
