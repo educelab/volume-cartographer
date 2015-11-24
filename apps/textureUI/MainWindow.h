@@ -11,9 +11,15 @@
 #ifndef VC_MAINWINDOW_H
 #define VC_MAINWINDOW_H
 
+#include <algorithm>
+#include <vector>
+
 #include <QApplication>
 #include <QtWidgets>
 #include <QObject>
+#include <opencv2/opencv.hpp>
+#include <boost/filesystem.hpp>
+
 #include "Global_Values.h"
 #include "Texture_Viewer.h"
 #include "Segmentations_Viewer.h"

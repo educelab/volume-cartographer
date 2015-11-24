@@ -87,7 +87,7 @@ void Segmentations_Viewer::itemClickedSlot()
         QString s = segmentations->currentItem()->text();// Gets a QString for the Current Item Selected
         _globals->getVolPkg()->setActiveSegmentation(s.toStdString());// Sets the active Segmentation
 
-        cv::Mat texture = _globals->getVolPkg()->getTextureData();
+        cv::Mat texture = _globals->getVolPkg()->getTextureData().clone();
 
         bool test = loadImage(texture);
 

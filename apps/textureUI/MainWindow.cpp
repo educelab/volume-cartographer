@@ -80,9 +80,10 @@ void MainWindow::getFilePath()// Gets the Folder Path of the Volume Package loca
     }
 }
 
-void MainWindow::saveTexture()// Overrides the Current Texture Image in the Segmentation's Folder with the newly Generated Texture Image.
-{
-    if(_globals->isVPKG_Intantiated() && _globals->getVolPkg()->getSegmentations().size()!=0)//If A Volume Package is Loaded and there are Segmentations (continue)
+// Overrides the Current Texture Image in the Segmentation's Folder with the newly Generated Texture Image.
+void MainWindow::saveTexture() {
+    //If A Volume Package is Loaded and there are Segmentations (continue)
+    if(_globals->isVPKG_Intantiated() && _globals->getVolPkg()->getSegmentations().size()!=0)
     {
         if(_globals->getTexture().hasImages())// Checks to see if there are images
         {
@@ -100,71 +101,76 @@ void MainWindow::saveTexture()// Overrides the Current Texture Image in the Segm
     }else QMessageBox::warning(this, tr("Error Message"), "There is no Texture Image to Save!");
 }
 
-void MainWindow::exportTexture()// Exports the Image as .tif, .tiff, .png, .jpg, and .jpeg
-{
-    if(_globals->isVPKG_Intantiated() && _globals->getVolPkg()->getSegmentations().size()!=0) //If A Volume Package is Loaded and there are Segmentations (continue)
-    {
-        if(_globals->getTexture().hasImages())// Checks to see if there are images
-        {
-            bool path = false;// Used to determine whether to output error message
+// Exports the Image as .tif, .tiff, .png, .jpg, and .jpeg
+void MainWindow::exportTexture() {
 
-            try
-            {
-                QString imagePath = "";
-                imagePath = QFileDialog::getSaveFileName(this, tr("Export Texture Image"), "",tr("Images (*.png *jpg *jpeg *tif *tiff)"));
+    //Return if no volume package is loaded or if volpkg doesn't have segmentations
+    if( !_globals->isVPKG_Intantiated() || !_globals->getVolPkg()->getSegmentations().size() ) {
+        QMessageBox::warning(this, "Error", "Volume package not loaded/no segmentations in volume.");
+        std::cerr << "vc::export::error: no volpkg loaded" << std::endl;
+        return;
+    }
 
-                if(imagePath!="")
-                {
-                    path = true;
-                    cv::Mat texture = _globals->getTexture().getImage(0).clone();
-                    texture.convertTo(texture, CV_8U, 255.0 / 65535.0);
-                    cv::imwrite( imagePath.toStdString(), texture );
-                    QMessageBox::information(this,"Successful","Successfully Exported Image");
-                }
+    cv::Mat output;
 
-            }catch(...)
-                {
-                    if(path)
-                    {
-                        QMessageBox::warning(this, "Error", "Error Exporting Texture Image Properly! Acceptable: ( .jpg, .jpeg, .png, .tif, .tiff)");
-                    }
-                }
+    // Export the generated texture first, otherwise the one already saved to disk
+    if ( _globals->getTexture().hasImages() )
+        output = _globals->getTexture().getImage(0);
+    else
+        output = _globals->getVolPkg()->getTextureData();
 
-        }else
-            {
-                bool path = false;
-                cv::Mat texture = _globals->getVolPkg()->getTextureData();
+    // Return if no image to export
+    if ( !output.data ) {
+        QMessageBox::warning(this, "Error", "No image to export. Please load a different segmentation or generate a new texture." );
+        std::cerr << "vc::export::error: no image data to export" << std::endl;
+        return;
+    }
 
-                try
-                {
-                    if (texture.data == nullptr)
-                        {
-                        QMessageBox::warning(this, "Error", "There is no Texture Image to Export!");
+    // Get the output path
+    boost::filesystem::path outputPath;
+    outputPath = QFileDialog::getSaveFileName(this, tr("Export Texture Image"), "",tr("Images (*.png *jpg *jpeg *tif *tiff)")).toStdString();
 
-                    } else
-                          {
-                              QString imagePath = "";
-                              imagePath = QFileDialog::getSaveFileName(this, tr("Export Texture Image"), "", tr("Images (*.png *jpg *jpeg *tif *tiff)"));
+    // If no path provided/dialog cancelled
+    if ( outputPath.empty() ) {
+        std::cerr << "vc::export::status: dialog cancelled." << std::endl;
+        return;
+    }
 
-                              if(imagePath!="")
-                              {
-                                  path = true;
-                                  texture.convertTo(texture, CV_8U, 255.0 / 65535.0);
-                                  cv::imwrite( imagePath.toStdString(), texture);
-                                  QMessageBox::information(this,"Successful","Successfully Exported Image");
-                              }
-                          }
+    ///// Deal with edge cases /////
+    // Default to png if no extension provided
+    if ( outputPath.extension().empty() ) {}
+        outputPath = outputPath.string() + ".png";
 
-                }catch(...)
-                    {
-                        if(path)
-                        {
-                            QMessageBox::warning(this, "Error", "Error Exporting Texture Image Properly! Acceptable: ( .jpg, .jpeg, .png, .tif, .tiff)");
-                        }
-                    }
-            }
+    // For convenience
+    std::string extension( boost::to_upper_copy<std::string>(outputPath.extension().string()) );
 
-    }else QMessageBox::warning(this, "Error", "There is no Texture Image to Export!");
+    // Check for approved format
+    std::vector<std::string> approvedExtensions { ".PNG", ".JPG", ".JPEG", ".TIF", ".TIFF" };
+    auto it = std::find ( approvedExtensions.begin(), approvedExtensions.end(), extension );
+    if ( it == approvedExtensions.end() )  {
+        QMessageBox::warning(this, "Error", "Unknown file format for export. Please use .png, .jpg, or .tif." );
+        std::cerr << "vc::export::error: unknown output format: " << extension << std::endl;
+        return;
+    }
+
+    // Convert to 8U if JPG
+    if ( extension == ".JPG" || extension == ".JPEG" ) {
+        output = output.clone();
+        output.convertTo(output, CV_8U, 255.0 / 65535.0);
+        std::cerr << "vc::export::status: downsampled to 8U" << std::endl;
+    }
+
+    // Write the image
+    try {
+        cv::imwrite(outputPath.string(), output);
+    }
+    catch (std::runtime_error& ex) {
+        QMessageBox::warning(this, "Error", "Error writing file." );
+        std::cerr << "vc::export::error: exception writing image: " << ex.what() << std::endl;
+        return;
+    }
+
+    std::cerr << "vc::export::status: export successful" << std::endl;
 }
 
 void MainWindow::create_Actions()
