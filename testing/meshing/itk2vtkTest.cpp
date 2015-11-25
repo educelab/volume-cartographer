@@ -373,11 +373,11 @@ BOOST_FIXTURE_TEST_CASE(compareSavedITK, viFix){
 
             //Now to check the points within the cells
             if (counter == 0)
-                BOOST_CHECK_EQUAL(*itkMeshPoint, savedITKCells[c].v1 - 1);
+                BOOST_CHECK_EQUAL(*itkMeshPoint, savedITKCells[c].v1);
             else if(counter == 1)
-                BOOST_CHECK_EQUAL(*itkMeshPoint, savedITKCells[c].v2 - 1);
+                BOOST_CHECK_EQUAL(*itkMeshPoint, savedITKCells[c].v2);
             else if (counter == 2)
-                BOOST_CHECK_EQUAL(*itkMeshPoint, savedITKCells[c].v3 - 1);
+                BOOST_CHECK_EQUAL(*itkMeshPoint, savedITKCells[c].v3);
 
             //increment points
             itkMeshPoint++;
