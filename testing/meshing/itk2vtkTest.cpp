@@ -311,7 +311,7 @@ BOOST_FIXTURE_TEST_CASE(compareSavedITK, viFix){
     std::vector<VC_Cell> savedITKCells;
 
     //First, read the .obj file
-    volcart::testing::parseObjFile("itk.obj", savedITKPoints, savedITKCells);
+    volcart::testing::ParsingHelpers::parseObjFile("itk.obj", savedITKPoints, savedITKCells);
 
     /*
      * Now the comparisons between the test-created-itk mesh (itkMesh)
@@ -408,7 +408,7 @@ BOOST_FIXTURE_TEST_CASE(compareSavedVTK, ivFix){
 
     //Read in the vtk.ply file
     //parsePlyFile() found in parsingHelpers.cpp
-    volcart::testing::parsePlyFile("vtk.ply", savedVTKPoints, savedVTKCells);
+    volcart::testing::ParsingHelpers::parsePlyFile("vtk.ply", savedVTKPoints, savedVTKCells);
     /*
      * Now the comparison can occur between the saved .ply file and the
      * test-case-created _vtk mesh. First, we check the points and then
