@@ -8,7 +8,11 @@
 
 //just a simple tester to see if the parser is working
 
-int main(int argc, char **argv) {
+int main() {
+
+    /*
+     * First, test the parsePlyFile() method
+     */
 
     VC_MeshType::Pointer _mesh;
     volcart::shapes::Plane mesh;
@@ -21,7 +25,8 @@ int main(int argc, char **argv) {
     std::vector<VC_Vertex> savedVTKPoints;
     std::vector<VC_Cell> savedVTKCells;
 
-    volcart::testing::parsePlyFile("vtk.ply", savedVTKPoints, savedVTKCells);
+    std::cerr << "Parsing PLY File..." << std::endl;
+    volcart::testing::ParsingHelpers::parsePlyFile("vtk.ply", savedVTKPoints, savedVTKCells);
 
 
     for (int p = 0; p < savedVTKPoints.size(); p++) {
@@ -34,6 +39,40 @@ int main(int argc, char **argv) {
         cout << savedVTKCells[c].v1 << " | " << savedVTKCells[c].v2 << " | " << savedVTKCells[c].v3 <<
         std::endl;
     }
+
+
+    /*
+     * Next, test the parseObjFile() method
+     */
+
+    VC_MeshType::Pointer itkMesh;
+    volcart::shapes::Plane meshVTK;
+    vtkSmartPointer<vtkPolyData> vtk;
+
+    vtk = meshVTK.vtkMesh();
+    vtkPolyData* vtkRead = vtk.GetPointer();
+    itkMesh = VC_MeshType::New();
+    volcart::meshing::vtk2itk(vtkRead, itkMesh);
+
+    std::vector<VC_Vertex> savedITKPoints;
+    std::vector<VC_Cell> savedITKCells;
+
+    std::cerr << "Parsing OBJ File..." << std::endl;
+    volcart::testing::ParsingHelpers::parseObjFile("itk.obj", savedITKPoints, savedITKCells);
+
+
+    for (int v = 0; v < savedITKPoints.size(); v++) {
+        std::cout << savedITKPoints[v].x << " | " << savedITKPoints[v].y << " | " << savedITKPoints[v].z << " | "
+                  << savedITKPoints[v].nx << " | " << savedITKPoints[v].ny << " | " << savedITKPoints[v].nz
+                  << std::endl;
+    }
+
+
+    for (int f = 0; f < savedITKCells.size(); f++) {
+        cout << savedITKCells[f].v1 << " | " << savedITKCells[f].v2 << " | " << savedITKCells[f].v3 <<
+        std::endl;
+    }
+
 
     return 0;
 }

@@ -8,7 +8,7 @@
 namespace volcart{
 namespace testing {
 
-    void parsePlyFile(std::string filepath, std::vector<VC_Vertex> &verts, std::vector<VC_Cell> &faces) {
+    void ParsingHelpers::parsePlyFile(std::string filepath, std::vector<VC_Vertex> &verts, std::vector<VC_Cell> &faces) {
 
         std::ifstream inputMesh;
         inputMesh.open(filepath);
@@ -28,14 +28,15 @@ namespace testing {
         VC_Vertex plyVertex;
         VC_Cell plyCell;
 
-        int numVertices, numFaces;
+        int numVertices, numFaces, vertsPerFace;
         std::vector<std::string> typeOfPointInformation;
         bool headerFinished = false;
 
         //loop through file and get the appropriate data into the vectors
         while (!inputMesh.eof()) {
 
-            plyLine = volcart::testing::split_string(line);
+            plyLine = volcart::testing::ParsingHelpers::split_string(line);
+
 
             //skip header information not pertaining to vertex/face
             if (plyLine[0] == "ply"
@@ -53,7 +54,7 @@ namespace testing {
                 line.clear();
                 getline(inputMesh, line);
 
-                plyLine = volcart::testing::split_string(line);
+                plyLine = volcart::testing::ParsingHelpers::split_string(line);
                 while (plyLine[0] == "property") {
 
                     typeOfPointInformation.push_back(plyLine[plyLine.size() - 1]);
@@ -61,14 +62,21 @@ namespace testing {
                     //get the next line
                     line.clear();
                     getline(inputMesh, line);
-                    plyLine = volcart::testing::split_string(line);
+                    plyLine = volcart::testing::ParsingHelpers::split_string(line);
                 }
 
                 //Get the face information
                 if (plyLine[0] == "element" && plyLine[1] == "face") {
                     numFaces = stoi(plyLine[2]);
 
-                    //TODO: property list for faces
+                    line.clear();
+                    getline(inputMesh, line);
+
+                    plyLine = volcart::testing::ParsingHelpers::split_string(line);
+//                    if (plyLine[0] == "property") {
+//
+//                         std::string typeOfVertices = plyLine[3];
+//                    }
                 }
             }
 
@@ -116,26 +124,29 @@ namespace testing {
 
                     line.clear();
                     getline(inputMesh, line);
-                    plyLine = volcart::testing::split_string(line);
+                    plyLine = volcart::testing::ParsingHelpers::split_string(line);
                 }
 
-                int numPointsInCell = std::stoi(plyLine[0]);
+                vertsPerFace = 3;
 
                 //Read in the face information
                 for (int f = 0; f < numFaces; f++) {
+                    for (int v = 1; v <= vertsPerFace; v++){
 
-                    //assuming triangular cells
-                    //can add a line to check the number of vertices per cell
-                    //by checking the first number on the line
-                    plyCell.v1 = std::stoul(plyLine[1]);
-                    plyCell.v2 = std::stoul(plyLine[2]);
-                    plyCell.v3 = std::stoul(plyLine[3]);
+                        //only accounting for triangular faces currently
+                        if (v == 1)
+                            plyCell.v1 = std::stoul(plyLine[v]);
+                        else if (v == 2)
+                            plyCell.v2 = std::stoul(plyLine[v]);
+                        else if (v == 3)
+                            plyCell.v3 = std::stoul(plyLine[v]);
+                    }
 
                     faces.push_back(plyCell);
 
                     line.clear();
                     getline(inputMesh, line);
-                    plyLine = volcart::testing::split_string(line);
+                    plyLine = volcart::testing::ParsingHelpers::split_string(line);
                 }
 
             }
@@ -153,7 +164,7 @@ namespace testing {
 /*
  *   Helper function to parse an obj file.
  */
-void parseObjFile(std::string filepath, std::vector<VC_Vertex> & points, std::vector<VC_Cell> &cells){
+void ParsingHelpers::parseObjFile(std::string filepath, std::vector<VC_Vertex> & points, std::vector<VC_Cell> &cells){
 
         std::ifstream inputMesh;
         inputMesh.open(filepath);
@@ -179,7 +190,7 @@ void parseObjFile(std::string filepath, std::vector<VC_Vertex> & points, std::ve
         //loop through file and get the appropriate data into the vectors
         while ( !inputMesh.eof() ) {
 
-            objLine = split_string(line);
+            objLine = volcart::testing::ParsingHelpers::split_string(line);
 
             //skip comment lines
             if (objLine[0] == "#" && objLine[1] == "OBJ"){
@@ -190,9 +201,9 @@ void parseObjFile(std::string filepath, std::vector<VC_Vertex> & points, std::ve
 
                 //Number of points
                 if (objLine[3] == "points")
-                    numVertices = std::stoi(objLine[4]);
+                    numVertices = stoi(objLine[4]);
                 else if(objLine[3]  == "cells")
-                    numFaces = std::stoi(objLine[4]);
+                    numFaces = stoi(objLine[4]);
 
                 getline(inputMesh, line);
                 continue;
@@ -223,9 +234,9 @@ void parseObjFile(std::string filepath, std::vector<VC_Vertex> & points, std::ve
             // Face
             else if (objLine[0] == "f"){
 
-                objCell.v1 = std::stoul(objLine[1]);
-                objCell.v2 = std::stoul(objLine[2]);
-                objCell.v3 = std::stoul(objLine[3]);
+                objCell.v1 = std::stoul(objLine[1]) - 1;
+                objCell.v2 = std::stoul(objLine[2]) - 1;
+                objCell.v3 = std::stoul(objLine[3]) - 1;
 
                 //push the cell onto objCells vector
                 cells.push_back(objCell);
@@ -235,6 +246,8 @@ void parseObjFile(std::string filepath, std::vector<VC_Vertex> & points, std::ve
             line.clear();
             getline( inputMesh, line );
         }
+
+        inputMesh.close();
 }
 
 
@@ -245,7 +258,8 @@ void parseObjFile(std::string filepath, std::vector<VC_Vertex> & points, std::ve
  *   delimiter necessary for a possible parse.
  */
 
-std::vector<std::string> split_string(std::string input) {
+std::vector<std::string> ParsingHelpers::split_string(std::string input) {
+
     std::vector<std::string> line;
 
     size_t field_start = 0;

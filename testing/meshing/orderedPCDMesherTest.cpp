@@ -47,10 +47,6 @@
  *     See the /testing/meshing wiki for more information on this test              *
  * **********************************************************************************/
 
-//prototype for helper functions below
-std::vector<VC_Vertex> parsePlyFile(std::string filename);
-std::vector<std::string> split_string(std::string input);
-
 /*
  * Purpose of orderedPCDFix:
  *      - generate a point cloud consisting of PointXYZRGB points
@@ -65,14 +61,14 @@ struct orderedPCDFix {
         pCloud = mesh.pointCloudXYZRGB();
 
         //convert pCloud to Ptr for orderedPCD() call
-        pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
-        *cloud = pCloud;
+       // pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+        //*cloud = pCloud;
 
         //assign outfile name
-        outfile = "fixOrderedPCD.pcd";
+       // outfile = "fixOrderedPCD.pcd";
 
         //call orderedPCD()
-        volcart::meshing::orderedPCDMesher(cloud, outfile);
+        //volcart::meshing::orderedPCDMesher(cloud, outfile);
 
         std::cerr << "\nsetting up orderedPCDMesherTest objects" << std::endl;
     }
@@ -103,9 +99,9 @@ BOOST_FIXTURE_TEST_CASE(orderedPCDTest, orderedPCDFix){
     std::vector<VC_Cell> savedCells, currentCells;
 
     //parse the newly created and the saved .ply files and load the values into the
-    //respective vectors. Note, this function is coming from parsingHelpers.cpp.
-    parsePlyFile("testOrderedPCD.ply", currentPoints, currentCells);
-    parsePlyFile("orderedPCDExample.ply", savedPoints, savedCells);
+    //respective vectors. Note, this method is coming from parsingHelpers.cpp.
+    volcart::testing::ParsingHelpers::parsePlyFile("orderedPCDExample.ply", savedPoints, savedCells);
+    volcart::testing::ParsingHelpers::parsePlyFile("testOrderedPCD.ply", currentPoints, currentCells);
 
     //Check sizes of the two data sets
     BOOST_CHECK_EQUAL(savedPoints.size(), currentPoints.size());
@@ -128,7 +124,15 @@ BOOST_FIXTURE_TEST_CASE(orderedPCDTest, orderedPCDFix){
 
     }
 
-    //TODO: Need to test faces here as well?
+    BOOST_CHECK_EQUAL(savedCells.size(), currentCells.size());
+
+    for (int f = 0; f < savedCells.size(); f++){
+
+        //check the vertices within each face
+        BOOST_CHECK_EQUAL(savedCells[f].v1, currentCells[f].v1);
+        BOOST_CHECK_EQUAL(savedCells[f].v2, currentCells[f].v2);
+        BOOST_CHECK_EQUAL(savedCells[f].v3, currentCells[f].v3);
+    }
 }
 
 
