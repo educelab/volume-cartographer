@@ -229,9 +229,9 @@ void ParsingHelpers::parseObjFile(std::string filepath, std::vector<VC_Vertex> &
 
                 //Number of points
                 if (objLine[3] == "points")
-                    numVertices = stoi(objLine[4]);
+                    numVertices = std::stoi(objLine[4]);
                 else if(objLine[3]  == "cells")
-                    numFaces = stoi(objLine[4]);
+                    numFaces = std::stoi(objLine[4]);
 
                 getline(inputMesh, line);
                 continue;
