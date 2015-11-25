@@ -3,10 +3,10 @@
 //
 
 #define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MODULE sample
+#define BOOST_TEST_MODULE ObjWriter
 
-//#include <boost/test/unit_test.hpp>
-#include <boost/test/included/unit_test.hpp>
+#include <boost/test/unit_test.hpp>
+//#include <boost/test/included/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
 #include "shapes.h"
 #include "vc_defines.h"

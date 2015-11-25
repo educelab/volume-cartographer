@@ -94,27 +94,27 @@ namespace testing {
                     for (int i = 0; i < typeOfPointInformation.size(); i++) {
 
                         if (typeOfPointInformation[i] == "x")
-                            plyVertex.x = std::stof(plyLine[i]);
+                            plyVertex.x = stof(plyLine[i]);
                         else if (typeOfPointInformation[i] == "y")
-                            plyVertex.y = std::stof(plyLine[i]);
+                            plyVertex.y = stof(plyLine[i]);
                         else if (typeOfPointInformation[i] == "z")
-                            plyVertex.z = std::stof(plyLine[i]);
+                            plyVertex.z = stof(plyLine[i]);
                         else if (typeOfPointInformation[i] == "s")
-                            plyVertex.s = std::stof(plyLine[i]);
+                            plyVertex.s = stof(plyLine[i]);
                         else if (typeOfPointInformation[i] == "t")
-                            plyVertex.t = std::stof(plyLine[i]);
+                            plyVertex.t = stof(plyLine[i]);
                         else if (typeOfPointInformation[i] == "r")
-                            plyVertex.r = std::stof(plyLine[i]);
+                            plyVertex.r = stof(plyLine[i]);
                         else if (typeOfPointInformation[i] == "g")
-                            plyVertex.g = std::stof(plyLine[i]);
+                            plyVertex.g = stof(plyLine[i]);
                         else if (typeOfPointInformation[i] == "b")
-                            plyVertex.b = std::stof(plyLine[i]);
+                            plyVertex.b = stof(plyLine[i]);
                         else if (typeOfPointInformation[i] == "nx")
-                            plyVertex.nx = std::stof(plyLine[i]);
+                            plyVertex.nx = stof(plyLine[i]);
                         else if (typeOfPointInformation[i] == "ny")
-                            plyVertex.ny = std::stof(plyLine[i]);
+                            plyVertex.ny = stof(plyLine[i]);
                         else if (typeOfPointInformation[i] == "nz")
-                            plyVertex.nz = std::stof(plyLine[i]);
+                            plyVertex.nz = stof(plyLine[i]);
 
 
                     }
@@ -135,11 +135,11 @@ namespace testing {
 
                         //only accounting for triangular faces currently
                         if (v == 1)
-                            plyCell.v1 = std::stoul(plyLine[v]);
+                            plyCell.v1 = stoul(plyLine[v]);
                         else if (v == 2)
-                            plyCell.v2 = std::stoul(plyLine[v]);
+                            plyCell.v2 = stoul(plyLine[v]);
                         else if (v == 3)
-                            plyCell.v3 = std::stoul(plyLine[v]);
+                            plyCell.v3 = stoul(plyLine[v]);
                     }
 
                     faces.push_back(plyCell);
