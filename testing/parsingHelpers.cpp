@@ -28,9 +28,11 @@ namespace testing {
         VC_Vertex plyVertex;
         VC_Cell plyCell;
 
-        int numVertices, numFaces, vertsPerFace;
+        int numVertices, numFaces, vertsPerFace, width, height;
         std::vector<std::string> typeOfPointInformation;
         bool headerFinished = false;
+        bool isWidth = false;
+        bool isHeight = false;
 
         //loop through file and get the appropriate data into the vectors
         while (!inputMesh.eof()) {
@@ -47,9 +49,24 @@ namespace testing {
                 getline(inputMesh, line);
                 continue;
             }
+
+             // Check to see if dimensions are included in the file
+            else if (plyLine[0] == "element" && plyLine[1] == "dimensions") {
+
+                if (plyLine[2] == "1"){
+                    isWidth = true;
+                    isHeight = true;
+                }
+
+                //for 3d mesh...add something here...might need a depth variable
+
+                getline(inputMesh, line);
+                continue;
+
+            }
                 //Get number of vertices and faces
             else if (plyLine[0] == "element" && plyLine[1] == "vertex") {
-                numVertices = stoi(plyLine[2]);
+                numVertices = std::stoi(plyLine[2]);
 
                 line.clear();
                 getline(inputMesh, line);
@@ -67,7 +84,7 @@ namespace testing {
 
                 //Get the face information
                 if (plyLine[0] == "element" && plyLine[1] == "face") {
-                    numFaces = stoi(plyLine[2]);
+                    numFaces = std::stoi(plyLine[2]);
 
                     line.clear();
                     getline(inputMesh, line);
@@ -89,32 +106,43 @@ namespace testing {
 
             else if (headerFinished) {
 
+                //Read in the dimension info if it exists
+                if (isWidth && isHeight){
+                    width = std::stoi(plyLine[0]);
+                    height = std::stoi(plyLine[1]);
+
+                    line.clear();
+                    getline(inputMesh, line);
+                    plyLine = volcart::testing::ParsingHelpers::split_string(line);
+                }
+
+
                 //Read in the vertex information
                 for (int v = 0; v < numVertices; v++) {
                     for (int i = 0; i < typeOfPointInformation.size(); i++) {
 
                         if (typeOfPointInformation[i] == "x")
-                            plyVertex.x = stof(plyLine[i]);
+                            plyVertex.x = std::stof(plyLine[i]);
                         else if (typeOfPointInformation[i] == "y")
-                            plyVertex.y = stof(plyLine[i]);
+                            plyVertex.y = std::stof(plyLine[i]);
                         else if (typeOfPointInformation[i] == "z")
-                            plyVertex.z = stof(plyLine[i]);
+                            plyVertex.z = std::stof(plyLine[i]);
                         else if (typeOfPointInformation[i] == "s")
-                            plyVertex.s = stof(plyLine[i]);
+                            plyVertex.s = std::stof(plyLine[i]);
                         else if (typeOfPointInformation[i] == "t")
-                            plyVertex.t = stof(plyLine[i]);
+                            plyVertex.t = std::stof(plyLine[i]);
                         else if (typeOfPointInformation[i] == "r")
-                            plyVertex.r = stof(plyLine[i]);
+                            plyVertex.r = std::stof(plyLine[i]);
                         else if (typeOfPointInformation[i] == "g")
-                            plyVertex.g = stof(plyLine[i]);
+                            plyVertex.g = std::stof(plyLine[i]);
                         else if (typeOfPointInformation[i] == "b")
-                            plyVertex.b = stof(plyLine[i]);
+                            plyVertex.b = std::stof(plyLine[i]);
                         else if (typeOfPointInformation[i] == "nx")
-                            plyVertex.nx = stof(plyLine[i]);
+                            plyVertex.nx = std::stof(plyLine[i]);
                         else if (typeOfPointInformation[i] == "ny")
-                            plyVertex.ny = stof(plyLine[i]);
+                            plyVertex.ny = std::stof(plyLine[i]);
                         else if (typeOfPointInformation[i] == "nz")
-                            plyVertex.nz = stof(plyLine[i]);
+                            plyVertex.nz = std::stof(plyLine[i]);
 
 
                     }
@@ -127,7 +155,7 @@ namespace testing {
                     plyLine = volcart::testing::ParsingHelpers::split_string(line);
                 }
 
-                vertsPerFace = 3;
+                vertsPerFace = std::stoi(plyLine[0]);
 
                 //Read in the face information
                 for (int f = 0; f < numFaces; f++) {
@@ -135,11 +163,11 @@ namespace testing {
 
                         //only accounting for triangular faces currently
                         if (v == 1)
-                            plyCell.v1 = stoul(plyLine[v]);
+                            plyCell.v1 = std::stoul(plyLine[v]);
                         else if (v == 2)
-                            plyCell.v2 = stoul(plyLine[v]);
+                            plyCell.v2 = std::stoul(plyLine[v]);
                         else if (v == 3)
-                            plyCell.v3 = stoul(plyLine[v]);
+                            plyCell.v3 = std::stoul(plyLine[v]);
                     }
 
                     faces.push_back(plyCell);
