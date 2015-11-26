@@ -14,19 +14,23 @@ build_it_test_it:
         - echo "Testing coming soon..."
     tags:
         - test
+        - osx
         - homebrew
+        - qt5
 
 deploy_it_osx:
     stage: deploy
     script:
         - echo "---- Work it harder. ----"
         - version=$(utils/scripts/version-gen.sh)
+        - utils/scripts/install-deps.sh
         - mkdir build
         - cd build/
         - echo "---- Make it better. ----"
-        - cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_DragNDrop=ON -DBUILD_OSX_APPS=ON -DBoost_USE_STATIC_LIBS=ON -DINSTALL_VC_DEMO=ON ..
+        - cmake -DCMAKE_BUILD_TYPE=Release -DINSTALL_VC_DEMO=ON -DVC_PREBUILT_LIBS=ON -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DCMAKE_OSX_SYSROOT=../SDKs/ ..
         - echo "---- Do it faster. ----"
-        - make package -j8
+        - make -j8
+        - make package
         - echo "---- Makes us stronger. ----"
         - mkdir -p ~/Dropbox/VC-Releases/v${version}
         - cp VC* ~/Dropbox/VC-Releases/v${version}
@@ -35,7 +39,9 @@ deploy_it_osx:
     tags:
         - deploy
         - osx
-        - static
+        - homebrew
+        - prebuilt
+        - qt5
 
 archive_it:
     stage: deploy
