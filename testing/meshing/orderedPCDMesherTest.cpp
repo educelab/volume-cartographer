@@ -21,19 +21,14 @@
  *  orderedPCDMesherTest.cpp - tests the functionality of                           *
  *  v-c/meshing/orderedPCDMesher.cpp with the ultimate goal of the following:       *
  *                                                                                  *
- *     Given the same input point cloud two PolygonMesh meshes created by           *
- *     poissonReconstruction() should represent the same reconstructed surface.     *
+ *     Given the same input point cloud, does a saved PLY file match a current      *
+ *     execution of orederedPCDMesher().                                            *
  *                                                                                  *
- *                                                                                  *
- *  This file is broken up into a test fixture poissonFix which initialize          *
- *  the objects used in the fixture test cases.                                     *
+ *  This file is broken up into a test fixture orderedPCDFix which initialize       *
+ *  the objects used in any subsequent fixture test cases.                          *
  *                                                                                  *
  *  Test Cases:                                                                     *
- *  1. poissonTest (fixture test case)                                              *
- *  2. surfaceComparison (fixture test case)                                        *
- *  3. emptyCloud (auto test case)                                                  *
- *  4. onePoint (auto test case)                                                    *
- *  5. moreThanOnePoint (auto test case)                                            *
+ *  1. orderedPCDTest (fixture test case)                                           *
  *                                                                                  *                                                                            *
  *  Input:                                                                          *
  *     No required inputs for the test cases. Any test objects are created          *
@@ -82,7 +77,7 @@ struct orderedPCDFix {
 };
 
 /*
- * Test to see that a saved PCD file from fixture matches a recalled orderedPCDMesher()
+ * Test to see that a saved PLY file from fixture matches a recalled orderedPCDMesher()
  * using the same input point cloud.
  */
 BOOST_FIXTURE_TEST_CASE(orderedPCDTest, orderedPCDFix){

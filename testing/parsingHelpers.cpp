@@ -158,27 +158,37 @@ namespace testing {
                     plyLine = volcart::testing::ParsingHelpers::split_string(line);
                 }
 
-                vertsPerFace = std::stoi(plyLine[0]);
+                /*
+                 * Note, the ply file format written by the particle simulation through
+                 * the viscenter/registration -toolkit doesn't seem to write face information out,
+                 * so it's necessary to check for numFaces as greater than 0 before parsing any face information
+                 */
 
-                //Read in the face information
-                for (int f = 0; f < numFaces; f++) {
-                    for (int v = 1; v <= vertsPerFace; v++){
+                if (numFaces > 0){
+                    vertsPerFace = std::stoi(plyLine[0]);
 
-                        //only accounting for triangular faces currently
-                        if (v == 1)
-                            plyCell.v1 = std::stoul(plyLine[v]);
-                        else if (v == 2)
-                            plyCell.v2 = std::stoul(plyLine[v]);
-                        else if (v == 3)
-                            plyCell.v3 = std::stoul(plyLine[v]);
+                    //Read in the face information
+                    for (int f = 0; f < numFaces; f++) {
+                        for (int v = 1; v <= vertsPerFace; v++){
+
+                            //only accounting for triangular faces currently
+                            if (v == 1)
+                                plyCell.v1 = std::stoul(plyLine[v]);
+                            else if (v == 2)
+                                plyCell.v2 = std::stoul(plyLine[v]);
+                            else if (v == 3)
+                                plyCell.v3 = std::stoul(plyLine[v]);
+                        }
+
+                        faces.push_back(plyCell);
+
+                        line.clear();
+                        getline(inputMesh, line);
+                        plyLine = volcart::testing::ParsingHelpers::split_string(line);
                     }
-
-                    faces.push_back(plyCell);
-
-                    line.clear();
-                    getline(inputMesh, line);
-                    plyLine = volcart::testing::ParsingHelpers::split_string(line);
                 }
+
+
 
             }
 
