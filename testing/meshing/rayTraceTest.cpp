@@ -8,8 +8,9 @@
 
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
-
+#include "shapes.h"
 #include "rayTrace.h"
+#include "vc_defines.h"
 
 /************************************************************************************
  *                                                                                  *
@@ -38,7 +39,7 @@
  * **********************************************************************************/
 
 /*
- * Purpose of orderedPCDFix:
+ * Purpose of rayTraceFix:
  *      - generate a point cloud consisting of PointXYZRGB points
  *      - call orderedPCDMesher() on this point cloud and write to file
  */
@@ -48,41 +49,33 @@ struct rayTraceFix {
     rayTraceFix() {
 
         //generate the curved mesh
-        _mesh = iMesh.itkMesh();
+        iMesh = _mesh.itkMesh();
 
-        //call orderedPCD()
-        volcart::meshing::orderedPCDMesher(cloud, outfile);
+        //call rayTrace() and assign results
+        traceResults = volcart::meshing::rayTrace(iMesh, traceDir, width, height, uvMap);
+
+        //write the rayTrace() results to file
+        cv::FileStorage::writeRaw("savedTraceResults")
 
         std::cerr << "\nsetting up rayTraceTest objects" << std::endl;
     }
 
     ~rayTraceFix(){ std::cerr << "\ncleaning up rayTraceTest objects" << std::endl; }
 
-    pcl::PointCloud<pcl::PointXYZRGB> pCloud;
-    volcart::shapes::Plane mesh;
-    std::string outfile;
 
 
-        std::vector<cv::Vec6f> traceResults;
+    std::vector<cv::Vec6f> traceResults;
 
-        volcart::meshing::rayTrace(itkMesh,  traceDir, width, height, std::map<int, cv::Vec2d> &uvMap) {
+    // Essential data structure to return points and normals
+    std::vector<cv::Vec6f> intersections;
+    VC_MeshType::Pointer iMesh;
+    volcart::shapes::Plane _mesh;
+    std::map<int, cv::Vec2d> uvMap;
 
-        // Essential data structure to return points and normals
-        std::vector<cv::Vec6f> intersections;
-        VC_MeshType::Pointer iMesh;
-        volcart::shapes::Plane mesh;
-        std::map<int, cv::Vec2d> &uvMap;
-        int traceDir = 0; //default direction is anything != 1
-        int width, height;
-        
-        // Convert the itk mesh to a vtk mesh
-        vtkPolyData *vtkMesh = vtkPolyData::New();
-        volcart::meshing::itk2vtk(itkMesh, vtkMesh);
+    int traceDir = 0; //default direction is anything != 1
+    int width, height;
 
-
-
-
-    };
+};
 
 /*
  * Test to see that a saved PLY file from fixture matches a recalled orderedPCDMesher()
@@ -90,5 +83,9 @@ struct rayTraceFix {
  */
 BOOST_FIXTURE_TEST_CASE(rayTest, rayTraceFix){
 
+    // Convert the itk mesh to a vtk mesh
+    vtkPolyData *vtkMesh = vtkPolyData::New();
+    volcart::meshing::itk2vtk(iMesh, vtkMesh);
 
+    BOOST_CHECK(true);
 }

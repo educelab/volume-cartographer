@@ -66,9 +66,9 @@ add_executable(vc_test_poissonReconstruction meshing/poissonReconstructionTest.c
 target_link_libraries(vc_test_poissonReconstruction ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME poissonReconstruction WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_poissonReconstruction )
 
-#add_executable(vc_test_rayTrace meshing/rayTraceTest.cpp)
-#target_link_libraries(vc_test_rayTrace ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-#add_test(NAME rayTrace WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_rayTrace )
+add_executable(vc_test_rayTrace meshing/rayTraceTest.cpp)
+target_link_libraries(vc_test_rayTrace ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+add_test(NAME rayTrace WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_rayTrace )
 
 # Copy the test case to the build dir
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/resampleExample.pcd DESTINATION ${CMAKE_BINARY_DIR}/bin)
