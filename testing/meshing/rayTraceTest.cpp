@@ -83,14 +83,59 @@ struct rayTraceFix {
  */
 BOOST_FIXTURE_TEST_CASE(savedRayTraceComparison, rayTraceFix){
 
+    //First, write the fixture-created rayTrace data to file
+    int numPoints = traceResults.size();
+
+    std::ofstream meshFile;
+    meshFile.open("testRayTrace.ply");
+
+    std::cout << "Writing rayTrace results to file..." << std::endl;
+
+    // write header
+    meshFile << "ply" << std::endl
+    << "format ascii 1.0" << std::endl
+    << "comment Created by particle simulation https://github.com/viscenter/registration-toolkit" << std::endl
+    << "element vertex " << numPoints << std::endl
+    << "property float x" << std::endl
+    << "property float y" << std::endl
+    << "property float z" << std::endl
+    << "property float nx" << std::endl
+    << "property float ny" << std::endl
+    << "property float nz" << std::endl
+    << "element face 0" << std::endl
+    << "property list uchar int vertex_indices" << std::endl
+    << "end_header" << std::endl;
+
+    // write vertex information
+    for (int i = 0; i < numPoints; i++) {
+
+        // x y z nx ny nz
+        meshFile << traceResults[i](0) << " "
+                 << traceResults[i](1)  << " "
+                 << traceResults[i](2)  << " "
+                 << traceResults[i](3)  << " "
+                 << traceResults[i](4)  << " ";
+
+                 // Hack to get rid of "-0" values that appeared in the
+                 // saved file the first time this was run
+
+                 if (traceResults[i](5) == -0) {
+                     meshFile << "0 " << std::endl;
+                 }else{
+                     meshFile << traceResults[i](5) << " " << std::endl;
+                 }
+    }
+
+    meshFile.close();
 
     //Read in the saved data created by rayTraceExample.cpp
     std::vector<VC_Vertex> savedPoints, currentPoints;
     std::vector<VC_Cell> savedCells, currentCells;      //cell vecs unused but init for the parse call
 
-    //Read in the .ply file
+    //Read in the .ply files
     //parsePlyFile() found in parsingHelpers.cpp
     volcart::testing::ParsingHelpers::parsePlyFile("savedRayTraceData.ply", savedPoints, savedCells);
+    volcart::testing::ParsingHelpers::parsePlyFile("testRayTrace.ply", currentPoints, currentCells);
 
 
     //Compare the saved and test-case-created resampling for equivalency
