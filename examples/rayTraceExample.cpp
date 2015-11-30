@@ -10,15 +10,17 @@
  * Purpose: Run volcart::meshing::rayTrace() and write results to file.
  *          Saved file will be read in by the rayTraceTest.cpp file under
  *          v-c/testing/meshing.
- *
- *          Code for writing adapted from here:
- *              http://docs.opencv.org/2.4/modules/core/doc/xml_yaml_persistence.html#filestorage-writeobj
  */
 
 int main(){
 
     //First, create all the objects needed for the call to rayTrace()
     std::vector<cv::Vec6f> results;
+
+    /*
+     * TODO: need to update everything with the curved mesh stuff
+     */
+
 
     // Essential data structure to return points and normals
     std::vector<cv::Vec6f> intersections;
@@ -29,7 +31,7 @@ int main(){
     int traceDir = 0; //default direction is anything != 1
     int width, height;
 
-    //Fill the mesh TODO: need to update with the curved mesh stuff
+    //Fill the mesh
     iMesh = _mesh.itkMesh();
 
     //call rayTrace()
@@ -43,20 +45,20 @@ int main(){
     std::ofstream meshFile;
     meshFile.open("savedRayTraceData.ply");
 
-    if (!meshFile.open()){
-        std::cerr << "Unable to open file for writing..." << std::endl;
-        return 1;
-    }
-
     std::cout << "Writing rayTrace results to file..." << std::endl;
+
+    /*
+     * ply writer scaled down from orderePCDMesher.cpp
+     *
+     * Not including a width, height or face data.
+     * Should still be able to parse using parsingHelpers::parsePlyFile()
+     *
+     */
 
     // write header
     meshFile << "ply" << std::endl
     << "format ascii 1.0" << std::endl
     << "comment Created by particle simulation https://github.com/viscenter/registration-toolkit" << std::endl
-    //<< "element dimensions 1" << std::endl
-    //<< "property float width" << std::endl
-    //<< "property float height" << std::endl
     << "element vertex " << numPoints << std::endl
     << "property float x" << std::endl
     << "property float y" << std::endl
@@ -74,14 +76,21 @@ int main(){
     // write vertex information
     for (int i = 0; i < numPoints; i++) {
 
-        VC_Vertex v = results[i];
+        // x y z nx ny nz
+        meshFile << results[i](0) << " "
+                 << results[i](1)  << " "
+                 << results[i](2)  << " "
+                 << results[i](3)  << " "
+                 << results[i](4)  << " ";
 
-        meshFile << v.x << " "
-                 << v.y << " "
-                 << v.z << " "
-                 << v.nx << " "
-                 << v.ny << " "
-                 << v.nz << " " << std::endl;
+                 // Hack to get rid of "-0" values that appeared in the
+                 // saved file the first time this was run
+
+                 if (results[i](5) == -0) {
+                     meshFile << "0 " << std::endl;
+                 }else{
+                     meshFile << results[i](5) << " " << std::endl;
+                 }
     }
 
     meshFile.close();

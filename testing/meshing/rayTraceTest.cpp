@@ -11,6 +11,7 @@
 #include "shapes.h"
 #include "rayTrace.h"
 #include "vc_defines.h"
+#include "parsingHelpers.h"
 
 /************************************************************************************
  *                                                                                  *
@@ -55,7 +56,6 @@ struct rayTraceFix {
         traceResults = volcart::meshing::rayTrace(iMesh, traceDir, width, height, uvMap);
 
         //write the rayTrace() results to file
-        cv::FileStorage::writeRaw("savedTraceResults")
 
         std::cerr << "\nsetting up rayTraceTest objects" << std::endl;
     }
@@ -81,11 +81,31 @@ struct rayTraceFix {
  * Test to see that a saved PLY file from fixture matches a recalled orderedPCDMesher()
  * using the same input point cloud.
  */
-BOOST_FIXTURE_TEST_CASE(rayTest, rayTraceFix){
+BOOST_FIXTURE_TEST_CASE(savedRayTraceComparison, rayTraceFix){
 
-    // Convert the itk mesh to a vtk mesh
-    vtkPolyData *vtkMesh = vtkPolyData::New();
-    volcart::meshing::itk2vtk(iMesh, vtkMesh);
 
-    BOOST_CHECK(true);
+    //Read in the saved data created by rayTraceExample.cpp
+    std::vector<VC_Vertex> savedPoints, currentPoints;
+    std::vector<VC_Cell> savedCells, currentCells;      //cell vecs unused but init for the parse call
+
+    //Read in the .ply file
+    //parsePlyFile() found in parsingHelpers.cpp
+    volcart::testing::ParsingHelpers::parsePlyFile("savedRayTraceData.ply", savedPoints, savedCells);
+
+
+    //Compare the saved and test-case-created resampling for equivalency
+    BOOST_CHECK_EQUAL(savedPoints.size(), currentPoints.size());
+
+    //loop over points
+    for (int p = 0; p < savedPoints.size(); p++){
+
+        BOOST_CHECK_EQUAL(savedPoints[p].x, currentPoints[p].x);
+        BOOST_CHECK_EQUAL(savedPoints[p].y, currentPoints[p].y);
+        BOOST_CHECK_EQUAL(savedPoints[p].z, currentPoints[p].z);
+        BOOST_CHECK_EQUAL(savedPoints[p].nx, currentPoints[p].nx);
+        BOOST_CHECK_EQUAL(savedPoints[p].ny, currentPoints[p].ny);
+        BOOST_CHECK_EQUAL(savedPoints[p].nz, currentPoints[p].nz);
+
+    }
+
 }
