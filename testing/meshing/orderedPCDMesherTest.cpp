@@ -100,8 +100,9 @@ BOOST_FIXTURE_TEST_CASE(orderedPCDTest, orderedPCDFix){
 
     //parse the newly created and the saved .ply files and load the values into the
     //respective vectors. Note, this method is coming from parsingHelpers.cpp.
-    volcart::testing::ParsingHelpers::parsePlyFile("orderedPCDExample.ply", savedPoints, savedCells);
     volcart::testing::ParsingHelpers::parsePlyFile("testOrderedPCD.ply", currentPoints, currentCells);
+    volcart::testing::ParsingHelpers::parsePlyFile("orderedPCDExample.ply", savedPoints, savedCells);
+    
 
     //Check sizes of the two data sets
     BOOST_CHECK_EQUAL(savedPoints.size(), currentPoints.size());

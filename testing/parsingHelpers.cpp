@@ -90,7 +90,10 @@ namespace testing {
                     getline(inputMesh, line);
 
                     plyLine = volcart::testing::ParsingHelpers::split_string(line);
-//                    if (plyLine[0] == "property") {
+
+//                  << Do something with the property for the face information here >>
+
+//                  if (plyLine[0] == "property") {
 //
 //                         std::string typeOfVertices = plyLine[3];
 //                    }
