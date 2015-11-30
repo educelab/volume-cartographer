@@ -17,7 +17,7 @@ option(INSTALL_VC_DEMO "Install VC demo apps" OFF)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/)
 IF(VC_PREBUILT_LIBS)
-    set(CMAKE_PREFIX_PATH ${PROJECT_SOURCE_DIR}/deps/)
+    set(CMAKE_PREFIX_PATH ${PROJECT_SOURCE_DIR}/vc-deps/deps/)
 ENDIF(VC_PREBUILT_LIBS)
 
 find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets OpenGL PrintSupport)
