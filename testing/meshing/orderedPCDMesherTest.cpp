@@ -6,13 +6,12 @@
 #define BOOST_TEST_MODULE orderedPCDMesher
 
 #include <boost/test/unit_test.hpp>
-//#include <boost/test/included/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
 #include "vc_defines.h"
 #include "shapes.h"
 #include "orderedPCDMesher.h"
-#include <pcl/io/pcd_io.h>
-#include <pcl/io/ply_io.h>
+//#include <pcl/io/pcd_io.h>
+//#include <pcl/io/ply_io.h>
 #include "parsingHelpers.h"
 
 
@@ -32,7 +31,7 @@
  *                                                                                  *                                                                            *
  *  Input:                                                                          *
  *     No required inputs for the test cases. Any test objects are created          *
- *     internally by poissonFix() or within the test cases themselves.              *
+ *     internally by orderedPCDFix() or within the test cases themselves.           *
  *                                                                                  *
  *  Test-Specific Output:                                                           *
  *     Specific test output only given on failure of any tests. Otherwise, general  *
@@ -56,14 +55,14 @@ struct orderedPCDFix {
         pCloud = mesh.pointCloudXYZRGB();
 
         //convert pCloud to Ptr for orderedPCD() call
-       // pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
-        //*cloud = pCloud;
+        pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+        *cloud = pCloud;
 
         //assign outfile name
-       // outfile = "fixOrderedPCD.pcd";
+        outfile = "fixOrderedPCD.pcd";
 
         //call orderedPCD()
-        //volcart::meshing::orderedPCDMesher(cloud, outfile);
+        volcart::meshing::orderedPCDMesher(cloud, outfile);
 
         std::cerr << "\nsetting up orderedPCDMesherTest objects" << std::endl;
     }
@@ -80,7 +79,7 @@ struct orderedPCDFix {
  * Test to see that a saved PLY file from fixture matches a recalled orderedPCDMesher()
  * using the same input point cloud.
  */
-BOOST_FIXTURE_TEST_CASE(orderedPCDTest, orderedPCDFix){
+BOOST_FIXTURE_TEST_CASE(savedPLYFileTest, orderedPCDFix){
 
 
     //convert pCloud to Ptr for orderedPCD() call
@@ -131,6 +130,20 @@ BOOST_FIXTURE_TEST_CASE(orderedPCDTest, orderedPCDFix){
     }
 }
 
+/*
+ * Purpose: Test to see whether orderedPCDMesher() outputs the expected
+ *          representation of the point cloud
+ *
+ * Note: I don't think this is possible right now if we're using the viscenter/registration-toolkit
+ *       generator for the ply file...because there are no faces currently generated, it's not possible
+ *       to check the triangulation pattern.
+ *
+ *       So, for now, we're just using a holder test that passes.
+ */
 
+BOOST_FIXTURE_TEST_CASE(ordredPCDTest, orderedPCDFix){
 
+    BOOST_CHECK(true);
+
+}
 
