@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "localResliceParticleSim.h"
+#include "common.h"
 
 
 using namespace volcart::segmentation;
@@ -54,7 +55,7 @@ LocalResliceSegmentation::segmentLayer(const bool showVisualization,
             currentChain->draw();
             cv::waitKey(0);
         }
-        std::vector<Positions> allPredictedPositions =
+        std::vector<VoxelVectorType> allPredictedPositions =
             currentChain->stepAll(stepNumLayers);
 
         // Let's start picking new positions from the middle to the outside. Sort
@@ -70,8 +71,8 @@ LocalResliceSegmentation::segmentLayer(const bool showVisualization,
         // Initialize current positions to first predicted (and likely best) position
         // in all positions structure
         // XXX Does this do move constructor or copy constructor?
-        Positions currentPositions(allPredictedPositions.at(0));
-        Positions minPositions(allPredictedPositions.at(0));
+        VoxelVectorType currentPositions(allPredictedPositions.at(0));
+        VoxelVectorType minPositions(allPredictedPositions.at(0));
 
         // Exhaustive search for minimal change in chain derivative over all
         // combinations of predicted positions
@@ -202,16 +203,19 @@ LocalResliceSegmentation::_getNeighborIndices(
 
 // Uses the five point stencil equation as given here:
 // https://en.wikipedia.org/wiki/Five-point_stencil
-double fivePointStencil(uint32_t center, const Positions& ps)
+double LocalResliceSegmentation::fivePointStencil(
+		const uint32_t center, const VoxelVectorType& ps) const
 {
 
     // Average difference in x dimension across entire chain
     const double avgXDiff = std::accumulate(ps.begin(), ps.end(), 0,
-            [](double sum, cv::Vec3d p) { return sum + p(VC_INDEX_X); }) / ps.size();
+            [](double sum, cv::Vec3d p) {
+				return sum + p(VC_INDEX_X);
+			}) / ps.size();
 
     // Fit curve to new predicted ps.
     FittedCurve<> f;
-    FittedCurve<>::TInputPoints newPoints(ps.size());
+    decltype(f)::PointVectorType newPoints(ps.size());
     for (auto& p : ps) {
         newPoints.emplace_back(p(VC_INDEX_X), p(VC_INDEX_Y));
     }
@@ -233,12 +237,12 @@ double fivePointStencil(uint32_t center, const Positions& ps)
         twoBefore = ps.at(center - 2)(VC_INDEX_Y);
         oneBefore = ps.at(center - 1)(VC_INDEX_Y);
         oneAfter  = ps.at(ps.size() - 1)(VC_INDEX_Y);
-        twoAfter  = f.at(ps.at(ps.size() -1)(VC_INDEX_X) + avgXDiff);
+        twoAfter  = f.at(ps.at(ps.size() - 1)(VC_INDEX_X) + avgXDiff);
     } else if (center == ps.size() - 1) {
         twoBefore = ps.at(center - 2)(VC_INDEX_Y);
         oneBefore = ps.at(center - 1)(VC_INDEX_Y);
-        oneAfter  = f.at(ps.at(ps.size() -1)(VC_INDEX_X) + avgXDiff);
-        twoAfter  = f.at(ps.at(ps.size() -1)(VC_INDEX_X) + 2 * avgXDiff);
+        oneAfter  = f.at(ps.at(ps.size() - 1)(VC_INDEX_X) + avgXDiff);
+        twoAfter  = f.at(ps.at(ps.size() - 1)(VC_INDEX_X) + 2 * avgXDiff);
     } else {
         twoBefore = ps.at(center - 2)(VC_INDEX_Y);
         oneBefore = ps.at(center - 1)(VC_INDEX_Y);

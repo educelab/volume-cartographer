@@ -24,11 +24,12 @@ namespace segmentation {
 #define VC_INDEX_Z 2
 #endif
 
-#define VC_DIRECTION_K cv::Vec3d(0.0, 0.0, 1.0)
-
 using IndexDistPair = std::pair<int32_t, double>;
 using IndexDistPairVec = typename std::vector<IndexDistPair>;
-using Positions = std::vector<cv::Vec3d>;
+using VoxelType = cv::Vec3d;
+using VoxelVectorType = typename std::vector<VoxelType>;
+
+#define VC_DIRECTION_K VoxelType(0.0, 0.0, 1.0)
 
 enum Direction {
     kLeft = -1,

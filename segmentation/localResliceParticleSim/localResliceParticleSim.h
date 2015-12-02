@@ -13,6 +13,7 @@
 #include "volumepkg.h"
 #include "chain.h"
 #include "chainmesh.h"
+#include "common.h"
 
 namespace volcart {
 
@@ -41,8 +42,7 @@ private:
             const Chain c, const std::list<int32_t>& badIndices,
             const int32_t index, const int32_t neighborhoodRadius);
 
-
-    double fivePointStencil(int32_t center, const Positions& ps);
+    double fivePointStencil(const uint32_t center, const VoxelVectorType& ps) const;
 
     constexpr static int32_t kDefaultNeighborhoodRadius = 3;
     constexpr static int32_t kDefaultStepsBeforeReslice = 1;

@@ -26,49 +26,49 @@ namespace segmentation {
 
 class Chain {
 public:
-    using TIterator      = std::vector<Particle>::iterator;
-    using TConstIterator = std::vector<Particle>::const_iterator;
-    using DirPosPair     = std::tuple<Direction, cv::Vec3d>;
-    using DirPosPairVec  = std::tuple<std::vector<Direction>, std::vector<cv::Vec3d>>;
+    using Iterator       = typename VoxelVectorType::iterator;
+    using ConstIterator  = typename VoxelVectorType::const_iterator;
+    using DirPosPair     = std::tuple<Direction, VoxelType>;
+    using DirPosPairVec  = std::tuple<std::vector<Direction>, std::vector<VoxelType>>;
 
     Chain();
 
-    Chain(const VolumePkg& pkg, int32_t zIndex);
+    Chain(VolumePkg& pkg, int32_t zIndex);
 
-    Chain(const VolumePkg& pkg, Positions pos, int32_t zIndex);
+    Chain(VolumePkg& pkg, VoxelVectorType& pos, int32_t zIndex);
 
     int32_t size(void) const { return particleCount_; }
 
-    Particle at(const int32_t idx) const { return particles_.at(idx); }
+	VoxelType at(const int32_t idx) const { return particles_.at(idx); }
 
-    Positions positions() const;
+    VoxelVectorType positions() const;
 
     void setZIndex(int32_t zIndex) { zIndex_ = zIndex; }
 
     // Iterator functions that reach through to the underlying vector so we can
     // use range-based for with Chain
-    TConstIterator begin() const { return particles_.begin(); }
+    ConstIterator begin() const { return particles_.begin(); }
 
-    TConstIterator end() const { return particles_.end(); }
+    ConstIterator end() const { return particles_.end(); }
 
-    TIterator begin() { return particles_.begin(); }
+    Iterator begin() { return particles_.begin(); }
 
-    TIterator end() { return particles_.end(); }
+    Iterator end() { return particles_.end(); }
 
     const FittedCurve<double, 4>& fittedCurve() const { return curve_; }
 
-    std::vector<Positions> stepAll(const int32_t stepNumLayers) const;
+    std::vector<VoxelVectorType> stepAll(const int32_t stepNumLayers) const;
 
-    Positions step(const int32_t particleIndex,
+    VoxelVectorType step(const int32_t particleIndex,
                    const int32_t stepNumLayers) const;
 
-    void setNewPositions(const std::vector<cv::Vec3d> newPositions);
+    void setNewPositions(const VoxelVectorType& newPositions);
 
     void draw() const;
 
 private:
-    std::vector<Particle> particles_;
-    const VolumePkg& volpkg_;
+	VoxelVectorType particles_;
+    VolumePkg& volpkg_;
     size_t particleCount_;
     int32_t zIndex_;
     // XXX 4th degree interpolation is about as large as we can go currently.
@@ -78,7 +78,7 @@ private:
 
     constexpr static double kDefaultMaxDrift = 0.0;
 
-    const cv::Vec3d calculateNormal(const size_t index) const;
+    const VoxelType calculateNormal(const size_t index) const;
 
 };
 

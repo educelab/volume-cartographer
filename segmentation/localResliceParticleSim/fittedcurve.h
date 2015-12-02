@@ -14,20 +14,21 @@ namespace volcart {
 namespace segmentation {
 
 // Simple curve fitting using nonlinear least squares
-template <typename TPoint=double, int32_t Degree=12>
+template <typename PointScalar=double, int32_t Degree=4>
 class FittedCurve {
 public:
-    using TInputPoints = std::vector<std::tuple<TPoint, TPoint>>;
+	using PointType = typename std::tuple<PointScalar, PointScalar>;
+    using PointVectorType = typename std::vector<PointType>;
 
     FittedCurve() { }
 
-    FittedCurve(const TInputPoints& points)
+    FittedCurve(const PointVectorType& points)
     {
         fitPoints(points);
     }
 
     // Fit 'points' and generate coefficients for polynomial curve
-    void fitPoints(const TInputPoints& points)
+    void fitPoints(const PointVectorType& points)
     {
         std::tie(x_, y_) = make_matrices(points);    
 
@@ -41,7 +42,7 @@ public:
     }
 
     // Evaluate the polynomial at 'x'
-    TPoint at(TPoint x) const
+    PointScalar at(PointScalar x) const
     {
         auto y = coefficients_.at(0);
         for (size_t i = 1; i < coefficients_.size(); ++i) {
@@ -64,7 +65,7 @@ public:
 private:
     // Create the matrices for use later on in generating poly coefficients
     std::tuple<Eigen::MatrixXd, Eigen::VectorXd> make_matrices(
-            const TInputPoints& points) const
+            const PointVectorType& points) const
     {
         Eigen::MatrixXd x(points.size(), Degree + 1);
         Eigen::VectorXd y(points.size());
@@ -79,7 +80,7 @@ private:
         return std::make_tuple(x, y);
     }
 
-    std::vector<TPoint> coefficients_;
+    std::vector<PointScalar> coefficients_;
     Eigen::MatrixXd x_;
     Eigen::VectorXd y_;
 };
