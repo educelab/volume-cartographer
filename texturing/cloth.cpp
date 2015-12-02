@@ -14,12 +14,10 @@
 // bullet converter
 #include "itk2bullet.h"
 
-void helloWorld();
-
 int main(int argc, char* argv[])
 {
-	if ( argc < 4 ) {
-		std::cout << "Usage: vc_texture2 volpkg seg-id radius" << std::endl;
+	if ( argc < 5 ) {
+		std::cout << "Usage: vc_texture2 volpkg seg-id radius iterations" << std::endl;
 	}
 
 	VolumePkg vpkg = VolumePkg( argv[ 1 ] );
@@ -37,6 +35,8 @@ int main(int argc, char* argv[])
   double radius, minorRadius;
   radius = atof( argv[ 3 ] );
   if((minorRadius = radius / 3) < 1) minorRadius = 1;
+
+  int NUM_OF_ITERATIONS = atoi( argv[ 4 ] );
 
   // declare pointer to new Mesh object
   VC_MeshType::Pointer  mesh = VC_MeshType::New();
@@ -92,34 +92,14 @@ int main(int argc, char* argv[])
   }
   std::cout << std::endl;
 
-  // Generate per point uv coordinates specifically for the OBJ
-  VC_UVMap uvMap;
-  std::cerr << "Calculating UV coordinates for final mesh..." << std::endl;
-  for ( VC_PointsInMeshIterator point = mesh->GetPoints()->Begin(); point != mesh->GetPoints()->End(); ++point ) {
-    pointID = point.Index();
-
-    // Calculate the point's [meshX, meshY] position based on its pointID
-    meshX = pointID % meshWidth;
-    meshY = (pointID - meshX) / meshWidth;
-
-    // Calculate the point's UV position
-    u =  (double) meshX / (double) meshWidth;
-    v =  (double) meshY / (double) meshHeight;
-
-    // OBJ UV coordinates start in the bottom-left of an image, but we're calculating them from the top-left
-    // Subtract v from 1.0 to account for this
-    cv::Vec2d uv( u, 1.0 - v );
-
-    // Add the uv coordinates into our map at the point index specified
-    uvMap.insert( {pointID, uv} );
-  }
-
 	// convert itk mesh to bullet mesh (vertice and triangle arrays)
   int NUM_OF_POINTS = mesh->GetNumberOfPoints();
   btScalar bulletPoints[NUM_OF_POINTS*3];
   int NUM_OF_CELLS = mesh->GetNumberOfCells();
   int bulletFaces[NUM_OF_CELLS][3];
   volcart::meshing::itk2bullet::itk2bullet(mesh, bulletPoints, bulletFaces);
+
+  // DEBUGGING: Check if itk2bullet function returned correct arrays
   // for(int i = 0; i < mesh->GetNumberOfPoints(); i += 3) {
   //   std::cout << bulletPoints[i] << ", " << bulletPoints[i+1] << ", " << bulletPoints[i+2] << std::endl;
   // }
@@ -153,12 +133,10 @@ int main(int argc, char* argv[])
 
   // Constraints for the mesh as a soft body
   // These needed to be tested to find optimal values
-  // this iterates through all the links/faces and randomly swaps them
-  // psb->randomizeConstraints();
   // sets the mass of the whole soft body, true considers the faces along with the vertices
-  // psb->setTotalMass(100, true);
-  // psb->m_cfg.viterations = 50;
-  // psb->m_cfg.piterations = 50;
+  psb->setTotalMass(100, true);\
+  // set the damping coefficient of the soft body [0,1]
+  psb->m_cfg.kDP = 0.5;
 
   // Set the top row of vertices such that they wont move/fall
   for(int i = 0; i < NUM_OF_POINTS; ++i) {
@@ -167,16 +145,24 @@ int main(int argc, char* argv[])
   	}
   }
 
+  // rotate mesh 90 degrees around the y axis
+  psb->rotate(btQuaternion(0,SIMD_PI/2,0));
+
   // step simulation
-  for (int i = 0; i < 100; i++) {
-    dynamicsWorld->stepSimulation(1/ 60.f, 10);
+  for (int i = 0; i < NUM_OF_ITERATIONS; i++) {
+    dynamicsWorld->stepSimulation(1/ 60.f);
     psb->solveConstraints();
 
-    //check if mesh is moving/falling
-    // std::cout << "Cloth coordinate: " << psb->m_nodes[10000].m_x.x() << ", " << psb->m_nodes[10000].m_x.y() << ", " << psb->m_nodes[10000].m_x.z() << std::endl;
+    std::cout << "Cloth simulation step: " << i << "/" << NUM_OF_ITERATIONS << "\r" << std::flush;
+
+  //   //check if mesh is moving/falling
+  //   // std::cout << "Cloth coordinate: " << psb->m_nodes[10000].m_x.x() << ", " << psb->m_nodes[10000].m_x.y() << ", " << psb->m_nodes[10000].m_x.z() << std::endl;
   }
 
-  std::cout << "Simulation...........CHECK" << std::endl;
+  std::cout << std::endl;
+
+  // rotate mesh back to original orientation
+  psb->rotate(btQuaternion(0,-SIMD_PI/2,0));
 
   // Convert soft body to itk mesh
   volcart::meshing::bullet2itk::bullet2itk(mesh, psb);
@@ -197,68 +183,3 @@ int main(int argc, char* argv[])
 
 	return 0;
 } // end main
-
-void helloWorld() {
-	btBroadphaseInterface* broadphase = new btDbvtBroadphase();
-
-        btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
-        btCollisionDispatcher* dispatcher = new btCollisionDispatcher(collisionConfiguration);
-
-        btSequentialImpulseConstraintSolver* solver = new btSequentialImpulseConstraintSolver;
-
-        btDiscreteDynamicsWorld* dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
-
-        dynamicsWorld->setGravity(btVector3(0, -10, 0));
-
-
-        btCollisionShape* groundShape = new btStaticPlaneShape(btVector3(0, 1, 0), 1);
-
-        btCollisionShape* fallShape = new btSphereShape(1);
-
-
-        btDefaultMotionState* groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -1, 0)));
-        btRigidBody::btRigidBodyConstructionInfo
-                groundRigidBodyCI(0, groundMotionState, groundShape, btVector3(0, 0, 0));
-        btRigidBody* groundRigidBody = new btRigidBody(groundRigidBodyCI);
-        dynamicsWorld->addRigidBody(groundRigidBody);
-
-
-        btDefaultMotionState* fallMotionState =
-                new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 50, 0)));
-        btScalar mass = 1;
-        btVector3 fallInertia(0, 0, 0);
-        fallShape->calculateLocalInertia(mass, fallInertia);
-        btRigidBody::btRigidBodyConstructionInfo fallRigidBodyCI(mass, fallMotionState, fallShape, fallInertia);
-        btRigidBody* fallRigidBody = new btRigidBody(fallRigidBodyCI);
-        dynamicsWorld->addRigidBody(fallRigidBody);
-
-
-        for (int i = 0; i < 300; i++) {
-                dynamicsWorld->stepSimulation(1 / 60.f, 10);
-
-                btTransform trans;
-                fallRigidBody->getMotionState()->getWorldTransform(trans);
-
-                std::cout << "sphere height: " << trans.getOrigin().getY() << std::endl;
-        }
-
-        dynamicsWorld->removeRigidBody(fallRigidBody);
-        delete fallRigidBody->getMotionState();
-        delete fallRigidBody;
-
-        dynamicsWorld->removeRigidBody(groundRigidBody);
-        delete groundRigidBody->getMotionState();
-        delete groundRigidBody;
-
-
-        delete fallShape;
-
-        delete groundShape;
-
-
-        delete dynamicsWorld;
-        delete solver;
-        delete collisionConfiguration;
-        delete dispatcher;
-        delete broadphase;
-}
