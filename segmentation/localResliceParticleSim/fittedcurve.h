@@ -35,7 +35,6 @@ public:
         // Seems to use least squares computation. Check Eigen documentation for
         // the Eigen::ComputeThinU/V.
         Eigen::VectorXd a = x_.jacobiSvd(Eigen::ComputeFullU | Eigen::ComputeFullV).solve(y_);
-        std::cout << a << std::endl;
         for (uint32_t i = 0; i < a.size(); ++i) {
             coefficients_.push_back(a(i));
         }
@@ -75,8 +74,6 @@ private:
             }
             y(i) = std::get<1>(points.at(i));
         }
-        std::cout << x << std::endl;
-        std::cout << y << std::endl;
         return std::make_tuple(x, y);
     }
 

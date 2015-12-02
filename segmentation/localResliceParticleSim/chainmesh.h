@@ -21,7 +21,7 @@ public:
 
     void addChain(Chain c);
 
-    void addPositions(VoxelVectorType ps);
+    void addPositions(const VoxelVec& ps);
 
     cv::Mat positions() const { return positions_; }
 

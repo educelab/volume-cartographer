@@ -19,7 +19,7 @@ public:
 
     void draw(const int32_t=100, const int32_t=100) const;
 
-    IndexDistPairVec findMaxima(int32_t index) const;
+    IndexDistPairVec findMaxima() const;
 
 private:
     friend std::ostream& operator<<(std::ostream& s, const NormalizedIntensityMap& m) {

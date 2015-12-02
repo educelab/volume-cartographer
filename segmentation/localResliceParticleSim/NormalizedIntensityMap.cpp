@@ -25,7 +25,7 @@ void NormalizedIntensityMap::draw(const int32_t displayWidth,
     }
 
     // Sort by closest maxima available and draw line on that
-    auto maxima = findMaxima(0);
+    auto maxima = findMaxima();
     auto centerX = _intensities.cols / 2;
     auto minDist = std::numeric_limits<int32_t>::max();
     auto minIdx = -1;
@@ -48,7 +48,7 @@ void NormalizedIntensityMap::draw(const int32_t displayWidth,
 }
 
 // Finds the top 'N' maxima in the row being processed
-IndexDistPairVec NormalizedIntensityMap::findMaxima(int32_t index) const
+IndexDistPairVec NormalizedIntensityMap::findMaxima() const
 {
     // Find derivative of intensity curve
     cv::Mat sobelDerivatives;

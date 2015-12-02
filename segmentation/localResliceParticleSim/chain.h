@@ -26,22 +26,22 @@ namespace segmentation {
 
 class Chain {
 public:
-    using Iterator       = typename VoxelVectorType::iterator;
-    using ConstIterator  = typename VoxelVectorType::const_iterator;
-    using DirPosPair     = std::tuple<Direction, VoxelType>;
-    using DirPosPairVec  = std::tuple<std::vector<Direction>, std::vector<VoxelType>>;
+    using Iterator       = typename VoxelVec::iterator;
+    using ConstIterator  = typename VoxelVec::const_iterator;
+    using DirPosPair     = std::tuple<Direction, Voxel>;
+    using DirPosPairVec  = std::tuple<std::vector<Direction>, VoxelVec>;
 
     Chain();
 
     Chain(VolumePkg& pkg, int32_t zIndex);
 
-    Chain(VolumePkg& pkg, VoxelVectorType& pos, int32_t zIndex);
+    Chain(VolumePkg& pkg, VoxelVec& pos, int32_t zIndex);
 
     int32_t size(void) const { return particleCount_; }
 
-	VoxelType at(const int32_t idx) const { return particles_.at(idx); }
+	Voxel at(const int32_t idx) const { return particles_.at(idx); }
 
-    VoxelVectorType positions() const;
+    const VoxelVec& positions() const { return particles_; }
 
     void setZIndex(int32_t zIndex) { zIndex_ = zIndex; }
 
@@ -57,17 +57,18 @@ public:
 
     const FittedCurve<double, 4>& fittedCurve() const { return curve_; }
 
-    std::vector<VoxelVectorType> stepAll(const int32_t stepNumLayers) const;
+    std::vector<VoxelVec> stepAll(const int32_t stepNumLayers,
+                                  const int32_t keepNumMaxima) const;
 
-    VoxelVectorType step(const int32_t particleIndex,
-                   const int32_t stepNumLayers) const;
+    VoxelVec step(const int32_t particleIndex, const int32_t stepNumLayers,
+                  const int32_t keepNumMaxima) const;
 
-    void setNewPositions(const VoxelVectorType& newPositions);
+    void setNewPositions(const VoxelVec& newPositions);
 
     void draw() const;
 
 private:
-	VoxelVectorType particles_;
+	VoxelVec particles_;
     VolumePkg& volpkg_;
     size_t particleCount_;
     int32_t zIndex_;
@@ -78,7 +79,7 @@ private:
 
     constexpr static double kDefaultMaxDrift = 0.0;
 
-    const VoxelType calculateNormal(const size_t index) const;
+    const Voxel calculateNormal(const size_t index) const;
 
 };
 

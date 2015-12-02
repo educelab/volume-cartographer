@@ -29,7 +29,7 @@ Chain::Chain(VolumePkg& volpkg, int32_t zIndex) :
 }
 
 // Constructor from explicit points
-Chain::Chain(VolumePkg& volpkg, VoxelVectorType& pos, int32_t zIndex) :
+Chain::Chain(VolumePkg& volpkg, VoxelVec& pos, int32_t zIndex) :
     volpkg_(volpkg), particleCount_(0), zIndex_(zIndex)
 {
     decltype(curve_)::PointVectorType curvePoints(pos.size());
@@ -41,29 +41,25 @@ Chain::Chain(VolumePkg& volpkg, VoxelVectorType& pos, int32_t zIndex) :
     curve_.fitPoints(curvePoints);
 }
 
-void Chain::setNewPositions(const VoxelVectorType& newPositions)
+void Chain::setNewPositions(const VoxelVec& newPositions)
 {
     assert(particleCount_ == newPositions.size() &&
             "New chain positions length != particleCount_");
 	std::copy(newPositions.begin(), newPositions.end(), particles_.begin());
 }
 
-VoxelVectorType Chain::positions() const
-{
-    return particles_;
-}
-
 // Steps all particles (with no constraints)
-std::vector<VoxelVectorType> Chain::stepAll(const int32_t stepNumLayers) const
+std::vector<VoxelVec>
+Chain::stepAll(const int32_t stepNumLayers, const int32_t keepNumMaxima) const
 {
-    std::vector<VoxelVectorType> ps(particleCount_);
+    std::vector<VoxelVec> ps(particleCount_);
     for (size_t i = 0; i < particleCount_; ++i) {
-        ps.at(i) = step(i, stepNumLayers);
+        ps.at(i) = step(i, stepNumLayers, keepNumMaxima);
     }
     return ps;
 }
 
-const VoxelType Chain::calculateNormal(const size_t index) const
+const Voxel Chain::calculateNormal(const size_t index) const
 {
     // Get average z voxel value (makes generating the reslice a little more accurate)
     double zMean = std::accumulate(particles_.begin(), particles_.end(), 0,
@@ -87,14 +83,15 @@ const VoxelType Chain::calculateNormal(const size_t index) const
         after = particles_[index+1](VC_INDEX_X);
     }
 
-    auto tanVec = VoxelType(
+    auto tanVec = Voxel(
 			after - before, curve_.at(after) - curve_.at(before), zMean);
     return tanVec.cross(VC_DIRECTION_K);
 }
 
 // Step an individual particle
-VoxelVectorType
-Chain::step(const int32_t index, const int32_t stepNumLayers) const
+VoxelVec
+Chain::step(const int32_t index, const int32_t stepNumLayers,
+        const int32_t keepNumMaxima) const
 {
     auto currentParticle = particles_[index];
 
@@ -110,7 +107,7 @@ Chain::step(const int32_t index, const int32_t stepNumLayers) const
         reslice.draw();
         map.draw();
     }
-    auto maxima = map.findMaxima(index);
+    auto maxima = map.findMaxima();
 
     // Sort maxima by whichever is closest to current index of center (using
     // standard euclidean 1D distance)
@@ -122,8 +119,16 @@ Chain::step(const int32_t index, const int32_t stepNumLayers) const
             return ldist < rdist;
         });
 
+    // Take only top N maxima (currently 3)
+    maxima.resize(keepNumMaxima, IndexDistPair(0, 0));
+    for (int32_t i = keepNumMaxima - 1; i >= 0; --i) {
+        if (std::get<0>(maxima[i]) == 0 && std::get<1>(maxima[i]) == 0) {
+            maxima.pop_back();
+        }
+    }
+
     // Convert from pixel space to voxel space
-    VoxelVectorType voxelMaxima(maxima.size());
+    VoxelVec voxelMaxima(maxima.size());
     std::transform(maxima.begin(), maxima.end(), std::back_inserter(voxelMaxima),
         [reslice, center, stepNumLayers](IndexDistPair p) {
             return reslice.sliceCoordToVoxelCoord(
@@ -134,8 +139,8 @@ Chain::step(const int32_t index, const int32_t stepNumLayers) const
     if (voxelMaxima.empty()) {
         // Need to wrap straight down point in a vector.
         cv::Point newPoint(center.x, center.y + stepNumLayers);
-        VoxelType voxelPoint = reslice.sliceCoordToVoxelCoord(newPoint);
-        return VoxelVectorType({ voxelPoint });
+        Voxel voxelPoint = reslice.sliceCoordToVoxelCoord(newPoint);
+        return VoxelVec({ voxelPoint });
     } else {
         return voxelMaxima;
     }

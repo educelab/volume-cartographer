@@ -15,16 +15,16 @@ ChainMesh::ChainMesh(const int32_t width, const int32_t height) :
 void ChainMesh::addChain(Chain row)
 {
     for (int32_t i = 0; i < row.size(); ++i) {
-        positions_.at<VoxelType>(nextRow_, i) = row.at(i);
+        positions_.at<Voxel>(nextRow_, i) = row.at(i);
     }
     nextRow_++;
 }
 
 // Adds vector of positions to the matrix
-void ChainMesh::addPositions(VoxelVectorType ps)
+void ChainMesh::addPositions(const VoxelVec& ps)
 {
     for (uint32_t i = 0; i < ps.size(); ++i) {
-        positions_.at<VoxelType>(nextRow_, i) = ps.at(i);
+        positions_.at<Voxel>(nextRow_, i) = ps[i];
     }
     nextRow_++;
 }
