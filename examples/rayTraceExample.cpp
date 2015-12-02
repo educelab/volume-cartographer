@@ -16,16 +16,8 @@ int main(){
 
     //First, create all the objects needed for the call to rayTrace()
     std::vector<cv::Vec6f> results;
-
-    /*
-     * TODO: need to update everything with the curved mesh stuff
-     */
-
-
-    // Essential data structure to return points and normals
-    std::vector<cv::Vec6f> intersections;
     VC_MeshType::Pointer iMesh;
-    volcart::shapes::Plane _mesh;
+    volcart::shapes::Arch _mesh;
     std::map<int, cv::Vec2d> uvMap;
 
     int traceDir = 0; //default direction is anything != 1

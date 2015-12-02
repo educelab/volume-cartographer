@@ -38,7 +38,6 @@ int main(int argc, char* argv[]) {
     pcl::PointCloud<pcl::PointNormal>::Ptr input( new pcl::PointCloud<pcl::PointNormal>);
     *input = cloud_PointNormal;
 
-
     // Call function from namespace in header file
     std::cout << "Being greedy..." << std::endl;
     pcl::PolygonMesh output = greedyProjectionMeshing(input, 100, 2.0, 2.5);

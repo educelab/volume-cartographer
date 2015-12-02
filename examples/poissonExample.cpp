@@ -14,12 +14,15 @@
 
 int main(/*int argc, char** argv*/){
 
+    //Create planar mesh and point cloud from mesh
     volcart::shapes::Plane mesh;
     pcl::PointCloud<pcl::PointNormal> pCloud = mesh.pointCloudNormal();
 
+    //Convert point cloud to ptr for poissonReconstruction() call
     pcl::PointCloud<pcl::PointNormal>::Ptr cloud(new pcl::PointCloud<pcl::PointNormal>);
     *cloud = pCloud;
 
+    //call poissonRecon(), assign result and write to file
     pcl::PolygonMesh polyMesh;
     polyMesh = volcart::meshing::poissonReconstruction(cloud);
     pcl::io::saveOBJFile( "poissonExample.obj", polyMesh);

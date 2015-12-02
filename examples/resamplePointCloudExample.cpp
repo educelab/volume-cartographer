@@ -15,10 +15,9 @@
 
 int main() {
 
-    //Construct a testingMesh and convert to <PointXYZ> point cloud
+    //Construct a planar mesh and convert to <PointXYZ> point cloud
     volcart::shapes::Plane mesh;
-    pcl::PointCloud <pcl::PointXYZ> pCloud;
-    pCloud = mesh.pointCloudXYZ();
+    pcl::PointCloud <pcl::PointXYZ> pCloud = mesh.pointCloudXYZ();
 
     //convert pCloud to Ptr for resample() call
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);

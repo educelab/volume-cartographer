@@ -69,7 +69,7 @@ struct rayTraceFix {
     // Essential data structure to return points and normals
     std::vector<cv::Vec6f> intersections;
     VC_MeshType::Pointer iMesh;
-    volcart::shapes::Plane _mesh;
+    volcart::shapes::Arch _mesh;
     std::map<int, cv::Vec2d> uvMap;
 
     int traceDir = 0; //default direction is anything != 1

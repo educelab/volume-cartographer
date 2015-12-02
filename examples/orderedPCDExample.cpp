@@ -16,15 +16,7 @@
 
 int main(/*int argc, char** argv*/) {
 
-    volcart::shapes::Plane mesh;
-    //Create point cloud from mesh
-    pcl::PointCloud <pcl::PointXYZRGB> pCloud = mesh.pointCloudXYZRGB();
-
-    //convert pCloud to Ptr for orderedPCD() call
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud <pcl::PointXYZRGB>);
-    *cloud = pCloud;
-
-//
+    //
 //    std::string outfile;
 //
 //    if (argc == 1){  //no outfile filename provided
@@ -37,11 +29,17 @@ int main(/*int argc, char** argv*/) {
 //        return 1;
 //    }
 
-    //call orderedPCDMesher()
-    //Will need to convert the ply data to pcd when reading in via orderedPCDMesherTest
-    //Issues with ply reader:
-        //http://answers.ros.org/question/136916/conversion-from-sensor_msgspointcloud2-to-pclpointcloudt/
+    //Create planar mesh
+    volcart::shapes::Plane mesh;
 
+    //Create point cloud from mesh
+    pcl::PointCloud <pcl::PointXYZRGB> pCloud = mesh.pointCloudXYZRGB();
+
+    //convert pCloud to Ptr for orderedPCD() call
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud <pcl::PointXYZRGB>);
+    *cloud = pCloud;
+
+    //call orderedPCDMesher()
     volcart::meshing::orderedPCDMesher(cloud, "orderedPCDExample.ply");
 
     std::cerr << "File written as orderedPCDExample.ply" << std::endl;
