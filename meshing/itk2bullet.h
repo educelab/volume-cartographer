@@ -6,10 +6,12 @@
 #define VC_ITK2BULLET_H
 
 #include "vc_defines.h"
-#include "LinearMath/btScalar.h"
+#include <LinearMath/btScalar.h>
+#include <LinearMath/btVector3.h>
 
 // Bullet Soft Body
 #include <btBulletDynamicsCommon.h>
+#include <BulletSoftBody/btSoftBody.h>
 #include <BulletSoftBody/btSoftRigidDynamicsWorld.h>
 #include <BulletSoftBody/btDefaultSoftBodySolver.h>
 #include <BulletSoftBody/btSoftBodyRigidBodyCollisionConfiguration.h>
@@ -20,12 +22,12 @@ namespace volcart {
 
     class itk2bullet {
     public:
-    	itk2bullet( VC_MeshType::Pointer input, btScalar vertices[], int faces[][3] );
+        itk2bullet( VC_MeshType::Pointer input, btSoftBodyWorldInfo& worldInfo, btSoftBody** output );
     };
 
     class bullet2itk {
     public:
-    	bullet2itk( VC_MeshType::Pointer output, btSoftBody* softBody);
+        bullet2itk( VC_MeshType::Pointer output, btSoftBody* softBody);
     };
 
   } // namespace meshing
