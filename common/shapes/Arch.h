@@ -1,0 +1,65 @@
+//
+// Created by Melissa Shankle on 12/02/15.
+//
+
+#ifndef VC_ARCH_H
+#define VC_ARCH_H
+
+#include <math.h>
+
+#include <opencv2/opencv.hpp>
+
+#include "../vc_defines.h"
+#include "ShapePrimitive.h"
+
+namespace volcart {
+    namespace shapes {
+        class Arch : public ShapePrimitive {
+        public:
+            Arch() {
+                // dimensions of the mesh arch
+                int width = 10;
+                int height = 10;
+
+                float rad = 5;
+
+                std::vector<cv::Vec3f> curve;
+                std::vector<cv::Vec3f> points;
+
+                // rad will always be the same
+                // theta (t) will be between 0 and pi
+                // z will be between 0 and width
+                cv::Vec3f c_point;
+                for( int w = 0; w < width; ++w ) {
+                    double t = w * M_PI / width;
+                    c_point[0] = rad * cos(t);
+                    c_point[1] = rad * sin(t);
+                    c_point[2] = 0;
+                    curve.push_back(c_point);
+                }
+
+                for (float z = 0; z < height; z += 1) {
+                    for ( auto p_id = curve.begin(); p_id != curve.end(); ++p_id ) {
+                        _add_vertex( p_id->val[0], p_id->val[1], z);
+                    }
+                }
+
+                // generate the cells
+                for (int i = 1; i < height; ++i) {
+                    for (int j = 1; j < width; ++j) {
+                        int v1, v2, v3, v4;
+                        v1 = i * width + j;
+                        v2 = v1 - 1;
+                        v3 = v2 - width;
+                        v4 = v1 - width;
+                        _add_cell(v1, v2, v3);
+                        _add_cell(v1, v3, v4);
+                    }
+                }
+            } // Constructor
+
+        }; // Arch
+    } // shapes
+} // volcart
+
+#endif //VC_ARCH_H

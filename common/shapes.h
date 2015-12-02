@@ -7,5 +7,6 @@
 
 #include "shapes/ShapePrimitive.h"
 #include "shapes/Plane.h"
+#include "shapes/Arch.h"
 
 #endif //VC_SHAPES_H

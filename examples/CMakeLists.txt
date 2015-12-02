@@ -19,6 +19,9 @@ target_link_libraries(vc_itk2vtkExample ${VC_LIBS} ${VC_REQ_LIBS})
 add_executable(vc_greedyExample greedyExample.cpp)
 target_link_libraries(vc_greedyExample ${VC_LIBS} ${VC_REQ_LIBS})
 
+add_executable(vc_greedyExampleArch greedyExampleArch.cpp)
+target_link_libraries(vc_greedyExampleArch ${VC_LIBS} ${VC_REQ_LIBS})
+
 add_executable(vc_poissonExample poissonExample.cpp)
 target_link_libraries(vc_poissonExample ${VC_LIBS} ${VC_REQ_LIBS})
 
