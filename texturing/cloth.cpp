@@ -14,8 +14,13 @@
 // bullet converter
 #include "itk2bullet.h"
 
-int main(int argc, char* argv[])
-{
+static void softBodyTickCallback(btDynamicsWorld *world, btScalar timeStep);
+std::vector<unsigned long> pinnedPoints;
+std::vector<unsigned long> targetPoints;
+btVector3 goal(0, 0, 0);
+btSoftBody::Node* g_node;
+
+int main(int argc, char* argv[]) {
     if ( argc < 5 ) {
         std::cout << "Usage: vc_texture2 volpkg seg-id iterations" << std::endl;
     }
@@ -63,6 +68,7 @@ int main(int argc, char* argv[])
                                                                           softBodySolver);
 
     dynamicsWorld->setGravity(btVector3(0, -10, 0));
+    dynamicsWorld->setInternalTickCallback(softBodyTickCallback, dynamicsWorld, true);
 
     // convert itk mesh to bullet mesh (vertices and triangle arrays)
     std::cerr << "volcart::cloth::message: Converting mesh to softBody" << std::endl;
@@ -71,9 +77,12 @@ int main(int argc, char* argv[])
 
     dynamicsWorld->addSoftBody(psb);
 
+    g_node = &psb->m_nodes[0];
+
     // Constraints for the mesh as a soft body
-    // These needed to be tested to find optimal values. If mass isn't high enough, nothing changes.
-    // sets the mass of the whole soft body, true considers the faces along with the vertices
+    // These needed to be tested to find optimal values.
+    // Sets the mass of the whole soft body, true considers the faces along with the vertices
+    // Note: Mass is in kilograms. If mass isn't high enough, nothing changes.
     std::cerr << "volcart::cloth::message: Setting mass" << std::endl;
     psb->setTotalMass( (int)(psb->m_nodes.size() * 0.001), true );
 
@@ -83,7 +92,6 @@ int main(int argc, char* argv[])
     // Set the top row of vertices such that they wont move/fall
     // Currently assumes that the first point has the same z-value as the rest of the starting chain
     int min_z = mesh->GetPoint(0)[2];
-    std::vector<unsigned long> pinnedPoints;
     std::cerr << "volcart::cloth::message: Pinning points at Z: " << min_z << std::endl;
     for(unsigned long i = 0; i < psb->m_nodes.size(); ++i) {
         if( (int)psb->m_nodes[i].m_x.z() <= min_z) {
@@ -128,3 +136,10 @@ int main(int argc, char* argv[])
 
     return 0;
 } // end main
+
+void softBodyTickCallback(btDynamicsWorld *world, btScalar timeStep) {
+    btVector3 delta = (goal - g_node->m_x) * timeStep;
+    btVector3 nextStep = g_node->m_x + delta;
+    g_node->m_x = nextStep;
+    g_node->m_v += delta/timeStep;
+};
