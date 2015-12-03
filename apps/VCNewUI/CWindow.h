@@ -5,13 +5,7 @@
 
 #include "VCNewGuiHeader.h"
 
-#ifdef _QT5_
-#include <QtCore>
-#include <QtGui>
 #include <QtWidgets>
-#else // _QT4_
-#include <QtGui>
-#endif
 
 #include "mathUtils.h"
 #include "CBSpline.h"

@@ -36,7 +36,7 @@ if(APPLE)
 endif(APPLE)
 
 add_executable(VC MACOSX_BUNDLE WIN32 ${VCNewUI_SOURCES} ${VCNewUI_HEADERS})
-target_link_libraries(VC ${VC_LIBS} ${VC_REQ_LIBS} Qt4::QtOpenGL ${OPENGL_LIBRARIES} ${QT_LIBRARIES} ${EXTRA_LIBS})
+target_link_libraries(VC ${VC_LIBS} ${VC_REQ_LIBS} Qt5::Core Qt5::Gui Qt5::Widgets ${OPENGL_LIBRARIES} ${EXTRA_LIBS})
 
 set(VC_EXECUTABLE "VC")
 if(APPLE)
@@ -56,6 +56,6 @@ install(TARGETS VC
         RUNTIME DESTINATION bin COMPONENT Programs)
 
 if(APPLE OR WIN32)
-    include(DeployQt4)
-    install_qt4_executable("${VC_EXECUTABLE}" "" "" "${DIRS}" "" "" "Programs")
+    include(DeployQt5)
+    install_qt5_executable("${VC_EXECUTABLE}" "${PLUGINS}" "${LIBS}" "${DIRS}" "${REQUEST_QT_CONF}" "${PLUGINS_DIR}" "Programs")
 endif()

@@ -5,7 +5,7 @@
 #include "HBase.h"
 
 #include <QtCore>
-#include <QtGui>
+#include <QtWidgets>
 
 #include "volumepkg.h"
 #include "CVolumeViewerWithCurve.h"

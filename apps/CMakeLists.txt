@@ -1,5 +1,11 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
+# VC.app
+add_subdirectory(VCNewUI)
+
+# Texture UI
+add_subdirectory(textureUI)
+
 # Mesher
 add_executable(vc_mesher mesher.cpp)
 target_link_libraries(vc_mesher ${VC_LIBS} ${VC_REQ_LIBS})
@@ -21,8 +27,5 @@ add_executable(vc_projection projection.cpp)
 target_link_libraries(vc_projection ${VC_LIBS} ${VC_REQ_LIBS})
 
 # Install targets
-install(TARGETS vc_mesher vc_segment vc_metaedit vc_projection
+install(TARGETS vc_mesher vc_segment vc_metaedit vc_projection vc_render
         RUNTIME DESTINATION bin COMPONENT Programs)
-
-# VC.app
-add_subdirectory(VCNewUI)

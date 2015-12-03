@@ -5,11 +5,7 @@
 
 #include "VCNewGuiHeader.h"
 
-#ifdef _QT5_
 #include <QtWidgets>
-#else // _QT4_
-#include <QtGui>
-#endif
 
 #include "CSimpleNumEditBox.h"
 
