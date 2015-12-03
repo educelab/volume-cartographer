@@ -1,6 +1,12 @@
 #include "volumepkgcfg.h"
 
 ///// CONSTRUCTORS /////
+VolumePkgCfg::VolumePkgCfg() {
+    picojson::object obj;
+    obj["version"] = picojson::value(VOLPKG_VERSION);
+    _json = picojson::value(obj);
+}
+
 // Construct a new json config using a Dictionary as a template
 VolumePkgCfg::VolumePkgCfg(volcart::Dictionary dict, double version) {
 

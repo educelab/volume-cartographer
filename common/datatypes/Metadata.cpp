@@ -5,12 +5,13 @@ namespace volcart {
     ///// CONSTRUCTORS /////
     Metadata::Metadata() {
         picojson::object obj;
-        obj["version"] = picojson::value(VOLPKG_VERSION);
         _json = picojson::value(obj);
     }
 
     // Read a json config from disk
     Metadata::Metadata(std::string file_location) {
+
+        _path = file_location;
 
         // open the file
         std::ifstream json_file(file_location);
@@ -29,10 +30,10 @@ namespace volcart {
 
 
 // save the JSON file to disk
-    void Metadata::save(std::string file_location) {
+    void Metadata::save(std::string path) {
 
         // open the file
-        std::ofstream json_file (file_location, std::ofstream::out);
+        std::ofstream json_file (path, std::ofstream::out);
 
         // try to push into the json file
         json_file << _json << std::endl;
@@ -71,12 +72,12 @@ namespace volcart {
             return 0.0;
     }
 
-    std::string Metadata::getString(std::string identifier, std::string default_output) {
+    std::string Metadata::getString(std::string identifier) {
         try {
             return _json.get(identifier).get<std::string>();
         }
         catch(...) {
-            return default_output;
+            return "NULL";
         }
     }
 
@@ -84,6 +85,12 @@ namespace volcart {
 // assignment
     void Metadata::setValue(std::string identifier, int value) {
         // picojson requires int be cast to double
+        picojson::object jsonObject = _json.get<picojson::object>();
+        jsonObject[identifier] = picojson::value(double(value));
+        _json = picojson::value(jsonObject);
+    }
+
+    void Metadata::setValue(std::string identifier, unsigned long value) {
         picojson::object jsonObject = _json.get<picojson::object>();
         jsonObject[identifier] = picojson::value(double(value));
         _json = picojson::value(jsonObject);

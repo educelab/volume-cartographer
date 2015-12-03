@@ -11,7 +11,7 @@
 
 class VolumePkgCfg : public volcart::Metadata {
 public:
-    VolumePkgCfg() : Metadata(){};
+    VolumePkgCfg();
     VolumePkgCfg( std::string path ) : Metadata( path ){};
     VolumePkgCfg(volcart::Dictionary dict, double version = VOLPKG_VERSION);
 };

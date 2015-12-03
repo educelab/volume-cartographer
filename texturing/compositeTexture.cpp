@@ -15,7 +15,7 @@ namespace volcart {
                                            VC_Direction_Option compositeDirection) {
 
             ///// Create the output texture object /////
-            volcart::Texture outputTexture(output_w, output_h);
+            volcart::Texture outputTexture;
 
             ///// Generate UV Map /////
             // To-Do: Generate this map independent of point ordering - SP, 10/2015

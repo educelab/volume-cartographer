@@ -15,7 +15,7 @@ VolumePkg::VolumePkg(std::string file_location, double version ) {
     }
 
     root_dir = file_location;
-    segs_dir = file_location + config.getString("segpath", "/paths/");
+    segs_dir = file_location + "/paths/";
     slice_dir = file_location + "/slices/";
     config.setValue("slice location", "/slices/"); // To-Do: We need a better way of handling default values
     norm_dir = file_location + "/surface_normals/";
@@ -24,7 +24,7 @@ VolumePkg::VolumePkg(std::string file_location, double version ) {
 // Use this when reading a volpkg from a file
 VolumePkg::VolumePkg(std::string file_location) : config(file_location + "/config.json") {
     root_dir = file_location;
-    segs_dir = file_location + config.getString("segpath", "/paths/");
+    segs_dir = file_location + "/paths/";
     slice_dir = file_location + "/slices/";
     norm_dir = file_location + "/surface_normals/";
 
@@ -72,7 +72,11 @@ int VolumePkg::_makeDirTree() {
 // METADATA RETRIEVAL //
 // Returns Volume Name from JSON config
 std::string VolumePkg::getPkgName() {
-    return config.getString("volumepkg name", "UnnamedVolume");
+    std::string name = config.getString("volumepkg name");
+    if ( name != "NULL" )
+        return name;
+    else
+        return "UnnamedVolume";
 };
 
 double VolumePkg::getVersion() {
@@ -158,8 +162,7 @@ std::string VolumePkg::getSlicePath(int index) {
 // Returns surface normal PCD file path for slice at index
 std::string VolumePkg::getNormalAtIndex(int index) {
 
-    std::string pcd_location(root_dir.string());
-    pcd_location += config.getString("pcd location", "/surface_normals/");
+    std::string pcd_location = norm_dir.string();
 
     int num_pcd_chars = getNumberOfSliceCharacters();
     std::string str_index = std::to_string(index);
@@ -218,12 +221,7 @@ std::string VolumePkg::newSegmentation() {
     boost::filesystem::path newSeg(segs_dir);
 
     //make a new dir based off the current date and time
-    time_t now = time( 0 );
-    struct tm tstruct;
-    char buf[ 80 ];
-    tstruct = *localtime( &now );
-    strftime( buf, sizeof( buf ), "%Y%m%d%H%M%S", &tstruct );
-    std::string segName(buf);
+    std::string segName = VC_DATE_TIME();
     newSeg += segName;
 
     if (boost::filesystem::create_directory(newSeg)) {

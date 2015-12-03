@@ -70,4 +70,16 @@ enum VC_Direction_Option {
     DirectionOptionNegative
 };
 
+///// Time Helper /////
+#include <time.h>
+
+inline std::string VC_DATE_TIME() {
+    time_t now = time( 0 );
+    struct tm tstruct;
+    char buf[ 80 ];
+    tstruct = *localtime( &now );
+    strftime( buf, sizeof( buf ), "%Y%m%d%H%M%S", &tstruct );
+    return std::string(buf);
+}
+
 #endif //VC_DEFINES_H

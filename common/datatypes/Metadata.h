@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <boost/filesystem.hpp>
 
 #include "../picojson.h"
 
@@ -21,7 +22,13 @@ namespace volcart {
         Metadata();
         Metadata(std::string file_location);
 
-        void save(std::string);
+        // Path
+        boost::filesystem::path path() { return _path; };
+        void setPath( std::string path ) { _path = path; };
+
+        // Save to file
+        void save(std::string path);
+        void save() { save( _path.string() ); };
 
         // Debug functions
         void printString();
@@ -30,15 +37,17 @@ namespace volcart {
         // Retrieval
         int getInt(std::string);
         double getDouble(std::string);
-        std::string getString(std::string, std::string);
+        std::string getString(std::string);
 
         // Assignment
         void setValue(std::string, int);
+        void setValue(std::string, unsigned long);
         void setValue(std::string, double);
         void setValue(std::string, std::string);
 
     protected:
         picojson::value _json;
+        boost::filesystem::path _path;
     };
 }
 
