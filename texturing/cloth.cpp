@@ -17,7 +17,7 @@
 int main(int argc, char* argv[])
 {
     if ( argc < 5 ) {
-        std::cout << "Usage: vc_texture2 volpkg seg-id radius iterations" << std::endl;
+        std::cout << "Usage: vc_texture2 volpkg seg-id iterations" << std::endl;
     }
 
     VolumePkg vpkg = VolumePkg( argv[ 1 ] );
@@ -32,11 +32,8 @@ int main(int argc, char* argv[])
     }
     vpkg.setActiveSegmentation(segID);
     std::string meshName = vpkg.getMeshPath();
-    double radius, minorRadius;
-    radius = atof( argv[ 3 ] );
-    if((minorRadius = radius / 3) < 1) minorRadius = 1;
 
-    int NUM_OF_ITERATIONS = atoi( argv[ 4 ] );
+    int NUM_OF_ITERATIONS = atoi( argv[ 3 ] );
 
     // declare pointer to new Mesh object
     VC_MeshType::Pointer  mesh = VC_MeshType::New();
@@ -75,20 +72,23 @@ int main(int argc, char* argv[])
     dynamicsWorld->addSoftBody(psb);
 
     // Constraints for the mesh as a soft body
-    // These needed to be tested to find optimal values
+    // These needed to be tested to find optimal values. If mass isn't high enough, nothing changes.
     // sets the mass of the whole soft body, true considers the faces along with the vertices
     std::cerr << "volcart::cloth::message: Setting mass" << std::endl;
-    psb->setTotalMass(100, true);
+    psb->setTotalMass( (int)(psb->m_nodes.size() * 0.001), true );
 
     // set the damping coefficient of the soft body [0,1]
     psb->m_cfg.kDP = 0.5;
 
-    // Set the top row of vertices (lowest Z-index) such that they wont move/fall
-    int min_z = 6;
+    // Set the top row of vertices such that they wont move/fall
+    // Currently assumes that the first point has the same z-value as the rest of the starting chain
+    int min_z = mesh->GetPoint(0)[2];
+    std::vector<unsigned long> pinnedPoints;
     std::cerr << "volcart::cloth::message: Pinning points at Z: " << min_z << std::endl;
-    for(int i = 0; i < psb->m_nodes.size(); ++i) {
+    for(unsigned long i = 0; i < psb->m_nodes.size(); ++i) {
         if( (int)psb->m_nodes[i].m_x.z() <= min_z) {
             psb->setMass(i, 0);
+            pinnedPoints.push_back(i);
         }
     }
 
@@ -99,7 +99,7 @@ int main(int argc, char* argv[])
     // step simulation
     std::cerr << "volcart::cloth::message: Beginning simulation" << std::endl;
     for (int i = 0; i < NUM_OF_ITERATIONS; ++i) {
-        std::cerr << "volcart::cloth::message: Step " << i << "/" << NUM_OF_ITERATIONS << "\r" << std::flush;
+        std::cerr << "volcart::cloth::message: Step " << i + 1 << "/" << NUM_OF_ITERATIONS << "\r" << std::flush;
         dynamicsWorld->stepSimulation(1/ 60.f);
         psb->solveConstraints();
     }
