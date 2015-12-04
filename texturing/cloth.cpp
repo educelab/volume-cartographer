@@ -15,10 +15,8 @@
 #include "itk2bullet.h"
 
 static void softBodyTickCallback(btDynamicsWorld *world, btScalar timeStep);
-std::vector<unsigned long> pinnedPoints;
-std::vector<unsigned long> targetPoints;
-btVector3 goal(0, 0, 0);
-btSoftBody::Node* g_node;
+std::vector<btSoftBody::Node*> pinnedPoints;
+std::vector<btVector3> targetPoints;
 
 int main(int argc, char* argv[]) {
     if ( argc < 5 ) {
@@ -77,8 +75,6 @@ int main(int argc, char* argv[]) {
 
     dynamicsWorld->addSoftBody(psb);
 
-    g_node = &psb->m_nodes[0];
-
     // Constraints for the mesh as a soft body
     // These needed to be tested to find optimal values.
     // Sets the mass of the whole soft body, true considers the faces along with the vertices
@@ -96,13 +92,33 @@ int main(int argc, char* argv[]) {
     for(unsigned long i = 0; i < psb->m_nodes.size(); ++i) {
         if( (int)psb->m_nodes[i].m_x.z() <= min_z) {
             psb->setMass(i, 0);
-            pinnedPoints.push_back(i);
+            btSoftBody::Node* node_ptr = &psb->m_nodes[i];
+            pinnedPoints.push_back(node_ptr);
         }
     }
 
     // rotate mesh 90 degrees around the y axis
     std::cerr << "volcart::cloth::message: Rotating mesh" << std::endl;
     psb->rotate(btQuaternion(0,SIMD_PI/2,0));
+
+    // Create target positions for our pinned points
+    for( auto p_id = pinnedPoints.begin(); p_id < pinnedPoints.end(); ++p_id ) {
+        btVector3 target_pos;
+        btScalar distance;
+        btScalar t_x, t_y, t_z;
+
+        if ( p_id == pinnedPoints.begin() )
+            target_pos = (*p_id)->m_x;
+        else {
+            distance = (*p_id)->m_x.distance((*std::prev(p_id))->m_x); //wtf
+            t_x = targetPoints.back().getX() + distance;
+            t_y = (*p_id)->m_x.getY();
+            t_z = targetPoints.back().getZ();
+            target_pos = btVector3(t_x, t_y, t_z);
+        }
+
+        targetPoints.push_back(target_pos);
+    }
 
     // step simulation
     std::cerr << "volcart::cloth::message: Beginning simulation" << std::endl;
@@ -138,8 +154,9 @@ int main(int argc, char* argv[]) {
 } // end main
 
 void softBodyTickCallback(btDynamicsWorld *world, btScalar timeStep) {
-    btVector3 delta = (goal - g_node->m_x) * timeStep;
-    btVector3 nextStep = g_node->m_x + delta;
-    g_node->m_x = nextStep;
-    g_node->m_v += delta/timeStep;
+    for( size_t p_id = 0; p_id < pinnedPoints.size(); ++p_id ) {
+        btVector3 delta = (targetPoints[p_id] - pinnedPoints[p_id]->m_x) * timeStep;
+        pinnedPoints[p_id]->m_x += delta;
+        pinnedPoints[p_id]->m_v += delta/timeStep;
+    }
 };
