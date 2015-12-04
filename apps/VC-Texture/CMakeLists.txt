@@ -37,11 +37,11 @@ elseif(WIN32)
     set(Texture_EXECUTABLE "VC-Texture.exe")
 endif()
 
-#set(PLUGINS)
-#set(LIBS)
-#set(PLUGINS_DIR)
-#set(REQUEST_QT_CONF)
-set(DIRS "${CMAKE_PREFIX_PATH}")
+#set(Texture_PLUGINS)
+#set(Texture_EXTRA_LIBS)
+#set(Texture_PLUGINS_DIR)
+#set(Texture_REQUEST_QT_CONF)
+set(Texture_SEARCH_DIRS "${CMAKE_PREFIX_PATH}")
 
 install(TARGETS VC-Texture
         BUNDLE DESTINATION . COMPONENT Programs
@@ -49,5 +49,5 @@ install(TARGETS VC-Texture
 
 if(APPLE OR WIN32)
     include(DeployQt5)
-    install_qt5_executable("${Texture_EXECUTABLE}" "" "" "${DIRS}" "" "" "Programs")
+    install_qt5_executable("${Texture_EXECUTABLE}" "${Texture_PLUGINS}" "${Texture_EXTRA_LIBS}" "${Texture_SEARCH_DIRS}" "${Texture_REQUEST_QT_CONF}" "${Texture_PLUGINS_DIR}" "Programs")
 endif()

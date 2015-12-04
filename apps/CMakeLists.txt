@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
 # VC.app
-add_subdirectory(VCNewUI)
+add_subdirectory(VC)
 
 # Texture UI
-add_subdirectory(textureUI)
+add_subdirectory(VC-Texture)
 
 # Mesher
 add_executable(vc_mesher mesher.cpp)
