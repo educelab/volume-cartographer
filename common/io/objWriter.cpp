@@ -17,7 +17,7 @@ namespace volcart {
         _mesh = mesh;
     };
 
-    objWriter::objWriter( std::string outputPath, VC_MeshType::Pointer mesh, std::map<double, cv::Vec2d> uvMap, cv::Mat uvImg ) {
+    objWriter::objWriter( std::string outputPath, VC_MeshType::Pointer mesh, volcart::UVMap uvMap, cv::Mat uvImg ) {
         _outputPath = outputPath;
         _mesh = mesh;
         _textCoords = uvMap;
@@ -150,25 +150,27 @@ namespace volcart {
         if( !_outputMesh.is_open() || _textCoords.empty() ) return EXIT_FAILURE;
         std::cerr << "Writing texture coordinates..." << std::endl;
 
+        // Ensure coordinates are relative to bottom left
+        VC_Origin starting_origin = _textCoords.origin(); // Capture the starting origin
+        _textCoords.origin(VC_ORIGIN_BOTTOM_LEFT);
+
         _outputMesh << "# Texture information" << std::endl;
         _outputMesh << "mtllib " << _outputPath.stem().string() << ".mtl" << std::endl;  // The path of the MTL file, relative to the obj
         _outputMesh << "usemtl default" << std::endl;  // Use the material named 'default' in the MTL file
 
         // Iterate over all of the saved coordinates in our coordinate map
         double vt_Index = 1;
-        auto coordinate = _textCoords.begin(); // The map iterator
-        while ( coordinate != _textCoords.end() ) {
-            // Map iterators return pairs: {first = key, second = cv::Vec2d}
-            // [u, v] == [ second[0], second[1] ]
-            _outputMesh << "vt " << coordinate->second[0] << " " << coordinate->second[1] << std::endl;
+        for ( double p_id = 0; p_id < _textCoords.size(); ++p_id ) {
+            cv::Vec2d uv = _textCoords.get(p_id);
+            _outputMesh << "vt " << uv[0] << " " << uv[1] << std::endl;
 
             // Find this UV map's point in _point_links and set its vt value to our current position in the vt list
-            _point_links.find( coordinate->first )->second[1] = vt_Index;
+            _point_links.find( p_id )->second[1] = vt_Index;
 
             ++vt_Index;
-            ++coordinate;
         }
 
+        _textCoords.origin(starting_origin); // Restore the starting origin
         return EXIT_SUCCESS;
     };
 

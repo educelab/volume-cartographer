@@ -2,7 +2,7 @@
 // Chao Du Nov 2014
 // qt-project.org/doc/qt-4.8/widgest-imageviewer-main-cpp.html
 
-#include <QApplication>
+#include <QtWidgets>
 
 #include "CQtImageViewer.h"
 

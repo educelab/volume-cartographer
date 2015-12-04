@@ -19,11 +19,15 @@
 #include <pcl/io/pcd_io.h>
 #include "picojson.h"
 
+#include "vc_defines.h"
+#include "vc_datatypes.h"
 #include "volumepkgcfg.h"
 #include "volumepkg_version.h"
+
+//#include "reslice.h"
+
 #include "orderedPCDMesher.h"
-#include "../texture/CMesh.h"
-#include "../texture/CPlyHelper.h"
+#include "io/objWriter.h"
 
 class VolumePkg {
 public:
@@ -108,6 +112,10 @@ public:
     cv::Mat getSliceData(int);
     std::string getSlicePath(int);
     std::string getNormalAtIndex(int);
+    uint16_t intensity(cv::Vec3f point) { return interpolateAt(point); };
+    void setCacheSize(size_t size);
+    size_t getCacheSize() const { return cache.size(); };
+    void setCacheMemory(size_t size);
 
     // Data Assignment
     int setSliceData(unsigned long index, cv::Mat slice);
@@ -117,14 +125,14 @@ public:
     void setActiveSegmentation(std::string);
     std::string newSegmentation();
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr openCloud();
-    ChaoVis::CMesh openMesh();
-    ChaoVis::CMesh openTexturedMesh();
     std::string getMeshPath();
     cv::Mat getTextureData();
     void saveCloud(pcl::PointCloud<pcl::PointXYZRGB>);
     void saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr);
-    void saveTexturedMesh(ChaoVis::CMesh);
-    void saveTextureData(cv::Mat, std::string = "texture");
+    void saveMesh(VC_MeshType::Pointer mesh, volcart::Texture texture);
+    void saveTextureData(cv::Mat, std::string = "textured");
+    void saveTextureData(volcart::Texture texture, int index = 0) { saveTextureData(texture.getImage(index)); }
+    //Reslice reslice(const cv::Vec3f, const cv::Vec3f, const cv::Vec3f, const int32_t=64, const int32_t=64);
 
 private:
     bool _readOnly = true;
@@ -141,8 +149,10 @@ private:
     int getNumberOfSliceCharacters();
     std::string activeSeg = "";
     std::vector<std::string> segmentations;
+    volcart::LRUCache<int32_t, cv::Mat> cache;
 
     std::string findKeyType(std::string);
+    uint16_t interpolateAt(cv::Vec3f point);
 };
 
 #endif // _VOLUMEPKG_H_
