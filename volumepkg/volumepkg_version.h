@@ -7,13 +7,14 @@
 #include <unordered_map>
 #include <string>
 
-namespace VolCart {
+namespace volcart {
 
     // VersionDict's will hold possible metadata keys and their types
-    typedef std::unordered_map < std::string, std::string > VersionDict;
+    typedef std::unordered_map < std::string, std::string > Dictionary;
+    typedef std::unordered_map < double, Dictionary > Library;
 
     // Version 1.0
-    const VersionDict _1_0 =
+    const Dictionary _1_0 =
             {
             {"volumepkg name",   "string"},
             {"version",          "double"},
@@ -27,7 +28,7 @@ namespace VolCart {
             };
 
     // Version 2.0
-    const VersionDict _2_0 =
+    const Dictionary _2_0 =
             {
             {"volumepkg name",   "string"},
             {"version",          "double"},
@@ -42,8 +43,8 @@ namespace VolCart {
             };
 
     // Add the Version Dict's to a list of possible versions
-    const std::unordered_map < double, VersionDict > versionsList = {{1.0, _1_0},
-                                                                     {2.0, _2_0}};;
-}
+    const Library VersionLibrary = {{1.0, _1_0},
+                                    {2.0, _2_0}};
+} // namespace volcart
 
 #endif //VC_VOLUMEPKG_VERSION_H

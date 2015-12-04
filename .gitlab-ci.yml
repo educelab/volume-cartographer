@@ -8,23 +8,33 @@ build_it_test_it:
         - echo "---- Work it. Make it. ----"
         - mkdir build
         - cd build/
-        - cmake ..
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 ..
         - make
         - echo "---- Do it. Makes us. ----"
         - echo "Testing coming soon..."
     tags:
         - test
+        - osx
+        - homebrew
+        - qt5
 
 deploy_it_osx:
     stage: deploy
     script:
         - echo "---- Work it harder. ----"
-        - mkdir build
+        - version=$(utils/scripts/version-gen.sh)
+        - git submodule init
+        - git submodule update
+        - cd vc-deps/
+        - ./build-deps.sh -universal
+        - cd ..
+        - mkdir -p build
         - cd build/
         - echo "---- Make it better. ----"
-        - cmake -DBUILD_DragNDrop=ON -DBUILD_OSX_APPS=ON -DBoost_USE_STATIC_LIBS=ON -DINSTALL_VC_DEMO=ON ..
+        - cmake -DCMAKE_BUILD_TYPE=Release -DINSTALL_VC_DEMO=ON -DVC_PREBUILT_LIBS=ON -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DCMAKE_OSX_SYSROOT=../vc-deps/build/SDKs/MacOSX10.9.sdk/ ..
         - echo "---- Do it faster. ----"
-        - make package -j8
+        - make -j8
+        - make package
         - echo "---- Makes us stronger. ----"
         - version=$(../utils/scripts/version-gen.sh)
         - mkdir -p ~/Dropbox/VC-Releases/v${version}
@@ -34,4 +44,17 @@ deploy_it_osx:
     tags:
         - deploy
         - osx
-        - static
+        - homebrew
+        - prebuilt
+        - qt5
+
+archive_it:
+    stage: deploy
+    script:
+        - version=$(utils/scripts/version-gen.sh)
+        - vershort=$(utils/scripts/version-gen.sh --short)
+        - git archive --format=tar.gz -o VC-${vershort}-source.tar.gz HEAD
+        - mkdir -p ~/Dropbox/VC-Releases/v${version}
+        - cp VC-${vershort}-source.tar.gz ~/Dropbox/VC-Releases/v${version}
+    only:
+        - master

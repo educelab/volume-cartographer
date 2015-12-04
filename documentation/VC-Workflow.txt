@@ -6,7 +6,7 @@
 ---- Step 1: Package and analyze --------
     All samples must be packaged into our volume package format and run through vc_scalpel for analysis:
 
-        vc_packager -sp [path of folder containing slices] -of [identifying name of volume package]
+        vc_packager --slices [path of folder containing slices] --volpkg [identifying name of volume package]
         vc_scalpel [volume package].volpkg/
 
 
@@ -33,9 +33,9 @@
 
 ---- Step 4: Create a textured mesh -----
     Texture the resulting mesh using some sort of texturing filter: 
-        vc_texture [volpkg.volpkg/] [Segmentation ID #] radius texture-method sample-direction
+        vc_render [volpkg.volpkg/] [Segmentation ID #] radius texture-method sample-direction
 
-    This will output a textured mesh called "textured.ply" inside of the segmentation's subdirectory. vc_texture requires all arguments to be present and in the specified order.
+    This will output a textured mesh called "textured.obj" inside of the segmentation's subdirectory. vc_render requires all arguments to be present and in the specified order.
 
     Arguments:
         radius: radius in pixels of ellipsoid used for complex filtering

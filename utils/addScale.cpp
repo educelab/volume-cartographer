@@ -19,7 +19,7 @@ int main( int argc, char *argv[] )
     }
 
     // Load our sources from the volpkg
-    VolumePkg volpkg = VolumePkg( argv[ 1 ] );
+    VolumePkg volpkg( argv[ 1 ] );
     std::string segID = argv[ 2 ];
     if (segID == "") {
         std::cerr << "ERROR: Incorrect/missing segmentation ID!" << std::endl;
@@ -71,7 +71,7 @@ int main( int argc, char *argv[] )
     cv::Mat outROI = outImage(cv::Rect(originX, originY, resizedScale.cols, resizedScale.rows));
     cv::add(outROI, resizedScale, outROI);
 
-    cv::imwrite( "texture_with_scale.tif", outImage );
+    cv::imwrite( "texture_with_scale.png", outImage );
     
 return EXIT_SUCCESS;
 }
