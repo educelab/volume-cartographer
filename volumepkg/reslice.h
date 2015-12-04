@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef VC_SLICE_H
-#define VC_SLICE_H
+#ifndef VC_RESLICE_H
+#define VC_RESLICE_H
 
 #include <opencv2/core/core.hpp>
 
@@ -23,4 +23,4 @@ private:
     cv::Vec3d yvec_;
 };
 
-#endif //VC_SLICE_H
+#endif //VC_RESLICE_H

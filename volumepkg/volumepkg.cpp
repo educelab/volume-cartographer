@@ -64,7 +64,6 @@ int VolumePkg::_makeDirTree() {
         else
             boost::filesystem::create_directory(*dir);
     }
-}
 
     return EXIT_SUCCESS;
 };
@@ -254,7 +253,7 @@ Reslice VolumePkg::reslice(const cv::Vec3d center, const cv::Vec3d xvec, const c
 // normals with their neighbors's known normals.
 //
 // formula from http://paulbourke.net/miscellaneous/interpolation/
-uint16_t VolumePkg::interpolateAt(cv::Vec3d point) {
+uint16_t VolumePkg::interpolateAt(cv::Vec3f point) {
     double int_part;
     double dx = modf(point(VC_INDEX_X), &int_part);
     int x0 = int(int_part);
@@ -273,7 +272,6 @@ uint16_t VolumePkg::interpolateAt(cv::Vec3d point) {
     }
 
     // from: https://en.wikipedia.org/wiki/Trilinear_interpolation
-    auto x0y0z0 = getIntensity(x0, y0, z0);
     auto c00 = getIntensity(x0, y0, z0) * (1 - dx) + getIntensity(x1, y0, z0) * dx;
     auto c10 = getIntensity(x0, y1, z0) * (1 - dx) + getIntensity(x1, y0, z0) * dx;
     auto c01 = getIntensity(x0, y0, z1) * (1 - dx) + getIntensity(x1, y0, z1) * dx;

@@ -138,6 +138,7 @@ public:
     void saveTextureData(volcart::Texture texture, int index = 0) { saveTextureData(texture.getImage(index)); }
     Reslice reslice(const cv::Vec3d, const cv::Vec3d, const cv::Vec3d, const int32_t=64, const int32_t=64);
     uint16_t getIntensity(const int32_t x, const int32_t y, const int32_t z);
+
 private:
     bool _readOnly = true;
 
