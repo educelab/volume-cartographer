@@ -80,7 +80,8 @@ int main(int argc, char* argv[]) {
     // Sets the mass of the whole soft body, true considers the faces along with the vertices
     // Note: Mass is in kilograms. If mass isn't high enough, nothing changes.
     std::cerr << "volcart::cloth::message: Setting mass" << std::endl;
-    psb->setTotalMass( (int)(psb->m_nodes.size() * 0.001), true );
+    // psb->setTotalMass( (int)(psb->m_nodes.size() * 0.001), true );
+    psb->setTotalMass(10, true );
 
     // set the damping coefficient of the soft body [0,1]
     psb->m_cfg.kDP = 0.5;
@@ -88,12 +89,19 @@ int main(int argc, char* argv[]) {
     // Set the top row of vertices such that they wont move/fall
     // Currently assumes that the first point has the same z-value as the rest of the starting chain
     int min_z = mesh->GetPoint(0)[2];
+    int min_y = 100000;
+    int max_y = 0;
     std::cerr << "volcart::cloth::message: Pinning points at Z: " << min_z << std::endl;
     for(unsigned long i = 0; i < psb->m_nodes.size(); ++i) {
         if( (int)psb->m_nodes[i].m_x.z() <= min_z) {
             psb->setMass(i, 0);
             btSoftBody::Node* node_ptr = &psb->m_nodes[i];
             pinnedPoints.push_back(node_ptr);
+
+            if( (int)psb->m_nodes[i].m_x.y() > max_y )
+            	max_y = (int)psb->m_nodes[i].m_x.y();
+            if ( (int)psb->m_nodes[i].m_x.y() < min_y )
+            	min_y = (int)psb->m_nodes[i].m_x.y();
         }
     }
 
@@ -107,13 +115,17 @@ int main(int argc, char* argv[]) {
         btScalar distance;
         btScalar t_x, t_y, t_z;
 
-        if ( p_id == pinnedPoints.begin() )
+        if ( p_id == pinnedPoints.begin() ) {
             target_pos = (*p_id)->m_x;
+            target_pos[2] = (max_y + min_y) / 2;
+        }
         else {
+        	// Aligns the pinned points parallel with the x plane
             distance = (*p_id)->m_x.distance((*std::prev(p_id))->m_x); //wtf
             t_x = targetPoints.back().getX() + distance;
             t_y = (*p_id)->m_x.getY();
-            t_z = targetPoints.back().getZ();
+            // t_z = targetPoints.back().getZ();
+            t_z = (max_y + min_y) / 2;
             target_pos = btVector3(t_x, t_y, t_z);
         }
 
