@@ -61,8 +61,8 @@ struct Fix {
     Fix() {
 
         std::cerr << "Setting up greedyProjectionMeshingTest objects." << std::endl;
-        // Create a mesh
 
+        // Create a mesh
         pcl::PointCloud<pcl::PointNormal> cloud_PointNormal = mesh.pointCloudNormal();
 
         // Create pointer for the mesh to pass to greedyProjectionMeshing

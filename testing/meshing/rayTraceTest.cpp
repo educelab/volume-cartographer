@@ -15,21 +15,21 @@
 
 /************************************************************************************
  *                                                                                  *
- *  orderedPCDMesherTest.cpp - tests the functionality of                           *
- *  v-c/meshing/orderedPCDMesher.cpp with the ultimate goal of the following:       *
+ *  rayTraceTest.cpp - tests the functionality of                                   *
+ *  v-c/meshing/rayTrace.cpp with the ultimate goal of the following:               *
  *                                                                                  *
- *     Given the same input point cloud, does a saved PLY file match a current      *
- *     execution of orederedPCDMesher().                                            *
+ *     Given the same curved input mesh, does a saved PLY file match a current      *
+ *     execution of rayTrace().                                                     *
  *                                                                                  *
- *  This file is broken up into a test fixture orderedPCDFix which initialize       *
+ *  This file is broken up into a test fixture rayTraceFix which initialize         *
  *  the objects used in any subsequent fixture test cases.                          *
  *                                                                                  *
  *  Test Cases:                                                                     *
- *  1. orderedPCDTest (fixture test case)                                           *
+ *  1. savedRayTraceComparison (fixture test case)                                  *
  *                                                                                  *                                                                            *
  *  Input:                                                                          *
  *     No required inputs for the test cases. Any test objects are created          *
- *     internally by orderedPCDFix() or within the test cases themselves.           *
+ *     internally by rayTraceFix() or within the test cases themselves.             *
  *                                                                                  *
  *  Test-Specific Output:                                                           *
  *     Specific test output only given on failure of any tests. Otherwise, general  *
@@ -62,12 +62,7 @@ struct rayTraceFix {
 
     ~rayTraceFix(){ std::cerr << "\ncleaning up rayTraceTest objects" << std::endl; }
 
-
-
     std::vector<cv::Vec6f> traceResults;
-
-    // Essential data structure to return points and normals
-    std::vector<cv::Vec6f> intersections;
     VC_MeshType::Pointer iMesh;
     volcart::shapes::Arch _mesh;
     std::map<int, cv::Vec2d> uvMap;

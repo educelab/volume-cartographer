@@ -2,6 +2,13 @@
 // Created by Melissa Shankle on 10/27/15.
 //
 
+/*
+ * Purpose: Run volcart::meshing::greedyProjectionMeshing() and write results to file.
+ *          Saved file will be read in by the greedyProjectionMeshingTest.cpp file under
+ *          v-c/testing/meshing.
+ */
+
+
 #include <pcl/common/common.h>
 #include <pcl/point_types.h>
 #include <pcl/io/pcd_io.h>

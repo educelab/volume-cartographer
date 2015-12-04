@@ -2,15 +2,16 @@
 // Created by Ryan Taber on 11/30/15.
 //
 
-#include "rayTrace.h"
-#include "vc_defines.h"
-#include "shapes.h"
 
 /*
  * Purpose: Run volcart::meshing::rayTrace() and write results to file.
  *          Saved file will be read in by the rayTraceTest.cpp file under
  *          v-c/testing/meshing.
  */
+
+#include "rayTrace.h"
+#include "vc_defines.h"
+#include "shapes.h"
 
 int main(){
 

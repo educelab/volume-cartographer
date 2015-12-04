@@ -206,7 +206,7 @@ BOOST_FIXTURE_TEST_CASE(compareTwoResamples, resampleFix){
 BOOST_FIXTURE_TEST_CASE(compareSavedResample, resampleFix){
 
     //init PC for later resample call
-    pcl::PointCloud<pcl::PointNormal> newCloud, convertedSavedCloud;
+    pcl::PointCloud<pcl::PointNormal> convertedSavedCloud;
     pcl::PointCloud<pcl::PointNormal> savedCloud;
 
     std::cerr << "Reading in resampleExample.pcd" << std::endl;

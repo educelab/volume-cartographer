@@ -2,16 +2,16 @@
 // Created by Ryan Taber on 11/16/15.
 //
 
+/*
+ * Purpose: Run volcart::meshing::resamplePointCloud() and write results to file.
+ *          Saved file will be read in by the resamplePointCloudTest.cpp file under
+ *          v-c/testing/meshing.
+ */
+
 #include "vc_defines.h"
 #include "shapes.h"
 #include "resamplePointCloud.h"
 #include <pcl/io/pcd_io.h>
-
-/*
- * The purpose of this file is to generate a pcl::PointCloud<pcl::PointNormal> object
- * and write it to file so that it can be loaded by resamplePointCloudTest.cpp
- */
-
 
 int main() {
 

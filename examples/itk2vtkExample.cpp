@@ -2,6 +2,14 @@
 // Created by Media Team on 6/24/15.
 //
 
+
+/*
+ * Purpose: Run volcart::meshing::itk2vtk() and write results to file.
+ *          Run volcart::meshing::vtk2itk() and write results to file.
+ *          Saved file wills be read in by the itk2vtkTest.cpp file under
+ *          v-c/testing/meshing.
+ */
+
 #include "vc_defines.h"
 
 #include "io/ply2itk.h"
