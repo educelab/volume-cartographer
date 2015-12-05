@@ -1,4 +1,4 @@
-#include "NormalizedIntensityMap.h"
+#include "normalizedintensitymap.h"
 #include "common.h"
 
 
