@@ -8,7 +8,7 @@
 #include "chain.h"
 #include "fittedcurve.h"
 #include "common.h"
-#include "NormalizedIntensityMap.h"
+#include "normalizedintensitymap.h"
 
 
 using namespace volcart::segmentation;

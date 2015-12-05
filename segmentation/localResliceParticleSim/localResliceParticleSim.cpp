@@ -66,7 +66,7 @@ LocalResliceSegmentation::segmentLayer(const bool showVisualization,
             cv::waitKey(0);
         }
 
-        std::vector<VoxelVec> allPredictedPositions =
+        std::vector<VoxelVec> choiceSpace =
             currentChain->stepAll(stepNumLayers, keepNumMaxima);
 
         // Get the first set of positions (all the 'best' positions independent
@@ -74,7 +74,7 @@ LocalResliceSegmentation::segmentLayer(const bool showVisualization,
         VoxelVec bestPositions;
         bestPositions.reserve(N);
         for (int32_t i = 0; i < N; ++i) {
-            bestPositions.push_back(allPredictedPositions[i][0]);
+            bestPositions.push_back(choiceSpace[i][0]);
         }
 
         // And evaluate it
@@ -92,10 +92,9 @@ LocalResliceSegmentation::segmentLayer(const bool showVisualization,
             // 1. Generate random positions vector from the indices in this
             VoxelVec positions;
             positions.reserve(N);
-            for (int32_t i = 0; i < N; ++i) {
-                std::uniform_int_distribution<int32_t> dist(
-                        0, allPredictedPositions[i].size() - 1);
-                positions.push_back(allPredictedPositions[i][dist(mt)]);
+            for (const auto& v : choiceSpace) {
+                std::uniform_int_distribution<int32_t> dist(0, v.size() - 1);
+                positions.push_back(v[dist(mt)]);
             }
 
             // 2. Generate derivatives from positions
@@ -126,17 +125,14 @@ LocalResliceSegmentation::segmentLayer(const bool showVisualization,
 double LocalResliceSegmentation::fivePointStencil(
 		const uint32_t center, const VoxelVec& ps) const
 {
-
     // Average difference in x dimension across entire chain
     const double avgXDiff = std::accumulate(ps.begin(), ps.end(), 0,
-            [](double sum, cv::Vec3d p) {
-				return sum + p(VC_INDEX_X);
-			}) / ps.size();
+            [](double sum, cv::Vec3d p) { return sum + p(VC_INDEX_X); }) / ps.size();
 
     // Fit curve to new predicted ps.
     FittedCurve<> f;
     decltype(f)::PointVectorType newPoints(ps.size());
-    for (auto& p : ps) {
+    for (const auto& p : ps) {
         newPoints.emplace_back(p(VC_INDEX_X), p(VC_INDEX_Y));
     }
     f.fitPoints(newPoints);
@@ -144,30 +140,30 @@ double LocalResliceSegmentation::fivePointStencil(
     // Take care of any out of bounds accesses
     double twoBefore, oneBefore, oneAfter, twoAfter;
     if (center == 0) {
-        twoBefore = f.at(ps.at(0)(VC_INDEX_X) - 2 * avgXDiff);
-        oneBefore = f.at(ps.at(0)(VC_INDEX_X) - avgXDiff);
-        oneAfter  = ps.at(center + 1)(VC_INDEX_Y);
-        twoAfter  = ps.at(center + 2)(VC_INDEX_Y);
+        twoBefore = f.at(ps[0](VC_INDEX_X) - 2 * avgXDiff);
+        oneBefore = f.at(ps[0](VC_INDEX_X) - avgXDiff);
+        oneAfter  = ps[center + 1](VC_INDEX_Y);
+        twoAfter  = ps[center + 2](VC_INDEX_Y);
     } else if (center == 1) {
-        twoBefore = f.at(ps.at(0)(VC_INDEX_X) - avgXDiff);
-        oneBefore = ps.at(0)(VC_INDEX_Y);
-        oneAfter  = ps.at(center + 1)(VC_INDEX_Y);
-        twoAfter  = ps.at(center + 2)(VC_INDEX_Y);
+        twoBefore = f.at(ps[0](VC_INDEX_X) - avgXDiff);
+        oneBefore = ps[0](VC_INDEX_Y);
+        oneAfter  = ps[center + 1](VC_INDEX_Y);
+        twoAfter  = ps[center + 2](VC_INDEX_Y);
     } else if (center == ps.size() - 2) {
-        twoBefore = ps.at(center - 2)(VC_INDEX_Y);
-        oneBefore = ps.at(center - 1)(VC_INDEX_Y);
-        oneAfter  = ps.at(ps.size() - 1)(VC_INDEX_Y);
-        twoAfter  = f.at(ps.at(ps.size() - 1)(VC_INDEX_X) + avgXDiff);
+        twoBefore = ps[center - 2](VC_INDEX_Y);
+        oneBefore = ps[center - 1](VC_INDEX_Y);
+        oneAfter  = ps[ps.size() - 1](VC_INDEX_Y);
+        twoAfter  = f.at(ps[ps.size() - 1](VC_INDEX_X) + avgXDiff);
     } else if (center == ps.size() - 1) {
-        twoBefore = ps.at(center - 2)(VC_INDEX_Y);
-        oneBefore = ps.at(center - 1)(VC_INDEX_Y);
-        oneAfter  = f.at(ps.at(ps.size() - 1)(VC_INDEX_X) + avgXDiff);
-        twoAfter  = f.at(ps.at(ps.size() - 1)(VC_INDEX_X) + 2 * avgXDiff);
+        twoBefore = ps[center - 2](VC_INDEX_Y);
+        oneBefore = ps[center - 1](VC_INDEX_Y);
+        oneAfter  = f.at(ps[ps.size() - 1](VC_INDEX_X) + avgXDiff);
+        twoAfter  = f.at(ps[ps.size() - 1](VC_INDEX_X) + 2 * avgXDiff);
     } else {
-        twoBefore = ps.at(center - 2)(VC_INDEX_Y);
-        oneBefore = ps.at(center - 1)(VC_INDEX_Y);
-        oneAfter  = ps.at(center + 1)(VC_INDEX_Y);
-        twoAfter  = ps.at(center + 2)(VC_INDEX_Y);
+        twoBefore = ps[center - 2](VC_INDEX_Y);
+        oneBefore = ps[center - 1](VC_INDEX_Y);
+        oneAfter  = ps[center + 1](VC_INDEX_Y);
+        twoAfter  = ps[center + 2](VC_INDEX_Y);
     }
 
     return (-twoAfter + 8 * oneAfter - 8 * oneBefore + twoBefore) / (12 * avgXDiff);
