@@ -8,7 +8,7 @@
 // Copyright ©2015 (Brent Seales: Volume Cartography Research) - University of Kentucky Center for Visualization and Virtualization
 //----------------------------------------------------------------------------------------------------------------------------------------
 #include <QtWidgets>
-#include <mainwindow.h>
+#include "MainWindow.h"
 
 int main(int argc, char **argv)
 {
