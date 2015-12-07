@@ -1,18 +1,22 @@
-//
-// Created by Media Team on 9/16/15.
-//
+// smoothNormals.h
+// Abigail Coleman June 2015
+
+#include <iostream>
+#include <fstream>
+
+#include <opencv2/opencv.hpp>
+#include <vector>
 
 #include "vc_defines.h"
 
-#ifndef SMOOTHNORMALS_H
-#define SMOOTHNORMALS_H
+#ifndef VC_SMOOTHNORMALS_H
+#define VC_SMOOTHNORMALS_H
 
 namespace volcart {
-	namespace meshing {
-
-		VC_MeshType::Pointer smoothNormals ( VC_MeshType::Pointer  inputMesh,
-                                     		 double                smoothingFactor );
-	}
+    namespace meshing {
+        VC_MeshType::Pointer smoothNormals ( VC_MeshType::Pointer  inputMesh,
+                                             double                smoothingFactor );
+    }
 }
 
-#endif // SMOOTHNORMALS_H
+#endif // VC_SMOOTHNORMALS_H

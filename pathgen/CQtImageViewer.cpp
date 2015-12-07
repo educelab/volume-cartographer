@@ -4,7 +4,7 @@
 #include "CQtImageViewer.h"
 
 #include <QtCore>
-#include <QtGui>
+#include <QtWidgets>
 
 #ifndef QT_NO_PRINTER
 #include <QPrintDialog>

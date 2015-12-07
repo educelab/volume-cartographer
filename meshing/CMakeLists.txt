@@ -13,6 +13,7 @@ add_library(vc_meshing STATIC
                     poissonReconstruction.h poissonReconstruction.cpp
                     itk2vtk.h itk2vtk.cpp
                     rayTrace.h rayTrace.cpp
+                    scaleMesh.h scaleMesh.cpp
                     smoothNormals.h smoothNormals.cpp
-                    itk2bullet.h itk2bullet.cpp)
+                    itk2bullet.h itk2bullet.cpp )
 endif()
