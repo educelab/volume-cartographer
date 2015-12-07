@@ -11,7 +11,7 @@ build_it_test_it:
         - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 ..
         - make
         - echo "---- Do it. Makes us. ----"
-        - echo "Testing coming soon..."
+        - make test
     tags:
         - test
         - osx
