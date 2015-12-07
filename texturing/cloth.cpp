@@ -3,6 +3,7 @@
 //
 
 #include <iostream>
+#include <math.h>
 
 #include <opencv2/opencv.hpp>
 
@@ -14,9 +15,14 @@
 // bullet converter
 #include "itk2bullet.h"
 
+struct NodeTarget {
+    btVector3 t_pos;
+    btScalar  t_stepsize;
+};
+
 static void softBodyTickCallback(btDynamicsWorld *world, btScalar timeStep);
 std::vector<btSoftBody::Node*> pinnedPoints;
-std::vector<btVector3> targetPoints;
+std::vector<NodeTarget> targetPoints;
 
 int main(int argc, char* argv[]) {
     if ( argc < 5 ) {
@@ -65,7 +71,7 @@ int main(int argc, char* argv[]) {
                                                                           collisionConfiguration,
                                                                           softBodySolver);
 
-    dynamicsWorld->setGravity(btVector3(0, -10, 0));
+    dynamicsWorld->setGravity(btVector3(0, 5, 0));
     dynamicsWorld->setInternalTickCallback(softBodyTickCallback, dynamicsWorld, true);
 
     // convert itk mesh to bullet mesh (vertices and triangle arrays)
@@ -73,6 +79,7 @@ int main(int argc, char* argv[]) {
     btSoftBody* psb;
     volcart::meshing::itk2bullet::itk2bullet(mesh, dynamicsWorld->getWorldInfo(), &psb);
 
+    psb->getWorldInfo()->m_gravity = dynamicsWorld->getGravity(); // Have to explicitly make softbody gravity match world gravity
     dynamicsWorld->addSoftBody(psb);
 
     // Constraints for the mesh as a soft body
@@ -84,13 +91,13 @@ int main(int argc, char* argv[]) {
     psb->setTotalMass(10, true );
 
     // set the damping coefficient of the soft body [0,1]
-    psb->m_cfg.kDP = 0.5;
+    psb->m_cfg.kDP = 0.95;
 
     // Set the top row of vertices such that they wont move/fall
     // Currently assumes that the first point has the same z-value as the rest of the starting chain
-    int min_z = mesh->GetPoint(0)[2];
-    int min_y = 100000;
-    int max_y = 0;
+    int min_z = (int) std::floor(mesh->GetPoint(0)[2]);
+    int min_y = (int) std::floor(mesh->GetPoint(0)[1]);
+    int max_y = (int) std::ceil(mesh->GetPoint(0)[1]);
     std::cerr << "volcart::cloth::message: Pinning points at Z: " << min_z << std::endl;
     for(unsigned long i = 0; i < psb->m_nodes.size(); ++i) {
         if( (int)psb->m_nodes[i].m_x.z() <= min_z) {
@@ -99,9 +106,9 @@ int main(int argc, char* argv[]) {
             pinnedPoints.push_back(node_ptr);
 
             if( (int)psb->m_nodes[i].m_x.y() > max_y )
-            	max_y = (int)psb->m_nodes[i].m_x.y();
+                max_y = (int)psb->m_nodes[i].m_x.y();
             if ( (int)psb->m_nodes[i].m_x.y() < min_y )
-            	min_y = (int)psb->m_nodes[i].m_x.y();
+                min_y = (int)psb->m_nodes[i].m_x.y();
         }
     }
 
@@ -111,32 +118,34 @@ int main(int argc, char* argv[]) {
 
     // Create target positions for our pinned points
     for( auto p_id = pinnedPoints.begin(); p_id < pinnedPoints.end(); ++p_id ) {
+        NodeTarget n_target;
         btVector3 target_pos;
         btScalar distance;
         btScalar t_x, t_y, t_z;
 
         if ( p_id == pinnedPoints.begin() ) {
             target_pos = (*p_id)->m_x;
-            target_pos[2] = (max_y + min_y) / 2;
+            target_pos.setZ((max_y + min_y) / 2);
         }
         else {
-        	// Aligns the pinned points parallel with the x plane
+            // Aligns the pinned points parallel with the x plane
             distance = (*p_id)->m_x.distance((*std::prev(p_id))->m_x); //wtf
-            t_x = targetPoints.back().getX() + distance;
+            t_x = targetPoints.back().t_pos.getX() + distance;
             t_y = (*p_id)->m_x.getY();
-            // t_z = targetPoints.back().getZ();
             t_z = (max_y + min_y) / 2;
             target_pos = btVector3(t_x, t_y, t_z);
         }
 
-        targetPoints.push_back(target_pos);
+        n_target.t_pos = target_pos;
+        n_target.t_stepsize = (*p_id)->m_x.distance(target_pos) / 60; // Will take minimum 60 iterations to reach target
+        targetPoints.push_back(n_target);
     }
 
     // step simulation
     std::cerr << "volcart::cloth::message: Beginning simulation" << std::endl;
     for (int i = 0; i < NUM_OF_ITERATIONS; ++i) {
         std::cerr << "volcart::cloth::message: Step " << i + 1 << "/" << NUM_OF_ITERATIONS << "\r" << std::flush;
-        dynamicsWorld->stepSimulation(1/ 60.f);
+        dynamicsWorld->stepSimulation(1/60.f);
         psb->solveConstraints();
     }
 
@@ -167,7 +176,8 @@ int main(int argc, char* argv[]) {
 
 void softBodyTickCallback(btDynamicsWorld *world, btScalar timeStep) {
     for( size_t p_id = 0; p_id < pinnedPoints.size(); ++p_id ) {
-        btVector3 delta = (targetPoints[p_id] - pinnedPoints[p_id]->m_x) * timeStep;
+        if ( pinnedPoints[p_id]->m_x == targetPoints[p_id].t_pos ) continue;
+        btVector3 delta = (targetPoints[p_id].t_pos - pinnedPoints[p_id]->m_x).normalized() * targetPoints[p_id].t_stepsize;
         pinnedPoints[p_id]->m_x += delta;
         pinnedPoints[p_id]->m_v += delta/timeStep;
     }
