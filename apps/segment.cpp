@@ -81,7 +81,7 @@ int main(int argc, char *argv[]) {
     // Setup
     // Run segmentation using path as our starting points
     volcart::segmentation::LocalResliceSegmentation segmentation(volpkg);
-    auto segment = segmentation.segmentLayer(showVisualization, startIndex, endIndex, 2, 1e-5);
+    auto segment = segmentation.segmentLayer(showVisualization, startIndex, endIndex, 2, 1e-5, 3, 10);
 	//auto segment = volcart::segmentation::structureTensorParticleSim(volpkg.openCloud(), volpkg, 0.5, 1, endIndex);
     std::cout << "done with segmentation" << std::endl;
 
