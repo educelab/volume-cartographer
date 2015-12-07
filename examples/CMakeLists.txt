@@ -18,9 +18,14 @@ target_link_libraries(vc_itk2vtkExample ${VC_LIBS} ${VC_REQ_LIBS})
 
 add_executable(vc_greedyExample greedyExample.cpp)
 target_link_libraries(vc_greedyExample ${VC_LIBS} ${VC_REQ_LIBS})
+add_executable(vc_uvMapExample uvMapExample.cpp)
+target_link_libraries(vc_uvMapExample ${VC_LIBS} ${VC_REQ_LIBS})
 
 add_executable(vc_poissonExample poissonExample.cpp)
 target_link_libraries(vc_poissonExample ${VC_LIBS} ${VC_REQ_LIBS})
+
+add_executable(vc_plyExporterExample plyExporterExample.cpp)
+target_link_libraries(vc_plyExporterExample ${VC_LIBS} ${VC_REQ_LIBS})
 
 add_executable(vc_resamplePointCloudExample resamplePointCloudExample.cpp)
 target_link_libraries(vc_resamplePointCloudExample ${VC_LIBS} ${VC_REQ_LIBS})

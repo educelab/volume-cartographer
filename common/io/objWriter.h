@@ -13,6 +13,7 @@
 #include <boost/lexical_cast.hpp>
 
 #include "../vc_defines.h"
+#include "../vc_datatypes.h"
 
 namespace volcart {
 namespace io {
@@ -22,11 +23,11 @@ namespace io {
   public:
     objWriter();
     objWriter( std::string outputPath, VC_MeshType::Pointer mesh );
-    objWriter( std::string outputPath, VC_MeshType::Pointer mesh, std::map<double, cv::Vec2d> uvMap, cv::Mat uvImg);
+    objWriter( std::string outputPath, VC_MeshType::Pointer mesh, volcart::UVMap uvMap, cv::Mat uvImg);
 
     void setPath( std::string path ) { _outputPath = path; };
     void setMesh( VC_MeshType::Pointer mesh ) { _mesh = mesh; };
-    void setUVMap( std::map<double, cv::Vec2d> uvMap ) { _textCoords = uvMap; };
+    void setUVMap( volcart::UVMap uvMap ) { _textCoords = uvMap; };
     void setTexture( cv::Mat uvImg ) { _texture = uvImg; };
 
     bool validate(); // make sure all required output parameters have been set
@@ -45,7 +46,7 @@ namespace io {
     std::map<double, cv::Vec3d> _point_links; // Keeps track of what we know about each point in the mesh: [ pointID, (v, vt, vn) ]
 
     VC_MeshType::Pointer _mesh;
-    std::map<double, cv::Vec2d> _textCoords; // UV map for points accessed by point index
+    volcart::UVMap _textCoords; // UV map for points accessed by point index
     cv::Mat _texture; // output texture image
 
     int _writeHeader();

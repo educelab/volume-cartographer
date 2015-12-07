@@ -4,12 +4,14 @@ cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 SET(PathGen_SOURCES main.cpp CQtImageViewer.cpp timeUtils.cpp bezierUtils.cpp)
 SET(PathGen_HEADERS CQtImageViewer.h)
 
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
 # invoke moc
-QT4_WRAP_CPP(PathGen_HEADERS_MOC ${PathGen_HEADERS})
+QT5_WRAP_CPP(PathGen_HEADERS_MOC ${PathGen_HEADERS})
 
 # build
-add_executable(vc_pathgen ${PathGen_SOURCES} ${PathGen_HEADERS_MOC})
-target_link_libraries(vc_pathgen ${VC_LIBS} ${VC_REQ_LIBS} ${QT_LIBRARIES} ${EXTRA_LIBS})
+add_executable(vc_pathgen ${PathGen_HEADERS_MOC} ${PathGen_SOURCES})
+target_link_libraries(vc_pathgen ${VC_LIBS} ${VC_REQ_LIBS} Qt5::Widgets Qt5::PrintSupport ${EXTRA_LIBS})
 
 # Install targets
 install(TARGETS vc_pathgen

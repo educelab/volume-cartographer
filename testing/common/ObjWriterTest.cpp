@@ -230,7 +230,7 @@ BOOST_FIXTURE_TEST_CASE(compareElements, meshFix){
     // Now to test the objPoints created during fixture init vs points read in from file.
     for (size_t c = 0; c < testCells.size(); c++){
 
-        BOOST_MESSAGE("Checking Cell: " << c);
+        BOOST_TEST_MESSAGE("Checking Cell: " << c);
 
         //checking the v1,v2,v3 components
 

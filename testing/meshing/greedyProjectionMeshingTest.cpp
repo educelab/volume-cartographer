@@ -71,7 +71,6 @@ struct Fix {
         *input = cloud_PointNormal;
 
         // Call function from namespace in header file
-        std::cout << "Being greedy..." << std::endl;
         new_mesh = volcart::meshing::greedyProjectionMeshing(input, 100, 2.0, 2.5);
 
         //uncomment to enable inline obj file generation
