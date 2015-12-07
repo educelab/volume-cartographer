@@ -18,7 +18,8 @@ Chain::Chain(VolumePkg& volpkg, int32_t zIndex) :
     volpkg_(volpkg), particleCount_(0), zIndex_(zIndex)
 {
     auto segmentationPath = volpkg_.openCloud();
-	decltype(curve_)::PointVectorType curvePoints;
+	decltype(curve_)::PointVector curvePoints;
+    particles_.reserve(segmentationPath->size());
     curvePoints.reserve(segmentationPath->size());
     for (auto path : *segmentationPath) {
         particles_.emplace_back(path.x, path.y, path.z);
@@ -29,10 +30,12 @@ Chain::Chain(VolumePkg& volpkg, int32_t zIndex) :
 }
 
 // Constructor from explicit points
-Chain::Chain(VolumePkg& volpkg, VoxelVec& pos, int32_t zIndex) :
+Chain::Chain(VolumePkg& volpkg, const VoxelVec& pos, int32_t zIndex) :
     volpkg_(volpkg), particleCount_(0), zIndex_(zIndex)
 {
-    decltype(curve_)::PointVectorType curvePoints(pos.size());
+    decltype(curve_)::PointVector curvePoints;
+    curvePoints.reserve(pos.size());
+    particles_.reserve(pos.size());
     for (auto& p : pos) {
         particles_.emplace_back(p);
         particleCount_++;
@@ -52,9 +55,10 @@ void Chain::setNewPositions(const VoxelVec& newPositions)
 std::vector<VoxelVec>
 Chain::stepAll(const int32_t stepNumLayers, const int32_t keepNumMaxima) const
 {
-    std::vector<VoxelVec> ps(particleCount_);
+    std::vector<VoxelVec> ps;
+    ps.reserve(particleCount_);
     for (size_t i = 0; i < particleCount_; ++i) {
-        ps.at(i) = step(i, stepNumLayers, keepNumMaxima);
+        ps.push_back(step(i, stepNumLayers, keepNumMaxima));
     }
     return ps;
 }
