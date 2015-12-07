@@ -36,8 +36,8 @@ Chain::Chain(VolumePkg& volpkg, const VoxelVec& pos, int32_t zIndex) :
     decltype(curve_)::PointVector curvePoints;
     curvePoints.reserve(pos.size());
     particles_.reserve(pos.size());
-    for (auto& p : pos) {
-        particles_.emplace_back(p);
+    for (const auto& p : pos) {
+        particles_.push_back(p);
         particleCount_++;
         curvePoints.emplace_back(p(VC_INDEX_X), p(VC_INDEX_Y));
     }
