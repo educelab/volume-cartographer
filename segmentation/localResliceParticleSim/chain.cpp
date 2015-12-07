@@ -41,6 +41,7 @@ Chain::Chain(VolumePkg& volpkg, const VoxelVec& pos, int32_t zIndex) :
         particleCount_++;
         curvePoints.emplace_back(p(VC_INDEX_X), p(VC_INDEX_Y));
     }
+    std::cout << pos.size() << std::endl;
     curve_.fitPoints(curvePoints);
 }
 
@@ -72,6 +73,7 @@ const Voxel Chain::calculateNormal(const size_t index) const
     // For boundary conditions, do a simple linear interpolation of the first/last 2
     // points and set the appropriate variable based on that difference in x direction.
     // y direction is handled by interpolation.
+    /*
     double before, after;
     if (index == 0) {
         auto xdiff = particles_[1](VC_INDEX_X) - particles_[0](VC_INDEX_X);
@@ -89,6 +91,16 @@ const Voxel Chain::calculateNormal(const size_t index) const
 
     auto tanVec = Voxel(
 			after - before, curve_.at(after) - curve_.at(before), zMean);
+    */
+    double avgXDiff = 0;
+    for (uint32_t i = 1; i < particles_.size(); ++i) {
+        avgXDiff += (particles_[i](VC_INDEX_X) - particles_[i-1](VC_INDEX_X));
+    }
+    avgXDiff /= particles_.size();
+    double vx = particles_[index](VC_INDEX_X);
+    auto tanVec = Voxel(2 * avgXDiff,
+                        curve_.at(vx + avgXDiff) - curve_.at(vx - avgXDiff),
+                        zIndex_);
     return tanVec.cross(VC_DIRECTION_K);
 }
 
@@ -107,7 +119,7 @@ Chain::step(const int32_t index, const int32_t stepNumLayers,
     // Get normalized intensity map and find the maxima
     const auto center = cv::Point(mat.cols / 2, mat.rows / 2);
     const auto map = NormalizedIntensityMap(mat.row(center.y + stepNumLayers));
-    if (index == 33) {
+    if (index == 47) {
         reslice.draw();
         map.draw();
     }
@@ -132,7 +144,8 @@ Chain::step(const int32_t index, const int32_t stepNumLayers,
     }
 
     // Convert from pixel space to voxel space
-    VoxelVec voxelMaxima(maxima.size());
+    VoxelVec voxelMaxima;
+    voxelMaxima.reserve(maxima.size());
     std::transform(maxima.begin(), maxima.end(), std::back_inserter(voxelMaxima),
         [reslice, center, stepNumLayers](IndexDistPair p) {
             return reslice.sliceCoordToVoxelCoord(
