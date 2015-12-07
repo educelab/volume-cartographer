@@ -43,7 +43,8 @@ LocalResliceSegmentation::segmentLayer(const bool showVisualization,
     ChainMesh mesh(N, endIndex_ - startIndex_);
     mesh.addPositions(currentPos);
 
-    // Go through every iteration (from start to end index)
+    // Need to start at startIndex_ + stepNumLayers since we already added the intial
+    // positions to the chainmesh.
     for (int32_t sliceIndex = startIndex_ + stepNumLayers; sliceIndex <= endIndex_;
          sliceIndex += stepNumLayers) {
 
@@ -82,10 +83,11 @@ LocalResliceSegmentation::segmentLayer(const bool showVisualization,
         for (int32_t i = 0; i < N; ++i) {
             combinationDerivs.push_back(fivePointStencil(i, bestPositions));
         }
+        //std::cout << "best derivs: " << combinationDerivs << std::endl;
         double minDerivativeDiff =
             l2_difference_norm(combinationDerivs, currentDerivs);
+        //std::cout << "initial deriv L2: " << minDerivativeDiff << std::endl;
 
-        std::cout << "Trying " << numRandomTries << " positions" << std::endl;
         for (int32_t i = 0; i < numRandomTries; ++i) {
             combinationDerivs.clear();
 
@@ -96,19 +98,23 @@ LocalResliceSegmentation::segmentLayer(const bool showVisualization,
                 std::uniform_int_distribution<int32_t> dist(0, v.size() - 1);
                 positions.push_back(v[dist(mt)]);
             }
+            //std::cout << "positions: " << positions << std::endl;
 
             // 2. Generate derivatives from positions
             for (int32_t i = 0; i < N; ++i) {
                 combinationDerivs.push_back(fivePointStencil(i, positions));
             }
+            //std::cout << "combination derivs: " << combinationDerivs << std::endl;
     
             // 2. Calculate l2 norm of this and previous positions and set
             //    min accordingly
             double norm = l2_difference_norm(combinationDerivs, currentDerivs);
+            //std::cout << "norm: " << norm << std::endl;
             if (norm - minDerivativeDiff < derivativeTolerance) {
                 minDerivativeDiff = norm;
                 bestPositions = positions;
             }
+            //std::cout << std::endl;
         }
         std::cout << "minDerivDiff: " << minDerivativeDiff << std::endl;
         mesh.addPositions(bestPositions);
@@ -124,8 +130,11 @@ double LocalResliceSegmentation::fivePointStencil(
 		const uint32_t center, const VoxelVec& ps) const
 {
     // Average difference in x dimension across entire chain
-    const double avgXDiff = std::accumulate(ps.begin(), ps.end(), 0,
-            [](double sum, cv::Vec3d p) { return sum + p(VC_INDEX_X); }) / ps.size();
+    double avgXDiff = 0;
+    for (uint32_t i = 1; i < ps.size(); ++i) {
+        avgXDiff += (ps[i](VC_INDEX_X) - ps[i-1](VC_INDEX_X));
+    }
+    avgXDiff /= ps.size();
 
     // Fit curve to new predicted ps.
     FittedCurve<double, 4> f;
@@ -137,14 +146,17 @@ double LocalResliceSegmentation::fivePointStencil(
     f.fitPoints(newPoints);
 
     // Take care of any out of bounds accesses
+    /*
+    double firstPairXDiff = ps[1](VC_INDEX_X) - ps[0](VC_INDEX_X);
+    double lastPairXDiff = ps[ps.size() - 1](VC_INDEX_X) - ps[ps.size() - 2](VC_INDEX_X);
     double twoBefore, oneBefore, oneAfter, twoAfter;
     if (center == 0) {
-        twoBefore = f.at(ps[0](VC_INDEX_X) - 2 * avgXDiff);
-        oneBefore = f.at(ps[0](VC_INDEX_X) - avgXDiff);
+        twoBefore = f.at(ps[0](VC_INDEX_X) - 2 * firstPairXDiff);
+        oneBefore = f.at(ps[0](VC_INDEX_X) - firstPairXDiff);
         oneAfter  = ps[center + 1](VC_INDEX_Y);
         twoAfter  = ps[center + 2](VC_INDEX_Y);
     } else if (center == 1) {
-        twoBefore = f.at(ps[0](VC_INDEX_X) - avgXDiff);
+        twoBefore = f.at(ps[0](VC_INDEX_X) - firstPairXDiff);
         oneBefore = ps[0](VC_INDEX_Y);
         oneAfter  = ps[center + 1](VC_INDEX_Y);
         twoAfter  = ps[center + 2](VC_INDEX_Y);
@@ -152,12 +164,12 @@ double LocalResliceSegmentation::fivePointStencil(
         twoBefore = ps[center - 2](VC_INDEX_Y);
         oneBefore = ps[center - 1](VC_INDEX_Y);
         oneAfter  = ps[ps.size() - 1](VC_INDEX_Y);
-        twoAfter  = f.at(ps[ps.size() - 1](VC_INDEX_X) + avgXDiff);
+        twoAfter  = f.at(ps[ps.size() - 1](VC_INDEX_X) + lastPairXDiff);
     } else if (center == ps.size() - 1) {
         twoBefore = ps[center - 2](VC_INDEX_Y);
         oneBefore = ps[center - 1](VC_INDEX_Y);
-        oneAfter  = f.at(ps[ps.size() - 1](VC_INDEX_X) + avgXDiff);
-        twoAfter  = f.at(ps[ps.size() - 1](VC_INDEX_X) + 2 * avgXDiff);
+        oneAfter  = f.at(ps[ps.size() - 1](VC_INDEX_X) + lastPairXDiff);
+        twoAfter  = f.at(ps[ps.size() - 1](VC_INDEX_X) + 2 * lastPairXDiff);
     } else {
         twoBefore = ps[center - 2](VC_INDEX_Y);
         oneBefore = ps[center - 1](VC_INDEX_Y);
@@ -165,5 +177,12 @@ double LocalResliceSegmentation::fivePointStencil(
         twoAfter  = ps[center + 2](VC_INDEX_Y);
     }
 
+    return (-twoAfter + 8 * oneAfter - 8 * oneBefore + twoBefore) / (12 * avgXDiff);
+    */
+
+    const double twoBefore = f.at(ps[center](VC_INDEX_X) - 2 * avgXDiff);
+    const double oneBefore = f.at(ps[center](VC_INDEX_X) - 1 * avgXDiff);
+    const double oneAfter = f.at(ps[center](VC_INDEX_X) + 1 * avgXDiff);
+    const double twoAfter = f.at(ps[center](VC_INDEX_X) + 2 * avgXDiff);
     return (-twoAfter + 8 * oneAfter - 8 * oneBefore + twoBefore) / (12 * avgXDiff);
 }
