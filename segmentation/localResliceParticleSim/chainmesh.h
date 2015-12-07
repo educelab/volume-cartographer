@@ -19,7 +19,7 @@ public:
 
     pcl::PointCloud<pcl::PointXYZRGB> exportAsPointCloud();
 
-    void addChain(Chain c);
+    void addChain(const Chain& c);
 
     void addPositions(const VoxelVec& ps);
 

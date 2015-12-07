@@ -12,7 +12,7 @@ ChainMesh::ChainMesh(const int32_t width, const int32_t height) :
 }
 
 // Pushes a chain back into the ChainMesh
-void ChainMesh::addChain(Chain row)
+void ChainMesh::addChain(const Chain& row)
 {
     for (int32_t i = 0; i < row.size(); ++i) {
         positions_.at<Voxel>(nextRow_, i) = row.at(i);
