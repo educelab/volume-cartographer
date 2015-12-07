@@ -35,11 +35,11 @@ public:
 
     Chain(VolumePkg& pkg, int32_t zIndex);
 
-    Chain(VolumePkg& pkg, VoxelVec& pos, int32_t zIndex);
+    Chain(VolumePkg& pkg, const VoxelVec& pos, int32_t zIndex);
 
     int32_t size(void) const { return particleCount_; }
 
-	Voxel at(const int32_t idx) const { return particles_.at(idx); }
+	Voxel at(const int32_t idx) const { return particles_[idx]; }
 
     const VoxelVec& positions() const { return particles_; }
 
