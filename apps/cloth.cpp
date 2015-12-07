@@ -11,6 +11,7 @@
 #include "vc_defines.h"
 #include "io/ply2itk.h"
 #include "io/objWriter.h"
+#include "compositeTexture.h"
 
 // bullet converter
 #include "itk2bullet.h"
@@ -55,6 +56,9 @@ int main(int argc, char* argv[]) {
         exit( -1 );
     };
 
+    volcart::Texture newTexture;
+    newTexture = volcart::texturing::compositeTexture(mesh, vpkg, meshWidth, meshHeight, 7, VC_Composite_Option::Maximum, VC_Direction_Option::Bidirectional);
+
     // Create Dynamic world for bullet cloth simulation
     btBroadphaseInterface* broadphase = new btDbvtBroadphase();
 
@@ -71,7 +75,7 @@ int main(int argc, char* argv[]) {
                                                                           collisionConfiguration,
                                                                           softBodySolver);
 
-    dynamicsWorld->setGravity(btVector3(0, -5, 0));
+    dynamicsWorld->setGravity(btVector3(0, -10, 0));
     dynamicsWorld->setInternalTickCallback(softBodyTickCallback, dynamicsWorld, true);
 
     // convert itk mesh to bullet mesh (vertices and triangle arrays)
@@ -87,11 +91,11 @@ int main(int argc, char* argv[]) {
     // Sets the mass of the whole soft body, true considers the faces along with the vertices
     // Note: Mass is in kilograms. If mass isn't high enough, nothing changes.
     std::cerr << "volcart::cloth::message: Setting mass" << std::endl;
-    // psb->setTotalMass( (int)(psb->m_nodes.size() * 0.001), true );
-    psb->setTotalMass(10, true );
+    psb->setTotalMass( (int)(psb->m_nodes.size() * 0.001), true );
 
     // set the damping coefficient of the soft body [0,1]
-    psb->m_cfg.kDP = 0.95;
+    psb->m_cfg.kDP = 0.25;
+    psb->m_materials[0]->m_kLST = 1.0;
 
     // Set the top row of vertices such that they wont move/fall
     // Currently assumes that the first point has the same z-value as the rest of the starting chain
@@ -157,8 +161,7 @@ int main(int argc, char* argv[]) {
     // Convert soft body to itk mesh
     volcart::meshing::bullet2itk::bullet2itk(mesh, psb);
 
-    volcart::io::objWriter objwriter("cloth.obj", mesh);
-
+    volcart::io::objWriter objwriter("cloth.obj", mesh, newTexture.uvMap(), newTexture.getImage(0));
     objwriter.write();
 
     // bullet clean up

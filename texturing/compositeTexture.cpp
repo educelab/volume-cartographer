@@ -47,7 +47,7 @@ namespace volcart {
                 // Link the pointer to our current cell
                 cell = cellIterator.Value();
 
-                std::cout << "Texturing face " << cellIterator.Index() << "/" << cellEnd.Index() << "\r" << std::flush;
+                std::cerr << "volcart::compositeTexture::message: Texturing face " << cellIterator.Index() << "/" << cellEnd.Index() << "\r" << std::flush;
 
                 // Iterate over the vertices of the current cell
                 pointsIterator = cell->PointIdsBegin();
