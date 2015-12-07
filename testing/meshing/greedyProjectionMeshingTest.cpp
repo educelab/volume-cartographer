@@ -29,7 +29,8 @@
  *  The ultimate goal of this file is the following:                                    *
  *                                                                                      *
  *      1. Check whether changes to greedyProjectionMeshing.cpp create a                *
- *         correct mesh based on a previously created, correct mesh.                    *
+ *         correct mesh based on a previously created, correct mesh. This is performed  *
+ *         via the compareMeshes test case.                                             *
  *                                                                                      *
  *  Input:                                                                              *
  *      - OBJ file to be loaded in as a PCL::PolygonMesh                                *

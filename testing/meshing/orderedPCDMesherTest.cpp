@@ -27,7 +27,7 @@
  *  the objects used in any subsequent fixture test cases.                          *
  *                                                                                  *
  *  Test Cases:                                                                     *
- *  1. orderedPCDTest (fixture test case)                                           *
+ *  1. savedPLYFileTest (fixture test case)                                         *
  *                                                                                  *                                                                            *
  *  Input:                                                                          *
  *     No required inputs for the test cases. Any test objects are created          *

@@ -22,23 +22,30 @@
  *                                                                                  *
  *        1. check whether an itk mesh can be converted to a vtk mesh               *
  *           and vice versa.                                                        *
- *           common/shapes/Plane.h, can be written into                             *
  *                                                                                  *
+ *        2. confirm saved .obj and .ply files match test-generated obj and         *
+ *           ply files after running itk2vtk and vtk2itk                            *
  *                                                                                  *
  *  This file is broken up into two test fixtures (ivFix & viFix) which initialize  *
- *  the objects used in each of the two test cases.                                 *
+ *  the objects used in each of the four test cases.                                *
  *                                                                                  *
- *  i2v (test case):                                                                *
+ *  1. i2v (fixture test case):                                                     *
  *                                                                                  *
  *      Takes an itk mesh created from fixture and data to vtkpolydata pointer.     *
  *      Vtkpolydata then converted back to itk mesh. Successful test if converted   *
  *      itk matches original itk mesh data points                                   *
  *                                                                                  *
- *  v2i (test case):                                                                *
+ *  2. v2i (fixture test case):                                                     *
  *                                                                                  *
  *      Same idea as i2v test case except that the test starts with vtkpolydata.    *
  *      The vtk data is converted into itk mesh and back to vtk. Success if the     *
  *      original vtk and converted vtk data points match.                           *
+ *                                                                                  *
+ *   3. compareSavedITK (fixture test case):                                        *
+ *      Read in itk.obj and compare with mesh created from vtk2itk call result.     *
+ *                                                                                  *
+ *   4. compreSavedVTK (fixture test case):                                         *
+ *      Read in vtk.ply and compare with mesh created from itk2vtk call result.     *
  *                                                                                  *
  * Input:                                                                           *
  *     No required inputs for this sample test. All test objects are created        *

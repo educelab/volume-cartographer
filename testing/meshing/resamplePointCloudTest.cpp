@@ -25,23 +25,27 @@
  *                                                                                  *
  *  1. PCTest:                                                                      *
  *                                                                                  *
- *      Takes a point cloud created from fixture via Plane::pointCloudXYZ()   *
+ *      Takes a point cloud created from fixture via Plane::pointCloudXYZ()         *
  *      This test is simply looking into the points of the resulting PC.            *
  *                                                                                  *
  *  2. compareTwoResamples:                                                         *
- *      Takes a point cloud created from fixture via Plane::pointCloudXYZ()   *
+ *      Takes a point cloud created from fixture via Plane::pointCloudXYZ()         *
  *      and checks that two resampled PointNormal clouds created using the same     *
  *      search radius and input cloud match pointwise.                              *
  *                                                                                  *
- *  3. Properties:                                                                  *
+ *  3. compareSavedResample:                                                        *
+ *     Read in resampleExample.pcd and compare for equivalency with the result      *
+ *     from a call to resamplePointCloud() using the same input parameters.         *
  *                                                                                  *
- *      Takes a point cloud created from fixture via Plane::pointCloudXYZ()   *
+ *  4. Properties:                                                                  *
+ *                                                                                  *
+ *      Takes a point cloud created from fixture via Plane::pointCloudXYZ()         *
  *      Checks the resulting PC's properties, i.e., height, width, size, etc.,      *
  *      against the input PC.                                                       *
  *                                                                                  *
- *  4. Magnitude:                                                                   *
+ *  5. Magnitude:                                                                   *
  *                                                                                  *
- *      Takes a point cloud created from fixture via Plane::pointCloudXYZ()   *
+ *      Takes a point cloud created from fixture via Plane::pointCloudXYZ()         *
  *      Checks that the normals in the resulting PC are unit normals.               *
  *                                                                                  *
  *  Input:                                                                          *
