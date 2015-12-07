@@ -58,19 +58,19 @@ typedef cv::Vec2d VC_Origin;
 #define VC_TEXTURE_NO_VALUE -1.0
 
 enum VC_Composite_Option {
-    CompositeOptionIntersection = 0,
-    CompositeOptionNonMaximumSuppression,
-    CompositeOptionMax,
-    CompositeOptionMin,
-    CompositeOptionMedianAverage,
-    CompositeOptionMedian,
-    CompositeOptionMean
+    Intersection = 0,
+    NonMaximumSuppression,
+    Maximum,
+    Minimum,
+    MedianAverage,
+    Median,
+    Mean
 };
 
 enum VC_Direction_Option {
-    DirectionOptionBoth = 0,
-    DirectionOptionPositive,
-    DirectionOptionNegative
+    Bidirectional = 0,
+    Positive,
+    Negative
 };
 
 ///// Time Helper /////
