@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
                                                                           collisionConfiguration,
                                                                           softBodySolver);
 
-    dynamicsWorld->setGravity(btVector3(0, 5, 0));
+    dynamicsWorld->setGravity(btVector3(0, -5, 0));
     dynamicsWorld->setInternalTickCallback(softBodyTickCallback, dynamicsWorld, true);
 
     // convert itk mesh to bullet mesh (vertices and triangle arrays)
