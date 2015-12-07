@@ -34,28 +34,26 @@ LocalResliceSegmentation::segmentLayer(const bool showVisualization,
     std::mt19937 mt(rd());
 
     // ChainMesh that holds the segment
-    VoxelVec initPos;
+    VoxelVec currentPos;
     auto path = pkg_.openCloud(); 
     for (const auto& p : *path) {
-        initPos.emplace_back(p.x, p.y, p.z);
+        currentPos.emplace_back(p.x, p.y, p.z);
     }
-    int32_t N = initPos.size();
+    int32_t N = currentPos.size();
     ChainMesh mesh(N, endIndex_ - startIndex_);
-    VoxelVec currentPos = initPos;
+    mesh.addPositions(currentPos);
 
     // Go through every iteration (from start to end index)
-    for (int32_t sliceIndex = startIndex_; sliceIndex <= endIndex_;
+    for (int32_t sliceIndex = startIndex_ + stepNumLayers; sliceIndex <= endIndex_;
          sliceIndex += stepNumLayers) {
 
         // First chain object
         Chain currentChain(pkg_, currentPos, sliceIndex);
-        mesh.addChain(currentChain);
 
         // Get current derivatives
         int32_t N = currentChain.size();
         std::vector<double> currentDerivs;
         currentDerivs.reserve(N);
-        std::cout << currentChain.positions() << std::endl;
         for (int32_t i = 0; i < N; ++i) {
             currentDerivs.push_back(fivePointStencil(i, currentChain.positions()));
         }
