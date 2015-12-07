@@ -42,4 +42,13 @@ enum Direction {
 
 }
 
+// Helpful for printing out vector. Only for debug.
+template <typename T>
+std::ostream& operator<<(std::ostream& s, std::vector<T> v)
+{
+    s << "[";
+    std::for_each(v.begin(), v.end() - 1, [&s](const T& t) { s << t << ", "; });
+    return s << *v.end() << "]";
+}
+
 #endif //VC_COMMON_H
