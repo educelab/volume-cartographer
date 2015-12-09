@@ -11,6 +11,7 @@
 #include "shapes.h"
 #include "vc_defines.h"
 #include "io/plyWriter.h"
+#include "testing/parsingHelpers.h"
 
 
 /************************************************************************************
@@ -31,12 +32,12 @@
  *                                                                                  *
  *      attempts to write a testing mesh to file and compares final output path     *
  *      as a check for success. Note, this test always outputs the file as          *
- *      "output.obj" because there is no texture information included when writing. *
+ *      "output.ply" because there is no texture information included when writing. *
  *                                                                                  *
  *  compareElements (test case):                                                    *
  *                                                                                  *
- *      Attempts to read in information from obj file using boost::path variable.   *
- *      As data is read in from the obj file, collections of points and faces are   *
+ *      Attempts to read in information from ply file using boost::path variable.   *
+ *      As data is read in from the ply file, collections of points and faces are   *
  *      created to compare against points and faces created during initialization   *
  *      of the testing mesh by meshFix. The test then compares all non-commented    *
  *      data from the file against the testing mesh data to ensure equality.        *
