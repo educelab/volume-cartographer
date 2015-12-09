@@ -151,14 +151,10 @@ void CWindow::CreateMenus( void )
     fFileMenu->addSeparator();
     fFileMenu->addAction( fExitAct );
 
-    fEditMenu = new QMenu( tr( "&Edit" ), this );
-//	fEditMenu->addAction( fGetIntersectionAct );
-
     fHelpMenu = new QMenu( tr( "&Help" ), this );
     fHelpMenu->addAction( fAboutAct );
 
     menuBar()->addMenu( fFileMenu );
-    menuBar()->addMenu( fEditMenu );
     menuBar()->addMenu( fHelpMenu );
 }
 
@@ -499,10 +495,16 @@ void CWindow::About( void )
 // Save point cloud to path directory
 void CWindow::SavePointCloud( void )
 {
-    fVpkg->saveCloud( fMasterCloud );
-    if ( fMasterCloud.height > 1 ) { // Only mesh if we have more than one iteration of segmentation
-        fVpkg->saveMesh( pcl::PointCloud< pcl::PointXYZRGB >::Ptr( new pcl::PointCloud< pcl::PointXYZRGB >( fMasterCloud ) ) );
-    }
+    try {
+            fVpkg->saveCloud(fMasterCloud);
+                if (fMasterCloud.height > 1)
+                    {   // Only mesh if we have more than one iteration of segmentation
+                        fVpkg->saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr(new pcl::PointCloud<pcl::PointXYZRGB>(fMasterCloud)));
+                    }
+        }catch(pcl::IOException)
+            {
+                QMessageBox::warning(this, "Error", "Failed to Save Volume, cloud.ply Error!");
+            }
 }
 
 // Create new path
