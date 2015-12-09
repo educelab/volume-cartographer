@@ -95,32 +95,84 @@ int main(int argc, char* argv[]) {
     psb->m_materials[0]->m_kAST = 1.0; // Area/Angular stiffness coefficient [0,1]
     psb->m_materials[0]->m_kVST = 1.0; // Volume stiffness coefficient [0,1]
 
-    /////// To-Do: Add rigid bodies to sim
+    // Initialize the four rigid bodies to be attached to the corners
+    btCollisionShape* fallShape = new btSphereShape(1);
+    btDefaultMotionState* fallMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 50, 0)));
+    btScalar mass = 10;
+    btVector3 fallInertia(0, 0, 0);
+    fallShape->calculateLocalInertia(mass, fallInertia);
+    btRigidBody::btRigidBodyConstructionInfo fallRigidBodyCI(mass, fallMotionState, fallShape, fallInertia);
 
-    // Create target positions for our rigid bodies
-    for( auto p_id = pinnedPoints.begin(); p_id < pinnedPoints.end(); ++p_id ) {
-        NodeTarget n_target;
-        btVector3 target_pos;
-        btScalar distance;
-        btScalar t_x, t_y, t_z;
+    btRigidBody* top_left = new btRigidBody(fallRigidBodyCI);
+    dynamicsWorld->addRigidBody(top_left);
+    btRigidBody* top_right = new btRigidBody(fallRigidBodyCI);
+    dynamicsWorld->addRigidBody(top_right);
+    btRigidBody* bottom_left = new btRigidBody(fallRigidBodyCI);
+    dynamicsWorld->addRigidBody(bottom_left);
+    btRigidBody* bottom_right = new btRigidBody(fallRigidBodyCI);
+    dynamicsWorld->addRigidBody(bottom_right);
 
-        if ( p_id == pinnedPoints.begin() ) {
-            target_pos = (*p_id)->m_x;
-            target_pos.setZ((max_y + min_y) / 2);
-        }
-        else {
-            // Aligns the pinned points parallel with the x plane
-            distance = (*p_id)->m_x.distance((*std::prev(p_id))->m_x); //wtf
-            t_x = targetPoints.back().t_pos.getX() + distance;
-            t_y = (*p_id)->m_x.getY();
-            t_z = (max_y + min_y) / 2;
-            target_pos = btVector3(t_x, t_y, t_z);
-        }
+    // Find the position of the four corner nodes
+    // Currently assumes that the first point has the same z-value as the rest of the starting chain
+	int min_z = (int) std::floor(mesh->GetPoint(0)[2]);
+	int chain_length = 0;
+	// Calculate chain length
+	for(int i = 0; i < psb->m_nodes.size(); ++i) {
+		if( (int)psb->m_nodes[i].m_x.z() <= min_z) {
+			// Append top_left rigid body to top left node of mesh
+			if (chain_length == 0) {
+				psb->appendAnchor(i, top_left);
+			}
+			++chain_length;
+		}
+	}
+	// Append rest of rigid bodies to respective nodes of mesh
+	// Assumes the chain length is constant throughout the mesh
+	psb->appendAnchor(chain_length, top_right);
+	psb->appendAnchor(psb->m_nodes.size() - chain_length, bottom_left);
+	psb->appendAnchor(psb->m_nodes.size(), bottom_right);
 
-        n_target.t_pos = target_pos;
-        n_target.t_stepsize = (*p_id)->m_x.distance(target_pos) / 60; // Will take minimum 60 iterations to reach target
-        targetPoints.push_back(n_target);
+    // Calculate the surface area of the mesh using Heron's formula
+    // Let a,b,c be the lengths of the sides of a triangle and p the semiperimeter
+    // p = (a +  b + c) / 2
+    // area of triangle = sqrt( p * (p - a) * (p - b) * (p - c) )
+    double surface_area = 0;
+    for(int i = 0; i < psb->m_faces.size(); ++i) {
+    	double a = 0, b = 0, c = 0, p = 0;
+    	a = psb->m_faces[i].m_n[0]->m_x.distance(psb->m_faces[i].m_n[1]->m_x);
+    	b = psb->m_faces[i].m_n[0]->m_x.distance(psb->m_faces[i].m_n[2]->m_x);
+    	c = psb->m_faces[i].m_n[1]->m_x.distance(psb->m_faces[i].m_n[2]->m_x);
+
+    	p = (a + b + c) / 2;
+
+    	surface_area += sqrt( p * (p - a) * (p - b) * (p - c) );
     }
+
+
+    // // Create target positions for our rigid bodies
+    // for( auto p_id = pinnedPoints.begin(); p_id < pinnedPoints.end(); ++p_id ) {
+    //     NodeTarget n_target;
+    //     btVector3 target_pos;
+    //     btScalar distance;
+    //     btScalar t_x, t_y, t_z;
+
+    //     if ( p_id == pinnedPoints.begin() ) {
+    //         target_pos = (*p_id)->m_x;
+    //         target_pos.setZ((max_y + min_y) / 2);
+    //     }
+    //     else {
+    //         // Aligns the pinned points parallel with the x plane
+    //         distance = (*p_id)->m_x.distance((*std::prev(p_id))->m_x); //wtf
+    //         t_x = targetPoints.back().t_pos.getX() + distance;
+    //         t_y = (*p_id)->m_x.getY();
+    //         t_z = (max_y + min_y) / 2;
+    //         target_pos = btVector3(t_x, t_y, t_z);
+    //     }
+
+    //     n_target.t_pos = target_pos;
+    //     n_target.t_stepsize = (*p_id)->m_x.distance(target_pos) / 60; // Will take minimum 60 iterations to reach target
+    //     targetPoints.push_back(n_target);
+    // }
 
     // step simulation
     std::cerr << "volcart::cloth::message: Beginning simulation" << std::endl;
