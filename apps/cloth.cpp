@@ -1,4 +1,4 @@
-//
+#include <LinearMath/btVector3.h>//
 // Created by Abigail Coleman 10/28/15
 //
 
@@ -21,6 +21,7 @@ struct NodeTarget {
     btScalar  t_stepsize;
 };
 
+bool btIsStatic(btSoftBody* body);
 static void softBodyTickCallback(btDynamicsWorld *world, btScalar timeStep);
 std::vector<btSoftBody::Node*> pinnedPoints;
 std::vector<NodeTarget> targetPoints;
@@ -43,7 +44,7 @@ int main(int argc, char* argv[]) {
     vpkg.setActiveSegmentation(segID);
     std::string meshName = vpkg.getMeshPath();
 
-    int NUM_OF_ITERATIONS = atoi( argv[ 3 ] );
+    int64_t NUM_OF_ITERATIONS = atoi( argv[ 3 ] );
 
     // declare pointer to new Mesh object
     VC_MeshType::Pointer  mesh = VC_MeshType::New();
@@ -84,6 +85,7 @@ int main(int argc, char* argv[]) {
     volcart::meshing::itk2bullet::itk2bullet(mesh, dynamicsWorld->getWorldInfo(), &psb);
 
     psb->getWorldInfo()->m_gravity = dynamicsWorld->getGravity(); // Have to explicitly make softbody gravity match world gravity
+    psb->getWorldInfo()->air_density = 2.0;
     dynamicsWorld->addSoftBody(psb);
 
     // Constraints for the mesh as a soft body
@@ -93,9 +95,10 @@ int main(int argc, char* argv[]) {
     std::cerr << "volcart::cloth::message: Setting mass" << std::endl;
     psb->setTotalMass( (int)(psb->m_nodes.size() * 0.001), true );
 
-    // set the damping coefficient of the soft body [0,1]
-    psb->m_cfg.kDP = 0.25;
-    psb->m_materials[0]->m_kLST = 1.0;
+    psb->m_cfg.kDP = 0.1; // Damping coefficient of the soft body [0,1]
+    psb->m_materials[0]->m_kLST = 1.0; // Linear stiffness coefficient [0,1]
+    psb->m_materials[0]->m_kAST = 1.0; // Area/Angular stiffness coefficient [0,1]
+    psb->m_materials[0]->m_kVST = 1.0; // Volume stiffness coefficient [0,1]
 
     // Set the top row of vertices such that they wont move/fall
     // Currently assumes that the first point has the same z-value as the rest of the starting chain
@@ -133,15 +136,16 @@ int main(int argc, char* argv[]) {
         }
         else {
             // Aligns the pinned points parallel with the x plane
+            int sign
             distance = (*p_id)->m_x.distance((*std::prev(p_id))->m_x); //wtf
             t_x = targetPoints.back().t_pos.getX() + distance;
             t_y = (*p_id)->m_x.getY();
-            t_z = (max_y + min_y) / 2;
+            t_z = targetPoints.back().t_pos.getZ();
             target_pos = btVector3(t_x, t_y, t_z);
         }
 
         n_target.t_pos = target_pos;
-        n_target.t_stepsize = (*p_id)->m_x.distance(target_pos) / 60; // Will take minimum 60 iterations to reach target
+        n_target.t_stepsize = (*p_id)->m_x.distance(target_pos) / (NUM_OF_ITERATIONS/2);
         targetPoints.push_back(n_target);
     }
 
@@ -151,17 +155,21 @@ int main(int argc, char* argv[]) {
         std::cerr << "volcart::cloth::message: Step " << i + 1 << "/" << NUM_OF_ITERATIONS << "\r" << std::flush;
         dynamicsWorld->stepSimulation(1/60.f);
         psb->solveConstraints();
+        if (btIsStatic(psb)) break;
     }
 
     std::cerr << std::endl;
 
     // rotate mesh back to original orientation
+    std::cerr << "volcart::cloth::message: Rotating mesh" << std::endl;
     psb->rotate(btQuaternion(0,-SIMD_PI/2,0));
 
     // Convert soft body to itk mesh
+    std::cerr << "volcart::cloth::message: Updating mesh" << std::endl;
     volcart::meshing::bullet2itk::bullet2itk(mesh, psb);
 
     volcart::io::objWriter objwriter("cloth.obj", mesh, newTexture.uvMap(), newTexture.getImage(0));
+    //volcart::io::objWriter objwriter("cloth.obj", mesh);
     objwriter.write();
 
     // bullet clean up
@@ -176,6 +184,15 @@ int main(int argc, char* argv[]) {
 
     return 0;
 } // end main
+bool btIsStatic(btSoftBody* body) {
+    btVector3  avg_normal(0,0,0);
+    for ( size_t n_id = 0; n_id < body->m_faces.size(); ++n_id ) {
+        avg_normal += body->m_faces[n_id].m_normal;
+    }
+    avg_normal /= body->m_faces.size();
+    bool result = ( avg_normal.absolute().getZ() > 0.9 );
+    return result;
+};
 
 void softBodyTickCallback(btDynamicsWorld *world, btScalar timeStep) {
     for( size_t p_id = 0; p_id < pinnedPoints.size(); ++p_id ) {
