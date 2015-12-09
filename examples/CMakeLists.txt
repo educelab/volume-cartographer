@@ -33,8 +33,8 @@ target_link_libraries(vc_resamplePointCloudExample ${VC_LIBS} ${VC_REQ_LIBS})
 add_executable(vc_orderedPCDExample orderedPCDExample.cpp)
 target_link_libraries(vc_orderedPCDExample ${VC_LIBS} ${VC_REQ_LIBS})
 
-file(COPY ../testing/test_data/vtk.ply DESTINATION ${CMAKE_BINARY_DIR}/examples)
-file(COPY ../testing/test_data/itk.obj DESTINATION ${CMAKE_BINARY_DIR}/examples)
+file(COPY ../testing/test_data/meshing/vtk.ply DESTINATION ${CMAKE_BINARY_DIR}/examples)
+file(COPY ../testing/test_data/meshing/itk.obj DESTINATION ${CMAKE_BINARY_DIR}/examples)
 add_executable(vc_parsingHelpers parsingHelperExample.cpp ../testing/parsingHelpers.cpp ../testing/parsingHelpers.h)
 target_link_libraries(vc_parsingHelpers ${VC_LIBS} ${VC_REQ_LIBS} )
 
