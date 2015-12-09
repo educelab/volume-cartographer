@@ -151,14 +151,10 @@ void CWindow::CreateMenus( void )
     fFileMenu->addSeparator();
     fFileMenu->addAction( fExitAct );
 
-    fEditMenu = new QMenu( tr( "&Edit" ), this );
-//	fEditMenu->addAction( fGetIntersectionAct );
-
     fHelpMenu = new QMenu( tr( "&Help" ), this );
     fHelpMenu->addAction( fAboutAct );
 
     menuBar()->addMenu( fFileMenu );
-    menuBar()->addMenu( fEditMenu );
     menuBar()->addMenu( fHelpMenu );
 }
 
