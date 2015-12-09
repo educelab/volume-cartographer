@@ -25,9 +25,22 @@ add_executable(vc_test_OBJExporter common/ObjWriterTest.cpp)
 target_link_libraries(vc_test_OBJExporter ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME OBJExporter WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_OBJExporter )
 
-#add_executable(vc_test_ply2itk common/ply2itkTest.cpp)
-#target_link_libraries(vc_test_ply2itk ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-#add_test(NAME ply2itk WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_ply2itk )
+#add_executable(vc_test_plyWriter common/plyWriterTest.cpp)
+#target_link_libraries(vc_test_plyWriter ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+#add_test(NAME plyWriter WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_plyWriter )
+
+#add_executable(vc_test_plyWriter common/plyWriterTest.cpp)
+#target_link_libraries(vc_test_plyWriter ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+#add_test(NAME plyWriter WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_plyWriter )
+
+#add_executable(vc_test_Metadata common/MetadataTest.cpp)
+#target_link_libraries(vc_test_Metadata ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+#add_test(NAME Metadata WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_Metadata )
+
+#add_executable(vc_test_Texture common/TextureTest.cpp)
+#target_link_libraries(vc_test_Texture ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+#add_test(NAME Texture WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_Texture )
+
 
 #-----------------------#
 #    examples Folder    #

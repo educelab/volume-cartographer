@@ -15,8 +15,8 @@
 
 /************************************************************************************
  *                                                                                  *
- *  This is a sample test using boost.test unit testing framework. The ultimate     *
- *  goal of this file is the following:                                             *
+ *  ObjWriterTest.cpp - tests the functionality of /v-c/common/io/objWriter.cpp     *
+ *  The ultimate goal of this file is the following:                                *
  *                                                                                  *
  *        1. check whether a testing mesh, created by                               *
  *           common/shapes/Plane.h, can be written into                             *
@@ -57,7 +57,7 @@
 std::vector<std::string> split_string(std::string);
 
 /*
- * This builds objects for each of the test cases below that reference
+ * This fixture builds objects for each of the test cases below that reference
  * the fixture as their second argument
  *
  */
