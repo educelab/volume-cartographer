@@ -493,18 +493,24 @@ void CWindow::About( void )
 }
 
 // Save point cloud to path directory
-void CWindow::SavePointCloud( void )
-{
-    try {
-            fVpkg->saveCloud(fMasterCloud);
-                if (fMasterCloud.height > 1)
-                    {   // Only mesh if we have more than one iteration of segmentation
-                        fVpkg->saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr(new pcl::PointCloud<pcl::PointXYZRGB>(fMasterCloud)));
-                    }
-        }catch(pcl::IOException)
-            {
-                QMessageBox::warning(this, "Error", "Failed to Save Volume, cloud.ply Error!");
-            }
+void CWindow::SavePointCloud( void ) {
+    if ( fMasterCloud.size() == 0 ) {
+        std::cerr << "VC::message: Empty point cloud. Nothing to save." << std::endl;
+        return;
+    }
+
+    // Try to save cloud to volpkg
+    if ( fVpkg->saveCloud(fMasterCloud) != EXIT_SUCCESS ) {
+        QMessageBox::warning(this, "Error", "Failed to write cloud to volume package.");
+    };
+
+    // Only mesh if we have more than one iteration of segmentation
+    if (fMasterCloud.height <= 1) { return; }
+
+    if ( fVpkg->saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr(new pcl::PointCloud<pcl::PointXYZRGB>(fMasterCloud))) != EXIT_SUCCESS ) {
+        QMessageBox::warning(this, "Error", "Failed to write mesh to volume package.");
+    };
+
 }
 
 // Create new path
