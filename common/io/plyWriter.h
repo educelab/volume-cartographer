@@ -27,6 +27,8 @@ namespace volcart {
             void setMesh( VC_MeshType::Pointer mesh ) { _mesh = mesh; };
             void setTexture( volcart::Texture texture ) { _texture = texture; };
 
+            boost::filesystem::path getPath() const {return _outputPath;}
+
             bool validate(); // make sure all required output parameters have been set
 
             int write();

@@ -8,15 +8,16 @@
 #include <boost/test/unit_test.hpp>
 //#include <boost/test/included/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
+#include <vc_defines.h>
 #include "shapes.h"
 #include "vc_defines.h"
 #include "io/plyWriter.h"
-#include "testing/parsingHelpers.h"
+#include "parsingHelpers.h"
 
 
 /************************************************************************************
  *                                                                                  *
- *  plyWriterTest.cpp - tests the functionality of /v-c/common/io/plyWriter.cpp     *
+ *  plyWriterTest.cpp - tests the functionality of /v-c/common/plyWriter.cpp        *
  *  The ultimate goal of this file is the following:                                *
  *                                                                                  *
  *        1. check whether a testing mesh, created by                               *
@@ -49,7 +50,7 @@
  *     Specific test output only given on failure of any tests. Otherwise, general  *
  *     number of testing errors is output.                                          *
  *                                                                                  *
- * ************************************************************************************/
+ * **********************************************************************************/
 
 
 
@@ -66,23 +67,24 @@ struct meshFix {
       //create the mesh for all the test cases to use
       _mesh = mesh.itkMesh();
 
-      BOOST_TEST_MESSAGE("setting up mesh");
+      BOOST_TEST_MESSAGE("setting up mesh...");
   }
 
-  ~meshFix(){ BOOST_TEST_MESSAGE("cleaning up meshFix"); }
+  ~meshFix(){ BOOST_TEST_MESSAGE("cleaning up meshFix..."); }
 
   //file path and objwriter to be used in cases
-  volcart::io::objWriter mesh_writer;
+  volcart::io::plyWriter mesh_writer;
   boost::filesystem::path objPath;
   VC_MeshType::Pointer _mesh ;
   volcart::shapes::Plane mesh;
+
 };
 
 
 // Test for checking successful write
 BOOST_FIXTURE_TEST_CASE(writeTest, meshFix) {
 
-  std::cout << "Writing object" << std::endl;
+  std::cout << "Writing mesh to ply file..." << std::endl;
 
   mesh_writer.setPath("nothing");
   //mesh_writer.setUVMap( uvMap );
@@ -96,19 +98,87 @@ BOOST_FIXTURE_TEST_CASE(writeTest, meshFix) {
   if (mesh_writer.validate())
       mesh_writer.write();
   else {
-      mesh_writer.setPath("output.obj");
+      mesh_writer.setPath("output.ply");
       mesh_writer.setMesh(_mesh);
       mesh_writer.write();
-}
+  }
 
-//check the file path from the mesh_writer.write() call above
-//compare() returns 0 only if paths are same value lexicographically-speaking
-//checking "output.obj" here because the mesh_writer shouldn't validate in the current case
-BOOST_CHECK_EQUAL(mesh_writer.getPath().compare("output.obj"), 0);
+  //check the file path from the mesh_writer.write() call above
+  //compare() returns 0 only if paths are same value lexicographically-speaking
+  //checking "output.ply" here because the mesh_writer shouldn't validate in the current case
+  BOOST_CHECK_EQUAL(mesh_writer.getPath().compare("output.ply"), 0);
 
 }
 
 BOOST_FIXTURE_TEST_CASE(compareElements, meshFix){
 
 
+    //init vectors to hold vertices and faces saved in output.ply
+    std::vector<VC_Vertex> savedPoints, fixturePoints;
+    std::vector<VC_Cell> savedCells, fixtureCells;
+
+    //read in data from saved output.ply via parsingHelpers::parsePlyFile
+    volcart::testing::ParsingHelpers::parsePlyFile("output.ply", savedPoints, savedCells);
+
+    //now the data from the .ply file is in the point and cell vectors, and we're
+    //ready to compare with data from the _mesh object created by meshFix
+
+
+
+    /// Points ///
+    std::cerr << "Comparing points..." << std::endl;
+    for (int p = 0; p < savedPoints.size(); p++){
+
+        BOOST_CHECK_EQUAL(savedPoints[p].x, _mesh->GetPoint(p)[0]);
+        BOOST_CHECK_EQUAL(savedPoints[p].y, _mesh->GetPoint(p)[1]);
+        BOOST_CHECK_EQUAL(savedPoints[p].z, _mesh->GetPoint(p)[2]);
+        BOOST_CHECK_EQUAL(savedPoints[p].nx, _mesh->GetPoint(p)[3]);
+        BOOST_CHECK_EQUAL(savedPoints[p].ny, _mesh->GetPoint(p)[4]);
+        BOOST_CHECK_EQUAL(savedPoints[p].nz, _mesh->GetPoint(p)[5]);
+        BOOST_CHECK_EQUAL(savedPoints[p].s, _mesh->GetPoint(p)[6]);
+        BOOST_CHECK_EQUAL(savedPoints[p].t, _mesh->GetPoint(p)[7]);
+        BOOST_CHECK_EQUAL(savedPoints[p].r, _mesh->GetPoint(p)[8]);
+        BOOST_CHECK_EQUAL(savedPoints[p].g, _mesh->GetPoint(p)[9]);
+        BOOST_CHECK_EQUAL(savedPoints[p].b, _mesh->GetPoint(p)[10]);
+
+    }
+
+    /// Cells ///
+    std::cerr << "Comparing cells..." << std::endl;
+
+    //compare number of cells in each mesh
+    BOOST_CHECK_EQUAL(_mesh->GetNumberOfCells(), savedCells.size());
+
+    // Initialize Cell Iterators
+    VC_CellIterator _meshCell = _mesh->GetCells()->Begin();
+
+    int c = 0;
+
+    while (_meshCell != _mesh->GetCells()->End()) {
+
+        //Initialize Iterators for Points in a Cell
+        VC_PointsInCellIterator _meshPoint = _meshCell.Value()->PointIdsBegin();
+
+        int counter = 0;
+        //while we have points in the cell
+        while (itkMeshPoint != itkMeshCell.Value()->PointIdsEnd()) {
+
+            //Now to check the points within the cells
+            if (counter == 0)
+                BOOST_CHECK_EQUAL(*_meshPoint, savedCells[c].v1);
+            else if (counter == 1)
+                BOOST_CHECK_EQUAL(*_meshPoint, savedCells[c].v2);
+            else if (counter == 2)
+                BOOST_CHECK_EQUAL(*_meshPoint, savedCells[c].v3);
+
+            //increment points
+            itkMeshPoint++;
+            counter++;
+
+        }
+
+        //increment cells
+        ++itkMeshCell;
+        ++c;
+    }
 }

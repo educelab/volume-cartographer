@@ -85,7 +85,7 @@ struct meshFix {
 // Test for checking successful write
 BOOST_FIXTURE_TEST_CASE(writeTest, meshFix) {
 
-        std::cout << "Writing object" << std::endl;
+        std::cout << "Writing mesh..." << std::endl;
 
         mesh_writer.setPath("nothing");
         //mesh_writer.setUVMap( uvMap );
