@@ -21,21 +21,25 @@ include_directories(${TESTING_INCLUDE_DIR})
 #    common Folder      #
 #-----------------------#
 
-add_executable(vc_test_OBJExporter common/ObjWriterTest.cpp)
+# Copy the .ply file to the current bin
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/common/output.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
+add_executable(vc_test_OBJExporter common/ObjWriterTest.cpp parsingHelpers.cpp)
 target_link_libraries(vc_test_OBJExporter ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME OBJExporter WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_OBJExporter )
 
-add_executable(vc_test_plyWriter common/plyWriterTest.cpp)
+# Copy the .ply file to the current bin
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/common/output.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
+add_executable(vc_test_plyWriter common/plyWriterTest.cpp parsingHelpers.cpp)
 target_link_libraries(vc_test_plyWriter ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME plyWriter WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_plyWriter )
 
-#add_executable(vc_test_Metadata common/MetadataTest.cpp)
-#target_link_libraries(vc_test_Metadata ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-#add_test(NAME Metadata WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_Metadata )
+add_executable(vc_test_Metadata common/MetadataTest.cpp)
+target_link_libraries(vc_test_Metadata ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+add_test(NAME Metadata WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_Metadata )
 
-#add_executable(vc_test_Texture common/TextureTest.cpp)
-#target_link_libraries(vc_test_Texture ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-#add_test(NAME Texture WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_Texture )
+add_executable(vc_test_Texture common/TextureTest.cpp)
+target_link_libraries(vc_test_Texture ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+add_test(NAME Texture WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_Texture )
 
 
 #-----------------------#
@@ -51,37 +55,37 @@ add_test(NAME Sample WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_S
 #-----------------------#
 
 # Copy the test case to the build dir
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/greedyExample.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/greedyExample.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
 add_executable(vc_test_greedyProjectionMeshing meshing/greedyProjectionMeshingTest.cpp)
 target_link_libraries(vc_test_greedyProjectionMeshing ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME greedyProjectionMeshing WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_greedyProjectionMeshing)
 
 #copy vtk and itk test case files to build dir
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/vtk.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/itk.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/vtk.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/itk.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
 add_executable(vc_test_itk2vtk meshing/itk2vtkTest.cpp parsingHelpers.cpp)
 target_link_libraries(vc_test_itk2vtk ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME itk2vtk WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_itk2vtk )
 
 # Copy the test case to the build dir
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/orderedPCDExample.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/orderedPCDExample.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
 add_executable(vc_test_orderedPCDMesher meshing/orderedPCDMesherTest.cpp parsingHelpers.cpp)
 target_link_libraries(vc_test_orderedPCDMesher ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME orderedPCDMesher WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_orderedPCDMesher )
 
 # Copy the test case to the build dir
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/poissonExample.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/poissonExample.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
 add_executable(vc_test_poissonReconstruction meshing/poissonReconstructionTest.cpp)
 target_link_libraries(vc_test_poissonReconstruction ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME poissonReconstruction WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_poissonReconstruction )
 
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/savedRayTraceData.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/savedRayTraceData.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
 add_executable(vc_test_rayTrace meshing/rayTraceTest.cpp parsingHelpers.cpp)
 target_link_libraries(vc_test_rayTrace ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME rayTrace WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_rayTrace )
 
 # Copy the test case to the build dir
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/resampleExample.pcd DESTINATION ${CMAKE_BINARY_DIR}/bin)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/resampleExample.pcd DESTINATION ${CMAKE_BINARY_DIR}/bin)
 add_executable(vc_test_resamplePointCloud meshing/resamplePointCloudTest.cpp)
 target_link_libraries(vc_test_resamplePointCloud ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME resamplePointCloud WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_resamplePointCloud )

@@ -3,19 +3,20 @@
 //
 
 #define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MODULE plyWriter
+#define BOOST_TEST_MODULE Texture
 
 #include <boost/test/unit_test.hpp>
 //#include <boost/test/included/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
 #include "shapes.h"
 #include "vc_defines.h"
-#include "io/plyWriter.h"
+#include "vc_datatypes.h"
 
 
+//TODO: update this stuff
 /************************************************************************************
  *                                                                                  *
- *  plyWriterTest.cpp - tests the functionality of /v-c/common/plyWriter.cpp        *
+ *  TextureTest.cpp - tests the functionality of /v-c/common/datatypes/Texture.cpp  *
  *  The ultimate goal of this file is the following:                                *
  *                                                                                  *
  *        1. check whether a testing mesh, created by                               *
@@ -57,3 +58,11 @@
  * the fixture as their second argument
  *
  */
+
+
+
+//holder test
+BOOST_AUTO_TEST_CASE(holder){
+
+    BOOST_CHECK(true);
+}

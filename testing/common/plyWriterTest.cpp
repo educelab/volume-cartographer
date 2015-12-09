@@ -10,7 +10,6 @@
 #include <boost/test/unit_test_log.hpp>
 #include <vc_defines.h>
 #include "shapes.h"
-#include "vc_defines.h"
 #include "io/plyWriter.h"
 #include "parsingHelpers.h"
 
@@ -72,7 +71,7 @@ struct meshFix {
 
   ~meshFix(){ BOOST_TEST_MESSAGE("cleaning up meshFix..."); }
 
-  //file path and objwriter to be used in cases
+  //file path and plyWriter to be used in cases
   volcart::io::plyWriter mesh_writer;
   boost::filesystem::path objPath;
   VC_MeshType::Pointer _mesh ;
@@ -120,9 +119,12 @@ BOOST_FIXTURE_TEST_CASE(compareElements, meshFix){
     //read in data from saved output.ply via parsingHelpers::parsePlyFile
     volcart::testing::ParsingHelpers::parsePlyFile("output.ply", savedPoints, savedCells);
 
-    //now the data from the .ply file is in the point and cell vectors, and we're
-    //ready to compare with data from the _mesh object created by meshFix
-
+    /* Now the data from the .ply file is in the point and cell vectors, and we're
+     * ready to compare with data from the _mesh object created by meshFix
+     *
+     * Note: plyWriter is only writing x/y/z/nx/ny/nz point data, so that is
+     *       all we're comparing for equivalency below
+     */
 
 
     /// Points ///
@@ -132,14 +134,24 @@ BOOST_FIXTURE_TEST_CASE(compareElements, meshFix){
         BOOST_CHECK_EQUAL(savedPoints[p].x, _mesh->GetPoint(p)[0]);
         BOOST_CHECK_EQUAL(savedPoints[p].y, _mesh->GetPoint(p)[1]);
         BOOST_CHECK_EQUAL(savedPoints[p].z, _mesh->GetPoint(p)[2]);
-        BOOST_CHECK_EQUAL(savedPoints[p].nx, _mesh->GetPoint(p)[3]);
-        BOOST_CHECK_EQUAL(savedPoints[p].ny, _mesh->GetPoint(p)[4]);
-        BOOST_CHECK_EQUAL(savedPoints[p].nz, _mesh->GetPoint(p)[5]);
-        BOOST_CHECK_EQUAL(savedPoints[p].s, _mesh->GetPoint(p)[6]);
-        BOOST_CHECK_EQUAL(savedPoints[p].t, _mesh->GetPoint(p)[7]);
-        BOOST_CHECK_EQUAL(savedPoints[p].r, _mesh->GetPoint(p)[8]);
-        BOOST_CHECK_EQUAL(savedPoints[p].g, _mesh->GetPoint(p)[9]);
-        BOOST_CHECK_EQUAL(savedPoints[p].b, _mesh->GetPoint(p)[10]);
+    }
+
+    // Normals //
+    std::cerr << "Comparing normals..." << std::endl;
+    int p_id = 0;
+    for ( VC_PointsInMeshIterator point = _mesh->GetPoints()->Begin(); point != _mesh->GetPoints()->End(); ++point ) {
+
+        VC_PixelType _meshNormal;
+        _mesh->GetPointData(point.Index(), &_meshNormal);
+
+        double ptNorm[3] = {_meshNormal[0], _meshNormal[1], _meshNormal[2]};
+
+        //Now compare the normals for the two meshes
+        BOOST_CHECK_EQUAL(_meshNormal[0], savedPoints[p_id].nx);
+        BOOST_CHECK_EQUAL(_meshNormal[1], savedPoints[p_id].ny);
+        BOOST_CHECK_EQUAL(_meshNormal[2], savedPoints[p_id].nz);
+
+        p_id++;
 
     }
 
@@ -161,7 +173,7 @@ BOOST_FIXTURE_TEST_CASE(compareElements, meshFix){
 
         int counter = 0;
         //while we have points in the cell
-        while (itkMeshPoint != itkMeshCell.Value()->PointIdsEnd()) {
+        while (_meshPoint != _meshCell.Value()->PointIdsEnd()) {
 
             //Now to check the points within the cells
             if (counter == 0)
@@ -172,13 +184,13 @@ BOOST_FIXTURE_TEST_CASE(compareElements, meshFix){
                 BOOST_CHECK_EQUAL(*_meshPoint, savedCells[c].v3);
 
             //increment points
-            itkMeshPoint++;
+            _meshPoint++;
             counter++;
 
         }
 
         //increment cells
-        ++itkMeshCell;
+        ++_meshCell;
         ++c;
     }
 }
