@@ -82,6 +82,14 @@ int main(int argc, char* argv[]) {
     psb->getWorldInfo()->m_gravity = dynamicsWorld->getGravity(); // Have to explicitly make softbody gravity match world gravity
     dynamicsWorld->addSoftBody(psb);
 
+    // Add a collision plane to drop the mesh onto
+    btCollisionShape* groundShape = new btStaticPlaneShape(btVector3(0, 1, 0), 1);
+
+    btDefaultMotionState* groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -1, 0)));
+    btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState, groundShape, btVector3(0, 0, 0));
+    btRigidBody* plane = new btRigidBody(groundRigidBodyCI);
+    dynamicsWorld->addRigidBody(plane);
+
     // Constraints for the mesh as a soft body
     // These needed to be tested to find optimal values.
     // Sets the mass of the whole soft body, true considers the faces along with the vertices
@@ -151,6 +159,17 @@ int main(int argc, char* argv[]) {
 
     std::cerr << std::endl;
 
+    // drop mesh onto collision plane
+    psb->setTotalMass(10, true );
+    for (int i = 0; i < NUM_OF_ITERATIONS; ++i) {
+        std::cerr << "volcart::cloth::message: Drop step " << i + 1 << "/" << NUM_OF_ITERATIONS << "\r" << std::flush;
+        dynamicsWorld->stepSimulation(1/60.f);
+        psb->solveConstraints();
+    }
+
+
+    std::cerr << std::endl;
+
     // rotate mesh back to original orientation
     psb->rotate(btQuaternion(0,-SIMD_PI/2,0));
 
@@ -162,6 +181,10 @@ int main(int argc, char* argv[]) {
     objwriter.write();
 
     // bullet clean up
+    dynamicsWorld->removeRigidBody(plane);
+    delete plane->getMotionState();
+    delete plane;
+    delete groundShape;
     dynamicsWorld->removeSoftBody(psb);
     delete psb;
     delete dynamicsWorld;
