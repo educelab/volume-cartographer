@@ -16,6 +16,7 @@
 #include "io/plyWriter.h"
 #include "io/objWriter.h"
 #include "compositeTexture.h"
+#include "smoothNormals.h"
 
 int main(int argc, char* argv[])
 {
@@ -117,8 +118,11 @@ int main(int argc, char* argv[])
         exit( -1 );
     };
 
+    // Smooth surface normals first
+    VC_MeshType::Pointer smoothedMesh = volcart::meshing::smoothNormals(mesh, 10);
+
     volcart::Texture newTexture;
-    newTexture = volcart::texturing::compositeTexture( mesh, vpkg, meshWidth, meshHeight, radius, aFilterOption, aDirectionOption );
+    newTexture = volcart::texturing::compositeTexture( smoothedMesh, vpkg, meshWidth, meshHeight, radius, aFilterOption, aDirectionOption );
 
     if ( outputPath.extension() == ".PLY" || outputPath.extension() == ".ply" ) {
         std::cout << "Writing to PLY..." << std::endl;
