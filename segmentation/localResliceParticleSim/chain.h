@@ -55,7 +55,7 @@ public:
 
     Iterator end() { return particles_.end(); }
 
-    const FittedCurve<double, 4>& fittedCurve() const { return curve_; }
+    const FittedCurve<>& fittedCurve() const { return curve_; }
 
     std::vector<VoxelVec> stepAll(const int32_t stepNumLayers,
                                   const int32_t keepNumMaxima) const;
@@ -72,10 +72,7 @@ private:
     VolumePkg& volpkg_;
     size_t particleCount_;
     int32_t zIndex_;
-    // XXX 4th degree interpolation is about as large as we can go currently.
-    // Higher than that and the voxel positions get to be too large when
-    // exponentiated.
-    FittedCurve<double, 4> curve_;
+    FittedCurve<> curve_;
 
     constexpr static double kDefaultMaxDrift = 0.0;
 

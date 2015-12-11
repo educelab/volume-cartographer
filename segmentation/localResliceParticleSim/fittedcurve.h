@@ -6,81 +6,66 @@
 #include <vector>
 #include <tuple>
 #include <cinttypes>
+#include <cassert>
 #include <iostream>
 #include <Eigen/Dense>
+#include <Eigen/Core>
+#include <unsupported/Eigen/Splines>
 
 namespace volcart {
 
 namespace segmentation {
 
 // Simple curve fitting using nonlinear least squares
-template <typename Scalar=double, int32_t Degree=4>
+template <typename Scalar=double, uint32_t Degree=3>
 class FittedCurve {
 public:
-	using Point = typename std::tuple<Scalar, Scalar>;
-    using PointVector = typename std::vector<Point>;
+    using ScalarVector = typename std::vector<Scalar>;
+    using Point = typename std::pair<Scalar, Scalar>;
+    using Spline2d = Eigen::Spline<Scalar, 2>;
 
-    FittedCurve() { }
+    FittedCurve() = default;
 
-    FittedCurve(const PointVector& points)
+    // Need to do init in constructor initializer list because Spline2d does
+    // not provide operator=() DUMB
+    FittedCurve(const ScalarVector& xs, const ScalarVector& ys) :
+        xmin_(*std::min_element(xs.begin(), xs.end())),
+        xmax_(*std::max_element(xs.begin(), xs.end())),
+        spline_(doInit(xs, ys)) {}
+
+    // Evaluate the polynomial at 'x' --> returns the point (x, y) in the curve
+    std::pair<Scalar, Scalar> at(Scalar x) const
     {
-        fitPoints(points);
-    }
-
-    // Fit 'points' and generate coefficients for polynomial curve
-    void fitPoints(const PointVector& points)
-    {
-        std::tie(x_, y_) = make_matrices(points);    
-
-        // Seems to use least squares computation. Check Eigen documentation for
-        // the Eigen::ComputeThinU/V.
-        Eigen::VectorXd a = x_.jacobiSvd(
-                Eigen::ComputeFullU | Eigen::ComputeFullV).solve(y_);
-        for (uint32_t i = 0; i < a.size(); ++i) {
-            coefficients_.push_back(a(i));
-        }
-    }
-
-    // Evaluate the polynomial at 'x'
-    Scalar at(Scalar x) const
-    {
-        auto y = coefficients_[0];
-        for (size_t i = 1; i < coefficients_.size(); ++i) {
-            y += coefficients_[i] * std::pow(x, i);
-        }
-        return y;
-    }
-
-    // Pretty printing
-    friend std::ostream& operator<<(std::ostream& s, FittedCurve& f)
-    {
-        s << std::fixed;
-        s << *(f.coefficients_.begin()) << " + ";
-        for (size_t i = 1; i < f.coefficients_.size() - 1; ++i) {
-            s << f.coefficients_[i] << "*x" << i << " + ";
-        }
-        return s << *(f.coefficients_.end()) << "*x" << f.coefficients_.size() - 1;
+        auto point = spline_(uvalue(x));
+        return std::make_pair(point(0), point(1));
     }
 
 private:
-    // Create the matrices for use later on in generating poly coefficients
-    std::tuple<Eigen::MatrixXd, Eigen::VectorXd> make_matrices(
-            const PointVector& points) const
+    Scalar xmin_;
+    Scalar xmax_;
+    Spline2d spline_;
+
+    // Normalize x to [0, 1] (required by Eigen spline interpolation)
+    Scalar uvalue(Scalar x) const
     {
-        Eigen::MatrixXd x(points.size(), Degree + 1);
-        Eigen::VectorXd y(points.size());
-        for (size_t i = 0; i < points.size(); ++i) {
-            for (int32_t d = 0; d < Degree + 1; ++d) {
-                x(i, d) = std::pow(std::get<0>(points[i]), d);
-            }
-            y(i) = std::get<1>(points[i]);
-        }
-        return std::make_tuple(x, y);
+        return (x - xmin_) / (xmax_ - xmin_);
     }
 
-    std::vector<Scalar> coefficients_;
-    Eigen::MatrixXd x_;
-    Eigen::VectorXd y_;
+    Spline2d doInit(const ScalarVector& xs, const ScalarVector& ys)
+    {
+        auto mat = makeWideMatrix(xs, ys);
+        auto xvalKnots = mat.row(0).unaryExpr([=](Scalar x) { return uvalue(x); });
+        return Eigen::SplineFitting<Spline2d>::Interpolate(mat, Degree, xvalKnots);
+    }
+
+    Eigen::MatrixXd makeWideMatrix(const ScalarVector& xs, const ScalarVector& ys)
+    {
+        assert(xs.size() == ys.size() && "xs and ys must be the same size!");
+        Eigen::MatrixXd mat{2, xs.size()};
+        mat.row(0) = Eigen::VectorXd::Map(xs.data(), xs.size());
+        mat.row(1) = Eigen::VectorXd::Map(ys.data(), ys.size());
+        return mat;
+    }
 };
 
 }

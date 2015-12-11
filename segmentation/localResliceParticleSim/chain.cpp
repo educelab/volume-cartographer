@@ -18,31 +18,33 @@ Chain::Chain(VolumePkg& volpkg, int32_t zIndex) :
     volpkg_(volpkg), particleCount_(0), zIndex_(zIndex)
 {
     auto segmentationPath = volpkg_.openCloud();
-	decltype(curve_)::PointVector curvePoints;
-    particles_.reserve(segmentationPath->size());
-    curvePoints.reserve(segmentationPath->size());
+	decltype(curve_)::ScalarVector xvals, yvals;
+    xvals.reserve(segmentationPath->size());
+    yvals.reserve(segmentationPath->size());
     for (auto path : *segmentationPath) {
         particles_.emplace_back(path.x, path.y, path.z);
         particleCount_++;
-        curvePoints.emplace_back(path.x, path.y);
+        xvals.push_back(path.x);
+        yvals.push_back(path.x);
     }
-    curve_.fitPoints(curvePoints);
+    curve_ = FittedCurve<>(xvals, yvals);
 }
 
 // Constructor from explicit points
 Chain::Chain(VolumePkg& volpkg, const VoxelVec& pos, int32_t zIndex) :
     volpkg_(volpkg), particleCount_(0), zIndex_(zIndex)
 {
-    decltype(curve_)::PointVector curvePoints;
-    curvePoints.reserve(pos.size());
+	decltype(curve_)::ScalarVector xvals, yvals;
+    xvals.reserve(pos.size());
+    yvals.reserve(pos.size());
     particles_.reserve(pos.size());
     for (const auto& p : pos) {
         particles_.push_back(p);
         particleCount_++;
-        curvePoints.emplace_back(p(VC_INDEX_X), p(VC_INDEX_Y));
+        xvals.push_back(p(VC_INDEX_X));
+        yvals.push_back(p(VC_INDEX_Y));
     }
-    std::cout << pos.size() << std::endl;
-    curve_.fitPoints(curvePoints);
+    curve_ = FittedCurve<>(xvals, yvals);
 }
 
 void Chain::setNewPositions(const VoxelVec& newPositions)
@@ -66,10 +68,6 @@ Chain::stepAll(const int32_t stepNumLayers, const int32_t keepNumMaxima) const
 
 const Voxel Chain::calculateNormal(const size_t index) const
 {
-    // Get average z voxel value (makes generating the reslice a little more accurate)
-    double zMean = std::accumulate(particles_.begin(), particles_.end(), 0,
-            [](double sum, Particle p) { return sum + p(VC_INDEX_Z); }) / particleCount_;
-
     // For boundary conditions, do a simple linear interpolation of the first/last 2
     // points and set the appropriate variable based on that difference in x direction.
     // y direction is handled by interpolation.
@@ -99,7 +97,7 @@ const Voxel Chain::calculateNormal(const size_t index) const
     avgXDiff /= particles_.size();
     double vx = particles_[index](VC_INDEX_X);
     auto tanVec = Voxel(2 * avgXDiff,
-                        curve_.at(vx + avgXDiff) - curve_.at(vx - avgXDiff),
+                        curve_.at(vx + avgXDiff).second - curve_.at(vx - avgXDiff).second,
                         zIndex_);
     return tanVec.cross(VC_DIRECTION_K);
 }
@@ -174,7 +172,8 @@ void Chain::draw() const {
         auto x = particles_.at(i)(VC_INDEX_X);
         auto y = particles_.at(i)(VC_INDEX_Y);
         cv::Point real(x, y);
-        cv::Point interpolated(x, curve_.at(x));
+        auto point = curve_.at(x);
+        cv::Point interpolated(point.first, point.second);
         circle(pkgSlice, real, 2, BGR_GREEN, -1);
         circle(pkgSlice, interpolated, 2, BGR_BLUE, -1);
     }

@@ -137,13 +137,14 @@ double LocalResliceSegmentation::fivePointStencil(
     avgXDiff /= ps.size();
 
     // Fit curve to new predicted ps.
-    FittedCurve<double, 4> f;
-    FittedCurve<double, 4>::PointVector newPoints;
-    newPoints.reserve(ps.size());
+    FittedCurve<>::ScalarVector xs, ys;
+    xs.reserve(ps.size());
+    ys.reserve(ps.size());
     for (const auto& p : ps) {
-        newPoints.emplace_back(p(VC_INDEX_X), p(VC_INDEX_Y));
+        xs.push_back(p(VC_INDEX_X));
+        ys.push_back(p(VC_INDEX_Y));
     }
-    f.fitPoints(newPoints);
+    FittedCurve<> f(xs, ys);
 
     // Take care of any out of bounds accesses
     /*
@@ -180,9 +181,9 @@ double LocalResliceSegmentation::fivePointStencil(
     return (-twoAfter + 8 * oneAfter - 8 * oneBefore + twoBefore) / (12 * avgXDiff);
     */
 
-    const double twoBefore = f.at(ps[center](VC_INDEX_X) - 2 * avgXDiff);
-    const double oneBefore = f.at(ps[center](VC_INDEX_X) - 1 * avgXDiff);
-    const double oneAfter = f.at(ps[center](VC_INDEX_X) + 1 * avgXDiff);
-    const double twoAfter = f.at(ps[center](VC_INDEX_X) + 2 * avgXDiff);
-    return (-twoAfter + 8 * oneAfter - 8 * oneBefore + twoBefore) / (12 * avgXDiff);
+    auto before2 = f.at(ps[center](VC_INDEX_X) - 2 * avgXDiff).second;
+    auto before1 = f.at(ps[center](VC_INDEX_X) - 1 * avgXDiff).second;
+    auto after1  = f.at(ps[center](VC_INDEX_X) + 1 * avgXDiff).second;
+    auto after2  = f.at(ps[center](VC_INDEX_X) + 2 * avgXDiff).second;
+    return (-after2 + 8 * after1 - 8 * before1 + before2) / (12 * avgXDiff);
 }
