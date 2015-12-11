@@ -25,6 +25,7 @@ int main(int argc, char* argv[])
     boost::filesystem::path volpkgPath, outputPath;
     std::string segID;
     double radius;
+    double smoothRadius = 0;
     VC_Composite_Option aFilterOption;
     VC_Direction_Option aDirectionOption;
 
@@ -48,6 +49,7 @@ int main(int argc, char* argv[])
                                                                    "  0 = Omni\n"
                                                                    "  1 = Positive\n"
                                                                    "  2 = Negative\n")
+                  ("smooth-normals", boost::program_options::value<double>(), "Average the surface normals using points within radius [arg]")
                   ("output-file,o", boost::program_options::value<std::string>(), "Output file path. If not specified, file will be saved to volume package.");
 
         // parsedOptions will hold the values of all parsed options as a Map
@@ -81,6 +83,10 @@ int main(int argc, char* argv[])
                 std::cerr << "ERROR: Cannot write to provided output file. Output directory does not exist." << std::endl;
         }
 
+        // Check for other options
+        if ( parsedOptions.count("smooth-normals") )
+            smoothRadius =  parsedOptions["smooth-normals"].as<double>();
+
     }
     catch(std::exception& e)
     {
@@ -108,36 +114,39 @@ int main(int argc, char* argv[])
     std::string meshName = vpkg.getMeshPath();
     
     // declare pointer to new Mesh object
-    VC_MeshType::Pointer  mesh = VC_MeshType::New();
+    VC_MeshType::Pointer  input = VC_MeshType::New();
+    VC_MeshType::Pointer  workingMesh = VC_MeshType::New();
 
     int meshWidth = -1;
     int meshHeight = -1;
 
     // try to convert the ply to an ITK mesh
-    if (!volcart::io::ply2itkmesh(meshName, mesh, meshWidth, meshHeight)){
+    if (!volcart::io::ply2itkmesh(meshName, input, meshWidth, meshHeight)){
         exit( -1 );
     };
 
-    // Smooth surface normals first
-    VC_MeshType::Pointer smoothedMesh = volcart::meshing::smoothNormals(mesh, 10);
+    // Smooth surface normals
+    if ( smoothRadius > 0 ) {
+        workingMesh = volcart::meshing::smoothNormals(input, smoothRadius);
+    }
 
     volcart::Texture newTexture;
-    newTexture = volcart::texturing::compositeTexture( smoothedMesh, vpkg, meshWidth, meshHeight, radius, aFilterOption, aDirectionOption );
+    newTexture = volcart::texturing::compositeTexture( workingMesh, vpkg, meshWidth, meshHeight, radius, aFilterOption, aDirectionOption );
 
     if ( outputPath.extension() == ".PLY" || outputPath.extension() == ".ply" ) {
         std::cout << "Writing to PLY..." << std::endl;
-        volcart::io::plyWriter writer(outputPath.string(), mesh, newTexture);
+        volcart::io::plyWriter writer(outputPath.string(), input, newTexture);
         writer.write();
     } else if ( outputPath.extension() == ".OBJ" || outputPath.extension() == ".obj") {
         std::cout << "Writing to OBJ..." << std::endl;
-        volcart::io::objWriter writer(outputPath.string(), mesh, newTexture.uvMap(), newTexture.getImage(0) );
+        volcart::io::objWriter writer(outputPath.string(), input, newTexture.uvMap(), newTexture.getImage(0) );
         writer.write();
     } else if ( outputPath.extension() == ".PNG" || outputPath.extension() == ".png") {
         std::cout << "Writing to PNG..." << std::endl;
         cv::imwrite( outputPath.string(), newTexture.getImage(0) );
     } else {
         std::cout << "Writing to Volume Package..." << std::endl;
-        vpkg.saveMesh(mesh, newTexture);
+        vpkg.saveMesh(input, newTexture);
     }
 
     return EXIT_SUCCESS;
