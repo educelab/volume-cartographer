@@ -310,17 +310,28 @@ cv::Mat VolumePkg::getTextureData() {
 }
 
 // Save a point cloud back to the volumepkg
-void VolumePkg::saveCloud(pcl::PointCloud<pcl::PointXYZRGB> segmentedCloud){
+int VolumePkg::saveCloud(pcl::PointCloud<pcl::PointXYZRGB> segmentedCloud){
     std::string outputName = segs_dir.string() + "/" + activeSeg + "/cloud.pcd";
-    printf("Writing point cloud to file...\n");
-    pcl::io::savePCDFileBinaryCompressed(outputName, segmentedCloud);
-    printf("Point cloud saved.\n");
+    std::cerr << "volcart::volpkg::Writing point cloud to file..." << std::endl;
+    try {
+        pcl::io::savePCDFileBinaryCompressed(outputName, segmentedCloud);
+    } catch(pcl::IOException) {
+        std::cerr << "volcart::volpkg::error: Problem writing point cloud to file." << std::endl;
+        return EXIT_FAILURE;
+    }
+    std::cerr << "volcart::volpkg::Point cloud saved." << std::endl;
+    return EXIT_SUCCESS;
 }
 
-void VolumePkg::saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segmentedCloud) {
+int VolumePkg::saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segmentedCloud) {
     std::string outputName = segs_dir.string() + "/" + activeSeg + "/cloud.ply";
-    volcart::meshing::orderedPCDMesher(segmentedCloud, outputName);
-    printf("Mesh file saved.\n");
+    if ( volcart::meshing::orderedPCDMesher(segmentedCloud, outputName) == EXIT_SUCCESS ) {
+        std::cerr << "volcart::volpkg::Mesh file saved." << std::endl;
+        return EXIT_SUCCESS;
+    } else {
+        std::cerr << "volcart::volpkg::error: Problem writing mesh to file." << std::endl;
+        return EXIT_FAILURE;
+    }
 }
 
 void VolumePkg::saveMesh(VC_MeshType::Pointer mesh, volcart::Texture texture) {
