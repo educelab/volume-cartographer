@@ -114,23 +114,25 @@ int main(int argc, char* argv[]) {
 
     // Find the position of the four corner nodes
     // Currently assumes that the first point has the same z-value as the rest of the starting chain
-	int min_z = (int) std::floor(mesh->GetPoint(0)[2]);
-	int chain_length = 0;
-	// Calculate chain length
-	for(int i = 0; i < psb->m_nodes.size(); ++i) {
-		if( (int)psb->m_nodes[i].m_x.z() <= min_z) {
-			// Append top_left rigid body to top left node of mesh
-			if (chain_length == 0) {
-				psb->appendAnchor(i, top_left);
-			}
-			++chain_length;
-		}
-	}
-	// Append rest of rigid bodies to respective nodes of mesh
-	// Assumes the chain length is constant throughout the mesh
-	psb->appendAnchor(chain_length, top_right);
-	psb->appendAnchor(psb->m_nodes.size() - chain_length, bottom_left);
-	psb->appendAnchor(psb->m_nodes.size(), bottom_right);
+    int min_z = (int) std::floor(mesh->GetPoint(0)[2]);
+    int chain_size = 0;
+    // Calculate chain length
+    for(int i = 0; i < psb->m_nodes.size(); ++i) {
+        if( (int)psb->m_nodes[i].m_x.z() <= min_z )
+            ++chain_size;
+        else
+            break;
+    }
+
+    // For debug. These values should match.
+    if ( chain_size != meshWidth ) return EXIT_FAILURE;
+
+    // Append rigid bodies to respective nodes of mesh
+    // Assumes the chain length is constant throughout the mesh
+    psb->appendAnchor(0, top_left);
+    psb->appendAnchor(chain_size - 1 , top_right);
+    psb->appendAnchor(psb->m_nodes.size() - chain_size, bottom_left);
+    psb->appendAnchor(psb->m_nodes.size() - 1, bottom_right);
 
     // Calculate the surface area of the mesh using Heron's formula
     // Let a,b,c be the lengths of the sides of a triangle and p the semiperimeter
