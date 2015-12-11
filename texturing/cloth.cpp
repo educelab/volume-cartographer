@@ -112,14 +112,27 @@ int main(int argc, char* argv[]) {
     btRigidBody* bottom_right = new btRigidBody(fallRigidBodyCI);
     dynamicsWorld->addRigidBody(bottom_right);
 
+    dynamicsWorld->setInternalTickCallback(softBodyTickCallback, dynamicsWorld, true);
+
     // Find the position of the four corner nodes
     // Currently assumes that the first point has the same z-value as the rest of the starting chain
     int min_z = (int) std::floor(mesh->GetPoint(0)[2]);
+	int max_y = (int) std::ceil(mesh->GetPoint(0)[1]);
+	int min_x = (int) std::floor(mesh->GetPoint(0)[0]);
     int chain_size = 0;
-    // Calculate chain length
+    double chain_length = 0;
+    btVector3 previous_node;
+    // Calculate chain size and chain length
     for(int i = 0; i < psb->m_nodes.size(); ++i) {
-        if( (int)psb->m_nodes[i].m_x.z() <= min_z )
+        if( (int)psb->m_nodes[i].m_x.z() <= min_z ) {
+        	if (chain_size == 0)
+        		previous_node = psb->m_nodes[i].m_x;
+        	else {
+        		chain_length += psb->m_nodes[i].m_x.distance(previous_node);
+        		previous_node = psb->m_nodes[i].m_x;
+        	}
             ++chain_size;
+        }
         else
             break;
     }
@@ -150,31 +163,57 @@ int main(int argc, char* argv[]) {
     	surface_area += sqrt( p * (p - a) * (p - b) * (p - c) );
     }
 
+    std::cout << "Chain size: " << chain_size << " | Chain Length: " << chain_length << " | Surface area: " << surface_area << std::endl;
 
-    // // Create target positions for our rigid bodies
-    // for( auto p_id = pinnedPoints.begin(); p_id < pinnedPoints.end(); ++p_id ) {
-    //     NodeTarget n_target;
-    //     btVector3 target_pos;
-    //     btScalar distance;
-    //     btScalar t_x, t_y, t_z;
+    // Create target positions with step size for our four corners
+    NodeTarget n_target;
+    btVector3 target_pos;
+    btScalar distance;
+    btScalar t_x, t_y, t_z;
+    btSoftBody::Node* node_ptr = &psb->m_nodes[0];
+    pinnedPoints.push_back(node_ptr);
 
-    //     if ( p_id == pinnedPoints.begin() ) {
-    //         target_pos = (*p_id)->m_x;
-    //         target_pos.setZ((max_y + min_y) / 2);
-    //     }
-    //     else {
-    //         // Aligns the pinned points parallel with the x plane
-    //         distance = (*p_id)->m_x.distance((*std::prev(p_id))->m_x); //wtf
-    //         t_x = targetPoints.back().t_pos.getX() + distance;
-    //         t_y = (*p_id)->m_x.getY();
-    //         t_z = (max_y + min_y) / 2;
-    //         target_pos = btVector3(t_x, t_y, t_z);
-    //     }
+    // top left corner
+    t_x = min_x;
+    t_y = max_y;
+    t_z = min_z;
+    target_pos = btVector3(t_x, t_y, t_z);
+    n_target.t_pos = target_pos;
+    n_target.t_stepsize = (node_ptr)->m_x.distance(target_pos) / 60; // Will take minimum 60 iterations to reach target
+    targetPoints.push_back(n_target);
 
-    //     n_target.t_pos = target_pos;
-    //     n_target.t_stepsize = (*p_id)->m_x.distance(target_pos) / 60; // Will take minimum 60 iterations to reach target
-    //     targetPoints.push_back(n_target);
-    // }
+    // top right corner
+    node_ptr = &psb->m_nodes[chain_size - 1];
+    pinnedPoints.push_back(node_ptr);
+    t_x = min_x + chain_length;
+    t_y = max_y;
+    t_z = min_z;
+    target_pos = btVector3(t_x, t_y, t_z);
+    n_target.t_pos = target_pos;
+    n_target.t_stepsize = (node_ptr)->m_x.distance(target_pos) / 60; // Will take minimum 60 iterations to reach target
+    targetPoints.push_back(n_target);
+
+    // bottom left corner
+    node_ptr = &psb->m_nodes[psb->m_nodes.size() - chain_size];
+    pinnedPoints.push_back(node_ptr);
+    t_x = min_x;
+    t_y = max_y - (surface_area / chain_length);
+    t_z = min_z;
+    target_pos = btVector3(t_x, t_y, t_z);
+    n_target.t_pos = target_pos;
+    n_target.t_stepsize = (node_ptr)->m_x.distance(target_pos) / 60; // Will take minimum 60 iterations to reach target
+    targetPoints.push_back(n_target);
+
+    // bottom right corner
+    node_ptr = &psb->m_nodes[psb->m_nodes.size() - 1];
+    pinnedPoints.push_back(node_ptr);
+    t_x = min_x + chain_length;
+    t_y = max_y - (surface_area / chain_length);
+    t_z = min_z;
+    target_pos = btVector3(t_x, t_y, t_z);
+    n_target.t_pos = target_pos;
+    n_target.t_stepsize = (node_ptr)->m_x.distance(target_pos) / 60; // Will take minimum 60 iterations to reach target
+    targetPoints.push_back(n_target);
 
     // step simulation
     std::cerr << "volcart::cloth::message: Beginning simulation" << std::endl;
@@ -217,6 +256,34 @@ bool btIsStatic(btSoftBody* body) {
 };
 
 void softBodyTickCallback(btDynamicsWorld *world, btScalar timeStep) {
+	// size_t p_id = 0;
+	// btVector3 delta = (targetPoints[p_id].t_pos - pinnedPoints[p_id]->m_x).normalized() * targetPoints[p_id].t_stepsize;
+	// pinnedPoints[p_id]->m_x += delta;
+ //    pinnedPoints[p_id]->m_v += delta/timeStep;
+	// top_left->activate(true);
+ //    top_left->translate(delta);
+
+ //    ++p_id;
+ //    delta = (targetPoints[p_id].t_pos - pinnedPoints[p_id]->m_x).normalized() * targetPoints[p_id].t_stepsize;
+	// pinnedPoints[p_id]->m_x += delta;
+ //    pinnedPoints[p_id]->m_v += delta/timeStep;
+ //    top_right->activate(true);
+ //    top_right->translate(delta);
+
+ //    ++p_id;
+ //    delta = (targetPoints[p_id].t_pos - pinnedPoints[p_id]->m_x).normalized() * targetPoints[p_id].t_stepsize;
+	// pinnedPoints[p_id]->m_x += delta;
+ //    pinnedPoints[p_id]->m_v += delta/timeStep;
+ //    bottom_left->activate(true);
+ //    bottom_left->translate(delta);
+
+ //    ++p_id;
+ //    delta = (targetPoints[p_id].t_pos - pinnedPoints[p_id]->m_x).normalized() * targetPoints[p_id].t_stepsize;
+	// pinnedPoints[p_id]->m_x += delta;
+ //    pinnedPoints[p_id]->m_v += delta/timeStep;
+ //    bottom_right->activate(true);
+ //    bottom_right->translate(delta);
+
     // Iterate over rigid bodies and move them towards their targets
     for( size_t p_id = 0; p_id < pinnedPoints.size(); ++p_id ) {
         if ( pinnedPoints[p_id]->m_x == targetPoints[p_id].t_pos ) continue;
