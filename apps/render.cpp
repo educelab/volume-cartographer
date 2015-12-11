@@ -128,7 +128,12 @@ int main(int argc, char* argv[])
     // Smooth surface normals
     if ( smoothRadius > 0 ) {
         workingMesh = volcart::meshing::smoothNormals(input, smoothRadius);
+    } else {
+      // duplicate input
+      // To-Do: Should be a deep copy
+      workingMesh = input;
     }
+
 
     volcart::Texture newTexture;
     newTexture = volcart::texturing::compositeTexture( workingMesh, vpkg, meshWidth, meshHeight, radius, aFilterOption, aDirectionOption );
