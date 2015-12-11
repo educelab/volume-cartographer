@@ -325,7 +325,7 @@ int VolumePkg::saveCloud(pcl::PointCloud<pcl::PointXYZRGB> segmentedCloud){
 
 int VolumePkg::saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segmentedCloud) {
     std::string outputName = segs_dir.string() + "/" + activeSeg + "/cloud.ply";
-    if ( volcart::meshing::orderedPCDMesher(segmentedCloud, outputName) != EXIT_SUCCESS ) {
+    if ( volcart::meshing::orderedPCDMesher(segmentedCloud, outputName) == EXIT_SUCCESS ) {
         std::cerr << "volcart::volpkg::Mesh file saved." << std::endl;
         return EXIT_SUCCESS;
     } else {
