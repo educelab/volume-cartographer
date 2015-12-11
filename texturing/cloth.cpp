@@ -117,8 +117,6 @@ int main(int argc, char* argv[]) {
     // Find the position of the four corner nodes
     // Currently assumes that the first point has the same z-value as the rest of the starting chain
     int min_z = (int) std::floor(mesh->GetPoint(0)[2]);
-	int max_y = (int) std::ceil(mesh->GetPoint(0)[1]);
-	int min_x = (int) std::floor(mesh->GetPoint(0)[0]);
     int chain_size = 0;
     double chain_length = 0;
     btVector3 previous_node;
@@ -174,10 +172,7 @@ int main(int argc, char* argv[]) {
     pinnedPoints.push_back(node_ptr);
 
     // top left corner
-    t_x = min_x;
-    t_y = max_y;
-    t_z = min_z;
-    target_pos = btVector3(t_x, t_y, t_z);
+    target_pos = psb->m_nodes[0].m_x;
     n_target.t_pos = target_pos;
     n_target.t_stepsize = (node_ptr)->m_x.distance(target_pos) / 60; // Will take minimum 60 iterations to reach target
     targetPoints.push_back(n_target);
@@ -185,9 +180,9 @@ int main(int argc, char* argv[]) {
     // top right corner
     node_ptr = &psb->m_nodes[chain_size - 1];
     pinnedPoints.push_back(node_ptr);
-    t_x = min_x + chain_length;
-    t_y = max_y;
-    t_z = min_z;
+    t_x = psb->m_nodes[0].m_x.x() + chain_length;
+    t_y = psb->m_nodes[0].m_x.y();
+    t_z = psb->m_nodes[0].m_x.z();
     target_pos = btVector3(t_x, t_y, t_z);
     n_target.t_pos = target_pos;
     n_target.t_stepsize = (node_ptr)->m_x.distance(target_pos) / 60; // Will take minimum 60 iterations to reach target
@@ -196,9 +191,9 @@ int main(int argc, char* argv[]) {
     // bottom left corner
     node_ptr = &psb->m_nodes[psb->m_nodes.size() - chain_size];
     pinnedPoints.push_back(node_ptr);
-    t_x = min_x;
-    t_y = max_y - (surface_area / chain_length);
-    t_z = min_z;
+    t_x = psb->m_nodes[0].m_x.x();
+    t_y = psb->m_nodes[0].m_x.y();
+    t_z = psb->m_nodes[0].m_x.z() + (surface_area / chain_length);
     target_pos = btVector3(t_x, t_y, t_z);
     n_target.t_pos = target_pos;
     n_target.t_stepsize = (node_ptr)->m_x.distance(target_pos) / 60; // Will take minimum 60 iterations to reach target
@@ -207,9 +202,9 @@ int main(int argc, char* argv[]) {
     // bottom right corner
     node_ptr = &psb->m_nodes[psb->m_nodes.size() - 1];
     pinnedPoints.push_back(node_ptr);
-    t_x = min_x + chain_length;
-    t_y = max_y - (surface_area / chain_length);
-    t_z = min_z;
+    t_x = psb->m_nodes[0].m_x.x() + chain_length;
+    t_y = psb->m_nodes[0].m_x.y();
+    t_z = psb->m_nodes[0].m_x.z() + (surface_area / chain_length);
     target_pos = btVector3(t_x, t_y, t_z);
     n_target.t_pos = target_pos;
     n_target.t_stepsize = (node_ptr)->m_x.distance(target_pos) / 60; // Will take minimum 60 iterations to reach target
