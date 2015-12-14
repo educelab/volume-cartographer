@@ -127,8 +127,8 @@ public:
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr openCloud();
     std::string getMeshPath();
     cv::Mat getTextureData();
-    void saveCloud(pcl::PointCloud<pcl::PointXYZRGB>);
-    void saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr);
+    int saveCloud(pcl::PointCloud<pcl::PointXYZRGB>);
+    int saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr);
     void saveMesh(VC_MeshType::Pointer mesh, volcart::Texture texture);
     void saveTextureData(cv::Mat, std::string = "textured");
     void saveTextureData(volcart::Texture texture, int index = 0) { saveTextureData(texture.getImage(index)); }
