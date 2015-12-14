@@ -20,10 +20,11 @@ struct NodeTarget {
     btScalar  t_stepsize;
 };
 
-bool btAverageNormal( btSoftBody* body );
+btVector3 btAverageNormal( btSoftBody* body );
 double btSurfaceArea( btSoftBody* body );
-static void softBodyTickCallback(btDynamicsWorld *world, btScalar timeStep);
-std::vector<btRigidBody*> pinnedPoints;
+static void planarizeCornersPreTickCallback(btDynamicsWorld *world, btScalar timeStep);
+void expandCorners();
+std::vector<btSoftBody::Node*> pinnedPoints;
 std::vector<NodeTarget> targetPoints;
 
 int main(int argc, char* argv[]) {
@@ -91,26 +92,10 @@ int main(int argc, char* argv[]) {
     // psb->setTotalMass( (int)(psb->m_nodes.size() * 0.001), true );
     psb->setTotalMass(10, true );
 
-    psb->m_cfg.kDP = 0.1; // Damping coefficient of the soft body [0,1]
+    psb->m_cfg.kDP = 0.0; // Damping coefficient of the soft body [0,1]
     psb->m_materials[0]->m_kLST = 1.0; // Linear stiffness coefficient [0,1]
     psb->m_materials[0]->m_kAST = 1.0; // Area/Angular stiffness coefficient [0,1]
     psb->m_materials[0]->m_kVST = 1.0; // Volume stiffness coefficient [0,1]
-
-    // Initialize the four rigid bodies to be attached to the corners
-    btCollisionShape* fallShape = new btSphereShape(1);
-    btDefaultMotionState* fallMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 50, 0)));
-    btScalar mass = 10;
-    btVector3 fallInertia(0, 0, 0);
-    fallShape->calculateLocalInertia(mass, fallInertia);
-    btRigidBody::btRigidBodyConstructionInfo fallRigidBodyCI(mass, fallMotionState, fallShape, fallInertia);
-
-    // Create corner pins
-    btRigidBody* top_left     = new btRigidBody(fallRigidBodyCI);
-    btRigidBody* top_right    = new btRigidBody(fallRigidBodyCI);
-    btRigidBody* bottom_left  = new btRigidBody(fallRigidBodyCI);
-    btRigidBody* bottom_right = new btRigidBody(fallRigidBodyCI);
-
-    dynamicsWorld->setInternalTickCallback(softBodyTickCallback, dynamicsWorld, true);
 
     // Find the position of the four corner nodes
     // Currently assumes that the first point has the same z-value as the rest of the starting chain
@@ -132,58 +117,39 @@ int main(int argc, char* argv[]) {
 
     // Append rigid bodies to respective nodes of mesh
     // Assumes the chain length is constant throughout the mesh
-    btTransform initPos;
+    btSoftBody::Node* top_left     = &psb->m_nodes[0];
+    btSoftBody::Node* top_right    = &psb->m_nodes[chain_size - 1];
+    btSoftBody::Node* bottom_left  = &psb->m_nodes[psb->m_nodes.size() - chain_size];
+    btSoftBody::Node* bottom_right = &psb->m_nodes[psb->m_nodes.size() - 1];
 
-    initPos = top_left->getCenterOfMassTransform();
-    initPos.setOrigin(psb->m_nodes[0].m_x);
-    top_left->setCenterOfMassTransform(initPos);
-    psb->appendAnchor(0, top_left);
-
-    initPos = top_right->getCenterOfMassTransform();
-    initPos.setOrigin(psb->m_nodes[chain_size - 1].m_x);
-    top_right->setCenterOfMassTransform(initPos);
-    psb->appendAnchor(chain_size - 1 , top_right);
-
-    initPos = bottom_left->getCenterOfMassTransform();
-    initPos.setOrigin(psb->m_nodes[psb->m_nodes.size() - chain_size].m_x);
-    bottom_left->setCenterOfMassTransform(initPos);
-    psb->appendAnchor(psb->m_nodes.size() - chain_size, bottom_left);
-
-    initPos = bottom_right->getCenterOfMassTransform();
-    initPos.setOrigin(psb->m_nodes[psb->m_nodes.size() - 1].m_x);
-    bottom_right->setCenterOfMassTransform(initPos);
-    psb->appendAnchor(psb->m_nodes.size() - 1, bottom_right);
-
-    // Add pins to the world
-    dynamicsWorld->addRigidBody(top_left);
-    dynamicsWorld->addRigidBody(top_right);
-    dynamicsWorld->addRigidBody(bottom_left);
-    dynamicsWorld->addRigidBody(bottom_right);
-
-    // Put them into our global tracking list
     pinnedPoints.push_back(top_left);
     pinnedPoints.push_back(top_right);
     pinnedPoints.push_back(bottom_left);
     pinnedPoints.push_back(bottom_right);
 
+//    double pinMass = 10;
+//    psb->setMass(0, pinMass);
+//    psb->setMass(chain_size - 1, pinMass);
+//    psb->setMass(psb->m_nodes.size() - chain_size, pinMass);
+//    psb->setMass(psb->m_nodes.size() - 1, pinMass);
+
     // Calculate the surface area of the mesh
     double surface_area = btSurfaceArea(psb);
     double width = chain_length;
     double height = surface_area / chain_length;
-    int required_iterations = 1000; // Minimum iterations to reach target
+    int required_iterations = NUM_OF_ITERATIONS; // Minimum iterations to reach target
     std::cout << "Chain size: " << chain_size << " | Plane Dimensions: " << width << "x" << height << " | Surface area: " << surface_area << std::endl;
 
     // Create target positions with step size for our four corners
     // NOTE: Must be created in the same order that the rigid bodies were put into pinnedPoints
     NodeTarget n_target;
-    btVector3 target_pos;
     btScalar t_x, t_y, t_z;
-    btSoftBody::Node* node_ptr = &psb->m_nodes[0];
+    btSoftBody::Node* node_ptr;
 
     // top left corner
-    target_pos = psb->m_nodes[0].m_x;
-    n_target.t_pos = target_pos;
-    n_target.t_stepsize = (node_ptr)->m_x.distance(target_pos) / required_iterations;
+    node_ptr = &psb->m_nodes[0];
+    n_target.t_pos = psb->m_nodes[0].m_x;
+    n_target.t_stepsize = (node_ptr)->m_x.distance(n_target.t_pos) / required_iterations;
     targetPoints.push_back(n_target);
 
     // top right corner
@@ -192,7 +158,7 @@ int main(int argc, char* argv[]) {
     t_y = psb->m_nodes[0].m_x.y();
     t_z = psb->m_nodes[0].m_x.z();
     n_target.t_pos = btVector3(t_x, t_y, t_z);
-    n_target.t_stepsize = (node_ptr)->m_x.distance(target_pos) / required_iterations;
+    n_target.t_stepsize = (node_ptr)->m_x.distance(n_target.t_pos) / required_iterations;
     targetPoints.push_back(n_target);
 
     // bottom left corner
@@ -201,7 +167,7 @@ int main(int argc, char* argv[]) {
     t_y = psb->m_nodes[0].m_x.y();
     t_z = psb->m_nodes[0].m_x.z() + height;
     n_target.t_pos = btVector3(t_x, t_y, t_z);
-    n_target.t_stepsize = (node_ptr)->m_x.distance(target_pos) / required_iterations;
+    n_target.t_stepsize = (node_ptr)->m_x.distance(n_target.t_pos) / required_iterations;
     targetPoints.push_back(n_target);
 
     // bottom right corner
@@ -210,15 +176,30 @@ int main(int argc, char* argv[]) {
     t_y = psb->m_nodes[0].m_x.y();
     t_z = psb->m_nodes[0].m_x.z() + height;
     n_target.t_pos = btVector3(t_x, t_y, t_z);
-    n_target.t_stepsize = (node_ptr)->m_x.distance(target_pos) / required_iterations;
+    n_target.t_stepsize = (node_ptr)->m_x.distance(n_target.t_pos) / required_iterations;
     targetPoints.push_back(n_target);
 
     // step simulation
-    std::cerr << "volcart::cloth::message: Beginning simulation" << std::endl;
-    for (int i = 0; i < NUM_OF_ITERATIONS; ++i) {
-        std::cerr << "volcart::cloth::message: Step " << i + 1 << "/" << NUM_OF_ITERATIONS << "\r" << std::flush;
+    std::cerr << "volcart::cloth::message: Planarizing corners" << std::endl;
+    dynamicsWorld->setInternalTickCallback(planarizeCornersPreTickCallback, dynamicsWorld, true);
+    for (int i = 0; i < required_iterations; ++i) {
+        std::cerr << "volcart::cloth::message: Step " << i + 1 << "/" << required_iterations << "\r" << std::flush;
         dynamicsWorld->stepSimulation(1/60.f);
         psb->solveConstraints();
+    }
+
+    // step simulation
+    std::cerr << "volcart::cloth::message: Expanding corners" << std::endl;
+    int i = 0;
+    btVector3 test;
+    while ( btAverageNormal(psb).absolute().getY() < 0.8 ) {
+        std::cerr << "volcart::cloth::message: Step " << i + 1 << "\r" << std::flush;
+        if ( i % 1000 == 0 ) expandCorners();
+        dynamicsWorld->stepSimulation(1/60.f);
+        psb->solveConstraints();
+        ++i;
+        test = btAverageNormal(psb);
+        int a = 0;
     }
 
     std::cerr << std::endl;
@@ -243,14 +224,13 @@ int main(int argc, char* argv[]) {
     return 0;
 } // end main
 
-bool btAverageNormal(btSoftBody* body) {
+btVector3 btAverageNormal(btSoftBody* body) {
     btVector3  avg_normal(0,0,0);
     for ( size_t n_id = 0; n_id < body->m_faces.size(); ++n_id ) {
         avg_normal += body->m_faces[n_id].m_normal;
     }
     avg_normal /= body->m_faces.size();
-    bool result = ( avg_normal.absolute().getZ() > 0.9 );
-    return result;
+    return avg_normal;
 };
 
 // Calculate the surface area of the mesh using Heron's formula
@@ -273,17 +253,25 @@ double btSurfaceArea( btSoftBody* body ) {
     return surface_area;
 }
 
-void softBodyTickCallback(btDynamicsWorld *world, btScalar timeStep) {
+void planarizeCornersPreTickCallback(btDynamicsWorld *world, btScalar timeStep) {
     // Iterate over rigid bodies and move them towards their targets
-    btVector3 pos, delta;
-    btTransform transform;
     for( size_t p_id = 0; p_id < pinnedPoints.size(); ++p_id ) {
-        pos = pinnedPoints[p_id]->getCenterOfMassPosition();
-        if ( pos == targetPoints[p_id].t_pos ) continue;
-        delta = (targetPoints[p_id].t_pos - pos).normalized() * targetPoints[p_id].t_stepsize;
-
-        transform = pinnedPoints[p_id]->getCenterOfMassTransform();
-        transform.setOrigin(pos + delta);
-        pinnedPoints[p_id]->setCenterOfMassTransform(transform);
+        if ( pinnedPoints[p_id]->m_x == targetPoints[p_id].t_pos ) continue;
+        btVector3 delta = (targetPoints[p_id].t_pos - pinnedPoints[p_id]->m_x).normalized() * targetPoints[p_id].t_stepsize;
+        pinnedPoints[p_id]->m_x += delta;
+        pinnedPoints[p_id]->m_v += delta/timeStep;
     }
 };
+
+void expandCorners() {
+    btScalar stepSize = 1;
+    targetPoints[0].t_pos += btVector3(-10, 0, -10);
+    targetPoints[1].t_pos += btVector3( 10, 0, -10);
+    targetPoints[2].t_pos += btVector3(-10, 0,  10);
+    targetPoints[3].t_pos += btVector3( 10, 0,  10);
+
+    targetPoints[0].t_stepsize = stepSize;
+    targetPoints[1].t_stepsize = stepSize;
+    targetPoints[2].t_stepsize = stepSize;
+    targetPoints[3].t_stepsize = stepSize;
+}
