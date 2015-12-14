@@ -21,6 +21,7 @@ struct NodeTarget {
 };
 
 bool btIsStatic(btSoftBody* body);
+double btSurfaceArea( btSoftBody* body );
 static void softBodyTickCallback(btDynamicsWorld *world, btScalar timeStep);
 std::vector<btSoftBody::Node*> pinnedPoints;
 std::vector<NodeTarget> targetPoints;
@@ -145,21 +146,8 @@ int main(int argc, char* argv[]) {
     psb->appendAnchor(psb->m_nodes.size() - chain_size, bottom_left);
     psb->appendAnchor(psb->m_nodes.size() - 1, bottom_right);
 
-    // Calculate the surface area of the mesh using Heron's formula
-    // Let a,b,c be the lengths of the sides of a triangle and p the semiperimeter
-    // p = (a +  b + c) / 2
-    // area of triangle = sqrt( p * (p - a) * (p - b) * (p - c) )
-    double surface_area = 0;
-    for(int i = 0; i < psb->m_faces.size(); ++i) {
-    	double a = 0, b = 0, c = 0, p = 0;
-    	a = psb->m_faces[i].m_n[0]->m_x.distance(psb->m_faces[i].m_n[1]->m_x);
-    	b = psb->m_faces[i].m_n[0]->m_x.distance(psb->m_faces[i].m_n[2]->m_x);
-    	c = psb->m_faces[i].m_n[1]->m_x.distance(psb->m_faces[i].m_n[2]->m_x);
-
-    	p = (a + b + c) / 2;
-
-    	surface_area += sqrt( p * (p - a) * (p - b) * (p - c) );
-    }
+    // Calculate the surface area of the mesh
+    double surface_area = btSurfaceArea(psb);
 
     std::cout << "Chain size: " << chain_size << " | Chain Length: " << chain_length << " | Surface area: " << surface_area << std::endl;
 
@@ -249,6 +237,26 @@ bool btIsStatic(btSoftBody* body) {
     bool result = ( avg_normal.absolute().getZ() > 0.9 );
     return result;
 };
+
+// Calculate the surface area of the mesh using Heron's formula
+// Let a,b,c be the lengths of the sides of a triangle and p the semiperimeter
+// p = (a +  b + c) / 2
+// area of triangle = sqrt( p * (p - a) * (p - b) * (p - c) )
+double btSurfaceArea( btSoftBody* body ) {
+    double surface_area = 0;
+    for(int i = 0; i < body->m_faces.size(); ++i) {
+        double a = 0, b = 0, c = 0, p = 0;
+        a = body->m_faces[i].m_n[0]->m_x.distance(body->m_faces[i].m_n[1]->m_x);
+        b = body->m_faces[i].m_n[0]->m_x.distance(body->m_faces[i].m_n[2]->m_x);
+        c = body->m_faces[i].m_n[1]->m_x.distance(body->m_faces[i].m_n[2]->m_x);
+
+        p = (a + b + c) / 2;
+
+        surface_area += sqrt( p * (p - a) * (p - b) * (p - c) );
+    }
+
+    return surface_area;
+}
 
 void softBodyTickCallback(btDynamicsWorld *world, btScalar timeStep) {
 	// size_t p_id = 0;
