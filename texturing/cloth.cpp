@@ -20,10 +20,12 @@ struct NodeTarget {
     btScalar  t_stepsize;
 };
 
+btVector3 middle(0,0,0);
+
 btVector3 btAverageNormal( btSoftBody* body );
 double btSurfaceArea( btSoftBody* body );
 static void planarizeCornersPreTickCallback(btDynamicsWorld *world, btScalar timeStep);
-void expandCorners();
+void expandCorners(float magnitude);
 std::vector<btSoftBody::Node*> pinnedPoints;
 std::vector<NodeTarget> targetPoints;
 
@@ -127,11 +129,11 @@ int main(int argc, char* argv[]) {
     pinnedPoints.push_back(bottom_left);
     pinnedPoints.push_back(bottom_right);
 
-//    double pinMass = 10;
-//    psb->setMass(0, pinMass);
-//    psb->setMass(chain_size - 1, pinMass);
-//    psb->setMass(psb->m_nodes.size() - chain_size, pinMass);
-//    psb->setMass(psb->m_nodes.size() - 1, pinMass);
+    double pinMass = 10;
+    psb->setMass(0, pinMass);
+    psb->setMass(chain_size - 1, pinMass);
+    psb->setMass(psb->m_nodes.size() - chain_size, pinMass);
+    psb->setMass(psb->m_nodes.size() - 1, pinMass);
 
     // Calculate the surface area of the mesh
     double surface_area = btSurfaceArea(psb);
@@ -180,6 +182,12 @@ int main(int argc, char* argv[]) {
     n_target.t_stepsize = (node_ptr)->m_x.distance(n_target.t_pos) / required_iterations;
     targetPoints.push_back(n_target);
 
+    // Middle of target rectangle
+    t_x = psb->m_nodes[0].m_x.x() + (width / 2);
+    t_y = psb->m_nodes[0].m_x.y();
+    t_z = psb->m_nodes[0].m_x.z() + (height / 2);
+    middle = btVector3(t_x, t_y, t_z);
+
     // step simulation
     std::cerr << "volcart::cloth::message: Planarizing corners" << std::endl;
     dynamicsWorld->setInternalTickCallback(planarizeCornersPreTickCallback, dynamicsWorld, true);
@@ -193,14 +201,13 @@ int main(int argc, char* argv[]) {
     std::cerr << "volcart::cloth::message: Expanding corners" << std::endl;
     int i = 0;
     btVector3 test;
-    while ( btAverageNormal(psb).absolute().getY() < 0.8 ) {
+    while ( btAverageNormal(psb).absolute().getY() < 0.9 ) {
         std::cerr << "volcart::cloth::message: Step " << i + 1 << "\r" << std::flush;
-        if ( i % 1000 == 0 ) expandCorners();
+        if ( i % 1000 == 0 ) expandCorners( 10 + (i / 1000) );
         dynamicsWorld->stepSimulation(1/60.f);
         psb->solveConstraints();
         ++i;
         test = btAverageNormal(psb);
-        int a = 0;
     }
 
     std::cerr << std::endl;
@@ -264,15 +271,11 @@ void planarizeCornersPreTickCallback(btDynamicsWorld *world, btScalar timeStep) 
     }
 };
 
-void expandCorners() {
+void expandCorners(float magnitude) {
     btScalar stepSize = 1;
-    targetPoints[0].t_pos += btVector3(-10, 0, -10);
-    targetPoints[1].t_pos += btVector3( 10, 0, -10);
-    targetPoints[2].t_pos += btVector3(-10, 0,  10);
-    targetPoints[3].t_pos += btVector3( 10, 0,  10);
-
-    targetPoints[0].t_stepsize = stepSize;
-    targetPoints[1].t_stepsize = stepSize;
-    targetPoints[2].t_stepsize = stepSize;
-    targetPoints[3].t_stepsize = stepSize;
+    btScalar _magnitude = magnitude;
+    for( size_t p_id = 0; p_id < pinnedPoints.size(); ++p_id ) {
+        targetPoints[p_id].t_pos += (targetPoints[p_id].t_pos - middle).normalized() * _magnitude;
+        targetPoints[p_id].t_stepsize = stepSize;
+    }
 }
