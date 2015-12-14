@@ -135,7 +135,8 @@ int main(int argc, char* argv[]) {
 
     // Calculate the surface area of the mesh
     double surface_area = btSurfaceArea(psb);
-    double width = chain_length;
+    int dir = ( top_left->m_x.getX() < top_right->m_x.getX() ) ? 1 : -1;
+    double width = chain_length * dir;
     double height = surface_area / chain_length;
     int required_iterations = NUM_OF_ITERATIONS; // Minimum iterations to reach target
     std::cout << "Chain size: " << chain_size << " | Plane Dimensions: " << width << "x" << height << " | Surface area: " << surface_area << std::endl;
