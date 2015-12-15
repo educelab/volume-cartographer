@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
     // psb->setTotalMass( (int)(psb->m_nodes.size() * 0.001), true );
     psb->setTotalMass(10, true );
 
-    psb->m_cfg.kDP = 0.0; // Damping coefficient of the soft body [0,1]
+    psb->m_cfg.kDP = 0.1; // Damping coefficient of the soft body [0,1]
     psb->m_materials[0]->m_kLST = 1.0; // Linear stiffness coefficient [0,1]
     psb->m_materials[0]->m_kAST = 1.0; // Area/Angular stiffness coefficient [0,1]
     psb->m_materials[0]->m_kVST = 1.0; // Volume stiffness coefficient [0,1]
@@ -196,6 +196,7 @@ int main(int argc, char* argv[]) {
         dynamicsWorld->stepSimulation(1/60.f);
         psb->solveConstraints();
     }
+    std::cerr << std::endl;
 
     // step simulation
     std::cerr << "volcart::cloth::message: Expanding corners" << std::endl;
@@ -203,7 +204,7 @@ int main(int argc, char* argv[]) {
     btVector3 test;
     while ( btAverageNormal(psb).absolute().getY() < 0.9 ) {
         std::cerr << "volcart::cloth::message: Step " << i + 1 << "\r" << std::flush;
-        if ( i % 1000 == 0 ) expandCorners( 10 + (i / 1000) );
+        if ( i % 2000 == 0 ) expandCorners( 10 + (i / 2000) );
         dynamicsWorld->stepSimulation(1/60.f);
         psb->solveConstraints();
         ++i;
@@ -266,7 +267,6 @@ void planarizeCornersPreTickCallback(btDynamicsWorld *world, btScalar timeStep) 
     for( size_t p_id = 0; p_id < pinnedPoints.size(); ++p_id ) {
         if ( pinnedPoints[p_id]->m_x == targetPoints[p_id].t_pos ) continue;
         btVector3 delta = (targetPoints[p_id].t_pos - pinnedPoints[p_id]->m_x).normalized() * targetPoints[p_id].t_stepsize;
-        pinnedPoints[p_id]->m_x += delta;
         pinnedPoints[p_id]->m_v += delta/timeStep;
     }
 };
