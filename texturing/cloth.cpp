@@ -25,6 +25,7 @@ btVector3 middle(0,0,0);
 btVector3 btAverageNormal( btSoftBody* body );
 double btSurfaceArea( btSoftBody* body );
 static void planarizeCornersPreTickCallback(btDynamicsWorld *world, btScalar timeStep);
+static void emptyPreTickCallback(btDynamicsWorld *world, btScalar timeStep);
 void expandCorners(float magnitude);
 std::vector<btSoftBody::Node*> pinnedPoints;
 std::vector<NodeTarget> targetPoints;
@@ -213,6 +214,16 @@ int main(int argc, char* argv[]) {
 
     std::cerr << std::endl;
 
+    // step simulation
+    std::cerr << "volcart::cloth::message: Relaxing corners" << std::endl;
+    dynamicsWorld->setInternalTickCallback(emptyPreTickCallback, dynamicsWorld, true);
+    for (int i = 0; i < 15000; ++i) {
+        std::cerr << "volcart::cloth::message: Step " << i + 1 << "/" << required_iterations << "\r" << std::flush;
+        dynamicsWorld->stepSimulation(1/60.f);
+        psb->solveConstraints();
+    }
+    std::cerr << std::endl;
+
     // Convert soft body to itk mesh
     volcart::meshing::bullet2itk::bullet2itk(mesh, psb);
 
@@ -269,6 +280,11 @@ void planarizeCornersPreTickCallback(btDynamicsWorld *world, btScalar timeStep) 
         btVector3 delta = (targetPoints[p_id].t_pos - pinnedPoints[p_id]->m_x).normalized() * targetPoints[p_id].t_stepsize;
         pinnedPoints[p_id]->m_v += delta/timeStep;
     }
+};
+
+void emptyPreTickCallback(btDynamicsWorld *world, btScalar timeStep) {
+	// This call back is used to disable other callbacks
+	// Particularly used for relaxing the four corners
 };
 
 void expandCorners(float magnitude) {
