@@ -189,7 +189,7 @@ int main(int argc, char* argv[]) {
     t_z = psb->m_nodes[0].m_x.z() + (height / 2);
     middle = btVector3(t_x, t_y, t_z);
 
-    // step simulation
+    // Planarize the corners
     std::cerr << "volcart::cloth::message: Planarizing corners" << std::endl;
     dynamicsWorld->setInternalTickCallback(planarizeCornersPreTickCallback, dynamicsWorld, true);
     for (int i = 0; i < required_iterations; ++i) {
@@ -199,26 +199,25 @@ int main(int argc, char* argv[]) {
     }
     std::cerr << std::endl;
 
-    // step simulation
+    // Expand the corners
     std::cerr << "volcart::cloth::message: Expanding corners" << std::endl;
     int i = 0;
-    btVector3 test;
     while ( btAverageNormal(psb).absolute().getY() < 0.9 ) {
         std::cerr << "volcart::cloth::message: Step " << i + 1 << "\r" << std::flush;
         if ( i % 2000 == 0 ) expandCorners( 10 + (i / 2000) );
         dynamicsWorld->stepSimulation(1/60.f);
         psb->solveConstraints();
         ++i;
-        test = btAverageNormal(psb);
     }
 
     std::cerr << std::endl;
 
-    // step simulation
+    // Let it settle
     std::cerr << "volcart::cloth::message: Relaxing corners" << std::endl;
     dynamicsWorld->setInternalTickCallback(emptyPreTickCallback, dynamicsWorld, true);
-    for (int i = 0; i < 15000; ++i) {
-        std::cerr << "volcart::cloth::message: Step " << i + 1 << "/" << required_iterations << "\r" << std::flush;
+    required_iterations = 10000;
+    for (int j = 0; j < required_iterations; ++j) {
+        std::cerr << "volcart::cloth::message: Step " << j + 1 << "/" << required_iterations << "\r" << std::flush;
         dynamicsWorld->stepSimulation(1/60.f);
         psb->solveConstraints();
     }
