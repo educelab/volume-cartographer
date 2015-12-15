@@ -24,20 +24,33 @@ public:
     using Point = typename std::pair<Scalar, Scalar>;
     using Spline2d = Eigen::Spline<Scalar, 2>;
 
+    // Provide the default constructor
     FittedCurve() = default;
 
-    // Need to do init in constructor initializer list because Spline2d does
-    // not provide operator=() DUMB
     FittedCurve(const ScalarVector& xs, const ScalarVector& ys) :
         xmin_(*std::min_element(xs.begin(), xs.end())),
-        xmax_(*std::max_element(xs.begin(), xs.end())),
-        spline_(doInit(xs, ys)) {}
-
-    // Evaluate the polynomial at 'x' --> returns the point (x, y) in the curve
-    std::pair<Scalar, Scalar> at(Scalar x) const
+        xmax_(*std::max_element(xs.begin(), xs.end()))
     {
-        auto point = spline_(uvalue(x));
-        return std::make_pair(point(0), point(1));
+        auto mat = makeWideMatrix(xs, ys);
+        auto scaledXs = normalizev(mat.row(0));
+        spline_ = Eigen::SplineFitting<Spline2d>::Interpolate(mat, Degree, scaledXs);
+        std::cout << "ctrls:" << std::endl << spline_.ctrls() << std::endl;
+        std::cout << "knots:" << std::endl << spline_.knots() << std::endl;
+        std::exit(1);
+    }
+
+    // Returns point corresponding to xval as (x, y), where x in [0, 1]
+    Point atReturnPoint(Scalar x) const
+    {
+        auto point = spline_(normalize(x));
+        auto scaledX = point(0) * (xmax_ - xmin_) + xmin_;
+        return std::make_pair(scaledX, point(1));
+    }
+
+    // Only returns the yval corresponding to the given xval
+    Scalar at(Scalar x) const
+    {
+        return spline_(normalize(x))(1);
     }
 
 private:
@@ -45,19 +58,22 @@ private:
     Scalar xmax_;
     Spline2d spline_;
 
-    // Normalize x to [0, 1] (required by Eigen spline interpolation)
-    Scalar uvalue(Scalar x) const
+    // Normalize x to between [0, 1] as required by Eigen interpolation
+    Scalar normalize(Scalar x) const
     {
         return (x - xmin_) / (xmax_ - xmin_);
     }
 
-    Spline2d doInit(const ScalarVector& xs, const ScalarVector& ys)
+    Eigen::VectorXd normalizev(const Eigen::VectorXd& v)
     {
-        auto mat = makeWideMatrix(xs, ys);
-        auto xvalKnots = mat.row(0).unaryExpr([=](Scalar x) { return uvalue(x); });
-        return Eigen::SplineFitting<Spline2d>::Interpolate(mat, Degree, xvalKnots);
+        Eigen::VectorXd scaled(v.size());
+        for (int32_t i = 0; i < v.size(); ++i) {
+            scaled(i) = normalize(v(i));
+        }
+        return scaled;
     }
 
+    // Creates a wide matrix of size [2, len(xs)]
     Eigen::MatrixXd makeWideMatrix(const ScalarVector& xs, const ScalarVector& ys)
     {
         assert(xs.size() == ys.size() && "xs and ys must be the same size!");

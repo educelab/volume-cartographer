@@ -140,8 +140,9 @@ double LocalResliceSegmentation::fivePointStencil(
     FittedCurve<>::ScalarVector xs, ys;
     xs.reserve(ps.size());
     ys.reserve(ps.size());
+    double count = 0;
     for (const auto& p : ps) {
-        xs.push_back(p(VC_INDEX_X));
+        xs.push_back(count++);
         ys.push_back(p(VC_INDEX_Y));
     }
     FittedCurve<> f(xs, ys);
@@ -181,9 +182,9 @@ double LocalResliceSegmentation::fivePointStencil(
     return (-twoAfter + 8 * oneAfter - 8 * oneBefore + twoBefore) / (12 * avgXDiff);
     */
 
-    auto before2 = f.at(ps[center](VC_INDEX_X) - 2 * avgXDiff).second;
-    auto before1 = f.at(ps[center](VC_INDEX_X) - 1 * avgXDiff).second;
-    auto after1  = f.at(ps[center](VC_INDEX_X) + 1 * avgXDiff).second;
-    auto after2  = f.at(ps[center](VC_INDEX_X) + 2 * avgXDiff).second;
+    double before2 = f.at(ps[center](VC_INDEX_X) - 2 * avgXDiff);
+    double before1 = f.at(ps[center](VC_INDEX_X) - 1 * avgXDiff);
+    double after1  = f.at(ps[center](VC_INDEX_X) + 1 * avgXDiff);
+    double after2  = f.at(ps[center](VC_INDEX_X) + 2 * avgXDiff);
     return (-after2 + 8 * after1 - 8 * before1 + before2) / (12 * avgXDiff);
 }

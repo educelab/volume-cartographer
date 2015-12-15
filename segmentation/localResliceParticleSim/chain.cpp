@@ -21,10 +21,11 @@ Chain::Chain(VolumePkg& volpkg, int32_t zIndex) :
 	decltype(curve_)::ScalarVector xvals, yvals;
     xvals.reserve(segmentationPath->size());
     yvals.reserve(segmentationPath->size());
+    double count = 0;
     for (auto path : *segmentationPath) {
         particles_.emplace_back(path.x, path.y, path.z);
         particleCount_++;
-        xvals.push_back(path.x);
+        xvals.push_back(count++);
         yvals.push_back(path.x);
     }
     curve_ = FittedCurve<>(xvals, yvals);
@@ -38,10 +39,11 @@ Chain::Chain(VolumePkg& volpkg, const VoxelVec& pos, int32_t zIndex) :
     xvals.reserve(pos.size());
     yvals.reserve(pos.size());
     particles_.reserve(pos.size());
+    double count = 0;
     for (const auto& p : pos) {
         particles_.push_back(p);
         particleCount_++;
-        xvals.push_back(p(VC_INDEX_X));
+        xvals.push_back(count++);
         yvals.push_back(p(VC_INDEX_Y));
     }
     curve_ = FittedCurve<>(xvals, yvals);
@@ -97,7 +99,7 @@ const Voxel Chain::calculateNormal(const size_t index) const
     avgXDiff /= particles_.size();
     double vx = particles_[index](VC_INDEX_X);
     auto tanVec = Voxel(2 * avgXDiff,
-                        curve_.at(vx + avgXDiff).second - curve_.at(vx - avgXDiff).second,
+                        curve_.at(vx + avgXDiff) - curve_.at(vx - avgXDiff),
                         zIndex_);
     return tanVec.cross(VC_DIRECTION_K);
 }
@@ -172,10 +174,11 @@ void Chain::draw() const {
         auto x = particles_.at(i)(VC_INDEX_X);
         auto y = particles_.at(i)(VC_INDEX_Y);
         cv::Point real(x, y);
-        auto point = curve_.at(x);
-        cv::Point interpolated(point.first, point.second);
-        circle(pkgSlice, real, 2, BGR_GREEN, -1);
-        circle(pkgSlice, interpolated, 2, BGR_BLUE, -1);
+        auto p = curve_.atReturnPoint(x);
+        cv::Point interpolated(p.first, p.second);
+        std::cout << interpolated << std::endl;
+        circle(pkgSlice, real, 1, BGR_GREEN, -1);
+        circle(pkgSlice, interpolated, 1, BGR_BLUE, -1);
     }
 
     namedWindow("Volpkg Slice", cv::WINDOW_NORMAL);
