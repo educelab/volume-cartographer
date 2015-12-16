@@ -36,6 +36,8 @@ namespace volcart {
                     c_point[1] = rad * sin(t);
                     c_point[2] = 0;
                     curve.push_back(c_point);
+
+
                 }
 
                 for (float z = 0; z < height; z += 1) {

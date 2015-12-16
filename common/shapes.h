@@ -8,5 +8,6 @@
 #include "shapes/ShapePrimitive.h"
 #include "shapes/Plane.h"
 #include "shapes/Arch.h"
+#include "shapes/Sphere.h"
 
 #endif //VC_SHAPES_H

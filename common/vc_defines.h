@@ -22,9 +22,12 @@ typedef struct {
     int r, g, b, face_count;
 } VC_Vertex;
 
-typedef struct {
+class VC_Cell {
+public:
+    VC_Cell() {};
+    VC_Cell( unsigned long p1, unsigned long p2, unsigned long p3 ) : v1(p1), v2(p2), v3(p3) {};
     unsigned long v1, v2, v3;
-} VC_Cell;
+};
 
 ///// VC - ITK Mesh Defaults /////
 #include <itkMesh.h>
