@@ -212,6 +212,22 @@ int main(int argc, char* argv[]) {
 
     std::cerr << std::endl;
 
+    // Add a collision plane to push the mesh onto
+	btCollisionShape* groundShape = new btStaticPlaneShape(btVector3(0, 1, 0), 1);
+	btDefaultMotionState* groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -1, 0)));
+	btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState, groundShape, btVector3(0, 0, 0));
+	btRigidBody* plane = new btRigidBody(groundRigidBodyCI);
+	dynamicsWorld->addRigidBody(plane);
+
+	// Set the gravity so the mesh will be pushed onto the plane
+	dynamicsWorld->setGravity(btVector3(0, -10, 0));
+	psb->getWorldInfo()->m_gravity = dynamicsWorld->getGravity(); // Have to explicitly make softbody gravity match world gravity
+
+	// Change the stiffness of the mesh s.t. wrinkles can straighten out
+	// psb->m_materials[0]->m_kLST = 0.5; // Linear stiffness coefficient [0,1]
+    // psb->m_materials[0]->m_kAST = 0.5; // Area/Angular stiffness coefficient [0,1]
+    psb->m_materials[0]->m_kVST = 0; // Volume stiffness coefficient [0,1]
+
     // Let it settle
     std::cerr << "volcart::cloth::message: Relaxing corners" << std::endl;
     dynamicsWorld->setInternalTickCallback(emptyPreTickCallback, dynamicsWorld, true);
@@ -231,6 +247,10 @@ int main(int argc, char* argv[]) {
     objwriter.write();
 
     // bullet clean up
+    dynamicsWorld->removeRigidBody(plane);
+	delete plane->getMotionState();
+	delete plane;
+	delete groundShape;
     dynamicsWorld->removeSoftBody(psb);
     delete psb;
     delete dynamicsWorld;
