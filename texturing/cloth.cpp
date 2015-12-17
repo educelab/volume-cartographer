@@ -223,10 +223,9 @@ int main(int argc, char* argv[]) {
 	dynamicsWorld->setGravity(btVector3(0, -10, 0));
 	psb->getWorldInfo()->m_gravity = dynamicsWorld->getGravity(); // Have to explicitly make softbody gravity match world gravity
 
-	// Change the stiffness of the mesh s.t. wrinkles can straighten out
-	// psb->m_materials[0]->m_kLST = 0.5; // Linear stiffness coefficient [0,1]
-    // psb->m_materials[0]->m_kAST = 0.5; // Area/Angular stiffness coefficient [0,1]
-    psb->m_materials[0]->m_kVST = 0; // Volume stiffness coefficient [0,1]
+	// set the friction of the plane and the mesh s.t. the mesh can easily flatten upon collision
+	plane->setFriction(0.1); // (0-1] Default: 0.5
+	psb->m_cfg.kDF = 0; // Dynamic friction coefficient (0-1] Default: 0.2
 
     // Let it settle
     std::cerr << "volcart::cloth::message: Relaxing corners" << std::endl;
