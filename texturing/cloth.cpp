@@ -220,17 +220,17 @@ int main(int argc, char* argv[]) {
 	dynamicsWorld->addRigidBody(plane);
 
 	// Set the gravity so the mesh will be pushed onto the plane
-	dynamicsWorld->setGravity(btVector3(0, -10, 0));
+	dynamicsWorld->setGravity(btVector3(0, -25, 0));
 	psb->getWorldInfo()->m_gravity = dynamicsWorld->getGravity(); // Have to explicitly make softbody gravity match world gravity
 
 	// set the friction of the plane and the mesh s.t. the mesh can easily flatten upon collision
 	plane->setFriction(0.1); // (0-1] Default: 0.5
-	psb->m_cfg.kDF = 0; // Dynamic friction coefficient (0-1] Default: 0.2
+	psb->m_cfg.kDF = 0.1; // Dynamic friction coefficient (0-1] Default: 0.2
 
     // Let it settle
     std::cerr << "volcart::cloth::message: Relaxing corners" << std::endl;
     dynamicsWorld->setInternalTickCallback(emptyPreTickCallback, dynamicsWorld, true);
-    required_iterations = 10000;
+    required_iterations = 20000;
     for (int j = 0; j < required_iterations; ++j) {
         std::cerr << "volcart::cloth::message: Step " << j + 1 << "/" << required_iterations << "\r" << std::flush;
         dynamicsWorld->stepSimulation(1/60.f);
