@@ -26,6 +26,7 @@ btVector3 middle(0,0,0);
 btVector3 btAverageNormal( btSoftBody* body );
 double btSurfaceArea( btSoftBody* body );
 static void planarizeCornersPreTickCallback(btDynamicsWorld *world, btScalar timeStep);
+static void emptyPreTickCallback(btDynamicsWorld *world, btScalar timeStep);
 void expandCorners(float magnitude);
 std::vector<btSoftBody::Node*> pinnedPoints;
 std::vector<NodeTarget> targetPoints;
@@ -97,7 +98,7 @@ int main(int argc, char* argv[]) {
     std::cerr << "volcart::cloth::message: Setting mass" << std::endl;
     psb->setTotalMass( (int)(psb->m_nodes.size() * 0.001), true );
 
-    psb->m_cfg.kDP = 0.0; // Damping coefficient of the soft body [0,1]
+    psb->m_cfg.kDP = 0.1; // Damping coefficient of the soft body [0,1]
     psb->m_materials[0]->m_kLST = 1.0; // Linear stiffness coefficient [0,1]
     psb->m_materials[0]->m_kAST = 1.0; // Area/Angular stiffness coefficient [0,1]
     psb->m_materials[0]->m_kVST = 1.0; // Volume stiffness coefficient [0,1]
@@ -191,7 +192,7 @@ int main(int argc, char* argv[]) {
     t_z = psb->m_nodes[0].m_x.z() + (height / 2);
     middle = btVector3(t_x, t_y, t_z);
 
-    // step simulation
+    // Planarize the corners
     std::cerr << "volcart::cloth::message: Planarizing corners" << std::endl;
     dynamicsWorld->setInternalTickCallback(planarizeCornersPreTickCallback, dynamicsWorld, true);
     for (int i = 0; i < required_iterations; ++i) {
@@ -199,20 +200,45 @@ int main(int argc, char* argv[]) {
         dynamicsWorld->stepSimulation(1/60.f);
         psb->solveConstraints();
     }
+    std::cerr << std::endl;
 
-    // step simulation
+    // Expand the corners
     std::cerr << "volcart::cloth::message: Expanding corners" << std::endl;
     int i = 0;
-    btVector3 test;
     while ( btAverageNormal(psb).absolute().getY() < 0.9 ) {
         std::cerr << "volcart::cloth::message: Step " << i + 1 << "\r" << std::flush;
-        if ( i % 1000 == 0 ) expandCorners( 10 + (i / 1000) );
+        if ( i % 2000 == 0 ) expandCorners( 10 + (i / 2000) );
         dynamicsWorld->stepSimulation(1/60.f);
         psb->solveConstraints();
         ++i;
-        test = btAverageNormal(psb);
     }
 
+    std::cerr << std::endl;
+
+    // Add a collision plane to push the mesh onto
+	btCollisionShape* groundShape = new btStaticPlaneShape(btVector3(0, 1, 0), 1);
+	btDefaultMotionState* groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -1, 0)));
+	btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState, groundShape, btVector3(0, 0, 0));
+	btRigidBody* plane = new btRigidBody(groundRigidBodyCI);
+	dynamicsWorld->addRigidBody(plane);
+
+	// Set the gravity so the mesh will be pushed onto the plane
+	dynamicsWorld->setGravity(btVector3(0, -25, 0));
+	psb->getWorldInfo()->m_gravity = dynamicsWorld->getGravity(); // Have to explicitly make softbody gravity match world gravity
+
+	// set the friction of the plane and the mesh s.t. the mesh can easily flatten upon collision
+	plane->setFriction(0.1); // (0-1] Default: 0.5
+	psb->m_cfg.kDF = 0.1; // Dynamic friction coefficient (0-1] Default: 0.2
+
+    // Let it settle
+    std::cerr << "volcart::cloth::message: Relaxing corners" << std::endl;
+    dynamicsWorld->setInternalTickCallback(emptyPreTickCallback, dynamicsWorld, true);
+    required_iterations = 20000;
+    for (int j = 0; j < required_iterations; ++j) {
+        std::cerr << "volcart::cloth::message: Step " << j + 1 << "/" << required_iterations << "\r" << std::flush;
+        dynamicsWorld->stepSimulation(1/60.f);
+        psb->solveConstraints();
+    }
     std::cerr << std::endl;
 
     // Convert soft body to itk mesh
@@ -224,6 +250,10 @@ int main(int argc, char* argv[]) {
     objwriter.write();
 
     // bullet clean up
+    dynamicsWorld->removeRigidBody(plane);
+	delete plane->getMotionState();
+	delete plane;
+	delete groundShape;
     dynamicsWorld->removeSoftBody(psb);
     delete psb;
     delete dynamicsWorld;
@@ -271,9 +301,13 @@ void planarizeCornersPreTickCallback(btDynamicsWorld *world, btScalar timeStep) 
     for( size_t p_id = 0; p_id < pinnedPoints.size(); ++p_id ) {
         if ( pinnedPoints[p_id]->m_x == targetPoints[p_id].t_pos ) continue;
         btVector3 delta = (targetPoints[p_id].t_pos - pinnedPoints[p_id]->m_x).normalized() * targetPoints[p_id].t_stepsize;
-        pinnedPoints[p_id]->m_x += delta;
         pinnedPoints[p_id]->m_v += delta/timeStep;
     }
+};
+
+void emptyPreTickCallback(btDynamicsWorld *world, btScalar timeStep) {
+	// This call back is used to disable other callbacks
+	// Particularly used for relaxing the four corners
 };
 
 void expandCorners(float magnitude) {
