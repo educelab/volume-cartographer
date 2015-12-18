@@ -9,6 +9,7 @@
 
 #include "volumepkg.h"
 #include "vc_defines.h"
+#include "vc_datatypes.h"
 #include "io/ply2itk.h"
 #include "io/objWriter.h"
 #include "compositeTexture.h"
@@ -250,6 +251,7 @@ int main(int argc, char* argv[]) {
     width = max_x - min_x;
     height = max_z - min_z;
     double aspect = width / height;
+    volcart::UVMap uvMap;
 
     // Calculate uv coordinates
     for ( size_t p_id = 0; p_id < psb->m_faces.size(); ++p_id ) {
@@ -258,6 +260,11 @@ int main(int argc, char* argv[]) {
 
             u = ( psb->m_faces[p_id].m_n[j]->m_x.x() - min_x ) / ( max_x - min_x );
             v = ( psb->m_faces[p_id].m_n[j]->m_x.z() - min_z ) / ( max_z - min_z );
+
+            cv::Vec2d uv( u, v );
+
+            // Add the uv coordinates into our map at the point index specified
+            uvMap.set( p_id, uv );
 
         }
     }
