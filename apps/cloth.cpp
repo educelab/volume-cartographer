@@ -62,8 +62,8 @@ int main(int argc, char* argv[]) {
         exit( -1 );
     };
 
-    volcart::Texture newTexture;
-    newTexture = volcart::texturing::compositeTexture(mesh, vpkg, meshWidth, meshHeight, 7, VC_Composite_Option::Maximum, VC_Direction_Option::Bidirectional);
+    //volcart::Texture newTexture;
+    //newTexture = volcart::texturing::compositeTexture(mesh, vpkg, meshWidth, meshHeight, 7, VC_Composite_Option::Maximum, VC_Direction_Option::Bidirectional);
 
     // Create Dynamic world for bullet cloth simulation
     btBroadphaseInterface* broadphase = new btDbvtBroadphase();
@@ -241,12 +241,33 @@ int main(int argc, char* argv[]) {
     }
     std::cerr << std::endl;
 
+    // UV map setup
+    double u, v;
+    int min_x = psb->m_nodes[0].m_x.x();
+    min_z = psb->m_nodes[0].m_x.z();
+    int max_x = psb->m_nodes[chain_size - 1].m_x.x();
+    int max_z = psb->m_nodes[psb->m_nodes.size() - chain_size].m_x.z();
+    width = max_x - min_x;
+    height = max_z - min_z;
+    double aspect = width / height;
+
+    // Calculate uv coordinates
+    for ( size_t p_id = 0; p_id < psb->m_faces.size(); ++p_id ) {
+
+        for( int j = 0; j < 3; ++j ) {
+
+            u = ( psb->m_faces[p_id].m_n[j]->m_x.x() - min_x ) / ( max_x - min_x );
+            v = ( psb->m_faces[p_id].m_n[j]->m_x.z() - min_z ) / ( max_z - min_z );
+
+        }
+    }
+
     // Convert soft body to itk mesh
     std::cerr << "volcart::cloth::message: Updating mesh" << std::endl;
     volcart::meshing::bullet2itk::bullet2itk(mesh, psb);
 
-    volcart::io::objWriter objwriter("cloth.obj", mesh, newTexture.uvMap(), newTexture.getImage(0));
-    //volcart::io::objWriter objwriter("cloth.obj", mesh);
+    //volcart::io::objWriter objwriter("cloth.obj", mesh, newTexture.uvMap(), newTexture.getImage(0));
+    volcart::io::objWriter objwriter("cloth.obj", mesh);
     objwriter.write();
 
     // bullet clean up
