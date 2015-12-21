@@ -217,19 +217,19 @@ int main(int argc, char* argv[]) {
     std::cerr << std::endl;
 
     // Add a collision plane to push the mesh onto
-	btCollisionShape* groundShape = new btStaticPlaneShape(btVector3(0, 1, 0), 1);
-	btDefaultMotionState* groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -1, 0)));
-	btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState, groundShape, btVector3(0, 0, 0));
-	btRigidBody* plane = new btRigidBody(groundRigidBodyCI);
-	dynamicsWorld->addRigidBody(plane);
+    btCollisionShape* groundShape = new btStaticPlaneShape(btVector3(0, 1, 0), 1);
+    btDefaultMotionState* groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -1, 0)));
+    btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState, groundShape, btVector3(0, 0, 0));
+    btRigidBody* plane = new btRigidBody(groundRigidBodyCI);
+    dynamicsWorld->addRigidBody(plane);
 
-	// Set the gravity so the mesh will be pushed onto the plane
-	dynamicsWorld->setGravity(btVector3(0, -25, 0));
-	psb->getWorldInfo()->m_gravity = dynamicsWorld->getGravity(); // Have to explicitly make softbody gravity match world gravity
+    // Set the gravity so the mesh will be pushed onto the plane
+    dynamicsWorld->setGravity(btVector3(0, -25, 0));
+    psb->getWorldInfo()->m_gravity = dynamicsWorld->getGravity(); // Have to explicitly make softbody gravity match world gravity
 
-	// set the friction of the plane and the mesh s.t. the mesh can easily flatten upon collision
-	plane->setFriction(0.1); // (0-1] Default: 0.5
-	psb->m_cfg.kDF = 0.1; // Dynamic friction coefficient (0-1] Default: 0.2
+    // set the friction of the plane and the mesh s.t. the mesh can easily flatten upon collision
+    plane->setFriction(0.1); // (0-1] Default: 0.5
+    psb->m_cfg.kDF = 0.1; // Dynamic friction coefficient (0-1] Default: 0.2
 
     // Let it settle
     std::cerr << "volcart::cloth::message: Relaxing corners" << std::endl;
@@ -243,28 +243,53 @@ int main(int argc, char* argv[]) {
     std::cerr << std::endl;
 
     // UV map setup
-    double u, v;
-    int min_x = psb->m_nodes[0].m_x.x();
-    min_z = psb->m_nodes[0].m_x.z();
-    int max_x = psb->m_nodes[chain_size - 1].m_x.x();
-    int max_z = psb->m_nodes[psb->m_nodes.size() - chain_size].m_x.z();
-    width = max_x - min_x;
-    height = max_z - min_z;
-    double aspect = width / height;
+    double min_u, min_v, max_u, max_v;
+    for (size_t n_id = 0; n_id < psb->m_nodes.size(); ++n_id) {
+        if (n_id == 0) {
+            min_u = psb->m_nodes[n_id].m_x.x();
+            min_v = psb->m_nodes[n_id].m_x.z();
+            max_u = psb->m_nodes[n_id].m_x.x();
+            max_v = psb->m_nodes[n_id].m_x.z();
+        } else {
+            double _x = psb->m_nodes[n_id].m_x.x();
+            double _z = psb->m_nodes[n_id].m_x.z();
+            if ( _x < min_u && _x >= 0 ) min_u = psb->m_nodes[n_id].m_x.x();
+            if ( _z < min_v && _z >= 0 ) min_v = psb->m_nodes[n_id].m_x.z();
+            if ( _x > max_u) max_u = psb->m_nodes[n_id].m_x.x();
+            if ( _z > max_v) max_v = psb->m_nodes[n_id].m_x.z();
+        }
+    }
+
+    // Round so that we have integer bounds
+    min_u = std::floor(min_u);
+    min_v = std::floor(min_v);
+    max_u = std::ceil(max_u);
+    max_v = std::ceil(max_v);
+
+    double aspect_width = max_u - min_u;
+    double aspect_height = max_v - min_v;
+    double aspect = aspect_width / aspect_height;
     volcart::UVMap uvMap;
+    uvMap.ratio(aspect_width, aspect_height);
 
     // Calculate uv coordinates
-    for ( size_t p_id = 0; p_id < psb->m_faces.size(); ++p_id ) {
+    double u, v;
+    for (size_t f_id = 0; f_id < psb->m_faces.size(); ++f_id) {
 
-        for( int j = 0; j < 3; ++j ) {
+        for(size_t n_id = 0; n_id < 3; ++n_id) {
 
-            u = ( psb->m_faces[p_id].m_n[j]->m_x.x() - min_x ) / ( max_x - min_x );
-            v = ( psb->m_faces[p_id].m_n[j]->m_x.z() - min_z ) / ( max_z - min_z );
-
+            u = (psb->m_faces[f_id].m_n[n_id]->m_x.x() - min_u) / (max_u - min_u);
+            v = (psb->m_faces[f_id].m_n[n_id]->m_x.z() - min_v) / (max_v - min_v);
             cv::Vec2d uv( u, v );
 
+            // btSoftBody faces hold pointers to specific nodes, but we need the point id
+            // Lookup the point ID of this node in the original ITK mesh
+            VC_CellType::CellAutoPointer c;
+            mesh->GetCell(f_id, c);
+            double p_id = c->GetPointIdsContainer()[n_id];
+
             // Add the uv coordinates into our map at the point index specified
-            uvMap.set( p_id, uv );
+            uvMap.set(p_id, uv);
 
         }
     }
