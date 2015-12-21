@@ -130,8 +130,7 @@ int main(int argc, char* argv[])
         workingMesh = volcart::meshing::smoothNormals(input, smoothRadius);
     } else {
       // duplicate input
-      // To-Do: Should be a deep copy
-      workingMesh = input;
+        volcart::meshing::deepCopy(input, workingMesh);
     }
 
 
