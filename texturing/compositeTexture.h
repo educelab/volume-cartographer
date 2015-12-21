@@ -16,13 +16,20 @@ namespace volcart {
     namespace texturing {
         class compositeTexture {
         public:
-            compositeTexture(VC_MeshType::Pointer inputMesh,
-                             VolumePkg& volpkg,
-                             int output_w,
-                             int output_h,
-                             double radius,
-                             VC_Composite_Option compositeMethod,
-                             VC_Direction_Option compositeDirection);
+            compositeTexture( VC_MeshType::Pointer inputMesh,
+                              VolumePkg& volpkg,
+                              int output_w,
+                              int output_h,
+                              double radius,
+                              VC_Composite_Option compositeMethod,
+                              VC_Direction_Option compositeDirection);
+
+            compositeTexture( VC_MeshType::Pointer inputMesh,
+                              VolumePkg& volpkg,
+                              UVMap uvMap,
+                              double radius,
+                              VC_Composite_Option method,
+                              VC_Direction_Option direction );
 
             Texture texture() { return _texture; };
         private:

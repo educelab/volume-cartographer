@@ -14,14 +14,28 @@ namespace volcart {
                                             VC_Composite_Option compositeMethod,
                                             VC_Direction_Option compositeDirection) :
         _volpkg(volpkg), _input(inputMesh), _width(output_w), _height(output_h), _radius(radius),
-        _method(compositeMethod), _direction(compositeDirection) {
-
+        _method(compositeMethod), _direction(compositeDirection)
+        {
             ///// Generate UV Map /////
             // To-Do: Generate this map independent of point ordering - SP, 10/2015
             _uvMap = volcart::texturing::simpleUV(inputMesh, _width, _height);
 
             _process();
         };
+
+        compositeTexture::compositeTexture(VC_MeshType::Pointer inputMesh,
+                                           VolumePkg &volpkg,
+                                           UVMap uvMap,
+                                           double radius,
+                                           VC_Composite_Option method,
+                                           VC_Direction_Option direction) :
+        _volpkg(volpkg), _input(inputMesh), _uvMap(uvMap), _radius(radius), _method(method), _direction(direction)
+        {
+            _width = uvMap.ratio().width;
+            _height = uvMap.ratio().height;
+
+            _process();
+        }
 
         int compositeTexture::_process() {
 

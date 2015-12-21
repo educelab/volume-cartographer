@@ -143,7 +143,6 @@ int main(int argc, char* argv[]) {
     double width = chain_length * dir;
     double height = surface_area / chain_length;
     int required_iterations = NUM_OF_ITERATIONS; // Minimum iterations to reach target
-    std::cout << "Chain size: " << chain_size << " | Plane Dimensions: " << width << "x" << height << " | Surface area: " << surface_area << std::endl;
 
     // Create target positions with step size for our four corners
     // NOTE: Must be created in the same order that the rigid bodies were put into pinnedPoints
@@ -291,7 +290,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    volcart::texturing::compositeTexture result(mesh, vpkg, meshWidth, meshHeight, 7, VC_Composite_Option::Maximum, VC_Direction_Option::Bidirectional);
+    volcart::texturing::compositeTexture result(mesh, vpkg, uvMap, 7, VC_Composite_Option::Maximum, VC_Direction_Option::Bidirectional);
     volcart::Texture newTexture = result.texture();
 
     // Convert soft body to itk mesh
@@ -359,8 +358,8 @@ void planarizeCornersPreTickCallback(btDynamicsWorld *world, btScalar timeStep) 
 };
 
 void emptyPreTickCallback(btDynamicsWorld *world, btScalar timeStep) {
-	// This call back is used to disable other callbacks
-	// Particularly used for relaxing the four corners
+    // This call back is used to disable other callbacks
+    // Particularly used for relaxing the four corners
 };
 
 void expandCorners(float magnitude) {
