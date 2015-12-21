@@ -6,36 +6,35 @@
 
 namespace volcart {
     namespace texturing {
-        volcart::Texture compositeTexture( VC_MeshType::Pointer inputMesh,
-                                           VolumePkg volpkg,
-                                           int output_w,
-                                           int output_h,
-                                           double searchMajorRadius,
-                                           VC_Composite_Option compositeMethod,
-                                           VC_Direction_Option compositeDirection) {
-
-            ///// Create the output texture object /////
-            volcart::Texture outputTexture;
+        compositeTexture::compositeTexture( VC_MeshType::Pointer inputMesh,
+                                            VolumePkg& volpkg,
+                                            int output_w,
+                                            int output_h,
+                                            double radius,
+                                            VC_Composite_Option compositeMethod,
+                                            VC_Direction_Option compositeDirection) :
+        _volpkg(volpkg), _input(inputMesh), _width(output_w), _height(output_h), _radius(radius),
+        _method(compositeMethod), _direction(compositeDirection) {
 
             ///// Generate UV Map /////
             // To-Do: Generate this map independent of point ordering - SP, 10/2015
+            _uvMap = volcart::texturing::simpleUV(inputMesh, _width, _height);
 
-            volcart::UVMap uvMap;
-            int meshWidth = output_w; int meshHeight = output_h;
+            _process();
+        };
 
-            uvMap = volcart::texturing::simpleUV(inputMesh, meshWidth, meshHeight);
+        int compositeTexture::_process() {
 
             ///// Generate Texture Image /////
-
-            cv::Mat textureImage = cv::Mat::zeros( output_h, output_w, CV_16UC1 );
+            cv::Mat textureImage = cv::Mat::zeros( _height, _width, CV_16UC1 );
 
             // Auto-generate minor radius for elliptical search
             double searchMinorRadius;
-            if( (searchMinorRadius = searchMajorRadius / 3) < 1 ) searchMinorRadius = 1;
+            if( (searchMinorRadius = _radius / 3) < 1 ) searchMinorRadius = 1;
 
             // Initialize iterators
-            VC_CellIterator  cellIterator = inputMesh->GetCells()->Begin();
-            VC_CellIterator  cellEnd      = inputMesh->GetCells()->End();
+            VC_CellIterator  cellIterator = _input->GetCells()->Begin();
+            VC_CellIterator  cellEnd      = _input->GetCells()->End();
             VC_CellType *    cell;
             VC_PointsInCellIterator pointsIterator;
 
@@ -54,24 +53,24 @@ namespace volcart {
                 for( ; pointsIterator != cell->PointIdsEnd(); ++pointsIterator ) {
                     pointID = *pointsIterator;
 
-                    VC_PointType p = inputMesh->GetPoint(pointID);
+                    VC_PointType p = _input->GetPoint(pointID);
                     VC_PixelType normal;
-                    inputMesh->GetPointData( pointID, &normal );
+                    _input->GetPointData( pointID, &normal );
 
                     // Fill in the output pixel with a value
                     // cv::Mat.at uses (row, column)
                     double value = textureWithMethod( cv::Vec3f(p[0], p[1], p[2]),
                                                       cv::Vec3f(normal[0], normal[1], normal[2]),
-                                                      volpkg,
-                                                      compositeMethod,
-                                                      searchMajorRadius,
+                                                      _volpkg,
+                                                      _method,
+                                                      _radius,
                                                       searchMinorRadius,
                                                       0.5,
-                                                      compositeDirection);
+                                                      _direction);
 
                     // Retrieve the point's uv position from the UV Map
-                    u =  cvRound(uvMap.get(pointID)[0] * output_w);
-                    v =  cvRound(uvMap.get(pointID)[1] * output_h);
+                    u =  cvRound(_uvMap.get(pointID)[0] * _width);
+                    v =  cvRound(_uvMap.get(pointID)[1] * _height);
 
                     // Assign the intensity value at the UV position
                     textureImage.at < unsigned short > (v, u) = (unsigned short) value;
@@ -80,10 +79,10 @@ namespace volcart {
             std::cout << std::endl;
 
             // Assign and return the output
-            outputTexture.addImage(textureImage);
-            outputTexture.uvMap(uvMap);
-            return outputTexture;
+            _texture.addImage(textureImage);
+            _texture.uvMap(_uvMap);
 
-        };
+            return EXIT_SUCCESS;
+        }
     } // texturing
 } // volcart

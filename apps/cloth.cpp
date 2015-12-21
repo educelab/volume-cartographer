@@ -63,9 +63,6 @@ int main(int argc, char* argv[]) {
         exit( -1 );
     };
 
-    //volcart::Texture newTexture;
-    //newTexture = volcart::texturing::compositeTexture(mesh, vpkg, meshWidth, meshHeight, 7, VC_Composite_Option::Maximum, VC_Direction_Option::Bidirectional);
-
     // Create Dynamic world for bullet cloth simulation
     btBroadphaseInterface* broadphase = new btDbvtBroadphase();
 
@@ -294,19 +291,22 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    volcart::texturing::compositeTexture result(mesh, vpkg, meshWidth, meshHeight, 7, VC_Composite_Option::Maximum, VC_Direction_Option::Bidirectional);
+    volcart::Texture newTexture = result.texture();
+
     // Convert soft body to itk mesh
     std::cerr << "volcart::cloth::message: Updating mesh" << std::endl;
     volcart::meshing::bullet2itk::bullet2itk(mesh, psb);
 
-    //volcart::io::objWriter objwriter("cloth.obj", mesh, newTexture.uvMap(), newTexture.getImage(0));
-    volcart::io::objWriter objwriter("cloth.obj", mesh);
+    volcart::io::objWriter objwriter("cloth.obj", mesh, newTexture.uvMap(), newTexture.getImage(0));
+    //volcart::io::objWriter objwriter("cloth.obj", mesh);
     objwriter.write();
 
     // bullet clean up
     dynamicsWorld->removeRigidBody(plane);
-	delete plane->getMotionState();
-	delete plane;
-	delete groundShape;
+    delete plane->getMotionState();
+    delete plane;
+    delete groundShape;
     dynamicsWorld->removeSoftBody(psb);
     delete psb;
     delete dynamicsWorld;

@@ -133,9 +133,8 @@ int main(int argc, char* argv[])
         volcart::meshing::deepCopy(input, workingMesh);
     }
 
-
-    volcart::Texture newTexture;
-    newTexture = volcart::texturing::compositeTexture( workingMesh, vpkg, meshWidth, meshHeight, radius, aFilterOption, aDirectionOption );
+    volcart::texturing::compositeTexture result( workingMesh, vpkg, meshWidth, meshHeight, radius, aFilterOption, aDirectionOption );
+    volcart::Texture newTexture = result.texture();
 
     if ( outputPath.extension() == ".PLY" || outputPath.extension() == ".ply" ) {
         std::cout << "Writing to PLY..." << std::endl;

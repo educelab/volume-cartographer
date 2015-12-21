@@ -47,7 +47,7 @@ namespace volcart {
 
         // Ratio information
         VC_Ratio ratio() { return _ratio; };
-        void ratio( double a ) { _ratio.aspect = a };
+        void ratio( double a ) { _ratio.aspect = a; };
         void ratio( double w, double h ) {
             _ratio.width = w;
             _ratio.height = h;
