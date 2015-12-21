@@ -213,14 +213,15 @@ int main(int argc, char* argv[]) {
     std::cerr << std::endl;
 
     // Add a collision plane to push the mesh onto
+    float plane_y = psb->m_nodes[0].m_x.y() - 5;
     btCollisionShape* groundShape = new btStaticPlaneShape(btVector3(0, 1, 0), 1);
     btDefaultMotionState* groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -1, 0)));
-    btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState, groundShape, btVector3(0, 0, 0));
+    btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState, groundShape, btVector3(0, plane_y, 0));
     btRigidBody* plane = new btRigidBody(groundRigidBodyCI);
     dynamicsWorld->addRigidBody(plane);
 
     // Set the gravity so the mesh will be pushed onto the plane
-    dynamicsWorld->setGravity(btVector3(0, -25, 0));
+    dynamicsWorld->setGravity(btVector3(0, -10, 0));
     psb->getWorldInfo()->m_gravity = dynamicsWorld->getGravity(); // Have to explicitly make softbody gravity match world gravity
 
     // set the friction of the plane and the mesh s.t. the mesh can easily flatten upon collision
@@ -230,7 +231,7 @@ int main(int argc, char* argv[]) {
     // Let it settle
     std::cerr << "volcart::cloth::message: Relaxing corners" << std::endl;
     dynamicsWorld->setInternalTickCallback(emptyPreTickCallback, dynamicsWorld, true);
-    required_iterations = 20000;
+    required_iterations = 10000;
     for (int j = 0; j < required_iterations; ++j) {
         std::cerr << "volcart::cloth::message: Step " << j + 1 << "/" << required_iterations << "\r" << std::flush;
         dynamicsWorld->stepSimulation(1/60.f);
