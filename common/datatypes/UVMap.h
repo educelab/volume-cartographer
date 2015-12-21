@@ -45,9 +45,19 @@ namespace volcart {
             else return VC_UVMAP_NULL_MAPPING;
         };
 
+        // Ratio information
+        VC_Ratio ratio() { return _ratio; };
+        void ratio( double a ) { _ratio.aspect = a };
+        void ratio( double w, double h ) {
+            _ratio.width = w;
+            _ratio.height = h;
+            _ratio.aspect = w / h;
+        };
+
     private:
         std::unordered_map<double, cv::Vec2d> _map; // holds the mapping
         cv::Vec2d _origin; // origin inserted and retrieved points are relative to
+        VC_Ratio _ratio;
     };
 
 } // volcart

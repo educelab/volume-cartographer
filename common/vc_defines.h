@@ -53,6 +53,10 @@ typedef cv::Vec2d VC_Origin;
 
 #define VC_UVMAP_NULL_MAPPING cv::Vec2d(-1, -1)
 
+struct VC_Ratio {
+    double width, height, aspect;
+};
+
 ///// Texture Compositing /////
 
 #define VC_TEXTURE_NO_VALUE -1.0
