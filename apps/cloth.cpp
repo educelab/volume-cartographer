@@ -202,13 +202,13 @@ int main(int argc, char* argv[]) {
 
     // Expand the corners
     std::cerr << "volcart::cloth::message: Expanding corners" << std::endl;
-    int i = 0;
+    int counter = 0;
     while ( btAverageNormal(psb).absolute().getY() < 0.9 ) {
-        std::cerr << "volcart::cloth::message: Step " << i + 1 << "\r" << std::flush;
-        if ( i % 2000 == 0 ) expandCorners( 10 + (i / 2000) );
+        std::cerr << "volcart::cloth::message: Step " << counter + 1 << "\r" << std::flush;
+        if ( counter % 2000 == 0 ) expandCorners( 10 + (counter / 2000) );
         dynamicsWorld->stepSimulation(1/60.f);
         psb->solveConstraints();
-        ++i;
+        ++counter;
     }
 
     std::cerr << std::endl;
@@ -236,11 +236,16 @@ int main(int argc, char* argv[]) {
     // Let it settle
     std::cerr << "volcart::cloth::message: Relaxing corners" << std::endl;
     dynamicsWorld->setInternalTickCallback(emptyPreTickCallback, dynamicsWorld, true);
-    required_iterations = 10000;
-    for (int j = 0; j < required_iterations; ++j) {
-        std::cerr << "volcart::cloth::message: Step " << j + 1 << "/" << required_iterations << "\r" << std::flush;
+    required_iterations = 5000;
+    counter = 0;
+    double test_area = btSurfaceArea(psb);
+    while ( isnan(test_area) || test_area/surface_area < 1.0 ) {
+        std::cerr << "volcart::cloth::message: Step " << counter + 1 << "\r" << std::flush;
         dynamicsWorld->stepSimulation(1/60.f);
         psb->solveConstraints();
+
+        ++counter;
+        if ( counter % 500 == 0 ) test_area = btSurfaceArea(psb); // recalc area every 500 iterations
     }
     std::cerr << std::endl;
 
