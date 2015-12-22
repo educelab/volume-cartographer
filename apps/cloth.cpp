@@ -13,6 +13,7 @@
 #include "io/ply2itk.h"
 #include "io/objWriter.h"
 #include "compositeTexture.h"
+#include "deepCopy.h"
 
 // bullet converter
 #include "itk2bullet.h"
@@ -221,12 +222,16 @@ int main(int argc, char* argv[]) {
     dynamicsWorld->addRigidBody(plane);
 
     // Set the gravity so the mesh will be pushed onto the plane
-    dynamicsWorld->setGravity(btVector3(0, -10, 0));
+    dynamicsWorld->setGravity(btVector3(0, -15, 0));
     psb->getWorldInfo()->m_gravity = dynamicsWorld->getGravity(); // Have to explicitly make softbody gravity match world gravity
 
     // set the friction of the plane and the mesh s.t. the mesh can easily flatten upon collision
-    plane->setFriction(0.1); // (0-1] Default: 0.5
-    psb->m_cfg.kDF = 0.1; // Dynamic friction coefficient (0-1] Default: 0.2
+    plane->setFriction(0.01); // (0-1] Default: 0.5
+    psb->m_cfg.kDF = 0.01; // Dynamic friction coefficient (0-1] Default: 0.2
+
+    psb->m_materials[0]->m_kLST = 0.1; // Linear stiffness coefficient [0,1]
+    psb->m_materials[0]->m_kAST = 0.1; // Area/Angular stiffness coefficient [0,1]
+    psb->m_materials[0]->m_kVST = 0.1; // Volume stiffness coefficient [0,1]
 
     // Let it settle
     std::cerr << "volcart::cloth::message: Relaxing corners" << std::endl;
@@ -291,15 +296,22 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    volcart::texturing::compositeTexture result(mesh, vpkg, uvMap, 7, VC_Composite_Option::Maximum, VC_Direction_Option::Bidirectional);
-    volcart::Texture newTexture = result.texture();
-
     // Convert soft body to itk mesh
     std::cerr << "volcart::cloth::message: Updating mesh" << std::endl;
-    volcart::meshing::bullet2itk::bullet2itk(mesh, psb);
+    VC_MeshType::Pointer flatMesh = VC_MeshType::New();
+    volcart::meshing::deepCopy(mesh, flatMesh);
+    volcart::meshing::bullet2itk::bullet2itk(psb, flatMesh);
 
-    volcart::io::objWriter objwriter("cloth.obj", mesh, newTexture.uvMap(), newTexture.getImage(0));
-    //volcart::io::objWriter objwriter("cloth.obj", mesh);
+    volcart::texturing::compositeTexture result(mesh, vpkg, meshWidth, meshHeight, 7, VC_Composite_Option::Maximum, VC_Direction_Option::Bidirectional);
+    volcart::Texture newTexture = result.texture();
+    volcart::io::objWriter objwriter("cloth.obj", flatMesh, newTexture.uvMap(), newTexture.getImage(0));
+    objwriter.write();
+
+    volcart::texturing::compositeTexture flat(mesh, vpkg, uvMap, 7, VC_Composite_Option::Maximum, VC_Direction_Option::Bidirectional);
+    newTexture = flat.texture();
+    objwriter.setUVMap(newTexture.uvMap());
+    objwriter.setTexture(newTexture.getImage(0));
+    objwriter.setPath("new_uvmap.obj");
     objwriter.write();
 
     // bullet clean up

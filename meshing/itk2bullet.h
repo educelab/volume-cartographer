@@ -27,7 +27,7 @@ namespace volcart {
 
     class bullet2itk {
     public:
-        bullet2itk( VC_MeshType::Pointer output, btSoftBody* softBody);
+        bullet2itk( btSoftBody* softBody, VC_MeshType::Pointer output );
     };
 
   } // namespace meshing

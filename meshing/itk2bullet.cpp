@@ -45,7 +45,7 @@ namespace volcart {
 
     };
 
-    bullet2itk::bullet2itk( VC_MeshType::Pointer output, btSoftBody* softBody ) {
+    bullet2itk::bullet2itk( btSoftBody* softBody, VC_MeshType::Pointer output ) {
 
         VC_CellType::CellAutoPointer cellpointer;
         VC_PointType p;
