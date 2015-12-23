@@ -238,7 +238,7 @@ int main(int argc, char* argv[]) {
     counter = 0;
     breakloop = false;
     required_iterations = required_iterations * 2;
-    while ( (btAverageNormal(psb).absolute().getY() < 0.925 || counter < required_iterations) && !breakloop ) {
+    while ( (btAverageNormal(psb).absolute().getY() < 0.99 || counter < required_iterations) && !breakloop ) {
         if ( (ch = getch()) != ERR ) {
             switch (ch) {
                 case 's':
@@ -372,17 +372,13 @@ int main(int argc, char* argv[]) {
     volcart::meshing::deepCopy(mesh, flatMesh);
     volcart::meshing::bullet2itk::bullet2itk(psb, flatMesh);
 
-    volcart::texturing::compositeTexture result(mesh, vpkg, meshWidth, meshHeight, 7, VC_Composite_Option::Maximum, VC_Direction_Option::Bidirectional);
+    volcart::texturing::compositeTexture result(mesh, vpkg, meshWidth, meshHeight, 10, VC_Composite_Option::Maximum, VC_Direction_Option::Bidirectional);
     volcart::Texture newTexture = result.texture();
     volcart::io::objWriter objwriter("cloth.obj", flatMesh, newTexture.uvMap(), newTexture.getImage(0));
     objwriter.write();
 
-    volcart::texturing::compositeTexture flat(mesh, vpkg, uvMap, 7, VC_Composite_Option::Maximum, VC_Direction_Option::Bidirectional);
-    newTexture = flat.texture();
-    objwriter.setUVMap(newTexture.uvMap());
-    objwriter.setTexture(newTexture.getImage(0));
-    objwriter.setPath("new_uvmap.obj");
-    objwriter.write();
+    volcart::texturing::compositeTexture flat(mesh, vpkg, uvMap, 10, VC_Composite_Option::Maximum, VC_Direction_Option::Bidirectional);
+    cv::imwrite("new_uvmap.png", flat.texture().getImage(0) );
 
     // bullet clean up
     dynamicsWorld->removeRigidBody(plane);
