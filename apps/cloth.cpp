@@ -1,4 +1,4 @@
-#include <LinearMath/btVector3.h>//
+//
 // Created by Abigail Coleman 10/28/15
 //
 
@@ -17,6 +17,7 @@
 
 // bullet converter
 #include "itk2bullet.h"
+#include <LinearMath/btVector3.h>
 
 struct NodeTarget {
     btVector3 t_pos;
@@ -26,6 +27,7 @@ struct NodeTarget {
 btVector3 middle(0,0,0);
 
 btVector3 btAverageNormal( btSoftBody* body );
+btScalar btAverageVelocity( btSoftBody* body );
 double btSurfaceArea( btSoftBody* body );
 static void planarizeCornersPreTickCallback(btDynamicsWorld *world, btScalar timeStep);
 static void emptyPreTickCallback(btDynamicsWorld *world, btScalar timeStep);
@@ -193,25 +195,27 @@ int main(int argc, char* argv[]) {
     // Planarize the corners
     std::cerr << "volcart::cloth::message: Planarizing corners" << std::endl;
     dynamicsWorld->setInternalTickCallback(planarizeCornersPreTickCallback, dynamicsWorld, true);
-    for (int i = 0; i < required_iterations; ++i) {
-        std::cerr << "volcart::cloth::message: Step " << i + 1 << "/" << required_iterations << "\r" << std::flush;
+    int counter = 0;
+    for (; counter < required_iterations; ++counter) {
+        std::cerr << "volcart::cloth::message: Step " << counter + 1 << "/" << required_iterations << "\r" << std::flush;
         dynamicsWorld->stepSimulation(1/60.f);
         psb->solveConstraints();
     }
     std::cerr << std::endl;
+    std::cerr << "Planarize steps: " << counter << std::endl;
 
     // Expand the corners
     std::cerr << "volcart::cloth::message: Expanding corners" << std::endl;
-    int counter = 0;
-    while ( btAverageNormal(psb).absolute().getY() < 0.9 ) {
+    counter = 0;
+    while ( btAverageNormal(psb).absolute().getY() < 0.9 || counter < required_iterations ) {
         std::cerr << "volcart::cloth::message: Step " << counter + 1 << "\r" << std::flush;
         if ( counter % 2000 == 0 ) expandCorners( 10 + (counter / 2000) );
         dynamicsWorld->stepSimulation(1/60.f);
         psb->solveConstraints();
         ++counter;
     }
-
     std::cerr << std::endl;
+    std::cerr << "Expansion steps: " << counter << std::endl;
 
     // Add a collision plane to push the mesh onto
     float plane_y = psb->m_nodes[0].m_x.y() - 5;
@@ -229,17 +233,13 @@ int main(int argc, char* argv[]) {
     plane->setFriction(0.01); // (0-1] Default: 0.5
     psb->m_cfg.kDF = 0.01; // Dynamic friction coefficient (0-1] Default: 0.2
 
-    psb->m_materials[0]->m_kLST = 0.1; // Linear stiffness coefficient [0,1]
-    psb->m_materials[0]->m_kAST = 0.1; // Area/Angular stiffness coefficient [0,1]
-    psb->m_materials[0]->m_kVST = 0.1; // Volume stiffness coefficient [0,1]
-
     // Let it settle
     std::cerr << "volcart::cloth::message: Relaxing corners" << std::endl;
     dynamicsWorld->setInternalTickCallback(emptyPreTickCallback, dynamicsWorld, true);
-    required_iterations = 5000;
+    required_iterations = required_iterations * 2;
     counter = 0;
     double test_area = btSurfaceArea(psb);
-    while ( isnan(test_area) || test_area/surface_area < 1.0 ) {
+    while ( isnan(test_area) || test_area/surface_area > 1.05 || counter < required_iterations ) {
         std::cerr << "volcart::cloth::message: Step " << counter + 1 << "\r" << std::flush;
         dynamicsWorld->stepSimulation(1/60.f);
         psb->solveConstraints();
@@ -248,6 +248,7 @@ int main(int argc, char* argv[]) {
         if ( counter % 500 == 0 ) test_area = btSurfaceArea(psb); // recalc area every 500 iterations
     }
     std::cerr << std::endl;
+    std::cerr << "Relaxation steps: " << counter << std::endl;
 
     // UV map setup
     double min_u, min_v, max_u, max_v;
@@ -342,9 +343,17 @@ btVector3 btAverageNormal(btSoftBody* body) {
         avg_normal += body->m_faces[n_id].m_normal;
     }
     avg_normal /= body->m_faces.size();
-    bool result = ( avg_normal.absolute().getZ() > 0.9 );
     return avg_normal;
 };
+
+btScalar btAverageVelocity(btSoftBody* body) {
+    btScalar velocity = 0;
+    for ( size_t n_id = 0; n_id < body->m_nodes.size(); ++n_id ) {
+        velocity += body->m_nodes[n_id].m_v.length();
+    }
+    velocity /= body->m_nodes.size();
+    return velocity;
+}
 
 // Calculate the surface area of the mesh using Heron's formula
 // Let a,b,c be the lengths of the sides of a triangle and p the semiperimeter
