@@ -29,6 +29,7 @@ find_package(VTK REQUIRED)
 find_package(OpenGL REQUIRED)
 #find_package(ACVD REQUIRED)
 find_package(Bullet REQUIRED)
+find_package(Curses REQUIRED)
 
 include(${ITK_USE_FILE})
 include(${VTK_USE_FILE})
@@ -36,7 +37,7 @@ include(${VTK_USE_FILE})
 
 include_directories(${Boost_INCLUDE_DIR} ${PCL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} ${ACVD_INCLUDE_DIRS} ${BULLET_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS} ${Boost_LIBRARY_DIRS})
-set(VC_REQ_LIBS ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} ${ITK_LIBRARIES} ${VTK_LIBRARIES} ${ACVD_LIBRARIES} ${BULLET_LIBRARIES})
+set(VC_REQ_LIBS ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} ${ITK_LIBRARIES} ${VTK_LIBRARIES} ${ACVD_LIBRARIES} ${BULLET_LIBRARIES} ${CURSES_LIBRARIES})
 add_definitions(${PCL_DEFINITIONS})
 
 # OS Specific Changes

@@ -5,6 +5,8 @@
 #include <iostream>
 #include <math.h>
 
+#include <curses.h>
+
 #include <opencv2/opencv.hpp>
 
 #include "volumepkg.h"
@@ -32,23 +34,35 @@ double btSurfaceArea( btSoftBody* body );
 static void planarizeCornersPreTickCallback(btDynamicsWorld *world, btScalar timeStep);
 static void emptyPreTickCallback(btDynamicsWorld *world, btScalar timeStep);
 void expandCorners(float magnitude);
+void dumpState( VC_MeshType::Pointer toUpdate, btSoftBody* body );
 std::vector<btSoftBody::Node*> pinnedPoints;
 std::vector<NodeTarget> targetPoints;
 
 int main(int argc, char* argv[]) {
-    if ( argc < 5 ) {
+    if ( argc < 3 ) {
         std::cout << "Usage: vc_texture2 volpkg seg-id iterations" << std::endl;
+        return EXIT_FAILURE;
     }
+
+    // for curses input
+    initscr();
+    noecho();
+    clear();
+    cbreak();
+    nodelay(stdscr, TRUE);
+    int ch;
+    bool breakloop = false;
+    printw("vc_cloth sim\n");
 
     VolumePkg vpkg = VolumePkg( argv[ 1 ] );
     std::string segID = argv[ 2 ];
     if (segID == "") {
-    std::cerr << "ERROR: Incorrect/missing segmentation ID!" << std::endl;
+    printw("ERROR: Incorrect/missing segmentation ID!\n");
     exit(EXIT_FAILURE);
     }
     if ( vpkg.getVersion() < 2.0) {
-    std::cerr << "ERROR: Volume package is version " << vpkg.getVersion() << " but this program requires a version >= 2.0."  << std::endl;
-    exit(EXIT_FAILURE);
+        printw("ERROR: Volume package is version %d but this program requires a version >= 2.0.\n", vpkg.getVersion() );
+        exit(EXIT_FAILURE);
     }
     vpkg.setActiveSegmentation(segID);
     std::string meshName = vpkg.getMeshPath();
@@ -85,7 +99,7 @@ int main(int argc, char* argv[]) {
     dynamicsWorld->setGravity(btVector3(0, 0, 0));
 
     // convert itk mesh to bullet mesh (vertices and triangle arrays)
-    std::cerr << "volcart::cloth::message: Converting mesh to softBody" << std::endl;
+    printw("volcart::cloth::message: Converting mesh to softBody\n");
     btSoftBody* psb;
     volcart::meshing::itk2bullet::itk2bullet(mesh, dynamicsWorld->getWorldInfo(), &psb);
 
@@ -96,7 +110,7 @@ int main(int argc, char* argv[]) {
     // These needed to be tested to find optimal values.
     // Sets the mass of the whole soft body, true considers the faces along with the vertices
     // Note: Mass is in kilograms. If mass isn't high enough, nothing changes.
-    std::cerr << "volcart::cloth::message: Setting mass" << std::endl;
+    printw("volcart::cloth::message: Setting mass\n");
     psb->setTotalMass( (int)(psb->m_nodes.size() * 0.001), true );
 
     psb->m_cfg.kDP = 0.1; // Damping coefficient of the soft body [0,1]
@@ -193,35 +207,74 @@ int main(int argc, char* argv[]) {
     middle = btVector3(t_x, t_y, t_z);
 
     // Planarize the corners
-    std::cerr << "volcart::cloth::message: Planarizing corners" << std::endl;
+    printw("volcart::cloth::message: Planarizing corners\n");
     dynamicsWorld->setInternalTickCallback(planarizeCornersPreTickCallback, dynamicsWorld, true);
     int counter = 0;
-    for (; counter < required_iterations; ++counter) {
-        std::cerr << "volcart::cloth::message: Step " << counter + 1 << "/" << required_iterations << "\r" << std::flush;
+    required_iterations = required_iterations * 2;
+    while ( counter < required_iterations && !breakloop) {
+        if ( (ch = getch()) != ERR ) {
+            switch(ch) {
+                case 's':
+                    dumpState( mesh, psb );
+                    break;
+                case 'b':
+                    breakloop = true;
+                    break;
+                case 'q':
+                    endwin();
+                    return 5;
+            }
+        }
+        printw("volcart::cloth::message: Step %d/%d\r", counter+1, required_iterations);
         dynamicsWorld->stepSimulation(1/60.f);
         psb->solveConstraints();
+        ++counter;
     }
-    std::cerr << std::endl;
-    std::cerr << "Planarize steps: " << counter << std::endl;
+    printw("\n");
+    printw("Planarize steps: %d\n", counter);
 
     // Expand the corners
-    std::cerr << "volcart::cloth::message: Expanding corners" << std::endl;
+    printw("volcart::cloth::message: Expanding corners\n");
     counter = 0;
-    while ( btAverageNormal(psb).absolute().getY() < 0.9 || counter < required_iterations ) {
-        std::cerr << "volcart::cloth::message: Step " << counter + 1 << "\r" << std::flush;
+    breakloop = false;
+    required_iterations = required_iterations * 2;
+    while ( (btAverageNormal(psb).absolute().getY() < 0.925 || counter < required_iterations) && !breakloop ) {
+        if ( (ch = getch()) != ERR ) {
+            switch (ch) {
+                case 's':
+                    dumpState(mesh, psb);
+                    break;
+                case 'b':
+                    breakloop = true;
+                    break;
+                case 'q':
+                    endwin();
+                    return 5;
+            }
+        }
+        printw("volcart::cloth::message: Step %d\r", counter+1);
         if ( counter % 2000 == 0 ) expandCorners( 10 + (counter / 2000) );
         dynamicsWorld->stepSimulation(1/60.f);
         psb->solveConstraints();
         ++counter;
     }
-    std::cerr << std::endl;
-    std::cerr << "Expansion steps: " << counter << std::endl;
+    printw("\n");
+    printw("Expansion steps: %d\n", counter);
 
     // Add a collision plane to push the mesh onto
-    float plane_y = psb->m_nodes[0].m_x.y() - 5;
-    btCollisionShape* groundShape = new btStaticPlaneShape(btVector3(0, 1, 0), 1);
-    btDefaultMotionState* groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -1, 0)));
-    btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState, groundShape, btVector3(0, plane_y, 0));
+    btScalar min_y = psb->m_nodes[0].m_x.y();
+    btScalar max_y = psb->m_nodes[0].m_x.y();
+    for (size_t n_id = 1; n_id < psb->m_nodes.size(); ++n_id) {
+        double _y = psb->m_nodes[n_id].m_x.y();
+        double _z = psb->m_nodes[n_id].m_x.z();
+        if ( _y < min_y && _z >= 0) min_y = psb->m_nodes[n_id].m_x.y();
+        if ( _y > max_y && _z >= 0) max_y = psb->m_nodes[n_id].m_x.y();
+    }
+
+    btScalar plane_y = min_y - 5;
+    btCollisionShape* groundShape = new btStaticPlaneShape(btVector3(0, plane_y, 0), 1);
+    btDefaultMotionState* groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 0)));
+    btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState, groundShape, btVector3(0, 0, 0));
     btRigidBody* plane = new btRigidBody(groundRigidBodyCI);
     dynamicsWorld->addRigidBody(plane);
 
@@ -234,38 +287,49 @@ int main(int argc, char* argv[]) {
     psb->m_cfg.kDF = 0.01; // Dynamic friction coefficient (0-1] Default: 0.2
 
     // Let it settle
-    std::cerr << "volcart::cloth::message: Relaxing corners" << std::endl;
+    printw("volcart::cloth::message: Relaxing corners\n");
     dynamicsWorld->setInternalTickCallback(emptyPreTickCallback, dynamicsWorld, true);
     required_iterations = required_iterations * 2;
     counter = 0;
+    breakloop = false;
     double test_area = btSurfaceArea(psb);
-    while ( isnan(test_area) || test_area/surface_area > 1.05 || counter < required_iterations ) {
-        std::cerr << "volcart::cloth::message: Step " << counter + 1 << "\r" << std::flush;
+    while ( (isnan(test_area) || test_area/surface_area > 1.05 || counter < required_iterations) && !breakloop ) {
+        if ( (ch = getch()) != ERR ) {
+            switch (ch) {
+                case 's':
+                    dumpState(mesh, psb);
+                    break;
+                case 'b':
+                    breakloop = true;
+                    break;
+                case 'q':
+                    endwin();
+                    return 5;
+            }
+        }
+        printw("volcart::cloth::message: Step %d\r", counter+1);
         dynamicsWorld->stepSimulation(1/60.f);
         psb->solveConstraints();
 
         ++counter;
         if ( counter % 500 == 0 ) test_area = btSurfaceArea(psb); // recalc area every 500 iterations
     }
-    std::cerr << std::endl;
-    std::cerr << "Relaxation steps: " << counter << std::endl;
+    printw("\n");
+    printw("Relaxation steps: %d\n", counter);
+    printw("\n\n\n");
 
     // UV map setup
-    double min_u, min_v, max_u, max_v;
+    double min_u = psb->m_nodes[0].m_x.x();
+    double min_v = psb->m_nodes[0].m_x.z();
+    double max_u = psb->m_nodes[0].m_x.x();
+    double max_v = psb->m_nodes[0].m_x.z();
     for (size_t n_id = 0; n_id < psb->m_nodes.size(); ++n_id) {
-        if (n_id == 0) {
-            min_u = psb->m_nodes[n_id].m_x.x();
-            min_v = psb->m_nodes[n_id].m_x.z();
-            max_u = psb->m_nodes[n_id].m_x.x();
-            max_v = psb->m_nodes[n_id].m_x.z();
-        } else {
-            double _x = psb->m_nodes[n_id].m_x.x();
-            double _z = psb->m_nodes[n_id].m_x.z();
-            if ( _x < min_u && _x >= 0 ) min_u = psb->m_nodes[n_id].m_x.x();
-            if ( _z < min_v && _z >= 0 ) min_v = psb->m_nodes[n_id].m_x.z();
-            if ( _x > max_u) max_u = psb->m_nodes[n_id].m_x.x();
-            if ( _z > max_v) max_v = psb->m_nodes[n_id].m_x.z();
-        }
+        double _x = psb->m_nodes[n_id].m_x.x();
+        double _z = psb->m_nodes[n_id].m_x.z();
+        if ( _x < min_u && _x >= 0 && _z >= 0 ) min_u = psb->m_nodes[n_id].m_x.x();
+        if ( _z < min_v && _z >= 0) min_v = psb->m_nodes[n_id].m_x.z();
+        if ( _x > max_u && _z >= 0) max_u = psb->m_nodes[n_id].m_x.x();
+        if ( _z > max_v && _z >= 0) max_v = psb->m_nodes[n_id].m_x.z();
     }
 
     // Round so that we have integer bounds
@@ -303,7 +367,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Convert soft body to itk mesh
-    std::cerr << "volcart::cloth::message: Updating mesh" << std::endl;
+    printw("volcart::cloth::message: Updating mesh\n");
     VC_MeshType::Pointer flatMesh = VC_MeshType::New();
     volcart::meshing::deepCopy(mesh, flatMesh);
     volcart::meshing::bullet2itk::bullet2itk(psb, flatMesh);
@@ -334,7 +398,20 @@ int main(int argc, char* argv[]) {
     delete collisionConfiguration;
     delete broadphase;
 
+    printw("\n\nPress q to quit\n");
+    breakloop = false;
+    while (!breakloop) {
+        if ( (ch = getch()) != ERR ) {
+            switch (ch) {
+                case 'q':
+                    breakloop = true;
+                    break;
+            }
+        }
+    }
+    endwin();
     return 0;
+
 } // end main
 
 btVector3 btAverageNormal(btSoftBody* body) {
@@ -396,4 +473,14 @@ void expandCorners(float magnitude) {
         targetPoints[p_id].t_pos += (targetPoints[p_id].t_pos - middle).normalized() * _magnitude;
         targetPoints[p_id].t_stepsize = stepSize;
     }
+}
+
+void dumpState( VC_MeshType::Pointer toUpdate, btSoftBody* body ) {
+    VC_MeshType::Pointer output = VC_MeshType::New();
+    volcart::meshing::deepCopy(toUpdate, output);
+    volcart::meshing::bullet2itk::bullet2itk(body, output);
+
+    std::string path = "inter_" + VC_DATE_TIME() + ".obj";
+    volcart::io::objWriter writer(path, output);
+    writer.write();
 }
