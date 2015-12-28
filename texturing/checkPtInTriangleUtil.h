@@ -63,7 +63,7 @@ inline Vec Cross( const Vec &nV1,
 
 // Check if the point is within the angle (note it could also be in the reverse direction)
 // A is the starting point, AB and AC are the edges
-bool IsPtBetweenVecs( const Point &nPt,
+inline bool IsPtBetweenVecs( const Point &nPt,
                       const Point &nA,
                       const Point &nB,
                       const Point &nC )
@@ -75,11 +75,12 @@ bool IsPtBetweenVecs( const Point &nPt,
 }
 
 // Check is the point is inside the triangle
-bool IsPtInTriangle( const Point &nPt,
+inline bool IsPtInTriangle( const Point &nPt,
                      const Point &nA,
                      const Point &nB,
                      const Point &nC )
 {
+    //To-Do: Is nPt on boundary?
     return( IsPtBetweenVecs( nPt, nB, nA, nC ) && IsPtBetweenVecs( nPt, nA, nB, nC ) );
 }
 

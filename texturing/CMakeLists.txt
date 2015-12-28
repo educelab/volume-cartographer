@@ -7,5 +7,7 @@ if(TARGET texturing)
     message("Texturing library is already defined")
 else()
     add_library(vc_texturing STATIC compositeTexture.cpp compositeTexture.h
-                                    simpleUV.h simpleUV.cpp)
+                                    compositeTextureV2.cpp compositeTextureV2.h
+                                    simpleUV.h simpleUV.cpp
+                                    UPointMapping.h UPointMapping.cpp )
 endif()

@@ -15,3 +15,6 @@ target_link_libraries(vc_uvMapExample ${VC_LIBS} ${VC_REQ_LIBS})
 
 add_executable(vc_plyExporterExample plyExporterExample.cpp)
 target_link_libraries(vc_plyExporterExample ${VC_LIBS} ${VC_REQ_LIBS})
+
+add_executable(vc_textureExample textureExample.cpp)
+target_link_libraries(vc_textureExample ${VC_LIBS} ${VC_REQ_LIBS})

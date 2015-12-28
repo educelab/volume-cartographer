@@ -70,9 +70,9 @@ cv::Vec3d CalcMappedPoint( const cv::Vec3d &ptSrc,
                            const cv::Mat   &homographyMatrix ) {
 
   cv::Mat aP( 3, 1, CV_64F );
-  aP.at< double >( 0, 0 ) = nPtSrc[ 0 ];
-  aP.at< double >( 1, 0 ) = nPtSrc[ 1 ];
-  aP.at< double >( 2, 0 ) = nPtSrc[ 2 ];
+  aP.at< double >( 0, 0 ) = ptSrc[ 0 ];
+  aP.at< double >( 1, 0 ) = ptSrc[ 1 ];
+  aP.at< double >( 2, 0 ) = ptSrc[ 2 ];
 
   aP = homographyMatrix * aP;
 
