@@ -53,7 +53,7 @@ void CalcHomographyFromPoints( const std::vector< cv::Vec3d > &nPtSrc,
   }
 }
 
-void CalcMappedPoint( const std::vector< cv::Vec3d > &nPtSrc,
+void CalcMappedPoints( const std::vector< cv::Vec3d > &nPtSrc,
                       std::vector< cv::Vec3d > &nPtTgt,
                       const cv::Mat &nH )
 {
@@ -61,14 +61,25 @@ void CalcMappedPoint( const std::vector< cv::Vec3d > &nPtSrc,
     nPtTgt.clear();
   }
 
-  cv::Mat aP( 3, 1, CV_64F );
   for ( size_t i = 0; i < nPtSrc.size(); ++i ) {
-    aP.at< double >( 0, 0 ) = nPtSrc[ i ][ 0 ];
-    aP.at< double >( 1, 0 ) = nPtSrc[ i ][ 1 ];
-    aP.at< double >( 2, 0 ) = nPtSrc[ i ][ 2 ];
-
-    aP = nH * aP;
-
-    nPtTgt.push_back( cv::Vec3d( aP.at< double >( 0, 0 ), aP.at< double >( 1, 0 ), aP.at< double >( 2, 0 ) ) );
+    nPtTgt.push_back( CalcMappedPoint( nPtSrc[i], nH ) );
   }
+}
+
+cv::Vec3d CalcMappedPoint( const cv::Vec3d &ptSrc,
+                           const cv::Mat   &homographyMatrix ) {
+
+  cv::Mat aP( 3, 1, CV_64F );
+  aP.at< double >( 0, 0 ) = nPtSrc[ 0 ];
+  aP.at< double >( 1, 0 ) = nPtSrc[ 1 ];
+  aP.at< double >( 2, 0 ) = nPtSrc[ 2 ];
+
+  aP = homographyMatrix * aP;
+
+  cv::Vec3d ptTgt;
+  ptTgt[0] = aP.at< double >( 0, 0 );
+  ptTgt[1] = aP.at< double >( 1, 0 );
+  ptTgt[2] = aP.at< double >( 2, 0 );
+
+  return ptTgt;
 }
