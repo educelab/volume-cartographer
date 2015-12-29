@@ -21,9 +21,6 @@
 #include "itkPointsLocator.h"
 #include <itkTriangleCell.h>
 
-// VC - OpenCV
-#include <opencv2/opencv.hpp>
-
 typedef itk::Vector< double, 3 >                      VC_PixelType;
 typedef itk::Mesh< VC_PixelType, 3 >                  VC_MeshType;
 typedef VC_MeshType::PointType                        VC_PointType;

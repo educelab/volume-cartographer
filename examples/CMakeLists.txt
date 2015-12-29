@@ -18,3 +18,6 @@ target_link_libraries(vc_plyExporterExample ${VC_LIBS} ${VC_REQ_LIBS})
 
 add_executable(vc_textureExample textureExample.cpp)
 target_link_libraries(vc_textureExample ${VC_LIBS} ${VC_REQ_LIBS})
+
+add_executable(vc_ACVDExample ACVDExample.cpp)
+target_link_libraries(vc_ACVDExample ${VC_LIBS} ${VC_REQ_LIBS})

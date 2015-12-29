@@ -27,9 +27,8 @@ find_package(Boost REQUIRED COMPONENTS system filesystem program_options iostrea
 find_package(ITK REQUIRED)
 find_package(VTK REQUIRED)
 find_package(OpenGL REQUIRED)
-#find_package(ACVD REQUIRED)
+find_package(ACVD REQUIRED)
 find_package(Bullet REQUIRED)
-find_package(Curses REQUIRED)
 
 include(${ITK_USE_FILE})
 include(${VTK_USE_FILE})

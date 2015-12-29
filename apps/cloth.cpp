@@ -5,16 +5,16 @@
 #include <iostream>
 #include <math.h>
 
-#include <curses.h>
-
 #include <opencv2/opencv.hpp>
 
-#include "volumepkg.h"
 #include "vc_defines.h"
 #include "vc_datatypes.h"
+#include "volumepkg.h"
 #include "io/ply2itk.h"
+#include "itk2vtk.h"
 #include "io/objWriter.h"
 #include "compositeTextureV2.h"
+#include "ACVD.h"
 #include "deepCopy.h"
 
 // bullet converter
@@ -44,24 +44,14 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
-    // for curses input
-    initscr();
-    noecho();
-    clear();
-    cbreak();
-    nodelay(stdscr, TRUE);
-    int ch;
-    bool breakloop = false;
-    printw("vc_cloth sim\n");
-
     VolumePkg vpkg = VolumePkg( argv[ 1 ] );
     std::string segID = argv[ 2 ];
     if (segID == "") {
-    printw("ERROR: Incorrect/missing segmentation ID!\n");
+    printf("ERROR: Incorrect/missing segmentation ID!\n");
     exit(EXIT_FAILURE);
     }
     if ( vpkg.getVersion() < 2.0) {
-        printw("ERROR: Volume package is version %d but this program requires a version >= 2.0.\n", vpkg.getVersion() );
+        printf("ERROR: Volume package is version %f but this program requires a version >= 2.0.\n", vpkg.getVersion() );
         exit(EXIT_FAILURE);
     }
     vpkg.setActiveSegmentation(segID);
@@ -79,6 +69,15 @@ int main(int argc, char* argv[]) {
     if (!volcart::io::ply2itkmesh(meshName, mesh, meshWidth, meshHeight)) {
         exit( -1 );
     };
+
+    vtkPolyData* vtkMesh = vtkPolyData::New();
+    volcart::meshing::itk2vtk(mesh, vtkMesh);
+
+    vtkPolyData* acvdMesh = vtkPolyData::New();
+    volcart::meshing::ACVD(vtkMesh, acvdMesh, 10000);
+
+    VC_MeshType::Pointer decimated = VC_MeshType::New();
+    volcart::meshing::vtk2itk(acvdMesh, decimated);
 
     // Create Dynamic world for bullet cloth simulation
     btBroadphaseInterface* broadphase = new btDbvtBroadphase();
@@ -99,9 +98,8 @@ int main(int argc, char* argv[]) {
     dynamicsWorld->setGravity(btVector3(0, 0, 0));
 
     // convert itk mesh to bullet mesh (vertices and triangle arrays)
-    printw("volcart::cloth::message: Converting mesh to softBody\n");
     btSoftBody* psb;
-    volcart::meshing::itk2bullet::itk2bullet(mesh, dynamicsWorld->getWorldInfo(), &psb);
+    volcart::meshing::itk2bullet::itk2bullet(decimated, dynamicsWorld->getWorldInfo(), &psb);
 
     psb->getWorldInfo()->m_gravity = dynamicsWorld->getGravity(); // Have to explicitly make softbody gravity match world gravity
     dynamicsWorld->addSoftBody(psb);
@@ -110,7 +108,7 @@ int main(int argc, char* argv[]) {
     // These needed to be tested to find optimal values.
     // Sets the mass of the whole soft body, true considers the faces along with the vertices
     // Note: Mass is in kilograms. If mass isn't high enough, nothing changes.
-    printw("volcart::cloth::message: Setting mass\n");
+    printf("volcart::cloth::message: Setting mass\n");
     psb->setTotalMass( (int)(psb->m_nodes.size() * 0.001), true );
 
     psb->m_cfg.kDP = 0.1; // Damping coefficient of the soft body [0,1]
@@ -120,17 +118,31 @@ int main(int argc, char* argv[]) {
 
     // Find the position of the four corner nodes
     // Currently assumes that the first point has the same z-value as the rest of the starting chain
+    // This needs work. A lot of work.
     int min_z = (int) std::floor(mesh->GetPoint(0)[2]);
-    int chain_size = 1;
+    unsigned long chain_size = 1;
     double chain_length = 0;
     // Calculate chain size and chain length
-    for(int i = 1; i < psb->m_nodes.size(); ++i) {
-        if( (int)psb->m_nodes[i].m_x.z() <= min_z ) {
-            chain_length += psb->m_nodes[i].m_x.distance(psb->m_nodes[i-1].m_x);
+    for(unsigned long i = 1; i < mesh->GetNumberOfPoints(); ++i) {
+        if( mesh->GetPoint(i)[2] <= min_z ) {
+            chain_length += mesh->GetPoint(i).EuclideanDistanceTo(mesh->GetPoint(i-1));
             ++chain_size;
         }
         else
             break;
+    }
+    VC_PointType tl = mesh->GetPoint(0);
+    VC_PointType tr = mesh->GetPoint(chain_size - 1);
+    VC_PointType bl = mesh->GetPoint(mesh->GetNumberOfPoints() - chain_size);
+    VC_PointType br = mesh->GetPoint(mesh->GetNumberOfPoints() - 1);
+
+    unsigned long tl_id, tr_id, bl_id, br_id;
+    tl_id = tr_id = bl_id = br_id = 0;
+    for ( auto pt = decimated->GetPoints()->Begin(); pt != decimated->GetPoints()->End(); ++pt ) {
+        if ( tl.EuclideanDistanceTo(pt->Value()) < tl.EuclideanDistanceTo(decimated->GetPoint(tl_id)) ) tl_id = pt->Index();
+        if ( tr.EuclideanDistanceTo(pt->Value()) < tr.EuclideanDistanceTo(decimated->GetPoint(tr_id)) ) tr_id = pt->Index();
+        if ( bl.EuclideanDistanceTo(pt->Value()) < bl.EuclideanDistanceTo(decimated->GetPoint(bl_id)) ) bl_id = pt->Index();
+        if ( br.EuclideanDistanceTo(pt->Value()) < br.EuclideanDistanceTo(decimated->GetPoint(br_id)) ) br_id = pt->Index();
     }
 
     // For debug. These values should match.
@@ -138,10 +150,10 @@ int main(int argc, char* argv[]) {
 
     // Append rigid bodies to respective nodes of mesh
     // Assumes the chain length is constant throughout the mesh
-    btSoftBody::Node* top_left     = &psb->m_nodes[0];
-    btSoftBody::Node* top_right    = &psb->m_nodes[chain_size - 1];
-    btSoftBody::Node* bottom_left  = &psb->m_nodes[psb->m_nodes.size() - chain_size];
-    btSoftBody::Node* bottom_right = &psb->m_nodes[psb->m_nodes.size() - 1];
+    btSoftBody::Node* top_left     = &psb->m_nodes[tl_id];
+    btSoftBody::Node* top_right    = &psb->m_nodes[tr_id];
+    btSoftBody::Node* bottom_left  = &psb->m_nodes[bl_id];
+    btSoftBody::Node* bottom_right = &psb->m_nodes[br_id];
 
     pinnedPoints.push_back(top_left);
     pinnedPoints.push_back(top_right);
@@ -149,10 +161,10 @@ int main(int argc, char* argv[]) {
     pinnedPoints.push_back(bottom_right);
 
     double pinMass = 10;
-    psb->setMass(0, pinMass);
-    psb->setMass(chain_size - 1, pinMass);
-    psb->setMass(psb->m_nodes.size() - chain_size, pinMass);
-    psb->setMass(psb->m_nodes.size() - 1, pinMass);
+    psb->setMass(tl_id, pinMass);
+    psb->setMass(tr_id, pinMass);
+    psb->setMass(bl_id, pinMass);
+    psb->setMass(br_id, pinMass);
 
     // Calculate the surface area of the mesh
     double surface_area = btSurfaceArea(psb);
@@ -168,99 +180,72 @@ int main(int argc, char* argv[]) {
     btSoftBody::Node* node_ptr;
 
     // top left corner
-    node_ptr = &psb->m_nodes[0];
-    n_target.t_pos = psb->m_nodes[0].m_x;
+    node_ptr = &psb->m_nodes[tl_id];
+    n_target.t_pos = psb->m_nodes[tl_id].m_x;
     n_target.t_stepsize = (node_ptr)->m_x.distance(n_target.t_pos) / required_iterations;
     targetPoints.push_back(n_target);
 
     // top right corner
-    node_ptr = &psb->m_nodes[chain_size - 1];
-    t_x = psb->m_nodes[0].m_x.x() + width;
-    t_y = psb->m_nodes[0].m_x.y();
-    t_z = psb->m_nodes[0].m_x.z();
+    node_ptr = &psb->m_nodes[tr_id];
+    t_x = psb->m_nodes[tl_id].m_x.x() + width;
+    t_y = psb->m_nodes[tl_id].m_x.y();
+    t_z = psb->m_nodes[tl_id].m_x.z();
     n_target.t_pos = btVector3(t_x, t_y, t_z);
     n_target.t_stepsize = (node_ptr)->m_x.distance(n_target.t_pos) / required_iterations;
     targetPoints.push_back(n_target);
 
     // bottom left corner
-    node_ptr = &psb->m_nodes[psb->m_nodes.size() - chain_size];
-    t_x = psb->m_nodes[0].m_x.x();
-    t_y = psb->m_nodes[0].m_x.y();
-    t_z = psb->m_nodes[0].m_x.z() + height;
+    node_ptr = &psb->m_nodes[bl_id];
+    t_x = psb->m_nodes[tl_id].m_x.x();
+    t_y = psb->m_nodes[tl_id].m_x.y();
+    t_z = psb->m_nodes[tl_id].m_x.z() + height;
     n_target.t_pos = btVector3(t_x, t_y, t_z);
     n_target.t_stepsize = (node_ptr)->m_x.distance(n_target.t_pos) / required_iterations;
     targetPoints.push_back(n_target);
 
     // bottom right corner
-    node_ptr = &psb->m_nodes[psb->m_nodes.size() - 1];
-    t_x = psb->m_nodes[0].m_x.x() + width;
-    t_y = psb->m_nodes[0].m_x.y();
-    t_z = psb->m_nodes[0].m_x.z() + height;
+    node_ptr = &psb->m_nodes[br_id];
+    t_x = psb->m_nodes[tl_id].m_x.x() + width;
+    t_y = psb->m_nodes[tl_id].m_x.y();
+    t_z = psb->m_nodes[tl_id].m_x.z() + height;
     n_target.t_pos = btVector3(t_x, t_y, t_z);
     n_target.t_stepsize = (node_ptr)->m_x.distance(n_target.t_pos) / required_iterations;
     targetPoints.push_back(n_target);
 
     // Middle of target rectangle
-    t_x = psb->m_nodes[0].m_x.x() + (width / 2);
-    t_y = psb->m_nodes[0].m_x.y();
-    t_z = psb->m_nodes[0].m_x.z() + (height / 2);
+    t_x = psb->m_nodes[tl_id].m_x.x() + (width / 2);
+    t_y = psb->m_nodes[tl_id].m_x.y();
+    t_z = psb->m_nodes[tl_id].m_x.z() + (height / 2);
     middle = btVector3(t_x, t_y, t_z);
 
     // Planarize the corners
-    printw("volcart::cloth::message: Planarizing corners\n");
+    printf("volcart::cloth::message: Planarizing corners\n");
     dynamicsWorld->setInternalTickCallback(planarizeCornersPreTickCallback, dynamicsWorld, true);
     int counter = 0;
-    while ( counter < required_iterations && !breakloop) {
-        if ( (ch = getch()) != ERR ) {
-            switch(ch) {
-                case 's':
-                    dumpState( mesh, psb );
-                    break;
-                case 'b':
-                    breakloop = true;
-                    break;
-                case 'q':
-                    endwin();
-                    return 5;
-            }
-        }
-        printw("volcart::cloth::message: Step %d/%d\r", counter+1, required_iterations);
+    while ( counter < required_iterations ) {
+        std::cerr << "volcart::cloth::message: Step " << counter+1 << "/" << required_iterations << "\r" << std::flush;
         dynamicsWorld->stepSimulation(1/60.f);
         psb->solveConstraints();
         ++counter;
     }
-    printw("\n");
-    printw("Planarize steps: %d\n", counter);
-    dumpState( mesh, psb, "_1");
+    std::cerr << std::endl;
+    printf("Planarize steps: %d\n", counter);
+    dumpState( decimated, psb, "_1");
 
     // Expand the corners
-    printw("volcart::cloth::message: Expanding corners\n");
+    printf("volcart::cloth::message: Expanding corners\n");
     counter = 0;
-    breakloop = false;
     required_iterations = required_iterations * 2;
-    while ( (btAverageNormal(psb).absolute().getY() < 0.925 || counter < required_iterations) && !breakloop ) {
-        if ( (ch = getch()) != ERR ) {
-            switch (ch) {
-                case 's':
-                    dumpState(mesh, psb);
-                    break;
-                case 'b':
-                    breakloop = true;
-                    break;
-                case 'q':
-                    endwin();
-                    return 5;
-            }
-        }
-        printw("volcart::cloth::message: Step %d\r", counter+1);
+    while ( (btAverageNormal(psb).absolute().getY() < 0.925 || counter < required_iterations) ) {
+        std::cerr << "volcart::cloth::message: Step " << counter+1 << "\r" << std::flush;
         if ( counter % 2000 == 0 ) expandCorners( 10 + (counter / 2000) );
         dynamicsWorld->stepSimulation(1/60.f);
         psb->solveConstraints();
         ++counter;
     }
-    printw("\n");
-    printw("Expansion steps: %d\n", counter);
-    dumpState( mesh, psb, "_2" );
+    std::cerr << std::endl;
+    printf("Expansion steps: %d\n", counter);
+    dumpState( decimated, psb, "_2" );
 
     // Add a collision plane to push the mesh onto
     btScalar min_y = psb->m_nodes[0].m_x.y();
@@ -288,36 +273,22 @@ int main(int argc, char* argv[]) {
     psb->m_cfg.kDF = 0.01; // Dynamic friction coefficient (0-1] Default: 0.2
 
     // Let it settle
-    printw("volcart::cloth::message: Relaxing corners\n");
+    printf("volcart::cloth::message: Relaxing corners\n");
     dynamicsWorld->setInternalTickCallback(emptyPreTickCallback, dynamicsWorld, true);
     required_iterations = required_iterations * 2;
     counter = 0;
-    breakloop = false;
     double test_area = btSurfaceArea(psb);
-    while ( (isnan(test_area) || test_area/surface_area > 1.05 || counter < required_iterations) && !breakloop ) {
-        if ( (ch = getch()) != ERR ) {
-            switch (ch) {
-                case 's':
-                    dumpState(mesh, psb);
-                    break;
-                case 'b':
-                    breakloop = true;
-                    break;
-                case 'q':
-                    endwin();
-                    return 5;
-            }
-        }
-        printw("volcart::cloth::message: Step %d\r", counter+1);
+    while ( isnan(test_area) || test_area/surface_area > 1.05 || counter < required_iterations ) {
+        std::cerr << "volcart::cloth::message: Step " << counter+1 << "\r" << std::flush;
         dynamicsWorld->stepSimulation(1/60.f);
         psb->solveConstraints();
 
         ++counter;
         if ( counter % 500 == 0 ) test_area = btSurfaceArea(psb); // recalc area every 500 iterations
     }
-    printw("\n");
-    printw("Relaxation steps: %d\n", counter);
-    printw("\n\n\n");
+    std::cerr << std::endl;
+    printf("Relaxation steps: %d\n", counter);
+    dumpState( decimated, psb, "_3" );
 
     // UV map setup
     double min_u = psb->m_nodes[0].m_x.x();
@@ -358,7 +329,7 @@ int main(int argc, char* argv[]) {
             // btSoftBody faces hold pointers to specific nodes, but we need the point id
             // Lookup the point ID of this node in the original ITK mesh
             VC_CellType::CellAutoPointer c;
-            mesh->GetCell(f_id, c);
+            decimated->GetCell(f_id, c);
             double p_id = c->GetPointIdsContainer()[n_id];
 
             // Add the uv coordinates into our map at the point index specified
@@ -368,14 +339,8 @@ int main(int argc, char* argv[]) {
     }
 
     // Convert soft body to itk mesh
-    printw("volcart::cloth::message: Updating mesh\n");
-    VC_MeshType::Pointer flatMesh = VC_MeshType::New();
-    volcart::meshing::deepCopy(mesh, flatMesh);
-    volcart::meshing::bullet2itk::bullet2itk(psb, flatMesh);
-
-    volcart::texturing::compositeTextureV2 result(mesh, vpkg, uvMap, 10, (int) aspect_width, (int) aspect_height);
-    volcart::Texture newTexture = result.texture();
-    volcart::io::objWriter objwriter("cloth.obj", mesh, newTexture.uvMap(), newTexture.getImage(0));
+    volcart::texturing::compositeTextureV2 result(decimated, vpkg, uvMap, 10, (int) aspect_width * 2, (int) aspect_height * 2);
+    volcart::io::objWriter objwriter("cloth.obj", decimated, result.texture().uvMap(), result.texture().getImage(0));
     objwriter.write();
 
     // bullet clean up
@@ -392,18 +357,6 @@ int main(int argc, char* argv[]) {
     delete collisionConfiguration;
     delete broadphase;
 
-    printw("\n\nPress q to quit\n");
-    breakloop = false;
-    while (!breakloop) {
-        if ( (ch = getch()) != ERR ) {
-            switch (ch) {
-                case 'q':
-                    breakloop = true;
-                    break;
-            }
-        }
-    }
-    endwin();
     return 0;
 
 } // end main

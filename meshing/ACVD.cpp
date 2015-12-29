@@ -91,8 +91,8 @@ namespace volcart {
             Mesh->GetPoints()->Modified();
 
             // Disabled because all it does is show info about the remeshing. - SP
-            std::cout << "After Quadrics Post-processing : " << std::endl;
-            Remesh->GetOutput()->DisplayMeshProperties();
+            //std::cout << "After Quadrics Post-processing : " << std::endl;
+            //Remesh->GetOutput()->DisplayMeshProperties();
             }
             ///// End ACVD /////
 

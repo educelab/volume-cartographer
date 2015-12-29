@@ -7,6 +7,7 @@ if(TARGET vc_meshing)
 message("meshing is already defined")
 else()
 add_library(vc_meshing STATIC
+                    ACVD.h ACVD.cpp
                     orderedPCDMesher.h orderedPCDMesher.cpp
                     resamplePointCloud.h resamplePointCloud.cpp
                     greedyProjectionMeshing.h greedyProjectionMeshing.cpp
