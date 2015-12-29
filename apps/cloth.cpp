@@ -7,6 +7,10 @@
 
 #include <opencv2/opencv.hpp>
 
+#include <vtkSmoothPolyDataFilter.h>
+#include <vtkDecimatePro.h>
+#include "vtkMassProperties.h"
+
 #include "vc_defines.h"
 #include "vc_datatypes.h"
 #include "volumepkg.h"
@@ -73,11 +77,25 @@ int main(int argc, char* argv[]) {
     vtkPolyData* vtkMesh = vtkPolyData::New();
     volcart::meshing::itk2vtk(mesh, vtkMesh);
 
-    vtkPolyData* acvdMesh = vtkPolyData::New();
-    volcart::meshing::ACVD(vtkMesh, acvdMesh, 10000);
+    vtkSmartPointer<vtkMassProperties> massProperties = vtkMassProperties::New();
+    massProperties->AddInputData(vtkMesh);
+    double area = massProperties->GetSurfaceArea();
+    double reduction = std::abs( 1 - ((area / 1.5) / mesh->GetNumberOfCells()) );
+    std::cerr << "reduction: " << reduction << std::endl;
+
+    vtkDecimatePro* decimatePro = vtkDecimatePro::New();
+    decimatePro->SetInputData(vtkMesh);
+    decimatePro->SetTargetReduction(reduction);
+    decimatePro->SplittingOff();
+
+    vtkSmoothPolyDataFilter* smoother = vtkSmoothPolyDataFilter::New();
+    smoother->SetInputConnection( decimatePro->GetOutputPort() );
+    smoother->SetNumberOfIterations(3);
+    smoother->SetRelaxationFactor(0.3);
+    smoother->Update();
 
     VC_MeshType::Pointer decimated = VC_MeshType::New();
-    volcart::meshing::vtk2itk(acvdMesh, decimated);
+    volcart::meshing::vtk2itk(smoother->GetOutput(), decimated);
 
     // Create Dynamic world for bullet cloth simulation
     btBroadphaseInterface* broadphase = new btDbvtBroadphase();
@@ -103,6 +121,7 @@ int main(int argc, char* argv[]) {
 
     psb->getWorldInfo()->m_gravity = dynamicsWorld->getGravity(); // Have to explicitly make softbody gravity match world gravity
     dynamicsWorld->addSoftBody(psb);
+    dumpState( decimated, psb, "_0" );
 
     // Constraints for the mesh as a soft body
     // These needed to be tested to find optimal values.
