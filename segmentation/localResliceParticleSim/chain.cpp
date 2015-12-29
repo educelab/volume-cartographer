@@ -10,7 +10,6 @@
 #include "common.h"
 #include "normalizedintensitymap.h"
 
-
 using namespace volcart::segmentation;
 
 // Main constructor
@@ -21,14 +20,15 @@ Chain::Chain(VolumePkg& volpkg, int32_t zIndex) :
 	decltype(curve_)::ScalarVector xvals, yvals;
     xvals.reserve(segmentationPath->size());
     yvals.reserve(segmentationPath->size());
-    double count = 0;
     for (auto path : *segmentationPath) {
-        particles_.emplace_back(path.x, path.y, path.z);
-        particleCount_++;
-        xvals.push_back(count++);
-        yvals.push_back(path.x);
+        xvals.push_back(path.x);
+        yvals.push_back(path.y);
     }
-    curve_ = FittedCurve<>(xvals, yvals);
+    curve_ = FittedCurve<double>(xvals, yvals, particleCount_);
+	auto particles2d = curve_.resampledPoints();
+	for (const auto& p : particles2d) {
+		particles_.emplace_back(p(0), p(1), zIndex_);
+	}
 }
 
 // Constructor from explicit points
@@ -41,12 +41,14 @@ Chain::Chain(VolumePkg& volpkg, const VoxelVec& pos, int32_t zIndex) :
     particles_.reserve(pos.size());
     double count = 0;
     for (const auto& p : pos) {
-        particles_.push_back(p);
-        particleCount_++;
-        xvals.push_back(count++);
+        xvals.push_back(p(VC_INDEX_X));
         yvals.push_back(p(VC_INDEX_Y));
     }
-    curve_ = FittedCurve<>(xvals, yvals);
+    curve_ = FittedCurve<double>(xvals, yvals, particleCount_);
+	auto particles2d = curve_.resampledPoints();
+	for (const auto& p : particles2d) {
+		particles_.emplace_back(p(0), p(1), zIndex_);
+	}
 }
 
 void Chain::setNewPositions(const VoxelVec& newPositions)
@@ -68,7 +70,7 @@ Chain::stepAll(const int32_t stepNumLayers, const int32_t keepNumMaxima) const
     return ps;
 }
 
-const Voxel Chain::calculateNormal(const size_t index) const
+Voxel Chain::calculateNormal(const size_t index) const
 {
     // For boundary conditions, do a simple linear interpolation of the first/last 2
     // points and set the appropriate variable based on that difference in x direction.
@@ -92,15 +94,8 @@ const Voxel Chain::calculateNormal(const size_t index) const
     auto tanVec = Voxel(
 			after - before, curve_.at(after) - curve_.at(before), zMean);
     */
-    double avgXDiff = 0;
-    for (uint32_t i = 1; i < particles_.size(); ++i) {
-        avgXDiff += (particles_[i](VC_INDEX_X) - particles_[i-1](VC_INDEX_X));
-    }
-    avgXDiff /= particles_.size();
-    double vx = particles_[index](VC_INDEX_X);
-    auto tanVec = Voxel(2 * avgXDiff,
-                        curve_.at(vx + avgXDiff) - curve_.at(vx - avgXDiff),
-                        zIndex_);
+	const auto tanPixel = curve_.derivCentralDifference(index);
+	const auto tanVec = Voxel(tanPixel(VC_INDEX_X), tanPixel(VC_INDEX_Y), zIndex_);
     return tanVec.cross(VC_DIRECTION_K);
 }
 
@@ -114,7 +109,7 @@ Chain::step(const int32_t index, const int32_t stepNumLayers,
     // Get reslice in k-direction at this point.
     const auto normal = calculateNormal(index);
     auto reslice = volpkg_.reslice(currentParticle, normal, VC_DIRECTION_K);
-    auto mat = reslice.sliceData();
+    const auto mat = reslice.sliceData();
 
     // Get normalized intensity map and find the maxima
     const auto center = cv::Point(mat.cols / 2, mat.rows / 2);
@@ -174,11 +169,7 @@ void Chain::draw() const {
         auto x = particles_.at(i)(VC_INDEX_X);
         auto y = particles_.at(i)(VC_INDEX_Y);
         cv::Point real(x, y);
-        auto p = curve_.atReturnPoint(x);
-        cv::Point interpolated(p.first, p.second);
-        std::cout << interpolated << std::endl;
         circle(pkgSlice, real, 1, BGR_GREEN, -1);
-        circle(pkgSlice, interpolated, 1, BGR_BLUE, -1);
     }
 
     namedWindow("Volpkg Slice", cv::WINDOW_NORMAL);

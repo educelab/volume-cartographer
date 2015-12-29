@@ -25,6 +25,17 @@ namespace volcart {
 namespace segmentation {
 
 class Chain {
+private:
+	VoxelVec particles_;
+    VolumePkg& volpkg_;
+    size_t particleCount_;
+    int32_t zIndex_;
+    FittedCurve<double> curve_;
+
+    constexpr static double kDefaultMaxDrift = 0.0;
+
+    Voxel calculateNormal(const size_t index) const;
+
 public:
     using Iterator       = typename VoxelVec::iterator;
     using ConstIterator  = typename VoxelVec::const_iterator;
@@ -55,7 +66,7 @@ public:
 
     Iterator end() { return particles_.end(); }
 
-    const FittedCurve<>& fittedCurve() const { return curve_; }
+    const decltype(curve_)& curve() const { return curve_; }
 
     std::vector<VoxelVec> stepAll(const int32_t stepNumLayers,
                                   const int32_t keepNumMaxima) const;
@@ -66,17 +77,6 @@ public:
     void setNewPositions(const VoxelVec& newPositions);
 
     void draw() const;
-
-private:
-	VoxelVec particles_;
-    VolumePkg& volpkg_;
-    size_t particleCount_;
-    int32_t zIndex_;
-    FittedCurve<> curve_;
-
-    constexpr static double kDefaultMaxDrift = 0.0;
-
-    const Voxel calculateNormal(const size_t index) const;
 
 };
 

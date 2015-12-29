@@ -27,6 +27,7 @@ namespace segmentation {
 using IndexDistPair    = std::pair<int32_t, double>;
 using IndexDistPairVec = typename std::vector<IndexDistPair>;
 using Voxel            = cv::Vec3d;
+using Pixel            = cv::Vec2d;
 using VoxelVec         = typename std::vector<Voxel>;
 
 #define VC_DIRECTION_K Voxel(0.0, 0.0, 1.0)
