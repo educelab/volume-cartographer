@@ -31,6 +31,7 @@ namespace volcart {
             _generateHomographies();
 
             // Output
+            unsigned long pixelsNotInCell = 0;
             cv::Mat image( _height, _width, CV_16UC1 );
             for ( int y = 0; y < _height; ++y ) {
                 for ( int x = 0; x < _width; ++x ) {
@@ -45,35 +46,38 @@ namespace volcart {
                     // Find which triangle this pixel belongs to
                     bool inCell = false;
                     unsigned long cell_id = 0;
-                    cv::Vec3d cell_normal(0,0,0);
-                    checkPtInTriangleUtil::Point check_pos;
-                    check_pos.data[0] = uv[0];
-                    check_pos.data[1] = uv[1];
-                    check_pos.data[2] = uv[2];
 
-                    std::vector<checkPtInTriangleUtil::Point> vertices;
-                    checkPtInTriangleUtil::Point vertex;
+                    std::vector<cv::Vec3d> vertices2D;
+                    std::vector<cv::Vec3d> vertices3D;
+                    cv::Vec3d pos_2D, pos_3D;
                     for ( auto cell = _input->GetCells()->Begin(); cell != _input->GetCells()->End(); ++cell ) {
                         for (VC_PointsInCellIterator point = cell->Value()->PointIdsBegin(); point != cell->Value()->PointIdsEnd(); ++point) {
-                            vertex.data[0] = _uvMap.get(*point)[0];
-                            vertex.data[1] = _uvMap.get(*point)[1];
-                            vertex.data[2] = 1.0;
-                            vertices.push_back(vertex);
+                            pos_3D[0] = _input->GetPoint(*point)[0];
+                            pos_3D[1] = _input->GetPoint(*point)[1];
+                            pos_3D[2] = _input->GetPoint(*point)[2];
+                            vertices3D.push_back(pos_3D);
+
+                            pos_2D[0] = _uvMap.get(*point)[0];
+                            pos_2D[1] = _uvMap.get(*point)[1];
+                            pos_2D[2] = 1.0;
+                            vertices2D.push_back(pos_2D);
                         }
 
-                        inCell = checkPtInTriangleUtil::IsPtInTriangle( check_pos, vertices[0], vertices[1], vertices[2] );
+                        inCell = checkPtInTriangleUtil::IsPtInTriangle( uv, vertices2D[0], vertices2D[1], vertices2D[2] );
                         if ( inCell ) {
                             cell_id = cell->Index();
                             break;
                         }
 
                         // Empty the vector for the next cell
-                        vertices.clear();
+                        vertices3D.clear();
+                        vertices2D.clear();
                     }
 
                     // Set this pixel to black if not part of a cell
                     if ( !inCell ) {
                         image.at < unsigned short > (y, x) = 0;
+                        ++pixelsNotInCell;
                         continue;
                     }
 
@@ -81,11 +85,8 @@ namespace volcart {
                     cv::Vec3d xyz = CalcMappedPoint( uv, _homographies[cell_id] );
 
                     // Calculate the cell's normal for this normal
-                    cv::Vec3d v0( vertices[0].data );
-                    cv::Vec3d v1( vertices[1].data );
-                    cv::Vec3d v2( vertices[2].data );
-                    cv::Vec3d v1v0 = v1 - v0;
-                    cv::Vec3d v2v0 = v2 - v0;
+                    cv::Vec3d v1v0 = vertices3D[1] - vertices3D[0];
+                    cv::Vec3d v2v0 = vertices3D[2] - vertices3D[0];
                     cv::Vec3d xyz_norm = cv::normalize( v1v0.cross(v2v0) );
 
                     // Generate the intensity value
@@ -99,10 +100,11 @@ namespace volcart {
                                                       _direction);
 
                     // Assign the intensity value at the UV position
-                    image.at < unsigned short > (y, x) = (unsigned short) value;
+                    image.at< unsigned short >(y, x) = (unsigned short) value;
                 }
             }
             std::cerr << std::endl;
+            std::cerr << "volcart::compositeTexture::pixels not in cell: " << pixelsNotInCell << std::endl;
 
             // Set output
             _texture.addImage(image);

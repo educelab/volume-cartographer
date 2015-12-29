@@ -4,84 +4,42 @@
 #define _CHECKPTINTRIANGLEUTIL_H_
 
 namespace checkPtInTriangleUtil {
-
-
-// Data structure
-// REVISIT - NOTE - can also use other data type to represent 3D vectors, such as cv::Vec3d.
-typedef struct Vec3d_tag {
-    double data[ 3 ];
-} Vec;
-
-typedef Vec Point;
-
-
-// Basic vector operations
-// operator+
-inline Vec operator+( const Vec &nV1,
-                      const Vec &nV2 )
-{
-    Vec aVec;
-    for ( int i = 0; i < 3; ++i ) {
-        aVec.data[ i ] = nV1.data[ i ] + nV2.data[ i ];
-    }
-    return aVec;
-}
-
-// operator-
-inline Vec operator-( const Vec &nV1,
-                      const Vec &nV2 )
-{
-    Vec aVec;
-    for ( int i = 0; i < 3; ++i ) {
-        aVec.data[ i ] = nV1.data[ i ] - nV2.data[ i ];
-    }
-    return aVec;
-}
-
-// Dot product
-inline double Dot( const Vec &nV1,
-                   const Vec &nV2 )
-{
-    double aResult = 0;
-    for ( int i = 0; i < 3; ++i ) {
-        aResult += nV1.data[ i ] * nV2.data[ i ];
-    }
-    return aResult;
-}
-
-// Cross product
-inline Vec Cross( const Vec &nV1,
-                  const Vec &nV2 )
-{
-    Vec aResult;
-    aResult.data[ 0 ] = nV1.data[ 1 ] * nV2.data[ 2 ] - nV1.data[ 2 ] * nV2.data[ 1 ];
-    aResult.data[ 1 ] = nV1.data[ 2 ] * nV2.data[ 0 ] - nV1.data[ 0 ] * nV2.data[ 2 ];
-    aResult.data[ 2 ] = nV1.data[ 0 ] * nV2.data[ 1 ] - nV1.data[ 1 ] * nV2.data[ 0 ];
-    return aResult;
-}
-
-
+    
 // Check if the point is within the angle (note it could also be in the reverse direction)
 // A is the starting point, AB and AC are the edges
-inline bool IsPtBetweenVecs( const Point &nPt,
-                      const Point &nA,
-                      const Point &nB,
-                      const Point &nC )
+inline bool IsPtBetweenVecs( const cv::Vec3d &nPt,
+                             const cv::Vec3d &nA,
+                             const cv::Vec3d &nB,
+                             const cv::Vec3d &nC )
 {
-    Vec aAB = nB - nA;
-    Vec aAC = nC - nA;
-    Vec aAP = nPt - nA;
-    return( ( Cross( aAB, aAP ).data[ 2 ] ) * ( Cross( aAC, aAP ).data[ 2 ] ) < 0 );
+    cv::Vec3d aAB = nB - nA;
+    cv::Vec3d aAC = nC - nA;
+    cv::Vec3d aAP = nPt - nA;
+    return( aAB.cross(aAP)[2] * aAC.cross(aAP)[2] < 0 );
 }
 
 // Check is the point is inside the triangle
-inline bool IsPtInTriangle( const Point &nPt,
-                     const Point &nA,
-                     const Point &nB,
-                     const Point &nC )
+// Barycentric technique taken from here: http://www.blackpawn.com/texts/pointinpoly/
+inline bool IsPtInTriangle( const cv::Vec3d &nPt,
+                            const cv::Vec3d &nA,
+                            const cv::Vec3d &nB,
+                            const cv::Vec3d &nC )
 {
-    //To-Do: Is nPt on boundary?
-    return( IsPtBetweenVecs( nPt, nB, nA, nC ) && IsPtBetweenVecs( nPt, nA, nB, nC ) );
+    cv::Vec3d aAB = nB - nA;
+    cv::Vec3d aAC = nC - nA;
+    cv::Vec3d aAP = nPt - nA;
+
+    double dot00 = aAC.dot(aAC);
+    double dot01 = aAC.dot(aAB);
+    double dot02 = aAC.dot(aAP);
+    double dot11 = aAB.dot(aAB);
+    double dot12 = aAB.dot(aAP);
+
+    double invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+    double u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+    double v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+
+    return ( u >= 0 && v >= 0 && u + v < 1 );
 }
 
 } // checkPtInTriangleUtil
