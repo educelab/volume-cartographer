@@ -7,6 +7,7 @@
 namespace volcart {
     namespace texturing {
 
+        // Constructor
         compositeTextureV2::compositeTextureV2(VC_MeshType::Pointer inputMesh,
                                                VolumePkg &volpkg,
                                                UVMap uvMap,
@@ -17,10 +18,10 @@ namespace volcart {
                                                VC_Direction_Option direction) :
                 _volpkg(volpkg), _input(inputMesh), _uvMap(uvMap), _radius(radius), _width(width), _height(height), _method(method), _direction(direction)
         {
-
             _process();
         };
 
+        // Do the hard work
         int compositeTextureV2::_process() {
 
             // Auto-generate minor radius for elliptical search
@@ -30,7 +31,7 @@ namespace volcart {
             // Generate homographies
             _generateHomographies();
 
-            // Output
+            // Iterate over every pixel in the output image
             unsigned long pixelsNotInCell = 0;
             cv::Mat image( _height, _width, CV_16UC1 );
             for ( int y = 0; y < _height; ++y ) {
@@ -43,35 +44,18 @@ namespace volcart {
                     uv[0] = (double) x / (double) _width;
                     uv[1] = (double) y / (double) _height;
 
-                    // Find which triangle this pixel belongs to
-                    bool inCell = false;
-                    unsigned long cell_id = 0;
+                    // Find which triangle this pixel lies inside of
+                    bool inCell = false; // Is the current pixel in this cell?
+                    unsigned long cell_id = 0; // The id number of the cell that contains this pixel
 
-                    std::vector<cv::Vec3d> vertices2D;
-                    std::vector<cv::Vec3d> vertices3D;
-                    cv::Vec3d pos_2D, pos_3D;
+                    cellInfo info;
                     for ( auto cell = _input->GetCells()->Begin(); cell != _input->GetCells()->End(); ++cell ) {
-                        for (VC_PointsInCellIterator point = cell->Value()->PointIdsBegin(); point != cell->Value()->PointIdsEnd(); ++point) {
-                            pos_3D[0] = _input->GetPoint(*point)[0];
-                            pos_3D[1] = _input->GetPoint(*point)[1];
-                            pos_3D[2] = _input->GetPoint(*point)[2];
-                            vertices3D.push_back(pos_3D);
-
-                            pos_2D[0] = _uvMap.get(*point)[0];
-                            pos_2D[1] = _uvMap.get(*point)[1];
-                            pos_2D[2] = 1.0;
-                            vertices2D.push_back(pos_2D);
-                        }
-
-                        inCell = checkPtInTriangleUtil::IsPtInTriangle( uv, vertices2D[0], vertices2D[1], vertices2D[2] );
+                        info = _cellInformation[cell->Index()];
+                        inCell = checkPtInTriangleUtil::IsPtInTriangle( uv, info.Pts2D[0], info.Pts2D[1], info.Pts2D[2] );
                         if ( inCell ) {
                             cell_id = cell->Index();
                             break;
                         }
-
-                        // Empty the vector for the next cell
-                        vertices3D.clear();
-                        vertices2D.clear();
                     }
 
                     // Set this pixel to black if not part of a cell
@@ -81,12 +65,12 @@ namespace volcart {
                         continue;
                     }
 
-                    // Lookup the original 3D position
-                    cv::Vec3d xyz = CalcMappedPoint( uv, _homographies[cell_id] );
+                    // Calculate the 3D position of this pixel using the homography matrix
+                    cv::Vec3d xyz = CalcMappedPoint( uv, info.homography );
 
-                    // Calculate the cell's normal for this normal
-                    cv::Vec3d v1v0 = vertices3D[1] - vertices3D[0];
-                    cv::Vec3d v2v0 = vertices3D[2] - vertices3D[0];
+                    // Use the cell normal as the normal for this point
+                    cv::Vec3d v1v0 = info.Pts3D[1] - info.Pts3D[0];
+                    cv::Vec3d v2v0 = info.Pts3D[2] - info.Pts3D[0];
                     cv::Vec3d xyz_norm = cv::normalize( v1v0.cross(v2v0) );
 
                     // Generate the intensity value
@@ -117,35 +101,31 @@ namespace volcart {
         int compositeTextureV2::_generateHomographies() {
 
             // Make sure the storage vector is clean
-            if ( !_homographies.empty() ) _homographies.clear();
+            if ( !_cellInformation.empty() ) _cellInformation.clear();
 
             // Generate a homography matrix for each cell in the mesh
-            std::vector<cv::Vec3d> _2DPts, _3DPts;
             cv::Vec3d _2D, _3D;
             std::cerr << "volcart::texturing::compositeTexturing: Generating homographies" << std::endl;
             for ( auto cell = _input->GetCells()->Begin(); cell != _input->GetCells()->End(); ++cell ) {
-
+                cellInfo info;
                 for( VC_PointsInCellIterator point = cell->Value()->PointIdsBegin(); point != cell->Value()->PointIdsEnd(); ++point ) {
                     unsigned long pointID = *point;
 
                     _2D[0] = _uvMap.get(pointID)[0];
                     _2D[1] = _uvMap.get(pointID)[1];
                     _2D[2] = 1.0;
-                    _2DPts.push_back(_2D);
+                    info.Pts2D.push_back(_2D);
 
                     _3D[0] = _input->GetPoint(pointID)[0];
                     _3D[1] = _input->GetPoint(pointID)[1];
                     _3D[2] = _input->GetPoint(pointID)[2];
-                    _3DPts.push_back(_3D);
+                    info.Pts3D.push_back(_3D);
                 }
 
-                cv::Mat _homography(3, 3, CV_64F);
-                CalcHomographyFromPoints( _2DPts, _3DPts, _homography);
+                info.homography = cv::Mat(3, 3, CV_64F);
+                CalcHomographyFromPoints( info.Pts2D, info.Pts3D, info.homography);
 
-                _homographies.push_back( _homography );
-
-                _2DPts.clear();
-                _3DPts.clear();
+                _cellInformation.push_back( info );
             }
 
             return EXIT_SUCCESS;

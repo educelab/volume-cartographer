@@ -13,6 +13,12 @@
 #include "checkPtInTriangleUtil.h"
 #include "texturingUtils.h"
 
+struct cellInfo {
+    cv::Mat homography;
+    std::vector<cv::Vec3d> Pts2D;
+    std::vector<cv::Vec3d> Pts3D;
+};
+
 namespace volcart {
 namespace texturing {
 
@@ -44,7 +50,7 @@ namespace texturing {
         UVMap _uvMap;
         Texture _texture;
 
-        std::vector<cv::Mat> _homographies;
+        std::vector< cellInfo > _cellInformation;
     };
 
 }
