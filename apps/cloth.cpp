@@ -34,7 +34,7 @@ double btSurfaceArea( btSoftBody* body );
 static void planarizeCornersPreTickCallback(btDynamicsWorld *world, btScalar timeStep);
 static void emptyPreTickCallback(btDynamicsWorld *world, btScalar timeStep);
 void expandCorners(float magnitude);
-void dumpState( VC_MeshType::Pointer toUpdate, btSoftBody* body );
+void dumpState( VC_MeshType::Pointer toUpdate, btSoftBody* body, std::string suffix = "" );
 std::vector<btSoftBody::Node*> pinnedPoints;
 std::vector<NodeTarget> targetPoints;
 
@@ -210,7 +210,6 @@ int main(int argc, char* argv[]) {
     printw("volcart::cloth::message: Planarizing corners\n");
     dynamicsWorld->setInternalTickCallback(planarizeCornersPreTickCallback, dynamicsWorld, true);
     int counter = 0;
-    required_iterations = required_iterations * 2;
     while ( counter < required_iterations && !breakloop) {
         if ( (ch = getch()) != ERR ) {
             switch(ch) {
@@ -232,6 +231,7 @@ int main(int argc, char* argv[]) {
     }
     printw("\n");
     printw("Planarize steps: %d\n", counter);
+    dumpState( mesh, psb, "_1");
 
     // Expand the corners
     printw("volcart::cloth::message: Expanding corners\n");
@@ -260,6 +260,7 @@ int main(int argc, char* argv[]) {
     }
     printw("\n");
     printw("Expansion steps: %d\n", counter);
+    dumpState( mesh, psb, "_2" );
 
     // Add a collision plane to push the mesh onto
     btScalar min_y = psb->m_nodes[0].m_x.y();
@@ -471,12 +472,12 @@ void expandCorners(float magnitude) {
     }
 }
 
-void dumpState( VC_MeshType::Pointer toUpdate, btSoftBody* body ) {
+void dumpState( VC_MeshType::Pointer toUpdate, btSoftBody* body, std::string suffix ) {
     VC_MeshType::Pointer output = VC_MeshType::New();
     volcart::meshing::deepCopy(toUpdate, output);
     volcart::meshing::bullet2itk::bullet2itk(body, output);
 
-    std::string path = "inter_" + VC_DATE_TIME() + ".obj";
+    std::string path = "inter_" + VC_DATE_TIME() + suffix + ".obj";
     volcart::io::objWriter writer(path, output);
     writer.write();
 }
