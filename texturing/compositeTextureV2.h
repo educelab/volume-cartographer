@@ -13,17 +13,17 @@
 #include "checkPtInTriangleUtil.h"
 #include "texturingUtils.h"
 
-struct cellInfo {
-    cv::Mat homography;
-    std::vector<cv::Vec3d> Pts2D;
-    std::vector<cv::Vec3d> Pts3D;
-};
-
 namespace volcart {
 namespace texturing {
 
     class compositeTextureV2 {
     public:
+        struct cellInfo {
+            cv::Mat homography;
+            std::vector<cv::Vec3d> Pts2D;
+            std::vector<cv::Vec3d> Pts3D;
+        };
+
         compositeTextureV2( VC_MeshType::Pointer inputMesh,
                             VolumePkg& volpkg,
                             UVMap uvMap,

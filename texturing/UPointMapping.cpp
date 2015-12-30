@@ -2,9 +2,6 @@
 // Chao Du 2015 Jan
 #include "UPointMapping.h"
 
-using namespace std;
-using namespace cv;
-
 void CalcHomographyFromPoints( const std::vector< cv::Vec3d > &nPtSrc,
                                const std::vector< cv::Vec3d > &nPtTgt,
                                cv::Mat &nH )

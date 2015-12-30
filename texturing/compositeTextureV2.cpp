@@ -45,22 +45,19 @@ namespace volcart {
                     uv[1] = (double) y / (double) _height;
 
                     // Find which triangle this pixel lies inside of
-                    bool inCell = false; // Is the current pixel in this cell?
-                    unsigned long cell_id = 0; // The id number of the cell that contains this pixel
+                    bool in2D = false; // Is the current pixel in this cell?
 
-                    cellInfo info;
+                    cellInfo info = cellInfo();
                     for ( auto cell = _input->GetCells()->Begin(); cell != _input->GetCells()->End(); ++cell ) {
                         info = _cellInformation[cell->Index()];
-                        inCell = checkPtInTriangleUtil::IsPtInTriangle( uv, info.Pts2D[0], info.Pts2D[1], info.Pts2D[2] );
-                        if ( inCell ) {
-                            cell_id = cell->Index();
-                            break;
-                        }
+                        in2D = checkPtInTriangleUtil::IsPtInTriangle(  uv, info.Pts2D[0], info.Pts2D[1], info.Pts2D[2] );
+
+                        if ( in2D ) break;
                     }
 
                     // Set this pixel to black if not part of a cell
-                    if ( !inCell ) {
-                        image.at < unsigned short > (y, x) = 0;
+                    if ( !in2D ) {
+                        image.at< unsigned short >(y, x) = 0;
                         ++pixelsNotInCell;
                         continue;
                     }
@@ -104,10 +101,10 @@ namespace volcart {
             if ( !_cellInformation.empty() ) _cellInformation.clear();
 
             // Generate a homography matrix for each cell in the mesh
-            cv::Vec3d _2D, _3D;
             std::cerr << "volcart::texturing::compositeTexturing: Generating homographies" << std::endl;
             for ( auto cell = _input->GetCells()->Begin(); cell != _input->GetCells()->End(); ++cell ) {
-                cellInfo info;
+                cellInfo info = cellInfo();
+                cv::Vec3d _2D, _3D;
                 for( VC_PointsInCellIterator point = cell->Value()->PointIdsBegin(); point != cell->Value()->PointIdsEnd(); ++point ) {
                     unsigned long pointID = *point;
 
