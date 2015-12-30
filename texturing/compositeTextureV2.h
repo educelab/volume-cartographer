@@ -37,7 +37,7 @@ namespace texturing {
         volcart::Texture texture() { return _texture; };
     private:
         int _process();
-        int _generateHomographies();
+        int _generateCellInfo();
         cv::Vec3d _BarycentricCoord( const cv::Vec3d &nXYZ, const cv::Vec3d &nA, const cv::Vec3d &nB, const cv::Vec3d &nC );
         cv::Vec3d _CartesianCoord  ( const cv::Vec3d &nUVW, const cv::Vec3d &nA, const cv::Vec3d &nB, const cv::Vec3d &nC );
 

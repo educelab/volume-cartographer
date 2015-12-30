@@ -29,7 +29,7 @@ namespace volcart {
             if( (searchMinorRadius = _radius / 3) < 1 ) searchMinorRadius = 1;
 
             // Generate homographies
-            _generateHomographies();
+            _generateCellInfo();
 
             // Iterate over every pixel in the output image
             unsigned long pixelsNotInCell = 0;
@@ -54,7 +54,7 @@ namespace volcart {
 
                         // Calculate the 3D position of this pixel using the homography matrix
                         baryCoord = _BarycentricCoord(uv, info.Pts2D[0], info.Pts2D[1], info.Pts2D[2] );
-                        in2D = (baryCoord[0] >= 0 && baryCoord[1] >= 0 && baryCoord[2] >= 0 && baryCoord[0] + baryCoord[1] + baryCoord[2] <= 1 );
+                        in2D = (baryCoord[0] >= 0 && baryCoord[1] >= 0 && baryCoord[2] >= 0 && baryCoord[0] + baryCoord[1] <= 1 );
 
                         if ( in2D ) break;
                     }
@@ -89,7 +89,7 @@ namespace volcart {
                 }
             }
             std::cerr << std::endl;
-            std::cerr << "volcart::compositeTexture::pixels not in cell: " << pixelsNotInCell << std::endl;
+            std::cerr << "volcart::texturing::compositeTexture:: Pixels not in cell: " << pixelsNotInCell << std::endl;
 
             // Set output
             _texture.addImage(image);
@@ -99,13 +99,13 @@ namespace volcart {
         };
 
         // Calculate homography matrices
-        int compositeTextureV2::_generateHomographies() {
+        int compositeTextureV2::_generateCellInfo() {
 
             // Make sure the storage vector is clean
             if ( !_cellInformation.empty() ) _cellInformation.clear();
 
             // Generate a homography matrix for each cell in the mesh
-            std::cerr << "volcart::texturing::compositeTexturing: Generating homographies" << std::endl;
+            std::cerr << "volcart::texturing::compositeTexturing: Generating cell information" << std::endl;
             for ( auto cell = _input->GetCells()->Begin(); cell != _input->GetCells()->End(); ++cell ) {
                 cellInfo info = cellInfo();
                 cv::Vec3d _2D, _3D;
@@ -130,6 +130,8 @@ namespace volcart {
         }
 
         // Find barycentric coordinates of point in triangle
+        // From Christer Ericson's Real-Time Collision Detection
+        // Code from: http://gamedev.stackexchange.com/questions/23743/whats-the-most-efficient-way-to-find-barycentric-coordinates
         cv::Vec3d compositeTextureV2::_BarycentricCoord( const cv::Vec3d &nXYZ,
                                                          const cv::Vec3d &nA,
                                                          const cv::Vec3d &nB,
