@@ -9,6 +9,8 @@
 #include "vc_datatypes.h"
 #include "volumepkg.h"
 
+#include <opencv2/opencv.hpp>
+
 #include "UPointMapping.h"
 #include "checkPtInTriangleUtil.h"
 #include "texturingUtils.h"
@@ -19,7 +21,6 @@ namespace texturing {
     class compositeTextureV2 {
     public:
         struct cellInfo {
-            cv::Mat homography;
             std::vector<cv::Vec3d> Pts2D;
             std::vector<cv::Vec3d> Pts3D;
         };
@@ -37,6 +38,8 @@ namespace texturing {
     private:
         int _process();
         int _generateHomographies();
+        cv::Vec3d _BarycentricCoord( const cv::Vec3d &nXYZ, const cv::Vec3d &nA, const cv::Vec3d &nB, const cv::Vec3d &nC );
+        cv::Vec3d _CartesianCoord  ( const cv::Vec3d &nUVW, const cv::Vec3d &nA, const cv::Vec3d &nB, const cv::Vec3d &nC );
 
         // Variables
         VC_MeshType::Pointer _input;

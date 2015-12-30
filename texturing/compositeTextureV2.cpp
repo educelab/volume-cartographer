@@ -40,17 +40,21 @@ namespace volcart {
                     std::cerr << "volcart::texturing::compositeTexturing: Generating texture: " << std::to_string( progress ) << "%\r" << std::flush;
 
                     // This pixel's uv coordinate
-                    cv::Vec3d uv( 0, 0, 1 );
+                    cv::Vec3d uv( 0, 0, 0 );
                     uv[0] = (double) x / (double) _width;
                     uv[1] = (double) y / (double) _height;
 
                     // Find which triangle this pixel lies inside of
                     bool in2D = false; // Is the current pixel in this cell?
 
-                    cellInfo info = cellInfo();
+                    cellInfo info;
+                    cv::Vec3d baryCoord(0, 0, 0);
                     for ( auto cell = _input->GetCells()->Begin(); cell != _input->GetCells()->End(); ++cell ) {
                         info = _cellInformation[cell->Index()];
-                        in2D = checkPtInTriangleUtil::IsPtInTriangle(  uv, info.Pts2D[0], info.Pts2D[1], info.Pts2D[2] );
+
+                        // Calculate the 3D position of this pixel using the homography matrix
+                        baryCoord = _BarycentricCoord(uv, info.Pts2D[0], info.Pts2D[1], info.Pts2D[2] );
+                        in2D = (baryCoord[0] >= 0 && baryCoord[1] >= 0 && baryCoord[2] >= 0 && baryCoord[0] + baryCoord[1] + baryCoord[2] <= 1 );
 
                         if ( in2D ) break;
                     }
@@ -62,8 +66,8 @@ namespace volcart {
                         continue;
                     }
 
-                    // Calculate the 3D position of this pixel using the homography matrix
-                    cv::Vec3d xyz = CalcMappedPoint( uv, info.homography );
+                    // Find the xyz coordinate of the original point
+                    cv::Vec3d xyz = _CartesianCoord(baryCoord, info.Pts3D[0], info.Pts3D[1], info.Pts3D[2] );
 
                     // Use the cell normal as the normal for this point
                     cv::Vec3d v1v0 = info.Pts3D[1] - info.Pts3D[0];
@@ -110,7 +114,7 @@ namespace volcart {
 
                     _2D[0] = _uvMap.get(pointID)[0];
                     _2D[1] = _uvMap.get(pointID)[1];
-                    _2D[2] = 1.0;
+                    _2D[2] = 0.0;
                     info.Pts2D.push_back(_2D);
 
                     _3D[0] = _input->GetPoint(pointID)[0];
@@ -119,16 +123,45 @@ namespace volcart {
                     info.Pts3D.push_back(_3D);
                 }
 
-                info.homography = cv::Mat(3, 3, CV_64F);
-                CalcHomographyFromPoints( info.Pts2D, info.Pts3D, info.homography);
-
                 _cellInformation.push_back( info );
             }
 
             return EXIT_SUCCESS;
         }
 
-        //
+        // Find barycentric coordinates of point in triangle
+        cv::Vec3d compositeTextureV2::_BarycentricCoord( const cv::Vec3d &nXYZ,
+                                                         const cv::Vec3d &nA,
+                                                         const cv::Vec3d &nB,
+                                                         const cv::Vec3d &nC )
+        {
+            cv::Vec3d v0 = nB - nA;
+            cv::Vec3d v1 = nC - nA;
+            cv::Vec3d v2 = nXYZ - nA;
+
+            double dot00 = v0.dot(v0);
+            double dot01 = v0.dot(v1);
+            double dot11 = v1.dot(v1);
+            double dot20 = v2.dot(v0);
+            double dot21 = v2.dot(v1);
+            double invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+
+            cv::Vec3d output;
+            output[1] = (dot11 * dot20 - dot01 * dot21) * invDenom;
+            output[2] = (dot00 * dot21 - dot01 * dot20) * invDenom;
+            output[0] = 1.0 - output[1] - output[2];
+
+            return output;
+        }
+
+        // Find Cartesian coordinates of point in triangle given barycentric coordinate
+        cv::Vec3d compositeTextureV2::_CartesianCoord( const cv::Vec3d &nUVW,
+                                                       const cv::Vec3d &nA,
+                                                       const cv::Vec3d &nB,
+                                                       const cv::Vec3d &nC )
+        {
+            return nUVW[0] * nA + nUVW[1] * nB + nUVW[2] * nC;
+        }
 
     }
 }
