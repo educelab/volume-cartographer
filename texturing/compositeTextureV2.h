@@ -5,14 +5,12 @@
 #ifndef VC_COMPOSITETEXTUREV2_H
 #define VC_COMPOSITETEXTUREV2_H
 
+#include <opencv2/opencv.hpp>
+
 #include "vc_defines.h"
 #include "vc_datatypes.h"
 #include "volumepkg.h"
 
-#include <opencv2/opencv.hpp>
-
-#include "UPointMapping.h"
-#include "checkPtInTriangleUtil.h"
 #include "texturingUtils.h"
 
 namespace volcart {

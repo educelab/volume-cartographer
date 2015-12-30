@@ -8,6 +8,5 @@ if(TARGET texturing)
 else()
     add_library(vc_texturing STATIC compositeTexture.cpp compositeTexture.h
                                     compositeTextureV2.cpp compositeTextureV2.h
-                                    simpleUV.h simpleUV.cpp
-                                    UPointMapping.h UPointMapping.cpp )
+                                    simpleUV.h simpleUV.cpp )
 endif()
