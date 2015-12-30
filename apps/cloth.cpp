@@ -8,8 +8,7 @@
 #include <opencv2/opencv.hpp>
 
 #include <vtkSmoothPolyDataFilter.h>
-#include <vtkDecimatePro.h>
-#include "vtkMassProperties.h"
+#include <vtkPLYReader.h>
 
 #include "vc_defines.h"
 #include "vc_datatypes.h"
@@ -24,6 +23,7 @@
 // bullet converter
 #include "itk2bullet.h"
 #include <LinearMath/btVector3.h>
+#include <vtkQuadricDecimation.h>
 
 struct NodeTarget {
     btVector3 t_pos;
@@ -69,33 +69,23 @@ int main(int argc, char* argv[]) {
     int meshWidth = -1;
     int meshHeight = -1;
 
-    // try to convert the ply to an ITK mesh
-    if (!volcart::io::ply2itkmesh(meshName, mesh, meshWidth, meshHeight)) {
-        exit( -1 );
-    };
-
-    vtkPolyData* vtkMesh = vtkPolyData::New();
-    volcart::meshing::itk2vtk(mesh, vtkMesh);
-
-    vtkSmartPointer<vtkMassProperties> massProperties = vtkMassProperties::New();
-    massProperties->AddInputData(vtkMesh);
-    double area = massProperties->GetSurfaceArea();
-    double reduction = std::abs( 1 - ((area / 1.5) / mesh->GetNumberOfCells()) );
-    std::cerr << "reduction: " << reduction << std::endl;
-
-    vtkDecimatePro* decimatePro = vtkDecimatePro::New();
-    decimatePro->SetInputData(vtkMesh);
-    decimatePro->SetTargetReduction(reduction);
-    decimatePro->SplittingOff();
+    vtkSmartPointer<vtkPLYReader> reader = vtkSmartPointer<vtkPLYReader>::New();
+    reader->SetFileName ( "decim.ply" );
 
     vtkSmoothPolyDataFilter* smoother = vtkSmoothPolyDataFilter::New();
-    smoother->SetInputConnection( decimatePro->GetOutputPort() );
+    smoother->SetInputConnection( reader->GetOutputPort() );
     smoother->SetNumberOfIterations(3);
     smoother->SetRelaxationFactor(0.3);
     smoother->Update();
 
     VC_MeshType::Pointer decimated = VC_MeshType::New();
     volcart::meshing::vtk2itk(smoother->GetOutput(), decimated);
+    std::cerr << "points: " << decimated->GetNumberOfPoints() << " || cells: " << decimated->GetNumberOfCells() << std::endl;
+
+    // try to convert the ply to an ITK mesh
+    if (!volcart::io::ply2itkmesh(meshName, mesh, meshWidth, meshHeight)) {
+        exit( -1 );
+    };
 
     // Create Dynamic world for bullet cloth simulation
     btBroadphaseInterface* broadphase = new btDbvtBroadphase();
@@ -358,7 +348,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Convert soft body to itk mesh
-    volcart::texturing::compositeTextureV2 result(decimated, vpkg, uvMap, 10, (int) aspect_width * 2, (int) aspect_height * 2);
+    volcart::texturing::compositeTextureV2 result(decimated, vpkg, uvMap, 7, (int) aspect_width, (int) aspect_height);
     volcart::io::objWriter objwriter("cloth.obj", decimated, result.texture().uvMap(), result.texture().getImage(0));
     objwriter.write();
 
