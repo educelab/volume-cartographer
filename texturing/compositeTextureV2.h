@@ -21,6 +21,7 @@ namespace texturing {
         struct cellInfo {
             std::vector<cv::Vec3d> Pts2D;
             std::vector<cv::Vec3d> Pts3D;
+            cv::Vec3d Normal;
         };
 
         compositeTextureV2( VC_MeshType::Pointer inputMesh,

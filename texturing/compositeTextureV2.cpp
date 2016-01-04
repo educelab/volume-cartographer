@@ -70,9 +70,7 @@ namespace volcart {
                     cv::Vec3d xyz = _CartesianCoord(baryCoord, info.Pts3D[0], info.Pts3D[1], info.Pts3D[2] );
 
                     // Use the cell normal as the normal for this point
-                    cv::Vec3d v1v0 = info.Pts3D[1] - info.Pts3D[0];
-                    cv::Vec3d v2v0 = info.Pts3D[2] - info.Pts3D[0];
-                    cv::Vec3d xyz_norm = cv::normalize( v1v0.cross(v2v0) );
+                    cv::Vec3d xyz_norm = info.Normal;
 
                     // Generate the intensity value
                     double value = textureWithMethod( xyz,
@@ -122,6 +120,11 @@ namespace volcart {
                     _3D[2] = _input->GetPoint(pointID)[2];
                     info.Pts3D.push_back(_3D);
                 }
+
+                // Generate the surface normal for this cell
+                cv::Vec3d v1v0 = info.Pts3D[1] - info.Pts3D[0];
+                cv::Vec3d v2v0 = info.Pts3D[2] - info.Pts3D[0];
+                info.Normal = cv::normalize( v1v0.cross(v2v0) );
 
                 _cellInformation.push_back( info );
             }
