@@ -34,6 +34,7 @@ namespace volcart {
             // Iterate over every pixel in the output image
             unsigned long pixelsNotInCell = 0;
             cv::Mat image( _height, _width, CV_16UC1 );
+            VC_PointsLocatorType::NeighborsIdentifierType neighborhood;
             for ( int y = 0; y < _height; ++y ) {
                 for ( int x = 0; x < _width; ++x ) {
                     double progress = (double)(x + 1 + (_width*y))/(double)(_width*_height) * (double) 100;
@@ -44,13 +45,20 @@ namespace volcart {
                     uv[0] = (double) x / (double) _width;
                     uv[1] = (double) y / (double) _height;
 
+                    // Empty our averaging variables
+                    if ( !neighborhood.empty() ) neighborhood.clear();
+
+                    // find k nearest neighbors for current point
+                    VC_PointType searchPoint;
+                    searchPoint[0] = uv[0]; searchPoint[1] = uv[1]; searchPoint[2] = 0.0;
+                    _kdTree->FindClosestNPoints( searchPoint, 5, neighborhood );
+
                     // Find which triangle this pixel lies inside of
                     bool in2D = false; // Is the current pixel in this cell?
-
                     cellInfo info;
                     cv::Vec3d baryCoord(0, 0, 0);
-                    for ( auto cell = _input->GetCells()->Begin(); cell != _input->GetCells()->End(); ++cell ) {
-                        info = _cellInformation[cell->Index()];
+                    for (auto c_id = neighborhood.begin(); c_id != neighborhood.end(); ++c_id) {
+                        info = _cellInformation[*c_id];
 
                         // Calculate the 3D position of this pixel using the homography matrix
                         baryCoord = _BarycentricCoord(uv, info.Pts2D[0], info.Pts2D[1], info.Pts2D[2] );
@@ -99,8 +107,13 @@ namespace volcart {
         // Calculate homography matrices
         int compositeTextureV2::_generateCellInfo() {
 
-            // Make sure the storage vector is clean
+            // Make sure the storage vectors are clean
             if ( !_cellInformation.empty() ) _cellInformation.clear();
+            _cellCentroids = VC_MeshType::New();
+            _kdTree = VC_PointsLocatorType::New();
+
+            // Generate a homography matrix for each cell in the mesh
+            VC_PointType centroid;
 
             // Generate a homography matrix for each cell in the mesh
             std::cerr << "volcart::texturing::compositeTexturing: Generating cell information" << std::endl;
@@ -121,13 +134,21 @@ namespace volcart {
                     info.Pts3D.push_back(_3D);
                 }
 
+                // Calculate the cell centroid
+                cv::Vec3d temp_cent = (info.Pts2D[0] + info.Pts2D[1] + info.Pts2D[2]) / 3;
+                centroid[0] = temp_cent[0]; centroid[1] = temp_cent[1]; centroid[2] = temp_cent[2];
+
                 // Generate the surface normal for this cell
                 cv::Vec3d v1v0 = info.Pts3D[1] - info.Pts3D[0];
                 cv::Vec3d v2v0 = info.Pts3D[2] - info.Pts3D[0];
                 info.Normal = cv::normalize( v1v0.cross(v2v0) );
 
                 _cellInformation.push_back( info );
+                _cellCentroids->SetPoint(cell.Index(), centroid );
             }
+
+            _kdTree->SetPoints(_cellCentroids->GetPoints());
+            _kdTree->Initialize();
 
             return EXIT_SUCCESS;
         }

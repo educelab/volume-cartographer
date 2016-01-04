@@ -53,6 +53,8 @@ namespace texturing {
         Texture _texture;
 
         std::vector< cellInfo > _cellInformation;
+        VC_MeshType::Pointer _cellCentroids;
+        VC_PointsLocatorType::Pointer _kdTree;
     };
 
 }
