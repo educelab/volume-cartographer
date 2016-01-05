@@ -11,12 +11,13 @@
 int main(int argc, char* argv[])
 {
     if ( argc < 3 ) {
-        std::cout << "Usage: vc_invertCloud volpkg [cloud].pcd" << std::endl;
+        std::cout << "Usage: vc_invertCloud volpkg [input].pcd [output].pcd" << std::endl;
         exit( -1 );
     }
 
     VolumePkg vpkg = VolumePkg( argv[ 1 ] );
     std::string input_path = argv[ 2 ];
+    std::string output_path = argv[ 3 ];
 
     if ( vpkg.getVersion() < 2.0) {
         std::cerr << "ERROR: Volume package is version " << vpkg.getVersion() << " but this program requires a version >= 2.0."  << std::endl;
@@ -29,16 +30,11 @@ int main(int argc, char* argv[])
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr input  (new pcl::PointCloud<pcl::PointXYZRGB>);
     pcl::io::loadPCDFile<pcl::PointXYZRGB> (input_path, *input);
 
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr output  (new pcl::PointCloud<pcl::PointXYZRGB>);
-
     for ( auto pt = input->points.begin(); pt != input->points.end(); ++pt ) {
-        pcl::PointXYZRGB point;
-        point = *pt;
-        if ( point.z != -1 ) point.z = vpkg.getNumberOfSlices() - 1 - point.z;
-        output->push_back(point);
+        if ( pt->z != -1 ) pt->z = vpkg.getNumberOfSlices() - 1 - pt->z;
     }
 
-    pcl::io::savePCDFileBinaryCompressed("inverted.pcd", *output);
+    pcl::io::savePCDFileBinaryCompressed(output_path, *input);
 
     return 0;
 } // end main
