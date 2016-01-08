@@ -69,6 +69,19 @@ public:
 			sum += newTInterval;
 		}
 	}
+
+	Pixel derivAt(const uint32_t index, const uint32_t hstep=1) const
+	{
+		if (index == 0) {
+			return derivForewardDifference(index, hstep);
+		} else if (index == 1 || index == npoints_ - 2) {
+			return derivCentralDifference(index, hstep);
+		} else if (index == npoints_ - 1) {
+			return derivBackwardDifference(index, hstep);
+		} else {
+			return derivFivePointStencil(index, hstep);
+		}
+	}
 	
 	std::vector<Scalar> deriv() const
 	{

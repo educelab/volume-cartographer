@@ -31,7 +31,7 @@ LocalResliceSegmentation::segmentLayer(const bool showVisualization,
 
     // Seed random number generator
     std::random_device rd;
-    std::mt19937 mt(rd());
+    std::default_random_engine mt(rd());
 
     // ChainMesh that holds the segment
     VoxelVec currentPos;
@@ -43,9 +43,7 @@ LocalResliceSegmentation::segmentLayer(const bool showVisualization,
     ChainMesh mesh(N, endIndex_ - startIndex_);
     mesh.addPositions(currentPos);
 
-    // Need to start at startIndex_ + stepNumLayers since we already added the intial
-    // positions to the chainmesh.
-    for (int32_t sliceIndex = startIndex_ + stepNumLayers; sliceIndex <= endIndex_;
+    for (int32_t sliceIndex = startIndex_; sliceIndex <= endIndex_;
          sliceIndex += stepNumLayers) {
 
         // First chain object
@@ -53,7 +51,7 @@ LocalResliceSegmentation::segmentLayer(const bool showVisualization,
 
         // Get current derivatives
         int32_t N = chain.size();
-        std::vector<double> currentDerivs = chain.curve().deriv();
+        std::vector<double> initDerivs = chain.curve().deriv();
 
 		std::cout << "slice: " << sliceIndex << std::endl;
 
@@ -74,14 +72,9 @@ LocalResliceSegmentation::segmentLayer(const bool showVisualization,
         }
 
         // And evaluate it
-        std::vector<double> combinationDerivs(N, 0);
-        for (int32_t i = 2; i < N-2; ++i) {
-            combinationDerivs[i] = chain.curve().derivFivePointStencil(i)(VC_INDEX_Y);
-        }
-        //std::cout << "best derivs: " << combinationDerivs << std::endl;
+        std::vector<double> combinationDerivs = chain.curve().deriv();
         double minDerivativeDiff =
-            l2_difference_norm(combinationDerivs, currentDerivs);
-        //std::cout << "initial deriv L2: " << minDerivativeDiff << std::endl;
+            l2_difference_norm(combinationDerivs, initDerivs);
 
         for (int32_t i = 0; i < numRandomTries; ++i) {
             combinationDerivs.clear();
@@ -101,7 +94,7 @@ LocalResliceSegmentation::segmentLayer(const bool showVisualization,
     
             // 2. Calculate l2 norm of this and previous positions and set
             //    min accordingly
-            double norm = l2_difference_norm(combinationDerivs, currentDerivs);
+            double norm = l2_difference_norm(combinationDerivs, initDerivs);
             //std::cout << "norm: " << norm << std::endl;
             if (norm - minDerivativeDiff < derivativeTolerance) {
                 minDerivativeDiff = norm;

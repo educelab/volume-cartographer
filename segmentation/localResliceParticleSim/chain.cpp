@@ -23,8 +23,9 @@ Chain::Chain(VolumePkg& volpkg, int32_t zIndex) :
     for (auto path : *segmentationPath) {
         xvals.push_back(path.x);
         yvals.push_back(path.y);
+		particleCount_++;
     }
-    curve_ = FittedCurve<double>(xvals, yvals, particleCount_);
+    curve_ = FittedCurve<double>(xvals, yvals, particleCount_ / 2);
 	auto particles2d = curve_.resampledPoints();
 	for (const auto& p : particles2d) {
 		particles_.emplace_back(p(0), p(1), zIndex_);
@@ -39,10 +40,10 @@ Chain::Chain(VolumePkg& volpkg, const VoxelVec& pos, int32_t zIndex) :
     xvals.reserve(pos.size());
     yvals.reserve(pos.size());
     particles_.reserve(pos.size());
-    double count = 0;
     for (const auto& p : pos) {
         xvals.push_back(p(VC_INDEX_X));
         yvals.push_back(p(VC_INDEX_Y));
+		particleCount_++;
     }
     curve_ = FittedCurve<double>(xvals, yvals, particleCount_);
 	auto particles2d = curve_.resampledPoints();
@@ -72,29 +73,7 @@ Chain::stepAll(const int32_t stepNumLayers, const int32_t keepNumMaxima) const
 
 Voxel Chain::calculateNormal(const size_t index) const
 {
-    // For boundary conditions, do a simple linear interpolation of the first/last 2
-    // points and set the appropriate variable based on that difference in x direction.
-    // y direction is handled by interpolation.
-    /*
-    double before, after;
-    if (index == 0) {
-        auto xdiff = particles_[1](VC_INDEX_X) - particles_[0](VC_INDEX_X);
-        before = particles_[0](VC_INDEX_X) - xdiff;
-    } else {
-        before = particles_[index-1](VC_INDEX_X);
-    }
-    if (index == particleCount_-1) {
-        auto xdiff = particles_[particleCount_-1](VC_INDEX_X) -
-			         particles_[particleCount_-2](VC_INDEX_X);
-        after = particles_[particleCount_-1](VC_INDEX_X) + xdiff;
-    } else{
-        after = particles_[index+1](VC_INDEX_X);
-    }
-
-    auto tanVec = Voxel(
-			after - before, curve_.at(after) - curve_.at(before), zMean);
-    */
-	const auto tanPixel = curve_.derivCentralDifference(index);
+	const auto tanPixel = curve_.derivAt(index);
 	const auto tanVec = Voxel(tanPixel(VC_INDEX_X), tanPixel(VC_INDEX_Y), zIndex_);
     return tanVec.cross(VC_DIRECTION_K);
 }
