@@ -179,7 +179,7 @@ int main(int argc, char* argv[]) {
     double surface_area = btSurfaceArea(psb);
     int dir = ( top_left->m_x.getX() < top_right->m_x.getX() ) ? 1 : -1;
     double width = chain_length * dir;
-    double height = surface_area / chain_length;
+    double height = bl[2] - tl[2];
     int required_iterations = NUM_OF_ITERATIONS; // Minimum iterations to reach target
 
     // Create target positions with step size for our four corners
@@ -245,7 +245,7 @@ int main(int argc, char* argv[]) {
     printf("volcart::cloth::message: Expanding corners\n");
     counter = 0;
     required_iterations = required_iterations * 2;
-    while ( (btAverageNormal(psb).absolute().getY() < 0.925 || counter < required_iterations) ) {
+    while ( (btAverageNormal(psb).absolute().getY() < 0.925 || counter < required_iterations) && counter < required_iterations*2 ) {
         std::cerr << "volcart::cloth::message: Step " << counter+1 << "\r" << std::flush;
         if ( counter % 2000 == 0 ) expandCorners( 10 + (counter / 2000) );
         dynamicsWorld->stepSimulation(1/60.f);
@@ -287,7 +287,7 @@ int main(int argc, char* argv[]) {
     required_iterations = required_iterations * 2;
     counter = 0;
     double test_area = btSurfaceArea(psb);
-    while ( isnan(test_area) || test_area/surface_area > 1.05 || counter < required_iterations ) {
+    while ( (isnan(test_area) || test_area/surface_area > 1.05 || counter < required_iterations) && counter < required_iterations*4 ) {
         std::cerr << "volcart::cloth::message: Step " << counter+1 << "\r" << std::flush;
         dynamicsWorld->stepSimulation(1/60.f);
         psb->solveConstraints();
@@ -307,7 +307,7 @@ int main(int argc, char* argv[]) {
     for (size_t n_id = 0; n_id < psb->m_nodes.size(); ++n_id) {
         double _x = psb->m_nodes[n_id].m_x.x();
         double _z = psb->m_nodes[n_id].m_x.z();
-        if ( _x < min_u && _x >= 0 && _z >= 0 ) min_u = psb->m_nodes[n_id].m_x.x();
+        if ( _x < min_u && _z >= 0) min_u = psb->m_nodes[n_id].m_x.x();
         if ( _z < min_v && _z >= 0) min_v = psb->m_nodes[n_id].m_x.z();
         if ( _x > max_u && _z >= 0) max_u = psb->m_nodes[n_id].m_x.x();
         if ( _z > max_v && _z >= 0) max_v = psb->m_nodes[n_id].m_x.z();
