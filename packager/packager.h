@@ -14,6 +14,6 @@
 
 #include "vc_defines.h"
 #include "volumepkg.h"
-#include "slice.h"
+#include "SliceImage.h"
 
 #endif //VC_PACKAGER_H

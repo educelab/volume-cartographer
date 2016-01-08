@@ -25,7 +25,7 @@ find_package(PCL 1.7 REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system filesystem program_options iostreams)
 find_package(ITK REQUIRED)
-find_package(VTK REQUIRED)
+find_package(VTK 6.1 REQUIRED)
 find_package(OpenGL REQUIRED)
 #find_package(ACVD REQUIRED)
 
