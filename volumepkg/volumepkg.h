@@ -24,7 +24,6 @@
 #include "volumepkgcfg.h"
 #include "volumepkg_version.h"
 
-#include "reslice.h"
 #include "orderedPCDMesher.h"
 #include "io/objWriter.h"
 
@@ -112,18 +111,6 @@ public:
     void saveMetadata(std::string filePath);
     void saveMetadata();
 
-    // Data Retrieval
-    const cv::Mat getSliceData(int);
-    std::string getSlicePath(int);
-    std::string getNormalAtIndex(int);
-    uint16_t intensity(cv::Vec3f point) { return interpolateAt(point); };
-    void setCacheSize(size_t size);
-    size_t getCacheSize() const { return cache.size(); };
-    void setCacheMemory(size_t size);
-
-    // Data Assignment
-    int setSliceData(unsigned long index, cv::Mat slice);
-
     // Segmentation functions
     std::vector<std::string> getSegmentations();
     void setActiveSegmentation(std::string);
@@ -154,10 +141,8 @@ private:
     int getNumberOfSliceCharacters();
     std::string activeSeg = "";
     std::vector<std::string> segmentations;
-    volcart::LRUCache<int32_t, cv::Mat> cache;
 
     std::string findKeyType(std::string);
-    uint16_t interpolateAt(cv::Vec3f point);
 };
 
 #endif // _VOLUMEPKG_H_
