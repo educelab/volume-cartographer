@@ -6,9 +6,9 @@
 #include <opencv2/core/core.hpp>
 
 // A simple wrapper around a cv::Mat of data sliced from the volume at an arbitrary x and y vector and an origin point.
-class Reslice {
+class Slice {
 public:
-    Reslice(cv::Mat, cv::Vec3d, cv::Vec3d, cv::Vec3d);
+    Slice(cv::Mat, cv::Vec3d, cv::Vec3d, cv::Vec3d);
 
     cv::Vec3d sliceCoordToVoxelCoord(const cv::Point) const;
 

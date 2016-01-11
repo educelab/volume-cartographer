@@ -6,8 +6,14 @@
 #include <string>
 #include <opencv2/opencv.hpp>
 #include <boost/filesystem.hpp>
-#include "vc_defines.h"
-#include "vc_datatypes.h"
+#include "LRUCache.h"
+#include "Slice.h"
+
+#define VC_INDEX_X 0
+#define VC_INDEX_Y 1
+#define VC_INDEX_Z 2
+
+using Voxel = cv::Vec3d;
 
 namespace volcart {
 
@@ -21,7 +27,7 @@ private:
     int32_t numSliceCharacters_;
     mutable volcart::LRUCache<int32_t, cv::Mat> cache_;
 
-    uint16_t interpolateAt(const cv::Vec3f point) const;
+    uint16_t interpolateAt(const Voxel point) const;
 
 public:
     Volume() = default;
@@ -40,9 +46,9 @@ public:
 
     std::string getNormalAtIndex(const size_t index) const;
 
-    uint16_t getInterpolatedIntensity(const cv::Vec3d point) const
+    uint16_t getInterpolatedIntensity(const Voxel nonGridPoint) const
     {
-        return interpolateAt(point);
+        return interpolateAt(nonGridPoint);
     }
 
     uint16_t getIntensityAtCoord(const uint32_t x, const uint32_t y, const uint32_t z) const;
@@ -53,9 +59,12 @@ public:
 
     void setCacheMemoryInBytes(const size_t nbytes);
 
-    StructureTensor getStructureTensor(const Voxel v) const;
+    Slice reslice(const Voxel center, const cv::Vec3d xvec, const cv::Vec3d yvec,
+                    const int32_t width=64, const int32_t height=64) const;
 
-    StructureTensor getStructureTensor(const uint32_t x, const uint32_t y, const uint32_t z) const;
+    StructureTensor getStructureTensor(const Voxel v, uint32_t voxelRadius=1) const;
+
+    StructureTensor getStructureTensor(const uint32_t x, const uint32_t y, const uint32_t z, uint32_t voxelRadius=1) const;
 };
 
 }

@@ -27,11 +27,6 @@
 #include "orderedPCDMesher.h"
 #include "io/objWriter.h"
 
-// Indices for indexing into vectors
-#define VC_INDEX_X 0
-#define VC_INDEX_Y 1
-#define VC_INDEX_Z 2
-
 class VolumePkg {
 public:
     // Constructors
@@ -40,6 +35,9 @@ public:
 
     // Write to disk for the first time
     int initialize();
+
+    // Accessor for volume object this volumepkg contains
+    const volcart::Volume& volume() const { return vol_; }
 
     // Debug
     void printJSON() { config.printObject(); };
@@ -111,6 +109,9 @@ public:
     void saveMetadata(std::string filePath);
     void saveMetadata();
 
+    // Slice manipulation
+    bool setSliceData(const size_t index, const cv::Mat& slice);
+
     // Segmentation functions
     std::vector<std::string> getSegmentations();
     void setActiveSegmentation(std::string);
@@ -123,13 +124,13 @@ public:
     void saveMesh(VC_MeshType::Pointer mesh, volcart::Texture texture);
     void saveTextureData(cv::Mat, std::string = "textured");
     void saveTextureData(volcart::Texture texture, int index = 0) { saveTextureData(texture.getImage(index)); }
-    Reslice reslice(const cv::Vec3d, const cv::Vec3d, const cv::Vec3d, const int32_t=64, const int32_t=64);
-    uint16_t getIntensity(const int32_t x, const int32_t y, const int32_t z);
 
 private:
     bool _readOnly = true;
 
     VolumePkgCfg config;
+
+    volcart::Volume vol_;
 
     // Directory tree
     int _makeDirTree();

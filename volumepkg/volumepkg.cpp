@@ -18,6 +18,13 @@ VolumePkg::VolumePkg(std::string file_location, double version ) {
     slice_dir = file_location + "/slices/";
     config.setValue("slice location", "/slices/"); // To-Do: We need a better way of handling default values
     norm_dir = file_location + "/surface_normals/";
+
+    // Initialize volume object
+    vol_ = volcart::Volume(
+            file_location,
+            config.getInt("number of slices"),
+            config.getInt("width"),
+            config.getInt("height"));
 };
 
 // Use this when reading a volpkg from a file
@@ -33,6 +40,13 @@ VolumePkg::VolumePkg(std::string file_location) : config(file_location + "/confi
       std::string path = boost::filesystem::basename(iter->path());
       if (path != "" ) segmentations.push_back(path);
     }
+
+    // Initialize volume object
+    vol_ = volcart::Volume(
+            file_location,
+            config.getInt("number of slices"),
+            config.getInt("width"),
+            config.getInt("height"));
 };
 
 // WRITE TO DISK //
@@ -115,6 +129,17 @@ void VolumePkg::saveMetadata() {
     saveMetadata(root_dir.string() + "/config.json");
 }
 
+// Slice manipulation functions
+bool VolumePkg::setSliceData(const size_t index, const cv::Mat& slice)
+{
+    if (_readOnly) {
+        VC_ERR_READONLY();
+        return false;
+    } else {
+        return vol_.setSliceData(index, slice);
+    }
+}
+
 // SEGMENTATION FUNCTIONS //
 // Return a vector of strings representing the names of segmentations in the volpkg
 std::vector<std::string> VolumePkg::getSegmentations() {
@@ -142,24 +167,6 @@ std::string VolumePkg::newSegmentation() {
     };
   
   return segName;
-}
-
-Reslice VolumePkg::reslice(const cv::Vec3d center, const cv::Vec3d xvec, const cv::Vec3d yvec,
-                           const int32_t width, const int32_t height) {
-    const auto xnorm = cv::normalize(xvec);
-    const auto ynorm = cv::normalize(yvec);
-    const auto origin = center - ((width / 2) * xnorm + (height / 2) * ynorm);
-
-    cv::Mat m(height, width, CV_16UC1);
-    for (int h = 0; h < height; ++h) {
-        for (int w = 0; w < width; ++w) {
-            cv::Vec3d v = origin + (h * ynorm) + (w * xnorm);
-            auto val = interpolateAt(v);
-            m.at<uint16_t>(h, w) = val;
-        }
-    }
-
-    return Reslice(m, origin, xnorm, ynorm);
 }
 
 // Return the point cloud currently on disk for the activeSegmentation
