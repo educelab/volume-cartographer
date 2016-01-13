@@ -1,8 +1,12 @@
 #include "Volume.h"
 #include <sstream>
 #include <iomanip>
+#include <cmath>
 
 using namespace volcart;
+
+StructureTensor buildStructureTensor(const cv::Vec3d gradient);
+cv::Mat make_gaussian_psf(const uint32_t radius);
 
 // Trilinear Interpolation: Particles are not required
 // to be at integer positions so we estimate their
@@ -29,10 +33,14 @@ uint16_t Volume::interpolateAt(const Voxel point) const
     }
 
     // from: https://en.wikipedia.org/wiki/Trilinear_interpolation
-    auto c00 = getIntensityAtCoord(x0, y0, z0) * (1 - dx) + getIntensityAtCoord(x1, y0, z0) * dx;
-    auto c10 = getIntensityAtCoord(x0, y1, z0) * (1 - dx) + getIntensityAtCoord(x1, y0, z0) * dx;
-    auto c01 = getIntensityAtCoord(x0, y0, z1) * (1 - dx) + getIntensityAtCoord(x1, y0, z1) * dx;
-    auto c11 = getIntensityAtCoord(x0, y1, z1) * (1 - dx) + getIntensityAtCoord(x1, y1, z1) * dx;
+    auto c00 = getIntensityAtCoord(x0, y0, z0) * (1 - dx) +
+               getIntensityAtCoord(x1, y0, z0) * dx;
+    auto c10 = getIntensityAtCoord(x0, y1, z0) * (1 - dx) +
+               getIntensityAtCoord(x1, y0, z0) * dx;
+    auto c01 = getIntensityAtCoord(x0, y0, z1) * (1 - dx) +
+               getIntensityAtCoord(x1, y0, z1) * dx;
+    auto c11 = getIntensityAtCoord(x0, y1, z1) * (1 - dx) +
+               getIntensityAtCoord(x1, y1, z1) * dx;
 
     auto c0 = c00 * (1 - dy) + c10 * dy;
     auto c1 = c01 * (1 - dy) + c11 * dy;
@@ -44,16 +52,16 @@ uint16_t Volume::interpolateAt(const Voxel point) const
 cv::Mat Volume::getSliceData(const size_t index) const
 {
     // Take advantage of caching layer
-    auto possibleSlice = cache_.get(index);
+    const auto possibleSlice = cache_.get(index);
     if (possibleSlice != nullptr) {
         return *possibleSlice;
     }
 
-    cv::Mat sliceImg = cv::imread( getSlicePath(index), -1 );
-    
+    const cv::Mat sliceImg = cv::imread(getSlicePath(index), -1);
+
     // Put into cache so we can use it later
     cache_.put(index, sliceImg);
-    
+
     return sliceImg;
 }
 
@@ -61,29 +69,30 @@ cv::Mat Volume::getSliceData(const size_t index) const
 bool Volume::setSliceData(const size_t index, const cv::Mat& slice)
 {
     if (index >= numSlices_) {
-        std::cerr << "ERROR: Atttempted to save a slice image to an out of bounds index."
+        std::cerr << "ERROR: Atttempted to save a slice image to an out of "
+                     "bounds index."
                   << std::endl;
         return false;
     }
 
-    std::string filepath = getSlicePath(index);
+    const std::string filepath = getSlicePath(index);
     cv::imwrite(filepath, slice);
     return true;
 }
 
 std::string Volume::getSlicePath(const size_t index) const
 {
-    std::string path = slicePath_.string();
-    std::string indexStr = std::to_string(index);
+    const std::string path = slicePath_.string();
+    const std::string indexStr = std::to_string(index);
     std::stringstream ss;
     ss << std::setw(numSliceCharacters_) << std::setfill('0') << index;
     return path + ss.str() + ".tif";
 }
 
-uint16_t Volume::getIntensityAtCoord(const uint32_t x, const uint32_t y, const uint32_t z) const
+uint16_t Volume::getIntensityAtCoord(const uint32_t x, const uint32_t y,
+                                     const uint32_t z) const
 {
-    auto slice = getSliceData(z);
-    return slice.at<uint16_t>(y, x);
+    return getSliceData(z).at<uint16_t>(y, x);
 }
 
 void Volume::setCacheSize(const size_t newCacheSize)
@@ -94,11 +103,12 @@ void Volume::setCacheSize(const size_t newCacheSize)
 void Volume::setCacheMemoryInBytes(const size_t nbytes)
 {
     size_t sliceSize = getSliceData(0).step[0] * getSliceData(0).rows;
-    setCacheSize(nbytes/sliceSize);
+    setCacheSize(nbytes / sliceSize);
 }
 
-Slice Volume::reslice(const Voxel center, const cv::Vec3d xvec, const cv::Vec3d yvec,
-                      const int32_t width, const int32_t height) const
+Slice Volume::reslice(const Voxel center, const cv::Vec3d xvec,
+                      const cv::Vec3d yvec, const int32_t width,
+                      const int32_t height) const
 {
     const auto xnorm = cv::normalize(xvec);
     const auto ynorm = cv::normalize(yvec);
@@ -107,8 +117,7 @@ Slice Volume::reslice(const Voxel center, const cv::Vec3d xvec, const cv::Vec3d 
     cv::Mat m(height, width, CV_16UC1);
     for (int h = 0; h < height; ++h) {
         for (int w = 0; w < width; ++w) {
-            cv::Vec3d v = origin + (h * ynorm) + (w * xnorm);
-            auto val = interpolateAt(v);
+            auto val = interpolateAt(origin + (h * ynorm) + (w * xnorm));
             m.at<uint16_t>(h, w) = val;
         }
     }
@@ -116,16 +125,121 @@ Slice Volume::reslice(const Voxel center, const cv::Vec3d xvec, const cv::Vec3d 
     return Slice(m, origin, xnorm, ynorm);
 }
 
-StructureTensor Volume::getStructureTensor(const Voxel v, uint32_t voxelRadius) const;
-
-StructureTensor Volume::getStructureTensor(const uint32_t x, const uint32_t y, const uint32_t z, uint32_t voxelRadius) const
+StructureTensor Volume::getStructureTensor(const uint32_t x, const uint32_t y,
+                                           const uint32_t z,
+                                           const uint32_t voxelRadius) const
 {
+    // Safety checks
+    assert(x < sliceWidth_ && "x must be in range [0, slice_width]\n");
+    assert(y < sliceHeight_ && "y must be in range [0, slice_height]\n");
+    assert(z < numSlices_ && "z must be in range [0, #slices]\n");
+
     // Get voxels in radius voxelRadius around voxel (x, y, z)
-    int32_t cubeEdgeLength = 2 * voxelRadius + 1;
-    int32_t cubeSize[] = {cubeEdgeLength, cubeEdgeLength, cubeEdgeLength};
-    cv::Mat cube(3, cubeSize, CV_64F, cv::Scalar(0));
-    int32_t i = x - voxelRadius;
-    int32_t j = y - voxelRadius;
-    int32_t k = z - voxelRadius;
+    // Since OpenCV doesn't have good accessing mechanisms for tensor-like objects, need
+    // to use a std::vector<cv::Mat> to make it easier to compute gradients
+    const int32_t n = 2 * voxelRadius + 1;
+    std::vector<cv::Mat> cube;
+    cube.reserve(n);
+    for (int32_t k = z - voxelRadius, c = 0; k <= z + voxelRadius; ++k, ++c) {
+        auto tmpSlice = cv::Mat(n, n, CV_64F, cv::Scalar(0));
+
+        // If k index is out of bounds, then just add zeros and go on
+        if (k < 0) {
+            cube.push_back(tmpSlice);
+            continue;
+        }
+
+        auto sliceData = getSliceData(k);
+        for (int32_t i = x - voxelRadius, a = 0; i <= x + voxelRadius; ++i, ++a) {
+            for (int32_t j = y - voxelRadius, b = 0; j <= y + voxelRadius; ++j, ++b) {
+                if (i >= 0 && j >= 0) {
+                    tmpSlice.at<double>(a, b) = double(sliceData.at<uint16_t>(i, j));
+                }
+            }
+        }
+        cube.push_back(tmpSlice);
+    }
+
+    // Calculate gradient field around specified voxel
+	const int32_t mid = n / 2;
+	std::vector<cv::Mat> gradientField;
+	gradientField.reserve(n);
+
+	// First do XY gradients
+	for (int32_t i = 0; i < n; ++i) {
+		cv::Mat xGradient(n, n, CV_64F);
+    	cv::Mat yGradient(n, n, CV_64F);
+    	cv::Scharr(cube[i], xGradient, CV_64F, 1, 0);
+    	cv::Scharr(cube[i], yGradient, CV_64F, 0, 1);
+		cv::Mat xyGradients(n, n, CV_64FC3);
+		for (int32_t j = 0; j < n; ++j) {
+			for (int32_t k = 0; k < n; ++k) {
+				xyGradients.at<cv::Vec3d>(j, k) =
+					cv::Vec3d(xGradient.at<double>(j, k),
+							  yGradient.at<double>(j, k), 0);
+			}
+		}
+		gradientField.push_back(xyGradients);
+	}
+
+	// Then Z gradients
+	for (int32_t layer = 0; layer < n; ++layer) {
+		cv::Mat zSlice(n, n, CV_64F);
+		for (int32_t slice = 0; slice < n; ++slice) {
+			cube[slice].row(layer).copyTo(zSlice.row(slice));
+		}
+    	cv::Mat zGradient(n, n, CV_64F);
+		cv::Scharr(zSlice, zGradient, CV_64F, 0, 1);
+		for (int32_t slice = 0; slice < n; ++slice) {
+			for (int32_t x = 0; x < n; ++x) {
+				gradientField[slice].at<cv::Vec3d>(layer, x)(2) =
+					zGradient.at<double>(slice, x);
+			}
+		}
+	}
+
+	// Modulate by gaussian distribution
+	auto gaussianField = make_gaussian_psf(voxelRadius);
+	for (int32_t i = 0; i < n; ++i) {
+		for (int32_t j = 0; j < n; ++j) {
+			for (int32_t k = 0; k < n; ++k) {
+				gradientField.at<cv::Vec3d>
+			}
+		}
+	}
+
+    return buildStructureTensor(compositeGradient);
 }
 
+StructureTensor buildStructureTensor(const cv::Vec3d gradient)
+{
+    double Ix = gradient(0);
+    double Iy = gradient(1);
+    double Iz = gradient(2);
+    return StructureTensor(Ix * Ix, Ix * Iy, Ix * Iz,
+                           Ix * Iy, Iy * Iy, Iy * Iz,
+                           Ix * Iz, Iy * Iz, Iz * Iz);
+}
+
+cv::Mat make_gaussian_psf(const uint32_t radius)
+{
+	const int32_t n = radius * 2 + 1;
+	const int32_t fieldSize[] = { n, n, n };
+	cv::Mat normalField(3, fieldSize, CV_64F);
+	double sum = 0;
+	double sigma = 1.0;
+	double N = 1.0 / ((sigma * sigma * sigma) * std::pow(2 * M_PI, 3.0 / 2.0));
+	for (int32_t x = -radius; x <= radius; ++x) {
+		for (int32_t y = -radius; y <= radius; ++y) {
+			for (int32_t z = -radius; z <= radius; ++z) {
+				double val = std::exp(-(x * x + y * y + z * z));
+				normalField.at<double>(y + radius, x + radius, z + radius) = val;
+				sum += val;
+			}
+		}
+	}
+
+	// Normalize
+	normalField /= sum;
+	return normalField;
+}
