@@ -1,12 +1,11 @@
 #include "Volume.h"
+#include "GaussianDistribution3D.h"
 #include <sstream>
 #include <iomanip>
-#include <cmath>
 
 using namespace volcart;
 
-StructureTensor buildStructureTensor(const cv::Vec3d gradient);
-cv::Mat make_gaussian_psf(const uint32_t radius);
+StructureTensor makeStructureTensor(const cv::Vec3d gradient);
 
 // Trilinear Interpolation: Particles are not required
 // to be at integer positions so we estimate their
@@ -198,20 +197,34 @@ StructureTensor Volume::getStructureTensor(const uint32_t x, const uint32_t y,
 		}
 	}
 
-	// Modulate by gaussian distribution
-	auto gaussianField = make_gaussian_psf(voxelRadius);
-	for (int32_t i = 0; i < n; ++i) {
-		for (int32_t j = 0; j < n; ++j) {
-			for (int32_t k = 0; k < n; ++k) {
-				gradientField.at<cv::Vec3d>
+	// Make tensor field
+	// Note: This can just be a 1-D array of StructureTensor since we no longer care about
+	// the ordering
+	auto tensorField = std::vector<StructureTensor>();
+	tensorField.reserve(n * n * n);
+	for (int32_t z = 0; z < n; ++z) {
+		for (int32_t y = 0; y < n; ++y) {
+			for (int32_t x = 0; x < n; ++x) {
+				tensorField.push_back(makeStructureTensor(gradientField[z].at<cv::Vec3d>(y, x)));
 			}
 		}
 	}
 
-    return buildStructureTensor(compositeGradient);
+	// Modulate by gaussian distribution (element-wise) and sum
+	// The ordeings must match - i.e. the order of adding the tensors to the field must match that of the
+	// Gaussian weightings
+	const auto gaussianField = GaussianDistribution3D(voxelRadius, GaussianDistribution3D::Ordering::ZYX);
+	StructureTensor sum = StructureTensor(0, 0, 0,
+										  0, 0, 0,
+										  0, 0, 0);
+	for (size_t i = 0; i < n * n * n; ++i) {
+		sum += tensorField[i] * gaussianField[i];
+	}
+
+    return sum;
 }
 
-StructureTensor buildStructureTensor(const cv::Vec3d gradient)
+StructureTensor makeStructureTensor(const cv::Vec3d gradient)
 {
     double Ix = gradient(0);
     double Iy = gradient(1);
@@ -219,27 +232,4 @@ StructureTensor buildStructureTensor(const cv::Vec3d gradient)
     return StructureTensor(Ix * Ix, Ix * Iy, Ix * Iz,
                            Ix * Iy, Iy * Iy, Iy * Iz,
                            Ix * Iz, Iy * Iz, Iz * Iz);
-}
-
-cv::Mat make_gaussian_psf(const uint32_t radius)
-{
-	const int32_t n = radius * 2 + 1;
-	const int32_t fieldSize[] = { n, n, n };
-	cv::Mat normalField(3, fieldSize, CV_64F);
-	double sum = 0;
-	double sigma = 1.0;
-	double N = 1.0 / ((sigma * sigma * sigma) * std::pow(2 * M_PI, 3.0 / 2.0));
-	for (int32_t x = -radius; x <= radius; ++x) {
-		for (int32_t y = -radius; y <= radius; ++y) {
-			for (int32_t z = -radius; z <= radius; ++z) {
-				double val = std::exp(-(x * x + y * y + z * z));
-				normalField.at<double>(y + radius, x + radius, z + radius) = val;
-				sum += val;
-			}
-		}
-	}
-
-	// Normalize
-	normalField /= sum;
-	return normalField;
 }

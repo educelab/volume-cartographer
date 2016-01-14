@@ -63,6 +63,7 @@ public:
     void setCacheSize(const size_t newCacheSize);
 
     size_t getCacheSize() const { return cache_.size(); };
+
     void setCacheMemoryInBytes(const size_t nbytes);
 
     Slice reslice(const Voxel center, const cv::Vec3d xvec,
