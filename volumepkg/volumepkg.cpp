@@ -21,7 +21,7 @@ VolumePkg::VolumePkg(std::string file_location, double version ) {
 
     // Initialize volume object
     vol_ = volcart::Volume(
-            file_location,
+            slice_dir,
             config.getInt("number of slices"),
             config.getInt("width"),
             config.getInt("height"));
@@ -43,7 +43,7 @@ VolumePkg::VolumePkg(std::string file_location) : config(file_location + "/confi
 
     // Initialize volume object
     vol_ = volcart::Volume(
-            file_location,
+            slice_dir,
             config.getInt("number of slices"),
             config.getInt("width"),
             config.getInt("height"));

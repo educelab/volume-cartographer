@@ -56,7 +56,8 @@ cv::Mat Volume::getSliceData(const size_t index) const
         return *possibleSlice;
     }
 
-    const cv::Mat sliceImg = cv::imread(getSlicePath(index), -1);
+    const auto slicePath = getSlicePath(index);
+    const cv::Mat sliceImg = cv::imread(slicePath.string(), -1);
 
     // Put into cache so we can use it later
     cache_.put(index, sliceImg);
@@ -74,22 +75,20 @@ bool Volume::setSliceData(const size_t index, const cv::Mat& slice)
         return false;
     }
 
-    const std::string filepath = getSlicePath(index);
-    cv::imwrite(filepath, slice);
+    const auto filepath = getSlicePath(index);
+    cv::imwrite(filepath.string(), slice);
     return true;
 }
 
-std::string Volume::getSlicePath(const size_t index) const
+boost::filesystem::path Volume::getSlicePath(const size_t index) const
 {
-    const std::string path = slicePath_.string();
-    const std::string indexStr = std::to_string(index);
     std::stringstream ss;
-    ss << std::setw(numSliceCharacters_) << std::setfill('0') << index;
-    return path + ss.str() + ".tif";
+    ss << std::setw(numSliceCharacters_) << std::setfill('0') << index << ".tif";
+    return slicePath_ / ss.str();
 }
 
-uint16_t Volume::getIntensityAtCoord(const uint32_t x, const uint32_t y,
-                                     const uint32_t z) const
+uint16_t Volume::getIntensityAtCoord(const int32_t x, const int32_t y,
+                                     const int32_t z) const
 {
     return getSliceData(z).at<uint16_t>(y, x);
 }
@@ -124,14 +123,14 @@ Slice Volume::reslice(const Voxel center, const cv::Vec3d xvec,
     return Slice(m, origin, xnorm, ynorm);
 }
 
-StructureTensor Volume::getStructureTensor(const uint32_t x, const uint32_t y,
-                                           const uint32_t z,
-                                           const uint32_t voxelRadius) const
+StructureTensor Volume::getStructureTensor(const int32_t vx, const int32_t vy,
+                                           const int32_t vz,
+                                           const int32_t voxelRadius) const
 {
     // Safety checks
-    assert(x < sliceWidth_ && "x must be in range [0, slice_width]\n");
-    assert(y < sliceHeight_ && "y must be in range [0, slice_height]\n");
-    assert(z < numSlices_ && "z must be in range [0, #slices]\n");
+    assert(vx >= 0 && vx < sliceWidth_ && "x must be in range [0, slice_width]\n");
+    assert(vy >= 0 && vy < sliceHeight_ && "y must be in range [0, slice_height]\n");
+    assert(vz >= 0 && vz < numSlices_ && "z must be in range [0, #slices]\n");
 
     // Get voxels in radius voxelRadius around voxel (x, y, z)
     // Since OpenCV doesn't have good accessing mechanisms for tensor-like objects, need
@@ -139,7 +138,7 @@ StructureTensor Volume::getStructureTensor(const uint32_t x, const uint32_t y,
     const int32_t n = 2 * voxelRadius + 1;
     std::vector<cv::Mat> cube;
     cube.reserve(n);
-    for (int32_t k = z - voxelRadius, c = 0; k <= z + voxelRadius; ++k, ++c) {
+    for (int32_t k = vz - voxelRadius; k <= vz + voxelRadius; ++k) {
         auto tmpSlice = cv::Mat(n, n, CV_64F, cv::Scalar(0));
 
         // If k index is out of bounds, then just add zeros and go on
@@ -148,11 +147,10 @@ StructureTensor Volume::getStructureTensor(const uint32_t x, const uint32_t y,
             continue;
         }
 
-        auto sliceData = getSliceData(k);
-        for (int32_t i = x - voxelRadius, a = 0; i <= x + voxelRadius; ++i, ++a) {
-            for (int32_t j = y - voxelRadius, b = 0; j <= y + voxelRadius; ++j, ++b) {
+        for (int32_t j = vy - voxelRadius, b = 0; j <= vy + voxelRadius; ++j, ++b) {
+            for (int32_t i = vx - voxelRadius, a = 0; i <= vx + voxelRadius; ++i, ++a) {
                 if (i >= 0 && j >= 0) {
-                    tmpSlice.at<double>(a, b) = double(sliceData.at<uint16_t>(i, j));
+                    tmpSlice.at<double>(b, a) = double(getIntensityAtCoord(i, j, k));
                 }
             }
         }
@@ -160,22 +158,21 @@ StructureTensor Volume::getStructureTensor(const uint32_t x, const uint32_t y,
     }
 
     // Calculate gradient field around specified voxel
-	const int32_t mid = n / 2;
 	std::vector<cv::Mat> gradientField;
 	gradientField.reserve(n);
 
 	// First do XY gradients
-	for (int32_t i = 0; i < n; ++i) {
+	for (int32_t z = 0; z < n; ++z) {
 		cv::Mat xGradient(n, n, CV_64F);
     	cv::Mat yGradient(n, n, CV_64F);
-    	cv::Scharr(cube[i], xGradient, CV_64F, 1, 0);
-    	cv::Scharr(cube[i], yGradient, CV_64F, 0, 1);
+    	cv::Scharr(cube[z], xGradient, CV_64F, 1, 0);
+    	cv::Scharr(cube[z], yGradient, CV_64F, 0, 1);
 		cv::Mat xyGradients(n, n, CV_64FC3);
-		for (int32_t j = 0; j < n; ++j) {
-			for (int32_t k = 0; k < n; ++k) {
-				xyGradients.at<cv::Vec3d>(j, k) =
-					cv::Vec3d(xGradient.at<double>(j, k),
-							  yGradient.at<double>(j, k), 0);
+		for (int32_t y = 0; y < n; ++y) {
+			for (int32_t x = 0; x < n; ++x) {
+				xyGradients.at<cv::Vec3d>(y, x) =
+					cv::Vec3d(xGradient.at<double>(y, x),
+							  yGradient.at<double>(y, x), 0);
 			}
 		}
 		gradientField.push_back(xyGradients);
@@ -213,11 +210,12 @@ StructureTensor Volume::getStructureTensor(const uint32_t x, const uint32_t y,
 	// Modulate by gaussian distribution (element-wise) and sum
 	// The ordeings must match - i.e. the order of adding the tensors to the field must match that of the
 	// Gaussian weightings
-	const auto gaussianField = GaussianDistribution3D(voxelRadius, GaussianDistribution3D::Ordering::ZYX);
+	const GaussianDistribution3D gaussianField{voxelRadius, GaussianDistribution3D::Ordering::ZYX};
+    std::cout << gaussianField << std::endl;
 	StructureTensor sum = StructureTensor(0, 0, 0,
 										  0, 0, 0,
 										  0, 0, 0);
-	for (size_t i = 0; i < n * n * n; ++i) {
+	for (size_t i = 0; i < size_t(n * n * n); ++i) {
 		sum += tensorField[i] * gaussianField[i];
 	}
 

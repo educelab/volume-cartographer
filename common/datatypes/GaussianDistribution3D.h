@@ -4,6 +4,7 @@
 #define _VOLCART_COMMON_GAUSSIANDISTRIBUTION3D_H_
 
 #include <memory>
+#include <iostream>
 
 namespace volcart
 {
@@ -26,18 +27,27 @@ public:
 		return values_[index];
 	}
 	
-	double& operator[](const size_t index)
-	{
-		return values_[index];
-	}
-
 	const double& at(size_t x, size_t y, size_t z) const;
+
+    size_t size() const
+    {
+        return size_;
+    }
+
+    friend std::ostream& operator<<(std::ostream& s, const GaussianDistribution3D& d)
+    {
+        for (int32_t i = 0; i < d.size(); ++i) {
+            s << d[i] << " ";
+        }
+        return s << "\n";
+    }
 
 private:
 	Ordering order_;
 	int32_t radius_;
 	int32_t sideLength_;
-	std::unique_ptr<double[]> values_;
+    std::unique_ptr<double[]> values_;
+    size_t size_;
 
 	void init();
 

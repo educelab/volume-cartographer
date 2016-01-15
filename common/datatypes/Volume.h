@@ -22,7 +22,7 @@ class Volume
 {
 private:
     boost::filesystem::path slicePath_;
-    size_t numSlices_;
+    int32_t numSlices_;
     int32_t sliceWidth_;
     int32_t sliceHeight_;
     int32_t numSliceCharacters_;
@@ -34,7 +34,7 @@ public:
 
     Volume() = default;
 
-    Volume(std::string slicePath, size_t nslices, int32_t sliceWidth,
+    Volume(boost::filesystem::path slicePath, int32_t nslices, int32_t sliceWidth,
            int32_t sliceHeight)
         : slicePath_(slicePath),
           numSlices_(nslices),
@@ -48,7 +48,7 @@ public:
 
     bool setSliceData(const size_t index, const cv::Mat& slice);
 
-    std::string getSlicePath(const size_t index) const;
+    boost::filesystem::path getSlicePath(const size_t index) const;
 
     std::string getNormalAtIndex(const size_t index) const;
 
@@ -57,8 +57,13 @@ public:
         return interpolateAt(nonGridPoint);
     }
 
-    uint16_t getIntensityAtCoord(const uint32_t x, const uint32_t y,
-                                 const uint32_t z) const;
+    uint16_t getIntensityAtCoord(const cv::Vec3d v) const
+    {
+        return getIntensityAtCoord(v(0), v(1), v(2));
+    }
+
+    uint16_t getIntensityAtCoord(const int32_t x, const int32_t y,
+                                 const int32_t z) const;
 
     void setCacheSize(const size_t newCacheSize);
 
@@ -70,9 +75,9 @@ public:
                   const cv::Vec3d yvec, const int32_t width = 64,
                   const int32_t height = 64) const;
 
-    StructureTensor getStructureTensor(const uint32_t x, const uint32_t y,
-                                       const uint32_t z,
-                                       const uint32_t voxelRadius = 1) const;
+    StructureTensor getStructureTensor(const int32_t x, const int32_t y,
+                                       const int32_t z,
+                                       const int32_t voxelRadius = 1) const;
 };
 }
 

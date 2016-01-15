@@ -27,7 +27,8 @@ GaussianDistribution3D::GaussianDistribution3D(int32_t voxelRadius, GaussianDist
 void GaussianDistribution3D::init()
 {
 	sideLength_ = 2 * radius_ + 1;
-	values_ = std::unique_ptr<double[]>(new double[sideLength_ * sideLength_ * sideLength_]);
+    size_ = sideLength_ * sideLength_ * sideLength_;
+	values_ = std::unique_ptr<double[]>(new double[size_]);
 	make_gaussian_dist();
 }
 
@@ -75,14 +76,16 @@ void GaussianDistribution3D::make_gaussian_dist_xyz()
 		for (int32_t y = -radius_; y <= radius_; ++y) {
 			for (int32_t z = -radius_; z <= radius_; ++z) {
 				double val = std::exp(-(x * x + y * y + z * z));
-				values_[x * sideLength_ * sideLength_ + y * sideLength_ + z] = val;
+				values_[(x + radius_) * sideLength_ * sideLength_ +
+                        (y + radius_) * sideLength_ +
+                        (z + radius_)] = N * val;
 				sum += val;
 			}
 		}
 	}
 
 	// Normalize
-	for (size_t i = 0; i < sideLength_ * sideLength_ * sideLength_; ++i) {
+	for (int32_t i = 0; i < sideLength_ * sideLength_ * sideLength_; ++i) {
 		values_[i] /= sum;
 	}
 }
@@ -96,14 +99,16 @@ void GaussianDistribution3D::make_gaussian_dist_zxy()
 		for (int32_t x = -radius_; x <= radius_; ++x) {
 			for (int32_t y = -radius_; y <= radius_; ++y) {
 				double val = std::exp(-(x * x + y * y + z * z));
-				values_[z * sideLength_ * sideLength_ + x * sideLength_ + y] = val;
+				values_[(z + radius_) * sideLength_ * sideLength_ +
+                        (x + radius_) * sideLength_ +
+                        (y + radius_)] = N * val;
 				sum += val;
 			}
 		}
 	}
 
 	// Normalize
-	for (size_t i = 0; i < sideLength_ * sideLength_ * sideLength_; ++i) {
+	for (int32_t i = 0; i < sideLength_ * sideLength_ * sideLength_; ++i) {
 		values_[i] /= sum;
 	}
 }
@@ -117,14 +122,17 @@ void GaussianDistribution3D::make_gaussian_dist_zyx()
 		for (int32_t y = -radius_; y <= radius_; ++y) {
 			for (int32_t x = -radius_; x <= radius_; ++x) {
 				double val = std::exp(-(x * x + y * y + z * z));
-				values_[z * sideLength_ * sideLength_ + y * sideLength_ + x] = val;
+				values_[(z + radius_) * sideLength_ * sideLength_ +
+                        (y + radius_) * sideLength_ +
+                        (x + radius_)] = N * val;
 				sum += val;
 			}
 		}
 	}
 
 	// Normalize
-	for (size_t i = 0; i < sideLength_ * sideLength_ * sideLength_; ++i) {
+	for (int32_t i = 0; i < sideLength_ * sideLength_ * sideLength_; ++i) {
 		values_[i] /= sum;
 	}
 }
+
