@@ -98,10 +98,10 @@ void Field::loadSlice(int index) {
 
     // Load the surface normal cloud from _volpkg
     pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGBNormal>);
-    if (pcl::io::loadPCDFile<pcl::PointXYZRGBNormal> (_volpkg->getNormalAtIndex(index), *cloud) == -1) {
-      PCL_ERROR ("couldn't read file\n");
-      exit(EXIT_FAILURE);
-    }
+    //if (pcl::io::loadPCDFile<pcl::PointXYZRGBNormal> (_volpkg->getNormalAtIndex(index), *cloud) == -1) {
+    //  PCL_ERROR ("couldn't read file\n");
+    //  exit(EXIT_FAILURE);
+    //}
 
     // Assign the normals into their correct position in _field
     pcl::PointCloud<pcl::PointXYZRGBNormal>::iterator point;
