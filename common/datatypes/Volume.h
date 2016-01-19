@@ -22,6 +22,7 @@ class Volume
 {
 private:
     boost::filesystem::path slicePath_;
+    boost::filesystem::path normalPath_;
     int32_t numSlices_;
     int32_t sliceWidth_;
     int32_t sliceHeight_;
@@ -34,9 +35,10 @@ public:
 
     Volume() = default;
 
-    Volume(boost::filesystem::path slicePath, int32_t nslices, int32_t sliceWidth,
-           int32_t sliceHeight)
+    Volume(boost::filesystem::path slicePath, boost::filesystem::path normalPath, int32_t nslices, int32_t sliceWidth,
+            int32_t sliceHeight)
         : slicePath_(slicePath),
+          normalPath_(normalPath),
           numSlices_(nslices),
           sliceWidth_(sliceWidth),
           sliceHeight_(sliceHeight)
@@ -50,7 +52,7 @@ public:
 
     boost::filesystem::path getSlicePath(const size_t index) const;
 
-    std::string getNormalAtIndex(const size_t index) const;
+    boost::filesystem::path getNormalPathAtIndex(const size_t index) const;
 
     uint16_t getInterpolatedIntensity(const Voxel nonGridPoint) const
     {

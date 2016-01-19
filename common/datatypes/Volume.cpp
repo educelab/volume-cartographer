@@ -80,6 +80,13 @@ bool Volume::setSliceData(const size_t index, const cv::Mat& slice)
     return true;
 }
 
+boost::filesystem::path Volume::getNormalPathAtIndex(const size_t index) const
+{
+    std::stringstream ss;
+    ss << std::setw(numSliceCharacters_) << std::setfill('0') << index << ".pcd";
+    return normalPath_ / ss.str(); 
+}
+
 boost::filesystem::path Volume::getSlicePath(const size_t index) const
 {
     std::stringstream ss;
@@ -194,6 +201,19 @@ StructureTensor Volume::getStructureTensor(const int32_t vx, const int32_t vy,
 		}
 	}
 
+    // Convert to tensor volume
+    // XXX: Still doing Mike's algorithm for calculating. Assumes radius=1
+    /*
+    return (1.0 / 7.0) *
+           (makeStructureTensor(gradientField[0].at<cv::Vec3d>(1, 1)) +
+            makeStructureTensor(gradientField[1].at<cv::Vec3d>(1, 1)) +
+            makeStructureTensor(gradientField[2].at<cv::Vec3d>(1, 1)) +
+            makeStructureTensor(gradientField[1].at<cv::Vec3d>(0, 1)) +
+            makeStructureTensor(gradientField[1].at<cv::Vec3d>(2, 1)) +
+            makeStructureTensor(gradientField[1].at<cv::Vec3d>(1, 0)) +
+            makeStructureTensor(gradientField[1].at<cv::Vec3d>(1, 2)));
+            */
+
 	// Make tensor field
 	// Note: This can just be a 1-D array of StructureTensor since we no longer care about
 	// the ordering
@@ -211,7 +231,6 @@ StructureTensor Volume::getStructureTensor(const int32_t vx, const int32_t vy,
 	// The ordeings must match - i.e. the order of adding the tensors to the field must match that of the
 	// Gaussian weightings
 	const GaussianDistribution3D gaussianField{voxelRadius, GaussianDistribution3D::Ordering::ZYX};
-    std::cout << gaussianField << std::endl;
 	StructureTensor sum = StructureTensor(0, 0, 0,
 										  0, 0, 0,
 										  0, 0, 0);
