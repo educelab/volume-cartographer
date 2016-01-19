@@ -36,10 +36,16 @@ public:
 
     friend std::ostream& operator<<(std::ostream& s, const GaussianDistribution3D& d)
     {
-        for (int32_t i = 0; i < d.size(); ++i) {
-            s << d[i] << " ";
+        for (int32_t i = 0; i < d.sideLength_; ++i) {
+            for (int32_t j = 0; j < d.sideLength_; ++j) {
+                for (int32_t k = 0; k < d.sideLength_; ++k) {
+                    s << d[i * d.sideLength_ * d.sideLength_ + j * d.sideLength_ + k] << " ";
+                }
+                s << std::endl;
+            }
+            s << std::endl;
         }
-        return s << "\n";
+        return s;
     }
 
 private:
