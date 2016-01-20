@@ -4,26 +4,6 @@
 
 using namespace volcart;
 
-GaussianDistribution3D::GaussianDistribution3D() :
-	order_(Ordering::ZYX), radius_(1)
-{
-	init();
-}
-
-GaussianDistribution3D::GaussianDistribution3D(int32_t voxelRadius) :
-	order_(Ordering::ZYX),
-	radius_(voxelRadius)
-{
-	init();
-}
-
-GaussianDistribution3D::GaussianDistribution3D(int32_t voxelRadius, GaussianDistribution3D::Ordering order) :
-	order_(order),
-	radius_(voxelRadius)
-{
-	init();
-}
-
 void GaussianDistribution3D::init()
 {
 	sideLength_ = 2 * radius_ + 1;

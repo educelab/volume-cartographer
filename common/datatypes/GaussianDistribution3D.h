@@ -16,11 +16,23 @@ public:
 		XYZ, ZXY, ZYX
 	};
 
-	GaussianDistribution3D();
+	GaussianDistribution3D() :
+        order_(Ordering::ZYX), radius_(1)
+    {
+        init();
+    }
 
-	GaussianDistribution3D(int32_t radius);
+	GaussianDistribution3D(int32_t radius) :
+        order_(Ordering::ZYX), radius_(radius)
+    {
+        init();
+    }
 
-	GaussianDistribution3D(int32_t radius, Ordering order);
+	GaussianDistribution3D(int32_t radius, Ordering order) :
+        order_(order), radius_(radius)
+    {
+        init();
+    }
 
 	const double& operator[](const size_t index) const
 	{
