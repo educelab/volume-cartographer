@@ -37,7 +37,7 @@ elseif(WIN32)
     set(Texture_EXECUTABLE "VC-Texture.exe")
 endif()
 
-#set(Texture_PLUGINS)
+set(Texture_PLUGINS qcocoa)
 #set(Texture_EXTRA_LIBS)
 #set(Texture_PLUGINS_DIR)
 #set(Texture_REQUEST_QT_CONF)
