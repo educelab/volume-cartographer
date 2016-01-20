@@ -51,7 +51,7 @@ namespace volcart {
                     // find k nearest neighbors for current point
                     VC_PointType searchPoint;
                     searchPoint[0] = uv[0]; searchPoint[1] = uv[1]; searchPoint[2] = 0.0;
-                    _kdTree->FindClosestNPoints( searchPoint, 10, neighborhood );
+                    _kdTree->FindClosestNPoints( searchPoint, 100, neighborhood );
 
                     // Find which triangle this pixel lies inside of
                     bool in2D = false; // Is the current pixel in this cell?

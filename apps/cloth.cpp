@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
     printf("volcart::cloth::message: Setting mass\n");
     psb->setTotalMass( (int)(psb->m_nodes.size() * 0.001), true );
 
-    psb->m_cfg.kDP = 0.1; // Damping coefficient of the soft body [0,1]
+    psb->m_cfg.kDP = 0.01; // Damping coefficient of the soft body [0,1]
     psb->m_materials[0]->m_kLST = 1.0; // Linear stiffness coefficient [0,1]
     psb->m_materials[0]->m_kAST = 1.0; // Area/Angular stiffness coefficient [0,1]
     psb->m_materials[0]->m_kVST = 1.0; // Volume stiffness coefficient [0,1]
@@ -280,6 +280,7 @@ int main(int argc, char* argv[]) {
     // set the friction of the plane and the mesh s.t. the mesh can easily flatten upon collision
     plane->setFriction(0.01); // (0-1] Default: 0.5
     psb->m_cfg.kDF = 0.01; // Dynamic friction coefficient (0-1] Default: 0.2
+    psb->m_cfg.kDP = 0.1; // Damping coefficient of the soft body [0,1]
 
     // Let it settle
     printf("volcart::cloth::message: Relaxing corners\n");
