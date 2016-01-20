@@ -48,7 +48,7 @@ uint16_t Volume::interpolateAt(const Voxel point) const
     return uint16_t(cvRound(c));
 }
 
-cv::Mat Volume::getSliceData(const size_t index) const
+cv::Mat Volume::getSliceData(const int32_t index) const
 {
     // Take advantage of caching layer
     const auto possibleSlice = cache_.get(index);
@@ -66,7 +66,7 @@ cv::Mat Volume::getSliceData(const size_t index) const
 }
 
 // Data Assignment
-bool Volume::setSliceData(const size_t index, const cv::Mat& slice)
+bool Volume::setSliceData(const int32_t index, const cv::Mat& slice)
 {
     if (index >= numSlices_) {
         std::cerr << "ERROR: Atttempted to save a slice image to an out of "
@@ -80,14 +80,14 @@ bool Volume::setSliceData(const size_t index, const cv::Mat& slice)
     return true;
 }
 
-boost::filesystem::path Volume::getNormalPathAtIndex(const size_t index) const
+boost::filesystem::path Volume::getNormalPathAtIndex(const int32_t index) const
 {
     std::stringstream ss;
     ss << std::setw(numSliceCharacters_) << std::setfill('0') << index << ".pcd";
     return normalPath_ / ss.str(); 
 }
 
-boost::filesystem::path Volume::getSlicePath(const size_t index) const
+boost::filesystem::path Volume::getSlicePath(const int32_t index) const
 {
     std::stringstream ss;
     ss << std::setw(numSliceCharacters_) << std::setfill('0') << index << ".tif";
@@ -140,89 +140,66 @@ StructureTensor Volume::getStructureTensor(const int32_t vx, const int32_t vy,
     assert(vz >= 0 && vz < numSlices_ && "z must be in range [0, #slices]\n");
 
     // Get voxels in radius voxelRadius around voxel (x, y, z)
-    // Since OpenCV doesn't have good accessing mechanisms for tensor-like objects, need
-    // to use a std::vector<cv::Mat> to make it easier to compute gradients
-    const int32_t n = 2 * voxelRadius + 1;
-    std::vector<cv::Mat> cube;
-    cube.reserve(n);
-    for (int32_t k = vz - voxelRadius; k <= vz + voxelRadius; ++k) {
-        auto tmpSlice = cv::Mat(n, n, CV_64F, cv::Scalar(0));
-
-        // If k index is out of bounds, then just add zeros and go on
-        if (k < 0) {
-            cube.push_back(tmpSlice);
-            continue;
-        }
-
-        for (int32_t j = vy - voxelRadius, b = 0; j <= vy + voxelRadius; ++j, ++b) {
-            for (int32_t i = vx - voxelRadius, a = 0; i <= vx + voxelRadius; ++i, ++a) {
-                if (i >= 0 && j >= 0) {
-                    tmpSlice.at<double>(b, a) = double(getIntensityAtCoord(i, j, k));
-                }
-            }
-        }
-        cube.push_back(tmpSlice);
-    }
-
+    auto v = getVoxelNeighborsCubic<double>({vx, vy, vz}, voxelRadius);
+    
     // Calculate gradient field around specified voxel
-	std::vector<cv::Mat> gradientField;
-	gradientField.reserve(n);
+    const int32_t n = 2 * voxelRadius + 1;
+    auto gradientField = Tensor3D<cv::Vec3d>(n, n, n);
 
 	// First do XY gradients
 	for (int32_t z = 0; z < n; ++z) {
 		cv::Mat xGradient(n, n, CV_64F);
     	cv::Mat yGradient(n, n, CV_64F);
-    	cv::Scharr(cube[z], xGradient, CV_64F, 1, 0);
-    	cv::Scharr(cube[z], yGradient, CV_64F, 0, 1);
+    	cv::Scharr(v.slice(z), xGradient, CV_64F, 1, 0);
+    	cv::Scharr(v.slice(z), yGradient, CV_64F, 0, 1);
 		cv::Mat xyGradients(n, n, CV_64FC3);
 		for (int32_t y = 0; y < n; ++y) {
 			for (int32_t x = 0; x < n; ++x) {
-				xyGradients.at<cv::Vec3d>(y, x) =
-					cv::Vec3d(xGradient.at<double>(y, x),
-							  yGradient.at<double>(y, x), 0);
+                gradientField(x, y, z) = { xGradient.at<double>(y, x), yGradient.at<double>(y, x), 0 };
 			}
 		}
-		gradientField.push_back(xyGradients);
 	}
 
 	// Then Z gradients
 	for (int32_t layer = 0; layer < n; ++layer) {
 		cv::Mat zSlice(n, n, CV_64F);
 		for (int32_t slice = 0; slice < n; ++slice) {
-			cube[slice].row(layer).copyTo(zSlice.row(slice));
+			v.slice(slice).row(layer).copyTo(zSlice.row(slice));
 		}
     	cv::Mat zGradient(n, n, CV_64F);
 		cv::Scharr(zSlice, zGradient, CV_64F, 0, 1);
-		for (int32_t slice = 0; slice < n; ++slice) {
+		for (int32_t s = 0; s < n; ++s) {
+            zGradient.row(s).copyTo(gradientField.slice(s).row(layer));
+            /*
 			for (int32_t x = 0; x < n; ++x) {
 				gradientField[slice].at<cv::Vec3d>(layer, x)(2) =
 					zGradient.at<double>(slice, x);
 			}
+            */
 		}
 	}
 
     // Convert to tensor volume
     // XXX: Still doing Mike's algorithm for calculating. Assumes radius=1
-    /*
     return (1.0 / 7.0) *
-           (makeStructureTensor(gradientField[0].at<cv::Vec3d>(1, 1)) +
-            makeStructureTensor(gradientField[1].at<cv::Vec3d>(1, 1)) +
-            makeStructureTensor(gradientField[2].at<cv::Vec3d>(1, 1)) +
-            makeStructureTensor(gradientField[1].at<cv::Vec3d>(0, 1)) +
-            makeStructureTensor(gradientField[1].at<cv::Vec3d>(2, 1)) +
-            makeStructureTensor(gradientField[1].at<cv::Vec3d>(1, 0)) +
-            makeStructureTensor(gradientField[1].at<cv::Vec3d>(1, 2)));
-            */
+           (makeStructureTensor(gradientField(0, 1, 1)) +
+            makeStructureTensor(gradientField(1, 1, 1)) +
+            makeStructureTensor(gradientField(2, 1, 1)) +
+            makeStructureTensor(gradientField(1, 1, 0)) +
+            makeStructureTensor(gradientField(1, 1, 2)) +
+            makeStructureTensor(gradientField(1, 0, 1)) +
+            makeStructureTensor(gradientField(1, 2, 1)));
 
 	// Make tensor field
 	// Note: This can just be a 1-D array of StructureTensor since we no longer care about
 	// the ordering
+    /*
 	auto tensorField = std::vector<StructureTensor>();
 	tensorField.reserve(n * n * n);
 	for (int32_t z = 0; z < n; ++z) {
 		for (int32_t y = 0; y < n; ++y) {
 			for (int32_t x = 0; x < n; ++x) {
-				tensorField.push_back(makeStructureTensor(gradientField[z].at<cv::Vec3d>(y, x)));
+				tensorField.push_back(makeStructureTensor(gradientField(x, y, z)));
 			}
 		}
 	}
@@ -230,7 +207,7 @@ StructureTensor Volume::getStructureTensor(const int32_t vx, const int32_t vy,
 	// Modulate by gaussian distribution (element-wise) and sum
 	// The ordeings must match - i.e. the order of adding the tensors to the field must match that of the
 	// Gaussian weightings
-	const GaussianDistribution3D gaussianField{voxelRadius, GaussianDistribution3D::Ordering::ZYX};
+	const GaussianDistribution3D gaussianField{voxelRadius};
 	StructureTensor sum = StructureTensor(0, 0, 0,
 										  0, 0, 0,
 										  0, 0, 0);
@@ -239,6 +216,7 @@ StructureTensor Volume::getStructureTensor(const int32_t vx, const int32_t vy,
 	}
 
     return sum;
+    */
 }
 
 StructureTensor makeStructureTensor(const cv::Vec3d gradient)
@@ -249,4 +227,41 @@ StructureTensor makeStructureTensor(const cv::Vec3d gradient)
     return StructureTensor(Ix * Ix, Ix * Iy, Ix * Iz,
                            Ix * Iy, Iy * Iy, Iy * Iz,
                            Ix * Iz, Iy * Iz, Iz * Iz);
+}
+
+
+template <typename DType=double>
+Tensor3D<DType> Volume::getVoxelNeighborsCubic(const cv::Point3i center, const int32_t radius) const
+{
+    assert(radius % 2 == 1 && "radius must be odd\n");
+    return getVoxelNeighbors<DType>(center, radius, radius, radius);
+}
+
+template <typename DType=double>
+Tensor3D<DType> Volume::getVoxelNeighbors(const cv::Point3i center, const int32_t dx, const int32_t dy, const int32_t dz) const
+{
+    // Safety checks
+    assert(center.x >= 0 && center.x < sliceWidth_ && center.y >= 0 && center.y < sliceHeight_ && center.z >= 0 && center.z < numSlices_ && "center must be inside volume\n");
+
+    Tensor3D<DType> v;
+    for (int32_t k = center.z - dz; k <= center.z + dz; ++k) {
+        auto tmpSlice = cv::Mat_<DType>(dy, dx, cv::Scalar(0));
+
+        // If k index is out of bounds, then just add zeros and go on
+        if (k < 0) {
+            v.appendSlice(tmpSlice);
+            continue;
+        }
+
+        for (int32_t j = center.y - dy, b = 0; j <= center.y + dy; ++j, ++b) {
+            for (int32_t i = center.x - dx, a = 0; i <= center.x + dx; ++i, ++a) {
+                if (i >= 0 && j >= 0) {
+                    tmpSlice(b, a) = DType(getIntensityAtCoord(i, j, k));
+                }
+            }
+        }
+        v.appendSlice(tmpSlice);
+    }
+
+    return v;           
 }

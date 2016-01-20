@@ -7,6 +7,7 @@
 #include <opencv2/opencv.hpp>
 #include <boost/filesystem.hpp>
 #include "LRUCache.h"
+#include "Tensor3D.h"
 #include "Slice.h"
 
 #define VC_INDEX_X 0
@@ -18,6 +19,7 @@ using StructureTensor = cv::Matx33d;
 
 namespace volcart
 {
+
 class Volume
 {
 private:
@@ -46,13 +48,13 @@ public:
         numSliceCharacters_ = std::to_string(nslices).size();
     }
 
-    cv::Mat getSliceData(const size_t index) const;
+    cv::Mat getSliceData(const int32_t index) const;
 
-    bool setSliceData(const size_t index, const cv::Mat& slice);
+    bool setSliceData(const int32_t index, const cv::Mat& slice);
 
-    boost::filesystem::path getSlicePath(const size_t index) const;
+    boost::filesystem::path getSlicePath(const int32_t index) const;
 
-    boost::filesystem::path getNormalPathAtIndex(const size_t index) const;
+    boost::filesystem::path getNormalPathAtIndex(const int32_t index) const;
 
     uint16_t getInterpolatedIntensity(const Voxel nonGridPoint) const
     {
@@ -80,6 +82,12 @@ public:
     StructureTensor getStructureTensor(const int32_t x, const int32_t y,
                                        const int32_t z,
                                        const int32_t voxelRadius = 1) const;
+
+    template <typename DType>
+    Tensor3D<DType> getVoxelNeighbors(const cv::Point3i center, const int32_t dx, const int32_t dy, const int32_t dz) const;
+
+    template <typename DType>
+    Tensor3D<DType> getVoxelNeighborsCubic(const cv::Point3i origin, const int32_t radius) const;
 };
 }
 
