@@ -134,6 +134,8 @@ StructureTensor Volume::getStructureTensor(const int32_t vx, const int32_t vy,
                                            const int32_t vz,
                                            const int32_t voxelRadius) const
 {
+    using cv::Range;
+
     // Safety checks
     assert(vx >= 0 && vx < sliceWidth_ && "x must be in range [0, slice_width]\n");
     assert(vy >= 0 && vy < sliceHeight_ && "y must be in range [0, slice_height]\n");
@@ -148,37 +150,29 @@ StructureTensor Volume::getStructureTensor(const int32_t vx, const int32_t vy,
 
 	// First do XY gradients
 	for (int32_t z = 0; z < n; ++z) {
-		cv::Mat xGradient(n, n, CV_64F);
-    	cv::Mat yGradient(n, n, CV_64F);
-    	cv::Scharr(v.slice(z), xGradient, CV_64F, 1, 0);
-    	cv::Scharr(v.slice(z), yGradient, CV_64F, 0, 1);
-		cv::Mat xyGradients(n, n, CV_64FC3);
-		for (int32_t y = 0; y < n; ++y) {
+        cv::Mat_<double> xGradient(n, n);
+        cv::Mat_<double> yGradient(n, n);
+        cv::Scharr(v.xySlice(z), xGradient, CV_64F, 1, 0);
+        cv::Scharr(v.xySlice(z), yGradient, CV_64F, 0, 1);
+        for (int32_t y = 0; y < n; ++y) {
 			for (int32_t x = 0; x < n; ++x) {
-                gradientField(x, y, z) = { xGradient.at<double>(y, x), yGradient.at<double>(y, x), 0 };
-			}
+                gradientField(x, y, z) = {xGradient(y, x), yGradient(y, x), 0};
+            }
 		}
 	}
 
 	// Then Z gradients
-	for (int32_t layer = 0; layer < n; ++layer) {
-		cv::Mat zSlice(n, n, CV_64F);
-		for (int32_t slice = 0; slice < n; ++slice) {
-			v.slice(slice).row(layer).copyTo(zSlice.row(slice));
-		}
-    	cv::Mat zGradient(n, n, CV_64F);
-		cv::Scharr(zSlice, zGradient, CV_64F, 0, 1);
-		for (int32_t s = 0; s < n; ++s) {
-            zGradient.row(s).copyTo(gradientField.slice(s).row(layer));
-            /*
-			for (int32_t x = 0; x < n; ++x) {
-				gradientField[slice].at<cv::Vec3d>(layer, x)(2) =
-					zGradient.at<double>(slice, x);
-			}
-            */
-		}
-	}
+    for (int32_t layer = 0; layer < n; ++layer) {
+        cv::Mat_<double> zGradient(n, n);
+        cv::Scharr(v.xzSlice(layer), zGradient, CV_64F, 0, 1);
+        for (int32_t z = 0; z < n; ++z) {
+            for (int32_t x = 0; x < n; ++x) {
+                gradientField(x, layer, z)(2) = zGradient(z, x);
+            }
+        }
+    }
 
+    /*
     // Convert to tensor volume
     // XXX: Still doing Mike's algorithm for calculating. Assumes radius=1
     return (1.0 / 7.0) *
@@ -189,11 +183,11 @@ StructureTensor Volume::getStructureTensor(const int32_t vx, const int32_t vy,
             makeStructureTensor(gradientField(1, 1, 2)) +
             makeStructureTensor(gradientField(1, 0, 1)) +
             makeStructureTensor(gradientField(1, 2, 1)));
+            */
 
-	// Make tensor field
+    // Make tensor field
 	// Note: This can just be a 1-D array of StructureTensor since we no longer care about
 	// the ordering
-    /*
 	auto tensorField = std::vector<StructureTensor>();
 	tensorField.reserve(n * n * n);
 	for (int32_t z = 0; z < n; ++z) {
@@ -216,7 +210,6 @@ StructureTensor Volume::getStructureTensor(const int32_t vx, const int32_t vy,
 	}
 
     return sum;
-    */
 }
 
 StructureTensor makeStructureTensor(const cv::Vec3d gradient)
@@ -237,31 +230,29 @@ Tensor3D<DType> Volume::getVoxelNeighborsCubic(const cv::Point3i center, const i
     return getVoxelNeighbors<DType>(center, radius, radius, radius);
 }
 
-template <typename DType=double>
-Tensor3D<DType> Volume::getVoxelNeighbors(const cv::Point3i center, const int32_t dx, const int32_t dy, const int32_t dz) const
+template <typename DType = double>
+Tensor3D<DType> Volume::getVoxelNeighbors(const cv::Point3i center,
+                                          const int32_t rx, const int32_t ry,
+                                          const int32_t rz) const
 {
     // Safety checks
     assert(center.x >= 0 && center.x < sliceWidth_ && center.y >= 0 && center.y < sliceHeight_ && center.z >= 0 && center.z < numSlices_ && "center must be inside volume\n");
 
-    Tensor3D<DType> v;
-    for (int32_t k = center.z - dz; k <= center.z + dz; ++k) {
-        auto tmpSlice = cv::Mat_<DType>(dy, dx, cv::Scalar(0));
-
-        // If k index is out of bounds, then just add zeros and go on
+    Tensor3D<DType> v(2 * rx + 1, 2 * ry + 1, 2 * rz + 1);
+    for (int32_t k = center.z - rz, c = 0; k <= center.z + rz; ++k, ++c) {
+        // If k index is out of bounds, then keep it at zeros and go on
         if (k < 0) {
-            v.appendSlice(tmpSlice);
             continue;
         }
-
-        for (int32_t j = center.y - dy, b = 0; j <= center.y + dy; ++j, ++b) {
-            for (int32_t i = center.x - dx, a = 0; i <= center.x + dx; ++i, ++a) {
+        for (int32_t j = center.y - ry, b = 0; j <= center.y + ry; ++j, ++b) {
+            for (int32_t i = center.x - rx, a = 0; i <= center.x + rx;
+                 ++i, ++a) {
                 if (i >= 0 && j >= 0) {
-                    tmpSlice(b, a) = DType(getIntensityAtCoord(i, j, k));
+                    v(a, b, c) = DType(getIntensityAtCoord(i, j, k));
                 }
             }
         }
-        v.appendSlice(tmpSlice);
     }
 
-    return v;           
+    return v;
 }

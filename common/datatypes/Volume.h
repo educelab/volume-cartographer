@@ -87,7 +87,8 @@ public:
     Tensor3D<DType> getVoxelNeighbors(const cv::Point3i center, const int32_t dx, const int32_t dy, const int32_t dz) const;
 
     template <typename DType>
-    Tensor3D<DType> getVoxelNeighborsCubic(const cv::Point3i origin, const int32_t radius) const;
+    Tensor3D<DType> getVoxelNeighborsCubic(const cv::Point3i origin,
+                                           const int32_t diameter) const;
 };
 }
 

@@ -4,7 +4,7 @@
 #define _VOLCART_TENSOR3D_H_
 
 #include <vector>
-#include <opencv2/core/mat.hpp>
+#include <opencv2/opencv.hpp>
 
 namespace volcart
 {
@@ -16,7 +16,7 @@ private:
     int32_t dx_;
     int32_t dy_;
     int32_t dz_;
-    cv::Mat_ tensor_;
+    std::vector<cv::Mat_<DType>> tensor_;
 
 public:
     Tensor3D<DType>() = default;
@@ -25,38 +25,40 @@ public:
         dx_(dx), dy_(dy), dz_(dz)
     {
         // XXX check if these dimensions are too large?
-        constexpr int size[] = { dy_, dx_, dz_ };
         if (zero) {
-            tensor_ = cv::Mat_<DType>(3, size, cv::Scalar(0));
+            // Static vars are automatically initialized to zero, so it's a
+            // convenient way to zero-initialize the tensor
+            static DType d;
+            for (int32_t i = 0; i < dz; ++i) {
+                tensor_.emplace_back(dy, dx, d);
+            }
         } else {
-            tensor_ = cv::Mat_<DType>(3, size);
+            for (int32_t i = 0; i < dz; ++i) {
+                tensor_.emplace_back(dy, dx);
+            }
         }
     }
 
-    const cv::Mat& slice(const int32_t z) const
+    const cv::Mat_<DType>& xySlice(const int32_t z) const { return tensor_[z]; }
+    cv::Mat_<DType>& xySlice(const int32_t z) { return tensor_[z]; }
+    cv::Mat_<DType> xzSlice(const int32_t layer) const
     {
-        return tensor_[z];
+        cv::Mat_<DType> zSlice(dz_, dx_);
+        for (int32_t z = 0; z < dz_; ++z) {
+            tensor_[z].row(layer).copyTo(zSlice.row(z));
+        }
+        return zSlice;
     }
 
-    cv::Mat& slice(const int32_t z)
+    const DType& operator()(const int32_t x, const int32_t y,
+                            const int32_t z) const
     {
-        return tensor_[z];
-    }
-
-    const DType& operator()(const int32_t x, const int32_t y, const int32_t z) const
-    {
-        return tensor_(y, x, z);
+        return tensor_[z](y, x);
     }
 
     DType& operator()(const int32_t x, const int32_t y, const int32_t z)
     {
-        return tensor_(y, x, z);
-    }
-
-    const cv::Mat_& operator()(const Range& rx, const Range& ry, const Range& rz) const
-    {
-        const Range ranges[] = { ry, rx, rz };
-        return tensor_(ranges);
+        return tensor_[z](y, x);
     }
 };
 }
