@@ -36,8 +36,9 @@ public:
     // Write to disk for the first time
     int initialize();
 
-    // Accessor for volume object this volumepkg contains
+    // Accessor for volume
     const volcart::Volume& volume() const { return vol_; }
+	volcart::Volume& volume() { return vol_; }
 
     // Debug
     void printJSON() { config.printObject(); };
