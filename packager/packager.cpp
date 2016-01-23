@@ -177,7 +177,7 @@ int main ( int argc, char* argv[] ) {
         if ( slice->needsConvert() )
             volpkg.setSliceData(counter, slice->conformedImage());
         else
-            boost::filesystem::copy( slice->path, volpkg.getSlicePath(counter) );
+            boost::filesystem::copy( slice->path, volpkg.volume().getSlicePath(counter) );
 
         ++counter;
     }
