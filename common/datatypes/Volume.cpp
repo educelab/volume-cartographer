@@ -1,11 +1,12 @@
 #include "Volume.h"
-#include "GaussianDistribution3D.h"
 #include <sstream>
 #include <iomanip>
 
 using namespace volcart;
 
 StructureTensor makeStructureTensor(const cv::Vec3d gradient);
+
+std::unique_ptr<double[]> makeGaussianField(const int32_t radius);
 
 // Trilinear Interpolation: Particles are not required
 // to be at integer positions so we estimate their
@@ -26,8 +27,8 @@ uint16_t Volume::interpolateAt(const Voxel point) const
     int z1 = z0 + 1;
 
     // insert safety net
-    if (x0 < 0 || y0 < 0 || z0 < 0 ||
-        x1 >= sliceWidth_ || y1 >= sliceHeight_ || z1 >= ssize_t(numSlices_)) {
+    if (x0 < 0 || y0 < 0 || z0 < 0 || x1 >= sliceWidth_ || y1 >= sliceHeight_ ||
+        z1 >= ssize_t(numSlices_)) {
         return 0;
     }
 
@@ -83,14 +84,16 @@ bool Volume::setSliceData(const int32_t index, const cv::Mat& slice)
 boost::filesystem::path Volume::getNormalPathAtIndex(const int32_t index) const
 {
     std::stringstream ss;
-    ss << std::setw(numSliceCharacters_) << std::setfill('0') << index << ".pcd";
-    return normalPath_ / ss.str(); 
+    ss << std::setw(numSliceCharacters_) << std::setfill('0') << index
+       << ".pcd";
+    return normalPath_ / ss.str();
 }
 
 boost::filesystem::path Volume::getSlicePath(const int32_t index) const
 {
     std::stringstream ss;
-    ss << std::setw(numSliceCharacters_) << std::setfill('0') << index << ".tif";
+    ss << std::setw(numSliceCharacters_) << std::setfill('0') << index
+       << ".tif";
     return slicePath_ / ss.str();
 }
 
@@ -137,31 +140,33 @@ StructureTensor Volume::getStructureTensor(const int32_t vx, const int32_t vy,
     using cv::Range;
 
     // Safety checks
-    assert(vx >= 0 && vx < sliceWidth_ && "x must be in range [0, slice_width]\n");
-    assert(vy >= 0 && vy < sliceHeight_ && "y must be in range [0, slice_height]\n");
+    assert(vx >= 0 && vx < sliceWidth_ &&
+           "x must be in range [0, slice_width]\n");
+    assert(vy >= 0 && vy < sliceHeight_ &&
+           "y must be in range [0, slice_height]\n");
     assert(vz >= 0 && vz < numSlices_ && "z must be in range [0, #slices]\n");
 
     // Get voxels in radius voxelRadius around voxel (x, y, z)
     auto v = getVoxelNeighborsCubic<double>({vx, vy, vz}, voxelRadius);
-    
+
     // Calculate gradient field around specified voxel
     const int32_t n = 2 * voxelRadius + 1;
     auto gradientField = Tensor3D<cv::Vec3d>(n, n, n);
 
-	// First do XY gradients
-	for (int32_t z = 0; z < n; ++z) {
+    // First do XY gradients
+    for (int32_t z = 0; z < n; ++z) {
         cv::Mat_<double> xGradient(n, n);
         cv::Mat_<double> yGradient(n, n);
         cv::Scharr(v.xySlice(z), xGradient, CV_64F, 1, 0);
         cv::Scharr(v.xySlice(z), yGradient, CV_64F, 0, 1);
         for (int32_t y = 0; y < n; ++y) {
-			for (int32_t x = 0; x < n; ++x) {
+            for (int32_t x = 0; x < n; ++x) {
                 gradientField(x, y, z) = {xGradient(y, x), yGradient(y, x), 0};
             }
-		}
-	}
+        }
+    }
 
-	// Then Z gradients
+    // Then Z gradients
     for (int32_t layer = 0; layer < n; ++layer) {
         cv::Mat_<double> zGradient(n, n);
         cv::Scharr(v.xzSlice(layer), zGradient, CV_64F, 0, 1);
@@ -186,28 +191,28 @@ StructureTensor Volume::getStructureTensor(const int32_t vx, const int32_t vy,
             */
 
     // Make tensor field
-	// Note: This can just be a 1-D array of StructureTensor since we no longer care about
-	// the ordering
-	auto tensorField = std::vector<StructureTensor>();
-	tensorField.reserve(n * n * n);
-	for (int32_t z = 0; z < n; ++z) {
-		for (int32_t y = 0; y < n; ++y) {
-			for (int32_t x = 0; x < n; ++x) {
-				tensorField.push_back(makeStructureTensor(gradientField(x, y, z)));
-			}
-		}
-	}
+    // Note: This can just be a 1-D array of StructureTensor since we no longer
+    // care about
+    // the ordering
+    auto tensorField = std::vector<StructureTensor>();
+    tensorField.reserve(n * n * n);
+    for (int32_t z = 0; z < n; ++z) {
+        for (int32_t y = 0; y < n; ++y) {
+            for (int32_t x = 0; x < n; ++x) {
+                tensorField.push_back(
+                    makeStructureTensor(gradientField(x, y, z)));
+            }
+        }
+    }
 
-	// Modulate by gaussian distribution (element-wise) and sum
-	// The ordeings must match - i.e. the order of adding the tensors to the field must match that of the
-	// Gaussian weightings
-	const GaussianDistribution3D gaussianField{voxelRadius};
-	StructureTensor sum = StructureTensor(0, 0, 0,
-										  0, 0, 0,
-										  0, 0, 0);
-	for (size_t i = 0; i < size_t(n * n * n); ++i) {
-		sum += tensorField[i] * gaussianField[i];
-	}
+    // Modulate by gaussian distribution (element-wise) and sum
+    // The ordeings must match - i.e. the order of adding the tensors to the
+    // field must match that of the Gaussian weightings
+    auto gaussianField = makeGaussianField(voxelRadius);
+    StructureTensor sum = StructureTensor(0, 0, 0, 0, 0, 0, 0, 0, 0);
+    for (size_t i = 0; i < size_t(n * n * n); ++i) {
+        sum += tensorField[i] * gaussianField[i];
+    }
 
     return sum;
 }
@@ -217,14 +222,16 @@ StructureTensor makeStructureTensor(const cv::Vec3d gradient)
     double Ix = gradient(0);
     double Iy = gradient(1);
     double Iz = gradient(2);
+    // clang-format off
     return StructureTensor(Ix * Ix, Ix * Iy, Ix * Iz,
                            Ix * Iy, Iy * Iy, Iy * Iz,
                            Ix * Iz, Iy * Iz, Iz * Iz);
+    // clang-format on
 }
 
-
-template <typename DType=double>
-Tensor3D<DType> Volume::getVoxelNeighborsCubic(const cv::Point3i center, const int32_t radius) const
+template <typename DType = double>
+Tensor3D<DType> Volume::getVoxelNeighborsCubic(const cv::Point3i center,
+                                               const int32_t radius) const
 {
     assert(radius % 2 == 1 && "radius must be odd\n");
     return getVoxelNeighbors<DType>(center, radius, radius, radius);
@@ -236,7 +243,9 @@ Tensor3D<DType> Volume::getVoxelNeighbors(const cv::Point3i center,
                                           const int32_t rz) const
 {
     // Safety checks
-    assert(center.x >= 0 && center.x < sliceWidth_ && center.y >= 0 && center.y < sliceHeight_ && center.z >= 0 && center.z < numSlices_ && "center must be inside volume\n");
+    assert(center.x >= 0 && center.x < sliceWidth_ && center.y >= 0 &&
+           center.y < sliceHeight_ && center.z >= 0 && center.z < numSlices_ &&
+           "center must be inside volume\n");
 
     Tensor3D<DType> v(2 * rx + 1, 2 * ry + 1, 2 * rz + 1);
     for (int32_t k = center.z - rz, c = 0; k <= center.z + rz; ++k, ++c) {
@@ -255,4 +264,37 @@ Tensor3D<DType> Volume::getVoxelNeighbors(const cv::Point3i center,
     }
 
     return v;
+}
+
+std::unique_ptr<double[]> makeGaussianField(const int32_t radius)
+{
+    const int32_t sideLength = 2 * radius + 1;
+    const int32_t fieldSize = sideLength * sideLength * sideLength;
+    auto field = std::unique_ptr<double[]>(new double[fieldSize]);
+    double sum = 0;
+    const double sigma = 1.0;
+    const double sigma3 = sigma * sigma * sigma;
+    const double N = 1.0 / (sigma3 * std::pow(2 * M_PI, 3.0 / 2.0));
+
+    // Fill field
+    for (int32_t z = -radius; z <= radius; ++z) {
+        for (int32_t y = -radius; y <= radius; ++y) {
+            for (int32_t x = -radius; x <= radius; ++x) {
+                double val = std::exp(-(x * x + y * y + z * z));
+                // clang-format off
+                field[(z + radius) * sideLength * sideLength +
+                      (y + radius) * sideLength +
+                      (x + radius)] = N * val;
+                // clang-format on
+                sum += val;
+            }
+        }
+    }
+
+    // Normalize
+    for (int32_t i = 0; i < sideLength * sideLength * sideLength; ++i) {
+        field[i] /= sum;
+    }
+
+    return field;
 }
