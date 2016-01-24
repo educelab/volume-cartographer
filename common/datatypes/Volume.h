@@ -11,10 +11,21 @@
 #include "Slice.h"
 
 using Voxel = cv::Vec3d;
+using EigenValues = cv::Vec3d;
+using EigenVectors = cv::Matx33d;
 using StructureTensor = cv::Matx33d;
 
 namespace volcart
 {
+class ZeroStructureTensorException : public std::exception
+{
+public:
+    virtual const char* what() const throw()
+    {
+        return "Structure tensor was zero";
+    }
+};
+
 class Volume
 {
 public:
@@ -75,9 +86,26 @@ public:
                   const cv::Vec3d yvec, const int32_t width = 64,
                   const int32_t height = 64) const;
 
-    StructureTensor getStructureTensor(const int32_t x, const int32_t y,
-                                       const int32_t z,
-                                       const int32_t voxelRadius = 1) const;
+    StructureTensor structureTensorAtIndex(const int32_t x, const int32_t y,
+                                           const int32_t z,
+                                           const int32_t voxelRadius = 1) const;
+
+    StructureTensor structureTensorAtIndex(const cv::Vec3i index,
+                                           const int32_t voxelRadius = 1) const
+    {
+        return structureTensorAtIndex(index(0), index(1), index(2),
+                                      voxelRadius);
+    }
+
+    std::pair<EigenValues, EigenVectors> eigenPairsAtIndex(
+        const int32_t x, const int32_t y, const int32_t z,
+        const int32_t voxelRadius = 1) const;
+
+    std::pair<EigenValues, EigenVectors> eigenPairsAtIndex(
+        const cv::Vec3i index, const int32_t voxelRadius = 1) const
+    {
+        return eigenPairsAtIndex(index(0), index(1), index(2), voxelRadius);
+    }
 
     template <typename DType>
     Tensor3D<DType> getVoxelNeighbors(const cv::Point3i center,

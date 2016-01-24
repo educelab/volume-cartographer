@@ -5,6 +5,9 @@
 
 using namespace volcart;
 
+const StructureTensor zeroStructureTensor =
+    StructureTensor(0, 0, 0, 0, 0, 0, 0, 0, 0);
+
 StructureTensor makeStructureTensor(const cv::Vec3d gradient);
 
 std::unique_ptr<double[]> makeGaussianField(const int32_t radius);
@@ -117,9 +120,10 @@ Slice Volume::reslice(const Voxel center, const cv::Vec3d xvec,
     return Slice(m, origin, xnorm, ynorm);
 }
 
-StructureTensor Volume::getStructureTensor(const int32_t vx, const int32_t vy,
-                                           const int32_t vz,
-                                           const int32_t voxelRadius) const
+StructureTensor Volume::structureTensorAtIndex(const int32_t vx,
+                                               const int32_t vy,
+                                               const int32_t vz,
+                                               const int32_t voxelRadius) const
 {
     using cv::Range;
 
@@ -199,6 +203,20 @@ StructureTensor Volume::getStructureTensor(const int32_t vx, const int32_t vy,
     }
 
     return sum;
+}
+
+std::pair<EigenValues, EigenVectors> Volume::eigenPairsAtIndex(
+    const int32_t x, const int32_t y, const int32_t z,
+    const int32_t voxelRadius) const
+{
+    auto st = structureTensorAtIndex(x, y, z, voxelRadius);
+    if (st == zeroStructureTensor) {
+        throw ZeroStructureTensorException();
+    }
+    cv::Vec3d eigenValues;
+    cv::Matx33d eigenVectors;
+    cv::eigen(st, eigenValues, eigenVectors);
+    return std::make_pair(eigenValues, eigenVectors);
 }
 
 StructureTensor makeStructureTensor(const cv::Vec3d gradient)
