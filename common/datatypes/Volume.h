@@ -10,35 +10,19 @@
 #include "Tensor3D.h"
 #include "Slice.h"
 
-#define VC_INDEX_X 0
-#define VC_INDEX_Y 1
-#define VC_INDEX_Z 2
-
 using Voxel = cv::Vec3d;
 using StructureTensor = cv::Matx33d;
 
 namespace volcart
 {
-
 class Volume
 {
-private:
-    boost::filesystem::path slicePath_;
-    boost::filesystem::path normalPath_;
-    int32_t numSlices_;
-    int32_t sliceWidth_;
-    int32_t sliceHeight_;
-    int32_t numSliceCharacters_;
-    mutable volcart::LRUCache<int32_t, cv::Mat> cache_;
-
-    uint16_t interpolateAt(const Voxel point) const;
-
 public:
-
     Volume() = default;
 
-    Volume(boost::filesystem::path slicePath, boost::filesystem::path normalPath, int32_t nslices, int32_t sliceWidth,
-            int32_t sliceHeight)
+    Volume(boost::filesystem::path slicePath,
+           boost::filesystem::path normalPath, int32_t nslices,
+           int32_t sliceWidth, int32_t sliceHeight)
         : slicePath_(slicePath),
           normalPath_(normalPath),
           numSlices_(nslices),
@@ -63,17 +47,29 @@ public:
 
     uint16_t getIntensityAtCoord(const cv::Vec3d v) const
     {
-        return getIntensityAtCoord(v(0), v(1), v(2));
+        return getIntensityAtCoord(int32_t(v(0)), int32_t(v(1)), int32_t(v(2)));
     }
 
     uint16_t getIntensityAtCoord(const int32_t x, const int32_t y,
-                                 const int32_t z) const;
+                                 const int32_t z) const
+    {
+        return getSliceData(z).at<uint16_t>(y, x);
+    }
 
-    void setCacheSize(const size_t newCacheSize);
+    void setCacheSize(const size_t newCacheSize)
+    {
+        cache_.setSize(newCacheSize);
+    }
 
-    size_t getCacheSize() const { return cache_.size(); };
+    size_t getCacheSize() const
+    {
+        return cache_.size();
+    };
 
-    void setCacheMemoryInBytes(const size_t nbytes);
+    void setCacheMemoryInBytes(const size_t nbytes)
+    {
+        setCacheSize(nbytes / (sliceWidth_ * sliceHeight_));
+    }
 
     Slice reslice(const Voxel center, const cv::Vec3d xvec,
                   const cv::Vec3d yvec, const int32_t width = 64,
@@ -84,11 +80,24 @@ public:
                                        const int32_t voxelRadius = 1) const;
 
     template <typename DType>
-    Tensor3D<DType> getVoxelNeighbors(const cv::Point3i center, const int32_t dx, const int32_t dy, const int32_t dz) const;
+    Tensor3D<DType> getVoxelNeighbors(const cv::Point3i center,
+                                      const int32_t dx, const int32_t dy,
+                                      const int32_t dz) const;
 
     template <typename DType>
     Tensor3D<DType> getVoxelNeighborsCubic(const cv::Point3i origin,
                                            const int32_t diameter) const;
+
+private:
+    boost::filesystem::path slicePath_;
+    boost::filesystem::path normalPath_;
+    int32_t numSlices_;
+    int32_t sliceWidth_;
+    int32_t sliceHeight_;
+    int32_t numSliceCharacters_;
+    mutable volcart::LRUCache<int32_t, cv::Mat> cache_;
+
+    uint16_t interpolateAt(const Voxel point) const;
 };
 }
 

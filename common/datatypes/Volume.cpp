@@ -1,5 +1,6 @@
 #include "Volume.h"
 #include <sstream>
+#include <memory>
 #include <iomanip>
 
 using namespace volcart;
@@ -16,13 +17,13 @@ std::unique_ptr<double[]> makeGaussianField(const int32_t radius);
 uint16_t Volume::interpolateAt(const Voxel point) const
 {
     double int_part;
-    double dx = modf(point(VC_INDEX_X), &int_part);
+    double dx = modf(point(0), &int_part);
     int x0 = int(int_part);
     int x1 = x0 + 1;
-    double dy = modf(point(VC_INDEX_Y), &int_part);
+    double dy = modf(point(1), &int_part);
     int y0 = int(int_part);
     int y1 = y0 + 1;
-    double dz = modf(point(VC_INDEX_Z), &int_part);
+    double dz = modf(point(2), &int_part);
     int z0 = int(int_part);
     int z1 = z0 + 1;
 
@@ -95,23 +96,6 @@ boost::filesystem::path Volume::getSlicePath(const int32_t index) const
     ss << std::setw(numSliceCharacters_) << std::setfill('0') << index
        << ".tif";
     return slicePath_ / ss.str();
-}
-
-uint16_t Volume::getIntensityAtCoord(const int32_t x, const int32_t y,
-                                     const int32_t z) const
-{
-    return getSliceData(z).at<uint16_t>(y, x);
-}
-
-void Volume::setCacheSize(const size_t newCacheSize)
-{
-    cache_.setSize(newCacheSize);
-}
-
-void Volume::setCacheMemoryInBytes(const size_t nbytes)
-{
-    size_t sliceSize = getSliceData(0).step[0] * getSliceData(0).rows;
-    setCacheSize(nbytes / sliceSize);
 }
 
 Slice Volume::reslice(const Voxel center, const cv::Vec3d xvec,
