@@ -199,9 +199,11 @@ StructureTensor gradient_to_tensor(Gradient g)
     double Ix = g(0);
     double Iy = g(1);
     double Iz = g(2);
+    // clang-format off
     return StructureTensor(Ix * Ix, Ix * Iy, Ix * Iz,
-						   Ix * Iy, Iy * Iy, Iy * Iz,
+                           Ix * Iy, Iy * Iy, Iy * Iz,
                            Ix * Iz, Iy * Iz, Iz * Iz);
+    // clang-format on
 }
 
 // find and chomp maximum eigenvalue
