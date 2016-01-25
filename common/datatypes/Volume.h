@@ -4,6 +4,7 @@
 #define _VOLCART_VOLUME_H_
 
 #include <string>
+#include <array>
 #include <opencv2/opencv.hpp>
 #include <boost/filesystem.hpp>
 #include "LRUCache.h"
@@ -12,7 +13,9 @@
 
 using Voxel = cv::Vec3d;
 using EigenValues = cv::Vec3d;
+using EigenValue = double;
 using EigenVectors = cv::Matx33d;
+using EigenVector = cv::Vec3d;
 using StructureTensor = cv::Matx33d;
 
 namespace volcart
@@ -72,11 +75,7 @@ public:
         cache_.setSize(newCacheSize);
     }
 
-    size_t getCacheSize() const
-    {
-        return cache_.size();
-    };
-
+    size_t getCacheSize() const { return cache_.size(); };
     void setCacheMemoryInBytes(const size_t nbytes)
     {
         setCacheSize(nbytes / (sliceWidth_ * sliceHeight_));
@@ -97,11 +96,11 @@ public:
                                       voxelRadius);
     }
 
-    std::pair<EigenValues, EigenVectors> eigenPairsAtIndex(
+    std::array<std::pair<EigenValue, EigenVector>, 3> eigenPairsAtIndex(
         const int32_t x, const int32_t y, const int32_t z,
         const int32_t voxelRadius = 1) const;
 
-    std::pair<EigenValues, EigenVectors> eigenPairsAtIndex(
+    std::array<std::pair<EigenValue, EigenVector>, 3> eigenPairsAtIndex(
         const cv::Vec3i index, const int32_t voxelRadius = 1) const
     {
         return eigenPairsAtIndex(index(0), index(1), index(2), voxelRadius);

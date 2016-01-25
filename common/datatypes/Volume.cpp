@@ -165,23 +165,21 @@ StructureTensor Volume::structureTensorAtIndex(const int32_t vx,
         }
     }
 
-    /*
     // Convert to tensor volume
     // XXX: Still doing Mike's algorithm for calculating. Assumes radius=1
-    return (1.0 / 7.0) *
-           (makeStructureTensor(gradientField(0, 1, 1)) +
-            makeStructureTensor(gradientField(1, 1, 1)) +
-            makeStructureTensor(gradientField(2, 1, 1)) +
-            makeStructureTensor(gradientField(1, 1, 0)) +
-            makeStructureTensor(gradientField(1, 1, 2)) +
-            makeStructureTensor(gradientField(1, 0, 1)) +
-            makeStructureTensor(gradientField(1, 2, 1)));
-            */
+    return (1.0 / 7.0) * (makeStructureTensor(gradientField(0, 1, 1)) +
+                          makeStructureTensor(gradientField(1, 1, 1)) +
+                          makeStructureTensor(gradientField(2, 1, 1)) +
+                          makeStructureTensor(gradientField(1, 1, 0)) +
+                          makeStructureTensor(gradientField(1, 1, 2)) +
+                          makeStructureTensor(gradientField(1, 0, 1)) +
+                          makeStructureTensor(gradientField(1, 2, 1)));
 
     // Make tensor field
     // Note: This can just be a 1-D array of StructureTensor since we no longer
     // care about
     // the ordering
+    /*
     auto tensorField = std::vector<StructureTensor>();
     tensorField.reserve(n * n * n);
     for (int32_t z = 0; z < n; ++z) {
@@ -203,9 +201,10 @@ StructureTensor Volume::structureTensorAtIndex(const int32_t vx,
     }
 
     return sum;
+    */
 }
 
-std::pair<EigenValues, EigenVectors> Volume::eigenPairsAtIndex(
+std::array<std::pair<EigenValue, EigenVector>, 3> Volume::eigenPairsAtIndex(
     const int32_t x, const int32_t y, const int32_t z,
     const int32_t voxelRadius) const
 {
@@ -216,7 +215,16 @@ std::pair<EigenValues, EigenVectors> Volume::eigenPairsAtIndex(
     cv::Vec3d eigenValues;
     cv::Matx33d eigenVectors;
     cv::eigen(st, eigenValues, eigenVectors);
-    return std::make_pair(eigenValues, eigenVectors);
+    auto row0 = eigenVectors.row(0);
+    auto row1 = eigenVectors.row(1);
+    auto row2 = eigenVectors.row(2);
+    EigenVector e0{row0(0), row0(1), row0(2)};
+    EigenVector e1{row1(0), row1(1), row1(2)};
+    EigenVector e2{row2(0), row2(1), row2(2)};
+    return {
+        std::make_pair(eigenValues(0), e0), std::make_pair(eigenValues(1), e1),
+        std::make_pair(eigenValues(2), e2),
+    };
 }
 
 StructureTensor makeStructureTensor(const cv::Vec3d gradient)
@@ -235,7 +243,6 @@ template <typename DType = double>
 Tensor3D<DType> Volume::getVoxelNeighborsCubic(const cv::Point3i center,
                                                const int32_t radius) const
 {
-    assert(radius % 2 == 1 && "radius must be odd\n");
     return getVoxelNeighbors<DType>(center, radius, radius, radius);
 }
 
