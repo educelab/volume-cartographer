@@ -3,6 +3,7 @@
 //
 
 #include "Sphere.h"
+#include "../vc_defines.h"
 
 namespace volcart {
     namespace shapes {
@@ -12,20 +13,23 @@ namespace volcart {
             // create 12 vertices of a icosahedron
             double t = ( 1.0 + sqrt(5.0) ) / 2.0;
 
-            _add_vertex(-1,  t, 0);
-            _add_vertex( 1,  t, 0);
-            _add_vertex(-1, -t, 0);
-            _add_vertex( 1, -t, 0);
+            // must make everything on the unit sphere, so divide by length
+            double length = sqrt(1 + t * t);
 
-            _add_vertex( 0, -1,  t);
-            _add_vertex( 0,  1,  t);
-            _add_vertex( 0, -1, -t);
-            _add_vertex( 0,  1, -t);
+            _add_vertex(-1/length,  t/length, 0);
+            _add_vertex( 1/length,  t/length, 0);
+            _add_vertex(-1/length, -t/length, 0);
+            _add_vertex( 1/length, -t/length, 0);
 
-            _add_vertex( t, 0, -1);
-            _add_vertex( t, 0,  1);
-            _add_vertex(-t, 0, -1);
-            _add_vertex(-t, 0,  1);
+            _add_vertex( 0, -1/length,  t/length);
+            _add_vertex( 0,  1/length,  t/length);
+            _add_vertex( 0, -1/length, -t/length);
+            _add_vertex( 0,  1/length, -t/length);
+
+            _add_vertex( t/length, 0, -1/length);
+            _add_vertex( t/length, 0,  1/length);
+            _add_vertex(-t/length, 0, -1/length);
+            _add_vertex(-t/length, 0,  1/length);
 
 
             // create 20 triangles of the icosahedron
@@ -66,6 +70,7 @@ namespace volcart {
 
                 for( auto cell = _temp_cells.begin(); cell != _temp_cells.end(); ++cell ) {
                     // replace using 4 triangles
+
                     int a = _midpoint( cell->v1, cell->v2 );
                     int b = _midpoint( cell->v2, cell->v3 );
                     int c = _midpoint( cell->v3, cell->v1 );
@@ -101,9 +106,10 @@ namespace volcart {
 
             // calculate
             double midX, midY, midZ;
+
             midX = (_points[p1].x + _points[p2].x) / 2;
             midY = (_points[p1].y + _points[p2].y) / 2;
-            midZ = (_points[p1].z + _points[p2].z) / 2;
+            midZ = (_points[p1].z + _points[p2].z) / 2;;
 
             // ensure unit sphere by dividing each point by length
             double length = sqrt(midX * midX + midY * midY + midZ * midZ);
