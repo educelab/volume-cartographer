@@ -17,4 +17,7 @@ add_executable(vc_plyExporterExample plyExporterExample.cpp)
 target_link_libraries(vc_plyExporterExample ${VC_LIBS} ${VC_REQ_LIBS})
 
 add_executable(vc_verifyStructureTensor VerifyStructureTensor.cpp)
-target_link_libraries(vc_verifyStructureTensor  ${VC_LIBS} ${VC_REQ_LIBS})
+target_link_libraries(vc_verifyStructureTensor ${VC_LIBS} ${VC_REQ_LIBS})
+
+add_executable(vc_structureTensorClient StructureTensorClient.cpp)
+target_link_libraries(vc_structureTensorClient ${VC_LIBS} ${VC_REQ_LIBS})
