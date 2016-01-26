@@ -21,3 +21,6 @@ target_link_libraries(vc_verifyStructureTensor ${VC_LIBS} ${VC_REQ_LIBS})
 
 add_executable(vc_structureTensorClient StructureTensorClient.cpp)
 target_link_libraries(vc_structureTensorClient ${VC_LIBS} ${VC_REQ_LIBS})
+
+add_executable(vc_makeNeuralNetTrainingData MakeNeuralNetTrainingData.cpp)
+target_link_libraries(vc_makeNeuralNetTrainingData ${VC_LIBS} ${VC_REQ_LIBS})
