@@ -1,9 +1,6 @@
-
-
 stages:
     - test
     - deploy
-
 
 build_it_test_it:
     stage: test
@@ -15,12 +12,9 @@ build_it_test_it:
         - make
         - echo "---- Do it. Makes us. ----"
         - make test
-# after running tests, try to include the 'cost' file and the test log to the build summary
-# these should be available for download
     artifacts:
       paths:
-        - ./testing/Temporary/
-
+        - build/testing/Temporary/
     tags:
         - test
         - osx
