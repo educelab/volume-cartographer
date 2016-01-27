@@ -4,11 +4,11 @@
 #define _VOLCART_TENSOR3D_H_
 
 #include <vector>
+#include <memory>
 #include <opencv2/opencv.hpp>
 
 namespace volcart
 {
-
 template <typename DType>
 class Tensor3D
 {
@@ -21,8 +21,9 @@ private:
 public:
     Tensor3D<DType>() = default;
 
-    Tensor3D<DType>(const int32_t dx, const int32_t dy, const int32_t dz, const bool zero=true) :
-        dx_(dx), dy_(dy), dz_(dz)
+    Tensor3D<DType>(const int32_t dx, const int32_t dy, const int32_t dz,
+                    const bool zero = true)
+        : dx_(dx), dy_(dy), dz_(dz)
     {
         // XXX check if these dimensions are too large?
         if (zero) {
@@ -60,6 +61,23 @@ public:
     {
         return tensor_[z](y, x);
     }
+
+    std::unique_ptr<DType[]> buffer(void) const
+    {
+        auto buf = std::unique_ptr<DType[]>(new DType[dx_ * dy_ * dz_]);
+        for (int32_t z = 0; z < dz_; ++z) {
+            for (int32_t y = 0; y < dy_; ++y) {
+                for (int32_t x = 0; x < dx_; ++x) {
+                    buf[z * dx_ * dy_ + y * dx_ + x] = tensor_[z](y, x);
+                }
+            }
+        }
+        return buf;
+    }
+
+    int32_t dx() const { return dx_; }
+    int32_t dy() const { return dy_; }
+    int32_t dz() const { return dz_; }
 };
 }
 
