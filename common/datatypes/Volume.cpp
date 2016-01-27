@@ -204,9 +204,9 @@ StructureTensor Volume::structureTensorAtIndex(const int32_t vx,
     */
 }
 
-std::array<std::pair<EigenValue, EigenVector>, 3> Volume::eigenPairsAtIndex(
-    const int32_t x, const int32_t y, const int32_t z,
-    const int32_t voxelRadius) const
+EigenPairs Volume::eigenPairsAtIndex(const int32_t x, const int32_t y,
+                                     const int32_t z,
+                                     const int32_t voxelRadius) const
 {
     auto st = structureTensorAtIndex(x, y, z, voxelRadius);
     if (st == zeroStructureTensor) {
@@ -237,42 +237,6 @@ StructureTensor makeStructureTensor(const cv::Vec3d gradient)
                            Ix * Iy, Iy * Iy, Iy * Iz,
                            Ix * Iz, Iy * Iz, Iz * Iz);
     // clang-format on
-}
-
-template <typename DType = double>
-Tensor3D<DType> Volume::getVoxelNeighborsCubic(const cv::Point3i center,
-                                               const int32_t radius) const
-{
-    return getVoxelNeighbors<DType>(center, radius, radius, radius);
-}
-
-template <typename DType = double>
-Tensor3D<DType> Volume::getVoxelNeighbors(const cv::Point3i center,
-                                          const int32_t rx, const int32_t ry,
-                                          const int32_t rz) const
-{
-    // Safety checks
-    assert(center.x >= 0 && center.x < sliceWidth_ && center.y >= 0 &&
-           center.y < sliceHeight_ && center.z >= 0 && center.z < numSlices_ &&
-           "center must be inside volume\n");
-
-    Tensor3D<DType> v(2 * rx + 1, 2 * ry + 1, 2 * rz + 1);
-    for (int32_t k = center.z - rz, c = 0; k <= center.z + rz; ++k, ++c) {
-        // If k index is out of bounds, then keep it at zeros and go on
-        if (k < 0) {
-            continue;
-        }
-        for (int32_t j = center.y - ry, b = 0; j <= center.y + ry; ++j, ++b) {
-            for (int32_t i = center.x - rx, a = 0; i <= center.x + rx;
-                 ++i, ++a) {
-                if (i >= 0 && j >= 0) {
-                    v(a, b, c) = DType(getIntensityAtCoord(i, j, k));
-                }
-            }
-        }
-    }
-
-    return v;
 }
 
 std::unique_ptr<double[]> makeGaussianField(const int32_t radius)

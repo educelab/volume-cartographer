@@ -16,6 +16,7 @@ using EigenValues = cv::Vec3d;
 using EigenValue = double;
 using EigenVectors = cv::Matx33d;
 using EigenVector = cv::Vec3d;
+using EigenPairs = std::array<std::pair<EigenValue, EigenVector>, 3>;
 using StructureTensor = cv::Matx33d;
 
 namespace volcart
@@ -96,24 +97,53 @@ public:
                                       voxelRadius);
     }
 
-    std::array<std::pair<EigenValue, EigenVector>, 3> eigenPairsAtIndex(
-        const int32_t x, const int32_t y, const int32_t z,
-        const int32_t voxelRadius = 1) const;
+    EigenPairs eigenPairsAtIndex(const int32_t x, const int32_t y,
+                                 const int32_t z,
+                                 const int32_t voxelRadius = 1) const;
 
-    std::array<std::pair<EigenValue, EigenVector>, 3> eigenPairsAtIndex(
-        const cv::Vec3i index, const int32_t voxelRadius = 1) const
+    EigenPairs eigenPairsAtIndex(const cv::Vec3i index,
+                                 const int32_t voxelRadius = 1) const
     {
         return eigenPairsAtIndex(index(0), index(1), index(2), voxelRadius);
     }
 
     template <typename DType>
     Tensor3D<DType> getVoxelNeighbors(const cv::Point3i center,
-                                      const int32_t dx, const int32_t dy,
-                                      const int32_t dz) const;
+                                      const int32_t rx, const int32_t ry,
+                                      const int32_t rz) const
+    {
+        // Safety checks
+        assert(center.x >= 0 && center.x < sliceWidth_ && center.y >= 0 &&
+               center.y < sliceHeight_ && center.z >= 0 &&
+               center.z < numSlices_ && "center must be inside volume\n");
+
+        Tensor3D<DType> v(2 * rx + 1, 2 * ry + 1, 2 * rz + 1);
+        for (int32_t k = center.z - rz, c = 0; k <= center.z + rz; ++k, ++c) {
+            // If k index is out of bounds, then keep it at zeros and go on
+            if (k < 0) {
+                continue;
+            }
+            for (int32_t j = center.y - ry, b = 0; j <= center.y + ry;
+                 ++j, ++b) {
+                for (int32_t i = center.x - rx, a = 0; i <= center.x + rx;
+                     ++i, ++a) {
+                    if (i >= 0 && j >= 0) {
+                        v(a, b, c) =
+                            static_cast<DType>((getIntensityAtCoord(i, j, k)));
+                    }
+                }
+            }
+        }
+
+        return v;
+    }
 
     template <typename DType>
-    Tensor3D<DType> getVoxelNeighborsCubic(const cv::Point3i origin,
-                                           const int32_t diameter) const;
+    Tensor3D<DType> getVoxelNeighborsCubic(const cv::Point3i center,
+                                           const int32_t radius) const
+    {
+        return getVoxelNeighbors<DType>(center, radius, radius, radius);
+    }
 
 private:
     boost::filesystem::path slicePath_;
