@@ -22,5 +22,7 @@ target_link_libraries(vc_verifyStructureTensor ${VC_LIBS} ${VC_REQ_LIBS})
 add_executable(vc_structureTensorClient StructureTensorClient.cpp)
 target_link_libraries(vc_structureTensorClient ${VC_LIBS} ${VC_REQ_LIBS})
 
+find_package(HDF5 REQUIRED)
+include_directories(${HDF5_INCLUDE_DIRS})
 add_executable(vc_makeNeuralNetTrainingData MakeNeuralNetTrainingData.cpp)
-target_link_libraries(vc_makeNeuralNetTrainingData ${VC_LIBS} ${VC_REQ_LIBS})
+target_link_libraries(vc_makeNeuralNetTrainingData ${HDF5_LIBRARIES} ${VC_LIBS} ${VC_REQ_LIBS})
