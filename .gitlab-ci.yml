@@ -6,7 +6,8 @@ build_it_test_it:
     stage: test
     script:
         - echo "---- Work it. Make it. ----"
-        - mkdir build
+        # create build dir if not present
+        - mkdir -p build
         - cd build/
         - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 ..
         - make
