@@ -1,26 +1,56 @@
-// What am I?
+#pragma once
 
-#ifndef _PARTICLE_
-#define _PARTICLE_
+#ifndef _VOLCART_SEGMENTATION_PARTICLE_H_
+#define _VOLCART_SEGMENTATION_PARTICLE_H_
 
+#include <iostream>
 #include <opencv2/opencv.hpp>
 
-typedef bool ParticleStopped;
+#include "common.h"
+
+namespace volcart {
+
+namespace segmentation {
 
 class Particle {
 public:
-  Particle(cv::Vec3f);
-  cv::Vec3f position();
-  bool isStopped();
-  void stop();
+    Particle(cv::Vec3d);
 
-  void operator+=(cv::Vec3f);
-  float operator()(int);
-  cv::Vec3f operator-(Particle);
+    Particle(double, double, double);
+
+    cv::Vec3d position() const;
+
+    bool isMoving() const;
+
+    void stop();
+
+    double operator()(int) const;
+
+    double x() const { return position_(VC_INDEX_X); }
+
+    double y() const { return position_(VC_INDEX_Y); }
+
+    double z() const { return position_(VC_INDEX_Z); }
+
+    Particle& operator+=(const Particle&);
+
+    Particle& operator-=(const Particle&);
+
+    Particle operator+(const Particle& rhs) const;
+
+    Particle operator-(const Particle& rhs) const;
 
 private:
-  cv::Vec3f _position;
-  bool _is_stopped;
+    friend std::ostream& operator<<(std::ostream& s, Particle& p) {
+        return s << p.position_;
+    }
+
+    cv::Vec3d position_;
+    bool isStopped_;
 };
+
+}
+
+}
 
 #endif

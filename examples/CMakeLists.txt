@@ -14,7 +14,7 @@ target_link_libraries(vc_objExporterExample ${VC_LIBS} ${VC_REQ_LIBS})
 ############
 
 add_executable(vc_itk2vtkExample itk2vtkExample.cpp)
-target_link_libraries(vc_itk2vtkExample ${VC_LIBS} ${VC_REQ_LIBS})
+target_link_libraries(vc_itk2vtkExample ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
 
 add_executable(vc_greedyExample greedyExample.cpp)
 target_link_libraries(vc_greedyExample ${VC_LIBS} ${VC_REQ_LIBS})

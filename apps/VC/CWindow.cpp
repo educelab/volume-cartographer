@@ -151,14 +151,10 @@ void CWindow::CreateMenus( void )
     fFileMenu->addSeparator();
     fFileMenu->addAction( fExitAct );
 
-    fEditMenu = new QMenu( tr( "&Edit" ), this );
-//	fEditMenu->addAction( fGetIntersectionAct );
-
     fHelpMenu = new QMenu( tr( "&Help" ), this );
     fHelpMenu->addAction( fAboutAct );
 
     menuBar()->addMenu( fFileMenu );
-    menuBar()->addMenu( fEditMenu );
     menuBar()->addMenu( fHelpMenu );
 }
 
@@ -497,11 +493,26 @@ void CWindow::About( void )
 }
 
 // Save point cloud to path directory
-void CWindow::SavePointCloud( void )
-{
-    fVpkg->saveCloud( fMasterCloud );
-    if ( fMasterCloud.height > 1 ) { // Only mesh if we have more than one iteration of segmentation
-        fVpkg->saveMesh( pcl::PointCloud< pcl::PointXYZRGB >::Ptr( new pcl::PointCloud< pcl::PointXYZRGB >( fMasterCloud ) ) );
+void CWindow::SavePointCloud( void ) {
+    if ( fMasterCloud.size() == 0 ) {
+        std::cerr << "VC::message: Empty point cloud. Nothing to save." << std::endl;
+        return;
+    }
+
+    // Try to save cloud to volpkg
+    if ( fVpkg->saveCloud(fMasterCloud) != EXIT_SUCCESS ) {
+        QMessageBox::warning(this, "Error", "Failed to write cloud to volume package.");
+    }
+
+    // Only mesh if we have more than one iteration of segmentation
+    if (fMasterCloud.height <= 1) {
+        std::cerr << "VC::message: Cloud height <= 1. Nothing to mesh." << std::endl;
+    } else {
+        if (fVpkg->saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr(new pcl::PointCloud<pcl::PointXYZRGB>(fMasterCloud))) != EXIT_SUCCESS) {
+            QMessageBox::warning(this, "Error", "Failed to write mesh to volume package.");
+        } else {
+            std::cerr << "VC::message: Succesfully saved mesh." << std::endl;
+        }
     }
 }
 

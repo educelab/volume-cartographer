@@ -7,8 +7,9 @@ namespace volcart {
     namespace meshing {
 
         VC_MeshType::Pointer smoothNormals(VC_MeshType::Pointer inputMesh,
-                                           double smoothingFactor) {
+                                           double               smoothingFactor) {
 
+            std::cerr << "volcart::meshing::smoothNormals: radius " << smoothingFactor << std::endl;
             // declare pointer to new Mesh object to be returned
             VC_MeshType::Pointer outputMesh = VC_MeshType::New();
             outputMesh = inputMesh; // copy faces, points, and old normals from input mesh
@@ -31,8 +32,7 @@ namespace volcart {
 
             // Iterate over all of the cells to lay out the faces in the output texture
             while (currentPoint != pointsEnd) {
-                std::cout << "Smoothing normals for point " << currentPoint.Index() << "/" << pointsEnd.Index() <<
-                "\r" << std::flush;
+                std::cerr << "volcart::meshing::smoothNormals: " << currentPoint.Index() << "/" << pointsEnd.Index() << "\r" << std::flush;
 
                 VC_PointType p = currentPoint.Value();
                 VC_PixelType currentNormal;
@@ -68,7 +68,7 @@ namespace volcart {
 
                 ++currentPoint;
             }
-            std::cout << std::endl;
+            std::cerr << std::endl;
 
             return outputMesh;
         }

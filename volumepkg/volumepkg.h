@@ -24,10 +24,14 @@
 #include "volumepkgcfg.h"
 #include "volumepkg_version.h"
 
-//#include "reslice.h"
-
+#include "reslice.h"
 #include "orderedPCDMesher.h"
 #include "io/objWriter.h"
+
+// Indices for indexing into vectors
+#define VC_INDEX_X 0
+#define VC_INDEX_Y 1
+#define VC_INDEX_Z 2
 
 class VolumePkg {
 public:
@@ -109,7 +113,7 @@ public:
     void saveMetadata();
 
     // Data Retrieval
-    cv::Mat getSliceData(int);
+    const cv::Mat getSliceData(int);
     std::string getSlicePath(int);
     std::string getNormalAtIndex(int);
     uint16_t intensity(cv::Vec3f point) { return interpolateAt(point); };
@@ -127,12 +131,13 @@ public:
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr openCloud();
     std::string getMeshPath();
     cv::Mat getTextureData();
-    void saveCloud(pcl::PointCloud<pcl::PointXYZRGB>);
-    void saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr);
+    int saveCloud(pcl::PointCloud<pcl::PointXYZRGB>);
+    int saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr);
     void saveMesh(VC_MeshType::Pointer mesh, volcart::Texture texture);
     void saveTextureData(cv::Mat, std::string = "textured");
     void saveTextureData(volcart::Texture texture, int index = 0) { saveTextureData(texture.getImage(index)); }
-    //Reslice reslice(const cv::Vec3f, const cv::Vec3f, const cv::Vec3f, const int32_t=64, const int32_t=64);
+    Reslice reslice(const cv::Vec3d, const cv::Vec3d, const cv::Vec3d, const int32_t=64, const int32_t=64);
+    uint16_t getIntensity(const int32_t x, const int32_t y, const int32_t z);
 
 private:
     bool _readOnly = true;

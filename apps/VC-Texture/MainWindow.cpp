@@ -8,7 +8,7 @@
 // Copy Right ©2015 (Brent Seales: Volume Cartography Research) - University of Kentucky Center for Visualization and Virtualization
 //----------------------------------------------------------------------------------------------------------------------------------------
 
-#include <mainwindow.h>
+#include "MainWindow.h"
 
 MainWindow::MainWindow(Global_Values *globals)
 {

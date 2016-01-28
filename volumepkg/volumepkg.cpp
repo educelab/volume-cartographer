@@ -1,4 +1,3 @@
-#include <io/objWriter.h>
 #include "volumepkg.h"
 
 // CONSTRUCTORS //
@@ -130,8 +129,8 @@ int VolumePkg::getNumberOfSliceCharacters() {
 }
 
 // Returns slice image at specific slice index
-cv::Mat VolumePkg::getSliceData(int index) {
-
+// XXX Need to call .clone() if you want to modify the return value from getSliceData()
+const cv::Mat VolumePkg::getSliceData(int index) {
     // Take advantage of caching layer
     auto possibleSlice = cache.get(index);
     if (possibleSlice != nullptr) {
@@ -231,22 +230,23 @@ std::string VolumePkg::newSegmentation() {
   return segName;
 }
 
-//Reslice VolumePkg::reslice(const cv::Vec3f center, const cv::Vec3f xvec, const cv::Vec3f yvec,
-//                           const int32_t width, const int32_t height) {
-//    const auto xnorm = cv::normalize(xvec);
-//    const auto ynorm = cv::normalize(yvec);
-//    const auto origin = center - ((width / 2) * xnorm + (height / 2) * ynorm);
-//
-//    cv::Mat m(height, width, CV_16UC1);
-//    for (int h = 0; h < height; ++h) {
-//        for (int w = 0; w < width; ++w) {
-//            cv::Vec3f v = origin + (h * ynorm) + (w * xnorm);
-//            m.at<uint16_t>(h, w) = interpolateAt(v);
-//        }
-//    }
-//
-//    return Reslice(m, origin, xnorm, ynorm);
-//}
+Reslice VolumePkg::reslice(const cv::Vec3d center, const cv::Vec3d xvec, const cv::Vec3d yvec,
+                           const int32_t width, const int32_t height) {
+    const auto xnorm = cv::normalize(xvec);
+    const auto ynorm = cv::normalize(yvec);
+    const auto origin = center - ((width / 2) * xnorm + (height / 2) * ynorm);
+
+    cv::Mat m(height, width, CV_16UC1);
+    for (int h = 0; h < height; ++h) {
+        for (int w = 0; w < width; ++w) {
+            cv::Vec3d v = origin + (h * ynorm) + (w * xnorm);
+            auto val = interpolateAt(v);
+            m.at<uint16_t>(h, w) = val;
+        }
+    }
+
+    return Reslice(m, origin, xnorm, ynorm);
+}
 
 // Trilinear Interpolation: Particles are not required
 // to be at integer positions so we estimate their
@@ -256,36 +256,38 @@ std::string VolumePkg::newSegmentation() {
 uint16_t VolumePkg::interpolateAt(cv::Vec3f point) {
     double int_part;
     double dx = modf(point(VC_INDEX_X), &int_part);
+    int x0 = int(int_part);
+    int x1 = x0 + 1;
     double dy = modf(point(VC_INDEX_Y), &int_part);
+    int y0 = int(int_part);
+    int y1 = y0 + 1;
     double dz = modf(point(VC_INDEX_Z), &int_part);
-
-    int x_min = (int) point(VC_INDEX_X);
-    int x_max = x_min + 1;
-    int y_min = (int) point(VC_INDEX_Y);
-    int y_max = y_min + 1;
-    int z_min = (int) point(VC_INDEX_Z);
-    int z_max = z_min + 1;
+    int z0 = int(int_part);
+    int z1 = z0 + 1;
 
     // insert safety net
-    if (x_min < 0 || y_min < 0 || z_min < 0 ||
-        x_max >= getSliceWidth() || y_max >= getSliceHeight() ||
-        z_max >= getNumberOfSlices()) {
+    if (x0 < 0 || y0 < 0 || z0 < 0 ||
+        x1 >= getSliceWidth() || y1 >= getSliceHeight() || z1 >= getNumberOfSlices()) {
         return 0;
     }
 
-    // Slice data for certain slices
-    auto sliceZmin = getSliceData(z_min);
-    auto sliceZmax = getSliceData(z_max);
+    // from: https://en.wikipedia.org/wiki/Trilinear_interpolation
+    auto c00 = getIntensity(x0, y0, z0) * (1 - dx) + getIntensity(x1, y0, z0) * dx;
+    auto c10 = getIntensity(x0, y1, z0) * (1 - dx) + getIntensity(x1, y0, z0) * dx;
+    auto c01 = getIntensity(x0, y0, z1) * (1 - dx) + getIntensity(x1, y0, z1) * dx;
+    auto c11 = getIntensity(x0, y1, z1) * (1 - dx) + getIntensity(x1, y1, z1) * dx;
 
-    return uint16_t(
-            sliceZmin.at<uint16_t>(y_min, x_min) * (1 - dx) * (1 - dy) * (1 - dz) +
-            sliceZmin.at<uint16_t>(y_min, x_max) * dx       * (1 - dy) * (1 - dz) +
-            sliceZmin.at<uint16_t>(y_max, x_min) * (1 - dx) * dy       * (1 - dz) +
-            sliceZmax.at<uint16_t>(y_min, x_min) * (1 - dx) * (1 - dy) * dz +
-            sliceZmax.at<uint16_t>(y_min, x_max) * dx       * (1 - dy) * dz +
-            sliceZmax.at<uint16_t>(y_max, x_min) * (1 - dx) * dy       * dz +
-            sliceZmin.at<uint16_t>(y_max, x_max) * dx       * dy       * (1 - dz) +
-            sliceZmax.at<uint16_t>(y_max, x_max) * dx       * dy       * dz);
+    auto c0 = c00 * (1 - dy) + c10 * dy;
+    auto c1 = c01 * (1 - dy) + c11 * dy;
+
+    auto c = c0 * (1 - dz) + c1 * dz;
+    return uint16_t(cvRound(c));
+}
+
+uint16_t VolumePkg::getIntensity(const int32_t x, const int32_t y, const int32_t z)
+{
+    auto slice = getSliceData(z);
+    return slice.at<uint16_t>(y, x);
 }
 
 // Return the point cloud currently on disk for the activeSegmentation
@@ -310,17 +312,28 @@ cv::Mat VolumePkg::getTextureData() {
 }
 
 // Save a point cloud back to the volumepkg
-void VolumePkg::saveCloud(pcl::PointCloud<pcl::PointXYZRGB> segmentedCloud){
+int VolumePkg::saveCloud(pcl::PointCloud<pcl::PointXYZRGB> segmentedCloud){
     std::string outputName = segs_dir.string() + "/" + activeSeg + "/cloud.pcd";
-    printf("Writing point cloud to file...\n");
-    pcl::io::savePCDFileBinaryCompressed(outputName, segmentedCloud);
-    printf("Point cloud saved.\n");
+    std::cerr << "volcart::volpkg::Writing point cloud to file..." << std::endl;
+    try {
+        pcl::io::savePCDFileBinaryCompressed(outputName, segmentedCloud);
+    } catch(pcl::IOException) {
+        std::cerr << "volcart::volpkg::error: Problem writing point cloud to file." << std::endl;
+        return EXIT_FAILURE;
+    }
+    std::cerr << "volcart::volpkg::Point cloud saved." << std::endl;
+    return EXIT_SUCCESS;
 }
 
-void VolumePkg::saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segmentedCloud) {
+int VolumePkg::saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segmentedCloud) {
     std::string outputName = segs_dir.string() + "/" + activeSeg + "/cloud.ply";
-    volcart::meshing::orderedPCDMesher(segmentedCloud, outputName);
-    printf("Mesh file saved.\n");
+    if ( volcart::meshing::orderedPCDMesher(segmentedCloud, outputName) == EXIT_SUCCESS ) {
+        std::cerr << "volcart::volpkg::Mesh file saved." << std::endl;
+        return EXIT_SUCCESS;
+    } else {
+        std::cerr << "volcart::volpkg::error: Problem writing mesh to file." << std::endl;
+        return EXIT_FAILURE;
+    }
 }
 
 void VolumePkg::saveMesh(VC_MeshType::Pointer mesh, volcart::Texture texture) {
