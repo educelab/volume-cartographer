@@ -5,6 +5,7 @@ stages:
 build_it_test_it:
     stage: test
     script:
+        - echo $CI_BUILD_REF_NAME  #just checking out branch specifics
         - echo "---- Work it. Make it. ----"
         # create build dir if not present
         - mkdir -p build
@@ -12,16 +13,14 @@ build_it_test_it:
         - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 ..
         - make
         - echo "---- Do it. Makes us. ----"   # TODO: remove once build/test stage completely separate
-        - make test                           #       remove
-        - echo $CI_BUILD_REF_NAME  #just checking out branch specifics
-
+        - make test                           #       remove this too
     artifacts:
       paths:
         - build/testing/Temporary/
     cache:
       key: "$CI_BUILD_REF_NAME"    # enable per-branch caching
       paths:
-        - build/bin/
+        - build/
     tags:
         - test
         - osx
