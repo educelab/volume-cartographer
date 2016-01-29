@@ -4,7 +4,7 @@
 
 #include "packager.h"
 
-int main ( int argc, char* argv[]) {
+int main ( int argc, char* argv[] ) {
 
     ///// Parse the command line options /////
     boost::filesystem::path slicesPath, volpkgPath;
@@ -89,7 +89,7 @@ int main ( int argc, char* argv[]) {
 
     // Filter the slice path directory by extension and sort the vector of files
     std::cout << "Reading the slice directory..." << std::endl;
-    std::vector<volcart::Slice> slices;
+    std::vector<volcart::SliceImage> slices;
     if (boost::filesystem::exists(slicesPath) && boost::filesystem::is_directory(slicesPath)) {
 
         // Directory iterators
@@ -101,7 +101,7 @@ int main ( int argc, char* argv[]) {
         while (dir_subfile != dir_end) {
             std::string file_ext( boost::to_upper_copy<std::string>(dir_subfile->path().extension().string()) );
             if (is_regular_file(dir_subfile->path()) && (file_ext == ".TIF" || file_ext == ".TIFF")) {
-                volcart::Slice temp;
+                volcart::SliceImage temp;
                 temp.path = *dir_subfile;
                 slices.push_back(temp);
             }

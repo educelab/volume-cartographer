@@ -1,34 +1,48 @@
 #include "particle.h"
 
-Particle::Particle(cv::Vec3f position) {
-  _position = position;
-  _is_stopped = false;
+using namespace volcart::segmentation;
+
+Particle::Particle(cv::Vec3d position) : position_(position), isStopped_(false) {
+}
+
+Particle::Particle(double x, double y, double z) : isStopped_(false) {
+    position_ = cv::Vec3d(x, y, z);
 }
 
 // Position in 3D space (Slice, X, Y)
-cv::Vec3f Particle::position() {
-  return _position;
+cv::Vec3d Particle::position() const {
+    return position_;
 }
 
 // Returns true if particle is stopped
-bool Particle::isStopped() {
-  return _is_stopped;
+bool Particle::isMoving() const {
+    return !isStopped_;
 }
 
 // Sets particle as being stopped
 void Particle::stop() {
-  _is_stopped = true;
+    isStopped_ = true;
 }
 
-// Component wise operators
-void Particle::operator+=(cv::Vec3f v) {
-  _position += v;
+Particle& Particle::operator+=(const Particle& rhs) {
+    position_ += rhs.position();
+    return *this;
 }
 
-float Particle::operator()(int index) {
-  return _position(index);
+Particle Particle::operator+(const Particle& rhs) const
+{
+    return Particle(*this) += rhs;
 }
 
-cv::Vec3f Particle::operator-(Particle p) {
-  return _position - p.position();
+Particle& Particle::operator-=(const Particle& rhs) {
+    position_ -= rhs.position();
+    return *this;
+}
+
+Particle Particle::operator-(const Particle& rhs) const {
+    return Particle(*this) -= rhs;
+}
+
+double Particle::operator()(const int index) const {
+    return position_(index);
 }

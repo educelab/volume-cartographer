@@ -36,6 +36,7 @@ deploy_it_osx:
         - make -j8
         - make package
         - echo "---- Makes us stronger. ----"
+        - version=$(../utils/scripts/version-gen.sh)
         - mkdir -p ~/Dropbox/VC-Releases/v${version}
         - cp VC* ~/Dropbox/VC-Releases/v${version}
     only:

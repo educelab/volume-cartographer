@@ -25,7 +25,7 @@ find_package(PCL 1.7 REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system filesystem program_options iostreams)
 find_package(ITK REQUIRED)
-find_package(VTK REQUIRED)
+find_package(VTK 6.1 REQUIRED)
 find_package(OpenGL REQUIRED)
 #find_package(ACVD REQUIRED)
 
@@ -35,7 +35,7 @@ add_definitions(${QT_DEFINITIONS})
 
 include_directories(${Boost_INCLUDE_DIR} ${PCL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} ${ACVD_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS} ${Boost_LIBRARY_DIRS})
-set(VC_REQ_LIBS ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} ${ITK_LIBRARIES} ${VTK_LIBRARIES} ${ACVD_LIBRARIES})
+set(VC_REQ_LIBS ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} ${ITK_LIBRARIES} ${ACVD_LIBRARIES})
 add_definitions(${PCL_DEFINITIONS})
 
 # OS Specific Changes
