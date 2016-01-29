@@ -25,6 +25,8 @@ public:
                     const bool zero = true)
         : dx_(dx), dy_(dy), dz_(dz)
     {
+        tensor_.reserve(dz);
+
         // XXX check if these dimensions are too large?
         if (zero) {
             // Static vars are automatically initialized to zero, so it's a
@@ -54,11 +56,17 @@ public:
     const DType& operator()(const int32_t x, const int32_t y,
                             const int32_t z) const
     {
+        assert(x < dx_ && x >= 0 && "index out of range\n");
+        assert(y < dy_ && y >= 0 && "index out of range\n");
+        assert(z < dz_ && z >= 0 && "index out of range\n");
         return tensor_[z](y, x);
     }
 
     DType& operator()(const int32_t x, const int32_t y, const int32_t z)
     {
+        assert(x < dx_ && x >= 0 && "index out of range\n");
+        assert(y < dy_ && y >= 0 && "index out of range\n");
+        assert(z < dz_ && z >= 0 && "index out of range\n");
         return tensor_[z](y, x);
     }
 
