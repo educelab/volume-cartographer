@@ -49,7 +49,8 @@ CWindow::CWindow( void ) :
     if ( fVolumeViewerWidget == NULL ) {
         QMessageBox::information( this, tr( "WARNING" ), tr( "Widget not found" ) );
     } else {
-        Open(); // REVISIT - for debug only!
+        UpdateView();
+        //Open(); // REVISIT - for debug only!
 
         update();
     }
