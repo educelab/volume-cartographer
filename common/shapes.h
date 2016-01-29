@@ -9,5 +9,6 @@
 #include "shapes/Plane.h"
 #include "shapes/Arch.h"
 #include "shapes/Sphere.h"
+#include "shapes/Cube.h"
 
 #endif //VC_SHAPES_H
