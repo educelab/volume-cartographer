@@ -129,7 +129,7 @@ public:
                      ++i, ++a) {
                     if (i >= 0 && j >= 0) {
                         v(a, b, c) =
-                            static_cast<DType>((getIntensityAtCoord(i, j, k)));
+                            static_cast<DType>(getIntensityAtCoord(i, j, k));
                     }
                 }
             }

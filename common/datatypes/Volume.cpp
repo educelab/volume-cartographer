@@ -8,7 +8,7 @@ using namespace volcart;
 const StructureTensor zeroStructureTensor =
     StructureTensor(0, 0, 0, 0, 0, 0, 0, 0, 0);
 
-StructureTensor makeStructureTensor(const cv::Vec3d gradient);
+StructureTensor tensorize(const cv::Vec3d vec);
 
 std::unique_ptr<double[]> makeGaussianField(const int32_t radius);
 
@@ -125,8 +125,6 @@ StructureTensor Volume::structureTensorAtIndex(const int32_t vx,
                                                const int32_t vz,
                                                const int32_t voxelRadius) const
 {
-    using cv::Range;
-
     // Safety checks
     assert(vx >= 0 && vx < sliceWidth_ &&
            "x must be in range [0, slice_width]\n");
@@ -145,8 +143,10 @@ StructureTensor Volume::structureTensorAtIndex(const int32_t vx,
     for (int32_t z = 0; z < n; ++z) {
         cv::Mat_<double> xGradient(n, n);
         cv::Mat_<double> yGradient(n, n);
-        cv::Scharr(v.xySlice(z), xGradient, CV_64F, 1, 0);
-        cv::Scharr(v.xySlice(z), yGradient, CV_64F, 0, 1);
+        cv::Scharr(v.xySlice(z), xGradient, CV_64F, 1, 0, 1, 0,
+                   cv::BORDER_REPLICATE);
+        cv::Scharr(v.xySlice(z), yGradient, CV_64F, 0, 1, 1, 0,
+                   cv::BORDER_REPLICATE);
         for (int32_t y = 0; y < n; ++y) {
             for (int32_t x = 0; x < n; ++x) {
                 gradientField(x, y, z) = {xGradient(y, x), yGradient(y, x), 0};
@@ -157,7 +157,8 @@ StructureTensor Volume::structureTensorAtIndex(const int32_t vx,
     // Then Z gradients
     for (int32_t layer = 0; layer < n; ++layer) {
         cv::Mat_<double> zGradient(n, n);
-        cv::Scharr(v.xzSlice(layer), zGradient, CV_64F, 0, 1);
+        cv::Scharr(v.xzSlice(layer), zGradient, CV_64F, 0, 1, 1, 0,
+                   cv::BORDER_REPLICATE);
         for (int32_t z = 0; z < n; ++z) {
             for (int32_t x = 0; x < n; ++x) {
                 gradientField(x, layer, z)(2) = zGradient(z, x);
@@ -167,6 +168,7 @@ StructureTensor Volume::structureTensorAtIndex(const int32_t vx,
 
     // Convert to tensor volume
     // XXX: Still doing Mike's algorithm for calculating. Assumes radius=1
+    /*
     return (1.0 / 7.0) * (makeStructureTensor(gradientField(0, 1, 1)) +
                           makeStructureTensor(gradientField(1, 1, 1)) +
                           makeStructureTensor(gradientField(2, 1, 1)) +
@@ -174,34 +176,23 @@ StructureTensor Volume::structureTensorAtIndex(const int32_t vx,
                           makeStructureTensor(gradientField(1, 1, 2)) +
                           makeStructureTensor(gradientField(1, 0, 1)) +
                           makeStructureTensor(gradientField(1, 2, 1)));
-
-    // Make tensor field
-    // Note: This can just be a 1-D array of StructureTensor since we no longer
-    // care about
-    // the ordering
-    /*
-    auto tensorField = std::vector<StructureTensor>();
-    tensorField.reserve(n * n * n);
-    for (int32_t z = 0; z < n; ++z) {
-        for (int32_t y = 0; y < n; ++y) {
-            for (int32_t x = 0; x < n; ++x) {
-                tensorField.push_back(
-                    makeStructureTensor(gradientField(x, y, z)));
-            }
-        }
-    }
+    */
 
     // Modulate by gaussian distribution (element-wise) and sum
     // The ordeings must match - i.e. the order of adding the tensors to the
     // field must match that of the Gaussian weightings
     auto gaussianField = makeGaussianField(voxelRadius);
-    StructureTensor sum = StructureTensor(0, 0, 0, 0, 0, 0, 0, 0, 0);
-    for (size_t i = 0; i < size_t(n * n * n); ++i) {
-        sum += tensorField[i] * gaussianField[i];
+    StructureTensor sum(0, 0, 0, 0, 0, 0, 0, 0, 0);
+    for (int32_t z = 0; z < n; ++z) {
+        for (int32_t y = 0; y < n; ++y) {
+            for (int32_t x = 0; x < n; ++x) {
+                sum += gaussianField[z * n * n + y * n + x] *
+                       tensorize(gradientField(x, y, z));
+            }
+        }
     }
 
     return sum;
-    */
 }
 
 EigenPairs Volume::eigenPairsAtIndex(const int32_t x, const int32_t y,
@@ -227,15 +218,15 @@ EigenPairs Volume::eigenPairsAtIndex(const int32_t x, const int32_t y,
     };
 }
 
-StructureTensor makeStructureTensor(const cv::Vec3d gradient)
+StructureTensor tensorize(const cv::Vec3d gradient)
 {
-    double Ix = gradient(0);
-    double Iy = gradient(1);
-    double Iz = gradient(2);
+    double ix = gradient(0);
+    double iy = gradient(1);
+    double iz = gradient(2);
     // clang-format off
-    return StructureTensor(Ix * Ix, Ix * Iy, Ix * Iz,
-                           Ix * Iy, Iy * Iy, Iy * Iz,
-                           Ix * Iz, Iy * Iz, Iz * Iz);
+    return StructureTensor(ix * ix, ix * iy, ix * iz,
+                           ix * iy, iy * iy, iy * iz,
+                           ix * iz, iy * iz, iz * iz);
     // clang-format on
 }
 
