@@ -14,8 +14,13 @@ namespace fs = boost::filesystem;
 struct CartesianCoord {
     int32_t x, y, z;
     CartesianCoord() = default;
-    CartesianCoord(int32_t x, int32_t y, int32_t z) : x(x), y(y), z(z) {}
-    operator cv::Point3i() const { return {x, y, z}; }
+    CartesianCoord(int32_t x, int32_t y, int32_t z) : x(x), y(y), z(z)
+    {
+    }
+    operator cv::Point3i() const
+    {
+        return {x, y, z};
+    }
 };
 
 // Hash specialization for CartesianCoord so unordered_set works
@@ -49,7 +54,9 @@ std::ostream& operator<<(std::ostream& s, const CartesianCoord& c)
 struct PolarCoord {
     double r, theta;
     PolarCoord() = default;
-    PolarCoord(double r, double theta) : r(r), theta(theta) {}
+    PolarCoord(double r, double theta) : r(r), theta(theta)
+    {
+    }
 };
 std::ostream& operator<<(std::ostream& s, const PolarCoord& p)
 {
@@ -58,6 +65,7 @@ std::ostream& operator<<(std::ostream& s, const PolarCoord& p)
 
 CartesianCoord polarToCartesian(const PolarCoord coord, const int32_t z);
 void draw(const volcart::Volume& vol, const CartesianCoord c);
+template <int32_t Radius>
 void writeDataToH5File(const fs::path& filename,
                        const volcart::Tensor3D<uint16_t>& volume,
                        const StructureTensor st, const EigenPairs& pairs);
@@ -176,9 +184,9 @@ int main(int argc, char** argv)
         }
 
         // Do writes
-        writeDataToH5File(outfile3, volume3, st3, pairs3);
-        writeDataToH5File(outfile7, volume7, st7, pairs7);
-        writeDataToH5File(outfile15, volume15, st15, pairs15);
+        writeDataToH5File<3>(outfile3, volume3, st3, pairs3);
+        writeDataToH5File<7>(outfile7, volume7, st7, pairs7);
+        writeDataToH5File<15>(outfile15, volume15, st15, pairs15);
     }
 }
 
@@ -189,16 +197,16 @@ CartesianCoord polarToCartesian(const PolarCoord p, const int32_t z)
                           g_centerY + std::round(p.r * std::sin(p.theta)), z);
 }
 
+template <int32_t Radius>
 void writeDataToH5File(const fs::path& filename,
                        const volcart::Tensor3D<uint16_t>& volume,
                        const StructureTensor st, const EigenPairs& pairs)
 {
-    constexpr int32_t rank = 4;
-    hsize_t dimsf[] = {1, static_cast<hsize_t>(volume.dz()),
-                       static_cast<hsize_t>(volume.dy()),
-                       static_cast<hsize_t>(volume.dx())};
-    constexpr int32_t radius = 3;
-    constexpr int32_t side = radius * 2 + 1;
+    constexpr int32_t volRank = 4;
+    hsize_t volDims[] = {1, static_cast<hsize_t>(volume.dz()),
+                         static_cast<hsize_t>(volume.dy()),
+                         static_cast<hsize_t>(volume.dx())};
+    int32_t side = 2 * Radius + 1;
     uint16_t v[1][side][side][side];
     for (int32_t z = 0; z < volume.dz(); ++z) {
         for (int32_t y = 0; y < volume.dy(); ++y) {
@@ -231,7 +239,7 @@ void writeDataToH5File(const fs::path& filename,
     try {
         // Write volume
         H5::H5File f(filename.string(), H5F_ACC_TRUNC);
-        H5::DataSpace volumeSpace(rank, dimsf);
+        H5::DataSpace volumeSpace(volRank, volDims);
         auto volDSet =
             f.createDataSet("volume", H5::PredType::STD_U16LE, volumeSpace);
         volDSet.write(v, H5::PredType::STD_U16LE);
