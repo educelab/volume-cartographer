@@ -199,11 +199,13 @@ void CWindow::UpdateView( void )
     fEdtStartIndex->setText( QString( "%1" ).arg( fPathOnSliceIndex ) );
     fEdtEndIndex->setText( QString( "%1" ).arg( fSegParams.fEndOffset + fPathOnSliceIndex ) ); // offset + starting index
 
-    if ( fIntersectionCurve.GetPointsNum() == 0) { // no points in current slice
-        fSegTool->setEnabled( false );
-    } else {
-        fSegTool->setEnabled( true );
-    }
+    if ( fIntersectionCurve.GetPointsNum() == 0)
+        { // no points in current slice
+            fSegTool->setEnabled( false );
+
+        } else {
+                fSegTool->setEnabled( true );
+                }
 
     if ( fSegmentationId.length() != 0 &&   // segmentation selected
          fMasterCloud.points.size() == 0 ) { // current cloud is empty

@@ -40,10 +40,10 @@ public:
                         WindowStateIdle };      // idle
 
     typedef struct SSegParams_tag {
-        double fGravityScale;
-        int fThreshold;
-        int fEndOffset;
-    } SSegParams;
+                                    double fGravityScale;
+                                    int fThreshold;
+                                    int fEndOffset;
+                                  } SSegParams;
 
 public:
     CWindow( void );
