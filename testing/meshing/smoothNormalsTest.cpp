@@ -94,7 +94,7 @@ BOOST_FIXTURE_TEST_CASE(compareSmoothedPlane, normalFix){
     std::vector<VC_Vertex> savedITKPoints;
     std::vector<VC_Cell> savedITKCells;
 
-    //First, read the saved .obj file (cmake should copy from test_data to current build dir
+    //First, read the saved .obj file (cmake should copy from test_data to current build dir)
     volcart::testing::ParsingHelpers::parseObjFile("smoothedPlane.obj", savedITKPoints, savedITKCells);
 
     /*
