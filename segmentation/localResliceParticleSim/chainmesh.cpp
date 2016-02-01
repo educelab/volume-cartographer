@@ -1,12 +1,11 @@
 #include "chainmesh.h"
 
-
 using namespace volcart::segmentation;
 
 // NOTE: OpenCV does rows first, then columns, so need to flip the order of
 // width/height when passing to Mat constructor
-ChainMesh::ChainMesh(const int32_t width, const int32_t height) :
-        nextRow_(0), width_(width), height_(height)
+ChainMesh::ChainMesh(const int32_t width, const int32_t height)
+    : nextRow_(0), width_(width), height_(height)
 {
     positions_ = cv::Mat(height, width, CV_64FC3, cv::Scalar::all(0.0));
 }
@@ -31,12 +30,15 @@ void ChainMesh::addPositions(const VoxelVec& ps)
 
 // Export the mesh as an ordered PCD
 // Note: Need to export as PointXYZRGB since that's how it's stored in VolumePkg
-pcl::PointCloud<pcl::PointXYZRGB> ChainMesh::exportAsPointCloud() {
+pcl::PointCloud<pcl::PointXYZRGB> ChainMesh::exportAsPointCloud()
+{
     pcl::PointCloud<pcl::PointXYZRGB> cloud;
     cloud.reserve(positions_.cols * positions_.rows);
 
-    // Set size. Since this is unordered (for now...) just set the width to be the
-    // number of points and the height (by convention) is set to 1
+    // Set size. Since this is unordered (for now...) just set the width to be
+    // the number of points and the height (by convention) is set to 1
+    cloud.width = positions_.cols * positions_.rows;
+    cloud.height = 1;
 
     for (int32_t i = 0; i < positions_.rows; ++i) {
         for (int32_t j = 0; j < positions_.cols; ++j) {
