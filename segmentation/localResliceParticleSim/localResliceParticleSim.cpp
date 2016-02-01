@@ -55,7 +55,7 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentLayer(
     const bool showVisualization, const int32_t startIndex,
     const int32_t endIndex, const int32_t stepNumLayers,
     const double derivativeTolerance, const int32_t keepNumMaxima,
-    const int32_t numRandomTries)
+    const int32_t numIters)
 {
     // Starting positions
     VoxelVec currentPos;
@@ -97,7 +97,7 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentLayer(
 
         // Greedy algorithm to iteratively re-step the particle that introduces
         // the largest difference in the derivative
-        for (int32_t i = 0; i < numRandomTries; ++i) {
+        for (int32_t i = 0; i < numIters; ++i) {
             std::cout << "i: " << i << std::endl;
             std::cout << "mindiff: " << minDerivativeDiff << "\n";
             // 1. Calculate the index of the maximum derivative difference
