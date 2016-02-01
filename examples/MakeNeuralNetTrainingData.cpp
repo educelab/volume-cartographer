@@ -14,13 +14,8 @@ namespace fs = boost::filesystem;
 struct CartesianCoord {
     int32_t x, y, z;
     CartesianCoord() = default;
-    CartesianCoord(int32_t x, int32_t y, int32_t z) : x(x), y(y), z(z)
-    {
-    }
-    operator cv::Point3i() const
-    {
-        return {x, y, z};
-    }
+    CartesianCoord(int32_t x, int32_t y, int32_t z) : x(x), y(y), z(z) {}
+    operator cv::Point3i() const { return {x, y, z}; }
 };
 
 // Hash specialization for CartesianCoord so unordered_set works
@@ -54,9 +49,7 @@ std::ostream& operator<<(std::ostream& s, const CartesianCoord& c)
 struct PolarCoord {
     double r, theta;
     PolarCoord() = default;
-    PolarCoord(double r, double theta) : r(r), theta(theta)
-    {
-    }
+    PolarCoord(double r, double theta) : r(r), theta(theta) {}
 };
 std::ostream& operator<<(std::ostream& s, const PolarCoord& p)
 {
@@ -123,12 +116,9 @@ int main(int argc, char** argv)
     std::uniform_real_distribution<double> thetaDist(0, 2 * M_PI);
     std::uniform_int_distribution<int32_t> zDist(zmin, zmax + 1);
 
-    // Set for which positions we've had before
-    std::unordered_set<CartesianCoord> positionsSoFar;
-
     // Start generating
     CartesianCoord c;
-    int64_t i = 0;
+    int64_t i = 2000;
     while (i < nsamples) {
         double theta = thetaDist(e);
         double r = rDist(e);
@@ -136,57 +126,44 @@ int main(int argc, char** argv)
         c = polarToCartesian({r, theta}, z);
 
         // Volume bounds checking
-        if (c.x < 0 || c.x > volpkg.getSliceWidth() || c.y < 0 ||
-            c.y > volpkg.getSliceHeight() ||
-            positionsSoFar.find(c) != positionsSoFar.end()) {
+        if (c.x < 0 || c.x >= volpkg.getSliceWidth() || c.y < 0 ||
+            c.y >= volpkg.getSliceHeight()) {
             continue;
         }
+
+        // Generate structure tensor and eigenpairs once per point
+        auto st = vol.structureTensorAtIndex(c.x, c.y, c.z, stRadius);
+        if (st == zero) {
+            continue;
+        }
+        auto pairs = vol.eigenPairsAtIndex(c.x, c.y, c.z, stRadius);
 
         // Start constructing filename
         std::stringstream ss;
         ss << c.x << "_" << c.y << "_" << c.z << "_size";
         auto baseFilename = ss.str();
 
-        // Get volumes, write to hdf5 file
-        // radius = 3 (volume = 7)
-        auto volume3 = vol.getVoxelNeighborsCubic<uint16_t>({c.x, c.y, c.z}, 3);
-        auto st3 = vol.structureTensorAtIndex(c.x, c.y, c.z, stRadius);
-        if (st3 == zero) {
-            continue;
-        }
-        auto pairs3 = vol.eigenPairsAtIndex(c.x, c.y, c.z, stRadius);
+        // Generate volumes of radius 3, 7, and 15
+        cv::Point3i p = {c.x, c.y, c.z};
+        auto volume3 = vol.getVoxelNeighborsCubic<uint16_t>(p, 3);
         auto outfile3 = outputDir / std::to_string(3) /
                         (baseFilename + std::to_string(3) + ".h5");
-
-        auto volume7 = vol.getVoxelNeighborsCubic<uint16_t>({c.x, c.y, c.z}, 7);
-        auto st7 = vol.structureTensorAtIndex(c.x, c.y, c.z, stRadius);
-        if (st7 == zero) {
-            continue;
-        }
-        auto pairs7 = vol.eigenPairsAtIndex(c.x, c.y, c.z, stRadius);
+        auto volume7 = vol.getVoxelNeighborsCubic<uint16_t>(p, 7);
         auto outfile7 = outputDir / std::to_string(7) /
                         (baseFilename + std::to_string(7) + ".h5");
-
-        auto volume15 =
-            vol.getVoxelNeighborsCubic<uint16_t>({c.x, c.y, c.z}, 15);
-        auto st15 = vol.structureTensorAtIndex(c.x, c.y, c.z, stRadius);
-        if (st15 == zero) {
-            continue;
-        }
-        auto pairs15 = vol.eigenPairsAtIndex(c.x, c.y, c.z, stRadius);
+        auto volume15 = vol.getVoxelNeighborsCubic<uint16_t>(p, 15);
         auto outfile15 = outputDir / std::to_string(15) /
                          (baseFilename + std::to_string(15) + ".h5");
 
         ++i;
-        positionsSoFar.insert(c);
         if (i % 1000 == 0) {
             std::cout << "npoints: " << i << "\n";
         }
 
         // Do writes
-        writeDataToH5File<3>(outfile3, volume3, st3, pairs3);
-        writeDataToH5File<7>(outfile7, volume7, st7, pairs7);
-        writeDataToH5File<15>(outfile15, volume15, st15, pairs15);
+        writeDataToH5File<3>(outfile3, volume3, st, pairs);
+        writeDataToH5File<7>(outfile7, volume7, st, pairs);
+        writeDataToH5File<15>(outfile15, volume15, st, pairs);
     }
 }
 
