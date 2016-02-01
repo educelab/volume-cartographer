@@ -40,3 +40,6 @@ target_link_libraries(vc_parsingHelpers ${VC_LIBS} ${VC_REQ_LIBS} )
 
 add_executable(vc_rayTraceExample rayTraceExample.cpp)
 target_link_libraries(vc_rayTraceExample ${VC_LIBS} ${VC_REQ_LIBS})
+
+add_executable(vc_smoothingExample smoothingExample.cpp)
+target_link_libraries(vc_smoothingExample ${VC_LIBS} ${VC_REQ_LIBS})
