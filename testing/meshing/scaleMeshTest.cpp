@@ -60,19 +60,24 @@
  *
  */
 
-struct ivFix {
+struct scaleFix {
 
-    ivFix() {
+    scaleFix() {
 
         _mesh = mesh.itkMesh();
         _vtk = vtkPolyData::New();
 
-        std::cerr << "setting up itk2vtk objects" << std::endl;
+        std::cerr << "setting up scaleMesh objects" << std::endl;
     }
 
-    ~ivFix(){ std::cerr << "cleaning up itk2vtk objects" << std::endl; }
+    ~scaleFix(){ std::cerr << "cleaning up scaleMesh objects" << std::endl; }
 
     VC_MeshType::Pointer _mesh;
     volcart::shapes::Plane mesh;
     vtkPolyData* _vtk;
 };
+
+BOOST_FIXTURE_TEST_CASE(holder, scaleFix){
+
+    BOOST_CHECK(true);
+}

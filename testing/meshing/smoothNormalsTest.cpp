@@ -18,17 +18,15 @@
  *  smoothNormalsTest.cpp - tests the functionality of meshing/smoothNormals.cpp    *
  *  The ultimate goal of this file is the following:                                *
  *                                                                                  *
- *        1. check whether an itk mesh can be converted to a vtk mesh               *
- *           and vice versa.                                                        *
+ *        1. confirm volcart::meshing::smoothNormals() works as expected            *
  *                                                                                  *
  *  This file is broken up into a test fixture (normalFix) which initializes        *
  *  the objects used for the test case.                                             *
  *                                                                                  *
- *  1. i2v (fixture test case):                                                     *
- *                                                                                  *
- *      Takes an itk mesh created from fixture and data to vtkpolydata pointer.     *
- *      Vtkpolydata then converted back to itk mesh. Successful test if converted   *
- *      itk matches original itk mesh data points                                   *
+ *  1. compareSmoothedPlane (fixture test case)                                     *
+ *  2. compareSmoothedCube (fixture test case)                                      *
+ *  3. compareSmoothedSphere (fixture test case)                                    *
+ *  4. compareSmoothedArch (fixture test case)                                      *
  *                                                                                  *
  * Input:                                                                           *
  *     No required inputs for this sample test. All test objects are created        *
@@ -58,6 +56,7 @@ struct normalFix {
         archMesh = arch.itkMesh();
         sphereMesh = sphere.itkMesh();
         savedFactor = 4;
+        tolerance = 0.00001; //TODO: confirm small enough value
 
         std::cerr << "setting up smoothNormals objects" << std::endl;
     }
@@ -69,6 +68,7 @@ struct normalFix {
     volcart::shapes::Cube cube;
     volcart::shapes::Sphere sphere;
     volcart::shapes::Arch arch;
+    double tolerance;   //used to check equivalency of values from saved files
     double savedFactor;
 
 };
@@ -110,9 +110,10 @@ BOOST_FIXTURE_TEST_CASE(compareSmoothedPlane, normalFix){
     //Now iterate over point sets and compare x/y/z values
     for ( size_t p_id = 0; p_id < smoothedMesh ->GetNumberOfPoints(); ++p_id) {
 
-        BOOST_CHECK_EQUAL(smoothedMesh->GetPoint(p_id)[0], savedITKPoints[p_id].x);
-        BOOST_CHECK_EQUAL(smoothedMesh->GetPoint(p_id)[1], savedITKPoints[p_id].y);
-        BOOST_CHECK_EQUAL(smoothedMesh->GetPoint(p_id)[2], savedITKPoints[p_id].z);
+
+        BOOST_CHECK_CLOSE(smoothedMesh->GetPoint(p_id)[0], savedITKPoints[p_id].x, tolerance);
+        BOOST_CHECK_CLOSE(smoothedMesh->GetPoint(p_id)[1], savedITKPoints[p_id].y, tolerance);
+        BOOST_CHECK_CLOSE(smoothedMesh->GetPoint(p_id)[2], savedITKPoints[p_id].z, tolerance);
     }
 
     std::cerr << "Comparing normals..." << std::endl;
@@ -198,9 +199,9 @@ BOOST_FIXTURE_TEST_CASE(compareSmoothedCube, normalFix){
     //Now iterate over point sets and compare x/y/z values
     for ( size_t p_id = 0; p_id < smoothedMesh ->GetNumberOfPoints(); ++p_id) {
 
-        BOOST_CHECK_EQUAL(smoothedMesh->GetPoint(p_id)[0], savedITKPoints[p_id].x);
-        BOOST_CHECK_EQUAL(smoothedMesh->GetPoint(p_id)[1], savedITKPoints[p_id].y);
-        BOOST_CHECK_EQUAL(smoothedMesh->GetPoint(p_id)[2], savedITKPoints[p_id].z);
+        BOOST_CHECK_CLOSE(smoothedMesh->GetPoint(p_id)[0], savedITKPoints[p_id].x, tolerance);
+        BOOST_CHECK_CLOSE(smoothedMesh->GetPoint(p_id)[1], savedITKPoints[p_id].y, tolerance);
+        BOOST_CHECK_CLOSE(smoothedMesh->GetPoint(p_id)[2], savedITKPoints[p_id].z, tolerance);
     }
 
     std::cerr << "Comparing normals..." << std::endl;
@@ -285,9 +286,9 @@ BOOST_FIXTURE_TEST_CASE(compareSmoothedSphere, normalFix){
     //Now iterate over point sets and compare x/y/z values
     for ( size_t p_id = 0; p_id < smoothedMesh ->GetNumberOfPoints(); ++p_id) {
 
-        BOOST_CHECK_EQUAL(smoothedMesh->GetPoint(p_id)[0], savedITKPoints[p_id].x);
-        BOOST_CHECK_EQUAL(smoothedMesh->GetPoint(p_id)[1], savedITKPoints[p_id].y);
-        BOOST_CHECK_EQUAL(smoothedMesh->GetPoint(p_id)[2], savedITKPoints[p_id].z);
+        BOOST_CHECK_CLOSE(smoothedMesh->GetPoint(p_id)[0], savedITKPoints[p_id].x, tolerance);
+        BOOST_CHECK_CLOSE(smoothedMesh->GetPoint(p_id)[1], savedITKPoints[p_id].y, tolerance);
+        BOOST_CHECK_CLOSE(smoothedMesh->GetPoint(p_id)[2], savedITKPoints[p_id].z, tolerance);
     }
 
     std::cerr << "Comparing normals..." << std::endl;
@@ -372,9 +373,9 @@ BOOST_FIXTURE_TEST_CASE(compareSmoothedArch, normalFix){
     //Now iterate over point sets and compare x/y/z values
     for ( size_t p_id = 0; p_id < smoothedMesh ->GetNumberOfPoints(); ++p_id) {
 
-        BOOST_CHECK_EQUAL(smoothedMesh->GetPoint(p_id)[0], savedITKPoints[p_id].x);
-        BOOST_CHECK_EQUAL(smoothedMesh->GetPoint(p_id)[1], savedITKPoints[p_id].y);
-        BOOST_CHECK_EQUAL(smoothedMesh->GetPoint(p_id)[2], savedITKPoints[p_id].z);
+        BOOST_CHECK_CLOSE(smoothedMesh->GetPoint(p_id)[0], savedITKPoints[p_id].x, tolerance);
+        BOOST_CHECK_CLOSE(smoothedMesh->GetPoint(p_id)[1], savedITKPoints[p_id].y, tolerance);
+        BOOST_CHECK_CLOSE(smoothedMesh->GetPoint(p_id)[2], savedITKPoints[p_id].z, tolerance);
     }
 
     std::cerr << "Comparing normals..." << std::endl;
