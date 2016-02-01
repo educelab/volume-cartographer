@@ -47,7 +47,7 @@ void NormalizedIntensityMap::draw(const int32_t displayWidth,
     cv::line(mapImage, cv::Point(binWidth * centerX, 0),
              cv::Point(binWidth * centerX, mapImage.rows), BGR_YELLOW);
 
-    cv::namedWindow("Intensity Map", cv::WINDOW_OPENGL);
+    cv::namedWindow("Intensity Map", cv::WINDOW_NORMAL);
     cv::imshow("Intensity Map", mapImage);
 }
 

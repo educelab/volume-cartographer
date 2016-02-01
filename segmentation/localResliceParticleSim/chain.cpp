@@ -116,6 +116,6 @@ void Chain::draw() const
         }
     }
 
-    cv::namedWindow("Volpkg Slice", cv::WINDOW_OPENGL);
+    cv::namedWindow("Volpkg Slice", cv::WINDOW_NORMAL);
     cv::imshow("Volpkg Slice", pkgSlice);
 }
