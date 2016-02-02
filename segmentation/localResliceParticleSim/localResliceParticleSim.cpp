@@ -10,7 +10,7 @@
 using namespace volcart::segmentation;
 
 using ScalarVector = std::vector<double>;
-std::vector<double> deriv(const VoxelVec& vec);
+std::vector<double> deriv(const VoxelVec& vec, const int32_t hstep = 1);
 
 ScalarVector subtractAbs(const ScalarVector& lhs, const ScalarVector& rhs)
 {
@@ -63,24 +63,24 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentLayer(
     for (const auto& p : *path) {
         currentPos.emplace_back(p.x, p.y, p.z);
     }
-    currentPos = downsample(currentPos, startIndex, 0.40);
+    currentPos = downsample(currentPos, startIndex, 0.30);
     std::cout << "currentPos size: " << currentPos.size() << std::endl;
 
     // ChainMesh that will hold all positions
-    ChainMesh mesh(currentPos.size(), endIndex - startIndex);
+    ChainMesh mesh(currentPos.size(),
+                   (endIndex - startIndex + 1) / stepNumLayers);
 
     for (int32_t zIndex = startIndex; zIndex <= endIndex;
          zIndex += stepNumLayers) {
-        // First chain object
         Chain chain(pkg_, currentPos, zIndex);
+
+        auto choiceSpace = chain.stepAll(stepNumLayers, keepNumMaxima);
 
         std::cout << "slice: " << zIndex << std::endl;
         if (showVisualization) {
             chain.draw();
             cv::waitKey(0);
         }
-
-        auto choiceSpace = chain.stepAll(stepNumLayers, keepNumMaxima);
 
         // Get the first set of positions (all the 'best' positions independent
         // of neighborhood constraints)
@@ -91,15 +91,15 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentLayer(
             v.pop_front();
         }
 
-        ScalarVector initDerivs = chain.curve().deriv();
-        ScalarVector bestPosDerivs = deriv(bestPos);
+        ScalarVector initDerivs = chain.curve().deriv(3);
+        ScalarVector bestPosDerivs = deriv(bestPos, 3);
         double minDerivativeDiff = normL2(bestPosDerivs, initDerivs);
 
         // Greedy algorithm to iteratively re-step the particle that introduces
         // the largest difference in the derivative
         for (int32_t i = 0; i < numIters; ++i) {
-            std::cout << "i: " << i << std::endl;
-            std::cout << "mindiff: " << minDerivativeDiff << "\n";
+            // std::cout << "i: " << i << std::endl;
+            // std::cout << "mindiff: " << minDerivativeDiff << "\n";
             // 1. Calculate the index of the maximum derivative difference
             ScalarVector absDiff = subtractAbs(bestPosDerivs, initDerivs);
             int32_t maxDiffIdx =
@@ -107,21 +107,23 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentLayer(
                               std::max_element(absDiff.begin(), absDiff.end()));
 
             // 2. Get the next candidate voxel position for that index
-            std::cout << "maxDiffIdx: " << maxDiffIdx << std::endl;
+            // std::cout << "maxDiffIdx: " << maxDiffIdx << std::endl;
             VoxelVec combinationPos(bestPos.begin(), bestPos.end());
             if (choiceSpace[maxDiffIdx].size() > 0) {
                 combinationPos[maxDiffIdx] = choiceSpace[maxDiffIdx].front();
                 choiceSpace[maxDiffIdx].pop_front();
             } else {
-                std::cerr << "ran out of candidate positions\n";
+                // std::cerr << "ran out of candidate positions\n";
                 break;
             }
 
             // 3. Re-evaluate derivatives of best positions and find absdiff
-            ScalarVector combinationPosDerivs = deriv(combinationPos);
-            std::cout << "combination: "
-                      << normL2(combinationPosDerivs, initDerivs) << std::endl;
+            ScalarVector combinationPosDerivs = deriv(combinationPos, 3);
+            // std::cout << "combination: "
+            //          << normL2(combinationPosDerivs, initDerivs) <<
+            //          std::endl;
             if (normL2(combinationPosDerivs, initDerivs) < minDerivativeDiff) {
+                // std::cout << "Found better position\n";
                 bestPos = combinationPos;
                 bestPosDerivs = combinationPosDerivs;
                 minDerivativeDiff = normL2(combinationPosDerivs, initDerivs);
@@ -136,8 +138,8 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentLayer(
     return mesh.exportAsPointCloud();
 }
 
-std::vector<double> deriv(const VoxelVec& vec)
+std::vector<double> deriv(const VoxelVec& vec, const int32_t hstep)
 {
     FittedCurve<double> curve(vec);
-    return curve.deriv();
+    return curve.deriv(hstep);
 }
