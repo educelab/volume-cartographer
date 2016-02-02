@@ -17,8 +17,8 @@ namespace segmentation
 #define BGR_YELLOW cv::Scalar(0, 0xFF, 0xFF)
 #define BGR_MAGENTA cv::Scalar(0xFF, 0, 0xFF)
 
-using IndexDistPair = std::pair<int32_t, double>;
-using IndexDistPairVec = typename std::vector<IndexDistPair>;
+using IndexIntensityPair = std::pair<int32_t, double>;
+using IndexIntensityPairVec = typename std::vector<IndexIntensityPair>;
 using Voxel = cv::Vec3d;
 using Pixel = cv::Vec2d;
 using VoxelVec = typename std::vector<Voxel>;
