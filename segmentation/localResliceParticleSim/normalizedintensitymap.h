@@ -6,29 +6,29 @@
 
 #include "common.h"
 
-
-namespace volcart {
-
-namespace segmentation {
-
+namespace volcart
+{
+namespace segmentation
+{
 // A class representing the intensity map generated from a row of a matrix
 // normalized to the range [0, 1]
-class NormalizedIntensityMap {
+class NormalizedIntensityMap
+{
 public:
     NormalizedIntensityMap(cv::Mat);
 
-    void draw(const int32_t=100, const int32_t=100) const;
+    void draw(const int32_t = 100, const int32_t = 100) const;
 
-    IndexDistPairVec findMaxima() const;
+    IndexIntensityPairVec findMaxima() const;
 
 private:
-    friend std::ostream& operator<<(std::ostream& s, const NormalizedIntensityMap& m) {
-        return s << m._intensities;
+    friend std::ostream& operator<<(std::ostream& s,
+                                    const NormalizedIntensityMap& m)
+    {
+        return s << m.intensities_;
     }
 
-    cv::Mat _intensities;
+    cv::Mat_<double> intensities_;
 };
-
 }
-
 }
