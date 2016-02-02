@@ -39,62 +39,31 @@ public:
     Chain() = default;
 
     Chain(VolumePkg& pkg, const VoxelVec& pos, int32_t zIndex)
-        : particles_(pos),
-          volpkg_(pkg),
-          particleCount_(pos.size()),
-          zIndex_(zIndex),
-          curve_(pos)
+        : volpkg_(pkg), particleCount_(pos.size()), zIndex_(zIndex), curve_(pos)
     {
+        particles_.reserve(particleCount_);
+        auto resampled = curve_.resampledPoints();
+        for (const auto p : resampled) {
+            particles_.emplace_back(p(0), p(1), zIndex);
+        }
     }
 
-    int32_t size(void) const
-    {
-        return particleCount_;
-    }
-
+    int32_t size(void) const { return particleCount_; }
     Voxel at(const int32_t idx) const
     {
         assert(idx >= 0 && idx < particleCount_ && "index out of range");
         return particles_[idx];
     }
 
-    const VoxelVec& positions() const
-    {
-        return particles_;
-    }
-
-    void setZIndex(int32_t zIndex)
-    {
-        zIndex_ = zIndex;
-    }
-
+    const VoxelVec& positions() const { return particles_; }
+    void setZIndex(int32_t zIndex) { zIndex_ = zIndex; }
     // Iterator functions that reach through to the underlying vector so we can
     // use range-based for with Chain
-    ConstIterator begin() const
-    {
-        return particles_.begin();
-    }
-
-    ConstIterator end() const
-    {
-        return particles_.end();
-    }
-
-    Iterator begin()
-    {
-        return particles_.begin();
-    }
-
-    Iterator end()
-    {
-        return particles_.end();
-    }
-
-    const decltype(curve_)& curve() const
-    {
-        return curve_;
-    }
-
+    ConstIterator begin() const { return particles_.begin(); }
+    ConstIterator end() const { return particles_.end(); }
+    Iterator begin() { return particles_.begin(); }
+    Iterator end() { return particles_.end(); }
+    const decltype(curve_)& curve() const { return curve_; }
     std::vector<std::deque<Voxel>> stepAll(const int32_t stepNumLayers,
                                            const int32_t keepNumMaxima) const;
 
