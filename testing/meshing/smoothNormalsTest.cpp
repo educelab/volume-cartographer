@@ -434,3 +434,38 @@ BOOST_FIXTURE_TEST_CASE(compareSmoothedArch, normalFix){
         ++c;
     }
 }
+
+/*
+ * Testing a zero radius smoothing factor
+ * Uses plane mesh
+ */
+
+BOOST_FIXTURE_TEST_CASE(zeroRadius, normalFix){
+
+    double radius = 5;
+    smoothedMesh = volcart::meshing::smoothNormals(archMesh, radius);
+
+    //check number of points and cells are equivalent between the two meshes
+    BOOST_CHECK_EQUAL(archMesh->GetNumberOfPoints(), smoothedMesh->GetNumberOfPoints());
+    BOOST_CHECK_EQUAL(archMesh->GetNumberOfCells(), smoothedMesh->GetNumberOfCells());
+
+    for (size_t point = 0; point < archMesh->GetNumberOfPoints(); ++point){
+
+        std::cout << "S Point " << point << ":"
+                  << smoothedMesh->GetPoint(point)[0] << " "
+                  << smoothedMesh->GetPoint(point)[1] << " "
+                  << smoothedMesh->GetPoint(point)[2] << " "
+                  << smoothedMesh->GetPoint(point)[3] << " "
+                  << smoothedMesh->GetPoint(point)[4] << " "
+                  << smoothedMesh->GetPoint(point)[5] << std::endl;
+
+        std::cout << "A Point " << point << ":"
+                  << archMesh->GetPoint(point)[0] << " "
+                  << archMesh->GetPoint(point)[1] << " "
+                  << archMesh->GetPoint(point)[2] << " "
+                  << archMesh->GetPoint(point)[3] << " "
+                  << archMesh->GetPoint(point)[4] << " "
+                  << archMesh->GetPoint(point)[5] << std::endl;
+    }
+
+}

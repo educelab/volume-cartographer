@@ -11,18 +11,16 @@
  *       Creates an obj file for each of the derived shapes after calling smoothNormals().
  */
 
+#include <io/objWriter.h>
 #include "smoothNormals.h"
 #include "vc_defines.h"
 #include "shapes.h"
-#include "itkMeshFileWriter.h"
+
 
 int main(){
 
     //smoothing factor
     double factor = 4;
-
-    //Declare VC_MeshType::Pointer objects to hold the various shapes
-    VC_MeshType::Pointer inputMesh, outputMesh;
 
     //Declare shape objects
     volcart::shapes::Plane plane;
@@ -30,72 +28,49 @@ int main(){
     volcart::shapes::Arch arch;
     volcart::shapes::Sphere sphere;
 
-    //Initialize itk writer
-    itk::MeshFileWriter<VC_MeshType>::Pointer itkwriter = itk::MeshFileWriter<VC_MeshType>::New();
+    //Declare our obj writer
+    volcart::io::objWriter mesh_writer;
 
     ///////////
     // Plane //
     ///////////
 
-    inputMesh = plane.itkMesh();
+    mesh_writer.setPath( "plane.obj");
+    mesh_writer.setMesh( plane.itkMesh() );
+    mesh_writer.write();
 
-    //call smoothNormals() and save output to file
-    outputMesh = volcart::meshing::smoothNormals(inputMesh, factor);
-
-    //write outputMesh to file
-
-    itkwriter->SetInput(outputMesh);
-    itkwriter->SetFileTypeAsASCII();
-    itkwriter->SetFileName("smoothedPlane.obj");
-    itkwriter->Write();
+    mesh_writer.setPath( "smoothedPlane.obj" );
+    mesh_writer.setMesh( volcart::meshing::smoothNormals( plane.itkMesh(), factor ) );
+    mesh_writer.write();
 
     ///////////
     // Cube  //
     ///////////
 
-    inputMesh = cube.itkMesh();
-
-    //call smoothNormals() and save output to file
-    outputMesh = volcart::meshing::smoothNormals(inputMesh, factor);
-
-    //write outputMesh to file
-
-    itkwriter->SetInput(outputMesh);
-    itkwriter->SetFileTypeAsASCII();
-    itkwriter->SetFileName("smoothedCube.obj");
-    itkwriter->Write();
+    //using our writer;
+    mesh_writer.setPath( "smoothedCube.obj" );
+    mesh_writer.setMesh( volcart::meshing::smoothNormals(cube.itkMesh(), factor) );
+    mesh_writer.write();
 
     ///////////
     // Arch  //
     ///////////
 
-    inputMesh = arch.itkMesh();
+    mesh_writer.setPath( "arch.obj");
+    mesh_writer.setMesh( arch.itkMesh() );
+    mesh_writer.write();
 
-    //call smoothNormals() and save output to file
-    outputMesh = volcart::meshing::smoothNormals(inputMesh, factor);
-
-    //write outputMesh to file
-
-    itkwriter->SetInput(outputMesh);
-    itkwriter->SetFileTypeAsASCII();
-    itkwriter->SetFileName("smoothedArch.obj");
-    itkwriter->Write();
+    mesh_writer.setPath("smoothedArch.obj");
+    mesh_writer.setMesh( volcart::meshing::smoothNormals( arch.itkMesh(), factor ) );
+    mesh_writer.write();
 
     ////////////
     // Sphere //
     ////////////
 
-    inputMesh = sphere.itkMesh();
-
-    //call smoothNormals() and save output to file
-    outputMesh = volcart::meshing::smoothNormals(inputMesh, factor);
-
-    //write outputMesh to file
-
-    itkwriter->SetInput(outputMesh);
-    itkwriter->SetFileTypeAsASCII();
-    itkwriter->SetFileName("smoothedSphere.obj");
-    itkwriter->Write();
+    mesh_writer.setPath("smoothedSphere.obj");
+    mesh_writer.setMesh( volcart::meshing::smoothNormals( sphere.itkMesh(), factor) );
+    mesh_writer.write();
 
     return 0;
 }
