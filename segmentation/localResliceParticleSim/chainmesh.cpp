@@ -1,3 +1,4 @@
+#include <assert.h>
 #include "chainmesh.h"
 
 using namespace volcart::segmentation;
@@ -13,6 +14,7 @@ ChainMesh::ChainMesh(const int32_t width, const int32_t height)
 // Pushes a chain back into the ChainMesh
 void ChainMesh::addChain(const Chain& row)
 {
+    assert(row.size() == width_ && "chain must be the same width as ChainMesh");
     for (int32_t i = 0; i < row.size(); ++i) {
         positions_.at<Voxel>(nextRow_, i) = row.at(i);
     }
@@ -22,6 +24,8 @@ void ChainMesh::addChain(const Chain& row)
 // Adds vector of positions to the matrix
 void ChainMesh::addPositions(const VoxelVec& ps)
 {
+    assert(static_cast<int32_t>(ps.size()) == width_ &&
+           "positions must be the same width as ChainMesh");
     for (uint32_t i = 0; i < ps.size(); ++i) {
         positions_.at<Voxel>(nextRow_, i) = ps[i];
     }
