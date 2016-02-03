@@ -51,6 +51,70 @@ LocalResliceSegmentation::LocalResliceSegmentation(VolumePkg& pkg) : pkg_(pkg)
 {
 }
 
+pcl::PointCloud<pcl::PointXYZRGB> segmentPath(const vec<Voxel>& initPath,
+                                              const double resamplePerc,
+                                              const int32_t startIndex,
+                                              const int32_t endIndex,
+                                              const int32_t keepNumMaxima,
+                                              const int32_t step)
+{
+    // Current voxels
+    vec<Voxel> currentVs = initPath;
+
+    // Collection to hold all positions
+    vec<vec<Voxel>> points;
+    vec.reserve((endIndex - startIndex + 1) / step);
+
+    // Iterate over z-slices
+    for (int32_t zIndex = startIndex; zIndex <= endIndex; zIndex += step) {
+        // Get parameterized rep of the incoming curve and resample it
+        std::cout << "initial size: " << currentVs.size() << std::endl;
+        FittedCurve curve(currentVs, zIndex);
+        curve.resample(resamplePerc);
+
+        // 1. Generate all candidate positions for all particles
+        vec<std::deque<Voxel>> nextPositions;
+        nextPositions.reserve(curve.size());
+        // XXX DEBUG
+        vec<NormalizedIntensityMap> maps;
+        // XXX DEBUG
+        for (int32_t i = 0; i < curve.size(); ++i) {
+            // Estimate normal and reslice along it
+            const cv::Vec3d normal = estimateNormalAtIndex(curve, i);
+            const auto reslice = vol.reslice(curve(i), normal, {0, 0, 1});
+            const cv::Mat resliceIntensities = reslice.sliceData();
+
+            // Make the intensity map `step` layers down from current position
+            // and find the maxima
+            const cv::Point2i center{resliceIntensities.cols / 2,
+                                     resliceIntensities.rows / 2};
+            const int32_t nextLayerIndex = center.y + step;
+            const NormalizedIntensityMap map{
+                resliceIntensities.row(nextLayerIndex)};
+            maps.push_back(map);
+            const auto allMaxima = map.sortedMaxima();
+
+            // Handle case where there's no maxima - go straight down
+            if (allMaxima.empty()) {
+                nextPositions.emplace_back(
+                    reslice.sliceToVoxelCoord({center.x, nextLayerIndex}));
+                continue;
+            }
+
+            // Convert top N maxima to voxel positions
+            std::deque<Voxel> maximaQueue;
+            for (int32_t i = 0; i < keepNumMaxima; ++i) {
+                maximaQueue.emplace_back(reslice.sliceToVoxelCoord(
+                    {allMaxima[i].first, nextLayerIndex}));
+            }
+            nextPositions.push_back(voxelMaxima);
+        }
+
+        // 2. Construct initial guess using top maxima for each next position
+        const vec<double> currentK = curve.estimateCurvature();
+    }
+}
+
 pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentLayer(
     const bool showVisualization, const int32_t startIndex,
     const int32_t endIndex, const int32_t stepNumLayers,

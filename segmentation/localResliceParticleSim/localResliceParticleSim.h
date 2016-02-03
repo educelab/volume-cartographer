@@ -24,9 +24,11 @@ class LocalResliceSegmentation
 public:
     LocalResliceSegmentation(VolumePkg& pkg);
 
-    void segmentLayer(const bool visualize, const VoxelVec& initPath,
-                      const int32_t startIndex, const int32_t endIndex,
-                      const int32_t stepNumLayers);
+    pcl::PointCloud<pcl::PointXYZRGB> segmentPath(const VoxelVec& initPath,
+                                                  const double resamplePerc,
+                                                  const int32_t startIndex,
+                                                  const int32_t endIndex,
+                                                  const int32_t stepNumLayers);
 
     pcl::PointCloud<pcl::PointXYZRGB> segmentLayer(
         const bool showVisualization, const int32_t startIndex,
