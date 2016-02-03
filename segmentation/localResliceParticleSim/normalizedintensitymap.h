@@ -17,9 +17,10 @@ class NormalizedIntensityMap
 public:
     NormalizedIntensityMap(cv::Mat);
 
-    void draw(const int32_t = 100, const int32_t = 100) const;
+    cv::Mat draw(const int32_t displayWidth = 100,
+                 const int32_t displayHeight = 100) const;
 
-    IndexIntensityPairVec findMaxima() const;
+    IndexIntensityPairVec sortedMaxima() const;
 
 private:
     friend std::ostream& operator<<(std::ostream& s,

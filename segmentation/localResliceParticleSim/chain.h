@@ -25,6 +25,8 @@ private:
     int32_t particleCount_;
     int32_t zIndex_;
     FittedCurve<double> curve_;
+    bool shouldDraw_;
+    bool dumpImages_;
 
     constexpr static double kDefaultMaxDrift = 0.0;
 
@@ -38,12 +40,17 @@ public:
 
     Chain() = default;
 
-    Chain(VolumePkg& pkg, const VoxelVec& pos, int32_t zIndex)
-        : volpkg_(pkg), particleCount_(pos.size()), zIndex_(zIndex), curve_(pos)
+    Chain(VolumePkg& pkg, const VoxelVec& pos, const int32_t zIndex,
+          const bool shouldDraw = false, const bool dumpImages = false)
+        : volpkg_(pkg),
+          particleCount_(pos.size()),
+          zIndex_(zIndex),
+          curve_(pos),
+          shouldDraw_(shouldDraw),
+          dumpImages_(dumpImages)
     {
         particles_.reserve(particleCount_);
-        auto resampled = curve_.resampledPoints();
-        for (const auto p : resampled) {
+        for (const auto p : curve_.resampledPoints()) {
             particles_.emplace_back(p(0), p(1), zIndex);
         }
     }
@@ -73,7 +80,7 @@ public:
 
     void setNewPositions(const VoxelVec& newPositions);
 
-    void draw() const;
+    cv::Mat draw(const bool showSpline = false) const;
 };
 }
 }

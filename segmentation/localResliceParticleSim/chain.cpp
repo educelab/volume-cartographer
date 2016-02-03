@@ -3,14 +3,17 @@
 #include <numeric>
 #include <chrono>
 #include <cassert>
+#include <sstream>
 #include <cmath>
 #include <tuple>
+#include <boost/filesystem.hpp>
 #include "chain.h"
 #include "normalizedintensitymap.h"
 
 #define DRAW_INDEX 17
 
 using namespace volcart::segmentation;
+namespace fs = boost::filesystem;
 
 void Chain::setNewPositions(const VoxelVec& newPositions)
 {
@@ -39,7 +42,6 @@ cv::Vec3d Chain::calculateNormal(const size_t index) const
         currentVoxel(0), currentVoxel(1), currentVoxel(2), 3);
     const double exp0 = std::log10(eigenPairs[0].first);
     const double exp1 = std::log10(eigenPairs[1].first);
-    std::cout << std::abs(exp0 - exp1) << std::endl;
     if (std::abs(exp0 - exp1) > 2.0) {
         return eigenPairs[0].second;
     }
@@ -65,33 +67,29 @@ std::deque<Voxel> Chain::step(const int32_t index, const int32_t stepNumLayers,
     // Get normalized intensity map and find the maxima
     const cv::Point center(mat.cols / 2, mat.rows / 2);
     const NormalizedIntensityMap map(mat.row(center.y + stepNumLayers));
-    if (index == DRAW_INDEX) {
-        reslice.draw();
-        map.draw();
-    }
-    auto maxima = map.findMaxima();
 
-    // Sort maxima by whichever is closest to current index of center (using
-    // standard euclidean 1D distance) weighted by the intensity of each side
-    std::sort(maxima.begin(), maxima.end(),
-              [center, this](IndexIntensityPair lhs, IndexIntensityPair rhs) {
-                  /*
-                  const double ldist =
-                      2 * std::abs(lhs.first - center.x) / particleCount_;
-                  const double rdist =
-                      2 * std::abs(rhs.first - center.x) / particleCount_;
-                  const int32_t distWeight = 75;
-                  return (distWeight * ldist + (100 - distWeight) * -lhs.second)
-                  <
-                         (distWeight * rdist + (100 - distWeight) *
-                  -rhs.second);
-                         */
-                  const int32_t ldist =
-                      static_cast<int32_t>(std::abs(lhs.first - center.x));
-                  const int32_t rdist =
-                      static_cast<int32_t>(std::abs(rhs.first - center.x));
-                  return ldist < rdist;
-              });
+    // Debug info - visualization
+    if (shouldDraw_) {
+        if (index == DRAW_INDEX) {
+            cv::namedWindow("chain", cv::WINDOW_NORMAL);
+            cv::namedWindow("map", cv::WINDOW_NORMAL);
+            cv::namedWindow("reslice", cv::WINDOW_NORMAL);
+            cv::imshow("chain", draw());
+            cv::imshow("map", map.draw());
+            cv::imshow("reslice", reslice.draw());
+        }
+    } else if (dumpImages_) {
+        const fs::path outputDir("debugvis");
+        fs::create_directory(outputDir);
+        std::stringstream ss;
+        ss << std::setw(2) << std::setfill('0') << zIndex_ << "_" << index;
+        const fs::path base = outputDir / ss.str();
+        cv::imwrite(base.string() + "_chain.png", draw());
+        cv::imwrite(base.string() + "_reslice.png", reslice.draw());
+        cv::imwrite(base.string() + "_map.png", map.draw());
+    }
+
+    auto maxima = map.sortedMaxima();
 
     // Take only top N maxima
     maxima.resize(keepNumMaxima, IndexIntensityPair(0, 0));
@@ -119,7 +117,7 @@ std::deque<Voxel> Chain::step(const int32_t index, const int32_t stepNumLayers,
     }
 }
 
-void Chain::draw() const
+cv::Mat Chain::draw(const bool showSpline) const
 {
     auto pkgSlice = volpkg_.volume().getSliceData(zIndex_).clone();
     pkgSlice /= 255.0;
@@ -139,13 +137,13 @@ void Chain::draw() const
     }
 
     // Superimpose interpolated curve on window
-    double sum = 0;
-    for (int32_t i = 0; i < particleCount_ && sum <= 1;
-         ++i, sum += 1.0 / particleCount_) {
-        cv::Point p(curve_.eval(sum));
-        cv::circle(pkgSlice, p, 1, BGR_BLUE, -1);
+    if (showSpline) {
+        const int32_t n = 50;
+        for (double sum = 0; sum <= 1; sum += 1.0 / (n - 1)) {
+            cv::Point p(curve_.eval(sum));
+            cv::circle(pkgSlice, p, 1, BGR_BLUE, -1);
+        }
     }
 
-    cv::namedWindow("Volpkg Slice", cv::WINDOW_NORMAL);
-    cv::imshow("Volpkg Slice", pkgSlice);
+    return pkgSlice;
 }

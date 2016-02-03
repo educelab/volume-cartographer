@@ -72,7 +72,7 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentLayer(
 
     for (int32_t zIndex = startIndex; zIndex <= endIndex;
          zIndex += stepNumLayers) {
-        Chain chain(pkg_, currentPos, zIndex);
+        Chain chain(pkg_, currentPos, zIndex, false, true);
 
         auto choiceSpace = chain.stepAll(stepNumLayers, keepNumMaxima);
 
