@@ -14,5 +14,6 @@ add_library(vc_meshing STATIC
                     itk2vtk.h itk2vtk.cpp
                     rayTrace.h rayTrace.cpp
                     scaleMesh.h scaleMesh.cpp
-                    smoothNormals.h smoothNormals.cpp )
+                    smoothNormals.h smoothNormals.cpp
+                    deepCopy.cpp deepCopy.h)
 endif()
