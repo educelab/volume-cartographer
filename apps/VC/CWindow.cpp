@@ -174,13 +174,28 @@ void CWindow::CreateActions( void )
 
 bool CWindow::InitializeVolumePkg( const std::string &nVpkgPath )
 {
+    VolumePkg *testVpkg = NULL; // Temporay Test Volume Package, ensures the fVpkg is only re-initialized when the test Vpkg is valid.
+    deleteNULL( testVpkg );
+    testVpkg = new VolumePkg( nVpkgPath );
+
+    if ( testVpkg == NULL )
+        {
+            printf( "ERROR: cannot open volume package %s\n", nVpkgPath.c_str() );
+            deleteNULL( testVpkg );// Delete Pointer to testVpkg
+            return false;
+
+        }else if (testVpkg->getVersion() < 2.0)
+                {
+                    QMessageBox::warning(this, tr("ERROR"), "Volume Package is Version " + QString::number(testVpkg->getVersion()) + " but this program requires a version >= 2.0.");
+                    testVpkg = NULL;
+                    deleteNULL( testVpkg );// Delete Pointer to testVpkg
+                    return false;
+                }
+
     deleteNULL( fVpkg );
     fVpkg = new VolumePkg( nVpkgPath );
+    deleteNULL( testVpkg );// Delete Pointer to testVpkg
 
-    if ( fVpkg == NULL ) {
-        printf( "ERROR: cannot open volume package %s\n", nVpkgPath.c_str() );
-        return false;
-    }
     return true;
 }
 
@@ -433,27 +448,24 @@ void CWindow::SetPathPointCloud( void )
 void CWindow::OpenVolume( void )
 {
     QString aVpkgPath = QString( "" );
-    aVpkgPath = QFileDialog::getExistingDirectory( this,
-                                                   tr( "Open Directory" ),
-                                                   QDir::homePath(),
-                                                   QFileDialog::ShowDirsOnly |
-                                                   QFileDialog::DontResolveSymlinks );
-    if ( aVpkgPath.length() == 0 ) { // canceled
-        std::cerr << "ERROR: No volume package selected." << std::endl;
-        return;
-    }
+    aVpkgPath = QFileDialog::getExistingDirectory( this, tr( "Open Directory" ), QDir::homePath(), QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks );
+    std::string file_Name = aVpkgPath.toStdString();
 
-    if ( !InitializeVolumePkg( aVpkgPath.toStdString() + "/" ) ) {
-        printf( "ERROR: Cannot open the volume package at the specified location.\n" );
-        return;
-    }
+    if(aVpkgPath!=NULL)// If the user selected a Folder Path
+    {
+        if ((file_Name.substr(file_Name.length() - 7, file_Name.length())).compare(".volpkg") == 0)// Checks the Folder Path for .volpkg extension
+        {
 
-    if ( fVpkg->getVersion() < 2.0) {
-        std::cerr << "ERROR: Volume package is version " << fVpkg->getVersion() << " but this program requires a version >= 2.0." << std::endl;
-        QMessageBox::warning( this, tr( "ERROR" ), "Volume package is version " + QString::number(fVpkg->getVersion()) + " but this program requires a version >= 2.0." );
-        fVpkg = NULL;
-        return;
-    }
+            if (!InitializeVolumePkg(aVpkgPath.toStdString() + "/"))
+            {
+                printf("ERROR: Cannot open the volume package at the specified location.\n");
+                return;
+            }
+
+        } else  {
+                    QMessageBox::warning(this, tr("Error Message"), "Invalid File.");
+                }
+    }// End of if(filename!=NULL)
 
     fVpkgPath = aVpkgPath;
 
