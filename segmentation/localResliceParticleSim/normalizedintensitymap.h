@@ -30,6 +30,8 @@ private:
     }
 
     cv::Mat_<double> intensities_;
+    double currentIntensity_;
+    int32_t width_;
 };
 }
 }

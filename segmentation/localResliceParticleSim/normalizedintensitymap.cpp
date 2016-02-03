@@ -6,16 +6,18 @@ using namespace volcart::segmentation;
 NormalizedIntensityMap::NormalizedIntensityMap(cv::Mat r)
 {
     cv::normalize(r, intensities_, 0, 1, CV_MINMAX, CV_64FC1);
+    width_ = intensities_.cols;
+    currentIntensity_ = intensities_(width_ / 2);
 }
 
 cv::Mat NormalizedIntensityMap::draw(const int32_t displayWidth,
                                      const int32_t displayHeight) const
 {
-    auto binWidth = cvRound(float(displayWidth) / intensities_.cols);
+    auto binWidth = cvRound(float(displayWidth) / width_);
 
     // Build intensity map
     cv::Mat mapImage(displayWidth, displayHeight, CV_8UC3, cv::Scalar(0, 0, 0));
-    for (int32_t i = 1; i < intensities_.cols; ++i) {
+    for (int32_t i = 1; i < width_; ++i) {
         auto p1 = cv::Point(
             binWidth * (i - 1),
             displayHeight - cvRound(displayHeight * intensities_(i - 1)));
@@ -27,15 +29,17 @@ cv::Mat NormalizedIntensityMap::draw(const int32_t displayWidth,
 
     // Sort by closest maxima available and draw line on that
     auto maxima = sortedMaxima();
-    auto centerX = intensities_.cols / 2;
+    auto centerX = width_ / 2;
 
     // Vertical line at particle's current x position
     cv::line(mapImage, cv::Point(binWidth * centerX, 0),
              cv::Point(binWidth * centerX, mapImage.rows), BGR_YELLOW);
 
     // Line for position to be chosen
-    cv::line(mapImage, cv::Point(binWidth * maxima[0].first, 0),
-             cv::Point(binWidth * maxima[0].first, mapImage.rows), BGR_BLUE);
+    for (const auto m : maxima) {
+        cv::line(mapImage, cv::Point(binWidth * m.first, 0),
+                 cv::Point(binWidth * m.first, mapImage.rows), BGR_BLUE);
+    }
 
     return mapImage;
 }
@@ -64,7 +68,8 @@ IndexIntensityPairVec NormalizedIntensityMap::sortedMaxima() const
     // Filter out any crossings that are less than where this particle is now
     std::remove_if(crossings.begin(), crossings.end(),
                    [this](const IndexIntensityPair v) {
-                       return v.second > intensities_(intensities_.cols / 2);
+                       return v.second + 1e-2 < currentIntensity_ ||
+                              v.second - 1e-2 < currentIntensity_;
                    });
 
     // Sort by distance from middle
@@ -82,7 +87,7 @@ IndexIntensityPairVec NormalizedIntensityMap::sortedMaxima() const
                          (distWeight * rdist + (100 - distWeight) *
                   -rhs.second);
                          */
-                  const int32_t centerX = intensities_.cols / 2;
+                  const int32_t centerX = width_ / 2;
                   const auto ldist =
                       static_cast<int32_t>(std::abs(lhs.first - centerX));
                   const auto rdist =
