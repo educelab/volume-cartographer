@@ -19,14 +19,10 @@ namespace segmentation
 
 using IndexIntensityPair = std::pair<int32_t, double>;
 using IndexIntensityPairVec = typename std::vector<IndexIntensityPair>;
+template <typename T>
+using vec = std::vector<T>;
 using Voxel = cv::Vec3d;
 using Pixel = cv::Vec2d;
-using VoxelVec = typename std::vector<Voxel>;
-
-#define VC_DIRECTION_K Voxel(0.0, 0.0, 1.0)
-
-enum Direction { kLeft = -1, kNone = 0, kRight = 1, kDefault = 10 };
-}
 }
 
 // Helpful for printing out vector. Only for debug.
