@@ -55,14 +55,11 @@ public:
         resampledPoints_.clear();
         resampledPoints_.resize(npoints, 0.0);
 
-        // New interval in t-space
-        Scalar newTInterval = 1.0 / npoints;
-
         // Calculate new knot positions in t-space
         Scalar sum = 0;
-        for (size_t i = 0; i < npoints && sum <= 1; ++i) {
+        for (size_t i = 0; i < npoints && sum <= 1;
+             ++i, sum += 1.0 / (npoints - 1)) {
             resampledPoints_[i] = sum;
-            sum += newTInterval;
         }
     }
 
