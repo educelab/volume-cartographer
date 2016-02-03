@@ -433,27 +433,32 @@ void CWindow::SetPathPointCloud( void )
 void CWindow::OpenVolume( void )
 {
     QString aVpkgPath = QString( "" );
-    aVpkgPath = QFileDialog::getExistingDirectory( this,
-                                                   tr( "Open Directory" ),
-                                                   QDir::homePath(),
-                                                   QFileDialog::ShowDirsOnly |
-                                                   QFileDialog::DontResolveSymlinks );
-    if ( aVpkgPath.length() == 0 ) { // canceled
-        std::cerr << "ERROR: No volume package selected." << std::endl;
-        return;
-    }
+    aVpkgPath = QFileDialog::getExistingDirectory( this, tr( "Open Directory" ), QDir::homePath(), QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks );
+    std::string file_Name = aVpkgPath.toStdString();
 
-    if ( !InitializeVolumePkg( aVpkgPath.toStdString() + "/" ) ) {
-        printf( "ERROR: Cannot open the volume package at the specified location.\n" );
-        return;
-    }
+    if(aVpkgPath!=NULL)// If the user selected a Folder Path
+    {
+        if ((file_Name.substr(file_Name.length() - 7, file_Name.length())).compare(".volpkg") == 0)// Checks the Folder Path for .volpkg extension
+        {
 
-    if ( fVpkg->getVersion() < 2.0) {
-        std::cerr << "ERROR: Volume package is version " << fVpkg->getVersion() << " but this program requires a version >= 2.0." << std::endl;
-        QMessageBox::warning( this, tr( "ERROR" ), "Volume package is version " + QString::number(fVpkg->getVersion()) + " but this program requires a version >= 2.0." );
-        fVpkg = NULL;
-        return;
-    }
+            if (!InitializeVolumePkg(aVpkgPath.toStdString() + "/"))
+                {
+                    printf("ERROR: Cannot open the volume package at the specified location.\n");
+                    return;
+                }
+
+            if (fVpkg->getVersion() < 2.0)
+                {
+                    std::cerr << "ERROR: Volume package is version " << fVpkg->getVersion() << " but this program requires a version >= 2.0." << std::endl;
+                    QMessageBox::warning(this, tr("ERROR"), "Volume package is version " + QString::number(fVpkg->getVersion()) + " but this program requires a version >= 2.0.");
+                    fVpkg = NULL;
+                    return;
+                }
+
+        } else  {
+                    QMessageBox::warning(this, tr("Error Message"), "Invalid File.");
+                }
+    }// End of if(filename!=NULL)
 
     fVpkgPath = aVpkgPath;
 
