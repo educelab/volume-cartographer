@@ -92,16 +92,12 @@ std::deque<Voxel> Chain::step(const int32_t index, const int32_t stepNumLayers,
     auto maxima = map.sortedMaxima();
 
     // Take only top N maxima
-    maxima.resize(keepNumMaxima, IndexIntensityPair(0, 0));
-    for (int32_t i = keepNumMaxima - 1; i >= 0; --i) {
-        if (std::get<0>(maxima[i]) == 0 && std::get<1>(maxima[i]) == 0) {
-            maxima.pop_back();
-        }
-    }
+    auto nMaxima =
+        decltype(maxima)(maxima.begin(), maxima.begin() + keepNumMaxima);
 
     // Convert from pixel space to voxel space
     std::deque<Voxel> voxelMaxima;
-    for (const auto p : maxima) {
+    for (const auto p : nMaxima) {
         voxelMaxima.emplace_back(reslice.sliceCoordToVoxelCoord(
             {p.first, center.y + stepNumLayers}));
     }
