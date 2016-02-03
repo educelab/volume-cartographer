@@ -8,8 +8,8 @@ NormalizedIntensityMap::NormalizedIntensityMap(cv::Mat r)
     cv::normalize(r, intensities_, 0, 1, CV_MINMAX, CV_64FC1);
 }
 
-void NormalizedIntensityMap::draw(const int32_t displayWidth,
-                                  const int32_t displayHeight) const
+cv::Mat NormalizedIntensityMap::draw(const int32_t displayWidth,
+                                     const int32_t displayHeight) const
 {
     auto binWidth = cvRound(float(displayWidth) / intensities_.cols);
 
@@ -26,31 +26,22 @@ void NormalizedIntensityMap::draw(const int32_t displayWidth,
     }
 
     // Sort by closest maxima available and draw line on that
-    auto maxima = findMaxima();
+    auto maxima = sortedMaxima();
     auto centerX = intensities_.cols / 2;
-    auto minDist = std::numeric_limits<int32_t>::max();
-    auto minIdx = -1;
-    for (size_t i = 0; i < maxima.size(); ++i) {
-        auto currentDist = std::abs(int32_t(maxima[i].first - centerX));
-        if (currentDist < minDist) {
-            minDist = currentDist;
-            minIdx = i;
-        }
-    }
-    cv::line(mapImage, cv::Point(binWidth * maxima[minIdx].first, 0),
-             cv::Point(binWidth * maxima[minIdx].first, mapImage.rows),
-             BGR_BLUE);
 
     // Vertical line at particle's current x position
     cv::line(mapImage, cv::Point(binWidth * centerX, 0),
              cv::Point(binWidth * centerX, mapImage.rows), BGR_YELLOW);
 
-    cv::namedWindow("Intensity Map", cv::WINDOW_NORMAL);
-    cv::imshow("Intensity Map", mapImage);
+    // Line for position to be chosen
+    cv::line(mapImage, cv::Point(binWidth * maxima[0].first, 0),
+             cv::Point(binWidth * maxima[0].first, mapImage.rows), BGR_BLUE);
+
+    return mapImage;
 }
 
 // Finds the top 'N' maxima in the row being processed
-IndexIntensityPairVec NormalizedIntensityMap::findMaxima() const
+IndexIntensityPairVec NormalizedIntensityMap::sortedMaxima() const
 {
     // Find derivative of intensity curve
     cv::Mat_<double> sobelDerivatives;
@@ -69,6 +60,35 @@ IndexIntensityPairVec NormalizedIntensityMap::findMaxima() const
             }
         }
     }
+
+    // Filter out any crossings that are less than where this particle is now
+    std::remove_if(crossings.begin(), crossings.end(),
+                   [this](const IndexIntensityPair v) {
+                       return v.second > intensities_(intensities_.cols / 2);
+                   });
+
+    // Sort by distance from middle
+    std::sort(crossings.begin(), crossings.end(),
+              [this](IndexIntensityPair lhs, IndexIntensityPair rhs) {
+                  /*
+                  const double ldist =
+                      2 * std::abs(lhs.first - center.x) / particleCount_;
+                  const double rdist =
+                      2 * std::abs(rhs.first - center.x) / particleCount_;
+                  const int32_t distWeight = 75;
+                  return (distWeight * ldist + (100 - distWeight) *
+                  -lhs.second)
+                  <
+                         (distWeight * rdist + (100 - distWeight) *
+                  -rhs.second);
+                         */
+                  const int32_t centerX = intensities_.cols / 2;
+                  const auto ldist =
+                      static_cast<int32_t>(std::abs(lhs.first - centerX));
+                  const auto rdist =
+                      static_cast<int32_t>(std::abs(rhs.first - centerX));
+                  return ldist < rdist;
+              });
 
     return crossings;
 }
