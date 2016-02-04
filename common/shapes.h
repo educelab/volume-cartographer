@@ -10,5 +10,6 @@
 #include "shapes/Arch.h"
 #include "shapes/Sphere.h"
 #include "shapes/Cube.h"
+#include "shapes/Cone.h"
 
 #endif //VC_SHAPES_H
