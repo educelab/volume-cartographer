@@ -175,7 +175,13 @@ void CWindow::CreateActions( void )
 bool CWindow::InitializeVolumePkg( const std::string &nVpkgPath )
 {
     deleteNULL( fVpkg );
-    fVpkg = new VolumePkg( nVpkgPath );
+
+    try{ fVpkg = new VolumePkg( nVpkgPath ); }
+
+        catch(...)
+            {
+                QMessageBox::warning(this, "Error", "Failed to Load Volume Package Properly!");
+            }
 
     if ( fVpkg == NULL ) {
         printf( "ERROR: cannot open volume package %s\n", nVpkgPath.c_str() );
