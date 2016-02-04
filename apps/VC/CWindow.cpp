@@ -174,28 +174,20 @@ void CWindow::CreateActions( void )
 
 bool CWindow::InitializeVolumePkg( const std::string &nVpkgPath )
 {
-    VolumePkg *testVpkg = NULL; // Temporay Test Volume Package, ensures the fVpkg is only re-initialized when the test Vpkg is valid.
-    deleteNULL( testVpkg );
-    testVpkg = new VolumePkg( nVpkgPath );
-
-    if ( testVpkg == NULL )
-        {
-            printf( "ERROR: cannot open volume package %s\n", nVpkgPath.c_str() );
-            deleteNULL( testVpkg );// Delete Pointer to testVpkg
-            return false;
-
-        }else if (testVpkg->getVersion() < 2.0)
-                {
-                    QMessageBox::warning(this, tr("ERROR"), "Volume Package is Version " + QString::number(testVpkg->getVersion()) + " but this program requires a version >= 2.0.");
-                    testVpkg = NULL;
-                    deleteNULL( testVpkg );// Delete Pointer to testVpkg
-                    return false;
-                }
-
     deleteNULL( fVpkg );
     fVpkg = new VolumePkg( nVpkgPath );
-    deleteNULL( testVpkg );// Delete Pointer to testVpkg
 
+    if ( fVpkg == NULL )
+        {
+            printf( "ERROR: cannot open volume package %s\n", nVpkgPath.c_str() );
+            return false;
+
+        }else if (fVpkg->getVersion() < 2.0)
+                {
+                    QMessageBox::warning(this, tr("ERROR"), "Volume Package is Version " + QString::number(fVpkg->getVersion()) + " but this program requires a version >= 2.0.");
+                    fVpkg = NULL;
+                    return false;
+                }
     return true;
 }
 
