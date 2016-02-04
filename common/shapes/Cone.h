@@ -21,7 +21,7 @@ namespace volcart {
                 // radius = radius of circle
                 // height = used for height of circle
                 // recursion_level = used to control how circular the cone will be
-                                            // level 0 will have 8 points, level 1 will have 16 points, etc.
+                //      level 0 will have 8 base points, level 1 will have 16 points, etc.
 
                 std::vector<cv::Vec3d> circle_list;
                 cv::Vec3d c_point;
