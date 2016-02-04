@@ -1,28 +1,30 @@
 #include <list>
 #include <tuple>
-#include <numeric>
-#include <memory>
-#include <random>
-
 #include "localResliceParticleSim.h"
 #include "common.h"
+#include "fittedcurve.h"
+#include "normalizedintensitymap.h"
 
 using namespace volcart::segmentation;
 
-using ScalarVector = std::vector<double>;
-std::vector<double> deriv(const VoxelVec& vec, const int32_t hstep = 1);
+std::vector<double> deriv(const vec<Voxel>& vec, const int32_t hstep = 1);
 
-ScalarVector subtractAbs(const ScalarVector& lhs, const ScalarVector& rhs)
+template <typename T1, typename T2>
+vec<std::pair<T1, T2>> zip(vec<T1> v1, vec<T2> v2);
+
+pcl::PointCloud<pcl::PointXYZRGB> exportAsPCD(const vec<vec<Voxel>>& points);
+
+vec<double> subtractAbs(const vec<double>& lhs, const vec<double>& rhs)
 {
     assert(lhs.size() == rhs.size() && "lhs must be the same size as rhs");
-    ScalarVector res(lhs.size(), 0.0);
+    vec<double> res(lhs.size(), 0.0);
     for (uint32_t i = 0; i < lhs.size(); ++i) {
         res[i] = std::fabs(lhs[i] - rhs[i]);
     }
     return res;
 }
 
-double normL2(const ScalarVector& lhs, const ScalarVector& rhs)
+double normL2(const vec<double>& lhs, const vec<double>& rhs)
 {
     assert(lhs.size() == rhs.size() && "lhs must be the same size as rhs");
     double res = 0.0;
@@ -32,45 +34,26 @@ double normL2(const ScalarVector& lhs, const ScalarVector& rhs)
     return std::sqrt(res);
 }
 
-VoxelVec downsample(const VoxelVec& voxels, int32_t zIndex,
-                    double keepPerc = 0.40)
+pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
+    const vec<Voxel>& initPath, const double resamplePerc,
+    const int32_t startIndex, const int32_t endIndex, const int32_t numIters,
+    const int32_t keepNumMaxima, const int32_t step)
 {
-    FittedCurve<double> curve(voxels);
-    int32_t newSize = std::round(voxels.size() * keepPerc);
-    curve.resample(newSize);
-    auto resampled = curve.resampledPoints();
-    VoxelVec vResampled;
-    vResampled.reserve(newSize);
-    for (auto v : resampled) {
-        vResampled.emplace_back(v(0), v(1), zIndex);
-    }
-    return vResampled;
-}
-
-LocalResliceSegmentation::LocalResliceSegmentation(VolumePkg& pkg) : pkg_(pkg)
-{
-}
-
-pcl::PointCloud<pcl::PointXYZRGB> segmentPath(const vec<Voxel>& initPath,
-                                              const double resamplePerc,
-                                              const int32_t startIndex,
-                                              const int32_t endIndex,
-                                              const int32_t keepNumMaxima,
-                                              const int32_t step)
-{
-    // Current voxels
-    vec<Voxel> currentVs = initPath;
-
+    std::cout << "init size: " << initPath.size() << std::endl;
     // Collection to hold all positions
     vec<vec<Voxel>> points;
-    vec.reserve((endIndex - startIndex + 1) / step);
+    points.reserve((endIndex - startIndex + 1) / step);
+
+    // Resample incoming curve
+    FittedCurve initCurve(initPath, startIndex);
+    initCurve.resample(resamplePerc);
+    vec<Voxel> currentVs = curve.resampledPoints();
+    std::cout << "resampled size: " << currentVs.size() << std::endl;
 
     // Iterate over z-slices
     for (int32_t zIndex = startIndex; zIndex <= endIndex; zIndex += step) {
-        // Get parameterized rep of the incoming curve and resample it
-        std::cout << "initial size: " << currentVs.size() << std::endl;
-        FittedCurve curve(currentVs, zIndex);
-        curve.resample(resamplePerc);
+        // 0. Resample current positions so they are evenly spaced
+        currentVs = FittedCurve(currentVs, zIndex).resampledPoints();
 
         // 1. Generate all candidate positions for all particles
         vec<std::deque<Voxel>> nextPositions;
@@ -111,8 +94,107 @@ pcl::PointCloud<pcl::PointXYZRGB> segmentPath(const vec<Voxel>& initPath,
         }
 
         // 2. Construct initial guess using top maxima for each next position
-        const vec<double> currentK = curve.estimateCurvature();
+        vec<Voxel> nextVs;
+        nextVs.reserve(currentPos.size());
+        for (auto&& d : nextPositions) {
+            nextVs.push_back(d.front());
+            d.pop_front();
+        }
+        const vec<double> currentDeriv = FittedCurve(currentVs, zIndex).deriv();
+        const vec<double> nextDeriv = FittedCurve(nextVs, zIndex).deriv();
+
+        // 3. Iterative greedy algorithm to find particle introducing largest
+        // difference in derivatives and keep choosing different positions until
+        // it minimizes it
+        vec<int32_t> ignoreList;
+        int32_t i = 0;
+        while (i < numIters) {
+            // Find index of maximum difference between derivatives
+            const vec<double> diff = subtractAbs(currentDeriv, nextDeriv);
+            vec<int32_t> indxs(diff.size());
+            std::iota(std::begin(indxs), std::end(indxs), 0);
+            auto pairs = zip(indxs, diff);
+            std::sort(std::begin(pairs), std::end(pairs),
+                      [](const std::pair<int32_t, double> p1,
+                         const std::pair<int32_t, double> p2) {
+                          return p1.second < p2.second;
+                      });
+
+            // Skip any particles that we've run out of candidate positions for
+            auto it = std::find(std::begin(ignoreList), std::end(ignoreList),
+                                pairs.back().second);
+            while (it != std::end(ignoreList)) {
+                pairs.pop_back();
+            }
+            int32_t maxDiffIdx = pairs.back().first;
+
+            // Get next candidate voxel for that index and construct new vector
+            vec<Voxel> combVs(currentVs.begin(), currentVs.end());
+            auto& candidates = nextPositions[maxDiffIndex];
+            if (candidates.size() > 0) {
+                combVs[maxDiffIdx] = candidates.front();
+                candidates.pop_front();
+            } else {
+                ignoreList.push_back(maxDiffIdx);
+                continue;
+            }
+
+            // Evaluate new combination and compare to best so far, if better
+            // setting the new positions
+            vec<double> combDeriv = FittedCurve(combVs, zIndex).deriv();
+            if (normL2(combDeriv, currentDeriv) <
+                normL2(nextDeriv, currentDeriv)) {
+                nextVs = combVs;
+                nextDeriv = combDeriv;
+            }
+            ++i;
+        }
+
+        // Add next positions to
+        points.push_back(nextVs);
     }
+
+    return exportAsPCD(points);
+}
+
+template <typename T1, typename T2>
+vec<std::pair<T1, T2>> zip(vec<T1> v1, vec<T2> v2)
+{
+    assert(v1.size() == v2.size() && "v1 and v2 must be the same size");
+    vec<std::pair<T1, T2>> res;
+    res.reserve(v1.size());
+    for (int32_t i = 0; i < v1.size(); ++i) {
+        res.emplace_back(v1[i], v2[i]);
+    }
+    return res;
+}
+
+/*
+pcl::PointCloud<pcl::PointXYZRGB> exportAsPCD(const vec<vec<Voxel>>& points)
+{
+    int32_t rows = points.size();
+    int32_t cols = points[0].size();
+    pcl::PointCloud<pcl::PointXYZRGB> cloud;
+    cloud.reserve(rows * cols);
+
+    // Set size. Since this is unordered (for now...) just set the width to be
+    // the number of points and the height (by convention) is set to 1
+    cloud.width = rows * cols;
+    cloud.height = 1;
+
+    for (int32_t i = 0; i < rows; ++i) {
+        for (int32_t j = 0; j < cols; ++j) {
+            pcl::PointXYZRGB p;
+            p.x = points[i][j](0);
+            p.y = points[i][j](1);
+            p.z = points[i][j](2);
+            p.r = 0xFF;
+            p.g = 0xFF;
+            p.b = 0xFF;
+            cloud.push_back(p);
+        }
+    }
+    return cloud;
 }
 
 pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentLayer(
@@ -207,3 +289,4 @@ std::vector<double> deriv(const VoxelVec& vec, const int32_t hstep)
     FittedCurve<double> curve(vec);
     return curve.deriv(hstep);
 }
+*/

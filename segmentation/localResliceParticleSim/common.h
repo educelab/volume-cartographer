@@ -7,10 +7,6 @@
 #include <tuple>
 #include <opencv2/opencv.hpp>
 
-namespace volcart
-{
-namespace segmentation
-{
 #define BGR_RED cv::Scalar(0, 0, 0xFF)
 #define BGR_GREEN cv::Scalar(0, 0xFF, 0)
 #define BGR_BLUE cv::Scalar(0xFF, 0, 0)
@@ -23,7 +19,6 @@ template <typename T>
 using vec = std::vector<T>;
 using Voxel = cv::Vec3d;
 using Pixel = cv::Vec2d;
-}
 
 // Helpful for printing out vector. Only for debug.
 template <typename T1, typename T2>

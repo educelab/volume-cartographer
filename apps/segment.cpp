@@ -57,8 +57,17 @@ int main(int argc, char* argv[])
     // Optional args
     bool visualize = pcl::console::find_switch(argc, argv, "--visualize");
 
+    int32_t numIters = 10;
+    pcl::console::parse_argument(argc, argv, "--numIters", numIters);
+
     int32_t step = 1;
     pcl::console::parse_argument(argc, argv, "--step", step);
+
+    double resamplePerc = 0.40;
+    pcl::console::parse_argument(argc, argv, "--resamplePerc", resamplePerc);
+
+    int32_t keepNumMaxima = 4;
+    pcl::console::parse_argument(argc, argv, "--keepNumMaxima", keepNumMaxima);
 
     VolumePkg volpkg(volpkgPath);
     volpkg.setActiveSegmentation(segID);
@@ -78,7 +87,8 @@ int main(int argc, char* argv[])
 
     // Run segmentation using path as our starting points
     volcart::segmentation::LocalResliceSegmentation segmenter(volpkg);
-    auto cloud = segmenter.segmentLayer(visualize, startIndex, endIndex, step);
+    auto cloud = segmenter.segmentPath(initVoxels, resamplePerc, startIndex,
+                                       endIndex, numIters, keepNumMaxima, step);
 
     // Save to output file
     try {
