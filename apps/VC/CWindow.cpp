@@ -447,14 +447,6 @@ void CWindow::OpenVolume( void )
                     return;
                 }
 
-            if (fVpkg->getVersion() < 2.0)
-                {
-                    std::cerr << "ERROR: Volume package is version " << fVpkg->getVersion() << " but this program requires a version >= 2.0." << std::endl;
-                    QMessageBox::warning(this, tr("ERROR"), "Volume package is version " + QString::number(fVpkg->getVersion()) + " but this program requires a version >= 2.0.");
-                    fVpkg = NULL;
-                    return;
-                }
-
         } else  {
                     QMessageBox::warning(this, tr("Error Message"), "Invalid File.");
                 }
