@@ -16,20 +16,10 @@ target_link_libraries(vc_objExporterExample ${VC_LIBS} ${VC_REQ_LIBS})
 add_executable(vc_itk2vtkExample itk2vtkExample.cpp)
 target_link_libraries(vc_itk2vtkExample ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
 
-add_executable(vc_greedyExample greedyExample.cpp greedyExampleCone.cpp)
+add_executable(vc_greedyExample greedyExample.cpp)
 target_link_libraries(vc_greedyExample ${VC_LIBS} ${VC_REQ_LIBS})
-
 add_executable(vc_uvMapExample uvMapExample.cpp)
 target_link_libraries(vc_uvMapExample ${VC_LIBS} ${VC_REQ_LIBS})
-
-add_executable(vc_greedyExampleSphere greedyExampleSphere.cpp)
-target_link_libraries(vc_greedyExampleSphere ${VC_LIBS} ${VC_REQ_LIBS})
-
-add_executable(vc_greedyExampleBox greedyExampleCube.cpp)
-target_link_libraries(vc_greedyExampleBox ${VC_LIBS} ${VC_REQ_LIBS})
-
-add_executable(vc_greedyExampleCone greedyExampleCone.cpp greedyExampleCone.cpp)
-target_link_libraries(vc_greedyExampleCone ${VC_LIBS} ${VC_REQ_LIBS})
 
 add_executable(vc_poissonExample poissonExample.cpp)
 target_link_libraries(vc_poissonExample ${VC_LIBS} ${VC_REQ_LIBS})
