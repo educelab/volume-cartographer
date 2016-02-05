@@ -176,17 +176,18 @@ bool CWindow::InitializeVolumePkg( const std::string &nVpkgPath )
 {
     deleteNULL( fVpkg );
 
-    try{ fVpkg = new VolumePkg( nVpkgPath ); }
-
-        catch(...)
-            {
-                QMessageBox::warning(this, "Error", "Failed to Load Volume Package Properly!");
-            }
+    try {
+        fVpkg = new VolumePkg( nVpkgPath );
+    } catch(...) {
+        std::cerr << "VC::Error: Volume package failed to initialize." << std::endl;
+    }
 
     if ( fVpkg == NULL ) {
-        printf( "ERROR: cannot open volume package %s\n", nVpkgPath.c_str() );
+        std::cerr << "VC::Error: Cannot open volume package: " << nVpkgPath << std::endl;
+        QMessageBox::warning(this, "Error", "Volume package failed to load. Package might be corrupt.");
         return false;
     }
+
     return true;
 }
 
