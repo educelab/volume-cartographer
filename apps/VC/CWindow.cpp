@@ -445,18 +445,30 @@ void CWindow::OpenVolume( void )
                                                    QDir::homePath(),
                                                    QFileDialog::ShowDirsOnly |
                                                    QFileDialog::DontResolveSymlinks );
-    if ( aVpkgPath.length() == 0 ) { // canceled
-        std::cerr << "ERROR: No volume package selected." << std::endl;
+    // Dialog box cancelled
+    if ( aVpkgPath.length() == 0 ) {
+        std::cerr << "VC::Message: Open volume package cancelled." << std::endl;
         return;
     }
 
+    // Checks the Folder Path for .volpkg extension
+    std::string extension = aVpkgPath.toStdString().substr( aVpkgPath.toStdString().length() - 7, aVpkgPath.toStdString().length() );
+    if ( extension.compare(".volpkg") != 0 ) {
+        QMessageBox::warning(this, tr("ERROR"), "The selected file is not of the correct type: \".volpkg\"");
+        std::cerr << "VC::Error: Selected file: " << aVpkgPath.toStdString() << " is of the wrong type." << std::endl;
+        return;
+    }
+
+    // Open volume package
     if ( !InitializeVolumePkg( aVpkgPath.toStdString() + "/" ) ) {
-        printf( "ERROR: Cannot open the volume package at the specified location.\n" );
+        QMessageBox::warning(this, tr("ERROR"), "The selected file cannot be opened.");
+        std::cerr << "VC::Error: Cannot open the volume package at the specified location: " << aVpkgPath.toStdString() << std::endl;
         return;
     }
 
+    // Check version number
     if ( fVpkg->getVersion() < 2.0) {
-        std::cerr << "ERROR: Volume package is version " << fVpkg->getVersion() << " but this program requires a version >= 2.0." << std::endl;
+        std::cerr << "VC::Error: Volume package is version " << fVpkg->getVersion() << " but this program requires a version >= 2.0." << std::endl;
         QMessageBox::warning( this, tr( "ERROR" ), "Volume package is version " + QString::number(fVpkg->getVersion()) + " but this program requires a version >= 2.0." );
         fVpkg = NULL;
         return;
