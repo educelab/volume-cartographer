@@ -175,19 +175,19 @@ void CWindow::CreateActions( void )
 bool CWindow::InitializeVolumePkg( const std::string &nVpkgPath )
 {
     deleteNULL( fVpkg );
-    fVpkg = new VolumePkg( nVpkgPath );
 
-    if ( fVpkg == NULL )
-        {
-            printf( "ERROR: cannot open volume package %s\n", nVpkgPath.c_str() );
-            return false;
+    try {
+        fVpkg = new VolumePkg( nVpkgPath );
+    } catch(...) {
+        std::cerr << "VC::Error: Volume package failed to initialize." << std::endl;
+    }
 
-        }else if (fVpkg->getVersion() < 2.0)
-                {
-                    QMessageBox::warning(this, tr("ERROR"), "Volume Package is Version " + QString::number(fVpkg->getVersion()) + " but this program requires a version >= 2.0.");
-                    fVpkg = NULL;
-                    return false;
-                }
+    if ( fVpkg == NULL ) {
+        std::cerr << "VC::Error: Cannot open volume package at specified location: " << nVpkgPath << std::endl;
+        QMessageBox::warning(this, "Error", "Volume package failed to load. Package might be corrupt.");
+        return false;
+    }
+
     return true;
 }
 
@@ -445,18 +445,28 @@ void CWindow::OpenVolume( void )
                                                    QDir::homePath(),
                                                    QFileDialog::ShowDirsOnly |
                                                    QFileDialog::DontResolveSymlinks );
-    if ( aVpkgPath.length() == 0 ) { // canceled
-        std::cerr << "ERROR: No volume package selected." << std::endl;
+    // Dialog box cancelled
+    if ( aVpkgPath.length() == 0 ) {
+        std::cerr << "VC::Message: Open volume package cancelled." << std::endl;
         return;
     }
 
+    // Checks the Folder Path for .volpkg extension
+    std::string extension = aVpkgPath.toStdString().substr( aVpkgPath.toStdString().length() - 7, aVpkgPath.toStdString().length() );
+    if ( extension.compare(".volpkg") != 0 ) {
+        QMessageBox::warning(this, tr("ERROR"), "The selected file is not of the correct type: \".volpkg\"");
+        std::cerr << "VC::Error: Selected file: " << aVpkgPath.toStdString() << " is of the wrong type." << std::endl;
+        return;
+    }
+
+    // Open volume package
     if ( !InitializeVolumePkg( aVpkgPath.toStdString() + "/" ) ) {
-        printf( "ERROR: Cannot open the volume package at the specified location.\n" );
         return;
     }
 
+    // Check version number
     if ( fVpkg->getVersion() < 2.0) {
-        std::cerr << "ERROR: Volume package is version " << fVpkg->getVersion() << " but this program requires a version >= 2.0." << std::endl;
+        std::cerr << "VC::Error: Volume package is version " << fVpkg->getVersion() << " but this program requires a version >= 2.0." << std::endl;
         QMessageBox::warning( this, tr( "ERROR" ), "Volume package is version " + QString::number(fVpkg->getVersion()) + " but this program requires a version >= 2.0." );
         fVpkg = NULL;
         return;
