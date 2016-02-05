@@ -183,7 +183,7 @@ bool CWindow::InitializeVolumePkg( const std::string &nVpkgPath )
     }
 
     if ( fVpkg == NULL ) {
-        std::cerr << "VC::Error: Cannot open volume package: " << nVpkgPath << std::endl;
+        std::cerr << "VC::Error: Cannot open volume package at specified location: " << nVpkgPath << std::endl;
         QMessageBox::warning(this, "Error", "Volume package failed to load. Package might be corrupt.");
         return false;
     }
@@ -461,8 +461,6 @@ void CWindow::OpenVolume( void )
 
     // Open volume package
     if ( !InitializeVolumePkg( aVpkgPath.toStdString() + "/" ) ) {
-        QMessageBox::warning(this, tr("ERROR"), "The selected file cannot be opened.");
-        std::cerr << "VC::Error: Cannot open the volume package at the specified location: " << aVpkgPath.toStdString() << std::endl;
         return;
     }
 
