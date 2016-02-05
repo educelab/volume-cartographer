@@ -19,6 +19,7 @@ class CVolumeViewer : public QWidget {
 public:
     CVolumeViewer( QWidget *parent = 0 );
     ~CVolumeViewer( void );
+    void setButtonsActive( bool state);
 
     virtual void SetImage( const QImage &nSrc );
     void SetImageIndex( int nImageIndex ) { fImageIndex = nImageIndex; UpdateButtons();}

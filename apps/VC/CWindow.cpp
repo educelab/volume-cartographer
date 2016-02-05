@@ -195,8 +195,23 @@ bool CWindow::InitializeVolumePkg( const std::string &nVpkgPath )
 void CWindow::UpdateView( void )
 {
     if ( fVpkg == NULL ) {
+        std::cout<<"JUST A TEST**********";
+        this->findChild< QGroupBox * >( "grpVolManager" )->setEnabled( false );
+        this->findChild< QGroupBox * >( "grpSeg" )->setEnabled( false );
+        this->findChild< QPushButton *>( "btnSegTool" )->setEnabled( false );
+        this->findChild< QPushButton *>( "btnPenTool" )->setEnabled( false );
+        this->findChild< QGroupBox * >( "groupBox_4" )->setEnabled( false );
+        fVolumeViewerWidget->setButtonsActive(false);
         return;
     }
+
+    std::cout<<"NOT NULL**********";
+    this->findChild< QGroupBox * >( "grpVolManager" )->setEnabled( true );
+    this->findChild< QGroupBox * >( "grpSeg" )->setEnabled( true );
+    this->findChild< QPushButton *>( "btnSegTool" )->setEnabled( true );
+    this->findChild< QPushButton *>( "btnPenTool" )->setEnabled( true );
+    this->findChild< QGroupBox * >( "groupBox_4" )->setEnabled( true );
+    fVolumeViewerWidget->setButtonsActive(true);
 
     // show volume package name
     this->findChild< QLabel * >( "lblVpkgName" )->setText( QString( fVpkg->getPkgName().c_str() ) );
