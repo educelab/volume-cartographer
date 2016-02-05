@@ -210,7 +210,7 @@ void ParsingHelpers::parseObjFile(std::string filepath, std::vector<VC_Vertex> &
         std::ifstream inputMesh;
         inputMesh.open(filepath);
 
-        //   Test to see if .ply is open
+        //   Test to see if file is open
         if (!inputMesh.is_open()) { exit(1); }
 
         //   Declare string to hold lines of ply file
