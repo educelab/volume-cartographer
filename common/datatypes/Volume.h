@@ -5,16 +5,14 @@
 
 #include <string>
 #include <array>
-#include <opencv2/opencv.hpp>
+#include <opencv2/core/mat.hpp>
 #include <boost/filesystem.hpp>
 #include "LRUCache.h"
 #include "Tensor3D.h"
 #include "Slice.h"
 
 using Voxel = cv::Vec3d;
-using EigenValues = cv::Vec3d;
 using EigenValue = double;
-using EigenVectors = cv::Matx33d;
 using EigenVector = cv::Vec3d;
 using EigenPairs = std::array<std::pair<EigenValue, EigenVector>, 3>;
 using StructureTensor = cv::Matx33d;
@@ -33,6 +31,8 @@ public:
 class Volume
 {
 public:
+    enum class GradientAxis { X, Y };
+
     Volume() = default;
 
     Volume(boost::filesystem::path slicePath,
@@ -86,25 +86,29 @@ public:
                   const cv::Vec3d yvec, const int32_t width = 64,
                   const int32_t height = 64) const;
 
-    StructureTensor structureTensorAtIndex(const int32_t x, const int32_t y,
-                                           const int32_t z,
-                                           const int32_t voxelRadius = 1) const;
+    StructureTensor structureTensorAtIndex(
+        const int32_t x, const int32_t y, const int32_t z,
+        const int32_t voxelRadius = 1,
+        const int32_t gradientKernelSize = 3) const;
 
-    StructureTensor structureTensorAtIndex(const cv::Vec3i index,
-                                           const int32_t voxelRadius = 1) const
+    StructureTensor structureTensorAtIndex(
+        const cv::Vec3i index, const int32_t voxelRadius = 1,
+        const int32_t gradientKernelSize = 3) const
     {
-        return structureTensorAtIndex(index(0), index(1), index(2),
-                                      voxelRadius);
+        return structureTensorAtIndex(index(0), index(1), index(2), voxelRadius,
+                                      gradientKernelSize);
     }
 
     EigenPairs eigenPairsAtIndex(const int32_t x, const int32_t y,
-                                 const int32_t z,
-                                 const int32_t voxelRadius = 1) const;
+                                 const int32_t z, const int32_t voxelRadius = 1,
+                                 const int32_t gradientKernelSize = 3) const;
 
     EigenPairs eigenPairsAtIndex(const cv::Vec3i index,
-                                 const int32_t voxelRadius = 1) const
+                                 const int32_t voxelRadius = 1,
+                                 const int32_t gradientKernelSize = 3) const
     {
-        return eigenPairsAtIndex(index(0), index(1), index(2), voxelRadius);
+        return eigenPairsAtIndex(index(0), index(1), index(2), voxelRadius,
+                                 gradientKernelSize);
     }
 
     template <typename DType>
@@ -128,8 +132,7 @@ public:
                 for (int32_t i = center.x - rx, a = 0; i <= center.x + rx;
                      ++i, ++a) {
                     if (i >= 0 && j >= 0) {
-                        v(a, b, c) =
-                            static_cast<DType>(getIntensityAtCoord(i, j, k));
+                        v(a, b, c) = DType(getIntensityAtCoord(i, j, k));
                     }
                 }
             }
@@ -155,6 +158,13 @@ private:
     mutable volcart::LRUCache<int32_t, cv::Mat> cache_;
 
     uint16_t interpolateAt(const Voxel point) const;
+
+    Tensor3D<cv::Vec3d> volumeGradient(const Tensor3D<double>& v,
+                                       const int32_t gradientKernelSize) const;
+
+    cv::Mat_<double> gradient(const cv::Mat_<double>& input,
+                              const GradientAxis axis,
+                              const int32_t gradientKernelSize) const;
 };
 }
 

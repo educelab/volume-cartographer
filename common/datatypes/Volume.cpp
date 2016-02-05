@@ -1,7 +1,9 @@
-#include "Volume.h"
 #include <sstream>
 #include <memory>
 #include <iomanip>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include "Volume.h"
 
 using namespace volcart;
 
@@ -120,73 +122,32 @@ Slice Volume::reslice(const Voxel center, const cv::Vec3d xvec,
     return Slice(m, origin, xnorm, ynorm);
 }
 
-StructureTensor Volume::structureTensorAtIndex(const int32_t vx,
-                                               const int32_t vy,
-                                               const int32_t vz,
-                                               const int32_t voxelRadius) const
+StructureTensor Volume::structureTensorAtIndex(
+    const int32_t vx, const int32_t vy, const int32_t vz,
+    const int32_t voxelRadius, const int32_t gradientKernelSize) const
 {
     // Safety checks
     assert(vx >= 0 && vx < sliceWidth_ &&
-           "x must be in range [0, slice_width]\n");
+           "x must be in range [0, slice_width]");
     assert(vy >= 0 && vy < sliceHeight_ &&
-           "y must be in range [0, slice_height]\n");
-    assert(vz >= 0 && vz < numSlices_ && "z must be in range [0, #slices]\n");
+           "y must be in range [0, slice_height]");
+    assert(vz >= 0 && vz < numSlices_ && "z must be in range [0, #slices]");
+    assert(gradientKernelSize >= 3 &&
+           "gradient kernel size must be at least 3");
 
     // Get voxels in radius voxelRadius around voxel (x, y, z)
     auto v = getVoxelNeighborsCubic<double>({vx, vy, vz}, voxelRadius);
 
-    // Calculate gradient field around specified voxel
-    const int32_t n = 2 * voxelRadius + 1;
-    auto gradientField = Tensor3D<cv::Vec3d>(n, n, n);
-
-    // First do XY gradients
-    for (int32_t z = 0; z < n; ++z) {
-        cv::Mat_<double> xGradient(n, n);
-        cv::Mat_<double> yGradient(n, n);
-        cv::Scharr(v.xySlice(z), xGradient, CV_64F, 1, 0, 1, 0,
-                   cv::BORDER_REPLICATE);
-        cv::Scharr(v.xySlice(z), yGradient, CV_64F, 0, 1, 1, 0,
-                   cv::BORDER_REPLICATE);
-        for (int32_t y = 0; y < n; ++y) {
-            for (int32_t x = 0; x < n; ++x) {
-                gradientField(x, y, z) = {xGradient(y, x), yGradient(y, x), 0};
-            }
-        }
-    }
-
-    // Then Z gradients
-    for (int32_t layer = 0; layer < n; ++layer) {
-        cv::Mat_<double> zGradient(n, n);
-        cv::Scharr(v.xzSlice(layer), zGradient, CV_64F, 0, 1, 1, 0,
-                   cv::BORDER_REPLICATE);
-        for (int32_t z = 0; z < n; ++z) {
-            for (int32_t x = 0; x < n; ++x) {
-                gradientField(x, layer, z)(2) = zGradient(z, x);
-            }
-        }
-    }
-
-    // Convert to tensor volume
-    // XXX: Still doing Mike's algorithm for calculating. Assumes radius=1
-    /*
-    return (1.0 / 7.0) * (makeStructureTensor(gradientField(0, 1, 1)) +
-                          makeStructureTensor(gradientField(1, 1, 1)) +
-                          makeStructureTensor(gradientField(2, 1, 1)) +
-                          makeStructureTensor(gradientField(1, 1, 0)) +
-                          makeStructureTensor(gradientField(1, 1, 2)) +
-                          makeStructureTensor(gradientField(1, 0, 1)) +
-                          makeStructureTensor(gradientField(1, 2, 1)));
-    */
+    // Get gradient of volume
+    auto gradientField = volumeGradient(v, gradientKernelSize);
 
     // Modulate by gaussian distribution (element-wise) and sum
-    // The ordeings must match - i.e. the order of adding the tensors to the
-    // field must match that of the Gaussian weightings
     auto gaussianField = makeGaussianField(voxelRadius);
     StructureTensor sum(0, 0, 0, 0, 0, 0, 0, 0, 0);
-    for (int32_t z = 0; z < n; ++z) {
-        for (int32_t y = 0; y < n; ++y) {
-            for (int32_t x = 0; x < n; ++x) {
-                sum += gaussianField[z * n * n + y * n + x] *
+    for (int32_t z = 0; z < v.dz; ++z) {
+        for (int32_t y = 0; y < v.dy; ++y) {
+            for (int32_t x = 0; x < v.dz; ++x) {
+                sum += gaussianField[z * v.dy * v.dx + y * v.dz + x] *
                        tensorize(gradientField(x, y, z));
             }
         }
@@ -196,10 +157,10 @@ StructureTensor Volume::structureTensorAtIndex(const int32_t vx,
 }
 
 EigenPairs Volume::eigenPairsAtIndex(const int32_t x, const int32_t y,
-                                     const int32_t z,
-                                     const int32_t voxelRadius) const
+                                     const int32_t z, const int32_t voxelRadius,
+                                     const int32_t gradientKernelSize) const
 {
-    auto st = structureTensorAtIndex(x, y, z, voxelRadius);
+    auto st = structureTensorAtIndex(x, y, z, voxelRadius, gradientKernelSize);
     if (st == zeroStructureTensor) {
         throw ZeroStructureTensorException();
     }
@@ -261,4 +222,71 @@ std::unique_ptr<double[]> makeGaussianField(const int32_t radius)
     }
 
     return field;
+}
+
+Tensor3D<cv::Vec3d> Volume::volumeGradient(
+    const Tensor3D<double>& v, const int32_t gradientKernelSize) const
+{
+    // Calculate gradient field around specified voxel
+    Tensor3D<cv::Vec3d> gradientField{v.dx, v.dy, v.dz};
+
+    // First do XY gradients
+    for (int32_t z = 0; z < v.dz; ++z) {
+        const cv::Mat_<double> xGradient =
+            gradient(v.xySlice(z), GradientAxis::X, gradientKernelSize);
+        const cv::Mat_<double> yGradient =
+            gradient(v.xySlice(z), GradientAxis::Y, gradientKernelSize);
+        for (int32_t y = 0; y < v.dy; ++y) {
+            for (int32_t x = 0; x < v.dx; ++x) {
+                gradientField(x, y, z) = {xGradient(y, x), yGradient(y, x), 0};
+            }
+        }
+    }
+
+    // Then Z gradients
+    for (int32_t layer = 0; layer < v.dy; ++layer) {
+        const cv::Mat_<double> zGradient =
+            gradient(v.xzSlice(layer), GradientAxis::Y, gradientKernelSize);
+        for (int32_t z = 0; z < v.dz; ++z) {
+            for (int32_t x = 0; x < v.dx; ++x) {
+                gradientField(x, layer, z)(2) = zGradient(z, x);
+            }
+        }
+    }
+
+    return gradientField;
+}
+
+// Helper function to calculate gradient using best choice for given kernel
+// size. If the kernel size is 3, uses the Scharr() operator to calculate the
+// gradient which is more accurate than 3x3 Sobel operator
+cv::Mat_<double> Volume::gradient(const cv::Mat_<double>& input,
+                                  const GradientAxis axis,
+                                  const int32_t gradientKernelSize) const
+{
+    // OpenCV params for gradients
+    // XXX Revisit this and see if changing these makes a big difference
+    constexpr int32_t SCALE = 1;
+    constexpr int32_t DELTA = 0;
+
+    cv::Mat_<double> grad(input.rows, input.cols);
+    switch (axis) {
+        case GradientAxis::X:
+            if (gradientKernelSize == 3) {
+                cv::Scharr(input, grad, CV_64F, 1, 0, SCALE, DELTA,
+                           cv::BORDER_REPLICATE);
+            } else {
+                cv::Sobel(input, grad, CV_64F, 1, 0, gradientKernelSize, SCALE,
+                          DELTA, cv::BORDER_REPLICATE);
+            }
+        case GradientAxis::Y:
+            if (gradientKernelSize == 3) {
+                cv::Scharr(input, grad, CV_64F, 0, 1, SCALE, DELTA,
+                           cv::BORDER_REPLICATE);
+            } else {
+                cv::Sobel(input, grad, CV_64F, 0, 1, gradientKernelSize, SCALE,
+                          DELTA, cv::BORDER_REPLICATE);
+            }
+    }
+    return grad;
 }
