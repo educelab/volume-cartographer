@@ -5,11 +5,8 @@
 
 #include <iostream>
 #include <opencv2/opencv.hpp>
-#include <pcl/io/pcd_io.h>
-#include <pcl/common/common.h>
 #include <pcl/point_types.h>
-#include <pcl/console/parse.h>
-
+#include "fittedcurve.h"
 #include "volumepkg.h"
 #include "common.h"
 
@@ -40,6 +37,9 @@ public:
 
 private:
     VolumePkg& pkg_;
+
+    cv::Vec3d estimateNormalAtIndex(const FittedCurve& curve,
+                                    const int32_t index);
 
     constexpr static double kDefaultDerivativeTolerance = 1e-2;
     constexpr static int32_t kDefaultNumIters = 10;

@@ -12,7 +12,7 @@ class Slice
 public:
     Slice(cv::Mat, cv::Vec3d, cv::Vec3d, cv::Vec3d);
 
-    cv::Vec3d sliceCoordToVoxelCoord(const cv::Point) const;
+    cv::Vec3d sliceToVoxelCoord(const cv::Point) const;
 
     const cv::Mat sliceData() const { return sliceData_; }
     cv::Mat draw() const;

@@ -39,6 +39,7 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
     const int32_t startIndex, const int32_t endIndex, const int32_t numIters,
     const int32_t keepNumMaxima, const int32_t step)
 {
+    volcart::Volume vol = pkg_.volume();
     std::cout << "init size: " << initPath.size() << std::endl;
     // Collection to hold all positions
     vec<vec<Voxel>> points;
@@ -47,13 +48,14 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
     // Resample incoming curve
     FittedCurve initCurve(initPath, startIndex);
     initCurve.resample(resamplePerc);
-    vec<Voxel> currentVs = curve.resampledPoints();
+    vec<Voxel> currentVs = initCurve.resampledPoints();
     std::cout << "resampled size: " << currentVs.size() << std::endl;
 
     // Iterate over z-slices
     for (int32_t zIndex = startIndex; zIndex <= endIndex; zIndex += step) {
         // 0. Resample current positions so they are evenly spaced
-        currentVs = FittedCurve(currentVs, zIndex).resampledPoints();
+        FittedCurve curve{currentVs, zIndex};
+        currentVs = curve.resampledPoints();
 
         // 1. Generate all candidate positions for all particles
         vec<std::deque<Voxel>> nextPositions;
@@ -79,8 +81,8 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
 
             // Handle case where there's no maxima - go straight down
             if (allMaxima.empty()) {
-                nextPositions.emplace_back(
-                    reslice.sliceToVoxelCoord({center.x, nextLayerIndex}));
+                nextPositions.push_back(std::deque<Voxel>{
+                    reslice.sliceToVoxelCoord({center.x, nextLayerIndex})});
                 continue;
             }
 
@@ -90,18 +92,18 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
                 maximaQueue.emplace_back(reslice.sliceToVoxelCoord(
                     {allMaxima[i].first, nextLayerIndex}));
             }
-            nextPositions.push_back(voxelMaxima);
+            nextPositions.push_back(maximaQueue);
         }
 
         // 2. Construct initial guess using top maxima for each next position
         vec<Voxel> nextVs;
-        nextVs.reserve(currentPos.size());
+        nextVs.reserve(currentVs.size());
         for (auto&& d : nextPositions) {
             nextVs.push_back(d.front());
             d.pop_front();
         }
         const vec<double> currentDeriv = FittedCurve(currentVs, zIndex).deriv();
-        const vec<double> nextDeriv = FittedCurve(nextVs, zIndex).deriv();
+        vec<double> nextDeriv = FittedCurve(nextVs, zIndex).deriv();
 
         // 3. Iterative greedy algorithm to find particle introducing largest
         // difference in derivatives and keep choosing different positions until
@@ -130,7 +132,7 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
 
             // Get next candidate voxel for that index and construct new vector
             vec<Voxel> combVs(currentVs.begin(), currentVs.end());
-            auto& candidates = nextPositions[maxDiffIndex];
+            auto& candidates = nextPositions[maxDiffIdx];
             if (candidates.size() > 0) {
                 combVs[maxDiffIdx] = candidates.front();
                 candidates.pop_front();
@@ -151,6 +153,7 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
         }
 
         // Add next positions to
+        currentVs = nextVs;
         points.push_back(nextVs);
     }
 
@@ -163,10 +166,53 @@ vec<std::pair<T1, T2>> zip(vec<T1> v1, vec<T2> v2)
     assert(v1.size() == v2.size() && "v1 and v2 must be the same size");
     vec<std::pair<T1, T2>> res;
     res.reserve(v1.size());
-    for (int32_t i = 0; i < v1.size(); ++i) {
+    for (int32_t i = 0; i < int32_t(v1.size()); ++i) {
         res.emplace_back(v1[i], v2[i]);
     }
     return res;
+}
+
+cv::Vec3d LocalResliceSegmentation::estimateNormalAtIndex(
+    const FittedCurve& curve, const int32_t index)
+{
+    const Voxel currentVoxel = curve(index);
+    const auto eigenPairs = pkg_.volume().eigenPairsAtIndex(
+        currentVoxel(0), currentVoxel(1), currentVoxel(2), 3);
+    const double exp0 = std::log10(eigenPairs[0].first);
+    const double exp1 = std::log10(eigenPairs[1].first);
+    if (std::abs(exp0 - exp1) > 2.0) {
+        return eigenPairs[0].second;
+    }
+    const auto tangent = curve.derivAt(index, 3);
+    return tangent.cross(cv::Vec3d{0, 0, 1});
+}
+
+pcl::PointCloud<pcl::PointXYZRGB> exportAsPCD(const vec<vec<Voxel>>& points)
+{
+    int32_t rows = points.size();
+    int32_t cols = points[0].size();
+    pcl::PointCloud<pcl::PointXYZRGB> cloud;
+    cloud.reserve(cols * rows);
+
+    // Set size. Since this is unordered (for now...) just set the width to be
+    // the number of points and the height (by convention) is set to 1
+    cloud.width = cols * rows;
+    cloud.height = 1;
+
+    for (int32_t i = 0; i < rows; ++i) {
+        for (int32_t j = 0; j < cols; ++j) {
+            Voxel v = points[i][j];
+            pcl::PointXYZRGB p;
+            p.x = v(0);
+            p.y = v(1);
+            p.z = v(2);
+            p.r = 0xFF;
+            p.g = 0xFF;
+            p.b = 0xFF;
+            cloud.push_back(p);
+        }
+    }
+    return cloud;
 }
 
 /*
