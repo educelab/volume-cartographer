@@ -19,15 +19,6 @@ using StructureTensor = cv::Matx33d;
 
 namespace volcart
 {
-class ZeroStructureTensorException : public std::exception
-{
-public:
-    virtual const char* what() const throw()
-    {
-        return "Structure tensor was zero";
-    }
-};
-
 class Volume
 {
 public:
@@ -125,7 +116,7 @@ public:
         // Safety checks
         assert(center.x >= 0 && center.x < sliceWidth_ && center.y >= 0 &&
                center.y < sliceHeight_ && center.z >= 0 &&
-               center.z < numSlices_ && "center must be inside volume\n");
+               center.z < numSlices_ && "center must be inside volume");
 
         Tensor3D<DType> v(2 * rx + 1, 2 * ry + 1, 2 * rz + 1);
         for (int32_t k = center.z - rz, c = 0; k <= center.z + rz; ++k, ++c) {

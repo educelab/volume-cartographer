@@ -7,13 +7,14 @@
 #include "Volume.h"
 
 using namespace volcart;
+namespace fs = boost::filesystem;
 
 const StructureTensor zeroStructureTensor =
     StructureTensor(0, 0, 0, 0, 0, 0, 0, 0, 0);
 
 StructureTensor tensorize(const cv::Vec3d vec);
 
-std::unique_ptr<double[]> makeGaussianField(const int32_t radius);
+std::unique_ptr<double[]> makeUniformGaussianField(const int32_t radius);
 
 // Trilinear Interpolation: Particles are not required
 // to be at integer positions so we estimate their
@@ -73,19 +74,6 @@ const cv::Mat& Volume::getSliceData(const int32_t index) const
 
 cv::Mat Volume::getSliceDataCopy(const int32_t index) const
 {
-    // Take advantage of caching layer
-    /*
-    try {
-        return cache_.get(index).clone();
-    } catch (const CacheMissException& ex) {
-        const auto slicePath = getSlicePath(index);
-        const cv::Mat sliceImg = cv::imread(slicePath.string(), -1);
-
-        // Put into cache so we can use it later
-        cache_.put(index, sliceImg);
-        return cache_.get(index).clone();
-    }
-    */
     return getSliceData(index).clone();
 }
 
@@ -104,7 +92,7 @@ bool Volume::setSliceData(const int32_t index, const cv::Mat& slice)
     return true;
 }
 
-boost::filesystem::path Volume::getNormalPathAtIndex(const int32_t index) const
+fs::path Volume::getNormalPathAtIndex(const int32_t index) const
 {
     std::stringstream ss;
     ss << std::setw(numSliceCharacters_) << std::setfill('0') << index
@@ -112,7 +100,7 @@ boost::filesystem::path Volume::getNormalPathAtIndex(const int32_t index) const
     return normalPath_ / ss.str();
 }
 
-boost::filesystem::path Volume::getSlicePath(const int32_t index) const
+fs::path Volume::getSlicePath(const int32_t index) const
 {
     std::stringstream ss;
     ss << std::setw(numSliceCharacters_) << std::setfill('0') << index
@@ -131,8 +119,8 @@ Slice Volume::reslice(const Voxel center, const cv::Vec3d xvec,
     cv::Mat m(height, width, CV_16UC1);
     for (int h = 0; h < height; ++h) {
         for (int w = 0; w < width; ++w) {
-            auto val = interpolateAt(origin + (h * ynorm) + (w * xnorm));
-            m.at<uint16_t>(h, w) = val;
+            m.at<uint16_t>(h, w) =
+                interpolateAt(origin + (h * ynorm) + (w * xnorm));
         }
     }
 
@@ -159,12 +147,12 @@ StructureTensor Volume::structureTensorAtIndex(
     auto gradientField = volumeGradient(v, gradientKernelSize);
 
     // Modulate by gaussian distribution (element-wise) and sum
-    auto gaussianField = makeGaussianField(voxelRadius);
+    auto gaussianField = makeUniformGaussianField(voxelRadius);
     StructureTensor sum(0, 0, 0, 0, 0, 0, 0, 0, 0);
     for (int32_t z = 0; z < v.dz; ++z) {
         for (int32_t y = 0; y < v.dy; ++y) {
-            for (int32_t x = 0; x < v.dz; ++x) {
-                sum += gaussianField[z * v.dy * v.dx + y * v.dz + x] *
+            for (int32_t x = 0; x < v.dx; ++x) {
+                sum += gaussianField[z * v.dy * v.dx + y * v.dx + x] *
                        tensorize(gradientField(x, y, z));
             }
         }
@@ -178,9 +166,6 @@ EigenPairs Volume::eigenPairsAtIndex(const int32_t x, const int32_t y,
                                      const int32_t gradientKernelSize) const
 {
     auto st = structureTensorAtIndex(x, y, z, voxelRadius, gradientKernelSize);
-    if (st == zeroStructureTensor) {
-        throw ZeroStructureTensorException();
-    }
     cv::Vec3d eigenValues;
     cv::Matx33d eigenVectors;
     cv::eigen(st, eigenValues, eigenVectors);
@@ -208,42 +193,14 @@ StructureTensor tensorize(const cv::Vec3d gradient)
     // clang-format on
 }
 
-std::unique_ptr<double[]> makeGaussianField(const int32_t radius)
-{
-    const int32_t sideLength = 2 * radius + 1;
-    const int32_t fieldSize = sideLength * sideLength * sideLength;
-    auto field = std::unique_ptr<double[]>(new double[fieldSize]);
-    double sum = 0;
-    const double sigma = 1.0;
-    const double sigma3 = sigma * sigma * sigma;
-    const double N = 1.0 / (sigma3 * std::pow(2 * M_PI, 3.0 / 2.0));
-
-    // Fill field
-    for (int32_t z = -radius; z <= radius; ++z) {
-        for (int32_t y = -radius; y <= radius; ++y) {
-            for (int32_t x = -radius; x <= radius; ++x) {
-                double val = std::exp(-(x * x + y * y + z * z));
-                // clang-format off
-                field[(z + radius) * sideLength * sideLength +
-                      (y + radius) * sideLength +
-                      (x + radius)] = N * val;
-                // clang-format on
-                sum += val;
-            }
-        }
-    }
-
-    // Normalize
-    for (int32_t i = 0; i < sideLength * sideLength * sideLength; ++i) {
-        field[i] /= sum;
-    }
-
-    return field;
-}
-
 Tensor3D<cv::Vec3d> Volume::volumeGradient(
     const Tensor3D<double>& v, const int32_t gradientKernelSize) const
 {
+    // Limitation of OpenCV: Kernel size must be 1, 3, 5, or 7
+    assert((gradientKernelSize == 1 || gradientKernelSize == 3 ||
+            gradientKernelSize == 5 || gradientKernelSize == 7) &&
+           "gradientKernelSize must be one of [1, 3, 5, 7]");
+
     // Calculate gradient field around specified voxel
     Tensor3D<cv::Vec3d> gradientField{v.dx, v.dy, v.dz};
 
@@ -279,31 +236,64 @@ Tensor3D<cv::Vec3d> Volume::volumeGradient(
 // gradient which is more accurate than 3x3 Sobel operator
 cv::Mat_<double> Volume::gradient(const cv::Mat_<double>& input,
                                   const GradientAxis axis,
-                                  const int32_t gradientKernelSize) const
+                                  const int32_t ksize) const
 {
     // OpenCV params for gradients
     // XXX Revisit this and see if changing these makes a big difference
-    constexpr int32_t SCALE = 1;
-    constexpr int32_t DELTA = 0;
+    constexpr double SCALE = 1;
+    constexpr double DELTA = 0;
 
     cv::Mat_<double> grad(input.rows, input.cols);
     switch (axis) {
         case GradientAxis::X:
-            if (gradientKernelSize == 3) {
+            if (ksize == 3) {
                 cv::Scharr(input, grad, CV_64F, 1, 0, SCALE, DELTA,
                            cv::BORDER_REPLICATE);
             } else {
-                cv::Sobel(input, grad, CV_64F, 1, 0, gradientKernelSize, SCALE,
-                          DELTA, cv::BORDER_REPLICATE);
+                cv::Sobel(input, grad, CV_64F, 1, 0, ksize, SCALE, DELTA,
+                          cv::BORDER_REPLICATE);
             }
         case GradientAxis::Y:
-            if (gradientKernelSize == 3) {
+            if (ksize == 3) {
                 cv::Scharr(input, grad, CV_64F, 0, 1, SCALE, DELTA,
                            cv::BORDER_REPLICATE);
             } else {
-                cv::Sobel(input, grad, CV_64F, 0, 1, gradientKernelSize, SCALE,
-                          DELTA, cv::BORDER_REPLICATE);
+                cv::Sobel(input, grad, CV_64F, 0, 1, ksize, SCALE, DELTA,
+                          cv::BORDER_REPLICATE);
             }
     }
     return grad;
+}
+
+std::unique_ptr<double[]> makeUniformGaussianField(const int32_t radius)
+{
+    const int32_t sideLength = 2 * radius + 1;
+    const int32_t fieldSize = sideLength * sideLength * sideLength;
+    auto field = std::unique_ptr<double[]>(new double[fieldSize]);
+    double sum = 0;
+    const double sigma = 1.0;
+    const double sigma3 = sigma * sigma * sigma;
+    const double N = 1.0 / (sigma3 * std::pow(2 * M_PI, 3.0 / 2.0));
+
+    // Fill field
+    for (int32_t z = -radius; z <= radius; ++z) {
+        for (int32_t y = -radius; y <= radius; ++y) {
+            for (int32_t x = -radius; x <= radius; ++x) {
+                double val = std::exp(-(x * x + y * y + z * z));
+                // clang-format off
+                field[(z + radius) * sideLength * sideLength +
+                      (y + radius) * sideLength +
+                      (x + radius)] = N * val;
+                // clang-format on
+                sum += val;
+            }
+        }
+    }
+
+    // Normalize
+    for (int32_t i = 0; i < sideLength * sideLength * sideLength; ++i) {
+        field[i] /= sum;
+    }
+
+    return field;
 }
