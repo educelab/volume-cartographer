@@ -3,7 +3,7 @@
 #include <sstream>
 #include <cmath>
 #include <boost/filesystem.hpp>
-#include <opencv2/opencv.hpp>
+#include <opencv2/core/core.hpp>
 #include <H5Cpp.h>
 #include "volumepkg.h"
 
@@ -171,14 +171,13 @@ void writeDataToH5File(const fs::path& filename,
                        const StructureTensor st, const EigenPairs& pairs)
 {
     constexpr int32_t volRank = 4;
-    const hsize_t volDims[] = {1, static_cast<hsize_t>(volume.dz()),
-                               static_cast<hsize_t>(volume.dy()),
-                               static_cast<hsize_t>(volume.dx())};
+    const hsize_t volDims[] = {1, hsize_t(volume.dz), hsize_t(volume.dy),
+                               hsize_t(volume.dx)};
     const int32_t side = 2 * Radius + 1;
     uint16_t v[1][side][side][side];
-    for (int32_t z = 0; z < volume.dz(); ++z) {
-        for (int32_t y = 0; y < volume.dy(); ++y) {
-            for (int32_t x = 0; x < volume.dx(); ++x) {
+    for (int32_t z = 0; z < volume.dz; ++z) {
+        for (int32_t y = 0; y < volume.dy; ++y) {
+            for (int32_t x = 0; x < volume.dx; ++x) {
                 v[0][z][y][x] = volume(x, y, z);
             }
         }
