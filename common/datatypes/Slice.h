@@ -5,15 +5,16 @@
 
 #include <opencv2/core/core.hpp>
 
-// A simple wrapper around a cv::Mat of data sliced from the volume at an arbitrary x and y vector and an origin point.
-class Slice {
+// A simple wrapper around a cv::Mat of data sliced from the volume at an
+// arbitrary x and y vector and an origin point.
+class Slice
+{
 public:
     Slice(cv::Mat, cv::Vec3d, cv::Vec3d, cv::Vec3d);
 
     cv::Vec3d sliceCoordToVoxelCoord(const cv::Point) const;
 
-    const cv::Mat sliceData() const { return sliceData_; }
-
+    const cv::Mat& sliceData() const { return sliceData_; }
     void draw() const;
 
 private:
@@ -23,4 +24,4 @@ private:
     cv::Vec3d yvec_;
 };
 
-#endif //VC_RESLICE_H
+#endif  // VC_RESLICE_H
