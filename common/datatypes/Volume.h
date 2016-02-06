@@ -47,7 +47,13 @@ public:
         numSliceCharacters_ = std::to_string(nslices).size();
     }
 
-    cv::Mat getSliceData(const int32_t index) const;
+    // Returning const ref doesn't actually forbid modifying cv::Mat data by the
+    // compiler, but it should serve as a warning to the programmer that you
+    // shouldn't monkey around with it.
+    const cv::Mat& getSliceData(const int32_t index) const;
+
+    // Instead, supply this function that will return a copy of the data
+    cv::Mat getSliceDataCopy(const int32_t index) const;
 
     bool setSliceData(const int32_t index, const cv::Mat& slice);
 

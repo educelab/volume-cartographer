@@ -1,6 +1,7 @@
 #include <sstream>
 #include <memory>
 #include <iomanip>
+#include <iostream>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include "Volume.h"
@@ -55,21 +56,37 @@ uint16_t Volume::interpolateAt(const Voxel point) const
     return uint16_t(cvRound(c));
 }
 
-cv::Mat Volume::getSliceData(const int32_t index) const
+const cv::Mat& Volume::getSliceData(const int32_t index) const
 {
     // Take advantage of caching layer
-    const auto possibleSlice = cache_.get(index);
-    if (possibleSlice != nullptr) {
-        return *possibleSlice;
+    try {
+        return cache_.get(index);
+    } catch (const CacheMissException& ex) {
+        const auto slicePath = getSlicePath(index);
+        const cv::Mat sliceImg = cv::imread(slicePath.string(), -1);
+
+        // Put into cache so we can use it later
+        cache_.put(index, sliceImg);
+        return cache_.get(index);
     }
+}
 
-    const auto slicePath = getSlicePath(index);
-    const cv::Mat sliceImg = cv::imread(slicePath.string(), -1);
+cv::Mat Volume::getSliceDataCopy(const int32_t index) const
+{
+    // Take advantage of caching layer
+    /*
+    try {
+        return cache_.get(index).clone();
+    } catch (const CacheMissException& ex) {
+        const auto slicePath = getSlicePath(index);
+        const cv::Mat sliceImg = cv::imread(slicePath.string(), -1);
 
-    // Put into cache so we can use it later
-    cache_.put(index, sliceImg);
-
-    return sliceImg;
+        // Put into cache so we can use it later
+        cache_.put(index, sliceImg);
+        return cache_.get(index).clone();
+    }
+    */
+    return getSliceData(index).clone();
 }
 
 // Data Assignment
