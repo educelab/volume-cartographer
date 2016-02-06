@@ -57,17 +57,17 @@ public:
     const DType& operator()(const int32_t x, const int32_t y,
                             const int32_t z) const
     {
-        assert(x < dx && x >= 0 && "index out of range\n");
-        assert(y < dy && y >= 0 && "index out of range\n");
-        assert(z < dz && z >= 0 && "index out of range\n");
+        assert(x < dx && x >= 0 && "index out of range");
+        assert(y < dy && y >= 0 && "index out of range");
+        assert(z < dz && z >= 0 && "index out of range");
         return tensor_[z](y, x);
     }
 
     DType& operator()(const int32_t x, const int32_t y, const int32_t z)
     {
-        assert(x < dx && x >= 0 && "index out of range\n");
-        assert(y < dy && y >= 0 && "index out of range\n");
-        assert(z < dz && z >= 0 && "index out of range\n");
+        assert(x < dx && x >= 0 && "index out of range");
+        assert(y < dy && y >= 0 && "index out of range");
+        assert(z < dz && z >= 0 && "index out of range");
         return tensor_[z](y, x);
     }
 
