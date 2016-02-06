@@ -5,7 +5,7 @@
 
 #include <vector>
 #include <memory>
-#include <opencv2/core/mat.hpp>
+#include <opencv2/core/core.hpp>
 
 namespace volcart
 {
@@ -22,9 +22,9 @@ public:
 
     Tensor3D<DType>() = default;
 
-    Tensor3D<DType>(const int32_t dx, const int32_t dy, const int32_t dz,
+    Tensor3D<DType>(const int32_t x, const int32_t y, const int32_t z,
                     const bool zero = true)
-        : dx(dx), dy(dy), dz(dz)
+        : dx(x), dy(y), dz(z)
     {
         tensor_.reserve(dz);
 
