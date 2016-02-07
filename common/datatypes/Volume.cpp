@@ -253,6 +253,7 @@ cv::Mat_<double> Volume::gradient(const cv::Mat_<double>& input,
                 cv::Sobel(input, grad, CV_64F, 1, 0, ksize, SCALE, DELTA,
                           cv::BORDER_REPLICATE);
             }
+            break;
         case GradientAxis::Y:
             if (ksize == 3) {
                 cv::Scharr(input, grad, CV_64F, 0, 1, SCALE, DELTA,
@@ -261,6 +262,7 @@ cv::Mat_<double> Volume::gradient(const cv::Mat_<double>& input,
                 cv::Sobel(input, grad, CV_64F, 0, 1, ksize, SCALE, DELTA,
                           cv::BORDER_REPLICATE);
             }
+            break;
     }
     return grad;
 }
