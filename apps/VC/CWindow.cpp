@@ -49,8 +49,8 @@ CWindow::CWindow( void ) :
     if ( fVolumeViewerWidget == NULL ) {
         QMessageBox::information( this, tr( "WARNING" ), tr( "Widget not found" ) );
     } else {
+        OpenSlice();
         UpdateView();
-        //Open(); // REVISIT - for debug only!
 
         update();
     }
@@ -172,6 +172,16 @@ void CWindow::CreateActions( void )
     connect( fSavePointCloudAct, SIGNAL( triggered() ), this, SLOT( SavePointCloud() ) );
 }
 
+void CWindow::setWidgetsEnabled(bool state)
+{
+    this->findChild< QGroupBox * >( "grpVolManager" )->setEnabled( state );
+    this->findChild< QGroupBox * >( "grpSeg" )->setEnabled( state );
+    this->findChild< QPushButton *>( "btnSegTool" )->setEnabled( state );
+    this->findChild< QPushButton *>( "btnPenTool" )->setEnabled( state );
+    this->findChild< QGroupBox * >( "groupBox_4" )->setEnabled( state );
+    fVolumeViewerWidget->setButtonsEnabled(state);
+}
+
 bool CWindow::InitializeVolumePkg( const std::string &nVpkgPath )
 {
     deleteNULL( fVpkg );
@@ -195,8 +205,11 @@ bool CWindow::InitializeVolumePkg( const std::string &nVpkgPath )
 void CWindow::UpdateView( void )
 {
     if ( fVpkg == NULL ) {
+        setWidgetsEnabled(false);// Disable Widgets for User
         return;
     }
+
+    setWidgetsEnabled(true);// Enable Widgets for User
 
     // show volume package name
     this->findChild< QLabel * >( "lblVpkgName" )->setText( QString( fVpkg->getPkgName().c_str() ) );
@@ -456,6 +469,7 @@ void CWindow::OpenVolume( void )
     if ( extension.compare(".volpkg") != 0 ) {
         QMessageBox::warning(this, tr("ERROR"), "The selected file is not of the correct type: \".volpkg\"");
         std::cerr << "VC::Error: Selected file: " << aVpkgPath.toStdString() << " is of the wrong type." << std::endl;
+        fVpkg = NULL; // Is need for User Experience, clears screen.
         return;
     }
 
