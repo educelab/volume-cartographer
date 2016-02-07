@@ -1,10 +1,9 @@
 #include "field.h"
 // Constructor
-Field::Field(VolumePkg* v)
+Field::Field(VolumePkg& v) : _volpkg(v)
 {
-    _volpkg = v;
     // Set _blocksize to be the largest dimension of the slice data
-    _blocksize = std::max(_volpkg->getSliceWidth(), _volpkg->getSliceHeight());
+    _blocksize = std::max(_volpkg.getSliceWidth(), _volpkg.getSliceHeight());
     // Allocate space in _field to store each slice
     _field = new cv::Vec3f**[_volpkg->getNumberOfSlices()];
     // Set to NULL so we can tell what's loaded

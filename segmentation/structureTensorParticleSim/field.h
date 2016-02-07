@@ -17,13 +17,13 @@
 class Field
 {
 public:
-    Field(VolumePkg*);
+    Field(VolumePkg& volpkg);
     ~Field();
     void clean();
-    cv::Vec3f interpolate_at(cv::Vec3f);
+    cv::Vec3f interpolate_at(const cv::Vec3f point) const;
 
 private:
-    VolumePkg* _volpkg;
+    VolumePkg& _volpkg;
     // This stores the vector field of surface normals.
     // Field coordinates are parallel to volume coordinates
     // field[z][x][y] == vol[x][y][z]
@@ -31,8 +31,8 @@ private:
     // Largest dimension of the CT slices
     int _blocksize;
     // Slices not in this set will be removed by clean()
-    std::set<int> _indexes_used_since_last_clean;
-    void loadSlice(int);  // To-Do: Is this name clear enough?
+    std::set<int32_t> _indexes_used_since_last_clean;
+    void loadSlice(const int32_t index);  // To-Do: Is this name clear enough?
 };
 
 #endif

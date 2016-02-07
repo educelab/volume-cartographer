@@ -1,32 +1,35 @@
 // Chain object maintains a vector of points and their histories.
 // step() updates the postitions of particles based on their normal
 // vectors. Neighboring particles are kept in line with a "spring".
+#pragma once
 
 #ifndef _CHAIN_
 #define _CHAIN_
 
 #define DEFAULT_OFFSET -1
 
-#include <opencv2/opencv.hpp>
-#include <pcl/io/pcd_io.h>
-#include <pcl/common/common.h>
+#include <list>
+#include <vector>
 #include <pcl/point_types.h>
-
-#include "field.h"
+#include <opencv2/core/core.hpp>
+#include "volumepkg.h"
 #include "particle.h"
 
 class Chain
 {
 public:
-    Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr, VolumePkg*, double, int, int,
-          double = -0.5);
-    void step(Field&);
-    bool isMoving();
-    cv::Vec3f springForce(int);
-    cv::Vec3f gravity(int, Field&);
-    pcl::PointCloud<pcl::PointXYZRGB> orderedPCD();
+    Chain(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath,
+          VolumePkg& volPkg, const double gravity_scale,
+          const int32_t threshold, const int32_t endOffset,
+          const double spring_constant_k = -0.5);
+    void step(void);
+    bool isMoving() const;
+    cv::Vec3f springForce(const int32_t index) const;
+    cv::Vec3f gravity(const int32_t index) const;
+    pcl::PointCloud<pcl::PointXYZRGB> orderedPCD() const;
 
 private:
+    VolumePkg& _volpkg;
     // History of the chain at each iteration
     std::list<std::vector<Particle>> _history;
     // Parameters for calculating the spring effects
@@ -36,12 +39,14 @@ private:
     double _gravity_scale;  // To-Do: Rename.
 
     // -- Chain Size Information -- //
-    int _chain_length;     // Number of particles in the chain & width of output
-                           // PCD
-    int _real_iterations;  // Height of the output PCD To-Do: Do we need this?
-    int _start_index;      // Starting slice index
-    int _target_index;     // Target slice index
-    int _threshold;        // To-Do: What is this for now? We may not need this.
+    int32_t
+        _chain_length;  // Number of particles in the chain & width of output
+                        // PCD
+    int32_t
+        _real_iterations;   // Height of the output PCD To-Do: Do we need this?
+    int32_t _start_index;   // Starting slice index
+    int32_t _target_index;  // Target slice index
+    int32_t _threshold;  // To-Do: What is this for now? We may not need this.
 };
 
 #endif
