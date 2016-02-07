@@ -86,4 +86,14 @@ public:
 };
 }
 
+template <typename DType>
+std::ostream& operator<<(std::ostream& s,
+                         const volcart::Tensor3D<DType>& tensor)
+{
+    for (int32_t z = 0; z < tensor.dz(); ++z) {
+        s << tensor.xySlice(z) << std::endl;
+    }
+    return s;
+}
+
 #endif
