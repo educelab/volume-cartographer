@@ -18,8 +18,9 @@ pcl::PointCloud<pcl::PointXYZRGBNormal> cloudFromSlice(VolumePkg& v,
 int main(int argc, char** argv)
 {
     if (argc < 3) {
-        std::cerr << "Usage:\n";
-        std::cerr << "    " << argv[0] << " volpkg z-idx [-verbose]\n";
+        std::cerr << "Usage:" << std::endl;
+        std::cerr << "    " << argv[0] << " volpkg z-idx [-verbose]"
+                  << std::endl;
         std::exit(1);
     }
 
@@ -36,7 +37,7 @@ int main(int argc, char** argv)
     VolumePkg v(path);
     const volcart::Volume vol = v.volume();
     assert(arg_z >= 2 && arg_z < v.getNumberOfSlices() - 2 &&
-           "z index must not be first or last two points\n");
+           "z index must not be first or last two points");
 
     // Comparison of two eigenvectors for closeness
     auto eigenvectorsAreClose = [](const EigenVector v1, const EigenVector v2,
@@ -54,37 +55,38 @@ int main(int argc, char** argv)
     int64_t zeroCount = 0;
     for (int32_t y = 0; y < v.getSliceHeight(); ++y) {
         for (int32_t x = 0; x < v.getSliceWidth(); ++x) {
+            totalCount++;
+            if (v.volume().structureTensorAtIndex(x, y, arg_z) ==
+                volcart::ZeroStructureTensor) {
+                zeroCount++;
+                continue;
+            }
             // Get old eigenvalue
             auto oldEigvec =
                 oldAlgoNormalAtIndex(cloud, v.getSliceWidth(), x, y);
 
             // Get new eigenvalue
-            try {
-                auto pairs = vol.eigenPairsAtIndex(x, y, arg_z);
-                auto newEigvec = pairs[0].second;
-                if (eigenvectorsAreClose(oldEigvec, newEigvec, eps)) {
-                    sameCount++;
-                } else {
-                    if (verbose) {
-                        std::cout << "(" << x << ", " << y << ") " << oldEigvec
-                                  << ", " << newEigvec << "  "
-                                  << cv::norm(oldEigvec - newEigvec) << "\n";
-                    }
+            auto pairs = vol.eigenPairsAtIndex(x, y, arg_z);
+            auto newEigvec = pairs[0].second;
+            if (eigenvectorsAreClose(oldEigvec, newEigvec, eps)) {
+                sameCount++;
+            } else {
+                if (verbose) {
+                    std::cout << "(" << x << ", " << y << ") " << oldEigvec
+                              << ", " << newEigvec << "  "
+                              << cv::norm(oldEigvec - newEigvec) << std::endl;
                 }
-            } catch (const volcart::ZeroStructureTensorException& ex) {
-                zeroCount++;
             }
-            totalCount++;
         }
     }
 
     // Report
     int64_t validCount = totalCount - zeroCount;
-    std::printf("zeroCount: %ld (%f%%)\n", zeroCount,
+    std::printf("zeroCount: %lld (%f%%)\n", zeroCount,
                 double(zeroCount) / totalCount);
-    std::printf("sameCount: %ld (%f%%)\n", sameCount,
+    std::printf("sameCount: %lld (%f%%)\n", sameCount,
                 double(sameCount) / validCount);
-    std::printf("diffCount: %ld (%f%%)\n", validCount - sameCount,
+    std::printf("diffCount: %lld (%f%%)\n", validCount - sameCount,
                 double(validCount - sameCount) / validCount);
 }
 
@@ -94,7 +96,7 @@ pcl::PointCloud<pcl::PointXYZRGBNormal> cloudFromSlice(VolumePkg& v,
     auto pathString = v.volume().getNormalPathAtIndex(z).string();
     auto cloud = pcl::PointCloud<pcl::PointXYZRGBNormal>();
     if (pcl::io::loadPCDFile(pathString, cloud) == -1) {
-        std::cerr << "couldn't load " << pathString << "\n";
+        std::cerr << "couldn't load " << pathString << std::endl;
         std::exit(1);
     }
     return cloud;
