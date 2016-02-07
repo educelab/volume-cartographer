@@ -179,7 +179,7 @@ void CWindow::setWidgetsEnabled(bool state)
     this->findChild< QPushButton *>( "btnSegTool" )->setEnabled( state );
     this->findChild< QPushButton *>( "btnPenTool" )->setEnabled( state );
     this->findChild< QGroupBox * >( "groupBox_4" )->setEnabled( state );
-    fVolumeViewerWidget->setButtonsActive(state);
+    fVolumeViewerWidget->setButtonsEnabled(state);
 }
 
 bool CWindow::InitializeVolumePkg( const std::string &nVpkgPath )
