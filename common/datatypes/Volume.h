@@ -55,6 +55,8 @@ public:
 
     boost::filesystem::path getNormalPathAtIndex(const int32_t index) const;
 
+    uint16_t interpolateAt(const Voxel point) const;
+
     uint16_t getInterpolatedIntensity(const Voxel nonGridPoint) const
     {
         return interpolateAt(nonGridPoint);
@@ -156,8 +158,6 @@ private:
     int32_t sliceHeight_;
     int32_t numSliceCharacters_;
     mutable volcart::LRUCache<int32_t, cv::Mat> cache_;
-
-    uint16_t interpolateAt(const Voxel point) const;
 
     Tensor3D<cv::Vec3d> volumeGradient(const Tensor3D<double>& v,
                                        const int32_t gradientKernelSize) const;
