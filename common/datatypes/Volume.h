@@ -19,6 +19,9 @@ using StructureTensor = cv::Matx33d;
 
 namespace volcart
 {
+const static StructureTensor ZeroStructureTensor =
+    StructureTensor(0, 0, 0, 0, 0, 0, 0, 0, 0);
+
 class Volume
 {
 public:

@@ -29,13 +29,17 @@ int main(int argc, char** argv)
 
     StructureTensor st = v.structureTensorAtIndex(x, y, z, radius);
     std::cout << "structure tensor:" << std::endl << st << std::endl;
-    auto pairs = v.eigenPairsAtIndex(x, y, z, radius);
-    std::cout << "eigenvalues/eigenvectors" << std::endl;
-    std::for_each(pairs.begin(), pairs.end(),
-                  [](const std::pair<EigenValue, EigenVector>& p) {
-                      std::cout << p.first << ": " << p.second << std::endl;
-                  });
-    draw(v, z, pairs[0].second, {x, y});
+    if (st == volcart::ZeroStructureTensor) {
+        std::cout << "structure tensor was zero" << std::endl;
+    } else {
+        auto pairs = v.eigenPairsAtIndex(x, y, z, radius);
+        std::cout << "eigenvalues/eigenvectors" << std::endl;
+        std::for_each(pairs.begin(), pairs.end(),
+                      [](const std::pair<EigenValue, EigenVector>& p) {
+                          std::cout << p.first << ": " << p.second << std::endl;
+                      });
+        draw(v, z, pairs[0].second, {x, y});
+    }
 }
 
 void draw(const volcart::Volume& v, const int32_t zSlice, const EigenVector vec,
