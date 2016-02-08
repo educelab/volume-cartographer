@@ -5,7 +5,7 @@
 
 #include <string>
 #include <array>
-#include <opencv2/core/mat.hpp>
+#include <opencv2/core/core.hpp>
 #include <boost/filesystem.hpp>
 #include "LRUCache.h"
 #include "Tensor3D.h"
@@ -57,18 +57,24 @@ public:
 
     uint16_t interpolateAt(const Voxel point) const;
 
-    uint16_t getInterpolatedIntensity(const Voxel nonGridPoint) const
+    uint16_t interpolatedIntensityAt(const Voxel nonGridPoint) const
     {
         return interpolateAt(nonGridPoint);
     }
 
-    uint16_t getIntensityAtCoord(const cv::Vec3d v) const
+    uint16_t interpolatedIntensityAt(const double x, const double y,
+                                     const double z) const
     {
-        return getIntensityAtCoord(int32_t(v(0)), int32_t(v(1)), int32_t(v(2)));
+        return interpolateAt({x, y, z});
     }
 
-    uint16_t getIntensityAtCoord(const int32_t x, const int32_t y,
-                                 const int32_t z) const
+    uint16_t intensityAt(const cv::Vec3d v) const
+    {
+        return intensityAt(int32_t(v(0)), int32_t(v(1)), int32_t(v(2)));
+    }
+
+    uint16_t intensityAt(const int32_t x, const int32_t y,
+                         const int32_t z) const
     {
         return getSliceData(z).at<uint16_t>(y, x);
     }
@@ -88,29 +94,55 @@ public:
                   const cv::Vec3d yvec, const int32_t width = 64,
                   const int32_t height = 64) const;
 
-    StructureTensor structureTensorAtIndex(
+    StructureTensor structureTensorAt(
         const int32_t x, const int32_t y, const int32_t z,
         const int32_t voxelRadius = 1,
         const int32_t gradientKernelSize = 3) const;
 
-    StructureTensor structureTensorAtIndex(
-        const cv::Vec3i index, const int32_t voxelRadius = 1,
+    StructureTensor structureTensorAt(
+        const cv::Point3i index, const int32_t voxelRadius = 1,
         const int32_t gradientKernelSize = 3) const
     {
-        return structureTensorAtIndex(index(0), index(1), index(2), voxelRadius,
-                                      gradientKernelSize);
+        return structureTensorAt(index.x, index.y, index.z, voxelRadius,
+                                 gradientKernelSize);
     }
 
-    EigenPairs eigenPairsAtIndex(const int32_t x, const int32_t y,
-                                 const int32_t z, const int32_t voxelRadius = 1,
-                                 const int32_t gradientKernelSize = 3) const;
+    StructureTensor interpolatedStructureTensorAt(
+        const double x, const double y, const double z,
+        const int32_t voxelRadius = 1,
+        const int32_t gradientKernelSize = 3) const;
 
-    EigenPairs eigenPairsAtIndex(const cv::Vec3i index,
-                                 const int32_t voxelRadius = 1,
-                                 const int32_t gradientKernelSize = 3) const
+    StructureTensor interpolatedStructureTensorAt(
+        const cv::Point3d index, const int32_t voxelRadius = 1,
+        const int32_t gradientKernelSize = 3) const
     {
-        return eigenPairsAtIndex(index(0), index(1), index(2), voxelRadius,
-                                 gradientKernelSize);
+        return interpolatedStructureTensorAt(index.x, index.y, index.z,
+                                             voxelRadius, gradientKernelSize);
+    }
+
+    EigenPairs eigenPairsAt(const int32_t x, const int32_t y, const int32_t z,
+                            const int32_t voxelRadius = 1,
+                            const int32_t gradientKernelSize = 3) const;
+
+    EigenPairs eigenPairsAt(const cv::Point3i index,
+                            const int32_t voxelRadius = 1,
+                            const int32_t gradientKernelSize = 3) const
+    {
+        return eigenPairsAt(index.x, index.y, index.z, voxelRadius,
+                            gradientKernelSize);
+    }
+
+    EigenPairs interpolatedEigenPairsAt(
+        const double x, const double y, const double z,
+        const int32_t voxelRadius = 1,
+        const int32_t gradientKernelSize = 3) const;
+
+    EigenPairs interpolatedEigenPairsAt(
+        const cv::Point3d index, const int32_t voxelRadius = 1,
+        const int32_t gradientKernelSize = 3) const
+    {
+        return eigenPairsAt(index.x, index.y, index.z, voxelRadius,
+                            gradientKernelSize);
     }
 
     template <typename DType>
@@ -134,7 +166,7 @@ public:
                 for (int32_t i = center.x - rx, a = 0; i <= center.x + rx;
                      ++i, ++a) {
                     if (i >= 0 && j >= 0) {
-                        v(a, b, c) = DType(getIntensityAtCoord(i, j, k));
+                        v(a, b, c) = DType(intensityAt(i, j, k));
                     }
                 }
             }
@@ -148,6 +180,46 @@ public:
                                            const int32_t radius) const
     {
         return getVoxelNeighbors<DType>(center, radius, radius, radius);
+    }
+
+    template <typename DType>
+    Tensor3D<DType> getVoxelNeighborsInterpolated(const cv::Point3d center,
+                                                  const int32_t rx,
+                                                  const int32_t ry,
+                                                  const int32_t rz) const
+    {
+        // Safety checks
+        assert(center.x >= 0 && center.x < sliceWidth_ && center.y >= 0 &&
+               center.y < sliceHeight_ && center.z >= 0 &&
+               center.z < numSlices_ && "center must be inside volume");
+
+        Tensor3D<DType> v(2 * rx + 1, 2 * ry + 1, 2 * rz + 1);
+        double i, j, k;
+        int32_t a, b, c;
+        for (k = center.z - rz, c = 0; k <= center.z + rz; k += 1.0f, ++c) {
+            // If k index is out of bounds, then keep it at zeros and go on
+            if (k < 0) {
+                continue;
+            }
+            for (j = center.y - ry, b = 0; j <= center.y + ry; j += 1.0f, ++b) {
+                for (i = center.x - rx, a = 0; i <= center.x + rx;
+                     i += 1.0f, ++a) {
+                    if (i >= 0 && j >= 0) {
+                        v(a, b, c) = DType(interpolatedIntensityAt(i, j, k));
+                    }
+                }
+            }
+        }
+
+        return v;
+    }
+
+    template <typename DType>
+    Tensor3D<DType> getVoxelNeighborsCubicInterpolated(
+        const cv::Point3d center, const int32_t radius) const
+    {
+        return getVoxelNeighborsInterpolated<DType>(center, radius, radius,
+                                                    radius);
     }
 
 private:

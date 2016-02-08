@@ -9,9 +9,6 @@
 using namespace volcart;
 namespace fs = boost::filesystem;
 
-const StructureTensor zeroStructureTensor =
-    StructureTensor(0, 0, 0, 0, 0, 0, 0, 0, 0);
-
 StructureTensor tensorize(const cv::Vec3d vec);
 
 std::unique_ptr<double[]> makeUniformGaussianField(const int32_t radius);
@@ -24,36 +21,36 @@ std::unique_ptr<double[]> makeUniformGaussianField(const int32_t radius);
 uint16_t Volume::interpolateAt(const Voxel point) const
 {
     double int_part;
-    double dx = modf(point(0), &int_part);
-    int x0 = int(int_part);
-    int x1 = x0 + 1;
-    double dy = modf(point(1), &int_part);
-    int y0 = int(int_part);
-    int y1 = y0 + 1;
-    double dz = modf(point(2), &int_part);
-    int z0 = int(int_part);
-    int z1 = z0 + 1;
+    const double dx = std::modf(point(0), &int_part);
+    const int32_t x0 = int32_t(int_part);
+    const int32_t x1 = x0 + 1;
+    const double dy = std::modf(point(1), &int_part);
+    const int32_t y0 = int32_t(int_part);
+    const int32_t y1 = y0 + 1;
+    const double dz = std::modf(point(2), &int_part);
+    const int32_t z0 = int32_t(int_part);
+    const int32_t z1 = z0 + 1;
 
     // insert safety net
     if (x0 < 0 || y0 < 0 || z0 < 0 || x1 >= sliceWidth_ || y1 >= sliceHeight_ ||
-        z1 >= ssize_t(numSlices_)) {
+        z1 >= numSlices_) {
         return 0;
     }
 
     // from: https://en.wikipedia.org/wiki/Trilinear_interpolation
-    auto c00 = getIntensityAtCoord(x0, y0, z0) * (1 - dx) +
-               getIntensityAtCoord(x1, y0, z0) * dx;
-    auto c10 = getIntensityAtCoord(x0, y1, z0) * (1 - dx) +
-               getIntensityAtCoord(x1, y0, z0) * dx;
-    auto c01 = getIntensityAtCoord(x0, y0, z1) * (1 - dx) +
-               getIntensityAtCoord(x1, y0, z1) * dx;
-    auto c11 = getIntensityAtCoord(x0, y1, z1) * (1 - dx) +
-               getIntensityAtCoord(x1, y1, z1) * dx;
+    const auto c00 =
+        intensityAt(x0, y0, z0) * (1 - dx) + intensityAt(x1, y0, z0) * dx;
+    const auto c10 =
+        intensityAt(x0, y1, z0) * (1 - dx) + intensityAt(x1, y0, z0) * dx;
+    const auto c01 =
+        intensityAt(x0, y0, z1) * (1 - dx) + intensityAt(x1, y0, z1) * dx;
+    const auto c11 =
+        intensityAt(x0, y1, z1) * (1 - dx) + intensityAt(x1, y1, z1) * dx;
 
-    auto c0 = c00 * (1 - dy) + c10 * dy;
-    auto c1 = c01 * (1 - dy) + c11 * dy;
+    const auto c0 = c00 * (1 - dy) + c10 * dy;
+    const auto c1 = c01 * (1 - dy) + c11 * dy;
 
-    auto c = c0 * (1 - dz) + c1 * dz;
+    const auto c = c0 * (1 - dz) + c1 * dz;
     return uint16_t(cvRound(c));
 }
 
@@ -117,8 +114,8 @@ Slice Volume::reslice(const Voxel center, const cv::Vec3d xvec,
     const auto origin = center - ((width / 2) * xnorm + (height / 2) * ynorm);
 
     cv::Mat m(height, width, CV_16UC1);
-    for (int h = 0; h < height; ++h) {
-        for (int w = 0; w < width; ++w) {
+    for (int32_t h = 0; h < height; ++h) {
+        for (int32_t w = 0; w < width; ++w) {
             m.at<uint16_t>(h, w) =
                 interpolateAt(origin + (h * ynorm) + (w * xnorm));
         }
@@ -127,7 +124,7 @@ Slice Volume::reslice(const Voxel center, const cv::Vec3d xvec,
     return Slice(m, origin, xnorm, ynorm);
 }
 
-StructureTensor Volume::structureTensorAtIndex(
+StructureTensor Volume::structureTensorAt(
     const int32_t vx, const int32_t vy, const int32_t vz,
     const int32_t voxelRadius, const int32_t gradientKernelSize) const
 {
@@ -161,11 +158,67 @@ StructureTensor Volume::structureTensorAtIndex(
     return sum;
 }
 
-EigenPairs Volume::eigenPairsAtIndex(const int32_t x, const int32_t y,
-                                     const int32_t z, const int32_t voxelRadius,
-                                     const int32_t gradientKernelSize) const
+StructureTensor Volume::interpolatedStructureTensorAt(
+    const double vx, const double vy, const double vz,
+    const int32_t voxelRadius, const int32_t gradientKernelSize) const
 {
-    auto st = structureTensorAtIndex(x, y, z, voxelRadius, gradientKernelSize);
+    // Safety checks
+    assert(vx >= 0 && vx < sliceWidth_ &&
+           "x must be in range [0, slice_width]");
+    assert(vy >= 0 && vy < sliceHeight_ &&
+           "y must be in range [0, slice_height]");
+    assert(vz >= 0 && vz < numSlices_ && "z must be in range [0, #slices]");
+    assert(gradientKernelSize >= 3 &&
+           "gradient kernel size must be at least 3");
+
+    // Get voxels in radius voxelRadius around voxel (x, y, z)
+    auto v =
+        getVoxelNeighborsCubicInterpolated<double>({vx, vy, vz}, voxelRadius);
+
+    // Get gradient of volume
+    auto gradientField = volumeGradient(v, gradientKernelSize);
+
+    // Modulate by gaussian distribution (element-wise) and sum
+    auto gaussianField = makeUniformGaussianField(voxelRadius);
+    StructureTensor sum(0, 0, 0, 0, 0, 0, 0, 0, 0);
+    for (int32_t z = 0; z < v.dz; ++z) {
+        for (int32_t y = 0; y < v.dy; ++y) {
+            for (int32_t x = 0; x < v.dx; ++x) {
+                sum += gaussianField[z * v.dy * v.dx + y * v.dx + x] *
+                       tensorize(gradientField(x, y, z));
+            }
+        }
+    }
+
+    return sum;
+}
+
+EigenPairs Volume::eigenPairsAt(const int32_t x, const int32_t y,
+                                const int32_t z, const int32_t voxelRadius,
+                                const int32_t gradientKernelSize) const
+{
+    auto st = structureTensorAt(x, y, z, voxelRadius, gradientKernelSize);
+    cv::Vec3d eigenValues;
+    cv::Matx33d eigenVectors;
+    cv::eigen(st, eigenValues, eigenVectors);
+    auto row0 = eigenVectors.row(0);
+    auto row1 = eigenVectors.row(1);
+    auto row2 = eigenVectors.row(2);
+    EigenVector e0{row0(0), row0(1), row0(2)};
+    EigenVector e1{row1(0), row1(1), row1(2)};
+    EigenVector e2{row2(0), row2(1), row2(2)};
+    return {
+        std::make_pair(eigenValues(0), e0), std::make_pair(eigenValues(1), e1),
+        std::make_pair(eigenValues(2), e2),
+    };
+}
+
+EigenPairs Volume::interpolatedEigenPairsAt(
+    const double x, const double y, const double z, const int32_t voxelRadius,
+    const int32_t gradientKernelSize) const
+{
+    auto st =
+        interpolatedStructureTensorAt(x, y, z, voxelRadius, gradientKernelSize);
     cv::Vec3d eigenValues;
     cv::Matx33d eigenVectors;
     cv::eigen(st, eigenValues, eigenVectors);
