@@ -1,4 +1,4 @@
-#include "structureTensorParticleSim.h"
+#include "structuretensorparticlesim.h"
 #include "chain.h"
 
 // structureTensorParticleSim uses "particles" to trace out the surfaces in a
