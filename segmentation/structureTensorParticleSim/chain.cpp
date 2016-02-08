@@ -76,14 +76,13 @@ void Chain::step(void)
 {
     // Pull the most recent iteration from _history
     std::vector<Particle> update_chain = _history.front();
-    std::vector<cv::Vec3d> force_vector{_chain_length, {0, 0, 0}};
+    std::vector<cv::Vec3d> force_vector(_chain_length, {0, 0, 0});
 
     // calculate forces acting on particles
     for (int32_t i = 0; i < _chain_length; ++i) {
-        if (update_chain[i].isStopped()) {
+        if (!update_chain[i].isMoving()) {
             continue;
         }
-
         force_vector[i] += springForce(i);
         force_vector[i] += gravity(i);
     }
@@ -105,8 +104,8 @@ bool Chain::isMoving() const
 {
     bool result = true;
     auto c = _history.front();
-    return std::all_of(c.begin(), c.end(),
-                       [](const Particle p) { return p.isStopped(); });
+    return std::any_of(c.begin(), c.end(),
+                       [](const Particle p) { return p.isMoving(); });
 }
 
 // Returns vector offset that tries to maintain distance between particles as
