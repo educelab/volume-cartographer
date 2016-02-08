@@ -27,12 +27,12 @@ int main(int argc, char** argv)
     std::cout << "{" << x << ", " << y << ", " << z << "} @ " << radius
               << std::endl;
 
-    StructureTensor st = v.structureTensorAtIndex(x, y, z, radius);
+    StructureTensor st = v.structureTensorAt(x, y, z, radius);
     std::cout << "structure tensor:" << std::endl << st << std::endl;
     if (st == volcart::ZeroStructureTensor) {
         std::cout << "structure tensor was zero" << std::endl;
     } else {
-        auto pairs = v.eigenPairsAtIndex(x, y, z, radius);
+        auto pairs = v.eigenPairsAt(x, y, z, radius);
         std::cout << "eigenvalues/eigenvectors" << std::endl;
         std::for_each(pairs.begin(), pairs.end(),
                       [](const std::pair<EigenValue, EigenVector>& p) {

@@ -56,7 +56,7 @@ int main(int argc, char** argv)
     for (int32_t y = 0; y < v.getSliceHeight(); ++y) {
         for (int32_t x = 0; x < v.getSliceWidth(); ++x) {
             totalCount++;
-            if (v.volume().structureTensorAtIndex(x, y, arg_z) ==
+            if (v.volume().structureTensorAt(x, y, arg_z) ==
                 volcart::ZeroStructureTensor) {
                 zeroCount++;
                 continue;
@@ -66,7 +66,7 @@ int main(int argc, char** argv)
                 oldAlgoNormalAtIndex(cloud, v.getSliceWidth(), x, y);
 
             // Get new eigenvalue
-            auto pairs = vol.eigenPairsAtIndex(x, y, arg_z);
+            auto pairs = vol.eigenPairsAt(x, y, arg_z);
             auto newEigvec = pairs[0].second;
             if (eigenvectorsAreClose(oldEigvec, newEigvec, eps)) {
                 sameCount++;

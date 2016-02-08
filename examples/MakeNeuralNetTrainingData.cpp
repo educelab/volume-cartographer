@@ -121,12 +121,12 @@ void worker(VolumePkg& volpkg, const int32_t nsamples,
 
         // Generate structure tensor and eigenpairs once per point
         const auto st =
-            volpkg.volume().structureTensorAtIndex(c.x, c.y, c.z, stRadius);
+            volpkg.volume().structureTensorAt(c.x, c.y, c.z, stRadius);
         if (st == zero) {
             continue;
         }
         const auto pairs =
-            volpkg.volume().eigenPairsAtIndex(c.x, c.y, c.z, stRadius);
+            volpkg.volume().eigenPairsAt(c.x, c.y, c.z, stRadius);
 
         // Start constructing filename
         std::stringstream ss;
