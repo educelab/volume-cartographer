@@ -13,9 +13,9 @@ namespace volcart
 namespace segmentation
 {
 pcl::PointCloud<pcl::PointXYZRGB> structureTensorParticleSim(
-    const pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg volpkg,
-    const double gravity_scale = 0.5, const int threshold = 1,
-    const int endOffset = -1);
+    const pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg& volpkg,
+    const double gravity_scale = 0.5, const int32_t threshold = 1,
+    const int32_t endOffset = -1);
 }  // namespace segmentation
 }  // namespace volcart
 

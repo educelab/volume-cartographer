@@ -25,8 +25,9 @@ namespace volcart
 namespace segmentation
 {
 pcl::PointCloud<pcl::PointXYZRGB> structureTensorParticleSim(
-    const pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg volpkg,
-    const double gravity_scale, const int threshold, const int endOffset)
+    const pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg& volpkg,
+    const double gravity_scale, const int32_t threshold,
+    const int32_t endOffset)
 {
     // Organize the points into a connected chain
     Chain particle_chain(segPath, volpkg, gravity_scale, threshold, endOffset);
@@ -34,7 +35,7 @@ pcl::PointCloud<pcl::PointXYZRGB> structureTensorParticleSim(
     // The only stop condition is that each particle has reached the target
     // index.
     // Otherwise the loop will stop after an arbitrary number of iterations.
-    for (int iteration = 0; particle_chain.isMoving() && iteration < 25000;
+    for (int32_t iteration = 0; particle_chain.isMoving() && iteration < 25000;
          ++iteration) {
         // Make the chain take one iteration forward
         particle_chain.step();

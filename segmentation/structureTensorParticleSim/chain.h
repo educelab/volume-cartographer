@@ -24,8 +24,8 @@ public:
           const double spring_constant_k = -0.5);
     void step(void);
     bool isMoving() const;
-    cv::Vec3f springForce(const int32_t index) const;
-    cv::Vec3f gravity(const int32_t index) const;
+    cv::Vec3d springForce(const int32_t index) const;
+    cv::Vec3d gravity(const int32_t index) const;
     pcl::PointCloud<pcl::PointXYZRGB> orderedPCD() const;
 
 private:
@@ -39,11 +39,9 @@ private:
     double _gravity_scale;  // To-Do: Rename.
 
     // -- Chain Size Information -- //
-    int32_t
-        _chain_length;  // Number of particles in the chain & width of output
-                        // PCD
-    int32_t
-        _real_iterations;   // Height of the output PCD To-Do: Do we need this?
+    // Number of particles in the chain & width of output PCD
+    int32_t _chain_length;  // Height of the output PCD To-Do: Do we need this?
+    int32_t _real_iterations;
     int32_t _start_index;   // Starting slice index
     int32_t _target_index;  // Target slice index
     int32_t _threshold;  // To-Do: What is this for now? We may not need this.

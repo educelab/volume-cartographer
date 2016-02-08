@@ -8,15 +8,17 @@
 
 typedef bool ParticleStopped;
 
-class Particle : cv::Vec3d
+class Particle : public cv::Vec3d
 {
 public:
-    Particle(const cv::Vec3d v) : _position(v), _isStopped(false) {}
-    cv::Vec3d position() const { return _position; }
+    Particle(const double x, const double y, const double z) : _isStopped(false)
+    {
+    }
+    Particle(const cv::Vec3d v) : _isStopped(false) {}
+    cv::Vec3d position() const { return {(0), (1), (2)}; }
     bool isStopped() const { return _isStopped; }
     void stop() { _isStopped = true; };
 private:
-    cv::Vec3d _position;
     bool _isStopped;
 };
 
