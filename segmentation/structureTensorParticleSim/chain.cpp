@@ -146,10 +146,17 @@ cv::Vec3d Chain::springForce(const int index) const
 cv::Vec3d Chain::gravity(const int32_t index) const
 {
     const cv::Vec3d gravity{1, 0, 0};
-    const cv::Point3d interpolationPoint = _history.front()[index];
-    cv::Vec3d offset = _volpkg.volume()
-                           .interpolatedEigenPairsAt(interpolationPoint, 3)[0]
-                           .second;
+    const cv::Point3d p = _history.front()[index];
+
+    // Fix Mike's stupid shit - z,x,y --> x,y,z
+    const cv::Point3d fixedInterpolatedPoint = {p.y, p.z, p.x};
+    cv::Vec3d offset =
+        _volpkg.volume()
+            .interpolatedEigenPairsAt(fixedInterpolatedPoint, 3)[0]
+            .second;
+    // convert x,y,z --> z,x,y
+    offset = {offset(2), offset(0), offset(1)};
+
     offset = gravity - (gravity.dot(offset)) / (offset.dot(offset)) * offset;
     cv::normalize(offset);
     return offset * _gravity_scale;
