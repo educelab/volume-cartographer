@@ -141,8 +141,8 @@ public:
         const cv::Point3d index, const int32_t voxelRadius = 1,
         const int32_t gradientKernelSize = 3) const
     {
-        return eigenPairsAt(index.x, index.y, index.z, voxelRadius,
-                            gradientKernelSize);
+        return interpolatedEigenPairsAt(index.x, index.y, index.z, voxelRadius,
+                                        gradientKernelSize);
     }
 
     template <typename DType>
