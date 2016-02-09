@@ -2,10 +2,9 @@
 // Created by Ryan Taber on 11/30/15.
 //
 
-
 /*
- * Purpose: Run volcart::meshing::rayTrace() and write results to file.
- *          Saved file will be read in by the rayTraceTest.cpp file under
+ * Purpose: Run volcart::meshing::rayTrace() for all volcart::shapes and write results to file.
+ *          Saved files will be read in by the rayTraceTest.cpp file under
  *          v-c/testing/meshing.
  */
 

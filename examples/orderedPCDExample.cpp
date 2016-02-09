@@ -6,44 +6,56 @@
 /* PURPOSE:
  *   Create a point cloud with points of the XYZRGB variety
  *   Save the resulting pcd using the volcart::meshing::orderedPCDMesher()
- *   This outfile is loaded by orderedPCDMesherTest for later comparison
+ *   The output created here is loaded by orderedPCDMesherTest for later comparison
  */
 
 #include "shapes.h"
 #include "orderedPCDMesher.h"
-#include <pcl/io/ply_io.h>
-#include <pcl/io/pcd_io.h>
 
-int main(/*int argc, char** argv*/) {
+int main() {
 
-    //
-//    std::string outfile;
-//
-//    if (argc == 1){  //no outfile filename provided
-//        outfile = "orderedPCDExample.pcd";
-//    }
-//    else if (argc == 2){
-//        outfile = argv[1];
-//    }
-//    else{
-//        return 1;
-//    }
-
-    //Create planar mesh
-    volcart::shapes::Plane mesh;
+    // Init Shape Meshes
+    volcart::shapes::Plane Plane;
+    volcart::shapes::Arch Arch;
+    volcart::shapes::Cube Cube;
+    volcart::shapes::Sphere Sphere;
+    volcart::shapes::Cone Cone;
 
     //Create point cloud from mesh
-    pcl::PointCloud <pcl::PointXYZRGB> pCloud = mesh.pointCloudXYZRGB();
+    pcl::PointCloud <pcl::PointXYZRGB> PlanePointCloud = Plane.pointCloudXYZRGB();
+    pcl::PointCloud <pcl::PointXYZRGB> CubePointCloud = Cube.pointCloudXYZRGB();
+    pcl::PointCloud <pcl::PointXYZRGB> ArchPointCloud = Arch.pointCloudXYZRGB();
+    pcl::PointCloud <pcl::PointXYZRGB> SpherePointCloud = Sphere.pointCloudXYZRGB();
+    pcl::PointCloud <pcl::PointXYZRGB> ConePointCloud = Cone.pointCloudXYZRGB();
 
-    //convert pCloud to Ptr for orderedPCD() call
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud <pcl::PointXYZRGB>);
-    *cloud = pCloud;
 
-    //call orderedPCDMesher()
-    volcart::meshing::orderedPCDMesher(cloud, "orderedPCDExample.ply");
+    //convert ShapePointClouds to Ptrs for orderedPCDMesher() calls
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr PointerToPlaneCloud(new pcl::PointCloud <pcl::PointXYZRGB>);
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr PointerToCubeCloud(new pcl::PointCloud <pcl::PointXYZRGB>);
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr PointerToArchCloud(new pcl::PointCloud <pcl::PointXYZRGB>);
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr PointerToSphereCloud(new pcl::PointCloud <pcl::PointXYZRGB>);
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr PointerToConeCloud(new pcl::PointCloud <pcl::PointXYZRGB>);
 
-    std::cerr << "File written as orderedPCDExample.ply" << std::endl;
+    //Assign Shape Cloud Pointers
+    *PointerToPlaneCloud = PlanePointCloud;
+    *PointerToCubeCloud = CubePointCloud;
+    *PointerToArchCloud = ArchPointCloud;
+    *PointerToSphereCloud = SpherePointCloud;
+    *PointerToConeCloud = ConePointCloud;
 
+    //make calls to orderedPCDMesher()
+    volcart::meshing::orderedPCDMesher(PointerToPlaneCloud, "PlaneOrderedPCDMesher.ply");
+    volcart::meshing::orderedPCDMesher(PointerToCubeCloud, "CubeOrderedPCDMesher.ply");
+    volcart::meshing::orderedPCDMesher(PointerToArchCloud, "ArchOrderedPCDMesher.ply");
+    volcart::meshing::orderedPCDMesher(PointerToSphereCloud, "SphereOrderedPCDMesher.ply");
+    volcart::meshing::orderedPCDMesher(PointerToConeCloud, "ConeOrderedPCDMesher.ply");
+
+    std::cerr << "Files written:" << std::endl
+              << "PlaneOrderedPCDMesher.ply" << std::endl
+              << "CubeOrderedPCDMesher.ply" << std::endl
+              << "ArchOrderedPCDMesher.ply" << std::endl
+              << "SphereOrderedPCDMesher.ply" << std::endl
+              << "ConeOrderedPCDMesher.ply" << std::endl;
 
     return 0;
 }
