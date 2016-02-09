@@ -1,7 +1,7 @@
 #include "chain.h"
 
 // (doc) Why the parameters that we're giving it?
-Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg& volpkg, double gravity_scale, int threshold, int endOffset, double spring_constant_k) : _volpkg(volpkg) {
+Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg* volpkg, double gravity_scale, int threshold, int endOffset, double spring_constant_k) {
   // Convert the point cloud segPath into a vector of Particles
   std::vector<Particle> init_chain;
 
@@ -36,9 +36,9 @@ Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg& volpkg, 
   // Set the slice index we will end at
   // If user does not define endOffset, target index == last slice with a surface normal file
   _target_index = ((endOffset == DEFAULT_OFFSET)
-                   ? (volpkg.getNumberOfSlices() - 3) // Account for zero-indexing and slices lost in calculating normal vector
+                   ? (volpkg->getNumberOfSlices() - 3) // Account for zero-indexing and slices lost in calculating normal vector
                    : (_start_index + endOffset));
-  if ( _target_index > volpkg.getNumberOfSlices() - 3 ) _target_index = volpkg.getNumberOfSlices() - 3;
+  if ( _target_index > volpkg->getNumberOfSlices() - 3 ) _target_index = volpkg->getNumberOfSlices() - 3;
 
   // Set _realIterationsCount based on starting index, target index, and how frequently we want to sample the segmentation
   _real_iterations = (int)(ceil(((_target_index - _start_index) + 1) / _threshold));
@@ -51,18 +51,18 @@ Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg& volpkg, 
 
 // This function defines how particles are updated
 // To-Do: Only iterate over particles once
-void Chain::step() {
+void Chain::step(Field& field) {
   // Pull the most recent iteration from _history
   std::vector<Particle> update_chain = _history.front();
   std::vector<cv::Vec3f> force_vector(_chain_length, cv::Vec3f(0,0,0));
 
   // calculate forces acting on particles
   for(int i = 0; i < _chain_length; ++i) {
-    if (!update_chain[i].isMoving())
+    if (update_chain[i].isStopped())
       continue;
 
     force_vector[i] += this->springForce(i);
-    force_vector[i] += this->gravity(i);
+    force_vector[i] += this->gravity(i, field);
   }
 
   // update the chain
@@ -78,12 +78,11 @@ void Chain::step() {
 }
 
 // Returns true if any Particle in the chain is still moving
-bool Chain::isMoving()
-{
-    bool result = true;
-    auto c = _history.back();
-    return std::any_of(c.begin(), c.end(),
-                       [](const Particle p) { return p.isMoving(); });
+bool Chain::isMoving() {
+  bool result = true;
+  for (int i = 0; i < _chain_length; ++i)
+    result &= _history.front()[i].isStopped();
+  return !result;
 }
 
 // Returns vector offset that tries to maintain distance between particles as _spring_resting_x
@@ -113,18 +112,9 @@ cv::Vec3f Chain::springForce(int index) {
 }
 
 // Project a vector onto the plane described by the normals
-cv::Vec3f Chain::gravity(int index) {
-  cv::Vec3f gravity = cv::Vec3f(1,0,0);
-  cv::Point3f p = _history.front()[index].position();
-
-  // Fix Mike's stupid shit - z,x,y --> x,y,z
-  cv::Vec3f offset =
-          _volpkg.volume()
-                  .interpolatedEigenPairsAt(p.y, p.z, p.x, 3)[0]
-                  .second;
-  // convert x,y,z --> z,x,y
-  offset = {offset(2), offset(0), offset(1)};
-
+cv::Vec3f Chain::gravity(int index, Field& field) {
+  cv::Vec3f gravity = cv::Vec3f(1,0,0); // To-Do: Rename gravity?
+  cv::Vec3f offset = field.interpolate_at(_history.front()[index].position());
   offset = gravity - (gravity.dot(offset)) / (offset.dot(offset)) * offset;
   cv::normalize(offset);
   return offset * _gravity_scale;
