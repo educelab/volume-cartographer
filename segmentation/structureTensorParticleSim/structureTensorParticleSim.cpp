@@ -17,7 +17,7 @@
 
 namespace volcart {
     namespace segmentation {
-        pcl::PointCloud <pcl::PointXYZRGB> structureTensorParticleSim(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg volpkg, double gravity_scale, int threshold, int endOffset) {
+        pcl::PointCloud <pcl::PointXYZRGB> structureTensorParticleSim(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg& volpkg, double gravity_scale, int threshold, int endOffset) {
             // Organize the points into a connected chain
             Chain particle_chain(segPath, volpkg, gravity_scale, threshold, endOffset);
 
