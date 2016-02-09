@@ -278,7 +278,6 @@ BOOST_FIXTURE_TEST_CASE(ConfirmInputPlaneMeshIsUnchangedAfterScalingTest, PlaneF
     VC_CellIterator in_PlaneMeshCell = _in_PlaneMesh->GetCells()->Begin();
     VC_CellIterator NewPlaneMeshCell = NewPlaneMesh->GetCells()->Begin();
 
-    int c = 0;
     while (in_PlaneMeshCell != _in_PlaneMesh->GetCells()->End()) {
 
         //Initialize Iterators for Points in a Cell
