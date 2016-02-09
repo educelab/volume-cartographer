@@ -487,8 +487,9 @@ void CWindow::OpenVolume( void )
     }
 
     fVpkgPath = aVpkgPath;
-
     fPathOnSliceIndex = 2;
+
+    ResetPointCloud();
 }
 
 // Reset point cloud
