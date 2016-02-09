@@ -33,16 +33,16 @@ Chain::Chain(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath,
     _spring_constant_k = spring_constant_k;
 
     // Add starting chain to _history and setup other parameters
-    _history.push_front(init_chain);
+    _history.push_back(init_chain);
     _chain_length = init_chain.size();
     _gravity_scale = gravity_scale;
     _threshold = threshold;
 
     // Find the lowest slice index in the starting chain
-    _start_index = _history.front()[0](0);
+    _start_index = _history.back()[0](0);
     for (int32_t i = 0; i < _chain_length; ++i) {
-        if (_history.front()[i](0) < _start_index) {
-            _start_index = _history.front()[i](0);
+        if (_history.back()[i](0) < _start_index) {
+            _start_index = _history.back()[i](0);
         }
     }
 
@@ -64,8 +64,8 @@ Chain::Chain(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath,
 
     // Go ahead and stop any particles that are already at the target index
     for (int32_t i = 0; i < _chain_length; ++i) {
-        if (_history.front()[i](0) >= _target_index) {
-            _history.front()[i].stop();
+        if (_history.back()[i](0) >= _target_index) {
+            _history.back()[i].stop();
         }
     }
 }
@@ -75,7 +75,7 @@ Chain::Chain(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath,
 void Chain::step(void)
 {
     // Pull the most recent iteration from _history
-    std::vector<Particle> update_chain = _history.front();
+    std::vector<Particle> update_chain = _history.back();
     std::vector<cv::Vec3d> force_vector(_chain_length, {0, 0, 0});
 
     // calculate forces acting on particles
@@ -96,14 +96,14 @@ void Chain::step(void)
     }
 
     // Add the modified chain back to _history
-    _history.push_front(update_chain);
+    _history.push_back(update_chain);
 }
 
 // Returns true if any Particle in the chain is still moving
 bool Chain::isMoving() const
 {
     bool result = true;
-    auto c = _history.front();
+    auto c = _history.back();
     return std::any_of(c.begin(), c.end(),
                        [](const Particle p) { return p.isMoving(); });
 }
@@ -123,7 +123,7 @@ cv::Vec3d Chain::springForce(const int index) const
     // Adjust particle with a neighbor to the right
     if (index != _chain_length - 1) {
         const Particle to_right =
-            _history.front()[index] - _history.front()[index + 1];
+            _history.back()[index] - _history.back()[index + 1];
         double length = std::sqrt(to_right.dot(to_right));
         cv::normalize(to_right, to_right,
                       _spring_constant_k * (length - _spring_resting_x));
@@ -132,7 +132,7 @@ cv::Vec3d Chain::springForce(const int index) const
     // Adjust particle with a neighbor to the left
     if (index != 0) {
         const Particle to_left =
-            _history.front()[index] - _history.front()[index - 1];
+            _history.back()[index] - _history.back()[index - 1];
         const double length = sqrt(to_left.dot(to_left));
         cv::normalize(to_left, to_left,
                       _spring_constant_k * (length - _spring_resting_x));
@@ -145,7 +145,7 @@ cv::Vec3d Chain::springForce(const int index) const
 cv::Vec3d Chain::gravity(const int32_t index) const
 {
     const cv::Vec3d gravity{1, 0, 0};
-    const cv::Point3d p = _history.front()[index];
+    const cv::Point3d p = _history.back()[index];
 
     // Fix Mike's stupid shit - z,x,y --> x,y,z
     const cv::Point3d fixedInterpolatedPoint = {p.y, p.z, p.x};
@@ -164,6 +164,7 @@ cv::Vec3d Chain::gravity(const int32_t index) const
 // Convert Chain's _history to an ordered Point Cloud object
 pcl::PointCloud<pcl::PointXYZRGB> Chain::orderedPCD() const
 {
+    /*
     // Allocate space for one row of the output cloud
     std::vector<pcl::PointXYZRGB> storage_row;
     storage_row.reserve(_chain_length);
@@ -193,7 +194,7 @@ pcl::PointCloud<pcl::PointXYZRGB> Chain::orderedPCD() const
         // ordering back to volume ordering
         for (int32_t i = 0; i < _chain_length; ++i) {
             int32_t currentCell =
-                int32_t(((v[i](0)) - _start_index) / _threshold);
+                int32_t((v[i](0) - _start_index) / _threshold);
             pcl::PointXYZRGB point;
             // point.x == vol[x][ ][ ] == field[ ][x][ ]
             point.x = v[i](1);
@@ -205,17 +206,31 @@ pcl::PointCloud<pcl::PointXYZRGB> Chain::orderedPCD() const
             storage[currentCell][i] = point;
         }
     }
+    */
 
-    // Move points out of storage into the point cloud
     pcl::PointCloud<pcl::PointXYZRGB> cloud;
-    cloud.height = _real_iterations;
-    cloud.width = _chain_length;
+    cloud.width = _chain_length * _history.size();
+    cloud.height = 1;
     cloud.reserve(cloud.height * cloud.width);
+    for (const auto v : _history) {
+        for (const auto p : v) {
+            pcl::PointXYZRGB point;
+            point.x = p(1);
+            point.y = p(2);
+            point.z = p(0);
+            point.rgb = 0;
+            cloud.push_back(point);
+        }
+    }
+
+    /*
+    // Move points out of storage into the point cloud
     for (int32_t i = 0; i < cloud.height; ++i) {
         for (int32_t j = 0; j < cloud.width; ++j) {
             cloud.push_back(storage[i][j]);
         }
     }
+    */
 
     return cloud;
 }
