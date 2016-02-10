@@ -13,6 +13,7 @@
 #define BGR_BLUE cv::Scalar(0xFF, 0, 0)
 #define BGR_YELLOW cv::Scalar(0, 0xFF, 0xFF)
 #define BGR_MAGENTA cv::Scalar(0xFF, 0, 0xFF)
+#define BGR_BLACK cv::Scalar(0, 0, 0)
 
 using IndexIntensityPair = std::pair<int32_t, double>;
 using IndexIntensityPairVec = typename std::vector<IndexIntensityPair>;
