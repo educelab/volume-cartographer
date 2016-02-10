@@ -14,7 +14,7 @@ public:
 
     cv::Vec3d sliceToVoxelCoord(const cv::Point) const;
 
-    const cv::Mat sliceData() const { return sliceData_; }
+    const cv::Mat& sliceData() const { return sliceData_; }
     cv::Mat draw() const;
 
 private:

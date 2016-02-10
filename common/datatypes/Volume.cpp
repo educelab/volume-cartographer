@@ -1,16 +1,17 @@
-#include "Volume.h"
 #include <sstream>
 #include <memory>
 #include <iomanip>
+#include <iostream>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include "Volume.h"
 
 using namespace volcart;
-
-const StructureTensor zeroStructureTensor =
-    StructureTensor(0, 0, 0, 0, 0, 0, 0, 0, 0);
+namespace fs = boost::filesystem;
 
 StructureTensor tensorize(const cv::Vec3d vec);
 
-std::unique_ptr<double[]> makeGaussianField(const int32_t radius);
+std::unique_ptr<double[]> makeUniformGaussianField(const int32_t radius);
 
 // Trilinear Interpolation: Particles are not required
 // to be at integer positions so we estimate their
@@ -20,54 +21,57 @@ std::unique_ptr<double[]> makeGaussianField(const int32_t radius);
 uint16_t Volume::interpolateAt(const Voxel point) const
 {
     double int_part;
-    double dx = modf(point(0), &int_part);
-    int x0 = int(int_part);
-    int x1 = x0 + 1;
-    double dy = modf(point(1), &int_part);
-    int y0 = int(int_part);
-    int y1 = y0 + 1;
-    double dz = modf(point(2), &int_part);
-    int z0 = int(int_part);
-    int z1 = z0 + 1;
+    const double dx = std::modf(point(0), &int_part);
+    const int32_t x0 = int32_t(int_part);
+    const int32_t x1 = x0 + 1;
+    const double dy = std::modf(point(1), &int_part);
+    const int32_t y0 = int32_t(int_part);
+    const int32_t y1 = y0 + 1;
+    const double dz = std::modf(point(2), &int_part);
+    const int32_t z0 = int32_t(int_part);
+    const int32_t z1 = z0 + 1;
 
     // insert safety net
     if (x0 < 0 || y0 < 0 || z0 < 0 || x1 >= sliceWidth_ || y1 >= sliceHeight_ ||
-        z1 >= ssize_t(numSlices_)) {
+        z1 >= numSlices_) {
         return 0;
     }
 
     // from: https://en.wikipedia.org/wiki/Trilinear_interpolation
-    auto c00 = getIntensityAtCoord(x0, y0, z0) * (1 - dx) +
-               getIntensityAtCoord(x1, y0, z0) * dx;
-    auto c10 = getIntensityAtCoord(x0, y1, z0) * (1 - dx) +
-               getIntensityAtCoord(x1, y0, z0) * dx;
-    auto c01 = getIntensityAtCoord(x0, y0, z1) * (1 - dx) +
-               getIntensityAtCoord(x1, y0, z1) * dx;
-    auto c11 = getIntensityAtCoord(x0, y1, z1) * (1 - dx) +
-               getIntensityAtCoord(x1, y1, z1) * dx;
+    const auto c00 =
+        intensityAt(x0, y0, z0) * (1 - dx) + intensityAt(x1, y0, z0) * dx;
+    const auto c10 =
+        intensityAt(x0, y1, z0) * (1 - dx) + intensityAt(x1, y0, z0) * dx;
+    const auto c01 =
+        intensityAt(x0, y0, z1) * (1 - dx) + intensityAt(x1, y0, z1) * dx;
+    const auto c11 =
+        intensityAt(x0, y1, z1) * (1 - dx) + intensityAt(x1, y1, z1) * dx;
 
-    auto c0 = c00 * (1 - dy) + c10 * dy;
-    auto c1 = c01 * (1 - dy) + c11 * dy;
+    const auto c0 = c00 * (1 - dy) + c10 * dy;
+    const auto c1 = c01 * (1 - dy) + c11 * dy;
 
-    auto c = c0 * (1 - dz) + c1 * dz;
+    const auto c = c0 * (1 - dz) + c1 * dz;
     return uint16_t(cvRound(c));
 }
 
-cv::Mat Volume::getSliceData(const int32_t index) const
+const cv::Mat& Volume::getSliceData(const int32_t index) const
 {
     // Take advantage of caching layer
-    const auto possibleSlice = cache_.get(index);
-    if (possibleSlice != nullptr) {
-        return *possibleSlice;
+    try {
+        return cache_.get(index);
+    } catch (const CacheMissException& ex) {
+        const auto slicePath = getSlicePath(index);
+        const cv::Mat sliceImg = cv::imread(slicePath.string(), -1);
+
+        // Put into cache so we can use it later
+        cache_.put(index, sliceImg);
+        return cache_.get(index);
     }
+}
 
-    const auto slicePath = getSlicePath(index);
-    const cv::Mat sliceImg = cv::imread(slicePath.string(), -1);
-
-    // Put into cache so we can use it later
-    cache_.put(index, sliceImg);
-
-    return sliceImg;
+cv::Mat Volume::getSliceDataCopy(const int32_t index) const
+{
+    return getSliceData(index).clone();
 }
 
 // Data Assignment
@@ -85,7 +89,7 @@ bool Volume::setSliceData(const int32_t index, const cv::Mat& slice)
     return true;
 }
 
-boost::filesystem::path Volume::getNormalPathAtIndex(const int32_t index) const
+fs::path Volume::getNormalPathAtIndex(const int32_t index) const
 {
     std::stringstream ss;
     ss << std::setw(numSliceCharacters_) << std::setfill('0') << index
@@ -93,7 +97,7 @@ boost::filesystem::path Volume::getNormalPathAtIndex(const int32_t index) const
     return normalPath_ / ss.str();
 }
 
-boost::filesystem::path Volume::getSlicePath(const int32_t index) const
+fs::path Volume::getSlicePath(const int32_t index) const
 {
     std::stringstream ss;
     ss << std::setw(numSliceCharacters_) << std::setfill('0') << index
@@ -110,83 +114,42 @@ Slice Volume::reslice(const Voxel center, const cv::Vec3d xvec,
     const auto origin = center - ((width / 2) * xnorm + (height / 2) * ynorm);
 
     cv::Mat m(height, width, CV_16UC1);
-    for (int h = 0; h < height; ++h) {
-        for (int w = 0; w < width; ++w) {
-            auto val = interpolateAt(origin + (h * ynorm) + (w * xnorm));
-            m.at<uint16_t>(h, w) = val;
+    for (int32_t h = 0; h < height; ++h) {
+        for (int32_t w = 0; w < width; ++w) {
+            m.at<uint16_t>(h, w) =
+                interpolateAt(origin + (h * ynorm) + (w * xnorm));
         }
     }
 
     return Slice(m, origin, xnorm, ynorm);
 }
 
-StructureTensor Volume::structureTensorAtIndex(const int32_t vx,
-                                               const int32_t vy,
-                                               const int32_t vz,
-                                               const int32_t voxelRadius) const
+StructureTensor Volume::structureTensorAt(
+    const int32_t vx, const int32_t vy, const int32_t vz,
+    const int32_t voxelRadius, const int32_t gradientKernelSize) const
 {
     // Safety checks
     assert(vx >= 0 && vx < sliceWidth_ &&
-           "x must be in range [0, slice_width]\n");
+           "x must be in range [0, slice_width]");
     assert(vy >= 0 && vy < sliceHeight_ &&
-           "y must be in range [0, slice_height]\n");
-    assert(vz >= 0 && vz < numSlices_ && "z must be in range [0, #slices]\n");
+           "y must be in range [0, slice_height]");
+    assert(vz >= 0 && vz < numSlices_ && "z must be in range [0, #slices]");
+    assert(gradientKernelSize >= 3 &&
+           "gradient kernel size must be at least 3");
 
     // Get voxels in radius voxelRadius around voxel (x, y, z)
     auto v = getVoxelNeighborsCubic<double>({vx, vy, vz}, voxelRadius);
 
-    // Calculate gradient field around specified voxel
-    const int32_t n = 2 * voxelRadius + 1;
-    auto gradientField = Tensor3D<cv::Vec3d>(n, n, n);
-
-    // First do XY gradients
-    for (int32_t z = 0; z < n; ++z) {
-        cv::Mat_<double> xGradient(n, n);
-        cv::Mat_<double> yGradient(n, n);
-        cv::Scharr(v.xySlice(z), xGradient, CV_64F, 1, 0, 1, 0,
-                   cv::BORDER_REPLICATE);
-        cv::Scharr(v.xySlice(z), yGradient, CV_64F, 0, 1, 1, 0,
-                   cv::BORDER_REPLICATE);
-        for (int32_t y = 0; y < n; ++y) {
-            for (int32_t x = 0; x < n; ++x) {
-                gradientField(x, y, z) = {xGradient(y, x), yGradient(y, x), 0};
-            }
-        }
-    }
-
-    // Then Z gradients
-    for (int32_t layer = 0; layer < n; ++layer) {
-        cv::Mat_<double> zGradient(n, n);
-        cv::Scharr(v.xzSlice(layer), zGradient, CV_64F, 0, 1, 1, 0,
-                   cv::BORDER_REPLICATE);
-        for (int32_t z = 0; z < n; ++z) {
-            for (int32_t x = 0; x < n; ++x) {
-                gradientField(x, layer, z)(2) = zGradient(z, x);
-            }
-        }
-    }
-
-    // Convert to tensor volume
-    // XXX: Still doing Mike's algorithm for calculating. Assumes radius=1
-    /*
-    return (1.0 / 7.0) * (makeStructureTensor(gradientField(0, 1, 1)) +
-                          makeStructureTensor(gradientField(1, 1, 1)) +
-                          makeStructureTensor(gradientField(2, 1, 1)) +
-                          makeStructureTensor(gradientField(1, 1, 0)) +
-                          makeStructureTensor(gradientField(1, 1, 2)) +
-                          makeStructureTensor(gradientField(1, 0, 1)) +
-                          makeStructureTensor(gradientField(1, 2, 1)));
-    */
+    // Get gradient of volume
+    auto gradientField = volumeGradient(v, gradientKernelSize);
 
     // Modulate by gaussian distribution (element-wise) and sum
-    // The ordeings must match - i.e. the order of adding the tensors to the
-    // field must match that of the Gaussian weightings
-    auto gaussianField = makeGaussianField(voxelRadius);
+    auto gaussianField = makeUniformGaussianField(voxelRadius);
     StructureTensor sum(0, 0, 0, 0, 0, 0, 0, 0, 0);
-    for (int32_t z = 0; z < n; ++z) {
-        for (int32_t y = 0; y < n; ++y) {
-            for (int32_t x = 0; x < n; ++x) {
-                sum += gaussianField[z * n * n + y * n + x] *
+    for (int32_t z = 0; z < v.dz; ++z) {
+        for (int32_t y = 0; y < v.dy; ++y) {
+            for (int32_t x = 0; x < v.dx; ++x) {
+                sum += gaussianField[z * v.dy * v.dx + y * v.dx + x] *
                        tensorize(gradientField(x, y, z));
             }
         }
@@ -195,14 +158,67 @@ StructureTensor Volume::structureTensorAtIndex(const int32_t vx,
     return sum;
 }
 
-EigenPairs Volume::eigenPairsAtIndex(const int32_t x, const int32_t y,
-                                     const int32_t z,
-                                     const int32_t voxelRadius) const
+StructureTensor Volume::interpolatedStructureTensorAt(
+    const double vx, const double vy, const double vz,
+    const int32_t voxelRadius, const int32_t gradientKernelSize) const
 {
-    auto st = structureTensorAtIndex(x, y, z, voxelRadius);
-    if (st == zeroStructureTensor) {
-        throw ZeroStructureTensorException();
+    // Safety checks
+    assert(vx >= 0 && vx < sliceWidth_ &&
+           "x must be in range [0, slice_width]");
+    assert(vy >= 0 && vy < sliceHeight_ &&
+           "y must be in range [0, slice_height]");
+    assert(vz >= 0 && vz < numSlices_ && "z must be in range [0, #slices]");
+    assert(gradientKernelSize >= 3 &&
+           "gradient kernel size must be at least 3");
+
+    // Get voxels in radius voxelRadius around voxel (x, y, z)
+    auto v =
+        getVoxelNeighborsCubicInterpolated<double>({vx, vy, vz}, voxelRadius);
+
+    // Get gradient of volume
+    auto gradientField = volumeGradient(v, gradientKernelSize);
+
+    // Modulate by gaussian distribution (element-wise) and sum
+    auto gaussianField = makeUniformGaussianField(voxelRadius);
+    StructureTensor sum(0, 0, 0, 0, 0, 0, 0, 0, 0);
+    for (int32_t z = 0; z < v.dz; ++z) {
+        for (int32_t y = 0; y < v.dy; ++y) {
+            for (int32_t x = 0; x < v.dx; ++x) {
+                sum += gaussianField[z * v.dy * v.dx + y * v.dx + x] *
+                       tensorize(gradientField(x, y, z));
+            }
+        }
     }
+
+    return sum;
+}
+
+EigenPairs Volume::eigenPairsAt(const int32_t x, const int32_t y,
+                                const int32_t z, const int32_t voxelRadius,
+                                const int32_t gradientKernelSize) const
+{
+    auto st = structureTensorAt(x, y, z, voxelRadius, gradientKernelSize);
+    cv::Vec3d eigenValues;
+    cv::Matx33d eigenVectors;
+    cv::eigen(st, eigenValues, eigenVectors);
+    auto row0 = eigenVectors.row(0);
+    auto row1 = eigenVectors.row(1);
+    auto row2 = eigenVectors.row(2);
+    EigenVector e0{row0(0), row0(1), row0(2)};
+    EigenVector e1{row1(0), row1(1), row1(2)};
+    EigenVector e2{row2(0), row2(1), row2(2)};
+    return {
+        std::make_pair(eigenValues(0), e0), std::make_pair(eigenValues(1), e1),
+        std::make_pair(eigenValues(2), e2),
+    };
+}
+
+EigenPairs Volume::interpolatedEigenPairsAt(
+    const double x, const double y, const double z, const int32_t voxelRadius,
+    const int32_t gradientKernelSize) const
+{
+    auto st =
+        interpolatedStructureTensorAt(x, y, z, voxelRadius, gradientKernelSize);
     cv::Vec3d eigenValues;
     cv::Matx33d eigenVectors;
     cv::eigen(st, eigenValues, eigenVectors);
@@ -230,7 +246,81 @@ StructureTensor tensorize(const cv::Vec3d gradient)
     // clang-format on
 }
 
-std::unique_ptr<double[]> makeGaussianField(const int32_t radius)
+Tensor3D<cv::Vec3d> Volume::volumeGradient(
+    const Tensor3D<double>& v, const int32_t gradientKernelSize) const
+{
+    // Limitation of OpenCV: Kernel size must be 1, 3, 5, or 7
+    assert((gradientKernelSize == 1 || gradientKernelSize == 3 ||
+            gradientKernelSize == 5 || gradientKernelSize == 7) &&
+           "gradientKernelSize must be one of [1, 3, 5, 7]");
+
+    // Calculate gradient field around specified voxel
+    Tensor3D<cv::Vec3d> gradientField{v.dx, v.dy, v.dz};
+
+    // First do XY gradients
+    for (int32_t z = 0; z < v.dz; ++z) {
+        const cv::Mat_<double> xGradient =
+            gradient(v.xySlice(z), GradientAxis::X, gradientKernelSize);
+        const cv::Mat_<double> yGradient =
+            gradient(v.xySlice(z), GradientAxis::Y, gradientKernelSize);
+        for (int32_t y = 0; y < v.dy; ++y) {
+            for (int32_t x = 0; x < v.dx; ++x) {
+                gradientField(x, y, z) = {xGradient(y, x), yGradient(y, x), 0};
+            }
+        }
+    }
+
+    // Then Z gradients
+    for (int32_t layer = 0; layer < v.dy; ++layer) {
+        const cv::Mat_<double> zGradient =
+            gradient(v.xzSlice(layer), GradientAxis::Y, gradientKernelSize);
+        for (int32_t z = 0; z < v.dz; ++z) {
+            for (int32_t x = 0; x < v.dx; ++x) {
+                gradientField(x, layer, z)(2) = zGradient(z, x);
+            }
+        }
+    }
+
+    return gradientField;
+}
+
+// Helper function to calculate gradient using best choice for given kernel
+// size. If the kernel size is 3, uses the Scharr() operator to calculate the
+// gradient which is more accurate than 3x3 Sobel operator
+cv::Mat_<double> Volume::gradient(const cv::Mat_<double>& input,
+                                  const GradientAxis axis,
+                                  const int32_t ksize) const
+{
+    // OpenCV params for gradients
+    // XXX Revisit this and see if changing these makes a big difference
+    constexpr double SCALE = 1;
+    constexpr double DELTA = 0;
+
+    cv::Mat_<double> grad(input.rows, input.cols);
+    switch (axis) {
+        case GradientAxis::X:
+            if (ksize == 3) {
+                cv::Scharr(input, grad, CV_64F, 1, 0, SCALE, DELTA,
+                           cv::BORDER_REPLICATE);
+            } else {
+                cv::Sobel(input, grad, CV_64F, 1, 0, ksize, SCALE, DELTA,
+                          cv::BORDER_REPLICATE);
+            }
+            break;
+        case GradientAxis::Y:
+            if (ksize == 3) {
+                cv::Scharr(input, grad, CV_64F, 0, 1, SCALE, DELTA,
+                           cv::BORDER_REPLICATE);
+            } else {
+                cv::Sobel(input, grad, CV_64F, 0, 1, ksize, SCALE, DELTA,
+                          cv::BORDER_REPLICATE);
+            }
+            break;
+    }
+    return grad;
+}
+
+std::unique_ptr<double[]> makeUniformGaussianField(const int32_t radius)
 {
     const int32_t sideLength = 2 * radius + 1;
     const int32_t fieldSize = sideLength * sideLength * sideLength;

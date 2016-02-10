@@ -45,7 +45,7 @@ elseif(WIN32)
     set(VC_EXECUTABLE "VC.exe")
 endif()
 
-#set(VCapp_PLUGINS)
+set(VCapp_PLUGINS qcocoa)
 #set(VCapp_EXTRA_LIBS)
 #set(VCapp_PLUGINS_DIR)
 #set(VCapp_REQUEST_QT_CONF)

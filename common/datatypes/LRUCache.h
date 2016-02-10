@@ -1,12 +1,10 @@
 #pragma once
 
-#ifndef _VC_LRUCACHE_H_
-#define _VC_LRUCACHE_H_
+#ifndef _VOLCART_LRUCACHE_H_
+#define _VOLCART_LRUCACHE_H_
 
 #include <unordered_map>
 #include <list>
-#include <iostream>
-#include <chrono>
 
 /*
  * A cache of objects implementing the least-recently-used algorithm
@@ -20,6 +18,12 @@
 
 namespace volcart
 {
+class CacheMissException : public std::exception
+{
+public:
+    virtual const char* what() const throw() { return "Key not in cache"; }
+};
+
 template <typename TKey, typename TValue>
 class LRUCache
 {
@@ -31,16 +35,16 @@ public:
     LRUCache(const size_t size) : size_(size) {}
     void setSize(const size_t newSize) { size_ = newSize; }
     size_t size(void) const { return size_; }
-    // Need to find a better way than returning raw pointer --> could totally
-    // use std::optional if it wasn't still experimental...
-    const TValue* get(const TKey& k)
+    // Returning a const ref is better because then if you try to modify the
+    // value without explicitly calling .clone() you'll get a compile error
+    const TValue& get(const TKey& k)
     {
         auto lookupIter = lookup_.find(k);
         if (lookupIter == std::end(lookup_)) {
-            return nullptr;
+            throw CacheMissException();
         } else {
             items_.splice(std::begin(items_), items_, lookupIter->second);
-            return &lookupIter->second->second;
+            return lookupIter->second->second;
         }
     }
 
@@ -72,7 +76,4 @@ private:
 
     static const size_t kDefaultSize = 200;
 };
-
 }  // namespace volcart
-
-#endif  // _VC_LRUCACHE_H_

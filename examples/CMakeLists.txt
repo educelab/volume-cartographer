@@ -8,7 +8,7 @@ add_executable(vc_objExporterExample objExporterExample.cpp)
 target_link_libraries(vc_objExporterExample ${VC_LIBS} ${VC_REQ_LIBS})
 
 add_executable(vc_itk2vtkExample itk2vtkExample.cpp)
-target_link_libraries(vc_itk2vtkExample ${VC_LIBS} ${VC_REQ_LIBS})
+target_link_libraries(vc_itk2vtkExample ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
 
 add_executable(vc_uvMapExample uvMapExample.cpp)
 target_link_libraries(vc_uvMapExample ${VC_LIBS} ${VC_REQ_LIBS})
@@ -22,7 +22,10 @@ target_link_libraries(vc_verifyStructureTensor ${VC_LIBS} ${VC_REQ_LIBS})
 add_executable(vc_structureTensorClient StructureTensorClient.cpp)
 target_link_libraries(vc_structureTensorClient ${VC_LIBS} ${VC_REQ_LIBS})
 
-find_package(HDF5 REQUIRED)
-include_directories(${HDF5_INCLUDE_DIRS})
-add_executable(vc_makeNeuralNetTrainingData MakeNeuralNetTrainingData.cpp)
-target_link_libraries(vc_makeNeuralNetTrainingData ${HDF5_LIBRARIES} ${VC_LIBS} ${VC_REQ_LIBS})
+# Need exact version for outputting correctly-formatted HDF5 files for caffe to read in
+find_package(HDF5 1.8.15 EXACT)
+if(HDF5_FOUND)
+    include_directories(${HDF5_INCLUDE_DIRS})
+    add_executable(vc_makeNeuralNetTrainingData MakeNeuralNetTrainingData.cpp)
+    target_link_libraries(vc_makeNeuralNetTrainingData ${HDF5_LIBRARIES} ${VC_LIBS} ${VC_REQ_LIBS})
+endif(HDF5_FOUND)

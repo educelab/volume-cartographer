@@ -1,48 +1,49 @@
 #ifndef _VOLUMEPKG_H_
 #define _VOLUMEPKG_H_
 
-#include <stdlib.h>
-#include <time.h>
-
+#include <cstdlib>
 #include <iostream>
 #include <boost/filesystem.hpp>
 
-// These boost libraries cause problems with QT4 + Boost 1.57. This is a workaround.
+// These boost libraries cause problems with QT4 + Boost 1.57. This is a
+// workaround.
 // https://bugreports.qt.io/browse/QTBUG-22829
 #ifndef Q_MOC_RUN
-    #include <boost/foreach.hpp>
-    #include <boost/lexical_cast.hpp>
+#include <boost/foreach.hpp>
+#include <boost/lexical_cast.hpp>
 #endif
 
-#include <opencv2/opencv.hpp>
 #include <pcl/point_types.h>
-#include <pcl/io/pcd_io.h>
 #include "picojson.h"
-
 #include "vc_defines.h"
 #include "vc_datatypes.h"
 #include "volumepkgcfg.h"
 #include "volumepkg_version.h"
-
 #include "orderedPCDMesher.h"
 #include "io/objWriter.h"
 
-class VolumePkg {
+class VolumePkg
+{
 public:
     // Constructors
-    VolumePkg(std::string file_location, double version); // New volpkg, V.[version]
-    VolumePkg(std::string file_location); // Existing VolPkgs
+    VolumePkg(std::string file_location,
+              double version);             // New volpkg, V.[version]
+    VolumePkg(std::string file_location);  // Existing VolPkgs
 
     // Write to disk for the first time
     int initialize();
 
     // Accessor for volume
     const volcart::Volume& volume() const { return vol_; }
-	volcart::Volume& volume() { return vol_; }
-
+    volcart::Volume& volume() { return vol_; }
     // Debug
     void printJSON() { config.printObject(); };
-    void printDirs() { std::cout << "root: " << root_dir << " seg: " << segs_dir << " slice: " << slice_dir << " norm: " << norm_dir << std::endl; };
+    void printDirs()
+    {
+        std::cout << "root: " << root_dir << " seg: " << segs_dir
+                  << " slice: " << slice_dir << " norm: " << norm_dir
+                  << std::endl;
+    };
 
     // Metadata Retrieval
     std::string getPkgName();
@@ -54,14 +55,15 @@ public:
     double getMaterialThickness();
 
     // Metadata Assignment
-    bool readOnly()         { return _readOnly; };
-    void readOnly(bool b)   { _readOnly = b; };
-
+    bool readOnly() { return _readOnly; };
+    void readOnly(bool b) { _readOnly = b; };
     // set a metadata key to a value
     // Sorry for this templated mess. - SP 072015
-    template<typename T>
-    int setMetadata(std::string key, T value) {
-        if (_readOnly) VC_ERR_READONLY();
+    template <typename T>
+    int setMetadata(std::string key, T value)
+    {
+        if (_readOnly)
+            VC_ERR_READONLY();
 
         std::string keyType = findKeyType(key);
         if (keyType == "string") {
@@ -69,39 +71,43 @@ public:
                 std::string castValue = boost::lexical_cast<std::string>(value);
                 config.setValue(key, castValue);
                 return EXIT_SUCCESS;
-            }
-            catch(const boost::bad_lexical_cast &) {
-                std::cerr << "ERROR: Given value \"" << value << "\" cannot be cast to type specified by dictionary (" << keyType << ")" << std::endl;
+            } catch (const boost::bad_lexical_cast&) {
+                std::cerr
+                    << "ERROR: Given value \"" << value
+                    << "\" cannot be cast to type specified by dictionary ("
+                    << keyType << ")" << std::endl;
                 return EXIT_FAILURE;
             }
-        }
-        else if (keyType == "int") {
+        } else if (keyType == "int") {
             try {
                 int castValue = boost::lexical_cast<int>(value);
                 config.setValue(key, castValue);
                 return EXIT_SUCCESS;
-            }
-            catch(const boost::bad_lexical_cast &) {
-                std::cerr << "ERROR: Given value \"" << value << "\" cannot be cast to type specified by dictionary (" << keyType << ")" << std::endl;
+            } catch (const boost::bad_lexical_cast&) {
+                std::cerr
+                    << "ERROR: Given value \"" << value
+                    << "\" cannot be cast to type specified by dictionary ("
+                    << keyType << ")" << std::endl;
                 return EXIT_FAILURE;
             }
-        }
-        else if (keyType == "double") {
+        } else if (keyType == "double") {
             try {
                 double castValue = boost::lexical_cast<double>(value);
                 config.setValue(key, castValue);
                 return EXIT_SUCCESS;
-            }
-            catch(const boost::bad_lexical_cast &) {
-                std::cerr << "ERROR: Given value \"" << value << "\" cannot be cast to type specified by dictionary (" << keyType << ")" << std::endl;
+            } catch (const boost::bad_lexical_cast&) {
+                std::cerr
+                    << "ERROR: Given value \"" << value
+                    << "\" cannot be cast to type specified by dictionary ("
+                    << keyType << ")" << std::endl;
                 return EXIT_FAILURE;
             }
-        }
-        else if (keyType == "") {
+        } else if (keyType == "") {
             return EXIT_FAILURE;
-        }
-        else {
-            std::cerr << "ERROR: Value \"" << value << "\" not of type specified by dictionary (" << keyType << ")" << std::endl;
+        } else {
+            std::cerr << "ERROR: Value \"" << value
+                      << "\" not of type specified by dictionary (" << keyType
+                      << ")" << std::endl;
             return EXIT_FAILURE;
         }
     };
@@ -124,7 +130,10 @@ public:
     int saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr);
     void saveMesh(VC_MeshType::Pointer mesh, volcart::Texture texture);
     void saveTextureData(cv::Mat, std::string = "textured");
-    void saveTextureData(volcart::Texture texture, int index = 0) { saveTextureData(texture.getImage(index)); }
+    void saveTextureData(volcart::Texture texture, int index = 0)
+    {
+        saveTextureData(texture.getImage(index));
+    }
 
 private:
     bool _readOnly = true;
@@ -147,4 +156,4 @@ private:
     std::string findKeyType(std::string);
 };
 
-#endif // _VOLUMEPKG_H_
+#endif  // _VOLUMEPKG_H_

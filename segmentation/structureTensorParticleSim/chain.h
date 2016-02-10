@@ -7,24 +7,29 @@
 
 #define DEFAULT_OFFSET -1
 
-#include <opencv2/opencv.hpp>
+#include <list>
+#include <vector>
+#include <opencv2/core/core.hpp>
 #include <pcl/io/pcd_io.h>
 #include <pcl/common/common.h>
 #include <pcl/point_types.h>
 
-#include "field.h"
+#include "volumepkg.h"
 #include "particle.h"
 
 class Chain {
  public:
-  Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr,VolumePkg*,double,int,int,double = -0.5);
-  void step(Field&);
+  Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg& volpkg, double gravity_scale, int threshold, int endOffset, double spring_constant_k = -0.5);
+  void step();
   bool isMoving();
   cv::Vec3f springForce(int);
-  cv::Vec3f gravity(int,Field&);
+  cv::Vec3f gravity(int);
   pcl::PointCloud<pcl::PointXYZRGB> orderedPCD();
 
  private:
+
+  VolumePkg& _volpkg;
+
   // History of the chain at each iteration
   std::list<std::vector<Particle> > _history;
   // Parameters for calculating the spring effects

@@ -1,11 +1,9 @@
 #include <iostream>
 #include <random>
 #include <sstream>
-#include <tuple>
 #include <cmath>
-#include <unordered_set>
 #include <boost/filesystem.hpp>
-#include <opencv2/opencv.hpp>
+#include <opencv2/core/core.hpp>
 #include <H5Cpp.h>
 #include "volumepkg.h"
 
@@ -14,37 +12,9 @@ namespace fs = boost::filesystem;
 struct CartesianCoord {
     int32_t x, y, z;
     CartesianCoord() = default;
-    CartesianCoord(int32_t x, int32_t y, int32_t z) : x(x), y(y), z(z)
-    {
-    }
-    operator cv::Point3i() const
-    {
-        return {x, y, z};
-    }
+    CartesianCoord(int32_t x, int32_t y, int32_t z) : x(x), y(y), z(z) {}
+    operator cv::Point3i() const { return {x, y, z}; }
 };
-
-// Hash specialization for CartesianCoord so unordered_set works
-namespace std
-{
-template <>
-struct hash<CartesianCoord> {
-    size_t operator()(const CartesianCoord& c) const noexcept
-    {
-        return std::hash<int32_t>()(c.x) ^ std::hash<int32_t>()(c.y) ^
-               std::hash<int32_t>()(c.z);
-    }
-};
-
-// Equality specialization for CartesianCoord
-template <>
-struct equal_to<CartesianCoord> {
-    bool operator()(const CartesianCoord& a, const CartesianCoord& b) const
-        noexcept
-    {
-        return a.x == b.x && a.y == b.y && a.z == b.z;
-    }
-};
-}
 
 std::ostream& operator<<(std::ostream& s, const CartesianCoord& c)
 {
@@ -54,9 +24,7 @@ std::ostream& operator<<(std::ostream& s, const CartesianCoord& c)
 struct PolarCoord {
     double r, theta;
     PolarCoord() = default;
-    PolarCoord(double r, double theta) : r(r), theta(theta)
-    {
-    }
+    PolarCoord(double r, double theta) : r(r), theta(theta) {}
 };
 std::ostream& operator<<(std::ostream& s, const PolarCoord& p)
 {
@@ -72,9 +40,15 @@ void writeDataToH5File(const fs::path& filename,
 
 const StructureTensor zero(0, 0, 0, 0, 0, 0, 0, 0, 0);
 
+void worker(VolumePkg& volpkg, const int32_t nsamples,
+            const int32_t innerRadius, const int32_t outerRadius,
+            const int32_t zmin, const int32_t zmax, const int32_t stRadius,
+            const fs::path& outputDir);
+
 // Center of the dataset on XY-plane
 int32_t g_centerX;
 int32_t g_centerY;
+int32_t g_counter;
 
 int main(int argc, char** argv)
 {
@@ -82,11 +56,12 @@ int main(int argc, char** argv)
         std::cerr
             << "Usage:\n"
             << "    " << argv[0]
-            << " volumepkg N outer-r inner-r centerX centerY zmin zmax st-r"
+            << " volumepkg N outer-r inner-r centerX centerY zmin zmax st-r "
                "output-dir\n";
         std::exit(1);
     }
-    auto volpkg = VolumePkg(std::string(argv[1]));
+
+    VolumePkg volpkg{std::string(argv[1])};
     const int32_t nsamples = std::stoi(std::string(argv[2]));
     const int32_t outerRadius = std::stoi(std::string(argv[3]));
     const int32_t innerRadius = std::stoi(std::string(argv[4]));
@@ -114,8 +89,15 @@ int main(int argc, char** argv)
     fs::create_directory(outputDir / "7");
     fs::create_directory(outputDir / "15");
 
-    const volcart::Volume vol = volpkg.volume();
+    worker(volpkg, nsamples, innerRadius, outerRadius, zmin, zmax, stRadius,
+           outputDir);
+}
 
+void worker(VolumePkg& volpkg, const int32_t nsamples,
+            const int32_t innerRadius, const int32_t outerRadius,
+            const int32_t zmin, const int32_t zmax, const int32_t stRadius,
+            const fs::path& outputDir)
+{
     // Make generator and distributions
     std::random_device rd;
     std::default_random_engine e(rd());
@@ -123,70 +105,56 @@ int main(int argc, char** argv)
     std::uniform_real_distribution<double> thetaDist(0, 2 * M_PI);
     std::uniform_int_distribution<int32_t> zDist(zmin, zmax + 1);
 
-    // Set for which positions we've had before
-    std::unordered_set<CartesianCoord> positionsSoFar;
-
     // Start generating
     CartesianCoord c;
-    int64_t i = 0;
-    while (i < nsamples) {
+    while (g_counter < nsamples) {
         double theta = thetaDist(e);
         double r = rDist(e);
         int32_t z = zDist(e);
         c = polarToCartesian({r, theta}, z);
 
         // Volume bounds checking
-        if (c.x < 0 || c.x > volpkg.getSliceWidth() || c.y < 0 ||
-            c.y > volpkg.getSliceHeight() ||
-            positionsSoFar.find(c) != positionsSoFar.end()) {
+        if (c.x < 0 || c.x >= volpkg.getSliceWidth() || c.y < 0 ||
+            c.y >= volpkg.getSliceHeight()) {
             continue;
         }
+
+        // Generate structure tensor and eigenpairs once per point
+        const auto st =
+            volpkg.volume().structureTensorAt(c.x, c.y, c.z, stRadius);
+        if (st == zero) {
+            continue;
+        }
+        const auto pairs =
+            volpkg.volume().eigenPairsAt(c.x, c.y, c.z, stRadius);
 
         // Start constructing filename
         std::stringstream ss;
         ss << c.x << "_" << c.y << "_" << c.z << "_size";
         auto baseFilename = ss.str();
 
-        // Get volumes, write to hdf5 file
-        // radius = 3 (volume = 7)
-        auto volume3 = vol.getVoxelNeighborsCubic<uint16_t>({c.x, c.y, c.z}, 3);
-        auto st3 = vol.structureTensorAtIndex(c.x, c.y, c.z, stRadius);
-        if (st3 == zero) {
-            continue;
-        }
-        auto pairs3 = vol.eigenPairsAtIndex(c.x, c.y, c.z, stRadius);
+        // Generate volumes of radius 3, 7, and 15
+        cv::Point3i p = {c.x, c.y, c.z};
+        auto volume3 = volpkg.volume().getVoxelNeighborsCubic<uint16_t>(p, 3);
         auto outfile3 = outputDir / std::to_string(3) /
                         (baseFilename + std::to_string(3) + ".h5");
-
-        auto volume7 = vol.getVoxelNeighborsCubic<uint16_t>({c.x, c.y, c.z}, 7);
-        auto st7 = vol.structureTensorAtIndex(c.x, c.y, c.z, stRadius);
-        if (st7 == zero) {
-            continue;
-        }
-        auto pairs7 = vol.eigenPairsAtIndex(c.x, c.y, c.z, stRadius);
+        auto volume7 = volpkg.volume().getVoxelNeighborsCubic<uint16_t>(p, 7);
         auto outfile7 = outputDir / std::to_string(7) /
                         (baseFilename + std::to_string(7) + ".h5");
-
-        auto volume15 =
-            vol.getVoxelNeighborsCubic<uint16_t>({c.x, c.y, c.z}, 15);
-        auto st15 = vol.structureTensorAtIndex(c.x, c.y, c.z, stRadius);
-        if (st15 == zero) {
-            continue;
-        }
-        auto pairs15 = vol.eigenPairsAtIndex(c.x, c.y, c.z, stRadius);
+        auto volume15 = volpkg.volume().getVoxelNeighborsCubic<uint16_t>(p, 15);
         auto outfile15 = outputDir / std::to_string(15) /
                          (baseFilename + std::to_string(15) + ".h5");
 
-        ++i;
-        positionsSoFar.insert(c);
-        if (i % 1000 == 0) {
-            std::cout << "npoints: " << i << "\n";
+        // Atomically increment
+        g_counter++;
+        if (g_counter % 1000 == 0) {
+            std::cout << "npoints: " << g_counter << "\n";
         }
 
         // Do writes
-        writeDataToH5File<3>(outfile3, volume3, st3, pairs3);
-        writeDataToH5File<7>(outfile7, volume7, st7, pairs7);
-        writeDataToH5File<15>(outfile15, volume15, st15, pairs15);
+        writeDataToH5File<3>(outfile3, volume3, st, pairs);
+        writeDataToH5File<7>(outfile7, volume7, st, pairs);
+        writeDataToH5File<15>(outfile15, volume15, st, pairs);
     }
 }
 
@@ -203,38 +171,38 @@ void writeDataToH5File(const fs::path& filename,
                        const StructureTensor st, const EigenPairs& pairs)
 {
     constexpr int32_t volRank = 4;
-    hsize_t volDims[] = {1, static_cast<hsize_t>(volume.dz()),
-                         static_cast<hsize_t>(volume.dy()),
-                         static_cast<hsize_t>(volume.dx())};
-    int32_t side = 2 * Radius + 1;
+    const hsize_t volDims[] = {1, hsize_t(volume.dz), hsize_t(volume.dy),
+                               hsize_t(volume.dx)};
+    const int32_t side = 2 * Radius + 1;
     uint16_t v[1][side][side][side];
-    for (int32_t z = 0; z < volume.dz(); ++z) {
-        for (int32_t y = 0; y < volume.dy(); ++y) {
-            for (int32_t x = 0; x < volume.dx(); ++x) {
+    for (int32_t z = 0; z < volume.dz; ++z) {
+        for (int32_t y = 0; y < volume.dy; ++y) {
+            for (int32_t x = 0; x < volume.dx; ++x) {
                 v[0][z][y][x] = volume(x, y, z);
             }
         }
     }
 
     // Dimensions for structure tensor & eigenpairs data
-    hsize_t stDims[] = {3, 3};
-    int32_t stRank = 2;
-    hsize_t eigvecDims[] = {3, 3};
-    int32_t eigvecRank = 2;
-    hsize_t eigvalDims[] = {3};
-    int32_t eigvalRank = 1;
+    const hsize_t stDims[] = {3, 3};
+    const int32_t stRank = 2;
+    const hsize_t eigvecDims[] = {3, 3};
+    const int32_t eigvecRank = 2;
+    const hsize_t eigvalDims[] = {3};
+    const int32_t eigvalRank = 1;
 
     // Raw buffers for data
-    double stBuf[3][3] = {{st(0, 0), st(0, 1), st(0, 2)},
-                          {st(1, 0), st(1, 1), st(1, 2)},
-                          {st(2, 0), st(2, 1), st(2, 2)}};
-    cv::Vec3d ev0 = pairs[0].second;
-    cv::Vec3d ev1 = pairs[1].second;
-    cv::Vec3d ev2 = pairs[2].second;
-    double eigvecBuf[3][3] = {{ev0(0), ev0(1), ev0(2)},
-                              {ev1(0), ev1(1), ev1(2)},
-                              {ev2(0), ev2(1), ev2(2)}};
-    double eigvalBuf[3] = {pairs[0].first, pairs[1].first, pairs[2].first};
+    const double stBuf[3][3] = {{st(0, 0), st(0, 1), st(0, 2)},
+                                {st(1, 0), st(1, 1), st(1, 2)},
+                                {st(2, 0), st(2, 1), st(2, 2)}};
+    const cv::Vec3d ev0 = pairs[0].second;
+    const cv::Vec3d ev1 = pairs[1].second;
+    const cv::Vec3d ev2 = pairs[2].second;
+    const double eigvecBuf[3][3] = {{ev0(0), ev0(1), ev0(2)},
+                                    {ev1(0), ev1(1), ev1(2)},
+                                    {ev2(0), ev2(1), ev2(2)}};
+    const double eigvalBuf[3] = {pairs[0].first, pairs[1].first,
+                                 pairs[2].first};
 
     try {
         // Write volume
@@ -247,20 +215,20 @@ void writeDataToH5File(const fs::path& filename,
         // Write structure tensor
         H5::DataSpace stSpace(stRank, stDims);
         auto stDSet = f.createDataSet("structure_tensor",
-                                      H5::PredType::NATIVE_FLOAT, stSpace);
-        stDSet.write(stBuf, H5::PredType::NATIVE_FLOAT);
+                                      H5::PredType::IEEE_F64LE, stSpace);
+        stDSet.write(stBuf, H5::PredType::IEEE_F64LE);
 
         // Write eigenvectors
         H5::DataSpace eigvecSpace(eigvecRank, eigvecDims);
         auto eigvecDSet = f.createDataSet(
-            "eigenvectors", H5::PredType::NATIVE_FLOAT, eigvecSpace);
-        eigvecDSet.write(eigvecBuf, H5::PredType::NATIVE_FLOAT);
+            "eigenvectors", H5::PredType::IEEE_F64LE, eigvecSpace);
+        eigvecDSet.write(eigvecBuf, H5::PredType::IEEE_F64LE);
 
         // Write eigenvalues
         H5::DataSpace eigvalSpace(eigvalRank, eigvalDims);
         auto eigvalDSet = f.createDataSet(
-            "eigenvalues", H5::PredType::NATIVE_FLOAT, eigvalSpace);
-        eigvalDSet.write(eigvalBuf, H5::PredType::NATIVE_FLOAT);
+            "eigenvalues", H5::PredType::IEEE_F64LE, eigvalSpace);
+        eigvalDSet.write(eigvalBuf, H5::PredType::IEEE_F64LE);
 
         f.close();
 
