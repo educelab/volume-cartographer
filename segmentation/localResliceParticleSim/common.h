@@ -5,7 +5,8 @@
 
 #include <vector>
 #include <tuple>
-#include <opencv2/opencv.hpp>
+#include <algorithm>
+#include <opencv2/core/core.hpp>
 
 #define BGR_RED cv::Scalar(0, 0, 0xFF)
 #define BGR_GREEN cv::Scalar(0, 0xFF, 0)
