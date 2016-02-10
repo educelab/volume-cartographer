@@ -1,10 +1,12 @@
 #include "normalizedintensitymap.h"
-#include "common.h"
 
 using namespace volcart::segmentation;
 
 NormalizedIntensityMap::NormalizedIntensityMap(cv::Mat r)
 {
+    // DEBUG
+    cv::equalizeHist(r, r);
+
     cv::normalize(r, intensities_, 0, 1, CV_MINMAX, CV_64FC1);
     width_ = intensities_.cols;
     currentIntensity_ = intensities_(width_ / 2);
