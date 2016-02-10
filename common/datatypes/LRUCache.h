@@ -77,3 +77,5 @@ private:
     static const size_t kDefaultSize = 200;
 };
 }  // namespace volcart
+
+#endif
