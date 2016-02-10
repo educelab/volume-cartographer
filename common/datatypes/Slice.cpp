@@ -17,7 +17,11 @@ cv::Vec3d Slice::sliceToVoxelCoord(const cv::Point sliceCoords) const
 cv::Mat Slice::draw() const
 {
     auto debug = sliceData_.clone();
-    debug /= 255.0;
+
+    // DEBUG
+    debug.convertTo(debug, CV_8UC1, 1.0 / 255.0);
+    cv::equalizeHist(debug, debug);
+
     debug.convertTo(debug, CV_8UC3);
     cv::cvtColor(debug, debug, CV_GRAY2BGR);
     cv::Point imcenter(debug.cols / 2, debug.rows / 2);
