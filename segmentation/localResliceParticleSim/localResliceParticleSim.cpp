@@ -86,6 +86,16 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
                 continue;
             }
 
+            cv::namedWindow("intensity map", cv::WINDOW_NORMAL);
+            cv::namedWindow("reslice", cv::WINDOW_NORMAL);
+            cv::namedWindow("slice", cv::WINDOW_NORMAL);
+            cv::Mat normalizedReslice;
+            cv::equalizeHist(reslice.draw(), normalizedReslice);
+            cv::imshow("slice", ) cv::imshow("reslice", normalizedReslice);
+            cv::imshow("intensity map", map.draw());
+            cv::waitKey(0);
+            std::exit(1);
+
             // Convert top N maxima to voxel positions
             std::deque<Voxel> maximaQueue;
             for (int32_t i = 0; i < keepNumMaxima; ++i) {
@@ -213,6 +223,56 @@ pcl::PointCloud<pcl::PointXYZRGB> exportAsPCD(const vec<vec<Voxel>>& points)
         }
     }
     return cloud;
+}
+
+double energy(const vec<Voxel>& src, const vec<Voxel>& target)
+{
+    assert(src.size() == target.size() &&
+           "src and target must be the same size");
+    double sum = 0;
+    for (const auto p : zip(src, target)) {
+        Voxel s, t;
+        std::tie(s, t) = p;
+        sum += ((s(0) - t(0)) * (s(0) - t(0)) + (s(1) - t(1)) * (s(1) - t(1)) +
+                (s(2) - t(2)) * (s(2) - t(2)));
+    }
+    return std::sqrt(sum);
+}
+
+void LocalResliceSegmentation::drawParticlesOnSlice(const vec<Voxel>& vs,
+                                                    const int32_t index) const
+{
+    auto pkgSlice = pkg_.volume().getSliceDataCopy(index);
+    pkgSlice /= 255.0;
+    pkgSlice.convertTo(pkgSlice, CV_8UC3);
+    cvtColor(pkgSlice, pkgSlice, CV_GRAY2BGR);
+
+    // draw circles on the pkgSlice window for each point
+    for (const auto v : vs) {
+        cv::Point real{int32_t(v(0)), int32_t(v(1))};
+        cv::circle(pkgSlice, real, 1, BGR_GREEN, -1);
+    }
+    for (size_t i = 0; i < vs.size(); ++i) {
+        auto x = vs[i](0);
+        auto y = vs[i](1);
+        cv::Point real{int32_t(x), int32_t(y)};
+        if (i == index) {
+            cv::circle(pkgSlice, real, 1, BGR_RED, -1);
+        } else {
+            cv::circle(pkgSlice, real, 1, BGR_GREEN, -1);
+        }
+    }
+
+    // Superimpose interpolated curve on window
+    if (showSpline) {
+        const int32_t n = 50;
+        for (double sum = 0; sum <= 1; sum += 1.0 / (n - 1)) {
+            cv::Point p(curve_.eval(sum));
+            cv::circle(pkgSlice, p, 1, BGR_BLUE, -1);
+        }
+    }
+
+    return pkgSlice;
 }
 
 /*

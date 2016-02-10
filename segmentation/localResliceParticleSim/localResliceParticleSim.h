@@ -4,7 +4,6 @@
 #define _VOLCART_LOCAL_RESLICE_SEGMENTATION_H_
 
 #include <iostream>
-#include <opencv2/opencv.hpp>
 #include <pcl/point_types.h>
 #include "fittedcurve.h"
 #include "volumepkg.h"
@@ -40,6 +39,8 @@ private:
 
     cv::Vec3d estimateNormalAtIndex(const FittedCurve& curve,
                                     const int32_t index);
+
+    void drawParticlesOnSlice(const vec<Voxel>& vs, const int32_t index) const;
 
     constexpr static double kDefaultDerivativeTolerance = 1e-2;
     constexpr static int32_t kDefaultNumIters = 10;
