@@ -15,7 +15,7 @@ int main(int argc, char* argv[])
         std::cerr << "    " << argv[0]
                   << "--volpkg /path/to/volume.volpkg --startIndex [start] "
                      "--endIndex [end] --seg [segID] --step [step] --output "
-                     "/path/to/output.pcd [--visualize]\n";
+                     "/path/to/output.pcd [--visualize [i]] [--dump-vis]\n";
         std::exit(1);
     }
 
@@ -56,6 +56,12 @@ int main(int argc, char* argv[])
 
     // Optional args
     bool visualize = pcl::console::find_switch(argc, argv, "--visualize");
+    int32_t visIndex = -1;
+    if (visualize) {
+        visIndex =
+            pcl::console::parse_argument(argc, argv, "--visualize", visIndex);
+    }
+    bool dumpVis = pcl::console::find_switch(argc, argv, "--dump-vis");
 
     int32_t numIters = 10;
     pcl::console::parse_argument(argc, argv, "--numIters", numIters);
@@ -88,7 +94,8 @@ int main(int argc, char* argv[])
     // Run segmentation using path as our starting points
     volcart::segmentation::LocalResliceSegmentation segmenter(volpkg);
     auto cloud = segmenter.segmentPath(initVoxels, resamplePerc, startIndex,
-                                       endIndex, numIters, keepNumMaxima, step);
+                                       endIndex, numIters, keepNumMaxima, step,
+                                       dumpVis, visualize, visIndex);
 
     // Save to output file
     try {

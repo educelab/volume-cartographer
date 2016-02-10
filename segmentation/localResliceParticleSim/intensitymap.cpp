@@ -1,53 +1,72 @@
-#include "normalizedintensitymap.h"
+#include "intensitymap.h"
+#include <limits>
 
 using namespace volcart::segmentation;
 
-NormalizedIntensityMap::NormalizedIntensityMap(cv::Mat r)
+IntensityMap::IntensityMap(cv::Mat r)
+    : displayWidth_(200),
+      displayHeight_(200),
+      drawTarget_(displayWidth_, displayHeight_, CV_8UC3, BGR_BLACK),
+      chosenMaximaIndex_(-1)
 {
-    // DEBUG
+    // DEBUG - need to convert to 8 bit before we can do anything
+    r.convertTo(r, CV_8UC1, 1.0 / std::numeric_limits<uint8_t>::max());
     cv::equalizeHist(r, r);
 
     cv::normalize(r, intensities_, 0, 1, CV_MINMAX, CV_64FC1);
-    width_ = intensities_.cols;
-    currentIntensity_ = intensities_(width_ / 2);
+    mapWidth_ = intensities_.cols;
+    binWidth_ = cvRound(float(displayWidth_) / mapWidth_);
+    currentIntensity_ = intensities_(mapWidth_ / 2);
 }
 
-cv::Mat NormalizedIntensityMap::draw(const int32_t displayWidth,
-                                     const int32_t displayHeight) const
+cv::Mat IntensityMap::draw()
 {
-    auto binWidth = cvRound(float(displayWidth) / width_);
+    // Repaint the drawTarget_ so we don't draw over others
+    drawTarget_ = BGR_BLACK;
 
     // Build intensity map
-    cv::Mat mapImage(displayWidth, displayHeight, CV_8UC3, cv::Scalar(0, 0, 0));
-    for (int32_t i = 1; i < width_; ++i) {
+    for (int32_t i = 1; i < mapWidth_; ++i) {
         auto p1 = cv::Point(
-            binWidth * (i - 1),
-            displayHeight - cvRound(displayHeight * intensities_(i - 1)));
-        auto p2 =
-            cv::Point(binWidth * (i),
-                      displayHeight - cvRound(displayHeight * intensities_(i)));
-        cv::line(mapImage, p1, p2, cv::Scalar(0, 255, 0));
+            binWidth_ * (i - 1),
+            displayHeight_ - cvRound(displayHeight_ * intensities_(i - 1)));
+        auto p2 = cv::Point(
+            binWidth_ * i,
+            displayHeight_ - cvRound(displayHeight_ * intensities_(i)));
+        cv::line(drawTarget_, p1, p2, BGR_GREEN);
     }
 
     // Sort by closest maxima available and draw line on that
     auto maxima = sortedMaxima();
-    auto centerX = width_ / 2;
+    auto centerX = mapWidth_ / 2;
 
-    // Vertical line at particle's current x position
-    cv::line(mapImage, cv::Point(binWidth * centerX, 0),
-             cv::Point(binWidth * centerX, mapImage.rows), BGR_YELLOW);
-
-    // Line for position to be chosen
+    // A line for each candidate position
     for (const auto m : maxima) {
-        cv::line(mapImage, cv::Point(binWidth * m.first, 0),
-                 cv::Point(binWidth * m.first, mapImage.rows), BGR_BLUE);
+        cv::line(drawTarget_, cv::Point(binWidth_ * m.first, 0),
+                 cv::Point(binWidth_ * m.first, drawTarget_.rows), BGR_BLUE);
     }
 
-    return mapImage;
+    // A line at particle's current x position
+    cv::line(drawTarget_, cv::Point(binWidth_ * centerX, 0),
+             cv::Point(binWidth_ * centerX, drawTarget_.rows), BGR_YELLOW);
+
+    // A Line for top maxima
+    cv::line(drawTarget_, cv::Point(binWidth_ * maxima[0].first, 0),
+             cv::Point(binWidth_ * maxima[0].first, drawTarget_.rows),
+             BGR_MAGENTA);
+
+    // Draw the final chosen index if it's available (only going to be when
+    // we're dumping the config)
+    if (chosenMaximaIndex_ != -1) {
+        int32_t max = maxima[chosenMaximaIndex_].first;
+        cv::line(drawTarget_, cv::Point(binWidth_ * max, 0),
+                 cv::Point(binWidth_ * max, drawTarget_.rows), BGR_RED);
+    }
+
+    return drawTarget_;
 }
 
 // Finds the top 'N' maxima in the row being processed
-IndexIntensityPairVec NormalizedIntensityMap::sortedMaxima() const
+IndexIntensityPairVec IntensityMap::sortedMaxima() const
 {
     // Find derivative of intensity curve
     cv::Mat_<double> sobelDerivatives;
@@ -89,7 +108,7 @@ IndexIntensityPairVec NormalizedIntensityMap::sortedMaxima() const
                          (distWeight * rdist + (100 - distWeight) *
                   -rhs.second);
                          */
-                  const int32_t centerX = width_ / 2;
+                  const int32_t centerX = mapWidth_ / 2;
                   const auto ldist =
                       static_cast<int32_t>(std::abs(lhs.first - centerX));
                   const auto rdist =
