@@ -17,22 +17,12 @@ class LocalResliceSegmentation
 {
 public:
     LocalResliceSegmentation(VolumePkg& pkg) : pkg_(pkg) {}
-    pcl::PointCloud<pcl::PointXYZRGB> segmentPath(const vec<Voxel>& initPath,
-                                                  const double resamplePerc,
-                                                  const int32_t startIndex,
-                                                  const int32_t endIndex,
-                                                  const int32_t numIters,
-                                                  const int32_t keepNumMaxima,
-                                                  const int32_t stepNumLayers);
-
-    /*
-    pcl::PointCloud<pcl::PointXYZRGB> segmentLayer(
-        const bool showVisualization, const int32_t startIndex,
-        const int32_t endIndex, const int32_t stepNumLayers,
-        const double derivativeTolerance = kDefaultDerivativeTolerance,
-        const int32_t keepNumMaxima = kDefaultKeepNumMaxima,
-        const int32_t numIters = kDefaultNumIters);
-        */
+    pcl::PointCloud<pcl::PointXYZRGB> segmentPath(
+        const vec<Voxel>& initPath, const double resamplePerc,
+        const int32_t startIndex, const int32_t endIndex,
+        const int32_t numIters, const int32_t keepNumMaxima,
+        const int32_t stepNumLayers, const bool dumpVis, const bool visualize,
+        const int32_t visIndex);
 
 private:
     VolumePkg& pkg_;
@@ -40,7 +30,8 @@ private:
     cv::Vec3d estimateNormalAtIndex(const FittedCurve& curve,
                                     const int32_t index);
 
-    void drawParticlesOnSlice(const vec<Voxel>& vs, const int32_t index) const;
+    cv::Mat drawParticlesOnSlice(const vec<Voxel>& vs, const int32_t sliceIndex,
+                                 const int32_t particleIndex) const;
 
     constexpr static double kDefaultDerivativeTolerance = 1e-2;
     constexpr static int32_t kDefaultNumIters = 10;
