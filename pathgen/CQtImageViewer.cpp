@@ -42,7 +42,7 @@ bool CQtImageViewer::InitializeVolumePkg( const std::string &nVpkgPath )
 void CQtImageViewer::OpenSlice( int nPathOnSliceIndex )
 {
     // get image as cv::Mat
-    fVpkg->getSliceData( fPathOnSliceIndex ).copyTo( fImgMat );
+    fVpkg->volume().getSliceData( fPathOnSliceIndex ).copyTo( fImgMat );
 
     // convert 16-bit Mat to 8-bit 3-channel Mat
     // REVISIT - !!! for display purpose, we need to convert 16-bit volume slice to 8-bit image here

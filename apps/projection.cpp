@@ -68,7 +68,7 @@ int main( int argc, char *argv[] ) {
         std::cout << "Projecting slice " + std::to_string(z_id->first) + "\r" << std::flush;
         // get the slice image and cvt to CV_8UC3
         // .clone() to make sure we don't modify the cached version
-        cv::Mat slice = volpkg.getSliceData(z_id->first).clone();
+        cv::Mat slice = volpkg.volume().getSliceData(z_id->first).clone();
         slice.convertTo( slice, CV_8U, 255.0/65535.0);
         cv::cvtColor( slice, slice, CV_GRAY2BGR );
 
