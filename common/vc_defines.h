@@ -55,7 +55,9 @@ typedef VC_CellType::PointIdIterator                  VC_PointsInCellIterator;
 ///// UV Maps /////
 #include <opencv2/opencv.hpp>
 
-typedef cv::Vec2d VC_Origin;
+using VC_Origin = cv::Vec2d;
+using Voxel = cv::Vec3d;
+
 #define VC_ORIGIN_TOP_LEFT     VC_Origin(0,0)
 #define VC_ORIGIN_TOP_RIGHT    VC_Origin(1,0)
 #define VC_ORIGIN_BOTTOM_LEFT  VC_Origin(0,1)

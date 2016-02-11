@@ -87,7 +87,7 @@ Chain::step(const int32_t index, const int32_t stepNumLayers,
 
     // Get reslice in k-direction at this point.
     const auto normal = calculateNormal(index);
-    auto reslice = volpkg_.reslice(currentParticle, normal, VC_DIRECTION_K);
+    auto reslice = volpkg_.volume().reslice(currentParticle, normal, VC_DIRECTION_K);
     const auto mat = reslice.sliceData();
 
     // Get normalized intensity map and find the maxima
@@ -138,7 +138,7 @@ Chain::step(const int32_t index, const int32_t stepNumLayers,
 }
 
 void Chain::draw() const {
-    auto pkgSlice = volpkg_.getSliceData(zIndex_).clone();
+    auto pkgSlice = volpkg_.volume().getSliceData(zIndex_).clone();
     pkgSlice /= 255.0;
     pkgSlice.convertTo(pkgSlice, CV_8UC3);
     cvtColor(pkgSlice, pkgSlice, CV_GRAY2BGR);

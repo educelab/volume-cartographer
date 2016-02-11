@@ -2,7 +2,9 @@
 // Created by Ryan Taber on 1/29/16.
 //
 
+#ifndef VC_PREBUILT_LIBS
 #define BOOST_TEST_DYN_LINK
+#endif
 #define BOOST_TEST_MODULE smoothNormals
 
 #include <boost/test/unit_test.hpp>
@@ -55,7 +57,7 @@ struct normalFix {
         cubeMesh = cube.itkMesh();
         archMesh = arch.itkMesh();
         sphereMesh = sphere.itkMesh();
-        savedFactor = 4;
+        savedFactor = 2;
         tolerance = 0.00001; //TODO: confirm small enough value
 
         std::cerr << "setting up smoothNormals objects" << std::endl;
@@ -95,7 +97,7 @@ BOOST_FIXTURE_TEST_CASE(compareSmoothedPlane, normalFix){
     std::vector<VC_Cell> savedITKCells;
 
     //First, read the saved .obj file (cmake should copy from test_data to current build dir)
-    volcart::testing::ParsingHelpers::parseObjFile("smoothedPlane.obj", savedITKPoints, savedITKCells);
+    volcart::testing::ParsingHelpers::parseObjFile("PlaneWithSmoothedNormals.obj", savedITKPoints, savedITKCells);
 
     /*
      * Now the comparisons between the test-created-itk mesh (smoothedMesh)
@@ -184,7 +186,7 @@ BOOST_FIXTURE_TEST_CASE(compareSmoothedCube, normalFix){
     std::vector<VC_Cell> savedITKCells;
 
     //First, read the saved .obj file (cmake should copy from test_data to current build dir
-    volcart::testing::ParsingHelpers::parseObjFile("smoothedCube.obj", savedITKPoints, savedITKCells);
+    volcart::testing::ParsingHelpers::parseObjFile("CubeWithSmoothedNormals.obj", savedITKPoints, savedITKCells);
 
     /*
      * Now the comparisons between the test-created-itk mesh (smoothedMesh)
@@ -271,7 +273,7 @@ BOOST_FIXTURE_TEST_CASE(compareSmoothedSphere, normalFix){
     std::vector<VC_Cell> savedITKCells;
 
     //First, read the saved .obj file (cmake should copy from test_data to current build dir
-    volcart::testing::ParsingHelpers::parseObjFile("smoothedSphere.obj", savedITKPoints, savedITKCells);
+    volcart::testing::ParsingHelpers::parseObjFile("SphereWithSmoothedNormals.obj", savedITKPoints, savedITKCells);
 
     /*
      * Now the comparisons between the test-created-itk mesh (smoothedMesh)
@@ -358,7 +360,7 @@ BOOST_FIXTURE_TEST_CASE(compareSmoothedArch, normalFix){
     std::vector<VC_Cell> savedITKCells;
 
     //First, read the saved .obj file (cmake should copy from test_data to current build dir
-    volcart::testing::ParsingHelpers::parseObjFile("smoothedArch.obj", savedITKPoints, savedITKCells);
+    volcart::testing::ParsingHelpers::parseObjFile("ArchWithSmoothedNormals.obj", savedITKPoints, savedITKCells);
 
     /*
      * Now the comparisons between the test-created-itk mesh (smoothedMesh)
