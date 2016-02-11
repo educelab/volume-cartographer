@@ -6,10 +6,11 @@
 #include "VCNewGuiHeader.h"
 
 #include <QtWidgets>
-
+#include <QCloseEvent>
 #include "mathUtils.h"
 #include "CBSpline.h"
 #include "CXCurve.h"
+#include "QMessageBox"
 
 #include "ui_VCMain.h"
 
@@ -57,6 +58,8 @@ private:
     void CreateWidgets( void );
     void CreateMenus( void );
     void CreateActions( void );
+
+    void closeEvent(QCloseEvent *closing);
 
     void setWidgetsEnabled( bool state );
 
