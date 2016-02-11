@@ -52,7 +52,7 @@ public:
 
 protected:
     void mousePressEvent( QMouseEvent *nEvent );
-	void keyPressEvent( QKeyEvent *event );
+    void keyPressEvent( QKeyEvent *event );
 
 private:
     void CreateWidgets( void );

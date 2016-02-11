@@ -45,16 +45,10 @@ CWindow::CWindow( void ) :
     CreateActions();
     CreateMenus();
 
-#ifdef _DEBUG
-    if ( fVolumeViewerWidget == NULL ) {
-        QMessageBox::information( this, tr( "WARNING" ), tr( "Widget not found" ) );
-    } else {
-        OpenSlice();
-        UpdateView();
+    OpenSlice();
+    UpdateView();
 
-        update();
-    }
-#endif // _DEBUG
+    update();
 }
 
 // Constructor with QRect windowSize
@@ -95,16 +89,10 @@ CWindow::CWindow( QRect windowSize ) :
     CreateActions();
     CreateMenus();
 
-#ifdef _DEBUG
-    if ( fVolumeViewerWidget == NULL ) {
-        QMessageBox::information( this, tr( "WARNING" ), tr( "Widget not found" ) );
-    } else {
-        OpenSlice();
-        UpdateView();
+    OpenSlice();
+    UpdateView();
 
-        update();
-    }
-#endif // _DEBUG
+    update();
 }
 
 // Destructor
@@ -121,12 +109,12 @@ void CWindow::mousePressEvent( QMouseEvent *nEvent )
 // Handle key press event
 void CWindow::keyPressEvent( QKeyEvent *event )
 {
-	if ( event->key() == Qt::Key_Escape ) {
-		// REVISIT - should prompt warning before exit
-		close();
-	} else {
-		// REVISIT - dispatch key press event
-	}
+    if ( event->key() == Qt::Key_Escape ) {
+        // REVISIT - should prompt warning before exit
+        close();
+    } else {
+        // REVISIT - dispatch key press event
+    }
 }
 
 // Create widgets
