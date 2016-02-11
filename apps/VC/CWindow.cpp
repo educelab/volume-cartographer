@@ -45,16 +45,54 @@ CWindow::CWindow( void ) :
     CreateActions();
     CreateMenus();
 
-#ifdef _DEBUG
-    if ( fVolumeViewerWidget == NULL ) {
-        QMessageBox::information( this, tr( "WARNING" ), tr( "Widget not found" ) );
-    } else {
-        OpenSlice();
-        UpdateView();
+    OpenSlice();
+    UpdateView();
 
-        update();
-    }
-#endif // _DEBUG
+    update();
+}
+
+// Constructor with QRect windowSize
+CWindow::CWindow( QRect windowSize ) :
+        fVpkg( NULL ),
+        fPathOnSliceIndex( 0 ),
+        fVolumeViewerWidget( NULL ),
+        fPathListWidget( NULL ),
+        fPenTool( NULL ),
+        fSegTool( NULL ),
+        fWindowState( EWindowState::WindowStateIdle ),
+        fSegmentationId( "" ),
+        fMinSegIndex( VOLPKG_SLICE_MIN_INDEX ),
+        fMaxSegIndex( VOLPKG_SLICE_MIN_INDEX )
+{
+    ui.setupUi( this );
+
+    int height = windowSize.height();
+    int width = windowSize.width();
+
+    //MIN DIMENSIONS
+    window()->setMinimumHeight(height/2);
+    window()->setMinimumWidth(width/2);
+    //MAX DIMENSIONS
+    window()->setMaximumHeight(height);
+    window()->setMaximumWidth(width);
+
+    // default parameters for segmentation method
+    // REVISIT - refactor me
+    fSegParams.fGravityScale = 0.3;
+    fSegParams.fThreshold = 1;
+    fSegParams.fEndOffset = 5;
+
+    // create UI widgets
+    CreateWidgets();
+
+    // create menu
+    CreateActions();
+    CreateMenus();
+
+    OpenSlice();
+    UpdateView();
+
+    update();
 }
 
 // Destructor
@@ -71,12 +109,12 @@ void CWindow::mousePressEvent( QMouseEvent *nEvent )
 // Handle key press event
 void CWindow::keyPressEvent( QKeyEvent *event )
 {
-	if ( event->key() == Qt::Key_Escape ) {
-		// REVISIT - should prompt warning before exit
-		close();
-	} else {
-		// REVISIT - dispatch key press event
-	}
+    if ( event->key() == Qt::Key_Escape ) {
+        // REVISIT - should prompt warning before exit
+        close();
+    } else {
+        // REVISIT - dispatch key press event
+    }
 }
 
 // Create widgets
