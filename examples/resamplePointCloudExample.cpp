@@ -4,7 +4,7 @@
 
 /*
  * Purpose: Run volcart::meshing::resamplePointCloud() and write results to file.
- *          Saved file will be read in by the resamplePointCloudTest.cpp file under
+ *          Saved files will be read in by the resamplePointCloudTest.cpp file under
  *          v-c/testing/meshing.
  */
 
@@ -13,22 +13,75 @@
 #include "resamplePointCloud.h"
 #include <pcl/io/pcd_io.h>
 
+//helper function
+double CalculateRadius(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
+
 int main() {
 
-    //Construct a planar mesh and convert to <PointXYZ> point cloud
-    volcart::shapes::Plane mesh;
-    pcl::PointCloud <pcl::PointXYZ> pCloud = mesh.pointCloudXYZ();
+    //Construct a shapes and convert to <PointXYZ> point cloud
+    volcart::shapes::Plane Plane;
+    volcart::shapes::Cube Cube;
+    volcart::shapes::Arch Arch;
+    volcart::shapes::Sphere Sphere;
+    volcart::shapes::Cone Cone;
 
-    //convert pCloud to Ptr for resample() call
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
-    *cloud = pCloud;
+    pcl::PointCloud <pcl::PointXYZ> PlaneCloudXYZ = Plane.pointCloudXYZ();
+    pcl::PointCloud <pcl::PointXYZ> CubeCloudXYZ = Cube.pointCloudXYZ();
+    pcl::PointCloud <pcl::PointXYZ> ArchCloudXYZ = Arch.pointCloudXYZ();
+    pcl::PointCloud <pcl::PointXYZ> SphereCloudXYZ = Sphere.pointCloudXYZ();
+    pcl::PointCloud <pcl::PointXYZ> ConeCloudXYZ = Cone.pointCloudXYZ();
 
-    //init PointCloud that will store the resample() call results
-    pcl::PointCloud <pcl::PointNormal> resampledCloud;
+    //convert shape Point Clouds to Ptr for resample() calls
+    pcl::PointCloud<pcl::PointXYZ>::Ptr PlaneCloudPtr (new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr CubeCloudPtr (new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr ArchCloudPtr (new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr SphereCloudPtr (new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr ConeCloudPtr (new pcl::PointCloud<pcl::PointXYZ>);
 
-    /*
-     * Determine the ideal search radius for the resample call
-     */
+    //transfer data to cloud ptrs
+    *PlaneCloudPtr = PlaneCloudXYZ;
+    *CubeCloudPtr = CubeCloudXYZ;
+    *ArchCloudPtr = ArchCloudXYZ;
+    *SphereCloudPtr = SphereCloudXYZ;
+    *ConeCloudPtr = ConeCloudXYZ;
+
+    //init PointClouds that will store the resample() call results
+    pcl::PointCloud <pcl::PointNormal> out_PlaneResampledPointCloud;
+    pcl::PointCloud <pcl::PointNormal> out_CubeResampledPointCloud;
+    pcl::PointCloud <pcl::PointNormal> out_ArchResampledPointCloud;
+    pcl::PointCloud <pcl::PointNormal> out_SphereResampledPointCloud;
+    pcl::PointCloud <pcl::PointNormal> out_ConeResampledPointCloud;
+
+    //make calls to resample()
+    out_PlaneResampledPointCloud = volcart::meshing::resamplePointCloud(PlaneCloudPtr, CalculateRadius(PlaneCloudPtr));
+    out_CubeResampledPointCloud = volcart::meshing::resamplePointCloud(CubeCloudPtr, CalculateRadius(CubeCloudPtr));
+    out_ArchResampledPointCloud = volcart::meshing::resamplePointCloud(ArchCloudPtr, CalculateRadius(ArchCloudPtr));
+    out_SphereResampledPointCloud = volcart::meshing::resamplePointCloud(SphereCloudPtr, CalculateRadius(SphereCloudPtr));
+    out_ConeResampledPointCloud = volcart::meshing::resamplePointCloud(ConeCloudPtr, CalculateRadius(ConeCloudPtr));
+
+    //write the resampled PointCloud data to file
+    pcl::io::savePCDFile("PlaneResamplePointCloudExample.pcd", out_PlaneResampledPointCloud);
+    pcl::io::savePCDFile("CubeResamplePointCloudExample.pcd", out_CubeResampledPointCloud);
+    pcl::io::savePCDFile("ArchResamplePointCloudExample.pcd", out_ArchResampledPointCloud);
+    pcl::io::savePCDFile("SphereResamplePointCloudExample.pcd", out_SphereResampledPointCloud);
+    pcl::io::savePCDFile("ConeResamplePointCloudExample.pcd", out_ConeResampledPointCloud);
+
+    std::cerr << "Files written:" << std::endl
+              << "PlaneResamplePointCloudExample.pcd" << std::endl
+              << "CubeResamplePointCloudExample.pcd" << std::endl
+              << "ArchResamplePointCloudExample.pcd" << std::endl
+              << "SphereResamplePointCloudExample.pcd" << std::endl
+              << "ConeResamplePointCloudExample.pcd" << std::endl;
+
+    return EXIT_SUCCESS;
+}
+
+
+double CalculateRadius(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud){
+
+  /*
+   * Determine the ideal search radius for the resample call
+   */
 
     float avgDistance = 0;
     int count = 0;
@@ -50,18 +103,6 @@ int main() {
 
     avgDistance /= count;
 
-    //set search radius based on 2.5(avgDistance) and call resample()
-    double radius = 2.5 * avgDistance;
-
-    //call resample PC twice
-    resampledCloud = volcart::meshing::resamplePointCloud(cloud, radius);
-
-    //write the resampled PointCloud data to file
-    pcl::io::savePCDFile("resampleExample.pcd", resampledCloud);
-
-
-    std::cerr << "File written to resampleExample.pcd" << std::endl;
-
-    return 0;
+    //set search radius based on 2.5(avgDistance)
+    return 2.5 * avgDistance;
 }
-
