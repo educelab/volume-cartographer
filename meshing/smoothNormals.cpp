@@ -6,67 +6,61 @@
 namespace volcart {
     namespace meshing {
 
-        VC_MeshType::Pointer smoothNormals(VC_MeshType::Pointer inputMesh,
-                                           double               smoothingFactor) {
+        VC_MeshType::Pointer smoothNormals(VC_MeshType::Pointer input,
+                                           double               radius) {
 
-            std::cerr << "volcart::meshing::smoothNormals: radius " << smoothingFactor << std::endl;
+            std::cerr << "volcart::meshing::smoothNormals: radius " << radius << std::endl;
             // declare pointer to new Mesh object to be returned
             VC_MeshType::Pointer outputMesh = VC_MeshType::New();
-            outputMesh = inputMesh; // copy faces, points, and old normals from input mesh
-
-            // Define iterators
-            VC_PointsInMeshIterator currentPoint, neighborPoint;
-            currentPoint = inputMesh->GetPoints()->Begin();
-            VC_PointsInMeshIterator pointsEnd = inputMesh->GetPoints()->End();
+            volcart::meshing::deepCopy(input, outputMesh);
 
             // Variables for normal smoothing
-            // cv::Vec3d neighborAvg;
-            std::vector<long double> neighborAvg(3, 0);
-            double neighborCount, distance, pointID;
+            cv::Vec3d neighborAvg;
+            double neighborCount;
 
             // Use pointsLocator to find neighborhood within given radius
             typename VC_PointsLocatorType::Pointer pointsLocator = VC_PointsLocatorType::New();
-            pointsLocator->SetPoints(inputMesh->GetPoints());
+            pointsLocator->SetPoints(input->GetPoints());
             pointsLocator->Initialize();
             typename VC_PointsLocatorType::NeighborsIdentifierType neighborhood;
 
             // Iterate over all of the cells to lay out the faces in the output texture
-            while (currentPoint != pointsEnd) {
-                std::cerr << "volcart::meshing::smoothNormals: " << currentPoint.Index() << "/" << pointsEnd.Index() << "\r" << std::flush;
+            for (VC_PointsInMeshIterator point = input->GetPoints()->Begin(); point != input->GetPoints()->End(); ++point) {
+                std::cerr << "volcart::meshing::smoothNormals: " << point.Index() << "/" << input->GetNumberOfPoints() - 1 << "\r" << std::flush;
 
-                VC_PointType p = currentPoint.Value();
-                VC_PixelType currentNormal;
-                inputMesh->GetPointData(currentPoint.Index(), &currentNormal);
-
+                // Empty our averaging variables
+                if ( !neighborhood.empty() ) neighborhood.clear();
                 neighborCount = 0;
-                neighborAvg[0] = 0;
-                neighborAvg[1] = 0;
-                neighborAvg[2] = 0;
-                neighborPoint = inputMesh->GetPoints()->Begin();
+                neighborAvg = cv::Vec3d(0,0,0);
 
-                // find neighborhood for current point (p) within radius
-                pointsLocator->FindPointsWithinRadius(p, smoothingFactor, neighborhood);
-                neighborCount = neighborhood.size();
+                // Get the current normal and add it to the summed normal
+                VC_PixelType currentNormal;
+                input->GetPointData(point.Index(), &currentNormal);
+                neighborAvg[0] += currentNormal[0];
+                neighborAvg[1] += currentNormal[1];
+                neighborAvg[2] += currentNormal[2];
+                ++neighborCount;
 
-                for (int i = 0; i < neighborCount; ++i) {
-                    pointID = neighborhood[i];
-                    VC_PointType p2 = inputMesh->GetPoint(pointID);
+                // find neighborhood for current point within radius
+                pointsLocator->FindPointsWithinRadius(point->Value(), radius, neighborhood);
+
+                // Sum the normals of the neighbors
+                for (auto n_pt = neighborhood.begin(); n_pt != neighborhood.end(); ++n_pt) {
                     VC_PixelType neighborNormal;
-                    inputMesh->GetPointData(neighborPoint.Index(), &neighborNormal);
+                    input->GetPointData(*n_pt, &neighborNormal);
 
                     neighborAvg[0] += neighborNormal[0];
                     neighborAvg[1] += neighborNormal[1];
                     neighborAvg[2] += neighborNormal[2];
-                }
-                if (neighborCount > 0) {
-                    // Calculate neighborhood's normal average and smooth
-                    currentNormal[0] = neighborAvg[0] / neighborCount;
-                    currentNormal[1] = neighborAvg[1] / neighborCount;
-                    currentNormal[2] = neighborAvg[2] / neighborCount;
-                    outputMesh->SetPointData(currentPoint.Index(), currentNormal);
+                    ++neighborCount;
                 }
 
-                ++currentPoint;
+                // Average the sum normal
+                currentNormal[0] = neighborAvg[0] / neighborCount;
+                currentNormal[1] = neighborAvg[1] / neighborCount;
+                currentNormal[2] = neighborAvg[2] / neighborCount;
+                outputMesh->SetPointData(point.Index(), currentNormal);
+
             }
             std::cerr << std::endl;
 
