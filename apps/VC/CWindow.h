@@ -6,7 +6,7 @@
 #include "VCNewGuiHeader.h"
 
 #include <QtWidgets>
-
+#include <QRect>
 #include "mathUtils.h"
 #include "CBSpline.h"
 #include "CXCurve.h"
@@ -47,11 +47,12 @@ public:
 
 public:
     CWindow( void );
+    CWindow(QRect windowSize);
     ~CWindow( void );
 
 protected:
     void mousePressEvent( QMouseEvent *nEvent );
-	void keyPressEvent( QKeyEvent *event );
+    void keyPressEvent( QKeyEvent *event );
 
 private:
     void CreateWidgets( void );
