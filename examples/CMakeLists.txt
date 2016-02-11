@@ -27,8 +27,8 @@ target_link_libraries(vc_poissonExample ${VC_LIBS} ${VC_REQ_LIBS})
 
 add_executable(vc_plyExporterExample plyExporterExample.cpp)
 target_link_libraries(vc_plyExporterExample ${VC_LIBS} ${VC_REQ_LIBS})
-add_executable(vc_resamplePointCloudExample resamplePointCloudExample.cpp)
 
+add_executable(vc_resamplePointCloudExample resamplePointCloudExample.cpp)
 target_link_libraries(vc_resamplePointCloudExample ${VC_LIBS} ${VC_REQ_LIBS})
 
 add_executable(vc_orderedPCDExample orderedPCDMesherExample.cpp)
@@ -39,17 +39,21 @@ file(COPY ../testing/test_data/meshing/itk.obj DESTINATION ${CMAKE_BINARY_DIR}/e
 add_executable(vc_parsingHelpers parsingHelpersExample.cpp ../testing/parsingHelpers.cpp ../testing/parsingHelpers.h)
 target_link_libraries(vc_parsingHelpers ${VC_LIBS} ${VC_REQ_LIBS} )
 
-add_executable(vc_verifyStructureTensor VerifyStructureTensor.cpp)
-target_link_libraries(vc_verifyStructureTensor ${VC_LIBS} ${VC_REQ_LIBS})
-
 add_executable(vc_rayTraceExample rayTraceExample.cpp)
 target_link_libraries(vc_rayTraceExample ${VC_LIBS} ${VC_REQ_LIBS})
 
-add_executable(vc_structureTensorClient StructureTensorClient.cpp)
-target_link_libraries(vc_structureTensorClient ${VC_LIBS} ${VC_REQ_LIBS})
-
 add_executable(vc_smoothNormalsExample smoothNormalsExample.cpp)
 target_link_libraries(vc_smoothNormalsExample ${VC_LIBS} ${VC_REQ_LIBS})
+
+###############
+#  CNN Tools  #
+###############
+
+add_executable(vc_verifyStructureTensor VerifyStructureTensor.cpp)
+target_link_libraries(vc_verifyStructureTensor ${VC_LIBS} ${VC_REQ_LIBS})
+
+add_executable(vc_structureTensorClient StructureTensorClient.cpp)
+target_link_libraries(vc_structureTensorClient ${VC_LIBS} ${VC_REQ_LIBS})
 
 # Need exact version for outputting correctly-formatted HDF5 files for caffe to read in
 find_package(HDF5 1.8.15 EXACT)
