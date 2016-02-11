@@ -6,6 +6,7 @@
 #include "VCNewGuiHeader.h"
 
 #include <QtWidgets>
+#include <QRect>
 #include <QCloseEvent>
 #include "mathUtils.h"
 #include "CBSpline.h"
