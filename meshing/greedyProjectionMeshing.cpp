@@ -7,14 +7,14 @@
 namespace volcart {
     namespace meshing {
 
-        pcl::PolygonMesh greedyProjectionMeshing ( pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr input, unsigned maxNeighbors, double radius, double radiusMultiplier ) {
+        pcl::PolygonMesh greedyProjectionMeshing ( pcl::PointCloud<pcl::PointNormal>::Ptr input, unsigned maxNeighbors, double radius, double radiusMultiplier ) {
 
             // Make a Kd-tree for the input cloud
-            pcl::search::KdTree<pcl::PointXYZRGBNormal>::Ptr input_tree (new pcl::search::KdTree<pcl::PointXYZRGBNormal>() );
+            pcl::search::KdTree<pcl::PointNormal>::Ptr input_tree (new pcl::search::KdTree<pcl::PointNormal>() );
             input_tree->setInputCloud(input);
 
             // Create the gpt instance and our output mesh
-            pcl::GreedyProjectionTriangulation<pcl::PointXYZRGBNormal> greedyProjection;
+            pcl::GreedyProjectionTriangulation<pcl::PointNormal> greedyProjection;
             pcl::PolygonMesh output;
 
             // Maximum distance between connected points

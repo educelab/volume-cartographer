@@ -5,13 +5,22 @@ stages:
 build_it_test_it:
     stage: test
     script:
+        - echo $CI_BUILD_REF_NAME  #just checking out branch specifics
         - echo "---- Work it. Make it. ----"
-        - mkdir build
+        # create build dir if not present
+        - mkdir -p build
         - cd build/
         - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 ..
         - make
-        - echo "---- Do it. Makes us. ----"
-        - echo "Testing coming soon..."
+        - echo "---- Do it. Makes us. ----"   # TODO: remove once build/test stage completely separate
+        - make test                           #       remove this too
+    artifacts:
+      paths:
+        - build/testing/Temporary/
+    cache:
+      key: "$CI_BUILD_REF_NAME"    # enable per-branch caching
+      paths:
+        - build/
     tags:
         - test
         - osx
