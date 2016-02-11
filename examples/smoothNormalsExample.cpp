@@ -7,7 +7,7 @@
  *          Saved file will be read in by the smoothNormalsTest.cpp file under
  *          v-c/testing/meshing.
  *
- * Note: Uses a smoothing factor of 4, which is mirrored in the corresponding test.
+ * Note: Uses a smoothing factor of 2, which is mirrored in the corresponding test.
  *       Creates an obj file for each of the derived shapes after calling smoothNormals().
  */
 
@@ -20,7 +20,7 @@
 int main(){
 
     //smoothing factor
-    double factor = 4;
+    double factor = 2;
 
     //Declare shape objects
     volcart::shapes::Plane Plane;

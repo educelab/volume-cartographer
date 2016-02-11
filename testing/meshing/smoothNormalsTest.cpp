@@ -20,13 +20,14 @@
  *                                                                                  *
  *        1. confirm volcart::meshing::smoothNormals() works as expected            *
  *                                                                                  *
- *  This file is broken up into a test fixture (normalFix) which initializes        *
- *  the objects used for the test case.                                             *
+ *  This file is broken up into a test fixture (SmoothNormalsFixture) which         *
+ *  intitializes the objects used for the test case.                                *
  *                                                                                  *
- *  1. compareSmoothedPlane (fixture test case)                                     *
- *  2. compareSmoothedCube (fixture test case)                                      *
- *  3. compareSmoothedSphere (fixture test case)                                    *
- *  4. compareSmoothedArch (fixture test case)                                      *
+ *  1. CompareSmoothedPlane (fixture test case)                                     *
+ *  2. CompareSmoothedCube (fixture test case)                                      *
+ *  3. CompareSmoothedSphere (fixture test case)                                    *
+ *  4. CompareSmoothedArch (fixture test case)                                      *
+ *  5. SmoothWithZeroRadiusTest (fixture test case)                                 *
  *                                                                                  *
  * Input:                                                                           *
  *     No required inputs for this sample test. All test objects are created        *
@@ -47,30 +48,57 @@
  *
  */
 
-struct normalFix {
+struct SmoothNormalsFixture {
 
-    normalFix() {
+    SmoothNormalsFixture() {
 
-        planeMesh = plane.itkMesh();
-        cubeMesh = cube.itkMesh();
-        archMesh = arch.itkMesh();
-        sphereMesh = sphere.itkMesh();
-        savedFactor = 4;
-        tolerance = 0.00001; //TODO: confirm small enough value
+        //smoothing radius and _Tolerance value for later comparisons
+        _SmoothingFactor = 2;
+        _Tolerance = 0.00001;
+
+        //assign input meshes that will be smoothed
+        _in_PlaneMesh = _Plane.itkMesh();
+        _in_CubeMesh = _Cube.itkMesh();
+        _in_ArchMesh = _Arch.itkMesh();
+        _in_SphereMesh = _Sphere.itkMesh();
+        _in_ConeMesh = _Cone.itkMesh();
+
+        //call smoothNormals and assign results to output meshes
+        _out_SmoothedPlaneMesh = volcart::meshing::smoothNormals(_in_PlaneMesh, _SmoothingFactor);
+        _out_SmoothedCubeMesh = volcart::meshing::smoothNormals(_in_CubeMesh, _SmoothingFactor);
+        _out_SmoothedArchMesh = volcart::meshing::smoothNormals(_in_ArchMesh, _SmoothingFactor);
+        _out_SmoothedSphereMesh = volcart::meshing::smoothNormals(_in_SphereMesh, _SmoothingFactor);
+        _out_SmoothedConeMesh = volcart::meshing::smoothNormals(_in_ConeMesh, _SmoothingFactor);
+
+        //read in saved obj files created by SmoothNormalsExample.cpp
+        volcart::testing::ParsingHelpers::parseObjFile("PlaneWithSmoothedNormals.obj", _SavedPlanePoints, _SavedPlaneCells);
+        volcart::testing::ParsingHelpers::parseObjFile("CubeWithSmoothedNormals.obj", _SavedCubePoints, _SavedCubeCells);
+        volcart::testing::ParsingHelpers::parseObjFile("ArchWithSmoothedNormals.obj", _SavedArchPoints, _SavedArchCells);
+        volcart::testing::ParsingHelpers::parseObjFile("SphereWithSmoothedNormals.obj", _SavedSpherePoints, _SavedSphereCells);
+        volcart::testing::ParsingHelpers::parseObjFile("ConeWithSmoothedNormals.obj", _SavedConePoints, _SavedConeCells);
 
         std::cerr << "setting up smoothNormals objects" << std::endl;
     }
 
-    ~normalFix(){ std::cerr << "cleaning up smoothNormals objects" << std::endl; }
+    ~SmoothNormalsFixture(){ std::cerr << "cleaning up smoothNormals objects" << std::endl; }
 
-    VC_MeshType::Pointer planeMesh, cubeMesh, sphereMesh, archMesh, smoothedMesh;
-    volcart::shapes::Plane plane;
-    volcart::shapes::Cube cube;
-    volcart::shapes::Sphere sphere;
-    volcart::shapes::Arch arch;
-    double tolerance;   //used to check equivalency of values from saved files
-    double savedFactor;
+    //init input and output mesh ptrs
+    VC_MeshType::Pointer _in_PlaneMesh, _in_CubeMesh, _in_SphereMesh, _in_ArchMesh, _in_ConeMesh;
+    VC_MeshType::Pointer _out_SmoothedPlaneMesh, _out_SmoothedCubeMesh, _out_SmoothedSphereMesh,
+                         _out_SmoothedArchMesh, _out_SmoothedConeMesh;
+    //init shapes
+    volcart::shapes::Plane _Plane;
+    volcart::shapes::Cube _Cube;
+    volcart::shapes::Sphere _Sphere;
+    volcart::shapes::Arch _Arch;
+    volcart::shapes::Cone _Cone;
 
+    double _Tolerance;
+    double _SmoothingFactor;
+
+    //init vectors to hold points and cells from savedITK data files
+    std::vector<VC_Vertex> _SavedPlanePoints, _SavedCubePoints, _SavedArchPoints, _SavedSpherePoints, _SavedConePoints;
+    std::vector<VC_Cell> _SavedPlaneCells, _SavedCubeCells, _SavedArchCells, _SavedSphereCells, _SavedConeCells;
 };
 
 
@@ -78,394 +106,445 @@ struct normalFix {
  * The next four tests use the obj files representing the smoothed shapes created by smoothingExample.cpp
  * and compares these files to test-specific calls smoothNormals() using the same shape objects.
  *
- * Smoothing factor should be 4 for each test case
+ * Smoothing factor should be 2 for each test case
  *
  * Split the tests into four cases for log purposes and pinpointing errors faster if there should be
  * an issue in the future.
  *
  */
 
-BOOST_FIXTURE_TEST_CASE(compareSmoothedPlane, normalFix){
-
-    //call smoothNormals fixture-generated plane
-    smoothedMesh = volcart::meshing::smoothNormals(planeMesh, savedFactor);
-
-    //init vectors to hold points and cells from savedITK data file
-    std::vector<VC_Vertex> savedITKPoints;
-    std::vector<VC_Cell> savedITKCells;
-
-    //First, read the saved .obj file (cmake should copy from test_data to current build dir)
-    volcart::testing::ParsingHelpers::parseObjFile("smoothedPlane.obj", savedITKPoints, savedITKCells);
-
-    /*
-     * Now the comparisons between the test-created-itk mesh (smoothedMesh)
-     * and the saved data from smoothedPlane.obj (stored in savedITKPoints and savedITKCells)
-     * will occur. Points --> normals --> faces.
-     */
+BOOST_FIXTURE_TEST_CASE(CompareFixtureSmoothedPlaneWithSavedPlaneTest, SmoothNormalsFixture){
 
     //Check number of points in each mesh
-    BOOST_CHECK_EQUAL( smoothedMesh->GetNumberOfPoints(), savedITKPoints.size() );
+    BOOST_CHECK_EQUAL( _out_SmoothedPlaneMesh->GetNumberOfPoints(), _SavedPlanePoints.size() );
+    BOOST_CHECK_EQUAL(_out_SmoothedPlaneMesh->GetNumberOfCells(), _SavedPlaneCells.size());
 
-    std::cerr << "Comparing points..." << std::endl;
-    //Now iterate over point sets and compare x/y/z values
-    for ( size_t p_id = 0; p_id < smoothedMesh ->GetNumberOfPoints(); ++p_id) {
+    //points
+    for ( size_t p_id = 0; p_id < _out_SmoothedPlaneMesh ->GetNumberOfPoints(); ++p_id) {
 
 
-        BOOST_CHECK_CLOSE(smoothedMesh->GetPoint(p_id)[0], savedITKPoints[p_id].x, tolerance);
-        BOOST_CHECK_CLOSE(smoothedMesh->GetPoint(p_id)[1], savedITKPoints[p_id].y, tolerance);
-        BOOST_CHECK_CLOSE(smoothedMesh->GetPoint(p_id)[2], savedITKPoints[p_id].z, tolerance);
+        BOOST_CHECK_CLOSE(_out_SmoothedPlaneMesh->GetPoint(p_id)[0], _SavedPlanePoints[p_id].x, _Tolerance);
+        BOOST_CHECK_CLOSE(_out_SmoothedPlaneMesh->GetPoint(p_id)[1], _SavedPlanePoints[p_id].y, _Tolerance);
+        BOOST_CHECK_CLOSE(_out_SmoothedPlaneMesh->GetPoint(p_id)[2], _SavedPlanePoints[p_id].z, _Tolerance);
     }
 
-    std::cerr << "Comparing normals..." << std::endl;
+    //normals
     int p = 0;
-    for ( VC_PointsInMeshIterator point = smoothedMesh->GetPoints()->Begin(); point != smoothedMesh->GetPoints()->End(); ++point ) {
+    VC_PointsInMeshIterator point = _out_SmoothedPlaneMesh->GetPoints()->Begin();
+    for ( ; point != _out_SmoothedPlaneMesh->GetPoints()->End(); ++point ) {
 
-        VC_PixelType Normal;
-        smoothedMesh->GetPointData(point.Index(), &Normal);
-
-        //double ptNorm[3] = {planeNormal[0], planeNormal[1], planeNormal[2]};
+        VC_PixelType out_PlaneNormal;
+        _out_SmoothedPlaneMesh->GetPointData(point.Index(), &out_PlaneNormal);
 
         //Now compare the normals for the two meshes
-        BOOST_CHECK_EQUAL(Normal[0], savedITKPoints[p].nx);
-        BOOST_CHECK_EQUAL(Normal[1], savedITKPoints[p].ny);
-        BOOST_CHECK_EQUAL(Normal[2], savedITKPoints[p].nz);
+        BOOST_CHECK_EQUAL(out_PlaneNormal[0], _SavedPlanePoints[p].nx);
+        BOOST_CHECK_EQUAL(out_PlaneNormal[1], _SavedPlanePoints[p].ny);
+        BOOST_CHECK_EQUAL(out_PlaneNormal[2], _SavedPlanePoints[p].nz);
 
         p++;
 
     }
 
-    std::cerr << "Comparing faces..." << std::endl;
-
-    //compare number of cells in each itk mesh
-    BOOST_CHECK_EQUAL(smoothedMesh->GetNumberOfCells(), savedITKCells.size());
-
-    // Initialize Cell Iterators
-    VC_CellIterator planeCell = smoothedMesh->GetCells()->Begin();
+    //cells
+    VC_CellIterator out_PlaneCell = _out_SmoothedPlaneMesh->GetCells()->Begin();
 
     int c = 0;
 
-    while (planeCell != smoothedMesh->GetCells()->End()) {
+    while (out_PlaneCell != _out_SmoothedPlaneMesh->GetCells()->End()) {
 
         //Initialize Iterators for Points in a Cell
-        VC_PointsInCellIterator planeMeshPoint = planeCell.Value()->PointIdsBegin();
+        VC_PointsInCellIterator out_PlaneMeshPointId = out_PlaneCell.Value()->PointIdsBegin();
 
         int counter = 0;
         //while we have points in the cell
-        while ( planeMeshPoint != planeCell.Value()->PointIdsEnd() ) {
+        while ( out_PlaneMeshPointId != out_PlaneCell.Value()->PointIdsEnd() ) {
 
             //Now to check the points within the cells
             if (counter == 0)
-                BOOST_CHECK_EQUAL(*planeMeshPoint, savedITKCells[c].v1);
+                BOOST_CHECK_EQUAL(*out_PlaneMeshPointId, _SavedPlaneCells[c].v1);
             else if(counter == 1)
-                BOOST_CHECK_EQUAL(*planeMeshPoint, savedITKCells[c].v2);
+                BOOST_CHECK_EQUAL(*out_PlaneMeshPointId, _SavedPlaneCells[c].v2);
             else if (counter == 2)
-                BOOST_CHECK_EQUAL(*planeMeshPoint, savedITKCells[c].v3);
+                BOOST_CHECK_EQUAL(*out_PlaneMeshPointId, _SavedPlaneCells[c].v3);
 
             //increment points
-            planeMeshPoint++;
+            out_PlaneMeshPointId++;
             counter++;
-
         }
 
         //increment cells
-        ++planeCell;
+        ++out_PlaneCell;
         ++c;
     }
 }
 
 
-BOOST_FIXTURE_TEST_CASE(compareSmoothedCube, normalFix){
+//           //
+//           //
+//   CUBE    //
+//           //
+//           //
 
-    //call smoothNormals fixture-generated plane
-    smoothedMesh = volcart::meshing::smoothNormals(cubeMesh, savedFactor);
+BOOST_FIXTURE_TEST_CASE(CompareFixtureSmoothedCubeWithSavedCubeTest, SmoothNormalsFixture){
 
-    //init vectors to hold points and cells from savedITK data file
-    std::vector<VC_Vertex> savedITKPoints;
-    std::vector<VC_Cell> savedITKCells;
+    //Check number of points and cells in each mesh
+    BOOST_CHECK_EQUAL( _out_SmoothedCubeMesh->GetNumberOfPoints(), _SavedCubePoints.size() );
+    BOOST_CHECK_EQUAL(_out_SmoothedCubeMesh->GetNumberOfCells(), _SavedCubeCells.size());
 
-    //First, read the saved .obj file (cmake should copy from test_data to current build dir
-    volcart::testing::ParsingHelpers::parseObjFile("smoothedCube.obj", savedITKPoints, savedITKCells);
+    //points
+    for ( size_t p_id = 0; p_id < _out_SmoothedCubeMesh ->GetNumberOfPoints(); ++p_id) {
 
-    /*
-     * Now the comparisons between the test-created-itk mesh (smoothedMesh)
-     * and the saved data from smoothedPlane.obj (stored in savedITKPoints and savedITKCells)
-     * will occur. Points --> normals --> faces.
-     */
-
-    //Check number of points in each mesh
-    BOOST_CHECK_EQUAL( smoothedMesh->GetNumberOfPoints(), savedITKPoints.size() );
-
-    std::cerr << "Comparing points..." << std::endl;
-    //Now iterate over point sets and compare x/y/z values
-    for ( size_t p_id = 0; p_id < smoothedMesh ->GetNumberOfPoints(); ++p_id) {
-
-        BOOST_CHECK_CLOSE(smoothedMesh->GetPoint(p_id)[0], savedITKPoints[p_id].x, tolerance);
-        BOOST_CHECK_CLOSE(smoothedMesh->GetPoint(p_id)[1], savedITKPoints[p_id].y, tolerance);
-        BOOST_CHECK_CLOSE(smoothedMesh->GetPoint(p_id)[2], savedITKPoints[p_id].z, tolerance);
+        BOOST_CHECK_CLOSE(_out_SmoothedCubeMesh->GetPoint(p_id)[0], _SavedCubePoints[p_id].x, _Tolerance);
+        BOOST_CHECK_CLOSE(_out_SmoothedCubeMesh->GetPoint(p_id)[1], _SavedCubePoints[p_id].y, _Tolerance);
+        BOOST_CHECK_CLOSE(_out_SmoothedCubeMesh->GetPoint(p_id)[2], _SavedCubePoints[p_id].z, _Tolerance);
     }
 
-    std::cerr << "Comparing normals..." << std::endl;
+    //normals
     int p = 0;
-    for ( VC_PointsInMeshIterator point = smoothedMesh->GetPoints()->Begin(); point != smoothedMesh->GetPoints()->End(); ++point ) {
+    VC_PointsInMeshIterator point = _out_SmoothedCubeMesh->GetPoints()->Begin();
 
-        VC_PixelType Normal;
-        smoothedMesh->GetPointData(point.Index(), &Normal);
+    for ( ; point != _out_SmoothedCubeMesh->GetPoints()->End(); ++point ) {
 
-        //double ptNorm[3] = {planeNormal[0], planeNormal[1], planeNormal[2]};
+        VC_PixelType out_CubeNormal;
+        _out_SmoothedCubeMesh->GetPointData(point.Index(), &out_CubeNormal);
 
         //Now compare the normals for the two meshes
-        BOOST_CHECK_EQUAL(Normal[0], savedITKPoints[p].nx);
-        BOOST_CHECK_EQUAL(Normal[1], savedITKPoints[p].ny);
-        BOOST_CHECK_EQUAL(Normal[2], savedITKPoints[p].nz);
+        BOOST_CHECK_EQUAL(out_CubeNormal[0], _SavedCubePoints[p].nx);
+        BOOST_CHECK_EQUAL(out_CubeNormal[1], _SavedCubePoints[p].ny);
+        BOOST_CHECK_EQUAL(out_CubeNormal[2], _SavedCubePoints[p].nz);
 
         p++;
 
     }
 
-    std::cerr << "Comparing faces..." << std::endl;
-
-    //compare number of cells in each itk mesh
-    BOOST_CHECK_EQUAL(smoothedMesh->GetNumberOfCells(), savedITKCells.size());
-
-    // Initialize Cell Iterators
-    VC_CellIterator cubeCell = smoothedMesh->GetCells()->Begin();
+    //cells
+    VC_CellIterator out_CubeCell = _out_SmoothedCubeMesh->GetCells()->Begin();
 
     int c = 0;
 
-    while (cubeCell != smoothedMesh->GetCells()->End()) {
+    while (out_CubeCell != _out_SmoothedCubeMesh->GetCells()->End()) {
 
         //Initialize Iterators for Points in a Cell
-        VC_PointsInCellIterator cubeMeshPoint = cubeCell.Value()->PointIdsBegin();
+        VC_PointsInCellIterator out_CubeMeshPointId = out_CubeCell.Value()->PointIdsBegin();
 
         int counter = 0;
         //while we have points in the cell
-        while ( cubeMeshPoint != cubeCell.Value()->PointIdsEnd() ) {
+        while (out_CubeMeshPointId != out_CubeCell.Value()->PointIdsEnd() ) {
 
             //Now to check the points within the cells
             if (counter == 0)
-                BOOST_CHECK_EQUAL(*cubeMeshPoint, savedITKCells[c].v1);
+                BOOST_CHECK_EQUAL(*out_CubeMeshPointId, _SavedCubeCells[c].v1);
             else if(counter == 1)
-                BOOST_CHECK_EQUAL(*cubeMeshPoint, savedITKCells[c].v2);
+                BOOST_CHECK_EQUAL(*out_CubeMeshPointId, _SavedCubeCells[c].v2);
             else if (counter == 2)
-                BOOST_CHECK_EQUAL(*cubeMeshPoint, savedITKCells[c].v3);
+                BOOST_CHECK_EQUAL(*out_CubeMeshPointId, _SavedCubeCells[c].v3);
 
             //increment points
-            cubeMeshPoint++;
+            out_CubeMeshPointId++;
             counter++;
 
         }
 
         //increment cells
-        ++cubeCell;
+        ++out_CubeCell;
         ++c;
     }
 }
 
-BOOST_FIXTURE_TEST_CASE(compareSmoothedSphere, normalFix){
+//             //
+//             //
+//   SPHERE    //
+//             //
+//             //
 
-    //call smoothNormals fixture-generated plane
-    smoothedMesh = volcart::meshing::smoothNormals(sphereMesh, savedFactor);
-
-    //init vectors to hold points and cells from savedITK data file
-    std::vector<VC_Vertex> savedITKPoints;
-    std::vector<VC_Cell> savedITKCells;
-
-    //First, read the saved .obj file (cmake should copy from test_data to current build dir
-    volcart::testing::ParsingHelpers::parseObjFile("smoothedSphere.obj", savedITKPoints, savedITKCells);
-
-    /*
-     * Now the comparisons between the test-created-itk mesh (smoothedMesh)
-     * and the saved data from smoothedPlane.obj (stored in savedITKPoints and savedITKCells)
-     * will occur. Points --> normals --> faces.
-     */
+BOOST_FIXTURE_TEST_CASE(CompareFixtureSmoothedSphereWithSavedSphereTest, SmoothNormalsFixture){
 
     //Check number of points in each mesh
-    BOOST_CHECK_EQUAL( smoothedMesh->GetNumberOfPoints(), savedITKPoints.size() );
+    BOOST_CHECK_EQUAL( _out_SmoothedSphereMesh->GetNumberOfPoints(), _SavedSpherePoints.size() );
+    BOOST_CHECK_EQUAL(_out_SmoothedSphereMesh->GetNumberOfCells(), _SavedSphereCells.size());
+    
+    //points
+    for ( size_t p_id = 0; p_id < _out_SmoothedSphereMesh ->GetNumberOfPoints(); ++p_id) {
 
-    std::cerr << "Comparing points..." << std::endl;
-    //Now iterate over point sets and compare x/y/z values
-    for ( size_t p_id = 0; p_id < smoothedMesh ->GetNumberOfPoints(); ++p_id) {
-
-        BOOST_CHECK_CLOSE(smoothedMesh->GetPoint(p_id)[0], savedITKPoints[p_id].x, tolerance);
-        BOOST_CHECK_CLOSE(smoothedMesh->GetPoint(p_id)[1], savedITKPoints[p_id].y, tolerance);
-        BOOST_CHECK_CLOSE(smoothedMesh->GetPoint(p_id)[2], savedITKPoints[p_id].z, tolerance);
+        BOOST_CHECK_CLOSE(_out_SmoothedSphereMesh->GetPoint(p_id)[0], _SavedSpherePoints[p_id].x, _Tolerance);
+        BOOST_CHECK_CLOSE(_out_SmoothedSphereMesh->GetPoint(p_id)[1], _SavedSpherePoints[p_id].y, _Tolerance);
+        BOOST_CHECK_CLOSE(_out_SmoothedSphereMesh->GetPoint(p_id)[2], _SavedSpherePoints[p_id].z, _Tolerance);
     }
 
-    std::cerr << "Comparing normals..." << std::endl;
+    //normals
     int p = 0;
-    for ( VC_PointsInMeshIterator point = smoothedMesh->GetPoints()->Begin(); point != smoothedMesh->GetPoints()->End(); ++point ) {
+    VC_PointsInMeshIterator point = _out_SmoothedSphereMesh->GetPoints()->Begin();
+    
+    for ( ; point != _out_SmoothedSphereMesh->GetPoints()->End(); ++point ) {
 
-        VC_PixelType Normal;
-        smoothedMesh->GetPointData(point.Index(), &Normal);
-
-        //double ptNorm[3] = {planeNormal[0], planeNormal[1], planeNormal[2]};
+        VC_PixelType out_SphereNormal;
+        _out_SmoothedSphereMesh->GetPointData(point.Index(), &out_SphereNormal);
 
         //Now compare the normals for the two meshes
-        BOOST_CHECK_EQUAL(Normal[0], savedITKPoints[p].nx);
-        BOOST_CHECK_EQUAL(Normal[1], savedITKPoints[p].ny);
-        BOOST_CHECK_EQUAL(Normal[2], savedITKPoints[p].nz);
+        BOOST_CHECK_EQUAL(out_SphereNormal[0], _SavedSpherePoints[p].nx);
+        BOOST_CHECK_EQUAL(out_SphereNormal[1], _SavedSpherePoints[p].ny);
+        BOOST_CHECK_EQUAL(out_SphereNormal[2], _SavedSpherePoints[p].nz);
 
         p++;
 
     }
 
-    std::cerr << "Comparing faces..." << std::endl;
-
-    //compare number of cells in each itk mesh
-    BOOST_CHECK_EQUAL(smoothedMesh->GetNumberOfCells(), savedITKCells.size());
-
-    // Initialize Cell Iterators
-    VC_CellIterator sphereCell = smoothedMesh->GetCells()->Begin();
+    //cells
+    VC_CellIterator out_SphereCell = _out_SmoothedSphereMesh->GetCells()->Begin();
 
     int c = 0;
 
-    while (sphereCell != smoothedMesh->GetCells()->End()) {
+    while (out_SphereCell != _out_SmoothedSphereMesh->GetCells()->End()) {
 
         //Initialize Iterators for Points in a Cell
-        VC_PointsInCellIterator sphereMeshPoint = sphereCell.Value()->PointIdsBegin();
+        VC_PointsInCellIterator out_SphereMeshPointId = out_SphereCell.Value()->PointIdsBegin();
 
         int counter = 0;
         //while we have points in the cell
-        while ( sphereMeshPoint != sphereCell.Value()->PointIdsEnd() ) {
+        while (out_SphereMeshPointId != out_SphereCell.Value()->PointIdsEnd() ) {
 
             //Now to check the points within the cells
             if (counter == 0)
-                BOOST_CHECK_EQUAL(*sphereMeshPoint, savedITKCells[c].v1);
+                BOOST_CHECK_EQUAL(*out_SphereMeshPointId, _SavedSphereCells[c].v1);
             else if(counter == 1)
-                BOOST_CHECK_EQUAL(*sphereMeshPoint, savedITKCells[c].v2);
+                BOOST_CHECK_EQUAL(*out_SphereMeshPointId, _SavedSphereCells[c].v2);
             else if (counter == 2)
-                BOOST_CHECK_EQUAL(*sphereMeshPoint, savedITKCells[c].v3);
+                BOOST_CHECK_EQUAL(*out_SphereMeshPointId, _SavedSphereCells[c].v3);
 
             //increment points
-            sphereMeshPoint++;
+            out_SphereMeshPointId++;
             counter++;
 
         }
 
         //increment cells
-        ++sphereCell;
+        ++out_SphereCell;
         ++c;
     }
 }
 
-BOOST_FIXTURE_TEST_CASE(compareSmoothedArch, normalFix){
 
-    //call smoothNormals fixture-generated plane
-    smoothedMesh = volcart::meshing::smoothNormals(archMesh, savedFactor);
+//           //
+//   ARCH    //
+//           //
 
-    //init vectors to hold points and cells from savedITK data file
-    std::vector<VC_Vertex> savedITKPoints;
-    std::vector<VC_Cell> savedITKCells;
 
-    //First, read the saved .obj file (cmake should copy from test_data to current build dir
-    volcart::testing::ParsingHelpers::parseObjFile("smoothedArch.obj", savedITKPoints, savedITKCells);
-
-    /*
-     * Now the comparisons between the test-created-itk mesh (smoothedMesh)
-     * and the saved data from smoothedPlane.obj (stored in savedITKPoints and savedITKCells)
-     * will occur. Points --> normals --> faces.
-     */
+BOOST_FIXTURE_TEST_CASE(CompareFixtureSmoothedArchWithSavedArchTest, SmoothNormalsFixture){
 
     //Check number of points in each mesh
-    BOOST_CHECK_EQUAL( smoothedMesh->GetNumberOfPoints(), savedITKPoints.size() );
+    BOOST_CHECK_EQUAL( _out_SmoothedArchMesh->GetNumberOfPoints(), _SavedArchPoints.size() );
+    BOOST_CHECK_EQUAL(_out_SmoothedArchMesh->GetNumberOfCells(), _SavedArchCells.size());
 
-    std::cerr << "Comparing points..." << std::endl;
     //Now iterate over point sets and compare x/y/z values
-    for ( size_t p_id = 0; p_id < smoothedMesh ->GetNumberOfPoints(); ++p_id) {
+    for ( size_t p_id = 0; p_id < _out_SmoothedArchMesh ->GetNumberOfPoints(); ++p_id) {
 
-        BOOST_CHECK_CLOSE(smoothedMesh->GetPoint(p_id)[0], savedITKPoints[p_id].x, tolerance);
-        BOOST_CHECK_CLOSE(smoothedMesh->GetPoint(p_id)[1], savedITKPoints[p_id].y, tolerance);
-        BOOST_CHECK_CLOSE(smoothedMesh->GetPoint(p_id)[2], savedITKPoints[p_id].z, tolerance);
+        BOOST_CHECK_CLOSE(_out_SmoothedArchMesh->GetPoint(p_id)[0], _SavedArchPoints[p_id].x, _Tolerance);
+        BOOST_CHECK_CLOSE(_out_SmoothedArchMesh->GetPoint(p_id)[1], _SavedArchPoints[p_id].y, _Tolerance);
+        BOOST_CHECK_CLOSE(_out_SmoothedArchMesh->GetPoint(p_id)[2], _SavedArchPoints[p_id].z, _Tolerance);
     }
-
-    std::cerr << "Comparing normals..." << std::endl;
+    
     int p = 0;
-    for ( VC_PointsInMeshIterator point = smoothedMesh->GetPoints()->Begin(); point != smoothedMesh->GetPoints()->End(); ++point ) {
+    VC_PointsInMeshIterator point = _out_SmoothedArchMesh->GetPoints()->Begin();
+    for ( ; point != _out_SmoothedArchMesh->GetPoints()->End(); ++point ) {
 
-        VC_PixelType Normal;
-        smoothedMesh->GetPointData(point.Index(), &Normal);
-
-        //double ptNorm[3] = {planeNormal[0], planeNormal[1], planeNormal[2]};
+        VC_PixelType out_ArchNormal;
+        _out_SmoothedArchMesh->GetPointData(point.Index(), &out_ArchNormal);
 
         //Now compare the normals for the two meshes
-        BOOST_CHECK_EQUAL(Normal[0], savedITKPoints[p].nx);
-        BOOST_CHECK_EQUAL(Normal[1], savedITKPoints[p].ny);
-        BOOST_CHECK_EQUAL(Normal[2], savedITKPoints[p].nz);
+        BOOST_CHECK_EQUAL(out_ArchNormal[0], _SavedArchPoints[p].nx);
+        BOOST_CHECK_EQUAL(out_ArchNormal[1], _SavedArchPoints[p].ny);
+        BOOST_CHECK_EQUAL(out_ArchNormal[2], _SavedArchPoints[p].nz);
 
         p++;
 
     }
 
-    std::cerr << "Comparing faces..." << std::endl;
-
-    //compare number of cells in each itk mesh
-    BOOST_CHECK_EQUAL(smoothedMesh->GetNumberOfCells(), savedITKCells.size());
-
     // Initialize Cell Iterators
-    VC_CellIterator archCell = smoothedMesh->GetCells()->Begin();
+    VC_CellIterator out_ArchCell = _out_SmoothedArchMesh->GetCells()->Begin();
 
     int c = 0;
 
-    while (archCell != smoothedMesh->GetCells()->End()) {
+    while (out_ArchCell != _out_SmoothedArchMesh->GetCells()->End()) {
 
         //Initialize Iterators for Points in a Cell
-        VC_PointsInCellIterator archMeshPoint = archCell.Value()->PointIdsBegin();
+        VC_PointsInCellIterator out_ArchMeshPointId = out_ArchCell.Value()->PointIdsBegin();
 
         int counter = 0;
         //while we have points in the cell
-        while ( archMeshPoint != archCell.Value()->PointIdsEnd() ) {
+        while ( out_ArchMeshPointId != out_ArchCell.Value()->PointIdsEnd() ) {
 
             //Now to check the points within the cells
             if (counter == 0)
-                BOOST_CHECK_EQUAL(*archMeshPoint, savedITKCells[c].v1);
+                BOOST_CHECK_EQUAL(*out_ArchMeshPointId, _SavedArchCells[c].v1);
             else if(counter == 1)
-                BOOST_CHECK_EQUAL(*archMeshPoint, savedITKCells[c].v2);
+                BOOST_CHECK_EQUAL(*out_ArchMeshPointId, _SavedArchCells[c].v2);
             else if (counter == 2)
-                BOOST_CHECK_EQUAL(*archMeshPoint, savedITKCells[c].v3);
+                BOOST_CHECK_EQUAL(*out_ArchMeshPointId, _SavedArchCells[c].v3);
 
             //increment points
-            archMeshPoint++;
+            out_ArchMeshPointId++;
             counter++;
 
         }
 
         //increment cells
-        ++archCell;
+        ++out_ArchCell;
         ++c;
+    }
+}
+
+
+//           //
+//   CONE    //
+//           //
+
+BOOST_FIXTURE_TEST_CASE(CompareFixtureSmoothedConeWithSavedConeTest, SmoothNormalsFixture){
+
+    //Check number of points in each mesh
+    BOOST_CHECK_EQUAL( _out_SmoothedConeMesh->GetNumberOfPoints(), _SavedConePoints.size() );
+
+    //compare point values
+    for ( size_t p = 0; p < _out_SmoothedConeMesh ->GetNumberOfPoints(); ++p) {
+
+        BOOST_CHECK_CLOSE(_out_SmoothedConeMesh->GetPoint(p)[0], _SavedConePoints[p].x, _Tolerance);
+        BOOST_CHECK_CLOSE(_out_SmoothedConeMesh->GetPoint(p)[1], _SavedConePoints[p].y, _Tolerance);
+        BOOST_CHECK_CLOSE(_out_SmoothedConeMesh->GetPoint(p)[2], _SavedConePoints[p].z, _Tolerance);
+    }
+
+    //compare normals
+    int pnt_id = 0;
+    VC_PointsInMeshIterator point = _out_SmoothedConeMesh->GetPoints()->Begin();
+
+    for ( ; point != _out_SmoothedConeMesh->GetPoints()->End(); ++point ) {
+
+        VC_PixelType out_ConeNormal;
+        _out_SmoothedConeMesh->GetPointData(point.Index(), &out_ConeNormal);
+
+        //Now compare the normals for the two meshes
+        BOOST_CHECK_EQUAL(out_ConeNormal[0], _SavedConePoints[pnt_id].nx);
+        BOOST_CHECK_EQUAL(out_ConeNormal[1], _SavedConePoints[pnt_id].ny);
+        BOOST_CHECK_EQUAL(out_ConeNormal[2], _SavedConePoints[pnt_id].nz);
+
+        pnt_id++;
+
+    }
+
+    //               //
+    // compare cells //
+    //               //
+
+    BOOST_CHECK_EQUAL(_out_SmoothedConeMesh->GetNumberOfCells(), _SavedConeCells.size());
+
+    // Initialize Cell Iterators
+    VC_CellIterator out_ConeCell = _out_SmoothedConeMesh->GetCells()->Begin();
+
+    int c_id = 0;
+
+    while ( out_ConeCell != _out_SmoothedConeMesh->GetCells()->End()) {
+
+        //Initialize Iterators for Points in a Cell
+        VC_PointsInCellIterator out_ConeMeshPointId = out_ConeCell.Value()->PointIdsBegin();
+
+        int counter = 0;
+        //while we have points in the cell
+        while ( out_ConeMeshPointId != out_ConeCell.Value()->PointIdsEnd() ) {
+
+            //Now to check the points within the cells
+            if (counter == 0)
+                BOOST_CHECK_EQUAL(*out_ConeMeshPointId, _SavedConeCells[c_id].v1);
+            else if(counter == 1)
+                BOOST_CHECK_EQUAL(*out_ConeMeshPointId, _SavedConeCells[c_id].v2);
+            else if (counter == 2)
+                BOOST_CHECK_EQUAL(*out_ConeMeshPointId, _SavedConeCells[c_id].v3);
+
+            //increment points
+            out_ConeMeshPointId++;
+            counter++;
+
+        }
+
+        //increment cells
+        ++out_ConeCell;
+        ++c_id;
     }
 }
 
 /*
  * Testing a zero radius smoothing factor
- * Uses plane mesh
+ *
+ * Expected output would be an unchanged mesh
+ *
  */
 
-BOOST_FIXTURE_TEST_CASE(zeroRadius, normalFix){
+BOOST_FIXTURE_TEST_CASE(SmoothWithZeroRadiusTest, SmoothNormalsFixture){
 
-    double radius = 5;
-    smoothedMesh = volcart::meshing::smoothNormals(archMesh, radius);
+    //call smoothNormals() and assign results
+    VC_MeshType::Pointer ZeroRadiusSmoothedMesh = volcart::meshing::smoothNormals(_in_ArchMesh, 0);
 
     //check number of points and cells are equivalent between the two meshes
-    BOOST_CHECK_EQUAL(archMesh->GetNumberOfPoints(), smoothedMesh->GetNumberOfPoints());
-    BOOST_CHECK_EQUAL(archMesh->GetNumberOfCells(), smoothedMesh->GetNumberOfCells());
+    BOOST_CHECK_EQUAL(_in_ArchMesh->GetNumberOfPoints(), ZeroRadiusSmoothedMesh->GetNumberOfPoints());
+    BOOST_CHECK_EQUAL(_in_ArchMesh->GetNumberOfCells(), ZeroRadiusSmoothedMesh->GetNumberOfCells());
 
-    for (size_t point = 0; point < archMesh->GetNumberOfPoints(); ++point){
 
-        std::cout << "S Point " << point << ":"
-                  << smoothedMesh->GetPoint(point)[0] << " "
-                  << smoothedMesh->GetPoint(point)[1] << " "
-                  << smoothedMesh->GetPoint(point)[2] << " "
-                  << smoothedMesh->GetPoint(point)[3] << " "
-                  << smoothedMesh->GetPoint(point)[4] << " "
-                  << smoothedMesh->GetPoint(point)[5] << std::endl;
+    //compare point values
+    for ( size_t p_id = 0; p_id < _in_ArchMesh ->GetNumberOfPoints(); ++p_id) {
 
-        std::cout << "A Point " << point << ":"
-                  << archMesh->GetPoint(point)[0] << " "
-                  << archMesh->GetPoint(point)[1] << " "
-                  << archMesh->GetPoint(point)[2] << " "
-                  << archMesh->GetPoint(point)[3] << " "
-                  << archMesh->GetPoint(point)[4] << " "
-                  << archMesh->GetPoint(point)[5] << std::endl;
+        BOOST_CHECK_EQUAL(_in_ArchMesh->GetPoint(p_id)[0], ZeroRadiusSmoothedMesh->GetPoint(p_id)[0]);
+        BOOST_CHECK_EQUAL(_in_ArchMesh->GetPoint(p_id)[1], ZeroRadiusSmoothedMesh->GetPoint(p_id)[1]);
+        BOOST_CHECK_EQUAL(_in_ArchMesh->GetPoint(p_id)[2], ZeroRadiusSmoothedMesh->GetPoint(p_id)[2]);
+    }
+
+    //compare normals
+    VC_PointsInMeshIterator point = _in_ArchMesh->GetPoints()->Begin();
+
+    for ( ; point != _in_ArchMesh->GetPoints()->End(); ++point ) {
+
+        VC_PixelType in_ArchNormal, ZeroRadiusNormal;
+        _in_ArchMesh->GetPointData(point.Index(), &in_ArchNormal);
+        ZeroRadiusSmoothedMesh->GetPointData(point.Index(), &ZeroRadiusNormal);
+
+        //Now compare the normals for the two meshes
+        BOOST_CHECK_EQUAL(in_ArchNormal[0], ZeroRadiusNormal[0]);
+        BOOST_CHECK_EQUAL(in_ArchNormal[1], ZeroRadiusNormal[1]);
+        BOOST_CHECK_EQUAL(in_ArchNormal[2], ZeroRadiusNormal[2]);
+
+    }
+
+    //               //
+    // compare cells //
+    //               //
+
+    // Initialize Cell Iterators
+    VC_CellIterator in_ArchCell = _in_ArchMesh->GetCells()->Begin();
+    VC_CellIterator ZeroRadiusSmoothedCell = ZeroRadiusSmoothedMesh->GetCells()->Begin();
+
+    int c = 0;
+
+    while ( in_ArchCell != _in_ArchMesh->GetCells()->End()) {
+
+        //Initialize Iterators for Points in a Cell
+        VC_PointsInCellIterator in_ArchMeshPointId = in_ArchCell.Value()->PointIdsBegin();
+        VC_PointsInCellIterator ZeroRadiusMeshPointId = ZeroRadiusSmoothedCell.Value()->PointIdsBegin();
+
+        int counter = 0;
+        //while we have points in the cell
+        while ( in_ArchMeshPointId != in_ArchCell.Value()->PointIdsEnd() ) {
+
+            //Now to check the points within the cells
+            if (counter == 0)
+                BOOST_CHECK_EQUAL(*in_ArchMeshPointId, *ZeroRadiusMeshPointId);
+            else if(counter == 1)
+                BOOST_CHECK_EQUAL(*in_ArchMeshPointId, *ZeroRadiusMeshPointId);
+            else if (counter == 2)
+                BOOST_CHECK_EQUAL(*in_ArchMeshPointId, *ZeroRadiusMeshPointId);
+
+            //increment points
+            ++in_ArchMeshPointId; ++ZeroRadiusMeshPointId; ++counter;
+
+        }
+
+        //increment cells
+        ++in_ArchCell; ++ZeroRadiusSmoothedCell;
     }
 
 }

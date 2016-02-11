@@ -51,204 +51,315 @@
 
 
 
-struct poissonFix {
+struct PlanePoissonReconstructionFixture {
 
-    poissonFix() {
+    PlanePoissonReconstructionFixture() {
 
-        pCloud = mesh.pointCloudNormal();
+        //fill point clouds
+        _in_PlaneCloud = _Plane.pointCloudNormal();
+
+        //init pointers to point clouds
+        pcl::PointCloud<pcl::PointNormal>::Ptr _in_PlaneCloudPtr(new pcl::PointCloud<pcl::PointNormal>);
+
+        //assign ptrs
+        *_in_PlaneCloudPtr = _in_PlaneCloud;
+
+        //make call to poissonReconstruction() and assign results to polygon mesh
+        _out_PlanePolygonMesh = volcart::meshing::poissonReconstruction(_in_PlaneCloudPtr);
+
+        //load data from saved files
+        pcl::io::loadOBJFile("PlanePoissonReconstruction.obj", _SavedPlaneSurface);
+
+        std::cerr << "\nsetting up PlanePoissonReconstruction objects" << std::endl;
+    }
+
+    ~PlanePoissonReconstructionFixture(){ std::cerr << "\ncleaning up PlanePoissonReconstructionTest objects" << std::endl; }
+
+    volcart::shapes::Plane _Plane;
+    pcl::PointCloud<pcl::PointNormal> _in_PlaneCloud;
+    pcl::PolygonMesh _out_PlanePolygonMesh, _SavedPlaneSurface;
+
+};
+
+struct CubePoissonReconstructionFixture {
+
+    CubePoissonReconstructionFixture() {
+
+        //fill point cloud
+        _in_CubeCloud = _Cube.pointCloudNormal();
+
+        //init pointer to point cloud
+        pcl::PointCloud<pcl::PointNormal>::Ptr _in_CubeCloudPtr(new pcl::PointCloud<pcl::PointNormal>);
+
+        //assign ptr
+        *_in_CubeCloudPtr = _in_CubeCloud;
+
+        //make call to poissonReconstruction() and assign results to polygon mesh
+        _out_CubePolygonMesh = volcart::meshing::poissonReconstruction(_in_CubeCloudPtr);
+
+        //load data from saved files
+        pcl::io::loadOBJFile("CubePoissonReconstruction.obj", _SavedCubeSurface);
+
         std::cerr << "\nsetting up poissonReconstructionTest objects" << std::endl;
     }
 
-    ~poissonFix(){ std::cerr << "\ncleaning up poissonReconstructionTest objects" << std::endl; }
+    ~CubePoissonReconstructionFixture(){ std::cerr << "\ncleaning up poissonReconstructionTest objects" << std::endl; }
 
-    pcl::PointCloud<pcl::PointNormal> pCloud;
-    volcart::shapes::Plane mesh;
-    pcl::PolygonMesh polyMesh;
+    //init shapes
+    volcart::shapes::Cube _Cube;
+    pcl::PointCloud<pcl::PointNormal> _in_CubeCloud;
+    pcl::PolygonMesh _out_CubePolygonMesh, _SavedCubeSurface;
+
+};
+
+
+struct ArchPoissonReconstructionFixture {
+
+    ArchPoissonReconstructionFixture() {
+
+        //fill point cloud
+        _in_ArchCloud = _Arch.pointCloudNormal();
+
+        //init pointer to point cloud
+        pcl::PointCloud<pcl::PointNormal>::Ptr _in_ArchCloudPtr(new pcl::PointCloud<pcl::PointNormal>);
+
+        //assign ptr
+        *_in_ArchCloudPtr = _in_ArchCloud;
+
+        //make call to poissonReconstruction() and assign results to polygon mesh
+        _out_ArchPolygonMesh = volcart::meshing::poissonReconstruction(_in_ArchCloudPtr);
+
+        //load data from saved files
+        pcl::io::loadOBJFile("ArchPoissonReconstruction.obj", _SavedArchSurface);
+
+        std::cerr << "\nsetting up ArchPoissonReconstruction objects" << std::endl;
+    }
+
+    ~ArchPoissonReconstructionFixture(){ std::cerr << "\ncleaning up ArchPoissonReconstruction objects" << std::endl; }
+
+    volcart::shapes::Arch _Arch;
+    pcl::PointCloud<pcl::PointNormal> _in_ArchCloud;
+    pcl::PolygonMesh _out_ArchPolygonMesh, _SavedArchSurface;
 
 };
 
-/*
- * Only difference here is that we call poissonRecon within the file and save it away
- * for later comparison within fromFileSurfaceComparison() test case
- *
- * This fixture is currently not in use but can be added to a test case if you want
- * to save the poissonExample.obj inline and load it in the test case. Currently, the idea is
- * to create and save a the poisson example file in examples/poissonExample.cpp. Might need to copy over the
- * created file to testing/test_data.
- */
+struct SpherePoissonReconstructionFixture {
 
-struct savedPoissonFix {
+    SpherePoissonReconstructionFixture() {
 
-    savedPoissonFix() {
+        //fill point cloud
+        _in_SphereCloud = _Sphere.pointCloudNormal();
 
-        pCloud = mesh.pointCloudNormal();
-        pcl::PointCloud<pcl::PointNormal>::Ptr cloud(new pcl::PointCloud<pcl::PointNormal>);
-        *cloud = pCloud;
-        polyMesh = volcart::meshing::poissonReconstruction(cloud);
+        //init pointer to point cloud
+        pcl::PointCloud<pcl::PointNormal>::Ptr _in_SphereCloudPtr(new pcl::PointCloud<pcl::PointNormal>);
 
-//Need to create and save file elsewhere to load it in here
-//        // Write polygons to file
-//        pcl::io::saveOBJFile( "poissonExample.obj", polyMesh);
-//
-//        // Write cloud data to file
-//        pcl::io::savePCDFile("poissonSurface.pcd", polyMesh.cloud);
+        //assign ptr
+        *_in_SphereCloudPtr = _in_SphereCloud;
 
-        std::cerr << "\nsetting up savedPoissonReconstructionTest objects" << std::endl;
+        //make call to poissonReconstruction() and assign results to polygon mesh
+        _out_SpherePolygonMesh = volcart::meshing::poissonReconstruction(_in_SphereCloudPtr);
+
+        //load data from saved files
+        pcl::io::loadOBJFile("SpherePoissonReconstruction.obj", _SavedSphereSurface);
+
+        std::cerr << "\nsetting up SpherePoissonReconstruction objects" << std::endl;
     }
 
-    ~savedPoissonFix(){ std::cerr << "\ncleaning up savedPoissonReconstructionTest objects" << std::endl; }
+    ~SpherePoissonReconstructionFixture(){ std::cerr << "\ncleaning up SpherePoissonReconstruction objects" << std::endl; }
 
-    pcl::PointCloud<pcl::PointNormal> pCloud;
-    volcart::shapes::Plane mesh;
-    pcl::PolygonMesh polyMesh;
+    volcart::shapes::Sphere _Sphere;
+    pcl::PointCloud<pcl::PointNormal> _in_SphereCloud;
+    pcl::PolygonMesh _out_SpherePolygonMesh, _SavedSphereSurface;
 
 };
-/*
- * Not so much a test as it is checking out the polys of the resulting
- * poissonRecon mesh from an input cloud
- */
 
-BOOST_FIXTURE_TEST_CASE(poissonTest, poissonFix) {
+struct ConePoissonReconstructionFixture {
 
-    //convert pCloud to Ptr for poisson() call
-    pcl::PointCloud<pcl::PointNormal>::Ptr cloud(new pcl::PointCloud<pcl::PointNormal>);
-    *cloud = pCloud;
+    ConePoissonReconstructionFixture() {
 
-    polyMesh = volcart::meshing::poissonReconstruction(cloud);
+        //fill point cloud
+        _in_ConeCloud = _Cone.pointCloudNormal();
 
-    //check to see that there are actually polygons if the cloud wasn't empty
-    if (cloud->empty()){
-        //should be empty poly set
-        BOOST_CHECK_EQUAL(polyMesh.polygons.size(), 0);
-    }else{
+        //init pointer to point cloud
+        pcl::PointCloud<pcl::PointNormal>::Ptr _in_ConeCloudPtr(new pcl::PointCloud<pcl::PointNormal>);
 
-        BOOST_CHECK_GT(polyMesh.polygons.size(), 0);
-        BOOST_CHECK_GT(polyMesh.cloud.data.size(), 0);
+        //assign ptr
+        *_in_ConeCloudPtr = _in_ConeCloud;
+
+        //make call to poissonReconstruction() and assign results to polygon mesh
+        _out_ConePolygonMesh = volcart::meshing::poissonReconstruction(_in_ConeCloudPtr);
+
+        //load data from saved file
+        pcl::io::loadOBJFile("ConePoissonReconstruction.obj", _SavedConeSurface);
+
+        std::cerr << "\nsetting up ConePoissonReconstruction objects" << std::endl;
     }
 
-    /*Printing out vertices*/
-//    //Check the polygons of the new mesh
-//    for (int i = 0; i < polyMesh.polygons.size(); i++){
-//        std::cout << "Poly " << i << ": ";
-//        for (int j = 0; j < polyMesh.polygons[i].vertices.size(); j++) {
-//
-//            std::cout << polyMesh.polygons[i].vertices[j] << " | ";
-//        }
-//        std::cout << "\n";
-//    }
+    ~ConePoissonReconstructionFixture(){ std::cerr << "\ncleaning up ConePoissonReconstruction objects" << std::endl; }
 
-}
-
-/*
-   Goal of this test is to confirm that the same surface is reconstructed given
-   the same input point cloud. One surface is created with poissonReconstruction()
-   and then compared to a saved OBJ file representing a surface called from the
-   same input point cloud.
-
-*/
-
-BOOST_FIXTURE_TEST_CASE(fromFileSurfaceComparison, poissonFix){
-
-    pcl::PolygonMesh otherPoly;
+    volcart::shapes::Cone _Cone;
+    pcl::PointCloud<pcl::PointNormal> _in_ConeCloud;
+    pcl::PolygonMesh _out_ConePolygonMesh, _SavedConeSurface;
 
 
-    // Load in polygonMesh saved from poissonExample.cpp
-    // Cmake should be copying the poissonExample.obj file to the current binary directory
-    pcl::PolygonMesh savedSurface;
-    pcl::io::loadOBJFile("poissonExample.obj", savedSurface );
+};
 
-    //convert pCloud to Ptr for poisson() call
-    pcl::PointCloud<pcl::PointNormal>::Ptr testCloud(new pcl::PointCloud<pcl::PointNormal>);
-    *testCloud = pCloud;
-
-    //call recon and assign
-    otherPoly = volcart::meshing::poissonReconstruction(testCloud);
-
-    /* First, let's check the values of the polygon vertices in each of the PolygonMesh objects*/
+BOOST_FIXTURE_TEST_CASE(ComparePlanePoissonReonstructionWithSavedPlaneFile, PlanePoissonReconstructionFixture){
 
     //check number of polys and cloud.data sizes for each poissonRecon mesh
-    BOOST_CHECK_EQUAL(savedSurface.polygons.size(), otherPoly.polygons.size());
+    BOOST_CHECK_EQUAL(_out_PlanePolygonMesh.polygons.size(), _SavedPlaneSurface.polygons.size());
 
-    for (int p = 0; p < savedSurface.polygons.size(); p++) {
-        for (int v = 0; v < savedSurface.polygons[p].vertices.size(); v++) {
+    for (int p = 0; p < _SavedPlaneSurface.polygons.size(); p++) {
+        for (int v = 0; v < _SavedPlaneSurface.polygons[p].vertices.size(); v++) {
 
-            BOOST_CHECK_EQUAL(savedSurface.polygons[p].vertices[v], otherPoly.polygons[p].vertices[v]);
+            BOOST_CHECK_EQUAL(_SavedPlaneSurface.polygons[p].vertices[v], _out_PlanePolygonMesh.polygons[p].vertices[v]);
         }
     }
 
-    /* Now, let's check the converted clouds from both meshes to check for equality */
+    //check the converted clouds from both meshes to check for equality
 
-    //convert poly meshes clouds to PC<PointNormal>
-    pcl::PointCloud<pcl::PointNormal> convCloud1, convCloud2 ;
-    pcl::fromPCLPointCloud2(otherPoly.cloud, convCloud1);
-    pcl::fromPCLPointCloud2(savedSurface.cloud, convCloud2);
+    pcl::PointCloud<pcl::PointNormal> out_PlaneMeshConvertedToCloud, SavedPlaneSurfaceConvertedToCloud ;
+    pcl::fromPCLPointCloud2(_out_PlanePolygonMesh.cloud, out_PlaneMeshConvertedToCloud);
+    pcl::fromPCLPointCloud2(_SavedPlaneSurface.cloud, SavedPlaneSurfaceConvertedToCloud);
 
     //check the sizes of the new point clouds for equality
-    BOOST_CHECK_EQUAL(convCloud1.size(), convCloud2.size());
+    BOOST_CHECK_EQUAL(out_PlaneMeshConvertedToCloud.size(), SavedPlaneSurfaceConvertedToCloud.size());
 
     //now check the points in each of the converted clouds for equality
-    for (int i = 0; i < convCloud1.points.size(); i++ ){
-        //std::cout << "Point " << i << ": " << std::endl;
+    for (int i = 0; i < out_PlaneMeshConvertedToCloud.points.size(); i++ ){
         for (int j = 0; j < 3; j ++) {
 
-            BOOST_CHECK_CLOSE(convCloud1.points[i].data[j], convCloud2.points[i].data[j], 0.01);
+            BOOST_CHECK_CLOSE(out_PlaneMeshConvertedToCloud.points[i].data[j],
+                              SavedPlaneSurfaceConvertedToCloud.points[i].data[j], 0.01);
         }
     }
 
 }
 
-/*
-   Goal of this test is to confirm that the same surface is reconstructed given
-   the same input point cloud (within the test)
-*/
-
-BOOST_FIXTURE_TEST_CASE(surfaceComparison, poissonFix){
-
-    pcl::PolygonMesh otherPoly;
-
-    //convert pCloud to Ptr for poisson() call
-    pcl::PointCloud<pcl::PointNormal>::Ptr cloud(new pcl::PointCloud<pcl::PointNormal>);
-    *cloud = pCloud;
-
-    //call recon and assign
-    polyMesh = volcart::meshing::poissonReconstruction(cloud);
-    otherPoly = volcart::meshing::poissonReconstruction(cloud);
-
-    /* First, let's check the values of the polygon vertices in each of the PolygonMesh objects*/
+BOOST_FIXTURE_TEST_CASE(CompareCubePoissonReonstructionWithSavedCubeFile, CubePoissonReconstructionFixture){
 
     //check number of polys and cloud.data sizes for each poissonRecon mesh
-    BOOST_CHECK_EQUAL(polyMesh.polygons.size(), otherPoly.polygons.size());
-    BOOST_CHECK_EQUAL(polyMesh.cloud.data.size(), otherPoly.cloud.data.size());
+    BOOST_CHECK_EQUAL(_out_CubePolygonMesh.polygons.size(), _SavedCubeSurface.polygons.size());
 
-    for (int p = 0; p < polyMesh.polygons.size(); p++) {
-        for (int v = 0; v < polyMesh.polygons[p].vertices.size(); v++) {
+    for (int p = 0; p < _SavedCubeSurface.polygons.size(); p++) {
+        for (int v = 0; v < _SavedCubeSurface.polygons[p].vertices.size(); v++) {
 
-            BOOST_CHECK_EQUAL(polyMesh.polygons[p].vertices[v], otherPoly.polygons[p].vertices[v]);
+            BOOST_CHECK_EQUAL(_SavedCubeSurface.polygons[p].vertices[v], _out_CubePolygonMesh.polygons[p].vertices[v]);
         }
     }
 
-    /* Now, let's check the converted clouds inside the PolygonMesh to check for equality */
+    //check the converted clouds from both meshes to check for equality
 
-    //convert poly meshes clouds to PC<PointNormal>
-    pcl::PointCloud<pcl::PointNormal> convCloud1, convCloud2 ;
-    pcl::fromPCLPointCloud2(polyMesh.cloud, convCloud1);
-    pcl::fromPCLPointCloud2(otherPoly.cloud, convCloud2);
+    pcl::PointCloud<pcl::PointNormal> out_CubeMeshConvertedToCloud, SavedCubeSurfaceConvertedToCloud ;
+    pcl::fromPCLPointCloud2(_out_CubePolygonMesh.cloud, out_CubeMeshConvertedToCloud);
+    pcl::fromPCLPointCloud2(_SavedCubeSurface.cloud, SavedCubeSurfaceConvertedToCloud);
 
     //check the sizes of the new point clouds for equality
-    BOOST_CHECK_EQUAL(convCloud1.size(), convCloud2.size());
+    BOOST_CHECK_EQUAL(out_CubeMeshConvertedToCloud.size(), SavedCubeSurfaceConvertedToCloud.size());
 
     //now check the points in each of the converted clouds for equality
-    for (int i = 0; i < convCloud1.points.size(); i++ ){
-        //std::cout << "Point " << i << ": " << std::endl;
+    for (int i = 0; i < out_CubeMeshConvertedToCloud.points.size(); i++ ){
         for (int j = 0; j < 3; j ++) {
-            //std::cout << convCloud1.points[i].data[j] << " || " << convCloud2.points[i].data[j] << std::endl;
 
-            BOOST_CHECK_EQUAL(convCloud1.points[i].data[j], convCloud2.points[i].data[j]);
+            BOOST_CHECK_CLOSE(out_CubeMeshConvertedToCloud.points[i].data[j],
+                              SavedCubeSurfaceConvertedToCloud.points[i].data[j], 0.01);
+        }
+    }
+}
+
+BOOST_FIXTURE_TEST_CASE(CompareArchPoissonReonstructionWithSavedArchFile, ArchPoissonReconstructionFixture){
+
+    //check number of polys and cloud.data sizes for each poissonRecon mesh
+    BOOST_CHECK_EQUAL(_out_ArchPolygonMesh.polygons.size(), _SavedArchSurface.polygons.size());
+
+    for (int p = 0; p < _SavedArchSurface.polygons.size(); p++) {
+        for (int v = 0; v < _SavedArchSurface.polygons[p].vertices.size(); v++) {
+
+            BOOST_CHECK_EQUAL(_SavedArchSurface.polygons[p].vertices[v], _out_ArchPolygonMesh.polygons[p].vertices[v]);
+        }
+    }
+
+    //check the converted clouds from both meshes to check for equality
+
+    pcl::PointCloud<pcl::PointNormal> out_ArchMeshConvertedToCloud, SavedArchSurfaceConvertedToCloud ;
+    pcl::fromPCLPointCloud2(_out_ArchPolygonMesh.cloud, out_ArchMeshConvertedToCloud);
+    pcl::fromPCLPointCloud2(_SavedArchSurface.cloud, SavedArchSurfaceConvertedToCloud);
+
+    //check the sizes of the new point clouds for equality
+    BOOST_CHECK_EQUAL(out_ArchMeshConvertedToCloud.size(), SavedArchSurfaceConvertedToCloud.size());
+
+    //now check the points in each of the converted clouds for equality
+    for (int i = 0; i < out_ArchMeshConvertedToCloud.points.size(); i++ ){
+        for (int j = 0; j < 3; j ++) {
+
+            BOOST_CHECK_CLOSE(out_ArchMeshConvertedToCloud.points[i].data[j],
+                              SavedArchSurfaceConvertedToCloud.points[i].data[j], 0.01);
+        }
+    }
+}
+
+BOOST_FIXTURE_TEST_CASE(CompareSpherePoissonReonstructionWithSavedSphereFile, SpherePoissonReconstructionFixture){
+
+    //check number of polys and cloud.data sizes for each poissonRecon mesh
+    BOOST_CHECK_EQUAL(_out_SpherePolygonMesh.polygons.size(), _SavedSphereSurface.polygons.size());
+
+    for (int p = 0; p < _SavedSphereSurface.polygons.size(); p++) {
+        for (int v = 0; v < _SavedSphereSurface.polygons[p].vertices.size(); v++) {
+
+            BOOST_CHECK_EQUAL(_SavedSphereSurface.polygons[p].vertices[v], _out_SpherePolygonMesh.polygons[p].vertices[v]);
+        }
+    }
+
+    //check the converted clouds from both meshes to check for equality
+
+    pcl::PointCloud<pcl::PointNormal> out_SphereMeshConvertedToCloud, SavedSphereSurfaceConvertedToCloud ;
+    pcl::fromPCLPointCloud2(_out_SpherePolygonMesh.cloud, out_SphereMeshConvertedToCloud);
+    pcl::fromPCLPointCloud2(_SavedSphereSurface.cloud, SavedSphereSurfaceConvertedToCloud);
+
+    //check the sizes of the new point clouds for equality
+    BOOST_CHECK_EQUAL(out_SphereMeshConvertedToCloud.size(), SavedSphereSurfaceConvertedToCloud.size());
+
+    //now check the points in each of the converted clouds for equality
+    for (int i = 0; i < out_SphereMeshConvertedToCloud.points.size(); i++ ){
+        for (int j = 0; j < 3; j ++) {
+
+            BOOST_CHECK_CLOSE(out_SphereMeshConvertedToCloud.points[i].data[j],
+                              SavedSphereSurfaceConvertedToCloud.points[i].data[j], 0.01);
+        }
+    }
+}
+
+BOOST_FIXTURE_TEST_CASE(CompareConePoissonReonstructionWithSavedConeFile, ConePoissonReconstructionFixture){
+
+    //check number of polys and cloud.data sizes for each poissonRecon mesh
+    BOOST_CHECK_EQUAL(_out_ConePolygonMesh.polygons.size(), _SavedConeSurface.polygons.size());
+
+    for (int p = 0; p < _SavedConeSurface.polygons.size(); p++) {
+        for (int v = 0; v < _SavedConeSurface.polygons[p].vertices.size(); v++) {
+
+            BOOST_CHECK_EQUAL(_SavedConeSurface.polygons[p].vertices[v], _out_ConePolygonMesh.polygons[p].vertices[v]);
+        }
+    }
+
+    //check the converted clouds from both meshes to check for equality
+
+    pcl::PointCloud<pcl::PointNormal> out_ConeMeshConvertedToCloud, SavedConeSurfaceConvertedToCloud ;
+    pcl::fromPCLPointCloud2(_out_ConePolygonMesh.cloud, out_ConeMeshConvertedToCloud);
+    pcl::fromPCLPointCloud2(_SavedConeSurface.cloud, SavedConeSurfaceConvertedToCloud);
+
+    //check the sizes of the new point clouds for equality
+    BOOST_CHECK_EQUAL(out_ConeMeshConvertedToCloud.size(), SavedConeSurfaceConvertedToCloud.size());
+
+    //now check the points in each of the converted clouds for equality
+    for (int i = 0; i < out_ConeMeshConvertedToCloud.points.size(); i++ ){
+        for (int j = 0; j < 3; j ++) {
+
+            BOOST_CHECK_CLOSE(out_ConeMeshConvertedToCloud.points[i].data[j],
+                              SavedConeSurfaceConvertedToCloud.points[i].data[j], 0.01);
         }
     }
 
 }
-
 
 /*
  * emptyCloud, onePoint, moreThanOnePoint are all simple tests that check the returned PolygonMesh
