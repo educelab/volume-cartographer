@@ -20,7 +20,7 @@
 int main(){
 
     //smoothing factor
-    double factor = 4;
+    double factor = 2;
 
     //Declare shape objects
     volcart::shapes::Plane Plane;
