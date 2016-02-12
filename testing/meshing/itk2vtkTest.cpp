@@ -62,394 +62,738 @@
  * **********************************************************************************/
 
 
+
 /*
- * This builds objects for the i2v case below that reference
- * the fixture as their second argument
- *
+ * The following five fixture build test inputs for the itk2vtk tests
+ * 
+ * Comments are included in the Plane Fixture only...the remainder of the fixure copy the same ideas
  */
 
-struct ivFix {
+struct itk2vtkPlaneFixture {
 
-    ivFix() {
+    itk2vtkPlaneFixture() {
 
-        _mesh = mesh.itkMesh();
-        _vtk = vtkPolyData::New();
+        //fill itk mesh
+        _in_PlaneITKMesh = _Plane.itkMesh();
+                
+        //init vtkpolydata pointers
+        _out_PlaneVTKMesh = vtkPolyData::New();
+        
+        //call itk2vtk 
+        volcart::meshing::itk2vtk(_in_PlaneITKMesh, _out_PlaneVTKMesh);
 
-        std::cerr << "setting up itk2vtk objects" << std::endl;
+        //Read in the vtk.ply file
+        volcart::testing::ParsingHelpers::parsePlyFile("ITKPlaneMeshConvertedToVTK.ply", 
+                                                                            _SavedVTKPlanePoints, _SavedVTKPlaneCells);
+        
+        std::cerr << "setting up itk2vtk Plane test objects" << std::endl;
     }
 
-    ~ivFix(){ std::cerr << "cleaning up itk2vtk objects" << std::endl; }
+    ~itk2vtkPlaneFixture(){ std::cerr << "cleaning up itk2vtk Plane test objects" << std::endl; }
 
-    VC_MeshType::Pointer _mesh;
-    volcart::shapes::Plane mesh;
-    vtkPolyData* _vtk;
+    //init Plane
+    volcart::shapes::Plane _Plane;
+
+    //declare itk input mesh object
+    VC_MeshType::Pointer _in_PlaneITKMesh;
+    
+    //declare vtk output polydata object
+    vtkPolyData* _out_PlaneVTKMesh;
+    
+    //Declare vectors that will hold read data created by itk2vtkExample.cpp
+    std::vector<VC_Vertex> _SavedVTKPlanePoints;
+    std::vector<VC_Cell> _SavedVTKPlaneCells;
+};
+
+struct itk2vtkCubeFixture {
+
+    itk2vtkCubeFixture() {
+        
+        _in_CubeITKMesh = _Cube.itkMesh();
+        _out_CubeVTKMesh = vtkPolyData::New();
+        volcart::meshing::itk2vtk(_in_CubeITKMesh, _out_CubeVTKMesh);
+        volcart::testing::ParsingHelpers::parsePlyFile("ITKCubeMeshConvertedToVTK.ply",
+                                                       _SavedVTKCubePoints, _SavedVTKCubeCells);
+
+        std::cerr << "setting up itk2vtk Cube test objects" << std::endl;
+    }
+
+    ~itk2vtkCubeFixture(){ std::cerr << "cleaning up itk2vtk Cube test objects" << std::endl; }
+    
+    volcart::shapes::Cube _Cube;
+    VC_MeshType::Pointer _in_CubeITKMesh;
+    vtkPolyData* _out_CubeVTKMesh;
+    std::vector<VC_Vertex> _SavedVTKCubePoints;
+    std::vector<VC_Cell> _SavedVTKCubeCells;
+
+};
+
+
+struct itk2vtkArchFixture {
+
+    itk2vtkArchFixture() {
+
+        _in_ArchITKMesh = _Arch.itkMesh();
+        _out_ArchVTKMesh = vtkPolyData::New();
+        volcart::meshing::itk2vtk(_in_ArchITKMesh, _out_ArchVTKMesh);
+        volcart::testing::ParsingHelpers::parsePlyFile("ITKArchMeshConvertedToVTK.ply",
+                                                       _SavedVTKArchPoints, _SavedVTKArchCells);
+
+        std::cerr << "setting up itk2vtk Arch test objects" << std::endl;
+    }
+
+    ~itk2vtkArchFixture(){ std::cerr << "cleaning up itk2vtk Arch test objects" << std::endl; }
+
+    volcart::shapes::Arch _Arch;
+    VC_MeshType::Pointer _in_ArchITKMesh;
+    vtkPolyData* _out_ArchVTKMesh;
+    std::vector<VC_Vertex> _SavedVTKArchPoints;
+    std::vector<VC_Cell> _SavedVTKArchCells;
+
+};
+
+struct itk2vtkSphereFixture {
+
+    itk2vtkSphereFixture() {
+
+        _in_SphereITKMesh = _Sphere.itkMesh();
+        _out_SphereVTKMesh = vtkPolyData::New();
+        volcart::meshing::itk2vtk(_in_SphereITKMesh, _out_SphereVTKMesh);
+        volcart::testing::ParsingHelpers::parsePlyFile("ITKSphereMeshConvertedToVTK.ply",
+                                                       _SavedVTKSpherePoints, _SavedVTKSphereCells);
+
+        std::cerr << "setting up itk2vtk Sphere test objects" << std::endl;
+    }
+
+    ~itk2vtkSphereFixture(){ std::cerr << "cleaning up itk2vtk Sphere test objects" << std::endl; }
+
+    volcart::shapes::Sphere _Sphere;
+    VC_MeshType::Pointer _in_SphereITKMesh;
+    vtkPolyData* _out_SphereVTKMesh;
+    std::vector<VC_Vertex> _SavedVTKSpherePoints;
+    std::vector<VC_Cell> _SavedVTKSphereCells;
+
+};
+
+struct itk2vtkConeFixture {
+
+    itk2vtkConeFixture() {
+
+        _in_ConeITKMesh = _Cone.itkMesh();
+        _out_ConeVTKMesh = vtkPolyData::New();
+        volcart::meshing::itk2vtk(_in_ConeITKMesh, _out_ConeVTKMesh);
+        volcart::testing::ParsingHelpers::parsePlyFile("ITKConeMeshConvertedToVTK.ply",
+                                                       _SavedVTKConePoints, _SavedVTKConeCells);
+
+        std::cerr << "setting up itk2vtk Cone test objects" << std::endl;
+    }
+
+    ~itk2vtkConeFixture(){ std::cerr << "cleaning up itk2vtk Cone test objects" << std::endl; }
+
+    volcart::shapes::Cone _Cone;
+    VC_MeshType::Pointer _in_ConeITKMesh;
+    vtkPolyData* _out_ConeVTKMesh;
+    std::vector<VC_Vertex> _SavedVTKConePoints;
+    std::vector<VC_Cell> _SavedVTKConeCells;
+
 };
 
 /*
- * This builds objects for the v2i test case below that reference
- * the fixture as their second argument
- *
+ * The following five fixture build test inputs for the vtk2itk tests
+ * 
+ * Comments are included in the Plane Fixture only...the remainder of the fixure copy the same ideas
  */
 
+struct vtk2itkPlaneFixture {
 
-struct viFix {
+    vtk2itkPlaneFixture() {
 
-    viFix() {
+        _in_PlaneVTKMesh = _Plane.vtkMesh();
+        _out_PlaneITKMesh = VC_MeshType::New();
+        
+        // assign smartpointer data into vtkPolyData* object
+        vtkReadPlaneData = _in_PlaneVTKMesh.GetPointer();
 
-        vtk = mesh.vtkMesh();
-        itkMesh = VC_MeshType::New();
+        // convert from vtk mesh to itk mesh
+        volcart::meshing::vtk2itk(vtkReadPlaneData, _out_PlaneITKMesh);
 
-        std::cerr << "setting up vtk2itk objects" << std::endl;
+        // read data in from saved file created by itk2vtkExample.cpp
+        volcart::testing::ParsingHelpers::parseObjFile("VTKPlaneMeshConvertedToITK.obj", 
+                                                                           _SavedITKPlanePoints, _SavedITKPlaneCells);
+        
+        std::cerr << "setting up vtk2itk Plane test objects" << std::endl;
     }
 
-    ~viFix(){ std::cerr << "cleaning up vtk2itk objects" << std::endl; }
+    ~vtk2itkPlaneFixture(){ std::cerr << "cleaning up vtk2itk Plane test objects" << std::endl; }
 
-    VC_MeshType::Pointer itkMesh;
-    volcart::shapes::Plane mesh;
-    vtkSmartPointer<vtkPolyData> vtk;
+    //init shape
+    volcart::shapes::Plane _Plane;
+
+    //declare input vtkPolyData pointer to hold input mesh data
+    vtkSmartPointer<vtkPolyData> _in_PlaneVTKMesh;
+
+    //pointer that will hold input mesh data for conversion to itk mesh
+    vtkPolyData* vtkReadPlaneData;
+    
+    //declare mesh to hold output of vtk2itk call
+    VC_MeshType::Pointer _out_PlaneITKMesh;
+
+    //declare vectors to hold points and cells from savedITK data file created by itk2vtkExample.cpp
+    std::vector<VC_Vertex> _SavedITKPlanePoints;
+    std::vector<VC_Cell> _SavedITKPlaneCells;
+    
+};
+
+struct vtk2itkCubeFixture {
+
+    vtk2itkCubeFixture() {
+
+        _in_CubeVTKMesh = _Cube.vtkMesh();
+        _out_CubeITKMesh = VC_MeshType::New();
+        vtkReadCubeData = _in_CubeVTKMesh.GetPointer();
+        volcart::meshing::vtk2itk(vtkReadCubeData, _out_CubeITKMesh);
+        volcart::testing::ParsingHelpers::parseObjFile("VTKCubeMeshConvertedToITK.obj",
+                                                       _SavedITKCubePoints, _SavedITKCubeCells);
+
+        std::cerr << "setting up vtk2itk Cube test objects" << std::endl;
+    }
+
+    ~vtk2itkCubeFixture(){ std::cerr << "cleaning up vtk2itk Cube test objects" << std::endl; }
+    
+    volcart::shapes::Cube _Cube;
+    vtkSmartPointer<vtkPolyData> _in_CubeVTKMesh;
+    vtkPolyData* vtkReadCubeData;
+    VC_MeshType::Pointer _out_CubeITKMesh;
+    std::vector<VC_Vertex> _SavedITKCubePoints;
+    std::vector<VC_Cell> _SavedITKCubeCells;
+
 };
 
 
-//
-// check successful conversion from itk mesh to vtk mesh
-//
-// Note: _mesh is an itk mesh created in ivFix
-//       _vtk is a vtk mesh created in ivFix
-//
+struct vtk2itkArchFixture {
 
-BOOST_FIXTURE_TEST_CASE(i2v, ivFix){
+    vtk2itkArchFixture() {
 
-    // initialize a new VC_MeshType::Pointer
-    // this will hold the values for the new itk mesh that
-    // is to be compared with _mesh.
-    VC_MeshType::Pointer _itk = VC_MeshType::New();
+        _in_ArchVTKMesh = _Arch.vtkMesh();
+        _out_ArchITKMesh = VC_MeshType::New();
+        vtkReadArchData = _in_ArchVTKMesh.GetPointer();
+        volcart::meshing::vtk2itk(vtkReadArchData, _out_ArchITKMesh);
+        volcart::testing::ParsingHelpers::parseObjFile("VTKArchMeshConvertedToITK.obj",
+                                                       _SavedITKArchPoints, _SavedITKArchCells);
 
-    // convert from itk mesh to vtk and back again
-    volcart::meshing::itk2vtk(_mesh, _vtk);
-    volcart::meshing::vtk2itk(_vtk, _itk);
-
-
-    /* Now the original _mesh and the converted _itk
-     * mesh should contain the same data. The following three for loops
-     * check to see if this is true...and if the itk2vtk() constructor functions
-     * properly. Uncomment the std<<cerr lines to see the example data being tested.
-     */
-
-    // Points //
-
-    //Confirm equal number of points in both meshes
-    BOOST_CHECK_EQUAL(_mesh->GetNumberOfPoints(), _itk->GetNumberOfPoints());
-
-
-    //std::cerr << "Points:" << std::endl;
-    for ( size_t p_id = 0; p_id < _mesh->GetNumberOfPoints(); ++p_id) {
-
-        //check the points in both vtk meshes
-        BOOST_CHECK_EQUAL(_mesh->GetPoint(p_id)[0], _itk->GetPoint(p_id)[0]);
-        BOOST_CHECK_EQUAL(_mesh->GetPoint(p_id)[1], _itk->GetPoint(p_id)[1]);
-        BOOST_CHECK_EQUAL(_mesh->GetPoint(p_id)[2], _itk->GetPoint(p_id)[2]);
-
-        /* Uncomment below to see output of the test point set from _mesh*/
-        //std::cerr << _mesh->GetPoint(p_id)[0] << " | "
-        //         << _mesh->GetPoint(p_id)[1] << " | "
-        //          << _mesh->GetPoint(p_id)[2] << " | " << std::endl;
+        std::cerr << "setting up vtk2itk Arch test objects" << std::endl;
     }
 
+    ~vtk2itkArchFixture(){ std::cerr << "cleaning up vtk2itk Arch test objects" << std::endl; }
 
-    // Normals //
+    volcart::shapes::Arch _Arch;
+    vtkSmartPointer<vtkPolyData> _in_ArchVTKMesh;
+    vtkPolyData* vtkReadArchData;
+    VC_MeshType::Pointer _out_ArchITKMesh;
+    std::vector<VC_Vertex> _SavedITKArchPoints;
+    std::vector<VC_Cell> _SavedITKArchCells;
 
-    //std::cerr << "Normals:" << std::endl;
-    for ( VC_PointsInMeshIterator point = _mesh->GetPoints()->Begin(); point != _mesh->GetPoints()->End(); ++point ) {
-        // get the point's normal
+};
 
-        VC_PixelType _meshNormal, _itkNormal;
-        _mesh->GetPointData(point.Index(), &_meshNormal);
-        _itk->GetPointData(point.Index(), &_itkNormal);
+struct vtk2itkSphereFixture {
 
-        double ptNorm[3] = {_meshNormal[0], _meshNormal[1], _meshNormal[2]};
-        double _itkPtNorm[3] = {_itkNormal[0], _itkNormal[1], _itkNormal[2]};
+    vtk2itkSphereFixture() {
 
-        //Now compare the normals for the two meshes
-        BOOST_CHECK_EQUAL(_meshNormal[0], _itkNormal[0]);
-        BOOST_CHECK_EQUAL(_meshNormal[1], _itkNormal[1]);
-        BOOST_CHECK_EQUAL(_meshNormal[2], _itkNormal[2]);
+        _in_SphereVTKMesh = _Sphere.vtkMesh();
+        _out_SphereITKMesh = VC_MeshType::New();
+        vtkReadSphereData = _in_SphereVTKMesh.GetPointer();
+        volcart::meshing::vtk2itk(vtkReadSphereData, _out_SphereITKMesh);
+        volcart::testing::ParsingHelpers::parseObjFile("VTKSphereMeshConvertedToITK.obj",
+                                                       _SavedITKSpherePoints, _SavedITKSphereCells);
 
-        //std::cerr << ptNorm[0] << " | " << ptNorm[1]  <<  " | " << ptNorm[2] << std::endl;
+        std::cerr << "setting up vtk2itk Sphere test objects" << std::endl;
     }
 
+    ~vtk2itkSphereFixture(){ std::cerr << "cleaning up vtk2itk Sphere test objects" << std::endl; }
 
-    //Cells //
+    volcart::shapes::Sphere _Sphere;
+    vtkSmartPointer<vtkPolyData> _in_SphereVTKMesh;
+    vtkPolyData* vtkReadSphereData;
+    VC_MeshType::Pointer _out_SphereITKMesh;
+    std::vector<VC_Vertex> _SavedITKSpherePoints;
+    std::vector<VC_Cell> _SavedITKSphereCells;
 
-    // Initialize Cell Iterators
-    VC_CellIterator _itkCell = _itk->GetCells()->Begin();
-    VC_CellIterator _meshCell = _mesh->GetCells()->Begin();
+};
 
+struct vtk2itkConeFixture {
 
-    //compare number of cells in each itk mesh
-    BOOST_CHECK_EQUAL(_mesh->GetNumberOfCells(), _itk->GetNumberOfCells());
+    vtk2itkConeFixture() {
 
-    //While we have unvisited cells in the mesh
-    while (_meshCell != _mesh->GetCells()->End()) {
+        _in_ConeVTKMesh = _Cone.vtkMesh();
+        _out_ConeITKMesh = VC_MeshType::New();
+        vtkReadConeData = _in_ConeVTKMesh.GetPointer();
+        volcart::meshing::vtk2itk(vtkReadConeData, _out_ConeITKMesh);
+        volcart::testing::ParsingHelpers::parseObjFile("VTKConeMeshConvertedToITK.obj",
+                                                       _SavedITKConePoints, _SavedITKConeCells);
 
-        //Initialize Iterators for Points in a Cell
-        VC_PointsInCellIterator point = _meshCell.Value()->PointIdsBegin();
-        VC_PointsInCellIterator _itkPoint = _itkCell.Value()->PointIdsBegin();
-
-        //while we have points in the cell
-        while ( point != _meshCell.Value()->PointIdsEnd() ) {
-
-
-            //Now to check the points within the cells
-            BOOST_CHECK_EQUAL(*point, *_itkPoint);
-
-            //increment points
-            point++;
-            _itkPoint++;
-
-        }
-
-        //increment cells
-        ++_meshCell;
-        ++_itkCell;
-
+        std::cerr << "setting up vtk2itk Cone test objects" << std::endl;
     }
 
-}
+    ~vtk2itkConeFixture(){ std::cerr << "cleaning up vtk2itk Cone test objects" << std::endl; }
 
-//
-// check successful conversion from vtk mesh to itk mesh
-//
-// Note: _itkMesh is an itk mesh created in ivFix
-//       _vtk is a vtk mesh created in ivFix
-//
+    volcart::shapes::Cone _Cone;
+    vtkSmartPointer<vtkPolyData> _in_ConeVTKMesh;
+    vtkPolyData* vtkReadConeData;
+    VC_MeshType::Pointer _out_ConeITKMesh;
+    std::vector<VC_Vertex> _SavedITKConePoints;
+    std::vector<VC_Cell> _SavedITKConeCells;
 
+};
 
-BOOST_FIXTURE_TEST_CASE(v2i, viFix){
-
-    // Get smartpointer data into vtkPolyData*
-    vtkPolyData* vtkRead = vtk.GetPointer();
-
-    // initialize a new vtkPolydata pointer
-    // this will hold the values for the new vtk mesh that
-    // is to be compared with _vtk created in test fixture
-    // NOTE: shouldn't have to use smart pointer here
-
-    vtkPolyData* _newVtk = vtkPolyData::New();
-
-    // convert from itk mesh to vtk and back again
-    // GetPointer() from smart pointer, vtk, to pass
-    volcart::meshing::vtk2itk(vtkRead, itkMesh);
-    volcart::meshing::itk2vtk(itkMesh, _newVtk);
-
-    // points + normals
-    vtkDataArray *originalNormals = vtkRead->GetPointData()->GetNormals();
-    vtkDataArray *_newVtkNormals = _newVtk->GetPointData()->GetNormals();
-
-    // Points
-    //std::cerr << "Points:" << std::endl;
-    for ( vtkIdType p_id = 0; p_id < vtkRead->GetNumberOfPoints(); ++p_id) {
-
-        //check the points in both vtk meshes
-        BOOST_CHECK_EQUAL(vtkRead->GetPoint(p_id)[0], _newVtk->GetPoint(p_id)[0]);
-        BOOST_CHECK_EQUAL(vtkRead->GetPoint(p_id)[1], _newVtk->GetPoint(p_id)[1]);
-        BOOST_CHECK_EQUAL(vtkRead->GetPoint(p_id)[2], _newVtk->GetPoint(p_id)[2]);
-
-        /* Uncomment below to see output of a test point from vtkRead */
-        //std::cerr << vtkRead->GetPoint(p_id)[0] << " | "
-        //          << vtkRead->GetPoint(p_id)[1] << " | "
-        //          << vtkRead->GetPoint(p_id)[2] << " | " << std::endl;
-    }
-
-    //Normals
-    //std::cerr << "Normals:" << std::endl;
-    for (vtkIdType n_id = 0; n_id < vtkRead->GetNumberOfPoints(); n_id++){
-
-        //Check normals (nx,ny,nz)
-        BOOST_CHECK_EQUAL(originalNormals->GetTuple(n_id)[0], _newVtkNormals->GetTuple(n_id)[0]);
-        BOOST_CHECK_EQUAL(originalNormals->GetTuple(n_id)[1], _newVtkNormals->GetTuple(n_id)[1]);
-        BOOST_CHECK_EQUAL(originalNormals->GetTuple(n_id)[2], _newVtkNormals->GetTuple(n_id)[2]);
-
-        /* Uncomment below to see output of a test normal from vtkRead */
-        //std::cerr << originalNormals->GetTuple(n_id)[0] << " | "
-        //          << originalNormals->GetTuple(n_id)[1] << " | "
-        //          << originalNormals->GetTuple(n_id)[2] << " | " << std::endl;
-    }
-
-
-    //Cells
-    //std::cerr << "Cells:" << std::endl;
-    for ( vtkIdType c_id = 0; c_id < vtkRead->GetNumberOfCells(); c_id++){
-
-        vtkCell *inputCell = vtkRead->GetCell(c_id);
-        vtkCell *_newVtkCell = _newVtk->GetCell(c_id);
-
-        //Check that points in each cell are equal
-        //We have three checks since there are three points that make up a cell
-        BOOST_CHECK_EQUAL(inputCell->GetPointIds()->GetId(0), _newVtkCell->GetPointIds()->GetId(0));
-        BOOST_CHECK_EQUAL(inputCell->GetPointIds()->GetId(1), _newVtkCell->GetPointIds()->GetId(1));
-        BOOST_CHECK_EQUAL(inputCell->GetPointIds()->GetId(2), _newVtkCell->GetPointIds()->GetId(2));
-
-
-        /* Uncomment below to see output of a test normal from vtkRead */
-        //std::cerr << inputCell->GetPointIds()->GetId(0) << " | "
-        //          << inputCell->GetPointIds()->GetId(1) << " | "
-        //          << inputCell->GetPointIds()->GetId(2) << " | " << std::endl;
-    }
-}
+/**********************************************************************************************************************/
+/**********************************************************************************************************************/
+/*                                                                                                                    */
+/*                                                  ITK2VTK TESTS                                                     */
+/*                                                                                                                    */
+/**********************************************************************************************************************/
+/**********************************************************************************************************************/
 
 /*
- * Goal of this test case is to call vtk2itk() and compare to the saved itk.obj
- * file created by itk2vtkExample.cpp.
+ * Comments included for the Plane test but omitted in subsequent tests because they follow the same idea
  */
 
-BOOST_FIXTURE_TEST_CASE(compareSavedITK, viFix){
-
-    // Get smartpointer data into vtkPolyData* object
-    // vtkRead will be converted to itk below
-    vtkPolyData* vtkRead = vtk.GetPointer();
-
-    // convert from vtk mesh to itk mesh
-    volcart::meshing::vtk2itk(vtkRead, itkMesh);
-
-    //itkMesh now contains the data that will be compared to the
-    //itk.obj file saved in testing/test_data
-
-    //init vectors to hold points and cells from savedITK data file
-    std::vector<VC_Vertex> savedITKPoints;
-    std::vector<VC_Cell> savedITKCells;
-
-    //First, read the .obj file
-    volcart::testing::ParsingHelpers::parseObjFile("itk.obj", savedITKPoints, savedITKCells);
-
-    /*
-     * Now the comparisons between the test-created-itk mesh (itkMesh)
-     * and the saved itk data from itk.obj (stored in savedITKPoints and saveITKCells)
-     * will occur. First, points then normals then faces.
-     */
-
+BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedPlaneWithSavedPlaneVTKFileTest, itk2vtkPlaneFixture){
+    
     //Check number of points in each mesh
-    BOOST_CHECK_EQUAL( itkMesh->GetNumberOfPoints(), savedITKPoints.size() );
+    BOOST_CHECK_EQUAL( _out_PlaneVTKMesh->GetNumberOfPoints(), _SavedVTKPlanePoints.size() );
 
-    std::cerr << "Comparing points..." << std::endl;
-    //Now iterate over point sets and compare x/y/z values
-    for ( size_t p_id = 0; p_id < itkMesh ->GetNumberOfPoints(); ++p_id) {
+    std::cerr << "Comparing points and normals..." << std::endl;
+    //Now iterate over point sets and compare coordinate and normal values
+    for ( size_t pnt_id = 0; pnt_id < _out_PlaneVTKMesh ->GetNumberOfPoints(); ++pnt_id) {
 
-        BOOST_CHECK_EQUAL( itkMesh->GetPoint(p_id)[0], savedITKPoints[p_id].x);
-        BOOST_CHECK_EQUAL( itkMesh->GetPoint(p_id)[1], savedITKPoints[p_id].y);
-        BOOST_CHECK_EQUAL( itkMesh->GetPoint(p_id)[2], savedITKPoints[p_id].z);
+        BOOST_CHECK_EQUAL( _out_PlaneVTKMesh->GetPoint(pnt_id)[0], _SavedVTKPlanePoints[pnt_id].x);
+        BOOST_CHECK_EQUAL( _out_PlaneVTKMesh->GetPoint(pnt_id)[1], _SavedVTKPlanePoints[pnt_id].y);
+        BOOST_CHECK_EQUAL( _out_PlaneVTKMesh->GetPoint(pnt_id)[2], _SavedVTKPlanePoints[pnt_id].z);
 
-    }
-
-    // Normals //
-    std::cerr << "Comparing normals..." << std::endl;
-    int p = 0;
-    for ( VC_PointsInMeshIterator point = itkMesh->GetPoints()->Begin(); point != itkMesh->GetPoints()->End(); ++point ) {
-
-        VC_PixelType itkMeshNormal;
-        itkMesh->GetPointData(point.Index(), &itkMeshNormal);
-
-        double ptNorm[3] = {itkMeshNormal[0], itkMeshNormal[1], itkMeshNormal[2]};
-
-        //Now compare the normals for the two meshes
-        BOOST_CHECK_EQUAL(itkMeshNormal[0], savedITKPoints[p].nx);
-        BOOST_CHECK_EQUAL(itkMeshNormal[1], savedITKPoints[p].ny);
-        BOOST_CHECK_EQUAL(itkMeshNormal[2], savedITKPoints[p].nz);
-
-        p++;
-
+        //normals
+        BOOST_CHECK_EQUAL( _out_PlaneVTKMesh->GetPoint(pnt_id)[3], _SavedVTKPlanePoints[pnt_id].nx);
+        BOOST_CHECK_EQUAL( _out_PlaneVTKMesh->GetPoint(pnt_id)[4], _SavedVTKPlanePoints[pnt_id].ny);
+        BOOST_CHECK_EQUAL( _out_PlaneVTKMesh->GetPoint(pnt_id)[5], _SavedVTKPlanePoints[pnt_id].nz);
     }
 
     //Cells
     std::cerr << "Comparing cells..." << std::endl;
 
     //compare number of cells in each itk mesh
-    BOOST_CHECK_EQUAL(itkMesh->GetNumberOfCells(), savedITKCells.size());
+    BOOST_CHECK_EQUAL(_out_PlaneVTKMesh->GetNumberOfCells(), _SavedVTKPlaneCells.size());
+
+    for ( vtkIdType c_id = 0; c_id < _out_PlaneVTKMesh->GetNumberOfCells(); c_id++){
+
+        vtkCell *out_VTKPlaneCell = _out_PlaneVTKMesh->GetCell(c_id);
+
+        //Check that vertices making up the corresponding cells are equal
+        //We have three checks since there are three points that make up a cell
+        BOOST_CHECK_EQUAL(out_VTKPlaneCell->GetPointIds()->GetId(0), _SavedVTKPlaneCells[c_id].v1);
+        BOOST_CHECK_EQUAL(out_VTKPlaneCell->GetPointIds()->GetId(1), _SavedVTKPlaneCells[c_id].v2);
+        BOOST_CHECK_EQUAL(out_VTKPlaneCell->GetPointIds()->GetId(2), _SavedVTKPlaneCells[c_id].v3);
+
+    }
+}
+
+BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedCubeWithSavedCubeVTKFileTest, itk2vtkCubeFixture){
+
+    BOOST_CHECK_EQUAL( _out_CubeVTKMesh->GetNumberOfPoints(), _SavedVTKCubePoints.size() );
+
+    for ( size_t pnt_id = 0; pnt_id < _out_CubeVTKMesh ->GetNumberOfPoints(); ++pnt_id) {
+
+        BOOST_CHECK_EQUAL( _out_CubeVTKMesh->GetPoint(pnt_id)[0], _SavedVTKCubePoints[pnt_id].x);
+        BOOST_CHECK_EQUAL( _out_CubeVTKMesh->GetPoint(pnt_id)[1], _SavedVTKCubePoints[pnt_id].y);
+        BOOST_CHECK_EQUAL( _out_CubeVTKMesh->GetPoint(pnt_id)[2], _SavedVTKCubePoints[pnt_id].z);
+
+        BOOST_CHECK_EQUAL( _out_CubeVTKMesh->GetPoint(pnt_id)[3], _SavedVTKCubePoints[pnt_id].nx);
+        BOOST_CHECK_EQUAL( _out_CubeVTKMesh->GetPoint(pnt_id)[4], _SavedVTKCubePoints[pnt_id].ny);
+        BOOST_CHECK_EQUAL( _out_CubeVTKMesh->GetPoint(pnt_id)[5], _SavedVTKCubePoints[pnt_id].nz);
+    }
+
+    BOOST_CHECK_EQUAL(_out_CubeVTKMesh->GetNumberOfCells(), _SavedVTKCubeCells.size());
+
+    for ( vtkIdType c_id = 0; c_id < _out_CubeVTKMesh->GetNumberOfCells(); c_id++){
+
+        vtkCell *out_VTKCubeCell = _out_CubeVTKMesh->GetCell(c_id);
+
+        BOOST_CHECK_EQUAL(out_VTKCubeCell->GetPointIds()->GetId(0), _SavedVTKCubeCells[c_id].v1);
+        BOOST_CHECK_EQUAL(out_VTKCubeCell->GetPointIds()->GetId(1), _SavedVTKCubeCells[c_id].v2);
+        BOOST_CHECK_EQUAL(out_VTKCubeCell->GetPointIds()->GetId(2), _SavedVTKCubeCells[c_id].v3);
+
+    }
+}
+
+BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedArchWithSavedArchVTKFileTest, itk2vtkArchFixture){
+
+    BOOST_CHECK_EQUAL( _out_ArchVTKMesh->GetNumberOfPoints(), _SavedVTKArchPoints.size() );
+
+    for ( size_t pnt_id = 0; pnt_id < _out_ArchVTKMesh ->GetNumberOfPoints(); ++pnt_id) {
+
+        BOOST_CHECK_EQUAL( _out_ArchVTKMesh->GetPoint(pnt_id)[0], _SavedVTKArchPoints[pnt_id].x);
+        BOOST_CHECK_EQUAL( _out_ArchVTKMesh->GetPoint(pnt_id)[1], _SavedVTKArchPoints[pnt_id].y);
+        BOOST_CHECK_EQUAL( _out_ArchVTKMesh->GetPoint(pnt_id)[2], _SavedVTKArchPoints[pnt_id].z);
+
+        BOOST_CHECK_EQUAL( _out_ArchVTKMesh->GetPoint(pnt_id)[3], _SavedVTKArchPoints[pnt_id].nx);
+        BOOST_CHECK_EQUAL( _out_ArchVTKMesh->GetPoint(pnt_id)[4], _SavedVTKArchPoints[pnt_id].ny);
+        BOOST_CHECK_EQUAL( _out_ArchVTKMesh->GetPoint(pnt_id)[5], _SavedVTKArchPoints[pnt_id].nz);
+    }
+
+    BOOST_CHECK_EQUAL(_out_ArchVTKMesh->GetNumberOfCells(), _SavedVTKArchCells.size());
+
+    for ( vtkIdType c_id = 0; c_id < _out_ArchVTKMesh->GetNumberOfCells(); c_id++){
+
+        vtkCell *out_VTKArchCell = _out_ArchVTKMesh->GetCell(c_id);
+
+        BOOST_CHECK_EQUAL(out_VTKArchCell->GetPointIds()->GetId(0), _SavedVTKArchCells[c_id].v1);
+        BOOST_CHECK_EQUAL(out_VTKArchCell->GetPointIds()->GetId(1), _SavedVTKArchCells[c_id].v2);
+        BOOST_CHECK_EQUAL(out_VTKArchCell->GetPointIds()->GetId(2), _SavedVTKArchCells[c_id].v3);
+
+    }
+}
+
+BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedSphereWithSavedSphereVTKFileTest, itk2vtkSphereFixture){
+
+    BOOST_CHECK_EQUAL( _out_SphereVTKMesh->GetNumberOfPoints(), _SavedVTKSpherePoints.size() );
+
+    for ( size_t pnt_id = 0; pnt_id < _out_SphereVTKMesh ->GetNumberOfPoints(); ++pnt_id) {
+
+        BOOST_CHECK_EQUAL( _out_SphereVTKMesh->GetPoint(pnt_id)[0], _SavedVTKSpherePoints[pnt_id].x);
+        BOOST_CHECK_EQUAL( _out_SphereVTKMesh->GetPoint(pnt_id)[1], _SavedVTKSpherePoints[pnt_id].y);
+        BOOST_CHECK_EQUAL( _out_SphereVTKMesh->GetPoint(pnt_id)[2], _SavedVTKSpherePoints[pnt_id].z);
+
+        BOOST_CHECK_EQUAL( _out_SphereVTKMesh->GetPoint(pnt_id)[3], _SavedVTKSpherePoints[pnt_id].nx);
+        BOOST_CHECK_EQUAL( _out_SphereVTKMesh->GetPoint(pnt_id)[4], _SavedVTKSpherePoints[pnt_id].ny);
+        BOOST_CHECK_EQUAL( _out_SphereVTKMesh->GetPoint(pnt_id)[5], _SavedVTKSpherePoints[pnt_id].nz);
+    }
+
+    BOOST_CHECK_EQUAL(_out_SphereVTKMesh->GetNumberOfCells(), _SavedVTKSphereCells.size());
+
+    for ( vtkIdType c_id = 0; c_id < _out_SphereVTKMesh->GetNumberOfCells(); c_id++){
+
+        vtkCell *out_VTKSphereCell = _out_SphereVTKMesh->GetCell(c_id);
+
+        BOOST_CHECK_EQUAL(out_VTKSphereCell->GetPointIds()->GetId(0), _SavedVTKSphereCells[c_id].v1);
+        BOOST_CHECK_EQUAL(out_VTKSphereCell->GetPointIds()->GetId(1), _SavedVTKSphereCells[c_id].v2);
+        BOOST_CHECK_EQUAL(out_VTKSphereCell->GetPointIds()->GetId(2), _SavedVTKSphereCells[c_id].v3);
+
+    }
+}
+
+BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedConeWithSavedConeVTKFileTest, itk2vtkConeFixture){
+
+    BOOST_CHECK_EQUAL( _out_ConeVTKMesh->GetNumberOfPoints(), _SavedVTKConePoints.size() );
+
+    std::cerr << "Comparing points and normals..." << std::endl;
+    for ( size_t pnt_id = 0; pnt_id < _out_ConeVTKMesh ->GetNumberOfPoints(); ++pnt_id) {
+
+        BOOST_CHECK_EQUAL( _out_ConeVTKMesh->GetPoint(pnt_id)[0], _SavedVTKConePoints[pnt_id].x);
+        BOOST_CHECK_EQUAL( _out_ConeVTKMesh->GetPoint(pnt_id)[1], _SavedVTKConePoints[pnt_id].y);
+        BOOST_CHECK_EQUAL( _out_ConeVTKMesh->GetPoint(pnt_id)[2], _SavedVTKConePoints[pnt_id].z);
+
+        BOOST_CHECK_EQUAL( _out_ConeVTKMesh->GetPoint(pnt_id)[3], _SavedVTKConePoints[pnt_id].nx);
+        BOOST_CHECK_EQUAL( _out_ConeVTKMesh->GetPoint(pnt_id)[4], _SavedVTKConePoints[pnt_id].ny);
+        BOOST_CHECK_EQUAL( _out_ConeVTKMesh->GetPoint(pnt_id)[5], _SavedVTKConePoints[pnt_id].nz);
+    }
+
+    BOOST_CHECK_EQUAL(_out_ConeVTKMesh->GetNumberOfCells(), _SavedVTKConeCells.size());
+
+    for ( vtkIdType c_id = 0; c_id < _out_ConeVTKMesh->GetNumberOfCells(); c_id++){
+
+        vtkCell *out_VTKConeCell = _out_ConeVTKMesh->GetCell(c_id);
+
+        BOOST_CHECK_EQUAL(out_VTKConeCell->GetPointIds()->GetId(0), _SavedVTKConeCells[c_id].v1);
+        BOOST_CHECK_EQUAL(out_VTKConeCell->GetPointIds()->GetId(1), _SavedVTKConeCells[c_id].v2);
+        BOOST_CHECK_EQUAL(out_VTKConeCell->GetPointIds()->GetId(2), _SavedVTKConeCells[c_id].v3);
+
+    }
+}
+/**********************************************************************************************************************/
+/**********************************************************************************************************************/
+/*                                                                                                                    */
+/*                                                  VTK2ITK TESTS                                                     */
+/*                                                                                                                    */
+/**********************************************************************************************************************/
+/**********************************************************************************************************************/
+
+/*
+ * Comments included for the Plane test but omitted in subsequent tests because they follow the same idea
+ */
+
+BOOST_FIXTURE_TEST_CASE(CompareFixtureVTKToITKConvertedPlaneWithSavedPlaneITKFileTest, vtk2itkPlaneFixture){
+
+
+    //Confirm equal number of points in both the saved itk mesh and the output itk mesh from the fixture
+    BOOST_CHECK_EQUAL(_SavedITKPlanePoints.size(), _out_PlaneITKMesh->GetNumberOfPoints());
+
+    //Check equivalency of points
+    for ( size_t pnt_id = 0; pnt_id < _out_PlaneITKMesh->GetNumberOfPoints(); ++pnt_id) {
+
+        //check the points in both vtk meshes
+        BOOST_CHECK_EQUAL(_SavedITKPlanePoints[pnt_id].x, _out_PlaneITKMesh->GetPoint(pnt_id)[0]);
+        BOOST_CHECK_EQUAL(_SavedITKPlanePoints[pnt_id].y, _out_PlaneITKMesh->GetPoint(pnt_id)[1]);
+        BOOST_CHECK_EQUAL(_SavedITKPlanePoints[pnt_id].z, _out_PlaneITKMesh->GetPoint(pnt_id)[2]);
+    }
+
+    // Normals //
+    int p =0;
+    VC_PointsInMeshIterator point = _out_PlaneITKMesh->GetPoints()->Begin();
+    for ( ; point != _out_PlaneITKMesh->GetPoints()->End(); ++point ) {
+
+        VC_PixelType _out_PlaneITKMeshNormal;
+        _out_PlaneITKMesh->GetPointData(point.Index(), &_out_PlaneITKMeshNormal);
+
+        //Now compare the normals for the two meshes
+        BOOST_CHECK_EQUAL(_out_PlaneITKMeshNormal[0], _SavedITKPlanePoints[p].nx);
+        BOOST_CHECK_EQUAL(_out_PlaneITKMeshNormal[1], _SavedITKPlanePoints[p].ny);
+        BOOST_CHECK_EQUAL(_out_PlaneITKMeshNormal[2], _SavedITKPlanePoints[p].nz);
+
+        ++p;
+    }
+    
+    //Cells (faces)
 
     // Initialize Cell Iterators
-    VC_CellIterator itkMeshCell = itkMesh->GetCells()->Begin();
+    VC_CellIterator _out_PlaneITKMeshCell = _out_PlaneITKMesh->GetCells()->Begin();
 
     int c = 0;
 
-    while (itkMeshCell != itkMesh->GetCells()->End()) {
+    while (_out_PlaneITKMeshCell != _out_PlaneITKMesh->GetCells()->End()) {
 
         //Initialize Iterators for Points in a Cell
-        VC_PointsInCellIterator itkMeshPoint = itkMeshCell.Value()->PointIdsBegin();
+        VC_PointsInCellIterator _out_PlaneITKMeshPointId = _out_PlaneITKMeshCell.Value()->PointIdsBegin();
 
         int counter = 0;
         //while we have points in the cell
-        while ( itkMeshPoint != itkMeshCell.Value()->PointIdsEnd() ) {
+        while ( _out_PlaneITKMeshPointId != _out_PlaneITKMeshCell.Value()->PointIdsEnd() ) {
 
             //Now to check the points within the cells
             if (counter == 0)
-                BOOST_CHECK_EQUAL(*itkMeshPoint, savedITKCells[c].v1);
+                BOOST_CHECK_EQUAL(*_out_PlaneITKMeshPointId, _SavedITKPlaneCells[c].v1);
             else if(counter == 1)
-                BOOST_CHECK_EQUAL(*itkMeshPoint, savedITKCells[c].v2);
+                BOOST_CHECK_EQUAL(*_out_PlaneITKMeshPointId, _SavedITKPlaneCells[c].v2);
             else if (counter == 2)
-                BOOST_CHECK_EQUAL(*itkMeshPoint, savedITKCells[c].v3);
+                BOOST_CHECK_EQUAL(*_out_PlaneITKMeshPointId, _SavedITKPlaneCells[c].v3);
 
             //increment points
-            itkMeshPoint++;
+            _out_PlaneITKMeshPointId++;
             counter++;
 
         }
 
         //increment cells
-        ++itkMeshCell;
+        ++_out_PlaneITKMeshCell;
         ++c;
     }
 
 }
 
-/*
- * Goal of this test case is to call itk2vtk() and compare to the saved vtk.ply
- * file created by itk2vtkExample.cpp.
- */
+BOOST_FIXTURE_TEST_CASE(CompareFixtureVTKToITKConvertedCubeWithSavedCubeITKFileTest, vtk2itkCubeFixture){
+    
+    BOOST_CHECK_EQUAL(_SavedITKCubePoints.size(), _out_CubeITKMesh->GetNumberOfPoints());
+    
+    for ( size_t pnt_id = 0; pnt_id < _out_CubeITKMesh->GetNumberOfPoints(); ++pnt_id) {
+        
+        BOOST_CHECK_EQUAL(_SavedITKCubePoints[pnt_id].x, _out_CubeITKMesh->GetPoint(pnt_id)[0]);
+        BOOST_CHECK_EQUAL(_SavedITKCubePoints[pnt_id].y, _out_CubeITKMesh->GetPoint(pnt_id)[1]);
+        BOOST_CHECK_EQUAL(_SavedITKCubePoints[pnt_id].z, _out_CubeITKMesh->GetPoint(pnt_id)[2]);
+    }
+    
+    int p =0;
+    VC_PointsInMeshIterator point = _out_CubeITKMesh->GetPoints()->Begin();
+    for ( ; point != _out_CubeITKMesh->GetPoints()->End(); ++point ) {
 
-BOOST_FIXTURE_TEST_CASE(compareSavedVTK, ivFix){
+        VC_PixelType _out_CubeITKMeshNormal;
+        _out_CubeITKMesh->GetPointData(point.Index(), &_out_CubeITKMeshNormal);
+        
+        BOOST_CHECK_EQUAL(_out_CubeITKMeshNormal[0], _SavedITKCubePoints[p].nx);
+        BOOST_CHECK_EQUAL(_out_CubeITKMeshNormal[1], _SavedITKCubePoints[p].ny);
+        BOOST_CHECK_EQUAL(_out_CubeITKMeshNormal[2], _SavedITKCubePoints[p].nz);
 
-    // convert from itk mesh to vtk and back again
-    volcart::meshing::itk2vtk(_mesh, _vtk);
-
-    //Init two vectors to hold the saved vtk file information
-    std::vector<VC_Vertex> savedVTKPoints;
-    std::vector<VC_Cell> savedVTKCells;
-
-    //Read in the vtk.ply file
-    //parsePlyFile() found in parsingHelpers.cpp
-    volcart::testing::ParsingHelpers::parsePlyFile("vtk.ply", savedVTKPoints, savedVTKCells);
-    /*
-     * Now the comparison can occur between the saved .ply file and the
-     * test-case-created _vtk mesh. First, we check the points and then
-     * the cells.
-     */
-
-    //Confirm equal number of points in both meshes
-    BOOST_CHECK_EQUAL(savedVTKPoints.size(), _vtk->GetNumberOfPoints());
-
-    //Check equivalency of points
-    for ( size_t p_id = 0; p_id < _vtk->GetNumberOfPoints(); ++p_id) {
-
-        //check the points in both vtk meshes
-        BOOST_CHECK_EQUAL(savedVTKPoints[p_id].x, _vtk->GetPoint(p_id)[0]);
-        BOOST_CHECK_EQUAL(savedVTKPoints[p_id].y, _vtk->GetPoint(p_id)[1]);
-        BOOST_CHECK_EQUAL(savedVTKPoints[p_id].z, _vtk->GetPoint(p_id)[2]);
+        ++p;
     }
 
-    //Cells (faces)
+    VC_CellIterator _out_CubeITKMeshCell = _out_CubeITKMesh->GetCells()->Begin();
+    int c = 0;
 
-    //Confirm same number of faces in saved VTK file versus converted VTK
-    BOOST_CHECK_EQUAL(savedVTKCells.size(), _vtk->GetNumberOfCells());
+    while (_out_CubeITKMeshCell != _out_CubeITKMesh->GetCells()->End()) {
+        
+        VC_PointsInCellIterator _out_CubeITKMeshPointId = _out_CubeITKMeshCell.Value()->PointIdsBegin();
 
-    for ( vtkIdType c_id = 0; c_id < _vtk->GetNumberOfCells(); c_id++){
+        int counter = 0;
+        while ( _out_CubeITKMeshPointId != _out_CubeITKMeshCell.Value()->PointIdsEnd() ) {
+            
+            if (counter == 0)
+                BOOST_CHECK_EQUAL(*_out_CubeITKMeshPointId, _SavedITKCubeCells[c].v1);
+            else if(counter == 1)
+                BOOST_CHECK_EQUAL(*_out_CubeITKMeshPointId, _SavedITKCubeCells[c].v2);
+            else if (counter == 2)
+                BOOST_CHECK_EQUAL(*_out_CubeITKMeshPointId, _SavedITKCubeCells[c].v3);
+            
+            _out_CubeITKMeshPointId++;
+            counter++;
+        }
+        
+        ++_out_CubeITKMeshCell;
+        ++c;
+    }
 
-        vtkCell *inputCell = _vtk->GetCell(c_id);
+}
 
-        //Check that vertices making up the corresponding cells are equal
-        //We have three checks since there are three points that make up a cell
-        BOOST_CHECK_EQUAL(inputCell->GetPointIds()->GetId(0), savedVTKCells[c_id].v1);
-        BOOST_CHECK_EQUAL(inputCell->GetPointIds()->GetId(1), savedVTKCells[c_id].v2);
-        BOOST_CHECK_EQUAL(inputCell->GetPointIds()->GetId(2), savedVTKCells[c_id].v3);
+BOOST_FIXTURE_TEST_CASE(CompareFixtureVTKToITKConvertedArchWithSavedArchITKFileTest, vtk2itkArchFixture){
+    
+    BOOST_CHECK_EQUAL(_SavedITKArchPoints.size(), _out_ArchITKMesh->GetNumberOfPoints());
+    
+    for ( size_t pnt_id = 0; pnt_id < _out_ArchITKMesh->GetNumberOfPoints(); ++pnt_id) {
+        
+        BOOST_CHECK_EQUAL(_SavedITKArchPoints[pnt_id].x, _out_ArchITKMesh->GetPoint(pnt_id)[0]);
+        BOOST_CHECK_EQUAL(_SavedITKArchPoints[pnt_id].y, _out_ArchITKMesh->GetPoint(pnt_id)[1]);
+        BOOST_CHECK_EQUAL(_SavedITKArchPoints[pnt_id].z, _out_ArchITKMesh->GetPoint(pnt_id)[2]);
+    }
+    
+    int p =0;
+    VC_PointsInMeshIterator point = _out_ArchITKMesh->GetPoints()->Begin();
+    for ( ; point != _out_ArchITKMesh->GetPoints()->End(); ++point ) {
 
+        VC_PixelType _out_ArchITKMeshNormal;
+        _out_ArchITKMesh->GetPointData(point.Index(), &_out_ArchITKMeshNormal);
+        
+        BOOST_CHECK_EQUAL(_out_ArchITKMeshNormal[0], _SavedITKArchPoints[p].nx);
+        BOOST_CHECK_EQUAL(_out_ArchITKMeshNormal[1], _SavedITKArchPoints[p].ny);
+        BOOST_CHECK_EQUAL(_out_ArchITKMeshNormal[2], _SavedITKArchPoints[p].nz);
+
+        ++p;
+    }
+
+    VC_CellIterator _out_ArchITKMeshCell = _out_ArchITKMesh->GetCells()->Begin();
+    int c = 0;
+
+    while (_out_ArchITKMeshCell != _out_ArchITKMesh->GetCells()->End()) {
+        
+        VC_PointsInCellIterator _out_ArchITKMeshPointId = _out_ArchITKMeshCell.Value()->PointIdsBegin();
+
+        int counter = 0;
+        while ( _out_ArchITKMeshPointId != _out_ArchITKMeshCell.Value()->PointIdsEnd() ) {
+            
+            if (counter == 0)
+                BOOST_CHECK_EQUAL(*_out_ArchITKMeshPointId, _SavedITKArchCells[c].v1);
+            else if(counter == 1)
+                BOOST_CHECK_EQUAL(*_out_ArchITKMeshPointId, _SavedITKArchCells[c].v2);
+            else if (counter == 2)
+                BOOST_CHECK_EQUAL(*_out_ArchITKMeshPointId, _SavedITKArchCells[c].v3);
+            
+            _out_ArchITKMeshPointId++;
+            counter++;
+
+        }
+        
+        ++_out_ArchITKMeshCell;
+        ++c;
+    }
+
+}
+
+BOOST_FIXTURE_TEST_CASE(CompareFixtureVTKToITKConvertedSphereWithSavedSphereITKFileTest, vtk2itkSphereFixture){
+
+    BOOST_CHECK_EQUAL(_SavedITKSpherePoints.size(), _out_SphereITKMesh->GetNumberOfPoints());
+
+    for ( size_t pnt_id = 0; pnt_id < _out_SphereITKMesh->GetNumberOfPoints(); ++pnt_id) {
+
+        BOOST_CHECK_EQUAL(_SavedITKSpherePoints[pnt_id].x, _out_SphereITKMesh->GetPoint(pnt_id)[0]);
+        BOOST_CHECK_EQUAL(_SavedITKSpherePoints[pnt_id].y, _out_SphereITKMesh->GetPoint(pnt_id)[1]);
+        BOOST_CHECK_EQUAL(_SavedITKSpherePoints[pnt_id].z, _out_SphereITKMesh->GetPoint(pnt_id)[2]);
+    }
+
+    int p =0;
+    VC_PointsInMeshIterator point = _out_SphereITKMesh->GetPoints()->Begin();
+    for ( ; point != _out_SphereITKMesh->GetPoints()->End(); ++point ) {
+
+        VC_PixelType _out_SphereITKMeshNormal;
+        _out_SphereITKMesh->GetPointData(point.Index(), &_out_SphereITKMeshNormal);
+
+        BOOST_CHECK_EQUAL(_out_SphereITKMeshNormal[0], _SavedITKSpherePoints[p].nx);
+        BOOST_CHECK_EQUAL(_out_SphereITKMeshNormal[1], _SavedITKSpherePoints[p].ny);
+        BOOST_CHECK_EQUAL(_out_SphereITKMeshNormal[2], _SavedITKSpherePoints[p].nz);
+
+        ++p;
+    }
+
+    VC_CellIterator _out_SphereITKMeshCell = _out_SphereITKMesh->GetCells()->Begin();
+    int c = 0;
+
+    while (_out_SphereITKMeshCell != _out_SphereITKMesh->GetCells()->End()) {
+
+        VC_PointsInCellIterator _out_SphereITKMeshPointId = _out_SphereITKMeshCell.Value()->PointIdsBegin();
+
+        int counter = 0;
+        while ( _out_SphereITKMeshPointId != _out_SphereITKMeshCell.Value()->PointIdsEnd() ) {
+
+            if (counter == 0)
+                BOOST_CHECK_EQUAL(*_out_SphereITKMeshPointId, _SavedITKSphereCells[c].v1);
+            else if(counter == 1)
+                BOOST_CHECK_EQUAL(*_out_SphereITKMeshPointId, _SavedITKSphereCells[c].v2);
+            else if (counter == 2)
+                BOOST_CHECK_EQUAL(*_out_SphereITKMeshPointId, _SavedITKSphereCells[c].v3);
+
+            _out_SphereITKMeshPointId++;
+            counter++;
+
+        }
+
+        ++_out_SphereITKMeshCell;
+        ++c;
+    }
+
+}
+
+BOOST_FIXTURE_TEST_CASE(CompareFixtureVTKToITKConvertedConeWithSavedConeITKFileTest, vtk2itkConeFixture){
+
+    BOOST_CHECK_EQUAL(_SavedITKConePoints.size(), _out_ConeITKMesh->GetNumberOfPoints());
+
+    for ( size_t pnt_id = 0; pnt_id < _out_ConeITKMesh->GetNumberOfPoints(); ++pnt_id) {
+
+        BOOST_CHECK_EQUAL(_SavedITKConePoints[pnt_id].x, _out_ConeITKMesh->GetPoint(pnt_id)[0]);
+        BOOST_CHECK_EQUAL(_SavedITKConePoints[pnt_id].y, _out_ConeITKMesh->GetPoint(pnt_id)[1]);
+        BOOST_CHECK_EQUAL(_SavedITKConePoints[pnt_id].z, _out_ConeITKMesh->GetPoint(pnt_id)[2]);
+    }
+
+    int p =0;
+    VC_PointsInMeshIterator point = _out_ConeITKMesh->GetPoints()->Begin();
+    for ( ; point != _out_ConeITKMesh->GetPoints()->End(); ++point ) {
+
+        VC_PixelType _out_ConeITKMeshNormal;
+        _out_ConeITKMesh->GetPointData(point.Index(), &_out_ConeITKMeshNormal);
+
+        BOOST_CHECK_EQUAL(_out_ConeITKMeshNormal[0], _SavedITKConePoints[p].nx);
+        BOOST_CHECK_EQUAL(_out_ConeITKMeshNormal[1], _SavedITKConePoints[p].ny);
+        BOOST_CHECK_EQUAL(_out_ConeITKMeshNormal[2], _SavedITKConePoints[p].nz);
+
+        ++p;
+    }
+
+    VC_CellIterator _out_ConeITKMeshCell = _out_ConeITKMesh->GetCells()->Begin();
+    int c = 0;
+
+    while (_out_ConeITKMeshCell != _out_ConeITKMesh->GetCells()->End()) {
+
+        VC_PointsInCellIterator _out_ConeITKMeshPointId = _out_ConeITKMeshCell.Value()->PointIdsBegin();
+
+        int counter = 0;
+        while ( _out_ConeITKMeshPointId != _out_ConeITKMeshCell.Value()->PointIdsEnd() ) {
+
+            if (counter == 0)
+                BOOST_CHECK_EQUAL(*_out_ConeITKMeshPointId, _SavedITKConeCells[c].v1);
+            else if(counter == 1)
+                BOOST_CHECK_EQUAL(*_out_ConeITKMeshPointId, _SavedITKConeCells[c].v2);
+            else if (counter == 2)
+                BOOST_CHECK_EQUAL(*_out_ConeITKMeshPointId, _SavedITKConeCells[c].v3);
+
+            _out_ConeITKMeshPointId++;
+            counter++;
+
+        }
+
+        ++_out_ConeITKMeshCell;
+        ++c;
     }
 
 }
