@@ -9,5 +9,7 @@
 #include "datatypes/Metadata.h"
 #include "datatypes/UVMap.h"
 #include "datatypes/Texture.h"
+#include "datatypes/Slice.h"
+#include "datatypes/Volume.h"
 
 #endif //VC_DATATYPES_H

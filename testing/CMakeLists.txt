@@ -34,9 +34,9 @@ target_link_libraries(vc_test_plyWriter ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_T
 add_test(NAME plyWriter WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_plyWriter )
 
 #file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/example.json DESTINATION ${CMAKE_BINARY_DIR}/bin)
-add_executable(vc_test_Metadata common/MetadataTest.cpp)
-target_link_libraries(vc_test_Metadata ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-add_test(NAME Metadata WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_Metadata )
+#add_executable(vc_test_Metadata common/MetadataTest.cpp)
+#target_link_libraries(vc_test_Metadata ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+#add_test(NAME Metadata WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_Metadata )
 
 add_executable(vc_test_Texture common/TextureTest.cpp)
 target_link_libraries(vc_test_Texture ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})

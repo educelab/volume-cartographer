@@ -2,7 +2,9 @@
 // Created by Ryan Taber on 12/9/15.
 //
 
+#ifndef VC_PREBUILT_LIBS
 #define BOOST_TEST_DYN_LINK
+#endif
 #define BOOST_TEST_MODULE plyWriter
 
 #include <boost/test/unit_test.hpp>

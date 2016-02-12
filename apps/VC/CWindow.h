@@ -58,6 +58,8 @@ private:
     void CreateMenus( void );
     void CreateActions( void );
 
+    void setWidgetsEnabled( bool state );
+
     bool InitializeVolumePkg( const std::string &nVpkgPath );
 
     void UpdateView( void );

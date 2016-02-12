@@ -41,11 +41,8 @@ If you wish to deploy the apps to other machines, prebuild the dependencies stat
 To assist with this task, we have created the [vc-deps project](https://code.vis.uky.edu/seales-research/vc-deps) and have implemented it 
 as a git submodule to the main volume-cartographer repository. The only requirement for using this method is that cmake, pkgconfig, and Qt5 be installed first. Using a dynamically linked Qt5 for this process is fine. Here we use the Homebrew provided Qt5, which is currently not placed in the PATH:
 ```
-git clone https://code.vis.uky.edu/seales-research/volume-cartographer.git
-cd volume-cartographer
-git submodule init
-git submodule update
-cd vc-deps
+git clone --recursive https://code.vis.uky.edu/seales-research/volume-cartographer.git
+cd volume-cartographer/vc-deps
 ./build-deps.sh
 cd ..
 mkdir build

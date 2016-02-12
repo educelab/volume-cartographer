@@ -79,6 +79,15 @@ CVolumeViewer::~CVolumeViewer( void )
     deleteNULL( fImageIndexEdit );
 }
 
+void CVolumeViewer::setButtonsEnabled( bool state )
+{
+    fZoomOutBtn->setEnabled(state);
+    fZoomInBtn->setEnabled(state);
+    fPrevBtn->setEnabled(state);
+    fNextBtn->setEnabled(state);
+    fImageIndexEdit->setEnabled(state);
+}
+
 // Set image
 void CVolumeViewer::SetImage( const QImage &nSrc )
 {

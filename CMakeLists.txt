@@ -18,6 +18,7 @@ option(INSTALL_VC_DEMO "Install VC demo apps" OFF)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/)
 IF(VC_PREBUILT_LIBS)
     set(CMAKE_PREFIX_PATH ${PROJECT_SOURCE_DIR}/vc-deps/deps/)
+    add_definitions(-DVC_PREBUILT_LIBS)
 ENDIF(VC_PREBUILT_LIBS)
 
 find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets OpenGL PrintSupport)
@@ -35,7 +36,7 @@ add_definitions(${QT_DEFINITIONS})
 
 include_directories(${Boost_INCLUDE_DIR} ${PCL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} ${ACVD_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS} ${Boost_LIBRARY_DIRS})
-set(VC_REQ_LIBS ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} ${ITK_LIBRARIES} ${ACVD_LIBRARIES})
+set(VC_REQ_LIBS ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} ${ITK_LIBRARIES} ${VTK_LIBRARIES} ${ACVD_LIBRARIES})
 add_definitions(${PCL_DEFINITIONS})
 
 # OS Specific Changes
@@ -68,7 +69,6 @@ set(VC_LIBS vc_volumepkg vc_meshing vc_segmentation vc_texturing vc_common)
 # VC Core Apps
 add_subdirectory(packager)
 add_subdirectory(pathgen)
-add_subdirectory(scalpel)
 add_subdirectory(apps)
 add_subdirectory(utils)
 add_subdirectory(testing)

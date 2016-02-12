@@ -1,7 +1,7 @@
 #include "chain.h"
 
 // (doc) Why the parameters that we're giving it?
-Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg* volpkg, double gravity_scale, int threshold, int endOffset, double spring_constant_k) {
+Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg& volpkg, double gravity_scale, int threshold, int endOffset, double spring_constant_k ) : _volpkg(volpkg){
   // Convert the point cloud segPath into a vector of Particles
   std::vector<Particle> init_chain;
 
@@ -36,9 +36,9 @@ Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg* volpkg, 
   // Set the slice index we will end at
   // If user does not define endOffset, target index == last slice with a surface normal file
   _target_index = ((endOffset == DEFAULT_OFFSET)
-                   ? (volpkg->getNumberOfSlices() - 3) // Account for zero-indexing and slices lost in calculating normal vector
+                   ? (volpkg.getNumberOfSlices() - 3) // Account for zero-indexing and slices lost in calculating normal vector
                    : (_start_index + endOffset));
-  if ( _target_index > volpkg->getNumberOfSlices() - 3 ) _target_index = volpkg->getNumberOfSlices() - 3;
+  if ( _target_index > volpkg.getNumberOfSlices() - 3 ) _target_index = volpkg.getNumberOfSlices() - 3;
 
   // Set _realIterationsCount based on starting index, target index, and how frequently we want to sample the segmentation
   _real_iterations = (int)(ceil(((_target_index - _start_index) + 1) / _threshold));
@@ -51,7 +51,7 @@ Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg* volpkg, 
 
 // This function defines how particles are updated
 // To-Do: Only iterate over particles once
-void Chain::step(Field& field) {
+void Chain::step() {
   // Pull the most recent iteration from _history
   std::vector<Particle> update_chain = _history.front();
   std::vector<cv::Vec3f> force_vector(_chain_length, cv::Vec3f(0,0,0));
@@ -62,7 +62,7 @@ void Chain::step(Field& field) {
       continue;
 
     force_vector[i] += this->springForce(i);
-    force_vector[i] += this->gravity(i, field);
+    force_vector[i] += this->gravity(i);
   }
 
   // update the chain
@@ -112,9 +112,18 @@ cv::Vec3f Chain::springForce(int index) {
 }
 
 // Project a vector onto the plane described by the normals
-cv::Vec3f Chain::gravity(int index, Field& field) {
+cv::Vec3f Chain::gravity(int index) {
   cv::Vec3f gravity = cv::Vec3f(1,0,0); // To-Do: Rename gravity?
-  cv::Vec3f offset = field.interpolate_at(_history.front()[index].position());
+  const cv::Point3f p = _history.front()[index].position();
+
+  // Fix Mike's stupid shit - z,x,y --> x,y,z
+  cv::Vec3d normal =
+          _volpkg.volume()
+                  .interpolatedEigenPairsAt(p.y, p.z, p.x, 3)[0]
+                  .second;
+  // convert x,y,z --> z,x,y
+  cv::Vec3f offset(normal(2), normal(0), normal(1));
+
   offset = gravity - (gravity.dot(offset)) / (offset.dot(offset)) * offset;
   cv::normalize(offset);
   return offset * _gravity_scale;
