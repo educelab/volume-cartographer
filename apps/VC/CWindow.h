@@ -81,7 +81,7 @@ private:
 
     void SetPathPointCloud( void );
 
-    void OpenVolume( void );
+    bool OpenVolume( void ); // returns true if the user attempts to open a new Volume Package
 
     void ResetPointCloud( void );
 
