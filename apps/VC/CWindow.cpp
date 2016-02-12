@@ -210,6 +210,36 @@ void CWindow::CreateActions( void )
     connect( fSavePointCloudAct, SIGNAL( triggered() ), this, SLOT( SavePointCloud() ) );
 }
 
+// Asks User to Save Data Prior to VC.app Exit
+void CWindow::closeEvent(QCloseEvent *closing)
+{
+    if( fVpkg != NULL && fMasterCloud.size() > 0 )
+    {
+        QMessageBox::StandardButton response = QMessageBox::question( this, "VC",
+                                                                    tr("Save current segmentation changes before quitting?\n"),
+                                                                    QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel );
+
+        switch (response) {
+            case QMessageBox::Save:
+                SavePointCloud();
+                closing->accept();
+                std::cerr << "VC::message: Closing VC.app" << std::endl;
+                break;
+            case QMessageBox::Discard:
+                closing->accept();
+                std::cerr << "VC::message: Closing VC.app" << std::endl;
+                break;
+            case QMessageBox::Cancel:
+                closing->ignore();
+                break;
+            default:
+                // should never be reached
+                break;
+        }
+
+    }
+}
+
 void CWindow::setWidgetsEnabled(bool state)
 {
     this->findChild< QGroupBox * >( "grpVolManager" )->setEnabled( state );
@@ -585,7 +615,8 @@ void CWindow::About( void )
 }
 
 // Save point cloud to path directory
-void CWindow::SavePointCloud( void ) {
+void CWindow::SavePointCloud( void )
+{
     if ( fMasterCloud.size() == 0 ) {
         std::cerr << "VC::message: Empty point cloud. Nothing to save." << std::endl;
         return;
