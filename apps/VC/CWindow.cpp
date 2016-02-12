@@ -490,6 +490,27 @@ void CWindow::SetPathPointCloud( void )
 // Open volume package
 void CWindow::OpenVolume( void )
 {
+    if(fVpkg != NULL && fMasterCloud.size()>0)
+    {
+        QMessageBox::StandardButton response = QMessageBox::question( this, "VC.app",
+                                                                      tr("Save changes to current segmentation before opening new volume package?\n"),
+                                                                      QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel );
+        switch (response) {
+            case QMessageBox::Save:
+                SavePointCloud();
+                break;
+            case QMessageBox::Discard:
+                break;
+            case QMessageBox::Cancel:
+                std::cerr << "VC::message: Open volume package cancelled." << std::endl;
+                return;
+                break;
+            default:
+                // should never be reached
+                break;
+        }
+    }
+
     QString aVpkgPath = QString( "" );
     aVpkgPath = QFileDialog::getExistingDirectory( this,
                                                    tr( "Open Directory" ),
