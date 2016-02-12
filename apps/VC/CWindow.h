@@ -3,19 +3,17 @@
 #ifndef _CWINDOW_H_
 #define _CWINDOW_H_
 
-#include "VCNewGuiHeader.h"
-
 #include <QtWidgets>
 #include <QRect>
 #include <QCloseEvent>
+#include <QMessageBox>
+#include <opencv2/opencv.hpp>
+
+#include "VCNewGuiHeader.h"
 #include "mathUtils.h"
 #include "CBSpline.h"
 #include "CXCurve.h"
-#include "QMessageBox"
-
 #include "ui_VCMain.h"
-
-#include <opencv2/opencv.hpp>
 
 #ifndef Q_MOC_RUN
 #include <pcl/common/common.h>
