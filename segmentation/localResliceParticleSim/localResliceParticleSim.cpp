@@ -19,6 +19,8 @@ pcl::PointCloud<pcl::PointXYZRGB> exportAsPCD(const vec<vec<Voxel>>& points);
 
 vec<double> squareDiff(const vec<Voxel>& src, const vec<Voxel>& target);
 
+double curveEnergy(const vec<Voxel>& src, const vec<Voxel>& target);
+
 pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
     const vec<Voxel>& initPath, const double resamplePerc,
     const int32_t startIndex, const int32_t endIndex, const int32_t numIters,
@@ -180,11 +182,14 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
 
             // Evaluate new combination and compare to best so far, if better
             // setting the new positions
-            if (squareDiff(combVs, currentVs) < squareDiff(nextVs, currentVs)) {
+            if (curveEnergy(combVs, currentVs) <
+                curveEnergy(nextVs, currentVs)) {
                 nextVs = combVs;
             }
             ++i;
         }
+        std::cout << "final curve energy: " << curveEnergy(nextVs, currentVs)
+                  << std::endl;
 
         // Dump the intensity maps
         if (dumpVis) {
@@ -274,6 +279,20 @@ vec<double> squareDiff(const vec<Voxel>& src, const vec<Voxel>& target)
                                 (s(2) - t(2)) * (s(2) - t(2))));
     }
     return res;
+}
+
+double curveEnergy(const vec<Voxel>& src, const vec<Voxel>& target)
+{
+    assert(src.size() == target.size() &&
+           "src and target must be the same size");
+    double sum = 0;
+    for (const auto p : zip(src, target)) {
+        Voxel s, t;
+        std::tie(s, t) = p;
+        sum += (s(0) - t(0)) * (s(0) - t(0)) + (s(1) - t(1)) * (s(1) - t(1)) +
+               (s(2) - t(2)) * (s(2) - t(2));
+    }
+    return std::sqrt(sum);
 }
 
 cv::Mat LocalResliceSegmentation::drawParticlesOnSlice(
