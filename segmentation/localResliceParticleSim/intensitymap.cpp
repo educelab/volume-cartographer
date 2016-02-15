@@ -41,22 +41,13 @@ cv::Mat IntensityMap::draw()
                    2, pointColor);
         cv::line(drawTarget_, p1, p2, BGR_GREEN);
     }
-
-    // Sort by closest maxima available and draw line on that
     auto maxima = sortedMaxima();
-    // auto centerX = mapWidth_ / 2;
 
     // A line for each candidate position
     for (const auto m : maxima) {
         cv::line(drawTarget_, cv::Point(binWidth_ * m.first, 0),
                  cv::Point(binWidth_ * m.first, drawTarget_.rows), BGR_BLUE);
     }
-
-    // A line at particle's current x position
-    /*
-    cv::line(drawTarget_, cv::Point(binWidth_ * centerX, 0),
-             cv::Point(binWidth_ * centerX, drawTarget_.rows), BGR_YELLOW);
-             */
 
     // A Line for top maxima
     cv::line(drawTarget_, cv::Point(binWidth_ * maxima[0].first, 0),
@@ -79,7 +70,8 @@ IndexIntensityPairVec IntensityMap::sortedMaxima() const
 {
     // Find derivative of intensity curve
     cv::Mat_<double> sobelDerivatives;
-    cv::Sobel(intensities_, sobelDerivatives, CV_64FC1, 1, 0);
+    cv::Scharr(intensities_, sobelDerivatives, CV_64FC1, 1, 0, 1, 0,
+               cv::BORDER_REPLICATE);
     int32_t mid = mapWidth_ / 2;
     std::cout << sobelDerivatives(mid - 1) << ", " << sobelDerivatives(mid)
               << ", " << sobelDerivatives(mid + 1) << std::endl;
