@@ -366,9 +366,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedPlaneWithSavedPlaneVTKFil
     //Now iterate over point sets and compare coordinate and normal values
     for ( size_t pnt_id = 0; pnt_id < _out_PlaneVTKMesh ->GetNumberOfPoints(); ++pnt_id) {
 
-        BOOST_CHECK_EQUAL( _out_PlaneVTKMesh->GetPoint(pnt_id)[0], _SavedVTKPlanePoints[pnt_id].x);
-        BOOST_CHECK_EQUAL( _out_PlaneVTKMesh->GetPoint(pnt_id)[1], _SavedVTKPlanePoints[pnt_id].y);
-        BOOST_CHECK_EQUAL( _out_PlaneVTKMesh->GetPoint(pnt_id)[2], _SavedVTKPlanePoints[pnt_id].z);
+        BOOST_CHECK_CLOSE( _out_PlaneVTKMesh->GetPoint(pnt_id)[0], _SavedVTKPlanePoints[pnt_id].x, 0.0001);
+        BOOST_CHECK_CLOSE( _out_PlaneVTKMesh->GetPoint(pnt_id)[1], _SavedVTKPlanePoints[pnt_id].y, 0.0001);
+        BOOST_CHECK_CLOSE( _out_PlaneVTKMesh->GetPoint(pnt_id)[2], _SavedVTKPlanePoints[pnt_id].z, 0.0001);
         
     }
 
@@ -378,9 +378,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedPlaneWithSavedPlaneVTKFil
 
         VC_PixelType out_PlaneSingleIdNormalTuple = out_PlanePointNormals->GetTuple(pnt_id);
 
-        BOOST_CHECK_EQUAL( out_PlaneSingleIdNormalTuple[0], _SavedVTKPlanePoints[pnt_id].nx);
-        BOOST_CHECK_EQUAL( out_PlaneSingleIdNormalTuple[1], _SavedVTKPlanePoints[pnt_id].ny);
-        BOOST_CHECK_EQUAL( out_PlaneSingleIdNormalTuple[2], _SavedVTKPlanePoints[pnt_id].nz);
+        BOOST_CHECK_CLOSE( out_PlaneSingleIdNormalTuple[0], _SavedVTKPlanePoints[pnt_id].nx, 0.0001);
+        BOOST_CHECK_CLOSE( out_PlaneSingleIdNormalTuple[1], _SavedVTKPlanePoints[pnt_id].ny, 0.0001);
+        BOOST_CHECK_CLOSE( out_PlaneSingleIdNormalTuple[2], _SavedVTKPlanePoints[pnt_id].nz, 0.0001);
     }
 
     //Cells
@@ -407,9 +407,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedCubeWithSavedCubeVTKFileT
 
     for ( size_t pnt_id = 0; pnt_id < _out_CubeVTKMesh ->GetNumberOfPoints(); ++pnt_id) {
 
-        BOOST_CHECK_EQUAL( _out_CubeVTKMesh->GetPoint(pnt_id)[0], _SavedVTKCubePoints[pnt_id].x);
-        BOOST_CHECK_EQUAL( _out_CubeVTKMesh->GetPoint(pnt_id)[1], _SavedVTKCubePoints[pnt_id].y);
-        BOOST_CHECK_EQUAL( _out_CubeVTKMesh->GetPoint(pnt_id)[2], _SavedVTKCubePoints[pnt_id].z);
+        BOOST_CHECK_CLOSE( _out_CubeVTKMesh->GetPoint(pnt_id)[0], _SavedVTKCubePoints[pnt_id].x, 0.0001);
+        BOOST_CHECK_CLOSE( _out_CubeVTKMesh->GetPoint(pnt_id)[1], _SavedVTKCubePoints[pnt_id].y, 0.0001);
+        BOOST_CHECK_CLOSE( _out_CubeVTKMesh->GetPoint(pnt_id)[2], _SavedVTKCubePoints[pnt_id].z, 0.0001);
     }
     
     vtkDataArray *out_CubePointNormals = _out_CubeVTKMesh->GetPointData()->GetNormals();
@@ -441,9 +441,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedArchWithSavedArchVTKFileT
 
     for ( size_t pnt_id = 0; pnt_id < _out_ArchVTKMesh ->GetNumberOfPoints(); ++pnt_id) {
 
-        BOOST_CHECK_EQUAL( _out_ArchVTKMesh->GetPoint(pnt_id)[0], _SavedVTKArchPoints[pnt_id].x);
-        BOOST_CHECK_EQUAL( _out_ArchVTKMesh->GetPoint(pnt_id)[1], _SavedVTKArchPoints[pnt_id].y);
-        BOOST_CHECK_EQUAL( _out_ArchVTKMesh->GetPoint(pnt_id)[2], _SavedVTKArchPoints[pnt_id].z);
+        BOOST_CHECK_CLOSE( _out_ArchVTKMesh->GetPoint(pnt_id)[0], _SavedVTKArchPoints[pnt_id].x, 0.0001);
+        BOOST_CHECK_CLOSE( _out_ArchVTKMesh->GetPoint(pnt_id)[1], _SavedVTKArchPoints[pnt_id].y, 0.0001);
+        BOOST_CHECK_CLOSE( _out_ArchVTKMesh->GetPoint(pnt_id)[2], _SavedVTKArchPoints[pnt_id].z, 0.0001);
     }
 
     vtkDataArray *out_ArchPointNormals = _out_ArchVTKMesh->GetPointData()->GetNormals();
@@ -451,9 +451,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedArchWithSavedArchVTKFileT
 
         VC_PixelType out_ArchSingleIdNormalTuple = out_ArchPointNormals->GetTuple(pnt_id);
 
-        BOOST_CHECK_EQUAL( out_ArchSingleIdNormalTuple[0], _SavedVTKArchPoints[pnt_id].nx);
-        BOOST_CHECK_EQUAL( out_ArchSingleIdNormalTuple[1], _SavedVTKArchPoints[pnt_id].ny);
-        BOOST_CHECK_EQUAL( out_ArchSingleIdNormalTuple[2], _SavedVTKArchPoints[pnt_id].nz);
+        BOOST_CHECK_CLOSE( out_ArchSingleIdNormalTuple[0], _SavedVTKArchPoints[pnt_id].nx, 0.0001);
+        BOOST_CHECK_CLOSE( out_ArchSingleIdNormalTuple[1], _SavedVTKArchPoints[pnt_id].ny, 0.0001);
+        BOOST_CHECK_CLOSE( out_ArchSingleIdNormalTuple[2], _SavedVTKArchPoints[pnt_id].nz, 0.0001);
     }
 
     BOOST_CHECK_EQUAL(_out_ArchVTKMesh->GetNumberOfCells(), _SavedVTKArchCells.size());
@@ -475,9 +475,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedSphereWithSavedSphereVTKF
 
     for ( size_t pnt_id = 0; pnt_id < _out_SphereVTKMesh ->GetNumberOfPoints(); ++pnt_id) {
 
-        BOOST_CHECK_EQUAL( _out_SphereVTKMesh->GetPoint(pnt_id)[0], _SavedVTKSpherePoints[pnt_id].x);
-        BOOST_CHECK_EQUAL( _out_SphereVTKMesh->GetPoint(pnt_id)[1], _SavedVTKSpherePoints[pnt_id].y);
-        BOOST_CHECK_EQUAL( _out_SphereVTKMesh->GetPoint(pnt_id)[2], _SavedVTKSpherePoints[pnt_id].z);
+        BOOST_CHECK_CLOSE( _out_SphereVTKMesh->GetPoint(pnt_id)[0], _SavedVTKSpherePoints[pnt_id].x, 0.0001);
+        BOOST_CHECK_CLOSE( _out_SphereVTKMesh->GetPoint(pnt_id)[1], _SavedVTKSpherePoints[pnt_id].y, 0.0001);
+        BOOST_CHECK_CLOSE( _out_SphereVTKMesh->GetPoint(pnt_id)[2], _SavedVTKSpherePoints[pnt_id].z, 0.0001);
     }
 
     vtkDataArray *out_SpherePointNormals = _out_SphereVTKMesh->GetPointData()->GetNormals();
@@ -485,9 +485,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedSphereWithSavedSphereVTKF
 
         VC_PixelType out_SphereSingleIdNormalTuple = out_SpherePointNormals->GetTuple(pnt_id);
 
-        BOOST_CHECK_EQUAL( out_SphereSingleIdNormalTuple[0], _SavedVTKSpherePoints[pnt_id].nx);
-        BOOST_CHECK_EQUAL( out_SphereSingleIdNormalTuple[1], _SavedVTKSpherePoints[pnt_id].ny);
-        BOOST_CHECK_EQUAL( out_SphereSingleIdNormalTuple[2], _SavedVTKSpherePoints[pnt_id].nz);
+        BOOST_CHECK_CLOSE( out_SphereSingleIdNormalTuple[0], _SavedVTKSpherePoints[pnt_id].nx, 0.0001);
+        BOOST_CHECK_CLOSE( out_SphereSingleIdNormalTuple[1], _SavedVTKSpherePoints[pnt_id].ny, 0.0001);
+        BOOST_CHECK_CLOSE( out_SphereSingleIdNormalTuple[2], _SavedVTKSpherePoints[pnt_id].nz, 0.0001);
     }
 
     BOOST_CHECK_EQUAL(_out_SphereVTKMesh->GetNumberOfCells(), _SavedVTKSphereCells.size());
@@ -510,9 +510,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedConeWithSavedConeVTKFileT
     std::cerr << "Comparing points and normals..." << std::endl;
     for ( size_t pnt_id = 0; pnt_id < _out_ConeVTKMesh ->GetNumberOfPoints(); ++pnt_id) {
 
-        BOOST_CHECK_EQUAL( _out_ConeVTKMesh->GetPoint(pnt_id)[0], _SavedVTKConePoints[pnt_id].x);
-        BOOST_CHECK_EQUAL( _out_ConeVTKMesh->GetPoint(pnt_id)[1], _SavedVTKConePoints[pnt_id].y);
-        BOOST_CHECK_EQUAL( _out_ConeVTKMesh->GetPoint(pnt_id)[2], _SavedVTKConePoints[pnt_id].z);
+        BOOST_CHECK_CLOSE( _out_ConeVTKMesh->GetPoint(pnt_id)[0], _SavedVTKConePoints[pnt_id].x, 0.0001);
+        BOOST_CHECK_CLOSE( _out_ConeVTKMesh->GetPoint(pnt_id)[1], _SavedVTKConePoints[pnt_id].y, 0.0001);
+        BOOST_CHECK_CLOSE( _out_ConeVTKMesh->GetPoint(pnt_id)[2], _SavedVTKConePoints[pnt_id].z, 0.0001);
     }
 
     vtkDataArray *out_ConePointNormals = _out_ConeVTKMesh->GetPointData()->GetNormals();
@@ -520,9 +520,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedConeWithSavedConeVTKFileT
 
         VC_PixelType out_ConeSingleIdNormalTuple = out_ConePointNormals->GetTuple(pnt_id);
 
-        BOOST_CHECK_EQUAL( out_ConeSingleIdNormalTuple[0], _SavedVTKConePoints[pnt_id].nx);
-        BOOST_CHECK_EQUAL( out_ConeSingleIdNormalTuple[1], _SavedVTKConePoints[pnt_id].ny);
-        BOOST_CHECK_EQUAL( out_ConeSingleIdNormalTuple[2], _SavedVTKConePoints[pnt_id].nz);
+        BOOST_CHECK_CLOSE( out_ConeSingleIdNormalTuple[0], _SavedVTKConePoints[pnt_id].nx, 0.0001);
+        BOOST_CHECK_CLOSE( out_ConeSingleIdNormalTuple[1], _SavedVTKConePoints[pnt_id].ny, 0.0001);
+        BOOST_CHECK_CLOSE( out_ConeSingleIdNormalTuple[2], _SavedVTKConePoints[pnt_id].nz, 0.0001);
     }
 
     BOOST_CHECK_EQUAL(_out_ConeVTKMesh->GetNumberOfCells(), _SavedVTKConeCells.size());
