@@ -32,12 +32,19 @@ cv::Mat IntensityMap::draw()
         auto p2 = cv::Point(
             binWidth_ * i,
             displayHeight_ - cvRound(displayHeight_ * intensities_(i)));
+
+        // Draw a point at each intensity on the curve
+        auto pointColor = (i == mapWidth_ / 2 ? BGR_YELLOW : BGR_RED);
+        cv::circle(drawTarget_,
+                   {binWidth_ * i,
+                    displayHeight_ - cvRound(displayWidth_ * intensities_(i))},
+                   2, pointColor);
         cv::line(drawTarget_, p1, p2, BGR_GREEN);
     }
 
     // Sort by closest maxima available and draw line on that
     auto maxima = sortedMaxima();
-    auto centerX = mapWidth_ / 2;
+    // auto centerX = mapWidth_ / 2;
 
     // A line for each candidate position
     for (const auto m : maxima) {
@@ -46,8 +53,10 @@ cv::Mat IntensityMap::draw()
     }
 
     // A line at particle's current x position
+    /*
     cv::line(drawTarget_, cv::Point(binWidth_ * centerX, 0),
              cv::Point(binWidth_ * centerX, drawTarget_.rows), BGR_YELLOW);
+             */
 
     // A Line for top maxima
     cv::line(drawTarget_, cv::Point(binWidth_ * maxima[0].first, 0),
@@ -71,12 +80,17 @@ IndexIntensityPairVec IntensityMap::sortedMaxima() const
     // Find derivative of intensity curve
     cv::Mat_<double> sobelDerivatives;
     cv::Sobel(intensities_, sobelDerivatives, CV_64FC1, 1, 0);
+    int32_t mid = mapWidth_ / 2;
+    std::cout << sobelDerivatives(mid - 1) << ", " << sobelDerivatives(mid)
+              << ", " << sobelDerivatives(mid + 1) << std::endl;
+    std::cout << intensities_(mid - 1) << ", " << intensities_(mid) << ", "
+              << intensities_(mid + 1) << std::endl;
 
     // Get indices of positive -> negative transitions, store in pairs (index,
     // intensity)
     IndexIntensityPairVec crossings;
     for (int32_t i = 0; i < sobelDerivatives.cols - 1; ++i) {
-        if (sobelDerivatives(i) * sobelDerivatives(i + 1) <= 1 &&
+        if (sobelDerivatives(i) * sobelDerivatives(i + 1) <= 0 &&
             sobelDerivatives(i) > sobelDerivatives(i + 1)) {
             if (intensities_(i) > intensities_(i + 1)) {
                 crossings.emplace_back(i, intensities_(i));
@@ -87,11 +101,13 @@ IndexIntensityPairVec IntensityMap::sortedMaxima() const
     }
 
     // Filter out any crossings that are less than where this particle is now
+    /*
     std::remove_if(crossings.begin(), crossings.end(),
                    [this](const IndexIntensityPair v) {
                        return v.second + 1e-2 < currentIntensity_ ||
                               v.second - 1e-2 < currentIntensity_;
                    });
+                   */
 
     // Sort by distance from middle
     std::sort(crossings.begin(), crossings.end(),
@@ -101,19 +117,23 @@ IndexIntensityPairVec IntensityMap::sortedMaxima() const
                       2 * std::abs(lhs.first - center.x) / particleCount_;
                   const double rdist =
                       2 * std::abs(rhs.first - center.x) / particleCount_;
-                  const int32_t distWeight = 75;
                   return (distWeight * ldist + (100 - distWeight) *
                   -lhs.second)
                   <
                          (distWeight * rdist + (100 - distWeight) *
                   -rhs.second);
                          */
+                  const int32_t distWeight = 75;
                   const int32_t centerX = mapWidth_ / 2;
-                  const auto ldist =
-                      static_cast<int32_t>(std::abs(lhs.first - centerX));
-                  const auto rdist =
-                      static_cast<int32_t>(std::abs(rhs.first - centerX));
-                  return ldist < rdist;
+                  const auto ldist = int32_t(std::abs(lhs.first - centerX));
+                  const auto rdist = int32_t(std::abs(rhs.first - centerX));
+                  const int32_t leftVal =
+                      distWeight * ldist +
+                      int32_t((100 - distWeight) * -lhs.second * 100);
+                  const int32_t rightVal =
+                      distWeight * rdist +
+                      int32_t((100 - distWeight) * -rhs.second * 100);
+                  return leftVal < rightVal;
               });
 
     return crossings;
