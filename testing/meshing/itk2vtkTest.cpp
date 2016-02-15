@@ -413,18 +413,18 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedCubeWithSavedCubeVTKFileT
     }
     
     vtkDataArray *out_CubePointNormals = _out_CubeVTKMesh->GetPointData()->GetNormals();
-    for ( vtkIdType pnt_id = 0; pnt_id < _out_CubeVTKMesh->GetNumberOfPoints(); ++pnt_id ) {
+    for ( int pnt_id = 0; pnt_id < _out_CubeVTKMesh->GetNumberOfPoints(); ++pnt_id ) {
 
         VC_PixelType out_CubeSingleIdNormalTuple = out_CubePointNormals->GetTuple(pnt_id);
 
-        BOOST_CHECK_EQUAL( out_CubeSingleIdNormalTuple[0], _SavedVTKCubePoints[pnt_id].nx);
-        BOOST_CHECK_EQUAL( out_CubeSingleIdNormalTuple[1], _SavedVTKCubePoints[pnt_id].ny);
-        BOOST_CHECK_EQUAL( out_CubeSingleIdNormalTuple[2], _SavedVTKCubePoints[pnt_id].nz);
+        BOOST_CHECK_CLOSE( out_CubeSingleIdNormalTuple[0], _SavedVTKCubePoints[pnt_id].nx, 0.0001);
+        BOOST_CHECK_CLOSE( out_CubeSingleIdNormalTuple[1], _SavedVTKCubePoints[pnt_id].ny, 0.0001);
+        BOOST_CHECK_CLOSE( out_CubeSingleIdNormalTuple[2], _SavedVTKCubePoints[pnt_id].nz, 0.0001);
     }
     
     BOOST_CHECK_EQUAL(_out_CubeVTKMesh->GetNumberOfCells(), _SavedVTKCubeCells.size());
 
-    for ( vtkIdType c_id = 0; c_id < _out_CubeVTKMesh->GetNumberOfCells(); c_id++){
+    for ( int c_id = 0; c_id < _out_CubeVTKMesh->GetNumberOfCells(); c_id++){
 
         vtkCell *out_VTKCubeCell = _out_CubeVTKMesh->GetCell(c_id);
 

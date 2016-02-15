@@ -155,7 +155,7 @@ int main( int argc, char* argv[] ) {
 
         vtkCell *out_VTKCell = out_VTKPlaneMesh->GetCell(c_id);
 
-        MeshOutputFileStream << out_VTKCell->GetPointIds()->GetId(0) << " "
+        MeshOutputFileStream << "3 " <<  out_VTKCell->GetPointIds()->GetId(0) << " "
         << out_VTKCell->GetPointIds()->GetId(1) << " "
         << out_VTKCell->GetPointIds()->GetId(2) << std::endl;
       }
@@ -201,7 +201,7 @@ int main( int argc, char* argv[] ) {
 
         vtkCell *out_VTKCell = out_VTKCubeMesh->GetCell(c_id);
 
-        MeshOutputFileStream << out_VTKCell->GetPointIds()->GetId(0) << " "
+        MeshOutputFileStream << "3 " << out_VTKCell->GetPointIds()->GetId(0) << " "
         << out_VTKCell->GetPointIds()->GetId(1) << " "
         << out_VTKCell->GetPointIds()->GetId(2) << std::endl;
       }
@@ -247,7 +247,7 @@ int main( int argc, char* argv[] ) {
 
         vtkCell *out_VTKCell = out_VTKArchMesh->GetCell(c_id);
 
-        MeshOutputFileStream << out_VTKCell->GetPointIds()->GetId(0) << " "
+        MeshOutputFileStream << "3 " << out_VTKCell->GetPointIds()->GetId(0) << " "
         << out_VTKCell->GetPointIds()->GetId(1) << " "
         << out_VTKCell->GetPointIds()->GetId(2) << std::endl;
       }
@@ -292,7 +292,7 @@ int main( int argc, char* argv[] ) {
 
         vtkCell *out_VTKCell = out_VTKSphereMesh->GetCell(c_id);
 
-        MeshOutputFileStream << out_VTKCell->GetPointIds()->GetId(0) << " "
+        MeshOutputFileStream << "3 " << out_VTKCell->GetPointIds()->GetId(0) << " "
         << out_VTKCell->GetPointIds()->GetId(1) << " "
         << out_VTKCell->GetPointIds()->GetId(2) << std::endl;
       }
@@ -338,7 +338,7 @@ int main( int argc, char* argv[] ) {
 
         vtkCell *out_VTKCell = out_VTKConeMesh->GetCell(c_id);
 
-        MeshOutputFileStream << out_VTKCell->GetPointIds()->GetId(0) << " "
+        MeshOutputFileStream << "3 " << out_VTKCell->GetPointIds()->GetId(0) << " "
         << out_VTKCell->GetPointIds()->GetId(1) << " "
         << out_VTKCell->GetPointIds()->GetId(2) << std::endl;
       }
