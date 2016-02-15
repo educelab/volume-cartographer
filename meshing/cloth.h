@@ -15,11 +15,9 @@
 
 #include "vc_defines.h"
 #include "vc_datatypes.h"
-#include "volumepkg.h"
 #include "io/ply2itk.h"
 #include "itk2vtk.h"
 #include "io/objWriter.h"
-#include "compositeTextureV2.h"
 #include "ACVD.h"
 #include "deepCopy.h"
 
@@ -30,10 +28,48 @@
 
 namespace volcart {
 	namespace meshing {
-		class Cloth {
+		class cloth {
 		public:
+			struct NodeTarget {
+				btVector3 t_pos;
+				btScalar  t_stepsize;
+			};
+
+			cloth ( VC_MeshType::Pointer inputMesh,
+							VC_MeshType::Pointer decimated,
+							int width,
+							int height,
+							int required_iterations);
 
 		private:
+			int _process();
+			btVector3 _btAverageNormal( btSoftBody* body );
+			btScalar _btAverageVelocity( btSoftBody* body );
+			double _btSurfaceArea( btSoftBody* body );
+			static void _planarizeCornersPreTickCallback(btDynamicsWorld *world, btScalar timeStep);
+			static void _emptyPreTickCallback(btDynamicsWorld *world, btScalar timeStep);
+			void _expandCorners(float magnitude);
+			void _dumpState( VC_MeshType::Pointer toUpdate, btSoftBody* body, std::string suffix = "" );
+			void _setIterations(int iterations) { _iterations = iterations; };
+
+			void _setSoftBodyFriction( btSoftBody* body ) { body->m_cfg.kDF = 0.01; }; // Dynamic friction coefficient (0-1] Default: 0.2}
+
+			volcart::UVMap _returnUVMap( btSoftBody* psb );
+			VC_MeshType::Pointer _returnMesh() { return _decimated; };
+
+			// variables
+			static std::vector< btSoftBody::Node* > _pinnedPoints;
+			static std::vector< NodeTarget > _targetPoints;
+
+			VC_MeshType::Pointer _input;
+			VC_MeshType::Pointer _decimated;
+			int _iterations;
+			int _width;
+			int _height;
+
+			volcart::UVMap _uvMap;
+
+			btVector3 _middle;
 		};
 	}
 

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
 set(MESHING_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(MESHING_INCLUDE_DIR ${MESHING_INCLUDE_DIR} PARENT_SCOPE)
@@ -16,5 +16,6 @@ add_library(vc_meshing STATIC
                     rayTrace.h rayTrace.cpp
                     scaleMesh.h scaleMesh.cpp
                     smoothNormals.h smoothNormals.cpp
-                    itk2bullet.h itk2bullet.cpp deepCopy.cpp deepCopy.h)
+                    itk2bullet.h itk2bullet.cpp deepCopy.cpp deepCopy.h
+                    cloth.h cloth.cpp)
 endif()
