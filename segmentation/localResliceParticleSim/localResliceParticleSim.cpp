@@ -39,17 +39,23 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
     points.reserve((endIndex - startIndex + 1) / step);
 
     // Resample incoming curve
-    vec<Voxel> currentVs =
-        FittedCurve(initPath, startIndex, resamplePerc).resampledPoints();
+    auto currentVs = FittedCurve(initPath, startIndex).resample(resamplePerc);
     std::cout << "resampled size: " << currentVs.size() << std::endl;
 
     // Iterate over z-slices
     for (int32_t zIndex = startIndex; zIndex <= endIndex; zIndex += step) {
         std::cout << "slice: " << zIndex << std::endl;
 
+        // Directory to dump vis
+        std::stringstream ss;
+        ss << std::setw(std::to_string(endIndex).size()) << std::setfill('0')
+           << zIndex;
+        const fs::path zIdxDir = outputDir / ss.str();
+        fs::create_directory(zIdxDir);
+
         // 0. Resample current positions so they are evenly spaced
         FittedCurve curve{currentVs, zIndex};
-        currentVs = curve.resampledPoints();
+        currentVs = curve.seedPoints();
 
         // 1. Generate all candidate positions for all particles
         vec<std::deque<Voxel>> nextPositions;
@@ -70,7 +76,9 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
             const int32_t nextLayerIndex = center.y + step;
             IntensityMap map{resliceIntensities.row(nextLayerIndex)};
             maps.push_back(map);
+            std::cout << "particle: " << i << std::endl;
             const auto allMaxima = map.sortedMaxima();
+            std::cout << std::endl;
 
             // Handle case where there's no maxima - go straight down
             if (allMaxima.empty()) {
@@ -87,7 +95,7 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
                 std::stringstream ss;
                 ss << std::setw(2) << std::setfill('0') << zIndex << "_"
                    << std::setw(2) << std::setfill('0') << i;
-                const fs::path base = outputDir / ss.str();
+                const fs::path base = zIdxDir / ss.str();
                 cv::imwrite(base.string() + "_chain.png", chain);
                 cv::imwrite(base.string() + "_reslice.png", resliceMat);
 
@@ -184,7 +192,7 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
                 std::stringstream ss;
                 ss << std::setw(2) << std::setfill('0') << zIndex << "_"
                    << std::setw(2) << std::setfill('0') << i << "_map.png";
-                const fs::path base = outputDir / ss.str();
+                const fs::path base = zIdxDir / ss.str();
                 cv::imwrite(base.string(), maps[i].draw());
             }
         }
