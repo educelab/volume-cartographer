@@ -17,20 +17,19 @@ private:
     CubicSpline<double> spline_;
     int32_t npoints_;
     int32_t zIndex_;
-    vec<double> resampledPoints_;
+    vec<double> tvals;
+    vec<Voxel> seedPoints_;
 
 public:
     FittedCurve() = default;
 
-    FittedCurve(const vec<Voxel>& vs, const int32_t zIndex,
-                const double resamplePerc = 1.0);
+    FittedCurve(const vec<Voxel>& vs, const int32_t zIndex);
 
     int32_t size() const { return npoints_; }
     const decltype(spline_)& spline() const { return spline_; }
-    vec<Voxel> resampledPoints() const;
-
+    vec<Voxel> seedPoints() const { return seedPoints_; }
     Pixel eval(double t) const { return spline_.eval(t); }
-    void resample(const double resamplePerc);
+    vec<Voxel> resample(const double resamplePerc = 1.0);
 
     Voxel operator()(const int32_t index) const;
 
