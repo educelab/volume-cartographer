@@ -125,27 +125,27 @@ namespace testing {
                     for (int i = 0; i < typeOfPointInformation.size(); i++) {
 
                         if (typeOfPointInformation[i] == "x")
-                            plyVertex.x = std::stof(plyLine[i]);
+                            plyVertex.x = std::stod(plyLine[i]);
                         else if (typeOfPointInformation[i] == "y")
-                            plyVertex.y = std::stof(plyLine[i]);
+                            plyVertex.y = std::stod(plyLine[i]);
                         else if (typeOfPointInformation[i] == "z")
-                            plyVertex.z = std::stof(plyLine[i]);
+                            plyVertex.z = std::stod(plyLine[i]);
                         else if (typeOfPointInformation[i] == "s")
-                            plyVertex.s = std::stof(plyLine[i]);
+                            plyVertex.s = std::stod(plyLine[i]);
                         else if (typeOfPointInformation[i] == "t")
-                            plyVertex.t = std::stof(plyLine[i]);
+                            plyVertex.t = std::stod(plyLine[i]);
                         else if (typeOfPointInformation[i] == "r")
-                            plyVertex.r = std::stof(plyLine[i]);
+                            plyVertex.r = std::stoi(plyLine[i]);
                         else if (typeOfPointInformation[i] == "g")
-                            plyVertex.g = std::stof(plyLine[i]);
+                            plyVertex.g = std::stoi(plyLine[i]);
                         else if (typeOfPointInformation[i] == "b")
-                            plyVertex.b = std::stof(plyLine[i]);
+                            plyVertex.b = std::stoi(plyLine[i]);
                         else if (typeOfPointInformation[i] == "nx")
-                            plyVertex.nx = std::stof(plyLine[i]);
+                            plyVertex.nx = std::stod(plyLine[i]);
                         else if (typeOfPointInformation[i] == "ny")
-                            plyVertex.ny = std::stof(plyLine[i]);
+                            plyVertex.ny = std::stod(plyLine[i]);
                         else if (typeOfPointInformation[i] == "nz")
-                            plyVertex.nz = std::stof(plyLine[i]);
+                            plyVertex.nz = std::stod(plyLine[i]);
 
 
                     }
