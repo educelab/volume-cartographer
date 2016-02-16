@@ -78,9 +78,7 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
             const int32_t nextLayerIndex = center.y + step;
             IntensityMap map{resliceIntensities.row(nextLayerIndex)};
             maps.push_back(map);
-            std::cout << "particle: " << i << std::endl;
             const auto allMaxima = map.sortedMaxima();
-            std::cout << std::endl;
 
             // Handle case where there's no maxima - go straight down
             if (allMaxima.empty()) {

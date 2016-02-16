@@ -72,11 +72,6 @@ IndexIntensityPairVec IntensityMap::sortedMaxima() const
     cv::Mat_<double> sobelDerivatives;
     cv::Scharr(intensities_, sobelDerivatives, CV_64FC1, 1, 0, 1, 0,
                cv::BORDER_REPLICATE);
-    int32_t mid = mapWidth_ / 2;
-    std::cout << sobelDerivatives(mid - 1) << ", " << sobelDerivatives(mid)
-              << ", " << sobelDerivatives(mid + 1) << std::endl;
-    std::cout << intensities_(mid - 1) << ", " << intensities_(mid) << ", "
-              << intensities_(mid + 1) << std::endl;
 
     // Get indices of positive -> negative transitions, store in pairs (index,
     // intensity)
