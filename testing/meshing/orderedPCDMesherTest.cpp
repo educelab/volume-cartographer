@@ -70,7 +70,7 @@ struct PlaneOrderedPCDFixture {
         volcart::meshing::orderedPCDMesher(_in_PlaneCloudPtr, _PlaneOutfile);
 
         //parse the newly created .ply file and save data in vectors
-        volcart::testing::ParsingHelpers::parsePlyFile("PlaneFixtureOrderedPCD.ply", 
+        volcart::testing::ParsingHelpers::parsePlyFile("PlaneFixtureOrderedPCDMesher.ply",
                                                                 _FixtureCreatedPlanePoints, _FixtureCreatedPlaneCells);
         
         //parse out the saved Plane test file created by orderedPCDMesherExample.cpp
