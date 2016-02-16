@@ -274,6 +274,7 @@ void CWindow::UpdateView( void )
 {
     if ( fVpkg == NULL ) {
         setWidgetsEnabled(false);// Disable Widgets for User
+        this->findChild< QLabel * >( "lblVpkgName" )->setText( "No Volume Package Loaded" );
         return;
     }
 
@@ -518,28 +519,8 @@ void CWindow::SetPathPointCloud( void )
 }
 
 // Open volume package
-bool CWindow::OpenVolume( void )
+void CWindow::OpenVolume( void )
 {
-    if(fVpkg != NULL && fMasterCloud.size()>0)
-    {
-        QMessageBox::StandardButton response = QMessageBox::question( this, "VC.app",
-                                                                      tr("Save changes to current segmentation before opening new volume package?\n"),
-                                                                      QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel );
-        switch (response) {
-            case QMessageBox::Save:
-                SavePointCloud();
-                break;
-            case QMessageBox::Discard:
-                break;
-            case QMessageBox::Cancel:
-                std::cerr << "VC::message: Open volume package cancelled." << std::endl;
-                return false;
-            default:
-                // should never be reached
-                break;
-        }
-    }
-
     QString aVpkgPath = QString( "" );
     aVpkgPath = QFileDialog::getExistingDirectory( this,
                                                    tr( "Open Directory" ),
@@ -549,7 +530,7 @@ bool CWindow::OpenVolume( void )
     // Dialog box cancelled
     if ( aVpkgPath.length() == 0 ) {
         std::cerr << "VC::Message: Open volume package cancelled." << std::endl;
-        return false;
+        return;
     }
 
     // Checks the Folder Path for .volpkg extension
@@ -558,12 +539,12 @@ bool CWindow::OpenVolume( void )
         QMessageBox::warning(this, tr("ERROR"), "The selected file is not of the correct type: \".volpkg\"");
         std::cerr << "VC::Error: Selected file: " << aVpkgPath.toStdString() << " is of the wrong type." << std::endl;
         fVpkg = NULL; // Is need for User Experience, clears screen.
-        return true;
+        return;
     }
 
     // Open volume package
     if ( !InitializeVolumePkg( aVpkgPath.toStdString() + "/" ) ) {
-        return true;
+        return;
     }
 
     // Check version number
@@ -571,14 +552,19 @@ bool CWindow::OpenVolume( void )
         std::cerr << "VC::Error: Volume package is version " << fVpkg->getVersion() << " but this program requires a version >= 2.0." << std::endl;
         QMessageBox::warning( this, tr( "ERROR" ), "Volume package is version " + QString::number(fVpkg->getVersion()) + " but this program requires a version >= 2.0." );
         fVpkg = NULL;
-        return true;
+        return;
     }
 
     fVpkgPath = aVpkgPath;
     fPathOnSliceIndex = 2;
+}
 
+void CWindow::CloseVolume( void ) {
+    fVpkg = NULL;
     ResetPointCloud();
-    return true;
+    OpenSlice();
+    InitPathList();
+    UpdateView();
 }
 
 // Reset point cloud
@@ -595,13 +581,31 @@ void CWindow::ResetPointCloud( void )
 // Handle open request
 void CWindow::Open( void )
 {
-    bool loaded = OpenVolume();
-
-    if(loaded) {
-        OpenSlice();
-        InitPathList();
-        UpdateView(); // update the panel when volume package is loaded
+    if(fVpkg != NULL && fMasterCloud.size()>0)
+    {
+        QMessageBox::StandardButton response = QMessageBox::question( this, "VC.app",
+                                                                      tr("Save changes to current segmentation before opening new volume package?\n"),
+                                                                      QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel );
+        switch (response) {
+            case QMessageBox::Save:
+                SavePointCloud();
+                break;
+            case QMessageBox::Discard:
+                break;
+            case QMessageBox::Cancel:
+                std::cerr << "VC::message: Open volume package cancelled." << std::endl;
+                return;
+            default:
+                // should never be reached
+                break;
+        }
     }
+
+    CloseVolume();
+    OpenVolume();
+    OpenSlice();
+    InitPathList();
+    UpdateView(); // update the panel when volume package is loaded
 }
 
 // Close application

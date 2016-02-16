@@ -81,7 +81,8 @@ private:
 
     void SetPathPointCloud( void );
 
-    bool OpenVolume( void ); // returns true if the user attempts to open a new Volume Package
+    void OpenVolume( void );
+    void CloseVolume( void );
 
     void ResetPointCloud( void );
 
@@ -159,12 +160,12 @@ private:
     pcl::PointCloud< pcl::PointXYZRGB > fLowerPart;
 
     // window components
-    QMenu		*fFileMenu;
+    QMenu       *fFileMenu;
     QMenu       *fHelpMenu;
 
-    QAction		*fOpenVolAct;
+    QAction     *fOpenVolAct;
     QAction     *fSavePointCloudAct;
-    QAction		*fExitAct;
+    QAction     *fExitAct;
     QAction     *fAboutAct;
 
     CVolumeViewerWithCurve
