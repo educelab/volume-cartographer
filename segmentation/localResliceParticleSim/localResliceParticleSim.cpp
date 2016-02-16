@@ -45,7 +45,9 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
     std::cout << "resampled size: " << currentVs.size() << std::endl;
 
     // Iterate over z-slices
-    for (int32_t zIndex = startIndex; zIndex <= endIndex; zIndex += step) {
+    for (int32_t zIndex = startIndex;
+         zIndex <= endIndex && zIndex < pkg_.getNumberOfSlices();
+         zIndex += step) {
         std::cout << "slice: " << zIndex << std::endl;
 
         // Directory to dump vis
@@ -53,11 +55,13 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
         ss << std::setw(std::to_string(endIndex).size()) << std::setfill('0')
            << zIndex;
         const fs::path zIdxDir = outputDir / ss.str();
-        fs::create_directory(zIdxDir);
+        if (dumpVis) {
+            fs::create_directory(zIdxDir);
+        }
 
         // 0. Resample current positions so they are evenly spaced
         FittedCurve curve{currentVs, zIndex};
-        currentVs = curve.seedPoints();
+        currentVs = curve.resample(seedPointsseedPointsseedPoints);
 
         // 1. Generate all candidate positions for all particles
         vec<std::deque<Voxel>> nextPositions;
@@ -273,8 +277,7 @@ vec<double> squareDiff(const vec<Voxel>& src, const vec<Voxel>& target)
         Voxel s, t;
         std::tie(s, t) = p;
         res.push_back(std::sqrt((s(0) - t(0)) * (s(0) - t(0)) +
-                                (s(1) - t(1)) * (s(1) - t(1)) +
-                                (s(2) - t(2)) * (s(2) - t(2))));
+                                (s(1) - t(1)) * (s(1) - t(1))));
     }
     return res;
 }
@@ -287,8 +290,7 @@ double curveEnergy(const vec<Voxel>& src, const vec<Voxel>& target)
     for (const auto p : zip(src, target)) {
         Voxel s, t;
         std::tie(s, t) = p;
-        sum += (s(0) - t(0)) * (s(0) - t(0)) + (s(1) - t(1)) * (s(1) - t(1)) +
-               (s(2) - t(2)) * (s(2) - t(2));
+        sum += (s(0) - t(0)) * (s(0) - t(0)) + (s(1) - t(1)) * (s(1) - t(1));
     }
     return std::sqrt(sum);
 }
