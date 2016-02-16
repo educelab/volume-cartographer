@@ -82,6 +82,7 @@ private:
     void SetPathPointCloud( void );
 
     void OpenVolume( void );
+    void CloseVolume( void );
 
     void ResetPointCloud( void );
 
@@ -159,12 +160,12 @@ private:
     pcl::PointCloud< pcl::PointXYZRGB > fLowerPart;
 
     // window components
-    QMenu		*fFileMenu;
+    QMenu       *fFileMenu;
     QMenu       *fHelpMenu;
 
-    QAction		*fOpenVolAct;
+    QAction     *fOpenVolAct;
     QAction     *fSavePointCloudAct;
-    QAction		*fExitAct;
+    QAction     *fExitAct;
     QAction     *fAboutAct;
 
     CVolumeViewerWithCurve

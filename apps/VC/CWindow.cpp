@@ -274,6 +274,7 @@ void CWindow::UpdateView( void )
 {
     if ( fVpkg == NULL ) {
         setWidgetsEnabled(false);// Disable Widgets for User
+        this->findChild< QLabel * >( "lblVpkgName" )->setText( "No Volume Package Loaded" );
         return;
     }
 
@@ -556,8 +557,14 @@ void CWindow::OpenVolume( void )
 
     fVpkgPath = aVpkgPath;
     fPathOnSliceIndex = 2;
+}
 
+void CWindow::CloseVolume( void ) {
+    fVpkg = NULL;
     ResetPointCloud();
+    OpenSlice();
+    InitPathList();
+    UpdateView();
 }
 
 // Reset point cloud
@@ -574,6 +581,27 @@ void CWindow::ResetPointCloud( void )
 // Handle open request
 void CWindow::Open( void )
 {
+    if(fVpkg != NULL && fMasterCloud.size()>0)
+    {
+        QMessageBox::StandardButton response = QMessageBox::question( this, "VC.app",
+                                                                      tr("Save changes to current segmentation before opening new volume package?\n"),
+                                                                      QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel );
+        switch (response) {
+            case QMessageBox::Save:
+                SavePointCloud();
+                break;
+            case QMessageBox::Discard:
+                break;
+            case QMessageBox::Cancel:
+                std::cerr << "VC::message: Open volume package cancelled." << std::endl;
+                return;
+            default:
+                // should never be reached
+                break;
+        }
+    }
+
+    CloseVolume();
     OpenVolume();
     OpenSlice();
     InitPathList();
