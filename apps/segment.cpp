@@ -12,22 +12,25 @@ int main(int argc, char* argv[])
 {
     if (argc < 5) {
         std::cerr << "Usage:" << std::endl;
-        std::cerr << "    " << argv[0]
-                  << "--volpkg /path/to/volume.volpkg --startIndex [start] "
-                     "--endIndex [end] --seg [segID] --step [step] --output "
-                     "/path/to/output.pcd [--visualize [i]] [--dump-vis]\n";
+        std::cerr << "    " << argv[0] << " "
+                  << "--volpkg /path/to/volume.volpkg --start-index [start] "
+                     "--end-index [end] --output /path/to/output.pcd --seg "
+                     "seg-id [--step S] "
+                     "[--visualize I] [--dump-vis] [--resample-perc F] "
+                     "[--num-iters N] [--num-maxima M]"
+                  << std::endl;
         std::exit(1);
     }
 
     // Required args
     int32_t startIndex = -1;
-    pcl::console::parse_argument(argc, argv, "--startIndex", startIndex);
+    pcl::console::parse_argument(argc, argv, "--start-index", startIndex);
     if (startIndex == -1) {
         std::cerr << "[error]: startIndex required\n";
         std::exit(1);
     }
     int32_t endIndex = -1;
-    pcl::console::parse_argument(argc, argv, "--endIndex", endIndex);
+    pcl::console::parse_argument(argc, argv, "--end-index", endIndex);
     if (endIndex == -1) {
         std::cerr << "[error]: endIndex required\n";
         std::exit(1);
@@ -64,16 +67,16 @@ int main(int argc, char* argv[])
     bool dumpVis = pcl::console::find_switch(argc, argv, "--dump-vis");
 
     int32_t numIters = 10;
-    pcl::console::parse_argument(argc, argv, "--numIters", numIters);
+    pcl::console::parse_argument(argc, argv, "--num-iters", numIters);
 
     int32_t step = 1;
     pcl::console::parse_argument(argc, argv, "--step", step);
 
     double resamplePerc = 0.40;
-    pcl::console::parse_argument(argc, argv, "--resamplePerc", resamplePerc);
+    pcl::console::parse_argument(argc, argv, "--resample-perc", resamplePerc);
 
     int32_t keepNumMaxima = 4;
-    pcl::console::parse_argument(argc, argv, "--keepNumMaxima", keepNumMaxima);
+    pcl::console::parse_argument(argc, argv, "--num-maxima", keepNumMaxima);
 
     VolumePkg volpkg(volpkgPath);
     volpkg.setActiveSegmentation(segID);
