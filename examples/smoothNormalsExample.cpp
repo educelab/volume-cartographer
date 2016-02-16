@@ -27,7 +27,7 @@ int main(){
     volcart::shapes::Cube Cube;
     volcart::shapes::Arch Arch;
     volcart::shapes::Sphere Sphere;
-    volcart::shapes::Sphere Cone;
+    volcart::shapes::Cone Cone;
 
     //Declare our obj writer
     volcart::io::objWriter mesh_writer;

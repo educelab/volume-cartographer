@@ -13,7 +13,6 @@
 #include "shapes.h"
 #include "resamplePointCloud.h"
 #include <pcl/io/pcd_io.h>
-#include <pcl/conversions.h>
 
 /************************************************************************************
  *                                                                                  *
@@ -53,7 +52,7 @@ struct PlaneResamplePointCloudFixture {
         _in_PlanePointCloud = _Plane.pointCloudXYZ();
         pcl::PointCloud<pcl::PointXYZ>::Ptr _in_PlaneCloudPtr(new pcl::PointCloud<pcl::PointXYZ>);
         *_in_PlaneCloudPtr = _in_PlanePointCloud;
-        _out_PlanePointCloud = volcart::meshing::resamplePointCloud(_in_PlaneCloudPtr, CalculateRadius(_in_PlaneCloudPtr);
+        _out_PlanePointCloud = volcart::meshing::resamplePointCloud(_in_PlaneCloudPtr, CalculateRadius(_in_PlaneCloudPtr));
         _out_PlaneCloudPointData = _out_PlanePointCloud.points;
 
         //Load in saved test file created by resamplePointCloudExample.cpp
@@ -77,15 +76,11 @@ struct CubeResamplePointCloudFixture {
 
     CubeResamplePointCloudFixture() {
 
-        //create a Cube Point Cloud -> convert to pointer ->   
-        //call resample() and assign results -> save point data from cloud into vector
         _in_CubePointCloud = _Cube.pointCloudXYZ();
         pcl::PointCloud<pcl::PointXYZ>::Ptr _in_CubeCloudPtr(new pcl::PointCloud<pcl::PointXYZ>);
         *_in_CubeCloudPtr = _in_CubePointCloud;
-        _out_CubePointCloud = volcart::meshing::resamplePointCloud(_in_CubeCloudPtr, CalculateRadius(_in_CubeCloudPtr);
+        _out_CubePointCloud = volcart::meshing::resamplePointCloud(_in_CubeCloudPtr, CalculateRadius(_in_CubeCloudPtr));
         _out_CubeCloudPointData = _out_CubePointCloud.points;
-
-        //Load in saved test file created by resamplePointCloudExample.cpp
         pcl::io::loadPCDFile("CubeResamplePointCloudExample.pcd", _SavedCubeCloud);
         _SavedPointCloudData = _SavedCubeCloud.points;
 
@@ -104,16 +99,12 @@ struct CubeResamplePointCloudFixture {
 struct ArchResamplePointCloudFixture {
 
     ArchResamplePointCloudFixture() {
-
-        //create a Arch Point Cloud -> convert to pointer ->   
-        //call resample() and assign results -> save point data from cloud into vector
+        
         _in_ArchPointCloud = _Arch.pointCloudXYZ();
         pcl::PointCloud<pcl::PointXYZ>::Ptr _in_ArchCloudPtr(new pcl::PointCloud<pcl::PointXYZ>);
         *_in_ArchCloudPtr = _in_ArchPointCloud;
-        _out_ArchPointCloud = volcart::meshing::resamplePointCloud(_in_ArchCloudPtr, CalculateRadius(_in_ArchCloudPtr);
+        _out_ArchPointCloud = volcart::meshing::resamplePointCloud(_in_ArchCloudPtr, CalculateRadius(_in_ArchCloudPtr));
         _out_ArchCloudPointData = _out_ArchPointCloud.points;
-
-        //Load in saved test file created by resamplePointCloudExample.cpp
         pcl::io::loadPCDFile("ArchResamplePointCloudExample.pcd", _SavedArchCloud);
         _SavedPointCloudData = _SavedArchCloud.points;
 
@@ -132,16 +123,12 @@ struct ArchResamplePointCloudFixture {
 struct SphereResamplePointCloudFixture {
 
     SphereResamplePointCloudFixture() {
-
-        //create a Sphere Point Cloud -> convert to pointer ->   
-        //call resample() and assign results -> save point data from cloud into vector
+        
         _in_SpherePointCloud = _Sphere.pointCloudXYZ();
         pcl::PointCloud<pcl::PointXYZ>::Ptr _in_SphereCloudPtr(new pcl::PointCloud<pcl::PointXYZ>);
         *_in_SphereCloudPtr = _in_SpherePointCloud;
-        _out_SpherePointCloud = volcart::meshing::resamplePointCloud(_in_SphereCloudPtr, CalculateRadius(_in_SphereCloudPtr);
+        _out_SpherePointCloud = volcart::meshing::resamplePointCloud(_in_SphereCloudPtr, CalculateRadius(_in_SphereCloudPtr));
         _out_SphereCloudPointData = _out_SpherePointCloud.points;
-
-        //Load in saved test file created by resamplePointCloudExample.cpp
         pcl::io::loadPCDFile("SphereResamplePointCloudExample.pcd", _SavedSphereCloud);
         _SavedPointCloudData = _SavedSphereCloud.points;
 
@@ -160,16 +147,12 @@ struct SphereResamplePointCloudFixture {
 struct ConeResamplePointCloudFixture {
 
     ConeResamplePointCloudFixture() {
-
-        //create a Cone Point Cloud -> convert to pointer ->   
-        //call resample() and assign results -> save point data from cloud into vector
+        
         _in_ConePointCloud = _Cone.pointCloudXYZ();
         pcl::PointCloud<pcl::PointXYZ>::Ptr _in_ConeCloudPtr(new pcl::PointCloud<pcl::PointXYZ>);
         *_in_ConeCloudPtr = _in_ConePointCloud;
-        _out_ConePointCloud = volcart::meshing::resamplePointCloud(_in_ConeCloudPtr, CalculateRadius(_in_ConeCloudPtr);
+        _out_ConePointCloud = volcart::meshing::resamplePointCloud(_in_ConeCloudPtr, CalculateRadius(_in_ConeCloudPtr));
         _out_ConeCloudPointData = _out_ConePointCloud.points;
-
-        //Load in saved test file created by resamplePointCloudExample.cpp
         pcl::io::loadPCDFile("ConeResamplePointCloudExample.pcd", _SavedConeCloud);
         _SavedPointCloudData = _SavedConeCloud.points;
 
@@ -196,12 +179,12 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureAndSavedResampledPlanePointClouds, PlaneRe
     //Check that the cloud data matches for both resampled clouds
     for (int i = 0; i < _out_PlaneCloudPointData.size(); i ++) {
 
-        BOOST_CHECK_EQUAL(_out_PlaneCloudPointData[i].x, _SavedPointCloudData[i].x);
-        BOOST_CHECK_EQUAL(_out_PlaneCloudPointData[i].y, _SavedPointCloudData[i].y);
-        BOOST_CHECK_EQUAL(_out_PlaneCloudPointData[i].z, _SavedPointCloudData[i].z);
-        BOOST_CHECK_EQUAL(_out_PlaneCloudPointData[i].normal_x, _SavedPointCloudData[i].normal_x);
-        BOOST_CHECK_EQUAL(_out_PlaneCloudPointData[i].normal_y, _SavedPointCloudData[i].normal_y);
-        BOOST_CHECK_EQUAL(_out_PlaneCloudPointData[i].normal_z, _SavedPointCloudData[i].normal_z);
+        BOOST_CHECK_CLOSE_FRACTION(_out_PlaneCloudPointData[i].x, _SavedPointCloudData[i].x, 0.0001);
+        BOOST_CHECK_CLOSE_FRACTION(_out_PlaneCloudPointData[i].y, _SavedPointCloudData[i].y, 0.0001);
+        BOOST_CHECK_CLOSE_FRACTION(_out_PlaneCloudPointData[i].z, _SavedPointCloudData[i].z, 0.0001);
+        BOOST_CHECK_CLOSE_FRACTION(_out_PlaneCloudPointData[i].normal_x, _SavedPointCloudData[i].normal_x, 0.0001);
+        BOOST_CHECK_CLOSE_FRACTION(_out_PlaneCloudPointData[i].normal_y, _SavedPointCloudData[i].normal_y, 0.0001);
+        BOOST_CHECK_CLOSE_FRACTION(_out_PlaneCloudPointData[i].normal_z, _SavedPointCloudData[i].normal_z, 0.0001);
     }
 }
 
@@ -210,12 +193,12 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureAndSavedResampledCubePointClouds, CubeResa
     //Check that the cloud data matches for both resampled clouds
     for (int i = 0; i < _out_CubeCloudPointData.size(); i ++) {
 
-        BOOST_CHECK_EQUAL(_out_CubeCloudPointData[i].x, _SavedPointCloudData[i].x);
-        BOOST_CHECK_EQUAL(_out_CubeCloudPointData[i].y, _SavedPointCloudData[i].y);
-        BOOST_CHECK_EQUAL(_out_CubeCloudPointData[i].z, _SavedPointCloudData[i].z);
-        BOOST_CHECK_EQUAL(_out_CubeCloudPointData[i].normal_x, _SavedPointCloudData[i].normal_x);
-        BOOST_CHECK_EQUAL(_out_CubeCloudPointData[i].normal_y, _SavedPointCloudData[i].normal_y);
-        BOOST_CHECK_EQUAL(_out_CubeCloudPointData[i].normal_z, _SavedPointCloudData[i].normal_z);
+        BOOST_CHECK_CLOSE_FRACTION(_out_CubeCloudPointData[i].x, _SavedPointCloudData[i].x, 0.0001);
+        BOOST_CHECK_CLOSE_FRACTION(_out_CubeCloudPointData[i].y, _SavedPointCloudData[i].y, 0.0001);
+        BOOST_CHECK_CLOSE_FRACTION(_out_CubeCloudPointData[i].z, _SavedPointCloudData[i].z, 0.0001);
+        BOOST_CHECK_CLOSE_FRACTION(_out_CubeCloudPointData[i].normal_x, _SavedPointCloudData[i].normal_x, 0.0001);
+        BOOST_CHECK_CLOSE_FRACTION(_out_CubeCloudPointData[i].normal_y, _SavedPointCloudData[i].normal_y, 0.0001);
+        BOOST_CHECK_CLOSE_FRACTION(_out_CubeCloudPointData[i].normal_z, _SavedPointCloudData[i].normal_z, 0.0001);
     }
 }
 
@@ -224,12 +207,12 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureAndSavedResampledArchPointClouds, ArchResa
     //Check that the cloud data matches for both resampled clouds
     for (int i = 0; i < _out_ArchCloudPointData.size(); i ++) {
 
-        BOOST_CHECK_EQUAL(_out_ArchCloudPointData[i].x, _SavedPointCloudData[i].x);
-        BOOST_CHECK_EQUAL(_out_ArchCloudPointData[i].y, _SavedPointCloudData[i].y);
-        BOOST_CHECK_EQUAL(_out_ArchCloudPointData[i].z, _SavedPointCloudData[i].z);
-        BOOST_CHECK_EQUAL(_out_ArchCloudPointData[i].normal_x, _SavedPointCloudData[i].normal_x);
-        BOOST_CHECK_EQUAL(_out_ArchCloudPointData[i].normal_y, _SavedPointCloudData[i].normal_y);
-        BOOST_CHECK_EQUAL(_out_ArchCloudPointData[i].normal_z, _SavedPointCloudData[i].normal_z);
+        BOOST_CHECK_CLOSE_FRACTION(_out_ArchCloudPointData[i].x, _SavedPointCloudData[i].x, 0.0001);
+        BOOST_CHECK_CLOSE_FRACTION(_out_ArchCloudPointData[i].y, _SavedPointCloudData[i].y, 0.0001);
+        BOOST_CHECK_CLOSE_FRACTION(_out_ArchCloudPointData[i].z, _SavedPointCloudData[i].z, 0.0001);
+        BOOST_CHECK_CLOSE_FRACTION(_out_ArchCloudPointData[i].normal_x, _SavedPointCloudData[i].normal_x, 0.0001);
+        BOOST_CHECK_CLOSE_FRACTION(_out_ArchCloudPointData[i].normal_y, _SavedPointCloudData[i].normal_y, 0.0001);
+        BOOST_CHECK_CLOSE_FRACTION(_out_ArchCloudPointData[i].normal_z, _SavedPointCloudData[i].normal_z, 0.0001);
     }
 }
 
@@ -238,12 +221,12 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureAndSavedResampledSpherePointClouds, Sphere
     //Check that the cloud data matches for both resampled clouds
     for (int i = 0; i < _out_SphereCloudPointData.size(); i ++) {
 
-        BOOST_CHECK_EQUAL(_out_SphereCloudPointData[i].x, _SavedPointCloudData[i].x);
-        BOOST_CHECK_EQUAL(_out_SphereCloudPointData[i].y, _SavedPointCloudData[i].y);
-        BOOST_CHECK_EQUAL(_out_SphereCloudPointData[i].z, _SavedPointCloudData[i].z);
-        BOOST_CHECK_EQUAL(_out_SphereCloudPointData[i].normal_x, _SavedPointCloudData[i].normal_x);
-        BOOST_CHECK_EQUAL(_out_SphereCloudPointData[i].normal_y, _SavedPointCloudData[i].normal_y);
-        BOOST_CHECK_EQUAL(_out_SphereCloudPointData[i].normal_z, _SavedPointCloudData[i].normal_z);
+        BOOST_CHECK_CLOSE_FRACTION(_out_SphereCloudPointData[i].x, _SavedPointCloudData[i].x, 0.0001);
+        BOOST_CHECK_CLOSE_FRACTION(_out_SphereCloudPointData[i].y, _SavedPointCloudData[i].y, 0.0001);
+        BOOST_CHECK_CLOSE_FRACTION(_out_SphereCloudPointData[i].z, _SavedPointCloudData[i].z, 0.0001);
+        BOOST_CHECK_CLOSE_FRACTION(_out_SphereCloudPointData[i].normal_x, _SavedPointCloudData[i].normal_x, 0.0001);
+        BOOST_CHECK_CLOSE_FRACTION(_out_SphereCloudPointData[i].normal_y, _SavedPointCloudData[i].normal_y, 0.0001);
+        BOOST_CHECK_CLOSE_FRACTION(_out_SphereCloudPointData[i].normal_z, _SavedPointCloudData[i].normal_z, 0.0001);
     }
 }
 
@@ -252,19 +235,22 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureAndSavedResampledConePointClouds, ConeResa
     //Check that the cloud data matches for both resampled clouds
     for (int i = 0; i < _out_ConeCloudPointData.size(); i ++) {
 
-        BOOST_CHECK_EQUAL(_out_ConeCloudPointData[i].x, _SavedPointCloudData[i].x);
-        BOOST_CHECK_EQUAL(_out_ConeCloudPointData[i].y, _SavedPointCloudData[i].y);
-        BOOST_CHECK_EQUAL(_out_ConeCloudPointData[i].z, _SavedPointCloudData[i].z);
-        BOOST_CHECK_EQUAL(_out_ConeCloudPointData[i].normal_x, _SavedPointCloudData[i].normal_x);
-        BOOST_CHECK_EQUAL(_out_ConeCloudPointData[i].normal_y, _SavedPointCloudData[i].normal_y);
-        BOOST_CHECK_EQUAL(_out_ConeCloudPointData[i].normal_z, _SavedPointCloudData[i].normal_z);
+        BOOST_CHECK_CLOSE_FRACTION(_out_ConeCloudPointData[i].x, _SavedPointCloudData[i].x, 0.0001);
+        BOOST_CHECK_CLOSE_FRACTION(_out_ConeCloudPointData[i].y, _SavedPointCloudData[i].y, 0.0001);
+        BOOST_CHECK_CLOSE_FRACTION(_out_ConeCloudPointData[i].z, _SavedPointCloudData[i].z, 0.0001);
+        BOOST_CHECK_CLOSE_FRACTION(_out_ConeCloudPointData[i].normal_x, _SavedPointCloudData[i].normal_x, 0.0001);
+        BOOST_CHECK_CLOSE_FRACTION(_out_ConeCloudPointData[i].normal_y, _SavedPointCloudData[i].normal_y, 0.0001);
+        BOOST_CHECK_CLOSE_FRACTION(_out_ConeCloudPointData[i].normal_z, _SavedPointCloudData[i].normal_z, 0.0001);
     }
 }
 
 
 
 
-
+/*
+ * helper function
+ * 
+ */
 double CalculateRadius(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud){
 
     float avgDistance = 0;

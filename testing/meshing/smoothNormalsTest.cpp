@@ -123,9 +123,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureSmoothedPlaneWithSavedPlaneTest, SmoothNor
     for ( size_t p_id = 0; p_id < _out_SmoothedPlaneMesh ->GetNumberOfPoints(); ++p_id) {
 
 
-        BOOST_CHECK_CLOSE(_out_SmoothedPlaneMesh->GetPoint(p_id)[0], _SavedPlanePoints[p_id].x, _Tolerance);
-        BOOST_CHECK_CLOSE(_out_SmoothedPlaneMesh->GetPoint(p_id)[1], _SavedPlanePoints[p_id].y, _Tolerance);
-        BOOST_CHECK_CLOSE(_out_SmoothedPlaneMesh->GetPoint(p_id)[2], _SavedPlanePoints[p_id].z, _Tolerance);
+        BOOST_CHECK_CLOSE_FRACTION(_out_SmoothedPlaneMesh->GetPoint(p_id)[0], _SavedPlanePoints[p_id].x, _Tolerance);
+        BOOST_CHECK_CLOSE_FRACTION(_out_SmoothedPlaneMesh->GetPoint(p_id)[1], _SavedPlanePoints[p_id].y, _Tolerance);
+        BOOST_CHECK_CLOSE_FRACTION(_out_SmoothedPlaneMesh->GetPoint(p_id)[2], _SavedPlanePoints[p_id].z, _Tolerance);
     }
 
     //normals
@@ -137,9 +137,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureSmoothedPlaneWithSavedPlaneTest, SmoothNor
         _out_SmoothedPlaneMesh->GetPointData(point.Index(), &out_PlaneNormal);
 
         //Now compare the normals for the two meshes
-        BOOST_CHECK_EQUAL(out_PlaneNormal[0], _SavedPlanePoints[p].nx);
-        BOOST_CHECK_EQUAL(out_PlaneNormal[1], _SavedPlanePoints[p].ny);
-        BOOST_CHECK_EQUAL(out_PlaneNormal[2], _SavedPlanePoints[p].nz);
+        BOOST_CHECK_CLOSE_FRACTION(out_PlaneNormal[0], _SavedPlanePoints[p].nx, _Tolerance);
+        BOOST_CHECK_CLOSE_FRACTION(out_PlaneNormal[1], _SavedPlanePoints[p].ny, _Tolerance);
+        BOOST_CHECK_CLOSE_FRACTION(out_PlaneNormal[2], _SavedPlanePoints[p].nz, _Tolerance);
 
         p++;
 
@@ -190,28 +190,28 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureSmoothedCubeWithSavedCubeTest, SmoothNorma
     //Check number of points and cells in each mesh
     BOOST_CHECK_EQUAL( _out_SmoothedCubeMesh->GetNumberOfPoints(), _SavedCubePoints.size() );
     BOOST_CHECK_EQUAL(_out_SmoothedCubeMesh->GetNumberOfCells(), _SavedCubeCells.size());
-
+    
     //points
     for ( size_t p_id = 0; p_id < _out_SmoothedCubeMesh ->GetNumberOfPoints(); ++p_id) {
 
-        BOOST_CHECK_CLOSE(_out_SmoothedCubeMesh->GetPoint(p_id)[0], _SavedCubePoints[p_id].x, _Tolerance);
-        BOOST_CHECK_CLOSE(_out_SmoothedCubeMesh->GetPoint(p_id)[1], _SavedCubePoints[p_id].y, _Tolerance);
-        BOOST_CHECK_CLOSE(_out_SmoothedCubeMesh->GetPoint(p_id)[2], _SavedCubePoints[p_id].z, _Tolerance);
+
+        BOOST_CHECK_CLOSE_FRACTION(_out_SmoothedCubeMesh->GetPoint(p_id)[0], _SavedCubePoints[p_id].x, _Tolerance);
+        BOOST_CHECK_CLOSE_FRACTION(_out_SmoothedCubeMesh->GetPoint(p_id)[1], _SavedCubePoints[p_id].y, _Tolerance);
+        BOOST_CHECK_CLOSE_FRACTION(_out_SmoothedCubeMesh->GetPoint(p_id)[2], _SavedCubePoints[p_id].z, _Tolerance);
     }
 
     //normals
     int p = 0;
     VC_PointsInMeshIterator point = _out_SmoothedCubeMesh->GetPoints()->Begin();
-
     for ( ; point != _out_SmoothedCubeMesh->GetPoints()->End(); ++point ) {
 
         VC_PixelType out_CubeNormal;
         _out_SmoothedCubeMesh->GetPointData(point.Index(), &out_CubeNormal);
 
         //Now compare the normals for the two meshes
-        BOOST_CHECK_EQUAL(out_CubeNormal[0], _SavedCubePoints[p].nx);
-        BOOST_CHECK_EQUAL(out_CubeNormal[1], _SavedCubePoints[p].ny);
-        BOOST_CHECK_EQUAL(out_CubeNormal[2], _SavedCubePoints[p].nz);
+        BOOST_CHECK_CLOSE_FRACTION(out_CubeNormal[0], _SavedCubePoints[p].nx, _Tolerance);
+        BOOST_CHECK_CLOSE_FRACTION(out_CubeNormal[1], _SavedCubePoints[p].ny, _Tolerance);
+        BOOST_CHECK_CLOSE_FRACTION(out_CubeNormal[2], _SavedCubePoints[p].nz, _Tolerance);
 
         p++;
 
@@ -266,24 +266,24 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureSmoothedSphereWithSavedSphereTest, SmoothN
     //points
     for ( size_t p_id = 0; p_id < _out_SmoothedSphereMesh ->GetNumberOfPoints(); ++p_id) {
 
-        BOOST_CHECK_CLOSE(_out_SmoothedSphereMesh->GetPoint(p_id)[0], _SavedSpherePoints[p_id].x, _Tolerance);
-        BOOST_CHECK_CLOSE(_out_SmoothedSphereMesh->GetPoint(p_id)[1], _SavedSpherePoints[p_id].y, _Tolerance);
-        BOOST_CHECK_CLOSE(_out_SmoothedSphereMesh->GetPoint(p_id)[2], _SavedSpherePoints[p_id].z, _Tolerance);
+
+        BOOST_CHECK_CLOSE_FRACTION(_out_SmoothedSphereMesh->GetPoint(p_id)[0], _SavedSpherePoints[p_id].x, _Tolerance);
+        BOOST_CHECK_CLOSE_FRACTION(_out_SmoothedSphereMesh->GetPoint(p_id)[1], _SavedSpherePoints[p_id].y, _Tolerance);
+        BOOST_CHECK_CLOSE_FRACTION(_out_SmoothedSphereMesh->GetPoint(p_id)[2], _SavedSpherePoints[p_id].z, _Tolerance);
     }
 
     //normals
     int p = 0;
     VC_PointsInMeshIterator point = _out_SmoothedSphereMesh->GetPoints()->Begin();
-    
     for ( ; point != _out_SmoothedSphereMesh->GetPoints()->End(); ++point ) {
 
         VC_PixelType out_SphereNormal;
         _out_SmoothedSphereMesh->GetPointData(point.Index(), &out_SphereNormal);
 
         //Now compare the normals for the two meshes
-        BOOST_CHECK_EQUAL(out_SphereNormal[0], _SavedSpherePoints[p].nx);
-        BOOST_CHECK_EQUAL(out_SphereNormal[1], _SavedSpherePoints[p].ny);
-        BOOST_CHECK_EQUAL(out_SphereNormal[2], _SavedSpherePoints[p].nz);
+        BOOST_CHECK_CLOSE_FRACTION(out_SphereNormal[0], _SavedSpherePoints[p].nx, _Tolerance);
+        BOOST_CHECK_CLOSE_FRACTION(out_SphereNormal[1], _SavedSpherePoints[p].ny, _Tolerance);
+        BOOST_CHECK_CLOSE_FRACTION(out_SphereNormal[2], _SavedSpherePoints[p].nz, _Tolerance);
 
         p++;
 
@@ -335,14 +335,16 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureSmoothedArchWithSavedArchTest, SmoothNorma
     BOOST_CHECK_EQUAL( _out_SmoothedArchMesh->GetNumberOfPoints(), _SavedArchPoints.size() );
     BOOST_CHECK_EQUAL(_out_SmoothedArchMesh->GetNumberOfCells(), _SavedArchCells.size());
 
-    //Now iterate over point sets and compare x/y/z values
+    //points
     for ( size_t p_id = 0; p_id < _out_SmoothedArchMesh ->GetNumberOfPoints(); ++p_id) {
 
-        BOOST_CHECK_CLOSE(_out_SmoothedArchMesh->GetPoint(p_id)[0], _SavedArchPoints[p_id].x, _Tolerance);
-        BOOST_CHECK_CLOSE(_out_SmoothedArchMesh->GetPoint(p_id)[1], _SavedArchPoints[p_id].y, _Tolerance);
-        BOOST_CHECK_CLOSE(_out_SmoothedArchMesh->GetPoint(p_id)[2], _SavedArchPoints[p_id].z, _Tolerance);
+
+        BOOST_CHECK_CLOSE_FRACTION(_out_SmoothedArchMesh->GetPoint(p_id)[0], _SavedArchPoints[p_id].x, _Tolerance);
+        BOOST_CHECK_CLOSE_FRACTION(_out_SmoothedArchMesh->GetPoint(p_id)[1], _SavedArchPoints[p_id].y, _Tolerance);
+        BOOST_CHECK_CLOSE_FRACTION(_out_SmoothedArchMesh->GetPoint(p_id)[2], _SavedArchPoints[p_id].z, _Tolerance);
     }
-    
+
+    //normals
     int p = 0;
     VC_PointsInMeshIterator point = _out_SmoothedArchMesh->GetPoints()->Begin();
     for ( ; point != _out_SmoothedArchMesh->GetPoints()->End(); ++point ) {
@@ -351,9 +353,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureSmoothedArchWithSavedArchTest, SmoothNorma
         _out_SmoothedArchMesh->GetPointData(point.Index(), &out_ArchNormal);
 
         //Now compare the normals for the two meshes
-        BOOST_CHECK_EQUAL(out_ArchNormal[0], _SavedArchPoints[p].nx);
-        BOOST_CHECK_EQUAL(out_ArchNormal[1], _SavedArchPoints[p].ny);
-        BOOST_CHECK_EQUAL(out_ArchNormal[2], _SavedArchPoints[p].nz);
+        BOOST_CHECK_CLOSE_FRACTION(out_ArchNormal[0], _SavedArchPoints[p].nx, _Tolerance);
+        BOOST_CHECK_CLOSE_FRACTION(out_ArchNormal[1], _SavedArchPoints[p].ny, _Tolerance);
+        BOOST_CHECK_CLOSE_FRACTION(out_ArchNormal[2], _SavedArchPoints[p].nz, _Tolerance);
 
         p++;
 
@@ -404,28 +406,27 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureSmoothedConeWithSavedConeTest, SmoothNorma
     BOOST_CHECK_EQUAL( _out_SmoothedConeMesh->GetNumberOfPoints(), _SavedConePoints.size() );
 
     //compare point values
-    for ( size_t p = 0; p < _out_SmoothedConeMesh ->GetNumberOfPoints(); ++p) {
+    for ( size_t p_id = 0; p_id < _out_SmoothedConeMesh ->GetNumberOfPoints(); ++p_id) {
 
-        BOOST_CHECK_CLOSE(_out_SmoothedConeMesh->GetPoint(p)[0], _SavedConePoints[p].x, _Tolerance);
-        BOOST_CHECK_CLOSE(_out_SmoothedConeMesh->GetPoint(p)[1], _SavedConePoints[p].y, _Tolerance);
-        BOOST_CHECK_CLOSE(_out_SmoothedConeMesh->GetPoint(p)[2], _SavedConePoints[p].z, _Tolerance);
+        BOOST_CHECK_CLOSE_FRACTION(_out_SmoothedConeMesh->GetPoint(p_id)[0], _SavedConePoints[p_id].x, _Tolerance);
+        BOOST_CHECK_CLOSE_FRACTION(_out_SmoothedConeMesh->GetPoint(p_id)[1], _SavedConePoints[p_id].y, _Tolerance);
+        BOOST_CHECK_CLOSE_FRACTION(_out_SmoothedConeMesh->GetPoint(p_id)[2], _SavedConePoints[p_id].z, _Tolerance);
     }
 
-    //compare normals
-    int pnt_id = 0;
+    //normals
+    int p = 0;
     VC_PointsInMeshIterator point = _out_SmoothedConeMesh->GetPoints()->Begin();
-
     for ( ; point != _out_SmoothedConeMesh->GetPoints()->End(); ++point ) {
 
         VC_PixelType out_ConeNormal;
         _out_SmoothedConeMesh->GetPointData(point.Index(), &out_ConeNormal);
 
         //Now compare the normals for the two meshes
-        BOOST_CHECK_EQUAL(out_ConeNormal[0], _SavedConePoints[pnt_id].nx);
-        BOOST_CHECK_EQUAL(out_ConeNormal[1], _SavedConePoints[pnt_id].ny);
-        BOOST_CHECK_EQUAL(out_ConeNormal[2], _SavedConePoints[pnt_id].nz);
+        BOOST_CHECK_CLOSE_FRACTION(out_ConeNormal[0], _SavedConePoints[p].nx, _Tolerance);
+        BOOST_CHECK_CLOSE_FRACTION(out_ConeNormal[1], _SavedConePoints[p].ny, _Tolerance);
+        BOOST_CHECK_CLOSE_FRACTION(out_ConeNormal[2], _SavedConePoints[p].nz, _Tolerance);
 
-        pnt_id++;
+        p++;
 
     }
 
