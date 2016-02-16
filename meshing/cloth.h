@@ -40,6 +40,9 @@ namespace volcart {
 							int width,
 							int height,
 							int required_iterations);
+			
+			volcart::UVMap _returnUVMap();
+			VC_MeshType::Pointer _returnMesh() { return _decimated; };
 
 		private:
 			int _process();
@@ -54,15 +57,13 @@ namespace volcart {
 
 			void _setSoftBodyFriction( btSoftBody* body ) { body->m_cfg.kDF = 0.01; }; // Dynamic friction coefficient (0-1] Default: 0.2}
 
-			volcart::UVMap _returnUVMap( btSoftBody* psb );
-			VC_MeshType::Pointer _returnMesh() { return _decimated; };
-
 			// variables
 			static std::vector< btSoftBody::Node* > _pinnedPoints;
 			static std::vector< NodeTarget > _targetPoints;
 
 			VC_MeshType::Pointer _input;
 			VC_MeshType::Pointer _decimated;
+			btSoftBody* _psb;
 			int _iterations;
 			int _width;
 			int _height;

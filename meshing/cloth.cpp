@@ -37,24 +37,23 @@ namespace volcart {
       dynamicsWorld->setGravity(btVector3(0, 0, 0));
 
       // convert itk mesh to bullet mesh (vertices and triangle arrays)
-      btSoftBody* psb;
-      volcart::meshing::itk2bullet::itk2bullet(_decimated, dynamicsWorld->getWorldInfo(), &psb);
+      volcart::meshing::itk2bullet::itk2bullet(_decimated, dynamicsWorld->getWorldInfo(), &_psb);
 
-      psb->getWorldInfo()->m_gravity = dynamicsWorld->getGravity(); // Have to explicitly make softbody gravity match world gravity
-      dynamicsWorld->addSoftBody(psb);
-      _dumpState( _decimated, psb, "_0" );
+      _psb->getWorldInfo()->m_gravity = dynamicsWorld->getGravity(); // Have to explicitly make softbody gravity match world gravity
+      dynamicsWorld->addSoftBody(_psb);
+      _dumpState( _decimated, _psb, "_0" );
 
       // Constraints for the mesh as a soft body
       // These needed to be tested to find optimal values.
       // Sets the mass of the whole soft body, true considers the faces along with the vertices
       // Note: Mass is in kilograms. If mass isn't high enough, nothing changes.
       printf("volcart::cloth::message: Setting mass\n");
-      psb->setTotalMass( (int)(psb->m_nodes.size() * 0.001), true );
+      _psb->setTotalMass( (int)(_psb->m_nodes.size() * 0.001), true );
 
-      psb->m_cfg.kDP = 0.01; // Damping coefficient of the soft body [0,1]
-      psb->m_materials[0]->m_kLST = 1.0; // Linear stiffness coefficient [0,1]
-      psb->m_materials[0]->m_kAST = 1.0; // Area/Angular stiffness coefficient [0,1]
-      psb->m_materials[0]->m_kVST = 1.0; // Volume stiffness coefficient [0,1]
+      _psb->m_cfg.kDP = 0.01; // Damping coefficient of the soft body [0,1]
+      _psb->m_materials[0]->m_kLST = 1.0; // Linear stiffness coefficient [0,1]
+      _psb->m_materials[0]->m_kAST = 1.0; // Area/Angular stiffness coefficient [0,1]
+      _psb->m_materials[0]->m_kVST = 1.0; // Volume stiffness coefficient [0,1]
 
       // Find the position of the four corner nodes
       // Currently assumes that the first point has the same z-value as the rest of the starting chain
@@ -90,10 +89,10 @@ namespace volcart {
 
       // Append rigid bodies to respective nodes of mesh
       // Assumes the chain length is constant throughout the mesh
-      btSoftBody::Node* top_left     = &psb->m_nodes[tl_id];
-      btSoftBody::Node* top_right    = &psb->m_nodes[tr_id];
-      btSoftBody::Node* bottom_left  = &psb->m_nodes[bl_id];
-      btSoftBody::Node* bottom_right = &psb->m_nodes[br_id];
+      btSoftBody::Node* top_left     = &_psb->m_nodes[tl_id];
+      btSoftBody::Node* top_right    = &_psb->m_nodes[tr_id];
+      btSoftBody::Node* bottom_left  = &_psb->m_nodes[bl_id];
+      btSoftBody::Node* bottom_right = &_psb->m_nodes[br_id];
 
       _pinnedPoints.push_back(top_left);
       _pinnedPoints.push_back(top_right);
@@ -101,13 +100,13 @@ namespace volcart {
       _pinnedPoints.push_back(bottom_right);
 
       double pinMass = 10;
-      psb->setMass(tl_id, pinMass);
-      psb->setMass(tr_id, pinMass);
-      psb->setMass(bl_id, pinMass);
-      psb->setMass(br_id, pinMass);
+      _psb->setMass(tl_id, pinMass);
+      _psb->setMass(tr_id, pinMass);
+      _psb->setMass(bl_id, pinMass);
+      _psb->setMass(br_id, pinMass);
 
       // Calculate the surface area of the mesh
-      double surface_area = _btSurfaceArea(psb);
+      double surface_area = _btSurfaceArea(_psb);
       int dir = ( top_left->m_x.getX() < top_right->m_x.getX() ) ? 1 : -1;
       double width = chain_length * dir;
       double height = bl[2] - tl[2];
@@ -120,42 +119,42 @@ namespace volcart {
       btSoftBody::Node* node_ptr;
 
       // top left corner
-      node_ptr = &psb->m_nodes[tl_id];
-      n_target.t_pos = psb->m_nodes[tl_id].m_x;
+      node_ptr = &_psb->m_nodes[tl_id];
+      n_target.t_pos = _psb->m_nodes[tl_id].m_x;
       n_target.t_stepsize = (node_ptr)->m_x.distance(n_target.t_pos) / required_iterations;
       _targetPoints.push_back(n_target);
 
       // top right corner
-      node_ptr = &psb->m_nodes[tr_id];
-      t_x = psb->m_nodes[tl_id].m_x.x() + width;
-      t_y = psb->m_nodes[tl_id].m_x.y();
-      t_z = psb->m_nodes[tl_id].m_x.z();
+      node_ptr = &_psb->m_nodes[tr_id];
+      t_x = _psb->m_nodes[tl_id].m_x.x() + width;
+      t_y = _psb->m_nodes[tl_id].m_x.y();
+      t_z = _psb->m_nodes[tl_id].m_x.z();
       n_target.t_pos = btVector3(t_x, t_y, t_z);
       n_target.t_stepsize = (node_ptr)->m_x.distance(n_target.t_pos) / required_iterations;
       _targetPoints.push_back(n_target);
 
       // bottom left corner
-      node_ptr = &psb->m_nodes[bl_id];
-      t_x = psb->m_nodes[tl_id].m_x.x();
-      t_y = psb->m_nodes[tl_id].m_x.y();
-      t_z = psb->m_nodes[tl_id].m_x.z() + height;
+      node_ptr = &_psb->m_nodes[bl_id];
+      t_x = _psb->m_nodes[tl_id].m_x.x();
+      t_y = _psb->m_nodes[tl_id].m_x.y();
+      t_z = _psb->m_nodes[tl_id].m_x.z() + height;
       n_target.t_pos = btVector3(t_x, t_y, t_z);
       n_target.t_stepsize = (node_ptr)->m_x.distance(n_target.t_pos) / required_iterations;
       _targetPoints.push_back(n_target);
 
       // bottom right corner
-      node_ptr = &psb->m_nodes[br_id];
-      t_x = psb->m_nodes[tl_id].m_x.x() + width;
-      t_y = psb->m_nodes[tl_id].m_x.y();
-      t_z = psb->m_nodes[tl_id].m_x.z() + height;
+      node_ptr = &_psb->m_nodes[br_id];
+      t_x = _psb->m_nodes[tl_id].m_x.x() + width;
+      t_y = _psb->m_nodes[tl_id].m_x.y();
+      t_z = _psb->m_nodes[tl_id].m_x.z() + height;
       n_target.t_pos = btVector3(t_x, t_y, t_z);
       n_target.t_stepsize = (node_ptr)->m_x.distance(n_target.t_pos) / required_iterations;
       _targetPoints.push_back(n_target);
 
       // Middle of target rectangle
-      t_x = psb->m_nodes[tl_id].m_x.x() + (width / 2);
-      t_y = psb->m_nodes[tl_id].m_x.y();
-      t_z = psb->m_nodes[tl_id].m_x.z() + (height / 2);
+      t_x = _psb->m_nodes[tl_id].m_x.x() + (width / 2);
+      t_y = _psb->m_nodes[tl_id].m_x.y();
+      t_z = _psb->m_nodes[tl_id].m_x.z() + (height / 2);
       _middle = btVector3(t_x, t_y, t_z);
 
       // Planarize the corners
@@ -165,36 +164,36 @@ namespace volcart {
       while ( counter < required_iterations ) {
         std::cerr << "volcart::cloth::message: Step " << counter+1 << "/" << required_iterations << "\r" << std::flush;
         dynamicsWorld->stepSimulation(1/60.f);
-        psb->solveConstraints();
+        _psb->solveConstraints();
         ++counter;
       }
       std::cerr << std::endl;
       printf("Planarize steps: %d\n", counter);
-      _dumpState( _decimated, psb, "_1");
+      _dumpState( _decimated, _psb, "_1");
 
       // Expand the corners
       printf("volcart::cloth::message: Expanding corners\n");
       counter = 0;
       required_iterations = required_iterations * 2;
-      while ( (_btAverageNormal(psb).absolute().getY() < 0.925 || counter < required_iterations) && counter < required_iterations*2 ) {
+      while ( (_btAverageNormal(_psb).absolute().getY() < 0.925 || counter < required_iterations) && counter < required_iterations*2 ) {
         std::cerr << "volcart::cloth::message: Step " << counter+1 << "\r" << std::flush;
         if ( counter % 2000 == 0 ) _expandCorners( 10 + (counter / 2000) );
         dynamicsWorld->stepSimulation(1/60.f);
-        psb->solveConstraints();
+        _psb->solveConstraints();
         ++counter;
       }
       std::cerr << std::endl;
       printf("Expansion steps: %d\n", counter);
-      _dumpState( _decimated, psb, "_2" );
+      _dumpState( _decimated, _psb, "_2" );
 
       // Add a collision plane to push the mesh onto
-      btScalar min_y = psb->m_nodes[0].m_x.y();
-      btScalar max_y = psb->m_nodes[0].m_x.y();
-      for (size_t n_id = 1; n_id < psb->m_nodes.size(); ++n_id) {
-          double _y = psb->m_nodes[n_id].m_x.y();
-          double _z = psb->m_nodes[n_id].m_x.z();
-          if ( _y < min_y && _z >= 0) min_y = psb->m_nodes[n_id].m_x.y();
-          if ( _y > max_y && _z >= 0) max_y = psb->m_nodes[n_id].m_x.y();
+      btScalar min_y = _psb->m_nodes[0].m_x.y();
+      btScalar max_y = _psb->m_nodes[0].m_x.y();
+      for (size_t n_id = 1; n_id < _psb->m_nodes.size(); ++n_id) {
+          double _y = _psb->m_nodes[n_id].m_x.y();
+          double _z = _psb->m_nodes[n_id].m_x.z();
+          if ( _y < min_y && _z >= 0) min_y = _psb->m_nodes[n_id].m_x.y();
+          if ( _y > max_y && _z >= 0) max_y = _psb->m_nodes[n_id].m_x.y();
       }
 
       btScalar plane_y = min_y - 5;
@@ -206,38 +205,38 @@ namespace volcart {
 
       // Set the gravity so the mesh will be pushed onto the plane
       dynamicsWorld->setGravity(btVector3(0, -15, 0));
-      psb->getWorldInfo()->m_gravity = dynamicsWorld->getGravity(); // Have to explicitly make softbody gravity match world gravity
+      _psb->getWorldInfo()->m_gravity = dynamicsWorld->getGravity(); // Have to explicitly make softbody gravity match world gravity
 
       // set the friction of the plane and the mesh s.t. the mesh can easily flatten upon collision
       plane->setFriction(0.01); // (0-1] Default: 0.5
-      psb->m_cfg.kDF = 0.01; // Dynamic friction coefficient (0-1] Default: 0.2
-      psb->m_cfg.kDP = 0.1; // Damping coefficient of the soft body [0,1]
+      _psb->m_cfg.kDF = 0.01; // Dynamic friction coefficient (0-1] Default: 0.2
+      _psb->m_cfg.kDP = 0.1; // Damping coefficient of the soft body [0,1]
 
       // Let it settle
       printf("volcart::cloth::message: Relaxing corners\n");
       dynamicsWorld->setInternalTickCallback(_emptyPreTickCallback, dynamicsWorld, true);
       required_iterations = required_iterations * 2;
       counter = 0;
-      double test_area = _btSurfaceArea(psb);
+      double test_area = _btSurfaceArea(_psb);
       while ( (isnan(test_area) || test_area/surface_area > 1.001 || counter < required_iterations) && counter < required_iterations*4 ) {
         std::cerr << "volcart::cloth::message: Step " << counter+1 << "\r" << std::flush;
         dynamicsWorld->stepSimulation(1/60.f);
-        psb->solveConstraints();
+        _psb->solveConstraints();
 
         ++counter;
-        if ( counter % 500 == 0 ) test_area = _btSurfaceArea(psb); // recalc area every 500 iterations
+        if ( counter % 500 == 0 ) test_area = _btSurfaceArea(_psb); // recalc area every 500 iterations
       }
       std::cerr << std::endl;
       printf("Relaxation steps: %d\n", counter);
-      _dumpState( _decimated, psb, "_3" );
+      _dumpState( _decimated, _psb, "_3" );
 
       // bullet clean up
       dynamicsWorld->removeRigidBody(plane);
       delete plane->getMotionState();
       delete plane;
       delete groundShape;
-      dynamicsWorld->removeSoftBody(psb);
-      delete psb;
+      dynamicsWorld->removeSoftBody(_psb);
+      // delete _psb;
       delete dynamicsWorld;
       delete softBodySolver;
       delete solver;
@@ -319,19 +318,20 @@ namespace volcart {
       writer.write();
     };
 
-    volcart::UVMap cloth::_returnUVMap( btSoftBody* psb ) {
+    volcart::UVMap cloth::_returnUVMap() {
       // UV map setup
-      double min_u = psb->m_nodes[0].m_x.x();
-      double min_v = psb->m_nodes[0].m_x.z();
-      double max_u = psb->m_nodes[0].m_x.x();
-      double max_v = psb->m_nodes[0].m_x.z();
-      for (size_t n_id = 0; n_id < psb->m_nodes.size(); ++n_id) {
-        double _x = psb->m_nodes[n_id].m_x.x();
-        double _z = psb->m_nodes[n_id].m_x.z();
-        if ( _x < min_u && _z >= 0) min_u = psb->m_nodes[n_id].m_x.x();
-        if ( _z < min_v && _z >= 0) min_v = psb->m_nodes[n_id].m_x.z();
-        if ( _x > max_u && _z >= 0) max_u = psb->m_nodes[n_id].m_x.x();
-        if ( _z > max_v && _z >= 0) max_v = psb->m_nodes[n_id].m_x.z();
+      double min_u = _psb->m_nodes[0].m_x.x();
+      double min_v = _psb->m_nodes[0].m_x.z();
+      double max_u = _psb->m_nodes[0].m_x.x();
+      double max_v = _psb->m_nodes[0].m_x.z();
+
+      for (size_t n_id = 0; n_id < _psb->m_nodes.size(); ++n_id) {
+        double _x = _psb->m_nodes[n_id].m_x.x();
+        double _z = _psb->m_nodes[n_id].m_x.z();
+        if ( _x < min_u && _z >= 0) min_u = _psb->m_nodes[n_id].m_x.x();
+        if ( _z < min_v && _z >= 0) min_v = _psb->m_nodes[n_id].m_x.z();
+        if ( _x > max_u && _z >= 0) max_u = _psb->m_nodes[n_id].m_x.x();
+        if ( _z > max_v && _z >= 0) max_v = _psb->m_nodes[n_id].m_x.z();
       }
 
       // Round so that we have integer bounds
@@ -348,12 +348,12 @@ namespace volcart {
 
       // Calculate uv coordinates
       double u, v;
-      for (size_t f_id = 0; f_id < psb->m_faces.size(); ++f_id) {
+      for (size_t f_id = 0; f_id < _psb->m_faces.size(); ++f_id) {
 
         for(size_t n_id = 0; n_id < 3; ++n_id) {
 
-          u = (psb->m_faces[f_id].m_n[n_id]->m_x.x() - min_u) / (max_u - min_u);
-          v = (psb->m_faces[f_id].m_n[n_id]->m_x.z() - min_v) / (max_v - min_v);
+          u = (_psb->m_faces[f_id].m_n[n_id]->m_x.x() - min_u) / (max_u - min_u);
+          v = (_psb->m_faces[f_id].m_n[n_id]->m_x.z() - min_v) / (max_v - min_v);
           cv::Vec2d uv( u, v );
 
           // btSoftBody faces hold pointers to specific nodes, but we need the point id
@@ -367,6 +367,7 @@ namespace volcart {
 
         }
       }
+
       _uvMap = uvMap;
       return ( _uvMap );
     };
