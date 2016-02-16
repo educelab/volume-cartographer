@@ -8,7 +8,6 @@
 #define BOOST_TEST_MODULE resamplePointCloud
 
 #include <boost/test/unit_test.hpp>
-//#include <boost/test/included/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
 #include "vc_defines.h"
 #include "shapes.h"
@@ -25,30 +24,11 @@
  *  This file is broken up into a test fixture, resampleFix, which initializes      *
  *  some of the objects used in the fixture test cases:                             *
  *                                                                                  *
- *  1. PCTest:                                                                      *
- *                                                                                  *
- *      Takes a point cloud created from fixture via Plane::pointCloudXYZ()         *
- *      This test is simply looking into the points of the resulting PC.            *
- *                                                                                  *
- *  2. compareTwoResamples:                                                         *
- *      Takes a point cloud created from fixture via Plane::pointCloudXYZ()         *
- *      and checks that two resampled PointNormal clouds created using the same     *
- *      search radius and input cloud match pointwise.                              *
- *                                                                                  *
- *  3. compareSavedResample:                                                        *
- *     Read in resampleExample.pcd and compare for equivalency with the result      *
- *     from a call to resamplePointCloud() using the same input parameters.         *
- *                                                                                  *
- *  4. Properties:                                                                  *
- *                                                                                  *
- *      Takes a point cloud created from fixture via Plane::pointCloudXYZ()         *
- *      Checks the resulting PC's properties, i.e., height, width, size, etc.,      *
- *      against the input PC.                                                       *
- *                                                                                  *
- *  5. Magnitude:                                                                   *
- *                                                                                  *
- *      Takes a point cloud created from fixture via Plane::pointCloudXYZ()         *
- *      Checks that the normals in the resulting PC are unit normals.               *
+ *  1. CompareFixtureAndSavedResampledPlanePointClouds                              *
+ *  2. CompareFixtureAndSavedResampledCubePointClouds                               *
+ *  3. CompareFixtureAndSavedResampledArchPointClouds                               *
+ *  4. CompareFixtureAndSavedResampledSpherePointClouds                             *
+ *  5. CompareFixtureAndSavedResampledConePointClouds                               *
  *                                                                                  *
  *  Input:                                                                          *
  *     No required inputs for the test cases. Any test objects are created          *
@@ -62,232 +42,234 @@
  *     See the /testing/meshing wiki for more information on this test              *
  * **********************************************************************************/
 
+double CalculateRadius(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
 
-/*
- * Boost test fixture - resampleFix
- *       - builds a pcl::PointCloud<pcl::PointNormal> object for
- *         PCTest test case
- */
+struct PlaneResamplePointCloudFixture {
 
-struct resampleFix {
+    PlaneResamplePointCloudFixture() {
 
-    resampleFix() {
+        //create a Plane Point Cloud -> convert to pointer ->   
+        //call resample() and assign results -> save point data from cloud into vector
+        _in_PlanePointCloud = _Plane.pointCloudXYZ();
+        pcl::PointCloud<pcl::PointXYZ>::Ptr _in_PlaneCloudPtr(new pcl::PointCloud<pcl::PointXYZ>);
+        *_in_PlaneCloudPtr = _in_PlanePointCloud;
+        _out_PlanePointCloud = volcart::meshing::resamplePointCloud(_in_PlaneCloudPtr, CalculateRadius(_in_PlaneCloudPtr);
+        _out_PlaneCloudPointData = _out_PlanePointCloud.points;
 
-        pCloud = mesh.pointCloudXYZ();
+        //Load in saved test file created by resamplePointCloudExample.cpp
+        pcl::io::loadPCDFile("PlaneResamplePointCloudExample.pcd", _SavedPlaneCloud);
+        _SavedPointCloudData = _SavedPlaneCloud.points;
 
-        std::cerr << "\nsetting up resamplePCTest objects" << std::endl;
+        std::cerr << "\nsetting up Plane ResamplePCTest objects" << std::endl;
     }
 
-    ~resampleFix(){ std::cerr << "\ncleaning up resamplePCTest objects" << std::endl; }
+    ~PlaneResamplePointCloudFixture(){ std::cerr << "\ncleaning up Plane ResamplePCTest objects" << std::endl; }
 
-    pcl::PointCloud<pcl::PointXYZ> pCloud;
-    volcart::shapes::Plane mesh;
-
-    // Note, radius between (0,1] returns an empty PC
-    // Additionally, radius less than or equal to 0 will throw error
-    // during resampling as defined by PCL
-    double radius;
-
-    //init new PC
-    pcl::PointCloud<pcl::PointNormal> newCloud;
+    volcart::shapes::Plane _Plane;
+    pcl::PointCloud<pcl::PointXYZ> _in_PlanePointCloud;
+    pcl::PointCloud<pcl::PointNormal> _out_PlanePointCloud, _SavedPlaneCloud;
+    std::vector<pcl::PointNormal, Eigen::aligned_allocator<pcl::PointNormal> > _out_PlaneCloudPointData, _SavedPointCloudData;
 
 };
 
-BOOST_FIXTURE_TEST_CASE(PCTest, resampleFix){
 
-    //convert pCloud to Ptr for resample() call
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
-    *cloud = pCloud;
+struct CubeResamplePointCloudFixture {
 
+    CubeResamplePointCloudFixture() {
 
-/*************************************************
- * Looking at the original and resulting PC data *
- *************************************************/
+        //create a Cube Point Cloud -> convert to pointer ->   
+        //call resample() and assign results -> save point data from cloud into vector
+        _in_CubePointCloud = _Cube.pointCloudXYZ();
+        pcl::PointCloud<pcl::PointXYZ>::Ptr _in_CubeCloudPtr(new pcl::PointCloud<pcl::PointXYZ>);
+        *_in_CubeCloudPtr = _in_CubePointCloud;
+        _out_CubePointCloud = volcart::meshing::resamplePointCloud(_in_CubeCloudPtr, CalculateRadius(_in_CubeCloudPtr);
+        _out_CubeCloudPointData = _out_CubePointCloud.points;
 
-    //place cloud points in vector
-    std::vector<pcl::PointXYZ, Eigen::aligned_allocator<pcl::PointXYZ> > cloudData = cloud->points;
-    std::cerr << "Original Cloud Points: " << std::endl;
+        //Load in saved test file created by resamplePointCloudExample.cpp
+        pcl::io::loadPCDFile("CubeResamplePointCloudExample.pcd", _SavedCubeCloud);
+        _SavedPointCloudData = _SavedCubeCloud.points;
 
-    for (int c = 0; c < cloudData.size(); c++) {
-        std::cerr << "Point " << c << ": "
-        << cloudData[c].x << " | "
-        << cloudData[c].y << " | "
-        << cloudData[c].z << " | " << std::endl;
+        std::cerr << "\nsetting up Cube ResamplePCTest objects" << std::endl;
     }
 
-    //Let's loop through various radius values to see how the resulting PC looks
-    for (radius = 2.0; radius <  7.0; radius ++) {
+    ~CubeResamplePointCloudFixture(){ std::cerr << "\ncleaning up Cube ResamplePCTest objects" << std::endl; }
 
-        //call resample PC
-       newCloud = volcart::meshing::resamplePointCloud(cloud, radius);
+    volcart::shapes::Cube _Cube;
+    pcl::PointCloud<pcl::PointXYZ> _in_CubePointCloud;
+    pcl::PointCloud<pcl::PointNormal> _out_CubePointCloud, _SavedCubeCloud;
+    std::vector<pcl::PointNormal, Eigen::aligned_allocator<pcl::PointNormal> > _out_CubeCloudPointData, _SavedPointCloudData;
 
-        //place newCloud points in vector
-        std::vector<pcl::PointNormal, Eigen::aligned_allocator<pcl::PointNormal> > newCloudData = newCloud.points;
-        std::cerr << "newCloud Points for Radius: " << radius << std::endl;
+};
 
-        //Look at the points
-        for (int i = 0; i < newCloudData.size(); i ++){
-            std::cerr << "Point " << i << ": "
-                      << newCloudData[i].x << " | "
-                      << newCloudData[i].y << " | "
-                      << newCloudData[i].z << " | "
-                      << newCloudData[i].normal_x << " | "
-                      << newCloudData[i].normal_y << " | "
-                      << newCloudData[i].normal_z << " | "  << std::endl;
-        }
+struct ArchResamplePointCloudFixture {
 
+    ArchResamplePointCloudFixture() {
+
+        //create a Arch Point Cloud -> convert to pointer ->   
+        //call resample() and assign results -> save point data from cloud into vector
+        _in_ArchPointCloud = _Arch.pointCloudXYZ();
+        pcl::PointCloud<pcl::PointXYZ>::Ptr _in_ArchCloudPtr(new pcl::PointCloud<pcl::PointXYZ>);
+        *_in_ArchCloudPtr = _in_ArchPointCloud;
+        _out_ArchPointCloud = volcart::meshing::resamplePointCloud(_in_ArchCloudPtr, CalculateRadius(_in_ArchCloudPtr);
+        _out_ArchCloudPointData = _out_ArchPointCloud.points;
+
+        //Load in saved test file created by resamplePointCloudExample.cpp
+        pcl::io::loadPCDFile("ArchResamplePointCloudExample.pcd", _SavedArchCloud);
+        _SavedPointCloudData = _SavedArchCloud.points;
+
+        std::cerr << "\nsetting up Arch ResamplePCTest objects" << std::endl;
     }
 
-}
+    ~ArchResamplePointCloudFixture(){ std::cerr << "\ncleaning up Arch ResamplePCTest objects" << std::endl; }
 
-/**************************************************
- * Check equivalency of two inline resampled PCs  *
- *************************************************/
+    volcart::shapes::Arch _Arch;
+    pcl::PointCloud<pcl::PointXYZ> _in_ArchPointCloud;
+    pcl::PointCloud<pcl::PointNormal> _out_ArchPointCloud, _SavedArchCloud;
+    std::vector<pcl::PointNormal, Eigen::aligned_allocator<pcl::PointNormal> > _out_ArchCloudPointData, _SavedPointCloudData;
 
-BOOST_FIXTURE_TEST_CASE(compareTwoResamples, resampleFix){
+};
 
-    //init PC for later resample call
-    pcl::PointCloud<pcl::PointNormal> otherCloud;
+struct SphereResamplePointCloudFixture {
 
-    //convert pCloud to Ptr for resample() call
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
-    *cloud = pCloud;
+    SphereResamplePointCloudFixture() {
 
-    /*
-     * Determine the ideal search radius for the resample call
-     */
+        //create a Sphere Point Cloud -> convert to pointer ->   
+        //call resample() and assign results -> save point data from cloud into vector
+        _in_SpherePointCloud = _Sphere.pointCloudXYZ();
+        pcl::PointCloud<pcl::PointXYZ>::Ptr _in_SphereCloudPtr(new pcl::PointCloud<pcl::PointXYZ>);
+        *_in_SphereCloudPtr = _in_SpherePointCloud;
+        _out_SpherePointCloud = volcart::meshing::resamplePointCloud(_in_SphereCloudPtr, CalculateRadius(_in_SphereCloudPtr);
+        _out_SphereCloudPointData = _out_SpherePointCloud.points;
 
-    float avgDistance = 0;
-    int count = 0;
+        //Load in saved test file created by resamplePointCloudExample.cpp
+        pcl::io::loadPCDFile("SphereResamplePointCloudExample.pcd", _SavedSphereCloud);
+        _SavedPointCloudData = _SavedSphereCloud.points;
 
-    //This is assuming a quadratic basis for the points
-    //For linear, multiply the avgDistance by 1.2
-    //Get the avg distance from points in the point cloud
-    for (auto a = cloud->begin(); a != cloud->end(); a++){
-        for (auto b = cloud->begin(); b != cloud->end(); b++){
-
-            float pDistance = 0;
-            if (a != b)
-                pDistance = sqrt(pow(a->x - b->x, 2) + pow(a->y - b->y, 2) + pow(a->z - b->z, 2));
-
-            count++;
-            avgDistance += pDistance;
-        }
+        std::cerr << "\nsetting up Sphere ResamplePCTest objects" << std::endl;
     }
 
-    avgDistance /= count;
+    ~SphereResamplePointCloudFixture(){ std::cerr << "\ncleaning up Sphere ResamplePCTest objects" << std::endl; }
 
-    //set search radius based on 2.5(avgDistance) and call resample()
-    radius = 2.5 * avgDistance;
+    volcart::shapes::Sphere _Sphere;
+    pcl::PointCloud<pcl::PointXYZ> _in_SpherePointCloud;
+    pcl::PointCloud<pcl::PointNormal> _out_SpherePointCloud, _SavedSphereCloud;
+    std::vector<pcl::PointNormal, Eigen::aligned_allocator<pcl::PointNormal> > _out_SphereCloudPointData, _SavedPointCloudData;
 
-    /*
-     * Now, call resample twice on the same input cloud and assign to separate PCs
-     */
+};
 
-    //call resample PC twice
-    newCloud = volcart::meshing::resamplePointCloud(cloud, radius);
-    otherCloud = volcart::meshing::resamplePointCloud(cloud, radius);
+struct ConeResamplePointCloudFixture {
 
-    //place resampled points in vectors
-    std::vector<pcl::PointNormal, Eigen::aligned_allocator<pcl::PointNormal> > newCloudData = newCloud.points;
-    std::vector<pcl::PointNormal, Eigen::aligned_allocator<pcl::PointNormal> > otherCloudData = otherCloud.points;
+    ConeResamplePointCloudFixture() {
+
+        //create a Cone Point Cloud -> convert to pointer ->   
+        //call resample() and assign results -> save point data from cloud into vector
+        _in_ConePointCloud = _Cone.pointCloudXYZ();
+        pcl::PointCloud<pcl::PointXYZ>::Ptr _in_ConeCloudPtr(new pcl::PointCloud<pcl::PointXYZ>);
+        *_in_ConeCloudPtr = _in_ConePointCloud;
+        _out_ConePointCloud = volcart::meshing::resamplePointCloud(_in_ConeCloudPtr, CalculateRadius(_in_ConeCloudPtr);
+        _out_ConeCloudPointData = _out_ConePointCloud.points;
+
+        //Load in saved test file created by resamplePointCloudExample.cpp
+        pcl::io::loadPCDFile("ConeResamplePointCloudExample.pcd", _SavedConeCloud);
+        _SavedPointCloudData = _SavedConeCloud.points;
+
+        std::cerr << "\nsetting up Cone ResamplePCTest objects" << std::endl;
+    }
+
+    ~ConeResamplePointCloudFixture(){ std::cerr << "\ncleaning up Cone ResamplePCTest objects" << std::endl; }
+
+    volcart::shapes::Cone _Cone;
+    pcl::PointCloud<pcl::PointXYZ> _in_ConePointCloud;
+    pcl::PointCloud<pcl::PointNormal> _out_ConePointCloud, _SavedConeCloud;
+    std::vector<pcl::PointNormal, Eigen::aligned_allocator<pcl::PointNormal> > _out_ConeCloudPointData, _SavedPointCloudData;
+
+};
+
+
+
+/****************************************************************************
+ * Check equivalency of Fixture-created PointClouds with a saved PointCloud *
+ ****************************************************************************/
+
+BOOST_FIXTURE_TEST_CASE(CompareFixtureAndSavedResampledPlanePointClouds, PlaneResamplePointCloudFixture){
 
     //Check that the cloud data matches for both resampled clouds
-    for (int i = 0; i < newCloudData.size(); i ++) {
+    for (int i = 0; i < _out_PlaneCloudPointData.size(); i ++) {
 
-        BOOST_CHECK_EQUAL(newCloudData[i].x, otherCloudData[i].x);
-        BOOST_CHECK_EQUAL(newCloudData[i].y, otherCloudData[i].y);
-        BOOST_CHECK_EQUAL(newCloudData[i].z, otherCloudData[i].z);
-        BOOST_CHECK_EQUAL(newCloudData[i].normal_x, otherCloudData[i].normal_x);
-        BOOST_CHECK_EQUAL(newCloudData[i].normal_y, otherCloudData[i].normal_y);
-        BOOST_CHECK_EQUAL(newCloudData[i].normal_z, otherCloudData[i].normal_z);
-
+        BOOST_CHECK_EQUAL(_out_PlaneCloudPointData[i].x, _SavedPointCloudData[i].x);
+        BOOST_CHECK_EQUAL(_out_PlaneCloudPointData[i].y, _SavedPointCloudData[i].y);
+        BOOST_CHECK_EQUAL(_out_PlaneCloudPointData[i].z, _SavedPointCloudData[i].z);
+        BOOST_CHECK_EQUAL(_out_PlaneCloudPointData[i].normal_x, _SavedPointCloudData[i].normal_x);
+        BOOST_CHECK_EQUAL(_out_PlaneCloudPointData[i].normal_y, _SavedPointCloudData[i].normal_y);
+        BOOST_CHECK_EQUAL(_out_PlaneCloudPointData[i].normal_z, _SavedPointCloudData[i].normal_z);
     }
 }
 
-/*************************************************************************
- * Check equivalency of newly-created PointCloud with a saved PointCloud *
- ************************************************************************/
-
-BOOST_FIXTURE_TEST_CASE(compareSavedResample, resampleFix){
-
-    //init PC for later resample call
-    pcl::PointCloud<pcl::PointNormal> convertedSavedCloud;
-    pcl::PointCloud<pcl::PointNormal> savedCloud;
-
-    std::cerr << "Reading in resampleExample.pcd" << std::endl;
-
-    //load in the saved PointCloud .pcd file created by resamplePointCloudExample.cpp
-    pcl::io::loadPCDFile("resampleExample.pcd", savedCloud);
-
-    //convert savedCloud to PointCloud<pcl::PointNormal>
-    //pcl::fromPCLPointCloud2(savedCloud, convertedSavedCloud);
-
-    //convert pCloud to Ptr for resample() call
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
-    *cloud = pCloud;
-
-    //Determine the ideal search radius for the resample() call
-    float avgDistance = 0;
-    int count = 0;
-
-    //This is assuming a quadratic basis for the points
-    //For linear, multiply the avgDistance by 1.2
-    //Get the avg distance from points in the point cloud
-    for (auto a = cloud->begin(); a != cloud->end(); a++){
-        for (auto b = cloud->begin(); b != cloud->end(); b++){
-
-            float pDistance = 0;
-            if (a != b)
-                pDistance = sqrt(pow(a->x - b->x, 2) + pow(a->y - b->y, 2) + pow(a->z - b->z, 2));
-
-            count++;
-            avgDistance += pDistance;
-        }
-    }
-
-    avgDistance /= count;
-
-    //set search radius based on 2.5(avgDistance) and call resample()
-    radius = 2.5 * avgDistance;
-
-    //call resample PC on the test-case-created-PointCloud
-    newCloud = volcart::meshing::resamplePointCloud(cloud, radius);
-
-
-    //place resampled points in vectors
-    std::vector<pcl::PointNormal, Eigen::aligned_allocator<pcl::PointNormal> > newCloudData = newCloud.points;
-    std::vector<pcl::PointNormal, Eigen::aligned_allocator<pcl::PointNormal> > savedCloudData = savedCloud.points;
+BOOST_FIXTURE_TEST_CASE(CompareFixtureAndSavedResampledCubePointClouds, CubeResamplePointCloudFixture){
 
     //Check that the cloud data matches for both resampled clouds
-    for (int i = 0; i < newCloudData.size(); i ++) {
+    for (int i = 0; i < _out_CubeCloudPointData.size(); i ++) {
 
-        BOOST_CHECK_EQUAL(newCloudData[i].x, savedCloudData[i].x);
-        BOOST_CHECK_EQUAL(newCloudData[i].y, savedCloudData[i].y);
-        BOOST_CHECK_EQUAL(newCloudData[i].z, savedCloudData[i].z);
-        BOOST_CHECK_EQUAL(newCloudData[i].normal_x, savedCloudData[i].normal_x);
-        BOOST_CHECK_EQUAL(newCloudData[i].normal_y, savedCloudData[i].normal_y);
-        BOOST_CHECK_EQUAL(newCloudData[i].normal_z, savedCloudData[i].normal_z);
+        BOOST_CHECK_EQUAL(_out_CubeCloudPointData[i].x, _SavedPointCloudData[i].x);
+        BOOST_CHECK_EQUAL(_out_CubeCloudPointData[i].y, _SavedPointCloudData[i].y);
+        BOOST_CHECK_EQUAL(_out_CubeCloudPointData[i].z, _SavedPointCloudData[i].z);
+        BOOST_CHECK_EQUAL(_out_CubeCloudPointData[i].normal_x, _SavedPointCloudData[i].normal_x);
+        BOOST_CHECK_EQUAL(_out_CubeCloudPointData[i].normal_y, _SavedPointCloudData[i].normal_y);
+        BOOST_CHECK_EQUAL(_out_CubeCloudPointData[i].normal_z, _SavedPointCloudData[i].normal_z);
     }
 }
 
-/******************************************************
- * Check core properties of original and resampled PC *
- ******************************************************/
+BOOST_FIXTURE_TEST_CASE(CompareFixtureAndSavedResampledArchPointClouds, ArchResamplePointCloudFixture){
 
-BOOST_FIXTURE_TEST_CASE(properties, resampleFix){
+    //Check that the cloud data matches for both resampled clouds
+    for (int i = 0; i < _out_ArchCloudPointData.size(); i ++) {
 
-    std::cerr << "Testing resampled properties..." << std::endl;
-    //convert pCloud to Ptr for resample() call
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
-    *cloud = pCloud;
+        BOOST_CHECK_EQUAL(_out_ArchCloudPointData[i].x, _SavedPointCloudData[i].x);
+        BOOST_CHECK_EQUAL(_out_ArchCloudPointData[i].y, _SavedPointCloudData[i].y);
+        BOOST_CHECK_EQUAL(_out_ArchCloudPointData[i].z, _SavedPointCloudData[i].z);
+        BOOST_CHECK_EQUAL(_out_ArchCloudPointData[i].normal_x, _SavedPointCloudData[i].normal_x);
+        BOOST_CHECK_EQUAL(_out_ArchCloudPointData[i].normal_y, _SavedPointCloudData[i].normal_y);
+        BOOST_CHECK_EQUAL(_out_ArchCloudPointData[i].normal_z, _SavedPointCloudData[i].normal_z);
+    }
+}
+
+BOOST_FIXTURE_TEST_CASE(CompareFixtureAndSavedResampledSpherePointClouds, SphereResamplePointCloudFixture){
+
+    //Check that the cloud data matches for both resampled clouds
+    for (int i = 0; i < _out_SphereCloudPointData.size(); i ++) {
+
+        BOOST_CHECK_EQUAL(_out_SphereCloudPointData[i].x, _SavedPointCloudData[i].x);
+        BOOST_CHECK_EQUAL(_out_SphereCloudPointData[i].y, _SavedPointCloudData[i].y);
+        BOOST_CHECK_EQUAL(_out_SphereCloudPointData[i].z, _SavedPointCloudData[i].z);
+        BOOST_CHECK_EQUAL(_out_SphereCloudPointData[i].normal_x, _SavedPointCloudData[i].normal_x);
+        BOOST_CHECK_EQUAL(_out_SphereCloudPointData[i].normal_y, _SavedPointCloudData[i].normal_y);
+        BOOST_CHECK_EQUAL(_out_SphereCloudPointData[i].normal_z, _SavedPointCloudData[i].normal_z);
+    }
+}
+
+BOOST_FIXTURE_TEST_CASE(CompareFixtureAndSavedResampledConePointClouds, ConeResamplePointCloudFixture){
+
+    //Check that the cloud data matches for both resampled clouds
+    for (int i = 0; i < _out_ConeCloudPointData.size(); i ++) {
+
+        BOOST_CHECK_EQUAL(_out_ConeCloudPointData[i].x, _SavedPointCloudData[i].x);
+        BOOST_CHECK_EQUAL(_out_ConeCloudPointData[i].y, _SavedPointCloudData[i].y);
+        BOOST_CHECK_EQUAL(_out_ConeCloudPointData[i].z, _SavedPointCloudData[i].z);
+        BOOST_CHECK_EQUAL(_out_ConeCloudPointData[i].normal_x, _SavedPointCloudData[i].normal_x);
+        BOOST_CHECK_EQUAL(_out_ConeCloudPointData[i].normal_y, _SavedPointCloudData[i].normal_y);
+        BOOST_CHECK_EQUAL(_out_ConeCloudPointData[i].normal_z, _SavedPointCloudData[i].normal_z);
+    }
+}
+
+
+
+
+
+double CalculateRadius(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud){
 
     float avgDistance = 0;
     int count = 0;
 
-    //This is assuming a quadratic basis for the points
-    //For linear, multiply the avgDistance by 1.2
-    //Get the avg distance from points in the point cloud
     for (auto a = cloud->begin(); a != cloud->end(); a++){
         for (auto b = cloud->begin(); b != cloud->end(); b++){
 
@@ -302,57 +284,5 @@ BOOST_FIXTURE_TEST_CASE(properties, resampleFix){
 
     avgDistance /= count;
 
-    //set search radius based on 2.5(avgDistance) and call resample()
-    radius = 2.5 * avgDistance;
-    std::cerr << "Using search radius of " << radius << std::endl;
-    newCloud = volcart::meshing::resamplePointCloud(cloud, radius);
-
-    //if we use the above procedure to set the search radius, it seems the properties in the resampled PC
-    //match those of the original. Previously, defining a value of radius and running resulted in failed tests...
-    //mainly width() and size().
-
-    //check that pc props match
-    BOOST_CHECK_EQUAL(newCloud.height, cloud->height);
-    BOOST_CHECK_EQUAL(newCloud.width, cloud->width);
-    BOOST_CHECK_EQUAL(newCloud.is_dense, cloud->is_dense);
-    BOOST_CHECK_EQUAL(newCloud.size(), cloud->size());
-
-}
-
-/*******************************************************************
- * Check magnitude of normals in resampled PC based on original PC *
- *******************************************************************/
-BOOST_FIXTURE_TEST_CASE(magnitude, resampleFix){
-
-    std::cerr << "Testing resampled normal magnitudes..." << std::endl;
-    std::cerr << "Normal magnitude tested against 1.0 with tolerance of 0.0000001" << std::endl;
-
-    //convert pCloud to Ptr for resample() call
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
-    *cloud = pCloud;
-
-    //set search radius and call resample()
-    radius = 2.0;
-    newCloud = volcart::meshing::resamplePointCloud(cloud, radius);
-
-    //normals should be unit normals, so we're testing to confirm this below
-    //for each of the normals created by resampling.
-
-    float magnitude;
-    int pctr = 0;
-
-    //loop through the newCloud and check normal exists for each point
-    for (auto n = newCloud.points.begin(); n != newCloud.points.end(); n++){
-
-        magnitude = sqrt( pow((n->normal_x),2) + pow((n->normal_y),2)  + pow((n->normal_z),2) );
-
-       // std::cerr << "Normal " << pctr <<  *n << ": " << magnitude << std::endl;
-
-        //checks magnitude with tolerance of 0.0000001 against 1.0
-        BOOST_CHECK_CLOSE(magnitude, 1.0, 0.0000001);
-
-        pctr++;
-
-    }
-
+    return 2.5 * avgDistance;
 }
