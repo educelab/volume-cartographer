@@ -22,7 +22,7 @@ include_directories(${TESTING_INCLUDE_DIR})
 #-----------------------#
 
 # Copy the .ply file to the current bin
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/common/output.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/common/OBJWriterPlaneData.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
 add_executable(vc_test_OBJExporter common/ObjWriterTest.cpp parsingHelpers.cpp)
 target_link_libraries(vc_test_OBJExporter ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME OBJExporter WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_OBJExporter )

@@ -10,6 +10,12 @@ add_executable(vc_objExporterExample objExporterExample.cpp )
 target_link_libraries(vc_objExporterExample ${VC_LIBS} ${VC_REQ_LIBS})
 
 ############
+#  common  #
+############
+add_executable(vc_objWriterExample ObjWriterExample.cpp)
+target_link_libraries(vc_objWriterExample ${VC_LIBS} ${VC_REQ_LIBS})
+
+############
 #  meshing #
 ############
 

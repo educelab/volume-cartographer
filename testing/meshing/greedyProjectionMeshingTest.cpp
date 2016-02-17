@@ -8,8 +8,6 @@
 #define BOOST_TEST_MODULE greedyProjectionMeshing
 
 #include <boost/test/unit_test.hpp>
-
-#include <boost/test/unit_test_log.hpp>
 #include "vc_defines.h"
 #include "shapes.h"
 #include "greedyProjectionMeshing.h"
@@ -89,7 +87,6 @@ struct PlaneGreedyProjectionFixture {
     volcart::shapes::Plane _Plane;
     pcl::PointCloud<pcl::PointNormal> _in_PlanePointNormalCloud;
     pcl::PolygonMesh _out_FixturePlanePolygonMesh, _in_SavedPlanePolygonMesh;
-    
     // point clouds to be filled for comparison in test case
     pcl::PointCloud<pcl::PointNormal> _out_FixturePlanePointCloud, _out_SavedPlanePointCloud;
         
@@ -252,8 +249,8 @@ BOOST_FIXTURE_TEST_CASE(CompareSavedAndFixtureArchGreedyProjections, ArchGreedyP
     for (int p = 0; p < _out_FixtureArchPointCloud.points.size(); p++) {
         for (int d = 0; d < 3; d++ ) {
 
-            BOOST_CHECK_EQUAL (_out_FixtureArchPointCloud.points[p].data[d],
-                                                                           _out_SavedArchPointCloud.points[p].data[d]);
+            BOOST_CHECK_CLOSE_FRACTION (_out_FixtureArchPointCloud.points[p].data[d],
+                                                                  _out_SavedArchPointCloud.points[p].data[d], 0.0001);
         }
     }
 
@@ -277,8 +274,8 @@ BOOST_FIXTURE_TEST_CASE(CompareSavedAndFixtureSphereGreedyProjections, SphereGre
     for (int p = 0; p < _out_FixtureSpherePointCloud.points.size(); p++) {
         for (int d = 0; d < 3; d++ ) {
 
-            BOOST_CHECK_EQUAL (_out_FixtureSpherePointCloud.points[p].data[d],
-                                                                        _out_SavedSpherePointCloud.points[p].data[d]);
+            BOOST_CHECK_CLOSE_FRACTION (_out_FixtureSpherePointCloud.points[p].data[d],
+                                                                 _out_SavedSpherePointCloud.points[p].data[d], 0.0001);
         }
     }
 
@@ -302,8 +299,8 @@ BOOST_FIXTURE_TEST_CASE(CompareSavedAndFixtureConeGreedyProjections, ConeGreedyP
     for (int p = 0; p < _out_FixtureConePointCloud.points.size(); p++) {
         for (int d = 0; d < 3; d++ ) {
 
-            BOOST_CHECK_EQUAL (_out_FixtureConePointCloud.points[p].data[d],
-                                                                          _out_SavedConePointCloud.points[p].data[d]);
+            BOOST_CHECK_CLOSE_FRACTION (_out_FixtureConePointCloud.points[p].data[d],
+                                                                  _out_SavedConePointCloud.points[p].data[d], 0.0001);
         }
     }
 

@@ -63,99 +63,94 @@
  *
  */
 
-struct meshFix {
+struct WriteMeshUsingOBJWriterFixture {
 
-    meshFix() {
+    WriteMeshUsingOBJWriterFixture() {
 
         //create the mesh for all the test cases to use
-        _mesh = mesh.itkMesh();
+        _in_PlaneITKMesh = _Plane.itkMesh();
 
-        BOOST_TEST_MESSAGE("setting up mesh");
+        //load in written data
+        volcart::testing::ParsingHelpers::parseObjFile("OBJWriterPlaneData.obj", _SavedPlanePoints, _SavedPlaneCells);
+
+        std::cerr << "Creating a Plane itk mesh object for writing" << std::endl;
     }
 
-    ~meshFix(){ BOOST_TEST_MESSAGE("cleaning up meshFix"); }
+    ~WriteMeshUsingOBJWriterFixture(){ std::cerr << "Cleaning up test objects" << std::endl; }
 
-    //file path and objwriter to be used in cases
-    volcart::io::objWriter mesh_writer;
-    boost::filesystem::path objPath;
-    VC_MeshType::Pointer _mesh ;
-    volcart::shapes::Plane mesh;
+    volcart::shapes::Plane _Plane;
+    VC_MeshType::Pointer _in_PlaneITKMesh ;
+    std::vector<VC_Vertex>_SavedPlanePoints;
+    std::vector<VC_Cell> _SavedPlaneCells;
 };
 
+BOOST_FIXTURE_TEST_CASE(CompareWrittenMeshDataWithFixtureCreatedMesh, WriteMeshUsingOBJWriterFixture){
 
-// Test for checking successful write
-BOOST_FIXTURE_TEST_CASE(writeTest, meshFix) {
-
-        std::cout << "Writing mesh..." << std::endl;
-
-        mesh_writer.setPath("nothing");
-        //mesh_writer.setUVMap( uvMap );
-        // mesh_writer.setTexture( uvImg );
-
-        objPath = mesh_writer.getPath();
-        objPath = boost::filesystem::absolute(objPath);
-
-
-        // mesh_writer.write() runs validate() as well, but this lets us handle a mesh that can't be validated.
-        if (mesh_writer.validate())
-            mesh_writer.write();
-        else {
-            mesh_writer.setPath("output.obj");
-            mesh_writer.setMesh(_mesh);
-            mesh_writer.write();
-        }
-
-        //check the file path from the mesh_writer.write() call above
-        //compare() returns 0 only if paths are same value lexicographically-speaking
-        //checking "output.obj" here because the mesh_writer shouldn't validate in the current case
-        BOOST_CHECK_EQUAL(mesh_writer.getPath().compare("output.obj"), 0);
-
-}
-
-
-BOOST_FIXTURE_TEST_CASE(compareElements, meshFix){
-
-    //store mesh data created by fixture
-    std::vector<VC_Vertex> testPoints = mesh.getPoints();
-    std::vector<VC_Cell> testCells = mesh.getCells();
-
-    //   Declare vectors to hold mesh points and cells from saved obj file
-    std::vector<VC_Vertex> savedPoints;
-    std::vector<VC_Cell> savedCells;
-
-    volcart::testing::ParsingHelpers::parseObjFile("output.obj", savedPoints, savedCells);
-
-
+    //compare number of points and cells for equality
+    BOOST_CHECK_EQUAL(_in_PlaneITKMesh->GetNumberOfPoints(), _SavedPlanePoints.size());
+    BOOST_CHECK_EQUAL(_in_PlaneITKMesh->GetNumberOfCells(), _SavedPlaneCells.size());
+    
     // Now to test the objPoints created during fixture init vs points read in from file.
-    for (size_t p = 0; p < testPoints.size(); p++){
-
-        BOOST_TEST_MESSAGE("Checking Point " << p);
+    for (size_t pnt = 0; pnt < _SavedPlanePoints.size(); pnt++) {
 
         //checking the x,y,z,nx,ny,nz components
 
-        BOOST_CHECK_EQUAL(testPoints[p].x, savedPoints[p].x);
-        BOOST_CHECK_EQUAL(testPoints[p].y, savedPoints[p].y);
-        BOOST_CHECK_EQUAL(testPoints[p].z, savedPoints[p].z);
-
-        BOOST_CHECK_EQUAL(testPoints[p].nx, savedPoints[p].nx);
-        BOOST_CHECK_EQUAL(testPoints[p].ny, savedPoints[p].ny);
-        BOOST_CHECK_EQUAL(testPoints[p].nz, savedPoints[p].nz);
-
+        BOOST_CHECK_EQUAL(_in_PlaneITKMesh->GetPoint(pnt)[0], _SavedPlanePoints[pnt].x);
+        BOOST_CHECK_EQUAL(_in_PlaneITKMesh->GetPoint(pnt)[1], _SavedPlanePoints[pnt].y);
+        BOOST_CHECK_EQUAL(_in_PlaneITKMesh->GetPoint(pnt)[2], _SavedPlanePoints[pnt].z);
     }
 
-    // Now to test the objPoints created during fixture init vs points read in from file.
-    for (size_t c = 0; c < testCells.size(); c++){
+    // Normals //
+    int p =0;
+    VC_PointsInMeshIterator point = _in_PlaneITKMesh->GetPoints()->Begin();
+    for ( ; point != _in_PlaneITKMesh->GetPoints()->End(); ++point ) {
 
-        BOOST_TEST_MESSAGE("Checking Cell: " << c);
+        VC_PixelType _in_PlaneITKMeshNormal;
+        _in_PlaneITKMesh->GetPointData(point.Index(), &_in_PlaneITKMeshNormal);
 
-        //checking the v1,v2,v3 components
-        //note: parseObjFile() accounts for the 'one off' of the vertex values in the .obj file
+        //Now compare the normals for the two meshes
+        BOOST_CHECK_EQUAL(_in_PlaneITKMeshNormal[0], _SavedPlanePoints[p].nx);
+        BOOST_CHECK_EQUAL(_in_PlaneITKMeshNormal[1], _SavedPlanePoints[p].ny);
+        BOOST_CHECK_EQUAL(_in_PlaneITKMeshNormal[2], _SavedPlanePoints[p].nz);
 
-        BOOST_CHECK_EQUAL(testCells[c].v1, savedCells[c].v1);
-        BOOST_CHECK_EQUAL(testCells[c].v2, savedCells[c].v2);
-        BOOST_CHECK_EQUAL(testCells[c].v3, savedCells[c].v3);
+        ++p;
+    }
 
+    //Cells (faces)
+
+    // Initialize Cell Iterators
+    VC_CellIterator _in_PlaneITKMeshCell = _in_PlaneITKMesh->GetCells()->Begin();
+
+    int c = 0;
+
+    while (_in_PlaneITKMeshCell != _in_PlaneITKMesh->GetCells()->End()) {
+
+        //Initialize Iterators for Points in a Cell
+        VC_PointsInCellIterator _in_PlaneITKMeshPointId = _in_PlaneITKMeshCell.Value()->PointIdsBegin();
+
+        int counter = 0;
+        //while we have points in the cell
+        while ( _in_PlaneITKMeshPointId != _in_PlaneITKMeshCell.Value()->PointIdsEnd() ) {
+
+            //Now to check the points within the cells
+            if (counter == 0)
+                BOOST_CHECK_EQUAL(*_in_PlaneITKMeshPointId, _SavedPlaneCells[c].v1);
+            else if(counter == 1)
+                BOOST_CHECK_EQUAL(*_in_PlaneITKMeshPointId, _SavedPlaneCells[c].v2);
+            else if (counter == 2)
+                BOOST_CHECK_EQUAL(*_in_PlaneITKMeshPointId, _SavedPlaneCells[c].v3);
+
+            //increment points
+            _in_PlaneITKMeshPointId++;
+            counter++;
+
+        }
+
+        //increment cells
+        ++_in_PlaneITKMeshCell;
+        ++c;
     }
 
 }
+
 
