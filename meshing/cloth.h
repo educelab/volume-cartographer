@@ -27,52 +27,52 @@
 #include <vtkQuadricDecimation.h>
 
 namespace volcart {
-	namespace meshing {
-		class cloth {
-		public:
-			struct NodeTarget {
-				btVector3 t_pos;
-				btScalar  t_stepsize;
-			};
+    namespace meshing {
+        class cloth {
+        public:
+            struct NodeTarget {
+                btVector3 t_pos;
+                btScalar  t_stepsize;
+            };
 
-			cloth ( VC_MeshType::Pointer inputMesh,
-							VC_MeshType::Pointer decimated,
-							int width,
-							int height,
-							int required_iterations);
-			
-			volcart::UVMap _returnUVMap();
-			VC_MeshType::Pointer _returnMesh() { return _decimated; };
+            cloth ( VC_MeshType::Pointer inputMesh,
+                    VC_MeshType::Pointer decimated,
+                    int width,
+                    int height,
+                    int required_iterations);
 
-		private:
-			int _process();
-			btVector3 _btAverageNormal( btSoftBody* body );
-			btScalar _btAverageVelocity( btSoftBody* body );
-			double _btSurfaceArea( btSoftBody* body );
-			static void _planarizeCornersPreTickCallback(btDynamicsWorld *world, btScalar timeStep);
-			static void _emptyPreTickCallback(btDynamicsWorld *world, btScalar timeStep);
-			void _expandCorners(float magnitude);
-			void _dumpState( VC_MeshType::Pointer toUpdate, btSoftBody* body, std::string suffix = "" );
-			void _setIterations(int iterations) { _iterations = iterations; };
+            volcart::UVMap _returnUVMap();
+            VC_MeshType::Pointer _returnMesh() { return _decimated; };
 
-			void _setSoftBodyFriction( btSoftBody* body ) { body->m_cfg.kDF = 0.01; }; // Dynamic friction coefficient (0-1] Default: 0.2}
+        private:
+            int _process();
+            btVector3 _btAverageNormal( btSoftBody* body );
+            btScalar _btAverageVelocity( btSoftBody* body );
+            double _btSurfaceArea( btSoftBody* body );
+            static void _planarizeCornersPreTickCallback(btDynamicsWorld *world, btScalar timeStep);
+            static void _emptyPreTickCallback(btDynamicsWorld *world, btScalar timeStep);
+            void _expandCorners(float magnitude);
+            void _dumpState( VC_MeshType::Pointer toUpdate, btSoftBody* body, std::string suffix = "" );
+            void _setIterations(int iterations) { _iterations = iterations; };
 
-			// variables
-			static std::vector< btSoftBody::Node* > _pinnedPoints;
-			static std::vector< NodeTarget > _targetPoints;
+            void _setSoftBodyFriction( btSoftBody* body ) { body->m_cfg.kDF = 0.01; }; // Dynamic friction coefficient (0-1] Default: 0.2}
 
-			VC_MeshType::Pointer _input;
-			VC_MeshType::Pointer _decimated;
-			btSoftBody* _psb;
-			int _iterations;
-			int _width;
-			int _height;
+            // variables
+            static std::vector< btSoftBody::Node* > _pinnedPoints;
+            static std::vector< NodeTarget > _targetPoints;
 
-			volcart::UVMap _uvMap;
+            VC_MeshType::Pointer _input;
+            VC_MeshType::Pointer _decimated;
+            btSoftBody* _psb;
+            int _iterations;
+            int _width;
+            int _height;
 
-			btVector3 _middle;
-		};
-	}
+            volcart::UVMap _uvMap;
+
+            btVector3 _middle;
+        };
+    }
 
 }
 
