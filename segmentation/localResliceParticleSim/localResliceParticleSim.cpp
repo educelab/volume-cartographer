@@ -19,13 +19,22 @@ pcl::PointCloud<pcl::PointXYZRGB> exportAsPCD(const vec<vec<Voxel>>& points);
 
 vec<double> squareDiff(const vec<Voxel>& src, const vec<Voxel>& target);
 
-double curveEnergy(const vec<Voxel>& src, const vec<Voxel>& target);
+double curveEnergy(const FittedCurve& src,
+                   const FittedCurve& target,
+                   const double alpha,
+                   const double beta);
 
 pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
-    const vec<Voxel>& initPath, const double resamplePerc,
-    const int32_t startIndex, const int32_t endIndex, const int32_t numIters,
-    const int32_t keepNumMaxima, const int32_t step, const bool dumpVis,
-    const bool visualize, const int32_t visIndex)
+    const vec<Voxel>& initPath,
+    const double resamplePerc,
+    const int32_t startIndex,
+    const int32_t endIndex,
+    const int32_t numIters,
+    const int32_t keepNumMaxima,
+    const int32_t step,
+    const bool dumpVis,
+    const bool visualize,
+    const int32_t visIndex)
 {
     volcart::Volume vol = pkg_.volume();
     std::cout << "init size: " << initPath.size() << std::endl;
@@ -40,7 +49,7 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
     vec<vec<Voxel>> points;
     points.reserve((endIndex - startIndex + 1) / step);
 
-    // Resample incoming curve
+    // Resample incoming currentCurve
     auto currentVs = FittedCurve(initPath, startIndex).resample(resamplePerc);
     std::cout << "resampled size: " << currentVs.size() << std::endl;
 
@@ -60,19 +69,20 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
         }
 
         // 0. Resample current positions so they are evenly spaced
-        FittedCurve curve{currentVs, zIndex};
-        currentVs = curve.resample(seedPointsseedPointsseedPoints);
+        FittedCurve currentCurve{currentVs, zIndex};
+        currentVs = currentCurve.seedPoints();
 
         // 1. Generate all candidate positions for all particles
         vec<std::deque<Voxel>> nextPositions;
-        nextPositions.reserve(curve.size());
+        nextPositions.reserve(currentCurve.size());
         // XXX DEBUG
         vec<IntensityMap> maps;
         // XXX DEBUG
-        for (int32_t i = 0; i < curve.size(); ++i) {
+        for (int32_t i = 0; i < currentCurve.size(); ++i) {
             // Estimate normal and reslice along it
-            const cv::Vec3d normal = estimateNormalAtIndex(curve, i);
-            const auto reslice = vol.reslice(curve(i), normal, {0, 0, 1});
+            const cv::Vec3d normal = estimateNormalAtIndex(currentCurve, i);
+            const auto reslice =
+                vol.reslice(currentCurve(i), normal, {0, 0, 1});
             const cv::Mat resliceIntensities = reslice.sliceData();
 
             // Make the intensity map `step` layers down from current position
@@ -130,6 +140,7 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
             nextVs.push_back(d.front());
             d.pop_front();
         }
+        FittedCurve nextCurve{nextVs, zIndex + 1};
         for (auto&& map : maps) {
             map.setFinalChosenMaximaIndex(0);
         }
@@ -145,7 +156,8 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
             // Find index of maximum difference between positions
             const vec<double> diff = squareDiff(nextVs, currentVs);
             auto pairs = zip(indxs, diff);
-            std::sort(begin(pairs), end(pairs),
+            std::sort(begin(pairs),
+                      end(pairs),
                       [](const std::pair<int32_t, double> p1,
                          const std::pair<int32_t, double> p2) {
                           return p1.second < p2.second;
@@ -153,8 +165,8 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
 
             // Skip any particles that we've run out of candidate positions for
             while (true) {
-                auto it = std::find(begin(ignoreList), end(ignoreList),
-                                    pairs.back().first);
+                auto it = std::find(
+                    begin(ignoreList), end(ignoreList), pairs.back().first);
                 if (it == end(ignoreList)) {
                     break;
                 } else {
@@ -184,14 +196,16 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
 
             // Evaluate new combination and compare to best so far, if better
             // setting the new positions
-            if (curveEnergy(combVs, currentVs) <
-                curveEnergy(nextVs, currentVs)) {
+            FittedCurve combCurve{combVs, zIndex + 1};
+            if (curveEnergy(combCurve, currentCurve, 0, 0) <
+                curveEnergy(nextCurve, currentCurve, 0, 0)) {
                 nextVs = combVs;
+                nextCurve = combCurve;
             }
             ++i;
         }
-        std::cout << "final curve energy: " << curveEnergy(nextVs, currentVs)
-                  << std::endl;
+        std::cout << "final currentCurve energy: "
+                  << curveEnergy(nextCurve, currentCurve, 0, 0) << std::endl;
 
         // Dump the intensity maps
         if (dumpVis) {
@@ -225,9 +239,9 @@ vec<std::pair<T1, T2>> zip(vec<T1> v1, vec<T2> v2)
 }
 
 cv::Vec3d LocalResliceSegmentation::estimateNormalAtIndex(
-    const FittedCurve& curve, const int32_t index)
+    const FittedCurve& currentCurve, const int32_t index)
 {
-    const Voxel currentVoxel = curve(index);
+    const Voxel currentVoxel = currentCurve(index);
     const auto eigenPairs = pkg_.volume().eigenPairsAt(
         currentVoxel(0), currentVoxel(1), currentVoxel(2), 3);
     const double exp0 = std::log10(eigenPairs[0].first);
@@ -235,8 +249,9 @@ cv::Vec3d LocalResliceSegmentation::estimateNormalAtIndex(
     if (std::abs(exp0 - exp1) > 2.0) {
         return eigenPairs[0].second;
     }
-    const auto tangent = curve.derivAt(index, 3);
-    return tangent.cross(cv::Vec3d{0, 0, 1});
+    const auto tan2d = currentCurve.derivAt(index, 3);
+    const Voxel tan3d{tan2d(0), tan2d(1), currentVoxel(2)};
+    return tan3d.cross(cv::Vec3d{0, 0, 1});
 }
 
 pcl::PointCloud<pcl::PointXYZRGB> exportAsPCD(const vec<vec<Voxel>>& points)
@@ -282,26 +297,51 @@ vec<double> squareDiff(const vec<Voxel>& src, const vec<Voxel>& target)
     return res;
 }
 
-double curveEnergy(const vec<Voxel>& src, const vec<Voxel>& target)
+double curveEnergy(const FittedCurve& current,
+                   const FittedCurve& next,
+                   const double alpha,
+                   const double beta)
 {
-    assert(src.size() == target.size() &&
-           "src and target must be the same size");
-    double sum = 0;
-    for (const auto p : zip(src, target)) {
-        Voxel s, t;
+    assert(current.size() == next.size() &&
+           "current and next must be the same size");
+
+    // Global energy - how much does the next currentCurve look like the
+    // previous
+    // currentCurve?
+    double globalEnergy = 0;
+    for (const auto p : zip(current.points(), next.points())) {
+        Pixel s, t;
         std::tie(s, t) = p;
-        sum += (s(0) - t(0)) * (s(0) - t(0)) + (s(1) - t(1)) * (s(1) - t(1));
+        globalEnergy +=
+            (s(0) - t(0)) * (s(0) - t(0)) + (s(1) - t(1)) * (s(1) - t(1));
     }
-    return std::sqrt(sum);
+    globalEnergy = std::sqrt(globalEnergy);
+
+    // Internal energy - how much did the curvature change between the two
+    // curves?
+    double internalEnergy = 0;
+    auto kCurrent = current.curvature();
+    auto kNext = next.curvature();
+    std::cout << "current k:" << std::endl << kCurrent << std::endl;
+    std::cout << "next k:" << std::endl << kNext << std::endl;
+    std::exit(1);
+    for (int32_t i = 0; i < current.size(); ++i) {
+        internalEnergy += std::fabs(kCurrent[i] - kNext[i]);
+    }
+    internalEnergy /= current.size();
+    std::cout << "global E:   " << globalEnergy << std::endl;
+    std::cout << "internal E: " << internalEnergy << std::endl;
+    return globalEnergy;
 }
 
 cv::Mat LocalResliceSegmentation::drawParticlesOnSlice(
-    const vec<Voxel>& vs, const int32_t sliceIndex,
+    const vec<Voxel>& vs,
+    const int32_t sliceIndex,
     const int32_t particleIndex) const
 {
     auto pkgSlice = pkg_.volume().getSliceDataCopy(sliceIndex);
-    pkgSlice.convertTo(pkgSlice, CV_8UC3,
-                       1.0 / std::numeric_limits<uint8_t>::max());
+    pkgSlice.convertTo(
+        pkgSlice, CV_8UC3, 1.0 / std::numeric_limits<uint8_t>::max());
     cv::cvtColor(pkgSlice, pkgSlice, CV_GRAY2BGR);
 
     // draw circles on the pkgSlice window for each point
@@ -310,11 +350,11 @@ cv::Mat LocalResliceSegmentation::drawParticlesOnSlice(
         cv::circle(pkgSlice, real, 1, BGR_GREEN, -1);
     }
     const Voxel particle = vs[particleIndex];
-    cv::circle(pkgSlice, {int32_t(particle(0)), int32_t(particle(1))}, 1,
-               BGR_RED, -1);
+    cv::circle(
+        pkgSlice, {int32_t(particle(0)), int32_t(particle(1))}, 1, BGR_RED, -1);
 
     /*
-    // Superimpose interpolated curve on window
+    // Superimpose interpolated currentCurve on window
     if (showSpline) {
         const int32_t n = 50;
         for (double sum = 0; sum <= 1; sum += 1.0 / (n - 1)) {
