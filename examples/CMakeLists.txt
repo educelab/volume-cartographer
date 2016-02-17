@@ -40,7 +40,6 @@ target_link_libraries(vc_structureTensorClient ${VC_LIBS} ${VC_REQ_LIBS})
 find_package(HDF5 1.8.15 EXACT)
 if(HDF5_FOUND)
     include_directories(${HDF5_INCLUDE_DIRS})
-
     add_executable(vc_makeNeuralNetTrainingData MakeNeuralNetTrainingData.cpp)
     target_link_libraries(vc_makeNeuralNetTrainingData ${HDF5_LIBRARIES} ${VC_LIBS} ${VC_REQ_LIBS})
 endif(HDF5_FOUND)

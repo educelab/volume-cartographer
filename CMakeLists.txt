@@ -32,7 +32,7 @@ find_package(Bullet)
 
 include(${ITK_USE_FILE})
 include(${VTK_USE_FILE})
-#add_definitions(${QT_DEFINITIONS})
+add_definitions(${QT_DEFINITIONS})
 
 include_directories(${Boost_INCLUDE_DIR} ${PCL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} ${ACVD_INCLUDE_DIRS} ${BULLET_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS} ${Boost_LIBRARY_DIRS})
