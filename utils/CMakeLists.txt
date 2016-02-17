@@ -10,7 +10,7 @@ add_executable(vc_invertcloud invertCloud.cpp)
 target_link_libraries(vc_txt2pcd ${PCL_LIBRARIES})
 target_link_libraries(vc_addScale ${VC_LIBS} ${VC_REQ_LIBS})
 target_link_libraries(vc_zxy2xyz ${PCL_LIBRARIES})
-target_link_libraries(vc_area ${VC_LIBS} ${VC_REQ_LIBS})
+target_link_libraries(vc_area ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
 target_link_libraries(vc_splitcloud ${PCL_LIBRARIES} ${Boost_LIBRARIES})
 target_link_libraries(vc_invertcloud ${VC_LIBS} ${VC_REQ_LIBS})
 

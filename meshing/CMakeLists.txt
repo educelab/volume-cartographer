@@ -6,8 +6,7 @@ set(MESHING_INCLUDE_DIR ${MESHING_INCLUDE_DIR} PARENT_SCOPE)
 if(TARGET vc_meshing)
 message("meshing is already defined")
 else()
-add_library(vc_meshing STATIC
-                    ACVD.h ACVD.cpp
+set(meshing_SOURCES ACVD.h ACVD.cpp
                     orderedPCDMesher.h orderedPCDMesher.cpp
                     resamplePointCloud.h resamplePointCloud.cpp
                     greedyProjectionMeshing.h greedyProjectionMeshing.cpp
@@ -16,6 +15,11 @@ add_library(vc_meshing STATIC
                     rayTrace.h rayTrace.cpp
                     scaleMesh.h scaleMesh.cpp
                     smoothNormals.h smoothNormals.cpp
-                    itk2bullet.h itk2bullet.cpp
                     deepCopy.cpp deepCopy.h)
+
+if(BULLET_FOUND)
+    set(meshing_SOURCES ${meshing_SOURCES} itk2bullet.h itk2bullet.cpp)
+endif(BULLET_FOUND)
+
+add_library(vc_meshing STATIC ${meshing_SOURCES})
 endif()

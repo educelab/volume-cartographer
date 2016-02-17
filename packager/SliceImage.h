@@ -2,8 +2,8 @@
 // Created by Seth Parker on 7/31/15.
 //
 
-#ifndef VC_SLICE_H
-#define VC_SLICE_H
+#ifndef VC_SLICEIMAGE_H
+#define VC_SLICEIMAGE_H
 
 #include <iostream>
 
@@ -13,11 +13,11 @@
 
 namespace volcart {
 
-    class Slice {
+    class SliceImage {
     public:
 
-        bool operator==(const Slice& b) const;
-        bool operator!=(const Slice& b) const { return !operator==(b); }
+        bool operator==(const SliceImage & b) const;
+        bool operator!=(const SliceImage & b) const { return !operator==(b); }
 
         bool analyze();
         cv::Mat conformedImage();
@@ -40,11 +40,11 @@ namespace volcart {
 
 // Compare slices by their filepaths for sorting. Lexicographical comparison, but doesn't
 // handle non-padded numbers (e.g. file8, file9, file10, file11)
-inline bool SlicePathLessThan( const volcart::Slice& a, const volcart::Slice& b ) {
+inline bool SlicePathLessThan(const volcart::SliceImage & a, const volcart::SliceImage & b ) {
     std::string a_filename = boost::to_lower_copy<std::string>(a.path.filename().native());
     std::string b_filename = boost::to_lower_copy<std::string>(b.path.filename().native());
     return a_filename < b_filename;
 };
 
 
-#endif //VC_SLICE_H
+#endif //VC_SLICEIMAGE_H

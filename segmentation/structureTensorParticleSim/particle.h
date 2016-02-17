@@ -20,7 +20,7 @@ class Particle {
 
  private:
   cv::Vec3f _position;
-  bool _is_stopped;
+  bool _isStopped;
 };
 
 #endif

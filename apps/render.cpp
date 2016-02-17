@@ -107,7 +107,7 @@ int main(int argc, char* argv[])
         std::cerr << "ERROR: Volume package is version " << vpkg.getVersion() << " but this program requires a version >= 2.0."  << std::endl;
         return EXIT_FAILURE;
     }
-    vpkg.setCacheMemory(systemMemorySize());
+    vpkg.volume().setCacheMemoryInBytes(systemMemorySize());
 
     ///// Set the segmentation ID /////
     vpkg.setActiveSegmentation(segID);

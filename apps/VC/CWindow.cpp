@@ -45,15 +45,54 @@ CWindow::CWindow( void ) :
     CreateActions();
     CreateMenus();
 
-#ifdef _DEBUG
-    if ( fVolumeViewerWidget == NULL ) {
-        QMessageBox::information( this, tr( "WARNING" ), tr( "Widget not found" ) );
-    } else {
-        Open(); // REVISIT - for debug only!
+    OpenSlice();
+    UpdateView();
 
-        update();
-    }
-#endif // _DEBUG
+    update();
+}
+
+// Constructor with QRect windowSize
+CWindow::CWindow( QRect windowSize ) :
+        fVpkg( NULL ),
+        fPathOnSliceIndex( 0 ),
+        fVolumeViewerWidget( NULL ),
+        fPathListWidget( NULL ),
+        fPenTool( NULL ),
+        fSegTool( NULL ),
+        fWindowState( EWindowState::WindowStateIdle ),
+        fSegmentationId( "" ),
+        fMinSegIndex( VOLPKG_SLICE_MIN_INDEX ),
+        fMaxSegIndex( VOLPKG_SLICE_MIN_INDEX )
+{
+    ui.setupUi( this );
+
+    int height = windowSize.height();
+    int width = windowSize.width();
+
+    //MIN DIMENSIONS
+    window()->setMinimumHeight(height/2);
+    window()->setMinimumWidth(width/2);
+    //MAX DIMENSIONS
+    window()->setMaximumHeight(height);
+    window()->setMaximumWidth(width);
+
+    // default parameters for segmentation method
+    // REVISIT - refactor me
+    fSegParams.fGravityScale = 0.3;
+    fSegParams.fThreshold = 1;
+    fSegParams.fEndOffset = 5;
+
+    // create UI widgets
+    CreateWidgets();
+
+    // create menu
+    CreateActions();
+    CreateMenus();
+
+    OpenSlice();
+    UpdateView();
+
+    update();
 }
 
 // Destructor
@@ -70,12 +109,12 @@ void CWindow::mousePressEvent( QMouseEvent *nEvent )
 // Handle key press event
 void CWindow::keyPressEvent( QKeyEvent *event )
 {
-	if ( event->key() == Qt::Key_Escape ) {
-		// REVISIT - should prompt warning before exit
-		close();
-	} else {
-		// REVISIT - dispatch key press event
-	}
+    if ( event->key() == Qt::Key_Escape ) {
+        // REVISIT - should prompt warning before exit
+        close();
+    } else {
+        // REVISIT - dispatch key press event
+    }
 }
 
 // Create widgets
@@ -171,15 +210,62 @@ void CWindow::CreateActions( void )
     connect( fSavePointCloudAct, SIGNAL( triggered() ), this, SLOT( SavePointCloud() ) );
 }
 
+// Asks User to Save Data Prior to VC.app Exit
+void CWindow::closeEvent(QCloseEvent *closing)
+{
+    if( fVpkg != NULL && fMasterCloud.size() > 0 )
+    {
+        QMessageBox::StandardButton response = QMessageBox::question( this, "VC",
+                                                                    tr("Save current segmentation changes before quitting?\n"),
+                                                                    QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel );
+
+        switch (response) {
+            case QMessageBox::Save:
+                SavePointCloud();
+                closing->accept();
+                std::cerr << "VC::message: Closing VC.app" << std::endl;
+                break;
+            case QMessageBox::Discard:
+                closing->accept();
+                std::cerr << "VC::message: Closing VC.app" << std::endl;
+                break;
+            case QMessageBox::Cancel:
+                closing->ignore();
+                break;
+            default:
+                // should never be reached
+                break;
+        }
+
+    }
+}
+
+void CWindow::setWidgetsEnabled(bool state)
+{
+    this->findChild< QGroupBox * >( "grpVolManager" )->setEnabled( state );
+    this->findChild< QGroupBox * >( "grpSeg" )->setEnabled( state );
+    this->findChild< QPushButton *>( "btnSegTool" )->setEnabled( state );
+    this->findChild< QPushButton *>( "btnPenTool" )->setEnabled( state );
+    this->findChild< QGroupBox * >( "groupBox_4" )->setEnabled( state );
+    fVolumeViewerWidget->setButtonsEnabled(state);
+}
+
 bool CWindow::InitializeVolumePkg( const std::string &nVpkgPath )
 {
     deleteNULL( fVpkg );
-    fVpkg = new VolumePkg( nVpkgPath );
+
+    try {
+        fVpkg = new VolumePkg( nVpkgPath );
+    } catch(...) {
+        std::cerr << "VC::Error: Volume package failed to initialize." << std::endl;
+    }
 
     if ( fVpkg == NULL ) {
-        printf( "ERROR: cannot open volume package %s\n", nVpkgPath.c_str() );
+        std::cerr << "VC::Error: Cannot open volume package at specified location: " << nVpkgPath << std::endl;
+        QMessageBox::warning(this, "Error", "Volume package failed to load. Package might be corrupt.");
         return false;
     }
+
     return true;
 }
 
@@ -187,8 +273,12 @@ bool CWindow::InitializeVolumePkg( const std::string &nVpkgPath )
 void CWindow::UpdateView( void )
 {
     if ( fVpkg == NULL ) {
+        setWidgetsEnabled(false);// Disable Widgets for User
+        this->findChild< QLabel * >( "lblVpkgName" )->setText( "No Volume Package Loaded" );
         return;
     }
+
+    setWidgetsEnabled(true);// Enable Widgets for User
 
     // show volume package name
     this->findChild< QLabel * >( "lblVpkgName" )->setText( QString( fVpkg->getPkgName().c_str() ) );
@@ -381,7 +471,7 @@ void CWindow::OpenSlice( void )
 {
     cv::Mat aImgMat;
     if ( fVpkg != NULL ) {
-        fVpkg->getSliceData( fPathOnSliceIndex ).copyTo( aImgMat );
+        fVpkg->volume().getSliceData( fPathOnSliceIndex ).copyTo( aImgMat );
         aImgMat.convertTo( aImgMat, CV_8UC3, 1.0 / 256.0 );
         cvtColor( aImgMat, aImgMat, CV_GRAY2BGR );
     } else
@@ -437,26 +527,44 @@ void CWindow::OpenVolume( void )
                                                    QDir::homePath(),
                                                    QFileDialog::ShowDirsOnly |
                                                    QFileDialog::DontResolveSymlinks );
-    if ( aVpkgPath.length() == 0 ) { // canceled
-        std::cerr << "ERROR: No volume package selected." << std::endl;
+    // Dialog box cancelled
+    if ( aVpkgPath.length() == 0 ) {
+        std::cerr << "VC::Message: Open volume package cancelled." << std::endl;
         return;
     }
 
+    // Checks the Folder Path for .volpkg extension
+    std::string extension = aVpkgPath.toStdString().substr( aVpkgPath.toStdString().length() - 7, aVpkgPath.toStdString().length() );
+    if ( extension.compare(".volpkg") != 0 ) {
+        QMessageBox::warning(this, tr("ERROR"), "The selected file is not of the correct type: \".volpkg\"");
+        std::cerr << "VC::Error: Selected file: " << aVpkgPath.toStdString() << " is of the wrong type." << std::endl;
+        fVpkg = NULL; // Is need for User Experience, clears screen.
+        return;
+    }
+
+    // Open volume package
     if ( !InitializeVolumePkg( aVpkgPath.toStdString() + "/" ) ) {
-        printf( "ERROR: Cannot open the volume package at the specified location.\n" );
         return;
     }
 
+    // Check version number
     if ( fVpkg->getVersion() < 2.0) {
-        std::cerr << "ERROR: Volume package is version " << fVpkg->getVersion() << " but this program requires a version >= 2.0." << std::endl;
+        std::cerr << "VC::Error: Volume package is version " << fVpkg->getVersion() << " but this program requires a version >= 2.0." << std::endl;
         QMessageBox::warning( this, tr( "ERROR" ), "Volume package is version " + QString::number(fVpkg->getVersion()) + " but this program requires a version >= 2.0." );
         fVpkg = NULL;
         return;
     }
 
     fVpkgPath = aVpkgPath;
-
     fPathOnSliceIndex = 2;
+}
+
+void CWindow::CloseVolume( void ) {
+    fVpkg = NULL;
+    ResetPointCloud();
+    OpenSlice();
+    InitPathList();
+    UpdateView();
 }
 
 // Reset point cloud
@@ -473,6 +581,27 @@ void CWindow::ResetPointCloud( void )
 // Handle open request
 void CWindow::Open( void )
 {
+    if(fVpkg != NULL && fMasterCloud.size()>0)
+    {
+        QMessageBox::StandardButton response = QMessageBox::question( this, "VC.app",
+                                                                      tr("Save changes to current segmentation before opening new volume package?\n"),
+                                                                      QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel );
+        switch (response) {
+            case QMessageBox::Save:
+                SavePointCloud();
+                break;
+            case QMessageBox::Discard:
+                break;
+            case QMessageBox::Cancel:
+                std::cerr << "VC::message: Open volume package cancelled." << std::endl;
+                return;
+            default:
+                // should never be reached
+                break;
+        }
+    }
+
+    CloseVolume();
     OpenVolume();
     OpenSlice();
     InitPathList();
@@ -493,7 +622,8 @@ void CWindow::About( void )
 }
 
 // Save point cloud to path directory
-void CWindow::SavePointCloud( void ) {
+void CWindow::SavePointCloud( void )
+{
     if ( fMasterCloud.size() == 0 ) {
         std::cerr << "VC::message: Empty point cloud. Nothing to save." << std::endl;
         return;

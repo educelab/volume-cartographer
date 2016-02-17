@@ -1,43 +1,86 @@
-// Chain object maintains a vector of points and their histories.
-// step() updates the postitions of particles based on their normal
-// vectors. Neighboring particles are kept in line with a "spring".
+#pragma once
 
-#ifndef _DEMO_CHAIN_
-#define _DEMO_CHAIN_
+#ifndef _VOLCART_SEGMENTATION_CHAIN_H_
+#define _VOLCART_SEGMENTATION_CHAIN_H_
 
-#define DEFAULT_OFFSET -1
+#include <tuple>
 
 #include <opencv2/opencv.hpp>
 #include <pcl/io/pcd_io.h>
 #include <pcl/common/common.h>
 #include <pcl/point_types.h>
 
-#include "field.h"
 #include "particle.h"
+#include "fittedcurve.h"
+#include "volumepkg.h"
+#include "common.h"
 
-namespace DEMO {
+
+// this is similar to the chain class in structureTensor
+// it tries to find the next position of the particles
+// based on slices orthogonal to the chain
+
+namespace volcart {
+
+namespace segmentation {
 
 class Chain {
-public:
-  Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr,VolumePkg*,int,int);
-  void step(Field&);
-  bool isMoving();
-  void debug();
-  pcl::PointCloud<pcl::PointXYZRGB> orderedPCD();
-
 private:
-  // History of the chain at each iteration
-  std::list<std::vector<Particle> > _history;
+	VoxelVec particles_;
+    VolumePkg& volpkg_;
+    size_t particleCount_;
+    int32_t zIndex_;
+    FittedCurve<double> curve_;
 
-  VolumePkg* _volpkg;
+    constexpr static double kDefaultMaxDrift = 0.0;
 
-  // -- Chain Size Information -- //
-  int _chain_length; // Number of particles in the chain & width of output PCD
-  int _real_iterations; // Height of the output PCD To-Do: Do we need this?
-  int _start_index; // Starting slice index
-  int _target_index; // Target slice index
-  int _threshold; // To-Do: What is this for now? We may not need this.
+    Voxel calculateNormal(const size_t index) const;
+
+public:
+    using Iterator       = typename VoxelVec::iterator;
+    using ConstIterator  = typename VoxelVec::const_iterator;
+    using DirPosPair     = std::tuple<Direction, Voxel>;
+    using DirPosPairVec  = std::tuple<std::vector<Direction>, VoxelVec>;
+
+    Chain();
+
+    Chain(VolumePkg& pkg, int32_t zIndex);
+
+    Chain(VolumePkg& pkg, const VoxelVec& pos, int32_t zIndex);
+
+    int32_t size(void) const { return particleCount_; }
+
+	Voxel at(const int32_t idx) const { return particles_[idx]; }
+
+    const VoxelVec& positions() const { return particles_; }
+
+    void setZIndex(int32_t zIndex) { zIndex_ = zIndex; }
+
+    // Iterator functions that reach through to the underlying vector so we can
+    // use range-based for with Chain
+    ConstIterator begin() const { return particles_.begin(); }
+
+    ConstIterator end() const { return particles_.end(); }
+
+    Iterator begin() { return particles_.begin(); }
+
+    Iterator end() { return particles_.end(); }
+
+    const decltype(curve_)& curve() const { return curve_; }
+
+    std::vector<VoxelVec> stepAll(const int32_t stepNumLayers,
+                                  const int32_t keepNumMaxima) const;
+
+    VoxelVec step(const int32_t particleIndex, const int32_t stepNumLayers,
+                  const int32_t keepNumMaxima) const;
+
+    void setNewPositions(const VoxelVec& newPositions);
+
+    void draw() const;
+
 };
+
+}
 
 }
 
