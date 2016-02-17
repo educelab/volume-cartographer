@@ -25,5 +25,5 @@ target_link_libraries(vc_textureFlattened ${VC_LIBS} ${VC_REQ_LIBS})
 add_executable(vc_ACVDExample ACVDExample.cpp)
 target_link_libraries(vc_ACVDExample ${VC_LIBS} ${VC_REQ_LIBS})
 
-add_executable(vc_clothExample clothExample.cpp)
-target_link_libraries(vc_clothExample ${VC_LIBS} ${VC_REQ_LIBS})
+#add_executable(vc_clothExample clothExample.cpp)
+#target_link_libraries(vc_clothExample ${VC_LIBS} ${VC_REQ_LIBS})
