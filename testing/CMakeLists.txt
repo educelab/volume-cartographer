@@ -59,7 +59,11 @@ add_test(NAME Sample WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_S
 #-----------------------#
 
 # Copy the test files created by greedyProjectionMeshingExample.cpp
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/greedyExample.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/PlaneGreedyProjectionMeshing.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/CubeGreedyProjectionMeshing.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ArchGreedyProjectionMeshing.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/SphereGreedyProjectionMeshing.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ConeGreedyProjectionMeshing.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
 add_executable(vc_test_greedyProjectionMeshing meshing/greedyProjectionMeshingTest.cpp)
 target_link_libraries(vc_test_greedyProjectionMeshing ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME greedyProjectionMeshing WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_greedyProjectionMeshing)
