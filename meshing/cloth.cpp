@@ -7,13 +7,16 @@
 namespace volcart {
     namespace meshing {
 
-        cloth::cloth ( VC_MeshType::Pointer inputMesh,
+    std::vector< btSoftBody::Node* > cloth::_pinnedPoints;
+    std::vector< cloth::NodeTarget > cloth::_targetPoints;
+
+    cloth::cloth ( VC_MeshType::Pointer inputMesh,
                    VC_MeshType::Pointer decimated,
                    int width,
                    int height,
                    int required_iterations) :
                    _input(inputMesh), _decimated(decimated), _width(width), _height(height), _iterations(required_iterations)
-        {
+    {
       _process();
     };
 

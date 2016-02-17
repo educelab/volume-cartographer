@@ -18,7 +18,6 @@
 #include "io/ply2itk.h"
 #include "itk2vtk.h"
 #include "io/objWriter.h"
-#include "ACVD.h"
 #include "deepCopy.h"
 
 // bullet converter
@@ -72,8 +71,8 @@ namespace volcart {
 
             btVector3 _middle;
         };
-    }
+    }// meshing
 
-}
+} // volcart
 
 #endif // VC_CLOTH_H

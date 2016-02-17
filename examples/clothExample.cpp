@@ -5,9 +5,6 @@
 #include "volumepkg.h"
 #include "cloth.h"
 
-std::vector< btSoftBody::Node* > volcart::meshing::cloth::_pinnedPoints;
-std::vector< volcart::meshing::cloth::NodeTarget > volcart::meshing::cloth::_targetPoints;
-
 int main(int argc, char* argv[]) {
     if ( argc < 3 ) {
         std::cout << "Usage: vc_clothExample volpkg seg-id iterations" << std::endl;
