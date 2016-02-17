@@ -5,135 +5,87 @@
 
 using namespace volcart::segmentation;
 
-double calcArcLength(const vec<Voxel>& vs);
+double calcArcLength(const std::vector<Voxel>& vs);
 
-FittedCurve::FittedCurve(const vec<Voxel>& vs, const int32_t zIndex)
+FittedCurve::FittedCurve(const std::vector<Voxel>& vs, const int32_t zIndex)
     : npoints_(vs.size()), zIndex_(zIndex), seedPoints_(vs)
 {
-    vec<double> xs, ys;
+    std::vector<double> xs, ys;
     double arcLength = calcArcLength(vs);
     xs.reserve(vs.size());
     ys.reserve(vs.size());
-    tvals.reserve(vs.size());
+    tvals_.reserve(vs.size());
     double accumulatedLength = 0;
     xs.push_back(vs.front()(0));
     ys.push_back(vs.front()(1));
 
-    // Calculate new tvals
+    // Calculate new tvals_
     // Initial start t = 0
-    tvals.push_back(0);
+    tvals_.push_back(0);
     for (size_t i = 1; i < vs.size(); ++i) {
         xs.push_back(vs[i](0));
         ys.push_back(vs[i](1));
         accumulatedLength += std::sqrt(std::pow(vs[i](0) - vs[i - 1](0), 2) +
                                        std::pow(vs[i](1) - vs[i - 1](1), 2));
-        tvals.push_back(accumulatedLength / arcLength);
+        tvals_.push_back(accumulatedLength / arcLength);
     }
 
     spline_ = CubicSpline<double>(xs, ys);
+
+    // Calculate new voxel positions from the spline
+    currentPoints_.reserve(vs.size());
+    for (const auto t : tvals_) {
+        auto p = spline_.eval(t);
+        currentPoints_.emplace_back(p(0), p(1));
+    }
 }
 
-vec<Voxel> FittedCurve::resample(const double resamplePerc)
+std::vector<Voxel> FittedCurve::resample(const double resamplePerc)
 {
-    tvals.clear();
+    tvals_.clear();
     npoints_ = std::round(resamplePerc * npoints_);
-    tvals.resize(npoints_, 0.0);
+    tvals_.resize(npoints_, 0.0);
 
     // Calculate new knot positions in t-space
     double sum = 0;
     for (int32_t i = 0; i < npoints_ && sum <= 1;
          ++i, sum += 1.0 / (npoints_ - 1)) {
-        tvals[i] = sum;
+        tvals_[i] = sum;
     }
 
     // Get new positions
-    vec<Voxel> rs;
+    std::vector<Voxel> rs;
     rs.reserve(npoints_);
-    std::transform(tvals.begin(), tvals.end(), std::back_inserter(rs),
-                   [this](double t) -> Voxel {
-                       auto p = spline_.eval(t);
-                       return {p(0), p(1), double(zIndex_)};
-                   });
+    currentPoints_.clear();
+    for (const auto t : tvals_) {
+        auto p = spline_.eval(t);
+        currentPoints_.emplace_back(p(0), p(1));
+        rs.emplace_back(p(0), p(1), zIndex_);
+    }
     return rs;
 }
 
 Voxel FittedCurve::operator()(const int32_t index) const
 {
-    const auto t = tvals[index];
+    const auto t = tvals_[index];
     Pixel p = spline_.eval(t);
     return {p(0), p(1), double(zIndex_)};
 }
 
-Voxel FittedCurve::derivAt(const int32_t index, const int32_t hstep) const
+Pixel FittedCurve::derivAt(const int32_t index, const int32_t hstep) const
 {
     if (index - hstep <= 0) {
-        return derivForwardDifference(index, hstep);
+        return d1Forward(currentPoints_, index, hstep);
     } else if (index + hstep >= npoints_ - 1) {
-        return derivBackwardDifference(index, hstep);
+        return d1Backward(currentPoints_, index, hstep);
     } else if (index - hstep < hstep || index + hstep >= npoints_ - hstep) {
-        return derivCentralDifference(index, hstep);
+        return d1Central(currentPoints_, index, hstep);
     } else {
-        return derivFivePointStencil(index, hstep);
+        return d1FivePointStencil(currentPoints_, index, hstep);
     }
 }
 
-vec<double> FittedCurve::deriv(const int32_t hstep) const
-{
-    vec<double> ps;
-    ps.reserve(npoints_);
-    for (int32_t i = 0; i < npoints_; ++i) {
-        ps.push_back(derivAt(i, hstep)(1));
-    }
-    return ps;
-}
-
-Voxel FittedCurve::derivCentralDifference(const int32_t index,
-                                          const int32_t hstep) const
-{
-    assert(index >= 1 && index <= int32_t(tvals.size() - 1) &&
-           "index must not be an endpoint\n");
-    double before = tvals[index - hstep];
-    double after = tvals[index + hstep];
-    auto p = spline_.eval(after) - spline_.eval(before);
-    return {p(0), p(1), double(zIndex_)};
-}
-
-Voxel FittedCurve::derivBackwardDifference(const int32_t index,
-                                           const int32_t hstep) const
-{
-    assert(index >= 1 && "index must not be first point\n");
-    double current = tvals[index];
-    double before = tvals[index - hstep];
-    auto p = spline_.eval(current) - spline_.eval(before);
-    return {p(0), p(1), double(zIndex_)};
-}
-
-Voxel FittedCurve::derivForwardDifference(const int32_t index,
-                                          const int32_t hstep) const
-{
-    assert(index <= int32_t(tvals.size() - 2) &&
-           "index must not be last point\n");
-    double current = tvals[index];
-    double after = tvals[index + hstep];
-    auto p = spline_.eval(after) - spline_.eval(current);
-    return {p(0), p(1), double(zIndex_)};
-}
-
-Voxel FittedCurve::derivFivePointStencil(const int32_t index,
-                                         const int32_t hstep) const
-{
-    assert(index >= 2 * hstep && index <= int32_t(tvals.size() - 2 * hstep) &&
-           "index must not be first/last two points for consideration\n");
-    double before2 = tvals[index - (2 * hstep)];
-    double before1 = tvals[index - hstep];
-    double after1 = tvals[index + hstep];
-    double after2 = tvals[index + (2 * hstep)];
-    auto p = -spline_.eval(after2) + 8 * spline_.eval(after1) -
-             8 * spline_.eval(before1) + spline_.eval(before2);
-    return {p(0), p(1), double(zIndex_)};
-}
-
-double calcArcLength(const vec<Voxel>& vs)
+double calcArcLength(const std::vector<Voxel>& vs)
 {
     double length = 0;
     for (size_t i = 1; i < vs.size(); ++i) {
@@ -141,4 +93,31 @@ double calcArcLength(const vec<Voxel>& vs)
                             std::pow(vs[i](1) - vs[i - 1](1), 2));
     }
     return length;
+}
+
+std::vector<double> FittedCurve::curvature(const int32_t hstep) const
+{
+    std::vector<double> xs, ys;
+    xs.reserve(currentPoints_.size());
+    ys.reserve(currentPoints_.size());
+    for (size_t t = 0; t < tvals_.size(); ++t) {
+        xs.push_back(currentPoints_[t](0));
+        ys.push_back(currentPoints_[t](1));
+    }
+
+    const auto dx1 = d1(xs, hstep);
+    const auto dy1 = d1(ys, hstep);
+    const auto dx2 = d2(xs, hstep);
+    const auto dy2 = d2(ys, hstep);
+
+    // Calculate curvature
+    // according to: http://mathworld.wolfram.com/Curvature.html
+    std::vector<double> k;
+    k.reserve(currentPoints_.size());
+    for (size_t i = 0; i < currentPoints_.size(); ++i) {
+        k.push_back((dx1[i] * dy2[i] - dy1[i] * dx2[i]) /
+                    std::pow(dx1[i] * dx1[i] + dy1[i] * dy1[i], 3.0 / 2.0));
+    }
+
+    return k;
 }
