@@ -16,6 +16,22 @@ target_link_libraries(vc_uvMapExample ${VC_LIBS} ${VC_REQ_LIBS})
 add_executable(vc_plyExporterExample plyExporterExample.cpp)
 target_link_libraries(vc_plyExporterExample ${VC_LIBS} ${VC_REQ_LIBS})
 
+add_executable(vc_textureExample textureExample.cpp)
+target_link_libraries(vc_textureExample ${VC_LIBS} ${VC_REQ_LIBS})
+
+add_executable(vc_textureFlattened textureFlattened.cpp)
+target_link_libraries(vc_textureFlattened ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
+
+if(ACVD_FOUND)
+    add_executable(vc_ACVDExample ACVDExample.cpp)
+    target_link_libraries(vc_ACVDExample ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
+endif(ACVD_FOUND)
+
+#if(BULLET_FOUND)
+#    add_executable(vc_clothExample clothExample.cpp)
+#    target_link_libraries(vc_clothExample ${VC_LIBS} ${VC_REQ_LIBS})
+#endif(BULLET_FOUND)
+
 add_executable(vc_verifyStructureTensor VerifyStructureTensor.cpp)
 target_link_libraries(vc_verifyStructureTensor ${VC_LIBS} ${VC_REQ_LIBS})
 

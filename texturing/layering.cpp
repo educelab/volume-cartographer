@@ -12,7 +12,7 @@
 #include "vc_defines.h"
 #include "io/ply2itk.h"
 
-#include "meshUtils.h"
+#include "smoothNormals.h"
 #include "texturingUtils.h"
 
 
@@ -126,7 +126,7 @@ int main(int argc, char* argv[])
 
     // smooth normals if smoothing factor is not 0
     if ( smoothingFactor > 0 ) {
-        smoothedMesh = smoothNormals( inputMesh, smoothingFactor);
+        smoothedMesh = volcart::meshing::smoothNormals( inputMesh, smoothingFactor);
     }
     else
         smoothedMesh = inputMesh;
