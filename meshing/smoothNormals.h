@@ -1,6 +1,9 @@
 // smoothNormals.h
 // Abigail Coleman June 2015
 
+#ifndef VC_SMOOTHNORMALS_H
+#define VC_SMOOTHNORMALS_H
+
 #include <iostream>
 #include <fstream>
 
@@ -8,14 +11,12 @@
 #include <vector>
 
 #include "vc_defines.h"
-
-#ifndef VC_SMOOTHNORMALS_H
-#define VC_SMOOTHNORMALS_H
+#include "deepCopy.h"
 
 namespace volcart {
     namespace meshing {
-        VC_MeshType::Pointer smoothNormals ( VC_MeshType::Pointer  inputMesh,
-                                             double                smoothingFactor );
+        VC_MeshType::Pointer smoothNormals ( VC_MeshType::Pointer input,
+                                             double               radius);
     }
 }
 

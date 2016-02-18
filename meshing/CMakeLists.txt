@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
 set(MESHING_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(MESHING_INCLUDE_DIR ${MESHING_INCLUDE_DIR} PARENT_SCOPE)
@@ -6,7 +6,7 @@ set(MESHING_INCLUDE_DIR ${MESHING_INCLUDE_DIR} PARENT_SCOPE)
 if(TARGET vc_meshing)
 message("meshing is already defined")
 else()
-add_library(vc_meshing STATIC
+set(meshing_SOURCES ACVD.h ACVD.cpp
                     orderedPCDMesher.h orderedPCDMesher.cpp
                     resamplePointCloud.h resamplePointCloud.cpp
                     greedyProjectionMeshing.h greedyProjectionMeshing.cpp
@@ -14,5 +14,12 @@ add_library(vc_meshing STATIC
                     itk2vtk.h itk2vtk.cpp
                     rayTrace.h rayTrace.cpp
                     scaleMesh.h scaleMesh.cpp
-                    smoothNormals.h smoothNormals.cpp )
+                    smoothNormals.h smoothNormals.cpp
+                    deepCopy.cpp deepCopy.h)
+
+if(BULLET_FOUND)
+    set(meshing_SOURCES ${meshing_SOURCES} itk2bullet.h itk2bullet.cpp)
+endif(BULLET_FOUND)
+
+add_library(vc_meshing STATIC ${meshing_SOURCES})
 endif()
