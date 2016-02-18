@@ -479,9 +479,9 @@ BOOST_FIXTURE_TEST_CASE(CompareSavedAndFixtureScaledArchMesh, ScaledArchFixture)
 
     for (size_t point; point < _SavedArchPoints.size(); ++point){
 
-        BOOST_CHECK_EQUAL(_out_ArchMeshUsedForRegressionTest->GetPoint(point)[0], _SavedArchPoints[point].x);
-        BOOST_CHECK_EQUAL(_out_ArchMeshUsedForRegressionTest->GetPoint(point)[1], _SavedArchPoints[point].y);
-        BOOST_CHECK_EQUAL(_out_ArchMeshUsedForRegressionTest->GetPoint(point)[2], _SavedArchPoints[point].z);
+        BOOST_CHECK_CLOSE_FRACTION(_out_ArchMeshUsedForRegressionTest->GetPoint(point)[0], _SavedArchPoints[point].x, 0.00001);
+        BOOST_CHECK_CLOSE_FRACTION(_out_ArchMeshUsedForRegressionTest->GetPoint(point)[1], _SavedArchPoints[point].y, 0.00001);
+        BOOST_CHECK_CLOSE_FRACTION(_out_ArchMeshUsedForRegressionTest->GetPoint(point)[2], _SavedArchPoints[point].z, 0.00001);
     }
 
     int p =0;
@@ -491,9 +491,9 @@ BOOST_FIXTURE_TEST_CASE(CompareSavedAndFixtureScaledArchMesh, ScaledArchFixture)
         VC_PixelType _out_ArchMeshUsedForRegressionTestNormal;
         _out_ArchMeshUsedForRegressionTest->GetPointData(point.Index(), &_out_ArchMeshUsedForRegressionTestNormal);
 
-        BOOST_CHECK_EQUAL(_out_ArchMeshUsedForRegressionTestNormal[0], _SavedArchPoints[p].nx);
-        BOOST_CHECK_EQUAL(_out_ArchMeshUsedForRegressionTestNormal[1], _SavedArchPoints[p].ny);
-        BOOST_CHECK_EQUAL(_out_ArchMeshUsedForRegressionTestNormal[2], _SavedArchPoints[p].nz);
+        BOOST_CHECK_CLOSE_FRACTION(_out_ArchMeshUsedForRegressionTestNormal[0], _SavedArchPoints[p].nx, 0.00001);
+        BOOST_CHECK_CLOSE_FRACTION(_out_ArchMeshUsedForRegressionTestNormal[1], _SavedArchPoints[p].ny, 0.00001);
+        BOOST_CHECK_CLOSE_FRACTION(_out_ArchMeshUsedForRegressionTestNormal[2], _SavedArchPoints[p].nz, 0.00001);
 
         ++p;
     }
@@ -529,9 +529,9 @@ BOOST_FIXTURE_TEST_CASE(CompareSavedAndFixtureScaledSphereMesh, ScaledSphereFixt
 
     for (size_t point; point < _SavedSpherePoints.size(); ++point){
 
-        BOOST_CHECK_EQUAL(_out_SphereMeshUsedForRegressionTest->GetPoint(point)[0], _SavedSpherePoints[point].x);
-        BOOST_CHECK_EQUAL(_out_SphereMeshUsedForRegressionTest->GetPoint(point)[1], _SavedSpherePoints[point].y);
-        BOOST_CHECK_EQUAL(_out_SphereMeshUsedForRegressionTest->GetPoint(point)[2], _SavedSpherePoints[point].z);
+        BOOST_CHECK_CLOSE_FRACTION(_out_SphereMeshUsedForRegressionTest->GetPoint(point)[0], _SavedSpherePoints[point].x, 0.00001);
+        BOOST_CHECK_CLOSE_FRACTION(_out_SphereMeshUsedForRegressionTest->GetPoint(point)[1], _SavedSpherePoints[point].y, 0.00001);
+        BOOST_CHECK_CLOSE_FRACTION(_out_SphereMeshUsedForRegressionTest->GetPoint(point)[2], _SavedSpherePoints[point].z, 0.00001);
     }
 
     int p =0;
@@ -541,9 +541,9 @@ BOOST_FIXTURE_TEST_CASE(CompareSavedAndFixtureScaledSphereMesh, ScaledSphereFixt
         VC_PixelType _out_SphereMeshUsedForRegressionTestNormal;
         _out_SphereMeshUsedForRegressionTest->GetPointData(point.Index(), &_out_SphereMeshUsedForRegressionTestNormal);
 
-        BOOST_CHECK_EQUAL(_out_SphereMeshUsedForRegressionTestNormal[0], _SavedSpherePoints[p].nx);
-        BOOST_CHECK_EQUAL(_out_SphereMeshUsedForRegressionTestNormal[1], _SavedSpherePoints[p].ny);
-        BOOST_CHECK_EQUAL(_out_SphereMeshUsedForRegressionTestNormal[2], _SavedSpherePoints[p].nz);
+        BOOST_CHECK_CLOSE_FRACTION(_out_SphereMeshUsedForRegressionTestNormal[0], _SavedSpherePoints[p].nx, 0.00001);
+        BOOST_CHECK_CLOSE_FRACTION(_out_SphereMeshUsedForRegressionTestNormal[1], _SavedSpherePoints[p].ny, 0.00001);
+        BOOST_CHECK_CLOSE_FRACTION(_out_SphereMeshUsedForRegressionTestNormal[2], _SavedSpherePoints[p].nz, 0.00001);
 
         ++p;
     }
@@ -579,9 +579,9 @@ BOOST_FIXTURE_TEST_CASE(CompareSavedAndFixtureScaledConeMesh, ScaledConeFixture)
 
     for (size_t point; point < _SavedConePoints.size(); ++point){
 
-        BOOST_CHECK_EQUAL(_out_ConeMeshUsedForRegressionTest->GetPoint(point)[0], _SavedConePoints[point].x);
-        BOOST_CHECK_EQUAL(_out_ConeMeshUsedForRegressionTest->GetPoint(point)[1], _SavedConePoints[point].y);
-        BOOST_CHECK_EQUAL(_out_ConeMeshUsedForRegressionTest->GetPoint(point)[2], _SavedConePoints[point].z);
+        BOOST_CHECK_CLOSE_FRACTION(_out_ConeMeshUsedForRegressionTest->GetPoint(point)[0], _SavedConePoints[point].x, 0.00001);
+        BOOST_CHECK_CLOSE_FRACTION(_out_ConeMeshUsedForRegressionTest->GetPoint(point)[1], _SavedConePoints[point].y, 0.00001);
+        BOOST_CHECK_CLOSE_FRACTION(_out_ConeMeshUsedForRegressionTest->GetPoint(point)[2], _SavedConePoints[point].z, 0.00001);
     }
 
     int p =0;
@@ -591,9 +591,9 @@ BOOST_FIXTURE_TEST_CASE(CompareSavedAndFixtureScaledConeMesh, ScaledConeFixture)
         VC_PixelType _out_ConeMeshUsedForRegressionTestNormal;
         _out_ConeMeshUsedForRegressionTest->GetPointData(point.Index(), &_out_ConeMeshUsedForRegressionTestNormal);
 
-        BOOST_CHECK_EQUAL(_out_ConeMeshUsedForRegressionTestNormal[0], _SavedConePoints[p].nx);
-        BOOST_CHECK_EQUAL(_out_ConeMeshUsedForRegressionTestNormal[1], _SavedConePoints[p].ny);
-        BOOST_CHECK_EQUAL(_out_ConeMeshUsedForRegressionTestNormal[2], _SavedConePoints[p].nz);
+        BOOST_CHECK_CLOSE_FRACTION(_out_ConeMeshUsedForRegressionTestNormal[0], _SavedConePoints[p].nx, 0.00001);
+        BOOST_CHECK_CLOSE_FRACTION(_out_ConeMeshUsedForRegressionTestNormal[1], _SavedConePoints[p].ny, 0.00001);
+        BOOST_CHECK_CLOSE_FRACTION(_out_ConeMeshUsedForRegressionTestNormal[2], _SavedConePoints[p].nz, 0.00001);
 
         ++p;
     }
