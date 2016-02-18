@@ -15,29 +15,29 @@ void MyThread::run()
     bool cloudProblem = false;
 
     try {
-            double _radius = _globals->getRadius();
-            int meshWidth = -1;
-            int meshHeight = -1;
+        double _radius = _globals->getRadius();
+        int meshWidth = -1;
+        int meshHeight = -1;
 
-            std::string meshName = _globals->getVolPkg()->getMeshPath();
+        std::string meshName = _globals->getVolPkg()->getMeshPath();
 
-            VC_Composite_Option aFilterOption = (VC_Composite_Option) _globals->getTextureMethod();
-            VC_Direction_Option aDirectionOption = (VC_Direction_Option) _globals->getSampleDirection();
+        VC_Composite_Option aFilterOption = (VC_Composite_Option) _globals->getTextureMethod();
+        VC_Direction_Option aDirectionOption = (VC_Direction_Option) _globals->getSampleDirection();
 
-            // declare pointer to new Mesh object
-            VC_MeshType::Pointer mesh = VC_MeshType::New();
+        // declare pointer to new Mesh object
+        VC_MeshType::Pointer mesh = VC_MeshType::New();
 
-            // try to convert the ply to an ITK mesh
-            if (!volcart::io::ply2itkmesh(meshName, mesh, meshWidth, meshHeight))
-            {
-                cloudProblem = true;
-                throw(__EXCEPTIONS);// Error
-            };
+        // try to convert the ply to an ITK mesh
+        if (!volcart::io::ply2itkmesh(meshName, mesh, meshWidth, meshHeight))
+        {
+            cloudProblem = true;
+            throw(__EXCEPTIONS);// Error
+        };
 
-            volcart::Texture newTexture;
-            newTexture = volcart::texturing::compositeTexture(mesh, *_globals->getVolPkg(), meshWidth, meshHeight, _radius, aFilterOption, aDirectionOption);
+        volcart::texturing::compositeTexture result(mesh, *_globals->getVolPkg(), meshWidth, meshHeight, _radius, aFilterOption, aDirectionOption);
+        volcart::Texture newTexture = result.texture();
 
-            _globals->setTexture(newTexture);
+        _globals->setTexture(newTexture);
 
     }catch(...)
     {

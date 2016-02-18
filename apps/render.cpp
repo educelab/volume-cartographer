@@ -130,13 +130,11 @@ int main(int argc, char* argv[])
         workingMesh = volcart::meshing::smoothNormals(input, smoothRadius);
     } else {
       // duplicate input
-      // To-Do: Should be a deep copy
-      workingMesh = input;
+        volcart::meshing::deepCopy(input, workingMesh);
     }
 
-
-    volcart::Texture newTexture;
-    newTexture = volcart::texturing::compositeTexture( workingMesh, vpkg, meshWidth, meshHeight, radius, aFilterOption, aDirectionOption );
+    volcart::texturing::compositeTexture result( workingMesh, vpkg, meshWidth, meshHeight, radius, aFilterOption, aDirectionOption );
+    volcart::Texture newTexture = result.texture();
 
     if ( outputPath.extension() == ".PLY" || outputPath.extension() == ".ply" ) {
         std::cout << "Writing to PLY..." << std::endl;
