@@ -34,10 +34,21 @@ include(${ITK_USE_FILE})
 include(${VTK_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
 
-include_directories(${Boost_INCLUDE_DIR} ${PCL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} ${ACVD_INCLUDE_DIRS} ${BULLET_INCLUDE_DIRS})
+include_directories(${Boost_INCLUDE_DIR} ${PCL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS} ${Boost_LIBRARY_DIRS})
-set(VC_REQ_LIBS ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} ${ITK_LIBRARIES} ${ACVD_LIBRARIES} ${BULLET_LIBRARIES})
+set(VC_REQ_LIBS ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} ${ITK_LIBRARIES})
 add_definitions(${PCL_DEFINITIONS})
+
+# Conditional Inclusions
+if(ACVD_FOUND)
+    include_directories(${ACVD_INCLUDE_DIRS})
+    set(VC_REQ_LIBS ${VC_REQ_LIBS} ${ACVD_LIBRARIES})
+endif(ACVD_FOUND)
+
+if(Bullet_FOUND)
+    include_directories(${BULLET_INCLUDE_DIRS})
+    set(VC_REQ_LIBS ${VC_REQ_LIBS} ${BULLET_LIBRARIES})
+endif(Bullet_FOUND)
 
 # OS Specific Changes
 IF(APPLE)
