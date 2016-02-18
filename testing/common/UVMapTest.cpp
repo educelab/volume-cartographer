@@ -45,12 +45,11 @@
 
 /*
  * This fixture builds  a uv map object for each of the test cases that will use the
- *
  */
 
- struct uvFix{
+ struct CreateUVMapFixture{
 
-     uvFix(){
+     CreateUVMapFixture(){
 
          std::cout << "Constructing uv map..." << std::endl;
 
@@ -58,124 +57,104 @@
          for (double u = 0; u <= 1; u += 0.25 ) {
              for (double v = 0; v <= 1; v += 0.25) {
                  cv::Vec2d uv( u, v );
-                 storage.push_back(uv);
+                 _storage.push_back(uv);
              }
          }
 
          // Insert mappings relative to the top-left (default origin)
-         int pointID = 0;
-         for ( auto it = storage.begin(); it != storage.end(); ++it ) {
-             baseUVMap.set( pointID, *it );
-             ++pointID;
+         int pnt_id = 0;
+         for ( auto it = _storage.begin(); it != _storage.end(); ++it ) {
+             _baseUVMap.set( pnt_id, *it );
+             ++pnt_id;
          }
      }
 
 
-     ~uvFix() {
+     ~CreateUVMapFixture() {
          std::cout << "Destroying uv map..." << std::endl;
      }
 
      //Init uvMap
-     volcart::UVMap baseUVMap;
-     std::vector<cv::Vec2d> storage;
-
-
+     volcart::UVMap _baseUVMap;
+     std::vector<cv::Vec2d> _storage;
  };
 
 
-BOOST_FIXTURE_TEST_CASE(transformationTest, uvFix){
+BOOST_FIXTURE_TEST_CASE(transformationTest, CreateUVMapFixture){
 
     //get the original points
-    volcart::UVMap map = baseUVMap;
+    volcart::UVMap map = _baseUVMap;
     map.origin(VC_ORIGIN_TOP_LEFT); //standard origin
 
     std::cout << "Transforming against (0,0) and comparing expected results" << std::endl;
+    
     // Retrieve mappings relative to the top-left (0,0)
-    baseUVMap.origin(VC_ORIGIN_TOP_LEFT);
-    int pointID = 0;
-    for ( auto it = storage.begin(); it != storage.end(); ++it ) {
-
-        //just printing to see what we're looking at here
-        //std::cout << "Trans Point: " << pointID << " | " << baseUVMap.get(pointID) << std::endl;
+    _baseUVMap.origin(VC_ORIGIN_TOP_LEFT);
+    int pnt_id = 0;
+    for ( auto it = _storage.begin(); it != _storage.end(); ++it ) {
 
         //set expected values
-        cv::Vec2d expected;
-        expected[0] = std::abs(map.get(pointID)[0] - 0);  //u
-        expected[1] = std::abs(map.get(pointID)[1] - 0);  //v
+        cv::Vec2d ExpectedValues;
+        ExpectedValues[0] = std::abs(map.get(pnt_id)[0]);  //u
+        ExpectedValues[1] = std::abs(map.get(pnt_id)[1]);  //v
 
+        BOOST_CHECK_EQUAL(ExpectedValues[0], _baseUVMap.get(pnt_id)[0]);
+        BOOST_CHECK_EQUAL(ExpectedValues[1], _baseUVMap.get(pnt_id)[1]);
 
-        BOOST_CHECK_EQUAL(expected[0], baseUVMap.get(pointID)[0]);
-        BOOST_CHECK_EQUAL(expected[1], baseUVMap.get(pointID)[1]);
-
-        ++pointID;
-  }
-
-
+        ++pnt_id;
+    }
 
     std::cout << "Transforming against (0,1) and comparing expected results" << std::endl;
 
     // Retrieve mappings relative to the bottom-left (0,1)
-    baseUVMap.origin(VC_ORIGIN_BOTTOM_LEFT);
-    pointID = 0;
-    for ( auto it = storage.begin(); it != storage.end(); ++it ) {
-
-        //std::cout << "Trans Point: " << pointID << " | " << baseUVMap.get(pointID) << std::endl;
+    _baseUVMap.origin(VC_ORIGIN_BOTTOM_LEFT);
+    pnt_id = 0;
+    for ( auto it = _storage.begin(); it != _storage.end(); ++it ) {
 
         //set expected values
-        cv::Vec2d expected;
-        expected[0] = std::abs(map.get(pointID)[0] - 0);  //u
-        expected[1] = std::abs(map.get(pointID)[1] - 1);  //v
+        cv::Vec2d ExpectedValues;
+        ExpectedValues[0] = std::abs(map.get(pnt_id)[0] - 0);  //u
+        ExpectedValues[1] = std::abs(map.get(pnt_id)[1] - 1);  //v
 
+        BOOST_CHECK_EQUAL(ExpectedValues[0], _baseUVMap.get(pnt_id)[0]);
+        BOOST_CHECK_EQUAL(ExpectedValues[1], _baseUVMap.get(pnt_id)[1]);
 
-        BOOST_CHECK_EQUAL(expected[0], baseUVMap.get(pointID)[0]);
-        BOOST_CHECK_EQUAL(expected[1], baseUVMap.get(pointID)[1]);
-
-        ++pointID;
+        ++pnt_id;
     }
-
 
     std::cout << "Transforming against (1,0) and comparing expected results" << std::endl;
 
     // Retrieve mappings relative to the top-right (1,0)
-    baseUVMap.origin(VC_ORIGIN_TOP_RIGHT);
-    pointID = 0;
-    for ( auto it = storage.begin(); it != storage.end(); ++it ) {
-
-        //std::cout << "Trans Point: " << pointID << " | " << baseUVMap.get(pointID) << std::endl;
+    _baseUVMap.origin(VC_ORIGIN_TOP_RIGHT);
+    pnt_id = 0;
+    for ( auto it = _storage.begin(); it != _storage.end(); ++it ) {
 
         //set expected values
-        cv::Vec2d expected;
-        expected[0] = std::abs(map.get(pointID)[0] - 1);  //u
-        expected[1] = std::abs(map.get(pointID)[1] - 0);  //v
+        cv::Vec2d ExpectedValues;
+        ExpectedValues[0] = std::abs(map.get(pnt_id)[0] - 1);  //u
+        ExpectedValues[1] = std::abs(map.get(pnt_id)[1] - 0);  //v
 
+        BOOST_CHECK_EQUAL(ExpectedValues[0], _baseUVMap.get(pnt_id)[0]);
+        BOOST_CHECK_EQUAL(ExpectedValues[1], _baseUVMap.get(pnt_id)[1]);
 
-        BOOST_CHECK_EQUAL(expected[0], baseUVMap.get(pointID)[0]);
-        BOOST_CHECK_EQUAL(expected[1], baseUVMap.get(pointID)[1]);
-
-        ++pointID;
+        ++pnt_id;
     }
-
 
     std::cout << "Transforming against (1,1) and comparing expected results" << std::endl;
 
     // Retrieve mappings relative to the bottom-right (1,1)
-    baseUVMap.origin(VC_ORIGIN_BOTTOM_RIGHT);
-    pointID = 0;
-    for ( auto it = storage.begin(); it != storage.end(); ++it ) {
-
-        //std::cout << "Trans Point: " << pointID << " | " << baseUVMap.get(pointID) << std::endl;
+    _baseUVMap.origin(VC_ORIGIN_BOTTOM_RIGHT);
+    pnt_id = 0;
+    for ( auto it = _storage.begin(); it != _storage.end(); ++it ) {
 
         //set expected values
-        cv::Vec2d expected;
-        expected[0] = std::abs(map.get(pointID)[0] - 1);  //u
-        expected[1] = std::abs(map.get(pointID)[1] - 1);  //v
+        cv::Vec2d ExpectedValues;
+        ExpectedValues[0] = std::abs(map.get(pnt_id)[0] - 1);  //u
+        ExpectedValues[1] = std::abs(map.get(pnt_id)[1] - 1);  //v
 
+        BOOST_CHECK_EQUAL(ExpectedValues[0], _baseUVMap.get(pnt_id)[0]);
+        BOOST_CHECK_EQUAL(ExpectedValues[1], _baseUVMap.get(pnt_id)[1]);
 
-        BOOST_CHECK_EQUAL(expected[0], baseUVMap.get(pointID)[0]);
-        BOOST_CHECK_EQUAL(expected[1], baseUVMap.get(pointID)[1]);
-
-        ++pointID;
+        ++pnt_id;
     }
-
-
 }

@@ -48,6 +48,9 @@ target_link_libraries(vc_parsingHelpers ${VC_LIBS} ${VC_REQ_LIBS} )
 add_executable(vc_rayTraceExample rayTraceExample.cpp)
 target_link_libraries(vc_rayTraceExample ${VC_LIBS} ${VC_REQ_LIBS})
 
+add_executable(vc_scaleMeshExample scaleMeshExample.cpp)
+target_link_libraries(vc_scaleMeshExample ${VC_LIBS} ${VC_REQ_LIBS})
+
 add_executable(vc_smoothNormalsExample smoothNormalsExample.cpp)
 target_link_libraries(vc_smoothNormalsExample ${VC_LIBS} ${VC_REQ_LIBS})
 

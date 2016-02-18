@@ -134,8 +134,12 @@ add_executable(vc_test_smoothNormals meshing/smoothNormalsTest.cpp parsingHelper
 target_link_libraries(vc_test_smoothNormals ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME smoothNormals WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_smoothNormals )
 
-
-add_executable(vc_test_scaleMesh meshing/scaleMeshTest.cpp)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ScaledPlaneMesh.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ScaledCubeMesh.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ScaledArchMesh.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ScaledSphereMesh.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ScaledConeMesh.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
+add_executable(vc_test_scaleMesh meshing/scaleMeshTest.cpp parsingHelpers.cpp)
 target_link_libraries(vc_test_scaleMesh ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME scaleMesh WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_scaleMesh )
 
