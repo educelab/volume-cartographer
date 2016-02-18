@@ -65,6 +65,13 @@ public:
     uint16_t interpolatedIntensityAt(const double x, const double y,
                                      const double z) const
     {
+        // clang-format off
+        if (x < 0 || x >= sliceWidth_ ||
+            y < 0 || y >= sliceHeight_ ||
+            z < 0 || z >= numSlices_) {
+            return 0;
+        }
+        // clang-format on
         return interpolateAt({x, y, z});
     }
 
@@ -76,6 +83,13 @@ public:
     uint16_t intensityAt(const int32_t x, const int32_t y,
                          const int32_t z) const
     {
+        // clang-format off
+        if (x < 0 || x >= sliceWidth_ ||
+            y < 0 || y >= sliceHeight_ ||
+            z < 0 || z >= numSlices_) {
+            return 0;
+        }
+        // clang-format on
         return getSliceData(z).at<uint16_t>(y, x);
     }
 
@@ -158,14 +172,15 @@ public:
         Tensor3D<DType> v(2 * rx + 1, 2 * ry + 1, 2 * rz + 1);
         for (int32_t k = center.z - rz, c = 0; k <= center.z + rz; ++k, ++c) {
             // If k index is out of bounds, then keep it at zeros and go on
-            if (k < 0) {
+            if (k < 0 || k >= numSlices_) {
                 continue;
             }
             for (int32_t j = center.y - ry, b = 0; j <= center.y + ry;
                  ++j, ++b) {
                 for (int32_t i = center.x - rx, a = 0; i <= center.x + rx;
                      ++i, ++a) {
-                    if (i >= 0 && j >= 0) {
+                    if (i >= 0 && j >= 0 && i < sliceWidth_ &&
+                        j < sliceHeight_) {
                         v(a, b, c) = DType(intensityAt(i, j, k));
                     }
                 }
@@ -198,13 +213,14 @@ public:
         int32_t a, b, c;
         for (k = center.z - rz, c = 0; k <= center.z + rz; k += 1.0f, ++c) {
             // If k index is out of bounds, then keep it at zeros and go on
-            if (k < 0) {
+            if (k < 0 || k >= numSlices_) {
                 continue;
             }
             for (j = center.y - ry, b = 0; j <= center.y + ry; j += 1.0f, ++b) {
                 for (i = center.x - rx, a = 0; i <= center.x + rx;
                      i += 1.0f, ++a) {
-                    if (i >= 0 && j >= 0) {
+                    if (i >= 0 && j >= 0 && i < sliceWidth_ &&
+                        j < sliceHeight_) {
                         v(a, b, c) = DType(interpolatedIntensityAt(i, j, k));
                     }
                 }
