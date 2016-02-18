@@ -196,3 +196,11 @@ void MainWindow::create_Menus()
 
     menuBar()->addMenu(fileMenu);
 }
+
+void MainWindow::closeEvent(QCloseEvent *closing)
+{
+    if(_globals->getProcessing()) {
+        QMessageBox::warning(this, "Error", "You cannot exit the program while the texture is generating." );
+        closing->ignore();
+    }else closing->accept();
+}
