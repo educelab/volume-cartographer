@@ -17,7 +17,6 @@
 #include "itk2vtk.h"
 #include "io/objWriter.h"
 #include "compositeTextureV2.h"
-#include "ACVD.h"
 #include "deepCopy.h"
 
 // bullet converter
