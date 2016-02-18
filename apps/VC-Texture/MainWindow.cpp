@@ -197,6 +197,7 @@ void MainWindow::create_Menus()
     menuBar()->addMenu(fileMenu);
 }
 
+// User cannot exit program while texture is still running.
 void MainWindow::closeEvent(QCloseEvent *closing)
 {
     if(_globals->getProcessing()) {
