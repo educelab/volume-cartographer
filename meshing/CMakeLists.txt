@@ -6,8 +6,7 @@ set(MESHING_INCLUDE_DIR ${MESHING_INCLUDE_DIR} PARENT_SCOPE)
 if(TARGET vc_meshing)
 message("meshing is already defined")
 else()
-set(meshing_SOURCES ACVD.h ACVD.cpp
-                    orderedPCDMesher.h orderedPCDMesher.cpp
+set(meshing_SOURCES orderedPCDMesher.h orderedPCDMesher.cpp
                     resamplePointCloud.h resamplePointCloud.cpp
                     greedyProjectionMeshing.h greedyProjectionMeshing.cpp
                     poissonReconstruction.h poissonReconstruction.cpp
@@ -16,6 +15,11 @@ set(meshing_SOURCES ACVD.h ACVD.cpp
                     scaleMesh.h scaleMesh.cpp
                     smoothNormals.h smoothNormals.cpp
                     deepCopy.cpp deepCopy.h)
+
+#Conditional compiles
+if(ACVD_FOUND)
+     set(meshing_SOURCES ${meshing_SOURCES} ACVD.h ACVD.cpp)
+endif(ACVD_FOUND)
 
 if(BULLET_FOUND)
     set(meshing_SOURCES ${meshing_SOURCES} itk2bullet.h itk2bullet.cpp)
