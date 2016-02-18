@@ -62,10 +62,7 @@ struct ScaledPlaneFixture {
     ScaledPlaneFixture() {
 
         _in_PlaneMesh = _Plane.itkMesh();
-
         _ScaleFactor = 3;
-        
-        volcart::meshing::scaleMesh(_in_PlaneMesh, _out_PlaneMeshUsedForRegressionTest, _ScaleFactor);
 
         //Regression
         _in_PlaneMeshUsedForRegressionTest = _Plane.itkMesh();

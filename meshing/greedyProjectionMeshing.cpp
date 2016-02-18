@@ -4,6 +4,10 @@
 
 #include "greedyProjectionMeshing.h"
 
+/*
+ * See here for some documentation: http://www.pointclouds.org/documentation/tutorials/greedy_projection.php
+ */
+
 namespace volcart {
     namespace meshing {
 
