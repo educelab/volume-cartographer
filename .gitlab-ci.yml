@@ -6,8 +6,7 @@ stages:
 build_it:
     stage: build
     script:
-        - echo "Branch - " $CI_BUILD_REF_NAME
-        - echo "Stage - " $CI_BUILD_STAGE
+        - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
         - echo "---- Work it. Make it. ----"
         - mkdir -p build
         - cd build/
@@ -30,12 +29,14 @@ build_it:
 test_it:
     stage: test
     script:
-        - echo "Branch - " $CI_BUILD_REF_NAME
-        - echo "Stage - " $CI_BUILD_STAGE
-        - ls -al *
-        - cat build
+        - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
+        - mkdir -p build
+        - cd build/
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -GNinja ..
+        - ninja
         - ninja test
     artifacts:
+      key: "$CI_BUILD_STAGE/$CI_BUILD_REF_NAME"
       paths:
         - build/testing/Temporary/
     tags:
@@ -43,7 +44,8 @@ test_it:
         - osx
         - homebrew
         - qt5
-    allow_failure: true  
+
+    allow_failure: true
 
 deploy_it_osx:
     stage: deploy
