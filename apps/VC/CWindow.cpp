@@ -408,6 +408,7 @@ void CWindow::DoSegmentation( void )
     fMasterCloud.width = fUpperPart.width;
     fMasterCloud.height = fMasterCloud.size() / fMasterCloud.width;
 
+    statusBar->showMessage( tr("Segmentation complete") );
     fVpkgChanged = true;
 }
 
@@ -460,7 +461,7 @@ bool CWindow::SetUpSegParams( void )
 void CWindow::SetUpCurves( void )
 {
     if ( fVpkg == NULL || fMasterCloud.empty() ) {
-        statusBar->showMessage( tr("Selected point cloud is empty"), 5000 );
+        statusBar->showMessage( tr("Selected point cloud is empty") );
         std::cerr << "VC::Warning: Point cloud for this segmentation is empty." << std::endl;
         return;
     }
@@ -683,6 +684,9 @@ void CWindow::OnNewPathClicked( void )
     // add new path to path list
     QListWidgetItem *aNewPath = new QListWidgetItem( QString( newSegmentationId.c_str() ) );
     fPathListWidget->addItem( aNewPath );
+
+    // Make sure we stay on the current slice
+    fMinSegIndex = fPathOnSliceIndex;
 
     // Activate the new item
     fPathListWidget->setCurrentItem( aNewPath );
