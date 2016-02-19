@@ -39,7 +39,6 @@ CWindow::CWindow( void ) :
     fSegParams.fGravityScale = 0.3;
     fSegParams.fThreshold = 1;
     fSegParams.fEndOffset = 5;
-    previous = NULL;
 
     // create UI widgets
     CreateWidgets();
@@ -676,10 +675,8 @@ void CWindow::SavePointCloud( void )
 // Create new path
 void CWindow::OnNewPathClicked( void )
 {
-    // If a path is selected, it's cloud has points, and it's not a newly intialized path, ask to save
-    if( fSegmentationId != "" && fMasterCloud.size() > 0 && fMasterCloud.height > 1 ) {
-        if ( SaveDialog() == SaveResponse::Cancelled ) return;
-    }
+    // Save if we need to
+    if ( SaveDialog() == SaveResponse::Cancelled ) return;
 
     // Make a new segmentation in the volpkg
     std::string newSegmentationId = fVpkg->newSegmentation();
@@ -694,7 +691,7 @@ void CWindow::OnNewPathClicked( void )
 }
 
 // Handle path item click event
-void CWindow::OnPathItemClicked(QListWidgetItem *nItem)
+void CWindow::OnPathItemClicked( QListWidgetItem *nItem )
 {
     if ( SaveDialog() == SaveResponse::Cancelled ) {
         // Update the list to show the previous selection

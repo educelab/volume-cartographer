@@ -175,7 +175,6 @@ private:
 
     CVolumeViewerWithCurve *fVolumeViewerWidget;
     QListWidget *fPathListWidget;
-    QListWidgetItem* previous;
     QPushButton *fPenTool; // REVISIT - change me to QToolButton
     QPushButton *fSegTool;
 
