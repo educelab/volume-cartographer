@@ -1,31 +1,44 @@
 stages:
+    - build
     - test
     - deploy
 
-build_it_test_it:
-    stage: test
+build_it:
+    stage: build
     script:
-        - echo $CI_BUILD_REF_NAME  #just checking out branch specifics
+        - echo "Branch - " $CI_BUILD_REF_NAME
+        - echo "Stage - " $CI_BUILD_STAGE
         - echo "---- Work it. Make it. ----"
-        # create build dir if not present
         - mkdir -p build
         - cd build/
-        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 ..
-        - make
-        - echo "---- Do it. Makes us. ----"   # TODO: remove once build/test stage completely separate
-        - make test                           #       remove this too
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -Gninja ..
+        - ninja
+
+    cache:
+      key: "$CI_BUILD_STAGE/$CI_BUILD_REF_NAME"
+      paths:
+        - build/
+    tags:
+        - build
+        - osx
+        - homebrew
+        - qt5
+
+test_it:
+    stage: test
+    script:
+        - echo "Branch - " $CI_BUILD_REF_NAME
+        - echo "Stage - " $CI_BUILD_STAGE
+        - ninja test
     artifacts:
       paths:
         - build/testing/Temporary/
-    cache:
-      key: "$CI_BUILD_REF_NAME"    # enable per-branch caching
-      paths:
-        - build/
     tags:
         - test
         - osx
         - homebrew
         - qt5
+    allow_failure: true  #might be the key to allowing artifacts on failure??
 
 deploy_it_osx:
     stage: deploy
