@@ -187,6 +187,8 @@ private:
 
     Ui::VCMainWindow    ui;
 
+    QStatusBar  *statusBar;
+
 }; // class CWindow
 
 } // namespace ChaoVis

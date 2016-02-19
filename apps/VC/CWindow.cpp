@@ -181,6 +181,9 @@ void CWindow::CreateWidgets( void )
     // Impact Range slider
     QSlider *fEdtImpactRange = this->findChild< QSlider * >( "sldImpactRange" );
     connect( fEdtImpactRange, SIGNAL( valueChanged(int) ), this, SLOT( OnEdtImpactRange( int ) ) );
+
+    // Setup the status bar
+    statusBar = this->findChild< QStatusBar * >( "statusBar" );
 }
 
 // Create menus
@@ -351,6 +354,8 @@ void CWindow::UpdateView( void )
 
 // Activate a specific segmentation by ID
 void CWindow::ChangePathItem( std::string segID ) {
+    statusBar->clearMessage();
+
     // Close the current segmentation
     ResetPointCloud();
 
@@ -468,6 +473,7 @@ bool CWindow::SetUpSegParams( void )
 void CWindow::SetUpCurves( void )
 {
     if ( fVpkg == NULL || fMasterCloud.empty() ) {
+        statusBar->showMessage( tr("Selected point cloud is empty"), 5000 );
         std::cerr << "VC::Warning: Point cloud for this segmentation is empty." << std::endl;
         return;
     }
@@ -685,6 +691,7 @@ void CWindow::SavePointCloud( void )
         if (fVpkg->saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr(new pcl::PointCloud<pcl::PointXYZRGB>(fMasterCloud))) != EXIT_SUCCESS) {
             QMessageBox::warning(this, "Error", "Failed to write mesh to volume package.");
         } else {
+            statusBar->showMessage( tr("Volume saved!") , 5000 );
             std::cerr << "VC::message: Succesfully saved mesh." << std::endl;
         }
     }
