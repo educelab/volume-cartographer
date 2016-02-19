@@ -3,17 +3,17 @@
 #ifndef _CWINDOW_H_
 #define _CWINDOW_H_
 
-#include "VCNewGuiHeader.h"
-
 #include <QtWidgets>
+#include <QRect>
+#include <QCloseEvent>
+#include <QMessageBox>
+#include <opencv2/opencv.hpp>
 
+#include "VCNewGuiHeader.h"
 #include "mathUtils.h"
 #include "CBSpline.h"
 #include "CXCurve.h"
-
 #include "ui_VCMain.h"
-
-#include <opencv2/opencv.hpp>
 
 #ifndef Q_MOC_RUN
 #include <pcl/common/common.h>
@@ -38,6 +38,8 @@ public:
                         WindowStateDrawPath,    // draw new path
                         WindowStateSegmentation,// segmentation mode
                         WindowStateIdle };      // idle
+    enum SaveResponse : bool { Cancelled,
+                               Continue};
 
     typedef struct SSegParams_tag {
         double fGravityScale;
@@ -47,22 +49,27 @@ public:
 
 public:
     CWindow( void );
+    CWindow(QRect windowSize);
     ~CWindow( void );
 
 protected:
     void mousePressEvent( QMouseEvent *nEvent );
-	void keyPressEvent( QKeyEvent *event );
+    void keyPressEvent( QKeyEvent *event );
 
 private:
     void CreateWidgets( void );
     void CreateMenus( void );
     void CreateActions( void );
 
+    void closeEvent(QCloseEvent *closing);
+
     void setWidgetsEnabled( bool state );
 
     bool InitializeVolumePkg( const std::string &nVpkgPath );
+    SaveResponse SaveDialog( void );
 
     void UpdateView( void );
+    void ChangePathItem( std::string segID );
 
     void SplitCloud( void );
     void DoSegmentation( void );
@@ -79,6 +86,7 @@ private:
     void SetPathPointCloud( void );
 
     void OpenVolume( void );
+    void CloseVolume( void );
 
     void ResetPointCloud( void );
 
@@ -116,6 +124,7 @@ private:
     VolumePkg   *fVpkg;
     QString     fVpkgPath;
     std::string fVpkgName;
+    bool        fVpkgChanged;
 
     std::string fSegmentationId;
 
@@ -156,16 +165,15 @@ private:
     pcl::PointCloud< pcl::PointXYZRGB > fLowerPart;
 
     // window components
-    QMenu		*fFileMenu;
+    QMenu       *fFileMenu;
     QMenu       *fHelpMenu;
 
-    QAction		*fOpenVolAct;
+    QAction     *fOpenVolAct;
     QAction     *fSavePointCloudAct;
-    QAction		*fExitAct;
+    QAction     *fExitAct;
     QAction     *fAboutAct;
 
-    CVolumeViewerWithCurve
-                *fVolumeViewerWidget;
+    CVolumeViewerWithCurve *fVolumeViewerWidget;
     QListWidget *fPathListWidget;
     QPushButton *fPenTool; // REVISIT - change me to QToolButton
     QPushButton *fSegTool;
@@ -178,6 +186,8 @@ private:
     QSlider     *fEdtImpactRange;
 
     Ui::VCMainWindow    ui;
+
+    QStatusBar  *statusBar;
 
 }; // class CWindow
 

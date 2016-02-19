@@ -196,3 +196,12 @@ void MainWindow::create_Menus()
 
     menuBar()->addMenu(fileMenu);
 }
+
+// User cannot exit program while texture is still running.
+void MainWindow::closeEvent(QCloseEvent *closing)
+{
+    if(_globals->getProcessing()) {
+        QMessageBox::warning(this, "Error", "This application cannot be closed while a texture is being generated. Please wait until the texturing process is complete and try again." );
+        closing->ignore();
+    } else closing->accept();
+}

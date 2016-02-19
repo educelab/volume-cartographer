@@ -19,6 +19,7 @@
 #include <QObject>
 #include <opencv2/opencv.hpp>
 #include <boost/filesystem.hpp>
+#include <QCloseEvent>
 
 #include "Global_Values.h"
 #include "Texture_Viewer.h"
@@ -42,6 +43,7 @@ public slots:
 private:
     void create_Actions();
     void create_Menus();
+    void closeEvent(QCloseEvent *closing);
 
     QMenu* fileMenu;
 

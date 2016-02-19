@@ -32,6 +32,8 @@ CWindow::CWindow( void ) :
 {
     ui.setupUi( this );
 
+    fVpkgChanged = false;
+
     // default parameters for segmentation method
     // REVISIT - refactor me
     fSegParams.fGravityScale = 0.3;
@@ -45,16 +47,56 @@ CWindow::CWindow( void ) :
     CreateActions();
     CreateMenus();
 
-#ifdef _DEBUG
-    if ( fVolumeViewerWidget == NULL ) {
-        QMessageBox::information( this, tr( "WARNING" ), tr( "Widget not found" ) );
-    } else {
-        OpenSlice();
-        UpdateView();
+    OpenSlice();
+    UpdateView();
 
-        update();
-    }
-#endif // _DEBUG
+    update();
+}
+
+// Constructor with QRect windowSize
+CWindow::CWindow( QRect windowSize ) :
+        fVpkg( NULL ),
+        fPathOnSliceIndex( 0 ),
+        fVolumeViewerWidget( NULL ),
+        fPathListWidget( NULL ),
+        fPenTool( NULL ),
+        fSegTool( NULL ),
+        fWindowState( EWindowState::WindowStateIdle ),
+        fSegmentationId( "" ),
+        fMinSegIndex( VOLPKG_SLICE_MIN_INDEX ),
+        fMaxSegIndex( VOLPKG_SLICE_MIN_INDEX )
+{
+    ui.setupUi( this );
+
+    fVpkgChanged = false;
+
+    int height = windowSize.height();
+    int width = windowSize.width();
+
+    //MIN DIMENSIONS
+    window()->setMinimumHeight(height/2);
+    window()->setMinimumWidth(width/2);
+    //MAX DIMENSIONS
+    window()->setMaximumHeight(height);
+    window()->setMaximumWidth(width);
+
+    // default parameters for segmentation method
+    // REVISIT - refactor me
+    fSegParams.fGravityScale = 0.3;
+    fSegParams.fThreshold = 1;
+    fSegParams.fEndOffset = 5;
+
+    // create UI widgets
+    CreateWidgets();
+
+    // create menu
+    CreateActions();
+    CreateMenus();
+
+    OpenSlice();
+    UpdateView();
+
+    update();
 }
 
 // Destructor
@@ -71,12 +113,12 @@ void CWindow::mousePressEvent( QMouseEvent *nEvent )
 // Handle key press event
 void CWindow::keyPressEvent( QKeyEvent *event )
 {
-	if ( event->key() == Qt::Key_Escape ) {
-		// REVISIT - should prompt warning before exit
-		close();
-	} else {
-		// REVISIT - dispatch key press event
-	}
+    if ( event->key() == Qt::Key_Escape ) {
+        // REVISIT - should prompt warning before exit
+        close();
+    } else {
+        // REVISIT - dispatch key press event
+    }
 }
 
 // Create widgets
@@ -141,6 +183,9 @@ void CWindow::CreateWidgets( void )
     // Impact Range slider
     QSlider *fEdtImpactRange = this->findChild< QSlider * >( "sldImpactRange" );
     connect( fEdtImpactRange, SIGNAL( valueChanged(int) ), this, SLOT( OnEdtImpactRange( int ) ) );
+
+    // Setup the status bar
+    statusBar = this->findChild< QStatusBar * >( "statusBar" );
 }
 
 // Create menus
@@ -172,6 +217,16 @@ void CWindow::CreateActions( void )
     connect( fSavePointCloudAct, SIGNAL( triggered() ), this, SLOT( SavePointCloud() ) );
 }
 
+// Asks User to Save Data Prior to VC.app Exit
+void CWindow::closeEvent(QCloseEvent *closing)
+{
+    if ( SaveDialog() == SaveResponse::Continue ) {
+        closing->accept();
+    } else {
+        closing->ignore();
+    }
+}
+
 void CWindow::setWidgetsEnabled(bool state)
 {
     this->findChild< QGroupBox * >( "grpVolManager" )->setEnabled( state );
@@ -192,6 +247,8 @@ bool CWindow::InitializeVolumePkg( const std::string &nVpkgPath )
         std::cerr << "VC::Error: Volume package failed to initialize." << std::endl;
     }
 
+    fVpkgChanged = false;
+
     if ( fVpkg == NULL ) {
         std::cerr << "VC::Error: Cannot open volume package at specified location: " << nVpkgPath << std::endl;
         QMessageBox::warning(this, "Error", "Volume package failed to load. Package might be corrupt.");
@@ -201,11 +258,33 @@ bool CWindow::InitializeVolumePkg( const std::string &nVpkgPath )
     return true;
 }
 
+CWindow::SaveResponse CWindow::SaveDialog( void ) {
+    // Return if nothing has changed
+    if ( !fVpkgChanged ) return SaveResponse::Continue;
+
+    QMessageBox::StandardButton response = QMessageBox::question( this, "Save changes?",
+                                                                  tr("Changes will be lost! Save volume package before continuing?\n"),
+                                                                  QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel );
+    switch (response) {
+        case QMessageBox::Save:
+            SavePointCloud();
+            return SaveResponse::Continue;
+        case QMessageBox::Discard:
+            fVpkgChanged = false;
+            return SaveResponse::Continue;
+        case QMessageBox::Cancel:
+            return SaveResponse::Cancelled;
+        default:
+            break; // should never be reached
+    }
+}
+
 // Update the widgets
 void CWindow::UpdateView( void )
 {
     if ( fVpkg == NULL ) {
         setWidgetsEnabled(false);// Disable Widgets for User
+        this->findChild< QLabel * >( "lblVpkgName" )->setText( "No Volume Package Loaded" );
         return;
     }
 
@@ -258,6 +337,29 @@ void CWindow::UpdateView( void )
     update();
 }
 
+// Activate a specific segmentation by ID
+void CWindow::ChangePathItem( std::string segID ) {
+    statusBar->clearMessage();
+
+    // Close the current segmentation
+    ResetPointCloud();
+
+    // Activate requested segmentation
+    fSegmentationId = segID;
+    fVpkg->setActiveSegmentation( fSegmentationId );
+
+    // load proper point cloud
+    fMasterCloud = *fVpkg->openCloud();
+    SetUpCurves();
+
+    // Move us to the lowest slice index for the cloud
+    fPathOnSliceIndex = fMinSegIndex;
+    OpenSlice();
+    SetCurrentCurve( fPathOnSliceIndex );
+
+    UpdateView();
+}
+
 // Split fMasterCloud into fUpperCloud and fLowerCloud
 void CWindow::SplitCloud( void )
 {
@@ -305,6 +407,8 @@ void CWindow::DoSegmentation( void )
     fMasterCloud = fUpperPart + fLowerPart;
     fMasterCloud.width = fUpperPart.width;
     fMasterCloud.height = fMasterCloud.size() / fMasterCloud.width;
+
+    fVpkgChanged = true;
 }
 
 void CWindow::CleanupSegmentation( void )
@@ -355,8 +459,9 @@ bool CWindow::SetUpSegParams( void )
 // Get the curves for all the slices
 void CWindow::SetUpCurves( void )
 {
-    if ( fVpkg == NULL || fMasterCloud.size() == 0 ) {
-        QMessageBox::information( this, tr( "Warning" ), tr( "Point cloud for this segmentation is empty." ) );
+    if ( fVpkg == NULL || fMasterCloud.empty() ) {
+        statusBar->showMessage( tr("Selected point cloud is empty"), 5000 );
+        std::cerr << "VC::Warning: Point cloud for this segmentation is empty." << std::endl;
         return;
     }
     fIntersections.clear();
@@ -488,8 +593,15 @@ void CWindow::OpenVolume( void )
 
     fVpkgPath = aVpkgPath;
     fPathOnSliceIndex = 2;
+}
 
+void CWindow::CloseVolume( void ) {
+    fVpkg = NULL;
+    fSegmentationId = "";
     ResetPointCloud();
+    OpenSlice();
+    InitPathList();
+    UpdateView();
 }
 
 // Reset point cloud
@@ -506,6 +618,9 @@ void CWindow::ResetPointCloud( void )
 // Handle open request
 void CWindow::Open( void )
 {
+    if ( SaveDialog() == SaveResponse::Cancelled ) return;
+
+    CloseVolume();
     OpenVolume();
     OpenSlice();
     InitPathList();
@@ -526,7 +641,8 @@ void CWindow::About( void )
 }
 
 // Save point cloud to path directory
-void CWindow::SavePointCloud( void ) {
+void CWindow::SavePointCloud( void )
+{
     if ( fMasterCloud.size() == 0 ) {
         std::cerr << "VC::message: Empty point cloud. Nothing to save." << std::endl;
         return;
@@ -535,6 +651,7 @@ void CWindow::SavePointCloud( void ) {
     // Try to save cloud to volpkg
     if ( fVpkg->saveCloud(fMasterCloud) != EXIT_SUCCESS ) {
         QMessageBox::warning(this, "Error", "Failed to write cloud to volume package.");
+        return;
     }
 
     // Only mesh if we have more than one iteration of segmentation
@@ -543,48 +660,46 @@ void CWindow::SavePointCloud( void ) {
     } else {
         if (fVpkg->saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr(new pcl::PointCloud<pcl::PointXYZRGB>(fMasterCloud))) != EXIT_SUCCESS) {
             QMessageBox::warning(this, "Error", "Failed to write mesh to volume package.");
+            return;
         } else {
             std::cerr << "VC::message: Succesfully saved mesh." << std::endl;
         }
     }
+
+    statusBar->showMessage( tr("Volume saved.") , 5000 );
+    std::cerr << "VC::message: Volume saved." << std::endl;
+    fVpkgChanged = false;
 }
 
 // Create new path
 void CWindow::OnNewPathClicked( void )
 {
-    fSegmentationId = fVpkg->newSegmentation();
-    fVpkg->setActiveSegmentation( fSegmentationId );
+    // Save if we need to
+    if ( SaveDialog() == SaveResponse::Cancelled ) return;
 
-    // Clear the cloud and save an empty one
-    ResetPointCloud();
+    // Make a new segmentation in the volpkg
+    std::string newSegmentationId = fVpkg->newSegmentation();
 
-    // add new path to path list and set it to active
-    QListWidgetItem *aNewPath = new QListWidgetItem( QString( fSegmentationId.c_str() ) );
+    // add new path to path list
+    QListWidgetItem *aNewPath = new QListWidgetItem( QString( newSegmentationId.c_str() ) );
     fPathListWidget->addItem( aNewPath );
-    fPathListWidget->setCurrentItem( aNewPath );
 
-    UpdateView();
+    // Activate the new item
+    fPathListWidget->setCurrentItem( aNewPath );
+    ChangePathItem( newSegmentationId );
 }
 
 // Handle path item click event
-void CWindow::OnPathItemClicked( QListWidgetItem* nItem )
+void CWindow::OnPathItemClicked( QListWidgetItem *nItem )
 {
-    // set active segmentation
-    fSegmentationId = nItem->text().toStdString();
-    fVpkg->setActiveSegmentation( nItem->text().toStdString() );
+    if ( SaveDialog() == SaveResponse::Cancelled ) {
+        // Update the list to show the previous selection
+        QListWidgetItem *previous = fPathListWidget->findItems( QString( fSegmentationId.c_str() ), Qt::MatchExactly )[0];
+        fPathListWidget->setCurrentItem( previous );
+        return;
+    }
 
-    ResetPointCloud();
-
-    // load proper point cloud
-    fMasterCloud = *fVpkg->openCloud();
-    SetUpCurves();
-
-    // Move us to the lowest slice index for the cloud
-    fPathOnSliceIndex = fMinSegIndex;
-    OpenSlice();
-    SetCurrentCurve( fPathOnSliceIndex );
-
-    UpdateView();
+    ChangePathItem( nItem->text().toStdString() );
 }
 
 // Toggle the status of the pen tool

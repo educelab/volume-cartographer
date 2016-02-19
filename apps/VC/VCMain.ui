@@ -76,7 +76,7 @@
            </sizepolicy>
           </property>
           <property name="currentIndex">
-           <number>1</number>
+           <number>0</number>
           </property>
           <widget class="QWidget" name="tabSegment">
            <property name="sizePolicy">
@@ -290,6 +290,8 @@
      </layout>
     </item>
    </layout>
+  </widget>
+  <widget class="QStatusBar" name="statusBar">
   </widget>
   <action name="actionOpen">
    <property name="text">

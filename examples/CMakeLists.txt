@@ -40,6 +40,22 @@ target_link_libraries(vc_resamplePointCloudExample ${VC_LIBS} ${VC_REQ_LIBS})
 add_executable(vc_orderedPCDExample orderedPCDMesherExample.cpp)
 target_link_libraries(vc_orderedPCDExample ${VC_LIBS} ${VC_REQ_LIBS})
 
+add_executable(vc_textureExample textureExample.cpp)
+target_link_libraries(vc_textureExample ${VC_LIBS} ${VC_REQ_LIBS})
+
+add_executable(vc_textureFlattened textureFlattened.cpp)
+target_link_libraries(vc_textureFlattened ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
+
+if(ACVD_FOUND)
+    add_executable(vc_ACVDExample ACVDExample.cpp)
+    target_link_libraries(vc_ACVDExample ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
+endif(ACVD_FOUND)
+
+#if(BULLET_FOUND)
+#    add_executable(vc_clothExample clothExample.cpp)
+#    target_link_libraries(vc_clothExample ${VC_LIBS} ${VC_REQ_LIBS})
+#endif(BULLET_FOUND)
+
 file(COPY ../testing/test_data/meshing/vtk.ply DESTINATION ${CMAKE_BINARY_DIR}/examples)
 file(COPY ../testing/test_data/meshing/itk.obj DESTINATION ${CMAKE_BINARY_DIR}/examples)
 add_executable(vc_parsingHelpers parsingHelpersExample.cpp ../testing/parsingHelpers.cpp ../testing/parsingHelpers.h)
