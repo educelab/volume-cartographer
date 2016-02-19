@@ -24,13 +24,13 @@ include_directories(${TESTING_INCLUDE_DIR})
 # Copy the .ply file to the current bin
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/common/OBJWriterPlaneData.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
 add_executable(vc_test_OBJExporter common/ObjWriterTest.cpp parsingHelpers.cpp)
-target_link_libraries(vc_test_OBJExporter ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+target_link_libraries(vc_test_OBJExporter ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME OBJExporter WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_OBJExporter )
 
 # Copy the .ply file to the current bin
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/common/output.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
 add_executable(vc_test_plyWriter common/plyWriterTest.cpp parsingHelpers.cpp)
-target_link_libraries(vc_test_plyWriter ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+target_link_libraries(vc_test_plyWriter ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME plyWriter WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_plyWriter )
 
 #file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/example.json DESTINATION ${CMAKE_BINARY_DIR}/bin)
@@ -51,7 +51,7 @@ add_test(NAME uvMap WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_uv
 #-----------------------#
 
 add_executable(vc_test_Sample examples/sampleTest.cpp)
-target_link_libraries(vc_test_Sample ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+target_link_libraries(vc_test_Sample ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME Sample WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_Sample )
 
 #-----------------------#
@@ -65,7 +65,7 @@ file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ArchGreedyProjectionMesh
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/SphereGreedyProjectionMeshing.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ConeGreedyProjectionMeshing.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
 add_executable(vc_test_greedyProjectionMeshing meshing/greedyProjectionMeshingTest.cpp)
-target_link_libraries(vc_test_greedyProjectionMeshing ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+target_link_libraries(vc_test_greedyProjectionMeshing ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME greedyProjectionMeshing WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_greedyProjectionMeshing)
 
 #copy vtk and itk test case files to build dir
@@ -80,7 +80,7 @@ file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/VTKArchMeshConvertedToIT
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/VTKSphereMeshConvertedToITK.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/VTKConeMeshConvertedToITK.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
 add_executable(vc_test_itk2vtk meshing/itk2vtkTest.cpp parsingHelpers.cpp)
-target_link_libraries(vc_test_itk2vtk ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+target_link_libraries(vc_test_itk2vtk ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME itk2vtk WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_itk2vtk )
 
 # Copy the test files created by orderedPCDMesherExample.cpp
@@ -90,7 +90,7 @@ file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ArchOrderedPCDMesher.ply
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/SphereOrderedPCDMesher.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ConeOrderedPCDMesher.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
 add_executable(vc_test_orderedPCDMesher meshing/orderedPCDMesherTest.cpp parsingHelpers.cpp)
-target_link_libraries(vc_test_orderedPCDMesher ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+target_link_libraries(vc_test_orderedPCDMesher ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME orderedPCDMesher WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_orderedPCDMesher )
 
 # Copy the test files created by poissonReconstructionExample.cpp 
@@ -101,7 +101,7 @@ file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ArchPoissonReconstructio
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/SpherePoissonReconstruction.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ConePoissonReconstruction.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
 add_executable(vc_test_poissonReconstruction meshing/poissonReconstructionTest.cpp)
-target_link_libraries(vc_test_poissonReconstruction ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+target_link_libraries(vc_test_poissonReconstruction ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME poissonReconstruction WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_poissonReconstruction )
 
 # Copy the test files created by rayTraceExample.cpp
@@ -111,7 +111,7 @@ file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/SavedArchRayTraceData.pl
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/SavedConeRayTraceData.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/SavedSphereRayTraceData.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
 add_executable(vc_test_rayTrace meshing/rayTraceTest.cpp parsingHelpers.cpp)
-target_link_libraries(vc_test_rayTrace ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+target_link_libraries(vc_test_rayTrace ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME rayTrace WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_rayTrace )
 
 # Copy the test files created by resamplePointCloudExample.cpp to the build dir
@@ -121,7 +121,7 @@ file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ArchResamplePointCloudEx
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/SphereResamplePointCloudExample.pcd DESTINATION ${CMAKE_BINARY_DIR}/bin)
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ConeResamplePointCloudExample.pcd DESTINATION ${CMAKE_BINARY_DIR}/bin)
 add_executable(vc_test_resamplePointCloud meshing/resamplePointCloudTest.cpp)
-target_link_libraries(vc_test_resamplePointCloud ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+target_link_libraries(vc_test_resamplePointCloud ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME resamplePointCloud WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_resamplePointCloud )
 
 # Copy the 'smoothed' test files created by smoothNormalsExample.cpp
@@ -131,7 +131,7 @@ file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ArchWithSmoothedNormals.
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/SphereWithSmoothedNormals.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ConeWithSmoothedNormals.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
 add_executable(vc_test_smoothNormals meshing/smoothNormalsTest.cpp parsingHelpers.cpp)
-target_link_libraries(vc_test_smoothNormals ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+target_link_libraries(vc_test_smoothNormals ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME smoothNormals WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_smoothNormals )
 
 # Copy the scaledMesh saved test files created by scaleMeshExample.cpp
@@ -141,7 +141,7 @@ file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ScaledArchMesh.obj DESTI
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ScaledSphereMesh.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ScaledConeMesh.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
 add_executable(vc_test_scaleMesh meshing/scaleMeshTest.cpp parsingHelpers.cpp)
-target_link_libraries(vc_test_scaleMesh ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+target_link_libraries(vc_test_scaleMesh ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME scaleMesh WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_scaleMesh )
 
 
