@@ -11,7 +11,7 @@ build_it:
         - echo "---- Work it. Make it. ----"
         - mkdir -p build
         - cd build/
-        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -Gninja ..
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -GNinja ..
         - ninja
 
     cache:
