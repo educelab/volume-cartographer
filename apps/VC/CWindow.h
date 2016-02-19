@@ -124,6 +124,7 @@ private:
     VolumePkg   *fVpkg;
     QString     fVpkgPath;
     std::string fVpkgName;
+    bool        fVpkgChanged;
 
     std::string fSegmentationId;
 

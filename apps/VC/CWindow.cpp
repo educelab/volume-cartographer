@@ -32,6 +32,8 @@ CWindow::CWindow( void ) :
 {
     ui.setupUi( this );
 
+    fVpkgChanged = false;
+
     // default parameters for segmentation method
     // REVISIT - refactor me
     fSegParams.fGravityScale = 0.3;
@@ -66,6 +68,8 @@ CWindow::CWindow( QRect windowSize ) :
         fMaxSegIndex( VOLPKG_SLICE_MIN_INDEX )
 {
     ui.setupUi( this );
+
+    fVpkgChanged = false;
 
     int height = windowSize.height();
     int width = windowSize.width();
@@ -218,13 +222,10 @@ void CWindow::CreateActions( void )
 // Asks User to Save Data Prior to VC.app Exit
 void CWindow::closeEvent(QCloseEvent *closing)
 {
-    if( fVpkg != NULL && fMasterCloud.size() > 0 )
-    {
-        if ( SaveDialog() == SaveResponse::Continue ) {
-            closing->accept();
-        } else {
-            closing->ignore();
-        }
+    if ( SaveDialog() == SaveResponse::Continue ) {
+        closing->accept();
+    } else {
+        closing->ignore();
     }
 }
 
@@ -248,6 +249,8 @@ bool CWindow::InitializeVolumePkg( const std::string &nVpkgPath )
         std::cerr << "VC::Error: Volume package failed to initialize." << std::endl;
     }
 
+    fVpkgChanged = false;
+
     if ( fVpkg == NULL ) {
         std::cerr << "VC::Error: Cannot open volume package at specified location: " << nVpkgPath << std::endl;
         QMessageBox::warning(this, "Error", "Volume package failed to load. Package might be corrupt.");
@@ -258,6 +261,9 @@ bool CWindow::InitializeVolumePkg( const std::string &nVpkgPath )
 }
 
 CWindow::SaveResponse CWindow::SaveDialog( void ) {
+    // Return if nothing has changed
+    if ( !fVpkgChanged ) return SaveResponse::Continue;
+
     QMessageBox::StandardButton response = QMessageBox::question( this, "Save changes?",
                                                                   tr("Changes will be lost! Save volume package before continuing?\n"),
                                                                   QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel );
@@ -266,6 +272,7 @@ CWindow::SaveResponse CWindow::SaveDialog( void ) {
             SavePointCloud();
             return SaveResponse::Continue;
         case QMessageBox::Discard:
+            fVpkgChanged = false;
             return SaveResponse::Continue;
         case QMessageBox::Cancel:
             return SaveResponse::Cancelled;
@@ -402,6 +409,8 @@ void CWindow::DoSegmentation( void )
     fMasterCloud = fUpperPart + fLowerPart;
     fMasterCloud.width = fUpperPart.width;
     fMasterCloud.height = fMasterCloud.size() / fMasterCloud.width;
+
+    fVpkgChanged = true;
 }
 
 void CWindow::CleanupSegmentation( void )
@@ -611,10 +620,7 @@ void CWindow::ResetPointCloud( void )
 // Handle open request
 void CWindow::Open( void )
 {
-    if(fVpkg != NULL && fMasterCloud.size()>0)
-    {
-        if ( SaveDialog() == SaveResponse::Cancelled ) return;
-    }
+    if ( SaveDialog() == SaveResponse::Cancelled ) return;
 
     CloseVolume();
     OpenVolume();
@@ -647,6 +653,7 @@ void CWindow::SavePointCloud( void )
     // Try to save cloud to volpkg
     if ( fVpkg->saveCloud(fMasterCloud) != EXIT_SUCCESS ) {
         QMessageBox::warning(this, "Error", "Failed to write cloud to volume package.");
+        return;
     }
 
     // Only mesh if we have more than one iteration of segmentation
@@ -655,11 +662,15 @@ void CWindow::SavePointCloud( void )
     } else {
         if (fVpkg->saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr(new pcl::PointCloud<pcl::PointXYZRGB>(fMasterCloud))) != EXIT_SUCCESS) {
             QMessageBox::warning(this, "Error", "Failed to write mesh to volume package.");
+            return;
         } else {
-            statusBar->showMessage( tr("Volume saved!") , 5000 );
             std::cerr << "VC::message: Succesfully saved mesh." << std::endl;
         }
     }
+
+    statusBar->showMessage( tr("Volume saved.") , 5000 );
+    std::cerr << "VC::message: Volume saved." << std::endl;
+    fVpkgChanged = false;
 }
 
 // Create new path
@@ -685,15 +696,11 @@ void CWindow::OnNewPathClicked( void )
 // Handle path item click event
 void CWindow::OnPathItemClicked(QListWidgetItem *nItem)
 {
-    // If a path is selected, it's cloud has points, and it's not a newly intialized path, ask to save
-    if( fSegmentationId != "" && fMasterCloud.size() > 0 && fMasterCloud.height > 1 ) {
-        if ( SaveDialog() == SaveResponse::Cancelled ) {
-
-            // Update the list to show the previous selection
-            QListWidgetItem *previous = fPathListWidget->findItems( QString( fSegmentationId.c_str() ), Qt::MatchExactly )[0];
-            fPathListWidget->setCurrentItem( previous );
-            return;
-        }
+    if ( SaveDialog() == SaveResponse::Cancelled ) {
+        // Update the list to show the previous selection
+        QListWidgetItem *previous = fPathListWidget->findItems( QString( fSegmentationId.c_str() ), Qt::MatchExactly )[0];
+        fPathListWidget->setCurrentItem( previous );
+        return;
     }
 
     ChangePathItem( nItem->text().toStdString() );
