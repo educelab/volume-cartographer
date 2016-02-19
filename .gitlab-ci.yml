@@ -18,6 +18,9 @@ build_it:
       key: "$CI_BUILD_STAGE/$CI_BUILD_REF_NAME"
       paths:
         - build/
+    artifacts:
+      paths:
+        - build/
     tags:
         - build
         - osx
@@ -29,7 +32,8 @@ test_it:
     script:
         - echo "Branch - " $CI_BUILD_REF_NAME
         - echo "Stage - " $CI_BUILD_STAGE
-        - cd build/
+        - ls -al *
+        - cat build
         - ninja test
     artifacts:
       paths:
@@ -39,7 +43,7 @@ test_it:
         - osx
         - homebrew
         - qt5
-    allow_failure: true  #might be the key to allowing artifacts on failure??
+    allow_failure: true  
 
 deploy_it_osx:
     stage: deploy
