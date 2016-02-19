@@ -105,7 +105,7 @@ private slots:
     void OnEdtGravityValChange();
     void OnEdtSampleDistValChange( QString nText );
     void OnEdtStartingSliceValChange( QString nText );
-    void OnEdtEndingSliceValChange( QString nText );
+    void OnEdtEndingSliceValChange();
 
     void OnBtnStartSegClicked( void );
 
