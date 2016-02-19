@@ -174,7 +174,7 @@ void CWindow::CreateWidgets( void )
     connect( fEdtGravity, SIGNAL( editingFinished() ), this, SLOT( OnEdtGravityValChange() ) );
     connect( fEdtSampleDist, SIGNAL( textEdited(QString) ), this, SLOT( OnEdtSampleDistValChange( QString ) ) );
     connect( fEdtStartIndex, SIGNAL( textEdited(QString) ), this, SLOT( OnEdtStartingSliceValChange( QString ) ) );
-    connect( fEdtEndIndex, SIGNAL( textEdited(QString) ), this, SLOT( OnEdtEndingSliceValChange( QString ) ) );
+    connect( fEdtEndIndex, SIGNAL( editingFinished() ), this, SLOT( OnEdtEndingSliceValChange() ) );
 
     // start segmentation button
     QPushButton *aBtnStartSeg = this->findChild< QPushButton * >( "btnStartSeg" );
@@ -448,7 +448,7 @@ bool CWindow::SetUpSegParams( void )
 
     // ending slice index
     aNewVal = fEdtEndIndex->text().toInt( &aIsOk );
-    if ( aIsOk && aNewVal > fPathOnSliceIndex ) {
+    if ( aIsOk && aNewVal > fPathOnSliceIndex && aNewVal < fVpkg->getNumberOfSlices() ) {
         fSegParams.fEndOffset = aNewVal - fPathOnSliceIndex; // difference between the starting slice and ending slice
     } else {
         return false;
@@ -785,13 +785,16 @@ void CWindow::OnEdtStartingSliceValChange( QString nText )
 }
 
 // Handle ending slice value change
-void CWindow::OnEdtEndingSliceValChange( QString nText )
+void CWindow::OnEdtEndingSliceValChange()
 {
     // ending slice index
     bool aIsOk = false;
-    int aNewVal = nText.toInt( &aIsOk );
-    if ( aIsOk && aNewVal > fPathOnSliceIndex ) {
+    int aNewVal = fEdtEndIndex->displayText().toInt( &aIsOk );
+    if ( aIsOk && aNewVal > fPathOnSliceIndex && aNewVal < fVpkg->getNumberOfSlices() ) {
         fSegParams.fEndOffset = aNewVal - fPathOnSliceIndex; // difference between the starting slice and ending slice
+    } else {
+        statusBar->showMessage( tr("ERROR: Selected slice is out of range of the volume!") );
+        fEdtEndIndex->setText( QString::number(fPathOnSliceIndex + fSegParams.fEndOffset) );
     }
 }
 
