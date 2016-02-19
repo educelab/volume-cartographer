@@ -16,6 +16,19 @@
 #define VC_INDEX_Y 1
 #define VC_INDEX_Z 2
 
+// VC - Useful typedefs for general purpose use
+typedef struct {
+    double x, y, z, nx, ny, nz, s, t;
+    int r, g, b, face_count;
+} VC_Vertex;
+
+class VC_Cell {
+public:
+    VC_Cell() {};
+    VC_Cell( unsigned long p1, unsigned long p2, unsigned long p3 ) : v1(p1), v2(p2), v3(p3) {};
+    unsigned long v1, v2, v3;
+};
+
 ///// VC - ITK Mesh Defaults /////
 #include <itkMesh.h>
 #include "itkPointsLocator.h"

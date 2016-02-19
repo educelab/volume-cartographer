@@ -18,12 +18,13 @@ option(INSTALL_VC_DEMO "Install VC demo apps" OFF)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/)
 IF(VC_PREBUILT_LIBS)
     set(CMAKE_PREFIX_PATH ${PROJECT_SOURCE_DIR}/vc-deps/deps/)
+    add_definitions(-DVC_PREBUILT_LIBS)
 ENDIF(VC_PREBUILT_LIBS)
 
 find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets OpenGL PrintSupport)
 find_package(PCL 1.7 REQUIRED)
 find_package(OpenCV REQUIRED)
-find_package(Boost REQUIRED COMPONENTS system filesystem program_options iostreams)
+find_package(Boost REQUIRED COMPONENTS system filesystem program_options iostreams unit_test_framework)
 find_package(ITK REQUIRED)
 find_package(VTK 6.1 REQUIRED)
 find_package(OpenGL REQUIRED)
@@ -56,6 +57,9 @@ IF(APPLE)
     SET(EXTRA_LIBS ${SECURITY_LIBRARY})
 ENDIF(APPLE)
 
+#for unit testing
+enable_testing()
+
 # VC Libraries
 add_subdirectory(common)
 include_directories(${VC_COMMON_INCLUDE_DIR})
@@ -79,6 +83,7 @@ add_subdirectory(packager)
 #add_subdirectory(pathgen)
 add_subdirectory(apps)
 add_subdirectory(utils)
+add_subdirectory(testing)
 
 # VC Demo Apps
 #add_subdirectory(region)

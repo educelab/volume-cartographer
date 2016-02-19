@@ -36,7 +36,7 @@ namespace volcart {
       calcNormals->Update();
       vtkMesh = calcNormals->GetOutput();
 
-      // Creat vtk OBBTree
+      // Create vtk OBBTree
       vtkSmartPointer<vtkOBBTree> obbTree = vtkSmartPointer<vtkOBBTree>::New();
       obbTree->SetDataSet(vtkMesh);
       obbTree->SetNumberOfCellsPerNode(2); // Increases BuildLocator time, but its worth it for large meshes

@@ -32,6 +32,7 @@ namespace io {
 
     bool validate(); // make sure all required output parameters have been set
 
+    boost::filesystem::path getPath() const {return _outputPath;}
     int write();
     int writeOBJ();
     int writeMTL();
