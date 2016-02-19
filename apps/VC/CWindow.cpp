@@ -275,7 +275,7 @@ CWindow::SaveResponse CWindow::SaveDialog( void ) {
         case QMessageBox::Cancel:
             return SaveResponse::Cancelled;
         default:
-            break; // should never be reached
+            return SaveResponse::Cancelled; // should never be reached
     }
 }
 
