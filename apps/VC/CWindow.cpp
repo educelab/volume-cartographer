@@ -297,6 +297,9 @@ void CWindow::UpdateView( void )
     fEdtGravity->setText( QString( "%1" ).arg( fSegParams.fGravityScale ) );
     fEdtSampleDist->setText( QString( "%1" ).arg( fSegParams.fThreshold ) );
     fEdtStartIndex->setText( QString( "%1" ).arg( fPathOnSliceIndex ) );
+    
+    if ( fSegParams.fEndOffset + fPathOnSliceIndex >= fVpkg->getNumberOfSlices() )
+        fSegParams.fEndOffset = (fVpkg->getNumberOfSlices() - 1) - fPathOnSliceIndex;
     fEdtEndIndex->setText( QString( "%1" ).arg( fSegParams.fEndOffset + fPathOnSliceIndex ) ); // offset + starting index
 
     if ( fIntersectionCurve.GetPointsNum() == 0) { // no points in current slice
@@ -795,7 +798,7 @@ void CWindow::OnEdtEndingSliceValChange()
     if ( aIsOk && aNewVal > fPathOnSliceIndex && aNewVal < fVpkg->getNumberOfSlices() ) {
         fSegParams.fEndOffset = aNewVal - fPathOnSliceIndex; // difference between the starting slice and ending slice
     } else {
-        statusBar->showMessage( tr("ERROR: Selected slice is out of range of the volume!") );
+        statusBar->showMessage( tr("ERROR: Selected slice is out of range of the volume!"), 10000 );
         fEdtEndIndex->setText( QString::number(fPathOnSliceIndex + fSegParams.fEndOffset) );
     }
 }
@@ -817,10 +820,13 @@ void CWindow::OnEdtImpactRange( int nImpactRange )
 // Handle loading any slice
 void CWindow::OnLoadAnySlice( int nSliceIndex )
 {
-    fPathOnSliceIndex = nSliceIndex;
-    OpenSlice();
-    SetCurrentCurve( fPathOnSliceIndex );
-    UpdateView();
+    if ( nSliceIndex >= 0 && nSliceIndex < fVpkg->getNumberOfSlices() ) {
+        fPathOnSliceIndex = nSliceIndex;
+        OpenSlice();
+        SetCurrentCurve( fPathOnSliceIndex );
+        UpdateView();
+    } else
+        statusBar->showMessage( tr("ERROR: Selected slice is out of range of the volume!"), 10000 );
 }
 
 // Handle loading the next slice
@@ -831,18 +837,20 @@ void CWindow::OnLoadNextSlice( void )
         OpenSlice();
         SetCurrentCurve(fPathOnSliceIndex);
         UpdateView();
-    }
+    } else
+        statusBar->showMessage( tr("Already at the end of the volume!"), 10000 );
 }
 
 // Handle loading the previous slice
 void CWindow::OnLoadPrevSlice( void )
 {
-    if (fPathOnSliceIndex > 2) {
+    if (fPathOnSliceIndex > 0) {
         --fPathOnSliceIndex;
         OpenSlice();
         SetCurrentCurve(fPathOnSliceIndex);
         UpdateView();
-    }
+    } else
+        statusBar->showMessage( tr("Already at the beginning of the volume!"), 10000 );
 }
 
 // Handle path change event
