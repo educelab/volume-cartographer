@@ -388,6 +388,8 @@ void CWindow::SplitCloud( void )
 // Do segmentation given the starting point cloud
 void CWindow::DoSegmentation( void )
 {
+    statusBar->clearMessage();
+    
     // REVISIT - do we need to get the latest value from the widgets since we constantly get the values?
     if ( !SetUpSegParams() ) {
         QMessageBox::information( this, tr( "Info" ), tr( "Invalid parameter for segmentation" ) );
