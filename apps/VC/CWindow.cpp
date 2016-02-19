@@ -271,6 +271,26 @@ bool CWindow::InitializeVolumePkg( const std::string &nVpkgPath )
     return true;
 }
 
+CWindow::SaveResponse CWindow::SaveDialog( void ) {
+    QMessageBox::StandardButton response = QMessageBox::question( this, "Save changes?",
+                                                                  tr("Changes will be lost! Save volume package before continuing?\n"),
+                                                                  QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel );
+    switch (response) {
+        case QMessageBox::Save:
+            SavePointCloud();
+            break;
+        case QMessageBox::Discard:
+            break;
+        case QMessageBox::Cancel:
+            return SaveResponse::Cancelled;
+        default:
+            // should never be reached
+            break;
+    }
+
+    return SaveResponse::Continue;
+}
+
 // Update the widgets
 void CWindow::UpdateView( void )
 {
@@ -327,6 +347,27 @@ void CWindow::UpdateView( void )
     fVolumeViewerWidget->UpdateView();
 
     update();
+}
+
+// Activate a specific segmentation by ID
+void CWindow::ChangePathItem( std::string segID ) {
+    // Close the current segmentation
+    ResetPointCloud();
+
+    // Activate requested segmentation
+    fSegmentationId = segID;
+    fVpkg->setActiveSegmentation( fSegmentationId );
+
+    // load proper point cloud
+    fMasterCloud = *fVpkg->openCloud();
+    SetUpCurves();
+
+    // Move us to the lowest slice index for the cloud
+    fPathOnSliceIndex = fMinSegIndex;
+    OpenSlice();
+    SetCurrentCurve( fPathOnSliceIndex );
+
+    UpdateView();
 }
 
 // Split fMasterCloud into fUpperCloud and fLowerCloud
@@ -426,8 +467,8 @@ bool CWindow::SetUpSegParams( void )
 // Get the curves for all the slices
 void CWindow::SetUpCurves( void )
 {
-    if ( fVpkg == NULL || fMasterCloud.size() == 0 ) {
-        QMessageBox::information( this, tr( "Warning" ), tr( "Point cloud for this segmentation is empty." ) );
+    if ( fVpkg == NULL || fMasterCloud.empty() ) {
+        std::cerr << "VC::Warning: Point cloud for this segmentation is empty." << std::endl;
         return;
     }
     fIntersections.clear();
@@ -652,95 +693,38 @@ void CWindow::SavePointCloud( void )
 // Create new path
 void CWindow::OnNewPathClicked( void )
 {
-    if(fMasterCloud.size()>0)
-    {
-        QMessageBox::StandardButton response = QMessageBox::question( this, "VC.app",
-                                                                      tr("Save changes to current segmentation before creating a new segmentation?\n"),
-                                                                      QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel );
-        switch (response) {
-            case QMessageBox::Save:
-                SavePointCloud();
-                break;
-            case QMessageBox::Discard:
-                break;
-            case QMessageBox::Cancel:
-                fPathListWidget->setCurrentItem( previous );
-                std::cerr << "VC::message: Creating new segmentation cancelled." << std::endl;
-                return;
-            default:
-                // should never be reached
-                break;
-        }
+    // If a path is selected, it's cloud has points, and it's not a newly intialized path, ask to save
+    if( fSegmentationId != "" && fMasterCloud.size() > 0 && fMasterCloud.height > 1 ) {
+        if ( SaveDialog() == SaveResponse::Cancelled ) return;
     }
 
-    fSegmentationId = fVpkg->newSegmentation();
-    fVpkg->setActiveSegmentation( fSegmentationId );
+    // Make a new segmentation in the volpkg
+    std::string newSegmentationId = fVpkg->newSegmentation();
 
-    // Clear the cloud and save an empty one
-    ResetPointCloud();
-
-    // add new path to path list and set it to active
-    QListWidgetItem *aNewPath = new QListWidgetItem( QString( fSegmentationId.c_str() ) );
+    // add new path to path list
+    QListWidgetItem *aNewPath = new QListWidgetItem( QString( newSegmentationId.c_str() ) );
     fPathListWidget->addItem( aNewPath );
-    fPathListWidget->setCurrentItem( aNewPath );
-    previous = aNewPath;
 
-    UpdateView();
+    // Activate the new item
+    fPathListWidget->setCurrentItem( aNewPath );
+    ChangePathItem( newSegmentationId );
 }
 
 // Handle path item click event
-void CWindow::OnPathItemClicked( QListWidgetItem* nItem )
+void CWindow::OnPathItemClicked(QListWidgetItem *nItem)
 {
-    // Instantiates previous to a new nItem if it is the first QListWidgetItem selected
-    if(previous == NULL) {
-        previous = nItem;
+    // If a path is selected, it's cloud has points, and it's not a newly intialized path, ask to save
+    if( fSegmentationId != "" && fMasterCloud.size() > 0 && fMasterCloud.height > 1 ) {
+        if ( SaveDialog() == SaveResponse::Cancelled ) {
+
+            // Update the list to show the previous selection
+            QListWidgetItem *previous = fPathListWidget->findItems( QString( fSegmentationId.c_str() ), Qt::MatchExactly )[0];
+            fPathListWidget->setCurrentItem( previous );
+            return;
+        }
     }
 
-    if(fSegmentationId != nItem->text().toStdString())// If user selects a different segmentation
-    {
-        if(fSegmentationId != "" && fMasterCloud.size()>0 && fMasterCloud.height>1)
-        {
-            QMessageBox::StandardButton response = QMessageBox::question( this, "VC.app",
-                                                                          tr("Save changes to current segmentation before switching to a new segmentation?\n"),
-                                                                          QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel );
-            switch (response) {
-                case QMessageBox::Save:
-                    SavePointCloud();
-                    previous = nItem;
-                    break;
-                case QMessageBox::Discard:
-                    previous = nItem;
-                    break;
-                case QMessageBox::Cancel:
-                    fPathListWidget->setCurrentItem( previous );
-                    std::cerr << "VC::message: Switch to segmentation cancelled." << std::endl;
-                    return;
-                default:
-                    // should never be reached
-                    break;
-            }
-        }
-
-        previous = nItem;
-        // set active segmentation
-        fSegmentationId = nItem->text().toStdString();
-        fVpkg->setActiveSegmentation( nItem->text().toStdString() );
-
-        ResetPointCloud();
-
-        // load proper point cloud
-        fMasterCloud = *fVpkg->openCloud();
-        SetUpCurves();
-
-        // Move us to the lowest slice index for the cloud
-        fPathOnSliceIndex = fMinSegIndex;
-        OpenSlice();
-        SetCurrentCurve( fPathOnSliceIndex );
-
-        UpdateView();
-
-    }else std::cerr<<"VC::message: It is the same segmentation..... Nothing to do!"<<std::endl;
-
+    ChangePathItem( nItem->text().toStdString() );
 }
 
 // Toggle the status of the pen tool

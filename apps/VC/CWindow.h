@@ -38,6 +38,8 @@ public:
                         WindowStateDrawPath,    // draw new path
                         WindowStateSegmentation,// segmentation mode
                         WindowStateIdle };      // idle
+    enum SaveResponse : bool { Cancelled,
+                               Continue};
 
     typedef struct SSegParams_tag {
         double fGravityScale;
@@ -64,8 +66,10 @@ private:
     void setWidgetsEnabled( bool state );
 
     bool InitializeVolumePkg( const std::string &nVpkgPath );
+    SaveResponse SaveDialog( void );
 
     void UpdateView( void );
+    void ChangePathItem( std::string segID );
 
     void SplitCloud( void );
     void DoSegmentation( void );
