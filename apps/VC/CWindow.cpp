@@ -220,28 +220,11 @@ void CWindow::closeEvent(QCloseEvent *closing)
 {
     if( fVpkg != NULL && fMasterCloud.size() > 0 )
     {
-        QMessageBox::StandardButton response = QMessageBox::question( this, "VC",
-                                                                    tr("Save current segmentation changes before quitting?\n"),
-                                                                    QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel );
-
-        switch (response) {
-            case QMessageBox::Save:
-                SavePointCloud();
-                closing->accept();
-                std::cerr << "VC::message: Closing VC.app" << std::endl;
-                break;
-            case QMessageBox::Discard:
-                closing->accept();
-                std::cerr << "VC::message: Closing VC.app" << std::endl;
-                break;
-            case QMessageBox::Cancel:
-                closing->ignore();
-                break;
-            default:
-                // should never be reached
-                break;
+        if ( SaveDialog() == SaveResponse::Continue ) {
+            closing->accept();
+        } else {
+            closing->ignore();
         }
-
     }
 }
 
@@ -281,17 +264,14 @@ CWindow::SaveResponse CWindow::SaveDialog( void ) {
     switch (response) {
         case QMessageBox::Save:
             SavePointCloud();
-            break;
+            return SaveResponse::Continue;
         case QMessageBox::Discard:
-            break;
+            return SaveResponse::Continue;
         case QMessageBox::Cancel:
             return SaveResponse::Cancelled;
         default:
-            // should never be reached
-            break;
+            break; // should never be reached
     }
-
-    return SaveResponse::Continue;
 }
 
 // Update the widgets
@@ -633,22 +613,7 @@ void CWindow::Open( void )
 {
     if(fVpkg != NULL && fMasterCloud.size()>0)
     {
-        QMessageBox::StandardButton response = QMessageBox::question( this, "VC.app",
-                                                                      tr("Save changes to current segmentation before opening new volume package?\n"),
-                                                                      QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel );
-        switch (response) {
-            case QMessageBox::Save:
-                SavePointCloud();
-                break;
-            case QMessageBox::Discard:
-                break;
-            case QMessageBox::Cancel:
-                std::cerr << "VC::message: Open volume package cancelled." << std::endl;
-                return;
-            default:
-                // should never be reached
-                break;
-        }
+        if ( SaveDialog() == SaveResponse::Cancelled ) return;
     }
 
     CloseVolume();
