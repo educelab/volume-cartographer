@@ -85,7 +85,6 @@ CWindow::CWindow( QRect windowSize ) :
     fSegParams.fGravityScale = 0.3;
     fSegParams.fThreshold = 1;
     fSegParams.fEndOffset = 5;
-    previous = NULL;
 
     // create UI widgets
     CreateWidgets();
