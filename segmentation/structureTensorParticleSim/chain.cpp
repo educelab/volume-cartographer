@@ -36,9 +36,9 @@ Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg& volpkg, 
   // Set the slice index we will end at
   // If user does not define endOffset, target index == last slice with a surface normal file
   _target_index = ((endOffset == DEFAULT_OFFSET)
-                   ? (volpkg.getNumberOfSlices() - 3) // Account for zero-indexing and slices lost in calculating normal vector
+                   ? (volpkg.getNumberOfSlices() - 1) // Account for zero-indexing and slices lost in calculating normal vector
                    : (_start_index + endOffset));
-  if ( _target_index > volpkg.getNumberOfSlices() - 3 ) _target_index = volpkg.getNumberOfSlices() - 3;
+  if ( _target_index >= volpkg.getNumberOfSlices() ) _target_index = volpkg.getNumberOfSlices() - 1;
 
   // Set _realIterationsCount based on starting index, target index, and how frequently we want to sample the segmentation
   _real_iterations = (int)(ceil(((_target_index - _start_index) + 1) / _threshold));

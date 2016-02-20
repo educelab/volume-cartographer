@@ -449,11 +449,9 @@ bool CWindow::SetUpSegParams( void )
         return false;
     }
 
-    // starting slice index is fPathOnSliceIndex
-
     // ending slice index
     aNewVal = fEdtEndIndex->text().toInt( &aIsOk );
-    if ( aIsOk && aNewVal > fPathOnSliceIndex && aNewVal < fVpkg->getNumberOfSlices() ) {
+    if ( aIsOk && aNewVal >= fPathOnSliceIndex && aNewVal < fVpkg->getNumberOfSlices() ) {
         fSegParams.fEndOffset = aNewVal - fPathOnSliceIndex; // difference between the starting slice and ending slice
     } else {
         return false;
@@ -598,7 +596,7 @@ void CWindow::OpenVolume( void )
     }
 
     fVpkgPath = aVpkgPath;
-    fPathOnSliceIndex = 2;
+    fPathOnSliceIndex = 0;
 }
 
 void CWindow::CloseVolume( void ) {
