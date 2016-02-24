@@ -29,15 +29,10 @@ public:
     FittedCurve(const std::vector<Voxel>& vs, const int32_t zIndex);
 
     int32_t size() const { return npoints_; }
-
     const std::vector<Pixel>& points() const { return currentPoints_; }
-
     const decltype(spline_)& spline() const { return spline_; }
-
     std::vector<Voxel> seedPoints() const { return seedPoints_; }
-
     Pixel eval(double t) const { return spline_.eval(t); }
-
     std::vector<Voxel> resample(const double resamplePerc = 1.0);
 
     Voxel operator()(const int32_t index) const;
@@ -73,7 +68,8 @@ public:
         return d1FivePointStencil(currentPoints_, index, hstep);
     }
 
-    std::vector<double> curvature(const int32_t hstep = 1) const;
+    std::vector<double> curvature(const int32_t hstep = 1,
+                                  const double scaleFactor = 1) const;
 };
 }
 }

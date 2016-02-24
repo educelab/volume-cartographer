@@ -95,7 +95,8 @@ double calcArcLength(const std::vector<Voxel>& vs)
     return length;
 }
 
-std::vector<double> FittedCurve::curvature(const int32_t hstep) const
+std::vector<double> FittedCurve::curvature(const int32_t hstep,
+                                           const double scaleFactor) const
 {
     std::vector<double> xs, ys;
     xs.reserve(currentPoints_.size());
@@ -116,7 +117,8 @@ std::vector<double> FittedCurve::curvature(const int32_t hstep) const
     k.reserve(currentPoints_.size());
     for (size_t i = 0; i < currentPoints_.size(); ++i) {
         k.push_back((dx1[i] * dy2[i] - dy1[i] * dx2[i]) /
-                    std::pow(dx1[i] * dx1[i] + dy1[i] * dy1[i], 3.0 / 2.0));
+                    std::pow(dx1[i] * dx1[i] + dy1[i] * dy1[i], 3.0 / 2.0) *
+                    scaleFactor);
     }
 
     return k;
