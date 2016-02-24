@@ -18,14 +18,15 @@ public:
     IntensityMap(cv::Mat);
 
     cv::Mat draw();
-    IndexIntensityPairVec sortedMaxima() const;
+    IndexIntensityPairVec sortedMaxima();
 
     void setFinalChosenMaximaIndex(const int32_t index)
     {
         chosenMaximaIndex_ = index;
     }
 
-    void incrementFinalChosenMaximaIndex(void) { chosenMaximaIndex_++; }
+    int32_t chosenMaximaIndex(void) const { return chosenMaximaIndex_; }
+    void incrementChosenMaximaIndex(void) { chosenMaximaIndex_++; }
 private:
     friend std::ostream& operator<<(std::ostream& s, const IntensityMap& m)
     {
