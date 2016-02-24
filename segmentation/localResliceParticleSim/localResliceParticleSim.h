@@ -20,8 +20,8 @@ public:
     pcl::PointCloud<pcl::PointXYZRGB> segmentPath(
         const vec<Voxel>& initPath, const double resamplePerc,
         const int32_t startIndex, const int32_t endIndex,
-        const int32_t numIters, const int32_t keepNumMaxima,
-        const int32_t stepNumLayers, const bool dumpVis, const bool visualize,
+        const int32_t numIters, const int32_t stepNumLayers, const double alpha,
+        const double beta, const bool dumpVis, const bool visualize,
         const int32_t visIndex);
 
 private:
