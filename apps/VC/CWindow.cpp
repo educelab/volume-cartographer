@@ -174,7 +174,7 @@ void CWindow::CreateWidgets( void )
     connect( fEdtGravity, SIGNAL( editingFinished() ), this, SLOT( OnEdtGravityValChange() ) );
     connect( fEdtSampleDist, SIGNAL( textEdited(QString) ), this, SLOT( OnEdtSampleDistValChange( QString ) ) );
     connect( fEdtStartIndex, SIGNAL( textEdited(QString) ), this, SLOT( OnEdtStartingSliceValChange( QString ) ) );
-    connect( fEdtEndIndex, SIGNAL( textEdited(QString) ), this, SLOT( OnEdtEndingSliceValChange( QString ) ) );
+    connect( fEdtEndIndex, SIGNAL( editingFinished() ), this, SLOT( OnEdtEndingSliceValChange() ) );
 
     // start segmentation button
     QPushButton *aBtnStartSeg = this->findChild< QPushButton * >( "btnStartSeg" );
@@ -275,7 +275,7 @@ CWindow::SaveResponse CWindow::SaveDialog( void ) {
         case QMessageBox::Cancel:
             return SaveResponse::Cancelled;
         default:
-            break; // should never be reached
+            return SaveResponse::Cancelled; // should never be reached
     }
 }
 
@@ -297,6 +297,9 @@ void CWindow::UpdateView( void )
     fEdtGravity->setText( QString( "%1" ).arg( fSegParams.fGravityScale ) );
     fEdtSampleDist->setText( QString( "%1" ).arg( fSegParams.fThreshold ) );
     fEdtStartIndex->setText( QString( "%1" ).arg( fPathOnSliceIndex ) );
+    
+    if ( fSegParams.fEndOffset + fPathOnSliceIndex >= fVpkg->getNumberOfSlices() )
+        fSegParams.fEndOffset = (fVpkg->getNumberOfSlices() - 1) - fPathOnSliceIndex;
     fEdtEndIndex->setText( QString( "%1" ).arg( fSegParams.fEndOffset + fPathOnSliceIndex ) ); // offset + starting index
 
     if ( fIntersectionCurve.GetPointsNum() == 0) { // no points in current slice
@@ -388,6 +391,8 @@ void CWindow::SplitCloud( void )
 // Do segmentation given the starting point cloud
 void CWindow::DoSegmentation( void )
 {
+    statusBar->clearMessage();
+    
     // REVISIT - do we need to get the latest value from the widgets since we constantly get the values?
     if ( !SetUpSegParams() ) {
         QMessageBox::information( this, tr( "Info" ), tr( "Invalid parameter for segmentation" ) );
@@ -408,6 +413,7 @@ void CWindow::DoSegmentation( void )
     fMasterCloud.width = fUpperPart.width;
     fMasterCloud.height = fMasterCloud.size() / fMasterCloud.width;
 
+    statusBar->showMessage( tr("Segmentation complete") );
     fVpkgChanged = true;
 }
 
@@ -443,11 +449,9 @@ bool CWindow::SetUpSegParams( void )
         return false;
     }
 
-    // starting slice index is fPathOnSliceIndex
-
     // ending slice index
     aNewVal = fEdtEndIndex->text().toInt( &aIsOk );
-    if ( aIsOk && aNewVal > fPathOnSliceIndex ) {
+    if ( aIsOk && aNewVal >= fPathOnSliceIndex && aNewVal < fVpkg->getNumberOfSlices() ) {
         fSegParams.fEndOffset = aNewVal - fPathOnSliceIndex; // difference between the starting slice and ending slice
     } else {
         return false;
@@ -460,7 +464,7 @@ bool CWindow::SetUpSegParams( void )
 void CWindow::SetUpCurves( void )
 {
     if ( fVpkg == NULL || fMasterCloud.empty() ) {
-        statusBar->showMessage( tr("Selected point cloud is empty"), 5000 );
+        statusBar->showMessage( tr("Selected point cloud is empty") );
         std::cerr << "VC::Warning: Point cloud for this segmentation is empty." << std::endl;
         return;
     }
@@ -592,7 +596,7 @@ void CWindow::OpenVolume( void )
     }
 
     fVpkgPath = aVpkgPath;
-    fPathOnSliceIndex = 2;
+    fPathOnSliceIndex = 0;
 }
 
 void CWindow::CloseVolume( void ) {
@@ -683,6 +687,9 @@ void CWindow::OnNewPathClicked( void )
     // add new path to path list
     QListWidgetItem *aNewPath = new QListWidgetItem( QString( newSegmentationId.c_str() ) );
     fPathListWidget->addItem( aNewPath );
+
+    // Make sure we stay on the current slice
+    fMinSegIndex = fPathOnSliceIndex;
 
     // Activate the new item
     fPathListWidget->setCurrentItem( aNewPath );
@@ -781,13 +788,16 @@ void CWindow::OnEdtStartingSliceValChange( QString nText )
 }
 
 // Handle ending slice value change
-void CWindow::OnEdtEndingSliceValChange( QString nText )
+void CWindow::OnEdtEndingSliceValChange()
 {
     // ending slice index
     bool aIsOk = false;
-    int aNewVal = nText.toInt( &aIsOk );
-    if ( aIsOk && aNewVal > fPathOnSliceIndex ) {
+    int aNewVal = fEdtEndIndex->displayText().toInt( &aIsOk );
+    if ( aIsOk && aNewVal > fPathOnSliceIndex && aNewVal < fVpkg->getNumberOfSlices() ) {
         fSegParams.fEndOffset = aNewVal - fPathOnSliceIndex; // difference between the starting slice and ending slice
+    } else {
+        statusBar->showMessage( tr("ERROR: Selected slice is out of range of the volume!"), 10000 );
+        fEdtEndIndex->setText( QString::number(fPathOnSliceIndex + fSegParams.fEndOffset) );
     }
 }
 
@@ -808,10 +818,13 @@ void CWindow::OnEdtImpactRange( int nImpactRange )
 // Handle loading any slice
 void CWindow::OnLoadAnySlice( int nSliceIndex )
 {
-    fPathOnSliceIndex = nSliceIndex;
-    OpenSlice();
-    SetCurrentCurve( fPathOnSliceIndex );
-    UpdateView();
+    if ( nSliceIndex >= 0 && nSliceIndex < fVpkg->getNumberOfSlices() ) {
+        fPathOnSliceIndex = nSliceIndex;
+        OpenSlice();
+        SetCurrentCurve( fPathOnSliceIndex );
+        UpdateView();
+    } else
+        statusBar->showMessage( tr("ERROR: Selected slice is out of range of the volume!"), 10000 );
 }
 
 // Handle loading the next slice
@@ -822,18 +835,20 @@ void CWindow::OnLoadNextSlice( void )
         OpenSlice();
         SetCurrentCurve(fPathOnSliceIndex);
         UpdateView();
-    }
+    } else
+        statusBar->showMessage( tr("Already at the end of the volume!"), 10000 );
 }
 
 // Handle loading the previous slice
 void CWindow::OnLoadPrevSlice( void )
 {
-    if (fPathOnSliceIndex > 2) {
+    if (fPathOnSliceIndex > 0) {
         --fPathOnSliceIndex;
         OpenSlice();
         SetCurrentCurve(fPathOnSliceIndex);
         UpdateView();
-    }
+    } else
+        statusBar->showMessage( tr("Already at the beginning of the volume!"), 10000 );
 }
 
 // Handle path change event
