@@ -38,6 +38,7 @@ add_test(NAME plyWriter WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_tes
 #target_link_libraries(vc_test_Metadata ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 #add_test(NAME Metadata WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_Metadata )
 
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/common/gradient.tif DESTINATION ${CMAKE_BINARY_DIR}/bin)
 add_executable(vc_test_Texture common/TextureTest.cpp)
 target_link_libraries(vc_test_Texture ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME Texture WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_Texture )

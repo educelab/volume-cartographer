@@ -46,8 +46,8 @@ namespace volcart {
     double Texture::intensity( int point_ID, int image_ID ) {
         cv::Vec2d mapping = _uvMap.get(point_ID);
         if ( mapping != VC_UVMAP_NULL_MAPPING ) {
-            int u =  cvRound(mapping[0] * _width);
-            int v =  cvRound(mapping[1] * _height);
+            int u =  cvRound(mapping[0] * (_width - 1) );
+            int v =  cvRound(mapping[1] * (_height - 1) );
             return _images[image_ID].at< unsigned short > ( v, u );
         } else {
             return VC_TEXTURE_NO_VALUE;
