@@ -4,8 +4,9 @@
 
 using namespace volcart::segmentation;
 
-IntensityMap::IntensityMap(cv::Mat r)
-    : displayWidth_(200),
+IntensityMap::IntensityMap(cv::Mat r, const int32_t stepSize)
+    : stepSize_(stepSize),
+      displayWidth_(200),
       displayHeight_(200),
       drawTarget_(displayWidth_, displayHeight_, CV_8UC3, BGR_BLACK),
       chosenMaximaIndex_(-1)
@@ -13,11 +14,12 @@ IntensityMap::IntensityMap(cv::Mat r)
     // DEBUG - need to convert to 8 bit before we can do anything
     r.convertTo(r, CV_8UC1, 1.0 / std::numeric_limits<uint8_t>::max());
     cv::equalizeHist(r, r);
+    resliceData_ = r;
 
-    cv::normalize(r, intensities_, 0, 1, CV_MINMAX, CV_64FC1);
+    cv::normalize(r, r, 0, 1, CV_MINMAX, CV_64FC1);
+    intensities_ = r.row(r.rows / 2 + stepSize);
     mapWidth_ = intensities_.cols;
     binWidth_ = cvRound(float(displayWidth_) / mapWidth_);
-    currentIntensity_ = intensities_(mapWidth_ / 2);
 }
 
 cv::Mat IntensityMap::draw()
@@ -59,13 +61,11 @@ cv::Mat IntensityMap::draw()
 
     // Draw the final chosen index if it's available (only going to be when
     // we're dumping the config)
-    /*
     if (chosenMaximaIndex_ != -1) {
         int32_t max = maxima[chosenMaximaIndex_].first;
         cv::line(drawTarget_, cv::Point(binWidth_ * max, 0),
                  cv::Point(binWidth_ * max, drawTarget_.rows), BGR_RED);
     }
-    */
 
     return drawTarget_;
 }
@@ -73,36 +73,16 @@ cv::Mat IntensityMap::draw()
 // Finds the top 'N' maxima in the row being processed
 IndexIntensityPairVec IntensityMap::sortedMaxima()
 {
-    // Find derivative of intensity curve
-    /*
-    cv::Mat_<double> sobelDerivatives;
-    cv::Scharr(intensities_, sobelDerivatives, CV_64FC1, 1, 0, 1, 0,
-               cv::BORDER_REPLICATE);
-               */
-
-    // Calculate derivatives with central difference
-    cv::Mat_<double> sobelDerivatives(1, mapWidth_);
-    for (int32_t i = 1; i < mapWidth_ - 1; ++i) {
-        sobelDerivatives(i) = (intensities_(i + 1) - intensities_(i - 1)) / 2;
-    }
-
-    // Get indices of positive -> negative transitions, store in pairs (index,
-    // intensity)
     IndexIntensityPairVec crossings;
-    for (int32_t i = 0; i < sobelDerivatives.cols - 1; ++i) {
-        if (sobelDerivatives(i) * sobelDerivatives(i + 1) <= 0 &&
-            sobelDerivatives(i) > sobelDerivatives(i + 1)) {
-            if (intensities_(i) >= intensities_(i + 1)) {
-                crossings.emplace_back(i, intensities_(i));
-            } else {
-                crossings.emplace_back(i + 1, intensities_(i + 1));
-            }
+    for (int32_t i = 1; i < intensities_.cols - 1; ++i) {
+        if (intensities_(i) >= intensities_(i - 1) &&
+            intensities_(i) >= intensities_(i + 1)) {
+            crossings.emplace_back(i, intensities_(i));
         }
     }
 
     // Filter out any crossings that are more than N voxels away from the center
-    /*
-    constexpr int32_t peakReadius = 3;
+    constexpr int32_t peakReadius = 5;
     crossings.erase(
         std::remove_if(std::begin(crossings), std::end(crossings),
                        [this, peakReadius](const IndexIntensityPair v) {
@@ -110,24 +90,26 @@ IndexIntensityPairVec IntensityMap::sortedMaxima()
                                   peakReadius;
                        }),
         std::end(crossings));
-        */
 
     // Sort by distance from middle
-    std::sort(
-        std::begin(crossings), std::end(crossings),
-        [this](IndexIntensityPair lhs, IndexIntensityPair rhs) {
-            const int32_t distWeight = 85;
-            const int32_t centerX = mapWidth_ / 2;
-            const auto ldist = int32_t(std::abs(lhs.first - centerX));
-            const auto rdist = int32_t(std::abs(rhs.first - centerX));
-            const int32_t leftVal =
-                distWeight * ldist +
-                (100 - distWeight) * int32_t(std::round(-lhs.second * 100));
-            const int32_t rightVal =
-                distWeight * rdist +
-                (100 - distWeight) * int32_t(std::round(-rhs.second * 100));
-            return leftVal < rightVal;
-        });
+    std::sort(std::begin(crossings), std::end(crossings),
+              [this](IndexIntensityPair lhs, IndexIntensityPair rhs) {
+                  const int32_t distWeight = 90;
+                  const int32_t centerX = resliceData_.cols / 2;
+                  const auto ldist =
+                      std::sqrt((lhs.first - centerX) * (lhs.first - centerX) +
+                                stepSize_ * stepSize_);
+                  const auto rdist =
+                      std::sqrt((rhs.first - centerX) * (rhs.first - centerX) +
+                                stepSize_ * stepSize_);
+                  const int32_t leftVal =
+                      std::round(distWeight * ldist) +
+                      std::round((100 - distWeight) * -lhs.second * 100);
+                  const int32_t rightVal =
+                      std::round(distWeight * rdist) +
+                      std::round((100 - distWeight) * -rhs.second * 100);
+                  return leftVal < rightVal;
+              });
 
     return crossings;
 }
