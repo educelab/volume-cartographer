@@ -248,6 +248,6 @@ void CVolumeViewerWithCurve::UpdateButtons( void )
     fResetBtn->setEnabled( fImgQImage != NULL && fabs( fScaleFactor - 1.0 ) > 1e-6 );
     fNextBtn->setEnabled( fImgQImage != NULL && fViewState == EViewState::ViewStateIdle ); // Button doesn't disable for some reason
     fPrevBtn->setEnabled( fImgQImage != NULL && fViewState == EViewState::ViewStateIdle );
-    //fImageIndexEdit->setEnabled( false );
+    fImageIndexEdit->setEnabled( fViewState == EViewState::ViewStateIdle );
     fImageIndexEdit->SetImageIndex( fImageIndex );
 }
