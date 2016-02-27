@@ -1,11 +1,13 @@
-#include "intensitymap.h"
-#include "derivative.h"
 #include <limits>
+#include "intensitymap.h"
 
 using namespace volcart::segmentation;
 
-IntensityMap::IntensityMap(cv::Mat r, const int32_t stepSize)
+IntensityMap::IntensityMap(cv::Mat r,
+                           int32_t stepSize,
+                           int32_t peakDistanceWeight)
     : stepSize_(stepSize),
+      peakDistanceWeight_(peakDistanceWeight),
       displayWidth_(200),
       displayHeight_(200),
       drawTarget_(displayWidth_, displayHeight_, CV_8UC3, BGR_BLACK),
@@ -71,13 +73,17 @@ cv::Mat IntensityMap::draw()
 }
 
 // Finds the top 'N' maxima in the row being processed
-IndexIntensityPairVec IntensityMap::sortedMaxima()
+std::deque<std::pair<int32_t, double>> IntensityMap::sortedMaxima()
 {
-    IndexIntensityPairVec crossings;
+    bool includesMiddle = false;
+    std::deque<std::pair<int32_t, double>> crossings;
     for (int32_t i = 1; i < intensities_.cols - 1; ++i) {
         if (intensities_(i) >= intensities_(i - 1) &&
             intensities_(i) >= intensities_(i + 1)) {
             crossings.emplace_back(i, intensities_(i));
+            if (i == intensities_.cols / 2) {
+                includesMiddle = true;
+            }
         }
     }
 
@@ -92,24 +98,29 @@ IndexIntensityPairVec IntensityMap::sortedMaxima()
         std::end(crossings));
 
     // Sort by distance from middle
-    std::sort(std::begin(crossings), std::end(crossings),
-              [this](IndexIntensityPair lhs, IndexIntensityPair rhs) {
-                  const int32_t distWeight = 90;
-                  const int32_t centerX = resliceData_.cols / 2;
-                  const auto ldist =
-                      std::sqrt((lhs.first - centerX) * (lhs.first - centerX) +
-                                stepSize_ * stepSize_);
-                  const auto rdist =
-                      std::sqrt((rhs.first - centerX) * (rhs.first - centerX) +
-                                stepSize_ * stepSize_);
-                  const int32_t leftVal =
-                      std::round(distWeight * ldist) +
-                      std::round((100 - distWeight) * -lhs.second * 100);
-                  const int32_t rightVal =
-                      std::round(distWeight * rdist) +
-                      std::round((100 - distWeight) * -rhs.second * 100);
-                  return leftVal < rightVal;
-              });
+    std::sort(
+        std::begin(crossings), std::end(crossings),
+        [this](IndexIntensityPair lhs, IndexIntensityPair rhs) {
+            const int32_t centerX = resliceData_.cols / 2;
+            const auto ldist =
+                std::sqrt((lhs.first - centerX) * (lhs.first - centerX) +
+                          stepSize_ * stepSize_);
+            const auto rdist =
+                std::sqrt((rhs.first - centerX) * (rhs.first - centerX) +
+                          stepSize_ * stepSize_);
+
+            // The 2 * peakRadius comes from the fact that the {rhs,lhs}.second
+            // is in the range [0, 1]. So we scale this to the same range that
+            // ldist and rdist will be, which is exactly [0, 2 * peakRadius]
+            // because of the above filtering.
+            const int32_t leftVal = std::round(peakDistanceWeight_ * ldist) +
+                                    std::round((100 - peakDistanceWeight_) *
+                                               -lhs.second * 2 * peakReadius);
+            const int32_t rightVal = std::round(peakDistanceWeight_ * rdist) +
+                                     std::round((100 - peakDistanceWeight_) *
+                                                -rhs.second * 2 * peakReadius);
+            return leftVal < rightVal;
+        });
 
     return crossings;
 }

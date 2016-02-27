@@ -78,14 +78,21 @@ int main(int argc, char* argv[])
     double alpha = 1.0;
     pcl::console::parse_argument(argc, argv, "--alpha", alpha);
 
-    double beta = 0.0;
+    double beta = 1.0;
     pcl::console::parse_argument(argc, argv, "--beta", beta);
 
-    // Sanity check for alpha and beta params - must equal to 1
-    if (std::fabs(alpha + beta - 1.0) > 1e-5) {
-        std::cerr << "[error]: alpha + beta must = 1" << std::endl;
-        std::exit(1);
-    }
+    double gama = 1.0;
+    pcl::console::parse_argument(argc, argv, "--gamma", gama);
+
+    double k1 = 1.0;
+    pcl::console::parse_argument(argc, argv, "--k1", k1);
+
+    double k2 = 1.0;
+    pcl::console::parse_argument(argc, argv, "--k2", k2);
+
+    int32_t peakDistanceWeight = 50;
+    pcl::console::parse_argument(argc, argv, "--peak-weight",
+                                 peakDistanceWeight);
 
     VolumePkg volpkg(volpkgPath);
     volpkg.setActiveSegmentation(segID);
@@ -105,9 +112,9 @@ int main(int argc, char* argv[])
 
     // Run segmentation using path as our starting points
     volcart::segmentation::LocalResliceSegmentation segmenter(volpkg);
-    auto cloud = segmenter.segmentPath(initVoxels, resamplePerc, startIndex,
-                                       endIndex, numIters, step, alpha, beta,
-                                       dumpVis, visualize, visIndex);
+    auto cloud = segmenter.segmentPath(
+        initVoxels, resamplePerc, startIndex, endIndex, numIters, step, alpha,
+        beta, gama, k1, k2, peakDistanceWeight, dumpVis, visualize, visIndex);
 
     // Save to output file
     try {

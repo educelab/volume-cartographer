@@ -2,6 +2,7 @@
 
 #include <utility>
 #include <iostream>
+#include <deque>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include "common.h"
@@ -15,16 +16,13 @@ namespace segmentation
 class IntensityMap
 {
 public:
-    IntensityMap(cv::Mat, const int32_t stepSize);
+    IntensityMap(cv::Mat, int32_t stepSize, int32_t peakDistanceWeight);
 
     cv::Mat draw();
 
-    IndexIntensityPairVec sortedMaxima();
+    std::deque<std::pair<int32_t, double>> sortedMaxima();
 
-    void setChosenMaximaIndex(const int32_t index)
-    {
-        chosenMaximaIndex_ = index;
-    }
+    void setChosenMaximaIndex(int32_t index) { chosenMaximaIndex_ = index; }
 
     int32_t chosenMaximaIndex(void) const { return chosenMaximaIndex_; }
 
@@ -35,6 +33,7 @@ private:
     }
 
     int32_t stepSize_;
+    int32_t peakDistanceWeight_;
     cv::Mat_<double> intensities_;
     cv::Mat_<uint8_t> resliceData_;
     int32_t displayWidth_;

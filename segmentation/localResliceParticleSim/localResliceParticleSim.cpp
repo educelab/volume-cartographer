@@ -25,40 +25,49 @@ std::vector<double> squareDiff(const std::vector<Voxel>& v1,
 std::vector<double> absDiff(const std::vector<double>& v1,
                             const std::vector<double>& v2);
 
-double localInternalEnergy(const int32_t index,
-                           const int32_t windowSize,
+std::vector<double> adjacentParticleDiff(const std::vector<Pixel>& vs);
+
+double squareDiff(const std::vector<double>& v1, const std::vector<double>& v2);
+
+double localInternalEnergy(int32_t index,
+                           int32_t windowSize,
                            const FittedCurve& current,
                            const FittedCurve& next);
 
 // Applies localInternalEnergy operator across entirety of both curves
-double internalEnergy(const int32_t windowSize,
-                      const FittedCurve& current,
-                      const FittedCurve& next);
+double internalEnergy(const FittedCurve& current,
+                      const FittedCurve& next,
+                      double k1,
+                      double k2);
 
-double energyMetric(const int32_t index,
-                    const int32_t windowSize,
-                    const FittedCurve& current,
-                    const FittedCurve& next);
+double energyMetric(const FittedCurve& current,
+                    const FittedCurve& next,
+                    double alpha,
+                    double beta,
+                    double gama,
+                    double k1,
+                    double k2);
 
 double globalEnergy(const FittedCurve& current, const FittedCurve& next);
 
 pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
     const std::vector<Voxel>& initPath,
-    const double resamplePerc,
-    const int32_t startIndex,
-    const int32_t endIndex,
-    const int32_t numIters,
-    const int32_t step,
-    const double alpha,
-    const double beta,
-    const bool dumpVis,
-    const bool visualize,
-    const int32_t visIndex)
+    double resamplePerc,
+    int32_t startIndex,
+    int32_t endIndex,
+    int32_t numIters,
+    int32_t step,
+    double alpha,
+    double beta,
+    double gama,
+    double k1,
+    double k2,
+    int32_t peakDistanceWeight,
+    bool dumpVis,
+    bool visualize,
+    int32_t visIndex)
 {
-    volcart::Volume vol = pkg_.volume();
-    std::cout << "init size: " << initPath.size() << std::endl;
-
-    // Debug output information
+    volcart::Volume vol = pkg_.volume();  // Debug output information
     const fs::path outputDir("debugvis");
     if (dumpVis) {
         fs::create_directory(outputDir);
@@ -70,10 +79,6 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
 
     // Resample incoming currentCurve
     auto currentVs = FittedCurve(initPath, startIndex).resample(resamplePerc);
-    std::cout << "resampled size: " << currentVs.size() << std::endl;
-
-    int32_t windowSize = int32_t(0.20 * currentVs.size()) + 1;
-    std::cout << "windowSize: " << windowSize << std::endl;
 
     // Iterate over z-slices
     for (int32_t zIndex = startIndex;
@@ -90,10 +95,12 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
             fs::create_directory(zIdxDir);
         }
 
+        ////////////////////////////////////////////////////////////////////////////////
         // 0. Resample current positions so they are evenly spaced
         FittedCurve currentCurve{currentVs, zIndex};
         currentVs = currentCurve.seedPoints();
 
+        ////////////////////////////////////////////////////////////////////////////////
         // 1. Generate all candidate positions for all particles
         std::vector<std::deque<Voxel>> nextPositions;
         nextPositions.reserve(currentCurve.size());
@@ -112,46 +119,7 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
             const cv::Point2i center{resliceIntensities.cols / 2,
                                      resliceIntensities.rows / 2};
             const int32_t nextLayerIndex = center.y + step;
-
-            IntensityMap map(resliceIntensities, step);
-
-            // Window stretching
-            //   * Window out 2 * maximaSearchRadius + 1 from the center of the
-            //     reslice
-            /*
-            constexpr int32_t maximaSearchRadius = 3;
-            const int32_t maximaWindowSize = 2 * maximaSearchRadius + 1;
-            const int32_t stretchedWindowWidth = 32;
-            std::vector<uint16_t> window;
-            window.reserve(maximaWindowSize);
-            for (int32_t i = center.x - maximaSearchRadius;
-                 i <= center.x + maximaSearchRadius;
-                 ++i) {
-                window.push_back(
-                    resliceIntensities.at<uint16_t>(nextLayerIndex, i));
-            }
-
-            //   * Stretch this out using Volume::interpolatedIntensityAt to a
-            //     new window of size newWindowSize
-            std::vector<uint16_t> stretchedWindowIntensities;
-            stretchedWindowIntensities.reserve(stretchedWindowWidth);
-            const int32_t startPixelX = center.x - maximaSearchRadius;
-            const double xStep =
-                (maximaWindowSize - 1) / double(stretchedWindowWidth);
-            for (int32_t i = 0; i < stretchedWindowWidth; ++i) {
-                const auto voxelCoord = reslice.sliceToVoxelCoord<double>(
-                    {startPixelX + xStep * i, nextLayerIndex});
-                stretchedWindowIntensities.push_back(
-                    vol.interpolatedIntensityAt(voxelCoord));
-            }
-
-            //   * Pass to IntensityMap
-            IntensityMap map{
-                cv::Mat_<uint16_t>(1,
-                                   stretchedWindowWidth,
-                                   stretchedWindowIntensities.data(),
-                                   stretchedWindowWidth)};
-                                   */
+            IntensityMap map(resliceIntensities, step, peakDistanceWeight);
             const auto allMaxima = map.sortedMaxima();
             maps.push_back(map);
 
@@ -189,14 +157,13 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
             // Convert maxima to voxel positions
             std::deque<Voxel> maximaQueue;
             for (const auto maxima : allMaxima) {
-                // maximaQueue.emplace_back(reslice.sliceToVoxelCoord<double>(
-                //{startPixelX + maxima.first * xStep, nextLayerIndex}));
                 maximaQueue.emplace_back(reslice.sliceToVoxelCoord<double>(
                     {maxima.first, nextLayerIndex}));
             }
             nextPositions.push_back(maximaQueue);
         }
 
+        ////////////////////////////////////////////////////////////////////////////////
         // 2. Construct initial guess using top maxima for each next position
         std::vector<Voxel> nextVs;
         nextVs.reserve(currentVs.size());
@@ -205,135 +172,89 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
             maps[i].setChosenMaximaIndex(0);
         }
         FittedCurve nextCurve(nextVs, zIndex + 1);
+        double minEnergy =
+            energyMetric(currentCurve, nextCurve, alpha, beta, gama, k1, k2);
+        double oldEnergy = std::numeric_limits<double>::max();
+        double prevEnergyDiff = 0;
+        double currEnergyDiff = oldEnergy - minEnergy;
 
-        for (int32_t i = 0; i < int32_t(currentVs.size()); ++i) {
-            std::cout << "particle: " << i << std::endl;
-            double minEnergy =
-                energyMetric(i, windowSize, currentCurve, nextCurve);
-            std::cout << std::endl;
+        ////////////////////////////////////////////////////////////////////////////////
+        // 3. Optimize
+        std::vector<int32_t> indices(currentVs.size());
+        std::iota(begin(indices), end(indices), 0);
 
-            for (int32_t c = 0; c < int32_t(nextPositions[i].size()); ++c) {
-                std::vector<Voxel> combVs(begin(nextVs), end(nextVs));
-                combVs[i] = nextPositions[i][c];
-                FittedCurve combCurve(combVs, zIndex + 1);
+        // - Go until either some hard limit or change in energy is minimal
+        int32_t n = 0;
+        bool energyChanged = false;
+        while (n++ < numIters) {
 
-                std::cout << "combination" << std::endl;
-                const double newEnergy =
-                    energyMetric(i, windowSize, currentCurve, combCurve);
-
-                if (newEnergy < minEnergy) {
-                    std::cout << "new optimum" << std::endl;
-                    maps[i].setChosenMaximaIndex(c);
-                    nextVs = combVs;
-                    nextCurve = combCurve;
-                    minEnergy = newEnergy;
-
-                    if (visualize) {
-                        cv::namedWindow("optimize chain", cv::WINDOW_NORMAL);
-                        cv::imshow(
-                            "optimize chain",
-                            drawParticlesOnSlice(combCurve, zIndex, i, true));
-                        cv::waitKey(0);
-                    }
-                }
-                std::cout << std::endl;
+            // Break condition for if we've reached a local minimum
+            if (prevEnergyDiff - currEnergyDiff == 0 && !energyChanged) {
+                break;
             }
-            std::cout << std::endl;
-        }
+            prevEnergyDiff = oldEnergy - minEnergy;
 
-#if 0
-        // 3. Iterative greedy algorithm to find particle introducing largest
-        // difference in derivatives and keep choosing different positions until
-        // it minimizes it
-
-        double bestEnergy = internalEnergy(windowSize, currentCurve, nextCurve);
-        std::cout << "bestEnergy (start): " << bestEnergy << std::endl;
-
-        std::vector<int32_t> ignoreList;
-        std::vector<int32_t> indxs(currentVs.size());
-        std::iota(begin(indxs), end(indxs), 0);
-        int32_t i = 0;
-        while (i < numIters) {
-            // Find index of maximum difference between positions
-            const std::vector<double> diff =
-                absDiff(nextCurve.curvature(), currentCurve.curvature());
-            auto pairs = zip(indxs, diff);
+            // - Sort paired index-Voxel in increasing local internal energy
+            auto pairs = zip(indices, squareDiff(currentVs, nextVs));
             std::sort(begin(pairs), end(pairs),
-                      [](const std::pair<int32_t, double> p1,
-                         const std::pair<int32_t, double> p2) {
+                      [](std::pair<int32_t, double> p1,
+                         std::pair<int32_t, double> p2) {
                           return p1.second < p2.second;
                       });
 
-            // Skip any particles that we've run out of candidate positions for
-            pairs.erase(std::remove_if(
-                            begin(pairs), end(pairs),
-                            [ignoreList](const std::pair<int32_t, double> p) {
-                                return std::find(begin(ignoreList),
-                                                 end(ignoreList),
-                                                 p.first) != end(ignoreList);
-                            }),
-                        end(pairs));
+            // - Go through the sorted list in reverse order, optimizing each
+            // particle. If we find an optimum, then start over with the new
+            // optimal positions. Do this until convergence or we hit a cap on
+            // number of iterations.
+            while (!pairs.empty()) {
+                int32_t maxDiffIdx;
+                double _;
+                std::tie(maxDiffIdx, _) = pairs.back();
+                pairs.pop_back();
 
-            // Safety check for if we decide to ignore all indices. If so, then
-            // we're done iterating through because there are no more positions
-            // to consider
-            if (pairs.empty()) {
-                break;
+                // Go through each combination for the maximal difference
+                // particle, iterate until you find a new optimum or don't find
+                // anything.
+                for (uint32_t c = 0; c < nextPositions[maxDiffIdx].size();
+                     ++c) {
+                    std::vector<Voxel> combVs(begin(nextVs), end(nextVs));
+                    combVs[maxDiffIdx] = nextPositions[maxDiffIdx][c];
+                    FittedCurve combCurve(combVs, zIndex + 1);
+
+                    const double newEnergy = energyMetric(
+                        currentCurve, combCurve, alpha, beta, gama, k1, k2);
+
+                    // Found a new optimum?
+                    if (newEnergy < minEnergy) {
+                        maps[maxDiffIdx].setChosenMaximaIndex(c);
+                        nextVs = combVs;
+                        nextCurve = combCurve;
+
+                        // Shift energies back for comparison at the top
+                        oldEnergy = minEnergy;
+                        minEnergy = newEnergy;
+                        currEnergyDiff = oldEnergy - minEnergy;
+                        energyChanged = true;
+
+                        if (visualize) {
+                            cv::namedWindow("optimize chain",
+                                            cv::WINDOW_NORMAL);
+                            cv::imshow("optimize chain",
+                                       drawParticlesOnSlice(combCurve, zIndex,
+                                                            maxDiffIdx, false));
+                            cv::waitKey(0);
+                        }
+                    }
+                }
+
+                // If we changed energy, then go back to the beginning and start
+                // this whole process over to re-evaluate the new next curve
+                if (energyChanged) {
+                    energyChanged = false;
+                    break;
+                }
             }
-
-            // Get next candidate voxel for that index and construct new vector
-            int32_t maxDiffIdx = pairs.back().first;
-            std::vector<Voxel> combVs(begin(nextVs), end(nextVs));
-            auto& candidates = nextPositions[maxDiffIdx];
-
-            FittedCurve combCurve(combVs, 0);
-
-            if (visualize) {
-                cv::namedWindow("optimize chain", cv::WINDOW_NORMAL);
-                cv::imshow("optimize chain",
-                           drawParticlesOnSlice(combVs, zIndex, maxDiffIdx));
-                cv::waitKey(0);
-            }
-
-            /*
-            if (candidates.size() > 0) {
-                combVs[maxDiffIdx] = candidates.front();
-                candidates.pop_front();
-            } else {
-                ignoreList.push_back(maxDiffIdx);
-                continue;
-            }
-            */
-
-            // DEBUG
-
-            /*
-            // Evaluate new combination and compare to best so far, if better
-            // setting the new positions
-            FittedCurve combCurve{combVs, zIndex + 1};
-            const auto combinationMetric =
-                // alpha * globalEnergy(currentCurve, combCurve) +
-                localInternalEnergy(maxDiffIdx, windowSize, currentCurve,
-                                    combCurve);
-            const auto currentMetric =
-                // alpha * globalEnergy(currentCurve, nextCurve) +
-                localInternalEnergy(maxDiffIdx, windowSize, currentCurve,
-                                    nextCurve);
-                                    */
-
-            const double combEnergy =
-                internalEnergy(windowSize, currentCurve, combCurve);
-            std::cout << "comb energy: " << combEnergy << std::endl;
-            if (combEnergy < bestEnergy) {
-                std::cout << "Found better optimum" << std::endl;
-                nextVs = combVs;
-                nextCurve = combCurve;
-                bestEnergy = combEnergy;
-            }
-            ++i;
         }
-        */
-#endif
 
         // Dump the intensity maps
         if (dumpVis) {
@@ -351,6 +272,8 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
         points.push_back(nextVs);
     }
 
+    ////////////////////////////////////////////////////////////////////////////////
+    // 4. Output final mesh
     return exportAsPCD(points);
 }
 
@@ -368,7 +291,7 @@ std::vector<std::pair<T1, T2>> zip(const std::vector<T1>& v1,
 }
 
 cv::Vec3d LocalResliceSegmentation::estimateNormalAtIndex(
-    const FittedCurve& currentCurve, const int32_t index)
+    const FittedCurve& currentCurve, int32_t index)
 {
     /*
     const Voxel currentVoxel = currentCurve(index);
@@ -446,10 +369,20 @@ std::vector<double> squareDiff(const std::vector<Voxel>& v1,
     return res;
 }
 
+double squareDiff(const std::vector<double>& v1, const std::vector<double>& v2)
+{
+    assert(v1.size() == v2.size() && "v1 and v2 must be the same size");
+    double res = 0;
+    for (uint32_t i = 0; i < v1.size(); ++i) {
+        res += (v1[i] - v2[i]) * (v1[i] - v2[i]);
+    }
+    return std::sqrt(res);
+}
+
 // Internal energy - how much did the curvature change between the two
 // curves?
-double localInternalEnergy(const int32_t index,
-                           const int32_t windowSize,
+double localInternalEnergy(int32_t index,
+                           int32_t windowSize,
                            const FittedCurve& current,
                            const FittedCurve& next)
 {
@@ -457,20 +390,21 @@ double localInternalEnergy(const int32_t index,
     const int32_t windowRadius = windowSize / 2;
     auto kCurrent = current.curvature();
     auto kNext = next.curvature();
+    int32_t windowCount = 0;
     for (int32_t i = index - windowRadius; i <= index + windowRadius; ++i) {
         if (i < 0 || i >= current.size()) {
             continue;
         }
-        internalEnergy += std::fabs(kNext[i] - kCurrent[i]);
+        internalEnergy += (kNext[i] - kCurrent[i]) * (kNext[i] - kCurrent[i]);
+        windowCount++;
     }
-    return internalEnergy;
+    return internalEnergy / windowCount;
 }
 
-double internalEnergy(const int32_t windowSize,
-                      const FittedCurve& current,
+double internalEnergy(const FittedCurve& current,
                       const FittedCurve& next,
-                      const double alpha,
-                      const double beta)
+                      double k1,
+                      double k2)
 {
     assert(current.size() == next.size() &&
            "current and next curves must be same size");
@@ -485,28 +419,39 @@ double internalEnergy(const int32_t windowSize,
 
     double intE = 0;
     for (int32_t i = 0; i < int32_t(currentPoints.size()); ++i) {
-        intE += (alpha * (std::pow(d1next[i](0) - d1current[i](0), 2) +
-                          std::pow(d1next[i](1) - d1current[i](1), 2))) +
-                (beta * (std::pow(d2next[i](0) - d2current[i](0), 2) +
-                         std::pow(d2next[i](1) - d2current[i](1), 2)));
+        intE += k1 * ((std::pow(d1next[i](0) - d1current[i](0), 2) +
+                       std::pow(d1next[i](1) - d1current[i](1), 2))) +
+                k2 * ((std::pow(d2next[i](0) - d2current[i](0), 2) +
+                       std::pow(d2next[i](1) - d2current[i](1), 2)));
     }
 
-    return intE;
+    return std::sqrt(intE);
 }
 
-double energyMetric(const int32_t index,
-                    const int32_t windowSize,
-                    const FittedCurve& current,
-                    const FittedCurve& next)
+double tensionEnergy(const FittedCurve& current, const FittedCurve& next)
+{
+    const auto currentDiff = adjacentParticleDiff(current.points());
+    const auto nextDiff = adjacentParticleDiff(next.points());
+    return squareDiff(currentDiff, nextDiff);
+}
+
+double energyMetric(const FittedCurve& current,
+                    const FittedCurve& next,
+                    double alpha,
+                    double beta,
+                    double gama,
+                    double k1,
+                    double k2)
 {
     const double global = globalEnergy(current, next);
-    const double internal = internalEnergy(windowSize, current, next, 0.1, 0.9);
-    const double localInternal =
-        localInternalEnergy(index, windowSize, current, next);
+    const double internal = internalEnergy(current, next, k1, k2);
+    const double tension = tensionEnergy(current, next);
+    /*
     std::cout << "global:   " << global << std::endl;
     std::cout << "internal: " << internal << std::endl;
-    std::cout << "local:    " << localInternal << std::endl;
-    return global;
+    std::cout << "tension:  " << tension << std::endl;
+    */
+    return alpha * global + beta * internal + gama * tension;
 }
 
 // Global energy - how much does the next currentCurve look like the
@@ -523,11 +468,34 @@ double globalEnergy(const FittedCurve& current, const FittedCurve& next)
     return std::sqrt(globalEnergy);
 }
 
-cv::Mat LocalResliceSegmentation::drawParticlesOnSlice(
-    const FittedCurve& curve,
-    const int32_t sliceIndex,
-    const int32_t particleIndex,
-    const bool showSpline) const
+std::vector<double> adjacentParticleDiff(const std::vector<Pixel>& vs)
+{
+    // Standard L2 distance between XY components of Voxels
+    auto pixelDiff = [](Pixel v1, Pixel v2) {
+        return std::sqrt((v1(0) - v2(0)) * (v1(0) - v2(0)) +
+                         (v1(1) - v2(1)) * (v1(1) - v2(1)));
+    };
+
+    std::vector<double> diffs(vs.size());
+
+    // Special case for first and last elements. Since they don't have
+    // neighbors, just double their distances to the elements next to them. This
+    // might not be the best, but it's what works for now
+    diffs.front() = 2 * pixelDiff(vs[0], vs[1]);
+    diffs.back() = 2 * pixelDiff(vs.back(), vs.rbegin()[1]);
+
+    // Handle the rest of the vector
+    for (uint32_t i = 1; i < vs.size() - 1; ++i) {
+        diffs[i] = pixelDiff(vs[i - 1], vs[i]) + pixelDiff(vs[i], vs[i + 1]);
+    }
+
+    return diffs;
+}
+
+cv::Mat LocalResliceSegmentation::drawParticlesOnSlice(const FittedCurve& curve,
+                                                       int32_t sliceIndex,
+                                                       int32_t particleIndex,
+                                                       bool showSpline) const
 {
     auto pkgSlice = pkg_.volume().getSliceDataCopy(sliceIndex);
     pkgSlice.convertTo(pkgSlice, CV_8UC3,
@@ -537,7 +505,7 @@ cv::Mat LocalResliceSegmentation::drawParticlesOnSlice(
     // draw circles on the pkgSlice window for each point
     for (int32_t i = 0; i < curve.size(); ++i) {
         cv::Point real{int32_t(curve(i)(0)), int32_t(curve(i)(1))};
-        cv::circle(pkgSlice, real, 2, BGR_GREEN, -1);
+        cv::circle(pkgSlice, real, (showSpline ? 2 : 1), BGR_GREEN, -1);
     }
     const Voxel particle = curve(particleIndex);
     cv::circle(pkgSlice, {int32_t(particle(0)), int32_t(particle(1))},
