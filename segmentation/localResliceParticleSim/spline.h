@@ -32,15 +32,9 @@ public:
         knots_ = spline_.knots();
     }
 
-    const Eigen::VectorXd& knots() const
-    {
-        return knots_;
-    }
+    const Eigen::VectorXd& knots() const { return knots_; }
 
-    const Eigen::MatrixXd& ctrls() const
-    {
-        return spline_.ctrls();
-    }
+    const Eigen::MatrixXd& ctrls() const { return spline_.ctrls(); }
 
     // Plain evaluation at t-space value t \in [0, 1]
     Pixel eval(Scalar t) const

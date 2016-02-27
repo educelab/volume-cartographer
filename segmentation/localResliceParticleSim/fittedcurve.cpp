@@ -7,7 +7,7 @@ using namespace volcart::segmentation;
 
 double calcArcLength(const std::vector<Voxel>& vs);
 
-FittedCurve::FittedCurve(const std::vector<Voxel>& vs, const int32_t zIndex)
+FittedCurve::FittedCurve(const std::vector<Voxel>& vs, int32_t zIndex)
     : npoints_(vs.size()), zIndex_(zIndex), seedPoints_(vs)
 {
     std::vector<double> xs, ys;
@@ -43,7 +43,7 @@ FittedCurve::FittedCurve(const std::vector<Voxel>& vs, const int32_t zIndex)
     }
 }
 
-std::vector<Voxel> FittedCurve::resample(const double resamplePerc)
+std::vector<Voxel> FittedCurve::resample(double resamplePerc)
 {
     ts_.clear();
     xs_.clear();
@@ -72,7 +72,7 @@ std::vector<Voxel> FittedCurve::resample(const double resamplePerc)
     return rs;
 }
 
-Voxel FittedCurve::operator()(const int32_t index) const
+Voxel FittedCurve::operator()(int32_t index) const
 {
     Pixel p = spline_.eval(ts_[index]);
     return {p(0), p(1), double(zIndex_)};
@@ -88,7 +88,7 @@ double calcArcLength(const std::vector<Voxel>& vs)
     return length;
 }
 
-std::vector<double> FittedCurve::curvature(const int32_t hstep,
+std::vector<double> FittedCurve::curvature(int32_t hstep,
                                            const double scaleFactor) const
 {
     const auto dx1 = d1(xs_, hstep);
