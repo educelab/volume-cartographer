@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
                      "--end-index [end] --output /path/to/output.pcd --seg "
                      "seg-id [--step S] "
                      "[--visualize I] [--dump-vis] [--resample-perc F] "
-                     "[--num-iters N] [--num-maxima M]"
+                     "[--num-iters N] [--alpha A] [--beta B]"
                   << std::endl;
         std::exit(1);
     }
@@ -75,8 +75,17 @@ int main(int argc, char* argv[])
     double resamplePerc = 0.40;
     pcl::console::parse_argument(argc, argv, "--resample-perc", resamplePerc);
 
-    int32_t keepNumMaxima = 4;
-    pcl::console::parse_argument(argc, argv, "--num-maxima", keepNumMaxima);
+    double alpha = 1.0;
+    pcl::console::parse_argument(argc, argv, "--alpha", alpha);
+
+    double beta = 0.0;
+    pcl::console::parse_argument(argc, argv, "--beta", beta);
+
+    // Sanity check for alpha and beta params - must equal to 1
+    if (std::fabs(alpha + beta - 1.0) > 1e-5) {
+        std::cerr << "[error]: alpha + beta must = 1" << std::endl;
+        std::exit(1);
+    }
 
     VolumePkg volpkg(volpkgPath);
     volpkg.setActiveSegmentation(segID);
@@ -97,7 +106,7 @@ int main(int argc, char* argv[])
     // Run segmentation using path as our starting points
     volcart::segmentation::LocalResliceSegmentation segmenter(volpkg);
     auto cloud = segmenter.segmentPath(initVoxels, resamplePerc, startIndex,
-                                       endIndex, numIters, keepNumMaxima, step,
+                                       endIndex, numIters, step, alpha, beta,
                                        dumpVis, visualize, visIndex);
 
     // Save to output file

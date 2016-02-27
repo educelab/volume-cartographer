@@ -19,9 +19,11 @@ private:
     CubicSpline<double> spline_;
     int32_t npoints_;
     int32_t zIndex_;
-    std::vector<double> tvals_;
-    std::vector<Pixel> currentPoints_;
+    std::vector<double> ts_;
+    std::vector<Pixel> points_;
     std::vector<Voxel> seedPoints_;
+    std::vector<double> xs_;
+    std::vector<double> ys_;
 
 public:
     FittedCurve() = default;
@@ -30,7 +32,11 @@ public:
 
     int32_t size() const { return npoints_; }
 
-    const std::vector<Pixel>& points() const { return currentPoints_; }
+    const std::vector<Pixel>& points() const { return points_; }
+
+    std::vector<double> xs(void) const { return xs_; }
+
+    std::vector<double> ys(void) const { return ys_; }
 
     const decltype(spline_)& spline() const { return spline_; }
 
@@ -42,38 +48,8 @@ public:
 
     Voxel operator()(const int32_t index) const;
 
-    Pixel derivAt(const int32_t index, const int32_t hstep = 1) const;
-
-    std::vector<Pixel> deriv(const int32_t hstep = 1) const
-    {
-        return d1(currentPoints_, hstep);
-    }
-
-    Pixel derivCentralDifference(const int32_t index,
-                                 const int32_t hstep = 1) const
-    {
-        return d1Central(currentPoints_, index, hstep);
-    }
-
-    Pixel derivBackwardDifference(const int32_t index,
-                                  const int32_t hstep = 1) const
-    {
-        return d1Backward(currentPoints_, index, hstep);
-    }
-
-    Pixel derivForwardDifference(const int32_t index,
-                                 const int32_t hstep = 1) const
-    {
-        return d1Forward(currentPoints_, index, hstep);
-    }
-
-    Pixel derivFivePointStencil(const int32_t index,
-                                const int32_t hstep = 1) const
-    {
-        return d1FivePointStencil(currentPoints_, index, hstep);
-    }
-
-    std::vector<double> curvature(const int32_t hstep = 1) const;
+    std::vector<double> curvature(const int32_t hstep = 1,
+                                  const double scaleFactor = 1) const;
 };
 }
 }

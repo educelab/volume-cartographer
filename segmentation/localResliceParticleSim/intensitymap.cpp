@@ -1,10 +1,12 @@
 #include "intensitymap.h"
+#include "derivative.h"
 #include <limits>
 
 using namespace volcart::segmentation;
 
-IntensityMap::IntensityMap(cv::Mat r)
-    : displayWidth_(200),
+IntensityMap::IntensityMap(cv::Mat r, const int32_t stepSize)
+    : stepSize_(stepSize),
+      displayWidth_(200),
       displayHeight_(200),
       drawTarget_(displayWidth_, displayHeight_, CV_8UC3, BGR_BLACK),
       chosenMaximaIndex_(-1)
@@ -12,11 +14,12 @@ IntensityMap::IntensityMap(cv::Mat r)
     // DEBUG - need to convert to 8 bit before we can do anything
     r.convertTo(r, CV_8UC1, 1.0 / std::numeric_limits<uint8_t>::max());
     cv::equalizeHist(r, r);
+    resliceData_ = r;
 
-    cv::normalize(r, intensities_, 0, 1, CV_MINMAX, CV_64FC1);
+    cv::normalize(r, r, 0, 1, CV_MINMAX, CV_64FC1);
+    intensities_ = r.row(r.rows / 2 + stepSize);
     mapWidth_ = intensities_.cols;
     binWidth_ = cvRound(float(displayWidth_) / mapWidth_);
-    currentIntensity_ = intensities_(mapWidth_ / 2);
 }
 
 cv::Mat IntensityMap::draw()
@@ -50,9 +53,11 @@ cv::Mat IntensityMap::draw()
     }
 
     // A Line for top maxima
-    cv::line(drawTarget_, cv::Point(binWidth_ * maxima[0].first, 0),
-             cv::Point(binWidth_ * maxima[0].first, drawTarget_.rows),
-             BGR_MAGENTA);
+    if (!maxima.empty()) {
+        cv::line(drawTarget_, cv::Point(binWidth_ * maxima[0].first, 0),
+                 cv::Point(binWidth_ * maxima[0].first, drawTarget_.rows),
+                 BGR_MAGENTA);
+    }
 
     // Draw the final chosen index if it's available (only going to be when
     // we're dumping the config)
@@ -66,60 +71,43 @@ cv::Mat IntensityMap::draw()
 }
 
 // Finds the top 'N' maxima in the row being processed
-IndexIntensityPairVec IntensityMap::sortedMaxima() const
+IndexIntensityPairVec IntensityMap::sortedMaxima()
 {
-    // Find derivative of intensity curve
-    cv::Mat_<double> sobelDerivatives;
-    cv::Scharr(intensities_, sobelDerivatives, CV_64FC1, 1, 0, 1, 0,
-               cv::BORDER_REPLICATE);
-
-    // Get indices of positive -> negative transitions, store in pairs (index,
-    // intensity)
     IndexIntensityPairVec crossings;
-    for (int32_t i = 0; i < sobelDerivatives.cols - 1; ++i) {
-        if (sobelDerivatives(i) * sobelDerivatives(i + 1) <= 0 &&
-            sobelDerivatives(i) > sobelDerivatives(i + 1)) {
-            if (intensities_(i) > intensities_(i + 1)) {
-                crossings.emplace_back(i, intensities_(i));
-            } else {
-                crossings.emplace_back(i + 1, intensities_(i + 1));
-            }
+    for (int32_t i = 1; i < intensities_.cols - 1; ++i) {
+        if (intensities_(i) >= intensities_(i - 1) &&
+            intensities_(i) >= intensities_(i + 1)) {
+            crossings.emplace_back(i, intensities_(i));
         }
     }
 
-    // Filter out any crossings that are less than where this particle is now
-    /*
-    std::remove_if(crossings.begin(), crossings.end(),
-                   [this](const IndexIntensityPair v) {
-                       return v.second + 1e-2 < currentIntensity_ ||
-                              v.second - 1e-2 < currentIntensity_;
-                   });
-                   */
+    // Filter out any crossings that are more than N voxels away from the center
+    constexpr int32_t peakReadius = 5;
+    crossings.erase(
+        std::remove_if(std::begin(crossings), std::end(crossings),
+                       [this, peakReadius](const IndexIntensityPair v) {
+                           return std::abs(v.first - mapWidth_ / 2) >
+                                  peakReadius;
+                       }),
+        std::end(crossings));
 
     // Sort by distance from middle
-    std::sort(crossings.begin(), crossings.end(),
+    std::sort(std::begin(crossings), std::end(crossings),
               [this](IndexIntensityPair lhs, IndexIntensityPair rhs) {
-                  /*
-                  const double ldist =
-                      2 * std::abs(lhs.first - center.x) / particleCount_;
-                  const double rdist =
-                      2 * std::abs(rhs.first - center.x) / particleCount_;
-                  return (distWeight * ldist + (100 - distWeight) *
-                  -lhs.second)
-                  <
-                         (distWeight * rdist + (100 - distWeight) *
-                  -rhs.second);
-                         */
-                  const int32_t distWeight = 75;
-                  const int32_t centerX = mapWidth_ / 2;
-                  const auto ldist = int32_t(std::abs(lhs.first - centerX));
-                  const auto rdist = int32_t(std::abs(rhs.first - centerX));
+                  const int32_t distWeight = 90;
+                  const int32_t centerX = resliceData_.cols / 2;
+                  const auto ldist =
+                      std::sqrt((lhs.first - centerX) * (lhs.first - centerX) +
+                                stepSize_ * stepSize_);
+                  const auto rdist =
+                      std::sqrt((rhs.first - centerX) * (rhs.first - centerX) +
+                                stepSize_ * stepSize_);
                   const int32_t leftVal =
-                      distWeight * ldist +
-                      int32_t((100 - distWeight) * -lhs.second * 100);
+                      std::round(distWeight * ldist) +
+                      std::round((100 - distWeight) * -lhs.second * 100);
                   const int32_t rightVal =
-                      distWeight * rdist +
-                      int32_t((100 - distWeight) * -rhs.second * 100);
+                      std::round(distWeight * rdist) +
+                      std::round((100 - distWeight) * -rhs.second * 100);
                   return leftVal < rightVal;
               });
 

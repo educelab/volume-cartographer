@@ -15,29 +15,32 @@ namespace segmentation
 class IntensityMap
 {
 public:
-    IntensityMap(cv::Mat);
+    IntensityMap(cv::Mat, const int32_t stepSize);
 
     cv::Mat draw();
-    IndexIntensityPairVec sortedMaxima() const;
 
-    void setFinalChosenMaximaIndex(const int32_t index)
+    IndexIntensityPairVec sortedMaxima();
+
+    void setChosenMaximaIndex(const int32_t index)
     {
         chosenMaximaIndex_ = index;
     }
 
-    void incrementFinalChosenMaximaIndex(void) { chosenMaximaIndex_++; }
+    int32_t chosenMaximaIndex(void) const { return chosenMaximaIndex_; }
+
 private:
     friend std::ostream& operator<<(std::ostream& s, const IntensityMap& m)
     {
         return s << m.intensities_;
     }
 
+    int32_t stepSize_;
     cv::Mat_<double> intensities_;
+    cv::Mat_<uint8_t> resliceData_;
     int32_t displayWidth_;
     int32_t displayHeight_;
     cv::Mat drawTarget_;
     int32_t binWidth_;
-    double currentIntensity_;
     int32_t mapWidth_;
     int32_t chosenMaximaIndex_;
 };

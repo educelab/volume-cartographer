@@ -39,8 +39,8 @@ std::ostream& operator<<(std::ostream& s, std::vector<T> v)
         return s << v[0] << "]";
     }
     // Need - 2 because v.end() points to one past the end of v.
-    std::for_each(v.begin(), v.end() - 2, [&s](const T& t) { s << t << ", "; });
-    return s << *(v.end() - 1) << "]";
+    std::for_each(v.begin(), v.end() - 1, [&s](const T& t) { s << t << ", "; });
+    return s << v.back() << "]";
 }
 
 #endif  // VC_COMMON_H

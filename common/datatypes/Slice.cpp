@@ -9,11 +9,6 @@ Slice::Slice(cv::Mat data, cv::Vec3d origin, cv::Vec3d xvec, cv::Vec3d yvec)
 {
 }
 
-cv::Vec3d Slice::sliceToVoxelCoord(const cv::Point sliceCoords) const
-{
-    return origin_ + (sliceCoords.x * xvec_ + sliceCoords.y * yvec_);
-}
-
 cv::Mat Slice::draw() const
 {
     auto debug = sliceData_.clone();
