@@ -44,7 +44,7 @@ private:
                                  int32_t particleIndex,
                                  bool showSpline = false) const;
 
-    constexpr static double kDefaultEnergyTolerance = 1e-3;
+    constexpr static double kDefaultMinEnergyGradient = 1e-7;
 };
 }
 }

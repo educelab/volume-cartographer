@@ -75,20 +75,28 @@ int main(int argc, char* argv[])
     double resamplePerc = 0.40;
     pcl::console::parse_argument(argc, argv, "--resample-perc", resamplePerc);
 
-    double alpha = 1.0;
+    double alpha = 0.5;
     pcl::console::parse_argument(argc, argv, "--alpha", alpha);
 
-    double beta = 1.0;
+    double beta = 0.5;
     pcl::console::parse_argument(argc, argv, "--beta", beta);
+    if (std::fabs(alpha + beta - 1.0) > 1e-10) {
+        std::cerr << "[error]: alpha + beta must add up to 1.0" << std::endl;
+        std::exit(1);
+    }
 
     double gama = 1.0;
     pcl::console::parse_argument(argc, argv, "--gamma", gama);
 
-    double k1 = 1.0;
+    double k1 = 0.5;
     pcl::console::parse_argument(argc, argv, "--k1", k1);
 
-    double k2 = 1.0;
+    double k2 = 0.5;
     pcl::console::parse_argument(argc, argv, "--k2", k2);
+    if (std::fabs(k1 + k2 - 1.0) > 1e-10) {
+        std::cerr << "[error]: k1 + k2 must add up to 1.0" << std::endl;
+        std::exit(1);
+    }
 
     int32_t peakDistanceWeight = 50;
     pcl::console::parse_argument(argc, argv, "--peak-weight",
