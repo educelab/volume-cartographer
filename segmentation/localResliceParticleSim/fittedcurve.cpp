@@ -2,6 +2,7 @@
 #include <cmath>
 #include <iostream>
 #include "fittedcurve.h"
+#include "derivative.h"
 
 using namespace volcart::segmentation;
 
@@ -70,6 +71,19 @@ std::vector<Voxel> FittedCurve::resample(double resamplePerc)
         rs.emplace_back(p(0), p(1), zIndex_);
     }
     return rs;
+}
+
+std::vector<Voxel> FittedCurve::resample(int32_t numPoints) const
+{
+    std::vector<Voxel> newPoints;
+    newPoints.reserve(numPoints);
+    double sum = 0;
+    for (int32_t i = 0; i < numPoints && sum <= 1;
+         ++i, sum += 1.0 / (numPoints - 1)) {
+        auto p = spline_.eval(sum);
+        newPoints.emplace_back(p(0), p(1), zIndex_);
+    }
+    return newPoints;
 }
 
 Voxel FittedCurve::operator()(int32_t index) const

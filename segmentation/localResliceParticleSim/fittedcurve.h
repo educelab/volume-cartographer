@@ -6,7 +6,6 @@
 #include <vector>
 #include <cassert>
 #include "common.h"
-#include "derivative.h"
 #include "spline.h"
 
 namespace volcart
@@ -45,6 +44,8 @@ public:
     Pixel eval(double t) const { return spline_.eval(t); }
 
     std::vector<Voxel> resample(double resamplePerc = 1.0);
+
+    std::vector<Voxel> resample(int32_t numPoints) const;
 
     Voxel operator()(int32_t index) const;
 
