@@ -73,7 +73,8 @@ cv::Mat IntensityMap::draw()
 }
 
 // Finds the top 'N' maxima in the row being processed
-std::deque<std::pair<int32_t, double>> IntensityMap::sortedMaxima()
+std::deque<std::pair<int32_t, double>> IntensityMap::sortedMaxima(
+    bool shouldIncludeMiddle)
 {
     bool includesMiddle = false;
     std::deque<std::pair<int32_t, double>> crossings;
@@ -124,7 +125,7 @@ std::deque<std::pair<int32_t, double>> IntensityMap::sortedMaxima()
 
     // Append a "going straight down" option so that it exists in the list of
     // possible choices
-    if (!includesMiddle) {
+    if (!includesMiddle && shouldIncludeMiddle) {
         auto mid = intensities_.cols / 2;
         crossings.emplace_back(mid, intensities_(mid));
     }

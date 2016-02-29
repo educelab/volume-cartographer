@@ -85,22 +85,13 @@ int main(int argc, char* argv[])
         std::exit(1);
     }
 
-    double gama = 1.0;
-    pcl::console::parse_argument(argc, argv, "--gamma", gama);
-
-    double k1 = 0.5;
-    pcl::console::parse_argument(argc, argv, "--k1", k1);
-
-    double k2 = 0.5;
-    pcl::console::parse_argument(argc, argv, "--k2", k2);
-    if (std::fabs(k1 + k2 - 1.0) > 1e-10) {
-        std::cerr << "[error]: k1 + k2 must add up to 1.0" << std::endl;
-        std::exit(1);
-    }
-
     int32_t peakDistanceWeight = 50;
     pcl::console::parse_argument(argc, argv, "--peak-weight",
                                  peakDistanceWeight);
+
+    int32_t shouldIncludeMiddle = false;
+    pcl::console::parse_argument(argc, argv, "--include-middle",
+                                 shouldIncludeMiddle);
 
     VolumePkg volpkg(volpkgPath);
     volpkg.setActiveSegmentation(segID);
@@ -120,9 +111,10 @@ int main(int argc, char* argv[])
 
     // Run segmentation using path as our starting points
     volcart::segmentation::LocalResliceSegmentation segmenter(volpkg);
-    auto cloud = segmenter.segmentPath(
-        initVoxels, resamplePerc, startIndex, endIndex, numIters, step, alpha,
-        beta, gama, k1, k2, peakDistanceWeight, dumpVis, visualize, visIndex);
+    auto cloud = segmenter.segmentPath(initVoxels, resamplePerc, startIndex,
+                                       endIndex, numIters, step, alpha, beta,
+                                       peakDistanceWeight, shouldIncludeMiddle,
+                                       dumpVis, visualize, visIndex);
 
     // Save to output file
     try {

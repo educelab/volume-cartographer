@@ -20,7 +20,8 @@ public:
 
     cv::Mat draw();
 
-    std::deque<std::pair<int32_t, double>> sortedMaxima();
+    std::deque<std::pair<int32_t, double>> sortedMaxima(
+        bool shouldIncludeMiddle);
 
     void setChosenMaximaIndex(int32_t index) { chosenMaximaIndex_ = index; }
 
