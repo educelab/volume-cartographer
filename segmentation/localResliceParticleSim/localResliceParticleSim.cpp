@@ -6,6 +6,7 @@
 #include "localResliceParticleSim.h"
 #include "common.h"
 #include "fittedcurve.h"
+#include "derivative.h"
 #include "intensitymap.h"
 
 using namespace volcart::segmentation;
@@ -38,10 +39,17 @@ double internalEnergy(const FittedCurve& current,
                       double k1,
                       double k2);
 
-double energyMetric(
-    const FittedCurve& curve, double alpha, double beta, double k1, double k2);
+double curvatureEnergy(const FittedCurve& current, const FittedCurve& next);
+
+double energyMetric(const FittedCurve& curve,
+                    int32_t index,
+                    int32_t windowSize);
 
 double tensionEnergy(const FittedCurve& curve);
+
+double localTensionEnergy(const FittedCurve& curve,
+                          int32_t index,
+                          int32_t windowSize);
 
 double globalEnergy(const FittedCurve& current, const FittedCurve& next);
 
@@ -139,7 +147,7 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
                << std::setfill('0') << zIndex << "_chain.png";
             const auto wholeChainPath = wholeChainDir / ss.str();
             cv::imwrite(wholeChainPath.string(),
-                        drawParticlesOnSlice(currentCurve, zIndex, 0));
+                        drawParticlesOnSlice(currentCurve, zIndex, 0, true));
         }
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -217,7 +225,7 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
         FittedCurve nextCurve(nextVs, zIndex + 1);
 
         // Calculate energy of the current curve
-        double minEnergy = energyMetric(nextCurve, alpha, beta, k1, k2);
+        double minEnergy = std::numeric_limits<double>::max();
 
         // Derivative of energy measure - keeps the previous three measurements
         // and will evaluate the central difference (when there's enough
@@ -278,7 +286,7 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
                     FittedCurve combCurve(combVs, zIndex + 1);
 
                     // Found a new optimum?
-                    double newE = energyMetric(combCurve, alpha, beta, k1, k2);
+                    double newE = energyMetric(combCurve, maxDiffIdx, 5);
                     if (newE < minEnergy) {
                         energyChanged = true;
                         minEnergy = newE;
@@ -413,18 +421,18 @@ double squareDiff(const std::vector<double>& v1, const std::vector<double>& v2)
 double internalEnergy(const FittedCurve& curve, double k1, double k2)
 {
     const auto currentPoints = curve.points();
-    auto d1current = normalizeVector(d1(currentPoints));
-    auto d2current = normalizeVector(d2(currentPoints));
+    auto d1current = normalizeVector(d1(curve.resample(2 * curve.size())));
+    auto d2current = normalizeVector(d2(curve.resample(2 * curve.size())));
 
     double intE = 0;
     for (auto p : zip(d1current, d2current)) {
-        Pixel d1sq, d2sq;
+        Voxel d1sq, d2sq;
         cv::pow(p.first, 2, d1sq);
         cv::pow(p.second, 2, d2sq);
         intE += k1 * cv::norm(d1sq) + k2 * cv::norm(d2sq);
     }
 
-    return intE / (2 * curve.size());
+    return intE / (4 * curve.size());
 }
 
 double tensionEnergy(const FittedCurve& curve)
@@ -433,19 +441,43 @@ double tensionEnergy(const FittedCurve& curve)
     return std::accumulate(begin(diff), end(diff), 0.0) / curve.size();
 }
 
-double energyMetric(
-    const FittedCurve& curve, double alpha, double beta, double k1, double k2)
+double localTensionEnergy(const FittedCurve& curve,
+                          int32_t index,
+                          int32_t windowSize)
 {
-    // const double global = globalEnergy(current, next);
-    double internal = internalEnergy(curve, k1, k2);
-    // double tension = tensionEnergy(curve);
-    // std::cout << "global:   " << global << std::endl;
-    // std::cout << "internal: " << internal << ",  tension: " << tension <<
-    // std::endl;
-    // return alpha * global + beta * internal + gama * tension;
-    // return (tension + internal) / 2;
-    // return alpha * tension + beta * internal;
-    return (alpha + beta) * internal;
+    int32_t windowRadius = windowSize / 2;
+    std::vector<double> distances;
+    distances.reserve(windowSize);
+    for (int32_t i = index - windowRadius; i < index + windowRadius; ++i) {
+        if (i < 0 || i >= curve.size() || i + 1 >= curve.size()) {
+            continue;
+        }
+        distances.push_back(cv::norm(curve(i), curve(i + 1)));
+    }
+    auto v = normalizeVector(distances);
+    return std::accumulate(begin(v), end(v), 0.0) / distances.size();
+}
+
+double curvatureEnergy(const FittedCurve& curr, const FittedCurve& next)
+{
+    FittedCurve newCurr(curr);
+    FittedCurve newNext(next);
+    newCurr.resample(2.0);
+    newNext.resample(2.0);
+    auto k1 = newCurr.curvature();
+    auto k2 = newNext.curvature();
+    return squareDiff(k1, k2);
+}
+
+double energyMetric(const FittedCurve& curve, int32_t index, int32_t windowSize)
+{
+    double localTension = localTensionEnergy(curve, index, windowSize);
+    double internal = internalEnergy(curve, 0.5, 0.5);
+    /*
+    std::cout << "localTension: " << localTension << ", "
+              << "internal: " << internal << std::endl;
+              */
+    return 0.75 * localTension + 0.25 * internal;
 }
 
 std::vector<double> adjacentParticleDiff(const std::vector<Pixel>& vs)
@@ -487,7 +519,7 @@ cv::Mat LocalResliceSegmentation::drawParticlesOnSlice(const FittedCurve& curve,
 
     // Superimpose interpolated currentCurve on window
     if (showSpline) {
-        const int32_t n = 100;
+        const int32_t n = 500;
         for (double sum = 0; sum <= 1; sum += 1.0 / (n - 1)) {
             cv::Point p(curve.eval(sum));
             cv::circle(pkgSlice, p, 1, BGR_BLUE, -1);
