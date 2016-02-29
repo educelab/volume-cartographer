@@ -42,8 +42,8 @@ namespace volcart {
 
                     // This pixel's uv coordinate
                     cv::Vec3d uv( 0, 0, 0 );
-                    uv[0] = (double) x / (double) _width;
-                    uv[1] = (double) y / (double) _height;
+                    uv[0] = (double) x / (double) ( _width - 1 );
+                    uv[1] = (double) y / (double) ( _height - 1);
 
                     // Empty our averaging variables
                     if ( !neighborhood.empty() ) neighborhood.clear();
@@ -114,8 +114,6 @@ namespace volcart {
 
             // Generate a homography matrix for each cell in the mesh
             VC_PointType centroid;
-
-            // Generate a homography matrix for each cell in the mesh
             std::cerr << "volcart::texturing::compositeTexturing: Generating cell information" << std::endl;
             for ( auto cell = _input->GetCells()->Begin(); cell != _input->GetCells()->End(); ++cell ) {
                 cellInfo info = cellInfo();
