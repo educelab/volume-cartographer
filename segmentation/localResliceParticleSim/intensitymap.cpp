@@ -122,5 +122,12 @@ std::deque<std::pair<int32_t, double>> IntensityMap::sortedMaxima()
             return leftVal < rightVal;
         });
 
+    // Append a "going straight down" option so that it exists in the list of
+    // possible choices
+    if (!includesMiddle) {
+        auto mid = intensities_.cols / 2;
+        crossings.emplace_back(mid, intensities_(mid));
+    }
+
     return crossings;
 }
