@@ -26,10 +26,8 @@ public:
                                                   int32_t stepNumLayers,
                                                   double alpha,
                                                   double beta,
-                                                  double gama,
-                                                  double k1,
-                                                  double k2,
                                                   int32_t peakDistanceWeight,
+                                                  bool shouldIncludeMiddle,
                                                   bool dumpVis,
                                                   bool visualize,
                                                   int32_t visIndex);

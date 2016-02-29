@@ -43,7 +43,9 @@ double curvatureEnergy(const FittedCurve& current, const FittedCurve& next);
 
 double energyMetric(const FittedCurve& curve,
                     int32_t index,
-                    int32_t windowSize);
+                    int32_t windowSize,
+                    double alpha,
+                    double beta);
 
 double tensionEnergy(const FittedCurve& curve);
 
@@ -52,6 +54,8 @@ double localTensionEnergy(const FittedCurve& curve,
                           int32_t windowSize);
 
 double globalEnergy(const FittedCurve& current, const FittedCurve& next);
+
+double arcLength(const FittedCurve& curve);
 
 template <typename T>
 std::vector<T> normalizeVector(const std::vector<T>& v,
@@ -94,10 +98,8 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
     int32_t step,
     double alpha,
     double beta,
-    double gama,
-    double k1,
-    double k2,
     int32_t peakDistanceWeight,
+    bool shouldIncludeMiddle,
     bool dumpVis,
     bool visualize,
     int32_t visIndex)
@@ -138,7 +140,7 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
         ////////////////////////////////////////////////////////////////////////////////
         // 0. Resample current positions so they are evenly spaced
         FittedCurve currentCurve{currentVs, zIndex};
-        currentVs = currentCurve.seedPoints();
+        currentVs = currentCurve.resample();
 
         // Dump entire curve for easy viewing
         if (dumpVis) {
@@ -170,7 +172,7 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
                                      resliceIntensities.rows / 2};
             const int32_t nextLayerIndex = center.y + step;
             IntensityMap map(resliceIntensities, step, peakDistanceWeight);
-            const auto allMaxima = map.sortedMaxima();
+            const auto allMaxima = map.sortedMaxima(shouldIncludeMiddle);
             maps.push_back(map);
 
             // Handle case where there's no maxima - go straight down
@@ -245,13 +247,14 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
         while (n++ < numIters) {
 
             dEnergy.push_back(minEnergy);
+            /*
             std::cout << "dEnergy: ";
             for (auto de : dEnergy) {
                 std::cout << de << ", ";
             }
             std::cout << std::endl;
+            */
 
-            bool energyChanged = false;
             // Break if our energy gradient is leveling off
             if (dEnergy.size() == 3 &&
                 0.5 * (dEnergy[0] - dEnergy[2]) < kDefaultMinEnergyGradient) {
@@ -279,18 +282,18 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
                 // Go through each combination for the maximal difference
                 // particle, iterate until you find a new optimum or don't find
                 // anything.
-                for (uint32_t c = 0; c < nextPositions[maxDiffIdx].size();
-                     ++c) {
+                while (!nextPositions[maxDiffIdx].empty()) {
                     std::vector<Voxel> combVs(begin(nextVs), end(nextVs));
-                    combVs[maxDiffIdx] = nextPositions[maxDiffIdx][c];
+                    combVs[maxDiffIdx] = nextPositions[maxDiffIdx].front();
+                    nextPositions[maxDiffIdx].pop_front();
                     FittedCurve combCurve(combVs, zIndex + 1);
 
                     // Found a new optimum?
-                    double newE = energyMetric(combCurve, maxDiffIdx, 5);
+                    double newE =
+                        energyMetric(combCurve, maxDiffIdx, 5, alpha, beta);
                     if (newE < minEnergy) {
-                        energyChanged = true;
                         minEnergy = newE;
-                        maps[maxDiffIdx].setChosenMaximaIndex(c);
+                        // maps[maxDiffIdx].setChosenMaximaIndex(c);
                         nextVs = combVs;
                         nextCurve = combCurve;
 
@@ -302,10 +305,9 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
                                                             maxDiffIdx, false));
                             cv::waitKey(0);
                         }
-
-                        goto iters_start;
                     }
                 }
+                goto iters_start;
             }
         }
 
@@ -319,6 +321,46 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
                 const fs::path base = zIdxDir / ss.str();
                 cv::imwrite(base.string(), maps[i].draw());
             }
+        }
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // 3. Clamp points that jumped too far back to a good (interpolated)
+        // position
+        //
+        // Take initial second derivative
+        auto secondDeriv = d2(nextVs);
+        std::vector<double> normDeriv2;
+        std::transform(begin(secondDeriv), end(secondDeriv),
+                       std::back_inserter(normDeriv2),
+                       [](Voxel d) { return cv::norm(d) * cv::norm(d); });
+
+        auto maxVal = std::max_element(begin(normDeriv2), end(normDeriv2));
+        int32_t settlingIters = 0;
+
+        // Iterate until we move all out-of-place points back into place
+        while (*maxVal > 10.0 && settlingIters++ < 100) {
+            Voxel newPoint;
+            int32_t i = maxVal - begin(normDeriv2);
+            if (i == 0) {
+                Voxel diff = nextVs[i + 2] - nextVs[i + 1];
+                newPoint = nextVs[i + 1] - diff;
+            } else if (i == int32_t(nextVs.size() - 1)) {
+                Voxel diff = nextVs[i - 2] - nextVs[i - 3];
+                newPoint = nextVs[i - 2] + diff;
+            } else {
+                Voxel diff = 0.5 * nextVs[i + 1] - 0.5 * nextVs[i - 1];
+                newPoint = nextVs[i - 1] + diff;
+            }
+
+            nextVs[i] = newPoint;
+
+            // Re-evaluate second derivative of new curve
+            secondDeriv = d2(nextVs);
+            normDeriv2.clear();
+            std::transform(begin(secondDeriv), end(secondDeriv),
+                           std::back_inserter(normDeriv2),
+                           [](Voxel d) { return cv::norm(d) * cv::norm(d); });
+            maxVal = std::max_element(begin(normDeriv2), end(normDeriv2));
         }
 
         // Add next positions to
@@ -438,7 +480,7 @@ double internalEnergy(const FittedCurve& curve, double k1, double k2)
 double tensionEnergy(const FittedCurve& curve)
 {
     auto diff = adjacentParticleDiff(curve.points());
-    return std::accumulate(begin(diff), end(diff), 0.0) / curve.size();
+    return std::accumulate(begin(diff), end(diff), 0.0) / (curve.size() - 1);
 }
 
 double localTensionEnergy(const FittedCurve& curve,
@@ -448,14 +490,19 @@ double localTensionEnergy(const FittedCurve& curve,
     int32_t windowRadius = windowSize / 2;
     std::vector<double> distances;
     distances.reserve(windowSize);
+    int32_t windowCount = 0;
     for (int32_t i = index - windowRadius; i < index + windowRadius; ++i) {
         if (i < 0 || i >= curve.size() || i + 1 >= curve.size()) {
             continue;
         }
         distances.push_back(cv::norm(curve(i), curve(i + 1)));
+        windowCount++;
     }
-    auto v = normalizeVector(distances);
-    return std::accumulate(begin(v), end(v), 0.0) / distances.size();
+
+    // Average distance between 2 points on curve
+    double avgDist = arcLength(curve) / (curve.size() - 1);
+    return std::accumulate(begin(distances), end(distances), 0.0) /
+           (avgDist * windowCount);
 }
 
 double curvatureEnergy(const FittedCurve& curr, const FittedCurve& next)
@@ -469,15 +516,19 @@ double curvatureEnergy(const FittedCurve& curr, const FittedCurve& next)
     return squareDiff(k1, k2);
 }
 
-double energyMetric(const FittedCurve& curve, int32_t index, int32_t windowSize)
+double energyMetric(const FittedCurve& curve,
+                    int32_t index,
+                    int32_t windowSize,
+                    double alpha,
+                    double beta)
 {
-    double localTension = localTensionEnergy(curve, index, windowSize);
-    double internal = internalEnergy(curve, 0.5, 0.5);
+    // double localTension = localTensionEnergy(curve, index, windowSize);
+    double internal = internalEnergy(curve, alpha, beta);
     /*
     std::cout << "localTension: " << localTension << ", "
               << "internal: " << internal << std::endl;
               */
-    return 0.75 * localTension + 0.25 * internal;
+    return internal;
 }
 
 std::vector<double> adjacentParticleDiff(const std::vector<Pixel>& vs)
@@ -496,6 +547,15 @@ std::vector<double> adjacentParticleDiff(const std::vector<Pixel>& vs)
     }
 
     return normalizeVector(diffs);
+}
+
+double arcLength(const FittedCurve& curve)
+{
+    double sum = 0;
+    for (int32_t i = 0; i < curve.size() - 1; ++i) {
+        sum += cv::norm(curve(i), curve(i + 1));
+    }
+    return sum;
 }
 
 cv::Mat LocalResliceSegmentation::drawParticlesOnSlice(const FittedCurve& curve,
