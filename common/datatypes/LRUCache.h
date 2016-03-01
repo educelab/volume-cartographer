@@ -21,7 +21,7 @@ namespace volcart
 class CacheMissException : public std::exception
 {
 public:
-    virtual const char* what() const throw() { return "Key not in cache"; }
+    virtual const char* what() const noexcept { return "Key not in cache"; }
 };
 
 template <typename TKey, typename TValue>
@@ -31,10 +31,24 @@ public:
     using TPair = typename std::pair<TKey, TValue>;
     using TListIterator = typename std::list<TPair>::iterator;
 
-    LRUCache() : size_(kDefaultSize) {}
-    LRUCache(const size_t size) : size_(size) {}
-    void setSize(const size_t newSize) { size_ = newSize; }
-    size_t size(void) const { return size_; }
+    LRUCache() : capacity_(kDefaultCapacity) {}
+    LRUCache(const size_t capacity) : capacity_(capacity) {}
+    void setCapacity(const size_t newCapacity) { 
+
+        capacity_ = newCapacity;
+
+        // Cleanup elements that exceed the capacity
+        while (lookup_.size() > capacity_) {
+            auto last = std::end(items_);
+            last--;
+            lookup_.erase(last->first);
+            items_.pop_back();
+        }
+    }
+    
+    size_t capacity(void) const { return capacity_; }
+    size_t size(void) const { return lookup_.size(); }
+
     // Returning a const ref is better because then if you try to modify the
     // value without explicitly calling .clone() you'll get a compile error
     const TValue& get(const TKey& k)
@@ -59,7 +73,7 @@ public:
         items_.push_front(TPair(k, v));
         lookup_[k] = std::begin(items_);
 
-        if (lookup_.size() > size_) {
+        if (lookup_.size() > capacity_) {
             auto last = std::end(items_);
             last--;
             lookup_.erase(last->first);
@@ -71,9 +85,9 @@ public:
 private:
     std::list<TPair> items_;
     std::unordered_map<TKey, TListIterator> lookup_;
-    size_t size_;
+    size_t capacity_;
 
-    static const size_t kDefaultSize = 200;
+    static const size_t kDefaultCapacity = 200;
 };
 }  // namespace volcart
 
