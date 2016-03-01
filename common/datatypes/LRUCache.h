@@ -21,7 +21,7 @@ namespace volcart
 class CacheMissException : public std::exception
 {
 public:
-    virtual const char* what() const throw() { return "Key not in cache"; }
+    virtual const char* what() const noexcept() { return "Key not in cache"; }
 };
 
 template <typename TKey, typename TValue>
