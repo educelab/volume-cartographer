@@ -93,16 +93,18 @@ public:
         return getSliceData(z).at<uint16_t>(y, x);
     }
 
-    void setCacheSize(const size_t newCacheSize)
+    // Number of elements allowed in the cache
+    void setCacheCapacity(const size_t newCacheCapacity)
     {
-        cache_.setSize(newCacheSize);
+        cache_.setCapacity(newCacheCapacity);
     }
+    size_t getCacheCapacity() const { return cache_.capacity(); };
 
-    size_t getCacheSize() const { return cache_.size(); };
     void setCacheMemoryInBytes(const size_t nbytes)
     {
-        setCacheSize(nbytes / (sliceWidth_ * sliceHeight_));
+        setCacheCapacity(nbytes / (sliceWidth_ * sliceHeight_));
     }
+    
 
     Slice reslice(const Voxel center, const cv::Vec3d xvec,
                   const cv::Vec3d yvec, const int32_t width = 64,
