@@ -17,6 +17,12 @@ set(TESTING_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(TESTING_INCLUDE_DIR ${TESTING_INCLUDE_DIR} PARENT_SCOPE)
 include_directories(${TESTING_INCLUDE_DIR})
 
+#-------------------------#
+#    Global Test Data     #
+#-------------------------#
+# Copy the test volumepkg
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/volpkg/Testing.volpkg DESTINATION ${CMAKE_BINARY_DIR}/bin)
+
 #-----------------------#
 #    common Folder      #
 #-----------------------#
