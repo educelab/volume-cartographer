@@ -19,7 +19,7 @@
  *    retrieve intensity values successfully from a texture image                   *
  *                                                                                  *
  *                                                                                  *
- *  This file is broken up into a testing fixture, meshFix, which initializes the   *
+ *  This file is broken up into a testing fixture(s) which initializes the          *
  *  objects used in each of the three test cases.                                   *
  *                                                                                  *
  *  1. TestTextureEmptyConstructor                                                  *
