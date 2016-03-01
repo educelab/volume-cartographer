@@ -33,7 +33,19 @@ public:
 
     LRUCache() : capacity_(kDefaultCapacity) {}
     LRUCache(const size_t capacity) : capacity_(capacity) {}
-    void setCapacity(const size_t newCapacity) { capacity_ = newCapacity; }
+    void setCapacity(const size_t newCapacity) { 
+
+        capacity_ = newCapacity;
+
+        // Cleanup elements that exceed the capacity
+        while (lookup_.size() > capacity_) {
+            auto last = std::end(items_);
+            last--;
+            lookup_.erase(last->first);
+            items_.pop_back();
+        }
+    }
+    
     size_t capacity(void) const { return capacity_; }
     size_t size(void) const { return lookup_.size(); }
 
