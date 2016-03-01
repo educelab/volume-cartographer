@@ -35,6 +35,7 @@ public:
     LRUCache(const size_t capacity) : capacity_(capacity) {}
     void setCapacity(const size_t newCapacity) { capacity_ = newCapacity; }
     size_t capacity(void) const { return capacity_; }
+    size_t size(void) const { return lookup_.size(); }
 
     // Returning a const ref is better because then if you try to modify the
     // value without explicitly calling .clone() you'll get a compile error

@@ -105,6 +105,8 @@ public:
         setCacheCapacity(nbytes / (sliceWidth_ * sliceHeight_));
     }
     
+    // Number of elements in the cache
+    size_t getCacheSize() const { return cache_.size(); };
 
     Slice reslice(const Voxel center, const cv::Vec3d xvec,
                   const cv::Vec3d yvec, const int32_t width = 64,
