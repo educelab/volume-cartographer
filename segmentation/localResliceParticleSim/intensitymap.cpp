@@ -5,13 +5,15 @@ using namespace volcart::segmentation;
 
 IntensityMap::IntensityMap(cv::Mat r,
                            int32_t stepSize,
-                           int32_t peakDistanceWeight)
+                           int32_t peakDistanceWeight,
+                           bool shouldIncludeMiddle)
     : stepSize_(stepSize),
       peakDistanceWeight_(peakDistanceWeight),
       displayWidth_(200),
       displayHeight_(200),
       drawTarget_(displayWidth_, displayHeight_, CV_8UC3, BGR_BLACK),
-      chosenMaximaIndex_(-1)
+      chosenMaximaIndex_(-1),
+      shouldIncludeMiddle_(shouldIncludeMiddle)
 {
     // DEBUG - need to convert to 8 bit before we can do anything
     r.convertTo(r, CV_8UC1, 1.0 / std::numeric_limits<uint8_t>::max());
@@ -73,8 +75,7 @@ cv::Mat IntensityMap::draw()
 }
 
 // Finds the top 'N' maxima in the row being processed
-std::deque<std::pair<int32_t, double>> IntensityMap::sortedMaxima(
-    bool shouldIncludeMiddle)
+std::deque<std::pair<int32_t, double>> IntensityMap::sortedMaxima()
 {
     bool includesMiddle = false;
     std::deque<std::pair<int32_t, double>> crossings;
@@ -125,7 +126,7 @@ std::deque<std::pair<int32_t, double>> IntensityMap::sortedMaxima(
 
     // Append a "going straight down" option so that it exists in the list of
     // possible choices
-    if (!includesMiddle && shouldIncludeMiddle) {
+    if (!includesMiddle && shouldIncludeMiddle_) {
         auto mid = intensities_.cols / 2;
         crossings.emplace_back(mid, intensities_(mid));
     }

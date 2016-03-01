@@ -16,12 +16,14 @@ namespace segmentation
 class IntensityMap
 {
 public:
-    IntensityMap(cv::Mat, int32_t stepSize, int32_t peakDistanceWeight);
+    IntensityMap(cv::Mat,
+                 int32_t stepSize,
+                 int32_t peakDistanceWeight,
+                 bool shouldIncludeMiddle);
 
     cv::Mat draw();
 
-    std::deque<std::pair<int32_t, double>> sortedMaxima(
-        bool shouldIncludeMiddle);
+    std::deque<std::pair<int32_t, double>> sortedMaxima();
 
     void setChosenMaximaIndex(int32_t index) { chosenMaximaIndex_ = index; }
 
@@ -43,6 +45,7 @@ private:
     int32_t binWidth_;
     int32_t mapWidth_;
     int32_t chosenMaximaIndex_;
+    bool shouldIncludeMiddle_;
 };
 }
 }

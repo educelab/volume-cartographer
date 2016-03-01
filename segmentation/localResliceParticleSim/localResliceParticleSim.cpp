@@ -171,8 +171,9 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
             const cv::Point2i center{resliceIntensities.cols / 2,
                                      resliceIntensities.rows / 2};
             const int32_t nextLayerIndex = center.y + step;
-            IntensityMap map(resliceIntensities, step, peakDistanceWeight);
-            const auto allMaxima = map.sortedMaxima(shouldIncludeMiddle);
+            IntensityMap map(resliceIntensities, step, peakDistanceWeight,
+                             shouldIncludeMiddle);
+            const auto allMaxima = map.sortedMaxima();
             maps.push_back(map);
 
             // Handle case where there's no maxima - go straight down
@@ -246,16 +247,8 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
     iters_start:
         while (n++ < numIters) {
 
-            dEnergy.push_back(minEnergy);
-            /*
-            std::cout << "dEnergy: ";
-            for (auto de : dEnergy) {
-                std::cout << de << ", ";
-            }
-            std::cout << std::endl;
-            */
-
             // Break if our energy gradient is leveling off
+            dEnergy.push_back(minEnergy);
             if (dEnergy.size() == 3 &&
                 0.5 * (dEnergy[0] - dEnergy[2]) < kDefaultMinEnergyGradient) {
                 break;
@@ -325,8 +318,15 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
 
         ////////////////////////////////////////////////////////////////////////////////
         // 3. Clamp points that jumped too far back to a good (interpolated)
-        // position
+        // position. Do this by looking for places where the square of the
+        // second derivative is large, and move them back. Tentatively, I'm only
+        // going to move back points whose d2^2 evaluates to > 10.
         //
+        // Currently, linear interpolation between the previous/next point is
+        // used. This could be upgraded to some kind of other fit, possibly
+        // cubic interpolation. The end points are linearly extrapolated from
+        // their two closest neighbors.
+
         // Take initial second derivative
         auto secondDeriv = d2(nextVs);
         std::vector<double> normDeriv2;
