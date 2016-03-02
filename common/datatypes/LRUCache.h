@@ -24,6 +24,12 @@ public:
     virtual const char* what() const noexcept { return "Key not in cache"; }
 };
 
+class NegativeCapacityException : public std::exception
+{
+public:
+    virtual const char* what() const noexcept {return "Cannot create cache with negative capacity"; }
+};
+
 template <typename TKey, typename TValue>
 class LRUCache
 {
@@ -33,9 +39,12 @@ public:
 
     LRUCache() : capacity_(kDefaultCapacity) {}
     LRUCache(const size_t capacity) : capacity_(capacity) {}
-    void setCapacity(const size_t newCapacity) { 
+    void setCapacity(const int64_t newCapacity) {
 
-        capacity_ = newCapacity;
+        if (newCapacity < 0)
+            throw NegativeCapacityException();
+        else
+            capacity_ = newCapacity;
 
         // Cleanup elements that exceed the capacity
         while (lookup_.size() > capacity_) {

@@ -18,7 +18,7 @@
  *  Check that we are able to create a cache, retrieve/set key-value pairs          *
  *  appropriately, and handle exceptions                                            *
  *                                                                                  *
- *  This file is broken up into a testing fixture(s) which initializes the          *
+ *  This file is broken up into testing fixtures which initialize the               *
  *  objects used in each of the three test cases.                                   *
  *                                                                                  *
  *  1. CheckAbilityToResizeCache                                                    *
@@ -26,6 +26,7 @@
  *  3. InsertIntoCacheAndConfirmExistence                                           *
  *  4. CheckCacheWithDifferingCapacityAndSize                                       *
  *  5. TryToInsertMorePairsThanCurrentCapacity                                      *
+ *  6. CreateNegativeCapacityCache                                                  *
  *                                                                                  *
  * Input:                                                                           *
  *     No required inputs for this sample test.                                     *
@@ -125,8 +126,9 @@ BOOST_FIXTURE_TEST_CASE(CheckReferenceToOutOfBoundsKey, ReferenceBadKeyFixture) 
     catch (std::exception &e){
 
         //exception output message
+        //casting negative size_t value to int
         std::cout << e.what() << std::endl;
-        std::cout << "Key Tried: " << _Cache.capacity() - (_Cache.capacity() + 1) << std::endl;
+        std::cout << "Key Tried: " << (int)(_Cache.capacity() - (_Cache.capacity() + 1)) << std::endl;
         BOOST_CHECK(true);
     }
 
@@ -204,7 +206,6 @@ BOOST_FIXTURE_TEST_CASE(CheckCacheWithDifferingCapacityAndSize, CreateCacheWithD
             BOOST_CHECK(false);
         }
         catch (std::exception &e){
-            std::cout << "Key: " << k << " was popped from cache" << std::endl;
             BOOST_CHECK(true);
         }
     }
@@ -242,11 +243,18 @@ BOOST_FIXTURE_TEST_CASE(TryToInsertIntoZerCapacityCache, CreateCacheWithDefaultC
 
 BOOST_FIXTURE_TEST_CASE(CreateNegativeCapacityCache, CreateCacheWithDefaultConstructor){
 
-    _DefaultCache.setCapacity(-5);
-    std::cout << "Cap: " << _DefaultCache.capacity() << std::endl;
+    try{
+        _DefaultCache.setCapacity(-5);         //try to create negative cap cache
+        _DefaultCache.put(0,1);                //put shouldn't occur
+        BOOST_CHECK(false);                    //test should fail if allowed to create negative cap cache
+    }
+    catch (std::exception &e){
 
-    _DefaultCache.put(0,1);
-    _DefaultCache.put(1,2);
+        std::cout << e.what() << std::endl;
+        BOOST_CHECK(true);                     //handled correctly -- pass test
+    }
 
-    std::cout << "Size: " << _DefaultCache.size() << std::endl;
+    BOOST_CHECK_EQUAL(_DefaultCache.capacity(), 200);       //capacity should remain unchanged
+    BOOST_CHECK_EQUAL(_DefaultCache.size(), 0);             //size should still be 0
+
 }
