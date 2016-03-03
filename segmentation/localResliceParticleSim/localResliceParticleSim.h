@@ -18,19 +18,18 @@ class LocalResliceSegmentation
 public:
     LocalResliceSegmentation(VolumePkg& pkg) : pkg_(pkg) {}
 
-    pcl::PointCloud<pcl::PointXYZRGB> segmentPath(const vec<Voxel>& initPath,
-                                                  double resamplePerc,
-                                                  int32_t startIndex,
-                                                  int32_t endIndex,
-                                                  int32_t numIters,
-                                                  int32_t stepNumLayers,
-                                                  double alpha,
-                                                  double beta,
-                                                  int32_t peakDistanceWeight,
-                                                  bool shouldIncludeMiddle,
-                                                  bool dumpVis,
-                                                  bool visualize,
-                                                  int32_t visIndex);
+    pcl::PointCloud<pcl::PointXYZRGB> segmentPath(
+        const pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
+        int32_t startIndex,
+        int32_t endIndex,
+        int32_t numIters,
+        int32_t stepNumLayers,
+        double alpha,
+        double beta,
+        int32_t peakDistanceWeight,
+        bool shouldIncludeMiddle,
+        bool dumpVis,
+        bool visualize);
 
 private:
     VolumePkg& pkg_;

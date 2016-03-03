@@ -82,8 +82,7 @@ std::vector<cv::Vec<T, Len>> normalizeVector(
 }
 
 pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
-    const std::vector<Voxel>& initPath,
-    double resamplePerc,
+    const pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
     int32_t startIndex,
     int32_t endIndex,
     int32_t numIters,
@@ -93,10 +92,15 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
     int32_t peakDistanceWeight,
     bool shouldIncludeMiddle,
     bool dumpVis,
-    bool visualize,
-    int32_t visIndex)
+    bool visualize)
 {
-    std::cout << "incoming size: " << initPath.size() << std::endl;
+    // Convert incoming cloud to voxel vector representation
+    std::vector<Voxel> currentVs;
+    currentVs.reserve(cloud->size());
+    for (auto p : *cloud) {
+        currentVs.emplace_back(p.x, p.y, p.z);
+    }
+
     volcart::Volume vol = pkg_.volume();  // Debug output information
     const fs::path outputDir("debugvis");
     const fs::path wholeChainDir(outputDir / "whole_chain");
@@ -108,10 +112,6 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
     // Collection to hold all positions
     std::vector<std::vector<Voxel>> points;
     points.reserve((endIndex - startIndex + 1) / step);
-
-    // Resample incoming currentCurve
-    auto currentVs = FittedCurve(initPath, startIndex).resample(resamplePerc);
-    std::cout << "resampled size: " << currentVs.size() << std::endl;
 
     // Iterate over z-slices
     for (int32_t zIndex = startIndex;
@@ -190,6 +190,7 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
                 cv::imwrite(base.string() + "_reslice.png", resliceMat);
 
                 // Additionaly, visualize if necessary
+                /*
                 if (visualize && i == visIndex) {
                     cv::namedWindow("slice", cv::WINDOW_NORMAL);
                     cv::namedWindow("reslice", cv::WINDOW_NORMAL);
@@ -198,6 +199,7 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
                     cv::imshow("reslice", resliceMat);
                     cv::imshow("intensity map", map.draw());
                 }
+                */
             }
 
             // Convert maxima to voxel positions
