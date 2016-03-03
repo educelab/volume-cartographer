@@ -8,6 +8,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS on)
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 
+add_compile_options(-fdiagnostics-color=always)
+
 # Option for building apps
 option(VC_PREBUILT_LIBS "Link against prebuilt dependencies" OFF)
 

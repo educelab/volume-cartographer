@@ -1,100 +1,68 @@
 #include <iostream>
-#include <opencv2/opencv.hpp>
+#include <boost/program_options.hpp>
 #include <pcl/io/pcd_io.h>
-#include <pcl/common/common.h>
-#include <pcl/point_types.h>
-#include <pcl/console/parse.h>
-#include <pcl/filters/conditional_removal.h>
 #include "volumepkg.h"
 #include "localResliceParticleSim/localResliceParticleSim.h"
+#include "structureTensorParticleSim/structureTensorParticleSim.h"
+
+namespace po = boost::program_options;
+namespace vs = volcart::segmentation;
+
+// Default values for options
+static const int32_t kDefaultNumIters = 15;
+static const double kDefaultAlpha = 0.5;
+static const double kDefaultBeta = 0.5;
+static const int32_t kDefaultPeakDistanceWeight = 50;
+static const bool kDefaultIncludeMiddle = false;
 
 int main(int argc, char* argv[])
 {
-    if (argc < 5) {
-        std::cerr << "Usage:" << std::endl;
-        std::cerr << "    " << argv[0] << " "
-                  << "--volpkg /path/to/volume.volpkg --start-index [start] "
-                     "--end-index [end] --output /path/to/output.pcd --seg "
-                     "seg-id [--step S] "
-                     "[--visualize I] [--dump-vis] [--resample-perc F] "
-                     "[--num-iters N] [--alpha A] [--beta B]"
-                  << std::endl;
+    // Set up options
+    // clang-format off
+    po::options_description required("Required arguments");
+    required.add_options()
+        ("help,h", "print help")
+        ("start-index", po::value<int32_t>()->required(), "slice start index")
+        ("end-index", po::value<int32_t>()->required(), "slice end index")
+        ("step", po::value<int32_t>()->required(), "slice step count")
+        ("volpkg", po::value<std::string>()->required(), "VolumePkg path")
+        ("seg-id", po::value<std::string>()->required(), "segmentation ID")
+        ("method", po::value<std::string>()->required(),
+            "segmentation method; one of 'STPS' or 'LRPS'");
+
+    po::options_description stpsOptions("Structure Tensor Particle Sim Options");
+    stpsOptions.add_options()
+        ("gravity-scale", po::value<double>(), "gravity scale")
+        ("threshold", po::value<int32_t>(), "threshold");
+
+    po::options_description lrpsOptions("Local Reslice Particle Sim Options");
+    lrpsOptions.add_options()
+        ("num-iters,n", po::value<int32_t>()->default_value(kDefaultNumIters),
+            "Number of optimization iterations")
+        ("alpha,a", po::value<double>()->default_value(kDefaultAlpha),
+            "coefficient for first derivative term")
+        ("beta,b", po::value<double>()->default_value(kDefaultBeta),
+            "coefficient for second derivative term")
+        ("distance-weight,d",
+            po::value<int32_t>()->default_value(kDefaultPeakDistanceWeight),
+            "weighting for distance vs maxima intensity")
+        ("include-middle,i",
+            po::value<bool>()->default_value(kDefaultIncludeMiddle),
+            "whether 'going straight down' should be an option");
+    // clang-format on
+    po::options_description all("All options");
+    all.add(required).add(stpsOptions).add(lrpsOptions);
+
+    // Parse and handle options
+    po::variables_map opts;
+    po::store(po::parse_command_line(argc, argv, all), opts);
+    if (opts.count("help")) {
+        std::cout << all << std::endl;
         std::exit(1);
     }
 
-    // Required args
-    int32_t startIndex = -1;
-    pcl::console::parse_argument(argc, argv, "--start-index", startIndex);
-    if (startIndex == -1) {
-        std::cerr << "[error]: startIndex required\n";
-        std::exit(1);
-    }
-    int32_t endIndex = -1;
-    pcl::console::parse_argument(argc, argv, "--end-index", endIndex);
-    if (endIndex == -1) {
-        std::cerr << "[error]: endIndex required\n";
-        std::exit(1);
-    }
-
-    std::string segID = "";
-    pcl::console::parse_argument(argc, argv, "--seg", segID);
-    if (segID == "") {
-        std::cerr << "[error]: segID required\n";
-        std::exit(1);
-    }
-
-    std::string volpkgPath = "";
-    pcl::console::parse_argument(argc, argv, "--volpkg", volpkgPath);
-    if (volpkgPath == "") {
-        std::cerr << "[error]: volpkg required\n";
-        std::exit(1);
-    }
-
-    std::string outputPath = "";
-    pcl::console::parse_argument(argc, argv, "--output", outputPath);
-    if (outputPath == "") {
-        std::cerr << "[error]: output path required\n";
-        std::exit(1);
-    }
-
-    // Optional args
-    bool visualize = pcl::console::find_switch(argc, argv, "--visualize");
-    int32_t visIndex = -1;
-    if (visualize) {
-        visIndex =
-            pcl::console::parse_argument(argc, argv, "--visualize", visIndex);
-    }
-    bool dumpVis = pcl::console::find_switch(argc, argv, "--dump-vis");
-
-    int32_t numIters = 10;
-    pcl::console::parse_argument(argc, argv, "--num-iters", numIters);
-
-    int32_t step = 1;
-    pcl::console::parse_argument(argc, argv, "--step", step);
-
-    double resamplePerc = 0.40;
-    pcl::console::parse_argument(argc, argv, "--resample-perc", resamplePerc);
-
-    double alpha = 0.5;
-    pcl::console::parse_argument(argc, argv, "--alpha", alpha);
-
-    double beta = 0.5;
-    pcl::console::parse_argument(argc, argv, "--beta", beta);
-    if (std::fabs(alpha + beta - 1.0) > 1e-10) {
-        std::cerr << "[error]: alpha + beta must add up to 1.0" << std::endl;
-        std::exit(1);
-    }
-
-    int32_t peakDistanceWeight = 50;
-    pcl::console::parse_argument(argc, argv, "--peak-weight",
-                                 peakDistanceWeight);
-
-    int32_t shouldIncludeMiddle = false;
-    pcl::console::parse_argument(argc, argv, "--include-middle",
-                                 shouldIncludeMiddle);
-
-    VolumePkg volpkg(volpkgPath);
-    volpkg.setActiveSegmentation(segID);
+    VolumePkg volpkg(opts["volpkg"].as<std::string>());
+    volpkg.setActiveSegmentation(opts["seg-id"].as<std::string>());
     if (volpkg.getVersion() < 2.0) {
         std::cerr << "ERROR: Volume package is version " << volpkg.getVersion()
                   << " but this program requires a version >= 2.0."
