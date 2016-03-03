@@ -38,7 +38,7 @@ public:
     using TListIterator = typename std::list<TPair>::iterator;
 
     LRUCache() : capacity_(kDefaultCapacity) {}
-    LRUCache(const size_t capacity) : capacity_(capacity) {}
+    LRUCache(const int64_t capacity) : capacity_(capacity) {}
     void setCapacity(const int64_t newCapacity) {
 
         if (newCapacity < 0)
@@ -47,7 +47,7 @@ public:
             capacity_ = newCapacity;
 
         // Cleanup elements that exceed the capacity
-        while (lookup_.size() > capacity_) {
+        while (int64_t(lookup_.size()) > capacity_) {
             auto last = std::end(items_);
             last--;
             lookup_.erase(last->first);
@@ -55,7 +55,7 @@ public:
         }
     }
     
-    size_t capacity(void) const { return capacity_; }
+    int64_t capacity(void) const { return capacity_; }
     size_t size(void) const { return lookup_.size(); }
 
     // Returning a const ref is better because then if you try to modify the
@@ -82,7 +82,7 @@ public:
         items_.push_front(TPair(k, v));
         lookup_[k] = std::begin(items_);
 
-        if (lookup_.size() > capacity_) {
+        if ( int64_t(lookup_.size()) > capacity_) {
             auto last = std::end(items_);
             last--;
             lookup_.erase(last->first);
@@ -94,9 +94,9 @@ public:
 private:
     std::list<TPair> items_;
     std::unordered_map<TKey, TListIterator> lookup_;
-    size_t capacity_;
+    int64_t capacity_;
 
-    static const size_t kDefaultCapacity = 200;
+    static const int64_t kDefaultCapacity = 200;
 };
 }  // namespace volcart
 

@@ -67,7 +67,7 @@ struct ResizingCacheFixture{
     ~ResizingCacheFixture(){ std::cerr << "Destroying cache..." << std::endl; }
 
     volcart::LRUCache<size_t,int> _DefaultCache;
-    size_t _in_NewCap;
+    int64_t _in_NewCap;
 };
 
 struct ReferenceBadKeyFixture{
@@ -91,7 +91,7 @@ struct ReferenceBadKeyFixture{
     ~ReferenceBadKeyFixture(){ std::cerr << "Destroying cache..." << std::endl; }
 
     volcart::LRUCache<size_t,int> _Cache;
-    size_t _in_Cap;
+    int64_t _in_Cap;
 
 };
 
@@ -256,5 +256,6 @@ BOOST_FIXTURE_TEST_CASE(CreateNegativeCapacityCache, CreateCacheWithDefaultConst
 
     BOOST_CHECK_EQUAL(_DefaultCache.capacity(), 200);       //capacity should remain unchanged
     BOOST_CHECK_EQUAL(_DefaultCache.size(), 0);             //size should still be 0
+
 
 }
