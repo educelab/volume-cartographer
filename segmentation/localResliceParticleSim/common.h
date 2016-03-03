@@ -43,4 +43,31 @@ std::ostream& operator<<(std::ostream& s, std::vector<T> v)
     return s << v.back() << "]";
 }
 
+template <typename T1, typename T2>
+std::vector<std::pair<T1, T2>> zip(const std::vector<T1>& v1,
+                                   const std::vector<T2>& v2)
+{
+    assert(v1.size() == v2.size() && "v1 and v2 must be the same size");
+    std::vector<std::pair<T1, T2>> res;
+    res.reserve(v1.size());
+    for (int32_t i = 0; i < int32_t(v1.size()); ++i) {
+        res.push_back(std::make_pair(v1[i], v2[i]));
+    }
+    return res;
+}
+
+template <typename T>
+std::tuple<std::vector<T>, std::vector<T>> unzip(
+    const std::vector<cv::Vec<T, 2>>& vs)
+{
+    std::vector<T> xs, ys;
+    xs.reserve(vs.size());
+    ys.reserve(vs.size());
+    for (const auto v : vs) {
+        xs.push_back(v(0));
+        ys.push_back(v(1));
+    }
+    return std::make_tuple(xs, ys);
+}
+
 #endif  // VC_COMMON_H

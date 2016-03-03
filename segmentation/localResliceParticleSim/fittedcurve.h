@@ -20,7 +20,6 @@ private:
     int32_t zIndex_;
     std::vector<double> ts_;
     std::vector<Pixel> points_;
-    std::vector<Voxel> seedPoints_;
     std::vector<double> xs_;
     std::vector<double> ys_;
 
@@ -38,8 +37,6 @@ public:
     std::vector<double> ys() const { return ys_; }
 
     const decltype(spline_)& spline() const { return spline_; }
-
-    std::vector<Voxel> seedPoints() const { return seedPoints_; }
 
     Pixel eval(double t) const { return spline_.eval(t); }
 

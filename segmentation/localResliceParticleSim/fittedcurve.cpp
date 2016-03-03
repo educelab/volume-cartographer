@@ -9,7 +9,7 @@ using namespace volcart::segmentation;
 double calcArcLength(const std::vector<Voxel>& vs);
 
 FittedCurve::FittedCurve(const std::vector<Voxel>& vs, int32_t zIndex)
-    : npoints_(vs.size()), zIndex_(zIndex), seedPoints_(vs)
+    : npoints_(vs.size()), zIndex_(zIndex)
 {
     std::vector<double> xs, ys;
     xs.reserve(vs.size());
@@ -105,10 +105,12 @@ double calcArcLength(const std::vector<Voxel>& vs)
 std::vector<double> FittedCurve::curvature(int32_t hstep,
                                            const double scaleFactor) const
 {
-    const auto dx1 = d1(xs_, hstep);
-    const auto dy1 = d1(ys_, hstep);
-    const auto dx2 = d2(xs_, hstep);
-    const auto dy2 = d2(ys_, hstep);
+    std::vector<double> xs, ys;
+    std::tie(xs, ys) = unzip(points_);
+    const auto dx1 = d1(xs, hstep);
+    const auto dy1 = d1(ys, hstep);
+    const auto dx2 = d2(xs, hstep);
+    const auto dy2 = d2(ys, hstep);
 
     // Calculate curvature
     // according to: http://mathworld.wolfram.com/Curvature.html
