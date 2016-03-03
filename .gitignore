@@ -1,7 +1,4 @@
-*.png
-*.jpg
-*.mhd
-*.raw
+*.iconset/
 bin/
 flycheck*
 *.o

@@ -21,12 +21,13 @@ option(INSTALL_VC_DEMO "Install VC demo apps" OFF)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/)
 IF(VC_PREBUILT_LIBS)
     set(CMAKE_PREFIX_PATH ${PROJECT_SOURCE_DIR}/vc-deps/deps/)
+    add_definitions(-DVC_PREBUILT_LIBS)
 ENDIF(VC_PREBUILT_LIBS)
 
 find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets OpenGL PrintSupport)
 find_package(PCL 1.7 REQUIRED)
 find_package(OpenCV REQUIRED)
-find_package(Boost REQUIRED COMPONENTS system filesystem program_options iostreams)
+find_package(Boost REQUIRED COMPONENTS system filesystem program_options iostreams unit_test_framework)
 find_package(ITK REQUIRED)
 find_package(VTK 6.1 REQUIRED)
 find_package(OpenGL REQUIRED)
@@ -37,16 +38,30 @@ include(${ITK_USE_FILE})
 include(${VTK_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
 
-include_directories(${Boost_INCLUDE_DIR} ${PCL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} ${ACVD_INCLUDE_DIRS} ${BULLET_INCLUDE_DIRS})
+include_directories(${Boost_INCLUDE_DIR} ${PCL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS} ${Boost_LIBRARY_DIRS})
-set(VC_REQ_LIBS ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} ${ITK_LIBRARIES} ${ACVD_LIBRARIES} ${BULLET_LIBRARIES})
+set(VC_REQ_LIBS ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} ${ITK_LIBRARIES})
 add_definitions(${PCL_DEFINITIONS})
+
+# Conditional Inclusions
+if(ACVD_FOUND)
+    include_directories(${ACVD_INCLUDE_DIRS})
+    set(VC_REQ_LIBS ${VC_REQ_LIBS} ${ACVD_LIBRARIES})
+endif(ACVD_FOUND)
+
+if(Bullet_FOUND)
+    include_directories(${BULLET_INCLUDE_DIRS})
+    set(VC_REQ_LIBS ${VC_REQ_LIBS} ${BULLET_LIBRARIES})
+endif(Bullet_FOUND)
 
 # OS Specific Changes
 IF(APPLE)
     FIND_LIBRARY(SECURITY_LIBRARY Security)
     SET(EXTRA_LIBS ${SECURITY_LIBRARY})
 ENDIF(APPLE)
+
+#for unit testing
+enable_testing()
 
 # VC Libraries
 add_subdirectory(common)
@@ -68,12 +83,11 @@ set(VC_LIBS vc_volumepkg vc_meshing vc_segmentation vc_texturing vc_common)
 
 # VC Core Apps
 add_subdirectory(packager)
-#add_subdirectory(pathgen)
 add_subdirectory(apps)
 add_subdirectory(utils)
+add_subdirectory(testing)
 
 # VC Demo Apps
-#add_subdirectory(region)
 add_subdirectory(examples)
 
 # Uninstall target

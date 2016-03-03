@@ -13,9 +13,11 @@
 namespace volcart {
     namespace meshing {
 
-        pcl::PolygonMesh greedyProjectionMeshing ( pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr input, unsigned maxNeighbors = 100, double radius = 2.0, double radiusMultiplier = 2.5 );
+        pcl::PolygonMesh greedyProjectionMeshing ( pcl::PointCloud<pcl::PointNormal>::Ptr input, unsigned maxNeighbors = 100, double radius = 2.0, double radiusMultiplier = 2.5 );
+
 
     } // namespace meshing
+
 } // namespace volcart
 
 #endif //VC_GREEDYPROJECTIONMESHING_H

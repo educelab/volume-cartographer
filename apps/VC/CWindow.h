@@ -38,6 +38,8 @@ public:
                         WindowStateDrawPath,    // draw new path
                         WindowStateSegmentation,// segmentation mode
                         WindowStateIdle };      // idle
+    enum SaveResponse : bool { Cancelled,
+                               Continue};
 
     typedef struct SSegParams_tag {
         double fGravityScale;
@@ -64,8 +66,10 @@ private:
     void setWidgetsEnabled( bool state );
 
     bool InitializeVolumePkg( const std::string &nVpkgPath );
+    SaveResponse SaveDialog( void );
 
     void UpdateView( void );
+    void ChangePathItem( std::string segID );
 
     void SplitCloud( void );
     void DoSegmentation( void );
@@ -101,7 +105,7 @@ private slots:
     void OnEdtGravityValChange();
     void OnEdtSampleDistValChange( QString nText );
     void OnEdtStartingSliceValChange( QString nText );
-    void OnEdtEndingSliceValChange( QString nText );
+    void OnEdtEndingSliceValChange();
 
     void OnBtnStartSegClicked( void );
 
@@ -120,6 +124,7 @@ private:
     VolumePkg   *fVpkg;
     QString     fVpkgPath;
     std::string fVpkgName;
+    bool        fVpkgChanged;
 
     std::string fSegmentationId;
 
@@ -168,8 +173,7 @@ private:
     QAction     *fExitAct;
     QAction     *fAboutAct;
 
-    CVolumeViewerWithCurve
-                *fVolumeViewerWidget;
+    CVolumeViewerWithCurve *fVolumeViewerWidget;
     QListWidget *fPathListWidget;
     QPushButton *fPenTool; // REVISIT - change me to QToolButton
     QPushButton *fSegTool;
@@ -182,6 +186,8 @@ private:
     QSlider     *fEdtImpactRange;
 
     Ui::VCMainWindow    ui;
+
+    QStatusBar  *statusBar;
 
 }; // class CWindow
 

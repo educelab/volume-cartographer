@@ -22,8 +22,8 @@ class Chain {
   Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg& volpkg, double gravity_scale, int threshold, int endOffset, double spring_constant_k = -0.5);
   void step();
   bool isMoving();
-  cv::Vec3f springForce(int);
-  cv::Vec3f gravity(int);
+  cv::Vec3d springForce(int);
+  cv::Vec3d gravity(int);
   pcl::PointCloud<pcl::PointXYZRGB> orderedPCD();
 
  private:

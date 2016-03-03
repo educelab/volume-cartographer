@@ -32,6 +32,8 @@ CWindow::CWindow( void ) :
 {
     ui.setupUi( this );
 
+    fVpkgChanged = false;
+
     // default parameters for segmentation method
     // REVISIT - refactor me
     fSegParams.fGravityScale = 0.3;
@@ -65,6 +67,8 @@ CWindow::CWindow( QRect windowSize ) :
         fMaxSegIndex( VOLPKG_SLICE_MIN_INDEX )
 {
     ui.setupUi( this );
+
+    fVpkgChanged = false;
 
     int height = windowSize.height();
     int width = windowSize.width();
@@ -170,7 +174,7 @@ void CWindow::CreateWidgets( void )
     connect( fEdtGravity, SIGNAL( editingFinished() ), this, SLOT( OnEdtGravityValChange() ) );
     connect( fEdtSampleDist, SIGNAL( textEdited(QString) ), this, SLOT( OnEdtSampleDistValChange( QString ) ) );
     connect( fEdtStartIndex, SIGNAL( textEdited(QString) ), this, SLOT( OnEdtStartingSliceValChange( QString ) ) );
-    connect( fEdtEndIndex, SIGNAL( textEdited(QString) ), this, SLOT( OnEdtEndingSliceValChange( QString ) ) );
+    connect( fEdtEndIndex, SIGNAL( editingFinished() ), this, SLOT( OnEdtEndingSliceValChange() ) );
 
     // start segmentation button
     QPushButton *aBtnStartSeg = this->findChild< QPushButton * >( "btnStartSeg" );
@@ -179,6 +183,9 @@ void CWindow::CreateWidgets( void )
     // Impact Range slider
     QSlider *fEdtImpactRange = this->findChild< QSlider * >( "sldImpactRange" );
     connect( fEdtImpactRange, SIGNAL( valueChanged(int) ), this, SLOT( OnEdtImpactRange( int ) ) );
+
+    // Setup the status bar
+    statusBar = this->findChild< QStatusBar * >( "statusBar" );
 }
 
 // Create menus
@@ -213,30 +220,10 @@ void CWindow::CreateActions( void )
 // Asks User to Save Data Prior to VC.app Exit
 void CWindow::closeEvent(QCloseEvent *closing)
 {
-    if( fVpkg != NULL && fMasterCloud.size() > 0 )
-    {
-        QMessageBox::StandardButton response = QMessageBox::question( this, "VC",
-                                                                    tr("Save current segmentation changes before quitting?\n"),
-                                                                    QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel );
-
-        switch (response) {
-            case QMessageBox::Save:
-                SavePointCloud();
-                closing->accept();
-                std::cerr << "VC::message: Closing VC.app" << std::endl;
-                break;
-            case QMessageBox::Discard:
-                closing->accept();
-                std::cerr << "VC::message: Closing VC.app" << std::endl;
-                break;
-            case QMessageBox::Cancel:
-                closing->ignore();
-                break;
-            default:
-                // should never be reached
-                break;
-        }
-
+    if ( SaveDialog() == SaveResponse::Continue ) {
+        closing->accept();
+    } else {
+        closing->ignore();
     }
 }
 
@@ -260,6 +247,8 @@ bool CWindow::InitializeVolumePkg( const std::string &nVpkgPath )
         std::cerr << "VC::Error: Volume package failed to initialize." << std::endl;
     }
 
+    fVpkgChanged = false;
+
     if ( fVpkg == NULL ) {
         std::cerr << "VC::Error: Cannot open volume package at specified location: " << nVpkgPath << std::endl;
         QMessageBox::warning(this, "Error", "Volume package failed to load. Package might be corrupt.");
@@ -267,6 +256,27 @@ bool CWindow::InitializeVolumePkg( const std::string &nVpkgPath )
     }
 
     return true;
+}
+
+CWindow::SaveResponse CWindow::SaveDialog( void ) {
+    // Return if nothing has changed
+    if ( !fVpkgChanged ) return SaveResponse::Continue;
+
+    QMessageBox::StandardButton response = QMessageBox::question( this, "Save changes?",
+                                                                  tr("Changes will be lost! Save volume package before continuing?\n"),
+                                                                  QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel );
+    switch (response) {
+        case QMessageBox::Save:
+            SavePointCloud();
+            return SaveResponse::Continue;
+        case QMessageBox::Discard:
+            fVpkgChanged = false;
+            return SaveResponse::Continue;
+        case QMessageBox::Cancel:
+            return SaveResponse::Cancelled;
+        default:
+            return SaveResponse::Cancelled; // should never be reached
+    }
 }
 
 // Update the widgets
@@ -287,6 +297,9 @@ void CWindow::UpdateView( void )
     fEdtGravity->setText( QString( "%1" ).arg( fSegParams.fGravityScale ) );
     fEdtSampleDist->setText( QString( "%1" ).arg( fSegParams.fThreshold ) );
     fEdtStartIndex->setText( QString( "%1" ).arg( fPathOnSliceIndex ) );
+    
+    if ( fSegParams.fEndOffset + fPathOnSliceIndex >= fVpkg->getNumberOfSlices() )
+        fSegParams.fEndOffset = (fVpkg->getNumberOfSlices() - 1) - fPathOnSliceIndex;
     fEdtEndIndex->setText( QString( "%1" ).arg( fSegParams.fEndOffset + fPathOnSliceIndex ) ); // offset + starting index
 
     if ( fIntersectionCurve.GetPointsNum() == 0) { // no points in current slice
@@ -327,6 +340,29 @@ void CWindow::UpdateView( void )
     update();
 }
 
+// Activate a specific segmentation by ID
+void CWindow::ChangePathItem( std::string segID ) {
+    statusBar->clearMessage();
+
+    // Close the current segmentation
+    ResetPointCloud();
+
+    // Activate requested segmentation
+    fSegmentationId = segID;
+    fVpkg->setActiveSegmentation( fSegmentationId );
+
+    // load proper point cloud
+    fMasterCloud = *fVpkg->openCloud();
+    SetUpCurves();
+
+    // Move us to the lowest slice index for the cloud
+    fPathOnSliceIndex = fMinSegIndex;
+    OpenSlice();
+    SetCurrentCurve( fPathOnSliceIndex );
+
+    UpdateView();
+}
+
 // Split fMasterCloud into fUpperCloud and fLowerCloud
 void CWindow::SplitCloud( void )
 {
@@ -355,6 +391,8 @@ void CWindow::SplitCloud( void )
 // Do segmentation given the starting point cloud
 void CWindow::DoSegmentation( void )
 {
+    statusBar->clearMessage();
+    
     // REVISIT - do we need to get the latest value from the widgets since we constantly get the values?
     if ( !SetUpSegParams() ) {
         QMessageBox::information( this, tr( "Info" ), tr( "Invalid parameter for segmentation" ) );
@@ -374,6 +412,9 @@ void CWindow::DoSegmentation( void )
     fMasterCloud = fUpperPart + fLowerPart;
     fMasterCloud.width = fUpperPart.width;
     fMasterCloud.height = fMasterCloud.size() / fMasterCloud.width;
+
+    statusBar->showMessage( tr("Segmentation complete") );
+    fVpkgChanged = true;
 }
 
 void CWindow::CleanupSegmentation( void )
@@ -408,11 +449,9 @@ bool CWindow::SetUpSegParams( void )
         return false;
     }
 
-    // starting slice index is fPathOnSliceIndex
-
     // ending slice index
     aNewVal = fEdtEndIndex->text().toInt( &aIsOk );
-    if ( aIsOk && aNewVal > fPathOnSliceIndex ) {
+    if ( aIsOk && aNewVal >= fPathOnSliceIndex && aNewVal < fVpkg->getNumberOfSlices() ) {
         fSegParams.fEndOffset = aNewVal - fPathOnSliceIndex; // difference between the starting slice and ending slice
     } else {
         return false;
@@ -424,8 +463,9 @@ bool CWindow::SetUpSegParams( void )
 // Get the curves for all the slices
 void CWindow::SetUpCurves( void )
 {
-    if ( fVpkg == NULL || fMasterCloud.size() == 0 ) {
-        QMessageBox::information( this, tr( "Warning" ), tr( "Point cloud for this segmentation is empty." ) );
+    if ( fVpkg == NULL || fMasterCloud.empty() ) {
+        statusBar->showMessage( tr("Selected point cloud is empty") );
+        std::cerr << "VC::Warning: Point cloud for this segmentation is empty." << std::endl;
         return;
     }
     fIntersections.clear();
@@ -556,11 +596,12 @@ void CWindow::OpenVolume( void )
     }
 
     fVpkgPath = aVpkgPath;
-    fPathOnSliceIndex = 2;
+    fPathOnSliceIndex = 0;
 }
 
 void CWindow::CloseVolume( void ) {
     fVpkg = NULL;
+    fSegmentationId = "";
     ResetPointCloud();
     OpenSlice();
     InitPathList();
@@ -581,25 +622,7 @@ void CWindow::ResetPointCloud( void )
 // Handle open request
 void CWindow::Open( void )
 {
-    if(fVpkg != NULL && fMasterCloud.size()>0)
-    {
-        QMessageBox::StandardButton response = QMessageBox::question( this, "VC.app",
-                                                                      tr("Save changes to current segmentation before opening new volume package?\n"),
-                                                                      QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel );
-        switch (response) {
-            case QMessageBox::Save:
-                SavePointCloud();
-                break;
-            case QMessageBox::Discard:
-                break;
-            case QMessageBox::Cancel:
-                std::cerr << "VC::message: Open volume package cancelled." << std::endl;
-                return;
-            default:
-                // should never be reached
-                break;
-        }
-    }
+    if ( SaveDialog() == SaveResponse::Cancelled ) return;
 
     CloseVolume();
     OpenVolume();
@@ -632,6 +655,7 @@ void CWindow::SavePointCloud( void )
     // Try to save cloud to volpkg
     if ( fVpkg->saveCloud(fMasterCloud) != EXIT_SUCCESS ) {
         QMessageBox::warning(this, "Error", "Failed to write cloud to volume package.");
+        return;
     }
 
     // Only mesh if we have more than one iteration of segmentation
@@ -640,48 +664,49 @@ void CWindow::SavePointCloud( void )
     } else {
         if (fVpkg->saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr(new pcl::PointCloud<pcl::PointXYZRGB>(fMasterCloud))) != EXIT_SUCCESS) {
             QMessageBox::warning(this, "Error", "Failed to write mesh to volume package.");
+            return;
         } else {
             std::cerr << "VC::message: Succesfully saved mesh." << std::endl;
         }
     }
+
+    statusBar->showMessage( tr("Volume saved.") , 5000 );
+    std::cerr << "VC::message: Volume saved." << std::endl;
+    fVpkgChanged = false;
 }
 
 // Create new path
 void CWindow::OnNewPathClicked( void )
 {
-    fSegmentationId = fVpkg->newSegmentation();
-    fVpkg->setActiveSegmentation( fSegmentationId );
+    // Save if we need to
+    if ( SaveDialog() == SaveResponse::Cancelled ) return;
 
-    // Clear the cloud and save an empty one
-    ResetPointCloud();
+    // Make a new segmentation in the volpkg
+    std::string newSegmentationId = fVpkg->newSegmentation();
 
-    // add new path to path list and set it to active
-    QListWidgetItem *aNewPath = new QListWidgetItem( QString( fSegmentationId.c_str() ) );
+    // add new path to path list
+    QListWidgetItem *aNewPath = new QListWidgetItem( QString( newSegmentationId.c_str() ) );
     fPathListWidget->addItem( aNewPath );
-    fPathListWidget->setCurrentItem( aNewPath );
 
-    UpdateView();
+    // Make sure we stay on the current slice
+    fMinSegIndex = fPathOnSliceIndex;
+
+    // Activate the new item
+    fPathListWidget->setCurrentItem( aNewPath );
+    ChangePathItem( newSegmentationId );
 }
 
 // Handle path item click event
-void CWindow::OnPathItemClicked( QListWidgetItem* nItem )
+void CWindow::OnPathItemClicked( QListWidgetItem *nItem )
 {
-    // set active segmentation
-    fSegmentationId = nItem->text().toStdString();
-    fVpkg->setActiveSegmentation( nItem->text().toStdString() );
+    if ( SaveDialog() == SaveResponse::Cancelled ) {
+        // Update the list to show the previous selection
+        QListWidgetItem *previous = fPathListWidget->findItems( QString( fSegmentationId.c_str() ), Qt::MatchExactly )[0];
+        fPathListWidget->setCurrentItem( previous );
+        return;
+    }
 
-    ResetPointCloud();
-
-    // load proper point cloud
-    fMasterCloud = *fVpkg->openCloud();
-    SetUpCurves();
-
-    // Move us to the lowest slice index for the cloud
-    fPathOnSliceIndex = fMinSegIndex;
-    OpenSlice();
-    SetCurrentCurve( fPathOnSliceIndex );
-
-    UpdateView();
+    ChangePathItem( nItem->text().toStdString() );
 }
 
 // Toggle the status of the pen tool
@@ -763,13 +788,16 @@ void CWindow::OnEdtStartingSliceValChange( QString nText )
 }
 
 // Handle ending slice value change
-void CWindow::OnEdtEndingSliceValChange( QString nText )
+void CWindow::OnEdtEndingSliceValChange()
 {
     // ending slice index
     bool aIsOk = false;
-    int aNewVal = nText.toInt( &aIsOk );
-    if ( aIsOk && aNewVal > fPathOnSliceIndex ) {
+    int aNewVal = fEdtEndIndex->displayText().toInt( &aIsOk );
+    if ( aIsOk && aNewVal > fPathOnSliceIndex && aNewVal < fVpkg->getNumberOfSlices() ) {
         fSegParams.fEndOffset = aNewVal - fPathOnSliceIndex; // difference between the starting slice and ending slice
+    } else {
+        statusBar->showMessage( tr("ERROR: Selected slice is out of range of the volume!"), 10000 );
+        fEdtEndIndex->setText( QString::number(fPathOnSliceIndex + fSegParams.fEndOffset) );
     }
 }
 
@@ -790,10 +818,13 @@ void CWindow::OnEdtImpactRange( int nImpactRange )
 // Handle loading any slice
 void CWindow::OnLoadAnySlice( int nSliceIndex )
 {
-    fPathOnSliceIndex = nSliceIndex;
-    OpenSlice();
-    SetCurrentCurve( fPathOnSliceIndex );
-    UpdateView();
+    if ( nSliceIndex >= 0 && nSliceIndex < fVpkg->getNumberOfSlices() ) {
+        fPathOnSliceIndex = nSliceIndex;
+        OpenSlice();
+        SetCurrentCurve( fPathOnSliceIndex );
+        UpdateView();
+    } else
+        statusBar->showMessage( tr("ERROR: Selected slice is out of range of the volume!"), 10000 );
 }
 
 // Handle loading the next slice
@@ -804,18 +835,20 @@ void CWindow::OnLoadNextSlice( void )
         OpenSlice();
         SetCurrentCurve(fPathOnSliceIndex);
         UpdateView();
-    }
+    } else
+        statusBar->showMessage( tr("Already at the end of the volume!"), 10000 );
 }
 
 // Handle loading the previous slice
 void CWindow::OnLoadPrevSlice( void )
 {
-    if (fPathOnSliceIndex > 2) {
+    if (fPathOnSliceIndex > 0) {
         --fPathOnSliceIndex;
         OpenSlice();
         SetCurrentCurve(fPathOnSliceIndex);
         UpdateView();
-    }
+    } else
+        statusBar->showMessage( tr("Already at the beginning of the volume!"), 10000 );
 }
 
 // Handle path change event

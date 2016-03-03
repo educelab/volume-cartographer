@@ -1,0 +1,28 @@
+####
+# OBJ dataFile simple version. File name: CubeGreedyProjectionMeshing.obj
+# Vertices: 8
+# Vertices normals : 8
+# Faces: 0
+####
+# List of Vertices, with (x,y,z) coordinates, w is optional.
+v 0 0 0
+v 0 5 0
+v 5 5 0
+v 5 0 0
+v 0 0 5
+v 0 5 5
+v 5 5 5
+v 5 0 5
+# 8 vertices
+# Normals in (x,y,z) form; normals might not be unit.
+vn 0 -0.2 -0.4
+vn 0.25 0 -0.25
+vn 0 -0.2 -0.4
+vn -0.25 0 -0.25
+vn -0.25 0 -0.25
+vn 0 0.2 -0.4
+vn 0.25 0 -0.25
+vn 0 0.2 -0.4
+# 8 vertices normals
+# Face Definitions
+# End of File
