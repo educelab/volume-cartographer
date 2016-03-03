@@ -14,10 +14,6 @@ namespace fs = boost::filesystem;
 using std::begin;
 using std::end;
 
-template <typename T1, typename T2>
-std::vector<std::pair<T1, T2>> zip(const std::vector<T1>& v1,
-                                   const std::vector<T2>& v2);
-
 pcl::PointCloud<pcl::PointXYZRGB> exportAsPCD(
     const std::vector<std::vector<Voxel>>& points);
 
@@ -41,11 +37,7 @@ double internalEnergy(const FittedCurve& current,
 
 double curvatureEnergy(const FittedCurve& current, const FittedCurve& next);
 
-double energyMetric(const FittedCurve& curve,
-                    int32_t index,
-                    int32_t windowSize,
-                    double alpha,
-                    double beta);
+double energyMetric(const FittedCurve& curve, double alpha, double beta);
 
 double tensionEnergy(const FittedCurve& curve);
 
@@ -282,8 +274,7 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
                     FittedCurve combCurve(combVs, zIndex + 1);
 
                     // Found a new optimum?
-                    double newE =
-                        energyMetric(combCurve, maxDiffIdx, 5, alpha, beta);
+                    double newE = energyMetric(combCurve, alpha, beta);
                     if (newE < minEnergy) {
                         minEnergy = newE;
                         // maps[maxDiffIdx].setChosenMaximaIndex(c);
@@ -363,6 +354,13 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
             maxVal = std::max_element(begin(normDeriv2), end(normDeriv2));
         }
 
+        // Check if any points in nextVs are outside volume boundaries. If so,
+        // stop iterating and dump the resulting pointcloud.
+        if (std::any_of(begin(nextVs), end(nextVs),
+                        [vol](Voxel v) { return !vol.isInBounds(v); })) {
+            break;
+        }
+
         // Add next positions to
         currentVs = nextVs;
         points.push_back(nextVs);
@@ -371,19 +369,6 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
     ////////////////////////////////////////////////////////////////////////////////
     // 4. Output final mesh
     return exportAsPCD(points);
-}
-
-template <typename T1, typename T2>
-std::vector<std::pair<T1, T2>> zip(const std::vector<T1>& v1,
-                                   const std::vector<T2>& v2)
-{
-    assert(v1.size() == v2.size() && "v1 and v2 must be the same size");
-    std::vector<std::pair<T1, T2>> res;
-    res.reserve(v1.size());
-    for (int32_t i = 0; i < int32_t(v1.size()); ++i) {
-        res.push_back(std::make_pair(v1[i], v2[i]));
-    }
-    return res;
 }
 
 cv::Vec3d LocalResliceSegmentation::estimateNormalAtIndex(
@@ -516,11 +501,7 @@ double curvatureEnergy(const FittedCurve& curr, const FittedCurve& next)
     return squareDiff(k1, k2);
 }
 
-double energyMetric(const FittedCurve& curve,
-                    int32_t index,
-                    int32_t windowSize,
-                    double alpha,
-                    double beta)
+double energyMetric(const FittedCurve& curve, double alpha, double beta)
 {
     // double localTension = localTensionEnergy(curve, index, windowSize);
     double internal = internalEnergy(curve, alpha, beta);
