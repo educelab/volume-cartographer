@@ -90,6 +90,12 @@ public:
         }
     }
 
+    void purge(void)
+    {
+        lookup_.clear();
+        items_.clear();
+    }
+
     bool exists(const TKey& k) { return lookup_.find(k) != std::end(lookup_); }
 private:
     std::list<TPair> items_;
