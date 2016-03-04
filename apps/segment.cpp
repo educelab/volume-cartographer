@@ -65,10 +65,22 @@ int main(int argc, char* argv[])
     // Parse and handle options
     po::variables_map opts;
     po::store(po::parse_command_line(argc, argv, all), opts);
+
+    // Warn of missing options
+    try {
+        po::notify(opts);
+    }
+    catch( po::error& e ) {
+        std::cerr << "ERROR: " << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    // Display help
     if (argc == 1 || opts.count("help")) {
         std::cout << all << std::endl;
         std::exit(1);
     }
+
     Algorithm alg;
     auto methodStr = opts["method"].as<std::string>();
     std::string lower;
