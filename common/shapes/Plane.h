@@ -12,9 +12,7 @@ namespace volcart {
     namespace shapes {
         class Plane : public ShapePrimitive {
         public:
-            Plane() {
-                // dimensions of the mesh plane
-                int width = 5, height = 5;
+            Plane(int width = 5, int height = 5) {
 
                 // generate the points along the y-axis
                 double y = 0;

@@ -16,10 +16,7 @@ namespace volcart {
     namespace shapes {
         class Arch : public ShapePrimitive {
         public:
-            Arch() {
-                // dimensions of the mesh arch
-                int width = 10;
-                int height = 10;
+            Arch(int width = 10, int height = 10) {
 
                 float rad = 5;
 
