@@ -71,11 +71,10 @@ int main(int argc, char* argv[])
     }
     Algorithm alg;
     auto methodStr = opts["method"].as<std::string>();
-    std::cout << methodStr << std::endl;
     std::string lower;
     std::transform(std::begin(methodStr), std::end(methodStr),
                    std::back_inserter(lower), ::tolower);
-    std::cout << "method: " << lower << std::endl;
+    std::cout << "Segmentation method: " << lower << std::endl;
     if (lower == "stps") {
         alg = Algorithm::STPS;
     } else if (lower == "lrps") {
@@ -101,7 +100,7 @@ int main(int argc, char* argv[])
     // Cache arguments
     int32_t startIndex = opts["start-index"].as<int32_t>();
     int32_t endIndex = opts["end-index"].as<int32_t>();
-    int32_t step = opts["step"].as<int32_t>();
+    int32_t step = opts["step-size"].as<int32_t>();
     if (alg == Algorithm::STPS && step != 1) {
         std::cerr << "[warning]: STPS algorithm can only handle stepsize of 1. Defaulting to 1."
                   << std::endl;
@@ -177,7 +176,7 @@ int main(int argc, char* argv[])
         double gravityScale = opts["gravity-scale"].as<double>();
         mutableCloud = vs::structureTensorParticleSim(
             segPath, volpkg, gravityScale, step,
-            endIndex - startIndex + 1);
+            endIndex - startIndex);
     } else {
         int32_t numIters = opts["num-iters"].as<int32_t>();
         double alpha = opts["alpha"].as<double>();
