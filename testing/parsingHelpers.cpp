@@ -134,11 +134,11 @@ namespace testing {
                             plyVertex.s = std::stod(plyLine[i]);
                         else if (typeOfPointInformation[i] == "t")
                             plyVertex.t = std::stod(plyLine[i]);
-                        else if (typeOfPointInformation[i] == "r")
+                        else if (typeOfPointInformation[i] == "red")
                             plyVertex.r = std::stoi(plyLine[i]);
-                        else if (typeOfPointInformation[i] == "g")
+                        else if (typeOfPointInformation[i] == "green")
                             plyVertex.g = std::stoi(plyLine[i]);
-                        else if (typeOfPointInformation[i] == "b")
+                        else if (typeOfPointInformation[i] == "blue")
                             plyVertex.b = std::stoi(plyLine[i]);
                         else if (typeOfPointInformation[i] == "nx")
                             plyVertex.nx = std::stod(plyLine[i]);
