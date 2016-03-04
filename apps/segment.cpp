@@ -8,8 +8,13 @@
 namespace po = boost::program_options;
 namespace vs = volcart::segmentation;
 
-// Default values for options
+// Default values for global options
 static const int32_t kDefaultStep = 1;
+
+// Default values for STPS options
+static const double kDefaultGravity = 0.5;
+
+// Default values for LRPS options
 static const int32_t kDefaultNumIters = 15;
 static const double kDefaultAlpha = 0.5;
 static const double kDefaultBeta = 0.5;
@@ -38,7 +43,7 @@ int main(int argc, char* argv[])
     // STPS options
     po::options_description stpsOptions("Structure Tensor Particle Sim Options");
     stpsOptions.add_options()
-        ("gravity-scale", po::value<double>(), "Gravity scale");
+        ("gravity-scale", po::value<double>()->default_value(kDefaultGravity), "Gravity scale");
 
     // LRPS options
     po::options_description lrpsOptions("Local Reslice Particle Sim Options");
@@ -66,6 +71,12 @@ int main(int argc, char* argv[])
     po::variables_map opts;
     po::store(po::parse_command_line(argc, argv, all), opts);
 
+    // Display help
+    if (argc == 1 || opts.count("help")) {
+        std::cout << all << std::endl;
+        std::exit(1);
+    }
+
     // Warn of missing options
     try {
         po::notify(opts);
@@ -73,12 +84,6 @@ int main(int argc, char* argv[])
     catch( po::error& e ) {
         std::cerr << "ERROR: " << e.what() << std::endl;
         return EXIT_FAILURE;
-    }
-
-    // Display help
-    if (argc == 1 || opts.count("help")) {
-        std::cout << all << std::endl;
-        std::exit(1);
     }
 
     Algorithm alg;

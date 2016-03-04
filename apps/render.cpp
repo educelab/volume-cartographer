@@ -64,6 +64,7 @@ int main(int argc, char* argv[])
             std::cout << options << std::endl;
             return EXIT_SUCCESS;
         }
+
         // Warn of missing options
         try {
             boost::program_options::notify(parsedOptions);
