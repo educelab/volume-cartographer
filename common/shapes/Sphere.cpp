@@ -89,6 +89,8 @@ namespace volcart {
                 _add_cell( cell->v1, cell->v2, cell->v3 );
             }
 
+            _orderedPoints = false;
+
         } // Constructor
 
         int Sphere::_midpoint(int p1, int p2){
