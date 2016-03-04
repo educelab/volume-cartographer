@@ -150,6 +150,7 @@ namespace shapes {
             output.height = _orderedHeight;
             output.resize( output.width * output.height );
         }
+
         return output;
 
     }
