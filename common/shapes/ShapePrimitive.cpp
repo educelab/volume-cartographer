@@ -109,6 +109,13 @@ namespace shapes {
             ++point_counter;
         }
 
+        // Set ordering information
+        if( _orderedPoints ){
+            output.width = _orderedWidth;
+            output.height = _orderedHeight;
+            output.resize( output.width * output.height );
+        }
+
         return output;
     }
 
@@ -137,6 +144,13 @@ namespace shapes {
 
         }
 
+        // Set ordering information
+        if( _orderedPoints ){
+            output.width = _orderedWidth;
+            output.height = _orderedHeight;
+            output.resize( output.width * output.height );
+        }
+
         return output;
 
     }
@@ -156,6 +170,13 @@ namespace shapes {
             point.normal_z = p_id->nz;
 
             output.push_back(point);
+        }
+
+        // Set ordering information
+        if( _orderedPoints ){
+            output.width = _orderedWidth;
+            output.height = _orderedHeight;
+            output.resize( output.width * output.height );
         }
 
         return output;
