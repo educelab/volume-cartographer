@@ -34,6 +34,12 @@ namespace volcart {
                         _add_cell(v1, v3, v4);
                     }
                 }
+
+                // Set this as an ordered mesh
+                _orderedPoints = true;
+                _orderedWidth = width;
+                _orderedHeight = height;
+
             } // Constructor
 
         }; // Plane

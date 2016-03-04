@@ -56,7 +56,7 @@ struct CreatePlaneSimpleUVFixture{
 
         //create ordered point cloud from shape and assign width and height
         //params: false noise and true ordered
-        _in_PlanePointCloud =_Plane.pointCloudXYZ(false, true);
+        _in_PlanePointCloud =_Plane.pointCloudXYZ(false);
         _width = _in_PlanePointCloud.width;
         _height = _in_PlanePointCloud.height;
 
@@ -87,7 +87,7 @@ struct CreateArchSimpleUVFixture{
 
         //create ordered point cloud from shape and assign width and height
         //params: false noise and true ordered
-        _in_ArchPointCloud =_Arch.pointCloudXYZ(false, true);
+        _in_ArchPointCloud =_Arch.pointCloudXYZ(false);
         _width = _in_ArchPointCloud.width;
         _height = _in_ArchPointCloud.height;
         
@@ -162,3 +162,4 @@ BOOST_FIXTURE_TEST_CASE(ArchSimpleUVTest, CreateArchSimpleUVFixture){
 
     }
 }
+    
