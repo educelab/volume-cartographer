@@ -80,13 +80,11 @@ set(VC_LIBS vc_volumepkg vc_meshing vc_segmentation vc_texturing vc_common)
 
 # VC Core Apps
 add_subdirectory(packager)
-#add_subdirectory(pathgen)
 add_subdirectory(apps)
 add_subdirectory(utils)
 add_subdirectory(testing)
 
 # VC Demo Apps
-#add_subdirectory(region)
 add_subdirectory(examples)
 
 # Uninstall target

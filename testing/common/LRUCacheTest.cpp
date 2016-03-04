@@ -232,12 +232,21 @@ BOOST_FIXTURE_TEST_CASE(TryToInsertMorePairsThanCurrentCapacity, CreateCacheWith
                                                                          //iteration of for loop above
 }
 
-BOOST_FIXTURE_TEST_CASE(TryToInsertIntoZerCapacityCache, CreateCacheWithDefaultConstructor) {
+BOOST_FIXTURE_TEST_CASE(TryToInsertIntoZeroCapacityCache, CreateCacheWithDefaultConstructor) {
 
-    _DefaultCache.setCapacity(0);                         //update capacity to 0
-    _DefaultCache.put(1,2);                               //try to insert <1,2> into cache
-    BOOST_CHECK_EQUAL(_DefaultCache.size(), 0);           //size should still be 0
-    BOOST_CHECK_EQUAL(_DefaultCache.exists(1), false);    //item key 1 should not exist (implied by 0 size)
+    try{
+        _DefaultCache.setCapacity(0);          //try to create negative cap cache
+        _DefaultCache.put(0,1);                //put shouldn't occur
+        BOOST_CHECK(false);                    //test should fail if allowed to create negative cap cache
+    }
+    catch (std::exception &e){
+
+        std::cout << e.what() << std::endl;
+        BOOST_CHECK(true);                     //handled correctly -- pass test
+    }
+
+    BOOST_CHECK_EQUAL(_DefaultCache.capacity(), 200);       //capacity should remain unchanged
+    BOOST_CHECK_EQUAL(_DefaultCache.size(), 0);             //size should still be 0
 
 }
 
@@ -257,5 +266,13 @@ BOOST_FIXTURE_TEST_CASE(CreateNegativeCapacityCache, CreateCacheWithDefaultConst
     BOOST_CHECK_EQUAL(_DefaultCache.capacity(), 200);       //capacity should remain unchanged
     BOOST_CHECK_EQUAL(_DefaultCache.size(), 0);             //size should still be 0
 
+}
+
+BOOST_FIXTURE_TEST_CASE(PurgeTheCache, ReferenceBadKeyFixture) {
+
+    BOOST_CHECK_EQUAL(_Cache.capacity(), _Cache.size());  //capacity and size should be equal
+    _Cache.purge();
+    BOOST_CHECK_EQUAL(_Cache.size(), 0);           //size should still be 0
+    BOOST_CHECK_EQUAL(_Cache.exists(1), false);    //item key 1 should not exist (implied by 0 size)
 
 }
