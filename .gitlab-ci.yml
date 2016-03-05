@@ -8,7 +8,6 @@ build_it_debian:
     stage: build
     script:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
-        - mkdir vc-deps/
         - cd vc-deps/
         - curl -L -o "deps.tar.gz" "https://googledrive.com/host/0BxjtEz6no21sOENZalA0cll1RFE/vcdeps-deb8.tar.gz"
         - tar -xzf "deps.tar.gz"
