@@ -20,7 +20,7 @@ pcl::PointCloud<pcl::PointXYZRGB> exportAsPCD(
 std::vector<double> squareDiff(const std::vector<Voxel>& v1,
                                const std::vector<Voxel>& v2);
 
-std::vector<double> adjacentParticleDiff(const std::vector<Pixel>& vs);
+std::vector<double> adjacentParticleDiff(const std::vector<Voxel>& vs);
 
 double squareDiff(const std::vector<double>& v1, const std::vector<double>& v2);
 
@@ -132,7 +132,7 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
         ////////////////////////////////////////////////////////////////////////////////
         // 0. Resample current positions so they are evenly spaced
         FittedCurve currentCurve{currentVs, zIndex};
-        currentVs = currentCurve.resample();
+        currentVs = currentCurve.evenlySpacePoints();
 
         // Dump entire curve for easy viewing
         if (dumpVis) {
@@ -151,7 +151,7 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
         // XXX DEBUG
         std::vector<IntensityMap> maps;
         // XXX DEBUG
-        for (int32_t i = 0; i < currentCurve.size(); ++i) {
+        for (int32_t i = 0; i < int32_t(currentCurve.size()); ++i) {
             // Estimate normal and reslice along it
             const cv::Vec3d normal = estimateNormalAtIndex(currentCurve, i);
             const auto reslice =
@@ -386,8 +386,7 @@ cv::Vec3d LocalResliceSegmentation::estimateNormalAtIndex(
         return eigenPairs[0].second;
     }
     */
-    const auto tan2d = d1At(currentCurve.points(), index, 3);
-    const Voxel tan3d{tan2d(0), tan2d(1), currentCurve(index)(2)};
+    const auto tan3d = d1At(currentCurve.points(), index, 3);
     return tan3d.cross(cv::Vec3d{0, 0, 1});
 }
 
@@ -401,8 +400,8 @@ pcl::PointCloud<pcl::PointXYZRGB> exportAsPCD(
 
     // Set size. Since this is unordered (for now...) just set the width to be
     // the number of points and the height (by convention) is set to 1
-    cloud.width = cols * rows;
-    cloud.height = 1;
+    cloud.width = cols;
+    cloud.height = rows;
 
     for (int32_t i = 0; i < rows; ++i) {
         for (int32_t j = 0; j < cols; ++j) {
@@ -449,9 +448,8 @@ double squareDiff(const std::vector<double>& v1, const std::vector<double>& v2)
 
 double internalEnergy(const FittedCurve& curve, double k1, double k2)
 {
-    const auto currentPoints = curve.points();
-    auto d1current = normalizeVector(d1(curve.resample(2 * curve.size())));
-    auto d2current = normalizeVector(d2(curve.resample(2 * curve.size())));
+    auto d1current = normalizeVector(d1(curve.sample(2 * curve.size())));
+    auto d2current = normalizeVector(d2(curve.sample(2 * curve.size())));
 
     double intE = 0;
     for (auto p : zip(d1current, d2current)) {
@@ -479,7 +477,8 @@ double localTensionEnergy(const FittedCurve& curve,
     distances.reserve(windowSize);
     int32_t windowCount = 0;
     for (int32_t i = index - windowRadius; i < index + windowRadius; ++i) {
-        if (i < 0 || i >= curve.size() || i + 1 >= curve.size()) {
+        if (i < 0 || i >= int32_t(curve.size()) ||
+            i + 1 >= int32_t(curve.size())) {
             continue;
         }
         distances.push_back(cv::norm(curve(i), curve(i + 1)));
@@ -514,7 +513,7 @@ double energyMetric(const FittedCurve& curve, double alpha, double beta)
     return internal;
 }
 
-std::vector<double> adjacentParticleDiff(const std::vector<Pixel>& vs)
+std::vector<double> adjacentParticleDiff(const std::vector<Voxel>& vs)
 {
     std::vector<double> diffs(vs.size());
 
@@ -535,7 +534,7 @@ std::vector<double> adjacentParticleDiff(const std::vector<Pixel>& vs)
 double arcLength(const FittedCurve& curve)
 {
     double sum = 0;
-    for (int32_t i = 0; i < curve.size() - 1; ++i) {
+    for (size_t i = 0; i < curve.size() - 1; ++i) {
         sum += cv::norm(curve(i), curve(i + 1));
     }
     return sum;
@@ -552,7 +551,7 @@ cv::Mat LocalResliceSegmentation::drawParticlesOnSlice(const FittedCurve& curve,
     cv::cvtColor(pkgSlice, pkgSlice, CV_GRAY2BGR);
 
     // draw circles on the pkgSlice window for each point
-    for (int32_t i = 0; i < curve.size(); ++i) {
+    for (size_t i = 0; i < curve.size(); ++i) {
         cv::Point real{int32_t(curve(i)(0)), int32_t(curve(i)(1))};
         cv::circle(pkgSlice, real, (showSpline ? 2 : 1), BGR_GREEN, -1);
     }
