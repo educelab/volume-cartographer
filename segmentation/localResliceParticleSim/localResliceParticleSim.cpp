@@ -6,8 +6,9 @@
 #include "localResliceParticleSim.h"
 #include "common.h"
 #include "fittedcurve.h"
-#include "derivative.h"
 #include "intensitymap.h"
+#include "derivative.h"
+#include "energymetrics.h"
 
 using namespace volcart::segmentation;
 namespace fs = boost::filesystem;
@@ -16,76 +17,6 @@ using std::end;
 
 pcl::PointCloud<pcl::PointXYZRGB> exportAsPCD(
     const std::vector<std::vector<Voxel>>& points);
-
-std::vector<double> squareDiff(const std::vector<Voxel>& v1,
-                               const std::vector<Voxel>& v2);
-
-std::vector<double> adjacentParticleDiff(const std::vector<Voxel>& vs);
-
-double sumSquareDiff(const std::vector<double>& v1,
-                     const std::vector<double>& v2);
-
-double localInternalEnergy(int32_t index,
-                           int32_t windowSize,
-                           const FittedCurve& current,
-                           const FittedCurve& next);
-
-// Applies localInternalEnergy operator across entirety of both curves
-double internalEnergy(const FittedCurve& current,
-                      const FittedCurve& next,
-                      double k1,
-                      double k2);
-
-double energyMetric(const FittedCurve& curve,
-                    double alpha,
-                    double k1,
-                    double k2,
-                    double beta,
-                    double delta);
-
-double curvatureEnergy(const FittedCurve& current, const FittedCurve& next);
-
-double tensionEnergy(const FittedCurve& curve);
-
-double localTensionEnergy(const FittedCurve& curve,
-                          int32_t index,
-                          int32_t windowSize);
-
-double globalEnergy(const FittedCurve& current, const FittedCurve& next);
-
-double arcLength(const FittedCurve& curve);
-
-template <typename T>
-std::vector<T> normalizeVector(const std::vector<T>& v,
-                               T newMin = 0,
-                               T newMax = 1)
-{
-    T min, max;
-    auto p = std::minmax_element(begin(v), end(v));
-    min = *p.first;
-    max = *p.second;
-    std::vector<T> norm_v;
-    norm_v.reserve(v.size());
-
-    // Normalization of [min, max] --> [-1, 1]
-    std::transform(begin(v), end(v), std::back_inserter(norm_v),
-                   [min, max, newMin, newMax](T t) {
-                       return ((newMax - newMin) / (max - min)) * t +
-                              ((newMin * max - min * newMax) / (max - min));
-                   });
-    return norm_v;
-}
-
-template <typename T, int32_t Len>
-std::vector<cv::Vec<T, Len>> normalizeVector(
-    const std::vector<cv::Vec<T, Len>> vs)
-{
-    std::vector<cv::Vec<T, Len>> new_vs;
-    new_vs.reserve(vs.size());
-    std::transform(begin(vs), end(vs), std::back_inserter(new_vs),
-                   [](cv::Vec<T, Len> v) { return v / cv::norm(v); });
-    return new_vs;
-}
 
 pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
     const pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
@@ -271,8 +202,8 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
                     FittedCurve combCurve(combVs, zIndex + 1);
 
                     // Found a new optimum?
-                    double newE =
-                        energyMetric(combCurve, alpha, k1, k2, beta, delta);
+                    double newE = EnergyMetrics::TotalEnergy(
+                        combCurve, alpha, k1, k2, beta, delta);
                     if (newE < minEnergy) {
                         minEnergy = newE;
                         maps[maxDiffIdx].incrementMaximaIndex();
@@ -431,126 +362,6 @@ pcl::PointCloud<pcl::PointXYZRGB> exportAsPCD(
         }
     }
     return cloud;
-}
-
-std::vector<double> squareDiff(const std::vector<Voxel>& v1,
-                               const std::vector<Voxel>& v2)
-{
-    assert(v1.size() == v2.size() && "src and target must be the same size");
-    std::vector<double> res(v1.size());
-    const auto zipped = zip(v1, v2);
-    std::transform(std::begin(zipped), std::end(zipped), std::begin(res),
-                   [](const std::pair<Voxel, Voxel> p) {
-                       return cv::norm(p.first, p.second);
-                   });
-    return res;
-}
-
-double sumSquareDiff(const std::vector<double>& v1,
-                     const std::vector<double>& v2)
-{
-    assert(v1.size() == v2.size() && "v1 and v2 must be the same size");
-    double res = 0;
-    for (uint32_t i = 0; i < v1.size(); ++i) {
-        res += (v1[i] - v2[i]) * (v1[i] - v2[i]);
-    }
-    return std::sqrt(res);
-}
-
-double internalEnergy(const FittedCurve& curve, double k1, double k2)
-{
-    auto d1current = normalizeVector(d1(curve.points()));
-    auto d2current = normalizeVector(d2(curve.points()));
-
-    double intE = 0;
-    for (auto p : zip(d1current, d2current)) {
-        Voxel d1sq, d2sq;
-        cv::pow(p.first, 2, d1sq);
-        cv::pow(p.second, 2, d2sq);
-        intE += k1 * cv::norm(d1sq) + k2 * cv::norm(d2sq);
-    }
-
-    return intE / (2 * curve.size());
-}
-
-double tensionEnergy(const FittedCurve& curve)
-{
-    auto diff = adjacentParticleDiff(curve.points());
-    return std::accumulate(begin(diff), end(diff), 0.0) / (curve.size() - 1);
-}
-
-double localTensionEnergy(const FittedCurve& curve,
-                          int32_t index,
-                          int32_t windowSize)
-{
-    int32_t windowRadius = windowSize / 2;
-    std::vector<double> distances;
-    distances.reserve(windowSize);
-    int32_t windowCount = 0;
-    for (int32_t i = index - windowRadius; i < index + windowRadius; ++i) {
-        if (i < 0 || i >= int32_t(curve.size()) ||
-            i + 1 >= int32_t(curve.size())) {
-            continue;
-        }
-        distances.push_back(cv::norm(curve(i), curve(i + 1)));
-        windowCount++;
-    }
-
-    // Average distance between 2 points on curve
-    double avgDist = arcLength(curve) / (curve.size() - 1);
-    return std::accumulate(begin(distances), end(distances), 0.0) /
-           (avgDist * windowCount);
-}
-
-double curvatureEnergy(const FittedCurve& curr)
-{
-    FittedCurve newCurr(curr);
-    auto k = normalizeVector(newCurr.curvature());
-    return std::accumulate(begin(k), end(k), 0.0, [](double sum, double d) {
-               return sum + std::abs(d);
-           }) / curr.size();
-}
-
-double energyMetric(const FittedCurve& curve,
-                    double alpha,
-                    double k1,
-                    double k2,
-                    double beta,
-                    double delta)
-{
-    double internal = internalEnergy(curve, k1, k2);
-    double tension = tensionEnergy(curve);
-    double kenergy = curvatureEnergy(curve);
-    std::cout << "internal: " << internal << ", tension: " << tension
-              << ", curvature: " << kenergy << std::endl;
-    return alpha * internal + beta * tension + delta * kenergy;
-}
-
-std::vector<double> adjacentParticleDiff(const std::vector<Voxel>& vs)
-{
-    std::vector<double> diffs(vs.size());
-
-    // Special case for first and last elements. Since they don't have
-    // neighbors, just double their distances to the elements next to them. This
-    // might not be the best, but it's what works for now
-    diffs.front() = 2 * cv::norm(vs[0], vs[1]);
-    diffs.back() = 2 * cv::norm(vs.back(), vs.rbegin()[1]);
-
-    // Handle the rest of the vector
-    for (uint32_t i = 1; i < vs.size() - 1; ++i) {
-        diffs[i] = cv::norm(vs[i - 1], vs[i]) + cv::norm(vs[i], vs[i + 1]);
-    }
-
-    return normalizeVector(diffs);
-}
-
-double arcLength(const FittedCurve& curve)
-{
-    double sum = 0;
-    for (size_t i = 0; i < curve.size() - 1; ++i) {
-        sum += cv::norm(curve(i), curve(i + 1));
-    }
-    return sum;
 }
 
 cv::Mat LocalResliceSegmentation::drawParticlesOnSlice(const FittedCurve& curve,
