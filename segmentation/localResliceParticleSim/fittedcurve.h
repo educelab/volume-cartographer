@@ -15,34 +15,30 @@ namespace segmentation
 class FittedCurve
 {
 private:
-    CubicSpline<double> spline_;
-    int32_t npoints_;
+    size_t npoints_;
     int32_t zIndex_;
     std::vector<double> ts_;
-    std::vector<Pixel> points_;
-    std::vector<double> xs_;
-    std::vector<double> ys_;
+    std::vector<Voxel> points_;
+    CubicSpline<double> spline_;
 
 public:
     FittedCurve() = default;
 
     FittedCurve(const std::vector<Voxel>& vs, int32_t zIndex);
 
-    int32_t size(void) const { return npoints_; }
+    size_t size(void) const { return npoints_; }
 
-    const std::vector<Pixel>& points() const { return points_; }
-
-    std::vector<double> xs() const { return xs_; }
-
-    std::vector<double> ys() const { return ys_; }
+    const std::vector<Voxel>& points() const { return points_; }
 
     const decltype(spline_)& spline() const { return spline_; }
 
     Pixel eval(double t) const { return spline_.eval(t); }
 
+    std::vector<Voxel> evenlySpacePoints() { return resample(1.0); }
+
     std::vector<Voxel> resample(double resamplePerc = 1.0);
 
-    std::vector<Voxel> resample(int32_t numPoints) const;
+    std::vector<Voxel> sample(size_t numPoints) const;
 
     Voxel operator()(int32_t index) const;
 
