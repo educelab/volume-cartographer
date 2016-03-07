@@ -8,19 +8,15 @@ build_it_debian:
     stage: build
     script:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
-        - cd vc-deps/
-        - curl -L -o "deps.tar.gz" "https://googledrive.com/host/0BxjtEz6no21sOENZalA0cll1RFE/vcdeps-deb8.tar.gz"
-        - tar -xzf "deps.tar.gz"
-        - cd ..
         - echo "---- Work it. Make it. ----"
         - mkdir -p build
         - cd build/
-        - cmake -DVC_PREBUILT_LIBS=ON -GNinja ..
+        - cmake -DVC_PREBUILT_LIBS=ON -DBoost_USE_STATIC_LIBS=ON -GNinja ..
         - ninja
     tags:
         - build
         - linux
-        - prebuilt
+        - static
         - qt5
         - ninja
 

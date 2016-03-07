@@ -18,8 +18,13 @@ option(INSTALL_VC_DEMO "Install VC demo apps" OFF)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/)
 IF(VC_PREBUILT_LIBS)
     set(CMAKE_PREFIX_PATH ${PROJECT_SOURCE_DIR}/vc-deps/deps/)
-    add_definitions(-DVC_PREBUILT_LIBS)
+    set(Boost_USE_STATIC_LIBS ON)
 ENDIF(VC_PREBUILT_LIBS)
+
+# Add compiler definition if we're explicitly linking against static boost
+if(Boost_USE_STATIC_LIBS)
+    add_definitions(-DVC_BOOST_STATIC_LIBS)
+endif(Boost_USE_STATIC_LIBS)
 
 find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets OpenGL PrintSupport)
 find_package(PCL 1.7 REQUIRED)
