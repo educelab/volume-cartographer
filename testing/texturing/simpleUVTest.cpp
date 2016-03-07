@@ -131,8 +131,8 @@ BOOST_FIXTURE_TEST_CASE(PlaneSimpleUVTest, CreatePlaneSimpleUVFixture){
         v = _out_PlaneUVMap.get(it)[1];
 
         //check to see the values of u,v correspond to mesh pointID
-        BOOST_CHECK_EQUAL(_out_PlaneUVMap.get(it)[0] * _width, pnt_id.Index() % _width);
-        BOOST_CHECK_EQUAL((_out_PlaneUVMap.get(it)[1] * _height * _width + (pnt_id.Index() % _width)), pnt_id.Index());
+        BOOST_CHECK_EQUAL(u * _width, pnt_id.Index() % _width);
+        BOOST_CHECK_EQUAL((v * _height * _width + (pnt_id.Index() % _width)), pnt_id.Index());
 
         pnt_id++;
     }
@@ -155,8 +155,8 @@ BOOST_FIXTURE_TEST_CASE(ArchSimpleUVTest, CreateArchSimpleUVFixture){
         v = _out_ArchUVMap.get(it)[1];
 
         //check to see the values of u,v correspond to mesh pointID
-        BOOST_CHECK_EQUAL(_out_ArchUVMap.get(it)[0] * _width, pnt_id.Index() % _width);
-        BOOST_CHECK_EQUAL((_out_ArchUVMap.get(it)[1] * _height * _width + (pnt_id.Index() % _width)), pnt_id.Index());
+        BOOST_CHECK_EQUAL(u * _width, pnt_id.Index() % _width);
+        BOOST_CHECK_EQUAL((v * _height * _width + (pnt_id.Index() % _width)), pnt_id.Index());
 
         pnt_id++;
 

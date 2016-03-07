@@ -44,9 +44,9 @@
  *
  ***************/
 
-struct CreateCacheWithDefaultConstructor{
+struct CreateCacheWithDefaultConstructorFixture{
 
-    CreateCacheWithDefaultConstructor(){
+    CreateCacheWithDefaultConstructorFixture(){
 
         std::cerr << "Creating cache with empty constructor..." << std::endl;
     }
@@ -76,7 +76,7 @@ struct ReferenceBadKeyFixture{
 
         std::cerr << "Creating cache..." << std::endl;
 
-        //create cache with size of 100
+        //change capacity to 100
         _Cache.setCapacity(100);
 
         //fill cache with key ordered from 0-99 and values equaling to key^2
@@ -163,7 +163,7 @@ BOOST_FIXTURE_TEST_CASE(InsertIntoCacheAndConfirmExistence, ReferenceBadKeyFixtu
 
 }
 
-BOOST_FIXTURE_TEST_CASE(CheckCacheWithDifferingCapacityAndSize, CreateCacheWithDefaultConstructor){
+BOOST_FIXTURE_TEST_CASE(CheckCacheWithDifferingCapacityAndSize, CreateCacheWithDefaultConstructorFixture){
 
     BOOST_CHECK_EQUAL(_DefaultCache.capacity(), 200);                    //cache should have initial capacity of 200
     BOOST_CHECK_EQUAL(_DefaultCache.size(), 0);                          //size should be 0
@@ -215,7 +215,7 @@ BOOST_FIXTURE_TEST_CASE(CheckCacheWithDifferingCapacityAndSize, CreateCacheWithD
 
 }
 
-BOOST_FIXTURE_TEST_CASE(TryToInsertMorePairsThanCurrentCapacity, CreateCacheWithDefaultConstructor){
+BOOST_FIXTURE_TEST_CASE(TryToInsertMorePairsThanCurrentCapacity, CreateCacheWithDefaultConstructorFixture){
 
     BOOST_CHECK_EQUAL(_DefaultCache.capacity(), 200);                    //cache should have initial capacity of 200
     BOOST_CHECK_EQUAL(_DefaultCache.size(), 0);                          //size should be 0
@@ -232,7 +232,7 @@ BOOST_FIXTURE_TEST_CASE(TryToInsertMorePairsThanCurrentCapacity, CreateCacheWith
                                                                          //iteration of for loop above
 }
 
-BOOST_FIXTURE_TEST_CASE(TryToInsertIntoZeroCapacityCache, CreateCacheWithDefaultConstructor) {
+BOOST_FIXTURE_TEST_CASE(TryToInsertIntoZeroCapacityCache, CreateCacheWithDefaultConstructorFixture) {
 
     try{
         _DefaultCache.setCapacity(0);          //try to create negative cap cache
@@ -250,7 +250,7 @@ BOOST_FIXTURE_TEST_CASE(TryToInsertIntoZeroCapacityCache, CreateCacheWithDefault
 
 }
 
-BOOST_FIXTURE_TEST_CASE(CreateNegativeCapacityCache, CreateCacheWithDefaultConstructor){
+BOOST_FIXTURE_TEST_CASE(CreateNegativeCapacityCache, CreateCacheWithDefaultConstructorFixture){
 
     try{
         _DefaultCache.setCapacity(-5);         //try to create negative cap cache
