@@ -6,8 +6,6 @@
 
 using namespace volcart::segmentation;
 
-double calcArcLength(const std::vector<Voxel>& vs);
-
 std::vector<double> generateTVals(size_t count);
 
 FittedCurve::FittedCurve(const std::vector<Voxel>& vs, int32_t zIndex)
@@ -59,17 +57,7 @@ Voxel FittedCurve::operator()(int32_t index) const
     return {p(0), p(1), double(zIndex_)};
 }
 
-double calcArcLength(const std::vector<Voxel>& vs)
-{
-    double length = 0;
-    for (size_t i = 1; i < vs.size(); ++i) {
-        length += cv::norm(vs[i], vs[i - 1]);
-    }
-    return length;
-}
-
-std::vector<double> FittedCurve::curvature(int32_t hstep,
-                                           const double scaleFactor) const
+std::vector<double> FittedCurve::curvature(int32_t hstep) const
 {
     std::vector<double> xs, ys;
     std::tie(xs, ys) = unzip(points_);
@@ -84,11 +72,19 @@ std::vector<double> FittedCurve::curvature(int32_t hstep,
     k.reserve(points_.size());
     for (size_t i = 0; i < points_.size(); ++i) {
         k.push_back((dx1[i] * dy2[i] - dy1[i] * dx2[i]) /
-                    std::pow(dx1[i] * dx1[i] + dy1[i] * dy1[i], 3.0 / 2.0) *
-                    scaleFactor);
+                    std::pow(dx1[i] * dx1[i] + dy1[i] * dy1[i], 3.0 / 2.0));
     }
 
     return k;
+}
+
+double FittedCurve::arclength() const
+{
+    double length = 0;
+    for (size_t i = 1; i < npoints_; ++i) {
+        length += cv::norm(points_[i], points_[i - 1]);
+    }
+    return length;
 }
 
 std::vector<double> generateTVals(size_t count)

@@ -42,8 +42,9 @@ public:
 
     Voxel operator()(int32_t index) const;
 
-    std::vector<double> curvature(int32_t hstep = 1,
-                                  double scaleFactor = 1) const;
+    std::vector<double> curvature(int32_t hstep = 1) const;
+
+    double arclength() const;
 };
 }
 }
