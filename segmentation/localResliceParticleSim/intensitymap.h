@@ -27,7 +27,9 @@ public:
 
     void setChosenMaximaIndex(int32_t index) { chosenMaximaIndex_ = index; }
 
-    int32_t chosenMaximaIndex(void) const { return chosenMaximaIndex_; }
+    int32_t chosenMaximaIndex() const { return chosenMaximaIndex_; }
+
+    void incrementMaximaIndex() { chosenMaximaIndex_++; }
 
 private:
     friend std::ostream& operator<<(std::ostream& s, const IntensityMap& m)
