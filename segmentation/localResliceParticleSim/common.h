@@ -17,8 +17,6 @@
 
 using IndexIntensityPair = std::pair<int32_t, double>;
 using IndexIntensityPairVec = typename std::vector<IndexIntensityPair>;
-template <typename T>
-using vec = std::vector<T>;
 using Voxel = cv::Vec3d;
 using Pixel = cv::Vec2d;
 
@@ -69,5 +67,44 @@ std::tuple<std::vector<T>, std::vector<T>> unzip(
     }
     return std::make_tuple(xs, ys);
 }
+
+template <typename T>
+std::vector<T> normalizeVector(const std::vector<T>& v,
+                               T newMin = 0,
+                               T newMax = 1)
+{
+    T min, max;
+    auto p = std::minmax_element(begin(v), end(v));
+    min = *p.first;
+    max = *p.second;
+    std::vector<T> norm_v;
+    norm_v.reserve(v.size());
+
+    // Normalization of [min, max] --> [-1, 1]
+    std::transform(begin(v), end(v), std::back_inserter(norm_v),
+                   [min, max, newMin, newMax](T t) {
+                       return ((newMax - newMin) / (max - min)) * t +
+                              ((newMin * max - min * newMax) / (max - min));
+                   });
+    return norm_v;
+}
+
+template <typename T, int32_t Len>
+std::vector<cv::Vec<T, Len>> normalizeVector(
+    const std::vector<cv::Vec<T, Len>> vs)
+{
+    std::vector<cv::Vec<T, Len>> new_vs;
+    new_vs.reserve(vs.size());
+    std::transform(begin(vs), end(vs), std::back_inserter(new_vs),
+                   [](cv::Vec<T, Len> v) { return v / cv::norm(v); });
+    return new_vs;
+}
+
+// Some useful utility functions for doing math on std::vectors
+std::vector<double> squareDiff(const std::vector<Voxel>& v1,
+                               const std::vector<Voxel>& v2);
+
+double sumSquareDiff(const std::vector<double>& v1,
+                     const std::vector<double>& v2);
 
 #endif  // VC_COMMON_H
