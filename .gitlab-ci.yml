@@ -4,7 +4,7 @@ stages:
     - deploy
 
 build_it_debian:
-    image: vc/debian-8
+    image: volcart/db8
     stage: build
     script:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
