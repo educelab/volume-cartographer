@@ -8,6 +8,9 @@ using namespace volcart::segmentation;
 
 double calcArcLength(const std::vector<Voxel>& vs);
 
+std::vector<Voxel> pixelVectorToVoxelVector(const std::vector<Pixel>& ps,
+                                            int32_t zIndex);
+
 FittedCurve::FittedCurve(const std::vector<Voxel>& vs, int32_t zIndex)
     : npoints_(vs.size()), zIndex_(zIndex)
 {
@@ -46,6 +49,12 @@ FittedCurve::FittedCurve(const std::vector<Voxel>& vs, int32_t zIndex)
 
 std::vector<Voxel> FittedCurve::resample(double resamplePerc)
 {
+    // If we're resampling at 100%, then just use the work we did in the
+    // constructor
+    if (resamplePerc == 1.0) {
+        return pixelVectorToVoxelVector(points_, zIndex_);
+    }
+
     ts_.clear();
     xs_.clear();
     ys_.clear();
@@ -58,6 +67,7 @@ std::vector<Voxel> FittedCurve::resample(double resamplePerc)
          ++i, sum += 1.0 / (npoints_ - 1)) {
         ts_[i] = sum;
     }
+    ts_.back() = 1.0;
 
     // Get new positions
     std::vector<Voxel> rs;
@@ -123,4 +133,17 @@ std::vector<double> FittedCurve::curvature(int32_t hstep,
     }
 
     return k;
+}
+
+// Helper function to convert a vector of Pixel to a vector of Voxel
+std::vector<Voxel> pixelVectorToVoxelVector(const std::vector<Pixel>& ps,
+                                            int32_t zIndex)
+{
+    std::vector<Voxel> old_vs;
+    old_vs.reserve(ps.size());
+    std::transform(std::begin(ps), std::end(ps), std::back_inserter(old_vs),
+                   [zIndex](const Pixel p) -> Voxel {
+                       return {p(0), p(1), zIndex};
+                   });
+    return old_vs;
 }

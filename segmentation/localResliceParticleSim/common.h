@@ -56,9 +56,9 @@ std::vector<std::pair<T1, T2>> zip(const std::vector<T1>& v1,
     return res;
 }
 
-template <typename T>
+template <typename T, int32_t Length>
 std::tuple<std::vector<T>, std::vector<T>> unzip(
-    const std::vector<cv::Vec<T, 2>>& vs)
+    const std::vector<cv::Vec<T, Length>>& vs)
 {
     std::vector<T> xs, ys;
     xs.reserve(vs.size());
