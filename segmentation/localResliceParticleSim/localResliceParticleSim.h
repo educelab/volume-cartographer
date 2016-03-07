@@ -25,7 +25,10 @@ public:
         int32_t numIters,
         int32_t stepNumLayers,
         double alpha,
+        double k1,
+        double k2,
         double beta,
+        double delta,
         int32_t peakDistanceWeight,
         bool shouldIncludeMiddle,
         bool dumpVis,
@@ -38,7 +41,7 @@ private:
 
     cv::Mat drawParticlesOnSlice(const FittedCurve& curve,
                                  int32_t sliceIndex,
-                                 int32_t particleIndex,
+                                 int32_t particleIndex = -1,
                                  bool showSpline = false) const;
 
     constexpr static double kDefaultMinEnergyGradient = 1e-7;

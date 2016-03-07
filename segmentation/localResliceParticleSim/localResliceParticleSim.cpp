@@ -22,7 +22,8 @@ std::vector<double> squareDiff(const std::vector<Voxel>& v1,
 
 std::vector<double> adjacentParticleDiff(const std::vector<Voxel>& vs);
 
-double squareDiff(const std::vector<double>& v1, const std::vector<double>& v2);
+double sumSquareDiff(const std::vector<double>& v1,
+                     const std::vector<double>& v2);
 
 double localInternalEnergy(int32_t index,
                            int32_t windowSize,
@@ -35,9 +36,14 @@ double internalEnergy(const FittedCurve& current,
                       double k1,
                       double k2);
 
-double curvatureEnergy(const FittedCurve& current, const FittedCurve& next);
+double energyMetric(const FittedCurve& curve,
+                    double alpha,
+                    double k1,
+                    double k2,
+                    double beta,
+                    double delta);
 
-double energyMetric(const FittedCurve& curve, double alpha, double beta);
+double curvatureEnergy(const FittedCurve& current, const FittedCurve& next);
 
 double tensionEnergy(const FittedCurve& curve);
 
@@ -88,7 +94,10 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
     int32_t numIters,
     int32_t step,
     double alpha,
+    double k1,
+    double k2,
     double beta,
+    double delta,
     int32_t peakDistanceWeight,
     bool shouldIncludeMiddle,
     bool dumpVis,
@@ -102,6 +111,17 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
     }
 
     volcart::Volume vol = pkg_.volume();  // Debug output information
+
+    // Check that incoming points are all within volume bounds. If not, then
+    // return empty cloud back
+    if (std::any_of(begin(currentVs), end(currentVs),
+                    [vol](Voxel v) { return !vol.isInBounds(v); })) {
+        std::cerr << "[info]: one or more particles is outside volume bounds, "
+                     "halting segmentation"
+                  << std::endl;
+        return pcl::PointCloud<pcl::PointXYZRGB>();
+    }
+
     const fs::path outputDir("debugvis");
     const fs::path wholeChainDir(outputDir / "whole_chain");
     if (dumpVis) {
@@ -112,6 +132,7 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
     // Collection to hold all positions
     std::vector<std::vector<Voxel>> points;
     points.reserve((endIndex - startIndex + 1) / step);
+    points.push_back(currentVs);
 
     // Iterate over z-slices
     for (int32_t zIndex = startIndex;
@@ -125,13 +146,9 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
            << zIndex;
         const fs::path zIdxDir = outputDir / ss.str();
 
-        if (dumpVis) {
-            fs::create_directory(zIdxDir);
-        }
-
         ////////////////////////////////////////////////////////////////////////////////
         // 0. Resample current positions so they are evenly spaced
-        FittedCurve currentCurve{currentVs, zIndex};
+        FittedCurve currentCurve(currentVs, zIndex);
         currentVs = currentCurve.evenlySpacePoints();
 
         // Dump entire curve for easy viewing
@@ -141,7 +158,7 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
                << std::setfill('0') << zIndex << "_chain.png";
             const auto wholeChainPath = wholeChainDir / ss.str();
             cv::imwrite(wholeChainPath.string(),
-                        drawParticlesOnSlice(currentCurve, zIndex, 0, true));
+                        drawParticlesOnSlice(currentCurve, zIndex, -1, true));
         }
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -150,12 +167,16 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
         nextPositions.reserve(currentCurve.size());
         // XXX DEBUG
         std::vector<IntensityMap> maps;
+        std::vector<Slice> reslices;
+        maps.reserve(currentCurve.size());
+        reslices.reserve(currentCurve.size());
         // XXX DEBUG
         for (int32_t i = 0; i < int32_t(currentCurve.size()); ++i) {
             // Estimate normal and reslice along it
             const cv::Vec3d normal = estimateNormalAtIndex(currentCurve, i);
             const auto reslice =
                 vol.reslice(currentCurve(i), normal, {0, 0, 1}, 32, 32);
+            reslices.push_back(reslice);
             const cv::Mat resliceIntensities = reslice.sliceData();
 
             // Make the intensity map `step` layers down from current position
@@ -174,32 +195,6 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
                     std::deque<Voxel>{reslice.sliceToVoxelCoord<int32_t>(
                         {center.x, nextLayerIndex})});
                 continue;
-            }
-
-            // Don't dump IntensityMap until we know which position the
-            // algorithm will choose.
-            if (dumpVis) {
-                cv::Mat chain = drawParticlesOnSlice(currentCurve, zIndex, i);
-                cv::Mat resliceMat = reslice.draw();
-                const size_t nchars = std::to_string(endIndex).size();
-                std::stringstream ss;
-                ss << std::setw(nchars) << std::setfill('0') << zIndex << "_"
-                   << std::setw(nchars) << std::setfill('0') << i;
-                const fs::path base = zIdxDir / ss.str();
-                cv::imwrite(base.string() + "_chain.png", chain);
-                cv::imwrite(base.string() + "_reslice.png", resliceMat);
-
-                // Additionaly, visualize if necessary
-                /*
-                if (visualize && i == visIndex) {
-                    cv::namedWindow("slice", cv::WINDOW_NORMAL);
-                    cv::namedWindow("reslice", cv::WINDOW_NORMAL);
-                    cv::namedWindow("intensity map", cv::WINDOW_NORMAL);
-                    cv::imshow("slice", chain);
-                    cv::imshow("reslice", resliceMat);
-                    cv::imshow("intensity map", map.draw());
-                }
-                */
             }
 
             // Convert maxima to voxel positions
@@ -276,36 +271,16 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
                     FittedCurve combCurve(combVs, zIndex + 1);
 
                     // Found a new optimum?
-                    double newE = energyMetric(combCurve, alpha, beta);
+                    double newE =
+                        energyMetric(combCurve, alpha, k1, k2, beta, delta);
                     if (newE < minEnergy) {
                         minEnergy = newE;
-                        // maps[maxDiffIdx].setChosenMaximaIndex(c);
+                        maps[maxDiffIdx].incrementMaximaIndex();
                         nextVs = combVs;
                         nextCurve = combCurve;
-
-                        if (visualize) {
-                            cv::namedWindow("optimize chain",
-                                            cv::WINDOW_NORMAL);
-                            cv::imshow("optimize chain",
-                                       drawParticlesOnSlice(combCurve, zIndex,
-                                                            maxDiffIdx, false));
-                            cv::waitKey(0);
-                        }
                     }
                 }
                 goto iters_start;
-            }
-        }
-
-        // Dump the intensity maps
-        if (dumpVis) {
-            for (size_t i = 0; i < maps.size(); ++i) {
-                std::stringstream ss;
-                const size_t nchars = std::to_string(endIndex).size();
-                ss << std::setw(nchars) << std::setfill('0') << zIndex << "_"
-                   << std::setw(nchars) << std::setfill('0') << i << "_map.png";
-                const fs::path base = zIdxDir / ss.str();
-                cv::imwrite(base.string(), maps[i].draw());
             }
         }
 
@@ -344,7 +319,6 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
                 Voxel diff = 0.5 * nextVs[i + 1] - 0.5 * nextVs[i - 1];
                 newPoint = nextVs[i - 1] + diff;
             }
-
             nextVs[i] = newPoint;
 
             // Re-evaluate second derivative of new curve
@@ -360,16 +334,56 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
         // stop iterating and dump the resulting pointcloud.
         if (std::any_of(begin(nextVs), end(nextVs),
                         [vol](Voxel v) { return !vol.isInBounds(v); })) {
+            std::cout
+                << "Stopping because segmentation is outside volume bounds"
+                << std::endl;
             break;
         }
 
-        // Add next positions to
+        ////////////////////////////////////////////////////////////////////////////////
+        // 4. Visualize if specified by user
+        if (visualize) {
+            // Since points can change due to 2nd deriv optimization after main
+            // optimization, refit a curve and draw that
+            FittedCurve newChain(nextVs, zIndex + 1);
+            auto chain = drawParticlesOnSlice(newChain, zIndex + 1);
+            cv::namedWindow("Next curve", cv::WINDOW_NORMAL);
+            cv::imshow("Next curve", chain);
+            cv::waitKey(0);
+        }
+
+        // Don't dump IntensityMap until we know which position the
+        // algorithm will choose.
+        if (dumpVis) {
+            // Create output directory for this iter's output
+            const size_t nchars = std::to_string(endIndex).size();
+            std::stringstream iterDirSS;
+            iterDirSS << std::setw(nchars) << std::setfill('0') << zIndex;
+            fs::create_directory(outputDir / iterDirSS.str());
+
+            // Dump chain, map, reslice for every particle
+            for (size_t i = 0; i < nextVs.size(); ++i) {
+                cv::Mat chain = drawParticlesOnSlice(currentCurve, zIndex, i);
+                cv::Mat resliceMat = reslices[i].draw();
+                cv::Mat map = maps[i].draw();
+                std::stringstream ss;
+                ss << std::setw(nchars) << std::setfill('0') << zIndex << "_"
+                   << std::setw(nchars) << std::setfill('0') << i;
+                const fs::path base = zIdxDir / ss.str();
+                cv::imwrite(base.string() + "_chain.png", chain);
+                cv::imwrite(base.string() + "_reslice.png", resliceMat);
+                cv::imwrite(base.string() + "_map.png", map);
+            }
+        }
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // 5. Set up for next iteration
         currentVs = nextVs;
         points.push_back(nextVs);
     }
 
     ////////////////////////////////////////////////////////////////////////////////
-    // 4. Output final mesh
+    // 6. Output final mesh
     return exportAsPCD(points);
 }
 
@@ -423,20 +437,17 @@ std::vector<double> squareDiff(const std::vector<Voxel>& v1,
                                const std::vector<Voxel>& v2)
 {
     assert(v1.size() == v2.size() && "src and target must be the same size");
-    std::vector<double> res;
-    res.reserve(v1.size());
+    std::vector<double> res(v1.size());
     const auto zipped = zip(v1, v2);
-    std::transform(
-        std::begin(zipped), std::end(zipped), std::back_inserter(res),
-        [](const std::pair<Voxel, Voxel> p) {
-            return std::sqrt(
-                (p.first(0) - p.second(0)) * (p.first(0) - p.second(0)) +
-                (p.first(1) - p.second(1)) * (p.first(1) - p.second(1)));
-        });
+    std::transform(std::begin(zipped), std::end(zipped), std::begin(res),
+                   [](const std::pair<Voxel, Voxel> p) {
+                       return cv::norm(p.first, p.second);
+                   });
     return res;
 }
 
-double squareDiff(const std::vector<double>& v1, const std::vector<double>& v2)
+double sumSquareDiff(const std::vector<double>& v1,
+                     const std::vector<double>& v2)
 {
     assert(v1.size() == v2.size() && "v1 and v2 must be the same size");
     double res = 0;
@@ -448,8 +459,8 @@ double squareDiff(const std::vector<double>& v1, const std::vector<double>& v2)
 
 double internalEnergy(const FittedCurve& curve, double k1, double k2)
 {
-    auto d1current = normalizeVector(d1(curve.sample(2 * curve.size())));
-    auto d2current = normalizeVector(d2(curve.sample(2 * curve.size())));
+    auto d1current = normalizeVector(d1(curve.points()));
+    auto d2current = normalizeVector(d2(curve.points()));
 
     double intE = 0;
     for (auto p : zip(d1current, d2current)) {
@@ -459,7 +470,7 @@ double internalEnergy(const FittedCurve& curve, double k1, double k2)
         intE += k1 * cv::norm(d1sq) + k2 * cv::norm(d2sq);
     }
 
-    return intE / (4 * curve.size());
+    return intE / (2 * curve.size());
 }
 
 double tensionEnergy(const FittedCurve& curve)
@@ -491,26 +502,28 @@ double localTensionEnergy(const FittedCurve& curve,
            (avgDist * windowCount);
 }
 
-double curvatureEnergy(const FittedCurve& curr, const FittedCurve& next)
+double curvatureEnergy(const FittedCurve& curr)
 {
     FittedCurve newCurr(curr);
-    FittedCurve newNext(next);
-    newCurr.resample(2.0);
-    newNext.resample(2.0);
-    auto k1 = newCurr.curvature();
-    auto k2 = newNext.curvature();
-    return squareDiff(k1, k2);
+    auto k = normalizeVector(newCurr.curvature());
+    return std::accumulate(begin(k), end(k), 0.0, [](double sum, double d) {
+               return sum + std::abs(d);
+           }) / curr.size();
 }
 
-double energyMetric(const FittedCurve& curve, double alpha, double beta)
+double energyMetric(const FittedCurve& curve,
+                    double alpha,
+                    double k1,
+                    double k2,
+                    double beta,
+                    double delta)
 {
-    // double localTension = localTensionEnergy(curve, index, windowSize);
-    double internal = internalEnergy(curve, alpha, beta);
-    /*
-    std::cout << "localTension: " << localTension << ", "
-              << "internal: " << internal << std::endl;
-              */
-    return internal;
+    double internal = internalEnergy(curve, k1, k2);
+    double tension = tensionEnergy(curve);
+    double kenergy = curvatureEnergy(curve);
+    std::cout << "internal: " << internal << ", tension: " << tension
+              << ", curvature: " << kenergy << std::endl;
+    return alpha * internal + beta * tension + delta * kenergy;
 }
 
 std::vector<double> adjacentParticleDiff(const std::vector<Voxel>& vs)
@@ -550,14 +563,18 @@ cv::Mat LocalResliceSegmentation::drawParticlesOnSlice(const FittedCurve& curve,
                        1.0 / std::numeric_limits<uint8_t>::max());
     cv::cvtColor(pkgSlice, pkgSlice, CV_GRAY2BGR);
 
-    // draw circles on the pkgSlice window for each point
+    // Draw circles on the pkgSlice window for each point
     for (size_t i = 0; i < curve.size(); ++i) {
         cv::Point real{int32_t(curve(i)(0)), int32_t(curve(i)(1))};
         cv::circle(pkgSlice, real, (showSpline ? 2 : 1), BGR_GREEN, -1);
     }
-    const Voxel particle = curve(particleIndex);
-    cv::circle(pkgSlice, {int32_t(particle(0)), int32_t(particle(1))},
-               (showSpline ? 2 : 1), BGR_RED, -1);
+
+    // Only highlight a point if particleIndex isn't default -1
+    if (particleIndex != -1) {
+        const Voxel particle = curve(particleIndex);
+        cv::circle(pkgSlice, {int32_t(particle(0)), int32_t(particle(1))},
+                   (showSpline ? 2 : 1), BGR_RED, -1);
+    }
 
     // Superimpose interpolated currentCurve on window
     if (showSpline) {
