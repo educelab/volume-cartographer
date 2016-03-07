@@ -15,9 +15,13 @@ static const int32_t kDefaultStep = 1;
 static const double kDefaultGravity = 0.5;
 
 // Default values for LRPS options
+static const int32_t kDefaultStartIndex = -1;
 static const int32_t kDefaultNumIters = 15;
-static const double kDefaultAlpha = 0.5;
-static const double kDefaultBeta = 0.5;
+static const double kDefaultAlpha = 1.0 / 3.0;
+static const double kDefaultK1 = 0.5;
+static const double kDefaultK2 = 0.5;
+static const double kDefaultBeta = 1.0 / 3.0;
+static const double kDefaultDelta = 1.0 / 3.0;
 static const int32_t kDefaultPeakDistanceWeight = 50;
 static const bool kDefaultConsiderPrevious = false;
 
@@ -34,8 +38,12 @@ int main(int argc, char* argv[])
         ("seg-id,s", po::value<std::string>()->required(), "Segmentation ID")
         ("method,m", po::value<std::string>()->required(),
             "Segmentation method: STPS, LRPS")
-        ("start-index", po::value<int32_t>()->required(), "Starting slice index")
-        ("end-index", po::value<int32_t>()->required(), "Ending slice index")
+        ("start-index", po::value<int32_t>()->default_value(kDefaultStartIndex),
+            "Starting slice index. Default to highest z-index in path")
+        ("end-index", po::value<int32_t>(),
+            "Ending slice index. Mutually exclusive with 'stride'")
+        ("stride", po::value<int32_t>(),
+            "Ending slice index. Mutually exclusive with 'end-index'")
         ("step-size", po::value<int32_t>()->default_value(kDefaultStep),
             "Z distance travelled per iteration");
 
@@ -43,7 +51,8 @@ int main(int argc, char* argv[])
     // STPS options
     po::options_description stpsOptions("Structure Tensor Particle Sim Options");
     stpsOptions.add_options()
-        ("gravity-scale", po::value<double>()->default_value(kDefaultGravity), "Gravity scale");
+        ("gravity-scale", po::value<double>()->default_value(kDefaultGravity),
+            "Gravity scale");
 
     // LRPS options
     po::options_description lrpsOptions("Local Reslice Particle Sim Options");
@@ -51,17 +60,23 @@ int main(int argc, char* argv[])
         ("num-iters,n", po::value<int32_t>()->default_value(kDefaultNumIters),
             "Number of optimization iterations")
         ("alpha,a", po::value<double>()->default_value(kDefaultAlpha),
-            "Coefficient for first derivative term")
+            "Coefficient for internal energy metric")
+        ("k1", po::value<double>()->default_value(kDefaultK1),
+            "Coefficient for first derivative term in internal energy metric")
+        ("k2", po::value<double>()->default_value(kDefaultK2),
+            "Coefficient for second derivative term in internal energy metric")
         ("beta,b", po::value<double>()->default_value(kDefaultBeta),
-            "Coefficient for second derivative term")
+            "Coefficient for curve tension energy metric")
+        ("delta", po::value<double>()->default_value(kDefaultDelta),
+            "Coefficient for curve curvature energy metric")
         ("distance-weight,d",
             po::value<int32_t>()->default_value(kDefaultPeakDistanceWeight),
             "Weighting for distance vs maxima intensity")
         ("consider-previous,p",
             po::value<bool>()->default_value(kDefaultConsiderPrevious),
-            "Consider propagation of a point's previous XY position as a candidate when optimizing each iteration")
-        ("visualize", po::value<int32_t>(),
-            "Display curve visualization as algorithm runs")
+            "Consider propagation of a point's previous XY position as a"
+            "candidate when optimizing each iteration")
+        ("visualize", "Display curve visualization as algorithm runs")
         ("dump-vis", "Write full visualization information to disk as algorithm runs");
     // clang-format on
     po::options_description all("Usage");
@@ -77,12 +92,24 @@ int main(int argc, char* argv[])
         std::exit(1);
     }
 
+    // Check mutually exclusive arguments
+    if (!(opts.count("start-index") || opts.count("stride"))) {
+        std::cerr << "[error]: must specify one of [stride, start-index]"
+                  << std::endl;
+        std::exit(1);
+    }
+    if (opts.count("end-index") && opts.count("stride")) {
+        std::cerr
+            << "[error]: 'start-index' and 'stride' are mututally exclusive"
+            << std::endl;
+        std::exit(1);
+    }
+
     // Warn of missing options
     try {
         po::notify(opts);
-    }
-    catch( po::error& e ) {
-        std::cerr << "ERROR: " << e.what() << std::endl;
+    } catch (po::error& e) {
+        std::cerr << "[error]: " << e.what() << std::endl;
         return EXIT_FAILURE;
     }
 
@@ -116,12 +143,12 @@ int main(int argc, char* argv[])
     // Setup
     // Cache arguments
     int32_t startIndex = opts["start-index"].as<int32_t>();
-    int32_t endIndex = opts["end-index"].as<int32_t>();
     int32_t step = opts["step-size"].as<int32_t>();
     if (alg == Algorithm::STPS && step != 1) {
-        std::cerr << "[warning]: STPS algorithm can only handle stepsize of 1. Defaulting to 1."
+        std::cerr << "[warning]: STPS algorithm can only handle stepsize of 1. "
+                     "Defaulting to 1."
                   << std::endl;
-      step = 1;
+        step = 1;
     }
 
     // Load the activeSegmentation's current cloud
@@ -148,6 +175,21 @@ int main(int argc, char* argv[])
         startIndex = maxIndex;
         std::cout << "No starting index given, defaulting to Highest-Z: "
                   << startIndex << std::endl;
+    }
+
+    // Figure out endIndex using either start-index or stride
+    int32_t endIndex =
+        (opts.count("end-index") ? opts["end-index"].as<int32_t>()
+                                 : startIndex + opts["stride"].as<int32_t>());
+
+    // Sanity check for whether we actually need to run the algorithm
+    if (startIndex >= endIndex) {
+        std::cerr << "[info]: startIndex(" << startIndex << ") >= endIndex("
+                  << endIndex
+                  << "), do not need to segment. Consider using --stride "
+                     "option instead of manually specifying endIndex"
+                  << std::endl;
+        std::exit(1);
     }
 
     // Prepare our clouds
@@ -192,12 +234,14 @@ int main(int argc, char* argv[])
     if (alg == Algorithm::STPS) {
         double gravityScale = opts["gravity-scale"].as<double>();
         mutableCloud = vs::structureTensorParticleSim(
-            segPath, volpkg, gravityScale, step,
-            endIndex - startIndex);
+            segPath, volpkg, gravityScale, step, endIndex - startIndex);
     } else {
         int32_t numIters = opts["num-iters"].as<int32_t>();
         double alpha = opts["alpha"].as<double>();
+        double k1 = opts["k1"].as<double>();
+        double k2 = opts["k1"].as<double>();
         double beta = opts["beta"].as<double>();
+        double delta = opts["delta"].as<double>();
         int32_t distanceWeight = opts["distance-weight"].as<int32_t>();
         bool considerPrevious = opts["consider-previous"].as<bool>();
         bool visualize = opts.count("visualize");
@@ -206,8 +250,8 @@ int main(int argc, char* argv[])
         // Run segmentation using path as our starting points
         vs::LocalResliceSegmentation segmenter(volpkg);
         mutableCloud = segmenter.segmentPath(
-            segPath, startIndex, endIndex, numIters, step, alpha, beta,
-            distanceWeight, considerPrevious, dumpVis, visualize);
+            segPath, startIndex, endIndex, numIters, step, alpha, k1, k2, beta,
+            delta, distanceWeight, considerPrevious, dumpVis, visualize);
     }
 
     // Update the master cloud with the points we saved and concat the new
