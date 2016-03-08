@@ -152,23 +152,15 @@ add_test(NAME scaleMesh WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_tes
 #-----------------------#
 
 ##  localParticleSim ##
-
-#add_executable(vc_test_chain segmentation/localResliceParticleSim/chainTest.cpp)
-#target_link_libraries(vc_test_chain ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-#add_test(NAME chain WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_chain )
-
-#add_executable(vc_test_field segmentation/localResliceParticleSim/fieldTest.cpp)
-#target_link_libraries(vc_test_field ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-#add_test(NAME field WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_field )
-
-#add_executable(vc_test_localResliceParticleSim segmentation/localResliceParticleSim/localResliceParticleSimTest.cpp)
-#target_link_libraries(vc_test_localResliceParticleSim ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-#add_test(NAME localResliceParticleSim WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_localResliceParticleSim )
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/volpkg/Testing.volpkg DESTINATION ${CMAKE_BINARY_DIR}/bin)
+add_executable(vc_test_localResliceParticleSim segmentation/localResliceParticleSim/localResliceParticleSimTest.cpp)
+target_link_libraries(vc_test_localResliceParticleSim ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+add_test(NAME localResliceParticleSim WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_localResliceParticleSim )
 
 #add_executable(vc_test_particle segmentation/localResliceParticleSim/particleTest.cpp)
 #target_link_libraries(vc_test_particle ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 #add_test(NAME particle WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_particle )
-
+#
 #add_executable(vc_test_slice segmentation/localResliceParticleSim/sliceTest.cpp)
 #target_link_libraries(vc_test_slice ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 #add_test(NAME slice WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_slice )
