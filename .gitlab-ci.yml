@@ -20,6 +20,26 @@ build_it_debian:
         - qt5
         - ninja
 
+test_it_debian:
+    stage: test
+    script:
+        - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
+        - mkdir -p build
+        - cd build/
+        - cmake -DBoost_USE_STATIC_LIBS=ON -GNinja ..
+        - ninja
+        - ninja test
+    artifacts:
+      key: "$CI_BUILD_STAGE/$CI_BUILD_REF_NAME"
+      paths:
+        - build/testing/Temporary/
+    tags:
+        - test
+        - linux
+        - static
+        - qt5
+        - ninja
+
 build_it:
     stage: build
     script:
@@ -34,6 +54,7 @@ build_it:
         - osx
         - homebrew
         - qt5
+        - ninja
 
 test_it:
     stage: test
@@ -53,6 +74,7 @@ test_it:
         - osx
         - homebrew
         - qt5
+        - ninja
         
     allow_failure: true
 
