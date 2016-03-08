@@ -11,7 +11,7 @@ build_it_debian:
         - echo "---- Work it. Make it. ----"
         - mkdir -p build
         - cd build/
-        - cmake -DBoost_USE_STATIC_LIBS=ON -GNinja ..
+        - cmake -DBoost_USE_STATIC_LIBS=ON -DHDF5_DIR=/usr/local/hdf5/share/cmake/ -GNinja ..
         - ninja
     tags:
         - build
