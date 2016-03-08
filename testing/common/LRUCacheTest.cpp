@@ -27,6 +27,7 @@
  *  4. CheckCacheWithDifferingCapacityAndSize                                       *
  *  5. TryToInsertMorePairsThanCurrentCapacity                                      *
  *  6. CreateNegativeCapacityCache                                                  *
+ *  7. PurgeTheCache                                                                *
  *                                                                                  *
  * Input:                                                                           *
  *     No required inputs for this sample test.                                     *
@@ -51,7 +52,7 @@ struct CreateCacheWithDefaultConstructorFixture{
         std::cerr << "Creating cache with empty constructor..." << std::endl;
     }
 
-    ~CreateCacheWithDefaultConstructor(){ std::cerr << "Destroying cache..." << std::endl;}
+    ~CreateCacheWithDefaultConstructorFixture(){ std::cerr << "Destroying cache..." << std::endl;}
 
     volcart::LRUCache<size_t, int> _DefaultCache;
 };

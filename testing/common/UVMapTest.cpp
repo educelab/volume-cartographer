@@ -55,14 +55,14 @@
          for (double u = 0; u <= 1; u += 0.25 ) {
              for (double v = 0; v <= 1; v += 0.25) {
                  cv::Vec2d uv( u, v );
-                 _storage.push_back(uv);
+                 _Storage.push_back(uv);
              }
          }
 
          // Insert mappings relative to the top-left (default origin)
          int pnt_id = 0;
-         for ( auto it = _storage.begin(); it != _storage.end(); ++it ) {
-             _baseUVMap.set( pnt_id, *it );
+         for ( auto it = _Storage.begin(); it != _Storage.end(); ++it ) {
+             _BaseUVMap.set( pnt_id, *it );
              ++pnt_id;
          }
      }
@@ -73,31 +73,31 @@
      }
 
      //Init uvMap
-     volcart::UVMap _baseUVMap;
-     std::vector<cv::Vec2d> _storage;
+     volcart::UVMap _BaseUVMap;
+     std::vector<cv::Vec2d> _Storage;
  };
 
 
-BOOST_FIXTURE_TEST_CASE(transformationTest, CreateUVMapFixture){
+BOOST_FIXTURE_TEST_CASE(TransformationTest, CreateUVMapFixture){
 
     //get the original points
-    volcart::UVMap map = _baseUVMap;
+    volcart::UVMap map = _BaseUVMap;
     map.origin(VC_ORIGIN_TOP_LEFT); //standard origin
 
     std::cout << "Transforming against (0,0) and comparing expected results" << std::endl;
     
     // Retrieve mappings relative to the top-left (0,0)
-    _baseUVMap.origin(VC_ORIGIN_TOP_LEFT);
+    _BaseUVMap.origin(VC_ORIGIN_TOP_LEFT);
     int pnt_id = 0;
-    for ( auto it = _storage.begin(); it != _storage.end(); ++it ) {
+    for ( auto it = _Storage.begin(); it != _Storage.end(); ++it ) {
 
         //set expected values
         cv::Vec2d ExpectedValues;
         ExpectedValues[0] = std::abs(map.get(pnt_id)[0]);  //u
         ExpectedValues[1] = std::abs(map.get(pnt_id)[1]);  //v
 
-        BOOST_CHECK_EQUAL(ExpectedValues[0], _baseUVMap.get(pnt_id)[0]);
-        BOOST_CHECK_EQUAL(ExpectedValues[1], _baseUVMap.get(pnt_id)[1]);
+        BOOST_CHECK_EQUAL(ExpectedValues[0], _BaseUVMap.get(pnt_id)[0]);
+        BOOST_CHECK_EQUAL(ExpectedValues[1], _BaseUVMap.get(pnt_id)[1]);
 
         ++pnt_id;
     }
@@ -105,17 +105,17 @@ BOOST_FIXTURE_TEST_CASE(transformationTest, CreateUVMapFixture){
     std::cout << "Transforming against (0,1) and comparing expected results" << std::endl;
 
     // Retrieve mappings relative to the bottom-left (0,1)
-    _baseUVMap.origin(VC_ORIGIN_BOTTOM_LEFT);
+    _BaseUVMap.origin(VC_ORIGIN_BOTTOM_LEFT);
     pnt_id = 0;
-    for ( auto it = _storage.begin(); it != _storage.end(); ++it ) {
+    for ( auto it = _Storage.begin(); it != _Storage.end(); ++it ) {
 
         //set expected values
         cv::Vec2d ExpectedValues;
         ExpectedValues[0] = std::abs(map.get(pnt_id)[0] - 0);  //u
         ExpectedValues[1] = std::abs(map.get(pnt_id)[1] - 1);  //v
 
-        BOOST_CHECK_EQUAL(ExpectedValues[0], _baseUVMap.get(pnt_id)[0]);
-        BOOST_CHECK_EQUAL(ExpectedValues[1], _baseUVMap.get(pnt_id)[1]);
+        BOOST_CHECK_EQUAL(ExpectedValues[0], _BaseUVMap.get(pnt_id)[0]);
+        BOOST_CHECK_EQUAL(ExpectedValues[1], _BaseUVMap.get(pnt_id)[1]);
 
         ++pnt_id;
     }
@@ -123,17 +123,17 @@ BOOST_FIXTURE_TEST_CASE(transformationTest, CreateUVMapFixture){
     std::cout << "Transforming against (1,0) and comparing expected results" << std::endl;
 
     // Retrieve mappings relative to the top-right (1,0)
-    _baseUVMap.origin(VC_ORIGIN_TOP_RIGHT);
+    _BaseUVMap.origin(VC_ORIGIN_TOP_RIGHT);
     pnt_id = 0;
-    for ( auto it = _storage.begin(); it != _storage.end(); ++it ) {
+    for ( auto it = _Storage.begin(); it != _Storage.end(); ++it ) {
 
         //set expected values
         cv::Vec2d ExpectedValues;
         ExpectedValues[0] = std::abs(map.get(pnt_id)[0] - 1);  //u
         ExpectedValues[1] = std::abs(map.get(pnt_id)[1] - 0);  //v
 
-        BOOST_CHECK_EQUAL(ExpectedValues[0], _baseUVMap.get(pnt_id)[0]);
-        BOOST_CHECK_EQUAL(ExpectedValues[1], _baseUVMap.get(pnt_id)[1]);
+        BOOST_CHECK_EQUAL(ExpectedValues[0], _BaseUVMap.get(pnt_id)[0]);
+        BOOST_CHECK_EQUAL(ExpectedValues[1], _BaseUVMap.get(pnt_id)[1]);
 
         ++pnt_id;
     }
@@ -141,17 +141,17 @@ BOOST_FIXTURE_TEST_CASE(transformationTest, CreateUVMapFixture){
     std::cout << "Transforming against (1,1) and comparing expected results" << std::endl;
 
     // Retrieve mappings relative to the bottom-right (1,1)
-    _baseUVMap.origin(VC_ORIGIN_BOTTOM_RIGHT);
+    _BaseUVMap.origin(VC_ORIGIN_BOTTOM_RIGHT);
     pnt_id = 0;
-    for ( auto it = _storage.begin(); it != _storage.end(); ++it ) {
+    for ( auto it = _Storage.begin(); it != _Storage.end(); ++it ) {
 
         //set expected values
         cv::Vec2d ExpectedValues;
         ExpectedValues[0] = std::abs(map.get(pnt_id)[0] - 1);  //u
         ExpectedValues[1] = std::abs(map.get(pnt_id)[1] - 1);  //v
 
-        BOOST_CHECK_EQUAL(ExpectedValues[0], _baseUVMap.get(pnt_id)[0]);
-        BOOST_CHECK_EQUAL(ExpectedValues[1], _baseUVMap.get(pnt_id)[1]);
+        BOOST_CHECK_EQUAL(ExpectedValues[0], _BaseUVMap.get(pnt_id)[0]);
+        BOOST_CHECK_EQUAL(ExpectedValues[1], _BaseUVMap.get(pnt_id)[1]);
 
         ++pnt_id;
     }

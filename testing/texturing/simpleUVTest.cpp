@@ -121,7 +121,10 @@ BOOST_FIXTURE_TEST_CASE(PlaneSimpleUVTest, CreatePlaneSimpleUVFixture){
     BOOST_CHECK_EQUAL(_out_PlaneUVMap.size(), _in_PlaneITKMesh->GetNumberOfPoints());
 
     VC_PointsInMeshIterator pnt_id = _in_PlaneITKMesh->GetPoints()->Begin();
-    double u,v;
+
+    double u,v, u_ScaledByCloudDims, v_ScaledByCloudDims;
+
+    double area = _height * _width;      //used in scaled v calculation below
 
     //check uvmap against original mesh input pointIDs
     for (auto it = 0; it < _out_PlaneUVMap.size(); it++){
@@ -130,9 +133,14 @@ BOOST_FIXTURE_TEST_CASE(PlaneSimpleUVTest, CreatePlaneSimpleUVFixture){
         u = _out_PlaneUVMap.get(it)[0];
         v = _out_PlaneUVMap.get(it)[1];
 
-        //check to see the values of u,v correspond to mesh pointID
-        BOOST_CHECK_EQUAL(u * _width, pnt_id.Index() % _width);
-        BOOST_CHECK_EQUAL((v * _height * _width + (pnt_id.Index() % _width)), pnt_id.Index());
+        double WidthAtPointID = pnt_id.Index() % _width;
+
+        u_ScaledByCloudDims = u * _width;
+        v_ScaledByCloudDims = v * area + WidthAtPointID;
+
+        //check to see the values of scaled u,v values correspond to the proper coords for current mesh pointID
+        BOOST_CHECK_EQUAL(u_ScaledByCloudDims, WidthAtPointID);
+        BOOST_CHECK_EQUAL(v_ScaledByCloudDims, pnt_id.Index());
 
         pnt_id++;
     }
@@ -145,21 +153,29 @@ BOOST_FIXTURE_TEST_CASE(ArchSimpleUVTest, CreateArchSimpleUVFixture){
     BOOST_CHECK_EQUAL(_out_ArchUVMap.size(), _in_ArchITKMesh->GetNumberOfPoints());
 
     VC_PointsInMeshIterator pnt_id = _in_ArchITKMesh->GetPoints()->Begin();
-    double u,v;
-    
-    //check uvmap vec against original mesh input
+
+    double u,v, u_ScaledByCloudDims, v_ScaledByCloudDims;
+
+    double area = _height * _width;      //used in scaled v calculation below
+
+    //check uvmap against original mesh input pointIDs
     for (auto it = 0; it < _out_ArchUVMap.size(); it++){
 
         //get u,v for point in map
         u = _out_ArchUVMap.get(it)[0];
         v = _out_ArchUVMap.get(it)[1];
 
-        //check to see the values of u,v correspond to mesh pointID
-        BOOST_CHECK_EQUAL(u * _width, pnt_id.Index() % _width);
-        BOOST_CHECK_EQUAL((v * _height * _width + (pnt_id.Index() % _width)), pnt_id.Index());
+        double WidthAtPointID = pnt_id.Index() % _width;
+
+        u_ScaledByCloudDims = u * _width;
+        v_ScaledByCloudDims = v * area + WidthAtPointID;
+
+        //check to see the values of scaled u,v values correspond to the proper coords for current mesh pointID
+        BOOST_CHECK_EQUAL(u_ScaledByCloudDims, WidthAtPointID);
+        BOOST_CHECK_EQUAL(v_ScaledByCloudDims, pnt_id.Index());
 
         pnt_id++;
-
     }
+    
 }
     
