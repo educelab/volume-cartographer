@@ -69,7 +69,7 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
     for (int32_t zIndex = startIndex;
          zIndex <= endIndex && zIndex < pkg_.getNumberOfSlices();
          zIndex += step) {
-        std::cout << "slice: " << zIndex << std::endl;
+        // std::cout << "slice: " << zIndex << std::endl;
 
         // Directory to dump vis
         std::stringstream ss;
@@ -340,25 +340,17 @@ pcl::PointCloud<pcl::PointXYZRGB> exportAsPCD(
 {
     int32_t rows = points.size();
     int32_t cols = points[0].size();
-    pcl::PointCloud<pcl::PointXYZRGB> cloud;
-    cloud.reserve(cols * rows);
-
-    // Set size. Since this is unordered (for now...) just set the width to be
-    // the number of points and the height (by convention) is set to 1
-    cloud.width = cols;
-    cloud.height = rows;
+    pcl::PointCloud<pcl::PointXYZRGB> cloud(cols, rows);
 
     for (int32_t i = 0; i < rows; ++i) {
         for (int32_t j = 0; j < cols; ++j) {
             Voxel v = points[i][j];
-            pcl::PointXYZRGB p;
-            p.x = v(0);
-            p.y = v(1);
-            p.z = v(2);
-            p.r = 0xFF;
-            p.g = 0xFF;
-            p.b = 0xFF;
-            cloud.push_back(p);
+            cloud(j, i).x = v(0);
+            cloud(j, i).y = v(1);
+            cloud(j, i).z = v(2);
+            cloud(j, i).r = 0xFF;
+            cloud(j, i).g = 0xFF;
+            cloud(j, i).b = 0xFF;
         }
     }
     return cloud;
