@@ -7,6 +7,9 @@ set(CMAKE_CXX_STANDARD 11)
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 
+# Export clang compile commands
+set(CMAKE_EXPORT_COMPILE_COMMANDS on)
+
 # Option for building apps
 option(VC_PREBUILT_LIBS "Link against prebuilt dependencies" OFF)
 
@@ -37,7 +40,7 @@ add_definitions(${QT_DEFINITIONS})
 
 include_directories(${Boost_INCLUDE_DIR} ${PCL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS} ${Boost_LIBRARY_DIRS})
-set(VC_REQ_LIBS ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} ${ITK_LIBRARIES})
+set(VC_REQ_LIBS ${PCL_LIBRARIES} pcl_search ${OpenCV_LIBS} ${Boost_LIBRARIES} ${ITK_LIBRARIES})
 add_definitions(${PCL_DEFINITIONS})
 
 # Conditional Inclusions
