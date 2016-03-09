@@ -9,6 +9,7 @@ SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 
 # Export clang compile commands
 set(CMAKE_EXPORT_COMPILE_COMMANDS on)
+add_compile_options(-fdiagnostics-color=always)
 
 # Option for building apps
 option(VC_PREBUILT_LIBS "Link against prebuilt dependencies" OFF)
