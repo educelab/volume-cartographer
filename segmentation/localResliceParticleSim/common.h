@@ -55,7 +55,7 @@ std::vector<std::pair<T1, T2>> zip(const std::vector<T1>& v1,
 }
 
 template <typename T, int32_t Length>
-std::tuple<std::vector<T>, std::vector<T>> unzip(
+std::pair<std::vector<T>, std::vector<T>> unzip(
     const std::vector<cv::Vec<T, Length>>& vs)
 {
     std::vector<T> xs, ys;
@@ -69,34 +69,45 @@ std::tuple<std::vector<T>, std::vector<T>> unzip(
 }
 
 template <typename T>
-std::vector<T> normalizeVector(const std::vector<T>& v,
-                               T newMin = 0,
-                               T newMax = 1)
+std::vector<double> normalizeVector(const std::vector<T>& v,
+                                    double newMin = 0,
+                                    double newMax = 1)
 {
+    // Input checking
+    if (v.empty()) {
+        return std::vector<double>();
+    }
+    if (v.size() == 1) {
+        return std::vector<double>{newMax};
+    }
+
     T min, max;
     auto p = std::minmax_element(begin(v), end(v));
     min = *p.first;
     max = *p.second;
-    std::vector<T> norm_v;
+    std::vector<double> norm_v;
     norm_v.reserve(v.size());
 
-    // Normalization of [min, max] --> [-1, 1]
-    std::transform(begin(v), end(v), std::back_inserter(norm_v),
-                   [min, max, newMin, newMax](T t) {
-                       return ((newMax - newMin) / (max - min)) * t +
-                              ((newMin * max - min * newMax) / (max - min));
-                   });
+    // Normalization of [min, max] --> [0, 1]
+    std::transform(
+        begin(v), end(v), std::back_inserter(norm_v),
+        [min, max, newMin, newMax](T t) {
+            return ((newMax - newMin) / double(max - min)) * t +
+                   ((newMin * max - min * newMax) / double(max - min));
+        });
     return norm_v;
 }
 
 template <typename T, int32_t Len>
-std::vector<cv::Vec<T, Len>> normalizeVector(
+std::vector<cv::Vec<double, Len>> normalizeVector(
     const std::vector<cv::Vec<T, Len>> vs)
 {
-    std::vector<cv::Vec<T, Len>> new_vs;
-    new_vs.reserve(vs.size());
-    std::transform(begin(vs), end(vs), std::back_inserter(new_vs),
-                   [](cv::Vec<T, Len> v) { return v / cv::norm(v); });
+    std::vector<cv::Vec<double, Len>> new_vs(vs.size());
+    std::transform(begin(vs), end(vs), std::begin(new_vs),
+                   [](const cv::Vec<T, Len> v) {
+                       cv::Vec<double, Len> dv(v);
+                       return dv / cv::norm(dv);
+                   });
     return new_vs;
 }
 
