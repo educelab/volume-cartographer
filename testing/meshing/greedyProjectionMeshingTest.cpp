@@ -11,15 +11,8 @@
 #include "vc_defines.h"
 #include "shapes.h"
 #include "greedyProjectionMeshing.h"
-
-#include <pcl/common/common.h>
-#include <pcl/point_types.h>
-#include <pcl/io/pcd_io.h>
 #include <pcl/io/obj_io.h>
-#include <pcl/PCLHeader.h>
-#include <pcl/PCLPointField.h>
-#include <pcl/PCLPointCloud2.h>
-#include "pcl/conversions.h"
+#include <pcl/conversions.h>
 
 
 /****************************************************************************************
@@ -53,7 +46,7 @@
 
 // General outline for test
 //   Create new mesh using greedyProjectionMeshing
-//   Take in input for test comparision
+//   Take in input for test comparison
 //   Convert both meshes to correct types
 //   Compare new mesh with known mesh for equivalency
 //   If errors occur, output them. Otherwise give success message.
@@ -71,15 +64,15 @@ struct PlaneGreedyProjectionFixture {
         // Create pointer for the mesh to pass to greedyProjectionMeshing
         pcl::PointCloud<pcl::PointNormal>::Ptr _in_PlanePointNormalCloudPtr( new pcl::PointCloud<pcl::PointNormal>);
         *_in_PlanePointNormalCloudPtr = _in_PlanePointNormalCloud;
-        
+
         // Call greedyProjectionMeshing() and store results in PolygonMesh
         _out_FixturePlanePolygonMesh = volcart::meshing::greedyProjectionMeshing(_in_PlanePointNormalCloudPtr, 100, 2.0, 2.5);
-        
+
         // Load in old mesh for comparison in the compareMeshes test case below
         pcl::io::loadOBJFile("PlaneGreedyProjectionMeshing.obj", _in_SavedPlanePolygonMesh);
 
         pcl::fromPCLPointCloud2(_out_FixturePlanePolygonMesh.cloud, _out_FixturePlanePointCloud);
-        pcl::fromPCLPointCloud2(_in_SavedPlanePolygonMesh.cloud, _out_SavedPlanePointCloud);    
+        pcl::fromPCLPointCloud2(_in_SavedPlanePolygonMesh.cloud, _out_SavedPlanePointCloud);
     }
 
     ~PlaneGreedyProjectionFixture(){ std::cerr << "Cleaning up greedyProjectionMeshing Plane objects" << std::endl; }
@@ -89,7 +82,7 @@ struct PlaneGreedyProjectionFixture {
     pcl::PolygonMesh _out_FixturePlanePolygonMesh, _in_SavedPlanePolygonMesh;
     // point clouds to be filled for comparison in test case
     pcl::PointCloud<pcl::PointNormal> _out_FixturePlanePointCloud, _out_SavedPlanePointCloud;
-        
+
 };
 
 struct CubeGreedyProjectionFixture {
@@ -199,15 +192,24 @@ BOOST_FIXTURE_TEST_CASE(CompareSavedAndFixturePlaneGreedyProjections, PlaneGreed
     for (int p = 0; p < _out_FixturePlanePointCloud.points.size(); p++) {
         for (int d = 0; d < 3; d++ ) {
 
-            BOOST_CHECK_EQUAL (_out_FixturePlanePointCloud.points[p].data[d], 
+            BOOST_CHECK_EQUAL (_out_FixturePlanePointCloud.points[p].data[d],
                                                                           _out_SavedPlanePointCloud.points[p].data[d]);
         }
     }
-   
+
     // Cells
     for (int c_id = 0; c_id < _out_FixturePlanePolygonMesh.polygons.size(); c_id++) {
+
+        std::cout << "Cell: " << c_id << std::endl;
         for (int pnt = 0; pnt < _out_FixturePlanePolygonMesh.polygons[c_id].vertices.size(); pnt++) {
 
+            std::cout << "Point: " << pnt << std::endl;
+            std::cout << "FixturePoly: " << _out_FixturePlanePolygonMesh.polygons[c_id].vertices[pnt] <<
+                      "\tSavedPoly" << _in_SavedPlanePolygonMesh.polygons[c_id].vertices[pnt] << std::endl;
+
+
+            //TODO: this is failing in debian_test_it job
+            //TODO: fix
             BOOST_CHECK_EQUAL (_out_FixturePlanePolygonMesh.polygons[c_id].vertices[pnt],
                                                                _in_SavedPlanePolygonMesh.polygons[c_id].vertices[pnt]);
         }

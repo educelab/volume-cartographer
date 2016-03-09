@@ -2,7 +2,7 @@
 // Created by Ryan Taber on 3/3/16.
 //
 
-#ifndef VC_PREBUILT_LIBS
+#ifndef VC_BOOST_STATIC_LIBS
 #define BOOST_TEST_DYN_LINK
 #endif
 #define BOOST_TEST_MODULE simpleUV
@@ -176,6 +176,6 @@ BOOST_FIXTURE_TEST_CASE(ArchSimpleUVTest, CreateArchSimpleUVFixture){
 
         pnt_id++;
     }
-    
+
 }
     
