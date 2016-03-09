@@ -53,7 +53,7 @@ BOOST_FIXTURE_TEST_CASE(DefaultSegmentationTest, LocalResliceSegmentationFix)
     double delta = 1.0 / 3.0;
     int32_t peakDistanceWeight = 50;
     bool shouldIncludeMiddle = false;
-    bool dumpVis = true;
+    bool dumpVis = false;
     bool visualize = false;
     auto resultCloud = _segmenter.segmentPath(
         startingCloud, startIndex, endIndex, numIters, stepNumLayers, alpha, k1,
