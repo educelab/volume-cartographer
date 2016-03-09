@@ -21,6 +21,7 @@ build_it_debian:
         - ninja
 
 test_it_debian:
+    image: volcart/db8
     stage: test
     script:
         - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
