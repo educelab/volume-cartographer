@@ -157,6 +157,10 @@ add_executable(vc_test_localResliceParticleSim segmentation/localResliceParticle
 target_link_libraries(vc_test_localResliceParticleSim ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME localResliceParticleSim WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_localResliceParticleSim )
 
+add_executable(vc_test_localResliceParticleSim_common segmentation/localResliceParticleSim/commonTest.cpp)
+target_link_libraries(vc_test_localResliceParticleSim_common  ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+add_test(NAME lrps_common  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_localResliceParticleSim_common)
+
 #add_executable(vc_test_particle segmentation/localResliceParticleSim/particleTest.cpp)
 #target_link_libraries(vc_test_particle ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 #add_test(NAME particle WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_particle )
