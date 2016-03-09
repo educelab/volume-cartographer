@@ -39,6 +39,7 @@ test_it_debian:
         - static
         - qt5
         - ninja
+    allow_failure: true
 
 build_it:
     stage: build
@@ -75,7 +76,6 @@ test_it:
         - homebrew
         - qt5
         - ninja
-        
     allow_failure: true
 
 deploy_it_osx:
