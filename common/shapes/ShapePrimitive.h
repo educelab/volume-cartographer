@@ -42,6 +42,9 @@ namespace shapes {
         void _add_vertex(double x, double y, double z);
         void _add_cell(int v1, int v2, int v3);
         void _update_normal(int vertex, double nx_in, double ny_in, double nz_in);
+
+        bool _orderedPoints;
+        uint32_t _orderedWidth, _orderedHeight;
     };
 
 } // namespace shapes

@@ -18,17 +18,6 @@
 
 namespace volcart
 {
-class CacheMissException : public std::exception
-{
-public:
-    virtual const char* what() const noexcept { return "Key not in cache"; }
-};
-
-class InvalidCapacityException : public std::exception
-{
-public:
-    virtual const char* what() const noexcept {return "Cannot create cache with capacity <= 0"; }
-};
 
 template <typename TKey, typename TValue>
 class LRUCache
@@ -42,7 +31,7 @@ public:
     void setCapacity(const int64_t newCapacity) {
 
         if (newCapacity <= 0)
-            throw InvalidCapacityException();
+            throw std::invalid_argument("Cannot create cache with capacity <= 0");
         else
             capacity_ = newCapacity;
 
@@ -64,7 +53,7 @@ public:
     {
         auto lookupIter = lookup_.find(k);
         if (lookupIter == std::end(lookup_)) {
-            throw CacheMissException();
+            throw std::invalid_argument("Key not in cache");
         } else {
             items_.splice(std::begin(items_), items_, lookupIter->second);
             return lookupIter->second->second;

@@ -230,8 +230,6 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureCreatedAndSavedPlaneOrderedPCDMesherData, 
 
     }
 
-    BOOST_CHECK_EQUAL(_SavedPlaneCells.size(), _FixtureCreatedPlaneCells.size());
-
     for (int f = 0; f < _SavedPlaneCells.size(); f++){
 
         //check the vertices within each face

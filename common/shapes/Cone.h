@@ -81,6 +81,8 @@ namespace volcart {
                     _add_cell( v_id, B, 1 );
                 }
 
+                _orderedPoints = false;
+
             } // Constructor
 
         }; // Cone

@@ -9,8 +9,12 @@ namespace volcart {
         volcart::UVMap simpleUV(VC_MeshType::Pointer mesh, int width, int height) {
 
             volcart::UVMap uvMap;
-            unsigned long pointID, meshX, meshY;
+            unsigned long pointID, ArrayX, ArrayY;
             double u, v;
+
+            // Account for zero indexing of points
+            double maxIndexX = (double)(width - 1);
+            double maxIndexY = (double)(height - 1);
 
             // Generate UV coord for each point in mesh
             VC_PointsInMeshIterator point = mesh->GetPoints()->Begin();
@@ -18,13 +22,14 @@ namespace volcart {
 
                 pointID = point.Index();
 
-                // Calculate the point's [meshX, meshY] position based on its pointID
-                meshX = pointID % width;
-                meshY = (pointID - meshX) / width;
+                // Assume that the input vertices can be ordered into a 2D array of size width * height
+                // Calculate the point's 2D array position [ArrayX, ArrayY] based on its pointID
+                ArrayX = pointID % width;
+                ArrayY = (pointID - ArrayX) / width;
 
                 // Calculate the point's UV position
-                u =  (double) meshX / (double) width;
-                v =  (double) meshY / (double) height;
+                u =  (double) ArrayX / maxIndexX;
+                v =  (double) ArrayY / maxIndexY;
 
                 cv::Vec2d uv( u, v );
 
