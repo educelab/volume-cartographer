@@ -2,7 +2,7 @@
 // Created by Melissa Shankle on 10/26/15.
 //
 
-#ifndef VC_PREBUILT_LIBS
+#ifndef VC_BOOST_STATIC_LIBS
 #define BOOST_TEST_DYN_LINK
 #endif
 #define BOOST_TEST_MODULE greedyProjectionMeshing

@@ -3,6 +3,45 @@ stages:
     - test
     - deploy
 
+build_it_debian:
+    image: volcart/db8
+    stage: build
+    script:
+        - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
+        - echo "---- Work it. Make it. ----"
+        - mkdir -p build
+        - cd build/
+        - cmake -DBoost_USE_STATIC_LIBS=ON -GNinja ..
+        - ninja
+    tags:
+        - build
+        - linux
+        - static
+        - qt5
+        - ninja
+
+test_it_debian:
+    image: volcart/db8
+    stage: test
+    script:
+        - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
+        - mkdir -p build
+        - cd build/
+        - cmake -DBoost_USE_STATIC_LIBS=ON -GNinja ..
+        - ninja
+        - ninja test
+    artifacts:
+      key: "$CI_BUILD_STAGE/$CI_BUILD_REF_NAME"
+      paths:
+        - build/testing/Temporary/
+    tags:
+        - test
+        - linux
+        - static
+        - qt5
+        - ninja
+    allow_failure: true
+
 build_it:
     stage: build
     script:
@@ -17,6 +56,7 @@ build_it:
         - osx
         - homebrew
         - qt5
+        - ninja
 
 test_it:
     stage: test
@@ -36,7 +76,7 @@ test_it:
         - osx
         - homebrew
         - qt5
-        
+        - ninja
     allow_failure: true
 
 deploy_it_osx:
