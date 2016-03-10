@@ -120,29 +120,29 @@ BOOST_FIXTURE_TEST_CASE(PlaneSimpleUVTest, CreatePlaneSimpleUVFixture){
     //check size of uvMap and number of points in mesh
     BOOST_CHECK_EQUAL(_out_PlaneUVMap.size(), _in_PlaneITKMesh->GetNumberOfPoints());
 
-    VC_PointsInMeshIterator pnt_id = _in_PlaneITKMesh->GetPoints()->Begin();
-
-    double u,v, u_ScaledByCloudDims, v_ScaledByCloudDims;
-
-    double area = _height * _width;      //used in scaled v calculation below
+    double u_Fixture, v_Fixture, ArrayX, ArrayY, u_Generated, v_Generated;
 
     //check uvmap against original mesh input pointIDs
-    for (auto it = 0; it < _out_PlaneUVMap.size(); it++){
+    for (auto pnt = _in_PlaneITKMesh->GetPoints()->Begin(); pnt != _in_PlaneITKMesh->GetPoints()->End(); ++pnt){
+
+        //calculate what the UV should be
+        ArrayX =  pnt.Index() % _width;
+        ArrayY = (pnt.Index() - ArrayX) / _width;
+
+        // u and v are [ArrayX, ArrayY] / [max_x, max_y]
+        // max_x and max_y are the maximum index numbers
+        // Since we're zero-indexed, they are width and height - 1
+        u_Generated = ArrayX / ( _width  - 1 );
+        v_Generated = ArrayY / ( _height - 1 );
 
         //get u,v for point in map
-        u = _out_PlaneUVMap.get(it)[0];
-        v = _out_PlaneUVMap.get(it)[1];
-
-        double WidthAtPointID = pnt_id.Index() % _width;
-
-        u_ScaledByCloudDims = u * _width;
-        v_ScaledByCloudDims = v * area + WidthAtPointID;
+        u_Fixture = _out_PlaneUVMap.get(pnt.Index())[0];
+        v_Fixture = _out_PlaneUVMap.get(pnt.Index())[1];
 
         //check to see the values of scaled u,v values correspond to the proper coords for current mesh pointID
-        BOOST_CHECK_EQUAL(u_ScaledByCloudDims, WidthAtPointID);
-        BOOST_CHECK_EQUAL(v_ScaledByCloudDims, pnt_id.Index());
+        BOOST_CHECK_EQUAL(u_Generated, u_Fixture);
+        BOOST_CHECK_EQUAL(v_Generated, v_Fixture);
 
-        pnt_id++;
     }
 
 }
@@ -152,29 +152,29 @@ BOOST_FIXTURE_TEST_CASE(ArchSimpleUVTest, CreateArchSimpleUVFixture){
     //check size of uvMap and number of points in mesh
     BOOST_CHECK_EQUAL(_out_ArchUVMap.size(), _in_ArchITKMesh->GetNumberOfPoints());
 
-    VC_PointsInMeshIterator pnt_id = _in_ArchITKMesh->GetPoints()->Begin();
-
-    double u,v, u_ScaledByCloudDims, v_ScaledByCloudDims;
-
-    double area = _height * _width;      //used in scaled v calculation below
+    double u_Fixture, v_Fixture, ArrayX, ArrayY, u_Generated, v_Generated;
 
     //check uvmap against original mesh input pointIDs
-    for (auto it = 0; it < _out_ArchUVMap.size(); it++){
+    for (auto pnt = _in_ArchITKMesh->GetPoints()->Begin(); pnt != _in_ArchITKMesh->GetPoints()->End(); ++pnt){
+
+        //calculate what the UV should be
+        ArrayX =  pnt.Index() % _width;
+        ArrayY = (pnt.Index() - ArrayX) / _width;
+
+        // u and v are [ArrayX, ArrayY] / [max_x, max_y]
+        // max_x and max_y are the maximum index numbers
+        // Since we're zero-indexed, they are width and height - 1
+        u_Generated = ArrayX / ( _width  - 1 );
+        v_Generated = ArrayY / ( _height - 1 );
 
         //get u,v for point in map
-        u = _out_ArchUVMap.get(it)[0];
-        v = _out_ArchUVMap.get(it)[1];
-
-        double WidthAtPointID = pnt_id.Index() % _width;
-
-        u_ScaledByCloudDims = u * _width;
-        v_ScaledByCloudDims = v * area + WidthAtPointID;
+        u_Fixture = _out_ArchUVMap.get(pnt.Index())[0];
+        v_Fixture = _out_ArchUVMap.get(pnt.Index())[1];
 
         //check to see the values of scaled u,v values correspond to the proper coords for current mesh pointID
-        BOOST_CHECK_EQUAL(u_ScaledByCloudDims, WidthAtPointID);
-        BOOST_CHECK_EQUAL(v_ScaledByCloudDims, pnt_id.Index());
+        BOOST_CHECK_EQUAL(u_Generated, u_Fixture);
+        BOOST_CHECK_EQUAL(v_Generated, v_Fixture);
 
-        pnt_id++;
     }
 
 }
