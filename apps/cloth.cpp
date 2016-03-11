@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <math.h>
+#include <map>
 
 #include <opencv2/opencv.hpp>
 
@@ -15,31 +16,36 @@
 #include "volumepkg.h"
 #include "io/ply2itk.h"
 #include "itk2vtk.h"
-#include "io/objWriter.h"
-#include "compositeTextureV2.h"
 #include "deepCopy.h"
+#include "io/plyWriter.h"
+#include "itkQuadEdgeMeshBoundaryEdgesMeshFunction.h"
+#include "itkMeshFileReader.h"
 
 // bullet converter
 #include "itk2bullet.h"
 #include <LinearMath/btVector3.h>
-#include <vtkQuadricDecimation.h>
+#include <itkOBJMeshIO.h>
 
 struct NodeTarget {
     btVector3 t_pos;
     btScalar  t_stepsize;
 };
 
+struct PinnedPoint {
+    btSoftBody::Node* node;
+    unsigned long     next_node;
+    NodeTarget        target;
+};
+std::map< unsigned long, PinnedPoint > pinnedPoints;
 btVector3 middle(0,0,0);
 
-btVector3 btAverageNormal( btSoftBody* body );
-btScalar btAverageVelocity( btSoftBody* body );
-double btSurfaceArea( btSoftBody* body );
-static void planarizeCornersPreTickCallback(btDynamicsWorld *world, btScalar timeStep);
-static void emptyPreTickCallback(btDynamicsWorld *world, btScalar timeStep);
-void expandCorners(float magnitude);
+//btVector3 btAverageNormal( btSoftBody* body );
+//btScalar btAverageVelocity( btSoftBody* body );
+//double btSurfaceArea( btSoftBody* body );
+//static void planarizeCornersPreTickCallback(btDynamicsWorld *world, btScalar timeStep);
+//static void emptyPreTickCallback(btDynamicsWorld *world, btScalar timeStep);
+//void expandCorners(float magnitude);
 void dumpState( VC_MeshType::Pointer toUpdate, btSoftBody* body, std::string suffix = "" );
-std::vector<btSoftBody::Node*> pinnedPoints;
-std::vector<NodeTarget> targetPoints;
 
 int main(int argc, char* argv[]) {
     if ( argc < 3 ) {
@@ -61,30 +67,13 @@ int main(int argc, char* argv[]) {
     std::string meshName = vpkg.getMeshPath();
 
     int64_t NUM_OF_ITERATIONS = atoi( argv[ 3 ] );
-
-    // declare pointer to new Mesh object
-    VC_MeshType::Pointer  mesh = VC_MeshType::New();
-
-    int meshWidth = -1;
-    int meshHeight = -1;
-
-    vtkSmartPointer<vtkPLYReader> reader = vtkSmartPointer<vtkPLYReader>::New();
-    reader->SetFileName ( "decim.ply" );
-
-    vtkSmoothPolyDataFilter* smoother = vtkSmoothPolyDataFilter::New();
-    smoother->SetInputConnection( reader->GetOutputPort() );
-    smoother->SetNumberOfIterations(3);
-    smoother->SetRelaxationFactor(0.3);
-    smoother->Update();
-
-    VC_MeshType::Pointer decimated = VC_MeshType::New();
-    volcart::meshing::vtk2itk(smoother->GetOutput(), decimated);
-    std::cerr << "points: " << decimated->GetNumberOfPoints() << " || cells: " << decimated->GetNumberOfCells() << std::endl;
-
-    // try to convert the ply to an ITK mesh
-    if (!volcart::io::ply2itkmesh(meshName, mesh, meshWidth, meshHeight)) {
-        exit( -1 );
-    };
+    
+    // Get Mesh
+    typedef itk::MeshFileReader< VC_MeshType >  ReaderType;
+    ReaderType::Pointer reader = ReaderType::New();
+    reader->SetFileName( "decim.obj" );
+    reader->Update();
+    VC_MeshType::Pointer mesh = reader->GetOutput();
 
     // Create Dynamic world for bullet cloth simulation
     btBroadphaseInterface* broadphase = new btDbvtBroadphase();
@@ -106,11 +95,11 @@ int main(int argc, char* argv[]) {
 
     // convert itk mesh to bullet mesh (vertices and triangle arrays)
     btSoftBody* psb;
-    volcart::meshing::itk2bullet::itk2bullet(decimated, dynamicsWorld->getWorldInfo(), &psb);
+    volcart::meshing::itk2bullet::itk2bullet(mesh, dynamicsWorld->getWorldInfo(), &psb);
 
     psb->getWorldInfo()->m_gravity = dynamicsWorld->getGravity(); // Have to explicitly make softbody gravity match world gravity
     dynamicsWorld->addSoftBody(psb);
-    dumpState( decimated, psb, "_0" );
+    //dumpState( mesh, psb, "_0" );
 
     // Constraints for the mesh as a soft body
     // These needed to be tested to find optimal values.
@@ -124,193 +113,100 @@ int main(int argc, char* argv[]) {
     psb->m_materials[0]->m_kAST = 1.0; // Area/Angular stiffness coefficient [0,1]
     psb->m_materials[0]->m_kVST = 1.0; // Volume stiffness coefficient [0,1]
 
-    // Find the position of the four corner nodes
-    // Currently assumes that the first point has the same z-value as the rest of the starting chain
-    // This needs work. A lot of work.
-    int min_z = (int) std::floor(mesh->GetPoint(0)[2]);
-    unsigned long chain_size = 1;
-    double chain_length = 0;
-    // Calculate chain size and chain length
-    for(unsigned long i = 1; i < mesh->GetNumberOfPoints(); ++i) {
-        if( mesh->GetPoint(i)[2] <= min_z ) {
-            chain_length += mesh->GetPoint(i).EuclideanDistanceTo(mesh->GetPoint(i-1));
-            ++chain_size;
+
+    // Get QMesh
+    typedef itk::MeshFileReader< VC_QuadMeshType >  QReaderType;
+    QReaderType::Pointer qReader = QReaderType::New();
+    qReader->SetFileName( "decim.obj" );
+    qReader->Update();
+    VC_QuadMeshType::Pointer QMesh = qReader->GetOutput();
+
+    // Get the boundary points
+    typedef itk::QuadEdgeMeshBoundaryEdgesMeshFunction< VC_QuadMeshType > BoundaryExtractorType;
+    BoundaryExtractorType::Pointer extractor = BoundaryExtractorType::New();
+    VC_QuadEdgeListPointer list = extractor->Evaluate( *QMesh );
+    if( list->empty() )
+    {
+        std::cerr << "There is no border on this mesh" << std::endl;
+        return EXIT_FAILURE;
+    }
+    std::cout << "There are " << list->size() << " borders on this mesh" << std::endl;
+    VC_QuadMeshIteratorGeom eIt = (*list->begin())->BeginGeomLnext();
+    const VC_QuadMeshIteratorGeom eEnd = (*list->begin())->EndGeomLnext();
+    VC_QuadMeshPointIdentifier start = eIt.Value()->GetOrigin();
+    VC_QuadMeshPointIdentifier prev = VC_QuadMeshType::m_NoPoint;
+
+    PinnedPoint pin;
+
+    int iterations_this_phase = NUM_OF_ITERATIONS; // Minimum iterations to reach target
+    while( eIt != eEnd ) {
+
+        VC_QuadMeshEType* qe = eIt.Value();
+        VC_QuadMeshPointIdentifier origin_ID = eIt.Value()->GetOrigin();
+        VC_QuadMeshPointIdentifier destination_ID = eIt.Value()->GetDestination();
+
+        if( qe->GetOrigin() != prev ) {
+            pin.node = &psb->m_nodes[start];
+            pin.target.t_pos = pin.node->m_x;
+            pin.target.t_stepsize = 0;
+            pinnedPoints.insert( {start, pin} );
         }
-        else
-            break;
-    }
-    VC_PointType tl = mesh->GetPoint(0);
-    VC_PointType tr = mesh->GetPoint(chain_size - 1);
-    VC_PointType bl = mesh->GetPoint(mesh->GetNumberOfPoints() - chain_size);
-    VC_PointType br = mesh->GetPoint(mesh->GetNumberOfPoints() - 1);
 
-    unsigned long tl_id, tr_id, bl_id, br_id;
-    tl_id = tr_id = bl_id = br_id = 0;
-    for ( auto pt = decimated->GetPoints()->Begin(); pt != decimated->GetPoints()->End(); ++pt ) {
-        if ( tl.EuclideanDistanceTo(pt->Value()) < tl.EuclideanDistanceTo(decimated->GetPoint(tl_id)) ) tl_id = pt->Index();
-        if ( tr.EuclideanDistanceTo(pt->Value()) < tr.EuclideanDistanceTo(decimated->GetPoint(tr_id)) ) tr_id = pt->Index();
-        if ( bl.EuclideanDistanceTo(pt->Value()) < bl.EuclideanDistanceTo(decimated->GetPoint(bl_id)) ) bl_id = pt->Index();
-        if ( br.EuclideanDistanceTo(pt->Value()) < br.EuclideanDistanceTo(decimated->GetPoint(br_id)) ) br_id = pt->Index();
-    }
+        pinnedPoints[origin_ID].next_node = destination_ID; // link the current origin to the previous destination
 
-    // For debug. These values should match.
-    if ( chain_size != meshWidth ) return EXIT_FAILURE;
+        btSoftBody::Node* origin_node = &psb->m_nodes[origin_ID];
+        pin.node = &psb->m_nodes[destination_ID];
 
-    // Append rigid bodies to respective nodes of mesh
-    // Assumes the chain length is constant throughout the mesh
-    btSoftBody::Node* top_left     = &psb->m_nodes[tl_id];
-    btSoftBody::Node* top_right    = &psb->m_nodes[tr_id];
-    btSoftBody::Node* bottom_left  = &psb->m_nodes[bl_id];
-    btSoftBody::Node* bottom_right = &psb->m_nodes[br_id];
+        btScalar newX, newY, newZ;
+        int dir = ( origin_node->m_x.getX() <= pin.node->m_x.getX() ) ? 1 : -1;
+        btScalar distance = cv::norm(cv::Vec2d(origin_node->m_x.getX(), origin_node->m_x.getY()), cv::Vec2d(pin.node->m_x.getX(), pin.node->m_x.getY()));
+        newX = pinnedPoints[origin_ID].target.t_pos.getX() + (dir * distance);
+        newY = pinnedPoints[origin_ID].target.t_pos.getY();
+        newZ = pin.node->m_x.getZ();
 
-    pinnedPoints.push_back(top_left);
-    pinnedPoints.push_back(top_right);
-    pinnedPoints.push_back(bottom_left);
-    pinnedPoints.push_back(bottom_right);
+        pin.target.t_pos.setX( newX );
+        pin.target.t_pos.setY( newY );
+        pin.target.t_pos.setZ( newZ );
+        pin.target.t_stepsize = pin.node->m_x.distance(pin.target.t_pos) / iterations_this_phase;
 
-    double pinMass = 10;
-    psb->setMass(tl_id, pinMass);
-    psb->setMass(tr_id, pinMass);
-    psb->setMass(bl_id, pinMass);
-    psb->setMass(br_id, pinMass);
+        pinnedPoints.insert( { destination_ID, pin } );
 
-    // Calculate the surface area of the mesh
-    double surface_area = btSurfaceArea(psb);
-    int dir = ( top_left->m_x.getX() < top_right->m_x.getX() ) ? 1 : -1;
-    double width = chain_length * dir;
-    double height = bl[2] - tl[2];
-    int required_iterations = NUM_OF_ITERATIONS; // Minimum iterations to reach target
-
-    // Create target positions with step size for our four corners
-    // NOTE: Must be created in the same order that the rigid bodies were put into pinnedPoints
-    NodeTarget n_target;
-    btScalar t_x, t_y, t_z;
-    btSoftBody::Node* node_ptr;
-
-    // top left corner
-    node_ptr = &psb->m_nodes[tl_id];
-    n_target.t_pos = psb->m_nodes[tl_id].m_x;
-    n_target.t_stepsize = (node_ptr)->m_x.distance(n_target.t_pos) / required_iterations;
-    targetPoints.push_back(n_target);
-
-    // top right corner
-    node_ptr = &psb->m_nodes[tr_id];
-    t_x = psb->m_nodes[tl_id].m_x.x() + width;
-    t_y = psb->m_nodes[tl_id].m_x.y();
-    t_z = psb->m_nodes[tl_id].m_x.z();
-    n_target.t_pos = btVector3(t_x, t_y, t_z);
-    n_target.t_stepsize = (node_ptr)->m_x.distance(n_target.t_pos) / required_iterations;
-    targetPoints.push_back(n_target);
-
-    // bottom left corner
-    node_ptr = &psb->m_nodes[bl_id];
-    t_x = psb->m_nodes[tl_id].m_x.x();
-    t_y = psb->m_nodes[tl_id].m_x.y();
-    t_z = psb->m_nodes[tl_id].m_x.z() + height;
-    n_target.t_pos = btVector3(t_x, t_y, t_z);
-    n_target.t_stepsize = (node_ptr)->m_x.distance(n_target.t_pos) / required_iterations;
-    targetPoints.push_back(n_target);
-
-    // bottom right corner
-    node_ptr = &psb->m_nodes[br_id];
-    t_x = psb->m_nodes[tl_id].m_x.x() + width;
-    t_y = psb->m_nodes[tl_id].m_x.y();
-    t_z = psb->m_nodes[tl_id].m_x.z() + height;
-    n_target.t_pos = btVector3(t_x, t_y, t_z);
-    n_target.t_stepsize = (node_ptr)->m_x.distance(n_target.t_pos) / required_iterations;
-    targetPoints.push_back(n_target);
-
-    // Middle of target rectangle
-    t_x = psb->m_nodes[tl_id].m_x.x() + (width / 2);
-    t_y = psb->m_nodes[tl_id].m_x.y();
-    t_z = psb->m_nodes[tl_id].m_x.z() + (height / 2);
-    middle = btVector3(t_x, t_y, t_z);
-
-    // Planarize the corners
-    printf("volcart::cloth::message: Planarizing corners\n");
-    dynamicsWorld->setInternalTickCallback(planarizeCornersPreTickCallback, dynamicsWorld, true);
-    int counter = 0;
-    while ( counter < required_iterations ) {
-        std::cerr << "volcart::cloth::message: Step " << counter+1 << "/" << required_iterations << "\r" << std::flush;
-        dynamicsWorld->stepSimulation(1/60.f);
-        psb->solveConstraints();
-        ++counter;
-    }
-    std::cerr << std::endl;
-    printf("Planarize steps: %d\n", counter);
-    dumpState( decimated, psb, "_1");
-
-    // Expand the corners
-    printf("volcart::cloth::message: Expanding corners\n");
-    counter = 0;
-    required_iterations = required_iterations * 2;
-    while ( (btAverageNormal(psb).absolute().getY() < 0.925 || counter < required_iterations) && counter < required_iterations*2 ) {
-        std::cerr << "volcart::cloth::message: Step " << counter+1 << "\r" << std::flush;
-        if ( counter % 2000 == 0 ) expandCorners( 10 + (counter / 2000) );
-        dynamicsWorld->stepSimulation(1/60.f);
-        psb->solveConstraints();
-        ++counter;
-    }
-    std::cerr << std::endl;
-    printf("Expansion steps: %d\n", counter);
-    dumpState( decimated, psb, "_2" );
-
-    // Add a collision plane to push the mesh onto
-    btScalar min_y = psb->m_nodes[0].m_x.y();
-    btScalar max_y = psb->m_nodes[0].m_x.y();
-    for (size_t n_id = 1; n_id < psb->m_nodes.size(); ++n_id) {
-        double _y = psb->m_nodes[n_id].m_x.y();
-        double _z = psb->m_nodes[n_id].m_x.z();
-        if ( _y < min_y && _z >= 0) min_y = psb->m_nodes[n_id].m_x.y();
-        if ( _y > max_y && _z >= 0) max_y = psb->m_nodes[n_id].m_x.y();
+        ++eIt;
     }
 
-    btScalar plane_y = min_y - 5;
-    btCollisionShape* groundShape = new btStaticPlaneShape(btVector3(0, plane_y, 0), 1);
-    btDefaultMotionState* groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 0)));
-    btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState, groundShape, btVector3(0, 0, 0));
-    btRigidBody* plane = new btRigidBody(groundRigidBodyCI);
-    dynamicsWorld->addRigidBody(plane);
+    VC_MeshType::Pointer outline = VC_MeshType::New();
 
-    // Set the gravity so the mesh will be pushed onto the plane
-    dynamicsWorld->setGravity(btVector3(0, -15, 0));
-    psb->getWorldInfo()->m_gravity = dynamicsWorld->getGravity(); // Have to explicitly make softbody gravity match world gravity
+    std::cout << pinnedPoints.size() << std::endl;
+    VC_PointType p;
+    VC_PixelType n;
+    double min_u, max_u, min_v, max_v;
+    unsigned long id = 0;
+    for ( auto it = pinnedPoints.begin(); it != pinnedPoints.end(); ++it, ++id ) {
 
-    // set the friction of the plane and the mesh s.t. the mesh can easily flatten upon collision
-    plane->setFriction(0.01); // (0-1] Default: 0.5
-    psb->m_cfg.kDF = 0.01; // Dynamic friction coefficient (0-1] Default: 0.2
-    psb->m_cfg.kDP = 0.1; // Damping coefficient of the soft body [0,1]
+        p[0] = it->second.target.t_pos.getX();
+        p[1] = it->second.target.t_pos.getY();
+        p[2] = it->second.target.t_pos.getZ();
+        n[0] = 0;
+        n[1] = 0;
+        n[2] = 0;
 
-    // Let it settle
-    printf("volcart::cloth::message: Relaxing corners\n");
-    dynamicsWorld->setInternalTickCallback(emptyPreTickCallback, dynamicsWorld, true);
-    required_iterations = required_iterations * 2;
-    counter = 0;
-    double test_area = btSurfaceArea(psb);
-    while ( (isnan(test_area) || test_area/surface_area > 1.05 || counter < required_iterations) && counter < required_iterations*4 ) {
-        std::cerr << "volcart::cloth::message: Step " << counter+1 << "\r" << std::flush;
-        dynamicsWorld->stepSimulation(1/60.f);
-        psb->solveConstraints();
+        outline->SetPoint(id, p);
+        outline->SetPointData(id, n);
 
-        ++counter;
-        if ( counter % 500 == 0 ) test_area = btSurfaceArea(psb); // recalc area every 500 iterations
-    }
-    std::cerr << std::endl;
-    printf("Relaxation steps: %d\n", counter);
-    dumpState( decimated, psb, "_3" );
-
-    // UV map setup
-    double min_u = psb->m_nodes[0].m_x.x();
-    double min_v = psb->m_nodes[0].m_x.z();
-    double max_u = psb->m_nodes[0].m_x.x();
-    double max_v = psb->m_nodes[0].m_x.z();
-    for (size_t n_id = 0; n_id < psb->m_nodes.size(); ++n_id) {
-        double _x = psb->m_nodes[n_id].m_x.x();
-        double _z = psb->m_nodes[n_id].m_x.z();
-        if ( _x < min_u && _z >= 0) min_u = psb->m_nodes[n_id].m_x.x();
-        if ( _z < min_v && _z >= 0) min_v = psb->m_nodes[n_id].m_x.z();
-        if ( _x > max_u && _z >= 0) max_u = psb->m_nodes[n_id].m_x.x();
-        if ( _z > max_v && _z >= 0) max_v = psb->m_nodes[n_id].m_x.z();
+        // Bounding box
+        double _x = it->second.target.t_pos.getX();
+        double _z = it->second.target.t_pos.getZ();
+        if ( it == pinnedPoints.begin() ) {
+            min_u = _x;
+            min_v = _z;
+            max_u = _x;
+            max_v = _z;
+        } else {
+            if ( _x < min_u ) min_u = _x;
+            if ( _z < min_v ) min_v = _z;
+            if ( _x > max_u ) max_u = _x;
+            if ( _z > max_v ) max_v = _z;
+        }
     }
 
     // Round so that we have integer bounds
@@ -321,116 +217,253 @@ int main(int argc, char* argv[]) {
 
     double aspect_width = max_u - min_u;
     double aspect_height = max_v - min_v;
-    double aspect = aspect_width / aspect_height;
-    volcart::UVMap uvMap;
-    uvMap.ratio(aspect_width, aspect_height);
 
-    // Calculate uv coordinates
-    double u, v;
-    for (size_t f_id = 0; f_id < psb->m_faces.size(); ++f_id) {
+    cv::Mat points = cv::Mat::zeros( aspect_height, aspect_width, CV_8UC3 );
+    for ( auto it = pinnedPoints.begin(); it != pinnedPoints.end(); ++it, ++id ) {
 
-        for(size_t n_id = 0; n_id < 3; ++n_id) {
+        // starting point
+        int start_x = cvRound(it->second.target.t_pos.getX());
+        int start_y = cvRound(it->second.target.t_pos.getZ());
 
-            u = (psb->m_faces[f_id].m_n[n_id]->m_x.x() - min_u) / (max_u - min_u);
-            v = (psb->m_faces[f_id].m_n[n_id]->m_x.z() - min_v) / (max_v - min_v);
-            cv::Vec2d uv( u, v );
+        // next point
+        auto next = pinnedPoints[it->second.next_node];
+        int end_x = cvRound(next.target.t_pos.getX());
+        int end_y = cvRound(next.target.t_pos.getZ());
 
-            // btSoftBody faces hold pointers to specific nodes, but we need the point id
-            // Lookup the point ID of this node in the original ITK mesh
-            VC_CellType::CellAutoPointer c;
-            decimated->GetCell(f_id, c);
-            double p_id = c->GetPointIdsContainer()[n_id];
+        cv::line(points, cvPoint(start_y, start_x), cvPoint(end_y, end_x), cvScalar(255,0,0));
 
-            // Add the uv coordinates into our map at the point index specified
-            uvMap.set(p_id, uv);
-
-        }
     }
 
-    // Convert soft body to itk mesh
-    volcart::texturing::compositeTextureV2 result(decimated, vpkg, uvMap, 7, (int) aspect_width, (int) aspect_height);
-    volcart::io::objWriter objwriter("cloth.obj", decimated, result.texture().uvMap(), result.texture().getImage(0));
-    objwriter.write();
+    cv::imwrite("outline.png", points);
 
-    // bullet clean up
-    dynamicsWorld->removeRigidBody(plane);
-    delete plane->getMotionState();
-    delete plane;
-    delete groundShape;
-    dynamicsWorld->removeSoftBody(psb);
-    delete psb;
-    delete dynamicsWorld;
-    delete softBodySolver;
-    delete solver;
-    delete dispatcher;
-    delete collisionConfiguration;
-    delete broadphase;
+    volcart::io::plyWriter writer;
+    writer.setMesh(outline);
+    writer.setPath("outline.ply");
+    writer.write();
 
     return 0;
 
+//    // Append rigid bodies to respective nodes of mesh
+//    // Assumes the chain length is constant throughout the mesh
+//    btSoftBody::Node* top_left     = &psb->m_nodes[tl_id];
+//    btSoftBody::Node* top_right    = &psb->m_nodes[tr_id];
+//    btSoftBody::Node* bottom_left  = &psb->m_nodes[bl_id];
+//    btSoftBody::Node* bottom_right = &psb->m_nodes[br_id];
+//
+//    pinnedPoints.push_back(top_left);
+//    pinnedPoints.push_back(top_right);
+//    pinnedPoints.push_back(bottom_left);
+//    pinnedPoints.push_back(bottom_right);
+//
+//    double pinMass = 10;
+//    psb->setMass(tl_id, pinMass);
+//    psb->setMass(tr_id, pinMass);
+//    psb->setMass(bl_id, pinMass);
+//    psb->setMass(br_id, pinMass);
+//
+//    // Calculate the surface area of the mesh
+//    double surface_area = btSurfaceArea(psb);
+//    int dir = ( top_left->m_x.getX() < top_right->m_x.getX() ) ? 1 : -1;
+//    double width = chain_length * dir;
+//    double height = bl[2] - tl[2];
+//
+//    // Create target positions with step size for our four corners
+//    // NOTE: Must be created in the same order that the rigid bodies were put into pinnedPoints
+//    NodeTarget n_target;
+//    btScalar t_x, t_y, t_z;
+//    btSoftBody::Node* node_ptr;
+//
+//    // top left corner
+//    node_ptr = &psb->m_nodes[tl_id];
+//    n_target.t_pos = psb->m_nodes[tl_id].m_x;
+//    n_target.t_stepsize = (node_ptr)->m_x.distance(n_target.t_pos) / required_iterations;
+//    targetPoints.push_back(n_target);
+//
+//    // top right corner
+//    node_ptr = &psb->m_nodes[tr_id];
+//    t_x = psb->m_nodes[tl_id].m_x.x() + width;
+//    t_y = psb->m_nodes[tl_id].m_x.y();
+//    t_z = psb->m_nodes[tl_id].m_x.z();
+//    n_target.t_pos = btVector3(t_x, t_y, t_z);
+//    n_target.t_stepsize = (node_ptr)->m_x.distance(n_target.t_pos) / required_iterations;
+//    targetPoints.push_back(n_target);
+//
+//    // bottom left corner
+//    node_ptr = &psb->m_nodes[bl_id];
+//    t_x = psb->m_nodes[tl_id].m_x.x();
+//    t_y = psb->m_nodes[tl_id].m_x.y();
+//    t_z = psb->m_nodes[tl_id].m_x.z() + height;
+//    n_target.t_pos = btVector3(t_x, t_y, t_z);
+//    n_target.t_stepsize = (node_ptr)->m_x.distance(n_target.t_pos) / required_iterations;
+//    targetPoints.push_back(n_target);
+//
+//    // bottom right corner
+//    node_ptr = &psb->m_nodes[br_id];
+//    t_x = psb->m_nodes[tl_id].m_x.x() + width;
+//    t_y = psb->m_nodes[tl_id].m_x.y();
+//    t_z = psb->m_nodes[tl_id].m_x.z() + height;
+//    n_target.t_pos = btVector3(t_x, t_y, t_z);
+//    n_target.t_stepsize = (node_ptr)->m_x.distance(n_target.t_pos) / required_iterations;
+//    targetPoints.push_back(n_target);
+//
+//    // Middle of target rectangle
+//    t_x = psb->m_nodes[tl_id].m_x.x() + (width / 2);
+//    t_y = psb->m_nodes[tl_id].m_x.y();
+//    t_z = psb->m_nodes[tl_id].m_x.z() + (height / 2);
+//    middle = btVector3(t_x, t_y, t_z);
+//
+//    // Planarize the corners
+//    printf("volcart::cloth::message: Planarizing corners\n");
+//    dynamicsWorld->setInternalTickCallback(planarizeCornersPreTickCallback, dynamicsWorld, true);
+//    int counter = 0;
+//    while ( counter < required_iterations ) {
+//        std::cerr << "volcart::cloth::message: Step " << counter+1 << "/" << required_iterations << "\r" << std::flush;
+//        dynamicsWorld->stepSimulation(1/60.f);
+//        psb->solveConstraints();
+//        ++counter;
+//    }
+//    std::cerr << std::endl;
+//    printf("Planarize steps: %d\n", counter);
+//    dumpState( mesh, psb, "_1");
+//
+//    // Expand the corners
+//    printf("volcart::cloth::message: Expanding corners\n");
+//    counter = 0;
+//    required_iterations = required_iterations * 2;
+//    while ( (btAverageNormal(psb).absolute().getY() < 0.925 || counter < required_iterations) && counter < required_iterations*2 ) {
+//        std::cerr << "volcart::cloth::message: Step " << counter+1 << "\r" << std::flush;
+//        if ( counter % 2000 == 0 ) expandCorners( 10 + (counter / 2000) );
+//        dynamicsWorld->stepSimulation(1/60.f);
+//        psb->solveConstraints();
+//        ++counter;
+//    }
+//    std::cerr << std::endl;
+//    printf("Expansion steps: %d\n", counter);
+//    dumpState( mesh, psb, "_2" );
+//
+//    // Add a collision plane to push the mesh onto
+//    btScalar min_y = psb->m_nodes[0].m_x.y();
+//    btScalar max_y = psb->m_nodes[0].m_x.y();
+//    for (size_t n_id = 1; n_id < psb->m_nodes.size(); ++n_id) {
+//        double _y = psb->m_nodes[n_id].m_x.y();
+//        double _z = psb->m_nodes[n_id].m_x.z();
+//        if ( _y < min_y && _z >= 0) min_y = psb->m_nodes[n_id].m_x.y();
+//        if ( _y > max_y && _z >= 0) max_y = psb->m_nodes[n_id].m_x.y();
+//    }
+//
+//    btScalar plane_y = min_y - 5;
+//    btCollisionShape* groundShape = new btStaticPlaneShape(btVector3(0, plane_y, 0), 1);
+//    btDefaultMotionState* groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 0)));
+//    btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState, groundShape, btVector3(0, 0, 0));
+//    btRigidBody* plane = new btRigidBody(groundRigidBodyCI);
+//    dynamicsWorld->addRigidBody(plane);
+//
+//    // Set the gravity so the mesh will be pushed onto the plane
+//    dynamicsWorld->setGravity(btVector3(0, -15, 0));
+//    psb->getWorldInfo()->m_gravity = dynamicsWorld->getGravity(); // Have to explicitly make softbody gravity match world gravity
+//
+//    // set the friction of the plane and the mesh s.t. the mesh can easily flatten upon collision
+//    plane->setFriction(0.01); // (0-1] Default: 0.5
+//    psb->m_cfg.kDF = 0.01; // Dynamic friction coefficient (0-1] Default: 0.2
+//    psb->m_cfg.kDP = 0.1; // Damping coefficient of the soft body [0,1]
+//
+//    // Let it settle
+//    printf("volcart::cloth::message: Relaxing corners\n");
+//    dynamicsWorld->setInternalTickCallback(emptyPreTickCallback, dynamicsWorld, true);
+//    required_iterations = required_iterations * 2;
+//    counter = 0;
+//    double test_area = btSurfaceArea(psb);
+//    while ( (isnan(test_area) || test_area/surface_area > 1.05 || counter < required_iterations) && counter < required_iterations*4 ) {
+//        std::cerr << "volcart::cloth::message: Step " << counter+1 << "\r" << std::flush;
+//        dynamicsWorld->stepSimulation(1/60.f);
+//        psb->solveConstraints();
+//
+//        ++counter;
+//        if ( counter % 500 == 0 ) test_area = btSurfaceArea(psb); // recalc area every 500 iterations
+//    }
+//    std::cerr << std::endl;
+//    printf("Relaxation steps: %d\n", counter);
+//    dumpState( mesh, psb, "_3" );
+//
+//    // bullet clean up
+//    dynamicsWorld->removeRigidBody(plane);
+//    delete plane->getMotionState();
+//    delete plane;
+//    delete groundShape;
+//    dynamicsWorld->removeSoftBody(psb);
+//    delete psb;
+//    delete dynamicsWorld;
+//    delete softBodySolver;
+//    delete solver;
+//    delete dispatcher;
+//    delete collisionConfiguration;
+//    delete broadphase;
+//
+//    return 0;
+
 } // end main
 
-btVector3 btAverageNormal(btSoftBody* body) {
-    btVector3  avg_normal(0,0,0);
-    for ( size_t n_id = 0; n_id < body->m_faces.size(); ++n_id ) {
-        avg_normal += body->m_faces[n_id].m_normal;
-    }
-    avg_normal /= body->m_faces.size();
-    return avg_normal;
-};
-
-btScalar btAverageVelocity(btSoftBody* body) {
-    btScalar velocity = 0;
-    for ( size_t n_id = 0; n_id < body->m_nodes.size(); ++n_id ) {
-        velocity += body->m_nodes[n_id].m_v.length();
-    }
-    velocity /= body->m_nodes.size();
-    return velocity;
-}
-
-// Calculate the surface area of the mesh using Heron's formula
-// Let a,b,c be the lengths of the sides of a triangle and p the semiperimeter
-// p = (a +  b + c) / 2
-// area of triangle = sqrt( p * (p - a) * (p - b) * (p - c) )
-double btSurfaceArea( btSoftBody* body ) {
-    double surface_area = 0;
-    for(int i = 0; i < body->m_faces.size(); ++i) {
-        double a = 0, b = 0, c = 0, p = 0;
-        a = body->m_faces[i].m_n[0]->m_x.distance(body->m_faces[i].m_n[1]->m_x);
-        b = body->m_faces[i].m_n[0]->m_x.distance(body->m_faces[i].m_n[2]->m_x);
-        c = body->m_faces[i].m_n[1]->m_x.distance(body->m_faces[i].m_n[2]->m_x);
-
-        p = (a + b + c) / 2;
-
-        surface_area += sqrt( p * (p - a) * (p - b) * (p - c) );
-    }
-
-    return surface_area;
-}
-
-void planarizeCornersPreTickCallback(btDynamicsWorld *world, btScalar timeStep) {
-    // Iterate over rigid bodies and move them towards their targets
-    for( size_t p_id = 0; p_id < pinnedPoints.size(); ++p_id ) {
-        if ( pinnedPoints[p_id]->m_x == targetPoints[p_id].t_pos ) continue;
-        btVector3 delta = (targetPoints[p_id].t_pos - pinnedPoints[p_id]->m_x).normalized() * targetPoints[p_id].t_stepsize;
-        pinnedPoints[p_id]->m_v += delta/timeStep;
-    }
-};
-
-void emptyPreTickCallback(btDynamicsWorld *world, btScalar timeStep) {
-    // This call back is used to disable other callbacks
-    // Particularly used for relaxing the four corners
-};
-
-void expandCorners(float magnitude) {
-    btScalar stepSize = 1;
-    btScalar _magnitude = magnitude;
-    for( size_t p_id = 0; p_id < pinnedPoints.size(); ++p_id ) {
-        targetPoints[p_id].t_pos += (targetPoints[p_id].t_pos - middle).normalized() * _magnitude;
-        targetPoints[p_id].t_stepsize = stepSize;
-    }
-}
-
+//btVector3 btAverageNormal(btSoftBody* body) {
+//    btVector3  avg_normal(0,0,0);
+//    for ( size_t n_id = 0; n_id < body->m_faces.size(); ++n_id ) {
+//        avg_normal += body->m_faces[n_id].m_normal;
+//    }
+//    avg_normal /= body->m_faces.size();
+//    return avg_normal;
+//};
+//
+//btScalar btAverageVelocity(btSoftBody* body) {
+//    btScalar velocity = 0;
+//    for ( size_t n_id = 0; n_id < body->m_nodes.size(); ++n_id ) {
+//        velocity += body->m_nodes[n_id].m_v.length();
+//    }
+//    velocity /= body->m_nodes.size();
+//    return velocity;
+//}
+//
+//// Calculate the surface area of the mesh using Heron's formula
+//// Let a,b,c be the lengths of the sides of a triangle and p the semiperimeter
+//// p = (a +  b + c) / 2
+//// area of triangle = sqrt( p * (p - a) * (p - b) * (p - c) )
+//double btSurfaceArea( btSoftBody* body ) {
+//    double surface_area = 0;
+//    for(int i = 0; i < body->m_faces.size(); ++i) {
+//        double a = 0, b = 0, c = 0, p = 0;
+//        a = body->m_faces[i].m_n[0]->m_x.distance(body->m_faces[i].m_n[1]->m_x);
+//        b = body->m_faces[i].m_n[0]->m_x.distance(body->m_faces[i].m_n[2]->m_x);
+//        c = body->m_faces[i].m_n[1]->m_x.distance(body->m_faces[i].m_n[2]->m_x);
+//
+//        p = (a + b + c) / 2;
+//
+//        surface_area += sqrt( p * (p - a) * (p - b) * (p - c) );
+//    }
+//
+//    return surface_area;
+//}
+//
+//void planarizeCornersPreTickCallback(btDynamicsWorld *world, btScalar timeStep) {
+//    // Iterate over rigid bodies and move them towards their targets
+//    for( size_t p_id = 0; p_id < pinnedPoints.size(); ++p_id ) {
+//        if ( pinnedPoints[p_id]->m_x == targetPoints[p_id].t_pos ) continue;
+//        btVector3 delta = (targetPoints[p_id].t_pos - pinnedPoints[p_id]->m_x).normalized() * targetPoints[p_id].t_stepsize;
+//        pinnedPoints[p_id]->m_v += delta/timeStep;
+//    }
+//};
+//
+//void emptyPreTickCallback(btDynamicsWorld *world, btScalar timeStep) {
+//    // This call back is used to disable other callbacks
+//    // Particularly used for relaxing the four corners
+//};
+//
+//void expandCorners(float magnitude) {
+//    btScalar stepSize = 1;
+//    btScalar _magnitude = magnitude;
+//    for( size_t p_id = 0; p_id < pinnedPoints.size(); ++p_id ) {
+//        targetPoints[p_id].t_pos += (targetPoints[p_id].t_pos - middle).normalized() * _magnitude;
+//        targetPoints[p_id].t_stepsize = stepSize;
+//    }
+//}
+//
 void dumpState( VC_MeshType::Pointer toUpdate, btSoftBody* body, std::string suffix ) {
     VC_MeshType::Pointer output = VC_MeshType::New();
     volcart::meshing::deepCopy(toUpdate, output);
