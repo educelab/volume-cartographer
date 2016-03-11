@@ -8,6 +8,7 @@
 #define BOOST_TEST_MODULE scaleMesh
 
 #include <boost/test/unit_test.hpp>
+#include <boost/test/floating_point_comparison.hpp>
 #include <boost/test/unit_test_log.hpp>
 #include <io/objWriter.h>
 #include "vc_defines.h"
