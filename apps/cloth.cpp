@@ -33,10 +33,9 @@ struct NodeTarget {
 
 struct PinnedPoint {
     btSoftBody::Node* node;
-    unsigned long     next_node;
     NodeTarget        target;
 };
-std::map< unsigned long, PinnedPoint > pinnedPoints;
+std::vector< PinnedPoint > pinnedPoints;
 btVector3 middle(0,0,0);
 
 //btVector3 btAverageNormal( btSoftBody* body );
@@ -69,11 +68,11 @@ int main(int argc, char* argv[]) {
     int64_t NUM_OF_ITERATIONS = atoi( argv[ 3 ] );
     
     // Get Mesh
-    typedef itk::MeshFileReader< VC_MeshType >  ReaderType;
-    ReaderType::Pointer reader = ReaderType::New();
-    reader->SetFileName( "decim.obj" );
+    vtkSmartPointer<vtkPLYReader> reader = vtkSmartPointer<vtkPLYReader>::New();
+    reader->SetFileName ( "decim.ply" );
     reader->Update();
-    VC_MeshType::Pointer mesh = reader->GetOutput();
+    VC_MeshType::Pointer mesh = VC_MeshType::New();
+    volcart::meshing::vtk2itk(reader->GetOutput(), mesh);
 
     // Create Dynamic world for bullet cloth simulation
     btBroadphaseInterface* broadphase = new btDbvtBroadphase();
@@ -134,43 +133,40 @@ int main(int argc, char* argv[]) {
     VC_QuadMeshIteratorGeom eIt = (*list->begin())->BeginGeomLnext();
     const VC_QuadMeshIteratorGeom eEnd = (*list->begin())->EndGeomLnext();
     VC_QuadMeshPointIdentifier start = eIt.Value()->GetOrigin();
-    VC_QuadMeshPointIdentifier prev = VC_QuadMeshType::m_NoPoint;
-
-    PinnedPoint pin;
 
     int iterations_this_phase = NUM_OF_ITERATIONS; // Minimum iterations to reach target
     while( eIt != eEnd ) {
 
-        VC_QuadMeshEType* qe = eIt.Value();
-        VC_QuadMeshPointIdentifier origin_ID = eIt.Value()->GetOrigin();
-        VC_QuadMeshPointIdentifier destination_ID = eIt.Value()->GetDestination();
+        PinnedPoint pin;
 
-        if( qe->GetOrigin() != prev ) {
+        if( eIt == (*list->begin())->BeginGeomLnext() ) {
             pin.node = &psb->m_nodes[start];
             pin.target.t_pos = pin.node->m_x;
             pin.target.t_stepsize = 0;
-            pinnedPoints.insert( {start, pin} );
+        } else {
+
+            // Set the node reference
+            unsigned long origin_ID = eIt.Value()->GetOrigin();
+            pin.node = &psb->m_nodes[origin_ID];
+
+            // Get the previous point in the boundary
+            auto prev = pinnedPoints.back();
+
+            // Get the distance and direction along the XY component
+            int dir = ( prev.node->m_x.getX() <= pin.node->m_x.getX() ) ? 1 : -1;
+            cv::Vec2d A(prev.node->m_x.getX(), prev.node->m_x.getY());
+            cv::Vec2d B(pin.node->m_x.getX(), pin.node->m_x.getY());
+            btScalar distance = cv::norm( A, B );
+
+            // Apply the distance to only the x component, relative to the previous point's target position
+            // This new point keeps it's original Z position
+            pin.target.t_pos.setX( prev.target.t_pos.getX() + (dir * distance) );
+            pin.target.t_pos.setY( prev.target.t_pos.getY() );
+            pin.target.t_pos.setZ( pin.node->m_x.getZ() );
+            pin.target.t_stepsize = pin.node->m_x.distance(pin.target.t_pos) / iterations_this_phase;
         }
 
-        pinnedPoints[origin_ID].next_node = destination_ID; // link the current origin to the previous destination
-
-        btSoftBody::Node* origin_node = &psb->m_nodes[origin_ID];
-        pin.node = &psb->m_nodes[destination_ID];
-
-        btScalar newX, newY, newZ;
-        int dir = ( origin_node->m_x.getX() <= pin.node->m_x.getX() ) ? 1 : -1;
-        btScalar distance = cv::norm(cv::Vec2d(origin_node->m_x.getX(), origin_node->m_x.getY()), cv::Vec2d(pin.node->m_x.getX(), pin.node->m_x.getY()));
-        newX = pinnedPoints[origin_ID].target.t_pos.getX() + (dir * distance);
-        newY = pinnedPoints[origin_ID].target.t_pos.getY();
-        newZ = pin.node->m_x.getZ();
-
-        pin.target.t_pos.setX( newX );
-        pin.target.t_pos.setY( newY );
-        pin.target.t_pos.setZ( newZ );
-        pin.target.t_stepsize = pin.node->m_x.distance(pin.target.t_pos) / iterations_this_phase;
-
-        pinnedPoints.insert( { destination_ID, pin } );
-
+        pinnedPoints.push_back( pin );
         ++eIt;
     }
 
@@ -183,9 +179,9 @@ int main(int argc, char* argv[]) {
     unsigned long id = 0;
     for ( auto it = pinnedPoints.begin(); it != pinnedPoints.end(); ++it, ++id ) {
 
-        p[0] = it->second.target.t_pos.getX();
-        p[1] = it->second.target.t_pos.getY();
-        p[2] = it->second.target.t_pos.getZ();
+        p[0] = it->target.t_pos.getX();
+        p[1] = it->target.t_pos.getY();
+        p[2] = it->target.t_pos.getZ();
         n[0] = 0;
         n[1] = 0;
         n[2] = 0;
@@ -194,8 +190,8 @@ int main(int argc, char* argv[]) {
         outline->SetPointData(id, n);
 
         // Bounding box
-        double _x = it->second.target.t_pos.getX();
-        double _z = it->second.target.t_pos.getZ();
+        double _x = it->target.t_pos.getX();
+        double _z = it->target.t_pos.getZ();
         if ( it == pinnedPoints.begin() ) {
             min_u = _x;
             min_v = _z;
@@ -222,15 +218,15 @@ int main(int argc, char* argv[]) {
     for ( auto it = pinnedPoints.begin(); it != pinnedPoints.end(); ++it, ++id ) {
 
         // starting point
-        int start_x = cvRound(it->second.target.t_pos.getX());
-        int start_y = cvRound(it->second.target.t_pos.getZ());
+        int start_x = cvRound(it->target.t_pos.getX()) - min_u;
+        int start_y = cvRound(it->target.t_pos.getZ()) - min_v;
 
         // next point
-        auto next = pinnedPoints[it->second.next_node];
-        int end_x = cvRound(next.target.t_pos.getX());
-        int end_y = cvRound(next.target.t_pos.getZ());
+        auto next = std::next(it);
+        int end_x = cvRound(next->target.t_pos.getX()) - min_u;
+        int end_y = cvRound(next->target.t_pos.getZ()) - min_v;
 
-        cv::line(points, cvPoint(start_y, start_x), cvPoint(end_y, end_x), cvScalar(255,0,0));
+        cv::line(points, cvPoint(start_x, start_y), cvPoint(end_x, end_y), cvScalar(255,0,0));
 
     }
 
