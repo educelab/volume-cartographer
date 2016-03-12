@@ -34,7 +34,7 @@ find_package(ITK REQUIRED)
 find_package(VTK 6.1 REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(ACVD)
-find_package(Bullet)
+find_package(Bullet REQUIRED)
 
 include(${ITK_USE_FILE})
 include(${VTK_USE_FILE})
