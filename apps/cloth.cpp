@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
     // Sets the mass of the whole soft body, true considers the faces along with the vertices
     // Note: Mass is in kilograms. If mass isn't high enough, nothing changes.
     printf("volcart::cloth::message: Setting mass\n");
-    psb->setTotalMass( (int)(psb->m_nodes.size() * 0.001), true );
+    psb->setTotalMass( (int)(psb->m_nodes.size() * 0.01), true );
 
     psb->m_cfg.kDP = 0.01; // Damping coefficient of the soft body [0,1]
     psb->m_materials[0]->m_kLST = 0.25; // Linear stiffness coefficient [0,1]
@@ -126,6 +126,32 @@ int main(int argc, char* argv[]) {
         psb->solveConstraints();
     }
     dumpState( mesh, psb, "_-gravity" );
+
+
+    // Flatten the original pinned points
+    // Load the pinned points
+    VC_MeshType::Pointer intermediate = VC_MeshType::New();
+    volcart::meshing::deepCopy(mesh, intermediate);
+    volcart::meshing::bullet2itk::bullet2itk(psb, intermediate);
+    getPins("pins_20160312145136_-gravity.ply", intermediate, psb);
+
+    for ( auto id = 0; id < psb->m_nodes.size(); ++id)
+        psb->setMass( id, 0);
+
+    for ( auto pin = pinnedPoints.begin(); pin != pinnedPoints.end(); ++pin ) {
+        psb->setMass( pin->index, 5 );
+    }
+
+    dynamicsWorld->setGravity(btVector3(10, 0, 0));
+    psb->getWorldInfo()->m_gravity = dynamicsWorld->getGravity(); // Have to explicitly make softbody gravity match world gravity
+    dynamicsWorld->setInternalTickCallback(emptyPreTickCallback, dynamicsWorld, true);
+    required_iterations = 5000;
+    for ( int counter = 0; counter < required_iterations; ++counter ) {
+        std::cerr << "volcart::cloth::message: Step " << counter+1 << "\r" << std::flush;
+        dynamicsWorld->stepSimulation(1/60.f);
+        psb->solveConstraints();
+    }
+    dumpState( mesh, psb, "_+gravity" );
 
 //    // Add a collision plane to push the mesh onto
 //    btScalar min_y = psb->m_nodes[0].m_x.y();
@@ -270,7 +296,7 @@ void constrainMotionCallback(btDynamicsWorld *world, btScalar timeStep) {
 
     for ( auto n = 0; n < global_softBody->m_nodes.size(); ++n ) {
         btVector3 velocity = global_softBody->m_nodes[n].m_v;
-        velocity.setY( velocity.getY() * 0.25 );
+        velocity.setY(0);
         velocity.setZ(0);
         global_softBody->m_nodes[n].m_v = velocity;
     }
