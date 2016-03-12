@@ -17,9 +17,11 @@ class FittedCurve
 private:
     size_t npoints_;
     int32_t zIndex_;
+    std::vector<double> xs_;
+    std::vector<double> ys_;
     std::vector<double> ts_;
     std::vector<Voxel> points_;
-    CubicSpline<double> spline_;
+    CubicParametricSpline<double> spline_;
 
 public:
     FittedCurve() = default;

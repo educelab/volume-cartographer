@@ -9,12 +9,15 @@ using namespace volcart::segmentation;
 std::vector<double> generateTVals(size_t count);
 
 FittedCurve::FittedCurve(const std::vector<Voxel>& vs, int32_t zIndex)
-    : npoints_(vs.size()), zIndex_(zIndex), ts_(generateTVals(npoints_))
+    : npoints_(vs.size())
+    , zIndex_(zIndex)
+    , xs_(unzip(vs).first)
+    , ys_(unzip(vs).second)
+    , ts_(generateTVals(npoints_))
+    , spline_(xs_, ys_)
 {
     std::vector<double> xs, ys;
     std::tie(xs, ys) = unzip(vs);
-
-    spline_ = CubicSpline<double>(xs, ys);
 
     // Calculate new voxel positions from the spline
     points_.reserve(vs.size());
