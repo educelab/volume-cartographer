@@ -53,6 +53,7 @@ std::vector<Voxel> FittedCurve::sample(size_t numPoints) const
 
 Voxel FittedCurve::operator()(int32_t index) const
 {
+    assert(index >= 0 && index < int32_t(ts_.size()) && "out of bounds");
     Pixel p = spline_(ts_[index]);
     return {p(0), p(1), double(zIndex_)};
 }
