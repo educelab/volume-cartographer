@@ -86,6 +86,7 @@ namespace volcart {
         // Process this mesh
         void clothModelingUV::run() {
             _unfurl();
+            _collide();
         }
 
         // Get output
@@ -93,7 +94,6 @@ namespace volcart {
             VC_MeshType::Pointer output = VC_MeshType::New();
             volcart::meshing::deepCopy( _mesh, output );
             volcart::meshing::bullet2itk::bullet2itk( _softBody, output);
-
             return output;
         }
 
@@ -105,9 +105,9 @@ namespace volcart {
             _World->setGravity( btVector3(-10, 0, 0) );
             _softBody->getWorldInfo()->m_gravity = _World->getGravity();
             _softBody->m_cfg.kDP = 0.01; // Damping coefficient of the soft body [0,1]
-            _softBody->m_materials[0]->m_kLST = 0.2; // Linear stiffness coefficient [0,1]
-            _softBody->m_materials[0]->m_kAST = 0.2; // Area/Angular stiffness coefficient [0,1]
-            _softBody->m_materials[0]->m_kVST = 0.2; // Volume stiffness coefficient [0,1]
+            _softBody->m_materials[0]->m_kLST = 0.25; // Linear stiffness coefficient [0,1]
+            _softBody->m_materials[0]->m_kAST = 0.25; // Area/Angular stiffness coefficient [0,1]
+            _softBody->m_materials[0]->m_kVST = 0.25; // Volume stiffness coefficient [0,1]
 
             // Set the pins to not move
             for ( auto it = _unfurlPins.begin(); it != _unfurlPins.end(); ++it ) {
@@ -126,7 +126,7 @@ namespace volcart {
         void clothModelingUV::_collide()
         {
             // Set the simulation parameters
-            _World->setInternalTickCallback( emptyPreTickCallback, static_cast<void *>(this), true );
+            _World->setInternalTickCallback( axisLockCallback, static_cast<void *>(this), true );
             _World->setGravity(btVector3(0, -10, 0));
             _collisionPlane->setFriction(0); // (0-1] Default: 0.5
             _softBody->getWorldInfo()->m_gravity = _World->getGravity();
@@ -134,7 +134,6 @@ namespace volcart {
             _softBody->m_cfg.kDP = 0.01; // Damping coefficient of the soft body [0,1]
 
             // Reset all pins to move
-
             for ( auto n = 0; n < _softBody->m_nodes.size(); ++n ) {
                 _softBody->setMass( n, 1 );
             }
@@ -153,8 +152,21 @@ namespace volcart {
             for ( auto n = 0; n < _softBody->m_nodes.size(); ++n )
             {
                 btVector3 velocity = _softBody->m_nodes[n].m_v;
+                velocity.setY(0);
                 velocity.setZ(0);
                 _softBody->m_nodes[n].m_v = velocity;
+            }
+        };
+
+        void clothModelingUV::_axisLock( btScalar timeStep ) {
+            for ( auto n = 0; n < _softBody->m_nodes.size(); ++n )
+            {
+                btVector3 pos = _softBody->m_nodes[n].m_x;
+                if ( pos.getY() < 0.0 ) {
+                    btVector3 velocity = _softBody->m_nodes[n].m_v;
+                    velocity.setY( velocity.getY() * -1 );
+                    _softBody->m_nodes[n].m_v = velocity;
+                }
             }
         };
 

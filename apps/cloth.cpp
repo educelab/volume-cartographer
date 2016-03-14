@@ -11,7 +11,7 @@
 #include "clothModelingUV.h"
 #include "io/objWriter.h"
 
-void getPins( std::string path, VC_MeshType::Pointer mesh, volcart::texturing::clothModelingUV::PinIDs pinList );
+void getPins( std::string path, VC_MeshType::Pointer mesh, volcart::texturing::clothModelingUV::PinIDs &pinList );
 
 int main( int argc, char* argv[] ) {
 
@@ -31,20 +31,15 @@ int main( int argc, char* argv[] ) {
     getPins( "expandPins.ply", mesh, expand);
 
     // Run the simulation
-    volcart::texturing::clothModelingUV clothUV( mesh, 1000, 300, 100, cv::Vec3d(0,1,0), unfurl, expand);
-
-    // Write the scaled mesh
-    VC_MeshType::Pointer output = clothUV.getMesh();
-    std::string path = "inter_" + VC_DATE_TIME() + "_start.obj";
-    volcart::io::objWriter writer(path, output);
-    writer.write();
+    volcart::texturing::clothModelingUV clothUV( mesh, 5000, 600, 100, cv::Vec3d(0,1,0), unfurl, expand);
 
     // Run simulation
     clothUV.run();
-    path = "inter_" + VC_DATE_TIME() + "_unfurl.obj";
-    output = clothUV.getMesh();
-    writer.setPath( path );
-    writer.setMesh( output );
+
+    // Write the scaled mesh
+    VC_MeshType::Pointer output = clothUV.getMesh();
+    std::string path = "inter_" + VC_DATE_TIME() + "_collide.obj";
+    volcart::io::objWriter writer(path, output);
     writer.write();
 
 //    for ( int i = 0; i < psb->m_nodes.size(); ++i) {
@@ -58,7 +53,7 @@ int main( int argc, char* argv[] ) {
 }
 
 /////////// Get pinned points from file //////////
-void getPins( std::string path, VC_MeshType::Pointer mesh, volcart::texturing::clothModelingUV::PinIDs pinList ) {
+void getPins( std::string path, VC_MeshType::Pointer mesh, volcart::texturing::clothModelingUV::PinIDs &pinList ) {
 
     // Clear the pin list
     pinList.clear();

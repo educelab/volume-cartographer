@@ -24,6 +24,7 @@ namespace volcart {
 
         // Pretick callbacks
         static void constrainMotionCallback(btDynamicsWorld *world, btScalar timeStep);
+        static void axisLockCallback(btDynamicsWorld *world, btScalar timeStep);
         static void emptyPreTickCallback(btDynamicsWorld *world, btScalar timeStep);
 
         class clothModelingUV {
@@ -54,6 +55,7 @@ namespace volcart {
 
             //Callback functionality
             void _constrainMotion( btScalar timeStep );
+            void _axisLock( btScalar timeStep );
             void _emptyPreTick( btScalar timeStep );
 
         private:
@@ -91,6 +93,12 @@ namespace volcart {
         void constrainMotionCallback(btDynamicsWorld *world, btScalar timeStep) {
             clothModelingUV *w = static_cast<clothModelingUV *>( world->getWorldUserInfo() );
             w->_constrainMotion(timeStep);
+        }
+
+        // Forward pretick callbacks to functions in a stupid Bullet physics way
+        void axisLockCallback(btDynamicsWorld *world, btScalar timeStep) {
+            clothModelingUV *w = static_cast<clothModelingUV *>( world->getWorldUserInfo() );
+            w->_axisLock(timeStep);
         }
 
         void emptyPreTickCallback(btDynamicsWorld *world, btScalar timeStep) {
