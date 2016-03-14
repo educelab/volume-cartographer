@@ -31,6 +31,8 @@ public:
 
     void incrementMaximaIndex() { chosenMaximaIndex_++; }
 
+    int32_t peakRadius() const { return peakRadius_; }
+
 private:
     friend std::ostream& operator<<(std::ostream& s, const IntensityMap& m)
     {
@@ -48,6 +50,8 @@ private:
     int32_t mapWidth_;
     int32_t chosenMaximaIndex_;
     bool shouldIncludeMiddle_;
+
+    const int32_t peakRadius_ = 5;
 };
 }
 }

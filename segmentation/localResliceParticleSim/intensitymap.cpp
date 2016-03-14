@@ -7,13 +7,13 @@ IntensityMap::IntensityMap(cv::Mat r,
                            int32_t stepSize,
                            int32_t peakDistanceWeight,
                            bool shouldIncludeMiddle)
-    : stepSize_(stepSize),
-      peakDistanceWeight_(peakDistanceWeight),
-      displayWidth_(200),
-      displayHeight_(200),
-      drawTarget_(displayWidth_, displayHeight_, CV_8UC3, BGR_BLACK),
-      chosenMaximaIndex_(-1),
-      shouldIncludeMiddle_(shouldIncludeMiddle)
+    : stepSize_(stepSize)
+    , peakDistanceWeight_(peakDistanceWeight)
+    , displayWidth_(200)
+    , displayHeight_(200)
+    , drawTarget_(displayWidth_, displayHeight_, CV_8UC3, BGR_BLACK)
+    , chosenMaximaIndex_(-1)
+    , shouldIncludeMiddle_(shouldIncludeMiddle)
 {
     // DEBUG - need to convert to 8 bit before we can do anything
     r.convertTo(r, CV_8UC1, 1.0 / std::numeric_limits<uint8_t>::max());
@@ -90,12 +90,11 @@ std::deque<std::pair<int32_t, double>> IntensityMap::sortedMaxima()
     }
 
     // Filter out any crossings that are more than N voxels away from the center
-    constexpr int32_t peakReadius = 5;
     crossings.erase(
         std::remove_if(std::begin(crossings), std::end(crossings),
-                       [this, peakReadius](const IndexIntensityPair v) {
+                       [this](const IndexIntensityPair v) {
                            return std::abs(v.first - mapWidth_ / 2) >
-                                  peakReadius;
+                                  peakRadius_;
                        }),
         std::end(crossings));
 
@@ -117,10 +116,10 @@ std::deque<std::pair<int32_t, double>> IntensityMap::sortedMaxima()
             // because of the above filtering.
             const int32_t leftVal = std::round(peakDistanceWeight_ * ldist) +
                                     std::round((100 - peakDistanceWeight_) *
-                                               -lhs.second * 2 * peakReadius);
+                                               -lhs.second * 2 * peakRadius_);
             const int32_t rightVal = std::round(peakDistanceWeight_ * rdist) +
                                      std::round((100 - peakDistanceWeight_) *
-                                                -rhs.second * 2 * peakReadius);
+                                                -rhs.second * 2 * peakRadius_);
             return leftVal < rightVal;
         });
 
