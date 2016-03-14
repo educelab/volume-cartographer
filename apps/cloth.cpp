@@ -21,6 +21,12 @@
 #include "itkMeshFileReader.h"
 
 // bullet converter
+#include <btBulletDynamicsCommon.h>
+#include <BulletSoftBody/btSoftBody.h>
+#include <BulletSoftBody/btSoftRigidDynamicsWorld.h>
+#include <BulletSoftBody/btDefaultSoftBodySolver.h>
+#include <BulletSoftBody/btSoftBodyRigidBodyCollisionConfiguration.h>
+#include <BulletSoftBody/btSoftBodyHelpers.h>
 #include "itk2bullet.h"
 #include <LinearMath/btVector3.h>
 
@@ -93,14 +99,12 @@ int main(int argc, char* argv[]) {
                                                                           collisionConfiguration,
                                                                           softBodySolver);
 
-    // Add collision plane at y = 0
-    btTransform startTransform;
-    startTransform.setIdentity();
-    startTransform.setOrigin( btVector3(0,0,0) );
+    // Add collision plane
+    btTransform startTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 0, -1, 0 ));
     btScalar mass = 0.f;
     btVector3 localInertia(0, 0, 0);
 
-    btCollisionShape* groundShape = new btStaticPlaneShape(btVector3(0, 10, 0), 0);
+    btCollisionShape* groundShape = new btStaticPlaneShape(btVector3(0, 1, 0), 0);
     btDefaultMotionState* myMotionState = new btDefaultMotionState(startTransform);
     btRigidBody::btRigidBodyConstructionInfo cInfo(mass, myMotionState, groundShape, localInertia);
 
@@ -188,6 +192,7 @@ int main(int argc, char* argv[]) {
 
     // set the friction of the plane and the mesh s.t. the mesh can easily flatten upon collision
     plane->setFriction(0.01); // (0-1] Default: 0.5
+    psb->scale( btVector3(0.01, 0.01, 0.01) );
     psb->m_cfg.kDF = 0.01; // Dynamic friction coefficient (0-1] Default: 0.2
     psb->m_cfg.kDP = 0.1; // Damping coefficient of the soft body [0,1]
     psb->setTotalMass( (int)(psb->m_nodes.size() * 0.01), true );

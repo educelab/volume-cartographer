@@ -60,6 +60,9 @@ target_link_libraries(vc_scaleMeshExample ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRAR
 add_executable(vc_smoothNormalsExample smoothNormalsExample.cpp)
 target_link_libraries(vc_smoothNormalsExample ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
 
+add_executable(vc_collisionTest collisionTest.cpp)
+target_link_libraries(vc_collisionTest ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
+
 if(ACVD_FOUND)
     add_executable(vc_ACVDExample ACVDExample.cpp)
     target_link_libraries(vc_ACVDExample ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
