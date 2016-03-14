@@ -187,6 +187,7 @@ struct ConeOrderedPCDFixture {
         volcart::testing::ParsingHelpers::parsePlyFile("ConeFixtureOrderedPCDMesher.ply",
                                                        _FixtureCreatedConePoints, _FixtureCreatedConeCells);
 
+        //saved testing file
         volcart::testing::ParsingHelpers::parsePlyFile("ConeOrderedPCDMesher.ply", _SavedConePoints, _SavedConeCells);
 
         std::cerr << "\nsetting up Cone OrderedPCDMesherTest objects" << std::endl;
@@ -342,6 +343,7 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureCreatedAndSavedConeOrderedPCDMesherData, C
         BOOST_CHECK_EQUAL(_SavedConePoints[p].nz, _FixtureCreatedConePoints[p].nz);
         BOOST_CHECK_EQUAL(_SavedConePoints[p].s, _FixtureCreatedConePoints[p].s);
         BOOST_CHECK_EQUAL(_SavedConePoints[p].t, _FixtureCreatedConePoints[p].t);
+        std::cout << "Point: " << p << std::endl; 
         BOOST_CHECK_EQUAL(_SavedConePoints[p].r, _FixtureCreatedConePoints[p].r);
         BOOST_CHECK_EQUAL(_SavedConePoints[p].g, _FixtureCreatedConePoints[p].g);
         BOOST_CHECK_EQUAL(_SavedConePoints[p].b, _FixtureCreatedConePoints[p].b);
