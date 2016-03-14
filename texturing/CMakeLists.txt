@@ -8,5 +8,6 @@ if(TARGET texturing)
 else()
     add_library(vc_texturing STATIC compositeTexture.cpp compositeTexture.h
                                     compositeTextureV2.cpp compositeTextureV2.h
+                                    clothModelingUV.cpp clothModelingUV.h
                                     simpleUV.h simpleUV.cpp )
 endif()
