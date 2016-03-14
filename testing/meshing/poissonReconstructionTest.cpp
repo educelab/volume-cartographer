@@ -67,6 +67,9 @@ struct PlanePoissonReconstructionFixture {
         //make call to poissonReconstruction() and assign results to polygon mesh
         _out_PlanePolygonMesh = volcart::meshing::poissonReconstruction(_in_PlaneCloudPtr);
 
+        //TODO: see how the polygon mesh writes out to file
+        pcl::io::saveOBJFile("FixturePlanePoisson.obj", _out_PlanePolygonMesh);
+
         //load data from saved files
         pcl::io::loadOBJFile("PlanePoissonReconstruction.obj", _SavedPlaneSurface);
 
@@ -97,6 +100,8 @@ struct CubePoissonReconstructionFixture {
         //make call to poissonReconstruction() and assign results to polygon mesh
         _out_CubePolygonMesh = volcart::meshing::poissonReconstruction(_in_CubeCloudPtr);
 
+        pcl::io::saveOBJFile("FixtureCubePoisson.obj", _out_CubePolygonMesh);
+        
         //load data from saved files
         pcl::io::loadOBJFile("CubePoissonReconstruction.obj", _SavedCubeSurface);
 
@@ -129,6 +134,8 @@ struct ArchPoissonReconstructionFixture {
         //make call to poissonReconstruction() and assign results to polygon mesh
         _out_ArchPolygonMesh = volcart::meshing::poissonReconstruction(_in_ArchCloudPtr);
 
+        pcl::io::saveOBJFile("FixtureArchPoisson.obj", _out_ArchPolygonMesh);
+        
         //load data from saved files
         pcl::io::loadOBJFile("ArchPoissonReconstruction.obj", _SavedArchSurface);
 
@@ -159,6 +166,8 @@ struct SpherePoissonReconstructionFixture {
         //make call to poissonReconstruction() and assign results to polygon mesh
         _out_SpherePolygonMesh = volcart::meshing::poissonReconstruction(_in_SphereCloudPtr);
 
+        pcl::io::saveOBJFile("FixtureSpherePoisson.obj", _out_SpherePolygonMesh);
+
         //load data from saved files
         pcl::io::loadOBJFile("SpherePoissonReconstruction.obj", _SavedSphereSurface);
 
@@ -188,6 +197,8 @@ struct ConePoissonReconstructionFixture {
 
         //make call to poissonReconstruction() and assign results to polygon mesh
         _out_ConePolygonMesh = volcart::meshing::poissonReconstruction(_in_ConeCloudPtr);
+
+        pcl::io::saveOBJFile("FixtureConePoisson.obj", _out_ConePolygonMesh);
 
         //load data from saved file
         pcl::io::loadOBJFile("ConePoissonReconstruction.obj", _SavedConeSurface);
