@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
+add_executable(vc_cone_example coneExample.cpp)
+target_link_libraries(vc_cone_example ${VC_LIBS} ${VC_REQ_LIBS})
+
 ###########
 # volpkg  #
 ###########

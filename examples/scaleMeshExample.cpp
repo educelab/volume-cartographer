@@ -91,7 +91,7 @@ int main(){
             itkwriter->SetFileTypeAsASCII();
             itkwriter->SetFileName("Cone.obj");
             itkwriter->Write();
-            
+
         }
 
         ++ShapeCounter;
