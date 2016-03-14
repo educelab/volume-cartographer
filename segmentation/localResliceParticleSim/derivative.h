@@ -86,9 +86,9 @@ T d1FivePointStencil(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
 template <typename T>
 T d1At(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
 {
-    if (index - hstep <= 0) {
+    if (index - hstep < 0) {
         return d1Forward(vs, index, hstep);
-    } else if (index + hstep >= int32_t(vs.size()) - 1) {
+    } else if (index + hstep > int32_t(vs.size()) - 1) {
         return d1Backward(vs, index, hstep);
     } else if (index - hstep < hstep ||
                index + hstep >= int32_t(vs.size()) - hstep) {
@@ -165,9 +165,9 @@ T d2FivePointStencil(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
 template <typename T>
 T d2At(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
 {
-    if (index - hstep <= 0) {
+    if (index - hstep < 0) {
         return d2Forward(vs, index, hstep);
-    } else if (index + hstep >= int32_t(vs.size()) - 1) {
+    } else if (index + hstep > int32_t(vs.size()) - 1) {
         return d2Backward(vs, index, hstep);
     } else if (index - hstep < hstep ||
                index + hstep >= int32_t(vs.size()) - hstep) {
