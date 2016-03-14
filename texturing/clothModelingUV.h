@@ -22,9 +22,14 @@
 namespace volcart {
     namespace texturing {
 
+        // Pretick callbacks
+        static void constrainMotionCallback(btDynamicsWorld *world, btScalar timeStep);
+        static void emptyPreTickCallback(btDynamicsWorld *world, btScalar timeStep);
+
         class clothModelingUV {
         public:
             typedef std::vector< unsigned long > PinIDs;
+
             struct NodeTarget {
                 btVector3 t_pos;
                 btScalar  t_stepsize;
@@ -46,6 +51,10 @@ namespace volcart {
             // Output
             VC_MeshType::Pointer getMesh();
             volcart::UVMap getUVMap();
+
+            //Callback functionality
+            void _constrainMotion( btScalar timeStep );
+            void _emptyPreTick( btScalar timeStep );
 
         private:
             // Softbody
@@ -78,6 +87,16 @@ namespace volcart {
             btSoftRigidDynamicsWorld* _World;
         };
 
+        // Forward pretick callbacks to functions in a stupid Bullet physics way
+        void constrainMotionCallback(btDynamicsWorld *world, btScalar timeStep) {
+            clothModelingUV *w = static_cast<clothModelingUV *>( world->getWorldUserInfo() );
+            w->_constrainMotion(timeStep);
+        }
+
+        void emptyPreTickCallback(btDynamicsWorld *world, btScalar timeStep) {
+            clothModelingUV *w = static_cast<clothModelingUV *>( world->getWorldUserInfo() );
+            w->_emptyPreTick(timeStep);
+        }
     }
 }
 

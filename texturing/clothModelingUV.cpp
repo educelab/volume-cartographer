@@ -64,7 +64,6 @@ namespace volcart {
             _softBody->randomizeConstraints();
             _softBody->updateNormals();
             _World->addSoftBody( _softBody );
-
         };
 
         // Destructor
@@ -86,7 +85,7 @@ namespace volcart {
 
         // Process this mesh
         void clothModelingUV::run() {
-            _collide();
+            _unfurl();
         }
 
         // Get output
@@ -99,18 +98,46 @@ namespace volcart {
         }
 
         // Simulation
-        void clothModelingUV::_unfurl() {
+        void clothModelingUV::_unfurl()
+        {
+            // Set the simulation parameters
+            _World->setInternalTickCallback( constrainMotionCallback, static_cast<void *>(this), true );
+            _World->setGravity( btVector3(-10, 0, 0) );
+            _softBody->getWorldInfo()->m_gravity = _World->getGravity();
+            _softBody->m_cfg.kDP = 0.01; // Damping coefficient of the soft body [0,1]
+            _softBody->m_materials[0]->m_kLST = 0.2; // Linear stiffness coefficient [0,1]
+            _softBody->m_materials[0]->m_kAST = 0.2; // Area/Angular stiffness coefficient [0,1]
+            _softBody->m_materials[0]->m_kVST = 0.2; // Volume stiffness coefficient [0,1]
 
+            // Set the pins to not move
+            for ( auto it = _unfurlPins.begin(); it != _unfurlPins.end(); ++it ) {
+                _softBody->setMass( *it, 0.f );
+            }
+
+            // Run the simulation
+            for ( uint16_t i = 0; i < _unfurlIterations; ++i ) {
+                std::cerr << "volcart::texturing::clothUV: Unfurling " << i+1 << "/" << _unfurlIterations << std::flush;
+                _World->stepSimulation(1 / 60.f, 10);
+                _softBody->solveConstraints();
+            }
+            std::cerr << std::endl;
         }
 
         void clothModelingUV::_collide()
         {
             // Set the simulation parameters
+            _World->setInternalTickCallback( emptyPreTickCallback, static_cast<void *>(this), true );
             _World->setGravity(btVector3(0, -10, 0));
             _collisionPlane->setFriction(0); // (0-1] Default: 0.5
             _softBody->getWorldInfo()->m_gravity = _World->getGravity();
             _softBody->m_cfg.kDF = 0.1; // Dynamic friction coefficient (0-1] Default: 0.2
             _softBody->m_cfg.kDP = 0.01; // Damping coefficient of the soft body [0,1]
+
+            // Reset all pins to move
+
+            for ( auto n = 0; n < _softBody->m_nodes.size(); ++n ) {
+                _softBody->setMass( n, 1 );
+            }
 
             // Run the simulation
             for ( uint16_t i = 0; i < _collideIterations; ++i ) {
@@ -120,6 +147,20 @@ namespace volcart {
             }
             std::cerr << std::endl;
         }
+
+        ///// Callback Functions /////
+        void clothModelingUV::_constrainMotion( btScalar timeStep ) {
+            for ( auto n = 0; n < _softBody->m_nodes.size(); ++n )
+            {
+                btVector3 velocity = _softBody->m_nodes[n].m_v;
+                velocity.setZ(0);
+                _softBody->m_nodes[n].m_v = velocity;
+            }
+        };
+
+        void clothModelingUV::_emptyPreTick( btScalar timeStep ) {
+            // This call back is used to disable other callbacks
+        };
 
     }
 }
