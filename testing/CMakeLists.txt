@@ -195,6 +195,17 @@ add_test(NAME lrps_fittedcurve
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     COMMAND vc_test_localResliceParticleSim_fittedcurve)
 
+add_executable(vc_test_localResliceParticleSim_derivative
+    segmentation/localResliceParticleSim/derivativeTest.cpp)
+target_link_libraries(vc_test_localResliceParticleSim_derivative
+    ${VC_LIBS}
+    ${VC_REQ_LIBS}
+    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+add_test(NAME lrps_derivative
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    COMMAND vc_test_localResliceParticleSim_derivative)
+
+
 #add_executable(vc_test_particle segmentation/localResliceParticleSim/particleTest.cpp)
 #target_link_libraries(vc_test_particle ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 #add_test(NAME particle WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_particle )
