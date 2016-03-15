@@ -21,24 +21,29 @@ int main( int argc, char* argv[] ) {
 
     // Get Mesh
     vtkSmartPointer<vtkPLYReader> reader = vtkSmartPointer<vtkPLYReader>::New();
-    reader->SetFileName ( "decim.ply" );
+    reader->SetFileName ( "0-decim.ply" );
     reader->Update();
     VC_MeshType::Pointer mesh = VC_MeshType::New();
     volcart::meshing::vtk2itk(reader->GetOutput(), mesh);
 
     // Get pinned points for unfurling step
     volcart::texturing::clothModelingUV::PinIDs unfurl;
-    getPins( "unfurlPins.ply", mesh, unfurl);
+    getPins( "1-unfurlPins.ply", mesh, unfurl);
 
     // Get pinned points for expansion step
     volcart::texturing::clothModelingUV::PinIDs expand;
-    getPins( "expandPins.ply", mesh, expand);
+    getPins( "3-expandPins.ply", mesh, expand);
 
     // Run the simulation
-    volcart::texturing::clothModelingUV clothUV( mesh, 5000, 600, 500, cv::Vec3d(0,1,0), unfurl, expand);
+    volcart::texturing::clothModelingUV clothUV( mesh, 2500, 600, 500, unfurl, expand);
 
     // Run simulation
-    clothUV.run();
+    clothUV.setGravity( 10 );
+    clothUV.unfurl();
+    clothUV.setGravity( -10 );
+    clothUV.collide();
+    clothUV.setGravity( -10 );
+    clothUV.expand();
 
     // Write the scaled mesh
     VC_MeshType::Pointer output = clothUV.getMesh();
@@ -48,8 +53,8 @@ int main( int argc, char* argv[] ) {
 
     // Convert soft body to itk mesh
     volcart::UVMap uvMap = clothUV.getUVMap();
-    int width = 800;
-    int height = std::round( width / uvMap.ratio().aspect );
+    int width  = std::ceil( uvMap.ratio().width );
+    int height = std::ceil( uvMap.ratio().height );
     volcart::texturing::compositeTextureV2 result( mesh, vpkg, clothUV.getUVMap(), 7, width, height);
     volcart::io::objWriter objwriter("textured.obj", mesh, uvMap, result.texture().getImage(0));
     objwriter.write();

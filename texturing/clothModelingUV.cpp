@@ -10,12 +10,14 @@ namespace volcart {
         // Constructor
         clothModelingUV::clothModelingUV( VC_MeshType::Pointer input,
                                           uint16_t unfurlIterations, uint16_t collideIterations, uint16_t expandIterations,
-                                          cv::Vec3d plane_normal, PinIDs unfurlPins, PinIDs expansionPins ) :
+                                          PinIDs unfurlPins, PinIDs expansionPins ) :
                                             _mesh(input),
-                                            _unfurlIterations(unfurlIterations), _unfurlPins(unfurlPins),
-                                            _collideIterations(collideIterations),
-                                            _expandIterations(expandIterations), _expansionPins(expansionPins)
+                                            _unfurlIterations(unfurlIterations), _collideIterations(collideIterations),
+                                            _expandIterations(expandIterations), _unfurlPins(unfurlPins),
+                                            _expansionPins(expansionPins)
         {
+            // Default starting parameters
+            _gravity = -10;
 
             // Create Dynamic world for bullet cloth simulation
             _WorldBroadphase = new btDbvtBroadphase();
@@ -33,7 +35,7 @@ namespace volcart {
             btTransform startTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 0, 0, 0 ));
             btScalar mass = 0.f;
             btVector3 localInertia(0, 0, 0);
-            btVector3 planeNormal( plane_normal(0), plane_normal(1), plane_normal(2) );
+            btVector3 planeNormal( 0, 1, 0 );
             btCollisionShape* groundShape = new btStaticPlaneShape( planeNormal, 0); // Normal + offset along normal
             btDefaultMotionState* myMotionState = new btDefaultMotionState(startTransform);
             btRigidBody::btRigidBodyConstructionInfo cInfo(mass, myMotionState, groundShape, localInertia);
@@ -146,7 +148,7 @@ namespace volcart {
         {
             // Set the simulation parameters
             _World->setInternalTickCallback( constrainMotionCallback, static_cast<void *>(this), true );
-            _World->setGravity( btVector3(-10, 0, 0) );
+            _World->setGravity( btVector3( _gravity, 0, 0) );
             _softBody->getWorldInfo()->m_gravity = _World->getGravity();
             _softBody->m_cfg.kDP = 0.01; // Damping coefficient of the soft body [0,1]
             _softBody->m_materials[0]->m_kLST = 0.25; // Linear stiffness coefficient [0,1]
@@ -172,7 +174,7 @@ namespace volcart {
         {
             // Set the simulation parameters
             _World->setInternalTickCallback( axisLockCallback, static_cast<void *>(this), true );
-            _World->setGravity(btVector3(0, -10, 0));
+            _World->setGravity(btVector3(0, _gravity, 0));
             _collisionPlane->setFriction(0); // (0-1] Default: 0.5
             _softBody->getWorldInfo()->m_gravity = _World->getGravity();
             _softBody->m_cfg.kDF = 0.1; // Dynamic friction coefficient (0-1] Default: 0.2
@@ -235,8 +237,9 @@ namespace volcart {
             std::cerr << std::endl;
 
             // Relax the springs
-            _World->setInternalTickCallback( emptyPreTickCallback, static_cast<void *>(this), true );
-            _World->setGravity(btVector3(0, -20, 0));
+            _World->setInternalTickCallback( axisLockCallback, static_cast<void *>(this), true );
+            _World->setGravity(btVector3(0, _gravity, 0));
+            _softBody->getWorldInfo()->m_gravity = _World->getGravity();
             _softBody->m_cfg.kDP = 0.1;
             int counter = 0;
             double relativeError = std::fabs( (_startingSurfaceArea - _SurfaceArea()) / _startingSurfaceArea );
@@ -249,11 +252,11 @@ namespace volcart {
                 if ( counter % 10 == 0 ) relativeError = std::fabs( (_startingSurfaceArea - _SurfaceArea()) / _startingSurfaceArea );
                 if ( counter >= _expandIterations * 6 ) {
                     std::cerr << std::endl << "volcart::texturing::clothUV: Warning: Max iterations reached" << std::endl;
-                    std::cerr << std::endl << "volcart::texturing::clothUV: Mesh Area Relative Error: " << relativeError << std::endl;
                     break;
                 }
             }
             std::cerr << std::endl;
+            std::cerr << std::endl << "volcart::texturing::clothUV: Mesh Area Relative Error: " << relativeError << std::endl;
         }
 
         ///// Helper Functions /////
@@ -295,7 +298,7 @@ namespace volcart {
                 btVector3 pos = _softBody->m_nodes[n].m_x;
                 if ( pos.getY() < 0.0 ) {
                     btVector3 velocity = _softBody->m_nodes[n].m_v;
-                    velocity.setY( velocity.getY() * -1 );
+                    velocity.setY( velocity.getY() * -1.5 ); // push it back some
                     _softBody->m_nodes[n].m_v = velocity;
                 }
             }

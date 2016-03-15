@@ -40,7 +40,7 @@ namespace volcart {
 
             clothModelingUV( VC_MeshType::Pointer input,
                              uint16_t unfurlIterations, uint16_t collideIterations, uint16_t expandIterations,
-                             cv::Vec3d plane_normal, PinIDs unfurlPins, PinIDs expansionPins);
+                             PinIDs unfurlPins, PinIDs expansionPins);
             ~clothModelingUV();
 
             // Run the simulation all at once or in stages
@@ -48,6 +48,10 @@ namespace volcart {
             void unfurl();
             void collide();
             void expand();
+
+            // Parameters
+            // Unfurl
+            void setGravity( double g ) { _gravity = g; };
 
             // Output
             VC_MeshType::Pointer getMesh();
@@ -60,6 +64,9 @@ namespace volcart {
             void _emptyPreTick( btScalar timeStep );
 
         private:
+            // Global simulation parameters
+            double _gravity;
+
             // Softbody
             const VC_MeshType::Pointer _mesh;
             btSoftBody* _softBody;
@@ -70,9 +77,9 @@ namespace volcart {
             btRigidBody* _collisionPlane;
 
             // Simulation
-            uint16_t _unfurlIterations;
-            PinIDs   _unfurlPins;
-            void     _unfurl();
+            uint16_t   _unfurlIterations;
+            PinIDs     _unfurlPins;
+            void       _unfurl();
 
             uint16_t _collideIterations;
             void     _collide();
