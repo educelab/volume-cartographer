@@ -54,6 +54,7 @@ namespace volcart {
 
             _meshToWorldScale = 80 / maxDim;
             _softBody->scale( btVector3( _meshToWorldScale, _meshToWorldScale, _meshToWorldScale) );
+            _startingSurfaceArea = _SurfaceArea();
 
             // Set the mass for the whole cloth
             for ( int i = 0; i < _softBody->m_nodes.size(); ++i) {
@@ -87,6 +88,7 @@ namespace volcart {
         void clothModelingUV::run() {
             _unfurl();
             _collide();
+            _expand();
         }
 
         // Get output
@@ -97,7 +99,8 @@ namespace volcart {
             return output;
         }
 
-        // Simulation
+        ///// Simulation /////
+        // Use gravity to unfurl the cloth
         void clothModelingUV::_unfurl()
         {
             // Set the simulation parameters
@@ -123,6 +126,7 @@ namespace volcart {
             std::cerr << std::endl;
         }
 
+        // Collide the cloth with the plane
         void clothModelingUV::_collide()
         {
             // Set the simulation parameters
@@ -145,6 +149,92 @@ namespace volcart {
                 _softBody->solveConstraints();
             }
             std::cerr << std::endl;
+        }
+
+        // Expand the edges of the cloth to iron out wrinkles, then let it relax
+        void clothModelingUV::_expand()
+        {
+            // Set the simulation parameters
+            _World->setInternalTickCallback( moveTowardTargetCallback, static_cast<void *>(this), true );
+            _World->setGravity(btVector3(0, 0, 0));
+            _collisionPlane->setFriction(0); // (0-1] Default: 0.5
+            _softBody->getWorldInfo()->m_gravity = _World->getGravity();
+            _softBody->m_cfg.kDF = 0.1; // Dynamic friction coefficient (0-1] Default: 0.2
+            _softBody->m_cfg.kDP = 0.01; // Damping coefficient of the soft body [0,1]
+            _softBody->m_materials[0]->m_kLST = 1.0; // Linear stiffness coefficient [0,1]
+            _softBody->m_materials[0]->m_kAST = 1.0; // Area/Angular stiffness coefficient [0,1]
+            _softBody->m_materials[0]->m_kVST = 1.0; // Volume stiffness coefficient [0,1]
+
+            // Get the current XZ center of the softBody
+            btVector3 min, max;
+            _softBody->getAabb( min, max );
+            btVector3 center;
+            center.setX( (max.getX() + min.getX())/2 );
+            center.setY( 0 );
+            center.setZ( (max.getZ() + min.getZ())/2 );
+
+            // Setup the expansion pins
+            Pin newPin;
+            _currentPins.clear();
+            for ( auto it = _expansionPins.begin(); it != _expansionPins.end(); ++it ) {
+                newPin.index = *it;
+                newPin.node = &_softBody->m_nodes[*it];
+                newPin.node->m_x.setY(0); // Force the pin to the Y-plane
+                newPin.target = ( newPin.node->m_x - center ) * 1.5;
+
+                _currentPins.push_back( newPin );
+            }
+
+            // Expand the edges
+            for ( uint16_t i = 0; i < _expandIterations; ++i ) {
+                std::cerr << "volcart::texturing::clothUV: Expanding " << i+1 << "/" << _expandIterations << std::flush;
+                _World->stepSimulation(1 / 60.f, 10);
+                _softBody->solveConstraints();
+            }
+            std::cerr << std::endl;
+
+            // Relax the springs
+            _World->setInternalTickCallback( emptyPreTickCallback, static_cast<void *>(this), true );
+            _World->setGravity(btVector3(0, -20, 0));
+            _softBody->m_cfg.kDP = 0.1;
+            int counter = 0;
+            double relativeError = std::fabs( (_startingSurfaceArea - _SurfaceArea()) / _startingSurfaceArea );
+            while ( relativeError > 0.05 ) {
+                std::cerr << "volcart::texturing::clothUV: Relaxing " << counter+1 << std::flush;
+                _World->stepSimulation(1 / 60.f, 10);
+                _softBody->solveConstraints();
+
+                ++counter;
+                if ( counter % 10 == 0 ) relativeError = std::fabs( (_startingSurfaceArea - _SurfaceArea()) / _startingSurfaceArea );
+                if ( counter >= _expandIterations * 6 ) {
+                    std::cerr << std::endl << "volcart::texturing::clothUV: Warning: Max iterations reached" << std::endl;
+                    std::cerr << std::endl << "volcart::texturing::clothUV: Mesh Area Relative Error: " << relativeError << std::endl;
+                    break;
+                }
+            }
+            std::cerr << std::endl;
+        }
+
+        ///// Helper Functions /////
+
+        // Calculate the surface area of the mesh using Heron's formula
+        // Let a,b,c be the lengths of the sides of a triangle and p the semiperimeter
+        // p = (a +  b + c) / 2
+        // area of triangle = sqrt( p * (p - a) * (p - b) * (p - c) )
+        double clothModelingUV::_SurfaceArea() {
+            double surface_area = 0;
+            for(int i = 0; i < _softBody->m_faces.size(); ++i) {
+                double a = 0, b = 0, c = 0, p = 0;
+                a = _softBody->m_faces[i].m_n[0]->m_x.distance(_softBody->m_faces[i].m_n[1]->m_x);
+                b = _softBody->m_faces[i].m_n[0]->m_x.distance(_softBody->m_faces[i].m_n[2]->m_x);
+                c = _softBody->m_faces[i].m_n[1]->m_x.distance(_softBody->m_faces[i].m_n[2]->m_x);
+
+                p = (a + b + c) / 2;
+
+                surface_area += sqrt( p * (p - a) * (p - b) * (p - c) );
+            }
+
+            return surface_area;
         }
 
         ///// Callback Functions /////
@@ -170,9 +260,38 @@ namespace volcart {
             }
         };
 
+        void clothModelingUV::_moveTowardTarget( btScalar timeStep ) {
+            for ( auto pin = _currentPins.begin(); pin < _currentPins.end(); ++pin ) {
+                btVector3 delta = ( pin->target - pin->node->m_x ).normalized();
+                pin->node->m_v += delta/timeStep;
+            }
+        };
+
         void clothModelingUV::_emptyPreTick( btScalar timeStep ) {
             // This call back is used to disable other callbacks
         };
 
-    }
-}
+        //// Callbacks ////
+        // Forward pretick callbacks to functions in a stupid Bullet physics way
+        void constrainMotionCallback(btDynamicsWorld *world, btScalar timeStep) {
+            clothModelingUV *w = static_cast<clothModelingUV *>( world->getWorldUserInfo() );
+            w->_constrainMotion(timeStep);
+        }
+
+        void axisLockCallback(btDynamicsWorld *world, btScalar timeStep) {
+            clothModelingUV *w = static_cast<clothModelingUV *>( world->getWorldUserInfo() );
+            w->_axisLock(timeStep);
+        }
+
+        void moveTowardTargetCallback(btDynamicsWorld *world, btScalar timeStep) {
+            clothModelingUV *w = static_cast<clothModelingUV *>( world->getWorldUserInfo() );
+            w->_moveTowardTarget(timeStep);
+        }
+
+        void emptyPreTickCallback(btDynamicsWorld *world, btScalar timeStep) {
+            clothModelingUV *w = static_cast<clothModelingUV *>( world->getWorldUserInfo() );
+            w->_emptyPreTick(timeStep);
+        }
+
+    } // texturing
+} // volcart

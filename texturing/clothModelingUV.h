@@ -6,6 +6,7 @@
 #define VC_CLOTHMODELINGUV_H
 
 #include <iostream>
+#include <math.h>
 
 #include <opencv2/opencv.hpp>
 #include <btBulletDynamicsCommon.h>
@@ -31,15 +32,10 @@ namespace volcart {
         public:
             typedef std::vector< unsigned long > PinIDs;
 
-            struct NodeTarget {
-                btVector3 t_pos;
-                btScalar  t_stepsize;
-            };
-
             struct Pin {
                 unsigned long index;
                 btSoftBody::Node* node;
-                NodeTarget target;
+                btVector3 target;
             };
 
             clothModelingUV( VC_MeshType::Pointer input,
@@ -56,6 +52,7 @@ namespace volcart {
             //Callback functionality
             void _constrainMotion( btScalar timeStep );
             void _axisLock( btScalar timeStep );
+            void _moveTowardTarget( btScalar timeStep );
             void _emptyPreTick( btScalar timeStep );
 
         private:
@@ -70,17 +67,21 @@ namespace volcart {
 
             // Simulation
             uint16_t _unfurlIterations;
-            PinIDs        _unfurlPins;
-            void          _unfurl();
+            PinIDs   _unfurlPins;
+            void     _unfurl();
 
             uint16_t _collideIterations;
-            void          _collide();
+            void     _collide();
 
             uint16_t _expandIterations;
-            PinIDs        _expansionPins;
-            void          _expand();
+            PinIDs   _expansionPins;
+            void     _expand();
 
-            //Simulation World
+            // Helpers
+            double _startingSurfaceArea;
+            double _SurfaceArea();
+
+            // Simulation World
             btBroadphaseInterface* _WorldBroadphase;
             btDefaultCollisionConfiguration* _WorldCollisionConfig;
             btCollisionDispatcher* _WorldCollisionDispatcher;
@@ -89,22 +90,11 @@ namespace volcart {
             btSoftRigidDynamicsWorld* _World;
         };
 
-        // Forward pretick callbacks to functions in a stupid Bullet physics way
-        void constrainMotionCallback(btDynamicsWorld *world, btScalar timeStep) {
-            clothModelingUV *w = static_cast<clothModelingUV *>( world->getWorldUserInfo() );
-            w->_constrainMotion(timeStep);
-        }
-
-        // Forward pretick callbacks to functions in a stupid Bullet physics way
-        void axisLockCallback(btDynamicsWorld *world, btScalar timeStep) {
-            clothModelingUV *w = static_cast<clothModelingUV *>( world->getWorldUserInfo() );
-            w->_axisLock(timeStep);
-        }
-
-        void emptyPreTickCallback(btDynamicsWorld *world, btScalar timeStep) {
-            clothModelingUV *w = static_cast<clothModelingUV *>( world->getWorldUserInfo() );
-            w->_emptyPreTick(timeStep);
-        }
+        //// Callbacks ////
+        void constrainMotionCallback(btDynamicsWorld *world, btScalar timeStep);
+        void axisLockCallback(btDynamicsWorld *world, btScalar timeStep);
+        void moveTowardTargetCallback(btDynamicsWorld *world, btScalar timeStep);
+        void emptyPreTickCallback(btDynamicsWorld *world, btScalar timeStep);
     }
 }
 

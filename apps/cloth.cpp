@@ -31,14 +31,14 @@ int main( int argc, char* argv[] ) {
     getPins( "expandPins.ply", mesh, expand);
 
     // Run the simulation
-    volcart::texturing::clothModelingUV clothUV( mesh, 5000, 600, 100, cv::Vec3d(0,1,0), unfurl, expand);
+    volcart::texturing::clothModelingUV clothUV( mesh, 5000, 600, 500, cv::Vec3d(0,1,0), unfurl, expand);
 
     // Run simulation
     clothUV.run();
 
     // Write the scaled mesh
     VC_MeshType::Pointer output = clothUV.getMesh();
-    std::string path = "inter_" + VC_DATE_TIME() + "_collide.obj";
+    std::string path = "inter_" + VC_DATE_TIME() + "_expand.obj";
     volcart::io::objWriter writer(path, output);
     writer.write();
 
