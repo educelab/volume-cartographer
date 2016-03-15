@@ -10,10 +10,14 @@
 #include "itk2vtk.h"
 #include "clothModelingUV.h"
 #include "io/objWriter.h"
+#include "compositeTextureV2.h"
 
 void getPins( std::string path, VC_MeshType::Pointer mesh, volcart::texturing::clothModelingUV::PinIDs &pinList );
 
 int main( int argc, char* argv[] ) {
+
+    // Load volpkg
+    VolumePkg vpkg( argv[1] );
 
     // Get Mesh
     vtkSmartPointer<vtkPLYReader> reader = vtkSmartPointer<vtkPLYReader>::New();
@@ -38,16 +42,17 @@ int main( int argc, char* argv[] ) {
 
     // Write the scaled mesh
     VC_MeshType::Pointer output = clothUV.getMesh();
-    std::string path = "inter_" + VC_DATE_TIME() + "_expand.obj";
+    std::string path = VC_DATE_TIME() + "_uvMap.obj";
     volcart::io::objWriter writer(path, output);
     writer.write();
 
-//    for ( int i = 0; i < psb->m_nodes.size(); ++i) {
-//        psb->m_nodes[i].m_x.setY(0);
-//    }
-//
-//    psb->scale( btVector3(100, 100, 100) );
-
+    // Convert soft body to itk mesh
+    volcart::UVMap uvMap = clothUV.getUVMap();
+    int width = 800;
+    int height = std::round( width / uvMap.ratio().aspect );
+    volcart::texturing::compositeTextureV2 result( mesh, vpkg, clothUV.getUVMap(), 7, width, height);
+    volcart::io::objWriter objwriter("textured.obj", mesh, uvMap, result.texture().getImage(0));
+    objwriter.write();
 
     return 0;
 }

@@ -43,7 +43,11 @@ namespace volcart {
                              cv::Vec3d plane_normal, PinIDs unfurlPins, PinIDs expansionPins);
             ~clothModelingUV();
 
+            // Run the simulation all at once or in stages
             void run();
+            void unfurl();
+            void collide();
+            void expand();
 
             // Output
             VC_MeshType::Pointer getMesh();

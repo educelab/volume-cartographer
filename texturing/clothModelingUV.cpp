@@ -91,7 +91,48 @@ namespace volcart {
             _expand();
         }
 
-        // Get output
+        // Call the stages individually
+        void clothModelingUV::unfurl() { _unfurl(); };
+        void clothModelingUV::collide() { _collide(); };
+        void clothModelingUV::expand() { _expand(); };
+
+        // Get UV Map created from flattened object
+        volcart::UVMap clothModelingUV::getUVMap() {
+
+            // Get the current XZ bounds of the softbody
+            btVector3 min, max;
+            _softBody->getAabb( min, max );
+
+            // Round so that we have integer bounds
+            double min_u = std::floor( min.getX() );
+            double max_u = std::ceil ( max.getX() );
+            double min_v = std::floor( min.getZ() );
+            double max_v = std::ceil ( max.getZ() );
+
+            // Scale width and height back to volume coordinates
+            double aspect_width = std::abs(max_u - min_u) * ( 1/_meshToWorldScale );
+            double aspect_height = std::abs(max_v - min_v) * ( 1/_meshToWorldScale );
+            double aspect = aspect_width / aspect_height;
+
+            volcart::UVMap uvMap;
+            uvMap.ratio(aspect_width, aspect_height);
+
+            // Calculate uv coordinates
+            double u, v;
+            for ( auto i = 0; i < _softBody->m_nodes.size(); ++i ) {
+                u = ( _softBody->m_nodes[i].m_x.getX() - min_u) / (max_u - min_u);
+                v = ( _softBody->m_nodes[i].m_x.getZ() - min_v) / (max_v - min_v);
+                cv::Vec2d uv( u, v );
+
+                // Add the uv coordinates into our map at the point index specified
+                uvMap.set(i, uv);
+            }
+
+            return uvMap;
+        }
+
+        // Get mesh version of flattened object
+        // Note: This is still in world coordinates, not volume coordinates
         VC_MeshType::Pointer clothModelingUV::getMesh() {
             VC_MeshType::Pointer output = VC_MeshType::New();
             volcart::meshing::deepCopy( _mesh, output );
