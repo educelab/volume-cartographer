@@ -162,7 +162,7 @@ namespace volcart {
 
             // Run the simulation
             for ( uint16_t i = 0; i < _unfurlIterations; ++i ) {
-                std::cerr << "volcart::texturing::clothUV: Unfurling " << i+1 << "/" << _unfurlIterations << std::flush;
+                std::cerr << "volcart::texturing::clothUV: Unfurling " << i+1 << "/" << _unfurlIterations << "\r" << std::flush;
                 _World->stepSimulation(1 / 60.f, 10);
                 _softBody->solveConstraints();
             }
@@ -187,7 +187,7 @@ namespace volcart {
 
             // Run the simulation
             for ( uint16_t i = 0; i < _collideIterations; ++i ) {
-                std::cerr << "volcart::texturing::clothUV: Colliding " << i+1 << "/" << _collideIterations << std::flush;
+                std::cerr << "volcart::texturing::clothUV: Colliding " << i+1 << "/" << _collideIterations << "\r" << std::flush;
                 _World->stepSimulation(1 / 60.f, 10);
                 _softBody->solveConstraints();
             }
@@ -230,7 +230,7 @@ namespace volcart {
 
             // Expand the edges
             for ( uint16_t i = 0; i < _expandIterations; ++i ) {
-                std::cerr << "volcart::texturing::clothUV: Expanding " << i+1 << "/" << _expandIterations << std::flush;
+                std::cerr << "volcart::texturing::clothUV: Expanding " << i+1 << "/" << _expandIterations << "\r" << std::flush;
                 _World->stepSimulation(1 / 60.f, 10);
                 _softBody->solveConstraints();
             }
@@ -244,14 +244,14 @@ namespace volcart {
             int counter = 0;
             double relativeError = std::fabs( (_startingSurfaceArea - _SurfaceArea()) / _startingSurfaceArea );
             while ( relativeError > 0.05 ) {
-                std::cerr << "volcart::texturing::clothUV: Relaxing " << counter+1 << std::flush;
+                std::cerr << "volcart::texturing::clothUV: Relaxing " << counter+1 << "\r" << std::flush;
                 _World->stepSimulation(1 / 60.f, 10);
                 _softBody->solveConstraints();
 
                 ++counter;
                 if ( counter % 10 == 0 ) relativeError = std::fabs( (_startingSurfaceArea - _SurfaceArea()) / _startingSurfaceArea );
                 if ( counter >= _expandIterations * 6 ) {
-                    std::cerr << std::endl << "volcart::texturing::clothUV: Warning: Max iterations reached" << std::endl;
+                    std::cerr << std::endl << "volcart::texturing::clothUV: Warning: Max relaxation iterations reached";
                     break;
                 }
             }
