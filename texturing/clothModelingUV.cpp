@@ -151,9 +151,9 @@ namespace volcart {
             _World->setGravity( btVector3( _gravity, 0, 0) );
             _softBody->getWorldInfo()->m_gravity = _World->getGravity();
             _softBody->m_cfg.kDP = 0.01; // Damping coefficient of the soft body [0,1]
-            _softBody->m_materials[0]->m_kLST = 0.25; // Linear stiffness coefficient [0,1]
-            _softBody->m_materials[0]->m_kAST = 0.25; // Area/Angular stiffness coefficient [0,1]
-            _softBody->m_materials[0]->m_kVST = 0.25; // Volume stiffness coefficient [0,1]
+            _softBody->m_materials[0]->m_kLST = 1.0; // Linear stiffness coefficient [0,1]
+            _softBody->m_materials[0]->m_kAST = 1.0; // Area/Angular stiffness coefficient [0,1]
+            _softBody->m_materials[0]->m_kVST = 1.0; // Volume stiffness coefficient [0,1]
 
             // Set the pins to not move
             for ( auto it = _unfurlPins.begin(); it != _unfurlPins.end(); ++it ) {

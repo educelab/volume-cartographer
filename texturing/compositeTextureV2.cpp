@@ -33,7 +33,8 @@ namespace volcart {
 
             // Iterate over every pixel in the output image
             unsigned long pixelsNotInCell = 0;
-            cv::Mat image( _height, _width, CV_16UC1 );
+            cv::Mat image = cv::Mat::zeros( _height, _width, CV_16UC1 );
+            cv::Mat mask  = cv::Mat::zeros( _height, _width, CV_8UC1 );
             VC_PointsLocatorType::NeighborsIdentifierType neighborhood;
             for ( int y = 0; y < _height; ++y ) {
                 for ( int x = 0; x < _width; ++x ) {
@@ -69,7 +70,6 @@ namespace volcart {
 
                     // Set this pixel to black if not part of a cell
                     if ( !in2D ) {
-                        image.at< unsigned short >(y, x) = 0;
                         ++pixelsNotInCell;
                         continue;
                     }
@@ -92,6 +92,7 @@ namespace volcart {
 
                     // Assign the intensity value at the UV position
                     image.at< unsigned short >(y, x) = (unsigned short) value;
+                    mask.at < unsigned char  >(y, x) = 255;
                 }
             }
             std::cerr << std::endl;
@@ -99,6 +100,7 @@ namespace volcart {
 
             // Set output
             _texture.addImage(image);
+            _texture.addImage(mask);
             _texture.uvMap( _uvMap );
 
             return EXIT_SUCCESS;
