@@ -285,11 +285,11 @@ namespace volcart {
                 double sa = 0.25 * sqrt(p);
 
                 // Can get NaN's when using standard C++ math. Explore something like GMP
-                if ( isnan(p) ) {
+                if ( isnan(sa) ) {
                     std::cerr << std::endl << "volcart::texturing::clothUV: Warning: NaN surface area for face[" << i << "]. Evaluating as 0." << std::endl;
-                    p = 0.0;
+                    sa = 0.0;
                 }
-                surface_area += p;
+                surface_area += sa;
             }
 
             return surface_area;
