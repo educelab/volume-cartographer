@@ -243,7 +243,7 @@ namespace volcart {
             _softBody->m_cfg.kDP = 0.1;
             int counter = 0;
             double relativeError = std::fabs( (_startingSurfaceArea - _SurfaceArea()) / _startingSurfaceArea );
-            while ( relativeError > 0.05 ) {
+            while ( relativeError > 0.0 ) {
                 std::cerr << "volcart::texturing::clothUV: Relaxing " << counter+1 << "\r" << std::flush;
                 _World->stepSimulation(1 / 60.f, 10);
                 _softBody->solveConstraints();
@@ -262,20 +262,34 @@ namespace volcart {
         ///// Helper Functions /////
 
         // Calculate the surface area of the mesh using Heron's formula
-        // Let a,b,c be the lengths of the sides of a triangle and p the semiperimeter
-        // p = (a +  b + c) / 2
-        // area of triangle = sqrt( p * (p - a) * (p - b) * (p - c) )
+        // Use the version that is stable for small angles from
+        // "Miscalculating Area and Angles of a Needle-like Triangle" by Kahan
         double clothModelingUV::_SurfaceArea() {
             double surface_area = 0;
             for(int i = 0; i < _softBody->m_faces.size(); ++i) {
+
+                // Get the side lengths
                 double a = 0, b = 0, c = 0, p = 0;
                 a = _softBody->m_faces[i].m_n[0]->m_x.distance(_softBody->m_faces[i].m_n[1]->m_x);
                 b = _softBody->m_faces[i].m_n[0]->m_x.distance(_softBody->m_faces[i].m_n[2]->m_x);
                 c = _softBody->m_faces[i].m_n[1]->m_x.distance(_softBody->m_faces[i].m_n[2]->m_x);
 
-                p = (a + b + c) / 2;
+                // Sort the side lengths so that a >= b >= c
+                double na, nb, nc;
+                nc = std::min( a, std::min( b, c ) );
+                na = std::max( a, std::max( b, c ) );
+                nb = a + b + c - na - nc;
 
-                surface_area += sqrt( p * (p - a) * (p - b) * (p - c) );
+                // Calculate the area
+                p = (na + (nb + nc)) * (nc - (na - nb)) * (nc + (na - nb)) * (na + (nb - nc));
+                double sa = 0.25 * sqrt(p);
+
+                // Can get NaN's when using standard C++ math. Explore something like GMP
+                if ( isnan(p) ) {
+                    std::cerr << std::endl << "volcart::texturing::clothUV: Warning: NaN surface area for face[" << i << "]. Evaluating as 0." << std::endl;
+                    p = 0.0;
+                }
+                surface_area += p;
             }
 
             return surface_area;
