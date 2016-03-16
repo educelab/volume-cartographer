@@ -18,6 +18,11 @@ int main( int argc, char* argv[] ) {
 
     // Load volpkg
     VolumePkg vpkg( argv[1] );
+    unsigned long uIterations = std::stoull(argv[2]);
+    int uDir = std::stoi( argv[3] );
+    unsigned long citerations = std::stoul(argv[4]);
+    unsigned long eIterations = std::stoul(argv[5]);
+    bool doTexture = atoi( argv[6] ) != 0;
 
     // Get Mesh
     vtkSmartPointer<vtkPLYReader> reader = vtkSmartPointer<vtkPLYReader>::New();
@@ -35,21 +40,31 @@ int main( int argc, char* argv[] ) {
     getPins( "3-expandPins.ply", mesh, expand);
 
     // Run the simulation
-    volcart::texturing::clothModelingUV clothUV( mesh, 2500, 600, 500, unfurl, expand);
+    volcart::texturing::clothModelingUV clothUV( mesh, uIterations, citerations, eIterations, unfurl, expand);
 
     // Run simulation
-    clothUV.setGravity( 10 );
-    clothUV.unfurl();
-    clothUV.setGravity( -10 );
-    clothUV.collide();
-    clothUV.setGravity( -10 );
-    clothUV.expand();
+    if ( uIterations > 0 ) {
+        clothUV.setGravity( uDir * 10 );
+        clothUV.unfurl();
+    }
+
+    if ( citerations > 0 ) {
+        clothUV.setGravity( -10 );
+        clothUV.collide();
+    }
+
+    if ( eIterations > 0 ) {
+        clothUV.setGravity( -10 );
+        clothUV.expand();
+    }
 
     // Write the scaled mesh
     VC_MeshType::Pointer output = clothUV.getMesh();
     std::string path = VC_DATE_TIME() + "_uvMap.obj";
     volcart::io::objWriter writer(path, output);
     writer.write();
+
+    if ( !doTexture ) return EXIT_SUCCESS;
 
     // Convert soft body to itk mesh
     volcart::UVMap uvMap = clothUV.getUVMap();
