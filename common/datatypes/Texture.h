@@ -38,12 +38,22 @@ namespace volcart {
         // Return the intensity for a Point ID
         double intensity( int point_ID, int image_ID = 0 );
 
+        // Extra Metadata
+        void    setMask( cv::Mat m ) { _PerPixelMask = m; };
+        cv::Mat getMask() { return _PerPixelMask; };
+
+        void    setMap( cv::Mat m ) { _PerPixelMapping = m; };
+        cv::Mat getMap()  { return _PerPixelMapping; };
+
     private:
         boost::filesystem::path _path;
         int _width, _height;
         std::vector<cv::Mat> _images;
         volcart::UVMap _uvMap;
         volcart::Metadata _metadata;
+
+        cv::Mat             _PerPixelMask;
+        cv::Mat_<cv::Vec6d> _PerPixelMapping;
     };
 } // volcart
 

@@ -35,6 +35,10 @@ namespace volcart {
             unsigned long pixelsNotInCell = 0;
             cv::Mat image = cv::Mat::zeros( _height, _width, CV_16UC1 );
             cv::Mat mask  = cv::Mat::zeros( _height, _width, CV_8UC1 );
+
+            // Mat to hold the projected 3D position for every pixel
+            cv::Mat_<cv::Vec6d> lookup( _height, _width, cv::Vec6d(0,0,0,0,0,0) );
+
             VC_PointsLocatorType::NeighborsIdentifierType neighborhood;
             for ( int y = 0; y < _height; ++y ) {
                 for ( int x = 0; x < _width; ++x ) {
@@ -93,14 +97,18 @@ namespace volcart {
                     // Assign the intensity value at the UV position
                     image.at< unsigned short >(y, x) = (unsigned short) value;
                     mask.at < unsigned char  >(y, x) = 255;
+
+                    // Assign 3D position to the lookup map
+                    lookup(y, x) = cv::Vec6d( xyz(0), xyz(1), xyz(2), xyz_norm(0), xyz_norm(2), xyz_norm(3) );
                 }
             }
             std::cerr << std::endl;
             std::cerr << "volcart::texturing::compositeTexture:: Pixels not in cell: " << pixelsNotInCell << std::endl;
 
             // Set output
-            _texture.addImage(image);
-            _texture.addImage(mask);
+            _texture.addImage( image );
+            _texture.setMask( mask );
+            _texture.setMap( lookup );
             _texture.uvMap( _uvMap );
 
             return EXIT_SUCCESS;

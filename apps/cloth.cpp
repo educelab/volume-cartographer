@@ -74,8 +74,14 @@ int main( int argc, char* argv[] ) {
     volcart::io::objWriter objwriter("textured.obj", mesh, uvMap, result.texture().getImage(0));
     objwriter.write();
 
-    if ( result.texture().numberOfImages() == 2 )
-        cv::imwrite("mask.png", result.texture().getImage(1) );
+    if ( result.texture().getMask().data )
+        cv::imwrite("PerPixelMask.png", result.texture().getMask() );
+
+    if ( result.texture().getMap().data ) {
+        cv::FileStorage fs( "PerPixelMapping.yml.gz", cv::FileStorage::WRITE );
+        fs << "PerPixelMapping" << result.texture().getMap();
+        fs.release();
+    }
 
     return 0;
 }

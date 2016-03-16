@@ -255,7 +255,7 @@ namespace volcart {
                     break;
                 }
             }
-            std::cerr << std::endl << "volcart::texturing::clothUV: Mesh Area Relative Error: " << relativeError << std::endl;
+            std::cerr << std::endl << "volcart::texturing::clothUV: Mesh Area Relative Error: " << relativeError * 100 << "%" << std::endl;
         }
 
         ///// Helper Functions /////
