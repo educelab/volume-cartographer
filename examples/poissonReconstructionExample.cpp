@@ -12,6 +12,11 @@
 #include "poissonReconstruction.h"
 #include <pcl/io/obj_io.h>
 
+#include <vtkSmartPointer.h>
+#include <pcl/surface/vtk_smoothing/vtk_utils.h>
+#include "itk2vtk.h"
+#include "io/objWriter.h"
+
 int main(){
 
     //init shapes
@@ -48,12 +53,29 @@ int main(){
     pcl::PolygonMesh out_SpherePolygonMesh = volcart::meshing::poissonReconstruction(in_SphereCloudPtr);
     pcl::PolygonMesh out_ConePolygonMesh = volcart::meshing::poissonReconstruction(in_ConeCloudPtr);
 
+
+    //polygon mesh --> vtkSmartPointer --> VC_Meshtype::Pointer --> writer with our obj writer
+    VC_MeshType::Pointer out_PlaneMesh = VC_MeshType::New();
+    vtkSmartPointer<vtkPolyData> out_PlaneVTKMesh;
+
+    pcl::VTKUtils::mesh2vtk(out_PlanePolygonMesh, out_PlaneVTKMesh);
+    vtkPolyData* vtkReadPlaneData;
+    vtkReadPlaneData = out_PlaneVTKMesh.GetPointer();
+
+    //convert from vtk to itk for writing
+    volcart::meshing::vtk2itk(vtkReadPlaneData, out_PlaneMesh);
+
+    volcart::io::objWriter writer;
+    writer.setMesh(out_PlaneMesh);
+    writer.setPath("PlanePoissonReconstruction.obj");
+    writer.write();
+
     //write polygon mesh data to file
-    pcl::io::saveOBJFile( "PlanePoissonReconstruction.obj", out_PlanePolygonMesh);
-    pcl::io::saveOBJFile( "CubePoissonReconstruction.obj", out_CubePolygonMesh);
-    pcl::io::saveOBJFile( "ArchPoissonReconstruction.obj", out_ArchPolygonMesh);
-    pcl::io::saveOBJFile( "SpherePoissonReconstruction.obj", out_SpherePolygonMesh);
-    pcl::io::saveOBJFile( "ConePoissonReconstruction.obj", out_ConePolygonMesh);
+//    pcl::io::saveOBJFile( "PlanePoissonReconstruction.obj", out_PlanePolygonMesh);
+//    pcl::io::saveOBJFile( "CubePoissonReconstruction.obj", out_CubePolygonMesh);
+//    pcl::io::saveOBJFile( "ArchPoissonReconstruction.obj", out_ArchPolygonMesh);
+//    pcl::io::saveOBJFile( "SpherePoissonReconstruction.obj", out_SpherePolygonMesh);
+//    pcl::io::saveOBJFile( "ConePoissonReconstruction.obj", out_ConePolygonMesh);
 
     std::cerr << "Files written: " << std::endl
               << "PlanePoissonReconstruction.obj" << std::endl
