@@ -34,11 +34,11 @@ public:
            int32_t nslices,
            int32_t sliceWidth,
            int32_t sliceHeight)
-        : slicePath_(slicePath),
-          normalPath_(normalPath),
-          numSlices_(nslices),
-          sliceWidth_(sliceWidth),
-          sliceHeight_(sliceHeight)
+        : slicePath_(slicePath)
+        , normalPath_(normalPath)
+        , numSlices_(nslices)
+        , sliceWidth_(sliceWidth)
+        , sliceHeight_(sliceHeight)
     {
         numSliceCharacters_ = std::to_string(nslices).size();
     }
@@ -120,7 +120,7 @@ public:
     {
         setCacheCapacity(nbytes / (sliceWidth_ * sliceHeight_));
     }
-    
+
     // Number of elements in the cache
     size_t getCacheSize() const { return cache_.size(); };
 
