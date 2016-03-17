@@ -186,7 +186,7 @@ add_test(NAME lrps_spline
     COMMAND vc_test_localResliceParticleSim_cubicspline)
 
 add_executable(vc_test_localResliceParticleSim_fittedcurve
-    segmentation/localResliceParticleSim/fittedcurveTest.cpp)
+    segmentation/localResliceParticleSim/fittedCurveTest.cpp)
 target_link_libraries(vc_test_localResliceParticleSim_fittedcurve
     ${VC_LIBS}
     ${VC_REQ_LIBS}
