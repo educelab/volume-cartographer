@@ -65,7 +65,7 @@ std::pair<std::vector<T>, std::vector<T>> unzip(
         xs.push_back(v(0));
         ys.push_back(v(1));
     }
-    return std::make_tuple(xs, ys);
+    return std::make_pair(xs, ys);
 }
 
 template <typename T>
