@@ -68,8 +68,11 @@ int main( int argc, char* argv[] ) {
 
     // Convert soft body to itk mesh
     volcart::UVMap uvMap = clothUV.getUVMap();
-    int width  = std::ceil( uvMap.ratio().width );
-    int height = std::ceil( uvMap.ratio().height );
+    int width, height;
+
+    width = std::ceil( uvMap.ratio().width );
+    height = std::ceil( uvMap.ratio().height );
+
     volcart::texturing::compositeTextureV2 result( mesh, vpkg, clothUV.getUVMap(), 7, width, height);
     volcart::io::objWriter objwriter("textured.obj", mesh, uvMap, result.texture().getImage(0));
     objwriter.write();
@@ -78,7 +81,7 @@ int main( int argc, char* argv[] ) {
         cv::imwrite("PerPixelMask.png", result.texture().getMask() );
 
     if ( result.texture().getMap().initialized() ) {
-        result.texture().getMap().write( "PerPixelMapping.yml.gz" );
+        result.texture().getMap().write( "PerPixelMapping" );
     }
 
     return 0;
