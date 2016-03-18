@@ -318,29 +318,24 @@ cv::Mat_<double> Volume::gradient(const cv::Mat_<double>& input,
     constexpr double SCALE = 1;
     constexpr double DELTA = 0;
 
-    // Equalize hist so we get a better gradient reading. Note that
-    // cv::equalizeHist requires the input to be 8 bit one channel
-    cv::Mat_<uint8_t> bit8 = input * std::numeric_limits<uint8_t>::max();
-    equalizeHist(bit8, bit8);
-
     cv::Mat_<double> grad(input.rows, input.cols);
 
     switch (axis) {
     case GradientAxis::X:
         if (ksize == 3) {
-            cv::Scharr(bit8, grad, CV_64F, 1, 0, SCALE, DELTA,
+            cv::Scharr(input, grad, CV_64F, 1, 0, SCALE, DELTA,
                        cv::BORDER_REPLICATE);
         } else {
-            cv::Sobel(bit8, grad, CV_64F, 1, 0, ksize, SCALE, DELTA,
+            cv::Sobel(input, grad, CV_64F, 1, 0, ksize, SCALE, DELTA,
                       cv::BORDER_REPLICATE);
         }
         break;
     case GradientAxis::Y:
         if (ksize == 3) {
-            cv::Scharr(bit8, grad, CV_64F, 0, 1, SCALE, DELTA,
+            cv::Scharr(input, grad, CV_64F, 0, 1, SCALE, DELTA,
                        cv::BORDER_REPLICATE);
         } else {
-            cv::Sobel(bit8, grad, CV_64F, 0, 1, ksize, SCALE, DELTA,
+            cv::Sobel(input, grad, CV_64F, 0, 1, ksize, SCALE, DELTA,
                       cv::BORDER_REPLICATE);
         }
         break;
