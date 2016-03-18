@@ -36,8 +36,8 @@ namespace volcart {
             cv::Mat image = cv::Mat::zeros( _height, _width, CV_16UC1 );
             cv::Mat mask  = cv::Mat::zeros( _height, _width, CV_8UC1 );
 
-            // Mat to hold the projected 3D position for every pixel
-            cv::Mat_<cv::Vec6d> lookup( _height, _width, cv::Vec6d(0,0,0,0,0,0) );
+            // Per-pixel Map
+            volcart::PerPixelMap lookup( _height, _width );
 
             VC_PointsLocatorType::NeighborsIdentifierType neighborhood;
             for ( int y = 0; y < _height; ++y ) {
@@ -99,7 +99,7 @@ namespace volcart {
                     mask.at < unsigned char  >(y, x) = 255;
 
                     // Assign 3D position to the lookup map
-                    lookup(y, x) = cv::Vec6d( xyz(0), xyz(1), xyz(2), xyz_norm(0), xyz_norm(2), xyz_norm(3) );
+                    lookup(y, x) = cv::Vec6d( xyz(0), xyz(1), xyz(2), xyz_norm(0), xyz_norm(1), xyz_norm(2) );
                 }
             }
             std::cerr << std::endl;

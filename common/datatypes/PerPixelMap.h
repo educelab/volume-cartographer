@@ -13,31 +13,36 @@
 #ifndef VC_PERPIXELMAP_H
 #define VC_PERPIXELMAP_H
 
+#include <boost/filesystem.hpp>
+#include <opencv2/opencv.hpp>
+
 namespace volcart {
     class PerPixelMap {
     public:
         ///// Constructors /////
-        // Empty Map of width x height
-        PerPixelMap( int width, int height ) : _width(width), _height(height) {
-          _map = cv::Mat_<cv::Vec6d>( height, width, cv::Vec6d(0,0,0,0,0,0) );
-        }
+        // Create empty
+        PerPixelMap() : _width(0), _height(0){};
+
+        // Create new
+        PerPixelMap( int height, int width );
 
         // Construct map from file
-        PerPixelMap( std::string path ) {
-          read(path);
-        }
+        PerPixelMap( boost::filesystem::path path );
+
+        ///// Check if initialized /////
+        bool initialized() { return _map.data && _width > 0 && _height > 0; };
 
         ///// Operators /////
         // Forward to the Mat_ operators
-        cv::Vec6d& operator ()( int x, int y ) { return _map(y,x); };
+        cv::Vec6d& operator ()( int y, int x ) { return _map(y,x); };
 
         ///// Metadata /////
         int width() { return _width; };
         int height() { return _height; };
 
         ///// Disk IO /////
-        void write( std::string path );
-        void read( std::string path );
+        void write( boost::filesystem::path path );
+        void read( boost::filesystem::path path );
 
     private:
         int _width, _height;

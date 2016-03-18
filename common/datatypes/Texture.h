@@ -10,11 +10,11 @@
 #include "../vc_defines.h"
 #include "Metadata.h"
 #include "UVMap.h"
+#include "PerPixelMap.h"
 
 namespace volcart {
     class Texture {
     public:
-        typedef cv::Mat_<cv::Vec6d> PerPixelMap;
 
         Texture();
         Texture(std::string path);
@@ -44,8 +44,8 @@ namespace volcart {
         void    setMask( cv::Mat m ) { _PerPixelMask = m; };
         cv::Mat getMask() { return _PerPixelMask; };
 
-        void    setMap( cv::Mat m ) { _PerPixelMapping = m; };
-        cv::Mat getMap()  { return _PerPixelMapping; };
+        void         setMap( PerPixelMap m ) { _PerPixelMapping = m; };
+        PerPixelMap  getMap() { return _PerPixelMapping; };
 
     private:
         boost::filesystem::path _path;
@@ -54,8 +54,8 @@ namespace volcart {
         volcart::UVMap _uvMap;
         volcart::Metadata _metadata;
 
-        cv::Mat             _PerPixelMask;
-        cv::Mat_<cv::Vec6d> _PerPixelMapping;
+        cv::Mat       _PerPixelMask;
+        PerPixelMap   _PerPixelMapping;
     };
 } // volcart
 

@@ -77,10 +77,8 @@ int main( int argc, char* argv[] ) {
     if ( result.texture().getMask().data )
         cv::imwrite("PerPixelMask.png", result.texture().getMask() );
 
-    if ( result.texture().getMap().data ) {
-        cv::FileStorage fs( "PerPixelMapping.yml.gz", cv::FileStorage::WRITE );
-        fs << "PerPixelMapping" << result.texture().getMap();
-        fs.release();
+    if ( result.texture().getMap().initialized() ) {
+        result.texture().getMap().write( "PerPixelMapping.yml.gz" );
     }
 
     return 0;
