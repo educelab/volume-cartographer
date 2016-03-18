@@ -14,6 +14,8 @@
 namespace volcart {
     class Texture {
     public:
+        typedef cv::Mat_<cv::Vec6d> PerPixelMap;
+
         Texture();
         Texture(std::string path);
 

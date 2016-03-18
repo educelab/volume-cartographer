@@ -103,7 +103,7 @@ namespace volcart {
                 }
             }
             std::cerr << std::endl;
-            std::cerr << "volcart::texturing::compositeTexture:: Pixels not in cell: " << pixelsNotInCell << std::endl;
+            std::cerr << "volcart::texturing::compositeTexturing:: Pixels not in cell: " << pixelsNotInCell << std::endl;
 
             // Set output
             _texture.addImage( image );

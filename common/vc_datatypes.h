@@ -7,6 +7,7 @@
 
 #include "datatypes/LRUCache.h"
 #include "datatypes/Metadata.h"
+#include "datatypes/PerPixelMap.h"
 #include "datatypes/UVMap.h"
 #include "datatypes/Texture.h"
 #include "datatypes/Slice.h"
