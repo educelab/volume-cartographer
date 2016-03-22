@@ -1,3 +1,4 @@
+#include <iostream>
 #include "energymetrics.h"
 #include "derivative.h"
 
@@ -10,15 +11,17 @@ double EnergyMetrics::ActiveContourInternal(const FittedCurve& curve,
                                             double k1,
                                             double k2)
 {
+    if (curve.size() <= 0) {
+        return 0;
+    }
+
     auto d1current = normalizeVector(d1(curve.points()));
     auto d2current = normalizeVector(d2(curve.points()));
 
     double intE = 0;
     for (auto p : zip(d1current, d2current)) {
-        Voxel d1sq, d2sq;
-        cv::pow(p.first, 2, d1sq);
-        cv::pow(p.second, 2, d2sq);
-        intE += k1 * cv::norm(d1sq) + k2 * cv::norm(d2sq);
+        intE += k1 * std::pow(cv::norm(p.first), 2) +
+                k2 * std::pow(cv::norm(p.second), 2);
     }
 
     return intE / (2 * curve.size());
@@ -42,7 +45,12 @@ double EnergyMetrics::TotalEnergy(const FittedCurve& curve,
 // Sum of the absolute value of the curvature from curve
 double EnergyMetrics::AbsCurvatureSum(const FittedCurve& curve)
 {
+    if (curve.size() <= 0) {
+        return 0;
+    }
+
     auto k = normalizeVector(curve.curvature());
+    std::exit(1);
     return std::accumulate(begin(k), end(k), 0.0, [](double sum, double d) {
                return sum + std::abs(d);
            }) / curve.size();
@@ -54,6 +62,18 @@ double EnergyMetrics::LocalWindowedArcLength(const FittedCurve& curve,
                                              int32_t index,
                                              int32_t windowSize)
 {
+    if (curve.size() <= 0) {
+        return 0;
+    }
+
+    if (index < 0 || index >= int32_t(curve.size())) {
+        auto msg = "index '" + std::to_string(index) + "' outside curve range";
+        throw std::invalid_argument(msg);
+    } else if (windowSize < 0 || windowSize >= int32_t(curve.size())) {
+        auto msg = "invalid windowSize";
+        throw std::invalid_argument(msg);
+    }
+
     int32_t windowRadius = windowSize / 2;
     double sum = 0;
     int32_t lastIdx = curve.size() - 1;
@@ -79,35 +99,14 @@ double EnergyMetrics::LocalWindowedArcLength(const FittedCurve& curve,
 double EnergyMetrics::WindowedArcLength(const FittedCurve& curve,
                                         int32_t windowSize)
 {
+    // Special case - empty curve
+    if (curve.size() <= 0) {
+        return 0;
+    }
+
     double sum = 0;
     for (size_t i = 0; i < curve.size(); ++i) {
         sum += EnergyMetrics::LocalWindowedArcLength(curve, i, windowSize);
     }
     return sum / curve.size();
 }
-
-/*
-// Sums up distances of each particle from its two nearest neighbors. At the
-// ends of the curve, simply reflect distances to their singular neighbors
- double EnergyMetrics::TwoNearestNeighborDistanceSum(
-    const FittedCurve& curve)
-{
-    auto vs = curve.points();
-    std::vector<double> diffs(vs.size());
-
-    // Special case for first and last elements. Since they don't have
-    // neighbors, just double their distances to the elements next to them. This
-    // might not be the best, but it's what works for now
-    diffs.front() = 2 * cv::norm(vs[0], vs[1]);
-    diffs.back() = 2 * cv::norm(vs.back(), vs.rbegin()[1]);
-
-    // Handle the rest of the vector
-    for (uint32_t i = 1; i < vs.size() - 1; ++i) {
-        diffs[i] = cv::norm(vs[i - 1], vs[i]) + cv::norm(vs[i], vs[i + 1]);
-    }
-
-    // Normalize and sum
-    diffs = normalizeVector(diffs);
-    return std::accumulate(begin(diff), end(diff), 0.0) / (curve.size() - 1);
-}
-*/

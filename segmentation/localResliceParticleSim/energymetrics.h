@@ -40,10 +40,6 @@ public:
     // Apply LocalWindowedArcLength across the entire curve
     static double WindowedArcLength(const FittedCurve& curve,
                                     int32_t windowSize);
-
-    // Sums up distances of each particle from its two nearest neighbors. At the
-    // ends of the curve, simply reflect distances to their singular neighbors
-    // static double TwoNearestNeighborDistanceSum(const FittedCurve& curve);
 };
 }
 }
