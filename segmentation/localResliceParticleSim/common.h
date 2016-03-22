@@ -73,6 +73,14 @@ std::vector<double> normalizeVector(const std::vector<T>& v,
                                     double newMin = 0,
                                     double newMax = 1)
 {
+    // Check if values are already in desired range
+    if (std::all_of(std::begin(v), std::end(v), [newMin, newMax](T e) {
+            return newMin <= e && e <= newMax;
+        })) {
+        std::vector<double> new_v(std::begin(v), std::end(v));
+        return new_v;
+    }
+
     // Input checking
     if (v.empty()) {
         return std::vector<double>();
@@ -106,7 +114,11 @@ std::vector<cv::Vec<double, Len>> normalizeVector(
     std::transform(begin(vs), end(vs), std::begin(new_vs),
                    [](const cv::Vec<T, Len> v) {
                        cv::Vec<double, Len> dv(v);
-                       return dv / cv::norm(dv);
+                       if (cv::norm(dv) < 1e-5) {
+                           return dv;
+                       } else {
+                           return dv / cv::norm(dv);
+                       }
                    });
     return new_vs;
 }
