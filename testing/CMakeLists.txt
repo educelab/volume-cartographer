@@ -215,6 +215,15 @@ add_test(NAME lrps_intensitymap
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     COMMAND vc_test_localResliceParticleSim_intensitymap)
 
+add_executable(vc_test_localResliceParticleSim_energymetrics
+    segmentation/localResliceParticleSim/energyMetricsTest.cpp)
+target_link_libraries(vc_test_localResliceParticleSim_energymetrics
+    ${VC_LIBS}
+    ${VC_REQ_LIBS}
+    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+add_test(NAME lrps_energymetrics
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    COMMAND vc_test_localResliceParticleSim_energymetrics)
 
 #add_executable(vc_test_particle segmentation/localResliceParticleSim/particleTest.cpp)
 #target_link_libraries(vc_test_particle ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
