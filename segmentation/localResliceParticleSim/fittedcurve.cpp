@@ -91,10 +91,12 @@ double FittedCurve::arclength() const
 std::vector<double> generateTVals(size_t count)
 {
     std::vector<double> ts(count);
-    ts[0] = 0;
-    double sum = 0;
-    std::generate(std::begin(ts) + 1, std::end(ts) - 1,
-                  [count, &sum]() { return sum += 1.0 / (count - 1); });
-    ts.back() = 1;
+    if (count > 0) {
+        ts[0] = 0;
+        double sum = 0;
+        std::generate(std::begin(ts) + 1, std::end(ts) - 1,
+                      [count, &sum]() { return sum += 1.0 / (count - 1); });
+        ts.back() = 1;
+    }
     return ts;
 }

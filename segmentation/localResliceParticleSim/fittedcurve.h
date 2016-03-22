@@ -22,7 +22,7 @@ private:
     CubicSpline<double> spline_;
 
 public:
-    FittedCurve() = default;
+    FittedCurve() : npoints_(0), zIndex_(0), ts_(), points_(), spline_() {}
 
     FittedCurve(const std::vector<Voxel>& vs, int32_t zIndex);
 
