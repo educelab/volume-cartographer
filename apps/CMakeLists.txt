@@ -6,6 +6,9 @@ add_subdirectory(VC)
 # Texture UI
 add_subdirectory(VC-Texture)
 
+# Mapping Viewer
+add_subdirectory(mappingViewer)
+
 # Mesher
 add_executable(vc_mesher mesher.cpp)
 target_link_libraries(vc_mesher ${VC_LIBS} ${VC_REQ_LIBS})
