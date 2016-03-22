@@ -67,7 +67,7 @@ namespace volcart {
       cv::Mat    _perPixelMask;
       cv::Mat    _currentSlice;
       volcart::PerPixelMap _perPixelMap;
-      cv::Vec2D _currentPoint;
+      cv::Vec2d _currentPoint;
 
       ///// State /////
       bool _viewChanged;
