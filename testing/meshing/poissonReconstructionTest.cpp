@@ -14,10 +14,6 @@
 #include "poissonReconstruction.h"
 #include <pcl/conversions.h>
 #include <pcl/io/obj_io.h>
-#include "io/objWriter.h"
-#include <vtkSmartPointer.h>
-#include <pcl/surface/vtk_smoothing/vtk_utils.h>
-#include "itk2vtk.h"
 
 
 /************************************************************************************
@@ -70,23 +66,7 @@ struct PlanePoissonReconstructionFixture {
         //make call to poissonReconstruction() and assign results to polygon mesh
         _out_PlanePolygonMesh = volcart::meshing::poissonReconstruction(_in_PlaneCloudPtr);
 
-        //TODO: see how the polygon mesh writes out to file
-        //TODO: let's try to use our writer here and see what happens
-
-        //convert polygon mesh to vtk pointer
-        _out_PlaneMesh = VC_MeshType::New();
-        pcl::VTKUtils::mesh2vtk(_out_PlanePolygonMesh, _out_PlaneVTKMesh);
-        _vtkReadPlaneData = _out_PlaneVTKMesh.GetPointer();
-
-        //convert from vtk to itk for writing
-        volcart::meshing::vtk2itk(_vtkReadPlaneData, _out_PlaneMesh);
-
-
-        writer.setMesh(_out_PlaneMesh);
-        writer.setPath("FixturePlanePoisson.obj");
-        writer.write();
-
-       // pcl::io::saveOBJFile("FixturePlanePoisson.obj", _out_PlanePolygonMesh);
+        pcl::io::saveOBJFile("FixturePlanePoisson.obj", _out_PlanePolygonMesh);
 
         //load data from saved files
         pcl::io::loadOBJFile("PlanePoissonReconstruction.obj", _SavedPlaneSurface);
@@ -99,13 +79,6 @@ struct PlanePoissonReconstructionFixture {
     volcart::shapes::Plane _Plane;
     pcl::PointCloud<pcl::PointNormal> _in_PlaneCloud;
     pcl::PolygonMesh _out_PlanePolygonMesh, _SavedPlaneSurface;
-
-    //TODO: needed for our writer
-    volcart::io::objWriter writer;
-    VC_MeshType::Pointer _out_PlaneMesh;
-    vtkSmartPointer<vtkPolyData> _out_PlaneVTKMesh;
-    vtkPolyData* _vtkReadPlaneData;
-
 };
 
 struct CubePoissonReconstructionFixture {
