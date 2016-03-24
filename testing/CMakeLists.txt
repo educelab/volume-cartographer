@@ -48,6 +48,10 @@ add_executable(vc_test_uvMap common/UVMapTest.cpp)
 target_link_libraries(vc_test_uvMap ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME uvMap WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_uvMap )
 
+add_executable(vc_test_LRUCache common/LRUCacheTest.cpp)
+target_link_libraries(vc_test_LRUCache ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+add_test(NAME LRUCache WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_LRUCache )
+
 #-----------------------#
 #    examples Folder    #
 #-----------------------#
@@ -256,6 +260,10 @@ add_test(NAME lrps_energymetrics
 #-----------------------#
 #    texturing Folder   #
 #-----------------------#
+
+add_executable(vc_test_simpleUV texturing/simpleUVTest.cpp)
+target_link_libraries(vc_test_simpleUV ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} )
+add_test(NAME simpleUV WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_simpleUV )
 
 #add_executable(vc_test_layering texturing/layeringTest.cpp)
 #target_link_libraries(vc_test_layering ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})

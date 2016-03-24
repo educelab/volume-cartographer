@@ -2,7 +2,7 @@
 // Created by Ryan Taber on 12/9/15.
 //
 
-#ifndef VC_PREBUILT_LIBS
+#ifndef VC_BOOST_STATIC_LIBS
 #define BOOST_TEST_DYN_LINK
 #endif
 #define BOOST_TEST_MODULE plyWriter
@@ -63,138 +63,128 @@
  *
  */
 
-struct meshFix {
+struct CreateITKPlaneMeshFixture {
 
-  meshFix() {
+  CreateITKPlaneMeshFixture() {
 
       //create the mesh for all the test cases to use
-      _mesh = mesh.itkMesh();
+      _in_PlaneMesh = _Plane.itkMesh();
 
-      BOOST_TEST_MESSAGE("setting up mesh...");
+
+      //read in data from saved output.ply via parsingHelpers::parsePlyFile
+      volcart::testing::ParsingHelpers::parsePlyFile("output.ply", _SavedPlanePoints, _SavedPlaneCells);
+      
+      BOOST_TEST_MESSAGE("setting up Plane mesh...");
   }
 
-  ~meshFix(){ BOOST_TEST_MESSAGE("cleaning up meshFix..."); }
+  ~CreateITKPlaneMeshFixture(){ BOOST_TEST_MESSAGE("cleaning up Plane mesh objects..."); }
 
   //file path and plyWriter to be used in cases
-  volcart::io::plyWriter mesh_writer;
-  boost::filesystem::path objPath;
-  VC_MeshType::Pointer _mesh ;
-  volcart::shapes::Plane mesh;
+  volcart::io::plyWriter _MeshWriter;
+  boost::filesystem::path ObjPath;
+  VC_MeshType::Pointer _in_PlaneMesh ;
+  volcart::shapes::Plane _Plane;
 
+  //vectors to hold vertices and faces saved in output.ply
+  std::vector<VC_Vertex> _SavedPlanePoints;
+  std::vector<VC_Cell> _SavedPlaneCells;
 };
 
 
 // Test for checking successful write
-BOOST_FIXTURE_TEST_CASE(writeTest, meshFix) {
+BOOST_FIXTURE_TEST_CASE(WriteMeshToPLYFileTest, CreateITKPlaneMeshFixture) {
 
   std::cout << "Writing mesh to ply file..." << std::endl;
 
-  mesh_writer.setPath("nothing");
-  //mesh_writer.setUVMap( uvMap );
-  // mesh_writer.setTexture( uvImg );
+  _MeshWriter.setPath("nothing");
+  //_MeshWriter.setUVMap( uvMap );
+  // _MeshWriter.setTexture( uvImg );
 
-  objPath = mesh_writer.getPath();
-  objPath = boost::filesystem::absolute(objPath);
+  ObjPath = _MeshWriter.getPath();
+  ObjPath = boost::filesystem::absolute(ObjPath);
 
 
-  // mesh_writer.write() runs validate() as well, but this lets us handle a mesh that can't be validated.
-  if (mesh_writer.validate())
-      mesh_writer.write();
+  // _MeshWriter.write() runs validate() as well, but this lets us handle a mesh that can't be validated.
+  if (_MeshWriter.validate())
+      _MeshWriter.write();
   else {
-      mesh_writer.setPath("output.ply");
-      mesh_writer.setMesh(_mesh);
-      mesh_writer.write();
+      _MeshWriter.setPath("output.ply");
+      _MeshWriter.setMesh(_in_PlaneMesh);
+      _MeshWriter.write();
   }
 
-  //check the file path from the mesh_writer.write() call above
+  //check the file path from the _MeshWriter.write() call above
   //compare() returns 0 only if paths are same value lexicographically-speaking
-  //checking "output.ply" here because the mesh_writer shouldn't validate in the current case
-  BOOST_CHECK_EQUAL(mesh_writer.getPath().compare("output.ply"), 0);
+  //checking "output.ply" here because the _in_PlaneMeshWriter shouldn't validate in the current case
+  BOOST_CHECK_EQUAL(_MeshWriter.getPath().compare("output.ply"), 0);
 
 }
 
-BOOST_FIXTURE_TEST_CASE(compareElements, meshFix){
+BOOST_FIXTURE_TEST_CASE(CompareFixtureMeshAndSavedMeshData, CreateITKPlaneMeshFixture){
 
-
-    //init vectors to hold vertices and faces saved in output.ply
-    std::vector<VC_Vertex> savedPoints, fixturePoints;
-    std::vector<VC_Cell> savedCells, fixtureCells;
-
-    //read in data from saved output.ply via parsingHelpers::parsePlyFile
-    volcart::testing::ParsingHelpers::parsePlyFile("output.ply", savedPoints, savedCells);
-
-    /* Now the data from the .ply file is in the point and cell vectors, and we're
-     * ready to compare with data from the _mesh object created by meshFix
-     *
-     * Note: plyWriter is only writing x/y/z/nx/ny/nz point data, so that is
-     *       all we're comparing for equivalency below
-     */
-
+    //compare number of points and cells in each mesh
+    BOOST_CHECK_EQUAL(_in_PlaneMesh->GetNumberOfPoints(), _SavedPlanePoints.size());
+    BOOST_CHECK_EQUAL(_in_PlaneMesh->GetNumberOfCells(), _SavedPlaneCells.size());
 
     /// Points ///
     std::cerr << "Comparing points..." << std::endl;
-    for (int p = 0; p < savedPoints.size(); p++){
+    for (int p = 0; p < _SavedPlanePoints.size(); p++){
 
-        BOOST_CHECK_EQUAL(savedPoints[p].x, _mesh->GetPoint(p)[0]);
-        BOOST_CHECK_EQUAL(savedPoints[p].y, _mesh->GetPoint(p)[1]);
-        BOOST_CHECK_EQUAL(savedPoints[p].z, _mesh->GetPoint(p)[2]);
+        BOOST_CHECK_EQUAL(_SavedPlanePoints[p].x, _in_PlaneMesh->GetPoint(p)[0]);
+        BOOST_CHECK_EQUAL(_SavedPlanePoints[p].y, _in_PlaneMesh->GetPoint(p)[1]);
+        BOOST_CHECK_EQUAL(_SavedPlanePoints[p].z, _in_PlaneMesh->GetPoint(p)[2]);
     }
 
     // Normals //
     std::cerr << "Comparing normals..." << std::endl;
     int p_id = 0;
-    for ( VC_PointsInMeshIterator point = _mesh->GetPoints()->Begin(); point != _mesh->GetPoints()->End(); ++point ) {
+    for ( VC_PointsInMeshIterator point = _in_PlaneMesh->GetPoints()->Begin(); point != _in_PlaneMesh->GetPoints()->End(); ++point ) {
 
-        VC_PixelType _meshNormal;
-        _mesh->GetPointData(point.Index(), &_meshNormal);
+        VC_PixelType _in_PlaneMeshNormal;
+        _in_PlaneMesh->GetPointData(point.Index(), &_in_PlaneMeshNormal);
 
-        double ptNorm[3] = {_meshNormal[0], _meshNormal[1], _meshNormal[2]};
+        double ptNorm[3] = {_in_PlaneMeshNormal[0], _in_PlaneMeshNormal[1], _in_PlaneMeshNormal[2]};
 
         //Now compare the normals for the two meshes
-        BOOST_CHECK_EQUAL(_meshNormal[0], savedPoints[p_id].nx);
-        BOOST_CHECK_EQUAL(_meshNormal[1], savedPoints[p_id].ny);
-        BOOST_CHECK_EQUAL(_meshNormal[2], savedPoints[p_id].nz);
+        BOOST_CHECK_EQUAL(_in_PlaneMeshNormal[0], _SavedPlanePoints[p_id].nx);
+        BOOST_CHECK_EQUAL(_in_PlaneMeshNormal[1], _SavedPlanePoints[p_id].ny);
+        BOOST_CHECK_EQUAL(_in_PlaneMeshNormal[2], _SavedPlanePoints[p_id].nz);
 
         p_id++;
 
     }
 
     /// Cells ///
-    std::cerr << "Comparing cells..." << std::endl;
-
-    //compare number of cells in each mesh
-    BOOST_CHECK_EQUAL(_mesh->GetNumberOfCells(), savedCells.size());
-
     // Initialize Cell Iterators
-    VC_CellIterator _meshCell = _mesh->GetCells()->Begin();
+    VC_CellIterator _in_PlaneMeshCell = _in_PlaneMesh->GetCells()->Begin();
 
     int c = 0;
 
-    while (_meshCell != _mesh->GetCells()->End()) {
+    while (_in_PlaneMeshCell != _in_PlaneMesh->GetCells()->End()) {
 
         //Initialize Iterators for Points in a Cell
-        VC_PointsInCellIterator _meshPoint = _meshCell.Value()->PointIdsBegin();
+        VC_PointsInCellIterator _in_PlaneMeshPoint = _in_PlaneMeshCell.Value()->PointIdsBegin();
 
         int counter = 0;
         //while we have points in the cell
-        while (_meshPoint != _meshCell.Value()->PointIdsEnd()) {
+        while (_in_PlaneMeshPoint != _in_PlaneMeshCell.Value()->PointIdsEnd()) {
 
             //Now to check the points within the cells
             if (counter == 0)
-                BOOST_CHECK_EQUAL(*_meshPoint, savedCells[c].v1);
+                BOOST_CHECK_EQUAL(*_in_PlaneMeshPoint, _SavedPlaneCells[c].v1);
             else if (counter == 1)
-                BOOST_CHECK_EQUAL(*_meshPoint, savedCells[c].v2);
+                BOOST_CHECK_EQUAL(*_in_PlaneMeshPoint, _SavedPlaneCells[c].v2);
             else if (counter == 2)
-                BOOST_CHECK_EQUAL(*_meshPoint, savedCells[c].v3);
+                BOOST_CHECK_EQUAL(*_in_PlaneMeshPoint, _SavedPlaneCells[c].v3);
 
             //increment points
-            _meshPoint++;
+            _in_PlaneMeshPoint++;
             counter++;
 
         }
 
         //increment cells
-        ++_meshCell;
+        ++_in_PlaneMeshCell;
         ++c;
     }
 }

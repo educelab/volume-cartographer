@@ -2,7 +2,7 @@
 // Created by Ryan Taber on 12/9/15.
 //
 
-#ifndef VC_PREBUILT_LIBS
+#ifndef VC_BOOST_STATIC_LIBS
 #define BOOST_TEST_DYN_LINK
 #endif
 #define BOOST_TEST_MODULE Texture
@@ -19,7 +19,7 @@
  *    retrieve intensity values successfully from a texture image                   *
  *                                                                                  *
  *                                                                                  *
- *  This file is broken up into a testing fixture, meshFix, which initializes the   *
+ *  This file is broken up into a testing fixture(s) which initializes the          *
  *  objects used in each of the three test cases.                                   *
  *                                                                                  *
  *  1. TestTextureEmptyConstructor                                                  *

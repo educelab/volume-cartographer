@@ -16,10 +16,7 @@ namespace volcart {
     namespace shapes {
         class Arch : public ShapePrimitive {
         public:
-            Arch() {
-                // dimensions of the mesh arch
-                int width = 10;
-                int height = 10;
+            Arch(int width = 10, int height = 10) {
 
                 float rad = 5;
 
@@ -58,6 +55,12 @@ namespace volcart {
                         _add_cell(v1, v3, v4);
                     }
                 }
+
+                // Set this as an ordered mesh
+                _orderedPoints = true;
+                _orderedWidth = width;
+                _orderedHeight = height;
+
             } // Constructor
 
         }; // Arch

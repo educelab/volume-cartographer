@@ -2,7 +2,7 @@
 // Created by Ryan Taber on 11/6/15.
 //
 
-#ifndef VC_PREBUILT_LIBS
+#ifndef VC_BOOST_STATIC_LIBS
 #define BOOST_TEST_DYN_LINK
 #endif
 #define BOOST_TEST_MODULE orderedPCDMesher
@@ -229,8 +229,6 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureCreatedAndSavedPlaneOrderedPCDMesherData, 
         BOOST_CHECK_EQUAL(_SavedPlanePoints[p].b, _FixtureCreatedPlanePoints[p].b);
 
     }
-
-    BOOST_CHECK_EQUAL(_SavedPlaneCells.size(), _FixtureCreatedPlaneCells.size());
 
     for (int f = 0; f < _SavedPlaneCells.size(); f++){
 

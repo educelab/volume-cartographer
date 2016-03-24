@@ -12,9 +12,7 @@ namespace volcart {
     namespace shapes {
         class Plane : public ShapePrimitive {
         public:
-            Plane() {
-                // dimensions of the mesh plane
-                int width = 5, height = 5;
+            Plane(int width = 5, int height = 5) {
 
                 // generate the points along the y-axis
                 double y = 0;
@@ -36,6 +34,12 @@ namespace volcart {
                         _add_cell(v1, v3, v4);
                     }
                 }
+
+                // Set this as an ordered mesh
+                _orderedPoints = true;
+                _orderedWidth = width;
+                _orderedHeight = height;
+
             } // Constructor
 
         }; // Plane

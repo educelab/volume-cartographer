@@ -44,8 +44,9 @@ namespace volcart {
                 _add_cell(4, 5, 7);
                 _add_cell(5, 6, 7);
 
-
+                _orderedPoints = false;
             } // Constructor
+
 
         }; // Cube
     } // shapes

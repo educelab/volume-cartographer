@@ -3,20 +3,18 @@
 //
 
 
-#ifndef VC_PREBUILT_LIBS
+#ifndef VC_BOOST_STATIC_LIBS
 #define BOOST_TEST_DYN_LINK
 #endif
 #define BOOST_TEST_MODULE poissonReconstruction
 
 #include <boost/test/unit_test.hpp>
-//#include <boost/test/included/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
 #include "vc_defines.h"
 #include "shapes.h"
 #include "poissonReconstruction.h"
-#include "pcl/conversions.h"
+#include <pcl/conversions.h>
 #include <pcl/io/obj_io.h>
-
 
 
 /************************************************************************************

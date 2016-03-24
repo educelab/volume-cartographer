@@ -59,7 +59,7 @@ const cv::Mat& Volume::getSliceData(const int32_t index) const
     // Take advantage of caching layer
     try {
         return cache_.get(index);
-    } catch (const CacheMissException& ex) {
+    } catch (const std::exception &ex) {
         const auto slicePath = getSlicePath(index);
         const cv::Mat sliceImg = cv::imread(slicePath.string(), -1);
 
