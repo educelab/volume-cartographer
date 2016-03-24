@@ -13,7 +13,7 @@ using namespace volcart::segmentation;
 // Testing constants
 const double tolperc = 0.01;
 const double tol = 1e-9;
-const int32_t kDefaultWindowSize = 5;
+const int32_t kDefaultWindowSize = 3;
 const int32_t kDefaultIndex = 0;
 const double kDefaultAlpha = 1.0 / 3.0;
 const double kDefaultBeta = 1.0 / 3.0;
@@ -206,7 +206,7 @@ BOOST_AUTO_TEST_CASE(
 
 BOOST_AUTO_TEST_CASE(WindowedArcLengthWithConstantCurveAndDefaultWindowSize)
 {
-    const int32_t expected = kDefaultWindowSize / 2 * 2 * _curve.size();
+    const int32_t expected = kDefaultWindowSize / 2 * 2;
     auto result = EnergyMetrics::WindowedArcLength(_curve, kDefaultWindowSize);
     BOOST_CHECK_CLOSE(result, expected, tolperc);
 }
@@ -227,12 +227,11 @@ BOOST_AUTO_TEST_CASE(WindowedArcLengthWithConstantCurveAndTooLargeWindowSize)
 
 BOOST_AUTO_TEST_CASE(TotalEnergyWithConstantCurveAndDefaultValues)
 {
-    const double expectedWindowedArcLengthSum =
-        kDefaultWindowSize * 2 / 2 * _curve.size();
-    const double expectedActiveContourSum = 0;
+    const double expectedActiveContourSum = kDefaultK1 / 2;
     const double expectedAbsCurvatureSum = 0;
-    const double expected = kDefaultBeta * expectedAbsCurvatureSum +
-                            kDefaultAlpha * expectedActiveContourSum +
+    const double expectedWindowedArcLengthSum = kDefaultWindowSize / 2 * 2;
+    const double expected = kDefaultAlpha * expectedActiveContourSum +
+                            kDefaultBeta * expectedAbsCurvatureSum +
                             kDefaultDelta * expectedWindowedArcLengthSum;
     auto result =
         EnergyMetrics::TotalEnergy(_curve, kDefaultAlpha, kDefaultK1,
