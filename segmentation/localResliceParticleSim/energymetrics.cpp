@@ -49,10 +49,12 @@ double EnergyMetrics::AbsCurvatureSum(const FittedCurve& curve)
         return 0;
     }
 
-    auto k = normalizeVector(curve.curvature());
-    std::exit(1);
+    auto k = curve.curvature();
+    std::transform(std::begin(k), std::end(k), std::begin(k),
+                   [](double e) { return std::abs(e); });
+    k = normalizeVector(k);
     return std::accumulate(begin(k), end(k), 0.0, [](double sum, double d) {
-               return sum + std::abs(d);
+               return sum + d;
            }) / curve.size();
 }
 
