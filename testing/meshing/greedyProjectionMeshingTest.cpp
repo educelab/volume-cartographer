@@ -34,6 +34,7 @@
  *                                                                                      *
  *  Input:                                                                              *
  *      - OBJ file to be loaded in as a PCL::PolygonMesh                                *
+ *      - input file created by greedyProjection example file                           *
  *                                                                                      *
  *  Test-Specific Output:                                                               *
  *      Either a message stating the meshes are the same or error messages according    *
@@ -46,7 +47,7 @@
 
 // General outline for test
 //   Create new mesh using greedyProjectionMeshing
-//   Take in input for test comparison
+//   Read in input for test comparison into PolygonMesh
 //   Convert both meshes to correct types
 //   Compare new mesh with known mesh for equivalency
 //   If errors occur, output them. Otherwise give success message.
@@ -200,7 +201,6 @@ BOOST_FIXTURE_TEST_CASE(CompareSavedAndFixturePlaneGreedyProjections, PlaneGreed
     // Cells
     for (int c_id = 0; c_id < _out_FixturePlanePolygonMesh.polygons.size(); c_id++) {
 
-        std::cout << "Cell: " << c_id << std::endl;
         for (int pnt = 0; pnt < _out_FixturePlanePolygonMesh.polygons[c_id].vertices.size(); pnt++) {
 
             //TODO: this is failing in debian_test_it job
