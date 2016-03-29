@@ -203,11 +203,6 @@ BOOST_FIXTURE_TEST_CASE(CompareSavedAndFixturePlaneGreedyProjections, PlaneGreed
         std::cout << "Cell: " << c_id << std::endl;
         for (int pnt = 0; pnt < _out_FixturePlanePolygonMesh.polygons[c_id].vertices.size(); pnt++) {
 
-            std::cout << "Point: " << pnt << std::endl;
-            std::cout << "FixturePoly: " << _out_FixturePlanePolygonMesh.polygons[c_id].vertices[pnt] <<
-                      "\tSavedPoly" << _in_SavedPlanePolygonMesh.polygons[c_id].vertices[pnt] << std::endl;
-
-
             //TODO: this is failing in debian_test_it job
             //TODO: fix
             BOOST_CHECK_EQUAL (_out_FixturePlanePolygonMesh.polygons[c_id].vertices[pnt],
