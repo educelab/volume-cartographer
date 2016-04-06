@@ -21,10 +21,6 @@
 #include <vtkStripper.h>
 #include <vtkPlane.h>
 
-#define RED cv::Scalar( 0, 0, 255 )
-
-vtkSmartPointer<vtkPolyData> CreatePlane();
-
 int main( int argc, char *argv[] ) {
   printf("Running tool: vc_projection\n");
   std::cout << std::endl;
