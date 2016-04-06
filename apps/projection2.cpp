@@ -11,20 +11,17 @@
 #include "vc_datatypes.h"
 #include "shapes.h"
 
-#include "io/ply2itk.h"
-#include "itk2vtk.h"
 #include "volumepkg.h"
 
 #include <vtkPLYReader.h>
-#include <vtkPLYWriter.h>
 #include <vtkCutter.h>
 #include <vtkStripper.h>
 #include <vtkPlane.h>
 
 int main( int argc, char *argv[] ) {
   printf("Running tool: vc_projection\n");
-  std::cout << std::endl;
   if (argc < 4) {
+    std::cout << std::endl;
     printf("Usage: vc_projection volpkg seg-id output-dir\n");
     exit(-1);
   }
@@ -35,6 +32,7 @@ int main( int argc, char *argv[] ) {
   std::string outputDir = argv[3];
   int width = volpkg.getSliceWidth();
   int height = volpkg.getSliceHeight();
+  int padding = std::to_string(volpkg.getNumberOfSlices()).size();
 
   // Get Mesh
   vtkSmartPointer<vtkPLYReader> reader = vtkSmartPointer<vtkPLYReader>::New();
@@ -47,6 +45,11 @@ int main( int argc, char *argv[] ) {
   cutPlane->SetNormal(0,0,1);
   double z_min = std::floor(reader->GetOutput()->GetBounds()[4]);
   double z_max = std::ceil(reader->GetOutput()->GetBounds()[5]);
+
+  // Bounds checks
+  if ( z_min < 0 ) z_min = 0;
+  if ( z_max >= volpkg.getNumberOfSlices() ) z_max = volpkg.getNumberOfSlices() - 1;
+  if ( z_min == z_max ) z_max += 1;
 
   // Setup cutting and stripping pipeline
   vtkSmartPointer<vtkCutter> cutter = vtkSmartPointer<vtkCutter>::New();
@@ -61,6 +64,7 @@ int main( int argc, char *argv[] ) {
   cv::Mat outputImg;
   std::vector<cv::Point> contour;
   for( int it = z_min; it < z_max; ++it ) {
+    std::cerr << "volcart::projection::Projecting " << std::to_string(it) << "\r" << std::flush;
     cutPlane->SetOrigin( width/2, height/2, it );
     stripper->Update();
     vtkSmartPointer<vtkPolyData> intersection = stripper->GetOutput();
@@ -77,10 +81,12 @@ int main( int argc, char *argv[] ) {
     }
 
     // Save the output to the provided directory
-    std::string path = outputDir + "/" + std::to_string(it) + ".png";
+    std::stringstream filename;
+    filename << std::setw(padding) << std::setfill('0') << it << ".png";
+    std::string path = outputDir + "/" + filename.str();
     cv::imwrite(path, outputImg);
-
   }
+  std::cerr << std::endl;
 
   return EXIT_SUCCESS;
 }
