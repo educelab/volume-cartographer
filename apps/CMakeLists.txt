@@ -29,6 +29,9 @@ target_link_libraries(vc_metaedit ${VC_LIBS} ${VC_REQ_LIBS})
 add_executable(vc_projection projection.cpp)
 target_link_libraries(vc_projection ${VC_LIBS} ${VC_REQ_LIBS})
 
+add_executable(vc_projection2 projection2.cpp)
+target_link_libraries(vc_projection2 ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
+
 # Cloth Flattening Test
 if(BULLET_FOUND)
     add_executable(vc_cloth cloth.cpp)
