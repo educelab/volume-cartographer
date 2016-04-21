@@ -108,21 +108,23 @@ std::string VolumePkg::getPkgName() const
 };
 
 double VolumePkg::getVersion() const { return config.getDouble("version"); };
+
 // Returns no. of slices from JSON config
 int VolumePkg::getNumberOfSlices() const
 {
     return config.getInt("number of slices");
 }
+
 int VolumePkg::getSliceWidth() const { return config.getInt("width"); }
+
 int VolumePkg::getSliceHeight() const { return config.getInt("height"); }
-double VolumePkg::getVoxelSize() const
-{
-    return config.getDouble("voxelsize");
-};
+
+double VolumePkg::getVoxelSize() const { return config.getDouble("voxelsize"); }
+
 double VolumePkg::getMaterialThickness() const
 {
     return config.getDouble("materialthickness");
-};
+}
 
 // METADATA EXPORT //
 // Save metadata to any file
@@ -130,6 +132,7 @@ void VolumePkg::saveMetadata(const std::string& filePath)
 {
     config.save(filePath);
 }
+
 // Alias for saving to the default config.json
 void VolumePkg::saveMetadata()
 {
@@ -154,6 +157,7 @@ std::vector<std::string> VolumePkg::getSegmentations() const
 {
     return segmentations;
 }
+
 // Set the private variable activeSeg to the seg we want to work with
 void VolumePkg::setActiveSegmentation(const std::string& name)
 {
