@@ -14,7 +14,7 @@ VolumePkg::VolumePkg(const fs::path& file_location, double version)
     if (findDict == volcart::VersionLibrary.end()) {
         std::cerr << "ERROR: No dictionary found for volpkg v." << version
                   << std::endl;
-        // To-Do: Throw an exception in the event we have no dictionary
+        throw std::runtime_error("No dictionary found for volpkg");
     } else {
         config = VolumePkgCfg(findDict->second, version);
     }
@@ -35,12 +35,21 @@ VolumePkg::VolumePkg(const fs::path& file_location, double version)
 
 // Use this when reading a volpkg from a file
 VolumePkg::VolumePkg(const fs::path& file_location)
-    : config(file_location / "config.json")
 {
     root_dir = file_location;
+    if (!fs::exists(root_dir)) {
+        auto errmsg = "location " + file_location.string() + " does not exist";
+        throw std::runtime_error(errmsg);
+    }
+
     segs_dir = file_location / "paths";
     slice_dir = file_location / "slices";
     norm_dir = file_location / "surface_normals";
+    if (!(fs::exists(segs_dir) || fs::exists(slice_dir) ||
+          fs::exists(norm_dir))) {
+        auto errmsg = "invalid volumepkg structure";
+        throw std::runtime_error(errmsg);
+    }
 
     // Copy segmentation paths to segmentations vector
     auto range =
