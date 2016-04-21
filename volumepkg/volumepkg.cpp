@@ -2,9 +2,11 @@
 #include <opencv2/highgui/highgui.hpp>
 #include "volumepkg.h"
 
+namespace fs = boost::filesystem;
+
 // CONSTRUCTORS //
 // Make a volpkg of a particular version number
-VolumePkg::VolumePkg(std::string file_location, double version)
+VolumePkg::VolumePkg(const fs::path& file_location, double version)
 {
     // Lookup the metadata template from our library of versions
     volcart::Library::const_iterator findDict =
@@ -18,12 +20,12 @@ VolumePkg::VolumePkg(std::string file_location, double version)
     }
 
     root_dir = file_location;
-    segs_dir = file_location + "/paths/";
-    slice_dir = file_location + "/slices/";
+    segs_dir = file_location / "paths";
+    slice_dir = file_location / "slices";
     config.setValue(
         "slice location",
         "/slices/");  // To-Do: We need a better way of handling default values
-    norm_dir = file_location + "/surface_normals/";
+    norm_dir = file_location / "surface_normals";
 
     // Initialize volume object
     vol_ =
@@ -32,20 +34,22 @@ VolumePkg::VolumePkg(std::string file_location, double version)
 };
 
 // Use this when reading a volpkg from a file
-VolumePkg::VolumePkg(std::string file_location)
-    : config(file_location + "/config.json")
+VolumePkg::VolumePkg(const fs::path& file_location)
+    : config(file_location / "config.json")
 {
     root_dir = file_location;
-    segs_dir = file_location + "/paths/";
-    slice_dir = file_location + "/slices/";
-    norm_dir = file_location + "/surface_normals/";
+    segs_dir = file_location / "paths";
+    slice_dir = file_location / "slices";
+    norm_dir = file_location / "surface_normals";
 
-    // iterate over paths in segs_dir, push_back to segmentations
-    for (boost::filesystem::directory_iterator iter(segs_dir), end; iter != end;
-         ++iter) {
-        std::string path = boost::filesystem::basename(iter->path());
-        if (path != "")
-            segmentations.push_back(path);
+    // Copy segmentation paths to segmentations vector
+    auto range =
+        boost::make_iterator_range(fs::directory_iterator(segs_dir), {});
+    for (const auto& entry : range) {
+        if (entry == "") {
+            continue;
+        }
+        segmentations.push_back(fs::basename(entry));
     }
 
     // Initialize volume object
@@ -57,8 +61,9 @@ VolumePkg::VolumePkg(std::string file_location)
 // WRITE TO DISK //
 int VolumePkg::initialize()
 {
-    if (_readOnly)
+    if (_readOnly) {
         VC_ERR_READONLY();
+    }
 
     // Build the directory tree
     _makeDirTree();
@@ -93,7 +98,7 @@ int VolumePkg::_makeDirTree()
 
 // METADATA RETRIEVAL //
 // Returns Volume Name from JSON config
-std::string VolumePkg::getPkgName()
+std::string VolumePkg::getPkgName() const
 {
     std::string name = config.getString("volumepkg name");
     if (name != "NULL")
@@ -102,20 +107,29 @@ std::string VolumePkg::getPkgName()
         return "UnnamedVolume";
 };
 
-double VolumePkg::getVersion() { return config.getDouble("version"); };
+double VolumePkg::getVersion() const { return config.getDouble("version"); };
 // Returns no. of slices from JSON config
-int VolumePkg::getNumberOfSlices() { return config.getInt("number of slices"); }
-int VolumePkg::getSliceWidth() { return config.getInt("width"); }
-int VolumePkg::getSliceHeight() { return config.getInt("height"); }
-double VolumePkg::getVoxelSize() { return config.getDouble("voxelsize"); };
-double VolumePkg::getMaterialThickness()
+int VolumePkg::getNumberOfSlices() const
+{
+    return config.getInt("number of slices");
+}
+int VolumePkg::getSliceWidth() const { return config.getInt("width"); }
+int VolumePkg::getSliceHeight() const { return config.getInt("height"); }
+double VolumePkg::getVoxelSize() const
+{
+    return config.getDouble("voxelsize");
+};
+double VolumePkg::getMaterialThickness() const
 {
     return config.getDouble("materialthickness");
 };
 
 // METADATA EXPORT //
 // Save metadata to any file
-void VolumePkg::saveMetadata(std::string filePath) { config.save(filePath); }
+void VolumePkg::saveMetadata(const std::string& filePath)
+{
+    config.save(filePath);
+}
 // Alias for saving to the default config.json
 void VolumePkg::saveMetadata()
 {
@@ -123,7 +137,7 @@ void VolumePkg::saveMetadata()
 }
 
 // Slice manipulation functions
-bool VolumePkg::setSliceData(const size_t index, const cv::Mat& slice)
+bool VolumePkg::setSliceData(size_t index, const cv::Mat& slice)
 {
     if (_readOnly) {
         VC_ERR_READONLY();
@@ -136,66 +150,66 @@ bool VolumePkg::setSliceData(const size_t index, const cv::Mat& slice)
 // SEGMENTATION FUNCTIONS //
 // Return a vector of strings representing the names of segmentations in the
 // volpkg
-std::vector<std::string> VolumePkg::getSegmentations() { return segmentations; }
+std::vector<std::string> VolumePkg::getSegmentations() const
+{
+    return segmentations;
+}
 // Set the private variable activeSeg to the seg we want to work with
-void VolumePkg::setActiveSegmentation(std::string name)
+void VolumePkg::setActiveSegmentation(const std::string& name)
 {
     // To-Do: Check that this seg actually exists in the volume
     activeSeg = name;
-};
+}
 
 // Make a new folder inside the volume package to house everything for this
 // segmentation
 // and push back the new segmentation into our vector of segmentations
 std::string VolumePkg::newSegmentation()
 {
-    // get the file name
-    boost::filesystem::path newSeg(segs_dir);
-
     // make a new dir based off the current date and time
-    std::string segName = VC_DATE_TIME();
-    newSeg += segName;
+    auto newSegName = VC_DATE_TIME();
+    auto newPath = segs_dir / newSegName;
 
-    if (boost::filesystem::create_directory(newSeg)) {
-        segmentations.push_back(segName);
+    if (fs::create_directory(newPath)) {
+        segmentations.push_back(newSegName);
     };
 
-    return segName;
+    return newSegName;
 }
 
 // Return the point cloud currently on disk for the activeSegmentation
-pcl::PointCloud<pcl::PointXYZRGB>::Ptr VolumePkg::openCloud()
+pcl::PointCloud<pcl::PointXYZRGB>::Ptr VolumePkg::openCloud() const
 {
     // To-Do: Error if activeSeg not set
-    std::string outputName = segs_dir.string() + "/" + activeSeg + "/cloud.pcd";
+    auto outputName = segs_dir / activeSeg / "cloud.pcd";
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(
         new pcl::PointCloud<pcl::PointXYZRGB>);
-    pcl::io::loadPCDFile<pcl::PointXYZRGB>(outputName, *cloud);
+    pcl::io::loadPCDFile<pcl::PointXYZRGB>(outputName.string(), *cloud);
     return cloud;
 }
 
 // Return the path to the active segmentation's mesh
-std::string VolumePkg::getMeshPath()
+std::string VolumePkg::getMeshPath() const
 {
-    std::string meshName = segs_dir.string() + "/" + activeSeg + "/cloud.ply";
-    return meshName;
+    return (segs_dir / activeSeg / "cloud.ply").string();
 }
 
 // Return the texture image as a CV mat
-cv::Mat VolumePkg::getTextureData()
+cv::Mat VolumePkg::getTextureData() const
 {
-    std::string texturePath =
-        segs_dir.string() + "/" + activeSeg + "/textured.png";
-    return cv::imread(texturePath, -1);
+    auto texturePath = segs_dir / activeSeg / "textured.png";
+    return cv::imread(texturePath.string(), -1);
 }
 
 // Save a point cloud back to the volumepkg
-int VolumePkg::saveCloud(pcl::PointCloud<pcl::PointXYZRGB> segmentedCloud)
+int VolumePkg::saveCloud(
+    const pcl::PointCloud<pcl::PointXYZRGB>& segmentedCloud) const
 {
-    std::string outputName = segs_dir.string() + "/" + activeSeg + "/cloud.pcd";
+    auto outputName = segs_dir / activeSeg / "cloud.pcd";
     std::cerr << "volcart::volpkg::Writing point cloud to file..." << std::endl;
     try {
-        pcl::io::savePCDFileBinaryCompressed(outputName, segmentedCloud);
+        pcl::io::savePCDFileBinaryCompressed(outputName.string(),
+                                             segmentedCloud);
     } catch (pcl::IOException) {
         std::cerr
             << "volcart::volpkg::error: Problem writing point cloud to file."
@@ -206,11 +220,12 @@ int VolumePkg::saveCloud(pcl::PointCloud<pcl::PointXYZRGB> segmentedCloud)
     return EXIT_SUCCESS;
 }
 
-int VolumePkg::saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segmentedCloud)
+int VolumePkg::saveMesh(
+    const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& segmentedCloud) const
 {
-    std::string outputName = segs_dir.string() + "/" + activeSeg + "/cloud.ply";
-    if (volcart::meshing::orderedPCDMesher(segmentedCloud, outputName) ==
-        EXIT_SUCCESS) {
+    auto outputName = segs_dir / activeSeg / "cloud.ply";
+    if (volcart::meshing::orderedPCDMesher(
+            segmentedCloud, outputName.string()) == EXIT_SUCCESS) {
         std::cerr << "volcart::volpkg::Mesh file saved." << std::endl;
         return EXIT_SUCCESS;
     } else {
@@ -220,36 +235,36 @@ int VolumePkg::saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segmentedCloud)
     }
 }
 
-void VolumePkg::saveMesh(VC_MeshType::Pointer mesh, volcart::Texture texture)
+void VolumePkg::saveMesh(const VC_MeshType::Pointer& mesh,
+                         volcart::Texture& texture) const
 {
     volcart::io::objWriter writer;
-    writer.setPath(segs_dir.string() + "/" + activeSeg + "/textured.obj");
+    auto meshPath = segs_dir / activeSeg / "textured.obj";
+    writer.setPath(meshPath.string());
     writer.setMesh(mesh);
     writer.setTexture(texture.getImage(0));
     writer.setUVMap(texture.uvMap());
     writer.write();
 };
 
-void VolumePkg::saveTextureData(cv::Mat texture, std::string name)
+void VolumePkg::saveTextureData(const cv::Mat& texture, const std::string& name)
 {
-    std::string texturePath =
-        segs_dir.string() + "/" + activeSeg + "/" + name + ".png";
-    cv::imwrite(texturePath, texture);
+    auto texturePath = segs_dir / activeSeg / (name + ".png");
+    cv::imwrite(texturePath.string(), texture);
     printf("Texture image saved.\n");
 }
 
 // See if the given key exists in the volumepkg dictionary and return its type
-std::string VolumePkg::findKeyType(std::string key)
+std::string VolumePkg::findKeyType(const std::string& key)
 {
-    volcart::Library::const_iterator vFind =
-        volcart::VersionLibrary.find(this->getVersion());
+    const auto vFind = volcart::VersionLibrary.find(getVersion());
     if (vFind == volcart::VersionLibrary.end()) {
-        std::cerr << "ERROR: No dictionary found for volpkg v."
-                  << this->getVersion() << std::endl;
+        std::cerr << "ERROR: No dictionary found for volpkg v." << getVersion()
+                  << std::endl;
         return "";
     } else {
-        volcart::Dictionary dict = vFind->second;
-        volcart::Dictionary::const_iterator kFind = dict.find(key);
+        auto dict = vFind->second;
+        const auto kFind = dict.find(key);
         if (kFind == dict.end()) {
             std::cerr << "ERROR: Key \"" << key
                       << "\" not found in dictionary for volpkg v."

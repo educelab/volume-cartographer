@@ -26,19 +26,23 @@ class VolumePkg
 {
 public:
     // Constructors
-    VolumePkg(std::string file_location,
-              double version);             // New volpkg, V.[version]
-    VolumePkg(std::string file_location);  // Existing VolPkgs
+    VolumePkg(const boost::filesystem::path& file_location,
+              double version);  // New volpkg, V.[version]
+
+    VolumePkg(
+        const boost::filesystem::path& file_location);  // Existing VolPkgs
 
     // Write to disk for the first time
     int initialize();
 
     // Accessor for volume
     const volcart::Volume& volume() const { return vol_; }
+
     volcart::Volume& volume() { return vol_; }
     // Debug
-    void printJSON() { config.printObject(); };
-    void printDirs()
+    void printJSON() const { config.printObject(); };
+
+    void printDirs() const
     {
         std::cout << "root: " << root_dir << " seg: " << segs_dir
                   << " slice: " << slice_dir << " norm: " << norm_dir
@@ -46,21 +50,29 @@ public:
     };
 
     // Metadata Retrieval
-    std::string getPkgName();
-    double getVersion();
-    int getNumberOfSlices();
-    int getSliceWidth();
-    int getSliceHeight();
-    double getVoxelSize();
-    double getMaterialThickness();
+    std::string getPkgName() const;
+
+    double getVersion() const;
+
+    int getNumberOfSlices() const;
+
+    int getSliceWidth() const;
+
+    int getSliceHeight() const;
+
+    double getVoxelSize() const;
+
+    double getMaterialThickness() const;
 
     // Metadata Assignment
-    bool readOnly() { return _readOnly; };
+    bool readOnly() const { return _readOnly; };
+
     void readOnly(bool b) { _readOnly = b; };
+
     // set a metadata key to a value
     // Sorry for this templated mess. - SP 072015
     template <typename T>
-    int setMetadata(std::string key, T value)
+    int setMetadata(const std::string& key, T value)
     {
         if (_readOnly)
             VC_ERR_READONLY();
@@ -113,23 +125,38 @@ public:
     };
 
     // Metadata Export
-    void saveMetadata(std::string filePath);
+    void saveMetadata(const std::string& filePath);
+
     void saveMetadata();
 
     // Slice manipulation
-    bool setSliceData(const size_t index, const cv::Mat& slice);
+    bool setSliceData(size_t index, const cv::Mat& slice);
 
     // Segmentation functions
-    std::vector<std::string> getSegmentations();
-    void setActiveSegmentation(std::string);
+    std::vector<std::string> getSegmentations() const;
+
+    void setActiveSegmentation(const std::string&);
+
     std::string newSegmentation();
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr openCloud();
-    std::string getMeshPath();
-    cv::Mat getTextureData();
-    int saveCloud(pcl::PointCloud<pcl::PointXYZRGB>);
-    int saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr);
-    void saveMesh(VC_MeshType::Pointer mesh, volcart::Texture texture);
-    void saveTextureData(cv::Mat, std::string = "textured");
+
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr openCloud() const;
+
+    std::string getMeshPath() const;
+
+    cv::Mat getTextureData() const;
+
+    int saveCloud(
+        const pcl::PointCloud<pcl::PointXYZRGB>& segmentedCloud) const;
+
+    int saveMesh(
+        const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& segmentedCloud) const;
+
+    void saveMesh(const VC_MeshType::Pointer& mesh,
+                  volcart::Texture& texture) const;
+
+    void saveTextureData(const cv::Mat& texture,
+                         const std::string& name = "textured");
+
     void saveTextureData(volcart::Texture texture, int index = 0)
     {
         saveTextureData(texture.getImage(index));
@@ -153,7 +180,7 @@ private:
     std::string activeSeg = "";
     std::vector<std::string> segmentations;
 
-    std::string findKeyType(std::string);
+    std::string findKeyType(const std::string& key);
 };
 
 #endif  // _VOLUMEPKG_H_
