@@ -30,8 +30,10 @@ public:
     Volume() = default;
 
     Volume(boost::filesystem::path slicePath,
-           boost::filesystem::path normalPath, int32_t nslices,
-           int32_t sliceWidth, int32_t sliceHeight)
+           boost::filesystem::path normalPath,
+           int32_t nslices,
+           int32_t sliceWidth,
+           int32_t sliceHeight)
         : slicePath_(slicePath),
           normalPath_(normalPath),
           numSlices_(nslices),
@@ -41,19 +43,25 @@ public:
         numSliceCharacters_ = std::to_string(nslices).size();
     }
 
+    void setNumberOfSlices(size_t numSlices)
+    {
+        numSlices_ = numSlices;
+        numSliceCharacters_ = std::to_string(numSlices_).size();
+    }
+
     // Returning const ref doesn't actually forbid modifying cv::Mat data by the
     // compiler, but it should serve as a warning to the programmer that you
     // shouldn't monkey around with it.
-    const cv::Mat& getSliceData(const int32_t index) const;
+    const cv::Mat& getSliceData(int32_t index) const;
 
     // Instead, supply this function that will return a copy of the data
-    cv::Mat getSliceDataCopy(const int32_t index) const;
+    cv::Mat getSliceDataCopy(int32_t index) const;
 
-    bool setSliceData(const int32_t index, const cv::Mat& slice);
+    bool setSliceData(int32_t index, const cv::Mat& slice);
 
-    boost::filesystem::path getSlicePath(const int32_t index) const;
+    boost::filesystem::path getSlicePath(int32_t index) const;
 
-    boost::filesystem::path getNormalPathAtIndex(const int32_t index) const;
+    boost::filesystem::path getNormalPathAtIndex(int32_t index) const;
 
     uint16_t interpolateAt(const Voxel point) const;
 
@@ -62,8 +70,7 @@ public:
         return interpolateAt(nonGridPoint);
     }
 
-    uint16_t interpolatedIntensityAt(const double x, const double y,
-                                     const double z) const
+    uint16_t interpolatedIntensityAt(double x, double y, double z) const
     {
         // clang-format off
         if (x < 0 || x >= sliceWidth_ ||
@@ -80,7 +87,8 @@ public:
         return intensityAt(int32_t(v(0)), int32_t(v(1)), int32_t(v(2)));
     }
 
-    uint16_t intensityAt(const int32_t x, const int32_t y,
+    uint16_t intensityAt(const int32_t x,
+                         const int32_t y,
                          const int32_t z) const
     {
         // clang-format off
@@ -94,70 +102,79 @@ public:
     }
 
     // Number of elements allowed in the cache
-    void setCacheCapacity(const size_t newCacheCapacity)
+    void setCacheCapacity(size_t newCacheCapacity)
     {
         cache_.setCapacity(newCacheCapacity);
     }
     size_t getCacheCapacity() const { return cache_.capacity(); };
 
-    void setCacheMemoryInBytes(const size_t nbytes)
+    void setCacheMemoryInBytes(size_t nbytes)
     {
         setCacheCapacity(nbytes / (sliceWidth_ * sliceHeight_));
     }
-    
+
     // Number of elements in the cache
     size_t getCacheSize() const { return cache_.size(); };
 
-    Slice reslice(const Voxel center, const cv::Vec3d xvec,
-                  const cv::Vec3d yvec, const int32_t width = 64,
-                  const int32_t height = 64) const;
+    Slice reslice(const Voxel center,
+                  const cv::Vec3d xvec,
+                  const cv::Vec3d yvec,
+                  int32_t width = 64,
+                  int32_t height = 64) const;
 
-    StructureTensor structureTensorAt(
-        const int32_t x, const int32_t y, const int32_t z,
-        const int32_t voxelRadius = 1,
-        const int32_t gradientKernelSize = 3) const;
+    StructureTensor structureTensorAt(int32_t x,
+                                      int32_t y,
+                                      int32_t z,
+                                      int32_t voxelRadius = 1,
+                                      int32_t gradientKernelSize = 3) const;
 
-    StructureTensor structureTensorAt(
-        const cv::Point3i index, const int32_t voxelRadius = 1,
-        const int32_t gradientKernelSize = 3) const
+    StructureTensor structureTensorAt(const cv::Point3i index,
+                                      int32_t voxelRadius = 1,
+                                      int32_t gradientKernelSize = 3) const
     {
         return structureTensorAt(index.x, index.y, index.z, voxelRadius,
                                  gradientKernelSize);
     }
 
     StructureTensor interpolatedStructureTensorAt(
-        const double x, const double y, const double z,
-        const int32_t voxelRadius = 1,
-        const int32_t gradientKernelSize = 3) const;
+        double x,
+        double y,
+        double z,
+        int32_t voxelRadius = 1,
+        int32_t gradientKernelSize = 3) const;
 
     StructureTensor interpolatedStructureTensorAt(
-        const cv::Point3d index, const int32_t voxelRadius = 1,
-        const int32_t gradientKernelSize = 3) const
+        const cv::Point3d index,
+        int32_t voxelRadius = 1,
+        int32_t gradientKernelSize = 3) const
     {
         return interpolatedStructureTensorAt(index.x, index.y, index.z,
                                              voxelRadius, gradientKernelSize);
     }
 
-    EigenPairs eigenPairsAt(const int32_t x, const int32_t y, const int32_t z,
-                            const int32_t voxelRadius = 1,
-                            const int32_t gradientKernelSize = 3) const;
+    EigenPairs eigenPairsAt(int32_t x,
+                            int32_t y,
+                            int32_t z,
+                            int32_t voxelRadius = 1,
+                            int32_t gradientKernelSize = 3) const;
 
     EigenPairs eigenPairsAt(const cv::Point3i index,
-                            const int32_t voxelRadius = 1,
-                            const int32_t gradientKernelSize = 3) const
+                            int32_t voxelRadius = 1,
+                            int32_t gradientKernelSize = 3) const
     {
         return eigenPairsAt(index.x, index.y, index.z, voxelRadius,
                             gradientKernelSize);
     }
 
-    EigenPairs interpolatedEigenPairsAt(
-        const double x, const double y, const double z,
-        const int32_t voxelRadius = 1,
-        const int32_t gradientKernelSize = 3) const;
+    EigenPairs interpolatedEigenPairsAt(double x,
+                                        double y,
+                                        double z,
+                                        int32_t voxelRadius = 1,
+                                        int32_t gradientKernelSize = 3) const;
 
-    EigenPairs interpolatedEigenPairsAt(
-        const cv::Point3d index, const int32_t voxelRadius = 1,
-        const int32_t gradientKernelSize = 3) const
+    EigenPairs interpolatedEigenPairsAt(const cv::Point3d index,
+                                        int32_t voxelRadius = 1,
+                                        int32_t gradientKernelSize = 3) const
     {
         return interpolatedEigenPairsAt(index.x, index.y, index.z, voxelRadius,
                                         gradientKernelSize);
@@ -165,8 +182,9 @@ public:
 
     template <typename DType>
     Tensor3D<DType> getVoxelNeighbors(const cv::Point3i center,
-                                      const int32_t rx, const int32_t ry,
-                                      const int32_t rz) const
+                                      int32_t rx,
+                                      int32_t ry,
+                                      int32_t rz) const
     {
         // Safety checks
         assert(center.x >= 0 && center.x < sliceWidth_ && center.y >= 0 &&
@@ -196,16 +214,16 @@ public:
 
     template <typename DType>
     Tensor3D<DType> getVoxelNeighborsCubic(const cv::Point3i center,
-                                           const int32_t radius) const
+                                           int32_t radius) const
     {
         return getVoxelNeighbors<DType>(center, radius, radius, radius);
     }
 
     template <typename DType>
     Tensor3D<DType> getVoxelNeighborsInterpolated(const cv::Point3d center,
-                                                  const int32_t rx,
-                                                  const int32_t ry,
-                                                  const int32_t rz) const
+                                                  int32_t rx,
+                                                  int32_t ry,
+                                                  int32_t rz) const
     {
         // Safety checks
         assert(center.x >= 0 && center.x < sliceWidth_ && center.y >= 0 &&
@@ -235,8 +253,8 @@ public:
     }
 
     template <typename DType>
-    Tensor3D<DType> getVoxelNeighborsCubicInterpolated(
-        const cv::Point3d center, const int32_t radius) const
+    Tensor3D<DType> getVoxelNeighborsCubicInterpolated(const cv::Point3d center,
+                                                       int32_t radius) const
     {
         return getVoxelNeighborsInterpolated<DType>(center, radius, radius,
                                                     radius);
@@ -252,11 +270,11 @@ private:
     mutable volcart::LRUCache<int32_t, cv::Mat> cache_;
 
     Tensor3D<cv::Vec3d> volumeGradient(const Tensor3D<double>& v,
-                                       const int32_t gradientKernelSize) const;
+                                       int32_t gradientKernelSize) const;
 
     cv::Mat_<double> gradient(const cv::Mat_<double>& input,
-                              const GradientAxis axis,
-                              const int32_t gradientKernelSize) const;
+                              GradientAxis axis,
+                              int32_t gradientKernelSize) const;
 };
 }
 
