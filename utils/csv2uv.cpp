@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
                 getline( file, line );
             else
                 getline( file, line, ',' );
-            vertex[2] = std::abs( 1 - std::stod(line) ); // Blender UVs are rotated 180
+            vertex[2] = std::abs( std::stod(line) ); // Blender UVs are rotated 180
 
             // W -> Y
             vertex[1] = 0.0;

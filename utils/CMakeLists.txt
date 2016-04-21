@@ -23,6 +23,9 @@ target_link_libraries(vc_mappingExtractor ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRAR
 add_executable(vc_csv2uv csv2uv.cpp)
 target_link_libraries(vc_csv2uv ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
 
+add_executable(pcl_convert_pcd_ascii_binary convert_pcd_ascii_binary.cpp)
+target_link_libraries(pcl_convert_pcd_ascii_binary pcl_common pcl_io ${VC_REQ_LIBS})
+
 # Install targets
 install(TARGETS vc_txt2pcd vc_zxy2xyz vc_area vc_seg2printable vc_splitcloud
         RUNTIME DESTINATION bin COMPONENT Utilities)
