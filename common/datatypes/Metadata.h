@@ -16,39 +16,42 @@
 
 #include "../vc_defines.h"
 
-namespace volcart {
-    class Metadata {
-    public:
-        Metadata();
-        Metadata(std::string file_location);
+namespace volcart
+{
+class Metadata
+{
 
-        // Path
-        boost::filesystem::path path() { return _path; };
-        void setPath( std::string path ) { _path = path; };
+public:
+    Metadata();
+    Metadata(const boost::filesystem::path& file_location);
 
-        // Save to file
-        void save(std::string path);
-        void save() { save( _path.string() ); };
+    // Path
+    boost::filesystem::path path() const { return _path; };
+    void setPath(const std::string& path) { _path = path; };
 
-        // Debug functions
-        void printString();
-        void printObject();
+    // Save to file
+    void save(const boost::filesystem::path& path);
+    void save() { save(_path.string()); };
 
-        // Retrieval
-        int getInt(std::string);
-        double getDouble(std::string);
-        std::string getString(std::string);
+    // Debug functions
+    void printString() const;
+    void printObject() const;
 
-        // Assignment
-        void setValue(std::string, int);
-        void setValue(std::string, unsigned long);
-        void setValue(std::string, double);
-        void setValue(std::string, std::string);
+    // Retrieval
+    int getInt(const std::string& key) const;
+    double getDouble(const std::string& key) const;
+    std::string getString(const std::string& key) const;
 
-    protected:
-        picojson::value _json;
-        boost::filesystem::path _path;
-    };
+    // Assignment
+    void setValue(const std::string& key, int value);
+    void setValue(const std::string& key, unsigned long value);
+    void setValue(const std::string& key, double value);
+    void setValue(const std::string& key, const std::string& value);
+
+protected:
+    picojson::value _json;
+    boost::filesystem::path _path;
+};
 }
 
-#endif // _VC_METADATA_H_
+#endif  // _VC_METADATA_H_
