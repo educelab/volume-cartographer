@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
+add_executable(vc_cone_example coneExample.cpp)
+target_link_libraries(vc_cone_example ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
+
 ###########
 # volpkg  #
 ###########
@@ -32,9 +35,6 @@ target_link_libraries(vc_greedyExample ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES
 
 add_executable(vc_uvMapExample uvMapExample.cpp)
 target_link_libraries(vc_uvMapExample ${VC_LIBS} ${VC_REQ_LIBS})
-
-add_executable(vc_poissonExample poissonReconstructionExample.cpp)
-target_link_libraries(vc_poissonExample ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
 
 add_executable(vc_plyExporterExample plyExporterExample.cpp)
 target_link_libraries(vc_plyExporterExample ${VC_LIBS} ${VC_REQ_LIBS})
