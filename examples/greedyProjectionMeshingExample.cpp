@@ -10,15 +10,8 @@
 
 
 #include <pcl/common/common.h>
-#include <pcl/point_types.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/io/obj_io.h>
-#include <pcl/PCLHeader.h>
-#include <pcl/PCLPointField.h>
-#include <pcl/PCLPointCloud2.h>
-#include "pcl/conversions.h"
-
-#include "vc_defines.h"
 #include "shapes.h"
 #include "greedyProjectionMeshing.h"
 
