@@ -64,8 +64,15 @@ int main(int argc, char* argv[])
             std::cout << options << std::endl;
             return EXIT_SUCCESS;
         }
+
         // Warn of missing options
-        boost::program_options::notify(parsedOptions);
+        try {
+            boost::program_options::notify(parsedOptions);
+        }
+        catch( boost::program_options::error& e ) {
+            std::cerr << "ERROR: " << e.what() << std::endl;
+            return EXIT_FAILURE;
+        }
 
         // Get the parsed options
         volpkgPath = parsedOptions["volpkg"].as<std::string>();

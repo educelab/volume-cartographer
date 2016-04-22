@@ -144,6 +144,11 @@ StructureTensor Volume::structureTensorAt(int32_t vx,
     // Get voxels in radius voxelRadius around voxel (x, y, z)
     auto v = getVoxelNeighborsCubic<double>({vx, vy, vz}, voxelRadius);
 
+    // Normalize voxel neighbors to [0, 1]
+    for (int32_t z = 0; z < v.dz; ++z) {
+        v.xySlice(z) /= std::numeric_limits<uint16_t>::max();
+    }
+
     // Get gradient of volume
     auto gradientField = volumeGradient(v, gradientKernelSize);
 
@@ -159,7 +164,9 @@ StructureTensor Volume::structureTensorAt(int32_t vx,
         }
     }
 
-    return sum;
+    cv::Mat matSum(sum);
+    matSum /= v.dx * v.dy * v.dz;
+    return StructureTensor(matSum);
 }
 
 StructureTensor Volume::interpolatedStructureTensorAt(
@@ -197,7 +204,9 @@ StructureTensor Volume::interpolatedStructureTensorAt(
         }
     }
 
-    return sum;
+    cv::Mat matSum(sum);
+    matSum /= v.dx * v.dy * v.dz;
+    return StructureTensor(matSum);
 }
 
 EigenPairs Volume::eigenPairsAt(int32_t x,
@@ -308,25 +317,26 @@ cv::Mat_<double> Volume::gradient(const cv::Mat_<double>& input,
     constexpr double DELTA = 0;
 
     cv::Mat_<double> grad(input.rows, input.cols);
+
     switch (axis) {
-        case GradientAxis::X:
-            if (ksize == 3) {
-                cv::Scharr(input, grad, CV_64F, 1, 0, SCALE, DELTA,
-                           cv::BORDER_REPLICATE);
-            } else {
-                cv::Sobel(input, grad, CV_64F, 1, 0, ksize, SCALE, DELTA,
-                          cv::BORDER_REPLICATE);
-            }
-            break;
-        case GradientAxis::Y:
-            if (ksize == 3) {
-                cv::Scharr(input, grad, CV_64F, 0, 1, SCALE, DELTA,
-                           cv::BORDER_REPLICATE);
-            } else {
-                cv::Sobel(input, grad, CV_64F, 0, 1, ksize, SCALE, DELTA,
-                          cv::BORDER_REPLICATE);
-            }
-            break;
+    case GradientAxis::X:
+        if (ksize == 3) {
+            cv::Scharr(input, grad, CV_64F, 1, 0, SCALE, DELTA,
+                       cv::BORDER_REPLICATE);
+        } else {
+            cv::Sobel(input, grad, CV_64F, 1, 0, ksize, SCALE, DELTA,
+                      cv::BORDER_REPLICATE);
+        }
+        break;
+    case GradientAxis::Y:
+        if (ksize == 3) {
+            cv::Scharr(input, grad, CV_64F, 0, 1, SCALE, DELTA,
+                       cv::BORDER_REPLICATE);
+        } else {
+            cv::Sobel(input, grad, CV_64F, 0, 1, ksize, SCALE, DELTA,
+                      cv::BORDER_REPLICATE);
+        }
+        break;
     }
     return grad;
 }

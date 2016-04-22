@@ -34,11 +34,11 @@ public:
            int32_t nslices,
            int32_t sliceWidth,
            int32_t sliceHeight)
-        : slicePath_(slicePath),
-          normalPath_(normalPath),
-          numSlices_(nslices),
-          sliceWidth_(sliceWidth),
-          sliceHeight_(sliceHeight)
+        : slicePath_(slicePath)
+        , normalPath_(normalPath)
+        , numSlices_(nslices)
+        , sliceWidth_(sliceWidth)
+        , sliceHeight_(sliceHeight)
     {
         numSliceCharacters_ = std::to_string(nslices).size();
     }
@@ -53,6 +53,18 @@ public:
     // compiler, but it should serve as a warning to the programmer that you
     // shouldn't monkey around with it.
     const cv::Mat& getSliceData(int32_t index) const;
+
+    int32_t sliceWidth() const { return sliceWidth_; }
+
+    int32_t sliceHeight() const { return sliceHeight_; }
+
+    int32_t numSlices() const { return numSlices_; }
+
+    bool isInBounds(const Voxel v) const
+    {
+        return v(0) >= 0 && v(0) < sliceWidth_ && v(1) >= 0 &&
+               v(1) < sliceHeight_ && v(2) >= 0 && v(2) < numSlices_;
+    }
 
     // Instead, supply this function that will return a copy of the data
     cv::Mat getSliceDataCopy(int32_t index) const;

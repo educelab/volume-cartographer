@@ -3,7 +3,9 @@
 #include <opencv2/opencv.hpp>
 #include "volumepkg.h"
 
-void draw(const volcart::Volume& v, const int32_t zSlice, const EigenVector vec,
+void draw(const volcart::Volume& v,
+          const int32_t zSlice,
+          const EigenVector vec,
           const cv::Point p1);
 
 int main(int argc, char** argv)
@@ -42,7 +44,9 @@ int main(int argc, char** argv)
     }
 }
 
-void draw(const volcart::Volume& v, const int32_t zSlice, const EigenVector vec,
+void draw(const volcart::Volume& v,
+          const int32_t zSlice,
+          const EigenVector vec,
           const cv::Point p1)
 {
     auto slice = v.getSliceDataCopy(zSlice);
@@ -50,7 +54,7 @@ void draw(const volcart::Volume& v, const int32_t zSlice, const EigenVector vec,
     slice.convertTo(slice, CV_8UC3);
     cv::cvtColor(slice, slice, CV_GRAY2BGR);
 
-    constexpr int32_t scale = 10;
+    constexpr int32_t scale = 50;
     const cv::Point p2{cvRound(p1.x + vec(0) * scale),
                        cvRound(p1.y + vec(1) * scale)};
     cv::line(slice, p1, p2, cv::Scalar(0, 0, 0xFF), 2);
