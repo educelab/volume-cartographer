@@ -36,9 +36,6 @@ target_link_libraries(vc_greedyExample ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES
 add_executable(vc_uvMapExample uvMapExample.cpp)
 target_link_libraries(vc_uvMapExample ${VC_LIBS} ${VC_REQ_LIBS})
 
-add_executable(vc_poissonExample poissonReconstructionExample.cpp)
-target_link_libraries(vc_poissonExample ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
-
 add_executable(vc_plyExporterExample plyExporterExample.cpp)
 target_link_libraries(vc_plyExporterExample ${VC_LIBS} ${VC_REQ_LIBS})
 

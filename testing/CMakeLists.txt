@@ -99,17 +99,6 @@ add_executable(vc_test_orderedPCDMesher meshing/orderedPCDMesherTest.cpp parsing
 target_link_libraries(vc_test_orderedPCDMesher ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME orderedPCDMesher WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_orderedPCDMesher )
 
-# Copy the test files created by poissonReconstructionExample.cpp 
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/poissonExample.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/PlanePoissonReconstruction.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/CubePoissonReconstruction.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ArchPoissonReconstruction.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/SpherePoissonReconstruction.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ConePoissonReconstruction.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
-add_executable(vc_test_poissonReconstruction meshing/poissonReconstructionTest.cpp)
-target_link_libraries(vc_test_poissonReconstruction ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-add_test(NAME poissonReconstruction WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_poissonReconstruction )
-
 # Copy the test files created by rayTraceExample.cpp
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/SavedPlaneRayTraceData.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/SavedCubeRayTraceData.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
