@@ -42,6 +42,8 @@ VolumePkg::VolumePkg(const fs::path& file_location)
         throw std::runtime_error(errmsg);
     }
 
+    config = VolumePkgCfg(file_location.string() + "/config.json");
+
     segs_dir = file_location / "paths";
     slice_dir = file_location / "slices";
     norm_dir = file_location / "surface_normals";
