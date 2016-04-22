@@ -43,7 +43,8 @@ int main(int argc, char* argv[])
         ("end-index", po::value<int32_t>(),
             "Ending slice index. Mutually exclusive with 'stride'")
         ("stride", po::value<int32_t>(),
-            "Ending slice index. Mutually exclusive with 'end-index'")
+            "Number of slices to propagate through relative to the starting slice index. "
+            "Mutually exclusive with 'end-index'")
         ("step-size", po::value<int32_t>()->default_value(kDefaultStep),
             "Z distance travelled per iteration");
 
@@ -74,7 +75,7 @@ int main(int argc, char* argv[])
             "Weighting for distance vs maxima intensity")
         ("consider-previous,p",
             po::value<bool>()->default_value(kDefaultConsiderPrevious),
-            "Consider propagation of a point's previous XY position as a"
+            "Consider propagation of a point's previous XY position as a "
             "candidate when optimizing each iteration")
         ("visualize", "Display curve visualization as algorithm runs")
         ("dump-vis", "Write full visualization information to disk as algorithm runs");
@@ -100,7 +101,7 @@ int main(int argc, char* argv[])
     }
     if (opts.count("end-index") && opts.count("stride")) {
         std::cerr
-            << "[error]: 'start-index' and 'stride' are mututally exclusive"
+            << "[error]: 'end-index' and 'stride' are mutually exclusive"
             << std::endl;
         std::exit(1);
     }

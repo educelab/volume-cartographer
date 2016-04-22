@@ -29,7 +29,7 @@ inline cv::Vec3d SphericalToCartesian(double theta, double phi)
 
 void drawReslice(cv::Mat reslice);
 
-void drawSliceWithResliceVector(volcart::Volume& vpkg,
+void drawSliceWithResliceVector(volcart::Volume& volume,
                                 const cv::Vec3d resliceVector,
                                 const cv::Vec3d center);
 
