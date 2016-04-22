@@ -86,6 +86,12 @@ int main(){
             itkwriter->SetFileTypeAsASCII();
             itkwriter->SetFileName("ScaledConeMesh.obj");
             itkwriter->Write();
+
+            itkwriter->SetInput(in_ConeITKMesh);
+            itkwriter->SetFileTypeAsASCII();
+            itkwriter->SetFileName("Cone.obj");
+            itkwriter->Write();
+
         }
 
         ++ShapeCounter;

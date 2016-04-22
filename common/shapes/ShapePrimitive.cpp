@@ -136,9 +136,9 @@ namespace shapes {
             //assign color values
             //this is just for setting up testing values
             //values must fall within 0-255 range
-            point.r = p_id->x + p_id->z;
-            point.g = 35 * p_id->x + p_id->z;
-            point.b = p_id->x + p_id->z * 45;
+            point.r = std::abs(p_id->x) + p_id->z;
+            point.g = 35 * std::abs(p_id->x) + p_id->z;
+            point.b = std::abs(p_id->x) + p_id->z * 45;
 
             output.push_back(point);
 
