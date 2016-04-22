@@ -52,7 +52,7 @@ BOOST_FIXTURE_TEST_CASE(DefaultSegmentationTest, LocalResliceSegmentationFix)
     const auto groundTruthCloud = _pkg.openCloud();
 
     // Get the starting cloud to segment
-    const std::string startingCloudSeg("starting-path");
+    const std::string startingCloudSeg("lrps-test-results");
     _pkg.setActiveSegmentation(startingCloudSeg);
     auto startingCloud = _pkg.openCloud();
 

@@ -146,8 +146,9 @@ add_test(NAME scaleMesh WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_tes
 
 ##  localParticleSim ##
 file(COPY
-    ${CMAKE_CURRENT_SOURCE_DIR}/test_data/volpkg/Testing.volpkg
-    DESTINATION ${CMAKE_BINARY_DIR}/bin)
+        ${CMAKE_BINARY_DIR}/bin/Testing.volpkg/paths/starting-path/cloud.pcd
+    DESTINATION
+        ${CMAKE_BINARY_DIR}/bin/Testing.volpkg/paths/lrps-test-results)
 add_executable(vc_test_localResliceParticleSim
     segmentation/localResliceParticleSim/localResliceParticleSimTest.cpp)
 target_link_libraries(vc_test_localResliceParticleSim
