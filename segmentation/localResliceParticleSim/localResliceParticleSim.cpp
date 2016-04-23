@@ -228,37 +228,33 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
 
         // Take initial second derivative
         auto secondDeriv = d2(nextVs);
-        std::vector<double> normDeriv2;
-        std::transform(begin(secondDeriv), end(secondDeriv),
-                       std::back_inserter(normDeriv2),
+        std::vector<double> normDeriv2(secondDeriv.size());
+        std::transform(begin(secondDeriv) + 1, end(secondDeriv) - 1,
+                       begin(normDeriv2),
                        [](Voxel d) { return cv::norm(d) * cv::norm(d); });
 
-        auto maxVal = std::max_element(begin(normDeriv2), end(normDeriv2));
+        // Don't resettle points at the beginning or end of the chain
+        auto maxVal =
+            std::max_element(begin(normDeriv2) + 1, end(normDeriv2) - 1);
         int32_t settlingIters = 0;
 
         // Iterate until we move all out-of-place points back into place
         while (*maxVal > 10.0 && settlingIters++ < 100) {
             Voxel newPoint;
             int32_t i = maxVal - begin(normDeriv2);
-            if (i == 0) {
-                Voxel diff = nextVs[i + 2] - nextVs[i + 1];
-                newPoint = nextVs[i + 1] - diff;
-            } else if (i == int32_t(nextVs.size() - 1)) {
-                Voxel diff = nextVs[i - 2] - nextVs[i - 3];
-                newPoint = nextVs[i - 2] + diff;
-            } else {
-                Voxel diff = 0.5 * nextVs[i + 1] - 0.5 * nextVs[i - 1];
-                newPoint = nextVs[i - 1] + diff;
-            }
+            Voxel diff = 0.5 * nextVs[i + 1] - 0.5 * nextVs[i - 1];
+            newPoint = nextVs[i - 1] + diff;
             nextVs[i] = newPoint;
 
             // Re-evaluate second derivative of new curve
             secondDeriv = d2(nextVs);
-            normDeriv2.clear();
             std::transform(begin(secondDeriv), end(secondDeriv),
-                           std::back_inserter(normDeriv2),
+                           begin(normDeriv2),
                            [](Voxel d) { return cv::norm(d) * cv::norm(d); });
-            maxVal = std::max_element(begin(normDeriv2), end(normDeriv2));
+
+            // Don't resettle points at the beginning or end of the chain
+            maxVal =
+                std::max_element(begin(normDeriv2) + 1, end(normDeriv2) - 1);
         }
 
         // Check if any points in nextVs are outside volume boundaries. If so,
