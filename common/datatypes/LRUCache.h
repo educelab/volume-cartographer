@@ -62,6 +62,7 @@ public:
 
     void put(const TKey& k, const TValue& v)
     {
+        // If already in cache, need to refresh it
         auto lookupIter = lookup_.find(k);
         if (lookupIter != std::end(lookup_)) {
             items_.erase(lookupIter->second);
@@ -95,4 +96,4 @@ private:
 };
 }  // namespace volcart
 
-#endif  // _VOLCART_LRUCACHE_H_
+#endif
