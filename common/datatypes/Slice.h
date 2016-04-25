@@ -12,10 +12,14 @@ class Slice
 public:
     Slice(cv::Mat, cv::Vec3d, cv::Vec3d, cv::Vec3d);
 
-    cv::Vec3d sliceCoordToVoxelCoord(const cv::Point) const;
+    template <typename T>
+    cv::Vec3d sliceToVoxelCoord(const cv::Point_<T> resliceCoord) const
+    {
+        return origin_ + (resliceCoord.x * xvec_ + resliceCoord.y * yvec_);
+    }
 
     const cv::Mat& sliceData() const { return sliceData_; }
-    void draw() const;
+    cv::Mat draw() const;
 
 private:
     cv::Mat sliceData_;

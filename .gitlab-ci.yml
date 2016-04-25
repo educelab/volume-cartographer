@@ -4,7 +4,7 @@ stages:
     - deploy
 
 build_it_debian:
-    image: volcart/vcbuilder-debian
+    image: volcart/vcbuilder-debian:latest
     stage: build
     script:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
@@ -21,7 +21,7 @@ build_it_debian:
         - ninja
 
 test_it_debian:
-    image: volcart/vcbuilder-debian
+    image: volcart/vcbuilder-debian:latest
     stage: test
     script:
         - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
@@ -40,7 +40,6 @@ test_it_debian:
         - static
         - qt5
         - ninja
-    allow_failure: true
 
 build_it:
     stage: build
@@ -77,7 +76,6 @@ test_it:
         - homebrew
         - qt5
         - ninja
-    allow_failure: true
 
 deploy_it_osx:
     stage: deploy

@@ -99,17 +99,6 @@ add_executable(vc_test_orderedPCDMesher meshing/orderedPCDMesherTest.cpp parsing
 target_link_libraries(vc_test_orderedPCDMesher ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME orderedPCDMesher WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_orderedPCDMesher )
 
-# Copy the test files created by poissonReconstructionExample.cpp 
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/poissonExample.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/PlanePoissonReconstruction.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/CubePoissonReconstruction.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ArchPoissonReconstruction.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/SpherePoissonReconstruction.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ConePoissonReconstruction.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
-add_executable(vc_test_poissonReconstruction meshing/poissonReconstructionTest.cpp)
-target_link_libraries(vc_test_poissonReconstruction ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-add_test(NAME poissonReconstruction WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_poissonReconstruction )
-
 # Copy the test files created by rayTraceExample.cpp
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/SavedPlaneRayTraceData.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/SavedCubeRayTraceData.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
@@ -156,23 +145,84 @@ add_test(NAME scaleMesh WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_tes
 #-----------------------#
 
 ##  localParticleSim ##
+file(COPY
+        ${CMAKE_BINARY_DIR}/bin/Testing.volpkg/paths/starting-path/cloud.pcd
+    DESTINATION
+        ${CMAKE_BINARY_DIR}/bin/Testing.volpkg/paths/lrps-test-results)
+add_executable(vc_test_localResliceParticleSim
+    segmentation/localResliceParticleSim/localResliceParticleSimTest.cpp)
+target_link_libraries(vc_test_localResliceParticleSim
+    ${VC_LIBS}
+    ${VC_REQ_LIBS}
+    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+add_test(NAME localResliceParticleSim
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    COMMAND vc_test_localResliceParticleSim)
 
-#add_executable(vc_test_chain segmentation/localResliceParticleSim/chainTest.cpp)
-#target_link_libraries(vc_test_chain ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-#add_test(NAME chain WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_chain )
+add_executable(vc_test_localResliceParticleSim_common
+    segmentation/localResliceParticleSim/commonTest.cpp)
+target_link_libraries(vc_test_localResliceParticleSim_common
+    ${VC_LIBS}
+    ${VC_REQ_LIBS}
+    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+add_test(NAME lrps_common
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    COMMAND vc_test_localResliceParticleSim_common)
 
-#add_executable(vc_test_field segmentation/localResliceParticleSim/fieldTest.cpp)
-#target_link_libraries(vc_test_field ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-#add_test(NAME field WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_field )
+add_executable(vc_test_localResliceParticleSim_cubicspline
+    segmentation/localResliceParticleSim/cubicSplineTest.cpp)
+target_link_libraries(vc_test_localResliceParticleSim_cubicspline
+    ${VC_LIBS}
+    ${VC_REQ_LIBS}
+    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+add_test(NAME lrps_spline
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    COMMAND vc_test_localResliceParticleSim_cubicspline)
 
-#add_executable(vc_test_localResliceParticleSim segmentation/localResliceParticleSim/localResliceParticleSimTest.cpp)
-#target_link_libraries(vc_test_localResliceParticleSim ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-#add_test(NAME localResliceParticleSim WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_localResliceParticleSim )
+add_executable(vc_test_localResliceParticleSim_fittedcurve
+    segmentation/localResliceParticleSim/fittedCurveTest.cpp)
+target_link_libraries(vc_test_localResliceParticleSim_fittedcurve
+    ${VC_LIBS}
+    ${VC_REQ_LIBS}
+    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+add_test(NAME lrps_fittedcurve
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    COMMAND vc_test_localResliceParticleSim_fittedcurve)
+
+add_executable(vc_test_localResliceParticleSim_derivative
+    segmentation/localResliceParticleSim/derivativeTest.cpp)
+target_link_libraries(vc_test_localResliceParticleSim_derivative
+    ${VC_LIBS}
+    ${VC_REQ_LIBS}
+    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+add_test(NAME lrps_derivative
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    COMMAND vc_test_localResliceParticleSim_derivative)
+
+add_executable(vc_test_localResliceParticleSim_intensitymap
+    segmentation/localResliceParticleSim/intensitymapTest.cpp)
+target_link_libraries(vc_test_localResliceParticleSim_intensitymap
+    ${VC_LIBS}
+    ${VC_REQ_LIBS}
+    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+add_test(NAME lrps_intensitymap
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    COMMAND vc_test_localResliceParticleSim_intensitymap)
+
+add_executable(vc_test_localResliceParticleSim_energymetrics
+    segmentation/localResliceParticleSim/energyMetricsTest.cpp)
+target_link_libraries(vc_test_localResliceParticleSim_energymetrics
+    ${VC_LIBS}
+    ${VC_REQ_LIBS}
+    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+add_test(NAME lrps_energymetrics
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    COMMAND vc_test_localResliceParticleSim_energymetrics)
 
 #add_executable(vc_test_particle segmentation/localResliceParticleSim/particleTest.cpp)
 #target_link_libraries(vc_test_particle ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 #add_test(NAME particle WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_particle )
-
+#
 #add_executable(vc_test_slice segmentation/localResliceParticleSim/sliceTest.cpp)
 #target_link_libraries(vc_test_slice ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 #add_test(NAME slice WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_slice )

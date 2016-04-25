@@ -187,6 +187,7 @@ struct ConeOrderedPCDFixture {
         volcart::testing::ParsingHelpers::parsePlyFile("ConeFixtureOrderedPCDMesher.ply",
                                                        _FixtureCreatedConePoints, _FixtureCreatedConeCells);
 
+        //saved testing file
         volcart::testing::ParsingHelpers::parsePlyFile("ConeOrderedPCDMesher.ply", _SavedConePoints, _SavedConeCells);
 
         std::cerr << "\nsetting up Cone OrderedPCDMesherTest objects" << std::endl;

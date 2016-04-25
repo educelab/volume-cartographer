@@ -9,11 +9,13 @@
 
 #include "volumepkg_version.h"
 
-class VolumePkgCfg : public volcart::Metadata {
+class VolumePkgCfg : public volcart::Metadata
+{
 public:
     VolumePkgCfg();
-    VolumePkgCfg( std::string path ) : Metadata( path ){};
-    VolumePkgCfg(volcart::Dictionary dict, double version = VOLPKG_VERSION);
+    VolumePkgCfg(const boost::filesystem::path& path) : Metadata(path){};
+    VolumePkgCfg(const volcart::Dictionary& dict,
+                 double version = VOLPKG_VERSION);
 };
 
-#endif // _VOLUMEPKGCFG_H_
+#endif  // _VOLUMEPKGCFG_H_
