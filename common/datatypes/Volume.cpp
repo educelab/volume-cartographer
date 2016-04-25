@@ -54,12 +54,12 @@ uint16_t Volume::interpolateAt(const Voxel point) const
     return uint16_t(cvRound(c));
 }
 
-const cv::Mat& Volume::getSliceData(const int32_t index) const
+const cv::Mat& Volume::getSliceData(int32_t index) const
 {
     // Take advantage of caching layer
     try {
         return cache_.get(index);
-    } catch (const std::exception &ex) {
+    } catch (const std::exception& ex) {
         const auto slicePath = getSlicePath(index);
         const cv::Mat sliceImg = cv::imread(slicePath.string(), -1);
 
@@ -69,13 +69,13 @@ const cv::Mat& Volume::getSliceData(const int32_t index) const
     }
 }
 
-cv::Mat Volume::getSliceDataCopy(const int32_t index) const
+cv::Mat Volume::getSliceDataCopy(int32_t index) const
 {
     return getSliceData(index).clone();
 }
 
 // Data Assignment
-bool Volume::setSliceData(const int32_t index, const cv::Mat& slice)
+bool Volume::setSliceData(int32_t index, const cv::Mat& slice)
 {
     if (index >= numSlices_) {
         std::cerr << "ERROR: Atttempted to save a slice image to an out of "
@@ -89,7 +89,7 @@ bool Volume::setSliceData(const int32_t index, const cv::Mat& slice)
     return true;
 }
 
-fs::path Volume::getNormalPathAtIndex(const int32_t index) const
+fs::path Volume::getNormalPathAtIndex(int32_t index) const
 {
     std::stringstream ss;
     ss << std::setw(numSliceCharacters_) << std::setfill('0') << index
@@ -97,7 +97,7 @@ fs::path Volume::getNormalPathAtIndex(const int32_t index) const
     return normalPath_ / ss.str();
 }
 
-fs::path Volume::getSlicePath(const int32_t index) const
+fs::path Volume::getSlicePath(int32_t index) const
 {
     std::stringstream ss;
     ss << std::setw(numSliceCharacters_) << std::setfill('0') << index
@@ -108,8 +108,8 @@ fs::path Volume::getSlicePath(const int32_t index) const
 Slice Volume::reslice(const Voxel center,
                       const cv::Vec3d xvec,
                       const cv::Vec3d yvec,
-                      const int32_t width,
-                      const int32_t height) const
+                      int32_t width,
+                      int32_t height) const
 {
     const auto xnorm = cv::normalize(xvec);
     const auto ynorm = cv::normalize(yvec);
@@ -126,12 +126,11 @@ Slice Volume::reslice(const Voxel center,
     return Slice(m, origin, xnorm, ynorm);
 }
 
-StructureTensor Volume::structureTensorAt(
-    const int32_t vx,
-    const int32_t vy,
-    const int32_t vz,
-    const int32_t voxelRadius,
-    const int32_t gradientKernelSize) const
+StructureTensor Volume::structureTensorAt(int32_t vx,
+                                          int32_t vy,
+                                          int32_t vz,
+                                          int32_t voxelRadius,
+                                          int32_t gradientKernelSize) const
 {
     // Safety checks
     assert(vx >= 0 && vx < sliceWidth_ &&
@@ -171,11 +170,11 @@ StructureTensor Volume::structureTensorAt(
 }
 
 StructureTensor Volume::interpolatedStructureTensorAt(
-    const double vx,
-    const double vy,
-    const double vz,
-    const int32_t voxelRadius,
-    const int32_t gradientKernelSize) const
+    double vx,
+    double vy,
+    double vz,
+    int32_t voxelRadius,
+    int32_t gradientKernelSize) const
 {
     // Safety checks
     assert(vx >= 0 && vx < sliceWidth_ &&
@@ -210,11 +209,11 @@ StructureTensor Volume::interpolatedStructureTensorAt(
     return StructureTensor(matSum);
 }
 
-EigenPairs Volume::eigenPairsAt(const int32_t x,
-                                const int32_t y,
-                                const int32_t z,
-                                const int32_t voxelRadius,
-                                const int32_t gradientKernelSize) const
+EigenPairs Volume::eigenPairsAt(int32_t x,
+                                int32_t y,
+                                int32_t z,
+                                int32_t voxelRadius,
+                                int32_t gradientKernelSize) const
 {
     auto st = structureTensorAt(x, y, z, voxelRadius, gradientKernelSize);
     cv::Vec3d eigenValues;
@@ -232,12 +231,11 @@ EigenPairs Volume::eigenPairsAt(const int32_t x,
     };
 }
 
-EigenPairs Volume::interpolatedEigenPairsAt(
-    const double x,
-    const double y,
-    const double z,
-    const int32_t voxelRadius,
-    const int32_t gradientKernelSize) const
+EigenPairs Volume::interpolatedEigenPairsAt(double x,
+                                            double y,
+                                            double z,
+                                            int32_t voxelRadius,
+                                            int32_t gradientKernelSize) const
 {
     auto st =
         interpolatedStructureTensorAt(x, y, z, voxelRadius, gradientKernelSize);
@@ -268,8 +266,8 @@ StructureTensor tensorize(const cv::Vec3d gradient)
     // clang-format on
 }
 
-Tensor3D<cv::Vec3d> Volume::volumeGradient(
-    const Tensor3D<double>& v, const int32_t gradientKernelSize) const
+Tensor3D<cv::Vec3d> Volume::volumeGradient(const Tensor3D<double>& v,
+                                           int32_t gradientKernelSize) const
 {
     // Limitation of OpenCV: Kernel size must be 1, 3, 5, or 7
     assert((gradientKernelSize == 1 || gradientKernelSize == 3 ||
@@ -310,8 +308,8 @@ Tensor3D<cv::Vec3d> Volume::volumeGradient(
 // size. If the kernel size is 3, uses the Scharr() operator to calculate the
 // gradient which is more accurate than 3x3 Sobel operator
 cv::Mat_<double> Volume::gradient(const cv::Mat_<double>& input,
-                                  const GradientAxis axis,
-                                  const int32_t ksize) const
+                                  GradientAxis axis,
+                                  int32_t ksize) const
 {
     // OpenCV params for gradients
     // XXX Revisit this and see if changing these makes a big difference
@@ -343,7 +341,7 @@ cv::Mat_<double> Volume::gradient(const cv::Mat_<double>& input,
     return grad;
 }
 
-std::unique_ptr<double[]> makeUniformGaussianField(const int32_t radius)
+std::unique_ptr<double[]> makeUniformGaussianField(int32_t radius)
 {
     const int32_t sideLength = 2 * radius + 1;
     const int32_t fieldSize = sideLength * sideLength * sideLength;
