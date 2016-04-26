@@ -41,7 +41,7 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
         currentVs.emplace_back(p.x, p.y, p.z);
     }
 
-    volcart::Volume vol = pkg_.volume();  // Debug output information
+    const volcart::Volume& vol = pkg_.volume();  // Debug output information
 
     // Check that incoming points are all within volume bounds. If not, then
     // return empty cloud back
