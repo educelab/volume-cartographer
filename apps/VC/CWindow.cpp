@@ -36,8 +36,15 @@ CWindow::CWindow( void ) :
 
     // default parameters for segmentation method
     // REVISIT - refactor me
-    fSegParams.fGravityScale = 0.3;
-    fSegParams.fThreshold = 1;
+    fSegParams.fAlpha = 1.0 / 3.0;
+    fSegParams.fBeta = 1.0 / 3.0;
+    fSegParams.fDelta = 1.0 / 3.0;
+    fSegParams.fK1 = 0.5;
+    fSegParams.fK2 = 0.5;
+    fSegParams.fIncludeMiddle = false;
+    fSegParams.fNumIters = 15;
+    fSegParams.fPeakDistanceWeight = 50;
+    fSegParams.fWindowWidth = 5;
     fSegParams.fEndOffset = 5;
 
     // create UI widgets
@@ -82,8 +89,14 @@ CWindow::CWindow( QRect windowSize ) :
 
     // default parameters for segmentation method
     // REVISIT - refactor me
-    fSegParams.fGravityScale = 0.3;
-    fSegParams.fThreshold = 1;
+    fSegParams.fAlpha = 1.0 / 3.0;
+    fSegParams.fBeta = 1.0 / 3.0;
+    fSegParams.fDelta = 1.0 / 3.0;
+    fSegParams.fK1 = 0.5;
+    fSegParams.fK2 = 0.5;
+    fSegParams.fIncludeMiddle = false;
+    fSegParams.fNumIters = 15;
+    fSegParams.fPeakDistanceWeight = 50;
     fSegParams.fEndOffset = 5;
 
     // create UI widgets
@@ -164,15 +177,28 @@ void CWindow::CreateWidgets( void )
     QComboBox *aSegMethodsComboBox = this->findChild< QComboBox * >( "cmbSegMethods" );
     aSegMethodsComboBox->addItem( tr( "Structure Tensor Particle Simulation" ) );
 
-    fEdtGravity = this->findChild< QLineEdit * >( "edtGravityVal" );
-    fEdtSampleDist = this->findChild< QLineEdit * >( "edtSampleDistVal" );
+    fEdtAlpha = this->findChild<QLineEdit*>("edtAlphaVal");
+    fEdtBeta = this->findChild<QLineEdit*>("edtBetaVal");
+    fEdtDelta = this->findChild<QLineEdit*>("edtDeltaVal");
+    fEdtK1 = this->findChild<QLineEdit*>("edtK1Val");
+    fEdtK2 = this->findChild<QLineEdit*>("edtK2Val");
+    fEdtDistanceWeight = this->findChild<QLineEdit*>("edtDistanceWeightVal");
+    fEdtWindowWidth = this->findChild<QLineEdit*>("edtWindowWidthVal");
+    fOptIncludeMiddle = this->findChild<QCheckBox*>("includeMiddleOpt");
+
     fEdtStartIndex = this->findChild< QLineEdit * >( "edtStartingSliceVal" );
     fEdtEndIndex = this->findChild< QLineEdit * >( "edtEndingSliceVal" );
     // REVISIT - consider switching to CSimpleNumEditBox
     // see QLineEdit doc to see the difference of textEdited() and textChanged()
     // doc.qt.io/qt-4.8/qlineedit.html#textEdited
-    connect( fEdtGravity, SIGNAL( editingFinished() ), this, SLOT( OnEdtGravityValChange() ) );
-    connect( fEdtSampleDist, SIGNAL( textEdited(QString) ), this, SLOT( OnEdtSampleDistValChange( QString ) ) );
+    connect(fEdtAlpha, SIGNAL(editingFinished()), this, SLOT(OnEdtAlphaValChange()));
+    connect(fEdtBeta, SIGNAL(editingFinished()), this, SLOT(OnEdtBetaValChange()));
+    connect(fEdtDelta, SIGNAL(editingFinshed()), this, SLOT(OnEdtDeltaValChange()));
+    connect(fEdtK1, SIGNAL(editingFinshed()), this, SLOT(OnEdtK1ValChange()));
+    connect(fEdtK2, SIGNAL(editingFinshed()), this, SLOT(OnEdtK2ValChange()));
+    connect(fEdtDistanceWeight, SIGNAL(editingFinshed()), this, SLOT(OnEdtDistanceWeightChange()));
+    connect(fEdtWindowWidth, SIGNAL(editingFinshed()), this, SLOT(OnEdtWindowWidthChange()));
+    connect(fOptIncludeMiddle, SIGNAL(clicked(bool)), this, SLOT(OnOptIncludeMiddleClicked(bool)));
     connect( fEdtStartIndex, SIGNAL( textEdited(QString) ), this, SLOT( OnEdtStartingSliceValChange( QString ) ) );
     connect( fEdtEndIndex, SIGNAL( editingFinished() ), this, SLOT( OnEdtEndingSliceValChange() ) );
 
@@ -294,8 +320,11 @@ void CWindow::UpdateView( void )
     this->findChild< QLabel * >( "lblVpkgName" )->setText( QString( fVpkg->getPkgName().c_str() ) );
 
     // set widget accessibility properly based on the states: is drawing? is editing?
-    fEdtGravity->setText( QString( "%1" ).arg( fSegParams.fGravityScale ) );
-    fEdtSampleDist->setText( QString( "%1" ).arg( fSegParams.fThreshold ) );
+    fEdtAlpha->setText(QString("%1").arg(fSegParams.fAlpha));
+    fEdtBeta->setText(QString("%1").arg(fSegParams.fBeta));
+    fEdtDelta->setText(QString("%1").arg(fSegParams.fDelta));
+    fEdtK1->setText(QString("%1").arg(fSegParams.fK1));
+    fEdtK2->setText(QString("%1").arg(fSegParams.fK2));
     fEdtStartIndex->setText( QString( "%1" ).arg( fPathOnSliceIndex ) );
     
     if ( fSegParams.fEndOffset + fPathOnSliceIndex >= fVpkg->getNumberOfSlices() )
@@ -333,7 +362,7 @@ void CWindow::UpdateView( void )
     }
 
     fEdtStartIndex->setEnabled( false ); // starting slice is always the current slice
-    fEdtSampleDist->setEnabled( false ); // currently we cannot let the user change the sample distance
+    //fEdtSampleDist->setEnabled( false ); // currently we cannot let the user change the sample distance
 
     fVolumeViewerWidget->UpdateView();
 
@@ -402,11 +431,22 @@ void CWindow::DoSegmentation( void )
     // 2) do segmentation from the starting slice
     // how to create pcl::PointCloud::Ptr from a pcl::PointCloud?
     // stackoverflow.com/questions/10644429/create-a-pclpointcloudptr-from-a-pclpointcloud
-    fLowerPart = volcart::segmentation::structureTensorParticleSim( pcl::PointCloud< pcl::PointXYZRGB >::Ptr( new pcl::PointCloud< pcl::PointXYZRGB >( fLowerPart )),
-                                             *fVpkg,
-                                             fSegParams.fGravityScale,
-                                             fSegParams.fThreshold,
-                                             fSegParams.fEndOffset );
+    volcart::segmentation::LocalResliceSegmentation segmenter(*fVpkg);
+    fLowerPart = segmenter.segmentPath(pcl::PointCloud<pcl::PointXYZRGB>::Ptr(new pcl::PointCloud<pcl::PointXYZRGB>(fLowerPart)),
+                                       fEdtStartIndex->text().toInt(),
+                                       fEdtEndIndex->text().toInt(),
+                                       fSegParams.fNumIters,
+                                       1,
+                                       fSegParams.fAlpha,
+                                       fSegParams.fK1,
+                                       fSegParams.fK2,
+                                       fSegParams.fBeta,
+                                       fSegParams.fDelta,
+                                       fSegParams.fPeakDistanceWeight,
+                                       fSegParams.fIncludeMiddle,
+                                       false,
+                                       false
+                                       );
 
     // 3) concatenate the two parts to form the complete point cloud
     fMasterCloud = fUpperPart + fLowerPart;
@@ -433,21 +473,56 @@ bool CWindow::SetUpSegParams( void )
 {
     bool aIsOk;
 
-    // gravity value
-    double aGravVal = fEdtGravity->text().toDouble( &aIsOk );
-    if ( aIsOk ) {
-        fSegParams.fGravityScale = aGravVal;
+    double alpha = fEdtAlpha->text().toDouble(&aIsOk);
+    if (aIsOk) {
+        fSegParams.fAlpha = alpha;
     } else {
         return false;
     }
 
-    // sample distance
-    int aNewVal = fEdtSampleDist->text().toInt( &aIsOk );
-    if ( aIsOk ) {
-        fSegParams.fThreshold = aNewVal;
+    double beta = fEdtBeta->text().toDouble(&aIsOk);
+    if (aIsOk) {
+        fSegParams.fBeta = beta;
     } else {
         return false;
     }
+
+    double delta = fEdtDelta->text().toDouble(&aIsOk);
+    if (aIsOk) {
+        fSegParams.fDelta = delta;
+    } else {
+        return false;
+    }
+
+    double k1 = fEdtK1->text().toDouble(&aIsOk);
+    if (aIsOk) {
+        fSegParams.fK1 = k1;
+    } else {
+        return false;
+    }
+
+    double k2 = fEdtK2->text().toDouble(&aIsOk);
+    if (aIsOk) {
+        fSegParams.fK2 = k2;
+    } else {
+        return false;
+    }
+
+    int aNewVal = fEdtDistanceWeight->text().toInt(&aIsOk);
+    if (aIsOk) {
+        fSegParams.fPeakDistanceWeight = aNewVal;
+    } else {
+        return false;
+    }
+
+    aNewVal = fEdtWindowWidth->text().toInt(&aIsOk);
+    if (aIsOk) {
+        fSegParams.fWindowWidth = aNewVal;
+    } else {
+        return false;
+    }
+
+    fSegParams.fIncludeMiddle = fOptIncludeMiddle->isChecked();
 
     // ending slice index
     aNewVal = fEdtEndIndex->text().toInt( &aIsOk );
@@ -477,7 +552,8 @@ void CWindow::SetUpCurves( void )
         pcl::getMinMax3D( fMasterCloud, min_p, max_p );
         minIndex = floor( fMasterCloud.points[ 0 ].z );
         maxIndex = floor( max_p.z );
-    }
+    }    void OnEdtAlphaValChange();
+
     fMinSegIndex = minIndex;
     fMaxSegIndex = maxIndex;
 
@@ -511,7 +587,7 @@ void CWindow::OpenSlice( void )
 {
     cv::Mat aImgMat;
     if ( fVpkg != NULL ) {
-        fVpkg->volume().getSliceData( fPathOnSliceIndex ).copyTo( aImgMat );
+        aImgMat = fVpkg->volume().getSliceDataCopy( fPathOnSliceIndex );
         aImgMat.convertTo( aImgMat, CV_8UC3, 1.0 / 256.0 );
         cvtColor( aImgMat, aImgMat, CV_GRAY2BGR );
     } else
@@ -752,23 +828,128 @@ void CWindow::ToggleSegmentationTool( void )
 }
 
 // Handle gravity value change
-void CWindow::OnEdtGravityValChange()
+void CWindow::OnEdtAlphaValChange()
 {
     bool aIsOk;
-    double aNewVal = fEdtGravity->text().toDouble( &aIsOk );
+    double aNewVal = fEdtAlpha->text().toDouble( &aIsOk );
     if ( aIsOk ) {
         if ( aNewVal <= 0.0 ) {
             aNewVal = 0.1;
-            fEdtGravity->setText(QString::number(aNewVal));
+            fEdtAlpha->setText(QString::number(aNewVal));
         }
-        else if ( aNewVal > 0.8 ) {
-            aNewVal = 0.8;
-            fEdtGravity->setText(QString::number(aNewVal));
+        else if ( aNewVal > 1.0 ) {
+            aNewVal = 1.0;
+            fEdtAlpha->setText(QString::number(aNewVal));
         }
-        fSegParams.fGravityScale = aNewVal;
+        fSegParams.fAlpha = aNewVal;
     }
 }
 
+void CWindow::OnEdtBetaValChange()
+{
+    bool aIsOk;
+    double aNewVal = fEdtBeta->text().toDouble( &aIsOk );
+    if ( aIsOk ) {
+        if ( aNewVal <= 0.0 ) {
+            aNewVal = 0.1;
+            fEdtBeta->setText(QString::number(aNewVal));
+        }
+        else if ( aNewVal > 1.0 ) {
+            aNewVal = 1.0;
+            fEdtBeta->setText(QString::number(aNewVal));
+        }
+        fSegParams.fBeta = aNewVal;
+    }
+}
+
+void CWindow::OnEdtDeltaValChange()
+{
+    bool aIsOk;
+    double aNewVal = fEdtDelta->text().toDouble( &aIsOk );
+    if ( aIsOk ) {
+        if ( aNewVal <= 0.0 ) {
+            aNewVal = 0.1;
+            fEdtDelta->setText(QString::number(aNewVal));
+        }
+        else if ( aNewVal > 1.0 ) {
+            aNewVal = 1.0;
+            fEdtDelta->setText(QString::number(aNewVal));
+        }
+        fSegParams.fDelta = aNewVal;
+    }
+}
+
+void CWindow::OnEdtK1ValChange()
+{
+    bool aIsOk;
+    double aNewVal = fEdtK1->text().toDouble( &aIsOk );
+    if ( aIsOk ) {
+        if ( aNewVal <= 0.0 ) {
+            aNewVal = 0.1;
+            fEdtK1->setText(QString::number(aNewVal));
+        }
+        else if ( aNewVal > 1.0 ) {
+            aNewVal = 1.0;
+            fEdtK1->setText(QString::number(aNewVal));
+        }
+        fSegParams.fK1 = aNewVal;
+    }
+}
+
+void CWindow::OnEdtK2ValChange()
+{
+    bool aIsOk;
+    double aNewVal = fEdtK2->text().toDouble( &aIsOk );
+    if ( aIsOk ) {
+        if ( aNewVal <= 0.0 ) {
+            aNewVal = 0.1;
+            fEdtK2->setText(QString::number(aNewVal));
+        }
+        else if ( aNewVal > 1.0 ) {
+            aNewVal = 1.0;
+            fEdtK2->setText(QString::number(aNewVal));
+        }
+        fSegParams.fK2 = aNewVal;
+    }
+}
+
+void CWindow::OnEdtDistanceWeightChange()
+{
+    bool aIsOk;
+    int aNewVal = fEdtDistanceWeight->text().toInt(&aIsOk);
+    if (aIsOk) {
+        if (aNewVal > 100) {
+            aNewVal = 100;
+        } else if (aNewVal < 0) {
+            aNewVal = 0;
+        }
+        fEdtDistanceWeight->setText(QString::number(aNewVal));
+        fSegParams.fPeakDistanceWeight = aNewVal;
+    }
+}
+
+void CWindow::OnEdtWindowWidthChange()
+{
+    bool aIsOk;
+    int aNewVal = fEdtWindowWidth->text().toInt(&aIsOk);
+    if (aIsOk) {
+        if (aNewVal > 20) {
+            aNewVal = 20;
+        } else if (aNewVal < 1) {
+            aNewVal = 1;
+        }
+        fEdtWindowWidth->setText(QString::number(aNewVal));
+        fSegParams.fWindowWidth = aNewVal;
+    }
+}
+
+void CWindow::OnOptIncludeMiddleClicked(bool clicked)
+{
+    fOptIncludeMiddle->setChecked(clicked);
+    fSegParams.fIncludeMiddle = clicked;
+}
+
+/*
 // Handle sample distance value change
 void CWindow::OnEdtSampleDistValChange( QString nText )
 {
@@ -779,6 +960,7 @@ void CWindow::OnEdtSampleDistValChange( QString nText )
         fSegParams.fThreshold = aNewVal;
     }
 }
+*/
 
 // Handle starting slice value change
 void CWindow::OnEdtStartingSliceValChange( QString nText )
