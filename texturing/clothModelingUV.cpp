@@ -1,5 +1,5 @@
 //
-// Created by Media Team on 3/14/16.
+// Created by Seth Parker on 3/14/16.
 //
 
 #include "clothModelingUV.h"

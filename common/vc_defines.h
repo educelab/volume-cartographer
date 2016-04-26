@@ -31,7 +31,6 @@ public:
 
 ///// VC - ITK Mesh Defaults /////
 #include <itkMesh.h>
-#include <itkQuadEdgeMesh.h>
 #include <itkPointsLocator.h>
 #include <itkTriangleCell.h>
 
@@ -47,21 +46,6 @@ typedef itk::PointsLocator<VC_PointsContainerType>    VC_PointsLocatorType;
 typedef VC_MeshType::PointsContainer::ConstIterator   VC_PointsInMeshIterator;
 typedef VC_MeshType::CellsContainer::Iterator         VC_CellIterator;
 typedef VC_CellType::PointIdIterator                  VC_PointsInCellIterator;
-
-typedef double                                            VC_QuadPixelType[3];
-typedef itk::QuadEdgeMesh< double, 3 >                    VC_QuadMeshType;
-typedef VC_QuadMeshType::PointType                        VC_QuadPointType;
-typedef VC_QuadMeshType::PointIdentifier                  VC_QuadMeshPointIdentifier;
-typedef VC_QuadMeshType::CellType                         VC_QuadCellType;
-typedef VC_QuadMeshType::PointsContainer                  VC_QuadPointsContainerType;
-typedef VC_QuadMeshType::PointsContainer::ConstIterator   VC_QuadPointsInMeshIterator;
-typedef VC_QuadMeshType::CellsContainer::Iterator         VC_QuadCellIterator;
-typedef VC_QuadCellType::PointIdIterator                  VC_QuadPointsInCellIterator;
-typedef VC_QuadMeshType::QEType                           VC_QuadMeshEType;
-typedef VC_QuadMeshEType::IteratorGeom                    VC_QuadMeshIteratorGeom;
-typedef VC_QuadMeshType::EdgeListType                     VC_QuadEdgeListType;
-typedef VC_QuadMeshType::EdgeListPointerType              VC_QuadEdgeListPointer;
-typedef VC_QuadEdgeListType::iterator                     VC_QuadEdgeListIterator;
 
 
 ///// ERROR MESSAGES /////

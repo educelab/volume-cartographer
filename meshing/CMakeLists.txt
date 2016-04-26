@@ -13,16 +13,13 @@ set(meshing_SOURCES orderedPCDMesher.h orderedPCDMesher.cpp
                     rayTrace.h rayTrace.cpp
                     scaleMesh.h scaleMesh.cpp
                     smoothNormals.h smoothNormals.cpp
-                    deepCopy.cpp deepCopy.h)
+                    deepCopy.cpp deepCopy.h
+                    itk2bullet.h itk2bullet.cpp)
 
 #Conditional compiles
 if(ACVD_FOUND)
      set(meshing_SOURCES ${meshing_SOURCES} ACVD.h ACVD.cpp)
 endif(ACVD_FOUND)
-
-if(BULLET_FOUND)
-    set(meshing_SOURCES ${meshing_SOURCES} itk2bullet.h itk2bullet.cpp)
-endif(BULLET_FOUND)
 
 add_library(vc_meshing STATIC ${meshing_SOURCES})
 endif()
