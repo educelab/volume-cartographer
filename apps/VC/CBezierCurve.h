@@ -19,9 +19,9 @@ class CBezierCurve
 {
 
 public:
-    CBezierCurve(int nSampleInterval = 5.0);
+    CBezierCurve(int nSampleInterval = 2.0);
     CBezierCurve(const std::vector<Vec2<double>> &nControlPoints,
-                 int nSampleInterval = 5.0);
+                 int nSampleInterval = 2.0);
     ~CBezierCurve(void);
 
     void SetControlPoints(const std::vector<Vec2<double>> &nControlPoints);

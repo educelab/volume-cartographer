@@ -96,6 +96,7 @@ CWindow::CWindow(QRect windowSize)
     fSegParams.fIncludeMiddle = false;
     fSegParams.fNumIters = 15;
     fSegParams.fPeakDistanceWeight = 50;
+    fSegParams.fWindowWidth = 5;
     fSegParams.fEndOffset = 5;
 
     // create UI widgets
@@ -349,6 +350,9 @@ void CWindow::UpdateView(void)
     fEdtDelta->setText(QString("%1").arg(fSegParams.fDelta));
     fEdtK1->setText(QString("%1").arg(fSegParams.fK1));
     fEdtK2->setText(QString("%1").arg(fSegParams.fK2));
+    fEdtDistanceWeight->setText(
+        QString("%1").arg(fSegParams.fPeakDistanceWeight));
+    fEdtWindowWidth->setText(QString("%1").arg(fSegParams.fWindowWidth));
     fEdtStartIndex->setText(QString("%1").arg(fPathOnSliceIndex));
 
     if (fSegParams.fEndOffset + fPathOnSliceIndex >= fVpkg->getNumberOfSlices())
@@ -893,7 +897,7 @@ void CWindow::OnEdtAlphaValChange()
     double aNewVal = fEdtAlpha->text().toDouble(&aIsOk);
     if (aIsOk) {
         if (aNewVal <= 0.0) {
-            aNewVal = 0.1;
+            aNewVal = 0.0;
             fEdtAlpha->setText(QString::number(aNewVal));
         } else if (aNewVal > 1.0) {
             aNewVal = 1.0;
@@ -909,7 +913,7 @@ void CWindow::OnEdtBetaValChange()
     double aNewVal = fEdtBeta->text().toDouble(&aIsOk);
     if (aIsOk) {
         if (aNewVal <= 0.0) {
-            aNewVal = 0.1;
+            aNewVal = 0.0;
             fEdtBeta->setText(QString::number(aNewVal));
         } else if (aNewVal > 1.0) {
             aNewVal = 1.0;
@@ -925,7 +929,7 @@ void CWindow::OnEdtDeltaValChange()
     double aNewVal = fEdtDelta->text().toDouble(&aIsOk);
     if (aIsOk) {
         if (aNewVal <= 0.0) {
-            aNewVal = 0.1;
+            aNewVal = 0.0;
             fEdtDelta->setText(QString::number(aNewVal));
         } else if (aNewVal > 1.0) {
             aNewVal = 1.0;
@@ -941,7 +945,7 @@ void CWindow::OnEdtK1ValChange()
     double aNewVal = fEdtK1->text().toDouble(&aIsOk);
     if (aIsOk) {
         if (aNewVal <= 0.0) {
-            aNewVal = 0.1;
+            aNewVal = 0.0;
             fEdtK1->setText(QString::number(aNewVal));
         } else if (aNewVal > 1.0) {
             aNewVal = 1.0;
@@ -957,7 +961,7 @@ void CWindow::OnEdtK2ValChange()
     double aNewVal = fEdtK2->text().toDouble(&aIsOk);
     if (aIsOk) {
         if (aNewVal <= 0.0) {
-            aNewVal = 0.1;
+            aNewVal = 0.0;
             fEdtK2->setText(QString::number(aNewVal));
         } else if (aNewVal > 1.0) {
             aNewVal = 1.0;
