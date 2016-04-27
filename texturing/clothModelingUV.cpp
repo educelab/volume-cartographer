@@ -17,7 +17,9 @@ namespace volcart {
                                             _expansionPins(expansionPins)
         {
             // Default starting parameters
-            _gravity = -10;
+            _unfurlA = 10;
+            _collisionA = -10;
+            _expansionA = 10;
 
             // Create Dynamic world for bullet cloth simulation
             _WorldBroadphase = new btDbvtBroadphase();
@@ -88,9 +90,9 @@ namespace volcart {
 
         // Process this mesh
         void clothModelingUV::run() {
-            _unfurl();
-            _collide();
-            _expand();
+            if ( _unfurlIterations > 0 ) _unfurl();
+            if ( _collideIterations > 0 ) _collide();
+            if ( _expandIterations > 0 ) _expand();
         }
 
         // Call the stages individually
@@ -148,7 +150,7 @@ namespace volcart {
         {
             // Set the simulation parameters
             _World->setInternalTickCallback( constrainMotionCallback, static_cast<void *>(this), true );
-            _World->setGravity( btVector3( _gravity, 0, 0) );
+            _World->setGravity( btVector3( _unfurlA, 0, 0) );
             _softBody->getWorldInfo()->m_gravity = _World->getGravity();
             _softBody->m_cfg.kDP = 0.01; // Damping coefficient of the soft body [0,1]
             _softBody->m_materials[0]->m_kLST = 1.0; // Linear stiffness coefficient [0,1]
@@ -174,7 +176,7 @@ namespace volcart {
         {
             // Set the simulation parameters
             _World->setInternalTickCallback( axisLockCallback, static_cast<void *>(this), true );
-            _World->setGravity(btVector3(0, _gravity, 0));
+            _World->setGravity(btVector3(0, _collisionA, 0));
             _collisionPlane->setFriction(0); // (0-1] Default: 0.5
             _softBody->getWorldInfo()->m_gravity = _World->getGravity();
             _softBody->m_cfg.kDF = 0.1; // Dynamic friction coefficient (0-1] Default: 0.2
@@ -238,7 +240,7 @@ namespace volcart {
 
             // Relax the springs
             _World->setInternalTickCallback( axisLockCallback, static_cast<void *>(this), true );
-            _World->setGravity(btVector3(0, _gravity, 0));
+            _World->setGravity(btVector3(0, _expansionA, 0));
             _softBody->getWorldInfo()->m_gravity = _World->getGravity();
             _softBody->m_cfg.kDP = 0.1;
             int counter = 0;
@@ -257,6 +259,24 @@ namespace volcart {
             }
             std::cerr << std::endl << "volcart::texturing::clothUV: Mesh Area Relative Error: " << relativeError * 100 << "%" << std::endl;
         }
+
+        // Set acceleration for different stages
+        void clothModelingUV::setAcceleration( Stage s, double a ) {
+            switch( s ) {
+                case Stage::Unfurl:
+                    _unfurlA = a;
+                    break;
+                case Stage::Collision:
+                    _collisionA = a;
+                    break;
+                case Stage::Expansion:
+                    _expansionA = a;
+                    break;
+                default:
+                    // Should not occur
+                    break;
+            }
+        };
 
         ///// Helper Functions /////
 

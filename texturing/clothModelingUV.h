@@ -22,7 +22,6 @@
 
 namespace volcart {
     namespace texturing {
-
         // Pretick callbacks
         static void constrainMotionCallback(btDynamicsWorld *world, btScalar timeStep);
         static void axisLockCallback(btDynamicsWorld *world, btScalar timeStep);
@@ -31,6 +30,7 @@ namespace volcart {
         class clothModelingUV {
         public:
             typedef std::vector< unsigned long > PinIDs;
+            enum Stage { Unfurl, Collision, Expansion };
 
             struct Pin {
                 unsigned long index;
@@ -50,8 +50,7 @@ namespace volcart {
             void expand();
 
             // Parameters
-            // Unfurl
-            void setGravity( double g ) { _gravity = g; };
+            void setAcceleration( Stage s, double a );
 
             // Output
             VC_MeshType::Pointer getMesh();
@@ -64,9 +63,6 @@ namespace volcart {
             void _emptyPreTick( btScalar timeStep );
 
         private:
-            // Global simulation parameters
-            double _gravity;
-
             // Softbody
             const VC_MeshType::Pointer _mesh;
             btSoftBody* _softBody;
@@ -78,13 +74,16 @@ namespace volcart {
 
             // Simulation
             uint16_t   _unfurlIterations;
+            double     _unfurlA;
             PinIDs     _unfurlPins;
             void       _unfurl();
 
             uint16_t _collideIterations;
+            double   _collisionA;
             void     _collide();
 
             uint16_t _expandIterations;
+            double   _expansionA;
             PinIDs   _expansionPins;
             void     _expand();
 
