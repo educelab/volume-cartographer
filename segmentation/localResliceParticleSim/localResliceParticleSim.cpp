@@ -1,14 +1,14 @@
-#include <list>
-#include <tuple>
-#include <limits>
-#include <boost/filesystem.hpp>
-#include <boost/circular_buffer.hpp>
 #include "localResliceParticleSim.h"
 #include "common.h"
-#include "fittedcurve.h"
-#include "intensitymap.h"
 #include "derivative.h"
 #include "energymetrics.h"
+#include "fittedcurve.h"
+#include "intensitymap.h"
+#include <boost/circular_buffer.hpp>
+#include <boost/filesystem.hpp>
+#include <limits>
+#include <list>
+#include <tuple>
 
 using namespace volcart::segmentation;
 namespace fs = boost::filesystem;
@@ -317,7 +317,6 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
 cv::Vec3d LocalResliceSegmentation::estimateNormalAtIndex(
     const FittedCurve& currentCurve, int32_t index)
 {
-    /*
     const Voxel currentVoxel = currentCurve(index);
     const auto eigenPairs = pkg_.volume().eigenPairsAt(
         currentVoxel(0), currentVoxel(1), currentVoxel(2), 3);
@@ -326,7 +325,6 @@ cv::Vec3d LocalResliceSegmentation::estimateNormalAtIndex(
     if (std::abs(exp0 - exp1) > 2.0) {
         return eigenPairs[0].second;
     }
-    */
     const auto tan3d = d1At(currentCurve.points(), index, 3);
     return tan3d.cross(cv::Vec3d{0, 0, 1});
 }
