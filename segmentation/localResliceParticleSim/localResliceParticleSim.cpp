@@ -318,8 +318,10 @@ cv::Vec3d LocalResliceSegmentation::estimateNormalAtIndex(
     const FittedCurve& currentCurve, int32_t index)
 {
     const Voxel currentVoxel = currentCurve(index);
+    auto stRadius =
+        std::ceil(pkg_.getMaterialThickness() / pkg_.getVoxelSize()) / 2;
     const auto eigenPairs = pkg_.volume().eigenPairsAt(
-        currentVoxel(0), currentVoxel(1), currentVoxel(2), 3);
+        currentVoxel(0), currentVoxel(1), currentVoxel(2), stRadius);
     const double exp0 = std::log10(eigenPairs[0].first);
     const double exp1 = std::log10(eigenPairs[1].first);
     if (std::abs(exp0 - exp1) > 2.0) {
