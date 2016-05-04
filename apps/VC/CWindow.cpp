@@ -479,7 +479,7 @@ void CWindow::DoSegmentation(void)
     fLowerPart = segmenter.segmentPath(
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr(
             new pcl::PointCloud<pcl::PointXYZRGB>(fLowerPart)),
-        fEdtStartIndex->text().toInt(), fEdtEndIndex->text().toInt(),
+        fEdtStartIndex->text().toInt(), fEdtEndIndex->text().toInt() - 1,
         fSegParams.fNumIters, 1, fSegParams.fAlpha, fSegParams.fK1,
         fSegParams.fK2, fSegParams.fBeta, fSegParams.fDelta,
         fSegParams.fPeakDistanceWeight, fSegParams.fIncludeMiddle, false,
