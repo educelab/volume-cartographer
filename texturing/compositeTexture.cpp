@@ -83,8 +83,8 @@ namespace volcart {
                                                       _direction);
 
                     // Retrieve the point's uv position from the UV Map
-                    u =  cvRound(_uvMap.get(pointID)[0] * _width);
-                    v =  cvRound(_uvMap.get(pointID)[1] * _height);
+                    u =  cvRound(_uvMap.get(pointID)[0] * ( _width  - 1 ) );
+                    v =  cvRound(_uvMap.get(pointID)[1] * ( _height - 1 ) );
 
                     // Assign the intensity value at the UV position
                     textureImage.at < unsigned short > (v, u) = (unsigned short) value;
