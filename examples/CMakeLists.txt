@@ -73,6 +73,12 @@ endif(ACVD_FOUND)
 #    target_link_libraries(vc_clothExample ${VC_LIBS} ${VC_REQ_LIBS})
 #endif(BULLET_FOUND)
 
+###############
+#  texturing  #
+###############
+
+add_executable(vc_lscmExample lscmExample.cpp)
+target_link_libraries(vc_lscmExample ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
 
 ###############
 #  CNN Tools  #
