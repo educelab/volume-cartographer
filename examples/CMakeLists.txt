@@ -78,7 +78,7 @@ endif(ACVD_FOUND)
 ###############
 
 add_executable(vc_lscmExample lscmExample.cpp)
-target_link_libraries(vc_lscmExample ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
+target_link_libraries(vc_lscmExample ${VC_LIBS} vc_meshing ${VC_REQ_LIBS} ${VTK_LIBRARIES})
 
 ###############
 #  CNN Tools  #
