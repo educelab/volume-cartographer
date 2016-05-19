@@ -13,12 +13,14 @@ add_compile_options(-fdiagnostics-color=always)
 
 # Option for building apps
 option(VC_PREBUILT_LIBS "Link against prebuilt dependencies" OFF)
+option(VC_USE_INTERNAL_LIBIGL "Link against included version of libigl" ON)
 
 # Choose what to install
 option(INSTALL_VC_CORE "Install VC core apps" ON)
 option(INSTALL_VC_UTIL "Install VC util apps" ON)
 option(INSTALL_VC_DEMO "Install VC demo apps" OFF)
 
+# Prebuilt libs
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/)
 IF(VC_PREBUILT_LIBS)
     set(CMAKE_PREFIX_PATH ${PROJECT_SOURCE_DIR}/vc-deps/deps/)
@@ -39,6 +41,7 @@ find_package(VTK 6.1 REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(ACVD)
 find_package(Bullet REQUIRED)
+find_package(LIBIGL REQUIRED)
 
 include(${ITK_USE_FILE})
 include(${VTK_USE_FILE})
