@@ -9,6 +9,7 @@ build_it_debian:
     script:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
         - echo "---- Work it. Make it. ----"
+        - git submodule update --init external/
         - mkdir -p build
         - cd build/
         - cmake -DBoost_USE_STATIC_LIBS=ON -GNinja ..
@@ -19,12 +20,16 @@ build_it_debian:
         - static
         - qt5
         - ninja
+    cache:
+      paths:
+        - external/
 
 test_it_debian:
     image: volcart/vcbuilder-debian:latest
     stage: test
     script:
         - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
+        - git submodule update --init external/
         - mkdir -p build
         - cd build/
         - cmake -DBoost_USE_STATIC_LIBS=ON -GNinja ..
@@ -40,12 +45,16 @@ test_it_debian:
         - static
         - qt5
         - ninja
+    cache:
+      paths:
+        - external/
 
 build_it:
     stage: build
     script:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
         - echo "---- Work it. Make it. ----"
+        - git submodule update --init external/
         - mkdir -p build
         - cd build/
         - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -GNinja ..
@@ -56,11 +65,15 @@ build_it:
         - homebrew
         - qt5
         - ninja
+    cache:
+      paths:
+        - external/
 
 test_it:
     stage: test
     script:
         - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
+        - git submodule update --init external/
         - mkdir -p build
         - cd build/
         - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -GNinja ..
@@ -76,6 +89,9 @@ test_it:
         - homebrew
         - qt5
         - ninja
+    cache:
+      paths:
+        - external/
 
 deploy_it_osx:
     stage: deploy
@@ -83,7 +99,6 @@ deploy_it_osx:
         - echo "---- Work it harder. ----"
         - version=$(utils/scripts/version-gen.sh)
         - git submodule init
-        - git submodule update
         - cd vc-deps/
         - ./build-deps.sh -universal
         - cd ..

@@ -11,9 +11,11 @@ if(VC_USE_INTERNAL_LIBIGL)
   FIND_PATH(LIBIGL_INCLUDE_DIR igl/readOBJ.h
     ${PROJECT_SOURCE_DIR}/external/libigl/include/)
   if(NOT LIBIGL_INCLUDE_DIR)
-    message(WARNING "Internal libigl specified but not found. Will look in system path.")
+    message("WARNING: Internal libigl specified but not found. Will look in system path.")
   endif(NOT LIBIGL_INCLUDE_DIR)
-else(VC_USE_INTERNAL_LIBIGL)
+endif()
+
+if(NOT LIBIGL_INCLUDE_DIR)
   FIND_PATH(LIBIGL_INCLUDE_DIR igl/readOBJ.h
      ${PROJECT_SOURCE_DIR}/../../include
      ${PROJECT_SOURCE_DIR}/../include
@@ -29,7 +31,7 @@ else(VC_USE_INTERNAL_LIBIGL)
      /usr/local/include
      /usr/local/igl/libigl/include
   )
-endif(VC_USE_INTERNAL_LIBIGL)
+endif()
 
 if(LIBIGL_INCLUDE_DIR)
    set(LIBIGL_FOUND TRUE)
@@ -37,6 +39,15 @@ if(LIBIGL_INCLUDE_DIR)
    #set(LIBIGL_SOURCES
    #   ${LIBIGL_INCLUDE_DIR}/igl/viewer/Viewer.cpp
    #)
+ else()
+   set(LIBIGL_FOUND FALSE)
 endif()
 
-endif()
+if(NOT LIBIGL_FOUND)
+  # Handle required flag
+  if(LIBIGL_FIND_REQUIRED)
+    message(FATAL_ERROR "libigl required but not found.")
+  endif(LIBIGL_FIND_REQUIRED)
+endif(NOT LIBIGL_FOUND)
+
+endif(NOT LIBIGL_FOUND)
