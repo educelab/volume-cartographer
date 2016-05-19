@@ -47,7 +47,7 @@ include(${ITK_USE_FILE})
 include(${VTK_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
 
-include_directories(${Boost_INCLUDE_DIR} ${PCL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
+include_directories(${Boost_INCLUDE_DIR} ${PCL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} ${LIBIGL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS} ${Boost_LIBRARY_DIRS})
 set(VC_REQ_LIBS ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} ${ITK_LIBRARIES} pcl_search)
 add_definitions(${PCL_DEFINITIONS})
