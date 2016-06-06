@@ -12,7 +12,7 @@ CVolumeViewerWithCurve::CVolumeViewerWithCurve( void ) :
     fViewState( EViewState::ViewStateIdle ),
     fSelectedPointIndex( -1 ),
     fVertexIsChanged( false ),
-    fImpactRange( 25 )
+    fImpactRange( 5 )
 {
 }
 

@@ -207,6 +207,7 @@ private:
     QLineEdit   *fEdtEndIndex;
 
     QSlider     *fEdtImpactRange;
+    QLabel      *fLabImpactRange;
 
     Ui::VCMainWindow    ui;
 

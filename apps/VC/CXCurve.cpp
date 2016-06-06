@@ -28,16 +28,16 @@ void CXCurve::SetPointByDifference( int nIndex,
                                    double ( *ImpactFunc )( double, double, double ),
                                    int nImpactRange )
 {
-//	SetPoint( nIndex, fPoints[ nIndex ] + nDiff );
-	for ( int i = 0; i <= nImpactRange; ++i ) {
-		if ( nIndex - i >= 0 ) {
-		    SetPoint( nIndex - i, fPoints[ nIndex - i ] + nDiff * ImpactFunc( 1.0, ( double )i / nImpactRange, 1.0 ) );
-		}
-        if ( i == 0 ) {
-            continue;
-        }
-		if ( nIndex + i < fPoints.size() ) {
-			SetPoint( nIndex + i, fPoints[ nIndex + i ] + nDiff * ImpactFunc( 1.0, ( double )i / nImpactRange, 1.0 ) );
-		}
-	}
+  for (int i = 0; i <= nImpactRange; ++i) {
+    // The following should be simplified, but every time I've tried, it does weird things when dragging points. - SP, 2016
+    if (nIndex - i >= 0) {
+      SetPoint(nIndex - i, fPoints[nIndex - i] + nDiff * ImpactFunc(1.0, (double) i / nImpactRange, 1.0));
+    }
+    if (i == 0) {
+      continue;
+    }
+    if (nIndex + i < fPoints.size()) {
+      SetPoint(nIndex + i, fPoints[nIndex + i] + nDiff * ImpactFunc(1.0, (double) i / nImpactRange, 1.0));
+    }
+  }
 }

@@ -222,6 +222,8 @@ void CWindow::CreateWidgets(void)
     QSlider *fEdtImpactRange = this->findChild<QSlider *>("sldImpactRange");
     connect(fEdtImpactRange, SIGNAL(valueChanged(int)), this,
             SLOT(OnEdtImpactRange(int)));
+    fLabImpactRange = this->findChild<QLabel *>("labImpactRange");
+    fLabImpactRange->setText( QString::number(fEdtImpactRange->value()) );
 
     // Setup the status bar
     statusBar = this->findChild<QStatusBar *>("statusBar");
@@ -1059,6 +1061,7 @@ void CWindow::OnBtnStartSegClicked(void)
 void CWindow::OnEdtImpactRange(int nImpactRange)
 {
     fVolumeViewerWidget->SetImpactRange(nImpactRange);
+    fLabImpactRange->setText( QString::number(nImpactRange) );
 }
 
 // Handle loading any slice
