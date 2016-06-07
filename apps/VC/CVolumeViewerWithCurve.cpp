@@ -125,6 +125,7 @@ void CVolumeViewerWithCurve::mousePressEvent( QMouseEvent *event )
         // REVISIT - FILL ME HERE
         if ( fIntersectionCurveRef != NULL ) {
             fSelectedPointIndex = SelectPointOnCurve( fIntersectionCurveRef, aImgLoc );
+            fIntersectionCurveRef->setLastState();
         }
     } else {
         // idle state, do nothing
@@ -161,8 +162,6 @@ void CVolumeViewerWithCurve::mouseMoveEvent( QMouseEvent *event )
     } else {
         // idle state, do nothing
     }
-
-    fLastPos = QPoint( aImgLoc[ 0 ], aImgLoc[ 1 ] );
 
     // update view
     UpdateView();
