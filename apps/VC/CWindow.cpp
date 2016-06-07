@@ -718,6 +718,7 @@ void CWindow::OpenVolume(void)
 
     fVpkgPath = aVpkgPath;
     fPathOnSliceIndex = 0;
+    fSegParams.fWindowWidth = std::ceil(fVpkg->getMaterialThickness() / fVpkg->getVoxelSize());
 }
 
 void CWindow::CloseVolume(void)
