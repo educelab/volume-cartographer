@@ -34,7 +34,7 @@ int main( int argc, char* argv[] ) {
 
   // Get uv map
   volcart::UVMap uvMap = lscm.getUVMap();
-  int width = 800;
+  int width = std::ceil( uvMap.ratio().width );
   int height = std::ceil( (double) width / uvMap.ratio().aspect );
 
   volcart::texturing::compositeTextureV2 compText(inputMesh, vpkg, uvMap, 5, width, height);

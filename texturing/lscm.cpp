@@ -63,8 +63,9 @@ namespace volcart {
           }
 
           // Scale width and height back to volume coordinates
-          double aspect_width = std::abs(max_u - min_u);
-          double aspect_height = std::abs(max_v - min_v);
+          double scaleFactor = std::sqrt(_startingArea / _area( _vertices_UV, _faces ));
+          double aspect_width = std::abs(max_u - min_u) * scaleFactor;
+          double aspect_height = std::abs(max_v - min_v) * scaleFactor;
           double aspect = aspect_width / aspect_height;
           uvMap.ratio(aspect_width, aspect_height);
 
@@ -103,6 +104,24 @@ namespace volcart {
               ++i;
             }
           }
+
+          // Set the starting area for later comparison
+          _startingArea = _area( _vertices, _faces);
+        }
+
+        // Calculate surface area of meshes
+        double lscm::_area(const Eigen::MatrixXd& v, const Eigen::MatrixXi& f) {
+          Eigen::VectorXd area;
+          igl::doublearea(v, f, area);
+          area = area.array() / 2;
+
+          // doublearea returns array of signed areas
+          double a = 0.0;
+          for( auto i = 0; i < area.size(); ++i ) {
+            a += std::abs( area[i] );
+          }
+
+          return a;
         }
 
     }

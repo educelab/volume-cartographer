@@ -9,6 +9,7 @@
 
 #include <igl/lscm.h>
 #include <igl/boundary_loop.h>
+#include <igl/doublearea.h>
 
 #include "vc_defines.h"
 #include "vc_datatypes.h"
@@ -36,6 +37,9 @@ namespace volcart {
     private:
       void _fillEigenMatrices();
       void _emptyEigenMatrices();
+
+      double _area(const Eigen::MatrixXd& v, const Eigen::MatrixXi& f);
+      double _startingArea;
 
       const VC_MeshType::Pointer _mesh;
       Eigen::MatrixXd _vertices;
