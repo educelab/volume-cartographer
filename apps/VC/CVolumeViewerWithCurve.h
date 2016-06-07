@@ -8,6 +8,7 @@
 #include "CXCurve.h"
 #include <vector>
 #include <opencv2/opencv.hpp>
+#include <QCheckBox>
 #ifndef Q_MOC_RUN
 #include <pcl/common/common.h>
 #include <pcl/point_types.h>
@@ -41,9 +42,12 @@ public:
     void SetImpactRange( int nImpactRange );
 
     void UpdateView( void );
+    void SetShowCurve( bool b ) { showCurve = b; };
 
     void SetViewState( EViewState nViewState ) { fViewState = nViewState; }
     EViewState GetViewState( void ) { return fViewState; }
+
+    void  setButtonsEnabled( bool state );
 
 protected:
     void mousePressEvent( QMouseEvent *event );
@@ -51,6 +55,9 @@ protected:
     void mouseReleaseEvent( QMouseEvent *event );
     void paintEvent( QPaintEvent *event );
     void UpdateButtons( void );
+
+private slots:
+    void OnShowCurveStateChanged( int state );
 
 private:
     void WidgetLoc2ImgLoc( const cv::Vec2f &nWidgetLoc,
@@ -68,6 +75,8 @@ signals:
 
 private:
     // for drawing
+    QCheckBox   *fShowCurveBox;
+    bool        showCurve;
     CBSpline    *fSplineCurveRef;
     std::vector< cv::Vec2f >
                 fControlPoints;
