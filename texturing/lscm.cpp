@@ -21,6 +21,21 @@ namespace volcart {
 
           // LSCM parametrization
           igl::lscm( _vertices, _faces, b, bc, _vertices_UV );
+
+          // Find the line of best fit through the flattened points
+          // Use this line to try to straighten the textures
+          // Note: This will only work with segmentations that are wider than they are long
+          std::vector<cv::Point2f> points;
+          cv::Vec4f line;
+          for ( int i = 0; i < _vertices_UV.rows(); ++i ) {
+            cv::Point2d p;
+            p.x = _vertices_UV(i, 0);
+            p.y = _vertices_UV(i, 1);
+            points.push_back(p);
+          }
+          cv::fitLine( points, line, CV_DIST_L2, 0, 0.01, 0.01);
+          Eigen::Rotation2Dd rot( std::atan(line(1)/line(0)) );
+          _vertices_UV *= rot.matrix();
         }
 
         // Get output as mesh

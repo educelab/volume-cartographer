@@ -11,6 +11,9 @@
 #include <igl/boundary_loop.h>
 #include <igl/doublearea.h>
 
+#include <opencv2/opencv.hpp>
+#include <Eigen/Geometry>
+
 #include "vc_defines.h"
 #include "vc_datatypes.h"
 #include "deepCopy.h"
