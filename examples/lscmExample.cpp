@@ -28,8 +28,20 @@ int main( int argc, char* argv[] ) {
   VC_MeshType::Pointer inputMesh = VC_MeshType::New();
   volcart::meshing::vtk2itk( reader->GetOutput(), inputMesh );
 
+  std::string meshName = vpkg.getMeshPath();
+
+  // declare pointer to new Mesh object
+  VC_MeshType::Pointer  input = VC_MeshType::New();
+  int meshWidth = -1;
+  int meshHeight = -1;
+
+  // try to convert the ply to an ITK mesh
+  if (!volcart::io::ply2itkmesh(meshName, input, meshWidth, meshHeight)){
+    exit( -1 );
+  };
+
   // Compute parameterization
-  volcart::texturing::lscm lscm( inputMesh );
+  volcart::texturing::lscm lscm( input );
   lscm.compute();
 
   // Get uv map

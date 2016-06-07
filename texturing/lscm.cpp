@@ -17,7 +17,7 @@ namespace volcart {
           b(0) = bnd(0);
           b(1) = bnd(round(bnd.size()/2));
           Eigen::MatrixXd bc(2,2);
-          bc<<0,0,1,0;
+          bc << 0,0,1,0;
 
           // LSCM parametrization
           igl::lscm( _vertices, _faces, b, bc, _vertices_UV );
