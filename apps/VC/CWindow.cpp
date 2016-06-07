@@ -188,30 +188,19 @@ void CWindow::CreateWidgets(void)
     fEdtDistanceWeight = this->findChild<QLineEdit *>("edtDistanceWeightVal");
     fEdtWindowWidth = this->findChild<QLineEdit *>("edtWindowWidthVal");
     fOptIncludeMiddle = this->findChild<QCheckBox *>("includeMiddleOpt");
+    connect(fEdtAlpha, SIGNAL( editingFinished() ), this, SLOT( OnEdtAlphaValChange() ));
+    connect(fEdtBeta,  SIGNAL( editingFinished() ), this, SLOT( OnEdtBetaValChange() ));
+    connect(fEdtDelta, SIGNAL( editingFinished() ), this, SLOT( OnEdtDeltaValChange() ));
+    connect(fEdtK1,    SIGNAL( editingFinished() ), this, SLOT( OnEdtK1ValChange() ));
+    connect(fEdtK2,    SIGNAL( editingFinished() ), this, SLOT( OnEdtK2ValChange() ));
+    connect(fEdtDistanceWeight, SIGNAL( editingFinished() ), this, SLOT( OnEdtDistanceWeightChange() ));
+    connect(fEdtWindowWidth,    SIGNAL( editingFinished() ), this, SLOT( OnEdtWindowWidthChange() ));
+    connect(fOptIncludeMiddle,  SIGNAL( clicked(bool) ), this, SLOT( OnOptIncludeMiddleClicked(bool) ));
 
     fEdtStartIndex = this->findChild<QLineEdit *>("edtStartingSliceVal");
     fEdtEndIndex = this->findChild<QLineEdit *>("edtEndingSliceVal");
-    // REVISIT - consider switching to CSimpleNumEditBox
-    // see QLineEdit doc to see the difference of textEdited() and textChanged()
-    // doc.qt.io/qt-4.8/qlineedit.html#textEdited
-    connect(fEdtAlpha, SIGNAL(editingFinished()), this,
-            SLOT(OnEdtAlphaValChange()));
-    connect(fEdtBeta, SIGNAL(editingFinished()), this,
-            SLOT(OnEdtBetaValChange()));
-    connect(fEdtDelta, SIGNAL(editingFinshed()), this,
-            SLOT(OnEdtDeltaValChange()));
-    connect(fEdtK1, SIGNAL(editingFinshed()), this, SLOT(OnEdtK1ValChange()));
-    connect(fEdtK2, SIGNAL(editingFinshed()), this, SLOT(OnEdtK2ValChange()));
-    connect(fEdtDistanceWeight, SIGNAL(editingFinshed()), this,
-            SLOT(OnEdtDistanceWeightChange()));
-    connect(fEdtWindowWidth, SIGNAL(editingFinshed()), this,
-            SLOT(OnEdtWindowWidthChange()));
-    connect(fOptIncludeMiddle, SIGNAL(clicked(bool)), this,
-            SLOT(OnOptIncludeMiddleClicked(bool)));
-    connect(fEdtStartIndex, SIGNAL(textEdited(QString)), this,
-            SLOT(OnEdtStartingSliceValChange(QString)));
-    connect(fEdtEndIndex, SIGNAL(editingFinished()), this,
-            SLOT(OnEdtEndingSliceValChange()));
+    connect(fEdtStartIndex,     SIGNAL( textEdited(QString) ), this, SLOT( OnEdtStartingSliceValChange(QString)));
+    connect(fEdtEndIndex,       SIGNAL( editingFinished() ), this, SLOT( OnEdtEndingSliceValChange() ));
 
     // start segmentation button
     QPushButton *aBtnStartSeg = this->findChild<QPushButton *>("btnStartSeg");
