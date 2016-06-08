@@ -8,7 +8,6 @@ namespace volcart {
           _fillEigenMatrices();
         };
 
-        // Compute
         void lscm::compute() {
 
           // Fix two points on the boundary
@@ -17,7 +16,7 @@ namespace volcart {
           b(0) = bnd(0);
           b(1) = bnd(round(bnd.size()/2));
           Eigen::MatrixXd bc(2,2);
-          bc << 0,0,1,0;
+          bc << 0,0,1,1;
 
           // LSCM parametrization
           igl::lscm( _vertices, _faces, b, bc, _vertices_UV );
@@ -62,7 +61,6 @@ namespace volcart {
 
           // Setup uvMap
           volcart::UVMap uvMap;
-          uvMap.origin( VC_ORIGIN_BOTTOM_LEFT ); // To-Do: Need to test this.
 
           double min_u = 1;
           double max_u = 0;

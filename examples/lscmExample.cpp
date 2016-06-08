@@ -10,6 +10,10 @@
 #include "io/plyWriter.h"
 #include "io/ply2itk.h"
 #include "itk2vtk.h"
+#include "ACVD.h"
+#include <vtkCleanPolyData.h>
+#include <vtkSmoothPolyDataFilter.h>
+#include <vtkPolyDataNormals.h>
 
 #include "lscm.h"
 #include "compositeTextureV2.h"
@@ -22,12 +26,6 @@ int main( int argc, char* argv[] ) {
   vpkg.setActiveSegmentation( argv[2] );
 
   // Read the mesh
-  vtkSmartPointer<vtkPLYReader> reader = vtkSmartPointer<vtkPLYReader>::New();
-  reader->SetFileName ( "decim.ply" );
-  reader->Update();
-  VC_MeshType::Pointer inputMesh = VC_MeshType::New();
-  volcart::meshing::vtk2itk( reader->GetOutput(), inputMesh );
-
   std::string meshName = vpkg.getMeshPath();
 
   // declare pointer to new Mesh object
@@ -40,8 +38,40 @@ int main( int argc, char* argv[] ) {
     exit( -1 );
   };
 
+  vtkPolyData* vtkMesh = vtkPolyData::New();
+  volcart::meshing::itk2vtk(input, vtkMesh);
+
+  // Decimate using ACVD
+  vtkPolyData* acvdMesh = vtkPolyData::New();
+  volcart::meshing::ACVD(vtkMesh, acvdMesh, 2000, 0, 0, 200);
+
+  // Smooth points
+  vtkSmartPointer<vtkSmoothPolyDataFilter> smoothFilter = vtkSmartPointer<vtkSmoothPolyDataFilter>::New();
+  smoothFilter->SetInputData( acvdMesh );
+  smoothFilter->SetNumberOfIterations(200);
+  smoothFilter->SetRelaxationFactor(0.05);
+  smoothFilter->FeatureEdgeSmoothingOn();
+  smoothFilter->BoundarySmoothingOff();
+  smoothFilter->Update();
+
+  // Merge Duplicates
+  // Note: This merging has to be the last in the process chain for some really weird reason. - SP
+  vtkSmartPointer<vtkCleanPolyData> Cleaner = vtkCleanPolyData::New();
+  Cleaner->SetInputConnection( smoothFilter->GetOutputPort() );
+  Cleaner->ToleranceIsAbsoluteOn();
+  Cleaner->Update();
+
+  // Convert back to ITK mesh
+  VC_MeshType::Pointer outputMesh = VC_MeshType::New();
+  volcart::meshing::vtk2itk( Cleaner->GetOutput(), outputMesh);
+
+  volcart::io::objWriter mesh_writer;
+  mesh_writer.setPath( "acvd.obj" );
+  mesh_writer.setMesh( outputMesh );
+  mesh_writer.write();
+
   // Compute parameterization
-  volcart::texturing::lscm lscm( input );
+  volcart::texturing::lscm lscm( outputMesh );
   lscm.compute();
 
   // Get uv map
@@ -49,11 +79,11 @@ int main( int argc, char* argv[] ) {
   int width = std::ceil( uvMap.ratio().width );
   int height = std::ceil( (double) width / uvMap.ratio().aspect );
 
-  volcart::texturing::compositeTextureV2 compText(inputMesh, vpkg, uvMap, 5, width, height);
+  volcart::texturing::compositeTextureV2 compText(outputMesh, vpkg, uvMap, 5, width, height);
 
-  volcart::io::objWriter mesh_writer;
+  //volcart::io::objWriter mesh_writer;
   mesh_writer.setPath( "lscm.obj" );
-  mesh_writer.setMesh( inputMesh );
+  mesh_writer.setMesh( outputMesh );
   mesh_writer.setTexture( compText.texture().getImage(0) );
   mesh_writer.setUVMap( compText.texture().uvMap() );
   mesh_writer.write();
