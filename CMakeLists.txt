@@ -73,6 +73,9 @@ ENDIF(APPLE)
 enable_testing()
 
 # VC Libraries
+add_subdirectory(external/sparse_linear_solver)
+include_directories(${SLS_INCLUDE_DIR})
+
 add_subdirectory(common)
 include_directories(${VC_COMMON_INCLUDE_DIR})
 

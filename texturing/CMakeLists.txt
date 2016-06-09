@@ -10,5 +10,6 @@ else()
                                     compositeTextureV2.cpp compositeTextureV2.h
                                     clothModelingUV.cpp clothModelingUV.h
                                     lscm.cpp lscm.h
-                                    simpleUV.h simpleUV.cpp )
+                                    simpleUV.h simpleUV.cpp
+                                    blender_abf.h blender_abf.c)
 endif()
