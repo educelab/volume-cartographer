@@ -11,6 +11,7 @@
 #include <vtkSmoothPolyDataFilter.h>
 #include "lscm.h"
 #include "compositeTextureV2.h"
+#include "meshMath.h"
 
 #include "Global_Values.h"
 

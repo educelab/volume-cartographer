@@ -6,6 +6,7 @@
 #include "vc_datatypes.h"
 #include "shapes.h"
 #include "volumepkg.h"
+#include "meshMath.h"
 
 #include "io/plyWriter.h"
 #include "io/ply2itk.h"
@@ -40,9 +41,14 @@ int main( int argc, char* argv[] ) {
   vtkPolyData* vtkMesh = vtkPolyData::New();
   volcart::meshing::itk2vtk(input, vtkMesh);
 
+  double voxelsize = vpkg.getVoxelSize();
+  double sa = volcart::meshMath::SurfaceArea( input ) * (voxelsize * voxelsize) * (0.001 * 0.001); // convert vx^2 -> mm^2;
+  double densityFactor = 50;
+  uint16_t numberOfVertices = std::round(densityFactor * sa);
+
   // Decimate using ACVD
   vtkPolyData* acvdMesh = vtkPolyData::New();
-  volcart::meshing::ACVD(vtkMesh, acvdMesh, 2000, 0, 0, 200);
+  volcart::meshing::ACVD(vtkMesh, acvdMesh, numberOfVertices, 0, 0, numberOfVertices/10);
 
   // Smooth points
   vtkSmartPointer<vtkSmoothPolyDataFilter> smoothFilter = vtkSmartPointer<vtkSmoothPolyDataFilter>::New();

@@ -40,7 +40,8 @@ set(COMMON_ShapeSources
         shapes/Cube.h shapes/Cone.h )
 
 set(COMMON_UtilitiesSources
-        getMemorySize.h getMemorySize.cpp )
+        getMemorySize.h getMemorySize.cpp
+        meshMath.h meshMath.cpp )
 
 add_library(vc_common STATIC
         ${COMMON_MetaHeaders}
