@@ -13,7 +13,6 @@
 #include "ACVD.h"
 #include <vtkCleanPolyData.h>
 #include <vtkSmoothPolyDataFilter.h>
-#include <vtkPolyDataNormals.h>
 
 #include "lscm.h"
 #include "compositeTextureV2.h"
@@ -48,7 +47,7 @@ int main( int argc, char* argv[] ) {
   // Smooth points
   vtkSmartPointer<vtkSmoothPolyDataFilter> smoothFilter = vtkSmartPointer<vtkSmoothPolyDataFilter>::New();
   smoothFilter->SetInputData( acvdMesh );
-  smoothFilter->SetNumberOfIterations(200);
+  smoothFilter->SetNumberOfIterations(50);
   smoothFilter->SetRelaxationFactor(0.05);
   smoothFilter->FeatureEdgeSmoothingOn();
   smoothFilter->BoundarySmoothingOff();
@@ -81,11 +80,14 @@ int main( int argc, char* argv[] ) {
 
   volcart::texturing::compositeTextureV2 compText(outputMesh, vpkg, uvMap, 5, width, height);
 
+  // Setup rendering
+  volcart::Rendering rendering;
+  rendering.setTexture( compText.texture() );
+  rendering.setMesh( outputMesh );
+
   //volcart::io::objWriter mesh_writer;
   mesh_writer.setPath( "lscm.obj" );
-  mesh_writer.setMesh( outputMesh );
-  mesh_writer.setTexture( compText.texture().getImage(0) );
-  mesh_writer.setUVMap( compText.texture().uvMap() );
+  mesh_writer.setRendering( rendering );
   mesh_writer.write();
 
 

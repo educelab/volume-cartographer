@@ -48,11 +48,12 @@ namespace volcart {
         PerPixelMap  getMap() { return _PerPixelMapping; };
 
     private:
+        volcart::Metadata _metadata;
+
         boost::filesystem::path _path;
         int _width, _height;
         std::vector<cv::Mat> _images;
         volcart::UVMap _uvMap;
-        volcart::Metadata _metadata;
 
         cv::Mat       _PerPixelMask;
         PerPixelMap   _PerPixelMapping;
