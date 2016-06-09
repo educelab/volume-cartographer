@@ -80,7 +80,7 @@ namespace volcart {
     // Write the MTL file to disk
     // See http://paulbourke.net/dataformats/mtl/ for more options
     int objWriter::writeMTL() {
-        _outputMTL.open( _outputPath.stem().string() + ".mtl" ); // Open the file stream
+        _outputMTL.open( _outputPath.parent_path().string() + "/" + _outputPath.stem().string() + ".mtl" ); // Open the file stream
         if(!_outputMTL.is_open()) return EXIT_FAILURE; // Return error if we can't open the file
 
         std::cerr << "Writing MTL..." << std::endl;
@@ -105,7 +105,7 @@ namespace volcart {
         if ( _texture.empty() ) return EXIT_FAILURE;
 
         std::cerr << "Writing texture image..." << std::endl;
-        imwrite( _outputPath.stem().string() + ".png", _texture );
+        imwrite( _outputPath.parent_path().string() + "/" + _outputPath.stem().string() + ".png", _texture );
         return EXIT_SUCCESS;
     };
 

@@ -19,7 +19,7 @@ class CVolumeViewer : public QWidget {
 public:
     CVolumeViewer( QWidget *parent = 0 );
     ~CVolumeViewer( void );
-    void setButtonsEnabled( bool state );
+    virtual void setButtonsEnabled( bool state );
 
     virtual void SetImage( const QImage &nSrc );
     void SetImageIndex( int nImageIndex ) { fImageIndex = nImageIndex; UpdateButtons();}
@@ -44,7 +44,7 @@ signals:
 
 protected:
     void ScaleImage( double nFactor );
-    void UpdateButtons( void );
+    virtual void UpdateButtons( void );
     void AdjustScrollBar( QScrollBar *nScrollBar,
                           double nFactor );
 
@@ -58,6 +58,7 @@ protected:
     QPushButton     *fNextBtn;
     QPushButton     *fPrevBtn;
     CSimpleNumEditBox *fImageIndexEdit;
+    QHBoxLayout     *fButtonsLayout;
 
     // data
     QImage          *fImgQImage;
