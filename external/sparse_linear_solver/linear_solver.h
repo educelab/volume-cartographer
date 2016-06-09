@@ -35,14 +35,14 @@ extern "C" {
 typedef struct LinearSolver LinearSolver;
 
 LinearSolver *EIG_linear_solver_new(
-	int num_rows,
-	int num_columns,
-	int num_right_hand_sides);
+  int num_rows,
+  int num_columns,
+  int num_right_hand_sides);
 
 LinearSolver *EIG_linear_least_squares_solver_new(
-	int num_rows,
-	int num_columns,
-	int num_right_hand_sides);
+  int num_rows,
+  int num_columns,
+  int num_right_hand_sides);
 
 void EIG_linear_solver_delete(LinearSolver *solver);
 
