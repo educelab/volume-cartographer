@@ -64,11 +64,6 @@ int main( int argc, char* argv[] ) {
   VC_MeshType::Pointer outputMesh = VC_MeshType::New();
   volcart::meshing::vtk2itk( Cleaner->GetOutput(), outputMesh);
 
-  volcart::io::objWriter mesh_writer;
-  mesh_writer.setPath( "acvd.obj" );
-  mesh_writer.setMesh( outputMesh );
-  mesh_writer.write();
-
   // Compute parameterization
   volcart::texturing::lscm lscm( outputMesh );
   lscm.compute();
@@ -85,7 +80,7 @@ int main( int argc, char* argv[] ) {
   rendering.setTexture( compText.texture() );
   rendering.setMesh( outputMesh );
 
-  //volcart::io::objWriter mesh_writer;
+  volcart::io::objWriter mesh_writer;
   mesh_writer.setPath( "lscm.obj" );
   mesh_writer.setRendering( rendering );
   mesh_writer.write();

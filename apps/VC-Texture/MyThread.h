@@ -5,6 +5,13 @@
 #include <QString>
 #include <QThread>
 #include <QLabel>
+
+#include "ACVD.h"
+#include <vtkCleanPolyData.h>
+#include <vtkSmoothPolyDataFilter.h>
+#include "lscm.h"
+#include "compositeTextureV2.h"
+
 #include "Global_Values.h"
 
 

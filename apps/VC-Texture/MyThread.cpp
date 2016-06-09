@@ -34,10 +34,50 @@ void MyThread::run()
             throw(__EXCEPTIONS);// Error
         };
 
-        volcart::texturing::compositeTexture result(mesh, *_globals->getVolPkg(), meshWidth, meshHeight, _radius, aFilterOption, aDirectionOption);
-        volcart::Texture newTexture = result.texture();
+        vtkPolyData* vtkMesh = vtkPolyData::New();
+        volcart::meshing::itk2vtk(mesh, vtkMesh);
 
-        _globals->setTexture(newTexture);
+        // Decimate using ACVD
+        vtkPolyData* acvdMesh = vtkPolyData::New();
+        volcart::meshing::ACVD(vtkMesh, acvdMesh, 2000, 0, 0, 200);
+
+        // Smooth points
+        vtkSmartPointer<vtkSmoothPolyDataFilter> smoothFilter = vtkSmartPointer<vtkSmoothPolyDataFilter>::New();
+        smoothFilter->SetInputData( acvdMesh );
+        smoothFilter->SetNumberOfIterations(50);
+        smoothFilter->SetRelaxationFactor(0.05);
+        smoothFilter->FeatureEdgeSmoothingOn();
+        smoothFilter->BoundarySmoothingOff();
+        smoothFilter->Update();
+
+        // Merge Duplicates
+        // Note: This merging has to be the last in the process chain for some really weird reason. - SP
+        vtkSmartPointer<vtkCleanPolyData> Cleaner = vtkCleanPolyData::New();
+        Cleaner->SetInputConnection( smoothFilter->GetOutputPort() );
+        Cleaner->ToleranceIsAbsoluteOn();
+        Cleaner->Update();
+
+        // Convert back to ITK mesh
+        VC_MeshType::Pointer outputMesh = VC_MeshType::New();
+        volcart::meshing::vtk2itk( Cleaner->GetOutput(), outputMesh);
+
+        // Compute parameterization
+        volcart::texturing::lscm lscm( outputMesh );
+        lscm.compute();
+
+        // Get uv map
+        volcart::UVMap uvMap = lscm.getUVMap();
+        int width = std::ceil( uvMap.ratio().width );
+        int height = std::ceil( (double) width / uvMap.ratio().aspect );
+
+        volcart::texturing::compositeTextureV2 result(outputMesh, *_globals->getVolPkg(), uvMap, _radius, width, height, aFilterOption, aDirectionOption);
+
+        // Setup rendering
+        volcart::Rendering rendering;
+        rendering.setTexture( result.texture() );
+        rendering.setMesh( outputMesh );
+
+        _globals->setRendering( rendering );
 
     }catch(...)
     {
