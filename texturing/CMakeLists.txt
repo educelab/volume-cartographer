@@ -11,5 +11,6 @@ else()
                                     clothModelingUV.cpp clothModelingUV.h
                                     lscm.cpp lscm.h
                                     simpleUV.h simpleUV.cpp
-                                    blender_abf.h blender_abf.c)
+                                    blender_abf.h blender_abf.c
+                                    abf.h abf.cpp )
 endif()
