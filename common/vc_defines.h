@@ -47,6 +47,24 @@ typedef VC_MeshType::PointsContainer::ConstIterator   VC_PointsInMeshIterator;
 typedef VC_MeshType::CellsContainer::Iterator         VC_CellIterator;
 typedef VC_CellType::PointIdIterator                  VC_PointsInCellIterator;
 
+///// VC - ITK QuadEdgeMesh Defines /////
+#include <itkQuadEdgeMesh.h>
+namespace volcart {
+    typedef double                                   QuadPixel[3];
+    typedef itk::QuadEdgeMesh<double, 3>             QuadMesh;
+    typedef QuadMesh::PointType                      QuadPoint;
+    typedef QuadMesh::PointIdentifier                QuadMeshPointIdentifier;
+    typedef QuadMesh::CellType                       QuadCell;
+    typedef QuadMesh::PointsContainer                QuadPointsContainer;
+    typedef QuadMesh::PointsContainer::ConstIterator QuadPointsInMeshIterator;
+    typedef QuadMesh::CellsContainer::Iterator       QuadCellIterator;
+    typedef QuadCell::PointIdIterator                QuadPointsInCellIterator;
+    typedef QuadMesh::QEType                         QuadMeshQE;
+    typedef QuadMeshQE::IteratorGeom                 QuadMeshIteratorGeom;
+    typedef QuadMesh::EdgeListType                   QuadEdgeList;
+    typedef QuadMesh::EdgeListPointerType            QuadEdgeListPointer;
+    typedef QuadEdgeList::iterator                   QuadEdgeListIterator;
+}
 
 ///// ERROR MESSAGES /////
 #define VC_ERR_READONLY()       { std::cerr << "ERROR: Volume Package is set to Read-Only. Cannot write to file." << std::endl; return EXIT_FAILURE; }

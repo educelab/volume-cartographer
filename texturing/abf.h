@@ -1,11 +1,15 @@
 //
 // Created by Seth Parker on 6/9/16.
-// Angle-based Flattening implementation based on the same from Blender
+// Angle-based Flattening implementation ported from the same in Blender
+//
 
 #ifndef VC_ABF_H
 #define VC_ABF_H
 
 #include <iostream>
+#include <exception>
+
+#include "itkQuadEdgeMeshBoundaryEdgesMeshFunction.h"
 
 #include "vc_defines.h"
 #include "vc_datatypes.h"
@@ -15,6 +19,9 @@ namespace volcart {
     namespace texturing {
 
       class abf {
+
+      typedef itk::QuadEdgeMeshBoundaryEdgesMeshFunction< volcart::QuadMesh > BoundaryExtractor;
+
       public:
           ///// Constructors/Destructors /////
           abf(){};
@@ -33,7 +40,16 @@ namespace volcart {
           void compute();
       private:
 
-          const VC_MeshType::Pointer _mesh;
+          // Setup //
+          void _fillQuadEdgeMesh();
+
+          const VC_MeshType::Pointer  _mesh;
+          volcart::QuadMesh::Pointer  _quadMesh;
+
+          // Boundary and Interior Vertices
+          // < id in quadMesh, id in list >
+          std::map< volcart::QuadMeshPointIdentifier, volcart::QuadMeshPointIdentifier > _boundary;
+          std::map< volcart::QuadMeshPointIdentifier, volcart::QuadMeshPointIdentifier > _interior;
       };
 
     }// texturing
