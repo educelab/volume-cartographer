@@ -21,6 +21,7 @@ namespace volcart {
       class abf {
 
       typedef itk::QuadEdgeMeshBoundaryEdgesMeshFunction< volcart::QuadMesh > BoundaryExtractor;
+      typedef std::map< volcart::QuadCellIdentifier, double> IncidentAngles;
 
       public:
           ///// Constructors/Destructors /////
@@ -48,8 +49,11 @@ namespace volcart {
 
           // Boundary and Interior Vertices
           // < id in quadMesh, id in list >
-          std::map< volcart::QuadMeshPointIdentifier, volcart::QuadMeshPointIdentifier > _boundary;
-          std::map< volcart::QuadMeshPointIdentifier, volcart::QuadMeshPointIdentifier > _interior;
+          std::map< volcart::QuadPointIdentifier, volcart::QuadPointIdentifier > _boundary;
+          std::map< volcart::QuadPointIdentifier, volcart::QuadPointIdentifier > _interior;
+
+          // Incident angles for every vertex
+          std::map< volcart::QuadPointIdentifier, IncidentAngles > _angles;
       };
 
     }// texturing

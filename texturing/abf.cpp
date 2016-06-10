@@ -3,7 +3,7 @@
 //
 
 #include "abf.h"
-
+#include "abf_math.h"
 
 namespace volcart {
     namespace texturing {
@@ -44,6 +44,7 @@ namespace volcart {
 
         ///// Faces /////
         unsigned long v_ids[3];
+        double angles[3];
         for ( VC_CellIterator cell = _mesh->GetCells()->Begin(); cell != _mesh->GetCells()->End(); ++cell ) {
 
           // Collect the point id's
@@ -51,8 +52,29 @@ namespace volcart {
           for ( VC_PointsInCellIterator point = cell.Value()->PointIdsBegin(); point != cell.Value()->PointIdsEnd(); ++point, ++i ) {
             v_ids[i] = *point;
           }
-
           _quadMesh->AddFaceTriangle( v_ids[0], v_ids[1], v_ids[2] );
+
+          // Get the angles
+          angles[0] = vec_angle( _mesh->GetPoint(v_ids[0]),  _mesh->GetPoint(v_ids[1]), _mesh->GetPoint(v_ids[2]) );
+          angles[1] = vec_angle( _mesh->GetPoint(v_ids[1]),  _mesh->GetPoint(v_ids[0]), _mesh->GetPoint(v_ids[2]) );
+          angles[2] = vec_angle( _mesh->GetPoint(v_ids[2]),  _mesh->GetPoint(v_ids[0]), _mesh->GetPoint(v_ids[1]) );
+
+          // Add the 3 angles to storage
+          // If this vertex doesn't have an incident angles list, make one
+          for (i = 0; i < 3; ++i ) {
+            auto vertex_angles = _angles.find( v_ids[i] );
+            if ( vertex_angles == _angles.end() ) {
+
+              IncidentAngles incident_angles;
+              incident_angles[ cell.Index(), angles[i] ];
+
+              auto p = std::make_pair( v_ids[i], incident_angles );
+              _angles.insert( p );
+
+            } else {
+              vertex_angles->second[ cell.Index(), angles[i] ];
+            }
+          }
         }
 
         ///// Compute the boundary /////
@@ -63,7 +85,7 @@ namespace volcart {
           std::runtime_error( "Mesh does not have border." );
         }
 
-        volcart::QuadMeshPointIdentifier b_id(0);
+        volcart::QuadPointIdentifier b_id(0);
         for ( auto it = boundaryList->begin(); it != boundaryList->end(); ++ it ) {
           auto eIt = (*it)->BeginGeomLnext();
           while ( eIt != (*it)->EndGeomLnext() ){
@@ -73,15 +95,16 @@ namespace volcart {
         }
 
         ///// Compute the interior points /////
-        volcart::QuadMeshPointIdentifier m_id(0);
-        volcart::QuadMeshPointIdentifier i_id(0);
+        volcart::QuadPointIdentifier mesh_id(0);
+        volcart::QuadPointIdentifier interior_id(0);
         for ( auto it = _quadMesh->GetPoints()->Begin(); it != _quadMesh->GetPoints()->End(); ++it ) {
-          m_id = it->Index();
+          mesh_id = it->Index();
           // If this point isn't on the boundary, it's interior
-          if ( _boundary.find(m_id) == _boundary.end() )
-            _interior[m_id] = i_id++;
+          if ( _boundary.find(mesh_id) == _boundary.end() )
+            _interior[mesh_id] = interior_id++;
         }
       }
+
         // Sorting
         // Defaults
         // Angles
