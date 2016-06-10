@@ -20,8 +20,16 @@ namespace volcart {
 
       class abf {
 
+      struct AngleInfo {
+          QuadCellIdentifier c_id;
+
+          double alpha;  // Current angle
+          double beta;   // Ideal/Original angle
+          double weight; // Typically 1/b^2
+      };
+
       typedef itk::QuadEdgeMeshBoundaryEdgesMeshFunction< volcart::QuadMesh > BoundaryExtractor;
-      typedef std::map< volcart::QuadCellIdentifier, double> IncidentAngles;
+      typedef std::vector< AngleInfo > IncidentAngles;
 
       public:
           ///// Constructors/Destructors /////

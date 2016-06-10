@@ -62,17 +62,22 @@ namespace volcart {
           // Add the 3 angles to storage
           // If this vertex doesn't have an incident angles list, make one
           for (i = 0; i < 3; ++i ) {
+            AngleInfo info;
+            info.c_id = cell.Index();
+            info.alpha = info.beta = angles[i];
+            info.weight = 2.0 / (angles[i] * angles[i]); // Using Blender weighting
+
             auto vertex_angles = _angles.find( v_ids[i] );
             if ( vertex_angles == _angles.end() ) {
 
               IncidentAngles incident_angles;
-              incident_angles[ cell.Index(), angles[i] ];
+              incident_angles.push_back(info);
 
               auto p = std::make_pair( v_ids[i], incident_angles );
               _angles.insert( p );
 
             } else {
-              vertex_angles->second[ cell.Index(), angles[i] ];
+              vertex_angles->second.push_back(info);
             }
           }
         }
