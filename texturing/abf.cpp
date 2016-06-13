@@ -43,6 +43,10 @@ namespace volcart {
         }
 
         ///// Faces /////
+        // Min and Max angles
+        double minangle = 1.0 * M_PI / 180.0;
+        double maxangle = M_PI - minangle;
+
         unsigned long v_ids[3];
         double angles[3];
         for ( VC_CellIterator cell = _mesh->GetCells()->Begin(); cell != _mesh->GetCells()->End(); ++cell ) {
@@ -64,6 +68,13 @@ namespace volcart {
           for (i = 0; i < 3; ++i ) {
             AngleInfo info;
             info.c_id = cell.Index();
+
+            // Angles much fit within limits
+            if ( angles[i] < minangle )
+              angles[i] = minangle;
+            else if ( angles[i] > maxangle )
+              angles[i] = maxangle;
+
             info.alpha = info.beta = angles[i];
             info.weight = 2.0 / (angles[i] * angles[i]); // Using Blender weighting
 
@@ -107,6 +118,10 @@ namespace volcart {
           // If this point isn't on the boundary, it's interior
           if ( _boundary.find(mesh_id) == _boundary.end() )
             _interior[mesh_id] = interior_id++;
+        }
+
+        if ( _interior.empty() ) {
+          std::runtime_error( "Mesh does not have interior points." );
         }
       }
 
