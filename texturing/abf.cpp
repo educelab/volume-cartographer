@@ -33,6 +33,14 @@ namespace volcart {
           p[2] = point->Value()[2];
 
           _quadMesh->AddPoint(p);
+
+          // Add every point to the vertex list
+          VertexInfo i;
+          i.p_id = point.Index();
+          i.interior = false;
+          i.lambdaLength = i.lambdaPlanar = 0.0;
+
+          _vertInfo[point.Index()] = i;
         }
 
         ///// Faces /////
@@ -73,18 +81,10 @@ namespace volcart {
             info->alpha = info->beta = angles[i];
             info->weight = 2.0 / (angles[i] * angles[i]); // Using Blender weighting
 
-            auto vertex_angles = _vertInfo.find( v_ids[i] );
-            if ( vertex_angles == _vertInfo.end() ) {
+            // Add this angle to the vertex list
+            _vertInfo[ v_ids[i] ].angles.push_back(info);
 
-              AngleGroup incident_angles;
-              incident_angles.push_back(info);
-
-              auto p = std::make_pair( v_ids[i], incident_angles );
-              _vertInfo.insert( p );
-
-            } else {
-              vertex_angles->second.push_back(info);
-            }
+            // Add this angle to the triangle
             tri.angles.push_back(info);
           }
           _faceInfo[cell.Index()] = tri;
@@ -116,7 +116,9 @@ namespace volcart {
           mesh_id = it->Index();
           // If this point isn't on the boundary, it's interior
           if ( _boundary.find(mesh_id) == _boundary.end() )
-            _interior[mesh_id] = interior_id++;
+            _vertInfo[ mesh_id ].interior = true;
+            _vertInfo[ mesh_id ].lambdaLength = 1.0;
+            _interior[ mesh_id ] = interior_id++;
         }
 
         if ( _interior.empty() ) {
@@ -132,7 +134,7 @@ namespace volcart {
           scale = (anglesum == 0.0f) ? 0.0f : 2.0f * (double)M_PI / anglesum;
 
           auto point = _vertInfo.find( p_it->first );
-          for ( auto a_it = point->second.begin(); a_it != point->second.end(); ++a_it )
+          for ( auto a_it = point->second.angles.begin(); a_it != point->second.angles.end(); ++a_it )
             (*a_it)->beta = (*a_it)->alpha = (*a_it)->beta * scale;
 
         }
@@ -161,7 +163,7 @@ namespace volcart {
       double abf::_sumIncidentBetas(volcart::QuadPointIdentifier p) {
         double sum = 0.0;
         auto point = _vertInfo.find( p );
-        for ( auto it = point->second.begin(); it != point->second.end(); ++it )
+        for ( auto it = point->second.angles.begin(); it != point->second.angles.end(); ++it )
           sum += (*it)->beta;
 
         return sum;
@@ -171,7 +173,7 @@ namespace volcart {
         // For every point
         for ( auto p_it = _vertInfo.begin(); p_it != _vertInfo.end(); ++p_it ) {
           // For every angle incident to that point
-          for ( auto a_it = p_it->second.begin(); a_it != p_it->second.end(); ++a_it ) {
+          for ( auto a_it = p_it->second.angles.begin(); a_it != p_it->second.angles.end(); ++a_it ) {
             (*a_it)->sine   = sin( (*a_it)->alpha );
             (*a_it)->cosine = cos( (*a_it)->alpha );
           }
@@ -185,9 +187,9 @@ namespace volcart {
         for ( auto it = _faceInfo.begin(); it != _faceInfo.end(); ++ it ) {
           double gTriangle, gAlpha0, gAlpha1, gAlpha2;
 
-          gAlpha0 = _computeGradientAlpha(it->second.angles[0]);
-          gAlpha1 = _computeGradientAlpha(it->second.angles[1]);
-          gAlpha2 = _computeGradientAlpha(it->second.angles[2]);
+          gAlpha0 = _computeGradientAlpha(it->second, 0);
+          gAlpha1 = _computeGradientAlpha(it->second, 1);
+          gAlpha2 = _computeGradientAlpha(it->second, 2);
 
           it->second.angles[0]->bAlpha = -gAlpha0;
           it->second.angles[1]->bAlpha = -gAlpha1;
@@ -201,6 +203,15 @@ namespace volcart {
         }
 
         // Planarity check for interior verts
+        for ( auto it = _vertInfo.begin(); it != _vertInfo.end(); ++it ) {
+          if( it->second.interior ) {
+            double gplanar = -2 * M_PI, glength;
+
+
+          }
+        }
+
+        return norm;
       }
 
       double abf::_computeGradientAlpha(TriangleInfo face, int angle) {
@@ -223,12 +234,23 @@ namespace volcart {
         }
 
         double deriv = ( a0->alpha - a0->beta ) * a0->weight;
+        deriv += _faceInfo[a0->c_id].lambdaTriangle;
 
-        deriv += _faceInfo[ a0->c_id ].lambdaTriangle;
-
-        if ( _interior.find(a0->p_id) != _interior.end() ) {
-          deriv +=
+        if ( _vertInfo[a0->p_id].interior ) {
+          deriv += _vertInfo[a0->p_id].lambdaPlanar;
         }
+
+        if ( _vertInfo[a1->p_id].interior ) {
+          double product = _computeSinProduct();
+          deriv += _vertInfo[a1->p_id].lambdaLength * product;
+        }
+
+        if ( _vertInfo[a2->p_id].interior ) {
+          double product = _computeSinProduct();
+          deriv += _vertInfo[a2->p_id].lambdaLength * product;
+        }
+
+        return deriv;
       }
 
       bool abf::_invertMatrix() {

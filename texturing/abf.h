@@ -104,7 +104,7 @@ namespace volcart {
           std::map< volcart::QuadPointIdentifier, volcart::QuadPointIdentifier > _interior;
 
           // Reference to angles for every vertex and face
-          std::map< volcart::QuadPointIdentifier, AngleGroup   > _vertInfo;
+          std::map< volcart::QuadPointIdentifier, VertexInfo   > _vertInfo;
           std::map< volcart::QuadCellIdentifier , TriangleInfo > _faceInfo;
 
           // Parameters
