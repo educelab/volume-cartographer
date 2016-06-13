@@ -45,7 +45,7 @@ namespace volcart {
         ///// Faces /////
         // Min and Max angles
         double minangle = 1.0 * M_PI / 180.0;
-        double maxangle = M_PI - minangle;
+        double maxangle = (double)M_PI - minangle;
 
         unsigned long v_ids[3];
         double angles[3];
@@ -65,9 +65,11 @@ namespace volcart {
 
           // Add the 3 angles to storage
           // If this vertex doesn't have an incident angles list, make one
+          AngleGroup face_angles;
           for (i = 0; i < 3; ++i ) {
-            AngleInfo info;
-            info.c_id = cell.Index();
+            auto info = std::make_shared<AngleInfo>();
+            info->c_id = cell.Index();
+            info->p_id = v_ids[i];
 
             // Angles much fit within limits
             if ( angles[i] < minangle )
@@ -75,22 +77,24 @@ namespace volcart {
             else if ( angles[i] > maxangle )
               angles[i] = maxangle;
 
-            info.alpha = info.beta = angles[i];
-            info.weight = 2.0 / (angles[i] * angles[i]); // Using Blender weighting
+            info->alpha = info->beta = angles[i];
+            info->weight = 2.0 / (angles[i] * angles[i]); // Using Blender weighting
 
-            auto vertex_angles = _angles.find( v_ids[i] );
-            if ( vertex_angles == _angles.end() ) {
+            auto vertex_angles = _vertexAngles.find( v_ids[i] );
+            if ( vertex_angles == _vertexAngles.end() ) {
 
-              IncidentAngles incident_angles;
+              AngleGroup incident_angles;
               incident_angles.push_back(info);
 
               auto p = std::make_pair( v_ids[i], incident_angles );
-              _angles.insert( p );
+              _vertexAngles.insert( p );
 
             } else {
               vertex_angles->second.push_back(info);
             }
+            face_angles.push_back(info);
           }
+          _faceAngles[cell.Index()] = face_angles;
         }
 
         ///// Compute the boundary /////

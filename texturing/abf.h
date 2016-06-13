@@ -1,13 +1,14 @@
 //
 // Created by Seth Parker on 6/9/16.
 // Angle-based Flattening implementation ported from the same in Blender
-//
+// Note: This is borrowed very heavily from Blender's implementation.
 
 #ifndef VC_ABF_H
 #define VC_ABF_H
 
 #include <iostream>
 #include <exception>
+#include <memory>
 
 #include "itkQuadEdgeMeshBoundaryEdgesMeshFunction.h"
 
@@ -21,7 +22,8 @@ namespace volcart {
       class abf {
 
       struct AngleInfo {
-          QuadCellIdentifier c_id;
+          QuadPointIdentifier p_id;
+          QuadCellIdentifier  c_id;
 
           double alpha;  // Current angle
           double beta;   // Ideal/Original angle
@@ -29,7 +31,7 @@ namespace volcart {
       };
 
       typedef itk::QuadEdgeMeshBoundaryEdgesMeshFunction< volcart::QuadMesh > BoundaryExtractor;
-      typedef std::vector< AngleInfo > IncidentAngles;
+      typedef std::vector< std::shared_ptr<AngleInfo> > AngleGroup;
 
       public:
           ///// Constructors/Destructors /////
@@ -60,8 +62,9 @@ namespace volcart {
           std::map< volcart::QuadPointIdentifier, volcart::QuadPointIdentifier > _boundary;
           std::map< volcart::QuadPointIdentifier, volcart::QuadPointIdentifier > _interior;
 
-          // Incident angles for every vertex
-          std::map< volcart::QuadPointIdentifier, IncidentAngles > _angles;
+          // Reference to angles for every vertex and face
+          std::map< volcart::QuadPointIdentifier, AngleGroup > _vertexAngles;
+          std::map< volcart::QuadCellIdentifier , AngleGroup > _faceAngles;
       };
 
     }// texturing
