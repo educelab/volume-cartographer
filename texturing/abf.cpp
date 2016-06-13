@@ -11,21 +11,14 @@ namespace volcart {
       ///// Process //////
       void abf::compute()
       {
+        // Construct the mesh and get the angles
         _fillQuadEdgeMesh();
-        // 1.5) Setup system defaults
 
-        /* 2) Compute original angles
-            - Sum angles for every vertex edge calc "scale"
-            - Scale beta by "scale" and set this as alpha & beta for that edge
-        */
+        // Scale beta to prevent degenerate cases
+        _scale();
 
-        /* 3) If there are interior vertices:
-            loop until max iterations reached - fallback to lscm if reached
-              compute gradient for the mesh
-              break if the grad is below the error limit
-              invert the matrix - fallback to lscm if this fails
-              compute sines
-        */
+        // Solve the system
+        _solve();
       }
 
       ///// Setup /////
@@ -96,6 +89,8 @@ namespace volcart {
           }
           _faceAngles[cell.Index()] = face_angles;
         }
+        // Set limit based on number of faces
+        _limit = (_quadMesh->GetNumberOfCells() > 100) ? 1.0f : 0.001f;
 
         ///// Compute the boundary /////
         BoundaryExtractor::Pointer extractor = BoundaryExtractor::New();
@@ -128,14 +123,70 @@ namespace volcart {
           std::runtime_error( "Mesh does not have interior points." );
         }
       }
+      void abf::_scale() {
 
-        // Sorting
-        // Defaults
-        // Angles
+        for ( auto p_it = _interior.begin(); p_it != _interior.end(); ++p_it ) {
+          double anglesum = 0.0, scale;
 
-      // Minimization Loop
-        // compute gradient
-        // invert the matrix *All the hard work*
+          anglesum = _sumIncidentBetas( p_it->first );
+          scale = (anglesum == 0.0f) ? 0.0f : 2.0f * (double)M_PI / anglesum;
+
+          auto point = _vertexAngles.find( p_it->first );
+          for ( auto a_it = point->second.begin(); a_it != point->second.end(); ++a_it )
+            (*a_it)->beta = (*a_it)->alpha = (*a_it)->beta * scale;
+
+        }
+
+      }
+
+      //// Minimization Loop /////
+      void abf::_solve() {
+        _computeSines();
+
+        for ( int i = 0; i < _maxIterations; ++i ) {
+          double norm = _computeGradient();
+
+          if ( norm < _limit )
+            break;
+
+          if(!_invertMatrix())
+            std::runtime_error( "ABF failed to invert matrix");
+
+          _computeSines();
+        }
+
+      }
+
+      ///// Helpers /////
+      double abf::_sumIncidentBetas(volcart::QuadPointIdentifier p) {
+        double sum = 0.0;
+        auto point = _vertexAngles.find( p );
+        for ( auto it = point->second.begin(); it != point->second.end(); ++it )
+          sum += (*it)->beta;
+
+        return sum;
+      }
+
+      void abf::_computeSines() {
+        // For every point
+        for ( auto p_it = _vertexAngles.begin(); p_it != _vertexAngles.end(); ++p_it ) {
+          // For every angle incident to that point
+          for ( auto a_it = p_it->second.begin(); a_it != p_it->second.end(); ++a_it ) {
+            (*a_it)->sine   = sin( (*a_it)->alpha );
+            (*a_it)->cosine = cos( (*a_it)->alpha );
+          }
+        }
+      }
+
+      double abf::_computeGradient() {
+        double norm = 0.0;
+
+        //
+      }
+
+      bool abf::_invertMatrix() {
+
+      }
 
     } // texturing
 } // volcart

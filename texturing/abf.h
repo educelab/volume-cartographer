@@ -28,6 +28,9 @@ namespace volcart {
           double alpha;  // Current angle
           double beta;   // Ideal/Original angle
           double weight; // Typically 1/b^2
+
+          double sine;
+          double cosine;
       };
 
       typedef itk::QuadEdgeMeshBoundaryEdgesMeshFunction< volcart::QuadMesh > BoundaryExtractor;
@@ -35,7 +38,7 @@ namespace volcart {
 
       public:
           ///// Constructors/Destructors /////
-          abf(){};
+          abf(int maxIterations) : _maxIterations(maxIterations){};
           abf( VC_MeshType::Pointer input );
           ~abf(){};
 
@@ -53,6 +56,17 @@ namespace volcart {
 
           // Setup //
           void _fillQuadEdgeMesh();
+          void _scale();
+
+          // Solve //
+          void _solve();
+
+          void   _computeSines();
+          double _computeGradient();
+          bool   _invertMatrix();
+
+          // Helper functions
+          double _sumIncidentBetas ( volcart::QuadPointIdentifier p );
 
           const VC_MeshType::Pointer  _mesh;
           volcart::QuadMesh::Pointer  _quadMesh;
@@ -65,6 +79,10 @@ namespace volcart {
           // Reference to angles for every vertex and face
           std::map< volcart::QuadPointIdentifier, AngleGroup > _vertexAngles;
           std::map< volcart::QuadCellIdentifier , AngleGroup > _faceAngles;
+
+          // Parameters
+          int     _maxIterations; // Max number of iterations
+          double  _limit;         // Minimization limit
       };
 
     }// texturing
