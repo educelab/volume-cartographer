@@ -124,6 +124,8 @@ namespace volcart {
         if ( _interior.empty() ) {
           std::runtime_error( "Mesh does not have interior points." );
         }
+        _bInterior = std::vector<double>(_interior.size() * 2, 0);
+
       }
       void abf::_scale() {
 
@@ -160,6 +162,15 @@ namespace volcart {
       }
 
       ///// Helpers /////
+      double abf::_sumIncidentAlphas(volcart::QuadPointIdentifier p) {
+        double sum = 0.0;
+        auto point = _vertInfo.find( p );
+        for ( auto it = point->second.angles.begin(); it != point->second.angles.end(); ++it )
+          sum += (*it)->alpha;
+
+        return sum;
+      }
+
       double abf::_sumIncidentBetas(volcart::QuadPointIdentifier p) {
         double sum = 0.0;
         auto point = _vertInfo.find( p );
@@ -205,9 +216,16 @@ namespace volcart {
         // Planarity check for interior verts
         for ( auto it = _vertInfo.begin(); it != _vertInfo.end(); ++it ) {
           if( it->second.interior ) {
+            QuadPointIdentifier p_id = it->second.p_id;
             double gplanar = -2 * M_PI, glength;
+            gplanar += _sumIncidentAlphas(it->second.p_id);
 
+            _bInterior[p_id] = -gplanar;
+            norm += gplanar * gplanar;
 
+            glength = _computeSinProduct( p_id, -1 );
+            _bInterior[_interior.size() + p_id] = -glength;
+            norm += glength * glength;
           }
         }
 
@@ -241,16 +259,59 @@ namespace volcart {
         }
 
         if ( _vertInfo[a1->p_id].interior ) {
-          double product = _computeSinProduct();
+          double product = _computeSinProduct( a1->p_id, a0->p_id );
           deriv += _vertInfo[a1->p_id].lambdaLength * product;
         }
 
         if ( _vertInfo[a2->p_id].interior ) {
-          double product = _computeSinProduct();
+          double product = _computeSinProduct( a2->p_id, a0->p_id );
           deriv += _vertInfo[a2->p_id].lambdaLength * product;
         }
 
         return deriv;
+      }
+
+      double abf::_computeSinProduct( QuadPointIdentifier p_id, int aid) {
+        double sin1, sin2;
+        sin1 = sin2 = 1.0;
+
+        // For each incident angle on this vertex
+        AngleInfoPtr a1, a2;
+        for (auto a_it = _vertInfo[p_id].angles.begin(); a_it != _vertInfo[p_id].angles.end(); ++a_it ) {
+          auto c_id = (*a_it)->c_id;
+
+          // Get the other angles for the incident triangle
+          if (_faceInfo[c_id].angles[0]->p_id == p_id)
+          {
+            a1 = _faceInfo[c_id].angles[1];
+            a2 = _faceInfo[c_id].angles[2];
+          }
+          else if ( _faceInfo[c_id].angles[1]->p_id == p_id )
+          {
+            a1 = _faceInfo[c_id].angles[0];
+            a2 = _faceInfo[c_id].angles[2];
+          }
+          else if ( _faceInfo[c_id].angles[2]->p_id == p_id )
+          {
+            a1 = _faceInfo[c_id].angles[0];
+            a2 = _faceInfo[c_id].angles[1];
+          }
+
+          // Compute the sin product
+          if ( aid == a1->p_id ) {
+            sin1 *= a1->cosine;
+            sin2 = 0.0;
+          } else
+            sin1 *= a1->sine;
+
+          if ( aid == a2->p_id ) {
+            sin1 = 0.0;
+            sin2 *= a2->cosine;
+          } else
+            sin2 *= a2->sine;
+        }
+
+        return (sin1 - sin2);
       }
 
       bool abf::_invertMatrix() {

@@ -36,6 +36,7 @@ namespace volcart {
       };
 
       typedef itk::QuadEdgeMeshBoundaryEdgesMeshFunction< volcart::QuadMesh > BoundaryExtractor;
+      typedef std::shared_ptr<AngleInfo> AngleInfoPtr;
       typedef std::vector< std::shared_ptr<AngleInfo> > AngleGroup;
 
       struct VertexInfo {
@@ -88,9 +89,11 @@ namespace volcart {
           void   _computeSines();
           double _computeGradient();
           double _computeGradientAlpha(TriangleInfo face, int angle);
+          double _computeSinProduct( volcart::QuadPointIdentifier p_id, int aid = -1 );
           bool   _invertMatrix();
 
           // Helper functions
+          double _sumIncidentAlphas( volcart::QuadPointIdentifier p );
           double _sumIncidentBetas ( volcart::QuadPointIdentifier p );
           double _sumTriangleAlphas( volcart::QuadCellIdentifier  c );
           double _sumTriangleBetas ( volcart::QuadCellIdentifier  c );
@@ -106,6 +109,8 @@ namespace volcart {
           // Reference to angles for every vertex and face
           std::map< volcart::QuadPointIdentifier, VertexInfo   > _vertInfo;
           std::map< volcart::QuadCellIdentifier , TriangleInfo > _faceInfo;
+
+          std::vector<double> _bInterior;
 
           // Parameters
           int     _maxIterations; // Max number of iterations
