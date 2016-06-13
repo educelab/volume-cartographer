@@ -58,10 +58,10 @@ namespace volcart {
 
           // Add the 3 angles to storage
           // If this vertex doesn't have an incident angles list, make one
-          AngleGroup face_angles;
+          TriangleInfo tri;
           for (i = 0; i < 3; ++i ) {
             auto info = std::make_shared<AngleInfo>();
-            info->c_id = cell.Index();
+            info->c_id = tri.c_id = cell.Index();
             info->p_id = v_ids[i];
 
             // Angles much fit within limits
@@ -73,21 +73,21 @@ namespace volcart {
             info->alpha = info->beta = angles[i];
             info->weight = 2.0 / (angles[i] * angles[i]); // Using Blender weighting
 
-            auto vertex_angles = _vertexAngles.find( v_ids[i] );
-            if ( vertex_angles == _vertexAngles.end() ) {
+            auto vertex_angles = _vertInfo.find( v_ids[i] );
+            if ( vertex_angles == _vertInfo.end() ) {
 
               AngleGroup incident_angles;
               incident_angles.push_back(info);
 
               auto p = std::make_pair( v_ids[i], incident_angles );
-              _vertexAngles.insert( p );
+              _vertInfo.insert( p );
 
             } else {
               vertex_angles->second.push_back(info);
             }
-            face_angles.push_back(info);
+            tri.angles.push_back(info);
           }
-          _faceAngles[cell.Index()] = face_angles;
+          _faceInfo[cell.Index()] = tri;
         }
         // Set limit based on number of faces
         _limit = (_quadMesh->GetNumberOfCells() > 100) ? 1.0f : 0.001f;
@@ -131,7 +131,7 @@ namespace volcart {
           anglesum = _sumIncidentBetas( p_it->first );
           scale = (anglesum == 0.0f) ? 0.0f : 2.0f * (double)M_PI / anglesum;
 
-          auto point = _vertexAngles.find( p_it->first );
+          auto point = _vertInfo.find( p_it->first );
           for ( auto a_it = point->second.begin(); a_it != point->second.end(); ++a_it )
             (*a_it)->beta = (*a_it)->alpha = (*a_it)->beta * scale;
 
@@ -160,7 +160,7 @@ namespace volcart {
       ///// Helpers /////
       double abf::_sumIncidentBetas(volcart::QuadPointIdentifier p) {
         double sum = 0.0;
-        auto point = _vertexAngles.find( p );
+        auto point = _vertInfo.find( p );
         for ( auto it = point->second.begin(); it != point->second.end(); ++it )
           sum += (*it)->beta;
 
@@ -169,7 +169,7 @@ namespace volcart {
 
       void abf::_computeSines() {
         // For every point
-        for ( auto p_it = _vertexAngles.begin(); p_it != _vertexAngles.end(); ++p_it ) {
+        for ( auto p_it = _vertInfo.begin(); p_it != _vertInfo.end(); ++p_it ) {
           // For every angle incident to that point
           for ( auto a_it = p_it->second.begin(); a_it != p_it->second.end(); ++a_it ) {
             (*a_it)->sine   = sin( (*a_it)->alpha );
@@ -181,7 +181,54 @@ namespace volcart {
       double abf::_computeGradient() {
         double norm = 0.0;
 
-        //
+        // Gradient alpha per face
+        for ( auto it = _faceInfo.begin(); it != _faceInfo.end(); ++ it ) {
+          double gTriangle, gAlpha0, gAlpha1, gAlpha2;
+
+          gAlpha0 = _computeGradientAlpha(it->second.angles[0]);
+          gAlpha1 = _computeGradientAlpha(it->second.angles[1]);
+          gAlpha2 = _computeGradientAlpha(it->second.angles[2]);
+
+          it->second.angles[0]->bAlpha = -gAlpha0;
+          it->second.angles[1]->bAlpha = -gAlpha1;
+          it->second.angles[2]->bAlpha = -gAlpha2;
+
+          norm += (gAlpha0 * gAlpha0) + (gAlpha1 * gAlpha1) + (gAlpha2 * gAlpha2);
+
+          gTriangle = it->second.angles[0]->alpha + it->second.angles[1]->alpha + it->second.angles[2]->alpha - (double)M_PI;
+          it->second.bTriangle = -gTriangle;
+          norm += gTriangle * gTriangle;
+        }
+
+        // Planarity check for interior verts
+      }
+
+      double abf::_computeGradientAlpha(TriangleInfo face, int angle) {
+        // Get pointers to the other points
+        std::shared_ptr<AngleInfo> a0, a1, a2;
+        a0 = face.angles[angle];
+        switch(angle) {
+          case 0:
+            a1 = face.angles[1];
+            a2 = face.angles[2];
+            break;
+          case 1:
+            a1 = face.angles[0];
+            a2 = face.angles[2];
+            break;
+          case 2:
+            a1 = face.angles[0];
+            a2 = face.angles[1];
+            break;
+        }
+
+        double deriv = ( a0->alpha - a0->beta ) * a0->weight;
+
+        deriv += _faceInfo[ a0->c_id ].lambdaTriangle;
+
+        if ( _interior.find(a0->p_id) != _interior.end() ) {
+          deriv +=
+        }
       }
 
       bool abf::_invertMatrix() {

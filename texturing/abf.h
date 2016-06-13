@@ -29,12 +29,36 @@ namespace volcart {
           double beta;   // Ideal/Original angle
           double weight; // Typically 1/b^2
 
+          double bAlpha;
+
           double sine;
           double cosine;
       };
 
       typedef itk::QuadEdgeMeshBoundaryEdgesMeshFunction< volcart::QuadMesh > BoundaryExtractor;
       typedef std::vector< std::shared_ptr<AngleInfo> > AngleGroup;
+
+      struct VertexInfo {
+          QuadPointIdentifier p_id;
+
+          bool interior;
+
+          double lambdaPlanar;
+          double lambdaLength;
+
+          AngleGroup angles;
+      };
+
+      struct TriangleInfo {
+          QuadCellIdentifier c_id;
+
+          double bTriangle;
+          double lambdaTriangle;
+          double bstar;
+          double dstar;
+
+          AngleGroup angles;
+      };
 
       public:
           ///// Constructors/Destructors /////
@@ -63,10 +87,13 @@ namespace volcart {
 
           void   _computeSines();
           double _computeGradient();
+          double _computeGradientAlpha(TriangleInfo face, int angle);
           bool   _invertMatrix();
 
           // Helper functions
           double _sumIncidentBetas ( volcart::QuadPointIdentifier p );
+          double _sumTriangleAlphas( volcart::QuadCellIdentifier  c );
+          double _sumTriangleBetas ( volcart::QuadCellIdentifier  c );
 
           const VC_MeshType::Pointer  _mesh;
           volcart::QuadMesh::Pointer  _quadMesh;
@@ -77,8 +104,8 @@ namespace volcart {
           std::map< volcart::QuadPointIdentifier, volcart::QuadPointIdentifier > _interior;
 
           // Reference to angles for every vertex and face
-          std::map< volcart::QuadPointIdentifier, AngleGroup > _vertexAngles;
-          std::map< volcart::QuadCellIdentifier , AngleGroup > _faceAngles;
+          std::map< volcart::QuadPointIdentifier, AngleGroup   > _vertInfo;
+          std::map< volcart::QuadCellIdentifier , TriangleInfo > _faceInfo;
 
           // Parameters
           int     _maxIterations; // Max number of iterations
