@@ -13,9 +13,14 @@
 #include "itkQuadEdgeMeshBoundaryEdgesMeshFunction.h"
 #include "linear_solver.h"
 
+#include <opencv2/opencv.hpp>
+
 #include "vc_defines.h"
 #include "vc_datatypes.h"
 #include "deepCopy.h"
+
+// This is terrible but it'll work for now - SP
+#define SHIFT3(type, a, b, c) { type tmp; tmp = a; a = c; c = b; b = tmp; }
 
 namespace volcart {
     namespace texturing {
@@ -47,6 +52,8 @@ namespace volcart {
 
           double lambdaPlanar;
           double lambdaLength;
+
+          cv::Vec2d uv;
 
           AngleGroup angles;
       };
@@ -106,6 +113,10 @@ namespace volcart {
           ///// LSCM Loop /////
           void _solve_lscm();
 
+          ///// Helper Functions - LSCM /////
+          std::pair<QuadPointIdentifier, QuadPointIdentifier> _getMinMaxPointIDs();
+          void _computePinUV();
+
           ///// Storage /////
           const VC_MeshType::Pointer  _mesh;
           volcart::QuadMesh::Pointer  _quadMesh;
@@ -121,6 +132,11 @@ namespace volcart {
 
           std::vector<double> _bInterior;
           double (*_J2dt)[3];
+
+          // Pinned Point IDs
+          QuadPointIdentifier _pin0;
+          QuadPointIdentifier _pin1;
+
       };
 
     }// texturing

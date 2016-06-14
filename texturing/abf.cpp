@@ -11,6 +11,11 @@ namespace volcart {
       abf::abf(int maxIterations) : _maxIterations(maxIterations) {};
       abf::~abf()
       {
+        _boundary.clear();
+        _interior.clear();
+        _vertInfo.clear();
+        _faceInfo.clear();
+        _bInterior.clear();
         free(_J2dt);
       };
 
@@ -562,30 +567,178 @@ namespace volcart {
       ///// LSCM Loop /////
       void abf::_solve_lscm()
       {
-        // find two pins
-          // extrema?
+        double area_pinned_up, area_pinned_down;
+        bool flip_faces, result;
+
+        // find two pins and compute their positions
+        auto MinMaxPair = _getMinMaxPointIDs();
+        _pin0 = MinMaxPair.first;
+        _pin1 = MinMaxPair.second;
+        _computePinUV();
 
         // Setup solver context
+        LinearSolver *context;
+        context = EIG_linear_least_squares_solver_new(2 * _mesh->GetNumberOfCells(), 2 * _mesh->GetNumberOfPoints(), 1);
 
-        // Add pins to RHS
+        // Add pins to solver
+        EIG_linear_solver_variable_lock(context, 2 * _vertInfo[_pin0].p_id);
+        EIG_linear_solver_variable_lock(context, 2 * _vertInfo[_pin0].p_id + 1);
+        EIG_linear_solver_variable_lock(context, 2 * _vertInfo[_pin1].p_id);
+        EIG_linear_solver_variable_lock(context, 2 * _vertInfo[_pin1].p_id + 1);
 
-        // Use area to determine faces flip
+        EIG_linear_solver_variable_set(context, 0, 2 * _vertInfo[_pin0].p_id,     _vertInfo[_pin0].uv[0]);
+        EIG_linear_solver_variable_set(context, 0, 2 * _vertInfo[_pin0].p_id + 1, _vertInfo[_pin0].uv[1]);
+        EIG_linear_solver_variable_set(context, 0, 2 * _vertInfo[_pin1].p_id,     _vertInfo[_pin1].uv[0]);
+        EIG_linear_solver_variable_set(context, 0, 2 * _vertInfo[_pin1].p_id + 1, _vertInfo[_pin1].uv[1]);
 
         // Construct matrix
-          // For each face
-            // Flip faces
+        int row = 0;
+        for ( auto it = _faceInfo.begin(); it != _faceInfo.end(); ++it ) {
+          QuadPointIdentifier v0 = it->second.angles[0]->p_id;
+          QuadPointIdentifier v1 = it->second.angles[0]->p_id;
+          QuadPointIdentifier v2 = it->second.angles[0]->p_id;
 
-        // Find max sin from angles
-        // Shift verts for stable order?
+          double a0 = it->second.angles[0]->alpha;
+          double a1 = it->second.angles[1]->alpha;
+          double a2 = it->second.angles[2]->alpha;
 
-        // Setup angle based lscm
+          // Find max sin from angles
+          double sin0 = sin(a0);
+          double sin1 = sin(a1);
+          double sin2 = sin(a2);
+
+          double sinmax = std::max( sin0, std::max(sin1, sin2) );
+
+          // Shift verts for stable order
+          // Careful. Only use these values going forward through the loop
+          if( sin2 != sinmax ) {
+            SHIFT3(QuadPointIdentifier, v0, v1, v2);
+            SHIFT3(double, a0, a1, a2);
+            SHIFT3(double, sin0, sin1, sin2);
+
+            if( sin1 == sinmax ) {
+              SHIFT3(QuadPointIdentifier, v0, v1, v2);
+              SHIFT3(double, a0, a1, a2);
+              SHIFT3(double, sin0, sin1, sin2);
+            }
+          }
+
+          // Setup angle based lscm
+          double ratio = (sin2 == 0.0) ? 1.0 : sin1 / sin2;
+          double cosine = cos(a0) * ratio;
+          double sine = sin0 * ratio;
+
+          EIG_linear_solver_matrix_add(context, row, 2 * v0,   cosine - 1.0f);
+          EIG_linear_solver_matrix_add(context, row, 2 * v0 + 1, -sine);
+          EIG_linear_solver_matrix_add(context, row, 2 * v1,   -cosine);
+          EIG_linear_solver_matrix_add(context, row, 2 * v1 + 1, sine);
+          EIG_linear_solver_matrix_add(context, row, 2 * v2,   1.0);
+          row++;
+
+          EIG_linear_solver_matrix_add(context, row, 2 * v0,   sine);
+          EIG_linear_solver_matrix_add(context, row, 2 * v0 + 1, cosine - 1.0f);
+          EIG_linear_solver_matrix_add(context, row, 2 * v1,   -sine);
+          EIG_linear_solver_matrix_add(context, row, 2 * v1 + 1, -cosine);
+          EIG_linear_solver_matrix_add(context, row, 2 * v2 + 1, 1.0);
+          row++;
+        }
 
         // Solve
-          // Success - load solution
-          // Failure - manually set uv's
+        if( !EIG_linear_solver_solve(context) ) {
+          std::runtime_error( "Failed to solve lscm." );
+        }
+
+        // Update UVs
+        for( auto it = _vertInfo.begin(); it != _vertInfo.end(); ++it ) {
+          it->second.uv[0] = EIG_linear_solver_variable_get(context, 0, 2 * it->second.p_id);
+          it->second.uv[1] = EIG_linear_solver_variable_get(context, 0, 2 * it->second.p_id + 1);
+        }
 
         // Cleanup context
+        EIG_linear_solver_delete(context);
+      }
 
+      ///// Helpers - LSCM /////
+      std::pair<QuadPointIdentifier, QuadPointIdentifier> abf::_getMinMaxPointIDs() {
+        std::vector<double> min(3, 1e20), max(3, -1e20);
+        QuadPointIdentifier minVert = 0;
+        QuadPointIdentifier maxVert = 0;
+
+        for (auto it = _mesh->GetPoints()->Begin(); it != _mesh->GetPoints()->End(); ++it )
+        {
+
+          if ( it->Value()[0] < min[0] &&
+               it->Value()[1] < min[1] &&
+               it->Value()[2] < min[2] )
+          {
+            min[0] = it->Value()[0];
+            min[1] = it->Value()[1];
+            min[2] = it->Value()[2];
+            minVert = it->Index();
+          } else if ( it->Value()[0] > max[0] &&
+                      it->Value()[1] > max[1] &&
+                      it->Value()[2] > max[2] )
+          {
+            max[0] = it->Value()[0];
+            max[1] = it->Value()[1];
+            max[2] = it->Value()[2];
+            maxVert = it->Index();
+          }
+        }
+
+        return std::make_pair(minVert, maxVert);
+      }
+
+      void abf::_computePinUV() {
+        if( _pin0 == _pin1 ) {
+          // Degenerate case, get two other points
+          auto it = _boundary.begin();
+          _pin0 = it->first;
+          _pin1 = std::next(it)->first;
+
+          _vertInfo[_pin0].uv = cv::Vec2d(0.0, 0.5);
+          _vertInfo[_pin1].uv = cv::Vec2d(1.0, 0.5);
+        }
+        else {
+          int diru, dirv, dirx, diry;
+
+          auto pt = _mesh->GetPoint(_pin0);
+          cv::Vec3d pin0_xyz( pt[0], pt[1], pt[2] );
+          pt = _mesh->GetPoint(_pin1);
+          cv::Vec3d pin1_xyz( pt[0], pt[1], pt[2] );
+          cv::Vec3d sub = pin0_xyz - pin1_xyz;
+
+          sub[0] = fabs(sub[0]);
+          sub[1] = fabs(sub[1]);
+          sub[2] = fabs(sub[2]);
+
+          if ((sub[0] > sub[1]) && (sub[0] > sub[2])) {
+            dirx = 0;
+            diry = (sub[1] > sub[2]) ? 1 : 2;
+          }
+          else if ((sub[1] > sub[0]) && (sub[1] > sub[2])) {
+            dirx = 1;
+            diry = (sub[0] > sub[2]) ? 0 : 2;
+          }
+          else {
+            dirx = 2;
+            diry = (sub[0] > sub[1]) ? 0 : 1;
+          }
+
+          if (dirx == 2) {
+            diru = 1;
+            dirv = 0;
+          }
+          else {
+            diru = 0;
+            dirv = 1;
+          }
+
+          _vertInfo[_pin0].uv[diru] = pin0_xyz[dirx];
+          _vertInfo[_pin0].uv[dirv] = pin0_xyz[diry];
+          _vertInfo[_pin1].uv[diru] = pin1_xyz[dirx];
+          _vertInfo[_pin1].uv[dirv] = pin1_xyz[diry];
+        }
       }
 
 
