@@ -11,6 +11,7 @@
 #include <memory>
 
 #include "itkQuadEdgeMeshBoundaryEdgesMeshFunction.h"
+#include "linear_solver.h"
 
 #include "vc_defines.h"
 #include "vc_datatypes.h"
@@ -63,9 +64,9 @@ namespace volcart {
 
       public:
           ///// Constructors/Destructors /////
-          abf(int maxIterations) : _maxIterations(maxIterations){};
+          abf(int maxIterations);
           abf( VC_MeshType::Pointer input );
-          ~abf(){};
+          ~abf();
 
           ///// Access Functions /////
           // Set inputs
@@ -102,6 +103,9 @@ namespace volcart {
           double _sumTriangleAlphas( volcart::QuadCellIdentifier  c );
           double _sumTriangleBetas ( volcart::QuadCellIdentifier  c );
 
+          ///// LSCM Loop /////
+          void _solve_lscm();
+
           ///// Storage /////
           const VC_MeshType::Pointer  _mesh;
           volcart::QuadMesh::Pointer  _quadMesh;
@@ -116,6 +120,7 @@ namespace volcart {
           std::map< volcart::QuadCellIdentifier , TriangleInfo > _faceInfo;
 
           std::vector<double> _bInterior;
+          double (*_J2dt)[3];
       };
 
     }// texturing
