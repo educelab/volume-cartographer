@@ -18,12 +18,19 @@ namespace volcart {
         _scale();
 
         // Solve the system
-        _solve();
+        _solve_abf();
+        //_solve_lscm();
       }
 
       ///// Setup /////
       void abf::_fillQuadEdgeMesh() {
+        // Make sure we have clean storage
         _quadMesh = volcart::QuadMesh::New();
+        _boundary.clear();
+        _interior.clear();
+        _vertInfo.clear();
+        _faceInfo.clear();
+        _bInterior.clear();
 
         ///// Vertices /////
         for ( VC_PointsInMeshIterator point = _mesh->GetPoints()->Begin(); point != _mesh->GetPoints()->End(); ++point ) {
@@ -143,8 +150,8 @@ namespace volcart {
 
       }
 
-      //// Minimization Loop /////
-      void abf::_solve() {
+      //// Angle Minimization Loop /////
+      void abf::_solve_abf() {
         _computeSines();
 
         for ( int i = 0; i < _maxIterations; ++i ) {
@@ -161,7 +168,7 @@ namespace volcart {
 
       }
 
-      ///// Helpers /////
+      ///// Helpers - ABF /////
       double abf::_sumIncidentAlphas(volcart::QuadPointIdentifier p) {
         double sum = 0.0;
         auto point = _vertInfo.find( p );
@@ -180,7 +187,7 @@ namespace volcart {
         return sum;
       }
 
-      void abf::_computeSines() {
+      void   abf::_computeSines() {
         // For every point
         for ( auto p_it = _vertInfo.begin(); p_it != _vertInfo.end(); ++p_it ) {
           // For every angle incident to that point
@@ -314,8 +321,25 @@ namespace volcart {
         return (sin1 - sin2);
       }
 
-      bool abf::_invertMatrix() {
+      bool   abf::_invertMatrix() {
+        // Create a new solver + context
 
+        // Add the _bInterior points to RHS
+
+        // For each face
+          // Setup a matrix
+
+          // Add each vert to RHS if interior
+
+          // Add each vert's matrix to the solver
+
+        // solve
+
+        // if successful, update
+
+        // delete context
+
+        // return success state
       }
 
     } // texturing

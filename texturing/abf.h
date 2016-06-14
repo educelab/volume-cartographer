@@ -79,12 +79,12 @@ namespace volcart {
           void compute();
       private:
 
-          // Setup //
+          ///// Setup /////
           void _fillQuadEdgeMesh();
-          void _scale();
 
-          // Solve //
-          void _solve();
+          ///// Solve - ABF /////
+          void _solve_abf();
+          void _scale();
 
           void   _computeSines();
           double _computeGradient();
@@ -92,12 +92,17 @@ namespace volcart {
           double _computeSinProduct( volcart::QuadPointIdentifier p_id, int aid = -1 );
           bool   _invertMatrix();
 
-          // Helper functions
+          // Parameters
+          int     _maxIterations; // Max number of iterations
+          double  _limit;         // Minimization limit
+
+          ///// Helper functions - ABF /////
           double _sumIncidentAlphas( volcart::QuadPointIdentifier p );
           double _sumIncidentBetas ( volcart::QuadPointIdentifier p );
           double _sumTriangleAlphas( volcart::QuadCellIdentifier  c );
           double _sumTriangleBetas ( volcart::QuadCellIdentifier  c );
 
+          ///// Storage /////
           const VC_MeshType::Pointer  _mesh;
           volcart::QuadMesh::Pointer  _quadMesh;
 
@@ -111,10 +116,6 @@ namespace volcart {
           std::map< volcart::QuadCellIdentifier , TriangleInfo > _faceInfo;
 
           std::vector<double> _bInterior;
-
-          // Parameters
-          int     _maxIterations; // Max number of iterations
-          double  _limit;         // Minimization limit
       };
 
     }// texturing
