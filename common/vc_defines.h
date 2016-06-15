@@ -49,9 +49,14 @@ typedef VC_CellType::PointIdIterator                  VC_PointsInCellIterator;
 
 ///// VC - ITK QuadEdgeMesh Defines /////
 #include <itkQuadEdgeMesh.h>
+#include <itkQuadEdgeMeshExtendedTraits.h>
 namespace volcart {
     typedef double                                   QuadPixel[3];
-    typedef itk::QuadEdgeMesh<double, 3>             QuadMesh;
+    typedef itk::Vector< double, 3 >                 QuadVector;
+    typedef itk::QuadEdgeMeshExtendedTraits <
+            QuadVector, 3, 2, double, double,
+            QuadVector, bool, bool >                 QuadTraits;
+    typedef itk::QuadEdgeMesh<double, 3, QuadTraits> QuadMesh;
     typedef QuadMesh::PointType                      QuadPoint;
     typedef QuadMesh::PointIdentifier                QuadPointIdentifier;
     typedef QuadMesh::CellType                       QuadCell;

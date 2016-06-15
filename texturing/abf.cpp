@@ -18,6 +18,9 @@ namespace volcart {
         _bInterior.clear();
       };
 
+      ///// Access Functions /////
+      void abf::setMesh( VC_MeshType::Pointer mesh ) { _mesh = mesh; };
+
       ///// Get Output /////
       // Get output as mesh
       VC_MeshType::Pointer abf::getMesh() {
@@ -104,9 +107,9 @@ namespace volcart {
           _quadMesh->AddFaceTriangle( v_ids[0], v_ids[1], v_ids[2] );
 
           // Get the angles
-          angles[0] = _vec_angle(_mesh->GetPoint(v_ids[0]), _mesh->GetPoint(v_ids[1]), _mesh->GetPoint(v_ids[2]));
-          angles[1] = _vec_angle(_mesh->GetPoint(v_ids[1]), _mesh->GetPoint(v_ids[0]), _mesh->GetPoint(v_ids[2]));
-          angles[2] = _vec_angle(_mesh->GetPoint(v_ids[2]), _mesh->GetPoint(v_ids[0]), _mesh->GetPoint(v_ids[1]));
+          angles[0] = _vec_angle(_quadMesh->GetPoint(v_ids[0]), _quadMesh->GetPoint(v_ids[1]), _quadMesh->GetPoint(v_ids[2]));
+          angles[1] = _vec_angle(_quadMesh->GetPoint(v_ids[1]), _quadMesh->GetPoint(v_ids[0]), _quadMesh->GetPoint(v_ids[2]));
+          angles[2] = _vec_angle(_quadMesh->GetPoint(v_ids[2]), _quadMesh->GetPoint(v_ids[0]), _quadMesh->GetPoint(v_ids[1]));
 
           // Add the 3 angles to storage
           // If this vertex doesn't have an incident angles list, make one

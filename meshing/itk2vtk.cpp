@@ -7,6 +7,7 @@
 namespace volcart {
     namespace meshing {
 
+        ///// ITK Mesh -> VTK Polydata /////
         itk2vtk::itk2vtk( VC_MeshType::Pointer input, vtkPolyData* output ) {
 
             // points + normals
@@ -46,6 +47,7 @@ namespace volcart {
 
         };
 
+        ///// VTK Polydata -> ITK Mesh /////
         vtk2itk::vtk2itk( vtkPolyData* input, VC_MeshType::Pointer output ) {
 
             // points + normals
@@ -74,6 +76,60 @@ namespace volcart {
             }
 
         };
+
+        ///// ITK Mesh -> ITK QuadEdge Mesh /////
+        itk2itkQE::itk2itkQE(VC_MeshType::Pointer input, volcart::QuadMesh::Pointer output ) {
+
+          // Vertices
+          volcart::QuadPoint p;
+          VC_PixelType n;
+          for ( VC_PointsInMeshIterator point = input->GetPoints()->Begin(); point != input->GetPoints()->End(); ++point ) {
+            p = point->Value();
+            input->GetPointData(point->Index(), &n);
+
+            output->SetPoint(point->Index(), p);
+            output->SetPointData(point->Index(), n);
+          }
+
+          // Faces
+          for ( VC_CellIterator cell = input->GetCells()->Begin(); cell != input->GetCells()->End(); ++cell ) {
+            // Collect the point id's
+            std::vector<QuadPointIdentifier> v_ids;
+            for (VC_PointsInCellIterator point = cell.Value()->PointIdsBegin();
+                 point != cell.Value()->PointIdsEnd(); ++point) {
+              v_ids.push_back(*point);
+            }
+            //Assign to the mesh
+            output->AddFaceTriangle(v_ids[0], v_ids[1], v_ids[2]);
+          }
+        }
+
+        ///// ITK QuadEdge Mesh -> ITK Mesh /////
+        itkQE2itk::itkQE2itk(volcart::QuadMesh::Pointer input, VC_MeshType::Pointer output) {
+
+          // Vertices
+          VC_PointType p;
+          VC_PixelType n;
+          for( auto point = input->GetPoints()->Begin(); point != input->GetPoints()->End(); ++point ) {
+            p = point->Value();
+            input->GetPointData(point->Index(), &n);
+
+            output->SetPoint(point->Index(), p);
+            output->SetPointData(point->Index(), n);
+          }
+
+          // Faces
+          VC_CellType::CellAutoPointer cell;
+          for( QuadCellIterator c = input->GetCells()->Begin(); c != input->GetCells()->End(); ++c ) {
+            cell.TakeOwnership( new VC_TriangleType );
+
+            for( int i = 0; i < c->Value()->GetNumberOfPoints(); ++i ) {
+              cell->SetPointId(i, c->Value()->GetPointIds()[i] );
+            }
+
+            output->SetCell( c->Index(), cell);
+          }
+        }
 
     } // namespace meshing
 } // namespace volcart

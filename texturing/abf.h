@@ -126,7 +126,7 @@ namespace volcart {
           void _computePinUV();
 
           ///// Storage /////
-          const VC_MeshType::Pointer  _mesh;
+          VC_MeshType::Pointer  _mesh;
           volcart::QuadMesh::Pointer  _quadMesh;
 
           // Boundary and Interior Vertices
