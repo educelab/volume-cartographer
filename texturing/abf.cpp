@@ -8,7 +8,8 @@
 namespace volcart {
     namespace texturing {
       ///// Constructors & Destructors /////
-      abf::abf(int maxIterations) : _maxIterations(maxIterations) {};
+      abf::abf() : _maxIterations(20) {};
+      abf::abf( VC_MeshType::Pointer mesh ) : _mesh(mesh), _maxIterations(20) {};
       abf::~abf()
       {
         _boundary.clear();
@@ -16,8 +17,27 @@ namespace volcart {
         _vertInfo.clear();
         _faceInfo.clear();
         _bInterior.clear();
-        free(_J2dt);
       };
+
+      ///// Get Output /////
+      // Get output as mesh
+      VC_MeshType::Pointer abf::getMesh() {
+        VC_MeshType::Pointer output = VC_MeshType::New();
+        volcart::meshing::deepCopy( _mesh, output );
+
+        // Update the point positions
+        VC_PointType p;
+        for ( auto it = _vertInfo.begin(); it != _vertInfo.end(); ++it ) {
+          p[0] = it->second.uv[0];
+          p[1] = 0;
+          p[2] = it->second.uv[1];
+          output->SetPoint(it->second.p_id, p);
+        }
+
+        // To-do: Recompute normals
+
+        return output;
+      }
 
       ///// Process //////
       void abf::compute()
@@ -42,7 +62,6 @@ namespace volcart {
         _vertInfo.clear();
         _faceInfo.clear();
         _bInterior.clear();
-        free(_J2dt);
 
         ///// Vertices /////
         for ( VC_PointsInMeshIterator point = _mesh->GetPoints()->Begin(); point != _mesh->GetPoints()->End(); ++point ) {
@@ -110,7 +129,7 @@ namespace volcart {
         }
         // Set limit based on number of faces
         _limit = (_quadMesh->GetNumberOfCells() > 100) ? 1.0f : 0.001f;
-        malloc(sizeof(double) * _quadMesh->GetNumberOfCells() * 3);
+        _J2dt = cv::Mat( (int)_quadMesh->GetNumberOfCells() * 3, 2, CV_64F );
 
         ///// Compute the boundary /////
         BoundaryExtractor::Pointer extractor = BoundaryExtractor::New();
@@ -121,11 +140,12 @@ namespace volcart {
         }
 
         volcart::QuadPointIdentifier b_id(0);
-        for ( auto it = boundaryList->begin(); it != boundaryList->end(); ++ it ) {
+        for ( auto it = boundaryList->begin(); it != boundaryList->end(); ++it ) {
           auto eIt = (*it)->BeginGeomLnext();
           while ( eIt != (*it)->EndGeomLnext() ){
             volcart::QuadMeshQE* qe = eIt.Value();
             _boundary[ qe->GetOrigin(), b_id++ ];
+            ++eIt;
           }
         }
 
@@ -397,9 +417,9 @@ namespace volcart {
             vid[0] = a0->p_id;
             vid[3] = ninterior + a0->p_id;
 
-            _J2dt[a0->p_id][0] = j2[0][0] = 1.0f * wi1;
-            _J2dt[a1->p_id][0] = j2[1][0] = _computeSinProduct(a0->p_id, a1->p_id) * wi2;
-            _J2dt[a2->p_id][0] = j2[2][0] = _computeSinProduct(a0->p_id, a2->p_id) * wi3;
+            _J2dt.at< double >(a0->p_id, 0) = j2[0][0] = 1.0f * wi1;
+            _J2dt.at< double >(a1->p_id, 0) = j2[1][0] = _computeSinProduct(a0->p_id, a1->p_id) * wi2;
+            _J2dt.at< double >(a2->p_id, 0) = j2[2][0] = _computeSinProduct(a0->p_id, a2->p_id) * wi3;
 
             EIG_linear_solver_right_hand_side_add(context, 0, a0->p_id, j2[0][0] * beta[0]);
             EIG_linear_solver_right_hand_side_add(context, 0, ninterior + a0->p_id,
@@ -418,9 +438,9 @@ namespace volcart {
             vid[1] = a1->p_id;
             vid[4] = ninterior + a1->p_id;
 
-            _J2dt[a0->p_id][1] = j2[0][1] = _computeSinProduct(a1->p_id, a0->p_id) * wi1;
-            _J2dt[a1->p_id][1] = j2[1][1] = 1.0f * wi2;
-            _J2dt[a2->p_id][1] = j2[2][1] = _computeSinProduct(a1->p_id, a2->p_id) * wi3;
+            _J2dt.at< double >(a0->p_id, 1) = j2[0][1] = _computeSinProduct(a1->p_id, a0->p_id) * wi1;
+            _J2dt.at< double >(a1->p_id, 1) = j2[1][1] = 1.0f * wi2;
+            _J2dt.at< double >(a2->p_id, 1) = j2[2][1] = _computeSinProduct(a1->p_id, a2->p_id) * wi3;
 
             EIG_linear_solver_right_hand_side_add(context, 0, a1->p_id, j2[1][1] * beta[1]);
             EIG_linear_solver_right_hand_side_add(context, 0, ninterior + a1->p_id,
@@ -439,9 +459,9 @@ namespace volcart {
             vid[2] = a2->p_id;
             vid[5] = ninterior + a2->p_id;
 
-            _J2dt[a0->p_id][2] = j2[0][2] = _computeSinProduct(a2->p_id, a0->p_id) * wi1;
-            _J2dt[a1->p_id][2] = j2[1][2] = _computeSinProduct(a2->p_id, a1->p_id) * wi2;
-            _J2dt[a2->p_id][2] = j2[2][2] = 1.0f * wi3;
+            _J2dt.at< double >(a0->p_id, 2) = j2[0][2] = _computeSinProduct(a2->p_id, a0->p_id) * wi1;
+            _J2dt.at< double >(a1->p_id, 2) = j2[1][2] = _computeSinProduct(a2->p_id, a1->p_id) * wi2;
+            _J2dt.at< double >(a2->p_id, 2) = j2[2][2] = 1.0f * wi3;
 
             EIG_linear_solver_right_hand_side_add(context, 0, a2->p_id, j2[2][2] * beta[2]);
             EIG_linear_solver_right_hand_side_add(context, 0, ninterior + a2->p_id,
@@ -504,25 +524,25 @@ namespace volcart {
             if (_vertInfo[a0->p_id].interior) {
               double x  =  EIG_linear_solver_variable_get(context, 0, a0->p_id);
               double x2 = EIG_linear_solver_variable_get(context, 0, ninterior + a0->p_id);
-              pre[0] += _J2dt[a0->p_id][0] * x;
-              pre[1] += _J2dt[a1->p_id][0] * x2;
-              pre[2] += _J2dt[a2->p_id][0] * x2;
+              pre[0] += _J2dt.at< double >(a0->p_id, 0) * x;
+              pre[1] += _J2dt.at< double >(a1->p_id, 0) * x2;
+              pre[2] += _J2dt.at< double >(a2->p_id, 0) * x2;
             }
 
             if (_vertInfo[a1->p_id].interior) {
               double x  = EIG_linear_solver_variable_get(context, 0, a1->p_id);
               double x2 = EIG_linear_solver_variable_get(context, 0, ninterior + a1->p_id);
-              pre[0] += _J2dt[a0->p_id][1] * x2;
-              pre[1] += _J2dt[a1->p_id][1] * x;
-              pre[2] += _J2dt[a2->p_id][1] * x2;
+              pre[0] += _J2dt.at< double >(a0->p_id, 1) * x2;
+              pre[1] += _J2dt.at< double >(a1->p_id, 1) * x;
+              pre[2] += _J2dt.at< double >(a2->p_id, 1) * x2;
             }
 
             if (_vertInfo[a2->p_id].interior) {
               double x  = EIG_linear_solver_variable_get(context, 0, a2->p_id);
               double x2 = EIG_linear_solver_variable_get(context, 0, ninterior + a2->p_id);
-              pre[0] += _J2dt[a0->p_id][2] * x2;
-              pre[1] += _J2dt[a1->p_id][2] * x2;
-              pre[2] += _J2dt[a2->p_id][2] * x;
+              pre[0] += _J2dt.at< double >(a0->p_id, 2) * x2;
+              pre[1] += _J2dt.at< double >(a1->p_id, 2) * x2;
+              pre[2] += _J2dt.at< double >(a2->p_id, 2) * x;
             }
 
             dlambda1 = pre[0] + pre[1] + pre[2];

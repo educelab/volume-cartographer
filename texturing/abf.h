@@ -10,7 +10,7 @@
 #include <exception>
 #include <memory>
 
-#include "itkQuadEdgeMeshBoundaryEdgesMeshFunction.h"
+#include <itkQuadEdgeMeshBoundaryEdgesMeshFunction.h>
 #include "linear_solver.h"
 
 #include <opencv2/opencv.hpp>
@@ -71,13 +71,13 @@ namespace volcart {
 
       public:
           ///// Constructors/Destructors /////
-          abf(int maxIterations);
-          abf( VC_MeshType::Pointer input );
+          abf();
+          abf( VC_MeshType::Pointer mesh );
           ~abf();
 
           ///// Access Functions /////
           // Set inputs
-          void setMesh( VC_MeshType::Pointer input );
+          void setMesh( VC_MeshType::Pointer mesh );
 
           // Get outputs
           VC_MeshType::Pointer getMesh();
@@ -131,7 +131,7 @@ namespace volcart {
           std::map< volcart::QuadCellIdentifier , TriangleInfo > _faceInfo;
 
           std::vector<double> _bInterior;
-          double (*_J2dt)[3];
+          cv::Mat _J2dt;
 
           // Pinned Point IDs
           QuadPointIdentifier _pin0;

@@ -80,6 +80,9 @@ endif(ACVD_FOUND)
 add_executable(vc_lscmExample lscmExample.cpp)
 target_link_libraries(vc_lscmExample ${VC_LIBS} vc_meshing ${VC_REQ_LIBS} ${VTK_LIBRARIES})
 
+add_executable(vc_abfExample abfExample.cpp)
+target_link_libraries(vc_abfExample ${VC_LIBS} vc_meshing ${VC_REQ_LIBS} ${VTK_LIBRARIES} vc_SparseLinearSolver)
+
 ###############
 #  CNN Tools  #
 ###############
