@@ -120,14 +120,12 @@ namespace volcart {
 
           // Faces
           VC_CellType::CellAutoPointer cell;
-          for( QuadCellIterator c = input->GetCells()->Begin(); c != input->GetCells()->End(); ++c ) {
-            cell.TakeOwnership( new VC_TriangleType );
+          QuadCellIdentifier id = 0; // QE Meshes use a map so we have to reset their cell ids
+          for ( QuadCellIterator c_it = input->GetCells()->Begin(); c_it != input->GetCells()->End(); ++c_it, ++id ) {
+            cell.TakeOwnership( new VC_TriangleType ); // output cell
+            cell->SetPointIds( c_it->Value()->PointIdsBegin(), c_it->Value()->PointIdsEnd() );
 
-            for( int i = 0; i < c->Value()->GetNumberOfPoints(); ++i ) {
-              cell->SetPointId(i, c->Value()->GetPointIds()[i] );
-            }
-
-            output->SetCell( c->Index(), cell);
+            output->SetCell( id, cell );
           }
         }
 

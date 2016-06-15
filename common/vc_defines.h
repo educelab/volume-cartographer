@@ -61,6 +61,7 @@ namespace volcart {
     typedef QuadMesh::PointIdentifier                QuadPointIdentifier;
     typedef QuadMesh::CellType                       QuadCell;
     typedef QuadMesh::CellIdentifier                 QuadCellIdentifier;
+    typedef itk::TriangleCell< QuadCell >            QuadTriangleCell;
     typedef QuadMesh::PointsContainer                QuadPointsContainer;
     typedef QuadMesh::PointsContainer::ConstIterator QuadPointsInMeshIterator;
     typedef QuadMesh::CellsContainer::Iterator       QuadCellIterator;
