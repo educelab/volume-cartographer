@@ -144,7 +144,8 @@ namespace volcart {
           auto eIt = (*it)->BeginGeomLnext();
           while ( eIt != (*it)->EndGeomLnext() ){
             volcart::QuadMeshQE* qe = eIt.Value();
-            _boundary[ qe->GetOrigin(), b_id++ ];
+            _boundary.insert( std::pair< const QuadPointIdentifier, QuadPointIdentifier >(qe->GetOrigin(), b_id) );
+            ++b_id;
             ++eIt;
           }
         }
@@ -155,10 +156,12 @@ namespace volcart {
         for ( auto it = _quadMesh->GetPoints()->Begin(); it != _quadMesh->GetPoints()->End(); ++it ) {
           mesh_id = it->Index();
           // If this point isn't on the boundary, it's interior
-          if ( _boundary.find(mesh_id) == _boundary.end() )
-            _vertInfo[ mesh_id ].interior = true;
-            _vertInfo[ mesh_id ].lambdaLength = 1.0;
-            _interior[ mesh_id ] = interior_id++;
+          auto test = _boundary.find(mesh_id);
+          if ( _boundary.find(mesh_id) == _boundary.end() ) {
+            _vertInfo[mesh_id].interior = true;
+            _vertInfo[mesh_id].lambdaLength = 1.0;
+            _interior[mesh_id] = interior_id++;
+          }
         }
 
         if ( _interior.empty() ) {
@@ -575,7 +578,8 @@ namespace volcart {
             _vertInfo[it->second].lambdaPlanar += EIG_linear_solver_variable_get(context, 0, p_id);
             _vertInfo[it->second].lambdaLength += EIG_linear_solver_variable_get(context, 0, ninterior + p_id);
           }
-        }
+        } else
+          std::runtime_error("Failed to solve abf.");
 
         // delete context
         EIG_linear_solver_delete(context);
