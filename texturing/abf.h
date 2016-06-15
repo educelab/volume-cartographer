@@ -11,7 +11,7 @@
 #include <memory>
 
 #include <itkQuadEdgeMeshBoundaryEdgesMeshFunction.h>
-#include "linear_solver.h"
+#include "eigen_capi.h"
 
 #include <opencv2/opencv.hpp>
 
@@ -83,12 +83,19 @@ namespace volcart {
           VC_MeshType::Pointer getMesh();
           volcart::UVMap getUVMap();
 
+          ///// Parameters /////
+          void setUseABF( bool a );
+          void setABFMaxIterations( int i );
+
           ///// Process /////
           void compute();
       private:
 
           ///// Setup /////
           void _fillQuadEdgeMesh();
+
+          // Returns the angle between AB & AC
+          double _vec_angle(volcart::QuadPoint A, volcart::QuadPoint B, volcart::QuadPoint C);
 
           ///// Solve - ABF /////
           void _solve_abf();
@@ -101,8 +108,9 @@ namespace volcart {
           bool   _invertMatrix();
 
           // Parameters
-          int     _maxIterations; // Max number of iterations
-          double  _limit;         // Minimization limit
+          bool    _useABF;           // If false, only compute LSCM parameterization [default: true]
+          int     _maxABFIterations; // Max number of iterations
+          double  _limit;            // Minimization limit
 
           ///// Helper functions - ABF /////
           double _sumIncidentAlphas( volcart::QuadPointIdentifier p );

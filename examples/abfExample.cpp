@@ -29,7 +29,10 @@ int main( int argc, char* argv[] ) {
 
   // ABF flattening
   volcart::texturing::abf abf(inputMesh);
+  //abf.setABFMaxIterations(1);
+  //abf.setUseABF(false);
   abf.compute();
+
   VC_MeshType::Pointer abfMesh = abf.getMesh();
   volcart::io::objWriter abfWriter( "abf.obj", abfMesh );
   abfWriter.write();

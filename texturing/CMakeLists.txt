@@ -11,5 +11,5 @@ else()
                                     clothModelingUV.cpp clothModelingUV.h
                                     lscm.cpp lscm.h
                                     simpleUV.h simpleUV.cpp
-                                    abf.h abf.cpp abf_math.h abf_math.cpp )
+                                    abf.h abf.cpp )
 endif()

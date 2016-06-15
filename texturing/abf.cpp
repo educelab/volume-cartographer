@@ -3,13 +3,12 @@
 //
 
 #include "abf.h"
-#include "abf_math.h"
 
 namespace volcart {
     namespace texturing {
       ///// Constructors & Destructors /////
-      abf::abf() : _maxIterations(20) {};
-      abf::abf( VC_MeshType::Pointer mesh ) : _mesh(mesh), _maxIterations(20) {};
+      abf::abf() : _maxABFIterations(20), _useABF(true) {};
+      abf::abf( VC_MeshType::Pointer mesh ) : _mesh(mesh), _maxABFIterations(20), _useABF(true) {};
       abf::~abf()
       {
         _boundary.clear();
@@ -39,17 +38,23 @@ namespace volcart {
         return output;
       }
 
+      ///// Parameters /////
+      void abf::setUseABF(bool a) { _useABF = a; };
+      void abf::setABFMaxIterations(int i) { _maxABFIterations = i; };
+
       ///// Process //////
       void abf::compute()
       {
         // Construct the mesh and get the angles
         _fillQuadEdgeMesh();
 
-        // Scale beta to prevent degenerate cases
-        _scale();
+        // Scale beta to prevent degenerate cases & solve abf
+        if(_useABF) {
+          _scale();
+          _solve_abf();
+        }
 
         // Solve the system
-        _solve_abf();
         _solve_lscm();
       }
 
@@ -76,6 +81,7 @@ namespace volcart {
           VertexInfo i;
           i.p_id = point.Index();
           i.interior = false;
+          i.uv = cv::Vec2d(0,0);
           i.lambdaLength = i.lambdaPlanar = 0.0;
 
           _vertInfo[point.Index()] = i;
@@ -98,9 +104,9 @@ namespace volcart {
           _quadMesh->AddFaceTriangle( v_ids[0], v_ids[1], v_ids[2] );
 
           // Get the angles
-          angles[0] = vec_angle( _mesh->GetPoint(v_ids[0]),  _mesh->GetPoint(v_ids[1]), _mesh->GetPoint(v_ids[2]) );
-          angles[1] = vec_angle( _mesh->GetPoint(v_ids[1]),  _mesh->GetPoint(v_ids[0]), _mesh->GetPoint(v_ids[2]) );
-          angles[2] = vec_angle( _mesh->GetPoint(v_ids[2]),  _mesh->GetPoint(v_ids[0]), _mesh->GetPoint(v_ids[1]) );
+          angles[0] = _vec_angle(_mesh->GetPoint(v_ids[0]), _mesh->GetPoint(v_ids[1]), _mesh->GetPoint(v_ids[2]));
+          angles[1] = _vec_angle(_mesh->GetPoint(v_ids[1]), _mesh->GetPoint(v_ids[0]), _mesh->GetPoint(v_ids[2]));
+          angles[2] = _vec_angle(_mesh->GetPoint(v_ids[2]), _mesh->GetPoint(v_ids[0]), _mesh->GetPoint(v_ids[1]));
 
           // Add the 3 angles to storage
           // If this vertex doesn't have an incident angles list, make one
@@ -170,6 +176,34 @@ namespace volcart {
         _bInterior = std::vector<double>(_interior.size() * 2, 0);
 
       }
+
+      // Returns the angle between ab and ac
+      double abf::_vec_angle(volcart::QuadPoint A, volcart::QuadPoint B, volcart::QuadPoint C) {
+        cv::Vec3d vec_1, vec_2;
+
+        vec_1[0] = B[0] - A[0];
+        vec_1[1] = B[1] - A[1];
+        vec_1[2] = B[2] - A[2];
+
+        vec_2[0] = C[0] - A[0];
+        vec_2[1] = C[1] - A[1];
+        vec_2[2] = C[2] - A[2];
+
+        cv::normalize(vec_1, vec_1);
+        cv::normalize(vec_2, vec_2);
+
+        double dot = vec_1.dot(vec_2);
+
+        if ( dot <= -1.0f )
+          return M_PI;
+        else if ( dot >= 1.0f )
+          return 0.0f;
+        else
+          return acos(dot);
+      }
+
+      ///// ABF /////
+      // Scale angles to prevent degenerate cases
       void abf::_scale() {
 
         for ( auto p_it = _interior.begin(); p_it != _interior.end(); ++p_it ) {
@@ -186,11 +220,11 @@ namespace volcart {
 
       }
 
-      //// Angle Minimization Loop /////
+      // Angle minimization loop
       void abf::_solve_abf() {
         _computeSines();
 
-        for ( int i = 0; i < _maxIterations; ++i ) {
+        for ( int i = 0; i < _maxABFIterations; ++i ) {
           double norm = _computeGradient();
 
           if ( norm < _limit )
@@ -417,15 +451,15 @@ namespace volcart {
 
           // Add each vert to RHS if interior
           if (_vertInfo[a0->p_id].interior) {
-            vid[0] = a0->p_id;
-            vid[3] = ninterior + a0->p_id;
+            auto i_id = vid[0] = _interior.find(a0->p_id)->second;
+            vid[3] = ninterior + i_id;
 
             _J2dt.at< double >(a0->p_id, 0) = j2[0][0] = 1.0f * wi1;
             _J2dt.at< double >(a1->p_id, 0) = j2[1][0] = _computeSinProduct(a0->p_id, a1->p_id) * wi2;
             _J2dt.at< double >(a2->p_id, 0) = j2[2][0] = _computeSinProduct(a0->p_id, a2->p_id) * wi3;
 
-            EIG_linear_solver_right_hand_side_add(context, 0, a0->p_id, j2[0][0] * beta[0]);
-            EIG_linear_solver_right_hand_side_add(context, 0, ninterior + a0->p_id,
+            EIG_linear_solver_right_hand_side_add(context, 0, i_id, j2[0][0] * beta[0]);
+            EIG_linear_solver_right_hand_side_add(context, 0, ninterior + i_id,
                                                   j2[1][0] * beta[1] + j2[2][0] * beta[2]);
 
             row1[0] = j2[0][0] * W[0][0];
@@ -438,15 +472,15 @@ namespace volcart {
           }
 
           if (_vertInfo[a1->p_id].interior) {
-            vid[1] = a1->p_id;
-            vid[4] = ninterior + a1->p_id;
+            auto i_id = vid[1] = _interior.find(a1->p_id)->second;
+            vid[4] = ninterior + i_id;
 
             _J2dt.at< double >(a0->p_id, 1) = j2[0][1] = _computeSinProduct(a1->p_id, a0->p_id) * wi1;
             _J2dt.at< double >(a1->p_id, 1) = j2[1][1] = 1.0f * wi2;
             _J2dt.at< double >(a2->p_id, 1) = j2[2][1] = _computeSinProduct(a1->p_id, a2->p_id) * wi3;
 
-            EIG_linear_solver_right_hand_side_add(context, 0, a1->p_id, j2[1][1] * beta[1]);
-            EIG_linear_solver_right_hand_side_add(context, 0, ninterior + a1->p_id,
+            EIG_linear_solver_right_hand_side_add(context, 0, i_id, j2[1][1] * beta[1]);
+            EIG_linear_solver_right_hand_side_add(context, 0, ninterior + i_id,
                                                   j2[0][1] * beta[0] + j2[2][1] * beta[2]);
 
             row1[1] = j2[1][1] * W[0][1];
@@ -459,16 +493,15 @@ namespace volcart {
           }
 
           if (_vertInfo[a2->p_id].interior) {
-            vid[2] = a2->p_id;
-            vid[5] = ninterior + a2->p_id;
+            auto i_id = vid[2] = _interior.find(a2->p_id)->second;
+            vid[5] = ninterior + i_id;
 
             _J2dt.at< double >(a0->p_id, 2) = j2[0][2] = _computeSinProduct(a2->p_id, a0->p_id) * wi1;
             _J2dt.at< double >(a1->p_id, 2) = j2[1][2] = _computeSinProduct(a2->p_id, a1->p_id) * wi2;
             _J2dt.at< double >(a2->p_id, 2) = j2[2][2] = 1.0f * wi3;
 
-            EIG_linear_solver_right_hand_side_add(context, 0, a2->p_id, j2[2][2] * beta[2]);
-            EIG_linear_solver_right_hand_side_add(context, 0, ninterior + a2->p_id,
-                                                  j2[0][2] * beta[0] + j2[1][2] * beta[1]);
+            EIG_linear_solver_right_hand_side_add(context, 0, i_id, j2[2][2] * beta[2]);
+            EIG_linear_solver_right_hand_side_add(context, 0, ninterior + i_id, j2[0][2] * beta[0] + j2[1][2] * beta[1]);
 
             row1[2] = j2[2][2] * W[0][2];
             row2[2] = j2[2][2] * W[1][2];
@@ -525,24 +558,27 @@ namespace volcart {
             pre[0] = pre[1] = pre[2] = 0.0;
 
             if (_vertInfo[a0->p_id].interior) {
-              double x  =  EIG_linear_solver_variable_get(context, 0, a0->p_id);
-              double x2 = EIG_linear_solver_variable_get(context, 0, ninterior + a0->p_id);
+              auto i_id = _interior.find(a0->p_id)->second;
+              double x  =  EIG_linear_solver_variable_get(context, 0, i_id);
+              double x2 = EIG_linear_solver_variable_get(context, 0, ninterior + i_id);
               pre[0] += _J2dt.at< double >(a0->p_id, 0) * x;
               pre[1] += _J2dt.at< double >(a1->p_id, 0) * x2;
               pre[2] += _J2dt.at< double >(a2->p_id, 0) * x2;
             }
 
             if (_vertInfo[a1->p_id].interior) {
-              double x  = EIG_linear_solver_variable_get(context, 0, a1->p_id);
-              double x2 = EIG_linear_solver_variable_get(context, 0, ninterior + a1->p_id);
+              auto i_id = _interior.find(a1->p_id)->second;
+              double x  = EIG_linear_solver_variable_get(context, 0, i_id);
+              double x2 = EIG_linear_solver_variable_get(context, 0, ninterior + i_id);
               pre[0] += _J2dt.at< double >(a0->p_id, 1) * x2;
               pre[1] += _J2dt.at< double >(a1->p_id, 1) * x;
               pre[2] += _J2dt.at< double >(a2->p_id, 1) * x2;
             }
 
             if (_vertInfo[a2->p_id].interior) {
-              double x  = EIG_linear_solver_variable_get(context, 0, a2->p_id);
-              double x2 = EIG_linear_solver_variable_get(context, 0, ninterior + a2->p_id);
+              auto i_id = _interior.find(a2->p_id)->second;
+              double x  = EIG_linear_solver_variable_get(context, 0, i_id);
+              double x2 = EIG_linear_solver_variable_get(context, 0, ninterior + i_id);
               pre[0] += _J2dt.at< double >(a0->p_id, 2) * x2;
               pre[1] += _J2dt.at< double >(a1->p_id, 2) * x2;
               pre[2] += _J2dt.at< double >(a2->p_id, 2) * x;
@@ -572,14 +608,14 @@ namespace volcart {
 
           }
 
-          QuadPointIdentifier p_id;
+          QuadPointIdentifier p_id, i_id;
           for ( auto it = _interior.begin(); it != _interior.end(); ++it ) {
             p_id = _vertInfo[it->second].p_id;
-            _vertInfo[it->second].lambdaPlanar += EIG_linear_solver_variable_get(context, 0, p_id);
-            _vertInfo[it->second].lambdaLength += EIG_linear_solver_variable_get(context, 0, ninterior + p_id);
+            i_id = it->second;
+            _vertInfo[p_id].lambdaPlanar += EIG_linear_solver_variable_get(context, 0, i_id);
+            _vertInfo[p_id].lambdaLength += EIG_linear_solver_variable_get(context, 0, ninterior + i_id);
           }
-        } else
-          std::runtime_error("Failed to solve abf.");
+        }
 
         // delete context
         EIG_linear_solver_delete(context);
@@ -619,8 +655,8 @@ namespace volcart {
         int row = 0;
         for ( auto it = _faceInfo.begin(); it != _faceInfo.end(); ++it ) {
           QuadPointIdentifier v0 = it->second.angles[0]->p_id;
-          QuadPointIdentifier v1 = it->second.angles[0]->p_id;
-          QuadPointIdentifier v2 = it->second.angles[0]->p_id;
+          QuadPointIdentifier v1 = it->second.angles[1]->p_id;
+          QuadPointIdentifier v2 = it->second.angles[2]->p_id;
 
           double a0 = it->second.angles[0]->alpha;
           double a1 = it->second.angles[1]->alpha;
