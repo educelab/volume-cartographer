@@ -291,11 +291,10 @@ namespace volcart {
         }
 
         // Planarity check for interior verts
-        for ( auto it = _vertInfo.begin(); it != _vertInfo.end(); ++it ) {
-          if( it->second.interior ) {
-            QuadPointIdentifier p_id = it->second.p_id;
+        for ( auto it = _interior.begin(); it != _interior.end(); ++it ) {
+            QuadPointIdentifier p_id = it->second;
             double gplanar = -2 * M_PI, glength;
-            gplanar += _sumIncidentAlphas(it->second.p_id);
+            gplanar += _sumIncidentAlphas(it->first);
 
             _bInterior[p_id] = -gplanar;
             norm += gplanar * gplanar;
@@ -303,7 +302,6 @@ namespace volcart {
             glength = _computeSinProduct( p_id, -1 );
             _bInterior[_interior.size() + p_id] = -glength;
             norm += glength * glength;
-          }
         }
 
         return norm;
@@ -395,7 +393,7 @@ namespace volcart {
         // Create a new solver + context
         bool success;
         LinearSolver *context;
-        QuadPointIdentifier ninterior = _interior.size();
+        int ninterior = _interior.size();
 
         context = EIG_linear_solver_new(0, ninterior * 2, 1);
 
