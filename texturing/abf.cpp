@@ -114,6 +114,7 @@ namespace volcart {
           // Add the 3 angles to storage
           // If this vertex doesn't have an incident angles list, make one
           TriangleInfo tri;
+          tri.lambdaTriangle = 0.0;
           for (i = 0; i < 3; ++i ) {
             auto info = std::make_shared<AngleInfo>();
             info->c_id = tri.c_id = cell.Index();
@@ -227,17 +228,22 @@ namespace volcart {
       void abf::_solve_abf() {
         _computeSines();
 
+        double norm = 1e10;
         for ( int i = 0; i < _maxABFIterations; ++i ) {
-          double norm = _computeGradient();
+          norm = _computeGradient();
 
           if ( norm < _limit )
             break;
 
-          if(!_invertMatrix())
-            std::runtime_error( "ABF failed to invert matrix");
+          if(!_invertMatrix()) {
+            std::cerr << "volcart::texturing::abf: ABF failed to invert matrix after " << i << " iterations. Falling back to LSCM." << std::endl;
+            std::runtime_error("ABF failed to invert matrix");
+            break;
+          }
 
           _computeSines();
         }
+        std::cerr << "volcart::texturing::abf: Norm(" << norm << ") || Limit(" << _limit << ")" << std::endl;
 
       }
 
@@ -275,7 +281,7 @@ namespace volcart {
         double norm = 0.0;
 
         // Gradient alpha per face
-        for ( auto it = _faceInfo.begin(); it != _faceInfo.end(); ++ it ) {
+        for ( auto it = _faceInfo.begin(); it != _faceInfo.end(); ++it ) {
           double gTriangle, gAlpha0, gAlpha1, gAlpha2;
 
           gAlpha0 = _computeGradientAlpha(it->second, 0);
@@ -320,8 +326,8 @@ namespace volcart {
             a2 = face.angles[2];
             break;
           case 1:
-            a1 = face.angles[0];
-            a2 = face.angles[2];
+            a1 = face.angles[2];
+            a2 = face.angles[0];
             break;
           case 2:
             a1 = face.angles[0];
@@ -349,6 +355,7 @@ namespace volcart {
         return deriv;
       }
 
+      // Edge length constraint calculation
       double abf::_computeSinProduct( QuadPointIdentifier p_id, int aid) {
         double sin1, sin2;
         sin1 = sin2 = 1.0;
@@ -366,8 +373,8 @@ namespace volcart {
           }
           else if ( _faceInfo[c_id].angles[1]->p_id == p_id )
           {
-            a1 = _faceInfo[c_id].angles[0];
-            a2 = _faceInfo[c_id].angles[2];
+            a1 = _faceInfo[c_id].angles[2];
+            a2 = _faceInfo[c_id].angles[0];
           }
           else if ( _faceInfo[c_id].angles[2]->p_id == p_id )
           {
@@ -401,15 +408,17 @@ namespace volcart {
         context = EIG_linear_solver_new(0, ninterior * 2, 1);
 
         // Add the _bInterior points to RHS
-        for( int i = 0; i < _bInterior.size(); ++i )
-          EIG_linear_solver_right_hand_side_add(context, 0, i, _bInterior[i] );
+        for( auto it = _interior.begin(); it != _interior.end(); ++it ) {
+          EIG_linear_solver_right_hand_side_add(context, 0, it->second, _bInterior[it->second]);
+        }
 
         // For each face
-        for( auto f_it = _faceInfo.begin(); f_it != _faceInfo.end(); ++f_it ) {
+        int counter = 0;
+        for( auto f_it = _faceInfo.begin(); f_it != _faceInfo.end(); ++f_it, ++counter ) {
           // Setup a matrix
           double wi1, wi2, wi3, b, si, beta[3], j2[3][3], W[3][3];
           double row1[6], row2[6], row3[6];
-          QuadPointIdentifier vid[6];
+          int vid[6];
 
           auto a0 = f_it->second.angles[0];
           auto a1 = f_it->second.angles[1];
@@ -420,7 +429,7 @@ namespace volcart {
           wi3 = 1.0f / a2->weight;
 
           /* bstar1 = (J1*dInv*bAlpha - bTriangle) */
-          b = a0->bAlpha * wi1;
+          b =  a0->bAlpha * wi1;
           b += a1->bAlpha * wi2;
           b += a2->bAlpha * wi3;
           b -= f_it->second.bTriangle;
@@ -452,7 +461,7 @@ namespace volcart {
 
           // Add each vert to RHS if interior
           if (_vertInfo[a0->p_id].interior) {
-            auto i_id = vid[0] = _interior.find(a0->p_id)->second;
+            auto i_id = vid[0] = _interior[a0->p_id];
             vid[3] = ninterior + i_id;
 
             _J2dt.at< double >(a0->p_id, 0) = j2[0][0] = 1.0f * wi1;
@@ -473,7 +482,7 @@ namespace volcart {
           }
 
           if (_vertInfo[a1->p_id].interior) {
-            auto i_id = vid[1] = _interior.find(a1->p_id)->second;
+            auto i_id = vid[1] = _interior[a1->p_id];
             vid[4] = ninterior + i_id;
 
             _J2dt.at< double >(a0->p_id, 1) = j2[0][1] = _computeSinProduct(a1->p_id, a0->p_id) * wi1;
@@ -494,7 +503,7 @@ namespace volcart {
           }
 
           if (_vertInfo[a2->p_id].interior) {
-            auto i_id = vid[2] = _interior.find(a2->p_id)->second;
+            auto i_id = vid[2] = _interior[a2->p_id];
             vid[5] = ninterior + i_id;
 
             _J2dt.at< double >(a0->p_id, 2) = j2[0][2] = _computeSinProduct(a2->p_id, a0->p_id) * wi1;
@@ -514,13 +523,13 @@ namespace volcart {
           }
 
           for (int i = 0; i < 3; ++i) {
-            QuadPointIdentifier r = vid[i];
+            int r = vid[i];
 
             if (r == -1)
               continue;
 
             for (int j = 0; j < 6; ++j) {
-              QuadPointIdentifier c = vid[j];
+              int c = vid[j];
 
               if (c == -1)
                 continue;
@@ -560,7 +569,7 @@ namespace volcart {
 
             if (_vertInfo[a0->p_id].interior) {
               auto i_id = _interior.find(a0->p_id)->second;
-              double x  =  EIG_linear_solver_variable_get(context, 0, i_id);
+              double x  = EIG_linear_solver_variable_get(context, 0, i_id);
               double x2 = EIG_linear_solver_variable_get(context, 0, ninterior + i_id);
               pre[0] += _J2dt.at< double >(a0->p_id, 0) * x;
               pre[1] += _J2dt.at< double >(a1->p_id, 0) * x2;
@@ -588,7 +597,7 @@ namespace volcart {
             dlambda1 = pre[0] + pre[1] + pre[2];
             dlambda1 = f_it->second.dstar * (f_it->second.bstar - dlambda1);
 
-            f_it->second.bTriangle += dlambda1;
+            f_it->second.lambdaTriangle += dlambda1;
 
             dalpha = (a0->bAlpha - dlambda1);
             a0->alpha += dalpha / a0->weight - pre[0];
