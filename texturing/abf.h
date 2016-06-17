@@ -104,7 +104,7 @@ namespace volcart {
           void   _computeSines();
           double _computeGradient();
           double _computeGradientAlpha(TriangleInfo face, int angle);
-          double _computeSinProduct( volcart::QuadPointIdentifier p_id, int aid = -1 );
+          double _computeSinProduct( volcart::QuadPointIdentifier p_id, int a_id = -1 );
           bool   _invertMatrix();
 
           // Parameters

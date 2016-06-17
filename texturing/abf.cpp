@@ -120,7 +120,7 @@ namespace volcart {
             info->c_id = tri.c_id = cell.Index();
             info->p_id = v_ids[i];
 
-            // Angles much fit within limits
+            // Angles must fit within limits
             if ( angles[i] < minangle )
               angles[i] = minangle;
             else if ( angles[i] > maxangle )
@@ -235,7 +235,7 @@ namespace volcart {
           if ( norm < _limit )
             break;
 
-          if(!_invertMatrix()) {
+          if( !_invertMatrix() ) {
             std::cerr << "volcart::texturing::abf: ABF failed to invert matrix after " << i << " iterations. Falling back to LSCM." << std::endl;
             std::runtime_error("ABF failed to invert matrix");
             break;
@@ -301,15 +301,15 @@ namespace volcart {
 
         // Planarity check for interior verts
         for ( auto it = _interior.begin(); it != _interior.end(); ++it ) {
-            QuadPointIdentifier p_id = it->second;
+            QuadPointIdentifier i_id = it->second;
             double gplanar = -2 * M_PI, glength;
             gplanar += _sumIncidentAlphas(it->first);
 
-            _bInterior[p_id] = -gplanar;
+            _bInterior[i_id] = -gplanar;
             norm += gplanar * gplanar;
 
-            glength = _computeSinProduct( p_id, -1 );
-            _bInterior[_interior.size() + p_id] = -glength;
+            glength = _computeSinProduct( it->first, -1 );
+            _bInterior[_interior.size() + i_id] = -glength;
             norm += glength * glength;
         }
 
@@ -356,31 +356,32 @@ namespace volcart {
       }
 
       // Edge length constraint calculation
-      double abf::_computeSinProduct( QuadPointIdentifier p_id, int aid) {
+      double abf::_computeSinProduct( QuadPointIdentifier p_id, int a_id) {
         double sin1, sin2;
         sin1 = sin2 = 1.0;
 
-        // For each incident angle on this vertex
-        AngleInfoPtr a1, a2;
-        for (auto a_it = _vertInfo[p_id].angles.begin(); a_it != _vertInfo[p_id].angles.end(); ++a_it ) {
-          auto c_id = (*a_it)->c_id;
+        // Get the edge for the first angle incident to this vertex
+        auto starting_edge = _quadMesh->FindEdge(p_id);
+        auto current_edge = starting_edge;
 
-          // Get the other angles for the incident triangle
-          if (_faceInfo[c_id].angles[0]->p_id == p_id)
-          {
-            a1 = _faceInfo[c_id].angles[1];
-            a2 = _faceInfo[c_id].angles[2];
+        // Iterate over the incident edges in counter-clockwise order
+        do {
+          // Get the id's for the cell and the other two angles in the cell
+          QuadCellIdentifier c_id = current_edge->GetRight();
+          auto edge_plus  = current_edge->GetRnext();
+          auto edge_minus = current_edge->GetRprev();
+
+          // Get the angle info for the other two angles
+          AngleInfoPtr a1, a2;
+          for( int i = 0; i < 3; ++i ) {
+            if( _faceInfo[c_id].angles[i]->p_id == edge_plus->GetOrigin() )
+              a1 = _faceInfo[c_id].angles[i];
+
+            if( _faceInfo[c_id].angles[i]->p_id == edge_minus->GetOrigin() )
+              a2 = _faceInfo[c_id].angles[i];
           }
-          else if ( _faceInfo[c_id].angles[1]->p_id == p_id )
-          {
-            a1 = _faceInfo[c_id].angles[2];
-            a2 = _faceInfo[c_id].angles[0];
-          }
-          else if ( _faceInfo[c_id].angles[2]->p_id == p_id )
-          {
-            a1 = _faceInfo[c_id].angles[0];
-            a2 = _faceInfo[c_id].angles[1];
-          }
+
+          assert(a1->p_id != a2->p_id);
 
           // Compute the sin product
           if ( aid == a1->p_id ) {
@@ -395,6 +396,9 @@ namespace volcart {
           } else
             sin2 *= a2->sine;
         }
+
+          current_edge = current_edge->GetOnext();
+        } while ( current_edge != starting_edge );
 
         return (sin1 - sin2);
       }
