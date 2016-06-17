@@ -92,6 +92,7 @@ namespace volcart {
       private:
 
           ///// Setup /////
+          void _fillHalfEdgeMesh();
           void _fillQuadEdgeMesh();
 
           // Returns the angle between AB & AC
@@ -128,6 +129,7 @@ namespace volcart {
           ///// Storage /////
           VC_MeshType::Pointer  _mesh;
           volcart::QuadMesh::Pointer  _quadMesh;
+          HalfEdgeMesh _heMesh;
 
           // Boundary and Interior Vertices
           // < id in quadMesh, id in list >

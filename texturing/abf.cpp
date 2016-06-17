@@ -62,6 +62,29 @@ namespace volcart {
       }
 
       ///// Setup /////
+      void abf::_fillHalfEdgeMesh() {
+        _heMesh.clear();
+
+        ///// Vertices /////
+        for ( VC_PointsInMeshIterator point = _mesh->GetPoints()->Begin(); point != _mesh->GetPoints()->End(); ++point ) {
+          _heMesh.addVert( point->Value()[0], point->Value()[1], point->Value()[2] );
+        }
+
+        ///// Faces /////
+        for (VC_CellIterator cell = _mesh->GetCells()->Begin(); cell != _mesh->GetCells()->End(); ++cell) {
+          // Collect the point id's
+          int i = 0;
+          unsigned long v_ids[3];
+          for (VC_PointsInCellIterator point = cell.Value()->PointIdsBegin();
+               point != cell.Value()->PointIdsEnd(); ++point, ++i) {
+            v_ids[i] = *point;
+          }
+
+          _heMesh.addFace( v_ids[0], v_ids[1], v_ids[2] );
+        }
+      }
+
+
       void abf::_fillQuadEdgeMesh() {
         // Make sure we have clean storage
         _quadMesh = volcart::QuadMesh::New();
