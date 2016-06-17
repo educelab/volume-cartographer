@@ -20,7 +20,8 @@ set(COMMON_DatatypeSources
         datatypes/Volume.h datatypes/Volume.cpp
         datatypes/Slice.h datatypes/Slice.cpp
         datatypes/PerPixelMap.h datatypes/PerPixelMap.cpp
-        datatypes/Rendering.h datatypes/Rendering.cpp )
+        datatypes/Rendering.h datatypes/Rendering.cpp
+        datatypes/HalfEdgeMesh.h datatypes/HalfEdgeMesh.cpp )
 
 set(COMMON_ScaleSources
         scales/scale_pi.h

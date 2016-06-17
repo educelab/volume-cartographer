@@ -13,5 +13,6 @@
 #include "datatypes/Slice.h"
 #include "datatypes/Volume.h"
 #include "datatypes/Rendering.h"
+#include "datatypes/HalfEdgeMesh.h"
 
 #endif //VC_DATATYPES_H
