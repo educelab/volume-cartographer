@@ -407,18 +407,17 @@ namespace volcart {
           assert(a1->p_id != a2->p_id);
 
           // Compute the sin product
-          if ( aid == a1->p_id ) {
+          if ( a_id == a1->p_id ) {
             sin1 *= a1->cosine;
             sin2 = 0.0;
           } else
             sin1 *= a1->sine;
 
-          if ( aid == a2->p_id ) {
+          if ( a_id == a2->p_id ) {
             sin1 = 0.0;
             sin2 *= a2->cosine;
           } else
             sin2 *= a2->sine;
-        }
 
           current_edge = current_edge->GetOnext();
         } while ( current_edge != starting_edge );

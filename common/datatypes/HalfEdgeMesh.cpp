@@ -4,6 +4,9 @@
 
 #include "HalfEdgeMesh.h"
 
+double MINANGLE = 1.0 * M_PI / 180.0;
+double MAXANGLE = M_PI - MINANGLE;
+
 namespace volcart {
     ///// Constructors & Destructors /////
     HalfEdgeMesh::HalfEdgeMesh() { };
