@@ -94,6 +94,8 @@ namespace volcart {
             VC_MeshType::CellIdentifier cid; // Original cell ID in ITK mesh
 
             EdgePtr edge;
+
+            bool connected;
         };
 
     public:
@@ -102,6 +104,7 @@ namespace volcart {
 
         void clear();
 
+        ///// Mesh Access /////
         VertPtr addVert( double x, double y, double z );
         FacePtr addFace( IDType v0, IDType v1, IDType v2 );
 
@@ -109,10 +112,21 @@ namespace volcart {
         EdgePtr getEdge( IDType id );
         FacePtr getFace( IDType id );
 
+        ///// Special Construction Tasks /////
+        void constructConnectedness();
+
     private:
         std::vector<VertPtr> _verts;
         std::vector<EdgePtr> _edges;
         std::vector<FacePtr> _faces;
+
+        std::vector<VertPtr> _interior;
+        std::vector<VertPtr> _boundary;
+
+        ///// Special Construction Tasks /////
+        void _connectAllPairs();
+        HalfEdgeMesh::EdgePtr _findEdgePair( HalfEdgeMesh::IDType A, HalfEdgeMesh::IDType B );
+        void _computeBoundary();
 
         ///// Math functions /////
         double _angle(cv::Vec3d A, cv::Vec3d B, cv::Vec3d C);
