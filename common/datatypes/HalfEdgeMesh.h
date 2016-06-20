@@ -41,6 +41,9 @@ namespace volcart {
             cv::Vec3d xyz;
             cv::Vec2d uv;
 
+            double lambdaPlanar;
+            double lambdaLength;
+
             bool interior() { return edge->pair != nullptr; };
         };
 
@@ -56,9 +59,6 @@ namespace volcart {
             EdgePtr  pair;
             EdgePtr  next;
             FacePtr  face;
-
-            double lambdaPlanar;
-            double lambdaLength;
         };
 
         // Topology traversal
@@ -92,6 +92,8 @@ namespace volcart {
 
             EdgePtr edge;
 
+            double lambdaTriangle;
+
             bool connected;
         };
 
@@ -108,6 +110,18 @@ namespace volcart {
         VertPtr getVert( IDType id );
         EdgePtr getEdge( IDType id );
         FacePtr getFace( IDType id );
+
+        std::vector<VertPtr>::iterator getVertsBegin();
+        std::vector<VertPtr>::iterator getVertsEnd();
+        std::vector<EdgePtr>::iterator getEdgesBegin();
+        std::vector<EdgePtr>::iterator getEdgesEnd();
+        std::vector<FacePtr>::iterator getFacesBegin();
+        std::vector<FacePtr>::iterator getFacesEnd();
+
+        std::vector<VertPtr>::iterator getInteriorBegin();
+        std::vector<VertPtr>::iterator getInteriorEnd();
+        std::vector<VertPtr>::iterator getBoundaryBegin();
+        std::vector<VertPtr>::iterator getBoundaryEnd();
 
         ///// Special Construction Tasks /////
         void constructConnectedness();

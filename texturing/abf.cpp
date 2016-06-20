@@ -49,7 +49,7 @@ namespace volcart {
       void abf::compute()
       {
         // Construct the mesh and get the angles
-        _fillQuadEdgeMesh();
+        _fillHalfEdgeMesh();
 
         // Scale beta to prevent degenerate cases & solve abf
         if(_useABF) {
@@ -82,6 +82,9 @@ namespace volcart {
 
           _heMesh.addFace( v_ids[0], v_ids[1], v_ids[2] );
         }
+
+        ///// Connectivity /////
+        _heMesh.constructConnectedness();
       }
 
 
@@ -233,15 +236,17 @@ namespace volcart {
       // Scale angles to prevent degenerate cases
       void abf::_scale() {
 
-        for ( auto p_it = _interior.begin(); p_it != _interior.end(); ++p_it ) {
+        for ( auto p_it = _heMesh.getInteriorBegin(); p_it != _heMesh.getInteriorEnd(); ++p_it ) {
           double anglesum = 0.0, scale;
 
-          anglesum = _sumIncidentBetas( p_it->first );
+          anglesum = _sumIncidentBetas( *p_it );
           scale = (anglesum == 0.0f) ? 0.0f : 2.0f * (double)M_PI / anglesum;
 
-          auto point = _vertInfo.find( p_it->first );
-          for ( auto a_it = point->second.angles.begin(); a_it != point->second.angles.end(); ++a_it )
-            (*a_it)->beta = (*a_it)->alpha = (*a_it)->beta * scale;
+          auto e = (*p_it)->edge;
+          do {
+            e->angle->beta = e->angle->alpha = e->angle->beta * scale;
+            e = e->next->next->pair;
+          } while (e && (e != (*p_it)->edge));
 
         }
 
@@ -271,32 +276,32 @@ namespace volcart {
       }
 
       ///// Helpers - ABF /////
-      double abf::_sumIncidentAlphas(volcart::QuadPointIdentifier p) {
+      double abf::_sumIncidentAlphas(HalfEdgeMesh::VertPtr v) {
         double sum = 0.0;
-        auto point = _vertInfo.find( p );
-        for ( auto it = point->second.angles.begin(); it != point->second.angles.end(); ++it )
-          sum += (*it)->alpha;
+        auto e = v->edge;
+        do {
+          sum += e->angle->beta;
+          e = e->next->next->pair;
+        } while ( e && ( e != v->edge) );
 
         return sum;
       }
 
-      double abf::_sumIncidentBetas(volcart::QuadPointIdentifier p) {
+      double abf::_sumIncidentBetas(HalfEdgeMesh::VertPtr v) {
         double sum = 0.0;
-        auto point = _vertInfo.find( p );
-        for ( auto it = point->second.angles.begin(); it != point->second.angles.end(); ++it )
-          sum += (*it)->beta;
+        auto e = v->edge;
+        do {
+          sum += e->angle->beta;
+          e = e->next->next->pair;
+        } while ( e && ( e != v->edge) );
 
         return sum;
       }
 
       void   abf::_computeSines() {
-        // For every point
-        for ( auto p_it = _vertInfo.begin(); p_it != _vertInfo.end(); ++p_it ) {
-          // For every angle incident to that point
-          for ( auto a_it = p_it->second.angles.begin(); a_it != p_it->second.angles.end(); ++a_it ) {
-            (*a_it)->sine   = sin( (*a_it)->alpha );
-            (*a_it)->cosine = cos( (*a_it)->alpha );
-          }
+        for (auto e = _heMesh.getEdgesBegin(); e != _heMesh.getEdgesEnd(); ++e ) {
+          (*e)->angle->sine   = sin((*e)->angle->alpha);
+          (*e)->angle->cosine = cos((*e)->angle->alpha);
         }
       }
 
@@ -304,7 +309,7 @@ namespace volcart {
         double norm = 0.0;
 
         // Gradient alpha per face
-        for ( auto it = _faceInfo.begin(); it != _faceInfo.end(); ++it ) {
+        for ( auto f = _heMesh.getFacesBegin(); f != _heMesh.getFacesEnd(); ++f ) {
           double gTriangle, gAlpha0, gAlpha1, gAlpha2;
 
           gAlpha0 = _computeGradientAlpha(it->second, 0);
@@ -339,40 +344,24 @@ namespace volcart {
         return norm;
       }
 
-      double abf::_computeGradientAlpha(TriangleInfo face, int angle) {
-        // Get pointers to the other points
-        std::shared_ptr<AngleInfo> a0, a1, a2;
-        a0 = face.angles[angle];
-        switch(angle) {
-          case 0:
-            a1 = face.angles[1];
-            a2 = face.angles[2];
-            break;
-          case 1:
-            a1 = face.angles[2];
-            a2 = face.angles[0];
-            break;
-          case 2:
-            a1 = face.angles[0];
-            a2 = face.angles[1];
-            break;
+      double abf::_computeGradientAlpha(HalfEdgeMesh::FacePtr f, HalfEdgeMesh::EdgePtr e0) {
+        HalfEdgeMesh::VertPtr v0 = e0->vert, v1 = e0->next->vert, v2 = e0->next->next->vert;
+
+        double deriv = ( e0->angle->alpha -  e0->angle->beta ) * e0->angle->weight;
+        deriv += f->lambdaTriangle;
+
+        if ( v0->interior() ) {
+          deriv += v0->lambdaPlanar;
         }
 
-        double deriv = ( a0->alpha - a0->beta ) * a0->weight;
-        deriv += _faceInfo[a0->c_id].lambdaTriangle;
-
-        if ( _vertInfo[a0->p_id].interior ) {
-          deriv += _vertInfo[a0->p_id].lambdaPlanar;
-        }
-
-        if ( _vertInfo[a1->p_id].interior ) {
+        if ( v1->interior()) {
           double product = _computeSinProduct( a1->p_id, a0->p_id );
-          deriv += _vertInfo[a1->p_id].lambdaLength * product;
+          deriv += v1->lambdaLength * product;
         }
 
-        if ( _vertInfo[a2->p_id].interior ) {
+        if ( v2->interior() ) {
           double product = _computeSinProduct( a2->p_id, a0->p_id );
-          deriv += _vertInfo[a2->p_id].lambdaLength * product;
+          deriv += v2->lambdaLength * product;
         }
 
         return deriv;

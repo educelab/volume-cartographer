@@ -16,6 +16,8 @@ namespace volcart {
         _verts.clear();
         _edges.clear();
         _faces.clear();
+        _interior.clear();
+        _boundary.clear();
     }
 
     ///// Mesh Access /////
@@ -28,6 +30,8 @@ namespace volcart {
 
       v->xyz = cv::Vec3d(x,y,z);
       v->uv  = cv::Vec2d(0,0);
+      v->lambdaPlanar = 1.0;
+      v->lambdaLength = 1.0;
 
       _verts.push_back(v);
 
@@ -87,6 +91,9 @@ namespace volcart {
       a0->alpha = a0->beta = a[0];
       a1->alpha = a1->beta = a[1];
       a2->alpha = a2->beta = a[2];
+      a0->weight = 2.0 / (a[0] * a[0]);
+      a1->weight = 2.0 / (a[1] * a[1]);
+      a2->weight = 2.0 / (a[2] * a[2]);
 
       // Add everything to their respective arrays
       e0->id = _edges.size();
@@ -103,6 +110,7 @@ namespace volcart {
       _edges.push_back(e2);
 
       f->id = _faces.size();
+      f->lambdaTriangle = 1.0;
       if(_faces.size() > 0)
         f->nextlink = _faces.back();
       f->connected = false;
@@ -114,12 +122,39 @@ namespace volcart {
       return f;
     }
 
+    ///// Vertex Access /////
     // Get a vertex by vertex id
     HalfEdgeMesh::VertPtr HalfEdgeMesh::getVert(IDType id) { return _verts[id]; };
+    // Get reference to the vertices begin iterator
+    std::vector<HalfEdgeMesh::VertPtr>::iterator HalfEdgeMesh::getVertsBegin() { return _verts.begin(); };
+    // Get reference to the vertices end iterator
+    std::vector<HalfEdgeMesh::VertPtr>::iterator HalfEdgeMesh::getVertsEnd() { return _verts.end(); };
+
+    ///// Edge Access /////
     // Get an edge by edge id
     HalfEdgeMesh::EdgePtr HalfEdgeMesh::getEdge(IDType id) { return _edges[id]; };
+    // Get reference to the edges begin iterator
+    std::vector<HalfEdgeMesh::EdgePtr>::iterator HalfEdgeMesh::getEdgesBegin() { return _edges.begin(); };
+    // Get reference to the edges end iterator
+    std::vector<HalfEdgeMesh::EdgePtr>::iterator HalfEdgeMesh::getEdgesEnd() { return _edges.end(); };
+
+    ///// Face Access /////
     // Get a face by face id
     HalfEdgeMesh::FacePtr HalfEdgeMesh::getFace(IDType id) { return _faces[id]; };
+    // Get reference to the vertices begin iterator
+    std::vector<HalfEdgeMesh::FacePtr>::iterator HalfEdgeMesh::getFacesBegin() { return _faces.begin(); };
+    // Get reference to the vertices end iterator
+    std::vector<HalfEdgeMesh::FacePtr>::iterator HalfEdgeMesh::getFacesEnd() { return _faces.end(); };
+
+    ///// Interior/Boundary Access /////
+    // Get reference to the interior vertices begin iterator
+    std::vector<HalfEdgeMesh::VertPtr>::iterator HalfEdgeMesh::getInteriorBegin() { return _interior.begin(); };
+    // Get reference to the interior vertices end iterator
+    std::vector<HalfEdgeMesh::VertPtr>::iterator HalfEdgeMesh::getInteriorEnd() { return _interior.end(); };
+    // Get reference to the boundary vertices begin iterator
+    std::vector<HalfEdgeMesh::VertPtr>::iterator HalfEdgeMesh::getBoundaryBegin() { return _boundary.begin(); };
+    // Get reference to the boundary vertices end iterator
+    std::vector<HalfEdgeMesh::VertPtr>::iterator HalfEdgeMesh::getBoundaryEnd() { return _boundary.end(); };
 
     ///// Special Construction Tasks /////
     void HalfEdgeMesh::constructConnectedness() {

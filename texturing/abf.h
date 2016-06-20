@@ -104,7 +104,7 @@ namespace volcart {
 
           void   _computeSines();
           double _computeGradient();
-          double _computeGradientAlpha(TriangleInfo face, int angle);
+          double _computeGradientAlpha(HalfEdgeMesh::FacePtr face, HalfEdgeMesh::EdgePtr e0);
           double _computeSinProduct( volcart::QuadPointIdentifier p_id, int a_id = -1 );
           bool   _invertMatrix();
 
@@ -114,8 +114,8 @@ namespace volcart {
           double  _limit;            // Minimization limit
 
           ///// Helper functions - ABF /////
-          double _sumIncidentAlphas( volcart::QuadPointIdentifier p );
-          double _sumIncidentBetas ( volcart::QuadPointIdentifier p );
+          double _sumIncidentAlphas( HalfEdgeMesh::VertPtr v );
+          double _sumIncidentBetas ( HalfEdgeMesh::VertPtr v );
           double _sumTriangleAlphas( volcart::QuadCellIdentifier  c );
           double _sumTriangleBetas ( volcart::QuadCellIdentifier  c );
 
