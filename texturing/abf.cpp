@@ -82,9 +82,17 @@ namespace volcart {
 
           _heMesh.addFace( v_ids[0], v_ids[1], v_ids[2] );
         }
+        _J2dt = cv::Mat( (int)_heMesh.getNumberOfEdges(), 2, CV_64F );
 
         ///// Connectivity /////
         _heMesh.constructConnectedness();
+
+        ///// Generate unique ids just for interior points /////
+        _bInterior = std::vector<double>(_heMesh.getNumberOfInteriorPoints() * 2, 0);
+        unsigned long interior_id = 0;
+        for ( auto v = _heMesh.getInteriorBegin(); v != _heMesh.getInteriorEnd(); ++v ) {
+          _interior[(*v)->id] = interior_id++;
+        }
       }
 
 
@@ -311,34 +319,44 @@ namespace volcart {
         // Gradient alpha per face
         for ( auto f = _heMesh.getFacesBegin(); f != _heMesh.getFacesEnd(); ++f ) {
           double gTriangle, gAlpha0, gAlpha1, gAlpha2;
+          HalfEdgeMesh::EdgePtr e0, e1, e2;
+          e0 = (*f)->edge;
+          e1 = e1->next;
+          e2 = e2->next;
+          gAlpha0 = _computeGradientAlpha((*f), e0);
+          gAlpha1 = _computeGradientAlpha((*f), e1);
+          gAlpha2 = _computeGradientAlpha((*f), e2);
 
-          gAlpha0 = _computeGradientAlpha(it->second, 0);
-          gAlpha1 = _computeGradientAlpha(it->second, 1);
-          gAlpha2 = _computeGradientAlpha(it->second, 2);
-
-          it->second.angles[0]->bAlpha = -gAlpha0;
-          it->second.angles[1]->bAlpha = -gAlpha1;
-          it->second.angles[2]->bAlpha = -gAlpha2;
+          e0->angle->bAlpha = -gAlpha0;
+          e1->angle->bAlpha = -gAlpha1;
+          e2->angle->bAlpha = -gAlpha2;
 
           norm += (gAlpha0 * gAlpha0) + (gAlpha1 * gAlpha1) + (gAlpha2 * gAlpha2);
 
-          gTriangle = it->second.angles[0]->alpha + it->second.angles[1]->alpha + it->second.angles[2]->alpha - (double)M_PI;
-          it->second.bTriangle = -gTriangle;
+          gTriangle = e0->angle->alpha + e1->angle->alpha + e2->angle->alpha - M_PI;
+          (*f)->bTriangle = -gTriangle;
           norm += gTriangle * gTriangle;
         }
 
         // Planarity check for interior verts
-        for ( auto it = _interior.begin(); it != _interior.end(); ++it ) {
-            QuadPointIdentifier i_id = it->second;
-            double gplanar = -2 * M_PI, glength;
-            gplanar += _sumIncidentAlphas(it->first);
+        for ( auto v = _heMesh.getVertsBegin(); v != _heMesh.getVertsEnd(); ++v) {
+            if ( (*v)->interior() ) {
+              auto i_id = _interior[(*v)->id];
+              double gplanar = -2 * M_PI, glength;
 
-            _bInterior[i_id] = -gplanar;
-            norm += gplanar * gplanar;
+              HalfEdgeMesh::EdgePtr e = (*v)->edge;
+              do {
+                gplanar += e->angle->alpha;
+                e = e->next->next->pair;
+              } while (e && (e != (*v)->edge));
 
-            glength = _computeSinProduct( it->first, -1 );
-            _bInterior[_interior.size() + i_id] = -glength;
-            norm += glength * glength;
+              _bInterior[i_id] = -gplanar;
+              norm += gplanar * gplanar;
+
+              glength = _computeSinProduct((*v), -1);
+              _bInterior[ _heMesh.getNumberOfInteriorPoints() + i_id ] = -glength;
+              norm += glength + glength;
+            }
         }
 
         return norm;
@@ -355,12 +373,12 @@ namespace volcart {
         }
 
         if ( v1->interior()) {
-          double product = _computeSinProduct( a1->p_id, a0->p_id );
+          double product = _computeSinProduct( v1, v0->id );
           deriv += v1->lambdaLength * product;
         }
 
         if ( v2->interior() ) {
-          double product = _computeSinProduct( a2->p_id, a0->p_id );
+          double product = _computeSinProduct( v2, v0->id );
           deriv += v2->lambdaLength * product;
         }
 
@@ -368,48 +386,35 @@ namespace volcart {
       }
 
       // Edge length constraint calculation
-      double abf::_computeSinProduct( QuadPointIdentifier p_id, int a_id) {
+      double abf::_computeSinProduct( HalfEdgeMesh::VertPtr v, int a_id ) {
+        HalfEdgeMesh::EdgePtr e0, e1, e2;
         double sin1, sin2;
         sin1 = sin2 = 1.0;
 
-        // Get the edge for the first angle incident to this vertex
-        auto starting_edge = _quadMesh->FindEdge(p_id);
-        auto current_edge = starting_edge;
-
-        // Iterate over the incident edges in counter-clockwise order
+        e0 = v->edge;
         do {
-          // Get the id's for the cell and the other two angles in the cell
-          QuadCellIdentifier c_id = current_edge->GetRight();
-          auto edge_plus  = current_edge->GetRnext();
-          auto edge_minus = current_edge->GetRprev();
+          e1 = e0->next;
+          e2 = e0->next->next;
 
-          // Get the angle info for the other two angles
-          AngleInfoPtr a1, a2;
-          for( int i = 0; i < 3; ++i ) {
-            if( _faceInfo[c_id].angles[i]->p_id == edge_plus->GetOrigin() )
-              a1 = _faceInfo[c_id].angles[i];
-
-            if( _faceInfo[c_id].angles[i]->p_id == edge_minus->GetOrigin() )
-              a2 = _faceInfo[c_id].angles[i];
-          }
-
-          assert(a1->p_id != a2->p_id);
-
-          // Compute the sin product
-          if ( a_id == a1->p_id ) {
-            sin1 *= a1->cosine;
+          if (a_id == e1->id) {
+            /* we are computing a derivative for this angle,
+             * so we use cos and drop the other part */
+            sin1 *= e1->angle->cosine;
             sin2 = 0.0;
-          } else
-            sin1 *= a1->sine;
+          }
+          else
+            sin1 *= e1->angle->sine;
 
-          if ( a_id == a2->p_id ) {
+          if (a_id == e2->id) {
+            /* see above */
             sin1 = 0.0;
-            sin2 *= a2->cosine;
-          } else
-            sin2 *= a2->sine;
+            sin2 *= e2->angle->cosine;
+          }
+          else
+            sin2 *= e2->angle->sine;
 
-          current_edge = current_edge->GetOnext();
-        } while ( current_edge != starting_edge );
+          e0 = e0->next->next->pair;
+        } while (e0 && (e0 != v->edge));
 
         return (sin1 - sin2);
       }
@@ -418,70 +423,70 @@ namespace volcart {
         // Create a new solver + context
         bool success;
         LinearSolver *context;
-        int ninterior = _interior.size();
+        HalfEdgeMesh::IDType ninterior = _heMesh.getNumberOfInteriorPoints();
 
         context = EIG_linear_solver_new(0, ninterior * 2, 1);
 
         // Add the _bInterior points to RHS
-        for( auto it = _interior.begin(); it != _interior.end(); ++it ) {
-          EIG_linear_solver_right_hand_side_add(context, 0, it->second, _bInterior[it->second]);
+        for ( auto v = _heMesh.getInteriorBegin(); v != _heMesh.getInteriorEnd(); ++v ) {
+          auto i_id = _interior[(*v)->id];
+          EIG_linear_solver_right_hand_side_add(context, 0, i_id, _bInterior[i_id]);
         }
 
         // For each face
         int counter = 0;
-        for( auto f_it = _faceInfo.begin(); f_it != _faceInfo.end(); ++f_it, ++counter ) {
+        for( auto f = _heMesh.getFacesBegin(); f != _heMesh.getFacesEnd(); ++f, ++counter ) {
           // Setup a matrix
           double wi1, wi2, wi3, b, si, beta[3], j2[3][3], W[3][3];
           double row1[6], row2[6], row3[6];
           int vid[6];
 
-          auto a0 = f_it->second.angles[0];
-          auto a1 = f_it->second.angles[1];
-          auto a2 = f_it->second.angles[2];
+          HalfEdgeMesh::EdgePtr e0 = (*f)->edge, e1 = e0->next, e2 = e1->next;
+          HalfEdgeMesh::VertPtr v0 = e0->vert, v1 = e1->vert, v2 = e2->vert;
 
-          wi1 = 1.0f / a0->weight;
-          wi2 = 1.0f / a1->weight;
-          wi3 = 1.0f / a2->weight;
+          wi1 = 1.0f / e0->angle->weight;
+          wi2 = 1.0f / e1->angle->weight;
+          wi3 = 1.0f / e2->angle->weight;
 
           /* bstar1 = (J1*dInv*bAlpha - bTriangle) */
-          b =  a0->bAlpha * wi1;
-          b += a1->bAlpha * wi2;
-          b += a2->bAlpha * wi3;
-          b -= f_it->second.bTriangle;
+          b =  e0->angle->bAlpha * wi1;
+          b += e1->angle->bAlpha * wi2;
+          b += e2->angle->bAlpha * wi3;
+          b -= (*f)->bTriangle;
 
           /* si = J1*d*J1t */
           si = 1.0f / (wi1 + wi2 + wi3);
 
           /* J1t*si*bstar1 - bAlpha */
-          beta[0] = b * si - a0->bAlpha;
-          beta[1] = b * si - a1->bAlpha;
-          beta[2] = b * si - a2->bAlpha;
+          beta[0] = b * si - e0->angle->bAlpha;
+          beta[1] = b * si - e1->angle->bAlpha;
+          beta[2] = b * si - e2->angle->bAlpha;
 
           /* use this later for computing other lambda's */
-          f_it->second.bstar = b;
-          f_it->second.dstar = si;
+          (*f)->bstar = b;
+          (*f)->dstar = si;
 
           /* set matrix */
-          W[0][0] = si - a0->weight;
+          W[0][0] = si - e0->angle->weight;
           W[0][1] = si;
           W[0][2] = si;
           W[1][0] = si;
-          W[1][1] = si - a1->weight;
+          W[1][1] = si - e1->angle->weight;
           W[1][2] = si;
           W[2][0] = si;
           W[2][1] = si;
-          W[2][2] = si - a2->weight;
+          W[2][2] = si - e2->angle->weight;
 
           vid[0] = vid[1] = vid[2] = vid[3] = vid[4] = vid[5] = -1;
 
           // Add each vert to RHS if interior
-          if (_vertInfo[a0->p_id].interior) {
-            auto i_id = vid[0] = _interior[a0->p_id];
+          if (v0->interior()) {
+            unsigned long i_id = vid[0] = _interior[v0->id];
             vid[3] = ninterior + i_id;
 
-            _J2dt.at< double >(a0->p_id, 0) = j2[0][0] = 1.0f * wi1;
-            _J2dt.at< double >(a1->p_id, 0) = j2[1][0] = _computeSinProduct(a0->p_id, a1->p_id) * wi2;
-            _J2dt.at< double >(a2->p_id, 0) = j2[2][0] = _computeSinProduct(a0->p_id, a2->p_id) * wi3;
+            _J2dt.at< double >(e0->id, 0) = j2[0][0] = 1.0f * wi1;
+            _J2dt.at< double >(e1->id, 0) = j2[1][0] = _computeSinProduct(e0->vert, e1->id) * wi2;
+            _J2dt.at< double >(e2->id, 0) = j2[2][0] = _computeSinProduct(e0->vert, e2->id) * wi3;
 
             EIG_linear_solver_right_hand_side_add(context, 0, i_id, j2[0][0] * beta[0]);
             EIG_linear_solver_right_hand_side_add(context, 0, ninterior + i_id,
@@ -496,13 +501,13 @@ namespace volcart {
             row3[3] = j2[1][0] * W[2][1] + j2[2][0] * W[2][2];
           }
 
-          if (_vertInfo[a1->p_id].interior) {
-            auto i_id = vid[1] = _interior[a1->p_id];
+          if (v1->interior()) {
+            unsigned long i_id = vid[1] = _interior[v1->id];
             vid[4] = ninterior + i_id;
 
-            _J2dt.at< double >(a0->p_id, 1) = j2[0][1] = _computeSinProduct(a1->p_id, a0->p_id) * wi1;
-            _J2dt.at< double >(a1->p_id, 1) = j2[1][1] = 1.0f * wi2;
-            _J2dt.at< double >(a2->p_id, 1) = j2[2][1] = _computeSinProduct(a1->p_id, a2->p_id) * wi3;
+            _J2dt.at< double >(e0->id, 1) = j2[0][1] = _computeSinProduct(e1->vert, e0->id) * wi1;
+            _J2dt.at< double >(e1->id, 1) = j2[1][1] = 1.0f * wi2;
+            _J2dt.at< double >(e2->id, 1) = j2[2][1] = _computeSinProduct(e1->vert, e2->id) * wi3;
 
             EIG_linear_solver_right_hand_side_add(context, 0, i_id, j2[1][1] * beta[1]);
             EIG_linear_solver_right_hand_side_add(context, 0, ninterior + i_id,
@@ -517,13 +522,13 @@ namespace volcart {
             row3[4] = j2[0][1] * W[2][0] + j2[2][1] * W[2][2];
           }
 
-          if (_vertInfo[a2->p_id].interior) {
-            auto i_id = vid[2] = _interior[a2->p_id];
+          if (v2->interior()) {
+            unsigned long i_id = vid[2] = _interior[v2->id];
             vid[5] = ninterior + i_id;
 
-            _J2dt.at< double >(a0->p_id, 2) = j2[0][2] = _computeSinProduct(a2->p_id, a0->p_id) * wi1;
-            _J2dt.at< double >(a1->p_id, 2) = j2[1][2] = _computeSinProduct(a2->p_id, a1->p_id) * wi2;
-            _J2dt.at< double >(a2->p_id, 2) = j2[2][2] = 1.0f * wi3;
+            _J2dt.at< double >(e0->id, 2) = j2[0][2] = _computeSinProduct(e2->vert, e0->id) * wi1;
+            _J2dt.at< double >(e1->id, 2) = j2[1][2] = _computeSinProduct(e2->vert, e1->id) * wi2;
+            _J2dt.at< double >(e2->id, 2) = j2[2][2] = 1.0f * wi3;
 
             EIG_linear_solver_right_hand_side_add(context, 0, i_id, j2[2][2] * beta[2]);
             EIG_linear_solver_right_hand_side_add(context, 0, ninterior + i_id, j2[0][2] * beta[0] + j2[1][2] * beta[1]);
@@ -540,6 +545,7 @@ namespace volcart {
           for (int i = 0; i < 3; ++i) {
             int r = vid[i];
 
+            // Unset condition
             if (r == -1)
               continue;
 
@@ -573,72 +579,73 @@ namespace volcart {
 
         // if successful, update
         if (success) {
-          for (auto f_it = _faceInfo.begin(); f_it != _faceInfo.end(); ++f_it) {
+          for (auto f = _heMesh.getFacesBegin(); f != _heMesh.getFacesEnd(); ++f) {
             double dlambda1, pre[3], dalpha;
 
-            auto a0 = f_it->second.angles[0];
-            auto a1 = f_it->second.angles[1];
-            auto a2 = f_it->second.angles[2];
+            HalfEdgeMesh::EdgePtr e0 = (*f)->edge, e1 = e0->next, e2 = e1->next;
+            HalfEdgeMesh::VertPtr v0 = e0->vert, v1 = e1->vert, v2 = e2->vert;
 
             pre[0] = pre[1] = pre[2] = 0.0;
 
-            if (_vertInfo[a0->p_id].interior) {
-              auto i_id = _interior.find(a0->p_id)->second;
+            if (v0->interior()) {
+              auto i_id = _interior[v0->id];
               double x  = EIG_linear_solver_variable_get(context, 0, i_id);
               double x2 = EIG_linear_solver_variable_get(context, 0, ninterior + i_id);
-              pre[0] += _J2dt.at< double >(a0->p_id, 0) * x;
-              pre[1] += _J2dt.at< double >(a1->p_id, 0) * x2;
-              pre[2] += _J2dt.at< double >(a2->p_id, 0) * x2;
+              pre[0] += _J2dt.at< double >(e0->id, 0) * x;
+              pre[1] += _J2dt.at< double >(e1->id, 0) * x2;
+              pre[2] += _J2dt.at< double >(e2->id, 0) * x2;
             }
 
-            if (_vertInfo[a1->p_id].interior) {
-              auto i_id = _interior.find(a1->p_id)->second;
+            if (v1->interior()) {
+              auto i_id = _interior[v1->id];
               double x  = EIG_linear_solver_variable_get(context, 0, i_id);
               double x2 = EIG_linear_solver_variable_get(context, 0, ninterior + i_id);
-              pre[0] += _J2dt.at< double >(a0->p_id, 1) * x2;
-              pre[1] += _J2dt.at< double >(a1->p_id, 1) * x;
-              pre[2] += _J2dt.at< double >(a2->p_id, 1) * x2;
+              pre[0] += _J2dt.at< double >(e0->id, 1) * x2;
+              pre[1] += _J2dt.at< double >(e1->id, 1) * x;
+              pre[2] += _J2dt.at< double >(e2->id, 1) * x2;
             }
 
-            if (_vertInfo[a2->p_id].interior) {
-              auto i_id = _interior.find(a2->p_id)->second;
+            if (v2->interior()) {
+              auto i_id = _interior[v2->id];
               double x  = EIG_linear_solver_variable_get(context, 0, i_id);
               double x2 = EIG_linear_solver_variable_get(context, 0, ninterior + i_id);
-              pre[0] += _J2dt.at< double >(a0->p_id, 2) * x2;
-              pre[1] += _J2dt.at< double >(a1->p_id, 2) * x2;
-              pre[2] += _J2dt.at< double >(a2->p_id, 2) * x;
+              pre[0] += _J2dt.at< double >(e0->id, 2) * x2;
+              pre[1] += _J2dt.at< double >(e1->id, 2) * x2;
+              pre[2] += _J2dt.at< double >(e2->id, 2) * x;
             }
 
             dlambda1 = pre[0] + pre[1] + pre[2];
-            dlambda1 = f_it->second.dstar * (f_it->second.bstar - dlambda1);
+            dlambda1 = (*f)->dstar * ((*f)->bstar - dlambda1);
 
-            f_it->second.lambdaTriangle += dlambda1;
+            (*f)->lambdaTriangle += dlambda1;
 
-            dalpha = (a0->bAlpha - dlambda1);
-            a0->alpha += dalpha / a0->weight - pre[0];
+            dalpha = (e0->angle->bAlpha - dlambda1);
+            e0->angle->alpha += dalpha / e0->angle->weight - pre[0];
 
-            dalpha = (a1->bAlpha - dlambda1);
-            a1->alpha += dalpha / a1->weight - pre[1];
+            dalpha = (e1->angle->bAlpha - dlambda1);
+            e1->angle->alpha += dalpha / e1->angle->weight - pre[1];
 
-            dalpha = (a2->bAlpha - dlambda1);
-            a2->alpha += dalpha / a2->weight - pre[2];
+            dalpha = (e2->angle->bAlpha - dlambda1);
+            e2->angle->alpha += dalpha / e2->angle->weight - pre[2];
 
             /* clamp */
-            for(int i = 0; i < 3; ++i ) {
-              if( f_it->second.angles[i]->alpha > (double)M_PI )
-                f_it->second.angles[i]->alpha = (double)M_PI;
-              else if( f_it->second.angles[i]->alpha < 0.0f )
-                f_it->second.angles[i]->alpha = 0.0f;
-            }
+            auto e = (*f)->edge;
+            do {
+              if (e->angle->alpha > M_PI)
+                e->angle->alpha = M_PI;
+              else if (e->angle->alpha < 0.0f)
+                e->angle->alpha = 0.0f;
+              e = e->next;
+            } while (e != (*f)->edge);
 
           }
 
           QuadPointIdentifier p_id, i_id;
           for ( auto it = _interior.begin(); it != _interior.end(); ++it ) {
-            p_id = _vertInfo[it->second].p_id;
+            p_id = it->first;
             i_id = it->second;
-            _vertInfo[p_id].lambdaPlanar += EIG_linear_solver_variable_get(context, 0, i_id);
-            _vertInfo[p_id].lambdaLength += EIG_linear_solver_variable_get(context, 0, ninterior + i_id);
+            _heMesh.getVert(p_id)->lambdaPlanar += EIG_linear_solver_variable_get(context, 0, i_id);
+            _heMesh.getVert(p_id)->lambdaLength += EIG_linear_solver_variable_get(context, 0, ninterior + i_id);
           }
         }
 

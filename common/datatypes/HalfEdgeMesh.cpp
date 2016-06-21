@@ -156,6 +156,18 @@ namespace volcart {
     // Get reference to the boundary vertices end iterator
     std::vector<HalfEdgeMesh::VertPtr>::iterator HalfEdgeMesh::getBoundaryEnd() { return _boundary.end(); };
 
+    ///// Sizes //////
+    // Get size of the vertices vector
+    size_t HalfEdgeMesh::getNumberOfVerts() { return _verts.size(); };
+    // Get size of the edges vector
+    size_t HalfEdgeMesh::getNumberOfEdges() { return _edges.size(); };
+    // Get size of the faces vector
+    size_t HalfEdgeMesh::getNumberOfFaces() { return _faces.size(); };
+    // Get size of the interior vector
+    size_t HalfEdgeMesh::getNumberOfInteriorPoints() { return _interior.size(); };
+    // Get size of the boundary vector
+    size_t HalfEdgeMesh::getNumberOfBoundaryPoints() { return _boundary.size(); };
+
     ///// Special Construction Tasks /////
     void HalfEdgeMesh::constructConnectedness() {
       // Connect pairs

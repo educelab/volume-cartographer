@@ -93,6 +93,9 @@ namespace volcart {
             EdgePtr edge;
 
             double lambdaTriangle;
+            double bstar;
+            double dstar;
+            double bTriangle;
 
             bool connected;
         };
@@ -122,6 +125,12 @@ namespace volcart {
         std::vector<VertPtr>::iterator getInteriorEnd();
         std::vector<VertPtr>::iterator getBoundaryBegin();
         std::vector<VertPtr>::iterator getBoundaryEnd();
+
+        size_t getNumberOfVerts();
+        size_t getNumberOfEdges();
+        size_t getNumberOfFaces();
+        size_t getNumberOfInteriorPoints();
+        size_t getNumberOfBoundaryPoints();
 
         ///// Special Construction Tasks /////
         void constructConnectedness();

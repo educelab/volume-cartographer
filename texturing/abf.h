@@ -105,7 +105,7 @@ namespace volcart {
           void   _computeSines();
           double _computeGradient();
           double _computeGradientAlpha(HalfEdgeMesh::FacePtr face, HalfEdgeMesh::EdgePtr e0);
-          double _computeSinProduct( volcart::QuadPointIdentifier p_id, int a_id = -1 );
+          double _computeSinProduct( HalfEdgeMesh::VertPtr v, int a_id = -1 );
           bool   _invertMatrix();
 
           // Parameters
