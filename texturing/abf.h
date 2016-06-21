@@ -93,7 +93,6 @@ namespace volcart {
 
           ///// Setup /////
           void _fillHalfEdgeMesh();
-          void _fillQuadEdgeMesh();
 
           // Returns the angle between AB & AC
           double _vec_angle(volcart::QuadPoint A, volcart::QuadPoint B, volcart::QuadPoint C);
@@ -105,7 +104,8 @@ namespace volcart {
           void   _computeSines();
           double _computeGradient();
           double _computeGradientAlpha(HalfEdgeMesh::FacePtr face, HalfEdgeMesh::EdgePtr e0);
-          double _computeSinProduct( HalfEdgeMesh::VertPtr v, int a_id = -1 );
+          double _computeSinProduct( HalfEdgeMesh::VertPtr v );
+          double _computeSinProduct( HalfEdgeMesh::VertPtr v, HalfEdgeMesh::IDType a_id );
           bool   _invertMatrix();
 
           // Parameters
@@ -128,17 +128,11 @@ namespace volcart {
 
           ///// Storage /////
           VC_MeshType::Pointer  _mesh;
-          volcart::QuadMesh::Pointer  _quadMesh;
           HalfEdgeMesh _heMesh;
 
-          // Boundary and Interior Vertices
+          // Interior Vertices
           // < id in quadMesh, id in list >
-          std::map< volcart::QuadPointIdentifier, volcart::QuadPointIdentifier > _boundary;
           std::map< volcart::QuadPointIdentifier, volcart::QuadPointIdentifier > _interior;
-
-          // Reference to angles for every vertex and face
-          std::map< volcart::QuadPointIdentifier, VertexInfo   > _vertInfo;
-          std::map< volcart::QuadCellIdentifier , TriangleInfo > _faceInfo;
 
           std::vector<double> _bInterior;
           cv::Mat _J2dt;

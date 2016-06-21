@@ -26,7 +26,7 @@ namespace volcart {
       HalfEdgeMesh::VertPtr v = std::make_shared<HalfEdgeMesh::Vert>();
       v->id = _verts.size();
       if( _verts.size() > 0 )
-        v->nextlink = _verts.back();
+          _verts.back()->nextlink = v;
 
       v->xyz = cv::Vec3d(x,y,z);
       v->uv  = cv::Vec2d(0,0);
@@ -98,26 +98,23 @@ namespace volcart {
       // Add everything to their respective arrays
       e0->id = _edges.size();
       if(_edges.size() > 0)
-      e0->nextlink = _edges.back();
+        _edges.back()->nextlink = e0;
       _edges.push_back(e0);
 
       e1->id = _edges.size();
-      e1->nextlink = _edges.back();
+        _edges.back()->nextlink = e1;
       _edges.push_back(e1);
 
       e2->id = _edges.size();
-      e2->nextlink = _edges.back();
+        _edges.back()->nextlink = e2;
       _edges.push_back(e2);
 
       f->id = _faces.size();
       f->lambdaTriangle = 1.0;
       if(_faces.size() > 0)
-        f->nextlink = _faces.back();
+          _faces.back()->nextlink = f;
       f->connected = false;
       _faces.push_back(f);
-
-      // Always connect the front face to the last face
-      _faces.front()->nextlink = _faces.back();
 
       return f;
     }
@@ -181,21 +178,31 @@ namespace volcart {
     void HalfEdgeMesh::_connectAllPairs() {
       HalfEdgeMesh::EdgePtr e0, e1, e2;
 
-      for( auto face = _faces.begin(); face != _faces.end(); ++face ) {
-        if( (*face)->connected ) continue;
+      for( auto f = _faces[0]; f; f = f->nextlink ) {
+        if( f->connected ) continue;
 
-        e0 = (*face)->edge;
+        e0 = f->edge;
         e1 = e0->next;
         e2 = e1->next;
 
+        // If we don't find a pair, set the vert's only edge to this one
         e0->pair = _findEdgePair( e0->vert->id, e1->vert->id );
-        if ( e0->pair != nullptr ) e0->pair->pair = e0;
+        if ( e0->pair != nullptr )
+            e0->pair->pair = e0;
+        else
+            e0->vert->edge = e0;
         e1->pair = _findEdgePair( e1->vert->id, e2->vert->id );
-        if ( e1->pair != nullptr ) e1->pair->pair = e1;
+        if ( e1->pair != nullptr )
+            e1->pair->pair = e1;
+        else
+            e1->vert->edge = e1;
         e2->pair = _findEdgePair( e2->vert->id, e0->vert->id );
-        if ( e2->pair != nullptr ) e2->pair->pair = e2;
+        if ( e2->pair != nullptr )
+            e2->pair->pair = e2;
+        else
+            e2->vert->edge = e2;
 
-        (*face)->connected = true;
+        f->connected = true;
       }
     }
 
@@ -203,10 +210,11 @@ namespace volcart {
     HalfEdgeMesh::EdgePtr HalfEdgeMesh::_findEdgePair( HalfEdgeMesh::IDType A, HalfEdgeMesh::IDType B ) {
       HalfEdgeMesh::EdgePtr pair = nullptr;
       // Check these id's against each edge
-      for( auto it = _edges.begin(); it != _edges.end(); ++it ) {
+      for( auto e = _edges[0]; e; e = e->nextlink ) {
+        auto f_id = e->face->id;
         // If the current edge's first if matches this one's B, and vice versa, it's the pair we want
-        if( ((*it)->vert->id == B ) && ((*it)->next->vert->id == A ) ) {
-          pair = (*it);
+        if( ( e->vert->id == B ) && ( e->next->vert->id == A ) ) {
+          pair = e;
           break;
         }
       }
@@ -216,11 +224,11 @@ namespace volcart {
 
     // Compute which edges are boundaries and which are interior
     void HalfEdgeMesh::_computeBoundary() {
-      for( auto it = _verts.begin(); it != _verts.end(); ++it ) {
-        if ((*it)->interior())
-          _interior.push_back(*it);
+      for( auto v = _verts[0]; v; v = v->nextlink ) {
+        if (v->interior())
+          _interior.push_back(v);
         else
-          _boundary.push_back(*it);
+          _boundary.push_back(v);
       }
     }
 

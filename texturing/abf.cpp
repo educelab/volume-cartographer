@@ -11,10 +11,8 @@ namespace volcart {
       abf::abf( VC_MeshType::Pointer mesh ) : _mesh(mesh), _maxABFIterations(20), _useABF(true) {};
       abf::~abf()
       {
-        _boundary.clear();
+        _heMesh.clear();
         _interior.clear();
-        _vertInfo.clear();
-        _faceInfo.clear();
         _bInterior.clear();
       };
 
@@ -82,7 +80,7 @@ namespace volcart {
 
           _heMesh.addFace( v_ids[0], v_ids[1], v_ids[2] );
         }
-        _J2dt = cv::Mat( (int)_heMesh.getNumberOfEdges(), 2, CV_64F );
+        _J2dt = cv::Mat( (int)_heMesh.getNumberOfEdges(), 3, CV_64F );
         _limit = (_heMesh.getNumberOfFaces() > 100) ? 1.0f : 0.001f;
 
         ///// Connectivity /////
@@ -91,129 +89,10 @@ namespace volcart {
         ///// Generate unique ids just for interior points /////
         _bInterior = std::vector<double>(_heMesh.getNumberOfInteriorPoints() * 2, 0);
         unsigned long interior_id = 0;
-        for ( auto v = _heMesh.getInteriorBegin(); v != _heMesh.getInteriorEnd(); ++v ) {
-          _interior[(*v)->id] = interior_id++;
+        for ( auto v = _heMesh.getVert(0); v; v = v->nextlink ) {
+          if ( v->interior() )
+            _interior[v->id] = interior_id++;
         }
-      }
-
-
-      void abf::_fillQuadEdgeMesh() {
-        // Make sure we have clean storage
-        _quadMesh = volcart::QuadMesh::New();
-        _boundary.clear();
-        _interior.clear();
-        _vertInfo.clear();
-        _faceInfo.clear();
-        _bInterior.clear();
-
-        ///// Vertices /////
-        for ( VC_PointsInMeshIterator point = _mesh->GetPoints()->Begin(); point != _mesh->GetPoints()->End(); ++point ) {
-          volcart::QuadPoint p;
-          p[0] = point->Value()[0];
-          p[1] = point->Value()[1];
-          p[2] = point->Value()[2];
-
-          _quadMesh->AddPoint(p);
-
-          // Add every point to the vertex list
-          VertexInfo i;
-          i.p_id = point.Index();
-          i.interior = false;
-          i.uv = cv::Vec2d(0,0);
-          i.lambdaLength = i.lambdaPlanar = 0.0;
-
-          _vertInfo[point.Index()] = i;
-        }
-
-        ///// Faces /////
-        // Min and Max angles
-        double minangle = 1.0 * M_PI / 180.0;
-        double maxangle = (double)M_PI - minangle;
-
-        unsigned long v_ids[3];
-        double angles[3];
-        for ( VC_CellIterator cell = _mesh->GetCells()->Begin(); cell != _mesh->GetCells()->End(); ++cell ) {
-
-          // Collect the point id's
-          int i = 0;
-          for ( VC_PointsInCellIterator point = cell.Value()->PointIdsBegin(); point != cell.Value()->PointIdsEnd(); ++point, ++i ) {
-            v_ids[i] = *point;
-          }
-          _quadMesh->AddFaceTriangle( v_ids[0], v_ids[1], v_ids[2] );
-
-          // Get the angles
-          angles[0] = _vec_angle(_quadMesh->GetPoint(v_ids[0]), _quadMesh->GetPoint(v_ids[1]), _quadMesh->GetPoint(v_ids[2]));
-          angles[1] = _vec_angle(_quadMesh->GetPoint(v_ids[1]), _quadMesh->GetPoint(v_ids[0]), _quadMesh->GetPoint(v_ids[2]));
-          angles[2] = _vec_angle(_quadMesh->GetPoint(v_ids[2]), _quadMesh->GetPoint(v_ids[0]), _quadMesh->GetPoint(v_ids[1]));
-
-          // Add the 3 angles to storage
-          // If this vertex doesn't have an incident angles list, make one
-          TriangleInfo tri;
-          tri.lambdaTriangle = 0.0;
-          for (i = 0; i < 3; ++i ) {
-            auto info = std::make_shared<AngleInfo>();
-            info->c_id = tri.c_id = cell.Index();
-            info->p_id = v_ids[i];
-
-            // Angles must fit within limits
-            if ( angles[i] < minangle )
-              angles[i] = minangle;
-            else if ( angles[i] > maxangle )
-              angles[i] = maxangle;
-
-            info->alpha = info->beta = angles[i];
-            info->weight = 2.0 / (angles[i] * angles[i]); // Using Blender weighting
-
-            // Add this angle to the vertex list
-            _vertInfo[ v_ids[i] ].angles.push_back(info);
-
-            // Add this angle to the triangle
-            tri.angles.push_back(info);
-          }
-          _faceInfo[cell.Index()] = tri;
-        }
-        // Set limit based on number of faces
-        _limit = (_quadMesh->GetNumberOfCells() > 100) ? 1.0f : 0.001f;
-        _J2dt = cv::Mat( (int)_quadMesh->GetNumberOfCells() * 3, 2, CV_64F );
-
-        ///// Compute the boundary /////
-        BoundaryExtractor::Pointer extractor = BoundaryExtractor::New();
-        volcart::QuadEdgeListPointer boundaryList = extractor->Evaluate( *_quadMesh );
-
-        if ( boundaryList->empty() ) {
-          std::runtime_error( "Mesh does not have border." );
-        }
-
-        volcart::QuadPointIdentifier b_id(0);
-        for ( auto it = boundaryList->begin(); it != boundaryList->end(); ++it ) {
-          auto eIt = (*it)->BeginGeomLnext();
-          while ( eIt != (*it)->EndGeomLnext() ){
-            volcart::QuadMeshQE* qe = eIt.Value();
-            _boundary.insert( std::pair< const QuadPointIdentifier, QuadPointIdentifier >(qe->GetOrigin(), b_id) );
-            ++b_id;
-            ++eIt;
-          }
-        }
-
-        ///// Compute the interior points /////
-        volcart::QuadPointIdentifier mesh_id(0);
-        volcart::QuadPointIdentifier interior_id(0);
-        for ( auto it = _quadMesh->GetPoints()->Begin(); it != _quadMesh->GetPoints()->End(); ++it ) {
-          mesh_id = it->Index();
-          // If this point isn't on the boundary, it's interior
-          auto test = _boundary.find(mesh_id);
-          if ( _boundary.find(mesh_id) == _boundary.end() ) {
-            _vertInfo[mesh_id].interior = true;
-            _vertInfo[mesh_id].lambdaLength = 1.0;
-            _interior[mesh_id] = interior_id++;
-          }
-        }
-
-        if ( _interior.empty() ) {
-          std::runtime_error( "Mesh does not have interior points." );
-        }
-        _bInterior = std::vector<double>(_interior.size() * 2, 0);
-
       }
 
       // Returns the angle between ab and ac
@@ -249,7 +128,7 @@ namespace volcart {
           double anglesum = 0.0, scale;
 
           anglesum = _sumIncidentBetas( *p_it );
-          scale = (anglesum == 0.0f) ? 0.0f : 2.0f * (double)M_PI / anglesum;
+          scale = (anglesum == 0.0f) ? 0.0f : 2.0f * M_PI / anglesum;
 
           auto e = (*p_it)->edge;
           do {
@@ -268,19 +147,20 @@ namespace volcart {
         double norm = 1e10;
         for ( int i = 0; i < _maxABFIterations; ++i ) {
           norm = _computeGradient();
+          std::cerr << "volcart::texturing::abf: Norm(" << norm << ")" << std::endl;
 
           if ( norm < _limit )
             break;
 
           if( !_invertMatrix() ) {
-            std::cerr << "volcart::texturing::abf: ABF failed to invert matrix after " << i << " iterations. Falling back to LSCM." << std::endl;
+            std::cerr << "volcart::texturing::abf: ABF failed to invert matrix after " << i + 1 << " iterations. Falling back to LSCM." << std::endl;
             std::runtime_error("ABF failed to invert matrix");
             break;
           }
 
           _computeSines();
         }
-        std::cerr << "volcart::texturing::abf: Norm(" << norm << ") || Limit(" << _limit << ")" << std::endl;
+        std::cerr << "volcart::texturing::abf: Final norm(" << norm << ") || Limit(" << _limit << ")" << std::endl;
 
       }
 
@@ -318,15 +198,16 @@ namespace volcart {
         double norm = 0.0;
 
         // Gradient alpha per face
-        for ( auto f = _heMesh.getFacesBegin(); f != _heMesh.getFacesEnd(); ++f ) {
+        for ( auto f = _heMesh.getFace(0); f; f = f->nextlink ) {
           double gTriangle, gAlpha0, gAlpha1, gAlpha2;
           HalfEdgeMesh::EdgePtr e0, e1, e2;
-          e0 = (*f)->edge;
+          e0 = f->edge;
           e1 = e0->next;
           e2 = e1->next;
-          gAlpha0 = _computeGradientAlpha((*f), e0);
-          gAlpha1 = _computeGradientAlpha((*f), e1);
-          gAlpha2 = _computeGradientAlpha((*f), e2);
+
+          gAlpha0 = _computeGradientAlpha(f, e0);
+          gAlpha1 = _computeGradientAlpha(f, e1);
+          gAlpha2 = _computeGradientAlpha(f, e2);
 
           e0->angle->bAlpha = -gAlpha0;
           e1->angle->bAlpha = -gAlpha1;
@@ -335,26 +216,26 @@ namespace volcart {
           norm += (gAlpha0 * gAlpha0) + (gAlpha1 * gAlpha1) + (gAlpha2 * gAlpha2);
 
           gTriangle = e0->angle->alpha + e1->angle->alpha + e2->angle->alpha - M_PI;
-          (*f)->bTriangle = -gTriangle;
+          f->bTriangle = -gTriangle;
           norm += gTriangle * gTriangle;
         }
 
         // Planarity check for interior verts
-        for ( auto v = _heMesh.getVertsBegin(); v != _heMesh.getVertsEnd(); ++v) {
-            if ( (*v)->interior() ) {
-              auto i_id = _interior[(*v)->id];
+        for ( auto v = _heMesh.getVert(0); v; v = v->nextlink ) {
+            if ( v->interior() ) {
+              auto i_id = _interior[v->id];
               double gplanar = -2 * M_PI, glength;
 
-              HalfEdgeMesh::EdgePtr e = (*v)->edge;
+              HalfEdgeMesh::EdgePtr e = v->edge;
               do {
                 gplanar += e->angle->alpha;
                 e = e->next->next->pair;
-              } while (e && (e != (*v)->edge));
+              } while (e && (e != v->edge));
 
               _bInterior[i_id] = -gplanar;
               norm += gplanar * gplanar;
 
-              glength = _computeSinProduct((*v), -1);
+              glength = _computeSinProduct(v);
               _bInterior[ _heMesh.getNumberOfInteriorPoints() + i_id ] = -glength;
               norm += glength + glength;
             }
@@ -373,7 +254,7 @@ namespace volcart {
           deriv += v0->lambdaPlanar;
         }
 
-        if ( v1->interior()) {
+        if ( v1->interior() ) {
           double product = _computeSinProduct( v1, v0->id );
           deriv += v1->lambdaLength * product;
         }
@@ -387,7 +268,26 @@ namespace volcart {
       }
 
       // Edge length constraint calculation
-      double abf::_computeSinProduct( HalfEdgeMesh::VertPtr v, int a_id ) {
+      double abf::_computeSinProduct( HalfEdgeMesh::VertPtr v ) {
+        HalfEdgeMesh::EdgePtr e0, e1, e2;
+        double sin1, sin2;
+        sin1 = sin2 = 1.0;
+
+        e0 = v->edge;
+        do {
+          e1 = e0->next;
+          e2 = e0->next->next;
+
+          sin1 *= e1->angle->sine;
+          sin2 *= e2->angle->sine;
+
+          e0 = e0->next->next->pair;
+        } while (e0 && (e0 != v->edge));
+
+        return (sin1 - sin2);
+      }
+      // Same with alternate verteix a_id
+      double abf::_computeSinProduct( HalfEdgeMesh::VertPtr v, HalfEdgeMesh::IDType a_id) {
         HalfEdgeMesh::EdgePtr e0, e1, e2;
         double sin1, sin2;
         sin1 = sin2 = 1.0;
@@ -424,25 +324,23 @@ namespace volcart {
         // Create a new solver + context
         bool success;
         LinearSolver *context;
-        HalfEdgeMesh::IDType ninterior = _heMesh.getNumberOfInteriorPoints();
+        HalfEdgeMesh::IDType ninterior = _interior.size();
 
         context = EIG_linear_solver_new(0, ninterior * 2, 1);
 
         // Add the _bInterior points to RHS
-        for ( auto v = _heMesh.getInteriorBegin(); v != _heMesh.getInteriorEnd(); ++v ) {
-          auto i_id = _interior[(*v)->id];
-          EIG_linear_solver_right_hand_side_add(context, 0, i_id, _bInterior[i_id]);
-        }
+        for (HalfEdgeMesh::IDType i = 0; i < _bInterior.size(); ++i )
+          EIG_linear_solver_right_hand_side_add(context, 0, i, _bInterior[i]);
 
         // For each face
         int counter = 0;
-        for( auto f = _heMesh.getFacesBegin(); f != _heMesh.getFacesEnd(); ++f, ++counter ) {
+        for( auto f = _heMesh.getFace(0); f; f = f->nextlink, ++counter ) {
           // Setup a matrix
           double wi1, wi2, wi3, b, si, beta[3], j2[3][3], W[3][3];
           double row1[6], row2[6], row3[6];
           int vid[6];
 
-          HalfEdgeMesh::EdgePtr e0 = (*f)->edge, e1 = e0->next, e2 = e1->next;
+          HalfEdgeMesh::EdgePtr e0 = f->edge, e1 = e0->next, e2 = e1->next;
           HalfEdgeMesh::VertPtr v0 = e0->vert, v1 = e1->vert, v2 = e2->vert;
 
           wi1 = 1.0f / e0->angle->weight;
@@ -453,7 +351,7 @@ namespace volcart {
           b =  e0->angle->bAlpha * wi1;
           b += e1->angle->bAlpha * wi2;
           b += e2->angle->bAlpha * wi3;
-          b -= (*f)->bTriangle;
+          b -= f->bTriangle;
 
           /* si = J1*d*J1t */
           si = 1.0f / (wi1 + wi2 + wi3);
@@ -464,8 +362,8 @@ namespace volcart {
           beta[2] = b * si - e2->angle->bAlpha;
 
           /* use this later for computing other lambda's */
-          (*f)->bstar = b;
-          (*f)->dstar = si;
+          f->bstar = b;
+          f->dstar = si;
 
           /* set matrix */
           W[0][0] = si - e0->angle->weight;
@@ -566,7 +464,6 @@ namespace volcart {
               else
                 EIG_linear_solver_matrix_add(context, r + ninterior, c, j2[1][i] * row2[j]);
 
-
               if (i == 2)
                 EIG_linear_solver_matrix_add(context, r, c, j2[2][i] * row3[j]);
               else
@@ -580,10 +477,10 @@ namespace volcart {
 
         // if successful, update
         if (success) {
-          for (auto f = _heMesh.getFacesBegin(); f != _heMesh.getFacesEnd(); ++f) {
+          for ( auto f = _heMesh.getFace(0); f; f = f->nextlink ) {
             double dlambda1, pre[3], dalpha;
 
-            HalfEdgeMesh::EdgePtr e0 = (*f)->edge, e1 = e0->next, e2 = e1->next;
+            HalfEdgeMesh::EdgePtr e0 = f->edge, e1 = e0->next, e2 = e1->next;
             HalfEdgeMesh::VertPtr v0 = e0->vert, v1 = e1->vert, v2 = e2->vert;
 
             pre[0] = pre[1] = pre[2] = 0.0;
@@ -616,9 +513,9 @@ namespace volcart {
             }
 
             dlambda1 = pre[0] + pre[1] + pre[2];
-            dlambda1 = (*f)->dstar * ((*f)->bstar - dlambda1);
+            dlambda1 = f->dstar * (f->bstar - dlambda1);
 
-            (*f)->lambdaTriangle += dlambda1;
+            f->lambdaTriangle += dlambda1;
 
             dalpha = (e0->angle->bAlpha - dlambda1);
             e0->angle->alpha += dalpha / e0->angle->weight - pre[0];
@@ -630,14 +527,14 @@ namespace volcart {
             e2->angle->alpha += dalpha / e2->angle->weight - pre[2];
 
             /* clamp */
-            auto e = (*f)->edge;
+            auto e = f->edge;
             do {
               if (e->angle->alpha > M_PI)
                 e->angle->alpha = M_PI;
               else if (e->angle->alpha < 0.0f)
                 e->angle->alpha = 0.0f;
-              e = e->next;
-            } while (e != (*f)->edge);
+              //e = e->next;
+            } while (e != f->edge);
 
           }
 
@@ -788,8 +685,8 @@ namespace volcart {
           _pin0 = (*it)->id;
           _pin1 = (*std::next(it))->id;
 
-          _vertInfo[_pin0].uv = cv::Vec2d(0.0, 0.5);
-          _vertInfo[_pin1].uv = cv::Vec2d(1.0, 0.5);
+          _heMesh.getVert(_pin0)->uv = cv::Vec2d(0.0, 0.5);
+          _heMesh.getVert(_pin1)->uv = cv::Vec2d(1.0, 0.5);
         }
         else {
           int diru, dirv, dirx, diry;
