@@ -2,6 +2,8 @@
 // Created by Seth Parker on 6/24/15.
 //
 
+#include <algorithm>
+
 #include "vc_defines.h"
 #include "vc_datatypes.h"
 #include "shapes.h"
@@ -23,7 +25,11 @@
 int main( int argc, char* argv[] ) {
 
   VolumePkg vpkg( argv[1] );
+  vpkg.volume().setCacheMemoryInBytes(systemMemorySize());
+  std::cout << "Cache size: " << vpkg.volume().getCacheCapacity() << std::endl;
   vpkg.setActiveSegmentation( argv[2] );
+  int radius = std::stoi( argv[3] );
+  int type = std::stoi( argv[4] );
 
   // Read the mesh
   std::string meshName = vpkg.getMeshPath();
@@ -48,7 +54,7 @@ int main( int argc, char* argv[] ) {
 
   // Decimate using ACVD
   vtkPolyData* acvdMesh = vtkPolyData::New();
-  volcart::meshing::ACVD(vtkMesh, acvdMesh, numberOfVertices, 0, 0, numberOfVertices/10);
+  volcart::meshing::ACVD(vtkMesh, acvdMesh, numberOfVertices, 0, 0, 20);
 
   // Smooth points
   vtkSmartPointer<vtkSmoothPolyDataFilter> smoothFilter = vtkSmartPointer<vtkSmoothPolyDataFilter>::New();
@@ -76,10 +82,12 @@ int main( int argc, char* argv[] ) {
 
   // Get uv map
   volcart::UVMap uvMap = lscm.getUVMap();
-  int width = std::ceil( uvMap.ratio().width );
+  int width = std::min( std::ceil( uvMap.ratio().width ), 1000.0 ) ;
   int height = std::ceil( (double) width / uvMap.ratio().aspect );
 
-  volcart::texturing::compositeTextureV2 compText(outputMesh, vpkg, uvMap, 5, width, height);
+  std::cout << width << "x" << height << std::endl;
+
+  volcart::texturing::compositeTextureV2 compText(outputMesh, vpkg, uvMap, radius, width, height, (VC_Composite_Option) type);
 
   // Setup rendering
   volcart::Rendering rendering;
@@ -87,7 +95,7 @@ int main( int argc, char* argv[] ) {
   rendering.setMesh( outputMesh );
 
   volcart::io::objWriter mesh_writer;
-  mesh_writer.setPath( "lscm.obj" );
+  mesh_writer.setPath( "textured-" + std::to_string(type) + ".obj" );
   mesh_writer.setRendering( rendering );
   mesh_writer.write();
 
