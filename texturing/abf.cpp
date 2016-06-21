@@ -29,11 +29,11 @@ namespace volcart {
 
         // Update the point positions
         VC_PointType p;
-        for ( auto it = _vertInfo.begin(); it != _vertInfo.end(); ++it ) {
-          p[0] = it->second.uv[0];
+        for ( auto it = _heMesh.getVertsBegin(); it != _heMesh.getVertsEnd(); ++it ) {
+          p[0] = (*it)->uv[0];
           p[1] = 0;
-          p[2] = it->second.uv[1];
-          output->SetPoint(it->second.p_id, p);
+          p[2] = (*it)->uv[1];
+          output->SetPoint((*it)->id, p);
         }
 
         // To-do: Recompute normals
@@ -83,6 +83,7 @@ namespace volcart {
           _heMesh.addFace( v_ids[0], v_ids[1], v_ids[2] );
         }
         _J2dt = cv::Mat( (int)_heMesh.getNumberOfEdges(), 2, CV_64F );
+        _limit = (_heMesh.getNumberOfFaces() > 100) ? 1.0f : 0.001f;
 
         ///// Connectivity /////
         _heMesh.constructConnectedness();
@@ -738,7 +739,8 @@ namespace volcart {
         }
 
         // Solve
-        if( !EIG_linear_solver_solve(context) ) {
+        bool success = EIG_linear_solver_solve(context);
+        if( !success ) {
           std::runtime_error( "Failed to solve lscm." );
         }
 
