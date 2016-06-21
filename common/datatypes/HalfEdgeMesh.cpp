@@ -30,7 +30,7 @@ namespace volcart {
 
       v->xyz = cv::Vec3d(x,y,z);
       v->uv  = cv::Vec2d(0,0);
-      v->lambdaPlanar = 1.0;
+      v->lambdaPlanar = 0.0;
       v->lambdaLength = 1.0;
 
       _verts.push_back(v);
@@ -110,7 +110,7 @@ namespace volcart {
       _edges.push_back(e2);
 
       f->id = _faces.size();
-      f->lambdaTriangle = 1.0;
+      f->lambdaTriangle = 0.0;
       if(_faces.size() > 0)
           _faces.back()->nextlink = f;
       f->connected = false;

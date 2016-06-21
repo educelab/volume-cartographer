@@ -7,8 +7,8 @@
 namespace volcart {
     namespace texturing {
       ///// Constructors & Destructors /////
-      abf::abf() : _maxABFIterations(20), _useABF(true) {};
-      abf::abf( VC_MeshType::Pointer mesh ) : _mesh(mesh), _maxABFIterations(20), _useABF(true) {};
+      abf::abf() : _maxABFIterations(8), _useABF(true) {};
+      abf::abf( VC_MeshType::Pointer mesh ) : _mesh(mesh), _maxABFIterations(8), _useABF(true) {};
       abf::~abf()
       {
         _heMesh.clear();
@@ -37,6 +37,45 @@ namespace volcart {
         // To-do: Recompute normals
 
         return output;
+      }
+
+      // Get UV Map created from flattened object
+      volcart::UVMap abf::getUVMap() {
+
+        // Setup uvMap
+        volcart::UVMap uvMap;
+
+        double min_u = 1e20;
+        double max_u = -1e20;
+        double min_v = 1e20;
+        double max_v = -1e20;
+
+        for ( auto it = _heMesh.getVertsBegin(); it != _heMesh.getVertsEnd(); ++it ) {
+          auto vert = (*it);
+          if ( vert->uv[0] < min_u ) min_u = vert->uv[0];
+          if ( vert->uv[0] > max_u ) max_u = vert->uv[0];
+
+          if ( vert->uv[1] < min_v ) min_v = vert->uv[1];
+          if ( vert->uv[1] > max_v ) max_v = vert->uv[1];
+        }
+
+        // Scale width and height back to volume coordinates
+        double aspect_width = std::abs(max_u - min_u);
+        double aspect_height = std::abs(max_v - min_v);
+        uvMap.ratio(aspect_width, aspect_height);
+
+        // Calculate uv coordinates
+        cv::Vec2d uv;
+        for ( auto it = _heMesh.getVertsBegin(); it != _heMesh.getVertsEnd(); ++it ) {
+          auto vert = (*it);
+          uv[0] = ( vert->uv[0] - min_u ) / (max_u - min_u);
+          uv[1] = ( vert->uv[1] - min_v ) / (max_v - min_v);
+
+          // Add the uv coordinates into our map at the point index specified
+          uvMap.set(vert->id, uv);
+        }
+
+        return uvMap;
       }
 
       ///// Parameters /////
@@ -95,47 +134,29 @@ namespace volcart {
         }
       }
 
-      // Returns the angle between ab and ac
-      double abf::_vec_angle(volcart::QuadPoint A, volcart::QuadPoint B, volcart::QuadPoint C) {
-        cv::Vec3d vec_1, vec_2;
-
-        vec_1[0] = B[0] - A[0];
-        vec_1[1] = B[1] - A[1];
-        vec_1[2] = B[2] - A[2];
-
-        vec_2[0] = C[0] - A[0];
-        vec_2[1] = C[1] - A[1];
-        vec_2[2] = C[2] - A[2];
-
-        cv::normalize(vec_1, vec_1);
-        cv::normalize(vec_2, vec_2);
-
-        double dot = vec_1.dot(vec_2);
-
-        if ( dot <= -1.0f )
-          return M_PI;
-        else if ( dot >= 1.0f )
-          return 0.0f;
-        else
-          return acos(dot);
-      }
-
       ///// ABF /////
       // Scale angles to prevent degenerate cases
       void abf::_scale() {
 
-        for ( auto p_it = _heMesh.getInteriorBegin(); p_it != _heMesh.getInteriorEnd(); ++p_it ) {
-          double anglesum = 0.0, scale;
+        for ( auto v = _heMesh.getVert(0); v; v = v->nextlink ) {
+          if ( v->interior() ){
 
-          anglesum = _sumIncidentBetas( *p_it );
-          scale = (anglesum == 0.0f) ? 0.0f : 2.0f * M_PI / anglesum;
+            double anglesum = 0.0, scale;
 
-          auto e = (*p_it)->edge;
-          do {
-            e->angle->beta = e->angle->alpha = e->angle->beta * scale;
-            e = e->next->next->pair;
-          } while (e && (e != (*p_it)->edge));
+            auto e = v->edge;
+            do {
+              anglesum += e->angle->beta;
+              e = e->next->next->pair;
+            } while ( e && ( e != v->edge) );
 
+            scale = (anglesum == 0.0f) ? 0.0f : 2.0f * M_PI / anglesum;
+
+            e = v->edge;
+            do {
+              e->angle->beta = e->angle->alpha = e->angle->beta * scale;
+              e = e->next->next->pair;
+            } while (e && (e != v->edge));
+          }
         }
 
       }
@@ -145,9 +166,9 @@ namespace volcart {
         _computeSines();
 
         double norm = 1e10;
-        for ( int i = 0; i < _maxABFIterations; ++i ) {
+        int i = 0;
+        for ( ; i < _maxABFIterations; ++i ) {
           norm = _computeGradient();
-          std::cerr << "volcart::texturing::abf: Norm(" << norm << ")" << std::endl;
 
           if ( norm < _limit )
             break;
@@ -160,33 +181,11 @@ namespace volcart {
 
           _computeSines();
         }
-        std::cerr << "volcart::texturing::abf: Final norm(" << norm << ") || Limit(" << _limit << ")" << std::endl;
+        std::cerr << "volcart::texturing::abf: Iterations: " << i+1 << " || Final norm: " << norm << " || Limit: " << _limit << std::endl;
 
       }
 
       ///// Helpers - ABF /////
-      double abf::_sumIncidentAlphas(HalfEdgeMesh::VertPtr v) {
-        double sum = 0.0;
-        auto e = v->edge;
-        do {
-          sum += e->angle->beta;
-          e = e->next->next->pair;
-        } while ( e && ( e != v->edge) );
-
-        return sum;
-      }
-
-      double abf::_sumIncidentBetas(HalfEdgeMesh::VertPtr v) {
-        double sum = 0.0;
-        auto e = v->edge;
-        do {
-          sum += e->angle->beta;
-          e = e->next->next->pair;
-        } while ( e && ( e != v->edge) );
-
-        return sum;
-      }
-
       void   abf::_computeSines() {
         for (auto e = _heMesh.getEdgesBegin(); e != _heMesh.getEdgesEnd(); ++e ) {
           (*e)->angle->sine   = sin((*e)->angle->alpha);
@@ -199,11 +198,9 @@ namespace volcart {
 
         // Gradient alpha per face
         for ( auto f = _heMesh.getFace(0); f; f = f->nextlink ) {
+
+          auto e0 = f->edge, e1 = e0->next, e2 = e1->next;
           double gTriangle, gAlpha0, gAlpha1, gAlpha2;
-          HalfEdgeMesh::EdgePtr e0, e1, e2;
-          e0 = f->edge;
-          e1 = e0->next;
-          e2 = e1->next;
 
           gAlpha0 = _computeGradientAlpha(f, e0);
           gAlpha1 = _computeGradientAlpha(f, e1);
@@ -213,8 +210,7 @@ namespace volcart {
           e1->angle->bAlpha = -gAlpha1;
           e2->angle->bAlpha = -gAlpha2;
 
-          norm += (gAlpha0 * gAlpha0) + (gAlpha1 * gAlpha1) + (gAlpha2 * gAlpha2);
-
+          norm += gAlpha0 * gAlpha0 + gAlpha1 * gAlpha1 + gAlpha2 * gAlpha2;
           gTriangle = e0->angle->alpha + e1->angle->alpha + e2->angle->alpha - M_PI;
           f->bTriangle = -gTriangle;
           norm += gTriangle * gTriangle;

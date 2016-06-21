@@ -27,48 +27,6 @@ namespace volcart {
 
       class abf {
 
-      struct AngleInfo {
-          QuadPointIdentifier p_id;
-          QuadCellIdentifier  c_id;
-
-          double alpha;  // Current angle
-          double beta;   // Ideal/Original angle
-          double weight; // Typically 1/b^2
-
-          double bAlpha;
-
-          double sine;
-          double cosine;
-      };
-
-      typedef itk::QuadEdgeMeshBoundaryEdgesMeshFunction< volcart::QuadMesh > BoundaryExtractor;
-      typedef std::shared_ptr<AngleInfo> AngleInfoPtr;
-      typedef std::vector< std::shared_ptr<AngleInfo> > AngleGroup;
-
-      struct VertexInfo {
-          QuadPointIdentifier p_id;
-
-          bool interior;
-
-          double lambdaPlanar;
-          double lambdaLength;
-
-          cv::Vec2d uv;
-
-          AngleGroup angles;
-      };
-
-      struct TriangleInfo {
-          QuadCellIdentifier c_id;
-
-          double bTriangle;
-          double lambdaTriangle;
-          double bstar;
-          double dstar;
-
-          AngleGroup angles;
-      };
-
       public:
           ///// Constructors/Destructors /////
           abf();
@@ -94,9 +52,6 @@ namespace volcart {
           ///// Setup /////
           void _fillHalfEdgeMesh();
 
-          // Returns the angle between AB & AC
-          double _vec_angle(volcart::QuadPoint A, volcart::QuadPoint B, volcart::QuadPoint C);
-
           ///// Solve - ABF /////
           void _solve_abf();
           void _scale();
@@ -112,12 +67,6 @@ namespace volcart {
           bool    _useABF;           // If false, only compute LSCM parameterization [default: true]
           int     _maxABFIterations; // Max number of iterations
           double  _limit;            // Minimization limit
-
-          ///// Helper functions - ABF /////
-          double _sumIncidentAlphas( HalfEdgeMesh::VertPtr v );
-          double _sumIncidentBetas ( HalfEdgeMesh::VertPtr v );
-          double _sumTriangleAlphas( volcart::QuadCellIdentifier  c );
-          double _sumTriangleBetas ( volcart::QuadCellIdentifier  c );
 
           ///// LSCM Loop /////
           void _solve_lscm();
