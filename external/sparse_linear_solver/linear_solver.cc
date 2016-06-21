@@ -51,7 +51,7 @@ struct LinearSolver
       value = 0.0;
     }
 
-    int index;
+    unsigned long index;
     double value;
   };
 
@@ -66,7 +66,7 @@ struct LinearSolver
 
     double value[4];
     bool locked;
-    int index;
+    unsigned long index;
     std::vector<Coeff> a;
   };
 
@@ -77,7 +77,7 @@ struct LinearSolver
     STATE_MATRIX_SOLVED
   };
 
-  LinearSolver(int num_rows_, int num_variables_, int num_rhs_, bool lsq_)
+  LinearSolver(unsigned long num_rows_, unsigned long num_variables_, unsigned long num_rhs_, bool lsq_)
   {
     assert(num_variables_ > 0);
     assert(num_rhs_ <= 4);
@@ -101,8 +101,8 @@ struct LinearSolver
 
   State state;
 
-  int n;
-  int m;
+  unsigned long n;
+  unsigned long m;
 
   std::vector<EigenTriplet> Mtriplets;
   EigenSparseMatrix M;
@@ -112,21 +112,21 @@ struct LinearSolver
 
   EigenSparseLU *sparseLU;
 
-  int num_variables;
+  unsigned long num_variables;
   std::vector<Variable> variable;
 
-  int num_rows;
-  int num_rhs;
+  unsigned long num_rows;
+  unsigned long num_rhs;
 
   bool least_squares;
 };
 
-LinearSolver *EIG_linear_solver_new(int num_rows, int num_columns, int num_rhs)
+LinearSolver *EIG_linear_solver_new(unsigned long num_rows, unsigned long num_columns, unsigned long num_rhs)
 {
   return new LinearSolver(num_rows, num_columns, num_rhs, false);
 }
 
-LinearSolver *EIG_linear_least_squares_solver_new(int num_rows, int num_columns, int num_rhs)
+LinearSolver *EIG_linear_least_squares_solver_new(unsigned long num_rows, unsigned long num_columns, unsigned long num_rhs)
 {
   return new LinearSolver(num_rows, num_columns, num_rhs, true);
 }
@@ -138,17 +138,17 @@ void EIG_linear_solver_delete(LinearSolver *solver)
 
 /* Variables */
 
-void EIG_linear_solver_variable_set(LinearSolver *solver, int rhs, int index, double value)
+void EIG_linear_solver_variable_set(LinearSolver *solver, unsigned long rhs, unsigned long index, double value)
 {
   solver->variable[index].value[rhs] = value;
 }
 
-double EIG_linear_solver_variable_get(LinearSolver *solver, int rhs, int index)
+double EIG_linear_solver_variable_get(LinearSolver *solver, unsigned long rhs, unsigned long index)
 {
   return solver->variable[index].value[rhs];
 }
 
-void EIG_linear_solver_variable_lock(LinearSolver *solver, int index)
+void EIG_linear_solver_variable_lock(LinearSolver *solver, unsigned long index)
 {
   if (!solver->variable[index].locked) {
     assert(solver->state == LinearSolver::STATE_VARIABLES_CONSTRUCT);
@@ -156,7 +156,7 @@ void EIG_linear_solver_variable_lock(LinearSolver *solver, int index)
   }
 }
 
-void EIG_linear_solver_variable_unlock(LinearSolver *solver, int index)
+void EIG_linear_solver_variable_unlock(LinearSolver *solver, unsigned long index)
 {
   if (solver->variable[index].locked) {
     assert(solver->state == LinearSolver::STATE_VARIABLES_CONSTRUCT);
@@ -166,12 +166,12 @@ void EIG_linear_solver_variable_unlock(LinearSolver *solver, int index)
 
 static void linear_solver_variables_to_vector(LinearSolver *solver)
 {
-  int num_rhs = solver->num_rhs;
+  unsigned long num_rhs = solver->num_rhs;
 
-  for (int i = 0; i < solver->num_variables; i++) {
+  for (unsigned long i = 0; i < solver->num_variables; i++) {
     LinearSolver::Variable* v = &solver->variable[i];
     if (!v->locked) {
-      for (int j = 0; j < num_rhs; j++)
+      for (unsigned long j = 0; j < num_rhs; j++)
         solver->x[j][v->index] = v->value[j];
     }
   }
@@ -179,12 +179,12 @@ static void linear_solver_variables_to_vector(LinearSolver *solver)
 
 static void linear_solver_vector_to_variables(LinearSolver *solver)
 {
-  int num_rhs = solver->num_rhs;
+  unsigned long num_rhs = solver->num_rhs;
 
-  for (int i = 0; i < solver->num_variables; i++) {
+  for (unsigned long i = 0; i < solver->num_variables; i++) {
     LinearSolver::Variable* v = &solver->variable[i];
     if (!v->locked) {
-      for (int j = 0; j < num_rhs; j++)
+      for (unsigned long j = 0; j < num_rhs; j++)
         v->value[j] = solver->x[j][v->index];
     }
   }
@@ -196,16 +196,16 @@ static void linear_solver_ensure_matrix_construct(LinearSolver *solver)
 {
   /* transition to matrix construction if necessary */
   if (solver->state == LinearSolver::STATE_VARIABLES_CONSTRUCT) {
-    int n = 0;
+    unsigned long n = 0;
 
-    for (int i = 0; i < solver->num_variables; i++) {
+    for (unsigned long i = 0; i < solver->num_variables; i++) {
       if (solver->variable[i].locked)
         solver->variable[i].index = ~0;
       else
         solver->variable[i].index = n++;
     }
 
-    int m = (solver->num_rows == 0)? n: solver->num_rows;
+    unsigned long m = (solver->num_rows == 0)? n: solver->num_rows;
 
     solver->m = m;
     solver->n = n;
@@ -219,7 +219,7 @@ static void linear_solver_ensure_matrix_construct(LinearSolver *solver)
     solver->b.resize(solver->num_rhs);
     solver->x.resize(solver->num_rhs);
 
-    for (int i = 0; i < solver->num_rhs; i++) {
+    for (unsigned long i = 0; i < solver->num_rhs; i++) {
       solver->b[i].setZero(m);
       solver->x[i].setZero(n);
     }
@@ -230,7 +230,7 @@ static void linear_solver_ensure_matrix_construct(LinearSolver *solver)
   }
 }
 
-void EIG_linear_solver_matrix_add(LinearSolver *solver, int row, int col, double value)
+void EIG_linear_solver_matrix_add(LinearSolver *solver, unsigned long row, unsigned long col, double value)
 {
   if (solver->state == LinearSolver::STATE_MATRIX_SOLVED)
     return;
@@ -252,7 +252,7 @@ void EIG_linear_solver_matrix_add(LinearSolver *solver, int row, int col, double
       row = solver->variable[row].index;
     col = solver->variable[col].index;
 
-    /* direct insert into matrix is too slow, so use triplets */
+    /* direct insert unsigned longo matrix is too slow, so use triplets */
     EigenTriplet triplet(row, col, value);
     solver->Mtriplets.push_back(triplet);
   }
@@ -260,7 +260,7 @@ void EIG_linear_solver_matrix_add(LinearSolver *solver, int row, int col, double
 
 /* Right hand side */
 
-void EIG_linear_solver_right_hand_side_add(LinearSolver *solver, int rhs, int index, double value)
+void EIG_linear_solver_right_hand_side_add(LinearSolver *solver, unsigned long rhs, unsigned long index, double value)
 {
   linear_solver_ensure_matrix_construct(solver);
 
@@ -311,17 +311,17 @@ bool EIG_linear_solver_solve(LinearSolver *solver)
 
   if (result) {
     /* solve for each right hand side */
-    for (int rhs = 0; rhs < solver->num_rhs; rhs++) {
+    for (unsigned long rhs = 0; rhs < solver->num_rhs; rhs++) {
       /* modify for locked variables */
       EigenVectorX& b = solver->b[rhs];
 
-      for (int i = 0; i < solver->num_variables; i++) {
+      for (unsigned long i = 0; i < solver->num_variables; i++) {
         LinearSolver::Variable *variable = &solver->variable[i];
 
         if (variable->locked) {
           std::vector<LinearSolver::Coeff>& a = variable->a;
 
-          for (int j = 0; j < a.size(); j++)
+          for (unsigned long j = 0; j < a.size(); j++)
             b[a[j].index] -= a[j].value*variable->value[rhs];
         }
       }
@@ -345,7 +345,7 @@ bool EIG_linear_solver_solve(LinearSolver *solver)
   }
 
   /* clear for next solve */
-  for (int rhs = 0; rhs < solver->num_rhs; rhs++)
+  for (unsigned long rhs = 0; rhs < solver->num_rhs; rhs++)
     solver->b[rhs].setZero(solver->m);
 
   return result;
@@ -353,11 +353,11 @@ bool EIG_linear_solver_solve(LinearSolver *solver)
 
 /* Debugging */
 
-void EIG_linear_solver_print_matrix(LinearSolver *solver)
+void  EIG_linear_solver_print_matrix(LinearSolver *solver)
 {
   std::cout << "A:" << solver->M << std::endl;
 
-  for (int rhs = 0; rhs < solver->num_rhs; rhs++)
+  for (unsigned long rhs = 0; rhs < solver->num_rhs; rhs++)
     std::cout << "b " << rhs << ":" << solver->b[rhs] << std::endl;
 
   if (solver->MtM.rows() && solver->MtM.cols())

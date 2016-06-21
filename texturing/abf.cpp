@@ -321,8 +321,8 @@ namespace volcart {
           double gTriangle, gAlpha0, gAlpha1, gAlpha2;
           HalfEdgeMesh::EdgePtr e0, e1, e2;
           e0 = (*f)->edge;
-          e1 = e1->next;
-          e2 = e2->next;
+          e1 = e0->next;
+          e2 = e1->next;
           gAlpha0 = _computeGradientAlpha((*f), e0);
           gAlpha1 = _computeGradientAlpha((*f), e1);
           gAlpha2 = _computeGradientAlpha((*f), e2);
@@ -670,29 +670,31 @@ namespace volcart {
 
         // Setup solver context
         LinearSolver *context;
-        context = EIG_linear_least_squares_solver_new(2 * _mesh->GetNumberOfCells(), 2 * _mesh->GetNumberOfPoints(), 1);
+        context = EIG_linear_least_squares_solver_new(2 * _heMesh.getNumberOfFaces(), 2 * _heMesh.getNumberOfVerts(), 1);
 
         // Add pins to solver
-        EIG_linear_solver_variable_lock(context, 2 * _vertInfo[_pin0].p_id);
-        EIG_linear_solver_variable_lock(context, 2 * _vertInfo[_pin0].p_id + 1);
-        EIG_linear_solver_variable_lock(context, 2 * _vertInfo[_pin1].p_id);
-        EIG_linear_solver_variable_lock(context, 2 * _vertInfo[_pin1].p_id + 1);
+        EIG_linear_solver_variable_lock(context, 2 * _pin0);
+        EIG_linear_solver_variable_lock(context, 2 * _pin0 + 1);
+        EIG_linear_solver_variable_lock(context, 2 * _pin1);
+        EIG_linear_solver_variable_lock(context, 2 * _pin1 + 1);
 
-        EIG_linear_solver_variable_set(context, 0, 2 * _vertInfo[_pin0].p_id,     _vertInfo[_pin0].uv[0]);
-        EIG_linear_solver_variable_set(context, 0, 2 * _vertInfo[_pin0].p_id + 1, _vertInfo[_pin0].uv[1]);
-        EIG_linear_solver_variable_set(context, 0, 2 * _vertInfo[_pin1].p_id,     _vertInfo[_pin1].uv[0]);
-        EIG_linear_solver_variable_set(context, 0, 2 * _vertInfo[_pin1].p_id + 1, _vertInfo[_pin1].uv[1]);
+        EIG_linear_solver_variable_set(context, 0, 2 * _pin0,     _heMesh.getVert(_pin0)->uv[0]);
+        EIG_linear_solver_variable_set(context, 0, 2 * _pin0 + 1, _heMesh.getVert(_pin0)->uv[1]);
+        EIG_linear_solver_variable_set(context, 0, 2 * _pin1,     _heMesh.getVert(_pin1)->uv[0]);
+        EIG_linear_solver_variable_set(context, 0, 2 * _pin1 + 1, _heMesh.getVert(_pin1)->uv[1]);
 
         // Construct matrix
-        int row = 0;
-        for ( auto it = _faceInfo.begin(); it != _faceInfo.end(); ++it ) {
-          QuadPointIdentifier v0 = it->second.angles[0]->p_id;
-          QuadPointIdentifier v1 = it->second.angles[1]->p_id;
-          QuadPointIdentifier v2 = it->second.angles[2]->p_id;
+        HalfEdgeMesh::IDType row = 0;
+        for ( auto f = _heMesh.getFacesBegin(); f != _heMesh.getFacesEnd(); ++f ) {
+          HalfEdgeMesh::EdgePtr e0 = (*f)->edge, e1 = e0->next, e2 = e1->next;
 
-          double a0 = it->second.angles[0]->alpha;
-          double a1 = it->second.angles[1]->alpha;
-          double a2 = it->second.angles[2]->alpha;
+          HalfEdgeMesh::IDType v0 = e0->vert->id;
+          HalfEdgeMesh::IDType v1 = e1->vert->id;
+          HalfEdgeMesh::IDType v2 = e2->vert->id;
+
+          double a0 = e0->angle->alpha;
+          double a1 = e1->angle->alpha;
+          double a2 = e2->angle->alpha;
 
           // Find max sin from angles
           double sin0 = sin(a0);
@@ -704,7 +706,7 @@ namespace volcart {
           // Shift verts for stable order
           // Careful. Only use these values going forward through the loop
           if( sin2 != sinmax ) {
-            SHIFT3(QuadPointIdentifier, v0, v1, v2);
+            SHIFT3(HalfEdgeMesh::IDType, v0, v1, v2);
             SHIFT3(double, a0, a1, a2);
             SHIFT3(double, sin0, sin1, sin2);
 
@@ -741,9 +743,9 @@ namespace volcart {
         }
 
         // Update UVs
-        for( auto it = _vertInfo.begin(); it != _vertInfo.end(); ++it ) {
-          it->second.uv[0] = EIG_linear_solver_variable_get(context, 0, 2 * it->second.p_id);
-          it->second.uv[1] = EIG_linear_solver_variable_get(context, 0, 2 * it->second.p_id + 1);
+        for( auto v = _heMesh.getVertsBegin(); v != _heMesh.getVertsEnd(); ++v ) {
+          (*v)->uv[0] = EIG_linear_solver_variable_get(context, 0, 2 * (*v)->id);
+          (*v)->uv[1] = EIG_linear_solver_variable_get(context, 0, 2 * (*v)->id + 1);
         }
 
         // Cleanup context
@@ -751,30 +753,26 @@ namespace volcart {
       }
 
       ///// Helpers - LSCM /////
-      std::pair<QuadPointIdentifier, QuadPointIdentifier> abf::_getMinMaxPointIDs() {
-        std::vector<double> min(3, 1e20), max(3, -1e20);
-        QuadPointIdentifier minVert = 0;
-        QuadPointIdentifier maxVert = 0;
+      std::pair<HalfEdgeMesh::IDType, HalfEdgeMesh::IDType> abf::_getMinMaxPointIDs() {
+        cv::Vec3d min(1e20), max(-1e20);
+        HalfEdgeMesh::IDType minVert = 0;
+        HalfEdgeMesh::IDType maxVert = 0;
 
-        for (auto it = _mesh->GetPoints()->Begin(); it != _mesh->GetPoints()->End(); ++it )
+        for (auto it = _heMesh.getVertsBegin(); it !=  _heMesh.getVertsEnd(); ++it )
         {
 
-          if ( it->Value()[0] < min[0] &&
-               it->Value()[1] < min[1] &&
-               it->Value()[2] < min[2] )
+          if ( (*it)->xyz[0] < min[0] &&
+               (*it)->xyz[1] < min[1] &&
+               (*it)->xyz[2] < min[2] )
           {
-            min[0] = it->Value()[0];
-            min[1] = it->Value()[1];
-            min[2] = it->Value()[2];
-            minVert = it->Index();
-          } else if ( it->Value()[0] > max[0] &&
-                      it->Value()[1] > max[1] &&
-                      it->Value()[2] > max[2] )
+            min = (*it)->xyz;
+            minVert = (*it)->id;
+          } else if ( (*it)->xyz[0] > max[0] &&
+                      (*it)->xyz[0] > max[1] &&
+                      (*it)->xyz[0] > max[2] )
           {
-            max[0] = it->Value()[0];
-            max[1] = it->Value()[1];
-            max[2] = it->Value()[2];
-            maxVert = it->Index();
+            max = (*it)->xyz;
+            maxVert = (*it)->id;
           }
         }
 
@@ -784,9 +782,9 @@ namespace volcart {
       void abf::_computePinUV() {
         if( _pin0 == _pin1 ) {
           // Degenerate case, get two other points
-          auto it = _boundary.begin();
-          _pin0 = it->first;
-          _pin1 = std::next(it)->first;
+          auto it = _heMesh.getBoundaryBegin();
+          _pin0 = (*it)->id;
+          _pin1 = (*std::next(it))->id;
 
           _vertInfo[_pin0].uv = cv::Vec2d(0.0, 0.5);
           _vertInfo[_pin1].uv = cv::Vec2d(1.0, 0.5);
@@ -794,10 +792,8 @@ namespace volcart {
         else {
           int diru, dirv, dirx, diry;
 
-          auto pt = _mesh->GetPoint(_pin0);
-          cv::Vec3d pin0_xyz( pt[0], pt[1], pt[2] );
-          pt = _mesh->GetPoint(_pin1);
-          cv::Vec3d pin1_xyz( pt[0], pt[1], pt[2] );
+          cv::Vec3d pin0_xyz = _heMesh.getVert(_pin0)->xyz;
+          cv::Vec3d pin1_xyz = _heMesh.getVert(_pin1)->xyz;
           cv::Vec3d sub = pin0_xyz - pin1_xyz;
 
           sub[0] = fabs(sub[0]);
@@ -826,10 +822,10 @@ namespace volcart {
             dirv = 1;
           }
 
-          _vertInfo[_pin0].uv[diru] = pin0_xyz[dirx];
-          _vertInfo[_pin0].uv[dirv] = pin0_xyz[diry];
-          _vertInfo[_pin1].uv[diru] = pin1_xyz[dirx];
-          _vertInfo[_pin1].uv[dirv] = pin1_xyz[diry];
+          _heMesh.getVert(_pin0)->uv[diru] = pin0_xyz[dirx];
+          _heMesh.getVert(_pin0)->uv[dirv] = pin0_xyz[diry];
+          _heMesh.getVert(_pin1)->uv[diru] = pin1_xyz[dirx];
+          _heMesh.getVert(_pin1)->uv[dirv] = pin1_xyz[diry];
         }
       }
 

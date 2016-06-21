@@ -123,7 +123,7 @@ namespace volcart {
           void _solve_lscm();
 
           ///// Helper Functions - LSCM /////
-          std::pair<QuadPointIdentifier, QuadPointIdentifier> _getMinMaxPointIDs();
+          std::pair<HalfEdgeMesh::IDType, HalfEdgeMesh::IDType> _getMinMaxPointIDs();
           void _computePinUV();
 
           ///// Storage /////
@@ -144,8 +144,8 @@ namespace volcart {
           cv::Mat _J2dt;
 
           // Pinned Point IDs
-          QuadPointIdentifier _pin0;
-          QuadPointIdentifier _pin1;
+          HalfEdgeMesh::IDType _pin0;
+          HalfEdgeMesh::IDType _pin1;
 
       };
 
