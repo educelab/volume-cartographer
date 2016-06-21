@@ -181,7 +181,7 @@ namespace volcart {
 
           _computeSines();
         }
-        std::cerr << "volcart::texturing::abf: Iterations: " << i+1 << " || Final norm: " << norm << " || Limit: " << _limit << std::endl;
+        std::cerr << "volcart::texturing::abf: Iterations: " << i << " || Final norm: " << norm << " || Limit: " << _limit << std::endl;
 
       }
 
