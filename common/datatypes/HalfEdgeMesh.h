@@ -77,7 +77,7 @@ namespace volcart {
             double beta;   // Ideal/Original angle
             double weight; // Typically 1/b^2
 
-            double bAlpha;
+            double bAlpha; // current gradient of the ABF constraints
 
             double sine;
             double cosine;

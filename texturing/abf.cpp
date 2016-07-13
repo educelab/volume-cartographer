@@ -7,8 +7,8 @@
 namespace volcart {
     namespace texturing {
       ///// Constructors & Destructors /////
-      abf::abf() : _maxABFIterations(8), _useABF(true) {};
-      abf::abf( VC_MeshType::Pointer mesh ) : _mesh(mesh), _maxABFIterations(8), _useABF(true) {};
+      abf::abf() : _maxABFIterations(10), _useABF(true) {};
+      abf::abf( VC_MeshType::Pointer mesh ) : _mesh(mesh), _maxABFIterations(10), _useABF(true) {};
       abf::~abf()
       {
         _heMesh.clear();
@@ -60,7 +60,7 @@ namespace volcart {
         }
 
         // Scale width and height back to volume coordinates
-        double aspect_width = std::abs(max_u - min_u);
+        double aspect_width  = std::abs(max_u - min_u);
         double aspect_height = std::abs(max_v - min_v);
         uvMap.ratio(aspect_width, aspect_height);
 
@@ -129,8 +129,7 @@ namespace volcart {
         _bInterior = std::vector<double>(_heMesh.getNumberOfInteriorPoints() * 2, 0);
         unsigned long interior_id = 0;
         for ( auto v = _heMesh.getVert(0); v; v = v->nextlink ) {
-          if ( v->interior() )
-            _interior[v->id] = interior_id++;
+          if ( v->interior() ) _interior[v->id] = interior_id++;
         }
       }
 
@@ -218,23 +217,24 @@ namespace volcart {
 
         // Planarity check for interior verts
         for ( auto v = _heMesh.getVert(0); v; v = v->nextlink ) {
-            if ( v->interior() ) {
-              auto i_id = _interior[v->id];
-              double gplanar = -2 * M_PI, glength;
+            if ( !v->interior() ) continue; // Only consider interior points
 
-              HalfEdgeMesh::EdgePtr e = v->edge;
-              do {
-                gplanar += e->angle->alpha;
-                e = e->next->next->pair;
-              } while (e && (e != v->edge));
+            auto i_id = _interior[v->id];
+            double gplanar = -2 * M_PI;
+            double glength;
 
-              _bInterior[i_id] = -gplanar;
-              norm += gplanar * gplanar;
+            HalfEdgeMesh::EdgePtr e = v->edge;
+            do {
+              gplanar += e->angle->alpha;
+              e = e->next->next->pair;
+            } while (e && (e != v->edge));
 
-              glength = _computeSinProduct(v);
-              _bInterior[ _heMesh.getNumberOfInteriorPoints() + i_id ] = -glength;
-              norm += glength + glength;
-            }
+            _bInterior[i_id] = -gplanar;
+            norm += gplanar * gplanar;
+
+            glength = _computeSinProduct(v);
+            _bInterior[ _heMesh.getNumberOfInteriorPoints() + i_id ] = -glength;
+            norm += glength * glength;
         }
 
         return norm;
@@ -522,19 +522,19 @@ namespace volcart {
             dalpha = (e2->angle->bAlpha - dlambda1);
             e2->angle->alpha += dalpha / e2->angle->weight - pre[2];
 
-            /* clamp */
+            /* clamp all the angles to between 0 & pi*/
             auto e = f->edge;
             do {
               if (e->angle->alpha > M_PI)
                 e->angle->alpha = M_PI;
               else if (e->angle->alpha < 0.0f)
                 e->angle->alpha = 0.0f;
-              //e = e->next;
+              e = e->next;
             } while (e != f->edge);
 
           }
 
-          QuadPointIdentifier p_id, i_id;
+          HalfEdgeMesh::IDType p_id, i_id;
           for ( auto it = _interior.begin(); it != _interior.end(); ++it ) {
             p_id = it->first;
             i_id = it->second;
@@ -553,9 +553,6 @@ namespace volcart {
       ///// LSCM Loop /////
       void abf::_solve_lscm()
       {
-        double area_pinned_up, area_pinned_down;
-        bool flip_faces, result;
-
         // find two pins and compute their positions
         auto MinMaxPair = _getMinMaxPointIDs();
         _pin0 = MinMaxPair.first;
@@ -689,11 +686,8 @@ namespace volcart {
 
           cv::Vec3d pin0_xyz = _heMesh.getVert(_pin0)->xyz;
           cv::Vec3d pin1_xyz = _heMesh.getVert(_pin1)->xyz;
-          cv::Vec3d sub = pin0_xyz - pin1_xyz;
-
-          sub[0] = fabs(sub[0]);
-          sub[1] = fabs(sub[1]);
-          sub[2] = fabs(sub[2]);
+          cv::Vec3d sub;
+          cv::absdiff(pin0_xyz, pin1_xyz, sub);
 
           if ((sub[0] > sub[1]) && (sub[0] > sub[2])) {
             dirx = 0;

@@ -27,6 +27,7 @@
 int main( int argc, char* argv[] ) {
 
   VolumePkg vpkg( argv[1] );
+  vpkg.volume().setCacheMemoryInBytes(10000000000);
   vpkg.setActiveSegmentation( argv[2] );
   int radius = std::stoi( argv[3] );
   int type = std::stoi( argv[4] );
@@ -70,6 +71,7 @@ int main( int argc, char* argv[] ) {
   volcart::meshing::itk2vtk(input, vtkMesh);
 
   // Decimate using ACVD
+  std::cout << "Resampling mesh..." << std::endl;
   vtkPolyData* acvdMesh = vtkPolyData::New();
   volcart::meshing::ACVD(vtkMesh, acvdMesh, numberOfVertices );
 
@@ -84,7 +86,9 @@ int main( int argc, char* argv[] ) {
   volcart::meshing::vtk2itk( Cleaner->GetOutput(), itkACVD );
 
   // ABF flattening
+  std::cout << "Computing parameterization..." << std::endl;
   volcart::texturing::abf abf(itkACVD);
+  //abf.setABFMaxIterations(5);
   abf.compute();
 
   // Get uv map

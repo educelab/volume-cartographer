@@ -4,7 +4,7 @@
 
 #include "HalfEdgeMesh.h"
 
-double MINANGLE = 1.0 * M_PI / 180.0;
+double MINANGLE = M_PI / 180.0;
 double MAXANGLE = M_PI - MINANGLE;
 
 namespace volcart {
@@ -41,10 +41,10 @@ namespace volcart {
     // Add a face connecting v0 -> v1 -> v2
     HalfEdgeMesh::FacePtr HalfEdgeMesh::addFace(IDType v0, IDType v1, IDType v2) {
       // Make the faces, edges, and angles
-      HalfEdgeMesh::FacePtr f = std::make_shared<Face>();
-      HalfEdgeMesh::EdgePtr e0 = std::make_shared<Edge>();
-      HalfEdgeMesh::EdgePtr e1 = std::make_shared<Edge>();
-      HalfEdgeMesh::EdgePtr e2 = std::make_shared<Edge>();
+      HalfEdgeMesh::FacePtr f   = std::make_shared<Face>();
+      HalfEdgeMesh::EdgePtr e0  = std::make_shared<Edge>();
+      HalfEdgeMesh::EdgePtr e1  = std::make_shared<Edge>();
+      HalfEdgeMesh::EdgePtr e2  = std::make_shared<Edge>();
       HalfEdgeMesh::AnglePtr a0 = std::make_shared<Angle>();
       HalfEdgeMesh::AnglePtr a1 = std::make_shared<Angle>();
       HalfEdgeMesh::AnglePtr a2 = std::make_shared<Angle>();
@@ -91,9 +91,9 @@ namespace volcart {
       a0->alpha = a0->beta = a[0];
       a1->alpha = a1->beta = a[1];
       a2->alpha = a2->beta = a[2];
-      a0->weight = 2.0 / (a[0] * a[0]);
-      a1->weight = 2.0 / (a[1] * a[1]);
-      a2->weight = 2.0 / (a[2] * a[2]);
+      a0->weight = 1.0 / (a[0] * a[0]);
+      a1->weight = 1.0 / (a[1] * a[1]);
+      a2->weight = 1.0 / (a[2] * a[2]);
 
       // Add everything to their respective arrays
       e0->id = _edges.size();
