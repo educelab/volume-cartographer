@@ -1,36 +1,26 @@
 #include "volumepkgcfg.h"
 
 ///// CONSTRUCTORS /////
-VolumePkgCfg::VolumePkgCfg()
-{
-    picojson::object obj;
-    obj["version"] = picojson::value(VOLPKG_VERSION);
-    _json = picojson::value(obj);
-}
+VolumePkgCfg::VolumePkgCfg() { _json["version"] = VOLPKG_VERSION; }
 
 // Construct a new json config using a Dictionary as a template
 VolumePkgCfg::VolumePkgCfg(const volcart::Dictionary& dict, double version)
 {
     // Populate the cfg with keys from the dict
-    picojson::object obj;
     volcart::Dictionary::const_iterator entry = dict.begin();
     for (const auto& entry : dict) {
         if (entry.first == "version") {
-            obj["version"] = picojson::value(version);
+            _json["version"] = version;
             continue;
         }
 
         // Default values
         if (entry.second == "int") {
-            int initValue = 0;
-            obj[entry.first] = picojson::value(double(initValue));
+            _json[entry.first] = 0;
         } else if (entry.second == "double") {
-            double initValue = 0;
-            obj[entry.first] = picojson::value(initValue);
+            _json[entry.first] = 0.0;
         } else {
-            std::string initValue{""};
-            obj[entry.first] = picojson::value(initValue);
+            _json[entry.first] = "";
         }
     }
-    _json = picojson::value(obj);
 };

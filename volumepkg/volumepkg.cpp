@@ -1,6 +1,6 @@
+#include "volumepkg.h"
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
-#include "volumepkg.h"
 
 namespace fs = boost::filesystem;
 
@@ -22,15 +22,15 @@ VolumePkg::VolumePkg(const fs::path& file_location, double version)
     root_dir = file_location;
     segs_dir = file_location / "paths";
     slice_dir = file_location / "slices";
-    config.setValue(
+    config.set(
         "slice location",
         "/slices/");  // To-Do: We need a better way of handling default values
     norm_dir = file_location / "surface_normals";
 
     // Initialize volume object
-    vol_ =
-        volcart::Volume(slice_dir, norm_dir, config.getInt("number of slices"),
-                        config.getInt("width"), config.getInt("height"));
+    vol_ = volcart::Volume(slice_dir, norm_dir,
+                           config.get<int>("number of slices"),
+                           config.get<int>("width"), config.get<int>("height"));
 };
 
 // Use this when reading a volpkg from a file
@@ -64,9 +64,9 @@ VolumePkg::VolumePkg(const fs::path& file_location)
     }
 
     // Initialize volume object
-    vol_ =
-        volcart::Volume(slice_dir, norm_dir, config.getInt("number of slices"),
-                        config.getInt("width"), config.getInt("height"));
+    vol_ = volcart::Volume(slice_dir, norm_dir,
+                           config.get<int>("number of slices"),
+                           config.get<int>("width"), config.get<int>("height"));
 };
 
 // WRITE TO DISK //
@@ -111,30 +111,33 @@ int VolumePkg::_makeDirTree()
 // Returns Volume Name from JSON config
 std::string VolumePkg::getPkgName() const
 {
-    std::string name = config.getString("volumepkg name");
+    std::string name = config.get<std::string>("volumepkg name");
     if (name != "NULL")
         return name;
     else
         return "UnnamedVolume";
 };
 
-double VolumePkg::getVersion() const { return config.getDouble("version"); };
+double VolumePkg::getVersion() const { return config.get<double>("version"); };
 
 // Returns no. of slices from JSON config
 int VolumePkg::getNumberOfSlices() const
 {
-    return config.getInt("number of slices");
+    return config.get<int>("number of slices");
 }
 
-int VolumePkg::getSliceWidth() const { return config.getInt("width"); }
+int VolumePkg::getSliceWidth() const { return config.get<int>("width"); }
 
-int VolumePkg::getSliceHeight() const { return config.getInt("height"); }
+int VolumePkg::getSliceHeight() const { return config.get<int>("height"); }
 
-double VolumePkg::getVoxelSize() const { return config.getDouble("voxelsize"); }
+double VolumePkg::getVoxelSize() const
+{
+    return config.get<double>("voxelsize");
+}
 
 double VolumePkg::getMaterialThickness() const
 {
-    return config.getDouble("materialthickness");
+    return config.get<double>("materialthickness");
 }
 
 // METADATA EXPORT //
@@ -267,26 +270,4 @@ void VolumePkg::saveTextureData(const cv::Mat& texture, const std::string& name)
     auto texturePath = segs_dir / activeSeg / (name + ".png");
     cv::imwrite(texturePath.string(), texture);
     printf("Texture image saved.\n");
-}
-
-// See if the given key exists in the volumepkg dictionary and return its type
-std::string VolumePkg::findKeyType(const std::string& key)
-{
-    const auto vFind = volcart::VersionLibrary.find(getVersion());
-    if (vFind == volcart::VersionLibrary.end()) {
-        std::cerr << "ERROR: No dictionary found for volpkg v." << getVersion()
-                  << std::endl;
-        return "";
-    } else {
-        auto dict = vFind->second;
-        const auto kFind = dict.find(key);
-        if (kFind == dict.end()) {
-            std::cerr << "ERROR: Key \"" << key
-                      << "\" not found in dictionary for volpkg v."
-                      << this->getVersion() << std::endl;
-            return "";
-        } else {
-            return kFind->second;
-        }
-    }
 }
