@@ -68,11 +68,6 @@ if(VC_USE_ACVD)
     target_link_libraries(vc_ACVDExample ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
 endif(VC_USE_ACVD)
 
-#if(BULLET_FOUND)
-#    add_executable(vc_clothExample clothExample.cpp)
-#    target_link_libraries(vc_clothExample ${VC_LIBS} ${VC_REQ_LIBS})
-#endif(BULLET_FOUND)
-
 ###############
 #  texturing  #
 ###############
