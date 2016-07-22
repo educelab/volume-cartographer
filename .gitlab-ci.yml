@@ -3,7 +3,7 @@ stages:
     - test
     - deploy
 
-build_it_debian:
+build:debian:
     image: volcart/vcbuilder-debian:latest
     stage: build
     script:
@@ -21,7 +21,7 @@ build_it_debian:
         - qt5
         - ninja
 
-test_it_debian:
+test:debian:
     image: volcart/vcbuilder-debian:latest
     stage: test
     script:
@@ -33,9 +33,11 @@ test_it_debian:
         - ninja
         - ninja test
     artifacts:
-      key: "$CI_BUILD_STAGE/$CI_BUILD_REF_NAME"
+      name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
       paths:
         - build/testing/Temporary/
+      when: always
+      expire_in: 4 weeks
     tags:
         - test
         - linux
@@ -43,7 +45,7 @@ test_it_debian:
         - qt5
         - ninja
 
-build_it:
+build:osx:
     stage: build
     script:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
@@ -60,7 +62,7 @@ build_it:
         - qt5
         - ninja
 
-test_it:
+test:osx:
     stage: test
     script:
         - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
@@ -71,9 +73,11 @@ test_it:
         - ninja
         - ninja test
     artifacts:
-      key: "$CI_BUILD_STAGE/$CI_BUILD_REF_NAME"
+      name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
       paths:
         - build/testing/Temporary/
+      when: always
+      expire_in: 4 weeks
     tags:
         - test
         - osx
@@ -81,7 +85,7 @@ test_it:
         - qt5
         - ninja
 
-deploy_it_osx:
+deploy:osx:
     stage: deploy
     script:
         - echo "---- Work it harder. ----"
@@ -110,7 +114,7 @@ deploy_it_osx:
         - prebuilt
         - qt5
 
-archive_it:
+archive:
     stage: deploy
     script:
         - version=$(utils/scripts/version-gen.sh)
