@@ -6,10 +6,18 @@ set(TEXTURING_INCLUDE_DIR ${TEXTURING_INCLUDE_DIR} PARENT_SCOPE)
 if(TARGET texturing)
     message("Texturing library is already defined")
 else()
-    add_library(vc_texturing STATIC compositeTexture.cpp compositeTexture.h
-                                    compositeTextureV2.cpp compositeTextureV2.h
-                                    clothModelingUV.cpp clothModelingUV.h
-                                    lscm.cpp lscm.h
-                                    simpleUV.h simpleUV.cpp
-                                    abf.h abf.cpp )
+    set(vc_texturing_SRC compositeTexture.cpp compositeTexture.h
+                         compositeTextureV2.cpp compositeTextureV2.h
+                         simpleUV.h simpleUV.cpp
+                         abf.h abf.cpp )
+
+    if(VC_USE_BULLET)
+        set( vc_texturing_SRC ${vc_texturing_SRC} clothModelingUV.h clothModelingUV.cpp)
+    endif(VC_USE_BULLET)
+
+    if(VC_USE_LIBIGL)
+        set( vc_texturing_SRC ${vc_texturing_SRC} lscm.h lscm.cpp)
+    endif(VC_USE_LIBIGL)
+
+    add_library(vc_texturing STATIC ${vc_texturing_SRC})
 endif()

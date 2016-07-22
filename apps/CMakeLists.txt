@@ -29,9 +29,11 @@ target_link_libraries(vc_projection ${VC_LIBS} ${VC_REQ_LIBS})
 add_executable(vc_projection2 projection2.cpp)
 target_link_libraries(vc_projection2 ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
 
-# Cloth Flattening Test
+# Cloth Flattening
+if(VC_USE_BULLET)
 add_executable(vc_cloth cloth.cpp)
 target_link_libraries(vc_cloth ${VC_LIBS} vc_meshing ${VC_REQ_LIBS} ${ITK_LIBRARIES} ${VTK_LIBRARIES} ${OPENGL_LIBRARIES})
+endif(VC_USE_BULLET)
 
 # Install targets
 install(TARGETS vc_mesher vc_segment vc_metaedit vc_projection vc_render

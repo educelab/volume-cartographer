@@ -63,10 +63,10 @@ target_link_libraries(vc_smoothNormalsExample ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LI
 add_executable(vc_resliceAnalysis ResliceAnalysis.cpp)
 target_link_libraries(vc_resliceAnalysis ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
 
-if(ACVD_FOUND)
+if(VC_USE_ACVD)
     add_executable(vc_ACVDExample ACVDExample.cpp)
     target_link_libraries(vc_ACVDExample ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
-endif(ACVD_FOUND)
+endif(VC_USE_ACVD)
 
 #if(BULLET_FOUND)
 #    add_executable(vc_clothExample clothExample.cpp)
@@ -77,8 +77,10 @@ endif(ACVD_FOUND)
 #  texturing  #
 ###############
 
-add_executable(vc_lscmExample lscmExample.cpp)
-target_link_libraries(vc_lscmExample ${VC_LIBS} vc_meshing ${VC_REQ_LIBS} ${VTK_LIBRARIES})
+if(VC_USE_LIBIGL)
+    add_executable(vc_lscmExample lscmExample.cpp)
+    target_link_libraries(vc_lscmExample ${VC_LIBS} vc_meshing ${VC_REQ_LIBS} ${VTK_LIBRARIES})
+endif(VC_USE_LIBIGL)
 
 add_executable(vc_abfExample abfExample.cpp)
 target_link_libraries(vc_abfExample ${VC_LIBS} vc_meshing ${VC_REQ_LIBS} ${VTK_LIBRARIES} vc_SparseLinearSolver)

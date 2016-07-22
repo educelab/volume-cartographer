@@ -13,7 +13,9 @@ add_compile_options(-fdiagnostics-color=always)
 
 # Option for building apps
 option(VC_PREBUILT_LIBS "Link against prebuilt dependencies" OFF)
-option(VC_USE_INTERNAL_LIBIGL "Link against included version of libigl" ON)
+option(VC_USE_ACVD "Compile with ACVD support" ON)
+option(VC_USE_BULLET "Compile with Bullet Physics support" OFF)
+option(VC_USE_LIBIGL "Compile with libigl support" OFF)
 
 # Choose what to install
 option(INSTALL_VC_CORE "Install VC core apps" ON)
@@ -39,29 +41,33 @@ find_package(Boost REQUIRED COMPONENTS system filesystem program_options iostrea
 find_package(ITK REQUIRED)
 find_package(VTK 6.1 REQUIRED)
 find_package(OpenGL REQUIRED)
-find_package(Bullet REQUIRED)
-find_package(LIBIGL REQUIRED)
-find_package(ACVD)
 
 include(${ITK_USE_FILE})
 include(${VTK_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
 
-include_directories(${Boost_INCLUDE_DIR} ${PCL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} ${LIBIGL_INCLUDE_DIRS})
+include_directories(${Boost_INCLUDE_DIR} ${PCL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS} ${Boost_LIBRARY_DIRS})
 set(VC_REQ_LIBS ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} ${ITK_LIBRARIES} pcl_search)
 add_definitions(${PCL_DEFINITIONS})
 
 # Conditional Inclusions
-if(ACVD_FOUND)
+if(VC_USE_ACVD)
+    find_package(ACVD REQUIRED)
     include_directories(${ACVD_INCLUDE_DIRS})
     set(VC_REQ_LIBS ${VC_REQ_LIBS} ${ACVD_LIBRARIES})
-endif(ACVD_FOUND)
+endif(VC_USE_ACVD)
 
-if(Bullet_FOUND)
+if(VC_USE_BULLET)
+    find_package(Bullet REQUIRED)
     include_directories(${BULLET_INCLUDE_DIRS})
     set(VC_REQ_LIBS ${VC_REQ_LIBS} ${BULLET_LIBRARIES})
-endif(Bullet_FOUND)
+endif(VC_USE_BULLET)
+
+if(VC_USE_LIBIGL)
+    find_package(LIBIGL REQUIRED)
+    include_directories(${LIBIGL_INCLUDE_DIRS})
+endif(VC_USE_LIBIGL)
 
 # OS Specific Changes
 IF(APPLE)
