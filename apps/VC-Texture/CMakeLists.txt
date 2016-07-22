@@ -28,7 +28,7 @@ if(APPLE)
 endif(APPLE)
 
 add_executable(VC-Texture MACOSX_BUNDLE WIN32 ${texture_SOURCES})
-target_link_libraries(VC-Texture Qt5::Widgets ${VC_LIBS} ${VC_REQ_LIBS} vc_meshing ${VTK_LIBRARIES})
+target_link_libraries(VC-Texture Qt5::Widgets ${VC_LIBS} ${VC_REQ_LIBS} vc_meshing ${VTK_LIBRARIES} vc_SparseLinearSolver)
 
 set(Texture_EXECUTABLE "VC-Texture")
 if(APPLE)

@@ -6,10 +6,10 @@
 #include <QThread>
 #include <QLabel>
 
-#include "ACVD.h"
 #include <vtkCleanPolyData.h>
-#include <vtkSmoothPolyDataFilter.h>
-#include "lscm.h"
+
+#include "ACVD.h"
+#include "abf.h"
 #include "compositeTextureV2.h"
 #include "meshMath.h"
 
