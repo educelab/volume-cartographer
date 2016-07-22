@@ -1,7 +1,11 @@
-//
+// Angle-based Flattening (abf)
 // Created by Seth Parker on 6/9/16.
 // Angle-based Flattening implementation ported from the same in Blender
 // Note: This is borrowed very heavily from Blender's implementation.
+
+// This class attempts to find the ideal angles that minimize the angular distortion of the parameterized mesh.
+// These idealized angles are then fed into a least-squares conformal maps algorithm which solves for the actual
+// parameterized UV positions.
 
 #ifndef VC_ABF_H
 #define VC_ABF_H

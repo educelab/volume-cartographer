@@ -1,6 +1,8 @@
 //
 // Created by Seth Parker on 6/17/16.
 // Mostly copied from the HE structure used by Blender's parameterization
+// A half-edge mesh stores a unique edge for each edge of each face.
+// e.g. If two triangles share vertices A and B, this will result in two edges: edge AB and edge BA
 
 #ifndef VC_HALFEDGEMESH_H
 #define VC_HALFEDGEMESH_H
@@ -54,14 +56,15 @@ namespace volcart {
             EdgePtr nextlink;
             IDType id;
 
-            VertPtr  vert;
+            VertPtr  vert; // Starting index
             AnglePtr angle;
-            EdgePtr  pair;
-            EdgePtr  next;
+            EdgePtr  pair; // Parallel edge. If this is edge AB, pair is edge BA
+            EdgePtr  next; // Next edge in the face
             FacePtr  face;
         };
 
         // Topology traversal
+        // The wheel is the set of edges that surround a single vertex
         EdgePtr nextWheelEdge(EdgePtr e);
         EdgePtr prevWheelEdge(EdgePtr e);
         EdgePtr nextBoundaryEdge(EdgePtr e);
@@ -71,7 +74,7 @@ namespace volcart {
         public:
             Angle(){};
 
-            EdgePtr edge;
+            EdgePtr edge; // The edge that owns this angle
 
             double alpha;  // Current angle
             double beta;   // Ideal/Original angle
@@ -90,7 +93,7 @@ namespace volcart {
             IDType id;
             VC_MeshType::CellIdentifier cid; // Original cell ID in ITK mesh
 
-            EdgePtr edge;
+            EdgePtr edge; // First edge of the face
 
             double lambdaTriangle;
             double bstar;

@@ -7,8 +7,8 @@
 namespace volcart {
     namespace texturing {
       ///// Constructors & Destructors /////
-      abf::abf() : _maxABFIterations(10), _useABF(true) {};
-      abf::abf( VC_MeshType::Pointer mesh ) : _mesh(mesh), _maxABFIterations(10), _useABF(true) {};
+      abf::abf() : _maxABFIterations(8), _useABF(true) {};
+      abf::abf( VC_MeshType::Pointer mesh ) : _mesh(mesh), _maxABFIterations(8), _useABF(true) {};
       abf::~abf()
       {
         _heMesh.clear();
@@ -50,6 +50,7 @@ namespace volcart {
         double min_v = 1e20;
         double max_v = -1e20;
 
+        // Get the min and max values for u & v respectively
         for ( auto it = _heMesh.getVertsBegin(); it != _heMesh.getVertsEnd(); ++it ) {
           auto vert = (*it);
           if ( vert->uv[0] < min_u ) min_u = vert->uv[0];
@@ -88,17 +89,18 @@ namespace volcart {
         // Construct the mesh and get the angles
         _fillHalfEdgeMesh();
 
-        // Scale beta to prevent degenerate cases & solve abf
+        // Scale beta to prevent degenerate cases and generate ABF solutions for angles
         if(_useABF) {
           _scale();
           _solve_abf();
         }
 
-        // Solve the system
+        // Solve the system via LSCM
         _solve_lscm();
       }
 
       ///// Setup /////
+      // Fill the half edge mesh using the currently assigned mesh
       void abf::_fillHalfEdgeMesh() {
         _heMesh.clear();
 
@@ -164,20 +166,23 @@ namespace volcart {
       void abf::_solve_abf() {
         _computeSines();
 
-        double norm = 1e10;
+        double norm = 1e10; // Magnitude of the error vector?
         int i = 0;
         for ( ; i < _maxABFIterations; ++i ) {
           norm = _computeGradient();
 
+          // Break if we're below the error limit
           if ( norm < _limit )
             break;
 
+          // Attempt to invert the matrix and solve
           if( !_invertMatrix() ) {
             std::cerr << "volcart::texturing::abf: ABF failed to invert matrix after " << i + 1 << " iterations. Falling back to LSCM." << std::endl;
             std::runtime_error("ABF failed to invert matrix");
             break;
           }
 
+          // Update the HEM with their new sine/cosine values
           _computeSines();
         }
         std::cerr << "volcart::texturing::abf: Iterations: " << i << " || Final norm: " << norm << " || Limit: " << _limit << std::endl;
@@ -185,6 +190,7 @@ namespace volcart {
       }
 
       ///// Helpers - ABF /////
+      // Compute the sine and cosine for each angle in the HEM
       void   abf::_computeSines() {
         for (auto e = _heMesh.getEdgesBegin(); e != _heMesh.getEdgesEnd(); ++e ) {
           (*e)->angle->sine   = sin((*e)->angle->alpha);
@@ -192,6 +198,7 @@ namespace volcart {
         }
       }
 
+      // Calculate the magnitude of the error vector
       double abf::_computeGradient() {
         double norm = 0.0;
 
@@ -282,7 +289,8 @@ namespace volcart {
 
         return (sin1 - sin2);
       }
-      // Same with alternate verteix a_id
+
+      // Same with alternate vertex a_id
       double abf::_computeSinProduct( HalfEdgeMesh::VertPtr v, HalfEdgeMesh::IDType a_id) {
         HalfEdgeMesh::EdgePtr e0, e1, e2;
         double sin1, sin2;
@@ -316,6 +324,7 @@ namespace volcart {
         return (sin1 - sin2);
       }
 
+      // Fill the matrix and attempt to solve
       bool   abf::_invertMatrix() {
         // Create a new solver + context
         bool success;
@@ -471,7 +480,7 @@ namespace volcart {
         // solve
         success = EIG_linear_solver_solve(context);
 
-        // if successful, update
+        // if successful, update the HEM
         if (success) {
           for ( auto f = _heMesh.getFace(0); f; f = f->nextlink ) {
             double dlambda1, pre[3], dalpha;
@@ -645,6 +654,7 @@ namespace volcart {
       }
 
       ///// Helpers - LSCM /////
+      // Get the id's of the points with the minimum and maximum 3D positions
       std::pair<HalfEdgeMesh::IDType, HalfEdgeMesh::IDType> abf::_getMinMaxPointIDs() {
         cv::Vec3d min(1e20), max(-1e20);
         HalfEdgeMesh::IDType minVert = 0;
@@ -653,12 +663,14 @@ namespace volcart {
         for (auto it = _heMesh.getVertsBegin(); it !=  _heMesh.getVertsEnd(); ++it )
         {
 
+          // Min
           if ( (*it)->xyz[0] < min[0] &&
                (*it)->xyz[1] < min[1] &&
                (*it)->xyz[2] < min[2] )
           {
             min = (*it)->xyz;
             minVert = (*it)->id;
+          // Max
           } else if ( (*it)->xyz[0] > max[0] &&
                       (*it)->xyz[0] > max[1] &&
                       (*it)->xyz[0] > max[2] )
@@ -671,6 +683,8 @@ namespace volcart {
         return std::make_pair(minVert, maxVert);
       }
 
+      // Generate a good starting UV position for the two starting "pinned" points
+      // This is supposedly arbitrary
       void abf::_computePinUV() {
         if( _pin0 == _pin1 ) {
           // Degenerate case, get two other points
