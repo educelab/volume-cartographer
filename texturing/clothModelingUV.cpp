@@ -46,7 +46,7 @@ namespace volcart {
             _collisionPlane->setUserIndex(-1);
             _World->addRigidBody(_collisionPlane);
 
-            // Softbody
+            // Convert mesh to a softbody
             volcart::meshing::itk2bullet::itk2bullet( _mesh, _World->getWorldInfo(), &_softBody );
 
             // Scale the mesh so that max dimension <= 80m
@@ -65,7 +65,7 @@ namespace volcart {
                 _softBody->setMass(i, 1);
             }
 
-            // Add the softbody
+            // Add the softbody to the dynamics world
             _softBody->randomizeConstraints();
             _softBody->updateNormals();
             _World->addSoftBody( _softBody );
@@ -283,6 +283,7 @@ namespace volcart {
         // Calculate the surface area of the mesh using Heron's formula
         // Use the version that is stable for small angles from
         // "Miscalculating Area and Angles of a Needle-like Triangle" by Kahan
+        // https://people.eecs.berkeley.edu/~wkahan/Triangle.pdf
         double clothModelingUV::_SurfaceArea() {
             double surface_area = 0;
             for(int i = 0; i < _softBody->m_faces.size(); ++i) {
@@ -315,6 +316,7 @@ namespace volcart {
         }
 
         ///// Callback Functions /////
+        // Limits motion to be along the X axis only. Used in unfurl step.
         void clothModelingUV::_constrainMotion( btScalar timeStep ) {
             for ( auto n = 0; n < _softBody->m_nodes.size(); ++n )
             {
@@ -324,7 +326,7 @@ namespace volcart {
                 _softBody->m_nodes[n].m_v = velocity;
             }
         };
-
+        // Apply opposite velocity to points that have "passed through" the collision plane
         void clothModelingUV::_axisLock( btScalar timeStep ) {
             for ( auto n = 0; n < _softBody->m_nodes.size(); ++n )
             {
@@ -336,16 +338,16 @@ namespace volcart {
                 }
             }
         };
-
+        // Move points in the _currentPins vector towards their respective targets
         void clothModelingUV::_moveTowardTarget( btScalar timeStep ) {
             for ( auto pin = _currentPins.begin(); pin < _currentPins.end(); ++pin ) {
                 btVector3 delta = ( pin->target - pin->node->m_x ).normalized();
                 pin->node->m_v += delta/timeStep;
             }
         };
-
+        // This call back is used to disable other callbacks
         void clothModelingUV::_emptyPreTick( btScalar timeStep ) {
-            // This call back is used to disable other callbacks
+            // Don't do anything
         };
 
         //// Callbacks ////
