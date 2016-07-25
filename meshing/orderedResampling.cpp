@@ -61,7 +61,7 @@ namespace volcart{
             unsigned long k = 0;
             VC_PointsInMeshIterator pointsIterator = _input->GetPoints()->Begin();
 
-            //Adds certain points from old mesh into the new mesh
+            // Adds certain points from old mesh into the new mesh
             for( ; pointsIterator != _input->GetPoints()->End(); pointsIterator++, k++) {
 
                 // If we've reached the end of a row, reset k and flip the line_skip bool
@@ -81,11 +81,11 @@ namespace volcart{
             // Something went wrong with resampling. Number of points aren't what we expect...
             assert( _output->GetNumberOfPoints() != _outWidth * _outHeight && "Error resampling. Output and expected output don't match.");
 
-            //Vertices for each face in the new mesh
+            // Vertices for each face in the new mesh
             unsigned long point1, point2, point3, point4;
 
-            //Create two new faces each iteration based on new set of points and keeps normals same as original
-            for(unsigned long i = 0; i < _outHeight -1; i++)
+            // Create two new faces each iteration based on new set of points and keeps normals same as original
+            for(unsigned long i = 0; i < _outHeight - 1; i++)
             {
                 for (unsigned long j = 0; j < _outWidth - 1; j++) {
 
@@ -129,7 +129,7 @@ namespace volcart{
             current_C->SetPointId(1, b);
             current_C->SetPointId(2, c);
 
-            _output->SetCell(_output->GetNumberOfCells(), current_C);
+            _output->SetCell( _output->GetNumberOfCells(), current_C );
         }//addCell
 
     }//meshing
