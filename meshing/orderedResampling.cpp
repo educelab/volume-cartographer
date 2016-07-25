@@ -8,28 +8,28 @@ namespace volcart{
     namespace meshing{
         orderedResampling::orderedResampling()
         {
-            _input = VC_MeshType::New();
-            _output = NULL;
-            width = 0;
-            height = 0;
+            _input = nullptr;
+            _output = nullptr;
+            _width = 0;
+            _height = 0;
         }//constructor
 
         orderedResampling::orderedResampling(VC_MeshType::Pointer mesh, int in_width, int in_height)
         {
             _input = mesh;
-            _output = NULL;
-            width = in_width ;
-            height = in_height;
+            _output = nullptr;
+           _width = in_width ;
+            _height = in_height;
         }//constructor with parameters
 
-        void orderedResampling:: setParamters(VC_MeshType::Pointer mesh, int in_width, int in_height)
+        void orderedResampling::setMesh(VC_MeshType::Pointer mesh, int in_width, int in_height)
         {
             _input = mesh;
-            width = in_width;
-            height = in_height;
+            _width = in_width;
+            _height = in_height;
         }//setParameters
 
-        VC_MeshType::Pointer  orderedResampling::getOutput()
+        VC_MeshType::Pointer orderedResampling::getOutput()
         {
             if(_output.IsNull())
             {
@@ -40,17 +40,20 @@ namespace volcart{
                 return _output;
         }//getOutput
 
-        void orderedResampling:: compute()
+        void orderedResampling::compute()
         {
 
             std::vector<VC_PointType> ResamplePoints;
             _output = VC_MeshType::New();
 
+            //Vertices for each face in the new mesh
             unsigned long point1, point2, point3, point4;
+
             unsigned long cell_count = 0;
             unsigned long point_count = 0;
             unsigned long line_cnt = 0;
 
+            //Tells the loop whether or not the points in that line should be added to the new mesh
             bool line_skip = false;
 
             //Loop iterator
@@ -69,17 +72,17 @@ namespace volcart{
                         _output->SetPoint(point_count, pointsIterator.Value());
                         point_count++;
                     }
-                    if(line_cnt != width)
+                    if(line_cnt != _width)
                         line_cnt++;
                     else
                         line_skip = true;
                 }
                 //Allows every other line to be skipped
-                if(line_skip && line_cnt != width)
+                if(line_skip && line_cnt != _width)
                 {
                     line_cnt++;
                 }
-                else if(line_skip && line_cnt == width)
+                else if(line_skip && line_cnt == _width)
                 {
                     line_cnt = 0;
                     line_skip = false;
@@ -87,13 +90,14 @@ namespace volcart{
                 pointsIterator++;
                 k++;
             }
+            //New width of mesh, no need to do this for height as it will shrink the mesh too much
+            int new_width = _width / 2;
+            int new_height = (_height);
 
-            int new_width = (width +1)/2;
-
-            //Create new faces based on new set of points and keeps normals same as original
-            for(unsigned long i = 0; i < height; i++)
+            //Create two new faces each iteration based on new set of points and keeps normals same as original
+            for(unsigned long i = 0; i < new_height -1; i++)
             {
-                for (unsigned long j = 0; j < new_width -1 ; j++) {
+                for (unsigned long j = 0; j < new_width - 1; j++) {
 
                     //4 points allows us to create the upper and lower faces at the same time
                     point1 = i * new_width + j;
@@ -101,9 +105,17 @@ namespace volcart{
                     point3 = point2 + new_width;
                     point4 = point3 - 1;
 
-                    if (point1 >= ResamplePoints.size() || point2 >= ResamplePoints.size() || point3 >= ResamplePoints.size()|| point4 >= ResamplePoints.size()) {
+                    try {
+                        std::out_of_range oor("Out of range");
+                        if(point1 >= ResamplePoints.size() || point2 >= ResamplePoints.size() || point3 >= ResamplePoints.size() ||point4 >= ResamplePoints.size())
+                            throw oor;
+                    }
+                    catch(const std::out_of_range& oor)
+                    {
+                        std::cerr << "Error: Out of range, skipping face" << std::endl;
                         continue;
                     }
+
 
                     //Add both these faces to the mesh
                     _addCell(_output, point2, point3, point4, cell_count);
@@ -112,8 +124,8 @@ namespace volcart{
                 }
             }
 
-            std::cout << std::endl << "The number of points in the resampled mesh is "<< _output->GetNumberOfPoints() << std::endl;
-            std::cout << "The number of cells in the resampled mesh is "<< _output->GetNumberOfCells() << std::endl;
+            std::cerr << "volcart::meshing::orderedResampling: Points in resampled mesh "<< _output->GetNumberOfPoints() << std::endl;
+            std::cerr << "volcart::meshing::orderedResampling: Cells in resampled mesh "<< _output->GetNumberOfCells() << std::endl;
 
 
         }//compute

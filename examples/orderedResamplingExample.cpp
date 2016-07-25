@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
     }//check file validity
 
     volcart::meshing::orderedResampling NoParams;
-    NoParams.setParamters(mesh, width, height);
+    NoParams.setMesh(mesh, width, height);
     NoParams.compute();
     VC_MeshType::Pointer output = NoParams.getOutput();
 

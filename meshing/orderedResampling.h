@@ -1,12 +1,14 @@
 //
 // Created by Hannah Hatch on 7/25/16.
-//
+/*Algorithm takes in a base mesh and reduces the number of points and faces by removing every other point along
+ * horizantal and vertical axis*/
 
 #ifndef VC_ORDEREDRESAMPLING_H
 #define VC_ORDEREDRESAMPLING_H
 
 #include <iostream>
 #include <vector>
+#include <stdexcept>
 #include <itkMesh.h>
 #include <vc_defines.h>
 #include "vc_datatypes.h"
@@ -19,16 +21,15 @@ namespace volcart {
         public:
             orderedResampling();
             orderedResampling(VC_MeshType::Pointer mesh, int in_width, int in_height);
-            void setParamters(VC_MeshType::Pointer mesh, int in_width, int in_height);
+            void setMesh(VC_MeshType::Pointer mesh, int in_width, int in_height);
             VC_MeshType::Pointer getOutput();
             void compute();
-            void _addCell(VC_MeshType::Pointer ResampleMesh, unsigned long point1,unsigned long point2,unsigned long point3,unsigned long &cell_count);
         private:
             VC_MeshType::Pointer _input;
             VC_MeshType::Pointer _output;
-            int width; //how many rows
-            int height; //how many points per row
-
+            int _width; //how many rows
+            int _height; //how many points per row
+            void _addCell(VC_MeshType::Pointer ResampleMesh, unsigned long point1,unsigned long point2,unsigned long point3,unsigned long &cell_count);
         }; //orderedResampling
     } //meshing
 } //volcart
