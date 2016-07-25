@@ -78,9 +78,11 @@ namespace volcart{
 
             }
 
+            // Something went wrong with resampling. Number of points aren't what we expect...
+            assert( _output->GetNumberOfPoints() != _outWidth * _outHeight && "Error resampling. Output and expected output don't match.");
+
             //Vertices for each face in the new mesh
             unsigned long point1, point2, point3, point4;
-            unsigned long cell_count = 0;
 
             //Create two new faces each iteration based on new set of points and keeps normals same as original
             for(unsigned long i = 0; i < _outHeight -1; i++)
@@ -104,10 +106,9 @@ namespace volcart{
                         continue;
                     }
 
-
                     //Add both these faces to the mesh
-                    _addCell(_output, point2, point3, point4, cell_count);
-                    _addCell(_output, point1, point2, point4, cell_count);
+                    _addCell( point2, point3, point4 );
+                    _addCell( point1, point2, point4 );
 
                 }
             }
@@ -118,18 +119,17 @@ namespace volcart{
 
         }//compute
 
-        void orderedResampling::_addCell(VC_MeshType::Pointer ResampleMesh, unsigned long point1,unsigned long point2,unsigned long point3,unsigned long &cell_count)
+        void orderedResampling::_addCell( unsigned long a, unsigned long b, unsigned long c )
         {
             VC_CellType::CellAutoPointer current_C;
 
             current_C.TakeOwnership(new VC_TriangleType);
 
-            current_C->SetPointId(0, point1);
-            current_C->SetPointId(1, point2);
-            current_C->SetPointId(2, point3);
+            current_C->SetPointId(0, a);
+            current_C->SetPointId(1, b);
+            current_C->SetPointId(2, c);
 
-            ResampleMesh->SetCell(cell_count, current_C);
-            cell_count++;
+            _output->SetCell(_output->GetNumberOfCells(), current_C);
         }//addCell
 
     }//meshing

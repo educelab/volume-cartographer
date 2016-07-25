@@ -9,10 +9,9 @@
 #include <iostream>
 #include <vector>
 #include <stdexcept>
-#include <itkMesh.h>
+
 #include <vc_defines.h>
 #include "vc_datatypes.h"
-
 
 namespace volcart {
     namespace meshing {
@@ -37,7 +36,8 @@ namespace volcart {
             int _outWidth;
             int _outHeight;
 
-            void _addCell(VC_MeshType::Pointer ResampleMesh, unsigned long point1,unsigned long point2,unsigned long point3,unsigned long &cell_count);
+            void _addCell(unsigned long a, unsigned long b, unsigned long c);
+
         }; //orderedResampling
     } //meshing
 } //volcart
