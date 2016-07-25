@@ -57,6 +57,7 @@ namespace volcart{
             unsigned long k =0;
             VC_PointsInMeshIterator pointsIterator = _input->GetPoints()->Begin();
 
+            //Adds certain points from old mesh into the new mesh
             while(pointsIterator != _input->GetPoints()->End())
             {
                 if(!line_skip)

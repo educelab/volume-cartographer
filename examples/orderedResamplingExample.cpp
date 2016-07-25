@@ -21,7 +21,7 @@ int main(int argc, char* argv[]) {
         std::cerr << "Missing Argument. Use: Filename" << std::endl;
         exit(EXIT_FAILURE);
 
-    }
+    } //Check args
 
     //Imports mesh from file
     VC_MeshType::Pointer mesh = VC_MeshType::New();
@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
     if (!open_test) {
         std::cerr << "Error Opening Input file" << std::endl;
         exit(EXIT_FAILURE);
-    }
+    }//check file validity
 
     volcart::meshing::orderedResampling NoParams;
     NoParams.setParamters(mesh, width, height);
@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
     Params.compute();
     output=NoParams.getOutput();
 
-    writer -> SetFileName("arams.obj");
+    writer -> SetFileName("Params.obj");
     writer -> SetInput(output);
     try
     {

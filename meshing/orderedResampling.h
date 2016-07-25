@@ -26,8 +26,8 @@ namespace volcart {
         private:
             VC_MeshType::Pointer _input;
             VC_MeshType::Pointer _output;
-            int width;
-            int height;
+            int width; //how many rows
+            int height; //how many points per row
 
         }; //orderedResampling
     } //meshing
