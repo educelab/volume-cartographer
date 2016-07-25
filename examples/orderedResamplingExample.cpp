@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
     volcart::meshing::orderedResampling NoParams;
     NoParams.setMesh(mesh, width, height);
     NoParams.compute();
-    VC_MeshType::Pointer output = NoParams.getOutput();
+    VC_MeshType::Pointer output = NoParams.getOutputMesh();
 
 
     WriterType::Pointer writer = WriterType::New();
@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
 
     volcart::meshing::orderedResampling Params(mesh, width, height);
     Params.compute();
-    output=NoParams.getOutput();
+    output = NoParams.getOutputMesh();
 
     writer -> SetFileName("Params.obj");
     writer -> SetInput(output);

@@ -48,72 +48,54 @@ namespace volcart{
         ///// Processing /////
         void orderedResampling::compute()
         {
-
-            std::vector<VC_PointType> ResamplePoints;
             _output = VC_MeshType::New();
 
-            //Vertices for each face in the new mesh
-            unsigned long point1, point2, point3, point4;
-
-            unsigned long cell_count = 0;
-            unsigned long point_count = 0;
-            unsigned long line_cnt = 0;
+            // Dimensions of resampled, ordered mesh
+            _outWidth  = ( _inWidth  + 1 ) / 2;
+            _outHeight = ( _inHeight + 1 ) / 2;
 
             //Tells the loop whether or not the points in that line should be added to the new mesh
             bool line_skip = false;
 
             //Loop iterator
-            unsigned long k =0;
+            unsigned long k = 0;
             VC_PointsInMeshIterator pointsIterator = _input->GetPoints()->Begin();
 
             //Adds certain points from old mesh into the new mesh
-            while(pointsIterator != _input->GetPoints()->End())
-            {
-                if(!line_skip)
-                {
-                    //Keeps every other point in the row
-                    if(k % 2 == 0)
-                    {
-                        ResamplePoints.push_back(pointsIterator.Value());
-                        _output->SetPoint(point_count, pointsIterator.Value());
-                        point_count++;
-                    }
-                    if(line_cnt != _width)
-                        line_cnt++;
-                    else
-                        line_skip = true;
+            for( ; pointsIterator != _input->GetPoints()->End(); pointsIterator++, k++) {
+
+                // If we've reached the end of a row, reset k and flip the line_skip bool
+                if ( k == _inWidth ) {
+                    k = 0;
+                    line_skip = !line_skip;
                 }
-                //Allows every other line to be skipped
-                if(line_skip && line_cnt != _width)
-                {
-                    line_cnt++;
-                }
-                else if(line_skip && line_cnt == _width)
-                {
-                    line_cnt = 0;
-                    line_skip = false;
-                }
-                pointsIterator++;
-                k++;
+
+                // Skip this point if we're skipping this line
+                if( line_skip ) continue;
+
+                // Only add every other point
+                if ( k % 2 == 0 ) _output->SetPoint( _output->GetNumberOfPoints(), pointsIterator.Value() );
+
             }
-            //New width of mesh, no need to do this for height as it will shrink the mesh too much
-            int new_width = _width / 2;
-            int new_height = (_height);
+
+            //Vertices for each face in the new mesh
+            unsigned long point1, point2, point3, point4;
+            unsigned long cell_count = 0;
 
             //Create two new faces each iteration based on new set of points and keeps normals same as original
-            for(unsigned long i = 0; i < new_height -1; i++)
+            for(unsigned long i = 0; i < _outHeight -1; i++)
             {
-                for (unsigned long j = 0; j < new_width - 1; j++) {
+                for (unsigned long j = 0; j < _outWidth - 1; j++) {
 
                     //4 points allows us to create the upper and lower faces at the same time
-                    point1 = i * new_width + j;
+                    point1 = i * _outWidth + j;
                     point2 = point1 + 1;
-                    point3 = point2 + new_width;
+                    point3 = point2 + _outWidth;
                     point4 = point3 - 1;
 
                     try {
                         std::out_of_range oor("Out of range");
-                        if(point1 >= ResamplePoints.size() || point2 >= ResamplePoints.size() || point3 >= ResamplePoints.size() ||point4 >= ResamplePoints.size())
+                        if(point1 >= _output->GetNumberOfPoints() || point2 >= _output->GetNumberOfPoints() || point3 >= _output->GetNumberOfPoints() ||point4 >= _output->GetNumberOfPoints() )
                             throw oor;
                     }
                     catch(const std::out_of_range& oor)
