@@ -6,30 +6,32 @@
 
 namespace volcart{
     namespace meshing{
+        //// Constructors ////
         orderedResampling::orderedResampling()
         {
             _input = nullptr;
             _output = nullptr;
-            _width = 0;
-            _height = 0;
+            _inWidth = 0;
+            _inHeight = 0;
         }//constructor
 
         orderedResampling::orderedResampling(VC_MeshType::Pointer mesh, int in_width, int in_height)
         {
             _input = mesh;
             _output = nullptr;
-           _width = in_width ;
-            _height = in_height;
+            _inWidth  = in_width ;
+            _inHeight = in_height;
         }//constructor with parameters
 
+        //// Set Inputs/Get Output ////
         void orderedResampling::setMesh(VC_MeshType::Pointer mesh, int in_width, int in_height)
         {
             _input = mesh;
-            _width = in_width;
-            _height = in_height;
+            _inWidth = in_width;
+            _inHeight = in_height;
         }//setParameters
 
-        VC_MeshType::Pointer orderedResampling::getOutput()
+        VC_MeshType::Pointer orderedResampling::getOutputMesh()
         {
             if(_output.IsNull())
             {
@@ -40,6 +42,10 @@ namespace volcart{
                 return _output;
         }//getOutput
 
+        int orderedResampling::getOutputWidth()  { return _outWidth; };
+        int orderedResampling::getOutputHeight() { return _outHeight; };
+
+        ///// Processing /////
         void orderedResampling::compute()
         {
 
