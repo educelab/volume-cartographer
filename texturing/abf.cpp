@@ -1,4 +1,4 @@
-//
+// Angle-based Flattening (abf)
 // Created by Seth Parker on 6/9/16.
 //
 
@@ -45,9 +45,9 @@ namespace volcart {
         // Setup uvMap
         volcart::UVMap uvMap;
 
-        double min_u = 1e20;
+        double min_u =  1e20;
         double max_u = -1e20;
-        double min_v = 1e20;
+        double min_v =  1e20;
         double max_v = -1e20;
 
         // Get the min and max values for u & v respectively
@@ -69,8 +69,8 @@ namespace volcart {
         cv::Vec2d uv;
         for ( auto it = _heMesh.getVertsBegin(); it != _heMesh.getVertsEnd(); ++it ) {
           auto vert = (*it);
-          uv[0] = ( vert->uv[0] - min_u ) / (max_u - min_u);
-          uv[1] = ( vert->uv[1] - min_v ) / (max_v - min_v);
+          uv[0] = ( vert->uv[0] - min_u ) / ( max_u - min_u );
+          uv[1] = ( vert->uv[1] - min_v ) / ( max_v - min_v );
 
           // Add the uv coordinates into our map at the point index specified
           uvMap.set(vert->id, uv);

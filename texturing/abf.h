@@ -62,7 +62,7 @@ namespace volcart {
 
           void   _computeSines();
           double _computeGradient();
-          double _computeGradientAlpha(HalfEdgeMesh::FacePtr face, HalfEdgeMesh::EdgePtr e0);
+          double _computeGradientAlpha( HalfEdgeMesh::FacePtr face, HalfEdgeMesh::EdgePtr e0 );
           double _computeSinProduct( HalfEdgeMesh::VertPtr v );
           double _computeSinProduct( HalfEdgeMesh::VertPtr v, HalfEdgeMesh::IDType a_id );
           bool   _invertMatrix();
@@ -80,8 +80,8 @@ namespace volcart {
           void _computePinUV();
 
           ///// Storage /////
-          VC_MeshType::Pointer  _mesh;
-          HalfEdgeMesh _heMesh;
+          VC_MeshType::Pointer  _mesh;   // input mesh
+          HalfEdgeMesh          _heMesh; // half-edge mesh for processing
 
           // Interior Vertices
           // < id in quadMesh, id in list >
