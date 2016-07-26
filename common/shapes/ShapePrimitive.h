@@ -22,7 +22,6 @@
 namespace volcart {
 namespace shapes {
 
-    // To-Do: Make this a base class so that the constructor can easily be reimplemented for different shapes
     class ShapePrimitive {
     public:
         VC_MeshType::Pointer itkMesh();
@@ -34,6 +33,11 @@ namespace shapes {
         //overload
         std::vector<VC_Vertex> getPoints() {return _points;}
         std::vector<VC_Cell> getCells() {return _cells;}
+
+        //ordering
+        bool     isOrdered()     { return _orderedPoints; };
+        uint32_t orderedWidth()  { return _orderedWidth;  };
+        uint32_t orderedHeight() { return _orderedHeight; };
 
     protected:
         std::vector<VC_Vertex> _points;
