@@ -79,7 +79,7 @@ namespace volcart{
             }
 
             // Something went wrong with resampling. Number of points aren't what we expect...
-            assert( _output->GetNumberOfPoints() != _outWidth * _outHeight && "Error resampling. Output and expected output don't match.");
+            assert( _output->GetNumberOfPoints() == _outWidth * _outHeight && "Error resampling. Output and expected output don't match.");
 
             // Vertices for each face in the new mesh
             unsigned long point1, point2, point3, point4;

@@ -11,6 +11,8 @@
 #include "vc_datatypes.h"
 #include "orderedResampling.h"
 #include "io/ply2itk.h"
+#include "io/objWriter.h"
+#include "shapes.h"
 
 
 typedef itk::MeshFileWriter<VC_MeshType> WriterType;
@@ -23,30 +25,32 @@ int main(int argc, char* argv[]) {
 
     } //Check args
 
+    volcart::shapes::Plane plane;
     //Imports mesh from file
-    VC_MeshType::Pointer mesh = VC_MeshType::New();
-    int width;
-    int height;
+    VC_MeshType::Pointer plane_mesh = plane.itkMesh();
 
-    bool open_test = volcart::io::ply2itkmesh(argv[1], mesh, width, height);
+    int width = plane.orderedWidth();
+    int height = plane.orderedHeight();
 
-    if (!open_test) {
-        std::cerr << "Error Opening Input file" << std::endl;
-        exit(EXIT_FAILURE);
-    }//check file validity
+//    bool open_test = volcart::io::ply2itkmesh(argv[1], mesh, width, height);
+//
+//    if (!open_test) {
+//        std::cerr << "Error Opening Input file" << std::endl;
+//        exit(EXIT_FAILURE);
+//    }//check file validity
 
     volcart::meshing::orderedResampling NoParams;
-    NoParams.setMesh(mesh, width, height);
+    NoParams.setMesh(plane_mesh, width, height);
     NoParams.compute();
     VC_MeshType::Pointer output = NoParams.getOutputMesh();
 
 
-    WriterType::Pointer writer = WriterType::New();
-    writer -> SetFileName("NoParams.obj");
-    writer -> SetInput(output);
+    volcart::io::objWriter writer;
+    writer.setPath("PlaneOrderedResampling.obj");
+    writer.setMesh(output);
     try
     {
-        writer ->Update();
+        writer.writeOBJ();
     }
     catch(itk::ExceptionObject & error)
     {
@@ -54,15 +58,20 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
-    volcart::meshing::orderedResampling Params(mesh, width, height);
+    volcart::shapes::Arch arch;
+    VC_MeshType::Pointer arch_mesh = arch.itkMesh();
+    width = arch.orderedWidth();
+    height = arch.orderedHeight();
+
+    volcart::meshing::orderedResampling Params(arch_mesh, width, height);
     Params.compute();
     output = NoParams.getOutputMesh();
 
-    writer -> SetFileName("Params.obj");
-    writer -> SetInput(output);
+    writer.setPath("ArchOrderedResampling.obj");
+    writer.setMesh(output);
     try
     {
-        writer ->Update();
+        writer.writeOBJ();
     }
     catch(itk::ExceptionObject & error)
     {
