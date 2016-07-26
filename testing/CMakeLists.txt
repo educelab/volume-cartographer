@@ -257,7 +257,7 @@ file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/texturing/abf_Plane_LSCMOnly.obj
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/texturing/abf_Arch.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/texturing/abf_Arch_LSCMOnly.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
 add_executable(vc_test_abf texturing/abfTest.cpp parsingHelpers.cpp)
-target_link_libraries(vc_test_abf ${VC_LIBS} ${VC_REQ_LIBS} vc_SparseLinearSolver ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} )
+target_link_libraries(vc_test_abf ${VC_LIBS} vc_meshing ${VC_REQ_LIBS} vc_SparseLinearSolver ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} )
 add_test(NAME abf WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_abf )
 
 add_executable(vc_test_simpleUV texturing/simpleUVTest.cpp)
