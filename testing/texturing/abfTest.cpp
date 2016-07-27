@@ -213,8 +213,8 @@ BOOST_FIXTURE_TEST_CASE(PlaneABFLSCMOnlyUVTest, CreatePlaneABFLSCMOnlyUVFixture)
 BOOST_FIXTURE_TEST_CASE(ArchABFUVTest, CreateArchABFUVFixture){
 
     //check size of uvMap and number of points in mesh
-    BOOST_CHECK_EQUAL(_out_Mesh->GetNumberOfPoints(), _in_Mesh->GetNumberOfPoints());
-    BOOST_CHECK_EQUAL(_out_Mesh->GetNumberOfPoints(), _SavedPoints.size());
+    BOOST_CHECK_EQUAL( _out_Mesh->GetNumberOfPoints(), _in_Mesh->GetNumberOfPoints() );
+    BOOST_CHECK_EQUAL( _out_Mesh->GetNumberOfPoints(), _SavedPoints.size() );
 
     //check uvmap against original mesh input pointIDs
     for (size_t point = 0; point < _SavedPoints.size(); ++point){
@@ -230,8 +230,8 @@ BOOST_FIXTURE_TEST_CASE(ArchABFUVTest, CreateArchABFUVFixture){
 BOOST_FIXTURE_TEST_CASE(ArchABFLSCMOnlyUVTest, CreateArchABFLSCMOnlyUVFixture){
 
     //check size of uvMap and number of points in mesh
-    BOOST_CHECK_EQUAL(_out_Mesh->GetNumberOfPoints(), _in_Mesh->GetNumberOfPoints());
-    BOOST_CHECK_EQUAL(_out_Mesh->GetNumberOfPoints(), _SavedPoints.size());
+    BOOST_CHECK_EQUAL( _out_Mesh->GetNumberOfPoints(), _in_Mesh->GetNumberOfPoints() );
+    BOOST_CHECK_EQUAL( _out_Mesh->GetNumberOfPoints(), _SavedPoints.size() );
 
     //check uvmap against original mesh input pointIDs
     for (size_t point = 0; point < _SavedPoints.size(); ++point){

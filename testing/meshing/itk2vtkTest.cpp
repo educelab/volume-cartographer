@@ -61,8 +61,7 @@
  *     See the /testing/meshing wiki for more information on this test              *
  * **********************************************************************************/
 
-const double MINIMUM_VALUE = 0.00001;
-const double TOLERANCE     = 0.0001;
+const double TOLERANCE     = 0.00001;
 
 /*
  * The following five fixture build test inputs for the itk2vtk tests
@@ -364,24 +363,10 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedPlaneWithSavedPlaneVTKFil
     BOOST_CHECK_EQUAL( _out_Mesh->GetNumberOfPoints(), _SavedPoints.size() );
 
     //Now iterate over point sets and compare coordinate and normal values
-    double value_test, value_truth;
     for ( size_t pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints(); ++pnt_id) {
-
-        value_test  = _out_Mesh->GetPoint(pnt_id)[0];
-        value_truth = _SavedPoints[pnt_id].x;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = _out_Mesh->GetPoint(pnt_id)[1];
-        value_truth = _SavedPoints[pnt_id].y;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = _out_Mesh->GetPoint(pnt_id)[2];
-        value_truth = _SavedPoints[pnt_id].z;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-        
+        BOOST_CHECK_SMALL( _out_Mesh->GetPoint(pnt_id)[0] - _SavedPoints[pnt_id].x, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_Mesh->GetPoint(pnt_id)[1] - _SavedPoints[pnt_id].y, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_Mesh->GetPoint(pnt_id)[2] - _SavedPoints[pnt_id].z, TOLERANCE );
     }
 
     //Normals
@@ -390,20 +375,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedPlaneWithSavedPlaneVTKFil
 
         VC_PixelType out_NormalTuple = out_PlanePointNormals->GetTuple(pnt_id);
 
-        value_test  = out_NormalTuple[0];
-        value_truth = _SavedPoints[pnt_id].nx;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = out_NormalTuple[1];
-        value_truth = _SavedPoints[pnt_id].ny;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = out_NormalTuple[2];
-        value_truth = _SavedPoints[pnt_id].nz;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
+        BOOST_CHECK_SMALL( out_NormalTuple[0] - _SavedPoints[pnt_id].nx, TOLERANCE );
+        BOOST_CHECK_SMALL( out_NormalTuple[1] - _SavedPoints[pnt_id].ny, TOLERANCE );
+        BOOST_CHECK_SMALL( out_NormalTuple[2] - _SavedPoints[pnt_id].nz, TOLERANCE );
     }
 
     //Cells
@@ -429,24 +403,10 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedCubeWithSavedCubeVTKFileT
     BOOST_CHECK_EQUAL( _out_Mesh->GetNumberOfPoints(), _SavedPoints.size() );
 
     //Now iterate over point sets and compare coordinate and normal values
-    double value_test, value_truth;
     for ( size_t pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints(); ++pnt_id) {
-
-        value_test  = _out_Mesh->GetPoint(pnt_id)[0];
-        value_truth = _SavedPoints[pnt_id].x;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = _out_Mesh->GetPoint(pnt_id)[1];
-        value_truth = _SavedPoints[pnt_id].y;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = _out_Mesh->GetPoint(pnt_id)[2];
-        value_truth = _SavedPoints[pnt_id].z;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
+        BOOST_CHECK_SMALL( _out_Mesh->GetPoint(pnt_id)[0] - _SavedPoints[pnt_id].x, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_Mesh->GetPoint(pnt_id)[1] - _SavedPoints[pnt_id].y, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_Mesh->GetPoint(pnt_id)[2] - _SavedPoints[pnt_id].z, TOLERANCE );
     }
 
     //Normals
@@ -455,20 +415,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedCubeWithSavedCubeVTKFileT
 
         VC_PixelType out_NormalTuple = out_PlanePointNormals->GetTuple(pnt_id);
 
-        value_test  = out_NormalTuple[0];
-        value_truth = _SavedPoints[pnt_id].nx;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = out_NormalTuple[1];
-        value_truth = _SavedPoints[pnt_id].ny;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = out_NormalTuple[2];
-        value_truth = _SavedPoints[pnt_id].nz;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
+        BOOST_CHECK_SMALL( out_NormalTuple[0] - _SavedPoints[pnt_id].nx, TOLERANCE );
+        BOOST_CHECK_SMALL( out_NormalTuple[1] - _SavedPoints[pnt_id].ny, TOLERANCE );
+        BOOST_CHECK_SMALL( out_NormalTuple[2] - _SavedPoints[pnt_id].nz, TOLERANCE );
     }
     
     BOOST_CHECK_EQUAL(_out_Mesh->GetNumberOfCells(), _SavedCells.size());
@@ -489,24 +438,10 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedArchWithSavedArchVTKFileT
     BOOST_CHECK_EQUAL( _out_Mesh->GetNumberOfPoints(), _SavedPoints.size() );
 
     //Now iterate over point sets and compare coordinate and normal values
-    double value_test, value_truth;
     for ( size_t pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints(); ++pnt_id) {
-
-        value_test  = _out_Mesh->GetPoint(pnt_id)[0];
-        value_truth = _SavedPoints[pnt_id].x;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = _out_Mesh->GetPoint(pnt_id)[1];
-        value_truth = _SavedPoints[pnt_id].y;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = _out_Mesh->GetPoint(pnt_id)[2];
-        value_truth = _SavedPoints[pnt_id].z;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
+        BOOST_CHECK_SMALL( _out_Mesh->GetPoint(pnt_id)[0] - _SavedPoints[pnt_id].x, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_Mesh->GetPoint(pnt_id)[1] - _SavedPoints[pnt_id].y, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_Mesh->GetPoint(pnt_id)[2] - _SavedPoints[pnt_id].z, TOLERANCE );
     }
 
     //Normals
@@ -515,20 +450,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedArchWithSavedArchVTKFileT
 
         VC_PixelType out_NormalTuple = out_PlanePointNormals->GetTuple(pnt_id);
 
-        value_test  = out_NormalTuple[0];
-        value_truth = _SavedPoints[pnt_id].nx;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = out_NormalTuple[1];
-        value_truth = _SavedPoints[pnt_id].ny;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = out_NormalTuple[2];
-        value_truth = _SavedPoints[pnt_id].nz;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
+        BOOST_CHECK_SMALL( out_NormalTuple[0] - _SavedPoints[pnt_id].nx, TOLERANCE );
+        BOOST_CHECK_SMALL( out_NormalTuple[1] - _SavedPoints[pnt_id].ny, TOLERANCE );
+        BOOST_CHECK_SMALL( out_NormalTuple[2] - _SavedPoints[pnt_id].nz, TOLERANCE );
     }
 
     BOOST_CHECK_EQUAL(_out_Mesh->GetNumberOfCells(), _SavedCells.size());
@@ -549,24 +473,10 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedSphereWithSavedSphereVTKF
     BOOST_CHECK_EQUAL( _out_Mesh->GetNumberOfPoints(), _SavedPoints.size() );
 
     //Now iterate over point sets and compare coordinate and normal values
-    double value_test, value_truth;
     for ( size_t pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints(); ++pnt_id) {
-
-        value_test  = _out_Mesh->GetPoint(pnt_id)[0];
-        value_truth = _SavedPoints[pnt_id].x;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = _out_Mesh->GetPoint(pnt_id)[1];
-        value_truth = _SavedPoints[pnt_id].y;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = _out_Mesh->GetPoint(pnt_id)[2];
-        value_truth = _SavedPoints[pnt_id].z;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
+        BOOST_CHECK_SMALL( _out_Mesh->GetPoint(pnt_id)[0] - _SavedPoints[pnt_id].x, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_Mesh->GetPoint(pnt_id)[1] - _SavedPoints[pnt_id].y, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_Mesh->GetPoint(pnt_id)[2] - _SavedPoints[pnt_id].z, TOLERANCE );
     }
 
     //Normals
@@ -575,20 +485,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedSphereWithSavedSphereVTKF
 
         VC_PixelType out_NormalTuple = out_PlanePointNormals->GetTuple(pnt_id);
 
-        value_test  = out_NormalTuple[0];
-        value_truth = _SavedPoints[pnt_id].nx;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = out_NormalTuple[1];
-        value_truth = _SavedPoints[pnt_id].ny;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = out_NormalTuple[2];
-        value_truth = _SavedPoints[pnt_id].nz;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
+        BOOST_CHECK_SMALL( out_NormalTuple[0] - _SavedPoints[pnt_id].nx, TOLERANCE );
+        BOOST_CHECK_SMALL( out_NormalTuple[1] - _SavedPoints[pnt_id].ny, TOLERANCE );
+        BOOST_CHECK_SMALL( out_NormalTuple[2] - _SavedPoints[pnt_id].nz, TOLERANCE );
     }
 
     BOOST_CHECK_EQUAL(_out_Mesh->GetNumberOfCells(), _SavedCells.size());
@@ -609,24 +508,10 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedConeWithSavedConeVTKFileT
     BOOST_CHECK_EQUAL( _out_Mesh->GetNumberOfPoints(), _SavedPoints.size() );
 
     //Now iterate over point sets and compare coordinate and normal values
-    double value_test, value_truth;
     for ( size_t pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints(); ++pnt_id) {
-
-        value_test  = _out_Mesh->GetPoint(pnt_id)[0];
-        value_truth = _SavedPoints[pnt_id].x;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = _out_Mesh->GetPoint(pnt_id)[1];
-        value_truth = _SavedPoints[pnt_id].y;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = _out_Mesh->GetPoint(pnt_id)[2];
-        value_truth = _SavedPoints[pnt_id].z;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
+        BOOST_CHECK_SMALL( _out_Mesh->GetPoint(pnt_id)[0] - _SavedPoints[pnt_id].x, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_Mesh->GetPoint(pnt_id)[1] - _SavedPoints[pnt_id].y, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_Mesh->GetPoint(pnt_id)[2] - _SavedPoints[pnt_id].z, TOLERANCE );
     }
 
     //Normals
@@ -635,20 +520,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedConeWithSavedConeVTKFileT
 
         VC_PixelType out_NormalTuple = out_PlanePointNormals->GetTuple(pnt_id);
 
-        value_test  = out_NormalTuple[0];
-        value_truth = _SavedPoints[pnt_id].nx;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = out_NormalTuple[1];
-        value_truth = _SavedPoints[pnt_id].ny;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = out_NormalTuple[2];
-        value_truth = _SavedPoints[pnt_id].nz;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
+        BOOST_CHECK_SMALL( out_NormalTuple[0] - _SavedPoints[pnt_id].nx, TOLERANCE );
+        BOOST_CHECK_SMALL( out_NormalTuple[1] - _SavedPoints[pnt_id].ny, TOLERANCE );
+        BOOST_CHECK_SMALL( out_NormalTuple[2] - _SavedPoints[pnt_id].nz, TOLERANCE );
     }
 
     BOOST_CHECK_EQUAL(_out_Mesh->GetNumberOfCells(), _SavedCells.size());
@@ -682,48 +556,21 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureVTKToITKConvertedPlaneWithSavedPlaneITKFil
     BOOST_CHECK_EQUAL(_SavedPoints.size(), _out_Mesh->GetNumberOfPoints());
 
     //Check equivalency of points
-    double value_test, value_truth;
-    
     for ( size_t pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints(); ++pnt_id) {
-
-        //check the points in both vtk meshes
-        value_test  = _out_Mesh->GetPoint(pnt_id)[0];
-        value_truth = _SavedPoints[pnt_id].x;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = _out_Mesh->GetPoint(pnt_id)[1];
-        value_truth = _SavedPoints[pnt_id].y;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = _out_Mesh->GetPoint(pnt_id)[2];
-        value_truth = _SavedPoints[pnt_id].z;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_Mesh->GetPoint(pnt_id)[0] - _SavedPoints[pnt_id].x, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_Mesh->GetPoint(pnt_id)[1] - _SavedPoints[pnt_id].y, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_Mesh->GetPoint(pnt_id)[2] - _SavedPoints[pnt_id].z, TOLERANCE );
     }
 
     // Normals //
     VC_PointsInMeshIterator point = _out_Mesh->GetPoints()->Begin();
     for ( int p = 0; point != _out_Mesh->GetPoints()->End(); ++p, ++point ) {
-
         VC_PixelType _out_MeshNormal;
         _out_Mesh->GetPointData(point.Index(), &_out_MeshNormal);
 
-        value_test  = _out_MeshNormal[0];
-        value_truth = _SavedPoints[p].nx;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = _out_MeshNormal[1];
-        value_truth = _SavedPoints[p].ny;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = _out_MeshNormal[2];
-        value_truth = _SavedPoints[p].nz;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_MeshNormal[0] - _SavedPoints[p].nx, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_MeshNormal[1] - _SavedPoints[p].ny, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_MeshNormal[2] - _SavedPoints[p].nz, TOLERANCE );
     }
     
     //Cells (faces)
@@ -768,48 +615,21 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureVTKToITKConvertedCubeWithSavedCubeITKFileT
     BOOST_CHECK_EQUAL(_SavedPoints.size(), _out_Mesh->GetNumberOfPoints());
 
     //Check equivalency of points
-    double value_test, value_truth;
-
     for ( size_t pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints(); ++pnt_id) {
-
-        //check the points in both vtk meshes
-        value_test  = _out_Mesh->GetPoint(pnt_id)[0];
-        value_truth = _SavedPoints[pnt_id].x;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = _out_Mesh->GetPoint(pnt_id)[1];
-        value_truth = _SavedPoints[pnt_id].y;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = _out_Mesh->GetPoint(pnt_id)[2];
-        value_truth = _SavedPoints[pnt_id].z;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_Mesh->GetPoint(pnt_id)[0] - _SavedPoints[pnt_id].x, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_Mesh->GetPoint(pnt_id)[1] - _SavedPoints[pnt_id].y, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_Mesh->GetPoint(pnt_id)[2] - _SavedPoints[pnt_id].z, TOLERANCE );
     }
 
     // Normals //
     VC_PointsInMeshIterator point = _out_Mesh->GetPoints()->Begin();
     for ( int p = 0; point != _out_Mesh->GetPoints()->End(); ++p, ++point ) {
-
         VC_PixelType _out_MeshNormal;
         _out_Mesh->GetPointData(point.Index(), &_out_MeshNormal);
 
-        value_test  = _out_MeshNormal[0];
-        value_truth = _SavedPoints[p].nx;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = _out_MeshNormal[1];
-        value_truth = _SavedPoints[p].ny;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = _out_MeshNormal[2];
-        value_truth = _SavedPoints[p].nz;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_MeshNormal[0] - _SavedPoints[p].nx, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_MeshNormal[1] - _SavedPoints[p].ny, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_MeshNormal[2] - _SavedPoints[p].nz, TOLERANCE );
     }
 
     VC_CellIterator _out_MeshCell = _out_Mesh->GetCells()->Begin();
@@ -844,48 +664,21 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureVTKToITKConvertedArchWithSavedArchITKFileT
     BOOST_CHECK_EQUAL(_SavedPoints.size(), _out_Mesh->GetNumberOfPoints());
 
     //Check equivalency of points
-    double value_test, value_truth;
-
     for ( size_t pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints(); ++pnt_id) {
-
-        //check the points in both vtk meshes
-        value_test  = _out_Mesh->GetPoint(pnt_id)[0];
-        value_truth = _SavedPoints[pnt_id].x;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = _out_Mesh->GetPoint(pnt_id)[1];
-        value_truth = _SavedPoints[pnt_id].y;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = _out_Mesh->GetPoint(pnt_id)[2];
-        value_truth = _SavedPoints[pnt_id].z;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_Mesh->GetPoint(pnt_id)[0] - _SavedPoints[pnt_id].x, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_Mesh->GetPoint(pnt_id)[1] - _SavedPoints[pnt_id].y, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_Mesh->GetPoint(pnt_id)[2] - _SavedPoints[pnt_id].z, TOLERANCE );
     }
 
     // Normals //
     VC_PointsInMeshIterator point = _out_Mesh->GetPoints()->Begin();
     for ( int p = 0; point != _out_Mesh->GetPoints()->End(); ++p, ++point ) {
-
         VC_PixelType _out_MeshNormal;
         _out_Mesh->GetPointData(point.Index(), &_out_MeshNormal);
 
-        value_test  = _out_MeshNormal[0];
-        value_truth = _SavedPoints[p].nx;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = _out_MeshNormal[1];
-        value_truth = _SavedPoints[p].ny;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = _out_MeshNormal[2];
-        value_truth = _SavedPoints[p].nz;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_MeshNormal[0] - _SavedPoints[p].nx, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_MeshNormal[1] - _SavedPoints[p].ny, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_MeshNormal[2] - _SavedPoints[p].nz, TOLERANCE );
     }
 
     VC_CellIterator _out_MeshCell = _out_Mesh->GetCells()->Begin();
@@ -921,48 +714,21 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureVTKToITKConvertedSphereWithSavedSphereITKF
     BOOST_CHECK_EQUAL(_SavedPoints.size(), _out_Mesh->GetNumberOfPoints());
 
     //Check equivalency of points
-    double value_test, value_truth;
-
     for ( size_t pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints(); ++pnt_id) {
-
-        //check the points in both vtk meshes
-        value_test  = _out_Mesh->GetPoint(pnt_id)[0];
-        value_truth = _SavedPoints[pnt_id].x;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = _out_Mesh->GetPoint(pnt_id)[1];
-        value_truth = _SavedPoints[pnt_id].y;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = _out_Mesh->GetPoint(pnt_id)[2];
-        value_truth = _SavedPoints[pnt_id].z;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_Mesh->GetPoint(pnt_id)[0] - _SavedPoints[pnt_id].x, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_Mesh->GetPoint(pnt_id)[1] - _SavedPoints[pnt_id].y, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_Mesh->GetPoint(pnt_id)[2] - _SavedPoints[pnt_id].z, TOLERANCE );
     }
 
     // Normals //
     VC_PointsInMeshIterator point = _out_Mesh->GetPoints()->Begin();
     for ( int p = 0; point != _out_Mesh->GetPoints()->End(); ++p, ++point ) {
-
         VC_PixelType _out_MeshNormal;
         _out_Mesh->GetPointData(point.Index(), &_out_MeshNormal);
 
-        value_test  = _out_MeshNormal[0];
-        value_truth = _SavedPoints[p].nx;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = _out_MeshNormal[1];
-        value_truth = _SavedPoints[p].ny;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = _out_MeshNormal[2];
-        value_truth = _SavedPoints[p].nz;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_MeshNormal[0] - _SavedPoints[p].nx, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_MeshNormal[1] - _SavedPoints[p].ny, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_MeshNormal[2] - _SavedPoints[p].nz, TOLERANCE );
     }
 
     VC_CellIterator _out_MeshCell = _out_Mesh->GetCells()->Begin();
@@ -998,48 +764,21 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureVTKToITKConvertedConeWithSavedConeITKFileT
     BOOST_CHECK_EQUAL(_SavedPoints.size(), _out_Mesh->GetNumberOfPoints());
 
     //Check equivalency of points
-    double value_test, value_truth;
-
     for ( size_t pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints(); ++pnt_id) {
-
-        //check the points in both vtk meshes
-        value_test  = _out_Mesh->GetPoint(pnt_id)[0];
-        value_truth = _SavedPoints[pnt_id].x;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = _out_Mesh->GetPoint(pnt_id)[1];
-        value_truth = _SavedPoints[pnt_id].y;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = _out_Mesh->GetPoint(pnt_id)[2];
-        value_truth = _SavedPoints[pnt_id].z;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_Mesh->GetPoint(pnt_id)[0] - _SavedPoints[pnt_id].x, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_Mesh->GetPoint(pnt_id)[1] - _SavedPoints[pnt_id].y, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_Mesh->GetPoint(pnt_id)[2] - _SavedPoints[pnt_id].z, TOLERANCE );
     }
 
     // Normals //
     VC_PointsInMeshIterator point = _out_Mesh->GetPoints()->Begin();
     for ( int p = 0; point != _out_Mesh->GetPoints()->End(); ++p, ++point ) {
-
         VC_PixelType _out_MeshNormal;
         _out_Mesh->GetPointData(point.Index(), &_out_MeshNormal);
 
-        value_test  = _out_MeshNormal[0];
-        value_truth = _SavedPoints[p].nx;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = _out_MeshNormal[1];
-        value_truth = _SavedPoints[p].ny;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
-
-        value_test  = _out_MeshNormal[2];
-        value_truth = _SavedPoints[p].nz;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_MeshNormal[0] - _SavedPoints[p].nx, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_MeshNormal[1] - _SavedPoints[p].ny, TOLERANCE );
+        BOOST_CHECK_SMALL( _out_MeshNormal[2] - _SavedPoints[p].nz, TOLERANCE );
     }
 
     VC_CellIterator _out_MeshCell = _out_Mesh->GetCells()->Begin();
