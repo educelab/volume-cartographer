@@ -35,7 +35,10 @@ public:
 #include <itkTriangleCell.h>
 
 typedef itk::Vector< double, 3 >                      VC_PixelType;
-typedef itk::Mesh< VC_PixelType, 3 >                  VC_MeshType;
+typedef itk::DefaultStaticMeshTraits<
+        VC_PixelType, 3, 3,
+        double, double, VC_PixelType >                VC_MeshTraits;
+typedef itk::Mesh< VC_PixelType, 3, VC_MeshTraits >   VC_MeshType;
 typedef VC_MeshType::PointType                        VC_PointType;
 typedef VC_MeshType::CellType                         VC_CellType;
 typedef itk::TriangleCell< VC_CellType >              VC_TriangleType;
