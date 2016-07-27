@@ -42,6 +42,8 @@
  *                                                                                     *
  * *************************************************************************************/
 
+const double MINIMUM_VALUE = 0.00001;
+const double TOLERANCE     = 0.0001;
 
 /*
  *
@@ -182,11 +184,23 @@ BOOST_FIXTURE_TEST_CASE(PlaneABFUVTest, CreatePlaneABFUVFixture){
     BOOST_CHECK_EQUAL(_out_PlaneITKMesh->GetNumberOfPoints(), _SavedPlanePoints.size());
 
     //check uvmap against original mesh input pointIDs
+    double value_test, value_truth;
     for (size_t point = 0; point < _SavedPlanePoints.size(); ++point){
 
-        BOOST_CHECK_CLOSE_FRACTION(_out_PlaneITKMesh->GetPoint(point)[0], _SavedPlanePoints[point].x, 0.0001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_PlaneITKMesh->GetPoint(point)[1], _SavedPlanePoints[point].y, 0.0001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_PlaneITKMesh->GetPoint(point)[2], _SavedPlanePoints[point].z, 0.0001);
+        value_test  = _out_PlaneITKMesh->GetPoint(point)[0];
+        value_truth = _SavedPlanePoints[point].x;
+        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
+            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE);
+
+        value_test  = _out_PlaneITKMesh->GetPoint(point)[1];
+        value_truth = _SavedPlanePoints[point].y;
+        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
+            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE);
+
+        value_test  = _out_PlaneITKMesh->GetPoint(point)[2];
+        value_truth = _SavedPlanePoints[point].z;
+        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
+            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE);
     }
 
 }
@@ -198,11 +212,23 @@ BOOST_FIXTURE_TEST_CASE(PlaneABFLSCMOnlyUVTest, CreatePlaneABFLSCMOnlyUVFixture)
     BOOST_CHECK_EQUAL(_out_PlaneITKMesh->GetNumberOfPoints(), _SavedPlanePoints.size());
 
     //check uvmap against original mesh input pointIDs
+    double value_test, value_truth;
     for (size_t point = 0; point < _SavedPlanePoints.size(); ++point){
 
-        BOOST_CHECK_CLOSE_FRACTION(_out_PlaneITKMesh->GetPoint(point)[0], _SavedPlanePoints[point].x, 0.0001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_PlaneITKMesh->GetPoint(point)[1], _SavedPlanePoints[point].y, 0.0001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_PlaneITKMesh->GetPoint(point)[2], _SavedPlanePoints[point].z, 0.0001);
+        value_test  = _out_PlaneITKMesh->GetPoint(point)[0];
+        value_truth = _SavedPlanePoints[point].x;
+        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
+            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE);
+
+        value_test  = _out_PlaneITKMesh->GetPoint(point)[1];
+        value_truth = _SavedPlanePoints[point].y;
+        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
+            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE);
+
+        value_test  = _out_PlaneITKMesh->GetPoint(point)[2];
+        value_truth = _SavedPlanePoints[point].z;
+        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
+            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE);
     }
 
 }
@@ -214,11 +240,23 @@ BOOST_FIXTURE_TEST_CASE(ArchABFUVTest, CreateArchABFUVFixture){
     BOOST_CHECK_EQUAL(_out_ArchITKMesh->GetNumberOfPoints(), _SavedArchPoints.size());
 
     //check uvmap against original mesh input pointIDs
+    double value_test, value_truth;
     for (size_t point = 0; point < _SavedArchPoints.size(); ++point){
 
-        BOOST_CHECK_CLOSE_FRACTION(_out_ArchITKMesh->GetPoint(point)[0], _SavedArchPoints[point].x, 0.0001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_ArchITKMesh->GetPoint(point)[1], _SavedArchPoints[point].y, 0.0001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_ArchITKMesh->GetPoint(point)[2], _SavedArchPoints[point].z, 0.0001);
+        value_test  = _out_ArchITKMesh->GetPoint(point)[0];
+        value_truth = _SavedArchPoints[point].x;
+        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
+            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE);
+
+        value_test  = _out_ArchITKMesh->GetPoint(point)[1];
+        value_truth = _SavedArchPoints[point].y;
+        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
+            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE);
+
+        value_test  = _out_ArchITKMesh->GetPoint(point)[2];
+        value_truth = _SavedArchPoints[point].z;
+        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
+            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE);
     }
 
 }
@@ -230,11 +268,23 @@ BOOST_FIXTURE_TEST_CASE(ArchABFLSCMOnlyUVTest, CreateArchABFLSCMOnlyUVFixture){
     BOOST_CHECK_EQUAL(_out_ArchITKMesh->GetNumberOfPoints(), _SavedArchPoints.size());
 
     //check uvmap against original mesh input pointIDs
+    double value_test, value_truth;
     for (size_t point = 0; point < _SavedArchPoints.size(); ++point){
 
-        BOOST_CHECK_CLOSE_FRACTION(_out_ArchITKMesh->GetPoint(point)[0], _SavedArchPoints[point].x, 0.0001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_ArchITKMesh->GetPoint(point)[1], _SavedArchPoints[point].y, 0.0001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_ArchITKMesh->GetPoint(point)[2], _SavedArchPoints[point].z, 0.0001);
+        value_test  = _out_ArchITKMesh->GetPoint(point)[0];
+        value_truth = _SavedArchPoints[point].x;
+        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
+            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE);
+
+        value_test  = _out_ArchITKMesh->GetPoint(point)[1];
+        value_truth = _SavedArchPoints[point].y;
+        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
+            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE);
+
+        value_test  = _out_ArchITKMesh->GetPoint(point)[2];
+        value_truth = _SavedArchPoints[point].z;
+        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
+            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE);
     }
 
 }

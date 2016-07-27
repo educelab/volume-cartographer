@@ -47,11 +47,11 @@ int main(int argc, char* argv[]) {
     *in_ConePointNormalCloudPtr = in_ConePointNormalCloud;
 
     // Call function from
-    pcl::PolygonMesh out_PlanePolyMesh = greedyProjectionMeshing(in_PlanePointNormalCloudPtr, 100, 2.0, 2.5);
-    pcl::PolygonMesh out_CubePolyMesh = greedyProjectionMeshing(in_CubePointNormalCloudPtr, 100, 2.0, 2.5);
-    pcl::PolygonMesh out_ArchPolyMesh = greedyProjectionMeshing(in_ArchPointNormalCloudPtr, 100, 2.0, 2.5);
+    pcl::PolygonMesh out_PlanePolyMesh  = greedyProjectionMeshing(in_PlanePointNormalCloudPtr,  100, 2.0, 2.5);
+    pcl::PolygonMesh out_CubePolyMesh   = greedyProjectionMeshing(in_CubePointNormalCloudPtr,   100, 2.0, 2.5);
+    pcl::PolygonMesh out_ArchPolyMesh   = greedyProjectionMeshing(in_ArchPointNormalCloudPtr,   100, 2.0, 2.5);
     pcl::PolygonMesh out_SpherePolyMesh = greedyProjectionMeshing(in_SpherePointNormalCloudPtr, 100, 2.0, 2.5);
-    pcl::PolygonMesh out_ConePolyMesh = greedyProjectionMeshing(in_ConePointNormalCloudPtr, 100, 2.0, 2.5);
+    pcl::PolygonMesh out_ConePolyMesh   = greedyProjectionMeshing(in_ConePointNormalCloudPtr,   100, 2.0, 2.5);
 
 
     // Write meshes to file
