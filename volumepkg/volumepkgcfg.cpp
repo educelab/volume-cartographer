@@ -7,7 +7,6 @@ VolumePkgCfg::VolumePkgCfg() { _json["version"] = VOLPKG_VERSION; }
 VolumePkgCfg::VolumePkgCfg(const volcart::Dictionary& dict, double version)
 {
     // Populate the cfg with keys from the dict
-    volcart::Dictionary::const_iterator entry = dict.begin();
     for (const auto& entry : dict) {
         if (entry.first == "version") {
             _json["version"] = version;
