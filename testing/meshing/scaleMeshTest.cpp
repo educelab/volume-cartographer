@@ -15,6 +15,7 @@
 #include "shapes.h"
 #include "scaleMesh.h"
 #include "parsingHelpers.h"
+#include "testingUtils.h"
 
 /************************************************************************************
  *                                                                                  *
@@ -211,9 +212,9 @@ BOOST_FIXTURE_TEST_CASE(ScaledPlaneTest, ScaledPlaneFixture){
             //check each of the points in the input and output meshes to confirm
             //ratio matches scale factor
 
-            BOOST_CHECK_EQUAL(_in_PlaneMesh->GetPoint(point)[0] * _ScaleFactor, _out_PlaneMesh->GetPoint(point)[0]);
-            BOOST_CHECK_EQUAL(_in_PlaneMesh->GetPoint(point)[1] * _ScaleFactor, _out_PlaneMesh->GetPoint(point)[1]);
-            BOOST_CHECK_EQUAL(_in_PlaneMesh->GetPoint(point)[2] * _ScaleFactor, _out_PlaneMesh->GetPoint(point)[2]);
+            volcart::testing::SmallOrClose(_in_PlaneMesh->GetPoint(point)[0] * _ScaleFactor, _out_PlaneMesh->GetPoint(point)[0]);
+            volcart::testing::SmallOrClose(_in_PlaneMesh->GetPoint(point)[1] * _ScaleFactor, _out_PlaneMesh->GetPoint(point)[1]);
+            volcart::testing::SmallOrClose(_in_PlaneMesh->GetPoint(point)[2] * _ScaleFactor, _out_PlaneMesh->GetPoint(point)[2]);
 
         }
 
@@ -233,9 +234,9 @@ BOOST_FIXTURE_TEST_CASE(ScaledCubeTest, ScaledCubeFixture){
 
         for (size_t point = 0; point < _out_CubeMesh->GetNumberOfPoints(); ++point){
 
-            BOOST_CHECK_EQUAL(_in_CubeMesh->GetPoint(point)[0] * _ScaleFactor, _out_CubeMesh->GetPoint(point)[0]);
-            BOOST_CHECK_EQUAL(_in_CubeMesh->GetPoint(point)[1] * _ScaleFactor, _out_CubeMesh->GetPoint(point)[1]);
-            BOOST_CHECK_EQUAL(_in_CubeMesh->GetPoint(point)[2] * _ScaleFactor, _out_CubeMesh->GetPoint(point)[2]);
+            volcart::testing::SmallOrClose(_in_CubeMesh->GetPoint(point)[0] * _ScaleFactor, _out_CubeMesh->GetPoint(point)[0]);
+            volcart::testing::SmallOrClose(_in_CubeMesh->GetPoint(point)[1] * _ScaleFactor, _out_CubeMesh->GetPoint(point)[1]);
+            volcart::testing::SmallOrClose(_in_CubeMesh->GetPoint(point)[2] * _ScaleFactor, _out_CubeMesh->GetPoint(point)[2]);
         }
 
         _ScaleFactor -= 0.5;
@@ -252,9 +253,9 @@ BOOST_FIXTURE_TEST_CASE(ScaledArchTest, ScaledArchFixture){
 
         for (size_t point = 0; point < _out_ArchMesh->GetNumberOfPoints(); ++point){
 
-            BOOST_CHECK_CLOSE_FRACTION(_in_ArchMesh->GetPoint(point)[0] * _ScaleFactor, _out_ArchMesh->GetPoint(point)[0], 0.0001);
-            BOOST_CHECK_CLOSE_FRACTION(_in_ArchMesh->GetPoint(point)[1] * _ScaleFactor, _out_ArchMesh->GetPoint(point)[1], 0.0001);
-            BOOST_CHECK_CLOSE_FRACTION(_in_ArchMesh->GetPoint(point)[2] * _ScaleFactor, _out_ArchMesh->GetPoint(point)[2], 0.0001);
+            volcart::testing::SmallOrClose(_in_ArchMesh->GetPoint(point)[0] * _ScaleFactor, _out_ArchMesh->GetPoint(point)[0], 0.0001);
+            volcart::testing::SmallOrClose(_in_ArchMesh->GetPoint(point)[1] * _ScaleFactor, _out_ArchMesh->GetPoint(point)[1], 0.0001);
+            volcart::testing::SmallOrClose(_in_ArchMesh->GetPoint(point)[2] * _ScaleFactor, _out_ArchMesh->GetPoint(point)[2], 0.0001);
         }
 
         _ScaleFactor -= 0.5;
@@ -271,9 +272,9 @@ BOOST_FIXTURE_TEST_CASE(ScaledSphereTest, ScaledSphereFixture){
 
         for (size_t point = 0; point < _out_SphereMesh->GetNumberOfPoints(); ++point){
 
-            BOOST_CHECK_CLOSE_FRACTION(_in_SphereMesh->GetPoint(point)[0] * _ScaleFactor, _out_SphereMesh->GetPoint(point)[0], 0.0001);
-            BOOST_CHECK_CLOSE_FRACTION(_in_SphereMesh->GetPoint(point)[1] * _ScaleFactor, _out_SphereMesh->GetPoint(point)[1], 0.0001);
-            BOOST_CHECK_CLOSE_FRACTION(_in_SphereMesh->GetPoint(point)[2] * _ScaleFactor, _out_SphereMesh->GetPoint(point)[2], 0.0001);
+            volcart::testing::SmallOrClose(_in_SphereMesh->GetPoint(point)[0] * _ScaleFactor, _out_SphereMesh->GetPoint(point)[0], 0.0001);
+            volcart::testing::SmallOrClose(_in_SphereMesh->GetPoint(point)[1] * _ScaleFactor, _out_SphereMesh->GetPoint(point)[1], 0.0001);
+            volcart::testing::SmallOrClose(_in_SphereMesh->GetPoint(point)[2] * _ScaleFactor, _out_SphereMesh->GetPoint(point)[2], 0.0001);
         }
 
         _ScaleFactor -= 0.5;
@@ -290,9 +291,9 @@ BOOST_FIXTURE_TEST_CASE(ScaledConeTest, ScaledConeFixture){
 
         for (size_t point = 0; point < _out_ConeMesh->GetNumberOfPoints(); ++point){
 
-            BOOST_CHECK_CLOSE_FRACTION(_in_ConeMesh->GetPoint(point)[0] * _ScaleFactor, _out_ConeMesh->GetPoint(point)[0], 0.0001);
-            BOOST_CHECK_CLOSE_FRACTION(_in_ConeMesh->GetPoint(point)[1] * _ScaleFactor, _out_ConeMesh->GetPoint(point)[1], 0.0001);
-            BOOST_CHECK_CLOSE_FRACTION(_in_ConeMesh->GetPoint(point)[2] * _ScaleFactor, _out_ConeMesh->GetPoint(point)[2], 0.0001);
+            volcart::testing::SmallOrClose(_in_ConeMesh->GetPoint(point)[0] * _ScaleFactor, _out_ConeMesh->GetPoint(point)[0], 0.0001);
+            volcart::testing::SmallOrClose(_in_ConeMesh->GetPoint(point)[1] * _ScaleFactor, _out_ConeMesh->GetPoint(point)[1], 0.0001);
+            volcart::testing::SmallOrClose(_in_ConeMesh->GetPoint(point)[2] * _ScaleFactor, _out_ConeMesh->GetPoint(point)[2], 0.0001);
         }
 
         _ScaleFactor -= 0.5;
@@ -480,9 +481,9 @@ BOOST_FIXTURE_TEST_CASE(CompareSavedAndFixtureScaledArchMesh, ScaledArchFixture)
 
     for (size_t point = 0; point < _SavedArchPoints.size(); ++point){
 
-        BOOST_CHECK_CLOSE_FRACTION(_out_ArchMeshUsedForRegressionTest->GetPoint(point)[0], _SavedArchPoints[point].x, 0.00001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_ArchMeshUsedForRegressionTest->GetPoint(point)[1], _SavedArchPoints[point].y, 0.00001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_ArchMeshUsedForRegressionTest->GetPoint(point)[2], _SavedArchPoints[point].z, 0.00001);
+        volcart::testing::SmallOrClose(_out_ArchMeshUsedForRegressionTest->GetPoint(point)[0], _SavedArchPoints[point].x);
+        volcart::testing::SmallOrClose(_out_ArchMeshUsedForRegressionTest->GetPoint(point)[1], _SavedArchPoints[point].y);
+        volcart::testing::SmallOrClose(_out_ArchMeshUsedForRegressionTest->GetPoint(point)[2], _SavedArchPoints[point].z);
     }
 
     int p =0;
@@ -492,9 +493,9 @@ BOOST_FIXTURE_TEST_CASE(CompareSavedAndFixtureScaledArchMesh, ScaledArchFixture)
         VC_PixelType _out_ArchMeshUsedForRegressionTestNormal;
         _out_ArchMeshUsedForRegressionTest->GetPointData(point.Index(), &_out_ArchMeshUsedForRegressionTestNormal);
 
-        BOOST_CHECK_CLOSE_FRACTION(_out_ArchMeshUsedForRegressionTestNormal[0], _SavedArchPoints[p].nx, 0.00001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_ArchMeshUsedForRegressionTestNormal[1], _SavedArchPoints[p].ny, 0.00001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_ArchMeshUsedForRegressionTestNormal[2], _SavedArchPoints[p].nz, 0.00001);
+        volcart::testing::SmallOrClose(_out_ArchMeshUsedForRegressionTestNormal[0], _SavedArchPoints[p].nx);
+        volcart::testing::SmallOrClose(_out_ArchMeshUsedForRegressionTestNormal[1], _SavedArchPoints[p].ny);
+        volcart::testing::SmallOrClose(_out_ArchMeshUsedForRegressionTestNormal[2], _SavedArchPoints[p].nz);
 
         ++p;
     }
@@ -530,9 +531,9 @@ BOOST_FIXTURE_TEST_CASE(CompareSavedAndFixtureScaledSphereMesh, ScaledSphereFixt
 
     for (size_t point = 0; point < _SavedSpherePoints.size(); ++point){
 
-        BOOST_CHECK_CLOSE_FRACTION(_out_SphereMeshUsedForRegressionTest->GetPoint(point)[0], _SavedSpherePoints[point].x, 0.00001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_SphereMeshUsedForRegressionTest->GetPoint(point)[1], _SavedSpherePoints[point].y, 0.00001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_SphereMeshUsedForRegressionTest->GetPoint(point)[2], _SavedSpherePoints[point].z, 0.00001);
+        volcart::testing::SmallOrClose(_out_SphereMeshUsedForRegressionTest->GetPoint(point)[0], _SavedSpherePoints[point].x);
+        volcart::testing::SmallOrClose(_out_SphereMeshUsedForRegressionTest->GetPoint(point)[1], _SavedSpherePoints[point].y);
+        volcart::testing::SmallOrClose(_out_SphereMeshUsedForRegressionTest->GetPoint(point)[2], _SavedSpherePoints[point].z);
     }
 
     int p =0;
@@ -542,9 +543,9 @@ BOOST_FIXTURE_TEST_CASE(CompareSavedAndFixtureScaledSphereMesh, ScaledSphereFixt
         VC_PixelType _out_SphereMeshUsedForRegressionTestNormal;
         _out_SphereMeshUsedForRegressionTest->GetPointData(point.Index(), &_out_SphereMeshUsedForRegressionTestNormal);
 
-        BOOST_CHECK_CLOSE_FRACTION(_out_SphereMeshUsedForRegressionTestNormal[0], _SavedSpherePoints[p].nx, 0.00001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_SphereMeshUsedForRegressionTestNormal[1], _SavedSpherePoints[p].ny, 0.00001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_SphereMeshUsedForRegressionTestNormal[2], _SavedSpherePoints[p].nz, 0.00001);
+        volcart::testing::SmallOrClose(_out_SphereMeshUsedForRegressionTestNormal[0], _SavedSpherePoints[p].nx);
+        volcart::testing::SmallOrClose(_out_SphereMeshUsedForRegressionTestNormal[1], _SavedSpherePoints[p].ny);
+        volcart::testing::SmallOrClose(_out_SphereMeshUsedForRegressionTestNormal[2], _SavedSpherePoints[p].nz);
 
         ++p;
     }
@@ -580,9 +581,9 @@ BOOST_FIXTURE_TEST_CASE(CompareSavedAndFixtureScaledConeMesh, ScaledConeFixture)
 
     for (size_t point = 0; point < _SavedConePoints.size(); ++point){
 
-        BOOST_CHECK_CLOSE_FRACTION(_out_ConeMeshUsedForRegressionTest->GetPoint(point)[0], _SavedConePoints[point].x, 0.00001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_ConeMeshUsedForRegressionTest->GetPoint(point)[1], _SavedConePoints[point].y, 0.00001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_ConeMeshUsedForRegressionTest->GetPoint(point)[2], _SavedConePoints[point].z, 0.00001);
+        volcart::testing::SmallOrClose(_out_ConeMeshUsedForRegressionTest->GetPoint(point)[0], _SavedConePoints[point].x);
+        volcart::testing::SmallOrClose(_out_ConeMeshUsedForRegressionTest->GetPoint(point)[1], _SavedConePoints[point].y);
+        volcart::testing::SmallOrClose(_out_ConeMeshUsedForRegressionTest->GetPoint(point)[2], _SavedConePoints[point].z);
     }
 
     int p =0;
@@ -592,19 +593,9 @@ BOOST_FIXTURE_TEST_CASE(CompareSavedAndFixtureScaledConeMesh, ScaledConeFixture)
         VC_PixelType _out_ConeMeshUsedForRegressionTestNormal;
         _out_ConeMeshUsedForRegressionTest->GetPointData(point.Index(), &_out_ConeMeshUsedForRegressionTestNormal);
 
-        // hack added to check cone normals
-        //     - two normal vectors in the cone differ when buildin on osx versus debian
-        //     - vertices are the same when creating cone mesh from cone shape. however, the normals differ before
-        //       scaleMesh is being called. scaleMesh doesn't change the normals at all anyway.
-        BOOST_CHECK(std::abs(_out_ConeMeshUsedForRegressionTestNormal[0] - _SavedConePoints[p].nx) < 0.000001);
-        BOOST_CHECK(std::abs(_out_ConeMeshUsedForRegressionTestNormal[1] - _SavedConePoints[p].ny) < 0.000001);
-        BOOST_CHECK(std::abs(_out_ConeMeshUsedForRegressionTestNormal[2] - _SavedConePoints[p].nz) < 0.000001);
-
-
-      //  TODO: deb8 fails here --> updated tolerance to a higher value
-        //BOOST_REQUIRE_CLOSE(_out_ConeMeshUsedForRegressionTestNormal[0], _SavedConePoints[p].nx, 0.00000001);
-        //BOOST_REQUIRE_CLOSE(_out_ConeMeshUsedForRegressionTestNormal[1], _SavedConePoints[p].ny, 0.00000001);
-        //BOOST_REQUIRE_CLOSE(_out_ConeMeshUsedForRegressionTestNormal[2], _SavedConePoints[p].nz, 0.00000001);
+        volcart::testing::SmallOrClose(_out_ConeMeshUsedForRegressionTestNormal[0], _SavedConePoints[p].nx);
+        volcart::testing::SmallOrClose(_out_ConeMeshUsedForRegressionTestNormal[1], _SavedConePoints[p].ny);
+        volcart::testing::SmallOrClose(_out_ConeMeshUsedForRegressionTestNormal[2], _SavedConePoints[p].nz);
 
         ++p;
     }

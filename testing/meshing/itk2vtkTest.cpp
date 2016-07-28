@@ -20,7 +20,7 @@
 
 /************************************************************************************
  *                                                                                  *
- *  it2vtkTest.cpp, tests the functionality of /v-c/meshing/it2vtk.cpp             *
+ *  it2vtkTest.cpp - tests the functionality of /v-c/meshing/it2vtk.cpp             *
  *  The ultimate goal of this file is the following:                                *
  *                                                                                  *
  *        1. check whether an itk mesh can be converted to a vtk mesh               *

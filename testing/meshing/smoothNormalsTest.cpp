@@ -17,7 +17,7 @@
 
 /************************************************************************************
  *                                                                                  *
- *  smoothNormalsTest.cpp, tests the functionality of meshing/smoothNormals.cpp    *
+ *  smoothNormalsTest.cpp - tests the functionality of meshing/smoothNormals.cpp    *
  *  The ultimate goal of this file is the following:                                *
  *                                                                                  *
  *        1. confirm volcart::meshing::smoothNormals() works as expected            *
