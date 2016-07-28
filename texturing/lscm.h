@@ -27,15 +27,13 @@ namespace volcart {
       lscm( VC_MeshType::Pointer input );
       ~lscm(){};
 
-      // Set input
+      // Input/Output
       void setMesh( VC_MeshType::Pointer input );
-
-      // Process
-      void compute();
-
-      // Get output
       VC_MeshType::Pointer getMesh();
       volcart::UVMap getUVMap();
+
+      // Processing
+      void compute();
 
     private:
       void _fillEigenMatrices();

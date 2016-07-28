@@ -3,44 +3,17 @@
 namespace volcart {
     namespace texturing {
 
-        // Constructor
+        ///// Constructors /////
         lscm::lscm( VC_MeshType::Pointer input ) : _mesh(input) {
           _fillEigenMatrices();
         };
 
+        ///// Input/Output /////
+        // Set input mesh
         void lscm::setMesh( VC_MeshType::Pointer input ) {
           _emptyEigenMatrices();
           _mesh = input;
           _fillEigenMatrices();
-        }
-
-        void lscm::compute() {
-
-          // Fix two points on the boundary
-          Eigen::VectorXi bnd, b(2,1);
-          igl::boundary_loop( _faces, bnd );
-          b(0) = bnd(0);
-          b(1) = bnd(round(bnd.size()/2));
-          Eigen::MatrixXd bc(2,2);
-          bc << 0,0,1,1;
-
-          // LSCM parametrization
-          igl::lscm( _vertices, _faces, b, bc, _vertices_UV );
-
-          // Find the line of best fit through the flattened points
-          // Use this line to try to straighten the textures
-          // Note: This will only work with segmentations that are wider than they are long
-          std::vector<cv::Point2f> points;
-          cv::Vec4f line;
-          for ( int i = 0; i < _vertices_UV.rows(); ++i ) {
-            cv::Point2d p;
-            p.x = _vertices_UV(i, 0);
-            p.y = _vertices_UV(i, 1);
-            points.push_back(p);
-          }
-          cv::fitLine( points, line, CV_DIST_L2, 0, 0.01, 0.01);
-          Eigen::Rotation2Dd rot( std::atan(line(1)/line(0)) );
-          _vertices_UV *= rot.matrix();
         }
 
         // Get output as mesh
@@ -85,7 +58,6 @@ namespace volcart {
           double scaleFactor = std::sqrt(_startingArea / _area( _vertices_UV, _faces ));
           double aspect_width = std::abs(max_u - min_u) * scaleFactor;
           double aspect_height = std::abs(max_v - min_v) * scaleFactor;
-          double aspect = aspect_width / aspect_height;
           uvMap.ratio(aspect_width, aspect_height);
 
           // Calculate uv coordinates
@@ -102,7 +74,39 @@ namespace volcart {
           return uvMap;
         }
 
-        // Fill the data structures
+        ///// Processing /////
+        // Compute the parameterization
+        void lscm::compute() {
+
+          // Fix two points on the boundary
+          Eigen::VectorXi bnd, b(2,1);
+          igl::boundary_loop( _faces, bnd );
+          b(0) = bnd(0);
+          b(1) = bnd(round(bnd.size()/2));
+          Eigen::MatrixXd bc(2,2);
+          bc << 0,0,1,1;
+
+          // LSCM parametrization
+          igl::lscm( _vertices, _faces, b, bc, _vertices_UV );
+
+          // Find the line of best fit through the flattened points
+          // Use this line to try to straighten the textures
+          // Note: This will only work with segmentations that are wider than they are long
+          std::vector<cv::Point2f> points;
+          cv::Vec4f line;
+          for ( int i = 0; i < _vertices_UV.rows(); ++i ) {
+            cv::Point2d p;
+            p.x = _vertices_UV(i, 0);
+            p.y = _vertices_UV(i, 1);
+            points.push_back(p);
+          }
+          cv::fitLine( points, line, CV_DIST_L2, 0, 0.01, 0.01);
+          Eigen::Rotation2Dd rot( std::atan(line(1)/line(0)) );
+          _vertices_UV *= rot.matrix();
+        }
+
+        ///// Utilities /////
+        // Fill the data structures with the mesh
         void lscm::_fillEigenMatrices() {
 
           // Vertices
@@ -150,5 +154,5 @@ namespace volcart {
           return a;
         }
 
-    }
-}
+    } // texturing
+} // volcart
