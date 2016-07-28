@@ -61,7 +61,7 @@ struct EmptyConstructorTextureFixture{
 
     volcart::Texture _Texture;
     std::string _ID, _Type, _TruncatedID;
-    int _NumberOfImages;
+    size_t _NumberOfImages;
 };
 
 

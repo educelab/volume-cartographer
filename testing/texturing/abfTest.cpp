@@ -13,6 +13,7 @@
 #include "shapes.h"
 #include "abf.h"
 #include "parsingHelpers.h"
+#include "testingUtils.h"
 
 
 /***************************************************************************************
@@ -41,9 +42,6 @@
  *     number of testing errors is output.                                             *
  *                                                                                     *
  * *************************************************************************************/
-
-const double MINIMUM_VALUE = 0.00001;
-const double TOLERANCE     = 0.0001;
 
 /*
  *
@@ -180,27 +178,16 @@ struct CreateArchABFLSCMOnlyUVFixture{
 BOOST_FIXTURE_TEST_CASE(PlaneABFUVTest, CreatePlaneABFUVFixture){
 
     //check size of uvMap and number of points in mesh
-    BOOST_CHECK_EQUAL(_out_Mesh->GetNumberOfPoints(), _in_Mesh->GetNumberOfPoints());
-    BOOST_CHECK_EQUAL(_out_Mesh->GetNumberOfPoints(), _SavedPoints.size());
+    BOOST_CHECK_EQUAL( _out_Mesh->GetNumberOfPoints(), _in_Mesh->GetNumberOfPoints() );
+    BOOST_CHECK_EQUAL( _out_Mesh->GetNumberOfPoints(), _SavedPoints.size() );
 
     //check uvmap against original mesh input pointIDs
-    double value_test, value_truth;
     for (size_t point = 0; point < _SavedPoints.size(); ++point){
 
-        value_test  = _out_Mesh->GetPoint(point)[0];
-        value_truth = _SavedPoints[point].x;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE);
+        volcart::testing::SmallOrClose( _out_Mesh->GetPoint(point)[0], _SavedPoints[point].x );
+        volcart::testing::SmallOrClose( _out_Mesh->GetPoint(point)[1], _SavedPoints[point].y );
+        volcart::testing::SmallOrClose( _out_Mesh->GetPoint(point)[2], _SavedPoints[point].z );
 
-        value_test  = _out_Mesh->GetPoint(point)[1];
-        value_truth = _SavedPoints[point].y;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE);
-
-        value_test  = _out_Mesh->GetPoint(point)[2];
-        value_truth = _SavedPoints[point].z;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE);
     }
 
 }
@@ -212,23 +199,12 @@ BOOST_FIXTURE_TEST_CASE(PlaneABFLSCMOnlyUVTest, CreatePlaneABFLSCMOnlyUVFixture)
     BOOST_CHECK_EQUAL(_out_Mesh->GetNumberOfPoints(), _SavedPoints.size());
 
     //check uvmap against original mesh input pointIDs
-    double value_test, value_truth;
     for (size_t point = 0; point < _SavedPoints.size(); ++point){
 
-        value_test  = _out_Mesh->GetPoint(point)[0];
-        value_truth = _SavedPoints[point].x;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE);
+      volcart::testing::SmallOrClose( _out_Mesh->GetPoint(point)[0], _SavedPoints[point].x );
+      volcart::testing::SmallOrClose( _out_Mesh->GetPoint(point)[1], _SavedPoints[point].y );
+      volcart::testing::SmallOrClose( _out_Mesh->GetPoint(point)[2], _SavedPoints[point].z );
 
-        value_test  = _out_Mesh->GetPoint(point)[1];
-        value_truth = _SavedPoints[point].y;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE);
-
-        value_test  = _out_Mesh->GetPoint(point)[2];
-        value_truth = _SavedPoints[point].z;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE);
     }
 
 }
@@ -236,27 +212,16 @@ BOOST_FIXTURE_TEST_CASE(PlaneABFLSCMOnlyUVTest, CreatePlaneABFLSCMOnlyUVFixture)
 BOOST_FIXTURE_TEST_CASE(ArchABFUVTest, CreateArchABFUVFixture){
 
     //check size of uvMap and number of points in mesh
-    BOOST_CHECK_EQUAL(_out_Mesh->GetNumberOfPoints(), _in_Mesh->GetNumberOfPoints());
-    BOOST_CHECK_EQUAL(_out_Mesh->GetNumberOfPoints(), _SavedPoints.size());
+    BOOST_CHECK_EQUAL( _out_Mesh->GetNumberOfPoints(), _in_Mesh->GetNumberOfPoints() );
+    BOOST_CHECK_EQUAL( _out_Mesh->GetNumberOfPoints(), _SavedPoints.size() );
 
     //check uvmap against original mesh input pointIDs
-    double value_test, value_truth;
     for (size_t point = 0; point < _SavedPoints.size(); ++point){
 
-        value_test  = _out_Mesh->GetPoint(point)[0];
-        value_truth = _SavedPoints[point].x;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE);
+      volcart::testing::SmallOrClose( _out_Mesh->GetPoint(point)[0], _SavedPoints[point].x );
+      volcart::testing::SmallOrClose( _out_Mesh->GetPoint(point)[1], _SavedPoints[point].y );
+      volcart::testing::SmallOrClose( _out_Mesh->GetPoint(point)[2], _SavedPoints[point].z );
 
-        value_test  = _out_Mesh->GetPoint(point)[1];
-        value_truth = _SavedPoints[point].y;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE);
-
-        value_test  = _out_Mesh->GetPoint(point)[2];
-        value_truth = _SavedPoints[point].z;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE);
     }
 
 }
@@ -264,27 +229,16 @@ BOOST_FIXTURE_TEST_CASE(ArchABFUVTest, CreateArchABFUVFixture){
 BOOST_FIXTURE_TEST_CASE(ArchABFLSCMOnlyUVTest, CreateArchABFLSCMOnlyUVFixture){
 
     //check size of uvMap and number of points in mesh
-    BOOST_CHECK_EQUAL(_out_Mesh->GetNumberOfPoints(), _in_Mesh->GetNumberOfPoints());
-    BOOST_CHECK_EQUAL(_out_Mesh->GetNumberOfPoints(), _SavedPoints.size());
+    BOOST_CHECK_EQUAL( _out_Mesh->GetNumberOfPoints(), _in_Mesh->GetNumberOfPoints() );
+    BOOST_CHECK_EQUAL( _out_Mesh->GetNumberOfPoints(), _SavedPoints.size() );
 
     //check uvmap against original mesh input pointIDs
-    double value_test, value_truth;
     for (size_t point = 0; point < _SavedPoints.size(); ++point){
 
-        value_test  = _out_Mesh->GetPoint(point)[0];
-        value_truth = _SavedPoints[point].x;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE);
+      volcart::testing::SmallOrClose( _out_Mesh->GetPoint(point)[0], _SavedPoints[point].x );
+      volcart::testing::SmallOrClose( _out_Mesh->GetPoint(point)[1], _SavedPoints[point].y );
+      volcart::testing::SmallOrClose( _out_Mesh->GetPoint(point)[2], _SavedPoints[point].z );
 
-        value_test  = _out_Mesh->GetPoint(point)[1];
-        value_truth = _SavedPoints[point].y;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE);
-
-        value_test  = _out_Mesh->GetPoint(point)[2];
-        value_truth = _SavedPoints[point].z;
-        if( (std::abs(value_test) > MINIMUM_VALUE) && (std::abs(value_truth) > MINIMUM_VALUE) )
-            BOOST_CHECK_CLOSE_FRACTION( value_test, value_truth, TOLERANCE);
     }
 
 }
