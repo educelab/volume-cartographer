@@ -8,18 +8,19 @@
 #define BOOST_TEST_MODULE itk2vtk
 
 #include <boost/test/unit_test.hpp>
-
 #include <boost/test/unit_test_log.hpp>
+#include <itkMeshFileReader.h>
+
 #include "vc_defines.h"
 #include "shapes.h"
 #include "itk2vtk.h"
 #include "parsingHelpers.h"
-#include <itkMeshFileReader.h>
+#include "testingUtils.h"
 
 
 /************************************************************************************
  *                                                                                  *
- *  it2vtkTest.cpp - tests the functionality of /v-c/meshing/it2vtk.cpp             *
+ *  it2vtkTest.cpp, tests the functionality of /v-c/meshing/it2vtk.cpp             *
  *  The ultimate goal of this file is the following:                                *
  *                                                                                  *
  *        1. check whether an itk mesh can be converted to a vtk mesh               *
@@ -61,11 +62,9 @@
  *     See the /testing/meshing wiki for more information on this test              *
  * **********************************************************************************/
 
-const double TOLERANCE     = 0.00001;
-
 /*
  * The following five fixture build test inputs for the itk2vtk tests
- * 
+ *
  * Comments are included in the Plane Fixture only...the remainder of the fixure copy the same ideas
  */
 
@@ -75,15 +74,15 @@ struct itk2vtkPlaneFixture {
 
         //fill itk mesh
         _in_Mesh = _Plane.itkMesh();
-                
+
         //init vtkpolydata pointers
         _out_Mesh = vtkPolyData::New();
-        
-        //call itk2vtk 
+
+        //call itk2vtk
         volcart::meshing::itk2vtk(_in_Mesh, _out_Mesh);
 
         //Read in the vtk.ply file
-        volcart::testing::ParsingHelpers::parsePlyFile("ITKPlaneMeshConvertedToVTK.ply", 
+        volcart::testing::ParsingHelpers::parsePlyFile("ITKPlaneMeshConvertedToVTK.ply",
                                                                             _SavedPoints, _SavedCells);
 
         //std::cerr << "setting up itk2vtk Plane test objects" << std::endl;
@@ -96,10 +95,10 @@ struct itk2vtkPlaneFixture {
 
     //declare itk input mesh object
     VC_MeshType::Pointer _in_Mesh;
-    
+
     //declare vtk output polydata object
     vtkPolyData* _out_Mesh;
-    
+
     //Declare vectors that will hold read data created by itk2vtkExample.cpp
     std::vector<VC_Vertex> _SavedPoints;
     std::vector<VC_Cell> _SavedCells;
@@ -108,7 +107,7 @@ struct itk2vtkPlaneFixture {
 struct itk2vtkCubeFixture {
 
     itk2vtkCubeFixture() {
-        
+
         _in_Mesh = _Cube.itkMesh();
         _out_Mesh = vtkPolyData::New();
         volcart::meshing::itk2vtk(_in_Mesh, _out_Mesh);
@@ -119,7 +118,7 @@ struct itk2vtkCubeFixture {
     }
 
     ~itk2vtkCubeFixture(){ /*std::cerr << "cleaning up itk2vtk Cube test objects" << std::endl;*/ }
-    
+
     volcart::shapes::Cube _Cube;
     VC_MeshType::Pointer _in_Mesh;
     vtkPolyData* _out_Mesh;
@@ -200,7 +199,7 @@ struct itk2vtkConeFixture {
 
 /*
  * The following five fixture build test inputs for the vtk2itk tests
- * 
+ *
  * Comments are included in the Plane Fixture only...the remainder of the fixure copy the same ideas
  */
 
@@ -210,7 +209,7 @@ struct vtk2itkPlaneFixture {
 
         _in_Mesh = _Plane.vtkMesh();
         _out_Mesh = VC_MeshType::New();
-        
+
         // assign smartpointer data into vtkPolyData* object
         vtkReadPlaneData = _in_Mesh.GetPointer();
 
@@ -218,9 +217,9 @@ struct vtk2itkPlaneFixture {
         volcart::meshing::vtk2itk(vtkReadPlaneData, _out_Mesh);
 
         // read data in from saved file created by itk2vtkExample.cpp
-        volcart::testing::ParsingHelpers::parseObjFile("VTKPlaneMeshConvertedToITK.obj", 
+        volcart::testing::ParsingHelpers::parseObjFile("VTKPlaneMeshConvertedToITK.obj",
                                                                            _SavedPoints, _SavedCells);
-        
+
         //std::cerr << "setting up vtk2itk Plane test objects" << std::endl;
     }
 
@@ -234,14 +233,14 @@ struct vtk2itkPlaneFixture {
 
     //pointer that will hold input mesh data for conversion to itk mesh
     vtkPolyData* vtkReadPlaneData;
-    
+
     //declare mesh to hold output of vtk2itk call
     VC_MeshType::Pointer _out_Mesh;
 
     //declare vectors to hold points and cells from savedITK data file created by itk2vtkExample.cpp
     std::vector<VC_Vertex> _SavedPoints;
     std::vector<VC_Cell> _SavedCells;
-    
+
 };
 
 struct vtk2itkCubeFixture {
@@ -259,7 +258,7 @@ struct vtk2itkCubeFixture {
     }
 
     ~vtk2itkCubeFixture(){ /*std::cerr << "cleaning up vtk2itk Cube test objects" << std::endl;*/ }
-    
+
     volcart::shapes::Cube _Cube;
     vtkSmartPointer<vtkPolyData> _in_Mesh;
     vtkPolyData* vtkReadCubeData;
@@ -358,15 +357,15 @@ struct vtk2itkConeFixture {
  */
 
 BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedPlaneWithSavedPlaneVTKFileTest, itk2vtkPlaneFixture){
-    
+
     //Check number of points in each mesh
     BOOST_CHECK_EQUAL( _out_Mesh->GetNumberOfPoints(), _SavedPoints.size() );
 
     //Now iterate over point sets and compare coordinate and normal values
     for ( size_t pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints(); ++pnt_id) {
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(pnt_id)[0] - _SavedPoints[pnt_id].x), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(pnt_id)[1] - _SavedPoints[pnt_id].y), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(pnt_id)[2] - _SavedPoints[pnt_id].z), TOLERANCE );
+        volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[0], _SavedPoints[pnt_id].x);
+        volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[1], _SavedPoints[pnt_id].y);
+        volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[2], _SavedPoints[pnt_id].z);
     }
 
     //Normals
@@ -375,9 +374,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedPlaneWithSavedPlaneVTKFil
 
         VC_PixelType out_NormalTuple = out_PlanePointNormals->GetTuple(pnt_id);
 
-        BOOST_CHECK_SMALL( std::fabs(out_NormalTuple[0] - _SavedPoints[pnt_id].nx), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(out_NormalTuple[1] - _SavedPoints[pnt_id].ny), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(out_NormalTuple[2] - _SavedPoints[pnt_id].nz), TOLERANCE );
+        volcart::testing::SmallOrClose(out_NormalTuple[0], _SavedPoints[pnt_id].nx);
+        volcart::testing::SmallOrClose(out_NormalTuple[1], _SavedPoints[pnt_id].ny);
+        volcart::testing::SmallOrClose(out_NormalTuple[2], _SavedPoints[pnt_id].nz);
     }
 
     //Cells
@@ -404,9 +403,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedCubeWithSavedCubeVTKFileT
 
     //Now iterate over point sets and compare coordinate and normal values
     for ( size_t pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints(); ++pnt_id) {
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(pnt_id)[0] - _SavedPoints[pnt_id].x), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(pnt_id)[1] - _SavedPoints[pnt_id].y), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(pnt_id)[2] - _SavedPoints[pnt_id].z), TOLERANCE );
+        volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[0], _SavedPoints[pnt_id].x);
+        volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[1], _SavedPoints[pnt_id].y);
+        volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[2], _SavedPoints[pnt_id].z);
     }
 
     //Normals
@@ -415,11 +414,11 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedCubeWithSavedCubeVTKFileT
 
         VC_PixelType out_NormalTuple = out_PlanePointNormals->GetTuple(pnt_id);
 
-        BOOST_CHECK_SMALL( std::fabs(out_NormalTuple[0] - _SavedPoints[pnt_id].nx), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(out_NormalTuple[1] - _SavedPoints[pnt_id].ny), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(out_NormalTuple[2] - _SavedPoints[pnt_id].nz), TOLERANCE );
+        volcart::testing::SmallOrClose(out_NormalTuple[0], _SavedPoints[pnt_id].nx);
+        volcart::testing::SmallOrClose(out_NormalTuple[1], _SavedPoints[pnt_id].ny);
+        volcart::testing::SmallOrClose(out_NormalTuple[2], _SavedPoints[pnt_id].nz);
     }
-    
+
     BOOST_CHECK_EQUAL(_out_Mesh->GetNumberOfCells(), _SavedCells.size());
 
     for ( int c_id = 0; c_id < _out_Mesh->GetNumberOfCells(); c_id++){
@@ -439,9 +438,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedArchWithSavedArchVTKFileT
 
     //Now iterate over point sets and compare coordinate and normal values
     for ( size_t pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints(); ++pnt_id) {
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(pnt_id)[0] - _SavedPoints[pnt_id].x), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(pnt_id)[1] - _SavedPoints[pnt_id].y), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(pnt_id)[2] - _SavedPoints[pnt_id].z), TOLERANCE );
+        volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[0], _SavedPoints[pnt_id].x);
+        volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[1], _SavedPoints[pnt_id].y);
+        volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[2], _SavedPoints[pnt_id].z);
     }
 
     //Normals
@@ -450,9 +449,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedArchWithSavedArchVTKFileT
 
         VC_PixelType out_NormalTuple = out_PlanePointNormals->GetTuple(pnt_id);
 
-        BOOST_CHECK_SMALL( std::fabs(out_NormalTuple[0] - _SavedPoints[pnt_id].nx), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(out_NormalTuple[1] - _SavedPoints[pnt_id].ny), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(out_NormalTuple[2] - _SavedPoints[pnt_id].nz), TOLERANCE );
+        volcart::testing::SmallOrClose(out_NormalTuple[0], _SavedPoints[pnt_id].nx);
+        volcart::testing::SmallOrClose(out_NormalTuple[1], _SavedPoints[pnt_id].ny);
+        volcart::testing::SmallOrClose(out_NormalTuple[2], _SavedPoints[pnt_id].nz);
     }
 
     BOOST_CHECK_EQUAL(_out_Mesh->GetNumberOfCells(), _SavedCells.size());
@@ -474,9 +473,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedSphereWithSavedSphereVTKF
 
     //Now iterate over point sets and compare coordinate and normal values
     for ( size_t pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints(); ++pnt_id) {
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(pnt_id)[0] - _SavedPoints[pnt_id].x), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(pnt_id)[1] - _SavedPoints[pnt_id].y), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(pnt_id)[2] - _SavedPoints[pnt_id].z), TOLERANCE );
+        volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[0], _SavedPoints[pnt_id].x);
+        volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[1], _SavedPoints[pnt_id].y);
+        volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[2], _SavedPoints[pnt_id].z);
     }
 
     //Normals
@@ -485,9 +484,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedSphereWithSavedSphereVTKF
 
         VC_PixelType out_NormalTuple = out_PlanePointNormals->GetTuple(pnt_id);
 
-        BOOST_CHECK_SMALL( std::fabs(out_NormalTuple[0] - _SavedPoints[pnt_id].nx), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(out_NormalTuple[1] - _SavedPoints[pnt_id].ny), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(out_NormalTuple[2] - _SavedPoints[pnt_id].nz), TOLERANCE );
+        volcart::testing::SmallOrClose(out_NormalTuple[0], _SavedPoints[pnt_id].nx);
+        volcart::testing::SmallOrClose(out_NormalTuple[1], _SavedPoints[pnt_id].ny);
+        volcart::testing::SmallOrClose(out_NormalTuple[2], _SavedPoints[pnt_id].nz);
     }
 
     BOOST_CHECK_EQUAL(_out_Mesh->GetNumberOfCells(), _SavedCells.size());
@@ -509,9 +508,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedConeWithSavedConeVTKFileT
 
     //Now iterate over point sets and compare coordinate and normal values
     for ( size_t pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints(); ++pnt_id) {
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(pnt_id)[0] - _SavedPoints[pnt_id].x), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(pnt_id)[1] - _SavedPoints[pnt_id].y), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(pnt_id)[2] - _SavedPoints[pnt_id].z), TOLERANCE );
+        volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[0], _SavedPoints[pnt_id].x);
+        volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[1], _SavedPoints[pnt_id].y);
+        volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[2], _SavedPoints[pnt_id].z);
     }
 
     //Normals
@@ -520,9 +519,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedConeWithSavedConeVTKFileT
 
         VC_PixelType out_NormalTuple = out_PlanePointNormals->GetTuple(pnt_id);
 
-        BOOST_CHECK_SMALL( std::fabs(out_NormalTuple[0] - _SavedPoints[pnt_id].nx), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(out_NormalTuple[1] - _SavedPoints[pnt_id].ny), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(out_NormalTuple[2] - _SavedPoints[pnt_id].nz), TOLERANCE );
+        volcart::testing::SmallOrClose(out_NormalTuple[0], _SavedPoints[pnt_id].nx);
+        volcart::testing::SmallOrClose(out_NormalTuple[1], _SavedPoints[pnt_id].ny);
+        volcart::testing::SmallOrClose(out_NormalTuple[2], _SavedPoints[pnt_id].nz);
     }
 
     BOOST_CHECK_EQUAL(_out_Mesh->GetNumberOfCells(), _SavedCells.size());
@@ -557,9 +556,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureVTKToITKConvertedPlaneWithSavedPlaneITKFil
 
     //Check equivalency of points
     for ( size_t pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints(); ++pnt_id) {
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(pnt_id)[0] - _SavedPoints[pnt_id].x), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(pnt_id)[1] - _SavedPoints[pnt_id].y), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(pnt_id)[2] - _SavedPoints[pnt_id].z), TOLERANCE );
+        volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[0], _SavedPoints[pnt_id].x);
+        volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[1], _SavedPoints[pnt_id].y);
+        volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[2], _SavedPoints[pnt_id].z);
     }
 
     // Normals //
@@ -568,11 +567,11 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureVTKToITKConvertedPlaneWithSavedPlaneITKFil
         VC_PixelType _out_MeshNormal;
         _out_Mesh->GetPointData(point.Index(), &_out_MeshNormal);
 
-        BOOST_CHECK_SMALL( std::fabs(_out_MeshNormal[0] - _SavedPoints[p].nx), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_MeshNormal[1] - _SavedPoints[p].ny), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_MeshNormal[2] - _SavedPoints[p].nz), TOLERANCE );
+        volcart::testing::SmallOrClose(_out_MeshNormal[0], _SavedPoints[p].nx);
+        volcart::testing::SmallOrClose(_out_MeshNormal[1], _SavedPoints[p].ny);
+        volcart::testing::SmallOrClose(_out_MeshNormal[2], _SavedPoints[p].nz);
     }
-    
+
     //Cells (faces)
 
     // Initialize Cell Iterators
@@ -611,14 +610,14 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureVTKToITKConvertedPlaneWithSavedPlaneITKFil
 }
 
 BOOST_FIXTURE_TEST_CASE(CompareFixtureVTKToITKConvertedCubeWithSavedCubeITKFileTest, vtk2itkCubeFixture){
-    
+
     BOOST_CHECK_EQUAL(_SavedPoints.size(), _out_Mesh->GetNumberOfPoints());
 
     //Check equivalency of points
     for ( size_t pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints(); ++pnt_id) {
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(pnt_id)[0] - _SavedPoints[pnt_id].x), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(pnt_id)[1] - _SavedPoints[pnt_id].y), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(pnt_id)[2] - _SavedPoints[pnt_id].z), TOLERANCE );
+        volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[0], _SavedPoints[pnt_id].x);
+        volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[1], _SavedPoints[pnt_id].y);
+        volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[2], _SavedPoints[pnt_id].z);
     }
 
     // Normals //
@@ -627,32 +626,32 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureVTKToITKConvertedCubeWithSavedCubeITKFileT
         VC_PixelType _out_MeshNormal;
         _out_Mesh->GetPointData(point.Index(), &_out_MeshNormal);
 
-        BOOST_CHECK_SMALL( std::fabs(_out_MeshNormal[0] - _SavedPoints[p].nx), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_MeshNormal[1] - _SavedPoints[p].ny), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_MeshNormal[2] - _SavedPoints[p].nz), TOLERANCE );
+        volcart::testing::SmallOrClose(_out_MeshNormal[0], _SavedPoints[p].nx);
+        volcart::testing::SmallOrClose(_out_MeshNormal[1], _SavedPoints[p].ny);
+        volcart::testing::SmallOrClose(_out_MeshNormal[2], _SavedPoints[p].nz);
     }
 
     VC_CellIterator _out_MeshCell = _out_Mesh->GetCells()->Begin();
     int c = 0;
 
     while (_out_MeshCell != _out_Mesh->GetCells()->End()) {
-        
+
         VC_PointsInCellIterator _out_MeshPointId = _out_MeshCell.Value()->PointIdsBegin();
 
         int counter = 0;
         while ( _out_MeshPointId != _out_MeshCell.Value()->PointIdsEnd() ) {
-            
+
             if (counter == 0)
                 BOOST_CHECK_EQUAL(*_out_MeshPointId, _SavedCells[c].v1);
             else if(counter == 1)
                 BOOST_CHECK_EQUAL(*_out_MeshPointId, _SavedCells[c].v2);
             else if (counter == 2)
                 BOOST_CHECK_EQUAL(*_out_MeshPointId, _SavedCells[c].v3);
-            
+
             _out_MeshPointId++;
             counter++;
         }
-        
+
         ++_out_MeshCell;
         ++c;
     }
@@ -660,14 +659,14 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureVTKToITKConvertedCubeWithSavedCubeITKFileT
 }
 
 BOOST_FIXTURE_TEST_CASE(CompareFixtureVTKToITKConvertedArchWithSavedArchITKFileTest, vtk2itkArchFixture){
-    
+
     BOOST_CHECK_EQUAL(_SavedPoints.size(), _out_Mesh->GetNumberOfPoints());
 
     //Check equivalency of points
     for ( size_t pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints(); ++pnt_id) {
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(pnt_id)[0] - _SavedPoints[pnt_id].x), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(pnt_id)[1] - _SavedPoints[pnt_id].y), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(pnt_id)[2] - _SavedPoints[pnt_id].z), TOLERANCE );
+        volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[0], _SavedPoints[pnt_id].x);
+        volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[1], _SavedPoints[pnt_id].y);
+        volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[2], _SavedPoints[pnt_id].z);
     }
 
     // Normals //
@@ -676,33 +675,33 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureVTKToITKConvertedArchWithSavedArchITKFileT
         VC_PixelType _out_MeshNormal;
         _out_Mesh->GetPointData(point.Index(), &_out_MeshNormal);
 
-        BOOST_CHECK_SMALL( std::fabs(_out_MeshNormal[0] - _SavedPoints[p].nx), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_MeshNormal[1] - _SavedPoints[p].ny), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_MeshNormal[2] - _SavedPoints[p].nz), TOLERANCE );
+        volcart::testing::SmallOrClose(_out_MeshNormal[0], _SavedPoints[p].nx);
+        volcart::testing::SmallOrClose(_out_MeshNormal[1], _SavedPoints[p].ny);
+        volcart::testing::SmallOrClose(_out_MeshNormal[2], _SavedPoints[p].nz);
     }
 
     VC_CellIterator _out_MeshCell = _out_Mesh->GetCells()->Begin();
     int c = 0;
 
     while (_out_MeshCell != _out_Mesh->GetCells()->End()) {
-        
+
         VC_PointsInCellIterator _out_MeshPointId = _out_MeshCell.Value()->PointIdsBegin();
 
         int counter = 0;
         while ( _out_MeshPointId != _out_MeshCell.Value()->PointIdsEnd() ) {
-            
+
             if (counter == 0)
                 BOOST_CHECK_EQUAL(*_out_MeshPointId, _SavedCells[c].v1);
             else if(counter == 1)
                 BOOST_CHECK_EQUAL(*_out_MeshPointId, _SavedCells[c].v2);
             else if (counter == 2)
                 BOOST_CHECK_EQUAL(*_out_MeshPointId, _SavedCells[c].v3);
-            
+
             _out_MeshPointId++;
             counter++;
 
         }
-        
+
         ++_out_MeshCell;
         ++c;
     }
@@ -715,9 +714,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureVTKToITKConvertedSphereWithSavedSphereITKF
 
     //Check equivalency of points
     for ( size_t pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints(); ++pnt_id) {
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(pnt_id)[0] - _SavedPoints[pnt_id].x), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(pnt_id)[1] - _SavedPoints[pnt_id].y), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(pnt_id)[2] - _SavedPoints[pnt_id].z), TOLERANCE );
+        volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[0], _SavedPoints[pnt_id].x);
+        volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[1], _SavedPoints[pnt_id].y);
+        volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[2], _SavedPoints[pnt_id].z);
     }
 
     // Normals //
@@ -726,9 +725,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureVTKToITKConvertedSphereWithSavedSphereITKF
         VC_PixelType _out_MeshNormal;
         _out_Mesh->GetPointData(point.Index(), &_out_MeshNormal);
 
-        BOOST_CHECK_SMALL( std::fabs(_out_MeshNormal[0] - _SavedPoints[p].nx), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_MeshNormal[1] - _SavedPoints[p].ny), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_MeshNormal[2] - _SavedPoints[p].nz), TOLERANCE );
+        volcart::testing::SmallOrClose(_out_MeshNormal[0], _SavedPoints[p].nx);
+        volcart::testing::SmallOrClose(_out_MeshNormal[1], _SavedPoints[p].ny);
+        volcart::testing::SmallOrClose(_out_MeshNormal[2], _SavedPoints[p].nz);
     }
 
     VC_CellIterator _out_MeshCell = _out_Mesh->GetCells()->Begin();
@@ -765,9 +764,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureVTKToITKConvertedConeWithSavedConeITKFileT
 
     //Check equivalency of points
     for ( size_t pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints(); ++pnt_id) {
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(pnt_id)[0] - _SavedPoints[pnt_id].x), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(pnt_id)[1] - _SavedPoints[pnt_id].y), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(pnt_id)[2] - _SavedPoints[pnt_id].z), TOLERANCE );
+        volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[0], _SavedPoints[pnt_id].x);
+        volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[1], _SavedPoints[pnt_id].y);
+        volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[2], _SavedPoints[pnt_id].z);
     }
 
     // Normals //
@@ -776,9 +775,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureVTKToITKConvertedConeWithSavedConeITKFileT
         VC_PixelType _out_MeshNormal;
         _out_Mesh->GetPointData(point.Index(), &_out_MeshNormal);
 
-        BOOST_CHECK_SMALL( std::fabs(_out_MeshNormal[0] - _SavedPoints[p].nx), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_MeshNormal[1] - _SavedPoints[p].ny), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_MeshNormal[2] - _SavedPoints[p].nz), TOLERANCE );
+        volcart::testing::SmallOrClose(_out_MeshNormal[0], _SavedPoints[p].nx);
+        volcart::testing::SmallOrClose(_out_MeshNormal[1], _SavedPoints[p].ny);
+        volcart::testing::SmallOrClose(_out_MeshNormal[2], _SavedPoints[p].nz);
     }
 
     VC_CellIterator _out_MeshCell = _out_Mesh->GetCells()->Begin();

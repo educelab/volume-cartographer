@@ -9,10 +9,12 @@
 
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
+#include <pcl/io/pcd_io.h>
+
 #include "vc_defines.h"
 #include "shapes.h"
+#include "testingUtils.h"
 #include "resamplePointCloud.h"
-#include <pcl/io/pcd_io.h>
 
 /************************************************************************************
  *                                                                                  *
@@ -47,7 +49,7 @@ struct PlaneResamplePointCloudFixture {
 
     PlaneResamplePointCloudFixture() {
 
-        //create a Plane Point Cloud -> convert to pointer ->   
+        //create a Plane Point Cloud -> convert to pointer ->
         //call resample() and assign results -> save point data from cloud into vector
         _in_PlanePointCloud = _Plane.pointCloudXYZ();
         pcl::PointCloud<pcl::PointXYZ>::Ptr _in_PlaneCloudPtr(new pcl::PointCloud<pcl::PointXYZ>);
@@ -99,7 +101,7 @@ struct CubeResamplePointCloudFixture {
 struct ArchResamplePointCloudFixture {
 
     ArchResamplePointCloudFixture() {
-        
+
         _in_ArchPointCloud = _Arch.pointCloudXYZ();
         pcl::PointCloud<pcl::PointXYZ>::Ptr _in_ArchCloudPtr(new pcl::PointCloud<pcl::PointXYZ>);
         *_in_ArchCloudPtr = _in_ArchPointCloud;
@@ -123,7 +125,7 @@ struct ArchResamplePointCloudFixture {
 struct SphereResamplePointCloudFixture {
 
     SphereResamplePointCloudFixture() {
-        
+
         _in_SpherePointCloud = _Sphere.pointCloudXYZ();
         pcl::PointCloud<pcl::PointXYZ>::Ptr _in_SphereCloudPtr(new pcl::PointCloud<pcl::PointXYZ>);
         *_in_SphereCloudPtr = _in_SpherePointCloud;
@@ -147,7 +149,7 @@ struct SphereResamplePointCloudFixture {
 struct ConeResamplePointCloudFixture {
 
     ConeResamplePointCloudFixture() {
-        
+
         _in_ConePointCloud = _Cone.pointCloudXYZ();
         pcl::PointCloud<pcl::PointXYZ>::Ptr _in_ConeCloudPtr(new pcl::PointCloud<pcl::PointXYZ>);
         *_in_ConeCloudPtr = _in_ConePointCloud;
@@ -179,12 +181,12 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureAndSavedResampledPlanePointClouds, PlaneRe
     //Check that the cloud data matches for both resampled clouds
     for (int i = 0; i < _out_PlaneCloudPointData.size(); i ++) {
 
-        BOOST_CHECK_CLOSE_FRACTION(_out_PlaneCloudPointData[i].x, _SavedPointCloudData[i].x, 0.0001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_PlaneCloudPointData[i].y, _SavedPointCloudData[i].y, 0.0001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_PlaneCloudPointData[i].z, _SavedPointCloudData[i].z, 0.0001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_PlaneCloudPointData[i].normal_x, _SavedPointCloudData[i].normal_x, 0.0001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_PlaneCloudPointData[i].normal_y, _SavedPointCloudData[i].normal_y, 0.0001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_PlaneCloudPointData[i].normal_z, _SavedPointCloudData[i].normal_z, 0.0001);
+        volcart::testing::SmallOrClose(_out_PlaneCloudPointData[i].x, _SavedPointCloudData[i].x);
+        volcart::testing::SmallOrClose(_out_PlaneCloudPointData[i].y, _SavedPointCloudData[i].y);
+        volcart::testing::SmallOrClose(_out_PlaneCloudPointData[i].z, _SavedPointCloudData[i].z);
+        volcart::testing::SmallOrClose(_out_PlaneCloudPointData[i].normal_x, _SavedPointCloudData[i].normal_x);
+        volcart::testing::SmallOrClose(_out_PlaneCloudPointData[i].normal_y, _SavedPointCloudData[i].normal_y);
+        volcart::testing::SmallOrClose(_out_PlaneCloudPointData[i].normal_z, _SavedPointCloudData[i].normal_z);
     }
 }
 
@@ -193,12 +195,12 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureAndSavedResampledCubePointClouds, CubeResa
     //Check that the cloud data matches for both resampled clouds
     for (int i = 0; i < _out_CubeCloudPointData.size(); i ++) {
 
-        BOOST_CHECK_CLOSE_FRACTION(_out_CubeCloudPointData[i].x, _SavedPointCloudData[i].x, 0.0001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_CubeCloudPointData[i].y, _SavedPointCloudData[i].y, 0.0001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_CubeCloudPointData[i].z, _SavedPointCloudData[i].z, 0.0001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_CubeCloudPointData[i].normal_x, _SavedPointCloudData[i].normal_x, 0.0001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_CubeCloudPointData[i].normal_y, _SavedPointCloudData[i].normal_y, 0.0001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_CubeCloudPointData[i].normal_z, _SavedPointCloudData[i].normal_z, 0.0001);
+        volcart::testing::SmallOrClose(_out_CubeCloudPointData[i].x, _SavedPointCloudData[i].x);
+        volcart::testing::SmallOrClose(_out_CubeCloudPointData[i].y, _SavedPointCloudData[i].y);
+        volcart::testing::SmallOrClose(_out_CubeCloudPointData[i].z, _SavedPointCloudData[i].z);
+        volcart::testing::SmallOrClose(_out_CubeCloudPointData[i].normal_x, _SavedPointCloudData[i].normal_x);
+        volcart::testing::SmallOrClose(_out_CubeCloudPointData[i].normal_y, _SavedPointCloudData[i].normal_y);
+        volcart::testing::SmallOrClose(_out_CubeCloudPointData[i].normal_z, _SavedPointCloudData[i].normal_z);
     }
 }
 
@@ -207,12 +209,12 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureAndSavedResampledArchPointClouds, ArchResa
     //Check that the cloud data matches for both resampled clouds
     for (int i = 0; i < _out_ArchCloudPointData.size(); i ++) {
 
-        BOOST_CHECK_CLOSE_FRACTION(_out_ArchCloudPointData[i].x, _SavedPointCloudData[i].x, 0.0001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_ArchCloudPointData[i].y, _SavedPointCloudData[i].y, 0.0001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_ArchCloudPointData[i].z, _SavedPointCloudData[i].z, 0.0001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_ArchCloudPointData[i].normal_x, _SavedPointCloudData[i].normal_x, 0.0001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_ArchCloudPointData[i].normal_y, _SavedPointCloudData[i].normal_y, 0.0001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_ArchCloudPointData[i].normal_z, _SavedPointCloudData[i].normal_z, 0.0001);
+        volcart::testing::SmallOrClose(_out_ArchCloudPointData[i].x, _SavedPointCloudData[i].x);
+        volcart::testing::SmallOrClose(_out_ArchCloudPointData[i].y, _SavedPointCloudData[i].y);
+        volcart::testing::SmallOrClose(_out_ArchCloudPointData[i].z, _SavedPointCloudData[i].z);
+        volcart::testing::SmallOrClose(_out_ArchCloudPointData[i].normal_x, _SavedPointCloudData[i].normal_x);
+        volcart::testing::SmallOrClose(_out_ArchCloudPointData[i].normal_y, _SavedPointCloudData[i].normal_y);
+        volcart::testing::SmallOrClose(_out_ArchCloudPointData[i].normal_z, _SavedPointCloudData[i].normal_z);
     }
 }
 
@@ -221,12 +223,12 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureAndSavedResampledSpherePointClouds, Sphere
     //Check that the cloud data matches for both resampled clouds
     for (int i = 0; i < _out_SphereCloudPointData.size(); i ++) {
 
-        BOOST_CHECK_CLOSE_FRACTION(_out_SphereCloudPointData[i].x, _SavedPointCloudData[i].x, 0.0001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_SphereCloudPointData[i].y, _SavedPointCloudData[i].y, 0.0001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_SphereCloudPointData[i].z, _SavedPointCloudData[i].z, 0.0001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_SphereCloudPointData[i].normal_x, _SavedPointCloudData[i].normal_x, 0.0001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_SphereCloudPointData[i].normal_y, _SavedPointCloudData[i].normal_y, 0.0001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_SphereCloudPointData[i].normal_z, _SavedPointCloudData[i].normal_z, 0.0001);
+        volcart::testing::SmallOrClose(_out_SphereCloudPointData[i].x, _SavedPointCloudData[i].x);
+        volcart::testing::SmallOrClose(_out_SphereCloudPointData[i].y, _SavedPointCloudData[i].y);
+        volcart::testing::SmallOrClose(_out_SphereCloudPointData[i].z, _SavedPointCloudData[i].z);
+        volcart::testing::SmallOrClose(_out_SphereCloudPointData[i].normal_x, _SavedPointCloudData[i].normal_x);
+        volcart::testing::SmallOrClose(_out_SphereCloudPointData[i].normal_y, _SavedPointCloudData[i].normal_y);
+        volcart::testing::SmallOrClose(_out_SphereCloudPointData[i].normal_z, _SavedPointCloudData[i].normal_z);
     }
 }
 
@@ -235,12 +237,12 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureAndSavedResampledConePointClouds, ConeResa
     //Check that the cloud data matches for both resampled clouds
     for (int i = 0; i < _out_ConeCloudPointData.size(); i ++) {
 
-        BOOST_CHECK_CLOSE_FRACTION(_out_ConeCloudPointData[i].x, _SavedPointCloudData[i].x, 0.0001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_ConeCloudPointData[i].y, _SavedPointCloudData[i].y, 0.0001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_ConeCloudPointData[i].z, _SavedPointCloudData[i].z, 0.0001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_ConeCloudPointData[i].normal_x, _SavedPointCloudData[i].normal_x, 0.0001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_ConeCloudPointData[i].normal_y, _SavedPointCloudData[i].normal_y, 0.0001);
-        BOOST_CHECK_CLOSE_FRACTION(_out_ConeCloudPointData[i].normal_z, _SavedPointCloudData[i].normal_z, 0.0001);
+        volcart::testing::SmallOrClose(_out_ConeCloudPointData[i].x, _SavedPointCloudData[i].x);
+        volcart::testing::SmallOrClose(_out_ConeCloudPointData[i].y, _SavedPointCloudData[i].y);
+        volcart::testing::SmallOrClose(_out_ConeCloudPointData[i].z, _SavedPointCloudData[i].z);
+        volcart::testing::SmallOrClose(_out_ConeCloudPointData[i].normal_x, _SavedPointCloudData[i].normal_x);
+        volcart::testing::SmallOrClose(_out_ConeCloudPointData[i].normal_y, _SavedPointCloudData[i].normal_y);
+        volcart::testing::SmallOrClose(_out_ConeCloudPointData[i].normal_z, _SavedPointCloudData[i].normal_z);
     }
 }
 
@@ -249,7 +251,7 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureAndSavedResampledConePointClouds, ConeResa
 
 /*
  * helper function
- * 
+ *
  */
 double CalculateRadius(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud){
 

@@ -13,6 +13,7 @@
 #include "shapes.h"
 #include "abf.h"
 #include "parsingHelpers.h"
+#include "testingUtils.h"
 
 
 /***************************************************************************************
@@ -41,8 +42,6 @@
  *     number of testing errors is output.                                             *
  *                                                                                     *
  * *************************************************************************************/
-
-const double TOLERANCE     = 0.00001;
 
 /*
  *
@@ -185,9 +184,9 @@ BOOST_FIXTURE_TEST_CASE(PlaneABFUVTest, CreatePlaneABFUVFixture){
     //check uvmap against original mesh input pointIDs
     for (size_t point = 0; point < _SavedPoints.size(); ++point){
 
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(point)[0] - _SavedPoints[point].x), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(point)[1] - _SavedPoints[point].y), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(point)[2] - _SavedPoints[point].z), TOLERANCE );
+        volcart::testing::SmallOrClose( _out_Mesh->GetPoint(point)[0], _SavedPoints[point].x );
+        volcart::testing::SmallOrClose( _out_Mesh->GetPoint(point)[1], _SavedPoints[point].y );
+        volcart::testing::SmallOrClose( _out_Mesh->GetPoint(point)[2], _SavedPoints[point].z );
 
     }
 
@@ -202,9 +201,9 @@ BOOST_FIXTURE_TEST_CASE(PlaneABFLSCMOnlyUVTest, CreatePlaneABFLSCMOnlyUVFixture)
     //check uvmap against original mesh input pointIDs
     for (size_t point = 0; point < _SavedPoints.size(); ++point){
 
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(point)[0] - _SavedPoints[point].x), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(point)[1] - _SavedPoints[point].y), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(point)[2] - _SavedPoints[point].z), TOLERANCE );
+      volcart::testing::SmallOrClose( _out_Mesh->GetPoint(point)[0], _SavedPoints[point].x );
+      volcart::testing::SmallOrClose( _out_Mesh->GetPoint(point)[1], _SavedPoints[point].y );
+      volcart::testing::SmallOrClose( _out_Mesh->GetPoint(point)[2], _SavedPoints[point].z );
 
     }
 
@@ -219,9 +218,9 @@ BOOST_FIXTURE_TEST_CASE(ArchABFUVTest, CreateArchABFUVFixture){
     //check uvmap against original mesh input pointIDs
     for (size_t point = 0; point < _SavedPoints.size(); ++point){
 
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(point)[0] - _SavedPoints[point].x), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(point)[1] - _SavedPoints[point].y), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(point)[2] - _SavedPoints[point].z), TOLERANCE );
+      volcart::testing::SmallOrClose( _out_Mesh->GetPoint(point)[0], _SavedPoints[point].x );
+      volcart::testing::SmallOrClose( _out_Mesh->GetPoint(point)[1], _SavedPoints[point].y );
+      volcart::testing::SmallOrClose( _out_Mesh->GetPoint(point)[2], _SavedPoints[point].z );
 
     }
 
@@ -236,9 +235,9 @@ BOOST_FIXTURE_TEST_CASE(ArchABFLSCMOnlyUVTest, CreateArchABFLSCMOnlyUVFixture){
     //check uvmap against original mesh input pointIDs
     for (size_t point = 0; point < _SavedPoints.size(); ++point){
 
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(point)[0] - _SavedPoints[point].x), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(point)[1] - _SavedPoints[point].y), TOLERANCE );
-        BOOST_CHECK_SMALL( std::fabs(_out_Mesh->GetPoint(point)[2] - _SavedPoints[point].z), TOLERANCE );
+      volcart::testing::SmallOrClose( _out_Mesh->GetPoint(point)[0], _SavedPoints[point].x );
+      volcart::testing::SmallOrClose( _out_Mesh->GetPoint(point)[1], _SavedPoints[point].y );
+      volcart::testing::SmallOrClose( _out_Mesh->GetPoint(point)[2], _SavedPoints[point].z );
 
     }
 
