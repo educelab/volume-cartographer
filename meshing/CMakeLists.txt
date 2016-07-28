@@ -16,11 +16,11 @@ set(meshing_SOURCES orderedPCDMesher.h orderedPCDMesher.cpp
 
 #Conditional compiles
 if(VC_USE_ACVD)
-     set(meshing_SOURCES ${meshing_SOURCES} ACVD.h ACVD.cpp)
+    set(meshing_SOURCES ${meshing_SOURCES} ACVD.h ACVD.cpp)
 endif(VC_USE_ACVD)
 
 if(VC_USE_BULLET)
-     set( meshing_SOURCES ${meshing_SOURCES} itk2bullet.h itk2bullet.cpp)
+    set( meshing_SOURCES ${meshing_SOURCES} itk2bullet.h itk2bullet.cpp)
 endif(VC_USE_BULLET)
 
 add_library(vc_meshing STATIC ${meshing_SOURCES})

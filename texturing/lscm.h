@@ -44,7 +44,7 @@ namespace volcart {
       double _area(const Eigen::MatrixXd& v, const Eigen::MatrixXi& f);
       double _startingArea;
 
-      const VC_MeshType::Pointer _mesh;
+      VC_MeshType::Pointer _mesh;
       Eigen::MatrixXd _vertices;
       Eigen::MatrixXi _faces;
       Eigen::MatrixXd _vertices_UV;

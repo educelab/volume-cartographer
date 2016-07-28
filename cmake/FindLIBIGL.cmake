@@ -7,13 +7,11 @@
 #  LIBIGL_SOURCES - the LIBIGL source files
 if(NOT LIBIGL_FOUND)
 
-if(VC_USE_INTERNAL_LIBIGL)
-  FIND_PATH(LIBIGL_INCLUDE_DIR igl/readOBJ.h
-    ${PROJECT_SOURCE_DIR}/external/libigl/include/)
-  if(NOT LIBIGL_INCLUDE_DIR)
-    message("WARNING: Internal libigl specified but not found. Will look in system path.")
-  endif(NOT LIBIGL_INCLUDE_DIR)
-endif()
+FIND_PATH(LIBIGL_INCLUDE_DIR igl/readOBJ.h
+${PROJECT_SOURCE_DIR}/external/libigl/include/)
+if(NOT LIBIGL_INCLUDE_DIR)
+   message("WARNING: Internal libigl not found. Will look in system path.")
+endif(NOT LIBIGL_INCLUDE_DIR)
 
 if(NOT LIBIGL_INCLUDE_DIR)
   FIND_PATH(LIBIGL_INCLUDE_DIR igl/readOBJ.h

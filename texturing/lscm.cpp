@@ -8,6 +8,12 @@ namespace volcart {
           _fillEigenMatrices();
         };
 
+        void lscm::setMesh( VC_MeshType::Pointer input ) {
+          _emptyEigenMatrices();
+          _mesh = input;
+          _fillEigenMatrices();
+        }
+
         void lscm::compute() {
 
           // Fix two points on the boundary
@@ -120,6 +126,13 @@ namespace volcart {
 
           // Set the starting area for later comparison
           _startingArea = _area( _vertices, _faces);
+        }
+
+        // Empty the data structures
+        void lscm::_emptyEigenMatrices() {
+          _vertices    = Eigen::MatrixXd();
+          _faces       = Eigen::MatrixXi();
+          _vertices_UV = Eigen::MatrixXd();
         }
 
         // Calculate surface area of meshes

@@ -1,5 +1,5 @@
 //
-// Created by Ryan Taber on 3/3/16.
+// Created by Seth Parker on 7/26/16.
 //
 
 #ifndef VC_BOOST_STATIC_LIBS
