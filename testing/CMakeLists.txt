@@ -241,7 +241,17 @@ add_test(NAME lrps_energymetrics
 #    texturing Folder   #
 #-----------------------#
 
-# Copy the test files for the ABF test
+# Cloth Modeling UV
+if(VC_USE_BULLET)
+    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/texturing/clothUV_Arch_Unfurl.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
+    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/texturing/clothUV_Arch_Collide.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
+    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/texturing/clothUV_Arch_Final.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
+    add_executable(vc_test_clothUV texturing/clothTest.cpp parsingHelpers.cpp)
+    target_link_libraries(vc_test_clothUV ${VC_LIBS} vc_meshing ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} )
+    add_test(NAME clothUV WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_clothUV )
+endif(VC_USE_BULLET)
+
+# Angle-based Flattening (ABF)
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/texturing/abf_Plane.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/texturing/abf_Plane_LSCMOnly.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/texturing/abf_Arch.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
@@ -250,6 +260,7 @@ add_executable(vc_test_abf texturing/abfTest.cpp parsingHelpers.cpp)
 target_link_libraries(vc_test_abf ${VC_LIBS} vc_meshing ${VC_REQ_LIBS} vc_SparseLinearSolver ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} )
 add_test(NAME abf WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_abf )
 
+# Least Squares Conformal Maps (LSCM)
 if(VC_USE_LIBIGL)
     file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/texturing/lscm_Plane.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
     file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/texturing/lscm_Arch.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)

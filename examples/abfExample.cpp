@@ -1,9 +1,9 @@
 //
-// Created by Seth Parker on 6/24/15.
+// Created by Seth Parker on 7/24/15.
 //
 /*
  * Purpose: Run volcart::texturing::abf() and write results to file for each shape.
- *          Saved file wills be read in by the abfTest.cpp file under v-c/testing/texturing.
+ *          Saved file will be read in by the abfTest.cpp file under v-c/testing/texturing.
  */
 
 #include "vc_defines.h"

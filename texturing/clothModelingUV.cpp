@@ -17,9 +17,9 @@ namespace volcart {
                                             _expansionPins(expansionPins)
         {
             // Default starting parameters
-            _unfurlA = 10;
+            _unfurlA     = 10;
             _collisionA = -10;
-            _expansionA = 10;
+            _expansionA = -10;
 
             // Create Dynamic world for bullet cloth simulation
             _WorldBroadphase = new btDbvtBroadphase();

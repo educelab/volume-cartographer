@@ -69,6 +69,11 @@ endif(VC_USE_ACVD)
 #  texturing  #
 ###############
 
+if(VC_USE_BULLET)
+    add_executable(vc_clothExample clothExample.cpp)
+    target_link_libraries(vc_clothExample ${VC_LIBS} vc_meshing ${VC_REQ_LIBS} ${VTK_LIBRARIES})
+endif(VC_USE_BULLET)
+
 if(VC_USE_LIBIGL)
     add_executable(vc_lscmExample lscmExample.cpp)
     target_link_libraries(vc_lscmExample ${VC_LIBS} vc_meshing ${VC_REQ_LIBS} ${VTK_LIBRARIES})
