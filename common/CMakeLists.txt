@@ -1,18 +1,30 @@
-cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
+project(libvc_common VERSION 0.1 LANGUAGES CXX)
 
-set(VC_COMMON_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-set(VC_COMMON_INCLUDE_DIR ${VC_COMMON_INCLUDE_DIR} PARENT_SCOPE)
+add_library(vc_common
+    src/Metadata.cpp
+	src/Texture.cpp
+    src/Volume.cpp
+    src/Slice.cpp
+    src/objWriter.cpp
+    src/plyWriter.cpp
+    src/ply2itk.cpp
+    src/ShapePrimitive.cpp
+    src/Sphere.cpp
+    src/getMemorySize.cpp)
 
-if(TARGET vc_common)
-message("vc_common is already defined")
-else()
-add_library(vc_common STATIC vc_defines.h
-    vc_datatypes.h datatypes/LRUCache.h datatypes/Metadata.h datatypes/Metadata.cpp
-	datatypes/UVMap.h datatypes/Texture.h datatypes/Texture.cpp
-    datatypes/Volume.h datatypes/Volume.cpp datatypes/Slice.h datatypes/Slice.cpp
-    scales/scales.h scales/scale_pi.h scales/scale_micro.h scales/scale_small.h
-    io/objWriter.cpp io/objWriter.h io/plyWriter.cpp io/plyWriter.h
-    io/ply2itk.h io/ply2itk.cpp
-    shapes.h shapes/ShapePrimitive.cpp shapes/ShapePrimitive.h shapes/Plane.h shapes/Arch.h shapes/Sphere.h shapes/Sphere.cpp shapes/Cube.h shapes/Cone.h
-    getMemorySize.h getMemorySize.cpp)
-endif()
+target_include_directories(vc_common
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/common>
+        $<INSTALL_INTERFACE:include/common
+)
+
+target_link_libraries(vc_common
+    PUBLIC
+        Boost::filesystem
+        opencv
+        ${ITK_LIBRARIES}
+        ${VTK_LIBRARIES}
+)
