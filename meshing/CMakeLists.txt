@@ -13,7 +13,8 @@ set(meshing_SOURCES orderedPCDMesher.h orderedPCDMesher.cpp
                     rayTrace.h rayTrace.cpp
                     scaleMesh.h scaleMesh.cpp
                     smoothNormals.h smoothNormals.cpp
-                    deepCopy.cpp deepCopy.h)
+                    deepCopy.cpp deepCopy.h
+                    calculateNormals.h calculateNormals.cpp )
 
 #Conditional compiles
 if(ACVD_FOUND)

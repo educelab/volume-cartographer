@@ -6,25 +6,35 @@
 #define VC_CALCULATENORMALS_H
 
 #include<iostream>
-#include <vc_defines.h>
 #include <opencv2/opencv.hpp>
+
+#include "vc_defines.h"
 #include "vc_datatypes.h"
 #include "deepCopy.h"
-
 
 namespace volcart{
     namespace meshing{
         class calculateNormals{
         public:
+            // Construction //
             calculateNormals();
-            calculateNormals(VC_MeshType::Pointer mesh);
+            calculateNormals( VC_MeshType::Pointer mesh) ;
+
+            // Input/Output //
             void setMesh(VC_MeshType::Pointer mesh);
-            void computeNormals();
-            VC_MeshType::Pointer getOutput();
+            VC_MeshType::Pointer getMesh();
+
+            // Processing //
+            void compute();
+
         private:
-            VC_MeshType::Pointer _in_mesh;
-            VC_MeshType::Pointer _out_mesh;
-            std::vector<cv::Vec3d> _vertex_normals;
+            void _computeNormals();
+            void _assignToMesh();
+
+            VC_MeshType::Pointer  _input;
+            VC_MeshType::Pointer _output;
+
+            std::vector<cv::Vec3d> _vertex_normals; // convenience vector to store calculated normals by p_id
         };
     }//meshing
 }//volcart
