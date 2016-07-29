@@ -14,6 +14,7 @@ namespace volcart{
         calculateNormals::calculateNormals(VC_MeshType::Pointer mesh)
         {
             _input = mesh;
+            _output = VC_MeshType::New();
             volcart::meshing::deepCopy(_input, _output);
             _vertex_normals = std::vector<cv::Vec3d>(_output->GetNumberOfPoints(),0);
         }
@@ -22,6 +23,7 @@ namespace volcart{
         void calculateNormals::setMesh(VC_MeshType::Pointer mesh)
         {
             _input = mesh;
+            _output = VC_MeshType::New();
             volcart::meshing::deepCopy( _input, _output );
             _vertex_normals = std::vector<cv::Vec3d>(_output->GetNumberOfPoints(),0);
         }
@@ -47,7 +49,7 @@ namespace volcart{
                 // Collect the point id's for this cell
                 std::vector< unsigned long > p_ids;
                 VC_PointType vert;
-                for ( auto p = c_it->Value()->PointIdsBegin(); p != c_it->Value()->PointIdsEnd(); ++c_it ) {
+                for ( auto p = c_it->Value()->PointIdsBegin(); p != c_it->Value()->PointIdsEnd(); ++p ) {
                     p_ids.push_back(*p);
                 }
 
