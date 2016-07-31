@@ -1,6 +1,6 @@
-#include "opencv2/highgui/highgui.hpp"
-#include "opencv2/imgproc/imgproc.hpp"
-#include "Slice.h"
+#include "types/Slice.h"
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 
 #define BGR_MAGENTA cv::Scalar(0xFF, 0, 0xFF)
 

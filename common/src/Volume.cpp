@@ -1,10 +1,10 @@
-#include <sstream>
-#include <memory>
+#include "types/Volume.h"
 #include <iomanip>
 #include <iostream>
-#include <opencv2/imgproc/imgproc.hpp>
+#include <memory>
 #include <opencv2/highgui/highgui.hpp>
-#include "Volume.h"
+#include <opencv2/imgproc/imgproc.hpp>
+#include <sstream>
 
 using namespace volcart;
 namespace fs = boost::filesystem;

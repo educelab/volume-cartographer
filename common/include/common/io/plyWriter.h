@@ -5,46 +5,52 @@
 #ifndef VC_PLYWRITER_H
 #define VC_PLYWRITER_H
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 
-#include <opencv2/opencv.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
+#include <opencv2/opencv.hpp>
 
-#include "../vc_defines.h"
-#include "../vc_datatypes.h"
+#include "types/Texture.h"
+#include "vc_defines.h"
 
-namespace volcart {
-    namespace io {
-        class plyWriter {
-        public:
-            plyWriter() {};
-            plyWriter( std::string outputPath, VC_MeshType::Pointer mesh );
-            plyWriter( std::string outputPath, VC_MeshType::Pointer mesh, volcart::Texture texture);
+namespace volcart
+{
+namespace io
+{
+class plyWriter
+{
+public:
+    plyWriter(){};
+    plyWriter(std::string outputPath, VC_MeshType::Pointer mesh);
+    plyWriter(std::string outputPath,
+              VC_MeshType::Pointer mesh,
+              volcart::Texture texture);
 
-            void setPath( std::string path ) { _outputPath = path; };
-            void setMesh( VC_MeshType::Pointer mesh ) { _mesh = mesh; };
-            void setTexture( volcart::Texture texture ) { _texture = texture; };
+    void setPath(std::string path) { _outputPath = path; };
+    void setMesh(VC_MeshType::Pointer mesh) { _mesh = mesh; };
+    void setTexture(volcart::Texture texture) { _texture = texture; };
 
-            boost::filesystem::path getPath() const {return _outputPath;}
+    boost::filesystem::path getPath() const { return _outputPath; }
 
-            bool validate(); // make sure all required output parameters have been set
+    bool validate();  // make sure all required output parameters have been set
 
-            int write();
+    int write();
 
-        private:
-            boost::filesystem::path _outputPath; // The desired filepath. This should include the .obj extension.
-            std::ofstream           _outputMesh;
+private:
+    boost::filesystem::path _outputPath;  // The desired filepath. This should
+                                          // include the .obj extension.
+    std::ofstream _outputMesh;
 
-            VC_MeshType::Pointer _mesh;
-            volcart::Texture     _texture;
+    VC_MeshType::Pointer _mesh;
+    volcart::Texture _texture;
 
-            int _writeHeader();
-            int _writeVertices();
-            int _writeFaces();
-        };
-    }
+    int _writeHeader();
+    int _writeVertices();
+    int _writeFaces();
+};
+}
 }
 
-#endif //VC_PLYWRITER_H
+#endif  // VC_PLYWRITER_H
