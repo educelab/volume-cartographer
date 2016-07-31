@@ -12,14 +12,12 @@ add_library(vc_common
     src/Sphere.cpp
     src/getMemorySize.cpp)
 
-# XXX This should go away - but PCL doesn't specify their targets in a way
-# that lets you do transitive dependencies.
-#include_directories(${PCL_INCLUDE_DIRS})
-
 target_include_directories(vc_common
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
+        # XXX This should go away - but PCL doesn't specify their targets in a
+        # way that lets you do transitive dependencies.
         ${PCL_INCLUDE_DIRS}
     PRIVATE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/common>
