@@ -3,8 +3,14 @@ if(USE_PREBUILT_LIBS)
     set(CMAKE_PREFIX_PATH ${PROJECT_SOURCE_DIR}/vc-deps/deps)
 endif()
 
-# Find external libs and import their interfaces as targets
-set(VC_BOOST_COMPONENTS system filesystem program_options iostreams test)
+# Boost
+set(VC_BOOST_COMPONENTS
+    system
+    filesystem
+    program_options
+    iostreams
+    unit_test_framework
+)
 find_package(Boost REQUIRED COMPONENTS ${VC_BOOST_COMPONENTS})
 if(USE_PREBUILT_LIBS)
     set(Boost_USE_STATIC_LIBS on)
@@ -12,7 +18,7 @@ endif()
 
 # Qt stuff
 set(CMAKE_AUTOMOC on)
-find_package(Qt5 REQUIRED COMPONENTS Widets Gui)
+find_package(Qt5 REQUIRED COMPONENTS Widgets Gui)
 
 # ITK
 find_package(ITK REQUIRED)

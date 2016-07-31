@@ -6,6 +6,9 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
+set(CMAKE_CXX_STANDARD 11)
+set(CXX_STANDARD_REQUIRED on)
+
 # Options for external libs
 option(LINK_ACVD "Link against ACVD library" off)
 option(LINK_Bullet "Link against Bullet Physics library" off)
@@ -25,19 +28,19 @@ enable_testing()
 
 # VC Libraries
 add_subdirectory(common)
-add_subdirectory(meshing)
-add_subdirectory(volumepkg)
-add_subdirectory(segmentation)
-add_subdirectory(texturing)
+#add_subdirectory(meshing)
+#add_subdirectory(volumepkg)
+#add_subdirectory(segmentation)
+#add_subdirectory(texturing)
 
 # VC Core Apps
-add_subdirectory(packager)
-add_subdirectory(apps)
-add_subdirectory(utils)
-add_subdirectory(testing)
+#add_subdirectory(packager)
+#add_subdirectory(apps)
+#add_subdirectory(utils)
+#add_subdirectory(testing)
 
 # VC Demo Apps
-add_subdirectory(examples)
+#add_subdirectory(examples)
 
 # Install
-include(InstallVC)
+#include(InstallVC)
