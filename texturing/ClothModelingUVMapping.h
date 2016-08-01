@@ -34,6 +34,7 @@ namespace volcart {
         // Pretick callbacks
         static void constrainMotionCallback(btDynamicsWorld *world, btScalar timeStep);
         static void axisLockCallback(btDynamicsWorld *world, btScalar timeStep);
+        static void moveTowardTargetCallback(btDynamicsWorld *world, btScalar timeStep);
         static void emptyPreTickCallback(btDynamicsWorld *world, btScalar timeStep);
 
         class ClothModelingUVMapping {
