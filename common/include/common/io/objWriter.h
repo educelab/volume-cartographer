@@ -5,8 +5,8 @@
 #ifndef VC_IO_OBJWRITER_H
 #define VC_IO_OBJWRITER_H
 
-#include "types/UVMap.h"
-#include "vc_defines.h"
+#include "common/types/UVMap.h"
+#include "common/vc_defines.h"
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 #include <fstream>

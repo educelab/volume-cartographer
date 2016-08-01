@@ -2,7 +2,7 @@
 // Created by Seth Parker on 9/18/15.
 //
 
-#include "shapes/ShapePrimitive.h"
+#include "common/shapes/ShapePrimitive.h"
 
 namespace volcart
 {

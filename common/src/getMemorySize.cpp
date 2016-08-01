@@ -5,7 +5,7 @@
  *          http://creativecommons.org/licenses/by/3.0/deed.en_US
  */
 
-#include "util/getMemorySize.h"
+#include "common/util/getMemorySize.h"
 
 #if defined(_WIN32)
 #include <Windows.h>

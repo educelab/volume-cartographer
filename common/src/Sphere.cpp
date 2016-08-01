@@ -2,8 +2,8 @@
 // Created by Melissa Shankle on 12/16/15.
 //
 
-#include "shapes/Sphere.h"
-#include "vc_defines.h"
+#include "common/shapes/Sphere.h"
+#include "common/vc_defines.h"
 
 namespace volcart
 {

@@ -12,9 +12,9 @@
 #include <fstream>
 #include <boost/filesystem.hpp>
 
-#include "../picojson.h"
+#include "common/picojson.h"
 
-#include "../vc_defines.h"
+#include "common/vc_defines.h"
 
 namespace volcart
 {

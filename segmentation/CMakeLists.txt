@@ -1,12 +1,36 @@
-cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
+project(libvc_segmentation VERSION 0.1 LANGUAGES CXX)
 
-set(SEGMENTATION_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-set(SEGMENTATION_INCLUDE_DIR ${SEGMENTATION_INCLUDE_DIR} PARENT_SCOPE)
+set(VC_SEGMENTATION_SRCS
+    src/chain.cpp
+    src/common.cpp
+    src/energymetrics.cpp
+    src/fittedcurve.cpp
+    src/intensitymap.cpp
+    src/localResliceParticleSim.cpp
+    src/particle.cpp
+    src/structureTensorParticleSim.cpp
+)
 
-if(TARGET segmentation)
-  message("segmentation is already defined")
-else()
-  add_subdirectory(structureTensorParticleSim)
-  add_subdirectory(localResliceParticleSim)
-  add_library(vc_segmentation STATIC $<TARGET_OBJECTS:structureTensorParticleSim> $<TARGET_OBJECTS:localResliceParticleSim>)
-endif()
+set(VC_SEGMENTATION_DEPENDENCIES
+    vc_common
+    vc_volumepkg
+)
+
+add_library(vc_segmentation ${VC_SEGMENTATION_SRCS})
+
+target_include_directories(vc_segmentation
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+)
+
+target_compile_options(vc_segmentation
+    PRIVATE
+        -Wno-c++11-narrowing
+)
+
+target_link_libraries(vc_segmentation
+    PUBLIC
+        vc_common
+        vc_volumepkg
+)

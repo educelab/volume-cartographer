@@ -2,7 +2,7 @@
 // Created by Media Team on 10/30/15.
 //
 
-#include "io/plyWriter.h"
+#include "common/io/plyWriter.h"
 
 namespace volcart
 {

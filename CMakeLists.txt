@@ -6,12 +6,16 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
+# Use modern C++ for everything
 set(CMAKE_CXX_STANDARD 11)
 set(CXX_STANDARD_REQUIRED on)
 
+# Global configs
+set(CMAKE_EXPORT_COMPILE_COMMANDS on)
+
 # Options for external libs
-option(LINK_ACVD "Link against ACVD library" off)
-option(LINK_Bullet "Link against Bullet Physics library" off)
+option(USE_ACVD "Link against ACVD library" off)
+option(USE_BULLET "Link against Bullet Physics library" off)
 
 # Use prebuilt libs (built with shell script)?
 option(USE_PREBUILT_LIBS "Link against prebuilt dependencies" off)
@@ -24,14 +28,24 @@ option(INSTALL_VC_DEMO "Install VC demo apps" off)
 # Look for external dependencies
 include(ConfigDependencies)
 
+# Enable output highlighting if using Ninja
+# XXX Hack to get ninja output colorized. I don't think there's an 'all' target
+# unless you explicitly make one, otherwise I would use
+#
+#   target_compile_options(all PUBLIC -fdiagnostics-color=always)
+#
+if (CMAKE_GENERATOR MATCHES "Ninja")
+    add_compile_options(-fdiagnostics-color=always)
+endif()
+
 enable_testing()
 
 # VC Libraries
 add_subdirectory(common)
-#add_subdirectory(meshing)
-#add_subdirectory(volumepkg)
-#add_subdirectory(segmentation)
-#add_subdirectory(texturing)
+add_subdirectory(meshing)
+add_subdirectory(volumepkg)
+add_subdirectory(segmentation)
+add_subdirectory(texturing)
 
 # VC Core Apps
 #add_subdirectory(packager)

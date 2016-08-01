@@ -1,12 +1,24 @@
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+project(libvc_texturing VERSION 0.1 LANGUAGES CXX)
 
-set(TEXTURING_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-set(TEXTURING_INCLUDE_DIR ${TEXTURING_INCLUDE_DIR} PARENT_SCOPE)
+set(VC_TEXTURING_SRCS
+    src/compositeTexture.cpp
+    src/compositeTextureV2.cpp
+    src/layering.cpp
+    src/simpleUV.cpp
+)
 
-if(TARGET texturing)
-    message("Texturing library is already defined")
-else()
-    add_library(vc_texturing STATIC compositeTexture.cpp compositeTexture.h
-                                    compositeTextureV2.cpp compositeTextureV2.h
-                                    simpleUV.h simpleUV.cpp )
-endif()
+add_library(vc_texturing ${VC_TEXTURING_SRCS})
+
+target_include_directories(vc_texturing
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+)
+
+target_link_libraries(vc_texturing
+    PUBLIC
+        vc_common
+        vc_volumepkg
+    PRIVATE
+        vc_meshing
+)

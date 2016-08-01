@@ -1,5 +1,5 @@
 # Where to look for deps
-if(USE_PREBUILT_LIBS)
+if (USE_PREBUILT_LIBS)
     set(CMAKE_PREFIX_PATH ${PROJECT_SOURCE_DIR}/vc-deps/deps)
 endif()
 
@@ -12,12 +12,11 @@ set(VC_BOOST_COMPONENTS
     unit_test_framework
 )
 find_package(Boost REQUIRED COMPONENTS ${VC_BOOST_COMPONENTS})
-if(USE_PREBUILT_LIBS)
+if (USE_PREBUILT_LIBS)
     set(Boost_USE_STATIC_LIBS on)
 endif()
 
 # Qt stuff
-set(CMAKE_AUTOMOC on)
 find_package(Qt5 REQUIRED COMPONENTS Widgets Gui)
 
 # ITK
@@ -35,9 +34,9 @@ find_package(OpenCV REQUIRED)
 
 find_package(OpenGL REQUIRED)
 
-if(LINK_ACVD)
+if (USE_ACVD)
     find_package(ACVD)
 endif()
-if(LINK_Bullet)
+if (USE_BULLET)
     find_package(Bullet)
 endif()

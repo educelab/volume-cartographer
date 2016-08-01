@@ -5,7 +5,7 @@
 #ifndef VC_TESTINGMESH_H
 #define VC_TESTINGMESH_H
 
-#include "vc_defines.h"
+#include "common/vc_defines.h"
 #include <pcl/common/common.h>
 #include <pcl/impl/point_types.hpp>
 #include <pcl/point_types.h>

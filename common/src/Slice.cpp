@@ -1,4 +1,4 @@
-#include "types/Slice.h"
+#include "common/types/Slice.h"
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 

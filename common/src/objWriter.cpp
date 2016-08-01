@@ -2,7 +2,7 @@
 // Created by Media Team on 6/24/15.
 //
 
-#include "io/objWriter.h"
+#include "common/io/objWriter.h"
 
 #define UNSET_VALUE -1
 

@@ -12,8 +12,8 @@
 #include <boost/lexical_cast.hpp>
 #include <opencv2/opencv.hpp>
 
-#include "types/Texture.h"
-#include "vc_defines.h"
+#include "common/types/Texture.h"
+#include "common/vc_defines.h"
 
 namespace volcart
 {

@@ -2,7 +2,7 @@
 // Created by Seth Parker on 4/27/15.
 //
 
-#include "io/ply2itk.h"
+#include "common/io/ply2itk.h"
 
 namespace volcart
 {

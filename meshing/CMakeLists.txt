@@ -1,28 +1,46 @@
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+project(libvc_meshing VERSION 0.1 LANGUAGES CXX)
 
-set(MESHING_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-set(MESHING_INCLUDE_DIR ${MESHING_INCLUDE_DIR} PARENT_SCOPE)
+set(VC_MESHING_SRCS
+    src/deepCopy.cpp
+    src/greedyProjectionMeshing.cpp
+    src/itk2vtk.cpp
+    src/orderedPCDMesher.cpp
+    src/rayTrace.cpp
+    src/resamplePointCloud.cpp
+    src/scaleMesh.cpp
+    src/smoothNormals.cpp
+)
+set(VC_MESHING_DEPENDENCIES
+    vc_common
+)
+set(VC_MESHING_DEFINITIONS "")
 
-if(TARGET vc_meshing)
-message("meshing is already defined")
-else()
-set(meshing_SOURCES orderedPCDMesher.h orderedPCDMesher.cpp
-                    resamplePointCloud.h resamplePointCloud.cpp
-                    greedyProjectionMeshing.h greedyProjectionMeshing.cpp
-                    itk2vtk.h itk2vtk.cpp
-                    rayTrace.h rayTrace.cpp
-                    scaleMesh.h scaleMesh.cpp
-                    smoothNormals.h smoothNormals.cpp
-                    deepCopy.cpp deepCopy.h)
-
-#Conditional compiles
-if(ACVD_FOUND)
-     set(meshing_SOURCES ${meshing_SOURCES} ACVD.h ACVD.cpp)
-endif(ACVD_FOUND)
-
-if(BULLET_FOUND)
-    set(meshing_SOURCES ${meshing_SOURCES} itk2bullet.h itk2bullet.cpp)
-endif(BULLET_FOUND)
-
-add_library(vc_meshing STATIC ${meshing_SOURCES})
+# Conditional compilation of ACVD and Bullet stuff
+if (USE_ACVD)
+    list(APPEND VC_MESHING_SRCS src/ACVD.cpp)
+    list(APPEND VC_MESHING_DEPENDENCIES acvd)
+    list(APPEND VC_MESHING_DEFINITIONS VC_USE_ACVD)
 endif()
+if (USE_BULLET)
+    list(APPEND VC_MESHING_SRCS src/itk2bullet.cpp src/cloth.cpp)
+    list(APPEND VC_MESHING_DEPENDENCIES bullet)
+    list(APPEND VC_MESHING_DEFINITIONS VC_USE_BULLET)
+endif()
+
+add_library(vc_meshing ${VC_MESHING_SRCS})
+
+target_compile_definitions(vc_meshing
+    PRIVATE
+        ${VC_MESHING_DEFINITIONS}
+)
+
+target_include_directories(vc_meshing
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+)
+
+target_link_libraries(vc_meshing
+    PUBLIC
+        ${VC_MESHING_DEPENDENCIES}
+)

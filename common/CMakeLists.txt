@@ -1,16 +1,17 @@
 project(libvc_common VERSION 0.1 LANGUAGES CXX)
 
 add_library(vc_common
-    src/Metadata.cpp
 	src/Texture.cpp
-    src/Volume.cpp
-    src/Slice.cpp
-    src/objWriter.cpp
-    src/plyWriter.cpp
-    src/ply2itk.cpp
+    src/Metadata.cpp
     src/ShapePrimitive.cpp
+    src/Slice.cpp
     src/Sphere.cpp
-    src/getMemorySize.cpp)
+    src/Volume.cpp
+    src/getMemorySize.cpp
+    src/objWriter.cpp
+    src/ply2itk.cpp
+    src/plyWriter.cpp
+)
 
 target_include_directories(vc_common
     PUBLIC
@@ -19,9 +20,6 @@ target_include_directories(vc_common
         # XXX This should go away - but PCL doesn't specify their targets in a
         # way that lets you do transitive dependencies.
         ${PCL_INCLUDE_DIRS}
-    PRIVATE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/common>
-        $<INSTALL_INTERFACE:include/common
 )
 
 target_link_libraries(vc_common
@@ -32,3 +30,13 @@ target_link_libraries(vc_common
         VTK
         pcl_common
 )
+
+install(TARGETS vc_common
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+    RUNTIME DESTINATION bin
+)
+
+install(DIRECTORY include/ DESTINATION include)
+
+export(TARGETS vc_common FILE VCCommon.cmake)

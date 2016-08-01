@@ -9,7 +9,7 @@
 #ifndef VC_UVMAP_H
 #define VC_UVMAP_H
 
-#include "../vc_defines.h"
+#include "common/vc_defines.h"
 #include <opencv2/opencv.hpp>
 #include <unordered_map>
 

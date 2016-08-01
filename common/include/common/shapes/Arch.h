@@ -9,7 +9,7 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "../vc_defines.h"
+#include "common/vc_defines.h"
 #include "ShapePrimitive.h"
 
 namespace volcart {
