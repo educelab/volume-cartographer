@@ -5,7 +5,7 @@
 #ifndef VC_BOOST_STATIC_LIBS
 #define BOOST_TEST_DYN_LINK
 #endif
-#define BOOST_TEST_MODULE calculateNormals
+#define BOOST_TEST_MODULE CalculateNormals
 
 #include <boost/test/unit_test.hpp>
 
