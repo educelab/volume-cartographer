@@ -5,7 +5,7 @@
 #ifndef VC_BOOST_STATIC_LIBS
 #define BOOST_TEST_DYN_LINK
 #endif
-#define BOOST_TEST_MODULE abf
+#define BOOST_TEST_MODULE AngleBasedFlattening
 
 #include <boost/test/unit_test.hpp>
 #include "vc_defines.h"
