@@ -22,7 +22,6 @@
 #include "volumepkg.h"
 #include "io/ply2itk.h"
 #include <QLabel>
-#include "compositeTexture.h"
 #include <QMenuBar>
 
 class Global_Values
@@ -50,9 +49,9 @@ public:
     void setWindow(QMainWindow *window);
     QMainWindow *getWindow();
 
-    void setTexture(volcart::Texture texture);
-    void clearTexture();
-    volcart::Texture getTexture();
+    void setRendering(volcart::Rendering rendering);
+    void clearRendering();
+    volcart::Rendering getRendering();
 
     void setRadius(double radius);
     double getRadius();
@@ -86,7 +85,7 @@ private:
     std::vector<std::string> segmentations;
     QPixmap pix;
     QMainWindow *_window;
-    volcart::Texture _texture;
+    volcart::Rendering _rendering;
     double _radius;
     int _textureMethod;
     int _sampleDirection;

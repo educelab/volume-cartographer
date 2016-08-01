@@ -12,6 +12,7 @@
 #include "shapes.h"
 #include "orderedPCDMesher.h"
 #include "parsingHelpers.h"
+#include "testingUtils.h"
 
 
 /************************************************************************************
@@ -217,17 +218,17 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureCreatedAndSavedPlaneOrderedPCDMesherData, 
     for (int p = 0; p < _SavedPlanePoints.size(); p++){
 
         //check x,y,z,nx,ny,nz,s,t,r,g,b values
-        BOOST_CHECK_EQUAL(_SavedPlanePoints[p].x, _FixtureCreatedPlanePoints[p].x);
-        BOOST_CHECK_EQUAL(_SavedPlanePoints[p].y, _FixtureCreatedPlanePoints[p].y);
-        BOOST_CHECK_EQUAL(_SavedPlanePoints[p].z, _FixtureCreatedPlanePoints[p].z);
-        BOOST_CHECK_EQUAL(_SavedPlanePoints[p].nx, _FixtureCreatedPlanePoints[p].nx);
-        BOOST_CHECK_EQUAL(_SavedPlanePoints[p].ny, _FixtureCreatedPlanePoints[p].ny);
-        BOOST_CHECK_EQUAL(_SavedPlanePoints[p].nz, _FixtureCreatedPlanePoints[p].nz);
-        BOOST_CHECK_EQUAL(_SavedPlanePoints[p].s, _FixtureCreatedPlanePoints[p].s);
-        BOOST_CHECK_EQUAL(_SavedPlanePoints[p].t, _FixtureCreatedPlanePoints[p].t);
-        BOOST_CHECK_EQUAL(_SavedPlanePoints[p].r, _FixtureCreatedPlanePoints[p].r);
-        BOOST_CHECK_EQUAL(_SavedPlanePoints[p].g, _FixtureCreatedPlanePoints[p].g);
-        BOOST_CHECK_EQUAL(_SavedPlanePoints[p].b, _FixtureCreatedPlanePoints[p].b);
+        volcart::testing::SmallOrClose(_SavedPlanePoints[p].x, _FixtureCreatedPlanePoints[p].x);
+        volcart::testing::SmallOrClose(_SavedPlanePoints[p].y, _FixtureCreatedPlanePoints[p].y);
+        volcart::testing::SmallOrClose(_SavedPlanePoints[p].z, _FixtureCreatedPlanePoints[p].z);
+        volcart::testing::SmallOrClose(_SavedPlanePoints[p].nx, _FixtureCreatedPlanePoints[p].nx);
+        volcart::testing::SmallOrClose(_SavedPlanePoints[p].ny, _FixtureCreatedPlanePoints[p].ny);
+        volcart::testing::SmallOrClose(_SavedPlanePoints[p].nz, _FixtureCreatedPlanePoints[p].nz);
+        volcart::testing::SmallOrClose(_SavedPlanePoints[p].s, _FixtureCreatedPlanePoints[p].s);
+        volcart::testing::SmallOrClose(_SavedPlanePoints[p].t, _FixtureCreatedPlanePoints[p].t);
+        volcart::testing::SmallOrClose(_SavedPlanePoints[p].r, _FixtureCreatedPlanePoints[p].r);
+        volcart::testing::SmallOrClose(_SavedPlanePoints[p].g, _FixtureCreatedPlanePoints[p].g);
+        volcart::testing::SmallOrClose(_SavedPlanePoints[p].b, _FixtureCreatedPlanePoints[p].b);
 
     }
 
@@ -247,17 +248,17 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureCreatedAndSavedCubeOrderedPCDMesherData, C
 
     for (int p = 0; p < _SavedCubePoints.size(); p++){
 
-        BOOST_CHECK_EQUAL(_SavedCubePoints[p].x, _FixtureCreatedCubePoints[p].x);
-        BOOST_CHECK_EQUAL(_SavedCubePoints[p].y, _FixtureCreatedCubePoints[p].y);
-        BOOST_CHECK_EQUAL(_SavedCubePoints[p].z, _FixtureCreatedCubePoints[p].z);
-        BOOST_CHECK_EQUAL(_SavedCubePoints[p].nx, _FixtureCreatedCubePoints[p].nx);
-        BOOST_CHECK_EQUAL(_SavedCubePoints[p].ny, _FixtureCreatedCubePoints[p].ny);
-        BOOST_CHECK_EQUAL(_SavedCubePoints[p].nz, _FixtureCreatedCubePoints[p].nz);
-        BOOST_CHECK_EQUAL(_SavedCubePoints[p].s, _FixtureCreatedCubePoints[p].s);
-        BOOST_CHECK_EQUAL(_SavedCubePoints[p].t, _FixtureCreatedCubePoints[p].t);
-        BOOST_CHECK_EQUAL(_SavedCubePoints[p].r, _FixtureCreatedCubePoints[p].r);
-        BOOST_CHECK_EQUAL(_SavedCubePoints[p].g, _FixtureCreatedCubePoints[p].g);
-        BOOST_CHECK_EQUAL(_SavedCubePoints[p].b, _FixtureCreatedCubePoints[p].b);
+        volcart::testing::SmallOrClose(_SavedCubePoints[p].x, _FixtureCreatedCubePoints[p].x);
+        volcart::testing::SmallOrClose(_SavedCubePoints[p].y, _FixtureCreatedCubePoints[p].y);
+        volcart::testing::SmallOrClose(_SavedCubePoints[p].z, _FixtureCreatedCubePoints[p].z);
+        volcart::testing::SmallOrClose(_SavedCubePoints[p].nx, _FixtureCreatedCubePoints[p].nx);
+        volcart::testing::SmallOrClose(_SavedCubePoints[p].ny, _FixtureCreatedCubePoints[p].ny);
+        volcart::testing::SmallOrClose(_SavedCubePoints[p].nz, _FixtureCreatedCubePoints[p].nz);
+        volcart::testing::SmallOrClose(_SavedCubePoints[p].s, _FixtureCreatedCubePoints[p].s);
+        volcart::testing::SmallOrClose(_SavedCubePoints[p].t, _FixtureCreatedCubePoints[p].t);
+        volcart::testing::SmallOrClose(_SavedCubePoints[p].r, _FixtureCreatedCubePoints[p].r);
+        volcart::testing::SmallOrClose(_SavedCubePoints[p].g, _FixtureCreatedCubePoints[p].g);
+        volcart::testing::SmallOrClose(_SavedCubePoints[p].b, _FixtureCreatedCubePoints[p].b);
 
     }
 
@@ -276,17 +277,17 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureCreatedAndSavedArchOrderedPCDMesherData, A
 
     for (int p = 0; p < _SavedArchPoints.size(); p++){
 
-        BOOST_CHECK_EQUAL(_SavedArchPoints[p].x, _FixtureCreatedArchPoints[p].x);
-        BOOST_CHECK_EQUAL(_SavedArchPoints[p].y, _FixtureCreatedArchPoints[p].y);
-        BOOST_CHECK_EQUAL(_SavedArchPoints[p].z, _FixtureCreatedArchPoints[p].z);
-        BOOST_CHECK_EQUAL(_SavedArchPoints[p].nx, _FixtureCreatedArchPoints[p].nx);
-        BOOST_CHECK_EQUAL(_SavedArchPoints[p].ny, _FixtureCreatedArchPoints[p].ny);
-        BOOST_CHECK_EQUAL(_SavedArchPoints[p].nz, _FixtureCreatedArchPoints[p].nz);
-        BOOST_CHECK_EQUAL(_SavedArchPoints[p].s, _FixtureCreatedArchPoints[p].s);
-        BOOST_CHECK_EQUAL(_SavedArchPoints[p].t, _FixtureCreatedArchPoints[p].t);
-        BOOST_CHECK_EQUAL(_SavedArchPoints[p].r, _FixtureCreatedArchPoints[p].r);
-        BOOST_CHECK_EQUAL(_SavedArchPoints[p].g, _FixtureCreatedArchPoints[p].g);
-        BOOST_CHECK_EQUAL(_SavedArchPoints[p].b, _FixtureCreatedArchPoints[p].b);
+        volcart::testing::SmallOrClose(_SavedArchPoints[p].x, _FixtureCreatedArchPoints[p].x);
+        volcart::testing::SmallOrClose(_SavedArchPoints[p].y, _FixtureCreatedArchPoints[p].y);
+        volcart::testing::SmallOrClose(_SavedArchPoints[p].z, _FixtureCreatedArchPoints[p].z);
+        volcart::testing::SmallOrClose(_SavedArchPoints[p].nx, _FixtureCreatedArchPoints[p].nx);
+        volcart::testing::SmallOrClose(_SavedArchPoints[p].ny, _FixtureCreatedArchPoints[p].ny);
+        volcart::testing::SmallOrClose(_SavedArchPoints[p].nz, _FixtureCreatedArchPoints[p].nz);
+        volcart::testing::SmallOrClose(_SavedArchPoints[p].s, _FixtureCreatedArchPoints[p].s);
+        volcart::testing::SmallOrClose(_SavedArchPoints[p].t, _FixtureCreatedArchPoints[p].t);
+        volcart::testing::SmallOrClose(_SavedArchPoints[p].r, _FixtureCreatedArchPoints[p].r);
+        volcart::testing::SmallOrClose(_SavedArchPoints[p].g, _FixtureCreatedArchPoints[p].g);
+        volcart::testing::SmallOrClose(_SavedArchPoints[p].b, _FixtureCreatedArchPoints[p].b);
 
     }
 
@@ -305,17 +306,17 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureCreatedAndSavedSphereOrderedPCDMesherData,
 
     for (int p = 0; p < _SavedSpherePoints.size(); p++){
 
-        BOOST_CHECK_EQUAL(_SavedSpherePoints[p].x, _FixtureCreatedSpherePoints[p].x);
-        BOOST_CHECK_EQUAL(_SavedSpherePoints[p].y, _FixtureCreatedSpherePoints[p].y);
-        BOOST_CHECK_EQUAL(_SavedSpherePoints[p].z, _FixtureCreatedSpherePoints[p].z);
-        BOOST_CHECK_EQUAL(_SavedSpherePoints[p].nx, _FixtureCreatedSpherePoints[p].nx);
-        BOOST_CHECK_EQUAL(_SavedSpherePoints[p].ny, _FixtureCreatedSpherePoints[p].ny);
-        BOOST_CHECK_EQUAL(_SavedSpherePoints[p].nz, _FixtureCreatedSpherePoints[p].nz);
-        BOOST_CHECK_EQUAL(_SavedSpherePoints[p].s, _FixtureCreatedSpherePoints[p].s);
-        BOOST_CHECK_EQUAL(_SavedSpherePoints[p].t, _FixtureCreatedSpherePoints[p].t);
-        BOOST_CHECK_EQUAL(_SavedSpherePoints[p].r, _FixtureCreatedSpherePoints[p].r);
-        BOOST_CHECK_EQUAL(_SavedSpherePoints[p].g, _FixtureCreatedSpherePoints[p].g);
-        BOOST_CHECK_EQUAL(_SavedSpherePoints[p].b, _FixtureCreatedSpherePoints[p].b);
+        volcart::testing::SmallOrClose(_SavedSpherePoints[p].x, _FixtureCreatedSpherePoints[p].x);
+        volcart::testing::SmallOrClose(_SavedSpherePoints[p].y, _FixtureCreatedSpherePoints[p].y);
+        volcart::testing::SmallOrClose(_SavedSpherePoints[p].z, _FixtureCreatedSpherePoints[p].z);
+        volcart::testing::SmallOrClose(_SavedSpherePoints[p].nx, _FixtureCreatedSpherePoints[p].nx);
+        volcart::testing::SmallOrClose(_SavedSpherePoints[p].ny, _FixtureCreatedSpherePoints[p].ny);
+        volcart::testing::SmallOrClose(_SavedSpherePoints[p].nz, _FixtureCreatedSpherePoints[p].nz);
+        volcart::testing::SmallOrClose(_SavedSpherePoints[p].s, _FixtureCreatedSpherePoints[p].s);
+        volcart::testing::SmallOrClose(_SavedSpherePoints[p].t, _FixtureCreatedSpherePoints[p].t);
+        volcart::testing::SmallOrClose(_SavedSpherePoints[p].r, _FixtureCreatedSpherePoints[p].r);
+        volcart::testing::SmallOrClose(_SavedSpherePoints[p].g, _FixtureCreatedSpherePoints[p].g);
+        volcart::testing::SmallOrClose(_SavedSpherePoints[p].b, _FixtureCreatedSpherePoints[p].b);
 
     }
 
@@ -335,17 +336,17 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureCreatedAndSavedConeOrderedPCDMesherData, C
 
     for (int p = 0; p < _SavedConePoints.size(); p++){
 
-        BOOST_CHECK_EQUAL(_SavedConePoints[p].x, _FixtureCreatedConePoints[p].x);
-        BOOST_CHECK_EQUAL(_SavedConePoints[p].y, _FixtureCreatedConePoints[p].y);
-        BOOST_CHECK_EQUAL(_SavedConePoints[p].z, _FixtureCreatedConePoints[p].z);
-        BOOST_CHECK_EQUAL(_SavedConePoints[p].nx, _FixtureCreatedConePoints[p].nx);
-        BOOST_CHECK_EQUAL(_SavedConePoints[p].ny, _FixtureCreatedConePoints[p].ny);
-        BOOST_CHECK_EQUAL(_SavedConePoints[p].nz, _FixtureCreatedConePoints[p].nz);
-        BOOST_CHECK_EQUAL(_SavedConePoints[p].s, _FixtureCreatedConePoints[p].s);
-        BOOST_CHECK_EQUAL(_SavedConePoints[p].t, _FixtureCreatedConePoints[p].t);
-        BOOST_CHECK_EQUAL(_SavedConePoints[p].r, _FixtureCreatedConePoints[p].r);
-        BOOST_CHECK_EQUAL(_SavedConePoints[p].g, _FixtureCreatedConePoints[p].g);
-        BOOST_CHECK_EQUAL(_SavedConePoints[p].b, _FixtureCreatedConePoints[p].b);
+        volcart::testing::SmallOrClose(_SavedConePoints[p].x, _FixtureCreatedConePoints[p].x);
+        volcart::testing::SmallOrClose(_SavedConePoints[p].y, _FixtureCreatedConePoints[p].y);
+        volcart::testing::SmallOrClose(_SavedConePoints[p].z, _FixtureCreatedConePoints[p].z);
+        volcart::testing::SmallOrClose(_SavedConePoints[p].nx, _FixtureCreatedConePoints[p].nx);
+        volcart::testing::SmallOrClose(_SavedConePoints[p].ny, _FixtureCreatedConePoints[p].ny);
+        volcart::testing::SmallOrClose(_SavedConePoints[p].nz, _FixtureCreatedConePoints[p].nz);
+        volcart::testing::SmallOrClose(_SavedConePoints[p].s, _FixtureCreatedConePoints[p].s);
+        volcart::testing::SmallOrClose(_SavedConePoints[p].t, _FixtureCreatedConePoints[p].t);
+        volcart::testing::SmallOrClose(_SavedConePoints[p].r, _FixtureCreatedConePoints[p].r);
+        volcart::testing::SmallOrClose(_SavedConePoints[p].g, _FixtureCreatedConePoints[p].g);
+        volcart::testing::SmallOrClose(_SavedConePoints[p].b, _FixtureCreatedConePoints[p].b);
 
     }
 
