@@ -34,8 +34,8 @@ int main( int argc, char* argv[] ) {
 //    expand.push_back(90);
 //    expand.push_back(99);
 
-    uint16_t unfurlIt    =  15000;
-    uint16_t collisionIt =   5000;
+    uint16_t unfurlIt    =  20000;
+    uint16_t collisionIt =      0;
     uint16_t expansionIt =   5000;
 
     // Run the simulation

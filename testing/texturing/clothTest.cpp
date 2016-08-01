@@ -56,8 +56,8 @@ struct CreateArchClothUVFixture{
         _in_Mesh = _Arch.itkMesh();
 
         // Setup params
-        _unfurlIt    =  15000;
-        _collisionIt =   5000;
+        _unfurlIt    =  20000;
+        _collisionIt =      0;
         _expansionIt =   5000;
 
         _unfurlPins.push_back(0);
