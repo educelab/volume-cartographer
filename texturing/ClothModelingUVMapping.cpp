@@ -2,13 +2,13 @@
 // Created by Seth Parker on 3/14/16.
 //
 
-#include "clothModelingUV.h"
+#include "ClothModelingUVMapping.h"
 
 namespace volcart {
     namespace texturing {
 
         // Constructor
-        clothModelingUV::clothModelingUV( VC_MeshType::Pointer input,
+        ClothModelingUVMapping::ClothModelingUVMapping( VC_MeshType::Pointer input,
                                           uint16_t unfurlIterations, uint16_t collideIterations, uint16_t expandIterations,
                                           PinIDs unfurlPins, PinIDs expansionPins ) :
                                             _mesh(input),
@@ -72,7 +72,7 @@ namespace volcart {
         };
 
         // Destructor
-        clothModelingUV::~clothModelingUV() {
+        ClothModelingUVMapping::~ClothModelingUVMapping() {
             _World->removeSoftBody( _softBody );
             delete _softBody;
 
@@ -89,19 +89,19 @@ namespace volcart {
         }
 
         // Process this mesh
-        void clothModelingUV::run() {
+        void ClothModelingUVMapping::run() {
             if ( _unfurlIterations > 0 ) _unfurl();
             if ( _collideIterations > 0 ) _collide();
             if ( _expandIterations > 0 ) _expand();
         }
 
         // Call the stages individually
-        void clothModelingUV::unfurl() { _unfurl(); };
-        void clothModelingUV::collide() { _collide(); };
-        void clothModelingUV::expand() { _expand(); };
+        void ClothModelingUVMapping::unfurl() { _unfurl(); };
+        void ClothModelingUVMapping::collide() { _collide(); };
+        void ClothModelingUVMapping::expand() { _expand(); };
 
         // Get UV Map created from flattened object
-        volcart::UVMap clothModelingUV::getUVMap() {
+        volcart::UVMap ClothModelingUVMapping::getUVMap() {
 
             // Get the current XZ bounds of the softbody
             btVector3 min, max;
@@ -137,7 +137,7 @@ namespace volcart {
 
         // Get mesh version of flattened object
         // Note: This is still in world coordinates, not volume coordinates
-        VC_MeshType::Pointer clothModelingUV::getMesh() {
+        VC_MeshType::Pointer ClothModelingUVMapping::getMesh() {
             VC_MeshType::Pointer output = VC_MeshType::New();
             volcart::meshing::deepCopy( _mesh, output );
             volcart::meshing::bullet2itk::bullet2itk( _softBody, output);
@@ -146,7 +146,7 @@ namespace volcart {
 
         ///// Simulation /////
         // Use gravity to unfurl the cloth
-        void clothModelingUV::_unfurl()
+        void ClothModelingUVMapping::_unfurl()
         {
             // Set the simulation parameters
             _World->setInternalTickCallback( constrainMotionCallback, static_cast<void *>(this), true );
@@ -172,7 +172,7 @@ namespace volcart {
         }
 
         // Collide the cloth with the plane
-        void clothModelingUV::_collide()
+        void ClothModelingUVMapping::_collide()
         {
             // Set the simulation parameters
             _World->setInternalTickCallback( axisLockCallback, static_cast<void *>(this), true );
@@ -197,7 +197,7 @@ namespace volcart {
         }
 
         // Expand the edges of the cloth to iron out wrinkles, then let it relax
-        void clothModelingUV::_expand()
+        void ClothModelingUVMapping::_expand()
         {
             // Set the simulation parameters
             _World->setInternalTickCallback( moveTowardTargetCallback, static_cast<void *>(this), true );
@@ -261,7 +261,7 @@ namespace volcart {
         }
 
         // Set acceleration for different stages
-        void clothModelingUV::setAcceleration( Stage s, double a ) {
+        void ClothModelingUVMapping::setAcceleration( Stage s, double a ) {
             switch( s ) {
                 case Stage::Unfurl:
                     _unfurlA = a;
@@ -284,7 +284,7 @@ namespace volcart {
         // Use the version that is stable for small angles from
         // "Miscalculating Area and Angles of a Needle-like Triangle" by Kahan
         // https://people.eecs.berkeley.edu/~wkahan/Triangle.pdf
-        double clothModelingUV::_SurfaceArea() {
+        double ClothModelingUVMapping::_SurfaceArea() {
             double surface_area = 0;
             for(int i = 0; i < _softBody->m_faces.size(); ++i) {
 
@@ -317,7 +317,7 @@ namespace volcart {
 
         ///// Callback Functions /////
         // Limits motion to be along the X axis only. Used in unfurl step.
-        void clothModelingUV::_constrainMotion( btScalar timeStep ) {
+        void ClothModelingUVMapping::_constrainMotion( btScalar timeStep ) {
             for ( auto n = 0; n < _softBody->m_nodes.size(); ++n )
             {
                 btVector3 velocity = _softBody->m_nodes[n].m_v;
@@ -327,7 +327,7 @@ namespace volcart {
             }
         };
         // Apply opposite velocity to points that have "passed through" the collision plane
-        void clothModelingUV::_axisLock( btScalar timeStep ) {
+        void ClothModelingUVMapping::_axisLock( btScalar timeStep ) {
             for ( auto n = 0; n < _softBody->m_nodes.size(); ++n )
             {
                 btVector3 pos = _softBody->m_nodes[n].m_x;
@@ -339,36 +339,36 @@ namespace volcart {
             }
         };
         // Move points in the _currentPins vector towards their respective targets
-        void clothModelingUV::_moveTowardTarget( btScalar timeStep ) {
+        void ClothModelingUVMapping::_moveTowardTarget( btScalar timeStep ) {
             for ( auto pin = _currentPins.begin(); pin < _currentPins.end(); ++pin ) {
                 btVector3 delta = ( pin->target - pin->node->m_x ).normalized();
                 pin->node->m_v += delta/timeStep;
             }
         };
         // This call back is used to disable other callbacks
-        void clothModelingUV::_emptyPreTick( btScalar timeStep ) {
+        void ClothModelingUVMapping::_emptyPreTick( btScalar timeStep ) {
             // Don't do anything
         };
 
         //// Callbacks ////
         // Forward pretick callbacks to functions in a stupid Bullet physics way
         void constrainMotionCallback(btDynamicsWorld *world, btScalar timeStep) {
-            clothModelingUV *w = static_cast<clothModelingUV *>( world->getWorldUserInfo() );
+            ClothModelingUVMapping *w = static_cast<ClothModelingUVMapping *>( world->getWorldUserInfo() );
             w->_constrainMotion(timeStep);
         }
 
         void axisLockCallback(btDynamicsWorld *world, btScalar timeStep) {
-            clothModelingUV *w = static_cast<clothModelingUV *>( world->getWorldUserInfo() );
+            ClothModelingUVMapping *w = static_cast<ClothModelingUVMapping *>( world->getWorldUserInfo() );
             w->_axisLock(timeStep);
         }
 
         void moveTowardTargetCallback(btDynamicsWorld *world, btScalar timeStep) {
-            clothModelingUV *w = static_cast<clothModelingUV *>( world->getWorldUserInfo() );
+            ClothModelingUVMapping *w = static_cast<ClothModelingUVMapping *>( world->getWorldUserInfo() );
             w->_moveTowardTarget(timeStep);
         }
 
         void emptyPreTickCallback(btDynamicsWorld *world, btScalar timeStep) {
-            clothModelingUV *w = static_cast<clothModelingUV *>( world->getWorldUserInfo() );
+            ClothModelingUVMapping *w = static_cast<ClothModelingUVMapping *>( world->getWorldUserInfo() );
             w->_emptyPreTick(timeStep);
         }
 

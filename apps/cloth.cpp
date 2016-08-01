@@ -9,13 +9,13 @@
 
 #include "vc_defines.h"
 #include "itk2vtk.h"
-#include "clothModelingUV.h"
+#include "ClothModelingUVMapping.h"
 #include "io/objWriter.h"
 #include "compositeTextureV2.h"
 
 namespace po = boost::program_options;
 
-void getPins( std::string path, VC_MeshType::Pointer mesh, volcart::texturing::clothModelingUV::PinIDs &pinList );
+void getPins( std::string path, VC_MeshType::Pointer mesh, volcart::texturing::ClothModelingUVMapping::PinIDs &pinList );
 
 int main( int argc, char* argv[] ) {
 
@@ -105,18 +105,18 @@ int main( int argc, char* argv[] ) {
     volcart::meshing::vtk2itk(reader->GetOutput(), mesh);
 
     // Get pinned points for unfurling step
-    volcart::texturing::clothModelingUV::PinIDs unfurl;
+    volcart::texturing::ClothModelingUVMapping::PinIDs unfurl;
     getPins( uPins_path, mesh, unfurl);
 
     // Get pinned points for expansion step
-    volcart::texturing::clothModelingUV::PinIDs expand;
+    volcart::texturing::ClothModelingUVMapping::PinIDs expand;
     getPins( ePins_path, mesh, expand);
 
     // Run the simulation
-    volcart::texturing::clothModelingUV clothUV( mesh, unfurlIt, collisionIt, expansionIt, unfurl, expand);
-    clothUV.setAcceleration( volcart::texturing::clothModelingUV::Stage::Unfurl, 10);
-    clothUV.setAcceleration( volcart::texturing::clothModelingUV::Stage::Collision, -10);
-    clothUV.setAcceleration( volcart::texturing::clothModelingUV::Stage::Expansion, 10);
+    volcart::texturing::ClothModelingUVMapping clothUV( mesh, unfurlIt, collisionIt, expansionIt, unfurl, expand);
+    clothUV.setAcceleration( volcart::texturing::ClothModelingUVMapping::Stage::Unfurl, 10);
+    clothUV.setAcceleration( volcart::texturing::ClothModelingUVMapping::Stage::Collision, -10);
+    clothUV.setAcceleration( volcart::texturing::ClothModelingUVMapping::Stage::Expansion, 10);
     clothUV.run();
 
     // Write the scaled mesh
@@ -149,7 +149,7 @@ int main( int argc, char* argv[] ) {
 }
 
 /////////// Get pinned points from file //////////
-void getPins( std::string path, VC_MeshType::Pointer mesh, volcart::texturing::clothModelingUV::PinIDs &pinList ) {
+void getPins( std::string path, VC_MeshType::Pointer mesh, volcart::texturing::ClothModelingUVMapping::PinIDs &pinList ) {
 
     // Clear the pin list
     pinList.clear();

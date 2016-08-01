@@ -12,7 +12,7 @@ else()
                          AngleBasedFlattening.h AngleBasedFlattening.cpp)
 
     if(VC_USE_BULLET)
-        set( vc_texturing_SRC ${vc_texturing_SRC} clothModelingUV.h clothModelingUV.cpp)
+        set( vc_texturing_SRC ${vc_texturing_SRC} ClothModelingUVMapping.h ClothModelingUVMapping.cpp)
     endif(VC_USE_BULLET)
 
     if(VC_USE_LIBIGL)

@@ -11,7 +11,7 @@
 #include "vc_defines.h"
 #include "vc_datatypes.h"
 #include "shapes.h"
-#include "clothModelingUV.h"
+#include "ClothModelingUVMapping.h"
 #include "parsingHelpers.h"
 #include "testingUtils.h"
 
@@ -64,10 +64,10 @@ struct CreateArchClothUVFixture{
         _unfurlPins.push_back(90);
 
         // Setup the simulation
-        volcart::texturing::clothModelingUV clothUV( _in_Mesh, _unfurlIt, _collisionIt, _expansionIt, _unfurlPins, _expandPins);
-        clothUV.setAcceleration( volcart::texturing::clothModelingUV::Stage::Unfurl,     10);
-        clothUV.setAcceleration( volcart::texturing::clothModelingUV::Stage::Collision, -10);
-        clothUV.setAcceleration( volcart::texturing::clothModelingUV::Stage::Expansion, -10);
+        volcart::texturing::ClothModelingUVMapping clothUV( _in_Mesh, _unfurlIt, _collisionIt, _expansionIt, _unfurlPins, _expandPins);
+        clothUV.setAcceleration( volcart::texturing::ClothModelingUVMapping::Stage::Unfurl,     10);
+        clothUV.setAcceleration( volcart::texturing::ClothModelingUVMapping::Stage::Collision, -10);
+        clothUV.setAcceleration( volcart::texturing::ClothModelingUVMapping::Stage::Expansion, -10);
 
         // Run the simulation in parts
         clothUV.unfurl();
@@ -91,8 +91,8 @@ struct CreateArchClothUVFixture{
     VC_MeshType::Pointer _out_Mesh_unfurl, _out_Mesh_collide, _out_Mesh_final;
 
     // Simulation
-    volcart::texturing::clothModelingUV::PinIDs _unfurlPins;
-    volcart::texturing::clothModelingUV::PinIDs _expandPins;
+    volcart::texturing::ClothModelingUVMapping::PinIDs _unfurlPins;
+    volcart::texturing::ClothModelingUVMapping::PinIDs _expandPins;
     uint16_t _unfurlIt;
     uint16_t _collisionIt;
     uint16_t _expansionIt;

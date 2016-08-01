@@ -36,7 +36,7 @@ namespace volcart {
         static void axisLockCallback(btDynamicsWorld *world, btScalar timeStep);
         static void emptyPreTickCallback(btDynamicsWorld *world, btScalar timeStep);
 
-        class clothModelingUV {
+        class ClothModelingUVMapping {
         public:
             typedef std::vector< unsigned long > PinIDs;
             enum Stage { Unfurl, Collision, Expansion };
@@ -47,10 +47,10 @@ namespace volcart {
                 btVector3 target;
             };
 
-            clothModelingUV( VC_MeshType::Pointer input,
+            ClothModelingUVMapping( VC_MeshType::Pointer input,
                              uint16_t unfurlIterations, uint16_t collideIterations, uint16_t expandIterations,
                              PinIDs unfurlPins, PinIDs expansionPins);
-            ~clothModelingUV();
+            ~ClothModelingUVMapping();
 
             // Run the simulation all at once or in stages
             void run();
