@@ -3,7 +3,6 @@ project(libvc_texturing VERSION 0.1 LANGUAGES CXX)
 set(VC_TEXTURING_SRCS
     src/compositeTexture.cpp
     src/compositeTextureV2.cpp
-    src/layering.cpp
     src/simpleUV.cpp
 )
 
@@ -22,3 +21,13 @@ target_link_libraries(vc_texturing
     PRIVATE
         vc_meshing
 )
+
+install(TARGETS vc_texturing
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+    RUNTIME DESTINATION bin
+)
+
+install(DIRECTORY include/ DESTINATION ${VC_INSTALL_INCLUDE_PREFIX})
+
+export(TARGETS vc_texturing FILE VCTexturing.cmake)

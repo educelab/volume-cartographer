@@ -44,3 +44,13 @@ target_link_libraries(vc_meshing
     PUBLIC
         ${VC_MESHING_DEPENDENCIES}
 )
+
+install(TARGETS vc_meshing
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+    RUNTIME DESTINATION bin
+)
+
+install(DIRECTORY include/ DESTINATION ${VC_INSTALL_INCLUDE_PREFIX})
+
+export(TARGETS vc_meshing FILE VCMeshing.cmake)

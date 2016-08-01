@@ -5,6 +5,7 @@ project(VC VERSION 2.1.2)
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+set(VC_INSTALL_INCLUDE_PREFIX include/volcart)
 
 # Use modern C++ for everything
 set(CMAKE_CXX_STANDARD 11)
@@ -48,7 +49,6 @@ add_subdirectory(segmentation)
 add_subdirectory(texturing)
 
 # VC Core Apps
-#add_subdirectory(packager)
 #add_subdirectory(apps)
 #add_subdirectory(utils)
 #add_subdirectory(testing)

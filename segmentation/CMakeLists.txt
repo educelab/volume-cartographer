@@ -34,3 +34,13 @@ target_link_libraries(vc_segmentation
         vc_common
         vc_volumepkg
 )
+
+install(TARGETS vc_segmentation
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+    RUNTIME DESTINATION bin
+)
+
+install(DIRECTORY include/ DESTINATION ${VC_INSTALL_INCLUDE_PREFIX})
+
+export(TARGETS vc_segmentation FILE VCSegmentation.cmake)

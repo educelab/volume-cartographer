@@ -19,3 +19,13 @@ target_link_libraries(vc_volumepkg
     PRIVATE
         vc_meshing
 )
+
+install(TARGETS vc_volumepkg
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+    RUNTIME DESTINATION bin
+)
+
+install(DIRECTORY include/ DESTINATION ${VC_INSTALL_INCLUDE_PREFIX})
+
+export(TARGETS vc_volumepkg FILE VCVolumepkg.cmake)

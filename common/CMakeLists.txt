@@ -37,6 +37,6 @@ install(TARGETS vc_common
     RUNTIME DESTINATION bin
 )
 
-install(DIRECTORY include/ DESTINATION include)
+install(DIRECTORY include/ DESTINATION ${VC_INSTALL_INCLUDE_PREFIX})
 
 export(TARGETS vc_common FILE VCCommon.cmake)
