@@ -8,11 +8,11 @@
 #define BOOST_TEST_MODULE smoothNormals
 
 #include <boost/test/unit_test.hpp>
-#include <boost/test/unit_test_log.hpp>
 #include "vc_defines.h"
 #include "shapes.h"
 #include "parsingHelpers.h"
 #include "smoothNormals.h"
+#include "testingUtils.h"
 
 
 /************************************************************************************
@@ -43,7 +43,6 @@
  *     See the /testing/meshing wiki for more information on this test              *
  * **********************************************************************************/
 
-
 /*
  * This builds objects for the case below that reference
  * the fixture as their second argument
@@ -56,7 +55,6 @@ struct SmoothNormalsFixture {
 
         //smoothing radius and _Tolerance value for later comparisons
         _SmoothingFactor = 2;
-        _Tolerance = 0.00001;
 
         //assign input meshes that will be smoothed
         _in_PlaneMesh = _Plane.itkMesh();
@@ -95,7 +93,6 @@ struct SmoothNormalsFixture {
     volcart::shapes::Arch _Arch;
     volcart::shapes::Cone _Cone;
 
-    double _Tolerance;
     double _SmoothingFactor;
 
     //init vectors to hold points and cells from savedITK data files
@@ -123,28 +120,21 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureSmoothedPlaneWithSavedPlaneTest, SmoothNor
 
     //points
     for ( size_t p_id = 0; p_id < _out_SmoothedPlaneMesh ->GetNumberOfPoints(); ++p_id) {
-
-
-        BOOST_CHECK_CLOSE_FRACTION(_out_SmoothedPlaneMesh->GetPoint(p_id)[0], _SavedPlanePoints[p_id].x, _Tolerance);
-        BOOST_CHECK_CLOSE_FRACTION(_out_SmoothedPlaneMesh->GetPoint(p_id)[1], _SavedPlanePoints[p_id].y, _Tolerance);
-        BOOST_CHECK_CLOSE_FRACTION(_out_SmoothedPlaneMesh->GetPoint(p_id)[2], _SavedPlanePoints[p_id].z, _Tolerance);
+        volcart::testing::SmallOrClose(_out_SmoothedPlaneMesh->GetPoint(p_id)[0], _SavedPlanePoints[p_id].x );
+        volcart::testing::SmallOrClose(_out_SmoothedPlaneMesh->GetPoint(p_id)[1], _SavedPlanePoints[p_id].y );
+        volcart::testing::SmallOrClose(_out_SmoothedPlaneMesh->GetPoint(p_id)[2], _SavedPlanePoints[p_id].z );
     }
 
     //normals
-    int p = 0;
     VC_PointsInMeshIterator point = _out_SmoothedPlaneMesh->GetPoints()->Begin();
-    for ( ; point != _out_SmoothedPlaneMesh->GetPoints()->End(); ++point ) {
-
-        VC_PixelType out_PlaneNormal;
-        _out_SmoothedPlaneMesh->GetPointData(point.Index(), &out_PlaneNormal);
+    for ( int p = 0; point != _out_SmoothedPlaneMesh->GetPoints()->End(); ++p, ++point ) {
+        VC_PixelType out_Normal;
+        _out_SmoothedPlaneMesh->GetPointData(point.Index(), &out_Normal);
 
         //Now compare the normals for the two meshes
-        BOOST_CHECK_CLOSE_FRACTION(out_PlaneNormal[0], _SavedPlanePoints[p].nx, _Tolerance);
-        BOOST_CHECK_CLOSE_FRACTION(out_PlaneNormal[1], _SavedPlanePoints[p].ny, _Tolerance);
-        BOOST_CHECK_CLOSE_FRACTION(out_PlaneNormal[2], _SavedPlanePoints[p].nz, _Tolerance);
-
-        p++;
-
+        volcart::testing::SmallOrClose( out_Normal[0], _SavedPlanePoints[p].nx );
+        volcart::testing::SmallOrClose( out_Normal[1], _SavedPlanePoints[p].ny );
+        volcart::testing::SmallOrClose( out_Normal[2], _SavedPlanePoints[p].nz );
     }
 
     //cells
@@ -191,32 +181,25 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureSmoothedCubeWithSavedCubeTest, SmoothNorma
 
     //Check number of points and cells in each mesh
     BOOST_CHECK_EQUAL( _out_SmoothedCubeMesh->GetNumberOfPoints(), _SavedCubePoints.size() );
-    BOOST_CHECK_EQUAL(_out_SmoothedCubeMesh->GetNumberOfCells(), _SavedCubeCells.size());
-    
+    BOOST_CHECK_EQUAL( _out_SmoothedCubeMesh->GetNumberOfCells(), _SavedCubeCells.size());
+
     //points
     for ( size_t p_id = 0; p_id < _out_SmoothedCubeMesh ->GetNumberOfPoints(); ++p_id) {
-
-
-        BOOST_CHECK_CLOSE_FRACTION(_out_SmoothedCubeMesh->GetPoint(p_id)[0], _SavedCubePoints[p_id].x, _Tolerance);
-        BOOST_CHECK_CLOSE_FRACTION(_out_SmoothedCubeMesh->GetPoint(p_id)[1], _SavedCubePoints[p_id].y, _Tolerance);
-        BOOST_CHECK_CLOSE_FRACTION(_out_SmoothedCubeMesh->GetPoint(p_id)[2], _SavedCubePoints[p_id].z, _Tolerance);
+        volcart::testing::SmallOrClose(_out_SmoothedCubeMesh->GetPoint(p_id)[0], _SavedCubePoints[p_id].x);
+        volcart::testing::SmallOrClose(_out_SmoothedCubeMesh->GetPoint(p_id)[1], _SavedCubePoints[p_id].y);
+        volcart::testing::SmallOrClose(_out_SmoothedCubeMesh->GetPoint(p_id)[2], _SavedCubePoints[p_id].z);
     }
 
     //normals
-    int p = 0;
     VC_PointsInMeshIterator point = _out_SmoothedCubeMesh->GetPoints()->Begin();
-    for ( ; point != _out_SmoothedCubeMesh->GetPoints()->End(); ++point ) {
-
-        VC_PixelType out_CubeNormal;
-        _out_SmoothedCubeMesh->GetPointData(point.Index(), &out_CubeNormal);
+    for ( int p = 0; point != _out_SmoothedCubeMesh->GetPoints()->End(); ++p, ++point ) {
+        VC_PixelType out_Normal;
+        _out_SmoothedCubeMesh->GetPointData(point.Index(), &out_Normal);
 
         //Now compare the normals for the two meshes
-        BOOST_CHECK_CLOSE_FRACTION(out_CubeNormal[0], _SavedCubePoints[p].nx, _Tolerance);
-        BOOST_CHECK_CLOSE_FRACTION(out_CubeNormal[1], _SavedCubePoints[p].ny, _Tolerance);
-        BOOST_CHECK_CLOSE_FRACTION(out_CubeNormal[2], _SavedCubePoints[p].nz, _Tolerance);
-
-        p++;
-
+        volcart::testing::SmallOrClose( out_Normal[0], _SavedCubePoints[p].nx );
+        volcart::testing::SmallOrClose( out_Normal[1], _SavedCubePoints[p].ny );
+        volcart::testing::SmallOrClose( out_Normal[2], _SavedCubePoints[p].nz );
     }
 
     //cells
@@ -263,32 +246,25 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureSmoothedSphereWithSavedSphereTest, SmoothN
 
     //Check number of points in each mesh
     BOOST_CHECK_EQUAL( _out_SmoothedSphereMesh->GetNumberOfPoints(), _SavedSpherePoints.size() );
-    BOOST_CHECK_EQUAL(_out_SmoothedSphereMesh->GetNumberOfCells(), _SavedSphereCells.size());
-    
+    BOOST_CHECK_EQUAL( _out_SmoothedSphereMesh->GetNumberOfCells(), _SavedSphereCells.size());
+
     //points
     for ( size_t p_id = 0; p_id < _out_SmoothedSphereMesh ->GetNumberOfPoints(); ++p_id) {
-
-
-        BOOST_CHECK_CLOSE_FRACTION(_out_SmoothedSphereMesh->GetPoint(p_id)[0], _SavedSpherePoints[p_id].x, _Tolerance);
-        BOOST_CHECK_CLOSE_FRACTION(_out_SmoothedSphereMesh->GetPoint(p_id)[1], _SavedSpherePoints[p_id].y, _Tolerance);
-        BOOST_CHECK_CLOSE_FRACTION(_out_SmoothedSphereMesh->GetPoint(p_id)[2], _SavedSpherePoints[p_id].z, _Tolerance);
+        volcart::testing::SmallOrClose(_out_SmoothedSphereMesh->GetPoint(p_id)[0], _SavedSpherePoints[p_id].x);
+        volcart::testing::SmallOrClose(_out_SmoothedSphereMesh->GetPoint(p_id)[1], _SavedSpherePoints[p_id].y);
+        volcart::testing::SmallOrClose(_out_SmoothedSphereMesh->GetPoint(p_id)[2], _SavedSpherePoints[p_id].z);
     }
 
     //normals
-    int p = 0;
     VC_PointsInMeshIterator point = _out_SmoothedSphereMesh->GetPoints()->Begin();
-    for ( ; point != _out_SmoothedSphereMesh->GetPoints()->End(); ++point ) {
-
-        VC_PixelType out_SphereNormal;
-        _out_SmoothedSphereMesh->GetPointData(point.Index(), &out_SphereNormal);
+    for ( int p = 0; point != _out_SmoothedSphereMesh->GetPoints()->End(); ++p, ++point ) {
+        VC_PixelType out_Normal;
+        _out_SmoothedSphereMesh->GetPointData(point.Index(), &out_Normal);
 
         //Now compare the normals for the two meshes
-        BOOST_CHECK_CLOSE_FRACTION(out_SphereNormal[0], _SavedSpherePoints[p].nx, _Tolerance);
-        BOOST_CHECK_CLOSE_FRACTION(out_SphereNormal[1], _SavedSpherePoints[p].ny, _Tolerance);
-        BOOST_CHECK_CLOSE_FRACTION(out_SphereNormal[2], _SavedSpherePoints[p].nz, _Tolerance);
-
-        p++;
-
+        volcart::testing::SmallOrClose( out_Normal[0], _SavedSpherePoints[p].nx );
+        volcart::testing::SmallOrClose( out_Normal[1], _SavedSpherePoints[p].ny );
+        volcart::testing::SmallOrClose( out_Normal[2], _SavedSpherePoints[p].nz );
     }
 
     //cells
@@ -335,32 +311,25 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureSmoothedArchWithSavedArchTest, SmoothNorma
 
     //Check number of points in each mesh
     BOOST_CHECK_EQUAL( _out_SmoothedArchMesh->GetNumberOfPoints(), _SavedArchPoints.size() );
-    BOOST_CHECK_EQUAL(_out_SmoothedArchMesh->GetNumberOfCells(), _SavedArchCells.size());
+    BOOST_CHECK_EQUAL( _out_SmoothedArchMesh->GetNumberOfCells(), _SavedArchCells.size());
 
     //points
     for ( size_t p_id = 0; p_id < _out_SmoothedArchMesh ->GetNumberOfPoints(); ++p_id) {
-
-
-        BOOST_CHECK_CLOSE_FRACTION(_out_SmoothedArchMesh->GetPoint(p_id)[0], _SavedArchPoints[p_id].x, _Tolerance);
-        BOOST_CHECK_CLOSE_FRACTION(_out_SmoothedArchMesh->GetPoint(p_id)[1], _SavedArchPoints[p_id].y, _Tolerance);
-        BOOST_CHECK_CLOSE_FRACTION(_out_SmoothedArchMesh->GetPoint(p_id)[2], _SavedArchPoints[p_id].z, _Tolerance);
+        volcart::testing::SmallOrClose(_out_SmoothedArchMesh->GetPoint(p_id)[0], _SavedArchPoints[p_id].x);
+        volcart::testing::SmallOrClose(_out_SmoothedArchMesh->GetPoint(p_id)[1], _SavedArchPoints[p_id].y);
+        volcart::testing::SmallOrClose(_out_SmoothedArchMesh->GetPoint(p_id)[2], _SavedArchPoints[p_id].z);
     }
 
     //normals
-    int p = 0;
     VC_PointsInMeshIterator point = _out_SmoothedArchMesh->GetPoints()->Begin();
-    for ( ; point != _out_SmoothedArchMesh->GetPoints()->End(); ++point ) {
-
-        VC_PixelType out_ArchNormal;
-        _out_SmoothedArchMesh->GetPointData(point.Index(), &out_ArchNormal);
+    for ( int p = 0; point != _out_SmoothedArchMesh->GetPoints()->End(); ++p, ++point ) {
+        VC_PixelType out_Normal;
+        _out_SmoothedArchMesh->GetPointData(point.Index(), &out_Normal);
 
         //Now compare the normals for the two meshes
-        BOOST_CHECK_CLOSE_FRACTION(out_ArchNormal[0], _SavedArchPoints[p].nx, _Tolerance);
-        BOOST_CHECK_CLOSE_FRACTION(out_ArchNormal[1], _SavedArchPoints[p].ny, _Tolerance);
-        BOOST_CHECK_CLOSE_FRACTION(out_ArchNormal[2], _SavedArchPoints[p].nz, _Tolerance);
-
-        p++;
-
+        volcart::testing::SmallOrClose( out_Normal[0], _SavedArchPoints[p].nx );
+        volcart::testing::SmallOrClose( out_Normal[1], _SavedArchPoints[p].ny );
+        volcart::testing::SmallOrClose( out_Normal[2], _SavedArchPoints[p].nz );
     }
 
     // Initialize Cell Iterators
@@ -407,34 +376,23 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureSmoothedConeWithSavedConeTest, SmoothNorma
     //Check number of points in each mesh
     BOOST_CHECK_EQUAL( _out_SmoothedConeMesh->GetNumberOfPoints(), _SavedConePoints.size() );
 
-    //compare point values
+    //points
     for ( size_t p_id = 0; p_id < _out_SmoothedConeMesh ->GetNumberOfPoints(); ++p_id) {
-
-        BOOST_CHECK_CLOSE_FRACTION(_out_SmoothedConeMesh->GetPoint(p_id)[0], _SavedConePoints[p_id].x, _Tolerance);
-        BOOST_CHECK_CLOSE_FRACTION(_out_SmoothedConeMesh->GetPoint(p_id)[1], _SavedConePoints[p_id].y, _Tolerance);
-        BOOST_CHECK_CLOSE_FRACTION(_out_SmoothedConeMesh->GetPoint(p_id)[2], _SavedConePoints[p_id].z, _Tolerance);
+        volcart::testing::SmallOrClose(_out_SmoothedConeMesh->GetPoint(p_id)[0], _SavedConePoints[p_id].x);
+        volcart::testing::SmallOrClose(_out_SmoothedConeMesh->GetPoint(p_id)[1], _SavedConePoints[p_id].y);
+        volcart::testing::SmallOrClose(_out_SmoothedConeMesh->GetPoint(p_id)[2], _SavedConePoints[p_id].z);
     }
 
     //normals
-    int p = 0;
     VC_PointsInMeshIterator point = _out_SmoothedConeMesh->GetPoints()->Begin();
-    for ( ; point != _out_SmoothedConeMesh->GetPoints()->End(); ++point ) {
+    for ( int p = 0; point != _out_SmoothedConeMesh->GetPoints()->End(); ++p, ++point ) {
+        VC_PixelType out_Normal;
+        _out_SmoothedConeMesh->GetPointData(point.Index(), &out_Normal);
 
-        VC_PixelType out_ConeNormal;
-        _out_SmoothedConeMesh->GetPointData(point.Index(), &out_ConeNormal);
-
-        //hack to check cone normals are close
-        BOOST_CHECK( std::abs(out_ConeNormal[0] - _SavedConePoints[p].nx) < 0.000001);
-        BOOST_CHECK( std::abs(out_ConeNormal[1] - _SavedConePoints[p].ny) < 0.000001);
-        BOOST_CHECK( std::abs(out_ConeNormal[2] - _SavedConePoints[p].nz) < 0.000001);
-
-        //TODO: debian tests fails here
-        //BOOST_CHECK_CLOSE_FRACTION(out_ConeNormal[0], _SavedConePoints[p].nx, 0.001);
-        //BOOST_CHECK_CLOSE_FRACTION(out_ConeNormal[1], _SavedConePoints[p].ny, 0.001);
-        //BOOST_CHECK_CLOSE_FRACTION(out_ConeNormal[2], _SavedConePoints[p].nz, 0.001);
-
-        p++;
-
+        //Now compare the normals for the two meshes
+        volcart::testing::SmallOrClose( out_Normal[0], _SavedConePoints[p].nx );
+        volcart::testing::SmallOrClose( out_Normal[1], _SavedConePoints[p].ny );
+        volcart::testing::SmallOrClose( out_Normal[2], _SavedConePoints[p].nz );
     }
 
     //               //
@@ -493,29 +451,24 @@ BOOST_FIXTURE_TEST_CASE(SmoothWithZeroRadiusTest, SmoothNormalsFixture){
     BOOST_CHECK_EQUAL(_in_ArchMesh->GetNumberOfPoints(), ZeroRadiusSmoothedMesh->GetNumberOfPoints());
     BOOST_CHECK_EQUAL(_in_ArchMesh->GetNumberOfCells(), ZeroRadiusSmoothedMesh->GetNumberOfCells());
 
-
     //compare point values
-    for ( size_t p_id = 0; p_id < _in_ArchMesh ->GetNumberOfPoints(); ++p_id) {
-
-        BOOST_CHECK_EQUAL(_in_ArchMesh->GetPoint(p_id)[0], ZeroRadiusSmoothedMesh->GetPoint(p_id)[0]);
-        BOOST_CHECK_EQUAL(_in_ArchMesh->GetPoint(p_id)[1], ZeroRadiusSmoothedMesh->GetPoint(p_id)[1]);
-        BOOST_CHECK_EQUAL(_in_ArchMesh->GetPoint(p_id)[2], ZeroRadiusSmoothedMesh->GetPoint(p_id)[2]);
+    for ( size_t p_id = 0; p_id < _in_ArchMesh->GetNumberOfPoints(); ++p_id) {
+        volcart::testing::SmallOrClose(_in_ArchMesh->GetPoint(p_id)[0], ZeroRadiusSmoothedMesh->GetPoint(p_id)[0]);
+        volcart::testing::SmallOrClose(_in_ArchMesh->GetPoint(p_id)[1], ZeroRadiusSmoothedMesh->GetPoint(p_id)[1]);
+        volcart::testing::SmallOrClose(_in_ArchMesh->GetPoint(p_id)[2], ZeroRadiusSmoothedMesh->GetPoint(p_id)[2]);
     }
 
     //compare normals
-    VC_PointsInMeshIterator point = _in_ArchMesh->GetPoints()->Begin();
-
-    for ( ; point != _in_ArchMesh->GetPoints()->End(); ++point ) {
+    for ( auto point = _in_ArchMesh->GetPoints()->Begin(); point != _in_ArchMesh->GetPoints()->End(); ++point ) {
 
         VC_PixelType in_ArchNormal, ZeroRadiusNormal;
         _in_ArchMesh->GetPointData(point.Index(), &in_ArchNormal);
         ZeroRadiusSmoothedMesh->GetPointData(point.Index(), &ZeroRadiusNormal);
 
         //Now compare the normals for the two meshes
-        BOOST_CHECK_EQUAL(in_ArchNormal[0], ZeroRadiusNormal[0]);
-        BOOST_CHECK_EQUAL(in_ArchNormal[1], ZeroRadiusNormal[1]);
-        BOOST_CHECK_EQUAL(in_ArchNormal[2], ZeroRadiusNormal[2]);
-
+        volcart::testing::SmallOrClose(in_ArchNormal[0], ZeroRadiusNormal[0]);
+        volcart::testing::SmallOrClose(in_ArchNormal[1], ZeroRadiusNormal[1]);
+        volcart::testing::SmallOrClose(in_ArchNormal[2], ZeroRadiusNormal[2]);
     }
 
     //               //

@@ -242,7 +242,7 @@ void CVolumeViewerWithCurve::WidgetLoc2ImgLoc( const cv::Vec2f &nWidgetLoc,
 int CVolumeViewerWithCurve::SelectPointOnCurve( const CXCurve   *nCurve,
                                                 const cv::Vec2f &nPt )
 {
-    const float DIST_THRESHOLD = 1.5 * fScaleFactor; // REVISIT - image scale should be taken into account
+    const float DIST_THRESHOLD = 1.5 * fScaleFactor;
 
     for ( size_t i = 0; i < nCurve->GetPointsNum(); ++i ) {
         if ( Norm< float >( Vec2< float >( nCurve->GetPoint( i )[ 0 ] - nPt[ 0 ], nCurve->GetPoint( i )[ 1 ] - nPt[ 1 ] ) ) < DIST_THRESHOLD ) {

@@ -7,9 +7,12 @@
 
 #include "datatypes/LRUCache.h"
 #include "datatypes/Metadata.h"
+#include "datatypes/PerPixelMap.h"
 #include "datatypes/UVMap.h"
 #include "datatypes/Texture.h"
 #include "datatypes/Slice.h"
 #include "datatypes/Volume.h"
+#include "datatypes/Rendering.h"
+#include "datatypes/HalfEdgeMesh.h"
 
 #endif //VC_DATATYPES_H

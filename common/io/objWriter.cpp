@@ -24,6 +24,13 @@ namespace volcart {
         _texture = uvImg;
     };
 
+    ///// Access Functions /////
+    void objWriter::setRendering( volcart::Rendering rendering ) {
+        _mesh = rendering.getMesh();
+        _texture = rendering.getTexture().getImage(0);
+        _textCoords = rendering.getTexture().uvMap();
+    }
+
     ///// Validation /////
     // Make sure that all required parameters have been set and are okay
     bool objWriter::validate() {
@@ -73,7 +80,9 @@ namespace volcart {
     // Write the MTL file to disk
     // See http://paulbourke.net/dataformats/mtl/ for more options
     int objWriter::writeMTL() {
-        _outputMTL.open( _outputPath.stem().string() + ".mtl" ); // Open the file stream
+        boost::filesystem::path p = _outputPath;
+        p.replace_extension("mtl");
+        _outputMTL.open( p.string() ); // Open the file stream
         if(!_outputMTL.is_open()) return EXIT_FAILURE; // Return error if we can't open the file
 
         std::cerr << "Writing MTL..." << std::endl;
@@ -98,7 +107,9 @@ namespace volcart {
         if ( _texture.empty() ) return EXIT_FAILURE;
 
         std::cerr << "Writing texture image..." << std::endl;
-        imwrite( _outputPath.stem().string() + ".png", _texture );
+        boost::filesystem::path p = _outputPath;
+        p.replace_extension("png");
+        imwrite( p.string(), _texture );
         return EXIT_SUCCESS;
     };
 

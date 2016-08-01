@@ -162,20 +162,6 @@ bool VolumePkg::setSliceData(size_t index, const cv::Mat& slice)
 }
 
 // SEGMENTATION FUNCTIONS //
-// Return a vector of strings representing the names of segmentations in the
-// volpkg
-std::vector<std::string> VolumePkg::getSegmentations() const
-{
-    return segmentations;
-}
-
-// Set the private variable activeSeg to the seg we want to work with
-void VolumePkg::setActiveSegmentation(const std::string& name)
-{
-    // To-Do: Check that this seg actually exists in the volume
-    activeSeg = name;
-}
-
 // Make a new folder inside the volume package to house everything for this
 // segmentation
 // and push back the new segmentation into our vector of segmentations
@@ -191,6 +177,29 @@ std::string VolumePkg::newSegmentation()
 
     return newSegName;
 }
+
+// Return a vector of strings representing the names of segmentations in the
+// volpkg
+std::vector<std::string> VolumePkg::getSegmentations() const
+{
+    return segmentations;
+}
+
+// Set the private variable activeSeg to the seg we want to work with
+void VolumePkg::setActiveSegmentation(const std::string& name)
+{
+    // To-Do: Check that this seg actually exists in the volume
+    activeSeg = name;
+}
+
+// Return the id of the active segmentation
+std::string VolumePkg::getActiveSegmentation() {
+    return activeSeg;
+};
+
+boost::filesystem::path VolumePkg::getActiveSegPath() {
+    return segs_dir / activeSeg;
+};
 
 // Return the point cloud currently on disk for the activeSegmentation
 pcl::PointCloud<pcl::PointXYZRGB>::Ptr VolumePkg::openCloud() const

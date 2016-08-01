@@ -20,6 +20,7 @@
 #include <opencv2/opencv.hpp>
 #include <boost/filesystem.hpp>
 #include <QCloseEvent>
+#include <boost/filesystem.hpp>
 
 #include "Global_Values.h"
 #include "Texture_Viewer.h"
