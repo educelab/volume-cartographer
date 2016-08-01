@@ -7,8 +7,8 @@
 using namespace volcart::texturing;
 
 ///// Constructors & Destructors /////
-AngleBasedFlattening::AngleBasedFlattening() : _maxABFIterations(8), _useABF(true) {};
-AngleBasedFlattening::AngleBasedFlattening( VC_MeshType::Pointer mesh ) : _mesh(mesh), _maxABFIterations(8), _useABF(true) {};
+AngleBasedFlattening::AngleBasedFlattening() : _maxABFIterations(DEFAULT_MAX_ABF_ITERATIONS), _useABF(true) {};
+AngleBasedFlattening::AngleBasedFlattening( VC_MeshType::Pointer mesh ) : _mesh(mesh), _maxABFIterations(DEFAULT_MAX_ABF_ITERATIONS), _useABF(true) {};
 
 ///// Access Functions /////
 void AngleBasedFlattening::setMesh( VC_MeshType::Pointer mesh ) { _mesh = mesh; };

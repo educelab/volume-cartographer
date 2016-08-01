@@ -50,6 +50,8 @@ namespace volcart {
           ///// Process /////
           void compute();
 
+          ///// Default values /////
+          static const int DEFAULT_MAX_ABF_ITERATIONS = 8;
       private:
           ///// Setup /////
           void _fillHalfEdgeMesh();
