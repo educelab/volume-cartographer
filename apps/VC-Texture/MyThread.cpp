@@ -61,7 +61,7 @@ void MyThread::run()
 
         // ABF flattening
         std::cout << "Computing parameterization..." << std::endl;
-        volcart::texturing::abf abf(itkACVD);
+        volcart::texturing::AngleBasedFlattening abf(itkACVD);
         //abf.setABFMaxIterations(5);
         abf.compute();
 

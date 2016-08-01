@@ -29,13 +29,11 @@
 namespace volcart {
     namespace texturing {
 
-      class abf {
-
+      class AngleBasedFlattening {
       public:
           ///// Constructors/Destructors /////
-          abf();
-          abf( VC_MeshType::Pointer mesh );
-          ~abf();
+          AngleBasedFlattening();
+          AngleBasedFlattening( VC_MeshType::Pointer mesh );
 
           ///// Access Functions /////
           // Set inputs
@@ -51,8 +49,8 @@ namespace volcart {
 
           ///// Process /////
           void compute();
-      private:
 
+      private:
           ///// Setup /////
           void _fillHalfEdgeMesh();
 
@@ -85,7 +83,7 @@ namespace volcart {
 
           // Interior Vertices
           // < id in quadMesh, id in list >
-          std::map< volcart::QuadPointIdentifier, volcart::QuadPointIdentifier > _interior;
+          std::map<volcart::QuadPointIdentifier, volcart::QuadPointIdentifier> _interior;
 
           std::vector<double> _bInterior;
           cv::Mat _J2dt;

@@ -9,7 +9,7 @@
 #include <vtkCleanPolyData.h>
 
 #include "ACVD.h"
-#include "abf.h"
+#include "AngleBasedFlattening.h"
 #include "compositeTextureV2.h"
 #include "meshMath.h"
 

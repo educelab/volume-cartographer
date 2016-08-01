@@ -11,7 +11,7 @@
 #include "vc_defines.h"
 #include "vc_datatypes.h"
 #include "shapes.h"
-#include "abf.h"
+#include "AngleBasedFlattening.h"
 #include "parsingHelpers.h"
 #include "testingUtils.h"
 
@@ -59,7 +59,7 @@ struct CreatePlaneABFUVFixture{
         _in_Mesh = _Plane.itkMesh();
 
         //Create uvMap from mesh
-        volcart::texturing::abf abf(_in_Mesh);
+        volcart::texturing::AngleBasedFlattening abf(_in_Mesh);
         abf.compute();
         _out_Mesh = abf.getMesh();
 
@@ -89,7 +89,7 @@ struct CreatePlaneABFLSCMOnlyUVFixture{
         _in_Mesh = _Plane.itkMesh();
 
         //Create uvMap from mesh
-        volcart::texturing::abf abf(_in_Mesh);
+        volcart::texturing::AngleBasedFlattening abf(_in_Mesh);
         abf.setUseABF(false);
         abf.compute();
         _out_Mesh = abf.getMesh();
@@ -120,7 +120,7 @@ struct CreateArchABFUVFixture{
         _in_Mesh = _Arch.itkMesh();
 
         //Create uvMap from mesh
-        volcart::texturing::abf abf(_in_Mesh);
+        volcart::texturing::AngleBasedFlattening abf(_in_Mesh);
         abf.compute();
         _out_Mesh = abf.getMesh();
 
@@ -149,7 +149,7 @@ struct CreateArchABFLSCMOnlyUVFixture{
         _in_Mesh = _Arch.itkMesh();
 
         //Create uvMap from mesh
-        volcart::texturing::abf abf(_in_Mesh);
+        volcart::texturing::AngleBasedFlattening abf(_in_Mesh);
         abf.setUseABF(false);
         abf.compute();
         _out_Mesh = abf.getMesh();

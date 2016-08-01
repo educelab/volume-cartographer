@@ -9,7 +9,7 @@
 #include "vc_defines.h"
 #include "volumepkg.h"
 
-#include "abf.h"
+#include "AngleBasedFlattening.h"
 #include "shapes.h"
 #include "io/objWriter.h"
 
@@ -21,7 +21,7 @@ int main( int argc, char* argv[] ) {
     // Setup the test objects
     volcart::shapes::Plane  plane;
     volcart::shapes::Arch    arch;
-    volcart::texturing::abf abf;
+    volcart::texturing::AngleBasedFlattening abf;
 
     //// Plane tests ////
     // Plane ABF & LSCM

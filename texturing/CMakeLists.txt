@@ -9,7 +9,7 @@ else()
     set(vc_texturing_SRC compositeTexture.cpp compositeTexture.h
                          compositeTextureV2.cpp compositeTextureV2.h
                          simpleUV.h simpleUV.cpp
-                         abf.h abf.cpp )
+                         AngleBasedFlattening.h AngleBasedFlattening.cpp)
 
     if(VC_USE_BULLET)
         set( vc_texturing_SRC ${vc_texturing_SRC} clothModelingUV.h clothModelingUV.cpp)
