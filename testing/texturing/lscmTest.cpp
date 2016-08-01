@@ -11,7 +11,7 @@
 #include "vc_defines.h"
 #include "vc_datatypes.h"
 #include "shapes.h"
-#include "lscm.h"
+#include "LeastSquaresConformalMapping.h"
 #include "parsingHelpers.h"
 #include "testingUtils.h"
 
@@ -57,7 +57,7 @@ struct CreatePlaneLSCMUVFixture{
         _in_Mesh = _Plane.itkMesh();
 
         //Create uvMap from mesh
-        volcart::texturing::lscm lscm(_in_Mesh);
+        volcart::texturing::LeastSquaresConformalMapping lscm(_in_Mesh);
         lscm.compute();
         _out_Mesh = lscm.getMesh();
 
@@ -87,7 +87,7 @@ struct CreateArchLSCMUVFixture{
         _in_Mesh = _Arch.itkMesh();
 
         //Create uvMap from mesh
-        volcart::texturing::lscm lscm(_in_Mesh);
+        volcart::texturing::LeastSquaresConformalMapping lscm(_in_Mesh);
         lscm.compute();
         _out_Mesh = lscm.getMesh();
 

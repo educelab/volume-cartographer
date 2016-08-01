@@ -21,11 +21,10 @@
 namespace volcart {
   namespace texturing {
 
-    class lscm {
+    class LeastSquaresConformalMapping {
     public:
-      lscm(){};
-      lscm( VC_MeshType::Pointer input );
-      ~lscm(){};
+      LeastSquaresConformalMapping(){};
+      LeastSquaresConformalMapping( VC_MeshType::Pointer input );
 
       // Input/Output
       void setMesh( VC_MeshType::Pointer input );

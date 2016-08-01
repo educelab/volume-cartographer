@@ -1,23 +1,23 @@
-#include "lscm.h"
+#include "LeastSquaresConformalMapping.h"
 
 namespace volcart {
     namespace texturing {
 
         ///// Constructors /////
-        lscm::lscm( VC_MeshType::Pointer input ) : _mesh(input) {
+        LeastSquaresConformalMapping::LeastSquaresConformalMapping( VC_MeshType::Pointer input ) : _mesh(input) {
           _fillEigenMatrices();
         };
 
         ///// Input/Output /////
         // Set input mesh
-        void lscm::setMesh( VC_MeshType::Pointer input ) {
+        void LeastSquaresConformalMapping::setMesh( VC_MeshType::Pointer input ) {
           _emptyEigenMatrices();
           _mesh = input;
           _fillEigenMatrices();
         }
 
         // Get output as mesh
-        VC_MeshType::Pointer lscm::getMesh() {
+        VC_MeshType::Pointer LeastSquaresConformalMapping::getMesh() {
           VC_MeshType::Pointer output = VC_MeshType::New();
           volcart::meshing::deepCopy( _mesh, output );
 
@@ -36,7 +36,7 @@ namespace volcart {
         }
 
         // Get UV Map created from flattened object
-        volcart::UVMap lscm::getUVMap() {
+        volcart::UVMap LeastSquaresConformalMapping::getUVMap() {
 
           // Setup uvMap
           volcart::UVMap uvMap;
@@ -76,7 +76,7 @@ namespace volcart {
 
         ///// Processing /////
         // Compute the parameterization
-        void lscm::compute() {
+        void LeastSquaresConformalMapping::compute() {
 
           // Fix two points on the boundary
           Eigen::VectorXi bnd, b(2,1);
@@ -107,7 +107,7 @@ namespace volcart {
 
         ///// Utilities /////
         // Fill the data structures with the mesh
-        void lscm::_fillEigenMatrices() {
+        void LeastSquaresConformalMapping::_fillEigenMatrices() {
 
           // Vertices
           _vertices.resize( _mesh->GetNumberOfPoints(), 3);
@@ -133,14 +133,14 @@ namespace volcart {
         }
 
         // Empty the data structures
-        void lscm::_emptyEigenMatrices() {
+        void LeastSquaresConformalMapping::_emptyEigenMatrices() {
           _vertices    = Eigen::MatrixXd();
           _faces       = Eigen::MatrixXi();
           _vertices_UV = Eigen::MatrixXd();
         }
 
         // Calculate surface area of meshes
-        double lscm::_area(const Eigen::MatrixXd& v, const Eigen::MatrixXi& f) {
+        double LeastSquaresConformalMapping::_area(const Eigen::MatrixXd& v, const Eigen::MatrixXi& f) {
           Eigen::VectorXd area;
           igl::doublearea(v, f, area);
           area = area.array() / 2;

@@ -16,7 +16,7 @@ else()
     endif(VC_USE_BULLET)
 
     if(VC_USE_LIBIGL)
-        set( vc_texturing_SRC ${vc_texturing_SRC} lscm.h lscm.cpp)
+        set( vc_texturing_SRC ${vc_texturing_SRC} LeastSquaresConformalMapping.h LeastSquaresConformalMapping.cpp)
     endif(VC_USE_LIBIGL)
 
     add_library(vc_texturing STATIC ${vc_texturing_SRC})

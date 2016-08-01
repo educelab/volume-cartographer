@@ -2,14 +2,14 @@
 // Created by Seth Parker on 6/28/15.
 //
 /*
- * Purpose: Run volcart::texturing::lscm() and write results to file for each shape.
+ * Purpose: Run volcart::texturing::LeastSquaresConformalMapping() and write results to file for each shape.
  *          Saved file wills be read in by the lscmTest.cpp file under v-c/testing/texturing.
  */
 
 #include "vc_defines.h"
 #include "volumepkg.h"
 
-#include "lscm.h"
+#include "LeastSquaresConformalMapping.h"
 #include "shapes.h"
 #include "io/objWriter.h"
 
@@ -21,7 +21,7 @@ int main( int argc, char* argv[] ) {
   // Setup the test objects
   volcart::shapes::Plane  plane;
   volcart::shapes::Arch    arch;
-  volcart::texturing::lscm lscm;
+  volcart::texturing::LeastSquaresConformalMapping lscm;
 
   //// Plane tests ////
   // Plane ABF & LSCM
