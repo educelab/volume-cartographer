@@ -26,6 +26,10 @@ namespace io {
     objWriter( std::string outputPath, VC_MeshType::Pointer mesh, volcart::UVMap uvMap, cv::Mat uvImg);
 
     void setPath( std::string path ) { _outputPath = path; };
+
+    void setRendering( volcart::Rendering rendering );
+
+    // Set pieces individually
     void setMesh( VC_MeshType::Pointer mesh ) { _mesh = mesh; };
     void setUVMap( volcart::UVMap uvMap ) { _textCoords = uvMap; };
     void setTexture( cv::Mat uvImg ) { _texture = uvImg; };

@@ -43,13 +43,13 @@ CVolumeViewer::CVolumeViewer( QWidget *parent ) :
     fScrollArea->setBackgroundRole( QPalette::Dark );
     fScrollArea->setWidget( fCanvas );
 
-    QHBoxLayout *aButtonsLayout = new QHBoxLayout;
-    aButtonsLayout->addWidget( fZoomInBtn );
-    aButtonsLayout->addWidget( fZoomOutBtn );
-    aButtonsLayout->addWidget( fResetBtn );
-    aButtonsLayout->addWidget( fPrevBtn );
-    aButtonsLayout->addWidget( fNextBtn );
-    aButtonsLayout->addWidget( fImageIndexEdit );
+    fButtonsLayout = new QHBoxLayout;
+    fButtonsLayout->addWidget( fZoomInBtn );
+    fButtonsLayout->addWidget( fZoomOutBtn );
+    fButtonsLayout->addWidget( fResetBtn );
+    fButtonsLayout->addWidget( fPrevBtn );
+    fButtonsLayout->addWidget( fNextBtn );
+    fButtonsLayout->addWidget( fImageIndexEdit );
 
     connect( fZoomInBtn, SIGNAL( clicked() ), this, SLOT( OnZoomInClicked() ) );
     connect( fZoomOutBtn, SIGNAL( clicked() ), this, SLOT( OnZoomOutClicked() ) );
@@ -59,7 +59,7 @@ CVolumeViewer::CVolumeViewer( QWidget *parent ) :
 
     QVBoxLayout *aWidgetLayout = new QVBoxLayout;
     aWidgetLayout->addWidget( fScrollArea );
-    aWidgetLayout->addLayout( aButtonsLayout );
+    aWidgetLayout->addLayout( fButtonsLayout );
 
     setLayout( aWidgetLayout );
 

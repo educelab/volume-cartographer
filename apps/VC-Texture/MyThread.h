@@ -5,6 +5,14 @@
 #include <QString>
 #include <QThread>
 #include <QLabel>
+
+#include <vtkCleanPolyData.h>
+
+#include "ACVD.h"
+#include "AngleBasedFlattening.h"
+#include "compositeTextureV2.h"
+#include "meshMath.h"
+
 #include "Global_Values.h"
 
 

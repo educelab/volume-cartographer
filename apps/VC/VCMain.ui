@@ -260,7 +260,7 @@
         <property name="title">
          <string>Editing</string>
         </property>
-        <layout class="QVBoxLayout" name="verticalLayout_13">
+        <layout class="QHBoxLayout" name="verticalLayout_13">
          <item>
           <widget class="QLabel" name="label">
            <property name="text">
@@ -271,7 +271,7 @@
          <item>
           <widget class="QSlider" name="sldImpactRange">
            <property name="minimum">
-            <number>5</number>
+            <number>1</number>
            </property>
            <property name="maximum">
             <number>25</number>
@@ -284,6 +284,9 @@
            </property>
           </widget>
          </item>
+         <item>
+          <widget class="QLabel" name="labImpactRange"/>
+         </item>
         </layout>
        </widget>
       </item>
@@ -291,8 +294,7 @@
     </item>
    </layout>
   </widget>
-  <widget class="QStatusBar" name="statusBar">
-  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
   <action name="actionOpen">
    <property name="text">
     <string>Open</string>

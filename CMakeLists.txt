@@ -13,12 +13,16 @@ add_compile_options(-fdiagnostics-color=always)
 
 # Option for building apps
 option(VC_PREBUILT_LIBS "Link against prebuilt dependencies" OFF)
+option(VC_USE_ACVD "Compile with ACVD support" ON)
+option(VC_USE_BULLET "Compile with Bullet Physics support" OFF)
+option(VC_USE_LIBIGL "Compile with libigl support" OFF)
 
 # Choose what to install
 option(INSTALL_VC_CORE "Install VC core apps" ON)
 option(INSTALL_VC_UTIL "Install VC util apps" ON)
 option(INSTALL_VC_DEMO "Install VC demo apps" OFF)
 
+# Prebuilt libs
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/)
 IF(VC_PREBUILT_LIBS)
     set(CMAKE_PREFIX_PATH ${PROJECT_SOURCE_DIR}/vc-deps/deps/)
@@ -37,8 +41,6 @@ find_package(Boost REQUIRED COMPONENTS system filesystem program_options iostrea
 find_package(ITK REQUIRED)
 find_package(VTK 6.1 REQUIRED)
 find_package(OpenGL REQUIRED)
-find_package(ACVD)
-find_package(Bullet)
 
 include(${ITK_USE_FILE})
 include(${VTK_USE_FILE})
@@ -50,15 +52,22 @@ set(VC_REQ_LIBS ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} ${ITK_LIBRARI
 add_definitions(${PCL_DEFINITIONS})
 
 # Conditional Inclusions
-if(ACVD_FOUND)
+if(VC_USE_ACVD)
+    find_package(ACVD REQUIRED)
     include_directories(${ACVD_INCLUDE_DIRS})
     set(VC_REQ_LIBS ${VC_REQ_LIBS} ${ACVD_LIBRARIES})
-endif(ACVD_FOUND)
+endif(VC_USE_ACVD)
 
-if(Bullet_FOUND)
+if(VC_USE_BULLET)
+    find_package(Bullet REQUIRED)
     include_directories(${BULLET_INCLUDE_DIRS})
     set(VC_REQ_LIBS ${VC_REQ_LIBS} ${BULLET_LIBRARIES})
-endif(Bullet_FOUND)
+endif(VC_USE_BULLET)
+
+if(VC_USE_LIBIGL)
+    find_package(LIBIGL REQUIRED)
+    include_directories(${LIBIGL_INCLUDE_DIRS})
+endif(VC_USE_LIBIGL)
 
 # OS Specific Changes
 IF(APPLE)
@@ -70,6 +79,9 @@ ENDIF(APPLE)
 enable_testing()
 
 # VC Libraries
+add_subdirectory(external/sparse_linear_solver)
+include_directories(${SLS_INCLUDE_DIR})
+
 add_subdirectory(common)
 include_directories(${VC_COMMON_INCLUDE_DIR})
 

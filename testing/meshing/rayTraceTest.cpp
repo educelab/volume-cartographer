@@ -14,6 +14,7 @@
 #include "rayTrace.h"
 #include "vc_defines.h"
 #include "parsingHelpers.h"
+#include "testingUtils.h"
 
 /************************************************************************************
  *                                                                                  *
@@ -122,7 +123,7 @@ struct PlaneRayTraceFixture {
     int _Width, _Height;
 
     //Variables for writing to file
-    int _NumberOfPointsInMesh;
+    unsigned long _NumberOfPointsInMesh;
     std::ofstream _SavedPlaneMeshFile;
 
     //Vectors that will hold points and cells
@@ -480,12 +481,12 @@ BOOST_FIXTURE_TEST_CASE(SavedPlaneRayTraceComparison, PlaneRayTraceFixture){
     //loop over points
     for (int point = 0; point < _SavedPoints.size(); point++){
 
-        BOOST_CHECK_EQUAL(_SavedPoints[point].x, _CurrentPoints[point].x);
-        BOOST_CHECK_EQUAL(_SavedPoints[point].y, _CurrentPoints[point].y);
-        BOOST_CHECK_EQUAL(_SavedPoints[point].z, _CurrentPoints[point].z);
-        BOOST_CHECK_EQUAL(_SavedPoints[point].nx, _CurrentPoints[point].nx);
-        BOOST_CHECK_EQUAL(_SavedPoints[point].ny, _CurrentPoints[point].ny);
-        BOOST_CHECK_EQUAL(_SavedPoints[point].nz, _CurrentPoints[point].nz);
+        volcart::testing::SmallOrClose(_SavedPoints[point].x, _CurrentPoints[point].x);
+        volcart::testing::SmallOrClose(_SavedPoints[point].y, _CurrentPoints[point].y);
+        volcart::testing::SmallOrClose(_SavedPoints[point].z, _CurrentPoints[point].z);
+        volcart::testing::SmallOrClose(_SavedPoints[point].nx, _CurrentPoints[point].nx);
+        volcart::testing::SmallOrClose(_SavedPoints[point].ny, _CurrentPoints[point].ny);
+        volcart::testing::SmallOrClose(_SavedPoints[point].nz, _CurrentPoints[point].nz);
 
     }
 
@@ -500,12 +501,12 @@ BOOST_FIXTURE_TEST_CASE(SavedCubeRayTraceComparison, CubeRayTraceFixture){
     //loop over points
     for (int point = 0; point < _SavedPoints.size(); point++){
 
-        BOOST_CHECK_EQUAL(_SavedPoints[point].x, _CurrentPoints[point].x);
-        BOOST_CHECK_EQUAL(_SavedPoints[point].y, _CurrentPoints[point].y);
-        BOOST_CHECK_EQUAL(_SavedPoints[point].z, _CurrentPoints[point].z);
-        BOOST_CHECK_EQUAL(_SavedPoints[point].nx, _CurrentPoints[point].nx);
-        BOOST_CHECK_EQUAL(_SavedPoints[point].ny, _CurrentPoints[point].ny);
-        BOOST_CHECK_EQUAL(_SavedPoints[point].nz, _CurrentPoints[point].nz);
+        volcart::testing::SmallOrClose(_SavedPoints[point].x, _CurrentPoints[point].x);
+        volcart::testing::SmallOrClose(_SavedPoints[point].y, _CurrentPoints[point].y);
+        volcart::testing::SmallOrClose(_SavedPoints[point].z, _CurrentPoints[point].z);
+        volcart::testing::SmallOrClose(_SavedPoints[point].nx, _CurrentPoints[point].nx);
+        volcart::testing::SmallOrClose(_SavedPoints[point].ny, _CurrentPoints[point].ny);
+        volcart::testing::SmallOrClose(_SavedPoints[point].nz, _CurrentPoints[point].nz);
 
     }
 
@@ -519,12 +520,12 @@ BOOST_FIXTURE_TEST_CASE(SavedArchRayTraceComparison, ArchRayTraceFixture){
     //check points
     for (int point = 0; point < _SavedPoints.size(); point++){
 
-        BOOST_CHECK_EQUAL(_SavedPoints[point].x, _CurrentPoints[point].x);
-        BOOST_CHECK_EQUAL(_SavedPoints[point].y, _CurrentPoints[point].y);
-        BOOST_CHECK_EQUAL(_SavedPoints[point].z, _CurrentPoints[point].z);
-        BOOST_CHECK_EQUAL(_SavedPoints[point].nx, _CurrentPoints[point].nx);
-        BOOST_CHECK_EQUAL(_SavedPoints[point].ny, _CurrentPoints[point].ny);
-        BOOST_CHECK_EQUAL(_SavedPoints[point].nz, _CurrentPoints[point].nz);
+        volcart::testing::SmallOrClose(_SavedPoints[point].x, _CurrentPoints[point].x);
+        volcart::testing::SmallOrClose(_SavedPoints[point].y, _CurrentPoints[point].y);
+        volcart::testing::SmallOrClose(_SavedPoints[point].z, _CurrentPoints[point].z);
+        volcart::testing::SmallOrClose(_SavedPoints[point].nx, _CurrentPoints[point].nx);
+        volcart::testing::SmallOrClose(_SavedPoints[point].ny, _CurrentPoints[point].ny);
+        volcart::testing::SmallOrClose(_SavedPoints[point].nz, _CurrentPoints[point].nz);
 
     }
 
@@ -538,12 +539,12 @@ BOOST_FIXTURE_TEST_CASE(SavedSphereRayTraceComparison, SphereRayTraceFixture){
     //loop over points
     for (int point = 0; point < _SavedPoints.size(); point++){
 
-        BOOST_CHECK_EQUAL(_SavedPoints[point].x, _CurrentPoints[point].x);
-        BOOST_CHECK_EQUAL(_SavedPoints[point].y, _CurrentPoints[point].y);
-        BOOST_CHECK_EQUAL(_SavedPoints[point].z, _CurrentPoints[point].z);
-        BOOST_CHECK_EQUAL(_SavedPoints[point].nx, _CurrentPoints[point].nx);
-        BOOST_CHECK_EQUAL(_SavedPoints[point].ny, _CurrentPoints[point].ny);
-        BOOST_CHECK_EQUAL(_SavedPoints[point].nz, _CurrentPoints[point].nz);
+        volcart::testing::SmallOrClose(_SavedPoints[point].x, _CurrentPoints[point].x);
+        volcart::testing::SmallOrClose(_SavedPoints[point].y, _CurrentPoints[point].y);
+        volcart::testing::SmallOrClose(_SavedPoints[point].z, _CurrentPoints[point].z);
+        volcart::testing::SmallOrClose(_SavedPoints[point].nx, _CurrentPoints[point].nx);
+        volcart::testing::SmallOrClose(_SavedPoints[point].ny, _CurrentPoints[point].ny);
+        volcart::testing::SmallOrClose(_SavedPoints[point].nz, _CurrentPoints[point].nz);
 
     }
 
@@ -557,12 +558,12 @@ BOOST_FIXTURE_TEST_CASE(SavedConeRayTraceComparison, ConeRayTraceFixture){
     //loop over points
     for (int point = 0; point < _SavedPoints.size(); point++){
 
-        BOOST_CHECK_EQUAL(_SavedPoints[point].x, _CurrentPoints[point].x);
-        BOOST_CHECK_EQUAL(_SavedPoints[point].y, _CurrentPoints[point].y);
-        BOOST_CHECK_EQUAL(_SavedPoints[point].z, _CurrentPoints[point].z);
-        BOOST_CHECK_EQUAL(_SavedPoints[point].nx, _CurrentPoints[point].nx);
-        BOOST_CHECK_EQUAL(_SavedPoints[point].ny, _CurrentPoints[point].ny);
-        BOOST_CHECK_EQUAL(_SavedPoints[point].nz, _CurrentPoints[point].nz);
+        volcart::testing::SmallOrClose(_SavedPoints[point].x, _CurrentPoints[point].x);
+        volcart::testing::SmallOrClose(_SavedPoints[point].y, _CurrentPoints[point].y);
+        volcart::testing::SmallOrClose(_SavedPoints[point].z, _CurrentPoints[point].z);
+        volcart::testing::SmallOrClose(_SavedPoints[point].nx, _CurrentPoints[point].nx);
+        volcart::testing::SmallOrClose(_SavedPoints[point].ny, _CurrentPoints[point].ny);
+        volcart::testing::SmallOrClose(_SavedPoints[point].nz, _CurrentPoints[point].nz);
 
     }
 

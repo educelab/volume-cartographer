@@ -7,13 +7,26 @@ using namespace ChaoVis;
 
 // Constructor
 CVolumeViewerWithCurve::CVolumeViewerWithCurve( void ) :
-    fSplineCurveRef( NULL ),
-    fIntersectionCurveRef( NULL ),
-    fViewState( EViewState::ViewStateIdle ),
-    fSelectedPointIndex( -1 ),
-    fVertexIsChanged( false ),
-    fImpactRange( 25 )
+        fSplineCurveRef( NULL ),
+        fIntersectionCurveRef( NULL ),
+        fViewState( EViewState::ViewStateIdle ),
+        fShowCurveBox( NULL ),
+        showCurve( true ),
+        fSelectedPointIndex( -1 ),
+        fVertexIsChanged( false ),
+        fImpactRange( 25 )
 {
+    // show curve box
+    fShowCurveBox = new QCheckBox( this );
+    fShowCurveBox->setChecked(true);
+    connect( fShowCurveBox, SIGNAL( stateChanged(int) ), this, SLOT( OnShowCurveStateChanged(int) ));
+
+    QLabel *ShowCurveLabel = new QLabel(this);
+    ShowCurveLabel->setText("Show Curve");
+    fButtonsLayout->addWidget( fShowCurveBox );
+    fButtonsLayout->addWidget( ShowCurveLabel );
+
+    UpdateButtons();
 }
 
 // Destructor
@@ -79,7 +92,7 @@ void CVolumeViewerWithCurve::UpdateView( void )
             cv::circle( fImgMat, cv::Point2f( fControlPoints[ i ] ), 1, cv::Scalar( 255, 0, 0 ) );
         }
     } else {
-        if ( fIntersectionCurveRef != NULL ) {
+        if ( fIntersectionCurveRef != NULL && showCurve ) {
             DrawIntersectionCurve();
         }
     }
@@ -187,6 +200,16 @@ void CVolumeViewerWithCurve::paintEvent( QPaintEvent *event )
 {
 }
 
+// Handle setting the draw state for the curve
+void CVolumeViewerWithCurve::OnShowCurveStateChanged( int state ) {
+    if ( state > 0 )
+        showCurve = true;
+    else
+        showCurve = false;
+
+    UpdateView();
+}
+
 // Convert widget location to image location
 void CVolumeViewerWithCurve::WidgetLoc2ImgLoc( const cv::Vec2f &nWidgetLoc,
                                                cv::Vec2f       &nImgLoc )
@@ -219,7 +242,7 @@ void CVolumeViewerWithCurve::WidgetLoc2ImgLoc( const cv::Vec2f &nWidgetLoc,
 int CVolumeViewerWithCurve::SelectPointOnCurve( const CXCurve   *nCurve,
                                                 const cv::Vec2f &nPt )
 {
-    const float DIST_THRESHOLD = 2.0; // REVISIT - image scale should be taken into account
+    const float DIST_THRESHOLD = 1.5 * fScaleFactor;
 
     for ( size_t i = 0; i < nCurve->GetPointsNum(); ++i ) {
         if ( Norm< float >( Vec2< float >( nCurve->GetPoint( i )[ 0 ] - nPt[ 0 ], nCurve->GetPoint( i )[ 1 ] - nPt[ 1 ] ) ) < DIST_THRESHOLD ) {
@@ -245,8 +268,19 @@ void CVolumeViewerWithCurve::UpdateButtons( void )
     fZoomInBtn->setEnabled( fImgQImage != NULL && fScaleFactor < 3.0 );
     fZoomOutBtn->setEnabled( fImgQImage != NULL && fScaleFactor > 0.3333 );
     fResetBtn->setEnabled( fImgQImage != NULL && fabs( fScaleFactor - 1.0 ) > 1e-6 );
-    fNextBtn->setEnabled( fImgQImage != NULL && fViewState == EViewState::ViewStateIdle ); // Button doesn't disable for some reason
+    fNextBtn->setEnabled( fImgQImage != NULL && fViewState == EViewState::ViewStateIdle );
     fPrevBtn->setEnabled( fImgQImage != NULL && fViewState == EViewState::ViewStateIdle );
     fImageIndexEdit->setEnabled( fViewState == EViewState::ViewStateIdle );
     fImageIndexEdit->SetImageIndex( fImageIndex );
+}
+
+// Disable stuff
+void  CVolumeViewerWithCurve::setButtonsEnabled( bool state )
+{
+    fZoomOutBtn->setEnabled(state);
+    fZoomInBtn->setEnabled(state);
+    fPrevBtn->setEnabled(state);
+    fNextBtn->setEnabled(state);
+    fImageIndexEdit->setEnabled(state);
+    fShowCurveBox->setEnabled(state);
 }
