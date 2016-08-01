@@ -9,9 +9,10 @@ build:debian:
     script:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
         - echo "---- Work it. Make it. ----"
+        - git submodule update --init external/
         - mkdir -p build
         - cd build/
-        - cmake -DBoost_USE_STATIC_LIBS=ON -GNinja ..
+        - cmake -DBoost_USE_STATIC_LIBS=ON -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -DVC_USE_LIBIGL=ON -GNinja ..
         - ninja
     tags:
         - build
@@ -25,15 +26,16 @@ test:debian:
     stage: test
     script:
         - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
+        - git submodule update --init external/
         - mkdir -p build
         - cd build/
-        - cmake -DBoost_USE_STATIC_LIBS=ON -GNinja ..
+        - cmake -DBoost_USE_STATIC_LIBS=ON -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -DVC_USE_LIBIGL=ON -GNinja ..
         - ninja
         - ninja test
     artifacts:
       name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
       paths:
-        - build/testing/Temporary/
+        - build/Testing/Temporary/
       when: always
       expire_in: 4 weeks
     tags:
@@ -48,9 +50,10 @@ build:osx:
     script:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
         - echo "---- Work it. Make it. ----"
+        - git submodule update --init external/
         - mkdir -p build
         - cd build/
-        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -GNinja ..
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -DVC_USE_LIBIGL=ON -GNinja ..
         - ninja
     tags:
         - build
@@ -63,9 +66,10 @@ test:osx:
     stage: test
     script:
         - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
+        - git submodule update --init external/
         - mkdir -p build
         - cd build/
-        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -GNinja ..
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -DVC_USE_LIBIGL=ON -GNinja ..
         - ninja
         - ninja test
     artifacts:
@@ -87,7 +91,6 @@ deploy:osx:
         - echo "---- Work it harder. ----"
         - version=$(utils/scripts/version-gen.sh)
         - git submodule init
-        - git submodule update
         - cd vc-deps/
         - ./build-deps.sh -universal
         - cd ..

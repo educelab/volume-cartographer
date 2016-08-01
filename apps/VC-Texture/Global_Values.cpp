@@ -79,20 +79,20 @@ QMainWindow *Global_Values::getWindow()
     return _window;
 }
 
-void Global_Values::setTexture(volcart::Texture texture)
+void Global_Values::setRendering(volcart::Rendering rendering)
 {
-    _texture = texture;
+    _rendering = rendering;
 }
 
-void Global_Values::clearTexture()
+void Global_Values::clearRendering()
 {
-    volcart::Texture *empty = new volcart::Texture;
-    _texture = *empty;
+    volcart::Rendering *empty = new volcart::Rendering;
+    _rendering = *empty;
 }
 
-volcart::Texture Global_Values::getTexture()
+volcart::Rendering Global_Values::getRendering()
 {
-    return _texture;
+    return _rendering;
 }
 
 void Global_Values::setRadius(double radius)

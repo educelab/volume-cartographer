@@ -14,6 +14,7 @@
 #include "simpleUV.h"
 #include "orderedPCDMesher.h"
 #include <vtkSmartPointer.h>
+#include "testingUtils.h"
 
 
 /***************************************************************************************
@@ -140,8 +141,8 @@ BOOST_FIXTURE_TEST_CASE(PlaneSimpleUVTest, CreatePlaneSimpleUVFixture){
         v_Fixture = _out_PlaneUVMap.get(pnt.Index())[1];
 
         //check to see the values of scaled u,v values correspond to the proper coords for current mesh pointID
-        BOOST_CHECK_EQUAL(u_Generated, u_Fixture);
-        BOOST_CHECK_EQUAL(v_Generated, v_Fixture);
+        volcart::testing::SmallOrClose(u_Generated, u_Fixture);
+        volcart::testing::SmallOrClose(v_Generated, v_Fixture);
 
     }
 
@@ -172,8 +173,8 @@ BOOST_FIXTURE_TEST_CASE(ArchSimpleUVTest, CreateArchSimpleUVFixture){
         v_Fixture = _out_ArchUVMap.get(pnt.Index())[1];
 
         //check to see the values of scaled u,v values correspond to the proper coords for current mesh pointID
-        BOOST_CHECK_EQUAL(u_Generated, u_Fixture);
-        BOOST_CHECK_EQUAL(v_Generated, v_Fixture);
+        volcart::testing::SmallOrClose(u_Generated, u_Fixture);
+        volcart::testing::SmallOrClose(v_Generated, v_Fixture);
 
     }
 
