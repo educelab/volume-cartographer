@@ -10,6 +10,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include "vc_defines.h"
+#include "testingUtils.h"
 #include "CalculateNormals.h"
 #include "shapes.h"
 
@@ -35,8 +36,8 @@ BOOST_FIXTURE_TEST_CASE(ComputePlaneNormalsTest, PlaneFixture){
         _out_Mesh->GetPointData(p_it.Index(), &out_Normal);
         _in_Mesh->GetPointData(p_it.Index(), &in_Normal);
 
-        BOOST_CHECK_EQUAL(out_Normal[0], in_Normal[0]);
-        BOOST_CHECK_EQUAL(out_Normal[1], in_Normal[1]);
-        BOOST_CHECK_EQUAL(out_Normal[2], in_Normal[2]);
+        volcart::testing::SmallOrClose(out_Normal[0], in_Normal[0]);
+        volcart::testing::SmallOrClose(out_Normal[1], in_Normal[1]);
+        volcart::testing::SmallOrClose(out_Normal[2], in_Normal[2]);
     }
 }
