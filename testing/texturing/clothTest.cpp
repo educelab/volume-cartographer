@@ -117,38 +117,41 @@ struct CreateArchClothUVFixture{
 BOOST_FIXTURE_TEST_CASE(ArchClothUVTest, CreateArchClothUVFixture){
 
     ///// Unfurl /////
+    std::cerr << "Comparing results of unfurling step..." << std::endl;
     //check size of uvMap and number of points in mesh
     BOOST_CHECK_EQUAL( _out_Mesh_unfurl->GetNumberOfPoints(), _in_Mesh->GetNumberOfPoints() );
     BOOST_CHECK_EQUAL( _out_Mesh_unfurl->GetNumberOfPoints(), _SavedPoints_unfurl.size() );
 
     //check uvmap against original mesh input pointIDs
     for (size_t point = 0; point < _SavedPoints_unfurl.size(); ++point){
-        volcart::testing::SmallOrClose( _out_Mesh_unfurl->GetPoint(point)[0], _SavedPoints_unfurl[point].x );
-        volcart::testing::SmallOrClose( _out_Mesh_unfurl->GetPoint(point)[1], _SavedPoints_unfurl[point].y );
-        volcart::testing::SmallOrClose( _out_Mesh_unfurl->GetPoint(point)[2], _SavedPoints_unfurl[point].z );
+        volcart::testing::SmallOrClose( _out_Mesh_unfurl->GetPoint(point)[0], _SavedPoints_unfurl[point].x, 1.0, 5.0 );
+        volcart::testing::SmallOrClose( _out_Mesh_unfurl->GetPoint(point)[1], _SavedPoints_unfurl[point].y, 1.0, 5.0 );
+        volcart::testing::SmallOrClose( _out_Mesh_unfurl->GetPoint(point)[2], _SavedPoints_unfurl[point].z, 1.0, 5.0 );
     }
 
     ///// Collide /////
+    std::cerr << "Comparing results of collision step..." << std::endl;
     //check size of uvMap and number of points in mesh
     BOOST_CHECK_EQUAL( _out_Mesh_collide->GetNumberOfPoints(), _in_Mesh->GetNumberOfPoints() );
     BOOST_CHECK_EQUAL( _out_Mesh_collide->GetNumberOfPoints(), _SavedPoints_collide.size() );
 
     //check uvmap against original mesh input pointIDs
     for (size_t point = 0; point < _SavedPoints_collide.size(); ++point){
-        volcart::testing::SmallOrClose( _out_Mesh_collide->GetPoint(point)[0], _SavedPoints_collide[point].x );
-        volcart::testing::SmallOrClose( _out_Mesh_collide->GetPoint(point)[1], _SavedPoints_collide[point].y );
-        volcart::testing::SmallOrClose( _out_Mesh_collide->GetPoint(point)[2], _SavedPoints_collide[point].z );
+        volcart::testing::SmallOrClose( _out_Mesh_collide->GetPoint(point)[0], _SavedPoints_collide[point].x, 1.0, 5.0 );
+        volcart::testing::SmallOrClose( _out_Mesh_collide->GetPoint(point)[1], _SavedPoints_collide[point].y, 1.0, 5.0 );
+        volcart::testing::SmallOrClose( _out_Mesh_collide->GetPoint(point)[2], _SavedPoints_collide[point].z, 1.0, 5.0 );
     }
 
     ///// Expand/Final /////
+    std::cerr << "Comparing results of unfurling step..." << std::endl;
     //check size of uvMap and number of points in mesh
     BOOST_CHECK_EQUAL( _out_Mesh_final->GetNumberOfPoints(), _in_Mesh->GetNumberOfPoints() );
     BOOST_CHECK_EQUAL( _out_Mesh_final->GetNumberOfPoints(), _SavedPoints_final.size() );
 
     //check uvmap against original mesh input pointIDs
     for (size_t point = 0; point < _SavedPoints_final.size(); ++point){
-        volcart::testing::SmallOrClose( _out_Mesh_final->GetPoint(point)[0], _SavedPoints_final[point].x );
-        volcart::testing::SmallOrClose( _out_Mesh_final->GetPoint(point)[1], _SavedPoints_final[point].y );
-        volcart::testing::SmallOrClose( _out_Mesh_final->GetPoint(point)[2], _SavedPoints_final[point].z );
+        volcart::testing::SmallOrClose( _out_Mesh_final->GetPoint(point)[0], _SavedPoints_final[point].x, 1.0, 5.0 );
+        volcart::testing::SmallOrClose( _out_Mesh_final->GetPoint(point)[1], _SavedPoints_final[point].y, 1.0, 5.0 );
+        volcart::testing::SmallOrClose( _out_Mesh_final->GetPoint(point)[2], _SavedPoints_final[point].z, 1.0, 5.0 );
     }
 }
