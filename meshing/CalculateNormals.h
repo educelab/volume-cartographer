@@ -14,11 +14,11 @@
 
 namespace volcart{
     namespace meshing{
-        class calculateNormals{
+        class CalculateNormals{
         public:
             // Construction //
-            calculateNormals();
-            calculateNormals( VC_MeshType::Pointer mesh) ;
+            CalculateNormals();
+            CalculateNormals(VC_MeshType::Pointer mesh) ;
 
             // Input/Output //
             void setMesh(VC_MeshType::Pointer mesh);

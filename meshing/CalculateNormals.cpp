@@ -2,16 +2,16 @@
 // Created by Hannah Hatch on 7/26/16.
 //
 
-#include "calculateNormals.h"
+#include "CalculateNormals.h"
 
 
 namespace volcart{
     namespace meshing{
 
         ///// Construction /////
-        calculateNormals::calculateNormals(){};
+        CalculateNormals::CalculateNormals(){};
 
-        calculateNormals::calculateNormals(VC_MeshType::Pointer mesh)
+        CalculateNormals::CalculateNormals(VC_MeshType::Pointer mesh)
         {
             _input = mesh;
             _output = VC_MeshType::New();
@@ -20,7 +20,7 @@ namespace volcart{
         }
 
         ///// Input/Output /////
-        void calculateNormals::setMesh(VC_MeshType::Pointer mesh)
+        void CalculateNormals::setMesh(VC_MeshType::Pointer mesh)
         {
             _input = mesh;
             _output = VC_MeshType::New();
@@ -28,18 +28,18 @@ namespace volcart{
             _vertex_normals = std::vector<cv::Vec3d>(_output->GetNumberOfPoints(),0);
         }
 
-        VC_MeshType::Pointer calculateNormals::getMesh()
+        VC_MeshType::Pointer CalculateNormals::getMesh()
         {
             return _output;
         }
 
         ///// Processing /////
-        void calculateNormals::compute() {
+        void CalculateNormals::compute() {
             _computeNormals();
             _assignToMesh();
         }
 
-        void calculateNormals::_computeNormals() {
+        void CalculateNormals::_computeNormals() {
 
             for ( auto c_it = _input->GetCells()->Begin(); c_it != _input->GetCells()->End(); ++c_it ) {
 
@@ -87,7 +87,7 @@ namespace volcart{
             }//Cells loop
         }
 
-        void calculateNormals::_assignToMesh() {
+        void CalculateNormals::_assignToMesh() {
 
             for( auto point = _input->GetPoints()->Begin(); point!= _input->GetPoints()->End(); ++point )
             {

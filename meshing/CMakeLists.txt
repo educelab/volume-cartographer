@@ -13,7 +13,7 @@ set(meshing_SOURCES orderedPCDMesher.h orderedPCDMesher.cpp
                     scaleMesh.h scaleMesh.cpp
                     smoothNormals.h smoothNormals.cpp
                     deepCopy.cpp deepCopy.h
-                    calculateNormals.h calculateNormals.cpp )
+                    CalculateNormals.h CalculateNormals.cpp)
 
 #Conditional compiles
 if(VC_USE_ACVD)

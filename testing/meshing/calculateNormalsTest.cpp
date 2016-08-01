@@ -10,7 +10,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include "vc_defines.h"
-#include "calculateNormals.h"
+#include "CalculateNormals.h"
 #include "shapes.h"
 
 struct PlaneFixture {
@@ -25,7 +25,7 @@ struct PlaneFixture {
 
 BOOST_FIXTURE_TEST_CASE(ComputePlaneNormalsTest, PlaneFixture){
 
-    volcart::meshing::calculateNormals calcNorm( _in_Mesh );
+    volcart::meshing::CalculateNormals calcNorm( _in_Mesh );
     calcNorm.compute();
     _out_Mesh = calcNorm.getMesh();
 
