@@ -83,8 +83,7 @@ void OrderedResampling::compute()
     unsigned long point1, point2, point3, point4;
 
     // Create two new faces each iteration based on new set of points and keeps normals same as original
-    for(unsigned long i = 0; i < _outHeight - 1; i++)
-    {
+    for(unsigned long i = 0; i < _outHeight - 1; i++) {
         for (unsigned long j = 0; j < _outWidth - 1; j++) {
 
             //4 points allows us to create the upper and lower faces at the same time
@@ -93,15 +92,11 @@ void OrderedResampling::compute()
             point3 = point2 + _outWidth;
             point4 = point3 - 1;
 
-            try {
-                std::out_of_range oor("Out of range");
-                if(point1 >= _output->GetNumberOfPoints() || point2 >= _output->GetNumberOfPoints() || point3 >= _output->GetNumberOfPoints() ||point4 >= _output->GetNumberOfPoints() )
-                    throw oor;
-            }
-            catch(const std::out_of_range& oor)
-            {
-                std::cerr << "Error: Out of range, skipping face" << std::endl;
-                continue;
+            if( point1 >= _output->GetNumberOfPoints() ||
+                point2 >= _output->GetNumberOfPoints() ||
+                point3 >= _output->GetNumberOfPoints() ||
+                point4 >= _output->GetNumberOfPoints() ) {
+                throw std::out_of_range("Predicted vertex index for face generation out of range of point set.");
             }
 
             //Add both these faces to the mesh
