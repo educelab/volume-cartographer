@@ -82,6 +82,7 @@ namespace volcart {
                 }
 
                 _orderedPoints = false;
+                _orderedWidth = _orderedHeight = 0;
 
             } // Constructor
 

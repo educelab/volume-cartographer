@@ -1,14 +1,14 @@
-#include <list>
-#include <tuple>
-#include <limits>
-#include <boost/filesystem.hpp>
-#include <boost/circular_buffer.hpp>
 #include "localResliceParticleSim.h"
 #include "common.h"
-#include "fittedcurve.h"
-#include "intensitymap.h"
 #include "derivative.h"
 #include "energymetrics.h"
+#include "fittedcurve.h"
+#include "intensitymap.h"
+#include <boost/circular_buffer.hpp>
+#include <boost/filesystem.hpp>
+#include <limits>
+#include <list>
+#include <tuple>
 
 using namespace volcart::segmentation;
 namespace fs = boost::filesystem;
@@ -41,7 +41,7 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
         currentVs.emplace_back(p.x, p.y, p.z);
     }
 
-    volcart::Volume vol = pkg_.volume();  // Debug output information
+    const volcart::Volume& vol = pkg_.volume();  // Debug output information
 
     // Check that incoming points are all within volume bounds. If not, then
     // return empty cloud back
@@ -317,16 +317,16 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
 cv::Vec3d LocalResliceSegmentation::estimateNormalAtIndex(
     const FittedCurve& currentCurve, int32_t index)
 {
-    /*
     const Voxel currentVoxel = currentCurve(index);
+    auto stRadius =
+        std::ceil(pkg_.getMaterialThickness() / pkg_.getVoxelSize()) / 2;
     const auto eigenPairs = pkg_.volume().eigenPairsAt(
-        currentVoxel(0), currentVoxel(1), currentVoxel(2), 3);
+        currentVoxel(0), currentVoxel(1), currentVoxel(2), stRadius);
     const double exp0 = std::log10(eigenPairs[0].first);
     const double exp1 = std::log10(eigenPairs[1].first);
     if (std::abs(exp0 - exp1) > 2.0) {
         return eigenPairs[0].second;
     }
-    */
     const auto tan3d = d1At(currentCurve.points(), index, 3);
     return tan3d.cross(cv::Vec3d{0, 0, 1});
 }
