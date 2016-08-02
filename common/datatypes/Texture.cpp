@@ -11,7 +11,7 @@ Texture::Texture()
 {
     _metadata.set<std::string>("type", "texture");
     _metadata.set<std::string>("id", VC_DATE_TIME());
-    _metadata.set<int>("number-of-images", 0);
+    _metadata.set<size_t>("number-of-images", 0);
 }
 
 // Load from path
@@ -29,7 +29,7 @@ Texture::Texture(std::string path)
     // To-Do: Load the UV Map
 
     // Load the texture images
-    for (int i_id = 0; i_id < _metadata.get<int>("number-of-images"); ++i_id) {
+    for (size_t i_id = 0; i_id < _metadata.get<size_t>("number-of-images"); ++i_id) {
         std::string i_path =
             _path.string() + "/" + std::to_string(i_id) + ".png";
         _images.push_back(cv::imread(i_path, -1));
@@ -44,7 +44,7 @@ void Texture::addImage(cv::Mat image)
         _height = image.rows;
     }
     _images.push_back(image);
-    _metadata.set<int>("number-of-images", _images.size());
+    _metadata.set<size_t>("number-of-images", _images.size());
 };
 
 // Return the intensity for a Point ID
