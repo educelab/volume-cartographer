@@ -4,15 +4,14 @@
 
 #include "Texture.h"
 
-namespace volcart
-{
+using namespace volcart;
 
 // Constructor
 Texture::Texture()
 {
-    _metadata.set("type", "texture");
-    _metadata.set("id", VC_DATE_TIME());
-    _metadata.set("number-of-images", 0);
+    _metadata.set<std::string>("type", "texture");
+    _metadata.set<std::string>("id", VC_DATE_TIME());
+    _metadata.set<int>("number-of-images", 0);
 }
 
 // Load from path
@@ -60,4 +59,3 @@ double Texture::intensity(int point_ID, int image_ID)
         return VC_TEXTURE_NO_VALUE;
     }
 };
-}
