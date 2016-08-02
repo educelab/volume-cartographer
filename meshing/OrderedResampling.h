@@ -1,7 +1,7 @@
 //
 // Created by Hannah Hatch on 7/25/16.
 /*Algorithm takes in a base mesh and reduces the number of points and faces by removing every other point along
- * horizantal and vertical axis*/
+ * horizontal and vertical axes*/
 
 #ifndef VC_ORDEREDRESAMPLING_H
 #define VC_ORDEREDRESAMPLING_H

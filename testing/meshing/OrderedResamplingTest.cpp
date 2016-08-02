@@ -52,7 +52,7 @@ BOOST_FIXTURE_TEST_CASE(ResampledPlaneTest, OrderedPlaneFixture){
     //Check Points
     BOOST_CHECK_EQUAL(_SavedPoints.size(), _out_Mesh->GetNumberOfPoints());
 
-    for(unsigned long pnt_id = 0; pnt_id < _SavedPoints.size() - 1; pnt_id++)
+    for(unsigned long pnt_id = 0; pnt_id < _SavedPoints.size(); pnt_id++)
     {
         volcart::testing::SmallOrClose(_SavedPoints[pnt_id].x, _out_Mesh->GetPoint(pnt_id)[0]);
         volcart::testing::SmallOrClose(_SavedPoints[pnt_id].y, _out_Mesh->GetPoint(pnt_id)[1]);
@@ -79,7 +79,7 @@ BOOST_FIXTURE_TEST_CASE(ResampledArchTest, OrderedArchFixture){
     //Check Points
     BOOST_CHECK_EQUAL(_SavedPoints.size(), _out_Mesh->GetNumberOfPoints());
 
-    for(unsigned long pnt_id = 0; pnt_id < _SavedPoints.size() -1; pnt_id++)
+    for(unsigned long pnt_id = 0; pnt_id < _SavedPoints.size(); pnt_id++)
     {
         volcart::testing::SmallOrClose(_SavedPoints[pnt_id].x, _out_Mesh->GetPoint(pnt_id)[0]);
         volcart::testing::SmallOrClose(_SavedPoints[pnt_id].y, _out_Mesh->GetPoint(pnt_id)[1]);
