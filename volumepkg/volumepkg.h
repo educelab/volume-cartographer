@@ -133,11 +133,12 @@ public:
     bool setSliceData(size_t index, const cv::Mat& slice);
 
     // Segmentation functions
+    std::string newSegmentation();
     std::vector<std::string> getSegmentations() const;
 
     void setActiveSegmentation(const std::string&);
-
-    std::string newSegmentation();
+    std::string getActiveSegmentation();
+    boost::filesystem::path getActiveSegPath();
 
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr openCloud() const;
 

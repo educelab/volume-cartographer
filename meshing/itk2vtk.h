@@ -28,6 +28,16 @@ namespace volcart {
             vtk2itk( vtkPolyData* input, VC_MeshType::Pointer output );
         };
 
+        class itk2itkQE {
+        public:
+            itk2itkQE( VC_MeshType::Pointer input, volcart::QuadMesh::Pointer output );
+        };
+
+        class itkQE2itk {
+        public:
+            itkQE2itk( volcart::QuadMesh::Pointer input, VC_MeshType::Pointer output );
+        };
+
     } // namespace meshing
 } // namespace volcart
 

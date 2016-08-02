@@ -24,6 +24,13 @@ namespace volcart {
         _texture = uvImg;
     };
 
+    ///// Access Functions /////
+    void objWriter::setRendering( volcart::Rendering rendering ) {
+        _mesh = rendering.getMesh();
+        _texture = rendering.getTexture().getImage(0);
+        _textCoords = rendering.getTexture().uvMap();
+    }
+
     ///// Validation /////
     // Make sure that all required parameters have been set and are okay
     bool objWriter::validate() {

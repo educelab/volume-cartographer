@@ -64,16 +64,6 @@ add_test(NAME Sample WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_S
 #    meshing Folder     #
 #-----------------------#
 
-# Copy the test files created by greedyProjectionMeshingExample.cpp
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/PlaneGreedyProjectionMeshing.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/CubeGreedyProjectionMeshing.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ArchGreedyProjectionMeshing.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/SphereGreedyProjectionMeshing.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ConeGreedyProjectionMeshing.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
-add_executable(vc_test_greedyProjectionMeshing meshing/greedyProjectionMeshingTest.cpp)
-target_link_libraries(vc_test_greedyProjectionMeshing ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-add_test(NAME greedyProjectionMeshing WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_greedyProjectionMeshing)
-
 #copy vtk and itk test case files to build dir
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ITKPlaneMeshConvertedToVTK.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ITKCubeMeshConvertedToVTK.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
@@ -146,10 +136,11 @@ add_executable(vc_test_orderedResampling meshing/orderedResamplingTest.cpp parsi
 target_link_libraries(vc_test_orderedResampling ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME orderedResampling WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_orderedResampling )
 
-#No test files needed for calculateNormalsTest.cpp
-add_executable(vc_test_calculateNormals meshing/calculateNormalsTest.cpp)
-target_link_libraries(vc_test_calculateNormals ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-add_test(NAME calculateNormals WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_orderedResampling )
+# Calculate Normals
+add_executable(vc_test_CalculateNormals meshing/CalculateNormalsTest.cpp)
+target_link_libraries(vc_test_CalculateNormals ${VC_LIBS} vc_meshing ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+add_test(NAME CalculateNormals WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_CalculateNormals )
+
 #-----------------------#
 #  segmentation Folder  #
 #-----------------------#
@@ -260,6 +251,34 @@ add_test(NAME lrps_energymetrics
 #-----------------------#
 #    texturing Folder   #
 #-----------------------#
+
+# Cloth Modeling UV
+if(VC_USE_BULLET)
+    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/texturing/clothUV_Arch_Unfurl.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
+    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/texturing/clothUV_Arch_Collide.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
+    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/texturing/clothUV_Arch_Final.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
+    add_executable(vc_test_clothUV texturing/clothTest.cpp parsingHelpers.cpp)
+    target_link_libraries(vc_test_clothUV ${VC_LIBS} vc_meshing ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} )
+    add_test(NAME ClothModelingUVMapping WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_clothUV )
+endif(VC_USE_BULLET)
+
+# Angle-based Flattening (ABF)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/texturing/abf_Plane.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/texturing/abf_Plane_LSCMOnly.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/texturing/abf_Arch.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/texturing/abf_Arch_LSCMOnly.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
+add_executable(vc_test_abf texturing/abfTest.cpp parsingHelpers.cpp)
+target_link_libraries(vc_test_abf ${VC_LIBS} vc_meshing ${VC_REQ_LIBS} vc_SparseLinearSolver ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} )
+add_test(NAME AngleBasedFlattening WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_abf )
+
+# Least Squares Conformal Maps (LSCM)
+if(VC_USE_LIBIGL)
+    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/texturing/lscm_Plane.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
+    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/texturing/lscm_Arch.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
+    add_executable(vc_test_lscm texturing/lscmTest.cpp parsingHelpers.cpp)
+    target_link_libraries(vc_test_lscm ${VC_LIBS} vc_meshing ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} )
+    add_test(NAME LeastSquaresConformalMapping WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_lscm )
+endif(VC_USE_LIBIGL)
 
 add_executable(vc_test_simpleUV texturing/simpleUVTest.cpp)
 target_link_libraries(vc_test_simpleUV ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} )

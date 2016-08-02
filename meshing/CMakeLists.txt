@@ -8,23 +8,21 @@ message("meshing is already defined")
 else()
 set(meshing_SOURCES orderedPCDMesher.h orderedPCDMesher.cpp
                     resamplePointCloud.h resamplePointCloud.cpp
-                    greedyProjectionMeshing.h greedyProjectionMeshing.cpp
                     itk2vtk.h itk2vtk.cpp
                     rayTrace.h rayTrace.cpp
                     scaleMesh.h scaleMesh.cpp
                     smoothNormals.h smoothNormals.cpp
                     deepCopy.cpp deepCopy.h
-                    orderedResampling.h orderedResampling.cpp
-                    calculateNormals.h calculateNormals.cpp)
+                    CalculateNormals.h CalculateNormals.cpp)
 
 #Conditional compiles
-if(ACVD_FOUND)
-     set(meshing_SOURCES ${meshing_SOURCES} ACVD.h ACVD.cpp)
-endif(ACVD_FOUND)
+if(VC_USE_ACVD)
+    set(meshing_SOURCES ${meshing_SOURCES} ACVD.h ACVD.cpp)
+endif(VC_USE_ACVD)
 
-if(BULLET_FOUND)
-    set(meshing_SOURCES ${meshing_SOURCES} itk2bullet.h itk2bullet.cpp)
-endif(BULLET_FOUND)
+if(VC_USE_BULLET)
+    set( meshing_SOURCES ${meshing_SOURCES} itk2bullet.h itk2bullet.cpp)
+endif(VC_USE_BULLET)
 
 add_library(vc_meshing STATIC ${meshing_SOURCES})
 endif()
