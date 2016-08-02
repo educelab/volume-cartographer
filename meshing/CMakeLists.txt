@@ -2,7 +2,6 @@ project(libvc_meshing VERSION 0.1 LANGUAGES CXX)
 
 set(VC_MESHING_SRCS
     src/deepCopy.cpp
-    src/greedyProjectionMeshing.cpp
     src/itk2vtk.cpp
     src/orderedPCDMesher.cpp
     src/rayTrace.cpp
@@ -43,7 +42,7 @@ target_include_directories(vc_meshing
 
 target_link_libraries(vc_meshing
     PUBLIC
-        ${VC_MESHING_DEFINITIONS} 
+        ${VC_MESHING_DEPENDENCIES} 
 )
 
 install(TARGETS vc_meshing
