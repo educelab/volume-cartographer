@@ -129,6 +129,10 @@ add_executable(vc_test_scaleMesh meshing/scaleMeshTest.cpp parsingHelpers.cpp)
 target_link_libraries(vc_test_scaleMesh ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME scaleMesh WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_scaleMesh )
 
+# Calculate Normals
+add_executable(vc_test_CalculateNormals meshing/CalculateNormalsTest.cpp)
+target_link_libraries(vc_test_CalculateNormals ${VC_LIBS} vc_meshing ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+add_test(NAME CalculateNormals WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_CalculateNormals )
 
 #-----------------------#
 #  segmentation Folder  #
