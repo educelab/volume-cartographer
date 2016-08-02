@@ -5,17 +5,17 @@
 #ifndef VC_BOOST_STATIC_LIBS
 #define BOOST_TEST_DYN_LINK
 #endif
-#define BOOST_TEST_MODULE orderedResampling
+#define BOOST_TEST_MODULE OrderedResampling
 
 #include <boost/test/unit_test.hpp>
 #include "vc_defines.h"
-#include "orderedResampling.h"
+#include "OrderedResampling.h"
 #include "parsingHelpers.h"
 #include "testingUtils.h"
 #include "shapes.h"
 
-struct orderedPlaneFixture {
-    orderedPlaneFixture(){
+struct OrderedPlaneFixture {
+    OrderedPlaneFixture(){
         _Plane = volcart::shapes::Plane(10, 10);
         _in_Mesh = _Plane.itkMesh();
         _in_height = _Plane.orderedHeight();
@@ -29,8 +29,8 @@ struct orderedPlaneFixture {
     std::vector<VC_Cell> _SavedCells;
 };
 
-struct orderedArchFixture {
-    orderedArchFixture(){
+struct OrderedArchFixture {
+    OrderedArchFixture(){
         _Arch = volcart::shapes::Arch(20, 20);
         _in_Mesh = _Arch.itkMesh();
         _in_height = _Arch.orderedHeight();
@@ -44,8 +44,8 @@ struct orderedArchFixture {
     std::vector<VC_Cell> _SavedCells;
 };
 
-BOOST_FIXTURE_TEST_CASE(ResampledPlaneTest, orderedPlaneFixture){
-    volcart::meshing::orderedResampling resample(_in_Mesh, _in_width, _in_height);
+BOOST_FIXTURE_TEST_CASE(ResampledPlaneTest, OrderedPlaneFixture){
+    volcart::meshing::OrderedResampling resample(_in_Mesh, _in_width, _in_height);
     resample.compute();
     _out_Mesh = resample.getOutputMesh();
 
@@ -71,8 +71,8 @@ BOOST_FIXTURE_TEST_CASE(ResampledPlaneTest, orderedPlaneFixture){
     }
 }
 
-BOOST_FIXTURE_TEST_CASE(ResampledArchTest, orderedArchFixture){
-    volcart::meshing::orderedResampling resample(_in_Mesh, _in_width, _in_height);
+BOOST_FIXTURE_TEST_CASE(ResampledArchTest, OrderedArchFixture){
+    volcart::meshing::OrderedResampling resample(_in_Mesh, _in_width, _in_height);
     resample.compute();
     _out_Mesh = resample.getOutputMesh();
 

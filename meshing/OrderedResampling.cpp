@@ -2,19 +2,19 @@
 // Created by Hannah Hatch on 7/25/16.
 //
 
-#include "orderedResampling.h"
+#include "OrderedResampling.h"
 #include "CalculateNormals.h"
 
 namespace volcart{
     namespace meshing{
         //// Constructors ////
-        orderedResampling::orderedResampling()
+        OrderedResampling::OrderedResampling()
         {
             _inWidth = 0;
             _inHeight = 0;
         }//constructor
 
-        orderedResampling::orderedResampling(VC_MeshType::Pointer mesh, int in_width, int in_height)
+        OrderedResampling::OrderedResampling(VC_MeshType::Pointer mesh, int in_width, int in_height)
         {
             _input = mesh;
             _inWidth  = in_width ;
@@ -22,14 +22,14 @@ namespace volcart{
         }//constructor with parameters
 
         //// Set Inputs/Get Output ////
-        void orderedResampling::setMesh(VC_MeshType::Pointer mesh, int in_width, int in_height)
+        void OrderedResampling::setMesh(VC_MeshType::Pointer mesh, int in_width, int in_height)
         {
             _input = mesh;
             _inWidth = in_width;
             _inHeight = in_height;
         }//setParameters
 
-        VC_MeshType::Pointer orderedResampling::getOutputMesh()
+        VC_MeshType::Pointer OrderedResampling::getOutputMesh()
         {
             if(_output.IsNull())
             {
@@ -40,11 +40,11 @@ namespace volcart{
                 return _output;
         }//getOutput
 
-        int orderedResampling::getOutputWidth()  { return _outWidth; };
-        int orderedResampling::getOutputHeight() { return _outHeight; };
+        int OrderedResampling::getOutputWidth()  { return _outWidth; };
+        int OrderedResampling::getOutputHeight() { return _outHeight; };
 
         ///// Processing /////
-        void orderedResampling::compute()
+        void OrderedResampling::compute()
         {
             _output = VC_MeshType::New();
 
@@ -115,12 +115,12 @@ namespace volcart{
             calcNorm.compute();
             _output = calcNorm.getMesh();
 
-            std::cerr << "volcart::meshing::orderedResampling: Points in resampled mesh "<< _output->GetNumberOfPoints() << std::endl;
-            std::cerr << "volcart::meshing::orderedResampling: Cells in resampled mesh "<< _output->GetNumberOfCells() << std::endl;
+            std::cerr << "volcart::meshing::OrderedResampling: Points in resampled mesh "<< _output->GetNumberOfPoints() << std::endl;
+            std::cerr << "volcart::meshing::OrderedResampling: Cells in resampled mesh "<< _output->GetNumberOfCells() << std::endl;
 
         }//compute
 
-        void orderedResampling::_addCell( unsigned long a, unsigned long b, unsigned long c )
+        void OrderedResampling::_addCell( unsigned long a, unsigned long b, unsigned long c )
         {
             VC_CellType::CellAutoPointer current_C;
 

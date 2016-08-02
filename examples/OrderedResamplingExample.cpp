@@ -6,7 +6,7 @@
 
 #include "vc_defines.h"
 #include "vc_datatypes.h"
-#include "orderedResampling.h"
+#include "OrderedResampling.h"
 #include "io/objWriter.h"
 #include "shapes.h"
 
@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
     int width = plane.orderedWidth();
     int height = plane.orderedHeight();
 
-    volcart::meshing::orderedResampling orderedResampling;
+    volcart::meshing::OrderedResampling orderedResampling;
     orderedResampling.setMesh(plane.itkMesh(), width, height);
     orderedResampling.compute();
 

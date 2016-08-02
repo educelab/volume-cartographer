@@ -132,9 +132,9 @@ add_test(NAME scaleMesh WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_tes
 #Copy the resampled test files created by orderedResamplingExample.cpp
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/OrderedResampling_Plane.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/OrderedResampling_Arch.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
-add_executable(vc_test_orderedResampling meshing/orderedResamplingTest.cpp parsingHelpers.cpp)
-target_link_libraries(vc_test_orderedResampling ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-add_test(NAME orderedResampling WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_orderedResampling )
+add_executable(vc_test_OrderedResampling meshing/OrderedResamplingTest.cpp parsingHelpers.cpp)
+target_link_libraries(vc_test_OrderedResampling ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+add_test(NAME OrderedResampling WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_OrderedResampling )
 
 # Calculate Normals
 add_executable(vc_test_CalculateNormals meshing/CalculateNormalsTest.cpp)

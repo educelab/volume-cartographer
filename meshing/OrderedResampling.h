@@ -15,10 +15,10 @@
 
 namespace volcart {
     namespace meshing {
-        class orderedResampling {
+        class OrderedResampling {
         public:
-            orderedResampling();
-            orderedResampling(VC_MeshType::Pointer mesh, int in_width, int in_height);
+            OrderedResampling();
+            OrderedResampling(VC_MeshType::Pointer mesh, int in_width, int in_height);
 
             void setMesh(VC_MeshType::Pointer mesh, int in_width, int in_height);
             VC_MeshType::Pointer getOutputMesh();
@@ -38,7 +38,7 @@ namespace volcart {
 
             void _addCell(unsigned long a, unsigned long b, unsigned long c);
 
-        }; //orderedResampling
+        }; //OrderedResampling
     } //meshing
 } //volcart
 

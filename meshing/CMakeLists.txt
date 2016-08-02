@@ -14,7 +14,7 @@ set(meshing_SOURCES orderedPCDMesher.h orderedPCDMesher.cpp
                     smoothNormals.h smoothNormals.cpp
                     deepCopy.cpp deepCopy.h
                     CalculateNormals.h CalculateNormals.cpp
-                    orderedResampling.h orderedResampling.cpp)
+                    OrderedResampling.h OrderedResampling.cpp)
 
 #Conditional compiles
 if(VC_USE_ACVD)
