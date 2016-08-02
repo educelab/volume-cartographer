@@ -2,7 +2,7 @@
 // Created by Seth Parker on 6/9/16.
 //
 
-#include "Rendering.h"
+#include "common/types/Rendering.h"
 
 namespace fs = boost::filesystem;
 
