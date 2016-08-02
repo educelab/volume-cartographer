@@ -45,6 +45,8 @@ namespace volcart {
                 _add_cell(5, 6, 7);
 
                 _orderedPoints = false;
+                _orderedWidth = _orderedHeight = 0;
+
             } // Constructor
 
 
