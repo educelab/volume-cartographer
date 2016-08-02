@@ -10,6 +10,8 @@
 
 #include "MainWindow.h"
 
+namespace fs = boost::filesystem;
+
 MainWindow::MainWindow(Global_Values *globals)
 {
     _globals = globals; // Enables access to Global Values Object
@@ -85,10 +87,15 @@ void MainWindow::saveTexture() {
     //If A Volume Package is Loaded and there are Segmentations (continue)
     if(_globals->isVPKG_Intantiated() && _globals->getVolPkg()->getSegmentations().size()!=0)
     {
-        if(_globals->getTexture().hasImages())// Checks to see if there are images
+        if(_globals->getRendering().getTexture().hasImages())// Checks to see if there are images
         {
             try{
-                _globals->getVolPkg()->saveTextureData(_globals->getTexture());// Saves Texture Image
+                fs::path path = _globals->getVolPkg()->getActiveSegPath() / "textured.obj";
+                volcart::io::objWriter mesh_writer;
+                mesh_writer.setPath( path.string() );
+                mesh_writer.setRendering( _globals->getRendering() );
+                mesh_writer.write();
+
                 QMessageBox::information(this, tr("Error Message"), "Saved Successfully.");
 
                 }catch(...)
@@ -114,8 +121,8 @@ void MainWindow::exportTexture() {
     cv::Mat output;
 
     // Export the generated texture first, otherwise the one already saved to disk
-    if ( _globals->getTexture().hasImages() )
-        output = _globals->getTexture().getImage(0);
+    if ( _globals->getRendering().getTexture().hasImages() )
+        output = _globals->getRendering().getTexture().getImage(0);
     else
         output = _globals->getVolPkg()->getTextureData();
 
@@ -127,7 +134,7 @@ void MainWindow::exportTexture() {
     }
 
     // Get the output path
-    boost::filesystem::path outputPath;
+    fs::path outputPath;
     outputPath = QFileDialog::getSaveFileName(this, tr("Export Texture Image"), "",tr("Images (*.png *jpg *jpeg *tif *tiff)")).toStdString();
 
     // If no path provided/dialog cancelled

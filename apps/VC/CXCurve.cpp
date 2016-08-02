@@ -12,9 +12,10 @@ CXCurve::CXCurve( void )
 // Copy constructor
 CXCurve::CXCurve( const CXCurve &nSrc )
 {
-	fSliceIndex = nSrc.fSliceIndex;
-	fPoints = nSrc.fPoints;
-	f3DPointsIndex = nSrc.f3DPointsIndex;
+  fSliceIndex = nSrc.fSliceIndex;
+  fPoints = nSrc.fPoints;
+  fLastState = fPoints;
+  f3DPointsIndex = nSrc.f3DPointsIndex;
 }
 
 // Desctructor
@@ -28,16 +29,16 @@ void CXCurve::SetPointByDifference( int nIndex,
                                    double ( *ImpactFunc )( double, double, double ),
                                    int nImpactRange )
 {
-//	SetPoint( nIndex, fPoints[ nIndex ] + nDiff );
-	for ( int i = 0; i <= nImpactRange; ++i ) {
-		if ( nIndex - i >= 0 ) {
-		    SetPoint( nIndex - i, fPoints[ nIndex - i ] + nDiff * ImpactFunc( 1.0, ( double )i / nImpactRange, 1.0 ) );
-		}
+//  SetPoint( nIndex, fPoints[ nIndex ] + nDiff );
+  for ( int i = 0; i <= nImpactRange; ++i ) {
+    if ( nIndex - i >= 0 ) {
+        SetPoint( nIndex - i, fLastState[ nIndex - i ] + nDiff * ImpactFunc( 1.0, ( double )i / nImpactRange, 1.0 ) );
+    }
         if ( i == 0 ) {
             continue;
         }
-		if ( nIndex + i < fPoints.size() ) {
-			SetPoint( nIndex + i, fPoints[ nIndex + i ] + nDiff * ImpactFunc( 1.0, ( double )i / nImpactRange, 1.0 ) );
-		}
-	}
+    if ( nIndex + i < fPoints.size() ) {
+      SetPoint( nIndex + i, fLastState[ nIndex + i ] + nDiff * ImpactFunc( 1.0, ( double )i / nImpactRange, 1.0 ) );
+    }
+  }
 }
