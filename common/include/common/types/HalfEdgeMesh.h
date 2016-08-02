@@ -13,8 +13,7 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "../vc_defines.h"
-#include "../vc_datatypes.h"
+#include "common/vc_defines.h"
 
 namespace volcart {
     class HalfEdgeMesh {

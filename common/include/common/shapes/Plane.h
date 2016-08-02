@@ -6,7 +6,7 @@
 #define VC_PLANE_H
 
 #include "common/vc_defines.h"
-#include "ShapePrimitive.h"
+#include "common/shapes/ShapePrimitive.h"
 
 namespace volcart {
     namespace shapes {

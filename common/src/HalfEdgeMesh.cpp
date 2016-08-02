@@ -2,7 +2,7 @@
 // Created by Seth Parker on 6/17/16.
 //
 
-#include "HalfEdgeMesh.h"
+#include "common/types/HalfEdgeMesh.h"
 
 double MINANGLE = M_PI / 180.0;
 double MAXANGLE = M_PI - MINANGLE;

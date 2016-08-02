@@ -3,6 +3,7 @@
 //
 
 #include "CalculateNormals.h"
+#include "meshing/deepCopy.h"
 
 
 using namespace volcart::meshing;

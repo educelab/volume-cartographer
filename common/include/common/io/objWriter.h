@@ -12,8 +12,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 
-#include "../vc_defines.h"
-#include "../vc_datatypes.h"
+#include "common/vc_defines.h"
+#include "common/types/UVMap.h"
 
 namespace volcart {
 namespace io {

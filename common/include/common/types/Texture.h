@@ -8,9 +8,9 @@
 #include <opencv2/opencv.hpp>
 
 #include "common/vc_defines.h"
-#include "Metadata.h"
-#include "UVMap.h"
-#include "PerPixelMap.h"
+#include "common/types/Metadata.h"
+#include "common/types/UVMap.h"
+#include "common/types/PerPixelMap.h"
 
 namespace volcart {
     class Texture {

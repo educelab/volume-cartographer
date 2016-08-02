@@ -9,6 +9,7 @@ set(VC_MESHING_SRCS
     src/resamplePointCloud.cpp
     src/scaleMesh.cpp
     src/smoothNormals.cpp
+    src/CalculateNormals.cpp
 )
 set(VC_MESHING_DEPENDENCIES
     vc_common

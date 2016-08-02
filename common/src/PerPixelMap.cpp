@@ -2,7 +2,7 @@
 // Created by Seth Parker on 3/18/16.
 //
 
-#include "PerPixelMap.h"
+#include "common/types/PerPixelMap.h"
 
 using namespace volcart;
 

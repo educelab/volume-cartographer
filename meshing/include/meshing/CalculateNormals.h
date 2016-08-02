@@ -5,12 +5,10 @@
 #ifndef VC_CALCULATENORMALS_H
 #define VC_CALCULATENORMALS_H
 
-#include<iostream>
+#include <iostream>
 #include <opencv2/opencv.hpp>
 
-#include "vc_defines.h"
-#include "vc_datatypes.h"
-#include "deepCopy.h"
+#include "common/vc_defines.h"
 
 namespace volcart{
     namespace meshing{

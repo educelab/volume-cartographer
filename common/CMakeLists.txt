@@ -1,13 +1,17 @@
 project(libvc_common VERSION 0.1 LANGUAGES CXX)
 
 add_library(vc_common
-	src/Texture.cpp
+    src/HalfEdgeMesh.cpp
     src/Metadata.cpp
+    src/PerPixelMap.cpp
+    src/Rendering.cpp
     src/ShapePrimitive.cpp
     src/Slice.cpp
     src/Sphere.cpp
+	src/Texture.cpp
     src/Volume.cpp
     src/getMemorySize.cpp
+    src/meshMath.cpp
     src/objWriter.cpp
     src/ply2itk.cpp
     src/plyWriter.cpp

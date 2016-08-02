@@ -5,7 +5,7 @@
 #ifndef VC_MESHMATH_H
 #define VC_MESHMATH_H
 
-#include "vc_defines.h"
+#include "common/vc_defines.h"
 
 namespace volcart {
   namespace meshMath {

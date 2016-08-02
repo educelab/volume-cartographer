@@ -7,9 +7,9 @@
 
 #include <boost/filesystem.hpp>
 
-#include "../vc_defines.h"
-#include "Metadata.h"
-#include "Texture.h"
+#include "common/vc_defines.h"
+#include "common/types/Metadata.h"
+#include "common/types/Texture.h"
 
 namespace volcart {
 

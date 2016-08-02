@@ -12,7 +12,7 @@
 #include <opencv2/opencv.hpp>
 
 #include "common/vc_defines.h"
-#include "ShapePrimitive.h"
+#include "common/shapes/ShapePrimitive.h"
 
 #include <unordered_map>
 

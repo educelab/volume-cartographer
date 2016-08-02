@@ -4,6 +4,9 @@ set(VC_TEXTURING_SRCS
     src/compositeTexture.cpp
     src/compositeTextureV2.cpp
     src/simpleUV.cpp
+    src/AngleBasedFlattening.cpp
+    src/ClothModelingUVMapping.cpp
+    src/LeastSquaresConformalMapping.cpp
 )
 
 add_library(vc_texturing ${VC_TEXTURING_SRCS})
