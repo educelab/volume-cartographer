@@ -14,7 +14,7 @@ CVolumeViewerWithCurve::CVolumeViewerWithCurve( void ) :
         showCurve( true ),
         fSelectedPointIndex( -1 ),
         fVertexIsChanged( false ),
-        fImpactRange( 25 )
+        fImpactRange( 5 )
 {
     // show curve box
     fShowCurveBox = new QCheckBox( this );
