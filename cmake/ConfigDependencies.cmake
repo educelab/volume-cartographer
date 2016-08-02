@@ -27,11 +27,10 @@ include(${ITK_USE_FILE})
 find_package(VTK 6.1 REQUIRED)
 include(${VTK_USE_FILE})
 
-# PCL
+# Rest
+find_package(Eigen3 REQUIRED)
 find_package(PCL 1.7 REQUIRED)
-
 find_package(OpenCV REQUIRED)
-
 find_package(OpenGL REQUIRED)
 
 if (USE_ACVD)
