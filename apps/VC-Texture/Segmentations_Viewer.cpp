@@ -81,7 +81,7 @@ void Segmentations_Viewer::itemClickedSlot()
     if(currentSegmentation != segmentations->currentItem()->text())
     {
         currentSegmentation = segmentations->currentItem()->text();
-        _globals->clearTexture();
+        _globals->clearRendering();
         _texture_Viewer->clearImageLabel();
 
         QString s = segmentations->currentItem()->text();// Gets a QString for the Current Item Selected
@@ -166,7 +166,7 @@ void Segmentations_Viewer::generateTextureImage()
 
         if(_globals->getStatus()==1)
         {
-            test = loadImage(_globals->getTexture().getImage(0).clone());
+            test = loadImage(_globals->getRendering().getTexture().getImage(0).clone());
 
             if (test)
             {

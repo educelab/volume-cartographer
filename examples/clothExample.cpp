@@ -1,61 +1,63 @@
 //
-// Created by Abigail Coleman 2/15/16
+// Created by Seth Parker on 7/29/16.
 //
+/*
+ * Purpose: Run volcart::texturing::ClothModelingUVMapping() and write results to file for each stage.
+ *          Saved file will be read in by the clothTest.cpp file under v-c/testing/texturing.
+ */
 
-#include "volumepkg.h"
-#include "cloth.h"
+#include <iostream>
 
-int main(int argc, char* argv[]) {
-    if ( argc < 3 ) {
-        std::cout << "Usage: vc_clothExample volpkg seg-id iterations" << std::endl;
-        return EXIT_FAILURE;
-    }
+#include "vc_defines.h"
+#include "shapes.h"
+#include "ClothModelingUVMapping.h"
+#include "io/objWriter.h"
 
-    VolumePkg vpkg = VolumePkg( argv[ 1 ] );
-    std::string segID = argv[ 2 ];
-    if (segID == "") {
-    printf("ERROR: Incorrect/missing segmentation ID!\n");
-    exit(EXIT_FAILURE);
-    }
-    if ( vpkg.getVersion() < 2.0) {
-        printf("ERROR: Volume package is version %f but this program requires a version >= 2.0.\n", vpkg.getVersion() );
-        exit(EXIT_FAILURE);
-    }
-    vpkg.setActiveSegmentation(segID);
-    std::string meshName = vpkg.getMeshPath();
+int main( int argc, char* argv[] ) {
 
-    int64_t NUM_OF_ITERATIONS = atoi( argv[ 3 ] );
+    // Create the mesh writer
+    volcart::io::objWriter mesh_writer;
 
-    // declare pointer to new Mesh object
-    VC_MeshType::Pointer  mesh = VC_MeshType::New();
+    // Create the test object
+    volcart::shapes::Arch arch;
 
-    int meshWidth = -1;
-    int meshHeight = -1;
+    // Get pinned points for unfurling step
+    volcart::texturing::ClothModelingUVMapping::PinIDs unfurl;
+    unfurl.push_back(0);
+    unfurl.push_back(90);
 
-    vtkSmartPointer<vtkPLYReader> reader = vtkSmartPointer<vtkPLYReader>::New();
-    reader->SetFileName ( "decim.ply" );
+    // Get pinned points for expansion step
+    volcart::texturing::ClothModelingUVMapping::PinIDs expand;
+//    The arch currently doesn't need to be expanded, but leaving this here in case the expansion forces get balanced.
+//    expand.push_back(0);
+//    expand.push_back(9);
+//    expand.push_back(90);
+//    expand.push_back(99);
 
-    vtkSmoothPolyDataFilter* smoother = vtkSmoothPolyDataFilter::New();
-    smoother->SetInputConnection( reader->GetOutputPort() );
-    smoother->SetNumberOfIterations(3);
-    smoother->SetRelaxationFactor(0.3);
-    smoother->Update();
+    uint16_t unfurlIt    =  20000;
+    uint16_t collisionIt =      0;
+    uint16_t expansionIt =   5000;
 
-    VC_MeshType::Pointer decimated = VC_MeshType::New();
-    volcart::meshing::vtk2itk(smoother->GetOutput(), decimated);
-    std::cerr << "points: " << decimated->GetNumberOfPoints() << " || cells: " << decimated->GetNumberOfCells() << std::endl;
+    // Run the simulation
+    volcart::texturing::ClothModelingUVMapping clothUV( arch.itkMesh(), unfurlIt, collisionIt, expansionIt, unfurl, expand);
+    clothUV.setAcceleration( volcart::texturing::ClothModelingUVMapping::Stage::Unfurl,     10);
+    clothUV.setAcceleration( volcart::texturing::ClothModelingUVMapping::Stage::Collision, -10);
+    clothUV.setAcceleration( volcart::texturing::ClothModelingUVMapping::Stage::Expansion, -10);
 
-    // try to convert the ply to an ITK mesh
-    if (!volcart::io::ply2itkmesh(meshName, mesh, meshWidth, meshHeight)) {
-        exit( -1 );
-    };
+    clothUV.unfurl();
+    mesh_writer.setMesh( clothUV.getMesh() );
+    mesh_writer.setPath( "clothUV_Arch_Unfurl.obj" );
+    mesh_writer.write();
 
-    volcart::meshing::cloth Cloth = volcart::meshing::cloth(mesh, decimated, meshWidth, meshHeight, NUM_OF_ITERATIONS);
+    clothUV.collide();
+    mesh_writer.setMesh( clothUV.getMesh() );
+    mesh_writer.setPath( "clothUV_Arch_Collide.obj" );
+    mesh_writer.write();
 
-    volcart::UVMap uvMap = Cloth._returnUVMap();
+    clothUV.expand();
+    mesh_writer.setMesh( clothUV.getMesh() );
+    mesh_writer.setPath( "clothUV_Arch_Final.obj" );
+    mesh_writer.write();
 
-    VC_MeshType::Pointer result = VC_MeshType::New();
-    result = Cloth._returnMesh();
-
-    return EXIT_SUCCESS;
+    return 0;
 }

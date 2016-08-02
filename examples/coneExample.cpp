@@ -16,11 +16,10 @@ int main(){
     //write cone mesh to file
     itk::MeshFileWriter<VC_MeshType>::Pointer itkwriter = itk::MeshFileWriter<VC_MeshType>::New();
 
-
-            itkwriter->SetInput(in_ConeITKMesh);
-            itkwriter->SetFileTypeAsASCII();
-            itkwriter->SetFileName("ConeITKWriter.obj");
-            itkwriter->Write();
+    itkwriter->SetInput(in_ConeITKMesh);
+    itkwriter->SetFileTypeAsASCII();
+    itkwriter->SetFileName("ConeITKWriter.obj");
+    itkwriter->Write();
 
     volcart::io::objWriter writer;
     writer.setMesh(in_ConeITKMesh);
@@ -30,5 +29,3 @@ int main(){
 
     return EXIT_SUCCESS;
 }
-
-

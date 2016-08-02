@@ -15,8 +15,8 @@ set(CXX_STANDARD_REQUIRED on)
 set(CMAKE_EXPORT_COMPILE_COMMANDS on)
 
 # Options for external libs
-option(USE_ACVD "Link against ACVD library" off)
-option(USE_BULLET "Link against Bullet Physics library" off)
+option(VC_USE_ACVD "Link against ACVD library" off)
+option(VC_USE_BULLET "Link against Bullet Physics library" off)
 
 # Use prebuilt libs (built with shell script)?
 option(USE_PREBUILT_LIBS "Link against prebuilt dependencies" off)
@@ -42,6 +42,9 @@ endif()
 enable_testing()
 
 # VC Libraries
+add_subdirectory(external/sparse_linear_solver)
+include_directories(${SLS_INCLUDE_DIR})
+
 add_subdirectory(common)
 add_subdirectory(meshing)
 add_subdirectory(volumepkg)

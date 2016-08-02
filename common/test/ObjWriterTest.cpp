@@ -11,6 +11,7 @@
 #include "shapes.h"
 #include "io/objWriter.h"
 #include "parsingHelpers.h"
+#include "testingUtils.h"
 
 
 /***************************************************************************************
@@ -81,9 +82,9 @@ BOOST_FIXTURE_TEST_CASE(CompareWrittenMeshDataWithFixtureCreatedMesh, WriteMeshU
 
         //checking the x,y,z,nx,ny,nz components
 
-        BOOST_CHECK_EQUAL(_in_PlaneITKMesh->GetPoint(pnt)[0], _SavedPlanePoints[pnt].x);
-        BOOST_CHECK_EQUAL(_in_PlaneITKMesh->GetPoint(pnt)[1], _SavedPlanePoints[pnt].y);
-        BOOST_CHECK_EQUAL(_in_PlaneITKMesh->GetPoint(pnt)[2], _SavedPlanePoints[pnt].z);
+        volcart::testing::SmallOrClose(_in_PlaneITKMesh->GetPoint(pnt)[0], _SavedPlanePoints[pnt].x);
+        volcart::testing::SmallOrClose(_in_PlaneITKMesh->GetPoint(pnt)[1], _SavedPlanePoints[pnt].y);
+        volcart::testing::SmallOrClose(_in_PlaneITKMesh->GetPoint(pnt)[2], _SavedPlanePoints[pnt].z);
     }
 
     // Normals //
@@ -95,9 +96,9 @@ BOOST_FIXTURE_TEST_CASE(CompareWrittenMeshDataWithFixtureCreatedMesh, WriteMeshU
         _in_PlaneITKMesh->GetPointData(point.Index(), &_in_PlaneITKMeshNormal);
 
         //Now compare the normals for the two meshes
-        BOOST_CHECK_EQUAL(_in_PlaneITKMeshNormal[0], _SavedPlanePoints[p].nx);
-        BOOST_CHECK_EQUAL(_in_PlaneITKMeshNormal[1], _SavedPlanePoints[p].ny);
-        BOOST_CHECK_EQUAL(_in_PlaneITKMeshNormal[2], _SavedPlanePoints[p].nz);
+        volcart::testing::SmallOrClose(_in_PlaneITKMeshNormal[0], _SavedPlanePoints[p].nx);
+        volcart::testing::SmallOrClose(_in_PlaneITKMeshNormal[1], _SavedPlanePoints[p].ny);
+        volcart::testing::SmallOrClose(_in_PlaneITKMeshNormal[2], _SavedPlanePoints[p].nz);
 
         ++p;
     }

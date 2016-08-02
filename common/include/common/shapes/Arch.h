@@ -20,13 +20,13 @@ namespace volcart {
 
                 float rad = 5;
 
-                std::vector<cv::Vec3f> curve;
-                std::vector<cv::Vec3f> points;
+                std::vector<cv::Vec3d> curve;
+                std::vector<cv::Vec3d> points;
 
                 // rad will always be the same
                 // theta (t) will be between 0 and pi
                 // z will be between 0 and width
-                cv::Vec3f c_point;
+                cv::Vec3d c_point;
                 for( int w = 0; w < width; ++w ) {
                     double t = w * M_PI / width;
                     c_point[0] = rad * cos(t);

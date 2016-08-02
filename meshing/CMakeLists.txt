@@ -16,12 +16,12 @@ set(VC_MESHING_DEPENDENCIES
 set(VC_MESHING_DEFINITIONS "")
 
 # Conditional compilation of ACVD and Bullet stuff
-if (USE_ACVD)
+if (VC_USE_ACVD)
     list(APPEND VC_MESHING_SRCS src/ACVD.cpp)
     list(APPEND VC_MESHING_DEPENDENCIES acvd)
     list(APPEND VC_MESHING_DEFINITIONS VC_USE_ACVD)
 endif()
-if (USE_BULLET)
+if (VC_USE_BULLET)
     list(APPEND VC_MESHING_SRCS src/itk2bullet.cpp src/cloth.cpp)
     list(APPEND VC_MESHING_DEPENDENCIES bullet)
     list(APPEND VC_MESHING_DEFINITIONS VC_USE_BULLET)
@@ -42,7 +42,7 @@ target_include_directories(vc_meshing
 
 target_link_libraries(vc_meshing
     PUBLIC
-        ${VC_MESHING_DEPENDENCIES}
+        ${VC_MESHING_DEFINITIONS} 
 )
 
 install(TARGETS vc_meshing
