@@ -3,14 +3,13 @@
 //
 
 #include "orderedResampling.h"
+#include "CalculateNormals.h"
 
 namespace volcart{
     namespace meshing{
         //// Constructors ////
         orderedResampling::orderedResampling()
         {
-            _input = nullptr;
-            _output = nullptr;
             _inWidth = 0;
             _inHeight = 0;
         }//constructor
@@ -18,7 +17,6 @@ namespace volcart{
         orderedResampling::orderedResampling(VC_MeshType::Pointer mesh, int in_width, int in_height)
         {
             _input = mesh;
-            _output = nullptr;
             _inWidth  = in_width ;
             _inHeight = in_height;
         }//constructor with parameters
@@ -113,9 +111,12 @@ namespace volcart{
                 }
             }
 
+            volcart::meshing::CalculateNormals calcNorm(_output);
+            calcNorm.compute();
+            _output = calcNorm.getMesh();
+
             std::cerr << "volcart::meshing::orderedResampling: Points in resampled mesh "<< _output->GetNumberOfPoints() << std::endl;
             std::cerr << "volcart::meshing::orderedResampling: Cells in resampled mesh "<< _output->GetNumberOfCells() << std::endl;
-
 
         }//compute
 

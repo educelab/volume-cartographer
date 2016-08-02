@@ -10,7 +10,7 @@
 #include <vector>
 #include <stdexcept>
 
-#include <vc_defines.h>
+#include "vc_defines.h"
 #include "vc_datatypes.h"
 
 namespace volcart {
