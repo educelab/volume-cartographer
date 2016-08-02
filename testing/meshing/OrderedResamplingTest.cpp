@@ -49,14 +49,21 @@ BOOST_FIXTURE_TEST_CASE(ResampledPlaneTest, OrderedPlaneFixture){
     resample.compute();
     _out_Mesh = resample.getOutputMesh();
 
-    //Check Points
-    BOOST_CHECK_EQUAL(_SavedPoints.size(), _out_Mesh->GetNumberOfPoints());
-
+    //Check Points and Normals
+    BOOST_CHECK_EQUAL(_out_Mesh->GetNumberOfPoints(), _SavedPoints.size());
     for(unsigned long pnt_id = 0; pnt_id < _SavedPoints.size(); pnt_id++)
     {
-        volcart::testing::SmallOrClose(_SavedPoints[pnt_id].x, _out_Mesh->GetPoint(pnt_id)[0]);
-        volcart::testing::SmallOrClose(_SavedPoints[pnt_id].y, _out_Mesh->GetPoint(pnt_id)[1]);
-        volcart::testing::SmallOrClose(_SavedPoints[pnt_id].z, _out_Mesh->GetPoint(pnt_id)[2]);
+        volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[0], _SavedPoints[pnt_id].x);
+        volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[1], _SavedPoints[pnt_id].y);
+        volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[2], _SavedPoints[pnt_id].z);
+
+        VC_PixelType out_Normal;
+        _out_Mesh->GetPointData(pnt_id, &out_Normal);
+
+        //Now compare the normals for the two meshes
+        volcart::testing::SmallOrClose( out_Normal[0], _SavedPoints[pnt_id].nx );
+        volcart::testing::SmallOrClose( out_Normal[1], _SavedPoints[pnt_id].ny );
+        volcart::testing::SmallOrClose( out_Normal[2], _SavedPoints[pnt_id].nz );
     }
 
     //Check Cells, Checks Point normals by ensuring that the first vertex is the same in both
@@ -65,9 +72,9 @@ BOOST_FIXTURE_TEST_CASE(ResampledPlaneTest, OrderedPlaneFixture){
     {
         VC_CellType::CellAutoPointer current_C;
         _out_Mesh->GetCell(cell_id, current_C);
-        BOOST_CHECK_EQUAL(_SavedCells[cell_id].v1, current_C->GetPointIds()[0]);
-        BOOST_CHECK_EQUAL(_SavedCells[cell_id].v2, current_C->GetPointIds()[1]);
-        BOOST_CHECK_EQUAL(_SavedCells[cell_id].v3, current_C->GetPointIds()[2]);
+        BOOST_CHECK_EQUAL(current_C->GetPointIds()[0], _SavedCells[cell_id].v1);
+        BOOST_CHECK_EQUAL(current_C->GetPointIds()[1], _SavedCells[cell_id].v2);
+        BOOST_CHECK_EQUAL(current_C->GetPointIds()[2], _SavedCells[cell_id].v3);
     }
 }
 
@@ -76,14 +83,21 @@ BOOST_FIXTURE_TEST_CASE(ResampledArchTest, OrderedArchFixture){
     resample.compute();
     _out_Mesh = resample.getOutputMesh();
 
-    //Check Points
-    BOOST_CHECK_EQUAL(_SavedPoints.size(), _out_Mesh->GetNumberOfPoints());
-
+    //Check Points and Normals
+    BOOST_CHECK_EQUAL(_out_Mesh->GetNumberOfPoints(), _SavedPoints.size());
     for(unsigned long pnt_id = 0; pnt_id < _SavedPoints.size(); pnt_id++)
     {
-        volcart::testing::SmallOrClose(_SavedPoints[pnt_id].x, _out_Mesh->GetPoint(pnt_id)[0]);
-        volcart::testing::SmallOrClose(_SavedPoints[pnt_id].y, _out_Mesh->GetPoint(pnt_id)[1]);
-        volcart::testing::SmallOrClose(_SavedPoints[pnt_id].z, _out_Mesh->GetPoint(pnt_id)[2]);
+        volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[0], _SavedPoints[pnt_id].x);
+        volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[1], _SavedPoints[pnt_id].y);
+        volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[2], _SavedPoints[pnt_id].z);
+
+        VC_PixelType out_Normal;
+        _out_Mesh->GetPointData(pnt_id, &out_Normal);
+
+        //Now compare the normals for the two meshes
+        volcart::testing::SmallOrClose( out_Normal[0], _SavedPoints[pnt_id].nx );
+        volcart::testing::SmallOrClose( out_Normal[1], _SavedPoints[pnt_id].ny );
+        volcart::testing::SmallOrClose( out_Normal[2], _SavedPoints[pnt_id].nz );
     }
 
     //Check Cells, Checks Point normals by ensuring that the first vertex is the same in both
@@ -92,8 +106,8 @@ BOOST_FIXTURE_TEST_CASE(ResampledArchTest, OrderedArchFixture){
     {
         VC_CellType::CellAutoPointer current_C;
         _out_Mesh->GetCell(cell_id, current_C);
-        BOOST_CHECK_EQUAL(_SavedCells[cell_id].v1, current_C->GetPointIds()[0]);
-        BOOST_CHECK_EQUAL(_SavedCells[cell_id].v2, current_C->GetPointIds()[1]);
-        BOOST_CHECK_EQUAL(_SavedCells[cell_id].v3, current_C->GetPointIds()[2]);
+        BOOST_CHECK_EQUAL(current_C->GetPointIds()[0], _SavedCells[cell_id].v1);
+        BOOST_CHECK_EQUAL(current_C->GetPointIds()[1], _SavedCells[cell_id].v2);
+        BOOST_CHECK_EQUAL(current_C->GetPointIds()[2], _SavedCells[cell_id].v3);
     }
 }
