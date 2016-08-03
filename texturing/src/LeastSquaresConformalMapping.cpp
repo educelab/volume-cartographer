@@ -1,4 +1,8 @@
-#include "LeastSquaresConformalMapping.h"
+#include "texturing/LeastSquaresConformalMapping.h"
+#include <igl/lscm.h>
+#include <igl/boundary_loop.h>
+#include <igl/doublearea.h>
+#include <opencv2/opencv.hpp>
 
 using namespace volcart::texturing;
 

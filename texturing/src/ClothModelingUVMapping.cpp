@@ -2,7 +2,7 @@
 // Created by Seth Parker on 3/14/16.
 //
 
-#include "ClothModelingUVMapping.h"
+#include "texturing/ClothModelingUVMapping.h"
 
 //// Callbacks ////
 /* Note: Callbacks won't compile if they're not wrapped in the namespace.

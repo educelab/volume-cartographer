@@ -2,8 +2,9 @@
 // Created by Hannah Hatch on 7/26/16.
 //
 
-#include "CalculateNormals.h"
+#include "meshing/CalculateNormals.h"
 #include "meshing/deepCopy.h"
+#include "common/vc_defines.h"
 
 
 using namespace volcart::meshing;

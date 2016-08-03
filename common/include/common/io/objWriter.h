@@ -14,6 +14,7 @@
 
 #include "common/vc_defines.h"
 #include "common/types/UVMap.h"
+#include "common/types/Rendering.h"
 
 namespace volcart {
 namespace io {

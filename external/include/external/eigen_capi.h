@@ -27,8 +27,8 @@
 #ifndef __EIGEN_C_API_H__
 #define __EIGEN_C_API_H__
 
-#include "eigenvalues.h"
-#include "linear_solver.h"
-#include "svd.h"
+#include "external/eigenvalues.h"
+#include "external/linear_solver.h"
+#include "external/svd.h"
 
 #endif  /* __EIGEN_C_API_H__ */

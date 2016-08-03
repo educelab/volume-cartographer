@@ -28,14 +28,14 @@
 #define __EIGEN3_EIGENVALUES_C_API_CC__
 
 /* Eigen gives annoying huge amount of warnings here, silence them! */
-#ifdef __GNUC__
+#if defined(__GNUC__) && !defined(__clang__)
 #  pragma GCC diagnostic ignored "-Wlogical-op"
 #endif
 
 #include <Eigen/Core>
 #include <Eigen/Eigenvalues>
 
-#include "eigenvalues.h"
+#include "external/eigenvalues.h"
 
 using Eigen::SelfAdjointEigenSolver;
 

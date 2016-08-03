@@ -13,15 +13,12 @@
 #include <iostream>
 #include <exception>
 #include <memory>
-
 #include <itkQuadEdgeMeshBoundaryEdgesMeshFunction.h>
-#include "eigen_capi.h"
-
 #include <opencv2/opencv.hpp>
 
-#include "vc_defines.h"
-#include "vc_datatypes.h"
-#include "deepCopy.h"
+#include "common/vc_defines.h"
+#include "common/types/UVMap.h"
+#include "common/types/HalfEdgeMesh.h"
 
 // This is terrible but it'll work for now - SP
 #define SHIFT3(type, a, b, c) { type tmp; tmp = a; a = c; c = b; b = tmp; }

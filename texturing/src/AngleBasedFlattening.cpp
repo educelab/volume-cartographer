@@ -2,7 +2,9 @@
 // Created by Seth Parker on 6/9/16.
 //
 
-#include "AngleBasedFlattening.h"
+#include "texturing/AngleBasedFlattening.h"
+#include "external/eigen_capi.h"
+#include "meshing/deepCopy.h"
 
 using namespace volcart::texturing;
 

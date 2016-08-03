@@ -27,8 +27,15 @@ include(${ITK_USE_FILE})
 find_package(VTK 6.1 REQUIRED)
 include(${VTK_USE_FILE})
 
-# Rest
+# Eigen (make it into a target)
 find_package(Eigen3 REQUIRED)
+add_library(eigen3 INTERFACE IMPORTED)
+set_target_properties(eigen3
+    PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES ${EIGEN3_INCLUDE_DIR}
+)
+
+# Rest
 find_package(PCL 1.7 REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(OpenGL REQUIRED)
@@ -38,4 +45,7 @@ if (USE_ACVD)
 endif()
 if (USE_BULLET)
     find_package(Bullet)
+endif()
+if (USE_LIBIGL)
+    find_package(LibIGL)
 endif()

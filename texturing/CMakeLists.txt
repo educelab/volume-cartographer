@@ -5,11 +5,34 @@ set(VC_TEXTURING_SRCS
     src/compositeTextureV2.cpp
     src/simpleUV.cpp
     src/AngleBasedFlattening.cpp
-    src/ClothModelingUVMapping.cpp
-    src/LeastSquaresConformalMapping.cpp
 )
+set(VC_TEXTURING_DEPENDENCIES_PUBLIC
+    vc_common
+    vc_volumepkg
+)
+set(VC_TEXTURING_DEPENDENCIES_PRIVATE
+    vc_meshing
+    vc_external
+)
+set(VC_TEXTURING_DEFINITIONS "")
+
+if (VC_USE_LIBIGL)
+    list(APPEND VC_TEXTURING_SRCS src/LeastSquaresConformalMapping.cpp)
+    list(APPEND VC_TEXTURING_DEPENDENCIES_PRIVATE libigl)
+    list(APPEND VC_TEXTURING_DEFINITIONS USE_IGL)
+endif()
+if (VC_USE_BULLET)
+    list(APPEND VC_TEXTURING_SRC src/ClothModelingUVMapping.cpp)
+    list(APPEND VC_TEXTURING_DEPENDENCIES_PUBLIC bullet)
+    list(APPEND VC_TEXTURING_DEFINITIONS USE_BULLET)
+endif()
 
 add_library(vc_texturing ${VC_TEXTURING_SRCS})
+
+target_compile_definitions(vc_texturing
+    PRIVATE
+        ${VC_TEXTURING_DEFINITIONS}
+)
 
 target_include_directories(vc_texturing
     PUBLIC
@@ -19,10 +42,9 @@ target_include_directories(vc_texturing
 
 target_link_libraries(vc_texturing
     PUBLIC
-        vc_common
-        vc_volumepkg
+        ${VC_TEXTURING_DEPENDENCIES_PUBLIC}
     PRIVATE
-        vc_meshing
+        ${VC_TEXTURING_DEPENDENCIES_PRIVATE}
 )
 
 install(TARGETS vc_texturing
