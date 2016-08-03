@@ -2,8 +2,7 @@
 
 namespace fs = boost::filesystem;
 
-namespace volcart
-{
+using namespace volcart;
 
 // Read a json config from disk
 Metadata::Metadata(const fs::path& file_location) : _path(file_location)
@@ -39,5 +38,3 @@ void Metadata::save(const fs::path& path)
         throw std::ifstream::failure(msg);
     }
 }
-
-}  // namespace volcart
