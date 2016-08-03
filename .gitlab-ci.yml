@@ -17,7 +17,7 @@ build:debian:
     artifacts:
         paths:
             - build/bin/
-        expire_in: 20 mins
+        expire_in: 60 mins
     tags:
         - build
         - linux
@@ -61,7 +61,7 @@ build:osx:
     artifacts:
         paths:
             - build/bin/
-        expire_in: 20 mins
+        expire_in: 60 mins
     tags:
         - build
         - osx
