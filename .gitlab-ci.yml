@@ -98,7 +98,7 @@ deploy:osx:
     script:
         - echo "---- Work it harder. ----"
         - version=$(utils/scripts/version-gen.sh)
-        - git submodule init
+        - git submodule update --init external/
         - cd vc-deps/
         - ./build-deps.sh -universal
         - cd ..

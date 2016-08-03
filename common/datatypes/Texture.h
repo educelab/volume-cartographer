@@ -22,15 +22,15 @@ namespace volcart {
         // Get metadata
         volcart::Metadata metadata() { return _metadata; };
 
-        std::string     id() { return _metadata.getString("id"); };
-        int             width()  { return _width; };
-        int             height() { return _height; };
-        size_t          numberOfImages()   { return _images.size(); };
-        bool            hasImages() { return _images.size() > 0; };
-        bool            hasMap()    { return _uvMap.size()  > 0; };
+        std::string id() { return _metadata.get<std::string>("id"); };
+        int width() { return _width; };
+        int height() { return _height; };
+        size_t numberOfImages() { return _images.size(); };
+        bool hasImages() { return _images.size() > 0; };
+        bool hasMap() { return _uvMap.size() > 0; };
 
         // Get/Set UV Map
-        volcart::UVMap& uvMap(){ return _uvMap; };
+        volcart::UVMap& uvMap() { return _uvMap; };
         void uvMap(volcart::UVMap uvMap) { _uvMap = uvMap; };
 
         // Get/Add Texture Image
@@ -38,7 +38,7 @@ namespace volcart {
         void addImage(cv::Mat image);
 
         // Return the intensity for a Point ID
-        double intensity( int point_ID, int image_ID = 0 );
+        double intensity(int point_ID, int image_ID = 0);
 
         // Extra Metadata
         void    setMask( cv::Mat m ) { _PerPixelMask = m; };

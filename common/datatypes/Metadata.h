@@ -8,11 +8,11 @@
 #ifndef _VC_METADATA_H_
 #define _VC_METADATA_H_
 
-#include <iostream>
-#include <fstream>
 #include <boost/filesystem.hpp>
+#include <fstream>
+#include <iostream>
 
-#include "../picojson.h"
+#include "../json.hpp"
 
 #include "../vc_defines.h"
 
@@ -22,34 +22,46 @@ class Metadata
 {
 
 public:
-    Metadata();
+    Metadata() {}
+
     Metadata(const boost::filesystem::path& file_location);
 
     // Path
     boost::filesystem::path path() const { return _path; };
+
     void setPath(const std::string& path) { _path = path; };
 
     // Save to file
     void save(const boost::filesystem::path& path);
+
     void save() { save(_path.string()); };
 
-    // Debug functions
-    void printString() const;
-    void printObject() const;
+    // Debug function
+    void printString() const { std::cout << _json << std::endl; }
+
+    void printObject() const { std::cout << _json.dump(4) << std::endl; }
 
     // Retrieval
-    int getInt(const std::string& key) const;
-    double getDouble(const std::string& key) const;
-    std::string getString(const std::string& key) const;
+    template <typename T>
+    T get(const std::string& key) const
+    {
+        if (_json.find(key) == _json.end()) {
+            auto msg = "could not find key '" + key + "' in metadata";
+            throw std::runtime_error(msg);
+        }
+        return _json[key].get<T>();
+    }
 
     // Assignment
-    void setValue(const std::string& key, int value);
-    void setValue(const std::string& key, unsigned long value);
-    void setValue(const std::string& key, double value);
-    void setValue(const std::string& key, const std::string& value);
+    template <typename T>
+    void set(const std::string& key, T value)
+    {
+        _json[key] = value;
+    }
 
 protected:
-    picojson::value _json;
+    nlohmann::json _json;
+
     boost::filesystem::path _path;
 };
 }
