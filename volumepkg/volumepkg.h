@@ -18,7 +18,6 @@
 #include "vc_datatypes.h"
 #include "vc_defines.h"
 #include "volumepkg_version.h"
-#include "volumepkgcfg.h"
 #include <pcl/point_types.h>
 
 class VolumePkg
@@ -122,7 +121,7 @@ public:
 private:
     bool _readOnly = true;
 
-    VolumePkgCfg config;
+    volcart::Metadata config;
 
     volcart::Volume vol_;
 
@@ -136,6 +135,10 @@ private:
     int getNumberOfSliceCharacters();
     std::string activeSeg = "";
     std::vector<std::string> segmentations;
+
+    static volcart::Metadata _initConfig(
+        const volcart::Dictionary& dict,
+        double version);
 };
 
 #endif  // _VOLUMEPKG_H_

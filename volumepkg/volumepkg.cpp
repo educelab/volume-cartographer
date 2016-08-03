@@ -9,14 +9,11 @@ namespace fs = boost::filesystem;
 VolumePkg::VolumePkg(const fs::path& file_location, double version)
 {
     // Lookup the metadata template from our library of versions
-    volcart::Library::const_iterator findDict =
-        volcart::VersionLibrary.find(version);
-    if (findDict == volcart::VersionLibrary.end()) {
-        std::cerr << "ERROR: No dictionary found for volpkg v." << version
-                  << std::endl;
+    auto findDict = volcart::VersionLibrary.find(version);
+    if (findDict == std::end(volcart::VersionLibrary)) {
         throw std::runtime_error("No dictionary found for volpkg");
     } else {
-        config = VolumePkgCfg(findDict->second, version);
+        config = VolumePkg::_initConfig(findDict->second, version);
     }
 
     root_dir = file_location;
@@ -42,7 +39,7 @@ VolumePkg::VolumePkg(const fs::path& file_location)
         throw std::runtime_error(errmsg);
     }
 
-    config = VolumePkgCfg(file_location.string() + "/config.json");
+    config = volcart::Metadata(file_location / "config.json");
 
     segs_dir = file_location / "paths";
     slice_dir = file_location / "slices";
@@ -279,4 +276,30 @@ void VolumePkg::saveTextureData(const cv::Mat& texture, const std::string& name)
     auto texturePath = segs_dir / activeSeg / (name + ".png");
     cv::imwrite(texturePath.string(), texture);
     printf("Texture image saved.\n");
+}
+
+volcart::Metadata VolumePkg::_initConfig(
+    const volcart::Dictionary& dict,
+    double version)
+{
+    volcart::Metadata config;
+
+    // Populate the cfg with keys from the dict
+    for (const auto& entry : dict) {
+        if (entry.first == "version") {
+            config.set("version", version);
+            continue;
+        }
+
+        // Default values
+        if (entry.second == "int") {
+            config.set(entry.first, int{});
+        } else if (entry.second == "double") {
+            config.set(entry.first, double{});
+        } else {
+            config.set(entry.first, std::string{});
+        }
+    }
+
+    return config;
 }
