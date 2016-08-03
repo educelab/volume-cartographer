@@ -21,9 +21,8 @@
  *  This file is broken up into testing fixtures which initialize the               *
  *  objects used in each of the three test cases.                                   *
  *                                                                                  *
- *  1. SetMetadata                                                                  *
- *  2. GetMetadata                                                                  *
- *  3. IOMetadata                                                                   *
+ *  1. Set/GetMetadata                                                              *
+ *  2. IOMetadata                                                                   *
  *                                                                                  *
  * Input:                                                                           *
  *     No required inputs for this sample test.                                     *
@@ -50,6 +49,9 @@ struct EmptyMetadataFixture {
     ~EmptyMetadataFixture(){ std::cerr << "Destroying empty Metadata fixture..." << std::endl;}
 
     volcart::Metadata _metadata;
+    int i = 1;
+    double d = 1.0;
+    std::string s = "value";
 };
 
 struct FilledMetadataFixture {
@@ -75,27 +77,18 @@ struct FilledMetadataFixture {
  *
  ***************/
 
-// Set metadata
-BOOST_FIXTURE_TEST_CASE(SetMetadata, EmptyMetadataFixture) {
+// Set/Get metadata
+BOOST_FIXTURE_TEST_CASE(SetGetMetadata, EmptyMetadataFixture) {
     // int
-    _metadata.set("int", 1);
-
-    // double
-    _metadata.set("double", 1.0);
-
-    // string
-    _metadata.set("string", "value");
-}
-
-// Get metadata
-BOOST_FIXTURE_TEST_CASE(GetMetadata, FilledMetadataFixture) {
-    // int
+    _metadata.set("int", i);
     BOOST_CHECK_EQUAL( _metadata.get<int>("int"), i);
 
     // double
+    _metadata.set("double", d);
     BOOST_CHECK_EQUAL( _metadata.get<double>("double"), d);
 
     // string
+    _metadata.set("string", s);
     BOOST_CHECK_EQUAL( _metadata.get<std::string>("string"), s);
 }
 
