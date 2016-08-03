@@ -14,6 +14,10 @@ build:debian:
         - cd build/
         - cmake -DBoost_USE_STATIC_LIBS=ON -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -DVC_USE_LIBIGL=ON -GNinja ..
         - ninja
+    artifacts:
+        paths:
+            - build/bin/
+        expire_in: 60 mins
     tags:
         - build
         - linux
@@ -27,11 +31,11 @@ test:debian:
     script:
         - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
         - git submodule update --init external/
-        - mkdir -p build
         - cd build/
         - cmake -DBoost_USE_STATIC_LIBS=ON -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -DVC_USE_LIBIGL=ON -GNinja ..
-        - ninja
         - ninja test
+    dependencies:
+        - build:debian
     artifacts:
       name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
       paths:
@@ -55,6 +59,10 @@ build:osx:
         - cd build/
         - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -DVC_USE_LIBIGL=ON -GNinja ..
         - ninja
+    artifacts:
+        paths:
+            - build/bin/
+        expire_in: 60 mins
     tags:
         - build
         - osx
@@ -67,11 +75,11 @@ test:osx:
     script:
         - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
         - git submodule update --init external/
-        - mkdir -p build
         - cd build/
         - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -DVC_USE_LIBIGL=ON -GNinja ..
-        - ninja
         - ninja test
+    dependencies:
+        - build:osx
     artifacts:
       name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
       paths:
