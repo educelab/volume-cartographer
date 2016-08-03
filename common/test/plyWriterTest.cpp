@@ -2,19 +2,15 @@
 // Created by Ryan Taber on 12/9/15.
 //
 
-#ifndef VC_BOOST_STATIC_LIBS
-#define BOOST_TEST_DYN_LINK
-#endif
 #define BOOST_TEST_MODULE plyWriter
 
 #include <boost/test/unit_test.hpp>
-//#include <boost/test/included/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
-#include <vc_defines.h>
-#include "shapes.h"
-#include "io/plyWriter.h"
-#include "parsingHelpers.h"
-#include "testingUtils.h"
+#include "common/vc_defines.h"
+#include "common/io/plyWriter.h"
+#include "common/shapes/Plane.h"
+#include "testing/parsingHelpers.h"
+#include "testing/testingUtils.h"
 
 
 /***************************************************************************************

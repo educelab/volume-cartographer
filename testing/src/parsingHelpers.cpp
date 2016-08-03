@@ -2,8 +2,9 @@
 // Created by Ryan Taber on 11/19/15.
 //
 
-#include <vc_defines.h>
-#include "parsingHelpers.h"
+#include "testing/parsingHelpers.h"
+#include <iostream>
+#include <fstream>
 
 namespace volcart{
 namespace testing {

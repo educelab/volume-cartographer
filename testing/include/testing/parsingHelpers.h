@@ -5,18 +5,7 @@
 #ifndef VC_PARSINGHELPERS_H
 #define VC_PARSINGHELPERS_H
 
-#include "vc_defines.h"
-#include "shapes.h"
-#include "itk2vtk.h"
-#include <iostream>
-#include <fstream>
-#include <vtkCellData.h>
-#include <vtkCellArray.h>
-#include <vtkDoubleArray.h>
-#include <vtkPoints.h>
-#include <vtkPolyData.h>
-#include <vtkPointData.h>
-#include <vtkSmartPointer.h>
+#include "common/vc_defines.h"
 
 /*
  * Purpose of File:

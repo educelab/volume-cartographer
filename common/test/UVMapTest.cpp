@@ -2,14 +2,11 @@
 // Created by Ryan Taber on 12/11/15.
 //
 
-#ifndef VC_BOOST_STATIC_LIBS
-#define BOOST_TEST_DYN_LINK
-#endif
 #define BOOST_TEST_MODULE uvMap
 
 #include <boost/test/unit_test.hpp>
-#include "vc_defines.h"
-#include "vc_datatypes.h"
+#include "common/vc_defines.h"
+#include "common/types/UVMap.h"
 
 
 /***************************************************************************************

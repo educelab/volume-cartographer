@@ -45,6 +45,7 @@ enable_testing()
 # VC Libraries
 add_subdirectory(external)
 add_subdirectory(common)
+add_subdirectory(testing)
 add_subdirectory(meshing)
 add_subdirectory(volumepkg)
 add_subdirectory(segmentation)
