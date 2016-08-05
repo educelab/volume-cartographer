@@ -1,6 +1,3 @@
-#ifndef VC_BOOST_STATIC_LIBS
-#define BOOST_TEST_DYN_LINK
-#endif
 #define BOOST_TEST_MODULE LocalResliceParticleSimDerivative
 
 #include <iostream>
@@ -8,7 +5,7 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
 #include <opencv2/core/core.hpp>
-#include "localResliceParticleSim/derivative.h"
+#include "segmentation/lrps/derivative.h"
 
 using Voxel = cv::Vec3d;
 using namespace volcart::segmentation;

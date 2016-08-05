@@ -1,6 +1,3 @@
-#ifndef VC_BOOST_STATIC_LIBS
-#define BOOST_TEST_DYN_LINK
-#endif
 #define BOOST_TEST_MODULE LocalResliceParticleSimCubicSpline
 
 #include <iostream>
@@ -10,7 +7,7 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
 #include <boost/test/floating_point_comparison.hpp>
-#include "localResliceParticleSim/spline.h"
+#include "segmentation/lrps/spline.h"
 
 using namespace volcart::segmentation;
 namespace btt = boost::test_tools;

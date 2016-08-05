@@ -1,6 +1,3 @@
-#ifndef VC_BOOST_STATIC_LIBS
-#define BOOST_TEST_DYN_LINK
-#endif
 #define BOOST_TEST_MODULE LocalResliceParticleSimIntensitymap
 
 #include <iostream>
@@ -10,7 +7,7 @@
 #include <cmath>
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
-#include "localResliceParticleSim/intensitymap.h"
+#include "segmentation/lrps/intensitymap.h"
 
 using namespace volcart::segmentation;
 

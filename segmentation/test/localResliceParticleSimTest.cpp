@@ -1,14 +1,11 @@
-#ifndef VC_BOOST_STATIC_LIBS
-#define BOOST_TEST_DYN_LINK
-#endif
 #define BOOST_TEST_MODULE LocalResliceSegmentation
 
 #include <cmath>
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
 #include <boost/test/floating_point_comparison.hpp>
-#include "volumepkg.h"
-#include "localResliceParticleSim/localResliceParticleSim.h"
+#include "volumepkg/volumepkg.h"
+#include "segmentation/lrps/localResliceParticleSim.h"
 
 using namespace volcart::segmentation;
 namespace tt = boost::test_tools;

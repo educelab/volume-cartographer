@@ -1,6 +1,7 @@
 project(libvc_common VERSION 0.1 LANGUAGES CXX)
+set(target vc_common)
 
-set(VC_COMMON_SRCS
+set(srcs
     src/HalfEdgeMesh.cpp
     src/Metadata.cpp
     src/PerPixelMap.cpp
@@ -17,8 +18,8 @@ set(VC_COMMON_SRCS
     src/plyWriter.cpp
 )
 
-add_library(vc_common ${VC_COMMON_SRCS})
-target_include_directories(vc_common
+add_library(${target} ${srcs})
+target_include_directories(${target}
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
@@ -26,7 +27,7 @@ target_include_directories(vc_common
         # way that lets you do transitive dependencies.
         ${PCL_INCLUDE_DIRS}
 )
-target_link_libraries(vc_common
+target_link_libraries(${target}
     PUBLIC
         Boost::filesystem
         opencv_core
@@ -42,16 +43,16 @@ target_link_libraries(vc_common
         vc_external
 )
 
-install(TARGETS vc_common
+install(TARGETS ${target}
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib
     RUNTIME DESTINATION bin
 )
-install(DIRECTORY include/ DESTINATION ${VC_INSTALL_INCLUDE_PREFIX})
-export(TARGETS vc_common FILE VCCommon.cmake)
+install(DIRECTORY include DESTINATION ${VC_INSTALL_INCLUDE_PREFIX})
+export(TARGETS ${target} FILE VCCommon.cmake)
 
 # Testing
-set(VC_COMMON_TEST_SRCS
+set(test_srcs
     test/LRUCacheTest.cpp
     test/ObjWriterTest.cpp
     test/MetadataTest.cpp
@@ -59,12 +60,14 @@ set(VC_COMMON_TEST_SRCS
     test/UVMapTest.cpp
     test/plyWriterTest.cpp
 )
-foreach(src ${VC_COMMON_TEST_SRCS})
-    get_filename_component(testname ${src} NAME_WE)
+foreach(src ${test_srcs})
+    get_filename_component(filename ${src} NAME_WE)
+    set(testname ${target}_${filename})
     add_executable(${testname} ${src})
     target_link_libraries(${testname}
         vc_common
         vc_testing
+        Boost::unit_test_framework
     )
     add_test(
         NAME ${testname}

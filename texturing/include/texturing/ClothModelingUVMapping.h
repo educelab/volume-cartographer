@@ -26,10 +26,9 @@
 #include <BulletSoftBody/btDefaultSoftBodySolver.h>
 #include <BulletSoftBody/btSoftBodyRigidBodyCollisionConfiguration.h>
 
-#include "vc_defines.h"
-#include "vc_datatypes.h"
-#include "itk2bullet.h"
-#include "deepCopy.h"
+#include "common/vc_defines.h"
+#include "texturing/itk2bullet.h"
+#include "meshing/deepCopy.h"
 
 namespace volcart {
     namespace texturing {

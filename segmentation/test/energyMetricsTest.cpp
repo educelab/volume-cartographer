@@ -1,12 +1,9 @@
-#ifndef VC_BOOST_STATIC_LIBS
-#define BOOST_TEST_DYN_LINK
-#endif
 #define BOOST_TEST_MODULE LocalResliceParticleSimEnergyMetrics
 
 #include <iostream>
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
-#include "localResliceParticleSim/energymetrics.h"
+#include "segmentation/lrps/energymetrics.h"
 
 using namespace volcart::segmentation;
 

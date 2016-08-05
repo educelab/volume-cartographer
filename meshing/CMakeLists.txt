@@ -1,6 +1,7 @@
 project(libvc_meshing VERSION 0.1 LANGUAGES CXX)
+set(target vc_meshing)
 
-set(VC_MESHING_SRCS
+set(srcs
     src/deepCopy.cpp
     src/itk2vtk.cpp
     src/orderedPCDMesher.cpp
@@ -11,36 +12,33 @@ set(VC_MESHING_SRCS
     src/CalculateNormals.cpp
     src/OrderedResampling.cpp
 )
-set(VC_MESHING_DEPENDENCIES
+set(deps
     vc_common
 )
-set(VC_MESHING_DEFINITIONS "")
+set(defs "")
 
 # Conditional compilation of ACVD and Bullet stuff
 if (VC_USE_ACVD)
-    list(APPEND VC_MESHING_SRCS src/ACVD.cpp)
-    list(APPEND VC_MESHING_DEPENDENCIES acvd)
-    list(APPEND VC_MESHING_DEFINITIONS VC_USE_ACVD)
+    list(APPEND srcs src/ACVD.cpp)
+    list(APPEND deps acvd)
+    list(APPEND defs VC_USE_ACVD)
 endif()
 if (VC_USE_BULLET)
-    list(APPEND VC_MESHING_SRCS src/itk2bullet.cpp src/cloth.cpp)
-    list(APPEND VC_MESHING_DEPENDENCIES bullet)
-    list(APPEND VC_MESHING_DEFINITIONS VC_USE_BULLET)
+    list(APPEND srcs src/itk2bullet.cpp src/cloth.cpp)
+    list(APPEND deps bullet)
+    list(APPEND defs VC_USE_BULLET)
 endif()
 
-add_library(vc_meshing ${VC_MESHING_SRCS})
-target_compile_definitions(vc_meshing
-    PRIVATE
-        ${VC_MESHING_DEFINITIONS}
-)
-target_include_directories(vc_meshing
+add_library(${target} ${srcs})
+target_compile_definitions(${target} PRIVATE ${defs})
+target_include_directories(${target}
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(vc_meshing
+target_link_libraries(${target}
     PUBLIC
-        ${VC_MESHING_DEPENDENCIES} 
+        ${deps} 
     PRIVATE
         vtkFiltersGeneral
         vtkFiltersCore
@@ -51,15 +49,15 @@ target_link_libraries(vc_meshing
         ${PCL_IO_LIBRARIES}
 )
 
-install(TARGETS vc_meshing
+install(TARGETS ${target}
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib
     RUNTIME DESTINATION bin
 )
 install(DIRECTORY include/ DESTINATION ${VC_INSTALL_INCLUDE_PREFIX})
-export(TARGETS vc_meshing FILE VCMeshing.cmake)
+export(TARGETS ${target} FILE VCMeshing.cmake)
 
-set(VC_MESHING_TEST_SRCS
+set(test_srcs
     test/CalculateNormalsTest.cpp
     test/OrderedResamplingTest.cpp
     test/itk2vtkTest.cpp
@@ -69,13 +67,15 @@ set(VC_MESHING_TEST_SRCS
     test/scaleMeshTest.cpp
     test/smoothNormalsTest.cpp
 )
-foreach(src ${VC_MESHING_TEST_SRCS})
-    get_filename_component(testname ${src} NAME_WE)
+foreach(src ${test_srcs})
+    get_filename_component(filename ${src} NAME_WE)
+    set(testname ${target}_${filename})
     add_executable(${testname} ${src})
     target_link_libraries(${testname}
         vc_common
         vc_meshing
         vc_testing
+        Boost::unit_test_framework
     )
     add_test(
         NAME ${testname}

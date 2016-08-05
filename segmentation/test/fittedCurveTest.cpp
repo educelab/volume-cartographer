@@ -1,6 +1,3 @@
-#ifndef VC_BOOST_STATIC_LIBS
-#define BOOST_TEST_DYN_LINK
-#endif
 #define BOOST_TEST_MODULE LocalResliceParticleSimFittedCurve
 
 #include <iostream>
@@ -9,7 +6,7 @@
 #include <cmath>
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
-#include "localResliceParticleSim/fittedcurve.h"
+#include "segmentation/lrps/fittedcurve.h"
 
 using namespace volcart::segmentation;
 

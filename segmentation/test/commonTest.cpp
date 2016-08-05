@@ -1,6 +1,3 @@
-#ifndef VC_BOOST_STATIC_LIBS
-#define BOOST_TEST_DYN_LINK
-#endif
 #define BOOST_TEST_MODULE LocalResliceParticleSimCommon
 
 #include <iostream>
@@ -8,7 +5,7 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
 #include <opencv2/core/core.hpp>
-#include "localResliceParticleSim/common.h"
+#include "segmentation/lrps/common.h"
 
 // using namespace volcart::segmentation;
 

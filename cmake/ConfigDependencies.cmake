@@ -22,7 +22,6 @@ find_package(Qt5 REQUIRED COMPONENTS Widgets Gui)
 # ITK
 find_package(ITK REQUIRED)
 include(${ITK_USE_FILE})
-message("ITK libs: ${ITK_LIBRARIES}")
 
 # VTK
 find_package(VTK REQUIRED)

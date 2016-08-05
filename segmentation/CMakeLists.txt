@@ -10,25 +10,22 @@ set(VC_SEGMENTATION_SRCS
     src/particle.cpp
     src/structureTensorParticleSim.cpp
 )
-
 set(VC_SEGMENTATION_DEPENDENCIES
     vc_common
     vc_volumepkg
 )
 
 add_library(vc_segmentation ${VC_SEGMENTATION_SRCS})
-
 target_include_directories(vc_segmentation
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
-
+# Get rid of annoying warnings
 target_compile_options(vc_segmentation
     PRIVATE
         -Wno-c++11-narrowing
 )
-
 target_link_libraries(vc_segmentation
     PUBLIC
         vc_common
@@ -40,7 +37,37 @@ install(TARGETS vc_segmentation
     LIBRARY DESTINATION lib
     RUNTIME DESTINATION bin
 )
-
 install(DIRECTORY include/ DESTINATION ${VC_INSTALL_INCLUDE_PREFIX})
-
 export(TARGETS vc_segmentation FILE VCSegmentation.cmake)
+
+set(VC_SEGMENTATION_TEST_SRCS
+    test/commonTest.cpp
+    test/cubicSplineTest.cpp
+    test/derivativeTest.cpp
+    test/energyMetricsTest.cpp
+    test/fittedCurveTest.cpp
+    test/intensitymapTest.cpp
+    test/localResliceParticleSimTest.cpp
+)
+foreach(src ${VC_SEGMENTATION_TEST_SRCS})
+    get_filename_component(filename ${src} NAME_WE)
+    set(testname vc_segmentation_${filename})
+    add_executable(${testname} ${src})
+    target_link_libraries(${testname}
+        vc_common
+        vc_segmentation
+        vc_testing
+        Boost::unit_test_framework
+    )
+    add_test(
+        NAME ${testname}
+        WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
+        COMMAND ${testname}
+    )
+endforeach()
+file(
+    COPY
+        ${EXECUTABLE_OUTPUT_PATH}/Testing.volpkg/paths/starting-path/cloud.pcd
+    DESTINATION
+        ${EXECUTABLE_OUTPUT_PATH}/Testing.volpkg/paths/lrps-test-results
+)
