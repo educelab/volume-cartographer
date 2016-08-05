@@ -75,3 +75,12 @@ foreach(src ${test_srcs})
         COMMAND ${testname}
     )
 endforeach()
+
+# Testing resources
+set(COMMON_TEST_RES
+    test/res/PlyWriter_Plane.ply
+    test/res/GenericGradient.tif
+)
+foreach(r ${COMMON_TEST_RES})
+    file(COPY ${r} DESTINATION ${EXECUTABLE_OUTPUT_PATH})
+endforeach()

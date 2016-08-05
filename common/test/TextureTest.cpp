@@ -104,7 +104,7 @@ struct TextureWithUVMapToCheckIntensityFixture {
         std::cerr << "Creating texture with uv map..." << std::endl;
 
         // read in and add image to the texture
-        _Gradient = cv::imread("gradient.tif", -1);
+        _Gradient = cv::imread("GenericGradient.tif", -1);
         _Texture.addImage(_Gradient);
 
         // 4-pt uv map

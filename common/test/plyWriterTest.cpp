@@ -31,7 +31,8 @@
  *                                                                                     *
  *      attempts to write a testing mesh to file and compares final output path        *
  *      as a check for success. Note, this test always outputs the file as             *
- *      "output.ply" because there is no texture information included when writing.    *
+ *      "PlyWriter_Plane.ply" because there is no texture information included when    *
+ *      writing.                                                                       *
  *                                                                                     *
  *  compareElements (test case):                                                       *
  *                                                                                     *
@@ -43,8 +44,9 @@
  *      data from the file against the testing mesh data to ensure equality.           *
  *                                                                                     *
  * Input:                                                                              *
- *     No required inputs for this sample test. Note: the output.ply must be copied    *
- *     from test_data/common to curr_bin_dir when building, which is handled by cmake. *
+ *     No required inputs for this sample test. Note: the PlyWriter_Plane.ply must be  * 
+ *     copied from test_data/common to curr_bin_dir when building, which is handled    *
+ *     by cmake.                                                                       *
  *                                                                                     *
  * Test-Specific Output:                                                               *
  *     Specific test output only given on failure of any tests. Otherwise, general     *
@@ -68,8 +70,8 @@ struct CreateITKPlaneMeshFixture {
       _in_PlaneMesh = _Plane.itkMesh();
 
 
-      //read in data from saved output.ply via parsingHelpers::parsePlyFile
-      volcart::testing::ParsingHelpers::parsePlyFile("output.ply", _SavedPlanePoints, _SavedPlaneCells);
+      //read in data from saved PlyWriter_Plane.ply via parsingHelpers::parsePlyFile
+      volcart::testing::ParsingHelpers::parsePlyFile("PlyWriter_Plane.ply", _SavedPlanePoints, _SavedPlaneCells);
       
       BOOST_TEST_MESSAGE("setting up Plane mesh...");
   }
@@ -82,7 +84,7 @@ struct CreateITKPlaneMeshFixture {
   VC_MeshType::Pointer _in_PlaneMesh ;
   volcart::shapes::Plane _Plane;
 
-  //vectors to hold vertices and faces saved in output.ply
+  //vectors to hold vertices and faces saved in PlyWriter_Plane.ply
   std::vector<VC_Vertex> _SavedPlanePoints;
   std::vector<VC_Cell> _SavedPlaneCells;
 };
@@ -105,15 +107,15 @@ BOOST_FIXTURE_TEST_CASE(WriteMeshToPLYFileTest, CreateITKPlaneMeshFixture) {
   if (_MeshWriter.validate())
       _MeshWriter.write();
   else {
-      _MeshWriter.setPath("output.ply");
+      _MeshWriter.setPath("PlyWriter_Plane.ply");
       _MeshWriter.setMesh(_in_PlaneMesh);
       _MeshWriter.write();
   }
 
   //check the file path from the _MeshWriter.write() call above
   //compare() returns 0 only if paths are same value lexicographically-speaking
-  //checking "output.ply" here because the _in_PlaneMeshWriter shouldn't validate in the current case
-  BOOST_CHECK_EQUAL(_MeshWriter.getPath().compare("output.ply"), 0);
+  //checking "PlyWriter_Plane.ply" here because the _in_PlaneMeshWriter shouldn't validate in the current case
+  BOOST_CHECK_EQUAL(_MeshWriter.getPath().compare("PlyWriter_Plane.ply"), 0);
 
 }
 
