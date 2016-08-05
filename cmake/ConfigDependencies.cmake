@@ -1,5 +1,5 @@
 # Where to look for deps
-if (USE_PREBUILT_LIBS)
+if (VC_PREBUILT_LIBS)
     set(CMAKE_PREFIX_PATH ${PROJECT_SOURCE_DIR}/vc-deps/deps)
 endif()
 
@@ -12,7 +12,7 @@ set(VC_BOOST_COMPONENTS
     unit_test_framework
 )
 find_package(Boost REQUIRED COMPONENTS ${VC_BOOST_COMPONENTS})
-if (USE_PREBUILT_LIBS)
+if (VC_PREBUILT_LIBS)
     set(Boost_USE_STATIC_LIBS on)
 endif()
 

@@ -15,9 +15,8 @@
 
 #include <pcl/point_types.h>
 #include <pcl/common/projection_matrix.h>
-#include "common/picojson.h"
+#include "external/json.hpp"
 #include "common/vc_defines.h"
-#include "volumepkg/volumepkgcfg.h"
 #include "volumepkg/volumepkg_version.h"
 #include "common/types/Texture.h"
 #include "common/types/Volume.h"

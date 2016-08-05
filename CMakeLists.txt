@@ -20,7 +20,7 @@ option(VC_USE_BULLET "Use Bullet Physics library" off)
 option(VC_USE_LIBIGL "Use libigl" off)
 
 # Use prebuilt libs (built with shell script)?
-option(USE_PREBUILT_LIBS "Link against prebuilt dependencies" off)
+option(VC_PREBUILT_LIBS "Link against prebuilt dependencies" off)
 
 # Choose what to install
 option(INSTALL_VC_CORE "Install VC core apps" on)

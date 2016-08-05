@@ -2,7 +2,7 @@
 // Created by Seth Parker on 12/3/15.
 //
 
-#include "Texture.h"
+#include "common/types/Texture.h"
 
 using namespace volcart;
 

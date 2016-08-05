@@ -39,6 +39,7 @@ target_link_libraries(vc_common
         vtkCommonCore
         vtkIOLegacy
         pcl_common
+        vc_external
 )
 
 install(TARGETS vc_common
