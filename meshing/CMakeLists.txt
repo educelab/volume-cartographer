@@ -38,9 +38,6 @@ target_include_directories(vc_meshing
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
-foreach(lib ${PCL_LIBRARIES})
-    message(${lib})
-endforeach()
 target_link_libraries(vc_meshing
     PUBLIC
         ${VC_MESHING_DEPENDENCIES} 
