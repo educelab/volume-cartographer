@@ -19,13 +19,13 @@ set(defs "")
 
 if (VC_USE_LIBIGL)
     list(APPEND srcs src/LeastSquaresConformalMapping.cpp)
-    list(APPEND private_deps libigl)
-    list(APPEND defs USE_IGL)
+    list(APPEND private_deps LIBIGL)
+    list(APPEND defs VC_USE_IGL)
 endif()
 if (VC_USE_BULLET)
     list(APPEND srcs src/ClothModelingUVMapping.cpp)
-    list(APPEND private_deps bullet)
-    list(APPEND defs USE_BULLET)
+    list(APPEND private_deps Bullet)
+    list(APPEND defs VC_USE_BULLET)
 endif()
 
 add_library(${target} ${srcs})
@@ -93,7 +93,7 @@ endif()
 if (VC_USE_LIBIGL)
     list(APPEND VC_TEXTURING_TEST_RES
         test/res/lscm_Plane.obj
-        test/res/lscm_Arch
+        test/res/lscm_Arch.obj
     )
 endif()
 foreach(r ${VC_TEXTURING_TEST_RES})
