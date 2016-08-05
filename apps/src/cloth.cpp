@@ -93,7 +93,7 @@ int main( int argc, char* argv[] ) {
     uint16_t collisionIt = opts["collision-iterations"].as<uint16_t>();
     if ( opts.count("collision-a") ) collideA = opts["collision-a"].as<double>();
 
-    uint16_t expansionIt = opts["expansion-iterations"].as<uint16_t>();
+    uint16_t expansionIt = opts["expand-iterations"].as<uint16_t>();
     if ( opts.count("expand-a") ) expandA = opts["expand-a"].as<double>();
     if ( opts.count("expand-pins") ) ePins_path = opts["expand-pins"].as<std::string>();
 
