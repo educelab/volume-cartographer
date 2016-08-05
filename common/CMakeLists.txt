@@ -54,6 +54,7 @@ export(TARGETS vc_common FILE VCCommon.cmake)
 set(VC_COMMON_TEST_SRCS
     test/LRUCacheTest.cpp
     test/ObjWriterTest.cpp
+    test/MetadataTest.cpp
     test/TextureTest.cpp
     test/UVMapTest.cpp
     test/plyWriterTest.cpp
