@@ -60,6 +60,12 @@ target_link_libraries(vc_smoothNormalsExample ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LI
 add_executable(vc_resliceAnalysis ResliceAnalysis.cpp)
 target_link_libraries(vc_resliceAnalysis ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
 
+add_executable(vc_OrderedResamplingExample OrderedResamplingExample.cpp)
+target_link_libraries(vc_OrderedResamplingExample ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
+
+add_executable(vc_loremIpsumError LoremIpsumError.cpp)
+target_link_libraries(vc_loremIpsumError ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
+
 if(VC_USE_ACVD)
     add_executable(vc_ACVDExample ACVDExample.cpp)
     target_link_libraries(vc_ACVDExample ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})

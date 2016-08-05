@@ -58,7 +58,7 @@ namespace volcart {
 
                 // Set this as an ordered mesh
                 _orderedPoints = true;
-                _orderedWidth = width;
+                _orderedWidth  = width;
                 _orderedHeight = height;
 
             } // Constructor

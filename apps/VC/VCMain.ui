@@ -184,12 +184,42 @@
              <item>
               <widget class="QLabel" name="label_6">
                <property name="text">
-                <string>Gravity</string>
+                <string>Distance Weight</string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="edtGravityVal"/>
+              <widget class="QLineEdit" name="edtDistanceWeightVal"/>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_3">
+               <property name="text">
+                <string>Alpha</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="edtAlphaVal"/>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_4">
+               <property name="text">
+                <string>Delta</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="edtDeltaVal"/>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_11">
+               <property name="text">
+                <string>K2</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="edtK2Val"/>
              </item>
             </layout>
            </item>
@@ -198,12 +228,39 @@
              <item>
               <widget class="QLabel" name="label_7">
                <property name="text">
-                <string>Sample Dist.</string>
+                <string>Maxima Window Width</string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="edtSampleDistVal"/>
+              <widget class="QLineEdit" name="edtWindowWidthVal"/>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_2">
+               <property name="text">
+                <string>Beta</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="edtBetaVal"/>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_10">
+               <property name="text">
+                <string>K1</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="edtK1Val"/>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="includeMiddleOpt">
+               <property name="text">
+                <string>Include Muddle</string>
+               </property>
+              </widget>
              </item>
             </layout>
            </item>
@@ -274,10 +331,10 @@
             <number>1</number>
            </property>
            <property name="maximum">
-            <number>25</number>
+            <number>10</number>
            </property>
            <property name="value">
-            <number>25</number>
+            <number>5</number>
            </property>
            <property name="orientation">
             <enum>Qt::Horizontal</enum>

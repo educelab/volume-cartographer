@@ -19,7 +19,8 @@
 #include <pcl/common/common.h>
 #include <pcl/point_types.h>
 
-#include "structureTensorParticleSim/structureTensorParticleSim.h"
+#include "localResliceParticleSim/localResliceParticleSim.h"
+//#include "structureTensorParticleSim/structureTensorParticleSim.h"
 #endif
 
 class VolumePkg;
@@ -42,8 +43,15 @@ public:
                                Continue};
 
     typedef struct SSegParams_tag {
-        double fGravityScale;
-        int fThreshold;
+        int fNumIters;
+        double fAlpha;
+        double fBeta;
+        double fDelta;
+        double fK1;
+        double fK2;
+        int fPeakDistanceWeight;
+        int fWindowWidth;
+        bool fIncludeMiddle;
         int fEndOffset;
     } SSegParams;
 
@@ -102,8 +110,16 @@ private slots:
     void TogglePenTool( void );
     void ToggleSegmentationTool( void );
 
-    void OnEdtGravityValChange();
-    void OnEdtSampleDistValChange( QString nText );
+    void OnEdtAlphaValChange();
+    void OnEdtBetaValChange();
+    void OnEdtDeltaValChange();
+    void OnEdtK1ValChange();
+    void OnEdtK2ValChange();
+    void OnEdtDistanceWeightChange();
+    void OnEdtWindowWidthChange();
+    void OnOptIncludeMiddleClicked(bool clicked);
+
+    //void OnEdtSampleDistValChange( QString nText );
     void OnEdtStartingSliceValChange( QString nText );
     void OnEdtEndingSliceValChange();
 
@@ -178,8 +194,15 @@ private:
     QPushButton *fPenTool; // REVISIT - change me to QToolButton
     QPushButton *fSegTool;
 
-    QLineEdit   *fEdtGravity;
-    QLineEdit   *fEdtSampleDist;
+    QLineEdit   *fEdtWindowWidth;
+    QLineEdit   *fEdtDistanceWeight;
+    QLineEdit   *fEdtAlpha;
+    QLineEdit   *fEdtBeta;
+    QLineEdit   *fEdtDelta;
+    QLineEdit   *fEdtK1;
+    QLineEdit   *fEdtK2;
+    QCheckBox   *fOptIncludeMiddle;
+
     QLineEdit   *fEdtStartIndex;
     QLineEdit   *fEdtEndIndex;
 

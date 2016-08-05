@@ -10,15 +10,15 @@ using namespace volcart;
 
 ///// Constructors/Destructors /////
 Rendering::Rendering() {
-  _metadata.setValue( "type", "rendering" );
-  _metadata.setValue( "id", VC_DATE_TIME() );
+  _metadata.set<std::string>( "type", "rendering" );
+  _metadata.set<std::string>( "id", VC_DATE_TIME() );
 }
 
 Rendering::~Rendering() { };
 
 ///// Metadata /////
 volcart::Metadata Rendering::metadata() { return _metadata; };
-std::string Rendering::id() { return _metadata.getString("id"); };
+std::string Rendering::id() { return _metadata.get<std::string>("id"); };
 
 
 ///// Access Functions /////
