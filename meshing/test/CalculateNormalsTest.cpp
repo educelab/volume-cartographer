@@ -2,17 +2,14 @@
 // Created by Hannah Hatch on 7/26/16.
 //
 
-#ifndef VC_BOOST_STATIC_LIBS
-#define BOOST_TEST_DYN_LINK
-#endif
 #define BOOST_TEST_MODULE CalculateNormals
 
 #include <boost/test/unit_test.hpp>
 
-#include "vc_defines.h"
-#include "testingUtils.h"
-#include "CalculateNormals.h"
-#include "shapes.h"
+#include "common/vc_defines.h"
+#include "testing/testingUtils.h"
+#include "meshing/CalculateNormals.h"
+#include "common/shapes/Plane.h"
 
 struct PlaneFixture {
     PlaneFixture() {

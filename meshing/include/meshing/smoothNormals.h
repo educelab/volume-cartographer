@@ -11,7 +11,7 @@
 #include <vector>
 
 #include "common/vc_defines.h"
-#include "deepCopy.h"
+#include "meshing/deepCopy.h"
 
 namespace volcart {
     namespace meshing {

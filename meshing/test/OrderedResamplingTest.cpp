@@ -2,17 +2,15 @@
 // Created by Hannah Hatch on 7/26/16.
 //
 
-#ifndef VC_BOOST_STATIC_LIBS
-#define BOOST_TEST_DYN_LINK
-#endif
 #define BOOST_TEST_MODULE OrderedResampling
 
 #include <boost/test/unit_test.hpp>
-#include "vc_defines.h"
-#include "OrderedResampling.h"
-#include "parsingHelpers.h"
-#include "testingUtils.h"
-#include "shapes.h"
+#include "common/vc_defines.h"
+#include "meshing/OrderedResampling.h"
+#include "testing/parsingHelpers.h"
+#include "testing/testingUtils.h"
+#include "common/shapes/Plane.h"
+#include "common/shapes/Arch.h"
 
 struct OrderedPlaneFixture {
     OrderedPlaneFixture(){

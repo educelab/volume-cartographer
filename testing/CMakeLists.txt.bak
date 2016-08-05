@@ -23,39 +23,8 @@ include_directories(${TESTING_INCLUDE_DIR})
 # Copy the test volumepkg
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/volpkg/Testing.volpkg DESTINATION ${CMAKE_BINARY_DIR}/bin)
 
-#-----------------------#
-#    common Folder      #
-#-----------------------#
-
 # Copy the .ply file to the current bin
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/common/OBJWriterPlaneData.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
-add_executable(vc_test_OBJExporter common/ObjWriterTest.cpp parsingHelpers.cpp)
-target_link_libraries(vc_test_OBJExporter ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-add_test(NAME OBJExporter WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_OBJExporter )
-
-# Copy the .ply file to the current bin
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/common/output.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
-add_executable(vc_test_plyWriter common/plyWriterTest.cpp parsingHelpers.cpp)
-target_link_libraries(vc_test_plyWriter ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-add_test(NAME plyWriter WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_plyWriter )
-
-# Metadata Test
-add_executable(vc_test_Metadata common/MetadataTest.cpp)
-target_link_libraries(vc_test_Metadata ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-add_test(NAME Metadata WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_Metadata )
-
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/common/gradient.tif DESTINATION ${CMAKE_BINARY_DIR}/bin)
-add_executable(vc_test_Texture common/TextureTest.cpp)
-target_link_libraries(vc_test_Texture ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-add_test(NAME Texture WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_Texture )
-
-add_executable(vc_test_uvMap common/UVMapTest.cpp)
-target_link_libraries(vc_test_uvMap ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-add_test(NAME uvMap WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_uvMap )
-
-add_executable(vc_test_LRUCache common/LRUCacheTest.cpp)
-target_link_libraries(vc_test_LRUCache ${VC_LIBS} ${VC_REQ_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-add_test(NAME LRUCache WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_LRUCache )
 
 #-----------------------#
 #    examples Folder    #
@@ -64,87 +33,6 @@ add_test(NAME LRUCache WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test
 add_executable(vc_test_Sample examples/sampleTest.cpp)
 target_link_libraries(vc_test_Sample ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 add_test(NAME Sample WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_Sample )
-
-#-----------------------#
-#    meshing Folder     #
-#-----------------------#
-
-#copy vtk and itk test case files to build dir
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ITKPlaneMeshConvertedToVTK.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ITKCubeMeshConvertedToVTK.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ITKArchMeshConvertedToVTK.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ITKSphereMeshConvertedToVTK.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ITKConeMeshConvertedToVTK.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/VTKPlaneMeshConvertedToITK.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/VTKCubeMeshConvertedToITK.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/VTKArchMeshConvertedToITK.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/VTKSphereMeshConvertedToITK.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/VTKConeMeshConvertedToITK.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
-add_executable(vc_test_itk2vtk meshing/itk2vtkTest.cpp parsingHelpers.cpp)
-target_link_libraries(vc_test_itk2vtk ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-add_test(NAME itk2vtk WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_itk2vtk )
-
-# Copy the test files created by orderedPCDMesherExample.cpp
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/PlaneOrderedPCDMesher.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/CubeOrderedPCDMesher.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ArchOrderedPCDMesher.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/SphereOrderedPCDMesher.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ConeOrderedPCDMesher.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
-add_executable(vc_test_orderedPCDMesher meshing/orderedPCDMesherTest.cpp parsingHelpers.cpp)
-target_link_libraries(vc_test_orderedPCDMesher ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-add_test(NAME orderedPCDMesher WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_orderedPCDMesher )
-
-# Copy the test files created by rayTraceExample.cpp
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/SavedPlaneRayTraceData.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/SavedCubeRayTraceData.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/SavedArchRayTraceData.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/SavedConeRayTraceData.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/SavedSphereRayTraceData.ply DESTINATION ${CMAKE_BINARY_DIR}/bin)
-add_executable(vc_test_rayTrace meshing/rayTraceTest.cpp parsingHelpers.cpp)
-target_link_libraries(vc_test_rayTrace ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-add_test(NAME rayTrace WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_rayTrace )
-
-# Copy the test files created by resamplePointCloudExample.cpp to the build dir
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/PlaneResamplePointCloudExample.pcd DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/CubeResamplePointCloudExample.pcd DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ArchResamplePointCloudExample.pcd DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/SphereResamplePointCloudExample.pcd DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ConeResamplePointCloudExample.pcd DESTINATION ${CMAKE_BINARY_DIR}/bin)
-add_executable(vc_test_resamplePointCloud meshing/resamplePointCloudTest.cpp)
-target_link_libraries(vc_test_resamplePointCloud ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-add_test(NAME resamplePointCloud WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_resamplePointCloud )
-
-# Copy the 'smoothed' test files created by smoothNormalsExample.cpp
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/PlaneWithSmoothedNormals.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/CubeWithSmoothedNormals.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ArchWithSmoothedNormals.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/SphereWithSmoothedNormals.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ConeWithSmoothedNormals.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
-add_executable(vc_test_smoothNormals meshing/smoothNormalsTest.cpp parsingHelpers.cpp)
-target_link_libraries(vc_test_smoothNormals ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-add_test(NAME smoothNormals WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_smoothNormals )
-
-# Copy the scaledMesh saved test files created by scaleMeshExample.cpp
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ScaledPlaneMesh.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ScaledCubeMesh.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ScaledArchMesh.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ScaledSphereMesh.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/ScaledConeMesh.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
-add_executable(vc_test_scaleMesh meshing/scaleMeshTest.cpp parsingHelpers.cpp)
-target_link_libraries(vc_test_scaleMesh ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-add_test(NAME scaleMesh WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_scaleMesh )
-
-#Copy the resampled test files created by orderedResamplingExample.cpp
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/OrderedResampling_Plane.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data/meshing/OrderedResampling_Arch.obj DESTINATION ${CMAKE_BINARY_DIR}/bin)
-add_executable(vc_test_OrderedResampling meshing/OrderedResamplingTest.cpp parsingHelpers.cpp)
-target_link_libraries(vc_test_OrderedResampling ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-add_test(NAME OrderedResampling WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_OrderedResampling )
-
-# Calculate Normals
-add_executable(vc_test_CalculateNormals meshing/CalculateNormalsTest.cpp)
-target_link_libraries(vc_test_CalculateNormals ${VC_LIBS} vc_meshing ${VC_REQ_LIBS} ${VTK_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-add_test(NAME CalculateNormals WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND vc_test_CalculateNormals )
 
 #-----------------------#
 #  segmentation Folder  #

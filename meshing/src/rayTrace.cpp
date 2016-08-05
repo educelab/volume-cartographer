@@ -3,6 +3,12 @@
 //
 
 #include "meshing/rayTrace.h"
+#include <cstdio>
+#include <vtkSmartPointer.h>
+#include <vtkOBBTree.h>
+#include <vtkPolyDataNormals.h>
+#include "meshing/itk2vtk.h"
+
 
 // Parameters used to create cylindrical ray tracing
 #define PI_X2 (2 * 3.1415926)

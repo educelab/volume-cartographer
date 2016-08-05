@@ -10,8 +10,7 @@
 #include <vector>
 #include <stdexcept>
 
-#include "vc_defines.h"
-#include "vc_datatypes.h"
+#include "common/vc_defines.h"
 
 namespace volcart {
     namespace meshing {

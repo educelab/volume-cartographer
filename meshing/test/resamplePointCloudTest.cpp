@@ -2,19 +2,20 @@
 // Created by Ryan Taber on 10/28/15.
 //
 
-#ifndef VC_BOOST_STATIC_LIBS
-#define BOOST_TEST_DYN_LINK
-#endif
 #define BOOST_TEST_MODULE resamplePointCloud
 
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
 #include <pcl/io/pcd_io.h>
 
-#include "vc_defines.h"
-#include "shapes.h"
-#include "testingUtils.h"
-#include "resamplePointCloud.h"
+#include "common/vc_defines.h"
+#include "common/shapes/Plane.h"
+#include "common/shapes/Cube.h"
+#include "common/shapes/Arch.h"
+#include "common/shapes/Sphere.h"
+#include "common/shapes/Cone.h"
+#include "testing/testingUtils.h"
+#include "meshing/resamplePointCloud.h"
 
 /************************************************************************************
  *                                                                                  *

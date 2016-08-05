@@ -2,19 +2,19 @@
 // Created by Ryan Taber on 11/30/15.
 //
 
-#ifndef VC_BOOST_STATIC_LIBS
-#define BOOST_TEST_DYN_LINK
-#endif
 #define BOOST_TEST_MODULE rayTrace
-
 
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
-#include "shapes.h"
-#include "rayTrace.h"
-#include "vc_defines.h"
-#include "parsingHelpers.h"
-#include "testingUtils.h"
+#include "common/shapes/Plane.h"
+#include "common/shapes/Cube.h"
+#include "common/shapes/Arch.h"
+#include "common/shapes/Sphere.h"
+#include "common/shapes/Cone.h"
+#include "meshing/rayTrace.h"
+#include "common/vc_defines.h"
+#include "testing/parsingHelpers.h"
+#include "testing/testingUtils.h"
 
 /************************************************************************************
  *                                                                                  *

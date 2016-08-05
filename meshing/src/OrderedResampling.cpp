@@ -2,8 +2,8 @@
 // Created by Hannah Hatch on 7/25/16.
 //
 
-#include "OrderedResampling.h"
-#include "CalculateNormals.h"
+#include "meshing/OrderedResampling.h"
+#include "meshing/CalculateNormals.h"
 
 using namespace volcart::meshing;
 

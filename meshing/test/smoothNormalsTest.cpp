@@ -2,17 +2,18 @@
 // Created by Ryan Taber on 1/29/16.
 //
 
-#ifndef VC_BOOST_STATIC_LIBS
-#define BOOST_TEST_DYN_LINK
-#endif
 #define BOOST_TEST_MODULE smoothNormals
 
 #include <boost/test/unit_test.hpp>
-#include "vc_defines.h"
-#include "shapes.h"
-#include "parsingHelpers.h"
-#include "smoothNormals.h"
-#include "testingUtils.h"
+#include "common/vc_defines.h"
+#include "common/shapes/Plane.h"
+#include "common/shapes/Cube.h"
+#include "common/shapes/Arch.h"
+#include "common/shapes/Sphere.h"
+#include "common/shapes/Cone.h"
+#include "meshing/smoothNormals.h"
+#include "testing/parsingHelpers.h"
+#include "testing/testingUtils.h"
 
 
 /************************************************************************************

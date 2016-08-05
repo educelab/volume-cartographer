@@ -3,6 +3,10 @@
 //
 
 #include "meshing/resamplePointCloud.h"
+#include <pcl/kdtree/kdtree_flann.h>
+#include <pcl/point_types.h>
+#include <pcl/surface/mls.h>
+#include <pcl/filters/filter.h>
 
 namespace volcart {
     namespace meshing {

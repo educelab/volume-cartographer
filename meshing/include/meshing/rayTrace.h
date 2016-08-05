@@ -2,15 +2,9 @@
 // Created by Media Team on 8/12/15.
 //
 
-#include <cstdio>
-
+#include <vector>
 #include <opencv2/opencv.hpp>
-
-#include <vtkSmartPointer.h>
-#include <vtkOBBTree.h>
-#include <vtkPolyDataNormals.h>
-
-#include "itk2vtk.h"
+#include "common/vc_defines.h"
 
 #ifndef VC_RAYTRACE_H
 #define VC_RAYTRACE_H

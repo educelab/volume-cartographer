@@ -37,6 +37,7 @@ set_target_properties(eigen3
 )
 
 # Rest
+set(PCL_STATIC on)
 find_package(PCL 1.7 REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(OpenGL REQUIRED)

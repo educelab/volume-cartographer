@@ -5,55 +5,53 @@
 #ifndef VC_TESTINGMESH_H
 #define VC_TESTINGMESH_H
 
-#include "common/vc_defines.h"
-#include <pcl/common/common.h>
-#include <pcl/impl/point_types.hpp>
-#include <pcl/point_types.h>
-#include <vtkCellArray.h>
+#include "../vc_defines.h"
 #include <vtkCellData.h>
+#include <vtkCellArray.h>
 #include <vtkDoubleArray.h>
-#include <vtkPointData.h>
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
-#include <vtkPolyDataReader.h>
+#include <vtkPointData.h>
 #include <vtkSmartPointer.h>
+#include <vtkPolyDataReader.h>
+#include <pcl/common/common.h>
+#include <pcl/point_types.h>
+#include <pcl/impl/point_types.hpp>
 
-namespace volcart
-{
-namespace shapes
-{
 
-// To-Do: Make this a base class so that the constructor can easily be
-// reimplemented for different shapes
-class ShapePrimitive
-{
-public:
-    VC_MeshType::Pointer itkMesh();
-    vtkSmartPointer<vtkPolyData> vtkMesh();
-    pcl::PointCloud<pcl::PointXYZ> pointCloudXYZ(
-        bool noisify = true);  // resamplePointCloud
-    pcl::PointCloud<pcl::PointNormal>
-    pointCloudNormal();  // poissonRecon, greedyProjMeshing
-    pcl::PointCloud<pcl::PointXYZRGB>
-    pointCloudXYZRGB();  // for orderedPCDMesher
+namespace volcart {
+namespace shapes {
 
-    // overload
-    std::vector<VC_Vertex> getPoints() { return _points; }
-    std::vector<VC_Cell> getCells() { return _cells; }
+    class ShapePrimitive {
+    public:
+        VC_MeshType::Pointer itkMesh();
+        vtkSmartPointer<vtkPolyData> vtkMesh();
+        pcl::PointCloud<pcl::PointXYZ> pointCloudXYZ(bool noisify = true); //resamplePointCloud
+        pcl::PointCloud<pcl::PointNormal> pointCloudNormal(); //poissonRecon, greedyProjMeshing
+        pcl::PointCloud<pcl::PointXYZRGB> pointCloudXYZRGB(); //for orderedPCDMesher
 
-protected:
-    std::vector<VC_Vertex> _points;
-    std::vector<VC_Cell> _cells;
+        //overload
+        std::vector<VC_Vertex> getPoints() {return _points;}
+        std::vector<VC_Cell> getCells() {return _cells;}
 
-    void _add_vertex(double x, double y, double z);
-    void _add_cell(int v1, int v2, int v3);
-    void _update_normal(int vertex, double nx_in, double ny_in, double nz_in);
+        //ordering
+        bool     isOrdered()     { return _orderedPoints; };
+        uint32_t orderedWidth()  { return _orderedWidth;  };
+        uint32_t orderedHeight() { return _orderedHeight; };
 
-    bool _orderedPoints;
-    uint32_t _orderedWidth, _orderedHeight;
-};
+    protected:
+        std::vector<VC_Vertex> _points;
+        std::vector<VC_Cell> _cells;
 
-}  // namespace shapes
-}  // namespace volcart
+        void _add_vertex(double x, double y, double z);
+        void _add_cell(int v1, int v2, int v3);
+        void _update_normal(int vertex, double nx_in, double ny_in, double nz_in);
 
-#endif  // VC_TESTINGMESH_H
+        bool _orderedPoints;
+        uint32_t _orderedWidth, _orderedHeight;
+    };
+
+} // namespace shapes
+} // namespace volcart
+
+#endif //VC_TESTINGMESH_H

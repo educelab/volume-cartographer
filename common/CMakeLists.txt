@@ -26,7 +26,6 @@ target_include_directories(vc_common
         # way that lets you do transitive dependencies.
         ${PCL_INCLUDE_DIRS}
 )
-message("VTK libs: ${VTK_LIBRARIES}")
 target_link_libraries(vc_common
     PUBLIC
         Boost::filesystem
@@ -38,7 +37,8 @@ target_link_libraries(vc_common
         vtkCommonDataModel
         vtkCommonCore
         vtkIOLegacy
-        pcl_common
+        # from deps/share/pcl-1.7/PCLConfig.cmake
+        ${PCL_COMMON_LIBRARIES}
         vc_external
 )
 
