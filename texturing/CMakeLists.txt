@@ -24,7 +24,7 @@ if (VC_USE_LIBIGL)
 endif()
 if (VC_USE_BULLET)
     list(APPEND srcs src/ClothModelingUVMapping.cpp)
-    list(APPEND private_deps Bullet)
+    list(APPEND private_deps bullet)
     list(APPEND defs VC_USE_BULLET)
 endif()
 

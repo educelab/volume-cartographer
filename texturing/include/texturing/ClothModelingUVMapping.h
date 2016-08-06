@@ -14,7 +14,7 @@
 #ifndef VC_CLOTHMODELINGUV_H
 #define VC_CLOTHMODELINGUV_H
 
-#ifdef USE_BULLET
+#ifdef VC_USE_BULLET
 
 #include <iostream>
 #include <math.h>
@@ -120,6 +120,6 @@ namespace volcart {
     }
 }
 
-#endif // USE_BULLET
+#endif // VC_USE_BULLET
 
 #endif //VC_CLOTHMODELINGUV_H

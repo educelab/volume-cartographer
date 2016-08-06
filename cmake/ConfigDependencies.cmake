@@ -44,7 +44,7 @@ if (VC_USE_ACVD)
     find_package(ACVD REQUIRED)
     add_library(acvd INTERFACE IMPORTED)
     set_target_properties(acvd PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${ACVD_INCLUDE_DIR}"
+        INTERFACE_INCLUDE_DIRECTORIES "${ACVD_INCLUDE_DIRS}"
         INTERFACE_LINK_LIBRARIES "${ACVD_LIBRARIES}"
     )
 endif()

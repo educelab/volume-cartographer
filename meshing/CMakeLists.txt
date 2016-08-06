@@ -20,7 +20,7 @@ set(defs "")
 # Conditional compilation of ACVD and Bullet stuff
 if (VC_USE_ACVD)
     list(APPEND srcs src/ACVD.cpp)
-    list(APPEND deps ACVD)
+    list(APPEND deps acvd)
     list(APPEND defs VC_USE_ACVD)
 endif()
 if (VC_USE_BULLET)
