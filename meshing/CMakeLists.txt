@@ -25,12 +25,12 @@ if (VC_USE_ACVD)
 endif()
 if (VC_USE_BULLET)
     list(APPEND srcs src/itk2bullet.cpp)
-    list(APPEND deps Bullet)
+    list(APPEND deps bullet)
     list(APPEND defs VC_USE_BULLET)
 endif()
 
 add_library(${target} ${srcs})
-target_compile_definitions(${target} PRIVATE ${defs})
+target_compile_definitions(${target} PUBLIC ${defs})
 target_include_directories(${target}
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

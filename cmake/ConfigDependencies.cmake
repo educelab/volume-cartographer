@@ -30,9 +30,8 @@ include(${VTK_USE_FILE})
 # Eigen (make it into a target)
 find_package(Eigen3 REQUIRED)
 add_library(eigen3 INTERFACE IMPORTED)
-set_target_properties(eigen3
-    PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES ${EIGEN3_INCLUDE_DIR}
+set_target_properties(eigen3 PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${EIGEN3_INCLUDE_DIR}"
 )
 
 # Rest
@@ -43,9 +42,19 @@ find_package(OpenGL REQUIRED)
 
 if (VC_USE_ACVD)
     find_package(ACVD REQUIRED)
+    add_library(acvd INTERFACE IMPORTED)
+    set_target_properties(acvd PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${ACVD_INCLUDE_DIR}"
+        INTERFACE_LINK_LIBRARIES "${ACVD_LIBRARIES}"
+    )
 endif()
 if (VC_USE_BULLET)
     find_package(Bullet REQUIRED)
+    add_library(bullet INTERFACE IMPORTED)
+    set_target_properties(bullet PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${BULLET_INCLUDE_DIRS}"
+        INTERFACE_LINK_LIBRARIES "${BULLET_LIBRARIES}"
+    )
 endif()
 if (VC_USE_LIBIGL)
     find_package(LIBIGL REQUIRED)

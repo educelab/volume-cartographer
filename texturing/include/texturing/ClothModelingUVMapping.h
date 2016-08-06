@@ -27,7 +27,8 @@
 #include <BulletSoftBody/btSoftBodyRigidBodyCollisionConfiguration.h>
 
 #include "common/vc_defines.h"
-#include "texturing/itk2bullet.h"
+#include "common/types/UVMap.h"
+#include "meshing/itk2bullet.h"
 #include "meshing/deepCopy.h"
 
 namespace volcart {

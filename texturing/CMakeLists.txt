@@ -29,7 +29,7 @@ if (VC_USE_BULLET)
 endif()
 
 add_library(${target} ${srcs})
-target_compile_definitions(${target} PRIVATE ${defs})
+target_compile_definitions(${target} PUBLIC ${defs})
 target_include_directories(${target}
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
