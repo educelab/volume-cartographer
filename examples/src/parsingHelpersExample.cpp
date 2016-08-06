@@ -2,9 +2,11 @@
 // Created by Ryan Taber on 11/23/15.
 //
 
-#include "vc_defines.h"
-#include "vtkPolyData.h"
-#include "../testing/parsingHelpers.h"
+#include "common/vc_defines.h"
+#include "common/shapes/Plane.h"
+#include "meshing/itk2vtk.h"
+#include "testing/parsingHelpers.h"
+#include <vtkPolyData.h>
 
 //just a simple tester to see if the parser is working
 

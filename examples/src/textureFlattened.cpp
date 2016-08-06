@@ -2,19 +2,19 @@
 // Created by Seth Parker on 6/24/15.
 //
 
-#include "vc_defines.h"
-#include "vc_datatypes.h"
-#include "volumepkg.h"
+#include "common/vc_defines.h"
+#include "volumepkg/volumepkg.h"
 
-#include "io/plyWriter.h"
-#include "io/ply2itk.h"
-#include "itk2vtk.h"
+#include "common/io/plyWriter.h"
+#include "common/io/ply2itk.h"
+#include "common/io/objWriter.h"
+#include "meshing/itk2vtk.h"
 
 #include <vtkSmartPointer.h>
 #include <vtkPLYReader.h>
 
-#include "simpleUV.h"
-#include "compositeTextureV2.h"
+#include "texturing/simpleUV.h"
+#include "texturing/compositeTextureV2.h"
 
 int main( int argc, char* argv[] ) {
 

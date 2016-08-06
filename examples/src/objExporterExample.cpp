@@ -2,13 +2,11 @@
 // Created by Media Team on 6/24/15.
 //
 
-#include "vc_defines.h"
-#include "vc_datatypes.h"
+#include "common/vc_defines.h"
+#include "common/io/objWriter.h"
+#include "common/io/ply2itk.h"
 
-#include "io/plyWriter.h"
-#include "io/ply2itk.h"
-
-#include "simpleUV.h"
+#include "texturing/simpleUV.h"
 
 int main( int argc, char* argv[] ) {
 
@@ -26,20 +24,20 @@ int main( int argc, char* argv[] ) {
     exit( EXIT_SUCCESS );
   };
 
-  volcart::Texture texture;
-  texture.addImage( uvImg );
-  texture.uvMap( volcart::texturing::simpleUV(inputMesh, meshWidth, meshHeight) );
+  // Generate UV Map
+  volcart::UVMap uvMap = volcart::texturing::simpleUV(inputMesh, meshWidth, meshHeight);
 
-  volcart::io::plyWriter mesh_writer;
+  volcart::io::objWriter mesh_writer;
   mesh_writer.setPath( "nothing" );
+  mesh_writer.setUVMap( uvMap );
+  mesh_writer.setTexture( uvImg );
 
   // mesh_writer.write() runs validate() as well, but this lets us handle a mesh that can't be validated.
   if ( mesh_writer.validate() )
     mesh_writer.write();
   else {
-    mesh_writer.setPath( "output.ply" );
+    mesh_writer.setPath( "output.obj" );
     mesh_writer.setMesh( inputMesh );
-    mesh_writer.setTexture( texture );
     mesh_writer.write();
   }
 

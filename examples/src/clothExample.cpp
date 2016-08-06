@@ -8,10 +8,10 @@
 
 #include <iostream>
 
-#include "vc_defines.h"
-#include "shapes.h"
-#include "ClothModelingUVMapping.h"
-#include "io/objWriter.h"
+#include "common/vc_defines.h"
+#include "common/shapes/Arch.h"
+#include "texturing/ClothModelingUVMapping.h"
+#include "common/io/objWriter.h"
 
 int main( int argc, char* argv[] ) {
 

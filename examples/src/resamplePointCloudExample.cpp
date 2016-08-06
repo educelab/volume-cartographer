@@ -8,9 +8,13 @@
  *          v-c/testing/meshing.
  */
 
-#include "vc_defines.h"
-#include "shapes.h"
-#include "resamplePointCloud.h"
+#include "common/vc_defines.h"
+#include "common/shapes/Plane.h"
+#include "common/shapes/Cube.h"
+#include "common/shapes/Arch.h"
+#include "common/shapes/Sphere.h"
+#include "common/shapes/Cone.h"
+#include "meshing/resamplePointCloud.h"
 #include <pcl/io/pcd_io.h>
 
 //helper function

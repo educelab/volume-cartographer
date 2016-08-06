@@ -56,7 +56,7 @@ add_subdirectory(texturing)
 #add_subdirectory(utils)
 
 # VC Demo Apps
-#add_subdirectory(examples)
+add_subdirectory(examples)
 
 # Install
 #include(InstallVC)

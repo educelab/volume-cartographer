@@ -5,7 +5,7 @@
 #include <opencv2/opencv.hpp>
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
-#include "volumepkg.h"
+#include "volumepkg/volumepkg.h"
 
 using EigenVector = cv::Vec3d;
 

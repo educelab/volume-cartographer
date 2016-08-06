@@ -5,7 +5,7 @@
 #include <boost/filesystem.hpp>
 #include <opencv2/core/core.hpp>
 #include <H5Cpp.h>
-#include "volumepkg.h"
+#include "volumepkg/volumepkg.h"
 
 namespace fs = boost::filesystem;
 

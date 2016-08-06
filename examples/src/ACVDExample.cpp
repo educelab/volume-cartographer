@@ -2,12 +2,11 @@
 // Created by Seth Parker on 9/24/15.
 //
 
-#include "vc_defines.h"
-
-#include "io/objWriter.h"
-#include "io/ply2itk.h"
-#include "itk2vtk.h"
-#include "ACVD.h"
+#include "common/vc_defines.h"
+#include "common/io/objWriter.h"
+#include "common/io/ply2itk.h"
+#include "meshing/itk2vtk.h"
+#include "meshing/ACVD.h"
 
 int main( int argc, char* argv[] ) {
 

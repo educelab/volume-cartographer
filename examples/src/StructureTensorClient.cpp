@@ -1,7 +1,7 @@
 #include <iostream>
 #include <algorithm>
 #include <opencv2/opencv.hpp>
-#include "volumepkg.h"
+#include "volumepkg/volumepkg.h"
 
 void draw(const volcart::Volume& v,
           const int32_t zSlice,

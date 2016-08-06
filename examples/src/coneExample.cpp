@@ -2,11 +2,11 @@
 // Created by Ryan Taber on 3/11/16.
 //
 
-#include "vc_defines.h"
-#include "scaleMesh.h"
-#include "shapes.h"
-#include "itkMeshFileWriter.h"
-#include "io/objWriter.h"
+#include "common/vc_defines.h"
+#include "meshing/scaleMesh.h"
+#include "common/io/objWriter.h"
+#include "common/shapes/Cone.h"
+#include <itkMeshFileWriter.h>
 
 int main(){
 

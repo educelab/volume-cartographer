@@ -6,12 +6,13 @@
  *          Saved file wills be read in by the lscmTest.cpp file under v-c/testing/texturing.
  */
 
-#include "vc_defines.h"
-#include "volumepkg.h"
+#include "common/vc_defines.h"
+#include "volumepkg/volumepkg.h"
 
-#include "LeastSquaresConformalMapping.h"
-#include "shapes.h"
-#include "io/objWriter.h"
+#include "texturing/LeastSquaresConformalMapping.h"
+#include "common/io/objWriter.h"
+#include "common/shapes/Plane.h"
+#include "common/shapes/Arch.h"
 
 int main( int argc, char* argv[] ) {
 

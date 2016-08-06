@@ -4,11 +4,11 @@
 
 #include <iostream>
 
-#include "vc_defines.h"
-#include "vc_datatypes.h"
-#include "OrderedResampling.h"
-#include "io/objWriter.h"
-#include "shapes.h"
+#include "common/vc_defines.h"
+#include "meshing/OrderedResampling.h"
+#include "common/io/objWriter.h"
+#include "common/shapes/Plane.h"
+#include "common/shapes/Arch.h"
 
 int main(int argc, char* argv[]) {
 

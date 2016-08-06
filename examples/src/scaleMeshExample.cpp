@@ -9,10 +9,14 @@
  *          v-c/testing/meshing.
  */
 
-#include "vc_defines.h"
-#include "scaleMesh.h"
-#include "shapes.h"
-#include "itkMeshFileWriter.h"
+#include "common/vc_defines.h"
+#include "meshing/scaleMesh.h"
+#include "common/shapes/Plane.h"
+#include "common/shapes/Arch.h"
+#include "common/shapes/Cube.h"
+#include "common/shapes/Sphere.h"
+#include "common/shapes/Cone.h"
+#include <itkMeshFileWriter.h>
 
 int main(){
 

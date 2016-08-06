@@ -1,7 +1,7 @@
 // Volume Package Functionality Examples
 #include <iostream>
 
-#include "volumepkg.h"
+#include "volumepkg/volumepkg.h"
 
 std::string volpkgpath = "";
 

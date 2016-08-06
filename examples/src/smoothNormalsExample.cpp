@@ -11,10 +11,14 @@
  *       Creates an obj file for each of the derived shapes after calling smoothNormals().
  */
 
-#include <io/objWriter.h>
-#include "smoothNormals.h"
-#include "vc_defines.h"
-#include "shapes.h"
+#include "common/io/objWriter.h"
+#include "meshing/smoothNormals.h"
+#include "common/vc_defines.h"
+#include "common/shapes/Plane.h"
+#include "common/shapes/Arch.h"
+#include "common/shapes/Cube.h"
+#include "common/shapes/Sphere.h"
+#include "common/shapes/Cone.h"
 
 
 int main(){

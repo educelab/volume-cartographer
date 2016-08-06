@@ -9,8 +9,12 @@
  *   The output created here is loaded by orderedPCDMesherTest for later comparison
  */
 
-#include "shapes.h"
-#include "orderedPCDMesher.h"
+#include "meshing/orderedPCDMesher.h"
+#include "common/shapes/Plane.h"
+#include "common/shapes/Arch.h"
+#include "common/shapes/Cube.h"
+#include "common/shapes/Sphere.h"
+#include "common/shapes/Cone.h"
 
 int main() {
 
