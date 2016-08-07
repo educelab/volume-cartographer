@@ -75,7 +75,7 @@ target_link_libraries(vc_cone_example vc_common vc_meshing ITKIOMesh)
 
 if (VC_USE_BULLET)
     add_executable(vc_cloth_example src/clothExample.cpp)
-    target_link_libraries(vc_cloth_example vc_common vc_texturing)
+    target_link_libraries(vc_cloth_example vc_common vc_texturing vc_meshing)
 endif()
 
 if (VC_USE_ACVD)

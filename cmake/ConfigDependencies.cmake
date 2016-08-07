@@ -26,6 +26,7 @@ include(${ITK_USE_FILE})
 # VTK
 find_package(VTK REQUIRED)
 include(${VTK_USE_FILE})
+set(VTK_LIBRARIES_TMP ${VTK_LIBRARIES})
 
 # Eigen (make it into a target)
 find_package(Eigen3 REQUIRED)
@@ -36,7 +37,11 @@ set_target_properties(eigen3 PROPERTIES
 
 # Rest
 set(PCL_STATIC on)
-find_package(PCL 1.7 REQUIRED)
+find_package(PCL 1.7 REQUIRED QUIET)
+
+# XXX Put VTK libraries back because PCL silently overwrites them
+set(VTK_LIBRARIES ${VTK_LIBRARIES_TMP})
+
 find_package(OpenCV REQUIRED)
 find_package(OpenGL REQUIRED)
 
@@ -45,7 +50,9 @@ if (VC_USE_ACVD)
     add_library(acvd INTERFACE IMPORTED)
     set_target_properties(acvd PROPERTIES
         INTERFACE_INCLUDE_DIRECTORIES "${ACVD_INCLUDE_DIRS}"
-        INTERFACE_LINK_LIBRARIES "${ACVD_LIBRARIES}"
+        # Hack to get around the fact that ACVD_LIBRARIES doesn't contain the
+        # needed VTK libs to actually compile it...
+        INTERFACE_LINK_LIBRARIES "${ACVD_LIBRARIES};${VTK_LIBRARIES}"
     )
 endif()
 if (VC_USE_BULLET)
