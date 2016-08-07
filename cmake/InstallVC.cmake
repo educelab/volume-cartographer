@@ -1,12 +1,12 @@
 # What components to install
 set(INSTALL_COMPONENTS "")
-if(INSTALL_VC_CORE)
+if(VC_INSTALL_CORE)
     list(APPEND INSTALL_COMPONENTS "Programs")
 endif()
-if(INSTALL_VC_UTIL)
+if(VC_INSTALL_UTIL)
     list(APPEND INSTALL_COMPONENTS "Utilities")
 endif()
-if(INSTALL_VC_DEMO)
+if(VC_INSTALL_DEMO)
     list(APPEND INSTALL_COMPONENTS "Demos")
 endif()
 

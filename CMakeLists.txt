@@ -23,9 +23,9 @@ option(VC_USE_LIBIGL "Use libigl" off)
 option(VC_PREBUILT_LIBS "Link against prebuilt dependencies" off)
 
 # Choose what to install
-option(INSTALL_VC_CORE "Install VC core apps" on)
-option(INSTALL_VC_UTIL "Install VC util apps" on)
-option(INSTALL_VC_DEMO "Install VC demo apps" off)
+option(VC_INSTALL_CORE "Install VC core apps" on)
+option(VC_INSTALL_UTIL "Install VC util apps" on)
+option(VC_INSTALL_DEMO "Install VC demo apps" off)
 
 # Look for external dependencies
 include(ConfigDependencies)
