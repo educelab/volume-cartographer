@@ -5,14 +5,13 @@
 #ifndef VC_LSCM_H
 #define VC_LSCM_H
 
-#ifdef USE_LIBIGL
+#ifdef VC_USE_LIBIGL
 
 #include <iostream>
 
 #include <Eigen/Geometry>
 #include "common/vc_defines.h"
 #include "common/types/UVMap.h"
-#include "common/util/deepCopy.h"
 
 namespace volcart {
   namespace texturing {
@@ -46,6 +45,6 @@ namespace volcart {
   } // texturing
 } // volcart
 
-#endif // USE_LIBIGL
+#endif // VC_USE_LIBIGL
 
 #endif

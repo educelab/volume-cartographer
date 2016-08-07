@@ -1,4 +1,5 @@
 #include "texturing/LeastSquaresConformalMapping.h"
+#include "meshing/deepCopy.h"
 #include <igl/lscm.h>
 #include <igl/boundary_loop.h>
 #include <igl/doublearea.h>

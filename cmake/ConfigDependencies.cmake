@@ -65,4 +65,8 @@ if (VC_USE_BULLET)
 endif()
 if (VC_USE_LIBIGL)
     find_package(LIBIGL REQUIRED)
+    add_library(libigl INTERFACE IMPORTED)
+    set_target_properties(libigl PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${LIBIGL_INCLUDE_DIRS}"
+    )
 endif()
