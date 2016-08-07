@@ -3,10 +3,10 @@
 #include <opencv2/opencv.hpp>
 #include <boost/filesystem.hpp>
 
-#include "volumepkg.h"
-#include "vc_datatypes.h"
-#include "vc_defines.h"
-#include "io/objWriter.h"
+#include "volumepkg/volumepkg.h"
+#include "common/vc_defines.h"
+#include "common/io/objWriter.h"
+#include "common/types/Texture.h"
 
 namespace fs = boost::filesystem;
 

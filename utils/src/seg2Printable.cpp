@@ -4,14 +4,14 @@
 
 #include <stdio.h>
 
-#include "vc_defines.h"
-#include "vc_datatypes.h"
-#include "volumepkg.h"
+#include "common/vc_defines.h"
+#include "volumepkg/volumepkg.h"
 
-#include "io/ply2itk.h"
-#include "io/objWriter.h"
-#include "scaleMesh.h"
-#include "simpleUV.h"
+#include "common/io/ply2itk.h"
+#include "common/io/objWriter.h"
+#include "meshing/scaleMesh.h"
+#include "meshing/simpleUV.h"
+#include "common/types/UVMap.h"
 
 int main (int argc, char* argv[]) {
     if (argc < 3) {

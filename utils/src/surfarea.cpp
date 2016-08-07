@@ -4,14 +4,14 @@
 #include <iostream>
 #include <fstream>
 
-#include "volumepkg.h"
-#include "vc_defines.h"
-#include "io/ply2itk.h"
-#include "itk2vtk.h"
+#include "volumepkg/volumepkg.h"
+#include "common/vc_defines.h"
+#include "common/io/ply2itk.h"
+#include "meshing/itk2vtk.h"
 
-#include "vtkSmoothPolyDataFilter.h"
-#include "vtkPolyData.h"
-#include "vtkMassProperties.h"
+#include <vtkSmoothPolyDataFilter.h>
+#include <vtkPolyData.h>
+#include <vtkMassProperties.h>
 
 
 int main(int argc, char* argv[])

@@ -3,8 +3,8 @@
 #include <string>
 #include <opencv2/opencv.hpp>
 
-#include "volumepkg.h"
-#include "scales/scales.h"
+#include "volumepkg/volumepkg.h"
+#include "common/scales/scales.h"
 
 int main( int argc, char *argv[] )
 {

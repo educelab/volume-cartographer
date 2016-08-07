@@ -10,12 +10,11 @@
 #include <vtkSmartPointer.h>
 #include <vtkMassProperties.h>
 
-#include "vc_defines.h"
-#include "vc_datatypes.h"
-#include "io/plyWriter.h"
-#include "itk2vtk.h"
-#include "deepCopy.h"
-#include "scaleMesh.h"
+#include "common/vc_defines.h"
+#include "common/io/plyWriter.h"
+#include "meshing/itk2vtk.h"
+#include "meshing/deepCopy.h"
+#include "meshing/scaleMesh.h"
 
 int main(int argc, char* argv[])
 {

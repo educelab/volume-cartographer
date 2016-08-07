@@ -4,8 +4,8 @@
 #include <iostream>
 #include <fstream>
 
-#include "volumepkg.h"
-#include "vc_defines.h"
+#include "volumepkg/volumepkg.h"
+#include "common/vc_defines.h"
 
 
 int main(int argc, char* argv[])
