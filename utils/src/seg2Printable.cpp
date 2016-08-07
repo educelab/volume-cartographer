@@ -10,7 +10,7 @@
 #include "common/io/ply2itk.h"
 #include "common/io/objWriter.h"
 #include "meshing/scaleMesh.h"
-#include "meshing/simpleUV.h"
+#include "texturing/simpleUV.h"
 #include "common/types/UVMap.h"
 
 int main (int argc, char* argv[]) {

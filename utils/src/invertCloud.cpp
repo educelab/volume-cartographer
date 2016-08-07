@@ -6,6 +6,8 @@
 
 #include "volumepkg/volumepkg.h"
 #include "common/vc_defines.h"
+#include <pcl/io/pcd_io.h>
+#include <pcl/common/common.h>
 
 
 int main(int argc, char* argv[])

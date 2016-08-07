@@ -53,7 +53,7 @@ add_subdirectory(texturing)
 
 # VC Core Apps
 #add_subdirectory(apps)
-#add_subdirectory(utils)
+add_subdirectory(utils)
 
 # VC Demo Apps
 add_subdirectory(examples)
