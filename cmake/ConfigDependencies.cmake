@@ -17,7 +17,7 @@ if (VC_PREBUILT_LIBS)
 endif()
 
 # Qt stuff
-find_package(Qt5 QUIET REQUIRED COMPONENTS Widgets Gui)
+find_package(Qt5 QUIET REQUIRED COMPONENTS Widgets Gui Core)
 
 # ITK
 find_package(ITK QUIET REQUIRED)
