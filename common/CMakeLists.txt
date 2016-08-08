@@ -9,7 +9,7 @@ set(srcs
     src/ShapePrimitive.cpp
     src/Slice.cpp
     src/Sphere.cpp
-	src/Texture.cpp
+    src/Texture.cpp
     src/Volume.cpp
     src/getMemorySize.cpp
     src/meshMath.cpp
@@ -32,6 +32,7 @@ target_link_libraries(${target}
         Boost::filesystem
         opencv_core
         opencv_highgui
+        opencv_imgproc
         ITKCommon
         ITKMesh
         ITKQuadEdgeMesh
