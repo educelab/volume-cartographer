@@ -2,7 +2,17 @@
 // Created by Seth Parker on 7/30/15.
 //
 
-#include "apps/packager.h"
+#include <iostream>
+
+#include <boost/filesystem.hpp>
+#include <boost/program_options.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
+
+#include "common/vc_defines.h"
+#include "volumepkg/volumepkg.h"
+#include "apps/SliceImage.h"
+
 
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;

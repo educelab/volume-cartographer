@@ -17,19 +17,19 @@ if (VC_PREBUILT_LIBS)
 endif()
 
 # Qt stuff
-find_package(Qt5 REQUIRED COMPONENTS Widgets Gui)
+find_package(Qt5 QUIET REQUIRED COMPONENTS Widgets Gui)
 
 # ITK
-find_package(ITK REQUIRED)
+find_package(ITK QUIET REQUIRED)
 include(${ITK_USE_FILE})
 
 # VTK
-find_package(VTK REQUIRED)
+find_package(VTK QUIET REQUIRED)
 include(${VTK_USE_FILE})
 set(VTK_LIBRARIES_TMP ${VTK_LIBRARIES})
 
 # Eigen (make it into a target)
-find_package(Eigen3 REQUIRED)
+find_package(Eigen3 QUIET REQUIRED)
 add_library(eigen3 INTERFACE IMPORTED)
 set_target_properties(eigen3 PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES "${EIGEN3_INCLUDE_DIR}"
@@ -43,10 +43,9 @@ find_package(PCL 1.7 REQUIRED QUIET)
 set(VTK_LIBRARIES ${VTK_LIBRARIES_TMP})
 
 find_package(OpenCV REQUIRED)
-find_package(OpenGL REQUIRED)
 
 if (VC_USE_ACVD)
-    find_package(ACVD REQUIRED)
+    find_package(ACVD QUIET REQUIRED)
     add_library(acvd INTERFACE IMPORTED)
     set_target_properties(acvd PROPERTIES
         INTERFACE_INCLUDE_DIRECTORIES "${ACVD_INCLUDE_DIRS}"
@@ -56,7 +55,7 @@ if (VC_USE_ACVD)
     )
 endif()
 if (VC_USE_BULLET)
-    find_package(Bullet REQUIRED)
+    find_package(Bullet QUIET REQUIRED)
     add_library(bullet INTERFACE IMPORTED)
     set_target_properties(bullet PROPERTIES
         INTERFACE_INCLUDE_DIRECTORIES "${BULLET_INCLUDE_DIRS}"
@@ -64,7 +63,7 @@ if (VC_USE_BULLET)
     )
 endif()
 if (VC_USE_LIBIGL)
-    find_package(LIBIGL REQUIRED)
+    find_package(LIBIGL QUIET REQUIRED)
     add_library(libigl INTERFACE IMPORTED)
     set_target_properties(libigl PROPERTIES
         INTERFACE_INCLUDE_DIRECTORIES "${LIBIGL_INCLUDE_DIRS}"

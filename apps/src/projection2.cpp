@@ -13,6 +13,8 @@
 #include <vtkCutter.h>
 #include <vtkStripper.h>
 #include <vtkPlane.h>
+#include <vtkSmartPointer.h>
+#include <vtkCell.h>
 
 int main( int argc, char *argv[] ) {
   printf("Running tool: vc_projection\n");

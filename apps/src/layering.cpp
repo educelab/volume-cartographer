@@ -11,7 +11,6 @@
 #include "volumepkg/volumepkg.h"
 #include "common/vc_defines.h"
 #include "common/io/ply2itk.h"
-
 #include "meshing/smoothNormals.h"
 #include "texturing/texturingUtils.h"
 
@@ -49,7 +48,7 @@ int main(int argc, char* argv[])
     if ( aSampleDir != 0 || aSampleDir != 1 || aSampleDir != 2 ) {
         std::cerr << "ERROR: Selected sample direction not recognized." << std::endl;
     }
-    EDirectionOption aDirectionOption = ( EDirectionOption )aSampleDir;
+    VC_Direction_Option aDirectionOption = ( VC_Direction_Option )aSampleDir;
 
     int sections = atoi( argv[ 5 ] );
 

@@ -53,7 +53,7 @@ add_executable(vc_mappingExtractor src/mappingExtractor.cpp)
 target_link_libraries(vc_mappingExtractor vc_volumepkg vc_common)
 
 add_executable(vc_csv2uv src/csv2uv.cpp)
-target_link_libraries(vc_csv2uv vc_common vc_meshing)
+target_link_libraries(vc_csv2uv vc_common vc_meshing vtkIOPLY)
 
 add_executable(pcl_convert_pcd_ascii_binary src/convert_pcd_ascii_binary.cpp)
 target_include_directories(pcl_convert_pcd_ascii_binary PUBLIC

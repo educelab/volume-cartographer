@@ -9,7 +9,7 @@
 
 #include "common/vc_defines.h"
 #include "meshing/itk2vtk.h"
-#include "meshing/ClothModelingUVMapping.h"
+#include "texturing/ClothModelingUVMapping.h"
 #include "common/io/objWriter.h"
 #include "texturing/compositeTextureV2.h"
 
