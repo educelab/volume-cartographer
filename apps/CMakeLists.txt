@@ -1,8 +1,8 @@
 # Handle GUI apps
-include(VCMain.cmake)
+add_subdirectory(VC)
 
 if (VC_USE_ACVD)
-    include(VCTexture.cmake)
+    add_subdirectory(VC-Texture)
 endif()
 
 # Texture UI
