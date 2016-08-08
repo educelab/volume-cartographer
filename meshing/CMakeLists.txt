@@ -40,7 +40,7 @@ target_link_libraries(${target}
     PUBLIC
         ${deps} 
     PRIVATE
-        ITKStatistics
+        ITKTransform
         vtkFiltersGeneral
         vtkFiltersCore
         ${PCL_SEARCH_LIBRARIES}

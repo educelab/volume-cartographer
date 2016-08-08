@@ -20,7 +20,7 @@ endif()
 find_package(Qt5 QUIET REQUIRED COMPONENTS Widgets Gui Core)
 
 # ITK
-find_package(ITK QUIET REQUIRED)
+find_package(ITK 4.10 QUIET REQUIRED)
 include(${ITK_USE_FILE})
 
 # VTK
