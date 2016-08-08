@@ -42,7 +42,8 @@ if (APPLE)
     set(MACOSX_BUNDLE_COPYRIGHT ${copyright})
 endif()
 
-add_executable(${target} MACOSX_BUNDLE WIN32 ${srcs})
+QT5_WRAP_UI(uis src/VCMain.ui)
+add_executable(${target} MACOSX_BUNDLE WIN32 ${srcs} ${uis})
 set_target_properties(${target} PROPERTIES
     AUTOMOC on
     AUTOUIC on

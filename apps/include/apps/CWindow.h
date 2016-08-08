@@ -13,6 +13,7 @@
 #include "apps/mathUtils.h"
 #include "apps/CBSpline.h"
 #include "apps/CXCurve.h"
+#include "ui_VCMain.h"
 
 #ifndef Q_MOC_RUN
 #include <pcl/common/common.h>

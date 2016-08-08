@@ -6,7 +6,6 @@
 #include "volumepkg/volumepkg.h"
 #include "apps/CVolumeViewerWithCurve.h"
 #include "apps/UDataManipulateUtils.h"
-#include "ui_VCMain.h"
 #include "apps/CWindow.h"
 
 #define _DEBUG
