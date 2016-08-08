@@ -87,6 +87,7 @@ if (VC_USE_BULLET)
         vc_meshing
         vc_texturing
         Boost::program_options
+        ${BULLET_LIBRARIES}
     )
 endif()
 
