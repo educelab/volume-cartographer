@@ -1,5 +1,5 @@
 # VC-Texture app
-set(target VCTexture)
+set(target VC-Texture)
 
 set(srcs
     VCTextureMain.cpp
@@ -27,16 +27,15 @@ if (APPLE)
         ${copyright}
     )
     set(MACOSX_BUNDLE_INFO_STRING ${info_string})
-    set(MACOSX_BUNDLE_GUI_IDENTIFIER "${target}${CMAKE_BUILD_TYPE}")
+    set(MACOSX_BUNDLE_GUI_IDENTIFIER "${target}")
     set(MACOSX_BUNDLE_LONG_VERSION_STRING
-        "${target}${CMAKE_BUILD_TYPE} Version ${PROJECT_VERSION}")
-    set(MACOSX_BUNDLE_BUNDLE_NAME ${target}${CMAKE_BUILD_TYPE})
+            "${target}-${CMAKE_BUILD_TYPE} Version ${PROJECT_VERSION}")
+    set(MACOSX_BUNDLE_BUNDLE_NAME ${target})
     set(MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION})
     set(MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION})
     set(MACOSX_BUNDLE_COPYRIGHT ${copyright})
 endif()
 
-set(CMAKE_INCLUDE_CURRENT_DIR on)
 add_executable(${target} MACOSX_BUNDLE WIN32 ${srcs})
 set_target_properties(${target} PROPERTIES
     AUTOMOC on
@@ -49,6 +48,7 @@ target_include_directories(${target}
         # XXX This should go away - but PCL doesn't specify their targets in a
         # way that lets you do transitive dependencies.
         ${PCL_COMMON_INCLUDE_DIRS}
+        ${CMAKE_CURRENT_BINARY_DIR}
 )
 target_link_libraries(${target}
     vc_common
@@ -76,19 +76,19 @@ else ()
 endif()
 set(plugins qcocoa)
 set(extra_libs "")
-set(extra_dirs ${CMAKE_PREFIX_PATH})
+set(extra_dirs "${CMAKE_PREFIX_PATH}")
 set(request_qt_conf off)
 set(plugins_dir "")
 set(components Programs)
 if(APPLE OR WIN32)
     include(DeployQt5)
     install_qt5_executable(
-        ${vc_exe}
-        ${plugins}
-        ${extra_libs}
-        ${extra_dirs}
-        ${plugins_dir}
-        ${request_qt_conf}
-        ${components}
+        "${vc_exe}"
+        "${plugins}"
+        "${extra_libs}"
+        "${extra_dirs}"
+        "${plugins_dir}"
+        "${request_qt_conf}"
+        "${components}"
     )
 endif()

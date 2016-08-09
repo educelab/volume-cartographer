@@ -18,7 +18,6 @@ set(CPACK_PACKAGE_VENDOR "UK VisCenter")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Volume Cartographer")
 
 if(APPLE)
-     set(CMAKE_INSTALL_PREFIX "/Applications")
      set(CPACK_GENERATOR "DragNDrop")
      set(CPACK_DMG_FORMAT "UDBZ")
      set(CPACK_DMG_VOLUME_NAME "${PROJECT_NAME}")
