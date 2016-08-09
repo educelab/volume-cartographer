@@ -21,10 +21,8 @@ if (APPLE)
     set(MACOSX_BUNDLE_ICON_FILE ${icon})
     set(copyright "Copyright 2015 University of Kentucky")
     string(CONCAT info_string
-        ${target}
-        ${CMAKE_BUILD_TYPE}
-        " Version"
-        ${PROJECT_VERSION}
+        ${target}${CMAKE_BUILD_TYPE}
+        " Version ${PROJECT_VERSION}"
         ", "
         ${copyright}
     )
