@@ -1,55 +1,96 @@
-cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
+project(libvc_common VERSION 0.1 LANGUAGES CXX)
+set(target vc_common)
 
-set(VC_COMMON_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-set(VC_COMMON_INCLUDE_DIR ${VC_COMMON_INCLUDE_DIR} PARENT_SCOPE)
+set(srcs
+    src/HalfEdgeMesh.cpp
+    src/Metadata.cpp
+    src/PerPixelMap.cpp
+    src/Rendering.cpp
+    src/ShapePrimitive.cpp
+    src/Slice.cpp
+    src/Sphere.cpp
+    src/Texture.cpp
+    src/Volume.cpp
+    src/getMemorySize.cpp
+    src/meshMath.cpp
+    src/objWriter.cpp
+    src/ply2itk.cpp
+    src/plyWriter.cpp
+)
 
-if(TARGET vc_common)
-message("vc_common is already defined")
-else()
+add_library(${target} ${srcs})
+target_include_directories(${target}
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+        # XXX This should go away - but PCL doesn't specify their targets in a
+        # way that lets you do transitive dependencies.
+        ${PCL_COMMON_INCLUDE_DIRS}
+)
+target_link_libraries(${target}
+    PUBLIC
+        Boost::filesystem
+        opencv_core
+        opencv_highgui
+        opencv_imgproc
+        ITKCommon
+        ITKMesh
+        ITKQuadEdgeMesh
+        vtkCommonDataModel
+        vtkCommonCore
+        vtkIOLegacy
+        # from deps/share/pcl-1.7/PCLConfig.cmake
+        ${PCL_COMMON_LIBRARIES}
+        vc_external
+)
 
-set(COMMON_MetaHeaders
-        vc_defines.h
-        vc_datatypes.h
-        shapes.h
-        scales/scales.h )
+install(TARGETS ${target}
+    ARCHIVE DESTINATION lib COMPONENT Libraries
+    LIBRARY DESTINATION lib COMPONENT Libraries
+    RUNTIME DESTINATION bin
+)
+install(DIRECTORY include/ DESTINATION ${VC_INSTALL_INCLUDE_PREFIX} COMPONENT Includes)
+export(TARGETS ${target} FILE VCCommon.cmake)
 
-set(COMMON_DatatypeSources
-        datatypes/LRUCache.h datatypes/UVMap.h
-        datatypes/Metadata.h datatypes/Metadata.cpp
-        datatypes/Texture.h datatypes/Texture.cpp
-        datatypes/Volume.h datatypes/Volume.cpp
-        datatypes/Slice.h datatypes/Slice.cpp
-        datatypes/PerPixelMap.h datatypes/PerPixelMap.cpp
-        datatypes/Rendering.h datatypes/Rendering.cpp
-        datatypes/HalfEdgeMesh.h datatypes/HalfEdgeMesh.cpp )
+### Testing ###
+if(VC_BUILD_TESTS)
 
-set(COMMON_ScaleSources
-        scales/scale_pi.h
-        scales/scale_micro.h
-        scales/scale_small.h )
+# Set source files
+set(test_srcs
+    test/LRUCacheTest.cpp
+    test/ObjWriterTest.cpp
+    test/MetadataTest.cpp
+    test/TextureTest.cpp
+    test/UVMapTest.cpp
+    test/plyWriterTest.cpp
+)
 
-set(COMMON_IOSources
-        io/objWriter.cpp io/objWriter.h
-        io/plyWriter.cpp io/plyWriter.h
-        io/ply2itk.h io/ply2itk.cpp )
+# Add a test executable for each src
+foreach(src ${test_srcs})
+    get_filename_component(filename ${src} NAME_WE)
+    set(testname ${target}_${filename})
+    add_executable(${testname} ${src})
+    target_link_libraries(${testname}
+        vc_common
+        vc_testing
+        Boost::unit_test_framework
+    )
+    add_test(
+        NAME ${testname}
+        WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
+        COMMAND ${testname}
+    )
+endforeach()
 
-set(COMMON_ShapeSources
-        shapes/ShapePrimitive.h shapes/ShapePrimitive.cpp
-        shapes/Plane.h
-        shapes/Arch.h
-        shapes/Sphere.h shapes/Sphere.cpp
-        shapes/Cube.h shapes/Cone.h )
+# Set test resource files
+set(COMMON_TEST_RES
+    test/res/PlyWriter_Plane.ply
+    test/res/GenericGradient.tif
+)
 
-set(COMMON_UtilitiesSources
-        getMemorySize.h getMemorySize.cpp
-        meshMath.h meshMath.cpp )
+# Copy each test resource file
+foreach(r ${COMMON_TEST_RES})
+    file(COPY ${r} DESTINATION ${EXECUTABLE_OUTPUT_PATH})
+endforeach()
 
-add_library(vc_common STATIC
-        ${COMMON_MetaHeaders}
-        ${COMMON_DatatypeSources}
-        ${COMMON_ScaleSources}
-        ${COMMON_IOSources}
-        ${COMMON_ShapeSources}
-        ${COMMON_UtilitiesSources} )
-
-endif()
+endif(VC_BUILD_TESTS)

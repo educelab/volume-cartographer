@@ -33,7 +33,7 @@ endif()
 
 if(LIBIGL_INCLUDE_DIR)
    set(LIBIGL_FOUND TRUE)
-   set(LIBIGL_INCLUDE_DIRS ${LIBIGL_INCLUDE_DIR}  ${LIBIGL_INCLUDE_DIR}/../external/Singular_Value_Decomposition)
+   set(LIBIGL_INCLUDE_DIRS ${LIBIGL_INCLUDE_DIR} )
    #set(LIBIGL_SOURCES
    #   ${LIBIGL_INCLUDE_DIR}/igl/viewer/Viewer.cpp
    #)

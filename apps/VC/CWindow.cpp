@@ -1,16 +1,12 @@
 // CWindow.cpp
 // Chao Du 2014 Dec
-#include "CWindow.h"
-
 #include "HBase.h"
-
 #include <QtCore>
 #include <QtWidgets>
-
-#include "volumepkg.h"
+#include "volumepkg/volumepkg.h"
 #include "CVolumeViewerWithCurve.h"
-
 #include "UDataManipulateUtils.h"
+#include "CWindow.h"
 
 #define _DEBUG
 

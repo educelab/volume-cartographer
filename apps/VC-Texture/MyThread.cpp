@@ -1,5 +1,7 @@
 
 #include "MyThread.h"
+#include "common/io/objWriter.h"
+#include "common/io/ply2itk.h"
 
 MyThread::MyThread(Global_Values *globals)
 {

@@ -1,7 +1,6 @@
 // CVolumeViewer.cpp
 // Chao Du 2015 April
 #include "CVolumeViewer.h"
-
 #include "HBase.h"
 
 using namespace ChaoVis;

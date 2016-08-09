@@ -1,7 +1,6 @@
 // CSimpleNumEditBox.cpp
 // Chao Du 2015 March
 #include "CSimpleNumEditBox.h"
-
 #include <QtCore>
 #include <QtWidgets>
 

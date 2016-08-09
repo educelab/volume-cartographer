@@ -8,10 +8,10 @@
 
 #include <vtkCleanPolyData.h>
 
-#include "ACVD.h"
-#include "AngleBasedFlattening.h"
-#include "compositeTextureV2.h"
-#include "meshMath.h"
+#include "meshing/ACVD.h"
+#include "texturing/AngleBasedFlattening.h"
+#include "texturing/compositeTextureV2.h"
+#include "common/util/meshMath.h"
 
 #include "Global_Values.h"
 

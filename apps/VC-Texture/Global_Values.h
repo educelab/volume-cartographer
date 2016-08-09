@@ -13,15 +13,13 @@
 
 #include <QApplication>
 #include <QRect>
-#include "volumepkg.h"
+#include "volumepkg/volumepkg.h"
 #include <QImage>
 #include <QPixmap>
 #include <QMainWindow>
-#include "vc_defines.h"
-#include "vc_datatypes.h"
-#include "volumepkg.h"
-#include "io/ply2itk.h"
-#include <QLabel>
+#include "common/vc_defines.h"
+#include "common/types/Rendering.h"
+#include "volumepkg/volumepkg.h"
 #include <QMenuBar>
 
 class Global_Values

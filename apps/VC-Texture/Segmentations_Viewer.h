@@ -12,11 +12,10 @@
 #include <QObject>
 #include <QLabel>
 #include <QListWidget>
-#include "vc_defines.h"
-#include "vc_datatypes.h"
-#include "volumepkg.h"
-#include "io/ply2itk.h"
-#include "compositeTexture.h"
+#include "common/vc_defines.h"
+#include "volumepkg/volumepkg.h"
+#include "common/io/ply2itk.h"
+#include "texturing/compositeTexture.h"
 #include "Global_Values.h"
 #include "Texture_Viewer.h"
 #include <QVBoxLayout>

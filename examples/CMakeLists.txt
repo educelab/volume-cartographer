@@ -1,107 +1,112 @@
-cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
+if (VC_USE_ACVD)
+    add_executable(vc_acvd_example src/ACVDExample.cpp)
+    target_link_libraries(vc_acvd_example
+        vc_common
+        vc_meshing
+        acvd
+    )
+endif()
 
-add_executable(vc_cone_example coneExample.cpp)
-target_link_libraries(vc_cone_example ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
+add_executable(vc_volpkg_example src/volpkg.cpp)
+target_link_libraries(vc_volpkg_example vc_volumepkg)
 
-###########
-# volpkg  #
-###########
-add_executable(vc_volpkg_example volpkg.cpp)
-target_link_libraries(vc_volpkg_example ${VC_LIBS} ${VC_REQ_LIBS})
+add_executable(vc_uvmap_example src/uvMapExample.cpp)
+target_link_libraries(vc_uvmap_example vc_common)
 
-add_executable(vc_objExporterExample objExporterExample.cpp )
-target_link_libraries(vc_objExporterExample ${VC_LIBS} ${VC_REQ_LIBS})
+add_executable(vc_texture_flattened src/textureFlattened.cpp)
+target_link_libraries(vc_texture_flattened
+    vc_common
+    vc_volumepkg
+    vc_meshing
+    vc_texturing
+    vtkIOPLY
+)
 
-############
-#  common  #
-############
-add_executable(vc_objWriterExample ObjWriterExample.cpp)
-target_link_libraries(vc_objWriterExample ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
+add_executable(vc_texture_example src/textureExample.cpp)
+target_link_libraries(vc_texture_example vc_common vc_volumepkg vc_texturing)
 
-############
-#  meshing #
-############
+add_executable(vc_smooth_normals_example src/smoothNormalsExample.cpp)
+target_link_libraries(vc_smooth_normals_example vc_common vc_meshing)
 
-file(COPY ../testing/test_data/meshing/vtk.ply DESTINATION ${CMAKE_BINARY_DIR}/examples)
-file(COPY ../testing/test_data/meshing/itk.obj DESTINATION ${CMAKE_BINARY_DIR}/examples)
-add_executable(vc_parsingHelpers parsingHelpersExample.cpp ../testing/parsingHelpers.cpp ../testing/parsingHelpers.h)
-target_link_libraries(vc_parsingHelpers ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
+add_executable(vc_scale_mesh_example src/scaleMeshExample.cpp)
+target_link_libraries(vc_scale_mesh_example vc_common vc_meshing ITKIOMesh)
 
-add_executable(vc_itk2vtkExample itk2vtkExample.cpp)
-target_link_libraries(vc_itk2vtkExample ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
+add_executable(vc_resample_point_cloud_example
+    src/resamplePointCloudExample.cpp
+)
+target_link_libraries(vc_resample_point_cloud_example vc_common vc_meshing)
 
-add_executable(vc_uvMapExample uvMapExample.cpp)
-target_link_libraries(vc_uvMapExample ${VC_LIBS} ${VC_REQ_LIBS})
+add_executable(vc_raytrace_example src/rayTraceExample.cpp)
+target_link_libraries(vc_raytrace_example vc_common vc_meshing)
 
-add_executable(vc_plyExporterExample plyExporterExample.cpp)
-target_link_libraries(vc_plyExporterExample ${VC_LIBS} ${VC_REQ_LIBS})
+add_executable(vc_ply_exporter_example src/plyExporterExample.cpp)
+target_link_libraries(vc_ply_exporter_example vc_common vc_texturing)
 
-add_executable(vc_resamplePointCloudExample resamplePointCloudExample.cpp)
-target_link_libraries(vc_resamplePointCloudExample ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
+add_executable(vc_parsing_helpers_example src/parsingHelpersExample.cpp)
+target_link_libraries(vc_parsing_helpers_example
+    vc_common
+    vc_testing
+    vc_meshing
+)
 
-add_executable(vc_orderedPCDExample orderedPCDMesherExample.cpp)
-target_link_libraries(vc_orderedPCDExample ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
+add_executable(vc_ordered_pcd_mesher_example src/orderedPCDMesherExample.cpp)
+target_link_libraries(vc_ordered_pcd_mesher_example vc_common vc_meshing)
 
-add_executable(vc_textureExample textureExample.cpp)
-target_link_libraries(vc_textureExample ${VC_LIBS} ${VC_REQ_LIBS})
+add_executable(vc_obj_exporter_example src/objExporterExample.cpp)
+target_link_libraries(vc_obj_exporter_example vc_common vc_texturing)
 
-add_executable(vc_textureFlattened textureFlattened.cpp)
-target_link_libraries(vc_textureFlattened ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
+if (VC_USE_LIBIGL)
+    add_executable(vc_lscm_example src/lscmExample.cpp)
+    target_link_libraries(vc_lscm_example vc_common vc_volumepkg vc_texturing)
+endif()
 
-add_executable(vc_rayTraceExample rayTraceExample.cpp)
-target_link_libraries(vc_rayTraceExample ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
+if (VC_USE_ACVD)
+    add_executable(vc_itk2vtk_example src/itk2vtkExample.cpp)
+    target_link_libraries(vc_itk2vtk_example
+        vc_common
+        vc_meshing
+        vc_testing
+        ITKIOMesh
+    )
+endif()
 
-add_executable(vc_scaleMeshExample scaleMeshExample.cpp)
-target_link_libraries(vc_scaleMeshExample ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
+add_executable(vc_cone_example src/coneExample.cpp)
+target_link_libraries(vc_cone_example vc_common vc_meshing ITKIOMesh)
 
-add_executable(vc_smoothNormalsExample smoothNormalsExample.cpp)
-target_link_libraries(vc_smoothNormalsExample ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
+if (VC_USE_BULLET)
+    add_executable(vc_cloth_example src/clothExample.cpp)
+    target_link_libraries(vc_cloth_example vc_common vc_texturing vc_meshing ${BULLET_LIBRARIES})
+endif()
 
-add_executable(vc_resliceAnalysis ResliceAnalysis.cpp)
-target_link_libraries(vc_resliceAnalysis ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
+if (VC_USE_ACVD)
+    add_executable(vc_abf_texturing src/abfTexturing.cpp)
+    target_link_libraries(vc_abf_texturing
+        vc_common
+        vc_meshing
+        vc_texturing
+        vc_volumepkg
+    )
+    
+    add_executable(vc_abf_example src/abfExample.cpp)
+    target_link_libraries(vc_abf_example vc_common vc_texturing vc_volumepkg)
+endif()
 
-add_executable(vc_OrderedResamplingExample OrderedResamplingExample.cpp)
-target_link_libraries(vc_OrderedResamplingExample ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
+add_executable(vc_verify_structure_tensor src/VerifyStructureTensor.cpp)
+target_link_libraries(vc_verify_structure_tensor vc_volumepkg)
 
-add_executable(vc_loremIpsumError LoremIpsumError.cpp)
-target_link_libraries(vc_loremIpsumError ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
+add_executable(vc_structure_tensor_client src/StructureTensorClient.cpp)
+target_link_libraries(vc_structure_tensor_client vc_volumepkg)
 
-if(VC_USE_ACVD)
-    add_executable(vc_ACVDExample ACVDExample.cpp)
-    target_link_libraries(vc_ACVDExample ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
-endif(VC_USE_ACVD)
+add_executable(vc_reslice_analysis src/ResliceAnalysis.cpp)
+target_link_libraries(vc_reslice_analysis vc_volumepkg)
 
-###############
-#  texturing  #
-###############
+add_executable(vc_ordered_resample_example src/OrderedResamplingExample.cpp)
+target_link_libraries(vc_ordered_resample_example vc_common vc_meshing)
 
-if(VC_USE_BULLET)
-    add_executable(vc_clothExample clothExample.cpp)
-    target_link_libraries(vc_clothExample ${VC_LIBS} vc_meshing ${VC_REQ_LIBS} ${VTK_LIBRARIES})
-endif(VC_USE_BULLET)
+add_executable(vc_obj_writer_example src/ObjWriterExample.cpp)
+target_link_libraries(vc_obj_writer_example vc_common)
 
-if(VC_USE_LIBIGL)
-    add_executable(vc_lscmExample lscmExample.cpp)
-    target_link_libraries(vc_lscmExample ${VC_LIBS} vc_meshing ${VC_REQ_LIBS} ${VTK_LIBRARIES})
-endif(VC_USE_LIBIGL)
+# Skip NeuralNetwork train example
 
-add_executable(vc_abfExample abfExample.cpp)
-target_link_libraries(vc_abfExample ${VC_LIBS} vc_meshing ${VC_REQ_LIBS} ${VTK_LIBRARIES} vc_SparseLinearSolver)
-
-###############
-#  CNN Tools  #
-###############
-
-add_executable(vc_verifyStructureTensor VerifyStructureTensor.cpp)
-target_link_libraries(vc_verifyStructureTensor ${VC_LIBS} ${VC_REQ_LIBS})
-
-add_executable(vc_structureTensorClient StructureTensorClient.cpp)
-target_link_libraries(vc_structureTensorClient ${VC_LIBS} ${VC_REQ_LIBS})
-
-# Need exact version for outputting correctly-formatted HDF5 files for caffe to read in
-find_package(HDF5 1.8.15 EXACT)
-if(HDF5_FOUND)
-    include_directories(${HDF5_INCLUDE_DIRS})
-    add_executable(vc_makeNeuralNetTrainingData MakeNeuralNetTrainingData.cpp)
-    target_link_libraries(vc_makeNeuralNetTrainingData ${HDF5_LIBRARIES} ${VC_LIBS} ${VC_REQ_LIBS})
-endif(HDF5_FOUND)
+add_executable(vc_lorem_ipsum_error src/LoremIpsumError.cpp)
+target_link_libraries(vc_lorem_ipsum_error vc_volumepkg)

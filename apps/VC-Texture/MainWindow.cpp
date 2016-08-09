@@ -9,6 +9,8 @@
 //----------------------------------------------------------------------------------------------------------------------------------------
 
 #include "MainWindow.h"
+#include "common/io/objWriter.h"
+#include <boost/algorithm/string/case_conv.hpp>
 
 namespace fs = boost::filesystem;
 

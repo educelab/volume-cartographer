@@ -19,7 +19,7 @@
 #include <pcl/common/common.h>
 #include <pcl/point_types.h>
 
-#include "localResliceParticleSim/localResliceParticleSim.h"
+#include "segmentation/lrps/localResliceParticleSim.h"
 //#include "structureTensorParticleSim/structureTensorParticleSim.h"
 #endif
 
@@ -209,7 +209,7 @@ private:
     QSlider     *fEdtImpactRange;
     QLabel      *fLabImpactRange;
 
-    Ui::VCMainWindow    ui;
+    Ui_VCMainWindow    ui;
 
     QStatusBar  *statusBar;
 

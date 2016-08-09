@@ -1,40 +1,105 @@
-cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
-
-# VC.app
+############
+# GUI Apps #
+############
 add_subdirectory(VC)
 
-# Texture UI
-add_subdirectory(VC-Texture)
+if (VC_USE_ACVD)
+    add_subdirectory(VC-Texture)
+endif()
 
-# Mesher
-add_executable(vc_mesher mesher.cpp)
-target_link_libraries(vc_mesher ${VC_LIBS} ${VC_REQ_LIBS})
+#################
+# CMD Line Apps #
+#################
 
-# Segment
-add_executable(vc_segment segment.cpp)
-target_link_libraries(vc_segment ${VC_LIBS} ${VC_REQ_LIBS})
+## Mesher ##
+add_executable(vc_mesher src/mesher.cpp)
+target_link_libraries(vc_mesher
+    vc_meshing
+    ${PCL_COMMON_LIBRARIES}
+    ${PCL_IO_LIBRARIES}
+)
+target_include_directories(vc_mesher
+    PUBLIC
+        ${PCL_COMMON_INCLUDE_DIRS}
+        ${PCL_IO_INCLUDE_DIRS}
+)
 
-# Texture
-add_executable(vc_render render.cpp)
-target_link_libraries(vc_render ${VC_LIBS} ${VC_REQ_LIBS})
+## Packager ##
+add_executable(vc_packager src/packager.cpp src/SliceImage.cpp)
+target_link_libraries(vc_packager
+    vc_volumepkg
+    vc_common
+    Boost::filesystem
+    Boost::program_options
+)
+# Special - need to include SliceImage.h
+target_include_directories(vc_packager PUBLIC include)
 
-# Metadata Editor
-add_executable(vc_metaedit metadata.cpp)
-target_link_libraries(vc_metaedit ${VC_LIBS} ${VC_REQ_LIBS})
+## Segment ##
+add_executable(vc_segment src/segment.cpp)
+target_link_libraries(vc_segment
+    vc_volumepkg
+    vc_segmentation
+    Boost::program_options
+    ${PCL_IO_LIBRARIES}
+)
+target_include_directories(vc_segment PUBLIC ${PCL_IO_INCLUDE_DIRS})
 
-# Slice Projection
-add_executable(vc_projection projection.cpp)
-target_link_libraries(vc_projection ${VC_LIBS} ${VC_REQ_LIBS})
+## Rendering ##
+add_executable(vc_render src/render.cpp)
+target_link_libraries(vc_render
+    vc_common
+    vc_volumepkg
+    vc_texturing
+    vc_meshing
+    Boost::filesystem
+    Boost::program_options
+)
 
-add_executable(vc_projection2 projection2.cpp)
-target_link_libraries(vc_projection2 ${VC_LIBS} ${VC_REQ_LIBS} ${VTK_LIBRARIES})
+## Metadata Editor ##
+add_executable(vc_metaedit src/metadata.cpp)
+target_link_libraries(vc_metaedit vc_volumepkg)
 
-# Cloth Flattening
-if(VC_USE_BULLET)
-add_executable(vc_cloth cloth.cpp)
-target_link_libraries(vc_cloth ${VC_LIBS} vc_meshing ${VC_REQ_LIBS} ${ITK_LIBRARIES} ${VTK_LIBRARIES} ${OPENGL_LIBRARIES})
-endif(VC_USE_BULLET)
+## Slice Projection ##
+# Old
+add_executable(vc_projection src/projection.cpp)
+target_link_libraries(vc_projection
+    vc_common
+    vc_volumepkg
+)
+
+# New
+add_executable(vc_projection2 src/projection2.cpp)
+target_link_libraries(vc_projection2
+    vc_volumepkg
+    vc_common
+    vtkCommonCore
+    vtkCommonDataModel
+    vtkIOPLY
+)
+
+## Layering ##
+# This doesn't seem to be used, and doesn't even compile with our current stuff
+#add_executable(vc_layering src/layering.cpp)
+#target_link_libraries(vc_layering
+#    vc_volumepkg
+#    vc_common
+#    vc_meshing
+#    vc_texturing
+#)
+
+## Cloth Flattening ##
+if (VC_USE_BULLET)
+    add_executable(vc_cloth src/cloth.cpp)
+    target_link_libraries(vc_cloth
+        vc_common
+        vc_meshing
+        vc_texturing
+        Boost::program_options
+        ${BULLET_LIBRARIES}
+    )
+endif()
 
 # Install targets
-install(TARGETS vc_mesher vc_segment vc_metaedit vc_projection vc_render
+install(TARGETS vc_mesher vc_packager vc_segment vc_render vc_metaedit vc_projection vc_projection2
         RUNTIME DESTINATION bin COMPONENT Programs)
