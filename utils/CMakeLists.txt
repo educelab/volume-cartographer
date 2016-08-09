@@ -76,8 +76,5 @@ target_link_libraries(pcl_convert_pcd_ascii_binary
 )
 
 # Install targets
-install(TARGETS vc_area
+install(TARGETS vc_area vc_addScale
         RUNTIME DESTINATION bin COMPONENT Utilities)
-
-install(TARGETS vc_addScale
-        RUNTIME DESTINATION bin COMPONENT Demos)

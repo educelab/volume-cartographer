@@ -22,10 +22,15 @@ option(VC_USE_LIBIGL "Use libigl" off)
 # Use prebuilt libs (built with shell script)?
 option(VC_PREBUILT_LIBS "Link against prebuilt dependencies" off)
 
+# Choose what to build
+option(VC_BUILD_APPS     "Compile VC core programs"    on)
+option(VC_BUILD_UTILS    "Compile VC utility programs" on)
+option(VC_BUILD_EXAMPLES "Compile VC example programs" on)
+
 # Choose what to install
-option(VC_INSTALL_CORE "Install VC core apps" on)
-option(VC_INSTALL_UTIL "Install VC util apps" on)
-option(VC_INSTALL_DEMO "Install VC demo apps" off)
+option(VC_INSTALL_APPS      "Install VC core programs"    on)
+option(VC_INSTALL_UTILS     "Install VC utility programs" on)
+option(VC_INSTALL_EXAMPLES  "Install VC example programs" off)
 
 # Look for external dependencies
 include(ConfigDependencies)
@@ -42,7 +47,7 @@ endif()
 
 enable_testing()
 
-# VC Libraries
+## VC Libraries ##
 add_subdirectory(external)
 add_subdirectory(common)
 add_subdirectory(testing)
@@ -51,12 +56,20 @@ add_subdirectory(volumepkg)
 add_subdirectory(segmentation)
 add_subdirectory(texturing)
 
-# VC Core Apps
-add_subdirectory(apps)
-add_subdirectory(utils)
+## VC Core Apps ##
+if(VC_BUILD_APPS)
+    add_subdirectory(apps)
+endif()
 
-# VC Demo Apps
-add_subdirectory(examples)
+## VC Utility apps ##
+if(VC_BUILD_UTILS)
+    add_subdirectory(utils)
+endif()
 
-# Install
+## VC Example Apps ##
+if(VC_BUILD_EXAMPLES)
+    add_subdirectory(examples)
+endif()
+
+#Install
 include(InstallVC)

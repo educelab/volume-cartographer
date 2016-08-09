@@ -101,7 +101,7 @@ deploy:osx:
         - mkdir -p build
         - cd build/
         - echo "---- Make it better. ----"
-        - cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DVC_INSTALL_DEMO=ON -DVC_PREBUILT_LIBS=ON -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DCMAKE_OSX_SYSROOT=../vc-deps/build/SDKs/MacOSX10.9.sdk/ ..
+        - cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DVC_BUILD_EXAMPLES=OFF -DVC_BUILD_TESTS=OFF -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DCMAKE_OSX_SYSROOT=../vc-deps/build/SDKs/MacOSX10.9.sdk/ ..
         - echo "---- Do it faster. ----"
         - ninja
         - ninja package

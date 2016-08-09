@@ -1,13 +1,13 @@
 # What components to install
 set(INSTALL_COMPONENTS "")
-if(VC_INSTALL_CORE)
+if(VC_INSTALL_APPS)
     list(APPEND INSTALL_COMPONENTS "Programs")
 endif()
-if(VC_INSTALL_UTIL)
+if(VC_INSTALL_UTILS)
     list(APPEND INSTALL_COMPONENTS "Utilities")
 endif()
-if(VC_INSTALL_DEMO)
-    list(APPEND INSTALL_COMPONENTS "Demos")
+if(VC_INSTALL_EXAMPLES)
+    list(APPEND INSTALL_COMPONENTS "Examples")
 endif()
 
 # Configure Cpack
