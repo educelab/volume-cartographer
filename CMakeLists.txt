@@ -14,14 +14,6 @@ set(CXX_STANDARD_REQUIRED on)
 # Global configs
 set(CMAKE_EXPORT_COMPILE_COMMANDS on)
 
-# Options for external libs
-option(VC_USE_ACVD "Use ACVD library" off)
-option(VC_USE_BULLET "Use Bullet Physics library" off)
-option(VC_USE_LIBIGL "Use libigl" off)
-
-# Use prebuilt libs (built with shell script)?
-option(VC_PREBUILT_LIBS "Link against prebuilt dependencies" off)
-
 # Choose what to build
 option(VC_BUILD_APPS     "Compile VC core programs"    on)
 option(VC_BUILD_UTILS    "Compile VC utility programs" on)
@@ -47,7 +39,7 @@ if (CMAKE_GENERATOR MATCHES "Ninja")
 endif()
 
 if(VC_BUILD_TESTS)
-enable_testing()
+    enable_testing()
 endif()
 
 ## VC Libraries ##
@@ -55,7 +47,7 @@ add_subdirectory(external)
 add_subdirectory(common)
 
 if(VC_BUILD_TESTS)
-add_subdirectory(testing)
+    add_subdirectory(testing)
 endif()
 
 add_subdirectory(meshing)
