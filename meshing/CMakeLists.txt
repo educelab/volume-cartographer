@@ -58,8 +58,10 @@ install(TARGETS ${target}
 install(DIRECTORY include/ DESTINATION ${VC_INSTALL_INCLUDE_PREFIX} COMPONENT Includes)
 export(TARGETS ${target} FILE VCMeshing.cmake)
 
-# Testing
+### Testing ###
 if(VC_BUILD_TESTS)
+
+# Set source files
 set(test_srcs
     test/CalculateNormalsTest.cpp
     test/OrderedResamplingTest.cpp
@@ -70,6 +72,8 @@ set(test_srcs
     test/scaleMeshTest.cpp
     test/smoothNormalsTest.cpp
 )
+
+# Add a test executable for each src
 foreach(src ${test_srcs})
     get_filename_component(filename ${src} NAME_WE)
     set(testname ${target}_${filename})

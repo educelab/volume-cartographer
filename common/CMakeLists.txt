@@ -52,8 +52,10 @@ install(TARGETS ${target}
 install(DIRECTORY include/ DESTINATION ${VC_INSTALL_INCLUDE_PREFIX} COMPONENT Includes)
 export(TARGETS ${target} FILE VCCommon.cmake)
 
-# Testing
+### Testing ###
 if(VC_BUILD_TESTS)
+
+# Set source files
 set(test_srcs
     test/LRUCacheTest.cpp
     test/ObjWriterTest.cpp
@@ -62,6 +64,8 @@ set(test_srcs
     test/UVMapTest.cpp
     test/plyWriterTest.cpp
 )
+
+# Add a test executable for each src
 foreach(src ${test_srcs})
     get_filename_component(filename ${src} NAME_WE)
     set(testname ${target}_${filename})
@@ -78,12 +82,15 @@ foreach(src ${test_srcs})
     )
 endforeach()
 
-# Testing resources
+# Set test resource files
 set(COMMON_TEST_RES
     test/res/PlyWriter_Plane.ply
     test/res/GenericGradient.tif
 )
+
+# Copy each test resource file
 foreach(r ${COMMON_TEST_RES})
     file(COPY ${r} DESTINATION ${EXECUTABLE_OUTPUT_PATH})
 endforeach()
+
 endif(VC_BUILD_TESTS)

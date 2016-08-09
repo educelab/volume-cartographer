@@ -50,8 +50,10 @@ install(TARGETS ${target}
 install(DIRECTORY include/ DESTINATION ${VC_INSTALL_INCLUDE_PREFIX} COMPONENT Includes)
 export(TARGETS ${target} FILE VCTexturing.cmake)
 
-# Testing
+### Testing ###
 if(VC_BUILD_TESTS)
+
+# Set source files
 set(test_srcs
     test/abfTest.cpp
     test/simpleUVTest.cpp
@@ -62,6 +64,8 @@ endif()
 if (VC_USE_LIBIGL)
     list(APPEND test_srcs test/lscmTest.cpp)
 endif()
+
+# Add a test executable for each src
 foreach(src ${test_srcs})
     get_filename_component(filename ${src} NAME_WE)
     set(testname ${target}_${filename})
@@ -72,7 +76,7 @@ foreach(src ${test_srcs})
         vc_testing
         vc_meshing
         Boost::unit_test_framework
-        ${public_deps}        
+        ${public_deps}
     )
     add_test(
         NAME ${testname}
@@ -80,6 +84,8 @@ foreach(src ${test_srcs})
         COMMAND ${testname}
     )
 endforeach()
+
+# Set test resource files
 set(VC_TEXTURING_TEST_RES
     test/res/abf_Plane.obj
     test/res/abf_Plane_LSCMOnly.obj
@@ -99,7 +105,10 @@ if (VC_USE_LIBIGL)
         test/res/lscm_Arch.obj
     )
 endif()
+
+# Copy each test resource file
 foreach(r ${VC_TEXTURING_TEST_RES})
     file(COPY ${r} DESTINATION ${EXECUTABLE_OUTPUT_PATH})
 endforeach()
+
 endif(VC_BUILD_TESTS)

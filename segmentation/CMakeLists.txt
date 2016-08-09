@@ -40,8 +40,10 @@ install(TARGETS vc_segmentation
 install(DIRECTORY include/ DESTINATION ${VC_INSTALL_INCLUDE_PREFIX} COMPONENT Includes)
 export(TARGETS vc_segmentation FILE VCSegmentation.cmake)
 
-# Testing
+### Testing ###
 if(VC_BUILD_TESTS)
+
+# Set source files
 set(VC_SEGMENTATION_TEST_SRCS
     test/commonTest.cpp
     test/cubicSplineTest.cpp
@@ -51,6 +53,8 @@ set(VC_SEGMENTATION_TEST_SRCS
     test/intensitymapTest.cpp
     test/localResliceParticleSimTest.cpp
 )
+
+# Add a test executable for each src
 foreach(src ${VC_SEGMENTATION_TEST_SRCS})
     get_filename_component(filename ${src} NAME_WE)
     set(testname vc_segmentation_${filename})
@@ -67,6 +71,8 @@ foreach(src ${VC_SEGMENTATION_TEST_SRCS})
         COMMAND ${testname}
     )
 endforeach()
+
+# Copy test resource files
 file(
     COPY
         ${EXECUTABLE_OUTPUT_PATH}/Testing.volpkg/paths/starting-path/cloud.pcd
