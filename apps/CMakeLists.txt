@@ -1,11 +1,17 @@
-# Handle GUI apps
+############
+# GUI Apps #
+############
 add_subdirectory(VC)
 
 if (VC_USE_ACVD)
     add_subdirectory(VC-Texture)
 endif()
 
-## Mesher
+#################
+# CMD Line Apps #
+#################
+
+## Mesher ##
 add_executable(vc_mesher src/mesher.cpp)
 target_link_libraries(vc_mesher
     vc_meshing
@@ -18,7 +24,7 @@ target_include_directories(vc_mesher
         ${PCL_IO_INCLUDE_DIRS}
 )
 
-# Packager
+## Packager ##
 add_executable(vc_packager src/packager.cpp src/SliceImage.cpp)
 target_link_libraries(vc_packager
     vc_volumepkg
@@ -29,7 +35,7 @@ target_link_libraries(vc_packager
 # Special - need to include SliceImage.h
 target_include_directories(vc_packager PUBLIC include)
 
-# Segment
+## Segment ##
 add_executable(vc_segment src/segment.cpp)
 target_link_libraries(vc_segment
     vc_volumepkg
@@ -39,7 +45,7 @@ target_link_libraries(vc_segment
 )
 target_include_directories(vc_segment PUBLIC ${PCL_IO_INCLUDE_DIRS})
 
-# Texture
+## Rendering ##
 add_executable(vc_render src/render.cpp)
 target_link_libraries(vc_render
     vc_common
@@ -50,17 +56,19 @@ target_link_libraries(vc_render
     Boost::program_options
 )
 
-# Metadata Editor
+## Metadata Editor ##
 add_executable(vc_metaedit src/metadata.cpp)
 target_link_libraries(vc_metaedit vc_volumepkg)
 
-# Slice Projection
+## Slice Projection ##
+# Old
 add_executable(vc_projection src/projection.cpp)
 target_link_libraries(vc_projection
     vc_common
     vc_volumepkg
 )
 
+# New
 add_executable(vc_projection2 src/projection2.cpp)
 target_link_libraries(vc_projection2
     vc_volumepkg
@@ -70,6 +78,7 @@ target_link_libraries(vc_projection2
     vtkIOPLY
 )
 
+## Layering ##
 # This doesn't seem to be used, and doesn't even compile with our current stuff
 #add_executable(vc_layering src/layering.cpp)
 #target_link_libraries(vc_layering
@@ -79,7 +88,7 @@ target_link_libraries(vc_projection2
 #    vc_texturing
 #)
 
-# Cloth Flattening
+## Cloth Flattening ##
 if (VC_USE_BULLET)
     add_executable(vc_cloth src/cloth.cpp)
     target_link_libraries(vc_cloth
@@ -92,5 +101,5 @@ if (VC_USE_BULLET)
 endif()
 
 # Install targets
-install(TARGETS vc_mesher vc_segment vc_metaedit vc_projection vc_render
+install(TARGETS vc_mesher vc_packager vc_segment vc_render vc_metaedit vc_projection vc_projection2
         RUNTIME DESTINATION bin COMPONENT Programs)

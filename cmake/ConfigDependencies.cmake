@@ -1,13 +1,13 @@
-### VC Prebuilt Libs ###
+########
+# Core #
+########
+
+### Use VC Prebuilt Libs ###
 # Built using vc-deps
 option(VC_PREBUILT_LIBS "Link against prebuilt dependencies" off)
 if (VC_PREBUILT_LIBS)
     set(CMAKE_PREFIX_PATH ${PROJECT_SOURCE_DIR}/vc-deps/deps)
 endif()
-
-########
-# Core #
-########
 
 ### Boost ###
 set(VC_BOOST_COMPONENTS
@@ -57,7 +57,8 @@ find_package(OpenCV REQUIRED)
 ############
 
 ### ACVD ###
-option(VC_USE_ACVD "Use ACVD library" off)
+# Currently required since VC-Texture needs it - SP
+option(VC_USE_ACVD "Use ACVD library" on)
 if (VC_USE_ACVD)
     find_package(ACVD QUIET REQUIRED)
     add_library(acvd INTERFACE IMPORTED)
