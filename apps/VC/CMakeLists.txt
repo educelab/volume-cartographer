@@ -28,17 +28,17 @@ if (APPLE)
         ${target}
         ${CMAKE_BUILD_TYPE}
         " Version"
-        ${CMAKE_VERSION}
+        ${PROJECT_VERSION}
         ", "
         ${copyright}
     )
     set(MACOSX_BUNDLE_INFO_STRING ${info_string})
     set(MACOSX_BUNDLE_GUI_IDENTIFIER "${target}${CMAKE_BUILD_TYPE}")
     set(MACOSX_BUNDLE_LONG_VERSION_STRING
-        "${target}${CMAKE_BUILD_TYPE} Version ${CMAKE_VERSION}")
+        "${target}${CMAKE_BUILD_TYPE} Version ${PROJECT_VERSION}")
     set(MACOSX_BUNDLE_BUNDLE_NAME ${target}${CMAKE_BUILD_TYPE})
-    set(MACOSX_BUNDLE_SHORT_VERSION_STRING ${CMAKE_VERSION})
-    set(MACOSX_BUNDLE_BUNDLE_VERSION ${CMAKE_VERSION})
+    set(MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION})
+    set(MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION})
     set(MACOSX_BUNDLE_COPYRIGHT ${copyright})
 endif()
 
