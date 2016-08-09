@@ -10,7 +10,7 @@
 
 #include "Global_Values.h"
 
-Global_Values::Global_Values(QRect rec)
+Global_Values::Global_Values(QRect rec) : _active(false)
 {
     // GETS THE MONITOR'S SCREEN Length & Width
     height = rec.height();
