@@ -26,6 +26,7 @@ option(VC_PREBUILT_LIBS "Link against prebuilt dependencies" off)
 option(VC_BUILD_APPS     "Compile VC core programs"    on)
 option(VC_BUILD_UTILS    "Compile VC utility programs" on)
 option(VC_BUILD_EXAMPLES "Compile VC example programs" on)
+option(VC_BUILD_TESTS    "Compile VC test programs"    on)
 
 # Choose what to install
 option(VC_INSTALL_APPS      "Install VC core programs"    on)
@@ -45,12 +46,18 @@ if (CMAKE_GENERATOR MATCHES "Ninja")
     add_compile_options(-fdiagnostics-color=always)
 endif()
 
+if(VC_BUILD_TESTS)
 enable_testing()
+endif()
 
 ## VC Libraries ##
 add_subdirectory(external)
 add_subdirectory(common)
+
+if(VC_BUILD_TESTS)
 add_subdirectory(testing)
+endif()
+
 add_subdirectory(meshing)
 add_subdirectory(volumepkg)
 add_subdirectory(segmentation)

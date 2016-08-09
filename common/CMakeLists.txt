@@ -53,6 +53,7 @@ install(DIRECTORY include/ DESTINATION ${VC_INSTALL_INCLUDE_PREFIX} COMPONENT In
 export(TARGETS ${target} FILE VCCommon.cmake)
 
 # Testing
+if(VC_BUILD_TESTS)
 set(test_srcs
     test/LRUCacheTest.cpp
     test/ObjWriterTest.cpp
@@ -85,3 +86,4 @@ set(COMMON_TEST_RES
 foreach(r ${COMMON_TEST_RES})
     file(COPY ${r} DESTINATION ${EXECUTABLE_OUTPUT_PATH})
 endforeach()
+endif(VC_BUILD_TESTS)

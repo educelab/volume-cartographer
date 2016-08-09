@@ -50,6 +50,8 @@ install(TARGETS ${target}
 install(DIRECTORY include/ DESTINATION ${VC_INSTALL_INCLUDE_PREFIX} COMPONENT Includes)
 export(TARGETS ${target} FILE VCTexturing.cmake)
 
+# Testing
+if(VC_BUILD_TESTS)
 set(test_srcs
     test/abfTest.cpp
     test/simpleUVTest.cpp
@@ -100,3 +102,4 @@ endif()
 foreach(r ${VC_TEXTURING_TEST_RES})
     file(COPY ${r} DESTINATION ${EXECUTABLE_OUTPUT_PATH})
 endforeach()
+endif(VC_BUILD_TESTS)

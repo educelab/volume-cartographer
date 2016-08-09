@@ -58,6 +58,8 @@ install(TARGETS ${target}
 install(DIRECTORY include/ DESTINATION ${VC_INSTALL_INCLUDE_PREFIX} COMPONENT Includes)
 export(TARGETS ${target} FILE VCMeshing.cmake)
 
+# Testing
+if(VC_BUILD_TESTS)
 set(test_srcs
     test/CalculateNormalsTest.cpp
     test/OrderedResamplingTest.cpp
@@ -149,3 +151,4 @@ set(MESHING_TEST_RES
 foreach(r ${MESHING_TEST_RES})
     file(COPY ${r} DESTINATION ${EXECUTABLE_OUTPUT_PATH})
 endforeach()
+endif(VC_BUILD_TESTS)

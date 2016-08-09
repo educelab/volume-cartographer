@@ -40,6 +40,8 @@ install(TARGETS vc_segmentation
 install(DIRECTORY include/ DESTINATION ${VC_INSTALL_INCLUDE_PREFIX} COMPONENT Includes)
 export(TARGETS vc_segmentation FILE VCSegmentation.cmake)
 
+# Testing
+if(VC_BUILD_TESTS)
 set(VC_SEGMENTATION_TEST_SRCS
     test/commonTest.cpp
     test/cubicSplineTest.cpp
@@ -71,3 +73,4 @@ file(
     DESTINATION
         ${EXECUTABLE_OUTPUT_PATH}/Testing.volpkg/paths/lrps-test-results
 )
+endif(VC_BUILD_TESTS)
