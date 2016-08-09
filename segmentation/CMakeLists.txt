@@ -33,11 +33,11 @@ target_link_libraries(vc_segmentation
 )
 
 install(TARGETS vc_segmentation
-    ARCHIVE DESTINATION lib
-    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib COMPONENT Libraries
+    LIBRARY DESTINATION lib COMPONENT Libraries
     RUNTIME DESTINATION bin
 )
-install(DIRECTORY include/ DESTINATION ${VC_INSTALL_INCLUDE_PREFIX})
+install(DIRECTORY include/ DESTINATION ${VC_INSTALL_INCLUDE_PREFIX} COMPONENT Includes)
 export(TARGETS vc_segmentation FILE VCSegmentation.cmake)
 
 set(VC_SEGMENTATION_TEST_SRCS

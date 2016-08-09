@@ -1,5 +1,5 @@
 # What components to install
-set(INSTALL_COMPONENTS "")
+set(INSTALL_COMPONENTS "Libraries" "Includes")
 if(VC_INSTALL_APPS)
     list(APPEND INSTALL_COMPONENTS "Programs")
 endif()

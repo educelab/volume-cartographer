@@ -20,9 +20,9 @@ target_link_libraries(${target}
 )
 
 install(TARGETS ${target}
-    ARCHIVE DESTINATION lib
-    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib COMPONENT Libraries
+    LIBRARY DESTINATION lib COMPONENT Libraries
     RUNTIME DESTINATION bin
 )
-install(DIRECTORY include/ DESTINATION ${VC_INSTALL_INCLUDE_PREFIX})
+install(DIRECTORY include/ DESTINATION ${VC_INSTALL_INCLUDE_PREFIX} COMPONENT Includes)
 export(TARGETS ${target} FILE VCVolumepkg.cmake)
