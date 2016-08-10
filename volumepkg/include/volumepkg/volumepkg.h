@@ -44,7 +44,7 @@ public:
     void printDirs() const
     {
         std::cout << "root: " << root_dir << " seg: " << segs_dir
-                  << " slice: " << slice_dir << " norm: " << norm_dir
+                  << " slice: " << slice_dir
                   << std::endl;
     };
 
@@ -131,7 +131,6 @@ private:
     boost::filesystem::path root_dir;
     boost::filesystem::path segs_dir;
     boost::filesystem::path slice_dir;
-    boost::filesystem::path norm_dir;
 
     int getNumberOfSliceCharacters();
     std::string activeSeg = "";

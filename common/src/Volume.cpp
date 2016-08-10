@@ -89,14 +89,6 @@ bool Volume::setSliceData(int32_t index, const cv::Mat& slice)
     return true;
 }
 
-fs::path Volume::getNormalPathAtIndex(int32_t index) const
-{
-    std::stringstream ss;
-    ss << std::setw(numSliceCharacters_) << std::setfill('0') << index
-       << ".pcd";
-    return normalPath_ / ss.str();
-}
-
 fs::path Volume::getSlicePath(int32_t index) const
 {
     std::stringstream ss;
