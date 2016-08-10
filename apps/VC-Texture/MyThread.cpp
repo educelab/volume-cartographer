@@ -41,21 +41,21 @@ void MyThread::run()
         double sa = volcart::meshMath::SurfaceArea( mesh ) * (voxelsize * voxelsize) * (0.001 * 0.001); // convert vx^2 -> mm^2;
         double densityFactor = 50;
         uint16_t numberOfVertices = std::round(densityFactor * sa);
+        numberOfVertices = (numberOfVertices < CLEANER_MIN_REQ_POINTS) ? CLEANER_MIN_REQ_POINTS : numberOfVertices;
 
         // Convert to polydata
-        vtkPolyData* vtkMesh = vtkPolyData::New();
+        auto vtkMesh = vtkSmartPointer<vtkPolyData>::New();
         volcart::meshing::itk2vtk(mesh, vtkMesh);
 
         // Decimate using ACVD
         std::cout << "Resampling mesh..." << std::endl;
-        vtkPolyData* acvdMesh = vtkPolyData::New();
+        auto acvdMesh = vtkSmartPointer<vtkPolyData>::New();
         volcart::meshing::ACVD(vtkMesh, acvdMesh, numberOfVertices );
 
         // Merge Duplicates
         // Note: This merging has to be the last in the process chain for some really weird reason. - SP
-        vtkSmartPointer<vtkCleanPolyData> Cleaner = vtkCleanPolyData::New();
+        auto Cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
         Cleaner->SetInputData( acvdMesh );
-        Cleaner->ToleranceIsAbsoluteOn();
         Cleaner->Update();
 
         VC_MeshType::Pointer itkACVD = VC_MeshType::New();

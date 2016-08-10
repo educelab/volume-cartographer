@@ -28,5 +28,7 @@ private:
 
     Global_Values *_globals;
 
+    static const uint16_t CLEANER_MIN_REQ_POINTS = 100;
+
 };
 #endif //VC_MYTHREAD_H
