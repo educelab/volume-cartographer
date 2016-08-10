@@ -22,10 +22,9 @@ VolumePkg::VolumePkg(const fs::path& file_location, double version)
     config.set(
         "slice location",
         "/slices/");  // To-Do: We need a better way of handling default values
-    norm_dir = file_location / "surface_normals";
 
     // Initialize volume object
-    vol_ = volcart::Volume(slice_dir, norm_dir,
+    vol_ = volcart::Volume(slice_dir,
                            config.get<int>("number of slices"),
                            config.get<int>("width"), config.get<int>("height"));
 };
@@ -43,9 +42,7 @@ VolumePkg::VolumePkg(const fs::path& file_location)
 
     segs_dir = file_location / "paths";
     slice_dir = file_location / "slices";
-    norm_dir = file_location / "surface_normals";
-    if (!(fs::exists(segs_dir) || fs::exists(slice_dir) ||
-          fs::exists(norm_dir))) {
+    if (!(fs::exists(segs_dir) || fs::exists(slice_dir))) {
         auto errmsg = "invalid volumepkg structure";
         throw std::runtime_error(errmsg);
     }
@@ -61,7 +58,7 @@ VolumePkg::VolumePkg(const fs::path& file_location)
     }
 
     // Initialize volume object
-    vol_ = volcart::Volume(slice_dir, norm_dir,
+    vol_ = volcart::Volume(slice_dir,
                            config.get<int>("number of slices"),
                            config.get<int>("width"), config.get<int>("height"));
 };
@@ -89,7 +86,6 @@ int VolumePkg::_makeDirTree()
     dirs.push_back(root_dir);
     dirs.push_back(segs_dir);
     dirs.push_back(slice_dir);
-    dirs.push_back(norm_dir);
 
     // Make dirs that don't exist
     for (auto dir = dirs.begin(); dir != dirs.end(); ++dir) {

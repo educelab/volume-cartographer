@@ -30,12 +30,10 @@ public:
     Volume() = default;
 
     Volume(boost::filesystem::path slicePath,
-           boost::filesystem::path normalPath,
            int32_t nslices,
            int32_t sliceWidth,
            int32_t sliceHeight)
         : slicePath_(slicePath)
-        , normalPath_(normalPath)
         , numSlices_(nslices)
         , sliceWidth_(sliceWidth)
         , sliceHeight_(sliceHeight)
@@ -274,7 +272,6 @@ public:
 
 private:
     boost::filesystem::path slicePath_;
-    boost::filesystem::path normalPath_;
     int32_t numSlices_;
     int32_t sliceWidth_;
     int32_t sliceHeight_;

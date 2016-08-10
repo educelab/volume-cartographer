@@ -91,9 +91,6 @@ if (VC_USE_ACVD)
     target_link_libraries(vc_abf_example vc_common vc_texturing vc_volumepkg)
 endif()
 
-add_executable(vc_verify_structure_tensor src/VerifyStructureTensor.cpp)
-target_link_libraries(vc_verify_structure_tensor vc_volumepkg)
-
 add_executable(vc_structure_tensor_client src/StructureTensorClient.cpp)
 target_link_libraries(vc_structure_tensor_client vc_volumepkg)
 
