@@ -44,17 +44,17 @@ void MyThread::run()
         numberOfVertices = (numberOfVertices < CLEANER_MIN_REQ_POINTS) ? CLEANER_MIN_REQ_POINTS : numberOfVertices;
 
         // Convert to polydata
-        vtkSmartPointer<vtkPolyData> vtkMesh = vtkPolyData::New();
+        auto vtkMesh = vtkSmartPointer<vtkPolyData>::New();
         volcart::meshing::itk2vtk(mesh, vtkMesh);
 
         // Decimate using ACVD
         std::cout << "Resampling mesh..." << std::endl;
-        vtkSmartPointer<vtkPolyData> acvdMesh = vtkPolyData::New();
+        auto acvdMesh = vtkSmartPointer<vtkPolyData>::New();
         volcart::meshing::ACVD(vtkMesh, acvdMesh, numberOfVertices );
 
         // Merge Duplicates
         // Note: This merging has to be the last in the process chain for some really weird reason. - SP
-        vtkSmartPointer<vtkCleanPolyData> Cleaner = vtkCleanPolyData::New();
+        auto Cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
         Cleaner->SetInputData( acvdMesh );
         Cleaner->Update();
 

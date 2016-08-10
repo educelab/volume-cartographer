@@ -11,8 +11,8 @@ namespace volcart {
         itk2vtk::itk2vtk( VC_MeshType::Pointer input, vtkSmartPointer<vtkPolyData> output ) {
 
             // points + normals
-            vtkSmartPointer<vtkPoints> points = vtkPoints::New();
-            vtkSmartPointer<vtkDoubleArray> pointNormals = vtkSmartPointer<vtkDoubleArray>::New();
+            auto points = vtkSmartPointer<vtkPoints>::New();
+            auto pointNormals = vtkSmartPointer<vtkDoubleArray>::New();
             pointNormals->SetNumberOfComponents(3); //3d normals (ie x,y,z)
             pointNormals->SetNumberOfTuples(input->GetNumberOfPoints());
 
@@ -29,10 +29,10 @@ namespace volcart {
 
 
             // cells
-            vtkSmartPointer<vtkCellArray> polys = vtkCellArray::New();
+            auto polys = vtkSmartPointer<vtkCellArray>::New();
             for ( VC_CellIterator cell = input->GetCells()->Begin(); cell != input->GetCells()->End(); ++cell ) {
 
-                vtkSmartPointer<vtkIdList> poly = vtkIdList::New();
+                auto poly = vtkSmartPointer<vtkIdList>::New();
                 for ( VC_PointsInCellIterator point = cell.Value()->PointIdsBegin(); point != cell.Value()->PointIdsEnd(); ++point )
                     poly->InsertNextId(*point);
 
@@ -50,7 +50,7 @@ namespace volcart {
         vtk2itk::vtk2itk( vtkSmartPointer<vtkPolyData> input, VC_MeshType::Pointer output ) {
 
             // points + normals
-            vtkSmartPointer<vtkDataArray> pointNormals = input->GetPointData()->GetNormals();
+            auto pointNormals = input->GetPointData()->GetNormals();
             for ( vtkIdType p_id = 0; p_id < input->GetNumberOfPoints(); ++p_id ) {
 
                 VC_PointType point = input->GetPoint(p_id);
@@ -64,7 +64,7 @@ namespace volcart {
             VC_CellType::CellAutoPointer cell;
             for ( vtkIdType c_id = 0; c_id < input->GetNumberOfCells(); ++c_id ) {
 
-                vtkSmartPointer<vtkCell> inputCell = input->GetCell(c_id); // input cell
+                auto inputCell = input->GetCell(c_id); // input cell
                 cell.TakeOwnership( new VC_TriangleType ); // output cell
 
                 for ( vtkIdType p_id = 0; p_id < inputCell->GetNumberOfPoints(); ++p_id ) {
