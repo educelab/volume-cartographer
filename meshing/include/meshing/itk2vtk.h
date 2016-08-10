@@ -20,12 +20,12 @@ namespace volcart {
 
         class itk2vtk {
         public:
-            itk2vtk( VC_MeshType::Pointer input, vtkPolyData* output );
+            itk2vtk( VC_MeshType::Pointer input, vtkSmartPointer<vtkPolyData> output );
         };
 
         class vtk2itk {
         public:
-            vtk2itk( vtkPolyData* input, VC_MeshType::Pointer output );
+            vtk2itk( vtkSmartPointer<vtkPolyData> input, VC_MeshType::Pointer output );
         };
 
         class itk2itkQE {

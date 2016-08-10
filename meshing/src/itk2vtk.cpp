@@ -8,10 +8,10 @@ namespace volcart {
     namespace meshing {
 
         ///// ITK Mesh -> VTK Polydata /////
-        itk2vtk::itk2vtk( VC_MeshType::Pointer input, vtkPolyData* output ) {
+        itk2vtk::itk2vtk( VC_MeshType::Pointer input, vtkSmartPointer<vtkPolyData> output ) {
 
             // points + normals
-            vtkPoints *points = vtkPoints::New();
+            vtkSmartPointer<vtkPoints> points = vtkPoints::New();
             vtkSmartPointer<vtkDoubleArray> pointNormals = vtkSmartPointer<vtkDoubleArray>::New();
             pointNormals->SetNumberOfComponents(3); //3d normals (ie x,y,z)
             pointNormals->SetNumberOfTuples(input->GetNumberOfPoints());
@@ -29,10 +29,10 @@ namespace volcart {
 
 
             // cells
-            vtkCellArray *polys = vtkCellArray::New();
+            vtkSmartPointer<vtkCellArray> polys = vtkCellArray::New();
             for ( VC_CellIterator cell = input->GetCells()->Begin(); cell != input->GetCells()->End(); ++cell ) {
 
-                vtkIdList *poly = vtkIdList::New();
+                vtkSmartPointer<vtkIdList> poly = vtkIdList::New();
                 for ( VC_PointsInCellIterator point = cell.Value()->PointIdsBegin(); point != cell.Value()->PointIdsEnd(); ++point )
                     poly->InsertNextId(*point);
 
@@ -44,14 +44,13 @@ namespace volcart {
             output->SetPoints(points);
             output->SetPolys(polys);
             output->GetPointData()->SetNormals(pointNormals);
-
         };
 
         ///// VTK Polydata -> ITK Mesh /////
-        vtk2itk::vtk2itk( vtkPolyData* input, VC_MeshType::Pointer output ) {
+        vtk2itk::vtk2itk( vtkSmartPointer<vtkPolyData> input, VC_MeshType::Pointer output ) {
 
             // points + normals
-            vtkDataArray *pointNormals = input->GetPointData()->GetNormals();
+            vtkSmartPointer<vtkDataArray> pointNormals = input->GetPointData()->GetNormals();
             for ( vtkIdType p_id = 0; p_id < input->GetNumberOfPoints(); ++p_id ) {
 
                 VC_PointType point = input->GetPoint(p_id);
@@ -65,7 +64,7 @@ namespace volcart {
             VC_CellType::CellAutoPointer cell;
             for ( vtkIdType c_id = 0; c_id < input->GetNumberOfCells(); ++c_id ) {
 
-                vtkCell *inputCell = input->GetCell(c_id); // input cell
+                vtkSmartPointer<vtkCell> inputCell = input->GetCell(c_id); // input cell
                 cell.TakeOwnership( new VC_TriangleType ); // output cell
 
                 for ( vtkIdType p_id = 0; p_id < inputCell->GetNumberOfPoints(); ++p_id ) {
