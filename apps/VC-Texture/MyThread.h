@@ -28,5 +28,7 @@ private:
 
     Global_Values *_globals;
 
+    static const uint16_t ABF_MIN_REQ_POINTS = 200;
+
 };
 #endif //VC_MYTHREAD_H
