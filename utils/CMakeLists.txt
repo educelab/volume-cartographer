@@ -1,11 +1,3 @@
-# vc_text2pcd
-add_executable(vc_txt2pcd src/txt2pcd.cpp)
-target_include_directories(vc_txt2pcd PUBLIC
-    ${PCL_COMMON_INCLUDE_DIRS}
-    ${PCL_IO_INCLUDE_DIRS}
-)
-target_link_libraries(vc_txt2pcd ${PCL_COMMON_LIBRARIES} ${PCL_IO_LIBRARIES})
-
 # vc_addScale
 add_executable(vc_addScale src/addScale.cpp)
 target_link_libraries(vc_addScale vc_volumepkg vc_common)
@@ -21,18 +13,6 @@ target_link_libraries(vc_zxy2xyz ${PCL_IO_LIBRARIES} ${PCL_COMMON_LIBRARIES})
 # vc_area
 add_executable(vc_area src/surfarea.cpp)
 target_link_libraries(vc_area vc_volumepkg vc_common vc_meshing)
-
-# vc_splitcloud
-add_executable(vc_splitcloud src/splitcloud.cpp)
-target_include_directories(vc_splitcloud PUBLIC
-    ${PCL_COMMON_INCLUDE_DIRS}
-    ${PCL_IO_INCLUDE_DIRS}
-)
-target_link_libraries(vc_splitcloud
-    Boost::filesystem
-    ${PCL_COMMON_LIBRARIES}
-    ${PCL_IO_LIBRARIES}
-)
 
 # vc_invertcloud
 add_executable(vc_invertcloud src/invertCloud.cpp)
