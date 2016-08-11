@@ -4,6 +4,7 @@
 
 #include "meshing/itk2vtk.h"
 
+
 namespace volcart {
     namespace meshing {
 
@@ -17,14 +18,15 @@ namespace volcart {
             pointNormals->SetNumberOfTuples(input->GetNumberOfPoints());
 
             for ( VC_PointsInMeshIterator point = input->GetPoints()->Begin(); point != input->GetPoints()->End(); ++point ) {
+                //assign the point
+                points->InsertPoint(point->Index(), point->Value()[0], point->Value()[1], point->Value()[2]);
                 // get the point's normal
                 VC_PixelType normal;
-                input->GetPointData(point.Index(), &normal);
-                double ptNorm[3] = {normal[0], normal[1], normal[2]};
-
-                // assign the values
-                points->InsertPoint(point->Index(), point->Value()[0], point->Value()[1], point->Value()[2]);
-                pointNormals->SetTuple(point->Index(), ptNorm);
+                if(input->GetPointData(point.Index(), &normal)) {
+                    double ptNorm[3] = {normal[0], normal[1], normal[2]};
+                    // assign the normal
+                    pointNormals->SetTuple(point->Index(), ptNorm);
+                }
             }
 
 
@@ -54,10 +56,12 @@ namespace volcart {
             for ( vtkIdType p_id = 0; p_id < input->GetNumberOfPoints(); ++p_id ) {
 
                 VC_PointType point = input->GetPoint(p_id);
-                VC_PixelType normal = pointNormals->GetTuple(p_id);
-
                 output->SetPoint(p_id, point);
-                output->SetPointData(p_id, normal);
+                if(pointNormals)
+                {
+                    VC_PixelType normal = pointNormals->GetTuple(p_id);
+                    output->SetPointData(p_id, normal);
+                }
             }
 
             // cells
@@ -84,10 +88,9 @@ namespace volcart {
           VC_PixelType n;
           for ( VC_PointsInMeshIterator point = input->GetPoints()->Begin(); point != input->GetPoints()->End(); ++point ) {
             p = point->Value();
-            input->GetPointData(point->Index(), &n);
-
             output->SetPoint(point->Index(), p);
-            output->SetPointData(point->Index(), n);
+              if(input->GetPointData(point->Index(), &n))
+                    output->SetPointData(point->Index(), n);
           }
 
           // Faces
@@ -111,10 +114,11 @@ namespace volcart {
           VC_PixelType n;
           for( auto point = input->GetPoints()->Begin(); point != input->GetPoints()->End(); ++point ) {
             p = point->Value();
-            input->GetPointData(point->Index(), &n);
+            if(input->GetPointData(point->Index(), &n))
+                output->SetPointData(point->Index(), n);
 
-            output->SetPoint(point->Index(), p);
-            output->SetPointData(point->Index(), n);
+              output->SetPoint(point->Index(), p);
+
           }
 
           // Faces
