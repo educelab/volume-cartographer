@@ -576,7 +576,7 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedConeWithSavedConeVTKFileT
 
 BOOST_FIXTURE_TEST_CASE(MeshWithNoNormals,NoNormalsFixture){
 
-    vtkPolyData* _vtk_Mesh = vtkPolyData::New();
+    vtkSmartPointer<vtkPolyData>_vtk_Mesh = vtkPolyData::New();
     volcart::meshing::itk2vtk(_itk_Mesh,_vtk_Mesh);
     volcart::meshing::vtk2itk(_vtk_Mesh, _itk_Mesh);
 }
