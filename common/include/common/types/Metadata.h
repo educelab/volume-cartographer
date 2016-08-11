@@ -34,7 +34,7 @@ public:
     // Save to file
     void save(const boost::filesystem::path& path);
 
-    void save() { save(_path.string()); };
+    void save() { save(_path); };
 
     // Debug function
     void printString() const { std::cout << _json << std::endl; }

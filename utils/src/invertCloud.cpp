@@ -8,6 +8,7 @@
 #include "common/vc_defines.h"
 #include <pcl/io/pcd_io.h>
 #include <pcl/common/common.h>
+#include <boost/filesystem/path.hpp>
 
 
 int main(int argc, char* argv[])
@@ -18,8 +19,8 @@ int main(int argc, char* argv[])
     }
 
     VolumePkg vpkg = VolumePkg( argv[ 1 ] );
-    std::string input_path = argv[ 2 ];
-    std::string output_path = argv[ 3 ];
+    fs::path input_path = argv[ 2 ];
+    fs::path output_path = argv[ 3 ];
 
     if ( vpkg.getVersion() < 2.0) {
         std::cerr << "ERROR: Volume package is version " << vpkg.getVersion() << " but this program requires a version >= 2.0."  << std::endl;
@@ -30,13 +31,13 @@ int main(int argc, char* argv[])
 
     // Load the cloud
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr input  (new pcl::PointCloud<pcl::PointXYZRGB>);
-    pcl::io::loadPCDFile<pcl::PointXYZRGB> (input_path, *input);
+    pcl::io::loadPCDFile<pcl::PointXYZRGB> (input_path.string(), *input);
 
     for ( auto pt = input->points.begin(); pt != input->points.end(); ++pt ) {
         if ( pt->z != -1 ) pt->z = vpkg.getNumberOfSlices() - 1 - pt->z;
     }
 
-    pcl::io::savePCDFileBinaryCompressed(output_path, *input);
+    pcl::io::savePCDFileBinaryCompressed(output_path.string(), *input);
 
     return 0;
 } // end main

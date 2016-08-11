@@ -4,19 +4,21 @@
 
 #include "common/io/plyWriter.h"
 
+namespace fs = boost::filesystem;
+
 namespace volcart
 {
 namespace io
 {
 
 // Constructors
-plyWriter::plyWriter(std::string outputPath, VC_MeshType::Pointer mesh)
+plyWriter::plyWriter(fs::path outputPath, VC_MeshType::Pointer mesh)
 {
     _outputPath = outputPath;
     _mesh = mesh;
 };
 
-plyWriter::plyWriter(std::string outputPath,
+plyWriter::plyWriter(fs::path outputPath,
                      VC_MeshType::Pointer mesh,
                      volcart::Texture texture)
 {
@@ -33,8 +35,7 @@ bool plyWriter::validate()
     bool hasExt = (_outputPath.extension() == ".PLY" ||
                    _outputPath.extension() == ".ply");
     // Make sure the output directory exists
-    bool pathExists = boost::filesystem::is_directory(
-        boost::filesystem::canonical(_outputPath.parent_path()));
+    bool pathExists = fs::is_directory(fs::canonical(_outputPath.parent_path()));
     // Check that the mesh exists and has points
     bool meshHasPoints = (_mesh.IsNotNull() && _mesh->GetNumberOfPoints() != 0);
 

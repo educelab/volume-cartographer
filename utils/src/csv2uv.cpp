@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
     massProperties->Update();
     double original_sa = massProperties->GetSurfaceArea();
 
-    std::ifstream file ( argv[ 1 ] ); // declare file stream: http://www.cplusplus.com/reference/iostream/ifstream/
+    std::ifstream file ( argv[ 1 ] );
     std::string line;
 
     VC_PixelType vertex;

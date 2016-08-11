@@ -14,6 +14,7 @@ set(srcs
 )
 set(deps
     vc_common
+    Boost::filesystem
 )
 set(defs "")
 

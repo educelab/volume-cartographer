@@ -3,19 +3,20 @@
 //
 
 #include "common/io/ply2itk.h"
+#include <boost/filesystem.hpp>
 
 namespace volcart
 {
 namespace io
 {
 
-bool ply2itkmesh(std::string plyPath,
+bool ply2itkmesh(const boost::filesystem::path& plyPath,
                  VC_MeshType::Pointer mesh,
                  int &width,
                  int &height)
 {
     // open ply file
-    std::ifstream plyFile(plyPath.c_str());
+    std::ifstream plyFile(plyPath.string());
     if (!plyFile.is_open()) {
         std::cerr << "Open file " << plyPath << " failed." << std::endl;
         return false;

@@ -23,12 +23,12 @@ class plyWriter
 {
 public:
     plyWriter(){};
-    plyWriter(std::string outputPath, VC_MeshType::Pointer mesh);
-    plyWriter(std::string outputPath,
+    plyWriter(boost::filesystem::path outputPath, VC_MeshType::Pointer mesh);
+    plyWriter(boost::filesystem::path outputPath,
               VC_MeshType::Pointer mesh,
               volcart::Texture texture);
 
-    void setPath(std::string path) { _outputPath = path; };
+    void setPath(boost::filesystem::path path) { _outputPath = path; };
     void setMesh(VC_MeshType::Pointer mesh) { _mesh = mesh; };
     void setTexture(volcart::Texture texture) { _texture = texture; };
 

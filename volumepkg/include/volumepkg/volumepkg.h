@@ -81,7 +81,7 @@ public:
     }
 
     // Metadata Export
-    void saveMetadata(const std::string& filePath);
+    void saveMetadata(const boost::filesystem::path& filePath);
 
     void saveMetadata();
 
@@ -98,7 +98,7 @@ public:
 
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr openCloud() const;
 
-    std::string getMeshPath() const;
+    boost::filesystem::path getMeshPath() const;
 
     cv::Mat getTextureData() const;
 
@@ -106,7 +106,7 @@ public:
         const pcl::PointCloud<pcl::PointXYZRGB>& segmentedCloud) const;
 
     int saveMesh(
-        const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& segmentedCloud) const;
+        const pcl::PointCloud<pcl::PointXYZRGB>::Ptr segmentedCloud) const;
 
     void saveMesh(const VC_MeshType::Pointer& mesh,
                   volcart::Texture& texture) const;

@@ -4,6 +4,8 @@
 
 #include "common/io/objWriter.h"
 
+namespace fs = boost::filesystem;
+
 #define UNSET_VALUE -1
 
 namespace volcart {
@@ -12,12 +14,12 @@ namespace volcart {
     ///// Constructors /////
     objWriter::objWriter() {};
 
-    objWriter::objWriter( std::string outputPath, VC_MeshType::Pointer mesh ) {
+    objWriter::objWriter( fs::path outputPath, VC_MeshType::Pointer mesh ) {
         _outputPath = outputPath;
         _mesh = mesh;
     };
 
-    objWriter::objWriter( std::string outputPath, VC_MeshType::Pointer mesh, volcart::UVMap uvMap, cv::Mat uvImg ) {
+    objWriter::objWriter( fs::path outputPath, VC_MeshType::Pointer mesh, volcart::UVMap uvMap, cv::Mat uvImg ) {
         _outputPath = outputPath;
         _mesh = mesh;
         _textCoords = uvMap;
@@ -38,7 +40,7 @@ namespace volcart {
         // Make sure the output path has a file extension for the OBJ
         bool hasExt = ( _outputPath.extension() == ".OBJ" || _outputPath.extension() == ".obj" );
         // Make sure the output directory exists
-        bool pathExists = boost::filesystem::is_directory( boost::filesystem::canonical( _outputPath.parent_path() ) );
+        bool pathExists = fs::is_directory( fs::canonical( _outputPath.parent_path() ) );
         // Check that the mesh exists and has points
         bool meshHasPoints = ( _mesh.IsNotNull() && _mesh->GetNumberOfPoints() != 0 ) ;
 
@@ -80,7 +82,7 @@ namespace volcart {
     // Write the MTL file to disk
     // See http://paulbourke.net/dataformats/mtl/ for more options
     int objWriter::writeMTL() {
-        boost::filesystem::path p = _outputPath;
+        fs::path p = _outputPath;
         p.replace_extension("mtl");
         _outputMTL.open( p.string() ); // Open the file stream
         if(!_outputMTL.is_open()) return EXIT_FAILURE; // Return error if we can't open the file
@@ -107,7 +109,7 @@ namespace volcart {
         if ( _texture.empty() ) return EXIT_FAILURE;
 
         std::cerr << "Writing texture image..." << std::endl;
-        boost::filesystem::path p = _outputPath;
+        fs::path p = _outputPath;
         p.replace_extension("png");
         imwrite( p.string(), _texture );
         return EXIT_SUCCESS;

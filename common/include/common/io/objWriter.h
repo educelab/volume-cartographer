@@ -23,10 +23,10 @@ namespace io {
 
   public:
     objWriter();
-    objWriter( std::string outputPath, VC_MeshType::Pointer mesh );
-    objWriter( std::string outputPath, VC_MeshType::Pointer mesh, volcart::UVMap uvMap, cv::Mat uvImg);
+    objWriter( boost::filesystem::path outputPath, VC_MeshType::Pointer mesh );
+    objWriter( boost::filesystem::path outputPath, VC_MeshType::Pointer mesh, volcart::UVMap uvMap, cv::Mat uvImg);
 
-    void setPath( std::string path ) { _outputPath = path; };
+    void setPath( boost::filesystem::path path ) { _outputPath = path; };
 
     void setRendering( volcart::Rendering rendering );
 
