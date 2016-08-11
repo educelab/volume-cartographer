@@ -57,7 +57,7 @@ namespace volcart {
 
                 VC_PointType point = input->GetPoint(p_id);
                 output->SetPoint(p_id, point);
-                if(pointNormals)
+                if(pointNormals != NULL)
                 {
                     VC_PixelType normal = pointNormals->GetTuple(p_id);
                     output->SetPointData(p_id, normal);

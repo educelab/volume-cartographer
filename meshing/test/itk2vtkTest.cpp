@@ -198,13 +198,37 @@ struct itk2vtkConeFixture {
 
 };
 
-struct itk2vtkNoNormalsFixture {
-    itk2vtkNoNormalsFixture(){
-        _in_Mesh = VC_MeshType::New();
-        _out_Mesh = vtkPolyData::New();
+struct NoNormalsFixture {
+    NoNormalsFixture(){
+        _itk_Mesh = VC_MeshType::New();
+        p0[0] = 0; p0[1] = 1; p0[2] = 2;
+        p1[0] = 1; p1[1] = 2; p1[2] = 0;
+        p2[0] = 0; p2[1] = 2; p2[2] = 1;
+        p3[0] = 1; p3[1] = 0; p3[2] = 2;
+        _itk_Mesh->SetPoint(0, p0);
+        _itk_Mesh->SetPoint(1,p1);
+        _itk_Mesh->SetPoint(2,p2);
+        _itk_Mesh->SetPoint(3,p3);
+
+        VC_CellType::CellAutoPointer line0;
+        VC_CellType::CellAutoPointer line1;
+        line0.TakeOwnership(new VC_TriangleType);
+        line1.TakeOwnership(new VC_TriangleType);
+
+        line0->SetPointId(0, 0);
+        line0->SetPointId(1,1);
+        line0->SetPointId(2,2);
+
+        line1->SetPointId(0,3);
+        line1->SetPointId(1,0);
+        line1->SetPointId(2,1);
+
+        _itk_Mesh->SetCell(0,line0);
+        _itk_Mesh->SetCell(1,line1);
     }
-    VC_MeshType::Pointer _in_Mesh;
-    vtkPolyData* _out_Mesh;
+    VC_MeshType::Pointer _itk_Mesh;
+
+    VC_PointType p0, p1, p2, p3;
 };
 /*
  * The following five fixture build test inputs for the vtk2itk tests
@@ -353,15 +377,7 @@ struct vtk2itkConeFixture {
 
 };
 
-struct vtk2itkNoNormalsFixture{
-    vtk2itkNoNormalsFixture(){
-        _in_Mesh = vtkPolyData::New();
-        _out_Mesh = VC_MeshType::New();
-    }
-    vtkPolyData* _in_Mesh;
-    VC_MeshType::Pointer _out_Mesh;
 
-};
 
 /**********************************************************************************************************************/
 /**********************************************************************************************************************/
@@ -558,9 +574,11 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedConeWithSavedConeVTKFileT
     }
 }
 
-BOOST_FIXTURE_TEST_CASE(CompareITKToVTKMeshWithNoNormals,itk2vtkNoNormalsFixture){
+BOOST_FIXTURE_TEST_CASE(MeshWithNoNormals,NoNormalsFixture){
 
-    volcart::meshing::itk2vtk(_in_Mesh,_out_Mesh);
+    vtkPolyData* _vtk_Mesh = vtkPolyData::New();
+    volcart::meshing::itk2vtk(_itk_Mesh,_vtk_Mesh);
+    volcart::meshing::vtk2itk(_vtk_Mesh, _itk_Mesh);
 }
 /**********************************************************************************************************************/
 /**********************************************************************************************************************/
@@ -833,8 +851,4 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureVTKToITKConvertedConeWithSavedConeITKFileT
     }
 
 }
-BOOST_FIXTURE_TEST_CASE(CompareVTKtoITKMeshWithNoNormals,vtk2itkNoNormalsFixture){
 
-
-    volcart::meshing::vtk2itk(_in_Mesh,_out_Mesh);
-}
