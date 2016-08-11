@@ -198,6 +198,14 @@ struct itk2vtkConeFixture {
 
 };
 
+struct itk2vtkNoNormalsFixture {
+    itk2vtkNoNormalsFixture(){
+        _in_Mesh = VC_MeshType::New();
+        _out_Mesh = vtkPolyData::New();
+    }
+    VC_MeshType::Pointer _in_Mesh;
+    vtkPolyData* _out_Mesh;
+};
 /*
  * The following five fixture build test inputs for the vtk2itk tests
  *
@@ -345,6 +353,16 @@ struct vtk2itkConeFixture {
 
 };
 
+struct vtk2itkNoNormalsFixture{
+    vtk2itkNoNormalsFixture(){
+        _in_Mesh = vtkPolyData::New();
+        _out_Mesh = VC_MeshType::New();
+    }
+    vtkPolyData* _in_Mesh;
+    VC_MeshType::Pointer _out_Mesh;
+
+};
+
 /**********************************************************************************************************************/
 /**********************************************************************************************************************/
 /*                                                                                                                    */
@@ -468,6 +486,8 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedArchWithSavedArchVTKFileT
     }
 }
 
+
+
 BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedSphereWithSavedSphereVTKFileTest, itk2vtkSphereFixture){
 
     BOOST_CHECK_EQUAL( _out_Mesh->GetNumberOfPoints(), _SavedPoints.size() );
@@ -536,6 +556,11 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedConeWithSavedConeVTKFileT
         BOOST_CHECK_EQUAL(out_VTKConeCell->GetPointIds()->GetId(2), _SavedCells[c_id].v3);
 
     }
+}
+
+BOOST_FIXTURE_TEST_CASE(CompareITKToVTKMeshWithNoNormals,itk2vtkNoNormalsFixture){
+
+    volcart::meshing::itk2vtk(_in_Mesh,_out_Mesh);
 }
 /**********************************************************************************************************************/
 /**********************************************************************************************************************/
@@ -807,4 +832,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureVTKToITKConvertedConeWithSavedConeITKFileT
         ++c;
     }
 
+}
+BOOST_FIXTURE_TEST_CASE(CompareVTKtoITKMeshWithNoNormals,vtk2itkNoNormalsFixture){
+
+
+    volcart::meshing::vtk2itk(_in_Mesh,_out_Mesh);
 }
