@@ -1,5 +1,14 @@
+# Install resources (e.g. README, LICENSE, etc.)
+install(
+  FILES 
+    "${PROJECT_SOURCE_DIR}/doc/VC-Workflow.txt"
+    "${PROJECT_SOURCE_DIR}/LICENSE"
+  DESTINATION .
+  COMPONENT Resources
+)
+
 # What components to install
-set(INSTALL_COMPONENTS "Libraries" "Includes")
+set(INSTALL_COMPONENTS "Libraries" "Includes" "Resources")
 if(VC_INSTALL_APPS)
     list(APPEND INSTALL_COMPONENTS "Programs")
 endif()
