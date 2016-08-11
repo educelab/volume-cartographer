@@ -80,6 +80,7 @@ if (VC_USE_ACVD)
         vc_meshing
         vc_texturing
         vc_volumepkg
+        Boost::filesystem
     )
     
     add_executable(vc_abf_example src/abfExample.cpp)

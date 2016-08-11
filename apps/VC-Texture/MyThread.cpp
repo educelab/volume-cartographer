@@ -3,6 +3,8 @@
 #include "common/io/objWriter.h"
 #include "common/io/ply2itk.h"
 
+namespace fs = boost::filesystem;
+
 MyThread::MyThread(Global_Values *globals)
 {
     _globals = globals;
@@ -21,7 +23,7 @@ void MyThread::run()
         int meshWidth = -1;
         int meshHeight = -1;
 
-        std::string meshName = _globals->getVolPkg()->getMeshPath();
+        fs::path meshName = _globals->getVolPkg()->getMeshPath();
 
         VC_Composite_Option aFilterOption = (VC_Composite_Option) _globals->getTextureMethod();
         VC_Direction_Option aDirectionOption = (VC_Direction_Option) _globals->getSampleDirection();
