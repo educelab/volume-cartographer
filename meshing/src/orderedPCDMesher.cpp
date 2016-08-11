@@ -5,7 +5,7 @@ namespace fs = boost::filesystem;
 
 using namespace volcart::meshing;
 
-int orderedPCDMesher(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, fs::path outFile){
+int volcart::meshing::orderedPCDMesher(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, fs::path outFile){
   std::cout << "Creating mesh from points..." << std::endl;
 
   std::vector< std::vector< pcl::PointXYZRGB > > VoV;
