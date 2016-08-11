@@ -45,9 +45,64 @@ the Pen Tool button again to exit Drawing mode. Your starting path will be
 automatically saved to the volume package.
 
 ---- Running segmentation ---------------
+To being propagating a segmentation, first click the Segmentation Tool button 
+above the Image Viewer to enter Segmentation Mode. The parameters and options 
+for segmentation are found to the right of the Image Viewer in the Segmentation 
+panel.
 
+Currently there is only one algorithm available for segmentation, Local Reslice 
+Particle Simulation (LRPS). This algorithm treats the starting path as a 
+connected chain of particles inside of the volume. At each iteration, the chain 
+propagates forward through the volume and each particle in the chain attempts to 
+reposition itself such that it stays situated in the middle of the layer being 
+followed.
 
----- Edit an existing segmentation ------
+The following are the parameters for LRPS:
+  Distance Weight (0-100) [default: 50]: 
+      Weighting for distance vs maxima intensity as % of influence. Lower values 
+      favor new particle positions that are closer to the previous position. 
+      Higher values favor particle positions that have brighter intensity
+      values.
+  Maxima Window Width (in voxels) [default: auto]:
+      The width of the reslice window used by each particle to determine its 
+      next position. This value is automatically determined by the 
+      materialthickness and voxelsize metadata stored in the volume package.
+  Curvature Metrics: Alpha, Beta, and Delta should sum to 1.0
+    - Alpha [default: 0.333]:
+        Coefficient of internal energy metric.
+    - Beta [default: 0.333]: 
+        Coefficient for curve tension energy metric.
+    - Delta [default: 0.333]:
+        Coefficient for curvature energy metric.
+  Internal Energy Coeffecients: K1 and K2 should sum to 1.0
+    - K1 [default: 0.5]:
+        Coefficient for first derivative term in internal energy metric. 
+    - K2 [default: 0.5]:
+        Coefficient for second derivative term in internal energy metric.
+  Consider Previous [default: disabled]:
+      When enabled, the particle's previous position in the XY plane is
+      considered as a candidate for optimization. Useful when a layer is not 
+      visible within the local region or there is significant amount of high 
+      intensity noise.
+
+The following are the parameters for all propagation-based algorithms:
+  Starting Slice:
+    The slice on which propagation of the path will begin. This is locked to 
+    match the slice that is currently visible in the Image Viewer.
+  Ending Slice:
+    The slice on which propagation of the path will end. This value must be 
+    greater than Starting Slice and defaults to the current slice number + 5.
+
+After adjusting the segmentation parameters, press the Start button in the 
+Segmentation panel to begin automatic segmentation. Depending on the size of the 
+volume, the length of the path, and the number of slices being segmented, this 
+process can take while. Please be patient and know that a progress bar is 
+coming soon. When segmentation is complete, the app will leave Segmentation mode 
+(the Segmentation Tool will be unselected) and "Segmentation complete" will be 
+displayed in the status bar at the bottom of the screen. Navigate through the 
+slices using the Image Viewer controls to review the results of segmentation.
+
+---- Editing a segmentation -------------
 Selecting a Segmentation ID in this panel will activate that 
 segmentation for further propagation and editing and will navigate the Image 
 Viewer to the slice on which that segmentation begins.
