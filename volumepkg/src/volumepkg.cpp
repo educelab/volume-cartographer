@@ -135,7 +135,7 @@ double VolumePkg::getMaterialThickness() const
 
 // METADATA EXPORT //
 // Save metadata to any file
-void VolumePkg::saveMetadata(const std::string& filePath)
+void VolumePkg::saveMetadata(const fs::path& filePath)
 {
     config.save(filePath);
 }
@@ -143,7 +143,7 @@ void VolumePkg::saveMetadata(const std::string& filePath)
 // Alias for saving to the default config.json
 void VolumePkg::saveMetadata()
 {
-    saveMetadata(root_dir.string() + "/config.json");
+    saveMetadata(root_dir / "config.json");
 }
 
 // Slice manipulation functions
@@ -209,9 +209,9 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr VolumePkg::openCloud() const
 }
 
 // Return the path to the active segmentation's mesh
-std::string VolumePkg::getMeshPath() const
+fs::path VolumePkg::getMeshPath() const
 {
-    return (segs_dir / activeSeg / "cloud.ply").string();
+    return segs_dir / activeSeg / "cloud.ply";
 }
 
 // Return the texture image as a CV mat
@@ -241,11 +241,11 @@ int VolumePkg::saveCloud(
 }
 
 int VolumePkg::saveMesh(
-    const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& segmentedCloud) const
+    const pcl::PointCloud<pcl::PointXYZRGB>::Ptr segmentedCloud) const
 {
-    auto outputName = segs_dir / activeSeg / "cloud.ply";
+    fs::path outputName = segs_dir / activeSeg / "cloud.ply";
     if (volcart::meshing::orderedPCDMesher(
-            segmentedCloud, outputName.string()) == EXIT_SUCCESS) {
+            segmentedCloud, outputName) == EXIT_SUCCESS) {
         std::cerr << "volcart::volpkg::Mesh file saved." << std::endl;
         return EXIT_SUCCESS;
     } else {
@@ -260,7 +260,7 @@ void VolumePkg::saveMesh(const VC_MeshType::Pointer& mesh,
 {
     volcart::io::objWriter writer;
     auto meshPath = segs_dir / activeSeg / "textured.obj";
-    writer.setPath(meshPath.string());
+    writer.setPath(meshPath);
     writer.setMesh(mesh);
     writer.setTexture(texture.getImage(0));
     writer.setUVMap(texture.uvMap());

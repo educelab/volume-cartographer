@@ -25,6 +25,8 @@
 #include "common/types/Rendering.h"
 #include "common/io/objWriter.h"
 
+namespace fs = boost::filesystem;
+
 int main( int argc, char* argv[] ) {
 
   VolumePkg vpkg( argv[1] );
@@ -34,7 +36,7 @@ int main( int argc, char* argv[] ) {
   int type = std::stoi( argv[4] );
 
   // Read the mesh
-  std::string meshName = vpkg.getMeshPath();
+  fs::path meshName = vpkg.getMeshPath();
 
   // declare pointer to new Mesh object
   VC_MeshType::Pointer  input = VC_MeshType::New();

@@ -9,12 +9,13 @@
 #include <iostream>
 
 #include "common/vc_defines.h"
+#include "boost/filesystem/path.hpp"
 
 namespace volcart
 {
 namespace io
 {
-bool ply2itkmesh(std::string plyPath,
+bool ply2itkmesh(boost::filesystem::path plyPath,
                  VC_MeshType::Pointer mesh,
                  int &width,
                  int &height);

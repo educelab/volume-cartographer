@@ -5,6 +5,7 @@
 #define BOOST_TEST_MODULE orderedPCDMesher
 
 #include <boost/test/unit_test.hpp>
+#include <boost/filesystem/path.hpp>
 #include "common/vc_defines.h"
 #include "common/shapes/Plane.h"
 #include "common/shapes/Cube.h"
@@ -15,6 +16,7 @@
 #include "testing/parsingHelpers.h"
 #include "testing/testingUtils.h"
 
+namespace fs = boost::filesystem;
 
 /************************************************************************************
  *                                                                                  *
@@ -54,19 +56,14 @@
 
 struct PlaneOrderedPCDFixture {
 
-    PlaneOrderedPCDFixture() {
-
-        //Create point cloud from mesh
-        _in_PlanePointCloud = _Plane.pointCloudXYZRGB();
-
-        //init point cloud ptr
-        pcl::PointCloud<pcl::PointXYZRGB>::Ptr _in_PlaneCloudPtr(new pcl::PointCloud<pcl::PointXYZRGB>);
-        
+    PlaneOrderedPCDFixture() :
+        _Plane(),
+        _in_PlanePointCloud(_Plane.pointCloudXYZRGB()),
+        _PlaneOutfile("PlaneFixtureOrderedPCDMesher.ply")
+    {
         //convert pCloud to Ptr for orderedPCD() call
+        auto _in_PlaneCloudPtr = pcl::PointCloud<pcl::PointXYZRGB>::Ptr(new pcl::PointCloud<pcl::PointXYZRGB>);
         *_in_PlaneCloudPtr = _in_PlanePointCloud;
-
-        //assign outfile name
-        _PlaneOutfile = "PlaneFixtureOrderedPCDMesher.ply";
 
         //call orderedPCD()
         volcart::meshing::orderedPCDMesher(_in_PlaneCloudPtr, _PlaneOutfile);
@@ -83,9 +80,9 @@ struct PlaneOrderedPCDFixture {
 
     ~PlaneOrderedPCDFixture(){ std::cerr << "\ncleaning up Plane OrderedPCDMesherTest objects" << std::endl; }
 
-    pcl::PointCloud<pcl::PointXYZRGB> _in_PlanePointCloud;
     volcart::shapes::Plane _Plane;
-    std::string _PlaneOutfile;
+    pcl::PointCloud<pcl::PointXYZRGB> _in_PlanePointCloud;
+    fs::path _PlaneOutfile;
 
     std::vector<VC_Vertex> _SavedPlanePoints, _FixtureCreatedPlanePoints;
     std::vector<VC_Cell> _SavedPlaneCells, _FixtureCreatedPlaneCells;
@@ -114,7 +111,7 @@ struct CubeOrderedPCDFixture {
 
     pcl::PointCloud<pcl::PointXYZRGB> _in_CubePointCloud;
     volcart::shapes::Cube _Cube;
-    std::string _CubeOutfile;
+    fs::path _CubeOutfile;
     std::vector<VC_Vertex> _SavedCubePoints, _FixtureCreatedCubePoints;
     std::vector<VC_Cell> _SavedCubeCells, _FixtureCreatedCubeCells;
 
@@ -142,7 +139,7 @@ struct ArchOrderedPCDFixture {
 
     pcl::PointCloud<pcl::PointXYZRGB> _in_ArchPointCloud;
     volcart::shapes::Arch _Arch;
-    std::string _ArchOutfile;
+    fs::path _ArchOutfile;
     std::vector<VC_Vertex> _SavedArchPoints, _FixtureCreatedArchPoints;
     std::vector<VC_Cell> _SavedArchCells, _FixtureCreatedArchCells;
 
@@ -170,7 +167,7 @@ struct SphereOrderedPCDFixture {
 
     pcl::PointCloud<pcl::PointXYZRGB> _in_SpherePointCloud;
     volcart::shapes::Sphere _Sphere;
-    std::string _SphereOutfile;
+    fs::path _SphereOutfile;
     std::vector<VC_Vertex> _SavedSpherePoints, _FixtureCreatedSpherePoints;
     std::vector<VC_Cell> _SavedSphereCells, _FixtureCreatedSphereCells;
 
@@ -199,7 +196,7 @@ struct ConeOrderedPCDFixture {
 
     pcl::PointCloud<pcl::PointXYZRGB> _in_ConePointCloud;
     volcart::shapes::Cone _Cone;
-    std::string _ConeOutfile;
+    fs::path _ConeOutfile;
     std::vector<VC_Vertex> _SavedConePoints, _FixtureCreatedConePoints;
     std::vector<VC_Cell> _SavedConeCells, _FixtureCreatedConeCells;
 

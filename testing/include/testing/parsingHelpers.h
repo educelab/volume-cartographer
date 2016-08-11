@@ -6,6 +6,7 @@
 #define VC_PARSINGHELPERS_H
 
 #include "common/vc_defines.h"
+#include <boost/filesystem/path.hpp>
 
 /*
  * Purpose of File:
@@ -14,19 +15,19 @@
  */
 
 namespace volcart {
-    namespace testing {
+namespace testing {
 
-        class ParsingHelpers{
+class ParsingHelpers{
 
-        public:
-            static void parsePlyFile(std::string filepath, std::vector<VC_Vertex> &verts, std::vector<VC_Cell> &faces);
-            static void parseObjFile(std::string filepath, std::vector<VC_Vertex> &points, std::vector<VC_Cell> &cells);
+public:
+    static void parsePlyFile(const boost::filesystem::path& filepath, std::vector<VC_Vertex> &verts, std::vector<VC_Cell> &faces);
+    static void parseObjFile(const boost::filesystem::path& filepath, std::vector<VC_Vertex> &points, std::vector<VC_Cell> &cells);
 
-        private:
-            static std::vector<std::string> split_string(std::string input);
-        };
+private:
+    static std::vector<std::string> split_string(std::string input);
+};
 
 
-    }
+}
 }
 #endif //VC_PARSINGHELPERS_H

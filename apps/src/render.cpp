@@ -17,6 +17,8 @@
 #include "texturing/compositeTexture.h"
 #include "meshing/smoothNormals.h"
 
+namespace fs = boost::filesystem;
+
 int main(int argc, char* argv[])
 {
     std::cout << "vc_render" << std::endl;
@@ -108,7 +110,7 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    VolumePkg vpkg( volpkgPath.string() );
+    VolumePkg vpkg( volpkgPath );
     if ( vpkg.getVersion() < 2.0) {
         std::cerr << "ERROR: Volume package is version " << vpkg.getVersion() << " but this program requires a version >= 2.0."  << std::endl;
         return EXIT_FAILURE;
@@ -117,7 +119,7 @@ int main(int argc, char* argv[])
 
     ///// Set the segmentation ID /////
     vpkg.setActiveSegmentation(segID);
-    std::string meshName = vpkg.getMeshPath();
+    fs::path meshName = vpkg.getMeshPath();
     
     // declare pointer to new Mesh object
     VC_MeshType::Pointer  input = VC_MeshType::New();

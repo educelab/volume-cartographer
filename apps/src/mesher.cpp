@@ -6,8 +6,11 @@
 #include <pcl/point_types.h>
 #include <pcl/console/parse.h>
 #include <pcl/io/ply_io.h>
+#include <boost/filesystem.hpp>
 
 #include "meshing/orderedPCDMesher.h"
+
+namespace fs = boost::filesystem;
 
 int main(int argc, char* argv[]) {
   if (argc < 2)
@@ -25,10 +28,8 @@ int main(int argc, char* argv[]) {
     return (-1);
   }
 
-  std::string outfile = argv[1];
-  //replace the extension
-  int dot = outfile.find_last_of(".");
-  outfile = outfile.substr(0,dot) + ".ply";
+  fs::path outfile{argv[1]};
+  outfile.replace_extension("ply");
   
   volcart::meshing::orderedPCDMesher(inputCloud, outfile);
 

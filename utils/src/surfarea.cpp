@@ -13,6 +13,7 @@
 #include <vtkPolyData.h>
 #include <vtkMassProperties.h>
 
+namespace fs = boost::filesystem;
 
 int main(int argc, char* argv[])
 {
@@ -21,7 +22,7 @@ int main(int argc, char* argv[])
         exit( -1 );
     }
 
-    VolumePkg vpkg = VolumePkg( argv[ 1 ] );
+    VolumePkg vpkg( argv[ 1 ] );
     std::string segID = argv[ 2 ];
     if (segID == "") {
         std::cerr << "ERROR: Incorrect/missing segmentation ID!" << std::endl;
@@ -32,7 +33,7 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
     vpkg.setActiveSegmentation(segID);
-    std::string meshName = vpkg.getMeshPath();
+    fs::path meshName = vpkg.getMeshPath();
 
     // declare pointer to new Mesh object
     VC_MeshType::Pointer  mesh = VC_MeshType::New();
