@@ -60,18 +60,13 @@ if (VC_USE_LIBIGL)
     target_link_libraries(vc_lscm_example vc_common vc_volumepkg vc_texturing)
 endif()
 
-if (VC_USE_ACVD)
-    add_executable(vc_itk2vtk_example src/itk2vtkExample.cpp)
-    target_link_libraries(vc_itk2vtk_example
-        vc_common
-        vc_meshing
-        vc_testing
-        ITKIOMesh
-    )
-endif()
-
-add_executable(vc_cone_example src/coneExample.cpp)
-target_link_libraries(vc_cone_example vc_common vc_meshing ITKIOMesh)
+add_executable(vc_itk2vtk_example src/itk2vtkExample.cpp)
+target_link_libraries(vc_itk2vtk_example
+    vc_common
+    vc_meshing
+    vc_testing
+    ITKIOMesh
+)
 
 if (VC_USE_BULLET)
     add_executable(vc_cloth_example src/clothExample.cpp)

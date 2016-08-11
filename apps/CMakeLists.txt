@@ -78,16 +78,6 @@ target_link_libraries(vc_projection2
     vtkIOPLY
 )
 
-## Layering ##
-# This doesn't seem to be used, and doesn't even compile with our current stuff
-#add_executable(vc_layering src/layering.cpp)
-#target_link_libraries(vc_layering
-#    vc_volumepkg
-#    vc_common
-#    vc_meshing
-#    vc_texturing
-#)
-
 ## Cloth Flattening ##
 if (VC_USE_BULLET)
     add_executable(vc_cloth src/cloth.cpp)
