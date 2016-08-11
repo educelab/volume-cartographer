@@ -184,7 +184,7 @@ void MainWindow::exportTexture() {
 
 void MainWindow::create_Actions()
 {
-    actionGetFilePath = new QAction( "Open Volume Package...", this );
+    actionGetFilePath = new QAction( "Open Volume...", this );
     connect( actionGetFilePath, SIGNAL( triggered() ), this, SLOT(getFilePath()));
 
     actionSave = new QAction( "Save Texture", this );

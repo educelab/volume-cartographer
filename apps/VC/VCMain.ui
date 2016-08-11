@@ -258,7 +258,7 @@
              <item>
               <widget class="QCheckBox" name="includeMiddleOpt">
                <property name="text">
-                <string>Include Muddle</string>
+                <string>Consider Previous</string>
                </property>
               </widget>
              </item>
