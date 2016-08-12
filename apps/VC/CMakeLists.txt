@@ -64,6 +64,7 @@ target_link_libraries(${target}
     Qt5::Gui
     Qt5::Widgets
     ${PCL_COMMON_LIBRARIES}
+    ${OSXSecurity}
 )
 
 install(TARGETS ${target}
