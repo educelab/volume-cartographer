@@ -90,7 +90,6 @@ test:osx:
 
 collect:source:
     only:
-        - /^release\/.*/
         - master
     stage: collect
     script:
@@ -102,10 +101,11 @@ collect:source:
       paths:
          - ./*.tar.gz
       expire_in: 1 day
+    tags:
+      - source
 
 collect:osx:
     only:
-        - /^release\/.*/
         - master
     stage: collect
     script:
