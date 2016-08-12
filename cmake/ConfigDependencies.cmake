@@ -52,6 +52,9 @@ set(VTK_LIBRARIES ${VTK_LIBRARIES_TMP})
 ### OpenCV ###
 find_package(OpenCV REQUIRED)
 
+### VCG ###
+find_package(VCG REQUIRED)
+
 ############
 # Optional #
 ############
