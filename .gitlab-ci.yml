@@ -1,8 +1,8 @@
 stages:
     - build
     - test
+    - collect
     - deploy
-    - upload
 
 build:debian:
     image: volcart/vcbuilder-debian:latest
@@ -88,8 +88,23 @@ test:osx:
         - qt5
         - ninja
 
-deploy:osx:
-    stage: deploy
+collect:source:
+    stage: collect
+    script:
+        - version=$(utils/scripts/version-gen.sh)
+        - vershort=$(utils/scripts/version-gen.sh --short)
+        - git archive --format=tar.gz -o VC-${vershort}-source.tar.gz HEAD
+    only:
+        - /^release.*/
+        - master
+    artifacts:
+      name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
+      paths:
+         - ./*.tar.gz
+      expire_in: 1 day
+
+collect:osx:
+    stage: collect
     script:
         - version=$(utils/scripts/version-gen.sh)
         - git submodule update --init
@@ -116,26 +131,11 @@ deploy:osx:
         - prebuilt
         - qt5
 
-deploy:source:
+deploy:
     stage: deploy
-    script:
-        - version=$(utils/scripts/version-gen.sh)
-        - vershort=$(utils/scripts/version-gen.sh --short)
-        - git archive --format=tar.gz -o VC-${vershort}-source.tar.gz HEAD
-    only:
-        - /^release.*/
-        - master
-    artifacts:
-      name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
-      paths:
-         - ./*.tar.gz
-      expire_in: 1 day
-
-upload:
-    stage: upload
     dependencies:
-      - deploy:osx
-      - deploy:source
+      - collect:source
+      - collect:osx
     script:
         - version=$(utils/scripts/version-gen.sh)
         - vershort=$(utils/scripts/version-gen.sh --short)
