@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef _VOLCART_SEGMENTATION_SPLINE_H_
-#define _VOLCART_SEGMENTATION_SPLINE_H_
-
 #include <unsupported/Eigen/Splines>
 #include <vector>
 #include <cassert>
@@ -55,4 +52,3 @@ template <typename Scalar>
 using CubicSpline = Spline<Scalar, 3>;
 }
 }
-#endif

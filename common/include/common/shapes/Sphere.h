@@ -3,9 +3,7 @@
 // Design mostly taken from:
 // http://blog.andreaskahler.com/2009/06/creating-icosphere-mesh-in-code.html
 //
-
-#ifndef VC_SPHERE_H
-#define VC_SPHERE_H
+#pragma once
 
 #include <math.h>
 
@@ -31,5 +29,3 @@ namespace volcart {
 
     } // shapes
 } // volcart
-
-#endif //VC_Sphere_H

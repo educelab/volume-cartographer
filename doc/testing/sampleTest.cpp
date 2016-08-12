@@ -2,17 +2,13 @@
 // Created by Ryan Taber on 9/25/15.
 //
 
-#ifndef VC_BOOST_STATIC_LIBS
-#define BOOST_TEST_DYN_LINK
-#endif
 #define BOOST_TEST_MODULE sample
 
 #include <boost/test/unit_test.hpp>
-//#include <boost/test/included/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
-#include "shapes.h"
-#include "vc_defines.h"
-#include "io/objWriter.h"
+#include "common/shapes/Plane.h"
+#include "common/vc_defines.h"
+#include "common/io/objWriter.h"
 
 
 /************************************************************************************

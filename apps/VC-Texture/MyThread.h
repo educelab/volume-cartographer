@@ -1,6 +1,4 @@
-
-#ifndef VC_MYTHREAD_H
-#define VC_MYTHREAD_H
+#pragma once
 
 #include <QString>
 #include <QThread>
@@ -31,4 +29,3 @@ private:
     static const uint16_t CLEANER_MIN_REQ_POINTS = 100;
 
 };
-#endif //VC_MYTHREAD_H

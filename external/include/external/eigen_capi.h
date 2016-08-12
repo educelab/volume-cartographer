@@ -23,12 +23,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-
-#ifndef __EIGEN_C_API_H__
-#define __EIGEN_C_API_H__
+#pragma once
 
 #include "external/eigenvalues.h"
 #include "external/linear_solver.h"
 #include "external/svd.h"
-
-#endif  /* __EIGEN_C_API_H__ */

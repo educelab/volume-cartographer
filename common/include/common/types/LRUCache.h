@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef _VOLCART_LRUCACHE_H_
-#define _VOLCART_LRUCACHE_H_
-
 #include <unordered_map>
 #include <list>
 
@@ -95,5 +92,3 @@ private:
     static const int64_t kDefaultCapacity = 200;
 };
 }  // namespace volcart
-
-#endif

@@ -24,15 +24,9 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __EIGEN3_SVD_C_API_CC__
-#define __EIGEN3_SVD_C_API_CC__
-
 /* Eigen gives annoying huge amount of warnings here, silence them! */
 #if defined(__GNUC__) && !defined(__clang__)
 #  pragma GCC diagnostic ignored "-Wlogical-op"
-#endif
-
-#ifdef __EIGEN3_SVD_C_API_CC__  /* quiet warning */
 #endif
 
 #include <Eigen/Core>
@@ -71,5 +65,3 @@ void EIG_svd_square_matrix(const int size, const float *matrix, float *r_U, floa
 		Map<MatrixXf>(r_V, size, size) = svd.matrixV();
 	}
 }
-
-#endif  /* __EIGEN3_SVD_C_API_CC__ */

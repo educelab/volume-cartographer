@@ -1,9 +1,7 @@
 // VC PLY Exporter v1.0
 // Created by Media Team on 10/30/15.
 //
-
-#ifndef VC_PLYWRITER_H
-#define VC_PLYWRITER_H
+#pragma once
 
 #include <fstream>
 #include <iostream>
@@ -52,5 +50,3 @@ private:
 };
 }
 }
-
-#endif  // VC_PLYWRITER_H

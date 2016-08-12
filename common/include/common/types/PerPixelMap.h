@@ -8,10 +8,7 @@
 // came from.
 //
 // Created by Seth Parker on 3/17/16.
-
-
-#ifndef VC_PERPIXELMAP_H
-#define VC_PERPIXELMAP_H
+#pragma once
 
 #include <boost/filesystem.hpp>
 #include <opencv2/opencv.hpp>
@@ -49,6 +46,3 @@ namespace volcart {
         cv::Mat_<cv::Vec6d> _map;
     };
 }
-
-
-#endif //VC_PERPIXELMAP_H

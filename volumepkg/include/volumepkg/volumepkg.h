@@ -1,5 +1,4 @@
-#ifndef _VOLUMEPKG_H_
-#define _VOLUMEPKG_H_
+#pragma once
 
 #include <boost/filesystem.hpp>
 #include <cstdlib>
@@ -140,5 +139,3 @@ private:
         const volcart::Dictionary& dict,
         double version);
 };
-
-#endif  // _VOLUMEPKG_H_

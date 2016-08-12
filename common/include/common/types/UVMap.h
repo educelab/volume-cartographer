@@ -5,9 +5,7 @@
 // Internally, all mappings are stored relative to the "top-left" of the 2D mapping space. get() & set() transform
 // values to and from this relative range based on the value of _origin. By setting _origin prior to insertion and
 // again prior to retrieval, mappings can be inserted relative to one origin but retrieved relative to another.
-
-#ifndef VC_UVMAP_H
-#define VC_UVMAP_H
+#pragma once
 
 #include "common/vc_defines.h"
 #include <opencv2/opencv.hpp>
@@ -61,5 +59,3 @@ namespace volcart {
     };
 
 } // volcart
-
-#endif //VC_UVMAP_H

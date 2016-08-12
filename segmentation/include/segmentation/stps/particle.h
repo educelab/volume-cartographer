@@ -1,7 +1,5 @@
 // What am I?
-
-#ifndef _PARTICLE_
-#define _PARTICLE_
+#pragma once
 
 #include <opencv2/opencv.hpp>
 
@@ -22,5 +20,3 @@ class Particle {
   cv::Vec3d _position;
   bool _isStopped;
 };
-
-#endif

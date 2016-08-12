@@ -1,8 +1,6 @@
 // UVecMatOperations.h
 // Chao Du 2015 Mar
-#ifndef _UVECMATOPERATIONS_H_
-#define _UVECMATOPERATIONS_H_
-
+#pragma once
 
 #include "mathUtils.h"
 #include "CVectorN.h"
@@ -948,5 +946,3 @@ inline void ThomasTriDiagonal( const CMatrixMN< T > &nA,
 
 
 } // namespace ChaoVis
-
-#endif // _UVECMATOPERATIONS_H_

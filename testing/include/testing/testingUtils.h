@@ -1,8 +1,6 @@
 // Testing Utilities
 // Created by Seth Parker - 2016/07/27
-
-#ifndef VC_TESTINGUTILS_H
-#define VC_TESTINGUTILS_H
+#pragma once
 
 #include <boost/test/unit_test.hpp>
 
@@ -28,4 +26,3 @@ namespace volcart {
 
   } //testing
 } // volcart
-#endif

@@ -1,8 +1,6 @@
 // UDataManipulateUtils.h
 // Chao Du 2014 Dec
-#ifndef _UDATAMANIPULATEUTILS_H_
-#define _UDATAMANIPULATEUTILS_H_
-
+#pragma once
 
 #include <qimage.h>
 
@@ -28,5 +26,3 @@ cv::Mat QImage2Mat( const QImage &nSrc );
 QImage Mat2QImage( const cv::Mat &nSrc );
 
 } // namespace ChaoVis
-
-#endif // _UDATAMANIPULATEUTILS_H_
