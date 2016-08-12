@@ -5,9 +5,6 @@ stages:
     - deploy
 
 build:debian:
-    only:
-        - /^release\/.*/
-        - master
     image: volcart/vcbuilder-debian:latest
     stage: build
     script:
@@ -53,8 +50,6 @@ test:debian:
         - ninja
 
 build:osx:
-    only:
-        - release.*
     stage: build
     script:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
@@ -74,8 +69,6 @@ build:osx:
         - ninja
 
 test:osx:
-    only:
-        - release.*
     stage: test
     script:
         - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
@@ -99,7 +92,8 @@ test:osx:
 
 collect:source:
     only:
-        - release.*
+        - /^release\/.*/
+        - master
     stage: collect
     script:
         - version=$(utils/scripts/version-gen.sh)
@@ -115,7 +109,8 @@ collect:source:
 
 collect:osx:
     only:
-        - release.*
+        - /^release\/.*/
+        - master
     stage: collect
     script:
         - version=$(utils/scripts/version-gen.sh)
