@@ -56,6 +56,11 @@ find_package(OpenCV REQUIRED)
 # Optional #
 ############
 
+### OSX Code Signing ###
+if(APPLE AND VC_BUILD_APPS)
+    find_library(OSXSecurity Security)
+endif()
+
 ### ACVD ###
 # Currently required since VC-Texture needs it - SP
 option(VC_USE_ACVD "Use ACVD library" on)
