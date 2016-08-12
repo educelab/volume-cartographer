@@ -5,6 +5,8 @@ stages:
     - deploy
 
 build:debian:
+    only:
+        - release.*
     image: volcart/vcbuilder-debian:latest
     stage: build
     script:
@@ -25,6 +27,8 @@ build:debian:
         - ninja
 
 test:debian:
+    only:
+        - release.*
     image: volcart/vcbuilder-debian:latest
     stage: test
     script:
@@ -48,6 +52,8 @@ test:debian:
         - ninja
 
 build:osx:
+    only:
+        - release.*
     stage: build
     script:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
@@ -67,6 +73,8 @@ build:osx:
         - ninja
 
 test:osx:
+    only:
+        - release.*
     stage: test
     script:
         - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
@@ -89,6 +97,8 @@ test:osx:
         - ninja
 
 collect:source:
+    only:
+        - release.*
     stage: collect
     script:
         - version=$(utils/scripts/version-gen.sh)
@@ -103,6 +113,8 @@ collect:source:
       expire_in: 1 day
 
 collect:osx:
+    only:
+        - release.*
     stage: collect
     script:
         - version=$(utils/scripts/version-gen.sh)
@@ -116,8 +128,6 @@ collect:osx:
         - ninja
         - ninja package
         - mv VC*.dmg ../
-    only:
-        - release.*
     artifacts:
       name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
       paths:
@@ -130,6 +140,8 @@ collect:osx:
         - qt5
 
 deploy:
+    only:
+        - master
     stage: deploy
     dependencies:
       - collect:source
@@ -145,5 +157,3 @@ deploy:
         - osx
         - prebuilt
         - qt5
-    only:
-        - master
