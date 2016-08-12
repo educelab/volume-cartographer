@@ -1,7 +1,6 @@
 // CSimpleNumEditBox.h
 // Chao Du 2015 March
-#ifndef _CSIMPLENUMEDITBOX_H_
-#define _CSIMPLENUMEDITBOX_H_
+#pragma once
 
 #include <QTextEdit>
 
@@ -33,5 +32,3 @@ private:
 }; // class CSimpleNumEditBox
 
 } // namespace ChaoVis
-
-#endif // _CSIMPLENUMEDITBOX_H_

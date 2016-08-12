@@ -1,9 +1,7 @@
 //
 // Created by Ryan Taber on 11/19/15.
 //
-
-#ifndef VC_PARSINGHELPERS_H
-#define VC_PARSINGHELPERS_H
+#pragma once
 
 #include "common/vc_defines.h"
 #include <boost/filesystem/path.hpp>
@@ -30,4 +28,3 @@ private:
 
 }
 }
-#endif //VC_PARSINGHELPERS_H

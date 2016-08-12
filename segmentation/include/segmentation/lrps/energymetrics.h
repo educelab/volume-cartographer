@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef VOLCART_SEGMENTATION_ENERGY_METRICS
-#define VOLCART_SEGMENTATION_ENERGY_METRICS
-
 #include "segmentation/lrps/fittedcurve.h"
 
 namespace volcart
@@ -43,5 +40,3 @@ public:
 };
 }
 }
-
-#endif

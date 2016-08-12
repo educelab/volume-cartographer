@@ -1,9 +1,7 @@
 //
 // Created by Melissa Shankle on 1/29/16.
 //
-
-#ifndef VC_CUBE_H
-#define VC_CUBE_H
+#pragma once
 
 #include <math.h>
 
@@ -53,5 +51,3 @@ namespace volcart {
         }; // Cube
     } // shapes
 } // volcart
-
-#endif //VC_CUBE_H

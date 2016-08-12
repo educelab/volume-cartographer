@@ -1,9 +1,7 @@
 //
 // Created by Seth Parker on 6/9/16.
 //
-
-#ifndef VC_RENDERING_H
-#define VC_RENDERING_H
+#pragma once
 
 #include <boost/filesystem.hpp>
 
@@ -38,5 +36,3 @@ namespace volcart {
         VC_MeshType::Pointer _mesh;
     };
 }
-
-#endif //VC_RENDERING_H

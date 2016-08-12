@@ -1,8 +1,7 @@
 //
 // Created by Seth Parker on 4/28/15.
 //
-#ifndef VC_VOLUMEPKG_VERSION_H
-#define VC_VOLUMEPKG_VERSION_H
+#pragma once
 
 #include <unordered_map>
 #include <string>
@@ -49,5 +48,3 @@ const Library VersionLibrary = {{1.0, _1_0},
                                 {2.0, _2_0}};
 // clang-format on
 }  // namespace volcart
-
-#endif  // VC_VOLUMEPKG_VERSION_H

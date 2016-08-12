@@ -1,8 +1,6 @@
 // smoothNormals.h
 // Abigail Coleman June 2015
-
-#ifndef VC_SMOOTHNORMALS_H
-#define VC_SMOOTHNORMALS_H
+#pragma once
 
 #include <iostream>
 #include <fstream>
@@ -19,5 +17,3 @@ namespace volcart {
                                              double               radius);
     }
 }
-
-#endif // VC_SMOOTHNORMALS_H

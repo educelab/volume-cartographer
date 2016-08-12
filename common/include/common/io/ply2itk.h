@@ -1,8 +1,7 @@
 //
 // Created by Seth Parker on 4/27/15.
 //
-#ifndef VC_PLYHELPER_H
-#define VC_PLYHELPER_H
+#pragma once
 
 #include <cmath>
 #include <fstream>
@@ -21,5 +20,3 @@ bool ply2itkmesh(boost::filesystem::path plyPath,
                  int &height);
 }
 }
-
-#endif  // VC_PLYHELPER_H

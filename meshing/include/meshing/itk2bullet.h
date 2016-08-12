@@ -1,9 +1,7 @@
 //
 // Created by Abigail Coleman 10/21/15
 //
-
-#ifndef VC_ITK2BULLET_H
-#define VC_ITK2BULLET_H
+#pragma once
 
 #ifdef VC_USE_BULLET
 
@@ -36,5 +34,3 @@ namespace volcart {
 } // namespace volcart
 
 #endif // VC_USE_BULLET
-
-#endif //VC_ITK2BULLET_H

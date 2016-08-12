@@ -2,8 +2,7 @@
 // Created by Hannah Hatch on 7/26/16.
 //
 
-#ifndef VC_CALCULATENORMALS_H
-#define VC_CALCULATENORMALS_H
+#pragma once
 
 #include <iostream>
 #include <opencv2/opencv.hpp>
@@ -36,4 +35,3 @@ namespace volcart{
         };
     }//meshing
 }//volcart
-#endif //VC_CALCULATENORMALS_H

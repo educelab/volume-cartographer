@@ -4,9 +4,7 @@
 
 // Can (and perhaps should) be extended to support more specific functionality.
 // See "volumepackage/volumepkgcfg.h" as an example.
-
-#ifndef _VC_METADATA_H_
-#define _VC_METADATA_H_
+#pragma once
 
 #include <boost/filesystem.hpp>
 #include <fstream>
@@ -65,5 +63,3 @@ protected:
     boost::filesystem::path _path;
 };
 }
-
-#endif  // _VC_METADATA_H_

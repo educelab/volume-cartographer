@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef _VC_COMMON_H_
-#define _VC_COMMON_H_
-
 #include <vector>
 #include <tuple>
 #include <algorithm>
@@ -129,5 +126,3 @@ std::vector<double> squareDiff(const std::vector<Voxel>& v1,
 
 double sumSquareDiff(const std::vector<double>& v1,
                      const std::vector<double>& v2);
-
-#endif  // VC_COMMON_H

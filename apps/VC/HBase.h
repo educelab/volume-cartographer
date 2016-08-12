@@ -1,7 +1,6 @@
 // HBase.h
 // Chao Du 2014 Dec
-#ifndef _HBASE_H_
-#define _HBASE_H_
+#pragma once
 
 #include <stdlib.h>
 #include <math.h>
@@ -72,5 +71,3 @@ inline double CosineImpactFunc( double nStartVal,
 }
 
 } // namespace ChaoVis
-
-#endif // _HBASE_H_

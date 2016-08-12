@@ -1,8 +1,6 @@
 // CVectorN.h
 // Chao Du 2015 Jan
-#ifndef _CVECTORN_H_
-#define _CVECTORN_H_
-
+#pragma once
 
 #include "HBase.h"
 #include <string.h>
@@ -189,5 +187,3 @@ inline void CVectorN< T >::Dump( void ) const
 }
 
 } // namespace ChaoVis
-
-#endif // _CVECTORN_H_

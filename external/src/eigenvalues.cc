@@ -24,9 +24,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __EIGEN3_EIGENVALUES_C_API_CC__
-#define __EIGEN3_EIGENVALUES_C_API_CC__
-
 /* Eigen gives annoying huge amount of warnings here, silence them! */
 #if defined(__GNUC__) && !defined(__clang__)
 #  pragma GCC diagnostic ignored "-Wlogical-op"
@@ -66,5 +63,3 @@ bool EIG_self_adjoint_eigen_solve(const int size, const float *matrix, float *r_
 
 	return true;
 }
-
-#endif  /* __EIGEN3_EIGENVALUES_C_API_CC__ */
