@@ -25,8 +25,6 @@ build:debian:
         - ninja
 
 test:debian:
-    only:
-        - release.*
     image: volcart/vcbuilder-debian:latest
     stage: test
     script:
