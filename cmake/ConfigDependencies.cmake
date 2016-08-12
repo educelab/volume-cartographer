@@ -54,6 +54,10 @@ find_package(OpenCV REQUIRED)
 
 ### VCG ###
 find_package(VCG REQUIRED)
+add_library(vcglib INTERFACE IMPORTED)
+set_target_properties(vcglib PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${VCG_INCLUDE_DIRS}"
+        )
 
 ############
 # Optional #

@@ -19,6 +19,8 @@ if(EXISTS "${VCG_DIR}" AND NOT "${VCG_DIR}" STREQUAL "")
 
 	message(STATUS "VCG ${VCG_VERSION} found (include: ${VCG_INCLUDE_DIRS})")
 else()
-	package_report_not_found(VCG "Please specify VCG directory using VCG_ROOT env. variable")
+	if(VCG_FIND_REQUIRED)
+    message(FATAL_ERROR "VCG required but not found.")
+  endif(VCG_FIND_REQUIRED)
 endif()
 ##====================================================

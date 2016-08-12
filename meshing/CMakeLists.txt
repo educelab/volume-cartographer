@@ -29,6 +29,8 @@ if (VC_USE_BULLET)
     list(APPEND deps bullet)
     list(APPEND defs VC_USE_BULLET)
 endif()
+list(APPEND deps vcglib)
+list(APPEND defs VC_USE_VCGLIB)
 
 add_library(${target} ${srcs})
 target_compile_definitions(${target} PUBLIC ${defs})
