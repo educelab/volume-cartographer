@@ -95,7 +95,7 @@ collect:source:
         - vershort=$(utils/scripts/version-gen.sh --short)
         - git archive --format=tar.gz -o VC-${vershort}-source.tar.gz HEAD
     only:
-        - /^release.*/
+        - release.*
     artifacts:
       name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
       paths:
@@ -117,7 +117,7 @@ collect:osx:
         - ninja package
         - mv VC*.dmg ../
     only:
-        - /^release.*/
+        - release.*
     artifacts:
       name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
       paths:
