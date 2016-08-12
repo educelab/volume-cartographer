@@ -1,12 +1,28 @@
-cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
+project(libvc_volumepkg VERSION 0.1 LANGUAGES CXX)
+set(target vc_volumepkg)
 
-set(VOLUMEPKG_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-set(VOLUMEPKG_INCLUDE_DIR ${VOLUMEPKG_INCLUDE_DIR} PARENT_SCOPE)
+set(srcs
+    src/volumepkg.cpp
+)
 
-if(TARGET volumepkg)
-message("volumepkg is already defined")
-else()
-add_library(vc_volumepkg STATIC volumepkgcfg.cpp volumepkg.cpp ../texture/CPlyHelper.cpp ../texture/CMesh.cpp)
-#install(TARGETS vc_volumepkg DESTINATION lib/vc)
-#install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} DESTINATION include/vc FILES_MATCHING PATTERN "*.h")
-endif()
+add_library(${target} ${srcs})
+target_include_directories(${target}
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+)
+target_link_libraries(${target}
+    PUBLIC
+        vc_common
+        vc_external
+    PRIVATE
+        vc_meshing
+)
+
+install(TARGETS ${target}
+    ARCHIVE DESTINATION lib COMPONENT Libraries
+    LIBRARY DESTINATION lib COMPONENT Libraries
+    RUNTIME DESTINATION bin
+)
+install(DIRECTORY include/ DESTINATION ${VC_INSTALL_INCLUDE_PREFIX} COMPONENT Includes)
+export(TARGETS ${target} FILE VCVolumepkg.cmake)

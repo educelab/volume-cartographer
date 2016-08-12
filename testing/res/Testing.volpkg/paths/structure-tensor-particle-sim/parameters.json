@@ -1,0 +1,27 @@
+{
+    "segmentation": { 
+        "method": "structureTensorParticleSim",
+        "start":1, 
+        "end":181, 
+        "offset":180,
+        "gravity":0.3,
+        "threshold":1
+    },
+    "render": {
+        "flatten": { 
+            "method":"simpleUV" 
+        },
+        "texture": { 
+            "method": "NonMaximumSuppresion",
+            "radius":2,
+            "direction": "Bidirectional",
+            "images": 1
+        },
+        "export": {
+            "method": "objWriter",
+            "withTexture": true,
+            "basename": "simpleUV_NonMax2"
+        }
+    },
+
+}

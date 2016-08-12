@@ -1,48 +1,151 @@
 stages:
+    - build
     - test
+    - collect
     - deploy
 
-build_it_test_it:
+build:debian:
+    image: volcart/vcbuilder-debian:latest
+    stage: build
+    script:
+        - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
+        - mkdir -p build
+        - cd build/
+        - cmake -DBoost_USE_STATIC_LIBS=ON -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -GNinja ..
+        - ninja
+    artifacts:
+        paths:
+            - build/bin/
+        expire_in: 1 day
+    tags:
+        - build
+        - linux
+        - static
+        - qt5
+        - ninja
+
+test:debian:
+    image: volcart/vcbuilder-debian:latest
     stage: test
     script:
-        - echo "---- Work it. Make it. ----"
-        - mkdir build
+        - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
         - cd build/
-        - cmake ..
-        - make
-        - echo "---- Do it. Makes us. ----"
-        - echo "Testing coming soon..."
+        - cmake -DBoost_USE_STATIC_LIBS=ON -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -GNinja ..
+        - ctest -j 4
+    dependencies:
+        - build:debian
+    artifacts:
+      name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
+      paths:
+        - build/Testing/Temporary/
+      when: always
+      expire_in: 4 weeks
     tags:
         - test
+        - linux
+        - static
+        - qt5
+        - ninja
 
-deploy_it_osx:
-    stage: deploy
+build:osx:
+    stage: build
     script:
-        - echo "---- Work it harder. ----"
-        - version=$(utils/scripts/version-gen.sh)
-        - mkdir build
+        - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
+        - mkdir -p build
         - cd build/
-        - echo "---- Make it better. ----"
-        - cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_DragNDrop=ON -DBUILD_OSX_APPS=ON -DBoost_USE_STATIC_LIBS=ON -DINSTALL_VC_DEMO=ON ..
-        - echo "---- Do it faster. ----"
-        - make package -j8
-        - echo "---- Makes us stronger. ----"
-        - mkdir -p ~/Dropbox/VC-Releases/v${version}
-        - cp VC* ~/Dropbox/VC-Releases/v${version}
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -GNinja ..
+        - ninja
+    artifacts:
+        paths:
+            - build/bin/
+        expire_in: 1 day
+    tags:
+        - build
+        - osx
+        - homebrew
+        - qt5
+        - ninja
+
+test:osx:
+    stage: test
+    script:
+        - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
+        - cd build/
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -GNinja ..
+        - ctest -j 4
+    dependencies:
+        - build:osx
+    artifacts:
+      name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
+      paths:
+        - build/testing/Temporary/
+      when: always
+      expire_in: 4 weeks
+    tags:
+        - test
+        - osx
+        - homebrew
+        - qt5
+        - ninja
+
+collect:source:
     only:
         - master
-    tags:
-        - deploy
-        - osx
-        - static
-
-archive_it:
-    stage: deploy
+    stage: collect
     script:
         - version=$(utils/scripts/version-gen.sh)
         - vershort=$(utils/scripts/version-gen.sh --short)
         - git archive --format=tar.gz -o VC-${vershort}-source.tar.gz HEAD
-        - mkdir -p ~/Dropbox/VC-Releases/v${version}
-        - cp VC-${vershort}-source.tar.gz ~/Dropbox/VC-Releases/v${version}
+    artifacts:
+      name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
+      paths:
+         - ./*.tar.gz
+      expire_in: 1 day
+    tags:
+      - source
+
+collect:osx:
     only:
         - master
+    stage: collect
+    script:
+        - version=$(utils/scripts/version-gen.sh)
+        - git submodule update --init
+        - cd vc-deps/
+        - ./build-deps.sh -universal
+        - cd ..
+        - mkdir -p build
+        - cd build/
+        - cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -DVC_BUILD_EXAMPLES=OFF -DVC_BUILD_TESTS=OFF -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DCMAKE_OSX_SYSROOT=../vc-deps/build/SDKs/MacOSX10.9.sdk/ ..
+        - ninja
+        - ninja package
+        - mv VC*.dmg ../
+    artifacts:
+      name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
+      paths:
+        - ./*.dmg
+      expire_in: 1 day
+    tags:
+        - deploy
+        - osx
+        - prebuilt
+        - qt5
+
+deploy:
+    only:
+        - master
+    stage: deploy
+    dependencies:
+      - collect:source
+      - collect:osx
+    script:
+        - version=$(utils/scripts/version-gen.sh)
+        - vershort=$(utils/scripts/version-gen.sh --short)
+        - mkdir -p ~/Dropbox/VC-Releases/v${version}
+        - cp VC*.dmg ~/Dropbox/VC-Releases/v${version}
+        - cp VC-${vershort}-source.tar.gz ~/Dropbox/VC-Releases/v${version}
+    tags:
+        - deploy
+        - osx
+        - prebuilt
+        - qt5
