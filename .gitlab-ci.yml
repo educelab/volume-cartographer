@@ -97,8 +97,6 @@ collect:source:
         - version=$(utils/scripts/version-gen.sh)
         - vershort=$(utils/scripts/version-gen.sh --short)
         - git archive --format=tar.gz -o VC-${vershort}-source.tar.gz HEAD
-    only:
-        - release.*
     artifacts:
       name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
       paths:
