@@ -96,7 +96,6 @@ collect:source:
         - git archive --format=tar.gz -o VC-${vershort}-source.tar.gz HEAD
     only:
         - /^release.*/
-        - master
     artifacts:
       name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
       paths:
@@ -119,7 +118,6 @@ collect:osx:
         - mv VC*.dmg ../
     only:
         - /^release.*/
-        - master
     artifacts:
       name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
       paths:
