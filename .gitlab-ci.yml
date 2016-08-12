@@ -7,6 +7,7 @@ stages:
 build:debian:
     only:
         - /^release\/.*/
+        - master
     image: volcart/vcbuilder-debian:latest
     stage: build
     script:
