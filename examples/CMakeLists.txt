@@ -103,3 +103,6 @@ target_link_libraries(vc_obj_writer_example vc_common)
 
 add_executable(vc_lorem_ipsum_error src/LoremIpsumError.cpp)
 target_link_libraries(vc_lorem_ipsum_error vc_volumepkg)
+
+add_executable(vc_quadric_edge_collapse_resampling src/QuadricEdgeCollapseResamplingExample.cpp)
+target_link_libraries(vc_quadric_edge_collapse_resampling vc_meshing)
