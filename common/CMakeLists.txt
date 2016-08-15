@@ -63,6 +63,7 @@ set(test_srcs
     test/TextureTest.cpp
     test/UVMapTest.cpp
     test/plyWriterTest.cpp
+    test/PointSetTest.cpp
 )
 
 # Add a test executable for each src
