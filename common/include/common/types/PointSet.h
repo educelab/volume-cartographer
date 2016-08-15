@@ -7,6 +7,9 @@
 #include <string>
 #include <vector>
 
+namespace volcart
+{
+
 template <typename T>
 class PointSet
 {
@@ -67,35 +70,35 @@ public:
         return *this;
     }
 
+    // Linear access - no concept of 2D layout
     const T& operator[](size_t idx) const { return _data[idx]; }
-
     T& operator[](size_t idx) { return _data[idx]; }
 
+    // 2D access
     // NOTE: x, then y
     const T& operator()(size_t x, size_t y) const
     {
         return _data[y * _width + x];
     }
-
     T& operator()(size_t x, size_t y) { return _data[y * _width + x]; }
 
+    // Metadata
     size_t width() const { return _width; }
     size_t height() const { return _height; }
     size_t size() const { return _nelements; }
     bool empty() const { return _data.empty(); }
 
+    // Iterators and element accesors
     Iterator begin() { return std::begin(_data); }
     ConstIterator begin() const { return std::begin(_data); }
-
     Iterator end() { return std::end(_data); }
     ConstIterator end() const { return std::end(_data); }
-
     T& front() { return _data.front(); }
     const T& front() const { return _data.front(); }
-
     T& back() { return _data.back(); }
     const T& back() const { return _data.back(); }
 
+    // Some basic statistics
     T min() const
     {
         if (empty()) {
@@ -103,7 +106,6 @@ public:
         }
         return *std::min_element(std::begin(_data), std::end(_data));
     }
-
     T max() const
     {
         if (empty()) {
@@ -111,14 +113,13 @@ public:
         }
         return *std::max_element(std::begin(_data), std::end(_data));
     }
-
     std::pair<T, T> min_max() const
     {
         if (empty()) {
             throw std::range_error("empty volcart::PointSet");
         }
         auto pair = std::minmax_element(std::begin(_data), std::end(_data));
-        return {pair.first, pair.second};
+        return {*pair.first, *pair.second};
     }
 
     // I/O modes
@@ -182,9 +183,8 @@ private:
 
         // Get width, height
         std::string key;
-        size_t width, height, dim;
+        size_t width, height, dim, i = 0;
         std::string type;
-        size_t i = 0;
         while (i < 4) {
             infile >> key;
             if (key.empty()) {
@@ -233,20 +233,24 @@ private:
 
         // Get width, height, dim, type
         std::string key;
-        size_t width, height, dim;
+        size_t width, height, dim, i = 0;
         std::string type;
-        for (size_t i = 0; i < 4; ++i) {
+        while (i < 4) {
             infile >> key;
             if (key.empty()) {
                 continue;
             } else if (key == "width") {
                 infile >> width;
+                ++i;
             } else if (key == "height") {
                 infile >> height;
+                ++i;
             } else if (key == "dim") {
                 infile >> dim;
+                ++i;
             } else if (key == "type") {
                 infile >> type;
+                ++i;
             } else {
                 std::string msg = "Got unknown key '" + key + "'";
                 throw std::runtime_error(msg);
@@ -272,7 +276,7 @@ private:
         T t;
         for (size_t i = 0; i < ps.size(); ++i) {
             auto nbytes = dim * typeBytes;
-            infile.read(t.as_bytes(), nbytes);
+            infile.read(t.bytes(), nbytes);
             ps.push_back(t);
         }
 
@@ -337,7 +341,8 @@ private:
 
         for (const auto p : ps) {
             auto nbytes = decltype(p)::dim * sizeof(typename T::Element);
-            outfile.write(p.as_bytes(), nbytes);
+            outfile.write(p.bytes(), nbytes);
         }
     }
 };
+}

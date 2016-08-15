@@ -5,6 +5,7 @@
 #include <array>
 #include <cmath>
 #include <numeric>
+#include <opencv2/core/core.hpp>
 #include <sstream>
 #include <tuple>
 #include <type_traits>
@@ -22,7 +23,7 @@ public:
     using Container = std::array<T, N>;
     using Iterator = typename Container::iterator;
     using ConstIterator = typename Container::const_iterator;
-    static const size_t dim = N;
+    static constexpr size_t dim = N;
 
     Point() : data_() {}
 
@@ -42,8 +43,14 @@ public:
 
     Point(std::initializer_list<T> vals)
     {
-        assert(vals.size() == dim && "Not the right # args");
         std::copy(std::begin(vals), std::end(vals), std::begin(data_));
+    }
+
+    static Point fill(T fillVal)
+    {
+        Point p;
+        std::fill(std::begin(p), std::end(p), fillVal);
+        return p;
     }
 
     Point& operator=(const Point& other)
@@ -122,7 +129,7 @@ public:
         return *this;
     }
 
-    double norm()
+    double norm() const
     {
         std::array<T, N> squared;
         std::transform(std::begin(data_), std::end(data_), std::begin(squared),
@@ -142,15 +149,18 @@ public:
     T& back() { return data_.back(); }
     const T& back() const { return data_.back(); }
 
-    char* as_bytes() { return reinterpret_cast<char*>(data_.data()); }
-
-    const char* as_bytes() const
+    // Serialize to bytes
+    char* bytes() { return reinterpret_cast<char*>(data_.data()); }
+    const char* bytes() const
     {
         return reinterpret_cast<const char*>(data_.data());
     }
 
+    // Accessors
     const T& operator[](size_t idx) const { return data_[idx]; }
     T& operator[](size_t idx) { return data_[idx]; }
+
+    size_t size() const { return dim; }
 
     // Pretty print a Point (for logging, etc)
     std::string pprint() const
@@ -167,6 +177,8 @@ public:
         return ss.str();
     }
 
+    cv::Vec<T, N> toCvVec() const { cv::Vec<T, N>(data_.data()); }
+
 private:
     std::array<T, N> data_;
 };
@@ -180,13 +192,13 @@ using Point3b = Point3<uint8_t>;
 
 // Operations on points
 template <typename T, size_t N>
-Point<T, N> operator+(const Point<T, N>& lhs, const Point<T, N>& rhs)
+Point<T, N> operator+(Point<T, N> lhs, const Point<T, N>& rhs)
 {
     return lhs += rhs;
 }
 
 template <typename T, size_t N>
-Point<T, N> operator-(const Point<T, N>& lhs, const Point<T, N>& rhs)
+Point<T, N> operator-(Point<T, N> lhs, const Point<T, N>& rhs)
 {
     return lhs -= rhs;
 }
@@ -196,7 +208,7 @@ template <typename T,
           typename Scalar,
           typename = typename std::enable_if<std::is_arithmetic<Scalar>::value,
                                              Scalar>::type>
-Point<T, N> operator+(const Point<T, N>& lhs, Scalar s)
+Point<T, N> operator+(Point<T, N> lhs, Scalar s)
 {
     return lhs += s;
 }
@@ -206,7 +218,7 @@ template <typename T,
           typename Scalar,
           typename = typename std::enable_if<std::is_arithmetic<Scalar>::value,
                                              Scalar>::type>
-Point<T, N> operator+(Scalar s, const Point<T, N>& lhs)
+Point<T, N> operator+(Scalar s, Point<T, N> lhs)
 {
     return lhs + s;
 }
@@ -216,7 +228,7 @@ template <typename T,
           typename Scalar,
           typename = typename std::enable_if<std::is_arithmetic<Scalar>::value,
                                              Scalar>::type>
-Point<T, N> operator-(const Point<T, N>& lhs, Scalar s)
+Point<T, N> operator-(Point<T, N> lhs, Scalar s)
 {
     return lhs -= s;
 }
@@ -226,9 +238,9 @@ template <typename T,
           typename Scalar,
           typename = typename std::enable_if<std::is_arithmetic<Scalar>::value,
                                              Scalar>::type>
-Point<T, N> operator-(Scalar s, const Point<T, N>& lhs)
+Point<T, N> operator-(Scalar s, Point<T, N> lhs)
 {
-    return lhs - s;
+    return Point<T, N>::fill(T{s}) - lhs;
 }
 
 template <typename T,
@@ -236,7 +248,7 @@ template <typename T,
           typename Scalar,
           typename = typename std::enable_if<std::is_arithmetic<Scalar>::value,
                                              Scalar>::type>
-Point<T, N> operator*(const Point<T, N>& lhs, Scalar s)
+Point<T, N> operator*(Point<T, N> lhs, Scalar s)
 {
     return lhs *= s;
 }
@@ -246,7 +258,7 @@ template <typename T,
           typename Scalar,
           typename = typename std::enable_if<std::is_arithmetic<Scalar>::value,
                                              Scalar>::type>
-Point<T, N> operator*(Scalar s, const Point<T, N>& lhs)
+Point<T, N> operator*(Scalar s, Point<T, N> lhs)
 {
     return lhs * s;
 }
@@ -256,19 +268,9 @@ template <typename T,
           typename Scalar,
           typename = typename std::enable_if<std::is_arithmetic<Scalar>::value,
                                              Scalar>::type>
-Point<T, N> operator/(const Point<T, N>& lhs, Scalar s)
+Point<T, N> operator/(Point<T, N> lhs, Scalar s)
 {
     return lhs /= s;
-}
-
-template <typename T,
-          size_t N,
-          typename Scalar,
-          typename = typename std::enable_if<std::is_arithmetic<Scalar>::value,
-                                             Scalar>::type>
-Point<T, N> operator/(Scalar s, const Point<T, N>& lhs)
-{
-    return lhs / s;
 }
 
 // Comparison operations

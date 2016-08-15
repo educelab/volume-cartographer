@@ -7,12 +7,6 @@
 
 using namespace volcart;
 
-struct EmptyPoint3iPointSet {
-    EmptyPoint3iPointSet() : ps() {}
-
-    PointSet<Point3i> ps;
-};
-
 struct Point3iPointSet {
     Point3iPointSet() : ps(3, 1)
     {
@@ -22,18 +16,80 @@ struct Point3iPointSet {
     PointSet<Point3i> ps;
 };
 
-BOOST_FIXTURE_TEST_CASE(CreateEmptyPointSet, EmptyPoint3iPointSet)
+BOOST_AUTO_TEST_CASE(EmptyPointSetTest)
 {
-    BOOST_CHECK_EQUAL(ps.size(), 0ul);
+    PointSet<Point3i> ps;
+    BOOST_CHECK_EQUAL(ps.size(), 0);
+    BOOST_CHECK_EQUAL(ps.width(), 0);
+    BOOST_CHECK_EQUAL(ps.height(), 0);
+    BOOST_CHECK(ps.empty());
 }
 
-BOOST_FIXTURE_TEST_CASE(WriteThenReadPointSet, Point3iPointSet)
+BOOST_FIXTURE_TEST_CASE(OneRowPointSetTest, Point3iPointSet)
 {
-    std::cout << "write pointset" << std::endl;
+    BOOST_CHECK_EQUAL(ps.size(), 3);
+    BOOST_CHECK_EQUAL(ps.width(), 3);
+    BOOST_CHECK_EQUAL(ps.height(), 1);
+    BOOST_CHECK(!ps.empty());
+}
+
+BOOST_FIXTURE_TEST_CASE(OneRowPointSetIteratorTest, Point3iPointSet)
+{
+    BOOST_CHECK_EQUAL(ps.front(), Point3i(1, 1, 1));
+    BOOST_CHECK_EQUAL(ps.back(), Point3i(3, 3, 3));
+    BOOST_CHECK_EQUAL(*std::begin(ps), Point3i(1, 1, 1));
+    BOOST_CHECK_EQUAL(*(std::end(ps) - 1), Point3i(3, 3, 3));
+    size_t i = 1;
+    for (auto p : ps) {
+        Point3i tmp(i, i, i);
+        BOOST_CHECK_EQUAL(p, tmp);
+        ++i;
+    }
+}
+
+BOOST_AUTO_TEST_CASE(FillPointSetTest)
+{
+    PointSet<Point3i> ps(3, 1, {1, 1, 1});
+    BOOST_CHECK_EQUAL(ps.width(), 3);
+    BOOST_CHECK_EQUAL(ps.height(), 1);
+    for (size_t i = 0; i < ps.width(); ++i) {
+        BOOST_CHECK_EQUAL(ps(i, 0), Point3i(1, 1, 1));
+    }
+}
+
+BOOST_FIXTURE_TEST_CASE(WriteThenReadBinaryPointSet, Point3iPointSet)
+{
     PointSet<Point3i>::writeFile("tmp.ps", ps);
-    std::cout << "read pointset" << std::endl;
     auto readPs = PointSet<Point3i>::readFile("tmp.ps");
     BOOST_CHECK_EQUAL(readPs[0], ps[0]);
     BOOST_CHECK_EQUAL(readPs[1], ps[1]);
     BOOST_CHECK_EQUAL(readPs[2], ps[2]);
+}
+
+BOOST_FIXTURE_TEST_CASE(WriteThenReadAsciiPointSet, Point3iPointSet)
+{
+    PointSet<Point3i>::writeFile("tmp.ps", ps,
+                                 PointSet<Point3i>::IOMode::ASCII);
+    auto readPs =
+        PointSet<Point3i>::readFile("tmp.ps", PointSet<Point3i>::IOMode::ASCII);
+    BOOST_CHECK_EQUAL(readPs[0], ps[0]);
+    BOOST_CHECK_EQUAL(readPs[1], ps[1]);
+    BOOST_CHECK_EQUAL(readPs[2], ps[2]);
+}
+
+BOOST_FIXTURE_TEST_CASE(StatisticsPointSetTest, Point3iPointSet)
+{
+    BOOST_CHECK_EQUAL(ps.min(), Point3i(1, 1, 1));
+    BOOST_CHECK_EQUAL(ps.max(), Point3i(3, 3, 3));
+    auto minmax = ps.min_max();
+    BOOST_CHECK_EQUAL(minmax.first, Point3i(1, 1, 1));
+    BOOST_CHECK_EQUAL(minmax.second, Point3i(3, 3, 3));
+}
+
+BOOST_AUTO_TEST_CASE(StatisticsEmptyPointSet)
+{
+    PointSet<Point3i> ps;
+    BOOST_CHECK_THROW(ps.min(), std::runtime_error);
+    BOOST_CHECK_THROW(ps.max(), std::runtime_error);
+    BOOST_CHECK_THROW(ps.min_max(), std::runtime_error);
 }
