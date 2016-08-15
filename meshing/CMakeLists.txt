@@ -11,7 +11,7 @@ set(srcs
     src/smoothNormals.cpp
     src/CalculateNormals.cpp
     src/OrderedResampling.cpp
-)
+        src/QuadricEdgeCollapseResampling.cpp)
 set(deps
     vc_common
     Boost::filesystem
