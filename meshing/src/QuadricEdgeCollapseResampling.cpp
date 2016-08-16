@@ -4,29 +4,9 @@
 
 #include "meshing/QuadricEdgeCollapseResampling.h"
 
-class MyVertex; class MyEdge; class MyFace;
-struct MyUsedTypes: public vcg::UsedTypes<vcg::Use<MyVertex>    ::AsVertexType,
-        vcg::Use<MyEdge>      ::AsEdgeType,
-        vcg::Use<MyFace>      ::AsFaceType>{};
-
-class MyVertex : public vcg::Vertex< MyUsedTypes, vcg::vertex::VFAdj, vcg::vertex::Coord3f, vcg::vertex::Normal3f, vcg::vertex::Mark, vcg::vertex::Qualityf, vcg::vertex::BitFlags>{
-public:
-    vcg::math::Quadric<double>&Qd(){return q;}
-private:
-    vcg::math::Quadric<double> q;
-};
-class MyFace : public vcg::Face< MyUsedTypes, vcg::face::VFAdj, vcg::face::VertexRef, vcg::face::BitFlags>{};
-class MyEdge : public vcg::Edge <MyUsedTypes > {};
-class MyMesh : public vcg::tri::TriMesh<std::vector<MyVertex>, std::vector<MyFace>, std::vector<MyEdge> > {};
 
 
-typedef vcg::tri::BasicVertexPair<MyVertex> VertexPair;
-class MyTriEdgeCollapse: public vcg::tri::TriEdgeCollapseQuadric<MyMesh, VertexPair, MyTriEdgeCollapse, vcg::tri::QInfoStandard<MyVertex> > {
-public:
-    typedef vcg::tri::TriEdgeCollapseQuadric<MyMesh,VertexPair,MyTriEdgeCollapse,vcg::tri::QInfoStandard<MyVertex> > TECQ;
-    typedef MyMesh::VertexType::EdgeType EdgeType;
-    inline MyTriEdgeCollapse(const VertexPair &p, int i, vcg::BaseParameterClass *pp) : TECQ(p,i,pp){}
-};
+
 namespace volcart{
     namespace meshing{
 
@@ -46,34 +26,82 @@ namespace volcart{
 
         void QuadricEdgeCollapseResampling::setDefaultParams(){
             _collapseParams.SetDefaultParams();
-            _collapseParams.PreserveBoundary = true;
-            _collapseParams.PreserveTopology = true;
+          _collapseParams.PreserveBoundary = true;
+           _collapseParams.PreserveTopology = true;
+           _collapseParams.NormalCheck = true;
+            _collapseParams.NormalThrRad = M_PI/4.0;
+            _collapseParams.QualityThr = 1;
+
         }
 
 
-        void QuadricEdgeCollapseResampling::compute() {
-            MyMesh input;
-            MyMesh::VertexIterator vi = vcg::tri::Allocator<MyMesh>::AddVertices(input,_inputMesh.GetPointer()->GetNumberOfPoints());
+        void QuadricEdgeCollapseResampling::compute(int iterations) {
             MyMesh::FaceIterator fi = vcg::tri::Allocator<MyMesh>::AddFaces(input,_inputMesh.GetPointer()->GetNumberOfCells());
-            int i = 0;
-            MyMesh::VertexPointer ivp[_inputMesh.GetPointer()->GetNumberOfPoints()];
+            vertex_id = vcg::tri::Allocator<MyMesh>::GetPerVertexAttribute<unsigned long>(input, std::string("Vertex ID"));
+            //MyMesh::PerVertexAttributeHandle<unsigned long> vertex_id = vcg::tri::Allocator<MyMesh>::GetPerVertexAttribute<unsigned long>(input, std::string("Vertex ID"));
+            unsigned long counter = 0;
+            // Iterate over itk vertices and vcg::tri::Allocator<MyMesh>::AddVertex(m,MyMesh::CoordType ( 1.0, 1.0, 0.0));
+            for(auto pointsIterator = _inputMesh->GetPoints()->Begin(); pointsIterator!=_inputMesh->GetPoints()->End(); pointsIterator++, counter++)
+            {
+                vcg::tri::Allocator<MyMesh>::AddVertex(input,MyMesh::CoordType(pointsIterator.Value()[0], pointsIterator.Value()[1], pointsIterator.Value()[2]));
+                vertex_id[counter] = counter;
+            }
+            MyMesh::VertexIterator vi = input.vert.begin();
             for(VC_CellIterator cellIterator = _inputMesh->GetCells()->Begin(); cellIterator != _inputMesh->GetCells()->End(); cellIterator++)
             {
-                for(VC_PointsInCellIterator pointsIterator = cellIterator.Value()->PointIdsBegin(); pointsIterator!=cellIterator.Value()->PointIdsEnd(); pointsIterator++,i++)
+                int i = 0;
+                MyMesh::VertexPointer ivp[3];
+                for(auto p_id = cellIterator.Value()->PointIdsBegin(); p_id != cellIterator.Value()->PointIdsEnd(); p_id++, i++)
                  {
-                     ivp[i] =&*vi; vi->P()=MyMesh::CoordType (pointsIterator[0],pointsIterator[1],pointsIterator[2]); ++vi;
+                     unsigned long temp = vertex_id[*p_id] ;
+                     ivp[i] = &(input.vert[temp]);
+                      //vi++;
+                     // if std::vector<vertex> vs, then vs[p_it]
+
                  }
-                fi->V(0)=ivp[i-2];
-                fi->V(1)=ivp[i-1];
-                fi->V(2)=ivp[i];
+                fi->V(0)=ivp[0];
+                fi->V(1)=ivp[1];
+                fi->V(2)=ivp[2];
+
+                fi++;
             }
+
             vcg::LocalOptimization<MyMesh> DeciSession(input, &_collapseParams);
+            DeciSession.SetTargetSimplices(iterations);
             DeciSession.Init<MyTriEdgeCollapse>();
             DeciSession.DoOptimization();
+            DeciSession.Finalize<MyTriEdgeCollapse>();
         }
 
         VC_MeshType::Pointer QuadricEdgeCollapseResampling::getMesh(){
-            return _inputMesh;
+            VC_PointType point;
+            unsigned long point_cnt = 0;
+           // MyMesh::PerVertexAttributeHandle<unsigned long> vertex_id = vcg::tri::Allocator<MyMesh>::GetPerVertexAttribute<unsigned long>(input, std::string("Vertex ID"));
+            for(int i = 0; i<input.VN(); i++,point_cnt++){
+                point[0] = input.vert[i].P()[0];
+                point[1] = input.vert[i].P()[1];
+                point[2] = input.vert[i].P()[2];
+
+                _outputMesh->SetPoint(point_cnt, point);
+            }
+            unsigned long cell_cnt = 0;
+            VC_CellType::CellAutoPointer newCell;
+            for(auto fi = input.face.begin(); fi!=input.face.end(); fi++, cell_cnt++){
+                newCell.TakeOwnership(new VC_TriangleType);
+
+                unsigned long point1 = vertex_id[fi->V(0)];
+                unsigned long point2 = vertex_id[fi->V(1)];
+                unsigned long point3 = vertex_id[fi->V(2)];
+
+
+                newCell->SetPointId(0, point1);
+                newCell->SetPointId(1, point2);
+                newCell->SetPointId(2, point3);
+
+                _outputMesh->SetCell(cell_cnt, newCell);
+
+            }
+            return _outputMesh;
         }
     }//meshing
 }//volcart

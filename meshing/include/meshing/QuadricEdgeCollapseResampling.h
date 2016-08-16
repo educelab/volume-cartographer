@@ -12,11 +12,38 @@
 #include "vcg/complex/allocate.h"
 #include "vcg/complex/algorithms/local_optimization.h"
 #include "vcg/complex/algorithms/edge_collapse.h"
+#include "vcg/math/quadric.h"
 
 
 namespace volcart {
     namespace meshing{
         class QuadricEdgeCollapseResampling {
+            class MyVertex; class MyEdge; class MyFace;
+            struct MyUsedTypes: public vcg::UsedTypes<vcg::Use<MyVertex>    ::AsVertexType,
+                    vcg::Use<MyEdge>      ::AsEdgeType,
+                    vcg::Use<MyFace>      ::AsFaceType>{};
+
+            class MyVertex : public vcg::Vertex< MyUsedTypes, vcg::vertex::VFAdj, vcg::vertex::Coord3f, vcg::vertex::Normal3f, vcg::vertex::Mark, vcg::vertex::Qualityf, vcg::vertex::BitFlags>{
+            public:
+                vcg::math::Quadric<double>&Qd(){return q;}
+            private:
+                vcg::math::Quadric<double> q;
+            };
+            class MyFace : public vcg::Face< MyUsedTypes, vcg::face::VFAdj, vcg::face::VertexRef, vcg::face::BitFlags>{};
+            class MyEdge : public vcg::Edge <MyUsedTypes > {};
+            class MyMesh : public vcg::tri::TriMesh<std::vector<MyVertex>, std::vector<MyFace>> {};
+
+            MyMesh::PerVertexAttributeHandle<unsigned long> vertex_id;
+            typedef vcg::tri::BasicVertexPair<MyVertex> VertexPair;
+
+            class MyTriEdgeCollapse: public vcg::tri::TriEdgeCollapseQuadric<MyMesh, VertexPair, MyTriEdgeCollapse, vcg::tri::QInfoStandard<MyVertex> > {
+            public:
+                typedef vcg::tri::TriEdgeCollapseQuadric<MyMesh,VertexPair,MyTriEdgeCollapse,vcg::tri::QInfoStandard<MyVertex> > TECQ;
+                typedef MyMesh::VertexType::EdgeType EdgeType;
+                inline MyTriEdgeCollapse(const VertexPair &p, int i, vcg::BaseParameterClass *pp) : TECQ(p,i,pp){}
+            };
+        private:
+            MyMesh input;
         public:
             //Initializers//
             QuadricEdgeCollapseResampling();
@@ -47,11 +74,14 @@ namespace volcart {
 
 
             VC_MeshType::Pointer getMesh();
-            void compute();
+            void compute(int iterations);
         private:
             VC_MeshType::Pointer _inputMesh;
+            VC_MeshType::Pointer _outputMesh = VC_MeshType::New();
             vcg::tri::TriEdgeCollapseQuadricParameter _collapseParams;
+
         };
+
     } //meshing
 } //volcart
 
