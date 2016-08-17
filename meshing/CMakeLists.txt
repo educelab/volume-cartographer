@@ -74,6 +74,7 @@ set(test_srcs
     test/resamplePointCloudTest.cpp
     test/scaleMeshTest.cpp
     test/smoothNormalsTest.cpp
+        test/QuadricEdgeCollapseResamplingTest.cpp
 )
 
 # Add a test executable for each src
@@ -146,6 +147,13 @@ set(ORDERED_RESAMPLING_TEST_RES
     test/res/OrderedResampling_Plane.obj
     test/res/OrderedResampling_Arch.obj
 )
+set(QUADRIC_EDGE_COLLAPSE_RESAMPLING_TEST_RES
+        test/res/QuadricEdgeCollapse_Plane.obj
+        test/res/QuadricEdgeCollapse_Arch.obj
+        test/res/QuadricEdgeCollapse_Cone.obj
+        test/res/QuadricEdgeCollapse_Cube.obj
+        test/res/QuadricEdgeCollapse_Sphere.obj)
+
 set(MESHING_TEST_RES
     ${ITK_VTK_TEST_RES}
     ${ORDERED_PCD_MESHER_TEST_RES}
@@ -154,7 +162,9 @@ set(MESHING_TEST_RES
     ${SMOOTH_NORMALS_TEST_RES}
     ${SCALE_MESH_TEST_RES}
     ${ORDERED_RESAMPLING_TEST_RES}
+        ${QUADRIC_EDGE_COLLAPSE_RESAMPLING_TEST_RES}
 )
+
 foreach(r ${MESHING_TEST_RES})
     file(COPY ${r} DESTINATION ${EXECUTABLE_OUTPUT_PATH})
 endforeach()

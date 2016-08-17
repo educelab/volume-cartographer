@@ -8,29 +8,85 @@
 #include "common/io/ply2itk.h"
 #include "common/io/objWriter.h"
 #include "common/shapes/Plane.h"
+#include "common/shapes/Arch.h"
+#include "common/shapes/Cone.h"
+#include "common/shapes/Cube.h"
+#include "common/shapes/Sphere.h"
+#include "meshing/CalculateNormals.h"
 
 int main(int argc, char*argv[])
 {
     volcart::io::objWriter writer;
 
     //Imports mesh from file
-    VC_MeshType::Pointer mesh = VC_MeshType::New();
-    int width;
-    int height;
+    volcart::shapes::Plane plane(10,10);
 
-    bool open_test = volcart::io::ply2itkmesh(argv[1], mesh, width, height);
+    volcart::meshing::QuadricEdgeCollapseResampling ResamplerP;
+    ResamplerP.setMesh(plane.itkMesh());
+    ResamplerP.compute(plane.itkMesh()->GetNumberOfPoints() /2);
 
-    if (!open_test) {
-        cerr << "Error Opening Input file" << endl;
-        exit(EXIT_FAILURE);
-    }
-
-    volcart::meshing::QuadricEdgeCollapseResampling Resampler;
-    Resampler.setMesh(mesh);
-    Resampler.compute(3774);
-
+    VC_MeshType::Pointer Resample = ResamplerP.getMesh();
+    volcart::meshing::CalculateNormals calcNorm( Resample );
+    calcNorm.compute();
+    Resample= calcNorm.getMesh();
     writer.setPath("QuadricEdgeCollapse_Plane.obj");
-    writer.setMesh(Resampler.getMesh());
+    writer.setMesh(Resample);
+    writer.write();
+
+    volcart::meshing::QuadricEdgeCollapseResampling ResamplerA;
+    volcart::shapes::Arch arch(100,100);
+
+    ResamplerA.setMesh(arch.itkMesh());
+    ResamplerA.compute(arch.itkMesh()->GetNumberOfPoints() /2);
+
+    Resample = ResamplerA.getMesh();
+    calcNorm.setMesh(Resample);
+    calcNorm.compute();
+    Resample= calcNorm.getMesh();
+    writer.setPath("QuadricEdgeCollapse_Arch.obj");
+    writer.setMesh(Resample);
+    writer.write();
+
+    volcart::meshing::QuadricEdgeCollapseResampling ResamplerC;
+    volcart::shapes::Cone cone(1000,1000);
+
+    ResamplerC.setMesh(cone.itkMesh());
+    ResamplerC.compute(cone.itkMesh()->GetNumberOfPoints() /2);
+
+    Resample = ResamplerC.getMesh();
+    calcNorm.setMesh(Resample);
+    calcNorm.compute();
+    Resample= calcNorm.getMesh();
+    writer.setPath("QuadricEdgeCollapse_Cone.obj");
+    writer.setMesh(Resample);
+    writer.write();
+
+    volcart::meshing::QuadricEdgeCollapseResampling ResamplerB;
+    volcart::shapes::Cube cube;
+
+    ResamplerB.setMesh(cube.itkMesh());
+    ResamplerB.compute(cube.itkMesh()->GetNumberOfPoints() /2);
+
+    Resample = ResamplerB.getMesh();
+    calcNorm.setMesh(Resample);
+    calcNorm.compute();
+    Resample= calcNorm.getMesh();
+    writer.setPath("QuadricEdgeCollapse_Cube.obj");
+    writer.setMesh(Resample);
+    writer.write();
+
+    volcart::meshing::QuadricEdgeCollapseResampling ResamplerS;
+    volcart::shapes::Sphere sphere(30,3);
+
+    ResamplerS.setMesh(sphere.itkMesh());
+    ResamplerS.compute(sphere.itkMesh()->GetNumberOfPoints() /2);
+
+    Resample = ResamplerS.getMesh();
+    calcNorm.setMesh(Resample);
+    calcNorm.compute();
+    Resample= calcNorm.getMesh();
+    writer.setPath("QuadricEdgeCollapse_Sphere.obj");
+    writer.setMesh(Resample);
     writer.write();
 
     return EXIT_SUCCESS;
