@@ -19,10 +19,10 @@ namespace volcart {
     namespace meshing{
         class QuadricEdgeCollapseResampling {
             //All of these classes set up the elements necessary to use a vcg mesh
-            class MyVertex; class MyEdge; class MyFace;
-            struct MyUsedTypes: public vcg::UsedTypes<vcg::Use<MyVertex>::AsVertexType,vcg::Use<MyEdge>::AsEdgeType,vcg::Use<MyFace>::AsFaceType>{};
+            class myVertex; class myEdge; class myFace;
+            struct myUsedTypes: public vcg::UsedTypes<vcg::Use<myVertex>::AsVertexType,vcg::Use<myEdge>::AsEdgeType,vcg::Use<myFace>::AsFaceType>{};
 
-            class MyVertex : public vcg::Vertex< MyUsedTypes, vcg::vertex::VFAdj, vcg::vertex::Coord3f, vcg::vertex::Normal3f, vcg::vertex::Mark, vcg::vertex::Qualityf, vcg::vertex::BitFlags>{
+            class myVertex : public vcg::Vertex< myUsedTypes, vcg::vertex::VFAdj, vcg::vertex::Coord3f, vcg::vertex::Normal3f, vcg::vertex::Mark, vcg::vertex::Qualityf, vcg::vertex::BitFlags>{
             public:
                 //Used to compute error as a result of an edge collapse
                 vcg::math::Quadric<double>&Qd(){return q;}
@@ -30,21 +30,21 @@ namespace volcart {
                 vcg::math::Quadric<double> q;
             };
 
-            class MyFace : public vcg::Face< MyUsedTypes, vcg::face::VFAdj, vcg::face::VertexRef, vcg::face::BitFlags>{};
-            class MyEdge : public vcg::Edge <MyUsedTypes > {};
-            class MyMesh : public vcg::tri::TriMesh<std::vector<MyVertex>, std::vector<MyFace>> {};
+            class myFace : public vcg::Face< myUsedTypes, vcg::face::VFAdj, vcg::face::VertexRef, vcg::face::BitFlags>{};
+            class myEdge : public vcg::Edge <myUsedTypes > {};
+            class myMesh : public vcg::tri::TriMesh<std::vector<myVertex>, std::vector<myFace>> {};
 
             //Used for decimation
-            typedef vcg::tri::BasicVertexPair<MyVertex> VertexPair;
+            typedef vcg::tri::BasicVertexPair<myVertex> vertexPair;
 
-            class MyTriEdgeCollapse: public vcg::tri::TriEdgeCollapseQuadric<MyMesh, VertexPair, MyTriEdgeCollapse, vcg::tri::QInfoStandard<MyVertex> > {
+            class myTriEdgeCollapse: public vcg::tri::TriEdgeCollapseQuadric<myMesh, vertexPair, myTriEdgeCollapse, vcg::tri::QInfoStandard<myVertex> > {
             public:
-                typedef vcg::tri::TriEdgeCollapseQuadric<MyMesh,VertexPair,MyTriEdgeCollapse,vcg::tri::QInfoStandard<MyVertex> > TECQ;
-                typedef MyMesh::VertexType::EdgeType EdgeType;
-                inline MyTriEdgeCollapse(const VertexPair &p, int i, vcg::BaseParameterClass *pp) : TECQ(p,i,pp){}
+                typedef vcg::tri::TriEdgeCollapseQuadric<myMesh,vertexPair,myTriEdgeCollapse,vcg::tri::QInfoStandard<myVertex> > TECQ;
+                typedef myMesh::VertexType::EdgeType edgeType;
+                inline myTriEdgeCollapse(const vertexPair &p, int i, vcg::BaseParameterClass *pp) : TECQ(p,i,pp){}
             };
         private:
-            MyMesh _vcgInput;
+            myMesh _vcgInput;
         public:
             //Initializers//
             QuadricEdgeCollapseResampling();

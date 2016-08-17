@@ -16,6 +16,39 @@
 #include "common/shapes/Sphere.h"
 #include "meshing/CalculateNormals.h"
 
+
+/************************************************************************************
+ *                                                                                  *
+ *  QuardricEdgeCollapseResampling.cpp - tests the functionality of                 *
+ *      /vc/meshing/QuadricEdgeCollapseResampling.cpp                               *
+ *  The ultimate goal of this file is the following:                                *
+ *                                                                                  *
+ *        1. check whether an itk mesh can be converted to a vcg mesh               *
+ *           and vice versa.                                                        *
+ *                                                                                  *
+ *        2. confirm that the decimation algorithm creates files that match         *
+ *            generated obj files                                                   *
+ *  This file is broken up into 5 test fixtures (Plane,Arch,Cube,Cone,Sphere)       *
+ *  which initialize the objects used in each of the five test cases.               *
+ *                                                                                  *
+ *  Each functions similarly by creating a new object of a particular shape,        *
+ *  running the decimation algorithm which converts it to vcg and back to itk       *
+ *  then check them agaist previously rendered files                                *
+ *                                                                                  *
+ * Input:                                                                           *
+ *     No required inputs for this sample test. All test objects are created        *
+ *     internally.                                                                  *
+ *                                                                                  *
+ * Test-Specific Output:                                                            *
+ *     Specific test output only given on failure of any tests. Otherwise, general  *
+ *     number of testing errors is output.                                          *
+ *                                                                                  *
+ * Miscellaneous:                                                                   *
+ *     See the /testing/meshing wiki for more information on this test              *
+ * **********************************************************************************/
+
+
+
 //Setting up the shapes
 struct QuadricPlaneFixture {
     QuadricPlaneFixture(){
