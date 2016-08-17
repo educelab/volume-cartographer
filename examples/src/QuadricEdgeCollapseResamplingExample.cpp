@@ -27,7 +27,7 @@ int main(int argc, char*argv[])
 
     volcart::meshing::QuadricEdgeCollapseResampling Resampler;
     Resampler.setMesh(mesh);
-    Resampler.compute(5000);
+    Resampler.compute(3774);
 
     writer.setPath("QuadricEdgeCollapse_Plane.obj");
     writer.setMesh(Resampler.getMesh());

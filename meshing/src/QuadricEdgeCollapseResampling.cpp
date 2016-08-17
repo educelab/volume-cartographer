@@ -26,11 +26,8 @@ namespace volcart{
 
         void QuadricEdgeCollapseResampling::setDefaultParams(){
             _collapseParams.SetDefaultParams();
-          _collapseParams.PreserveBoundary = true;
-           _collapseParams.PreserveTopology = true;
-           _collapseParams.NormalCheck = true;
-            _collapseParams.NormalThrRad = M_PI/4.0;
-            _collapseParams.QualityThr = 1;
+            _collapseParams.PreserveBoundary = true;
+            _collapseParams.PreserveTopology = true;
 
         }
 
@@ -53,8 +50,8 @@ namespace volcart{
                 MyMesh::VertexPointer ivp[3];
                 for(auto p_id = cellIterator.Value()->PointIdsBegin(); p_id != cellIterator.Value()->PointIdsEnd(); p_id++, i++)
                  {
-                     unsigned long temp = vertex_id[*p_id] ;
-                     ivp[i] = &(input.vert[temp]);
+//                     unsigned long temp = vertex_id[*p_id] ;
+                     ivp[i] = &(input.vert[*p_id]);
                       //vi++;
                      // if std::vector<vertex> vs, then vs[p_it]
 
@@ -66,39 +63,55 @@ namespace volcart{
                 fi++;
             }
 
+//            float TargetError = std::numeric_limits<float>::max();
             vcg::LocalOptimization<MyMesh> DeciSession(input, &_collapseParams);
             DeciSession.SetTargetSimplices(iterations);
+//            DeciSession.SetTargetMetric(TargetError);
             DeciSession.Init<MyTriEdgeCollapse>();
-            DeciSession.DoOptimization();
+            while(input.fn > iterations && DeciSession.DoOptimization())
+            {
+                std::cout << "Current mesh is " << input.fn << std::endl;
+            }
             DeciSession.Finalize<MyTriEdgeCollapse>();
         }
 
         VC_MeshType::Pointer QuadricEdgeCollapseResampling::getMesh(){
+            _outputMesh =  VC_MeshType::New();
             VC_PointType point;
-            unsigned long point_cnt = 0;
+            unsigned long j = 0;
+            MyMesh::VertexPointer vp;
+            vcg::SimpleTempData<MyMesh::VertContainer , unsigned long> indices(input.vert);
            // MyMesh::PerVertexAttributeHandle<unsigned long> vertex_id = vcg::tri::Allocator<MyMesh>::GetPerVertexAttribute<unsigned long>(input, std::string("Vertex ID"));
-            for(int i = 0; i<input.VN(); i++,point_cnt++){
-                point[0] = input.vert[i].P()[0];
-                point[1] = input.vert[i].P()[1];
-                point[2] = input.vert[i].P()[2];
+            for(auto vi = input.vert.begin(); vi!=input.vert.end(); vi++){
+                vp=&(*vi);
+                indices[vp] = j;
+                if(!vi->IsD()){
+                       point[0] = vi->P()[0];
+                       point[1] = vi->P()[1];
+                       point[2] = vi->P()[2];
 
-                _outputMesh->SetPoint(point_cnt, point);
+                    _outputMesh->SetPoint(j, point);
+                    j++;
+                   }
             }
             unsigned long cell_cnt = 0;
             VC_CellType::CellAutoPointer newCell;
-            for(auto fi = input.face.begin(); fi!=input.face.end(); fi++, cell_cnt++){
-                newCell.TakeOwnership(new VC_TriangleType);
+            for(auto fi = input.face.begin(); fi!=input.face.end(); fi++){
+                if(!fi->IsD())
+                {   newCell.TakeOwnership(new VC_TriangleType);
 
-                unsigned long point1 = vertex_id[fi->V(0)];
-                unsigned long point2 = vertex_id[fi->V(1)];
-                unsigned long point3 = vertex_id[fi->V(2)];
+                    unsigned long point1 = indices[fi->V(0)];
+                    unsigned long point2 = indices[fi->V(1)];
+                    unsigned long point3 = indices[fi->V(2)];
 
 
-                newCell->SetPointId(0, point1);
-                newCell->SetPointId(1, point2);
-                newCell->SetPointId(2, point3);
+                    newCell->SetPointId(0, point1);
+                    newCell->SetPointId(1, point2);
+                    newCell->SetPointId(2, point3);
 
-                _outputMesh->SetCell(cell_cnt, newCell);
+                    _outputMesh->SetCell(cell_cnt, newCell);
+                    cell_cnt++;
+                }
 
             }
             return _outputMesh;

@@ -13,6 +13,7 @@
 #include "vcg/complex/algorithms/local_optimization.h"
 #include "vcg/complex/algorithms/edge_collapse.h"
 #include "vcg/math/quadric.h"
+#include "vcg/container/simple_temporary_data.h"
 
 
 namespace volcart {
@@ -77,7 +78,7 @@ namespace volcart {
             void compute(int iterations);
         private:
             VC_MeshType::Pointer _inputMesh;
-            VC_MeshType::Pointer _outputMesh = VC_MeshType::New();
+            VC_MeshType::Pointer _outputMesh;
             vcg::tri::TriEdgeCollapseQuadricParameter _collapseParams;
 
         };
