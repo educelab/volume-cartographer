@@ -99,7 +99,7 @@ if (VC_USE_LIBIGL)
 endif()
 
 ### VCG ###
-option(VC_USE_VCG "Use VCG library" on)
+option(VC_USE_VCG "Use VCG library" off)
 if(VC_USE_VCG)
     find_package(VCG REQUIRED)
     add_library(vcglib INTERFACE IMPORTED)
