@@ -52,12 +52,7 @@ set(VTK_LIBRARIES ${VTK_LIBRARIES_TMP})
 ### OpenCV ###
 find_package(OpenCV REQUIRED)
 
-### VCG ###
-find_package(VCG REQUIRED)
-add_library(vcglib INTERFACE IMPORTED)
-set_target_properties(vcglib PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${VCG_INCLUDE_DIRS}"
-        )
+
 
 ############
 # Optional #
@@ -101,4 +96,14 @@ if (VC_USE_LIBIGL)
     set_target_properties(libigl PROPERTIES
         INTERFACE_INCLUDE_DIRECTORIES "${LIBIGL_INCLUDE_DIRS}"
     )
+endif()
+
+### VCG ###
+option(VC_USE_VCG "Use VCG library" on)
+if(VC_USE_VCG)
+    find_package(VCG REQUIRED)
+    add_library(vcglib INTERFACE IMPORTED)
+    set_target_properties(vcglib PROPERTIES
+            INTERFACE_INCLUDE_DIRECTORIES "${VCG_INCLUDE_DIRS}"
+            )
 endif()
