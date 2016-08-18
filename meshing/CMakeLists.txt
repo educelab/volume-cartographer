@@ -10,8 +10,7 @@ set(srcs
     src/scaleMesh.cpp
     src/smoothNormals.cpp
     src/CalculateNormals.cpp
-    src/OrderedResampling.cpp
-        src/QuadricEdgeCollapseResampling.cpp)
+    src/OrderedResampling.cpp)
 set(deps
     vc_common
     Boost::filesystem
