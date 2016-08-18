@@ -76,10 +76,19 @@ set(test_srcs
     test/resamplePointCloudTest.cpp
     test/scaleMeshTest.cpp
     test/smoothNormalsTest.cpp
-        test/QuadricEdgeCollapseResamplingTest.cpp
 )
 
-# Add a test executable for each src
+if(VC_USE_VCG)
+    list(APPEND srcs src/QuadricEdgeCollapseResamplingTest.cpp)
+    set(QUADRIC_EDGE_COLLAPSE_RESAMPLING_TEST_RES
+            test/res/QuadricEdgeCollapse_Plane.obj
+            test/res/QuadricEdgeCollapse_Arch.obj
+            test/res/QuadricEdgeCollapse_Cone.obj
+            test/res/QuadricEdgeCollapse_Cube.obj
+            test/res/QuadricEdgeCollapse_Sphere.obj)
+endif()
+
+        # Add a test executable for each src
 foreach(src ${test_srcs})
     get_filename_component(filename ${src} NAME_WE)
     set(testname ${target}_${filename})
@@ -149,12 +158,6 @@ set(ORDERED_RESAMPLING_TEST_RES
     test/res/OrderedResampling_Plane.obj
     test/res/OrderedResampling_Arch.obj
 )
-set(QUADRIC_EDGE_COLLAPSE_RESAMPLING_TEST_RES
-        test/res/QuadricEdgeCollapse_Plane.obj
-        test/res/QuadricEdgeCollapse_Arch.obj
-        test/res/QuadricEdgeCollapse_Cone.obj
-        test/res/QuadricEdgeCollapse_Cube.obj
-        test/res/QuadricEdgeCollapse_Sphere.obj)
 
 set(MESHING_TEST_RES
     ${ITK_VTK_TEST_RES}
