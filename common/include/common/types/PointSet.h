@@ -19,7 +19,7 @@ public:
     using Iterator = typename Container::iterator;
     using ConstIterator = typename Container::const_iterator;
 
-    PointSet() : _data(), _width(0), _height(0), _nelements(0) {}
+    PointSet() : _width(0), _height(0), _nelements(0), _data() {}
 
     PointSet(size_t width, size_t height)
         : _width(width), _height(height), _nelements(width * height)
@@ -31,43 +31,6 @@ public:
         : _width(width), _height(height), _nelements(width * height)
     {
         _data.assign(_nelements, init_val);
-    }
-
-    PointSet(const PointSet& ps)
-        : _width(ps._width), _height(ps._height), _nelements(ps._nelements)
-    {
-        _data.reserve(ps.size());
-        std::copy(std::begin(ps), std::end(ps), std::back_inserter(_data));
-    }
-
-    PointSet(PointSet&& ps)
-        : _width(ps._width)
-        , _height(ps._height)
-        , _nelements(ps._nelements)
-        , _data(std::move(ps._data))
-    {
-    }
-
-    PointSet& operator=(const PointSet& other)
-    {
-        if (this != &other) {
-            _width = other._width;
-            _height = other._height;
-            _nelements = other._nelements;
-            std::copy(std::begin(other), std::end(other), std::begin(_data));
-        }
-        return *this;
-    }
-
-    PointSet& operator=(PointSet&& other)
-    {
-        if (this != &other) {
-            _width = other._width;
-            _height = other._height;
-            _nelements = other._nelements;
-            _data = std::move(other._data);
-        }
-        return *this;
     }
 
     // Linear access - no concept of 2D layout

@@ -25,7 +25,7 @@ public:
     using ConstIterator = typename Container::const_iterator;
     static constexpr size_t dim = N;
 
-    Point() : data_() {}
+    Point() = default;
 
     template <typename... Ts>
     Point(Ts... args)
@@ -33,13 +33,6 @@ public:
         static_assert(sizeof...(args) == N, "Not the right # args");
         data_ = {args...};
     }
-
-    Point(const Point& other)
-    {
-        std::copy(std::begin(other), std::end(other), std::begin(data_));
-    }
-
-    Point(Point&& other) : data_(std::move(other.data_)) {}
 
     Point(std::initializer_list<T> vals)
     {
@@ -51,22 +44,6 @@ public:
         Point p;
         std::fill(std::begin(p), std::end(p), fillVal);
         return p;
-    }
-
-    Point& operator=(const Point& other)
-    {
-        if (this != &other) {
-            std::copy(std::begin(other), std::end(other), std::begin(data_));
-        }
-        return *this;
-    }
-
-    Point& operator=(Point&& other)
-    {
-        if (this != &other) {
-            data_ = std::move(other.data_);
-        }
-        return *this;
     }
 
     Point& operator+=(const Point& p)
