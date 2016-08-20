@@ -167,6 +167,13 @@ using Point3f = Point3<float>;
 using Point3i = Point3<int32_t>;
 using Point3b = Point3<uint8_t>;
 
+template <typename T>
+using Point6 = Point<T, 6>;
+using Point6d = Point6<double>;
+using Point6f = Point6<float>;
+using Point6i = Point6<int32_t>;
+using Point6b = Point6<uint8_t>;
+
 // Operations on points
 template <typename T, size_t N>
 Point<T, N> operator+(Point<T, N> lhs, const Point<T, N>& rhs)
@@ -255,7 +262,8 @@ template <typename T, size_t N>
 bool operator==(const Point<T, N>& lhs, const Point<T, N>& rhs)
 {
     auto zipped = zip(lhs, rhs);
-    return std::all_of(std::begin(zipped), std::end(zipped), [](const auto& t) {
+    using ZipPair = boost::tuple<Point<T, N>, Point<T, N>>;
+    return std::all_of(std::begin(zipped), std::end(zipped), [](ZipPair t) {
         return boost::get<0>(t) == boost::get<1>(t);
     });
 }
