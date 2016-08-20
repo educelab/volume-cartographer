@@ -8,7 +8,7 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 set(VC_INSTALL_INCLUDE_PREFIX include/volcart)
 
 # Use modern C++ for everything
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 11)
 set(CXX_STANDARD_REQUIRED on)
 
 # Global configs
