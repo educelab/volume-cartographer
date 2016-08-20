@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef _VOLCART_SEGMENTATION_FITTED_CURVE_H_
-#define _VOLCART_SEGMENTATION_FITTED_CURVE_H_
-
 #include <vector>
 #include <cassert>
 #include "segmentation/lrps/common.h"
@@ -48,5 +45,3 @@ public:
 };
 }
 }
-
-#endif

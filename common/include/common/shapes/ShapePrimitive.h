@@ -1,9 +1,7 @@
 //
 // Created by Seth Parker on 9/18/15.
 //
-
-#ifndef VC_TESTINGMESH_H
-#define VC_TESTINGMESH_H
+#pragma once
 
 #include "../vc_defines.h"
 #include <vtkCellData.h>
@@ -53,5 +51,3 @@ namespace shapes {
 
 } // namespace shapes
 } // namespace volcart
-
-#endif //VC_TESTINGMESH_H

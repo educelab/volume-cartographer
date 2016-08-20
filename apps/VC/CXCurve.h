@@ -1,7 +1,6 @@
 // CXCurve.h
 // Chao Du 2014 Dec
-#ifndef _CXCURVE_H_
-#define _CXCURVE_H_
+#pragma once
 
 #include "mathUtils.h"
 
@@ -49,5 +48,3 @@ private:
 }; // class CXCurve
 
 } // namespace ChaoVis
-
-#endif // _CXCURVE_H_

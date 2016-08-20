@@ -3,9 +3,7 @@
 // Mostly copied from the HE structure used by Blender's parameterization
 // A half-edge mesh stores a unique edge for each edge of each face.
 // e.g. If two triangles share vertices A and B, this will result in two edges: edge AB and edge BA
-
-#ifndef VC_HALFEDGEMESH_H
-#define VC_HALFEDGEMESH_H
+#pragma once
 
 #include <iostream>
 #include <exception>
@@ -155,6 +153,3 @@ namespace volcart {
 
     };
 }
-
-
-#endif //VC_HALFEDGEMESH_H

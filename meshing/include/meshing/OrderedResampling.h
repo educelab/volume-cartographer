@@ -2,9 +2,7 @@
 // Created by Hannah Hatch on 7/25/16.
 /*Algorithm takes in a base mesh and reduces the number of points and faces by removing every other point along
  * horizontal and vertical axes*/
-
-#ifndef VC_ORDEREDRESAMPLING_H
-#define VC_ORDEREDRESAMPLING_H
+#pragma once
 
 #include <iostream>
 #include <vector>
@@ -40,6 +38,3 @@ namespace volcart {
         }; //OrderedResampling
     } //meshing
 } //volcart
-
-
-#endif //VC_ORDEREDRESAMPLING_H

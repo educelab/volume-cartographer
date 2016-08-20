@@ -1,7 +1,6 @@
 // texturingUtils.h
 // Chao Du 2015 Apr
-#ifndef _TEXTURINGUTILS_H_
-#define _TEXTURINGUTILS_H_
+#pragma once
 
 #include <vector>
 #include <opencv2/opencv.hpp>
@@ -686,6 +685,3 @@ inline double textureWithMethod(   const cv::Vec3f              &nPoint,    // p
         break;
     } // switch nFilter
 }
-
-
-#endif // _TEXTURINGUTILS_H_

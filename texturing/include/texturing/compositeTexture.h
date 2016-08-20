@@ -1,17 +1,15 @@
 // volcart::texturing::compositeTexture
 // Generate a Texture object using one of the various filters in texturingUtils.h.
 // Created by Seth Parker on 10/20/15.
-
-#ifndef VC_COMPOSITETEXTURE_H
-#define VC_COMPOSITETEXTURE_H
+#pragma once
 
 #include "common/vc_defines.h"
 #include "common/types/Texture.h"
 #include "common/types/UVMap.h"
 #include "volumepkg/volumepkg.h"
 
-#include "texturingUtils.h"
-#include "simpleUV.h"
+#include "texturing/texturingUtils.h"
+#include "texturing/simpleUV.h"
 
 namespace volcart {
     namespace texturing {
@@ -50,5 +48,3 @@ namespace volcart {
         }; // compositeTexture
     } // volcart
 }// texture
-
-#endif //VC_COMPOSITETEXTURE_H

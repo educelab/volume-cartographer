@@ -1,8 +1,7 @@
 // CMatrixMN.h
 // Chao Du 2015 Jan
 // mxn matrix
-#ifndef _CMATRIXMN_H_
-#define _CMATRIXMN_H_
+#pragma once
 
 #include "HBase.h"
 #include "CVectorN.h"
@@ -246,5 +245,3 @@ void CMatrixMN< T >::Dump( void ) const
 }
 
 } // namespace ChaoVis
-
-#endif // _CMATRIXMN_H_

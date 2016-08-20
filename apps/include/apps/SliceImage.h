@@ -2,8 +2,7 @@
 // Created by Seth Parker on 7/31/15.
 //
 
-#ifndef VC_SLICEIMAGE_H
-#define VC_SLICEIMAGE_H
+#pragma once
 
 #include <iostream>
 
@@ -45,6 +44,3 @@ inline bool SlicePathLessThan(const volcart::SliceImage & a, const volcart::Slic
     std::string b_filename = boost::to_lower_copy<std::string>(b.path.filename().native());
     return a_filename < b_filename;
 };
-
-
-#endif //VC_SLICEIMAGE_H

@@ -1,7 +1,6 @@
 // CBezierCurve.h
 // Chao Du 2015 April
-#ifndef _CBEZIERCURVE_H_
-#define _CBEZIERCURVE_H_
+#pragma once
 
 #include <vector>
 
@@ -41,5 +40,3 @@ private:
 };  // class CBezierCurve
 
 }  // namespace ChaoVis
-
-#endif  // _CBEZIERCURVE_H_

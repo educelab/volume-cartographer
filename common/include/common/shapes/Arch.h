@@ -1,9 +1,7 @@
 //
 // Created by Melissa Shankle on 12/02/15.
 //
-
-#ifndef VC_ARCH_H
-#define VC_ARCH_H
+#pragma once
 
 #include <math.h>
 
@@ -66,5 +64,3 @@ namespace volcart {
         }; // Arch
     } // shapes
 } // volcart
-
-#endif //VC_ARCH_H

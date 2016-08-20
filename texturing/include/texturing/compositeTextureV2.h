@@ -1,9 +1,7 @@
 //
 // Created by Seth Parker on 12/28/15.
 //
-
-#ifndef VC_COMPOSITETEXTUREV2_H
-#define VC_COMPOSITETEXTUREV2_H
+#pragma once
 
 #include <opencv2/opencv.hpp>
 
@@ -60,5 +58,3 @@ namespace texturing {
 
 }
 }
-
-#endif //VC_COMPOSITETEXTUREV2_H

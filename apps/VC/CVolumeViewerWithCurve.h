@@ -1,7 +1,6 @@
 // CVolumeViewerWithCurve.h
 // Chao Du 2015 April
-#ifndef _CVOLUMEVIEWERWITHCURVE_H_
-#define _CVOLUMEVIEWERWITHCURVE_H_
+#pragma once
 
 #include "CVolumeViewer.h"
 #include "CBSpline.h"
@@ -98,5 +97,3 @@ private:
 }; // class CVolumeViewerWithCurve
 
 } // namespace ChaoVis
-
-#endif // _CVOLUMEVIEWERWITHCURVE_H_

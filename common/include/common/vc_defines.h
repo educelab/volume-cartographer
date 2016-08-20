@@ -1,9 +1,7 @@
 //
 // Created by Media Team on 7/7/15.
 //
-
-#ifndef VC_DEFINES_H
-#define VC_DEFINES_H
+#pragma once
 
 #include "common/util/getMemorySize.h"
 
@@ -128,5 +126,3 @@ inline std::string VC_DATE_TIME() {
     strftime( buf, sizeof( buf ), "%Y%m%d%H%M%S", &tstruct );
     return std::string(buf);
 }
-
-#endif //VC_DEFINES_H
