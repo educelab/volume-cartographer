@@ -19,16 +19,31 @@ public:
     using Iterator = typename Container::iterator;
     using ConstIterator = typename Container::const_iterator;
 
-    PointSet() : _width(0), _height(0), _nelements(0), _data() {}
+    PointSet()
+        : _width(0), _height(0), _nelements(0), _isOrdered(false), _data()
+    {
+    }
+
+    PointSet(size_t size)
+        : _width(0), _height(0), _nelements(size), _isOrdered(false)
+    {
+        _data.reserve(_nelements);
+    }
 
     PointSet(size_t width, size_t height)
-        : _width(width), _height(height), _nelements(width * height)
+        : _width(width)
+        , _height(height)
+        , _nelements(width * height)
+        , _isOrdered(true)
     {
         _data.reserve(_nelements);
     }
 
     PointSet(size_t width, size_t height, T init_val)
-        : _width(width), _height(height), _nelements(width * height)
+        : _width(width)
+        , _height(height)
+        , _nelements(width * height)
+        , _isOrdered(true)
     {
         _data.assign(_nelements, init_val);
     }
@@ -41,15 +56,25 @@ public:
     // NOTE: x, then y
     const T& operator()(size_t x, size_t y) const
     {
+        assert(_isOrdered && "Cannot use operator() with unordered pointset");
         return _data[y * _width + x];
     }
-    T& operator()(size_t x, size_t y) { return _data[y * _width + x]; }
+    T& operator()(size_t x, size_t y)
+    {
+        assert(_isOrdered && "Cannot use operator() with unordered pointset");
+        return _data[y * _width + x];
+    }
 
     // Metadata
     size_t width() const { return _width; }
+    void setWidth(size_t width) { _width = width; }
     size_t height() const { return _height; }
+    void setHeight(size_t height) { _height = height; }
     size_t size() const { return _nelements; }
     bool empty() const { return _data.empty(); }
+    bool isOrdered() const { return _isOrdered; }
+    void setOrdered() { _isOrdered = true; }
+    void setUnordered() { _isOrdered = false; }
 
     // Iterators and element accesors
     Iterator begin() { return std::begin(_data); }
@@ -134,6 +159,7 @@ private:
     size_t _width;
     size_t _height;
     size_t _nelements;
+    bool _isOrdered;
     Container _data;
 
     static PointSet<T> readFileAscii(boost::filesystem::path path)

@@ -262,10 +262,10 @@ template <typename T, size_t N>
 bool operator==(const Point<T, N>& lhs, const Point<T, N>& rhs)
 {
     auto zipped = zip(lhs, rhs);
-    using ZipPair = boost::tuple<Point<T, N>, Point<T, N>>;
-    return std::all_of(std::begin(zipped), std::end(zipped), [](ZipPair t) {
-        return boost::get<0>(t) == boost::get<1>(t);
-    });
+    return std::all_of(std::begin(zipped), std::end(zipped),
+                       [](boost::tuple<T, T> t) {
+                           return boost::get<0>(t) == boost::get<1>(t);
+                       });
 }
 
 template <typename T, size_t N>
