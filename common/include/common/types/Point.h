@@ -152,7 +152,7 @@ public:
     cv::Vec<T, N> toCvVec() const { cv::Vec<T, N>(data_.data()); }
 
 private:
-    std::array<T, N> data_;
+    Container data_;
 };
 
 template <typename T>
