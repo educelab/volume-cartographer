@@ -34,11 +34,6 @@ public:
         data_ = {args...};
     }
 
-    Point(std::initializer_list<T> vals)
-    {
-        std::copy(std::begin(vals), std::end(vals), std::begin(data_));
-    }
-
     static Point fill(T fillVal)
     {
         Point p;
