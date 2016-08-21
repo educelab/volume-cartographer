@@ -73,8 +73,17 @@ public:
     size_t size() const { return _nelements; }
     bool empty() const { return _data.empty(); }
     bool isOrdered() const { return _isOrdered; }
-    void setOrdered() { _isOrdered = true; }
-    void setUnordered() { _isOrdered = false; }
+    void setOrdered(size_t newWidth, size_t newHeight)
+    {
+        _isOrdered = true;
+        _width = newWidth;
+        _height = newHeight;
+    }
+    void setUnordered()
+    {
+        _isOrdered = false;
+        _width = _height = 0;
+    }
 
     // Iterators and element accesors
     Iterator begin() { return std::begin(_data); }
