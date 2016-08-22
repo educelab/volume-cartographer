@@ -1,5 +1,9 @@
 Volume Cartographer Changelog
 =============================
+v2.6.0
+------
+- common
+    - __New:__ New Point and PointSet data types (!69)
 
 v2.5.0
 ------

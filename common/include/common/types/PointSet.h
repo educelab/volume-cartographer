@@ -56,12 +56,12 @@ public:
     // NOTE: x, then y
     const T& operator()(size_t x, size_t y) const
     {
-        assert(_isOrdered && "Cannot use operator() with unordered pointset");
+        assert(_isOrdered && "Cannot use operator() with unordered PointSet");
         return _data[y * _width + x];
     }
     T& operator()(size_t x, size_t y)
     {
-        assert(_isOrdered && "Cannot use operator() with unordered pointset");
+        assert(_isOrdered && "Cannot use operator() with unordered PointSet");
         return _data[y * _width + x];
     }
 
@@ -85,7 +85,7 @@ public:
         _width = _height = 0;
     }
 
-    // Iterators and element accesors
+    // Iterators and element accessors
     Iterator begin() { return std::begin(_data); }
     ConstIterator begin() const { return std::begin(_data); }
     Iterator end() { return std::end(_data); }
@@ -205,7 +205,7 @@ private:
             }
         }
 
-        // Basic shitty stringly-typed checking
+        // Basic (terrible) stringly-typed checking
         assert((type == "double" || type == "float" || type == "int") &&
                "Only supports types 'float', 'int', and 'double'");
         assert(dim == T::dim && "Wrong dimension read");
@@ -256,7 +256,7 @@ private:
         }
         infile.get();
 
-        // Basic shitty stringly-typed checking
+        // Basic (terrible) stringly-typed checking
         assert((type == "double" || type == "float" || type == "int") &&
                "Only supports types 'float', 'int', and 'double'");
         assert(dim == T::dim && "Wrong dimension read");
