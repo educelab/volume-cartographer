@@ -72,8 +72,8 @@ BOOST_AUTO_TEST_CASE(FillPointSetTest)
 
 BOOST_FIXTURE_TEST_CASE(WriteThenReadBinaryPointSet, Point3iPointSet)
 {
-    PointSet<Point3i>::writeFile("tmp.ps", ps);
-    auto readPs = PointSet<Point3i>::readFile("tmp.ps");
+    PointSet<Point3i>::writeFile("tmp.txt", ps);
+    auto readPs = PointSet<Point3i>::readFile("tmp.txt");
     BOOST_CHECK_EQUAL(readPs[0], ps[0]);
     BOOST_CHECK_EQUAL(readPs[1], ps[1]);
     BOOST_CHECK_EQUAL(readPs[2], ps[2]);
@@ -81,10 +81,10 @@ BOOST_FIXTURE_TEST_CASE(WriteThenReadBinaryPointSet, Point3iPointSet)
 
 BOOST_FIXTURE_TEST_CASE(WriteThenReadAsciiPointSet, Point3iPointSet)
 {
-    PointSet<Point3i>::writeFile("tmp.ps", ps,
+    PointSet<Point3i>::writeFile("tmp.txt", ps,
                                  PointSet<Point3i>::IOMode::ASCII);
     auto readPs =
-        PointSet<Point3i>::readFile("tmp.ps", PointSet<Point3i>::IOMode::ASCII);
+        PointSet<Point3i>::readFile("tmp.txt", PointSet<Point3i>::IOMode::ASCII);
     BOOST_CHECK_EQUAL(readPs[0], ps[0]);
     BOOST_CHECK_EQUAL(readPs[1], ps[1]);
     BOOST_CHECK_EQUAL(readPs[2], ps[2]);
