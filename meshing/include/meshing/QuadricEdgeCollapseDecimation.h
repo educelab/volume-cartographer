@@ -78,27 +78,28 @@ public:
     // Set All Parameters
     void setMesh(VC_MeshType::Pointer mesh);
     void setDefaultParams();
-    void setAllParams(vcg::tri::TriEdgeCollapseQuadricParameter newParams) { _collapseParams = newParams; }
+    void setAllParams(vcg::tri::TriEdgeCollapseQuadricParameter newParams) { collapseParams_ = newParams; }
 
     // Defaults set by VCG, with the exception of PreserveBoundary and PreserveTopology
-    void setBoundaryWeight(double weight) {_collapseParams.CosineThr = weight;} //Default: .5
-    void setCosineThr(double thr) {_collapseParams.CosineThr = thr;  } //Default: cos(M_PI/2)
-    void setFastPreserveBoundary(bool set) {_collapseParams.FastPreserveBoundary = set;} //Default: false
-    void setNormalCheck(bool set) {_collapseParams.NormalCheck = set;  } //Default: false
-    void setNormalThrRad(double rad) {_collapseParams.NormalThrRad = rad; } //Default: M_PI/2
-    void setOptimalPlacement(bool set) {_collapseParams.OptimalPlacement = set;} //Default: true
-    void setPreserveTopology(bool set) {_collapseParams.PreserveTopology = set; } //Default: true
-    void setPreserveBoundary(bool set) {_collapseParams.PreserveBoundary = set;} //Default: true
-    void setQuadricEpsilon(double epsilon) {_collapseParams.QuadricEpsilon = epsilon;} //Default:1e-15
-    void setQualityCheck(bool set) {_collapseParams.QualityCheck = set;} //Default: true
-    void setQualityQuadric(bool set) {_collapseParams.QualityQuadric = set;} //Default: false
-    void setQualityThr(double thr) {_collapseParams.QualityThr = thr;} //Default: .3
-    void setQualityWeight(bool set) {_collapseParams.QualityWeight = set;} //Default: false
-    void setQualityWeightFactor(double factor) {_collapseParams.QualityWeight = factor;} //Default: 100.0
-    void setScaleFactor(double scale) {_collapseParams.ScaleFactor = scale;} //Default: 1.0
-    void setScaleIndependent(bool set) {_collapseParams.ScaleIndependent = set;} //Default: true
-    void setUseArea(bool set) {_collapseParams.UseArea = set;} //Default: true;
-    void setUseVertexWeight(bool set) {_collapseParams.UseVertexWeight = set;} //Default: false
+    void setDesiredFaces(size_t n) {desiredFaces_ = n;};
+    void setBoundaryWeight(double weight) {collapseParams_.CosineThr = weight;} //Default: .5
+    void setCosineThr(double thr) {collapseParams_.CosineThr = thr;  } //Default: cos(M_PI/2)
+    void setFastPreserveBoundary(bool set) {collapseParams_.FastPreserveBoundary = set;} //Default: false
+    void setNormalCheck(bool set) {collapseParams_.NormalCheck = set;  } //Default: false
+    void setNormalThrRad(double rad) {collapseParams_.NormalThrRad = rad; } //Default: M_PI/2
+    void setOptimalPlacement(bool set) {collapseParams_.OptimalPlacement = set;} //Default: true
+    void setPreserveTopology(bool set) {collapseParams_.PreserveTopology = set; } //Default: true
+    void setPreserveBoundary(bool set) {collapseParams_.PreserveBoundary = set;} //Default: true
+    void setQuadricEpsilon(double epsilon) {collapseParams_.QuadricEpsilon = epsilon;} //Default:1e-15
+    void setQualityCheck(bool set) {collapseParams_.QualityCheck = set;} //Default: true
+    void setQualityQuadric(bool set) {collapseParams_.QualityQuadric = set;} //Default: false
+    void setQualityThr(double thr) {collapseParams_.QualityThr = thr;} //Default: .3
+    void setQualityWeight(bool set) {collapseParams_.QualityWeight = set;} //Default: false
+    void setQualityWeightFactor(double factor) {collapseParams_.QualityWeight = factor;} //Default: 100.0
+    void setScaleFactor(double scale) {collapseParams_.ScaleFactor = scale;} //Default: 1.0
+    void setScaleIndependent(bool set) {collapseParams_.ScaleIndependent = set;} //Default: true
+    void setUseArea(bool set) {collapseParams_.UseArea = set;} //Default: true;
+    void setUseVertexWeight(bool set) {collapseParams_.UseVertexWeight = set;} //Default: false
 
     // Processing
     void compute(int iterations);
@@ -109,7 +110,7 @@ private:
     void _convertMeshtoVCG();
     VC_MeshType::Pointer _itkInput;
     VC_MeshType::Pointer _outputMesh;
-    vcg::tri::TriEdgeCollapseQuadricParameter _collapseParams;
+    vcg::tri::TriEdgeCollapseQuadricParameter collapseParams_;
 
 }; // QuadricEdgeCollapse
 

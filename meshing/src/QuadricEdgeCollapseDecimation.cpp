@@ -8,31 +8,30 @@
 using namespace volcart::meshing;
 
 QuadricEdgeCollapseDecimation::QuadricEdgeCollapseDecimation() {
-    _itkInput = nullptr;
+    itkInput_ = nullptr;
     setDefaultParams();
 }
 
 QuadricEdgeCollapseDecimation::QuadricEdgeCollapseDecimation(VC_MeshType::Pointer mesh) {
-    _itkInput = mesh;
+    itkInput_ = mesh;
     setDefaultParams();
 }
 
 void QuadricEdgeCollapseDecimation::setMesh(VC_MeshType::Pointer mesh) {
-    _itkInput = mesh;
+    itkInput_ = mesh;
 }
 
 void QuadricEdgeCollapseDecimation::setDefaultParams(){
-    _collapseParams.SetDefaultParams();
-    _collapseParams.PreserveBoundary = true;
-    _collapseParams.PreserveTopology = true;
+    collapseParams_.SetDefaultParams();
+    collapseParams_.PreserveBoundary = true;
+    collapseParams_.PreserveTopology = true;
 
 }
 
-
-void QuadricEdgeCollapseDecimation::compute(int iterations) {
-
+///// Processing /////
+void QuadricEdgeCollapseDecimation::compute() {
     _convertMeshtoVCG();
-    vcg::LocalOptimization<VcgMesh> deciSession(_vcgInput, &_collapseParams);
+    vcg::LocalOptimization<VcgMesh> deciSession(_vcgInput, &collapseParams_);
 
     //Sets the target number of faces
     deciSession.SetTargetSimplices(iterations);
@@ -48,7 +47,7 @@ void QuadricEdgeCollapseDecimation::compute(int iterations) {
 }
 
 VC_MeshType::Pointer QuadricEdgeCollapseDecimation::getMesh(){
-    _outputMesh =  VC_MeshType::New();
+    outputMesh_ =  VC_MeshType::New();
     VC_PointType point;
     unsigned long j = 0;
     VcgMesh::VertexPointer vp;
@@ -65,7 +64,7 @@ VC_MeshType::Pointer QuadricEdgeCollapseDecimation::getMesh(){
                point[1] = vi->P()[1];
                point[2] = vi->P()[2];
 
-            _outputMesh->SetPoint(j, point);
+            outputMesh_->SetPoint(j, point);
             j++;
            }
     }
@@ -86,26 +85,26 @@ VC_MeshType::Pointer QuadricEdgeCollapseDecimation::getMesh(){
             newCell->SetPointId(1, point2);
             newCell->SetPointId(2, point3);
 
-            _outputMesh->SetCell(cellCnt, newCell);
+            outputMesh_->SetCell(cellCnt, newCell);
             cellCnt++;
         }
 
     }
-    return _outputMesh;
+    return outputMesh_;
 }
 
 void QuadricEdgeCollapseDecimation::_convertMeshtoVCG() {
-    VcgMesh::FaceIterator fi = vcg::tri::Allocator<VcgMesh>::AddFaces(_vcgInput,_itkInput.GetPointer()->GetNumberOfCells());
+    VcgMesh::FaceIterator fi = vcg::tri::Allocator<VcgMesh>::AddFaces(_vcgInput,itkInput_.GetPointer()->GetNumberOfCells());
     unsigned long counter = 0;
 
     //Takes itk points, gets their coordinates and adds a point to the vcg mesh
-    for(auto pointsIterator = _itkInput->GetPoints()->Begin(); pointsIterator!=_itkInput->GetPoints()->End(); pointsIterator++, counter++)
+    for(auto pointsIterator = itkInput_->GetPoints()->Begin(); pointsIterator!=itkInput_->GetPoints()->End(); pointsIterator++, counter++)
     {
         vcg::tri::Allocator<VcgMesh>::AddVertex(_vcgInput,VcgMesh::CoordType(pointsIterator.Value()[0], pointsIterator.Value()[1], pointsIterator.Value()[2]));
     }
 
     //Iterates over the cells in the itk mesh and the points within those cells to create cells for the vcg mesh
-    for(VC_CellIterator cellIterator = _itkInput->GetCells()->Begin(); cellIterator != _itkInput->GetCells()->End(); cellIterator++)
+    for(VC_CellIterator cellIterator = itkInput_->GetCells()->Begin(); cellIterator != itkInput_->GetCells()->End(); cellIterator++)
     {
         int i = 0;
         VcgMesh::VertexPointer ivp[3];
