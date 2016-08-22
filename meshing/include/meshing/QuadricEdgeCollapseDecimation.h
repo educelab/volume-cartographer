@@ -106,7 +106,7 @@ public:
     // Output
     VC_MeshType::Pointer getMesh();
 private:
-    void _convertMeshtoVCG();
+    void convertMeshtoVCG_();
     VC_MeshType::Pointer itkInput_;
     VcgMesh vcgInput_;
     VC_MeshType::Pointer outputMesh_;

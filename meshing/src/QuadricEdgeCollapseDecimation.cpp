@@ -7,6 +7,7 @@
 
 using namespace volcart::meshing;
 
+///// Constructors /////
 QuadricEdgeCollapseDecimation::QuadricEdgeCollapseDecimation() {
     itkInput_ = nullptr;
     setDefaultParams();
@@ -17,6 +18,7 @@ QuadricEdgeCollapseDecimation::QuadricEdgeCollapseDecimation(VC_MeshType::Pointe
     setDefaultParams();
 }
 
+///// Set inputs & params /////
 void QuadricEdgeCollapseDecimation::setMesh(VC_MeshType::Pointer mesh) {
     itkInput_ = mesh;
 }
@@ -30,7 +32,7 @@ void QuadricEdgeCollapseDecimation::setDefaultParams(){
 
 ///// Processing /////
 void QuadricEdgeCollapseDecimation::compute() {
-    _convertMeshtoVCG();
+    convertMeshtoVCG_();
     vcg::LocalOptimization<VcgMesh> deciSession(vcgInput_, &collapseParams_);
 
     //Sets the target number of faces
@@ -54,71 +56,75 @@ void QuadricEdgeCollapseDecimation::compute(size_t desiredFaces)
 
 ///// Get Output /////
 VC_MeshType::Pointer QuadricEdgeCollapseDecimation::getMesh(){
+    // New ITK Mesh
     outputMesh_ =  VC_MeshType::New();
+
+    // Used to give the vertices an id that can be used to create faces
     VC_PointType point;
     unsigned long j = 0;
     VcgMesh::VertexPointer vp;
-
-    //Used to give the vertices an id that can be used to create faces
     vcg::SimpleTempData<VcgMesh::VertContainer , unsigned long> indices(vcgInput_.vert);
 
-    //Takes vcg vertices and stores their coordinates into an itk point and adds it to itk mesh
-    for(auto vi = vcgInput_.vert.begin(); vi!=vcgInput_.vert.end(); vi++){
-        vp=&(*vi);
+    // Takes vcg vertices and stores their coordinates into an itk point and adds it to itk mesh
+    for(auto vi = vcgInput_.vert.begin(); vi != vcgInput_.vert.end(); vi++){
+        vp = &(*vi);
         indices[vp] = j;
-        if(!vi->IsD()){
-               point[0] = vi->P()[0];
-               point[1] = vi->P()[1];
-               point[2] = vi->P()[2];
+        if(!vi->IsD())
+        {
+            point[0] = vi->P()[0];
+            point[1] = vi->P()[1];
+            point[2] = vi->P()[2];
 
             outputMesh_->SetPoint(j, point);
             j++;
-           }
+        }
     }
 
     //Takes vcg cells and store their vertices into and itk cell and adds it to itk mesh
-    unsigned long cellCnt = 0;
+    unsigned long cellID = 0;
     VC_CellType::CellAutoPointer newCell;
-    for(auto fi = vcgInput_.face.begin(); fi!=vcgInput_.face.end(); fi++){
+    for(auto fi = vcgInput_.face.begin(); fi != vcgInput_.face.end(); fi++){
         if(!fi->IsD())
-        {   newCell.TakeOwnership(new VC_TriangleType);
+        {
+            newCell.TakeOwnership(new VC_TriangleType);
 
-            unsigned long point1 = indices[fi->V(0)];
-            unsigned long point2 = indices[fi->V(1)];
-            unsigned long point3 = indices[fi->V(2)];
-
+            auto point1 = indices[fi->V(0)];
+            auto point2 = indices[fi->V(1)];
+            auto point3 = indices[fi->V(2)];
 
             newCell->SetPointId(0, point1);
             newCell->SetPointId(1, point2);
             newCell->SetPointId(2, point3);
 
-            outputMesh_->SetCell(cellCnt, newCell);
-            cellCnt++;
+            outputMesh_->SetCell(cellID, newCell);
+            cellID++;
         }
 
     }
     return outputMesh_;
 }
 
-void QuadricEdgeCollapseDecimation::_convertMeshtoVCG() {
-    VcgMesh::FaceIterator fi = vcg::tri::Allocator<VcgMesh>::AddFaces(vcgInput_,itkInput_.GetPointer()->GetNumberOfCells());
-    unsigned long counter = 0;
+///// Utilities /////
+void QuadricEdgeCollapseDecimation::convertMeshtoVCG_() {
 
-    //Takes itk points, gets their coordinates and adds a point to the vcg mesh
-    for(auto pointsIterator = itkInput_->GetPoints()->Begin(); pointsIterator!=itkInput_->GetPoints()->End(); pointsIterator++, counter++)
+    // Make a clean, empty mesh
+    vcgInput_.Clear();
+
+    // Takes itk points, gets their coordinates and adds a point to the vcg mesh
+    for(auto p_It = itkInput_->GetPoints()->Begin(); p_It != itkInput_->GetPoints()->End(); p_It++)
     {
-        vcg::tri::Allocator<VcgMesh>::AddVertex(vcgInput_,VcgMesh::CoordType(pointsIterator.Value()[0], pointsIterator.Value()[1], pointsIterator.Value()[2]));
+        vcg::tri::Allocator<VcgMesh>::AddVertex( vcgInput_, VcgMesh::CoordType( p_It.Value()[0], p_It.Value()[1], p_It.Value()[2]) );
     }
 
-    //Iterates over the cells in the itk mesh and the points within those cells to create cells for the vcg mesh
-    for(VC_CellIterator cellIterator = itkInput_->GetCells()->Begin(); cellIterator != itkInput_->GetCells()->End(); cellIterator++)
+    // Iterates over the cells in the itk mesh and the points within those cells to create cells for the vcg mesh
+    VcgMesh::FaceIterator fi = vcg::tri::Allocator<VcgMesh>::AddFaces(vcgInput_,itkInput_.GetPointer()->GetNumberOfCells());
+    for(auto c_It = itkInput_->GetCells()->Begin(); c_It != itkInput_->GetCells()->End(); c_It++)
     {
         int i = 0;
         VcgMesh::VertexPointer ivp[3];
-        for(auto p_id = cellIterator.Value()->PointIdsBegin(); p_id != cellIterator.Value()->PointIdsEnd(); p_id++, i++)
+        for(auto p_id = c_It.Value()->PointIdsBegin(); p_id != c_It.Value()->PointIdsEnd(); p_id++, i++)
         {
             ivp[i] = &(vcgInput_.vert[*p_id]);
-
         }
         fi->V(0)=ivp[0];
         fi->V(1)=ivp[1];
