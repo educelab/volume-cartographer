@@ -63,6 +63,8 @@ set(test_srcs
     test/TextureTest.cpp
     test/UVMapTest.cpp
     test/plyWriterTest.cpp
+    test/PointSetTest.cpp
+    test/PointTest.cpp
 )
 
 # Add a test executable for each src
@@ -74,6 +76,10 @@ foreach(src ${test_srcs})
         vc_common
         vc_testing
         Boost::unit_test_framework
+    )
+    target_compile_options(${testname}
+        PUBLIC
+            -Wno-c++11-narrowing
     )
     add_test(
         NAME ${testname}
