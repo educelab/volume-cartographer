@@ -68,8 +68,6 @@ class QuadricEdgeCollapseDecimation {
         typedef VcgMesh::VertexType::EdgeType EdgeType;
         inline VcgTriEdgeCollapse(const VertexPair &p, int i, vcg::BaseParameterClass *pp) : TECQ(p,i,pp){};
     };
-private:
-    VcgMesh _vcgInput;
 public:
     // Initializers
     QuadricEdgeCollapseDecimation();
@@ -110,6 +108,7 @@ public:
 private:
     void _convertMeshtoVCG();
     VC_MeshType::Pointer itkInput_;
+    VcgMesh vcgInput_;
     VC_MeshType::Pointer outputMesh_;
     size_t desiredFaces_;
     vcg::tri::TriEdgeCollapseQuadricParameter collapseParams_;
