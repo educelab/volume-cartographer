@@ -26,10 +26,10 @@ namespace volcart {
             class VcgVertex : public vcg::Vertex<
                 VcgUsedTypes,
                 vcg::vertex::VFAdj,
-                vcg::vertex::Coord3f,
-                vcg::vertex::Normal3f,
+                vcg::vertex::Coord3d,
+                vcg::vertex::Normal3d,
                 vcg::vertex::Mark,
-                vcg::vertex::Qualityf,
+                vcg::vertex::Qualityd,
                 vcg::vertex::BitFlags >
             {
             public:
