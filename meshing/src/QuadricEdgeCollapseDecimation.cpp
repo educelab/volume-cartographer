@@ -34,11 +34,11 @@ void QuadricEdgeCollapseDecimation::compute() {
     vcg::LocalOptimization<VcgMesh> deciSession(_vcgInput, &collapseParams_);
 
     //Sets the target number of faces
-    deciSession.SetTargetSimplices(iterations);
+    deciSession.SetTargetSimplices(desiredFaces_);
     deciSession.Init<VcgTriEdgeCollapse>();
 
     //Loop for large meshes that it can't decimate in one iteration
-    while(_vcgInput.fn > iterations && deciSession.DoOptimization())
+    while(_vcgInput.fn > desiredFaces_ && deciSession.DoOptimization())
     {
         std::cerr << "Current mesh is " << _vcgInput.fn << std::endl;
     }
@@ -46,6 +46,13 @@ void QuadricEdgeCollapseDecimation::compute() {
     deciSession.Finalize<VcgTriEdgeCollapse>();
 }
 
+void QuadricEdgeCollapseDecimation::compute(size_t desiredFaces)
+{
+    desiredFaces_ = desiredFaces;
+    compute();
+}
+
+///// Get Output /////
 VC_MeshType::Pointer QuadricEdgeCollapseDecimation::getMesh(){
     outputMesh_ =  VC_MeshType::New();
     VC_PointType point;

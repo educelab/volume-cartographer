@@ -102,14 +102,16 @@ public:
     void setUseVertexWeight(bool set) {collapseParams_.UseVertexWeight = set;} //Default: false
 
     // Processing
-    void compute(int iterations);
+    void compute();
+    void compute(size_t desiredFaces);
 
     // Output
     VC_MeshType::Pointer getMesh();
 private:
     void _convertMeshtoVCG();
-    VC_MeshType::Pointer _itkInput;
-    VC_MeshType::Pointer _outputMesh;
+    VC_MeshType::Pointer itkInput_;
+    VC_MeshType::Pointer outputMesh_;
+    size_t desiredFaces_;
     vcg::tri::TriEdgeCollapseQuadricParameter collapseParams_;
 
 }; // QuadricEdgeCollapse
