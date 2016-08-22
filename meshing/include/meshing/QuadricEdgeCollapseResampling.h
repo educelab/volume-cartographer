@@ -1,19 +1,12 @@
 //
 // Created by Hannah Hatch on 8/12/16.
 //
-#ifdef VC_USE_VCGLIB
 #pragma once
 
 #include <iostream>
 #include "common/vc_defines.h"
-#include "vcg/vcg/complex/algorithms/local_optimization/tri_edge_collapse_quadric.h"
-#include "vcg/complex/complex.h"
-#include "vcg/complex/allocate.h"
-#include "vcg/complex/algorithms/local_optimization.h"
-#include "vcg/complex/algorithms/edge_collapse.h"
-#include "vcg/math/quadric.h"
-#include "vcg/container/simple_temporary_data.h"
-
+#include <vcg/complex/complex.h>
+#include <vcg/complex/algorithms/local_optimization/tri_edge_collapse_quadric.h>
 
 namespace volcart {
     namespace meshing{
@@ -88,5 +81,3 @@ namespace volcart {
 
     } //meshing
 } //volcart
-
-#endif
