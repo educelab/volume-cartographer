@@ -9,7 +9,7 @@
 #include <vcg/complex/algorithms/local_optimization/tri_edge_collapse_quadric.h>
 
 namespace volcart {
-namespace meshing{
+namespace meshing {
 
 class QuadricEdgeCollapseDecimation {
 

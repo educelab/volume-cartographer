@@ -10,7 +10,8 @@ set(srcs
     src/scaleMesh.cpp
     src/smoothNormals.cpp
     src/CalculateNormals.cpp
-    src/OrderedResampling.cpp)
+    src/OrderedResampling.cpp
+)
 set(deps
     vc_common
     Boost::filesystem
@@ -80,7 +81,7 @@ set(test_srcs
 
 if(VC_USE_VCG)
     list(APPEND test_srcs test/QuadricEdgeCollapseDecimationTest.cpp)
-    set(QUADRIC_EDGE_COLLAPSE_RESAMPLING_TEST_RES
+    set(QUADRIC_EDGE_COLLAPSE_DECIMATION_TEST_RES
             test/res/QuadricEdgeCollapse_Plane.obj
             test/res/QuadricEdgeCollapse_Arch.obj
             test/res/QuadricEdgeCollapse_Cone.obj
@@ -88,7 +89,7 @@ if(VC_USE_VCG)
             test/res/QuadricEdgeCollapse_Sphere.obj)
 endif()
 
-        # Add a test executable for each src
+# Add a test executable for each src
 foreach(src ${test_srcs})
     get_filename_component(filename ${src} NAME_WE)
     set(testname ${target}_${filename})
@@ -167,7 +168,7 @@ set(MESHING_TEST_RES
     ${SMOOTH_NORMALS_TEST_RES}
     ${SCALE_MESH_TEST_RES}
     ${ORDERED_RESAMPLING_TEST_RES}
-        ${QUADRIC_EDGE_COLLAPSE_RESAMPLING_TEST_RES}
+    ${QUADRIC_EDGE_COLLAPSE_DECIMATION_TEST_RES}
 )
 
 foreach(r ${MESHING_TEST_RES})
