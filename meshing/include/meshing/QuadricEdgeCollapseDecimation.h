@@ -11,7 +11,7 @@
 namespace volcart {
 namespace meshing{
 
-class QuadricEdgeCollapseResampling {
+class QuadricEdgeCollapseDecimation {
 
     ///// Basic Datastructure (VCG Mesh) /////
     class VcgVertex;
@@ -72,8 +72,8 @@ private:
     VcgMesh _vcgInput;
 public:
     // Initializers
-    QuadricEdgeCollapseResampling();
-    QuadricEdgeCollapseResampling(VC_MeshType::Pointer mesh);
+    QuadricEdgeCollapseDecimation();
+    QuadricEdgeCollapseDecimation(VC_MeshType::Pointer mesh);
 
     // Set All Parameters
     void setMesh(VC_MeshType::Pointer mesh);

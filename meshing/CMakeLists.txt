@@ -29,7 +29,7 @@ if (VC_USE_BULLET)
     list(APPEND defs VC_USE_BULLET)
 endif()
 if(VC_USE_VCG)
-    list(APPEND srcs src/QuadricEdgeCollapseResampling.cpp)
+    list(APPEND srcs src/QuadricEdgeCollapseDecimation.cpp)
     list(APPEND deps vcglib)
     list(APPEND defs VC_USE_VCGLIB)
 endif()
@@ -79,7 +79,7 @@ set(test_srcs
 )
 
 if(VC_USE_VCG)
-    list(APPEND test_srcs test/QuadricEdgeCollapseResamplingTest.cpp)
+    list(APPEND test_srcs test/QuadricEdgeCollapseDecimationTest.cpp)
     set(QUADRIC_EDGE_COLLAPSE_RESAMPLING_TEST_RES
             test/res/QuadricEdgeCollapse_Plane.obj
             test/res/QuadricEdgeCollapse_Arch.obj

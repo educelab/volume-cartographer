@@ -105,6 +105,6 @@ add_executable(vc_lorem_ipsum_error src/LoremIpsumError.cpp)
 target_link_libraries(vc_lorem_ipsum_error vc_volumepkg)
 
 if(VC_USE_VCG)
-    add_executable(vc_quadric_edge_collapse_resampling_example src/QuadricEdgeCollapseResamplingExample.cpp)
+    add_executable(vc_quadric_edge_collapse_resampling_example src/QuadricEdgeCollapseDecimationExample.cpp)
     target_link_libraries(vc_quadric_edge_collapse_resampling_example vc_meshing)
 endif()

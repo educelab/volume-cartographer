@@ -5,7 +5,7 @@
 
 #include <iostream>
 #include "common/vc_defines.h"
-#include "meshing/QuadricEdgeCollapseResampling.h"
+#include "meshing/QuadricEdgeCollapseDecimation.h"
 #include "common/io/ply2itk.h"
 #include "common/io/objWriter.h"
 #include "common/shapes/Plane.h"
@@ -22,7 +22,7 @@ int main(int argc, char*argv[])
     //Imports mesh from file
     volcart::shapes::Plane plane(10,10);
 
-    volcart::meshing::QuadricEdgeCollapseResampling ResamplerP;
+    volcart::meshing::QuadricEdgeCollapseDecimation ResamplerP;
     ResamplerP.setMesh(plane.itkMesh());
     ResamplerP.compute(plane.itkMesh()->GetNumberOfPoints() /2);
 
@@ -34,7 +34,7 @@ int main(int argc, char*argv[])
     writer.setMesh(Resample);
     writer.write();
 
-    volcart::meshing::QuadricEdgeCollapseResampling ResamplerA;
+    volcart::meshing::QuadricEdgeCollapseDecimation ResamplerA;
     volcart::shapes::Arch arch(100,100);
 
     ResamplerA.setMesh(arch.itkMesh());
@@ -48,7 +48,7 @@ int main(int argc, char*argv[])
     writer.setMesh(Resample);
     writer.write();
 
-    volcart::meshing::QuadricEdgeCollapseResampling ResamplerC;
+    volcart::meshing::QuadricEdgeCollapseDecimation ResamplerC;
     volcart::shapes::Cone cone(1000,1000);
 
     ResamplerC.setMesh(cone.itkMesh());
@@ -62,7 +62,7 @@ int main(int argc, char*argv[])
     writer.setMesh(Resample);
     writer.write();
 
-    volcart::meshing::QuadricEdgeCollapseResampling ResamplerB;
+    volcart::meshing::QuadricEdgeCollapseDecimation ResamplerB;
     volcart::shapes::Cube cube;
 
     ResamplerB.setMesh(cube.itkMesh());
@@ -76,7 +76,7 @@ int main(int argc, char*argv[])
     writer.setMesh(Resample);
     writer.write();
 
-    volcart::meshing::QuadricEdgeCollapseResampling ResamplerS;
+    volcart::meshing::QuadricEdgeCollapseDecimation ResamplerS;
     volcart::shapes::Sphere sphere(30,3);
 
     ResamplerS.setMesh(sphere.itkMesh());

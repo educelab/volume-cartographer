@@ -2,11 +2,11 @@
 // Created by Hannah Hatch on 8/17/16.
 //
 
-#define BOOST_TEST_MODULE QuadricEdgeCollapseResampling
+#define BOOST_TEST_MODULE QuadricEdgeCollapseDecimation
 
 #include <boost/test/unit_test.hpp>
 #include "common/vc_defines.h"
-#include "meshing/QuadricEdgeCollapseResampling.h"
+#include "meshing/QuadricEdgeCollapseDecimation.h"
 #include "testing/parsingHelpers.h"
 #include "testing/testingUtils.h"
 #include "common/shapes/Plane.h"
@@ -20,7 +20,7 @@
 /************************************************************************************
  *                                                                                  *
  *  QuardricEdgeCollapseResampling.cpp - tests the functionality of                 *
- *      /vc/meshing/QuadricEdgeCollapseResampling.cpp                               *
+ *      /vc/meshing/QuadricEdgeCollapseDecimation.cpp                               *
  *  The ultimate goal of this file is the following:                                *
  *                                                                                  *
  *        1. check whether an itk mesh can be converted to a vcg mesh               *
@@ -113,7 +113,7 @@ struct QuadricSphereFixture {
 
 //Tests by Shape
 BOOST_FIXTURE_TEST_CASE(QuadricResampledPlaneTest, QuadricPlaneFixture){
-    volcart::meshing::QuadricEdgeCollapseResampling resample;
+    volcart::meshing::QuadricEdgeCollapseDecimation resample;
     resample.setMesh(_in_Mesh);
     resample.compute(_in_Mesh->GetNumberOfPoints()/2);
     _out_Mesh = resample.getMesh();
@@ -151,7 +151,7 @@ BOOST_FIXTURE_TEST_CASE(QuadricResampledPlaneTest, QuadricPlaneFixture){
 }
 
 BOOST_FIXTURE_TEST_CASE(QuadricResampledArchTest, QuadricArchFixture){
-    volcart::meshing::QuadricEdgeCollapseResampling resample(_in_Mesh);
+    volcart::meshing::QuadricEdgeCollapseDecimation resample(_in_Mesh);
     resample.compute(_in_Mesh->GetNumberOfPoints()/2);
     _out_Mesh = resample.getMesh();
     volcart::meshing::CalculateNormals calcNorm( _out_Mesh );
@@ -188,7 +188,7 @@ BOOST_FIXTURE_TEST_CASE(QuadricResampledArchTest, QuadricArchFixture){
 }
 
 BOOST_FIXTURE_TEST_CASE(QuadricResampledConeTest, QuadricConeFixture){
-    volcart::meshing::QuadricEdgeCollapseResampling resample(_in_Mesh);
+    volcart::meshing::QuadricEdgeCollapseDecimation resample(_in_Mesh);
     resample.compute(_in_Mesh->GetNumberOfPoints()/2);
     _out_Mesh = resample.getMesh();
     volcart::meshing::CalculateNormals calcNorm( _out_Mesh );
@@ -225,7 +225,7 @@ BOOST_FIXTURE_TEST_CASE(QuadricResampledConeTest, QuadricConeFixture){
 }
 
 BOOST_FIXTURE_TEST_CASE(QuadricResampledCubeTest, QuadricCubeFixture){
-    volcart::meshing::QuadricEdgeCollapseResampling resample(_in_Mesh);
+    volcart::meshing::QuadricEdgeCollapseDecimation resample(_in_Mesh);
     resample.compute(_in_Mesh->GetNumberOfPoints()/2);
     _out_Mesh = resample.getMesh();
     volcart::meshing::CalculateNormals calcNorm( _out_Mesh );
@@ -262,7 +262,7 @@ BOOST_FIXTURE_TEST_CASE(QuadricResampledCubeTest, QuadricCubeFixture){
 }
 
 BOOST_FIXTURE_TEST_CASE(QuadricResampledSphereTest, QuadricSphereFixture){
-    volcart::meshing::QuadricEdgeCollapseResampling resample(_in_Mesh);
+    volcart::meshing::QuadricEdgeCollapseDecimation resample(_in_Mesh);
     resample.compute(_in_Mesh->GetNumberOfPoints()/2);
     _out_Mesh = resample.getMesh();
     volcart::meshing::CalculateNormals calcNorm( _out_Mesh );

@@ -3,25 +3,25 @@
 //
 #ifdef VC_USE_VCGLIB
 
-#include "meshing/QuadricEdgeCollapseResampling.h"
+#include "meshing/QuadricEdgeCollapseDecimation.h"
 
 using namespace volcart::meshing;
 
-QuadricEdgeCollapseResampling::QuadricEdgeCollapseResampling() {
+QuadricEdgeCollapseDecimation::QuadricEdgeCollapseDecimation() {
     _itkInput = nullptr;
     setDefaultParams();
 }
 
-QuadricEdgeCollapseResampling::QuadricEdgeCollapseResampling(VC_MeshType::Pointer mesh) {
+QuadricEdgeCollapseDecimation::QuadricEdgeCollapseDecimation(VC_MeshType::Pointer mesh) {
     _itkInput = mesh;
     setDefaultParams();
 }
 
-void QuadricEdgeCollapseResampling::setMesh(VC_MeshType::Pointer mesh) {
+void QuadricEdgeCollapseDecimation::setMesh(VC_MeshType::Pointer mesh) {
     _itkInput = mesh;
 }
 
-void QuadricEdgeCollapseResampling::setDefaultParams(){
+void QuadricEdgeCollapseDecimation::setDefaultParams(){
     _collapseParams.SetDefaultParams();
     _collapseParams.PreserveBoundary = true;
     _collapseParams.PreserveTopology = true;
@@ -29,7 +29,7 @@ void QuadricEdgeCollapseResampling::setDefaultParams(){
 }
 
 
-void QuadricEdgeCollapseResampling::compute(int iterations) {
+void QuadricEdgeCollapseDecimation::compute(int iterations) {
 
     _convertMeshtoVCG();
     vcg::LocalOptimization<VcgMesh> deciSession(_vcgInput, &_collapseParams);
@@ -47,7 +47,7 @@ void QuadricEdgeCollapseResampling::compute(int iterations) {
     deciSession.Finalize<VcgTriEdgeCollapse>();
 }
 
-VC_MeshType::Pointer QuadricEdgeCollapseResampling::getMesh(){
+VC_MeshType::Pointer QuadricEdgeCollapseDecimation::getMesh(){
     _outputMesh =  VC_MeshType::New();
     VC_PointType point;
     unsigned long j = 0;
@@ -94,7 +94,7 @@ VC_MeshType::Pointer QuadricEdgeCollapseResampling::getMesh(){
     return _outputMesh;
 }
 
-void QuadricEdgeCollapseResampling::_convertMeshtoVCG() {
+void QuadricEdgeCollapseDecimation::_convertMeshtoVCG() {
     VcgMesh::FaceIterator fi = vcg::tri::Allocator<VcgMesh>::AddFaces(_vcgInput,_itkInput.GetPointer()->GetNumberOfCells());
     unsigned long counter = 0;
 
