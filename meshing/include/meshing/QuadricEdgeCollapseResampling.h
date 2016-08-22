@@ -1,7 +1,7 @@
 //
 // Created by Hannah Hatch on 8/12/16.
 //
-
+#ifdef VC_USE_VCGLIB
 #pragma once
 
 #include <iostream>
@@ -55,6 +55,7 @@ namespace volcart {
             void setDefaultParams();
             void setAllParams(vcg::tri::TriEdgeCollapseQuadricParameter newParams) { _collapseParams = newParams; }
 
+            //Defaults set by VCG, with the exception of PreserveBoundary and PreserveTopology
             void setBoundaryWeight(double weight) {_collapseParams.CosineThr = weight;} //Default: .5
             void setCosineThr(double thr) {_collapseParams.CosineThr = thr;  } //Default: cos(M_PI/2)
             void setFastPreserveBoundary(bool set) {_collapseParams.FastPreserveBoundary = set;} //Default: false
@@ -74,7 +75,6 @@ namespace volcart {
             void setUseArea(bool set) {_collapseParams.UseArea = set;} //Default: true;
             void setUseVertexWeight(bool set) {_collapseParams.UseVertexWeight = set;} //Default: false
 
-            //Note to Seth: Not sure if that's the best way to say what defaults are, or if I should do a big list
 
             VC_MeshType::Pointer getMesh();
             void compute(int iterations);
@@ -89,3 +89,4 @@ namespace volcart {
     } //meshing
 } //volcart
 
+#endif

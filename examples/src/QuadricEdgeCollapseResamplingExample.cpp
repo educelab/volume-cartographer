@@ -1,6 +1,7 @@
 //
 // Created by Hannah Hatch on 8/15/16.
 //
+#ifdef VC_USE_VCGLIB
 
 #include <iostream>
 #include "common/vc_defines.h"
@@ -91,3 +92,4 @@ int main(int argc, char*argv[])
 
     return EXIT_SUCCESS;
 }
+#endif

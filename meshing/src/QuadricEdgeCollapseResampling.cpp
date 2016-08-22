@@ -1,6 +1,7 @@
 //
 // Created by Hannah Hatch on 8/12/16.
 //
+#ifdef VC_USE_VCGLIB
 #include "meshing/QuadricEdgeCollapseResampling.h"
 
 
@@ -121,3 +122,4 @@ using namespace volcart::meshing;
             fi++;
         }
     }
+#endif
