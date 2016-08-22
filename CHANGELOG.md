@@ -4,6 +4,8 @@ v2.6.0
 ------
 - common
     - __New:__ New Point and PointSet data types (!69)
+- meshing
+    - __New:__ Added Quadric Edge Collapse Decimation (via vcglib) (!70)
 
 v2.5.0
 ------
