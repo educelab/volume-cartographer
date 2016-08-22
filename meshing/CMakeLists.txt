@@ -79,7 +79,7 @@ set(test_srcs
 )
 
 if(VC_USE_VCG)
-    list(APPEND srcs src/QuadricEdgeCollapseResamplingTest.cpp)
+    list(APPEND test_srcs test/QuadricEdgeCollapseResamplingTest.cpp)
     set(QUADRIC_EDGE_COLLAPSE_RESAMPLING_TEST_RES
             test/res/QuadricEdgeCollapse_Plane.obj
             test/res/QuadricEdgeCollapse_Arch.obj

@@ -28,7 +28,7 @@ int main(int argc, char*argv[])
     VC_MeshType::Pointer Resample = ResamplerP.getMesh();
     volcart::meshing::CalculateNormals calcNorm( Resample );
     calcNorm.compute();
-    Resample= calcNorm.getMesh();
+    Resample = calcNorm.getMesh();
     writer.setPath("QuadricEdgeCollapse_Plane.obj");
     writer.setMesh(Resample);
     writer.write();
@@ -42,7 +42,7 @@ int main(int argc, char*argv[])
     Resample = ResamplerA.getMesh();
     calcNorm.setMesh(Resample);
     calcNorm.compute();
-    Resample= calcNorm.getMesh();
+    Resample = calcNorm.getMesh();
     writer.setPath("QuadricEdgeCollapse_Arch.obj");
     writer.setMesh(Resample);
     writer.write();
@@ -56,7 +56,7 @@ int main(int argc, char*argv[])
     Resample = ResamplerC.getMesh();
     calcNorm.setMesh(Resample);
     calcNorm.compute();
-    Resample= calcNorm.getMesh();
+    Resample = calcNorm.getMesh();
     writer.setPath("QuadricEdgeCollapse_Cone.obj");
     writer.setMesh(Resample);
     writer.write();
@@ -70,7 +70,7 @@ int main(int argc, char*argv[])
     Resample = ResamplerB.getMesh();
     calcNorm.setMesh(Resample);
     calcNorm.compute();
-    Resample= calcNorm.getMesh();
+    Resample = calcNorm.getMesh();
     writer.setPath("QuadricEdgeCollapse_Cube.obj");
     writer.setMesh(Resample);
     writer.write();
@@ -84,7 +84,7 @@ int main(int argc, char*argv[])
     Resample = ResamplerS.getMesh();
     calcNorm.setMesh(Resample);
     calcNorm.compute();
-    Resample= calcNorm.getMesh();
+    Resample = calcNorm.getMesh();
     writer.setPath("QuadricEdgeCollapse_Sphere.obj");
     writer.setMesh(Resample);
     writer.write();

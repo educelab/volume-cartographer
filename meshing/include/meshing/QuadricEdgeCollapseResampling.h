@@ -19,10 +19,10 @@ namespace volcart {
     namespace meshing{
         class QuadricEdgeCollapseResampling {
             //All of these classes set up the elements necessary to use a vcg mesh
-            class vcgVertex; class vcgEdge; class vcgFace;
-            struct vcgUsedTypes: public vcg::UsedTypes<vcg::Use<vcgVertex>::AsVertexType,vcg::Use<vcgEdge>::AsEdgeType,vcg::Use<vcgFace>::AsFaceType>{};
+            class VcgVertex; class VcgEdge; class VcgFace;
+            struct vcgUsedTypes: public vcg::UsedTypes<vcg::Use<VcgVertex>::AsVertexType,vcg::Use<VcgEdge>::AsEdgeType,vcg::Use<VcgFace>::AsFaceType>{};
 
-            class vcgVertex : public vcg::Vertex< vcgUsedTypes, vcg::vertex::VFAdj, vcg::vertex::Coord3f, vcg::vertex::Normal3f, vcg::vertex::Mark, vcg::vertex::Qualityf, vcg::vertex::BitFlags>{
+            class VcgVertex : public vcg::Vertex< vcgUsedTypes, vcg::vertex::VFAdj, vcg::vertex::Coord3f, vcg::vertex::Normal3f, vcg::vertex::Mark, vcg::vertex::Qualityf, vcg::vertex::BitFlags>{
             public:
                 //Used to compute error as a result of an edge collapse
                 vcg::math::Quadric<double>&Qd(){return q;}
@@ -30,21 +30,21 @@ namespace volcart {
                 vcg::math::Quadric<double> q;
             };
 
-            class vcgFace : public vcg::Face< vcgUsedTypes, vcg::face::VFAdj, vcg::face::VertexRef, vcg::face::BitFlags>{};
-            class vcgEdge : public vcg::Edge <vcgUsedTypes > {};
-            class vcgMesh : public vcg::tri::TriMesh<std::vector<vcgVertex>, std::vector<vcgFace>> {};
+            class VcgFace : public vcg::Face< vcgUsedTypes, vcg::face::VFAdj, vcg::face::VertexRef, vcg::face::BitFlags>{};
+            class VcgEdge : public vcg::Edge <vcgUsedTypes > {};
+            class VcgMesh : public vcg::tri::TriMesh<std::vector<VcgVertex>, std::vector<VcgFace>> {};
 
             //Used for decimation
-            typedef vcg::tri::BasicVertexPair<vcgVertex> vertexPair;
+            typedef vcg::tri::BasicVertexPair<VcgVertex> vertexPair;
 
-            class vcgTriEdgeCollapse: public vcg::tri::TriEdgeCollapseQuadric<vcgMesh, vertexPair, vcgTriEdgeCollapse, vcg::tri::QInfoStandard<vcgVertex> > {
+            class VcgTriEdgeCollapse: public vcg::tri::TriEdgeCollapseQuadric<VcgMesh, vertexPair, VcgTriEdgeCollapse, vcg::tri::QInfoStandard<VcgVertex> > {
             public:
-                typedef vcg::tri::TriEdgeCollapseQuadric<vcgMesh,vertexPair,vcgTriEdgeCollapse,vcg::tri::QInfoStandard<vcgVertex> > TECQ;
-                typedef vcgMesh::VertexType::EdgeType edgeType;
-                inline vcgTriEdgeCollapse(const vertexPair &p, int i, vcg::BaseParameterClass *pp) : TECQ(p,i,pp){}
+                typedef vcg::tri::TriEdgeCollapseQuadric<VcgMesh,vertexPair,VcgTriEdgeCollapse,vcg::tri::QInfoStandard<VcgVertex> > TECQ;
+                typedef VcgMesh::VertexType::EdgeType edgeType;
+                inline VcgTriEdgeCollapse(const vertexPair &p, int i, vcg::BaseParameterClass *pp) : TECQ(p,i,pp){}
             };
         private:
-            vcgMesh _vcgInput;
+            VcgMesh _vcgInput;
         public:
             //Initializers//
             QuadricEdgeCollapseResampling();
@@ -53,6 +53,7 @@ namespace volcart {
             //Set All Parameters//
             void setMesh(VC_MeshType::Pointer mesh);
             void setDefaultParams();
+            void setAllParams(vcg::tri::TriEdgeCollapseQuadricParameter newParams) { _collapseParams = newParams; }
 
             void setBoundaryWeight(double weight) {_collapseParams.CosineThr = weight;} //Default: .5
             void setCosineThr(double thr) {_collapseParams.CosineThr = thr;  } //Default: cos(M_PI/2)
