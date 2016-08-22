@@ -19,7 +19,7 @@
 
 /************************************************************************************
  *                                                                                  *
- *  QuardricEdgeCollapseResampling.cpp - tests the functionality of                 *
+ *  QuardricEdgeCollapseDecimation.cpp - tests the functionality of                 *
  *      /vc/meshing/QuadricEdgeCollapseDecimation.cpp                               *
  *  The ultimate goal of this file is the following:                                *
  *                                                                                  *
@@ -115,7 +115,7 @@ struct QuadricSphereFixture {
 BOOST_FIXTURE_TEST_CASE(QuadricResampledPlaneTest, QuadricPlaneFixture){
     volcart::meshing::QuadricEdgeCollapseDecimation resample;
     resample.setMesh(_in_Mesh);
-    resample.compute(_in_Mesh->GetNumberOfPoints()/2);
+    resample.compute(_in_Mesh->GetNumberOfCells()/2);
     _out_Mesh = resample.getMesh();
     volcart::meshing::CalculateNormals calcNorm( _out_Mesh );
     calcNorm.compute();
@@ -152,7 +152,7 @@ BOOST_FIXTURE_TEST_CASE(QuadricResampledPlaneTest, QuadricPlaneFixture){
 
 BOOST_FIXTURE_TEST_CASE(QuadricResampledArchTest, QuadricArchFixture){
     volcart::meshing::QuadricEdgeCollapseDecimation resample(_in_Mesh);
-    resample.compute(_in_Mesh->GetNumberOfPoints()/2);
+    resample.compute(_in_Mesh->GetNumberOfCells()/2);
     _out_Mesh = resample.getMesh();
     volcart::meshing::CalculateNormals calcNorm( _out_Mesh );
     calcNorm.compute();
@@ -189,7 +189,7 @@ BOOST_FIXTURE_TEST_CASE(QuadricResampledArchTest, QuadricArchFixture){
 
 BOOST_FIXTURE_TEST_CASE(QuadricResampledConeTest, QuadricConeFixture){
     volcart::meshing::QuadricEdgeCollapseDecimation resample(_in_Mesh);
-    resample.compute(_in_Mesh->GetNumberOfPoints()/2);
+    resample.compute(_in_Mesh->GetNumberOfCells()/2);
     _out_Mesh = resample.getMesh();
     volcart::meshing::CalculateNormals calcNorm( _out_Mesh );
     calcNorm.compute();
@@ -226,7 +226,7 @@ BOOST_FIXTURE_TEST_CASE(QuadricResampledConeTest, QuadricConeFixture){
 
 BOOST_FIXTURE_TEST_CASE(QuadricResampledCubeTest, QuadricCubeFixture){
     volcart::meshing::QuadricEdgeCollapseDecimation resample(_in_Mesh);
-    resample.compute(_in_Mesh->GetNumberOfPoints()/2);
+    resample.compute(_in_Mesh->GetNumberOfCells()/2);
     _out_Mesh = resample.getMesh();
     volcart::meshing::CalculateNormals calcNorm( _out_Mesh );
     calcNorm.compute();
@@ -263,7 +263,7 @@ BOOST_FIXTURE_TEST_CASE(QuadricResampledCubeTest, QuadricCubeFixture){
 
 BOOST_FIXTURE_TEST_CASE(QuadricResampledSphereTest, QuadricSphereFixture){
     volcart::meshing::QuadricEdgeCollapseDecimation resample(_in_Mesh);
-    resample.compute(_in_Mesh->GetNumberOfPoints()/2);
+    resample.compute(_in_Mesh->GetNumberOfCells()/2);
     _out_Mesh = resample.getMesh();
     volcart::meshing::CalculateNormals calcNorm( _out_Mesh );
     calcNorm.compute();

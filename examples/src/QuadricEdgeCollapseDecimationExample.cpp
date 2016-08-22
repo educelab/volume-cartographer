@@ -17,16 +17,15 @@
 
 int main(int argc, char*argv[])
 {
+    volcart::meshing::QuadricEdgeCollapseDecimation Resampler;
     volcart::io::objWriter writer;
 
-    //Imports mesh from file
+    // Plane
     volcart::shapes::Plane plane(10,10);
+    Resampler.setMesh(plane.itkMesh());
+    Resampler.compute(plane.itkMesh()->GetNumberOfCells() / 2);
 
-    volcart::meshing::QuadricEdgeCollapseDecimation ResamplerP;
-    ResamplerP.setMesh(plane.itkMesh());
-    ResamplerP.compute(plane.itkMesh()->GetNumberOfPoints() /2);
-
-    VC_MeshType::Pointer Resample = ResamplerP.getMesh();
+    VC_MeshType::Pointer Resample = Resampler.getMesh();
     volcart::meshing::CalculateNormals calcNorm( Resample );
     calcNorm.compute();
     Resample = calcNorm.getMesh();
@@ -34,13 +33,12 @@ int main(int argc, char*argv[])
     writer.setMesh(Resample);
     writer.write();
 
-    volcart::meshing::QuadricEdgeCollapseDecimation ResamplerA;
+    // Arch
     volcart::shapes::Arch arch(100,100);
+    Resampler.setMesh(arch.itkMesh());
+    Resampler.compute(arch.itkMesh()->GetNumberOfCells() / 2);
 
-    ResamplerA.setMesh(arch.itkMesh());
-    ResamplerA.compute(arch.itkMesh()->GetNumberOfPoints() /2);
-
-    Resample = ResamplerA.getMesh();
+    Resample = Resampler.getMesh();
     calcNorm.setMesh(Resample);
     calcNorm.compute();
     Resample = calcNorm.getMesh();
@@ -48,13 +46,12 @@ int main(int argc, char*argv[])
     writer.setMesh(Resample);
     writer.write();
 
-    volcart::meshing::QuadricEdgeCollapseDecimation ResamplerC;
+    // Cone
     volcart::shapes::Cone cone(1000,1000);
+    Resampler.setMesh(cone.itkMesh());
+    Resampler.compute(cone.itkMesh()->GetNumberOfCells() / 2);
 
-    ResamplerC.setMesh(cone.itkMesh());
-    ResamplerC.compute(cone.itkMesh()->GetNumberOfPoints() /2);
-
-    Resample = ResamplerC.getMesh();
+    Resample = Resampler.getMesh();
     calcNorm.setMesh(Resample);
     calcNorm.compute();
     Resample = calcNorm.getMesh();
@@ -62,13 +59,12 @@ int main(int argc, char*argv[])
     writer.setMesh(Resample);
     writer.write();
 
-    volcart::meshing::QuadricEdgeCollapseDecimation ResamplerB;
+    // Cube
     volcart::shapes::Cube cube;
+    Resampler.setMesh(cube.itkMesh());
+    Resampler.compute(cube.itkMesh()->GetNumberOfCells() / 2);
 
-    ResamplerB.setMesh(cube.itkMesh());
-    ResamplerB.compute(cube.itkMesh()->GetNumberOfPoints() /2);
-
-    Resample = ResamplerB.getMesh();
+    Resample = Resampler.getMesh();
     calcNorm.setMesh(Resample);
     calcNorm.compute();
     Resample = calcNorm.getMesh();
@@ -76,13 +72,12 @@ int main(int argc, char*argv[])
     writer.setMesh(Resample);
     writer.write();
 
-    volcart::meshing::QuadricEdgeCollapseDecimation ResamplerS;
+    // Sphere
     volcart::shapes::Sphere sphere(30,3);
+    Resampler.setMesh(sphere.itkMesh());
+    Resampler.compute(sphere.itkMesh()->GetNumberOfCells() / 2);
 
-    ResamplerS.setMesh(sphere.itkMesh());
-    ResamplerS.compute(sphere.itkMesh()->GetNumberOfPoints() /2);
-
-    Resample = ResamplerS.getMesh();
+    Resample = Resampler.getMesh();
     calcNorm.setMesh(Resample);
     calcNorm.compute();
     Resample = calcNorm.getMesh();
