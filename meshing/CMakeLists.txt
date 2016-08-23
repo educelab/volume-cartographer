@@ -78,6 +78,7 @@ set(test_srcs
     test/resamplePointCloudTest.cpp
     test/scaleMeshTest.cpp
     test/smoothNormalsTest.cpp
+    test/OrderedPointSetMesherTest.cpp
 )
 
 if(VC_USE_VCG)
@@ -160,6 +161,9 @@ set(ORDERED_RESAMPLING_TEST_RES
     test/res/OrderedResampling_Plane.obj
     test/res/OrderedResampling_Arch.obj
 )
+set(ORDERED_POINT_SET_MESHER_TEST_RES
+    test/res/OrderedPointSetMesher_Arch.obj
+    test/res/OrderedPointSetMesher_Plane.obj)
 
 set(MESHING_TEST_RES
     ${ITK_VTK_TEST_RES}
@@ -170,6 +174,7 @@ set(MESHING_TEST_RES
     ${SCALE_MESH_TEST_RES}
     ${ORDERED_RESAMPLING_TEST_RES}
     ${QUADRIC_EDGE_COLLAPSE_DECIMATION_TEST_RES}
+    ${ORDERED_POINT_SET_MESHER_TEST_RES}
 )
 
 foreach(r ${MESHING_TEST_RES})
