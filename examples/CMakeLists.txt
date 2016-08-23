@@ -103,3 +103,8 @@ target_link_libraries(vc_obj_writer_example vc_common)
 
 add_executable(vc_lorem_ipsum_error src/LoremIpsumError.cpp)
 target_link_libraries(vc_lorem_ipsum_error vc_volumepkg)
+
+if(VC_USE_VCG)
+    add_executable(vc_quadric_edge_collapse_decimation_example src/QuadricEdgeCollapseDecimationExample.cpp)
+    target_link_libraries(vc_quadric_edge_collapse_decimation_example vc_meshing)
+endif()
