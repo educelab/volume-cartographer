@@ -28,26 +28,23 @@ void OrderedPointSetMesher::compute(){
     output_ = VC_MeshType::New();
     unsigned long cnt = 0;
 
-    for (auto i = input_.begin(); i < input_.end(); i++)
+    for (auto i = input_.begin(); i < input_.end(); i++, cnt++)
     {
-        for(auto j = 0; j < input_.width(); j++, cnt++)
-        {
-            temp_pt[0] = i[j][0];
-            temp_pt[1] = i[j][1];
-            temp_pt[2] = i[j][2];
+        temp_pt[0] = i[0][0];
+        temp_pt[1] = i[0][1];
+        temp_pt[2] = i[0][2];
 
-            output_->SetPoint(cnt, temp_pt);
-        }
+        output_->SetPoint(cnt, temp_pt);
+
     }
 
-    outWidth_ = input_.width();
     unsigned long point1, point2, point3, point4;
 
     for(unsigned long i = 0; i <input_.height() -1; i++){
-        for(unsigned long j = 0; j <outWidth_ - 1; j++){
-           point1 = i *  outWidth_ + j;
+        for(unsigned long j = 0; j <input_.width() - 1; j++){
+            point1 = i *  input_.width() + j;
             point2 = point1 + 1;
-            point3 = point2 + outWidth_;
+            point3 = point2 + input_.width();
             point4 = point3 -1;
 
             if( point1 >= output_->GetNumberOfPoints() ||

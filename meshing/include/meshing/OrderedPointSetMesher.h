@@ -23,7 +23,6 @@ namespace volcart{
         private:
             PointSet<Point3d> input_;
             VC_MeshType::Pointer output_ = nullptr;
-            size_t outWidth_;
 
 
             void _addCell(unsigned long a, unsigned long b, unsigned long c);
