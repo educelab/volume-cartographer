@@ -32,9 +32,9 @@ void OrderedPointSetMesher::compute(){
     //Takes the first point and saves each component then goes onto the next one
     for (auto i = input_.begin(); i < input_.end(); i++, cnt++)
     {
-        temp_pt[0] = i[0][0];
-        temp_pt[1] = i[0][1];
-        temp_pt[2] = i[0][2];
+        temp_pt[0] = (*i)[0];
+        temp_pt[1] = (*i)[1];
+        temp_pt[2] = (*i)[2];
 
         output_->SetPoint(cnt, temp_pt);
 
