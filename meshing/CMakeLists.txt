@@ -162,8 +162,8 @@ set(ORDERED_RESAMPLING_TEST_RES
     test/res/OrderedResampling_Arch.obj
 )
 set(ORDERED_POINT_SET_MESHER_TEST_RES
-    test/res/OrderedPointSetMesher_Arch.obj
-    test/res/OrderedPointSetMesher_Plane.obj)
+    test/res/OrderedPointSetMesher_Plane.obj
+    test/res/OrderedPointSetMesher_Arch.obj)
 
 set(MESHING_TEST_RES
     ${ITK_VTK_TEST_RES}
