@@ -14,8 +14,11 @@ namespace volcart{
 
         class OrderedPointSetMesher {
         public:
+            //Initalizers
             OrderedPointSetMesher();
             OrderedPointSetMesher(PointSet<Point3d> points);
+
+
             VC_MeshType::Pointer getOutput();
             void setPointSet(PointSet<Point3d> points);
             void compute();
@@ -24,8 +27,8 @@ namespace volcart{
             PointSet<Point3d> input_;
             VC_MeshType::Pointer output_ = nullptr;
 
-
-            void _addCell(unsigned long a, unsigned long b, unsigned long c);
+            //Used to add a cell to the itk mesh
+            void addCell_(unsigned long a, unsigned long b, unsigned long c);
         };
 
     }
