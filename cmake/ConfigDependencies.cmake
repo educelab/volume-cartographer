@@ -95,3 +95,13 @@ if (VC_USE_LIBIGL)
         INTERFACE_INCLUDE_DIRECTORIES "${LIBIGL_INCLUDE_DIRS}"
     )
 endif()
+
+### VCG ###
+option(VC_USE_VCG "Use VCG library" off)
+if(VC_USE_VCG)
+    find_package(VCG QUIET REQUIRED)
+    add_library(vcglib INTERFACE IMPORTED)
+    set_target_properties(vcglib PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${VCG_INCLUDE_DIRS}"
+    )
+endif()
