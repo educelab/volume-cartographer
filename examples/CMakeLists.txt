@@ -108,3 +108,6 @@ if(VC_USE_VCG)
     add_executable(vc_quadric_edge_collapse_decimation_example src/QuadricEdgeCollapseDecimationExample.cpp)
     target_link_libraries(vc_quadric_edge_collapse_decimation_example vc_meshing)
 endif()
+
+add_executable(vc_asantest src/ASANTest.cpp)
+add_sanitizers(vc_asantest)
