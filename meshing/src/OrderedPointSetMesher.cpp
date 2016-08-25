@@ -2,21 +2,17 @@
 // Created by Hannah Hatch on 8/23/16.
 //
 
-#include <meshing/CalculateNormals.h>
+#include <iostream>
+#include "meshing/CalculateNormals.h"
 #include "meshing/OrderedPointSetMesher.h"
 
 using namespace volcart::meshing;
-
-OrderedPointSetMesher::OrderedPointSetMesher(){
-    //Not the best way to initalize an empty PointSet but not sure how else to
-    input_.push_back({0.0,0.0,0.0});
-}
 
 OrderedPointSetMesher::OrderedPointSetMesher(PointSet<Point3d> points){
     input_ = points;
 }
 
-VC_MeshType::Pointer OrderedPointSetMesher::getOutput(){
+VC_MeshType::Pointer OrderedPointSetMesher::getOutputMesh(){
     return output_;
 }
 
@@ -24,46 +20,54 @@ void OrderedPointSetMesher::setPointSet(PointSet<Point3d> points){
     input_ = points;
 }
 
-void OrderedPointSetMesher::compute(){
-    VC_PointType temp_pt;
-    output_ = VC_MeshType::New();
-    unsigned long cnt = 0;
+void OrderedPointSetMesher::compute()
+{
+    // Verify before computation
+    if(input_.empty())
+        throw std::invalid_argument("Attempted to mesh empty point set.");
+    if(!input_.isOrdered())
+        throw std::invalid_argument("Attempted to mesh unordered point set.");
 
-    //Takes the first point and saves each component then goes onto the next one
-    for (auto i = input_.begin(); i < input_.end(); i++, cnt++)
+    // Create a clean output mesh
+    output_ = VC_MeshType::New();
+
+    // Transfer the vertex info
+    VC_PointType temp_pt;
+    unsigned long cnt = 0;
+    for (auto & i : input_ )
     {
-        temp_pt[0] = (*i)[0];
-        temp_pt[1] = (*i)[1];
-        temp_pt[2] = (*i)[2];
+        temp_pt[0] = i[0];
+        temp_pt[1] = i[1];
+        temp_pt[2] = i[2];
 
         output_->SetPoint(cnt, temp_pt);
-
+        ++cnt;
     }
 
-    unsigned long point1, point2, point3, point4;
+    // Creates 2 cells per iteration and adds them to the mesh
+    unsigned long p0, p1, p2, p3;
+    for(auto i = 0; i < input_.height() - 1; i++){
+        for(auto j = 0; j < input_.width() - 1; j++){
 
-    //Creates 2 cells per iteration and adds them to the mesh
-    for(unsigned long i = 0; i <input_.height() -1; i++){
-        for(unsigned long j = 0; j <input_.width() - 1; j++){
-            //Allows us to create the upper and lower face at the same time
-            point1 = i *  input_.width() + j;
-            point2 = point1 + 1;
-            point3 = point2 + input_.width();
-            point4 = point3 -1;
+            // Get the indices for the faces adjacent along the "hypotenuse"
+            p0 = i *  input_.width() + j;
+            p1 = p0 + 1;
+            p2 = p1 + input_.width();
+            p3 = p2 - 1;
 
-            if( point1 >= output_->GetNumberOfPoints() ||
-                point2 >= output_->GetNumberOfPoints() ||
-                point3 >= output_->GetNumberOfPoints() ||
-                point4 >= output_->GetNumberOfPoints() ) {
+            if( p0 >= output_->GetNumberOfPoints() ||
+                p1 >= output_->GetNumberOfPoints() ||
+                p2 >= output_->GetNumberOfPoints() ||
+                p3 >= output_->GetNumberOfPoints() ) {
                 throw std::out_of_range("Predicted vertex index for face generation out of range of point set.");
             }
 
-            addCell_(point2, point3, point4);
-            addCell_(point1, point2, point4);
-        }//j loop
-    }//i loop
+            addCell_(p1, p2, p3);
+            addCell_(p0, p1, p3);
+        }// j loop
+    }// i loop
 
-    //Sets the normals for the points and faces
+    // Sets the normals for the points and faces
     volcart::meshing::CalculateNormals calcNorm(output_);
     calcNorm.compute();
     output_ = calcNorm.getMesh();

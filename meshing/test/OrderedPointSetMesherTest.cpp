@@ -16,7 +16,7 @@
 using namespace volcart;
 
 struct OrderedPlaneFixture {
-    OrderedPlaneFixture(): _Plane(5,5){
+    OrderedPlaneFixture() : _Plane(5,5){
         _Plane.push_row({{0.0, 0.0, 0.0},{0.0, 0.0, 2.0}, {0.0, 0.0, 4.0}, {0.0, 0.0, 6.0}, {0.0, 0.0, 8.0}});
         _Plane.push_row({{2.0, 0.0, 0.0},{2.0, 0.0, 2.0}, {2.0, 0.0, 4.0}, {2.0, 0.0, 6.0}, {2.0, 0.0, 8.0}});
         _Plane.push_row({{4.0, 0.0, 0.0},{4.0, 0.0, 2.0}, {4.0, 0.0, 4.0}, {4.0, 0.0, 6.0}, {4.0, 0.0, 8.0}});
@@ -32,14 +32,12 @@ struct OrderedPlaneFixture {
 };
 
 struct OrderedArchFixture {
-    OrderedArchFixture(): _Arch(5,5){
+    OrderedArchFixture() : _Arch(5,5){
         _Arch.push_row({{5.0, 0.0, 0.0},{4.04508, 2.93893, 0.0}, {1.54508, 4.75528, 0.0}, {-1.54508, 4.75528, 0.0}, {-4.04508, 2.93893, 0.0}});
         _Arch.push_row({{5.0, 0.0, 2.0},{4.04508, 2.93893, 2.0}, {1.54508, 4.75528, 2.0}, {-1.54508, 4.75528, 2.0}, {-4.04508, 2.93893, 2.0}});
         _Arch.push_row({{5.0, 0.0, 4.0},{4.04508, 2.93893, 4.0}, {1.54508, 4.75528, 4.0}, {-1.54508, 4.75528, 4.0}, {-4.04508, 2.93893, 4.0}});
         _Arch.push_row({{5.0, 0.0, 6.0},{4.04508, 2.93893, 6.0}, {1.54508, 4.75528, 6.0}, {-1.54508, 4.75528, 6.0}, {-4.04508, 2.93893, 6.0}});
         _Arch.push_row({{5.0, 0.0, 8.0},{4.04508, 2.93893, 8.0}, {1.54508, 4.75528, 8.0}, {-1.54508, 4.75528, 8.0}, {-4.04508, 2.93893, 8.0}});
-
-
 
         volcart::testing::ParsingHelpers::parseObjFile("OrderedPointSetMesher_Arch.obj", _SavedPoints, _SavedCells);
     }
@@ -52,7 +50,7 @@ struct OrderedArchFixture {
 BOOST_FIXTURE_TEST_CASE(MeshedPlaneTest, OrderedPlaneFixture){
     volcart::meshing::OrderedPointSetMesher mesher_plane(_Plane);
     mesher_plane.compute();
-    _out_Mesh = mesher_plane.getOutput();
+    _out_Mesh = mesher_plane.getOutputMesh();
 
     //Check Points and Normals
     BOOST_CHECK_EQUAL(_out_Mesh->GetNumberOfPoints(), _SavedPoints.size());
@@ -86,7 +84,7 @@ BOOST_FIXTURE_TEST_CASE(MeshedPlaneTest, OrderedPlaneFixture){
 BOOST_FIXTURE_TEST_CASE(MeshedArchTest, OrderedArchFixture){
     volcart::meshing::OrderedPointSetMesher mesher_arch(_Arch);
     mesher_arch.compute();
-    _out_Mesh = mesher_arch.getOutput();
+    _out_Mesh = mesher_arch.getOutputMesh();
 
     //Check Points and Normals
     BOOST_CHECK_EQUAL(_out_Mesh->GetNumberOfPoints(), _SavedPoints.size());

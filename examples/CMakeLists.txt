@@ -109,5 +109,5 @@ if(VC_USE_VCG)
     target_link_libraries(vc_quadric_edge_collapse_decimation_example vc_meshing)
 endif()
 
-add_executable(vc_ordered_point_set_mesher src/OrderedPointSetMesherExample.cpp)
-target_link_libraries(vc_ordered_point_set_mesher vc_meshing)
+add_executable(vc_orderedPointSetMesher_example src/OrderedPointSetMesherExample.cpp)
+target_link_libraries(vc_orderedPointSetMesher_example vc_meshing)
