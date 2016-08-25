@@ -14,7 +14,6 @@ endif()
 list(APPEND CMAKE_MODULE_PATH
     ${PROJECT_SOURCE_DIR}/cmake/sanitizers-cmake/cmake
 )
-message("module path: ${CMAKE_MODULE_PATH}")
 find_package(Sanitizers)
 
 ### Boost ###
