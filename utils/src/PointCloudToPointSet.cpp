@@ -1,9 +1,14 @@
+/* vc_convert_pcd_to_ps
+ * Utility that converts all PCL point clouds in a
+ * volume package into the new VC pointset type */
+
+#include <iostream>
+#include <boost/filesystem/path.hpp>
+#include <pcl/io/pcd_io.h>
+
 #include "common/types/Point.h"
 #include "common/types/PointSet.h"
 #include "volumepkg/volumepkg.h"
-#include <boost/filesystem/path.hpp>
-#include <iostream>
-#include <pcl/io/pcd_io.h>
 
 using namespace volcart;
 namespace fs = boost::filesystem;

@@ -90,20 +90,6 @@ if (VC_USE_BULLET)
     )
 endif()
 
-add_executable(vc_convert_pcd_to_ps src/PointCloudToPointSet.cpp)
-target_link_libraries(vc_convert_pcd_to_ps
-    vc_common
-    vc_volumepkg
-    Boost::filesystem
-    ${PCL_COMMON_LIBRARIES}
-    ${PCL_IO_LIBRARIES}
-)
-target_include_directories(vc_convert_pcd_to_ps
-    PUBLIC
-        ${PCL_COMMON_INCLUDE_DIRS}
-        ${PCL_IO_INCLUDE_DIRS}
-)
-
 # Install targets
 install(
     TARGETS
