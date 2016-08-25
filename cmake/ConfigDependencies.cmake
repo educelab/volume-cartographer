@@ -8,13 +8,13 @@ option(VC_PREBUILT_LIBS "Link against prebuilt dependencies" off)
 if (VC_PREBUILT_LIBS)
     set(CMAKE_PREFIX_PATH ${PROJECT_SOURCE_DIR}/vc-deps/deps)
 endif()
-message("module path: ${CMAKE_MODULE_PATH}")
 
 # For compiler sanitizers. Taken from:
 # https://github.com/arsenm/sanitizers-cmake/blob/master/README.md
 list(APPEND CMAKE_MODULE_PATH
     ${PROJECT_SOURCE_DIR}/cmake/sanitizers-cmake/cmake
 )
+message("module path: ${CMAKE_MODULE_PATH}")
 find_package(Sanitizers)
 
 ### Boost ###
