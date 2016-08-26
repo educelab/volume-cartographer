@@ -39,7 +39,7 @@ int main(int argc, char** argv)
         }
 
         // Write to disk
-        auto psPath = pkg.getActiveSegPath() / "pointset.txt";
+        auto psPath = pkg.getActiveSegPath() / "pointset.vcps";
         PointSet<Point3d>::writeFile(psPath, ps);
 
         // Read back, verify it's correct
