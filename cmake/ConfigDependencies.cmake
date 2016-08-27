@@ -11,9 +11,7 @@ endif()
 
 # For compiler sanitizers. Taken from:
 # https://github.com/arsenm/sanitizers-cmake/blob/master/README.md
-list(APPEND CMAKE_MODULE_PATH
-    ${PROJECT_SOURCE_DIR}/cmake/sanitizers-cmake/cmake
-)
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 find_package(Sanitizers)
 
 ### Boost ###
