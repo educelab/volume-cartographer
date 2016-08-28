@@ -83,8 +83,8 @@ BOOST_FIXTURE_TEST_CASE(WriteThenReadAsciiPointSet, Point3iPointSet)
 {
     PointSet<Point3i>::writeFile("tmp.txt", ps,
                                  PointSet<Point3i>::IOMode::ASCII);
-    auto readPs =
-        PointSet<Point3i>::readFile("tmp.txt", PointSet<Point3i>::IOMode::ASCII);
+    auto readPs = PointSet<Point3i>::readFile("tmp.txt",
+                                              PointSet<Point3i>::IOMode::ASCII);
     BOOST_CHECK_EQUAL(readPs[0], ps[0]);
     BOOST_CHECK_EQUAL(readPs[1], ps[1]);
     BOOST_CHECK_EQUAL(readPs[2], ps[2]);
