@@ -9,7 +9,7 @@
  *          Saved file wills be read in by the itk2vtkTest.cpp file under
  *          v-c/testing/meshing.
  *
- *          Need to use out plywriter because the vtkPLYWriter does not
+ *          Need to use out plywriter because the vtkPLYwriter does not
  *          include normals when it writes to file
  */
 
@@ -20,8 +20,9 @@
 #include "common/shapes/Sphere.h"
 #include "common/shapes/Cone.h"
 #include "meshing/itk2vtk.h"
-#include <vtkPLYWriter.h>
-#include <itkMeshFileWriter.h>
+#include <vtkPLYwriter.h>
+#include <itkMeshFilewriter.h>
+#include <common/io/objwriter.h>
 
 void writePLYHeaderAndPoints(std::ostream &out, vtkPolyData* mesh);
 
@@ -57,7 +58,7 @@ int main( int argc, char* argv[] ) {
   // write itk meshes to file
   //
 
-  itk::MeshFileWriter<VC_MeshType>::Pointer itkwriter = itk::MeshFileWriter<VC_MeshType>::New();
+  volcart::io::objWriter writer;
 
   //cycle through the shapes and write
   int ShapeCounter = 0;
@@ -66,38 +67,33 @@ int main( int argc, char* argv[] ) {
     if (ShapeCounter == 0){
 
       //write itk meshes
-      itkwriter->SetInput(out_ITKPlane);
-      itkwriter->SetFileTypeAsASCII();
-      itkwriter->SetFileName("VTKPlaneMeshConvertedToITK.obj");
-      itkwriter->Write();
+      writer.setMesh(out_ITKPlane);
+      writer.setPath("VTKPlaneMeshConvertedToITK.obj");
+      writer.write();
     }
     else if (ShapeCounter == 1){
 
-      itkwriter->SetInput(out_ITKCube);
-      itkwriter->SetFileTypeAsASCII();
-      itkwriter->SetFileName("VTKCubeMeshConvertedToITK.obj");
-      itkwriter->Write();
+      writer.setMesh(out_ITKCube);
+      writer.setPath("VTKCubeMeshConvertedToITK.obj");
+      writer.write();
     }
     else if (ShapeCounter == 2){
 
-      itkwriter->SetInput(out_ITKArch);
-      itkwriter->SetFileTypeAsASCII();
-      itkwriter->SetFileName("VTKArchMeshConvertedToITK.obj");
-      itkwriter->Write();
+      writer.setMesh(out_ITKArch);
+      writer.setPath("VTKArchMeshConvertedToITK.obj");
+      writer.write();
     }
     else if (ShapeCounter == 3){
 
-      itkwriter->SetInput(out_ITKSphere);
-      itkwriter->SetFileTypeAsASCII();
-      itkwriter->SetFileName("VTKSphereMeshConvertedToITK.obj");
-      itkwriter->Write();
+      writer.setMesh(out_ITKSphere);
+      writer.setPath("VTKSphereMeshConvertedToITK.obj");
+      writer.write();
     }
     else if (ShapeCounter == 4){
 
-      itkwriter->SetInput(out_ITKCone);
-      itkwriter->SetFileTypeAsASCII();
-      itkwriter->SetFileName("VTKConeMeshConvertedToITK.obj");
-      itkwriter->Write();
+      writer.setMesh(out_ITKCone);
+      writer.setPath("VTKConeMeshConvertedToITK.obj");
+      writer.write();
     }
 
       ++ShapeCounter;
