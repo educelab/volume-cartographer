@@ -2,12 +2,13 @@
  * Utility that converts all PCL point clouds in a
  * volume package into the new VC pointset type */
 
-#include <iostream>
 #include <boost/filesystem/path.hpp>
+#include <iostream>
 #include <pcl/io/pcd_io.h>
 
 #include "common/types/Point.h"
 #include "common/types/PointSet.h"
+#include "common/types/PointSetIO.h"
 #include "volumepkg/volumepkg.h"
 
 using namespace volcart;
@@ -40,10 +41,10 @@ int main(int argc, char** argv)
 
         // Write to disk
         auto psPath = pkg.getActiveSegPath() / "pointset.vcps";
-        PointSet<Point3d>::writeFile(psPath, ps);
+        PointSetIO<Point3d>::writeFile(psPath, ps);
 
         // Read back, verify it's correct
-        auto newPs = PointSet<Point3d>::readFile(psPath);
+        auto newPs = PointSetIO<Point3d>::readFile(psPath);
         for (size_t j = 0; j < newPs.height(); ++j) {
             for (size_t i = 0; i < newPs.width(); ++i) {
                 assert(newPs(i, j)[0] == (*cloud)(i, j).x);
