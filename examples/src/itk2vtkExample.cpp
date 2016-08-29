@@ -20,7 +20,7 @@
 #include "common/shapes/Sphere.h"
 #include "common/shapes/Cone.h"
 #include "meshing/itk2vtk.h"
-#include <vtkPLYwriter.h>
+#include <vtkPLYWriter.h>
 #include <itkMeshFilewriter.h>
 #include <common/io/objwriter.h>
 
