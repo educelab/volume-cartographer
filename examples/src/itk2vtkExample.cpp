@@ -21,8 +21,7 @@
 #include "common/shapes/Cone.h"
 #include "meshing/itk2vtk.h"
 #include <vtkPLYWriter.h>
-#include <itkMeshFilewriter.h>
-#include <common/io/objwriter.h>
+#include <common/io/objWriter.h>
 
 void writePLYHeaderAndPoints(std::ostream &out, vtkPolyData* mesh);
 
