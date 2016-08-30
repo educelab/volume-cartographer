@@ -1,4 +1,5 @@
 #include <exception>
+#include <string>
 
 namespace volcart
 {
