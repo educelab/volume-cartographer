@@ -1,8 +1,8 @@
 #define BOOST_TEST_MODULE PointSetIOTest
 
+#include "common/io/PointSetIO.h"
 #include "common/types/Point.h"
 #include "common/types/PointSet.h"
-#include "common/types/PointSetIO.h"
 #include <boost/test/unit_test.hpp>
 #include <iostream>
 

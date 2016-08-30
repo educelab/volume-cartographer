@@ -6,9 +6,9 @@
 #include <iostream>
 #include <pcl/io/pcd_io.h>
 
+#include "common/io/PointSetIO.h"
 #include "common/types/Point.h"
 #include "common/types/PointSet.h"
-#include "common/types/PointSetIO.h"
 #include "volumepkg/volumepkg.h"
 
 using namespace volcart;
