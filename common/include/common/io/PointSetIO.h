@@ -220,7 +220,7 @@ public:
             auto msg = "Must provide type";
             throw IOException(msg);
         } else if (h.dim == 0) {
-            auto msg = "Msut provide dim";
+            auto msg = "Must provide dim";
             throw IOException(msg);
         } else if (h.ordered == false && h.size == 0) {
             auto msg = "Unordered pointsets must have a size";
