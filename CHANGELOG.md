@@ -7,6 +7,8 @@ v2.6.0
 - meshing
     - __New:__ Added Quadric Edge Collapse Decimation (via vcglib) (!70)
     - Updated testing resources with files that you can actually open (!74)
+- testing
+    - Added tests for ParsingHelpers (!76)
 
 v2.5.0
 ------
