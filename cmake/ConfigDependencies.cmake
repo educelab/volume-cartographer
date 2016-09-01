@@ -9,6 +9,10 @@ if (VC_PREBUILT_LIBS)
     set(CMAKE_PREFIX_PATH ${PROJECT_SOURCE_DIR}/vc-deps/deps)
 endif()
 
+# For compiler sanitizers. Taken from:
+# https://github.com/arsenm/sanitizers-cmake/blob/master/README.md
+find_package(Sanitizers)
+
 ### Boost ###
 set(VC_BOOST_COMPONENTS
     system
