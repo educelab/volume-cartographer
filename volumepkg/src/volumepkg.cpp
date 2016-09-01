@@ -6,7 +6,7 @@ namespace fs = boost::filesystem;
 
 // CONSTRUCTORS //
 // Make a volpkg of a particular version number
-VolumePkg::VolumePkg(const fs::path& file_location, double version)
+VolumePkg::VolumePkg(const fs::path& file_location, int version)    // Changed type from double to int
 {
     // Lookup the metadata template from our library of versions
     auto findDict = volcart::VersionLibrary.find(version);
@@ -111,7 +111,7 @@ std::string VolumePkg::getPkgName() const
         return "UnnamedVolume";
 };
 
-double VolumePkg::getVersion() const { return config.get<double>("version"); };
+int VolumePkg::getVersion() const { return config.get<int>("version"); };   // Changed type from double to int
 
 // Returns no. of slices from JSON config
 int VolumePkg::getNumberOfSlices() const
@@ -276,7 +276,7 @@ void VolumePkg::saveTextureData(const cv::Mat& texture, const std::string& name)
 
 volcart::Metadata VolumePkg::_initConfig(
     const volcart::Dictionary& dict,
-    double version)
+    int version)    // Changed type from double to int
 {
     volcart::Metadata config;
 

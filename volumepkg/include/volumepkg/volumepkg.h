@@ -25,7 +25,8 @@ class VolumePkg
 public:
     // Constructors
     VolumePkg(const boost::filesystem::path& file_location,
-              double version);  // New volpkg, V.[version]
+              int version);  // New volpkg, V.[version]
+                             // Changed type from double to int
 
     VolumePkg(
         const boost::filesystem::path& file_location);  // Existing VolPkgs
@@ -50,7 +51,7 @@ public:
     // Metadata Retrieval
     std::string getPkgName() const;
 
-    double getVersion() const;
+    int getVersion() const;     // Changed type from double to int
 
     int getNumberOfSlices() const;
 
@@ -137,5 +138,5 @@ private:
 
     static volcart::Metadata _initConfig(
         const volcart::Dictionary& dict,
-        double version);
+        int version);
 };

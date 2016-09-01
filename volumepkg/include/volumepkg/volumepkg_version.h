@@ -11,14 +11,14 @@ namespace volcart
 
 // VersionDict's will hold possible metadata keys and their types
 using Dictionary = std::unordered_map<std::string, std::string>;
-using Library = std::unordered_map<double, Dictionary>;
+using Library = std::unordered_map<int, Dictionary>;            // Changed type from double to int
 
-// Version 1.0
+// Version 1
 // clang-format off
 const Dictionary _1_0 =
         {
         {"volumepkg name",   "string"},
-        {"version",          "double"},
+        {"version",          "int"},    // Changed type from double to int
         {"width",            "int"},
         {"height",           "int"},
         {"number of slices", "int"},
@@ -28,11 +28,11 @@ const Dictionary _1_0 =
         {"voxelsize",        "double"}
         };
 
-// Version 2.0
+// Version 2
 const Dictionary _2_0 =
         {
         {"volumepkg name",   "string"},
-        {"version",          "double"},
+        {"version",          "int"},    // Changed type from double to int
         {"width",            "int"},
         {"height",           "int"},
         {"number of slices", "int"},
@@ -44,7 +44,7 @@ const Dictionary _2_0 =
         };
 
 // Add the Version Dict's to a list of possible versions
-const Library VersionLibrary = {{1.0, _1_0},
-                                {2.0, _2_0}};
+const Library VersionLibrary = {{1, _1_0},      // Changed type from double to int
+                                {2, _2_0}};
 // clang-format on
 }  // namespace volcart
