@@ -64,6 +64,7 @@ set(test_srcs
     test/UVMapTest.cpp
     test/plyWriterTest.cpp
     test/PointSetTest.cpp
+    test/PointSetIOTest.cpp
     test/PointTest.cpp
 )
 

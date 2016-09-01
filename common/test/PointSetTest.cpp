@@ -3,7 +3,6 @@
 #include "common/types/Point.h"
 #include "common/types/PointSet.h"
 #include <boost/test/unit_test.hpp>
-#include <iostream>
 
 using namespace volcart;
 
@@ -68,26 +67,6 @@ BOOST_AUTO_TEST_CASE(FillPointSetTest)
     for (size_t i = 0; i < ps.width(); ++i) {
         BOOST_CHECK_EQUAL(ps(i, 0), Point3i(1, 1, 1));
     }
-}
-
-BOOST_FIXTURE_TEST_CASE(WriteThenReadBinaryPointSet, Point3iPointSet)
-{
-    PointSet<Point3i>::writeFile("tmp.txt", ps);
-    auto readPs = PointSet<Point3i>::readFile("tmp.txt");
-    BOOST_CHECK_EQUAL(readPs[0], ps[0]);
-    BOOST_CHECK_EQUAL(readPs[1], ps[1]);
-    BOOST_CHECK_EQUAL(readPs[2], ps[2]);
-}
-
-BOOST_FIXTURE_TEST_CASE(WriteThenReadAsciiPointSet, Point3iPointSet)
-{
-    PointSet<Point3i>::writeFile("tmp.txt", ps,
-                                 PointSet<Point3i>::IOMode::ASCII);
-    auto readPs =
-        PointSet<Point3i>::readFile("tmp.txt", PointSet<Point3i>::IOMode::ASCII);
-    BOOST_CHECK_EQUAL(readPs[0], ps[0]);
-    BOOST_CHECK_EQUAL(readPs[1], ps[1]);
-    BOOST_CHECK_EQUAL(readPs[2], ps[2]);
 }
 
 BOOST_FIXTURE_TEST_CASE(StatisticsPointSetTest, Point3iPointSet)
