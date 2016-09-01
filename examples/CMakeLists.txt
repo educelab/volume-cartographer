@@ -31,10 +31,6 @@ target_link_libraries(vc_smooth_normals_example vc_common vc_meshing)
 add_executable(vc_scale_mesh_example src/scaleMeshExample.cpp)
 target_link_libraries(vc_scale_mesh_example vc_common vc_meshing ITKIOMesh)
 
-add_executable(vc_resample_point_cloud_example
-    src/resamplePointCloudExample.cpp
-)
-target_link_libraries(vc_resample_point_cloud_example vc_common vc_meshing)
 
 add_executable(vc_raytrace_example src/rayTraceExample.cpp)
 target_link_libraries(vc_raytrace_example vc_common vc_meshing)
