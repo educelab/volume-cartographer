@@ -6,6 +6,7 @@ v2.6.0
     - __New:__ New Point and PointSet data types (!69)
 - meshing
     - __New:__ Added Quadric Edge Collapse Decimation (via vcglib) (!70)
+    - Updated testing resources with files that you can actually open (!74)
 
 v2.5.0
 ------
