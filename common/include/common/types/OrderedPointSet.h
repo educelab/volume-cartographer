@@ -1,0 +1,76 @@
+#pragma once
+
+#include <cassert>
+#include "common/types/Exceptions.h"
+#include "common/types/PointSet.h"
+
+namespace volcart
+{
+
+template <typename T>
+class OrderedPointSet : public PointSet<T>
+{
+public:
+    using BaseClass = PointSet<T>;
+    using BaseClass::BaseClass;
+    using BaseClass::_data;
+    using BaseClass::_capacity;
+
+    explicit OrderedPointSet() : BaseClass() {}
+    explicit OrderedPointSet(size_t width, size_t height)
+        : BaseClass(), _width(width), _height(height)
+    {
+        _capacity = width * height;
+        _data.reserve(_capacity);
+    }
+    explicit OrderedPointSet(size_t width, size_t height, T initVal)
+        : _width(width), _height(height)
+    {
+        _capacity = width * height;
+        _data.assign(_capacity, initVal);
+    }
+
+    // 2D access
+    // NOTE: x, then y
+    const T& operator()(size_t x, size_t y) const
+    {
+        return _data[y * _width + x];
+    }
+    T& operator()(size_t x, size_t y) { return _data[y * _width + x]; }
+
+    size_t width() const { return _width; }
+    size_t height() const { return _height; }
+
+    // Push a row of points to the OrderedPointSet
+    void push_row(const std::vector<T>& points)
+    {
+        assert(points.size() == _width && "row incorrect size");
+        assert(_data.size() < _capacity && "PointSet full");
+        std::copy(
+            std::begin(points), std::end(points), std::back_inserter(_data));
+    }
+    void push_row(std::vector<T>&& points)
+    {
+        assert(points.size() == _width && "row incorrect size");
+        assert(_data.size() < _capacity && "PointSet full");
+        std::copy(
+            std::begin(points), std::end(points), std::back_inserter(_data));
+    }
+
+    // Not implemented for this class
+    void push_back(const T& val) override
+    {
+        auto msg = "OrderedPointSet does not support push_back()";
+        throw NotImplementedException(msg);
+    }
+    void push_back(T&& val) override
+    {
+        auto msg = "OrderedPointSet does not support push_back()";
+        throw NotImplementedException(msg);
+    }
+
+private:
+    size_t _width;
+    size_t _height;
+};
+}
