@@ -9,7 +9,7 @@ lint:
     stage: lint
     script:
         - echo $CI_BUILD_REF_NAME $CI_BUILD_STAGE
-        - scripts/validate_format.py
+        - scripts/clang_format.py lint
 
 build:debian:
     image: volcart/vcbuilder-debian:latest
