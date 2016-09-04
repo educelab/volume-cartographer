@@ -28,7 +28,7 @@ BOOST_FIXTURE_TEST_CASE(
 {
     // Binary IO is default
     PointSetIO<Point3i>::WritePointSet("tmp.txt", ps);
-    auto readPs = PointSetIO<Point3i>::PointSetFromFile("tmp.txt");
+    auto readPs = PointSetIO<Point3i>::ReadPointSet("tmp.txt");
     BOOST_CHECK_EQUAL(readPs[0], ps[0]);
     BOOST_CHECK_EQUAL(readPs[1], ps[1]);
     BOOST_CHECK_EQUAL(readPs[2], ps[2]);
@@ -38,8 +38,7 @@ BOOST_FIXTURE_TEST_CASE(
     WriteThenReadAsciiUnorderedPointSet, Point3iUnorderedPointSet)
 {
     PointSetIO<Point3i>::WritePointSet("tmp.txt", ps, IOMode::ASCII);
-    auto readPs =
-        PointSetIO<Point3i>::PointSetFromFile("tmp.txt", IOMode::ASCII);
+    auto readPs = PointSetIO<Point3i>::ReadPointSet("tmp.txt", IOMode::ASCII);
     BOOST_CHECK_EQUAL(readPs[0], ps[0]);
     BOOST_CHECK_EQUAL(readPs[1], ps[1]);
     BOOST_CHECK_EQUAL(readPs[2], ps[2]);
