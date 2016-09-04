@@ -16,7 +16,7 @@ public:
     using BaseClass::_data;
     using BaseClass::_capacity;
 
-    explicit OrderedPointSet() : BaseClass() {}
+    explicit OrderedPointSet() : BaseClass(), _width(0), _height(0) {}
     explicit OrderedPointSet(size_t width, size_t height)
         : BaseClass(), _width(width), _height(height)
     {
@@ -24,10 +24,16 @@ public:
         _data.reserve(_capacity);
     }
     explicit OrderedPointSet(size_t width, size_t height, T initVal)
-        : _width(width), _height(height)
+        : BaseClass(), _width(width), _height(height)
     {
         _capacity = width * height;
         _data.assign(_capacity, initVal);
+    }
+
+    // Fill static method
+    static OrderedPointSet Fill(size_t width, size_t height, T initVal)
+    {
+        return OrderedPointSet(width, height, initVal);
     }
 
     // 2D access
