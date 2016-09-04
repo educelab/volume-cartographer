@@ -1,8 +1,15 @@
 stages:
+    - lint
     - build
     - test
     - collect
     - deploy
+
+lint:
+    stage: lint
+    script:
+        - echo $CI_BUILD_REF_NAME $CI_BUILD_STAGE
+        - scripts/validate_format.py
 
 build:debian:
     image: volcart/vcbuilder-debian:latest
@@ -17,6 +24,7 @@ build:debian:
         paths:
             - build/bin/
         expire_in: 1 day
+    dependencies: lint
     tags:
         - build
         - linux
@@ -59,6 +67,7 @@ build:osx:
         paths:
             - build/bin/
         expire_in: 1 day
+    dependencies: lint
     tags:
         - build
         - osx
