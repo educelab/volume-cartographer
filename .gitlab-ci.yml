@@ -32,7 +32,7 @@ build:debian:
             - build/bin/
         expire_in: 1 day
     dependencies:
-        - lint
+        - lint:debian
     tags:
         - build
         - linux
@@ -76,7 +76,7 @@ build:osx:
             - build/bin/
         expire_in: 1 day
     dependencies:
-        - lint
+        - lint:osx
     tags:
         - build
         - osx
