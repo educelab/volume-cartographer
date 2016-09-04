@@ -38,25 +38,25 @@ public:
         }
     };
 
-    static OrderedPointSet<T> OrderedPointSetFromFile(
+    static OrderedPointSet<T> ReadOrderedPointSet(
         boost::filesystem::path path, IOMode mode = IOMode::BINARY)
     {
         switch (mode) {
         case IOMode::BINARY:
-            return OrderedPointSetFromBinaryFile(path);
+            return ReadOrderedPointSetBinary(path);
         case IOMode::ASCII:
-            return OrderedPointSetFromAsciiFile(path);
+            return ReadOrderedPointSetAscii(path);
         }
     }
 
-    static PointSet<T> PointSetFromFile(
+    static PointSet<T> ReadPointSet(
         boost::filesystem::path path, IOMode mode = IOMode::BINARY)
     {
         switch (mode) {
         case IOMode::BINARY:
-            return PointSetFromBinaryFile(path);
+            return ReadPointSetBinary(path);
         case IOMode::ASCII:
-            return PointSetFromAsciiFile(path);
+            return ReadPointSetAscii(path);
         }
     }
 
@@ -281,7 +281,7 @@ public:
     }
 
 private:
-    static PointSet<T> PointSetFromAsciiFile(boost::filesystem::path path)
+    static PointSet<T> ReadPointSetAscii(boost::filesystem::path path)
     {
         std::ifstream infile{path.string()};
         if (!infile.is_open()) {
@@ -302,7 +302,7 @@ private:
         return ps;
     }
 
-    static OrderedPointSet<T> OrderedPointSetFromAsciiFile(
+    static OrderedPointSet<T> ReadOrderedPointSetAscii(
         boost::filesystem::path path)
     {
         std::ifstream infile{path.string()};
@@ -329,7 +329,7 @@ private:
         return ps;
     }
 
-    static PointSet<T> PointSetFromBinaryFile(boost::filesystem::path path)
+    static PointSet<T> ReadPointSetBinary(boost::filesystem::path path)
     {
         std::ifstream infile{path.string(), std::ios::binary};
         if (!infile.is_open()) {
@@ -360,7 +360,7 @@ private:
         return ps;
     }
 
-    static OrderedPointSet<T> OrderedPointSetFromBinaryFile(
+    static OrderedPointSet<T> ReadOrderedPointSetBinary(
         boost::filesystem::path path)
     {
         std::ifstream infile{path.string(), std::ios::binary};
