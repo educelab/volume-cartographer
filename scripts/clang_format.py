@@ -126,16 +126,7 @@ def get_tar_path(version, tar_path):
 def extract_clang_format(tar_path):
     # Extract just the clang-format binary
     # On OSX, we shell out to tar because tarfile doesn't support xz compression
-    if sys.platform == 'darwin':
-         subprocess.call(['tar', '-xzf', tar_path, '*clang-format*'])
-    # Otherwise we use tarfile because some versions of tar don't support wildcards without
-    # a special flag
-    else:
-        tarfp = tarfile.open(tar_path)
-        for name in tarfp.getnames():
-            if name.endswith('clang-format'):
-                tarfp.extract(name)
-        tarfp.close()
+    subprocess.call(['tar', '-xzf', tar_path, '*clang-format*'])
 
 def get_clang_format_from_cache_and_extract(url, tarball_ext):
     """Get clang-format from mongodb's cache
