@@ -383,11 +383,7 @@ def get_base_dir():
         This script assumes that it is running in buildscripts/, and uses
         that to find the base directory.
     """
-    try:
-        return subprocess.check_output(['git', 'rev-parse', '--show-toplevel']).rstrip()
-    except:
-        # We are not in a valid git directory. Use the script path instead.
-        return os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+    return os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
 def get_repos():
     """Get a list of Repos to check clang-format for
@@ -395,8 +391,7 @@ def get_repos():
     base_dir = get_base_dir()
 
     # Get a list of modules
-    # TODO: how do we filter rocks, does it matter?
-    paths = ['/Users/skarlage/wa/vc']
+    paths = [base_dir]
     return [Repo(p) for p in paths]
 
 
