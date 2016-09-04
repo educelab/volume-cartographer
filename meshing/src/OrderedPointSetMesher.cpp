@@ -2,31 +2,17 @@
 // Created by Hannah Hatch on 8/23/16.
 //
 
+#include "meshing/OrderedPointSetMesher.h"
 #include <iostream>
 #include "meshing/CalculateNormals.h"
-#include "meshing/OrderedPointSetMesher.h"
 
 using namespace volcart::meshing;
-
-OrderedPointSetMesher::OrderedPointSetMesher(PointSet<Point3d> points)
-{
-    input_ = points;
-}
-
-VC_MeshType::Pointer OrderedPointSetMesher::getOutputMesh() { return output_; }
-
-void OrderedPointSetMesher::setPointSet(PointSet<Point3d> points)
-{
-    input_ = points;
-}
 
 void OrderedPointSetMesher::compute()
 {
     // Verify before computation
     if (input_.empty())
         throw std::invalid_argument("Attempted to mesh empty point set.");
-    if (!input_.isOrdered())
-        throw std::invalid_argument("Attempted to mesh unordered point set.");
 
     // Create a clean output mesh
     output_ = VC_MeshType::New();
