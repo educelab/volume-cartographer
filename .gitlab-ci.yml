@@ -24,7 +24,8 @@ build:debian:
         paths:
             - build/bin/
         expire_in: 1 day
-    dependencies: lint
+    dependencies:
+        - lint
     tags:
         - build
         - linux
@@ -67,7 +68,8 @@ build:osx:
         paths:
             - build/bin/
         expire_in: 1 day
-    dependencies: lint
+    dependencies:
+        - lint
     tags:
         - build
         - osx
