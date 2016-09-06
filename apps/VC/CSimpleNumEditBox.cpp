@@ -32,7 +32,7 @@ CSimpleNumEditBox::~CSimpleNumEditBox( void )
 }
 
 // Get slice index from text
-int CSimpleNumEditBox::GetImageIndexFromText( void )
+int CSimpleNumEditBox::GetImageIndexFromText( void ) const
 {
     int aResult;
     bool aIsOk = false; // invalid
@@ -45,7 +45,7 @@ int CSimpleNumEditBox::GetImageIndexFromText( void )
 }
 
 // Get slice index
-int CSimpleNumEditBox::GetImageIndex( void )
+int CSimpleNumEditBox::GetImageIndex( void ) const
 {
     return fImageIndex;
 }

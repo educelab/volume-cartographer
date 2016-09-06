@@ -23,8 +23,8 @@ public:
 
     void SetControlPoints( const std::vector< Vec2< double > > &nControlPoints );
     void SetControlPoints( const std::vector< cv::Vec2f > &nControlPoints );
-    void GetSamplePoints( std::vector< Vec2< double > > &nSamplePoints );
-    void GetSamplePoints( std::vector< cv::Vec2f > &nSamplePoints );
+    void GetSamplePoints( std::vector< Vec2< double > > &nSamplePoints )const;
+    void GetSamplePoints( std::vector< cv::Vec2f > &nSamplePoints )const;
 
     void DrawOnImage( cv::Mat &nImg,
                       const cv::Scalar &nColor = cv::Scalar( 0, 0, 255 ) );

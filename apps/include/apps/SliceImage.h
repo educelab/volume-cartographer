@@ -20,12 +20,12 @@ namespace volcart {
 
         bool analyze();
         cv::Mat conformedImage();
-        int width()  { return _w; };
-        int height() { return _h; };
-        int depth()  { return _depth; };
-        double min() { return _min; };
-        double max() { return _max; };
-        bool needsConvert() { return _convert; };
+        int width()          const  { return _w; } ;
+        int height()         const  { return _h; } ;
+        int depth()          const  { return _depth; };
+        double min()         const  { return _min; };
+        double max()         const  { return _max; };
+        bool needsConvert()  const  { return _convert; };
 
         boost::filesystem::path path;
 

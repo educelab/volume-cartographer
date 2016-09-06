@@ -16,14 +16,14 @@ public:
     ~CXCurve( void );
 
   void SetSliceIndex( int nIndex ) { fSliceIndex = nIndex; }
-  int GetSliceIndex( void ) { return fSliceIndex; }
+  int GetSliceIndex( void ) const { return fSliceIndex; }
 
   size_t GetPointsNum( void ) const { return fPoints.size(); }
 
   Vec2< float > GetPoint( int nIndex ) const { return fPoints[ nIndex ]; }
 
   void setLastState() { fLastState = fPoints; }
-  std::vector< Vec2< float > > getLastState() { return fLastState; }
+  std::vector< Vec2< float > > getLastState() const { return fLastState; }
 
   void SetPoint( int nIndex, const Vec2< float > &nPt ) { fPoints[ nIndex ] = nPt; }
   void SetPointByDifference( int nIndex,

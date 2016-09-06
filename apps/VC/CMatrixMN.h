@@ -28,7 +28,7 @@ public:
 
     int GetRows( void ) const { return fRows; }
     int GetCols( void ) const { return fCols; }
-    Vec2< int > GetDim( void ) { return Vec2< int >( fRows, fCols ); }
+    Vec2< int > GetDim( void ) const { return Vec2< int >( fRows, fCols ); }
 
     // Set a single value
     void Set( int nRow, int nCol, T nValue )
@@ -66,7 +66,7 @@ public:
     // REVISIT - FILL ME HERE
 
     const T* GetDataConst( void ) const { return fData; }
-    T* GetData( void ) { return fData; }
+    T* GetData( void ) const { return fData; }
     
     double CalcNormFrobenius( void )
     {
@@ -83,8 +83,8 @@ public:
     void TransposeInPlace( void );
     CMatrixMN< T > Transpose( void );
     
-    CVectorN< T > GetCol( int nColIndex );
-    CVectorN< T > GetRow( int nRowIndex );
+    CVectorN< T > GetCol( int nColIndex ) const ;
+    CVectorN< T > GetRow( int nRowIndex ) const ;
 
     void Dump( void ) const; // REVISIT - output function, should overload stream operator << as well
 
@@ -210,7 +210,7 @@ CMatrixMN< T > CMatrixMN< T >::Transpose( void )
 
 // Get column of the matrix
 template < typename T >
-CVectorN< T > CMatrixMN< T >::GetCol( int nColIndex )
+CVectorN< T > CMatrixMN< T >::GetCol( int nColIndex ) const
 {
     // REVISIT - FILL ME HERE
     CVectorN< T > aResult( fRows );
@@ -222,7 +222,7 @@ CVectorN< T > CMatrixMN< T >::GetCol( int nColIndex )
 
 // Get row of the matrix
 template < typename T >
-CVectorN< T > CMatrixMN< T >::GetRow( int nRowIndex )
+CVectorN< T > CMatrixMN< T >::GetRow( int nRowIndex ) const
 {
     // REVISIT - FILL ME HERE
     CVectorN< T > aResult( fCols );
