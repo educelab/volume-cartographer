@@ -80,6 +80,7 @@ def lint_file(cf_path, file_path):
 
         print('Found diff for file: ' + file_path)
         print('To fix, run "{} --style=file -i {}"'.format(cf_path, file_path))
+        print('Suggested changes:\n')
         for line in result:
             print(line.strip())
         sys.exit(1)
