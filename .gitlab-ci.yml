@@ -5,18 +5,11 @@ stages:
     - collect
     - deploy
 
-lint:debian:
-    image: volcart/vcbuilder-debian:latest
+lint:
     stage: lint
     script:
         - echo $CI_BUILD_REF_NAME $CI_BUILD_STAGE
-        - scripts/clang_format.py lint
-
-lint:osx:
-    stage: lint
-    script:
-        - echo $CI_BUILD_REF_NAME $CI_BUILD_STAGE
-        - scripts/clang_format.py lint
+        - scripts/clang-format.py
 
 build:debian:
     image: volcart/vcbuilder-debian:latest
