@@ -275,6 +275,12 @@ public:
         } else if (ordered == true && (h.width == 0 || h.height == 0)) {
             auto msg = "Ordered pointsets must have a nonzero width and height";
             throw IOException(msg);
+        } else if (ordered == true && h.ordered == false) {
+            auto msg = "Tried to read unordered pointset with ordered PointSetIO";
+            throw IOException(msg);
+        } else if (ordered == false && h.ordered == true) {
+            auto msg = "Tried to read ordered pointset with unordered PointSetIO";
+            throw IOException(msg);
         }
 
         return h;
