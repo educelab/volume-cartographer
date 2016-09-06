@@ -4,8 +4,8 @@ set(target vc_meshing)
 set(srcs
     src/deepCopy.cpp
     src/itk2vtk.cpp
-        src/rayTrace.cpp
-        src/scaleMesh.cpp
+    src/rayTrace.cpp
+    src/scaleMesh.cpp
     src/smoothNormals.cpp
     src/CalculateNormals.cpp
     src/OrderedResampling.cpp
