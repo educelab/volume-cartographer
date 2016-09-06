@@ -64,16 +64,8 @@ public:
     }
 
     // Not implemented for this class
-    void push_back(const T& val) override
-    {
-        auto msg = "OrderedPointSet does not support push_back()";
-        throw NotImplementedException(msg);
-    }
-    void push_back(T&& val) override
-    {
-        auto msg = "OrderedPointSet does not support push_back()";
-        throw NotImplementedException(msg);
-    }
+    void push_back(const T& val) = delete;
+    void push_back(T&& val) = delete;
 
 private:
     size_t _width;

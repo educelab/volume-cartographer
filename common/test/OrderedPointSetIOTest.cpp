@@ -26,11 +26,6 @@ BOOST_AUTO_TEST_CASE(ConstructEmptyOrderedPointSet)
     BOOST_CHECK_EQUAL(ps.height(), 0);
 }
 
-BOOST_FIXTURE_TEST_CASE(PushBackThrows, Point3iOrderedPointSet)
-{
-    BOOST_CHECK_THROW(ps.push_back({1, 2, 3}), NotImplementedException);
-}
-
 BOOST_AUTO_TEST_CASE(PushRowAddsRow)
 {
     OrderedPointSet<Point3i> ps{3, 1};

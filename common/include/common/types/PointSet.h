@@ -71,12 +71,12 @@ public:
     }
 
     // Add elements
-    virtual void push_back(const T& val)
+    void push_back(const T& val)
     {
         assert(_data.size() < _capacity && "PointSet full");
         _data.push_back(val);
     }
-    virtual void push_back(T&& val)
+    void push_back(T&& val)
     {
         assert(_data.size() < _capacity && "PointSet full");
         _data.push_back(val);
