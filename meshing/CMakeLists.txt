@@ -4,14 +4,13 @@ set(target vc_meshing)
 set(srcs
     src/deepCopy.cpp
     src/itk2vtk.cpp
-    src/orderedPCDMesher.cpp
     src/rayTrace.cpp
-    src/resamplePointCloud.cpp
     src/scaleMesh.cpp
     src/smoothNormals.cpp
     src/CalculateNormals.cpp
     src/OrderedResampling.cpp
     src/OrderedPointSetMesher.cpp
+    src/orderedPCDMesher.cpp
 )
 set(deps
     vc_common
@@ -75,7 +74,6 @@ set(test_srcs
     test/itk2vtkTest.cpp
     test/orderedPCDMesherTest.cpp
     test/rayTraceTest.cpp
-    test/resamplePointCloudTest.cpp
     test/scaleMeshTest.cpp
     test/smoothNormalsTest.cpp
     test/OrderedPointSetMesherTest.cpp
@@ -135,13 +133,6 @@ set(RAYTRACE_EXAMPLE_TEST_RES
     test/res/SavedArchRayTraceData.ply
     test/res/SavedConeRayTraceData.ply
     test/res/SavedSphereRayTraceData.ply
-)
-set(RESAMPLED_POINT_CLOUD_TEST_RES
-    test/res/PlaneResamplePointCloudExample.pcd
-    test/res/CubeResamplePointCloudExample.pcd
-    test/res/ArchResamplePointCloudExample.pcd
-    test/res/SphereResamplePointCloudExample.pcd
-    test/res/ConeResamplePointCloudExample.pcd
 )
 set(SMOOTH_NORMALS_TEST_RES
     test/res/PlaneWithSmoothedNormals.obj
