@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
 import argparse
+import difflib
 import logging
+import re
 import subprocess
 import sys
 
@@ -60,6 +62,29 @@ def cf_version_is_correct(path):
     return CLANG_FORMAT_VERSION in cf_version(path)
 
 
+# Lint a given file
+def lint_file(cf_path, file_path):
+
+    # Read original text
+    with open(file_path, 'r') as original_file:
+        original_text = original_file.read()
+
+    # clang-format file
+    cmd = ' '.join([cf_path, '--style=file', file_path])
+    formatted_text = callo(cmd)
+
+    if formatted_text != original_text:
+        original_lines = original_text.splitlines()
+        formatted_lines = formatted_text.splitlines()
+        result = difflib.unified_diff(original_lines, formatted_lines)
+
+        print('Found diff for file: ' + file_path)
+        print('To fix, run "{} --style=file -i {}"'.format(cf_path, file_path))
+        for line in result:
+            print(line.strip())
+        sys.exit(1)
+
+
 if __name__ == '__main__':
     # Set up some logging
     logging.basicConfig(
@@ -91,8 +116,11 @@ if __name__ == '__main__':
 
     # Get list of files to check
     files = changed_files()
-    print(files)
+
+    # Then filter by extension
+    ext_re = re.compile(r'\.(h|hpp|c|cpp)$')
+    files = list(filter(lambda f: re.search(ext_re, f), files))
 
     # Validate each with clang-format
     for f in files:
-        pass
+        lint_file(cf, f)
