@@ -20,8 +20,6 @@ Global_Values::Global_Values(QRect rec)
     //Initialzie Variables
     //-------------------------------------------------
     VPKG_Instantiated = false;
-    height = 0;
-    width = 0;
     path = nullptr;
     segmentations = *(new std::vector<std::string>());
     _radius = 0;
