@@ -201,5 +201,5 @@ if __name__ == '__main__':
     files = list(filter(lambda f: re.search(ext_re, f), files))
 
     # Validate each with clang-format
-    clean = all(lint_file(f) for f in files)
+    clean = all(lint_file(cf, f) for f in files)
     sys.exit(0) if clean else sys.exit(1)
