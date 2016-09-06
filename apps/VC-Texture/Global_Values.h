@@ -27,46 +27,46 @@ class Global_Values
 public:
     Global_Values(QRect rec);
 
-    int getHeight();
-    int getWidth();
+    int getHeight() const;
+    int getWidth() const;
 
     void createVolumePackage();
-    VolumePkg *getVolPkg();
+    VolumePkg *getVolPkg() const;
 
     void setPath(QString newPath);
 
-    void getMySegmentations();
-    std::vector<std::string> getSegmentations();
+    void getMySegmentations() ;
+    std::vector<std::string> getSegmentations() const;
 
     void setQPixMapImage(QImage image);
-    QPixmap getQPixMapImage();
+    QPixmap getQPixMapImage() const;
 
     bool isVPKG_Intantiated();
 
     void setWindow(QMainWindow *window);
-    QMainWindow *getWindow();
+    QMainWindow *getWindow() const;
 
     void setRendering(volcart::Rendering rendering);
     void clearRendering();
-    volcart::Rendering getRendering();
+    volcart::Rendering getRendering() const;
 
     void setRadius(double radius);
-    double getRadius();
+    double getRadius() const;
 
     void setTextureMethod(int textureMethod);
-    int getTextureMethod();
+    int getTextureMethod() const;
 
     void setSampleDirection(int sampleDirection);
-    int getSampleDirection();
+    int getSampleDirection() const;
 
     void setProcessing(bool active);
-    bool getProcessing();
+    bool getProcessing() const;
 
     void setForcedClose(bool forcedClose);
     bool getForcedClose();
 
     void setStatus(int status);
-    int getStatus();
+    int getStatus() const;
 
     void setFileMenu(QMenu *fileMenu);
 

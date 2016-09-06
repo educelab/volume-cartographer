@@ -37,7 +37,7 @@ public:
     void progressActive(bool value);
     void setEnabled(bool value);
     void clearLabel();
-    QLabel *getLabel();
+    QLabel *getLabel() const;
 
 private slots:
     void open();
