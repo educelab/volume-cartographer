@@ -31,7 +31,7 @@ public:
     void Set( int nIndex, T nValue );
 
     const T* GetDataConst( void ) const;
-	T* GetData( void ) const;
+	T* GetData( void );
 
     double CalcNormOne( void );
     double CalcNormTwo( void );
@@ -140,7 +140,7 @@ inline void CVectorN< T >::Set( int nIndex, T nValue ) { *( fData + nIndex ) = n
 template < typename T >
 inline const T* CVectorN< T >::GetDataConst( void ) const { return fData; }
 template < typename T >
-inline T* CVectorN< T >::GetData( void ) const { return fData; }
+inline T* CVectorN< T >::GetData( void ) { return fData; }
 
 template < typename T >
 inline double CVectorN< T >::CalcNormOne( void )

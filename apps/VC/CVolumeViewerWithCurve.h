@@ -44,7 +44,7 @@ public:
     void SetShowCurve( bool b ) { showCurve = b; };
 
     void SetViewState( EViewState nViewState ) { fViewState = nViewState; }
-    EViewState GetViewState( void ) const{ return fViewState; }
+    EViewState GetViewState( void ) { return fViewState; }
 
     void  setButtonsEnabled( bool state );
 

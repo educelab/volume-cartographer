@@ -14,8 +14,8 @@ public:
     CSimpleNumEditBox( QWidget *parent = 0 );
     ~CSimpleNumEditBox( void );
 
-    int GetImageIndexFromText( void ) const;
-    int GetImageIndex( void ) const;
+    int GetImageIndexFromText( void );
+    int GetImageIndex( void );
     void SetImageIndex( int nImageIndex );
 
 protected:

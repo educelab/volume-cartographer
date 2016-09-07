@@ -65,7 +65,7 @@ void CBezierCurve::SetControlPoints( const std::vector< cv::Vec2f > &nControlPoi
 }
 
 // Get sample points
-void CBezierCurve::GetSamplePoints( std::vector< Vec2< double > > &nSamplePoints ) const
+void CBezierCurve::GetSamplePoints( std::vector< Vec2< double > > &nSamplePoints )
 {
     double aTotalLength = pythag< double >( fControlPoints[ 0 ][ 0 ] - fControlPoints[ 1 ][ 0 ], 
                                             fControlPoints[ 0 ][ 1 ] - fControlPoints[ 1 ][ 1 ] ) + 
@@ -98,7 +98,7 @@ void CBezierCurve::GetSamplePoints( std::vector< Vec2< double > > &nSamplePoints
 }
 
 // Get sample points
-void CBezierCurve::GetSamplePoints( std::vector< cv::Vec2f > &nSamplePoints ) const
+void CBezierCurve::GetSamplePoints( std::vector< cv::Vec2f > &nSamplePoints )
 {
     double aTotalLength = pythag< double >( fControlPoints[ 0 ][ 0 ] - fControlPoints[ 1 ][ 0 ],
                                             fControlPoints[ 0 ][ 1 ] - fControlPoints[ 1 ][ 1 ] ) +

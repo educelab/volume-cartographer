@@ -35,7 +35,7 @@ public:
 	~CMesh( void );
 
 	// REVISIT - for debugging purpose
-	void Dump( void ) const {
+	void Dump( void ) {
 		std::cout << "# of points: " << fPoints.size() << std::endl;
 		std::cout << "# of faces: " << fFaces.size() << std::endl;
 		std::cout << "# of edges: " << fEdges.size() << std::endl;
