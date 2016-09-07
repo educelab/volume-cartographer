@@ -36,7 +36,7 @@ public:
     MainWindow(Global_Values *globals);
 
 public slots:
-    void getFilePath() ;
+    void getFilePath();
     void saveTexture();
     void exportTexture();
 

@@ -55,7 +55,7 @@ MainWindow::MainWindow(Global_Values *globals)
     create_Menus(); // Creates the Menus and adds them to the Menu Bar
 }
 
-void MainWindow::getFilePath() // Gets the Folder Path of the Volume Package location, and initiates a Volume Package.
+void MainWindow::getFilePath()// Gets the Folder Path of the Volume Package location, and initiates a Volume Package.
 {
     QFileDialog *dialogBox= new QFileDialog();
     QString filename = dialogBox->getExistingDirectory();

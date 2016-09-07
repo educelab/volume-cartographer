@@ -230,7 +230,7 @@ bool Segmentations_Viewer::loadImage(cv::Mat texture)
 
 }
 
-QVBoxLayout * Segmentations_Viewer::getLayout() const
+QVBoxLayout * Segmentations_Viewer::getLayout()
 {
     return panels;
 }
