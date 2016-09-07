@@ -269,6 +269,9 @@ public:
         } else if (h.dim == 0) {
             auto msg = "Must provide dim";
             throw IOException(msg);
+        } else if (h.ordered != ordered) {
+            auto msg = "Ordering type in file does not match expected value";
+            throw IOException(msg);
         } else if (ordered == false && h.size == 0) {
             auto msg = "Unordered pointsets must have a size";
             throw IOException(msg);
