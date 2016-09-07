@@ -1,15 +1,16 @@
 #pragma once
 
-#include "common/types/Exceptions.h"
-#include "common/types/PointSet.h"
-#include <algorithm>
-#include <boost/algorithm/string.hpp>
-#include <boost/filesystem/path.hpp>
 #include <fstream>
 #include <regex>
 #include <sstream>
 #include <string>
 #include <vector>
+#include <algorithm>
+#include <boost/algorithm/string.hpp>
+#include <boost/filesystem/path.hpp>
+#include "common/types/Exceptions.h"
+#include "common/types/OrderedPointSet.h"
+#include "common/types/PointSet.h"
 
 namespace volcart
 {
@@ -37,40 +38,85 @@ public:
         }
     };
 
-    static PointSet<T> readFile(boost::filesystem::path path,
-                                IOMode mode = IOMode::BINARY)
+    static OrderedPointSet<T> ReadOrderedPointSet(
+        boost::filesystem::path path, IOMode mode = IOMode::BINARY)
     {
         switch (mode) {
         case IOMode::BINARY:
-            return readFileBinary(path);
+            return ReadOrderedPointSetBinary(path);
         case IOMode::ASCII:
-            return readFileAscii(path);
+            return ReadOrderedPointSetAscii(path);
         }
     }
 
-    static void writeFile(boost::filesystem::path path,
-                          const PointSet<T>& ps,
-                          IOMode mode = IOMode::BINARY)
+    static PointSet<T> ReadPointSet(
+        boost::filesystem::path path, IOMode mode = IOMode::BINARY)
     {
         switch (mode) {
         case IOMode::BINARY:
-            return writeFileBinary(path, ps);
+            return ReadPointSetBinary(path);
         case IOMode::ASCII:
-            return writeFileAscii(path, ps);
+            return ReadPointSetAscii(path);
         }
     }
 
-    static std::string makeHeader(PointSet<T> ps)
+    static void WriteOrderedPointSet(
+        boost::filesystem::path path, const OrderedPointSet<T>& ps,
+        IOMode mode = IOMode::BINARY)
+    {
+        switch (mode) {
+        case IOMode::BINARY:
+            return WriteOrderedPointSetBinary(path, ps);
+        case IOMode::ASCII:
+            return WriteOrderedPointSetAscii(path, ps);
+        }
+    }
+
+    static void WritePointSet(
+        boost::filesystem::path path, const PointSet<T>& ps,
+        IOMode mode = IOMode::BINARY)
+    {
+        switch (mode) {
+        case IOMode::BINARY:
+            return WritePointSetBinary(path, ps);
+        case IOMode::ASCII:
+            return WritePointSetAscii(path, ps);
+        }
+    }
+
+    static std::string MakeHeader(PointSet<T> ps)
     {
         std::stringstream ss;
-        if (ps.isOrdered()) {
-            ss << "width: " << ps.width() << std::endl;
-            ss << "height: " << ps.height() << std::endl;
-        } else {
-            ss << "size: " << ps.capacity() << std::endl;
-        }
+        ss << "size: " << ps.capacity() << std::endl;
         ss << "dim: " << Point::dim << std::endl;
-        ss << "ordered: " << (ps.isOrdered() ? "true" : "false") << std::endl;
+        ss << "ordered: false" << std::endl;
+
+        // Output type information
+        ss << "type: ";
+        if (std::is_same<typename Point::Element, int>::value) {
+            ss << "int" << std::endl;
+        } else if (std::is_same<typename Point::Element, float>::value) {
+            ss << "float" << std::endl;
+        } else if (std::is_same<typename Point::Element, double>::value) {
+            ss << "double" << std::endl;
+        } else {
+            auto msg = "unsupported type";
+            throw IOException(msg);
+        }
+
+        ss << "version: " << PointSet<T>::FORMAT_VERSION << std::endl;
+        ss << PointSet<T>::HEADER_TERMINATOR << std::endl;
+
+        return ss.str();
+    }
+
+    static std::string MakeOrderedHeader(OrderedPointSet<T> ps)
+    {
+        std::stringstream ss;
+        ss << "width: " << ps.width() << std::endl;
+        ss << "height: " << ps.height() << std::endl;
+        ss << "dim: " << Point::dim << std::endl;
+        ss << "ordered: true" << std::endl;
 
         // Output type information
         ss << "type: ";
@@ -92,7 +138,7 @@ public:
     }
 
     // Note: assumes infile is already open
-    static Header parseHeader(std::ifstream& infile)
+    static Header ParseHeader(std::ifstream& infile, bool ordered = true)
     {
         // Regexes
         std::regex comments{"^#"};
@@ -113,8 +159,9 @@ public:
         while (std::getline(infile, line)) {
             boost::trim(line);
             boost::split(strs, line, boost::is_any_of(":"));
-            std::for_each(std::begin(strs), std::end(strs),
-                          [](std::string& t) { boost::trim(t); });
+            std::for_each(std::begin(strs), std::end(strs), [](std::string& t) {
+                boost::trim(t);
+            });
 
             // Comments: look like:
             // # This is a comment
@@ -177,14 +224,14 @@ public:
                     !std::is_same<typename Point::Element, int>::value) {
                     msg += "int'";
                     throw IOException(msg);
-                } else if (strs[1] == "float" &&
-                           !std::is_same<typename Point::Element,
-                                         float>::value) {
+                } else if (
+                    strs[1] == "float" &&
+                    !std::is_same<typename Point::Element, float>::value) {
                     msg += "float'";
                     throw IOException(msg);
-                } else if (strs[1] == "double" &&
-                           !std::is_same<typename Point::Element,
-                                         double>::value) {
+                } else if (
+                    strs[1] == "double" &&
+                    !std::is_same<typename Point::Element, double>::value) {
                     msg += "double'";
                     throw IOException(msg);
                 }
@@ -222,11 +269,17 @@ public:
         } else if (h.dim == 0) {
             auto msg = "Must provide dim";
             throw IOException(msg);
-        } else if (h.ordered == false && h.size == 0) {
+        } else if (ordered == false && h.size == 0) {
             auto msg = "Unordered pointsets must have a size";
             throw IOException(msg);
-        } else if (h.ordered == true && (h.width == 0 || h.height == 0)) {
+        } else if (ordered == true && (h.width == 0 || h.height == 0)) {
             auto msg = "Ordered pointsets must have a nonzero width and height";
+            throw IOException(msg);
+        } else if (ordered == true && h.ordered == false) {
+            auto msg = "Tried to read unordered pointset with ordered PointSetIO";
+            throw IOException(msg);
+        } else if (ordered == false && h.ordered == true) {
+            auto msg = "Tried to read ordered pointset with unordered PointSetIO";
             throw IOException(msg);
         }
 
@@ -234,7 +287,7 @@ public:
     }
 
 private:
-    static PointSet<T> readFileAscii(boost::filesystem::path path)
+    static PointSet<T> ReadPointSetAscii(boost::filesystem::path path)
     {
         std::ifstream infile{path.string()};
         if (!infile.is_open()) {
@@ -243,15 +296,8 @@ private:
         }
 
         // Get header
-        auto header = PointSetIO<T>::parseHeader(infile);
-
-        // Ugh gross
-        size_t psSize =
-            (header.ordered ? header.width * header.height : header.size);
-        PointSet<T> ps{psSize};
-        if (header.ordered) {
-            ps.setOrdered(header.width, header.height);
-        }
+        auto header = PointSetIO<T>::ParseHeader(infile, false);
+        PointSet<T> ps{header.size};
 
         T tmp;
         for (size_t i = 0; i < ps.capacity(); ++i) {
@@ -262,22 +308,42 @@ private:
         return ps;
     }
 
-    static PointSet<T> readFileBinary(boost::filesystem::path path)
+    static OrderedPointSet<T> ReadOrderedPointSetAscii(
+        boost::filesystem::path path)
+    {
+        std::ifstream infile{path.string()};
+        if (!infile.is_open()) {
+            auto msg = "could not open file '" + path.string() + "'";
+            throw IOException(msg);
+        }
+
+        // Get header
+        auto header = PointSetIO<T>::ParseHeader(infile, true);
+        OrderedPointSet<T> ps{header.width, header.height};
+
+        T tmp;
+        for (size_t h = 0; h < header.height; ++h) {
+            std::vector<T> points;
+            points.reserve(header.width);
+            for (size_t w = 0; w < header.width; ++w) {
+                infile >> tmp;
+                points.push_back(tmp);
+            }
+            ps.push_row(points);
+        }
+
+        return ps;
+    }
+
+    static PointSet<T> ReadPointSetBinary(boost::filesystem::path path)
     {
         std::ifstream infile{path.string(), std::ios::binary};
         if (!infile.is_open()) {
             auto msg = "could not open file '" + path.string() + "'";
             throw IOException(msg);
         }
-        auto header = PointSetIO<T>::parseHeader(infile);
-
-        // Ugh gross
-        size_t psSize =
-            (header.ordered ? header.width * header.height : header.size);
-        PointSet<T> ps{psSize};
-        if (header.ordered) {
-            ps.setOrdered(header.width, header.height);
-        }
+        auto header = PointSetIO<T>::ParseHeader(infile, false);
+        PointSet<T> ps{header.size};
 
         // Size of binary elements to read
         size_t typeBytes;
@@ -300,7 +366,44 @@ private:
         return ps;
     }
 
-    static void writeFileAscii(boost::filesystem::path path, PointSet<T> ps)
+    static OrderedPointSet<T> ReadOrderedPointSetBinary(
+        boost::filesystem::path path)
+    {
+        std::ifstream infile{path.string(), std::ios::binary};
+        if (!infile.is_open()) {
+            auto msg = "could not open file '" + path.string() + "'";
+            throw IOException(msg);
+        }
+        auto header = PointSetIO<T>::ParseHeader(infile, true);
+        OrderedPointSet<T> ps{header.width, header.height};
+
+        // Size of binary elements to read
+        size_t typeBytes;
+        if (header.type == "float") {
+            typeBytes = sizeof(float);
+        } else if (header.type == "double") {
+            typeBytes = sizeof(double);
+        } else if (header.type == "int") {
+            typeBytes = sizeof(int);
+        }
+
+        // Read data
+        T t;
+        auto nbytes = header.dim * typeBytes;
+        for (size_t h = 0; h < header.height; ++h) {
+            std::vector<T> points;
+            points.reserve(header.width);
+            for (size_t w = 0; w < header.width; ++w) {
+                infile.read(t.bytes(), nbytes);
+                points.push_back(t);
+            }
+            ps.push_row(points);
+        }
+
+        return ps;
+    }
+
+    static void WritePointSetAscii(boost::filesystem::path path, PointSet<T> ps)
     {
         std::ofstream outfile{path.string()};
         if (!outfile.is_open()) {
@@ -308,14 +411,15 @@ private:
             throw IOException(msg);
         }
 
-        auto header = PointSetIO<T>::makeHeader(ps);
+        auto header = PointSetIO<T>::MakeHeader(ps);
         outfile << header;
         for (const auto& p : ps) {
             outfile << p << std::endl;
         }
     }
 
-    static void writeFileBinary(boost::filesystem::path path, PointSet<T> ps)
+    static void WritePointSetBinary(
+        boost::filesystem::path path, PointSet<T> ps)
     {
         std::ofstream outfile{path.string(), std::ios::binary};
         if (!outfile.is_open()) {
@@ -323,7 +427,41 @@ private:
             throw IOException(msg);
         }
 
-        auto header = PointSetIO<T>::makeHeader(ps);
+        auto header = PointSetIO<T>::MakeHeader(ps);
+        outfile.write(header.c_str(), header.size());
+
+        for (const auto p : ps) {
+            auto nbytes = decltype(p)::dim * sizeof(typename Point::Element);
+            outfile.write(p.bytes(), nbytes);
+        }
+    }
+
+    static void WriteOrderedPointSetAscii(
+        boost::filesystem::path path, OrderedPointSet<T> ps)
+    {
+        std::ofstream outfile{path.string()};
+        if (!outfile.is_open()) {
+            auto msg = "could not open file '" + path.string() + "'";
+            throw IOException(msg);
+        }
+
+        auto header = PointSetIO<T>::MakeOrderedHeader(ps);
+        outfile << header;
+        for (const auto& p : ps) {
+            outfile << p << std::endl;
+        }
+    }
+
+    static void WriteOrderedPointSetBinary(
+        boost::filesystem::path path, OrderedPointSet<T> ps)
+    {
+        std::ofstream outfile{path.string(), std::ios::binary};
+        if (!outfile.is_open()) {
+            auto msg = "could not open file '" + path.string() + "'";
+            throw IOException(msg);
+        }
+
+        auto header = PointSetIO<T>::MakeOrderedHeader(ps);
         outfile.write(header.c_str(), header.size());
 
         for (const auto p : ps) {
