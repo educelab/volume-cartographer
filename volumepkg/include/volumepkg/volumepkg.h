@@ -19,6 +19,8 @@
 #include "common/vc_defines.h"
 #include "external/json.hpp"
 #include "volumepkg/volumepkg_version.h"
+#include "common/types/OrderedPointSet.h"
+#include "common/types/Point.h"
 
 class VolumePkg
 {
@@ -93,17 +95,17 @@ public:
     std::string getActiveSegmentation();
     boost::filesystem::path getActiveSegPath();
 
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr openCloud() const;
+    volcart::OrderedPointSet<volcart::Point3d> openCloud() const;
 
     boost::filesystem::path getMeshPath() const;
 
     cv::Mat getTextureData() const;
 
     int saveCloud(
-        const pcl::PointCloud<pcl::PointXYZRGB>& segmentedCloud) const;
+        const volcart::OrderedPointSet<volcart::Point3d> segmentedCloud) const;
 
     int saveMesh(
-        const pcl::PointCloud<pcl::PointXYZRGB>::Ptr segmentedCloud) const;
+            volcart::OrderedPointSet<volcart::Point3d> segmentedCloud) const;
 
     void saveMesh(
         const VC_MeshType::Pointer& mesh, volcart::Texture& texture) const;
