@@ -17,12 +17,12 @@
 
 class Chain {
  public:
-  Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg& volpkg, double gravity_scale, int threshold, int endOffset, double spring_constant_k = -0.5);
+  Chain(volcart::OrderedPointSet<volcart::Point3d> segPath , VolumePkg& volpkg, double gravity_scale, int threshold, int endOffset, double spring_constant_k = -0.5);
   void step();
   bool isMoving();
   cv::Vec3d springForce(int);
   cv::Vec3d gravity(int);
-  pcl::PointCloud<pcl::PointXYZRGB> orderedPCD();
+    volcart::OrderedPointSet<volcart::Point3d> orderedPCD();
 
  private:
 

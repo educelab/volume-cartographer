@@ -29,7 +29,7 @@ int main(int argc, char** argv)
     for (const auto& seg : pkg.getSegmentations()) {
         pkg.setActiveSegmentation(seg);
         std::cout << "Processing " << pkg.getActiveSegPath() << std::endl;
-        auto cloud = pkg.openCloud();
+        auto cloud = pkg.openPCDCloud();
 
         // Convert to OrderedPointSet
         OrderedPointSet<Point3d> ps(cloud->width);
