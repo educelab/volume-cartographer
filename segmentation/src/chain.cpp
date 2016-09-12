@@ -1,7 +1,7 @@
 #include "segmentation/stps/chain.h"
 
 // (doc) Why the parameters that we're giving it?
-Chain::Chain(volcart::OrderedPointSet<volcart::Point3d> segPath, VolumePkg& volpkg, double gravity_scale, int threshold, int endOffset, double spring_constant_k ) : _volpkg(volpkg){
+Chain::Chain(volcart::OrderedPointSet<volcart::Point3d> segPath,  const VolumePkg& volpkg, double gravity_scale, int threshold, int endOffset, double spring_constant_k ) : _volpkg(volpkg){
   // Convert the point cloud segPath into a vector of Particles
   std::vector<Particle> init_chain;
 
@@ -75,7 +75,8 @@ void Chain::step() {
 }
 
 // Returns true if any Particle in the chain is still moving
-bool Chain::isMoving() {
+bool Chain::isMoving()
+{
   bool result = true;
   for (int i = 0; i < _chain_length; ++i)
     result &= _history.front()[i].isStopped();
@@ -128,8 +129,8 @@ volcart::OrderedPointSet<volcart::Point3d> Chain::orderedPCD() {
   std::vector<volcart::Point3d> storage_row;
   for (int i = 0; i < _chain_length; ++i) {
       volcart::Point3d point;
-    point[2] = -1; // To-Do: Make this a constant
-    storage_row.push_back(point);
+      point[2] = -1; // To-Do: Make this a constant
+      storage_row.push_back(point);
   }
 
   // Allocate space for all rows of the output cloud
@@ -152,7 +153,7 @@ volcart::OrderedPointSet<volcart::Point3d> Chain::orderedPCD() {
         point[0] = row_at[i](0);
         point[1] = row_at[i](1);
         point[2] = row_at[i](2);
-      storage[currentCell][i] = point;
+        storage[currentCell][i] = point;
     }
   }
 

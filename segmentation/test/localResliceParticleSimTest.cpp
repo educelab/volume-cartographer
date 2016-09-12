@@ -46,12 +46,12 @@ BOOST_FIXTURE_TEST_CASE(DefaultSegmentationTest, LocalResliceSegmentationFix)
     // Get the cloud to compare against
     const std::string groundTruthSeg("local-reslice-particle-sim");
     _pkg.setActiveSegmentation(groundTruthSeg);
-    const auto groundTruthCloud = _pkg.openCloud();
+    const auto groundTruthCloud = _pkg.openPCDCloud();
 
     // Get the starting cloud to segment and trim it to only the starting path
     const std::string startingCloudSeg("lrps-test-results");
     _pkg.setActiveSegmentation(startingCloudSeg);
-    auto startingCloud = _pkg.openCloud();
+    auto startingCloud = _pkg.openPCDCloud();
     auto it = startingCloud->begin();
     std::advance(it, startingCloud->width);
     startingCloud->erase(it, startingCloud->end());

@@ -455,7 +455,7 @@ void CWindow::ChangePathItem(std::string segID)
     fVpkg->setActiveSegmentation(fSegmentationId);
 
     // load proper point cloud
-    fMasterCloud = *fVpkg->openCloud();
+    fMasterCloud = *fVpkg->openPCDCloud();
     SetUpCurves();
 
     // Move us to the lowest slice index for the cloud

@@ -154,7 +154,7 @@ int main(int argc, char* argv[])
     }
 
     // Load the activeSegmentation's current cloud
-    auto masterCloud = volpkg.openCloud();
+    auto masterCloud = volpkg.openPCDCloud();
 
     // Get some info about the cloud, including chain length and z-index's
     // represented by seg.

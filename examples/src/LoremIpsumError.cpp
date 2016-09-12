@@ -10,7 +10,7 @@ int main(int argc, char** argv)
     auto segID = std::string(argv[2]);
     VolumePkg volpkg(volpkgPath);
     volpkg.setActiveSegmentation(segID);
-    auto cloud = volpkg.openCloud();
+    auto cloud = volpkg.openPCDCloud();
 
     double errsum = 0;
     for (auto p : *cloud) {

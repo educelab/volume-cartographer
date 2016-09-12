@@ -96,6 +96,7 @@ public:
     boost::filesystem::path getActiveSegPath();
 
     volcart::OrderedPointSet<volcart::Point3d> openCloud() const;
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr openPCDCloud() const;
 
     boost::filesystem::path getMeshPath() const;
 

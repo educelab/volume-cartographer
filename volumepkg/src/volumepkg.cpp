@@ -212,6 +212,15 @@ volcart::OrderedPointSet<volcart::Point3d> VolumePkg::openCloud() const
     return cloud;
 }
 
+pcl::PointCloud<pcl::PointXYZRGB>::Ptr VolumePkg::openPCDCloud() const
+{
+    auto outputName = segs_dir / activeSeg / "cloud.pcd";
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(
+            new pcl::PointCloud<pcl::PointXYZRGB>);
+    pcl::io::loadPCDFile<pcl::PointXYZRGB>(outputName.string(), *cloud);
+    return cloud;
+}
+
 // Return the path to the active segmentation's mesh
 fs::path VolumePkg::getMeshPath() const
 {
