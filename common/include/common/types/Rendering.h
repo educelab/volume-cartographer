@@ -19,15 +19,15 @@ namespace volcart {
         ~Rendering();
 
         ///// Metadata /////
-        volcart::Metadata metadata();
-        std::string id();
+        volcart::Metadata metadata() const;
+        std::string id() const;
 
         ///// Access Functions /////
         void setTexture( volcart::Texture texture );
-        volcart::Texture getTexture();
+        volcart::Texture getTexture() const;
 
         void setMesh( VC_MeshType::Pointer mesh );
-        VC_MeshType::Pointer getMesh();
+        VC_MeshType::Pointer getMesh() const;
 
     private:
         volcart::Metadata    _metadata;

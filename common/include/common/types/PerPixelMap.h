@@ -27,15 +27,15 @@ namespace volcart {
         PerPixelMap( boost::filesystem::path path );
 
         ///// Check if initialized /////
-        bool initialized() { return _map.data && _width > 0 && _height > 0; };
+        bool initialized() const { return _map.data && _width > 0 && _height > 0; };
 
         ///// Operators /////
         // Forward to the Mat_ operators
         cv::Vec6d& operator ()( int y, int x ) { return _map(y,x); };
 
         ///// Metadata /////
-        int width() { return _width; };
-        int height() { return _height; };
+        int width() const { return _width; };
+        int height() const { return _height; };
 
         ///// Disk IO /////
         void write( boost::filesystem::path path );

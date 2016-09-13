@@ -43,7 +43,7 @@ namespace volcart {
             double lambdaPlanar;
             double lambdaLength;
 
-            bool interior() { return edge->pair != nullptr; };
+            bool interior() const { return edge->pair != nullptr; };
         };
 
         class Edge {
@@ -110,27 +110,27 @@ namespace volcart {
         VertPtr addVert( double x, double y, double z );
         FacePtr addFace( IDType v0, IDType v1, IDType v2 );
 
-        VertPtr getVert( IDType id );
-        EdgePtr getEdge( IDType id );
-        FacePtr getFace( IDType id );
+        VertPtr getVert ( IDType id ) const;
+        EdgePtr getEdge( IDType id ) const;
+        FacePtr getFace( IDType id ) const;
 
         std::vector<VertPtr>::iterator getVertsBegin();
         std::vector<VertPtr>::iterator getVertsEnd();
-        std::vector<EdgePtr>::iterator getEdgesBegin();
-        std::vector<EdgePtr>::iterator getEdgesEnd();
-        std::vector<FacePtr>::iterator getFacesBegin();
-        std::vector<FacePtr>::iterator getFacesEnd();
+        std::vector<EdgePtr>::iterator getEdgesBegin() ;
+        std::vector<EdgePtr>::iterator getEdgesEnd() ;
+        std::vector<FacePtr>::iterator getFacesBegin() ;
+        std::vector<FacePtr>::iterator getFacesEnd() ;
 
-        std::vector<VertPtr>::iterator getInteriorBegin();
-        std::vector<VertPtr>::iterator getInteriorEnd();
-        std::vector<VertPtr>::iterator getBoundaryBegin();
-        std::vector<VertPtr>::iterator getBoundaryEnd();
+        std::vector<VertPtr>::iterator getInteriorBegin() ;
+        std::vector<VertPtr>::iterator getInteriorEnd() ;
+        std::vector<VertPtr>::iterator getBoundaryBegin() ;
+        std::vector<VertPtr>::iterator getBoundaryEnd() ;
 
-        size_t getNumberOfVerts();
-        size_t getNumberOfEdges();
-        size_t getNumberOfFaces();
-        size_t getNumberOfInteriorPoints();
-        size_t getNumberOfBoundaryPoints();
+        size_t getNumberOfVerts() const;
+        size_t getNumberOfEdges() const;
+        size_t getNumberOfFaces() const;
+        size_t getNumberOfInteriorPoints() const;
+        size_t getNumberOfBoundaryPoints() const;
 
         ///// Special Construction Tasks /////
         void constructConnectedness();
