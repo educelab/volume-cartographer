@@ -1,9 +1,9 @@
 #pragma once
 
-#include <vector>
-#include <tuple>
 #include <algorithm>
 #include <opencv2/core/core.hpp>
+#include <tuple>
+#include <vector>
 
 #define BGR_RED cv::Scalar(0, 0, 0xFF)
 #define BGR_GREEN cv::Scalar(0, 0xFF, 0)
@@ -38,6 +38,10 @@ std::ostream& operator<<(std::ostream& s, std::vector<T> v)
     return s << v.back() << "]";
 }
 
+namespace volcart
+{
+namespace segmentation
+{
 template <typename T1, typename T2>
 std::vector<std::pair<T1, T2>> zip(const std::vector<T1>& v1,
                                    const std::vector<T2>& v2)
@@ -66,8 +70,7 @@ std::pair<std::vector<T>, std::vector<T>> unzip(
 }
 
 template <typename T>
-std::vector<double> normalizeVector(const std::vector<T>& v,
-                                    double newMin = 0,
+std::vector<double> normalizeVector(const std::vector<T>& v, double newMin = 0,
                                     double newMax = 1)
 {
     // Check if values are already in desired range
@@ -126,3 +129,5 @@ std::vector<double> squareDiff(const std::vector<Voxel>& v1,
 
 double sumSquareDiff(const std::vector<double>& v1,
                      const std::vector<double>& v2);
+}
+}
