@@ -11,26 +11,20 @@
 #include "Global_Values.h"
 
 Global_Values::Global_Values(QRect rec)
-{
-    // GETS THE MONITOR'S SCREEN Length & Width
-    height = rec.height();
-    width = rec.width();
-    //------------------------
 
-    //Initialzie Variables
-    //-------------------------------------------------
-    VPKG_Instantiated = false;
-    path = nullptr;
-    segmentations = *(new std::vector<std::string>());
-    _radius = 0;
-    _textureMethod = 0;
-    _sampleDirection = 0;
-    _status = 0;
-    _active = false;
-    _forcedClose = false;
-    //------------------------------------------------
+    : height(rec.height())
+    , width(rec.width())
+    , VPKG_Instantiated(false)
+    , path("")
+    , segmentations(*new std::vector<std::string>())
+    , _radius(0)
+    , _textureMethod(0)
+    , _sampleDirection(0)
+    , _status(0)
+    , _active(false)
+    ,_forcedClose(false)
 
-}// End of Default Constructor()
+{ /* Do Nothing*/ }// End of Default Constructor()
 
 int Global_Values::getHeight()
 {
