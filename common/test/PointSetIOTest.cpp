@@ -1,25 +1,16 @@
 #define BOOST_TEST_MODULE PointSetIOTest
 
-#include "common/io/PointSetIO.h"
-#include "common/types/Point.h"
-#include "common/types/PointSet.h"
-#include <boost/test/unit_test.hpp>
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <boost/test/unit_test.hpp>
+#include "common/io/PointSetIO.h"
+#include "common/types/Point.h"
+#include "common/types/PointSet.h"
 
 constexpr auto TEST_HEADER_FILENAME = "test_header.txt";
 
 using namespace volcart;
-
-struct Point3iOrderedPointSet {
-    PointSet<Point3i> ps;
-
-    Point3iOrderedPointSet() : ps(3, 1)
-    {
-        ps.push_row({{1, 1, 1}, {2, 2, 2}, {3, 3, 3}});
-    }
-};
 
 struct Point3iUnorderedPointSet {
     PointSet<Point3i> ps;
@@ -32,43 +23,22 @@ struct Point3iUnorderedPointSet {
     }
 };
 
-BOOST_FIXTURE_TEST_CASE(WriteThenReadBinaryOrderedPointSet,
-                        Point3iOrderedPointSet)
+BOOST_FIXTURE_TEST_CASE(
+    WriteThenReadBinaryUnorderedPointSet, Point3iUnorderedPointSet)
 {
     // Binary IO is default
-    PointSetIO<Point3i>::writeFile("tmp.txt", ps);
-    auto readPs = PointSetIO<Point3i>::readFile("tmp.txt");
+    PointSetIO<Point3i>::WritePointSet("tmp.txt", ps);
+    auto readPs = PointSetIO<Point3i>::ReadPointSet("tmp.txt");
     BOOST_CHECK_EQUAL(readPs[0], ps[0]);
     BOOST_CHECK_EQUAL(readPs[1], ps[1]);
     BOOST_CHECK_EQUAL(readPs[2], ps[2]);
 }
 
-BOOST_FIXTURE_TEST_CASE(WriteThenReadAsciiOrderedPointSet,
-                        Point3iOrderedPointSet)
+BOOST_FIXTURE_TEST_CASE(
+    WriteThenReadAsciiUnorderedPointSet, Point3iUnorderedPointSet)
 {
-    PointSetIO<Point3i>::writeFile("tmp.txt", ps, IOMode::ASCII);
-    auto readPs = PointSetIO<Point3i>::readFile("tmp.txt", IOMode::ASCII);
-    BOOST_CHECK_EQUAL(readPs[0], ps[0]);
-    BOOST_CHECK_EQUAL(readPs[1], ps[1]);
-    BOOST_CHECK_EQUAL(readPs[2], ps[2]);
-}
-
-BOOST_FIXTURE_TEST_CASE(WriteThenReadBinaryUnorderedPointSet,
-                        Point3iUnorderedPointSet)
-{
-    // Binary IO is default
-    PointSetIO<Point3i>::writeFile("tmp.txt", ps);
-    auto readPs = PointSetIO<Point3i>::readFile("tmp.txt");
-    BOOST_CHECK_EQUAL(readPs[0], ps[0]);
-    BOOST_CHECK_EQUAL(readPs[1], ps[1]);
-    BOOST_CHECK_EQUAL(readPs[2], ps[2]);
-}
-
-BOOST_FIXTURE_TEST_CASE(WriteThenReadAsciiUnorderedPointSet,
-                        Point3iUnorderedPointSet)
-{
-    PointSetIO<Point3i>::writeFile("tmp.txt", ps, IOMode::ASCII);
-    auto readPs = PointSetIO<Point3i>::readFile("tmp.txt", IOMode::ASCII);
+    PointSetIO<Point3i>::WritePointSet("tmp.txt", ps, IOMode::ASCII);
+    auto readPs = PointSetIO<Point3i>::ReadPointSet("tmp.txt", IOMode::ASCII);
     BOOST_CHECK_EQUAL(readPs[0], ps[0]);
     BOOST_CHECK_EQUAL(readPs[1], ps[1]);
     BOOST_CHECK_EQUAL(readPs[2], ps[2]);
@@ -99,7 +69,7 @@ BOOST_AUTO_TEST_CASE(ParseHeaderIgnoreComments)
 
     writeTestHeader(commentHeader);
     std::ifstream inHeader(TEST_HEADER_FILENAME);
-    auto header = PointSetIO<Point3i>::parseHeader(inHeader);
+    auto header = PointSetIO<Point3i>::ParseHeader(inHeader, true);
 
     BOOST_CHECK_EQUAL(header.width, 3);
     BOOST_CHECK_EQUAL(header.height, 1);
@@ -121,7 +91,7 @@ BOOST_AUTO_TEST_CASE(ParseHeaderOffsetKeywords)
 
     writeTestHeader(commentHeader);
     std::ifstream inHeader(TEST_HEADER_FILENAME);
-    auto header = PointSetIO<Point3i>::parseHeader(inHeader);
+    auto header = PointSetIO<Point3i>::ParseHeader(inHeader, true);
 
     BOOST_CHECK_EQUAL(header.width, 3);
     BOOST_CHECK_EQUAL(header.height, 1);
@@ -143,7 +113,8 @@ BOOST_AUTO_TEST_CASE(UnorderedPointSetWithWidthThrows)
     writeTestHeader(commentHeader);
     std::ifstream inHeader(TEST_HEADER_FILENAME);
 
-    BOOST_CHECK_THROW(PointSetIO<Point3i>::parseHeader(inHeader), IOException);
+    BOOST_CHECK_THROW(
+        PointSetIO<Point3i>::ParseHeader(inHeader, false), IOException);
 }
 
 BOOST_AUTO_TEST_CASE(OrderedPointSetWithSizeThrows)
@@ -159,7 +130,8 @@ BOOST_AUTO_TEST_CASE(OrderedPointSetWithSizeThrows)
     writeTestHeader(commentHeader);
     std::ifstream inHeader(TEST_HEADER_FILENAME);
 
-    BOOST_CHECK_THROW(PointSetIO<Point3i>::parseHeader(inHeader), IOException);
+    BOOST_CHECK_THROW(
+        PointSetIO<Point3i>::ParseHeader(inHeader, true), IOException);
 }
 
 BOOST_AUTO_TEST_CASE(PointSetWithoutDimThrows)
@@ -174,7 +146,8 @@ BOOST_AUTO_TEST_CASE(PointSetWithoutDimThrows)
     writeTestHeader(commentHeader);
     std::ifstream inHeader(TEST_HEADER_FILENAME);
 
-    BOOST_CHECK_THROW(PointSetIO<Point3i>::parseHeader(inHeader), IOException);
+    BOOST_CHECK_THROW(
+        PointSetIO<Point3i>::ParseHeader(inHeader, false), IOException);
 }
 
 BOOST_AUTO_TEST_CASE(PointSetWithoutTypeThrows)
@@ -189,7 +162,8 @@ BOOST_AUTO_TEST_CASE(PointSetWithoutTypeThrows)
     writeTestHeader(commentHeader);
     std::ifstream inHeader(TEST_HEADER_FILENAME);
 
-    BOOST_CHECK_THROW(PointSetIO<Point3i>::parseHeader(inHeader), IOException);
+    BOOST_CHECK_THROW(
+        PointSetIO<Point3i>::ParseHeader(inHeader, false), IOException);
 }
 
 BOOST_AUTO_TEST_CASE(PointSetWithWrongTypeThrows)
@@ -205,7 +179,8 @@ BOOST_AUTO_TEST_CASE(PointSetWithWrongTypeThrows)
     writeTestHeader(commentHeader);
     std::ifstream inHeader(TEST_HEADER_FILENAME);
 
-    BOOST_CHECK_THROW(PointSetIO<Point3i>::parseHeader(inHeader), IOException);
+    BOOST_CHECK_THROW(
+        PointSetIO<Point3i>::ParseHeader(inHeader, false), IOException);
 }
 
 BOOST_AUTO_TEST_CASE(PointSetWithWrongVersionThrows)
@@ -223,7 +198,8 @@ BOOST_AUTO_TEST_CASE(PointSetWithWrongVersionThrows)
     writeTestHeader(commentHeader);
     std::ifstream inHeader(TEST_HEADER_FILENAME);
 
-    BOOST_CHECK_THROW(PointSetIO<Point3i>::parseHeader(inHeader), IOException);
+    BOOST_CHECK_THROW(
+        PointSetIO<Point3i>::ParseHeader(inHeader, false), IOException);
 }
 
 BOOST_AUTO_TEST_CASE(PointSetWithWrongDimThrows)
@@ -239,5 +215,6 @@ BOOST_AUTO_TEST_CASE(PointSetWithWrongDimThrows)
     writeTestHeader(commentHeader);
     std::ifstream inHeader(TEST_HEADER_FILENAME);
 
-    BOOST_CHECK_THROW(PointSetIO<Point3i>::parseHeader(inHeader), IOException);
+    BOOST_CHECK_THROW(
+        PointSetIO<Point3i>::ParseHeader(inHeader, false), IOException);
 }

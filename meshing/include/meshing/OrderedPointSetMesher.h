@@ -4,8 +4,8 @@
 
 #pragma once
 
+#include "common/types/OrderedPointSet.h"
 #include "common/types/Point.h"
-#include "common/types/PointSet.h"
 #include "common/vc_defines.h"
 
 namespace volcart
@@ -18,17 +18,17 @@ class OrderedPointSetMesher
 public:
     // Initalizers
     OrderedPointSetMesher();
-    OrderedPointSetMesher(PointSet<Point3d> points);
+    OrderedPointSetMesher(OrderedPointSet<Point3d> points) : input_(points) {}
 
     // I/O
-    void setPointSet(PointSet<Point3d> points);
-    VC_MeshType::Pointer getOutputMesh();
+    void setPointSet(OrderedPointSet<Point3d> points) { input_ = points; }
+    VC_MeshType::Pointer getOutputMesh() { return output_; }
 
     // Processing
     void compute();
 
 private:
-    PointSet<Point3d> input_;
+    OrderedPointSet<Point3d> input_;
     VC_MeshType::Pointer output_;
 
     // Used to add a cell to the itk mesh
