@@ -3,22 +3,22 @@
 //
 #pragma once
 
-#include <unordered_map>
 #include <string>
+#include <unordered_map>
 
 namespace volcart
 {
 
 // VersionDict's will hold possible metadata keys and their types
 using Dictionary = std::unordered_map<std::string, std::string>;
-using Library = std::unordered_map<int, Dictionary>;            // Changed type from double to int
+using Library = std::unordered_map<int, Dictionary>;
 
 // Version 1
 // clang-format off
-const Dictionary _1_0 =
+const Dictionary _1 =
         {
         {"volumepkg name",   "string"},
-        {"version",          "int"},    // Changed type from double to int
+        {"version",          "int"},
         {"width",            "int"},
         {"height",           "int"},
         {"number of slices", "int"},
@@ -29,10 +29,10 @@ const Dictionary _1_0 =
         };
 
 // Version 2
-const Dictionary _2_0 =
+const Dictionary _2 =
         {
         {"volumepkg name",   "string"},
-        {"version",          "int"},    // Changed type from double to int
+        {"version",          "int"},
         {"width",            "int"},
         {"height",           "int"},
         {"number of slices", "int"},
@@ -42,9 +42,8 @@ const Dictionary _2_0 =
         {"voxelsize",        "double"},
         {"materialthickness","double"}
         };
+// clang-format on
 
 // Add the Version Dict's to a list of possible versions
-const Library VersionLibrary = {{1, _1_0},      // Changed type from double to int
-                                {2, _2_0}};
-// clang-format on
+const Library VersionLibrary = {{1, _1}, {2, _2}};
 }  // namespace volcart
