@@ -9,6 +9,10 @@ if (VC_PREBUILT_LIBS)
     set(CMAKE_PREFIX_PATH ${PROJECT_SOURCE_DIR}/vc-deps/deps)
 endif()
 
+# For compiler sanitizers. Taken from:
+# https://github.com/arsenm/sanitizers-cmake/blob/master/README.md
+find_package(Sanitizers)
+
 ### Boost ###
 set(VC_BOOST_COMPONENTS
     system
@@ -93,5 +97,15 @@ if (VC_USE_LIBIGL)
     add_library(libigl INTERFACE IMPORTED)
     set_target_properties(libigl PROPERTIES
         INTERFACE_INCLUDE_DIRECTORIES "${LIBIGL_INCLUDE_DIRS}"
+    )
+endif()
+
+### VCG ###
+option(VC_USE_VCG "Use VCG library" off)
+if(VC_USE_VCG)
+    find_package(VCG QUIET REQUIRED)
+    add_library(vcglib INTERFACE IMPORTED)
+    set_target_properties(vcglib PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${VCG_INCLUDE_DIRS}"
     )
 endif()

@@ -1,7 +1,6 @@
 // CWindow.h
 // Chao Du 2014 Dec
-#ifndef _CWINDOW_H_
-#define _CWINDOW_H_
+#pragma once
 
 #include <QtWidgets>
 #include <QRect>
@@ -216,5 +215,3 @@ private:
 }; // class CWindow
 
 } // namespace ChaoVis
-
-#endif // _CWINDOW_H_

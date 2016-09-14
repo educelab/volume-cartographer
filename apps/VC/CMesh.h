@@ -1,7 +1,6 @@
 // CMesh.h
 // Chao Du Sept. 2014
-#ifndef _CMESH_H_
-#define _CMESH_H_
+#pragma once
 
 #include <iostream>
 #ifndef Q_MOC_RUN
@@ -57,5 +56,3 @@ public:
 }; // class CMesh
 
 } // namespace ChaoVis
-
-#endif // _CMESH_H_

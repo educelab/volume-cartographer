@@ -1,9 +1,7 @@
 //
 // Created by Melissa Shankle on 1/29/16.
 //
-
-#ifndef VC_CONE_H
-#define VC_CONE_H
+#pragma once
 
 #include <math.h>
 
@@ -89,5 +87,3 @@ namespace volcart {
         }; // Cone
     } // shapes
 } // volcart
-
-#endif //VC_CONE_H

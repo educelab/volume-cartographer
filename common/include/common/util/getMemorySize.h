@@ -7,11 +7,8 @@
  *          http://creativecommons.org/licenses/by/3.0/deed.en_US
  */
 
-#ifndef VC_GETMEMORYSIZE_H
-#define VC_GETMEMORYSIZE_H
+#pragma once
 
 #include <stddef.h>
 
 size_t systemMemorySize();
-
-#endif //VC_GETMEMORYSIZE_H

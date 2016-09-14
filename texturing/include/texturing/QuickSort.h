@@ -1,7 +1,6 @@
 // QuickSort.h
 // Chao Du 20141206
-#ifndef _QUICKSORT_H_
-#define _QUICKSORT_H_
+#pragma once
 
 namespace ChaoVis {
 template < typename T >
@@ -44,5 +43,3 @@ void QuickSort( T *nArray,
 }
 
 } // namespace ChaoVis
-
-#endif // _QUICKSORT_H_

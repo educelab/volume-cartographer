@@ -53,7 +53,7 @@ build:osx:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
         - mkdir -p build
         - cd build/
-        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -GNinja ..
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -DVC_USE_VCG=ON -GNinja ..
         - ninja
     artifacts:
         paths:
@@ -71,7 +71,7 @@ test:osx:
     script:
         - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
         - cd build/
-        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -GNinja ..
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -DVC_USE_VCG=ON -GNinja ..
         - ctest -j 4
     dependencies:
         - build:osx

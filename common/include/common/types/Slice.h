@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef VC_RESLICE_H
-#define VC_RESLICE_H
-
 #include <opencv2/core/core.hpp>
 
 // A simple wrapper around a cv::Mat of data sliced from the volume at an
@@ -27,5 +24,3 @@ private:
     cv::Vec3d xvec_;
     cv::Vec3d yvec_;
 };
-
-#endif  // VC_RESLICE_H

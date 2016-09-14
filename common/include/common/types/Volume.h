@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef _VOLCART_VOLUME_H_
-#define _VOLCART_VOLUME_H_
-
 #include <string>
 #include <array>
 #include <opencv2/core/core.hpp>
@@ -286,5 +283,3 @@ private:
                               int32_t gradientKernelSize) const;
 };
 }
-
-#endif

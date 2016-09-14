@@ -1,7 +1,6 @@
 // mathUtils.h
 // Chao Du 2014 Nov
-#ifndef _MATHUTILS_H_
-#define _MATHUTILS_H_
+#pragma once
 
 #include <math.h>
 #include <stdio.h>
@@ -479,5 +478,3 @@ inline T pythag( T a, T b )
 }
 
 } // namespace ChaoVis
-
-#endif // _MATHUTILS_H_

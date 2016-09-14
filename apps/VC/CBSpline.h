@@ -1,7 +1,6 @@
 // CBSpline.h
 // Chao Du 2015 April
-#ifndef _CBSPLINE_H_
-#define _CBSPLINE_H_
+#pragma once
 
 #include <vector>
 #include "mathUtils.h"
@@ -44,5 +43,3 @@ private:
 }; // class CBSpline
 
 } // namespace ChaoVis
-
-#endif // _CBSPLINE_H_

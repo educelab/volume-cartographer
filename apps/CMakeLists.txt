@@ -91,5 +91,15 @@ if (VC_USE_BULLET)
 endif()
 
 # Install targets
-install(TARGETS vc_mesher vc_packager vc_segment vc_render vc_metaedit vc_projection vc_projection2
-        RUNTIME DESTINATION bin COMPONENT Programs)
+install(
+    TARGETS
+        vc_mesher
+        vc_packager
+        vc_segment
+        vc_render
+        vc_metaedit
+        vc_projection
+        vc_projection2
+    RUNTIME DESTINATION bin
+    COMPONENT Programs
+)
