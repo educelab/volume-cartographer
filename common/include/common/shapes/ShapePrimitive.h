@@ -15,6 +15,9 @@
 #include <pcl/common/common.h>
 #include <pcl/point_types.h>
 #include <pcl/impl/point_types.hpp>
+#include <common/types/OrderedPointSet.h>
+#include <common/types/Point.h>
+#include <common/types/PointSet.h>
 
 
 namespace volcart {
@@ -24,9 +27,11 @@ namespace shapes {
     public:
         VC_MeshType::Pointer itkMesh();
         vtkSmartPointer<vtkPolyData> vtkMesh();
-        pcl::PointCloud<pcl::PointXYZ> pointCloudXYZ(bool noisify = true); //resamplePointCloud
-        pcl::PointCloud<pcl::PointNormal> pointCloudNormal(); //poissonRecon, greedyProjMeshing
-        pcl::PointCloud<pcl::PointXYZRGB> pointCloudXYZRGB(); //for orderedPCDMesher
+        volcart::OrderedPointSet<volcart::Point3d> orderedPoints(bool noisify = true); //resamplePointCloud
+        volcart::PointSet<volcart::Point3d> unOrderedPoints(bool noisify = true);
+        volcart::OrderedPointSet<volcart::Point6d> orderedPointNormal(); //poissonRecon, greedyProjMeshing
+        volcart::PointSet<volcart::Point6d> unOrderedPointNormal();
+        //pcl::PointCloud<pcl::PointXYZRGB> pointCloudXYZRGB(); //for orderedPCDMesher
 
         //overload
         std::vector<VC_Vertex> getPoints() const {return _points;}
