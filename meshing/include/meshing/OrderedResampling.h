@@ -18,9 +18,9 @@ namespace volcart {
             OrderedResampling(VC_MeshType::Pointer mesh, int in_width, int in_height);
 
             void setMesh(VC_MeshType::Pointer mesh, int in_width, int in_height);
-            VC_MeshType::Pointer getOutputMesh();
-            int getOutputWidth();
-            int getOutputHeight();
+            VC_MeshType::Pointer getOutputMesh() const ;
+            int getOutputWidth() const ;
+            int getOutputHeight() const;
 
             void compute();
 

@@ -19,7 +19,7 @@ namespace volcart{
 
             // Input/Output //
             void setMesh(VC_MeshType::Pointer mesh);
-            VC_MeshType::Pointer getMesh();
+            VC_MeshType::Pointer getMesh() const;
 
             // Processing //
             void compute();
