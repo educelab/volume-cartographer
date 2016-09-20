@@ -103,3 +103,10 @@ BOOST_FIXTURE_TEST_CASE(AppendNonFullOrderedPointSet, Point3iOrderedPointSet)
     BOOST_CHECK_EQUAL(ps(1, 3), Point3i(2, 2, 3));
     BOOST_CHECK_EQUAL(ps(2, 3), Point3i(2, 3, 5));
 }
+
+BOOST_FIXTURE_TEST_CASE(AppendWiderPointSetThrows, Point3iOrderedPointSet)
+{
+    OrderedPointSet<Point3i> other(4, 1);
+    other.push_row({{1, 1, 1}, {2, 2, 2}, {3, 3, 3}, {4, 4, 4}});
+    BOOST_CHECK_THROW(ps.append(other), std::logic_error);
+}
