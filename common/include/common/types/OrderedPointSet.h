@@ -1,12 +1,13 @@
 #pragma once
 
 #include <cassert>
+#include <iostream>
+#include <stdexcept>
 #include "common/types/Exceptions.h"
 #include "common/types/PointSet.h"
 
 namespace volcart
 {
-
 template <typename T>
 class OrderedPointSet : public PointSet<T>
 {
@@ -43,7 +44,6 @@ public:
         return _data[y * _width + x];
     }
     T& operator()(size_t x, size_t y) { return _data[y * _width + x]; }
-
     size_t width() const { return _width; }
     size_t height() const { return _height; }
 
@@ -66,6 +66,21 @@ public:
     // Not implemented for this class
     void push_back(const T& val) = delete;
     void push_back(T&& val) = delete;
+
+    // Append one pointset to another
+    // NOTE: Overrides PointSet<T>::append
+    void append(const OrderedPointSet<T>& ps)
+    {
+        // ps must be same width as this pointset
+        if (_width != ps.width()) {
+            auto msg = "Cannot append pointset with different width";
+            throw std::logic_error(msg);
+        }
+
+        _height = (this->size() / _width) + ps.height();
+        std::copy(std::begin(ps), std::end(ps), std::back_inserter(_data));
+        _capacity += ps.capacity();
+    }
 
 private:
     size_t _width;

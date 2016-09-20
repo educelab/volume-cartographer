@@ -1,13 +1,13 @@
 #pragma once
 
+#include <algorithm>
 #include <cassert>
+#include <stdexcept>
 #include <string>
 #include <vector>
-#include <algorithm>
 
 namespace volcart
 {
-
 template <typename T>
 class PointSet
 {
@@ -25,6 +25,12 @@ public:
     explicit PointSet(size_t size, T initVal) : _capacity(size)
     {
         _data.assign(size, initVal);
+    }
+
+    // Fill static method
+    static PointSet Fill(size_t size, T initVal)
+    {
+        return PointSet(size, initVal);
     }
 
     // Linear access - no concept of 2D layout
@@ -73,13 +79,24 @@ public:
     // Add elements
     void push_back(const T& val)
     {
-        assert(_data.size() < _capacity && "PointSet full");
+        if (_data.size() >= _capacity) {
+            auto msg = "PointSet is full";
+            throw std::logic_error(msg);
+        }
         _data.push_back(val);
     }
     void push_back(T&& val)
     {
-        assert(_data.size() < _capacity && "PointSet full");
+        if (_data.size() >= _capacity) {
+            auto msg = "PointSet is full";
+            throw std::logic_error(msg);
+        }
         _data.push_back(val);
+    }
+    void append(const PointSet<T>& ps)
+    {
+        _capacity = _capacity + ps.capacity();
+        std::copy(std::begin(ps), std::end(ps), std::back_inserter(_data));
     }
 
 protected:
