@@ -677,12 +677,7 @@ void CWindow::OpenVolume(void)
     if (aVpkgPath.length() == 0) {
         std::cerr << "VC::Message: Open volume package cancelled." << std::endl;
         return;
-    }else {
-            //Cleanup GUI and reset Buttons and features
-            fWindowState = EWindowState::WindowStateIdle;// Set Window State to Idle
-            fPenTool->setChecked(false); // Reset PenTool Button
-            fSegTool->setChecked(false); // Reset Segmentation Button
-        }
+    }
 
     // Checks the Folder Path for .volpkg extension
     std::string extension = aVpkgPath.toStdString().substr(
@@ -726,6 +721,9 @@ void CWindow::CloseVolume(void)
 {
     fVpkg = NULL;
     fSegmentationId = "";
+    fWindowState = EWindowState::WindowStateIdle;// Set Window State to Idle
+    fPenTool->setChecked(false); // Reset PenTool Button
+    fSegTool->setChecked(false); // Reset Segmentation Button
     ResetPointCloud();
     OpenSlice();
     InitPathList();
