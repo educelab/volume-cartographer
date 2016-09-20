@@ -785,6 +785,9 @@ void CWindow::CloseVolume(void)
 {
     fVpkg = NULL;
     fSegmentationId = "";
+    fWindowState = EWindowState::WindowStateIdle;// Set Window State to Idle
+    fPenTool->setChecked(false); // Reset PenTool Button
+    fSegTool->setChecked(false); // Reset Segmentation Button
     ResetPointCloud();
     OpenSlice();
     InitPathList();
