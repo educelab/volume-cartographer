@@ -43,7 +43,7 @@ public:
     }
 
     const cv::Mat_<DType>& xySlice(const int32_t z) const { return tensor_[z]; }
-    cv::Mat_<DType>& xySlice(const int32_t z) const { return tensor_[z]; }
+    cv::Mat_<DType>& xySlice(const int32_t z)  { return tensor_[z]; }
     cv::Mat_<DType> xzSlice(const int32_t layer) const
     {
         cv::Mat_<DType> zSlice(dz, dx);
