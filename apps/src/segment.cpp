@@ -1,9 +1,9 @@
 #include <iostream>
 #include <boost/program_options.hpp>
 #include <pcl/io/pcd_io.h>
-#include "volumepkg/volumepkg.h"
 #include "segmentation/lrps/localResliceParticleSim.h"
 #include "segmentation/stps/structureTensorParticleSim.h"
+#include "volumepkg/volumepkg.h"
 
 namespace po = boost::program_options;
 namespace vs = volcart::segmentation;
@@ -100,9 +100,8 @@ int main(int argc, char* argv[])
         std::exit(1);
     }
     if (opts.count("end-index") && opts.count("stride")) {
-        std::cerr
-            << "[error]: 'end-index' and 'stride' are mutually exclusive"
-            << std::endl;
+        std::cerr << "[error]: 'end-index' and 'stride' are mutually exclusive"
+                  << std::endl;
         std::exit(1);
     }
 
@@ -117,8 +116,11 @@ int main(int argc, char* argv[])
     Algorithm alg;
     auto methodStr = opts["method"].as<std::string>();
     std::string lower;
-    std::transform(std::begin(methodStr), std::end(methodStr),
-                   std::back_inserter(lower), ::tolower);
+    std::transform(
+        std::begin(methodStr),
+        std::end(methodStr),
+        std::back_inserter(lower),
+        ::tolower);
     std::cout << "Segmentation method: " << lower << std::endl;
     if (lower == "stps") {
         alg = Algorithm::STPS;
@@ -133,11 +135,10 @@ int main(int argc, char* argv[])
 
     VolumePkg volpkg(opts["volpkg"].as<std::string>());
     volpkg.setActiveSegmentation(opts["seg-id"].as<std::string>());
-    if (volpkg.getVersion() < 2.0) {
+    if (volpkg.getVersion() < 2) {
         std::cerr << "[error]: Volume package is version "
                   << volpkg.getVersion()
-                  << " but this program requires a version >= 2.0."
-                  << std::endl;
+                  << " but this program requires a version >= 2." << std::endl;
         std::exit(1);
     }
 
@@ -227,8 +228,8 @@ int main(int argc, char* argv[])
     }
     immutableCloud->width = chainLength;
     immutableCloud->height = immutableCloud->points.size() / chainLength;
-    immutableCloud->points.resize(immutableCloud->width *
-                                  immutableCloud->height);
+    immutableCloud->points.resize(
+        immutableCloud->width * immutableCloud->height);
 
     // Run the algorithms
     pcl::PointCloud<pcl::PointXYZRGB> mutableCloud;
@@ -251,8 +252,20 @@ int main(int argc, char* argv[])
         // Run segmentation using path as our starting points
         vs::LocalResliceSegmentation segmenter(volpkg);
         mutableCloud = segmenter.segmentPath(
-            segPath, startIndex, endIndex, numIters, step, alpha, k1, k2, beta,
-            delta, distanceWeight, considerPrevious, dumpVis, visualize);
+            segPath,
+            startIndex,
+            endIndex,
+            numIters,
+            step,
+            alpha,
+            k1,
+            k2,
+            beta,
+            delta,
+            distanceWeight,
+            considerPrevious,
+            dumpVis,
+            visualize);
     }
 
     // Update the master cloud with the points we saved and concat the new
