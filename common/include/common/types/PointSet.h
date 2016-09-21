@@ -20,26 +20,33 @@ public:
     constexpr static auto HEADER_TERMINATOR = "<>";
     constexpr static auto HEADER_TERMINATOR_REGEX = "^<>$";
 
-    explicit PointSet() : _data(), _capacity(0) {}
-    explicit PointSet(size_t size) : _capacity(size) { _data.reserve(size); }
-    explicit PointSet(size_t size, T initVal) : _capacity(size)
+    explicit PointSet() : _data() {}
+    explicit PointSet(size_t initSize) { _data.reserve(initSize); }
+    explicit PointSet(size_t initSize, T initVal)
     {
-        _data.assign(size, initVal);
+        _data.assign(initSize, initVal);
     }
 
     // Fill static method
-    static PointSet Fill(size_t size, T initVal)
+    static PointSet Fill(size_t initSize, T initVal)
     {
-        return PointSet(size, initVal);
+        return PointSet(initSize, initVal);
     }
 
     // Linear access - no concept of 2D layout
-    const T& operator[](size_t idx) const { return _data[idx]; }
-    T& operator[](size_t idx) { return _data[idx]; }
+    const T& operator[](size_t idx) const
+    {
+        assert(idx < _data.size() && "idx out of range");
+        return _data[idx];
+    }
+    T& operator[](size_t idx)
+    {
+        assert(idx < _data.size() && "idx out of range");
+        return _data[idx];
+    }
 
     // Metadata
     size_t size() const { return _data.size(); }
-    size_t capacity() const { return _capacity; }
     bool empty() const { return _data.empty(); }
 
     // Iterators and element accessors
@@ -77,30 +84,14 @@ public:
     }
 
     // Add elements
-    void push_back(const T& val)
-    {
-        if (_data.size() >= _capacity) {
-            auto msg = "PointSet is full";
-            throw std::logic_error(msg);
-        }
-        _data.push_back(val);
-    }
-    void push_back(T&& val)
-    {
-        if (_data.size() >= _capacity) {
-            auto msg = "PointSet is full";
-            throw std::logic_error(msg);
-        }
-        _data.push_back(val);
-    }
+    void push_back(const T& val) { _data.push_back(val); }
+    void push_back(T&& val) { _data.push_back(val); }
     void append(const PointSet<T>& ps)
     {
-        _capacity = _capacity + ps.capacity();
         std::copy(std::begin(ps), std::end(ps), std::back_inserter(_data));
     }
 
 protected:
     Container _data;
-    size_t _capacity;
 };
 }

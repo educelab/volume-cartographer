@@ -32,7 +32,7 @@ int main(int argc, char** argv)
         auto cloud = pkg.openCloud();
 
         // Convert to OrderedPointSet
-        OrderedPointSet<Point3d> ps(cloud->width, cloud->height);
+        OrderedPointSet<Point3d> ps(cloud->width);
         for (size_t j = 0; j < cloud->height; ++j) {
             std::vector<Point3d> points;
             points.reserve(cloud->width);

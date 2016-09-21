@@ -12,7 +12,7 @@ using namespace volcart;
 struct Point3iOrderedPointSet {
     OrderedPointSet<Point3i> ps;
 
-    Point3iOrderedPointSet() : ps(3, 1)
+    Point3iOrderedPointSet() : ps{3}
     {
         ps.push_row({{1, 1, 1}, {2, 2, 2}, {3, 3, 3}});
     }

@@ -16,7 +16,7 @@
 using namespace volcart;
 
 struct OrderedPlaneFixture {
-    OrderedPlaneFixture() : _Plane(5, 5)
+    OrderedPlaneFixture() : _Plane(5)
     {
         _Plane.push_row({{0.0, 0.0, 0.0},
                          {0.0, 0.0, 2.0},
@@ -54,7 +54,7 @@ struct OrderedPlaneFixture {
 };
 
 struct OrderedArchFixture {
-    OrderedArchFixture() : _Arch(5, 5)
+    OrderedArchFixture() : _Arch(5)
     {
         _Arch.push_row({{5.0, 0.0, 0.0},
                         {4.04508, 2.93893, 0.0},

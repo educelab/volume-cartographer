@@ -15,50 +15,63 @@ public:
     using BaseClass = PointSet<T>;
     using BaseClass::BaseClass;
     using BaseClass::_data;
-    using BaseClass::_capacity;
 
-    explicit OrderedPointSet() : BaseClass(), _width(0), _height(0) {}
-    explicit OrderedPointSet(size_t width, size_t height)
-        : BaseClass(), _width(width), _height(height)
+    // Could use a better way to determine the multiplier
+    constexpr static size_t CAPACITY_MULTIPLIER = 20;
+
+    explicit OrderedPointSet() : BaseClass(), _width(0) {}
+    explicit OrderedPointSet(size_t width) : BaseClass(), _width(width)
     {
-        _capacity = width * height;
-        _data.reserve(_capacity);
+        _data.reserve(_width * CAPACITY_MULTIPLIER);
     }
-    explicit OrderedPointSet(size_t width, size_t height, T initVal)
-        : BaseClass(), _width(width), _height(height)
+    explicit OrderedPointSet(size_t width, T initVal)
+        : BaseClass(), _width(width)
     {
-        _capacity = width * height;
-        _data.assign(_capacity, initVal);
+        _data.assign(_width * CAPACITY_MULTIPLIER, initVal);
     }
 
     // Fill static method
     static OrderedPointSet Fill(size_t width, size_t height, T initVal)
     {
-        return OrderedPointSet(width, height, initVal);
+        OrderedPointSet ps(width);
+        std::vector<T> v;
+        v.assign(width, initVal);
+        for (size_t _ = 0; _ < height; ++_) {
+            ps.push_row(v);
+        }
+        return ps;
     }
 
     // 2D access
     // NOTE: x, then y
     const T& operator()(size_t x, size_t y) const
     {
+        assert(x < _width && "x out of range");
+        assert(y * _width + x < _data.size() && "(x, y) out of range");
         return _data[y * _width + x];
     }
-    T& operator()(size_t x, size_t y) { return _data[y * _width + x]; }
+    T& operator()(size_t x, size_t y)
+    {
+        assert(x < _width && "x out of range");
+        assert(y * _width + x < _data.size() && "(x, y) out of range");
+        return _data[y * _width + x];
+    }
     size_t width() const { return _width; }
-    size_t height() const { return _height; }
+
+    // _data.size() should be a perfect multiple of _width, so this should
+    // return a whole integer
+    size_t height() const { return (_width == 0 ? 0 : this->size() / _width); }
 
     // Push a row of points to the OrderedPointSet
     void push_row(const std::vector<T>& points)
     {
         assert(points.size() == _width && "row incorrect size");
-        assert(_data.size() < _capacity && "PointSet full");
         std::copy(
             std::begin(points), std::end(points), std::back_inserter(_data));
     }
     void push_row(std::vector<T>&& points)
     {
         assert(points.size() == _width && "row incorrect size");
-        assert(_data.size() < _capacity && "PointSet full");
         std::copy(
             std::begin(points), std::end(points), std::back_inserter(_data));
     }
@@ -77,13 +90,10 @@ public:
             throw std::logic_error(msg);
         }
 
-        _height = (this->size() / _width) + ps.height();
         std::copy(std::begin(ps), std::end(ps), std::back_inserter(_data));
-        _capacity += ps.capacity();
     }
 
 private:
     size_t _width;
-    size_t _height;
 };
 }

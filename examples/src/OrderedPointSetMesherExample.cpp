@@ -15,7 +15,7 @@ int main()
 {
 
     // Plane
-    OrderedPointSet<Point3d> Plane(5, 5);
+    OrderedPointSet<Point3d> Plane(5);
     Plane.push_row({{0.0, 0.0, 0.0},
                     {0.0, 0.0, 2.0},
                     {0.0, 0.0, 4.0},
@@ -52,7 +52,7 @@ int main()
     writer.write();
 
     // Arch
-    OrderedPointSet<Point3d> Arch(5, 5);
+    OrderedPointSet<Point3d> Arch(5);
     Arch.push_row({{5.0, 0.0, 0.0},
                    {4.04508, 2.93893, 0.0},
                    {1.54508, 4.75528, 0.0},

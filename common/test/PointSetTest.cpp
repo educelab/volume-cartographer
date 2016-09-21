@@ -38,8 +38,7 @@ BOOST_FIXTURE_TEST_CASE(OneRowPointSetIteratorTest, Point3iPointSet)
     BOOST_CHECK_EQUAL(*(std::end(ps) - 1), Point3i(3, 3, 3));
     size_t i = 1;
     for (auto p : ps) {
-        Point3i tmp(i, i, i);
-        BOOST_CHECK_EQUAL(p, tmp);
+        BOOST_CHECK_EQUAL(p, Point3i(i, i, i));
         ++i;
     }
 }
@@ -76,16 +75,13 @@ BOOST_FIXTURE_TEST_CASE(AppendPointSetToAnother, Point3iPointSet)
     other.push_back({1, 2, 3});
     other.push_back({4, 5, 6});
     other.push_back({7, 8, 9});
-    BOOST_CHECK_EQUAL(other.capacity(), 4);
     BOOST_CHECK_EQUAL(other.size(), 3);
-    BOOST_CHECK_EQUAL(ps.capacity(), 3);
     BOOST_CHECK_EQUAL(ps.size(), 3);
 
     // Append new pointset to old
     ps.append(other);
 
     BOOST_CHECK_EQUAL(ps.size(), 6);
-    BOOST_CHECK_EQUAL(ps.capacity(), 7);
     BOOST_CHECK_EQUAL(ps[3], Point3i(1, 2, 3));
     BOOST_CHECK_EQUAL(ps[4], Point3i(4, 5, 6));
     BOOST_CHECK_EQUAL(ps[5], Point3i(7, 8, 9));
@@ -97,22 +93,14 @@ BOOST_FIXTURE_TEST_CASE(AppendFullPointSetToFullPointSet, Point3iPointSet)
     other.push_back({1, 2, 3});
     other.push_back({4, 5, 6});
     other.push_back({7, 8, 9});
-    BOOST_CHECK_EQUAL(other.capacity(), 3);
     BOOST_CHECK_EQUAL(other.size(), 3);
-    BOOST_CHECK_EQUAL(ps.capacity(), 3);
     BOOST_CHECK_EQUAL(ps.size(), 3);
 
     // Append new pointset to old
     ps.append(other);
 
     BOOST_CHECK_EQUAL(ps.size(), 6);
-    BOOST_CHECK_EQUAL(ps.capacity(), 6);
     BOOST_CHECK_EQUAL(ps[3], Point3i(1, 2, 3));
     BOOST_CHECK_EQUAL(ps[4], Point3i(4, 5, 6));
     BOOST_CHECK_EQUAL(ps[5], Point3i(7, 8, 9));
-}
-
-BOOST_FIXTURE_TEST_CASE(AddToFullPointSetThrows, Point3iPointSet)
-{
-    BOOST_CHECK_THROW(ps.push_back(Point3i(1, 1, 1)), std::logic_error);
 }
