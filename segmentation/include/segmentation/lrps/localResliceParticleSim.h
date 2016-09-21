@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef _VOLCART_LOCAL_RESLICE_SEGMENTATION_H_
-#define _VOLCART_LOCAL_RESLICE_SEGMENTATION_H_
-
 #include <iostream>
 #include <pcl/point_types.h>
 #include "segmentation/lrps/fittedcurve.h"
@@ -48,5 +45,3 @@ private:
 };
 }
 }
-
-#endif

@@ -17,6 +17,7 @@
 #include "common/shapes/Sphere.h"
 #include "common/shapes/Cone.h"
 #include <itkMeshFileWriter.h>
+#include <common/io/objWriter.h>
 
 int main(){
 
@@ -49,7 +50,7 @@ int main(){
     volcart::meshing::scaleMesh(in_ConeITKMesh, out_ConeMesh, 3);
 
     //write scaled mesh results to file
-    itk::MeshFileWriter<VC_MeshType>::Pointer itkwriter = itk::MeshFileWriter<VC_MeshType>::New();
+    volcart::io::objWriter writer;
 
     //cycle through the shapes and write
     int ShapeCounter = 0;
@@ -58,43 +59,37 @@ int main(){
         if (ShapeCounter == 0){
 
             //write itk meshes
-            itkwriter->SetInput(out_PlaneMesh);
-            itkwriter->SetFileTypeAsASCII();
-            itkwriter->SetFileName("ScaledPlaneMesh.obj");
-            itkwriter->Write();
+            writer.setMesh(out_PlaneMesh);
+            writer.setPath("ScaledPlaneMesh.obj");
+            writer.write();
         }
         else if (ShapeCounter == 1){
 
-            itkwriter->SetInput(out_CubeMesh);
-            itkwriter->SetFileTypeAsASCII();
-            itkwriter->SetFileName("ScaledCubeMesh.obj");
-            itkwriter->Write();
+            writer.setMesh(out_CubeMesh);
+            writer.setPath("ScaledCubeMesh.obj");
+            writer.write();
         }
         else if (ShapeCounter == 2){
 
-            itkwriter->SetInput(out_ArchMesh);
-            itkwriter->SetFileTypeAsASCII();
-            itkwriter->SetFileName("ScaledArchMesh.obj");
-            itkwriter->Write();
+            writer.setMesh(out_ArchMesh);
+            writer.setPath("ScaledArchMesh.obj");
+            writer.write();
         }
         else if (ShapeCounter == 3){
 
-            itkwriter->SetInput(out_SphereMesh);
-            itkwriter->SetFileTypeAsASCII();
-            itkwriter->SetFileName("ScaledSphereMesh.obj");
-            itkwriter->Write();
+            writer.setMesh(out_SphereMesh);
+            writer.setPath("ScaledSphereMesh.obj");
+            writer.write();
         }
         else if (ShapeCounter == 4){
 
-            itkwriter->SetInput(out_ConeMesh);
-            itkwriter->SetFileTypeAsASCII();
-            itkwriter->SetFileName("ScaledConeMesh.obj");
-            itkwriter->Write();
+            writer.setMesh(out_ConeMesh);
+            writer.setPath("ScaledConeMesh.obj");
+            writer.write();
 
-            itkwriter->SetInput(in_ConeITKMesh);
-            itkwriter->SetFileTypeAsASCII();
-            itkwriter->SetFileName("Cone.obj");
-            itkwriter->Write();
+            writer.setMesh(in_ConeITKMesh);
+            writer.setPath("Cone.obj");
+            writer.write();
 
         }
 

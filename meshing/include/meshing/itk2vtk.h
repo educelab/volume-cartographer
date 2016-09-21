@@ -1,9 +1,7 @@
 //
 // Created by Seth Parker on 8/3/15.
 //
-
-#ifndef VC_ITK2VTK_H
-#define VC_ITK2VTK_H
+#pragma once
 
 #include <vtkCellData.h>
 #include <vtkCellArray.h>
@@ -40,5 +38,3 @@ namespace volcart {
 
     } // namespace meshing
 } // namespace volcart
-
-#endif //VC_ITK2VTK_H

@@ -7,9 +7,7 @@
 // something resembling a 2D width and height.
 //
 // THIS FUNCTION HAS LIMITED USE AND SHOULD BE USED WITH CAUTION
-
-#ifndef VC_SIMPLEUV_H
-#define VC_SIMPLEUV_H
+#pragma once
 
 #include "common/vc_defines.h"
 #include "common/types/UVMap.h"
@@ -19,5 +17,3 @@ namespace volcart {
         volcart::UVMap simpleUV(VC_MeshType::Pointer mesh, int width, int height);
     }; // texturing
 }; // volcart
-
-#endif //VC_SIMPLEUV_H

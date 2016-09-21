@@ -27,10 +27,32 @@ install(TARGETS ${target}
 install(DIRECTORY include/ DESTINATION ${VC_INSTALL_INCLUDE_PREFIX})
 export(TARGETS ${target} FILE VCTesting.cmake)
 
+# Testing tests
+# Add a test executable for each src
+set(test_srcs
+    test/ParsingHelpersTest.cpp
+)
+
+foreach(src ${test_srcs})
+    get_filename_component(filename ${src} NAME_WE)
+    set(testname ${target}_${filename})
+    add_executable(${testname} ${src})
+    target_link_libraries(${testname}
+        vc_common
+        vc_testing
+        Boost::unit_test_framework
+    )
+    add_test(
+        NAME ${testname}
+        WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
+        COMMAND ${testname}
+    )
+endforeach()
+
 # Global files necessary for testing
 set(VC_COMMON_TEST_RES
-    res/Testing.volpkg
-    res/OBJWriterPlaneData.obj
+    test/res/Testing.volpkg
+    test/res/OBJWriterPlaneData.obj
 )
 foreach(r ${VC_COMMON_TEST_RES})
     file(COPY ${r} DESTINATION ${EXECUTABLE_OUTPUT_PATH})

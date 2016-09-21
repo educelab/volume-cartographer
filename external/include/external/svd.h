@@ -24,8 +24,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __EIGEN3_SVD_C_API_H__
-#define __EIGEN3_SVD_C_API_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,5 +35,3 @@ void EIG_svd_square_matrix(const int size, const float *matrix, float *r_U, floa
 #ifdef __cplusplus
 }
 #endif
-
-#endif  /* __EIGEN3_SVD_C_API_H__ */

@@ -6,8 +6,7 @@
 // Last Updated 11/13/2015 by: Michael Royal
 //----------------------------------------------------------------------------------------------------------------------------------------
 
-#ifndef VC_SEGMENTATIONS_VIEWER_H
-#define VC_SEGMENTATIONS_VIEWER_H
+#pragma once
 
 #include <QObject>
 #include <QLabel>
@@ -70,5 +69,3 @@ private:
     QImage newImage;
 
 };
-
-#endif //VC_SEGMENTATIONS_VIEWER_H

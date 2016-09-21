@@ -1,9 +1,7 @@
 // VC OBJ Exporter v1.0
 // Created by Media Team on 6/24/15.
 //
-
-#ifndef VC_IO_OBJWRITER_H
-#define VC_IO_OBJWRITER_H
+#pragma once
 
 #include <iostream>
 #include <fstream>
@@ -63,5 +61,3 @@ namespace io {
 
 } // namespace io
 } //namespace volcart
-
-#endif //VC_IO_OBJWRITER_H

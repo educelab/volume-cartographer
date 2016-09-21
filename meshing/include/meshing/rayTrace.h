@@ -1,13 +1,11 @@
 //
 // Created by Media Team on 8/12/15.
 //
+#pragma once
 
 #include <vector>
 #include <opencv2/opencv.hpp>
 #include "common/vc_defines.h"
-
-#ifndef VC_RAYTRACE_H
-#define VC_RAYTRACE_H
 
 namespace volcart {
   namespace meshing {
@@ -15,5 +13,3 @@ namespace volcart {
     std::vector<cv::Vec6f> rayTrace(VC_MeshType::Pointer itkMesh, int aTraceDir, int &width, int &height, std::map<int, cv::Vec2d> &uvMap);
   }
 }
-
-#endif //VC_RAYTRACE_H

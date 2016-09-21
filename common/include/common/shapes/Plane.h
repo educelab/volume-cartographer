@@ -1,9 +1,7 @@
 //
 // Created by Seth Parker on 11/19/15.
 //
-
-#ifndef VC_PLANE_H
-#define VC_PLANE_H
+#pragma once
 
 #include "common/vc_defines.h"
 #include "common/shapes/ShapePrimitive.h"
@@ -45,5 +43,3 @@ namespace volcart {
         }; // Plane
     } // shapes
 } // volcart
-
-#endif //VC_PLANE_H

@@ -1,9 +1,7 @@
 //
 // Created by Seth Parker on 12/21/15.
 //
-
-#ifndef VC_DEEPCOPY_H
-#define VC_DEEPCOPY_H
+#pragma once
 
 #include "common/vc_defines.h"
 
@@ -15,5 +13,3 @@ namespace volcart {
         }; // deepCopy
     } // meshing
 } // volcart
-
-#endif //VC_DEEPCOPY_H

@@ -1,5 +1,4 @@
-#ifndef ORDEREDPCDMESHER_H
-#define ORDEREDPCDMESHER_H
+#pragma once
 
 #include <iostream>
 #include <string>
@@ -41,5 +40,3 @@ int orderedPCDMesher(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, boost::
 
 }// namespace meshing
 }// namespace volcart
-
-#endif

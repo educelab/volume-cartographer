@@ -8,8 +8,7 @@
 // Copy Right ©2015 (Brent Seales: Volume Cartography Research) - University of Kentucky Center for Visualization and Virtualization
 //----------------------------------------------------------------------------------------------------------------------------------------
 
-#ifndef VC_MAINWINDOW_H
-#define VC_MAINWINDOW_H
+#pragma once
 
 #include <algorithm>
 #include <vector>
@@ -55,5 +54,3 @@ private:
     Global_Values *_globals;
     Segmentations_Viewer *_segmentations_Viewer;
 };
-
-#endif //VC_TEXTURE_VIEWER_H

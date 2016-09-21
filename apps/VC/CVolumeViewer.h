@@ -1,7 +1,6 @@
 // CVolumeViewer.h
 // Chao Du 2015 April
-#ifndef _CVOLUMEVIEWER_H_
-#define _CVOLUMEVIEWER_H_
+#pragma once
 
 #include "VCNewGuiHeader.h"
 
@@ -68,5 +67,3 @@ protected:
 }; // class CVolumeViewer
 
 } // namespace ChaoVis
-
-#endif // _CVOLUMEVIEWER_H_

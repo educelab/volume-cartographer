@@ -1,9 +1,7 @@
 //
 // Created by Seth Parker on 6/7/16.
 //
-
-#ifndef VC_MESHMATH_H
-#define VC_MESHMATH_H
+#pragma once
 
 #include "common/vc_defines.h"
 
@@ -12,5 +10,3 @@ namespace volcart {
       double SurfaceArea( VC_MeshType::Pointer input );
   }
 }
-
-#endif //VC_MESHMATH_H

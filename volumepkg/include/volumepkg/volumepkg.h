@@ -1,7 +1,5 @@
-#ifndef _VOLUMEPKG_H_
-#define _VOLUMEPKG_H_
+#pragma once
 
-#include <boost/filesystem.hpp>
 #include <cstdlib>
 #include <iostream>
 
@@ -13,20 +11,20 @@
 #include <boost/lexical_cast.hpp>
 #endif
 
-#include <pcl/point_types.h>
+#include <boost/filesystem.hpp>
 #include <pcl/common/projection_matrix.h>
-#include "external/json.hpp"
-#include "common/vc_defines.h"
-#include "volumepkg/volumepkg_version.h"
+#include <pcl/point_types.h>
 #include "common/types/Texture.h"
 #include "common/types/Volume.h"
+#include "common/vc_defines.h"
+#include "external/json.hpp"
+#include "volumepkg/volumepkg_version.h"
 
 class VolumePkg
 {
 public:
     // Constructors
-    VolumePkg(const boost::filesystem::path& file_location,
-              double version);  // New volpkg, V.[version]
+    VolumePkg(const boost::filesystem::path& file_location, int version);
 
     VolumePkg(
         const boost::filesystem::path& file_location);  // Existing VolPkgs
@@ -44,14 +42,13 @@ public:
     void printDirs() const
     {
         std::cout << "root: " << root_dir << " seg: " << segs_dir
-                  << " slice: " << slice_dir
-                  << std::endl;
+                  << " slice: " << slice_dir << std::endl;
     };
 
     // Metadata Retrieval
     std::string getPkgName() const;
 
-    double getVersion() const;
+    int getVersion() const;  // Changed type from double to int
 
     int getNumberOfSlices() const;
 
@@ -108,11 +105,11 @@ public:
     int saveMesh(
         const pcl::PointCloud<pcl::PointXYZRGB>::Ptr segmentedCloud) const;
 
-    void saveMesh(const VC_MeshType::Pointer& mesh,
-                  volcart::Texture& texture) const;
+    void saveMesh(
+        const VC_MeshType::Pointer& mesh, volcart::Texture& texture) const;
 
-    void saveTextureData(const cv::Mat& texture,
-                         const std::string& name = "textured");
+    void saveTextureData(
+        const cv::Mat& texture, const std::string& name = "textured");
 
     void saveTextureData(volcart::Texture texture, int index = 0)
     {
@@ -137,8 +134,5 @@ private:
     std::vector<std::string> segmentations;
 
     static volcart::Metadata _initConfig(
-        const volcart::Dictionary& dict,
-        double version);
+        const volcart::Dictionary& dict, int version);
 };
-
-#endif  // _VOLUMEPKG_H_

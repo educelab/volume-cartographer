@@ -1,9 +1,7 @@
 // Chain object maintains a vector of points and their histories.
 // step() updates the postitions of particles based on their normal
 // vectors. Neighboring particles are kept in line with a "spring".
-
-#ifndef _CHAIN_
-#define _CHAIN_
+#pragma once
 
 #define DEFAULT_OFFSET -1
 
@@ -45,5 +43,3 @@ class Chain {
   int _target_index; // Target slice index
   int _threshold; // To-Do: What is this for now? We may not need this.
 };
-
-#endif

@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef VOLCART_SEGMENTATION_DERIVATIVE_H
-#define VOLCART_SEGMENTATION_DERIVATIVE_H
-
 #include <vector>
 #include <array>
 #include <cassert>
@@ -189,5 +186,3 @@ std::vector<T> d2(const std::vector<T>& vs, int32_t hstep = 1)
 }
 }
 }
-
-#endif

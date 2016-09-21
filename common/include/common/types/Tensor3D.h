@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef _VOLCART_TENSOR3D_H_
-#define _VOLCART_TENSOR3D_H_
-
 #include <vector>
 #include <memory>
 #include <opencv2/core/core.hpp>
@@ -98,5 +95,3 @@ std::ostream& operator<<(std::ostream& s,
     }
     return s;
 }
-
-#endif

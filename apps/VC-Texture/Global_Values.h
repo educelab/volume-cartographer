@@ -8,8 +8,7 @@
 // Copy Right ©2015 (Brent Seales: Volume Cartography Research) - University of Kentucky Center for Visualization and Virtualization
 //---------------------------------------------------------------------------------------------------------------------------------------------
 
-#ifndef VC_DEFAULTVALUES_H
-#define VC_DEFAULTVALUES_H
+#pragma once
 
 #include <QApplication>
 #include <QRect>
@@ -95,4 +94,3 @@ private:
     bool _forcedClose;
 
 };
-#endif //VC_DEFAULTVALUES_H

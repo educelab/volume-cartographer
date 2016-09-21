@@ -11,8 +11,7 @@
 // equivalent in area. It then takes the point on the mesh that is nearest to the centroid of each diagram as a new point
 // in the resampled output mesh.
 
-#ifndef ACVD_H
-#define ACVD_H
+#pragma once
 
 #include <vtkPolyData.h>
 #include <vtkPolyDataNormals.h>
@@ -41,5 +40,3 @@ namespace volcart {
                     int           subsamplingThreshold = 10);
     }
 }
-
-#endif // ACVD_H

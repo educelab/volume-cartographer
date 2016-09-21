@@ -9,8 +9,7 @@
 // Copy Right ©2015 (Brent Seales: Volume Cartography Research) - University of Kentucky Center for Visualization and Virtualization
 //----------------------------------------------------------------------------------------------------------------------------------------
 
-#ifndef VC_TEXTURE_VIEWER_H
-#define VC_TEXTURE_VIEWER_H
+#pragma once
 
 #include <qmainwindow.h>
 #include <QScrollBar>
@@ -77,5 +76,3 @@ private:
     QAction *_cancel;
 
 };
-
-#endif //VC_TEXTURE_VIEWER_H

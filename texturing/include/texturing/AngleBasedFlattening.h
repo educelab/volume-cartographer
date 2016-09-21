@@ -6,9 +6,7 @@
 // This class attempts to find the ideal angles that minimize the angular distortion of the parameterized mesh.
 // These idealized angles are then fed into a least-squares conformal maps algorithm which solves for the actual
 // parameterized UV positions.
-
-#ifndef VC_ABF_H
-#define VC_ABF_H
+#pragma once
 
 #include <iostream>
 #include <exception>
@@ -95,5 +93,3 @@ namespace volcart {
 
     }// texturing
 }//volcart
-
-#endif //VC_ABF_H
