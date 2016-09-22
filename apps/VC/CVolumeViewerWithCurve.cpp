@@ -110,89 +110,101 @@ void CVolumeViewerWithCurve::UpdateView( void )
 // Handle mouse press event
 void CVolumeViewerWithCurve::mousePressEvent( QMouseEvent *event )
 {
-    cv::Vec2f aWidgetLoc, aImgLoc;
-    aWidgetLoc[ 0 ] = event->x(); // horizontal coordinate
-    aWidgetLoc[ 1 ] = event->y(); // vertical coordinate
+    if(fViewState == ViewStateDraw || fViewState == ViewStateEdit) {
 
-    WidgetLoc2ImgLoc( aWidgetLoc, aImgLoc );
+        cv::Vec2f aWidgetLoc, aImgLoc;
+        aWidgetLoc[0] = event->x(); // horizontal coordinate
+        aWidgetLoc[1] = event->y(); // vertical coordinate
 
-    fLastPos = QPoint( aImgLoc[ 0 ], aImgLoc[ 1 ] );
+        WidgetLoc2ImgLoc(aWidgetLoc, aImgLoc);
 
-    if ( fViewState == EViewState::ViewStateDraw ) {
-        if ( event->buttons() & Qt::LeftButton ) { // add points
+        fLastPos = QPoint(aImgLoc[0], aImgLoc[1]);
 
-            fControlPoints.push_back( aImgLoc );
+        if (fViewState == EViewState::ViewStateDraw) {
+            if (event->buttons() & Qt::LeftButton) { // add points
 
-            if ( fControlPoints.size() > 2 ) {
-                UpdateSplineCurve();
+                fControlPoints.push_back(aImgLoc);
+
+                if (fControlPoints.size() > 2) {
+                    UpdateSplineCurve();
+                }
+
+            } else if (event->buttons() & Qt::RightButton) { // finish curve
+
+                // REVISIT - save path
+
+            } else { // other mouse press events
+                // do nothing
             }
-
-        } else if ( event->buttons() & Qt::RightButton ) { // finish curve
-
-            // REVISIT - save path
-
-        } else { // other mouse press events
-            // do nothing
+        } else if (fViewState == EViewState::ViewStateEdit) {
+            // REVISIT - FILL ME HERE
+            if (fIntersectionCurveRef != NULL) {
+                fSelectedPointIndex = SelectPointOnCurve(fIntersectionCurveRef, aImgLoc);
+                fIntersectionCurveRef->setLastState();
+            }
+        } else {
+            // idle state, do nothing
         }
-    } else if ( fViewState == EViewState::ViewStateEdit ) {
-        // REVISIT - FILL ME HERE
-        if ( fIntersectionCurveRef != NULL ) {
-            fSelectedPointIndex = SelectPointOnCurve( fIntersectionCurveRef, aImgLoc );
-            fIntersectionCurveRef->setLastState();
-        }
-    } else {
-        // idle state, do nothing
-    }
 
-    UpdateView();
-    event->accept();
+        UpdateView();
+        event->accept();
+
+    }// End of if(fViewState == ViewStateDraw || fViewState == ViewStateEdit) {
+
 }
 
 // Handle mouse move event
 void CVolumeViewerWithCurve::mouseMoveEvent( QMouseEvent *event )
 {
-    cv::Vec2f aWidgetLoc, aImgLoc;
-    aWidgetLoc[ 0 ] = event->x(); // horizontal coordinate
-    aWidgetLoc[ 1 ] = event->y(); // vertical coordinate
+    if(fViewState == ViewStateDraw || fViewState == ViewStateEdit) {
 
-    WidgetLoc2ImgLoc( aWidgetLoc, aImgLoc );
+        cv::Vec2f aWidgetLoc, aImgLoc;
+        aWidgetLoc[ 0 ] = event->x(); // horizontal coordinate
+        aWidgetLoc[ 1 ] = event->y(); // vertical coordinate
 
-    int aDx = aImgLoc[ 0 ] - fLastPos.x();
-    int aDy = aImgLoc[ 1 ] - fLastPos.y();
+        WidgetLoc2ImgLoc( aWidgetLoc, aImgLoc );
 
-    if ( fViewState == EViewState::ViewStateDraw ) {
-        // REVISIT - FILL ME HERE
-    } else if ( fViewState == EViewState::ViewStateEdit ) {
-        if ( aDx != 0 || aDy != 0 ) {
-            if ( fSelectedPointIndex != -1 ) { // To-Do: change this -1 to a constant
-                fIntersectionCurveRef->SetPointByDifference(fSelectedPointIndex,
-                                                            Vec2<float>(aDx, aDy),
-                                                            CosineImpactFunc,
-                                                            fImpactRange);
-                fVertexIsChanged = true;
+        int aDx = aImgLoc[ 0 ] - fLastPos.x();
+        int aDy = aImgLoc[ 1 ] - fLastPos.y();
+
+        if ( fViewState == EViewState::ViewStateDraw ) {
+            // REVISIT - FILL ME HERE
+        } else if ( fViewState == EViewState::ViewStateEdit ) {
+            if ( aDx != 0 || aDy != 0 ) {
+                if ( fSelectedPointIndex != -1 ) { // To-Do: change this -1 to a constant
+                    fIntersectionCurveRef->SetPointByDifference(fSelectedPointIndex,
+                                                                Vec2<float>(aDx, aDy),
+                                                                CosineImpactFunc,
+                                                                fImpactRange);
+                    fVertexIsChanged = true;
+                }
             }
+        } else {
+            // idle state, do nothing
         }
-    } else {
-        // idle state, do nothing
-    }
 
-    // update view
-    UpdateView();
+        // update view
+        UpdateView();
+
+    }// End of if(fViewState == ViewStateDraw || fViewState == ViewStateEdit) {
 }
 
 // Handle mouse release event
 void CVolumeViewerWithCurve::mouseReleaseEvent( QMouseEvent *event )
 {
-    if ( fViewState == EViewState::ViewStateEdit &&
-         fIntersectionCurveRef != NULL &&
-         fVertexIsChanged ) {
+    if(fViewState == ViewStateEdit) {
 
-        // update the point positions in the path point cloud
-        emit SendSignalPathChanged();
+        if (fIntersectionCurveRef != NULL &&
+            fVertexIsChanged) {
 
-        fVertexIsChanged = false;
-        fSelectedPointIndex = -1;
-    }
+            // update the point positions in the path point cloud
+            //emit SendSignalPathChanged();
+
+            fVertexIsChanged = false;
+            fSelectedPointIndex = -1;
+        }
+
+    }// End of if(fViewState == ViewStateEdit) {
 }
 
 // Handle paint event
@@ -265,7 +277,7 @@ void CVolumeViewerWithCurve::DrawIntersectionCurve( void )
 // Update the status of the buttons
 void CVolumeViewerWithCurve::UpdateButtons( void )
 {
-    fZoomInBtn->setEnabled( fImgQImage != NULL && fScaleFactor < 3.0 );
+    fZoomInBtn->setEnabled( fImgQImage != NULL && fScaleFactor < 3.0  );
     fZoomOutBtn->setEnabled( fImgQImage != NULL && fScaleFactor > 0.3333 );
     fResetBtn->setEnabled( fImgQImage != NULL && fabs( fScaleFactor - 1.0 ) > 1e-6 );
     fNextBtn->setEnabled( fImgQImage != NULL && fViewState == EViewState::ViewStateIdle );
