@@ -65,6 +65,7 @@ set(test_srcs
     test/plyWriterTest.cpp
     test/PointSetTest.cpp
     test/PointSetIOTest.cpp
+    test/OrderedPointSetTest.cpp
     test/OrderedPointSetIOTest.cpp
     test/PointTest.cpp
 )

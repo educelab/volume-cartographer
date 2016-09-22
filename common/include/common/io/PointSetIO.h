@@ -1,11 +1,11 @@
 #pragma once
 
+#include <algorithm>
 #include <fstream>
 #include <regex>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <algorithm>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem/path.hpp>
 #include "common/types/Exceptions.h"
@@ -42,10 +42,10 @@ public:
         boost::filesystem::path path, IOMode mode = IOMode::BINARY)
     {
         switch (mode) {
-        case IOMode::BINARY:
-            return ReadOrderedPointSetBinary(path);
-        case IOMode::ASCII:
-            return ReadOrderedPointSetAscii(path);
+            case IOMode::BINARY:
+                return ReadOrderedPointSetBinary(path);
+            case IOMode::ASCII:
+                return ReadOrderedPointSetAscii(path);
         }
     }
 
@@ -53,10 +53,10 @@ public:
         boost::filesystem::path path, IOMode mode = IOMode::BINARY)
     {
         switch (mode) {
-        case IOMode::BINARY:
-            return ReadPointSetBinary(path);
-        case IOMode::ASCII:
-            return ReadPointSetAscii(path);
+            case IOMode::BINARY:
+                return ReadPointSetBinary(path);
+            case IOMode::ASCII:
+                return ReadPointSetAscii(path);
         }
     }
 
@@ -65,10 +65,10 @@ public:
         IOMode mode = IOMode::BINARY)
     {
         switch (mode) {
-        case IOMode::BINARY:
-            return WriteOrderedPointSetBinary(path, ps);
-        case IOMode::ASCII:
-            return WriteOrderedPointSetAscii(path, ps);
+            case IOMode::BINARY:
+                return WriteOrderedPointSetBinary(path, ps);
+            case IOMode::ASCII:
+                return WriteOrderedPointSetAscii(path, ps);
         }
     }
 
@@ -77,17 +77,17 @@ public:
         IOMode mode = IOMode::BINARY)
     {
         switch (mode) {
-        case IOMode::BINARY:
-            return WritePointSetBinary(path, ps);
-        case IOMode::ASCII:
-            return WritePointSetAscii(path, ps);
+            case IOMode::BINARY:
+                return WritePointSetBinary(path, ps);
+            case IOMode::ASCII:
+                return WritePointSetAscii(path, ps);
         }
     }
 
     static std::string MakeHeader(PointSet<T> ps)
     {
         std::stringstream ss;
-        ss << "size: " << ps.capacity() << std::endl;
+        ss << "size: " << ps.size() << std::endl;
         ss << "dim: " << Point::dim << std::endl;
         ss << "ordered: false" << std::endl;
 
@@ -276,10 +276,12 @@ public:
             auto msg = "Ordered pointsets must have a nonzero width and height";
             throw IOException(msg);
         } else if (ordered == true && h.ordered == false) {
-            auto msg = "Tried to read unordered pointset with ordered PointSetIO";
+            auto msg =
+                "Tried to read unordered pointset with ordered PointSetIO";
             throw IOException(msg);
         } else if (ordered == false && h.ordered == true) {
-            auto msg = "Tried to read ordered pointset with unordered PointSetIO";
+            auto msg =
+                "Tried to read ordered pointset with unordered PointSetIO";
             throw IOException(msg);
         }
 
@@ -300,7 +302,7 @@ private:
         PointSet<T> ps{header.size};
 
         T tmp;
-        for (size_t i = 0; i < ps.capacity(); ++i) {
+        for (size_t i = 0; i < header.size; ++i) {
             infile >> tmp;
             ps.push_back(tmp);
         }
@@ -319,7 +321,7 @@ private:
 
         // Get header
         auto header = PointSetIO<T>::ParseHeader(infile, true);
-        OrderedPointSet<T> ps{header.width, header.height};
+        OrderedPointSet<T> ps{header.width};
 
         T tmp;
         for (size_t h = 0; h < header.height; ++h) {
@@ -357,7 +359,7 @@ private:
 
         // Read data
         T t;
-        for (size_t i = 0; i < ps.capacity(); ++i) {
+        for (size_t i = 0; i < header.size; ++i) {
             auto nbytes = header.dim * typeBytes;
             infile.read(t.bytes(), nbytes);
             ps.push_back(t);
@@ -375,7 +377,7 @@ private:
             throw IOException(msg);
         }
         auto header = PointSetIO<T>::ParseHeader(infile, true);
-        OrderedPointSet<T> ps{header.width, header.height};
+        OrderedPointSet<T> ps{header.width};
 
         // Size of binary elements to read
         size_t typeBytes;
