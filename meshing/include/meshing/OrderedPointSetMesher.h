@@ -22,7 +22,7 @@ public:
 
     // I/O
     void setPointSet(OrderedPointSet<Point3d> points) { input_ = points; }
-    VC_MeshType::Pointer getOutputMesh() { return output_; }
+    VC_MeshType::Pointer getOutputMesh() const { return output_; }
 
     // Processing
     void compute();

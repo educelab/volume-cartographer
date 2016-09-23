@@ -12,8 +12,8 @@ namespace io
 
 bool ply2itkmesh(boost::filesystem::path plyPath,
                  VC_MeshType::Pointer mesh,
-                 int &width,
-                 int &height)
+                  int &width,
+                  int &height)
 {
     // open ply file
     std::ifstream plyFile(plyPath.string());

@@ -29,7 +29,7 @@ void CalculateNormals::setMesh(VC_MeshType::Pointer mesh)
     _vertex_normals = std::vector<cv::Vec3d>(_output->GetNumberOfPoints(),0);
 }
 
-VC_MeshType::Pointer CalculateNormals::getMesh()
+VC_MeshType::Pointer CalculateNormals::getMesh() const
 {
     return _output;
 }

@@ -29,7 +29,7 @@ void OrderedResampling::setMesh(VC_MeshType::Pointer mesh, int in_width, int in_
     _inHeight = in_height;
 }//setParameters
 
-VC_MeshType::Pointer OrderedResampling::getOutputMesh()
+VC_MeshType::Pointer OrderedResampling::getOutputMesh() const
 {
     if(_output.IsNull())
     {
@@ -40,8 +40,8 @@ VC_MeshType::Pointer OrderedResampling::getOutputMesh()
         return _output;
 }//getOutput
 
-int OrderedResampling::getOutputWidth()  { return _outWidth; };
-int OrderedResampling::getOutputHeight() { return _outHeight; };
+int OrderedResampling::getOutputWidth()  const { return _outWidth; };
+int OrderedResampling::getOutputHeight() const { return _outHeight; };
 
 ///// Processing /////
 void OrderedResampling::compute()

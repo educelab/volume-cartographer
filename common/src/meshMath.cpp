@@ -9,7 +9,7 @@ namespace volcart {
         // Calculate the surface area of the mesh using Heron's formula
         // Use the version that is stable for small angles from
         // "Miscalculating Area and Angles of a Needle-like Triangle" by Kahan
-        double SurfaceArea( VC_MeshType::Pointer input ) {
+        double SurfaceArea( const VC_MeshType::Pointer input ) {
           double surface_area = 0;
 
           unsigned long vID0 = 0, vID1 = 0, vID2 = 0;

@@ -121,7 +121,7 @@ HalfEdgeMesh::FacePtr HalfEdgeMesh::addFace(IDType v0, IDType v1, IDType v2) {
 
 ///// Vertex Access /////
 // Get a vertex by vertex id
-HalfEdgeMesh::VertPtr HalfEdgeMesh::getVert(IDType id) { return _verts[id]; };
+HalfEdgeMesh::VertPtr HalfEdgeMesh::getVert(IDType id) const { return _verts[id]; };
 // Get reference to the vertices begin iterator
 std::vector<HalfEdgeMesh::VertPtr>::iterator HalfEdgeMesh::getVertsBegin() { return _verts.begin(); };
 // Get reference to the vertices end iterator
@@ -129,7 +129,7 @@ std::vector<HalfEdgeMesh::VertPtr>::iterator HalfEdgeMesh::getVertsEnd() { retur
 
 ///// Edge Access /////
 // Get an edge by edge id
-HalfEdgeMesh::EdgePtr HalfEdgeMesh::getEdge(IDType id) { return _edges[id]; };
+HalfEdgeMesh::EdgePtr HalfEdgeMesh::getEdge(IDType id) const { return _edges[id]; };
 // Get reference to the edges begin iterator
 std::vector<HalfEdgeMesh::EdgePtr>::iterator HalfEdgeMesh::getEdgesBegin() { return _edges.begin(); };
 // Get reference to the edges end iterator
@@ -137,7 +137,7 @@ std::vector<HalfEdgeMesh::EdgePtr>::iterator HalfEdgeMesh::getEdgesEnd() { retur
 
 ///// Face Access /////
 // Get a face by face id
-HalfEdgeMesh::FacePtr HalfEdgeMesh::getFace(IDType id) { return _faces[id]; };
+HalfEdgeMesh::FacePtr HalfEdgeMesh::getFace(IDType id) const { return _faces[id]; };
 // Get reference to the vertices begin iterator
 std::vector<HalfEdgeMesh::FacePtr>::iterator HalfEdgeMesh::getFacesBegin() { return _faces.begin(); };
 // Get reference to the vertices end iterator
@@ -155,15 +155,15 @@ std::vector<HalfEdgeMesh::VertPtr>::iterator HalfEdgeMesh::getBoundaryEnd() { re
 
 ///// Sizes //////
 // Get size of the vertices vector
-size_t HalfEdgeMesh::getNumberOfVerts() { return _verts.size(); };
+size_t HalfEdgeMesh::getNumberOfVerts() const { return _verts.size(); };
 // Get size of the edges vector
-size_t HalfEdgeMesh::getNumberOfEdges() { return _edges.size(); };
+size_t HalfEdgeMesh::getNumberOfEdges() const { return _edges.size(); };
 // Get size of the faces vector
-size_t HalfEdgeMesh::getNumberOfFaces() { return _faces.size(); };
+size_t HalfEdgeMesh::getNumberOfFaces() const { return _faces.size(); };
 // Get size of the interior vector
-size_t HalfEdgeMesh::getNumberOfInteriorPoints() { return _interior.size(); };
+size_t HalfEdgeMesh::getNumberOfInteriorPoints() const { return _interior.size(); };
 // Get size of the boundary vector
-size_t HalfEdgeMesh::getNumberOfBoundaryPoints() { return _boundary.size(); };
+size_t HalfEdgeMesh::getNumberOfBoundaryPoints() const { return _boundary.size(); };
 
 ///// Special Construction Tasks /////
 void HalfEdgeMesh::constructConnectedness() {
