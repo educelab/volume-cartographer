@@ -1,12 +1,8 @@
 // CWindow.cpp
 // Chao Du 2014 Dec
 #include "CWindow.h"
-#include <QtCore>
-#include <QtWidgets>
 #include "CVolumeViewerWithCurve.h"
-#include "HBase.h"
 #include "UDataManipulateUtils.h"
-#include "volumepkg/volumepkg.h"
 
 #define _DEBUG
 
@@ -14,12 +10,12 @@ using namespace ChaoVis;
 
 // Constructor
 CWindow::CWindow(void)
-    : fVpkg(NULL)
+    : fVpkg(nullptr)
     , fPathOnSliceIndex(0)
-    , fVolumeViewerWidget(NULL)
-    , fPathListWidget(NULL)
-    , fPenTool(NULL)
-    , fSegTool(NULL)
+    , fVolumeViewerWidget(nullptr)
+    , fPathListWidget(nullptr)
+    , fPenTool(nullptr)
+    , fSegTool(nullptr)
     , fWindowState(EWindowState::WindowStateIdle)
     , fSegmentationId("")
     , fMinSegIndex(VOLPKG_SLICE_MIN_INDEX)
@@ -57,12 +53,12 @@ CWindow::CWindow(void)
 
 // Constructor with QRect windowSize
 CWindow::CWindow(QRect windowSize)
-    : fVpkg(NULL)
+    : fVpkg(nullptr)
     , fPathOnSliceIndex(0)
-    , fVolumeViewerWidget(NULL)
-    , fPathListWidget(NULL)
-    , fPenTool(NULL)
-    , fSegTool(NULL)
+    , fVolumeViewerWidget(nullptr)
+    , fPathListWidget(nullptr)
+    , fPenTool(nullptr)
+    , fSegTool(nullptr)
     , fWindowState(EWindowState::WindowStateIdle)
     , fSegmentationId("")
     , fMinSegIndex(VOLPKG_SLICE_MIN_INDEX)
@@ -324,7 +320,7 @@ bool CWindow::InitializeVolumePkg(const std::string &nVpkgPath)
 
     fVpkgChanged = false;
 
-    if (fVpkg == NULL) {
+    if (fVpkg == nullptr) {
         std::cerr
             << "VC::Error: Cannot open volume package at specified location: "
             << nVpkgPath << std::endl;
@@ -366,7 +362,7 @@ CWindow::SaveResponse CWindow::SaveDialog(void)
 // Update the widgets
 void CWindow::UpdateView(void)
 {
-    if (fVpkg == NULL) {
+    if (fVpkg == nullptr) {
         setWidgetsEnabled(false);  // Disable Widgets for User
         this->findChild<QLabel *>("lblVpkgName")
             ->setText("No Volume Package Loaded");
@@ -624,7 +620,7 @@ bool CWindow::SetUpSegParams(void)
 // Get the curves for all the slices
 void CWindow::SetUpCurves(void)
 {
-    if (fVpkg == NULL || fMasterCloud.empty()) {
+    if (fVpkg == nullptr || fMasterCloud.empty()) {
         statusBar->showMessage(tr("Selected point cloud is empty"));
         std::cerr << "VC::Warning: Point cloud for this segmentation is empty."
                   << std::endl;
@@ -676,7 +672,7 @@ void CWindow::SetCurrentCurve(int nCurrentSliceIndex)
 void CWindow::OpenSlice(void)
 {
     cv::Mat aImgMat;
-    if (fVpkg != NULL) {
+    if (fVpkg != nullptr) {
         aImgMat = fVpkg->volume().getSliceDataCopy(fPathOnSliceIndex);
         aImgMat.convertTo(aImgMat, CV_8UC3, 1.0 / 256.0);
         cvtColor(aImgMat, aImgMat, CV_GRAY2BGR);
@@ -693,7 +689,7 @@ void CWindow::OpenSlice(void)
 void CWindow::InitPathList(void)
 {
     fPathListWidget->clear();
-    if (fVpkg != NULL) {
+    if (fVpkg != nullptr) {
         // show the existing paths
         for (size_t i = 0; i < fVpkg->getSegmentations().size(); ++i) {
             fPathListWidget->addItem(new QListWidgetItem(
@@ -751,7 +747,7 @@ void CWindow::OpenVolume(void)
             "The selected file is not of the correct type: \".volpkg\"");
         std::cerr << "VC::Error: Selected file: " << aVpkgPath.toStdString()
                   << " is of the wrong type." << std::endl;
-        fVpkg = NULL;  // Is need for User Experience, clears screen.
+        fVpkg = nullptr;  // Is need for User Experience, clears screen.
         return;
     }
 
@@ -771,7 +767,7 @@ void CWindow::OpenVolume(void)
             "Volume package is version " +
                 QString::number(fVpkg->getVersion()) +
                 " but this program requires a version >= 2.");
-        fVpkg = NULL;
+        fVpkg = nullptr;
         return;
     }
 
@@ -783,7 +779,7 @@ void CWindow::OpenVolume(void)
 
 void CWindow::CloseVolume(void)
 {
-    fVpkg = NULL;
+    fVpkg = nullptr;
     fSegmentationId = "";
     fWindowState = EWindowState::WindowStateIdle;// Set Window State to Idle
     fPenTool->setChecked(false); // Reset PenTool Button
