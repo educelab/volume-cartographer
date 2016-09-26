@@ -5,7 +5,10 @@
 #include "testing/parsingHelpers.h"
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 #include <boost/filesystem.hpp>
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/classification.hpp>
 
 namespace fs = boost::filesystem;
 
@@ -303,28 +306,12 @@ void ParsingHelpers::parseObjFile(const fs::path& filepath, std::vector<VC_Verte
 
 std::vector<std::string> ParsingHelpers::split_string(std::string input) {
 
-    std::vector<std::string> line;
-
-    size_t field_start = 0;
-    size_t next_space;
-
-    do {
-        next_space = input.find(' ', field_start);
-
-        if (next_space == std::string::npos) {
-            line.push_back(input.substr(field_start));
-        }
-
-        else if (next_space - field_start != 0) {
-            line.push_back(input.substr(field_start, next_space - field_start));
-        }
-
-        field_start = next_space + 1;
-
-    } while (next_space != std::string::npos);
-
-    return line;
-
+    std::vector<std::string> output;
+    auto nspaces = std::count(std::begin(input), std::end(input), ' ');
+    output.reserve(nspaces);
+    boost::split(
+            output, input, boost::is_any_of("\t "), boost::token_compress_on);
+    return output;
 }
 
 
