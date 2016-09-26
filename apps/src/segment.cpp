@@ -154,22 +154,21 @@ int main(int argc, char* argv[])
     }
 
     // Load the activeSegmentation's current cloud
-    auto masterCloud = volpkg.openPCDCloud();
+    auto masterCloud = volpkg.openCloud();
 
     // Get some info about the cloud, including chain length and z-index's
     // represented by seg.
-    const int chainLength = masterCloud->width;
-    const int iterations = masterCloud->height;
-    pcl::PointXYZRGB min_p, max_p;
-    pcl::getMinMax3D(*masterCloud, min_p, max_p);
-    int minIndex = floor(masterCloud->points[0].z);
-    int maxIndex = floor(max_p.z);
+    const int chainLength = masterCloud.width();
+    const int iterations = masterCloud.height();
+    volcart::Point3d min_p, max_p;
+    min_p = masterCloud.min();
+    max_p = masterCloud.max();
+    int minIndex = floor(masterCloud.front()[2]);
+    int maxIndex = floor(max_p[2]);
 
     // Setup the temp clouds
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr immutableCloud(
-        new pcl::PointCloud<pcl::PointXYZRGB>);
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath(
-        new pcl::PointCloud<pcl::PointXYZRGB>);
+
+    volcart::OrderedPointSet<volcart::Point3d> segPath;
 
     // If no start index is given, our starting path is all of the points
     // already on the largest slice index
@@ -198,41 +197,52 @@ int main(int argc, char* argv[])
     // Get the starting path pts.
     // Find our starting row. NOTE: This currently assumes segmentation distance
     // threshold has always been 1
+    std::vector<volcart::Point3d> row_points;
     int pathRow = startIndex - minIndex;
     for (int i = 0; i < chainLength; ++i) {
-        pcl::PointXYZRGB temp_pt;
-        temp_pt = masterCloud->points[i + (pathRow * chainLength)];
-        if (temp_pt.z != -1) {
-            segPath->push_back(temp_pt);
+        volcart::Point3d temp_pt;
+        temp_pt = masterCloud[i + (pathRow * chainLength)];
+        if (temp_pt[2] != -1) {
+            row_points.push_back(temp_pt);
         }
     }
+    segPath.push_row(row_points);
 
     // Starting paths must have the same number of points as the input width to
     // maintain ordering
-    if (segPath->width != chainLength) {
+    if (segPath.width() != chainLength) {
         std::cerr << std::endl;
         std::cerr << "[error]: Starting chain length does not match expected "
                      "chain length."
                   << std::endl;
         std::cerr << "           Expected: " << chainLength << std::endl;
-        std::cerr << "           Actual: " << segPath->width << std::endl;
+        std::cerr << "           Actual: " << segPath.width() << std::endl;
         std::cerr << "       Consider using a lower starting index value."
                   << std::endl
                   << std::endl;
         std::exit(1);
     }
-
+    volcart::OrderedPointSet<volcart::Point3d> immutableCloud(chainLength);
+    std::vector<volcart::Point3d> temp_row;
+    int width_cnt = 0;
     // Get the immutable points, i.e all pts before the starting path row
     for (int i = 0; i < (pathRow * chainLength); ++i) {
-        immutableCloud->push_back(masterCloud->points[i]);
+        if(width_cnt != immutableCloud.width()-1)
+            temp_row.push_back(masterCloud[i]);
+        else
+        {
+            immutableCloud.push_row(temp_row);
+            temp_row.clear();
+            temp_row.push_back(masterCloud[i]);
+        }
+        width_cnt++;
     }
-    immutableCloud->width = chainLength;
-    immutableCloud->height = immutableCloud->points.size() / chainLength;
-    immutableCloud->points.resize(
-        immutableCloud->width * immutableCloud->height);
+    //immutableCloud->height = immutableCloud->points.size() / chainLength;
+//    immutableCloud->points.resize(
+//        immutableCloud->width * immutableCloud->height);
 
     // Run the algorithms
-    pcl::PointCloud<pcl::PointXYZRGB> mutableCloud;
+    volcart::OrderedPointSet<volcart::Point3d> mutableCloud;
     if (alg == Algorithm::STPS) {
         double gravityScale = opts["gravity-scale"].as<double>();
         mutableCloud = vs::structureTensorParticleSim(
@@ -270,15 +280,19 @@ int main(int argc, char* argv[])
 
     // Update the master cloud with the points we saved and concat the new
     // points into the space
-    *masterCloud = *immutableCloud;
-    *masterCloud += mutableCloud;
+//    masterCloud = immutableCloud;
+//    masterCloud += mutableCloud;
+
+    volcart::OrderedPointSet<volcart::Point3d> newMasterCloud(chainLength);
+    newMasterCloud.append(immutableCloud);
+    newMasterCloud.append(mutableCloud);
 
     // Restore ordering information
-    masterCloud->width = chainLength;
-    masterCloud->height = masterCloud->points.size() / masterCloud->width;
-    masterCloud->points.resize(masterCloud->width * masterCloud->height);
+//    masterCloud->width = chainLength;
+//    masterCloud->height = masterCloud->points.size() / masterCloud->width;
+//    masterCloud->points.resize(masterCloud->width * masterCloud->height);
 
     // Save point cloud and mesh
-    volpkg.saveCloud(*masterCloud);
-    volpkg.saveMesh(masterCloud);
+    volpkg.saveCloud(newMasterCloud);
+    volpkg.saveMesh(newMasterCloud);
 }

@@ -404,7 +404,7 @@ void CWindow::UpdateView(void)
     }
 
     if (fSegmentationId.length() != 0 &&    // segmentation selected
-        fMasterCloud.points.size() == 0) {  // current cloud is empty
+        fMasterCloud.size() == 0) {  // current cloud is empty
         fPenTool->setEnabled(true);
     } else {
         fPenTool->setEnabled(false);
@@ -455,7 +455,7 @@ void CWindow::ChangePathItem(std::string segID)
     fVpkg->setActiveSegmentation(fSegmentationId);
 
     // load proper point cloud
-    fMasterCloud = *fVpkg->openPCDCloud();
+    fMasterCloud = fVpkg->openCloud();
     SetUpCurves();
 
     // Move us to the lowest slice index for the cloud
@@ -470,23 +470,44 @@ void CWindow::ChangePathItem(std::string segID)
 void CWindow::SplitCloud(void)
 {
     int aTotalNumOfImmutablePts =
-        fMasterCloud.width * (fPathOnSliceIndex - fMinSegIndex);
+        fMasterCloud.width() * (fPathOnSliceIndex - fMinSegIndex);
+    std::vector<volcart::Point3d > points;
+    int width_cnt = 0;
     for (int i = 0; i < aTotalNumOfImmutablePts; ++i) {
-        fUpperPart.push_back(fMasterCloud.points[i]);
+        if(width_cnt != fMasterCloud.width() -1)
+            points.push_back(fMasterCloud[i]);
+        else
+        {
+            fUpperPart.push_row(points);
+            points.clear();
+            points.push_back(fMasterCloud[i]);
+        }
+        width_cnt++;
     }
     // resize so the parts can be concatenated
-    fUpperPart.width = fMasterCloud.width;
-    fUpperPart.height = fUpperPart.points.size() / fUpperPart.width;
-    fUpperPart.points.resize(fUpperPart.width * fUpperPart.height);
+//    fUpperPart.width = fMasterCloud.width;
+//    fUpperPart.height = fUpperPart.size() / fUpperPart.width;
+//    fUpperPart.resize(fUpperPart.width * fUpperPart.height);
 
     // lower part, the starting slice
-    for (int i = 0; i < fMasterCloud.width; ++i) {
-        if (fMasterCloud.points[i + aTotalNumOfImmutablePts].z != -1)
-            fLowerPart.push_back(
-                fMasterCloud.points[i + aTotalNumOfImmutablePts]);
+    std::vector<volcart::Point3d > points2;
+    width_cnt = 0;
+    for (int i = 0; i < fMasterCloud.width(); ++i) {
+        if (fMasterCloud[i + aTotalNumOfImmutablePts][2] != -1) {
+            if (width_cnt != fMasterCloud.width() - 1)
+                points2.push_back(fMasterCloud[i + aTotalNumOfImmutablePts]);
+            else {
+                fLowerPart.push_row(points);
+                points2.clear();
+                points2.push_back(fMasterCloud[i + aTotalNumOfImmutablePts]);
+            }
+            //Not sure if this goes with the loop or the if statemnt -HH
+            width_cnt++;
+        }
+
     }
 
-    if (fLowerPart.width != fMasterCloud.width) {
+    if (fLowerPart.width() != fMasterCloud.width()) {
         QMessageBox::information(
             this,
             tr("Error"),
@@ -515,8 +536,7 @@ void CWindow::DoSegmentation(void)
     // stackoverflow.com/questions/10644429/create-a-pclpointcloudptr-from-a-pclpointcloud
     volcart::segmentation::LocalResliceSegmentation segmenter(*fVpkg);
     fLowerPart = segmenter.segmentPath(
-        pcl::PointCloud<pcl::PointXYZRGB>::Ptr(
-            new pcl::PointCloud<pcl::PointXYZRGB>(fLowerPart)),
+            volcart::OrderedPointSet<volcart::Point3d>(),
         fEdtStartIndex->text().toInt(),
         fEdtEndIndex->text().toInt() - 1,
         fSegParams.fNumIters,
@@ -532,9 +552,12 @@ void CWindow::DoSegmentation(void)
         false);
 
     // 3) concatenate the two parts to form the complete point cloud
-    fMasterCloud = fUpperPart + fLowerPart;
-    fMasterCloud.width = fUpperPart.width;
-    fMasterCloud.height = fMasterCloud.size() / fMasterCloud.width;
+//    fMasterCloud = fUpperPart + fLowerPart;
+//    fMasterCloud.width = fUpperPart.width;
+//    fMasterCloud.height = fMasterCloud.size() / fMasterCloud.width;
+
+    fUpperPart.append(fLowerPart);
+    fMasterCloud.append(fUpperPart);
 
     statusBar->showMessage(tr("Segmentation complete"));
     fVpkgChanged = true;
@@ -542,8 +565,8 @@ void CWindow::DoSegmentation(void)
 
 void CWindow::CleanupSegmentation(void)
 {
-    fUpperPart.clear();
-    fLowerPart.clear();
+//    fUpperPart.clear();
+//    fLowerPart.clear();
     fSegTool->setChecked(false);
     fWindowState = EWindowState::WindowStateIdle;
     SetUpCurves();
@@ -632,13 +655,14 @@ void CWindow::SetUpCurves(void)
     }
     fIntersections.clear();
     int minIndex, maxIndex;
-    if (fMasterCloud.points.size() == 0) {
+    if (fMasterCloud.size() == 0) {
         minIndex = maxIndex = fPathOnSliceIndex;
     } else {
-        pcl::PointXYZRGB min_p, max_p;
-        pcl::getMinMax3D(fMasterCloud, min_p, max_p);
-        minIndex = floor(fMasterCloud.points[0].z);
-        maxIndex = floor(max_p.z);
+        volcart::Point3d min_p, max_p;
+        min_p = fMasterCloud.min();
+        max_p = fMasterCloud.max();
+        minIndex = floor(fMasterCloud[0][2]);
+        maxIndex = floor(max_p[2]);
     }
     void OnEdtAlphaValChange();
 
@@ -646,14 +670,14 @@ void CWindow::SetUpCurves(void)
     fMaxSegIndex = maxIndex;
 
     // assign rows of particles to the curves
-    for (int i = 0; i < fMasterCloud.height; ++i) {
+    for (int i = 0; i < fMasterCloud.height(); ++i) {
         CXCurve aCurve;
-        for (int j = 0; j < fMasterCloud.width; ++j) {
-            int pointIndex = j + (i * fMasterCloud.width);
-            aCurve.SetSliceIndex((int)floor(fMasterCloud.points[pointIndex].z));
+        for (int j = 0; j < fMasterCloud.width(); ++j) {
+            int pointIndex = j + (i * fMasterCloud.width());
+            aCurve.SetSliceIndex((int)floor(fMasterCloud[pointIndex][2]));
             aCurve.InsertPoint(Vec2<float>(
-                fMasterCloud.points[pointIndex].x,
-                fMasterCloud.points[pointIndex].y));
+                fMasterCloud[pointIndex][0],
+                fMasterCloud[pointIndex][1]));
         }
         fIntersections.push_back(aCurve);
     }
@@ -709,20 +733,22 @@ void CWindow::SetPathPointCloud(void)
     std::vector<cv::Vec2f> aSamplePts;
     fSplineCurve.GetSamplePoints(aSamplePts);
 
-    pcl::PointXYZRGB point;
-    pcl::PointCloud<pcl::PointXYZRGB> aPathCloud;
+    volcart::Point3d point;
+    volcart::OrderedPointSet<volcart::Point3d > aPathCloud;
+    std::vector<volcart::Point3d > points;
     for (size_t i = 0; i < aSamplePts.size(); ++i) {
-        point.x = aSamplePts[i][0];
-        point.y = aSamplePts[i][1];
-        point.z = fPathOnSliceIndex;
-        aPathCloud.push_back(point);
+        point[0] = aSamplePts[i][0];
+        point[1] = aSamplePts[i][1];
+        point[2] = fPathOnSliceIndex;
+        points.push_back(point);
     }
-    aPathCloud.width = aSamplePts.size();
-    aPathCloud.height = 1;
-    aPathCloud.resize(aPathCloud.width * aPathCloud.height);
+    aPathCloud.push_row(points);
+//    aPathCloud.width = aSamplePts.size();
+//    aPathCloud.height = 1;
+//    aPathCloud.resize(aPathCloud.width * aPathCloud.height);
 
     fMasterCloud = aPathCloud;
-    fMinSegIndex = floor(fMasterCloud.points[0].z);
+    fMinSegIndex = floor(fMasterCloud[0][2]);
     fMaxSegIndex = fMinSegIndex;
 }
 
@@ -797,9 +823,10 @@ void CWindow::CloseVolume(void)
 // Reset point cloud
 void CWindow::ResetPointCloud(void)
 {
-    fMasterCloud.clear();
-    fUpperPart.clear();
-    fLowerPart.clear();
+    //Not sure this is the best way to clear out the points but it should work for now -HH
+    fMasterCloud = volcart::OrderedPointSet<volcart::Point3d >();
+    fUpperPart = volcart::OrderedPointSet<volcart::Point3d >() ;
+    fLowerPart = volcart::OrderedPointSet<volcart::Point3d >();
     fIntersections.clear();
     CXCurve emptyCurve;
     fIntersectionCurve = emptyCurve;
@@ -848,12 +875,12 @@ void CWindow::SavePointCloud(void)
     }
 
     // Only mesh if we have more than one iteration of segmentation
-    if (fMasterCloud.height <= 1) {
+    if (fMasterCloud.height() <= 1) {
         std::cerr << "VC::message: Cloud height <= 1. Nothing to mesh."
                   << std::endl;
     } else {
-        if (fVpkg->saveMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr(
-                new pcl::PointCloud<pcl::PointXYZRGB>(fMasterCloud))) !=
+        if (fVpkg->saveMesh(
+                fMasterCloud) !=
             EXIT_SUCCESS) {
             QMessageBox::warning(
                 this, "Error", "Failed to write mesh to volume package.");
@@ -935,8 +962,8 @@ void CWindow::ToggleSegmentationTool(void)
 {
     if (fSegTool->isChecked()) {
         fWindowState = EWindowState::WindowStateSegmentation;
-        fUpperPart.clear();
-        fLowerPart.clear();
+        fUpperPart = volcart::OrderedPointSet<volcart::Point3d >();
+        fLowerPart = volcart::OrderedPointSet<volcart::Point3d >();
         SplitCloud();
 
         // turn off edit tool
@@ -1160,15 +1187,17 @@ void CWindow::OnLoadPrevSlice(void)
 // Handle path change event
 void CWindow::OnPathChanged(void)
 {
+    std::vector<volcart::Point3d > points;
     if (fWindowState == EWindowState::WindowStateSegmentation) {
         // update current slice
-        fLowerPart.clear();
+        fLowerPart = volcart::OrderedPointSet<volcart::Point3d >();
         for (size_t i = 0; i < fIntersectionCurve.GetPointsNum(); ++i) {
-            pcl::PointXYZRGB tempPt;
-            tempPt.x = fIntersectionCurve.GetPoint(i)[0];
-            tempPt.y = fIntersectionCurve.GetPoint(i)[1];
-            tempPt.z = fPathOnSliceIndex;
-            fLowerPart.push_back(tempPt);
+            volcart::Point3d tempPt;
+            tempPt[0] = fIntersectionCurve.GetPoint(i)[0];
+            tempPt[1] = fIntersectionCurve.GetPoint(i)[1];
+            tempPt[2] = fPathOnSliceIndex;
+            points.push_back(tempPt);
         }
+        fLowerPart.push_row(points);
     }
 }

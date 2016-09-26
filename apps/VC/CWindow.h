@@ -173,11 +173,11 @@ private:
     //           Previously we use a txt file to store vertices of the path where the particle simulation starts. Now they are
     //           stored in "path cloud".
     // REVISIT - maybe redundant
-    pcl::PointCloud< pcl::PointXYZRGB > fMasterCloud;  // master cloud, the one and only point cloud
+    volcart::OrderedPointSet<volcart::Point3d> fMasterCloud;  // master cloud, the one and only point cloud
                                                        // can be loaded from disk, or generated from new path
                                                        // or concatenation of upper part and lower part in editing mode
-    pcl::PointCloud< pcl::PointXYZRGB > fUpperPart;
-    pcl::PointCloud< pcl::PointXYZRGB > fLowerPart;
+    volcart::OrderedPointSet<volcart::Point3d> fUpperPart;
+    volcart::OrderedPointSet<volcart::Point3d> fLowerPart;
 
     // window components
     QMenu       *fFileMenu;
