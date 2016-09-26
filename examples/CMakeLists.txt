@@ -38,8 +38,6 @@ target_link_libraries(vc_raytrace_example vc_common vc_meshing)
 add_executable(vc_ply_exporter_example src/plyExporterExample.cpp)
 target_link_libraries(vc_ply_exporter_example vc_common vc_texturing)
 
-add_executable(vc_ordered_pcd_mesher_example src/orderedPCDMesherExample.cpp)
-target_link_libraries(vc_ordered_pcd_mesher_example vc_common vc_meshing)
 
 add_executable(vc_obj_exporter_example src/objExporterExample.cpp)
 target_link_libraries(vc_obj_exporter_example vc_common vc_texturing)

@@ -72,7 +72,6 @@ set(test_srcs
     test/CalculateNormalsTest.cpp
     test/OrderedResamplingTest.cpp
     test/itk2vtkTest.cpp
-    test/orderedPCDMesherTest.cpp
     test/rayTraceTest.cpp
     test/scaleMeshTest.cpp
     test/smoothNormalsTest.cpp
@@ -120,13 +119,6 @@ set(ITK_VTK_TEST_RES
     test/res/VTKSphereMeshConvertedToITK.obj
     test/res/VTKConeMeshConvertedToITK.obj
 )
-set(ORDERED_PCD_MESHER_TEST_RES
-    test/res/PlaneOrderedPCDMesher.ply 
-    test/res/CubeOrderedPCDMesher.ply
-    test/res/ArchOrderedPCDMesher.ply
-    test/res/SphereOrderedPCDMesher.ply
-    test/res/ConeOrderedPCDMesher.ply
-)
 set(RAYTRACE_EXAMPLE_TEST_RES
     test/res/SavedPlaneRayTraceData.ply
     test/res/SavedCubeRayTraceData.ply
@@ -158,7 +150,6 @@ set(ORDERED_POINT_SET_MESHER_TEST_RES
 
 set(MESHING_TEST_RES
     ${ITK_VTK_TEST_RES}
-    ${ORDERED_PCD_MESHER_TEST_RES}
     ${RAYTRACE_EXAMPLE_TEST_RES}
     ${RESAMPLED_POINT_CLOUD_TEST_RES}
     ${SMOOTH_NORMALS_TEST_RES}
