@@ -153,40 +153,39 @@ void CVolumeViewerWithCurve::mousePressEvent( QMouseEvent *event )
 
 }
 
-// Handle mouse move event
+// Handle mouse move event, currently only when we're editing
 void CVolumeViewerWithCurve::mouseMoveEvent( QMouseEvent *event )
 {
-    if(fViewState == ViewStateDraw || fViewState == ViewStateEdit) {
+    // Instantly return if we're not editing
+    if(fViewState != ViewStateEdit) {
+        return;
+    }
 
-        cv::Vec2f aWidgetLoc, aImgLoc;
-        aWidgetLoc[ 0 ] = event->x(); // horizontal coordinate
-        aWidgetLoc[ 1 ] = event->y(); // vertical coordinate
+    // Get the mouse position in widget coordinates
+    cv::Vec2f aWidgetLoc, aImgLoc;
+    aWidgetLoc[ 0 ] = event->x();
+    aWidgetLoc[ 1 ] = event->y();
 
-        WidgetLoc2ImgLoc( aWidgetLoc, aImgLoc );
+    // Convert to image coordinates and get delta of change
+    WidgetLoc2ImgLoc( aWidgetLoc, aImgLoc );
+    Vec2<float> aDelta;
+    aDelta[0] = aImgLoc[ 0 ] - fLastPos.x();
+    aDelta[1] = aImgLoc[ 1 ] - fLastPos.y();
 
-        int aDx = aImgLoc[ 0 ] - fLastPos.x();
-        int aDy = aImgLoc[ 1 ] - fLastPos.y();
+    // Update the curve if  we have change and have a selected point
+    if (( aDelta[0] != 0 || aDelta[1] != 0 ) &&
+        ( fSelectedPointIndex != -1 ))
+    {
+        fIntersectionCurveRef->SetPointByDifference(fSelectedPointIndex,
+                                                    aDelta,
+                                                    CosineImpactFunc,
+                                                    fImpactRange);
+        fVertexIsChanged = true;
+    }
 
-        if ( fViewState == EViewState::ViewStateDraw ) {
-            // REVISIT - FILL ME HERE
-        } else if ( fViewState == EViewState::ViewStateEdit ) {
-            if ( aDx != 0 || aDy != 0 ) {
-                if ( fSelectedPointIndex != -1 ) { // To-Do: change this -1 to a constant
-                    fIntersectionCurveRef->SetPointByDifference(fSelectedPointIndex,
-                                                                Vec2<float>(aDx, aDy),
-                                                                CosineImpactFunc,
-                                                                fImpactRange);
-                    fVertexIsChanged = true;
-                }
-            }
-        } else {
-            // idle state, do nothing
-        }
+    // Redraw everything
+    UpdateView();
 
-        // update view
-        UpdateView();
-
-    }// End of if(fViewState == ViewStateDraw || fViewState == ViewStateEdit) {
 }
 
 // Handle mouse release event
