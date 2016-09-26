@@ -194,7 +194,7 @@ void CVolumeViewerWithCurve::mouseReleaseEvent( QMouseEvent *event )
             fVertexIsChanged) {
 
             // update the point positions in the path point cloud
-            //emit SendSignalPathChanged();
+            emit SendSignalPathChanged();
 
             fVertexIsChanged = false;
             fSelectedPointIndex = -1;
