@@ -6,7 +6,7 @@ Chain::Chain(volcart::OrderedPointSet<volcart::Point3d> segPath,  const VolumePk
   std::vector<Particle> init_chain;
 
   for(volcart::OrderedPointSet<volcart::Point3d>::Iterator path_it = segPath.begin(); path_it != segPath.end(); ++path_it){
-    init_chain.push_back(cv::Vec3d(path_it[0][0], path_it[0][1], path_it[0][2]));
+    init_chain.push_back(path_it->toCvVec());
   }
 
   // Calculate the spring resting position

@@ -15,7 +15,7 @@ namespace tt = boost::test_tools;
 struct PointXYZ {
     float x, y, z;
 
-    PointXYZ(const pcl::PointXYZRGB p) : x(p.x), y(p.y), z(p.z) {}
+    PointXYZ(const volcart::Point3d p) : x(p[0]), y(p[1]), z(p[2]) {}
 };
 
 std::ostream& operator<<(std::ostream& s, PointXYZ p)
@@ -46,16 +46,24 @@ BOOST_FIXTURE_TEST_CASE(DefaultSegmentationTest, LocalResliceSegmentationFix)
     // Get the cloud to compare against
     const std::string groundTruthSeg("local-reslice-particle-sim");
     _pkg.setActiveSegmentation(groundTruthSeg);
-    const auto groundTruthCloud = _pkg.openPCDCloud();
+    const auto groundTruthCloud = _pkg.openCloud();
 
     // Get the starting cloud to segment and trim it to only the starting path
     const std::string startingCloudSeg("lrps-test-results");
     _pkg.setActiveSegmentation(startingCloudSeg);
-    auto startingCloud = _pkg.openPCDCloud();
-    auto it = startingCloud->begin();
-    std::advance(it, startingCloud->width);
-    startingCloud->erase(it, startingCloud->end());
+    auto startingCloud = _pkg.openCloud();
+    //auto it = startingCloud.begin();
+//    std::advance(it, startingCloud.width());
+//    startingCloud.erase(it, startingCloud.end());
+    volcart::OrderedPointSet<volcart::Point3d> seededCloud;
+    std::vector<volcart::Point3d> seededPoints;
 
+    //I tried to do the C++11 standard for the loop, I think it's correct -HH
+    for(int i = 0; i < startingCloud.width(); i++)
+    {
+        seededPoints.push_back(startingCloud[i]);
+    }
+    seededCloud.push_row(seededPoints);
     // Run segmentation
     // XXX These params are manually input now, later they will be dynamically
     // read from the parameters.json file in each segmentation directory
@@ -73,15 +81,15 @@ BOOST_FIXTURE_TEST_CASE(DefaultSegmentationTest, LocalResliceSegmentationFix)
     bool dumpVis = false;
     bool visualize = false;
     auto resultCloud = _segmenter.segmentPath(
-        startingCloud, startIndex, endIndex, numIters, stepNumLayers, alpha, k1,
+        seededCloud, startIndex, endIndex, numIters, stepNumLayers, alpha, k1,
         k2, beta, delta, peakDistanceWeight, shouldIncludeMiddle, dumpVis,
         visualize);
     _pkg.saveCloud(resultCloud);
 
     // First compare cloud sizes
-    BOOST_REQUIRE_EQUAL(groundTruthCloud->size(), resultCloud.size());
-    BOOST_REQUIRE_EQUAL(groundTruthCloud->width, resultCloud.width);
-    BOOST_REQUIRE_EQUAL(groundTruthCloud->height, resultCloud.height);
+    BOOST_REQUIRE_EQUAL(groundTruthCloud.size(), resultCloud.size());
+    BOOST_REQUIRE_EQUAL(groundTruthCloud.width(), resultCloud.width());
+    BOOST_REQUIRE_EQUAL(groundTruthCloud.height(), resultCloud.height());
 
     // Compare clouds, make sure each point is within a certain tolerance.
     // Currently set in this file, may be set outside later on
@@ -89,9 +97,9 @@ BOOST_FIXTURE_TEST_CASE(DefaultSegmentationTest, LocalResliceSegmentationFix)
     // as floats
     constexpr float voxelDiffTol = 10;  // %
     size_t diffCount = 0;
-    for (size_t i = 0; i < groundTruthCloud->size(); ++i) {
-        PointXYZ trueV(groundTruthCloud->points[i]);
-        PointXYZ testV(resultCloud.points[i]);
+    for (size_t i = 0; i < groundTruthCloud.size(); ++i) {
+        PointXYZ trueV(groundTruthCloud[i]);
+        PointXYZ testV(resultCloud[i]);
         auto xdiff = std::abs(trueV.x - testV.x);
         auto ydiff = std::abs(trueV.y - testV.y);
         auto zdiff = std::abs(trueV.z - testV.z);
@@ -110,7 +118,7 @@ BOOST_FIXTURE_TEST_CASE(DefaultSegmentationTest, LocalResliceSegmentationFix)
 
     // Check that the clouds never vary in point differences by 10%
     auto maxAllowedDiffCount =
-        size_t(std::round(0.1 * groundTruthCloud->size()));
+        size_t(std::round(0.1 * groundTruthCloud.size()));
     std::cout << "# different points: " << diffCount
               << " (max allowed: " << maxAllowedDiffCount << ")" << std::endl;
     BOOST_CHECK(diffCount < maxAllowedDiffCount);

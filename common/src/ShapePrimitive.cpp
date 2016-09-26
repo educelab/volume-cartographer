@@ -94,7 +94,7 @@ vtkSmartPointer<vtkPolyData> ShapePrimitive::vtkMesh()
 volcart::OrderedPointSet<volcart::Point3d>ShapePrimitive::orderedPoints(bool noisify)
 {
 
-    volcart::OrderedPointSet<volcart::Point3d> output(_orderedWidth, _orderedHeight);
+    volcart::OrderedPointSet<volcart::Point3d> output(_orderedWidth);
     std::vector<Point3d> temp_row;
     double offset = 0.0;
     if (noisify)
@@ -186,7 +186,7 @@ volcart::PointSet<volcart::Point3d>ShapePrimitive::unOrderedPoints(bool noisify)
 volcart::OrderedPointSet<volcart::Point6d>ShapePrimitive::orderedPointNormal()
 {
 
-    volcart::OrderedPointSet<volcart::Point6d> output(_orderedWidth, _orderedHeight);
+    volcart::OrderedPointSet<volcart::Point6d> output(_orderedWidth);
     std::vector<volcart::Point6d> temp_row;
     for (auto p_id = _points.begin(); p_id != _points.end(); ++p_id) {
         volcart::Point6d point;

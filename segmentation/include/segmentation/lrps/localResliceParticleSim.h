@@ -15,8 +15,8 @@ class LocalResliceSegmentation
 public:
     LocalResliceSegmentation(VolumePkg& pkg) : pkg_(pkg) {}
 
-    pcl::PointCloud<pcl::PointXYZRGB> segmentPath(
-        const pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
+    volcart::OrderedPointSet<volcart::Point3d> segmentPath(
+        volcart::OrderedPointSet<volcart::Point3d> cloud,
         int32_t startIndex,
         int32_t endIndex,
         int32_t numIters,
