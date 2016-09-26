@@ -49,7 +49,7 @@ public:
     void  setButtonsEnabled( bool state );
 
 protected:
-    void mousePressEvent( QMouseEvent *event );
+    void mousePressEvent( QMouseEvent *e );
     void mouseMoveEvent( QMouseEvent *event );
     void mouseReleaseEvent( QMouseEvent *event );
     void paintEvent( QPaintEvent *event );

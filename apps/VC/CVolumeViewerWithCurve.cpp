@@ -108,49 +108,46 @@ void CVolumeViewerWithCurve::UpdateView( void )
 }
 
 // Handle mouse press event
-void CVolumeViewerWithCurve::mousePressEvent( QMouseEvent *event )
+void CVolumeViewerWithCurve::mousePressEvent( QMouseEvent *e )
 {
-    if(fViewState == ViewStateDraw || fViewState == ViewStateEdit) {
+    // Instantly return if we're not editing or drawing
+    if(fViewState == ViewStateIdle) {
+        return;
+    }
 
-        cv::Vec2f aWidgetLoc, aImgLoc;
-        aWidgetLoc[0] = event->x(); // horizontal coordinate
-        aWidgetLoc[1] = event->y(); // vertical coordinate
+    // Get the mouse position in widget coordinates
+    cv::Vec2f aWidgetLoc, aImgLoc;
+    aWidgetLoc[0] = e->x(); // horizontal coordinate
+    aWidgetLoc[1] = e->y(); // vertical coordinate
 
-        WidgetLoc2ImgLoc(aWidgetLoc, aImgLoc);
+    // Convert to image coordinates and update the last tracked position
+    WidgetLoc2ImgLoc(aWidgetLoc, aImgLoc);
 
-        fLastPos = QPoint(aImgLoc[0], aImgLoc[1]);
+    fLastPos.setX(aImgLoc[0]);
+    fLastPos.setY(aImgLoc[1]);
 
-        if (fViewState == EViewState::ViewStateDraw) {
-            if (event->buttons() & Qt::LeftButton) { // add points
+    // Handle draw and edit
+    if (fViewState == EViewState::ViewStateDraw) {
+        // If left click, add control points to the curve
+        if (e->buttons() & Qt::LeftButton) { // add points
 
-                fControlPoints.push_back(aImgLoc);
+            fControlPoints.push_back(aImgLoc);
 
-                if (fControlPoints.size() > 2) {
-                    UpdateSplineCurve();
-                }
-
-            } else if (event->buttons() & Qt::RightButton) { // finish curve
-
-                // REVISIT - save path
-
-            } else { // other mouse press events
-                // do nothing
+            if (fControlPoints.size() > 2) {
+                UpdateSplineCurve();
             }
-        } else if (fViewState == EViewState::ViewStateEdit) {
-            // REVISIT - FILL ME HERE
-            if (fIntersectionCurveRef != nullptr) {
-                fSelectedPointIndex = SelectPointOnCurve(fIntersectionCurveRef, aImgLoc);
-                fIntersectionCurveRef->setLastState();
-            }
-        } else {
-            // idle state, do nothing
+
         }
+    } else if (fViewState == EViewState::ViewStateEdit) {
+        // If we have points, select the one that was clicked
+        if (fIntersectionCurveRef != nullptr) {
+            fSelectedPointIndex = SelectPointOnCurve(fIntersectionCurveRef, aImgLoc);
+            fIntersectionCurveRef->setLastState();
+        }
+    }
 
-        UpdateView();
-        event->accept();
-
-    }// End of if(fViewState == ViewStateDraw || fViewState == ViewStateEdit) {
-
+    UpdateView();
+    e->accept();
 }
 
 // Handle mouse move event, currently only when we're editing
