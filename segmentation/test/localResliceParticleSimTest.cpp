@@ -55,7 +55,7 @@ BOOST_FIXTURE_TEST_CASE(DefaultSegmentationTest, LocalResliceSegmentationFix)
     //auto it = startingCloud.begin();
 //    std::advance(it, startingCloud.width());
 //    startingCloud.erase(it, startingCloud.end());
-    volcart::OrderedPointSet<volcart::Point3d> seededCloud;
+    volcart::OrderedPointSet<volcart::Point3d> seededCloud(startingCloud.width());
     std::vector<volcart::Point3d> seededPoints;
 
     //I tried to do the C++11 standard for the loop, I think it's correct -HH

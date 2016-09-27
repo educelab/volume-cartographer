@@ -70,7 +70,7 @@ volcart::OrderedPointSet<volcart::Point3d> LocalResliceSegmentation::segmentPath
     for (int32_t zIndex = startIndex;
          zIndex <= endIndex && zIndex < pkg_.getNumberOfSlices();
          zIndex += step) {
-        // std::cout << "slice: " << zIndex << std::endl;
+         //std::cout << "slice: " << zIndex << std::endl;
 
         // Directory to dump vis
         std::stringstream ss;
@@ -337,15 +337,20 @@ volcart::OrderedPointSet<volcart::Point3d> exportAsPCD(
 {
     int32_t rows = points.size();
     int32_t cols = points[0].size();
+    std::vector<volcart::Point3d> temp_row;
     volcart::OrderedPointSet<volcart::Point3d> cloud(cols);
 
     for (int32_t i = 0; i < rows; ++i) {
         for (int32_t j = 0; j < cols; ++j) {
             Voxel v = points[i][j];
-            cloud(j, i)[0]= v(0);
-            cloud(j, i)[1]= v(1);
-            cloud(j, i)[2] = v(2);
+            volcart::Point3d point;
+            point[0]= v(0);
+            point[1]= v(1);
+            point[2] = v(2);
+            temp_row.push_back(point);
         }
+        cloud.push_row(temp_row);
+        temp_row.clear();
     }
     return cloud;
 }
