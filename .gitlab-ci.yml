@@ -1,16 +1,10 @@
 stages:
-    - lint
     - build
     - test
     - collect
     - deploy
 
-lint:
-    stage: lint
-    script:
-        - echo $CI_BUILD_REF_NAME $CI_BUILD_STAGE
-        - scripts/clang-format.py
-
+### Debian ###
 build:debian:
     image: volcart/vcbuilder-debian:latest
     stage: build
@@ -24,8 +18,6 @@ build:debian:
         paths:
             - build/bin/
         expire_in: 1 day
-    dependencies:
-        - lint
     tags:
         - build
         - linux
@@ -56,6 +48,7 @@ test:debian:
         - qt5
         - ninja
 
+### OSX ###
 build:osx:
     stage: build
     script:
@@ -68,8 +61,6 @@ build:osx:
         paths:
             - build/bin/
         expire_in: 1 day
-    dependencies:
-        - lint
     tags:
         - build
         - osx
@@ -98,6 +89,17 @@ test:osx:
         - homebrew
         - qt5
         - ninja
+
+
+### Extra Checks and Tests ###
+clang-format:
+    stage: test
+    script:
+        - echo $CI_BUILD_REF_NAME $CI_BUILD_STAGE
+        - scripts/clang-format.py
+    allow_failure: yes
+    tags:
+        - source
 
 collect:source:
     only:
