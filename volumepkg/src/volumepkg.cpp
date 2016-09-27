@@ -1,7 +1,7 @@
 #include "volumepkg/volumepkg.h"
 #include "meshing/orderedPCDMesher.h"
 #include "common/io/objWriter.h"
-#include "meshing/orderedPointSetMesher.h"
+#include "meshing/OrderedPointSetMesher.h"
 #include "common/types/OrderedPointSet.h"
 #include "common/io/PointSetIO.h"
 #include "common/types/Point.h"
