@@ -227,13 +227,14 @@ int main(int argc, char* argv[])
     int width_cnt = 0;
     // Get the immutable points, i.e all pts before the starting path row
     for (int i = 0; i < (pathRow * chainLength); ++i) {
-        if(width_cnt != immutableCloud.width()-1)
+        if(width_cnt != immutableCloud.width())
             temp_row.push_back(masterCloud[i]);
         else
         {
             immutableCloud.push_row(temp_row);
             temp_row.clear();
             temp_row.push_back(masterCloud[i]);
+            width_cnt = 0;
         }
         width_cnt++;
     }

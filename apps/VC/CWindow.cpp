@@ -474,13 +474,14 @@ void CWindow::SplitCloud(void)
     std::vector<volcart::Point3d > points;
     int width_cnt = 0;
     for (int i = 0; i < aTotalNumOfImmutablePts; ++i) {
-        if(width_cnt != fMasterCloud.width() -1)
+        if(width_cnt != fMasterCloud.width())
             points.push_back(fMasterCloud[i]);
         else
         {
             fUpperPart.push_row(points);
             points.clear();
             points.push_back(fMasterCloud[i]);
+            width_cnt = 0;
         }
         width_cnt++;
     }
@@ -494,12 +495,13 @@ void CWindow::SplitCloud(void)
     width_cnt = 0;
     for (int i = 0; i < fMasterCloud.width(); ++i) {
         if (fMasterCloud[i + aTotalNumOfImmutablePts][2] != -1) {
-            if (width_cnt != fMasterCloud.width() - 1)
+            if (width_cnt != fMasterCloud.width() )
                 points2.push_back(fMasterCloud[i + aTotalNumOfImmutablePts]);
             else {
                 fLowerPart.push_row(points);
                 points2.clear();
                 points2.push_back(fMasterCloud[i + aTotalNumOfImmutablePts]);
+                width_cnt = 0;
             }
             //Not sure if this goes with the loop or the if statemnt -HH
             width_cnt++;
