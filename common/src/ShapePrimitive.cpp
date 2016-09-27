@@ -100,23 +100,30 @@ volcart::OrderedPointSet<volcart::Point3d>ShapePrimitive::orderedPoints(bool noi
     if (noisify)
         offset = 5.0;
     int point_counter = 0;  // This is the worst. // SP
+    int width_cnt = 0;
     for (auto p_id = _points.begin(); p_id != _points.end(); ++p_id) {
         volcart::Point3d point;
-      for(int i = 0; i < _orderedWidth; i++) {
-
-          point[0] = p_id->x;
-          point[1] = p_id->y;
-
-          if (noisify && (point_counter % 2 == 0)) {
-              point[2] = p_id->z + offset;
-              point[1] = p_id->z;  // added this to take the points out of the x-z
-              // plane to test impact of mls
-          } else
-              point[2] = p_id->z;
-          temp_row.push_back(point);
-          ++point_counter;
+      if(width_cnt == output.width())
+      {
+          output.push_row(temp_row);
+          temp_row.clear();
+          width_cnt = 0;
       }
-        output.push_row(temp_row);
+
+        point[0] = p_id->x;
+        point[1] = p_id->y;
+
+        if (noisify && (point_counter % 2 == 0)) {
+            point[2] = p_id->z + offset;
+            point[1] = p_id->z;  // added this to take the points out of the x-z
+            // plane to test impact of mls
+        } else
+            point[2] = p_id->z;
+        temp_row.push_back(point);
+        ++point_counter;
+        ++width_cnt;
+
+
     }
     return output;
 }

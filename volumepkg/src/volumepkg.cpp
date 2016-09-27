@@ -206,7 +206,7 @@ boost::filesystem::path VolumePkg::getActiveSegPath() {
 volcart::OrderedPointSet<volcart::Point3d> VolumePkg::openCloud() const
 {
     // To-Do: Error if activeSeg not set
-    auto outputName = segs_dir / activeSeg / "cloud.txt";
+    auto outputName = segs_dir / activeSeg / "pointset.vcps";
     volcart::OrderedPointSet<volcart::Point3d > cloud;
     cloud = volcart::PointSetIO<volcart::Point3d>::ReadOrderedPointSet(outputName.string());
     return cloud;
