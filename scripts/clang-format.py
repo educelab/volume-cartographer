@@ -91,7 +91,8 @@ def call(cmd):
 def changed_files():
     current_branch = callo('git rev-parse --abbrev-ref @')
     develop = 'origin/develop'
-    files = callo('git diff --name-only {}..{}'.format(develop, current_branch)).splitlines()
+    branch_point = callo('git merge-base {} {}'.format(develop, current_branch))
+    files = callo('git diff --name-only {}..{}'.format(branch_point, current_branch)).splitlines()
     if len(files) == 0:
         logging.info('No changed files')
         sys.exit(0)
