@@ -17,22 +17,23 @@ using namespace volcart::testing;
 
 /************************************************************************************
  *                                                                                  *
- *  ParsingHelpersTest.cpp - tests the functionality of                             *
- *  /v-c/testing/src/parsinHelpers.cpp. The ultimate goal of this file is           *
- *  the following:                                                                  *
+ *  ParsingHelpersTest.cpp - tests the functionality of *
+ *  /v-c/testing/src/parsinHelpers.cpp. The ultimate goal of this file is *
+ *  the following: *
  *                                                                                  *
- *        1. check whether a parsed OBJ file matches the data structure that        *
- *        generated it.                                                             *
+ *        1. check whether a parsed OBJ file matches the data structure that *
+ *        generated it. *
  *                                                                                  *
- *        2. check whether a parsed PLY file matches the data structure that        *
- *        generated it.                                                             *
+ *        2. check whether a parsed PLY file matches the data structure that *
+ *        generated it. *
  *                                                                                  *
- *     No required inputs for this sample test. All test objects are created        *
- *     internally.                                                                  *
+ *     No required inputs for this sample test. All test objects are created *
+ *     internally. *
  *                                                                                  *
- * Test-Specific Output:                                                            *
- *     Specific test output only given on failure of any tests. Otherwise, general  *
- *     number of testing errors is output.                                          *
+ * Test-Specific Output: *
+ *     Specific test output only given on failure of any tests. Otherwise,
+ * general  *
+ *     number of testing errors is output. *
  * **********************************************************************************/
 
 struct PlaneFixture {
@@ -43,9 +44,9 @@ struct PlaneFixture {
         _input = plane.itkMesh();
     }
 
-    VC_MeshType::Pointer _input;
-    std::vector<VC_Vertex> _SavedPoints;
-    std::vector<VC_Cell> _SavedCells;
+    volcart::MeshType::Pointer _input;
+    std::vector<volcart::Vertex> _SavedPoints;
+    std::vector<volcart::Cell> _SavedCells;
 };
 
 BOOST_FIXTURE_TEST_CASE(ParseOBJTest, PlaneFixture)
@@ -68,7 +69,7 @@ BOOST_FIXTURE_TEST_CASE(ParseOBJTest, PlaneFixture)
         SmallOrClose(_input->GetPoint(pnt_id)[1], _SavedPoints[pnt_id].y);
         SmallOrClose(_input->GetPoint(pnt_id)[2], _SavedPoints[pnt_id].z);
 
-        VC_PixelType out_Normal;
+        volcart::PixelType out_Normal;
         _input->GetPointData(pnt_id, &out_Normal);
 
         // Now compare the normals for the two meshes
@@ -81,7 +82,7 @@ BOOST_FIXTURE_TEST_CASE(ParseOBJTest, PlaneFixture)
     // the same in both
     BOOST_CHECK_EQUAL(_input->GetNumberOfCells(), _SavedCells.size());
     for (size_t cell_id = 0; cell_id < _SavedCells.size(); cell_id++) {
-        VC_CellType::CellAutoPointer current_C;
+        volcart::CellType::CellAutoPointer current_C;
         _input->GetCell(cell_id, current_C);
         BOOST_CHECK_EQUAL(current_C->GetPointIds()[0], _SavedCells[cell_id].v1);
         BOOST_CHECK_EQUAL(current_C->GetPointIds()[1], _SavedCells[cell_id].v2);
@@ -109,7 +110,7 @@ BOOST_FIXTURE_TEST_CASE(ParsePLYTest, PlaneFixture)
         SmallOrClose(_input->GetPoint(pnt_id)[1], _SavedPoints[pnt_id].y);
         SmallOrClose(_input->GetPoint(pnt_id)[2], _SavedPoints[pnt_id].z);
 
-        VC_PixelType out_Normal;
+        volcart::PixelType out_Normal;
         _input->GetPointData(pnt_id, &out_Normal);
 
         // Now compare the normals for the two meshes
@@ -122,7 +123,7 @@ BOOST_FIXTURE_TEST_CASE(ParsePLYTest, PlaneFixture)
     // the same in both
     BOOST_CHECK_EQUAL(_SavedCells.size(), _input->GetNumberOfCells());
     for (size_t cell_id = 0; cell_id < _SavedCells.size(); cell_id++) {
-        VC_CellType::CellAutoPointer current_C;
+        volcart::CellType::CellAutoPointer current_C;
         _input->GetCell(cell_id, current_C);
         BOOST_CHECK_EQUAL(current_C->GetPointIds()[0], _SavedCells[cell_id].v1);
         BOOST_CHECK_EQUAL(current_C->GetPointIds()[1], _SavedCells[cell_id].v2);

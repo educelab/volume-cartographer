@@ -12,14 +12,14 @@ namespace io
 {
 
 // Constructors
-plyWriter::plyWriter(fs::path outputPath, VC_MeshType::Pointer mesh)
+plyWriter::plyWriter(fs::path outputPath, MeshType::Pointer mesh)
 {
     _outputPath = outputPath;
     _mesh = mesh;
 };
 
 plyWriter::plyWriter(fs::path outputPath,
-                     VC_MeshType::Pointer mesh,
+                     MeshType::Pointer mesh,
                      volcart::Texture texture)
 {
     _outputPath = outputPath;
@@ -53,7 +53,7 @@ int plyWriter::write()
     if (!_outputMesh.is_open())
         return EXIT_FAILURE;  // Return error if we can't open the file
 
-    VC_Origin starting_origin =
+    Origin starting_origin =
         _texture.uvMap().origin();                // Capture the starting origin
     _texture.uvMap().origin(VC_ORIGIN_TOP_LEFT);  // Ensure uvMap origin is
                                                   // relative to what we need it
@@ -122,7 +122,7 @@ int plyWriter::_writeVertices()
          point != _mesh->GetPoints()->End(); ++point) {
 
         // Get the point's normal
-        VC_PixelType normal;
+        PixelType normal;
         _mesh->GetPointData(point.Index(), &normal);
 
         // Write the point position components and its normal components.
@@ -160,8 +160,8 @@ int plyWriter::_writeFaces()
     std::cerr << "Writing faces..." << std::endl;
 
     // Iterate over the faces of the mesh
-    VC_PointsInCellIterator point;
-    for (VC_CellIterator cell = _mesh->GetCells()->Begin();
+    PointsInCellIterator point;
+    for (CellIterator cell = _mesh->GetCells()->Begin();
          cell != _mesh->GetCells()->End(); ++cell) {
         _outputMesh << cell->Value()->GetNumberOfPoints();
 

@@ -8,20 +8,21 @@
  *          v-c/testing/meshing.
  */
 
-#include "common/vc_defines.h"
 #include "common/io/objWriter.h"
 #include "common/shapes/Plane.h"
+#include "common/vc_defines.h"
 
-int main( int argc, char* argv[] ) {
+int main(int argc, char* argv[])
+{
 
-    //init shapes
+    // init shapes
     volcart::shapes::Plane Plane;
-    VC_MeshType::Pointer in_PlaneITKMesh = Plane.itkMesh();
+    volcart::MeshType::Pointer in_PlaneITKMesh = Plane.itkMesh();
 
-    //declare writer
+    // declare writer
     volcart::io::objWriter mesh_writer;
 
-    //write mesh to file
+    // write mesh to file
     mesh_writer.setPath("OBJWriterPlaneData.obj");
     mesh_writer.setMesh(in_PlaneITKMesh);
     mesh_writer.write();

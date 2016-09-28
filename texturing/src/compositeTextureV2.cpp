@@ -8,14 +8,14 @@ namespace volcart {
     namespace texturing {
 
         // Constructor
-        compositeTextureV2::compositeTextureV2(VC_MeshType::Pointer inputMesh,
+        compositeTextureV2::compositeTextureV2(MeshType::Pointer inputMesh,
                                                VolumePkg &volpkg,
                                                UVMap uvMap,
                                                double radius,
                                                int width,
                                                int height,
-                                               VC_Composite_Option method,
-                                               VC_Direction_Option direction) :
+                                               CompositeOption method,
+                                               DirectionOption direction) :
                 _volpkg(volpkg), _input(inputMesh), _uvMap(uvMap), _radius(radius), _width(width), _height(height), _method(method), _direction(direction)
         {
             _process();
@@ -39,7 +39,7 @@ namespace volcart {
             // Per-pixel Map
             volcart::PerPixelMap lookup( _height, _width );
 
-            VC_PointsLocatorType::NeighborsIdentifierType neighborhood;
+            PointsLocatorType::NeighborsIdentifierType neighborhood;
             for ( int y = 0; y < _height; ++y ) {
                 for ( int x = 0; x < _width; ++x ) {
                     double progress = (double)(x + 1 + (_width*y))/(double)(_width*_height) * (double) 100;
@@ -54,7 +54,7 @@ namespace volcart {
                     if ( !neighborhood.empty() ) neighborhood.clear();
 
                     // find k nearest neighbors for current point
-                    VC_PointType searchPoint;
+                    PointType searchPoint;
                     searchPoint[0] = uv[0]; searchPoint[1] = uv[1]; searchPoint[2] = 0.0;
                     _kdTree->FindClosestNPoints( searchPoint, 100, neighborhood );
 
@@ -119,16 +119,16 @@ namespace volcart {
 
             // Make sure the storage vectors are clean
             if ( !_cellInformation.empty() ) _cellInformation.clear();
-            _cellCentroids = VC_MeshType::New();
-            _kdTree = VC_PointsLocatorType::New();
+            _cellCentroids = MeshType::New();
+            _kdTree = PointsLocatorType::New();
 
             // Generate a homography matrix for each cell in the mesh
-            VC_PointType centroid;
+            PointType centroid;
             std::cerr << "volcart::texturing::compositeTexturing: Generating cell information" << std::endl;
             for ( auto cell = _input->GetCells()->Begin(); cell != _input->GetCells()->End(); ++cell ) {
                 cellInfo info = cellInfo();
                 cv::Vec3d _2D, _3D;
-                for( VC_PointsInCellIterator point = cell->Value()->PointIdsBegin(); point != cell->Value()->PointIdsEnd(); ++point ) {
+                for( PointsInCellIterator point = cell->Value()->PointIdsBegin(); point != cell->Value()->PointIdsEnd(); ++point ) {
                     unsigned long pointID = *point;
 
                     _2D[0] = _uvMap.get(pointID)[0];

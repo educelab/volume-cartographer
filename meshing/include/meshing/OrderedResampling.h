@@ -15,21 +15,21 @@ namespace volcart {
         class OrderedResampling {
         public:
             OrderedResampling();
-            OrderedResampling(VC_MeshType::Pointer mesh, int in_width, int in_height);
+            OrderedResampling(MeshType::Pointer mesh, int in_width, int in_height);
 
-            void setMesh(VC_MeshType::Pointer mesh, int in_width, int in_height);
-            VC_MeshType::Pointer getOutputMesh() const ;
+            void setMesh(MeshType::Pointer mesh, int in_width, int in_height);
+            MeshType::Pointer getOutputMesh() const ;
             int getOutputWidth() const ;
             int getOutputHeight() const;
 
             void compute();
 
         private:
-            VC_MeshType::Pointer _input;
+            MeshType::Pointer _input;
             int _inWidth;  // how many rows
             int _inHeight; // how many points per row
 
-            VC_MeshType::Pointer _output;
+            MeshType::Pointer _output;
             int _outWidth;
             int _outHeight;
 

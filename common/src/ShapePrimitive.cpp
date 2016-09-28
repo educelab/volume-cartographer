@@ -11,13 +11,13 @@ namespace shapes
 
 ///// Type Conversions /////
 // return an itk mesh
-VC_MeshType::Pointer ShapePrimitive::itkMesh()
+MeshType::Pointer ShapePrimitive::itkMesh()
 {
-    VC_MeshType::Pointer output = VC_MeshType::New();
+    MeshType::Pointer output = MeshType::New();
 
     // points + normals
-    VC_PointType point;
-    VC_PixelType normal;
+    PointType point;
+    PixelType normal;
     for (unsigned long p_id = 0; p_id < _points.size(); ++p_id) {
         point[0] = _points[p_id].x;
         point[1] = _points[p_id].y;
@@ -31,9 +31,9 @@ VC_MeshType::Pointer ShapePrimitive::itkMesh()
     }
 
     // cells
-    VC_CellType::CellAutoPointer cell;
+    CellType::CellAutoPointer cell;
     for (unsigned long c_id = 0; c_id < _cells.size(); ++c_id) {
-        cell.TakeOwnership(new VC_TriangleType);
+        cell.TakeOwnership(new TriangleType);
         cell->SetPointId(0, _cells[c_id].v1);
         cell->SetPointId(1, _cells[c_id].v2);
         cell->SetPointId(2, _cells[c_id].v3);
@@ -193,7 +193,7 @@ pcl::PointCloud<pcl::PointNormal> ShapePrimitive::pointCloudNormal()
 ///// Mesh Generation Helper Functions /////
 void ShapePrimitive::_add_vertex(double x, double y, double z)
 {
-    VC_Vertex v;
+    Vertex v;
     v.x = x;
     v.y = y;
     v.z = z;
@@ -206,7 +206,7 @@ void ShapePrimitive::_add_vertex(double x, double y, double z)
 
 void ShapePrimitive::_add_cell(int v1, int v2, int v3)
 {
-    VC_Cell f;
+    Cell f;
     f.v1 = v1;
     f.v2 = v2;
     f.v3 = v3;
@@ -216,9 +216,9 @@ void ShapePrimitive::_add_cell(int v1, int v2, int v3)
     // get surface normal of this triangle
     double nx, ny, nz, vx, vy, vz, wx, wy, wz, magnitude;
 
-    VC_Vertex vt1 = _points[v1];
-    VC_Vertex vt2 = _points[v2];
-    VC_Vertex vt3 = _points[v3];
+    Vertex vt1 = _points[v1];
+    Vertex vt2 = _points[v2];
+    Vertex vt3 = _points[v3];
 
     vx = vt2.x - vt1.x;
     vy = vt2.y - vt1.y;
@@ -250,7 +250,7 @@ void ShapePrimitive::_update_normal(int vertex,
                                     double nz_in)
 {
     // recalculate average (unaverage, add new component, recalculate average)
-    VC_Vertex v = _points[vertex];
+    Vertex v = _points[vertex];
     v.nx = (v.nx * v.face_count + nx_in) / (v.face_count + 1);
     v.ny = (v.ny * v.face_count + ny_in) / (v.face_count + 1);
     v.nz = (v.nz * v.face_count + nz_in) / (v.face_count + 1);

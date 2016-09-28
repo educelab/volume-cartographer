@@ -22,12 +22,12 @@ namespace volcart {
 
     class itk2bullet {
     public:
-        itk2bullet( VC_MeshType::Pointer input, btSoftBodyWorldInfo& worldInfo, btSoftBody** output );
+        itk2bullet( MeshType::Pointer input, btSoftBodyWorldInfo& worldInfo, btSoftBody** output );
     };
 
     class bullet2itk {
     public:
-        bullet2itk( btSoftBody* softBody, VC_MeshType::Pointer output );
+        bullet2itk( btSoftBody* softBody, MeshType::Pointer output );
     };
 
   } // namespace meshing
