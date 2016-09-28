@@ -10,6 +10,6 @@
 
 namespace volcart {
     namespace meshing {
-            void scaleMesh( MeshType::Pointer input, MeshType::Pointer output, double scale_factor );
+            void scaleMesh( VC_MeshType::Pointer input, VC_MeshType::Pointer output, double scale_factor );
     } // meshing
 } // volcart

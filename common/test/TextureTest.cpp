@@ -127,8 +127,8 @@ struct TextureWithUVMapToCheckIntensityFixture {
     cv::Mat _Gradient;
 };
 
-BOOST_FIXTURE_TEST_CASE(
-    TestTextureEmptyConstructor, EmptyConstructorTextureFixture)
+BOOST_FIXTURE_TEST_CASE(TestTextureEmptyConstructor,
+                        EmptyConstructorTextureFixture)
 {
 
     // confirm texture has no images
@@ -138,7 +138,7 @@ BOOST_FIXTURE_TEST_CASE(
     BOOST_CHECK_EQUAL(_Type, "texture");
 
     std::string TestDate, TruncatedTestDate;
-    TestDate = volcart::DATE_TIME()[0 - 7];
+    TestDate = VC_DATE_TIME()[0 - 7];
     TruncatedTestDate = TestDate[0 - 7];
 
     // check id
@@ -163,13 +163,12 @@ BOOST_FIXTURE_TEST_CASE(AddImageToTextureTest, TextureWithImageFixture)
         cv::Mat TestImage = cv::Mat::eye(img_id + 2, img_id + 2, CV_16U);
 
         // check data props of two matrices
-        BOOST_CHECK_EQUAL_COLLECTIONS(
-            _Texture.getImage(img_id).datastart,
-            _Texture.getImage(img_id).dataend, TestImage.datastart,
-            TestImage.dataend);
+        BOOST_CHECK_EQUAL_COLLECTIONS(_Texture.getImage(img_id).datastart,
+                                      _Texture.getImage(img_id).dataend,
+                                      TestImage.datastart, TestImage.dataend);
 
         // assign img data
-        ushort* matData = (ushort*)_Texture.getImage(img_id).data;
+        ushort *matData = (ushort *)_Texture.getImage(img_id).data;
 
         // step size --> helper
         size_t step = _Texture.getImage(img_id).step / sizeof(ushort);
@@ -191,9 +190,8 @@ BOOST_FIXTURE_TEST_CASE(AddImageToTextureTest, TextureWithImageFixture)
     }
 }
 
-BOOST_FIXTURE_TEST_CASE(
-    IntensityRetrievalFromTextureImageTest,
-    TextureWithUVMapToCheckIntensityFixture)
+BOOST_FIXTURE_TEST_CASE(IntensityRetrievalFromTextureImageTest,
+                        TextureWithUVMapToCheckIntensityFixture)
 {
 
     BOOST_CHECK_EQUAL(_Texture.numberOfImages(), 1);

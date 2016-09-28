@@ -33,40 +33,40 @@ namespace volcart {
 
 
             // create 20 triangles of the icosahedron
-            std::vector<Cell> _temp_cells;
+            std::vector<VC_Cell> _temp_cells;
 
             // 5 faces around point 0
-            _temp_cells.push_back( Cell(0, 11,   5) );
-            _temp_cells.push_back( Cell(0,  5,   1) );
-            _temp_cells.push_back( Cell(0,  1,   7) );
-            _temp_cells.push_back( Cell(0,  7,  10) );
-            _temp_cells.push_back( Cell(0, 10,  11) );
+            _temp_cells.push_back( VC_Cell(0, 11,   5) );
+            _temp_cells.push_back( VC_Cell(0,  5,   1) );
+            _temp_cells.push_back( VC_Cell(0,  1,   7) );
+            _temp_cells.push_back( VC_Cell(0,  7,  10) );
+            _temp_cells.push_back( VC_Cell(0, 10,  11) );
 
             // 5 adjacent faces
-            _temp_cells.push_back( Cell( 1,  5, 9) );
-            _temp_cells.push_back( Cell( 5, 11, 4) );
-            _temp_cells.push_back( Cell(11, 10, 2) );
-            _temp_cells.push_back( Cell(10,  7, 6) );
-            _temp_cells.push_back( Cell( 7,  1, 8) );
+            _temp_cells.push_back( VC_Cell( 1,  5, 9) );
+            _temp_cells.push_back( VC_Cell( 5, 11, 4) );
+            _temp_cells.push_back( VC_Cell(11, 10, 2) );
+            _temp_cells.push_back( VC_Cell(10,  7, 6) );
+            _temp_cells.push_back( VC_Cell( 7,  1, 8) );
 
             // 5 faces around point 3
-            _temp_cells.push_back( Cell(3, 9, 4) );
-            _temp_cells.push_back( Cell(3, 4, 2) );
-            _temp_cells.push_back( Cell(3, 2, 6) );
-            _temp_cells.push_back( Cell(3, 6, 8) );
-            _temp_cells.push_back( Cell(3, 8, 9) );
+            _temp_cells.push_back( VC_Cell(3, 9, 4) );
+            _temp_cells.push_back( VC_Cell(3, 4, 2) );
+            _temp_cells.push_back( VC_Cell(3, 2, 6) );
+            _temp_cells.push_back( VC_Cell(3, 6, 8) );
+            _temp_cells.push_back( VC_Cell(3, 8, 9) );
 
             // 5 adjacent faces
-            _temp_cells.push_back( Cell(4, 9,  5) );
-            _temp_cells.push_back( Cell(2, 4, 11) );
-            _temp_cells.push_back( Cell(6, 2, 10) );
-            _temp_cells.push_back( Cell(8, 6,  7) );
-            _temp_cells.push_back( Cell(9, 8,  1) );
+            _temp_cells.push_back( VC_Cell(4, 9,  5) );
+            _temp_cells.push_back( VC_Cell(2, 4, 11) );
+            _temp_cells.push_back( VC_Cell(6, 2, 10) );
+            _temp_cells.push_back( VC_Cell(8, 6,  7) );
+            _temp_cells.push_back( VC_Cell(9, 8,  1) );
 
 
             // refine triangles
             for( int i = 0; i < recursionLevel; i++) {
-                std::vector<Cell> _temp_cells2;
+                std::vector<VC_Cell> _temp_cells2;
 
                 for( auto cell = _temp_cells.begin(); cell != _temp_cells.end(); ++cell ) {
                     // replace using 4 triangles
@@ -75,10 +75,10 @@ namespace volcart {
                     int b = _midpoint( cell->v2, cell->v3 );
                     int c = _midpoint( cell->v3, cell->v1 );
 
-                    _temp_cells2.push_back( Cell(cell->v1, a, c) );
-                    _temp_cells2.push_back( Cell(cell->v2, b, a) );
-                    _temp_cells2.push_back( Cell(cell->v3, c, b) );
-                    _temp_cells2.push_back( Cell(a, b, c) );
+                    _temp_cells2.push_back( VC_Cell(cell->v1, a, c) );
+                    _temp_cells2.push_back( VC_Cell(cell->v2, b, a) );
+                    _temp_cells2.push_back( VC_Cell(cell->v3, c, b) );
+                    _temp_cells2.push_back( VC_Cell(a, b, c) );
 
                 }
                 _temp_cells = _temp_cells2;

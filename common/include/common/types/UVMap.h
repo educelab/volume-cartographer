@@ -16,14 +16,14 @@ namespace volcart {
     class UVMap {
     public:
         UVMap() { _origin = VC_ORIGIN_TOP_LEFT; };
-        UVMap(Origin o) { _origin = o; };
+        UVMap(VC_Origin o) { _origin = o; };
 
         size_t size() const { return _map.size(); };
         bool empty() const { return _map.empty(); };
 
         // Get and set origin
-        Origin  origin() const { return _origin; };
-        void origin(Origin o) { _origin = o; };
+        VC_Origin  origin() const { return _origin; };
+        void origin(VC_Origin o) { _origin = o; };
 
         // Set the uv mapping for point p_id
         void set(double p_id, cv::Vec2d uv) {
@@ -44,7 +44,7 @@ namespace volcart {
         };
 
         // Ratio information
-        Ratio ratio() const { return _ratio; };
+        VC_Ratio ratio() const { return _ratio; };
         void ratio( double a ) { _ratio.aspect = a; };
         void ratio( double w, double h ) {
             _ratio.width = w;
@@ -55,7 +55,7 @@ namespace volcart {
     private:
         std::unordered_map<double, cv::Vec2d> _map; // holds the mapping
         cv::Vec2d _origin; // origin inserted and retrieved points are relative to
-        Ratio _ratio;
+        VC_Ratio _ratio;
     };
 
 } // volcart

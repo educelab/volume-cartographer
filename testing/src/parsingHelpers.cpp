@@ -15,7 +15,7 @@ namespace fs = boost::filesystem;
 namespace volcart{
 namespace testing {
 
-void ParsingHelpers::parsePlyFile(const fs::path& filepath, std::vector<Vertex> &verts, std::vector<Cell> &faces) {
+void ParsingHelpers::parsePlyFile(const fs::path& filepath, std::vector<VC_Vertex> &verts, std::vector<VC_Cell> &faces) {
 
     std::ifstream inputMesh(filepath.string());
 
@@ -31,8 +31,8 @@ void ParsingHelpers::parsePlyFile(const fs::path& filepath, std::vector<Vertex> 
     std::vector<std::string> plyLine;
 
     //   VC types to put store appropriate values read in from file
-    Vertex plyVertex;
-    Cell plyCell;
+    VC_Vertex plyVertex;
+    VC_Cell plyCell;
 
     int numVertices, numFaces, vertsPerFace, width, height;
     std::vector<std::string> typeOfPointInformation;
@@ -211,7 +211,7 @@ void ParsingHelpers::parsePlyFile(const fs::path& filepath, std::vector<Vertex> 
 /*
  *   Helper function to parse an obj file.
  */
-void ParsingHelpers::parseObjFile(const fs::path& filepath, std::vector<Vertex> & points, std::vector<Cell> &cells){
+void ParsingHelpers::parseObjFile(const fs::path& filepath, std::vector<VC_Vertex> & points, std::vector<VC_Cell> &cells){
 
         std::ifstream inputMesh(filepath.string());
 
@@ -226,8 +226,8 @@ void ParsingHelpers::parseObjFile(const fs::path& filepath, std::vector<Vertex> 
         std::vector<std::string> objLine;
 
         //   VC types to put store appropriate values read in from file
-        Vertex objVertex;
-        Cell objCell;
+        VC_Vertex objVertex;
+        VC_Cell objCell;
 
         int numVertices, numFaces;
         int normalCounter = 0;

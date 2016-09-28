@@ -18,7 +18,7 @@
 namespace volcart {
   namespace meshing {
     // returns a vector of vectors that holds the points of intersections and the corresponding normals
-    std::vector<cv::Vec6f> rayTrace(MeshType::Pointer itkMesh, int aTraceDir, int width, int height, std::map<int, cv::Vec2d> uvMap) {
+    std::vector<cv::Vec6f> rayTrace(VC_MeshType::Pointer itkMesh, int aTraceDir, int width, int height, std::map<int, cv::Vec2d> uvMap) {
 
       // Essential data structure to return points and normals
       std::vector<cv::Vec6f> intersections;

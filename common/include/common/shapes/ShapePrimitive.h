@@ -22,15 +22,15 @@ namespace shapes {
 
     class ShapePrimitive {
     public:
-        MeshType::Pointer itkMesh();
+        VC_MeshType::Pointer itkMesh();
         vtkSmartPointer<vtkPolyData> vtkMesh();
         pcl::PointCloud<pcl::PointXYZ> pointCloudXYZ(bool noisify = true); //resamplePointCloud
         pcl::PointCloud<pcl::PointNormal> pointCloudNormal(); //poissonRecon, greedyProjMeshing
         pcl::PointCloud<pcl::PointXYZRGB> pointCloudXYZRGB(); //for orderedPCDMesher
 
         //overload
-        std::vector<Vertex> getPoints() const {return _points;}
-        std::vector<Cell> getCells() const {return _cells;}
+        std::vector<VC_Vertex> getPoints() const {return _points;}
+        std::vector<VC_Cell> getCells() const {return _cells;}
 
         //ordering
         bool     isOrdered()     const { return _orderedPoints; };
@@ -38,8 +38,8 @@ namespace shapes {
         uint32_t orderedHeight() const { return _orderedHeight; };
 
     protected:
-        std::vector<Vertex> _points;
-        std::vector<Cell> _cells;
+        std::vector<VC_Vertex> _points;
+        std::vector<VC_Cell> _cells;
 
         void _add_vertex(double x, double y, double z);
         void _add_cell(int v1, int v2, int v3);

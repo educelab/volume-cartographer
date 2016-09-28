@@ -106,8 +106,7 @@ public:
         const pcl::PointCloud<pcl::PointXYZRGB>::Ptr segmentedCloud) const;
 
     void saveMesh(
-        const volcart::MeshType::Pointer& mesh,
-        volcart::Texture& texture) const;
+        const VC_MeshType::Pointer& mesh, volcart::Texture& texture) const;
 
     void saveTextureData(
         const cv::Mat& texture, const std::string& name = "textured");

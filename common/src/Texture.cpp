@@ -10,7 +10,7 @@ using namespace volcart;
 Texture::Texture()
 {
     _metadata.set<std::string>("type", "texture");
-    _metadata.set<std::string>("id", DATE_TIME());
+    _metadata.set<std::string>("id", VC_DATE_TIME());
     _metadata.set<size_t>("number-of-images", 0);
 }
 

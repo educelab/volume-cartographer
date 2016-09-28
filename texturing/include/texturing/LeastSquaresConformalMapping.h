@@ -17,11 +17,11 @@ namespace volcart {
     class LeastSquaresConformalMapping {
     public:
       LeastSquaresConformalMapping(){};
-      LeastSquaresConformalMapping( MeshType::Pointer input );
+      LeastSquaresConformalMapping( VC_MeshType::Pointer input );
 
       // Input/Output
-      void setMesh( MeshType::Pointer input );
-      MeshType::Pointer getMesh();
+      void setMesh( VC_MeshType::Pointer input );
+      VC_MeshType::Pointer getMesh();
       volcart::UVMap getUVMap();
 
       // Processing
@@ -34,7 +34,7 @@ namespace volcart {
       double _area(const Eigen::MatrixXd& v, const Eigen::MatrixXi& f);
       double _startingArea;
 
-      MeshType::Pointer _mesh;
+      VC_MeshType::Pointer _mesh;
       Eigen::MatrixXd _vertices;
       Eigen::MatrixXi _faces;
       Eigen::MatrixXd _vertices_UV;

@@ -2,37 +2,37 @@
 // Created by Seth Parker on 9/24/15.
 //
 
+#include "common/vc_defines.h"
 #include "common/io/objWriter.h"
 #include "common/io/ply2itk.h"
-#include "common/vc_defines.h"
-#include "meshing/ACVD.h"
 #include "meshing/itk2vtk.h"
+#include "meshing/ACVD.h"
 
-int main(int argc, char* argv[])
-{
-    std::string meshName = argv[1];
+int main( int argc, char* argv[] ) {
 
-    // declare pointer to new Mesh object
-    volcart::MeshType::Pointer itkMesh = volcart::MeshType::New();
+  std::string meshName = argv[1];
 
-    int meshWidth = -1;
-    int meshHeight = -1;
+  // declare pointer to new Mesh object
+  VC_MeshType::Pointer  itkMesh = VC_MeshType::New();
 
-    if (!volcart::io::ply2itkmesh(meshName, itkMesh, meshWidth, meshHeight)) {
-        exit(EXIT_SUCCESS);
-    };
+  int meshWidth = -1;
+  int meshHeight = -1;
 
-    vtkPolyData* vtkMesh = vtkPolyData::New();
-    volcart::meshing::itk2vtk(itkMesh, vtkMesh);
+  if ( !volcart::io::ply2itkmesh( meshName, itkMesh, meshWidth, meshHeight ) ) {
+    exit( EXIT_SUCCESS );
+  };
 
-    vtkPolyData* acvdMesh = vtkPolyData::New();
-    volcart::meshing::ACVD(vtkMesh, acvdMesh, 10000);
+  vtkPolyData* vtkMesh = vtkPolyData::New();
+  volcart::meshing::itk2vtk(itkMesh, vtkMesh);
 
-    volcart::MeshType::Pointer outputMesh = volcart::MeshType::New();
-    volcart::meshing::vtk2itk(acvdMesh, outputMesh);
+  vtkPolyData* acvdMesh = vtkPolyData::New();
+  volcart::meshing::ACVD(vtkMesh, acvdMesh, 10000);
 
-    volcart::io::objWriter mesh_writer("acvd.obj", outputMesh);
-    mesh_writer.write();
+  VC_MeshType::Pointer outputMesh = VC_MeshType::New();
+  volcart::meshing::vtk2itk(acvdMesh, outputMesh);
 
-    return EXIT_SUCCESS;
+  volcart::io::objWriter mesh_writer("acvd.obj", outputMesh);
+  mesh_writer.write();
+
+  return EXIT_SUCCESS;
 }

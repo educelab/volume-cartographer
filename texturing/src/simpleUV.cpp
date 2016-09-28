@@ -6,7 +6,7 @@
 
 namespace volcart {
     namespace texturing {
-        volcart::UVMap simpleUV(MeshType::Pointer mesh, int width, int height) {
+        volcart::UVMap simpleUV(VC_MeshType::Pointer mesh, int width, int height) {
 
             volcart::UVMap uvMap;
             unsigned long pointID, ArrayX, ArrayY;
@@ -17,7 +17,7 @@ namespace volcart {
             double maxIndexY = (double)(height - 1);
 
             // Generate UV coord for each point in mesh
-            PointsInMeshIterator point = mesh->GetPoints()->Begin();
+            VC_PointsInMeshIterator point = mesh->GetPoints()->Begin();
             while ( point != mesh->GetPoints()->End() ) {
 
                 pointID = point.Index();

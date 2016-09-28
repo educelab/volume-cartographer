@@ -11,7 +11,7 @@ using namespace volcart;
 ///// Constructors/Destructors /////
 Rendering::Rendering() {
   _metadata.set<std::string>( "type", "rendering" );
-  _metadata.set<std::string>( "id", DATE_TIME() );
+  _metadata.set<std::string>( "id", VC_DATE_TIME() );
 }
 
 Rendering::~Rendering() { };
@@ -30,10 +30,10 @@ volcart::Texture Rendering::getTexture() const {
   return _texture;
 }
 
-void Rendering::setMesh( MeshType::Pointer mesh ) {
+void Rendering::setMesh( VC_MeshType::Pointer mesh ) {
   _mesh = mesh;
 }
 
-MeshType::Pointer Rendering::getMesh() const {
+VC_MeshType::Pointer Rendering::getMesh() const {
   return _mesh;
 }

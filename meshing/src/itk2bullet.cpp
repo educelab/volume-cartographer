@@ -7,12 +7,12 @@
 namespace volcart {
   namespace meshing {
 
-    itk2bullet::itk2bullet( MeshType::Pointer input, btSoftBodyWorldInfo& worldInfo, btSoftBody** output ) {
+    itk2bullet::itk2bullet( VC_MeshType::Pointer input, btSoftBodyWorldInfo& worldInfo, btSoftBody** output ) {
 
-        PointType old_point;
+        VC_PointType old_point;
         btVector3* new_point;
 
-        for ( PointsInMeshIterator it = input->GetPoints()->Begin(); it != input->GetPoints()->End(); ++it ) {
+        for ( VC_PointsInMeshIterator it = input->GetPoints()->Begin(); it != input->GetPoints()->End(); ++it ) {
             // copy vertex info from itk mesh to btSoftBody
             old_point = it->Value();
             new_point = new btVector3(old_point[0], old_point[1], old_point[2]);
@@ -29,7 +29,7 @@ namespace volcart {
         unsigned long v0, v1, v2;
         v0 = v1 = v2 = 0;
 
-        for ( CellIterator cell = input->GetCells()->Begin(); cell != input->GetCells()->End(); ++cell ) {
+        for ( VC_CellIterator cell = input->GetCells()->Begin(); cell != input->GetCells()->End(); ++cell ) {
 
             v0 = cell.Value()->GetPointIds()[0];
             v1 = cell.Value()->GetPointIds()[1];
@@ -45,11 +45,11 @@ namespace volcart {
 
     };
 
-    bullet2itk::bullet2itk( btSoftBody* softBody, MeshType::Pointer output ) {
+    bullet2itk::bullet2itk( btSoftBody* softBody, VC_MeshType::Pointer output ) {
 
-        CellType::CellAutoPointer cellpointer;
-        PointType p;
-        PixelType n;
+        VC_CellType::CellAutoPointer cellpointer;
+        VC_PointType p;
+        VC_PixelType n;
         int NUM_OF_POINTS = softBody->m_nodes.size();
 
         // iterate through points of bullet mesh (softBody)

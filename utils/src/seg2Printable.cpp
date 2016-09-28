@@ -7,14 +7,13 @@
 #include "common/vc_defines.h"
 #include "volumepkg/volumepkg.h"
 
-#include "common/io/objWriter.h"
 #include "common/io/ply2itk.h"
-#include "common/types/UVMap.h"
+#include "common/io/objWriter.h"
 #include "meshing/scaleMesh.h"
 #include "texturing/simpleUV.h"
+#include "common/types/UVMap.h"
 
-int main(int argc, char* argv[])
-{
+int main (int argc, char* argv[]) {
     if (argc < 3) {
         std::cerr << "Usage: " << argv[0] << " volpkg seg-id" << std::endl;
         return EXIT_FAILURE;
@@ -28,8 +27,8 @@ int main(int argc, char* argv[])
     outputName += "_mm.obj";
 
     // Get our mesh
-    volcart::MeshType::Pointer mesh = volcart::MeshType::New();
-    volcart::MeshType::Pointer scaled = volcart::MeshType::New();
+    VC_MeshType::Pointer mesh = VC_MeshType::New();
+    VC_MeshType::Pointer scaled = VC_MeshType::New();
     int width = -1, height = -1;
     if (!volcart::io::ply2itkmesh(volpkg.getMeshPath(), mesh, width, height)) {
         std::cerr << "ERROR: Could not read ply file" << std::endl;
@@ -41,8 +40,7 @@ int main(int argc, char* argv[])
     cv::Mat texture = volpkg.getTextureData();
 
     // Perform the scale
-    double scale_factor =
-        volpkg.getVoxelSize() * 0.001;  // pixel->um->mm unit conversion
+    double scale_factor = volpkg.getVoxelSize() * 0.001; // pixel->um->mm unit conversion
     volcart::meshing::scaleMesh(mesh, scaled, scale_factor);
 
     // Write the mesh

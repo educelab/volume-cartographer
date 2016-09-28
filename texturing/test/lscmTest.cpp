@@ -67,11 +67,11 @@ struct CreatePlaneLSCMUVFixture{
 
     //declare Plane mesh and width and height
     volcart::shapes::Plane _Plane;
-    MeshType::Pointer _in_Mesh;
-    MeshType::Pointer _out_Mesh;
+    VC_MeshType::Pointer _in_Mesh;
+    VC_MeshType::Pointer _out_Mesh;
 
-    std::vector<Vertex> _SavedPoints;
-    std::vector<Cell>   _SavedCells;
+    std::vector<VC_Vertex> _SavedPoints;
+    std::vector<VC_Cell>   _SavedCells;
 };
 
 struct CreateArchLSCMUVFixture{
@@ -96,11 +96,11 @@ struct CreateArchLSCMUVFixture{
 
     //declare Arch mesh
     volcart::shapes::Arch _Arch;
-    MeshType::Pointer _in_Mesh;
-    MeshType::Pointer _out_Mesh;
+    VC_MeshType::Pointer _in_Mesh;
+    VC_MeshType::Pointer _out_Mesh;
 
-    std::vector<Vertex> _SavedPoints;
-    std::vector<Cell>   _SavedCells;
+    std::vector<VC_Vertex> _SavedPoints;
+    std::vector<VC_Cell>   _SavedCells;
 };
 
 /*

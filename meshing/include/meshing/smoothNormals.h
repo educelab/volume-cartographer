@@ -13,7 +13,7 @@
 
 namespace volcart {
     namespace meshing {
-        MeshType::Pointer smoothNormals ( MeshType::Pointer input,
+        VC_MeshType::Pointer smoothNormals ( VC_MeshType::Pointer input,
                                              double               radius);
     }
 }

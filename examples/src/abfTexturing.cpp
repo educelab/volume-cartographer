@@ -5,120 +5,113 @@
 #include "common/vc_defines.h"
 #include "volumepkg/volumepkg.h"
 
-#include "common/io/ply2itk.h"
 #include "common/io/plyWriter.h"
+#include "common/io/ply2itk.h"
 #include "meshing/itk2vtk.h"
 
+#include <itkSmoothingQuadEdgeMeshFilter.h>
 #include <itkQuadEdgeMeshDecimationCriteria.h>
 #include <itkQuadricDecimationQuadEdgeMeshFilter.h>
-#include <itkSmoothingQuadEdgeMeshFilter.h>
 
-#include <vtkCleanPolyData.h>
-#include <vtkPLYReader.h>
 #include <vtkSmartPointer.h>
+#include <vtkPLYReader.h>
+#include <vtkCleanPolyData.h>
 #include <vtkSmoothPolyDataFilter.h>
 
-#include "common/io/objWriter.h"
-#include "common/types/Rendering.h"
+#include "texturing/AngleBasedFlattening.h"
 #include "common/util/meshMath.h"
 #include "meshing/ACVD.h"
-#include "texturing/AngleBasedFlattening.h"
 #include "texturing/compositeTextureV2.h"
+#include "common/types/Rendering.h"
+#include "common/io/objWriter.h"
 
 namespace fs = boost::filesystem;
 
-int main(int argc, char* argv[])
-{
-    VolumePkg vpkg(argv[1]);
-    vpkg.volume().setCacheMemoryInBytes(10000000000);
-    vpkg.setActiveSegmentation(argv[2]);
-    int radius = std::stoi(argv[3]);
-    int type = std::stoi(argv[4]);
+int main( int argc, char* argv[] ) {
 
-    // Read the mesh
-    fs::path meshName = vpkg.getMeshPath();
+  VolumePkg vpkg( argv[1] );
+  vpkg.volume().setCacheMemoryInBytes(10000000000);
+  vpkg.setActiveSegmentation( argv[2] );
+  int radius = std::stoi( argv[3] );
+  int type = std::stoi( argv[4] );
 
-    // declare pointer to new Mesh object
-    volcart::MeshType::Pointer input = volcart::MeshType::New();
-    int meshWidth = -1;
-    int meshHeight = -1;
+  // Read the mesh
+  fs::path meshName = vpkg.getMeshPath();
 
-    // try to convert the ply to an ITK mesh
-    if (!volcart::io::ply2itkmesh(meshName, input, meshWidth, meshHeight)) {
-        exit(-1);
-    };
+  // declare pointer to new Mesh object
+  VC_MeshType::Pointer  input = VC_MeshType::New();
+  int meshWidth = -1;
+  int meshHeight = -1;
 
-    // Calculate sampling density
-    double voxelsize = vpkg.getVoxelSize();
-    double sa = volcart::meshMath::SurfaceArea(input) *
-                (voxelsize * voxelsize) *
-                (0.001 * 0.001);  // convert vx^2 -> mm^2;
-    double densityFactor = 50;
-    uint16_t numberOfVertices = std::round(densityFactor * sa);
+  // try to convert the ply to an ITK mesh
+  if (!volcart::io::ply2itkmesh(meshName, input, meshWidth, meshHeight)){
+    exit( -1 );
+  };
 
-    // Convert to quad edge mesh and smooth the thing
-    volcart::QuadMesh::Pointer qeRaw = volcart::QuadMesh::New();
-    volcart::meshing::itk2itkQE(input, qeRaw);
+  // Calculate sampling density
+  double voxelsize = vpkg.getVoxelSize();
+  double sa = volcart::meshMath::SurfaceArea( input ) * (voxelsize * voxelsize) * (0.001 * 0.001); // convert vx^2 -> mm^2;
+  double densityFactor = 50;
+  uint16_t numberOfVertices = std::round(densityFactor * sa);
 
-    typedef itk::SmoothingQuadEdgeMeshFilter<
-        volcart::QuadMesh, volcart::QuadMesh>
-        QuadSmoother;
-    itk::OnesMatrixCoefficients<volcart::QuadMesh> coeff0;
-    QuadSmoother::Pointer smoother = QuadSmoother::New();
-    smoother->SetInput(qeRaw);
-    smoother->SetNumberOfIterations(3);
-    smoother->SetCoefficientsMethod(&coeff0);
-    smoother->Update();
+  // Convert to quad edge mesh and smooth the thing
+  volcart::QuadMesh::Pointer qeRaw = volcart::QuadMesh::New();
+  volcart::meshing::itk2itkQE( input, qeRaw );
 
-    volcart::MeshType::Pointer smoothed = volcart::MeshType::New();
-    volcart::meshing::itkQE2itk(smoother->GetOutput(), smoothed);
+  typedef itk::SmoothingQuadEdgeMeshFilter<volcart::QuadMesh, volcart::QuadMesh> QuadSmoother;
+  itk::OnesMatrixCoefficients< volcart::QuadMesh > coeff0;
+  QuadSmoother::Pointer smoother = QuadSmoother::New();
+  smoother->SetInput( qeRaw );
+  smoother->SetNumberOfIterations(3);
+  smoother->SetCoefficientsMethod( &coeff0 );
+  smoother->Update();
 
-    // Convert to polydata
-    vtkPolyData* vtkMesh = vtkPolyData::New();
-    volcart::meshing::itk2vtk(input, vtkMesh);
+  VC_MeshType::Pointer smoothed = VC_MeshType::New();
+  volcart::meshing::itkQE2itk( smoother->GetOutput(), smoothed );
 
-    // Decimate using ACVD
-    std::cout << "Resampling mesh..." << std::endl;
-    vtkPolyData* acvdMesh = vtkPolyData::New();
-    volcart::meshing::ACVD(vtkMesh, acvdMesh, numberOfVertices);
+  // Convert to polydata
+  vtkPolyData* vtkMesh = vtkPolyData::New();
+  volcart::meshing::itk2vtk(input, vtkMesh);
 
-    // Merge Duplicates
-    // Note: This merging has to be the last in the process chain for some
-    // really weird reason. - SP
-    vtkSmartPointer<vtkCleanPolyData> Cleaner = vtkCleanPolyData::New();
-    Cleaner->SetInputData(acvdMesh);
-    Cleaner->ToleranceIsAbsoluteOn();
-    Cleaner->Update();
+  // Decimate using ACVD
+  std::cout << "Resampling mesh..." << std::endl;
+  vtkPolyData* acvdMesh = vtkPolyData::New();
+  volcart::meshing::ACVD(vtkMesh, acvdMesh, numberOfVertices );
 
-    volcart::MeshType::Pointer itkACVD = volcart::MeshType::New();
-    volcart::meshing::vtk2itk(Cleaner->GetOutput(), itkACVD);
+  // Merge Duplicates
+  // Note: This merging has to be the last in the process chain for some really weird reason. - SP
+  vtkSmartPointer<vtkCleanPolyData> Cleaner = vtkCleanPolyData::New();
+  Cleaner->SetInputData( acvdMesh );
+  Cleaner->ToleranceIsAbsoluteOn();
+  Cleaner->Update();
 
-    // ABF flattening
-    std::cout << "Computing parameterization..." << std::endl;
-    volcart::texturing::AngleBasedFlattening abf(itkACVD);
-    // abf.setABFMaxIterations(5);
-    abf.compute();
+  VC_MeshType::Pointer itkACVD = VC_MeshType::New();
+  volcart::meshing::vtk2itk( Cleaner->GetOutput(), itkACVD );
 
-    // Get uv map
-    volcart::UVMap uvMap = abf.getUVMap();
-    int width = std::ceil(uvMap.ratio().width);
-    int height = std::ceil((double)width / uvMap.ratio().aspect);
+  // ABF flattening
+  std::cout << "Computing parameterization..." << std::endl;
+  volcart::texturing::AngleBasedFlattening abf(itkACVD);
+  //abf.setABFMaxIterations(5);
+  abf.compute();
 
-    std::cout << width << "x" << height << std::endl;
+  // Get uv map
+  volcart::UVMap uvMap = abf.getUVMap();
+  int width = std::ceil( uvMap.ratio().width );
+  int height = std::ceil( (double) width / uvMap.ratio().aspect );
 
-    volcart::texturing::compositeTextureV2 compText(
-        itkACVD, vpkg, uvMap, radius, width, height,
-        (volcart::CompositeOption)type);
+  std::cout << width << "x" << height << std::endl;
 
-    // Setup rendering
-    volcart::Rendering rendering;
-    rendering.setTexture(compText.texture());
-    rendering.setMesh(itkACVD);
+  volcart::texturing::compositeTextureV2 compText(itkACVD, vpkg, uvMap, radius, width, height, (VC_Composite_Option) type);
 
-    volcart::io::objWriter mesh_writer;
-    mesh_writer.setPath("textured-" + std::to_string(type) + ".obj");
-    mesh_writer.setRendering(rendering);
-    mesh_writer.write();
+  // Setup rendering
+  volcart::Rendering rendering;
+  rendering.setTexture( compText.texture() );
+  rendering.setMesh( itkACVD );
 
-    return EXIT_SUCCESS;
+  volcart::io::objWriter mesh_writer;
+  mesh_writer.setPath( "textured-" + std::to_string(type) + ".obj" );
+  mesh_writer.setRendering( rendering );
+  mesh_writer.write();
+
+  return EXIT_SUCCESS;
 }

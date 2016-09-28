@@ -25,7 +25,7 @@ int main(int argc, char*argv[])
     Resampler.setMesh(plane.itkMesh());
     Resampler.compute(plane.itkMesh()->GetNumberOfCells() / 2);
 
-    MeshType::Pointer Resample = Resampler.getMesh();
+    VC_MeshType::Pointer Resample = Resampler.getMesh();
     volcart::meshing::CalculateNormals calcNorm( Resample );
     calcNorm.compute();
     Resample = calcNorm.getMesh();

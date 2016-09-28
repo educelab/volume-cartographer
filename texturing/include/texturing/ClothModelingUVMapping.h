@@ -48,7 +48,7 @@ namespace volcart {
                 btVector3 target;
             };
 
-            ClothModelingUVMapping( MeshType::Pointer input,
+            ClothModelingUVMapping( VC_MeshType::Pointer input,
                              uint16_t unfurlIterations, uint16_t collideIterations, uint16_t expandIterations,
                              PinIDs unfurlPins, PinIDs expansionPins);
             ~ClothModelingUVMapping();
@@ -63,7 +63,7 @@ namespace volcart {
             void setAcceleration( Stage s, double a );
 
             // Output
-            MeshType::Pointer getMesh();
+            VC_MeshType::Pointer getMesh();
             volcart::UVMap getUVMap();
 
             //Callback functionality
@@ -74,7 +74,7 @@ namespace volcart {
 
         private:
             // Softbody
-            const MeshType::Pointer _mesh;
+            const VC_MeshType::Pointer _mesh;
             btSoftBody* _softBody;
             double _meshToWorldScale;
             std::vector< Pin > _currentPins;

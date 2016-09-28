@@ -4,24 +4,20 @@
 
 #include <iostream>
 
-#include <boost/program_options.hpp>
 #include <vtkPLYReader.h>
+#include <boost/program_options.hpp>
 
-#include "common/io/objWriter.h"
 #include "common/vc_defines.h"
 #include "meshing/itk2vtk.h"
 #include "texturing/ClothModelingUVMapping.h"
+#include "common/io/objWriter.h"
 #include "texturing/compositeTextureV2.h"
 
 namespace po = boost::program_options;
 
-void getPins(
-    std::string path,
-    volcart::MeshType::Pointer mesh,
-    volcart::texturing::ClothModelingUVMapping::PinIDs& pinList);
+void getPins( std::string path, VC_MeshType::Pointer mesh, volcart::texturing::ClothModelingUVMapping::PinIDs &pinList );
 
-int main(int argc, char* argv[])
-{
+int main( int argc, char* argv[] ) {
 
     // Set up options
     // clang-format off
@@ -62,10 +58,7 @@ int main(int argc, char* argv[])
 
     // clang-format on
     po::options_description all("Usage");
-    all.add(required)
-        .add(unfurlOptions)
-        .add(collisionOptions)
-        .add(expandOptions);
+    all.add(required).add(unfurlOptions).add(collisionOptions).add(expandOptions);
 
     // Parse and handle options
     po::variables_map opts;
@@ -94,108 +87,89 @@ int main(int argc, char* argv[])
     bool genTexture = opts["generate-texture"].as<bool>();
 
     uint16_t unfurlIt = opts["unfurl-iterations"].as<uint16_t>();
-    if (opts.count("unfurl-a"))
-        unfurlA = opts["unfurl-a"].as<double>();
-    if (opts.count("unfurl-pins"))
-        uPins_path = opts["unfurl-pins"].as<std::string>();
+    if ( opts.count("unfurl-a") ) unfurlA = opts["unfurl-a"].as<double>();
+    if ( opts.count("unfurl-pins") ) uPins_path = opts["unfurl-pins"].as<std::string>();
 
     uint16_t collisionIt = opts["collision-iterations"].as<uint16_t>();
-    if (opts.count("collision-a"))
-        collideA = opts["collision-a"].as<double>();
+    if ( opts.count("collision-a") ) collideA = opts["collision-a"].as<double>();
 
     uint16_t expansionIt = opts["expand-iterations"].as<uint16_t>();
-    if (opts.count("expand-a"))
-        expandA = opts["expand-a"].as<double>();
-    if (opts.count("expand-pins"))
-        ePins_path = opts["expand-pins"].as<std::string>();
+    if ( opts.count("expand-a") ) expandA = opts["expand-a"].as<double>();
+    if ( opts.count("expand-pins") ) ePins_path = opts["expand-pins"].as<std::string>();
 
     // Get Mesh
     vtkSmartPointer<vtkPLYReader> reader = vtkSmartPointer<vtkPLYReader>::New();
-    reader->SetFileName(input_path.c_str());
+    reader->SetFileName ( input_path.c_str() );
     reader->Update();
-    volcart::MeshType::Pointer mesh = volcart::MeshType::New();
+    VC_MeshType::Pointer mesh = VC_MeshType::New();
     volcart::meshing::vtk2itk(reader->GetOutput(), mesh);
 
     // Get pinned points for unfurling step
     volcart::texturing::ClothModelingUVMapping::PinIDs unfurl;
-    getPins(uPins_path, mesh, unfurl);
+    getPins( uPins_path, mesh, unfurl);
 
     // Get pinned points for expansion step
     volcart::texturing::ClothModelingUVMapping::PinIDs expand;
-    getPins(ePins_path, mesh, expand);
+    getPins( ePins_path, mesh, expand);
 
     // Run the simulation
-    volcart::texturing::ClothModelingUVMapping clothUV(
-        mesh, unfurlIt, collisionIt, expansionIt, unfurl, expand);
-    clothUV.setAcceleration(
-        volcart::texturing::ClothModelingUVMapping::Stage::Unfurl, 10);
-    clothUV.setAcceleration(
-        volcart::texturing::ClothModelingUVMapping::Stage::Collision, -10);
-    clothUV.setAcceleration(
-        volcart::texturing::ClothModelingUVMapping::Stage::Expansion, 10);
+    volcart::texturing::ClothModelingUVMapping clothUV( mesh, unfurlIt, collisionIt, expansionIt, unfurl, expand);
+    clothUV.setAcceleration( volcart::texturing::ClothModelingUVMapping::Stage::Unfurl, 10);
+    clothUV.setAcceleration( volcart::texturing::ClothModelingUVMapping::Stage::Collision, -10);
+    clothUV.setAcceleration( volcart::texturing::ClothModelingUVMapping::Stage::Expansion, 10);
     clothUV.run();
 
     // Write the scaled mesh
-    volcart::MeshType::Pointer output = clothUV.getMesh();
-    std::string path = volcart::DATE_TIME() + "_uvMap.obj";
+    VC_MeshType::Pointer output = clothUV.getMesh();
+    std::string path = VC_DATE_TIME() + "_uvMap.obj";
     volcart::io::objWriter writer(path, output);
     writer.write();
 
-    if (!genTexture)
-        return EXIT_SUCCESS;
+    if ( !genTexture ) return EXIT_SUCCESS;
 
     // Convert soft body to itk mesh
     volcart::UVMap uvMap = clothUV.getUVMap();
     int width, height;
 
-    width = std::ceil(uvMap.ratio().width);
-    height = std::ceil(uvMap.ratio().height);
+    width = std::ceil( uvMap.ratio().width );
+    height = std::ceil( uvMap.ratio().height );
 
-    volcart::texturing::compositeTextureV2 result(
-        mesh, vpkg, clothUV.getUVMap(), 7, width, height);
-    volcart::io::objWriter objwriter(
-        "textured.obj", mesh, uvMap, result.texture().getImage(0));
+    volcart::texturing::compositeTextureV2 result( mesh, vpkg, clothUV.getUVMap(), 7, width, height);
+    volcart::io::objWriter objwriter("textured.obj", mesh, uvMap, result.texture().getImage(0));
     objwriter.write();
 
-    if (result.texture().getMask().data)
-        cv::imwrite("PerPixelMask.png", result.texture().getMask());
+    if ( result.texture().getMask().data )
+        cv::imwrite("PerPixelMask.png", result.texture().getMask() );
 
-    if (result.texture().getMap().initialized()) {
-        result.texture().getMap().write("PerPixelMapping");
+    if ( result.texture().getMap().initialized() ) {
+        result.texture().getMap().write( "PerPixelMapping" );
     }
 
     return 0;
 }
 
 /////////// Get pinned points from file //////////
-void getPins(
-    std::string path,
-    volcart::MeshType::Pointer mesh,
-    volcart::texturing::ClothModelingUVMapping::PinIDs& pinList)
-{
+void getPins( std::string path, VC_MeshType::Pointer mesh, volcart::texturing::ClothModelingUVMapping::PinIDs &pinList ) {
 
     // Clear the pin list
     pinList.clear();
 
     // Load the pin list mesh from file
     vtkSmartPointer<vtkPLYReader> reader = vtkSmartPointer<vtkPLYReader>::New();
-    reader->SetFileName(path.c_str());
+    reader->SetFileName ( path.c_str() );
     reader->Update();
-    volcart::MeshType::Pointer pins = volcart::MeshType::New();
+    VC_MeshType::Pointer pins = VC_MeshType::New();
     volcart::meshing::vtk2itk(reader->GetOutput(), pins);
 
     // Setup points locator
-    typename volcart::PointsLocatorType::Pointer pointsLocator =
-        volcart::PointsLocatorType::New();
+    typename VC_PointsLocatorType::Pointer pointsLocator = VC_PointsLocatorType::New();
     pointsLocator->SetPoints(mesh->GetPoints());
     pointsLocator->Initialize();
 
-    // Iterate over all of the pins and find them in the mesh, add their IDs to
-    // the pinList
-    for (volcart::PointsInMeshIterator pin = pins->GetPoints()->Begin();
-         pin != pins->GetPoints()->End(); ++pin) {
-        unsigned long pinID =
-            pointsLocator->FindClosestPoint(pins->GetPoint(pin->Index()));
-        pinList.push_back(pinID);
+    // Iterate over all of the pins and find them in the mesh, add their IDs to the pinList
+    for (VC_PointsInMeshIterator pin = pins->GetPoints()->Begin(); pin != pins->GetPoints()->End(); ++pin) {
+        unsigned long pinID = pointsLocator->FindClosestPoint( pins->GetPoint( pin->Index() ) );
+        pinList.push_back( pinID );
     }
+
 }

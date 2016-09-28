@@ -18,8 +18,8 @@ namespace testing {
 class ParsingHelpers{
 
 public:
-    static void parsePlyFile(const boost::filesystem::path& filepath, std::vector<Vertex> &verts, std::vector<Cell> &faces);
-    static void parseObjFile(const boost::filesystem::path& filepath, std::vector<Vertex> &points, std::vector<Cell> &cells);
+    static void parsePlyFile(const boost::filesystem::path& filepath, std::vector<VC_Vertex> &verts, std::vector<VC_Cell> &faces);
+    static void parseObjFile(const boost::filesystem::path& filepath, std::vector<VC_Vertex> &points, std::vector<VC_Cell> &cells);
 
 private:
     static std::vector<std::string> split_string(std::string input);
