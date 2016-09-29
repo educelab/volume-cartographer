@@ -10,13 +10,19 @@
 
 #include "Global_Values.h"
 
-Global_Values::Global_Values(QRect rec) : _active(false)
-{
-    // GETS THE MONITOR'S SCREEN Length & Width
-    height = rec.height();
-    width = rec.width();
+Global_Values::Global_Values(QRect rec)
 
-}// End of Default Constructor()
+    : height(rec.height())
+    , width(rec.width())
+    , VPKG_Instantiated(false)
+    , _radius(0)
+    , _textureMethod(0)
+    , _sampleDirection(0)
+    , _status(0)
+    , _active(false)
+    , _forcedClose(false)
+
+{ /* Do Nothing*/ }// End of Default Constructor()
 
 int Global_Values::getHeight()
 {

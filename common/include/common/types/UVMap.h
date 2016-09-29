@@ -18,11 +18,11 @@ namespace volcart {
         UVMap() { _origin = VC_ORIGIN_TOP_LEFT; };
         UVMap(VC_Origin o) { _origin = o; };
 
-        size_t size() { return _map.size(); };
-        bool empty() { return _map.empty(); };
+        size_t size() const { return _map.size(); };
+        bool empty() const { return _map.empty(); };
 
         // Get and set origin
-        VC_Origin  origin() { return _origin; };
+        VC_Origin  origin() const { return _origin; };
         void origin(VC_Origin o) { _origin = o; };
 
         // Set the uv mapping for point p_id
@@ -44,7 +44,7 @@ namespace volcart {
         };
 
         // Ratio information
-        VC_Ratio ratio() { return _ratio; };
+        VC_Ratio ratio() const { return _ratio; };
         void ratio( double a ) { _ratio.aspect = a; };
         void ratio( double w, double h ) {
             _ratio.width = w;

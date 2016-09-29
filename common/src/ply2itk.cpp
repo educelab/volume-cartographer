@@ -12,8 +12,8 @@ namespace io
 
 bool ply2itkmesh(boost::filesystem::path plyPath,
                  VC_MeshType::Pointer mesh,
-                 int &width,
-                 int &height)
+                  int &width,
+                  int &height)
 {
     // open ply file
     std::ifstream plyFile(plyPath.string());
@@ -94,12 +94,15 @@ bool ply2itkmesh(boost::filesystem::path plyPath,
                 p[0] = x;
                 p[1] = y;
                 p[2] = z;
-                if (isnan(nx))
+                if (std::isnan(nx)) {
                     nx = 0;
-                if (isnan(ny))
+                }
+                if (std::isnan(ny)) {
                     ny = 0;
-                if (isnan(nz))
+                }
+                if (std::isnan(nz)) {
                     nz = 0;
+                }
                 n[0] = nx;
                 n[1] = ny;
                 n[2] = nz;

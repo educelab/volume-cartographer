@@ -2,10 +2,25 @@ Volume Cartographer Changelog
 =============================
 v2.6.0
 ------
+- apps
+    - Fix bug where VC could get hung in an editing mode (!81)
+    - Fix rare bug in VC-Texture that could cause app to immediately crash (!79)
 - common
-    - __New:__ New Point and PointSet data types (!69)
+    - __New:__ New Point, PointSet, OrderedPointSet data types (!69, !75, !78)
 - meshing
     - __New:__ Added Quadric Edge Collapse Decimation (via vcglib) (!70)
+    - __New:__ Added OrderedPointSetMesher (!71)
+    - Updated testing resources with files that you can actually open (!74)
+    - Remove unused PCL functions (!77)
+- testing
+    - Added tests for ParsingHelpers (!76)
+- utils
+    - New util to convert PCDs to OrderedPointSet (!72)
+- volumepkg
+    - Version with integers instead of silly doubles (!80)
+- cmake
+    - Compiler sanitizer support (!73)
+    - Use pragma once for header guards (!68)
 
 v2.5.0
 ------

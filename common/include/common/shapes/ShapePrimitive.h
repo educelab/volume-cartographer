@@ -29,13 +29,13 @@ namespace shapes {
         pcl::PointCloud<pcl::PointXYZRGB> pointCloudXYZRGB(); //for orderedPCDMesher
 
         //overload
-        std::vector<VC_Vertex> getPoints() {return _points;}
-        std::vector<VC_Cell> getCells() {return _cells;}
+        std::vector<VC_Vertex> getPoints() const {return _points;}
+        std::vector<VC_Cell> getCells() const {return _cells;}
 
         //ordering
-        bool     isOrdered()     { return _orderedPoints; };
-        uint32_t orderedWidth()  { return _orderedWidth;  };
-        uint32_t orderedHeight() { return _orderedHeight; };
+        bool     isOrdered()     const { return _orderedPoints; };
+        uint32_t orderedWidth()  const { return _orderedWidth;  };
+        uint32_t orderedHeight() const { return _orderedHeight; };
 
     protected:
         std::vector<VC_Vertex> _points;

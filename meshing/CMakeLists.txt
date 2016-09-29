@@ -4,13 +4,13 @@ set(target vc_meshing)
 set(srcs
     src/deepCopy.cpp
     src/itk2vtk.cpp
-    src/orderedPCDMesher.cpp
     src/rayTrace.cpp
-    src/resamplePointCloud.cpp
     src/scaleMesh.cpp
     src/smoothNormals.cpp
     src/CalculateNormals.cpp
     src/OrderedResampling.cpp
+    src/OrderedPointSetMesher.cpp
+    src/orderedPCDMesher.cpp
 )
 set(deps
     vc_common
@@ -74,9 +74,9 @@ set(test_srcs
     test/itk2vtkTest.cpp
     test/orderedPCDMesherTest.cpp
     test/rayTraceTest.cpp
-    test/resamplePointCloudTest.cpp
     test/scaleMeshTest.cpp
     test/smoothNormalsTest.cpp
+    test/OrderedPointSetMesherTest.cpp
 )
 
 if(VC_USE_VCG)
@@ -134,13 +134,6 @@ set(RAYTRACE_EXAMPLE_TEST_RES
     test/res/SavedConeRayTraceData.ply
     test/res/SavedSphereRayTraceData.ply
 )
-set(RESAMPLED_POINT_CLOUD_TEST_RES
-    test/res/PlaneResamplePointCloudExample.pcd
-    test/res/CubeResamplePointCloudExample.pcd
-    test/res/ArchResamplePointCloudExample.pcd
-    test/res/SphereResamplePointCloudExample.pcd
-    test/res/ConeResamplePointCloudExample.pcd
-)
 set(SMOOTH_NORMALS_TEST_RES
     test/res/PlaneWithSmoothedNormals.obj
     test/res/CubeWithSmoothedNormals.obj
@@ -159,6 +152,9 @@ set(ORDERED_RESAMPLING_TEST_RES
     test/res/OrderedResampling_Plane.obj
     test/res/OrderedResampling_Arch.obj
 )
+set(ORDERED_POINT_SET_MESHER_TEST_RES
+    test/res/OrderedPointSetMesher_Plane.obj
+    test/res/OrderedPointSetMesher_Arch.obj)
 
 set(MESHING_TEST_RES
     ${ITK_VTK_TEST_RES}
@@ -169,6 +165,7 @@ set(MESHING_TEST_RES
     ${SCALE_MESH_TEST_RES}
     ${ORDERED_RESAMPLING_TEST_RES}
     ${QUADRIC_EDGE_COLLAPSE_DECIMATION_TEST_RES}
+    ${ORDERED_POINT_SET_MESHER_TEST_RES}
 )
 
 foreach(r ${MESHING_TEST_RES})

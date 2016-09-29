@@ -5,12 +5,7 @@ stages:
     - collect
     - deploy
 
-lint:
-    stage: lint
-    script:
-        - echo $CI_BUILD_REF_NAME $CI_BUILD_STAGE
-        - scripts/clang-format.py
-
+### Debian ###
 build:debian:
     image: volcart/vcbuilder-debian:latest
     stage: build
@@ -56,6 +51,7 @@ test:debian:
         - qt5
         - ninja
 
+### OSX ###
 build:osx:
     stage: build
     script:
@@ -98,6 +94,19 @@ test:osx:
         - homebrew
         - qt5
         - ninja
+
+
+### Extra Checks and Tests ###
+clang-format:
+    before_script:
+      - git fetch --all
+    stage: test
+    script:
+        - echo $CI_BUILD_REF_NAME $CI_BUILD_STAGE
+        - scripts/clang-format.py --no-diff
+    allow_failure: yes
+    tags:
+        - source
 
 collect:source:
     only:
@@ -155,6 +164,7 @@ deploy:
         - mkdir -p ~/Dropbox/VC-Releases/v${version}
         - cp VC*.dmg ~/Dropbox/VC-Releases/v${version}
         - cp VC-${vershort}-source.tar.gz ~/Dropbox/VC-Releases/v${version}
+    environment: production
     tags:
         - deploy
         - osx

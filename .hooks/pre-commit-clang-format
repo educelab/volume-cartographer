@@ -14,6 +14,9 @@
 
 ##################################################################
 # SETTINGS
+# Make sure /usr/local/bin is the in the path
+export PATH=/usr/local/bin/:$PATH
+
 # set path to clang-format binary
 # CLANG_FORMAT="/usr/bin/clang-format"
 CLANG_FORMAT=`which clang-format`
@@ -129,12 +132,17 @@ if [ ! -s "$patch"  ] ; then
     printf "Files in this commit comply with the clang-format rules.\n"
     rm -f "$patch"
     exit 0
+else
+    printf "Files in this commit do not comply with the clang-format rules!\n"
 fi
 
 # a patch has been created, notify the user and exit
 printf "\nThe following differences were found between the code to commit "
 printf "and the clang-format rules:\n\n"
 cat "$patch"
+
+printf "\n\nA patch with these changes has been written to:\n\t$patch "
+printf "\n\nYou can apply these changes with:\n git apply $patch\n\n"
 
 # Allows us to read user input below, assigns stdin to keyboard
 exec < /dev/tty

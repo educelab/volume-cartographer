@@ -31,23 +31,12 @@ target_link_libraries(vc_smooth_normals_example vc_common vc_meshing)
 add_executable(vc_scale_mesh_example src/scaleMeshExample.cpp)
 target_link_libraries(vc_scale_mesh_example vc_common vc_meshing ITKIOMesh)
 
-add_executable(vc_resample_point_cloud_example
-    src/resamplePointCloudExample.cpp
-)
-target_link_libraries(vc_resample_point_cloud_example vc_common vc_meshing)
 
 add_executable(vc_raytrace_example src/rayTraceExample.cpp)
 target_link_libraries(vc_raytrace_example vc_common vc_meshing)
 
 add_executable(vc_ply_exporter_example src/plyExporterExample.cpp)
 target_link_libraries(vc_ply_exporter_example vc_common vc_texturing)
-
-add_executable(vc_parsing_helpers_example src/parsingHelpersExample.cpp)
-target_link_libraries(vc_parsing_helpers_example
-    vc_common
-    vc_testing
-    vc_meshing
-)
 
 add_executable(vc_ordered_pcd_mesher_example src/orderedPCDMesherExample.cpp)
 target_link_libraries(vc_ordered_pcd_mesher_example vc_common vc_meshing)
@@ -108,3 +97,9 @@ if(VC_USE_VCG)
     add_executable(vc_quadric_edge_collapse_decimation_example src/QuadricEdgeCollapseDecimationExample.cpp)
     target_link_libraries(vc_quadric_edge_collapse_decimation_example vc_meshing)
 endif()
+
+add_executable(vc_asantest src/ASANTest.cpp)
+add_sanitizers(vc_asantest)
+
+add_executable(vc_orderedPointSetMesher_example src/OrderedPointSetMesherExample.cpp)
+target_link_libraries(vc_orderedPointSetMesher_example vc_meshing)
