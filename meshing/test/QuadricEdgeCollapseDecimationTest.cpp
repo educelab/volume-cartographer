@@ -16,6 +16,7 @@
 #include "common/shapes/Sphere.h"
 #include "meshing/CalculateNormals.h"
 
+using namespace volcart;
 
 /************************************************************************************
  *                                                                                  *
