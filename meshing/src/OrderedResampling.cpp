@@ -14,7 +14,7 @@ OrderedResampling::OrderedResampling()
     _inHeight = 0;
 }//constructor
 
-OrderedResampling::OrderedResampling(MeshType::Pointer mesh, int in_width, int in_height)
+OrderedResampling::OrderedResampling(ITKMesh::Pointer mesh, int in_width, int in_height)
 {
     _input = mesh;
     _inWidth  = in_width ;
@@ -22,14 +22,14 @@ OrderedResampling::OrderedResampling(MeshType::Pointer mesh, int in_width, int i
 }//constructor with parameters
 
 //// Set Inputs/Get Output ////
-void OrderedResampling::setMesh(MeshType::Pointer mesh, int in_width, int in_height)
+void OrderedResampling::setMesh(ITKMesh::Pointer mesh, int in_width, int in_height)
 {
     _input = mesh;
     _inWidth = in_width;
     _inHeight = in_height;
 }//setParameters
 
-volcart::MeshType::Pointer OrderedResampling::getOutputMesh() const
+volcart::ITKMesh::Pointer OrderedResampling::getOutputMesh() const
 {
     if(_output.IsNull())
     {
@@ -46,7 +46,7 @@ int OrderedResampling::getOutputHeight() const { return _outHeight; };
 ///// Processing /////
 void OrderedResampling::compute()
 {
-    _output = MeshType::New();
+    _output = ITKMesh::New();
 
     // Dimensions of resampled, ordered mesh
     _outWidth  = ( _inWidth  + 1 ) / 2;
@@ -57,7 +57,7 @@ void OrderedResampling::compute()
 
     //Loop iterator
     unsigned long k = 0;
-    PointsInMeshIterator pointsIterator = _input->GetPoints()->Begin();
+    ITKPointIterator pointsIterator = _input->GetPoints()->Begin();
 
     // Adds certain points from old mesh into the new mesh
     for( ; pointsIterator != _input->GetPoints()->End(); pointsIterator++, k++) {
@@ -117,9 +117,9 @@ void OrderedResampling::compute()
 
 void OrderedResampling::_addCell( unsigned long a, unsigned long b, unsigned long c )
 {
-    CellType::CellAutoPointer current_C;
+    ITKCell::CellAutoPointer current_C;
 
-    current_C.TakeOwnership(new TriangleType);
+    current_C.TakeOwnership(new ITKTriangle);
 
     current_C->SetPointId(0, a);
     current_C->SetPointId(1, b);

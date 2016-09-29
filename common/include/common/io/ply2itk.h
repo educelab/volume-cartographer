@@ -15,7 +15,7 @@ namespace volcart
 namespace io
 {
 bool ply2itkmesh(boost::filesystem::path plyPath,
-                 MeshType::Pointer mesh,
+                 ITKMesh::Pointer mesh,
                  int &width,
                  int &height);
 }

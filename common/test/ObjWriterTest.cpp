@@ -64,7 +64,7 @@ struct WriteMeshUsingOBJWriterFixture {
     ~WriteMeshUsingOBJWriterFixture(){ std::cerr << "Cleaning up test objects" << std::endl; }
 
     volcart::shapes::Plane _Plane;
-    MeshType::Pointer _in_PlaneITKMesh ;
+    ITKMesh::Pointer _in_PlaneITKMesh ;
     std::vector<Vertex>_SavedPlanePoints;
     std::vector<Cell> _SavedPlaneCells;
 };
@@ -87,10 +87,10 @@ BOOST_FIXTURE_TEST_CASE(CompareWrittenMeshDataWithFixtureCreatedMesh, WriteMeshU
 
     // Normals //
     int p =0;
-    PointsInMeshIterator point = _in_PlaneITKMesh->GetPoints()->Begin();
+    ITKPointIterator point = _in_PlaneITKMesh->GetPoints()->Begin();
     for ( ; point != _in_PlaneITKMesh->GetPoints()->End(); ++point ) {
 
-        PixelType _in_PlaneITKMeshNormal;
+        ITKPixel _in_PlaneITKMeshNormal;
         _in_PlaneITKMesh->GetPointData(point.Index(), &_in_PlaneITKMeshNormal);
 
         //Now compare the normals for the two meshes
@@ -104,14 +104,14 @@ BOOST_FIXTURE_TEST_CASE(CompareWrittenMeshDataWithFixtureCreatedMesh, WriteMeshU
     //Cells (faces)
 
     // Initialize Cell Iterators
-    CellIterator _in_PlaneITKMeshCell = _in_PlaneITKMesh->GetCells()->Begin();
+    ITKCellIterator _in_PlaneITKMeshCell = _in_PlaneITKMesh->GetCells()->Begin();
 
     int c = 0;
 
     while (_in_PlaneITKMeshCell != _in_PlaneITKMesh->GetCells()->End()) {
 
         //Initialize Iterators for Points in a Cell
-        PointsInCellIterator _in_PlaneITKMeshPointId = _in_PlaneITKMeshCell.Value()->PointIdsBegin();
+        ITKPointInCellIterator _in_PlaneITKMeshPointId = _in_PlaneITKMeshCell.Value()->PointIdsBegin();
 
         int counter = 0;
         //while we have points in the cell

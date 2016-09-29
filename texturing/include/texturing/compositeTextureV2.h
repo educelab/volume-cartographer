@@ -23,7 +23,7 @@ namespace texturing {
             cv::Vec3d Normal;
         };
 
-        compositeTextureV2( MeshType::Pointer inputMesh,
+        compositeTextureV2( ITKMesh::Pointer inputMesh,
                             VolumePkg& volpkg,
                             UVMap uvMap,
                             double radius,
@@ -40,7 +40,7 @@ namespace texturing {
         cv::Vec3d _CartesianCoord  ( const cv::Vec3d &nUVW, const cv::Vec3d &nA, const cv::Vec3d &nB, const cv::Vec3d &nC );
 
         // Variables
-        MeshType::Pointer _input;
+        ITKMesh::Pointer _input;
         VolumePkg& _volpkg;
         int _width;
         int _height;
@@ -52,8 +52,8 @@ namespace texturing {
         Texture _texture;
 
         std::vector< cellInfo > _cellInformation;
-        MeshType::Pointer _cellCentroids;
-        PointsLocatorType::Pointer _kdTree;
+        ITKMesh::Pointer _cellCentroids;
+        ITKPointsLocator::Pointer _kdTree;
     };
 
 }

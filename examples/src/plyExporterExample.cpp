@@ -13,7 +13,7 @@ int main( int argc, char* argv[] ) {
   cv::Mat uvImg = cv::imread( argv[2], CV_LOAD_IMAGE_ANYCOLOR | CV_LOAD_IMAGE_ANYDEPTH );
 
   // declare pointer to new Mesh object
-  auto inputMesh = volcart::MeshType::New();
+  auto inputMesh = volcart::ITKMesh::New();
 
   int meshWidth = -1;
   int meshHeight = -1;

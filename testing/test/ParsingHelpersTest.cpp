@@ -44,7 +44,7 @@ struct PlaneFixture {
         _input = plane.itkMesh();
     }
 
-    MeshType::Pointer _input;
+    ITKMesh::Pointer _input;
     std::vector<Vertex> _SavedPoints;
     std::vector<Cell> _SavedCells;
 };
@@ -69,7 +69,7 @@ BOOST_FIXTURE_TEST_CASE(ParseOBJTest, PlaneFixture)
         SmallOrClose(_input->GetPoint(pnt_id)[1], _SavedPoints[pnt_id].y);
         SmallOrClose(_input->GetPoint(pnt_id)[2], _SavedPoints[pnt_id].z);
 
-        PixelType out_Normal;
+        ITKPixel out_Normal;
         _input->GetPointData(pnt_id, &out_Normal);
 
         // Now compare the normals for the two meshes
@@ -82,7 +82,7 @@ BOOST_FIXTURE_TEST_CASE(ParseOBJTest, PlaneFixture)
     // the same in both
     BOOST_CHECK_EQUAL(_input->GetNumberOfCells(), _SavedCells.size());
     for (size_t cell_id = 0; cell_id < _SavedCells.size(); cell_id++) {
-        CellType::CellAutoPointer current_C;
+        ITKCell::CellAutoPointer current_C;
         _input->GetCell(cell_id, current_C);
         BOOST_CHECK_EQUAL(current_C->GetPointIds()[0], _SavedCells[cell_id].v1);
         BOOST_CHECK_EQUAL(current_C->GetPointIds()[1], _SavedCells[cell_id].v2);
@@ -110,7 +110,7 @@ BOOST_FIXTURE_TEST_CASE(ParsePLYTest, PlaneFixture)
         SmallOrClose(_input->GetPoint(pnt_id)[1], _SavedPoints[pnt_id].y);
         SmallOrClose(_input->GetPoint(pnt_id)[2], _SavedPoints[pnt_id].z);
 
-        PixelType out_Normal;
+        ITKPixel out_Normal;
         _input->GetPointData(pnt_id, &out_Normal);
 
         // Now compare the normals for the two meshes
@@ -123,7 +123,7 @@ BOOST_FIXTURE_TEST_CASE(ParsePLYTest, PlaneFixture)
     // the same in both
     BOOST_CHECK_EQUAL(_SavedCells.size(), _input->GetNumberOfCells());
     for (size_t cell_id = 0; cell_id < _SavedCells.size(); cell_id++) {
-        CellType::CellAutoPointer current_C;
+        ITKCell::CellAutoPointer current_C;
         _input->GetCell(cell_id, current_C);
         BOOST_CHECK_EQUAL(current_C->GetPointIds()[0], _SavedCells[cell_id].v1);
         BOOST_CHECK_EQUAL(current_C->GetPointIds()[1], _SavedCells[cell_id].v2);

@@ -44,20 +44,20 @@ struct Ratio {
 };
 
 ///// VC - ITK Mesh Defaults /////
-using PixelType = itk::Vector<double, 3>;
-using MeshTraits =
-    itk::DefaultStaticMeshTraits<PixelType, 3, 3, double, double, PixelType>;
-using MeshType = itk::Mesh<PixelType, 3, MeshTraits>;
-using PointType = MeshType::PointType;
-using CellType = MeshType::CellType;
-using TriangleType = itk::TriangleCell<CellType>;
+using ITKPixel = itk::Vector<double, 3>;
+using ITKMeshTraits =
+    itk::DefaultStaticMeshTraits<ITKPixel, 3, 3, double, double, ITKPixel>;
+using ITKMesh = itk::Mesh<ITKPixel, 3, ITKMeshTraits>;
+using ITKPoint = ITKMesh::PointType;
+using ITKCell = ITKMesh::CellType;
+using ITKTriangle = itk::TriangleCell<ITKCell>;
 
-using PointsContainerType = MeshType::PointsContainer;
-using PointsLocatorType = itk::PointsLocator<PointsContainerType>;
+using ITKPointsContainer = ITKMesh::PointsContainer;
+using ITKPointsLocator = itk::PointsLocator<ITKPointsContainer>;
 
-using PointsInMeshIterator = MeshType::PointsContainer::ConstIterator;
-using CellIterator = MeshType::CellsContainer::Iterator;
-using PointsInCellIterator = CellType::PointIdIterator;
+using ITKPointIterator = ITKPointsContainer::ConstIterator;
+using ITKCellIterator = ITKMesh::CellsContainer::Iterator;
+using ITKPointInCellIterator = ITKCell::PointIdIterator;
 
 ///// VC - ITK QuadEdgeMesh Defines /////
 using QuadPixel = std::array<double, 3>;

@@ -39,7 +39,7 @@ int main( int argc, char* argv[] ) {
   fs::path meshName = vpkg.getMeshPath();
 
   // declare pointer to new Mesh object
-  auto input = volcart::MeshType::New();
+  auto input = volcart::ITKMesh::New();
   int meshWidth = -1;
   int meshHeight = -1;
 
@@ -66,7 +66,7 @@ int main( int argc, char* argv[] ) {
   smoother->SetCoefficientsMethod( &coeff0 );
   smoother->Update();
 
-  auto smoothed = volcart::MeshType::New();
+  auto smoothed = volcart::ITKMesh::New();
   volcart::meshing::itkQE2itk( smoother->GetOutput(), smoothed );
 
   // Convert to polydata
@@ -85,7 +85,7 @@ int main( int argc, char* argv[] ) {
   Cleaner->ToleranceIsAbsoluteOn();
   Cleaner->Update();
 
-  auto itkACVD = volcart::MeshType::New();
+  auto itkACVD = volcart::ITKMesh::New();
   volcart::meshing::vtk2itk( Cleaner->GetOutput(), itkACVD );
 
   // ABF flattening

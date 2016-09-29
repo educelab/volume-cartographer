@@ -30,10 +30,10 @@ volcart::Texture Rendering::getTexture() const {
   return _texture;
 }
 
-void Rendering::setMesh( MeshType::Pointer mesh ) {
+void Rendering::setMesh( ITKMesh::Pointer mesh ) {
   _mesh = mesh;
 }
 
-MeshType::Pointer Rendering::getMesh() const {
+ITKMesh::Pointer Rendering::getMesh() const {
   return _mesh;
 }

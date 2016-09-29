@@ -255,7 +255,7 @@ int VolumePkg::saveMesh(
     }
 }
 
-void VolumePkg::saveMesh(const volcart::MeshType::Pointer& mesh,
+void VolumePkg::saveMesh(const volcart::ITKMesh::Pointer& mesh,
                          volcart::Texture& texture) const
 {
     volcart::io::objWriter writer;

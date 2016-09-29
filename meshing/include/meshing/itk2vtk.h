@@ -18,22 +18,22 @@ namespace volcart {
 
         class itk2vtk {
         public:
-            itk2vtk( MeshType::Pointer input, vtkSmartPointer<vtkPolyData> output );
+            itk2vtk( ITKMesh::Pointer input, vtkSmartPointer<vtkPolyData> output );
         };
 
         class vtk2itk {
         public:
-            vtk2itk( vtkSmartPointer<vtkPolyData> input, MeshType::Pointer output );
+            vtk2itk( vtkSmartPointer<vtkPolyData> input, ITKMesh::Pointer output );
         };
 
         class itk2itkQE {
         public:
-            itk2itkQE( MeshType::Pointer input, volcart::QuadMesh::Pointer output );
+            itk2itkQE( ITKMesh::Pointer input, volcart::QuadMesh::Pointer output );
         };
 
         class itkQE2itk {
         public:
-            itkQE2itk( volcart::QuadMesh::Pointer input, MeshType::Pointer output );
+            itkQE2itk( volcart::QuadMesh::Pointer input, ITKMesh::Pointer output );
         };
 
     } // namespace meshing

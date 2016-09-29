@@ -15,10 +15,10 @@ void OrderedPointSetMesher::compute()
         throw std::invalid_argument("Attempted to mesh empty point set.");
 
     // Create a clean output mesh
-    output_ = MeshType::New();
+    output_ = ITKMesh::New();
 
     // Transfer the vertex info
-    PointType temp_pt;
+    ITKPoint temp_pt;
     size_t cnt = 0;
     for (auto& i : input_) {
         temp_pt[0] = i[0];
@@ -62,9 +62,9 @@ void OrderedPointSetMesher::compute()
 
 void OrderedPointSetMesher::addCell_(size_t a, size_t b, size_t c)
 {
-    CellType::CellAutoPointer current_C;
+    ITKCell::CellAutoPointer current_C;
 
-    current_C.TakeOwnership(new TriangleType);
+    current_C.TakeOwnership(new ITKTriangle);
 
     current_C->SetPointId(0, a);
     current_C->SetPointId(1, b);

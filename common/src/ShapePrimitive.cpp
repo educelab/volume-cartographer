@@ -11,13 +11,13 @@ namespace shapes
 
 ///// Type Conversions /////
 // return an itk mesh
-MeshType::Pointer ShapePrimitive::itkMesh()
+ITKMesh::Pointer ShapePrimitive::itkMesh()
 {
-    MeshType::Pointer output = MeshType::New();
+    ITKMesh::Pointer output = ITKMesh::New();
 
     // points + normals
-    PointType point;
-    PixelType normal;
+    ITKPoint point;
+    ITKPixel normal;
     for (unsigned long p_id = 0; p_id < _points.size(); ++p_id) {
         point[0] = _points[p_id].x;
         point[1] = _points[p_id].y;
@@ -31,9 +31,9 @@ MeshType::Pointer ShapePrimitive::itkMesh()
     }
 
     // cells
-    CellType::CellAutoPointer cell;
+    ITKCell::CellAutoPointer cell;
     for (unsigned long c_id = 0; c_id < _cells.size(); ++c_id) {
-        cell.TakeOwnership(new TriangleType);
+        cell.TakeOwnership(new ITKTriangle);
         cell->SetPointId(0, _cells[c_id].v1);
         cell->SetPointId(1, _cells[c_id].v2);
         cell->SetPointId(2, _cells[c_id].v3);

@@ -137,8 +137,8 @@ int main(int argc, char* argv[])
     fs::path meshName = vpkg.getMeshPath();
 
     // declare pointer to new Mesh object
-    MeshType::Pointer input = MeshType::New();
-    MeshType::Pointer workingMesh = MeshType::New();
+    ITKMesh::Pointer input = ITKMesh::New();
+    ITKMesh::Pointer workingMesh = ITKMesh::New();
 
     int meshWidth = -1;
     int meshHeight = -1;

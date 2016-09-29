@@ -15,7 +15,7 @@ VolumePkg* _volpkg;
 cv::Mat _texture, _perPixelMask, _currentSlice;
 volcart::PerPixelMap _perPixelMap;
 
-PointType lookup2Dto3D( int x, int y);
+ITKPoint lookup2Dto3D( int x, int y);
 #define RED cv::Scalar(0,0,255)
 #define RED_OVERLAY cv::Scalar(0,0,255,0.25)
 
@@ -55,7 +55,7 @@ int main ( int argc, char* argv[] ) {
   int feature_slice_z = std::floor( mapInfo(2) );
 
   // Iterate over ROI
-  MeshType::Pointer outputMesh = MeshType::New();
+  ITKMesh::Pointer outputMesh = ITKMesh::New();
   volcart::Texture texture;
   texture.addImage( textureROI );
   double u, v;
@@ -65,8 +65,8 @@ int main ( int argc, char* argv[] ) {
     for ( int x = 0; x < width; ++x ) {
       if ( maskROI.at< unsigned char >(y,x) == 255 ) {
         mapInfo = _perPixelMap(top_left.y + y, top_left.x + x);
-        PointType pt;
-        PixelType normal;
+        ITKPoint pt;
+        ITKPixel normal;
         pt[0] = mapInfo(0);
         pt[1] = mapInfo(1);
         pt[2] = mapInfo(2);
@@ -87,7 +87,7 @@ int main ( int argc, char* argv[] ) {
   }
 
   // generate the faces
-  CellType::CellAutoPointer cellpointer;
+  ITKCell::CellAutoPointer cellpointer;
   unsigned long cell_counter = 0;
   for (int i = 1; i < height; ++i) {
     for (int j = 1; j < width; ++j) {
@@ -97,14 +97,14 @@ int main ( int argc, char* argv[] ) {
       v3 = v2 - width;
       v4 = v1 - width;
 
-      cellpointer.TakeOwnership( new TriangleType );
+      cellpointer.TakeOwnership( new ITKTriangle );
       cellpointer->SetPointId( 0, v1 );
       cellpointer->SetPointId( 1, v2 );
       cellpointer->SetPointId( 2, v3 );
       outputMesh->SetCell( cell_counter, cellpointer );
       ++cell_counter;
 
-      cellpointer.TakeOwnership( new TriangleType );
+      cellpointer.TakeOwnership( new ITKTriangle );
       cellpointer->SetPointId( 0, v1 );
       cellpointer->SetPointId( 1, v3 );
       cellpointer->SetPointId( 2, v4 );
@@ -151,8 +151,8 @@ int main ( int argc, char* argv[] ) {
   return EXIT_SUCCESS;
 }
 
-PointType lookup2Dto3D( int y, int x ) {
-  PointType pt;
+ITKPoint lookup2Dto3D( int y, int x ) {
+  ITKPoint pt;
   pt[0] = _perPixelMap(y,x)(0);
   pt[1] = _perPixelMap(y,x)(1);
   pt[2] = _perPixelMap(y,x)(2);

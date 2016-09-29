@@ -15,7 +15,7 @@ namespace volcart {
     namespace texturing {
         class compositeTexture {
         public:
-            compositeTexture( MeshType::Pointer inputMesh,
+            compositeTexture( ITKMesh::Pointer inputMesh,
                               VolumePkg& volpkg,
                               int output_w,
                               int output_h,
@@ -23,7 +23,7 @@ namespace volcart {
                               CompositeOption compositeMethod,
                               DirectionOption compositeDirection);
 
-            compositeTexture( MeshType::Pointer inputMesh,
+            compositeTexture( ITKMesh::Pointer inputMesh,
                               VolumePkg& volpkg,
                               UVMap uvMap,
                               double radius,
@@ -35,7 +35,7 @@ namespace volcart {
             int _process();
 
             // Variables
-            MeshType::Pointer _input;
+            ITKMesh::Pointer _input;
             VolumePkg& _volpkg;
             int _width;
             int _height;

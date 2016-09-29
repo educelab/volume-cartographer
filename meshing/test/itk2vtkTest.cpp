@@ -95,7 +95,7 @@ struct itk2vtkPlaneFixture {
     volcart::shapes::Plane _Plane;
 
     //declare itk input mesh object
-    MeshType::Pointer _in_Mesh;
+    ITKMesh::Pointer _in_Mesh;
 
     //declare vtk output polydata object
     vtkPolyData* _out_Mesh;
@@ -121,7 +121,7 @@ struct itk2vtkCubeFixture {
     ~itk2vtkCubeFixture(){ /*std::cerr << "cleaning up itk2vtk Cube test objects" << std::endl;*/ }
 
     volcart::shapes::Cube _Cube;
-    MeshType::Pointer _in_Mesh;
+    ITKMesh::Pointer _in_Mesh;
     vtkPolyData* _out_Mesh;
     std::vector<Vertex> _SavedPoints;
     std::vector<Cell> _SavedCells;
@@ -145,7 +145,7 @@ struct itk2vtkArchFixture {
     ~itk2vtkArchFixture(){ /*std::cerr << "cleaning up itk2vtk Arch test objects" << std::endl;*/ }
 
     volcart::shapes::Arch _Arch;
-    MeshType::Pointer _in_Mesh;
+    ITKMesh::Pointer _in_Mesh;
     vtkPolyData* _out_Mesh;
     std::vector<Vertex> _SavedPoints;
     std::vector<Cell> _SavedCells;
@@ -168,7 +168,7 @@ struct itk2vtkSphereFixture {
     ~itk2vtkSphereFixture(){ /*std::cerr << "cleaning up itk2vtk Sphere test objects" << std::endl;*/ }
 
     volcart::shapes::Sphere _Sphere;
-    MeshType::Pointer _in_Mesh;
+    ITKMesh::Pointer _in_Mesh;
     vtkPolyData* _out_Mesh;
     std::vector<Vertex> _SavedPoints;
     std::vector<Cell> _SavedCells;
@@ -191,7 +191,7 @@ struct itk2vtkConeFixture {
     ~itk2vtkConeFixture(){ /*std::cerr << "cleaning up itk2vtk Cone test objects" << std::endl;*/ }
 
     volcart::shapes::Cone _Cone;
-    MeshType::Pointer _in_Mesh;
+    ITKMesh::Pointer _in_Mesh;
     vtkPolyData* _out_Mesh;
     std::vector<Vertex> _SavedPoints;
     std::vector<Cell> _SavedCells;
@@ -201,9 +201,9 @@ struct itk2vtkConeFixture {
 // This fixture builds a simple plane but *does not* calculate normals for the faces
 struct NoNormalsFixture {
     NoNormalsFixture(){
-        _itk_Mesh = MeshType::New();
+        _itk_Mesh = ITKMesh::New();
 
-        PointType p0, p1, p2, p3;
+        ITKPoint p0, p1, p2, p3;
         p0[0] = 0.0; p0[1] = 0.0; p0[2] = 0.0;
         p1[0] = 1.0; p1[1] = 0.0; p1[2] = 0.0;
         p2[0] = 0.0; p2[1] = 1.0; p2[2] = 0.0;
@@ -213,10 +213,10 @@ struct NoNormalsFixture {
         _itk_Mesh->SetPoint(2, p2);
         _itk_Mesh->SetPoint(3, p3);
 
-        CellType::CellAutoPointer cell_0;
-        CellType::CellAutoPointer cell_1;
-        cell_0.TakeOwnership(new TriangleType);
-        cell_1.TakeOwnership(new TriangleType);
+        ITKCell::CellAutoPointer cell_0;
+        ITKCell::CellAutoPointer cell_1;
+        cell_0.TakeOwnership(new ITKTriangle);
+        cell_1.TakeOwnership(new ITKTriangle);
 
         cell_0->SetPointId(0,0);
         cell_0->SetPointId(1,1);
@@ -230,7 +230,7 @@ struct NoNormalsFixture {
         _itk_Mesh->SetCell(1,cell_1);
     }
 
-    MeshType::Pointer _itk_Mesh;
+    ITKMesh::Pointer _itk_Mesh;
 };
 
 
@@ -245,7 +245,7 @@ struct vtk2itkPlaneFixture {
     vtk2itkPlaneFixture() {
 
         _in_Mesh = _Plane.vtkMesh();
-        _out_Mesh = MeshType::New();
+        _out_Mesh = ITKMesh::New();
 
         // assign smartpointer data into vtkPolyData* object
         vtkReadPlaneData = _in_Mesh.GetPointer();
@@ -272,7 +272,7 @@ struct vtk2itkPlaneFixture {
     vtkPolyData* vtkReadPlaneData;
 
     //declare mesh to hold output of vtk2itk call
-    MeshType::Pointer _out_Mesh;
+    ITKMesh::Pointer _out_Mesh;
 
     //declare vectors to hold points and cells from savedITK data file created by itk2vtkExample.cpp
     std::vector<Vertex> _SavedPoints;
@@ -285,7 +285,7 @@ struct vtk2itkCubeFixture {
     vtk2itkCubeFixture() {
 
         _in_Mesh = _Cube.vtkMesh();
-        _out_Mesh = MeshType::New();
+        _out_Mesh = ITKMesh::New();
         vtkReadCubeData = _in_Mesh.GetPointer();
         volcart::meshing::vtk2itk(vtkReadCubeData, _out_Mesh);
         volcart::testing::ParsingHelpers::parseObjFile("VTKCubeMeshConvertedToITK.obj",
@@ -299,7 +299,7 @@ struct vtk2itkCubeFixture {
     volcart::shapes::Cube _Cube;
     vtkSmartPointer<vtkPolyData> _in_Mesh;
     vtkPolyData* vtkReadCubeData;
-    MeshType::Pointer _out_Mesh;
+    ITKMesh::Pointer _out_Mesh;
     std::vector<Vertex> _SavedPoints;
     std::vector<Cell> _SavedCells;
 
@@ -311,7 +311,7 @@ struct vtk2itkArchFixture {
     vtk2itkArchFixture() {
 
         _in_Mesh = _Arch.vtkMesh();
-        _out_Mesh = MeshType::New();
+        _out_Mesh = ITKMesh::New();
         vtkReadArchData = _in_Mesh.GetPointer();
         volcart::meshing::vtk2itk(vtkReadArchData, _out_Mesh);
         volcart::testing::ParsingHelpers::parseObjFile("VTKArchMeshConvertedToITK.obj",
@@ -325,7 +325,7 @@ struct vtk2itkArchFixture {
     volcart::shapes::Arch _Arch;
     vtkSmartPointer<vtkPolyData> _in_Mesh;
     vtkPolyData* vtkReadArchData;
-    MeshType::Pointer _out_Mesh;
+    ITKMesh::Pointer _out_Mesh;
     std::vector<Vertex> _SavedPoints;
     std::vector<Cell> _SavedCells;
 
@@ -336,7 +336,7 @@ struct vtk2itkSphereFixture {
     vtk2itkSphereFixture() {
 
         _in_Mesh = _Sphere.vtkMesh();
-        _out_Mesh = MeshType::New();
+        _out_Mesh = ITKMesh::New();
         vtkReadSphereData = _in_Mesh.GetPointer();
         volcart::meshing::vtk2itk(vtkReadSphereData, _out_Mesh);
         volcart::testing::ParsingHelpers::parseObjFile("VTKSphereMeshConvertedToITK.obj",
@@ -350,7 +350,7 @@ struct vtk2itkSphereFixture {
     volcart::shapes::Sphere _Sphere;
     vtkSmartPointer<vtkPolyData> _in_Mesh;
     vtkPolyData* vtkReadSphereData;
-    MeshType::Pointer _out_Mesh;
+    ITKMesh::Pointer _out_Mesh;
     std::vector<Vertex> _SavedPoints;
     std::vector<Cell> _SavedCells;
 
@@ -361,7 +361,7 @@ struct vtk2itkConeFixture {
     vtk2itkConeFixture() {
 
         _in_Mesh = _Cone.vtkMesh();
-        _out_Mesh = MeshType::New();
+        _out_Mesh = ITKMesh::New();
         vtkReadConeData = _in_Mesh.GetPointer();
         volcart::meshing::vtk2itk(vtkReadConeData, _out_Mesh);
         volcart::testing::ParsingHelpers::parseObjFile("VTKConeMeshConvertedToITK.obj",
@@ -375,7 +375,7 @@ struct vtk2itkConeFixture {
     volcart::shapes::Cone _Cone;
     vtkSmartPointer<vtkPolyData> _in_Mesh;
     vtkPolyData* vtkReadConeData;
-    MeshType::Pointer _out_Mesh;
+    ITKMesh::Pointer _out_Mesh;
     std::vector<Vertex> _SavedPoints;
     std::vector<Cell> _SavedCells;
 
@@ -411,7 +411,7 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedPlaneWithSavedPlaneVTKFil
     vtkDataArray *out_PlanePointNormals = _out_Mesh->GetPointData()->GetNormals();
     for ( vtkIdType pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints(); ++pnt_id ) {
 
-        PixelType out_NormalTuple = out_PlanePointNormals->GetTuple(pnt_id);
+        ITKPixel out_NormalTuple = out_PlanePointNormals->GetTuple(pnt_id);
 
         volcart::testing::SmallOrClose(out_NormalTuple[0], _SavedPoints[pnt_id].nx);
         volcart::testing::SmallOrClose(out_NormalTuple[1], _SavedPoints[pnt_id].ny);
@@ -451,7 +451,7 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedCubeWithSavedCubeVTKFileT
     vtkDataArray *out_PlanePointNormals = _out_Mesh->GetPointData()->GetNormals();
     for ( vtkIdType pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints(); ++pnt_id ) {
 
-        PixelType out_NormalTuple = out_PlanePointNormals->GetTuple(pnt_id);
+        ITKPixel out_NormalTuple = out_PlanePointNormals->GetTuple(pnt_id);
 
         volcart::testing::SmallOrClose(out_NormalTuple[0], _SavedPoints[pnt_id].nx);
         volcart::testing::SmallOrClose(out_NormalTuple[1], _SavedPoints[pnt_id].ny);
@@ -486,7 +486,7 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedArchWithSavedArchVTKFileT
     vtkDataArray *out_PlanePointNormals = _out_Mesh->GetPointData()->GetNormals();
     for ( vtkIdType pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints(); ++pnt_id ) {
 
-        PixelType out_NormalTuple = out_PlanePointNormals->GetTuple(pnt_id);
+        ITKPixel out_NormalTuple = out_PlanePointNormals->GetTuple(pnt_id);
 
         volcart::testing::SmallOrClose(out_NormalTuple[0], _SavedPoints[pnt_id].nx);
         volcart::testing::SmallOrClose(out_NormalTuple[1], _SavedPoints[pnt_id].ny);
@@ -523,7 +523,7 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedSphereWithSavedSphereVTKF
     vtkDataArray *out_PlanePointNormals = _out_Mesh->GetPointData()->GetNormals();
     for ( vtkIdType pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints(); ++pnt_id ) {
 
-        PixelType out_NormalTuple = out_PlanePointNormals->GetTuple(pnt_id);
+        ITKPixel out_NormalTuple = out_PlanePointNormals->GetTuple(pnt_id);
 
         volcart::testing::SmallOrClose(out_NormalTuple[0], _SavedPoints[pnt_id].nx);
         volcart::testing::SmallOrClose(out_NormalTuple[1], _SavedPoints[pnt_id].ny);
@@ -558,7 +558,7 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureITKToVTKConvertedConeWithSavedConeVTKFileT
     vtkDataArray *out_PlanePointNormals = _out_Mesh->GetPointData()->GetNormals();
     for ( vtkIdType pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints(); ++pnt_id ) {
 
-        PixelType out_NormalTuple = out_PlanePointNormals->GetTuple(pnt_id);
+        ITKPixel out_NormalTuple = out_PlanePointNormals->GetTuple(pnt_id);
 
         volcart::testing::SmallOrClose(out_NormalTuple[0], _SavedPoints[pnt_id].nx);
         volcart::testing::SmallOrClose(out_NormalTuple[1], _SavedPoints[pnt_id].ny);
@@ -604,9 +604,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureVTKToITKConvertedPlaneWithSavedPlaneITKFil
     }
 
     // Normals //
-    PointsInMeshIterator point = _out_Mesh->GetPoints()->Begin();
+    ITKPointIterator point = _out_Mesh->GetPoints()->Begin();
     for ( int p = 0; point != _out_Mesh->GetPoints()->End(); ++p, ++point ) {
-        PixelType _out_MeshNormal;
+        ITKPixel _out_MeshNormal;
         _out_Mesh->GetPointData(point.Index(), &_out_MeshNormal);
 
         volcart::testing::SmallOrClose(_out_MeshNormal[0], _SavedPoints[p].nx);
@@ -617,14 +617,14 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureVTKToITKConvertedPlaneWithSavedPlaneITKFil
     //Cells (faces)
 
     // Initialize Cell Iterators
-    CellIterator _out_MeshCell = _out_Mesh->GetCells()->Begin();
+    ITKCellIterator _out_MeshCell = _out_Mesh->GetCells()->Begin();
 
     int c = 0;
 
     while (_out_MeshCell != _out_Mesh->GetCells()->End()) {
 
         //Initialize Iterators for Points in a Cell
-        PointsInCellIterator _out_MeshPointId = _out_MeshCell.Value()->PointIdsBegin();
+        ITKPointInCellIterator _out_MeshPointId = _out_MeshCell.Value()->PointIdsBegin();
 
         int counter = 0;
         //while we have points in the cell
@@ -663,9 +663,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureVTKToITKConvertedCubeWithSavedCubeITKFileT
     }
 
     // Normals //
-    PointsInMeshIterator point = _out_Mesh->GetPoints()->Begin();
+    ITKPointIterator point = _out_Mesh->GetPoints()->Begin();
     for ( int p = 0; point != _out_Mesh->GetPoints()->End(); ++p, ++point ) {
-        PixelType _out_MeshNormal;
+        ITKPixel _out_MeshNormal;
         _out_Mesh->GetPointData(point.Index(), &_out_MeshNormal);
 
         volcart::testing::SmallOrClose(_out_MeshNormal[0], _SavedPoints[p].nx);
@@ -673,12 +673,12 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureVTKToITKConvertedCubeWithSavedCubeITKFileT
         volcart::testing::SmallOrClose(_out_MeshNormal[2], _SavedPoints[p].nz);
     }
 
-    CellIterator _out_MeshCell = _out_Mesh->GetCells()->Begin();
+    ITKCellIterator _out_MeshCell = _out_Mesh->GetCells()->Begin();
     int c = 0;
 
     while (_out_MeshCell != _out_Mesh->GetCells()->End()) {
 
-        PointsInCellIterator _out_MeshPointId = _out_MeshCell.Value()->PointIdsBegin();
+        ITKPointInCellIterator _out_MeshPointId = _out_MeshCell.Value()->PointIdsBegin();
 
         int counter = 0;
         while ( _out_MeshPointId != _out_MeshCell.Value()->PointIdsEnd() ) {
@@ -712,9 +712,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureVTKToITKConvertedArchWithSavedArchITKFileT
     }
 
     // Normals //
-    PointsInMeshIterator point = _out_Mesh->GetPoints()->Begin();
+    ITKPointIterator point = _out_Mesh->GetPoints()->Begin();
     for ( int p = 0; point != _out_Mesh->GetPoints()->End(); ++p, ++point ) {
-        PixelType _out_MeshNormal;
+        ITKPixel _out_MeshNormal;
         _out_Mesh->GetPointData(point.Index(), &_out_MeshNormal);
 
         volcart::testing::SmallOrClose(_out_MeshNormal[0], _SavedPoints[p].nx);
@@ -722,12 +722,12 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureVTKToITKConvertedArchWithSavedArchITKFileT
         volcart::testing::SmallOrClose(_out_MeshNormal[2], _SavedPoints[p].nz);
     }
 
-    CellIterator _out_MeshCell = _out_Mesh->GetCells()->Begin();
+    ITKCellIterator _out_MeshCell = _out_Mesh->GetCells()->Begin();
     int c = 0;
 
     while (_out_MeshCell != _out_Mesh->GetCells()->End()) {
 
-        PointsInCellIterator _out_MeshPointId = _out_MeshCell.Value()->PointIdsBegin();
+        ITKPointInCellIterator _out_MeshPointId = _out_MeshCell.Value()->PointIdsBegin();
 
         int counter = 0;
         while ( _out_MeshPointId != _out_MeshCell.Value()->PointIdsEnd() ) {
@@ -762,9 +762,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureVTKToITKConvertedSphereWithSavedSphereITKF
     }
 
     // Normals //
-    PointsInMeshIterator point = _out_Mesh->GetPoints()->Begin();
+    ITKPointIterator point = _out_Mesh->GetPoints()->Begin();
     for ( int p = 0; point != _out_Mesh->GetPoints()->End(); ++p, ++point ) {
-        PixelType _out_MeshNormal;
+        ITKPixel _out_MeshNormal;
         _out_Mesh->GetPointData(point.Index(), &_out_MeshNormal);
 
         volcart::testing::SmallOrClose(_out_MeshNormal[0], _SavedPoints[p].nx);
@@ -772,12 +772,12 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureVTKToITKConvertedSphereWithSavedSphereITKF
         volcart::testing::SmallOrClose(_out_MeshNormal[2], _SavedPoints[p].nz);
     }
 
-    CellIterator _out_MeshCell = _out_Mesh->GetCells()->Begin();
+    ITKCellIterator _out_MeshCell = _out_Mesh->GetCells()->Begin();
     int c = 0;
 
     while (_out_MeshCell != _out_Mesh->GetCells()->End()) {
 
-        PointsInCellIterator _out_MeshPointId = _out_MeshCell.Value()->PointIdsBegin();
+        ITKPointInCellIterator _out_MeshPointId = _out_MeshCell.Value()->PointIdsBegin();
 
         int counter = 0;
         while ( _out_MeshPointId != _out_MeshCell.Value()->PointIdsEnd() ) {
@@ -812,9 +812,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureVTKToITKConvertedConeWithSavedConeITKFileT
     }
 
     // Normals //
-    PointsInMeshIterator point = _out_Mesh->GetPoints()->Begin();
+    ITKPointIterator point = _out_Mesh->GetPoints()->Begin();
     for ( int p = 0; point != _out_Mesh->GetPoints()->End(); ++p, ++point ) {
-        PixelType _out_MeshNormal;
+        ITKPixel _out_MeshNormal;
         _out_Mesh->GetPointData(point.Index(), &_out_MeshNormal);
 
         volcart::testing::SmallOrClose(_out_MeshNormal[0], _SavedPoints[p].nx);
@@ -822,12 +822,12 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureVTKToITKConvertedConeWithSavedConeITKFileT
         volcart::testing::SmallOrClose(_out_MeshNormal[2], _SavedPoints[p].nz);
     }
 
-    CellIterator _out_MeshCell = _out_Mesh->GetCells()->Begin();
+    ITKCellIterator _out_MeshCell = _out_Mesh->GetCells()->Begin();
     int c = 0;
 
     while (_out_MeshCell != _out_Mesh->GetCells()->End()) {
 
-        PointsInCellIterator _out_MeshPointId = _out_MeshCell.Value()->PointIdsBegin();
+        ITKPointInCellIterator _out_MeshPointId = _out_MeshCell.Value()->PointIdsBegin();
 
         int counter = 0;
         while ( _out_MeshPointId != _out_MeshCell.Value()->PointIdsEnd() ) {
@@ -865,7 +865,7 @@ BOOST_FIXTURE_TEST_CASE( MeshWithNoNormals, NoNormalsFixture ) {
     volcart::meshing::itk2vtk( _itk_Mesh, vtk_Mesh );
 
     // VTK to ITK
-    MeshType::Pointer itk_Mesh2 = MeshType::New();
+    ITKMesh::Pointer itk_Mesh2 = ITKMesh::New();
     volcart::meshing::vtk2itk( vtk_Mesh, itk_Mesh2 );
 
     // ITK to ITK Quad
@@ -873,6 +873,6 @@ BOOST_FIXTURE_TEST_CASE( MeshWithNoNormals, NoNormalsFixture ) {
     volcart::meshing::itk2itkQE( itk_Mesh2, itk_Quad );
 
     // ITK Quad to ITK
-    itk_Mesh2 = MeshType::New();
+    itk_Mesh2 = ITKMesh::New();
     volcart::meshing::itkQE2itk( itk_Quad, itk_Mesh2 );
 }

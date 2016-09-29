@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
     vtkSmartPointer<vtkPLYReader> reader = vtkSmartPointer<vtkPLYReader>::New();
     reader->SetFileName ( "decim.ply" );
     reader->Update();
-    MeshType::Pointer uvMap = MeshType::New();
+    ITKMesh::Pointer uvMap = ITKMesh::New();
     volcart::meshing::vtk2itk(reader->GetOutput(), uvMap);
 
     // Get the surface area for scaling
@@ -41,7 +41,7 @@ int main(int argc, char* argv[])
     std::ifstream file ( argv[ 1 ] );
     std::string line;
 
-    PixelType vertex;
+    ITKPixel vertex;
     unsigned long v_id = 0;
 
     while ( !file.eof() )
@@ -88,7 +88,7 @@ int main(int argc, char* argv[])
     // Scale up the mesh
     // Note: This only works if the parameterization didn't introduce much area distortion
     double scale = std::sqrt(original_sa / current_sa);
-    MeshType::Pointer output = MeshType::New();
+    ITKMesh::Pointer output = ITKMesh::New();
     volcart::meshing::scaleMesh(uvMap, output, scale);
 
     // Write the uvMap

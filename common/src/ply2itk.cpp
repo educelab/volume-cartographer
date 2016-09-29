@@ -11,7 +11,7 @@ namespace io
 {
 
 bool ply2itkmesh(boost::filesystem::path plyPath,
-                 MeshType::Pointer mesh,
+                 ITKMesh::Pointer mesh,
                   int &width,
                   int &height)
 {
@@ -70,7 +70,7 @@ bool ply2itkmesh(boost::filesystem::path plyPath,
     int red, green, blue;
 
     // For Faces
-    CellType::CellAutoPointer cellpointer;
+    ITKCell::CellAutoPointer cellpointer;
     int temp, p1, p2, p3;
 
     for (int i = 0; i < aElements.size(); ++i) {
@@ -86,8 +86,8 @@ bool ply2itkmesh(boost::filesystem::path plyPath,
 
             // read vertices
             if (aElementIDs[i] == "vertex") {
-                PointType p;
-                PixelType n;
+                ITKPoint p;
+                ITKPixel n;
 
                 plyFile >> x >> y >> z >> nx >> ny >> nz >> s >> t >> red >>
                     green >> blue;
@@ -114,7 +114,7 @@ bool ply2itkmesh(boost::filesystem::path plyPath,
             if (aElementIDs[i] == "face") {
                 plyFile >> temp >> p1 >> p2 >> p3;
 
-                cellpointer.TakeOwnership(new TriangleType);
+                cellpointer.TakeOwnership(new ITKTriangle);
                 cellpointer->SetPointId(0, p1);
                 cellpointer->SetPointId(1, p2);
                 cellpointer->SetPointId(2, p3);

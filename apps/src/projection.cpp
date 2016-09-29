@@ -31,7 +31,7 @@ int main( int argc, char *argv[] ) {
     // Load the mesh
     int width = -1;
     int height = -1;
-    MeshType::Pointer mesh = MeshType::New();
+    ITKMesh::Pointer mesh = ITKMesh::New();
     volcart::io::ply2itkmesh(volpkg.getMeshPath(), mesh, width, height);
 
     //PNG Compression params
@@ -42,7 +42,7 @@ int main( int argc, char *argv[] ) {
     // Sort the points by z-index
     std::map< int, std::vector<int> > z_map;
 
-    for ( PointsInMeshIterator point = mesh->GetPoints()->Begin(); point != mesh->GetPoints()->End(); ++point ) {
+    for ( ITKPointIterator point = mesh->GetPoints()->Begin(); point != mesh->GetPoints()->End(); ++point ) {
 
         // skip null points
         if (point->Value()[INDEX_Z] == -1) continue;
@@ -75,7 +75,7 @@ int main( int argc, char *argv[] ) {
         // Iterate over the points for this z-index and project the points
         for ( auto p_id = z_id->second.begin(); p_id != z_id->second.end(); ++p_id ) {
 
-            PointType point = mesh->GetPoint(*p_id);
+            ITKPoint point = mesh->GetPoint(*p_id);
             cv::Point pos;
             pos.x = cvRound(point[INDEX_X]);
             pos.y = cvRound(point[INDEX_Y]);

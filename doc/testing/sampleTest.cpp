@@ -75,7 +75,7 @@ struct meshFix {
     //file path and objwriter to be used in cases
     volcart::io::objWriter mesh_writer;
     boost::filesystem::path objPath;
-    MeshType::Pointer _mesh ;
+    ITKMesh::Pointer _mesh ;
     volcart::shapes::Plane mesh;
 };
 

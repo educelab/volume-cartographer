@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
     fs::path meshName = vpkg.getMeshPath();
 
     // declare pointer to new Mesh object
-    auto mesh = volcart::MeshType::New();
+    auto mesh = volcart::ITKMesh::New();
 
     int meshWidth = -1;
     int meshHeight = -1;

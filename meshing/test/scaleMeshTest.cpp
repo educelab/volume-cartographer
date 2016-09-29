@@ -80,12 +80,12 @@ struct ScaledPlaneFixture {
     ~ScaledPlaneFixture(){ std::cerr << "cleaning up plane objects" << std::endl; }
 
     volcart::shapes::Plane _Plane;
-    MeshType::Pointer _in_PlaneMesh, _in_PlaneMeshUsedForRegressionTest;
-    MeshType::Pointer _out_PlaneMesh = MeshType::New();
+    ITKMesh::Pointer _in_PlaneMesh, _in_PlaneMeshUsedForRegressionTest;
+    ITKMesh::Pointer _out_PlaneMesh = ITKMesh::New();
     double _ScaleFactor;
 
     //used for regression testing
-    MeshType::Pointer _out_PlaneMeshUsedForRegressionTest = MeshType::New();
+    ITKMesh::Pointer _out_PlaneMeshUsedForRegressionTest = ITKMesh::New();
     std::vector<Vertex> _SavedPlanePoints;
     std::vector<Cell> _SavedPlaneCells;
 };
@@ -106,12 +106,12 @@ struct ScaledCubeFixture {
 
     ~ScaledCubeFixture(){ std::cerr << "cleaning up cube objects" << std::endl; }
 
-    MeshType::Pointer _in_CubeMesh, _in_CubeMeshUsedForRegressionTest;
-    MeshType::Pointer _out_CubeMesh = MeshType::New();
+    ITKMesh::Pointer _in_CubeMesh, _in_CubeMeshUsedForRegressionTest;
+    ITKMesh::Pointer _out_CubeMesh = ITKMesh::New();
     volcart::shapes::Cube _Cube;
     double _ScaleFactor;
 
-    MeshType::Pointer _out_CubeMeshUsedForRegressionTest = MeshType::New();
+    ITKMesh::Pointer _out_CubeMeshUsedForRegressionTest = ITKMesh::New();
     std::vector<Vertex> _SavedCubePoints;
     std::vector<Cell> _SavedCubeCells;
 };
@@ -134,12 +134,12 @@ struct ScaledArchFixture {
 
     ~ScaledArchFixture(){ std::cerr << "cleaning up arch mesh objects" << std::endl; }
 
-    MeshType::Pointer _in_ArchMesh, _in_ArchMeshUsedForRegressionTest;
-    MeshType::Pointer _out_ArchMesh = MeshType::New();
+    ITKMesh::Pointer _in_ArchMesh, _in_ArchMeshUsedForRegressionTest;
+    ITKMesh::Pointer _out_ArchMesh = ITKMesh::New();
     volcart::shapes::Arch _Arch;
     double _ScaleFactor;
 
-    MeshType::Pointer _out_ArchMeshUsedForRegressionTest = MeshType::New();
+    ITKMesh::Pointer _out_ArchMeshUsedForRegressionTest = ITKMesh::New();
     std::vector<Vertex> _SavedArchPoints;
     std::vector<Cell> _SavedArchCells;
 };
@@ -162,12 +162,12 @@ struct ScaledSphereFixture {
 
     ~ScaledSphereFixture(){ std::cerr << "cleaning up spherical mesh for scaling" << std::endl; }
 
-    MeshType::Pointer _in_SphereMesh, _in_SphereMeshUsedForRegressionTest;
-    MeshType::Pointer _out_SphereMesh = MeshType::New();
+    ITKMesh::Pointer _in_SphereMesh, _in_SphereMeshUsedForRegressionTest;
+    ITKMesh::Pointer _out_SphereMesh = ITKMesh::New();
     volcart::shapes::Sphere _Sphere;
     double _ScaleFactor;
 
-    MeshType::Pointer _out_SphereMeshUsedForRegressionTest = MeshType::New();
+    ITKMesh::Pointer _out_SphereMeshUsedForRegressionTest = ITKMesh::New();
     std::vector<Vertex> _SavedSpherePoints;
     std::vector<Cell> _SavedSphereCells;
 };
@@ -188,12 +188,12 @@ struct ScaledConeFixture {
 
     ~ScaledConeFixture(){ std::cerr << "cleaning up cone mesh for scaling" << std::endl; }
 
-    MeshType::Pointer _in_ConeMesh, _in_ConeMeshUsedForRegressionTest;
-    MeshType::Pointer _out_ConeMesh = MeshType::New();
+    ITKMesh::Pointer _in_ConeMesh, _in_ConeMeshUsedForRegressionTest;
+    ITKMesh::Pointer _out_ConeMesh = ITKMesh::New();
     volcart::shapes::Cone _Cone;
     double _ScaleFactor;
 
-    MeshType::Pointer _out_ConeMeshUsedForRegressionTest = MeshType::New();
+    ITKMesh::Pointer _out_ConeMeshUsedForRegressionTest = ITKMesh::New();
     std::vector<Vertex> _SavedConePoints;
     std::vector<Cell> _SavedConeCells;
 };
@@ -312,7 +312,7 @@ BOOST_FIXTURE_TEST_CASE(ConfirmInputPlaneMeshIsUnchangedAfterScalingTest, Scaled
     volcart::meshing::scaleMesh(_in_PlaneMesh, _out_PlaneMesh, _ScaleFactor);
 
     //init new plane mesh
-    MeshType::Pointer NewPlaneMesh = _Plane.itkMesh();
+    ITKMesh::Pointer NewPlaneMesh = _Plane.itkMesh();
 
     //compare _in_PlaneMesh and NewPlaneMesh to confirm _in_PlaneMesh goes through
     //scaleMesh unchanged
@@ -329,14 +329,14 @@ BOOST_FIXTURE_TEST_CASE(ConfirmInputPlaneMeshIsUnchangedAfterScalingTest, Scaled
     }
 
     // Compare Cells
-    CellIterator in_PlaneMeshCell = _in_PlaneMesh->GetCells()->Begin();
-    CellIterator NewPlaneMeshCell = NewPlaneMesh->GetCells()->Begin();
+    ITKCellIterator in_PlaneMeshCell = _in_PlaneMesh->GetCells()->Begin();
+    ITKCellIterator NewPlaneMeshCell = NewPlaneMesh->GetCells()->Begin();
 
     while (in_PlaneMeshCell != _in_PlaneMesh->GetCells()->End()) {
 
         //Initialize Iterators for Points in a Cell
-        PointsInCellIterator in_PlaneMeshPointId = in_PlaneMeshCell.Value()->PointIdsBegin();
-        PointsInCellIterator NewPlaneMeshPointId = NewPlaneMeshCell.Value()->PointIdsBegin();
+        ITKPointInCellIterator in_PlaneMeshPointId = in_PlaneMeshCell.Value()->PointIdsBegin();
+        ITKPointInCellIterator NewPlaneMeshPointId = NewPlaneMeshCell.Value()->PointIdsBegin();
 
         int counter = 0;
         //while we have points in the cell
@@ -374,10 +374,10 @@ BOOST_FIXTURE_TEST_CASE(CompareSavedAndFixtureScaledPlaneMesh, ScaledPlaneFixtur
 
     // Normals //
     int p =0;
-    PointsInMeshIterator point = _out_PlaneMeshUsedForRegressionTest->GetPoints()->Begin();
+    ITKPointIterator point = _out_PlaneMeshUsedForRegressionTest->GetPoints()->Begin();
     for ( ; point != _out_PlaneMeshUsedForRegressionTest->GetPoints()->End(); ++point ) {
 
-        PixelType _out_PlaneMeshUsedForRegressionTestNormal;
+        ITKPixel _out_PlaneMeshUsedForRegressionTestNormal;
         _out_PlaneMeshUsedForRegressionTest->GetPointData(point.Index(), &_out_PlaneMeshUsedForRegressionTestNormal);
 
         //Now compare the normals for the two meshes
@@ -391,14 +391,14 @@ BOOST_FIXTURE_TEST_CASE(CompareSavedAndFixtureScaledPlaneMesh, ScaledPlaneFixtur
     //Cells (faces)
 
     // Initialize Cell Iterator
-    CellIterator _out_PlaneMeshUsedForRegressionTestCell = _out_PlaneMeshUsedForRegressionTest->GetCells()->Begin();
+    ITKCellIterator _out_PlaneMeshUsedForRegressionTestCell = _out_PlaneMeshUsedForRegressionTest->GetCells()->Begin();
 
     int c = 0;
 
     while (_out_PlaneMeshUsedForRegressionTestCell != _out_PlaneMeshUsedForRegressionTest->GetCells()->End()) {
 
         //Initialize Iterator for Points in a Cell
-        PointsInCellIterator _out_PlaneMeshUsedForRegressionTestPointId = 
+        ITKPointInCellIterator _out_PlaneMeshUsedForRegressionTestPointId =
                                                        _out_PlaneMeshUsedForRegressionTestCell.Value()->PointIdsBegin();
 
         int counter = 0;
@@ -440,10 +440,10 @@ BOOST_FIXTURE_TEST_CASE(CompareSavedAndFixtureScaledCubeMesh, ScaledCubeFixture)
     }
     
     int p =0;
-    PointsInMeshIterator point = _out_CubeMeshUsedForRegressionTest->GetPoints()->Begin();
+    ITKPointIterator point = _out_CubeMeshUsedForRegressionTest->GetPoints()->Begin();
     for ( ; point != _out_CubeMeshUsedForRegressionTest->GetPoints()->End(); ++point ) {
 
-        PixelType _out_CubeMeshUsedForRegressionTestNormal;
+        ITKPixel _out_CubeMeshUsedForRegressionTestNormal;
         _out_CubeMeshUsedForRegressionTest->GetPointData(point.Index(), &_out_CubeMeshUsedForRegressionTestNormal);
         
         BOOST_CHECK_EQUAL(_out_CubeMeshUsedForRegressionTestNormal[0], _SavedCubePoints[p].nx);
@@ -453,11 +453,11 @@ BOOST_FIXTURE_TEST_CASE(CompareSavedAndFixtureScaledCubeMesh, ScaledCubeFixture)
         ++p;
     }
 
-    CellIterator _out_CubeMeshUsedForRegressionTestCell = _out_CubeMeshUsedForRegressionTest->GetCells()->Begin();
+    ITKCellIterator _out_CubeMeshUsedForRegressionTestCell = _out_CubeMeshUsedForRegressionTest->GetCells()->Begin();
     int c = 0;
     while (_out_CubeMeshUsedForRegressionTestCell != _out_CubeMeshUsedForRegressionTest->GetCells()->End()) {
         
-        PointsInCellIterator _out_CubeMeshUsedForRegressionTestPointId =
+        ITKPointInCellIterator _out_CubeMeshUsedForRegressionTestPointId =
                                                        _out_CubeMeshUsedForRegressionTestCell.Value()->PointIdsBegin();
 
         int counter = 0;
@@ -490,10 +490,10 @@ BOOST_FIXTURE_TEST_CASE(CompareSavedAndFixtureScaledArchMesh, ScaledArchFixture)
     }
 
     int p =0;
-    PointsInMeshIterator point = _out_ArchMeshUsedForRegressionTest->GetPoints()->Begin();
+    ITKPointIterator point = _out_ArchMeshUsedForRegressionTest->GetPoints()->Begin();
     for ( ; point != _out_ArchMeshUsedForRegressionTest->GetPoints()->End(); ++point ) {
 
-        PixelType _out_ArchMeshUsedForRegressionTestNormal;
+        ITKPixel _out_ArchMeshUsedForRegressionTestNormal;
         _out_ArchMeshUsedForRegressionTest->GetPointData(point.Index(), &_out_ArchMeshUsedForRegressionTestNormal);
 
         volcart::testing::SmallOrClose(_out_ArchMeshUsedForRegressionTestNormal[0], _SavedArchPoints[p].nx);
@@ -503,11 +503,11 @@ BOOST_FIXTURE_TEST_CASE(CompareSavedAndFixtureScaledArchMesh, ScaledArchFixture)
         ++p;
     }
 
-    CellIterator _out_ArchMeshUsedForRegressionTestCell = _out_ArchMeshUsedForRegressionTest->GetCells()->Begin();
+    ITKCellIterator _out_ArchMeshUsedForRegressionTestCell = _out_ArchMeshUsedForRegressionTest->GetCells()->Begin();
     int c = 0;
     while (_out_ArchMeshUsedForRegressionTestCell != _out_ArchMeshUsedForRegressionTest->GetCells()->End()) {
 
-        PointsInCellIterator _out_ArchMeshUsedForRegressionTestPointId =
+        ITKPointInCellIterator _out_ArchMeshUsedForRegressionTestPointId =
                 _out_ArchMeshUsedForRegressionTestCell.Value()->PointIdsBegin();
 
         int counter = 0;
@@ -540,10 +540,10 @@ BOOST_FIXTURE_TEST_CASE(CompareSavedAndFixtureScaledSphereMesh, ScaledSphereFixt
     }
 
     int p =0;
-    PointsInMeshIterator point = _out_SphereMeshUsedForRegressionTest->GetPoints()->Begin();
+    ITKPointIterator point = _out_SphereMeshUsedForRegressionTest->GetPoints()->Begin();
     for ( ; point != _out_SphereMeshUsedForRegressionTest->GetPoints()->End(); ++point ) {
 
-        PixelType _out_SphereMeshUsedForRegressionTestNormal;
+        ITKPixel _out_SphereMeshUsedForRegressionTestNormal;
         _out_SphereMeshUsedForRegressionTest->GetPointData(point.Index(), &_out_SphereMeshUsedForRegressionTestNormal);
 
         volcart::testing::SmallOrClose(_out_SphereMeshUsedForRegressionTestNormal[0], _SavedSpherePoints[p].nx);
@@ -553,11 +553,11 @@ BOOST_FIXTURE_TEST_CASE(CompareSavedAndFixtureScaledSphereMesh, ScaledSphereFixt
         ++p;
     }
 
-    CellIterator _out_SphereMeshUsedForRegressionTestCell = _out_SphereMeshUsedForRegressionTest->GetCells()->Begin();
+    ITKCellIterator _out_SphereMeshUsedForRegressionTestCell = _out_SphereMeshUsedForRegressionTest->GetCells()->Begin();
     int c = 0;
     while (_out_SphereMeshUsedForRegressionTestCell != _out_SphereMeshUsedForRegressionTest->GetCells()->End()) {
 
-        PointsInCellIterator _out_SphereMeshUsedForRegressionTestPointId =
+        ITKPointInCellIterator _out_SphereMeshUsedForRegressionTestPointId =
                 _out_SphereMeshUsedForRegressionTestCell.Value()->PointIdsBegin();
 
         int counter = 0;
@@ -590,10 +590,10 @@ BOOST_FIXTURE_TEST_CASE(CompareSavedAndFixtureScaledConeMesh, ScaledConeFixture)
     }
 
     int p =0;
-    PointsInMeshIterator point = _out_ConeMeshUsedForRegressionTest->GetPoints()->Begin();
+    ITKPointIterator point = _out_ConeMeshUsedForRegressionTest->GetPoints()->Begin();
     for ( ; point != _out_ConeMeshUsedForRegressionTest->GetPoints()->End(); ++point ) {
 
-        PixelType _out_ConeMeshUsedForRegressionTestNormal;
+        ITKPixel _out_ConeMeshUsedForRegressionTestNormal;
         _out_ConeMeshUsedForRegressionTest->GetPointData(point.Index(), &_out_ConeMeshUsedForRegressionTestNormal);
 
         volcart::testing::SmallOrClose(_out_ConeMeshUsedForRegressionTestNormal[0], _SavedConePoints[p].nx);
@@ -603,11 +603,11 @@ BOOST_FIXTURE_TEST_CASE(CompareSavedAndFixtureScaledConeMesh, ScaledConeFixture)
         ++p;
     }
 
-    CellIterator _out_ConeMeshUsedForRegressionTestCell = _out_ConeMeshUsedForRegressionTest->GetCells()->Begin();
+    ITKCellIterator _out_ConeMeshUsedForRegressionTestCell = _out_ConeMeshUsedForRegressionTest->GetCells()->Begin();
     int c = 0;
     while (_out_ConeMeshUsedForRegressionTestCell != _out_ConeMeshUsedForRegressionTest->GetCells()->End()) {
 
-        PointsInCellIterator _out_ConeMeshUsedForRegressionTestPointId =
+        ITKPointInCellIterator _out_ConeMeshUsedForRegressionTestPointId =
                 _out_ConeMeshUsedForRegressionTestCell.Value()->PointIdsBegin();
 
         int counter = 0;

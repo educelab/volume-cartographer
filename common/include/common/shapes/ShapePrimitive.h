@@ -22,7 +22,7 @@ namespace shapes {
 
     class ShapePrimitive {
     public:
-        MeshType::Pointer itkMesh();
+        ITKMesh::Pointer itkMesh();
         vtkSmartPointer<vtkPolyData> vtkMesh();
         pcl::PointCloud<pcl::PointXYZ> pointCloudXYZ(bool noisify = true); //resamplePointCloud
         pcl::PointCloud<pcl::PointNormal> pointCloudNormal(); //poissonRecon, greedyProjMeshing

@@ -12,14 +12,14 @@ namespace io
 {
 
 // Constructors
-plyWriter::plyWriter(fs::path outputPath, MeshType::Pointer mesh)
+plyWriter::plyWriter(fs::path outputPath, ITKMesh::Pointer mesh)
 {
     _outputPath = outputPath;
     _mesh = mesh;
 };
 
 plyWriter::plyWriter(fs::path outputPath,
-                     MeshType::Pointer mesh,
+                     ITKMesh::Pointer mesh,
                      volcart::Texture texture)
 {
     _outputPath = outputPath;
@@ -122,7 +122,7 @@ int plyWriter::_writeVertices()
          point != _mesh->GetPoints()->End(); ++point) {
 
         // Get the point's normal
-        PixelType normal;
+        ITKPixel normal;
         _mesh->GetPointData(point.Index(), &normal);
 
         // Write the point position components and its normal components.
@@ -160,8 +160,8 @@ int plyWriter::_writeFaces()
     std::cerr << "Writing faces..." << std::endl;
 
     // Iterate over the faces of the mesh
-    PointsInCellIterator point;
-    for (CellIterator cell = _mesh->GetCells()->Begin();
+    ITKPointInCellIterator point;
+    for (ITKCellIterator cell = _mesh->GetCells()->Begin();
          cell != _mesh->GetCells()->End(); ++cell) {
         _outputMesh << cell->Value()->GetNumberOfPoints();
 

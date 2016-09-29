@@ -7,7 +7,7 @@
 namespace volcart {
     namespace meshing {
 
-        void scaleMesh( MeshType::Pointer input, MeshType::Pointer output, double scale_factor ) {
+        void scaleMesh( ITKMesh::Pointer input, ITKMesh::Pointer output, double scale_factor ) {
 
             // Scale uniformly
             typedef itk::ScaleTransform<double, 3> VC_3DScaleType;
@@ -22,7 +22,7 @@ namespace volcart {
 
             // Apply the scale
             std::cerr << "volcart::meshing::Scaling the mesh..." << std::endl;
-            typedef itk::TransformMeshFilter<MeshType, MeshType, VC_3DScaleType> VC_ScaleMeshFilter;
+            typedef itk::TransformMeshFilter<ITKMesh, ITKMesh, VC_3DScaleType> VC_ScaleMeshFilter;
             VC_ScaleMeshFilter::Pointer scaleFilter = VC_ScaleMeshFilter::New();
             scaleFilter->SetTransform(scaleTransform);
 

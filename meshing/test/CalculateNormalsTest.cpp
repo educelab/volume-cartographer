@@ -18,7 +18,7 @@ struct PlaneFixture {
     ~PlaneFixture(){};
 
     volcart::shapes::Plane _Plane;
-    volcart::MeshType::Pointer _in_Mesh, _out_Mesh;
+    volcart::ITKMesh::Pointer _in_Mesh, _out_Mesh;
 };
 
 BOOST_FIXTURE_TEST_CASE(ComputePlaneNormalsTest, PlaneFixture){
@@ -29,7 +29,7 @@ BOOST_FIXTURE_TEST_CASE(ComputePlaneNormalsTest, PlaneFixture){
 
     for(auto p_it = _out_Mesh->GetPoints()->Begin(); p_it != _out_Mesh->GetPoints()->End(); ++p_it)
     {
-        volcart::PixelType out_Normal, in_Normal;
+        volcart::ITKPixel out_Normal, in_Normal;
         _out_Mesh->GetPointData(p_it.Index(), &out_Normal);
         _in_Mesh->GetPointData(p_it.Index(), &in_Normal);
 

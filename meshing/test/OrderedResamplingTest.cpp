@@ -23,7 +23,7 @@ struct OrderedPlaneFixture {
         volcart::testing::ParsingHelpers::parseObjFile("OrderedResampling_Plane.obj", _SavedPoints, _SavedCells);
     }
     volcart::shapes::Plane _Plane;
-    MeshType::Pointer _in_Mesh, _out_Mesh;
+    ITKMesh::Pointer _in_Mesh, _out_Mesh;
     int _in_height, _in_width;
     std::vector<Vertex> _SavedPoints;
     std::vector<Cell> _SavedCells;
@@ -38,7 +38,7 @@ struct OrderedArchFixture {
         volcart::testing::ParsingHelpers::parseObjFile("OrderedResampling_Arch.obj", _SavedPoints, _SavedCells);
     }
     volcart::shapes::Arch _Arch;
-    MeshType::Pointer _in_Mesh, _out_Mesh;
+    ITKMesh::Pointer _in_Mesh, _out_Mesh;
     int _in_height, _in_width;
     std::vector<Vertex> _SavedPoints;
     std::vector<Cell> _SavedCells;
@@ -57,7 +57,7 @@ BOOST_FIXTURE_TEST_CASE(ResampledPlaneTest, OrderedPlaneFixture){
         volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[1], _SavedPoints[pnt_id].y);
         volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[2], _SavedPoints[pnt_id].z);
 
-        PixelType out_Normal;
+        ITKPixel out_Normal;
         _out_Mesh->GetPointData(pnt_id, &out_Normal);
 
         //Now compare the normals for the two meshes
@@ -70,7 +70,7 @@ BOOST_FIXTURE_TEST_CASE(ResampledPlaneTest, OrderedPlaneFixture){
     BOOST_CHECK_EQUAL(_SavedCells.size(), _out_Mesh->GetNumberOfCells());
     for(unsigned long cell_id = 0; cell_id < _SavedCells.size(); cell_id++)
     {
-        CellType::CellAutoPointer current_C;
+        ITKCell::CellAutoPointer current_C;
         _out_Mesh->GetCell(cell_id, current_C);
         BOOST_CHECK_EQUAL(current_C->GetPointIds()[0], _SavedCells[cell_id].v1);
         BOOST_CHECK_EQUAL(current_C->GetPointIds()[1], _SavedCells[cell_id].v2);
@@ -91,7 +91,7 @@ BOOST_FIXTURE_TEST_CASE(ResampledArchTest, OrderedArchFixture){
         volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[1], _SavedPoints[pnt_id].y);
         volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[2], _SavedPoints[pnt_id].z);
 
-        PixelType out_Normal;
+        ITKPixel out_Normal;
         _out_Mesh->GetPointData(pnt_id, &out_Normal);
 
         //Now compare the normals for the two meshes
@@ -104,7 +104,7 @@ BOOST_FIXTURE_TEST_CASE(ResampledArchTest, OrderedArchFixture){
     BOOST_CHECK_EQUAL(_SavedCells.size(), _out_Mesh->GetNumberOfCells());
     for(unsigned long cell_id = 0; cell_id < _SavedCells.size(); cell_id++)
     {
-        CellType::CellAutoPointer current_C;
+        ITKCell::CellAutoPointer current_C;
         _out_Mesh->GetCell(cell_id, current_C);
         BOOST_CHECK_EQUAL(current_C->GetPointIds()[0], _SavedCells[cell_id].v1);
         BOOST_CHECK_EQUAL(current_C->GetPointIds()[1], _SavedCells[cell_id].v2);

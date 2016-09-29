@@ -13,7 +13,7 @@ int main( int argc, char* argv[] ) {
   std::string meshName = argv[1];
 
   // declare pointer to new Mesh object
-  auto itkMesh = volcart::MeshType::New();
+  auto itkMesh = volcart::ITKMesh::New();
 
   int meshWidth = -1;
   int meshHeight = -1;
@@ -28,7 +28,7 @@ int main( int argc, char* argv[] ) {
   vtkPolyData* acvdMesh = vtkPolyData::New();
   volcart::meshing::ACVD(vtkMesh, acvdMesh, 10000);
 
-  auto outputMesh = volcart::MeshType::New();
+  auto outputMesh = volcart::ITKMesh::New();
   volcart::meshing::vtk2itk(acvdMesh, outputMesh);
 
   volcart::io::objWriter mesh_writer("acvd.obj", outputMesh);

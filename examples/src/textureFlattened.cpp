@@ -24,14 +24,14 @@ int main( int argc, char* argv[] ) {
   vtkSmartPointer<vtkPLYReader> reader = vtkSmartPointer<vtkPLYReader>::New();
   reader->SetFileName ( "decim.ply" );
   reader->Update();
-  auto inputMesh = volcart::MeshType::New();
+  auto inputMesh = volcart::ITKMesh::New();
   volcart::meshing::vtk2itk( reader->GetOutput(), inputMesh );
 
   // Read the uv map
   vtkSmartPointer<vtkPLYReader> reader2 = vtkSmartPointer<vtkPLYReader>::New();
   reader2->SetFileName ( "uvmap.ply" );
   reader2->Update();
-  auto uvmap = volcart::MeshType::New();
+  auto uvmap = volcart::ITKMesh::New();
   volcart::meshing::vtk2itk( reader2->GetOutput(), uvmap );
 
   // UV map setup

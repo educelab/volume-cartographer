@@ -18,7 +18,7 @@ int main( int argc, char* argv[] ) {
   vpkg.setActiveSegmentation( argv[2] );
 
   // declare pointer to new Mesh object
-  auto inputMesh = volcart::MeshType::New();
+  auto inputMesh = volcart::ITKMesh::New();
 
   int meshWidth = -1;
   int meshHeight = -1;

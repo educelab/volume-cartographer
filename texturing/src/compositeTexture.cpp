@@ -6,7 +6,7 @@
 
 namespace volcart {
     namespace texturing {
-        compositeTexture::compositeTexture( MeshType::Pointer inputMesh,
+        compositeTexture::compositeTexture( ITKMesh::Pointer inputMesh,
                                             VolumePkg& volpkg,
                                             int output_w,
                                             int output_h,
@@ -23,7 +23,7 @@ namespace volcart {
             _process();
         };
 
-        compositeTexture::compositeTexture(MeshType::Pointer inputMesh,
+        compositeTexture::compositeTexture(ITKMesh::Pointer inputMesh,
                                            VolumePkg &volpkg,
                                            UVMap uvMap,
                                            double radius,
@@ -47,10 +47,10 @@ namespace volcart {
             if( (searchMinorRadius = _radius / 3) < 1 ) searchMinorRadius = 1;
 
             // Initialize iterators
-            CellIterator  cellIterator = _input->GetCells()->Begin();
-            CellIterator  cellEnd      = _input->GetCells()->End();
-            CellType *    cell;
-            PointsInCellIterator pointsIterator;
+            ITKCellIterator  cellIterator = _input->GetCells()->Begin();
+            ITKCellIterator  cellEnd      = _input->GetCells()->End();
+            ITKCell *    cell;
+            ITKPointInCellIterator pointsIterator;
 
             unsigned long pointID;
             double u, v;
@@ -67,8 +67,8 @@ namespace volcart {
                 for( ; pointsIterator != cell->PointIdsEnd(); ++pointsIterator ) {
                     pointID = *pointsIterator;
 
-                    PointType p = _input->GetPoint(pointID);
-                    PixelType normal;
+                    ITKPoint p = _input->GetPoint(pointID);
+                    ITKPixel normal;
                     _input->GetPointData( pointID, &normal );
 
                     // Fill in the output pixel with a value

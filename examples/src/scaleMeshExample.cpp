@@ -29,18 +29,18 @@ int main(){
     volcart::shapes::Cone Cone;
 
     //create itkMesh
-    volcart::MeshType::Pointer in_PlaneITKMesh = Plane.itkMesh();
-    volcart::MeshType::Pointer in_CubeITKMesh = Cube.itkMesh();
-    volcart::MeshType::Pointer in_ArchITKMesh = Arch.itkMesh();
-    volcart::MeshType::Pointer in_SphereITKMesh = Sphere.itkMesh();
-    volcart::MeshType::Pointer in_ConeITKMesh = Cone.itkMesh();
+    volcart::ITKMesh::Pointer in_PlaneITKMesh = Plane.itkMesh();
+    volcart::ITKMesh::Pointer in_CubeITKMesh = Cube.itkMesh();
+    volcart::ITKMesh::Pointer in_ArchITKMesh = Arch.itkMesh();
+    volcart::ITKMesh::Pointer in_SphereITKMesh = Sphere.itkMesh();
+    volcart::ITKMesh::Pointer in_ConeITKMesh = Cone.itkMesh();
 
     //will hold results of scaleMesh
-    volcart::MeshType::Pointer out_PlaneMesh = volcart::MeshType::New();
-    volcart::MeshType::Pointer out_CubeMesh = volcart::MeshType::New();
-    volcart::MeshType::Pointer out_ArchMesh = volcart::MeshType::New();
-    volcart::MeshType::Pointer out_SphereMesh = volcart::MeshType::New();
-    volcart::MeshType::Pointer out_ConeMesh = volcart::MeshType::New();
+    volcart::ITKMesh::Pointer out_PlaneMesh = volcart::ITKMesh::New();
+    volcart::ITKMesh::Pointer out_CubeMesh = volcart::ITKMesh::New();
+    volcart::ITKMesh::Pointer out_ArchMesh = volcart::ITKMesh::New();
+    volcart::ITKMesh::Pointer out_SphereMesh = volcart::ITKMesh::New();
+    volcart::ITKMesh::Pointer out_ConeMesh = volcart::ITKMesh::New();
 
     //call scaleMesh() using scale Factor of 3 to match test cases
     volcart::meshing::scaleMesh(in_PlaneITKMesh, out_PlaneMesh, 3);

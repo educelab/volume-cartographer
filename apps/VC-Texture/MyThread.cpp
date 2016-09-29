@@ -29,7 +29,7 @@ void MyThread::run()
         volcart::DirectionOption aDirectionOption = (volcart::DirectionOption) _globals->getSampleDirection();
 
         // declare pointer to new Mesh object
-        auto mesh = volcart::MeshType::New();
+        auto mesh = volcart::ITKMesh::New();
 
         // try to convert the ply to an ITK mesh
         if (!volcart::io::ply2itkmesh(meshName, mesh, meshWidth, meshHeight))
@@ -60,7 +60,7 @@ void MyThread::run()
         Cleaner->SetInputData( acvdMesh );
         Cleaner->Update();
 
-        auto itkACVD = volcart::MeshType::New();
+        auto itkACVD = volcart::ITKMesh::New();
         volcart::meshing::vtk2itk( Cleaner->GetOutput(), itkACVD );
 
         // ABF flattening

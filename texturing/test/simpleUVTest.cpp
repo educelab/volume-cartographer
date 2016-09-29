@@ -69,7 +69,7 @@ struct CreatePlaneSimpleUVFixture{
 
     //declare Plane mesh and width and height
     volcart::shapes::Plane _Plane;
-    MeshType::Pointer _in_PlaneITKMesh;
+    ITKMesh::Pointer _in_PlaneITKMesh;
     pcl::PointCloud <pcl::PointXYZ> _in_PlanePointCloud;
     int _width, _height;
 
@@ -99,7 +99,7 @@ struct CreateArchSimpleUVFixture{
 
     //declare Arch mesh
     volcart::shapes::Arch _Arch;
-    MeshType::Pointer _in_ArchITKMesh;
+    ITKMesh::Pointer _in_ArchITKMesh;
     volcart::UVMap _out_ArchUVMap;
 
     pcl::PointCloud <pcl::PointXYZ> _in_ArchPointCloud;

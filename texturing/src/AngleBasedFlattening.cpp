@@ -11,19 +11,19 @@ using namespace volcart::texturing;
 
 ///// Constructors & Destructors /////
 AngleBasedFlattening::AngleBasedFlattening() : _maxABFIterations(DEFAULT_MAX_ABF_ITERATIONS), _useABF(true) {};
-AngleBasedFlattening::AngleBasedFlattening( MeshType::Pointer mesh ) : _mesh(mesh), _maxABFIterations(DEFAULT_MAX_ABF_ITERATIONS), _useABF(true) {};
+AngleBasedFlattening::AngleBasedFlattening( ITKMesh::Pointer mesh ) : _mesh(mesh), _maxABFIterations(DEFAULT_MAX_ABF_ITERATIONS), _useABF(true) {};
 
 ///// Access Functions /////
-void AngleBasedFlattening::setMesh( MeshType::Pointer mesh ) { _mesh = mesh; };
+void AngleBasedFlattening::setMesh( ITKMesh::Pointer mesh ) { _mesh = mesh; };
 
 ///// Get Output /////
 // Get output as mesh
-MeshType::Pointer AngleBasedFlattening::getMesh() {
-  MeshType::Pointer output = MeshType::New();
+ITKMesh::Pointer AngleBasedFlattening::getMesh() {
+  ITKMesh::Pointer output = ITKMesh::New();
   volcart::meshing::deepCopy( _mesh, output );
 
   // Update the point positions
-  PointType p;
+  ITKPoint p;
   for ( auto it = _heMesh.getVertsBegin(); it != _heMesh.getVertsEnd(); ++it ) {
     p[0] = (*it)->uv[0];
     p[1] = 0;
@@ -102,16 +102,16 @@ void AngleBasedFlattening::_fillHalfEdgeMesh() {
   _heMesh.clear();
 
   ///// Vertices /////
-  for ( PointsInMeshIterator point = _mesh->GetPoints()->Begin(); point != _mesh->GetPoints()->End(); ++point ) {
+  for ( ITKPointIterator point = _mesh->GetPoints()->Begin(); point != _mesh->GetPoints()->End(); ++point ) {
     _heMesh.addVert( point->Value()[0], point->Value()[1], point->Value()[2] );
   }
 
   ///// Faces /////
-  for (CellIterator cell = _mesh->GetCells()->Begin(); cell != _mesh->GetCells()->End(); ++cell) {
+  for (ITKCellIterator cell = _mesh->GetCells()->Begin(); cell != _mesh->GetCells()->End(); ++cell) {
     // Collect the point id's
     int i = 0;
     unsigned long v_ids[3];
-    for (PointsInCellIterator point = cell.Value()->PointIdsBegin();
+    for (ITKPointInCellIterator point = cell.Value()->PointIdsBegin();
          point != cell.Value()->PointIdsEnd(); ++point, ++i) {
       v_ids[i] = *point;
     }

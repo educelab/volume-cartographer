@@ -19,7 +19,7 @@
 int main(){
 
     // Init Shape Meshes
-    volcart::MeshType::Pointer in_PlaneMesh, in_ArchMesh, in_CubeMesh, in_SphereMesh, in_ConeMesh;
+    volcart::ITKMesh::Pointer in_PlaneMesh, in_ArchMesh, in_CubeMesh, in_SphereMesh, in_ConeMesh;
     volcart::shapes::Plane Plane;
     volcart::shapes::Arch Arch;
     volcart::shapes::Cube Cube;

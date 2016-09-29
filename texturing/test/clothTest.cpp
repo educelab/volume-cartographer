@@ -84,8 +84,8 @@ struct CreateArchClothUVFixture{
 
     //declare Arch mesh
     volcart::shapes::Arch    _Arch;
-    MeshType::Pointer  _in_Mesh;
-    MeshType::Pointer _out_Mesh_unfurl, _out_Mesh_collide, _out_Mesh_final;
+    ITKMesh::Pointer  _in_Mesh;
+    ITKMesh::Pointer _out_Mesh_unfurl, _out_Mesh_collide, _out_Mesh_final;
 
     // Simulation
     volcart::texturing::ClothModelingUVMapping::PinIDs _unfurlPins;
