@@ -16,7 +16,7 @@ int main( int argc, char* argv[] ) {
 
     //init shapes
     volcart::shapes::Plane Plane;
-    VC_MeshType::Pointer in_PlaneITKMesh = Plane.itkMesh();
+    volcart::MeshType::Pointer in_PlaneITKMesh = Plane.itkMesh();
 
     //declare writer
     volcart::io::objWriter mesh_writer;

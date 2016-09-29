@@ -10,7 +10,7 @@ using namespace volcart;
 Texture::Texture()
 {
     _metadata.set<std::string>("type", "texture");
-    _metadata.set<std::string>("id", VC_DATE_TIME());
+    _metadata.set<std::string>("id", DATE_TIME());
     _metadata.set<size_t>("number-of-images", 0);
 }
 
@@ -56,6 +56,6 @@ double Texture::intensity(int point_ID, int image_ID)
         int v = cvRound(mapping[1] * (_height - 1));
         return _images[image_ID].at<unsigned short>(v, u);
     } else {
-        return VC_TEXTURE_NO_VALUE;
+        return volcart::TEXTURE_NO_VALUE;
     }
 };

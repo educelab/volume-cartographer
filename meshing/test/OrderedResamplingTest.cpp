@@ -12,6 +12,8 @@
 #include "common/shapes/Plane.h"
 #include "common/shapes/Arch.h"
 
+using namespace volcart;
+
 struct OrderedPlaneFixture {
     OrderedPlaneFixture(){
         _Plane = volcart::shapes::Plane(10, 10);
@@ -21,10 +23,10 @@ struct OrderedPlaneFixture {
         volcart::testing::ParsingHelpers::parseObjFile("OrderedResampling_Plane.obj", _SavedPoints, _SavedCells);
     }
     volcart::shapes::Plane _Plane;
-    VC_MeshType::Pointer _in_Mesh, _out_Mesh;
+    MeshType::Pointer _in_Mesh, _out_Mesh;
     int _in_height, _in_width;
-    std::vector<VC_Vertex> _SavedPoints;
-    std::vector<VC_Cell> _SavedCells;
+    std::vector<Vertex> _SavedPoints;
+    std::vector<Cell> _SavedCells;
 };
 
 struct OrderedArchFixture {
@@ -36,10 +38,10 @@ struct OrderedArchFixture {
         volcart::testing::ParsingHelpers::parseObjFile("OrderedResampling_Arch.obj", _SavedPoints, _SavedCells);
     }
     volcart::shapes::Arch _Arch;
-    VC_MeshType::Pointer _in_Mesh, _out_Mesh;
+    MeshType::Pointer _in_Mesh, _out_Mesh;
     int _in_height, _in_width;
-    std::vector<VC_Vertex> _SavedPoints;
-    std::vector<VC_Cell> _SavedCells;
+    std::vector<Vertex> _SavedPoints;
+    std::vector<Cell> _SavedCells;
 };
 
 BOOST_FIXTURE_TEST_CASE(ResampledPlaneTest, OrderedPlaneFixture){
@@ -55,7 +57,7 @@ BOOST_FIXTURE_TEST_CASE(ResampledPlaneTest, OrderedPlaneFixture){
         volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[1], _SavedPoints[pnt_id].y);
         volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[2], _SavedPoints[pnt_id].z);
 
-        VC_PixelType out_Normal;
+        PixelType out_Normal;
         _out_Mesh->GetPointData(pnt_id, &out_Normal);
 
         //Now compare the normals for the two meshes
@@ -68,7 +70,7 @@ BOOST_FIXTURE_TEST_CASE(ResampledPlaneTest, OrderedPlaneFixture){
     BOOST_CHECK_EQUAL(_SavedCells.size(), _out_Mesh->GetNumberOfCells());
     for(unsigned long cell_id = 0; cell_id < _SavedCells.size(); cell_id++)
     {
-        VC_CellType::CellAutoPointer current_C;
+        CellType::CellAutoPointer current_C;
         _out_Mesh->GetCell(cell_id, current_C);
         BOOST_CHECK_EQUAL(current_C->GetPointIds()[0], _SavedCells[cell_id].v1);
         BOOST_CHECK_EQUAL(current_C->GetPointIds()[1], _SavedCells[cell_id].v2);
@@ -89,7 +91,7 @@ BOOST_FIXTURE_TEST_CASE(ResampledArchTest, OrderedArchFixture){
         volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[1], _SavedPoints[pnt_id].y);
         volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[2], _SavedPoints[pnt_id].z);
 
-        VC_PixelType out_Normal;
+        PixelType out_Normal;
         _out_Mesh->GetPointData(pnt_id, &out_Normal);
 
         //Now compare the normals for the two meshes
@@ -102,7 +104,7 @@ BOOST_FIXTURE_TEST_CASE(ResampledArchTest, OrderedArchFixture){
     BOOST_CHECK_EQUAL(_SavedCells.size(), _out_Mesh->GetNumberOfCells());
     for(unsigned long cell_id = 0; cell_id < _SavedCells.size(); cell_id++)
     {
-        VC_CellType::CellAutoPointer current_C;
+        CellType::CellAutoPointer current_C;
         _out_Mesh->GetCell(cell_id, current_C);
         BOOST_CHECK_EQUAL(current_C->GetPointIds()[0], _SavedCells[cell_id].v1);
         BOOST_CHECK_EQUAL(current_C->GetPointIds()[1], _SavedCells[cell_id].v2);

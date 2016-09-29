@@ -6,23 +6,24 @@
 #include "external/eigen_capi.h"
 #include "meshing/deepCopy.h"
 
+using namespace volcart;
 using namespace volcart::texturing;
 
 ///// Constructors & Destructors /////
 AngleBasedFlattening::AngleBasedFlattening() : _maxABFIterations(DEFAULT_MAX_ABF_ITERATIONS), _useABF(true) {};
-AngleBasedFlattening::AngleBasedFlattening( VC_MeshType::Pointer mesh ) : _mesh(mesh), _maxABFIterations(DEFAULT_MAX_ABF_ITERATIONS), _useABF(true) {};
+AngleBasedFlattening::AngleBasedFlattening( MeshType::Pointer mesh ) : _mesh(mesh), _maxABFIterations(DEFAULT_MAX_ABF_ITERATIONS), _useABF(true) {};
 
 ///// Access Functions /////
-void AngleBasedFlattening::setMesh( VC_MeshType::Pointer mesh ) { _mesh = mesh; };
+void AngleBasedFlattening::setMesh( MeshType::Pointer mesh ) { _mesh = mesh; };
 
 ///// Get Output /////
 // Get output as mesh
-VC_MeshType::Pointer AngleBasedFlattening::getMesh() {
-  VC_MeshType::Pointer output = VC_MeshType::New();
+MeshType::Pointer AngleBasedFlattening::getMesh() {
+  MeshType::Pointer output = MeshType::New();
   volcart::meshing::deepCopy( _mesh, output );
 
   // Update the point positions
-  VC_PointType p;
+  PointType p;
   for ( auto it = _heMesh.getVertsBegin(); it != _heMesh.getVertsEnd(); ++it ) {
     p[0] = (*it)->uv[0];
     p[1] = 0;
@@ -101,16 +102,16 @@ void AngleBasedFlattening::_fillHalfEdgeMesh() {
   _heMesh.clear();
 
   ///// Vertices /////
-  for ( VC_PointsInMeshIterator point = _mesh->GetPoints()->Begin(); point != _mesh->GetPoints()->End(); ++point ) {
+  for ( PointsInMeshIterator point = _mesh->GetPoints()->Begin(); point != _mesh->GetPoints()->End(); ++point ) {
     _heMesh.addVert( point->Value()[0], point->Value()[1], point->Value()[2] );
   }
 
   ///// Faces /////
-  for (VC_CellIterator cell = _mesh->GetCells()->Begin(); cell != _mesh->GetCells()->End(); ++cell) {
+  for (CellIterator cell = _mesh->GetCells()->Begin(); cell != _mesh->GetCells()->End(); ++cell) {
     // Collect the point id's
     int i = 0;
     unsigned long v_ids[3];
-    for (VC_PointsInCellIterator point = cell.Value()->PointIdsBegin();
+    for (PointsInCellIterator point = cell.Value()->PointIdsBegin();
          point != cell.Value()->PointIdsEnd(); ++point, ++i) {
       v_ids[i] = *point;
     }

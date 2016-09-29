@@ -57,9 +57,9 @@ struct QuadricPlaneFixture {
         volcart::testing::ParsingHelpers::parseObjFile("QuadricEdgeCollapse_Plane.obj", _SavedPoints, _SavedCells);
     }
     volcart::shapes::Plane _Plane;
-    VC_MeshType::Pointer _in_Mesh, _out_Mesh;
-    std::vector<VC_Vertex> _SavedPoints;
-    std::vector<VC_Cell> _SavedCells;
+    MeshType::Pointer _in_Mesh, _out_Mesh;
+    std::vector<Vertex> _SavedPoints;
+    std::vector<Cell> _SavedCells;
 };
 
 struct QuadricArchFixture {
@@ -69,9 +69,9 @@ struct QuadricArchFixture {
         volcart::testing::ParsingHelpers::parseObjFile("QuadricEdgeCollapse_Arch.obj", _SavedPoints, _SavedCells);
     }
     volcart::shapes::Arch _Arch;
-    VC_MeshType::Pointer _in_Mesh, _out_Mesh;
-    std::vector<VC_Vertex> _SavedPoints;
-    std::vector<VC_Cell> _SavedCells;
+    MeshType::Pointer _in_Mesh, _out_Mesh;
+    std::vector<Vertex> _SavedPoints;
+    std::vector<Cell> _SavedCells;
 };
 
 struct QuadricConeFixture {
@@ -81,9 +81,9 @@ struct QuadricConeFixture {
         volcart::testing::ParsingHelpers::parseObjFile("QuadricEdgeCollapse_Cone.obj", _SavedPoints, _SavedCells);
     }
     volcart::shapes::Cone _Cone;
-    VC_MeshType::Pointer _in_Mesh, _out_Mesh;
-    std::vector<VC_Vertex> _SavedPoints;
-    std::vector<VC_Cell> _SavedCells;
+    MeshType::Pointer _in_Mesh, _out_Mesh;
+    std::vector<Vertex> _SavedPoints;
+    std::vector<Cell> _SavedCells;
 };
 
 struct QuadricCubeFixture {
@@ -93,9 +93,9 @@ struct QuadricCubeFixture {
         volcart::testing::ParsingHelpers::parseObjFile("QuadricEdgeCollapse_Cube.obj", _SavedPoints, _SavedCells);
     }
     volcart::shapes::Cube _Cube;
-    VC_MeshType::Pointer _in_Mesh, _out_Mesh;
-    std::vector<VC_Vertex> _SavedPoints;
-    std::vector<VC_Cell> _SavedCells;
+    MeshType::Pointer _in_Mesh, _out_Mesh;
+    std::vector<Vertex> _SavedPoints;
+    std::vector<Cell> _SavedCells;
 };
 
 struct QuadricSphereFixture {
@@ -105,9 +105,9 @@ struct QuadricSphereFixture {
         volcart::testing::ParsingHelpers::parseObjFile("QuadricEdgeCollapse_Sphere.obj", _SavedPoints, _SavedCells);
     }
     volcart::shapes::Sphere _Sphere;
-    VC_MeshType::Pointer _in_Mesh, _out_Mesh;
-    std::vector<VC_Vertex> _SavedPoints;
-    std::vector<VC_Cell> _SavedCells;
+    MeshType::Pointer _in_Mesh, _out_Mesh;
+    std::vector<Vertex> _SavedPoints;
+    std::vector<Cell> _SavedCells;
 };
 
 
@@ -129,7 +129,7 @@ BOOST_FIXTURE_TEST_CASE(QuadricResampledPlaneTest, QuadricPlaneFixture){
     volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[1], _SavedPoints[pnt_id].y);
     volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[2], _SavedPoints[pnt_id].z);
 
-    VC_PixelType out_Normal;
+    PixelType out_Normal;
     _out_Mesh->GetPointData(pnt_id, &out_Normal);
 
     //Now compare the normals for the two meshes
@@ -142,7 +142,7 @@ BOOST_FIXTURE_TEST_CASE(QuadricResampledPlaneTest, QuadricPlaneFixture){
     BOOST_CHECK_EQUAL(_SavedCells.size(), _out_Mesh->GetNumberOfCells());
     for(unsigned long cell_id = 0; cell_id < _SavedCells.size(); cell_id++)
     {
-    VC_CellType::CellAutoPointer current_C;
+    CellType::CellAutoPointer current_C;
     _out_Mesh->GetCell(cell_id, current_C);
     BOOST_CHECK_EQUAL(current_C->GetPointIds()[0], _SavedCells[cell_id].v1);
     BOOST_CHECK_EQUAL(current_C->GetPointIds()[1], _SavedCells[cell_id].v2);
@@ -166,7 +166,7 @@ BOOST_FIXTURE_TEST_CASE(QuadricResampledArchTest, QuadricArchFixture){
         volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[1], _SavedPoints[pnt_id].y);
         volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[2], _SavedPoints[pnt_id].z);
 
-        VC_PixelType out_Normal;
+        PixelType out_Normal;
         _out_Mesh->GetPointData(pnt_id, &out_Normal);
 
         //Now compare the normals for the two meshes
@@ -179,7 +179,7 @@ BOOST_FIXTURE_TEST_CASE(QuadricResampledArchTest, QuadricArchFixture){
     BOOST_CHECK_EQUAL(_SavedCells.size(), _out_Mesh->GetNumberOfCells());
     for(unsigned long cell_id = 0; cell_id < _SavedCells.size(); cell_id++)
     {
-        VC_CellType::CellAutoPointer current_C;
+        CellType::CellAutoPointer current_C;
         _out_Mesh->GetCell(cell_id, current_C);
         BOOST_CHECK_EQUAL(current_C->GetPointIds()[0], _SavedCells[cell_id].v1);
         BOOST_CHECK_EQUAL(current_C->GetPointIds()[1], _SavedCells[cell_id].v2);
@@ -203,7 +203,7 @@ BOOST_FIXTURE_TEST_CASE(QuadricResampledConeTest, QuadricConeFixture){
         volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[1], _SavedPoints[pnt_id].y);
         volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[2], _SavedPoints[pnt_id].z);
 
-        VC_PixelType out_Normal;
+        PixelType out_Normal;
         _out_Mesh->GetPointData(pnt_id, &out_Normal);
 
         //Now compare the normals for the two meshes
@@ -216,7 +216,7 @@ BOOST_FIXTURE_TEST_CASE(QuadricResampledConeTest, QuadricConeFixture){
     BOOST_CHECK_EQUAL(_SavedCells.size(), _out_Mesh->GetNumberOfCells());
     for(unsigned long cell_id = 0; cell_id < _SavedCells.size(); cell_id++)
     {
-        VC_CellType::CellAutoPointer current_C;
+        CellType::CellAutoPointer current_C;
         _out_Mesh->GetCell(cell_id, current_C);
         BOOST_CHECK_EQUAL(current_C->GetPointIds()[0], _SavedCells[cell_id].v1);
         BOOST_CHECK_EQUAL(current_C->GetPointIds()[1], _SavedCells[cell_id].v2);
@@ -240,7 +240,7 @@ BOOST_FIXTURE_TEST_CASE(QuadricResampledCubeTest, QuadricCubeFixture){
         volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[1], _SavedPoints[pnt_id].y);
         volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[2], _SavedPoints[pnt_id].z);
 
-        VC_PixelType out_Normal;
+        PixelType out_Normal;
         _out_Mesh->GetPointData(pnt_id, &out_Normal);
 
         //Now compare the normals for the two meshes
@@ -253,7 +253,7 @@ BOOST_FIXTURE_TEST_CASE(QuadricResampledCubeTest, QuadricCubeFixture){
     BOOST_CHECK_EQUAL(_SavedCells.size(), _out_Mesh->GetNumberOfCells());
     for(unsigned long cell_id = 0; cell_id < _SavedCells.size(); cell_id++)
     {
-        VC_CellType::CellAutoPointer current_C;
+        CellType::CellAutoPointer current_C;
         _out_Mesh->GetCell(cell_id, current_C);
         BOOST_CHECK_EQUAL(current_C->GetPointIds()[0], _SavedCells[cell_id].v1);
         BOOST_CHECK_EQUAL(current_C->GetPointIds()[1], _SavedCells[cell_id].v2);
@@ -277,7 +277,7 @@ BOOST_FIXTURE_TEST_CASE(QuadricResampledSphereTest, QuadricSphereFixture){
         volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[1], _SavedPoints[pnt_id].y);
         volcart::testing::SmallOrClose(_out_Mesh->GetPoint(pnt_id)[2], _SavedPoints[pnt_id].z);
 
-        VC_PixelType out_Normal;
+        PixelType out_Normal;
         _out_Mesh->GetPointData(pnt_id, &out_Normal);
 
         //Now compare the normals for the two meshes
@@ -290,7 +290,7 @@ BOOST_FIXTURE_TEST_CASE(QuadricResampledSphereTest, QuadricSphereFixture){
     BOOST_CHECK_EQUAL(_SavedCells.size(), _out_Mesh->GetNumberOfCells());
     for(unsigned long cell_id = 0; cell_id < _SavedCells.size(); cell_id++)
     {
-        VC_CellType::CellAutoPointer current_C;
+        CellType::CellAutoPointer current_C;
         _out_Mesh->GetCell(cell_id, current_C);
         BOOST_CHECK_EQUAL(current_C->GetPointIds()[0], _SavedCells[cell_id].v1);
         BOOST_CHECK_EQUAL(current_C->GetPointIds()[1], _SavedCells[cell_id].v2);

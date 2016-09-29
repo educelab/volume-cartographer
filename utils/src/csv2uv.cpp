@@ -16,6 +16,8 @@
 #include "meshing/deepCopy.h"
 #include "meshing/scaleMesh.h"
 
+using namespace volcart;
+
 int main(int argc, char* argv[])
 {
     if ( argc < 2 ) {
@@ -27,7 +29,7 @@ int main(int argc, char* argv[])
     vtkSmartPointer<vtkPLYReader> reader = vtkSmartPointer<vtkPLYReader>::New();
     reader->SetFileName ( "decim.ply" );
     reader->Update();
-    VC_MeshType::Pointer uvMap = VC_MeshType::New();
+    MeshType::Pointer uvMap = MeshType::New();
     volcart::meshing::vtk2itk(reader->GetOutput(), uvMap);
 
     // Get the surface area for scaling
@@ -39,7 +41,7 @@ int main(int argc, char* argv[])
     std::ifstream file ( argv[ 1 ] );
     std::string line;
 
-    VC_PixelType vertex;
+    PixelType vertex;
     unsigned long v_id = 0;
 
     while ( !file.eof() )
@@ -86,7 +88,7 @@ int main(int argc, char* argv[])
     // Scale up the mesh
     // Note: This only works if the parameterization didn't introduce much area distortion
     double scale = std::sqrt(original_sa / current_sa);
-    VC_MeshType::Pointer output = VC_MeshType::New();
+    MeshType::Pointer output = MeshType::New();
     volcart::meshing::scaleMesh(uvMap, output, scale);
 
     // Write the uvMap

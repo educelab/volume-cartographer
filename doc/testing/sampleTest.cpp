@@ -75,7 +75,7 @@ struct meshFix {
     //file path and objwriter to be used in cases
     volcart::io::objWriter mesh_writer;
     boost::filesystem::path objPath;
-    VC_MeshType::Pointer _mesh ;
+    MeshType::Pointer _mesh ;
     volcart::shapes::Plane mesh;
 };
 
@@ -113,8 +113,8 @@ BOOST_FIXTURE_TEST_CASE(writeTest, meshFix) {
 BOOST_FIXTURE_TEST_CASE(compareElements, meshFix){
 
 
-    std::vector<VC_Vertex> testPoints = mesh.getPoints();
-    std::vector<VC_Cell> testCells = mesh.getCells();
+    std::vector<Vertex> testPoints = mesh.getPoints();
+    std::vector<Cell> testCells = mesh.getCells();
 
     //   Get absolute path of obj file   //
 
@@ -139,12 +139,12 @@ BOOST_FIXTURE_TEST_CASE(compareElements, meshFix){
     std::vector<std::string> objLine;
 
     //   Declare vectors to hold mesh points and cells from obj file
-    std::vector<VC_Vertex> objPoints;
-    std::vector<VC_Cell> objCells;
+    std::vector<Vertex> objPoints;
+    std::vector<Cell> objCells;
 
     //   VC types to put store appropriate values read in from file
-    VC_Vertex objVertex ;
-    VC_Cell objCell;
+    Vertex objVertex ;
+    Cell objCell;
 
     //loop through file and get the appropriate data into the vectors
     while ( !inputMesh.eof() ) {

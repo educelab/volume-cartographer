@@ -39,7 +39,7 @@ int main( int argc, char* argv[] ) {
   fs::path meshName = vpkg.getMeshPath();
 
   // declare pointer to new Mesh object
-  VC_MeshType::Pointer  input = VC_MeshType::New();
+  auto input = volcart::MeshType::New();
   int meshWidth = -1;
   int meshHeight = -1;
 
@@ -66,7 +66,7 @@ int main( int argc, char* argv[] ) {
   smoother->SetCoefficientsMethod( &coeff0 );
   smoother->Update();
 
-  VC_MeshType::Pointer smoothed = VC_MeshType::New();
+  auto smoothed = volcart::MeshType::New();
   volcart::meshing::itkQE2itk( smoother->GetOutput(), smoothed );
 
   // Convert to polydata
@@ -85,7 +85,7 @@ int main( int argc, char* argv[] ) {
   Cleaner->ToleranceIsAbsoluteOn();
   Cleaner->Update();
 
-  VC_MeshType::Pointer itkACVD = VC_MeshType::New();
+  auto itkACVD = volcart::MeshType::New();
   volcart::meshing::vtk2itk( Cleaner->GetOutput(), itkACVD );
 
   // ABF flattening
@@ -101,7 +101,7 @@ int main( int argc, char* argv[] ) {
 
   std::cout << width << "x" << height << std::endl;
 
-  volcart::texturing::compositeTextureV2 compText(itkACVD, vpkg, uvMap, radius, width, height, (VC_Composite_Option) type);
+  volcart::texturing::compositeTextureV2 compText(itkACVD, vpkg, uvMap, radius, width, height, (volcart::CompositeOption) type);
 
   // Setup rendering
   volcart::Rendering rendering;

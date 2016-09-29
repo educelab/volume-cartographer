@@ -70,7 +70,7 @@ public:
     int setMetadata(const std::string& key, T value)
     {
         if (_readOnly) {
-            VC_ERR_READONLY();
+            volcart::ERR_READONLY();
         }
 
         config.set<T>(key, value);
@@ -106,7 +106,7 @@ public:
         const pcl::PointCloud<pcl::PointXYZRGB>::Ptr segmentedCloud) const;
 
     void saveMesh(
-        const VC_MeshType::Pointer& mesh, volcart::Texture& texture) const;
+        const volcart::MeshType::Pointer& mesh, volcart::Texture& texture) const;
 
     void saveTextureData(
         const cv::Mat& texture, const std::string& name = "textured");

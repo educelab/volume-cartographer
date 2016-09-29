@@ -10,6 +10,7 @@
 #include "testing/parsingHelpers.h"
 #include "testing/testingUtils.h"
 
+using namespace volcart;
 
 /***************************************************************************************
  *                                                                                     *
@@ -63,9 +64,9 @@ struct WriteMeshUsingOBJWriterFixture {
     ~WriteMeshUsingOBJWriterFixture(){ std::cerr << "Cleaning up test objects" << std::endl; }
 
     volcart::shapes::Plane _Plane;
-    VC_MeshType::Pointer _in_PlaneITKMesh ;
-    std::vector<VC_Vertex>_SavedPlanePoints;
-    std::vector<VC_Cell> _SavedPlaneCells;
+    MeshType::Pointer _in_PlaneITKMesh ;
+    std::vector<Vertex>_SavedPlanePoints;
+    std::vector<Cell> _SavedPlaneCells;
 };
 
 BOOST_FIXTURE_TEST_CASE(CompareWrittenMeshDataWithFixtureCreatedMesh, WriteMeshUsingOBJWriterFixture){
@@ -86,10 +87,10 @@ BOOST_FIXTURE_TEST_CASE(CompareWrittenMeshDataWithFixtureCreatedMesh, WriteMeshU
 
     // Normals //
     int p =0;
-    VC_PointsInMeshIterator point = _in_PlaneITKMesh->GetPoints()->Begin();
+    PointsInMeshIterator point = _in_PlaneITKMesh->GetPoints()->Begin();
     for ( ; point != _in_PlaneITKMesh->GetPoints()->End(); ++point ) {
 
-        VC_PixelType _in_PlaneITKMeshNormal;
+        PixelType _in_PlaneITKMeshNormal;
         _in_PlaneITKMesh->GetPointData(point.Index(), &_in_PlaneITKMeshNormal);
 
         //Now compare the normals for the two meshes
@@ -103,14 +104,14 @@ BOOST_FIXTURE_TEST_CASE(CompareWrittenMeshDataWithFixtureCreatedMesh, WriteMeshU
     //Cells (faces)
 
     // Initialize Cell Iterators
-    VC_CellIterator _in_PlaneITKMeshCell = _in_PlaneITKMesh->GetCells()->Begin();
+    CellIterator _in_PlaneITKMeshCell = _in_PlaneITKMesh->GetCells()->Begin();
 
     int c = 0;
 
     while (_in_PlaneITKMeshCell != _in_PlaneITKMesh->GetCells()->End()) {
 
         //Initialize Iterators for Points in a Cell
-        VC_PointsInCellIterator _in_PlaneITKMeshPointId = _in_PlaneITKMeshCell.Value()->PointIdsBegin();
+        PointsInCellIterator _in_PlaneITKMeshPointId = _in_PlaneITKMeshCell.Value()->PointIdsBegin();
 
         int counter = 0;
         //while we have points in the cell

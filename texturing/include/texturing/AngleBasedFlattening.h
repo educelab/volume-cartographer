@@ -28,14 +28,14 @@ namespace volcart {
       public:
           ///// Constructors/Destructors /////
           AngleBasedFlattening();
-          AngleBasedFlattening( VC_MeshType::Pointer mesh );
+          AngleBasedFlattening( MeshType::Pointer mesh );
 
           ///// Access Functions /////
           // Set inputs
-          void setMesh( VC_MeshType::Pointer mesh );
+          void setMesh( MeshType::Pointer mesh );
 
           // Get outputs
-          VC_MeshType::Pointer getMesh();
+          MeshType::Pointer getMesh();
           volcart::UVMap getUVMap();
 
           ///// Parameters /////
@@ -75,7 +75,7 @@ namespace volcart {
           void _computePinUV();
 
           ///// Storage /////
-          VC_MeshType::Pointer  _mesh;   // input mesh
+          MeshType::Pointer  _mesh;   // input mesh
           HalfEdgeMesh          _heMesh; // half-edge mesh for processing
 
           // Interior Vertices

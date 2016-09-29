@@ -16,6 +16,7 @@
 #include "testing/parsingHelpers.h"
 #include "testing/testingUtils.h"
 
+using namespace volcart;
 namespace fs = boost::filesystem;
 
 /************************************************************************************
@@ -84,8 +85,8 @@ struct PlaneOrderedPCDFixture {
     pcl::PointCloud<pcl::PointXYZRGB> _in_PlanePointCloud;
     fs::path _PlaneOutfile;
 
-    std::vector<VC_Vertex> _SavedPlanePoints, _FixtureCreatedPlanePoints;
-    std::vector<VC_Cell> _SavedPlaneCells, _FixtureCreatedPlaneCells;
+    std::vector<Vertex> _SavedPlanePoints, _FixtureCreatedPlanePoints;
+    std::vector<Cell> _SavedPlaneCells, _FixtureCreatedPlaneCells;
 
 };
 
@@ -112,8 +113,8 @@ struct CubeOrderedPCDFixture {
     pcl::PointCloud<pcl::PointXYZRGB> _in_CubePointCloud;
     volcart::shapes::Cube _Cube;
     fs::path _CubeOutfile;
-    std::vector<VC_Vertex> _SavedCubePoints, _FixtureCreatedCubePoints;
-    std::vector<VC_Cell> _SavedCubeCells, _FixtureCreatedCubeCells;
+    std::vector<Vertex> _SavedCubePoints, _FixtureCreatedCubePoints;
+    std::vector<Cell> _SavedCubeCells, _FixtureCreatedCubeCells;
 
 };
 
@@ -140,8 +141,8 @@ struct ArchOrderedPCDFixture {
     pcl::PointCloud<pcl::PointXYZRGB> _in_ArchPointCloud;
     volcart::shapes::Arch _Arch;
     fs::path _ArchOutfile;
-    std::vector<VC_Vertex> _SavedArchPoints, _FixtureCreatedArchPoints;
-    std::vector<VC_Cell> _SavedArchCells, _FixtureCreatedArchCells;
+    std::vector<Vertex> _SavedArchPoints, _FixtureCreatedArchPoints;
+    std::vector<Cell> _SavedArchCells, _FixtureCreatedArchCells;
 
 };
 
@@ -168,8 +169,8 @@ struct SphereOrderedPCDFixture {
     pcl::PointCloud<pcl::PointXYZRGB> _in_SpherePointCloud;
     volcart::shapes::Sphere _Sphere;
     fs::path _SphereOutfile;
-    std::vector<VC_Vertex> _SavedSpherePoints, _FixtureCreatedSpherePoints;
-    std::vector<VC_Cell> _SavedSphereCells, _FixtureCreatedSphereCells;
+    std::vector<Vertex> _SavedSpherePoints, _FixtureCreatedSpherePoints;
+    std::vector<Cell> _SavedSphereCells, _FixtureCreatedSphereCells;
 
 };
 
@@ -197,8 +198,8 @@ struct ConeOrderedPCDFixture {
     pcl::PointCloud<pcl::PointXYZRGB> _in_ConePointCloud;
     volcart::shapes::Cone _Cone;
     fs::path _ConeOutfile;
-    std::vector<VC_Vertex> _SavedConePoints, _FixtureCreatedConePoints;
-    std::vector<VC_Cell> _SavedConeCells, _FixtureCreatedConeCells;
+    std::vector<Vertex> _SavedConePoints, _FixtureCreatedConePoints;
+    std::vector<Cell> _SavedConeCells, _FixtureCreatedConeCells;
 
 };
 

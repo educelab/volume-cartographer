@@ -25,11 +25,11 @@ void MyThread::run()
 
         fs::path meshName = _globals->getVolPkg()->getMeshPath();
 
-        VC_Composite_Option aFilterOption = (VC_Composite_Option) _globals->getTextureMethod();
-        VC_Direction_Option aDirectionOption = (VC_Direction_Option) _globals->getSampleDirection();
+        volcart::CompositeOption aFilterOption = (volcart::CompositeOption) _globals->getTextureMethod();
+        volcart::DirectionOption aDirectionOption = (volcart::DirectionOption) _globals->getSampleDirection();
 
         // declare pointer to new Mesh object
-        VC_MeshType::Pointer mesh = VC_MeshType::New();
+        auto mesh = volcart::MeshType::New();
 
         // try to convert the ply to an ITK mesh
         if (!volcart::io::ply2itkmesh(meshName, mesh, meshWidth, meshHeight))
@@ -60,7 +60,7 @@ void MyThread::run()
         Cleaner->SetInputData( acvdMesh );
         Cleaner->Update();
 
-        VC_MeshType::Pointer itkACVD = VC_MeshType::New();
+        auto itkACVD = volcart::MeshType::New();
         volcart::meshing::vtk2itk( Cleaner->GetOutput(), itkACVD );
 
         // ABF flattening

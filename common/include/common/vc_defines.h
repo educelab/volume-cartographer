@@ -20,9 +20,9 @@
 constexpr static int VOLPKG_VERSION = 2;
 
 // VC standard component access positions for XYZ
-constexpr static int VC_INDEX_X = 0;
-constexpr static int VC_INDEX_Y = 1;
-constexpr static int VC_INDEX_Z = 2;
+constexpr static int INDEX_X = 0;
+constexpr static int INDEX_Y = 1;
+constexpr static int INDEX_Z = 2;
 
 // VC - Useful typedefs for general purpose use
 namespace volcart
@@ -88,7 +88,7 @@ using QuadEdgeListPointer = QuadMesh::EdgeListPointerType;
 using QuadEdgeListIterator = QuadEdgeList::iterator;
 
 ///// ERROR MESSAGES /////
-inline int VC_ERR_READONLY()
+inline int ERR_READONLY()
 {
     std::cerr << "ERROR: VolPkg is set to read-only. Cannot write to file"
               << std::endl;
@@ -99,15 +99,15 @@ inline int VC_ERR_READONLY()
 using Origin = cv::Vec2d;
 using Voxel = cv::Vec3d;
 
-#define VC_ORIGIN_TOP_LEFT VC_Origin(0, 0)
-#define VC_ORIGIN_TOP_RIGHT VC_Origin(1, 0)
-#define VC_ORIGIN_BOTTOM_LEFT VC_Origin(0, 1)
-#define VC_ORIGIN_BOTTOM_RIGHT VC_Origin(1, 1)
+#define VC_ORIGIN_TOP_LEFT volcart::Origin(0, 0)
+#define VC_ORIGIN_TOP_RIGHT volcart::Origin(1, 0)
+#define VC_ORIGIN_BOTTOM_LEFT volcart::Origin(0, 1)
+#define VC_ORIGIN_BOTTOM_RIGHT volcart::Origin(1, 1)
 
 #define VC_UVMAP_NULL_MAPPING cv::Vec2d(-1, -1)
 
 ///// Texture Compositing /////
-constexpr static double VC_TEXTURE_NO_VALUE = -1.0;
+constexpr static double TEXTURE_NO_VALUE = -1.0;
 enum class CompositeOption {
     Intersection,
     NonMaximumSuppression,

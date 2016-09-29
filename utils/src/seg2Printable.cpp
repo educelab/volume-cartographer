@@ -27,8 +27,8 @@ int main (int argc, char* argv[]) {
     outputName += "_mm.obj";
 
     // Get our mesh
-    VC_MeshType::Pointer mesh = VC_MeshType::New();
-    VC_MeshType::Pointer scaled = VC_MeshType::New();
+    auto mesh = volcart::MeshType::New();
+    auto scaled = volcart::MeshType::New();
     int width = -1, height = -1;
     if (!volcart::io::ply2itkmesh(volpkg.getMeshPath(), mesh, width, height)) {
         std::cerr << "ERROR: Could not read ply file" << std::endl;

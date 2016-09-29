@@ -9,19 +9,19 @@ namespace volcart {
     namespace meshing {
 
         ///// ITK Mesh -> VTK Polydata /////
-        itk2vtk::itk2vtk( VC_MeshType::Pointer input, vtkSmartPointer<vtkPolyData> output ) {
+        itk2vtk::itk2vtk( MeshType::Pointer input, vtkSmartPointer<vtkPolyData> output ) {
 
             // points + normals
             auto points = vtkSmartPointer<vtkPoints>::New();
             auto pointNormals = vtkSmartPointer<vtkDoubleArray>::New();
             pointNormals->SetNumberOfComponents(3); //3d normals (ie x,y,z)
 
-            for ( VC_PointsInMeshIterator point = input->GetPoints()->Begin(); point != input->GetPoints()->End(); ++point ) {
+            for ( PointsInMeshIterator point = input->GetPoints()->Begin(); point != input->GetPoints()->End(); ++point ) {
                 // assign the point
                 points->InsertPoint(point->Index(), point->Value()[0], point->Value()[1], point->Value()[2]);
 
                 // assign the normal
-                VC_PixelType normal;
+                PixelType normal;
                 if(input->GetPointData(point.Index(), &normal)) {
                     double ptNorm[3] = {normal[0], normal[1], normal[2]};
                     pointNormals->InsertTuple(point->Index(), ptNorm);
@@ -30,10 +30,10 @@ namespace volcart {
 
             // cells
             auto polys = vtkSmartPointer<vtkCellArray>::New();
-            for ( VC_CellIterator cell = input->GetCells()->Begin(); cell != input->GetCells()->End(); ++cell ) {
+            for ( CellIterator cell = input->GetCells()->Begin(); cell != input->GetCells()->End(); ++cell ) {
 
                 auto poly = vtkSmartPointer<vtkIdList>::New();
-                for ( VC_PointsInCellIterator point = cell.Value()->PointIdsBegin(); point != cell.Value()->PointIdsEnd(); ++point )
+                for ( PointsInCellIterator point = cell.Value()->PointIdsBegin(); point != cell.Value()->PointIdsEnd(); ++point )
                     poly->InsertNextId(*point);
 
                 polys->InsertNextCell(poly);
@@ -48,27 +48,27 @@ namespace volcart {
         };
 
         ///// VTK Polydata -> ITK Mesh /////
-        vtk2itk::vtk2itk( vtkSmartPointer<vtkPolyData> input, VC_MeshType::Pointer output ) {
+        vtk2itk::vtk2itk( vtkSmartPointer<vtkPolyData> input, MeshType::Pointer output ) {
 
             // points + normals
             auto pointNormals = input->GetPointData()->GetNormals();
             for ( vtkIdType p_id = 0; p_id < input->GetNumberOfPoints(); ++p_id ) {
 
-                VC_PointType point = input->GetPoint(p_id);
+                PointType point = input->GetPoint(p_id);
                 output->SetPoint(p_id, point);
                 if( pointNormals != nullptr )
                 {
-                    VC_PixelType normal = pointNormals->GetTuple(p_id);
+                    PixelType normal = pointNormals->GetTuple(p_id);
                     output->SetPointData(p_id, normal);
                 }
             }
 
             // cells
-            VC_CellType::CellAutoPointer cell;
+            CellType::CellAutoPointer cell;
             for ( vtkIdType c_id = 0; c_id < input->GetNumberOfCells(); ++c_id ) {
 
                 auto inputCell = input->GetCell(c_id); // input cell
-                cell.TakeOwnership( new VC_TriangleType ); // output cell
+                cell.TakeOwnership( new TriangleType ); // output cell
 
                 for ( vtkIdType p_id = 0; p_id < inputCell->GetNumberOfPoints(); ++p_id ) {
                     cell->SetPointId(p_id, inputCell->GetPointId(p_id)); // assign the point id's
@@ -80,11 +80,11 @@ namespace volcart {
         };
 
         ///// ITK Mesh -> ITK QuadEdge Mesh /////
-        itk2itkQE::itk2itkQE(VC_MeshType::Pointer input, volcart::QuadMesh::Pointer output ) {
+        itk2itkQE::itk2itkQE(MeshType::Pointer input, volcart::QuadMesh::Pointer output ) {
 
           // Vertices
           volcart::QuadPoint p;
-          VC_PixelType n;
+          PixelType n;
           for ( auto point = input->GetPoints()->Begin(); point != input->GetPoints()->End(); ++point ) {
             // Assign the point
             p = point->Value();
@@ -108,11 +108,11 @@ namespace volcart {
         }
 
         ///// ITK QuadEdge Mesh -> ITK Mesh /////
-        itkQE2itk::itkQE2itk(volcart::QuadMesh::Pointer input, VC_MeshType::Pointer output) {
+        itkQE2itk::itkQE2itk(volcart::QuadMesh::Pointer input, MeshType::Pointer output) {
 
           // Vertices
-          VC_PointType p;
-          VC_PixelType n;
+          PointType p;
+          PixelType n;
           for( auto point = input->GetPoints()->Begin(); point != input->GetPoints()->End(); ++point ) {
             // Assign the point
             p = point->Value();
@@ -124,10 +124,10 @@ namespace volcart {
           }
 
           // Faces
-          VC_CellType::CellAutoPointer cell;
+          CellType::CellAutoPointer cell;
           QuadCellIdentifier id = 0; // QE Meshes use a map so we have to reset their cell ids
           for ( auto c_it = input->GetCells()->Begin(); c_it != input->GetCells()->End(); ++c_it, ++id ) {
-            cell.TakeOwnership( new VC_TriangleType ); // output cell
+            cell.TakeOwnership( new TriangleType ); // output cell
             cell->SetPointIds( c_it->Value()->PointIdsBegin(), c_it->Value()->PointIdsEnd() );
 
             output->SetCell( id, cell );
