@@ -1,5 +1,4 @@
 stages:
-    - lint
     - build
     - test
     - collect
@@ -19,8 +18,6 @@ build:debian:
         paths:
             - build/bin/
         expire_in: 1 day
-    dependencies:
-        - lint
     tags:
         - build
         - linux
@@ -64,8 +61,6 @@ build:osx:
         paths:
             - build/bin/
         expire_in: 1 day
-    dependencies:
-        - lint
     tags:
         - build
         - osx
@@ -97,7 +92,7 @@ test:osx:
 
 
 ### Extra Checks and Tests ###
-clang-format:
+lint:
     before_script:
       - git fetch --all
     stage: test
