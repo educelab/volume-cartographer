@@ -126,7 +126,7 @@ void CWindow::CreateWidgets(void)
 {
     // add volume viewer
     QWidget *aTabSegment = this->findChild<QWidget *>("tabSegment");
-    assert(aTabSegment != NULL);
+    assert(aTabSegment != nullptr);
 
     fVolumeViewerWidget = new CVolumeViewerWithCurve();
 

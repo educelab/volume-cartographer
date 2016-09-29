@@ -7,10 +7,10 @@ using namespace ChaoVis;
 
 // Constructor
 CVolumeViewerWithCurve::CVolumeViewerWithCurve( void ) :
-        fSplineCurveRef( NULL ),
-        fIntersectionCurveRef( NULL ),
+        fSplineCurveRef( nullptr ),
+        fIntersectionCurveRef( nullptr ),
         fViewState( EViewState::ViewStateIdle ),
-        fShowCurveBox( NULL ),
+        fShowCurveBox( nullptr ),
         showCurve( true ),
         fSelectedPointIndex( -1 ),
         fVertexIsChanged( false ),
@@ -37,7 +37,7 @@ CVolumeViewerWithCurve::~CVolumeViewerWithCurve( void )
 // Set image
 void CVolumeViewerWithCurve::SetImage( const QImage &nSrc )
 {
-    if ( fImgQImage == NULL ) {
+    if ( fImgQImage == nullptr ) {
         fImgQImage = new QImage( nSrc );
     } else {
         *fImgQImage = nSrc;
@@ -73,7 +73,7 @@ void CVolumeViewerWithCurve::SetImpactRange( int nImpactRange )
 // Update the B-spline curve
 void CVolumeViewerWithCurve::UpdateSplineCurve( void )
 {
-    if ( fSplineCurveRef != NULL ) {
+    if ( fSplineCurveRef != nullptr ) {
          fSplineCurveRef->SetControlPoints( fControlPoints );
     }
 }
@@ -84,7 +84,7 @@ void CVolumeViewerWithCurve::UpdateView( void )
     fImgMatCache.copyTo( fImgMat );
 
     if ( fViewState == EViewState::ViewStateDraw ) {
-        if ( fSplineCurveRef != NULL ) {
+        if ( fSplineCurveRef != nullptr ) {
             fSplineCurveRef->DrawOnImage( fImgMat, cv::Scalar( 0, 0, 255 ) );
         }
 
@@ -92,7 +92,7 @@ void CVolumeViewerWithCurve::UpdateView( void )
             cv::circle( fImgMat, cv::Point2f( fControlPoints[ i ] ), 1, cv::Scalar( 255, 0, 0 ) );
         }
     } else {
-        if ( fIntersectionCurveRef != NULL && showCurve ) {
+        if ( fIntersectionCurveRef != nullptr && showCurve ) {
             DrawIntersectionCurve();
         }
     }
@@ -136,7 +136,7 @@ void CVolumeViewerWithCurve::mousePressEvent( QMouseEvent *event )
         }
     } else if ( fViewState == EViewState::ViewStateEdit ) {
         // REVISIT - FILL ME HERE
-        if ( fIntersectionCurveRef != NULL ) {
+        if ( fIntersectionCurveRef != nullptr ) {
             fSelectedPointIndex = SelectPointOnCurve( fIntersectionCurveRef, aImgLoc );
             fIntersectionCurveRef->setLastState();
         }
@@ -184,7 +184,7 @@ void CVolumeViewerWithCurve::mouseMoveEvent( QMouseEvent *event )
 void CVolumeViewerWithCurve::mouseReleaseEvent( QMouseEvent *event )
 {
     if ( fViewState == EViewState::ViewStateEdit &&
-         fIntersectionCurveRef != NULL &&
+         fIntersectionCurveRef != nullptr &&
          fVertexIsChanged ) {
 
         // update the point positions in the path point cloud
@@ -255,7 +255,7 @@ int CVolumeViewerWithCurve::SelectPointOnCurve( const CXCurve   *nCurve,
 // Draw intersection curve on the slice
 void CVolumeViewerWithCurve::DrawIntersectionCurve( void )
 {
-    if ( fIntersectionCurveRef != NULL ) {
+    if ( fIntersectionCurveRef != nullptr ) {
         for ( size_t i = 0; i < fIntersectionCurveRef->GetPointsNum(); ++i ) {
             cv::circle( fImgMat, cv::Point2f( fIntersectionCurveRef->GetPoint( i )[ 0 ], fIntersectionCurveRef->GetPoint( i )[ 1 ] ), 1, cv::Scalar( 255, 0, 0 ) );
         }
@@ -265,11 +265,11 @@ void CVolumeViewerWithCurve::DrawIntersectionCurve( void )
 // Update the status of the buttons
 void CVolumeViewerWithCurve::UpdateButtons( void )
 {
-    fZoomInBtn->setEnabled( fImgQImage != NULL && fScaleFactor < 3.0 );
-    fZoomOutBtn->setEnabled( fImgQImage != NULL && fScaleFactor > 0.3333 );
-    fResetBtn->setEnabled( fImgQImage != NULL && fabs( fScaleFactor - 1.0 ) > 1e-6 );
-    fNextBtn->setEnabled( fImgQImage != NULL && fViewState == EViewState::ViewStateIdle );
-    fPrevBtn->setEnabled( fImgQImage != NULL && fViewState == EViewState::ViewStateIdle );
+    fZoomInBtn->setEnabled( fImgQImage != nullptr && fScaleFactor < 3.0 );
+    fZoomOutBtn->setEnabled( fImgQImage != nullptr && fScaleFactor > 0.3333 );
+    fResetBtn->setEnabled( fImgQImage != nullptr && fabs( fScaleFactor - 1.0 ) > 1e-6 );
+    fNextBtn->setEnabled( fImgQImage != nullptr && fViewState == EViewState::ViewStateIdle );
+    fPrevBtn->setEnabled( fImgQImage != nullptr && fViewState == EViewState::ViewStateIdle );
     fImageIndexEdit->setEnabled( fViewState == EViewState::ViewStateIdle );
     fImageIndexEdit->SetImageIndex( fImageIndex );
 }
