@@ -13,29 +13,30 @@ import sys
 import tarfile
 import tempfile
 import urllib.request
+
 from distutils.version import StrictVersion
 
 # The version we care about
-CLANG_FORMAT_VERSION = '3.9.0'
-CLANG_FORMAT_VERSION_SHORT = '3.9'
+CF_VERSION = '3.9.0'
+CF_VERSION_SHORT = '3.9'
 
 # Name of clang-format as a binary
-CLANG_FORMAT_PROGNAME = 'clang-format'
+CF_PROGNAME = 'clang-format'
 
 # URL location of the 'cached' copy of clang-format to download
 # for users which do not have clang-format installed
-CLANG_FORMAT_HTTP_LINUX_CACHE = 'http://llvm.org/releases/3.9.0/clang+llvm-3.9.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz'
+CF_HTTP_LINUX_CACHE = 'http://llvm.org/releases/3.9.0/clang+llvm-3.9.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz'
 
-CLANG_FORMAT_HTTP_DARWIN_CACHE = 'http://llvm.org/releases/3.9.0/clang+llvm-3.9.0-x86_64-apple-darwin.tar.xz'
+CF_HTTP_DARWIN_CACHE = 'http://llvm.org/releases/3.9.0/clang+llvm-3.9.0-x86_64-apple-darwin.tar.xz'
 
 # Path in the tarball to the clang-format binary
-CLANG_FORMAT_SOURCE_TAR_BASE = string.Template(
-    'clang+llvm-$version-$tar_path/bin/' + CLANG_FORMAT_PROGNAME
+CF_SOURCE_TAR_BASE = string.Template(
+    'clang+llvm-$version-$tar_path/bin/' + CF_PROGNAME
 )
 
 # Path to extract clang-format to in source tree
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-CLANG_FORMAT_EXTRACT_DIR = os.path.join(BASE_DIR, 'bin')
+CF_EXTRACT_DIR = os.path.join(BASE_DIR, 'bin')
 
 
 def fetch_clang_format(url):
@@ -43,7 +44,7 @@ def fetch_clang_format(url):
     tmp_tar = os.path.join(dest, 'temp.tar.xz')
     logging.info(
         'Downloading clang-format {} from {}, saving to {}'.
-        format(CLANG_FORMAT_VERSION, url, tmp_tar)
+        format(CF_VERSION, url, tmp_tar)
     )
     urllib.request.urlretrieve(url, tmp_tar)
     return tmp_tar
@@ -51,18 +52,16 @@ def fetch_clang_format(url):
 
 def extract_clang_format(tarpath, final_cf_path):
     # Make the cf dir if it doesn't already exist
-    if not os.path.isdir(CLANG_FORMAT_EXTRACT_DIR):
-        os.mkdir(CLANG_FORMAT_EXTRACT_DIR)
+    if not os.path.isdir(CF_EXTRACT_DIR):
+        os.mkdir(CF_EXTRACT_DIR)
 
     # Extract from tarfile to the final dir
     with tarfile.open(tarpath, 'r:xz') as t:
-        logging.info(
-            'Extracting {} from {}'.format(CLANG_FORMAT_PROGNAME, tarpath)
-        )
+        logging.info('Extracting {} from {}'.format(CF_PROGNAME, tarpath))
         path_in_tar = list(
             filter(lambda n: n.endswith('/clang-format'), t.getnames())
         )[0]
-        fullpath = os.path.join(CLANG_FORMAT_EXTRACT_DIR, CLANG_FORMAT_PROGNAME)
+        fullpath = os.path.join(CF_EXTRACT_DIR, CF_PROGNAME)
         extract_to = os.path.join(tempfile.gettempdir())
         t.extract(path_in_tar, path=extract_to)
 
@@ -91,9 +90,8 @@ def changed_files():
     current_branch = callo('git rev-parse --abbrev-ref @')
     develop = 'origin/develop'
     branch_point = callo('git merge-base {} {}'.format(develop, current_branch))
-    files = callo(
-        'git diff --name-only {}..{}'.format(branch_point, current_branch)
-    ).splitlines()
+    diffcmd = 'git diff --name-only {}..{}'.format(branch_point, current_branch)
+    files = callo(diffcmd).splitlines()
     if len(files) == 0:
         logging.info('No changed files')
         sys.exit(0)
@@ -108,7 +106,7 @@ def find_clang_format(argpath):
 
     # Check for the previously-extracted clang-format and make sure it's
     # executable
-    extracted = os.path.join(CLANG_FORMAT_EXTRACT_DIR, CLANG_FORMAT_PROGNAME)
+    extracted = os.path.join(CF_EXTRACT_DIR, CF_PROGNAME)
     if os.path.isfile(extracted) and callo(' '.join([extracted, '-h'])):
         return extracted
 
@@ -125,15 +123,15 @@ def find_clang_format(argpath):
         # Fetch clang-format from LLVM servers
         tarpath = ''
         if platform.system() == 'Linux':
-            tarpath = fetch_clang_format(CLANG_FORMAT_HTTP_LINUX_CACHE)
+            tarpath = fetch_clang_format(CF_HTTP_LINUX_CACHE)
         elif platform.system() == 'Darwin':
-            tarpath = fetch_clang_format(CLANG_FORMAT_HTTP_DARWIN_CACHE)
+            tarpath = fetch_clang_format(CF_HTTP_DARWIN_CACHE)
         else:
             logging.error('Platorm {} not supported'.format(platform.system()))
             sys.exit(1)
 
         # Extract to correct directory
-        return extract_clang_format(tarpath, CLANG_FORMAT_EXTRACT_DIR)
+        return extract_clang_format(tarpath, CF_EXTRACT_DIR)
 
 
 def cf_version(path):
@@ -141,8 +139,7 @@ def cf_version(path):
 
 
 def cf_version_is_correct(path):
-    return StrictVersion(CLANG_FORMAT_VERSION
-                        ) <= StrictVersion(cf_version(path))
+    return StrictVersion(CF_VERSION) <= StrictVersion(cf_version(path))
 
 
 # Lint a given file
@@ -205,7 +202,7 @@ if __name__ == '__main__':
     if not cf_version_is_correct(cf):
         logging.error(
             'Incorrect version of clang-format: got {} but {} is required'.
-            format(cf_version(cf), CLANG_FORMAT_VERSION)
+            format(cf_version(cf), CF_VERSION)
         )
         sys.exit(1)
 
