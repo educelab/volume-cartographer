@@ -61,7 +61,7 @@ void MainWindow::getFilePath()// Gets the Folder Path of the Volume Package loca
     QString filename = dialogBox->getExistingDirectory();
     std::string file_Name = filename.toStdString();
 
-    if(!filename.isNull())// If the user selected a Folder Path
+    if(!filename.isEmpty())// If the user selected a Folder Path
     {
         if ((file_Name.substr(file_Name.length()-7, file_Name.length())).compare(".volpkg") == 0)// Checks the Folder Path for .volpkg extension
         {
