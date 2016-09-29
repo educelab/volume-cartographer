@@ -93,6 +93,34 @@ public:
         std::copy(std::begin(ps), std::end(ps), std::back_inserter(_data));
     }
 
+    // Get a particular row
+    std::vector<T> get_row(size_t i) const
+    {
+        if (i >= this->height()) {
+            throw std::range_error("out of range");
+        }
+        std::vector<T> row(_width);
+        std::copy(
+            std::begin(_data) + _width * i,
+            std::begin(_data) + _width * (i + 1), std::begin(row));
+        return row;
+    }
+
+    // Copy rows to a new pointset
+    OrderedPointSet copy_rows(size_t i, size_t j) const
+    {
+        if (i >= this->size() || j >= this->size()) {
+            throw std::range_error("out of range");
+        } else if (i >= j) {
+            throw std::logic_error("i must be less than j");
+        }
+        OrderedPointSet ps(_width);
+        std::copy(
+            std::begin(_data) + _width * i, std::begin(_data) + _width * j,
+            std::begin(ps));
+        return ps;
+    }
+
 private:
     size_t _width;
 };

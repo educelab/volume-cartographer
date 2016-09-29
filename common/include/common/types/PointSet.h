@@ -91,6 +91,8 @@ public:
         std::copy(std::begin(ps), std::end(ps), std::back_inserter(_data));
     }
 
+    void clear() { _data.clear(); }
+
 protected:
     Container _data;
 };
