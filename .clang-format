@@ -18,27 +18,26 @@ AlwaysBreakAfterDefinitionReturnType: None
 AlwaysBreakAfterReturnType: None
 AlwaysBreakBeforeMultilineStrings: true
 AlwaysBreakTemplateDeclarations: true
-BinPackArguments: false
-BinPackParameters: true
+BinPackArguments: true
+BinPackParameters: false
 BreakBeforeBinaryOperators: None
 BreakBeforeBraces: Linux
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializersBeforeComma: true
-BreakStringLiterals: true
 ColumnLimit:     80
 CommentPragmas:  '^ IWYU pragma:'
 ConstructorInitializerAllOnOneLineOrOnePerLine: true
 ConstructorInitializerIndentWidth: 4
 ContinuationIndentWidth: 4
 Cpp11BracedListStyle: true
-DerivePointerAlignment: true
+DerivePointerAlignment: false
 DisableFormat:   false
 ExperimentalAutoDetectBinPacking: false
 ForEachMacros:   [ foreach, Q_FOREACH, BOOST_FOREACH ]
 IncludeCategories: 
-  - Regex:           '^<[^(.h>)]*>'
+  - Regex:           '^<[^.>]*>'
     Priority:        1
-  - Regex:           '^<c[^(.h>)]*>'
+  - Regex:           '^<c[^.>]*>'
     Priority:        2
   - Regex:           '^<|"vtk.*>'
     Priority:        3
@@ -46,13 +45,12 @@ IncludeCategories:
     Priority:        4
   - Regex:           '^<|"pcl.*>'
     Priority:        5
-  - Regex:           '^<|"opencv.*>'
+  - Regex:           '^<|"opencv\d?.*>'
     Priority:        6
   - Regex:           '^<|".*'
     Priority:        7
   - Regex:           '.*'
     Priority:        8
-IncludeIsMainRegex: '([-_](test|unittest))?$'
 IndentCaseLabels: true
 IndentWidth:     4
 IndentWrappedFunctionNames: false
