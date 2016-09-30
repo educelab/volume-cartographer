@@ -3,7 +3,6 @@
 #include "CBSpline.h"
 
 #include "CMatrixMN.h"
-#include "CVectorN.h"
 #include "UVecMatOperations.h"
 
 //#define _DEBUG
