@@ -912,15 +912,15 @@ void CWindow::TogglePenTool(void)
     } else {
         fWindowState = EWindowState::WindowStateIdle;
 
-        if (fSplineCurve.GetNumOfControlPoints() > 2) {
+        if (fSplineCurve.GetNumOfControlPoints() > 1) {
             SetPathPointCloud();  // finished drawing, set up path
             SavePointCloud();
             SetUpCurves();
             OpenSlice();
             SetCurrentCurve(fPathOnSliceIndex);
-            fSplineCurve.Clear();
-            fVolumeViewerWidget->ResetSplineCurve();
         }
+        fSplineCurve.Clear();
+        fVolumeViewerWidget->ResetSplineCurve();
     }
 
     UpdateView();

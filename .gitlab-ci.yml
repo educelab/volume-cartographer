@@ -144,6 +144,7 @@ deploy:
         - mkdir -p ~/Dropbox/VC-Releases/v${version}
         - cp VC*.dmg ~/Dropbox/VC-Releases/v${version}
         - cp VC-${vershort}-source.tar.gz ~/Dropbox/VC-Releases/v${version}
+    environment: production
     tags:
         - deploy
         - osx
