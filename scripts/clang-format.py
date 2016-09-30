@@ -17,8 +17,8 @@ import urllib.request
 from distutils.version import StrictVersion
 
 # The version we care about
-CF_VERSION = '3.9.0'
-CF_VERSION_SHORT = '3.9'
+CF_VERSION = '3.8.0'
+CF_VERSION_SHORT = '3.8'
 
 # Name of clang-format as a binary
 CF_PROGNAME = 'clang-format'
