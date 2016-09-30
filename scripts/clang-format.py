@@ -15,10 +15,12 @@ import tempfile
 import urllib.request
 
 from distutils.version import StrictVersion
+from os.path import join
+from typing import List, Union
 
 # The version we care about
-CF_VERSION = '3.9.0'
-CF_VERSION_SHORT = '3.9'
+CF_VERSION = '3.8.0'
+CF_VERSION_SHORT = '3.8'
 
 # Name of clang-format as a binary
 CF_PROGNAME = 'clang-format'
@@ -36,12 +38,12 @@ CF_SOURCE_TAR_BASE = string.Template(
 
 # Path to extract clang-format to in source tree
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-CF_EXTRACT_DIR = os.path.join(BASE_DIR, 'bin')
+CF_EXTRACT_DIR = join(BASE_DIR, 'bin')
 
 
-def fetch_clang_format(url):
+def fetch_clang_format(url: str) -> str:
     dest = tempfile.gettempdir()
-    tmp_tar = os.path.join(dest, 'temp.tar.xz')
+    tmp_tar = join(dest, 'temp.tar.xz')
     logging.info(
         'Downloading clang-format {} from {}, saving to {}'.
         format(CF_VERSION, url, tmp_tar)
@@ -50,7 +52,7 @@ def fetch_clang_format(url):
     return tmp_tar
 
 
-def extract_clang_format(tarpath, final_cf_path):
+def extract_clang_format(tarpath: str, final_cf: str) -> str:
     # Make the cf dir if it doesn't already exist
     if not os.path.isdir(CF_EXTRACT_DIR):
         os.mkdir(CF_EXTRACT_DIR)
@@ -61,52 +63,40 @@ def extract_clang_format(tarpath, final_cf_path):
         path_in_tar = list(
             filter(lambda n: n.endswith('/clang-format'), t.getnames())
         )[0]
-        fullpath = os.path.join(CF_EXTRACT_DIR, CF_PROGNAME)
-        extract_to = os.path.join(tempfile.gettempdir())
+        fullpath = join(CF_EXTRACT_DIR, CF_PROGNAME)
+        extract_to = tempfile.gettempdir()
         t.extract(path_in_tar, path=extract_to)
 
         # Move to final location
-        shutil.move(os.path.join(tempfile.gettempdir(), path_in_tar), fullpath)
+        shutil.move(join(extract_to, path_in_tar), fullpath)
         logging.info('Extracted {} to {}'.format(path_in_tar, fullpath))
 
         return fullpath
 
 
-def callo(cmd):
+def callo(cmd: Union[List[str], str]) -> str:
     if isinstance(cmd, str):
         cmd = cmd.split()
     return subprocess.check_output(cmd).decode('utf-8').strip()
 
 
-# Only return rc, not output
-def call(cmd):
-    if isinstance(cmd, list):
-        cmd = ' '.join(cmd)
-    return subprocess.getstatusoutput(cmd)
-
-
 # Get all changed files (even non-source ones)
-def changed_files():
+def changed_files() -> List[str]:
     current_branch = callo('git rev-parse --abbrev-ref @')
     develop = 'origin/develop'
     branch_point = callo('git merge-base {} {}'.format(develop, current_branch))
     diffcmd = 'git diff --name-only {}..{}'.format(branch_point, current_branch)
-    files = callo(diffcmd).splitlines()
-    if len(files) == 0:
-        logging.info('No changed files')
-        sys.exit(0)
-
-    return files
+    return callo(diffcmd).splitlines()
 
 
 # Find clang-format either in passed-in path or system path
-def find_clang_format(argpath):
+def find_clang_format(argpath: str) -> str:
     if argpath:
         return argpath
 
     # Check for the previously-extracted clang-format and make sure it's
     # executable
-    extracted = os.path.join(CF_EXTRACT_DIR, CF_PROGNAME)
+    extracted = join(CF_EXTRACT_DIR, CF_PROGNAME)
     if os.path.isfile(extracted) and callo(' '.join([extracted, '-h'])):
         return extracted
 
@@ -134,22 +124,22 @@ def find_clang_format(argpath):
         return extract_clang_format(tarpath, CF_EXTRACT_DIR)
 
 
-def cf_version(path):
+def cf_version(path: str) -> str:
     return callo(' '.join([path, '--version'])).split()[2]
 
 
-def cf_version_is_correct(path):
+def cf_version_is_correct(path: str) -> str:
     return StrictVersion(CF_VERSION) <= StrictVersion(cf_version(path))
 
 
 # Lint a given file
-def lint_file(cf_path, file_path, show_diff):
+def lint_file(cf: str, source_file: str, show_diff: bool) -> bool:
     # Read original text
-    with open(file_path, 'r') as original_file:
+    with open(source_file, 'r') as original_file:
         original_text = original_file.read()
 
     # clang-format file
-    cmd = ' '.join([cf_path, '--style=file', file_path])
+    cmd = ' '.join([cf, '--style=file', source_file])
     formatted_text = callo(cmd)
 
     if formatted_text != original_text:
@@ -157,13 +147,10 @@ def lint_file(cf_path, file_path, show_diff):
         formatted_lines = formatted_text.splitlines()
         result = difflib.unified_diff(original_lines, formatted_lines)
 
-        print('Found formatting changes for file: ' + file_path)
+        print('Found formatting changes for file: ' + source_file)
         if show_diff:
-            print(
-                'To fix, run "{} --style=file -i {}"'.
-                format(cf_path, file_path)
-            )
-            print('Suggested changes:\n')
+            print('To fix, run "{} --style=file -i {}"'.format(cf, source_file))
+            print('Suggested changes:')
             for line in result:
                 print(line.strip())
 
@@ -176,7 +163,7 @@ if __name__ == '__main__':
         stream=sys.stdout,
         level=logging.DEBUG,
         format='%(asctime)s %(name)s %(levelname)s %(message)s',
-        datefmt='%m-%d %H:%M'
+        datefmt='%m-%d %H:%M',
     )
 
     parser = argparse.ArgumentParser('clang-format')
@@ -186,35 +173,35 @@ if __name__ == '__main__':
         help='path to clang-format',
         metavar='PATH',
         dest='path',
-        type=str
     )
     parser.add_argument(
         '--no-diff',
         help='hide file diff generated by clang-format',
-        dest='diff',
-        action='store_false'
+        default=False,
+        action='store_true',
     )
-    parser.set_defaults(diff=True)
     args = parser.parse_args()
 
     # Find clang-format, validate version
     cf = find_clang_format(args.path)
     if not cf_version_is_correct(cf):
         logging.error(
-            'Incorrect version of clang-format: got {} but {} is required'.
+            'Incorrect version of clang-format: got {} but at least {} is required'.
             format(cf_version(cf), CF_VERSION)
         )
         sys.exit(1)
 
-    # Get list of files to check
-    files = changed_files()
-
     # Then filter by extension
+    changes = changed_files()
+    if not changes:
+        logging.info('No changed files, exiting')
+        sys.exit(0)
     ext_re = re.compile(r'\.(h|hpp|c|cpp)$')
-    files = list(filter(lambda f: re.search(ext_re, f), files))
+    cxx_changes = filter(lambda f: re.search(ext_re, f), changes)
 
     # Validate each with clang-format
     clean = True
-    for f in files:
-        clean = clean & lint_file(cf, f, args.diff)
+    for f in cxx_changes:
+        clean = clean and lint_file(cf, f, not args.no_diff)
+
     sys.exit(0) if clean else sys.exit(1)
