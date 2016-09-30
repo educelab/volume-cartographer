@@ -135,10 +135,8 @@ void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* e)
         if (e->buttons() & Qt::LeftButton) {  // add points
 
             fControlPoints.push_back(aImgLoc);
+            UpdateSplineCurve();
 
-            if (fControlPoints.size() > 2) {
-                UpdateSplineCurve();
-            }
         }
     } else if (fViewState == EViewState::ViewStateEdit) {
         // If we have points, select the one that was clicked
