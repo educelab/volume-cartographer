@@ -48,6 +48,7 @@ public:
     // Metadata
     size_t size() const { return _data.size(); }
     bool empty() const { return _data.empty(); }
+    std::vector<T>& data() { return _data; }
 
     // Iterators and element accessors
     Iterator begin() { return std::begin(_data); }

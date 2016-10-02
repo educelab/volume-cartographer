@@ -106,10 +106,10 @@ public:
         return row;
     }
 
-    // Copy rows to a new pointset
+    // Copy rows to a new pointset. Copies rows [i, j)
     OrderedPointSet copy_rows(size_t i, size_t j) const
     {
-        if (i >= this->size() || j >= this->size()) {
+        if (i >= this->height() || j >= this->height()) {
             throw std::range_error("out of range");
         } else if (i >= j) {
             throw std::logic_error("i must be less than j");
@@ -117,7 +117,7 @@ public:
         OrderedPointSet ps(_width);
         std::copy(
             std::begin(_data) + _width * i, std::begin(_data) + _width * j,
-            std::begin(ps));
+            std::back_inserter(ps.data()));
         return ps;
     }
 

@@ -52,6 +52,12 @@ BOOST_AUTO_TEST_CASE(FillPointSetTest)
     }
 }
 
+BOOST_FIXTURE_TEST_CASE(ClearPointSetTest, Point3iPointSet)
+{
+    ps.clear();
+    BOOST_CHECK_EQUAL(ps.size(), 0);
+}
+
 BOOST_FIXTURE_TEST_CASE(StatisticsPointSetTest, Point3iPointSet)
 {
     BOOST_CHECK_EQUAL(ps.min(), Point3i(1, 1, 1));

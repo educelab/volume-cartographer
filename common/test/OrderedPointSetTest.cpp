@@ -16,6 +16,18 @@ struct Point3iOrderedPointSet {
     }
 };
 
+struct Point3iOrderedPointSet4Rows {
+    OrderedPointSet<Point3i> ps;
+
+    Point3iOrderedPointSet4Rows() : ps(3)
+    {
+        ps.push_row({{1, 1, 1}, {2, 2, 2}, {3, 3, 3}});
+        ps.push_row({{4, 4, 4}, {4, 4, 4}, {4, 4, 4}});
+        ps.push_row({{2, 2, 2}, {2, 2, 2}, {2, 2, 2}});
+        ps.push_row({{1, 1, 1}, {1, 1, 1}, {1, 1, 1}});
+    }
+};
+
 BOOST_AUTO_TEST_CASE(ConstructEmptyOrderedPointSet)
 {
     OrderedPointSet<Point3i> ps;
@@ -39,7 +51,47 @@ BOOST_AUTO_TEST_CASE(FillOrderedPointSetStaticMethod)
     auto ps = OrderedPointSet<Point3i>::Fill(3, 1, {2, 1, 3});
     BOOST_CHECK_EQUAL(ps(0, 0), Point3i(2, 1, 3));
     BOOST_CHECK_EQUAL(ps(1, 0), Point3i(2, 1, 3));
-    BOOST_CHECK_EQUAL(ps(2, 0), Point3i(2, 1, 3));
+    BOOS_EQUAL(ps(2, 0), Point3i(2, 1, 3));
+}
+
+BOOST_FIXTURE_TEST_CASE(GetRowFromPointSet, Point3iOrderedPointSet)
+{
+    auto row = ps.get_row(0);
+    BOOST_CHECK_EQUAL(row[0], Point3i(1, 1, 1));
+    BOOST_CHECK_EQUAL(row[1], Point3i(2, 2, 2));
+    BOOST_CHECK_EQUAL(row[2], Point3i(3, 3, 3));
+}
+
+BOOST_FIXTURE_TEST_CASE(WrongRowInGetRowThrows, Point3iOrderedPointSet)
+{
+    BOOST_CHECK_THROW(ps.get_row(2), std::range_error);
+}
+
+BOOST_FIXTURE_TEST_CASE(
+    CopyRowsFromOrderedPointSet, Point3iOrderedPointSet4Rows)
+{
+    auto newPs = ps.copy_rows(0, 2);
+    BOOST_CHECK_EQUAL(newPs.width(), 3);
+    BOOST_CHECK_EQUAL(newPs.height(), 2);
+    BOOST_CHECK_EQUAL(newPs.size(), 6);
+    BOOST_CHECK_EQUAL(newPs(0, 0), Point3i(1, 1, 1));
+    BOOST_CHECK_EQUAL(newPs(1, 0), Point3i(2, 2, 2));
+    BOOST_CHECK_EQUAL(newPs(2, 0), Point3i(3, 3, 3));
+    BOOST_CHECK_EQUAL(newPs(0, 1), Point3i(4, 4, 4));
+    BOOST_CHECK_EQUAL(newPs(1, 1), Point3i(4, 4, 4));
+    BOOST_CHECK_EQUAL(newPs(2, 1), Point3i(4, 4, 4));
+}
+
+BOOST_FIXTURE_TEST_CASE(
+    CopyRowsWithGreaterFirstIndexThrows, Point3iOrderedPointSet4Rows)
+{
+    BOOST_CHECK_THROW(ps.copy_rows(3, 2), std::logic_error);
+}
+
+BOOST_FIXTURE_TEST_CASE(
+    CopyRowsWithOutOfRangeIndexThrows, Point3iOrderedPointSet4Rows)
+{
+    BOOST_CHECK_THROW(ps.copy_rows(0, 5), std::range_error);
 }
 
 BOOST_FIXTURE_TEST_CASE(AppendOrderedPointSet, Point3iOrderedPointSet)
