@@ -33,7 +33,7 @@ CF_HTTP_DARWIN_CACHE = 'http://llvm.org/releases/3.9.0/clang+llvm-3.9.0-x86_64-a
 
 # Path in the tarball to the clang-format binary
 CF_SOURCE_TAR_BASE = string.Template(
-    'clang+llvm-$version-$tar_path/bin/' + CF_PROGNAME
+    join('clang+llvm-$version-$tar_path', 'bin', CF_PROGNAME)
 )
 
 # Path to extract clang-format to in source tree
@@ -128,10 +128,6 @@ def cf_version(path: str) -> str:
     return callo(' '.join([path, '--version'])).split()[2]
 
 
-def cf_version_is_correct(path: str) -> str:
-    return StrictVersion(CF_VERSION) <= StrictVersion(cf_version(path))
-
-
 # Lint a given file
 def lint_file(cf: str, source_file: str, show_diff: bool) -> bool:
     # Read original text
@@ -184,7 +180,7 @@ if __name__ == '__main__':
 
     # Find clang-format, validate version
     cf = find_clang_format(args.path)
-    if not cf_version_is_correct(cf):
+    if StrictVersion(cf_version(cf)) < StrictVersion(CF_VERSION):
         logging.error(
             'Incorrect version of clang-format: got {} but at least {} is required'.
             format(cf_version(cf), CF_VERSION)
