@@ -12,11 +12,10 @@ import subprocess
 import sys
 import tarfile
 import tempfile
-import urllib.request
+import urllib
 
 from distutils.version import StrictVersion
 from os.path import join
-from typing import List, Union
 
 # The version we care about
 CF_VERSION = '3.8.0'
@@ -41,7 +40,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 CF_EXTRACT_DIR = join(BASE_DIR, 'bin')
 
 
-def fetch_clang_format(url: str) -> str:
+def fetch_clang_format(url):
     dest = tempfile.gettempdir()
     tmp_tar = join(dest, 'temp.tar.xz')
     logging.info(
@@ -52,7 +51,7 @@ def fetch_clang_format(url: str) -> str:
     return tmp_tar
 
 
-def extract_clang_format(tarpath: str, final_cf: str) -> str:
+def extract_clang_format(tarpath, final_cf):
     # Make the cf dir if it doesn't already exist
     if not os.path.isdir(CF_EXTRACT_DIR):
         os.mkdir(CF_EXTRACT_DIR)
@@ -74,14 +73,14 @@ def extract_clang_format(tarpath: str, final_cf: str) -> str:
         return fullpath
 
 
-def callo(cmd: Union[List[str], str]) -> str:
+def callo(cmd):
     if isinstance(cmd, str):
         cmd = cmd.split()
     return subprocess.check_output(cmd).decode('utf-8').strip()
 
 
 # Get all changed files (even non-source ones)
-def changed_files() -> List[str]:
+def changed_files():
     current_branch = callo('git rev-parse --abbrev-ref @')
     develop = 'origin/develop'
     branch_point = callo('git merge-base {} {}'.format(develop, current_branch))
@@ -90,7 +89,7 @@ def changed_files() -> List[str]:
 
 
 # Find clang-format either in passed-in path or system path
-def find_clang_format(argpath: str) -> str:
+def find_clang_format(argpath):
     if argpath:
         return argpath
 
@@ -124,12 +123,12 @@ def find_clang_format(argpath: str) -> str:
         return extract_clang_format(tarpath, CF_EXTRACT_DIR)
 
 
-def cf_version(path: str) -> str:
+def cf_version(path):
     return callo(' '.join([path, '--version'])).split()[2]
 
 
 # Lint a given file
-def lint_file(cf: str, source_file: str, show_diff: bool) -> bool:
+def lint_file(cf, source_file, show_diff):
     # Read original text
     with open(source_file, 'r') as original_file:
         original_text = original_file.read()
