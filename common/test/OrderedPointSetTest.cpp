@@ -51,7 +51,7 @@ BOOST_AUTO_TEST_CASE(FillOrderedPointSetStaticMethod)
     auto ps = OrderedPointSet<Point3i>::Fill(3, 1, {2, 1, 3});
     BOOST_CHECK_EQUAL(ps(0, 0), Point3i(2, 1, 3));
     BOOST_CHECK_EQUAL(ps(1, 0), Point3i(2, 1, 3));
-    BOOS_EQUAL(ps(2, 0), Point3i(2, 1, 3));
+    BOOST_CHECK_EQUAL(ps(2, 0), Point3i(2, 1, 3));
 }
 
 BOOST_FIXTURE_TEST_CASE(GetRowFromPointSet, Point3iOrderedPointSet)
