@@ -37,8 +37,8 @@ CVolumeViewerWithCurve::~CVolumeViewerWithCurve(void) {}
 // Set image
 void CVolumeViewerWithCurve::SetImage(const QImage& nSrc)
 {
-    if (fImgQImage == nullptr) {
-        fImgQImage = new QImage(nSrc);
+    if ( fImgQImage == nullptr ) {
+        fImgQImage = new QImage( nSrc );
     } else {
         *fImgQImage = nSrc;
     }
@@ -74,8 +74,8 @@ void CVolumeViewerWithCurve::SetImpactRange(int nImpactRange)
 // Update the B-spline curve
 void CVolumeViewerWithCurve::UpdateSplineCurve(void)
 {
-    if (fSplineCurveRef != nullptr) {
-        fSplineCurveRef->SetControlPoints(fControlPoints);
+    if ( fSplineCurveRef != nullptr ) {
+         fSplineCurveRef->SetControlPoints( fControlPoints );
     }
 }
 
@@ -84,9 +84,9 @@ void CVolumeViewerWithCurve::UpdateView(void)
 {
     fImgMatCache.copyTo(fImgMat);
 
-    if (fViewState == EViewState::ViewStateDraw) {
-        if (fSplineCurveRef != nullptr) {
-            fSplineCurveRef->DrawOnImage(fImgMat, cv::Scalar(0, 0, 255));
+    if ( fViewState == EViewState::ViewStateDraw ) {
+        if ( fSplineCurveRef != nullptr ) {
+            fSplineCurveRef->DrawOnImage( fImgMat, cv::Scalar( 0, 0, 255 ) );
         }
 
         for (size_t i = 0; i < fControlPoints.size(); ++i) {
@@ -135,10 +135,8 @@ void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* e)
         if (e->buttons() & Qt::LeftButton) {  // add points
 
             fControlPoints.push_back(aImgLoc);
+            UpdateSplineCurve();
 
-            if (fControlPoints.size() > 2) {
-                UpdateSplineCurve();
-            }
         }
     } else if (fViewState == EViewState::ViewStateEdit) {
         // If we have points, select the one that was clicked

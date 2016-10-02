@@ -8,14 +8,14 @@ using namespace ChaoVis;
 // Constructor
 CVolumeViewer::CVolumeViewer( QWidget *parent ) :
     QWidget( parent ),
-    fImgQImage( NULL ),
-    fCanvas( NULL ),
-    fScrollArea( NULL ),
-    fZoomInBtn( NULL ),
-    fZoomOutBtn( NULL ),
-    fResetBtn( NULL ),
-    fNextBtn( NULL ),
-    fPrevBtn( NULL ),
+    fImgQImage( nullptr ),
+    fCanvas( nullptr ),
+    fScrollArea( nullptr ),
+    fZoomInBtn( nullptr ),
+    fZoomOutBtn( nullptr ),
+    fResetBtn( nullptr ),
+    fNextBtn( nullptr ),
+    fPrevBtn( nullptr ),
     fScaleFactor( 1.0 ),
     fImageIndex( 0 )
 {
@@ -90,7 +90,7 @@ void CVolumeViewer::setButtonsEnabled( bool state )
 // Set image
 void CVolumeViewer::SetImage( const QImage &nSrc )
 {
-    if ( fImgQImage == NULL ) {
+    if ( fImgQImage == nullptr ) {
         fImgQImage = new QImage( nSrc );
     } else {
         *fImgQImage = nSrc;
@@ -179,11 +179,11 @@ void CVolumeViewer::OnImageIndexEditTextChanged( void )
 // Update the status of the buttons
 void CVolumeViewer::UpdateButtons( void )
 {
-    fZoomInBtn->setEnabled( fImgQImage != NULL && fScaleFactor < 3.0 );
-    fZoomOutBtn->setEnabled( fImgQImage != NULL && fScaleFactor > 0.3333 );
-    fResetBtn->setEnabled( fImgQImage != NULL && fabs( fScaleFactor - 1.0 ) > 1e-6 );
-    fNextBtn->setEnabled( fImgQImage != NULL );
-    fPrevBtn->setEnabled( fImgQImage != NULL );
+    fZoomInBtn->setEnabled( fImgQImage != nullptr && fScaleFactor < 3.0 );
+    fZoomOutBtn->setEnabled( fImgQImage != nullptr && fScaleFactor > 0.3333 );
+    fResetBtn->setEnabled( fImgQImage != nullptr && fabs( fScaleFactor - 1.0 ) > 1e-6 );
+    fNextBtn->setEnabled( fImgQImage != nullptr );
+    fPrevBtn->setEnabled( fImgQImage != nullptr );
     //fImageIndexEdit->setEnabled( false );
     fImageIndexEdit->SetImageIndex( fImageIndex );
 }

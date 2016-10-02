@@ -4,6 +4,7 @@ stages:
     - collect
     - deploy
 
+### Debian ###
 build:debian:
     image: volcart/vcbuilder-debian:latest
     stage: build
@@ -47,6 +48,7 @@ test:debian:
         - qt5
         - ninja
 
+### OSX ###
 build:osx:
     stage: build
     script:
@@ -87,6 +89,19 @@ test:osx:
         - homebrew
         - qt5
         - ninja
+
+
+### Extra Checks and Tests ###
+lint:
+    before_script:
+      - git fetch --all
+    stage: test
+    script:
+        - echo $CI_BUILD_REF_NAME $CI_BUILD_STAGE
+        - scripts/clang-format.py --no-diff
+    allow_failure: yes
+    tags:
+        - source
 
 collect:source:
     only:
