@@ -137,11 +137,10 @@ def lint_file(cf, source_file, show_diff):
     cmd = ' '.join([cf, '--style=file', source_file])
     formatted_text = callo(cmd)
 
-    if formatted_text != original_text:
-        original_lines = original_text.splitlines()
-        formatted_lines = formatted_text.splitlines()
-        result = difflib.unified_diff(original_lines, formatted_lines)
-
+    original_lines = original_text.splitlines()
+    formatted_lines = formatted_text.splitlines()
+    result = list(difflib.unified_diff(original_lines, formatted_lines))
+    if result:
         print('Found formatting changes for file: ' + source_file)
         if show_diff:
             print('To fix, run "{} --style=file -i {}"'.format(cf, source_file))
@@ -149,7 +148,7 @@ def lint_file(cf, source_file, show_diff):
             for line in result:
                 print(line.strip())
 
-    return formatted_text == original_text
+    return len(result) == 0
 
 
 if __name__ == '__main__':
