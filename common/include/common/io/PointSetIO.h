@@ -61,7 +61,8 @@ public:
     }
 
     static void WriteOrderedPointSet(
-        boost::filesystem::path path, const OrderedPointSet<T>& ps,
+        boost::filesystem::path path,
+        const OrderedPointSet<T>& ps,
         IOMode mode = IOMode::BINARY)
     {
         switch (mode) {
@@ -73,7 +74,8 @@ public:
     }
 
     static void WritePointSet(
-        boost::filesystem::path path, const PointSet<T>& ps,
+        boost::filesystem::path path,
+        const PointSet<T>& ps,
         IOMode mode = IOMode::BINARY)
     {
         switch (mode) {
