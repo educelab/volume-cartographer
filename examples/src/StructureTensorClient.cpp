@@ -1,12 +1,13 @@
-#include <iostream>
 #include <algorithm>
+#include <iostream>
 #include <opencv2/opencv.hpp>
 #include "volumepkg/volumepkg.h"
 
-void draw(const volcart::Volume& v,
-          const int32_t zSlice,
-          const EigenVector vec,
-          const cv::Point p1);
+void draw(
+    const volcart::Volume& v,
+    const int32_t zSlice,
+    const EigenVector vec,
+    const cv::Point p1);
 
 int main(int argc, char** argv)
 {
@@ -36,18 +37,18 @@ int main(int argc, char** argv)
     } else {
         auto pairs = v.eigenPairsAt(x, y, z, radius);
         std::cout << "eigenvalues/eigenvectors" << std::endl;
-        std::for_each(pairs.begin(), pairs.end(),
-                      [](const std::pair<EigenValue, EigenVector>& p) {
-                          std::cout << p.first << ": " << p.second << std::endl;
-                      });
+        std::for_each(pairs.begin(), pairs.end(), [](const auto& p) {
+            std::cout << p.first << ": " << p.second << std::endl;
+        });
         draw(v, z, pairs[0].second, {x, y});
     }
 }
 
-void draw(const volcart::Volume& v,
-          const int32_t zSlice,
-          const EigenVector vec,
-          const cv::Point p1)
+void draw(
+    const volcart::Volume& v,
+    const int32_t zSlice,
+    const EigenVector vec,
+    const cv::Point p1)
 {
     auto slice = v.getSliceDataCopy(zSlice);
     slice /= 255.0;

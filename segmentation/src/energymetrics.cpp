@@ -1,5 +1,5 @@
-#include <iostream>
 #include "segmentation/lrps/energymetrics.h"
+#include <iostream>
 #include "segmentation/lrps/derivative.h"
 
 using namespace volcart::segmentation;
@@ -7,9 +7,8 @@ using namespace volcart::segmentation;
 // Calculates the active contour internal energy. See:
 // https://en.wikipedia.org/wiki/Active_contour_model#Internal_energy
 // Note: k1 and k2 are constant for all particles in the curve
-double EnergyMetrics::ActiveContourInternal(const FittedCurve& curve,
-                                            double k1,
-                                            double k2)
+double EnergyMetrics::ActiveContourInternal(
+    const FittedCurve& curve, double k1, double k2)
 {
     if (curve.size() <= 0) {
         return 0;
@@ -29,12 +28,13 @@ double EnergyMetrics::ActiveContourInternal(const FittedCurve& curve,
 
 // Amalgamation of energy metrics used parameterized by their coefficients.
 // To disable a metric, simply set its coefficient to zero
-double EnergyMetrics::TotalEnergy(const FittedCurve& curve,
-                                  double alpha,
-                                  double k1,
-                                  double k2,
-                                  double beta,
-                                  double delta)
+double EnergyMetrics::TotalEnergy(
+    const FittedCurve& curve,
+    double alpha,
+    double k1,
+    double k2,
+    double beta,
+    double delta)
 {
     auto intE = EnergyMetrics::ActiveContourInternal(curve, k1, k2);
     auto kE = EnergyMetrics::AbsCurvatureSum(curve);
@@ -50,19 +50,20 @@ double EnergyMetrics::AbsCurvatureSum(const FittedCurve& curve)
     }
 
     auto k = curve.curvature();
-    std::transform(std::begin(k), std::end(k), std::begin(k),
-                   [](double e) { return std::abs(e); });
+    std::transform(std::begin(k), std::end(k), std::begin(k), [](auto e) {
+        return std::abs(e);
+    });
     k = normalizeVector(k);
-    return std::accumulate(begin(k), end(k), 0.0, [](double sum, double d) {
-               return sum + d;
-           }) / curve.size();
+    return std::accumulate(
+               begin(k), end(k), 0.0,
+               [](double sum, double d) { return sum + d; }) /
+           curve.size();
 }
 
 // Determine arc length across a window of size 'windowSize' centered at
 // 'index'
-double EnergyMetrics::LocalWindowedArcLength(const FittedCurve& curve,
-                                             int32_t index,
-                                             int32_t windowSize)
+double EnergyMetrics::LocalWindowedArcLength(
+    const FittedCurve& curve, int32_t index, int32_t windowSize)
 {
     if (curve.size() <= 0) {
         return 0;
@@ -82,8 +83,8 @@ double EnergyMetrics::LocalWindowedArcLength(const FittedCurve& curve,
     for (int32_t i = index - windowRadius; i < index + windowRadius; ++i) {
         if (i < 0) {
             sum += cv::norm(curve(-i), curve(-(i + 1)));
-        } else if (i >= int32_t(curve.size()) ||
-                   i + 1 >= int32_t(curve.size())) {
+        } else if (
+            i >= int32_t(curve.size()) || i + 1 >= int32_t(curve.size())) {
             int32_t iDiff = i - lastIdx;
             sum +=
                 cv::norm(curve(lastIdx - iDiff), curve(lastIdx - (iDiff + 1)));
@@ -98,8 +99,8 @@ double EnergyMetrics::LocalWindowedArcLength(const FittedCurve& curve,
 }
 
 // Apply LocalWindowedArcLength across the entire curve
-double EnergyMetrics::WindowedArcLength(const FittedCurve& curve,
-                                        int32_t windowSize)
+double EnergyMetrics::WindowedArcLength(
+    const FittedCurve& curve, int32_t windowSize)
 {
     // Special case - empty curve
     if (curve.size() <= 0) {

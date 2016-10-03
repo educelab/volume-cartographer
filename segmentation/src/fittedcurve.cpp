@@ -1,7 +1,7 @@
+#include "segmentation/lrps/fittedcurve.h"
 #include <algorithm>
 #include <cmath>
 #include <iostream>
-#include "segmentation/lrps/fittedcurve.h"
 #include "segmentation/lrps/derivative.h"
 
 using namespace volcart::segmentation;
@@ -43,11 +43,12 @@ std::vector<Voxel> FittedCurve::sample(size_t numPoints) const
     std::vector<Voxel> newPoints(numPoints);
     newPoints.reserve(numPoints);
     auto ts = generateTVals(numPoints);
-    std::transform(std::begin(ts), std::end(ts), std::begin(newPoints),
-                   [this](double t) -> Voxel {
-                       auto p = spline_(t);
-                       return {p(0), p(1), zIndex_};
-                   });
+    std::transform(
+        std::begin(ts), std::end(ts), std::begin(newPoints),
+        [this](auto t) -> Voxel {
+            auto p = spline_(t);
+            return {p(0), p(1), zIndex_};
+        });
     return newPoints;
 }
 
@@ -72,8 +73,9 @@ std::vector<double> FittedCurve::curvature(int32_t hstep) const
     std::vector<double> k;
     k.reserve(points_.size());
     for (size_t i = 0; i < points_.size(); ++i) {
-        k.push_back((dx1[i] * dy2[i] - dy1[i] * dx2[i]) /
-                    std::pow(dx1[i] * dx1[i] + dy1[i] * dy1[i], 3.0 / 2.0));
+        k.push_back(
+            (dx1[i] * dy2[i] - dy1[i] * dx2[i]) /
+            std::pow(dx1[i] * dx1[i] + dy1[i] * dy1[i], 3.0 / 2.0));
     }
 
     return k;
@@ -94,8 +96,9 @@ std::vector<double> generateTVals(size_t count)
     if (count > 0) {
         ts[0] = 0;
         double sum = 0;
-        std::generate(std::begin(ts) + 1, std::end(ts) - 1,
-                      [count, &sum]() { return sum += 1.0 / (count - 1); });
+        std::generate(std::begin(ts) + 1, std::end(ts) - 1, [count, &sum]() {
+            return sum += 1.0 / (count - 1);
+        });
         ts.back() = 1;
     }
     return ts;

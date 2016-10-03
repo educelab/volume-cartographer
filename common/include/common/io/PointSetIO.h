@@ -1,11 +1,11 @@
 #pragma once
 
+#include <algorithm>
 #include <fstream>
 #include <regex>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <algorithm>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem/path.hpp>
 #include "common/types/Exceptions.h"
@@ -42,10 +42,10 @@ public:
         boost::filesystem::path path, IOMode mode = IOMode::BINARY)
     {
         switch (mode) {
-        case IOMode::BINARY:
-            return ReadOrderedPointSetBinary(path);
-        case IOMode::ASCII:
-            return ReadOrderedPointSetAscii(path);
+            case IOMode::BINARY:
+                return ReadOrderedPointSetBinary(path);
+            case IOMode::ASCII:
+                return ReadOrderedPointSetAscii(path);
         }
     }
 
@@ -53,34 +53,36 @@ public:
         boost::filesystem::path path, IOMode mode = IOMode::BINARY)
     {
         switch (mode) {
-        case IOMode::BINARY:
-            return ReadPointSetBinary(path);
-        case IOMode::ASCII:
-            return ReadPointSetAscii(path);
+            case IOMode::BINARY:
+                return ReadPointSetBinary(path);
+            case IOMode::ASCII:
+                return ReadPointSetAscii(path);
         }
     }
 
     static void WriteOrderedPointSet(
-        boost::filesystem::path path, const OrderedPointSet<T>& ps,
+        boost::filesystem::path path,
+        const OrderedPointSet<T>& ps,
         IOMode mode = IOMode::BINARY)
     {
         switch (mode) {
-        case IOMode::BINARY:
-            return WriteOrderedPointSetBinary(path, ps);
-        case IOMode::ASCII:
-            return WriteOrderedPointSetAscii(path, ps);
+            case IOMode::BINARY:
+                return WriteOrderedPointSetBinary(path, ps);
+            case IOMode::ASCII:
+                return WriteOrderedPointSetAscii(path, ps);
         }
     }
 
     static void WritePointSet(
-        boost::filesystem::path path, const PointSet<T>& ps,
+        boost::filesystem::path path,
+        const PointSet<T>& ps,
         IOMode mode = IOMode::BINARY)
     {
         switch (mode) {
-        case IOMode::BINARY:
-            return WritePointSetBinary(path, ps);
-        case IOMode::ASCII:
-            return WritePointSetAscii(path, ps);
+            case IOMode::BINARY:
+                return WritePointSetBinary(path, ps);
+            case IOMode::ASCII:
+                return WritePointSetAscii(path, ps);
         }
     }
 
@@ -159,7 +161,7 @@ public:
         while (std::getline(infile, line)) {
             boost::trim(line);
             boost::split(strs, line, boost::is_any_of(":"));
-            std::for_each(std::begin(strs), std::end(strs), [](std::string& t) {
+            std::for_each(std::begin(strs), std::end(strs), [](auto& t) {
                 boost::trim(t);
             });
 
@@ -276,10 +278,12 @@ public:
             auto msg = "Ordered pointsets must have a nonzero width and height";
             throw IOException(msg);
         } else if (ordered == true && h.ordered == false) {
-            auto msg = "Tried to read unordered pointset with ordered PointSetIO";
+            auto msg =
+                "Tried to read unordered pointset with ordered PointSetIO";
             throw IOException(msg);
         } else if (ordered == false && h.ordered == true) {
-            auto msg = "Tried to read ordered pointset with unordered PointSetIO";
+            auto msg =
+                "Tried to read ordered pointset with unordered PointSetIO";
             throw IOException(msg);
         }
 
