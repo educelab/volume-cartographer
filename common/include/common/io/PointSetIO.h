@@ -331,7 +331,7 @@ private:
                 infile >> tmp;
                 points.push_back(tmp);
             }
-            ps.push_row(points);
+            ps.pushRow(points);
         }
 
         return ps;
@@ -399,7 +399,7 @@ private:
                 infile.read(t.bytes(), nbytes);
                 points.push_back(t);
             }
-            ps.push_row(points);
+            ps.pushRow(points);
         }
 
         return ps;

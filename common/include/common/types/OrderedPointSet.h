@@ -37,7 +37,7 @@ public:
         std::vector<T> v;
         v.assign(width, initVal);
         for (size_t _ = 0; _ < height; ++_) {
-            ps.push_row(v);
+            ps.pushRow(v);
         }
         return ps;
     }
@@ -63,13 +63,13 @@ public:
     size_t height() const { return (_width == 0 ? 0 : this->size() / _width); }
 
     // Push a row of points to the OrderedPointSet
-    void push_row(const std::vector<T>& points)
+    void pushRow(const std::vector<T>& points)
     {
         assert(points.size() == _width && "row incorrect size");
         std::copy(
             std::begin(points), std::end(points), std::back_inserter(_data));
     }
-    void push_row(std::vector<T>&& points)
+    void pushRow(std::vector<T>&& points)
     {
         assert(points.size() == _width && "row incorrect size");
         std::copy(
@@ -94,7 +94,7 @@ public:
     }
 
     // Get a particular row
-    std::vector<T> get_row(size_t i) const
+    std::vector<T> getRow(size_t i) const
     {
         if (i >= this->height()) {
             throw std::range_error("out of range");

@@ -12,7 +12,7 @@ struct Point3iOrderedPointSet {
 
     Point3iOrderedPointSet() : ps(3)
     {
-        ps.push_row({{1, 1, 1}, {2, 2, 2}, {3, 3, 3}});
+        ps.pushRow({{1, 1, 1}, {2, 2, 2}, {3, 3, 3}});
     }
 };
 
@@ -21,10 +21,10 @@ struct Point3iOrderedPointSet4Rows {
 
     Point3iOrderedPointSet4Rows() : ps(3)
     {
-        ps.push_row({{1, 1, 1}, {2, 2, 2}, {3, 3, 3}});
-        ps.push_row({{4, 4, 4}, {4, 4, 4}, {4, 4, 4}});
-        ps.push_row({{2, 2, 2}, {2, 2, 2}, {2, 2, 2}});
-        ps.push_row({{1, 1, 1}, {1, 1, 1}, {1, 1, 1}});
+        ps.pushRow({{1, 1, 1}, {2, 2, 2}, {3, 3, 3}});
+        ps.pushRow({{4, 4, 4}, {4, 4, 4}, {4, 4, 4}});
+        ps.pushRow({{2, 2, 2}, {2, 2, 2}, {2, 2, 2}});
+        ps.pushRow({{1, 1, 1}, {1, 1, 1}, {1, 1, 1}});
     }
 };
 
@@ -40,7 +40,7 @@ BOOST_AUTO_TEST_CASE(PushRowAddsRow)
 {
     OrderedPointSet<Point3i> ps{3};
     std::vector<Point3i> points{{1, 1, 1}, {2, 2, 2}, {3, 3, 3}};
-    ps.push_row(points);
+    ps.pushRow(points);
     BOOST_CHECK_EQUAL(ps(0, 0), Point3i(1, 1, 1));
     BOOST_CHECK_EQUAL(ps(1, 0), Point3i(2, 2, 2));
     BOOST_CHECK_EQUAL(ps(2, 0), Point3i(3, 3, 3));
@@ -56,7 +56,7 @@ BOOST_AUTO_TEST_CASE(FillOrderedPointSetStaticMethod)
 
 BOOST_FIXTURE_TEST_CASE(GetRowFromPointSet, Point3iOrderedPointSet)
 {
-    auto row = ps.get_row(0);
+    auto row = ps.getRow(0);
     BOOST_CHECK_EQUAL(row[0], Point3i(1, 1, 1));
     BOOST_CHECK_EQUAL(row[1], Point3i(2, 2, 2));
     BOOST_CHECK_EQUAL(row[2], Point3i(3, 3, 3));
@@ -64,7 +64,7 @@ BOOST_FIXTURE_TEST_CASE(GetRowFromPointSet, Point3iOrderedPointSet)
 
 BOOST_FIXTURE_TEST_CASE(WrongRowInGetRowThrows, Point3iOrderedPointSet)
 {
-    BOOST_CHECK_THROW(ps.get_row(2), std::range_error);
+    BOOST_CHECK_THROW(ps.getRow(2), std::range_error);
 }
 
 BOOST_FIXTURE_TEST_CASE(
@@ -127,6 +127,6 @@ BOOST_FIXTURE_TEST_CASE(AppendOrderedPointSet, Point3iOrderedPointSet)
 BOOST_FIXTURE_TEST_CASE(AppendWiderPointSetThrows, Point3iOrderedPointSet)
 {
     OrderedPointSet<Point3i> other{4};
-    other.push_row({{1, 1, 1}, {2, 2, 2}, {3, 3, 3}, {4, 4, 4}});
+    other.pushRow({{1, 1, 1}, {2, 2, 2}, {3, 3, 3}, {4, 4, 4}});
     BOOST_CHECK_THROW(ps.append(other), std::logic_error);
 }
