@@ -146,7 +146,7 @@ void Texture_Viewer::setImage() // Minor Glitch, delay zooms, ext. Still needs s
     imageLabel->setPixmap(pix);
     scrollArea->setWidget(imageLabel);
 
-    if(imageLabel->pixmap()!= nullptr)
+    if(!imageLabel->pixmap()->isNull())
     {
         zoomIn->setEnabled(true);
         zoomOut->setEnabled(true);

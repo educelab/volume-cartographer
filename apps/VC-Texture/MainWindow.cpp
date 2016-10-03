@@ -3,7 +3,7 @@
 // Purpose: Create a Main Window for the GUI
 // Developer: Michael Royal - mgro224@g.uky.edu
 // October 12, 2015 - Spring Semester 2016
-// Last Updated 11/23/2015 by: Michael Royal
+// Last Updated 09/26/2016 by: Michael Royal
 
 // Copy Right ©2015 (Brent Seales: Volume Cartography Research) - University of Kentucky Center for Visualization and Virtualization
 //----------------------------------------------------------------------------------------------------------------------------------------
@@ -61,7 +61,7 @@ void MainWindow::getFilePath()// Gets the Folder Path of the Volume Package loca
     QString filename = dialogBox->getExistingDirectory();
     std::string file_Name = filename.toStdString();
 
-    if(filename!=NULL)// If the user selected a Folder Path
+    if(!filename.isEmpty())// If the user selected a Folder Path
     {
         if ((file_Name.substr(file_Name.length()-7, file_Name.length())).compare(".volpkg") == 0)// Checks the Folder Path for .volpkg extension
         {
