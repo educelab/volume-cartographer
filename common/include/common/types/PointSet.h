@@ -75,7 +75,7 @@ public:
         }
         return *std::max_element(std::begin(_data), std::end(_data));
     }
-    std::pair<T, T> min_max() const
+    std::pair<T, T> minMax() const
     {
         if (empty()) {
             throw std::range_error("empty PointSet");
