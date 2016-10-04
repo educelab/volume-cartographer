@@ -20,7 +20,7 @@ volcart::OrderedPointSet<volcart::Point3d> exportAsPCD(
     const std::vector<std::vector<Voxel>>& points);
 
 volcart::OrderedPointSet<volcart::Point3d> LocalResliceSegmentation::segmentPath(
-    volcart::OrderedPointSet<volcart::Point3d> cloud,
+    std::vector<volcart::Point3d> cloud,
     int32_t startIndex,
     int32_t endIndex,
     int32_t numIters,

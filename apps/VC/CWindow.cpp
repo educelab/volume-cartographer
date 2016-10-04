@@ -465,46 +465,23 @@ void CWindow::ChangePathItem(std::string segID)
 // Split fMasterCloud into fUpperCloud and fLowerCloud
 void CWindow::SplitCloud(void)
 {
-    int aTotalNumOfImmutablePts =
-        fMasterCloud.width() * (fPathOnSliceIndex - fMinSegIndex);
-    std::vector<volcart::Point3d > points;
-    int width_cnt = 0;
-    for (int i = 0; i < aTotalNumOfImmutablePts; ++i) {
-        if(width_cnt != fMasterCloud.width())
-            points.push_back(fMasterCloud[i]);
-        else
-        {
-            fUpperPart.pushRow(points);
-            points.clear();
-            points.push_back(fMasterCloud[i]);
-            width_cnt = 0;
-        }
-        width_cnt++;
-    }
-    // resize so the parts can be concatenated
+    // Upper, "immutable" part
+    fUpperPart = fMasterCloud.copyRows(fMinSegIndex, fPathOnSliceIndex - 1);
 
-    // lower part, the starting slice
-    std::vector<volcart::Point3d > points2;
-    width_cnt = 0;
-    for (int i = 0; i < fMasterCloud.width(); ++i) {
-        if (fMasterCloud[i + aTotalNumOfImmutablePts][2] != -1) {
-            if (width_cnt != fMasterCloud.width() ){
-                points2.push_back(fMasterCloud[i + aTotalNumOfImmutablePts]);
-            }
+    // Lower part, the starting path
+    fStartingPath = fMasterCloud.getRow(fPathOnSliceIndex);
 
-            else {
-                fLowerPart.pushRow(points);
-                points2.clear();
-                points2.push_back(fMasterCloud[i + aTotalNumOfImmutablePts]);
-                width_cnt = 0;
-            }
-            //Not sure if this goes with the loop or the if statemnt -HH
-            width_cnt++;
-        }
+    // Remove silly -1 points if they exist
+    fStartingPath.erase(std::remove_if(
+                            std::begin(fStartingPath),
+                            std::end(fStartingPath),
+                            [](volcart::Point3d e) {
+                                return e[2] == -1;
+                            }),
+                        std::end(fStartingPath));
 
-    }
-
-    if (fLowerPart.width() != fMasterCloud.width()) {
+    // Make sure the sizes match now
+    if (fStartingPath.size() != fMasterCloud.width()) {
         QMessageBox::information(
             this,
             tr("Error"),
@@ -530,26 +507,25 @@ void CWindow::DoSegmentation(void)
 
     // 2) do segmentation from the starting slice
     volcart::segmentation::LocalResliceSegmentation segmenter(*fVpkg);
-    fLowerPart = segmenter.segmentPath(
-            volcart::OrderedPointSet<volcart::Point3d>(),
-        fEdtStartIndex->text().toInt(),
-        fEdtEndIndex->text().toInt() - 1,
-        fSegParams.fNumIters,
-        1,
-        fSegParams.fAlpha,
-        fSegParams.fK1,
-        fSegParams.fK2,
-        fSegParams.fBeta,
-        fSegParams.fDelta,
-        fSegParams.fPeakDistanceWeight,
-        fSegParams.fIncludeMiddle,
-        false,
-        false);
+    auto result = segmenter.segmentPath(
+            fStartingPath,
+            fEdtStartIndex->text().toInt(),
+            fEdtEndIndex->text().toInt() - 1,
+            fSegParams.fNumIters,
+            1,
+            fSegParams.fAlpha,
+            fSegParams.fK1,
+            fSegParams.fK2,
+            fSegParams.fBeta,
+            fSegParams.fDelta,
+            fSegParams.fPeakDistanceWeight,
+            fSegParams.fIncludeMiddle,
+            false,
+            false);
 
     // 3) concatenate the two parts to form the complete point cloud
-
-    fUpperPart.append(fLowerPart);
-    fMasterCloud.append(fUpperPart);
+    fUpperPart.append(result);
+    fMasterCloud = fUpperPart;
 
     statusBar->showMessage(tr("Segmentation complete"));
     fVpkgChanged = true;
@@ -648,11 +624,8 @@ void CWindow::SetUpCurves(void)
     if (fMasterCloud.empty()) {
         minIndex = maxIndex = fPathOnSliceIndex;
     } else {
-        volcart::Point3d min_p, max_p;
-        min_p = fMasterCloud.min();
-        max_p = fMasterCloud.max();
         minIndex = floor(fMasterCloud[0][2]);
-        maxIndex = floor(max_p[2]);
+        maxIndex = floor(fMasterCloud.max()[2]);
     }
     void OnEdtAlphaValChange();
 
@@ -811,8 +784,8 @@ void CWindow::CloseVolume(void)
 void CWindow::ResetPointCloud(void)
 {
     fMasterCloud.clear();
-    fUpperPart.clear() ;
-    fLowerPart.clear();
+    fUpperPart.clear();
+    fStartingPath.clear();
     fIntersections.clear();
     CXCurve emptyCurve;
     fIntersectionCurve = emptyCurve;
@@ -949,7 +922,7 @@ void CWindow::ToggleSegmentationTool(void)
     if (fSegTool->isChecked()) {
         fWindowState = EWindowState::WindowStateSegmentation;
         fUpperPart.clear();
-        fLowerPart.clear();
+        fStartingPath.clear();
         SplitCloud();
 
         // turn off edit tool
@@ -1173,17 +1146,15 @@ void CWindow::OnLoadPrevSlice(void)
 // Handle path change event
 void CWindow::OnPathChanged(void)
 {
-    std::vector<volcart::Point3d > points;
     if (fWindowState == EWindowState::WindowStateSegmentation) {
         // update current slice
-        fLowerPart.clear();
+        fStartingPath.clear();
+        volcart::Point3d tempPt;
         for (size_t i = 0; i < fIntersectionCurve.GetPointsNum(); ++i) {
-            volcart::Point3d tempPt;
             tempPt[0] = fIntersectionCurve.GetPoint(i)[0];
             tempPt[1] = fIntersectionCurve.GetPoint(i)[1];
             tempPt[2] = fPathOnSliceIndex;
-            points.push_back(tempPt);
+            fStartingPath.push_back(tempPt);
         }
-        fLowerPart.pushRow(points);
     }
 }

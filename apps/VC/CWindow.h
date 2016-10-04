@@ -156,27 +156,9 @@ private:
 
     SSegParams  fSegParams;
 
-    // REVISIT - how is the point cloud manipulated?
-    //           we have this global point cloud, initialized by the starting path, then expanded by segmentation
-    //           once we choose editing at a certain slice, we modify the vertices (however, keep the # of vertices unchanged)
-    //           and then let the user start segmentation again from this slice. We allow the user to select how many sliced
-    //           he want to iterate through, however the newly generated point cloud will overwrite these and the rest data
-    //           in the previous point cloud.
-    //           Terminologies:
-    //           For our current particle simulation method, we can represent the point cloud with width (# of particles in one slice) and
-    //           height (# of iterations). So we can start segmentation from any slice given these two parameters. We call
-    //           the point cloud before current slice (3 ~ fPathOnSliceIndex-1) the "upper part", and the newly generated
-    //           point cloud from segmentation routine the "lower part". The upper part is from the original point cloud (if there was one)
-    //           and the final point cloud is the concatenation of the two parts.
-    //           We call the point cloud loaded from disk the "immutable cloud". We only save to disk after the concatenation.
-    //           Previously we use a txt file to store vertices of the path where the particle simulation starts. Now they are
-    //           stored in "path cloud".
-    // REVISIT - maybe redundant
-    volcart::OrderedPointSet<volcart::Point3d> fMasterCloud;  // master cloud, the one and only point cloud
-                                                       // can be loaded from disk, or generated from new path
-                                                       // or concatenation of upper part and lower part in editing mode
+    volcart::OrderedPointSet<volcart::Point3d> fMasterCloud;
     volcart::OrderedPointSet<volcart::Point3d> fUpperPart;
-    volcart::OrderedPointSet<volcart::Point3d> fLowerPart;
+    std::vector<volcart::Point3d> fStartingPath;
 
     // window components
     QMenu       *fFileMenu;

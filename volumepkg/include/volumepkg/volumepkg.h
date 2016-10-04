@@ -3,13 +3,8 @@
 #include <cstdlib>
 #include <iostream>
 
-// These boost libraries cause problems with QT4 + Boost 1.57. This is a
-// workaround.
-// https://bugreports.qt.io/browse/QTBUG-22829
-#ifndef Q_MOC_RUN
 #include <boost/foreach.hpp>
 #include <boost/lexical_cast.hpp>
-#endif
 
 #include <boost/filesystem.hpp>
 #include "common/types/Texture.h"

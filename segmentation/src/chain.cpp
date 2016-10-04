@@ -1,12 +1,12 @@
 #include "segmentation/stps/chain.h"
 
 // (doc) Why the parameters that we're giving it?
-Chain::Chain(volcart::OrderedPointSet<volcart::Point3d> segPath,  const VolumePkg& volpkg, double gravity_scale, int threshold, int endOffset, double spring_constant_k ) : _volpkg(volpkg){
+Chain::Chain(std::vector<volcart::Point3d> segPath,  const VolumePkg& volpkg, double gravity_scale, int threshold, int endOffset, double spring_constant_k ) : _volpkg(volpkg){
   // Convert the point cloud segPath into a vector of Particles
   std::vector<Particle> init_chain;
 
-  for(volcart::OrderedPointSet<volcart::Point3d>::Iterator path_it = segPath.begin(); path_it != segPath.end(); ++path_it){
-    init_chain.push_back(path_it->toCvVec());
+  for(auto p : segPath){
+    init_chain.push_back(p.toCvVec());
   }
 
   // Calculate the spring resting position

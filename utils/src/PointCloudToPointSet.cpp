@@ -28,10 +28,13 @@ int main(int argc, char** argv)
 
     for (const auto& seg : pkg.getSegmentations()) {
         pkg.setActiveSegmentation(seg);
-        std::cout << "Processing " << pkg.getActiveSegPath() << std::endl;
-        auto outputName = pkg.getActiveSegPath();
+        std::cout << "Processing: " << pkg.getActiveSegPath() << std::endl;
+        auto inputName = pkg.getActiveSegPath().string() + "/cloud.pcd";
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
-        pcl::io::loadPCDFile<pcl::PointXYZRGB>(outputName.string(), *cloud);
+        if(pcl::io::loadPCDFile<pcl::PointXYZRGB>(inputName, *cloud) == -1){
+            std::cerr << "Can't load file: " << inputName << std::endl;
+            continue;
+        };
 
         // Convert to OrderedPointSet
         OrderedPointSet<Point3d> ps(cloud->width);
