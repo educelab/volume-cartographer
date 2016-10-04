@@ -101,7 +101,7 @@ volcart::OrderedPointSet<volcart::Point3d>ShapePrimitive::orderedPoints(bool noi
         offset = 5.0;
     int point_counter = 0;  // This is the worst. // SP
     int width_cnt = 0;
-    for (auto p_id = _points.begin(); p_id != _points.end(); ++p_id) {
+    for (auto p_id : _points) {
         volcart::Point3d point;
       if(width_cnt == output.width())
       {
@@ -110,15 +110,15 @@ volcart::OrderedPointSet<volcart::Point3d>ShapePrimitive::orderedPoints(bool noi
           width_cnt = 0;
       }
 
-        point[0] = p_id->x;
-        point[1] = p_id->y;
+        point[0] = p_id.x;
+        point[1] = p_id.y;
 
         if (noisify && (point_counter % 2 == 0)) {
-            point[2] = p_id->z + offset;
-            point[1] = p_id->z;  // added this to take the points out of the x-z
+            point[2] = p_id.z + offset;
+            point[1] = p_id.z;  // added this to take the points out of the x-z
             // plane to test impact of mls
         } else
-            point[2] = p_id->z;
+            point[2] = p_id.z;
         temp_row.push_back(point);
         ++point_counter;
         ++width_cnt;
@@ -133,20 +133,22 @@ volcart::PointSet<volcart::Point3d>ShapePrimitive::unOrderedPoints(bool noisify)
     volcart::PointSet<volcart::Point3d> output;
     double offset = 0.0;
     if (noisify)
+    {
         offset = 5.0;
+    }
     int point_counter = 0;  // This is the worst. // SP
-    for (auto p_id = _points.begin(); p_id != _points.end(); ++p_id) {
+    for (auto p_id : _points) {
         volcart::Point3d point;
 
-            point[0] = p_id->x;
-            point[1] = p_id->y;
+            point[0] = p_id.x;
+            point[1] = p_id.y;
 
             if (noisify && (point_counter % 2 == 0)) {
-                point[2] = p_id->z + offset;
-                point[1] = p_id->z;  // added this to take the points out of the x-z
+                point[2] = p_id.z + offset;
+                point[1] = p_id.z;  // added this to take the points out of the x-z
                 // plane to test impact of mls
             } else
-                point[2] = p_id->z;
+                point[2] = p_id.z;
             ++point_counter;
         output.push_back(point);
     }
@@ -154,56 +156,21 @@ volcart::PointSet<volcart::Point3d>ShapePrimitive::unOrderedPoints(bool noisify)
     return output;
 }
 
-//// Return Point Cloud
-//pcl::PointCloud<pcl::PointXYZRGB> ShapePrimitive::pointCloudXYZRGB()
-//{
-//
-//    pcl::PointCloud<pcl::PointXYZRGB> output;
-//
-//    for (auto p_id = _points.begin(); p_id != _points.end(); ++p_id) {
-//
-//        pcl::PointXYZRGB point;
-//
-//        // Assign Point Values
-//        point.x = p_id->x;
-//        point.y = p_id->y;
-//        point.z = p_id->z;
-//
-//        // assign color values
-//        // this is just for setting up testing values
-//        // values must fall within 0-255 range
-//        point.r = std::abs(p_id->x) + p_id->z;
-//        point.g = 35 * std::abs(p_id->x) + p_id->z;
-//        point.b = std::abs(p_id->x) + p_id->z * 45;
-//
-//        output.push_back(point);
-//    }
-//
-//    // Set ordering information
-//    if (_orderedPoints) {
-//        output.width = _orderedWidth;
-//        output.height = _orderedHeight;
-//        output.resize(output.width * output.height);
-//    }
-//
-//    return output;
-//}
-
 // Return Point Cloud
 volcart::OrderedPointSet<volcart::Point6d>ShapePrimitive::orderedPointNormal()
 {
 
     volcart::OrderedPointSet<volcart::Point6d> output(_orderedWidth);
     std::vector<volcart::Point6d> temp_row;
-    for (auto p_id = _points.begin(); p_id != _points.end(); ++p_id) {
+    for (auto p_id :_points) {
         volcart::Point6d point;
         for(int i = 0; i < _orderedWidth; i++){
-            point[0] = p_id->x;
-            point[1] = p_id->y;
-            point[2] = p_id->z;
-            point[3] = p_id->nx;
-            point[4] = p_id->ny;
-            point[5] = p_id->nz;
+            point[0] = p_id.x;
+            point[1] = p_id.y;
+            point[2] = p_id.z;
+            point[3] = p_id.nx;
+            point[4] = p_id.ny;
+            point[5] = p_id.nz;
 
             temp_row.push_back(point);
         }
@@ -211,32 +178,25 @@ volcart::OrderedPointSet<volcart::Point6d>ShapePrimitive::orderedPointNormal()
 
     }
 
-//    // Set ordering information
-//    if (_orderedPoints) {
-//        output.width = _orderedWidth;
-//        output.height = _orderedHeight;
-//        output.resize(output.width * output.height);
-//    }
-
     return output;
 };
 
 volcart::PointSet<volcart::Point6d> ShapePrimitive::unOrderedPointNormal()
 {
     volcart::PointSet<volcart::Point6d> output;
-    for (auto p_id = _points.begin(); p_id != _points.end(); ++p_id) {
+    for (auto p_id : _points) {
         volcart::Point6d point;
-            point[0] = p_id->x;
-            point[1] = p_id->y;
-            point[2] = p_id->z;
-            point[3] = p_id->nx;
-            point[4] = p_id->ny;
-            point[5] = p_id->nz;
+            point[0] = p_id.x;
+            point[1] = p_id.y;
+            point[2] = p_id.z;
+            point[3] = p_id.nx;
+            point[4] = p_id.ny;
+            point[5] = p_id.nz;
         output.push_back(point);
 
     }
     return output;
-};
+}
 
 
 ///// Mesh Generation Helper Functions /////

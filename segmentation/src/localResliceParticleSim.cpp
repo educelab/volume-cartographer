@@ -343,11 +343,7 @@ volcart::OrderedPointSet<volcart::Point3d> exportAsPCD(
     for (int32_t i = 0; i < rows; ++i) {
         for (int32_t j = 0; j < cols; ++j) {
             Voxel v = points[i][j];
-            volcart::Point3d point;
-            point[0]= v(0);
-            point[1]= v(1);
-            point[2] = v(2);
-            temp_row.push_back(point);
+            temp_row.emplace_back(v(0), v(1), v(2));
         }
         cloud.push_row(temp_row);
         temp_row.clear();

@@ -228,7 +228,9 @@ int main(int argc, char* argv[])
     // Get the immutable points, i.e all pts before the starting path row
     for (int i = 0; i < (pathRow * chainLength); ++i) {
         if(width_cnt != immutableCloud.width())
+        {
             temp_row.push_back(masterCloud[i]);
+        }
         else
         {
             immutableCloud.push_row(temp_row);
@@ -238,9 +240,6 @@ int main(int argc, char* argv[])
         }
         width_cnt++;
     }
-    //immutableCloud->height = immutableCloud->points.size() / chainLength;
-//    immutableCloud->points.resize(
-//        immutableCloud->width * immutableCloud->height);
 
     // Run the algorithms
     volcart::OrderedPointSet<volcart::Point3d> mutableCloud;
@@ -281,17 +280,11 @@ int main(int argc, char* argv[])
 
     // Update the master cloud with the points we saved and concat the new
     // points into the space
-//    masterCloud = immutableCloud;
-//    masterCloud += mutableCloud;
 
     volcart::OrderedPointSet<volcart::Point3d> newMasterCloud(chainLength);
     newMasterCloud.append(immutableCloud);
     newMasterCloud.append(mutableCloud);
 
-    // Restore ordering information
-//    masterCloud->width = chainLength;
-//    masterCloud->height = masterCloud->points.size() / masterCloud->width;
-//    masterCloud->points.resize(masterCloud->width * masterCloud->height);
 
     // Save point cloud and mesh
     volpkg.saveCloud(newMasterCloud);

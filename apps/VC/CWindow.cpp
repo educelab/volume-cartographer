@@ -486,17 +486,16 @@ void CWindow::SplitCloud(void)
         width_cnt++;
     }
     // resize so the parts can be concatenated
-//    fUpperPart.width = fMasterCloud.width;
-//    fUpperPart.height = fUpperPart.size() / fUpperPart.width;
-//    fUpperPart.resize(fUpperPart.width * fUpperPart.height);
 
     // lower part, the starting slice
     std::vector<volcart::Point3d > points2;
     width_cnt = 0;
     for (int i = 0; i < fMasterCloud.width(); ++i) {
         if (fMasterCloud[i + aTotalNumOfImmutablePts][2] != -1) {
-            if (width_cnt != fMasterCloud.width() )
+            if (width_cnt != fMasterCloud.width() ){
                 points2.push_back(fMasterCloud[i + aTotalNumOfImmutablePts]);
+            }
+
             else {
                 fLowerPart.push_row(points);
                 points2.clear();
@@ -534,8 +533,6 @@ void CWindow::DoSegmentation(void)
     }
 
     // 2) do segmentation from the starting slice
-    // how to create pcl::PointCloud::Ptr from a pcl::PointCloud?
-    // stackoverflow.com/questions/10644429/create-a-pclpointcloudptr-from-a-pclpointcloud
     volcart::segmentation::LocalResliceSegmentation segmenter(*fVpkg);
     fLowerPart = segmenter.segmentPath(
             volcart::OrderedPointSet<volcart::Point3d>(),
@@ -567,8 +564,7 @@ void CWindow::DoSegmentation(void)
 
 void CWindow::CleanupSegmentation(void)
 {
-//    fUpperPart.clear();
-//    fLowerPart.clear();
+
     fSegTool->setChecked(false);
     fWindowState = EWindowState::WindowStateIdle;
     SetUpCurves();

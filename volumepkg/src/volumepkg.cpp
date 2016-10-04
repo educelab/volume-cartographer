@@ -238,7 +238,7 @@ cv::Mat VolumePkg::getTextureData() const
 int VolumePkg::saveCloud(
     const volcart::OrderedPointSet<volcart::Point3d> segmentedCloud) const
 {
-    auto outputName = segs_dir / activeSeg / "cloud.txt";
+    auto outputName = segs_dir / activeSeg / "cloud.vcps";
     std::cerr << "volcart::volpkg::Writing point cloud to file..." << std::endl;
     volcart::PointSetIO<volcart::Point3d >::WriteOrderedPointSet(outputName.string(),
                                              segmentedCloud);

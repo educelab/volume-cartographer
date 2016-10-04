@@ -159,9 +159,6 @@ volcart::OrderedPointSet<volcart::Point3d> Chain::orderedPCD() {
 
   // Move points out of storage into the point cloud
     volcart::OrderedPointSet<volcart::Point3d> cloud;
-//  cloud.height = _real_iterations;
-//  cloud.width = _chain_length;
-  //cloud.points.resize(cloud.height * cloud.width);
   for (int i = 0; i < _real_iterations; ++i) {
     for (int j = 0; j < _chain_length; ++j) {
       cloud[j+(i*_chain_length)] = storage[i][j];

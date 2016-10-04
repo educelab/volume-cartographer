@@ -27,11 +27,10 @@ namespace shapes {
     public:
         VC_MeshType::Pointer itkMesh();
         vtkSmartPointer<vtkPolyData> vtkMesh();
-        volcart::OrderedPointSet<volcart::Point3d> orderedPoints(bool noisify = true); //resamplePointCloud
-        volcart::PointSet<volcart::Point3d> unOrderedPoints(bool noisify = true);
-        volcart::OrderedPointSet<volcart::Point6d> orderedPointNormal(); //poissonRecon, greedyProjMeshing
-        volcart::PointSet<volcart::Point6d> unOrderedPointNormal();
-        //pcl::PointCloud<pcl::PointXYZRGB> pointCloudXYZRGB(); //for orderedPCDMesher
+        OrderedPointSet<Point3d> orderedPoints(bool noisify = true); //resamplePointCloud
+        PointSet<Point3d> unOrderedPoints(bool noisify = true);
+        OrderedPointSet<Point6d> orderedPointNormal(); //poissonRecon, greedyProjMeshing
+        PointSet<Point6d> unOrderedPointNormal();
 
         //overload
         std::vector<VC_Vertex> getPoints() const {return _points;}

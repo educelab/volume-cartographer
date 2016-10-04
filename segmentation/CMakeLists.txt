@@ -77,7 +77,7 @@ file(
     COPY
         ${EXECUTABLE_OUTPUT_PATH}/Testing.volpkg/paths/starting-path/pointset.vcps
         ${EXECUTABLE_OUTPUT_PATH}/Testing.volpkg/paths/starting-path/cloud.pcd
-        DESTINATION
+    DESTINATION
         ${EXECUTABLE_OUTPUT_PATH}/Testing.volpkg/paths/lrps-test-results
 )
 endif(VC_BUILD_TESTS)
