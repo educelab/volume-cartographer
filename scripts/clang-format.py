@@ -148,7 +148,7 @@ def lint_file(cf, source_file, show_diff):
             for line in result:
                 print(line.strip())
 
-    return len(result) == 0
+    return bool(result)
 
 
 if __name__ == '__main__':
@@ -196,6 +196,6 @@ if __name__ == '__main__':
     # Validate each with clang-format
     clean = True
     for f in cxx_changes:
-        clean = clean and lint_file(cf, f, not args.no_diff)
+        clean = lint_file(cf, f, not args.no_diff) and clean
 
     sys.exit(0) if clean else sys.exit(1)
