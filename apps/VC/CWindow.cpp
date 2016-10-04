@@ -465,11 +465,18 @@ void CWindow::ChangePathItem(std::string segID)
 // Split fMasterCloud into fUpperCloud and fLowerCloud
 void CWindow::SplitCloud(void)
 {
+    // Convert volume z-index to PointSet index
+    auto pathIndex = fPathOnSliceIndex - fMinSegIndex;
+
     // Upper, "immutable" part
-    fUpperPart = fMasterCloud.copyRows(fMinSegIndex, fPathOnSliceIndex - 1);
+    if(fPathOnSliceIndex > fMinSegIndex) {
+        fUpperPart = fMasterCloud.copyRows(0, pathIndex - 1);
+    } else {
+        fUpperPart = volcart::OrderedPointSet<volcart::Point3d>(fMasterCloud.width());
+    }
 
     // Lower part, the starting path
-    fStartingPath = fMasterCloud.getRow(fPathOnSliceIndex);
+    fStartingPath = fMasterCloud.getRow(pathIndex);
 
     // Remove silly -1 points if they exist
     fStartingPath.erase(std::remove_if(
@@ -627,7 +634,6 @@ void CWindow::SetUpCurves(void)
         minIndex = floor(fMasterCloud[0][2]);
         maxIndex = floor(fMasterCloud.max()[2]);
     }
-    void OnEdtAlphaValChange();
 
     fMinSegIndex = minIndex;
     fMaxSegIndex = maxIndex;
@@ -747,10 +753,10 @@ void CWindow::OpenVolume(void)
     }
 
     // Check version number
-    if (fVpkg->getVersion() < 2) {
+    if (fVpkg->getVersion() != 3) {
         std::cerr << "VC::Error: Volume package is version "
                   << fVpkg->getVersion()
-                  << " but this program requires a version >= 2." << std::endl;
+                  << " but this program requires a version 3." << std::endl;
         QMessageBox::warning(
             this,
             tr("ERROR"),

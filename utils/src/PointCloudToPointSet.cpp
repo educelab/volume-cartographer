@@ -25,6 +25,11 @@ int main(int argc, char** argv)
 
     fs::path volpkgPath{argv[1]};
     VolumePkg pkg{volpkgPath};
+    if ( pkg.getVersion() >= 3 ) {
+        std::cout << "Volume package is already V3 or later. "
+                  << "Update not required." << std::endl;
+        return EXIT_SUCCESS;
+    }
 
     for (const auto& seg : pkg.getSegmentations()) {
         pkg.setActiveSegmentation(seg);
@@ -62,4 +67,11 @@ int main(int argc, char** argv)
             }
         }
     }
+
+    // Update the vpkg version
+    pkg.readOnly(false);
+    pkg.setMetadata("version", 3);
+    pkg.saveMetadata();
+
+    return EXIT_SUCCESS;
 }

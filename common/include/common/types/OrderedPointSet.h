@@ -111,7 +111,7 @@ public:
     {
         if (i >= this->height() || j >= this->height()) {
             throw std::range_error("out of range");
-        } else if (i >= j) {
+        } else if (i > j) {
             throw std::logic_error("i must be less than j");
         }
         OrderedPointSet ps(_width);
