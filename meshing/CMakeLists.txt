@@ -10,7 +10,7 @@ set(srcs
     src/CalculateNormals.cpp
     src/OrderedResampling.cpp
     src/OrderedPointSetMesher.cpp
-        )
+    )
 set(deps
     vc_common
     Boost::filesystem

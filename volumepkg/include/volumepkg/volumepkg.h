@@ -12,8 +12,6 @@
 #endif
 
 #include <boost/filesystem.hpp>
-//#include <pcl/common/projection_matrix.h>
-//#include <pcl/point_types.h>
 #include "common/types/Texture.h"
 #include "common/types/Volume.h"
 #include "common/vc_defines.h"

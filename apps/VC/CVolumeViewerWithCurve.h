@@ -8,8 +8,6 @@
 #include <vector>
 #include <opencv2/opencv.hpp>
 #include <QCheckBox>
-#ifndef Q_MOC_RUN
-#endif
 namespace ChaoVis {
 
 // REVISIT - NOTE - since there are two modes, edit and draw, for the application,

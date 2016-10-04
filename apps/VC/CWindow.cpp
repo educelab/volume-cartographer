@@ -404,7 +404,7 @@ void CWindow::UpdateView(void)
     }
 
     if (fSegmentationId.length() != 0 &&    // segmentation selected
-        fMasterCloud.size() == 0) {  // current cloud is empty
+        fMasterCloud.empty()) {  // current cloud is empty
         fPenTool->setEnabled(true);
     } else {
         fPenTool->setEnabled(false);
@@ -551,9 +551,6 @@ void CWindow::DoSegmentation(void)
         false);
 
     // 3) concatenate the two parts to form the complete point cloud
-//    fMasterCloud = fUpperPart + fLowerPart;
-//    fMasterCloud.width = fUpperPart.width;
-//    fMasterCloud.height = fMasterCloud.size() / fMasterCloud.width;
 
     fUpperPart.append(fLowerPart);
     fMasterCloud.append(fUpperPart);
@@ -564,7 +561,6 @@ void CWindow::DoSegmentation(void)
 
 void CWindow::CleanupSegmentation(void)
 {
-
     fSegTool->setChecked(false);
     fWindowState = EWindowState::WindowStateIdle;
     SetUpCurves();
@@ -653,7 +649,7 @@ void CWindow::SetUpCurves(void)
     }
     fIntersections.clear();
     int minIndex, maxIndex;
-    if (fMasterCloud.size() == 0) {
+    if (fMasterCloud.empty()) {
         minIndex = maxIndex = fPathOnSliceIndex;
     } else {
         volcart::Point3d min_p, max_p;
@@ -741,9 +737,6 @@ void CWindow::SetPathPointCloud(void)
         points.push_back(point);
     }
     aPathCloud.push_row(points);
-//    aPathCloud.width = aSamplePts.size();
-//    aPathCloud.height = 1;
-//    aPathCloud.resize(aPathCloud.width * aPathCloud.height);
 
     fMasterCloud = aPathCloud;
     fMinSegIndex = floor(fMasterCloud[0][2]);

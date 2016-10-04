@@ -3,8 +3,6 @@
 #pragma once
 
 #include <iostream>
-#ifndef Q_MOC_RUN
-#endif
 #include <opencv2/opencv.hpp>
 #include <set>
 #include <common/types/Point.h>
