@@ -51,7 +51,6 @@ target_link_libraries(vc_convert_pcd_to_ps
     Boost::filesystem
     ${PCL_COMMON_LIBRARIES}
     ${PCL_IO_LIBRARIES}
-#list(append TARGETS vc_convert_pcd_to_ps)
 )
 endif()
 

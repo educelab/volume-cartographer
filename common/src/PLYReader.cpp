@@ -84,8 +84,7 @@ bool PLYReader(boost::filesystem::path path, VC_MeshType::Pointer mesh)
                 VC_PointType p;
                 VC_PixelType n;
 
-                plyFile >> x >> y >> z >> nx >> ny >> nz >> s >> t >> red >>
-                    green >> blue;
+                plyFile >> x >> y >> z >> nx >> ny >> nz;
                 p[0] = x;
                 p[1] = y;
                 p[2] = z;

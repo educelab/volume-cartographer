@@ -66,6 +66,11 @@ int main(int argc, char** argv)
                 assert(newPs(i, j)[2] == (*cloud)(i, j).z);
             }
         }
+
+        // Mesh the cloud if possible
+        if ( ps.height() > 1 ) {
+            pkg.saveMesh(ps);
+        }
     }
 
     // Update the vpkg version
