@@ -474,7 +474,7 @@ void CWindow::SplitCloud(void)
             points.push_back(fMasterCloud[i]);
         else
         {
-            fUpperPart.push_row(points);
+            fUpperPart.pushRow(points);
             points.clear();
             points.push_back(fMasterCloud[i]);
             width_cnt = 0;
@@ -493,7 +493,7 @@ void CWindow::SplitCloud(void)
             }
 
             else {
-                fLowerPart.push_row(points);
+                fLowerPart.pushRow(points);
                 points2.clear();
                 points2.push_back(fMasterCloud[i + aTotalNumOfImmutablePts]);
                 width_cnt = 0;
@@ -732,7 +732,7 @@ void CWindow::SetPathPointCloud(void)
         point[2] = fPathOnSliceIndex;
         points.push_back(point);
     }
-    aPathCloud.push_row(points);
+    aPathCloud.pushRow(points);
 
     fMasterCloud = aPathCloud;
     fMinSegIndex = floor(fMasterCloud[0][2]);
@@ -810,10 +810,9 @@ void CWindow::CloseVolume(void)
 // Reset point cloud
 void CWindow::ResetPointCloud(void)
 {
-    //Not sure this is the best way to clear out the points but it should work for now -HH
-    fMasterCloud = volcart::OrderedPointSet<volcart::Point3d >();
-    fUpperPart = volcart::OrderedPointSet<volcart::Point3d >() ;
-    fLowerPart = volcart::OrderedPointSet<volcart::Point3d >();
+    fMasterCloud.clear();
+    fUpperPart.clear() ;
+    fLowerPart.clear();
     fIntersections.clear();
     CXCurve emptyCurve;
     fIntersectionCurve = emptyCurve;
@@ -949,8 +948,8 @@ void CWindow::ToggleSegmentationTool(void)
 {
     if (fSegTool->isChecked()) {
         fWindowState = EWindowState::WindowStateSegmentation;
-        fUpperPart = volcart::OrderedPointSet<volcart::Point3d >();
-        fLowerPart = volcart::OrderedPointSet<volcart::Point3d >();
+        fUpperPart.clear();
+        fLowerPart.clear();
         SplitCloud();
 
         // turn off edit tool
@@ -1177,7 +1176,7 @@ void CWindow::OnPathChanged(void)
     std::vector<volcart::Point3d > points;
     if (fWindowState == EWindowState::WindowStateSegmentation) {
         // update current slice
-        fLowerPart = volcart::OrderedPointSet<volcart::Point3d >();
+        fLowerPart.clear();
         for (size_t i = 0; i < fIntersectionCurve.GetPointsNum(); ++i) {
             volcart::Point3d tempPt;
             tempPt[0] = fIntersectionCurve.GetPoint(i)[0];
@@ -1185,6 +1184,6 @@ void CWindow::OnPathChanged(void)
             tempPt[2] = fPathOnSliceIndex;
             points.push_back(tempPt);
         }
-        fLowerPart.push_row(points);
+        fLowerPart.pushRow(points);
     }
 }

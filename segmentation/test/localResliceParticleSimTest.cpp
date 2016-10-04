@@ -63,7 +63,7 @@ BOOST_FIXTURE_TEST_CASE(DefaultSegmentationTest, LocalResliceSegmentationFix)
     {
         seededPoints.push_back(startingCloud[i]);
     }
-    seededCloud.push_row(seededPoints);
+    seededCloud.pushRow(seededPoints);
     // Run segmentation
     // XXX These params are manually input now, later they will be dynamically
     // read from the parameters.json file in each segmentation directory

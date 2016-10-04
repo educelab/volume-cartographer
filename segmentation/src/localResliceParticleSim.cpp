@@ -345,7 +345,7 @@ volcart::OrderedPointSet<volcart::Point3d> exportAsPCD(
             Voxel v = points[i][j];
             temp_row.emplace_back(v(0), v(1), v(2));
         }
-        cloud.push_row(temp_row);
+        cloud.pushRow(temp_row);
         temp_row.clear();
     }
     return cloud;

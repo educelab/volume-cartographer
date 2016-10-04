@@ -205,7 +205,7 @@ int main(int argc, char* argv[])
             row_points.push_back(temp_pt);
         }
     }
-    segPath.push_row(row_points);
+    segPath.pushRow(row_points);
 
     // Starting paths must have the same number of points as the input width to
     // maintain ordering
@@ -232,7 +232,7 @@ int main(int argc, char* argv[])
         }
         else
         {
-            immutableCloud.push_row(temp_row);
+            immutableCloud.pushRow(temp_row);
             temp_row.clear();
             temp_row.push_back(masterCloud[i]);
             width_cnt = 0;

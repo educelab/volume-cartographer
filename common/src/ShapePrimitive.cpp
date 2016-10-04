@@ -105,7 +105,7 @@ volcart::OrderedPointSet<volcart::Point3d>ShapePrimitive::orderedPoints(bool noi
         volcart::Point3d point;
       if(width_cnt == output.width())
       {
-          output.push_row(temp_row);
+          output.pushRow(temp_row);
           temp_row.clear();
           width_cnt = 0;
       }
@@ -174,7 +174,7 @@ volcart::OrderedPointSet<volcart::Point6d>ShapePrimitive::orderedPointNormal()
 
             temp_row.push_back(point);
         }
-        output.push_row(temp_row);
+        output.pushRow(temp_row);
 
     }
 
