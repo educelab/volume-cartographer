@@ -18,15 +18,13 @@ target_link_libraries(vc_area vc_volumepkg vc_common vc_meshing Boost::filesyste
 # vc_invertcloud
 add_executable(vc_invertcloud src/invertCloud.cpp)
 target_include_directories(vc_invertcloud PUBLIC
-    ${PCL_COMMON_INCLUDE_DIRS}
-    ${PCL_IO_INCLUDE_DIRS}
+
 )
 target_link_libraries(vc_invertcloud
     vc_volumepkg
     vc_common
     Boost::filesystem
-    ${PCL_COMMON_LIBRARIES}
-    ${PCL_IO_LIBRARIES}
+
 )
 
 # vc_seg2printable
@@ -61,7 +59,7 @@ target_link_libraries(vc_convert_pcd_to_ps
     Boost::filesystem
     ${PCL_COMMON_LIBRARIES}
     ${PCL_IO_LIBRARIES}
-list(append TARGETS vc_convert_pcd_to_ps)
+#list(append TARGETS vc_convert_pcd_to_ps)
 )
 endif()
 
