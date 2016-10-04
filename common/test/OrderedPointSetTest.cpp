@@ -72,14 +72,17 @@ BOOST_FIXTURE_TEST_CASE(
 {
     auto newPs = ps.copyRows(0, 2);
     BOOST_CHECK_EQUAL(newPs.width(), 3);
-    BOOST_CHECK_EQUAL(newPs.height(), 2);
-    BOOST_CHECK_EQUAL(newPs.size(), 6);
+    BOOST_CHECK_EQUAL(newPs.height(), 3);
+    BOOST_CHECK_EQUAL(newPs.size(), 9);
     BOOST_CHECK_EQUAL(newPs(0, 0), Point3i(1, 1, 1));
     BOOST_CHECK_EQUAL(newPs(1, 0), Point3i(2, 2, 2));
     BOOST_CHECK_EQUAL(newPs(2, 0), Point3i(3, 3, 3));
     BOOST_CHECK_EQUAL(newPs(0, 1), Point3i(4, 4, 4));
     BOOST_CHECK_EQUAL(newPs(1, 1), Point3i(4, 4, 4));
     BOOST_CHECK_EQUAL(newPs(2, 1), Point3i(4, 4, 4));
+    BOOST_CHECK_EQUAL(newPs(0, 2), Point3i(2, 2, 2));
+    BOOST_CHECK_EQUAL(newPs(1, 2), Point3i(2, 2, 2));
+    BOOST_CHECK_EQUAL(newPs(2, 2), Point3i(2, 2, 2));
 }
 
 BOOST_FIXTURE_TEST_CASE(

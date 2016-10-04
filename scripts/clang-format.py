@@ -76,7 +76,7 @@ class ClangFormatter:
         fromfile = join('a', relpath)
         tofile = join('b', relpath)
 
-        diffs = list(
+        diff = list(
             difflib.unified_diff(
                 original_lines,
                 formatted_lines,
@@ -85,7 +85,7 @@ class ClangFormatter:
             )
         )
 
-        if diffs:
+        if diff:
             print('Found formatting changes for file:', source_file)
 
             if show_diff:
@@ -94,11 +94,11 @@ class ClangFormatter:
                     format(cf, source_file)
                 )
                 print('Suggested changes:')
-                for line in diffs:
+                for line in diff:
                     print(line.strip())
                 print()
 
-        return not bool(diffs)
+        return not diff
 
 
 # Fetches clang-format from llvm site, extracts binary and copies to
