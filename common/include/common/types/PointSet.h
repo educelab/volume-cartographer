@@ -48,6 +48,7 @@ public:
     // Metadata
     size_t size() const { return _data.size(); }
     bool empty() const { return _data.empty(); }
+    std::vector<T>& data() { return _data; }
 
     // Iterators and element accessors
     Iterator begin() { return std::begin(_data); }
@@ -74,7 +75,7 @@ public:
         }
         return *std::max_element(std::begin(_data), std::end(_data));
     }
-    std::pair<T, T> min_max() const
+    std::pair<T, T> minMax() const
     {
         if (empty()) {
             throw std::range_error("empty PointSet");
@@ -90,6 +91,8 @@ public:
     {
         std::copy(std::begin(ps), std::end(ps), std::back_inserter(_data));
     }
+
+    void clear() { _data.clear(); }
 
 protected:
     Container _data;
