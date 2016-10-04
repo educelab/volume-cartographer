@@ -1,5 +1,14 @@
 Volume Cartographer Changelog
 =============================
+v2.7.0
+------
+- apps
+    - (VC) Add support for simple linear paths
+    - (VC) Fix crash when navigating while there is no volpkg loaded (!86)
+    - (VC) Fix bug where you could get stuck in editing/drawing mode (!81)
+- misc
+    - Add clang-format style file (!87)
+
 v2.6.0
 ------
 - apps

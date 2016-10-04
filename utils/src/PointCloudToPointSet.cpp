@@ -42,7 +42,7 @@ int main(int argc, char** argv)
                 points.push_back(
                     {(*cloud)(i, j).x, (*cloud)(i, j).y, (*cloud)(i, j).z});
             }
-            ps.push_row(points);
+            ps.pushRow(points);
         }
 
         // Write to disk

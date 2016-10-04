@@ -3,7 +3,6 @@
 #include "CBSpline.h"
 
 #include "CMatrixMN.h"
-#include "CVectorN.h"
 #include "UVecMatOperations.h"
 
 //#define _DEBUG
@@ -55,7 +54,9 @@ void CBSpline::SetControlPoints( const std::vector< cv::Vec2f > &nControlPoints 
         fControlPoints.push_back( Vec2< double >( nControlPoints[ i ][ 0 ], nControlPoints[ i ][ 1 ] ) );
     }
 
-    UpdateCurve();
+    if ( fControlPoints.size() > 1 ) {
+        UpdateCurve();
+    }
 }
 
 // Get sample points
@@ -77,6 +78,32 @@ void CBSpline::GetSamplePoints( std::vector< cv::Vec2f > &nSamplePoints )
 // Update curve
 void CBSpline::UpdateCurve( void )
 {
+    // Handle the two-control point, linear instance
+    // Find P1 and P2 s.t. they're evenly spaced between P0 & P3
+    if ( fControlPoints.size() == 2 ) {
+        std::vector< Vec2< double > > aControlPointsForSeg;
+
+        // P0
+        aControlPointsForSeg.push_back( fControlPoints[0] );
+
+        // P1 & P2
+        Vec2<double> d = ( fControlPoints[1] - fControlPoints[0] ) * (1.0/3.0);
+        Vec2<double> P1 = fControlPoints[0] + d;
+        Vec2<double> P2 = P1 + d;
+        aControlPointsForSeg.push_back( P1 );
+        aControlPointsForSeg.push_back( P2 );
+
+        // P3
+        aControlPointsForSeg.push_back( fControlPoints[ 1 ] );
+
+        // Set the curve segment
+        CBezierCurve aCurveSegment;
+        aCurveSegment.SetControlPoints( aControlPointsForSeg );
+        fCurveSegments.push_back( aCurveSegment );
+
+        return;
+    }
+
     // solve for control points for each Bezier curve segment
     // # of unknowns = # of curve segments = # of control points - 1
     int aNumUnknowns = ( int )fControlPoints.size() - 1;
@@ -152,6 +179,14 @@ void CBSpline::UpdateCurve( void )
 void CBSpline::DrawOnImage( cv::Mat &nImg,
                             const cv::Scalar &nColor )
 {
+    // Handle drawing curves with only 2 points
+    if ( fControlPoints.size() == 2 ) {
+        cv::Point2f start(fControlPoints[0][0], fControlPoints[0][1]);
+        cv::Point2f end(fControlPoints[1][0], fControlPoints[1][1]);
+        cv::line( nImg, start, end, nColor );
+        return;
+    }
+
     for ( size_t i = 0; i < fCurveSegments.size(); ++i ) {
         fCurveSegments[ i ].DrawOnImage( nImg, nColor );
     }

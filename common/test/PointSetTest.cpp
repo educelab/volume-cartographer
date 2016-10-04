@@ -52,11 +52,17 @@ BOOST_AUTO_TEST_CASE(FillPointSetTest)
     }
 }
 
+BOOST_FIXTURE_TEST_CASE(ClearPointSetTest, Point3iPointSet)
+{
+    ps.clear();
+    BOOST_CHECK_EQUAL(ps.size(), 0);
+}
+
 BOOST_FIXTURE_TEST_CASE(StatisticsPointSetTest, Point3iPointSet)
 {
     BOOST_CHECK_EQUAL(ps.min(), Point3i(1, 1, 1));
     BOOST_CHECK_EQUAL(ps.max(), Point3i(3, 3, 3));
-    auto minmax = ps.min_max();
+    auto minmax = ps.minMax();
     BOOST_CHECK_EQUAL(minmax.first, Point3i(1, 1, 1));
     BOOST_CHECK_EQUAL(minmax.second, Point3i(3, 3, 3));
 }
@@ -66,7 +72,7 @@ BOOST_AUTO_TEST_CASE(StatisticsEmptyPointSet)
     PointSet<Point3i> ps;
     BOOST_CHECK_THROW(ps.min(), std::range_error);
     BOOST_CHECK_THROW(ps.max(), std::range_error);
-    BOOST_CHECK_THROW(ps.min_max(), std::range_error);
+    BOOST_CHECK_THROW(ps.minMax(), std::range_error);
 }
 
 BOOST_FIXTURE_TEST_CASE(AppendPointSetToAnother, Point3iPointSet)

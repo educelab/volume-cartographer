@@ -1,7 +1,6 @@
 // CBezierCurve.cpp
 // Chao Du 2015 April
 #include "CBezierCurve.h"
-#include <assert.h>
 
 //#define _DEBUG
 

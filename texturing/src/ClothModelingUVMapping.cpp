@@ -334,7 +334,7 @@ double ClothModelingUVMapping::_SurfaceArea() {
         double sa = 0.25 * sqrt(p);
 
         // Can get NaN's when using standard C++ math. Explore something like GMP
-        if ( isnan(sa) ) {
+        if (std::isnan(sa)) {
             std::cerr << std::endl << "volcart::texturing::clothUV: Warning: NaN surface area for face[" << i << "]. Evaluating as 0." << std::endl;
             sa = 0.0;
         }

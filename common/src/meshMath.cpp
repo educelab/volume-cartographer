@@ -35,10 +35,12 @@ namespace volcart {
             double sa = 0.25 * sqrt(p);
 
             // Can get NaN's when using standard C++ math. Explore something like GMP
-            if (isnan(sa)) {
-              std::cerr << std::endl << "volcart::meshMath: Warning: NaN surface area for face[" << cell.Index() <<
-              "]. Evaluating as 0." << std::endl;
-              sa = 0.0;
+            if (std::isnan(sa)) {
+                std::cerr
+                    << std::endl
+                    << "volcart::meshMath: Warning: NaN surface area for face["
+                    << cell.Index() << "]. Evaluating as 0." << std::endl;
+                sa = 0.0;
             }
             surface_area += sa;
           }
