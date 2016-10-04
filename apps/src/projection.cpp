@@ -8,7 +8,7 @@
 #include <boost/format.hpp>
 
 #include "common/vc_defines.h"
-#include "common/io/ply2itk.h"
+#include "common/io/PLYReader.h"
 #include "volumepkg/volumepkg.h"
 
 #define RED cv::Scalar( 0, 0, 255 )
@@ -27,10 +27,8 @@ int main( int argc, char *argv[] ) {
     std::string outputDir = argv[3];
 
     // Load the mesh
-    int width = -1;
-    int height = -1;
     VC_MeshType::Pointer mesh = VC_MeshType::New();
-    volcart::io::ply2itkmesh(volpkg.getMeshPath(), mesh, width, height);
+    volcart::io::PLYReader(volpkg.getMeshPath(), mesh);
 
     //PNG Compression params
     std::vector<int> compression_params;

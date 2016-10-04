@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "common/io/ply2itk.h"
+#include "common/io/PLYReader.h"
 #include "texturing/compositeTexture.h"
 #include "common/vc_defines.h"
 #include "volumepkg/volumepkg.h"

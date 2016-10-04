@@ -147,8 +147,9 @@ volcart::PointSet<volcart::Point3d>ShapePrimitive::unOrderedPoints(bool noisify)
                 point[2] = p_id.z + offset;
                 point[1] = p_id.z;  // added this to take the points out of the x-z
                 // plane to test impact of mls
-            } else
+            } else {
                 point[2] = p_id.z;
+            }
             ++point_counter;
         output.push_back(point);
     }

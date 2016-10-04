@@ -48,11 +48,6 @@ target_link_libraries(${target}
         ITKTransform
         vtkFiltersGeneral
         vtkFiltersCore
-        ${PCL_SEARCH_LIBRARIES}
-        ${PCL_KDTREE_LIBRARIES}
-        ${PCL_SURFACE_LIBRARIES}
-        ${PCL_FILTERS_LIBRARIES}
-        ${PCL_IO_LIBRARIES}
 )
 
 install(TARGETS ${target}

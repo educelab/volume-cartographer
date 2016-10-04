@@ -2,7 +2,7 @@
 // Created by Seth Parker on 4/27/15.
 //
 
-#include "common/io/ply2itk.h"
+#include "common/io/PLYReader.h"
 #include <boost/filesystem.hpp>
 
 namespace volcart
@@ -10,15 +10,12 @@ namespace volcart
 namespace io
 {
 
-bool ply2itkmesh(boost::filesystem::path plyPath,
-                 VC_MeshType::Pointer mesh,
-                  int &width,
-                  int &height)
+bool PLYReader(boost::filesystem::path path, VC_MeshType::Pointer mesh)
 {
     // open ply file
-    std::ifstream plyFile(plyPath.string());
+    std::ifstream plyFile(path.string());
     if (!plyFile.is_open()) {
-        std::cerr << "Open file " << plyPath << " failed." << std::endl;
+        std::cerr << "Open file " << path << " failed." << std::endl;
         return false;
     }
 
@@ -80,8 +77,6 @@ bool ply2itkmesh(boost::filesystem::path plyPath,
             // get the dimensions of the mesh
             if (aElementIDs[i] == "dimensions") {
                 plyFile >> w >> h;
-                width = w;
-                height = h;
             }
 
             // read vertices
@@ -121,14 +116,6 @@ bool ply2itkmesh(boost::filesystem::path plyPath,
                 mesh->SetCell(j, cellpointer);
             }
         }
-    }
-
-    // if we don't have the meshWidth and meshHeight, exit
-    if (width == -1 || height == -1) {
-        std::cerr
-            << "ERROR: Mesh does not contain width and/or height metadata."
-            << std::endl;
-        return false;
     }
 
     plyFile.close();

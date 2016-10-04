@@ -134,10 +134,10 @@ int main(int argc, char* argv[])
 
     VolumePkg volpkg(opts["volpkg"].as<std::string>());
     volpkg.setActiveSegmentation(opts["seg-id"].as<std::string>());
-    if (volpkg.getVersion() < 2) {
+    if (volpkg.getVersion() != 3) {
         std::cerr << "[error]: Volume package is version "
                   << volpkg.getVersion()
-                  << " but this program requires a version >= 2." << std::endl;
+                  << " but this program requires a version 3." << std::endl;
         std::exit(1);
     }
 
@@ -157,17 +157,10 @@ int main(int argc, char* argv[])
 
     // Get some info about the cloud, including chain length and z-index's
     // represented by seg.
-    const int chainLength = masterCloud.width();
-    const int iterations = masterCloud.height();
-    volcart::Point3d min_p, max_p;
-    min_p = masterCloud.min();
-    max_p = masterCloud.max();
+    auto chainLength = masterCloud.width();
+    auto iterations = masterCloud.height();
     int minIndex = floor(masterCloud.front()[2]);
-    int maxIndex = floor(max_p[2]);
-
-    // Setup the temp clouds
-
-    volcart::OrderedPointSet<volcart::Point3d> segPath;
+    int maxIndex = floor(masterCloud.max()[2]);
 
     // If no start index is given, our starting path is all of the points
     // already on the largest slice index
@@ -193,51 +186,34 @@ int main(int argc, char* argv[])
     }
 
     // Prepare our clouds
+    // Get the upper, immutable cloud
+    auto immutableCloud = masterCloud.copyRows(minIndex, startIndex - 1);
+
     // Get the starting path pts.
-    // Find our starting row. NOTE: This currently assumes segmentation distance
-    // threshold has always been 1
-    std::vector<volcart::Point3d> row_points;
-    int pathRow = startIndex - minIndex;
-    for (int i = 0; i < chainLength; ++i) {
-        volcart::Point3d temp_pt;
-        temp_pt = masterCloud[i + (pathRow * chainLength)];
-        if (temp_pt[2] != -1) {
-            row_points.push_back(temp_pt);
-        }
-    }
-    segPath.pushRow(row_points);
+    auto segPath = masterCloud.getRow(startIndex);
+
+    // Filter -1 points
+    segPath.erase(std::remove_if(
+                    std::begin(segPath),
+                    std::end(segPath),
+                    [](volcart::Point3d e) {
+                        return e[2] == -1;
+                    }),
+                  std::end(segPath));
 
     // Starting paths must have the same number of points as the input width to
     // maintain ordering
-    if (segPath.width() != chainLength) {
+    if (segPath.size() != chainLength) {
         std::cerr << std::endl;
         std::cerr << "[error]: Starting chain length does not match expected "
                      "chain length."
                   << std::endl;
         std::cerr << "           Expected: " << chainLength << std::endl;
-        std::cerr << "           Actual: " << segPath.width() << std::endl;
+        std::cerr << "           Actual: " << segPath.size() << std::endl;
         std::cerr << "       Consider using a lower starting index value."
                   << std::endl
                   << std::endl;
         std::exit(1);
-    }
-    volcart::OrderedPointSet<volcart::Point3d> immutableCloud(chainLength);
-    std::vector<volcart::Point3d> temp_row;
-    int width_cnt = 0;
-    // Get the immutable points, i.e all pts before the starting path row
-    for (int i = 0; i < (pathRow * chainLength); ++i) {
-        if(width_cnt != immutableCloud.width())
-        {
-            temp_row.push_back(masterCloud[i]);
-        }
-        else
-        {
-            immutableCloud.pushRow(temp_row);
-            temp_row.clear();
-            temp_row.push_back(masterCloud[i]);
-            width_cnt = 0;
-        }
-        width_cnt++;
     }
 
     // Run the algorithms
@@ -279,13 +255,9 @@ int main(int argc, char* argv[])
 
     // Update the master cloud with the points we saved and concat the new
     // points into the space
-
-    volcart::OrderedPointSet<volcart::Point3d> newMasterCloud(chainLength);
-    newMasterCloud.append(immutableCloud);
-    newMasterCloud.append(mutableCloud);
-
+    immutableCloud.append(mutableCloud);
 
     // Save point cloud and mesh
-    volpkg.saveCloud(newMasterCloud);
-    volpkg.saveMesh(newMasterCloud);
+    volpkg.saveCloud(immutableCloud);
+    volpkg.saveMesh(immutableCloud);
 }

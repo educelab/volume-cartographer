@@ -6,7 +6,7 @@
 #include "volumepkg/volumepkg.h"
 
 #include "common/io/plyWriter.h"
-#include "common/io/ply2itk.h"
+#include "common/io/PLYReader.h"
 #include "meshing/itk2vtk.h"
 
 #include <itkSmoothingQuadEdgeMeshFilter.h>
@@ -40,11 +40,9 @@ int main( int argc, char* argv[] ) {
 
   // declare pointer to new Mesh object
   VC_MeshType::Pointer  input = VC_MeshType::New();
-  int meshWidth = -1;
-  int meshHeight = -1;
 
   // try to convert the ply to an ITK mesh
-  if (!volcart::io::ply2itkmesh(meshName, input, meshWidth, meshHeight)){
+  if (!volcart::io::PLYReader(meshName, input)){
     exit( -1 );
   };
 

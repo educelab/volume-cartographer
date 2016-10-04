@@ -11,6 +11,7 @@ target_include_directories(vc_zxy2xyz PUBLIC
 )
 target_link_libraries(vc_zxy2xyz ${PCL_IO_LIBRARIES} ${PCL_COMMON_LIBRARIES})
 endif()
+
 # vc_area
 add_executable(vc_area src/surfarea.cpp)
 target_link_libraries(vc_area vc_volumepkg vc_common vc_meshing Boost::filesystem)
@@ -25,15 +26,6 @@ target_link_libraries(vc_invertcloud
     vc_common
     Boost::filesystem
 
-)
-
-# vc_seg2printable
-add_executable(vc_seg2printable src/seg2Printable.cpp)
-target_link_libraries(vc_seg2printable
-    vc_common
-    vc_volumepkg
-    vc_meshing
-    vc_texturing
 )
 
 # vc_mappingExtractor

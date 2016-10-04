@@ -76,7 +76,6 @@ endforeach()
 file(
     COPY
         ${EXECUTABLE_OUTPUT_PATH}/Testing.volpkg/paths/starting-path/pointset.vcps
-        ${EXECUTABLE_OUTPUT_PATH}/Testing.volpkg/paths/starting-path/cloud.pcd
     DESTINATION
         ${EXECUTABLE_OUTPUT_PATH}/Testing.volpkg/paths/lrps-test-results
 )

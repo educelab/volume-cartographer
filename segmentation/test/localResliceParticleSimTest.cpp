@@ -52,18 +52,10 @@ BOOST_FIXTURE_TEST_CASE(DefaultSegmentationTest, LocalResliceSegmentationFix)
     const std::string startingCloudSeg("lrps-test-results");
     _pkg.setActiveSegmentation(startingCloudSeg);
     auto startingCloud = _pkg.openCloud();
-    //auto it = startingCloud.begin();
-//    std::advance(it, startingCloud.width());
-//    startingCloud.erase(it, startingCloud.end());
-    volcart::OrderedPointSet<volcart::Point3d> seededCloud(startingCloud.width());
-    std::vector<volcart::Point3d> seededPoints;
 
-    //I tried to do the C++11 standard for the loop, I think it's correct -HH
-    for(int i = 0; i < startingCloud.width(); i++)
-    {
-        seededPoints.push_back(startingCloud[i]);
-    }
-    seededCloud.pushRow(seededPoints);
+    volcart::OrderedPointSet<volcart::Point3d> seededCloud(startingCloud.width());
+    auto seededPoints = startingCloud.getRow(0);
+
     // Run segmentation
     // XXX These params are manually input now, later they will be dynamically
     // read from the parameters.json file in each segmentation directory
@@ -81,7 +73,7 @@ BOOST_FIXTURE_TEST_CASE(DefaultSegmentationTest, LocalResliceSegmentationFix)
     bool dumpVis = false;
     bool visualize = false;
     auto resultCloud = _segmenter.segmentPath(
-        seededCloud, startIndex, endIndex, numIters, stepNumLayers, alpha, k1,
+        seededPoints, startIndex, endIndex, numIters, stepNumLayers, alpha, k1,
         k2, beta, delta, peakDistanceWeight, shouldIncludeMiddle, dumpVis,
         visualize);
     _pkg.saveCloud(resultCloud);
