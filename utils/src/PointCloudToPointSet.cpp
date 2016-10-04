@@ -29,7 +29,7 @@ int main(int argc, char** argv)
     for (const auto& seg : pkg.getSegmentations()) {
         pkg.setActiveSegmentation(seg);
         std::cout << "Processing " << pkg.getActiveSegPath() << std::endl;
-        auto outputName = pkg.getActiveSegmentation();
+        auto outputName = pkg.getActiveSegPath();
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
         pcl::io::loadPCDFile<pcl::PointXYZRGB>(outputName.string(), *cloud);
 
