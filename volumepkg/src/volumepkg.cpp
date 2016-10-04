@@ -1,5 +1,4 @@
 #include "volumepkg/volumepkg.h"
-#include "meshing/orderedPCDMesher.h"
 #include "common/io/objWriter.h"
 #include "meshing/OrderedPointSetMesher.h"
 #include "common/types/OrderedPointSet.h"
@@ -209,15 +208,6 @@ volcart::OrderedPointSet<volcart::Point3d> VolumePkg::openCloud() const
     auto outputName = segs_dir / activeSeg / "pointset.vcps";
     volcart::OrderedPointSet<volcart::Point3d > cloud;
     cloud = volcart::PointSetIO<volcart::Point3d>::ReadOrderedPointSet(outputName.string());
-    return cloud;
-}
-
-pcl::PointCloud<pcl::PointXYZRGB>::Ptr VolumePkg::openPCDCloud() const
-{
-    auto outputName = segs_dir / activeSeg / "cloud.pcd";
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(
-            new pcl::PointCloud<pcl::PointXYZRGB>);
-    pcl::io::loadPCDFile<pcl::PointXYZRGB>(outputName.string(), *cloud);
     return cloud;
 }
 

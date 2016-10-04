@@ -3,10 +3,7 @@
 #include <iostream>
 
 #include <opencv2/opencv.hpp>
-#include <pcl/io/pcd_io.h>
-#include <pcl/common/common.h>
-#include <pcl/point_types.h>
-#include <pcl/console/parse.h>
+
 
 #include "volumepkg/volumepkg.h"
 

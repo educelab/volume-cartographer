@@ -9,8 +9,6 @@
 #include <opencv2/opencv.hpp>
 #include <QCheckBox>
 #ifndef Q_MOC_RUN
-#include <pcl/common/common.h>
-#include <pcl/point_types.h>
 #endif
 namespace ChaoVis {
 

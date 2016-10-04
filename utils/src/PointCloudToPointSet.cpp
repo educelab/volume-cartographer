@@ -29,7 +29,9 @@ int main(int argc, char** argv)
     for (const auto& seg : pkg.getSegmentations()) {
         pkg.setActiveSegmentation(seg);
         std::cout << "Processing " << pkg.getActiveSegPath() << std::endl;
-        auto cloud = pkg.openPCDCloud();
+        auto outputName = pkg.getActiveSegmentation();
+        pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
+        pcl::io::loadPCDFile<pcl::PointXYZRGB>(outputName.string(), *cloud);
 
         // Convert to OrderedPointSet
         OrderedPointSet<Point3d> ps(cloud->width);

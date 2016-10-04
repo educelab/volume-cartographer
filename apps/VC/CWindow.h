@@ -15,8 +15,7 @@
 #include "ui_VCMain.h"
 
 #ifndef Q_MOC_RUN
-#include <pcl/common/common.h>
-#include <pcl/point_types.h>
+
 
 #include "segmentation/lrps/localResliceParticleSim.h"
 //#include "structureTensorParticleSim/structureTensorParticleSim.h"

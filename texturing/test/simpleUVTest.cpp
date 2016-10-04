@@ -9,7 +9,6 @@
 #include "common/shapes/Plane.h"
 #include "common/shapes/Arch.h"
 #include "texturing/simpleUV.h"
-#include "meshing/orderedPCDMesher.h"
 #include "testing/testingUtils.h"
 
 

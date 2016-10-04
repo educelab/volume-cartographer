@@ -149,7 +149,7 @@ public:
         return ss.str();
     }
 
-    cv::Vec<T, N> toCvVec() const { cv::Vec<T, N>(data_.data()); }
+    cv::Vec<T, N> toCvVec() const { return cv::Vec<T, N>(data_.data()); }
 
 private:
     Container data_;

@@ -1,6 +1,5 @@
 #include <iostream>
 #include <boost/program_options.hpp>
-#include <pcl/io/pcd_io.h>
 #include "segmentation/lrps/localResliceParticleSim.h"
 #include "segmentation/stps/structureTensorParticleSim.h"
 #include "volumepkg/volumepkg.h"

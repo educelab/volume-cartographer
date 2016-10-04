@@ -1,7 +1,6 @@
 #pragma once
 
 #include <iostream>
-#include <pcl/point_types.h>
 #include "segmentation/lrps/fittedcurve.h"
 #include "volumepkg/volumepkg.h"
 #include "segmentation/lrps/common.h"

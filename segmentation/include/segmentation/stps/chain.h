@@ -8,9 +8,7 @@
 #include <list>
 #include <vector>
 #include <opencv2/core/core.hpp>
-#include <pcl/io/pcd_io.h>
-#include <pcl/common/common.h>
-#include <pcl/point_types.h>
+
 
 #include "volumepkg/volumepkg.h"
 #include "segmentation/stps/particle.h"

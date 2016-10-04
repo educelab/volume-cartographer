@@ -12,9 +12,6 @@
 #include <vtkPointData.h>
 #include <vtkSmartPointer.h>
 #include <vtkPolyDataReader.h>
-#include <pcl/common/common.h>
-#include <pcl/point_types.h>
-#include <pcl/impl/point_types.hpp>
 #include <common/types/OrderedPointSet.h>
 #include <common/types/Point.h>
 #include <common/types/PointSet.h>

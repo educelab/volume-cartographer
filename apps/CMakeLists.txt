@@ -15,13 +15,6 @@ endif()
 add_executable(vc_mesher src/mesher.cpp)
 target_link_libraries(vc_mesher
     vc_meshing
-    ${PCL_COMMON_LIBRARIES}
-    ${PCL_IO_LIBRARIES}
-)
-target_include_directories(vc_mesher
-    PUBLIC
-        ${PCL_COMMON_INCLUDE_DIRS}
-        ${PCL_IO_INCLUDE_DIRS}
 )
 
 ## Packager ##

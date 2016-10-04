@@ -12,8 +12,8 @@
 #endif
 
 #include <boost/filesystem.hpp>
-#include <pcl/common/projection_matrix.h>
-#include <pcl/point_types.h>
+//#include <pcl/common/projection_matrix.h>
+//#include <pcl/point_types.h>
 #include "common/types/Texture.h"
 #include "common/types/Volume.h"
 #include "common/vc_defines.h"
@@ -96,7 +96,6 @@ public:
     boost::filesystem::path getActiveSegPath();
 
     volcart::OrderedPointSet<volcart::Point3d> openCloud() const;
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr openPCDCloud() const;
 
     boost::filesystem::path getMeshPath() const;
 

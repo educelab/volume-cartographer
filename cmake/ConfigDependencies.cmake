@@ -47,8 +47,10 @@ set_target_properties(eigen3 PROPERTIES
 )
 
 ### PCL ###
-set(PCL_STATIC on)
-find_package(PCL 1.7 REQUIRED QUIET)
+if (VC_USE_PCL)
+	set(PCL_STATIC on)
+	find_package(PCL 1.7 REQUIRED QUIET)
+endif()
 
 # Put VTK libraries back because PCL silently overwrites them
 set(VTK_LIBRARIES ${VTK_LIBRARIES_TMP})
