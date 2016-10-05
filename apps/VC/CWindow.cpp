@@ -454,8 +454,8 @@ void CWindow::ChangePathItem(std::string segID)
     // load proper point cloud
     try {
         fMasterCloud = fVpkg->openCloud();
-    } catch (volcart::IOException& e) {
-        fMasterCloud = volcart::OrderedPointSet<volcart::Point3d>();
+    } catch (const volcart::IOException&) {
+        fMasterCloud.reset();
     }
     SetUpCurves();
 
