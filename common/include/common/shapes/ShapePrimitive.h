@@ -12,9 +12,9 @@
 #include <vtkPointData.h>
 #include <vtkSmartPointer.h>
 #include <vtkPolyDataReader.h>
-#include <pcl/common/common.h>
-#include <pcl/point_types.h>
-#include <pcl/impl/point_types.hpp>
+#include <common/types/OrderedPointSet.h>
+#include <common/types/Point.h>
+#include <common/types/PointSet.h>
 
 
 namespace volcart {
@@ -24,9 +24,10 @@ namespace shapes {
     public:
         VC_MeshType::Pointer itkMesh();
         vtkSmartPointer<vtkPolyData> vtkMesh();
-        pcl::PointCloud<pcl::PointXYZ> pointCloudXYZ(bool noisify = true); //resamplePointCloud
-        pcl::PointCloud<pcl::PointNormal> pointCloudNormal(); //poissonRecon, greedyProjMeshing
-        pcl::PointCloud<pcl::PointXYZRGB> pointCloudXYZRGB(); //for orderedPCDMesher
+        OrderedPointSet<Point3d> orderedPoints(bool noisify = false);
+        PointSet<Point3d> unorderedPoints(bool noisify = false);
+        OrderedPointSet<Point6d> orderedPointNormal();
+        PointSet<Point6d> unOrderedPointNormal();
 
         //overload
         std::vector<VC_Vertex> getPoints() const {return _points;}

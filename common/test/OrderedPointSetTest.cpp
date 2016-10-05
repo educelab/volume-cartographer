@@ -36,6 +36,14 @@ BOOST_AUTO_TEST_CASE(ConstructEmptyOrderedPointSet)
     BOOST_CHECK_EQUAL(ps.height(), 0);
 }
 
+BOOST_AUTO_TEST_CASE(SetWidth)
+{
+    OrderedPointSet<Point3i> ps;
+    ps.setWidth(3);
+    BOOST_CHECK_EQUAL(ps.width(), 3);
+    BOOST_CHECK_THROW(ps.setWidth(4), std::logic_error);
+}
+
 BOOST_AUTO_TEST_CASE(PushRowAddsRow)
 {
     OrderedPointSet<Point3i> ps{3};

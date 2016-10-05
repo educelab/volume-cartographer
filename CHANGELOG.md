@@ -2,12 +2,23 @@ Volume Cartographer Changelog
 =============================
 v2.7.0
 ------
+This release sees the replacement of PCL's PointCloud datatype with our new
+PointSet and OrderedPointSet types! This change allows us to remove the last
+traces of PCL from our library, which should improve our build stability.  
+*crosses fingers* However, this release is not compatible with version 2
+Volume Packages. Please use the `vc_convert_pcd_to_ps` utility to upgrade your
+packages to version 3.  
+- all
+    - Remove PCL usages from the main library (!94). And there was much
+    rejoicing!
 - apps
-    - (VC) Add support for simple linear paths
+    - (VC) Add support for simple linear paths (!90)
     - (VC) Fix crash when navigating while there is no volpkg loaded (!86)
     - (VC) Fix bug where you could get stuck in editing/drawing mode (!81)
+- common
+    - (OrderedPointSet) Added getRow() and copyRows() members (!96)
 - misc
-    - Add clang-format style file (!87)
+    - Add clang-format style, utilities, and hooks (!87, !93)
 
 v2.6.0
 ------
@@ -40,7 +51,7 @@ This was a huge release. Only notable changes are included below.
     - (VC) Use new LRPS algorithm (!56)
     - (VC) Various bug fixes and UI/UX improvements
 - common
-    -  __New:__ New common types for all sorts of things: volumes, 
+    -  __New:__ New common types for all sorts of things: volumes,
     LRUCaches, Rendering, Textures. EVERYTHING.
 - meshing
     - __New:__ CalculateNormals (!54)
@@ -50,7 +61,7 @@ This was a huge release. Only notable changes are included below.
 - testing
     -  __New:__ Unit test framework (!29)
 - texturing
-    -  __New:__ Several UV map generators: ClothModelingUVMapping, 
+    -  __New:__ Several UV map generators: ClothModelingUVMapping,
     AngleBasedFlattening, LeastSquaresConformalMapping (!44)
 - volumepkg
     - Abstract most functionality to the common/types.

@@ -9,7 +9,6 @@
 #include "common/shapes/Plane.h"
 #include "common/shapes/Arch.h"
 #include "texturing/simpleUV.h"
-#include "meshing/orderedPCDMesher.h"
 #include "testing/testingUtils.h"
 
 
@@ -53,9 +52,9 @@ struct CreatePlaneSimpleUVFixture{
 
         //create ordered point cloud from shape and assign width and height
         //params: false noise and true ordered
-        _in_PlanePointCloud =_Plane.pointCloudXYZ(false);
-        _width = _in_PlanePointCloud.width;
-        _height = _in_PlanePointCloud.height;
+        _in_PlanePointCloud =_Plane.orderedPoints(true);
+        _width = _in_PlanePointCloud.width();
+        _height = _in_PlanePointCloud.height();
 
         _in_PlaneITKMesh = _Plane.itkMesh();
 
@@ -69,7 +68,7 @@ struct CreatePlaneSimpleUVFixture{
     //declare Plane mesh and width and height
     volcart::shapes::Plane _Plane;
     VC_MeshType::Pointer _in_PlaneITKMesh;
-    pcl::PointCloud <pcl::PointXYZ> _in_PlanePointCloud;
+    volcart::OrderedPointSet<volcart::Point3d> _in_PlanePointCloud;
     int _width, _height;
 
     //declare uvMap to hold output from simpleUV call
@@ -84,9 +83,9 @@ struct CreateArchSimpleUVFixture{
 
         //create ordered point cloud from shape and assign width and height
         //params: false noise and true ordered
-        _in_ArchPointCloud =_Arch.pointCloudXYZ(false);
-        _width = _in_ArchPointCloud.width;
-        _height = _in_ArchPointCloud.height;
+        _in_ArchPointCloud =_Arch.orderedPoints(true);
+        _width = _in_ArchPointCloud.width();
+        _height = _in_ArchPointCloud.height();
         
         _in_ArchITKMesh = _Arch.itkMesh();
 
@@ -101,7 +100,7 @@ struct CreateArchSimpleUVFixture{
     VC_MeshType::Pointer _in_ArchITKMesh;
     volcart::UVMap _out_ArchUVMap;
 
-    pcl::PointCloud <pcl::PointXYZ> _in_ArchPointCloud;
+    volcart::OrderedPointSet<volcart::Point3d> _in_ArchPointCloud;
     int _width, _height; 
     
 };

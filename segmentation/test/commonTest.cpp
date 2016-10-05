@@ -1,13 +1,13 @@
 #define BOOST_TEST_MODULE LocalResliceParticleSimCommon
 
-#include <iostream>
-#include <numeric>
+#include "segmentation/lrps/common.h"
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
+#include <iostream>
+#include <numeric>
 #include <opencv2/core/core.hpp>
-#include "segmentation/lrps/common.h"
 
-// using namespace volcart::segmentation;
+using namespace volcart::segmentation;
 
 static const double floatComparePercentTolerance = 0.01;  // %
 

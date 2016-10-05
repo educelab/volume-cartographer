@@ -6,7 +6,6 @@
 #include <iostream>
 #include "common/vc_defines.h"
 #include "meshing/QuadricEdgeCollapseDecimation.h"
-#include "common/io/ply2itk.h"
 #include "common/io/objWriter.h"
 #include "common/shapes/Plane.h"
 #include "common/shapes/Arch.h"

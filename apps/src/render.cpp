@@ -7,18 +7,28 @@
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <opencv2/opencv.hpp>
+#include <vtkCleanPolyData.h>
 
 #include "common/vc_defines.h"
 #include "volumepkg/volumepkg.h"
 
+#include "common/util/meshMath.h"
 #include "common/io/objWriter.h"
-#include "common/io/ply2itk.h"
+#include "common/io/PLYReader.h"
 #include "common/io/plyWriter.h"
 #include "meshing/smoothNormals.h"
-#include "texturing/compositeTexture.h"
+#include "meshing/ACVD.h"
+#include "texturing/AngleBasedFlattening.h"
+#include "texturing/compositeTextureV2.h"
 
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;
+
+// Volpkg version required by this app
+static constexpr int VOLPKG_SUPPORTED_VERSION = 3;
+
+// Min. number of points required to do flattening
+static constexpr uint16_t CLEANER_MIN_REQ_POINTS = 100;
 
 int main(int argc, char* argv[])
 {
@@ -56,8 +66,6 @@ int main(int argc, char* argv[])
                 "  0 = Omni\n"
                 "  1 = Positive\n"
                 "  2 = Negative\n")
-            ("smooth-normals", po::value<double>(),
-                "Average the surface normals using points within radius [arg]")
             ("output-file,o", po::value<std::string>(),
                 "Output file path. If not specified, file will be saved to"
                 " volume package.");
@@ -103,10 +111,6 @@ int main(int argc, char* argv[])
                           << std::endl;
         }
 
-        // Check for other options
-        if (parsedOptions.count("smooth-normals"))
-            smoothRadius = parsedOptions["smooth-normals"].as<double>();
-
     } catch (std::exception& e) {
         std::cerr << "ERROR: " << e.what() << std::endl;
         return EXIT_FAILURE;
@@ -124,9 +128,10 @@ int main(int argc, char* argv[])
     }
 
     VolumePkg vpkg(volpkgPath);
-    if (vpkg.getVersion() < 2) {
+    if (vpkg.getVersion() != VOLPKG_SUPPORTED_VERSION) {
         std::cerr << "ERROR: Volume package is version " << vpkg.getVersion()
-                  << " but this program requires a version >= 2." << std::endl;
+                  << " but this program requires a version "
+                  << std::to_string(VOLPKG_SUPPORTED_VERSION) << "." << std::endl;
         return EXIT_FAILURE;
     }
     vpkg.volume().setCacheMemoryInBytes(systemMemorySize());
@@ -137,54 +142,74 @@ int main(int argc, char* argv[])
 
     // declare pointer to new Mesh object
     VC_MeshType::Pointer input = VC_MeshType::New();
-    VC_MeshType::Pointer workingMesh = VC_MeshType::New();
-
-    int meshWidth = -1;
-    int meshHeight = -1;
 
     // try to convert the ply to an ITK mesh
-    if (!volcart::io::ply2itkmesh(meshName, input, meshWidth, meshHeight)) {
+    if (!volcart::io::PLYReader(meshName, input)) {
         exit(-1);
     };
 
-    // Smooth surface normals
-    if (smoothRadius > 0) {
-        workingMesh = volcart::meshing::smoothNormals(input, smoothRadius);
-    } else {
-        // duplicate input
-        volcart::meshing::deepCopy(input, workingMesh);
-    }
+    // Calculate sampling density
+    double voxelsize = vpkg.getVoxelSize();
+    double sa = volcart::meshMath::SurfaceArea( input ) * (voxelsize * voxelsize) * (0.001 * 0.001); // convert vx^2 -> mm^2;
+    double densityFactor = 50;
+    uint16_t numberOfVertices = std::round(densityFactor * sa);
+    numberOfVertices = (numberOfVertices < CLEANER_MIN_REQ_POINTS) ? CLEANER_MIN_REQ_POINTS : numberOfVertices;
 
-    volcart::texturing::compositeTexture result(
-        workingMesh,
-        vpkg,
-        meshWidth,
-        meshHeight,
-        radius,
-        aFilterOption,
-        aDirectionOption);
-    volcart::Texture newTexture = result.texture();
+    // Convert to polydata
+    auto vtkMesh = vtkSmartPointer<vtkPolyData>::New();
+    volcart::meshing::itk2vtk(input, vtkMesh);
+
+    // Decimate using ACVD
+    std::cout << "Resampling mesh..." << std::endl;
+    auto acvdMesh = vtkSmartPointer<vtkPolyData>::New();
+    volcart::meshing::ACVD(vtkMesh, acvdMesh, numberOfVertices );
+
+    // Merge Duplicates
+    // Note: This merging has to be the last in the process chain for some really weird reason. - SP
+    auto Cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
+    Cleaner->SetInputData( acvdMesh );
+    Cleaner->Update();
+
+    VC_MeshType::Pointer itkACVD = VC_MeshType::New();
+    volcart::meshing::vtk2itk( Cleaner->GetOutput(), itkACVD );
+
+    // ABF flattening
+    std::cout << "Computing parameterization..." << std::endl;
+    volcart::texturing::AngleBasedFlattening abf(itkACVD);
+    //abf.setABFMaxIterations(5);
+    abf.compute();
+
+    // Get uv map
+    volcart::UVMap uvMap = abf.getUVMap();
+    int width = std::ceil( uvMap.ratio().width );
+    int height = std::ceil( (double) width / uvMap.ratio().aspect );
+
+    volcart::texturing::compositeTextureV2 result(itkACVD, vpkg, uvMap, radius, width, height, aFilterOption, aDirectionOption);
+
+    // Setup rendering
+    volcart::Rendering rendering;
+    rendering.setTexture( result.texture() );
+    rendering.setMesh( itkACVD );
 
     if (outputPath.extension() == ".PLY" || outputPath.extension() == ".ply") {
         std::cout << "Writing to PLY..." << std::endl;
-        volcart::io::plyWriter writer(outputPath.string(), input, newTexture);
+        volcart::io::plyWriter writer(outputPath.string(), input, result.texture());
         writer.write();
     } else if (
         outputPath.extension() == ".OBJ" || outputPath.extension() == ".obj") {
         std::cout << "Writing to OBJ..." << std::endl;
-        volcart::io::objWriter writer(
-            outputPath.string(),
-            input,
-            newTexture.uvMap(),
-            newTexture.getImage(0));
+        volcart::io::objWriter writer;
+        writer.setMesh(input);
+        writer.setRendering(rendering);
+        writer.setPath(outputPath.string());
         writer.write();
     } else if (
         outputPath.extension() == ".PNG" || outputPath.extension() == ".png") {
         std::cout << "Writing to PNG..." << std::endl;
-        cv::imwrite(outputPath.string(), newTexture.getImage(0));
+        cv::imwrite(outputPath.string(), rendering.getTexture().getImage(0));
     } else {
         std::cout << "Writing to Volume Package..." << std::endl;
-        vpkg.saveMesh(input, newTexture);
+        vpkg.saveMesh(input, result.texture());
     }
 
     return EXIT_SUCCESS;

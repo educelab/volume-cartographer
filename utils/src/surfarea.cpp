@@ -4,7 +4,7 @@
 #include <fstream>
 #include <iostream>
 
-#include "common/io/ply2itk.h"
+#include "common/io/PLYReader.h"
 #include "common/vc_defines.h"
 #include "meshing/itk2vtk.h"
 #include "volumepkg/volumepkg.h"
@@ -39,11 +39,8 @@ int main(int argc, char *argv[])
     // declare pointer to new Mesh object
     VC_MeshType::Pointer mesh = VC_MeshType::New();
 
-    int meshWidth = -1;
-    int meshHeight = -1;
-
     // try to convert the ply to an ITK mesh
-    if (!volcart::io::ply2itkmesh(meshName, mesh, meshWidth, meshHeight)) {
+    if (!volcart::io::PLYReader(meshName, mesh)) {
         exit(-1);
     };
 

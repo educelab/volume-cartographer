@@ -1,7 +1,7 @@
 #include "segmentation/lrps/common.h"
 
-std::vector<double> squareDiff(const std::vector<Voxel>& v1,
-                               const std::vector<Voxel>& v2)
+std::vector<double> volcart::segmentation::squareDiff(
+    const std::vector<Voxel>& v1, const std::vector<Voxel>& v2)
 {
     assert(v1.size() == v2.size() && "src and target must be the same size");
     std::vector<double> res(v1.size());
@@ -13,8 +13,8 @@ std::vector<double> squareDiff(const std::vector<Voxel>& v1,
     return res;
 }
 
-double sumSquareDiff(const std::vector<double>& v1,
-                     const std::vector<double>& v2)
+double volcart::segmentation::sumSquareDiff(const std::vector<double>& v1,
+                                            const std::vector<double>& v2)
 {
     assert(v1.size() == v2.size() && "v1 and v2 must be the same size");
     double res = 0;

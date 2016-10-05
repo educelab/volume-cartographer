@@ -3,11 +3,9 @@
 #pragma once
 
 #include <iostream>
-#ifndef Q_MOC_RUN
-#include <pcl/point_types.h>
-#endif
 #include <opencv2/opencv.hpp>
 #include <set>
+#include <common/types/Point.h>
 
 namespace ChaoVis {
 
@@ -44,7 +42,7 @@ public:
 //private: // REVISIT - quick and dirty implementation, lack of sets and gets
 public:
 	// point list
-	std::vector< pcl::PointXYZRGBNormal > fPoints;
+	std::vector< volcart::Point3d > fPoints;
 	// face list
 	std::vector< cv::Vec3i > fFaces;
 	// edge list

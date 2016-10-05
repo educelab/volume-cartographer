@@ -1,12 +1,12 @@
 #include "segmentation/stps/chain.h"
 
 // (doc) Why the parameters that we're giving it?
-Chain::Chain(pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath, VolumePkg& volpkg, double gravity_scale, int threshold, int endOffset, double spring_constant_k ) : _volpkg(volpkg){
+Chain::Chain(std::vector<volcart::Point3d> segPath,  const VolumePkg& volpkg, double gravity_scale, int threshold, int endOffset, double spring_constant_k ) : _volpkg(volpkg){
   // Convert the point cloud segPath into a vector of Particles
   std::vector<Particle> init_chain;
 
-  for(pcl::PointCloud<pcl::PointXYZRGB>::iterator path_it = segPath->begin(); path_it != segPath->end(); ++path_it){
-    init_chain.push_back(cv::Vec3d(path_it->x, path_it->y, path_it->z));
+  for(auto p : segPath){
+    init_chain.push_back(p.toCvVec());
   }
 
   // Calculate the spring resting position
@@ -75,7 +75,8 @@ void Chain::step() {
 }
 
 // Returns true if any Particle in the chain is still moving
-bool Chain::isMoving() {
+bool Chain::isMoving()
+{
   bool result = true;
   for (int i = 0; i < _chain_length; ++i)
     result &= _history.front()[i].isStopped();
@@ -111,7 +112,7 @@ cv::Vec3d Chain::springForce(int index) {
 // Project a vector onto the plane described by the structure tensor-computed normals
 cv::Vec3d Chain::gravity(int index) {
   cv::Vec3d gravity = cv::Vec3d(0,0,1); // To-Do: Rename gravity?
-  
+
   cv::Vec3d offset =
           _volpkg.volume()
                   .interpolatedEigenPairsAt(_history.front()[index].position(), 3)[0]
@@ -123,24 +124,22 @@ cv::Vec3d Chain::gravity(int index) {
 }
 
 // Convert Chain's _history to an ordered Point Cloud object
-pcl::PointCloud<pcl::PointXYZRGB> Chain::orderedPCD() {
+volcart::OrderedPointSet<volcart::Point3d> Chain::orderedPCD() {
   // Allocate space for one row of the output cloud
-  std::vector<pcl::PointXYZRGB> storage_row;
+  std::vector<volcart::Point3d> storage_row;
   for (int i = 0; i < _chain_length; ++i) {
-    pcl::PointXYZRGB point;
-    point.z = -1; // To-Do: Make this a constant
-    storage_row.push_back(point);
+      volcart::Point3d point;
+      point[2] = -1; // To-Do: Make this a constant
+      storage_row.push_back(point);
   }
 
   // Allocate space for all rows of the output cloud
   // storage will represent the cloud with 2D indexes
-  std::vector<std::vector<pcl::PointXYZRGB> > storage;
+  std::vector<std::vector<volcart::Point3d> > storage;
   for (int i = 0; i < _real_iterations; ++i) {
     storage.push_back(storage_row);
   }
 
-  // Give the output points an arbitrary color. *To-Do: This is not used ever.
-  uint32_t COLOR = 0x00777777; // grey in PCL's packed RGB representation
 
   // Push each point in _history into its ordered position in storage if it passes the distance threshold
   for (std::list<std::vector<Particle> >::iterator it = _history.begin(); it != _history.end(); ++it) {
@@ -150,23 +149,15 @@ pcl::PointCloud<pcl::PointXYZRGB> Chain::orderedPCD() {
     // Add each Particle in the row into storage at the correct position
     for (int i = 0; i < _chain_length; ++i) {
       int currentCell = (int)(((row_at[i](2)) - _start_index/_threshold)); // *To-Do: Something seems wrong here.
-      pcl::PointXYZRGB point;
-      point.x = row_at[i](0);
-      point.y = row_at[i](1);
-      point.z = row_at[i](2);
-      point.rgb = *(float*)&COLOR;
-      storage[currentCell][i] = point;
+        storage[currentCell][i] = volcart::Point3d(row_at[i].position());
     }
   }
 
   // Move points out of storage into the point cloud
-  pcl::PointCloud<pcl::PointXYZRGB> cloud;
-  cloud.height = _real_iterations;
-  cloud.width = _chain_length;
-  cloud.points.resize(cloud.height * cloud.width);
-  for (int i = 0; i < cloud.height; ++i) {
-    for (int j = 0; j < cloud.width; ++j) {
-      cloud.points[j+(i*cloud.width)] = storage[i][j];
+    volcart::OrderedPointSet<volcart::Point3d> cloud;
+  for (int i = 0; i < _real_iterations; ++i) {
+    for (int j = 0; j < _chain_length; ++j) {
+      cloud[j+(i*_chain_length)] = storage[i][j];
     }
   }
   return cloud;

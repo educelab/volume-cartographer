@@ -7,7 +7,7 @@
 
 ///// GLOBAL VARIABLES /////
 // This define determines the default dictionary used when creating a new volumepkg
-#define VOLPKG_VERSION 2.0
+static constexpr int VOLPKG_VERSION_LATEST = 3;
 
 // VC standard component access positions for XYZ
 #define VC_INDEX_X 0

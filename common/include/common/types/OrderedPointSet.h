@@ -62,6 +62,15 @@ public:
     // return a whole integer
     size_t height() const { return (_width == 0 ? 0 : this->size() / _width); }
 
+    // Resize the width
+    void setWidth(size_t width){
+        if (_width != 0) {
+            auto msg = "Cannot change width if already set";
+            throw std::logic_error(msg);
+        }
+        _width = width;
+    }
+
     // Push a row of points to the OrderedPointSet
     void pushRow(const std::vector<T>& points)
     {
@@ -111,7 +120,7 @@ public:
     {
         if (i >= this->height() || j >= this->height()) {
             throw std::range_error("out of range");
-        } else if (i >= j) {
+        } else if (i > j) {
             throw std::logic_error("i must be less than j");
         }
         OrderedPointSet ps(_width);

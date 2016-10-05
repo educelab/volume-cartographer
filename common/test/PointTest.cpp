@@ -38,6 +38,16 @@ BOOST_AUTO_TEST_CASE(MoveConstructPointTest)
     BOOST_CHECK_EQUAL(p4[2], 2);
 }
 
+// Construct from cv::Vec
+BOOST_AUTO_TEST_CASE(CvVecConstructPointTest)
+{
+    cv::Vec3i v(1, 2, 3);
+    Point3i p1(v);
+    BOOST_CHECK_EQUAL(p1[0], v(0));
+    BOOST_CHECK_EQUAL(p1[1], v(1));
+    BOOST_CHECK_EQUAL(p1[2], v(2));
+}
+
 // Fill construct
 BOOST_AUTO_TEST_CASE(FillConstructPointTest)
 {
