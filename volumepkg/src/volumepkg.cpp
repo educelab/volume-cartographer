@@ -206,12 +206,8 @@ volcart::OrderedPointSet<volcart::Point3d> VolumePkg::openCloud() const
 {
     // To-Do: Error if activeSeg not set
     auto outputName = segs_dir / activeSeg / "pointset.vcps";
-    try {
-      return volcart::PointSetIO<volcart::Point3d>::ReadOrderedPointSet(
-          outputName.string());
-    } catch(std::exception& e) {
-      return volcart::OrderedPointSet<volcart::Point3d>();
-    }
+    return volcart::PointSetIO<volcart::Point3d>::ReadOrderedPointSet(
+        outputName.string());
 }
 
 // Return the path to the active segmentation's mesh

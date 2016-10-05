@@ -3,6 +3,7 @@
 #include "CWindow.h"
 #include "CVolumeViewerWithCurve.h"
 #include "UDataManipulateUtils.h"
+#include "common/types/Exceptions.h"
 
 #define _DEBUG
 
@@ -451,7 +452,11 @@ void CWindow::ChangePathItem(std::string segID)
     fVpkg->setActiveSegmentation(fSegmentationId);
 
     // load proper point cloud
-    fMasterCloud = fVpkg->openCloud();
+    try {
+        fMasterCloud = fVpkg->openCloud();
+    } catch (volcart::IOException& e) {
+        fMasterCloud = volcart::OrderedPointSet<volcart::Point3d>();
+    }
     SetUpCurves();
 
     // Move us to the lowest slice index for the cloud
@@ -703,7 +708,7 @@ void CWindow::SetPathPointCloud(void)
     fSplineCurve.GetSamplePoints(aSamplePts);
 
     volcart::Point3d point;
-    volcart::OrderedPointSet<volcart::Point3d> aPathCloud;
+    fMasterCloud.setWidth(aSamplePts.size());
     std::vector<volcart::Point3d> points;
     for (size_t i = 0; i < aSamplePts.size(); ++i) {
         point[0] = aSamplePts[i][0];
@@ -711,9 +716,8 @@ void CWindow::SetPathPointCloud(void)
         point[2] = fPathOnSliceIndex;
         points.push_back(point);
     }
-    aPathCloud.pushRow(points);
+    fMasterCloud.pushRow(points);
 
-    fMasterCloud = aPathCloud;
     fMinSegIndex = floor(fMasterCloud[0][2]);
     fMaxSegIndex = fMinSegIndex;
 }

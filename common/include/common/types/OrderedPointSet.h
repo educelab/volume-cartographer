@@ -62,17 +62,24 @@ public:
     // return a whole integer
     size_t height() const { return (_width == 0 ? 0 : this->size() / _width); }
 
+    // Resize the width
+    void setWidth(size_t width){
+        if (_width != 0) {
+            auto msg = "Cannot change width if already set";
+            throw std::logic_error(msg);
+        }
+        _width = width;
+    }
+
     // Push a row of points to the OrderedPointSet
     void pushRow(const std::vector<T>& points)
     {
-        if(_width == 0) _width = points.size();
         assert(points.size() == _width && "row incorrect size");
         std::copy(
             std::begin(points), std::end(points), std::back_inserter(_data));
     }
     void pushRow(std::vector<T>&& points)
     {
-        if(_width == 0) _width = points.size();
         assert(points.size() == _width && "row incorrect size");
         std::copy(
             std::begin(points), std::end(points), std::back_inserter(_data));
