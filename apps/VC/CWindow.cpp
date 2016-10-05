@@ -753,16 +753,18 @@ void CWindow::OpenVolume(void)
     }
 
     // Check version number
-    if (fVpkg->getVersion() != 3) {
+    if (fVpkg->getVersion() != VOLPKG_SUPPORTED_VERSION) {
         std::cerr << "VC::Error: Volume package is version "
                   << fVpkg->getVersion()
-                  << " but this program requires a version 3." << std::endl;
+                  << " but this program requires a version "
+                  << std::to_string(VOLPKG_SUPPORTED_VERSION) << "." << std::endl;
         QMessageBox::warning(
             this,
             tr("ERROR"),
             "Volume package is version " +
-                QString::number(fVpkg->getVersion()) +
-                " but this program requires a version >= 2.");
+            QString::number(fVpkg->getVersion()) +
+            " but this program requires version " +
+            QString::number(VOLPKG_SUPPORTED_VERSION) + ".");
         fVpkg = nullptr;
         return;
     }

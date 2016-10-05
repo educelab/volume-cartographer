@@ -21,6 +21,9 @@
 #include "volumepkg/volumepkg.h"
 #include <QMenuBar>
 
+// Volpkg version required byt this app
+static constexpr int VOLPKG_SUPPORTED_VERSION = 3;
+
 class Global_Values
 {
 

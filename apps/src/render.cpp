@@ -24,7 +24,11 @@
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;
 
-static const uint16_t CLEANER_MIN_REQ_POINTS = 100;
+// Volpkg version required by this app
+static constexpr int VOLPKG_SUPPORTED_VERSION = 3;
+
+// Min. number of points required to do flattening
+static constexpr uint16_t CLEANER_MIN_REQ_POINTS = 100;
 
 int main(int argc, char* argv[])
 {
@@ -124,9 +128,10 @@ int main(int argc, char* argv[])
     }
 
     VolumePkg vpkg(volpkgPath);
-    if (vpkg.getVersion() != 3) {
+    if (vpkg.getVersion() != VOLPKG_SUPPORTED_VERSION) {
         std::cerr << "ERROR: Volume package is version " << vpkg.getVersion()
-                  << " but this program requires a version 3." << std::endl;
+                  << " but this program requires a version "
+                  << std::to_string(VOLPKG_SUPPORTED_VERSION) << "." << std::endl;
         return EXIT_FAILURE;
     }
     vpkg.volume().setCacheMemoryInBytes(systemMemorySize());

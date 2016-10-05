@@ -7,6 +7,9 @@
 namespace po = boost::program_options;
 namespace vs = volcart::segmentation;
 
+// Volpkg version required by this app
+static constexpr int VOLPKG_SUPPORTED_VERSION = 3;
+
 // Default values for global options
 static const int32_t kDefaultStep = 1;
 
@@ -134,10 +137,11 @@ int main(int argc, char* argv[])
 
     VolumePkg volpkg(opts["volpkg"].as<std::string>());
     volpkg.setActiveSegmentation(opts["seg-id"].as<std::string>());
-    if (volpkg.getVersion() != 3) {
+    if (volpkg.getVersion() != VOLPKG_SUPPORTED_VERSION) {
         std::cerr << "[error]: Volume package is version "
                   << volpkg.getVersion()
-                  << " but this program requires a version 3." << std::endl;
+                  << " but this program requires a version "
+                  << std::to_string(VOLPKG_SUPPORTED_VERSION) << "." << std::endl;
         std::exit(1);
     }
 

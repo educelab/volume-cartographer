@@ -38,7 +38,7 @@ int main( int argc, char *argv[] ) {
     // Sort the points by z-index
     std::map< int, std::vector<int> > z_map;
 
-    for ( VC_PointsInMeshIterator point = mesh->GetPoints()->Begin(); point != mesh->GetPoints()->End(); ++point ) {
+    for ( auto point = mesh->GetPoints()->Begin(); point != mesh->GetPoints()->End(); ++point ) {
 
         // skip null points
         if (point->Value()[VC_INDEX_Z] == -1) continue;

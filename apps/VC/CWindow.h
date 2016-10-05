@@ -14,12 +14,10 @@
 #include "CXCurve.h"
 #include "ui_VCMain.h"
 
-#ifndef Q_MOC_RUN
-
-
 #include "segmentation/lrps/localResliceParticleSim.h"
-//#include "structureTensorParticleSim/structureTensorParticleSim.h"
-#endif
+
+// Volpkg version required by this app
+static constexpr int VOLPKG_SUPPORTED_VERSION = 3;
 
 class VolumePkg;
 

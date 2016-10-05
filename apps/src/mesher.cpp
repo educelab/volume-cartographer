@@ -11,6 +11,7 @@
 
 
 namespace fs = boost::filesystem;
+namespace vc = volcart;
 
 int main(int argc, char* argv[]) {
   if (argc < 2)
@@ -19,19 +20,19 @@ int main(int argc, char* argv[]) {
     std::cerr << argv[0] << "orderedFile.vcps" << std::endl;
     return (1);
   }
-  
-  volcart::OrderedPointSet<volcart::Point3d> inputCloud;
-  
- volcart::PointSetIO<volcart::Point3d >::ReadOrderedPointSet (argv[1]); //* load the file
 
+  // Load the file
+  auto inputCloud = vc::PointSetIO<vc::Point3d >::ReadOrderedPointSet(argv[1]);
+
+  // Set the output
   fs::path outfile{argv[1]};
   outfile.replace_extension("ply");
-  
-  volcart::meshing::OrderedPointSetMesher mesh(inputCloud);
-   mesh.compute();
 
-    VC_MeshType::Pointer output = mesh.getOutputMesh();
-    volcart::io::plyWriter writer (outfile, output);
+  vc::meshing::OrderedPointSetMesher mesh(inputCloud);
+  mesh.compute();
+
+  VC_MeshType::Pointer output = mesh.getOutputMesh();
+  vc::io::plyWriter writer (outfile, output);
 
   exit(EXIT_SUCCESS);
 }
