@@ -25,7 +25,7 @@ namespace shapes {
         VC_MeshType::Pointer itkMesh();
         vtkSmartPointer<vtkPolyData> vtkMesh();
         OrderedPointSet<Point3d> orderedPoints(bool noisify = false);
-        PointSet<Point3d> unOrderedPoints(bool noisify = false);
+        PointSet<Point3d> unorderedPoints(bool noisify = false);
         OrderedPointSet<Point6d> orderedPointNormal();
         PointSet<Point6d> unOrderedPointNormal();
 

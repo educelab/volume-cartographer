@@ -101,7 +101,7 @@ int main(int argc, char* argv[])
     }
 
     // Generate an empty volpkg and save it to disk
-    VolumePkg volpkg(volpkgPath.string(), VOLPKG_VERSION);
+    VolumePkg volpkg(volpkgPath.string(), VOLPKG_VERSION_LATEST);
     volpkg.readOnly(false);
     volpkg.setMetadata("volumepkg name", volpkgPath.stem().string());
     volpkg.setMetadata("voxelsize", voxelsize);

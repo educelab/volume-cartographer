@@ -149,11 +149,7 @@ volcart::OrderedPointSet<volcart::Point3d> Chain::orderedPCD() {
     // Add each Particle in the row into storage at the correct position
     for (int i = 0; i < _chain_length; ++i) {
       int currentCell = (int)(((row_at[i](2)) - _start_index/_threshold)); // *To-Do: Something seems wrong here.
-        volcart::Point3d point;
-        point[0] = row_at[i](0);
-        point[1] = row_at[i](1);
-        point[2] = row_at[i](2);
-        storage[currentCell][i] = point;
+        storage[currentCell][i] = volcart::Point3d(row_at[i].position());
     }
   }
 

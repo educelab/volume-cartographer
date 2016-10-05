@@ -206,9 +206,8 @@ volcart::OrderedPointSet<volcart::Point3d> VolumePkg::openCloud() const
 {
     // To-Do: Error if activeSeg not set
     auto outputName = segs_dir / activeSeg / "pointset.vcps";
-    volcart::OrderedPointSet<volcart::Point3d > cloud;
-    cloud = volcart::PointSetIO<volcart::Point3d>::ReadOrderedPointSet(outputName.string());
-    return cloud;
+    return volcart::PointSetIO<volcart::Point3d>::ReadOrderedPointSet(
+        outputName.string());
 }
 
 // Return the path to the active segmentation's mesh
@@ -226,18 +225,18 @@ cv::Mat VolumePkg::getTextureData() const
 
 // Save a point cloud back to the volumepkg
 int VolumePkg::saveCloud(
-    const volcart::OrderedPointSet<volcart::Point3d> segmentedCloud) const
+    const volcart::OrderedPointSet<volcart::Point3d>& segmentedCloud) const
 {
     auto outputName = segs_dir / activeSeg / "pointset.vcps";
     std::cerr << "volcart::volpkg::Writing point cloud to file..." << std::endl;
-    volcart::PointSetIO<volcart::Point3d >::WriteOrderedPointSet(outputName.string(),
-                                             segmentedCloud);
+    volcart::PointSetIO<volcart::Point3d >::WriteOrderedPointSet(
+        outputName.string(), segmentedCloud);
     std::cerr << "volcart::volpkg::Point cloud saved." << std::endl;
     return EXIT_SUCCESS;
 }
 
 int VolumePkg::saveMesh(
-    const volcart::OrderedPointSet<volcart::Point3d> segmentedCloud) const
+    const volcart::OrderedPointSet<volcart::Point3d>& segmentedCloud) const
 {
     fs::path outputName = segs_dir / activeSeg / "cloud.ply";
     volcart::meshing::OrderedPointSetMesher mesher(segmentedCloud) ;
@@ -250,8 +249,8 @@ int VolumePkg::saveMesh(
 
 }
 
-void VolumePkg::saveMesh(const VC_MeshType::Pointer& mesh,
-                         volcart::Texture& texture) const
+void VolumePkg::saveMesh(const VC_MeshType::Pointer mesh,
+                         const volcart::Texture& texture) const
 {
     volcart::io::objWriter writer;
     auto meshPath = segs_dir / activeSeg / "textured.obj";

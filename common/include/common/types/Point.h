@@ -34,6 +34,12 @@ public:
         data_ = {args...};
     }
 
+    // Construct a Point from a cv::Vec
+    Point(cv::Vec<T, N> v)
+    {
+        std::copy(v.val, v.val + N, std::begin(data_));
+    }
+
     static Point fill(T fillVal)
     {
         Point p;

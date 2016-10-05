@@ -28,7 +28,8 @@ namespace volcart {
         bool hasMap() const { return _uvMap.size() > 0; };
 
         // Get/Set UV Map
-        volcart::UVMap& uvMap()  { return _uvMap; };
+        const volcart::UVMap& uvMap() const { return _uvMap; };
+        volcart::UVMap& uvMap() { return _uvMap; };
         void uvMap(volcart::UVMap uvMap) { _uvMap = uvMap; };
 
         // Get/Add Texture Image

@@ -127,15 +127,11 @@ volcart::OrderedPointSet<volcart::Point3d>ShapePrimitive::orderedPoints(bool noi
     }
     return output;
 }
-volcart::PointSet<volcart::Point3d>ShapePrimitive::unOrderedPoints(bool noisify)
+volcart::PointSet<volcart::Point3d>ShapePrimitive::unorderedPoints(bool noisify)
 {
 
     volcart::PointSet<volcart::Point3d> output;
-    double offset = 0.0;
-    if (noisify)
-    {
-        offset = 5.0;
-    }
+    double offset = (noisify ? 5.0 : 0.0);
     int point_counter = 0;  // This is the worst. // SP
     for (auto p_id : _points) {
         volcart::Point3d point;

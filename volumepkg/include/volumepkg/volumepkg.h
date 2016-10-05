@@ -95,13 +95,13 @@ public:
     cv::Mat getTextureData() const;
 
     int saveCloud(
-        const volcart::OrderedPointSet<volcart::Point3d> segmentedCloud) const;
+        const volcart::OrderedPointSet<volcart::Point3d>& segmentedCloud) const;
 
     int saveMesh(
-            volcart::OrderedPointSet<volcart::Point3d> segmentedCloud) const;
+            const volcart::OrderedPointSet<volcart::Point3d>& segmentedCloud) const;
 
     void saveMesh(
-        const VC_MeshType::Pointer& mesh, volcart::Texture& texture) const;
+        const VC_MeshType::Pointer mesh, const volcart::Texture& texture) const;
 
     void saveTextureData(
         const cv::Mat& texture, const std::string& name = "textured");
