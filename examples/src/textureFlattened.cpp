@@ -6,7 +6,7 @@
 #include "volumepkg/volumepkg.h"
 
 #include "common/io/plyWriter.h"
-#include "common/io/ply2itk.h"
+#include "common/io/PLYReader.h"
 #include "common/io/objWriter.h"
 #include "meshing/itk2vtk.h"
 

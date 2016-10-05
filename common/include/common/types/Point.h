@@ -34,6 +34,12 @@ public:
         data_ = {args...};
     }
 
+    // Construct a Point from a cv::Vec
+    Point(cv::Vec<T, N> v)
+    {
+        std::copy(v.val, v.val + N, std::begin(data_));
+    }
+
     static Point fill(T fillVal)
     {
         Point p;
@@ -149,7 +155,7 @@ public:
         return ss.str();
     }
 
-    cv::Vec<T, N> toCvVec() const { cv::Vec<T, N>(data_.data()); }
+    cv::Vec<T, N> toCvVec() const { return cv::Vec<T, N>(data_.data()); }
 
 private:
     Container data_;

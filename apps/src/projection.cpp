@@ -8,7 +8,7 @@
 #include <boost/format.hpp>
 
 #include "common/vc_defines.h"
-#include "common/io/ply2itk.h"
+#include "common/io/PLYReader.h"
 #include "volumepkg/volumepkg.h"
 
 #define RED cv::Scalar( 0, 0, 255 )
@@ -29,10 +29,8 @@ int main( int argc, char *argv[] ) {
     std::string outputDir = argv[3];
 
     // Load the mesh
-    int width = -1;
-    int height = -1;
-    ITKMesh::Pointer mesh = ITKMesh::New();
-    volcart::io::ply2itkmesh(volpkg.getMeshPath(), mesh, width, height);
+    auto mesh = ITKMesh::New();
+    volcart::io::PLYReader(volpkg.getMeshPath(), mesh);
 
     //PNG Compression params
     std::vector<int> compression_params;
@@ -42,7 +40,7 @@ int main( int argc, char *argv[] ) {
     // Sort the points by z-index
     std::map< int, std::vector<int> > z_map;
 
-    for ( ITKPointIterator point = mesh->GetPoints()->Begin(); point != mesh->GetPoints()->End(); ++point ) {
+    for ( auto point = mesh->GetPoints()->Begin(); point != mesh->GetPoints()->End(); ++point ) {
 
         // skip null points
         if (point->Value()[INDEX_Z] == -1) continue;

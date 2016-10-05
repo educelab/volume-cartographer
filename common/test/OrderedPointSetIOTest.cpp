@@ -14,7 +14,7 @@ struct Point3iOrderedPointSet {
 
     Point3iOrderedPointSet() : ps{3}
     {
-        ps.push_row({{1, 1, 1}, {2, 2, 2}, {3, 3, 3}});
+        ps.pushRow({{1, 1, 1}, {2, 2, 2}, {3, 3, 3}});
     }
 };
 

@@ -32,7 +32,8 @@ namespace texturing {
                             CompositeOption method = CompositeOption::NonMaximumSuppression,
                             DirectionOption direction = DirectionOption::Bidirectional );
 
-        volcart::Texture texture() const{ return _texture; };
+        const volcart::Texture& texture() const { return _texture; };
+        volcart::Texture& texture() { return _texture; };
     private:
         int _process();
         int _generateCellInfo();

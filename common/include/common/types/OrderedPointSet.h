@@ -37,7 +37,7 @@ public:
         std::vector<T> v;
         v.assign(width, initVal);
         for (size_t _ = 0; _ < height; ++_) {
-            ps.push_row(v);
+            ps.pushRow(v);
         }
         return ps;
     }
@@ -62,14 +62,23 @@ public:
     // return a whole integer
     size_t height() const { return (_width == 0 ? 0 : this->size() / _width); }
 
+    // Resize the width
+    void setWidth(size_t width){
+        if (_width != 0) {
+            auto msg = "Cannot change width if already set";
+            throw std::logic_error(msg);
+        }
+        _width = width;
+    }
+
     // Push a row of points to the OrderedPointSet
-    void push_row(const std::vector<T>& points)
+    void pushRow(const std::vector<T>& points)
     {
         assert(points.size() == _width && "row incorrect size");
         std::copy(
             std::begin(points), std::end(points), std::back_inserter(_data));
     }
-    void push_row(std::vector<T>&& points)
+    void pushRow(std::vector<T>&& points)
     {
         assert(points.size() == _width && "row incorrect size");
         std::copy(
@@ -91,6 +100,35 @@ public:
         }
 
         std::copy(std::begin(ps), std::end(ps), std::back_inserter(_data));
+    }
+
+    // Get a particular row
+    std::vector<T> getRow(size_t i) const
+    {
+        if (i >= this->height()) {
+            throw std::range_error("out of range");
+        }
+        std::vector<T> row(_width);
+        std::copy(
+            std::begin(_data) + _width * i,
+            std::begin(_data) + _width * (i + 1), std::begin(row));
+        return row;
+    }
+
+    // Copy rows to a new pointset. Copies rows [i, j]
+    OrderedPointSet copyRows(size_t i, size_t j) const
+    {
+        if (i >= this->height() || j >= this->height()) {
+            throw std::range_error("out of range");
+        } else if (i > j) {
+            throw std::logic_error("i must be less than j");
+        }
+        OrderedPointSet ps(_width);
+        std::copy(
+            std::begin(_data) + _width * i,
+            std::begin(_data) + _width * (j + 1),
+            std::back_inserter(ps.data()));
+        return ps;
     }
 
 private:

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <iostream>
-#include <pcl/point_types.h>
+#include "common/types/OrderedPointSet.h"
 #include "segmentation/lrps/fittedcurve.h"
 #include "volumepkg/volumepkg.h"
 #include "segmentation/lrps/common.h"
@@ -15,8 +15,8 @@ class LocalResliceSegmentation
 public:
     LocalResliceSegmentation(VolumePkg& pkg) : pkg_(pkg) {}
 
-    pcl::PointCloud<pcl::PointXYZRGB> segmentPath(
-        const pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
+    volcart::OrderedPointSet<volcart::Point3d> segmentPath(
+        std::vector<volcart::Point3d> cloud,
         int32_t startIndex,
         int32_t endIndex,
         int32_t numIters,

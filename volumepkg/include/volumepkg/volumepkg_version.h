@@ -42,8 +42,23 @@ const Dictionary _2 =
         {"voxelsize",        "double"},
         {"materialthickness","double"}
         };
+
+// Version 3
+const Dictionary _3 =
+        {
+        {"volumepkg name",   "string"},
+        {"version",          "int"},
+        {"width",            "int"},
+        {"height",           "int"},
+        {"number of slices", "int"},
+        {"slice location",   "string"},
+        {"min",              "double"},
+        {"max",              "double"},
+        {"voxelsize",        "double"},
+        {"materialthickness","double"}
+        };
 // clang-format on
 
 // Add the Version Dict's to a list of possible versions
-const Library VersionLibrary = {{1, _1}, {2, _2}};
+const Library VersionLibrary = {{1, _1}, {2, _2}, {3, _3}};
 }  // namespace volcart

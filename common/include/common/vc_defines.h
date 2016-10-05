@@ -15,9 +15,8 @@
 #include "common/util/getMemorySize.h"
 
 ///// GLOBAL VARIABLES /////
-// This define determines the default dictionary used when creating a new
-// volumepkg
-constexpr static int VOLPKG_VERSION = 2;
+// This define determines the default dictionary used when creating a new volumepkg
+static constexpr int VOLPKG_VERSION_LATEST = 3;
 
 // VC standard component access positions for XYZ
 constexpr static int INDEX_X = 0;

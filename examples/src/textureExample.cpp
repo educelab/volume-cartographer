@@ -5,7 +5,7 @@
 #include "common/vc_defines.h"
 #include "volumepkg/volumepkg.h"
 #include "common/io/plyWriter.h"
-#include "common/io/ply2itk.h"
+#include "common/io/PLYReader.h"
 #include "common/io/objWriter.h"
 #include "common/types/Texture.h"
 
@@ -20,11 +20,8 @@ int main( int argc, char* argv[] ) {
   // declare pointer to new Mesh object
   auto inputMesh = volcart::ITKMesh::New();
 
-  int meshWidth = -1;
-  int meshHeight = -1;
-
   // try to convert the ply to an ITK mesh
-  if ( !volcart::io::ply2itkmesh( vpkg.getMeshPath(), inputMesh, meshWidth, meshHeight ) ) {
+  if ( !volcart::io::PLYReader(vpkg.getMeshPath(), inputMesh)) {
     exit( EXIT_SUCCESS );
   };
 

@@ -10,7 +10,7 @@
 
 #include "MyThread.h"
 #include "common/io/objWriter.h"
-#include "common/io/ply2itk.h"
+#include "common/io/PLYReader.h"
 
 namespace fs = boost::filesystem;
 
@@ -29,8 +29,6 @@ void MyThread::run()
 
     try {
         double _radius = _globals->getRadius();
-        int meshWidth = -1;
-        int meshHeight = -1;
 
         fs::path meshName = _globals->getVolPkg()->getMeshPath();
 
@@ -41,7 +39,7 @@ void MyThread::run()
         auto mesh = volcart::ITKMesh::New();
 
         // try to convert the ply to an ITK mesh
-        if (!volcart::io::ply2itkmesh(meshName, mesh, meshWidth, meshHeight))
+        if (!volcart::io::PLYReader(meshName, mesh))
         {
             cloudProblem = true;
             throw(__EXCEPTIONS);// Error

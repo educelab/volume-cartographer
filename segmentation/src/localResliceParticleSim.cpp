@@ -16,11 +16,11 @@ namespace fs = boost::filesystem;
 using std::begin;
 using std::end;
 
-pcl::PointCloud<pcl::PointXYZRGB> exportAsPCD(
+volcart::OrderedPointSet<volcart::Point3d> exportAsPCD(
     const std::vector<std::vector<Voxel>>& points);
 
-pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
-    const pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
+volcart::OrderedPointSet<volcart::Point3d> LocalResliceSegmentation::segmentPath(
+    std::vector<volcart::Point3d> cloud,
     int32_t startIndex,
     int32_t endIndex,
     int32_t numIters,
@@ -37,9 +37,9 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
 {
     // Convert incoming cloud to voxel vector representation
     std::vector<Voxel> currentVs;
-    currentVs.reserve(cloud->size());
-    for (auto p : *cloud) {
-        currentVs.emplace_back(p.x, p.y, p.z);
+    currentVs.reserve(cloud.size());
+    for (auto p : cloud) {
+        currentVs.emplace_back(p[0], p[1], p[2]);
     }
 
     const volcart::Volume& vol = pkg_.volume();  // Debug output information
@@ -51,7 +51,7 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
         std::cerr << "[info]: one or more particles is outside volume bounds, "
                      "halting segmentation"
                   << std::endl;
-        return pcl::PointCloud<pcl::PointXYZRGB>();
+        return volcart::OrderedPointSet<volcart::Point3d>();
     }
 
     const fs::path outputDir("debugvis");
@@ -70,7 +70,7 @@ pcl::PointCloud<pcl::PointXYZRGB> LocalResliceSegmentation::segmentPath(
     for (int32_t zIndex = startIndex;
          zIndex <= endIndex && zIndex < pkg_.getNumberOfSlices();
          zIndex += step) {
-        // std::cout << "slice: " << zIndex << std::endl;
+         //std::cout << "slice: " << zIndex << std::endl;
 
         // Directory to dump vis
         std::stringstream ss;
@@ -332,23 +332,21 @@ cv::Vec3d LocalResliceSegmentation::estimateNormalAtIndex(
     return tan3d.cross(cv::Vec3d{0, 0, 1});
 }
 
-pcl::PointCloud<pcl::PointXYZRGB> exportAsPCD(
+volcart::OrderedPointSet<volcart::Point3d> exportAsPCD(
     const std::vector<std::vector<Voxel>>& points)
 {
     int32_t rows = points.size();
     int32_t cols = points[0].size();
-    pcl::PointCloud<pcl::PointXYZRGB> cloud(cols, rows);
+    std::vector<volcart::Point3d> temp_row;
+    volcart::OrderedPointSet<volcart::Point3d> cloud(cols);
 
     for (int32_t i = 0; i < rows; ++i) {
         for (int32_t j = 0; j < cols; ++j) {
             Voxel v = points[i][j];
-            cloud(j, i).x = v(0);
-            cloud(j, i).y = v(1);
-            cloud(j, i).z = v(2);
-            cloud(j, i).r = 0xFF;
-            cloud(j, i).g = 0xFF;
-            cloud(j, i).b = 0xFF;
+            temp_row.emplace_back(v(0), v(1), v(2));
         }
+        cloud.pushRow(temp_row);
+        temp_row.clear();
     }
     return cloud;
 }

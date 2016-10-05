@@ -15,13 +15,6 @@ endif()
 add_executable(vc_mesher src/mesher.cpp)
 target_link_libraries(vc_mesher
     vc_meshing
-    ${PCL_COMMON_LIBRARIES}
-    ${PCL_IO_LIBRARIES}
-)
-target_include_directories(vc_mesher
-    PUBLIC
-        ${PCL_COMMON_INCLUDE_DIRS}
-        ${PCL_IO_INCLUDE_DIRS}
 )
 
 ## Packager ##
@@ -41,9 +34,7 @@ target_link_libraries(vc_segment
     vc_volumepkg
     vc_segmentation
     Boost::program_options
-    ${PCL_IO_LIBRARIES}
 )
-target_include_directories(vc_segment PUBLIC ${PCL_IO_INCLUDE_DIRS})
 
 ## Rendering ##
 add_executable(vc_render src/render.cpp)
