@@ -2,19 +2,6 @@
 add_executable(vc_addScale src/addScale.cpp)
 target_link_libraries(vc_addScale vc_volumepkg vc_common)
 
-# vc_zxy2xyz
-if(PCL_FOUND)
-    add_executable(vc_zxy2xyz src/zxy2xyz.cpp)
-    target_include_directories(vc_zxy2xyz PUBLIC
-        ${PCL_COMMON_INCLUDE_DIRS}
-        ${PCL_IO_INCLUDE_DIRS}
-    )
-    target_link_libraries(vc_zxy2xyz
-        ${PCL_IO_LIBRARIES}
-        ${PCL_COMMON_LIBRARIES}
-    )
-endif()
-
 # vc_area
 add_executable(vc_area src/surfarea.cpp)
 target_link_libraries(vc_area
@@ -39,7 +26,6 @@ target_link_libraries(vc_mappingExtractor vc_volumepkg vc_common)
 # vc_csv2uv
 add_executable(vc_csv2uv src/csv2uv.cpp)
 target_link_libraries(vc_csv2uv vc_common vc_meshing vtkIOPLY)
-
 
 # vc_convert_pcd_to_ps
 if(PCL_FOUND)
