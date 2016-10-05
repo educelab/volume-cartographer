@@ -7,6 +7,6 @@
 
 namespace volcart {
   namespace meshMath {
-      double SurfaceArea( const VC_MeshType::Pointer input );
+      double SurfaceArea( const ITKMesh::Pointer input );
   }
 }

@@ -48,7 +48,7 @@ inline void Sectioning(            double                       nSections,      
                                    const cv::Vec3f              &nMajorAxisDir, // normal
                                    VolumePkg                    &VolPkg,        // volume package
                                    double                       nA,             // neighborhood's radius (Axis)
-                                   int                          nSamplingDir,   // sampling direction
+                                   volcart::DirectionOption     nSamplingDir,   // sampling direction
                                    double                       *nData )        // [out] samples
 {
     if (nMajorAxisDir == cv::Vec3f(0,0,0)) {
@@ -72,61 +72,60 @@ inline void Sectioning(            double                       nSections,      
         aDir = i * nSampleInterval * aNormalVec;
 
         // Both directions
-        if ( nSamplingDir == 0 ) {
-          // Calculate point as scaled and sampled normal vector + center
-          aPos[ 0 ] = nCenter[ 0 ] + aDir[ 0 ];
-          aPos[ 1 ] = nCenter[ 1 ] + aDir[ 1 ];
-          aPos[ 2 ] = nCenter[ 2 ] + aDir[ 2 ];
+        switch (nSamplingDir) {
+            case volcart::DirectionOption::Bidirectional: {
+                // Calculate point as scaled and sampled normal vector + center
+                aPos[ 0 ] = nCenter[ 0 ] + aDir[ 0 ];
+                aPos[ 1 ] = nCenter[ 1 ] + aDir[ 1 ];
+                aPos[ 2 ] = nCenter[ 2 ] + aDir[ 2 ];
 
-          // Get interpolated intensity at point
-          double tmp = VolPkg.volume().interpolatedIntensityAt( aPos );
+                // Get interpolated intensity at point
+                double tmp = VolPkg.volume().interpolatedIntensityAt( aPos );
 
-          // Store point in return array
-          nData[ aDataCnt ] = tmp; 
-          aDataCnt++;
+                // Store point in return array
+                nData[ aDataCnt ] = tmp; 
+                aDataCnt++;
 
-          // Eliminates duplicate image at starting index
-          if ( i > 0 && aDataCnt < nSections ) {
-            aPos[ 0 ] = nCenter[ 0 ] - aDir[ 0 ];
-            aPos[ 1 ] = nCenter[ 1 ] - aDir[ 1 ];
-            aPos[ 2 ] = nCenter[ 2 ] - aDir[ 2 ];
+                // Eliminates duplicate image at starting index
+                if ( i > 0 && aDataCnt < nSections ) {
+                  aPos[ 0 ] = nCenter[ 0 ] - aDir[ 0 ];
+                  aPos[ 1 ] = nCenter[ 1 ] - aDir[ 1 ];
+                  aPos[ 2 ] = nCenter[ 2 ] - aDir[ 2 ];
 
-            // Get interpolated intensity at point
-            double tmp = VolPkg.volume().interpolatedIntensityAt( aPos );
+                  // Get interpolated intensity at point
+                  double tmp = VolPkg.volume().interpolatedIntensityAt( aPos );
 
-            // Store point in return array
-            nData[ aDataCnt ] = tmp; // REVISIT - we assume we have enough space
-            aDataCnt++;
-          }
+                  // Store point in return array
+                  nData[ aDataCnt ] = tmp; // REVISIT - we assume we have enough space
+                  aDataCnt++;
+                }
+            }
+            case volcart::DirectionOption::Positive: {
+                // Calculate point as scaled and sampled normal vector + center
+                aPos[ 0 ] = nCenter[ 0 ] + aDir[ 0 ];
+                aPos[ 1 ] = nCenter[ 1 ] + aDir[ 1 ];
+                aPos[ 2 ] = nCenter[ 2 ] + aDir[ 2 ];
+
+                // Get interpolated intensity at point
+                double tmp = VolPkg.volume().interpolatedIntensityAt( aPos );
+
+                // Store point in return array
+                nData[ aDataCnt ] = tmp;
+                aDataCnt++;
+            }
+            case volcart::DirectionOption::Negative: {
+                aPos[ 0 ] = nCenter[ 0 ] - aDir[ 0 ];
+                aPos[ 1 ] = nCenter[ 1 ] - aDir[ 1 ];
+                aPos[ 2 ] = nCenter[ 2 ] - aDir[ 2 ];
+
+                // Get interpolated intensity at point
+                double tmp = VolPkg.volume().interpolatedIntensityAt( aPos );
+
+                // Store point in return array
+                nData[ aDataCnt ] = tmp; // REVISIT - we assume we have enough space
+                aDataCnt++;
+            }
         }
-        // Positive direction only
-        else if ( nSamplingDir == 1 ) {
-          // Calculate point as scaled and sampled normal vector + center
-          aPos[ 0 ] = nCenter[ 0 ] + aDir[ 0 ];
-          aPos[ 1 ] = nCenter[ 1 ] + aDir[ 1 ];
-          aPos[ 2 ] = nCenter[ 2 ] + aDir[ 2 ];
-
-          // Get interpolated intensity at point
-          double tmp = VolPkg.volume().interpolatedIntensityAt( aPos );
-
-          // Store point in return array
-          nData[ aDataCnt ] = tmp;
-          aDataCnt++;
-        }
-        // Negative direction only
-        else if ( nSamplingDir == 2 ) {
-          aPos[ 0 ] = nCenter[ 0 ] - aDir[ 0 ];
-          aPos[ 1 ] = nCenter[ 1 ] - aDir[ 1 ];
-          aPos[ 2 ] = nCenter[ 2 ] - aDir[ 2 ];
-
-          // Get interpolated intensity at point
-          double tmp = VolPkg.volume().interpolatedIntensityAt( aPos );
-
-          // Store point in return array
-          nData[ aDataCnt ] = tmp; // REVISIT - we assume we have enough space
-          aDataCnt++;
-        }
-
     } // for i
 }
 
@@ -136,7 +135,7 @@ inline void SamplingAlongNormal(   double                       nA,             
                                    const cv::Vec3f              &nCenter,       // center
                                    const cv::Vec3f              &nMajorAxisDir, // normal
                                    VolumePkg                    &VolPkg,        // volume package
-                                   int                          nSamplingDir,   // sampling direction
+                                   volcart::DirectionOption     nSamplingDir,   // sampling direction
                                    double                       *nData,         // [out] samples
                                    int                          *nSize,         // [out] number of samples
                                    bool                         nWithNonMaxSuppression = false ) // ONLY FOR NON-MAXIMUM SUPPRESSION
@@ -161,7 +160,8 @@ inline void SamplingAlongNormal(   double                       nA,             
     for ( int i = 0; i < aSizeMajor; ++i ) {
         aDir = i * nSampleInterval * aNormalVec;
 
-        if ((nSamplingDir == 0) || (nSamplingDir == 1)) {
+        if (nSamplingDir == volcart::DirectionOption::Bidirectional ||
+            nSamplingDir == volcart::DirectionOption::Positive) {
           // Calculate point as scaled and sampled normal vector + center
           aPos[ 0 ] = nCenter[ 0 ] + aDir[ 0 ];
           aPos[ 1 ] = nCenter[ 1 ] + aDir[ 1 ];
@@ -175,8 +175,8 @@ inline void SamplingAlongNormal(   double                       nA,             
           aDataCnt++;
         }
 
-        if ((nSamplingDir == 0) || (nSamplingDir == 2)) {
-
+        if (nSamplingDir == volcart::DirectionOption::Bidirectional ||
+            nSamplingDir == volcart::DirectionOption::Negative) {
           aPos[ 0 ] = nCenter[ 0 ] - aDir[ 0 ];
           aPos[ 1 ] = nCenter[ 1 ] - aDir[ 1 ];
           aPos[ 2 ] = nCenter[ 2 ] - aDir[ 2 ];
@@ -200,7 +200,7 @@ inline void SamplingWithinEllipse( double                       nA,             
                                    const cv::Vec3f              &nCenter,       // center
                                    const cv::Vec3f              &nMajorAxisDir, // normal
                                    VolumePkg                    &VolPkg,        // volume package
-                                   int                          nSamplingDir,   // sampling direction
+                                   volcart::DirectionOption     nSamplingDir,
                                    double                       *nData,         // [out] samples
                                    int                          *nSize,         // [out] number of samples
                                    bool                         nWithNonMaxSuppression = false ) // ONLY FOR NON-MAXIMUM SUPPRESSION
@@ -248,7 +248,8 @@ inline void SamplingWithinEllipse( double                       nA,             
             for ( int k = 1; k < aSizeMinor; ++k ) {
                 double aEllipseDist = nB * sqrt( 1. - ( i * nSampleInterval - nA ) * ( i * nSampleInterval - nA ) );
                 if ( j * nSampleInterval < aEllipseDist ) { // must satisfy ellipse constraint, (x/a)^2+(y/b)^2)=1
-                    if ( nSamplingDir == 0 ) { // sample along both positive and negative directions
+                    switch (nSamplingDir) {
+                    case volcart::DirectionOption::Bidirectional: {
                         for ( int t = 0; t < 8; ++t ) {
                             aDir = i * nSampleInterval * aSign[ t ][ 0 ] * nMajorAxisDir +
                                    j * nSampleInterval * aSign[ t ][ 1 ] * aMinorAxisDir1 +
@@ -267,7 +268,8 @@ inline void SamplingWithinEllipse( double                       nA,             
                             nData[ aDataCnt ] = tmp; // REVISIT - we assume we have enough space
                             aDataCnt++;
                         } // for t
-                    } else if ( nSamplingDir == 1 ) { // sample along positive direction
+                    }
+                    case volcart::DirectionOption::Positive: {
                         for ( int t = 0; t < 4; ++t ) {
                             aDir = i * nSampleInterval * aSign[ aSamplingPositive[ t ] ][ 0 ] * nMajorAxisDir +
                                    j * nSampleInterval * aSign[ aSamplingPositive[ t ] ][ 1 ] * aMinorAxisDir1 +
@@ -284,7 +286,8 @@ inline void SamplingWithinEllipse( double                       nA,             
                             nData[ aDataCnt ] = tmp; // REVISIT - we assume we have enough space
                             aDataCnt++;
                         } // for t
-                    } else if ( nSamplingDir == 2 ) { // sample along negative direction
+                    }
+                    case volcart::DirectionOption::Negative: {
                         for ( int t = 0; t < 4; ++t ) {
                             aDir = i * nSampleInterval * aSign[ aSamplingNegative[ t ] ][ 0 ] * nMajorAxisDir +
                                    j * nSampleInterval * aSign[ aSamplingNegative[ t ] ][ 1 ] * aMinorAxisDir1 +
@@ -301,9 +304,7 @@ inline void SamplingWithinEllipse( double                       nA,             
                             nData[ aDataCnt ] = tmp; // REVISIT - we assume we have enough space
                             aDataCnt++;
                         } // for t
-                    } else {
-                        printf( "WARNING: invalid parameter in SamplingWithinEllipse: nSamplingDir %d\n", nSamplingDir );
-                        return;
+                    }
                     }
                 } // if
             } // for k
@@ -327,7 +328,7 @@ inline double FilterNonMaximumSuppression( const cv::Vec3f              &nPoint,
                                            double                       nR1 = 3.0,  // sample region radius 1, major axis
                                            double                       nR2 = 1.0,  // sample region radius 2, minor axis
                                            double                       nSampleDist = 0.2, // interval between samples
-                                           VC_Direction_Option          nSamplingDir = Bidirectional ) // sample direction
+                                           volcart::DirectionOption     nSamplingDir = volcart::DirectionOption::Bidirectional ) // sample direction
 {
     const int  MAX_ARRAY_CAPACITY = 50000;
     double     *aSamples = new double[ MAX_ARRAY_CAPACITY ];
@@ -370,7 +371,7 @@ inline double FilterMax( const cv::Vec3f              &nPoint,    // point locat
                          double                       nR1 = 3.0,  // sample region radius 1, major axis
                          double                       nR2 = 1.0,  // sample region radius 2, minor axis
                          double                       nSampleDist = 0.2, // interval between samples
-                         VC_Direction_Option          nSamplingDir = Bidirectional ) // sample direction
+                         volcart::DirectionOption     nSamplingDir = volcart::DirectionOption::Bidirectional ) // sample direction
 {
     const int  MAX_ARRAY_CAPACITY = 50000;
     double     *aSamples = new double[ MAX_ARRAY_CAPACITY ];
@@ -414,7 +415,7 @@ inline double FilterMin( const cv::Vec3f              &nPoint,    // point locat
                          double                       nR1 = 3.0,  // sample region radius 1, major axis
                          double                       nR2 = 1.0,  // sample region radius 2, minor axis
                          double                       nSampleDist = 0.2, // interval between samples
-                         VC_Direction_Option          nSamplingDir = Bidirectional ) // sample direction
+                         volcart::DirectionOption     nSamplingDir = volcart::DirectionOption::Bidirectional ) // sample direction
 
 {
     const int  MAX_ARRAY_CAPACITY = 50000;
@@ -459,7 +460,7 @@ inline double FilterMedianAverage( const cv::Vec3f              &nPoint,    // p
                                    double                       nR1 = 3.0,  // sample region radius 1, major axis
                                    double                       nR2 = 1.0,  // sample region radius 2, minor axis
                                    double                       nSampleDist = 0.2, // interval between samples
-                                   VC_Direction_Option          nSamplingDir = Bidirectional ) // sample direction
+                                   volcart::DirectionOption     nSamplingDir = volcart::DirectionOption::Bidirectional ) // sample direction
 {
     const int  MAX_ARRAY_CAPACITY = 50000;
     double     *aSamples = new double[ MAX_ARRAY_CAPACITY ];
@@ -521,7 +522,7 @@ inline double FilterMedian( const cv::Vec3f              &nPoint,    // point lo
                             double                       nR1 = 3.0,  // sample region radius 1, major axis
                             double                       nR2 = 1.0,  // sample region radius 2, minor axis
                             double                       nSampleDist = 0.2, // interval between samples
-                            VC_Direction_Option          nSamplingDir = Bidirectional ) // sample direction
+                            volcart::DirectionOption     nSamplingDir = volcart::DirectionOption::Bidirectional ) // sample direction
 {
     const int  MAX_ARRAY_CAPACITY = 50000;
     double     *aSamples = new double[ MAX_ARRAY_CAPACITY ];
@@ -572,7 +573,7 @@ inline double FilterMean( const cv::Vec3f              &nPoint,    // point loca
                           double                       nR1 = 3.0,  // sample region radius 1, major axis
                           double                       nR2 = 1.0,  // sample region radius 2, minor axis
                           double                       nSampleDist = 0.2, // interval between samples
-                          VC_Direction_Option          nSamplingDir = Bidirectional ) // sample direction
+                          volcart::DirectionOption     nSamplingDir = volcart::DirectionOption::Bidirectional ) // sample direction
 {
     const int  MAX_ARRAY_CAPACITY = 50000;
     double     *aSamples = new double[ MAX_ARRAY_CAPACITY ];
@@ -612,19 +613,19 @@ inline double FilterMean( const cv::Vec3f              &nPoint,    // point loca
 inline double textureWithMethod(   const cv::Vec3f              &nPoint,    // point location
                                    const cv::Vec3f              &nNormal,   // point normal direction
                                    VolumePkg                    &VolPkg,        // volume package
-                                   VC_Composite_Option          nFilter,    // filter option
+                                   volcart::CompositeOption     nFilter,    // filter option
                                    double                       nR1 = 3.0,  // sample region radius 1, major axis
                                    double                       nR2 = 1.0,  // sample region radius 2, minor axis
                                    double                       nSampleDist = 0.2, // interval between samples
-                                   VC_Direction_Option          nSamplingDir = Bidirectional ) // sample direction
+                                   volcart::DirectionOption     nSamplingDir = volcart::DirectionOption::Bidirectional ) // sample direction
 {
     switch ( nFilter ) {
-    case VC_Composite_Option::Intersection:
+    case volcart::CompositeOption::Intersection:
         return FilterIntersection( nPoint,
                                    VolPkg);
 
         break;
-    case VC_Composite_Option::Mean:
+    case volcart::CompositeOption::Mean:
         return FilterMean(  nPoint,
                             nNormal,
                             VolPkg,
@@ -633,7 +634,7 @@ inline double textureWithMethod(   const cv::Vec3f              &nPoint,    // p
                             nSampleDist,
                             nSamplingDir);
         break;
-    case VC_Composite_Option::NonMaximumSuppression:
+    case volcart::CompositeOption::NonMaximumSuppression:
         return FilterNonMaximumSuppression(  nPoint,
                                              nNormal,
                                              VolPkg,
@@ -642,7 +643,7 @@ inline double textureWithMethod(   const cv::Vec3f              &nPoint,    // p
                                              nSampleDist,
                                              nSamplingDir);
         break;
-    case VC_Composite_Option::Maximum:
+    case volcart::CompositeOption::Maximum:
         return FilterMax(  nPoint,
                            nNormal,
                            VolPkg,
@@ -651,7 +652,7 @@ inline double textureWithMethod(   const cv::Vec3f              &nPoint,    // p
                            nSampleDist,
                            nSamplingDir);
         break;
-    case VC_Composite_Option::Minimum:
+    case volcart::CompositeOption::Minimum:
         return FilterMin(  nPoint,
                            nNormal,
                            VolPkg,
@@ -660,7 +661,7 @@ inline double textureWithMethod(   const cv::Vec3f              &nPoint,    // p
                            nSampleDist,
                            nSamplingDir);
         break;
-    case VC_Composite_Option::Median:
+    case volcart::CompositeOption::Median:
         return FilterMax(  nPoint,
                            nNormal,
                            VolPkg,
@@ -669,7 +670,7 @@ inline double textureWithMethod(   const cv::Vec3f              &nPoint,    // p
                            nSampleDist,
                            nSamplingDir);
         break;
-    case VC_Composite_Option::MedianAverage:
+    case volcart::CompositeOption::MedianAverage:
         return FilterMedianAverage( nPoint,
                                     nNormal,
                                     VolPkg,

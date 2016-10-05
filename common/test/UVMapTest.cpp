@@ -8,6 +8,7 @@
 #include "common/vc_defines.h"
 #include "common/types/UVMap.h"
 
+using namespace volcart;
 
 /***************************************************************************************
  *                                                                                     *

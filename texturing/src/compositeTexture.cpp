@@ -6,13 +6,13 @@
 
 namespace volcart {
     namespace texturing {
-        compositeTexture::compositeTexture( VC_MeshType::Pointer inputMesh,
+        compositeTexture::compositeTexture( ITKMesh::Pointer inputMesh,
                                             VolumePkg& volpkg,
                                             int output_w,
                                             int output_h,
                                             double radius,
-                                            VC_Composite_Option compositeMethod,
-                                            VC_Direction_Option compositeDirection) :
+                                            CompositeOption compositeMethod,
+                                            DirectionOption compositeDirection) :
         _volpkg(volpkg), _input(inputMesh), _width(output_w), _height(output_h), _radius(radius),
         _method(compositeMethod), _direction(compositeDirection)
         {
@@ -23,12 +23,12 @@ namespace volcart {
             _process();
         };
 
-        compositeTexture::compositeTexture(VC_MeshType::Pointer inputMesh,
+        compositeTexture::compositeTexture(ITKMesh::Pointer inputMesh,
                                            VolumePkg &volpkg,
                                            UVMap uvMap,
                                            double radius,
-                                           VC_Composite_Option method,
-                                           VC_Direction_Option direction) :
+                                           CompositeOption method,
+                                           DirectionOption direction) :
         _volpkg(volpkg), _input(inputMesh), _uvMap(uvMap), _radius(radius), _method(method), _direction(direction)
         {
             _width = uvMap.ratio().width;
@@ -47,10 +47,10 @@ namespace volcart {
             if( (searchMinorRadius = _radius / 3) < 1 ) searchMinorRadius = 1;
 
             // Initialize iterators
-            VC_CellIterator  cellIterator = _input->GetCells()->Begin();
-            VC_CellIterator  cellEnd      = _input->GetCells()->End();
-            VC_CellType *    cell;
-            VC_PointsInCellIterator pointsIterator;
+            ITKCellIterator  cellIterator = _input->GetCells()->Begin();
+            ITKCellIterator  cellEnd      = _input->GetCells()->End();
+            ITKCell *    cell;
+            ITKPointInCellIterator pointsIterator;
 
             unsigned long pointID;
             double u, v;
@@ -67,8 +67,8 @@ namespace volcart {
                 for( ; pointsIterator != cell->PointIdsEnd(); ++pointsIterator ) {
                     pointID = *pointsIterator;
 
-                    VC_PointType p = _input->GetPoint(pointID);
-                    VC_PixelType normal;
+                    ITKPoint p = _input->GetPoint(pointID);
+                    ITKPixel normal;
                     _input->GetPointData( pointID, &normal );
 
                     // Fill in the output pixel with a value

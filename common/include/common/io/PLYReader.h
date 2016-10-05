@@ -14,6 +14,6 @@ namespace volcart
 {
 namespace io
 {
-    bool PLYReader(boost::filesystem::path path, VC_MeshType::Pointer mesh);
+bool PLYReader(boost::filesystem::path path, ITKMesh::Pointer mesh);
 }
 }

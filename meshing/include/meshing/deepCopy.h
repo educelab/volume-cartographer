@@ -9,7 +9,7 @@ namespace volcart {
     namespace meshing {
         class deepCopy {
         public:
-            deepCopy(VC_MeshType::Pointer input, VC_MeshType::Pointer output);
+            deepCopy(ITKMesh::Pointer input, ITKMesh::Pointer output);
         }; // deepCopy
     } // meshing
 } // volcart

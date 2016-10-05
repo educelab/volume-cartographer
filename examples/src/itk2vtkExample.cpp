@@ -38,12 +38,12 @@ int main( int argc, char* argv[] ) {
   //vtk2itk conversions
   //
 
-  //init VC_MeshType::Pointer objects to hold the output of vtk2itk conversions
-  VC_MeshType::Pointer out_ITKPlane = VC_MeshType::New();
-  VC_MeshType::Pointer out_ITKCube = VC_MeshType::New();
-  VC_MeshType::Pointer out_ITKArch = VC_MeshType::New();
-  VC_MeshType::Pointer out_ITKSphere = VC_MeshType::New();
-  VC_MeshType::Pointer out_ITKCone = VC_MeshType::New();
+  //init volcart::ITKMesh::Pointer objects to hold the output of vtk2itk conversions
+  volcart::ITKMesh::Pointer out_ITKPlane = volcart::ITKMesh::New();
+  volcart::ITKMesh::Pointer out_ITKCube = volcart::ITKMesh::New();
+  volcart::ITKMesh::Pointer out_ITKArch = volcart::ITKMesh::New();
+  volcart::ITKMesh::Pointer out_ITKSphere = volcart::ITKMesh::New();
+  volcart::ITKMesh::Pointer out_ITKCone = volcart::ITKMesh::New();
 
   //vtk2itk() calls
   volcart::meshing::vtk2itk(Plane.vtkMesh(), out_ITKPlane);

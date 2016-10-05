@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
     fs::path meshName = vpkg.getMeshPath();
 
     // declare pointer to new Mesh object
-    VC_MeshType::Pointer mesh = VC_MeshType::New();
+    auto mesh = volcart::ITKMesh::New();
 
     // try to convert the ply to an ITK mesh
     if (!volcart::io::PLYReader(meshName, mesh)) {

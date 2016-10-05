@@ -13,6 +13,8 @@
 
 #define RED cv::Scalar( 0, 0, 255 )
 
+using namespace volcart;
+
 int main( int argc, char *argv[] ) {
     printf("Running tool: vc_projection\n");
     std::cout << std::endl;
@@ -27,7 +29,7 @@ int main( int argc, char *argv[] ) {
     std::string outputDir = argv[3];
 
     // Load the mesh
-    VC_MeshType::Pointer mesh = VC_MeshType::New();
+    auto mesh = ITKMesh::New();
     volcart::io::PLYReader(volpkg.getMeshPath(), mesh);
 
     //PNG Compression params
@@ -41,10 +43,10 @@ int main( int argc, char *argv[] ) {
     for ( auto point = mesh->GetPoints()->Begin(); point != mesh->GetPoints()->End(); ++point ) {
 
         // skip null points
-        if (point->Value()[VC_INDEX_Z] == -1) continue;
+        if (point->Value()[INDEX_Z] == -1) continue;
 
         // get the z-index for this point (floored int)
-        int this_z = (int) point->Value()[VC_INDEX_Z];
+        int this_z = (int) point->Value()[INDEX_Z];
 
         // add point id to the vector for this z-index
         // make a vector for this z-index if it doesn't exist in the map
@@ -71,10 +73,10 @@ int main( int argc, char *argv[] ) {
         // Iterate over the points for this z-index and project the points
         for ( auto p_id = z_id->second.begin(); p_id != z_id->second.end(); ++p_id ) {
 
-            VC_PointType point = mesh->GetPoint(*p_id);
+            ITKPoint point = mesh->GetPoint(*p_id);
             cv::Point pos;
-            pos.x = cvRound(point[VC_INDEX_X]);
-            pos.y = cvRound(point[VC_INDEX_Y]);
+            pos.x = cvRound(point[INDEX_X]);
+            pos.y = cvRound(point[INDEX_Y]);
 
             cv::circle(slice, pos, 1, RED, -1);
         }

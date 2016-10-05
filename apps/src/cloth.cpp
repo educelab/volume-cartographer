@@ -13,9 +13,10 @@
 #include "common/io/objWriter.h"
 #include "texturing/compositeTextureV2.h"
 
+using namespace volcart;
 namespace po = boost::program_options;
 
-void getPins( std::string path, VC_MeshType::Pointer mesh, volcart::texturing::ClothModelingUVMapping::PinIDs &pinList );
+void getPins( std::string path, ITKMesh::Pointer mesh, volcart::texturing::ClothModelingUVMapping::PinIDs &pinList );
 
 int main( int argc, char* argv[] ) {
 
@@ -101,7 +102,7 @@ int main( int argc, char* argv[] ) {
     vtkSmartPointer<vtkPLYReader> reader = vtkSmartPointer<vtkPLYReader>::New();
     reader->SetFileName ( input_path.c_str() );
     reader->Update();
-    VC_MeshType::Pointer mesh = VC_MeshType::New();
+    ITKMesh::Pointer mesh = ITKMesh::New();
     volcart::meshing::vtk2itk(reader->GetOutput(), mesh);
 
     // Get pinned points for unfurling step
@@ -120,8 +121,8 @@ int main( int argc, char* argv[] ) {
     clothUV.run();
 
     // Write the scaled mesh
-    VC_MeshType::Pointer output = clothUV.getMesh();
-    std::string path = VC_DATE_TIME() + "_uvMap.obj";
+    ITKMesh::Pointer output = clothUV.getMesh();
+    std::string path = volcart::DATE_TIME() + "_uvMap.obj";
     volcart::io::objWriter writer(path, output);
     writer.write();
 
@@ -149,7 +150,7 @@ int main( int argc, char* argv[] ) {
 }
 
 /////////// Get pinned points from file //////////
-void getPins( std::string path, VC_MeshType::Pointer mesh, volcart::texturing::ClothModelingUVMapping::PinIDs &pinList ) {
+void getPins( std::string path, ITKMesh::Pointer mesh, volcart::texturing::ClothModelingUVMapping::PinIDs &pinList ) {
 
     // Clear the pin list
     pinList.clear();
@@ -158,16 +159,16 @@ void getPins( std::string path, VC_MeshType::Pointer mesh, volcart::texturing::C
     vtkSmartPointer<vtkPLYReader> reader = vtkSmartPointer<vtkPLYReader>::New();
     reader->SetFileName ( path.c_str() );
     reader->Update();
-    VC_MeshType::Pointer pins = VC_MeshType::New();
+    ITKMesh::Pointer pins = ITKMesh::New();
     volcart::meshing::vtk2itk(reader->GetOutput(), pins);
 
     // Setup points locator
-    typename VC_PointsLocatorType::Pointer pointsLocator = VC_PointsLocatorType::New();
+    typename ITKPointsLocator::Pointer pointsLocator = ITKPointsLocator::New();
     pointsLocator->SetPoints(mesh->GetPoints());
     pointsLocator->Initialize();
 
     // Iterate over all of the pins and find them in the mesh, add their IDs to the pinList
-    for (VC_PointsInMeshIterator pin = pins->GetPoints()->Begin(); pin != pins->GetPoints()->End(); ++pin) {
+    for (ITKPointIterator pin = pins->GetPoints()->Begin(); pin != pins->GetPoints()->End(); ++pin) {
         unsigned long pinID = pointsLocator->FindClosestPoint( pins->GetPoint( pin->Index() ) );
         pinList.push_back( pinID );
     }

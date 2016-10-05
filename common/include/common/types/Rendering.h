@@ -26,13 +26,13 @@ namespace volcart {
         void setTexture( volcart::Texture texture );
         volcart::Texture getTexture() const;
 
-        void setMesh( VC_MeshType::Pointer mesh );
-        VC_MeshType::Pointer getMesh() const;
+        void setMesh( ITKMesh::Pointer mesh );
+        ITKMesh::Pointer getMesh() const;
 
     private:
         volcart::Metadata    _metadata;
 
         volcart::Texture     _texture;
-        VC_MeshType::Pointer _mesh;
+        ITKMesh::Pointer _mesh;
     };
 }

@@ -11,6 +11,7 @@
 #include "texturing/simpleUV.h"
 #include "testing/testingUtils.h"
 
+using namespace volcart;
 
 /***************************************************************************************
  *                                                                                     *
@@ -67,7 +68,7 @@ struct CreatePlaneSimpleUVFixture{
 
     //declare Plane mesh and width and height
     volcart::shapes::Plane _Plane;
-    VC_MeshType::Pointer _in_PlaneITKMesh;
+    volcart::ITKMesh::Pointer _in_PlaneITKMesh;
     volcart::OrderedPointSet<volcart::Point3d> _in_PlanePointCloud;
     int _width, _height;
 
@@ -97,7 +98,7 @@ struct CreateArchSimpleUVFixture{
 
     //declare Arch mesh
     volcart::shapes::Arch _Arch;
-    VC_MeshType::Pointer _in_ArchITKMesh;
+    ITKMesh::Pointer _in_ArchITKMesh;
     volcart::UVMap _out_ArchUVMap;
 
     volcart::OrderedPointSet<volcart::Point3d> _in_ArchPointCloud;

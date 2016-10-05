@@ -14,6 +14,6 @@
 
 namespace volcart {
     namespace texturing {
-        volcart::UVMap simpleUV(VC_MeshType::Pointer mesh, int width, int height);
+        volcart::UVMap simpleUV(ITKMesh::Pointer mesh, int width, int height);
     }; // texturing
 }; // volcart

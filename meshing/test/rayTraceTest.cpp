@@ -16,6 +16,8 @@
 #include "testing/parsingHelpers.h"
 #include "testing/testingUtils.h"
 
+using namespace volcart;
+
 /************************************************************************************
  *                                                                                  *
  *  rayTraceTest.cpp - tests the functionality of                                   *
@@ -116,7 +118,7 @@ struct PlaneRayTraceFixture {
 
     //Variables needed for call to rayTrace()
     std::vector<cv::Vec6f> _PlaneRayTraceResults;
-    VC_MeshType::Pointer _in_PlaneMesh;
+    ITKMesh::Pointer _in_PlaneMesh;
     volcart::shapes::Plane _Plane;
     std::map<int, cv::Vec2d> _UVMap;
     int _TraceDir = 0; //default direction is anything != 1
@@ -127,8 +129,8 @@ struct PlaneRayTraceFixture {
     std::ofstream _SavedPlaneMeshFile;
 
     //Vectors that will hold points and cells
-    std::vector<VC_Vertex> _SavedPoints, _CurrentPoints;
-    std::vector<VC_Cell> _SavedCells, _CurrentCells;
+    std::vector<Vertex> _SavedPoints, _CurrentPoints;
+    std::vector<Cell> _SavedCells, _CurrentCells;
 
 };
 
@@ -201,7 +203,7 @@ struct CubeRayTraceFixture {
 
     //Variables needed for call to rayTrace()
     std::vector<cv::Vec6f> _CubeRayTraceResults;
-    VC_MeshType::Pointer _in_CubeMesh;
+    ITKMesh::Pointer _in_CubeMesh;
     volcart::shapes::Cube _Cube;
     std::map<int, cv::Vec2d> _UVMap;
     int _TraceDir = 0;
@@ -212,8 +214,8 @@ struct CubeRayTraceFixture {
     std::ofstream _SavedCubeMeshFile;
 
     //Vectors that will hold points and cells
-    std::vector<VC_Vertex> _SavedPoints, _CurrentPoints;
-    std::vector<VC_Cell> _SavedCells, _CurrentCells;
+    std::vector<Vertex> _SavedPoints, _CurrentPoints;
+    std::vector<Cell> _SavedCells, _CurrentCells;
 
 };
 
@@ -287,7 +289,7 @@ struct ArchRayTraceFixture {
 
     //Variables needed for call to rayTrace()
     std::vector<cv::Vec6f> _ArchRayTraceResults;
-    VC_MeshType::Pointer _in_ArchMesh;
+    ITKMesh::Pointer _in_ArchMesh;
     volcart::shapes::Arch _Arch;
     std::map<int, cv::Vec2d> _UVMap;
     int _TraceDir = 0; //default direction is anything != 1
@@ -298,8 +300,8 @@ struct ArchRayTraceFixture {
     std::ofstream _SavedArchMeshFile;
 
     //Vectors that will hold points and cells
-    std::vector<VC_Vertex> _SavedPoints, _CurrentPoints;
-    std::vector<VC_Cell> _SavedCells, _CurrentCells;
+    std::vector<Vertex> _SavedPoints, _CurrentPoints;
+    std::vector<Cell> _SavedCells, _CurrentCells;
 
 };
 
@@ -372,7 +374,7 @@ struct SphereRayTraceFixture {
 
     //Variables needed for call to rayTrace()
     std::vector<cv::Vec6f> _SphereRayTraceResults;
-    VC_MeshType::Pointer _in_SphereMesh;
+    ITKMesh::Pointer _in_SphereMesh;
     volcart::shapes::Sphere _Sphere;
     std::map<int, cv::Vec2d> _UVMap;
     int _TraceDir = 0;
@@ -383,8 +385,8 @@ struct SphereRayTraceFixture {
     std::ofstream _SavedSphereMeshFile;
 
     //Vectors that will hold points and cells
-    std::vector<VC_Vertex> _SavedPoints, _CurrentPoints;
-    std::vector<VC_Cell> _SavedCells, _CurrentCells;
+    std::vector<Vertex> _SavedPoints, _CurrentPoints;
+    std::vector<Cell> _SavedCells, _CurrentCells;
 
 };
 
@@ -457,7 +459,7 @@ struct ConeRayTraceFixture {
 
     //Variables needed for call to rayTrace()
     std::vector<cv::Vec6f> _ConeRayTraceResults;
-    VC_MeshType::Pointer _in_ConeMesh;
+    ITKMesh::Pointer _in_ConeMesh;
     volcart::shapes::Cone _Cone;
     std::map<int, cv::Vec2d> _UVMap;
     int _TraceDir = 0;
@@ -468,8 +470,8 @@ struct ConeRayTraceFixture {
     std::ofstream _SavedConeMeshFile;
 
     //Vectors that will hold points and cells
-    std::vector<VC_Vertex> _SavedPoints, _CurrentPoints;
-    std::vector<VC_Cell> _SavedCells, _CurrentCells;
+    std::vector<Vertex> _SavedPoints, _CurrentPoints;
+    std::vector<Cell> _SavedCells, _CurrentCells;
 
 };
 

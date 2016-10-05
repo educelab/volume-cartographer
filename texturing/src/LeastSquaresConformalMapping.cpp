@@ -8,25 +8,25 @@
 using namespace volcart::texturing;
 
 ///// Constructors /////
-LeastSquaresConformalMapping::LeastSquaresConformalMapping( VC_MeshType::Pointer input ) : _mesh(input) {
+LeastSquaresConformalMapping::LeastSquaresConformalMapping( ITKMesh::Pointer input ) : _mesh(input) {
   _fillEigenMatrices();
 };
 
 ///// Input/Output /////
 // Set input mesh
-void LeastSquaresConformalMapping::setMesh( VC_MeshType::Pointer input ) {
+void LeastSquaresConformalMapping::setMesh( ITKMesh::Pointer input ) {
   _emptyEigenMatrices();
   _mesh = input;
   _fillEigenMatrices();
 }
 
 // Get output as mesh
-VC_MeshType::Pointer LeastSquaresConformalMapping::getMesh() {
-  VC_MeshType::Pointer output = VC_MeshType::New();
+ITKMesh::Pointer LeastSquaresConformalMapping::getMesh() {
+  ITKMesh::Pointer output = ITKMesh::New();
   volcart::meshing::deepCopy( _mesh, output );
 
   // Update the point positions
-  VC_PointType p;
+  ITKPoint p;
   for ( unsigned long i = 0; i < _vertices_UV.rows(); ++i ) {
     p[0] = _vertices_UV(i, 0);
     p[1] = 0;
@@ -115,7 +115,7 @@ void LeastSquaresConformalMapping::_fillEigenMatrices() {
 
   // Vertices
   _vertices.resize( _mesh->GetNumberOfPoints(), 3);
-  for ( VC_PointsInMeshIterator point = _mesh->GetPoints()->Begin(); point != _mesh->GetPoints()->End(); ++point ) {
+  for ( ITKPointIterator point = _mesh->GetPoints()->Begin(); point != _mesh->GetPoints()->End(); ++point ) {
     _vertices( point->Index(), 0 ) = point->Value()[0];
     _vertices( point->Index(), 1 ) = point->Value()[1];
     _vertices( point->Index(), 2 ) = point->Value()[2];
@@ -123,10 +123,10 @@ void LeastSquaresConformalMapping::_fillEigenMatrices() {
 
   // Faces
   _faces.resize( _mesh->GetNumberOfCells(), 3);
-  for ( VC_CellIterator cell = _mesh->GetCells()->Begin(); cell != _mesh->GetCells()->End(); ++cell ) {
+  for ( ITKCellIterator cell = _mesh->GetCells()->Begin(); cell != _mesh->GetCells()->End(); ++cell ) {
 
     int i = 0;
-    for ( VC_PointsInCellIterator point = cell.Value()->PointIdsBegin(); point != cell.Value()->PointIdsEnd(); ++point ) {
+    for ( ITKPointInCellIterator point = cell.Value()->PointIdsBegin(); point != cell.Value()->PointIdsEnd(); ++point ) {
       _faces(cell->Index(), i) = *point;
       ++i;
     }

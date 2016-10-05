@@ -11,6 +11,7 @@
 #include "testing/parsingHelpers.h"
 #include "testing/testingUtils.h"
 
+using namespace volcart;
 
 /***************************************************************************************
  *                                                                                     *
@@ -83,8 +84,8 @@ struct CreateArchClothUVFixture{
 
     //declare Arch mesh
     volcart::shapes::Arch    _Arch;
-    VC_MeshType::Pointer  _in_Mesh;
-    VC_MeshType::Pointer _out_Mesh_unfurl, _out_Mesh_collide, _out_Mesh_final;
+    ITKMesh::Pointer  _in_Mesh;
+    ITKMesh::Pointer _out_Mesh_unfurl, _out_Mesh_collide, _out_Mesh_final;
 
     // Simulation
     volcart::texturing::ClothModelingUVMapping::PinIDs _unfurlPins;
@@ -93,14 +94,14 @@ struct CreateArchClothUVFixture{
     uint16_t _collisionIt;
     uint16_t _expansionIt;
 
-    std::vector<VC_Vertex> _SavedPoints_unfurl;
-    std::vector<VC_Cell>   _SavedCells_unfurl;
+    std::vector<Vertex> _SavedPoints_unfurl;
+    std::vector<Cell>   _SavedCells_unfurl;
 
-    std::vector<VC_Vertex> _SavedPoints_collide;
-    std::vector<VC_Cell>   _SavedCells_collide;
+    std::vector<Vertex> _SavedPoints_collide;
+    std::vector<Cell>   _SavedCells_collide;
 
-    std::vector<VC_Vertex> _SavedPoints_final;
-    std::vector<VC_Cell>   _SavedCells_final;
+    std::vector<Vertex> _SavedPoints_final;
+    std::vector<Cell>   _SavedCells_final;
 };
 
 /*

@@ -71,10 +71,10 @@ class QuadricEdgeCollapseDecimation {
 public:
     // Initializers
     QuadricEdgeCollapseDecimation();
-    QuadricEdgeCollapseDecimation(VC_MeshType::Pointer mesh);
+    QuadricEdgeCollapseDecimation(ITKMesh::Pointer mesh);
 
     // Set All Parameters
-    void setMesh(VC_MeshType::Pointer mesh);
+    void setMesh(ITKMesh::Pointer mesh);
     void setDefaultParams();
     void setAllParams(vcg::tri::TriEdgeCollapseQuadricParameter newParams) { collapseParams_ = newParams; }
 
@@ -104,12 +104,12 @@ public:
     void compute(size_t desiredFaces);
 
     // Output
-    VC_MeshType::Pointer getMesh();
+    ITKMesh::Pointer getMesh();
 private:
     void convertMeshtoVCG_();
-    VC_MeshType::Pointer itkInput_;
+    ITKMesh::Pointer itkInput_;
     VcgMesh vcgInput_;
-    VC_MeshType::Pointer outputMesh_;
+    ITKMesh::Pointer outputMesh_;
     size_t desiredFaces_;
     vcg::tri::TriEdgeCollapseQuadricParameter collapseParams_;
 

@@ -15,6 +15,7 @@
 #include "testing/parsingHelpers.h"
 #include "testing/testingUtils.h"
 
+using namespace volcart;
 
 /************************************************************************************
  *                                                                                  *
@@ -84,8 +85,8 @@ struct SmoothNormalsFixture {
     ~SmoothNormalsFixture(){ std::cerr << "cleaning up smoothNormals objects" << std::endl; }
 
     //init input and output mesh ptrs
-    VC_MeshType::Pointer _in_PlaneMesh, _in_CubeMesh, _in_SphereMesh, _in_ArchMesh, _in_ConeMesh;
-    VC_MeshType::Pointer _out_SmoothedPlaneMesh, _out_SmoothedCubeMesh, _out_SmoothedSphereMesh,
+    ITKMesh::Pointer _in_PlaneMesh, _in_CubeMesh, _in_SphereMesh, _in_ArchMesh, _in_ConeMesh;
+    ITKMesh::Pointer _out_SmoothedPlaneMesh, _out_SmoothedCubeMesh, _out_SmoothedSphereMesh,
                          _out_SmoothedArchMesh, _out_SmoothedConeMesh;
     //init shapes
     volcart::shapes::Plane _Plane;
@@ -97,8 +98,8 @@ struct SmoothNormalsFixture {
     double _SmoothingFactor;
 
     //init vectors to hold points and cells from savedITK data files
-    std::vector<VC_Vertex> _SavedPlanePoints, _SavedCubePoints, _SavedArchPoints, _SavedSpherePoints, _SavedConePoints;
-    std::vector<VC_Cell> _SavedPlaneCells, _SavedCubeCells, _SavedArchCells, _SavedSphereCells, _SavedConeCells;
+    std::vector<Vertex> _SavedPlanePoints, _SavedCubePoints, _SavedArchPoints, _SavedSpherePoints, _SavedConePoints;
+    std::vector<Cell> _SavedPlaneCells, _SavedCubeCells, _SavedArchCells, _SavedSphereCells, _SavedConeCells;
 };
 
 
@@ -127,9 +128,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureSmoothedPlaneWithSavedPlaneTest, SmoothNor
     }
 
     //normals
-    VC_PointsInMeshIterator point = _out_SmoothedPlaneMesh->GetPoints()->Begin();
+    ITKPointIterator point = _out_SmoothedPlaneMesh->GetPoints()->Begin();
     for ( int p = 0; point != _out_SmoothedPlaneMesh->GetPoints()->End(); ++p, ++point ) {
-        VC_PixelType out_Normal;
+        ITKPixel out_Normal;
         _out_SmoothedPlaneMesh->GetPointData(point.Index(), &out_Normal);
 
         //Now compare the normals for the two meshes
@@ -139,14 +140,14 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureSmoothedPlaneWithSavedPlaneTest, SmoothNor
     }
 
     //cells
-    VC_CellIterator out_PlaneCell = _out_SmoothedPlaneMesh->GetCells()->Begin();
+    ITKCellIterator out_PlaneCell = _out_SmoothedPlaneMesh->GetCells()->Begin();
 
     int c = 0;
 
     while (out_PlaneCell != _out_SmoothedPlaneMesh->GetCells()->End()) {
 
         //Initialize Iterators for Points in a Cell
-        VC_PointsInCellIterator out_PlaneMeshPointId = out_PlaneCell.Value()->PointIdsBegin();
+        ITKPointInCellIterator out_PlaneMeshPointId = out_PlaneCell.Value()->PointIdsBegin();
 
         int counter = 0;
         //while we have points in the cell
@@ -192,9 +193,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureSmoothedCubeWithSavedCubeTest, SmoothNorma
     }
 
     //normals
-    VC_PointsInMeshIterator point = _out_SmoothedCubeMesh->GetPoints()->Begin();
+    ITKPointIterator point = _out_SmoothedCubeMesh->GetPoints()->Begin();
     for ( int p = 0; point != _out_SmoothedCubeMesh->GetPoints()->End(); ++p, ++point ) {
-        VC_PixelType out_Normal;
+        ITKPixel out_Normal;
         _out_SmoothedCubeMesh->GetPointData(point.Index(), &out_Normal);
 
         //Now compare the normals for the two meshes
@@ -204,14 +205,14 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureSmoothedCubeWithSavedCubeTest, SmoothNorma
     }
 
     //cells
-    VC_CellIterator out_CubeCell = _out_SmoothedCubeMesh->GetCells()->Begin();
+    ITKCellIterator out_CubeCell = _out_SmoothedCubeMesh->GetCells()->Begin();
 
     int c = 0;
 
     while (out_CubeCell != _out_SmoothedCubeMesh->GetCells()->End()) {
 
         //Initialize Iterators for Points in a Cell
-        VC_PointsInCellIterator out_CubeMeshPointId = out_CubeCell.Value()->PointIdsBegin();
+        ITKPointInCellIterator out_CubeMeshPointId = out_CubeCell.Value()->PointIdsBegin();
 
         int counter = 0;
         //while we have points in the cell
@@ -257,9 +258,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureSmoothedSphereWithSavedSphereTest, SmoothN
     }
 
     //normals
-    VC_PointsInMeshIterator point = _out_SmoothedSphereMesh->GetPoints()->Begin();
+    ITKPointIterator point = _out_SmoothedSphereMesh->GetPoints()->Begin();
     for ( int p = 0; point != _out_SmoothedSphereMesh->GetPoints()->End(); ++p, ++point ) {
-        VC_PixelType out_Normal;
+        ITKPixel out_Normal;
         _out_SmoothedSphereMesh->GetPointData(point.Index(), &out_Normal);
 
         //Now compare the normals for the two meshes
@@ -269,14 +270,14 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureSmoothedSphereWithSavedSphereTest, SmoothN
     }
 
     //cells
-    VC_CellIterator out_SphereCell = _out_SmoothedSphereMesh->GetCells()->Begin();
+    ITKCellIterator out_SphereCell = _out_SmoothedSphereMesh->GetCells()->Begin();
 
     int c = 0;
 
     while (out_SphereCell != _out_SmoothedSphereMesh->GetCells()->End()) {
 
         //Initialize Iterators for Points in a Cell
-        VC_PointsInCellIterator out_SphereMeshPointId = out_SphereCell.Value()->PointIdsBegin();
+        ITKPointInCellIterator out_SphereMeshPointId = out_SphereCell.Value()->PointIdsBegin();
 
         int counter = 0;
         //while we have points in the cell
@@ -322,9 +323,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureSmoothedArchWithSavedArchTest, SmoothNorma
     }
 
     //normals
-    VC_PointsInMeshIterator point = _out_SmoothedArchMesh->GetPoints()->Begin();
+    ITKPointIterator point = _out_SmoothedArchMesh->GetPoints()->Begin();
     for ( int p = 0; point != _out_SmoothedArchMesh->GetPoints()->End(); ++p, ++point ) {
-        VC_PixelType out_Normal;
+        ITKPixel out_Normal;
         _out_SmoothedArchMesh->GetPointData(point.Index(), &out_Normal);
 
         //Now compare the normals for the two meshes
@@ -334,14 +335,14 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureSmoothedArchWithSavedArchTest, SmoothNorma
     }
 
     // Initialize Cell Iterators
-    VC_CellIterator out_ArchCell = _out_SmoothedArchMesh->GetCells()->Begin();
+    ITKCellIterator out_ArchCell = _out_SmoothedArchMesh->GetCells()->Begin();
 
     int c = 0;
 
     while (out_ArchCell != _out_SmoothedArchMesh->GetCells()->End()) {
 
         //Initialize Iterators for Points in a Cell
-        VC_PointsInCellIterator out_ArchMeshPointId = out_ArchCell.Value()->PointIdsBegin();
+        ITKPointInCellIterator out_ArchMeshPointId = out_ArchCell.Value()->PointIdsBegin();
 
         int counter = 0;
         //while we have points in the cell
@@ -385,9 +386,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureSmoothedConeWithSavedConeTest, SmoothNorma
     }
 
     //normals
-    VC_PointsInMeshIterator point = _out_SmoothedConeMesh->GetPoints()->Begin();
+    ITKPointIterator point = _out_SmoothedConeMesh->GetPoints()->Begin();
     for ( int p = 0; point != _out_SmoothedConeMesh->GetPoints()->End(); ++p, ++point ) {
-        VC_PixelType out_Normal;
+        ITKPixel out_Normal;
         _out_SmoothedConeMesh->GetPointData(point.Index(), &out_Normal);
 
         //Now compare the normals for the two meshes
@@ -403,14 +404,14 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureSmoothedConeWithSavedConeTest, SmoothNorma
     BOOST_CHECK_EQUAL(_out_SmoothedConeMesh->GetNumberOfCells(), _SavedConeCells.size());
 
     // Initialize Cell Iterators
-    VC_CellIterator out_ConeCell = _out_SmoothedConeMesh->GetCells()->Begin();
+    ITKCellIterator out_ConeCell = _out_SmoothedConeMesh->GetCells()->Begin();
 
     int c_id = 0;
 
     while ( out_ConeCell != _out_SmoothedConeMesh->GetCells()->End()) {
 
         //Initialize Iterators for Points in a Cell
-        VC_PointsInCellIterator out_ConeMeshPointId = out_ConeCell.Value()->PointIdsBegin();
+        ITKPointInCellIterator out_ConeMeshPointId = out_ConeCell.Value()->PointIdsBegin();
 
         int counter = 0;
         //while we have points in the cell
@@ -446,7 +447,7 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureSmoothedConeWithSavedConeTest, SmoothNorma
 BOOST_FIXTURE_TEST_CASE(SmoothWithZeroRadiusTest, SmoothNormalsFixture){
 
     //call smoothNormals() and assign results
-    VC_MeshType::Pointer ZeroRadiusSmoothedMesh = volcart::meshing::smoothNormals(_in_ArchMesh, 0);
+    ITKMesh::Pointer ZeroRadiusSmoothedMesh = volcart::meshing::smoothNormals(_in_ArchMesh, 0);
 
     //check number of points and cells are equivalent between the two meshes
     BOOST_CHECK_EQUAL(_in_ArchMesh->GetNumberOfPoints(), ZeroRadiusSmoothedMesh->GetNumberOfPoints());
@@ -462,7 +463,7 @@ BOOST_FIXTURE_TEST_CASE(SmoothWithZeroRadiusTest, SmoothNormalsFixture){
     //compare normals
     for ( auto point = _in_ArchMesh->GetPoints()->Begin(); point != _in_ArchMesh->GetPoints()->End(); ++point ) {
 
-        VC_PixelType in_ArchNormal, ZeroRadiusNormal;
+        ITKPixel in_ArchNormal, ZeroRadiusNormal;
         _in_ArchMesh->GetPointData(point.Index(), &in_ArchNormal);
         ZeroRadiusSmoothedMesh->GetPointData(point.Index(), &ZeroRadiusNormal);
 
@@ -477,16 +478,16 @@ BOOST_FIXTURE_TEST_CASE(SmoothWithZeroRadiusTest, SmoothNormalsFixture){
     //               //
 
     // Initialize Cell Iterators
-    VC_CellIterator in_ArchCell = _in_ArchMesh->GetCells()->Begin();
-    VC_CellIterator ZeroRadiusSmoothedCell = ZeroRadiusSmoothedMesh->GetCells()->Begin();
+    ITKCellIterator in_ArchCell = _in_ArchMesh->GetCells()->Begin();
+    ITKCellIterator ZeroRadiusSmoothedCell = ZeroRadiusSmoothedMesh->GetCells()->Begin();
 
     int c = 0;
 
     while ( in_ArchCell != _in_ArchMesh->GetCells()->End()) {
 
         //Initialize Iterators for Points in a Cell
-        VC_PointsInCellIterator in_ArchMeshPointId = in_ArchCell.Value()->PointIdsBegin();
-        VC_PointsInCellIterator ZeroRadiusMeshPointId = ZeroRadiusSmoothedCell.Value()->PointIdsBegin();
+        ITKPointInCellIterator in_ArchMeshPointId = in_ArchCell.Value()->PointIdsBegin();
+        ITKPointInCellIterator ZeroRadiusMeshPointId = ZeroRadiusSmoothedCell.Value()->PointIdsBegin();
 
         int counter = 0;
         //while we have points in the cell

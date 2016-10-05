@@ -15,11 +15,11 @@ namespace volcart{
         public:
             // Construction //
             CalculateNormals();
-            CalculateNormals(VC_MeshType::Pointer mesh) ;
+            CalculateNormals(ITKMesh::Pointer mesh) ;
 
             // Input/Output //
-            void setMesh(VC_MeshType::Pointer mesh);
-            VC_MeshType::Pointer getMesh() const;
+            void setMesh(ITKMesh::Pointer mesh);
+            ITKMesh::Pointer getMesh() const;
 
             // Processing //
             void compute();
@@ -28,8 +28,8 @@ namespace volcart{
             void _computeNormals();
             void _assignToMesh();
 
-            VC_MeshType::Pointer  _input;
-            VC_MeshType::Pointer _output;
+            ITKMesh::Pointer  _input;
+            ITKMesh::Pointer _output;
 
             std::vector<cv::Vec3d> _vertex_normals; // convenience vector to store calculated normals by p_id
         };

@@ -12,24 +12,24 @@ using namespace volcart::meshing;
 ///// Construction /////
 CalculateNormals::CalculateNormals(){};
 
-CalculateNormals::CalculateNormals(VC_MeshType::Pointer mesh)
+CalculateNormals::CalculateNormals(ITKMesh::Pointer mesh)
 {
     _input = mesh;
-    _output = VC_MeshType::New();
-    volcart::meshing::deepCopy(_input, _output);
+    _output = ITKMesh::New();
+    deepCopy(_input, _output);
     _vertex_normals = std::vector<cv::Vec3d>(_output->GetNumberOfPoints(),0);
 }
 
 ///// Input/Output /////
-void CalculateNormals::setMesh(VC_MeshType::Pointer mesh)
+void CalculateNormals::setMesh(ITKMesh::Pointer mesh)
 {
     _input = mesh;
-    _output = VC_MeshType::New();
-    volcart::meshing::deepCopy( _input, _output );
+    _output = ITKMesh::New();
+    deepCopy( _input, _output );
     _vertex_normals = std::vector<cv::Vec3d>(_output->GetNumberOfPoints(),0);
 }
 
-VC_MeshType::Pointer CalculateNormals::getMesh() const
+volcart::ITKMesh::Pointer CalculateNormals::getMesh() const
 {
     return _output;
 }
@@ -49,7 +49,7 @@ void CalculateNormals::_computeNormals() {
 
         // Collect the point id's for this cell
         std::vector< unsigned long > p_ids;
-        VC_PointType vert;
+        ITKPoint vert;
         for ( auto p = c_it->Value()->PointIdsBegin(); p != c_it->Value()->PointIdsEnd(); ++p ) {
             p_ids.push_back(*p);
         }
@@ -95,7 +95,7 @@ void CalculateNormals::_assignToMesh() {
         cv::Vec3d norm = _vertex_normals[ point.Index() ];
         cv::normalize( norm, norm );
 
-        VC_PixelType pnt_normal;
+        ITKPixel pnt_normal;
         pnt_normal[0] = norm(0);
         pnt_normal[1] = norm(1);
         pnt_normal[2] = norm(2);

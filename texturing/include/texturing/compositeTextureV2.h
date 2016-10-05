@@ -23,14 +23,14 @@ namespace texturing {
             cv::Vec3d Normal;
         };
 
-        compositeTextureV2( VC_MeshType::Pointer inputMesh,
+        compositeTextureV2( ITKMesh::Pointer inputMesh,
                             VolumePkg& volpkg,
                             UVMap uvMap,
                             double radius,
                             int width,
                             int height,
-                            VC_Composite_Option method = VC_Composite_Option::NonMaximumSuppression,
-                            VC_Direction_Option direction = VC_Direction_Option::Bidirectional );
+                            CompositeOption method = CompositeOption::NonMaximumSuppression,
+                            DirectionOption direction = DirectionOption::Bidirectional );
 
         const volcart::Texture& texture() const { return _texture; };
         volcart::Texture& texture() { return _texture; };
@@ -41,20 +41,20 @@ namespace texturing {
         cv::Vec3d _CartesianCoord  ( const cv::Vec3d &nUVW, const cv::Vec3d &nA, const cv::Vec3d &nB, const cv::Vec3d &nC );
 
         // Variables
-        VC_MeshType::Pointer _input;
+        ITKMesh::Pointer _input;
         VolumePkg& _volpkg;
         int _width;
         int _height;
         double _radius;
-        VC_Composite_Option _method;
-        VC_Direction_Option _direction;
+        CompositeOption _method;
+        DirectionOption _direction;
 
         UVMap _uvMap;
         Texture _texture;
 
         std::vector< cellInfo > _cellInformation;
-        VC_MeshType::Pointer _cellCentroids;
-        VC_PointsLocatorType::Pointer _kdTree;
+        ITKMesh::Pointer _cellCentroids;
+        ITKPointsLocator::Pointer _kdTree;
     };
 
 }

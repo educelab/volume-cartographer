@@ -21,6 +21,7 @@
 #include "texturing/AngleBasedFlattening.h"
 #include "texturing/compositeTextureV2.h"
 
+using namespace volcart;
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;
 
@@ -38,8 +39,8 @@ int main(int argc, char* argv[])
     std::string segID;
     double radius;
     double smoothRadius = 0;
-    VC_Composite_Option aFilterOption;
-    VC_Direction_Option aDirectionOption;
+    CompositeOption aFilterOption;
+    DirectionOption aDirectionOption;
 
     try {
         // All command line options
@@ -95,9 +96,9 @@ int main(int argc, char* argv[])
         volpkgPath = parsedOptions["volpkg"].as<std::string>();
         segID = parsedOptions["seg"].as<std::string>();
         radius = parsedOptions["radius"].as<int>();
-        aFilterOption = (VC_Composite_Option)parsedOptions["method"].as<int>();
+        aFilterOption = (CompositeOption)parsedOptions["method"].as<int>();
         aDirectionOption =
-            (VC_Direction_Option)parsedOptions["direction"].as<int>();
+            (DirectionOption)parsedOptions["direction"].as<int>();
 
         // Check for output file
         if (parsedOptions.count("output-file")) {
@@ -141,7 +142,7 @@ int main(int argc, char* argv[])
     fs::path meshName = vpkg.getMeshPath();
 
     // declare pointer to new Mesh object
-    VC_MeshType::Pointer input = VC_MeshType::New();
+    auto input = ITKMesh::New();
 
     // try to convert the ply to an ITK mesh
     if (!volcart::io::PLYReader(meshName, input)) {
@@ -170,7 +171,7 @@ int main(int argc, char* argv[])
     Cleaner->SetInputData( acvdMesh );
     Cleaner->Update();
 
-    VC_MeshType::Pointer itkACVD = VC_MeshType::New();
+    auto itkACVD = volcart::ITKMesh::New();
     volcart::meshing::vtk2itk( Cleaner->GetOutput(), itkACVD );
 
     // ABF flattening

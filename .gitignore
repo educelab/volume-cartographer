@@ -33,5 +33,5 @@ tags
 .ycm_extra_conf.py
 .ycm_extra_conf.pyc
 
-# Python stuff
+# Python
 __pycache__

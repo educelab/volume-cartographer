@@ -37,7 +37,7 @@ namespace volcart {
 using namespace volcart::texturing;
 
 // Constructor
-ClothModelingUVMapping::ClothModelingUVMapping( VC_MeshType::Pointer input,
+ClothModelingUVMapping::ClothModelingUVMapping( volcart::ITKMesh::Pointer input,
                                   uint16_t unfurlIterations, uint16_t collideIterations, uint16_t expandIterations,
                                   PinIDs unfurlPins, PinIDs expansionPins ) :
                                     _mesh(input),
@@ -166,8 +166,8 @@ volcart::UVMap ClothModelingUVMapping::getUVMap() {
 
 // Get mesh version of flattened object
 // Note: This is still in world coordinates, not volume coordinates
-VC_MeshType::Pointer ClothModelingUVMapping::getMesh() {
-    VC_MeshType::Pointer output = VC_MeshType::New();
+volcart::ITKMesh::Pointer ClothModelingUVMapping::getMesh() {
+    auto output = volcart::ITKMesh::New();
     volcart::meshing::deepCopy( _mesh, output );
     volcart::meshing::bullet2itk::bullet2itk( _softBody, output);
     return output;

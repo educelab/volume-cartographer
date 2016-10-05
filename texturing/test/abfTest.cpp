@@ -12,6 +12,7 @@
 #include "testing/parsingHelpers.h"
 #include "testing/testingUtils.h"
 
+using namespace volcart;
 
 /***************************************************************************************
  *                                                                                     *
@@ -69,11 +70,11 @@ struct CreatePlaneABFUVFixture{
 
     //declare Plane mesh and width and height
     volcart::shapes::Plane _Plane;
-    VC_MeshType::Pointer _in_Mesh;
-    VC_MeshType::Pointer _out_Mesh;
+    ITKMesh::Pointer _in_Mesh;
+    ITKMesh::Pointer _out_Mesh;
 
-    std::vector<VC_Vertex> _SavedPoints;
-    std::vector<VC_Cell>   _SavedCells;
+    std::vector<Vertex> _SavedPoints;
+    std::vector<Cell>   _SavedCells;
 };
 
 struct CreatePlaneABFLSCMOnlyUVFixture{
@@ -100,11 +101,11 @@ struct CreatePlaneABFLSCMOnlyUVFixture{
 
     //declare Plane mesh and width and height
     volcart::shapes::Plane _Plane;
-    VC_MeshType::Pointer _in_Mesh;
-    VC_MeshType::Pointer _out_Mesh;
+    ITKMesh::Pointer _in_Mesh;
+    ITKMesh::Pointer _out_Mesh;
 
-    std::vector<VC_Vertex> _SavedPoints;
-    std::vector<VC_Cell>   _SavedCells;
+    std::vector<Vertex> _SavedPoints;
+    std::vector<Cell>   _SavedCells;
 };
 
 struct CreateArchABFUVFixture{
@@ -129,11 +130,11 @@ struct CreateArchABFUVFixture{
 
     //declare Arch mesh
     volcart::shapes::Arch _Arch;
-    VC_MeshType::Pointer _in_Mesh;
-    VC_MeshType::Pointer _out_Mesh;
+    ITKMesh::Pointer _in_Mesh;
+    ITKMesh::Pointer _out_Mesh;
 
-    std::vector<VC_Vertex> _SavedPoints;
-    std::vector<VC_Cell>   _SavedCells;
+    std::vector<Vertex> _SavedPoints;
+    std::vector<Cell>   _SavedCells;
 };
 
 struct CreateArchABFLSCMOnlyUVFixture{
@@ -159,11 +160,11 @@ struct CreateArchABFLSCMOnlyUVFixture{
 
     //declare Arch mesh
     volcart::shapes::Arch _Arch;
-    VC_MeshType::Pointer _in_Mesh;
-    VC_MeshType::Pointer _out_Mesh;
+    ITKMesh::Pointer _in_Mesh;
+    ITKMesh::Pointer _out_Mesh;
 
-    std::vector<VC_Vertex> _SavedPoints;
-    std::vector<VC_Cell>   _SavedCells;
+    std::vector<Vertex> _SavedPoints;
+    std::vector<Cell>   _SavedCells;
 };
 
 /*

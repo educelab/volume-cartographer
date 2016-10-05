@@ -13,13 +13,13 @@ QuadricEdgeCollapseDecimation::QuadricEdgeCollapseDecimation() {
     setDefaultParams();
 }
 
-QuadricEdgeCollapseDecimation::QuadricEdgeCollapseDecimation(VC_MeshType::Pointer mesh) {
+QuadricEdgeCollapseDecimation::QuadricEdgeCollapseDecimation(volcart::ITKMesh::Pointer mesh) {
     itkInput_ = mesh;
     setDefaultParams();
 }
 
 ///// Set inputs & params /////
-void QuadricEdgeCollapseDecimation::setMesh(VC_MeshType::Pointer mesh) {
+void QuadricEdgeCollapseDecimation::setMesh(volcart::ITKMesh::Pointer mesh) {
     itkInput_ = mesh;
 }
 
@@ -55,12 +55,12 @@ void QuadricEdgeCollapseDecimation::compute(size_t desiredFaces)
 }
 
 ///// Get Output /////
-VC_MeshType::Pointer QuadricEdgeCollapseDecimation::getMesh(){
+volcart::ITKMesh::Pointer QuadricEdgeCollapseDecimation::getMesh(){
     // New ITK Mesh
-    outputMesh_ =  VC_MeshType::New();
+    outputMesh_ =  volcart::ITKMesh::New();
 
     // Used to give the vertices an id that can be used to create faces
-    VC_PointType point;
+    volcart::ITKPoint point;
     unsigned long j = 0;
     VcgMesh::VertexPointer vp;
     vcg::SimpleTempData<VcgMesh::VertContainer , unsigned long> indices(vcgInput_.vert);
@@ -82,11 +82,11 @@ VC_MeshType::Pointer QuadricEdgeCollapseDecimation::getMesh(){
 
     //Takes vcg cells and store their vertices into and itk cell and adds it to itk mesh
     unsigned long cellID = 0;
-    VC_CellType::CellAutoPointer newCell;
+    volcart::ITKCell::CellAutoPointer newCell;
     for(auto fi = vcgInput_.face.begin(); fi != vcgInput_.face.end(); fi++){
         if(!fi->IsD())
         {
-            newCell.TakeOwnership(new VC_TriangleType);
+            newCell.TakeOwnership(new ITKTriangle);
 
             auto point1 = indices[fi->V(0)];
             auto point2 = indices[fi->V(1)];

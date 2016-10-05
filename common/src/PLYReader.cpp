@@ -10,7 +10,7 @@ namespace volcart
 namespace io
 {
 
-bool PLYReader(boost::filesystem::path path, VC_MeshType::Pointer mesh)
+bool PLYReader(boost::filesystem::path path, ITKMesh::Pointer mesh)
 {
     // open ply file
     std::ifstream plyFile(path.string());
@@ -67,7 +67,7 @@ bool PLYReader(boost::filesystem::path path, VC_MeshType::Pointer mesh)
     int red, green, blue;
 
     // For Faces
-    VC_CellType::CellAutoPointer cellpointer;
+    ITKCell::CellAutoPointer cellpointer;
     int temp, p1, p2, p3;
 
     for (int i = 0; i < aElements.size(); ++i) {
@@ -81,8 +81,8 @@ bool PLYReader(boost::filesystem::path path, VC_MeshType::Pointer mesh)
 
             // read vertices
             if (aElementIDs[i] == "vertex") {
-                VC_PointType p;
-                VC_PixelType n;
+                ITKPoint p;
+                ITKPixel n;
 
                 plyFile >> x >> y >> z >> nx >> ny >> nz;
                 p[0] = x;
@@ -108,7 +108,7 @@ bool PLYReader(boost::filesystem::path path, VC_MeshType::Pointer mesh)
             if (aElementIDs[i] == "face") {
                 plyFile >> temp >> p1 >> p2 >> p3;
 
-                cellpointer.TakeOwnership(new VC_TriangleType);
+                cellpointer.TakeOwnership(new ITKTriangle);
                 cellpointer->SetPointId(0, p1);
                 cellpointer->SetPointId(1, p2);
                 cellpointer->SetPointId(2, p3);
@@ -120,6 +120,5 @@ bool PLYReader(boost::filesystem::path path, VC_MeshType::Pointer mesh)
     plyFile.close();
     return true;
 }
-
 }  // namespace io
 }  // namespace volcart

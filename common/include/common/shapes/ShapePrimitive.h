@@ -22,7 +22,7 @@ namespace shapes {
 
     class ShapePrimitive {
     public:
-        VC_MeshType::Pointer itkMesh();
+        ITKMesh::Pointer itkMesh();
         vtkSmartPointer<vtkPolyData> vtkMesh();
         OrderedPointSet<Point3d> orderedPoints(bool noisify = false);
         PointSet<Point3d> unorderedPoints(bool noisify = false);
@@ -30,8 +30,8 @@ namespace shapes {
         PointSet<Point6d> unOrderedPointNormal();
 
         //overload
-        std::vector<VC_Vertex> getPoints() const {return _points;}
-        std::vector<VC_Cell> getCells() const {return _cells;}
+        std::vector<Vertex> getPoints() const {return _points;}
+        std::vector<Cell> getCells() const {return _cells;}
 
         //ordering
         bool     isOrdered()     const { return _orderedPoints; };
@@ -39,8 +39,8 @@ namespace shapes {
         uint32_t orderedHeight() const { return _orderedHeight; };
 
     protected:
-        std::vector<VC_Vertex> _points;
-        std::vector<VC_Cell> _cells;
+        std::vector<Vertex> _points;
+        std::vector<Cell> _cells;
 
         void _add_vertex(double x, double y, double z);
         void _add_cell(int v1, int v2, int v3);

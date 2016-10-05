@@ -34,7 +34,7 @@ namespace volcart {
 
             VertPtr nextlink;
             IDType id;
-            VC_MeshType::PointIdentifier pid; // Original point ID in ITK mesh
+            ITKMesh::PointIdentifier pid; // Original point ID in ITK mesh
 
             EdgePtr edge;
             cv::Vec3d xyz;
@@ -88,7 +88,7 @@ namespace volcart {
             Face(){};
             FacePtr nextlink;
             IDType id;
-            VC_MeshType::CellIdentifier cid; // Original cell ID in ITK mesh
+            ITKMesh::CellIdentifier cid; // Original cell ID in ITK mesh
 
             EdgePtr edge; // First edge of the face
 

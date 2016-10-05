@@ -65,7 +65,7 @@ public:
     int setMetadata(const std::string& key, T value)
     {
         if (_readOnly) {
-            VC_ERR_READONLY();
+            volcart::ERR_READONLY();
         }
 
         config.set<T>(key, value);
@@ -101,7 +101,7 @@ public:
             const volcart::OrderedPointSet<volcart::Point3d>& segmentedCloud) const;
 
     void saveMesh(
-        const VC_MeshType::Pointer mesh, const volcart::Texture& texture) const;
+        const volcart::ITKMesh::Pointer mesh, const volcart::Texture& texture) const;
 
     void saveTextureData(
         const cv::Mat& texture, const std::string& name = "textured");

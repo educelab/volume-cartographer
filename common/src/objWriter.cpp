@@ -14,12 +14,12 @@ namespace volcart {
     ///// Constructors /////
     objWriter::objWriter() {};
 
-    objWriter::objWriter( fs::path outputPath, VC_MeshType::Pointer mesh ) {
+    objWriter::objWriter( fs::path outputPath, ITKMesh::Pointer mesh ) {
         _outputPath = outputPath;
         _mesh = mesh;
     };
 
-    objWriter::objWriter( fs::path outputPath, VC_MeshType::Pointer mesh, volcart::UVMap uvMap, cv::Mat uvImg ) {
+    objWriter::objWriter( fs::path outputPath, ITKMesh::Pointer mesh, volcart::UVMap uvMap, cv::Mat uvImg ) {
         _outputPath = outputPath;
         _mesh = mesh;
         _textCoords = uvMap;
@@ -134,12 +134,12 @@ namespace volcart {
         _outputMesh << "# Vertices: " << _mesh->GetNumberOfPoints() << std::endl;
 
         // Iterate over all of the points
-        VC_PointsInMeshIterator point = _mesh->GetPoints()->Begin();
+        ITKPointIterator point = _mesh->GetPoints()->Begin();
         double v_Index = 1;
         while ( point != _mesh->GetPoints()->End() ) {
 
             // Get the point's normal
-            VC_PixelType normal;
+            ITKPixel normal;
             _mesh->GetPointData(point.Index(), &normal);
 
             // Write the point position components and its normal components.
@@ -164,7 +164,7 @@ namespace volcart {
         std::cerr << "Writing texture coordinates..." << std::endl;
 
         // Ensure coordinates are relative to bottom left
-        VC_Origin starting_origin = _textCoords.origin(); // Capture the starting origin
+        Origin starting_origin = _textCoords.origin(); // Capture the starting origin
         _textCoords.origin(VC_ORIGIN_BOTTOM_LEFT);
 
         _outputMesh << "# Texture information" << std::endl;
@@ -197,9 +197,9 @@ namespace volcart {
         _outputMesh << "# Faces: " << _mesh->GetNumberOfCells() << std::endl;
 
         // Iterate over the faces of the mesh
-        VC_PointsInCellIterator point;
+        ITKPointInCellIterator point;
 
-        for ( VC_CellIterator cell = _mesh->GetCells()->Begin(); cell != _mesh->GetCells()->End(); ++cell ) {
+        for ( ITKCellIterator cell = _mesh->GetCells()->Begin(); cell != _mesh->GetCells()->End(); ++cell ) {
             _outputMesh << "f "; // Starts a new face line
 
             // Iterate over the points of this face

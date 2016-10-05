@@ -44,7 +44,7 @@ int main()
 
     volcart::meshing::OrderedPointSetMesher mesher_plane(Plane);
     mesher_plane.compute();
-    VC_MeshType::Pointer output_plane = mesher_plane.getOutputMesh();
+    ITKMesh::Pointer output_plane = mesher_plane.getOutputMesh();
 
     volcart::io::objWriter writer;
     writer.setPath("OrderedPointSetMesher_Plane.obj");
@@ -81,7 +81,7 @@ int main()
 
     volcart::meshing::OrderedPointSetMesher mesher_arch(Arch);
     mesher_arch.compute();
-    VC_MeshType::Pointer output_arch = mesher_arch.getOutputMesh();
+    ITKMesh::Pointer output_arch = mesher_arch.getOutputMesh();
 
     writer.setPath("OrderedPointSetMesher_Arch.obj");
     writer.setMesh(output_arch);

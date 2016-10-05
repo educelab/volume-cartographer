@@ -12,6 +12,7 @@
 #include "testing/parsingHelpers.h"
 #include "testing/testingUtils.h"
 
+using namespace volcart;
 
 /***************************************************************************************
  *                                                                                     *
@@ -81,12 +82,12 @@ struct CreateITKPlaneMeshFixture {
   //file path and plyWriter to be used in cases
   volcart::io::plyWriter _MeshWriter;
   boost::filesystem::path ObjPath;
-  VC_MeshType::Pointer _in_PlaneMesh ;
+  ITKMesh::Pointer _in_PlaneMesh ;
   volcart::shapes::Plane _Plane;
 
   //vectors to hold vertices and faces saved in PlyWriter_Plane.ply
-  std::vector<VC_Vertex> _SavedPlanePoints;
-  std::vector<VC_Cell> _SavedPlaneCells;
+  std::vector<Vertex> _SavedPlanePoints;
+  std::vector<Cell> _SavedPlaneCells;
 };
 
 
@@ -137,9 +138,9 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureMeshAndSavedMeshData, CreateITKPlaneMeshFi
     // Normals //
     std::cerr << "Comparing normals..." << std::endl;
     int p_id = 0;
-    for ( VC_PointsInMeshIterator point = _in_PlaneMesh->GetPoints()->Begin(); point != _in_PlaneMesh->GetPoints()->End(); ++point ) {
+    for ( ITKPointIterator point = _in_PlaneMesh->GetPoints()->Begin(); point != _in_PlaneMesh->GetPoints()->End(); ++point ) {
 
-        VC_PixelType _in_PlaneMeshNormal;
+        ITKPixel _in_PlaneMeshNormal;
         _in_PlaneMesh->GetPointData(point.Index(), &_in_PlaneMeshNormal);
 
         double ptNorm[3] = {_in_PlaneMeshNormal[0], _in_PlaneMeshNormal[1], _in_PlaneMeshNormal[2]};
@@ -155,14 +156,14 @@ BOOST_FIXTURE_TEST_CASE(CompareFixtureMeshAndSavedMeshData, CreateITKPlaneMeshFi
 
     /// Cells ///
     // Initialize Cell Iterators
-    VC_CellIterator _in_PlaneMeshCell = _in_PlaneMesh->GetCells()->Begin();
+    ITKCellIterator _in_PlaneMeshCell = _in_PlaneMesh->GetCells()->Begin();
 
     int c = 0;
 
     while (_in_PlaneMeshCell != _in_PlaneMesh->GetCells()->End()) {
 
         //Initialize Iterators for Points in a Cell
-        VC_PointsInCellIterator _in_PlaneMeshPoint = _in_PlaneMeshCell.Value()->PointIdsBegin();
+        ITKPointInCellIterator _in_PlaneMeshPoint = _in_PlaneMeshCell.Value()->PointIdsBegin();
 
         int counter = 0;
         //while we have points in the cell

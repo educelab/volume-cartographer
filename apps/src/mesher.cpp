@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
   vc::meshing::OrderedPointSetMesher mesh(inputCloud);
   mesh.compute();
 
-  VC_MeshType::Pointer output = mesh.getOutputMesh();
+  auto output = mesh.getOutputMesh();
   vc::io::plyWriter writer (outfile, output);
 
   exit(EXIT_SUCCESS);

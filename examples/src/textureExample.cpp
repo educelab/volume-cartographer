@@ -18,7 +18,7 @@ int main( int argc, char* argv[] ) {
   vpkg.setActiveSegmentation( argv[2] );
 
   // declare pointer to new Mesh object
-  VC_MeshType::Pointer  inputMesh = VC_MeshType::New();
+  auto inputMesh = volcart::ITKMesh::New();
 
   // try to convert the ply to an ITK mesh
   if ( !volcart::io::PLYReader(vpkg.getMeshPath(), inputMesh)) {
@@ -35,7 +35,7 @@ int main( int argc, char* argv[] ) {
   uvMap.set(3, cv::Vec2d(1,1));
   uvMap.ratio(width, height);
 
-  volcart::texturing::compositeTextureV2 compText(inputMesh, vpkg, uvMap, 1, width, height, VC_Composite_Option::Minimum);
+  volcart::texturing::compositeTextureV2 compText(inputMesh, vpkg, uvMap, 1, width, height, volcart::CompositeOption::Minimum);
 
   volcart::io::objWriter mesh_writer;
   mesh_writer.setPath( "compV2Test.obj" );

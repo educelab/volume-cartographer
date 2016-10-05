@@ -21,15 +21,15 @@ namespace io {
 
   public:
     objWriter();
-    objWriter( boost::filesystem::path outputPath, VC_MeshType::Pointer mesh );
-    objWriter( boost::filesystem::path outputPath, VC_MeshType::Pointer mesh, volcart::UVMap uvMap, cv::Mat uvImg);
+    objWriter( boost::filesystem::path outputPath, ITKMesh::Pointer mesh );
+    objWriter( boost::filesystem::path outputPath, ITKMesh::Pointer mesh, volcart::UVMap uvMap, cv::Mat uvImg);
 
     void setPath( boost::filesystem::path path ) { _outputPath = path; };
 
     void setRendering( volcart::Rendering rendering );
 
     // Set pieces individually
-    void setMesh( VC_MeshType::Pointer mesh ) { _mesh = mesh; };
+    void setMesh( ITKMesh::Pointer mesh ) { _mesh = mesh; };
     void setUVMap( volcart::UVMap uvMap ) { _textCoords = uvMap; };
     void setTexture( cv::Mat uvImg ) { _texture = uvImg; };
 
@@ -48,7 +48,7 @@ namespace io {
 
     std::map<double, cv::Vec3d> _point_links; // Keeps track of what we know about each point in the mesh: [ pointID, (v, vt, vn) ]
 
-    VC_MeshType::Pointer _mesh;
+    ITKMesh::Pointer _mesh;
     volcart::UVMap _textCoords; // UV map for points accessed by point index
     cv::Mat _texture; // output texture image
 

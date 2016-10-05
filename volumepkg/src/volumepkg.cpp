@@ -71,7 +71,7 @@ VolumePkg::VolumePkg(const fs::path& file_location)
 int VolumePkg::initialize()
 {
     if (_readOnly) {
-        VC_ERR_READONLY();
+        volcart::ERR_READONLY();
     }
 
     // Build the directory tree
@@ -154,7 +154,7 @@ void VolumePkg::saveMetadata()
 bool VolumePkg::setSliceData(size_t index, const cv::Mat& slice)
 {
     if (_readOnly) {
-        VC_ERR_READONLY();
+        volcart::ERR_READONLY();
         return false;
     } else {
         return vol_.setSliceData(index, slice);
@@ -168,7 +168,7 @@ bool VolumePkg::setSliceData(size_t index, const cv::Mat& slice)
 std::string VolumePkg::newSegmentation()
 {
     // make a new dir based off the current date and time
-    auto newSegName = VC_DATE_TIME();
+    auto newSegName = volcart::DATE_TIME();
     auto newPath = segs_dir / newSegName;
 
     if (fs::create_directory(newPath)) {
@@ -241,7 +241,7 @@ int VolumePkg::saveMesh(
     fs::path outputName = segs_dir / activeSeg / "cloud.ply";
     volcart::meshing::OrderedPointSetMesher mesher(segmentedCloud) ;
     mesher.compute();
-    VC_MeshType::Pointer mesh = mesher.getOutputMesh();
+    auto mesh = mesher.getOutputMesh();
     volcart::io::plyWriter writer (outputName, mesh);
     writer.write();
     std::cerr << "volcart::volpkg::Mesh file saved." << std::endl;
@@ -249,7 +249,7 @@ int VolumePkg::saveMesh(
 
 }
 
-void VolumePkg::saveMesh(const VC_MeshType::Pointer mesh,
+void VolumePkg::saveMesh(const volcart::ITKMesh::Pointer mesh,
                          const volcart::Texture& texture) const
 {
     volcart::io::objWriter writer;

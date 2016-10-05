@@ -24,14 +24,14 @@ int main( int argc, char* argv[] ) {
   vtkSmartPointer<vtkPLYReader> reader = vtkSmartPointer<vtkPLYReader>::New();
   reader->SetFileName ( "decim.ply" );
   reader->Update();
-  VC_MeshType::Pointer inputMesh = VC_MeshType::New();
+  auto inputMesh = volcart::ITKMesh::New();
   volcart::meshing::vtk2itk( reader->GetOutput(), inputMesh );
 
   // Read the uv map
   vtkSmartPointer<vtkPLYReader> reader2 = vtkSmartPointer<vtkPLYReader>::New();
   reader2->SetFileName ( "uvmap.ply" );
   reader2->Update();
-  VC_MeshType::Pointer uvmap = VC_MeshType::New();
+  auto uvmap = volcart::ITKMesh::New();
   volcart::meshing::vtk2itk( reader2->GetOutput(), uvmap );
 
   // UV map setup
@@ -62,9 +62,9 @@ int main( int argc, char* argv[] ) {
 
   // Calculate uv coordinates
   double u, v;
-  for (VC_CellIterator cell = uvmap->GetCells()->Begin(); cell != uvmap->GetCells()->End(); ++cell ) {
+  for (auto cell = uvmap->GetCells()->Begin(); cell != uvmap->GetCells()->End(); ++cell ) {
 
-    for ( VC_PointsInCellIterator pt = cell.Value()->PointIdsBegin(); pt != cell.Value()->PointIdsEnd(); ++pt ) {
+    for ( auto pt = cell.Value()->PointIdsBegin(); pt != cell.Value()->PointIdsEnd(); ++pt ) {
       double p_id = *pt;
       u = (uvmap->GetPoint(p_id)[0] - min_u) / (max_u - min_u);
       v = (uvmap->GetPoint(p_id)[2] - min_v) / (max_v - min_v);
