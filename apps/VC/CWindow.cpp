@@ -703,8 +703,8 @@ void CWindow::SetPathPointCloud(void)
     fSplineCurve.GetSamplePoints(aSamplePts);
 
     volcart::Point3d point;
-    volcart::OrderedPointSet<volcart::Point3d > aPathCloud;
-    std::vector<volcart::Point3d > points;
+    volcart::OrderedPointSet<volcart::Point3d> aPathCloud;
+    std::vector<volcart::Point3d> points;
     for (size_t i = 0; i < aSamplePts.size(); ++i) {
         point[0] = aSamplePts[i][0];
         point[1] = aSamplePts[i][1];
