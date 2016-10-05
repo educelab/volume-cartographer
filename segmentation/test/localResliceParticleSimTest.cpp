@@ -10,8 +10,6 @@
 using namespace volcart::segmentation;
 namespace tt = boost::test_tools;
 
-// Small struct for a Point because PCL is dumb and doesn't provide handy
-// methods for computing the norm
 struct PointXYZ {
     float x, y, z;
 
