@@ -7,13 +7,13 @@
 #include <boost/lexical_cast.hpp>
 
 #include <boost/filesystem.hpp>
+#include "common/types/OrderedPointSet.h"
+#include "common/types/Point.h"
 #include "common/types/Texture.h"
 #include "common/types/Volume.h"
 #include "common/vc_defines.h"
 #include "external/json.hpp"
 #include "volumepkg/volumepkg_version.h"
-#include "common/types/OrderedPointSet.h"
-#include "common/types/Point.h"
 
 class VolumePkg
 {
@@ -98,10 +98,11 @@ public:
         const volcart::OrderedPointSet<volcart::Point3d>& segmentedCloud) const;
 
     int saveMesh(
-            const volcart::OrderedPointSet<volcart::Point3d>& segmentedCloud) const;
+        const volcart::OrderedPointSet<volcart::Point3d>& segmentedCloud) const;
 
     void saveMesh(
-        const volcart::ITKMesh::Pointer mesh, const volcart::Texture& texture) const;
+        const volcart::ITKMesh::Pointer mesh,
+        const volcart::Texture& texture) const;
 
     void saveTextureData(
         const cv::Mat& texture, const std::string& name = "textured");

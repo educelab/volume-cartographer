@@ -2,9 +2,9 @@
 
 #include <iostream>
 #include "common/types/OrderedPointSet.h"
+#include "segmentation/lrps/common.h"
 #include "segmentation/lrps/fittedcurve.h"
 #include "volumepkg/volumepkg.h"
-#include "segmentation/lrps/common.h"
 
 namespace volcart
 {
@@ -36,10 +36,11 @@ private:
 
     cv::Vec3d estimateNormalAtIndex(const FittedCurve& curve, int32_t index);
 
-    cv::Mat drawParticlesOnSlice(const FittedCurve& curve,
-                                 int32_t sliceIndex,
-                                 int32_t particleIndex = -1,
-                                 bool showSpline = false) const;
+    cv::Mat drawParticlesOnSlice(
+        const FittedCurve& curve,
+        int32_t sliceIndex,
+        int32_t particleIndex = -1,
+        bool showSpline = false) const;
 
     constexpr static double kDefaultMinEnergyGradient = 1e-7;
 };

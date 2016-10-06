@@ -1,12 +1,12 @@
 #pragma once
 
-#include <string>
 #include <array>
-#include <opencv2/core/core.hpp>
+#include <string>
 #include <boost/filesystem.hpp>
+#include <opencv2/core/core.hpp>
 #include "common/types/LRUCache.h"
-#include "common/types/Tensor3D.h"
 #include "common/types/Slice.h"
+#include "common/types/Tensor3D.h"
 
 using Voxel = cv::Vec3d;
 using EigenValue = double;
@@ -26,10 +26,11 @@ public:
 
     Volume() = default;
 
-    Volume(boost::filesystem::path slicePath,
-           int32_t nslices,
-           int32_t sliceWidth,
-           int32_t sliceHeight)
+    Volume(
+        boost::filesystem::path slicePath,
+        int32_t nslices,
+        int32_t sliceWidth,
+        int32_t sliceHeight)
         : slicePath_(slicePath)
         , numSlices_(nslices)
         , sliceWidth_(sliceWidth)
@@ -94,9 +95,8 @@ public:
         return intensityAt(int32_t(v(0)), int32_t(v(1)), int32_t(v(2)));
     }
 
-    uint16_t intensityAt(const int32_t x,
-                         const int32_t y,
-                         const int32_t z) const
+    uint16_t intensityAt(
+        const int32_t x, const int32_t y, const int32_t z) const
     {
         // clang-format off
         if (x < 0 || x >= sliceWidth_ ||
@@ -123,24 +123,27 @@ public:
     // Number of elements in the cache
     size_t getCacheSize() const { return cache_.size(); };
 
-    Slice reslice(const Voxel center,
-                  const cv::Vec3d xvec,
-                  const cv::Vec3d yvec,
-                  int32_t width = 64,
-                  int32_t height = 64) const;
+    Slice reslice(
+        const Voxel center,
+        const cv::Vec3d xvec,
+        const cv::Vec3d yvec,
+        int32_t width = 64,
+        int32_t height = 64) const;
 
-    StructureTensor structureTensorAt(int32_t x,
-                                      int32_t y,
-                                      int32_t z,
-                                      int32_t voxelRadius = 1,
-                                      int32_t gradientKernelSize = 3) const;
+    StructureTensor structureTensorAt(
+        int32_t x,
+        int32_t y,
+        int32_t z,
+        int32_t voxelRadius = 1,
+        int32_t gradientKernelSize = 3) const;
 
-    StructureTensor structureTensorAt(const cv::Point3i index,
-                                      int32_t voxelRadius = 1,
-                                      int32_t gradientKernelSize = 3) const
+    StructureTensor structureTensorAt(
+        const cv::Point3i index,
+        int32_t voxelRadius = 1,
+        int32_t gradientKernelSize = 3) const
     {
-        return structureTensorAt(index.x, index.y, index.z, voxelRadius,
-                                 gradientKernelSize);
+        return structureTensorAt(
+            index.x, index.y, index.z, voxelRadius, gradientKernelSize);
     }
 
     StructureTensor interpolatedStructureTensorAt(
@@ -155,48 +158,51 @@ public:
         int32_t voxelRadius = 1,
         int32_t gradientKernelSize = 3) const
     {
-        return interpolatedStructureTensorAt(index.x, index.y, index.z,
-                                             voxelRadius, gradientKernelSize);
+        return interpolatedStructureTensorAt(
+            index.x, index.y, index.z, voxelRadius, gradientKernelSize);
     }
 
-    EigenPairs eigenPairsAt(int32_t x,
-                            int32_t y,
-                            int32_t z,
-                            int32_t voxelRadius = 1,
-                            int32_t gradientKernelSize = 3) const;
+    EigenPairs eigenPairsAt(
+        int32_t x,
+        int32_t y,
+        int32_t z,
+        int32_t voxelRadius = 1,
+        int32_t gradientKernelSize = 3) const;
 
-    EigenPairs eigenPairsAt(const cv::Point3i index,
-                            int32_t voxelRadius = 1,
-                            int32_t gradientKernelSize = 3) const
+    EigenPairs eigenPairsAt(
+        const cv::Point3i index,
+        int32_t voxelRadius = 1,
+        int32_t gradientKernelSize = 3) const
     {
-        return eigenPairsAt(index.x, index.y, index.z, voxelRadius,
-                            gradientKernelSize);
+        return eigenPairsAt(
+            index.x, index.y, index.z, voxelRadius, gradientKernelSize);
     }
 
-    EigenPairs interpolatedEigenPairsAt(double x,
-                                        double y,
-                                        double z,
-                                        int32_t voxelRadius = 1,
-                                        int32_t gradientKernelSize = 3) const;
+    EigenPairs interpolatedEigenPairsAt(
+        double x,
+        double y,
+        double z,
+        int32_t voxelRadius = 1,
+        int32_t gradientKernelSize = 3) const;
 
-    EigenPairs interpolatedEigenPairsAt(const cv::Point3d index,
-                                        int32_t voxelRadius = 1,
-                                        int32_t gradientKernelSize = 3) const
+    EigenPairs interpolatedEigenPairsAt(
+        const cv::Point3d index,
+        int32_t voxelRadius = 1,
+        int32_t gradientKernelSize = 3) const
     {
-        return interpolatedEigenPairsAt(index.x, index.y, index.z, voxelRadius,
-                                        gradientKernelSize);
+        return interpolatedEigenPairsAt(
+            index.x, index.y, index.z, voxelRadius, gradientKernelSize);
     }
 
     template <typename DType>
-    Tensor3D<DType> getVoxelNeighbors(const cv::Point3i center,
-                                      int32_t rx,
-                                      int32_t ry,
-                                      int32_t rz) const
+    Tensor3D<DType> getVoxelNeighbors(
+        const cv::Point3i center, int32_t rx, int32_t ry, int32_t rz) const
     {
         // Safety checks
-        assert(center.x >= 0 && center.x < sliceWidth_ && center.y >= 0 &&
-               center.y < sliceHeight_ && center.z >= 0 &&
-               center.z < numSlices_ && "center must be inside volume");
+        assert(
+            center.x >= 0 && center.x < sliceWidth_ && center.y >= 0 &&
+            center.y < sliceHeight_ && center.z >= 0 && center.z < numSlices_ &&
+            "center must be inside volume");
 
         Tensor3D<DType> v(2 * rx + 1, 2 * ry + 1, 2 * rz + 1);
         for (int32_t k = center.z - rz, c = 0; k <= center.z + rz; ++k, ++c) {
@@ -220,22 +226,21 @@ public:
     }
 
     template <typename DType>
-    Tensor3D<DType> getVoxelNeighborsCubic(const cv::Point3i center,
-                                           int32_t radius) const
+    Tensor3D<DType> getVoxelNeighborsCubic(
+        const cv::Point3i center, int32_t radius) const
     {
         return getVoxelNeighbors<DType>(center, radius, radius, radius);
     }
 
     template <typename DType>
-    Tensor3D<DType> getVoxelNeighborsInterpolated(const cv::Point3d center,
-                                                  int32_t rx,
-                                                  int32_t ry,
-                                                  int32_t rz) const
+    Tensor3D<DType> getVoxelNeighborsInterpolated(
+        const cv::Point3d center, int32_t rx, int32_t ry, int32_t rz) const
     {
         // Safety checks
-        assert(center.x >= 0 && center.x < sliceWidth_ && center.y >= 0 &&
-               center.y < sliceHeight_ && center.z >= 0 &&
-               center.z < numSlices_ && "center must be inside volume");
+        assert(
+            center.x >= 0 && center.x < sliceWidth_ && center.y >= 0 &&
+            center.y < sliceHeight_ && center.z >= 0 && center.z < numSlices_ &&
+            "center must be inside volume");
 
         Tensor3D<DType> v(2 * rx + 1, 2 * ry + 1, 2 * rz + 1);
         double i, j, k;
@@ -260,11 +265,11 @@ public:
     }
 
     template <typename DType>
-    Tensor3D<DType> getVoxelNeighborsCubicInterpolated(const cv::Point3d center,
-                                                       int32_t radius) const
+    Tensor3D<DType> getVoxelNeighborsCubicInterpolated(
+        const cv::Point3d center, int32_t radius) const
     {
-        return getVoxelNeighborsInterpolated<DType>(center, radius, radius,
-                                                    radius);
+        return getVoxelNeighborsInterpolated<DType>(
+            center, radius, radius, radius);
     }
 
 private:
@@ -275,11 +280,12 @@ private:
     int32_t numSliceCharacters_;
     mutable volcart::LRUCache<int32_t, cv::Mat> cache_;
 
-    Tensor3D<cv::Vec3d> volumeGradient(const Tensor3D<double>& v,
-                                       int32_t gradientKernelSize) const;
+    Tensor3D<cv::Vec3d> volumeGradient(
+        const Tensor3D<double>& v, int32_t gradientKernelSize) const;
 
-    cv::Mat_<double> gradient(const cv::Mat_<double>& input,
-                              GradientAxis axis,
-                              int32_t gradientKernelSize) const;
+    cv::Mat_<double> gradient(
+        const cv::Mat_<double>& input,
+        GradientAxis axis,
+        int32_t gradientKernelSize) const;
 };
 }

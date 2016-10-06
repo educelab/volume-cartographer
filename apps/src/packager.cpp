@@ -4,15 +4,14 @@
 
 #include <iostream>
 
-#include <boost/filesystem.hpp>
-#include <boost/program_options.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/program_options.hpp>
 
+#include "apps/SliceImage.h"
 #include "common/vc_defines.h"
 #include "volumepkg/volumepkg.h"
-#include "apps/SliceImage.h"
-
 
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;
@@ -36,8 +35,9 @@ int main(int argc, char* argv[])
 
         // parsedOptions will hold the values of all parsed options as a Map
         po::variables_map parsedOptions;
-        po::store(po::command_line_parser(argc, argv).options(options).run(),
-                  parsedOptions);
+        po::store(
+            po::command_line_parser(argc, argv).options(options).run(),
+            parsedOptions);
         po::notify(parsedOptions);
 
         // Show the help message

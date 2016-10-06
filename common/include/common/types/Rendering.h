@@ -5,34 +5,36 @@
 
 #include <boost/filesystem.hpp>
 
-#include "common/vc_defines.h"
 #include "common/types/Metadata.h"
 #include "common/types/Texture.h"
+#include "common/vc_defines.h"
 
-namespace volcart {
+namespace volcart
+{
 
-    class Rendering {
-    public:
-        ///// Constructors/Destructors /////
-        Rendering(); // make new
-        Rendering( boost::filesystem::path path ); // load from disk
-        ~Rendering();
+class Rendering
+{
+public:
+    ///// Constructors/Destructors /////
+    Rendering();                              // make new
+    Rendering(boost::filesystem::path path);  // load from disk
+    ~Rendering();
 
-        ///// Metadata /////
-        volcart::Metadata metadata() const;
-        std::string id() const;
+    ///// Metadata /////
+    volcart::Metadata metadata() const;
+    std::string id() const;
 
-        ///// Access Functions /////
-        void setTexture( volcart::Texture texture );
-        volcart::Texture getTexture() const;
+    ///// Access Functions /////
+    void setTexture(volcart::Texture texture);
+    volcart::Texture getTexture() const;
 
-        void setMesh( ITKMesh::Pointer mesh );
-        ITKMesh::Pointer getMesh() const;
+    void setMesh(ITKMesh::Pointer mesh);
+    ITKMesh::Pointer getMesh() const;
 
-    private:
-        volcart::Metadata    _metadata;
+private:
+    volcart::Metadata _metadata;
 
-        volcart::Texture     _texture;
-        ITKMesh::Pointer _mesh;
-    };
+    volcart::Texture _texture;
+    ITKMesh::Pointer _mesh;
+};
 }

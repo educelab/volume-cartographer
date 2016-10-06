@@ -3,54 +3,58 @@
 #pragma once
 
 #include <iostream>
-#include <opencv2/opencv.hpp>
 #include <set>
 #include <common/types/Point.h>
+#include <opencv2/opencv.hpp>
 
-namespace ChaoVis {
+namespace ChaoVis
+{
 
-class EdgeCompareLess {
-
-public:
-	bool operator()( cv::Vec2i nE1,
-					 cv::Vec2i nE2 ) const
-	{
-		if ( nE1[ 0 ] < nE2[ 0 ] ) {
-			return true;
-		} else if ( nE1[ 0 ] == nE2[ 0 ] ) {
-			return ( nE1[ 1 ] < nE2[ 1 ] );
-		} else {
-			return false;
-		}
-	}
-
-}; // class EdgeCompareLess
-
-class CMesh {
+class EdgeCompareLess
+{
 
 public:
-	CMesh( void );
-	~CMesh( void );
+    bool operator()(cv::Vec2i nE1, cv::Vec2i nE2) const
+    {
+        if (nE1[0] < nE2[0]) {
+            return true;
+        } else if (nE1[0] == nE2[0]) {
+            return (nE1[1] < nE2[1]);
+        } else {
+            return false;
+        }
+    }
 
-	// REVISIT - for debugging purpose
-	void Dump( void ) {
-		std::cout << "# of points: " << fPoints.size() << std::endl;
-		std::cout << "# of faces: " << fFaces.size() << std::endl;
-		std::cout << "# of edges: " << fEdges.size() << std::endl;
-	}
+};  // class EdgeCompareLess
 
-//private: // REVISIT - quick and dirty implementation, lack of sets and gets
+class CMesh
+{
+
 public:
-	// point list
-	std::vector< volcart::Point3d > fPoints;
-	// face list
-	std::vector< cv::Vec3i > fFaces;
-	// edge list
-	std::set< cv::Vec2i, EdgeCompareLess > fEdges;
-	// dimensions
-	int fWidth;
-	int fHeight;
+    CMesh(void);
+    ~CMesh(void);
 
-}; // class CMesh
+    // REVISIT - for debugging purpose
+    void Dump(void)
+    {
+        std::cout << "# of points: " << fPoints.size() << std::endl;
+        std::cout << "# of faces: " << fFaces.size() << std::endl;
+        std::cout << "# of edges: " << fEdges.size() << std::endl;
+    }
 
-} // namespace ChaoVis
+    // private: // REVISIT - quick and dirty implementation, lack of sets and
+    // gets
+public:
+    // point list
+    std::vector<volcart::Point3d> fPoints;
+    // face list
+    std::vector<cv::Vec3i> fFaces;
+    // edge list
+    std::set<cv::Vec2i, EdgeCompareLess> fEdges;
+    // dimensions
+    int fWidth;
+    int fHeight;
+
+};  // class CMesh
+
+}  // namespace ChaoVis

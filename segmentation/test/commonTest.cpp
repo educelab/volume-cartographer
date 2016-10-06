@@ -1,11 +1,11 @@
 #define BOOST_TEST_MODULE LocalResliceParticleSimCommon
 
-#include "segmentation/lrps/common.h"
-#include <boost/test/unit_test.hpp>
-#include <boost/test/unit_test_log.hpp>
 #include <iostream>
 #include <numeric>
+#include <boost/test/unit_test.hpp>
+#include <boost/test/unit_test_log.hpp>
 #include <opencv2/core/core.hpp>
+#include "segmentation/lrps/common.h"
 
 using namespace volcart::segmentation;
 
@@ -180,8 +180,8 @@ BOOST_AUTO_TEST_CASE(SizeOneCheckNormalized)
     auto ds = normalizeVector(is);
     BOOST_CHECK_EQUAL(ds.size(), 1);
     for (int32_t i = 0; i < 3; ++i) {
-        BOOST_CHECK_CLOSE(ds.front()(i), expectedResult(i),
-                          floatComparePercentTolerance);
+        BOOST_CHECK_CLOSE(
+            ds.front()(i), expectedResult(i), floatComparePercentTolerance);
     }
 
     // Check that the resulting vector norm is 1
@@ -207,8 +207,8 @@ BOOST_AUTO_TEST_CASE(SizeOne)
     auto testResult = squareDiff(v1, v2);
     BOOST_CHECK_EQUAL(testResult.size(), 1);
     double expectedResult = std::sqrt(3);
-    BOOST_CHECK_CLOSE(testResult[0], expectedResult,
-                      floatComparePercentTolerance);
+    BOOST_CHECK_CLOSE(
+        testResult[0], expectedResult, floatComparePercentTolerance);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

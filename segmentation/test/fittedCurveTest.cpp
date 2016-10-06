@@ -1,9 +1,9 @@
 #define BOOST_TEST_MODULE LocalResliceParticleSimFittedCurve
 
-#include <iostream>
-#include <vector>
-#include <numeric>
 #include <cmath>
+#include <iostream>
+#include <numeric>
+#include <vector>
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
 #include "segmentation/lrps/fittedcurve.h"
@@ -47,8 +47,9 @@ struct CircleFittedCurve {
     {
         std::vector<Voxel> vs;
         for (size_t deg = 0; deg < 360; deg += degreeStep) {
-            vs.emplace_back(radius * std::cos(deg * M_PI / 180.0),
-                            radius * std::sin(deg * M_PI / 180.0), -1);
+            vs.emplace_back(
+                radius * std::cos(deg * M_PI / 180.0),
+                radius * std::sin(deg * M_PI / 180.0), -1);
         };
         _pointCount = vs.size();
         _curve = FittedCurve(vs, -1);
@@ -81,8 +82,8 @@ BOOST_AUTO_TEST_CASE(
     BOOST_CHECK_CLOSE(evenlySpaced[0](1), yConstant, tol);
     for (size_t i = 1; i < evenlySpaced.size(); ++i) {
         BOOST_CHECK_CLOSE(evenlySpaced[i](1), yConstant, tol);
-        BOOST_CHECK_CLOSE(cv::norm(evenlySpaced[i], evenlySpaced[i - 1]),
-                          firstDiff, tol);
+        BOOST_CHECK_CLOSE(
+            cv::norm(evenlySpaced[i], evenlySpaced[i - 1]), firstDiff, tol);
     }
 }
 
@@ -111,8 +112,8 @@ BOOST_AUTO_TEST_CASE(VerifyWeGetTheSamePointsBackFor100PercentResample)
     curve.resample(1.0);
     BOOST_CHECK_EQUAL(curve.points().size(), beforeResamplePoints.size());
     for (size_t i = 0; i < npoints; ++i) {
-        BOOST_CHECK_CLOSE(cv::norm(beforeResamplePoints[i]), cv::norm(curve(i)),
-                          tol);
+        BOOST_CHECK_CLOSE(
+            cv::norm(beforeResamplePoints[i]), cv::norm(curve(i)), tol);
     }
 }
 
@@ -184,8 +185,8 @@ BOOST_AUTO_TEST_CASE(EvenlySampledCircleCurveHasEvenlySpacedPoints)
     auto evenlySpaced = curve.evenlySpacePoints();
     auto firstDiff = cv::norm(evenlySpaced[1], evenlySpaced[0]);
     for (size_t i = 1; i < evenlySpaced.size(); ++i) {
-        BOOST_CHECK_CLOSE(cv::norm(evenlySpaced[i], evenlySpaced[i - 1]),
-                          firstDiff, tol);
+        BOOST_CHECK_CLOSE(
+            cv::norm(evenlySpaced[i], evenlySpaced[i - 1]), firstDiff, tol);
     }
 }
 
@@ -196,8 +197,9 @@ std::vector<double> makeTVals(size_t count)
     std::vector<double> ts(count);
     ts.front() = 0;
     double sum = 0;
-    std::generate(std::begin(ts) + 1, std::end(ts) - 1,
-                  [count, &sum]() { return sum += 1.0 / (count - 1); });
+    std::generate(std::begin(ts) + 1, std::end(ts) - 1, [count, &sum]() {
+        return sum += 1.0 / (count - 1);
+    });
     ts.back() = 1;
     return ts;
 }

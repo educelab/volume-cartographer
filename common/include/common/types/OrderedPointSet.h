@@ -63,7 +63,8 @@ public:
     size_t height() const { return (_width == 0 ? 0 : this->size() / _width); }
 
     // Resize the width
-    void setWidth(size_t width){
+    void setWidth(size_t width)
+    {
         if (_width != 0) {
             auto msg = "Cannot change width if already set";
             throw std::logic_error(msg);

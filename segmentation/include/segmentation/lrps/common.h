@@ -1,9 +1,9 @@
 #pragma once
 
 #include <algorithm>
-#include <opencv2/core/core.hpp>
 #include <tuple>
 #include <vector>
+#include <opencv2/core/core.hpp>
 
 #define BGR_RED cv::Scalar(0, 0, 0xFF)
 #define BGR_GREEN cv::Scalar(0, 0xFF, 0)
@@ -43,8 +43,8 @@ namespace volcart
 namespace segmentation
 {
 template <typename T1, typename T2>
-std::vector<std::pair<T1, T2>> zip(const std::vector<T1>& v1,
-                                   const std::vector<T2>& v2)
+std::vector<std::pair<T1, T2>> zip(
+    const std::vector<T1>& v1, const std::vector<T2>& v2)
 {
     assert(v1.size() == v2.size() && "v1 and v2 must be the same size");
     std::vector<std::pair<T1, T2>> res;
@@ -70,8 +70,8 @@ std::pair<std::vector<T>, std::vector<T>> unzip(
 }
 
 template <typename T>
-std::vector<double> normalizeVector(const std::vector<T>& v, double newMin = 0,
-                                    double newMax = 1)
+std::vector<double> normalizeVector(
+    const std::vector<T>& v, double newMin = 0, double newMax = 1)
 {
     // Check if values are already in desired range
     if (std::all_of(std::begin(v), std::end(v), [newMin, newMax](T e) {
@@ -111,23 +111,23 @@ std::vector<cv::Vec<double, Len>> normalizeVector(
     const std::vector<cv::Vec<T, Len>> vs)
 {
     std::vector<cv::Vec<double, Len>> new_vs(vs.size());
-    std::transform(begin(vs), end(vs), std::begin(new_vs),
-                   [](const cv::Vec<T, Len> v) {
-                       cv::Vec<double, Len> dv(v);
-                       if (cv::norm(dv) < 1e-5) {
-                           return dv;
-                       } else {
-                           return dv / cv::norm(dv);
-                       }
-                   });
+    std::transform(
+        begin(vs), end(vs), std::begin(new_vs), [](const cv::Vec<T, Len> v) {
+            cv::Vec<double, Len> dv(v);
+            if (cv::norm(dv) < 1e-5) {
+                return dv;
+            } else {
+                return dv / cv::norm(dv);
+            }
+        });
     return new_vs;
 }
 
 // Some useful utility functions for doing math on std::vectors
-std::vector<double> squareDiff(const std::vector<Voxel>& v1,
-                               const std::vector<Voxel>& v2);
+std::vector<double> squareDiff(
+    const std::vector<Voxel>& v1, const std::vector<Voxel>& v2);
 
-double sumSquareDiff(const std::vector<double>& v1,
-                     const std::vector<double>& v2);
+double sumSquareDiff(
+    const std::vector<double>& v1, const std::vector<double>& v2);
 }
 }

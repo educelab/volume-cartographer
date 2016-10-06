@@ -1,12 +1,12 @@
 #define BOOST_TEST_MODULE LocalResliceParticleSimCubicSpline
 
-#include <iostream>
-#include <vector>
-#include <numeric>
 #include <cmath>
+#include <iostream>
+#include <numeric>
+#include <vector>
+#include <boost/test/floating_point_comparison.hpp>
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
-#include <boost/test/floating_point_comparison.hpp>
 #include "segmentation/lrps/spline.h"
 
 using namespace volcart::segmentation;
@@ -61,8 +61,9 @@ struct ParabolicCubicSpline {
         std::iota(std::begin(xs), std::end(xs), _splineStart);
 
         // Fill y values
-        std::transform(std::begin(xs), std::end(xs), std::begin(ys),
-                       [](double e) { return e * e; });
+        std::transform(
+            std::begin(xs), std::end(xs), std::begin(ys),
+            [](double e) { return e * e; });
 
         return CubicSpline<double>(xs, ys);
     }
@@ -82,8 +83,8 @@ BOOST_AUTO_TEST_CASE(CanGenerateCorrectTValues)
     // Start at 2 so we skip the first pair
     double firstDiff = ts[1] - ts[0];
     for (size_t i = 2; i < ts.size(); ++i) {
-        BOOST_REQUIRE_CLOSE(firstDiff, ts[i] - ts[i - 1],
-                            floatComparePercentTolerance);
+        BOOST_REQUIRE_CLOSE(
+            firstDiff, ts[i] - ts[i - 1], floatComparePercentTolerance);
     }
     for (const auto t : ts) {
         BOOST_REQUIRE(t >= 0 && t <= 1);
@@ -142,8 +143,9 @@ std::vector<double> generateTVals(size_t count)
     std::vector<double> ts(count);
     ts.front() = 0;
     double sum = 0;
-    std::generate(std::begin(ts) + 1, std::end(ts) - 1,
-                  [count, &sum]() { return sum += 1.0 / (count - 1); });
+    std::generate(std::begin(ts) + 1, std::end(ts) - 1, [count, &sum]() {
+        return sum += 1.0 / (count - 1);
+    });
     ts.back() = 1;
     return ts;
 }

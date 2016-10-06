@@ -6,29 +6,28 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "common/vc_defines.h"
-#include "testing/testingUtils.h"
-#include "meshing/CalculateNormals.h"
 #include "common/shapes/Plane.h"
+#include "common/vc_defines.h"
+#include "meshing/CalculateNormals.h"
+#include "testing/testingUtils.h"
 
 struct PlaneFixture {
-    PlaneFixture() {
-        _in_Mesh = _Plane.itkMesh();
-    }
+    PlaneFixture() { _in_Mesh = _Plane.itkMesh(); }
     ~PlaneFixture(){};
 
     volcart::shapes::Plane _Plane;
     volcart::ITKMesh::Pointer _in_Mesh, _out_Mesh;
 };
 
-BOOST_FIXTURE_TEST_CASE(ComputePlaneNormalsTest, PlaneFixture){
+BOOST_FIXTURE_TEST_CASE(ComputePlaneNormalsTest, PlaneFixture)
+{
 
-    volcart::meshing::CalculateNormals calcNorm( _in_Mesh );
+    volcart::meshing::CalculateNormals calcNorm(_in_Mesh);
     calcNorm.compute();
     _out_Mesh = calcNorm.getMesh();
 
-    for(auto p_it = _out_Mesh->GetPoints()->Begin(); p_it != _out_Mesh->GetPoints()->End(); ++p_it)
-    {
+    for (auto p_it = _out_Mesh->GetPoints()->Begin();
+         p_it != _out_Mesh->GetPoints()->End(); ++p_it) {
         volcart::ITKPixel out_Normal, in_Normal;
         _out_Mesh->GetPointData(p_it.Index(), &out_Normal);
         _in_Mesh->GetPointData(p_it.Index(), &in_Normal);

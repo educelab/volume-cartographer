@@ -1,9 +1,9 @@
 #define BOOST_TEST_MODULE PointTest
 
-#include "common/types/Point.h"
-#include "testing/testingUtils.h"
 #include <array>
 #include <boost/test/unit_test.hpp>
+#include "common/types/Point.h"
+#include "testing/testingUtils.h"
 
 using namespace volcart;
 using namespace volcart::testing;

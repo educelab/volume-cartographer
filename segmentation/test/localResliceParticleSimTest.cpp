@@ -1,11 +1,11 @@
 #define BOOST_TEST_MODULE LocalResliceSegmentation
 
 #include <cmath>
+#include <boost/test/floating_point_comparison.hpp>
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
-#include <boost/test/floating_point_comparison.hpp>
-#include "volumepkg/volumepkg.h"
 #include "segmentation/lrps/localResliceParticleSim.h"
+#include "volumepkg/volumepkg.h"
 
 using namespace volcart::segmentation;
 namespace tt = boost::test_tools;
@@ -23,9 +23,9 @@ std::ostream& operator<<(std::ostream& s, PointXYZ p)
 
 inline float NormL2(const PointXYZ p1, const PointXYZ p2)
 {
-    return std::sqrt((p1.x - p2.x) * (p1.x - p2.x) +
-                     (p1.y - p2.y) * (p1.y - p2.y) +
-                     (p1.z - p2.z) * (p1.z - p2.z));
+    return std::sqrt(
+        (p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y) +
+        (p1.z - p2.z) * (p1.z - p2.z));
 }
 
 // Main fixture containing the LocalResliceSegmentation object
@@ -51,7 +51,8 @@ BOOST_FIXTURE_TEST_CASE(DefaultSegmentationTest, LocalResliceSegmentationFix)
     _pkg.setActiveSegmentation(startingCloudSeg);
     auto startingCloud = _pkg.openCloud();
 
-    volcart::OrderedPointSet<volcart::Point3d> seededCloud(startingCloud.width());
+    volcart::OrderedPointSet<volcart::Point3d> seededCloud(
+        startingCloud.width());
     auto seededPoints = startingCloud.getRow(0);
 
     // Run segmentation

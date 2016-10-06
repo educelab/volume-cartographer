@@ -34,39 +34,43 @@ extern "C" {
 
 typedef struct LinearSolver LinearSolver;
 
-LinearSolver *EIG_linear_solver_new(
-  unsigned long num_rows,
-  unsigned long num_columns,
-  unsigned long num_right_hand_sides);
+LinearSolver* EIG_linear_solver_new(
+    unsigned long num_rows,
+    unsigned long num_columns,
+    unsigned long num_right_hand_sides);
 
-LinearSolver *EIG_linear_least_squares_solver_new(
-  unsigned long num_rows,
-  unsigned long num_columns,
-  unsigned long num_right_hand_sides);
+LinearSolver* EIG_linear_least_squares_solver_new(
+    unsigned long num_rows,
+    unsigned long num_columns,
+    unsigned long num_right_hand_sides);
 
-void EIG_linear_solver_delete(LinearSolver *solver);
+void EIG_linear_solver_delete(LinearSolver* solver);
 
 /* Variables (x). Any locking must be done before matrix construction. */
 
-void EIG_linear_solver_variable_set(LinearSolver *solver, unsigned long rhs, unsigned long index, double value);
-double EIG_linear_solver_variable_get(LinearSolver *solver, unsigned long rhs, unsigned long index);
-void EIG_linear_solver_variable_lock(LinearSolver *solver, unsigned long index);
-void EIG_linear_solver_variable_unlock(LinearSolver *solver, unsigned long index);
+void EIG_linear_solver_variable_set(
+    LinearSolver* solver, unsigned long rhs, unsigned long index, double value);
+double EIG_linear_solver_variable_get(
+    LinearSolver* solver, unsigned long rhs, unsigned long index);
+void EIG_linear_solver_variable_lock(LinearSolver* solver, unsigned long index);
+void EIG_linear_solver_variable_unlock(
+    LinearSolver* solver, unsigned long index);
 
 /* Matrix (A) and right hand side (b) */
 
-void EIG_linear_solver_matrix_add(LinearSolver *solver, unsigned long row, unsigned long col, double value);
-void EIG_linear_solver_right_hand_side_add(LinearSolver *solver, unsigned long rhs, unsigned long index, double value);
+void EIG_linear_solver_matrix_add(
+    LinearSolver* solver, unsigned long row, unsigned long col, double value);
+void EIG_linear_solver_right_hand_side_add(
+    LinearSolver* solver, unsigned long rhs, unsigned long index, double value);
 
 /* Solve. Repeated solves are supported, by changing b between solves. */
 
-bool EIG_linear_solver_solve(LinearSolver *solver);
+bool EIG_linear_solver_solve(LinearSolver* solver);
 
 /* Debugging */
 
-void EIG_linear_solver_print_matrix(LinearSolver *solver);
+void EIG_linear_solver_print_matrix(LinearSolver* solver);
 
 #ifdef __cplusplus
 }
 #endif
-

@@ -18,22 +18,23 @@ using namespace volcart::testing;
 
 /************************************************************************************
  *                                                                                  *
- *  ParsingHelpersTest.cpp - tests the functionality of                             *
- *  /v-c/testing/src/parsinHelpers.cpp. The ultimate goal of this file is           *
- *  the following:                                                                  *
+ *  ParsingHelpersTest.cpp - tests the functionality of *
+ *  /v-c/testing/src/parsinHelpers.cpp. The ultimate goal of this file is *
+ *  the following: *
  *                                                                                  *
- *        1. check whether a parsed OBJ file matches the data structure that        *
- *        generated it.                                                             *
+ *        1. check whether a parsed OBJ file matches the data structure that *
+ *        generated it. *
  *                                                                                  *
- *        2. check whether a parsed PLY file matches the data structure that        *
- *        generated it.                                                             *
+ *        2. check whether a parsed PLY file matches the data structure that *
+ *        generated it. *
  *                                                                                  *
- *     No required inputs for this sample test. All test objects are created        *
- *     internally.                                                                  *
+ *     No required inputs for this sample test. All test objects are created *
+ *     internally. *
  *                                                                                  *
- * Test-Specific Output:                                                            *
- *     Specific test output only given on failure of any tests. Otherwise, general  *
- *     number of testing errors is output.                                          *
+ * Test-Specific Output: *
+ *     Specific test output only given on failure of any tests. Otherwise,
+ * general  *
+ *     number of testing errors is output. *
  * **********************************************************************************/
 
 struct PlaneFixture {

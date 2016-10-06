@@ -52,7 +52,7 @@ vtkSmartPointer<vtkPolyData> ShapePrimitive::vtkMesh()
     vtkSmartPointer<vtkPolyData> output = vtkSmartPointer<vtkPolyData>::New();
 
     // points + normals
-    vtkPoints *points = vtkPoints::New();
+    vtkPoints* points = vtkPoints::New();
     vtkSmartPointer<vtkDoubleArray> pointNormals =
         vtkSmartPointer<vtkDoubleArray>::New();
     pointNormals->SetNumberOfComponents(3);
@@ -65,16 +65,16 @@ vtkSmartPointer<vtkPolyData> ShapePrimitive::vtkMesh()
                             _points[p_id].nz};
 
         // set the point and normal values for each point
-        points->InsertPoint(p_id, _points[p_id].x, _points[p_id].y,
-                            _points[p_id].z);
+        points->InsertPoint(
+            p_id, _points[p_id].x, _points[p_id].y, _points[p_id].z);
         pointNormals->SetTuple(p_id, ptNorm);
     }
 
     // polys
-    vtkCellArray *polys = vtkCellArray::New();
+    vtkCellArray* polys = vtkCellArray::New();
     for (unsigned long c_id = 0; c_id < _cells.size(); ++c_id) {
 
-        vtkIdList *poly = vtkIdList::New();
+        vtkIdList* poly = vtkIdList::New();
         poly->InsertNextId(_cells[c_id].v1);
         poly->InsertNextId(_cells[c_id].v2);
         poly->InsertNextId(_cells[c_id].v3);
@@ -91,7 +91,8 @@ vtkSmartPointer<vtkPolyData> ShapePrimitive::vtkMesh()
 }
 
 // Return Point Cloud
-volcart::OrderedPointSet<volcart::Point3d>ShapePrimitive::orderedPoints(bool noisify)
+volcart::OrderedPointSet<volcart::Point3d> ShapePrimitive::orderedPoints(
+    bool noisify)
 {
 
     volcart::OrderedPointSet<volcart::Point3d> output(_orderedWidth);
@@ -103,12 +104,11 @@ volcart::OrderedPointSet<volcart::Point3d>ShapePrimitive::orderedPoints(bool noi
     int width_cnt = 0;
     for (auto p_id : _points) {
         volcart::Point3d point;
-      if(width_cnt == output.width())
-      {
-          output.pushRow(temp_row);
-          temp_row.clear();
-          width_cnt = 0;
-      }
+        if (width_cnt == output.width()) {
+            output.pushRow(temp_row);
+            temp_row.clear();
+            width_cnt = 0;
+        }
 
         point[0] = p_id.x;
         point[1] = p_id.y;
@@ -122,12 +122,11 @@ volcart::OrderedPointSet<volcart::Point3d>ShapePrimitive::orderedPoints(bool noi
         temp_row.push_back(point);
         ++point_counter;
         ++width_cnt;
-
-
     }
     return output;
 }
-volcart::PointSet<volcart::Point3d>ShapePrimitive::unorderedPoints(bool noisify)
+volcart::PointSet<volcart::Point3d> ShapePrimitive::unorderedPoints(
+    bool noisify)
 {
 
     volcart::PointSet<volcart::Point3d> output;
@@ -136,17 +135,17 @@ volcart::PointSet<volcart::Point3d>ShapePrimitive::unorderedPoints(bool noisify)
     for (auto p_id : _points) {
         volcart::Point3d point;
 
-            point[0] = p_id.x;
-            point[1] = p_id.y;
+        point[0] = p_id.x;
+        point[1] = p_id.y;
 
-            if (noisify && (point_counter % 2 == 0)) {
-                point[2] = p_id.z + offset;
-                point[1] = p_id.z;  // added this to take the points out of the x-z
-                // plane to test impact of mls
-            } else {
-                point[2] = p_id.z;
-            }
-            ++point_counter;
+        if (noisify && (point_counter % 2 == 0)) {
+            point[2] = p_id.z + offset;
+            point[1] = p_id.z;  // added this to take the points out of the x-z
+            // plane to test impact of mls
+        } else {
+            point[2] = p_id.z;
+        }
+        ++point_counter;
         output.push_back(point);
     }
 
@@ -154,14 +153,14 @@ volcart::PointSet<volcart::Point3d>ShapePrimitive::unorderedPoints(bool noisify)
 }
 
 // Return Point Cloud
-volcart::OrderedPointSet<volcart::Point6d>ShapePrimitive::orderedPointNormal()
+volcart::OrderedPointSet<volcart::Point6d> ShapePrimitive::orderedPointNormal()
 {
 
     volcart::OrderedPointSet<volcart::Point6d> output(_orderedWidth);
     std::vector<volcart::Point6d> temp_row;
-    for (auto p_id :_points) {
+    for (auto p_id : _points) {
         volcart::Point6d point;
-        for(int i = 0; i < _orderedWidth; i++){
+        for (int i = 0; i < _orderedWidth; i++) {
             point[0] = p_id.x;
             point[1] = p_id.y;
             point[2] = p_id.z;
@@ -172,7 +171,6 @@ volcart::OrderedPointSet<volcart::Point6d>ShapePrimitive::orderedPointNormal()
             temp_row.push_back(point);
         }
         output.pushRow(temp_row);
-
     }
 
     return output;
@@ -183,18 +181,16 @@ volcart::PointSet<volcart::Point6d> ShapePrimitive::unOrderedPointNormal()
     volcart::PointSet<volcart::Point6d> output;
     for (auto p_id : _points) {
         volcart::Point6d point;
-            point[0] = p_id.x;
-            point[1] = p_id.y;
-            point[2] = p_id.z;
-            point[3] = p_id.nx;
-            point[4] = p_id.ny;
-            point[5] = p_id.nz;
+        point[0] = p_id.x;
+        point[1] = p_id.y;
+        point[2] = p_id.z;
+        point[3] = p_id.nx;
+        point[4] = p_id.ny;
+        point[5] = p_id.nz;
         output.push_back(point);
-
     }
     return output;
 }
-
 
 ///// Mesh Generation Helper Functions /////
 void ShapePrimitive::_add_vertex(double x, double y, double z)
@@ -250,10 +246,8 @@ void ShapePrimitive::_add_cell(int v1, int v2, int v3)
     _update_normal(v3, nx, ny, nz);
 }
 
-void ShapePrimitive::_update_normal(int vertex,
-                                    double nx_in,
-                                    double ny_in,
-                                    double nz_in)
+void ShapePrimitive::_update_normal(
+    int vertex, double nx_in, double ny_in, double nz_in)
 {
     // recalculate average (unaverage, add new component, recalculate average)
     Vertex v = _points[vertex];
