@@ -2,16 +2,16 @@
 // Chao Du 2014 Dec
 #pragma once
 
-#include <QtWidgets>
-#include <QRect>
 #include <QCloseEvent>
 #include <QMessageBox>
+#include <QRect>
+#include <QtWidgets>
 #include <opencv2/opencv.hpp>
 
-#include "VCNewGuiHeader.h"
-#include "mathUtils.h"
 #include "CBSpline.h"
 #include "CXCurve.h"
+#include "VCNewGuiHeader.h"
+#include "mathUtils.h"
 #include "ui_VCMain.h"
 
 #include "segmentation/lrps/localResliceParticleSim.h"
@@ -21,22 +21,25 @@ static constexpr int VOLPKG_SUPPORTED_VERSION = 3;
 
 class VolumePkg;
 
-namespace ChaoVis {
+namespace ChaoVis
+{
 
 class CVolumeViewerWithCurve;
 
-class CWindow : public QMainWindow {
+class CWindow : public QMainWindow
+{
 
     Q_OBJECT
 
 public:
-    enum EWindowState { WindowStateSegment,     // under segmentation state
-                        WindowStateRefine,      // under mesh refinemen state
-                        WindowStateDrawPath,    // draw new path
-                        WindowStateSegmentation,// segmentation mode
-                        WindowStateIdle };      // idle
-    enum SaveResponse : bool { Cancelled,
-                               Continue};
+    enum EWindowState {
+        WindowStateSegment,       // under segmentation state
+        WindowStateRefine,        // under mesh refinemen state
+        WindowStateDrawPath,      // draw new path
+        WindowStateSegmentation,  // segmentation mode
+        WindowStateIdle
+    };  // idle
+    enum SaveResponse : bool { Cancelled, Continue };
 
     typedef struct SSegParams_tag {
         int fNumIters;
@@ -52,59 +55,59 @@ public:
     } SSegParams;
 
 public:
-    CWindow( void );
+    CWindow(void);
     CWindow(QRect windowSize);
-    ~CWindow( void );
+    ~CWindow(void);
 
 protected:
-    void mousePressEvent( QMouseEvent *nEvent );
-    void keyPressEvent( QKeyEvent *event );
+    void mousePressEvent(QMouseEvent* nEvent);
+    void keyPressEvent(QKeyEvent* event);
 
 private:
-    void CreateWidgets( void );
-    void CreateMenus( void );
-    void CreateActions( void );
+    void CreateWidgets(void);
+    void CreateMenus(void);
+    void CreateActions(void);
 
-    void closeEvent(QCloseEvent *closing);
+    void closeEvent(QCloseEvent* closing);
 
-    void setWidgetsEnabled( bool state );
+    void setWidgetsEnabled(bool state);
 
-    bool InitializeVolumePkg( const std::string &nVpkgPath );
-    SaveResponse SaveDialog( void );
+    bool InitializeVolumePkg(const std::string& nVpkgPath);
+    SaveResponse SaveDialog(void);
 
-    void UpdateView( void );
-    void ChangePathItem( std::string segID );
+    void UpdateView(void);
+    void ChangePathItem(std::string segID);
 
-    void SplitCloud( void );
-    void DoSegmentation( void );
-    void CleanupSegmentation ( void );
-    bool SetUpSegParams( void );
+    void SplitCloud(void);
+    void DoSegmentation(void);
+    void CleanupSegmentation(void);
+    bool SetUpSegParams(void);
 
-    void SetUpCurves( void );
-    void SetCurrentCurve( int nCurrentSliceIndex );
+    void SetUpCurves(void);
+    void SetCurrentCurve(int nCurrentSliceIndex);
 
-    void OpenSlice( void );
+    void OpenSlice(void);
 
-    void InitPathList( void );
+    void InitPathList(void);
 
-    void SetPathPointCloud( void );
+    void SetPathPointCloud(void);
 
-    void OpenVolume( void );
-    void CloseVolume( void );
+    void OpenVolume(void);
+    void CloseVolume(void);
 
-    void ResetPointCloud( void );
+    void ResetPointCloud(void);
 
 private slots:
-    void Open( void );
-    void Close( void );
-    void About( void );
-    void SavePointCloud( void );
+    void Open(void);
+    void Close(void);
+    void About(void);
+    void SavePointCloud(void);
 
-    void OnNewPathClicked( void );
-    void OnPathItemClicked( QListWidgetItem* nItem );
+    void OnNewPathClicked(void);
+    void OnPathItemClicked(QListWidgetItem* nItem);
 
-    void TogglePenTool( void );
-    void ToggleSegmentationTool( void );
+    void TogglePenTool(void);
+    void ToggleSegmentationTool(void);
 
     void OnEdtAlphaValChange();
     void OnEdtBetaValChange();
@@ -115,82 +118,85 @@ private slots:
     void OnEdtWindowWidthChange();
     void OnOptIncludeMiddleClicked(bool clicked);
 
-    //void OnEdtSampleDistValChange( QString nText );
-    void OnEdtStartingSliceValChange( QString nText );
+    // void OnEdtSampleDistValChange( QString nText );
+    void OnEdtStartingSliceValChange(QString nText);
     void OnEdtEndingSliceValChange();
 
-    void OnBtnStartSegClicked( void );
+    void OnBtnStartSegClicked(void);
 
-    void OnEdtImpactRange( int nImpactRange);
+    void OnEdtImpactRange(int nImpactRange);
 
-    void OnLoadAnySlice( int nSliceIndex );
-    void OnLoadNextSlice( void );
-    void OnLoadPrevSlice( void );
+    void OnLoadAnySlice(int nSliceIndex);
+    void OnLoadNextSlice(void);
+    void OnLoadPrevSlice(void);
 
-    void OnPathChanged( void );
+    void OnPathChanged(void);
 
 private:
-	// data model
+    // data model
     EWindowState fWindowState;
 
-    VolumePkg   *fVpkg;
-    QString     fVpkgPath;
+    VolumePkg* fVpkg;
+    QString fVpkgPath;
     std::string fVpkgName;
-    bool        fVpkgChanged;
+    bool fVpkgChanged;
 
     std::string fSegmentationId;
 
-    int         fMinSegIndex;
-    int         fMaxSegIndex;
-    int         fPathOnSliceIndex; // effectively equivalent to the starting slice index
+    int fMinSegIndex;
+    int fMaxSegIndex;
+    int fPathOnSliceIndex;  // effectively equivalent to the starting slice
+                            // index
 
     // for drawing mode
-    CBSpline    fSplineCurve; // the curve at current slice
+    CBSpline fSplineCurve;  // the curve at current slice
     // for editing mode
-    CXCurve     fIntersectionCurve;
-    std::vector< CXCurve > fIntersections; // curves of all the slices
-//    std::vector< CXCurve > fCurvesLower; // neighboring curves, { -1, -2, ... }
-//    std::vector< CXCurve > fCurvesUpper; // neighboring curves, { +1, +2, ... }
+    CXCurve fIntersectionCurve;
+    std::vector<CXCurve> fIntersections;  // curves of all the slices
+    //    std::vector< CXCurve > fCurvesLower; // neighboring curves, { -1, -2,
+    //    ... }
+    //    std::vector< CXCurve > fCurvesUpper; // neighboring curves, { +1, +2,
+    //    ... }
 
-    SSegParams  fSegParams;
+    SSegParams fSegParams;
 
     volcart::OrderedPointSet<volcart::Point3d> fMasterCloud;
     volcart::OrderedPointSet<volcart::Point3d> fUpperPart;
     std::vector<volcart::Point3d> fStartingPath;
 
     // window components
-    QMenu       *fFileMenu;
-    QMenu       *fHelpMenu;
+    QMenu* fFileMenu;
+    QMenu* fHelpMenu;
 
-    QAction     *fOpenVolAct;
-    QAction     *fSavePointCloudAct;
-    QAction     *fExitAct;
-    QAction     *fAboutAct;
+    QAction* fOpenVolAct;
+    QAction* fSavePointCloudAct;
+    QAction* fExitAct;
+    QAction* fAboutAct;
 
-    CVolumeViewerWithCurve *fVolumeViewerWidget;
-    QListWidget *fPathListWidget;
-    QPushButton *fPenTool; // REVISIT - change me to QToolButton
-    QPushButton *fSegTool;
+    CVolumeViewerWithCurve* fVolumeViewerWidget;
+    QListWidget* fPathListWidget;
+    QPushButton* fPenTool;  // REVISIT - change me to QToolButton
+    QPushButton* fSegTool;
 
-    QLineEdit   *fEdtWindowWidth;
-    QLineEdit   *fEdtDistanceWeight;
-    QLineEdit   *fEdtAlpha;
-    QLineEdit   *fEdtBeta;
-    QLineEdit   *fEdtDelta;
-    QLineEdit   *fEdtK1;
-    QLineEdit   *fEdtK2;
-    QCheckBox   *fOptIncludeMiddle;
+    QLineEdit* fEdtWindowWidth;
+    QLineEdit* fEdtDistanceWeight;
+    QLineEdit* fEdtAlpha;
+    QLineEdit* fEdtBeta;
+    QLineEdit* fEdtDelta;
+    QLineEdit* fEdtK1;
+    QLineEdit* fEdtK2;
+    QCheckBox* fOptIncludeMiddle;
 
-    QLineEdit   *fEdtStartIndex;
-    QLineEdit   *fEdtEndIndex;
+    QLineEdit* fEdtStartIndex;
+    QLineEdit* fEdtEndIndex;
 
-    QSlider     *fEdtImpactRange;
-    QLabel      *fLabImpactRange;
+    QSlider* fEdtImpactRange;
+    QLabel* fLabImpactRange;
 
-    Ui_VCMainWindow    ui;
+    Ui_VCMainWindow ui;
 
-    QStatusBar  *statusBar;
+    QStatusBar* statusBar;
 
-}; // class CWindow
+};  // class CWindow
 
-} // namespace ChaoVis
+}  // namespace ChaoVis

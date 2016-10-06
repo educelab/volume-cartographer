@@ -15,7 +15,7 @@
 
 namespace fs = boost::filesystem;
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     if (argc < 3) {
         std::cout << "Usage: vc_area volpkg seg-id" << std::endl;
@@ -44,10 +44,10 @@ int main(int argc, char *argv[])
         exit(-1);
     };
 
-    vtkPolyData *smoothVTK = vtkPolyData::New();
+    vtkPolyData* smoothVTK = vtkPolyData::New();
     volcart::meshing::itk2vtk(mesh, smoothVTK);
 
-    vtkSmoothPolyDataFilter *smooth = vtkSmoothPolyDataFilter::New();
+    vtkSmoothPolyDataFilter* smooth = vtkSmoothPolyDataFilter::New();
     smooth->SetInputData(smoothVTK);
     smooth->SetBoundarySmoothing(true);
     smooth->SetNumberOfIterations(10);

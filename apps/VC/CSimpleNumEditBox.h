@@ -4,31 +4,33 @@
 
 #include <QTextEdit>
 
-namespace ChaoVis {
+namespace ChaoVis
+{
 
-class CSimpleNumEditBox : public QTextEdit {
+class CSimpleNumEditBox : public QTextEdit
+{
 
     Q_OBJECT
 
 public:
-    CSimpleNumEditBox( QWidget *parent = 0 );
-    ~CSimpleNumEditBox( void );
+    CSimpleNumEditBox(QWidget* parent = 0);
+    ~CSimpleNumEditBox(void);
 
-    int GetImageIndexFromText( void );
-    int GetImageIndex( void );
-    void SetImageIndex( int nImageIndex );
+    int GetImageIndexFromText(void);
+    int GetImageIndex(void);
+    void SetImageIndex(int nImageIndex);
 
 protected:
-    void keyPressEvent( QKeyEvent *event );
+    void keyPressEvent(QKeyEvent* event);
 
 private slots:
 
 signals:
-    void SendSignalOnTextChanged( void );
+    void SendSignalOnTextChanged(void);
 
 private:
     int fImageIndex;
 
-}; // class CSimpleNumEditBox
+};  // class CSimpleNumEditBox
 
-} // namespace ChaoVis
+}  // namespace ChaoVis

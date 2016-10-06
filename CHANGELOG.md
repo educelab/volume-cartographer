@@ -19,6 +19,7 @@ packages to version 3.
     - (OrderedPointSet) Added getRow() and copyRows() members (!96)
 - misc
     - Add clang-format style, utilities, and hooks (!87, !93)
+    - clang-format all of the things! (!98)
 
 v2.6.0
 ------

@@ -47,7 +47,7 @@ BOOST_AUTO_TEST_CASE(SetWidth)
 }
 
 BOOST_FIXTURE_TEST_CASE(
-        ResetPointSetClearsAndSetsWidthToZero, Point3iOrderedPointSet)
+    ResetPointSetClearsAndSetsWidthToZero, Point3iOrderedPointSet)
 {
     ps.reset();
     BOOST_CHECK_EQUAL(ps.width(), 0);

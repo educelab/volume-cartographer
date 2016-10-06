@@ -29,7 +29,8 @@ Texture::Texture(std::string path)
     // To-Do: Load the UV Map
 
     // Load the texture images
-    for (size_t i_id = 0; i_id < _metadata.get<size_t>("number-of-images"); ++i_id) {
+    for (size_t i_id = 0; i_id < _metadata.get<size_t>("number-of-images");
+         ++i_id) {
         std::string i_path =
             _path.string() + "/" + std::to_string(i_id) + ".png";
         _images.push_back(cv::imread(i_path, -1));

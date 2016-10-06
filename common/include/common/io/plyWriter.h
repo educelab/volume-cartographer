@@ -22,9 +22,10 @@ class plyWriter
 public:
     plyWriter(){};
     plyWriter(boost::filesystem::path outputPath, ITKMesh::Pointer mesh);
-    plyWriter(boost::filesystem::path outputPath,
-              ITKMesh::Pointer mesh,
-              volcart::Texture texture);
+    plyWriter(
+        boost::filesystem::path outputPath,
+        ITKMesh::Pointer mesh,
+        volcart::Texture texture);
 
     void setPath(boost::filesystem::path path) { _outputPath = path; };
     void setMesh(ITKMesh::Pointer mesh) { _mesh = mesh; };

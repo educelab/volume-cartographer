@@ -119,9 +119,7 @@ int main(int argc, char* argv[])
     auto methodStr = opts["method"].as<std::string>();
     std::string lower;
     std::transform(
-        std::begin(methodStr),
-        std::end(methodStr),
-        std::back_inserter(lower),
+        std::begin(methodStr), std::end(methodStr), std::back_inserter(lower),
         ::tolower);
     std::cout << "Segmentation method: " << lower << std::endl;
     if (lower == "stps") {
@@ -141,7 +139,8 @@ int main(int argc, char* argv[])
         std::cerr << "[error]: Volume package is version "
                   << volpkg.getVersion()
                   << " but this program requires a version "
-                  << std::to_string(VOLPKG_SUPPORTED_VERSION) << "." << std::endl;
+                  << std::to_string(VOLPKG_SUPPORTED_VERSION) << "."
+                  << std::endl;
         std::exit(1);
     }
 
@@ -197,13 +196,11 @@ int main(int argc, char* argv[])
     auto segPath = masterCloud.getRow(startIndex);
 
     // Filter -1 points
-    segPath.erase(std::remove_if(
-                    std::begin(segPath),
-                    std::end(segPath),
-                    [](volcart::Point3d e) {
-                        return e[2] == -1;
-                    }),
-                  std::end(segPath));
+    segPath.erase(
+        std::remove_if(
+            std::begin(segPath), std::end(segPath),
+            [](volcart::Point3d e) { return e[2] == -1; }),
+        std::end(segPath));
 
     // Starting paths must have the same number of points as the input width to
     // maintain ordering
@@ -241,20 +238,8 @@ int main(int argc, char* argv[])
         // Run segmentation using path as our starting points
         vs::LocalResliceSegmentation segmenter(volpkg);
         mutableCloud = segmenter.segmentPath(
-            segPath,
-            startIndex,
-            endIndex,
-            numIters,
-            step,
-            alpha,
-            k1,
-            k2,
-            beta,
-            delta,
-            distanceWeight,
-            considerPrevious,
-            dumpVis,
-            visualize);
+            segPath, startIndex, endIndex, numIters, step, alpha, k1, k2, beta,
+            delta, distanceWeight, considerPrevious, dumpVis, visualize);
     }
 
     // Update the master cloud with the points we saved and concat the new

@@ -1,15 +1,15 @@
+#include "segmentation/lrps/localResliceParticleSim.h"
+#include <iomanip>
+#include <limits>
 #include <list>
 #include <tuple>
-#include <limits>
-#include <iomanip>
-#include <boost/filesystem.hpp>
 #include <boost/circular_buffer.hpp>
-#include "segmentation/lrps/localResliceParticleSim.h"
+#include <boost/filesystem.hpp>
 #include "segmentation/lrps/common.h"
-#include "segmentation/lrps/fittedcurve.h"
-#include "segmentation/lrps/intensitymap.h"
 #include "segmentation/lrps/derivative.h"
 #include "segmentation/lrps/energymetrics.h"
+#include "segmentation/lrps/fittedcurve.h"
+#include "segmentation/lrps/intensitymap.h"
 
 using namespace volcart::segmentation;
 namespace fs = boost::filesystem;
@@ -19,7 +19,8 @@ using std::end;
 volcart::OrderedPointSet<volcart::Point3d> exportAsPCD(
     const std::vector<std::vector<Voxel>>& points);
 
-volcart::OrderedPointSet<volcart::Point3d> LocalResliceSegmentation::segmentPath(
+volcart::OrderedPointSet<volcart::Point3d>
+LocalResliceSegmentation::segmentPath(
     std::vector<volcart::Point3d> cloud,
     int32_t startIndex,
     int32_t endIndex,
@@ -46,8 +47,9 @@ volcart::OrderedPointSet<volcart::Point3d> LocalResliceSegmentation::segmentPath
 
     // Check that incoming points are all within volume bounds. If not, then
     // return empty cloud back
-    if (std::any_of(begin(currentVs), end(currentVs),
-                    [vol](Voxel v) { return !vol.isInBounds(v); })) {
+    if (std::any_of(begin(currentVs), end(currentVs), [vol](Voxel v) {
+            return !vol.isInBounds(v);
+        })) {
         std::cerr << "[info]: one or more particles is outside volume bounds, "
                      "halting segmentation"
                   << std::endl;
@@ -70,7 +72,7 @@ volcart::OrderedPointSet<volcart::Point3d> LocalResliceSegmentation::segmentPath
     for (int32_t zIndex = startIndex;
          zIndex <= endIndex && zIndex < pkg_.getNumberOfSlices();
          zIndex += step) {
-         //std::cout << "slice: " << zIndex << std::endl;
+        // std::cout << "slice: " << zIndex << std::endl;
 
         // Directory to dump vis
         std::stringstream ss;
@@ -89,8 +91,9 @@ volcart::OrderedPointSet<volcart::Point3d> LocalResliceSegmentation::segmentPath
             ss << std::setw(std::to_string(endIndex).size())
                << std::setfill('0') << zIndex << "_chain.png";
             const auto wholeChainPath = wholeChainDir / ss.str();
-            cv::imwrite(wholeChainPath.string(),
-                        drawParticlesOnSlice(currentCurve, zIndex, -1, true));
+            cv::imwrite(
+                wholeChainPath.string(),
+                drawParticlesOnSlice(currentCurve, zIndex, -1, true));
         }
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -116,8 +119,9 @@ volcart::OrderedPointSet<volcart::Point3d> LocalResliceSegmentation::segmentPath
             const cv::Point2i center{resliceIntensities.cols / 2,
                                      resliceIntensities.rows / 2};
             const int32_t nextLayerIndex = center.y + step;
-            IntensityMap map(resliceIntensities, step, peakDistanceWeight,
-                             shouldIncludeMiddle);
+            IntensityMap map(
+                resliceIntensities, step, peakDistanceWeight,
+                shouldIncludeMiddle);
             const auto allMaxima = map.sortedMaxima();
             maps.push_back(map);
 
@@ -177,11 +181,11 @@ volcart::OrderedPointSet<volcart::Point3d> LocalResliceSegmentation::segmentPath
 
             // - Sort paired index-Voxel in increasing local internal energy
             auto pairs = zip(indices, squareDiff(currentVs, nextVs));
-            std::sort(begin(pairs), end(pairs),
-                      [](std::pair<int32_t, double> p1,
-                         std::pair<int32_t, double> p2) {
-                          return p1.second < p2.second;
-                      });
+            std::sort(
+                begin(pairs), end(pairs), [](std::pair<int32_t, double> p1,
+                                             std::pair<int32_t, double> p2) {
+                    return p1.second < p2.second;
+                });
 
             // - Go through the sorted list in reverse order, optimizing each
             // particle. If we find an optimum, then start over with the new
@@ -230,9 +234,9 @@ volcart::OrderedPointSet<volcart::Point3d> LocalResliceSegmentation::segmentPath
         // Take initial second derivative
         auto secondDeriv = d2(nextVs);
         std::vector<double> normDeriv2(secondDeriv.size());
-        std::transform(begin(secondDeriv) + 1, end(secondDeriv) - 1,
-                       begin(normDeriv2),
-                       [](Voxel d) { return cv::norm(d) * cv::norm(d); });
+        std::transform(
+            begin(secondDeriv) + 1, end(secondDeriv) - 1, begin(normDeriv2),
+            [](Voxel d) { return cv::norm(d) * cv::norm(d); });
 
         // Don't resettle points at the beginning or end of the chain
         auto maxVal =
@@ -249,9 +253,9 @@ volcart::OrderedPointSet<volcart::Point3d> LocalResliceSegmentation::segmentPath
 
             // Re-evaluate second derivative of new curve
             secondDeriv = d2(nextVs);
-            std::transform(begin(secondDeriv), end(secondDeriv),
-                           begin(normDeriv2),
-                           [](Voxel d) { return cv::norm(d) * cv::norm(d); });
+            std::transform(
+                begin(secondDeriv), end(secondDeriv), begin(normDeriv2),
+                [](Voxel d) { return cv::norm(d) * cv::norm(d); });
 
             // Don't resettle points at the beginning or end of the chain
             maxVal =
@@ -260,8 +264,9 @@ volcart::OrderedPointSet<volcart::Point3d> LocalResliceSegmentation::segmentPath
 
         // Check if any points in nextVs are outside volume boundaries. If so,
         // stop iterating and dump the resulting pointcloud.
-        if (std::any_of(begin(nextVs), end(nextVs),
-                        [vol](Voxel v) { return !vol.isInBounds(v); })) {
+        if (std::any_of(begin(nextVs), end(nextVs), [vol](Voxel v) {
+                return !vol.isInBounds(v);
+            })) {
             std::cout
                 << "Stopping because segmentation is outside volume bounds"
                 << std::endl;
@@ -351,14 +356,15 @@ volcart::OrderedPointSet<volcart::Point3d> exportAsPCD(
     return cloud;
 }
 
-cv::Mat LocalResliceSegmentation::drawParticlesOnSlice(const FittedCurve& curve,
-                                                       int32_t sliceIndex,
-                                                       int32_t particleIndex,
-                                                       bool showSpline) const
+cv::Mat LocalResliceSegmentation::drawParticlesOnSlice(
+    const FittedCurve& curve,
+    int32_t sliceIndex,
+    int32_t particleIndex,
+    bool showSpline) const
 {
     auto pkgSlice = pkg_.volume().getSliceDataCopy(sliceIndex);
-    pkgSlice.convertTo(pkgSlice, CV_8UC3,
-                       1.0 / std::numeric_limits<uint8_t>::max());
+    pkgSlice.convertTo(
+        pkgSlice, CV_8UC3, 1.0 / std::numeric_limits<uint8_t>::max());
     cv::cvtColor(pkgSlice, pkgSlice, CV_GRAY2BGR);
 
     // Draw circles on the pkgSlice window for each point
@@ -370,8 +376,9 @@ cv::Mat LocalResliceSegmentation::drawParticlesOnSlice(const FittedCurve& curve,
     // Only highlight a point if particleIndex isn't default -1
     if (particleIndex != -1) {
         const Voxel particle = curve(particleIndex);
-        cv::circle(pkgSlice, {int32_t(particle(0)), int32_t(particle(1))},
-                   (showSpline ? 2 : 1), BGR_RED, -1);
+        cv::circle(
+            pkgSlice, {int32_t(particle(0)), int32_t(particle(1))},
+            (showSpline ? 2 : 1), BGR_RED, -1);
     }
 
     // Superimpose interpolated currentCurve on window

@@ -25,7 +25,7 @@ int main(int argc, char** argv)
 
     fs::path volpkgPath{argv[1]};
     VolumePkg pkg{volpkgPath};
-    if ( pkg.getVersion() >= 3 ) {
+    if (pkg.getVersion() >= 3) {
         std::cout << "Volume package is already V3 or later. "
                   << "Update not required." << std::endl;
         return EXIT_SUCCESS;
@@ -35,8 +35,9 @@ int main(int argc, char** argv)
         pkg.setActiveSegmentation(seg);
         std::cout << "Processing: " << pkg.getActiveSegPath() << std::endl;
         auto inputName = pkg.getActiveSegPath().string() + "/cloud.pcd";
-        pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
-        if(pcl::io::loadPCDFile<pcl::PointXYZRGB>(inputName, *cloud) == -1){
+        pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(
+            new pcl::PointCloud<pcl::PointXYZRGB>);
+        if (pcl::io::loadPCDFile<pcl::PointXYZRGB>(inputName, *cloud) == -1) {
             std::cerr << "Can't load file: " << inputName << std::endl;
             continue;
         };
@@ -68,7 +69,7 @@ int main(int argc, char** argv)
         }
 
         // Mesh the cloud if possible
-        if ( ps.height() > 1 ) {
+        if (ps.height() > 1) {
             pkg.saveMesh(ps);
         }
     }

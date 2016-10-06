@@ -2,16 +2,13 @@
 // Chao Du Sept. 2014
 #include "CMesh.h"
 
-namespace ChaoVis {
+namespace ChaoVis
+{
 
 // constructor
-CMesh::CMesh( void )
-{
-}
+CMesh::CMesh(void) {}
 
 // destructor
-CMesh::~CMesh( void )
-{
-}
+CMesh::~CMesh(void) {}
 
-} // namespace ChaoVis
+}  // namespace ChaoVis

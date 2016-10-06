@@ -4,42 +4,47 @@
 
 #include "texturing/simpleUV.h"
 
-namespace volcart {
-    namespace texturing {
-        volcart::UVMap simpleUV(ITKMesh::Pointer mesh, int width, int height) {
+namespace volcart
+{
+namespace texturing
+{
+volcart::UVMap simpleUV(ITKMesh::Pointer mesh, int width, int height)
+{
 
-            volcart::UVMap uvMap;
-            unsigned long pointID, ArrayX, ArrayY;
-            double u, v;
+    volcart::UVMap uvMap;
+    unsigned long pointID, ArrayX, ArrayY;
+    double u, v;
 
-            // Account for zero indexing of points
-            double maxIndexX = (double)(width - 1);
-            double maxIndexY = (double)(height - 1);
+    // Account for zero indexing of points
+    double maxIndexX = (double)(width - 1);
+    double maxIndexY = (double)(height - 1);
 
-            // Generate UV coord for each point in mesh
-            ITKPointIterator point = mesh->GetPoints()->Begin();
-            while ( point != mesh->GetPoints()->End() ) {
+    // Generate UV coord for each point in mesh
+    ITKPointIterator point = mesh->GetPoints()->Begin();
+    while (point != mesh->GetPoints()->End()) {
 
-                pointID = point.Index();
+        pointID = point.Index();
 
-                // Assume that the input vertices can be ordered into a 2D array of size width * height
-                // Calculate the point's 2D array position [ArrayX, ArrayY] based on its pointID
-                ArrayX = pointID % width;
-                ArrayY = (pointID - ArrayX) / width;
+        // Assume that the input vertices can be ordered into a 2D array of size
+        // width * height
+        // Calculate the point's 2D array position [ArrayX, ArrayY] based on its
+        // pointID
+        ArrayX = pointID % width;
+        ArrayY = (pointID - ArrayX) / width;
 
-                // Calculate the point's UV position
-                u =  (double) ArrayX / maxIndexX;
-                v =  (double) ArrayY / maxIndexY;
+        // Calculate the point's UV position
+        u = (double)ArrayX / maxIndexX;
+        v = (double)ArrayY / maxIndexY;
 
-                cv::Vec2d uv( u, v );
+        cv::Vec2d uv(u, v);
 
-                // Add the uv coordinates into our map at the point index specified
-                uvMap.set( pointID, uv );
+        // Add the uv coordinates into our map at the point index specified
+        uvMap.set(pointID, uv);
 
-                ++point;
-            }
+        ++point;
+    }
 
-            return uvMap;
-        };
-    }; // texturing
-}; // volcart
+    return uvMap;
+};
+};  // texturing
+};  // volcart

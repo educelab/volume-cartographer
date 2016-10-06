@@ -7,8 +7,8 @@
 #include <fstream>
 #include <iostream>
 
-#include "common/vc_defines.h"
 #include "boost/filesystem/path.hpp"
+#include "common/vc_defines.h"
 
 namespace volcart
 {

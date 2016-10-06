@@ -9,27 +9,28 @@
 
 /************************************************************************************
  *                                                                                  *
- *  MetadataTest.cpp - tests the functionality of /v-c/common/datatypes/Metadata.*  *
- *  The ultimate goal of this file is the following:                                *
+ *  MetadataTest.cpp - tests the functionality of
+ * /v-c/common/datatypes/Metadata.*  *
+ *  The ultimate goal of this file is the following: *
  *                                                                                  *
- *  Check that we are able to create a Metadata, retrieve/set key-value pairs       *
- *  appropriately, and serialize to and read from disk                              *
+ *  Check that we are able to create a Metadata, retrieve/set key-value pairs *
+ *  appropriately, and serialize to and read from disk *
  *                                                                                  *
- *  This file is broken up into testing fixtures which initialize the               *
- *  objects used in each of the three test cases.                                   *
+ *  This file is broken up into testing fixtures which initialize the *
+ *  objects used in each of the three test cases. *
  *                                                                                  *
- *  1. Set/GetMetadata                                                              *
- *  2. IOMetadata                                                                   *
+ *  1. Set/GetMetadata *
+ *  2. IOMetadata *
  *                                                                                  *
- * Input:                                                                           *
- *     No required inputs for this sample test.                                     *
+ * Input: *
+ *     No required inputs for this sample test. *
  *                                                                                  *
- * Test-Specific Output:                                                            *
- *     Specific test output only given on failure of any tests. Otherwise, general  *
- *     number of testing errors is output.                                          *
+ * Test-Specific Output: *
+ *     Specific test output only given on failure of any tests. Otherwise,
+ * general  *
+ *     number of testing errors is output. *
  *                                                                                  *
  * **********************************************************************************/
-
 
 /***************
  *
@@ -39,11 +40,15 @@
 
 struct EmptyMetadataFixture {
 
-    EmptyMetadataFixture(){
+    EmptyMetadataFixture()
+    {
         std::cerr << "Creating empty Metadata fixture..." << std::endl;
     }
 
-    ~EmptyMetadataFixture(){ std::cerr << "Destroying empty Metadata fixture..." << std::endl;}
+    ~EmptyMetadataFixture()
+    {
+        std::cerr << "Destroying empty Metadata fixture..." << std::endl;
+    }
 
     volcart::Metadata _metadata;
     int i = 1;
@@ -53,14 +58,18 @@ struct EmptyMetadataFixture {
 
 struct FilledMetadataFixture {
 
-    FilledMetadataFixture(){
+    FilledMetadataFixture()
+    {
         std::cerr << "Creating filled Metadata fixture..." << std::endl;
         _metadata.set("int", i);
         _metadata.set("double", d);
         _metadata.set("string", s);
     }
 
-    ~FilledMetadataFixture(){ std::cerr << "Destroying filled Metadata fixture..." << std::endl;}
+    ~FilledMetadataFixture()
+    {
+        std::cerr << "Destroying filled Metadata fixture..." << std::endl;
+    }
 
     volcart::Metadata _metadata;
     int i = 1;
@@ -75,22 +84,24 @@ struct FilledMetadataFixture {
  ***************/
 
 // Set/Get metadata
-BOOST_FIXTURE_TEST_CASE(SetGetMetadata, EmptyMetadataFixture) {
+BOOST_FIXTURE_TEST_CASE(SetGetMetadata, EmptyMetadataFixture)
+{
     // int
     _metadata.set("int", i);
-    BOOST_CHECK_EQUAL( _metadata.get<int>("int"), i);
+    BOOST_CHECK_EQUAL(_metadata.get<int>("int"), i);
 
     // double
     _metadata.set("double", d);
-    BOOST_CHECK_EQUAL( _metadata.get<double>("double"), d);
+    BOOST_CHECK_EQUAL(_metadata.get<double>("double"), d);
 
     // string
     _metadata.set("string", s);
-    BOOST_CHECK_EQUAL( _metadata.get<std::string>("string"), s);
+    BOOST_CHECK_EQUAL(_metadata.get<std::string>("string"), s);
 }
 
 // Write/Read metadata
-BOOST_FIXTURE_TEST_CASE(IOMetadata, FilledMetadataFixture) {
+BOOST_FIXTURE_TEST_CASE(IOMetadata, FilledMetadataFixture)
+{
 
     // Save the Metadata to file
     _metadata.setPath("FilledMetadata.json");
@@ -100,7 +111,10 @@ BOOST_FIXTURE_TEST_CASE(IOMetadata, FilledMetadataFixture) {
     volcart::Metadata readMetadata("FilledMetadata.json");
 
     // Check that what we read matches what we expect
-    BOOST_CHECK_EQUAL( readMetadata.get<int>("int"), _metadata.get<int>("int") );
-    BOOST_CHECK_EQUAL( readMetadata.get<double>("double"), _metadata.get<double>("double") );
-    BOOST_CHECK_EQUAL( readMetadata.get<std::string>("string"), _metadata.get<std::string>("string") );
+    BOOST_CHECK_EQUAL(readMetadata.get<int>("int"), _metadata.get<int>("int"));
+    BOOST_CHECK_EQUAL(
+        readMetadata.get<double>("double"), _metadata.get<double>("double"));
+    BOOST_CHECK_EQUAL(
+        readMetadata.get<std::string>("string"),
+        _metadata.get<std::string>("string"));
 }

@@ -7,50 +7,54 @@
  *          Saved file will be read in by the smoothNormalsTest.cpp file under
  *          v-c/testing/meshing.
  *
- * Note: Uses a smoothing factor of 2, which is mirrored in the corresponding test.
- *       Creates an obj file for each of the derived shapes after calling smoothNormals().
+ * Note: Uses a smoothing factor of 2, which is mirrored in the corresponding
+ * test.
+ *       Creates an obj file for each of the derived shapes after calling
+ * smoothNormals().
  */
 
 #include "common/io/objWriter.h"
-#include "meshing/smoothNormals.h"
-#include "common/vc_defines.h"
-#include "common/shapes/Plane.h"
 #include "common/shapes/Arch.h"
-#include "common/shapes/Cube.h"
-#include "common/shapes/Sphere.h"
 #include "common/shapes/Cone.h"
+#include "common/shapes/Cube.h"
+#include "common/shapes/Plane.h"
+#include "common/shapes/Sphere.h"
+#include "common/vc_defines.h"
+#include "meshing/smoothNormals.h"
 
+int main()
+{
 
-int main(){
-
-    //smoothing factor
+    // smoothing factor
     double factor = 2;
 
-    //Declare shape objects
+    // Declare shape objects
     volcart::shapes::Plane Plane;
     volcart::shapes::Cube Cube;
     volcart::shapes::Arch Arch;
     volcart::shapes::Sphere Sphere;
     volcart::shapes::Cone Cone;
 
-    //Declare our obj writer
+    // Declare our obj writer
     volcart::io::objWriter mesh_writer;
 
     ///////////
     // Plane //
     ///////////
 
-    mesh_writer.setPath( "PlaneWithSmoothedNormals.obj" );
-    mesh_writer.setMesh( volcart::meshing::smoothNormals( Plane.itkMesh(), factor ) );
+    mesh_writer.setPath("PlaneWithSmoothedNormals.obj");
+    mesh_writer.setMesh(
+        volcart::meshing::smoothNormals(Plane.itkMesh(), factor));
     mesh_writer.write();
 
     //////////
     // Cube //
     //////////
 
-    //using our writer;
-    mesh_writer.setPath( "CubeWithSmoothedNormals.obj" );
-    mesh_writer.setMesh( volcart::meshing::smoothNormals(Cube.itkMesh(), factor) );
+    // using our writer;
+    mesh_writer.setPath("CubeWithSmoothedNormals.obj");
+    mesh_writer.setMesh(
+        volcart::meshing::smoothNormals(Cube.itkMesh(), factor));
     mesh_writer.write();
 
     //////////
@@ -58,7 +62,8 @@ int main(){
     //////////
 
     mesh_writer.setPath("ArchWithSmoothedNormals.obj");
-    mesh_writer.setMesh( volcart::meshing::smoothNormals( Arch.itkMesh(), factor ) );
+    mesh_writer.setMesh(
+        volcart::meshing::smoothNormals(Arch.itkMesh(), factor));
     mesh_writer.write();
 
     ////////////
@@ -66,7 +71,8 @@ int main(){
     ////////////
 
     mesh_writer.setPath("SphereWithSmoothedNormals.obj");
-    mesh_writer.setMesh( volcart::meshing::smoothNormals( Sphere.itkMesh(), factor) );
+    mesh_writer.setMesh(
+        volcart::meshing::smoothNormals(Sphere.itkMesh(), factor));
     mesh_writer.write();
 
     //////////
@@ -74,9 +80,9 @@ int main(){
     //////////
 
     mesh_writer.setPath("ConeWithSmoothedNormals.obj");
-    mesh_writer.setMesh( volcart::meshing::smoothNormals( Cone.itkMesh(), factor) );
+    mesh_writer.setMesh(
+        volcart::meshing::smoothNormals(Cone.itkMesh(), factor));
     mesh_writer.write();
 
     return EXIT_SUCCESS;
-
 }

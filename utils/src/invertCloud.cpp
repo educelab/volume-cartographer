@@ -33,15 +33,17 @@ int main(int argc, char* argv[])
     std::cout << input_path << std::endl;
 
     // Load the cloud
-    volcart::OrderedPointSet<volcart::Point3d > input;
-    input = volcart::PointSetIO<volcart::Point3d> ::ReadOrderedPointSet(input_path.string());
+    volcart::OrderedPointSet<volcart::Point3d> input;
+    input = volcart::PointSetIO<volcart::Point3d>::ReadOrderedPointSet(
+        input_path.string());
 
-    for (auto pt :input) {
+    for (auto pt : input) {
         if (pt[2] != -1)
             pt[2] = vpkg.getNumberOfSlices() - 1 - pt[2];
     }
 
-    volcart::PointSetIO<volcart::Point3d >::WriteOrderedPointSet(output_path.string(), input);
+    volcart::PointSetIO<volcart::Point3d>::WriteOrderedPointSet(
+        output_path.string(), input);
 
     return 0;
 }  // end main

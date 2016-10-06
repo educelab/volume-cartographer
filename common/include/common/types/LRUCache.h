@@ -1,7 +1,7 @@
 #pragma once
 
-#include <unordered_map>
 #include <list>
+#include <unordered_map>
 
 /*
  * A cache of objects implementing the least-recently-used algorithm
@@ -25,10 +25,12 @@ public:
 
     LRUCache() : capacity_(kDefaultCapacity) {}
     LRUCache(const int64_t capacity) : capacity_(capacity) {}
-    void setCapacity(const int64_t newCapacity) {
+    void setCapacity(const int64_t newCapacity)
+    {
 
         if (newCapacity <= 0)
-            throw std::invalid_argument("Cannot create cache with capacity <= 0");
+            throw std::invalid_argument(
+                "Cannot create cache with capacity <= 0");
         else
             capacity_ = newCapacity;
 
@@ -40,7 +42,7 @@ public:
             items_.pop_back();
         }
     }
-    
+
     int64_t capacity(void) const { return capacity_; }
     size_t size(void) const { return lookup_.size(); }
 
@@ -69,7 +71,7 @@ public:
         items_.push_front(TPair(k, v));
         lookup_[k] = std::begin(items_);
 
-        if ( int64_t(lookup_.size()) > capacity_) {
+        if (int64_t(lookup_.size()) > capacity_) {
             auto last = std::end(items_);
             last--;
             lookup_.erase(last->first);

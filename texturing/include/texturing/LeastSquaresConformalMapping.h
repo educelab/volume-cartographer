@@ -8,39 +8,42 @@
 #include <iostream>
 
 #include <Eigen/Geometry>
-#include "common/vc_defines.h"
 #include "common/types/UVMap.h"
+#include "common/vc_defines.h"
 
-namespace volcart {
-  namespace texturing {
+namespace volcart
+{
+namespace texturing
+{
 
-    class LeastSquaresConformalMapping {
-    public:
-      LeastSquaresConformalMapping(){};
-      LeastSquaresConformalMapping( ITKMesh::Pointer input );
+class LeastSquaresConformalMapping
+{
+public:
+    LeastSquaresConformalMapping(){};
+    LeastSquaresConformalMapping(ITKMesh::Pointer input);
 
-      // Input/Output
-      void setMesh( ITKMesh::Pointer input );
-      ITKMesh::Pointer getMesh();
-      volcart::UVMap getUVMap();
+    // Input/Output
+    void setMesh(ITKMesh::Pointer input);
+    ITKMesh::Pointer getMesh();
+    volcart::UVMap getUVMap();
 
-      // Processing
-      void compute();
+    // Processing
+    void compute();
 
-    private:
-      void _fillEigenMatrices();
-      void _emptyEigenMatrices();
+private:
+    void _fillEigenMatrices();
+    void _emptyEigenMatrices();
 
-      double _area(const Eigen::MatrixXd& v, const Eigen::MatrixXi& f);
-      double _startingArea;
+    double _area(const Eigen::MatrixXd& v, const Eigen::MatrixXi& f);
+    double _startingArea;
 
-      ITKMesh::Pointer _mesh;
-      Eigen::MatrixXd _vertices;
-      Eigen::MatrixXi _faces;
-      Eigen::MatrixXd _vertices_UV;
-    };
+    ITKMesh::Pointer _mesh;
+    Eigen::MatrixXd _vertices;
+    Eigen::MatrixXi _faces;
+    Eigen::MatrixXd _vertices_UV;
+};
 
-  } // texturing
-} // volcart
+}  // texturing
+}  // volcart
 
-#endif // VC_USE_LIBIGL
+#endif  // VC_USE_LIBIGL

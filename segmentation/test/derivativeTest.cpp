@@ -136,8 +136,8 @@ BOOST_AUTO_TEST_SUITE_END()
 
 ////////////////////////////////////////////////////////////////////////////////
 // y = x^2 d1 testing
-BOOST_FIXTURE_TEST_SUITE(YEqualsXSquaredD1Test,
-                         YEqualsXSquaredDoubleVectorFixture)
+BOOST_FIXTURE_TEST_SUITE(
+    YEqualsXSquaredD1Test, YEqualsXSquaredDoubleVectorFixture)
 
 // Forward difference error is given by:
 //     error = - (h / 2) * f''(c)
@@ -207,8 +207,8 @@ BOOST_AUTO_TEST_SUITE_END()
 
 ////////////////////////////////////////////////////////////////////////////////
 // y = x^2 d2 testing
-BOOST_FIXTURE_TEST_SUITE(YEqualsXSquaredD2Test,
-                         YEqualsXSquaredDoubleVectorFixture)
+BOOST_FIXTURE_TEST_SUITE(
+    YEqualsXSquaredD2Test, YEqualsXSquaredDoubleVectorFixture)
 
 BOOST_AUTO_TEST_CASE(YEqualsXSquaredD2Forward)
 {

@@ -3,14 +3,14 @@
 #pragma once
 
 #include <QCheckBox>
+#include <QCheckBox>
 #include <vector>
 #include <opencv2/opencv.hpp>
-#include <QCheckBox>
 #include "CBSpline.h"
 #include "CVolumeViewer.h"
 #include "CXCurve.h"
-namespace ChaoVis {
-
+namespace ChaoVis
+{
 
 // REVISIT - NOTE - since there are two modes, edit and draw, for the
 // application,

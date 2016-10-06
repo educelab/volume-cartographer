@@ -12,12 +12,12 @@
 #include "common/vc_defines.h"
 #include "volumepkg/volumepkg.h"
 
-#include "common/util/meshMath.h"
-#include "common/io/objWriter.h"
 #include "common/io/PLYReader.h"
+#include "common/io/objWriter.h"
 #include "common/io/plyWriter.h"
-#include "meshing/smoothNormals.h"
+#include "common/util/meshMath.h"
 #include "meshing/ACVD.h"
+#include "meshing/smoothNormals.h"
 #include "texturing/AngleBasedFlattening.h"
 #include "texturing/compositeTextureV2.h"
 
@@ -132,7 +132,8 @@ int main(int argc, char* argv[])
     if (vpkg.getVersion() != VOLPKG_SUPPORTED_VERSION) {
         std::cerr << "ERROR: Volume package is version " << vpkg.getVersion()
                   << " but this program requires a version "
-                  << std::to_string(VOLPKG_SUPPORTED_VERSION) << "." << std::endl;
+                  << std::to_string(VOLPKG_SUPPORTED_VERSION) << "."
+                  << std::endl;
         return EXIT_FAILURE;
     }
     vpkg.volume().setCacheMemoryInBytes(systemMemorySize());
@@ -151,10 +152,14 @@ int main(int argc, char* argv[])
 
     // Calculate sampling density
     double voxelsize = vpkg.getVoxelSize();
-    double sa = volcart::meshMath::SurfaceArea( input ) * (voxelsize * voxelsize) * (0.001 * 0.001); // convert vx^2 -> mm^2;
+    double sa = volcart::meshMath::SurfaceArea(input) *
+                (voxelsize * voxelsize) *
+                (0.001 * 0.001);  // convert vx^2 -> mm^2;
     double densityFactor = 50;
     uint16_t numberOfVertices = std::round(densityFactor * sa);
-    numberOfVertices = (numberOfVertices < CLEANER_MIN_REQ_POINTS) ? CLEANER_MIN_REQ_POINTS : numberOfVertices;
+    numberOfVertices = (numberOfVertices < CLEANER_MIN_REQ_POINTS)
+                           ? CLEANER_MIN_REQ_POINTS
+                           : numberOfVertices;
 
     // Convert to polydata
     auto vtkMesh = vtkSmartPointer<vtkPolyData>::New();
@@ -163,38 +168,42 @@ int main(int argc, char* argv[])
     // Decimate using ACVD
     std::cout << "Resampling mesh..." << std::endl;
     auto acvdMesh = vtkSmartPointer<vtkPolyData>::New();
-    volcart::meshing::ACVD(vtkMesh, acvdMesh, numberOfVertices );
+    volcart::meshing::ACVD(vtkMesh, acvdMesh, numberOfVertices);
 
     // Merge Duplicates
-    // Note: This merging has to be the last in the process chain for some really weird reason. - SP
+    // Note: This merging has to be the last in the process chain for some
+    // really weird reason. - SP
     auto Cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
-    Cleaner->SetInputData( acvdMesh );
+    Cleaner->SetInputData(acvdMesh);
     Cleaner->Update();
 
     auto itkACVD = volcart::ITKMesh::New();
-    volcart::meshing::vtk2itk( Cleaner->GetOutput(), itkACVD );
+    volcart::meshing::vtk2itk(Cleaner->GetOutput(), itkACVD);
 
     // ABF flattening
     std::cout << "Computing parameterization..." << std::endl;
     volcart::texturing::AngleBasedFlattening abf(itkACVD);
-    //abf.setABFMaxIterations(5);
+    // abf.setABFMaxIterations(5);
     abf.compute();
 
     // Get uv map
     volcart::UVMap uvMap = abf.getUVMap();
-    int width = std::ceil( uvMap.ratio().width );
-    int height = std::ceil( (double) width / uvMap.ratio().aspect );
+    int width = std::ceil(uvMap.ratio().width);
+    int height = std::ceil((double)width / uvMap.ratio().aspect);
 
-    volcart::texturing::compositeTextureV2 result(itkACVD, vpkg, uvMap, radius, width, height, aFilterOption, aDirectionOption);
+    volcart::texturing::compositeTextureV2 result(
+        itkACVD, vpkg, uvMap, radius, width, height, aFilterOption,
+        aDirectionOption);
 
     // Setup rendering
     volcart::Rendering rendering;
-    rendering.setTexture( result.texture() );
-    rendering.setMesh( itkACVD );
+    rendering.setTexture(result.texture());
+    rendering.setMesh(itkACVD);
 
     if (outputPath.extension() == ".PLY" || outputPath.extension() == ".ply") {
         std::cout << "Writing to PLY..." << std::endl;
-        volcart::io::plyWriter writer(outputPath.string(), input, result.texture());
+        volcart::io::plyWriter writer(
+            outputPath.string(), input, result.texture());
         writer.write();
     } else if (
         outputPath.extension() == ".OBJ" || outputPath.extension() == ".obj") {
