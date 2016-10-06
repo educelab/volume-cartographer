@@ -454,8 +454,8 @@ void CWindow::ChangePathItem(std::string segID)
     // load proper point cloud
     try {
         fMasterCloud = fVpkg->openCloud();
-    } catch (volcart::IOException& e) {
-        fMasterCloud = volcart::OrderedPointSet<volcart::Point3d>();
+    } catch (const volcart::IOException&) {
+        fMasterCloud.reset();
     }
     SetUpCurves();
 
@@ -795,8 +795,8 @@ void CWindow::CloseVolume(void)
 // Reset point cloud
 void CWindow::ResetPointCloud(void)
 {
-    fMasterCloud.clear();
-    fUpperPart.clear();
+    fMasterCloud.reset();
+    fUpperPart.reset();
     fStartingPath.clear();
     fIntersections.clear();
     CXCurve emptyCurve;
@@ -933,7 +933,7 @@ void CWindow::ToggleSegmentationTool(void)
 {
     if (fSegTool->isChecked()) {
         fWindowState = EWindowState::WindowStateSegmentation;
-        fUpperPart.clear();
+        fUpperPart.reset();
         fStartingPath.clear();
         SplitCloud();
 

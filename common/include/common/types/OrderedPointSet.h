@@ -71,6 +71,12 @@ public:
         _width = width;
     }
 
+    void reset()
+    {
+        _width = 0;
+        this->clear();
+    }
+
     // Push a row of points to the OrderedPointSet
     void pushRow(const std::vector<T>& points)
     {
