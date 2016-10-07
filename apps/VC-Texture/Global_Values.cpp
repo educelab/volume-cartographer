@@ -40,6 +40,19 @@ void Global_Values::createVolumePackage()
     VPKG_Instantiated = true;
 }
 
+void Global_Values::clearVolumePackage()
+{
+
+    vpkg = nullptr;             // Clear vpkg
+    VPKG_Instantiated = false;  // Clear VPKG_Instantiated
+}
+
+void Global_Values::clearGUI()
+{
+
+    // Needs Implementation HERE
+}
+
 void Global_Values::getMySegmentations()
 {
     segmentations = vpkg->getSegmentations();

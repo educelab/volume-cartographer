@@ -13,6 +13,9 @@
 #include <boost/algorithm/string/case_conv.hpp>
 #include "common/io/objWriter.h"
 
+// Volpkg version required byt this app
+static constexpr int VOLPKG_SUPPORTED_VERSION = 2;  // Version #3
+
 namespace fs = boost::filesystem;
 
 MainWindow::MainWindow(Global_Values* globals)
@@ -85,6 +88,31 @@ void MainWindow::getFilePath()  // Gets the Folder Path of the Volume Package
                 _globals->setPath(filename);  // Sets Folder Path in Globals
                 _globals
                     ->createVolumePackage();  // Creates a Volume Package Object
+
+                // Check for Volume Package Version Number
+                if (_globals->getVolPkg()->getVersion() <
+                    VOLPKG_SUPPORTED_VERSION) {
+
+                    std::cerr << "VC::Error: Volume package is version "
+                              << _globals->getVolPkg()->getVersion()
+                              << " but this program requires a version "
+                              << std::to_string(VOLPKG_SUPPORTED_VERSION) << "."
+                              << std::endl;
+
+                    QMessageBox::warning(
+                        this, tr("ERROR"),
+                        "Volume package is version " +
+                            QString::number(
+                                _globals->getVolPkg()->getVersion()) +
+                            " but this program requires version " +
+                            QString::number(VOLPKG_SUPPORTED_VERSION) + ".");
+
+                    // Reset Values
+                    _globals->clearVolumePackage();  // Reset Volume Package
+                    _globals->setPath("");           // Clear filename path
+                    return;
+                }
+
                 _globals->getMySegmentations();  // Gets Segmentations and
                                                  // assigns them to
                                                  // "segmentations" in Globals
@@ -101,7 +129,6 @@ void MainWindow::getFilePath()  // Gets the Folder Path of the Volume Package
                 QMessageBox::warning(
                     this, tr("Error Message"), "Error Opening File.");
             };
-
         } else {
             QMessageBox::warning(this, tr("Error Message"), "Invalid File.");
         }

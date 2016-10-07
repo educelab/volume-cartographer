@@ -17,7 +17,7 @@
 #include "segmentation/lrps/localResliceParticleSim.h"
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 3;
+static constexpr int VOLPKG_SUPPORTED_VERSION = 3;  // Version #3
 
 class VolumePkg;
 

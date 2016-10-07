@@ -23,9 +23,6 @@
 #include "volumepkg/volumepkg.h"
 #include "volumepkg/volumepkg.h"
 
-// Volpkg version required byt this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 3;
-
 class Global_Values
 {
 
@@ -37,6 +34,10 @@ public:
 
     void createVolumePackage();
     VolumePkg* getVolPkg();
+
+    void clearVolumePackage();
+
+    void clearGUI();
 
     void setPath(QString newPath);
 
