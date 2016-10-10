@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016) (preloaded format=pdflatex 2016.5.22)  10 OCT 2016 12:55
+This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016) (preloaded format=pdflatex 2016.5.22)  10 OCT 2016 16:03
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1188,10 +1188,10 @@ LaTeX Font Info:    Try loading font information for U+msb on input line 1.
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
 LaTeX Font Info:    Font shape `T1/phv/m/n' will be
-(Font)              scaled to size 6.29996pt on input line 13.
+(Font)              scaled to size 6.29996pt on input line 14.
 LaTeX Font Info:    Font shape `T1/phv/m/n' will be
-(Font)              scaled to size 7.19995pt on input line 21.
-LaTeX Font Info:    Try loading font information for T1+pcr on input line 21.
+(Font)              scaled to size 7.19995pt on input line 22.
+LaTeX Font Info:    Try loading font information for T1+pcr on input line 22.
 
 (/usr/local/texlive/2016/texmf-dist/tex/latex/psnfss/t1pcr.fd
 File: t1pcr.fd 2001/06/04 font definitions for T1/pcr.
@@ -1199,19 +1199,25 @@ File: t1pcr.fd 2001/06/04 font definitions for T1/pcr.
 
 ]
 LaTeX Font Info:    Font shape `T1/phv/bx/n' in size <7> not available
-(Font)              Font shape `T1/phv/b/n' tried instead on input line 61.
+(Font)              Font shape `T1/phv/b/n' tried instead on input line 62.
 LaTeX Font Info:    Font shape `T1/phv/b/n' will be
-(Font)              scaled to size 6.29996pt on input line 61.
+(Font)              scaled to size 6.29996pt on input line 62.
  [2]
-Overfull \hbox (24.3958pt too wide) in paragraph at lines 68--68
+Overfull \hbox (24.3958pt too wide) in paragraph at lines 71--71
  [][] [][][]\T1/phv/m/n/10 /[]Volumes/[]V[]C-[]Hannah/[]V[]C-[]Source-[]Code/vo
 lume-cartographer/volumepkg/include/volumepkg/volumepkg.h 
  []
 
 
-Overfull \hbox (25.8715pt too wide) in paragraph at lines 69--69
+Overfull \hbox (25.8715pt too wide) in paragraph at lines 72--72
  [][] [][][]\T1/phv/m/n/10 /[]Volumes/[]V[]C-[]Hannah/[]V[]C-[]Source-[]Code/vo
 lume-cartographer/volumepkg/include/volumepkg/volumepkg[] 
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 73--73
+ [][] [][][]\T1/phv/m/n/10 /[]Volumes/[]V[]C-[]Hannah/[]V[]C-[]Source-[]Code/vo
+lume-cartographer/volumepkg/src/volumepkg.cpp File 
  []
 
 )
@@ -1232,6 +1238,12 @@ LaTeX Font Info:    Font shape `T1/phv/b/n' will be
 (Font)              scaled to size 18.66588pt on input line 141.
 LaTeX Font Info:    Font shape `T1/phv/bc/n' will be
 (Font)              scaled to size 18.66588pt on input line 141.
+(./todo.tex) [1
+
+] [2
+
+]
+Chapter 2.
 (./namespaces.tex
 LaTeX Font Info:    Font shape `T1/phv/bx/n' in size <14.4> not available
 (Font)              Font shape `T1/phv/b/n' tried instead on input line 1.
@@ -1239,20 +1251,18 @@ LaTeX Font Info:    Font shape `T1/phv/b/n' will be
 (Font)              scaled to size 12.9599pt on input line 1.
 LaTeX Font Info:    Font shape `T1/phv/bc/n' will be
 (Font)              scaled to size 12.9599pt on input line 1.
-) [1
-
-] [2
-
-]
-Chapter 2.
-(./annotated.tex) [3] [4
+) [3] [4
 
 ]
 Chapter 3.
-(./files.tex) [5] [6
+(./annotated.tex) [5] [6
 
 ]
 Chapter 4.
+(./files.tex) [7] [8
+
+]
+Chapter 5.
 (./namespacevolcart.tex
 LaTeX Font Info:    Font shape `T1/phv/bx/n' in size <12> not available
 (Font)              Font shape `T1/phv/b/n' tried instead on input line 3.
@@ -1271,9 +1281,9 @@ LaTeX Font Info:    Font shape `T1/phv/bc/n' will be
 (Font)              scaled to size 8.99994pt on input line 27.
 LaTeX Font Info:    Font shape `T1/phv/bc/n' will be
 (Font)              scaled to size 6.29996pt on input line 42.
- [7]) [8]
-Chapter 5.
-(./classVolumePkg.tex [9
+ [9]) [10]
+Chapter 6.
+(./classVolumePkg.tex [11
 
 ]
 LaTeX Font Info:    Font shape `T1/phv/bc/n' will be
@@ -1287,7 +1297,7 @@ LaTeX Font Info:    Font shape `T1/pcr/m/it' in size <8> not available
 (Font)              Font shape `T1/pcr/m/sl' tried instead on input line 117.
 LaTeX Font Info:    Font shape `T1/pcr/m/it' in size <7> not available
 (Font)              Font shape `T1/pcr/m/sl' tried instead on input line 117.
-[10]
+[12]
 Underfull \hbox (badness 10000) detected at line 148
 [][][]
  []
@@ -1298,107 +1308,165 @@ Underfull \hbox (badness 10000) detected at line 151
  []
 
 
-Underfull \hbox (badness 10000) detected at line 166
+Underfull \hbox (badness 10000) detected at line 160
 [][][]
  []
 
 
-Underfull \hbox (badness 10000) detected at line 175
+Underfull \hbox (badness 10000) detected at line 171
 [][][]
  []
 
 
-Underfull \hbox (badness 10000) detected at line 184
-[][][]
- []
-
-[11]
-Underfull \hbox (badness 10000) detected at line 193
-[][][]
- []
-
-
-Underfull \hbox (badness 10000) detected at line 208
-[][][]
- []
-
-
-Underfull \hbox (badness 10000) detected at line 217
-[][][]
- []
-
-
-Underfull \hbox (badness 10000) detected at line 226
-[][][]
- []
-
-
-Underfull \hbox (badness 10000) detected at line 235
-[][][]
- []
-
-[12]
-Underfull \hbox (badness 10000) detected at line 244
-[][][]
- []
-
-
-Underfull \hbox (badness 10000) detected at line 253
-[][][]
- []
-
-
-Underfull \hbox (badness 10000) detected at line 262
-[][][]
- []
-
-
-Underfull \hbox (badness 10000) detected at line 271
-[][][]
- []
-
-
-Underfull \hbox (badness 10000) detected at line 286
+Underfull \hbox (badness 10000) detected at line 180
 [][][]
  []
 
 [13]
-Underfull \hbox (badness 10000) detected at line 313
+Underfull \hbox (badness 10000) detected at line 189
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 198
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 213
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 222
 [][][]
  []
 
 [14]
-Underfull \hbox (badness 10000) detected at line 338
+Underfull \hbox (badness 10000) detected at line 231
 [][][]
  []
 
 
-Underfull \hbox (badness 10000) detected at line 352
+Underfull \hbox (badness 10000) detected at line 240
 [][][]
  []
 
 
-Underfull \vbox (badness 10000) has occurred while \output is active []
+Underfull \hbox (badness 10000) detected at line 249
+[][][]
+ []
 
- [15]
-Underfull \hbox (badness 10000) detected at line 404
+
+Underfull \hbox (badness 10000) detected at line 258
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 267
+[][][]
+ []
+
+[15]
+Underfull \hbox (badness 10000) detected at line 276
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 285
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 296
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 307
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 310
 [][][]
  []
 
 [16]
-Underfull \hbox (badness 10000) detected at line 439
+Underfull \hbox (badness 10000) detected at line 335
 [][][]
  []
 
 [17]
-Underfull \hbox (badness 10000) detected at line 461
+Underfull \hbox (badness 10000) detected at line 360
 [][][]
  []
 
-[18]) [19] [20
+
+Underfull \hbox (badness 10000) detected at line 374
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 377
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 380
+[][][]
+ []
+
+[18]
+Underfull \hbox (badness 10000) detected at line 396
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 399
+[][][]
+ []
+
+[19]
+Underfull \hbox (badness 10000) detected at line 443
+[][][]
+ []
+
+[20]
+Underfull \hbox (badness 10000) detected at line 478
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 500
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 503
+[][][]
+ []
+
+[21]
+Underfull \hbox (badness 10000) detected at line 533
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 566
+[][][]
+ []
+
+) (./classVolumePkg__Version.tex [22]
+Underfull \hbox (badness 10000) in paragraph at lines 14--14
+[]\T1/phv/m/n/10 /[]Volumes/[]V[]C-[]Hannah/[]V[]C-[]Source-[]Code/volume-carto
+grapher/volumepkg/include/volumepkg/[][]volumepkg[]_[]
+ []
+
+) [23] [24
 
 ]
-Chapter 6.
+Chapter 7.
 (./volumepkg_8h.tex
 Overfull \hbox (101.00966pt too wide) in paragraph at lines 1--1
 []\T1/phv/bc/n/14.4 /[]Volumes/[]V[]C-[]Hannah/[]V[]C-[]Source-[]Code/volume-ca
@@ -1421,7 +1489,18 @@ Underfull \hbox (badness 10000) in paragraph at lines 3--5
 
  []
 
-[21]) [22] (./refman.ind
+[25]) (./volumepkg_8cpp.tex
+Overfull \hbox (33.41249pt too wide) in paragraph at lines 1--1
+[]\T1/phv/bc/n/14.4 /[]Volumes/[]V[]C-[]Hannah/[]V[]C-[]Source-[]Code/volume-ca
+rtographer/volumepkg/src/volumepkg.cpp
+ []
+
+)
+Underfull \hbox (badness 10000) in paragraph at lines 3--161
+
+ []
+
+[26] (./refman.ind
 Overfull \hbox (200.05486pt too wide) in paragraph at lines 3--5
 []\T1/phv/m/n/10 /[]Volumes/[]V[]C-[]Hannah/[]V[]C-[]Source-[]Code/volume-carto
 grapher/volumepkg/include/volumepkg/volumepkg.[]
@@ -1433,34 +1512,40 @@ Overfull \hbox (197.55296pt too wide) in paragraph at lines 5--7
 grapher/volumepkg/include/volumepkg/volumepkg[]
  []
 
-[23
+
+Overfull \hbox (137.74901pt too wide) in paragraph at lines 7--9
+[]\T1/phv/m/n/10 /[]Volumes/[]V[]C-[]Hannah/[]V[]C-[]Source-[]Code/volume-carto
+grapher/volumepkg/src/volumepkg.[]
+ []
+
+[27
 
 
 
-] [24
+] [28
 
 ])
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 164.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 164.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 170.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 170.
  (./refman.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 164.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 164.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 170.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 170.
 Package rerunfilecheck Info: File `refman.out' has not changed.
-(rerunfilecheck)             Checksum: D0883A9BA8E7326A1DFFB5C342610B44;14044.
+(rerunfilecheck)             Checksum: 55978F8CD16AA91D1921ECBAE0D0B15C;15163.
 
 
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 164.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 170.
  ) 
 Here is how much of TeX's memory you used:
- 15083 strings out of 493014
- 217980 string characters out of 6133351
- 315547 words of memory out of 5000000
- 18188 multiletter control sequences out of 15000+600000
+ 15114 strings out of 493014
+ 218399 string characters out of 6133351
+ 316885 words of memory out of 5000000
+ 18198 multiletter control sequences out of 15000+600000
  64057 words of font info for 84 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 53i,15n,92p,1363b,632s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 53i,16n,92p,1363b,632s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/local/texlive/2016/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/local/t
 exlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/te
 xlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/local/texl
@@ -1472,10 +1557,10 @@ mf-dist/fonts/type1/urw/courier/ucrro8a.pfb></usr/local/texlive/2016/texmf-dist
 type1/urw/helvetic/uhvb8ac.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/
 urw/helvetic/uhvr8a.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/urw/hel
 vetic/uhvro8a.pfb>
-Output written on refman.pdf (30 pages, 139449 bytes).
+Output written on refman.pdf (34 pages, 146841 bytes).
 PDF statistics:
- 822 PDF objects out of 1000 (max. 8388607)
- 772 compressed objects within 8 object streams
- 172 named destinations out of 1000 (max. 500000)
- 561 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 899 PDF objects out of 1000 (max. 8388607)
+ 840 compressed objects within 9 object streams
+ 186 named destinations out of 1000 (max. 500000)
+ 593 words of extra memory for PDF output out of 10000 (max. 10000000)
 

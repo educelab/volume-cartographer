@@ -8,28 +8,31 @@
 
 namespace fs = boost::filesystem;
 
+/** @file volumepkg.h
+ */
+
 // CONSTRUCTORS //
 // Make a volpkg of a particular version number
 VolumePkg::VolumePkg(
     const fs::path& file_location,
     int version)  // Changed type from double to int
 {
-    // Lookup the metadata template from our library of versions
+    /**< Lookup the metadata template from our library of versions */
     auto findDict = volcart::VersionLibrary.find(version);
     if (findDict == std::end(volcart::VersionLibrary)) {
         throw std::runtime_error("No dictionary found for volpkg");
     } else {
         config = VolumePkg::_initConfig(findDict->second, version);
     }
-
+    /**< Create the directories with the default values*/
     root_dir = file_location;
     segs_dir = file_location / "paths";
     slice_dir = file_location / "slices";
     config.set(
         "slice location",
-        "/slices/");  // To-Do: We need a better way of handling default values
+        "/slices/");  /**< @todo We need a better way of handling default values */
 
-    // Initialize volume object
+    /**< Initialize volume object */
     vol_ = volcart::Volume(
         slice_dir, config.get<int>("number of slices"),
         config.get<int>("width"), config.get<int>("height"));
@@ -38,14 +41,16 @@ VolumePkg::VolumePkg(
 // Use this when reading a volpkg from a file
 VolumePkg::VolumePkg(const fs::path& file_location)
 {
+    /**< Attempts to open an existing Volume package and throws an error upon failure*/
     root_dir = file_location;
     if (!fs::exists(root_dir)) {
         auto errmsg = "location " + file_location.string() + " does not exist";
         throw std::runtime_error(errmsg);
     }
-
+    /**< Loads the metadata */
     config = volcart::Metadata(file_location / "config.json");
 
+    /**< Loads the directories into the appropriate variables, fails if the directories don't exist*/
     segs_dir = file_location / "paths";
     slice_dir = file_location / "slices";
     if (!(fs::exists(segs_dir) || fs::exists(slice_dir))) {
@@ -53,7 +58,7 @@ VolumePkg::VolumePkg(const fs::path& file_location)
         throw std::runtime_error(errmsg);
     }
 
-    // Copy segmentation paths to segmentations vector
+    /**< Copy segmentation paths to segmentations vector */
     auto range =
         boost::make_iterator_range(fs::directory_iterator(segs_dir), {});
     for (const auto& entry : range) {
@@ -63,7 +68,7 @@ VolumePkg::VolumePkg(const fs::path& file_location)
         segmentations.push_back(fs::basename(entry));
     }
 
-    // Initialize volume object
+    /**< Initialize volume object */
     vol_ = volcart::Volume(
         slice_dir, config.get<int>("number of slices"),
         config.get<int>("width"), config.get<int>("height"));
@@ -72,14 +77,15 @@ VolumePkg::VolumePkg(const fs::path& file_location)
 // WRITE TO DISK //
 int VolumePkg::initialize()
 {
+    /**< A check to see if the file can be written to disk */
     if (_readOnly) {
         volcart::ERR_READONLY();
     }
 
-    // Build the directory tree
+    /**< Build the directory tree */
     _makeDirTree();
 
-    // Save the JSON to disk
+    /**< Save the JSON to disk */
     saveMetadata();
 
     return EXIT_SUCCESS;
@@ -87,13 +93,13 @@ int VolumePkg::initialize()
 
 int VolumePkg::_makeDirTree()
 {
-    // Dirs we need to make
+    /**< Directories we need to make */
     std::vector<boost::filesystem::path> dirs;
     dirs.push_back(root_dir);
     dirs.push_back(segs_dir);
     dirs.push_back(slice_dir);
 
-    // Make dirs that don't exist
+    /**< Make directories that don't exist */
     for (auto dir = dirs.begin(); dir != dirs.end(); ++dir) {
         if (boost::filesystem::exists(*dir))
             std::cerr << "WARNING: " << *dir
@@ -110,6 +116,7 @@ int VolumePkg::_makeDirTree()
 // Returns Volume Name from JSON config
 std::string VolumePkg::getPkgName() const
 {
+    /**< Gets the Volume name from the configuration file */
     std::string name = config.get<std::string>("volumepkg name");
     if (name != "NULL")
         return name;
@@ -155,6 +162,7 @@ void VolumePkg::saveMetadata() { saveMetadata(root_dir / "config.json"); }
 // Slice manipulation functions
 bool VolumePkg::setSliceData(size_t index, const cv::Mat& slice)
 {
+    /**< Performs a read only check and then sets the data*/
     if (_readOnly) {
         volcart::ERR_READONLY();
         return false;
@@ -169,10 +177,11 @@ bool VolumePkg::setSliceData(size_t index, const cv::Mat& slice)
 // and push back the new segmentation into our vector of segmentations
 std::string VolumePkg::newSegmentation()
 {
-    // make a new dir based off the current date and time
+    /**< make a new dir based off the current date and time */
     auto newSegName = volcart::DATE_TIME();
     auto newPath = segs_dir / newSegName;
 
+    /**< If the directory is successfully created, adds the name of the segementation to the list*/
     if (fs::create_directory(newPath)) {
         segmentations.push_back(newSegName);
     };
@@ -190,7 +199,7 @@ std::vector<std::string> VolumePkg::getSegmentations() const
 // Set the private variable activeSeg to the seg we want to work with
 void VolumePkg::setActiveSegmentation(const std::string& name)
 {
-    // To-Do: Check that this seg actually exists in the volume
+    /**< @todo Check that this seg actually exists in the volume */
     activeSeg = name;
 }
 
@@ -205,7 +214,7 @@ boost::filesystem::path VolumePkg::getActiveSegPath()
 // Return the point cloud currently on disk for the activeSegmentation
 volcart::OrderedPointSet<volcart::Point3d> VolumePkg::openCloud() const
 {
-    // To-Do: Error if activeSeg not set
+    /**< @todo Error if activeSeg not set */
     auto outputName = segs_dir / activeSeg / "pointset.vcps";
     return volcart::PointSetIO<volcart::Point3d>::ReadOrderedPointSet(
         outputName.string());
@@ -240,9 +249,11 @@ int VolumePkg::saveMesh(
     const volcart::OrderedPointSet<volcart::Point3d>& segmentedCloud) const
 {
     fs::path outputName = segs_dir / activeSeg / "cloud.ply";
+    /**< Creates a OrderedPointSetMesher type than uses the compute function to generate a mesh @see meshing/include/OrderedPointSetMesher.h */
     volcart::meshing::OrderedPointSetMesher mesher(segmentedCloud);
     mesher.compute();
     auto mesh = mesher.getOutputMesh();
+    /**< Creates a PLY writer type and then writes the mesh out to the file @see common/io/plyWriter.h*/
     volcart::io::plyWriter writer(outputName, mesh);
     writer.write();
     std::cerr << "volcart::volpkg::Mesh file saved." << std::endl;
@@ -252,6 +263,7 @@ int VolumePkg::saveMesh(
 void VolumePkg::saveMesh(
     const volcart::ITKMesh::Pointer mesh, const volcart::Texture& texture) const
 {
+    /**< Creates an OBJ writer type and then writes the mesh and the texture out to the file @see common/io/objWriter.h*/
     volcart::io::objWriter writer;
     auto meshPath = segs_dir / activeSeg / "textured.obj";
     writer.setPath(meshPath);
@@ -274,7 +286,7 @@ volcart::Metadata VolumePkg::_initConfig(
 {
     volcart::Metadata config;
 
-    // Populate the cfg with keys from the dict
+    /**< Populate the config file with keys from the dictionary */
     for (const auto& entry : dict) {
         if (entry.first == "version") {
             config.set("version", version);

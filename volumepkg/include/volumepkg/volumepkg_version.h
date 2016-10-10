@@ -5,16 +5,17 @@
 
 #include <string>
 #include <unordered_map>
-
-namespace volcart
-{
-
-// VersionDict's will hold possible metadata keys and their types
 /**
+ * @class VolumePkg_Version
  * These constants represent the various versions of the Volume package
  * Each version as a different library that may have varying information conatined
  * or how the information is stored was changed between versions
  */
+namespace volcart
+{
+
+// VersionDict's will hold possible metadata keys and their types
+
 /**
  * This type sets the dictionary to be a map which contains 2 strings for each entry.
  * The first string tells the user what is being saved in that place
