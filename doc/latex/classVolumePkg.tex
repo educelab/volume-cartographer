@@ -1,0 +1,525 @@
+\hypertarget{classVolumePkg}{}\section{Volume\+Pkg Class Reference}
+\label{classVolumePkg}\index{Volume\+Pkg@{Volume\+Pkg}}
+
+
+{\ttfamily \#include $<$volumepkg.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classVolumePkg_a744e1956dc2a4110b67cc088b2a0a871}{Volume\+Pkg} (const boost\+::filesystem\+::path \&file\+\_\+location, int version)
+\item 
+\hyperlink{classVolumePkg_a901f84ed2afd19ca64d4052e55340bb5}{Volume\+Pkg} (const boost\+::filesystem\+::path \&file\+\_\+location)
+\item 
+int \hyperlink{classVolumePkg_a1136333d9a9c3f8914cdb547336c586b}{initialize} ()
+\item 
+const volcart\+::\+Volume \& \hyperlink{classVolumePkg_af346c954f18704b60f4b518412d5b0b0}{volume} () const
+\item 
+volcart\+::\+Volume \& \hyperlink{classVolumePkg_a49a10fff903e76fe8fbd72793621eaa2}{volume} ()
+\item 
+void \hyperlink{classVolumePkg_ab4c4d6cb9715dbdde2e76f96115d94f9}{print\+J\+S\+ON} () const
+\item 
+void \hyperlink{classVolumePkg_a3489e485f40be9bdcb4b993b6aaccc2d}{print\+Dirs} () const
+\item 
+std\+::string \hyperlink{classVolumePkg_a3c9253427cf985c1bd523d84c396677b}{get\+Pkg\+Name} () const
+\item 
+int \hyperlink{classVolumePkg_a2a0e7f720aab28e7c67e22fc37051c0c}{get\+Version} () const
+\item 
+int \hyperlink{classVolumePkg_a918b84ee059538166553c949188a8fd9}{get\+Number\+Of\+Slices} () const
+\item 
+int \hyperlink{classVolumePkg_a428f50ef3408fbc8826597d1dcb35ed5}{get\+Slice\+Width} () const
+\item 
+int \hyperlink{classVolumePkg_a28bc3bf24aa05a6c802888a3fb862aec}{get\+Slice\+Height} () const
+\item 
+double \hyperlink{classVolumePkg_a0fb419c7902913a8b98fb5aafb90685e}{get\+Voxel\+Size} () const
+\item 
+double \hyperlink{classVolumePkg_a84a0f3f538667094dc498124f0eb548c}{get\+Material\+Thickness} () const
+\item 
+bool \hyperlink{classVolumePkg_a1cf5ee88ba2392ab825619ef7890d7ae}{read\+Only} () const
+\item 
+void \hyperlink{classVolumePkg_a4dba1fc88e4390da1ad9fadf4c73b41b}{read\+Only} (bool b)
+\item 
+{\footnotesize template$<$typename T $>$ }\\int \hyperlink{classVolumePkg_a560d401f04a486c0277e37b3e2607886}{set\+Metadata} (const std\+::string \&key, T value)
+\item 
+void \hyperlink{classVolumePkg_abdccc4c348d57a7ea84a65c48ee50c75}{save\+Metadata} (const boost\+::filesystem\+::path \&file\+Path)
+\item 
+void \hyperlink{classVolumePkg_a49a81e85ddb0fb188efdeb357592b99f}{save\+Metadata} ()
+\item 
+bool \hyperlink{classVolumePkg_a8d062ac46538de627f67f56ab35d6943}{set\+Slice\+Data} (size\+\_\+t index, const cv\+::\+Mat \&slice)
+\item 
+std\+::string \hyperlink{classVolumePkg_ae57e71436c7e3c4db73be88b49924637}{new\+Segmentation} ()
+\item 
+std\+::vector$<$ std\+::string $>$ \hyperlink{classVolumePkg_a1fe0966da96333797dc6be5045766148}{get\+Segmentations} () const
+\item 
+void \hyperlink{classVolumePkg_a8b1fa5d3ca58dbd22ac1a576971bc7a0}{set\+Active\+Segmentation} (const std\+::string \&name)
+\item 
+std\+::string \hyperlink{classVolumePkg_ab603499204250e15b5532acb51e750d6}{get\+Active\+Segmentation} ()
+\item 
+boost\+::filesystem\+::path \hyperlink{classVolumePkg_a7af137a5ab84ca0b945faef2adf2a75f}{get\+Active\+Seg\+Path} ()
+\item 
+volcart\+::\+Ordered\+Point\+Set$<$ volcart\+::\+Point3d $>$ \hyperlink{classVolumePkg_a6948e4fed7d29257efa5752b25c8f877}{open\+Cloud} () const
+\item 
+boost\+::filesystem\+::path \hyperlink{classVolumePkg_a07589ed2f04df55a01be45fe1f5dc87f}{get\+Mesh\+Path} () const
+\item 
+cv\+::\+Mat \hyperlink{classVolumePkg_abb42726353738af10e922d0ef41406d6}{get\+Texture\+Data} () const
+\item 
+int \hyperlink{classVolumePkg_ad8e7c0e7bf2ae1b6771533fe60e91625}{save\+Cloud} (const volcart\+::\+Ordered\+Point\+Set$<$ volcart\+::\+Point3d $>$ \&segmented\+Cloud) const
+\item 
+int \hyperlink{classVolumePkg_a8b8474853f26ef0c08cd37ded220c344}{save\+Mesh} (const volcart\+::\+Ordered\+Point\+Set$<$ volcart\+::\+Point3d $>$ \&segmented\+Cloud) const
+\item 
+void \hyperlink{classVolumePkg_acd9f9d44b478d8d828de4f364983a5f0}{save\+Mesh} (const volcart\+::\+I\+T\+K\+Mesh\+::\+Pointer mesh, const volcart\+::\+Texture \&texture) const
+\item 
+void \hyperlink{classVolumePkg_ad13a7fb165caa0d3537942907a3e3cad}{save\+Texture\+Data} (const cv\+::\+Mat \&texture, const std\+::string \&name=\char`\"{}textured\char`\"{})
+\item 
+void \hyperlink{classVolumePkg_a47e37208ab713dbc8d72b5e7f71636f4}{save\+Texture\+Data} (volcart\+::\+Texture texture, int index=0)
+\end{DoxyCompactItemize}
+\subsection*{Private Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+int \hyperlink{classVolumePkg_ac141a45c12eb8e53def13282b2594ebe}{\+\_\+make\+Dir\+Tree} ()
+\item 
+int \hyperlink{classVolumePkg_a0c42b917841dd44d5c9de641fadd2a94}{get\+Number\+Of\+Slice\+Characters} ()
+\end{DoxyCompactItemize}
+\subsection*{Static Private Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static volcart\+::\+Metadata \hyperlink{classVolumePkg_ab1829cf70b3b0a6031a85019ad8ecae7}{\+\_\+init\+Config} (const \hyperlink{namespacevolcart_aa4e334ff80b678b9556aee59618eb37a}{volcart\+::\+Dictionary} \&dict, int version)
+\end{DoxyCompactItemize}
+\subsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+bool \hyperlink{classVolumePkg_a032ffe2acb8dcb5efe26312a3730aa85}{\+\_\+read\+Only} = true
+\item 
+volcart\+::\+Metadata \hyperlink{classVolumePkg_a01960fbb8a1dec9da54f5e2468baeb0e}{config}
+\item 
+volcart\+::\+Volume \hyperlink{classVolumePkg_a0df52f6f476a106802da0bfc1b2d5b23}{vol\+\_\+}
+\item 
+boost\+::filesystem\+::path \hyperlink{classVolumePkg_a564d5b92303bb807979d0ab09afa8eec}{root\+\_\+dir}
+\item 
+boost\+::filesystem\+::path \hyperlink{classVolumePkg_a7093bd35d5d8d7ef0b50a1e182bfbf56}{segs\+\_\+dir}
+\item 
+boost\+::filesystem\+::path \hyperlink{classVolumePkg_a277efff0ba8ce1043c83d15eaf5c5427}{slice\+\_\+dir}
+\item 
+std\+::string \hyperlink{classVolumePkg_a192921e57935c16e2e92c2ede350e08a}{active\+Seg} = \char`\"{}\char`\"{}
+\item 
+std\+::vector$<$ std\+::string $>$ \hyperlink{classVolumePkg_a2c66b1685cb4b0be679097a61acb822b}{segmentations}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+This class creates the container that holds the entire volume. It includes the slices, segmentations, and 3D models of that volume. 
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{classVolumePkg_a744e1956dc2a4110b67cc088b2a0a871}{}\label{classVolumePkg_a744e1956dc2a4110b67cc088b2a0a871} 
+\index{Volume\+Pkg@{Volume\+Pkg}!Volume\+Pkg@{Volume\+Pkg}}
+\index{Volume\+Pkg@{Volume\+Pkg}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{Volume\+Pkg()}{VolumePkg()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily Volume\+Pkg\+::\+Volume\+Pkg (\begin{DoxyParamCaption}\item[{const boost\+::filesystem\+::path \&}]{file\+\_\+location,  }\item[{int}]{version }\end{DoxyParamCaption})}
+
+Constructors 
+\begin{DoxyParams}{Parameters}
+{\em file\+\_\+location} & the location where you want the Volume Package to be stored \\
+\hline
+{\em version} & which version of Volume Package would you like to create, current is 3\+Create a new Volume Package with a certain version \\
+\hline
+\end{DoxyParams}
+\hypertarget{classVolumePkg_a901f84ed2afd19ca64d4052e55340bb5}{}\label{classVolumePkg_a901f84ed2afd19ca64d4052e55340bb5} 
+\index{Volume\+Pkg@{Volume\+Pkg}!Volume\+Pkg@{Volume\+Pkg}}
+\index{Volume\+Pkg@{Volume\+Pkg}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{Volume\+Pkg()}{VolumePkg()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily Volume\+Pkg\+::\+Volume\+Pkg (\begin{DoxyParamCaption}\item[{const boost\+::filesystem\+::path \&}]{file\+\_\+location }\end{DoxyParamCaption})}
+
+Open an existing Volume Package 
+
+\subsection{Member Function Documentation}
+\hypertarget{classVolumePkg_ab1829cf70b3b0a6031a85019ad8ecae7}{}\label{classVolumePkg_ab1829cf70b3b0a6031a85019ad8ecae7} 
+\index{Volume\+Pkg@{Volume\+Pkg}!\+\_\+init\+Config@{\+\_\+init\+Config}}
+\index{\+\_\+init\+Config@{\+\_\+init\+Config}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{\+\_\+init\+Config()}{\_initConfig()}}
+{\footnotesize\ttfamily static volcart\+::\+Metadata Volume\+Pkg\+::\+\_\+init\+Config (\begin{DoxyParamCaption}\item[{const \hyperlink{namespacevolcart_aa4e334ff80b678b9556aee59618eb37a}{volcart\+::\+Dictionary} \&}]{dict,  }\item[{int}]{version }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}, {\ttfamily [private]}}
+
+Initalizes the metadata of the volume package 
+\begin{DoxyParams}{Parameters}
+{\em dict} & \\
+\hline
+{\em version} & which version of the Volume package you want to use, current is 3 \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+returns a metadata type that has the metadata for the Volume Package 
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{See also}
+common/types/\+Metadata.\+h 
+\end{DoxySeeAlso}
+\hypertarget{classVolumePkg_ac141a45c12eb8e53def13282b2594ebe}{}\label{classVolumePkg_ac141a45c12eb8e53def13282b2594ebe} 
+\index{Volume\+Pkg@{Volume\+Pkg}!\+\_\+make\+Dir\+Tree@{\+\_\+make\+Dir\+Tree}}
+\index{\+\_\+make\+Dir\+Tree@{\+\_\+make\+Dir\+Tree}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{\+\_\+make\+Dir\+Tree()}{\_makeDirTree()}}
+{\footnotesize\ttfamily int Volume\+Pkg\+::\+\_\+make\+Dir\+Tree (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+The Directory tree \hypertarget{classVolumePkg_ab603499204250e15b5532acb51e750d6}{}\label{classVolumePkg_ab603499204250e15b5532acb51e750d6} 
+\index{Volume\+Pkg@{Volume\+Pkg}!get\+Active\+Segmentation@{get\+Active\+Segmentation}}
+\index{get\+Active\+Segmentation@{get\+Active\+Segmentation}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{get\+Active\+Segmentation()}{getActiveSegmentation()}}
+{\footnotesize\ttfamily std\+::string Volume\+Pkg\+::get\+Active\+Segmentation (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+\begin{DoxyReturn}{Returns}
+the ID of the segmentation currently active 
+\end{DoxyReturn}
+\hypertarget{classVolumePkg_a7af137a5ab84ca0b945faef2adf2a75f}{}\label{classVolumePkg_a7af137a5ab84ca0b945faef2adf2a75f} 
+\index{Volume\+Pkg@{Volume\+Pkg}!get\+Active\+Seg\+Path@{get\+Active\+Seg\+Path}}
+\index{get\+Active\+Seg\+Path@{get\+Active\+Seg\+Path}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{get\+Active\+Seg\+Path()}{getActiveSegPath()}}
+{\footnotesize\ttfamily boost\+::filesystem\+::path Volume\+Pkg\+::get\+Active\+Seg\+Path (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+\begin{DoxyReturn}{Returns}
+the file path of the segmentation that is currently active 
+\end{DoxyReturn}
+\hypertarget{classVolumePkg_a84a0f3f538667094dc498124f0eb548c}{}\label{classVolumePkg_a84a0f3f538667094dc498124f0eb548c} 
+\index{Volume\+Pkg@{Volume\+Pkg}!get\+Material\+Thickness@{get\+Material\+Thickness}}
+\index{get\+Material\+Thickness@{get\+Material\+Thickness}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{get\+Material\+Thickness()}{getMaterialThickness()}}
+{\footnotesize\ttfamily double Volume\+Pkg\+::get\+Material\+Thickness (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+\begin{DoxyReturn}{Returns}
+the thickness of the material which was scanned 
+\end{DoxyReturn}
+\hypertarget{classVolumePkg_a07589ed2f04df55a01be45fe1f5dc87f}{}\label{classVolumePkg_a07589ed2f04df55a01be45fe1f5dc87f} 
+\index{Volume\+Pkg@{Volume\+Pkg}!get\+Mesh\+Path@{get\+Mesh\+Path}}
+\index{get\+Mesh\+Path@{get\+Mesh\+Path}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{get\+Mesh\+Path()}{getMeshPath()}}
+{\footnotesize\ttfamily boost\+::filesystem\+::path Volume\+Pkg\+::get\+Mesh\+Path (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+\begin{DoxyReturn}{Returns}
+the path to the mesh of the active segmentation 
+\end{DoxyReturn}
+\hypertarget{classVolumePkg_a0c42b917841dd44d5c9de641fadd2a94}{}\label{classVolumePkg_a0c42b917841dd44d5c9de641fadd2a94} 
+\index{Volume\+Pkg@{Volume\+Pkg}!get\+Number\+Of\+Slice\+Characters@{get\+Number\+Of\+Slice\+Characters}}
+\index{get\+Number\+Of\+Slice\+Characters@{get\+Number\+Of\+Slice\+Characters}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{get\+Number\+Of\+Slice\+Characters()}{getNumberOfSliceCharacters()}}
+{\footnotesize\ttfamily int Volume\+Pkg\+::get\+Number\+Of\+Slice\+Characters (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\hypertarget{classVolumePkg_a918b84ee059538166553c949188a8fd9}{}\label{classVolumePkg_a918b84ee059538166553c949188a8fd9} 
+\index{Volume\+Pkg@{Volume\+Pkg}!get\+Number\+Of\+Slices@{get\+Number\+Of\+Slices}}
+\index{get\+Number\+Of\+Slices@{get\+Number\+Of\+Slices}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{get\+Number\+Of\+Slices()}{getNumberOfSlices()}}
+{\footnotesize\ttfamily int Volume\+Pkg\+::get\+Number\+Of\+Slices (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+\begin{DoxyReturn}{Returns}
+How many slices are in this Volume Package 
+\end{DoxyReturn}
+\hypertarget{classVolumePkg_a3c9253427cf985c1bd523d84c396677b}{}\label{classVolumePkg_a3c9253427cf985c1bd523d84c396677b} 
+\index{Volume\+Pkg@{Volume\+Pkg}!get\+Pkg\+Name@{get\+Pkg\+Name}}
+\index{get\+Pkg\+Name@{get\+Pkg\+Name}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{get\+Pkg\+Name()}{getPkgName()}}
+{\footnotesize\ttfamily std\+::string Volume\+Pkg\+::get\+Pkg\+Name (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+This set of functions is used to access the metadata of the Volume Package from the configuration file Note\+: The height and width of one slice is the same for all slices and the voxel size is constant throughout\begin{DoxyReturn}{Returns}
+the name of the Volume Package 
+\end{DoxyReturn}
+\hypertarget{classVolumePkg_a1fe0966da96333797dc6be5045766148}{}\label{classVolumePkg_a1fe0966da96333797dc6be5045766148} 
+\index{Volume\+Pkg@{Volume\+Pkg}!get\+Segmentations@{get\+Segmentations}}
+\index{get\+Segmentations@{get\+Segmentations}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{get\+Segmentations()}{getSegmentations()}}
+{\footnotesize\ttfamily std\+::vector$<$std\+::string$>$ Volume\+Pkg\+::get\+Segmentations (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+Return a vector of strings representing the names of segmentations in the volpkg \begin{DoxyReturn}{Returns}
+vector of strings containing the names of the segmentations 
+\end{DoxyReturn}
+\hypertarget{classVolumePkg_a28bc3bf24aa05a6c802888a3fb862aec}{}\label{classVolumePkg_a28bc3bf24aa05a6c802888a3fb862aec} 
+\index{Volume\+Pkg@{Volume\+Pkg}!get\+Slice\+Height@{get\+Slice\+Height}}
+\index{get\+Slice\+Height@{get\+Slice\+Height}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{get\+Slice\+Height()}{getSliceHeight()}}
+{\footnotesize\ttfamily int Volume\+Pkg\+::get\+Slice\+Height (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+\begin{DoxyReturn}{Returns}
+The height of the slices in the Volume Package 
+\end{DoxyReturn}
+\hypertarget{classVolumePkg_a428f50ef3408fbc8826597d1dcb35ed5}{}\label{classVolumePkg_a428f50ef3408fbc8826597d1dcb35ed5} 
+\index{Volume\+Pkg@{Volume\+Pkg}!get\+Slice\+Width@{get\+Slice\+Width}}
+\index{get\+Slice\+Width@{get\+Slice\+Width}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{get\+Slice\+Width()}{getSliceWidth()}}
+{\footnotesize\ttfamily int Volume\+Pkg\+::get\+Slice\+Width (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+\begin{DoxyReturn}{Returns}
+The width of the slices in the Volume Package 
+\end{DoxyReturn}
+\hypertarget{classVolumePkg_abb42726353738af10e922d0ef41406d6}{}\label{classVolumePkg_abb42726353738af10e922d0ef41406d6} 
+\index{Volume\+Pkg@{Volume\+Pkg}!get\+Texture\+Data@{get\+Texture\+Data}}
+\index{get\+Texture\+Data@{get\+Texture\+Data}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{get\+Texture\+Data()}{getTextureData()}}
+{\footnotesize\ttfamily cv\+::\+Mat Volume\+Pkg\+::get\+Texture\+Data (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+\begin{DoxyReturn}{Returns}
+the texture image of active segmentation as a C\+V\+::\+Mat 
+\end{DoxyReturn}
+\hypertarget{classVolumePkg_a2a0e7f720aab28e7c67e22fc37051c0c}{}\label{classVolumePkg_a2a0e7f720aab28e7c67e22fc37051c0c} 
+\index{Volume\+Pkg@{Volume\+Pkg}!get\+Version@{get\+Version}}
+\index{get\+Version@{get\+Version}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{get\+Version()}{getVersion()}}
+{\footnotesize\ttfamily int Volume\+Pkg\+::get\+Version (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+\begin{DoxyReturn}{Returns}
+Which Version this Volume Package is 
+\end{DoxyReturn}
+\hypertarget{classVolumePkg_a0fb419c7902913a8b98fb5aafb90685e}{}\label{classVolumePkg_a0fb419c7902913a8b98fb5aafb90685e} 
+\index{Volume\+Pkg@{Volume\+Pkg}!get\+Voxel\+Size@{get\+Voxel\+Size}}
+\index{get\+Voxel\+Size@{get\+Voxel\+Size}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{get\+Voxel\+Size()}{getVoxelSize()}}
+{\footnotesize\ttfamily double Volume\+Pkg\+::get\+Voxel\+Size (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+\begin{DoxyReturn}{Returns}
+The size of the voxels in the Volume Package 
+\end{DoxyReturn}
+\hypertarget{classVolumePkg_a1136333d9a9c3f8914cdb547336c586b}{}\label{classVolumePkg_a1136333d9a9c3f8914cdb547336c586b} 
+\index{Volume\+Pkg@{Volume\+Pkg}!initialize@{initialize}}
+\index{initialize@{initialize}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{initialize()}{initialize()}}
+{\footnotesize\ttfamily int Volume\+Pkg\+::initialize (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Writes the configuration file to disk \hypertarget{classVolumePkg_ae57e71436c7e3c4db73be88b49924637}{}\label{classVolumePkg_ae57e71436c7e3c4db73be88b49924637} 
+\index{Volume\+Pkg@{Volume\+Pkg}!new\+Segmentation@{new\+Segmentation}}
+\index{new\+Segmentation@{new\+Segmentation}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{new\+Segmentation()}{newSegmentation()}}
+{\footnotesize\ttfamily std\+::string Volume\+Pkg\+::new\+Segmentation (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+/brief Segmentation funtions Make a new folder inside the volume package to house everything for this segmentation and push back the new segmentation into our vector of segmentations \begin{DoxyReturn}{Returns}
+the name of the new segmentation 
+\end{DoxyReturn}
+\hypertarget{classVolumePkg_a6948e4fed7d29257efa5752b25c8f877}{}\label{classVolumePkg_a6948e4fed7d29257efa5752b25c8f877} 
+\index{Volume\+Pkg@{Volume\+Pkg}!open\+Cloud@{open\+Cloud}}
+\index{open\+Cloud@{open\+Cloud}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{open\+Cloud()}{openCloud()}}
+{\footnotesize\ttfamily volcart\+::\+Ordered\+Point\+Set$<$volcart\+::\+Point3d$>$ Volume\+Pkg\+::open\+Cloud (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+\hypertarget{classVolumePkg_a3489e485f40be9bdcb4b993b6aaccc2d}{}\label{classVolumePkg_a3489e485f40be9bdcb4b993b6aaccc2d} 
+\index{Volume\+Pkg@{Volume\+Pkg}!print\+Dirs@{print\+Dirs}}
+\index{print\+Dirs@{print\+Dirs}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{print\+Dirs()}{printDirs()}}
+{\footnotesize\ttfamily void Volume\+Pkg\+::print\+Dirs (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+Print the configuration file $<$ Print the directories in the Volume Package \hypertarget{classVolumePkg_ab4c4d6cb9715dbdde2e76f96115d94f9}{}\label{classVolumePkg_ab4c4d6cb9715dbdde2e76f96115d94f9} 
+\index{Volume\+Pkg@{Volume\+Pkg}!print\+J\+S\+ON@{print\+J\+S\+ON}}
+\index{print\+J\+S\+ON@{print\+J\+S\+ON}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{print\+J\+S\+O\+N()}{printJSON()}}
+{\footnotesize\ttfamily void Volume\+Pkg\+::print\+J\+S\+ON (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+Prints information to help debug issues with creating Volume Packages \hypertarget{classVolumePkg_a1cf5ee88ba2392ab825619ef7890d7ae}{}\label{classVolumePkg_a1cf5ee88ba2392ab825619ef7890d7ae} 
+\index{Volume\+Pkg@{Volume\+Pkg}!read\+Only@{read\+Only}}
+\index{read\+Only@{read\+Only}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{read\+Only()}{readOnly()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily bool Volume\+Pkg\+::read\+Only (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+Checks to see if the metadata can be overwritten \begin{DoxyReturn}{Returns}
+bool that tells if it\textquotesingle{}s read only or not 
+\end{DoxyReturn}
+\hypertarget{classVolumePkg_a4dba1fc88e4390da1ad9fadf4c73b41b}{}\label{classVolumePkg_a4dba1fc88e4390da1ad9fadf4c73b41b} 
+\index{Volume\+Pkg@{Volume\+Pkg}!read\+Only@{read\+Only}}
+\index{read\+Only@{read\+Only}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{read\+Only()}{readOnly()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily void Volume\+Pkg\+::read\+Only (\begin{DoxyParamCaption}\item[{bool}]{b }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+Checks to see if the metadata can be overwritten and saves it to a variable 
+\begin{DoxyParams}{Parameters}
+{\em b} & variable where the result is saved \\
+\hline
+\end{DoxyParams}
+\hypertarget{classVolumePkg_ad8e7c0e7bf2ae1b6771533fe60e91625}{}\label{classVolumePkg_ad8e7c0e7bf2ae1b6771533fe60e91625} 
+\index{Volume\+Pkg@{Volume\+Pkg}!save\+Cloud@{save\+Cloud}}
+\index{save\+Cloud@{save\+Cloud}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{save\+Cloud()}{saveCloud()}}
+{\footnotesize\ttfamily int Volume\+Pkg\+::save\+Cloud (\begin{DoxyParamCaption}\item[{const volcart\+::\+Ordered\+Point\+Set$<$ volcart\+::\+Point3d $>$ \&}]{segmented\+Cloud }\end{DoxyParamCaption}) const}
+
+Save the Point Cloud of the active segmentation back to the volume package 
+\begin{DoxyParams}{Parameters}
+{\em segmented\+Cloud} & The Point\+Cloud that has been segmented or otherwise changed \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+An integer indicating success or failure 
+\end{DoxyReturn}
+\hypertarget{classVolumePkg_a8b8474853f26ef0c08cd37ded220c344}{}\label{classVolumePkg_a8b8474853f26ef0c08cd37ded220c344} 
+\index{Volume\+Pkg@{Volume\+Pkg}!save\+Mesh@{save\+Mesh}}
+\index{save\+Mesh@{save\+Mesh}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{save\+Mesh()}{saveMesh()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily int Volume\+Pkg\+::save\+Mesh (\begin{DoxyParamCaption}\item[{const volcart\+::\+Ordered\+Point\+Set$<$ volcart\+::\+Point3d $>$ \&}]{segmented\+Cloud }\end{DoxyParamCaption}) const}
+
+Saves the mesh of the active segmentation to the Volume Package 
+\begin{DoxyParams}{Parameters}
+{\em segmented\+Cloud} & The Point Cloud that contains the points in the mesh \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+An integer indicating success or failure 
+\end{DoxyReturn}
+\hypertarget{classVolumePkg_acd9f9d44b478d8d828de4f364983a5f0}{}\label{classVolumePkg_acd9f9d44b478d8d828de4f364983a5f0} 
+\index{Volume\+Pkg@{Volume\+Pkg}!save\+Mesh@{save\+Mesh}}
+\index{save\+Mesh@{save\+Mesh}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{save\+Mesh()}{saveMesh()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily void Volume\+Pkg\+::save\+Mesh (\begin{DoxyParamCaption}\item[{const volcart\+::\+I\+T\+K\+Mesh\+::\+Pointer}]{mesh,  }\item[{const volcart\+::\+Texture \&}]{texture }\end{DoxyParamCaption}) const}
+
+Saves the mesh and the texture of the active segmentation to a mesh 
+\begin{DoxyParams}{Parameters}
+{\em mesh} & Mesh you want to save, should represent the points in that segmentation \\
+\hline
+{\em texture} & Texture of the segmentation that is to be saved with the mesh \\
+\hline
+\end{DoxyParams}
+\hypertarget{classVolumePkg_abdccc4c348d57a7ea84a65c48ee50c75}{}\label{classVolumePkg_abdccc4c348d57a7ea84a65c48ee50c75} 
+\index{Volume\+Pkg@{Volume\+Pkg}!save\+Metadata@{save\+Metadata}}
+\index{save\+Metadata@{save\+Metadata}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{save\+Metadata()}{saveMetadata()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily void Volume\+Pkg\+::save\+Metadata (\begin{DoxyParamCaption}\item[{const boost\+::filesystem\+::path \&}]{file\+Path }\end{DoxyParamCaption})}
+
+Saves the data to any config file 
+\begin{DoxyParams}{Parameters}
+{\em file\+Path} & where you want the file to be stored \\
+\hline
+\end{DoxyParams}
+\hypertarget{classVolumePkg_a49a81e85ddb0fb188efdeb357592b99f}{}\label{classVolumePkg_a49a81e85ddb0fb188efdeb357592b99f} 
+\index{Volume\+Pkg@{Volume\+Pkg}!save\+Metadata@{save\+Metadata}}
+\index{save\+Metadata@{save\+Metadata}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{save\+Metadata()}{saveMetadata()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily void Volume\+Pkg\+::save\+Metadata (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+\hypertarget{classVolumePkg_ad13a7fb165caa0d3537942907a3e3cad}{}\label{classVolumePkg_ad13a7fb165caa0d3537942907a3e3cad} 
+\index{Volume\+Pkg@{Volume\+Pkg}!save\+Texture\+Data@{save\+Texture\+Data}}
+\index{save\+Texture\+Data@{save\+Texture\+Data}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{save\+Texture\+Data()}{saveTextureData()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily void Volume\+Pkg\+::save\+Texture\+Data (\begin{DoxyParamCaption}\item[{const cv\+::\+Mat \&}]{texture,  }\item[{const std\+::string \&}]{name = {\ttfamily \char`\"{}textured\char`\"{}} }\end{DoxyParamCaption})}
+
+Saves the texture data of the active segmentation to textured.\+png 
+\begin{DoxyParams}{Parameters}
+{\em texture} & the texture that you want to save as a cv\+::\+Mat \\
+\hline
+{\em name} & a constant that acts as the file name of the saved texture \\
+\hline
+\end{DoxyParams}
+\hypertarget{classVolumePkg_a47e37208ab713dbc8d72b5e7f71636f4}{}\label{classVolumePkg_a47e37208ab713dbc8d72b5e7f71636f4} 
+\index{Volume\+Pkg@{Volume\+Pkg}!save\+Texture\+Data@{save\+Texture\+Data}}
+\index{save\+Texture\+Data@{save\+Texture\+Data}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{save\+Texture\+Data()}{saveTextureData()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily void Volume\+Pkg\+::save\+Texture\+Data (\begin{DoxyParamCaption}\item[{volcart\+::\+Texture}]{texture,  }\item[{int}]{index = {\ttfamily 0} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+Saves the texture data that was generated by our texturing algorithms to textured.\+png \begin{DoxySeeAlso}{See also}
+common/types/\+Texture.\+h 
+\end{DoxySeeAlso}
+
+\begin{DoxyParams}{Parameters}
+{\em texture} & Stores the texture information generate by our algorithms \\
+\hline
+{\em index} & Constant that tells the function to get the first image \\
+\hline
+\end{DoxyParams}
+\hypertarget{classVolumePkg_a8b1fa5d3ca58dbd22ac1a576971bc7a0}{}\label{classVolumePkg_a8b1fa5d3ca58dbd22ac1a576971bc7a0} 
+\index{Volume\+Pkg@{Volume\+Pkg}!set\+Active\+Segmentation@{set\+Active\+Segmentation}}
+\index{set\+Active\+Segmentation@{set\+Active\+Segmentation}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{set\+Active\+Segmentation()}{setActiveSegmentation()}}
+{\footnotesize\ttfamily void Volume\+Pkg\+::set\+Active\+Segmentation (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{name }\end{DoxyParamCaption})}
+
+Set the private variable active\+Seg to the seg we want to work with 
+\begin{DoxyParams}{Parameters}
+{\em name} & the name of the segementation you want to switch to \\
+\hline
+\end{DoxyParams}
+\hypertarget{classVolumePkg_a560d401f04a486c0277e37b3e2607886}{}\label{classVolumePkg_a560d401f04a486c0277e37b3e2607886} 
+\index{Volume\+Pkg@{Volume\+Pkg}!set\+Metadata@{set\+Metadata}}
+\index{set\+Metadata@{set\+Metadata}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{set\+Metadata()}{setMetadata()}}
+{\footnotesize\ttfamily template$<$typename T $>$ \\
+int Volume\+Pkg\+::set\+Metadata (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{key,  }\item[{T}]{value }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+Sets a metadata member to have a specific key so it can be easily found later 
+\begin{DoxyParams}{Parameters}
+{\em key} & what is used to quickly find the data \\
+\hline
+{\em value} & value that you want to store in the key \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+whether or not it successfully saved that data to the key 
+\end{DoxyReturn}
+\hypertarget{classVolumePkg_a8d062ac46538de627f67f56ab35d6943}{}\label{classVolumePkg_a8d062ac46538de627f67f56ab35d6943} 
+\index{Volume\+Pkg@{Volume\+Pkg}!set\+Slice\+Data@{set\+Slice\+Data}}
+\index{set\+Slice\+Data@{set\+Slice\+Data}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{set\+Slice\+Data()}{setSliceData()}}
+{\footnotesize\ttfamily bool Volume\+Pkg\+::set\+Slice\+Data (\begin{DoxyParamCaption}\item[{size\+\_\+t}]{index,  }\item[{const cv\+::\+Mat \&}]{slice }\end{DoxyParamCaption})}
+
+Sets the Slice Data 
+\begin{DoxyParams}{Parameters}
+{\em index} & which slice you\textquotesingle{}re setting the data for \\
+\hline
+{\em slice} & the data you want to save to that index \\
+\hline
+\end{DoxyParams}
+\hypertarget{classVolumePkg_af346c954f18704b60f4b518412d5b0b0}{}\label{classVolumePkg_af346c954f18704b60f4b518412d5b0b0} 
+\index{Volume\+Pkg@{Volume\+Pkg}!volume@{volume}}
+\index{volume@{volume}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{volume()}{volume()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily const volcart\+::\+Volume\& Volume\+Pkg\+::volume (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+2 ways of accessing the Volume type, \begin{DoxySeeAlso}{See also}
+common/types/\+Volume.\+h 
+\end{DoxySeeAlso}
+\hypertarget{classVolumePkg_a49a10fff903e76fe8fbd72793621eaa2}{}\label{classVolumePkg_a49a10fff903e76fe8fbd72793621eaa2} 
+\index{Volume\+Pkg@{Volume\+Pkg}!volume@{volume}}
+\index{volume@{volume}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{volume()}{volume()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily volcart\+::\+Volume\& Volume\+Pkg\+::volume (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+\subsection{Member Data Documentation}
+\hypertarget{classVolumePkg_a032ffe2acb8dcb5efe26312a3730aa85}{}\label{classVolumePkg_a032ffe2acb8dcb5efe26312a3730aa85} 
+\index{Volume\+Pkg@{Volume\+Pkg}!\+\_\+read\+Only@{\+\_\+read\+Only}}
+\index{\+\_\+read\+Only@{\+\_\+read\+Only}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{\+\_\+read\+Only}{\_readOnly}}
+{\footnotesize\ttfamily bool Volume\+Pkg\+::\+\_\+read\+Only = true\hspace{0.3cm}{\ttfamily [private]}}
+
+Bool that tells if the data is read only \hypertarget{classVolumePkg_a192921e57935c16e2e92c2ede350e08a}{}\label{classVolumePkg_a192921e57935c16e2e92c2ede350e08a} 
+\index{Volume\+Pkg@{Volume\+Pkg}!active\+Seg@{active\+Seg}}
+\index{active\+Seg@{active\+Seg}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{active\+Seg}{activeSeg}}
+{\footnotesize\ttfamily std\+::string Volume\+Pkg\+::active\+Seg = \char`\"{}\char`\"{}\hspace{0.3cm}{\ttfamily [private]}}
+
+The segmentation currently being worked on \hypertarget{classVolumePkg_a01960fbb8a1dec9da54f5e2468baeb0e}{}\label{classVolumePkg_a01960fbb8a1dec9da54f5e2468baeb0e} 
+\index{Volume\+Pkg@{Volume\+Pkg}!config@{config}}
+\index{config@{config}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{config}{config}}
+{\footnotesize\ttfamily volcart\+::\+Metadata Volume\+Pkg\+::config\hspace{0.3cm}{\ttfamily [private]}}
+
+The metadata of the Volume Package \hypertarget{classVolumePkg_a564d5b92303bb807979d0ab09afa8eec}{}\label{classVolumePkg_a564d5b92303bb807979d0ab09afa8eec} 
+\index{Volume\+Pkg@{Volume\+Pkg}!root\+\_\+dir@{root\+\_\+dir}}
+\index{root\+\_\+dir@{root\+\_\+dir}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{root\+\_\+dir}{root\_dir}}
+{\footnotesize\ttfamily boost\+::filesystem\+::path Volume\+Pkg\+::root\+\_\+dir\hspace{0.3cm}{\ttfamily [private]}}
+
+The root directory of the Volume Package \hypertarget{classVolumePkg_a2c66b1685cb4b0be679097a61acb822b}{}\label{classVolumePkg_a2c66b1685cb4b0be679097a61acb822b} 
+\index{Volume\+Pkg@{Volume\+Pkg}!segmentations@{segmentations}}
+\index{segmentations@{segmentations}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{segmentations}{segmentations}}
+{\footnotesize\ttfamily std\+::vector$<$std\+::string$>$ Volume\+Pkg\+::segmentations\hspace{0.3cm}{\ttfamily [private]}}
+
+All of the segmentations that exist for this Volume Package \hypertarget{classVolumePkg_a7093bd35d5d8d7ef0b50a1e182bfbf56}{}\label{classVolumePkg_a7093bd35d5d8d7ef0b50a1e182bfbf56} 
+\index{Volume\+Pkg@{Volume\+Pkg}!segs\+\_\+dir@{segs\+\_\+dir}}
+\index{segs\+\_\+dir@{segs\+\_\+dir}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{segs\+\_\+dir}{segs\_dir}}
+{\footnotesize\ttfamily boost\+::filesystem\+::path Volume\+Pkg\+::segs\+\_\+dir\hspace{0.3cm}{\ttfamily [private]}}
+
+The directory containing the segmentatiosn \hypertarget{classVolumePkg_a277efff0ba8ce1043c83d15eaf5c5427}{}\label{classVolumePkg_a277efff0ba8ce1043c83d15eaf5c5427} 
+\index{Volume\+Pkg@{Volume\+Pkg}!slice\+\_\+dir@{slice\+\_\+dir}}
+\index{slice\+\_\+dir@{slice\+\_\+dir}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{slice\+\_\+dir}{slice\_dir}}
+{\footnotesize\ttfamily boost\+::filesystem\+::path Volume\+Pkg\+::slice\+\_\+dir\hspace{0.3cm}{\ttfamily [private]}}
+
+The director containing the slices \hypertarget{classVolumePkg_a0df52f6f476a106802da0bfc1b2d5b23}{}\label{classVolumePkg_a0df52f6f476a106802da0bfc1b2d5b23} 
+\index{Volume\+Pkg@{Volume\+Pkg}!vol\+\_\+@{vol\+\_\+}}
+\index{vol\+\_\+@{vol\+\_\+}!Volume\+Pkg@{Volume\+Pkg}}
+\subsubsection{\texorpdfstring{vol\+\_\+}{vol\_}}
+{\footnotesize\ttfamily volcart\+::\+Volume Volume\+Pkg\+::vol\+\_\+\hspace{0.3cm}{\ttfamily [private]}}
+
+The actual data of the Volume 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/\+Volumes/\+V\+C-\/\+Hannah/\+V\+C-\/\+Source-\/\+Code/volume-\/cartographer/volumepkg/include/volumepkg/\hyperlink{volumepkg_8h}{volumepkg.\+h}\end{DoxyCompactItemize}

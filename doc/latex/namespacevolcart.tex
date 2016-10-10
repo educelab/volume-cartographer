@@ -1,0 +1,110 @@
+\hypertarget{namespacevolcart}{}\section{volcart Namespace Reference}
+\label{namespacevolcart}\index{volcart@{volcart}}
+\subsection*{Typedefs}
+\begin{DoxyCompactItemize}
+\item 
+using \hyperlink{namespacevolcart_aa4e334ff80b678b9556aee59618eb37a}{Dictionary} = std\+::unordered\+\_\+map$<$ std\+::string, std\+::string $>$
+\item 
+using \hyperlink{namespacevolcart_a90354e3717094cf66f2c1310f12b2e4e}{Library} = std\+::unordered\+\_\+map$<$ int, \hyperlink{namespacevolcart_aa4e334ff80b678b9556aee59618eb37a}{Dictionary} $>$
+\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+const \hyperlink{namespacevolcart_aa4e334ff80b678b9556aee59618eb37a}{Dictionary} \hyperlink{namespacevolcart_aff81b62f1e73f2f96669772bab7e2425}{\+\_\+1}
+\item 
+const \hyperlink{namespacevolcart_aa4e334ff80b678b9556aee59618eb37a}{Dictionary} \hyperlink{namespacevolcart_aa72ffe0fec32eedd0bba8af24e731287}{\+\_\+2}
+\item 
+const \hyperlink{namespacevolcart_aa4e334ff80b678b9556aee59618eb37a}{Dictionary} \hyperlink{namespacevolcart_ab457f3dd0e44ebc4ef1ed01c7569938a}{\+\_\+3}
+\item 
+const \hyperlink{namespacevolcart_a90354e3717094cf66f2c1310f12b2e4e}{Library} \hyperlink{namespacevolcart_a6e45df2f7fa06672b646f6d8dc5ca256}{Version\+Library} = \{\{1, \hyperlink{namespacevolcart_aff81b62f1e73f2f96669772bab7e2425}{\+\_\+1}\}, \{2, \hyperlink{namespacevolcart_aa72ffe0fec32eedd0bba8af24e731287}{\+\_\+2}\}, \{3, \hyperlink{namespacevolcart_ab457f3dd0e44ebc4ef1ed01c7569938a}{\+\_\+3}\}\}
+\end{DoxyCompactItemize}
+
+
+\subsection{Typedef Documentation}
+\hypertarget{namespacevolcart_aa4e334ff80b678b9556aee59618eb37a}{}\label{namespacevolcart_aa4e334ff80b678b9556aee59618eb37a} 
+\index{volcart@{volcart}!Dictionary@{Dictionary}}
+\index{Dictionary@{Dictionary}!volcart@{volcart}}
+\subsubsection{\texorpdfstring{Dictionary}{Dictionary}}
+{\footnotesize\ttfamily using \hyperlink{namespacevolcart_aa4e334ff80b678b9556aee59618eb37a}{volcart\+::\+Dictionary} = typedef std\+::unordered\+\_\+map$<$std\+::string, std\+::string$>$}
+
+These constants represent the various versions of the Volume package Each version as a different library that may have varying information conatined or how the information is stored was changed between versions This type sets the dictionary to be a map which contains 2 strings for each entry. The first string tells the user what is being saved in that place The second string tells the user what type is saved. \hypertarget{namespacevolcart_a90354e3717094cf66f2c1310f12b2e4e}{}\label{namespacevolcart_a90354e3717094cf66f2c1310f12b2e4e} 
+\index{volcart@{volcart}!Library@{Library}}
+\index{Library@{Library}!volcart@{volcart}}
+\subsubsection{\texorpdfstring{Library}{Library}}
+{\footnotesize\ttfamily using \hyperlink{namespacevolcart_a90354e3717094cf66f2c1310f12b2e4e}{volcart\+::\+Library} = typedef std\+::unordered\+\_\+map$<$int, \hyperlink{namespacevolcart_aa4e334ff80b678b9556aee59618eb37a}{Dictionary}$>$}
+
+This type sets the Library to be a map which contains an integer and a dictonary type It essentially acts like a literal library, storing the dictionaries so they can be easily found. The integer acts as an index for each Dictonary The Dictionary is the type stored there 
+
+\subsection{Variable Documentation}
+\hypertarget{namespacevolcart_aff81b62f1e73f2f96669772bab7e2425}{}\label{namespacevolcart_aff81b62f1e73f2f96669772bab7e2425} 
+\index{volcart@{volcart}!\+\_\+1@{\+\_\+1}}
+\index{\+\_\+1@{\+\_\+1}!volcart@{volcart}}
+\subsubsection{\texorpdfstring{\+\_\+1}{\_1}}
+{\footnotesize\ttfamily const \hyperlink{namespacevolcart_aa4e334ff80b678b9556aee59618eb37a}{Dictionary} volcart\+::\+\_\+1}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}
+=
+        \{
+        \{\textcolor{stringliteral}{"volumepkg name"},   \textcolor{stringliteral}{"string"}\},
+        \{\textcolor{stringliteral}{"version"},          \textcolor{stringliteral}{"int"}\},
+        \{\textcolor{stringliteral}{"width"},            \textcolor{stringliteral}{"int"}\},
+        \{\textcolor{stringliteral}{"height"},           \textcolor{stringliteral}{"int"}\},
+        \{\textcolor{stringliteral}{"number of slices"}, \textcolor{stringliteral}{"int"}\},
+        \{\textcolor{stringliteral}{"slice location"},   \textcolor{stringliteral}{"string"}\},
+        \{\textcolor{stringliteral}{"min"},              \textcolor{stringliteral}{"double"}\},
+        \{\textcolor{stringliteral}{"max"},              \textcolor{stringliteral}{"double"}\},
+        \{\textcolor{stringliteral}{"voxelsize"},        \textcolor{stringliteral}{"double"}\}
+        \}
+\end{DoxyCode}
+This is the dictionary that gives the data types for Volpkg 1 \hypertarget{namespacevolcart_aa72ffe0fec32eedd0bba8af24e731287}{}\label{namespacevolcart_aa72ffe0fec32eedd0bba8af24e731287} 
+\index{volcart@{volcart}!\+\_\+2@{\+\_\+2}}
+\index{\+\_\+2@{\+\_\+2}!volcart@{volcart}}
+\subsubsection{\texorpdfstring{\+\_\+2}{\_2}}
+{\footnotesize\ttfamily const \hyperlink{namespacevolcart_aa4e334ff80b678b9556aee59618eb37a}{Dictionary} volcart\+::\+\_\+2}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}
+=
+        \{
+        \{\textcolor{stringliteral}{"volumepkg name"},   \textcolor{stringliteral}{"string"}\},
+        \{\textcolor{stringliteral}{"version"},          \textcolor{stringliteral}{"int"}\},
+        \{\textcolor{stringliteral}{"width"},            \textcolor{stringliteral}{"int"}\},
+        \{\textcolor{stringliteral}{"height"},           \textcolor{stringliteral}{"int"}\},
+        \{\textcolor{stringliteral}{"number of slices"}, \textcolor{stringliteral}{"int"}\},
+        \{\textcolor{stringliteral}{"slice location"},   \textcolor{stringliteral}{"string"}\},
+        \{\textcolor{stringliteral}{"min"},              \textcolor{stringliteral}{"double"}\},
+        \{\textcolor{stringliteral}{"max"},              \textcolor{stringliteral}{"double"}\},
+        \{\textcolor{stringliteral}{"voxelsize"},        \textcolor{stringliteral}{"double"}\},
+        \{\textcolor{stringliteral}{"materialthickness"},\textcolor{stringliteral}{"double"}\}
+        \}
+\end{DoxyCode}
+This is the dictionary that gives the data types for Volkpg 2 \hypertarget{namespacevolcart_ab457f3dd0e44ebc4ef1ed01c7569938a}{}\label{namespacevolcart_ab457f3dd0e44ebc4ef1ed01c7569938a} 
+\index{volcart@{volcart}!\+\_\+3@{\+\_\+3}}
+\index{\+\_\+3@{\+\_\+3}!volcart@{volcart}}
+\subsubsection{\texorpdfstring{\+\_\+3}{\_3}}
+{\footnotesize\ttfamily const \hyperlink{namespacevolcart_aa4e334ff80b678b9556aee59618eb37a}{Dictionary} volcart\+::\+\_\+3}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}
+=
+        \{
+        \{\textcolor{stringliteral}{"volumepkg name"},   \textcolor{stringliteral}{"string"}\},
+        \{\textcolor{stringliteral}{"version"},          \textcolor{stringliteral}{"int"}\},
+        \{\textcolor{stringliteral}{"width"},            \textcolor{stringliteral}{"int"}\},
+        \{\textcolor{stringliteral}{"height"},           \textcolor{stringliteral}{"int"}\},
+        \{\textcolor{stringliteral}{"number of slices"}, \textcolor{stringliteral}{"int"}\},
+        \{\textcolor{stringliteral}{"slice location"},   \textcolor{stringliteral}{"string"}\},
+        \{\textcolor{stringliteral}{"min"},              \textcolor{stringliteral}{"double"}\},
+        \{\textcolor{stringliteral}{"max"},              \textcolor{stringliteral}{"double"}\},
+        \{\textcolor{stringliteral}{"voxelsize"},        \textcolor{stringliteral}{"double"}\},
+        \{\textcolor{stringliteral}{"materialthickness"},\textcolor{stringliteral}{"double"}\}
+        \}
+\end{DoxyCode}
+This is the dictionary that gives the data types for Volkpg 3 \hypertarget{namespacevolcart_a6e45df2f7fa06672b646f6d8dc5ca256}{}\label{namespacevolcart_a6e45df2f7fa06672b646f6d8dc5ca256} 
+\index{volcart@{volcart}!Version\+Library@{Version\+Library}}
+\index{Version\+Library@{Version\+Library}!volcart@{volcart}}
+\subsubsection{\texorpdfstring{Version\+Library}{VersionLibrary}}
+{\footnotesize\ttfamily const \hyperlink{namespacevolcart_a90354e3717094cf66f2c1310f12b2e4e}{Library} volcart\+::\+Version\+Library = \{\{1, \hyperlink{namespacevolcart_aff81b62f1e73f2f96669772bab7e2425}{\+\_\+1}\}, \{2, \hyperlink{namespacevolcart_aa72ffe0fec32eedd0bba8af24e731287}{\+\_\+2}\}, \{3, \hyperlink{namespacevolcart_ab457f3dd0e44ebc4ef1ed01c7569938a}{\+\_\+3}\}\}}
+
+This library holds the Version Dictionaries and connects them to the possible versions that a user might enter when creating a Volume Package 

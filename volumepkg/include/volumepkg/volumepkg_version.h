@@ -10,11 +10,30 @@ namespace volcart
 {
 
 // VersionDict's will hold possible metadata keys and their types
+/**
+ * These constants represent the various versions of the Volume package
+ * Each version as a different library that may have varying information conatined
+ * or how the information is stored was changed between versions
+ */
+/**
+ * This type sets the dictionary to be a map which contains 2 strings for each entry.
+ * The first string tells the user what is being saved in that place
+ * The second string tells the user what type is saved.
+ */
 using Dictionary = std::unordered_map<std::string, std::string>;
+/**
+ * This type sets the Library to be a map which contains an integer and a dictonary type
+ * It essentially acts like a literal library, storing the dictionaries so they can be easily found.
+ * The integer acts as an index for each Dictonary
+ * The Dictionary is the type stored there
+ */
 using Library = std::unordered_map<int, Dictionary>;
 
-// Version 1
+
 // clang-format off
+/**
+ * This is the dictionary that gives the data types for Volpkg 1
+ */
 const Dictionary _1 =
         {
         {"volumepkg name",   "string"},
@@ -28,7 +47,9 @@ const Dictionary _1 =
         {"voxelsize",        "double"}
         };
 
-// Version 2
+/**
+ * This is the dictionary that gives the data types for Volkpg 2
+ */
 const Dictionary _2 =
         {
         {"volumepkg name",   "string"},
@@ -43,7 +64,9 @@ const Dictionary _2 =
         {"materialthickness","double"}
         };
 
-// Version 3
+/**
+ * This is the dictionary that gives the data types for Volkpg 3
+ */
 const Dictionary _3 =
         {
         {"volumepkg name",   "string"},
@@ -60,5 +83,9 @@ const Dictionary _3 =
 // clang-format on
 
 // Add the Version Dict's to a list of possible versions
+/**
+ * This library holds the Version Dictionaries and connects them to the possible
+ * versions that a user might enter when creating a Volume Package
+ */
 const Library VersionLibrary = {{1, _1}, {2, _2}, {3, _3}};
 }  // namespace volcart
