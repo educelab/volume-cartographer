@@ -167,6 +167,12 @@ void Texture_Viewer::clearImageLabel()
     refresh->setEnabled(false);
 }
 
+void Texture_Viewer::clearGUI(){
+
+   clearImageLabel();// Clear the Image
+    scaleFactor=1.0;
+}
+
 void Texture_Viewer::create_Actions()
 {
     zoomInAction = new QAction("Zoom In", this);

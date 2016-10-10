@@ -35,12 +35,12 @@ class Texture_Viewer : QObject
 public:
     Texture_Viewer(Global_Values* globals);
     QVBoxLayout* getLayout();
+    void clearGUI();
     void setImage();
     void clearImageLabel();
     void progressActive(bool value);
     void setEnabled(bool value);
     void clearLabel();
-    QLabel* getLabel();
 
 private slots:
     void open();
@@ -61,7 +61,6 @@ private:
     QLabel* spacer;
     QLabel* viewer;
     QLabel* imageLabel;
-    QLabel* temp;
     QScrollArea* scrollArea;
     QHBoxLayout* zoom;
     QVBoxLayout* image_Management;

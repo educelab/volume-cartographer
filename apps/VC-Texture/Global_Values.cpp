@@ -42,15 +42,21 @@ void Global_Values::createVolumePackage()
 
 void Global_Values::clearVolumePackage()
 {
-
     vpkg = nullptr;             // Clear vpkg
     VPKG_Instantiated = false;  // Clear VPKG_Instantiated
 }
 
 void Global_Values::clearGUI()
 {
-
-    // Needs Implementation HERE
+    VPKG_Instantiated = false;
+    path = "";
+    vpkg = nullptr;
+    segmentations.clear();
+    clearRendering();
+    _radius = 0;
+    _textureMethod = 0;
+    _sampleDirection = 0;
+    _status = 0;
 }
 
 void Global_Values::getMySegmentations()

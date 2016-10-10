@@ -14,7 +14,7 @@
 #include "common/io/objWriter.h"
 
 // Volpkg version required byt this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 2;  // Version #3
+static constexpr int VOLPKG_SUPPORTED_VERSION = 3;  // Version #3
 
 namespace fs = boost::filesystem;
 
@@ -74,65 +74,70 @@ MainWindow::MainWindow(Global_Values* globals)
 void MainWindow::getFilePath()  // Gets the Folder Path of the Volume Package
                                 // location, and initiates a Volume Package.
 {
-    QFileDialog* dialogBox = new QFileDialog();
-    QString filename = dialogBox->getExistingDirectory();
-    std::string file_Name = filename.toStdString();
 
-    if (!filename.isEmpty())  // If the user selected a Folder Path
-    {
-        if ((file_Name.substr(file_Name.length() - 7, file_Name.length()))
-                .compare(".volpkg") ==
-            0)  // Checks the Folder Path for .volpkg extension
+        _globals->clearGUI();// Clear variables from Globals
+        _segmentations_Viewer->clearGUI();// Clear variables from Segmentations_Viewer AND  Clear variables from Texture_Viewer
+
+        QFileDialog *dialogBox = new QFileDialog();
+        QString filename = dialogBox->getExistingDirectory();
+        std::string file_Name = filename.toStdString();
+
+        if (!filename.isEmpty())  // If the user selected a Folder Path
         {
-            try {
-                _globals->setPath(filename);  // Sets Folder Path in Globals
-                _globals
-                    ->createVolumePackage();  // Creates a Volume Package Object
 
-                // Check for Volume Package Version Number
-                if (_globals->getVolPkg()->getVersion() <
-                    VOLPKG_SUPPORTED_VERSION) {
+            if ((file_Name.substr(file_Name.length() - 7, file_Name.length()))
+                        .compare(".volpkg") ==
+                0)  // Checks the Folder Path for .volpkg extension
+            {
+                try {
+                    _globals->setPath(filename);  // Sets Folder Path in Globals
+                    _globals
+                            ->createVolumePackage();  // Creates a Volume Package Object
 
-                    std::cerr << "VC::Error: Volume package is version "
-                              << _globals->getVolPkg()->getVersion()
-                              << " but this program requires a version "
-                              << std::to_string(VOLPKG_SUPPORTED_VERSION) << "."
-                              << std::endl;
+                    // Check for Volume Package Version Number
+                    if (_globals->getVolPkg()->getVersion() <
+                        VOLPKG_SUPPORTED_VERSION) {
 
+                        std::cerr << "VC::Error: Volume package is version "
+                                  << _globals->getVolPkg()->getVersion()
+                                  << " but this program requires a version "
+                                  << std::to_string(VOLPKG_SUPPORTED_VERSION) << "."
+                                  << std::endl;
+
+                        QMessageBox::warning(
+                                this, tr("ERROR"),
+                                "Volume package is version " +
+                                QString::number(
+                                        _globals->getVolPkg()->getVersion()) +
+                                " but this program requires version " +
+                                QString::number(VOLPKG_SUPPORTED_VERSION) + ".");
+
+                        // Reset Values
+                        _globals->clearVolumePackage();  // Reset Volume Package
+                        _globals->setPath("");           // Clear filename path
+                        return;
+                    }
+
+                    _globals->getMySegmentations();  // Gets Segmentations and
+                    // assigns them to
+                    // "segmentations" in Globals
+                    _segmentations_Viewer->setSegmentations();  // Sets the
+                    // Segmentations for
+                    // the Segmentation
+                    // Viewer and
+                    // assigns the
+                    _segmentations_Viewer->setVol_Package_Name(
+                            filename);  // Sets the name of the Volume Package to
+                    // Display on the GUI
+
+                } catch (...) {
                     QMessageBox::warning(
-                        this, tr("ERROR"),
-                        "Volume package is version " +
-                            QString::number(
-                                _globals->getVolPkg()->getVersion()) +
-                            " but this program requires version " +
-                            QString::number(VOLPKG_SUPPORTED_VERSION) + ".");
-
-                    // Reset Values
-                    _globals->clearVolumePackage();  // Reset Volume Package
-                    _globals->setPath("");           // Clear filename path
-                    return;
-                }
-
-                _globals->getMySegmentations();  // Gets Segmentations and
-                                                 // assigns them to
-                                                 // "segmentations" in Globals
-                _segmentations_Viewer->setSegmentations();  // Sets the
-                                                            // Segmentations for
-                                                            // the Segmentation
-                                                            // Viewer and
-                                                            // assigns the
-                _segmentations_Viewer->setVol_Package_Name(
-                    filename);  // Sets the name of the Volume Package to
-                                // Display on the GUI
-
-            } catch (...) {
-                QMessageBox::warning(
-                    this, tr("Error Message"), "Error Opening File.");
-            };
-        } else {
-            QMessageBox::warning(this, tr("Error Message"), "Invalid File.");
+                            this, tr("Error Message"), "Error Opening File.");
+                };
+            } else {
+                QMessageBox::warning(this, tr("Error Message"), "Invalid File.");
+            }
         }
-    }
 }
 
 // Overrides the Current Texture Image in the Segmentation's Folder with the

@@ -41,6 +41,7 @@ public:
     Segmentations_Viewer(
         Global_Values* globals, Texture_Viewer* texture_Viewer);
     QVBoxLayout* getLayout();
+    void clearGUI();
     void setSegmentations();
     bool loadImage(cv::Mat texture);
     void setVol_Package_Name(QString name);
