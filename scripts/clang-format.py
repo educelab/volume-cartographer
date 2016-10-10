@@ -14,12 +14,12 @@ import tarfile
 import tempfile
 import urllib.request
 
-from distutils.version import StrictVersion
+from distutils.version import LooseVersion
 from os.path import join
 from typing import List, Union
 
 # The version we care about
-MIN_VERSION_REQUIRED = StrictVersion('3.8.0')
+MIN_VERSION_REQUIRED = LooseVersion('3.8.0')
 
 # Name of clang-format as a binary
 PROGNAME = 'clang-format'
@@ -42,8 +42,8 @@ class ClangFormatter:
         return self.exepath
 
     @property
-    def version(self) -> StrictVersion:
-        return StrictVersion(
+    def version(self) -> LooseVersion:
+        return LooseVersion(
             callo(' '.join([self.exepath, '--version'])).split()[2]
         )
 
