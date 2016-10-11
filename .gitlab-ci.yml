@@ -103,6 +103,20 @@ lint:
     tags:
         - source
 
+doxygen:
+    stage: test
+    script:
+        - cd doc/
+        - doxygen VC-Doxygen-config-file
+    artifacts:
+        name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
+        paths:
+            - doc/html/*
+            - doc/latex/*
+        expire_in: 5 days
+    tags:
+        - doxy
+
 collect:source:
     only:
         - master
