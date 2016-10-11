@@ -17,41 +17,45 @@
 
 /**
  * @class VolumePkg
- * This class exists to be a container for all of the data about a particular
- * set of data. It holds the slices, segmentations, mesh and texture data.
+ * The interface to the VolumePkg (.volpkg) file format. Provides access to
+ * volume, segmentation, and rendering data stored on disk.
  */
 class VolumePkg
 {
 public:
-    /**
-     * These are the Constructors, this first one is used to create a new volume
-     * package and the second is for opening existing ones
-     * @param file_location This is where you want to store the base directory
-     * of the volume package
-     * @param version This is the version of Volpkg you want to use, the current
-     * version is 3 and is the only one that will work
+    /** Construct an empty VolumePkg of a specific version number.
+     *  This will construct an empty VolumePkg in memory and set its expected
+     * location on disk. NOTE: You must call initialize() before the file can
+     * be written to and accessed. Only metadata keys may be modified before
+     * initialize is called.
+     * @param file_location The location to store the VolPkg
+     * @param version Version of VolumePkg you wish to contsruct
      */
     VolumePkg(const boost::filesystem::path& file_location, int version);
-    VolumePkg(
-        const boost::filesystem::path& file_location); 
 
     /**
-     * This function writes the Volpkg out to the disk when you create it
-     * initially, it saves the metadata and builds the directory tree
-     * @return An integer signalling success or failure
+     * Construct a VolumePkg from a .volpkg file stored at file_location.
+     * @param file_location The root of the VolumePkg file
+     */
+    VolumePkg(const boost::filesystem::path& file_location);
+
+    /**
+     * Initialize an empty .volpkg file on disk.
+     * Used when setting up a new VolumePkg file. Returns EXIT_FAILURE
+     * if VolumePkg is set to read-only or if file is unwritable.
+     * @return EXIT_SUCCESS or EXIT_FAILURE
      */
     int initialize();
 
     // Accessors for volume
     /**
-     * Returns the Volume information stored as a Volume type
+     * Returns the Volume object that accesses slice information
      * @return VolumeType
      * @see common/types/Volume.h
      */
     const volcart::Volume& volume() const { return vol_; }
-
     volcart::Volume& volume() { return vol_; }
-    // Debug
+
     /**
      * Prints the contents of the JSON file where the metadata is stored, mainly
      * used for Debug
@@ -311,7 +315,7 @@ private:
     /**
      * This is the segmentation that is currently being worked on
      */
-    std::string activeSeg = "";
+    std::string activeSeg;
     /**
      * The list of all the segmentations for a specific VolumePkg
      */
