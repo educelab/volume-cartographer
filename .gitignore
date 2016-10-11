@@ -35,3 +35,6 @@ tags
 
 # Python
 __pycache__
+
+#Doxygen
+doc/latex/
