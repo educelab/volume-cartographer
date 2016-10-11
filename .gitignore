@@ -38,3 +38,4 @@ __pycache__
 
 #Doxygen
 doc/latex/
+doc/html/
