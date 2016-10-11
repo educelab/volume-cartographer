@@ -17,24 +17,27 @@
 
 /**
  * @class VolumePkg
- * This class exists to be a container for all of the data about a particular set of data. It holds the slices,
- * segmentations, mesh and texture data.
+ * This class exists to be a container for all of the data about a particular
+ * set of data. It holds the slices, segmentations, mesh and texture data.
  */
 class VolumePkg
 {
 public:
     /**
-     * These are the Constructors, this first one is used to create a new volume package and the second is for opening existing ones
-     * @param file_location This is where you want to store the base directory of the volume package
-     * @param version This is the version of Volpkg you want to use, the current version is 3 and is the only one that will work
+     * These are the Constructors, this first one is used to create a new volume
+     * package and the second is for opening existing ones
+     * @param file_location This is where you want to store the base directory
+     * of the volume package
+     * @param version This is the version of Volpkg you want to use, the current
+     * version is 3 and is the only one that will work
      */
     VolumePkg(const boost::filesystem::path& file_location, int version);
     VolumePkg(
-        const boost::filesystem::path& file_location);  // Existing VolPkgs
+        const boost::filesystem::path& file_location); 
 
-    // Write to disk for the first time
     /**
-     * This function writes the Volpkg out to the disk when you create it initially, it saves the metadata and builds the directory tree
+     * This function writes the Volpkg out to the disk when you create it
+     * initially, it saves the metadata and builds the directory tree
      * @return An integer signalling success or failure
      */
     int initialize();
@@ -50,7 +53,8 @@ public:
     volcart::Volume& volume() { return vol_; }
     // Debug
     /**
-     * Prints the contents of the JSON file where the metadata is stored, mainly used for Debug
+     * Prints the contents of the JSON file where the metadata is stored, mainly
+     * used for Debug
      */
     void printJSON() const { config.printObject(); };
 
@@ -82,19 +86,22 @@ public:
     int getNumberOfSlices() const;
 
     /**
-     * Returns the width of the slices, this is the same for all slices in a VolumePkg
+     * Returns the width of the slices, this is the same for all slices in a
+     * VolumePkg
      * @return integer that represents the slice width
      */
     int getSliceWidth() const;
 
     /**
-     * Returns the height of the slices in the data, this is the same for all slices in a VolumePkg
+     * Returns the height of the slices in the data, this is the same for all
+     * slices in a VolumePkg
      * @return Integer represents the height of the slices
      */
     int getSliceHeight() const;
 
     /**
-     * Returns the size of the voxels in the data, this is the same for all voxels in a VolumePkg
+     * Returns the size of the voxels in the data, this is the same for all
+     * voxels in a VolumePkg
      * @return Double that represents the size of the voxels
      */
     double getVoxelSize() const;
@@ -120,7 +127,8 @@ public:
 
     // set a metadata key to a value
     /**
-     * Sets a particular metadata value to a key so that it can be quickly found later
+     * Sets a particular metadata value to a key so that it can be quickly found
+     * later
      * @param key what the metadata is set to
      * @param value metadata that you want to store
      * @return Integer indicating success
@@ -164,7 +172,8 @@ public:
     std::string newSegmentation();
     /**
      * Returns a list of the current segmentations for that VolumePkg
-     * @return a vector of strings that contains the names of all the segmentations for the VolumePkg
+     * @return a vector of strings that contains the names of all the
+     * segmentations for the VolumePkg
      */
     std::vector<std::string> getSegmentations() const;
 
@@ -185,7 +194,8 @@ public:
     boost::filesystem::path getActiveSegPath();
 
     /**
-     * This opens the file containing the information for the points that make up the Volume
+     * This opens the file containing the information for the points that make
+     * up the Volume
      * @return An OrderedPointSet which contains all of the points on the Volume
      * @see common/types/OrderedPointSet.h
      * @see common/types/PointSet.h
@@ -193,7 +203,8 @@ public:
     volcart::OrderedPointSet<volcart::Point3d> openCloud() const;
 
     /**
-     * Gets the file path where the mesh for the currently active segmentation is stored
+     * Gets the file path where the mesh for the currently active segmentation
+     * is stored
      * @return Boost File path
      */
     boost::filesystem::path getMeshPath() const;
@@ -205,24 +216,30 @@ public:
     cv::Mat getTextureData() const;
 
     /**
-     * Saves the points of the Volume that may have been altered due to segmentation
-     * @param segmentedCloud The set of points returned by the segmentation algorithm that need to be saved
+     * Saves the points of the Volume that may have been altered due to
+     * segmentation
+     * @param segmentedCloud The set of points returned by the segmentation
+     * algorithm that need to be saved
      * @return Integer indicating success
      */
     int saveCloud(
         const volcart::OrderedPointSet<volcart::Point3d>& segmentedCloud) const;
 
     /**
-     * Generates a mesh from the Points provided and saves it to the Segmentation folder of the active Segmentation
-     * @param segmentedCloud The set of points returned by the segmentation algorithm that need to be meshed and saved
+     * Generates a mesh from the Points provided and saves it to the
+     * Segmentation folder of the active Segmentation
+     * @param segmentedCloud The set of points returned by the segmentation
+     * algorithm that need to be meshed and saved
      * @return an Integer indicating success
      */
     int saveMesh(
         const volcart::OrderedPointSet<volcart::Point3d>& segmentedCloud) const;
 
     /**
-     * Saves a generated mesh along with the Texture information that is provided
-     * @param mesh Mesh that was generated from the points in the cloud of the current segmentation
+     * Saves a generated mesh along with the Texture information that is
+     * provided
+     * @param mesh Mesh that was generated from the points in the cloud of the
+     * current segmentation
      * @param texture Texture information for a mesh
      * @see common/types/Texture.h
      */
@@ -233,7 +250,8 @@ public:
     /**
      * Saves the texture data for the current segmentation
      * @param texture Texture information as a Mat
-     * @param name automatcially set to be textured and represents the name of the file where this is stored
+     * @param name automatcially set to be textured and represents the name of
+     * the file where this is stored
      */
     void saveTextureData(
         const cv::Mat& texture, const std::string& name = "textured");
@@ -242,7 +260,8 @@ public:
      * Saves the texture data for the current segmentation
      * @param texture Texture information
      * @see common/types/Texture.h
-     * @param index Tells the function which slice to use the texture data from, automatically set to 0
+     * @param index Tells the function which slice to use the texture data from,
+     * automatically set to 0
      */
     void saveTextureData(volcart::Texture texture, int index = 0)
     {
@@ -286,7 +305,8 @@ private:
      */
     boost::filesystem::path slice_dir;
 
-    //Note to Seth: This function isn't implemented and Clion found no usages of it?
+    // Note to Seth: This function isn't implemented and Clion found no usages
+    // of it?
     int getNumberOfSliceCharacters();
     /**
      * This is the segmentation that is currently being worked on
@@ -297,9 +317,12 @@ private:
      */
     std::vector<std::string> segmentations;
     /**
-     * Sets up which version of the Volume Package you're using and associates all the keys with information from the dictonary
-     * @param dict Which set of data types you want to use to create the VolumePkg, corresponds to the version
-     * @param version which version of the Volume Package you want to use, current is 3
+     * Sets up which version of the Volume Package you're using and associates
+     * all the keys with information from the dictonary
+     * @param dict Which set of data types you want to use to create the
+     * VolumePkg, corresponds to the version
+     * @param version which version of the Volume Package you want to use,
+     * current is 3
      * @return Inital metadata
      * @see common/types/Metadata.h
      */

@@ -8,7 +8,8 @@
 /**
  * @class VolumePkg_Version
  * These constants represent the various versions of the Volume package
- * Each version as a different library that may have varying information conatined
+ * Each version as a different library that may have varying information
+ * conatined
  * or how the information is stored was changed between versions
  */
 namespace volcart
@@ -17,19 +18,21 @@ namespace volcart
 // VersionDict's will hold possible metadata keys and their types
 
 /**
- * This type sets the dictionary to be a map which contains 2 strings for each entry.
+ * This type sets the dictionary to be a map which contains 2 strings for each
+ * entry.
  * The first string tells the user what is being saved in that place
  * The second string tells the user what type is saved.
  */
 using Dictionary = std::unordered_map<std::string, std::string>;
 /**
- * This type sets the Library to be a map which contains an integer and a dictonary type
- * It essentially acts like a literal library, storing the dictionaries so they can be easily found.
+ * This type sets the Library to be a map which contains an integer and a
+ * dictonary type
+ * It essentially acts like a literal library, storing the dictionaries so they
+ * can be easily found.
  * The integer acts as an index for each Dictonary
  * The Dictionary is the type stored there
  */
 using Library = std::unordered_map<int, Dictionary>;
-
 
 // clang-format off
 /**
