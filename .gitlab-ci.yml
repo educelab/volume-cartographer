@@ -1,6 +1,7 @@
 stages:
     - build
     - test
+    - docs
     - collect
     - deploy
 
@@ -103,8 +104,9 @@ lint:
     tags:
         - source
 
-doxygen:
-    stage: test
+### Documentation ###
+doxygen:html:
+    stage: docs
     script:
         - cd doc/
         - doxygen VC-Doxygen-config-file
@@ -112,11 +114,28 @@ doxygen:
         name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
         paths:
             - doc/html/*
-            - doc/latex/*
         expire_in: 5 days
+    allow_failure: yes
     tags:
         - doxy
 
+doxygen:pdf:
+    stage: docs
+    script:
+        - cd doc/
+        - doxygen VC-Doxygen-config-file
+        - cd latex/
+        - make
+    artifacts:
+        name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
+        paths:
+            - doc/latex/*.pdf
+        expire_in: 5 days
+    allow_failure: yes
+    tags:
+        - doxy
+
+### Collect & Deploy ###
 collect:source:
     only:
         - master
