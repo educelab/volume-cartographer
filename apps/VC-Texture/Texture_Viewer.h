@@ -8,8 +8,8 @@
 // http://doc.qt.io/qt-5/qtwidgets-widgets-imageviewer-example.html ---(I
 // edited/formatted the code to suit our purposes)
 
-// Copy Right ©2015 (Brent Seales: Volume Cartography Research) - University of
-// Kentucky Center for Visualization and Virtualization
+// Copyright 2015 (Brent Seales: Volume Cartography Research)
+// University of Kentucky VisCenter
 //----------------------------------------------------------------------------------------------------------------------------------------
 
 #pragma once
