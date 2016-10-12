@@ -1,0 +1,4 @@
+/**
+ \defgroup VolumePackage Volume Package
+ Library for accessing and manipulating the .volpkg file format.
+*/

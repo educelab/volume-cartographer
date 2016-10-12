@@ -17,54 +17,55 @@
 
 /**
  * @class VolumePkg
- * The interface to the VolumePkg (.volpkg) file format. Provides access to
- * volume, segmentation, and rendering data stored on disk.
+ * @brief The interface to the VolumePkg (.volpkg) file format.
+ *
+ * Provides access to volume, segmentation, and rendering data stored on disk.
+ *
+ * @ingroup VolumePackage
+ *
+ * @see apps/src/packager.cpp
+ *      apps/src/metadata.cpp
+ *      examples/src/volpkg.cpp
+ *      examples/src/ResliceAnalysis.cpp
  */
 class VolumePkg
 {
 public:
-    /** Construct an empty VolumePkg of a specific version number.
-     *  This will construct an empty VolumePkg in memory and set its expected
-     * location on disk. NOTE: You must call initialize() before the file can
+    /**
+     * @brief Construct an empty VolumePkg of a specific version number.
+     *
+     * This will construct an empty VolumePkg in memory and set its expected
+     * location on disk. Note: You must call initialize() before the file can
      * be written to and accessed. Only metadata keys may be modified before
      * initialize is called.
      * @param file_location The location to store the VolPkg
-     * @param version Version of VolumePkg you wish to contsruct
+     * @param version Version of VolumePkg you wish to construct
      */
     VolumePkg(const boost::filesystem::path& file_location, int version);
 
     /**
-     * Construct a VolumePkg from a .volpkg file stored at file_location.
+     * @brief Construct a VolumePkg from a .volpkg file stored at file_location.
      * @param file_location The root of the VolumePkg file
      */
     VolumePkg(const boost::filesystem::path& file_location);
 
     /**
-     * Initialize an empty .volpkg file on disk.
+     * @brief Initialize an empty .volpkg file on disk.
+     *
      * Used when setting up a new VolumePkg file. Returns EXIT_FAILURE
      * if VolumePkg is set to read-only or if file is unwritable.
      * @return EXIT_SUCCESS or EXIT_FAILURE
      */
     int initialize();
 
-    // Accessors for volume
-    //@{
     /**
-     * Returns the Volume object that accesses slice information
-     * @return VolumeType
-     * @see common/types/Volume.h
-     */
-    const volcart::Volume& volume() const { return vol_; }
-    volcart::Volume& volume() { return vol_; }
-    //@}
-
-    /**
-     * Prints the contents of the JSON file where the metadata is stored
+     * @brief Prints the JSON object that stores VolumePkg metadata. Debug only.
      */
     void printJSON() const { config.printObject(); };
 
     /**
-     * Prints the locations of the directories, mainly used for Debug
+     * @brief Prints the paths to important VolumePkg subdirectories.
+     * Debug only.
      */
     void printDirs() const
     {
@@ -72,52 +73,20 @@ public:
                   << " slice: " << slice_dir << std::endl;
     };
 
+    /** @name Metadata */
+    //@{
     /**
-     * Gets the name of the VolumePkg you are currently working on
+     * Returns the identifying name of the VolumePkg.
      * @return Name of the Volume package
      */
     std::string getPkgName() const;
 
     /**
-     * Gets the version that this VolumePkg is, current version is 3
-     * @return integer that represents the version of VolumePkg
+     * Returns the VolumePkg version. Used in conjunction
+     * @return Version number of VolumePkg
      */
     int getVersion() const;  // Changed type from double to int
 
-    /**
-     * Returns how many slices there are in this set of data
-     * @return integer representing the number of slices
-     */
-    int getNumberOfSlices() const;
-
-    /**
-     * Returns the width of the slices, this is the same for all slices in a
-     * VolumePkg
-     * @return integer that represents the slice width
-     */
-    int getSliceWidth() const;
-
-    /**
-     * Returns the height of the slices in the data, this is the same for all
-     * slices in a VolumePkg
-     * @return Integer represents the height of the slices
-     */
-    int getSliceHeight() const;
-
-    /**
-     * Returns the size of the voxels in the data, this is the same for all
-     * voxels in a VolumePkg
-     * @return Double that represents the size of the voxels
-     */
-    double getVoxelSize() const;
-
-    /**
-     * Returns the thickness of the material that was scanned
-     * @return Thickness of material scan
-     */
-    double getMaterialThickness() const;
-
-    // Metadata Assignment
     /**
      * Checks to see if the VolumePkg is read only
      * @return Bool that states if the data is read only
@@ -130,7 +99,6 @@ public:
      */
     void readOnly(bool b) { _readOnly = b; };
 
-    // set a metadata key to a value
     /**
      * Sets a particular metadata value to a key so that it can be quickly found
      * later
@@ -149,7 +117,6 @@ public:
         return EXIT_SUCCESS;
     }
 
-    // Metadata Export
     /**
      * Saves the metadata to a file
      * @param filePath File path where you want the metadata to be stored
@@ -160,21 +127,74 @@ public:
      * Saves the metadata to a file determined by the program
      */
     void saveMetadata();
+    //@}
 
-    // Slice manipulation
+    /** @name Volume Data */
+    //@{
+    /**
+     * Returns the Volume object that provides access to slice information.
+     * @return Reference to the volcart::Volume for this VolumePkg
+     * @see common/types/Volume.h
+     */
+    const volcart::Volume& volume() const { return vol_; }
+    volcart::Volume& volume() { return vol_; }
+    //@}
+
+    //@{
+    /**
+     * Returns the width of the slice images. This number is retrieved
+     * from the file metadata and is not validated against the slices stored in
+     * VolumePkg file.
+     * @return integer that represents the slice width
+     */
+    int getSliceWidth() const;
+
+    /**
+     * Returns the height of the slice images. This number is retrieved
+     * from the file metadata and is not validated against the slices stored in
+     * VolumePkg file.
+     * @return Integer represents the height of the slices
+     */
+    int getSliceHeight() const;
+
+    /**
+     * Returns the number of slices in this VolumePkg. This number is retrieved
+     * from the file metadata and is not validated against the number of slices
+     * actually stored in the VolumePkg file.
+     * @return Number of slices in the VolumePkg
+     */
+    int getNumberOfSlices() const;
+
+    /**
+     * Returns the real world size of the voxels in microns (um). Only isometric
+     * voxels are supported.
+     * @return Voxel size in microns (um)
+     */
+    double getVoxelSize() const;
+
+    /**
+     * Returns the approximate thickness of a single material layer in microns
+     * (um).
+     * @return Thickness of material scan
+     */
+    double getMaterialThickness() const;
+
     /**
      * Allows you to set the slice height and width
      * @param index Slice number that you want to store data for
      * @param slice Slice that contains the information to set height and width
      */
     bool setSliceData(size_t index, const cv::Mat& slice);
+    //@}
 
-    // Segmentation functions
+    /** @name Segmentation Data */
+    //@{
     /**
      * Creates a new segmentation
      * @return name of the segmentation created
      */
     std::string newSegmentation();
+
     /**
      * Returns a list of the current segmentations for that VolumePkg
      * @return a vector of strings that contains the names of all the
@@ -206,7 +226,10 @@ public:
      * @see common/types/PointSet.h
      */
     volcart::OrderedPointSet<volcart::Point3d> openCloud() const;
+    //@}
 
+    /** @name Render Data */
+    //@{
     /**
      * Gets the file path where the mesh for the currently active segmentation
      * is stored
@@ -272,6 +295,7 @@ public:
     {
         saveTextureData(texture.getImage(index));
     }
+    //@}
 
 private:
     /**
