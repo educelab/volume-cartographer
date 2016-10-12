@@ -64,7 +64,7 @@ class ClangFormatter:
 
     # Lint a given file - return whether or not the file is formatted correctly
     def lint(self, source_file: str, show_diff: bool=True) -> bool:
-        with open(source_file, 'r') as original_file:
+        with open(source_file, 'r', errors='ignore') as original_file:
             original_text = original_file.read()
 
         original_lines = original_text.splitlines()
