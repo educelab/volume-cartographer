@@ -48,6 +48,7 @@ public:
     int initialize();
 
     // Accessors for volume
+    //@{
     /**
      * Returns the Volume object that accesses slice information
      * @return VolumeType
@@ -55,10 +56,10 @@ public:
      */
     const volcart::Volume& volume() const { return vol_; }
     volcart::Volume& volume() { return vol_; }
+    //@}
 
     /**
-     * Prints the contents of the JSON file where the metadata is stored, mainly
-     * used for Debug
+     * Prints the contents of the JSON file where the metadata is stored
      */
     void printJSON() const { config.printObject(); };
 
