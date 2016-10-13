@@ -52,9 +52,9 @@ public:
     /**
      * @brief Initialize an empty .volpkg file on disk.
      *
-     * Used when setting up a new VolumePkg file. Returns EXIT_FAILURE
+     * Used when setting up a new VolumePkg file. Returns `EXIT_FAILURE`
      * if VolumePkg is set to read-only or if file is unwritable.
-     * @return EXIT_SUCCESS or EXIT_FAILURE
+     * @return `EXIT_SUCCESS` or `EXIT_FAILURE`
      */
     int initialize();
 
@@ -77,7 +77,7 @@ public:
     //@{
     /**
      * @brief Returns the identifying name of the VolumePkg.
-     * @return Name of the Volume package
+     * @return Name of the VolumePkg
      */
     std::string getPkgName() const;
 
@@ -91,21 +91,30 @@ public:
      */
     int getVersion() const;  // Changed type from double to int
 
-    /** Returns whether the VolumePkg is set to read-only */
+    /**
+     * @brief Returns the boolean value of the VolumePkg read-only flag.
+     *
+     * When `true`, metadata values cannot be edited and slice data cannot be
+     * added to the VolumePkg.
+     */
     bool readOnly() const { return _readOnly; };
 
     /**
-     * Checks to see if the VolumePkg is read only and stores it in a variable
-     * @param variable where the value of _readOnly is stored
+     * @brief Set/unset the VolumePkg read-only flag.
+     * @param b Boolean representing new value of read-only flag
      */
     void readOnly(bool b) { _readOnly = b; };
 
     /**
-     * Sets a particular metadata value to a key so that it can be quickly found
-     * later
-     * @param key what the metadata is set to
-     * @param value metadata that you want to store
-     * @return Integer indicating success
+     * @brief Sets the value of `key` in the VolumePkg metadata.
+     *
+     * These values are only stored in memory until saveMetadata() is called.
+     * If VolumePkg is set to read-only, value is not set and function returns
+     * `EXIT_SUCCESS`.
+     *
+     * @param key Metadata key identifier
+     * @param value Value to be stored
+     * @return `EXIT_SUCCESS` or `EXIT_FAILURE`
      */
     template <typename T>
     int setMetadata(const std::string& key, T value)
@@ -119,21 +128,21 @@ public:
     }
 
     /**
-     * Saves the metadata to a file
-     * @param filePath File path where you want the metadata to be stored
-     */
-    void saveMetadata(const boost::filesystem::path& filePath);
-
-    /**
-     * Saves the metadata to a file determined by the program
+     * @brief Saves the metadata to the VolumePkg (.volpkg) file.
      */
     void saveMetadata();
+
+    /**
+     * @brief Saves the metadata to a user-specified location.
+     * @param filePath Path to output file
+     */
+    void saveMetadata(const boost::filesystem::path& filePath);
     //@}
 
     /** @name Volume Data */
     //@{
     /**
-     * Returns the Volume object that provides access to slice information.
+     * @brief Returns the Volume object that stores slice data.
      * @return Reference to the volcart::Volume for this VolumePkg
      * @see common/types/Volume.h
      */
@@ -143,47 +152,65 @@ public:
     volcart::Volume& volume() { return vol_; }
 
     /**
-     * Returns the width of the slice images. This number is retrieved
-     * from the file metadata and is not validated against the slices stored in
-     * VolumePkg file.
-     * @return integer that represents the slice width
+     * @brief Returns the width of the slice images.
+     *
+     * This number is retrieved from the metadata and is not validated
+     * against the slices stored in the .volpkg file.
      */
     int getSliceWidth() const;
 
     /**
-     * Returns the height of the slice images. This number is retrieved
-     * from the file metadata and is not validated against the slices stored in
-     * VolumePkg file.
-     * @return Integer represents the height of the slices
+     * @brief Returns the height of the slice images.
+     *
+     * This number is retrieved from the metadata and is not validated
+     * against the slices stored in the .volpkg file.
      */
     int getSliceHeight() const;
 
     /**
-     * Returns the number of slices in this VolumePkg. This number is retrieved
-     * from the file metadata and is not validated against the number of slices
-     * actually stored in the VolumePkg file.
-     * @return Number of slices in the VolumePkg
+     * @brief Returns the number of slice images.
+     *
+     * This number is retrieved from the metadata and is not validated
+     * against the slices stored in the .volpkg file.
      */
     int getNumberOfSlices() const;
 
     /**
-     * Returns the real world size of the voxels in microns (um). Only isometric
-     * voxels are supported.
+     * @brief Returns the size of voxels in microns (um).
+     *
+     * This is the "real-world" size of voxels. Only isometric voxels (voxels
+     * with equal edge lengths) are supported.
      * @return Voxel size in microns (um)
      */
     double getVoxelSize() const;
 
     /**
-     * Returns the approximate thickness of a single material layer in microns
-     * (um).
-     * @return Thickness of material scan
+     * @brief Returns the approx. thickness of a material layer in microns (um).
+     *
+     * This value is approximated by the user when the VolumePkg is created.
+     * This is an intrinsic property of the scanned object and is therefore
+     * indepedent of scan resolution. The material thickness in microns can be
+     * used to estimate the material thickness in voxels for scans of any
+     * resolution.
+     *
+     * \f[
+        \frac{\mbox{Material Thickness }(um)}{\mbox{Voxel Size }(um)}
+        = \mbox{Material Thickness }(voxels)
+      \f]
+     *
+     * @return Layer thickness, measured in microns (um).
      */
     double getMaterialThickness() const;
 
     /**
-     * Allows you to set the slice height and width
-     * @param index Slice number that you want to store data for
-     * @param slice Slice that contains the information to set height and width
+     * @brief Sets the slice data for z-index `index` in the volume.
+     *
+     * Does nothing if VolumePkg read-only flag is set.
+     * @warning This function will overwrite slice images stored in the .volpkg
+     * file. Should only be used when constructing a new VolumePkg.
+     * @param index Z-index of slice data
+     * @param slice Image data
+     * @return Boolean for write success/failure
      */
     bool setSliceData(size_t index, const cv::Mat& slice);
     //@}
@@ -191,38 +218,56 @@ public:
     /** @name Segmentation Data */
     //@{
     /**
-     * Creates a new segmentation
-     * @return name of the segmentation created
+     * @brief Creates a new segmentation.
+     *
+     * Populates the .volpkg file with a new segmentation directory and adds the
+     * ID to the internal list of segmentations.
+     * @return Identifier name of the new segmentation
      */
     std::string newSegmentation();
 
     /**
-     * Returns a list of the current segmentations for that VolumePkg
-     * @return a vector of strings that contains the names of all the
-     * segmentations for the VolumePkg
+     * @brief Returns the list of Segmentation IDs for the VolumePkg.
+     *
+     * IDs in this list can be passed to setActiveSegmentation() in order to
+     * access data from a specific segmentation.
+     * @return List of segmentation IDs
      */
     std::vector<std::string> getSegmentations() const;
 
     /**
-     * Set the active segmentation to be a particular segmentation
-     * @param name of the segmentation you want to be the active one
+     * @brief Sets the active segmentation.
+     *
+     * Data access functions like openCloud() and getMesh() return data from the
+     * active segmentation. To get data from other segmentations, you must first
+     * change the active segmentation using this function.
+     *
+     * @param id Segmentation ID of desired active segmentation
      */
-    void setActiveSegmentation(const std::string&);
+    void setActiveSegmentation(const std::string& id);
+
     /**
-     * Get the name of the segmentation currently active
-     * @return string containing the name of the active segmentation
+     * @brief Returns the ID of the active segmentation.
+     * @return Segmentation ID of active segmentation
      */
     std::string getActiveSegmentation();
+
     /**
-     * Returns the file path of the segmentation that is currently active
-     * @return file path where the active segmentation is
+     * @brief Returns the directory path for the active segmentation.
+     *
+     * This path can be absolute or relative.
+     *
+     * @return Directory path to the active segmentation
      */
     boost::filesystem::path getActiveSegPath();
 
     /**
-     * This opens the file containing the information for the points that make
-     * up the Volume
-     * @return An OrderedPointSet which contains all of the points on the Volume
+     * @brief Returns the OrderedPointSet for the active segmentation.
+     *
+     * This returns a point cloud that represents segmented surface positions
+     * within the Volume. An OrderedPointSet provides 2D access to these points.
+     *
+     * @return Segmented surface as an OrderedPointSet
      * @see common/types/OrderedPointSet.h
      * @see common/types/PointSet.h
      */
@@ -232,7 +277,7 @@ public:
     /** @name Render Data */
     //@{
     /**
-     * Gets the file path where the mesh for the currently active segmentation
+     * Gets the file path where the mesh for the active segmentation
      * is stored
      * @return Boost File path
      */
@@ -322,30 +367,32 @@ private:
      * @return integer indicating success
      */
     int _makeDirTree();
+
     /**
      * The root directory of the Volume package, stores the other directories
      */
     boost::filesystem::path root_dir;
+
     /**
      * The directory containing the Segmentations that have been made
      */
     boost::filesystem::path segs_dir;
+
     /**
      * The directory containing the slices that the volume represents
      */
     boost::filesystem::path slice_dir;
 
-    // Note to Seth: This function isn't implemented and Clion found no usages
-    // of it?
-    int getNumberOfSliceCharacters();
     /**
      * This is the segmentation that is currently being worked on
      */
     std::string activeSeg;
+
     /**
      * The list of all the segmentations for a specific VolumePkg
      */
     std::vector<std::string> segmentations;
+
     /**
      * Sets up which version of the Volume Package you're using and associates
      * all the keys with information from the dictonary
