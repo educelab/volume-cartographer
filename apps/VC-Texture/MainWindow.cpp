@@ -74,11 +74,37 @@ MainWindow::MainWindow(Global_Values* globals)
 void MainWindow::getFilePath()  // Gets the Folder Path of the Volume Package
                                 // location, and initiates a Volume Package.
 {
+    // Check Status...
+    if (_globals->getStatus() == 1) {
 
-    _globals->clearGUI();               // Clear variables from Globals
-    _segmentations_Viewer->clearGUI();  // Clear variables from
-                                        // Segmentations_Viewer AND  Clear
-                                        // variables from Texture_Viewer
+        // Ask User to Save unsaved Data
+        QMessageBox msgBox;
+        msgBox.setText(
+            "A new texture image was generated, do you want to save it?");
+        msgBox.setStandardButtons(
+            QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+        int option = msgBox.exec();
+
+        switch (option) {
+            case QMessageBox::Save:
+                // Save was clicked
+                saveTexture();
+                return;
+
+            case QMessageBox::Discard:
+                // Discard was clicked
+                break;
+
+            case QMessageBox::Cancel:
+                // Cancel was clicked
+                return;
+
+            default:
+                // should never be reached
+                return;
+        }
+    } /*reset status*/ else
+        _globals->setStatus(0);
 
     QFileDialog* dialogBox = new QFileDialog();
     QString filename = dialogBox->getExistingDirectory();
@@ -160,7 +186,7 @@ void MainWindow::saveTexture()
                 mesh_writer.setPath(path.string());
                 mesh_writer.setRendering(_globals->getRendering());
                 mesh_writer.write();
-
+                _globals->setStatus(0);
                 QMessageBox::information(
                     this, tr("Error Message"), "Saved Successfully.");
 

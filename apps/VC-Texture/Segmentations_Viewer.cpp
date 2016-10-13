@@ -83,7 +83,38 @@ Segmentations_Viewer::Segmentations_Viewer(
 void Segmentations_Viewer::itemClickedSlot()
 {
     if (currentSegmentation != segmentations->currentItem()->text()) {
+
+        // Check Status...
+        if (_globals->getStatus() == 1) {
+
+            // Ask User to Save unsaved Data
+            QMessageBox msgBox;
+            msgBox.setText(
+                "A new texture image was generated, if you discard it will be "
+                "erased.");
+            msgBox.setStandardButtons(
+                QMessageBox::Discard | QMessageBox::Cancel);
+            msgBox.setDefaultButton(QMessageBox::Cancel);
+            int option = msgBox.exec();
+
+            switch (option) {
+                case QMessageBox::Discard:
+                    // Discard was clicked
+                    break;
+
+                case QMessageBox::Cancel:
+                    // Cancel was clicked
+                    return;
+
+                default:
+                    // should never be reached
+                    return;
+            }
+        } /*reset status*/ else
+            _globals->setStatus(0);
+
         currentSegmentation = segmentations->currentItem()->text();
+        _globals->setStatus(0);
         _globals->clearRendering();
         _texture_Viewer->clearImageLabel();
 
