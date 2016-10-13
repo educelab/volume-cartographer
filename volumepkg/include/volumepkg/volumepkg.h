@@ -44,7 +44,8 @@ public:
     VolumePkg(const boost::filesystem::path& file_location, int version);
 
     /**
-     * @brief Construct a VolumePkg from a .volpkg file stored at file_location.
+     * @brief Construct a VolumePkg from a .volpkg file stored at
+     * `file_location.`
      * @param file_location The root of the VolumePkg file
      */
     VolumePkg(const boost::filesystem::path& file_location);
@@ -89,7 +90,7 @@ public:
      *
      * @return Version number of VolumePkg
      */
-    int getVersion() const;  // Changed type from double to int
+    int getVersion() const;
 
     /**
      * @brief Returns the boolean value of the VolumePkg read-only flag.
@@ -264,57 +265,66 @@ public:
     /**
      * @brief Returns the OrderedPointSet for the active segmentation.
      *
-     * This returns a point cloud that represents segmented surface positions
+     * This returns a point cloud that represents segmented surface points
      * within the Volume. An OrderedPointSet provides 2D access to these points.
      *
      * @return Segmented surface as an OrderedPointSet
-     * @see common/types/OrderedPointSet.h
-     * @see common/types/PointSet.h
      */
     volcart::OrderedPointSet<volcart::Point3d> openCloud() const;
+
+    /**
+     * @brief Saves an OrderedPointSet for the active segmentation to the
+     * .volpkg file.
+     *
+     * Saves the points in `ps` to the active segmentation's subdirectory in the
+     * .volpkg file. Throws volcart::IOException on write failure. Otherwise
+     * returns integer success code.
+     * @warning Data currently saved in the active segmentation's directory will
+     * be overwritten. This function can be called when the VolumePkg read-only
+     * flag is not set.
+     * @param ps OrderedPointSet to be saved to the .volpkg file.
+     * @return `EXIT_SUCCESS`
+     */
+    int saveCloud(const volcart::OrderedPointSet<volcart::Point3d>& ps) const;
     //@}
 
     /** @name Render Data */
     //@{
     /**
-     * Gets the file path where the mesh for the active segmentation
-     * is stored
-     * @return Boost File path
+     * @brief Returns the file path of the meshed segmentation data.
+     *
+     * Returns the file path to `cloud.ply`, the meshed representation of the
+     * segmented OrderedPointSet. Does not validate that this file exists.
+     * @return File path to segmentation mesh
      */
     boost::filesystem::path getMeshPath() const;
 
     /**
-     * Returns the file that contains the Texture Data for the Volume
-     * @return a Mat with the texture data
+     * @brief Generates a mesh from the points `ps` and saves it to the active
+     * segmentation's subdirectory in the .volpkg file.
+     *
+     * Uses volcart::meshing::OrderedPointSetMesher to generate mesh. Written in
+     * the PLY format.
+     * @warning Data currently saved in the active segmentation's directory will
+     * be overwritten. This function can be called when the VolumePkg read-only
+     * flag is not set.
+     * @param ps OrderedPointSet to be meshed and saved to the .volpkg file.
+     * @return `EXIT_SUCCESS`
      */
-    cv::Mat getTextureData() const;
+    int saveMesh(const volcart::OrderedPointSet<volcart::Point3d>& ps) const;
 
     /**
-     * Saves the points of the Volume that may have been altered due to
-     * segmentation
-     * @param segmentedCloud The set of points returned by the segmentation
-     * algorithm that need to be saved
-     * @return Integer indicating success
-     */
-    int saveCloud(
-        const volcart::OrderedPointSet<volcart::Point3d>& segmentedCloud) const;
-
-    /**
-     * Generates a mesh from the Points provided and saves it to the
-     * Segmentation folder of the active Segmentation
-     * @param segmentedCloud The set of points returned by the segmentation
-     * algorithm that need to be meshed and saved
-     * @return an Integer indicating success
-     */
-    int saveMesh(
-        const volcart::OrderedPointSet<volcart::Point3d>& segmentedCloud) const;
-
-    /**
-     * Saves a generated mesh along with the Texture information that is
-     * provided
-     * @param mesh Mesh that was generated from the points in the cloud of the
-     * current segmentation
-     * @param texture Texture information for a mesh
+     * @brief Saves the provided mesh and texture information active
+     * segmentation's subdirectory in the .volpkg file.
+     *
+     * Writes a texture-mapped OBJ file to `textured.{obj|mtl|png}`.
+     * volcart::Texture object should be populated with a UVMap and at least one
+     * texture image. This function will save only the first texture image.
+     * @warning Data currently saved in the active segmentation's directory will
+     * be overwritten. This function can be called when the VolumePkg read-only
+     * flag is not set.
+     * @param mesh
+     * @param texture Populated Texture object
      * @see common/types/Texture.h
      */
     void saveMesh(
@@ -322,20 +332,37 @@ public:
         const volcart::Texture& texture) const;
 
     /**
-     * Saves the texture data for the current segmentation
-     * @param texture Texture information as a Mat
-     * @param name automatcially set to be textured and represents the name of
-     * the file where this is stored
+     * @brief Returns the texture image saved in the active segmentation's
+     * subdirectory in the .volpkg file.
+     *
+     * Returns an empty `cv::Mat` if file does not exist or could not be read.
+     * @return A cv::Mat containing the image data
+     */
+    cv::Mat getTextureData() const;
+
+    /**
+     * @brief Saves a texture image to the active segmentation's subdirectory in
+     * the .volpkg file.
+     *
+     * File is written to `{name}.png`.
+     * @warning Data currently saved in the active segmentation's directory will
+     * be overwritten. This function can be called when the VolumePkg read-only
+     * flag is not set.
+     * @param texture Texture image data
+     * @param name Filename w/o extension [Default: "textured"]
      */
     void saveTextureData(
         const cv::Mat& texture, const std::string& name = "textured");
 
     /**
-     * Saves the texture data for the current segmentation
-     * @param texture Texture information
-     * @see common/types/Texture.h
-     * @param index Tells the function which slice to use the texture data from,
-     * automatically set to 0
+     * @brief Saves a texture image to the active segmentation's subdirectory in
+     * the .volpkg file.
+     *
+     * Writes the image stored in a `texture.getImage(index)`. File is written
+     * to `textured.png` in the active segmentation's subdirectory.
+     * @param texture Populated Texture object
+     * @param index The index of the desired image in `texture`'s image array
+     * [Default: 0]
      */
     void saveTextureData(volcart::Texture texture, int index = 0)
     {
@@ -344,64 +371,46 @@ public:
     //@}
 
 private:
-    /**
-     * Bool that tells if the Volume Package is read only
-     */
+    /** VolumePkg read-only flag. */
     bool _readOnly = true;
 
-    /**
-     * Contains the Metadata for the Volume package
-     * @see common/types/Metadata.h
-     */
+    /** VolumePkg metadata. */
     volcart::Metadata config;
 
-    /**
-     * Contains the information stored in the Volume
-     * @see common/types/Volume.h
-     */
+    /** Container for slice data. */
     volcart::Volume vol_;
 
-    // Directory tree
     /**
-     * Makes the subdirectories for the Volume Package
-     * @return integer indicating success
+     * @brief Creates the subdirectories for a new VolumePkg (.volpkg) file.
+     * @return `EXIT_SUCCESS`
      */
     int _makeDirTree();
 
-    /**
-     * The root directory of the Volume package, stores the other directories
-     */
+    /** The root directory of the VolumePkg. */
     boost::filesystem::path root_dir;
 
-    /**
-     * The directory containing the Segmentations that have been made
-     */
+    /** The subdirectory containing Segmentation data. */
     boost::filesystem::path segs_dir;
 
-    /**
-     * The directory containing the slices that the volume represents
-     */
+    /** The subdirectory containing slice data. */
     boost::filesystem::path slice_dir;
 
-    /**
-     * This is the segmentation that is currently being worked on
+    /** Segmentation ID of the segmentation that is currently being worked on.
      */
     std::string activeSeg;
 
-    /**
-     * The list of all the segmentations for a specific VolumePkg
-     */
+    /** The list of all segmentations in the VolumePkg. */
     std::vector<std::string> segmentations;
 
     /**
-     * Sets up which version of the Volume Package you're using and associates
-     * all the keys with information from the dictonary
-     * @param dict Which set of data types you want to use to create the
-     * VolumePkg, corresponds to the version
-     * @param version which version of the Volume Package you want to use,
-     * current is 3
-     * @return Inital metadata
-     * @see common/types/Metadata.h
+     * @brief Populates an empty VolumePkg::config from a volcart::Dictionary
+     * template.
+     *
+     * The configuration is populated with all keys found in `dict`. This is not
+     * validated against what is expected for the passed `version` number.
+     * @param dict Metadata template
+     * @param version Version number of the passed Dictionary
+     * @return volcart::Metadata populated with default keys
      */
     static volcart::Metadata _initConfig(
         const volcart::Dictionary& dict, int version);

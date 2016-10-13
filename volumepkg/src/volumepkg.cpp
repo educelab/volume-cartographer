@@ -8,8 +8,7 @@
 
 namespace fs = boost::filesystem;
 
-/** @file volumepkg.h
- */
+/** @file volumepkg.h */
 
 // CONSTRUCTORS //
 // Make a volpkg of a particular version number
@@ -254,12 +253,11 @@ int VolumePkg::saveMesh(
 {
     fs::path outputName = segs_dir / activeSeg / "cloud.ply";
     // Creates a OrderedPointSetMesher type than uses the compute function to
-    // generate a mesh @see meshing/include/OrderedPointSetMesher.h
+    // generate a mesh
     volcart::meshing::OrderedPointSetMesher mesher(segmentedCloud);
     mesher.compute();
     auto mesh = mesher.getOutputMesh();
-    // Creates a PLY writer type and then writes the mesh out to the file @see
-    // common/io/plyWriter.h
+    // Creates a PLY writer type and then writes the mesh out to the file
     volcart::io::plyWriter writer(outputName, mesh);
     writer.write();
     std::cerr << "volcart::volpkg::Mesh file saved." << std::endl;
@@ -270,7 +268,7 @@ void VolumePkg::saveMesh(
     const volcart::ITKMesh::Pointer mesh, const volcart::Texture& texture) const
 {
     // Creates an OBJ writer type and then writes the mesh and the texture out
-    // to the file @see common/io/objWriter.h
+    // to the file
     volcart::io::objWriter writer;
     auto meshPath = segs_dir / activeSeg / "textured.obj";
     writer.setPath(meshPath);
@@ -288,8 +286,7 @@ void VolumePkg::saveTextureData(const cv::Mat& texture, const std::string& name)
 }
 
 volcart::Metadata VolumePkg::_initConfig(
-    const volcart::Dictionary& dict,
-    int version)  // Changed type from double to int
+    const volcart::Dictionary& dict, int version)
 {
     volcart::Metadata config;
 
