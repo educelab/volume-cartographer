@@ -76,21 +76,22 @@ public:
     /** @name Metadata */
     //@{
     /**
-     * Returns the identifying name of the VolumePkg.
+     * @brief Returns the identifying name of the VolumePkg.
      * @return Name of the Volume package
      */
     std::string getPkgName() const;
 
     /**
-     * Returns the VolumePkg version. Used in conjunction
+     * @brief Returns the VolumePkg version.
+     *
+     * Use in conjunction with volcart::VersionLibrary to verify the presence of
+     * specific VolumePkg metadata keys.
+     *
      * @return Version number of VolumePkg
      */
     int getVersion() const;  // Changed type from double to int
 
-    /**
-     * Checks to see if the VolumePkg is read only
-     * @return Bool that states if the data is read only
-     */
+    /** Returns whether the VolumePkg is set to read-only */
     bool readOnly() const { return _readOnly; };
 
     /**
@@ -137,10 +138,10 @@ public:
      * @see common/types/Volume.h
      */
     const volcart::Volume& volume() const { return vol_; }
-    volcart::Volume& volume() { return vol_; }
-    //@}
 
-    //@{
+    /** @copydoc VolumePkg::volume() const */
+    volcart::Volume& volume() { return vol_; }
+
     /**
      * Returns the width of the slice images. This number is retrieved
      * from the file metadata and is not validated against the slices stored in

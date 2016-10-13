@@ -1,43 +1,54 @@
-//
-// Created by Seth Parker on 4/28/15.
-//
+/**
+  @file   volumepkg_version.h
+  @author Seth Parker
+  @date   April 2015
+
+  @brief  VolumePkg metadata templates.
+
+  The objects in this file define the keys that can be expected
+  in a VolumePkg's metadata JSON file, based on the VolumePkg version
+  number.
+
+  @newline
+  A volcart::Dictionary defines a set of metadata keys and the associated types
+  of the corresponding values (e.g. the key "version" should be interpreted as
+  an `int`). A volcart::Library holds several such dictionaries: one dictionary
+  for each unique version of VolumePkg.
+
+  @newline
+  volcart::VersionLibrary holds the metadata keys and expected value-types for
+  every version of VolumePkg. When creating a new VolumePkg, these dictionaries
+  are used to define the default keys that populate the JSON file. In the
+  future, applications that use VolumePkg will be able to query the Library in
+  order to determine what information can be expected in a particular version
+  of a VolumePkg. In this way, developers will be able to maintain backwards
+  compatibility with older datasets.
+
+  @ingroup VolumePackage
+ */
+
 #pragma once
 
 #include <string>
 #include <unordered_map>
-/**
- * @class VolumePkg_Version
- * These constants represent the various versions of the Volume package
- * Each version as a different library that may have varying information
- * conatined
- * or how the information is stored was changed between versions
- */
+
 namespace volcart
 {
 
-// VersionDict's will hold possible metadata keys and their types
-
 /**
- * This type sets the dictionary to be a map which contains 2 strings for each
- * entry.
- * The first string tells the user what is being saved in that place
- * The second string tells the user what type is saved.
+ * Holds a set of key-value pairs that map JSON metadata keys to the expected
+ * type of the value. A template for the structure of a VolumePkg's metadata.
  */
 using Dictionary = std::unordered_map<std::string, std::string>;
+
 /**
- * This type sets the Library to be a map which contains an integer and a
- * dictonary type
- * It essentially acts like a literal library, storing the dictionaries so they
- * can be easily found.
- * The integer acts as an index for each Dictonary
- * The Dictionary is the type stored there
+ * Holds a set of key-value pairs that map version number keys to a specific
+ * Dictionary of metadata mappings.
  */
 using Library = std::unordered_map<int, Dictionary>;
 
 // clang-format off
-/**
- * This is the dictionary that gives the data types for Volpkg 1
- */
+/** Metadata dictionary for VolumePkg v1. */
 const Dictionary _1 =
         {
         {"volumepkg name",   "string"},
@@ -51,9 +62,7 @@ const Dictionary _1 =
         {"voxelsize",        "double"}
         };
 
-/**
- * This is the dictionary that gives the data types for Volkpg 2
- */
+/** Metadata dictionary for VolumePkg v2. */
 const Dictionary _2 =
         {
         {"volumepkg name",   "string"},
@@ -68,9 +77,7 @@ const Dictionary _2 =
         {"materialthickness","double"}
         };
 
-/**
- * This is the dictionary that gives the data types for Volkpg 3
- */
+/** Metadata dictionary for VolumePkg v3. */
 const Dictionary _3 =
         {
         {"volumepkg name",   "string"},
@@ -86,10 +93,8 @@ const Dictionary _3 =
         };
 // clang-format on
 
-// Add the Version Dict's to a list of possible versions
 /**
- * This library holds the Version Dictionaries and connects them to the possible
- * versions that a user might enter when creating a Volume Package
+ * Global Library used to store all template Dictionaries.
  */
 const Library VersionLibrary = {{1, _1}, {2, _2}, {3, _3}};
 }  // namespace volcart

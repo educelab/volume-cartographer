@@ -109,7 +109,7 @@ doxygen:html:
     stage: docs
     script:
         - cd doc/
-        - doxygen Modules.dox Doxyfile
+        - doxygen Doxyfile Modules.dox
     artifacts:
         name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
         paths:
@@ -123,7 +123,7 @@ doxygen:pdf:
     stage: docs
     script:
         - cd doc/
-        - doxygen Modules.dox Doxyfile
+        - doxygen Doxyfile Modules.dox
         - cd latex/
         - make
     artifacts:
