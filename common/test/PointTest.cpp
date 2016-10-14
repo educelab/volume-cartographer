@@ -1,9 +1,9 @@
 #define BOOST_TEST_MODULE PointTest
 
-#include "common/types/Point.h"
-#include "testing/testingUtils.h"
 #include <array>
 #include <boost/test/unit_test.hpp>
+#include "common/types/Point.h"
+#include "testing/testingUtils.h"
 
 using namespace volcart;
 using namespace volcart::testing;
@@ -36,6 +36,16 @@ BOOST_AUTO_TEST_CASE(MoveConstructPointTest)
     BOOST_CHECK_EQUAL(p4[0], 0);
     BOOST_CHECK_EQUAL(p4[1], 1);
     BOOST_CHECK_EQUAL(p4[2], 2);
+}
+
+// Construct from cv::Vec
+BOOST_AUTO_TEST_CASE(CvVecConstructPointTest)
+{
+    cv::Vec3i v(1, 2, 3);
+    Point3i p1(v);
+    BOOST_CHECK_EQUAL(p1[0], v(0));
+    BOOST_CHECK_EQUAL(p1[1], v(1));
+    BOOST_CHECK_EQUAL(p1[2], v(2));
 }
 
 // Fill construct

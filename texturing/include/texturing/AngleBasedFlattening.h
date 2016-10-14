@@ -3,93 +3,109 @@
 // Angle-based Flattening implementation ported from the same in Blender
 // Note: This is borrowed very heavily from Blender's implementation.
 
-// This class attempts to find the ideal angles that minimize the angular distortion of the parameterized mesh.
-// These idealized angles are then fed into a least-squares conformal maps algorithm which solves for the actual
+// This class attempts to find the ideal angles that minimize the angular
+// distortion of the parameterized mesh.
+// These idealized angles are then fed into a least-squares conformal maps
+// algorithm which solves for the actual
 // parameterized UV positions.
 #pragma once
 
-#include <iostream>
 #include <exception>
+#include <iostream>
 #include <memory>
 #include <itkQuadEdgeMeshBoundaryEdgesMeshFunction.h>
 #include <opencv2/opencv.hpp>
 
-#include "common/vc_defines.h"
-#include "common/types/UVMap.h"
 #include "common/types/HalfEdgeMesh.h"
+#include "common/types/UVMap.h"
+#include "common/vc_defines.h"
 
 // This is terrible but it'll work for now - SP
-#define SHIFT3(type, a, b, c) { type tmp; tmp = a; a = c; c = b; b = tmp; }
+#define SHIFT3(type, a, b, c) \
+    {                         \
+        type tmp;             \
+        tmp = a;              \
+        a = c;                \
+        c = b;                \
+        b = tmp;              \
+    }
 
-namespace volcart {
-    namespace texturing {
+namespace volcart
+{
+namespace texturing
+{
 
-      class AngleBasedFlattening {
-      public:
-          ///// Constructors/Destructors /////
-          AngleBasedFlattening();
-          AngleBasedFlattening( VC_MeshType::Pointer mesh );
+class AngleBasedFlattening
+{
+public:
+    ///// Constructors/Destructors /////
+    AngleBasedFlattening();
+    AngleBasedFlattening(ITKMesh::Pointer mesh);
 
-          ///// Access Functions /////
-          // Set inputs
-          void setMesh( VC_MeshType::Pointer mesh );
+    ///// Access Functions /////
+    // Set inputs
+    void setMesh(ITKMesh::Pointer mesh);
 
-          // Get outputs
-          VC_MeshType::Pointer getMesh();
-          volcart::UVMap getUVMap();
+    // Get outputs
+    ITKMesh::Pointer getMesh();
+    volcart::UVMap getUVMap();
 
-          ///// Parameters /////
-          void setUseABF( bool a );
-          void setABFMaxIterations( int i );
+    ///// Parameters /////
+    void setUseABF(bool a);
+    void setABFMaxIterations(int i);
 
-          ///// Process /////
-          void compute();
+    ///// Process /////
+    void compute();
 
-          ///// Default values /////
-          static const int DEFAULT_MAX_ABF_ITERATIONS = 8;
-      private:
-          ///// Setup /////
-          void _fillHalfEdgeMesh();
+    ///// Default values /////
+    static const int DEFAULT_MAX_ABF_ITERATIONS = 8;
 
-          ///// Solve - ABF /////
-          void _solve_abf();
-          void _scale();
+private:
+    ///// Setup /////
+    void _fillHalfEdgeMesh();
 
-          void   _computeSines();
-          double _computeGradient();
-          double _computeGradientAlpha( HalfEdgeMesh::FacePtr face, HalfEdgeMesh::EdgePtr e0 );
-          double _computeSinProduct( HalfEdgeMesh::VertPtr v );
-          double _computeSinProduct( HalfEdgeMesh::VertPtr v, HalfEdgeMesh::IDType a_id );
-          bool   _invertMatrix();
+    ///// Solve - ABF /////
+    void _solve_abf();
+    void _scale();
 
-          // Parameters
-          bool    _useABF;           // If false, only compute LSCM parameterization [default: true]
-          int     _maxABFIterations; // Max number of iterations
-          double  _limit;            // Minimization limit
+    void _computeSines();
+    double _computeGradient();
+    double _computeGradientAlpha(
+        HalfEdgeMesh::FacePtr face, HalfEdgeMesh::EdgePtr e0);
+    double _computeSinProduct(HalfEdgeMesh::VertPtr v);
+    double _computeSinProduct(
+        HalfEdgeMesh::VertPtr v, HalfEdgeMesh::IDType a_id);
+    bool _invertMatrix();
 
-          ///// LSCM Loop /////
-          void _solve_lscm();
+    // Parameters
+    bool _useABF;  // If false, only compute LSCM parameterization [default:
+                   // true]
+    int _maxABFIterations;  // Max number of iterations
+    double _limit;          // Minimization limit
 
-          ///// Helper Functions - LSCM /////
-          std::pair<HalfEdgeMesh::IDType, HalfEdgeMesh::IDType> _getMinMaxPointIDs();
-          void _computePinUV();
+    ///// LSCM Loop /////
+    void _solve_lscm();
 
-          ///// Storage /////
-          VC_MeshType::Pointer  _mesh;   // input mesh
-          HalfEdgeMesh          _heMesh; // half-edge mesh for processing
+    ///// Helper Functions - LSCM /////
+    std::pair<HalfEdgeMesh::IDType, HalfEdgeMesh::IDType> _getMinMaxPointIDs();
+    void _computePinUV();
 
-          // Interior Vertices
-          // < id in quadMesh, id in list >
-          std::map<volcart::QuadPointIdentifier, volcart::QuadPointIdentifier> _interior;
+    ///// Storage /////
+    ITKMesh::Pointer _mesh;  // input mesh
+    HalfEdgeMesh _heMesh;    // half-edge mesh for processing
 
-          std::vector<double> _bInterior;
-          cv::Mat _J2dt;
+    // Interior Vertices
+    // < id in quadMesh, id in list >
+    std::map<volcart::QuadPointIdentifier, volcart::QuadPointIdentifier>
+        _interior;
 
-          // Pinned Point IDs
-          HalfEdgeMesh::IDType _pin0;
-          HalfEdgeMesh::IDType _pin1;
+    std::vector<double> _bInterior;
+    cv::Mat _J2dt;
 
-      };
+    // Pinned Point IDs
+    HalfEdgeMesh::IDType _pin0;
+    HalfEdgeMesh::IDType _pin1;
+};
 
-    }// texturing
-}//volcart
+}  // texturing
+}  // volcart

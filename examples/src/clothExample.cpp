@@ -2,18 +2,21 @@
 // Created by Seth Parker on 7/29/16.
 //
 /*
- * Purpose: Run volcart::texturing::ClothModelingUVMapping() and write results to file for each stage.
- *          Saved file will be read in by the clothTest.cpp file under v-c/testing/texturing.
+ * Purpose: Run volcart::texturing::ClothModelingUVMapping() and write results
+ * to file for each stage.
+ *          Saved file will be read in by the clothTest.cpp file under
+ * v-c/testing/texturing.
  */
 
 #include <iostream>
 
-#include "common/vc_defines.h"
-#include "common/shapes/Arch.h"
-#include "texturing/ClothModelingUVMapping.h"
 #include "common/io/objWriter.h"
+#include "common/shapes/Arch.h"
+#include "common/vc_defines.h"
+#include "texturing/ClothModelingUVMapping.h"
 
-int main( int argc, char* argv[] ) {
+int main(int argc, char* argv[])
+{
 
     // Create the mesh writer
     volcart::io::objWriter mesh_writer;
@@ -28,35 +31,40 @@ int main( int argc, char* argv[] ) {
 
     // Get pinned points for expansion step
     volcart::texturing::ClothModelingUVMapping::PinIDs expand;
-//    The arch currently doesn't need to be expanded, but leaving this here in case the expansion forces get balanced.
-//    expand.push_back(0);
-//    expand.push_back(9);
-//    expand.push_back(90);
-//    expand.push_back(99);
+    //    The arch currently doesn't need to be expanded, but leaving this here
+    //    in case the expansion forces get balanced.
+    //    expand.push_back(0);
+    //    expand.push_back(9);
+    //    expand.push_back(90);
+    //    expand.push_back(99);
 
-    uint16_t unfurlIt    =  20000;
-    uint16_t collisionIt =      0;
-    uint16_t expansionIt =   5000;
+    uint16_t unfurlIt = 20000;
+    uint16_t collisionIt = 0;
+    uint16_t expansionIt = 5000;
 
     // Run the simulation
-    volcart::texturing::ClothModelingUVMapping clothUV( arch.itkMesh(), unfurlIt, collisionIt, expansionIt, unfurl, expand);
-    clothUV.setAcceleration( volcart::texturing::ClothModelingUVMapping::Stage::Unfurl,     10);
-    clothUV.setAcceleration( volcart::texturing::ClothModelingUVMapping::Stage::Collision, -10);
-    clothUV.setAcceleration( volcart::texturing::ClothModelingUVMapping::Stage::Expansion, -10);
+    volcart::texturing::ClothModelingUVMapping clothUV(
+        arch.itkMesh(), unfurlIt, collisionIt, expansionIt, unfurl, expand);
+    clothUV.setAcceleration(
+        volcart::texturing::ClothModelingUVMapping::Stage::Unfurl, 10);
+    clothUV.setAcceleration(
+        volcart::texturing::ClothModelingUVMapping::Stage::Collision, -10);
+    clothUV.setAcceleration(
+        volcart::texturing::ClothModelingUVMapping::Stage::Expansion, -10);
 
     clothUV.unfurl();
-    mesh_writer.setMesh( clothUV.getMesh() );
-    mesh_writer.setPath( "clothUV_Arch_Unfurl.obj" );
+    mesh_writer.setMesh(clothUV.getMesh());
+    mesh_writer.setPath("clothUV_Arch_Unfurl.obj");
     mesh_writer.write();
 
     clothUV.collide();
-    mesh_writer.setMesh( clothUV.getMesh() );
-    mesh_writer.setPath( "clothUV_Arch_Collide.obj" );
+    mesh_writer.setMesh(clothUV.getMesh());
+    mesh_writer.setPath("clothUV_Arch_Collide.obj");
     mesh_writer.write();
 
     clothUV.expand();
-    mesh_writer.setMesh( clothUV.getMesh() );
-    mesh_writer.setPath( "clothUV_Arch_Final.obj" );
+    mesh_writer.setMesh(clothUV.getMesh());
+    mesh_writer.setPath("clothUV_Arch_Final.obj");
     mesh_writer.write();
 
     return 0;

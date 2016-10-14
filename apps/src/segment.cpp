@@ -1,12 +1,14 @@
 #include <iostream>
 #include <boost/program_options.hpp>
-#include <pcl/io/pcd_io.h>
 #include "segmentation/lrps/localResliceParticleSim.h"
 #include "segmentation/stps/structureTensorParticleSim.h"
 #include "volumepkg/volumepkg.h"
 
 namespace po = boost::program_options;
 namespace vs = volcart::segmentation;
+
+// Volpkg version required by this app
+static constexpr int VOLPKG_SUPPORTED_VERSION = 3;
 
 // Default values for global options
 static const int32_t kDefaultStep = 1;
@@ -117,9 +119,7 @@ int main(int argc, char* argv[])
     auto methodStr = opts["method"].as<std::string>();
     std::string lower;
     std::transform(
-        std::begin(methodStr),
-        std::end(methodStr),
-        std::back_inserter(lower),
+        std::begin(methodStr), std::end(methodStr), std::back_inserter(lower),
         ::tolower);
     std::cout << "Segmentation method: " << lower << std::endl;
     if (lower == "stps") {
@@ -135,10 +135,12 @@ int main(int argc, char* argv[])
 
     VolumePkg volpkg(opts["volpkg"].as<std::string>());
     volpkg.setActiveSegmentation(opts["seg-id"].as<std::string>());
-    if (volpkg.getVersion() < 2) {
+    if (volpkg.getVersion() != VOLPKG_SUPPORTED_VERSION) {
         std::cerr << "[error]: Volume package is version "
                   << volpkg.getVersion()
-                  << " but this program requires a version >= 2." << std::endl;
+                  << " but this program requires a version "
+                  << std::to_string(VOLPKG_SUPPORTED_VERSION) << "."
+                  << std::endl;
         std::exit(1);
     }
 
@@ -158,18 +160,10 @@ int main(int argc, char* argv[])
 
     // Get some info about the cloud, including chain length and z-index's
     // represented by seg.
-    const int chainLength = masterCloud->width;
-    const int iterations = masterCloud->height;
-    pcl::PointXYZRGB min_p, max_p;
-    pcl::getMinMax3D(*masterCloud, min_p, max_p);
-    int minIndex = floor(masterCloud->points[0].z);
-    int maxIndex = floor(max_p.z);
-
-    // Setup the temp clouds
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr immutableCloud(
-        new pcl::PointCloud<pcl::PointXYZRGB>);
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr segPath(
-        new pcl::PointCloud<pcl::PointXYZRGB>);
+    auto chainLength = masterCloud.width();
+    auto iterations = masterCloud.height();
+    int minIndex = floor(masterCloud.front()[2]);
+    int maxIndex = floor(masterCloud.max()[2]);
 
     // If no start index is given, our starting path is all of the points
     // already on the largest slice index
@@ -195,44 +189,36 @@ int main(int argc, char* argv[])
     }
 
     // Prepare our clouds
+    // Get the upper, immutable cloud
+    auto immutableCloud = masterCloud.copyRows(minIndex, startIndex - 1);
+
     // Get the starting path pts.
-    // Find our starting row. NOTE: This currently assumes segmentation distance
-    // threshold has always been 1
-    int pathRow = startIndex - minIndex;
-    for (int i = 0; i < chainLength; ++i) {
-        pcl::PointXYZRGB temp_pt;
-        temp_pt = masterCloud->points[i + (pathRow * chainLength)];
-        if (temp_pt.z != -1) {
-            segPath->push_back(temp_pt);
-        }
-    }
+    auto segPath = masterCloud.getRow(startIndex);
+
+    // Filter -1 points
+    segPath.erase(
+        std::remove_if(
+            std::begin(segPath), std::end(segPath),
+            [](volcart::Point3d e) { return e[2] == -1; }),
+        std::end(segPath));
 
     // Starting paths must have the same number of points as the input width to
     // maintain ordering
-    if (segPath->width != chainLength) {
+    if (segPath.size() != chainLength) {
         std::cerr << std::endl;
         std::cerr << "[error]: Starting chain length does not match expected "
                      "chain length."
                   << std::endl;
         std::cerr << "           Expected: " << chainLength << std::endl;
-        std::cerr << "           Actual: " << segPath->width << std::endl;
+        std::cerr << "           Actual: " << segPath.size() << std::endl;
         std::cerr << "       Consider using a lower starting index value."
                   << std::endl
                   << std::endl;
         std::exit(1);
     }
 
-    // Get the immutable points, i.e all pts before the starting path row
-    for (int i = 0; i < (pathRow * chainLength); ++i) {
-        immutableCloud->push_back(masterCloud->points[i]);
-    }
-    immutableCloud->width = chainLength;
-    immutableCloud->height = immutableCloud->points.size() / chainLength;
-    immutableCloud->points.resize(
-        immutableCloud->width * immutableCloud->height);
-
     // Run the algorithms
-    pcl::PointCloud<pcl::PointXYZRGB> mutableCloud;
+    volcart::OrderedPointSet<volcart::Point3d> mutableCloud;
     if (alg == Algorithm::STPS) {
         double gravityScale = opts["gravity-scale"].as<double>();
         mutableCloud = vs::structureTensorParticleSim(
@@ -252,33 +238,15 @@ int main(int argc, char* argv[])
         // Run segmentation using path as our starting points
         vs::LocalResliceSegmentation segmenter(volpkg);
         mutableCloud = segmenter.segmentPath(
-            segPath,
-            startIndex,
-            endIndex,
-            numIters,
-            step,
-            alpha,
-            k1,
-            k2,
-            beta,
-            delta,
-            distanceWeight,
-            considerPrevious,
-            dumpVis,
-            visualize);
+            segPath, startIndex, endIndex, numIters, step, alpha, k1, k2, beta,
+            delta, distanceWeight, considerPrevious, dumpVis, visualize);
     }
 
     // Update the master cloud with the points we saved and concat the new
     // points into the space
-    *masterCloud = *immutableCloud;
-    *masterCloud += mutableCloud;
-
-    // Restore ordering information
-    masterCloud->width = chainLength;
-    masterCloud->height = masterCloud->points.size() / masterCloud->width;
-    masterCloud->points.resize(masterCloud->width * masterCloud->height);
+    immutableCloud.append(mutableCloud);
 
     // Save point cloud and mesh
-    volpkg.saveCloud(*masterCloud);
-    volpkg.saveMesh(masterCloud);
+    volpkg.saveCloud(immutableCloud);
+    volpkg.saveMesh(immutableCloud);
 }

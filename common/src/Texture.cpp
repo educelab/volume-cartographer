@@ -10,7 +10,7 @@ using namespace volcart;
 Texture::Texture()
 {
     _metadata.set<std::string>("type", "texture");
-    _metadata.set<std::string>("id", VC_DATE_TIME());
+    _metadata.set<std::string>("id", DATE_TIME());
     _metadata.set<size_t>("number-of-images", 0);
 }
 
@@ -29,7 +29,8 @@ Texture::Texture(std::string path)
     // To-Do: Load the UV Map
 
     // Load the texture images
-    for (size_t i_id = 0; i_id < _metadata.get<size_t>("number-of-images"); ++i_id) {
+    for (size_t i_id = 0; i_id < _metadata.get<size_t>("number-of-images");
+         ++i_id) {
         std::string i_path =
             _path.string() + "/" + std::to_string(i_id) + ".png";
         _images.push_back(cv::imread(i_path, -1));
@@ -56,6 +57,6 @@ double Texture::intensity(int point_ID, int image_ID)
         int v = cvRound(mapping[1] * (_height - 1));
         return _images[image_ID].at<unsigned short>(v, u);
     } else {
-        return VC_TEXTURE_NO_VALUE;
+        return volcart::TEXTURE_NO_VALUE;
     }
 };

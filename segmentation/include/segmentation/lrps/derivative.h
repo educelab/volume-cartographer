@@ -1,8 +1,8 @@
 #pragma once
 
-#include <vector>
 #include <array>
 #include <cassert>
+#include <vector>
 
 namespace volcart
 {
@@ -33,8 +33,8 @@ static std::array<std::array<double, 9>, 4> d2CentralDiffCoeffs = {
 template <typename T>
 T d1Forward(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
 {
-    assert(index >= 0 && index < int32_t(vs.size()) &&
-           "index not in range of vs");
+    assert(
+        index >= 0 && index < int32_t(vs.size()) && "index not in range of vs");
     assert(index <= int32_t(vs.size()) && "index must not be last point");
     return (-vs[index] + vs[index + hstep]) / double(hstep);
 }
@@ -42,8 +42,8 @@ T d1Forward(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
 template <typename T>
 T d1Backward(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
 {
-    assert(index >= 0 && index < int32_t(vs.size()) &&
-           "index not in range of vs");
+    assert(
+        index >= 0 && index < int32_t(vs.size()) && "index not in range of vs");
     assert(index >= hstep && "index must not be first point");
     return (-vs[index - hstep] + vs[index]) / double(hstep);
 }
@@ -51,8 +51,8 @@ T d1Backward(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
 template <typename T>
 T d1Central(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
 {
-    assert(index >= 0 && index < int32_t(vs.size()) &&
-           "index not in range of vs");
+    assert(
+        index >= 0 && index < int32_t(vs.size()) && "index not in range of vs");
     assert(index - hstep >= 0 && "index out of range");
     assert(index + hstep < int32_t(vs.size()) && "index out of range");
     return ((-0.5) * vs[index - hstep] + (0.5) * vs[index + hstep]) /
@@ -64,8 +64,8 @@ T d1Central(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
 template <typename T>
 T d1FivePointStencil(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
 {
-    assert(index >= 0 && index < int32_t(vs.size()) &&
-           "index not in range of vs");
+    assert(
+        index >= 0 && index < int32_t(vs.size()) && "index not in range of vs");
     assert(index - 2 * hstep >= 0 && "index out of range\n");
     assert(index - 1 * hstep >= 0 && "index out of range\n");
     assert(index + 1 * hstep < int32_t(vs.size()) && "index out of range\n");
@@ -87,8 +87,8 @@ T d1At(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
         return d1Forward(vs, index, hstep);
     } else if (index + hstep > int32_t(vs.size()) - 1) {
         return d1Backward(vs, index, hstep);
-    } else if (index - hstep < hstep ||
-               index + hstep >= int32_t(vs.size()) - hstep) {
+    } else if (
+        index - hstep < hstep || index + hstep >= int32_t(vs.size()) - hstep) {
         return d1Central(vs, index, hstep);
     } else {
         return d1FivePointStencil(vs, index, hstep);
@@ -129,8 +129,8 @@ T d2Backward(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
 template <typename T>
 T d2Central(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
 {
-    assert(index >= 0 && index < int32_t(vs.size()) &&
-           "index not in range of vs");
+    assert(
+        index >= 0 && index < int32_t(vs.size()) && "index not in range of vs");
     assert(index - hstep >= 0 && "index out of range");
     assert(index + hstep < int32_t(vs.size()) && "index out of range");
     return (vs[index - hstep] + (-2.0) * vs[index] + vs[index + hstep]) /
@@ -142,8 +142,8 @@ T d2Central(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
 template <typename T>
 T d2FivePointStencil(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
 {
-    assert(index >= 0 && index < int32_t(vs.size()) &&
-           "index not in range of vs");
+    assert(
+        index >= 0 && index < int32_t(vs.size()) && "index not in range of vs");
     assert(index - 2 * hstep >= 0 && "index out of range");
     assert(index - 1 * hstep >= 0 && "index out of range");
     assert(index + 1 * hstep < int32_t(vs.size()) && "index out of range");
@@ -166,8 +166,8 @@ T d2At(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
         return d2Forward(vs, index, hstep);
     } else if (index + hstep > int32_t(vs.size()) - 1) {
         return d2Backward(vs, index, hstep);
-    } else if (index - hstep < hstep ||
-               index + hstep >= int32_t(vs.size()) - hstep) {
+    } else if (
+        index - hstep < hstep || index + hstep >= int32_t(vs.size()) - hstep) {
         return d2Central(vs, index, hstep);
     } else {
         return d2FivePointStencil(vs, index, hstep);

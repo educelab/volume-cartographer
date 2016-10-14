@@ -3,17 +3,12 @@
 #include <cstdlib>
 #include <iostream>
 
-// These boost libraries cause problems with QT4 + Boost 1.57. This is a
-// workaround.
-// https://bugreports.qt.io/browse/QTBUG-22829
-#ifndef Q_MOC_RUN
 #include <boost/foreach.hpp>
 #include <boost/lexical_cast.hpp>
-#endif
 
 #include <boost/filesystem.hpp>
-#include <pcl/common/projection_matrix.h>
-#include <pcl/point_types.h>
+#include "common/types/OrderedPointSet.h"
+#include "common/types/Point.h"
 #include "common/types/Texture.h"
 #include "common/types/Volume.h"
 #include "common/vc_defines.h"
@@ -70,7 +65,7 @@ public:
     int setMetadata(const std::string& key, T value)
     {
         if (_readOnly) {
-            VC_ERR_READONLY();
+            volcart::ERR_READONLY();
         }
 
         config.set<T>(key, value);
@@ -93,20 +88,21 @@ public:
     std::string getActiveSegmentation();
     boost::filesystem::path getActiveSegPath();
 
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr openCloud() const;
+    volcart::OrderedPointSet<volcart::Point3d> openCloud() const;
 
     boost::filesystem::path getMeshPath() const;
 
     cv::Mat getTextureData() const;
 
     int saveCloud(
-        const pcl::PointCloud<pcl::PointXYZRGB>& segmentedCloud) const;
+        const volcart::OrderedPointSet<volcart::Point3d>& segmentedCloud) const;
 
     int saveMesh(
-        const pcl::PointCloud<pcl::PointXYZRGB>::Ptr segmentedCloud) const;
+        const volcart::OrderedPointSet<volcart::Point3d>& segmentedCloud) const;
 
     void saveMesh(
-        const VC_MeshType::Pointer& mesh, volcart::Texture& texture) const;
+        const volcart::ITKMesh::Pointer mesh,
+        const volcart::Texture& texture) const;
 
     void saveTextureData(
         const cv::Mat& texture, const std::string& name = "textured");

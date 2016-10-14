@@ -5,8 +5,8 @@
 #include <iostream>
 
 #include <boost/filesystem/path.hpp>
-#include <pcl/common/common.h>
-#include <pcl/io/pcd_io.h>
+#include "common/io/PointSetIO.h"
+#include "common/types/Point.h"
 #include "common/vc_defines.h"
 #include "volumepkg/volumepkg.h"
 
@@ -15,7 +15,7 @@ namespace fs = boost::filesystem;
 int main(int argc, char* argv[])
 {
     if (argc < 3) {
-        std::cout << "Usage: vc_invertCloud volpkg [input].pcd [output].pcd"
+        std::cout << "Usage: vc_invertCloud volpkg [input].vcps [output].vcps"
                   << std::endl;
         exit(-1);
     }
@@ -33,16 +33,17 @@ int main(int argc, char* argv[])
     std::cout << input_path << std::endl;
 
     // Load the cloud
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr input(
-        new pcl::PointCloud<pcl::PointXYZRGB>);
-    pcl::io::loadPCDFile<pcl::PointXYZRGB>(input_path.string(), *input);
+    volcart::OrderedPointSet<volcart::Point3d> input;
+    input = volcart::PointSetIO<volcart::Point3d>::ReadOrderedPointSet(
+        input_path.string());
 
-    for (auto pt = input->points.begin(); pt != input->points.end(); ++pt) {
-        if (pt->z != -1)
-            pt->z = vpkg.getNumberOfSlices() - 1 - pt->z;
+    for (auto pt : input) {
+        if (pt[2] != -1)
+            pt[2] = vpkg.getNumberOfSlices() - 1 - pt[2];
     }
 
-    pcl::io::savePCDFileBinaryCompressed(output_path.string(), *input);
+    volcart::PointSetIO<volcart::Point3d>::WriteOrderedPointSet(
+        output_path.string(), input);
 
     return 0;
 }  // end main

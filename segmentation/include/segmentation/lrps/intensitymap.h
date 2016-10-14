@@ -1,10 +1,10 @@
 #pragma once
 
-#include <utility>
-#include <iostream>
 #include <deque>
-#include <opencv2/imgproc/imgproc.hpp>
+#include <iostream>
+#include <utility>
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 #include "segmentation/lrps/common.h"
 
 namespace volcart
@@ -16,10 +16,11 @@ namespace segmentation
 class IntensityMap
 {
 public:
-    IntensityMap(cv::Mat,
-                 int32_t stepSize,
-                 int32_t peakDistanceWeight,
-                 bool shouldIncludeMiddle);
+    IntensityMap(
+        cv::Mat,
+        int32_t stepSize,
+        int32_t peakDistanceWeight,
+        bool shouldIncludeMiddle);
 
     cv::Mat draw();
 

@@ -1,8 +1,8 @@
 #pragma once
 
+#include <cassert>
 #include <unsupported/Eigen/Splines>
 #include <vector>
-#include <cassert>
 #include "segmentation/lrps/common.h"
 
 namespace volcart
@@ -38,8 +38,8 @@ private:
     size_t npoints_;
     SplineType spline_;
 
-    Eigen::MatrixXd makeWideMatrix(const ScalarVector& xs,
-                                   const ScalarVector& ys)
+    Eigen::MatrixXd makeWideMatrix(
+        const ScalarVector& xs, const ScalarVector& ys)
     {
         Eigen::MatrixXd mat{2, xs.size()};
         mat.row(0) = Eigen::VectorXd::Map(xs.data(), xs.size());

@@ -3,6 +3,6 @@
 //
 #pragma once
 
-#include "scale_pi.h"
 #include "scale_micro.h"
+#include "scale_pi.h"
 #include "scale_small.h"

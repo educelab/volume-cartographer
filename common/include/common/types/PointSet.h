@@ -1,13 +1,13 @@
 #pragma once
 
+#include <algorithm>
 #include <cassert>
+#include <stdexcept>
 #include <string>
 #include <vector>
-#include <algorithm>
 
 namespace volcart
 {
-
 template <typename T>
 class PointSet
 {
@@ -20,21 +20,35 @@ public:
     constexpr static auto HEADER_TERMINATOR = "<>";
     constexpr static auto HEADER_TERMINATOR_REGEX = "^<>$";
 
-    explicit PointSet() : _data(), _capacity(0) {}
-    explicit PointSet(size_t size) : _capacity(size) { _data.reserve(size); }
-    explicit PointSet(size_t size, T initVal) : _capacity(size)
+    explicit PointSet() : _data() {}
+    explicit PointSet(size_t initSize) { _data.reserve(initSize); }
+    explicit PointSet(size_t initSize, T initVal)
     {
-        _data.assign(size, initVal);
+        _data.assign(initSize, initVal);
+    }
+
+    // Fill static method
+    static PointSet Fill(size_t initSize, T initVal)
+    {
+        return PointSet(initSize, initVal);
     }
 
     // Linear access - no concept of 2D layout
-    const T& operator[](size_t idx) const { return _data[idx]; }
-    T& operator[](size_t idx) { return _data[idx]; }
+    const T& operator[](size_t idx) const
+    {
+        assert(idx < _data.size() && "idx out of range");
+        return _data[idx];
+    }
+    T& operator[](size_t idx)
+    {
+        assert(idx < _data.size() && "idx out of range");
+        return _data[idx];
+    }
 
     // Metadata
     size_t size() const { return _data.size(); }
-    size_t capacity() const { return _capacity; }
     bool empty() const { return _data.empty(); }
+    std::vector<T>& data() { return _data; }
 
     // Iterators and element accessors
     Iterator begin() { return std::begin(_data); }
@@ -61,7 +75,7 @@ public:
         }
         return *std::max_element(std::begin(_data), std::end(_data));
     }
-    std::pair<T, T> min_max() const
+    std::pair<T, T> minMax() const
     {
         if (empty()) {
             throw std::range_error("empty PointSet");
@@ -71,19 +85,16 @@ public:
     }
 
     // Add elements
-    void push_back(const T& val)
+    void push_back(const T& val) { _data.push_back(val); }
+    void push_back(T&& val) { _data.push_back(val); }
+    void append(const PointSet<T>& ps)
     {
-        assert(_data.size() < _capacity && "PointSet full");
-        _data.push_back(val);
+        std::copy(std::begin(ps), std::end(ps), std::back_inserter(_data));
     }
-    void push_back(T&& val)
-    {
-        assert(_data.size() < _capacity && "PointSet full");
-        _data.push_back(val);
-    }
+
+    void clear() { _data.clear(); }
 
 protected:
     Container _data;
-    size_t _capacity;
 };
 }

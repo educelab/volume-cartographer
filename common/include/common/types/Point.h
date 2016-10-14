@@ -1,21 +1,21 @@
 #pragma once
 
-#include "common/util/zip.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
 #include <numeric>
-#include <opencv2/core/core.hpp>
 #include <sstream>
 #include <tuple>
 #include <type_traits>
+#include <opencv2/core/core.hpp>
+#include "common/util/zip.h"
 
 namespace volcart
 {
-template <typename T,
-          size_t N,
-          typename =
-              typename std::enable_if<std::is_arithmetic<T>::value, T>::type>
+template <
+    typename T,
+    size_t N,
+    typename = typename std::enable_if<std::is_arithmetic<T>::value, T>::type>
 class Point
 {
 public:
@@ -33,6 +33,9 @@ public:
         static_assert(sizeof...(args) == N, "Not the right # args");
         data_ = {args...};
     }
+
+    // Construct a Point from a cv::Vec
+    Point(cv::Vec<T, N> v) { std::copy(v.val, v.val + N, std::begin(data_)); }
 
     static Point fill(T fillVal)
     {
@@ -57,9 +60,10 @@ public:
         return *this;
     }
 
-    template <typename Scalar,
-              typename = typename std::
-                  enable_if<std::is_arithmetic<Scalar>::value, Scalar>::type>
+    template <
+        typename Scalar,
+        typename = typename std::
+            enable_if<std::is_arithmetic<Scalar>::value, Scalar>::type>
     Point& operator+=(Scalar s)
     {
         for (size_t i = 0; i < dim; ++i) {
@@ -68,9 +72,10 @@ public:
         return *this;
     }
 
-    template <typename Scalar,
-              typename = typename std::
-                  enable_if<std::is_arithmetic<Scalar>::value, Scalar>::type>
+    template <
+        typename Scalar,
+        typename = typename std::
+            enable_if<std::is_arithmetic<Scalar>::value, Scalar>::type>
     Point& operator-=(Scalar s)
     {
         for (size_t i = 0; i < dim; ++i) {
@@ -79,9 +84,10 @@ public:
         return *this;
     }
 
-    template <typename Scalar,
-              typename = typename std::
-                  enable_if<std::is_arithmetic<Scalar>::value, Scalar>::type>
+    template <
+        typename Scalar,
+        typename = typename std::
+            enable_if<std::is_arithmetic<Scalar>::value, Scalar>::type>
     Point& operator*=(Scalar s)
     {
         for (size_t i = 0; i < dim; ++i) {
@@ -90,9 +96,10 @@ public:
         return *this;
     }
 
-    template <typename Scalar,
-              typename = typename std::
-                  enable_if<std::is_arithmetic<Scalar>::value, Scalar>::type>
+    template <
+        typename Scalar,
+        typename = typename std::
+            enable_if<std::is_arithmetic<Scalar>::value, Scalar>::type>
     Point& operator/=(Scalar s)
     {
         for (size_t i = 0; i < dim; ++i) {
@@ -104,8 +111,9 @@ public:
     double norm() const
     {
         std::array<T, N> squared;
-        std::transform(std::begin(data_), std::end(data_), std::begin(squared),
-                       [](T t) { return t * t; });
+        std::transform(
+            std::begin(data_), std::end(data_), std::begin(squared),
+            [](T t) { return t * t; });
         auto sum = std::accumulate(std::begin(squared), std::end(squared), T{});
         return std::sqrt(sum);
     }
@@ -149,7 +157,7 @@ public:
         return ss.str();
     }
 
-    cv::Vec<T, N> toCvVec() const { cv::Vec<T, N>(data_.data()); }
+    cv::Vec<T, N> toCvVec() const { return cv::Vec<T, N>(data_.data()); }
 
 private:
     Container data_;
@@ -182,71 +190,78 @@ Point<T, N> operator-(Point<T, N> lhs, const Point<T, N>& rhs)
     return lhs -= rhs;
 }
 
-template <typename T,
-          size_t N,
-          typename Scalar,
-          typename = typename std::enable_if<std::is_arithmetic<Scalar>::value,
-                                             Scalar>::type>
+template <
+    typename T,
+    size_t N,
+    typename Scalar,
+    typename = typename std::
+        enable_if<std::is_arithmetic<Scalar>::value, Scalar>::type>
 Point<T, N> operator+(Point<T, N> lhs, Scalar s)
 {
     return lhs += s;
 }
 
-template <typename T,
-          size_t N,
-          typename Scalar,
-          typename = typename std::enable_if<std::is_arithmetic<Scalar>::value,
-                                             Scalar>::type>
+template <
+    typename T,
+    size_t N,
+    typename Scalar,
+    typename = typename std::
+        enable_if<std::is_arithmetic<Scalar>::value, Scalar>::type>
 Point<T, N> operator+(Scalar s, Point<T, N> lhs)
 {
     return lhs + s;
 }
 
-template <typename T,
-          size_t N,
-          typename Scalar,
-          typename = typename std::enable_if<std::is_arithmetic<Scalar>::value,
-                                             Scalar>::type>
+template <
+    typename T,
+    size_t N,
+    typename Scalar,
+    typename = typename std::
+        enable_if<std::is_arithmetic<Scalar>::value, Scalar>::type>
 Point<T, N> operator-(Point<T, N> lhs, Scalar s)
 {
     return lhs -= s;
 }
 
-template <typename T,
-          size_t N,
-          typename Scalar,
-          typename = typename std::enable_if<std::is_arithmetic<Scalar>::value,
-                                             Scalar>::type>
+template <
+    typename T,
+    size_t N,
+    typename Scalar,
+    typename = typename std::
+        enable_if<std::is_arithmetic<Scalar>::value, Scalar>::type>
 Point<T, N> operator-(Scalar s, Point<T, N> lhs)
 {
     return Point<T, N>::fill(T{s}) - lhs;
 }
 
-template <typename T,
-          size_t N,
-          typename Scalar,
-          typename = typename std::enable_if<std::is_arithmetic<Scalar>::value,
-                                             Scalar>::type>
+template <
+    typename T,
+    size_t N,
+    typename Scalar,
+    typename = typename std::
+        enable_if<std::is_arithmetic<Scalar>::value, Scalar>::type>
 Point<T, N> operator*(Point<T, N> lhs, Scalar s)
 {
     return lhs *= s;
 }
 
-template <typename T,
-          size_t N,
-          typename Scalar,
-          typename = typename std::enable_if<std::is_arithmetic<Scalar>::value,
-                                             Scalar>::type>
+template <
+    typename T,
+    size_t N,
+    typename Scalar,
+    typename = typename std::
+        enable_if<std::is_arithmetic<Scalar>::value, Scalar>::type>
 Point<T, N> operator*(Scalar s, Point<T, N> lhs)
 {
     return lhs * s;
 }
 
-template <typename T,
-          size_t N,
-          typename Scalar,
-          typename = typename std::enable_if<std::is_arithmetic<Scalar>::value,
-                                             Scalar>::type>
+template <
+    typename T,
+    size_t N,
+    typename Scalar,
+    typename = typename std::
+        enable_if<std::is_arithmetic<Scalar>::value, Scalar>::type>
 Point<T, N> operator/(Point<T, N> lhs, Scalar s)
 {
     return lhs /= s;
@@ -257,10 +272,10 @@ template <typename T, size_t N>
 bool operator==(const Point<T, N>& lhs, const Point<T, N>& rhs)
 {
     auto zipped = zip(lhs, rhs);
-    return std::all_of(std::begin(zipped), std::end(zipped),
-                       [](boost::tuple<T, T> t) {
-                           return boost::get<0>(t) == boost::get<1>(t);
-                       });
+    return std::all_of(
+        std::begin(zipped), std::end(zipped), [](boost::tuple<T, T> t) {
+            return boost::get<0>(t) == boost::get<1>(t);
+        });
 }
 
 template <typename T, size_t N>

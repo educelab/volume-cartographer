@@ -25,14 +25,25 @@ int main(int argc, char** argv)
 
     fs::path volpkgPath{argv[1]};
     VolumePkg pkg{volpkgPath};
+    if (pkg.getVersion() >= 3) {
+        std::cout << "Volume package is already V3 or later. "
+                  << "Update not required." << std::endl;
+        return EXIT_SUCCESS;
+    }
 
     for (const auto& seg : pkg.getSegmentations()) {
         pkg.setActiveSegmentation(seg);
-        std::cout << "Processing " << pkg.getActiveSegPath() << std::endl;
-        auto cloud = pkg.openCloud();
+        std::cout << "Processing: " << pkg.getActiveSegPath() << std::endl;
+        auto inputName = pkg.getActiveSegPath().string() + "/cloud.pcd";
+        pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(
+            new pcl::PointCloud<pcl::PointXYZRGB>);
+        if (pcl::io::loadPCDFile<pcl::PointXYZRGB>(inputName, *cloud) == -1) {
+            std::cerr << "Can't load file: " << inputName << std::endl;
+            continue;
+        };
 
         // Convert to OrderedPointSet
-        OrderedPointSet<Point3d> ps(cloud->width, cloud->height);
+        OrderedPointSet<Point3d> ps(cloud->width);
         for (size_t j = 0; j < cloud->height; ++j) {
             std::vector<Point3d> points;
             points.reserve(cloud->width);
@@ -40,7 +51,7 @@ int main(int argc, char** argv)
                 points.push_back(
                     {(*cloud)(i, j).x, (*cloud)(i, j).y, (*cloud)(i, j).z});
             }
-            ps.push_row(points);
+            ps.pushRow(points);
         }
 
         // Write to disk
@@ -56,5 +67,17 @@ int main(int argc, char** argv)
                 assert(newPs(i, j)[2] == (*cloud)(i, j).z);
             }
         }
+
+        // Mesh the cloud if possible
+        if (ps.height() > 1) {
+            pkg.saveMesh(ps);
+        }
     }
+
+    // Update the vpkg version
+    pkg.readOnly(false);
+    pkg.setMetadata("version", 3);
+    pkg.saveMetadata();
+
+    return EXIT_SUCCESS;
 }

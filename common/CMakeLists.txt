@@ -14,7 +14,7 @@ set(srcs
     src/getMemorySize.cpp
     src/meshMath.cpp
     src/objWriter.cpp
-    src/ply2itk.cpp
+    src/PLYReader.cpp
     src/plyWriter.cpp
 )
 
@@ -23,9 +23,6 @@ target_include_directories(${target}
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
-        # XXX This should go away - but PCL doesn't specify their targets in a
-        # way that lets you do transitive dependencies.
-        ${PCL_COMMON_INCLUDE_DIRS}
 )
 target_link_libraries(${target}
     PUBLIC
@@ -39,8 +36,6 @@ target_link_libraries(${target}
         vtkCommonDataModel
         vtkCommonCore
         vtkIOLegacy
-        # from deps/share/pcl-1.7/PCLConfig.cmake
-        ${PCL_COMMON_LIBRARIES}
         vc_external
 )
 
@@ -65,6 +60,7 @@ set(test_srcs
     test/plyWriterTest.cpp
     test/PointSetTest.cpp
     test/PointSetIOTest.cpp
+    test/OrderedPointSetTest.cpp
     test/OrderedPointSetIOTest.cpp
     test/PointTest.cpp
 )

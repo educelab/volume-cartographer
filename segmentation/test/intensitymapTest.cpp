@@ -1,10 +1,10 @@
 #define BOOST_TEST_MODULE LocalResliceParticleSimIntensitymap
 
-#include <iostream>
-#include <vector>
-#include <numeric>
 #include <algorithm>
 #include <cmath>
+#include <iostream>
+#include <numeric>
+#include <vector>
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
 #include "segmentation/lrps/intensitymap.h"

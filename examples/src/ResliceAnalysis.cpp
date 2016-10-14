@@ -1,6 +1,6 @@
+#include <cmath>
 #include <iostream>
 #include <random>
-#include <cmath>
 #include <opencv2/opencv.hpp>
 #include "volumepkg/volumepkg.h"
 
@@ -29,9 +29,10 @@ inline cv::Vec3d SphericalToCartesian(double theta, double phi)
 
 void drawReslice(cv::Mat reslice);
 
-void drawSliceWithResliceVector(volcart::Volume& volume,
-                                const cv::Vec3d resliceVector,
-                                const cv::Vec3d center);
+void drawSliceWithResliceVector(
+    volcart::Volume& volume,
+    const cv::Vec3d resliceVector,
+    const cv::Vec3d center);
 
 int main(int argc, char** argv)
 {
@@ -108,28 +109,28 @@ int main(int argc, char** argv)
         //     phi: inclination (angle from Z axis)
         switch (cv::waitKey()) {
 
-        // Right arrow - increase phi
-        case 63235:
-            theta += RadianStep;
-            break;
+            // Right arrow - increase phi
+            case 63235:
+                theta += RadianStep;
+                break;
 
-        // Left arrow - decrease phi
-        case 63234:
-            theta -= RadianStep;
-            break;
+            // Left arrow - decrease phi
+            case 63234:
+                theta -= RadianStep;
+                break;
 
-        // Up arrow - increase theta
-        case 63232:
-            phi = (phi >= M_PI ? M_PI : phi + RadianStep);
-            break;
+            // Up arrow - increase theta
+            case 63232:
+                phi = (phi >= M_PI ? M_PI : phi + RadianStep);
+                break;
 
-        // Down arrow - decrease theta
-        case 63233:
-            phi = (phi <= 0 ? 0 : phi - RadianStep);
-            break;
+            // Down arrow - decrease theta
+            case 63233:
+                phi = (phi <= 0 ? 0 : phi - RadianStep);
+                break;
 
-        default:
-            return 0;
+            default:
+                return 0;
         }
 
         // Calculate new vector
@@ -145,9 +146,8 @@ void drawReslice(cv::Mat reslice)
     cv::imshow(windowName, reslice);
 }
 
-void drawSliceWithResliceVector(volcart::Volume& v,
-                                const cv::Vec3d resliceVector,
-                                const cv::Vec3d center)
+void drawSliceWithResliceVector(
+    volcart::Volume& v, const cv::Vec3d resliceVector, const cv::Vec3d center)
 {
     const auto windowName = "Slice with reslice vector";
 
@@ -160,8 +160,9 @@ void drawSliceWithResliceVector(volcart::Volume& v,
     constexpr int32_t scale = 20;
     const double zProjection = (1 - std::abs(resliceVector(2)));
     const auto p2 = center + resliceVector * zProjection * scale;
-    cv::line(slice, {int32_t(center(0)), int32_t(center(1))},
-             {int32_t(p2(0)), int32_t(p2(1))}, cv::Scalar(0, 0, 0xFF), 2);
+    cv::line(
+        slice, {int32_t(center(0)), int32_t(center(1))},
+        {int32_t(p2(0)), int32_t(p2(1))}, cv::Scalar(0, 0, 0xFF), 2);
     // cv::resize(slice, slice, {slice.cols / 2, slice.rows / 2});
 
     cv::namedWindow(windowName, cv::WINDOW_AUTOSIZE);

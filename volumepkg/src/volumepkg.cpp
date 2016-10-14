@@ -1,12 +1,18 @@
 #include "volumepkg/volumepkg.h"
-#include "meshing/orderedPCDMesher.h"
+#include "common/io/PointSetIO.h"
 #include "common/io/objWriter.h"
+#include "common/io/plyWriter.h"
+#include "common/types/OrderedPointSet.h"
+#include "common/types/Point.h"
+#include "meshing/OrderedPointSetMesher.h"
 
 namespace fs = boost::filesystem;
 
 // CONSTRUCTORS //
 // Make a volpkg of a particular version number
-VolumePkg::VolumePkg(const fs::path& file_location, int version)    // Changed type from double to int
+VolumePkg::VolumePkg(
+    const fs::path& file_location,
+    int version)  // Changed type from double to int
 {
     // Lookup the metadata template from our library of versions
     auto findDict = volcart::VersionLibrary.find(version);
@@ -24,9 +30,9 @@ VolumePkg::VolumePkg(const fs::path& file_location, int version)    // Changed t
         "/slices/");  // To-Do: We need a better way of handling default values
 
     // Initialize volume object
-    vol_ = volcart::Volume(slice_dir,
-                           config.get<int>("number of slices"),
-                           config.get<int>("width"), config.get<int>("height"));
+    vol_ = volcart::Volume(
+        slice_dir, config.get<int>("number of slices"),
+        config.get<int>("width"), config.get<int>("height"));
 };
 
 // Use this when reading a volpkg from a file
@@ -58,16 +64,16 @@ VolumePkg::VolumePkg(const fs::path& file_location)
     }
 
     // Initialize volume object
-    vol_ = volcart::Volume(slice_dir,
-                           config.get<int>("number of slices"),
-                           config.get<int>("width"), config.get<int>("height"));
+    vol_ = volcart::Volume(
+        slice_dir, config.get<int>("number of slices"),
+        config.get<int>("width"), config.get<int>("height"));
 };
 
 // WRITE TO DISK //
 int VolumePkg::initialize()
 {
     if (_readOnly) {
-        VC_ERR_READONLY();
+        volcart::ERR_READONLY();
     }
 
     // Build the directory tree
@@ -111,7 +117,10 @@ std::string VolumePkg::getPkgName() const
         return "UnnamedVolume";
 };
 
-int VolumePkg::getVersion() const { return config.get<int>("version"); };   // Changed type from double to int
+int VolumePkg::getVersion() const
+{
+    return config.get<int>("version");
+};  // Changed type from double to int
 
 // Returns no. of slices from JSON config
 int VolumePkg::getNumberOfSlices() const
@@ -141,16 +150,13 @@ void VolumePkg::saveMetadata(const fs::path& filePath)
 }
 
 // Alias for saving to the default config.json
-void VolumePkg::saveMetadata()
-{
-    saveMetadata(root_dir / "config.json");
-}
+void VolumePkg::saveMetadata() { saveMetadata(root_dir / "config.json"); }
 
 // Slice manipulation functions
 bool VolumePkg::setSliceData(size_t index, const cv::Mat& slice)
 {
     if (_readOnly) {
-        VC_ERR_READONLY();
+        volcart::ERR_READONLY();
         return false;
     } else {
         return vol_.setSliceData(index, slice);
@@ -164,7 +170,7 @@ bool VolumePkg::setSliceData(size_t index, const cv::Mat& slice)
 std::string VolumePkg::newSegmentation()
 {
     // make a new dir based off the current date and time
-    auto newSegName = VC_DATE_TIME();
+    auto newSegName = volcart::DATE_TIME();
     auto newPath = segs_dir / newSegName;
 
     if (fs::create_directory(newPath)) {
@@ -189,23 +195,20 @@ void VolumePkg::setActiveSegmentation(const std::string& name)
 }
 
 // Return the id of the active segmentation
-std::string VolumePkg::getActiveSegmentation() {
-    return activeSeg;
-};
+std::string VolumePkg::getActiveSegmentation() { return activeSeg; };
 
-boost::filesystem::path VolumePkg::getActiveSegPath() {
+boost::filesystem::path VolumePkg::getActiveSegPath()
+{
     return segs_dir / activeSeg;
 };
 
 // Return the point cloud currently on disk for the activeSegmentation
-pcl::PointCloud<pcl::PointXYZRGB>::Ptr VolumePkg::openCloud() const
+volcart::OrderedPointSet<volcart::Point3d> VolumePkg::openCloud() const
 {
     // To-Do: Error if activeSeg not set
-    auto outputName = segs_dir / activeSeg / "cloud.pcd";
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(
-        new pcl::PointCloud<pcl::PointXYZRGB>);
-    pcl::io::loadPCDFile<pcl::PointXYZRGB>(outputName.string(), *cloud);
-    return cloud;
+    auto outputName = segs_dir / activeSeg / "pointset.vcps";
+    return volcart::PointSetIO<volcart::Point3d>::ReadOrderedPointSet(
+        outputName.string());
 }
 
 // Return the path to the active segmentation's mesh
@@ -223,40 +226,31 @@ cv::Mat VolumePkg::getTextureData() const
 
 // Save a point cloud back to the volumepkg
 int VolumePkg::saveCloud(
-    const pcl::PointCloud<pcl::PointXYZRGB>& segmentedCloud) const
+    const volcart::OrderedPointSet<volcart::Point3d>& segmentedCloud) const
 {
-    auto outputName = segs_dir / activeSeg / "cloud.pcd";
+    auto outputName = segs_dir / activeSeg / "pointset.vcps";
     std::cerr << "volcart::volpkg::Writing point cloud to file..." << std::endl;
-    try {
-        pcl::io::savePCDFileBinaryCompressed(outputName.string(),
-                                             segmentedCloud);
-    } catch (pcl::IOException) {
-        std::cerr
-            << "volcart::volpkg::error: Problem writing point cloud to file."
-            << std::endl;
-        return EXIT_FAILURE;
-    }
+    volcart::PointSetIO<volcart::Point3d>::WriteOrderedPointSet(
+        outputName.string(), segmentedCloud);
     std::cerr << "volcart::volpkg::Point cloud saved." << std::endl;
     return EXIT_SUCCESS;
 }
 
 int VolumePkg::saveMesh(
-    const pcl::PointCloud<pcl::PointXYZRGB>::Ptr segmentedCloud) const
+    const volcart::OrderedPointSet<volcart::Point3d>& segmentedCloud) const
 {
     fs::path outputName = segs_dir / activeSeg / "cloud.ply";
-    if (volcart::meshing::orderedPCDMesher(
-            segmentedCloud, outputName) == EXIT_SUCCESS) {
-        std::cerr << "volcart::volpkg::Mesh file saved." << std::endl;
-        return EXIT_SUCCESS;
-    } else {
-        std::cerr << "volcart::volpkg::error: Problem writing mesh to file."
-                  << std::endl;
-        return EXIT_FAILURE;
-    }
+    volcart::meshing::OrderedPointSetMesher mesher(segmentedCloud);
+    mesher.compute();
+    auto mesh = mesher.getOutputMesh();
+    volcart::io::plyWriter writer(outputName, mesh);
+    writer.write();
+    std::cerr << "volcart::volpkg::Mesh file saved." << std::endl;
+    return EXIT_SUCCESS;
 }
 
-void VolumePkg::saveMesh(const VC_MeshType::Pointer& mesh,
-                         volcart::Texture& texture) const
+void VolumePkg::saveMesh(
+    const volcart::ITKMesh::Pointer mesh, const volcart::Texture& texture) const
 {
     volcart::io::objWriter writer;
     auto meshPath = segs_dir / activeSeg / "textured.obj";
@@ -276,7 +270,7 @@ void VolumePkg::saveTextureData(const cv::Mat& texture, const std::string& name)
 
 volcart::Metadata VolumePkg::_initConfig(
     const volcart::Dictionary& dict,
-    int version)    // Changed type from double to int
+    int version)  // Changed type from double to int
 {
     volcart::Metadata config;
 

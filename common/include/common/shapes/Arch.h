@@ -7,60 +7,62 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "common/vc_defines.h"
 #include "common/shapes/ShapePrimitive.h"
+#include "common/vc_defines.h"
 
-namespace volcart {
-    namespace shapes {
-        class Arch : public ShapePrimitive {
-        public:
-            Arch(int width = 10, int height = 10) {
+namespace volcart
+{
+namespace shapes
+{
+class Arch : public ShapePrimitive
+{
+public:
+    Arch(int width = 10, int height = 10)
+    {
 
-                float rad = 5;
+        float rad = 5;
 
-                std::vector<cv::Vec3d> curve;
-                std::vector<cv::Vec3d> points;
+        std::vector<cv::Vec3d> curve;
+        std::vector<cv::Vec3d> points;
 
-                // rad will always be the same
-                // theta (t) will be between 0 and pi
-                // z will be between 0 and width
-                cv::Vec3d c_point;
-                for( int w = 0; w < width; ++w ) {
-                    double t = w * M_PI / width;
-                    c_point[0] = rad * cos(t);
-                    c_point[1] = rad * sin(t);
-                    c_point[2] = 0;
-                    curve.push_back(c_point);
+        // rad will always be the same
+        // theta (t) will be between 0 and pi
+        // z will be between 0 and width
+        cv::Vec3d c_point;
+        for (int w = 0; w < width; ++w) {
+            double t = w * M_PI / width;
+            c_point[0] = rad * cos(t);
+            c_point[1] = rad * sin(t);
+            c_point[2] = 0;
+            curve.push_back(c_point);
+        }
 
+        for (float z = 0; z < height; z += 1) {
+            for (auto p_id = curve.begin(); p_id != curve.end(); ++p_id) {
+                _add_vertex(p_id->val[0], p_id->val[1], z);
+            }
+        }
 
-                }
+        // generate the cells
+        for (int i = 1; i < height; ++i) {
+            for (int j = 1; j < width; ++j) {
+                int v1, v2, v3, v4;
+                v1 = i * width + j;
+                v2 = v1 - 1;
+                v3 = v2 - width;
+                v4 = v1 - width;
+                _add_cell(v1, v2, v3);
+                _add_cell(v1, v3, v4);
+            }
+        }
 
-                for (float z = 0; z < height; z += 1) {
-                    for ( auto p_id = curve.begin(); p_id != curve.end(); ++p_id ) {
-                        _add_vertex( p_id->val[0], p_id->val[1], z);
-                    }
-                }
+        // Set this as an ordered mesh
+        _orderedPoints = true;
+        _orderedWidth = width;
+        _orderedHeight = height;
 
-                // generate the cells
-                for (int i = 1; i < height; ++i) {
-                    for (int j = 1; j < width; ++j) {
-                        int v1, v2, v3, v4;
-                        v1 = i * width + j;
-                        v2 = v1 - 1;
-                        v3 = v2 - width;
-                        v4 = v1 - width;
-                        _add_cell(v1, v2, v3);
-                        _add_cell(v1, v3, v4);
-                    }
-                }
+    }  // Constructor
 
-                // Set this as an ordered mesh
-                _orderedPoints = true;
-                _orderedWidth  = width;
-                _orderedHeight = height;
-
-            } // Constructor
-
-        }; // Arch
-    } // shapes
-} // volcart
+};  // Arch
+}  // shapes
+}  // volcart

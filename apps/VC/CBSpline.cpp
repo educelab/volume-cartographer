@@ -3,7 +3,6 @@
 #include "CBSpline.h"
 
 #include "CMatrixMN.h"
-#include "CVectorN.h"
 #include "UVecMatOperations.h"
 
 //#define _DEBUG
@@ -11,148 +10,197 @@
 using namespace ChaoVis;
 
 // Constructor
-CBSpline::CBSpline( void )
-{
-}
+CBSpline::CBSpline(void) {}
 
 // Destructor
-CBSpline::~CBSpline( void )
-{
-}
+CBSpline::~CBSpline(void) {}
 
 // Set control points
-void CBSpline::SetControlPoints( const std::vector< Vec2< double > > &nControlPoints )
+void CBSpline::SetControlPoints(const std::vector<Vec2<double>>& nControlPoints)
 {
-    // REVISIT - this is a little bit waste of resources, can we incrementally add new control points?
-    //           intuitively, we need to optimize the curve each time we change the control points, but is it
-    //           possible that the new Bezier segment can be determined only by the newly added control point,
+    // REVISIT - this is a little bit waste of resources, can we incrementally
+    // add new control points?
+    //           intuitively, we need to optimize the curve each time we change
+    //           the control points, but is it
+    //           possible that the new Bezier segment can be determined only by
+    //           the newly added control point,
     //           say, maybe by the characteristic of Bezier curve?
-    if ( fControlPoints.size() > 0 ) {
+    if (fControlPoints.size() > 0) {
         fControlPoints.clear();
         fCurveSegments.clear();
     }
 
-    for ( size_t i = 0; i < nControlPoints.size(); ++i ) {
-        fControlPoints.push_back( nControlPoints[ i ] );
+    for (size_t i = 0; i < nControlPoints.size(); ++i) {
+        fControlPoints.push_back(nControlPoints[i]);
     }
 
     UpdateCurve();
 }
 
 // Set control points
-void CBSpline::SetControlPoints( const std::vector< cv::Vec2f > &nControlPoints )
+void CBSpline::SetControlPoints(const std::vector<cv::Vec2f>& nControlPoints)
 {
-    // REVISIT - this is a little bit waste of resources, can we incrementally add new control points?
-    //           intuitively, we need to optimize the curve each time we change the control points, but is it
-    //           possible that the new Bezier segment can be determined only by the newly added control point,
+    // REVISIT - this is a little bit waste of resources, can we incrementally
+    // add new control points?
+    //           intuitively, we need to optimize the curve each time we change
+    //           the control points, but is it
+    //           possible that the new Bezier segment can be determined only by
+    //           the newly added control point,
     //           say, maybe by the characteristic of Bezier curve?
-    if ( fControlPoints.size() > 0 ) {
+    if (fControlPoints.size() > 0) {
         fControlPoints.clear();
         fCurveSegments.clear();
     }
 
-    for ( size_t i = 0; i < nControlPoints.size(); ++i ) {
-        fControlPoints.push_back( Vec2< double >( nControlPoints[ i ][ 0 ], nControlPoints[ i ][ 1 ] ) );
+    for (size_t i = 0; i < nControlPoints.size(); ++i) {
+        fControlPoints.push_back(
+            Vec2<double>(nControlPoints[i][0], nControlPoints[i][1]));
     }
 
-    UpdateCurve();
-}
-
-// Get sample points
-void CBSpline::GetSamplePoints( std::vector< Vec2< double > > &nSamplePoints )
-{
-    for ( size_t i = 0; i < fCurveSegments.size(); ++i ) {
-        fCurveSegments[ i ].GetSamplePoints( nSamplePoints );
+    if (fControlPoints.size() > 1) {
+        UpdateCurve();
     }
 }
 
 // Get sample points
-void CBSpline::GetSamplePoints( std::vector< cv::Vec2f > &nSamplePoints )
+void CBSpline::GetSamplePoints(std::vector<Vec2<double>>& nSamplePoints)
 {
-    for ( size_t i = 0; i < fCurveSegments.size(); ++i ) {
-        fCurveSegments[ i ].GetSamplePoints( nSamplePoints );
+    for (size_t i = 0; i < fCurveSegments.size(); ++i) {
+        fCurveSegments[i].GetSamplePoints(nSamplePoints);
+    }
+}
+
+// Get sample points
+void CBSpline::GetSamplePoints(std::vector<cv::Vec2f>& nSamplePoints)
+{
+    for (size_t i = 0; i < fCurveSegments.size(); ++i) {
+        fCurveSegments[i].GetSamplePoints(nSamplePoints);
     }
 }
 
 // Update curve
-void CBSpline::UpdateCurve( void )
+void CBSpline::UpdateCurve(void)
 {
+    // Handle the two-control point, linear instance
+    // Find P1 and P2 s.t. they're evenly spaced between P0 & P3
+    if (fControlPoints.size() == 2) {
+        std::vector<Vec2<double>> aControlPointsForSeg;
+
+        // P0
+        aControlPointsForSeg.push_back(fControlPoints[0]);
+
+        // P1 & P2
+        Vec2<double> d = (fControlPoints[1] - fControlPoints[0]) * (1.0 / 3.0);
+        Vec2<double> P1 = fControlPoints[0] + d;
+        Vec2<double> P2 = P1 + d;
+        aControlPointsForSeg.push_back(P1);
+        aControlPointsForSeg.push_back(P2);
+
+        // P3
+        aControlPointsForSeg.push_back(fControlPoints[1]);
+
+        // Set the curve segment
+        CBezierCurve aCurveSegment;
+        aCurveSegment.SetControlPoints(aControlPointsForSeg);
+        fCurveSegments.push_back(aCurveSegment);
+
+        return;
+    }
+
     // solve for control points for each Bezier curve segment
     // # of unknowns = # of curve segments = # of control points - 1
-    int aNumUnknowns = ( int )fControlPoints.size() - 1;
-    CVectorN< double > aX( aNumUnknowns ), aY( aNumUnknowns ), aB( aNumUnknowns );
-    CMatrixMN< double > aA = Zero< double >( aNumUnknowns, aNumUnknowns );
+    int aNumUnknowns = (int)fControlPoints.size() - 1;
+    CVectorN<double> aX(aNumUnknowns), aY(aNumUnknowns), aB(aNumUnknowns);
+    CMatrixMN<double> aA = Zero<double>(aNumUnknowns, aNumUnknowns);
 
     // set up matrix
-    aA( 0, 0 ) = 2; aA( 0, 1 ) = 1;
-    aA( aNumUnknowns - 1, aNumUnknowns - 2 ) = 2; aA( aNumUnknowns - 1, aNumUnknowns - 1 ) = 7;
-    for ( int i = 1; i < aNumUnknowns - 1; ++i ) {
-        aA( i, i - 1 ) = 1; aA( i, i ) = 4; aA( i, i + 1 ) = 1;
+    aA(0, 0) = 2;
+    aA(0, 1) = 1;
+    aA(aNumUnknowns - 1, aNumUnknowns - 2) = 2;
+    aA(aNumUnknowns - 1, aNumUnknowns - 1) = 7;
+    for (int i = 1; i < aNumUnknowns - 1; ++i) {
+        aA(i, i - 1) = 1;
+        aA(i, i) = 4;
+        aA(i, i + 1) = 1;
     }
 
 #ifdef _DEBUG
-    //aA.Dump();
-#endif // _DEBUG
+// aA.Dump();
+#endif  // _DEBUG
 
     // solve tri-diagonal matrix
-    // REVISIT - note that we need to use the same left hand side but different right hand side,
-    //           which is a practical problem, so MKL actually support such kind of requirement
+    // REVISIT - note that we need to use the same left hand side but different
+    // right hand side,
+    //           which is a practical problem, so MKL actually support such kind
+    //           of requirement
     // for x component
-    aB[ 0 ] = 2 * fControlPoints[ 1 ][ 0 ] + fControlPoints[ 0 ][ 0 ];
-    aB[ aNumUnknowns - 1 ] = 8 * fControlPoints[ aNumUnknowns - 1 ][ 0 ] + fControlPoints[ aNumUnknowns ][ 0 ];
-    for ( int i  = 1; i < aNumUnknowns - 1; ++i ) {
-        aB[ i ] = 4 * fControlPoints[ i ][ 0 ] + 2 * fControlPoints[ i + 1 ][ 0 ];
+    aB[0] = 2 * fControlPoints[1][0] + fControlPoints[0][0];
+    aB[aNumUnknowns - 1] = 8 * fControlPoints[aNumUnknowns - 1][0] +
+                           fControlPoints[aNumUnknowns][0];
+    for (int i = 1; i < aNumUnknowns - 1; ++i) {
+        aB[i] = 4 * fControlPoints[i][0] + 2 * fControlPoints[i + 1][0];
     }
 #ifdef _DEBUG
-    //aB.Dump();
-#endif // _DEBUG
-    ThomasTriDiagonal< double >( aA, aB, aX );
+// aB.Dump();
+#endif  // _DEBUG
+    ThomasTriDiagonal<double>(aA, aB, aX);
 #ifdef _DEBUG
     aX.Dump();
-#endif // _DEBUG
+#endif  // _DEBUG
 
     // for y component
-    aB[ 0 ] = 2 * fControlPoints[ 1 ][ 1 ] + fControlPoints[ 0 ][ 1 ];
-    aB[ aNumUnknowns - 1 ] = 8 * fControlPoints[ aNumUnknowns - 1 ][ 1 ] + fControlPoints[ aNumUnknowns ][ 1 ];
-    for ( int i  = 1; i < aNumUnknowns - 1; ++i ) {
-        aB[ i ] = 4 * fControlPoints[ i ][ 1 ] + 2 * fControlPoints[ i + 1 ][ 1 ];
+    aB[0] = 2 * fControlPoints[1][1] + fControlPoints[0][1];
+    aB[aNumUnknowns - 1] = 8 * fControlPoints[aNumUnknowns - 1][1] +
+                           fControlPoints[aNumUnknowns][1];
+    for (int i = 1; i < aNumUnknowns - 1; ++i) {
+        aB[i] = 4 * fControlPoints[i][1] + 2 * fControlPoints[i + 1][1];
     }
-    ThomasTriDiagonal< double >( aA, aB, aY );
+    ThomasTriDiagonal<double>(aA, aB, aY);
 #ifdef _DEBUG
     aY.Dump();
-#endif // _DEBUG
+#endif  // _DEBUG
 
     // calculate P2,i
-    CVectorN< double > aX2( aNumUnknowns ), aY2( aNumUnknowns );
-    aX2[ aNumUnknowns - 1 ] = ( fControlPoints[ aNumUnknowns ][ 0 ] + aX[ aNumUnknowns - 1 ] ) / 2.0;
-    aY2[ aNumUnknowns - 1 ] = ( fControlPoints[ aNumUnknowns ][ 1 ] + aY[ aNumUnknowns - 1 ] ) / 2.0;
-    for ( int i = 0; i < aNumUnknowns - 1; ++i ) {
-        aX2[ i ] = 2 * fControlPoints[ i + 1 ][ 0 ] - aX[ i + 1 ];
-        aY2[ i ] = 2 * fControlPoints[ i + 1 ][ 1 ] - aY[ i + 1 ];
+    CVectorN<double> aX2(aNumUnknowns), aY2(aNumUnknowns);
+    aX2[aNumUnknowns - 1] =
+        (fControlPoints[aNumUnknowns][0] + aX[aNumUnknowns - 1]) / 2.0;
+    aY2[aNumUnknowns - 1] =
+        (fControlPoints[aNumUnknowns][1] + aY[aNumUnknowns - 1]) / 2.0;
+    for (int i = 0; i < aNumUnknowns - 1; ++i) {
+        aX2[i] = 2 * fControlPoints[i + 1][0] - aX[i + 1];
+        aY2[i] = 2 * fControlPoints[i + 1][1] - aY[i + 1];
     }
 #ifdef _DEBUG
     aX2.Dump();
     aY2.Dump();
-#endif // _DEBUG
+#endif  // _DEBUG
 
-    std::vector< Vec2< double > > aControlPointsForSeg;
-    aControlPointsForSeg.resize( 4 );
-    for ( int i = 0; i < aNumUnknowns; ++i ) {
+    std::vector<Vec2<double>> aControlPointsForSeg;
+    aControlPointsForSeg.resize(4);
+    for (int i = 0; i < aNumUnknowns; ++i) {
         CBezierCurve aCurveSegment;
-        aControlPointsForSeg[ 0 ] = fControlPoints[ i ]; // P0,i = Ki
-        aControlPointsForSeg[ 1 ] = Vec2< double >( aX[ i ], aY[ i ] ); // P1,i
-        aControlPointsForSeg[ 2 ] = Vec2< double >( aX2[ i ], aY2[ i ] ); // P2,i
-        aControlPointsForSeg[ 3 ] = fControlPoints[ i + 1 ]; // P3,i = P0,i-1 = Ki+1
-        aCurveSegment.SetControlPoints( aControlPointsForSeg );
-        fCurveSegments.push_back( aCurveSegment );
+        aControlPointsForSeg[0] = fControlPoints[i];             // P0,i = Ki
+        aControlPointsForSeg[1] = Vec2<double>(aX[i], aY[i]);    // P1,i
+        aControlPointsForSeg[2] = Vec2<double>(aX2[i], aY2[i]);  // P2,i
+        aControlPointsForSeg[3] =
+            fControlPoints[i + 1];  // P3,i = P0,i-1 = Ki+1
+        aCurveSegment.SetControlPoints(aControlPointsForSeg);
+        fCurveSegments.push_back(aCurveSegment);
     }
 }
 
 // Draw the curve on image
-void CBSpline::DrawOnImage( cv::Mat &nImg,
-                            const cv::Scalar &nColor )
+void CBSpline::DrawOnImage(cv::Mat& nImg, const cv::Scalar& nColor)
 {
-    for ( size_t i = 0; i < fCurveSegments.size(); ++i ) {
-        fCurveSegments[ i ].DrawOnImage( nImg, nColor );
+    // Handle drawing curves with only 2 points
+    if (fControlPoints.size() == 2) {
+        cv::Point2f start(fControlPoints[0][0], fControlPoints[0][1]);
+        cv::Point2f end(fControlPoints[1][0], fControlPoints[1][1]);
+        cv::line(nImg, start, end, nColor);
+        return;
+    }
+
+    for (size_t i = 0; i < fCurveSegments.size(); ++i) {
+        fCurveSegments[i].DrawOnImage(nImg, nColor);
     }
 }

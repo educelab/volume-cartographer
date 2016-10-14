@@ -16,79 +16,79 @@
 using namespace volcart;
 
 struct OrderedPlaneFixture {
-    OrderedPlaneFixture() : _Plane(5, 5)
+    OrderedPlaneFixture() : _Plane(5)
     {
-        _Plane.push_row({{0.0, 0.0, 0.0},
-                         {0.0, 0.0, 2.0},
-                         {0.0, 0.0, 4.0},
-                         {0.0, 0.0, 6.0},
-                         {0.0, 0.0, 8.0}});
-        _Plane.push_row({{2.0, 0.0, 0.0},
-                         {2.0, 0.0, 2.0},
-                         {2.0, 0.0, 4.0},
-                         {2.0, 0.0, 6.0},
-                         {2.0, 0.0, 8.0}});
-        _Plane.push_row({{4.0, 0.0, 0.0},
-                         {4.0, 0.0, 2.0},
-                         {4.0, 0.0, 4.0},
-                         {4.0, 0.0, 6.0},
-                         {4.0, 0.0, 8.0}});
-        _Plane.push_row({{6.0, 0.0, 0.0},
-                         {6.0, 0.0, 2.0},
-                         {6.0, 0.0, 4.0},
-                         {6.0, 0.0, 6.0},
-                         {6.0, 0.0, 8.0}});
-        _Plane.push_row({{8.0, 0.0, 0.0},
-                         {8.0, 0.0, 2.0},
-                         {8.0, 0.0, 4.0},
-                         {8.0, 0.0, 6.0},
-                         {8.0, 0.0, 8.0}});
+        _Plane.pushRow({{0.0, 0.0, 0.0},
+                        {0.0, 0.0, 2.0},
+                        {0.0, 0.0, 4.0},
+                        {0.0, 0.0, 6.0},
+                        {0.0, 0.0, 8.0}});
+        _Plane.pushRow({{2.0, 0.0, 0.0},
+                        {2.0, 0.0, 2.0},
+                        {2.0, 0.0, 4.0},
+                        {2.0, 0.0, 6.0},
+                        {2.0, 0.0, 8.0}});
+        _Plane.pushRow({{4.0, 0.0, 0.0},
+                        {4.0, 0.0, 2.0},
+                        {4.0, 0.0, 4.0},
+                        {4.0, 0.0, 6.0},
+                        {4.0, 0.0, 8.0}});
+        _Plane.pushRow({{6.0, 0.0, 0.0},
+                        {6.0, 0.0, 2.0},
+                        {6.0, 0.0, 4.0},
+                        {6.0, 0.0, 6.0},
+                        {6.0, 0.0, 8.0}});
+        _Plane.pushRow({{8.0, 0.0, 0.0},
+                        {8.0, 0.0, 2.0},
+                        {8.0, 0.0, 4.0},
+                        {8.0, 0.0, 6.0},
+                        {8.0, 0.0, 8.0}});
 
         volcart::testing::ParsingHelpers::parseObjFile(
             "OrderedPointSetMesher_Plane.obj", _SavedPoints, _SavedCells);
     }
     OrderedPointSet<Point3d> _Plane;
-    VC_MeshType::Pointer _out_Mesh;
-    std::vector<VC_Vertex> _SavedPoints;
-    std::vector<VC_Cell> _SavedCells;
+    ITKMesh::Pointer _out_Mesh;
+    std::vector<Vertex> _SavedPoints;
+    std::vector<Cell> _SavedCells;
 };
 
 struct OrderedArchFixture {
-    OrderedArchFixture() : _Arch(5, 5)
+    OrderedArchFixture() : _Arch(5)
     {
-        _Arch.push_row({{5.0, 0.0, 0.0},
-                        {4.04508, 2.93893, 0.0},
-                        {1.54508, 4.75528, 0.0},
-                        {-1.54508, 4.75528, 0.0},
-                        {-4.04508, 2.93893, 0.0}});
-        _Arch.push_row({{5.0, 0.0, 2.0},
-                        {4.04508, 2.93893, 2.0},
-                        {1.54508, 4.75528, 2.0},
-                        {-1.54508, 4.75528, 2.0},
-                        {-4.04508, 2.93893, 2.0}});
-        _Arch.push_row({{5.0, 0.0, 4.0},
-                        {4.04508, 2.93893, 4.0},
-                        {1.54508, 4.75528, 4.0},
-                        {-1.54508, 4.75528, 4.0},
-                        {-4.04508, 2.93893, 4.0}});
-        _Arch.push_row({{5.0, 0.0, 6.0},
-                        {4.04508, 2.93893, 6.0},
-                        {1.54508, 4.75528, 6.0},
-                        {-1.54508, 4.75528, 6.0},
-                        {-4.04508, 2.93893, 6.0}});
-        _Arch.push_row({{5.0, 0.0, 8.0},
-                        {4.04508, 2.93893, 8.0},
-                        {1.54508, 4.75528, 8.0},
-                        {-1.54508, 4.75528, 8.0},
-                        {-4.04508, 2.93893, 8.0}});
+        _Arch.pushRow({{5.0, 0.0, 0.0},
+                       {4.04508, 2.93893, 0.0},
+                       {1.54508, 4.75528, 0.0},
+                       {-1.54508, 4.75528, 0.0},
+                       {-4.04508, 2.93893, 0.0}});
+        _Arch.pushRow({{5.0, 0.0, 2.0},
+                       {4.04508, 2.93893, 2.0},
+                       {1.54508, 4.75528, 2.0},
+                       {-1.54508, 4.75528, 2.0},
+                       {-4.04508, 2.93893, 2.0}});
+        _Arch.pushRow({{5.0, 0.0, 4.0},
+                       {4.04508, 2.93893, 4.0},
+                       {1.54508, 4.75528, 4.0},
+                       {-1.54508, 4.75528, 4.0},
+                       {-4.04508, 2.93893, 4.0}});
+        _Arch.pushRow({{5.0, 0.0, 6.0},
+                       {4.04508, 2.93893, 6.0},
+                       {1.54508, 4.75528, 6.0},
+                       {-1.54508, 4.75528, 6.0},
+                       {-4.04508, 2.93893, 6.0}});
+        _Arch.pushRow({{5.0, 0.0, 8.0},
+                       {4.04508, 2.93893, 8.0},
+                       {1.54508, 4.75528, 8.0},
+                       {-1.54508, 4.75528, 8.0},
+                       {-4.04508, 2.93893, 8.0}});
 
         volcart::testing::ParsingHelpers::parseObjFile(
             "OrderedPointSetMesher_Arch.obj", _SavedPoints, _SavedCells);
     }
     OrderedPointSet<Point3d> _Arch;
-    VC_MeshType::Pointer _out_Mesh;
-    std::vector<VC_Vertex> _SavedPoints;
-    std::vector<VC_Cell> _SavedCells;
+    ITKMesh::Pointer _out_Mesh;
+    std::vector<Vertex> _SavedPoints;
+    std::vector<Cell> _SavedCells;
 };
 
 BOOST_FIXTURE_TEST_CASE(MeshedPlaneTest, OrderedPlaneFixture)
@@ -107,7 +107,7 @@ BOOST_FIXTURE_TEST_CASE(MeshedPlaneTest, OrderedPlaneFixture)
         volcart::testing::SmallOrClose(
             _out_Mesh->GetPoint(pnt_id)[2], _SavedPoints[pnt_id].z);
 
-        VC_PixelType out_Normal;
+        ITKPixel out_Normal;
         _out_Mesh->GetPointData(pnt_id, &out_Normal);
 
         // Now compare the normals for the two meshes
@@ -120,7 +120,7 @@ BOOST_FIXTURE_TEST_CASE(MeshedPlaneTest, OrderedPlaneFixture)
     // the same in both
     BOOST_CHECK_EQUAL(_SavedCells.size(), _out_Mesh->GetNumberOfCells());
     for (unsigned long cell_id = 0; cell_id < _SavedCells.size(); cell_id++) {
-        VC_CellType::CellAutoPointer current_C;
+        ITKCell::CellAutoPointer current_C;
         _out_Mesh->GetCell(cell_id, current_C);
         BOOST_CHECK_EQUAL(current_C->GetPointIds()[0], _SavedCells[cell_id].v1);
         BOOST_CHECK_EQUAL(current_C->GetPointIds()[1], _SavedCells[cell_id].v2);
@@ -144,7 +144,7 @@ BOOST_FIXTURE_TEST_CASE(MeshedArchTest, OrderedArchFixture)
         volcart::testing::SmallOrClose(
             _out_Mesh->GetPoint(pnt_id)[2], _SavedPoints[pnt_id].z);
 
-        VC_PixelType out_Normal;
+        ITKPixel out_Normal;
         _out_Mesh->GetPointData(pnt_id, &out_Normal);
 
         // Now compare the normals for the two meshes
@@ -157,7 +157,7 @@ BOOST_FIXTURE_TEST_CASE(MeshedArchTest, OrderedArchFixture)
     // the same in both
     BOOST_CHECK_EQUAL(_SavedCells.size(), _out_Mesh->GetNumberOfCells());
     for (unsigned long cell_id = 0; cell_id < _SavedCells.size(); cell_id++) {
-        VC_CellType::CellAutoPointer current_C;
+        ITKCell::CellAutoPointer current_C;
         _out_Mesh->GetCell(cell_id, current_C);
         BOOST_CHECK_EQUAL(current_C->GetPointIds()[0], _SavedCells[cell_id].v1);
         BOOST_CHECK_EQUAL(current_C->GetPointIds()[1], _SavedCells[cell_id].v2);

@@ -2,7 +2,7 @@
 // Created by Seth Parker on 4/27/15.
 //
 
-#include "common/io/ply2itk.h"
+#include "common/io/PLYReader.h"
 #include <boost/filesystem.hpp>
 
 namespace volcart
@@ -10,15 +10,12 @@ namespace volcart
 namespace io
 {
 
-bool ply2itkmesh(boost::filesystem::path plyPath,
-                 VC_MeshType::Pointer mesh,
-                 int &width,
-                 int &height)
+bool PLYReader(boost::filesystem::path path, ITKMesh::Pointer mesh)
 {
     // open ply file
-    std::ifstream plyFile(plyPath.string());
+    std::ifstream plyFile(path.string());
     if (!plyFile.is_open()) {
-        std::cerr << "Open file " << plyPath << " failed." << std::endl;
+        std::cerr << "Open file " << path << " failed." << std::endl;
         return false;
     }
 
@@ -70,7 +67,7 @@ bool ply2itkmesh(boost::filesystem::path plyPath,
     int red, green, blue;
 
     // For Faces
-    VC_CellType::CellAutoPointer cellpointer;
+    ITKCell::CellAutoPointer cellpointer;
     int temp, p1, p2, p3;
 
     for (int i = 0; i < aElements.size(); ++i) {
@@ -80,26 +77,26 @@ bool ply2itkmesh(boost::filesystem::path plyPath,
             // get the dimensions of the mesh
             if (aElementIDs[i] == "dimensions") {
                 plyFile >> w >> h;
-                width = w;
-                height = h;
             }
 
             // read vertices
             if (aElementIDs[i] == "vertex") {
-                VC_PointType p;
-                VC_PixelType n;
+                ITKPoint p;
+                ITKPixel n;
 
-                plyFile >> x >> y >> z >> nx >> ny >> nz >> s >> t >> red >>
-                    green >> blue;
+                plyFile >> x >> y >> z >> nx >> ny >> nz;
                 p[0] = x;
                 p[1] = y;
                 p[2] = z;
-                if (isnan(nx))
+                if (std::isnan(nx)) {
                     nx = 0;
-                if (isnan(ny))
+                }
+                if (std::isnan(ny)) {
                     ny = 0;
-                if (isnan(nz))
+                }
+                if (std::isnan(nz)) {
                     nz = 0;
+                }
                 n[0] = nx;
                 n[1] = ny;
                 n[2] = nz;
@@ -111,7 +108,7 @@ bool ply2itkmesh(boost::filesystem::path plyPath,
             if (aElementIDs[i] == "face") {
                 plyFile >> temp >> p1 >> p2 >> p3;
 
-                cellpointer.TakeOwnership(new VC_TriangleType);
+                cellpointer.TakeOwnership(new ITKTriangle);
                 cellpointer->SetPointId(0, p1);
                 cellpointer->SetPointId(1, p2);
                 cellpointer->SetPointId(2, p3);
@@ -120,17 +117,8 @@ bool ply2itkmesh(boost::filesystem::path plyPath,
         }
     }
 
-    // if we don't have the meshWidth and meshHeight, exit
-    if (width == -1 || height == -1) {
-        std::cerr
-            << "ERROR: Mesh does not contain width and/or height metadata."
-            << std::endl;
-        return false;
-    }
-
     plyFile.close();
     return true;
 }
-
 }  // namespace io
 }  // namespace volcart

@@ -4,7 +4,7 @@
 #include <fstream>
 #include <iostream>
 
-#include "common/io/ply2itk.h"
+#include "common/io/PLYReader.h"
 #include "common/vc_defines.h"
 #include "meshing/itk2vtk.h"
 #include "volumepkg/volumepkg.h"
@@ -15,7 +15,7 @@
 
 namespace fs = boost::filesystem;
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     if (argc < 3) {
         std::cout << "Usage: vc_area volpkg seg-id" << std::endl;
@@ -37,20 +37,17 @@ int main(int argc, char *argv[])
     fs::path meshName = vpkg.getMeshPath();
 
     // declare pointer to new Mesh object
-    VC_MeshType::Pointer mesh = VC_MeshType::New();
-
-    int meshWidth = -1;
-    int meshHeight = -1;
+    auto mesh = volcart::ITKMesh::New();
 
     // try to convert the ply to an ITK mesh
-    if (!volcart::io::ply2itkmesh(meshName, mesh, meshWidth, meshHeight)) {
+    if (!volcart::io::PLYReader(meshName, mesh)) {
         exit(-1);
     };
 
-    vtkPolyData *smoothVTK = vtkPolyData::New();
+    vtkPolyData* smoothVTK = vtkPolyData::New();
     volcart::meshing::itk2vtk(mesh, smoothVTK);
 
-    vtkSmoothPolyDataFilter *smooth = vtkSmoothPolyDataFilter::New();
+    vtkSmoothPolyDataFilter* smooth = vtkSmoothPolyDataFilter::New();
     smooth->SetInputData(smoothVTK);
     smooth->SetBoundarySmoothing(true);
     smooth->SetNumberOfIterations(10);

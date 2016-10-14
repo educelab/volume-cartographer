@@ -45,9 +45,6 @@ target_include_directories(${target}
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
-        # XXX This should go away - but PCL doesn't specify their targets in a
-        # way that lets you do transitive dependencies.
-        ${PCL_COMMON_INCLUDE_DIRS}
         ${CMAKE_CURRENT_BINARY_DIR}
 )
 target_link_libraries(${target}

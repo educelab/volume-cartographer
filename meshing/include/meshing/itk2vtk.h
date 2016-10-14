@@ -3,38 +3,44 @@
 //
 #pragma once
 
-#include <vtkCellData.h>
 #include <vtkCellArray.h>
+#include <vtkCellData.h>
 #include <vtkDoubleArray.h>
+#include <vtkPointData.h>
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
-#include <vtkPointData.h>
 #include <vtkSmartPointer.h>
 
 #include "common/vc_defines.h"
 
-namespace volcart {
-    namespace meshing {
+namespace volcart
+{
+namespace meshing
+{
 
-        class itk2vtk {
-        public:
-            itk2vtk( VC_MeshType::Pointer input, vtkSmartPointer<vtkPolyData> output );
-        };
+class itk2vtk
+{
+public:
+    itk2vtk(ITKMesh::Pointer input, vtkSmartPointer<vtkPolyData> output);
+};
 
-        class vtk2itk {
-        public:
-            vtk2itk( vtkSmartPointer<vtkPolyData> input, VC_MeshType::Pointer output );
-        };
+class vtk2itk
+{
+public:
+    vtk2itk(vtkSmartPointer<vtkPolyData> input, ITKMesh::Pointer output);
+};
 
-        class itk2itkQE {
-        public:
-            itk2itkQE( VC_MeshType::Pointer input, volcart::QuadMesh::Pointer output );
-        };
+class itk2itkQE
+{
+public:
+    itk2itkQE(ITKMesh::Pointer input, volcart::QuadMesh::Pointer output);
+};
 
-        class itkQE2itk {
-        public:
-            itkQE2itk( volcart::QuadMesh::Pointer input, VC_MeshType::Pointer output );
-        };
+class itkQE2itk
+{
+public:
+    itkQE2itk(volcart::QuadMesh::Pointer input, ITKMesh::Pointer output);
+};
 
-    } // namespace meshing
-} // namespace volcart
+}  // namespace meshing
+}  // namespace volcart

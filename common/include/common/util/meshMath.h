@@ -5,8 +5,10 @@
 
 #include "common/vc_defines.h"
 
-namespace volcart {
-  namespace meshMath {
-      double SurfaceArea( VC_MeshType::Pointer input );
-  }
+namespace volcart
+{
+namespace meshMath
+{
+double SurfaceArea(const ITKMesh::Pointer input);
+}
 }

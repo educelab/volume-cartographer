@@ -30,7 +30,8 @@
 extern "C" {
 #endif
 
-void EIG_svd_square_matrix(const int size, const float *matrix, float *r_U, float *r_S, float *r_V);
+void EIG_svd_square_matrix(
+    const int size, const float* matrix, float* r_U, float* r_S, float* r_V);
 
 #ifdef __cplusplus
 }
