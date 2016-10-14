@@ -143,7 +143,6 @@ collect:osx:
     tags:
         - deploy
         - osx
-        - prebuilt
         - qt5
 
 deploy:
@@ -163,5 +162,4 @@ deploy:
     tags:
         - deploy
         - osx
-        - prebuilt
         - qt5
