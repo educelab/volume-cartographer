@@ -4,21 +4,31 @@ v2.7.0
 ------
 This release sees the replacement of PCL's PointCloud datatype with our new
 PointSet and OrderedPointSet types! This change allows us to remove the last
-traces of PCL from our library, which should improve our build stability.  
-*crosses fingers* However, this release is not compatible with version 2
+traces of PCL from our library, which should improve our build stability. 
+**crosses fingers** However, this release is not compatible with version 2
 Volume Packages. Please use the `vc_convert_pcd_to_ps` utility to upgrade your
 packages to version 3.  
 - all
     - Remove PCL usages from the main library (!94). And there was much
     rejoicing!
+    - Fix compilation on Linux by adding missing std namespaces to isnan. I mean
+    std::isnan (!92)
 - apps
     - (VC) Add support for simple linear paths (!90)
     - (VC) Fix crash when navigating while there is no volpkg loaded (!86)
     - (VC) Fix bug where you could get stuck in editing/drawing mode (!81)
+    - Learned what C++11 is, so now we test against `nullptr` instead of 
+    `NULL` (!89)
 - common
-    - (OrderedPointSet) Added getRow() and copyRows() members (!96)
+    - What? OrderedPointSet is evolving! OrderedPointSet learned `getRow()`, 
+    `copyRows()`, and `reset()`! (!96, !97)
+    - Remove the `VC_` typedefs and replace them with easy-to-read `volcart::`
+    typedefs (!95)
+- testing
+    - Use boost::split instead of making our own. Seems reasonable. (!88)
 - misc
     - Add clang-format style, utilities, and hooks (!87, !93)
+    - Fix one of those clang-format utilities (!99)
     - clang-format all of the things! (!98)
 
 v2.6.0
