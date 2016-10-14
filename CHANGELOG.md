@@ -1,5 +1,9 @@
 Volume Cartographer Changelog
 =============================
+v2.7.1
+------
+Patch: Update release dependencies to latest versions.
+
 v2.7.0
 ------
 This release sees the replacement of PCL's PointCloud datatype with our new
