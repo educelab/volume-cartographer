@@ -61,7 +61,7 @@ private:
     QLabel* volume_Package;
     QListWidget* segmentations;
     QString currentSegmentation;
-   int currentHighlightedIndex;
+    int currentHighlightedIndex;
 
     QLabel* parameters;
     Global_Values* _globals;
