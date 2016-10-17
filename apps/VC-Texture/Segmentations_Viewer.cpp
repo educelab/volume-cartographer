@@ -16,6 +16,7 @@ Segmentations_Viewer::Segmentations_Viewer(
 {
     _globals = globals;
     _texture_Viewer = texture_Viewer;
+    currentHighlightedIndex = 0;
 
     // RIGHT SIDE OF GUI
     //********************************************************************************************
@@ -100,21 +101,22 @@ void Segmentations_Viewer::itemClickedSlot()
             switch (option) {
                 case QMessageBox::Discard:
                     // Discard was clicked
+                    _globals->setStatus(0);
                     break;
 
                 case QMessageBox::Cancel:
                     // Cancel was clicked
+                    segmentations->setCurrentRow(currentHighlightedIndex);
                     return;
 
                 default:
                     // should never be reached
                     return;
             }
-        } /*reset status*/ else
-            _globals->setStatus(0);
+        } /*reset status*/ else _globals->setStatus(0);
 
+        currentHighlightedIndex = segmentations->currentRow();
         currentSegmentation = segmentations->currentItem()->text();
-        _globals->setStatus(0);
         _globals->clearRendering();
         _texture_Viewer->clearImageLabel();
 
@@ -305,6 +307,7 @@ void Segmentations_Viewer::setSegmentations()
         0)  // Loads first Image to Screen by default
     {
         segmentations->setCurrentRow(0);
+        currentHighlightedIndex = 0;
         currentSegmentation = "null";
         itemClickedSlot();
     }

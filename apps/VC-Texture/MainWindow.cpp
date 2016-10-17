@@ -93,6 +93,7 @@ void MainWindow::getFilePath()  // Gets the Folder Path of the Volume Package
 
             case QMessageBox::Discard:
                 // Discard was clicked
+                _globals->setStatus(0);
                 break;
 
             case QMessageBox::Cancel:
