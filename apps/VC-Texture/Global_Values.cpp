@@ -5,8 +5,8 @@
 // October 12, 2015 - Spring Semester 2016
 // Last Updated 10/23/2015 by: Michael Royal
 
-// Copy Right ©2015 (Brent Seales: Volume Cartography Research) - University of
-// Kentucky Center for Visualization and Virtualization
+// Copyright 2015 (Brent Seales: Volume Cartography Research)
+// University of Kentucky VisCenter
 //----------------------------------------------------------------------------------------------------------------------------------------
 
 #include "Global_Values.h"
@@ -38,6 +38,25 @@ void Global_Values::createVolumePackage()
 {
     vpkg = new VolumePkg(path.toStdString());  // Creates a Volume Package
     VPKG_Instantiated = true;
+}
+
+void Global_Values::clearVolumePackage()
+{
+    vpkg = nullptr;             // Clear vpkg
+    VPKG_Instantiated = false;  // Clear VPKG_Instantiated
+}
+
+void Global_Values::clearGUI()
+{
+    VPKG_Instantiated = false;
+    path = "";
+    vpkg = nullptr;
+    segmentations.clear();
+    clearRendering();
+    _radius = 0;
+    _textureMethod = 0;
+    _sampleDirection = 0;
+    _status = 0;
 }
 
 void Global_Values::getMySegmentations()

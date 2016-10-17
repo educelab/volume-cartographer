@@ -5,8 +5,8 @@
 // October 12, 2015 - Spring Semester 2016
 // Last Updated 11/13/2015 by: Michael Royal
 
-// Copy Right ©2015 (Brent Seales: Volume Cartography Research) - University of
-// Kentucky Center for Visualization and Virtualization
+// Copyright 2015 (Brent Seales: Volume Cartography Research)
+// University of Kentucky VisCenter
 //----------------------------------------------------------------------------------------------------------------------------------------
 
 #include "Segmentations_Viewer.h"
@@ -244,6 +244,18 @@ bool Segmentations_Viewer::loadImage(cv::Mat texture)
 }
 
 QVBoxLayout* Segmentations_Viewer::getLayout() { return panels; }
+
+void Segmentations_Viewer::clearGUI()
+{
+
+    volume_Package->setText("");
+    segmentations->clear();  // Clear the Segmentation List
+    currentSegmentation = "";
+    radius->setValue(0);
+    texture_Method->setCurrentIndex(0);
+    sample_Direction->setCurrentIndex(0);
+    _texture_Viewer->clearGUI();  // Clear variables from _texture_Viewer
+}
 
 void Segmentations_Viewer::setSegmentations()
 {

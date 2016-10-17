@@ -6,8 +6,8 @@
 // October 12, 2015 - Spring Semester 2016
 // Last Updated 10/23/2015 by: Michael Royal
 
-// Copy Right ©2015 (Brent Seales: Volume Cartography Research) - University of
-// Kentucky Center for Visualization and Virtualization
+// Copyright 2015 (Brent Seales: Volume Cartography Research)
+// University of Kentucky VisCenter
 //---------------------------------------------------------------------------------------------------------------------------------------------
 
 #pragma once
@@ -23,9 +23,6 @@
 #include "volumepkg/volumepkg.h"
 #include "volumepkg/volumepkg.h"
 
-// Volpkg version required byt this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 3;
-
 class Global_Values
 {
 
@@ -37,6 +34,10 @@ public:
 
     void createVolumePackage();
     VolumePkg* getVolPkg();
+
+    void clearVolumePackage();
+
+    void clearGUI();
 
     void setPath(QString newPath);
 
