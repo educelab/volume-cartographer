@@ -14,7 +14,7 @@
 #include "common/io/objWriter.h"
 
 // Volpkg version required byt this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 3;  // Version #3
+static constexpr int VOLPKG_SUPPORTED_VERSION = 3;
 
 namespace fs = boost::filesystem;
 
@@ -97,7 +97,7 @@ void MainWindow::getFilePath()  // Gets the Folder Path of the Volume Package
                     ->createVolumePackage();  // Creates a Volume Package Object
 
                 // Check for Volume Package Version Number
-                if (_globals->getVolPkg()->getVersion() <
+                if (_globals->getVolPkg()->getVersion() !=
                     VOLPKG_SUPPORTED_VERSION) {
 
                     std::cerr << "VC::Error: Volume package is version "
