@@ -1,14 +1,11 @@
-/**
- * @author Hannah Hatch
- * @date 10/17/16
- */
-//
-
 #pragma once
 
 /**
  * @class  ClassName
  * @brief A brief description of the glass
+ *
+ * @author Hannah Hatch
+ * @date 10/17/16
  *
  * Long description for the class, separated by a single, blank line.
  * It can be multiple lines long

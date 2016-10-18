@@ -1,9 +1,10 @@
 /**
  * @file GenericHeaderExample.h
- * @author Hannah Hatch
- * @date 10/18/16
  *
  * @brief Generic non-class oriented header
+ *
+ * @author Hannah Hatch
+ * @date 10/18/16
  *
  * This is the long description to explain what this
  * header does. It can be multiple lines.
