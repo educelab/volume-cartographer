@@ -37,7 +37,6 @@ public:
      *
      * @param parameter1 The integer that represents the first parameter
      * @param parameter2 The integer that represents the second parameter
-     * @return
      */
     TestClass(int parameter1, int parameter2);
 
