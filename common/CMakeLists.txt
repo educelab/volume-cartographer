@@ -16,7 +16,7 @@ set(srcs
     src/objWriter.cpp
     src/PLYReader.cpp
     src/plyWriter.cpp
-)
+        src/PlyReader2.cpp)
 
 add_library(${target} ${srcs})
 target_include_directories(${target}
