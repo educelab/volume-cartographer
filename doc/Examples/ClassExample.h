@@ -1,42 +1,35 @@
-//
-// Created by Hannah Hatch on 10/17/16.
+/**
+ * @author Hannah Hatch
+ * @date 10/17/16
+ */
 //
 
 #pragma once
 
 /**
- * @class  TestClass
- * @brief A class used as a template for Doxygen
+ * @class  ClassName
+ * @brief A brief description of the glass
  *
- * First use class command to specify class name, the use brief for a brief
- * description
+ * Long description for the class, separated by a single, blank line.
+ * It can be multiple lines long
  *
- * This is where you will write a longer description of your class
+ * @ingroup ExampleDocs
  *
- * @ingroup Example
- * Use this command to specifiy which library your code belongs to, for example
- * Meshing or Texturing
+ * @see Other relevant files
  *
- * Then use see command to specify any other libraries referenced in your code
- * or any other references that can
- * help the user understand how this works
  *
- * @see examples/LoremIpsumError.cpp
- *
- * @warning There is no way to create a member of this class without having at
- * least one parameter
  */
 class TestClass
 {
 public:
     /**
-     * @brief a brief description of the function
+     * @brief The initializer
      *
-     * A longer description of the function
+     * This creates an object of TestClass and stores parameter into
+     * private_param1
      *
-     * @param parameter1 brief description of this and how it's used
+     * @param parameter The integer that is saved
      *
-     * See below for an example
      */
     TestClass(int parameter);
 
@@ -44,8 +37,7 @@ public:
      * @brief Initializes an empty TestClass object and sets both parameters
      *
      * This function takes in two integers and then saves them to that
-     * particular objects
-     * so that they can be used later
+     * particular objects so that they can be used later
      *
      * @param parameter1 The integer that represents the first parameter
      * @param parameter2 The integer that represents the second parameter
@@ -71,17 +63,30 @@ public:
      * @brief Adds the two parameters and returns the value
      *
      * Takes the most recent values for parameter1 and parameter2 and then adds
-     * them together
-     * and returns the value
+     * them together and returns the value
+     *
+     * @warning This function can do something you don't expect
      * @return the added value of the parameters
      */
     int addParams() const { return (private_param1 + private_param2); }
 
     /**
      * @brief Compares the parameters  and returns the result
+     *
+     * \f[ param1 > param2 \f]
+     *
      * @return 'TRUE' if parameter1 is bigger than parameter2
      */
     bool OneBiggerThanTwo() const { return private_param1 > private_param2; };
+
+    /**
+     * The description written in this comment block for the const function will
+     * also show up for the non const version.
+     */
+    int swapParams() const;
+
+    /** @copydoc TestClass::swapParams() const */
+    int swapParams();
 
 private:
     /** The first parameter */
