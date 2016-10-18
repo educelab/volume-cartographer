@@ -20,12 +20,11 @@ class TestClass
 {
 public:
     /**
-     * @brief The initializer
+     * @brief a brief description of the function
      *
-     * This creates an object of TestClass and stores parameter into
-     * private_param1
+     * A longer description of the function
      *
-     * @param parameter The integer that is saved
+     * @param parameter1 brief description of this and how it's used
      *
      */
     TestClass(int parameter);
