@@ -9,7 +9,7 @@ namespace volcart
 {
 namespace io
 {
-bool PLYReader(boost::filesystem::path path, volcart::ITKMesh::Pointer mesh)
+bool PLYReader2(boost::filesystem::path path, volcart::ITKMesh::Pointer mesh)
 {
     // open ply file
     std::ifstream plyFile(path.string());

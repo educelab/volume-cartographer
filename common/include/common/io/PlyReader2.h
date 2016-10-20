@@ -12,4 +12,4 @@
 #include "boost/filesystem/path.hpp"
 #include "common/vc_defines.h"
 
-bool PLYReader(boost::filesystem::path path, volcart::ITKMesh::Pointer mesh);
+bool PLYReader2(boost::filesystem::path path, volcart::ITKMesh::Pointer mesh);
