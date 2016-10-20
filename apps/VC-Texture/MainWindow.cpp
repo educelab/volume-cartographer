@@ -147,18 +147,13 @@ void MainWindow::getFilePath()  // Gets the Folder Path of the Volume Package
                     return;
                 }
 
-                _globals->getMySegmentations();  // Gets Segmentations and
-                // assigns them to
-                // "segmentations" in Globals
-                _segmentations_Viewer->setSegmentations();  // Sets the
-                // Segmentations for
-                // the Segmentation
-                // Viewer and
-                // assigns the
-                _segmentations_Viewer->setVol_Package_Name(
-                    filename);  // Sets the name of the Volume Package to
-                // Display on the GUI
-
+                // Gets Segmentations and assigns them to "segmentations" in
+                // Globals
+                _globals->getMySegmentations();
+                // Initialize Segmentations in segmentations_Viewer
+                _segmentations_Viewer->setSegmentations();
+                // Sets the name of the Volume Package to display on the GUI
+                _segmentations_Viewer->setVol_Package_Name(filename);
             } catch (...) {
                 QMessageBox::warning(
                     this, tr("Error Message"), "Error Opening File.");
