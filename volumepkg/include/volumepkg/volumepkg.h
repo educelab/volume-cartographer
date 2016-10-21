@@ -53,8 +53,8 @@ public:
     /**
      * @brief Initialize an empty .volpkg file on disk.
      *
-     * Used when setting up a new VolumePkg file. Returns `EXIT_FAILURE`
-     * if VolumePkg is set to read-only or if file is unwritable.
+     * Used when setting up a new VolumePkg file. This function fails if
+     * VolumePkg read-only flag is set or if file is unwritable..
      * @return `EXIT_SUCCESS` or `EXIT_FAILURE`
      */
     int initialize();

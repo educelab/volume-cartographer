@@ -1,3 +1,5 @@
+/** @file volumepkg.cpp */
+
 #include "volumepkg/volumepkg.h"
 #include "common/io/PointSetIO.h"
 #include "common/io/objWriter.h"
@@ -7,8 +9,6 @@
 #include "meshing/OrderedPointSetMesher.h"
 
 namespace fs = boost::filesystem;
-
-/** @file volumepkg.h */
 
 // CONSTRUCTORS //
 // Make a volpkg of a particular version number
@@ -25,12 +25,11 @@ VolumePkg::VolumePkg(
     }
 
     // Create the directories with the default values
+    // TODO: We need a better way of handling default values
     root_dir = file_location;
     segs_dir = file_location / "paths";
     slice_dir = file_location / "slices";
-    config.set(
-        "slice location",
-        "/slices/");  // We need a better way of handling default values
+    config.set("slice location", "/slices/");
 
     // Initialize volume object
     vol_ = volcart::Volume(
@@ -41,8 +40,6 @@ VolumePkg::VolumePkg(
 // Use this when reading a volpkg from a file
 VolumePkg::VolumePkg(const fs::path& file_location)
 {
-    // Attempts to open an existing Volume package and throws an error upon
-    // failure
     root_dir = file_location;
     if (!fs::exists(root_dir)) {
         auto errmsg = "location " + file_location.string() + " does not exist";
@@ -202,7 +199,7 @@ std::vector<std::string> VolumePkg::getSegmentations() const
 // Set the private variable activeSeg to the seg we want to work with
 void VolumePkg::setActiveSegmentation(const std::string& name)
 {
-    // Check that this seg actually exists in the volume
+    // TODO: Check that this seg actually exists in the volume
     activeSeg = name;
 }
 
@@ -217,7 +214,7 @@ boost::filesystem::path VolumePkg::getActiveSegPath()
 // Return the point cloud currently on disk for the activeSegmentation
 volcart::OrderedPointSet<volcart::Point3d> VolumePkg::openCloud() const
 {
-    // Error if activeSeg not set
+    // TODO: Error if activeSeg not set
     auto outputName = segs_dir / activeSeg / "pointset.vcps";
     return volcart::PointSetIO<volcart::Point3d>::ReadOrderedPointSet(
         outputName.string());

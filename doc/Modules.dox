@@ -1,6 +1,9 @@
 /**
  @defgroup VolumePackage Volume Package
  @brief Library for accessing and manipulating the .volpkg file format.
- @defgroup Test Test 
- @brief Test group for the Doxygen Template 
+*/
+
+/**
+ @defgroup ExampleDocs Documentation Examples
+ @brief Files that demonstrate how code should be formatted for Doxygen.
 */
