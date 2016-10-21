@@ -106,6 +106,9 @@ lint:
 
 ### Documentation ###
 doxygen:html:
+    only:
+        - master
+        - develop
     stage: docs
     script:
         - cd doc/
@@ -120,6 +123,9 @@ doxygen:html:
         - doxy
 
 doxygen:pdf:
+    only:
+        - master
+        - develop
     stage: docs
     script:
         - cd doc/
