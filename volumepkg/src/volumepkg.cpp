@@ -48,8 +48,6 @@ VolumePkg::VolumePkg(const fs::path& file_location)
     // Loads the metadata
     config = volcart::Metadata(file_location / "config.json");
 
-    // Loads the directories into the appropriate variables, fails if the
-    // directories don't exist
     segs_dir = file_location / "paths";
     slice_dir = file_location / "slices";
     if (!(fs::exists(segs_dir) || fs::exists(slice_dir))) {
@@ -184,7 +182,7 @@ std::string VolumePkg::newSegmentation()
     // segementation to the list
     if (fs::create_directory(newPath)) {
         segmentations.push_back(newSegName);
-    };
+    }
 
     return newSegName;
 }
