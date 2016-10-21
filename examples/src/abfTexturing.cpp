@@ -37,18 +37,15 @@ int main(int argc, char* argv[])
     int type = std::stoi(argv[4]);
 
     // Read the mesh
-    fs::path meshName = vpkg.getActiveSegPath() / "0-decim.ply";
+    fs::path meshName = vpkg.getMeshPath();
 
     // declare pointer to new Mesh object
     auto input = volcart::ITKMesh::New();
 
     // try to convert the ply to an ITK mesh
-//    if (!volcart::io::PLYReader(meshName, input)) {
-//        exit(-1);
-//    };
-    vtkSmartPointer<vtkPLYReader> r = vtkSmartPointer<vtkPLYReader>::New();
-    r->SetFileName(meshName.c_str());
-    r->Update();
+    if (!volcart::io::PLYReader(meshName, input)) {
+        exit(-1);
+    };
 
     // Calculate sampling density
     double voxelsize = vpkg.getVoxelSize();
@@ -93,7 +90,7 @@ int main(int argc, char* argv[])
     Cleaner->Update();
 
     auto itkACVD = volcart::ITKMesh::New();
-    volcart::meshing::vtk2itk(r->GetOutput(), itkACVD);
+    volcart::meshing::vtk2itk(Cleaner->GetOutput(), itkACVD);
 
     // ABF flattening
     std::cout << "Computing parameterization..." << std::endl;
