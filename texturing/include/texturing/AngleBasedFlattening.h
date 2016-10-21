@@ -70,8 +70,7 @@ private:
 
     void _computeSines();
     double _computeGradient();
-    double _computeGradientAlpha(
-        HalfEdgeMesh::FacePtr face, HalfEdgeMesh::EdgePtr e0);
+    double _computeGradientAlpha(HalfEdgeMesh::EdgePtr e0);
     double _computeSinProduct(HalfEdgeMesh::VertPtr v);
     double _computeSinProduct(
         HalfEdgeMesh::VertPtr v, HalfEdgeMesh::IDType a_id);

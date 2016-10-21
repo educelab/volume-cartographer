@@ -99,8 +99,6 @@ void AngleBasedFlattening::compute()
     // Construct the mesh and get the angles
     _fillHalfEdgeMesh();
 
-    // Scale beta to prevent degenerate cases and generate ABF solutions for
-    // angles
     if (_useABF) {
         _scale();
         _solve_abf();
@@ -160,7 +158,7 @@ void AngleBasedFlattening::_scale()
     for (auto v = _heMesh.getVert(0); v; v = v->nextlink) {
         if (v->interior()) {
 
-            double anglesum = 0.0, scale;
+            double anglesum = 0.0;
 
             auto e = v->edge;
             do {
@@ -168,14 +166,18 @@ void AngleBasedFlattening::_scale()
                 e = e->next->next->pair;
             } while (e && (e != v->edge));
 
-            scale = (anglesum == 0.0f) ? 0.0f : 2.0f * M_PI / anglesum;
-
-            e = v->edge;
-            do {
-                e->angle->beta = e->angle->alpha = e->angle->beta * scale;
-                e = e->next->next->pair;
-            } while (e && (e != v->edge));
+            // Update optimal angle
+            if (anglesum == 0.0f) {
+                v->edge->angle->phi = 0.0;
+            } else {
+                v->edge->angle->phi =
+                    v->edge->angle->beta * 2.0f * M_PI / anglesum;
+            }
         }
+
+        // Re-calculate weight
+        v->edge->angle->weight =
+            1 / (v->edge->angle->phi * v->edge->angle->phi);
     }
 }
 
@@ -199,7 +201,6 @@ void AngleBasedFlattening::_solve_abf()
                 << "volcart::texturing::abf: ABF failed to invert matrix after "
                 << i + 1 << " iterations. Falling back to LSCM." << std::endl;
             throw std::runtime_error("ABF failed to invert matrix");
-            break;
         }
 
         // Update the HEM with their new sine/cosine values
@@ -231,9 +232,9 @@ double AngleBasedFlattening::_computeGradient()
         auto e0 = f->edge, e1 = e0->next, e2 = e1->next;
         double gTriangle, gAlpha0, gAlpha1, gAlpha2;
 
-        gAlpha0 = _computeGradientAlpha(f, e0);
-        gAlpha1 = _computeGradientAlpha(f, e1);
-        gAlpha2 = _computeGradientAlpha(f, e2);
+        gAlpha0 = _computeGradientAlpha(e0);
+        gAlpha1 = _computeGradientAlpha(e1);
+        gAlpha2 = _computeGradientAlpha(e2);
 
         e0->angle->bAlpha = -gAlpha0;
         e1->angle->bAlpha = -gAlpha1;
@@ -272,28 +273,10 @@ double AngleBasedFlattening::_computeGradient()
     return norm;
 }
 
-double AngleBasedFlattening::_computeGradientAlpha(
-    volcart::HalfEdgeMesh::FacePtr f, volcart::HalfEdgeMesh::EdgePtr e0)
+double AngleBasedFlattening::_computeGradientAlpha(HalfEdgeMesh::EdgePtr e0)
 {
-    volcart::HalfEdgeMesh::VertPtr v0 = e0->vert, v1 = e0->next->vert,
-                                   v2 = e0->next->next->vert;
-
-    double deriv = (e0->angle->alpha - e0->angle->beta) * e0->angle->weight;
-    deriv += f->lambdaTriangle;
-
-    if (v0->interior()) {
-        deriv += v0->lambdaPlanar;
-    }
-
-    if (v1->interior()) {
-        double product = _computeSinProduct(v1, v0->id);
-        deriv += v1->lambdaLength * product;
-    }
-
-    if (v2->interior()) {
-        double product = _computeSinProduct(v2, v0->id);
-        deriv += v2->lambdaLength * product;
-    }
+    double deriv = e0->angle->alpha - e0->angle->phi;
+    deriv = deriv * deriv * e0->angle->weight;
 
     return deriv;
 }
