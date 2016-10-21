@@ -1,5 +1,12 @@
 Volume Cartographer Changelog
 =============================
+v2.8.0
+------
+- docs
+    - Added Doxygen documentation framework and examples (!100)
+- volumepkg
+    - Add Doxygen documentation (!100)
+
 v2.7.1
 ------
 Patch: Update release dependencies to latest versions.

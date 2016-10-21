@@ -1,6 +1,7 @@
 stages:
     - build
     - test
+    - docs
     - collect
     - deploy
 
@@ -103,6 +104,44 @@ lint:
     tags:
         - source
 
+### Documentation ###
+doxygen:html:
+    only:
+        - master
+        - develop
+    stage: docs
+    script:
+        - cd doc/
+        - doxygen Doxyfile Modules.dox
+    artifacts:
+        name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
+        paths:
+            - doc/html/*
+        expire_in: 5 days
+    allow_failure: yes
+    tags:
+        - doxy
+
+doxygen:pdf:
+    only:
+        - master
+        - develop
+    stage: docs
+    script:
+        - cd doc/
+        - doxygen Doxyfile Modules.dox
+        - cd latex/
+        - make
+    artifacts:
+        name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
+        paths:
+            - doc/latex/*.pdf
+        expire_in: 5 days
+    allow_failure: yes
+    tags:
+        - doxy
+
+### Collect & Deploy ###
 collect:source:
     only:
         - master
