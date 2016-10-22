@@ -729,6 +729,32 @@ AngleBasedFlattening::_getMinMaxPointIDs()
     return std::make_pair(minVert, maxVert);
 }
 
+// Get the ID's of two points near the minimum z position
+std::pair<volcart::HalfEdgeMesh::IDType, volcart::HalfEdgeMesh::IDType>
+AngleBasedFlattening::_getMinZPointIDs()
+{
+    auto it = _heMesh.getBoundaryBegin();
+    double min = (*it)->xyz[2];
+    volcart::HalfEdgeMesh::IDType minVert = (*it)->id;
+    volcart::HalfEdgeMesh::IDType nextVert = (*(it + 1))->id;
+
+    for (; it != _heMesh.getBoundaryEnd(); ++it) {
+
+        // Min
+        if ((*it)->xyz[2] < min) {
+            min = (*it)->xyz[2];
+            minVert = (*it)->id;
+            if ((it + 1) != _heMesh.getBoundaryEnd()) {
+                nextVert = (*(it + 1))->id;
+            } else {
+                nextVert = (*(it - 1))->id;
+            }
+        }
+    }
+
+    return std::make_pair(minVert, nextVert);
+}
+
 // Generate a good starting UV position for the two starting "pinned" points
 // This is supposedly arbitrary
 void AngleBasedFlattening::_computePinUV()

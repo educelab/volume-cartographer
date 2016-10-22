@@ -58,7 +58,7 @@ public:
     void compute();
 
     ///// Default values /////
-    static const int DEFAULT_MAX_ABF_ITERATIONS = 8;
+    static const int DEFAULT_MAX_ABF_ITERATIONS = 5;
 
 private:
     ///// Setup /////
@@ -87,6 +87,7 @@ private:
 
     ///// Helper Functions - LSCM /////
     std::pair<HalfEdgeMesh::IDType, HalfEdgeMesh::IDType> _getMinMaxPointIDs();
+    std::pair<HalfEdgeMesh::IDType, HalfEdgeMesh::IDType> _getMinZPointIDs();
     void _computePinUV();
 
     ///// Storage /////
