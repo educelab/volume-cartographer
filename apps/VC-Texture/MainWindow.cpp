@@ -75,7 +75,7 @@ void MainWindow::getFilePath()  // Gets the Folder Path of the Volume Package
                                 // location, and initiates a Volume Package.
 {
     // Check Status...
-    if (_globals->getStatus() == 1) {
+    if (_globals->getStatus() == _globals->thread_Successful) {
 
         // Ask User to Save unsaved Data
         QMessageBox msgBox;
@@ -93,7 +93,7 @@ void MainWindow::getFilePath()  // Gets the Folder Path of the Volume Package
 
             case QMessageBox::Discard:
                 // Discard was clicked
-                _globals->setStatus(0);
+                _globals->setInactiveThread();
                 break;
 
             case QMessageBox::Cancel:
@@ -105,7 +105,7 @@ void MainWindow::getFilePath()  // Gets the Folder Path of the Volume Package
                 return;
         }
     } /*reset status*/ else
-        _globals->setStatus(0);
+        _globals->setInactiveThread();
 
     QFileDialog* dialogBox = new QFileDialog();
     QString filename = dialogBox->getExistingDirectory();
@@ -182,7 +182,7 @@ void MainWindow::saveTexture()
                 mesh_writer.setPath(path.string());
                 mesh_writer.setRendering(_globals->getRendering());
                 mesh_writer.write();
-                _globals->setStatus(0);
+                _globals->setInactiveThread();
                 QMessageBox::information(
                     this, tr("Error Message"), "Saved Successfully.");
 
@@ -319,7 +319,7 @@ void MainWindow::create_Menus()
 // User cannot exit program while texture is still running.
 void MainWindow::closeEvent(QCloseEvent* closing)
 {
-    if (_globals->getProcessing()) {
+    if (_globals->getStatus() == _globals->thread_Active) {
         QMessageBox::warning(
             this, "Error",
             "This application cannot be closed while a texture is being "

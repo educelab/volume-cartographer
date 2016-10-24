@@ -86,7 +86,7 @@ void Segmentations_Viewer::itemClickedSlot()
     if (currentSegmentation != segmentations->currentItem()->text()) {
 
         // Check Status...
-        if (_globals->getStatus() == 1) {
+        if (_globals->getStatus() == _globals->thread_Successful) {
 
             // Ask User to Save unsaved Data
             QMessageBox msgBox;
@@ -101,7 +101,7 @@ void Segmentations_Viewer::itemClickedSlot()
             switch (option) {
                 case QMessageBox::Discard:
                     // Discard was clicked
-                    _globals->setStatus(0);
+                    _globals->setInactiveThread();
                     break;
 
                 case QMessageBox::Cancel:
@@ -113,8 +113,8 @@ void Segmentations_Viewer::itemClickedSlot()
                     // should never be reached
                     return;
             }
-        } /*reset status*/ else
-            _globals->setStatus(0);
+        } else
+            _globals->setInactiveThread();
 
         currentHighlightedIndex = segmentations->currentRow();
         currentSegmentation = segmentations->currentItem()->text();
@@ -188,13 +188,12 @@ void Segmentations_Viewer::generateTextureImage()
             processing, SIGNAL(finished()), processing,
             SLOT(deleteLater()));  // Deletes Thread After Completion (Clean-Up)
 
-        while (_globals->getProcessing()) {
+        while (_globals->getStatus() == _globals->thread_Active) {
             qApp->processEvents();  // Updates GUI Window
         }
 
-        // Set Processing Status to -999 if Cancelled...
-        if (_globals->getForcedClose()) {
-            _globals->setStatus(-999);
+        // Set Processing Status to Foced Close if Cancelled...
+        if (_globals->getStatus() == _globals->thread_Forced_Close) {
             processing->terminate();  // Clean up Threading
             processing->wait();
         }
@@ -203,7 +202,7 @@ void Segmentations_Viewer::generateTextureImage()
 
         bool test = false;
 
-        if (_globals->getStatus() == 1) {
+        if (_globals->getStatus() == _globals->thread_Successful) {
             test = loadImage(
                 _globals->getRendering().getTexture().getImage(0).clone());
 
@@ -212,7 +211,7 @@ void Segmentations_Viewer::generateTextureImage()
             }
         }
 
-        if (_globals->getStatus() == 1 &&
+        if (_globals->getStatus() == _globals->thread_Successful &&
             test)  // If Processing successfully loaded an Image
         {
             QMessageBox::warning(
@@ -220,17 +219,17 @@ void Segmentations_Viewer::generateTextureImage()
                 "The Generated Texture Image is not Saved, if you wish to save "
                 "it, please select \"File\" -> \"Save Texture\".");
 
-        } else if (_globals->getStatus() == -1) {
+        } else if (_globals->getStatus() == _globals->thread_Cloud_Error) {
             QMessageBox::warning(
                 _globals->getWindow(), "Error",
                 "Failed to Generate Texture Image [cloud.ply] error.");
 
-        } else if (_globals->getStatus() == -2) {
+        } else if (_globals->getStatus() == _globals->thread_Failed) {
             QMessageBox::warning(
                 _globals->getWindow(), "Error",
                 "Failed to Generate Texture Image.");
 
-        } else if (_globals->getStatus() == -999) {
+        } else if (_globals->getStatus() == _globals->thread_Forced_Close) {
             QMessageBox::warning(
                 _globals->getWindow(), "Cancelled", "Successfully Cancelled.");
         }

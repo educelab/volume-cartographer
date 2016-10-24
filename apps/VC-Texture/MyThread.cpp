@@ -4,7 +4,7 @@
 // operates without interference
 // Developer: Michael Royal - mgro224@g.uky.edu
 // October 12, 2015 - Spring Semester 2016
-// Last Updated 09/26/2016 by: Michael Royal
+// Last Updated 10/24/2016 by: Michael Royal
 
 // Copyright 2015 (Brent Seales: Volume Cartography Research)
 // University of Kentucky VisCenter
@@ -19,9 +19,7 @@ namespace fs = boost::filesystem;
 MyThread::MyThread(Global_Values* globals)
 {
     _globals = globals;
-    _globals->setStatus(0);  // Status Running/Active
-    _globals->setProcessing(true);
-    _globals->setForcedClose(false);
+    _globals->setActiveThread();  // Status Running/Active
     this->start();
 }
 
@@ -102,16 +100,14 @@ void MyThread::run()
 
     } catch (...) {
         if (cloudProblem) {
-            _globals->setStatus(-1);
+            _globals->setThreadCloudError();
 
         } else {
-            _globals->setStatus(-2);
+            _globals->setThreadFailed();
         }
     };
 
-    if (_globals->getStatus() == 0) {
-        _globals->setStatus(1);
+    if (_globals->getStatus() == _globals->thread_Active) {
+        _globals->setThreadSuccessful();
     }
-
-    _globals->setProcessing(false);
 }

@@ -27,6 +27,16 @@ class Global_Values
 {
 
 public:
+    // Determines the status of the thread running texturing
+    enum myThreadStatus {
+        thread_Inactive,
+        thread_Active,
+        thread_Successful,
+        thread_Cloud_Error,
+        thread_Failed,
+        thread_Forced_Close
+    };
+
     Global_Values(QRect rec);
 
     int getHeight();
@@ -65,20 +75,31 @@ public:
     void setSampleDirection(int sampleDirection);
     int getSampleDirection();
 
-    void setProcessing(bool active);
-    bool getProcessing();
-
-    void setForcedClose(bool forcedClose);
-    bool getForcedClose();
-
-    void setStatus(int status);
-    int getStatus();
+    myThreadStatus getStatus();
 
     void setFileMenu(QMenu* fileMenu);
 
     void enableMenus(bool value);
 
+    void setInactiveThread();
+
+    void setActiveThread();
+
+    void setThreadSuccessful();
+
+    void setThreadCloudError();
+
+    void setThreadFailed();
+
+    void setThreadForcedClose();
+
 private:
+    // Determines the status of the thread running texturing
+    // enum myThreadStatus { thread_Inactive, thread_Active, thread_Successful,
+    // thread_Cloud_Error, thread_Failed, thread_Forced_Close};
+
+    myThreadStatus status;
+
     bool VPKG_Instantiated = false;
     int height;
     int width;
@@ -91,10 +112,6 @@ private:
     double _radius;
     int _textureMethod;
     int _sampleDirection;
-    int _status;
 
     QMenu* _fileMenu;
-
-    bool _active;
-    bool _forcedClose;
 };
