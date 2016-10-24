@@ -4,6 +4,11 @@
 */
 
 /**
+@defgroup Meshing Meshing 
+@brief Library for creating and manipulating meshes 
+*/
+
+/**
  @defgroup ExampleDocs Documentation Examples
  @brief Files that demonstrate how code should be formatted for Doxygen.
 */

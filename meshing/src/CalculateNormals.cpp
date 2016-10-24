@@ -1,7 +1,5 @@
-//
-// Created by Hannah Hatch on 7/26/16.
-//
 
+/** @file CalculateNormals.cpp */
 #include "meshing/CalculateNormals.h"
 #include "core/vc_defines.h"
 #include "meshing/deepCopy.h"
