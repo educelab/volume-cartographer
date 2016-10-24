@@ -1,6 +1,4 @@
-//
-// Created by Abigail Coleman 10/21/15
-//
+/** @file itk2bullet.cpp */
 
 #include "meshing/itk2bullet.h"
 
