@@ -34,9 +34,13 @@ public:
     void set(double p_id, cv::Vec2d uv)
     {
         cv::Vec2d transformed;
-        cv::absdiff(
-            uv, _origin, transformed);  // transform to be relative to top-left
-        _map.insert({p_id, transformed});
+        // transform to be relative to top-left
+        cv::absdiff(uv, _origin, transformed);
+        if (_map.find(p_id) == std::end(_map)) {
+            _map.insert({p_id, transformed});
+        } else {
+            _map[p_id] = transformed;
+        }
     };
 
     // Get the uv mapping for point p_id
