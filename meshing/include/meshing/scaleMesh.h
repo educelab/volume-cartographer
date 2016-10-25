@@ -1,6 +1,4 @@
-//
-// Created by Seth Parker on 10/22/15.
-//
+
 #pragma once
 /**
  * @class scaleMesh
@@ -18,6 +16,10 @@ namespace volcart
 namespace meshing
 {
 /**
+ * @file scaleMesh.h
+ * @author Seth Parker
+ * @date 10/22/15
+ * @ingroup Meshing
  * @brief Scales the mesh down by a specifed factor
  *
  * This function scales the mesh uniformly by applying

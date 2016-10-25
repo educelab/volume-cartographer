@@ -8,9 +8,15 @@
 #include "core/vc_defines.h"
 #include "itk2vtk.h"
 
+namespace volcart
+{
+namespace meshing
+{
 /**
- * @class ACVD
- * @brief This is a refactor of the ACVD implementation found in the ACVD.cxx
+ * @file ACVD.h
+ * @brief This function resamples the mesh using an ACVD implementation
+ *
+ * This is a refactor of the ACVD implementation found in the ACVD.cxx
  * example
  *        of https://github.com/valette/ACVD
  *
@@ -31,18 +37,6 @@
  * in the resampled output mesh.
  *
  * @ingroup Meshing
- *
- */
-
-namespace volcart
-{
-namespace meshing
-{
-/**
- * @brief Resamples a surface using the ACVD algorithm
- *
- * Reduces the number of points and faces in a mesh by using the ACVD algorithm
- * described above
  *
  * @param inputMesh VTK PolyData to be remeshed
  * @param outputMesh VTK PolyData that has the desired number of points

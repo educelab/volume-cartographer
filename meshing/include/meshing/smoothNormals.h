@@ -1,13 +1,6 @@
-// smoothNormals.h
-// Abigail Coleman June 2015
+
 #pragma once
-/**
- * @class smoothNormals
- * @author Abigail Coleman
- * @date June 2015
- *
- * @ingroup Meshing
- */
+
 #include <fstream>
 #include <iostream>
 
@@ -21,6 +14,12 @@ namespace volcart
 {
 namespace meshing
 {
+/**
+ * @file smoothNormals.h
+ * @author Abigail Coleman
+ * @date June 2015
+ *
+ * @ingroup Meshing
 /**
  * @brief Calculates normals so they are similar in an area
  *

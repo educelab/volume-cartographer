@@ -1,14 +1,6 @@
-//
-// Created by Media Team on 8/12/15.
-//
+
 #pragma once
 
-/**
- * @class rayTrace
- * @author Media Team
- * @date 8/12/15
- * @ingroup Meshing
- */
 #include <vector>
 #include <opencv2/opencv.hpp>
 #include "core/vc_defines.h"
@@ -18,6 +10,10 @@ namespace volcart
 namespace meshing
 {
 /**
+ * @file rayTrace.h
+ * @author Media Team
+ * @date 8/12/15
+ * @ingroup Meshing
  * @brief Creates a UV Map of the mesh for texturing
  *
  * This class uses vtk's OBBTree to test a ray's intersection with the
