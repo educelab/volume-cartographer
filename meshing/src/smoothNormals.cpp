@@ -1,6 +1,7 @@
 // smoothNormals.cpp
 // Abigail Coleman June 2015
 
+/** @file smoothNormals.cpp*/
 #include "meshing/smoothNormals.h"
 
 namespace volcart
