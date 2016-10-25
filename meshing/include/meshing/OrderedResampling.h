@@ -91,8 +91,8 @@ public:
      * and vertical axes. It then recreates the faces based
      * the new set of points.
      *
-     * @warning This function assumed that the mesh is ordered and will not work
-     * for an unordered mesh
+     * @warning This function assumed that the mesh is ordered and may
+     * produce undesired results for an unordered mesh
      */
     void compute();
 

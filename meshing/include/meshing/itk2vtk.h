@@ -2,22 +2,6 @@
 // Created by Seth Parker on 8/3/15.
 //
 
-/**
- * @file itk2vtk.h
- * @author Seth Parker
- * @date 8/3/15
- *
- * @brief Functions to convert between mesh types
- *
- * These functions convert itk to vtk, vtk to itk, a
- * triangular mesh to a quadrangle mesh, and a quadrangle
- * mesh to a triangular mesh.
- *
- * @see  examples/src/itk2vtkExample.cpp
- *       meshing/test/itk2vtkTest.cpp
- *
- * @ingroup Meshing
- */
 #pragma once
 
 #include <vtkCellArray.h>
@@ -34,6 +18,13 @@ namespace volcart
 {
 namespace meshing
 {
+/**
+ * @class itk2vtk
+ * @author Seth Parker
+ * @date 8/3/15
+ *
+ * @ingroup Meshing
+ */
 class itk2vtk
 {
 public:
@@ -42,12 +33,21 @@ public:
      *
      *  This function copies over the points then converts point data
      *  into tuples (for point normals) and lastly copies cells.
+     *   @see  examples/src/itk2vtkExample.cpp
+     *         meshing/test/itk2vtkTest.cpp
      * @param input Pointer to an ITK mesh that needs to be converted
      * @param output Resulting pointer to vtkPolyData
      */
     itk2vtk(ITKMesh::Pointer input, vtkSmartPointer<vtkPolyData> output);
 };
 
+/**
+ * @class vtk2itk
+ * @author Seth Parker
+ * @date 8/3/15
+ *
+ * @ingroup Meshing
+ */
 class vtk2itk
 {
 public:
@@ -58,12 +58,21 @@ public:
      * tuples into point data (for point normals) and lastly
      * copies cells.
      *
+     * @see examples/src/itk2vtkExample.cpp
+     *      meshing/test/itk2vtkTest.cpp
+     *
      * @param input Pointer to VTK Polydata that you want to convert
      * @param output Pointer to resutling ITK Mesh
      */
     vtk2itk(vtkSmartPointer<vtkPolyData> input, ITKMesh::Pointer output);
 };
-
+/**
+ * @class itk2vtkQE
+ * @author Seth Parker
+ * @date 8/3/15
+ *
+ * @ingroup Meshing
+ */
 class itk2itkQE
 {
 public:
@@ -75,12 +84,21 @@ public:
      * This function copies the points from one mesh to the other. It
      * then sets the point ID's to a quadrangle cell.
      *
+     * @see examples/src/itk2vtkExample.cpp
+     *      meshing/test/itk2vtkTest.cpp
+     *
      * @param input Pointer to ITK Triangular Mesh that you want to convert
      * @param output Pointer to ITK Quadrangle Mesh that results
      */
     itk2itkQE(ITKMesh::Pointer input, volcart::QuadMesh::Pointer output);
 };
-
+/**
+ * @class itkQE2vtk
+ * @author Seth Parker
+ * @date 8/3/15
+ *
+ * @ingroup Meshing
+ */
 class itkQE2itk
 {
 public:
@@ -91,6 +109,9 @@ public:
      * triangles
      * This function copies the points from one mesh to the other. It
      * then sets the point ID's to a triangle cell
+     *
+     * @see examples/src/itk2vtkExample.cpp
+     *      meshing/test/itk2vtkTest.cpp
      *
      * @param input Pointer to ITK Quadrangle Mesh that you want to convert
      * @param output Pointer to ITK Triangular Mesh that results

@@ -6,12 +6,7 @@
  * @class deepCopy
  * @author Seth Parker
  * @date 12/21/15
- *
- * @brief Copies one mesh to another
- *
- * This class copies the contents of one ITK Mesh onto another
- * and saves it.
- *
+ * @ingroup Meshing
  */
 #pragma once
 

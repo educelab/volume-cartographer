@@ -23,6 +23,8 @@
  * to decide if it should collapse and edge and recalculate the points
  * and faces. It does this repeatedly until the desired number of faces
  * is reached.
+ *
+ * @ingroup Meshing
  */
 
 namespace volcart
@@ -33,7 +35,6 @@ namespace meshing
 class QuadricEdgeCollapseDecimation
 {
 
-    ///// Basic Datastructure (VCG Mesh) /////
     /** @name VCG Data structures */
     //@{
     class VcgVertex;
@@ -124,7 +125,6 @@ class QuadricEdgeCollapseDecimation
     };
     //@}
 
-    ///// Edge Collapse typedefs & classes /////
     /** @name Edge Collapse classes & typedefs */
     //@{
     /**
@@ -174,7 +174,6 @@ class QuadricEdgeCollapseDecimation
     //@}
 
 public:
-    // Initializers
     /** @name Initializers*/
     //@{
     /**
@@ -215,8 +214,6 @@ public:
         collapseParams_ = newParams;
     }
 
-    // Defaults set by VCG, with the exception of PreserveBoundary and
-    // PreserveTopology
     /**
      * @brief Sets desired number of faces
      * @param n Number of faces you want
@@ -388,7 +385,6 @@ public:
     }  // Default: false
     //@}
 
-    // Processing
     /**
      * @brief Computes the edge collapse
      * This uses the default number of desired faces.
@@ -405,7 +401,6 @@ public:
      */
     void compute(size_t desiredFaces);
 
-    // Output
     /**
      * @brief Returns a pointer to the decimated mesh
      * @return Pointer to an ITK Mesh which has been decimated

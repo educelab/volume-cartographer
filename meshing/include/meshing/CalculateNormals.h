@@ -67,7 +67,7 @@ public:
      * _assignToMesh.
      *
      * @see _computeNormals()
-     * @see _assignToMesh
+     * @see _assignToMesh()
      */
     void compute();
 

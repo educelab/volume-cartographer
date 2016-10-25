@@ -5,6 +5,8 @@
  * @class smoothNormals
  * @author Abigail Coleman
  * @date June 2015
+ *
+ * @ingroup Meshing
  */
 #include <fstream>
 #include <iostream>

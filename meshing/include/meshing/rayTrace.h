@@ -7,7 +7,7 @@
  * @class rayTrace
  * @author Media Team
  * @date 8/12/15
- *
+ * @ingroup Meshing
  */
 #include <vector>
 #include <opencv2/opencv.hpp>
