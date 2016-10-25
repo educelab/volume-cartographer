@@ -1,6 +1,3 @@
-//
-// Created by Seth Parker on 8/3/15.
-//
 
 #pragma once
 
@@ -66,8 +63,9 @@ public:
      */
     vtk2itk(vtkSmartPointer<vtkPolyData> input, ITKMesh::Pointer output);
 };
+
 /**
- * @class itk2vtkQE
+ * @class itk2itkQE
  * @author Seth Parker
  * @date 8/3/15
  *
@@ -92,8 +90,9 @@ public:
      */
     itk2itkQE(ITKMesh::Pointer input, volcart::QuadMesh::Pointer output);
 };
+
 /**
- * @class itkQE2vtk
+ * @class itkQE2itk
  * @author Seth Parker
  * @date 8/3/15
  *

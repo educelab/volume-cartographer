@@ -1,6 +1,3 @@
-//
-// Created by Abigail Coleman 10/21/15
-//
 
 #pragma once
 

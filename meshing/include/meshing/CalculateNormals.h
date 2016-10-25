@@ -1,6 +1,3 @@
-//
-// Created by Hannah Hatch on 7/26/16.
-//
 
 #pragma once
 
@@ -9,6 +6,10 @@
 
 #include "core/vc_defines.h"
 
+namespace volcart
+{
+namespace meshing
+{
 /**
  * @class CalculateNormals
  * @author Hannah Hatch
@@ -22,11 +23,6 @@
  *
  * @ingroup Meshing
  */
-
-namespace volcart
-{
-namespace meshing
-{
 class CalculateNormals
 {
 public:

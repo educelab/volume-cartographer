@@ -1,4 +1,13 @@
+#pragma once
 
+#include "core/types/OrderedPointSet.h"
+#include "core/types/Point.h"
+#include "core/vc_defines.h"
+
+namespace volcart
+{
+namespace meshing
+{
 /**
  * @class OrderedPointSetMesher
  * @author Hannah Hatch
@@ -16,17 +25,6 @@
  *      examples/src/OrderedPointSetMesherExample.cpp
  *      meshing/test/OrderedPointSetMesherTest.cpp
  */
-
-#pragma once
-
-#include "core/types/OrderedPointSet.h"
-#include "core/types/Point.h"
-#include "core/vc_defines.h"
-
-namespace volcart
-{
-namespace meshing
-{
 class OrderedPointSetMesher
 {
 public:

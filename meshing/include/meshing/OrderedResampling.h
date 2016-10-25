@@ -1,9 +1,16 @@
-//
-// Created by Hannah Hatch on 7/25/16.
-/* Algorithm takes in a base mesh and reduces the number of points and faces by
- * removing every other point along
- * horizontal and vertical axes*/
 
+#pragma once
+
+#include <iostream>
+#include <stdexcept>
+#include <vector>
+
+#include "core/vc_defines.h"
+
+namespace volcart
+{
+namespace meshing
+{
 /**
  * @class OrderedResampling
  * @author Hannah Hatch
@@ -20,18 +27,6 @@
  * @see examples/src/OrderedResamplingExample.cpp
  *      test/OrderedResamplingTest.cpp
  */
-#pragma once
-
-#include <iostream>
-#include <stdexcept>
-#include <vector>
-
-#include "core/vc_defines.h"
-
-namespace volcart
-{
-namespace meshing
-{
 class OrderedResampling
 {
 public:

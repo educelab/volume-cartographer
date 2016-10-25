@@ -1,13 +1,4 @@
-//
-// Created by Seth Parker on 12/21/15.
-//
 
-/**
- * @class deepCopy
- * @author Seth Parker
- * @date 12/21/15
- * @ingroup Meshing
- */
 #pragma once
 
 #include "core/vc_defines.h"
@@ -16,6 +7,12 @@ namespace volcart
 {
 namespace meshing
 {
+/**
+ * @class deepCopy
+ * @author Seth Parker
+ * @date 12/21/15
+ * @ingroup Meshing
+ */
 class deepCopy
 {
 public:

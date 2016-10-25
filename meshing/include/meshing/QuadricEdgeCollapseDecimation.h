@@ -1,6 +1,4 @@
-//
-// Created by Hannah Hatch on 8/12/16.
-//
+
 #pragma once
 
 #include <iostream>
@@ -12,6 +10,10 @@
 // clang-format on
 #include "core/vc_defines.h"
 
+namespace volcart
+{
+namespace meshing
+{
 /**
  * @class QuadricEdgeCollapseDecimation
  * @author Hannah Hatch
@@ -26,12 +28,6 @@
  *
  * @ingroup Meshing
  */
-
-namespace volcart
-{
-namespace meshing
-{
-
 class QuadricEdgeCollapseDecimation
 {
 
