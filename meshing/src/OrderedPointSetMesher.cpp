@@ -2,6 +2,8 @@
 // Created by Hannah Hatch on 8/23/16.
 //
 
+/** @file OrderedPointSetMesher.cpp */
+
 #include "meshing/OrderedPointSetMesher.h"
 #include <iostream>
 #include "meshing/CalculateNormals.h"
