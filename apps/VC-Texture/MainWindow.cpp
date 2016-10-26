@@ -364,6 +364,7 @@ void MainWindow::closeEvent(QCloseEvent* closing)
         // Exit the program
         closing->accept();
 
-    } else{
-        closing->accept();}
+    } else {
+        closing->accept();
+    }
 }

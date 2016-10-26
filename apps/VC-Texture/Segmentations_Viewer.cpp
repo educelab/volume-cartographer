@@ -113,8 +113,9 @@ void Segmentations_Viewer::itemClickedSlot()
                     // should never be reached
                     return;
             }
-        } else{
-            _globals->setThreadStatus(ThreadStatus::Inactive);}
+        } else {
+            _globals->setThreadStatus(ThreadStatus::Inactive);
+        }
 
         currentHighlightedIndex = segmentations->currentRow();
         currentSegmentation = segmentations->currentItem()->text();

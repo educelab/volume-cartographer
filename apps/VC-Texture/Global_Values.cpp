@@ -113,7 +113,10 @@ int Global_Values::getSampleDirection() { return _sampleDirection; }
 
 // void Global_Values::setStatus(ThreadStatus myStatus) { _status = myStatus; }
 
-void Global_Values::setThreadStatus(ThreadStatus newStatus) { _status = newStatus; };
+void Global_Values::setThreadStatus(ThreadStatus newStatus)
+{
+    _status = newStatus;
+};
 
 ThreadStatus Global_Values::getStatus() { return _status; }
 
