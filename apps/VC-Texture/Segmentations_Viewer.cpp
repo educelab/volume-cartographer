@@ -219,17 +219,17 @@ void Segmentations_Viewer::generateTextureImage()
                 "The Generated Texture Image is not Saved, if you wish to save "
                 "it, please select \"File\" -> \"Save Texture\".");
 
-        } else if (_globals->getStatus() == ThreadStatus ::CloudError) {
+        } else if (_globals->getStatus() == ThreadStatus::CloudError) {
             QMessageBox::warning(
                 _globals->getWindow(), "Error",
                 "Failed to Generate Texture Image [cloud.ply] error.");
 
-        } else if (_globals->getStatus() == ThreadStatus ::Failed) {
+        } else if (_globals->getStatus() == ThreadStatus::Failed) {
             QMessageBox::warning(
                 _globals->getWindow(), "Error",
                 "Failed to Generate Texture Image.");
 
-        } else if (_globals->getStatus() == ThreadStatus ::ForcedClose) {
+        } else if (_globals->getStatus() == ThreadStatus::ForcedClose) {
             QMessageBox::warning(
                 _globals->getWindow(), "Cancelled", "Successfully Cancelled.");
         }

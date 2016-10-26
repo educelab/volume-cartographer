@@ -52,7 +52,6 @@ public slots:
     void setEnabled(bool value);
 
 private:
-
     MyThread* processing;
     Global_Values* _globals;
     Texture_Viewer* _texture_Viewer;

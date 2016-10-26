@@ -37,7 +37,6 @@ class Global_Values
 {
 
 public:
-
     Global_Values(QRect rec);
 
     int getHeight();

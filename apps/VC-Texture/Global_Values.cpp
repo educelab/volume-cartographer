@@ -113,15 +113,9 @@ int Global_Values::getSampleDirection() { return _sampleDirection; }
 
 // void Global_Values::setStatus(ThreadStatus myStatus) { status = myStatus; }
 
-void Global_Values::setInactiveThread()
-{
-    status = ThreadStatus::Inactive;
-};
+void Global_Values::setInactiveThread() { status = ThreadStatus::Inactive; };
 
-void Global_Values::setActiveThread()
-{
-    status = ThreadStatus::Active;
-};
+void Global_Values::setActiveThread() { status = ThreadStatus::Active; };
 
 void Global_Values::setThreadSuccessful()
 {
@@ -133,10 +127,7 @@ void Global_Values::setThreadCloudError()
     status = ThreadStatus::CloudError;
 };
 
-void Global_Values::setThreadFailed()
-{
-    status = ThreadStatus::Failed;
-};
+void Global_Values::setThreadFailed() { status = ThreadStatus::Failed; };
 
 void Global_Values::setThreadForcedClose()
 {

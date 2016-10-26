@@ -75,7 +75,7 @@ void MainWindow::getFilePath()  // Gets the Folder Path of the Volume Package
                                 // location, and initiates a Volume Package.
 {
     // Check Status...
-    if (_globals->getStatus() == ThreadStatus ::Successful) {
+    if (_globals->getStatus() == ThreadStatus::Successful) {
 
         // Ask User to Save unsaved Data
         QMessageBox msgBox;
@@ -87,17 +87,17 @@ void MainWindow::getFilePath()  // Gets the Folder Path of the Volume Package
 
         switch (option) {
 
-                // Save was clicked
+            // Save was clicked
             case QMessageBox::Save:
                 saveTexture();
                 break;
 
-                // Discard was clicked
+            // Discard was clicked
             case QMessageBox::Discard:
                 _globals->setInactiveThread();
                 break;
 
-                // Cancel was clicked
+            // Cancel was clicked
             case QMessageBox::Cancel:
                 return;
 
@@ -105,8 +105,9 @@ void MainWindow::getFilePath()  // Gets the Folder Path of the Volume Package
                 // should never be reached
                 break;
         }
-    } else{
-        _globals->setInactiveThread();}
+    } else {
+        _globals->setInactiveThread();
+    }
 
     QFileDialog* dialogBox = new QFileDialog();
     QString filename = dialogBox->getExistingDirectory();
@@ -320,36 +321,37 @@ void MainWindow::create_Menus()
 // User cannot exit program while texture is still running.
 void MainWindow::closeEvent(QCloseEvent* closing)
 {
-    if (_globals->getStatus() == ThreadStatus ::Active) {
+    if (_globals->getStatus() == ThreadStatus::Active) {
         QMessageBox::warning(
             this, "Error",
             "This application cannot be closed while a texture is being "
             "generated. Please wait until the texturing process is complete "
             "and try again.");
         closing->ignore();
-    } else if(_globals->getStatus() == ThreadStatus ::Successful){
+    } else if (_globals->getStatus() == ThreadStatus::Successful) {
 
         // Ask User to Save unsaved Data
         QMessageBox msgBox;
         msgBox.setText(
-                "A new texture image was generated, do you want to save it before quitting?");
+            "A new texture image was generated, do you want to save it before "
+            "quitting?");
         msgBox.setStandardButtons(
-                QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+            QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
         int option = msgBox.exec();
 
         switch (option) {
-                // Save was clicked
+            // Save was clicked
             case QMessageBox::Save:
                 saveTexture();
                 break;
 
-                // Discard was clicked
+            // Discard was clicked
             case QMessageBox::Discard:
                 // Reset ThreadStatus
                 _globals->setInactiveThread();
                 break;
 
-                // Cancel was clicked
+            // Cancel was clicked
             case QMessageBox::Cancel:
                 closing->ignore();
                 return;
@@ -362,5 +364,6 @@ void MainWindow::closeEvent(QCloseEvent* closing)
         // Exit the program
         closing->accept();
 
-    }else closing->accept();
+    } else
+        closing->accept();
 }
