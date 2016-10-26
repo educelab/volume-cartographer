@@ -23,19 +23,20 @@
 #include "volumepkg/volumepkg.h"
 #include "volumepkg/volumepkg.h"
 
+// Determines the status of the thread running texturing
+enum ThreadStatus {
+    Inactive,
+    Active,
+    Successful,
+    CloudError,
+    Failed,
+    ForcedClose
+};
+
 class Global_Values
 {
 
 public:
-    // Determines the status of the thread running texturing
-    enum myThreadStatus {
-        thread_Inactive,
-        thread_Active,
-        thread_Successful,
-        thread_Cloud_Error,
-        thread_Failed,
-        thread_Forced_Close
-    };
 
     Global_Values(QRect rec);
 
@@ -75,7 +76,7 @@ public:
     void setSampleDirection(int sampleDirection);
     int getSampleDirection();
 
-    myThreadStatus getStatus();
+    ThreadStatus getStatus();
 
     void setFileMenu(QMenu* fileMenu);
 
@@ -95,10 +96,10 @@ public:
 
 private:
     // Determines the status of the thread running texturing
-    // enum myThreadStatus { thread_Inactive, thread_Active, thread_Successful,
-    // thread_Cloud_Error, thread_Failed, thread_Forced_Close};
+    // enum ThreadStatus { Inactive, Active, Successful,
+    // CloudError, Failed, ForcedClose};
 
-    myThreadStatus status;
+    ThreadStatus status;
 
     bool VPKG_Instantiated = false;
     int height;

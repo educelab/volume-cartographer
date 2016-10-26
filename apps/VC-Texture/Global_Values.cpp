@@ -19,7 +19,7 @@ Global_Values::Global_Values(QRect rec)
     , _radius(0)
     , _textureMethod(0)
     , _sampleDirection(0)
-    , status(thread_Inactive)
+    , status(Inactive)
 
 { /* Do Nothing*/
 }  // End of Default Constructor()
@@ -54,7 +54,7 @@ void Global_Values::clearGUI()
     _radius = 0;
     _textureMethod = 0;
     _sampleDirection = 0;
-    status = thread_Inactive;
+    status = Inactive;
 }
 
 void Global_Values::getMySegmentations()
@@ -111,39 +111,39 @@ void Global_Values::setSampleDirection(int sampleDirection)
 
 int Global_Values::getSampleDirection() { return _sampleDirection; }
 
-// void Global_Values::setStatus(myThreadStatus myStatus) { status = myStatus; }
+// void Global_Values::setStatus(ThreadStatus myStatus) { status = myStatus; }
 
 void Global_Values::setInactiveThread()
 {
-    status = myThreadStatus::thread_Inactive;
+    status = ThreadStatus::Inactive;
 };
 
 void Global_Values::setActiveThread()
 {
-    status = myThreadStatus::thread_Active;
+    status = ThreadStatus::Active;
 };
 
 void Global_Values::setThreadSuccessful()
 {
-    status = myThreadStatus::thread_Successful;
+    status = ThreadStatus::Successful;
 };
 
 void Global_Values::setThreadCloudError()
 {
-    status = myThreadStatus::thread_Cloud_Error;
+    status = ThreadStatus::CloudError;
 };
 
 void Global_Values::setThreadFailed()
 {
-    status = myThreadStatus::thread_Failed;
+    status = ThreadStatus::Failed;
 };
 
 void Global_Values::setThreadForcedClose()
 {
-    status = myThreadStatus::thread_Forced_Close;
+    status = ThreadStatus::ForcedClose;
 };
 
-Global_Values::myThreadStatus Global_Values::getStatus() { return status; }
+ThreadStatus Global_Values::getStatus() { return status; }
 
 void Global_Values::setFileMenu(QMenu* fileMenu) { _fileMenu = fileMenu; }
 

@@ -107,7 +107,7 @@ void MyThread::run()
         }
     };
 
-    if (_globals->getStatus() == _globals->thread_Active) {
+    if (_globals->getStatus() == ThreadStatus::Active) {
         _globals->setThreadSuccessful();
     }
 }
