@@ -3,6 +3,7 @@
 //
 
 #include "texturing/AngleBasedFlattening.h"
+#include <cmath>
 #include "external/eigen_capi.h"
 #include "meshing/deepCopy.h"
 
@@ -275,10 +276,7 @@ double AngleBasedFlattening::_computeGradient()
 
 double AngleBasedFlattening::_computeGradientAlpha(HalfEdgeMesh::EdgePtr e0)
 {
-    double deriv = e0->angle->alpha - e0->angle->phi;
-    deriv = deriv * deriv * e0->angle->weight;
-
-    return deriv;
+    return pow(e0->angle->alpha - e0->angle->phi, 2) * e0->angle->weight;
 }
 
 // Edge length constraint calculation
