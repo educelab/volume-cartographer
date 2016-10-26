@@ -31,16 +31,16 @@ public:
     void origin(Origin o) { _origin = o; };
 
     // Set the uv mapping for point p_id
-    void set(double p_id, cv::Vec2d uv)
+    void set(size_t p_id, cv::Vec2d uv)
     {
+        // transform to be relative to top-left
         cv::Vec2d transformed;
-        cv::absdiff(
-            uv, _origin, transformed);  // transform to be relative to top-left
-        _map.insert({p_id, transformed});
+        cv::absdiff(uv, _origin, transformed);
+        _map[p_id] = transformed;
     };
 
     // Get the uv mapping for point p_id
-    cv::Vec2d get(double p_id)
+    cv::Vec2d get(size_t p_id)
     {
         auto it = _map.find(p_id);
         if (it != _map.end()) {
@@ -64,7 +64,7 @@ public:
     };
 
 private:
-    std::unordered_map<double, cv::Vec2d> _map;  // holds the mapping
+    std::unordered_map<size_t, cv::Vec2d> _map;  // holds the mapping
     cv::Vec2d _origin;  // origin inserted and retrieved points are relative to
     Ratio _ratio;
 };
