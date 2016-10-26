@@ -2,8 +2,12 @@ Volume Cartographer Changelog
 =============================
 v2.8.0
 ------
+- common
+    - Fix bug that wouldn't let you overwrite values in a UV Map (!108)
 - docs
     - Added Doxygen documentation framework and examples (!100)
+- texturing
+    - Improvements (not fixes, unfortunately) to ABF parameterization (!107)
 - volumepkg
     - Add Doxygen documentation (!100)
 
