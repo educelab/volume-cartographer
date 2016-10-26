@@ -101,7 +101,7 @@ void Segmentations_Viewer::itemClickedSlot()
             switch (option) {
                 case QMessageBox::Discard:
                     // Discard was clicked
-                    _globals->setInactiveThread();
+                    _globals->setThreadStatus(ThreadStatus::Inactive);
                     break;
 
                 case QMessageBox::Cancel:
@@ -113,8 +113,8 @@ void Segmentations_Viewer::itemClickedSlot()
                     // should never be reached
                     return;
             }
-        } else
-            _globals->setInactiveThread();
+        } else{
+            _globals->setThreadStatus(ThreadStatus::Inactive);}
 
         currentHighlightedIndex = segmentations->currentRow();
         currentSegmentation = segmentations->currentItem()->text();

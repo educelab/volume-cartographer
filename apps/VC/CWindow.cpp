@@ -229,7 +229,7 @@ void CWindow::CreateWidgets(void)
     fLabImpactRange = this->findChild<QLabel*>("labImpactRange");
     fLabImpactRange->setText(QString::number(fEdtImpactRange->value()));
 
-    // Setup the status bar
+    // Setup the _status bar
     statusBar = this->findChild<QStatusBar*>("statusBar");
 }
 
@@ -860,7 +860,7 @@ void CWindow::OnPathItemClicked(QListWidgetItem* nItem)
     ChangePathItem(nItem->text().toStdString());
 }
 
-// Toggle the status of the pen tool
+// Toggle the _status of the pen tool
 void CWindow::TogglePenTool(void)
 {
     if (fPenTool->isChecked()) {
@@ -885,7 +885,7 @@ void CWindow::TogglePenTool(void)
     UpdateView();
 }
 
-// Toggle the status of the segmentation tool
+// Toggle the _status of the segmentation tool
 void CWindow::ToggleSegmentationTool(void)
 {
     if (fSegTool->isChecked()) {

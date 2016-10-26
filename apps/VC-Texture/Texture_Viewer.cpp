@@ -120,7 +120,7 @@ void Texture_Viewer::reset_Size()
 
 }  // End of Texture_Viewer::reset_Size()
 
-void Texture_Viewer::quitThread() { _globals->setThreadForcedClose(); }
+void Texture_Viewer::quitThread() { _globals->setThreadStatus(ThreadStatus::ForcedClose); }
 
 // END OF PRIVATE SLOTS
 //----------------------------------------------

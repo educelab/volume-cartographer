@@ -19,7 +19,7 @@ namespace fs = boost::filesystem;
 MyThread::MyThread(Global_Values* globals)
 {
     _globals = globals;
-    _globals->setActiveThread();  // Status Running/Active
+    _globals->setThreadStatus(ThreadStatus::Active);  // Status Running/Active
     this->start();
 }
 
@@ -100,14 +100,14 @@ void MyThread::run()
 
     } catch (...) {
         if (cloudProblem) {
-            _globals->setThreadCloudError();
+            _globals->setThreadStatus(ThreadStatus::CloudError);
 
         } else {
-            _globals->setThreadFailed();
+            _globals->setThreadStatus(ThreadStatus::Failed);
         }
     };
 
     if (_globals->getStatus() == ThreadStatus::Active) {
-        _globals->setThreadSuccessful();
+        _globals->setThreadStatus(ThreadStatus::Successful);
     }
 }

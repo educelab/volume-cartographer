@@ -23,7 +23,7 @@
 #include "volumepkg/volumepkg.h"
 #include "volumepkg/volumepkg.h"
 
-// Determines the status of the thread running texturing
+// Determines the _status of the thread running texturing
 enum ThreadStatus {
     Inactive,
     Active,
@@ -81,24 +81,14 @@ public:
 
     void enableMenus(bool value);
 
-    void setInactiveThread();
-
-    void setActiveThread();
-
-    void setThreadSuccessful();
-
-    void setThreadCloudError();
-
-    void setThreadFailed();
-
-    void setThreadForcedClose();
+    void setThreadStatus(ThreadStatus newStatus);
 
 private:
-    // Determines the status of the thread running texturing
+    // Determines the _status of the thread running texturing
     // enum ThreadStatus { Inactive, Active, Successful,
     // CloudError, Failed, ForcedClose};
 
-    ThreadStatus status;
+    ThreadStatus _status;
 
     bool VPKG_Instantiated = false;
     int height;

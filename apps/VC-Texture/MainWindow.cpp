@@ -94,7 +94,7 @@ void MainWindow::getFilePath()  // Gets the Folder Path of the Volume Package
 
             // Discard was clicked
             case QMessageBox::Discard:
-                _globals->setInactiveThread();
+                _globals->setThreadStatus(ThreadStatus::Inactive);
                 break;
 
             // Cancel was clicked
@@ -106,7 +106,7 @@ void MainWindow::getFilePath()  // Gets the Folder Path of the Volume Package
                 break;
         }
     } else {
-        _globals->setInactiveThread();
+        _globals->setThreadStatus(ThreadStatus::Inactive);
     }
 
     QFileDialog* dialogBox = new QFileDialog();
@@ -184,7 +184,7 @@ void MainWindow::saveTexture()
                 mesh_writer.setPath(path.string());
                 mesh_writer.setRendering(_globals->getRendering());
                 mesh_writer.write();
-                _globals->setInactiveThread();
+                _globals->setThreadStatus(ThreadStatus::Inactive);
                 QMessageBox::information(
                     this, tr("Error Message"), "Saved Successfully.");
 
@@ -247,7 +247,7 @@ void MainWindow::exportTexture()
 
     // If no path provided/dialog cancelled
     if (outputPath.empty()) {
-        std::cerr << "vc::export::status: dialog cancelled." << std::endl;
+        std::cerr << "vc::export::_status: dialog cancelled." << std::endl;
         return;
     }
 
@@ -278,7 +278,7 @@ void MainWindow::exportTexture()
     if (extension == ".JPG" || extension == ".JPEG") {
         output = output.clone();
         output.convertTo(output, CV_8U, 255.0 / 65535.0);
-        std::cerr << "vc::export::status: downsampled to 8U" << std::endl;
+        std::cerr << "vc::export::_status: downsampled to 8U" << std::endl;
     }
 
     // Write the image
@@ -291,7 +291,7 @@ void MainWindow::exportTexture()
         return;
     }
 
-    std::cerr << "vc::export::status: export successful" << std::endl;
+    std::cerr << "vc::export::_status: export successful" << std::endl;
 }
 
 void MainWindow::create_Actions()
@@ -348,7 +348,7 @@ void MainWindow::closeEvent(QCloseEvent* closing)
             // Discard was clicked
             case QMessageBox::Discard:
                 // Reset ThreadStatus
-                _globals->setInactiveThread();
+                _globals->setThreadStatus(ThreadStatus::Inactive);
                 break;
 
             // Cancel was clicked
@@ -364,6 +364,6 @@ void MainWindow::closeEvent(QCloseEvent* closing)
         // Exit the program
         closing->accept();
 
-    } else
-        closing->accept();
+    } else{
+        closing->accept();}
 }
