@@ -97,9 +97,9 @@ HalfEdgeMesh::FacePtr HalfEdgeMesh::addFace(IDType v0, IDType v1, IDType v2)
     }
 
     // Assign the most recent values
-    a0->alpha = a0->beta = a[0];
-    a1->alpha = a1->beta = a[1];
-    a2->alpha = a2->beta = a[2];
+    a0->alpha = a0->beta = a0->phi = a[0];
+    a1->alpha = a1->beta = a1->phi = a[1];
+    a2->alpha = a2->beta = a2->phi = a[2];
     a0->weight = 1.0 / (a[0] * a[0]);
     a1->weight = 1.0 / (a[1] * a[1]);
     a2->weight = 1.0 / (a[2] * a[2]);

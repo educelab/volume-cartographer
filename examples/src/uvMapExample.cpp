@@ -8,7 +8,6 @@
 int main(int argc, char* argv[])
 {
 
-    double u, v;
     volcart::UVMap uvMap;
 
     // Initialize iterators

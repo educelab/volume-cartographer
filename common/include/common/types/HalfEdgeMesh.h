@@ -80,7 +80,8 @@ public:
         EdgePtr edge;  // The edge that owns this angle
 
         double alpha;   // Current angle
-        double beta;    // Ideal/Original angle
+        double beta;    // Original angle
+        double phi;     // Ideal angle
         double weight;  // Typically 1/b^2
 
         double bAlpha;  // current gradient of the ABF constraints

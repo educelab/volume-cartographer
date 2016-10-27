@@ -77,6 +77,20 @@ struct CreateUVMapFixture {
     std::vector<cv::Vec2d> _Storage;
 };
 
+// Check that we can set, get, and re-set values for a point
+BOOST_AUTO_TEST_CASE(GetSetTest)
+{
+    volcart::UVMap map;
+    cv::Vec2d p{0.0, 0.0};
+    map.set(0, p);
+    BOOST_CHECK_EQUAL(map.get(0), p);
+
+    p[0] = 1.0;
+    map.set(0, p);
+    BOOST_CHECK_EQUAL(map.get(0), p);
+}
+
+// Check the fun origin transformation part of this class
 BOOST_FIXTURE_TEST_CASE(TransformationTest, CreateUVMapFixture)
 {
 
