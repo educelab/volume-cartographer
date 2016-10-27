@@ -25,7 +25,7 @@ struct ReadITKPlaneMeshFixture {
     }
 
     volcart::ITKMesh::Pointer _in_PlaneMesh;
-    volcart::ITKMesh::Pointer _read_PlaneMesh;
+    volcart::ITKMesh::Pointer _read_PlaneMesh = volcart::ITKMesh::New();
     volcart::shapes::Plane _Plane;
 
 };

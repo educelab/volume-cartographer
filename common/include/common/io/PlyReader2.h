@@ -11,5 +11,8 @@
 
 #include "boost/filesystem/path.hpp"
 #include "common/vc_defines.h"
-
-bool PLYReader2(boost::filesystem::path path, volcart::ITKMesh::Pointer mesh);
+namespace volcart {
+    namespace io{
+        bool PLYReader2(boost::filesystem::path path, volcart::ITKMesh::Pointer mesh);
+    }
+}
