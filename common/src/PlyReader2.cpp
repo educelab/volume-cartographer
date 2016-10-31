@@ -95,11 +95,13 @@ bool PLYReader2(boost::filesystem::path path, volcart::ITKMesh::Pointer mesh)
     getline(plyFile, line);
 
     bool leadingchar = true;
-    if (line.find("uchar") == std::string::npos)
+    if (line.find("uchar") == std::string::npos) {
         leadingchar = false;
+    }
     getline(plyFile,line);
-    if(line.find("end_header") != std::string::npos)
+    if (line.find("end_header") != std::string::npos) {
         getline(plyFile,line);
+    }
     for (int i = 0; i < numofvertices; i++) {
         std::vector<std::string> curpnt;
         boost::split(
@@ -115,8 +117,9 @@ bool PLYReader2(boost::filesystem::path path, volcart::ITKMesh::Pointer mesh)
             Q[1] = std::stod(curpnt[point_norm["ny"]]);
             Q[2] = std::stod(curpnt[point_norm["nz"]]);
             mesh->SetPointData(i, Q);
-        } else
+        } else {
             std::cerr << "No point normals found" << std::endl;
+        }
         getline(plyFile, line);
     }
 
