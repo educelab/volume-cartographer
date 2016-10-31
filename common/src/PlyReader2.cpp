@@ -75,6 +75,8 @@ bool PLYReader2(boost::filesystem::path path, volcart::ITKMesh::Pointer mesh)
             }
         }
 
+        // Added comment for testing
+
         linecnt++;
         getline(plyFile, line);
     }
