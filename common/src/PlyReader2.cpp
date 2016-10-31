@@ -4,7 +4,7 @@
 /**@file PlyReader2.cpp */
 #include "common/io/PlyReader2.h"
 
-typedef std::pair<char,int> props;
+using props = std::pair<char, int>;
 
 namespace volcart
 {
@@ -51,25 +51,25 @@ bool PLYReader2(boost::filesystem::path path, volcart::ITKMesh::Pointer mesh)
         std::vector<std::string> curline;
         boost::split(
             curline, line, boost::is_any_of(" "), boost::token_compress_on);
-        for (int i = 0; i < curline.size(); i++) {
-            if (curline[i] == "nx") {
+        for (auto& element : curline) {
+            if (element == "nx") {
                 point_norm["nx"] = linecnt;
                 norm_check = true;
                 break;
-            } else if (curline[i] == "ny") {
+            } else if (element == "ny") {
                 point_norm["ny"] = linecnt;
                 break;
-            } else if (curline[i] == "nz") {
+            } else if (element == "nz") {
                 point_norm["nz"] = linecnt;
                 break;
             }
-            if (curline[i] == "x") {
+            if (element == "x") {
                 properties['x'] = linecnt;
                 break;
-            } else if (curline[i] == "y") {
+            } else if (element == "y") {
                 properties['y'] = linecnt;
                 break;
-            } else if (curline[i] == "z") {
+            } else if (element == "z") {
                 properties['z'] = linecnt;
                 break;
             }
