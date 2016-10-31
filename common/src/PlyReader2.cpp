@@ -47,21 +47,33 @@ bool PLYReader2(boost::filesystem::path path, volcart::ITKMesh::Pointer mesh)
 
     while (line.find("element",0) > sizeof(line) ||
            line.find("end_header",0) < sizeof(line)) {
-        if (line.find("nx",0) != std::string::npos) {
-            point_norm["nx"] = linecnt*2;
-            norm_check = true;
+        std::vector<std::string> curline;
+        boost::split(
+            curline, line, boost::is_any_of(" "), boost::token_compress_on);
+        for (int i = 0; i < curline.size(); i++) {
+            if (curline[i] == "nx") {
+                point_norm["nx"] = linecnt;
+                norm_check = true;
+                break;
+            } else if (curline[i] == "ny") {
+                point_norm["ny"] = linecnt;
+                break;
+            } else if (curline[i] == "nz") {
+                point_norm["nz"] = linecnt;
+                break;
+            }
+            if (curline[i] == "x") {
+                properties['x'] = linecnt;
+                break;
+            } else if (curline[i] == "y") {
+                properties['y'] = linecnt;
+                break;
+            } else if (curline[i] == "z") {
+                properties['z'] = linecnt;
+                break;
+            }
         }
-        else if (line.find("ny",0) != std::string::npos)
-            point_norm["ny"] = linecnt *2;
-        else if (line.find("nz",0) != std::string::npos)
-            point_norm["nz"] = linecnt *2;
-        if(line.find(" x",0) != std::string::npos) {
-            properties['x'] = linecnt *2 ;
-        }
-        else if (line.find(" y",0) != std::string::npos)
-            properties['y'] = linecnt *2;
-        else if (line.find(" z",0) != std::string::npos)
-            properties['z'] = linecnt *2;
+
         linecnt++;
         getline(plyFile, line);
     }
@@ -73,15 +85,10 @@ bool PLYReader2(boost::filesystem::path path, volcart::ITKMesh::Pointer mesh)
         numoffaces = 0;
     } else
     {
-        if(line.find("face",0) == std::string::npos)
-        {
-            numoffacestr = line.substr(line.find("faces",0) +6);
-            numoffaces = stoi(numoffacestr);
-        } else{
-            numoffacestr = line.substr(line.find("face",0) + 5);
-            numoffaces = stoi(numoffacestr);
-        }
-
+        std::vector<std::string> facenum;
+        boost::split(
+            facenum, line, boost::is_any_of(" "), boost::token_compress_on);
+        numoffaces = stoi(facenum[2]);
     }
 
     getline(plyFile, line);
@@ -93,16 +100,19 @@ bool PLYReader2(boost::filesystem::path path, volcart::ITKMesh::Pointer mesh)
     if(line.find("end_header") != std::string::npos)
         getline(plyFile,line);
     for (int i = 0; i < numofvertices; i++) {
+        std::vector<std::string> curpnt;
+        boost::split(
+            curpnt, line, boost::is_any_of(" "), boost::token_compress_on);
         ITKPoint P;
-        P[0] = std::stod(line.substr(properties['x'], line.find(' ', properties['x'])));
-        P[1] = std::stod(line.substr(properties['y'], line.find(' ', properties['y'])));
-        P[2] = std::stod(line.substr(properties['z'], line.find(' ', properties['z'])));
+        P[0] = std::stod(curpnt[properties['x']]);
+        P[1] = std::stod(curpnt[properties['y']]);
+        P[2] = std::stod(curpnt[properties['z']]);
         mesh->SetPoint(i, P);
         if (norm_check) {
             ITKPixel Q;
-            Q[0] = std::stod(line.substr(point_norm["nx"],line.find(' ', point_norm["nx"])));
-            Q[1] = std::stod(line.substr(point_norm["ny"], line.find(' ', point_norm["ny"])));
-            Q[2] = std::stod(line.substr(point_norm["nz"], line.find(' ', point_norm["nz"])));
+            Q[0] = std::stod(curpnt[point_norm["nx"]]);
+            Q[1] = std::stod(curpnt[point_norm["ny"]]);
+            Q[2] = std::stod(curpnt[point_norm["nz"]]);
             mesh->SetPointData(i, Q);
         } else
             std::cerr << "No point normals found" << std::endl;
@@ -110,32 +120,35 @@ bool PLYReader2(boost::filesystem::path path, volcart::ITKMesh::Pointer mesh)
     }
 
     for (int i = 0; i < numoffaces; i++) {
-        int chartcnt = 0;
+        std::vector<std::string> curface;
+        boost::split(
+            curface, line, boost::is_any_of(" "), boost::token_compress_on);
         if (leadingchar) {
             int points_per_face = line[0] - '0';
             if (points_per_face != 3) {
                 std::cerr << "Error: Not a triangular mesh" << std::endl;
                 return false;
             } else {
-                chartcnt++;
                 ITKCell::CellAutoPointer cellpointer;
                 cellpointer.TakeOwnership(new ITKTriangle);
                 for (int j = 0; j < points_per_face; ++j) {
-                    unsigned long z = std::stoi(line.substr(j+chartcnt+1, line.find(' ', j+chartcnt+1)));
+                    unsigned long z = std::stoi(curface[j + 1]);
                     cellpointer->SetPointId(j,z);
-                    chartcnt++;
                 }
                 mesh->SetCell(i, cellpointer);
             }
         } else {
-            std::cerr << "Point per face unknown, creating triangular mesh";
-            ITKCell::CellAutoPointer cellpointer;
-            cellpointer.TakeOwnership(new ITKTriangle);
-            for (int j = 0; j < 3; ++j) {
-                cellpointer->SetPointId(j, (int(line[j +1] - '0')+ 2*chartcnt));
-                chartcnt++;
+            if (curface.size() == 3) {
+                ITKCell::CellAutoPointer cellpointer;
+                cellpointer.TakeOwnership(new ITKTriangle);
+                for (int j = 0; j < 3; ++j) {
+                    cellpointer->SetPointId(j, std::stoi(curface[j]));
+                }
+                mesh->SetCell(i, cellpointer);
+            } else {
+                std::cerr << "Error: Not a triangular mesh" << std::endl;
+                return false;
             }
-            mesh->SetCell(i, cellpointer);
         }
         getline(plyFile, line);
     }
