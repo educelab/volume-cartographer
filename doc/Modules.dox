@@ -7,3 +7,8 @@
  @defgroup ExampleDocs Documentation Examples
  @brief Files that demonstrate how code should be formatted for Doxygen.
 */
+
+/**
+@defgroup VolCore Volcart Core 
+@brief Functions that make up the core of Volume Cartographer
+*/ 

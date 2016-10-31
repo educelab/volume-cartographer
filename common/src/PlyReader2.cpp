@@ -1,6 +1,7 @@
 //
 // Created by Hannah Hatch on 10/18/16.
 //
+/**@file PlyReader2.cpp */
 #include "common/io/PlyReader2.h"
 
 typedef std::pair<char,int> props;
