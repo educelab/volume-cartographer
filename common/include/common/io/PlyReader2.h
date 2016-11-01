@@ -31,8 +31,10 @@
  * @param path The location of the file you want to read in
  * @param mesh Where you want to store the mesh that's been read in
  */
-namespace volcart {
-    namespace io{
-        bool PLYReader2(boost::filesystem::path path, volcart::ITKMesh::Pointer mesh);
-    }
+namespace volcart
+{
+namespace io
+{
+bool PLYReader2(boost::filesystem::path path, volcart::ITKMesh::Pointer mesh);
+}
 }
