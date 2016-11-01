@@ -27,16 +27,15 @@ bool PLYReader2(boost::filesystem::path path, volcart::ITKMesh::Pointer mesh)
 
     getline(plyFile, line);
 
-    while (line.find("element",0) == std::string::npos) {
+    while (line.find("element", 0) == std::string::npos) {
         getline(plyFile, line);
     }
 
-    if (line.find("vertex",0) == std::string::npos) {
+    if (line.find("vertex", 0) == std::string::npos) {
         std::cerr << "No vertex information found" << std::endl;
         return false;
-    } else
-    {
-        numofvertstr = line.substr(line.find("vertex",0) +7);
+    } else {
+        numofvertstr = line.substr(line.find("vertex", 0) + 7);
         numofvertices = stoi(numofvertstr);
     }
 
@@ -46,8 +45,8 @@ bool PLYReader2(boost::filesystem::path path, volcart::ITKMesh::Pointer mesh)
     bool norm_check = false;
     getline(plyFile, line);
 
-    while (line.find("element",0) > sizeof(line) ||
-           line.find("end_header",0) < sizeof(line)) {
+    while (line.find("element", 0) > sizeof(line) ||
+           line.find("end_header", 0) < sizeof(line)) {
         std::vector<std::string> curline;
         boost::split(
             curline, line, boost::is_any_of(" "), boost::token_compress_on);
@@ -75,13 +74,13 @@ bool PLYReader2(boost::filesystem::path path, volcart::ITKMesh::Pointer mesh)
         getline(plyFile, line);
     }
 
-    if (line.find("faces",0) == std::string::npos && line.find("face",0) == std::string::npos) {
+    if (line.find("faces", 0) == std::string::npos &&
+        line.find("face", 0) == std::string::npos) {
         std::cerr
             << "Warning: No face information found, reading in vertices only"
             << std::endl;
         numoffaces = 0;
-    } else
-    {
+    } else {
         std::vector<std::string> facenum;
         boost::split(
             facenum, line, boost::is_any_of(" "), boost::token_compress_on);
@@ -94,9 +93,9 @@ bool PLYReader2(boost::filesystem::path path, volcart::ITKMesh::Pointer mesh)
     if (line.find("uchar") == std::string::npos) {
         leadingchar = false;
     }
-    getline(plyFile,line);
+    getline(plyFile, line);
     if (line.find("end_header") != std::string::npos) {
-        getline(plyFile,line);
+        getline(plyFile, line);
     }
     for (int i = 0; i < numofvertices; i++) {
         std::vector<std::string> curpnt;
@@ -133,7 +132,7 @@ bool PLYReader2(boost::filesystem::path path, volcart::ITKMesh::Pointer mesh)
                 cellpointer.TakeOwnership(new ITKTriangle);
                 for (int j = 0; j < points_per_face; ++j) {
                     unsigned long z = std::stoi(curface[j + 1]);
-                    cellpointer->SetPointId(j,z);
+                    cellpointer->SetPointId(j, z);
                 }
                 mesh->SetCell(i, cellpointer);
             }
