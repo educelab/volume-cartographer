@@ -4,7 +4,7 @@
 /**@file PlyReader2.cpp */
 #include "common/io/PlyReader2.h"
 
-using props = std::pair<char, int>;
+using Props = std::pair<char, int>;
 
 namespace volcart
 {
@@ -55,23 +55,17 @@ bool PLYReader2(boost::filesystem::path path, volcart::ITKMesh::Pointer mesh)
             if (element == "nx") {
                 point_norm["nx"] = linecnt;
                 norm_check = true;
-                break;
             } else if (element == "ny") {
                 point_norm["ny"] = linecnt;
-                break;
             } else if (element == "nz") {
                 point_norm["nz"] = linecnt;
-                break;
             }
             if (element == "x") {
                 properties['x'] = linecnt;
-                break;
             } else if (element == "y") {
                 properties['y'] = linecnt;
-                break;
             } else if (element == "z") {
                 properties['z'] = linecnt;
-                break;
             }
         }
 
