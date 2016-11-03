@@ -11,8 +11,11 @@
 #pragma once
 
 #include <unordered_map>
+#include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
 #include "common/vc_defines.h"
+
+constexpr static size_t VC_UVMAP_MIN_DEBUG_WIDTH = 500;
 
 namespace volcart
 {
@@ -20,7 +23,7 @@ namespace volcart
 class UVMap
 {
 public:
-    UVMap() { _origin = VC_ORIGIN_TOP_LEFT; };
+    UVMap() : _origin(VC_ORIGIN_TOP_LEFT){};
     UVMap(Origin o) { _origin = o; };
 
     size_t size() const { return _map.size(); };
@@ -62,6 +65,27 @@ public:
         _ratio.height = h;
         _ratio.aspect = w / h;
     };
+
+    // Plot the UV points on a cv::Mat img
+    cv::Mat drawUVMap() const
+    {
+        int w = std::ceil(_ratio.width);
+        if (w < VC_UVMAP_MIN_DEBUG_WIDTH) {
+            std::cerr
+                << "volcart::UVMap:: Width less than minimum. Scaling image."
+                << std::endl;
+            w = VC_UVMAP_MIN_DEBUG_WIDTH;
+        }
+        int h = std::ceil((double)w / _ratio.aspect);
+        cv::Mat r = cv::Mat::zeros(h, w, CV_8UC1);
+
+        for (auto it = std::begin(_map); it != std::end(_map); ++it) {
+            cv::Point2d p(it->second[0] * w, it->second[1] * h);
+            cv::circle(r, p, 2, 255, -1);
+        }
+
+        return r;
+    }
 
 private:
     std::unordered_map<size_t, cv::Vec2d> _map;  // holds the mapping

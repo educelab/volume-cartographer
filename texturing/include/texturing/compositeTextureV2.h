@@ -26,6 +26,8 @@ public:
         cv::Vec3d Normal;
     };
 
+    constexpr static size_t KD_DEFAULT_SEARCH_SIZE = 100;
+
     compositeTextureV2(
         ITKMesh::Pointer inputMesh,
         VolumePkg& volpkg,
@@ -67,6 +69,7 @@ private:
     std::vector<cellInfo> _cellInformation;
     ITKMesh::Pointer _cellCentroids;
     ITKPointsLocator::Pointer _kdTree;
+    size_t _kdSearchSize;
 };
 }
 }
