@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
                 normal[2] = mapInfo(5);
                 u = (double)x / (width - 1);
                 v = (double)y / (height - 1);
-                texture.uvMap().set(point_counter, cv::Vec2d(u, v));
+                texture.getUVMap().set(point_counter, cv::Vec2d(u, v));
                 outputMesh->SetPoint(point_counter, pt);
                 outputMesh->SetPointData(point_counter, normal);
                 ++point_counter;
@@ -153,7 +153,7 @@ int main(int argc, char* argv[])
     volcart::io::objWriter writer("ROI.obj", outputMesh);
     cv::Mat mesh_texture = texture8bpc(roi_rect);
     writer.setTexture(mesh_texture);
-    writer.setUVMap(texture.uvMap());
+    writer.setUVMap(texture.getUVMap());
     writer.write();
 
     return EXIT_SUCCESS;

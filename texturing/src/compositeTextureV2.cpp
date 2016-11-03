@@ -3,7 +3,7 @@
 //
 
 #include "texturing/compositeTextureV2.h"
-#include "core/util/FloatComparison.h"
+#include "texturing/PPMGenerator.h"
 
 namespace volcart
 {
@@ -41,18 +41,17 @@ int compositeTextureV2::_process()
     if ((searchMinorRadius = _radius / 3) < 1)
         searchMinorRadius = 1;
 
-    // Generate homographies
-    _generateCellInfo();
+    // Generate PPM
+    PPMGenerator gen;
+    gen.setDimensions(_width, _height);
+    gen.setMesh(_input);
+    gen.setUVMap(_uvMap);
+    gen.compute();
+    PerPixelMap ppm = gen.getPPM();
 
     // Iterate over every pixel in the output image
-    unsigned long pixelsNotInCell = 0;
     cv::Mat image = cv::Mat::zeros(_height, _width, CV_16UC1);
-    cv::Mat mask = cv::Mat::zeros(_height, _width, CV_8UC1);
 
-    // Per-pixel Map
-    volcart::PerPixelMap lookup(_height, _width);
-
-    ITKPointsLocator::NeighborsIdentifierType neighborhood;
     for (int y = 0; y < _height; ++y) {
         for (int x = 0; x < _width; ++x) {
             double progress = (double)(x + 1 + (_width * y)) /
@@ -61,58 +60,17 @@ int compositeTextureV2::_process()
                          "texture: "
                       << std::to_string(progress) << "%\r" << std::flush;
 
-            // This pixel's uv coordinate
-            cv::Vec3d uv(0, 0, 0);
-            uv[0] = (double)x / (double)(_width - 1);
-            uv[1] = (double)y / (double)(_height - 1);
-
-            // Empty our averaging variables
-            if (!neighborhood.empty())
-                neighborhood.clear();
-
-            // find k nearest neighbors for current point
-            ITKPoint searchPoint;
-            searchPoint[0] = uv[0];
-            searchPoint[1] = uv[1];
-            searchPoint[2] = 0.0;
-            _kdTree->FindClosestNPoints(
-                searchPoint, _kdSearchSize, neighborhood);
-
-            // Find which triangle this pixel lies inside of
-            bool in2D = false;  // Is the current pixel in this cell?
-            cellInfo info;
-            cv::Vec3d baryCoord(0, 0, 0);
-            for (auto c_id = neighborhood.begin(); c_id != neighborhood.end();
-                 ++c_id) {
-                info = _cellInformation[*c_id];
-
-                // Calculate the 3D position of this pixel using the homography
-                // matrix
-                baryCoord = _BarycentricCoord(
-                    uv, info.Pts2D[0], info.Pts2D[1], info.Pts2D[2]);
-                in2D =
-                    ((baryCoord[0] > 0.0 || AlmostEqual(baryCoord[0], 0.0)) &&
-                     (baryCoord[1] > 0.0 || AlmostEqual(baryCoord[1], 0.0)) &&
-                     (baryCoord[2] > 0.0 || AlmostEqual(baryCoord[2], 0.0)) &&
-                     (baryCoord[0] + baryCoord[1] < 1.0 ||
-                      AlmostEqual(baryCoord[0] + baryCoord[1], 1.0)));
-
-                if (in2D)
-                    break;
-            }
-
-            // Set this pixel to black if not part of a cell
-            if (!in2D) {
-                ++pixelsNotInCell;
+            // Skip this pixel if we have no mapping
+            if (!ppm.hasMapping(y, x)) {
                 continue;
             }
 
             // Find the xyz coordinate of the original point
-            cv::Vec3d xyz = _CartesianCoord(
-                baryCoord, info.Pts3D[0], info.Pts3D[1], info.Pts3D[2]);
+            auto pixelInfo = ppm(y, x);
 
+            cv::Vec3d xyz{pixelInfo[0], pixelInfo[1], pixelInfo[2]};
             // Use the cell normal as the normal for this point
-            cv::Vec3d xyz_norm = info.Normal;
+            cv::Vec3d xyz_norm{pixelInfo[3], pixelInfo[4], pixelInfo[5]};
 
             // Generate the intensity value
             double value = textureWithMethod(
@@ -121,123 +79,15 @@ int compositeTextureV2::_process()
 
             // Assign the intensity value at the UV position
             image.at<unsigned short>(y, x) = (unsigned short)value;
-            mask.at<unsigned char>(y, x) = 255;
-
-            // Assign 3D position to the lookup map
-            lookup(y, x) = cv::Vec6d(
-                xyz(0), xyz(1), xyz(2), xyz_norm(0), xyz_norm(1), xyz_norm(2));
         }
     }
     std::cerr << std::endl;
-    std::cerr << "volcart::texturing::compositeTexturing:: Pixels not in cell: "
-              << pixelsNotInCell << std::endl;
 
     // Set output
     _texture.addImage(image);
-    _texture.setMask(mask);
-    _texture.setMap(lookup);
-    _texture.uvMap(_uvMap);
+    _texture.setMap(ppm);
 
     return EXIT_SUCCESS;
 };
-
-// Calculate homography matrices
-int compositeTextureV2::_generateCellInfo()
-{
-
-    // Make sure the storage vectors are clean
-    if (!_cellInformation.empty())
-        _cellInformation.clear();
-    _cellCentroids = ITKMesh::New();
-    _kdTree = ITKPointsLocator::New();
-
-    // Generate a homography matrix for each cell in the mesh
-    ITKPoint centroid;
-    std::cerr
-        << "volcart::texturing::compositeTexturing: Generating cell information"
-        << std::endl;
-    for (auto cell = _input->GetCells()->Begin();
-         cell != _input->GetCells()->End(); ++cell) {
-        cellInfo info = cellInfo();
-        cv::Vec3d _2D, _3D;
-        for (ITKPointInCellIterator point = cell->Value()->PointIdsBegin();
-             point != cell->Value()->PointIdsEnd(); ++point) {
-            unsigned long pointID = *point;
-
-            _2D[0] = _uvMap.get(pointID)[0];
-            _2D[1] = _uvMap.get(pointID)[1];
-            _2D[2] = 0.0;
-            info.Pts2D.push_back(_2D);
-
-            _3D[0] = _input->GetPoint(pointID)[0];
-            _3D[1] = _input->GetPoint(pointID)[1];
-            _3D[2] = _input->GetPoint(pointID)[2];
-            info.Pts3D.push_back(_3D);
-        }
-
-        // Calculate the cell centroid
-        cv::Vec3d temp_cent =
-            (info.Pts2D[0] + info.Pts2D[1] + info.Pts2D[2]) / 3;
-        centroid[0] = temp_cent[0];
-        centroid[1] = temp_cent[1];
-        centroid[2] = temp_cent[2];
-
-        // Generate the surface normal for this cell
-        cv::Vec3d v1v0 = info.Pts3D[1] - info.Pts3D[0];
-        cv::Vec3d v2v0 = info.Pts3D[2] - info.Pts3D[0];
-        info.Normal = cv::normalize(v1v0.cross(v2v0));
-
-        _cellInformation.push_back(info);
-        _cellCentroids->SetPoint(cell.Index(), centroid);
-    }
-
-    _kdTree->SetPoints(_cellCentroids->GetPoints());
-    _kdTree->Initialize();
-    _kdSearchSize =
-        (_cellCentroids->GetNumberOfPoints() < KD_DEFAULT_SEARCH_SIZE)
-            ? _cellCentroids->GetNumberOfPoints()
-            : KD_DEFAULT_SEARCH_SIZE;
-
-    return EXIT_SUCCESS;
-}
-
-// Find barycentric coordinates of point in triangle
-// From Christer Ericson's Real-Time Collision Detection
-// Code from:
-// http://gamedev.stackexchange.com/questions/23743/whats-the-most-efficient-way-to-find-barycentric-coordinates
-cv::Vec3d compositeTextureV2::_BarycentricCoord(
-    const cv::Vec3d& nXYZ,
-    const cv::Vec3d& nA,
-    const cv::Vec3d& nB,
-    const cv::Vec3d& nC)
-{
-    cv::Vec3d v0 = nB - nA;
-    cv::Vec3d v1 = nC - nA;
-    cv::Vec3d v2 = nXYZ - nA;
-
-    double dot00 = v0.dot(v0);
-    double dot01 = v0.dot(v1);
-    double dot11 = v1.dot(v1);
-    double dot20 = v2.dot(v0);
-    double dot21 = v2.dot(v1);
-    double invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
-
-    cv::Vec3d output;
-    output[1] = (dot11 * dot20 - dot01 * dot21) * invDenom;
-    output[2] = (dot00 * dot21 - dot01 * dot20) * invDenom;
-    output[0] = 1.0 - output[1] - output[2];
-
-    return output;
-}
-
-// Find Cartesian coordinates of point in triangle given barycentric coordinate
-cv::Vec3d compositeTextureV2::_CartesianCoord(
-    const cv::Vec3d& nUVW,
-    const cv::Vec3d& nA,
-    const cv::Vec3d& nB,
-    const cv::Vec3d& nC)
-{
-    return nUVW[0] * nA + nUVW[1] * nB + nUVW[2] * nC;
-}
 }
 }

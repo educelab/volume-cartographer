@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
     volcart::texturing::compositeTextureV2 result(
         inputMesh, vpkg, uvMap, 7, (int)aspect_width, (int)aspect_height);
     volcart::io::objWriter objwriter(
-        "cloth.obj", inputMesh, result.texture().uvMap(),
+        "cloth.obj", inputMesh, result.texture().getUVMap(),
         result.texture().getImage(0));
     objwriter.write();
 

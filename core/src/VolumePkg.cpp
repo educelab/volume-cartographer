@@ -209,7 +209,7 @@ void VolumePkg::saveMesh(
     writer.setPath(meshPath);
     writer.setMesh(mesh);
     writer.setTexture(texture.getImage(0));
-    writer.setUVMap(texture.uvMap());
+    writer.setUVMap(texture.getUVMap());
     writer.write();
 }
 

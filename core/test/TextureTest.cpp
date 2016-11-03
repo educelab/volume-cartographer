@@ -114,7 +114,7 @@ struct TextureWithUVMapToCheckIntensityFixture {
         _uvMap.set(3, cv::Vec2d(1, 1));
 
         // add uv map to texture
-        _Texture.uvMap(_uvMap);
+        _Texture.getMap().setUVMap(_uvMap);
     }
 
     ~TextureWithUVMapToCheckIntensityFixture()

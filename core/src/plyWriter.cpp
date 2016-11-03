@@ -47,26 +47,28 @@ bool plyWriter::validate()
 // Write everything (OBJ, MTL, and PNG) to disk
 int plyWriter::write()
 {
-    if (!validate())
-        return EXIT_FAILURE;  // Must pass validation test
+    if (!validate()) {
+        return EXIT_FAILURE;
+    }
 
-    _outputMesh.open(_outputPath.string());  // Open the file stream
-    if (!_outputMesh.is_open())
-        return EXIT_FAILURE;  // Return error if we can't open the file
+    // Open the file stream
+    _outputMesh.open(_outputPath.string());
+    if (!_outputMesh.is_open()) {
+        return EXIT_FAILURE;
+    }
 
-    Origin starting_origin =
-        _texture.uvMap().origin();                // Capture the starting origin
-    _texture.uvMap().origin(VC_ORIGIN_TOP_LEFT);  // Ensure uvMap origin is
-                                                  // relative to what we need it
-                                                  // to be
+    // Capture the starting origin and set origin to what PLY reader needs
+    Origin starting_origin = _texture.getUVMap().origin();
+    _texture.getUVMap().origin(VC_ORIGIN_TOP_LEFT);
 
     _writeHeader();
     _writeVertices();
     _writeFaces();
 
-    _outputMesh.close();  // Close the file stream
+    _outputMesh.close();
 
-    _texture.uvMap().origin(starting_origin);  // Restore the starting origin
+    // Restore the starting origin
+    _texture.getUVMap().origin(starting_origin);
 
     return EXIT_SUCCESS;
 };

@@ -20,14 +20,6 @@ namespace texturing
 class compositeTextureV2
 {
 public:
-    struct cellInfo {
-        std::vector<cv::Vec3d> Pts2D;
-        std::vector<cv::Vec3d> Pts3D;
-        cv::Vec3d Normal;
-    };
-
-    constexpr static size_t KD_DEFAULT_SEARCH_SIZE = 100;
-
     compositeTextureV2(
         ITKMesh::Pointer inputMesh,
         VolumePkg& volpkg,
@@ -42,17 +34,6 @@ public:
     volcart::Texture& texture() { return _texture; };
 private:
     int _process();
-    int _generateCellInfo();
-    cv::Vec3d _BarycentricCoord(
-        const cv::Vec3d& nXYZ,
-        const cv::Vec3d& nA,
-        const cv::Vec3d& nB,
-        const cv::Vec3d& nC);
-    cv::Vec3d _CartesianCoord(
-        const cv::Vec3d& nUVW,
-        const cv::Vec3d& nA,
-        const cv::Vec3d& nB,
-        const cv::Vec3d& nC);
 
     // Variables
     ITKMesh::Pointer _input;
@@ -65,11 +46,6 @@ private:
 
     UVMap _uvMap;
     Texture _texture;
-
-    std::vector<cellInfo> _cellInformation;
-    ITKMesh::Pointer _cellCentroids;
-    ITKPointsLocator::Pointer _kdTree;
-    size_t _kdSearchSize;
 };
 }
 }

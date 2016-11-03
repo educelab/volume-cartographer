@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
     mesh_writer.setPath("compV2Test.obj");
     mesh_writer.setMesh(inputMesh);
     mesh_writer.setTexture(compText.texture().getImage(0));
-    mesh_writer.setUVMap(compText.texture().uvMap());
+    mesh_writer.setUVMap(compText.texture().getUVMap());
     mesh_writer.write();
 
     return EXIT_SUCCESS;

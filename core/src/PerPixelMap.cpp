@@ -10,11 +10,45 @@ using namespace volcart;
 // Empty Map of width x height
 PerPixelMap::PerPixelMap(int height, int width) : _height(height), _width(width)
 {
-    _map = cv::Mat_<cv::Vec6d>(height, width, cv::Vec6d(0, 0, 0, 0, 0, 0));
+    _initializeMap();
 }
 
 // Construct map from file
 PerPixelMap::PerPixelMap(boost::filesystem::path path) { read(path); }
+
+///// Metadata /////
+void PerPixelMap::setDimensions(int w, int h)
+{
+    _width = w;
+    _height = h;
+    _initializeMap();
+}
+
+void PerPixelMap::setWidth(int w)
+{
+    _width = w;
+    _initializeMap();
+}
+
+void PerPixelMap::setHeight(int h)
+{
+    _height = h;
+    _initializeMap();
+}
+
+bool PerPixelMap::hasMapping(int y, int x)
+{
+    return (_mask.at<unsigned char>(y, x) == 255);
+}
+
+// Initialize map
+void PerPixelMap::_initializeMap()
+{
+    if (_height > 0 && _width > 0) {
+        _map =
+            cv::Mat_<cv::Vec6d>(_height, _width, cv::Vec6d(0, 0, 0, 0, 0, 0));
+    }
+}
 
 ///// Disk IO /////
 void PerPixelMap::write(boost::filesystem::path path)

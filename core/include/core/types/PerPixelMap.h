@@ -12,6 +12,7 @@
 
 #include <boost/filesystem.hpp>
 #include <opencv2/opencv.hpp>
+#include "common/types/UVMap.h"
 
 namespace volcart
 {
@@ -36,15 +37,30 @@ public:
     cv::Vec6d& operator()(int y, int x) { return _map(y, x); };
 
     ///// Metadata /////
+    void setDimensions(int w, int h);
+    void setWidth(int w);
+    void setHeight(int h);
     int width() const { return _width; };
     int height() const { return _height; };
+
+    void setUVMap(UVMap u) { _uvmap = u; };
+    const UVMap& getUVMap() const { return _uvmap; };
+    UVMap& getUVMap() { return _uvmap; };
+
+    void setMask(cv::Mat m) { _mask = m.clone(); };
+    cv::Mat getMask() const { return _mask; };
+    cv::Mat getMaskCopy() const { return _mask.clone(); };
+    bool hasMapping(int y, int x);
 
     ///// Disk IO /////
     void write(boost::filesystem::path path);
     void read(boost::filesystem::path path);
 
 private:
+    void _initializeMap();
     int _width, _height;
     cv::Mat_<cv::Vec6d> _map;
+    cv::Mat _mask;
+    UVMap _uvmap;
 };
 }
