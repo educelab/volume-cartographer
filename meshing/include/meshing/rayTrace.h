@@ -1,10 +1,9 @@
-//
-// Created by Media Team on 8/12/15.
-//
 #pragma once
 
 #include <vector>
-#include <opencv2/opencv.hpp>
+
+#include <opencv2/core.hpp>
+
 #include "common/vc_defines.h"
 
 namespace volcart

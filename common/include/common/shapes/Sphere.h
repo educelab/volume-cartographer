@@ -7,8 +7,6 @@
 
 #include <math.h>
 
-#include <opencv2/opencv.hpp>
-
 #include "common/shapes/ShapePrimitive.h"
 #include "common/vc_defines.h"
 

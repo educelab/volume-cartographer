@@ -11,7 +11,9 @@
 #pragma once
 
 #include <unordered_map>
-#include <opencv2/opencv.hpp>
+
+#include <opencv2/core.hpp>
+
 #include "common/vc_defines.h"
 
 namespace volcart

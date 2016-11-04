@@ -2,12 +2,9 @@
 
 #include <iostream>
 
-#include <opencv2/opencv.hpp>
-
-#include "volumepkg/volumepkg.h"
-
 #include "segmentation/stps/chain.h"
 #include "segmentation/stps/particle.h"
+#include "volumepkg/volumepkg.h"
 
 namespace volcart
 {

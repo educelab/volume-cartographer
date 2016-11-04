@@ -30,7 +30,6 @@
 #include <BulletSoftBody/btSoftBodyRigidBodyCollisionConfiguration.h>
 #include <BulletSoftBody/btSoftRigidDynamicsWorld.h>
 #include <btBulletDynamicsCommon.h>
-#include <opencv2/opencv.hpp>
 
 #include "common/types/UVMap.h"
 #include "common/vc_defines.h"

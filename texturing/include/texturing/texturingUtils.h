@@ -3,7 +3,9 @@
 #pragma once
 
 #include <vector>
-#include <opencv2/opencv.hpp>
+
+#include <opencv2/core.hpp>
+
 #include "QuickSort.h"
 #include "common/vc_defines.h"
 #include "volumepkg/volumepkg.h"

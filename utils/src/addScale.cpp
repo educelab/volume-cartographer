@@ -1,7 +1,10 @@
 // addScale - A utility to create
+#include <cstdio>
 #include <string>
-#include <opencv2/opencv.hpp>
-#include <stdio.h>
+
+#include <opencv2/core.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
 
 #include "common/scales/scales.h"
 #include "volumepkg/volumepkg.h"

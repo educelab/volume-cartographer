@@ -1,10 +1,17 @@
 #include "segmentation/lrps/localResliceParticleSim.h"
+
 #include <iomanip>
 #include <limits>
 #include <list>
 #include <tuple>
+
 #include <boost/circular_buffer.hpp>
 #include <boost/filesystem.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
+
 #include "segmentation/lrps/common.h"
 #include "segmentation/lrps/derivative.h"
 #include "segmentation/lrps/energymetrics.h"

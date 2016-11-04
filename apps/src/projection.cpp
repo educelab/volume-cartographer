@@ -6,7 +6,9 @@
 #include <stdio.h>
 
 #include <boost/format.hpp>
-#include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
 
 #include "common/io/PLYReader.h"
 #include "common/vc_defines.h"
@@ -36,7 +38,7 @@ int main(int argc, char* argv[])
 
     // PNG Compression params
     std::vector<int> compression_params;
-    compression_params.push_back(CV_IMWRITE_PNG_COMPRESSION);
+    compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
     compression_params.push_back(9);
 
     // Sort the points by z-index

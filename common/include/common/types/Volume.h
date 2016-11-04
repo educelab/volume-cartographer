@@ -2,8 +2,10 @@
 
 #include <array>
 #include <string>
+
 #include <boost/filesystem.hpp>
-#include <opencv2/core/core.hpp>
+#include <opencv2/core.hpp>
+
 #include "common/types/LRUCache.h"
 #include "common/types/Slice.h"
 #include "common/types/Tensor3D.h"

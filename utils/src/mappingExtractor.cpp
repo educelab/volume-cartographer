@@ -1,7 +1,9 @@
 #include <iostream>
 
 #include <boost/filesystem.hpp>
-#include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
 
 #include "common/io/objWriter.h"
 #include "common/types/Texture.h"
@@ -33,7 +35,7 @@ int main(int argc, char* argv[])
               << std::endl;
 
     _perPixelMask = cv::imread(
-        segPath.string() + "/PerPixelMask.png", CV_LOAD_IMAGE_GRAYSCALE);
+        segPath.string() + "/PerPixelMask.png", cv::IMREAD_GRAYSCALE);
     std::cout << "mask: " << _perPixelMask.cols << ", " << _perPixelMask.rows
               << std::endl;
 
@@ -121,7 +123,7 @@ int main(int argc, char* argv[])
     ///// Write the ROI + Texture image /////
     cv::Mat texture8bpc = _texture.clone();
     cv::normalize(texture8bpc, texture8bpc, 0, 255, cv::NORM_MINMAX, CV_8UC3);
-    cv::cvtColor(texture8bpc, texture8bpc, CV_GRAY2BGR);
+    cv::cvtColor(texture8bpc, texture8bpc, cv::COLOR_GRAY2BGR);
 
     // Draw the ROI box
     cv::rectangle(texture8bpc, roi_rect, RED, 3);
@@ -134,7 +136,7 @@ int main(int argc, char* argv[])
     ///// Write the slice intersection image /////
     cv::Mat slice_view = _volpkg->volume().getSliceDataCopy(feature_slice_z);
     cv::normalize(slice_view, slice_view, 0, 255, cv::NORM_MINMAX, CV_8UC3);
-    cv::cvtColor(slice_view, slice_view, CV_GRAY2BGR);
+    cv::cvtColor(slice_view, slice_view, cv::COLOR_GRAY2BGR);
 
     // Draw the intersections
     for (auto i : intersections)

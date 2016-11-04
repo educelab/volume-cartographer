@@ -7,7 +7,8 @@
 
 #include <list>
 #include <vector>
-#include <opencv2/core/core.hpp>
+
+#include <opencv2/core.hpp>
 
 #include "segmentation/stps/particle.h"
 #include "volumepkg/volumepkg.h"

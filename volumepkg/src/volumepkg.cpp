@@ -1,6 +1,9 @@
 /** @file volumepkg.cpp */
 
 #include "volumepkg/volumepkg.h"
+
+#include <opencv2/imgcodecs.hpp>
+
 #include "common/io/PointSetIO.h"
 #include "common/io/objWriter.h"
 #include "common/io/plyWriter.h"

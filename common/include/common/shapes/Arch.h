@@ -3,9 +3,9 @@
 //
 #pragma once
 
-#include <math.h>
+#include <cmath>
 
-#include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
 
 #include "common/shapes/ShapePrimitive.h"
 #include "common/vc_defines.h"

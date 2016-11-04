@@ -1,5 +1,9 @@
 #include "segmentation/lrps/intensitymap.h"
+
 #include <limits>
+
+#include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
 
 using namespace volcart::segmentation;
 

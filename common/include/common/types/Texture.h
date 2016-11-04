@@ -4,7 +4,7 @@
 // Created by Seth Parker on 10/20/15.
 #pragma once
 
-#include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
 
 #include "common/types/Metadata.h"
 #include "common/types/PerPixelMap.h"

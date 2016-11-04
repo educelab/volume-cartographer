@@ -2,6 +2,8 @@
 // Created by Media Team on 6/24/15.
 //
 
+#include <opencv2/imgcodecs.hpp>
+
 #include "common/io/objWriter.h"
 
 namespace fs = boost::filesystem;

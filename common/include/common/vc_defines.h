@@ -6,12 +6,14 @@
 #include <array>
 #include <ctime>
 #include <iostream>
+
 #include <itkMesh.h>
 #include <itkPointsLocator.h>
 #include <itkQuadEdgeMesh.h>
 #include <itkQuadEdgeMeshExtendedTraits.h>
 #include <itkTriangleCell.h>
-#include <opencv2/core/core.hpp>
+#include <opencv2/core.hpp>
+
 #include "common/util/getMemorySize.h"
 
 ///// GLOBAL VARIABLES /////

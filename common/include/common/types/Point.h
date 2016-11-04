@@ -7,7 +7,9 @@
 #include <sstream>
 #include <tuple>
 #include <type_traits>
-#include <opencv2/core/core.hpp>
+
+#include <opencv2/core.hpp>
+
 #include "common/util/zip.h"
 
 namespace volcart

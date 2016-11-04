@@ -4,9 +4,9 @@
 
 #include <vector>
 
-#include "mathUtils.h"
+#include <opencv2/core.hpp>
 
-#include <opencv2/opencv.hpp>
+#include "mathUtils.h"
 
 namespace ChaoVis
 {

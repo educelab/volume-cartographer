@@ -1,11 +1,8 @@
-//
-// Created by Hannah Hatch on 7/26/16.
-//
-
 #pragma once
 
 #include <iostream>
-#include <opencv2/opencv.hpp>
+
+#include <opencv2/core.hpp>
 
 #include "common/vc_defines.h"
 

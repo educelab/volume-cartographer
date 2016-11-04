@@ -6,7 +6,7 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
-#include <opencv2/opencv.hpp>
+#include <opencv2/imgcodecs.hpp>
 #include <vtkCleanPolyData.h>
 
 #include "common/vc_defines.h"

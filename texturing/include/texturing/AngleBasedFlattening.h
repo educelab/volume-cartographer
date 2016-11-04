@@ -13,8 +13,9 @@
 #include <exception>
 #include <iostream>
 #include <memory>
+
 #include <itkQuadEdgeMeshBoundaryEdgesMeshFunction.h>
-#include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
 
 #include "common/types/HalfEdgeMesh.h"
 #include "common/types/UVMap.h"
