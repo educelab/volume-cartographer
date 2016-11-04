@@ -30,6 +30,8 @@ target_link_libraries(vc_segmentation
     PUBLIC
         vc_common
         vc_volumepkg
+    PRIVATE
+        opencv_highgui
 )
 
 install(TARGETS vc_segmentation

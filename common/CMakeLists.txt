@@ -18,6 +18,7 @@ set(srcs
     src/plyWriter.cpp
 )
 
+message("OpenCV3 libs: ${OpenCV_LIBS}")
 add_library(${target} ${srcs})
 target_include_directories(${target}
     PUBLIC
@@ -28,8 +29,8 @@ target_link_libraries(${target}
     PUBLIC
         Boost::filesystem
         opencv_core
-        opencv_highgui
         opencv_imgproc
+        opencv_imgcodecs
         ITKCommon
         ITKMesh
         ITKQuadEdgeMesh
