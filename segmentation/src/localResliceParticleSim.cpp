@@ -372,7 +372,7 @@ cv::Mat LocalResliceSegmentation::drawParticlesOnSlice(
     auto pkgSlice = pkg_.volume().getSliceDataCopy(sliceIndex);
     pkgSlice.convertTo(
         pkgSlice, CV_8UC3, 1.0 / std::numeric_limits<uint8_t>::max());
-    cv::cvtColor(pkgSlice, pkgSlice, CV_GRAY2BGR);
+    cv::cvtColor(pkgSlice, pkgSlice, cv::COLOR_GRAY2BGR);
 
     // Draw circles on the pkgSlice window for each point
     for (size_t i = 0; i < curve.size(); ++i) {

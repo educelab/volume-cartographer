@@ -157,7 +157,7 @@ void drawSliceWithResliceVector(
     // Convert the CT slice to 8-bit RGB
     auto slice = v.getSliceDataCopy(int32_t(center(2)));
     slice.convertTo(slice, CV_8UC3, 1.0 / 255.0);
-    cv::cvtColor(slice, slice, CV_GRAY2BGR);
+    cv::cvtColor(slice, slice, cv::COLOR_GRAY2BGR);
 
     // Draw scaled vector on it
     constexpr int32_t scale = 20;

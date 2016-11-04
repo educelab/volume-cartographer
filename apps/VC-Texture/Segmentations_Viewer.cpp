@@ -11,6 +11,8 @@
 
 #include "Segmentations_Viewer.h"
 
+#include <opencv2/imgproc.hpp>
+
 Segmentations_Viewer::Segmentations_Viewer(
     Global_Values* globals, Texture_Viewer* texture_Viewer)
 {
@@ -225,7 +227,7 @@ bool Segmentations_Viewer::loadImage(cv::Mat texture)
         } else {
             // Convert to QPixMap and Display
             texture.convertTo(texture, CV_8U, 255.0 / 65535.0);
-            cv::cvtColor(texture, texture, CV_GRAY2RGB);
+            cv::cvtColor(texture, texture, cv::COLOR_GRAY2RGB);
 
             QImage Image(
                 texture.data, texture.cols, texture.rows, texture.step,
