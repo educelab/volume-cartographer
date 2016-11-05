@@ -87,7 +87,7 @@ int main(int argc, char* argv[])
                     intersection->GetPoint(p_id)[0],
                     intersection->GetPoint(p_id)[1]));
             }
-            cv::polylines(outputImg, contour, false, 255, 1, CV_AA);
+            cv::polylines(outputImg, contour, false, 255, 1, cv::LINE_AA);
             contour.clear();
         }
 

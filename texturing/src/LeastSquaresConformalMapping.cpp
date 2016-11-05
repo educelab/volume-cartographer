@@ -119,7 +119,7 @@ void LeastSquaresConformalMapping::compute()
         p.y = _vertices_UV(i, 1);
         points.push_back(p);
     }
-    cv::fitLine(points, line, CV_DIST_L2, 0, 0.01, 0.01);
+    cv::fitLine(points, line, cv::DIST_L2, 0, 0.01, 0.01);
     Eigen::Rotation2Dd rot(std::atan(line(1) / line(0)));
     _vertices_UV *= rot.matrix();
 }
