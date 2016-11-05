@@ -198,7 +198,6 @@ BOOST_FIXTURE_TEST_CASE(
 
     BOOST_CHECK_EQUAL(_Texture.numberOfImages(), 1);
     BOOST_CHECK_EQUAL(_Texture.getImage(0).empty(), false);
-    BOOST_CHECK(_Texture.hasMap());
 
     // check dimensions
     BOOST_CHECK_EQUAL(_Texture.getImage(0).cols, 100);
