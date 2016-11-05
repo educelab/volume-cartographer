@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <algorithm>
+#include <cmath>
 #include <limits>
 #include <type_traits>
 
@@ -30,6 +32,10 @@ static constexpr double DefaultMaxDifference = 0.0000001;
   Two numbers are "almost equal" if the absolute difference between the numbers
   is below some absolute error `epsMax` or if the absolute difference is
   smaller than `epsRel`% of the largest input parameter.
+
+  @warning This method should not be assumed to be good for comparing against
+  zero. Depending on the circumstance, either an absolute or relative difference
+  might be preferable.
 
   @param lhs
   @param rhs
@@ -55,12 +61,8 @@ inline bool AlmostEqual(
     T l = std::fabs(lhs);
     T r = std::fabs(rhs);
 
-    T largest = (r > l) ? r : l;
-    if (d <= largest * epsRel) {
-        return true;
-    }
-
-    return false;
-};
+    T largest = std::max(r, l);
+    return d <= largest * epsRel;
+}
 
 }  // volcart
