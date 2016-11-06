@@ -99,7 +99,7 @@ lint:
     stage: test
     script:
         - echo $CI_BUILD_REF_NAME $CI_BUILD_STAGE
-        - scripts/clang-format.py
+        - scripts/clang-format.py --no-diff
     allow_failure: yes
     tags:
         - source
