@@ -36,6 +36,9 @@ include(ConfigDependencies)
 #
 if (CMAKE_GENERATOR MATCHES "Ninja")
     add_compile_options(-fdiagnostics-color=always)
+
+    # Also enable warnings project-wide
+    add_compile_options(-Wall -Wextra)
 endif()
 
 if(VC_BUILD_TESTS)
