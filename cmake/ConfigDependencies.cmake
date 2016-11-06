@@ -55,7 +55,7 @@ find_package(PCL 1.7 QUIET)
 set(VTK_LIBRARIES ${VTK_LIBRARIES_TMP})
 
 ### OpenCV ###
-find_package(OpenCV 3 REQUIRED)
+find_package(OpenCV REQUIRED)
 
 ############
 # Optional #
