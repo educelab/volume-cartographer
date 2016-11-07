@@ -1,4 +1,4 @@
-int main(int argc, char** argv)
+int main()
 {
     int* arr = new int[5];
     delete[] arr;

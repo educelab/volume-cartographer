@@ -27,7 +27,7 @@
 
 namespace fs = boost::filesystem;
 
-int main(int argc, char* argv[])
+int main(int /*argc*/, char* argv[])
 {
 
     VolumePkg vpkg(argv[1]);

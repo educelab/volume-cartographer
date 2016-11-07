@@ -42,10 +42,14 @@ namespace volcart
 namespace texturing
 {
 // Pretick callbacks
-static void constrainMotionCallback(btDynamicsWorld* world, btScalar timeStep);
-static void axisLockCallback(btDynamicsWorld* world, btScalar timeStep);
-static void moveTowardTargetCallback(btDynamicsWorld* world, btScalar timeStep);
-static void emptyPreTickCallback(btDynamicsWorld* world, btScalar timeStep);
+[[maybe_unused]] static void constrainMotionCallback(
+    btDynamicsWorld* world, btScalar timeStep);
+[[maybe_unused]] static void axisLockCallback(
+    btDynamicsWorld* world, btScalar timeStep);
+[[maybe_unused]] static void moveTowardTargetCallback(
+    btDynamicsWorld* world, btScalar timeStep);
+[[maybe_unused]] static void emptyPreTickCallback(
+    btDynamicsWorld* world, btScalar timeStep);
 
 class ClothModelingUVMapping
 {
@@ -124,12 +128,6 @@ private:
     btSoftBodySolver* _WorldSoftBodySolver;
     btSoftRigidDynamicsWorld* _World;
 };
-
-//// Callbacks ////
-void constrainMotionCallback(btDynamicsWorld* world, btScalar timeStep);
-void axisLockCallback(btDynamicsWorld* world, btScalar timeStep);
-void moveTowardTargetCallback(btDynamicsWorld* world, btScalar timeStep);
-void emptyPreTickCallback(btDynamicsWorld* world, btScalar timeStep);
 }
 }
 

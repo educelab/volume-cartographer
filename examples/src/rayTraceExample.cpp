@@ -40,7 +40,7 @@ int main()
     std::vector<cv::Vec6f> TraceResults;
     std::map<int, cv::Vec2d> UVMap;
     int TraceDir = 0;
-    int Width, Height;
+    int Width = 0, Height = 0;
 
     std::ofstream MeshOutputFileStream;
     int NumberOfPoints;

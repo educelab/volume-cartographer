@@ -16,7 +16,7 @@
 #include "texturing/compositeTextureV2.h"
 #include "texturing/simpleUV.h"
 
-int main(int argc, char* argv[])
+int main(int /*argc*/, char* argv[])
 {
 
     VolumePkg vpkg(argv[1]);
@@ -62,7 +62,6 @@ int main(int argc, char* argv[])
 
     double aspect_width = std::abs(max_u - min_u);
     double aspect_height = std::abs(max_v - min_v);
-    double aspect = aspect_width / aspect_height;
     volcart::UVMap uvMap;
     uvMap.ratio(aspect_width, aspect_height);
 
