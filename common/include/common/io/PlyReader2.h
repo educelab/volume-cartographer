@@ -1,6 +1,3 @@
-//
-// Created by Hannah Hatch on 10/18/16.
-//
 
 #pragma once
 
@@ -10,10 +7,11 @@
 #include <cstring>
 #include <tuple>
 
-#include "boost/algorithm/string/classification.hpp"
-#include "boost/algorithm/string/split.hpp"
-#include "boost/filesystem/path.hpp"
-#include "common/vc_defines.h"
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/split.hpp>
+#include <boost/filesystem/path.hpp>
+#include <common/types/Exceptions.h>
+#include <common/vc_defines.h>
 /**
  * @class PlyReader2.h
  * @author Hannah Hatch
@@ -64,7 +62,7 @@ public:
      * @brief Sets the output mesh
      * @param mesh Pointer to an ITK mesh where the data read in will be stored
      */
-    void setMesh(ITK::Pointer mesh) { _outMesh = mesh; }
+    void setMesh(ITKMesh::Pointer mesh) { _outMesh = mesh; }
 
     /**
      * @brief Performs the actual reading in of the file
@@ -79,25 +77,6 @@ public:
 
 
 private:
-    /**
-     * @struct Point
-     * @brief Used to store the information for each point
-     *
-     * This function stores all of the information that we can
-     * parse for a point. There is one of these for each point
-     * that is created as points are read in.
-     */
-    struct Point{
-        double x = 0;
-        double y = 0;
-        double z = 0;
-        double nx = -1;
-        double ny = -1;
-        double nz = -1;
-        std::string r = "0";
-        std::string g = "0";
-        std::string b = "0";
-    };
     /**
      * Path to the file you want to read in, realtive or absolute
      */
@@ -132,10 +111,12 @@ private:
     void _parseHeader();
 
     /**
-     * List of faces in the mesh, tuple contains three point id's which
-     * make up the corners of the face.
+     * List of faces in the mesh, each cell contains
+     * 3 vertices that make up that cell
+     * @see common/include/common/vc_defines.h
      */
-    std::vector<std::tuple<int,int,int>> _faceList;
+    std::vector<volcart::Cell> _faceList;
+
     /**
      * @brief Reads in the faces and creates a list
      */
@@ -143,27 +124,34 @@ private:
 
     /**
      * List of points in the mesh
-     * @see Point
+     * @see common/include/common/vc_defines.h
      */
-    std::vector<Point> _pointList;
+    std::vector<volcart::Vertex> _pointList;
     /**
-     * @brief Reads in each point and stores them as a Point
-     * @see Point
+     * @brief Reads in each point and stores them as a vertex
+     * @see common/include/common/vc_defines.h
      */
     void _readPoints();
+
     /** Number of vertices in the mesh */
     int _numOfVertices;
+
     /** Number of faces in the mesh */
     int _numOfFaces;
+
     /** Map that maps positions in a string to a particular attribute*/
     std::map<std::string,int> properties;
+
     /** Bool to keep track if the list of faces comes before the list of
      * vertices*/
     bool _facesFirst;
+
     /** Bool to keep track if there is a leading character in front of each face
-     * line
-     * telling how many vertices are in that face*/
+     * line telling how many vertices are in that face*/
     bool _leadingChar = true;
+
+    /** Bool to keep track of if there are point normals*/
+    bool _pointNorm = false;
 }; //PLYReader
 } //io
 } //volcart

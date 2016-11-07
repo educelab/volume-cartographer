@@ -1,6 +1,4 @@
-//
-// Created by Hannah Hatch on 10/20/16.
-//
+
 
 #define BOOST_TEST_MODULE plyReader2
 
