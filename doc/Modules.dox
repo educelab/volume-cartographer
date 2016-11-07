@@ -9,6 +9,6 @@
 */
 
 /**
-@defgroup VolCore Volcart Core 
+@defgroup Common Common
 @brief Functions that make up the core of Volume Cartographer
 */ 
