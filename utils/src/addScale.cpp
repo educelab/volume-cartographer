@@ -30,7 +30,6 @@ int main(int argc, char* argv[])
 
     // Define which scale image we're going to use
     cv::Mat scaleImage;
-    unsigned short* scaleArray;
     switch (atoi(argv[3])) {
         case 0:
             scaleImage = cv::Mat(23, 82, CV_16U, &scale_micro);

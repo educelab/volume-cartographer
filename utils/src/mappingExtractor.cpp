@@ -19,7 +19,7 @@ ITKPoint lookup2Dto3D(int x, int y);
 #define RED cv::Scalar(0, 0, 255)
 #define RED_OVERLAY cv::Scalar(0, 0, 255, 0.25)
 
-int main(int argc, char* argv[])
+int main(int /*argc*/, char* argv[])
 {
 
     _volpkg = new VolumePkg(argv[1]);
