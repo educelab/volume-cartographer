@@ -12,10 +12,9 @@
 #include "Global_Values.h"
 
 Global_Values::Global_Values(QRect rec)
-
-    : height(rec.height())
+    : VPKG_Instantiated(false)
+    , height(rec.height())
     , width(rec.width())
-    , VPKG_Instantiated(false)
     , _radius(0)
     , _textureMethod(0)
     , _sampleDirection(0)
