@@ -4,6 +4,7 @@
 #include "CVolumeViewerWithCurve.h"
 #include "UDataManipulateUtils.h"
 #include "common/types/Exceptions.h"
+#include "meshing/OrderedPointSetMesher.h"
 
 #define _DEBUG
 
@@ -805,7 +806,10 @@ void CWindow::SavePointCloud(void)
         std::cerr << "VC::message: Cloud height <= 1. Nothing to mesh."
                   << std::endl;
     } else {
-        if (fVpkg->saveMesh(fMasterCloud) != EXIT_SUCCESS) {
+        // Mesh pointset
+        volcart::meshing::OrderedPointSetMesher mesher{fMasterCloud};
+        mesher.compute();
+        if (fVpkg->saveMesh(mesher.getOutputMesh()) != EXIT_SUCCESS) {
             QMessageBox::warning(
                 this, "Error", "Failed to write mesh to volume package.");
             return;
