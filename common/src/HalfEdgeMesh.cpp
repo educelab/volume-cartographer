@@ -270,7 +270,6 @@ HalfEdgeMesh::EdgePtr HalfEdgeMesh::_findEdgePair(
     HalfEdgeMesh::EdgePtr pair = nullptr;
     // Check these id's against each edge
     for (auto e = _edges[0]; e; e = e->nextlink) {
-        auto f_id = e->face->id;
         // If the current edge's first if matches this one's B, and vice versa,
         // it's the pair we want
         if ((e->vert->id == B) && (e->next->vert->id == A)) {

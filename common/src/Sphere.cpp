@@ -10,7 +10,7 @@ namespace volcart
 namespace shapes
 {
 
-Sphere::Sphere(float radius, int recursionLevel)
+Sphere::Sphere(float /*radius*/, int recursionLevel)
 {
 
     // create 12 vertices of a icosahedron

@@ -38,7 +38,12 @@ if (CMAKE_GENERATOR MATCHES "Ninja")
     add_compile_options(-fdiagnostics-color=always)
 
     # Also enable warnings project-wide
-    add_compile_options(-Wall -Wextra)
+    set(project_warnings
+        -Wall
+        -Wextra
+        -Wno-missing-braces
+    )
+    add_compile_options(${project_warnings})
 endif()
 
 if(VC_BUILD_TESTS)

@@ -5,12 +5,10 @@
 #include "common/io/PLYReader.h"
 #include <boost/filesystem.hpp>
 
-namespace volcart
-{
-namespace io
-{
+using namespace volcart::io;
+namespace fs = boost::filesystem;
 
-bool PLYReader(boost::filesystem::path path, ITKMesh::Pointer mesh)
+bool PLYReader(fs::path path, volcart::ITKMesh::Pointer mesh)
 {
     // open ply file
     std::ifstream plyFile(path.string());
@@ -22,7 +20,7 @@ bool PLYReader(boost::filesystem::path path, ITKMesh::Pointer mesh)
     // parse ply file
     std::string line;
 
-    int elementValue, aNumVertices, aNumFaces;
+    int elementValue;
     std::string elementID;
     std::vector<int> aElements;
     std::vector<std::string> aElementIDs, parsed;
@@ -63,14 +61,13 @@ bool PLYReader(boost::filesystem::path path, ITKMesh::Pointer mesh)
     int w, h;
 
     // For Vertices
-    double x, y, z, nx, ny, nz, s, t;
-    int red, green, blue;
+    double x, y, z, nx, ny, nz;
 
     // For Faces
-    ITKCell::CellAutoPointer cellpointer;
+    volcart::ITKCell::CellAutoPointer cellpointer;
     int temp, p1, p2, p3;
 
-    for (int i = 0; i < aElements.size(); ++i) {
+    for (size_t i = 0; i < aElements.size(); ++i) {
         std::cout << "Reading element: " << aElementIDs[i]
                   << ", Number to be Read: " << aElements[i] << std::endl;
         for (int j = 0; j < aElements[i]; ++j) {
@@ -81,8 +78,8 @@ bool PLYReader(boost::filesystem::path path, ITKMesh::Pointer mesh)
 
             // read vertices
             if (aElementIDs[i] == "vertex") {
-                ITKPoint p;
-                ITKPixel n;
+                volcart::ITKPoint p;
+                volcart::ITKPixel n;
 
                 plyFile >> x >> y >> z >> nx >> ny >> nz;
                 p[0] = x;
@@ -108,7 +105,7 @@ bool PLYReader(boost::filesystem::path path, ITKMesh::Pointer mesh)
             if (aElementIDs[i] == "face") {
                 plyFile >> temp >> p1 >> p2 >> p3;
 
-                cellpointer.TakeOwnership(new ITKTriangle);
+                cellpointer.TakeOwnership(new volcart::ITKTriangle);
                 cellpointer->SetPointId(0, p1);
                 cellpointer->SetPointId(1, p2);
                 cellpointer->SetPointId(2, p3);
@@ -120,5 +117,3 @@ bool PLYReader(boost::filesystem::path path, ITKMesh::Pointer mesh)
     plyFile.close();
     return true;
 }
-}  // namespace io
-}  // namespace volcart

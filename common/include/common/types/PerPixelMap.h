@@ -20,7 +20,7 @@ class PerPixelMap
 public:
     ///// Constructors /////
     // Create empty
-    PerPixelMap() : _width(0), _height(0){};
+    PerPixelMap() : _height(0), _width(0){};
 
     // Create new
     PerPixelMap(int height, int width);
@@ -44,7 +44,7 @@ public:
     void read(boost::filesystem::path path);
 
 private:
-    int _width, _height;
+    int _height, _width;
     cv::Mat_<cv::Vec6d> _map;
 };
 }
