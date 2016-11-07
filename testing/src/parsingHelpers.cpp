@@ -104,7 +104,7 @@ void ParsingHelpers::parsePlyFile(
                 plyLine = volcart::testing::ParsingHelpers::split_string(line);
 
                 //<< Do something with the property for the face information
-                //here >>
+                // here >>
 
                 // if (plyLine[0] == "property") {
                 //
@@ -133,7 +133,7 @@ void ParsingHelpers::parsePlyFile(
 
             // Read in the vertex information
             for (int v = 0; v < numVertices; v++) {
-                for (int i = 0; i < typeOfPointInformation.size(); i++) {
+                for (size_t i = 0; i < typeOfPointInformation.size(); i++) {
 
                     if (typeOfPointInformation[i] == "x")
                         plyVertex.x = std::stod(plyLine[i]);
