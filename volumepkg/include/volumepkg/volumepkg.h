@@ -300,18 +300,17 @@ public:
     boost::filesystem::path getMeshPath() const;
 
     /**
-     * @brief Generates a mesh from the points `ps` and saves it to the active
-     * segmentation's subdirectory in the .volpkg file.
+     * @brief Saves `mesh` to the active * segmentation's subdirectory in the
+     * .volpkg file.
      *
-     * Uses volcart::meshing::OrderedPointSetMesher to generate mesh. Written in
-     * the PLY format.
+     * Saves a volcart::ITKMesh to the volpkg file
      * @warning Data currently saved in the active segmentation's directory will
      * be overwritten. This function can be called when the VolumePkg read-only
      * flag is not set.
-     * @param ps OrderedPointSet to be meshed and saved to the .volpkg file.
+     * @param mesh Mesh to be saved to the .volpkg file.
      * @return `EXIT_SUCCESS`
      */
-    int saveMesh(const volcart::OrderedPointSet<volcart::Point3d>& ps) const;
+    int saveMesh(const volcart::ITKMesh::Pointer ps) const;
 
     /**
      * @brief Saves the provided mesh and texture information active
