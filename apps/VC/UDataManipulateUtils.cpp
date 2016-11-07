@@ -8,7 +8,7 @@ namespace ChaoVis
 
 // Split vertex and face to memory chunk that can fit into OpenGL
 bool SplitVertexAndElementBuffer(
-    int nVertexNum,
+    int /*nVertexNum*/,
     int nFaceNum,
     const int* nElementBufferTmp,  // constant data, not constant pointer
     unsigned short*** nElementBufferData,
@@ -22,7 +22,6 @@ bool SplitVertexAndElementBuffer(
     int* nElementArrayNum)
 {
     const unsigned short MAX_NUM_FACE_IN_ARRAY = USHORT_SIZE / 3;
-    const unsigned short MAX_NUM_VERTEX_IN_ARRAY = MAX_NUM_FACE_IN_ARRAY * 3;
 
     int aArraySize = (nFaceNum * 3 / USHORT_SIZE) + 1;
     *nElementArrayNum = aArraySize;
@@ -41,7 +40,7 @@ bool SplitVertexAndElementBuffer(
     size_t aSurfaceBase = 0;
     size_t aArrayIndex = 0;
 
-    while (aSurfaceBase < nFaceNum) {
+    while (static_cast<int>(aSurfaceBase) < nFaceNum) {
 
         size_t aSurfaceCntRemained = nFaceNum - aSurfaceBase;
         size_t aSurfaceCntToProcess =

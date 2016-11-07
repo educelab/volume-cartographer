@@ -7,14 +7,14 @@ using namespace ChaoVis;
 
 // Constructor
 CVolumeViewerWithCurve::CVolumeViewerWithCurve(void)
-    : fSplineCurveRef(nullptr)
-    , fIntersectionCurveRef(nullptr)
-    , fViewState(EViewState::ViewStateIdle)
-    , fShowCurveBox(nullptr)
+    : fShowCurveBox(nullptr)
     , showCurve(true)
+    , fSplineCurveRef(nullptr)
+    , fIntersectionCurveRef(nullptr)
     , fSelectedPointIndex(-1)
     , fVertexIsChanged(false)
     , fImpactRange(5)
+    , fViewState(EViewState::ViewStateIdle)
 {
     // show curve box
     fShowCurveBox = new QCheckBox(this);
@@ -181,7 +181,7 @@ void CVolumeViewerWithCurve::mouseMoveEvent(QMouseEvent* event)
 }
 
 // Handle mouse release event
-void CVolumeViewerWithCurve::mouseReleaseEvent(QMouseEvent* event)
+void CVolumeViewerWithCurve::mouseReleaseEvent(QMouseEvent* /*event*/)
 {
     if (fViewState != ViewStateEdit) {
         return;
@@ -198,7 +198,7 @@ void CVolumeViewerWithCurve::mouseReleaseEvent(QMouseEvent* event)
 }
 
 // Handle paint event
-void CVolumeViewerWithCurve::paintEvent(QPaintEvent* event) {}
+void CVolumeViewerWithCurve::paintEvent(QPaintEvent* /*event*/) {}
 
 // Handle setting the draw state for the curve
 void CVolumeViewerWithCurve::OnShowCurveStateChanged(int state)

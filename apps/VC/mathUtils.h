@@ -56,11 +56,8 @@ public:
     }
 
     const T operator[](int i) const { return val[i]; }
-    T& operator[](int i)
-    {
-        return val[i];
-    }  // left value,
-       // http://stackoverflow.com/questions/6692982/how-to-assign-value-to-left-side-using-overload-operator
+    T& operator[](int i) { return val[i]; }  // left value,
+                                             // http://stackoverflow.com/questions/6692982/how-to-assign-value-to-left-side-using-overload-operator
     void operator+=(const Vec2<T>& nRHS)
     {
         val[0] += nRHS[0];
@@ -611,31 +608,6 @@ inline Mat33<T> Inverse(const Mat33<T>& nSrc)
     aResult[2][2] =
         Det(Mat22<T>(nSrc[0][0], nSrc[0][1], nSrc[1][0], nSrc[1][1])) /
         aDeterminant;
-
-    return aResult;
-}
-
-// inverse 4x4
-template <typename T>
-Mat44<T> Inverse(const Mat44<T>& nSrc)
-{
-    Mat44<T> aResult;
-    // T aDeterminant = nSrc[ 0 ][ 0 ] * nSrc[ 1 ][ 1 ] - nSrc[ 0 ][ 1 ] * nSrc[
-    // 1 ][ 0 ];
-
-    // if ( fabs( aDeterminant ) < TOO_SMALL ) {
-    //	printf( "ERROR: division by zero when invert a matrix\n" );
-    //	exit( -1 );
-    //}
-
-    // aResult[ 0 ][ 0 ] = nSrc[ 0 ][ 0 ] / aDeterminant; aResult[ 0 ][ 1 ] =
-    // -nSrc[ 0 ][ 1 ] / aDeterminant;
-    // aResult[ 1 ][ 0 ] = -nSrc[ 1 ][ 0 ] / aDeterminant; aResult[ 1 ][ 1 ] =
-    // nSrc[ 0 ][ 0 ] / aDeterminant;
-
-    // REVISIT - Chao 20141204 - FILL ME HERE, not implemented
-    // for A = [ R, t; 0, 1 ], A^-1 = [ R^-1, -R^-1 * t; 0, 1 ]
-    printf("ERROR: matrix 4x4 inversion not implemented\n");
 
     return aResult;
 }

@@ -27,7 +27,7 @@ CBezierCurve::CBezierCurve(
     const std::vector<Vec2<double>>& nControlPoints, int nSampleInterval)
     : fNumControlPoints(4), fSampleInterval(nSampleInterval)
 {
-    assert(nControlPoints.size() == fNumControlPoints);  // 4
+    assert(static_cast<int>(nControlPoints.size()) == fNumControlPoints);  // 4
 
     for (int i = 0; i < fNumControlPoints; ++i) {
         fControlPoints.push_back(nControlPoints[i]);
@@ -41,7 +41,7 @@ CBezierCurve::~CBezierCurve(void) {}
 void CBezierCurve::SetControlPoints(
     const std::vector<Vec2<double>>& nControlPoints)
 {
-    assert(nControlPoints.size() == fNumControlPoints);  // 4
+    assert(static_cast<int>(nControlPoints.size()) == fNumControlPoints);  // 4
 
     for (int i = 0; i < fNumControlPoints; ++i) {
         fControlPoints[i] = nControlPoints[i];
@@ -52,7 +52,7 @@ void CBezierCurve::SetControlPoints(
 void CBezierCurve::SetControlPoints(
     const std::vector<cv::Vec2f>& nControlPoints)
 {
-    assert(nControlPoints.size() == fNumControlPoints);  // 4
+    assert(static_cast<int>(nControlPoints.size()) == fNumControlPoints);  // 4
 
     for (int i = 0; i < fNumControlPoints; ++i) {
         fControlPoints[i] =

@@ -11,16 +11,16 @@ using namespace ChaoVis;
 
 // Constructor
 CWindow::CWindow(void)
-    : fVpkg(nullptr)
+    : fWindowState(EWindowState::WindowStateIdle)
+    , fVpkg(nullptr)
+    , fSegmentationId("")
+    , fMinSegIndex(VOLPKG_SLICE_MIN_INDEX)
+    , fMaxSegIndex(VOLPKG_SLICE_MIN_INDEX)
     , fPathOnSliceIndex(0)
     , fVolumeViewerWidget(nullptr)
     , fPathListWidget(nullptr)
     , fPenTool(nullptr)
     , fSegTool(nullptr)
-    , fWindowState(EWindowState::WindowStateIdle)
-    , fSegmentationId("")
-    , fMinSegIndex(VOLPKG_SLICE_MIN_INDEX)
-    , fMaxSegIndex(VOLPKG_SLICE_MIN_INDEX)
 {
     ui.setupUi(this);
 
@@ -54,16 +54,16 @@ CWindow::CWindow(void)
 
 // Constructor with QRect windowSize
 CWindow::CWindow(QRect windowSize)
-    : fVpkg(nullptr)
+    : fWindowState(EWindowState::WindowStateIdle)
+    , fVpkg(nullptr)
+    , fSegmentationId("")
+    , fMinSegIndex(VOLPKG_SLICE_MIN_INDEX)
+    , fMaxSegIndex(VOLPKG_SLICE_MIN_INDEX)
     , fPathOnSliceIndex(0)
     , fVolumeViewerWidget(nullptr)
     , fPathListWidget(nullptr)
     , fPenTool(nullptr)
     , fSegTool(nullptr)
-    , fWindowState(EWindowState::WindowStateIdle)
-    , fSegmentationId("")
-    , fMinSegIndex(VOLPKG_SLICE_MIN_INDEX)
-    , fMaxSegIndex(VOLPKG_SLICE_MIN_INDEX)
 {
     ui.setupUi(this);
 
@@ -109,7 +109,7 @@ CWindow::CWindow(QRect windowSize)
 CWindow::~CWindow(void) { deleteNULL(fVpkg); }
 
 // Handle mouse press event
-void CWindow::mousePressEvent(QMouseEvent* nEvent) {}
+void CWindow::mousePressEvent(QMouseEvent* /*nEvent*/) {}
 
 // Handle key press event
 void CWindow::keyPressEvent(QKeyEvent* event)
@@ -604,9 +604,9 @@ void CWindow::SetUpCurves(void)
     fMaxSegIndex = maxIndex;
 
     // assign rows of particles to the curves
-    for (int i = 0; i < fMasterCloud.height(); ++i) {
+    for (size_t i = 0; i < fMasterCloud.height(); ++i) {
         CXCurve aCurve;
-        for (int j = 0; j < fMasterCloud.width(); ++j) {
+        for (size_t j = 0; j < fMasterCloud.width(); ++j) {
             int pointIndex = j + (i * fMasterCloud.width());
             aCurve.SetSliceIndex((int)floor(fMasterCloud[pointIndex][2]));
             aCurve.InsertPoint(Vec2<float>(
@@ -620,7 +620,8 @@ void CWindow::SetUpCurves(void)
 void CWindow::SetCurrentCurve(int nCurrentSliceIndex)
 {
     int curveIndex = nCurrentSliceIndex - fMinSegIndex;
-    if (curveIndex >= 0 && curveIndex < fIntersections.size() &&
+    if (curveIndex >= 0 &&
+        curveIndex < static_cast<int>(fIntersections.size()) &&
         fIntersections.size() != 0) {
         fIntersectionCurve = fIntersections[curveIndex];
     } else {
@@ -1029,7 +1030,7 @@ void CWindow::OnEdtSampleDistValChange( QString nText )
 */
 
 // Handle starting slice value change
-void CWindow::OnEdtStartingSliceValChange(QString nText)
+void CWindow::OnEdtStartingSliceValChange(QString /*nText*/)
 {
     // REVISIT - FILL ME HERE
     // REVISIT - should be equivalent to "set current slice", the same as

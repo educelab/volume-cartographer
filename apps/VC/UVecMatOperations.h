@@ -862,53 +862,6 @@ inline void SVD(
     }      // for i
 }
 
-template <typename T>
-inline void SVD3x3(
-    CMatrixMN<T>& nU,
-    CMatrixMN<T>& nW,
-    CMatrixMN<T>& nV,
-    const CMatrixMN<T>& nMat)
-{
-    // REVISIT - FILL ME HERE
-    // implementation of singular value decomposition, M = U W V'
-    // ...
-}
-
-template <typename T>
-inline void SVD4x4(
-    CMatrixMN<T>& nU,
-    CMatrixMN<T>& nW,
-    CMatrixMN<T>& nV,
-    const CMatrixMN<T>& nMat)
-{
-    // REVISIT - FILL ME HERE
-    // implementation of singular value decomposition, M = U W V'
-    // ...
-}
-
-// QR decomposition
-template <typename T>
-inline void QR(CMatrixMN<T>& nQ, CMatrixMN<T>& nR, const CMatrixMN<T>& nMat)
-{
-    // REVISIT - FILL ME HERE
-    // implementation of QR decomposition, M = Q R
-}
-
-template <typename T>
-inline void QR3x3(CMatrixMN<T>& nQ, CMatrixMN<T>& nR, const CMatrixMN<T>& nMat)
-{
-    // REVISIT - FILL ME HERE
-    // implementation of QR decomposition, M = Q R
-}
-
-// Chelosky decomposition
-template <typename T>
-inline void Chelosky(CMatrixMN<T>& nL, const CMatrixMN<T>& nMat)
-{
-    // REVISIT - FILL ME HERE
-    // implementation of Chelosky decomposition, M = L L'
-}
-
 // Thomas tri-diagonal matrix
 // en.wikipedia.org/wiki/Tridiagonal_matrix_algorithm
 template <typename T>

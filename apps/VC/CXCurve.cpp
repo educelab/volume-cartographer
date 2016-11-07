@@ -36,7 +36,7 @@ void CXCurve::SetPointByDifference(
         if (i == 0) {
             continue;
         }
-        if (nIndex + i < fPoints.size()) {
+        if (nIndex + i < static_cast<int>(fPoints.size())) {
             SetPoint(
                 nIndex + i,
                 fLastState[nIndex + i] +
