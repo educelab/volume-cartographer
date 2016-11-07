@@ -38,7 +38,6 @@ int main(int argc, char* argv[])
     fs::path volpkgPath, outputPath;
     std::string segID;
     double radius;
-    double smoothRadius = 0;
     CompositeOption aFilterOption;
     DirectionOption aDirectionOption;
 

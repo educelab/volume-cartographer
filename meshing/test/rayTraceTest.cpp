@@ -92,7 +92,7 @@ struct PlaneRayTraceFixture {
             << "end_header" << std::endl;
 
         // write vertex information
-        for (int i = 0; i < _NumberOfPointsInMesh; i++) {
+        for (uint32_t i = 0; i < _NumberOfPointsInMesh; i++) {
 
             // x y z nx ny nz
             _SavedPlaneMeshFile << _PlaneRayTraceResults[i](0) << " "
@@ -537,7 +537,7 @@ BOOST_FIXTURE_TEST_CASE(SavedPlaneRayTraceComparison, PlaneRayTraceFixture)
     BOOST_CHECK_EQUAL(_SavedPoints.size(), _CurrentPoints.size());
 
     // loop over points
-    for (int point = 0; point < _SavedPoints.size(); point++) {
+    for (size_t point = 0; point < _SavedPoints.size(); point++) {
 
         volcart::testing::SmallOrClose(
             _SavedPoints[point].x, _CurrentPoints[point].x);
@@ -561,7 +561,7 @@ BOOST_FIXTURE_TEST_CASE(SavedCubeRayTraceComparison, CubeRayTraceFixture)
     BOOST_CHECK_EQUAL(_SavedPoints.size(), _CurrentPoints.size());
 
     // loop over points
-    for (int point = 0; point < _SavedPoints.size(); point++) {
+    for (size_t point = 0; point < _SavedPoints.size(); point++) {
 
         volcart::testing::SmallOrClose(
             _SavedPoints[point].x, _CurrentPoints[point].x);
@@ -585,7 +585,7 @@ BOOST_FIXTURE_TEST_CASE(SavedArchRayTraceComparison, ArchRayTraceFixture)
     BOOST_CHECK_EQUAL(_SavedPoints.size(), _CurrentPoints.size());
 
     // check points
-    for (int point = 0; point < _SavedPoints.size(); point++) {
+    for (size_t point = 0; point < _SavedPoints.size(); point++) {
 
         volcart::testing::SmallOrClose(
             _SavedPoints[point].x, _CurrentPoints[point].x);
@@ -609,7 +609,7 @@ BOOST_FIXTURE_TEST_CASE(SavedSphereRayTraceComparison, SphereRayTraceFixture)
     BOOST_CHECK_EQUAL(_SavedPoints.size(), _CurrentPoints.size());
 
     // loop over points
-    for (int point = 0; point < _SavedPoints.size(); point++) {
+    for (size_t point = 0; point < _SavedPoints.size(); point++) {
 
         volcart::testing::SmallOrClose(
             _SavedPoints[point].x, _CurrentPoints[point].x);
@@ -633,7 +633,7 @@ BOOST_FIXTURE_TEST_CASE(SavedConeRayTraceComparison, ConeRayTraceFixture)
     BOOST_CHECK_EQUAL(_SavedPoints.size(), _CurrentPoints.size());
 
     // loop over points
-    for (int point = 0; point < _SavedPoints.size(); point++) {
+    for (size_t point = 0; point < _SavedPoints.size(); point++) {
 
         volcart::testing::SmallOrClose(
             _SavedPoints[point].x, _CurrentPoints[point].x);

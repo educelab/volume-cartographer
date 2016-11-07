@@ -161,7 +161,6 @@ int main(int argc, char* argv[])
     // Get some info about the cloud, including chain length and z-index's
     // represented by seg.
     auto chainLength = masterCloud.width();
-    auto iterations = masterCloud.height();
     int minIndex = floor(masterCloud.front()[2]);
     int maxIndex = floor(masterCloud.max()[2]);
 

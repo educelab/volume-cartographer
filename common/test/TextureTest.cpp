@@ -155,7 +155,7 @@ BOOST_FIXTURE_TEST_CASE(AddImageToTextureTest, TextureWithImageFixture)
     BOOST_CHECK_EQUAL(_Texture.hasMap(), false);
 
     // check that each of the images added in fixture match identity mats
-    for (int img_id = 0; img_id < _Texture.numberOfImages(); img_id++) {
+    for (size_t img_id = 0; img_id < _Texture.numberOfImages(); img_id++) {
 
         BOOST_CHECK_EQUAL(_Texture.getImage(img_id).rows, img_id + 2);
         BOOST_CHECK_EQUAL(_Texture.getImage(img_id).cols, img_id + 2);
