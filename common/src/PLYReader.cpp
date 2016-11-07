@@ -5,10 +5,9 @@
 #include "common/io/PLYReader.h"
 #include <boost/filesystem.hpp>
 
-using namespace volcart::io;
 namespace fs = boost::filesystem;
 
-bool PLYReader(fs::path path, volcart::ITKMesh::Pointer mesh)
+bool volcart::io::PLYReader(fs::path path, volcart::ITKMesh::Pointer mesh)
 {
     // open ply file
     std::ifstream plyFile(path.string());
