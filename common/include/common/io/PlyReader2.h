@@ -52,9 +52,9 @@ private:
         double x = 0;
         double y = 0;
         double z = 0;
-        double nx = 0;
-        double ny = 0;
-        double nz = 0;
+        double nx = -1;
+        double ny = -1;
+        double nz = -1;
         std::string r = "0";
         std::string g = "0";
         std::string b = "0";

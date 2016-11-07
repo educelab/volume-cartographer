@@ -144,14 +144,15 @@ void PLYReader2::_parseHeader() {
         }
         getline(_plyFile,_line);
     }//else
-    while(_line.find("end_header",0) != std::string::npos){
+    while (_line.find("end_header", 0) < sizeof(_line)) {
         getline(_plyFile, _line);
     }
-    getline(_plyFile, _line);
+
 }//ParseHeader
 
 void PLYReader2::_readPoints() {
-    for(int i = 0; i < _numOfVertices; i ++){
+    int i;
+    for (i = 0; i < _numOfVertices; i++) {
         Point curPoint;
         std::vector<std::string> curLine;
         boost::split(curLine,_line,boost::is_any_of(" "), boost::token_compress_on);
@@ -171,16 +172,16 @@ void PLYReader2::_readPoints() {
         _pointList.push_back(curPoint);
         getline(_plyFile, _line);
     }
-    getline(_plyFile, _line);
 }
 
 void PLYReader2::_readFaces() {
-    for (int i = 0; i < _numOfFaces; i++) {
+    int i;
+    for (i = 0; i < _numOfFaces; i++) {
         std::vector<std::string> curFace;
         std::tuple<int, int, int> face;
         boost::split(curFace, _line, boost::is_any_of(" "), boost::token_compress_on);
         if (_leadingChar) {
-            int points_per_face = _line[0] - '0';
+            int points_per_face = std::stoi(curFace[0]);
             if (points_per_face != 3) {
                 auto msg = "Error: Not a Triangular Mesh";
                 throw volcart::IOException(msg);
@@ -209,7 +210,7 @@ void PLYReader2::_createMesh() {
         P[1] = cur.y;
         P[2] = cur.z;
         _outMesh -> SetPoint(point_cnt,P);
-        if(cur.nx != 0){
+        if (cur.nx != -1) {
             ITKPixel Q;
             Q[0] = cur.nx;
             Q[1] = cur.ny;
@@ -234,6 +235,7 @@ void PLYReader2::_createMesh() {
             }
         }
         _outMesh -> SetCell(face_cnt, cellpointer);
+        face_cnt++;
     }
 }
 }  // namespace io
