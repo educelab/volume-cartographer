@@ -31,8 +31,8 @@ void OrderedPointSetMesher::compute()
 
     // Creates 2 cells per iteration and adds them to the mesh
     size_t p0, p1, p2, p3;
-    for (auto i = 0; i < input_.height() - 1; i++) {
-        for (auto j = 0; j < input_.width() - 1; j++) {
+    for (size_t i = 0; i < input_.height() - 1; i++) {
+        for (size_t j = 0; j < input_.width() - 1; j++) {
 
             // Get the indices for the faces adjacent along the "hypotenuse"
             p0 = i * input_.width() + j;

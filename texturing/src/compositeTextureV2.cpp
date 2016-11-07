@@ -19,14 +19,14 @@ compositeTextureV2::compositeTextureV2(
     int height,
     CompositeOption method,
     DirectionOption direction)
-    : _volpkg(volpkg)
-    , _input(inputMesh)
-    , _uvMap(uvMap)
-    , _radius(radius)
+    : _input(inputMesh)
+    , _volpkg(volpkg)
     , _width(width)
     , _height(height)
+    , _radius(radius)
     , _method(method)
     , _direction(direction)
+    , _uvMap(uvMap)
 {
     _process();
 };

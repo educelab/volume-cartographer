@@ -8,28 +8,22 @@
 using namespace volcart::meshing;
 
 //// Constructors ////
-OrderedResampling::OrderedResampling()
-{
-    _inWidth = 0;
-    _inHeight = 0;
-}  // constructor
+OrderedResampling::OrderedResampling() : _inWidth{0}, _inHeight{0} {}
 
 OrderedResampling::OrderedResampling(
-    ITKMesh::Pointer mesh, int in_width, int in_height)
+    ITKMesh::Pointer mesh, uint32_t in_width, uint32_t in_height)
+    : _input{mesh}, _inWidth{in_width}, _inHeight{in_height}
 {
-    _input = mesh;
-    _inWidth = in_width;
-    _inHeight = in_height;
-}  // constructor with parameters
+}
 
 //// Set Inputs/Get Output ////
 void OrderedResampling::setMesh(
-    ITKMesh::Pointer mesh, int in_width, int in_height)
+    ITKMesh::Pointer mesh, uint32_t in_width, uint32_t in_height)
 {
     _input = mesh;
     _inWidth = in_width;
     _inHeight = in_height;
-}  // setParameters
+}
 
 volcart::ITKMesh::Pointer OrderedResampling::getOutputMesh() const
 {
@@ -38,10 +32,10 @@ volcart::ITKMesh::Pointer OrderedResampling::getOutputMesh() const
         return NULL;
     } else
         return _output;
-}  // getOutput
+}
 
-int OrderedResampling::getOutputWidth() const { return _outWidth; };
-int OrderedResampling::getOutputHeight() const { return _outHeight; };
+uint32_t OrderedResampling::getOutputWidth() const { return _outWidth; };
+uint32_t OrderedResampling::getOutputHeight() const { return _outHeight; };
 
 ///// Processing /////
 void OrderedResampling::compute()
@@ -57,7 +51,7 @@ void OrderedResampling::compute()
     bool line_skip = false;
 
     // Loop iterator
-    unsigned long k = 0;
+    uint32_t k = 0;
     ITKPointIterator pointsIterator = _input->GetPoints()->Begin();
 
     // Adds certain points from old mesh into the new mesh
@@ -88,12 +82,12 @@ void OrderedResampling::compute()
         "Error resampling. Output and expected output don't match.");
 
     // Vertices for each face in the new mesh
-    unsigned long point1, point2, point3, point4;
+    uint32_t point1, point2, point3, point4;
 
     // Create two new faces each iteration based on new set of points and keeps
     // normals same as original
-    for (unsigned long i = 0; i < _outHeight - 1; i++) {
-        for (unsigned long j = 0; j < _outWidth - 1; j++) {
+    for (uint32_t i = 0; i < _outHeight - 1; i++) {
+        for (uint32_t j = 0; j < _outWidth - 1; j++) {
 
             // 4 points allows us to create the upper and lower faces at the
             // same time
@@ -126,11 +120,9 @@ void OrderedResampling::compute()
         << _output->GetNumberOfPoints() << std::endl;
     std::cerr << "volcart::meshing::OrderedResampling: Cells in resampled mesh "
               << _output->GetNumberOfCells() << std::endl;
+}
 
-}  // compute
-
-void OrderedResampling::_addCell(
-    unsigned long a, unsigned long b, unsigned long c)
+void OrderedResampling::_addCell(uint32_t a, uint32_t b, uint32_t c)
 {
     ITKCell::CellAutoPointer current_C;
 
@@ -141,4 +133,4 @@ void OrderedResampling::_addCell(
     current_C->SetPointId(2, c);
 
     _output->SetCell(_output->GetNumberOfCells(), current_C);
-}  // addCell
+}

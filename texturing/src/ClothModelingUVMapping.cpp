@@ -56,9 +56,9 @@ ClothModelingUVMapping::ClothModelingUVMapping(
     PinIDs expansionPins)
     : _mesh(input)
     , _unfurlIterations(unfurlIterations)
+    , _unfurlPins(unfurlPins)
     , _collideIterations(collideIterations)
     , _expandIterations(expandIterations)
-    , _unfurlPins(unfurlPins)
     , _expansionPins(expansionPins)
 {
     // Default starting parameters
@@ -172,7 +172,6 @@ volcart::UVMap ClothModelingUVMapping::getUVMap()
     // Scale width and height back to volume coordinates
     double aspect_width = std::abs(max_u - min_u) * (1 / _meshToWorldScale);
     double aspect_height = std::abs(max_v - min_v) * (1 / _meshToWorldScale);
-    double aspect = aspect_width / aspect_height;
 
     volcart::UVMap uvMap;
     uvMap.ratio(aspect_width, aspect_height);
@@ -407,7 +406,7 @@ double ClothModelingUVMapping::_SurfaceArea()
 
 ///// Callback Functions /////
 // Limits motion to be along the X axis only. Used in unfurl step.
-void ClothModelingUVMapping::_constrainMotion(btScalar timeStep)
+void ClothModelingUVMapping::_constrainMotion(btScalar /*timeStep*/)
 {
     for (auto n = 0; n < _softBody->m_nodes.size(); ++n) {
         btVector3 velocity = _softBody->m_nodes[n].m_v;
@@ -418,7 +417,7 @@ void ClothModelingUVMapping::_constrainMotion(btScalar timeStep)
 };
 // Apply opposite velocity to points that have "passed through" the collision
 // plane
-void ClothModelingUVMapping::_axisLock(btScalar timeStep)
+void ClothModelingUVMapping::_axisLock(btScalar /*timeStep*/)
 {
     for (auto n = 0; n < _softBody->m_nodes.size(); ++n) {
         btVector3 pos = _softBody->m_nodes[n].m_x;
@@ -438,6 +437,6 @@ void ClothModelingUVMapping::_moveTowardTarget(btScalar timeStep)
     }
 };
 // This call back is used to disable other callbacks
-void ClothModelingUVMapping::_emptyPreTick(btScalar timeStep){
+void ClothModelingUVMapping::_emptyPreTick(btScalar /*timeStep*/){
     // Don't do anything
 };

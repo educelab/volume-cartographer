@@ -16,8 +16,8 @@ compositeTexture::compositeTexture(
     double radius,
     CompositeOption compositeMethod,
     DirectionOption compositeDirection)
-    : _volpkg(volpkg)
-    , _input(inputMesh)
+    : _input(inputMesh)
+    , _volpkg(volpkg)
     , _width(output_w)
     , _height(output_h)
     , _radius(radius)
@@ -38,12 +38,12 @@ compositeTexture::compositeTexture(
     double radius,
     CompositeOption method,
     DirectionOption direction)
-    : _volpkg(volpkg)
-    , _input(inputMesh)
-    , _uvMap(uvMap)
+    : _input(inputMesh)
+    , _volpkg(volpkg)
     , _radius(radius)
     , _method(method)
     , _direction(direction)
+    , _uvMap(uvMap)
 {
     _width = uvMap.ratio().width;
     _height = uvMap.ratio().height;

@@ -19,25 +19,26 @@ class OrderedResampling
 {
 public:
     OrderedResampling();
-    OrderedResampling(ITKMesh::Pointer mesh, int in_width, int in_height);
+    OrderedResampling(
+        ITKMesh::Pointer mesh, uint32_t in_width, uint32_t in_height);
 
-    void setMesh(ITKMesh::Pointer mesh, int in_width, int in_height);
+    void setMesh(ITKMesh::Pointer mesh, uint32_t in_width, uint32_t in_height);
     ITKMesh::Pointer getOutputMesh() const;
-    int getOutputWidth() const;
-    int getOutputHeight() const;
+    uint32_t getOutputWidth() const;
+    uint32_t getOutputHeight() const;
 
     void compute();
 
 private:
     ITKMesh::Pointer _input;
-    int _inWidth;   // how many rows
-    int _inHeight;  // how many points per row
+    uint32_t _inWidth;   // how many rows
+    uint32_t _inHeight;  // how many points per row
 
     ITKMesh::Pointer _output;
-    int _outWidth;
-    int _outHeight;
+    uint32_t _outWidth;
+    uint32_t _outHeight;
 
-    void _addCell(unsigned long a, unsigned long b, unsigned long c);
+    void _addCell(uint32_t a, uint32_t b, uint32_t c);
 
 };  // OrderedResampling
 }  // meshing

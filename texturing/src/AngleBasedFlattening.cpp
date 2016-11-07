@@ -12,14 +12,17 @@ using namespace volcart::texturing;
 
 ///// Constructors & Destructors /////
 AngleBasedFlattening::AngleBasedFlattening()
-    : _maxABFIterations(DEFAULT_MAX_ABF_ITERATIONS), _useABF(true){};
+    : _useABF(true), _maxABFIterations(DEFAULT_MAX_ABF_ITERATIONS)
+{
+}
+
 AngleBasedFlattening::AngleBasedFlattening(ITKMesh::Pointer mesh)
-    : _mesh(mesh)
-    , _maxABFIterations(DEFAULT_MAX_ABF_ITERATIONS)
-    , _useABF(true){};
+    : _useABF(true), _maxABFIterations(DEFAULT_MAX_ABF_ITERATIONS), _mesh(mesh)
+{
+}
 
 ///// Access Functions /////
-void AngleBasedFlattening::setMesh(ITKMesh::Pointer mesh) { _mesh = mesh; };
+void AngleBasedFlattening::setMesh(ITKMesh::Pointer mesh) { _mesh = mesh; }
 
 ///// Get Output /////
 // Get output as mesh

@@ -45,7 +45,8 @@ void QuadricEdgeCollapseDecimation::compute()
     deciSession.Init<VcgTriEdgeCollapse>();
 
     // Loop for large meshes that it can't decimate in one iteration
-    while (vcgInput_.fn > desiredFaces_ && deciSession.DoOptimization()) {
+    while (vcgInput_.fn > static_cast<int>(desiredFaces_) &&
+           deciSession.DoOptimization()) {
         std::cerr << "volcart::meshing::QECD: No. of faces: " << vcgInput_.fn
                   << std::endl;
     }

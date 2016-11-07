@@ -382,7 +382,7 @@ private:
         OrderedPointSet<T> ps{header.width};
 
         // Size of binary elements to read
-        size_t typeBytes;
+        size_t typeBytes = sizeof(int);
         if (header.type == "float") {
             typeBytes = sizeof(float);
         } else if (header.type == "double") {

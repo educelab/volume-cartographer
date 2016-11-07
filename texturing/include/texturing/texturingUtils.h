@@ -46,7 +46,7 @@ inline void Sectioning(
     const cv::Vec3f& nCenter,               // given point
     const cv::Vec3f& nMajorAxisDir,         // normal
     VolumePkg& VolPkg,                      // volume package
-    double nA,                              // neighborhood's radius (Axis)
+    double /*nA*/,                          // neighborhood's radius (Axis)
     volcart::DirectionOption nSamplingDir,  // sampling direction
     double* nData)                          // [out] samples
 {
@@ -135,15 +135,16 @@ inline void Sectioning(
 
 // Sample the volume data along the normal
 inline void SamplingAlongNormal(
-    double nA,                              // normal length
-    double nSampleInterval,                 // sample interval
-    const cv::Vec3f& nCenter,               // center
-    const cv::Vec3f& nMajorAxisDir,         // normal
-    VolumePkg& VolPkg,                      // volume package
-    volcart::DirectionOption nSamplingDir,  // sampling direction
-    double* nData,                          // [out] samples
-    int* nSize,                             // [out] number of samples
-    bool nWithNonMaxSuppression = false)    // ONLY FOR NON-MAXIMUM SUPPRESSION
+    double nA,                                // normal length
+    double nSampleInterval,                   // sample interval
+    const cv::Vec3f& nCenter,                 // center
+    const cv::Vec3f& nMajorAxisDir,           // normal
+    VolumePkg& VolPkg,                        // volume package
+    volcart::DirectionOption nSamplingDir,    // sampling direction
+    double* nData,                            // [out] samples
+    int* nSize,                               // [out] number of samples
+    bool /*nWithNonMaxSuppression = false*/)  // ONLY FOR NON-MAXIMUM
+                                              // SUPPRESSION
 {
     // uniformly sample along the normal
     int aSizeMajor = nA / nSampleInterval;
@@ -372,7 +373,7 @@ inline double FilterNonMaximumSuppression(
     const cv::Vec3f& nNormal,  // point normal direction
     VolumePkg& VolPkg,         // volume package
     double nR1 = 3.0,          // sample region radius 1, major axis
-    double nR2 = 1.0,          // sample region radius 2, minor axis
+    double /*nR2*/ = 1.0,      // sample region radius 2, minor axis
     double nSampleDist = 0.2,  // interval between samples
     volcart::DirectionOption nSamplingDir =
         volcart::DirectionOption::Bidirectional)  // sample direction
@@ -411,7 +412,7 @@ inline double FilterMax(
     const cv::Vec3f& nNormal,  // point normal direction
     VolumePkg& VolPkg,         // volume package
     double nR1 = 3.0,          // sample region radius 1, major axis
-    double nR2 = 1.0,          // sample region radius 2, minor axis
+    double /*nR2*/ = 1.0,      // sample region radius 2, minor axis
     double nSampleDist = 0.2,  // interval between samples
     volcart::DirectionOption nSamplingDir =
         volcart::DirectionOption::Bidirectional)  // sample direction
@@ -451,7 +452,7 @@ inline double FilterMin(
     const cv::Vec3f& nNormal,  // point normal direction
     VolumePkg& VolPkg,         // volume package
     double nR1 = 3.0,          // sample region radius 1, major axis
-    double nR2 = 1.0,          // sample region radius 2, minor axis
+    double /*nR2*/ = 1.0,      // sample region radius 2, minor axis
     double nSampleDist = 0.2,  // interval between samples
     volcart::DirectionOption nSamplingDir =
         volcart::DirectionOption::Bidirectional)  // sample direction
@@ -492,7 +493,7 @@ inline double FilterMedianAverage(
     const cv::Vec3f& nNormal,  // point normal direction
     VolumePkg& VolPkg,         // volume package
     double nR1 = 3.0,          // sample region radius 1, major axis
-    double nR2 = 1.0,          // sample region radius 2, minor axis
+    double /*nR2*/ = 1.0,      // sample region radius 2, minor axis
     double nSampleDist = 0.2,  // interval between samples
     volcart::DirectionOption nSamplingDir =
         volcart::DirectionOption::Bidirectional)  // sample direction
@@ -546,7 +547,7 @@ inline double FilterMedian(
     const cv::Vec3f& nNormal,  // point normal direction
     VolumePkg& VolPkg,         // volume package
     double nR1 = 3.0,          // sample region radius 1, major axis
-    double nR2 = 1.0,          // sample region radius 2, minor axis
+    double /*nR2*/ = 1.0,      // sample region radius 2, minor axis
     double nSampleDist = 0.2,  // interval between samples
     volcart::DirectionOption nSamplingDir =
         volcart::DirectionOption::Bidirectional)  // sample direction
@@ -589,7 +590,7 @@ inline double FilterMean(
     const cv::Vec3f& nNormal,  // point normal direction
     VolumePkg& VolPkg,         // volume package
     double nR1 = 3.0,          // sample region radius 1, major axis
-    double nR2 = 1.0,          // sample region radius 2, minor axis
+    double /*nR2*/ = 1.0,      // sample region radius 2, minor axis
     double nSampleDist = 0.2,  // interval between samples
     volcart::DirectionOption nSamplingDir =
         volcart::DirectionOption::Bidirectional)  // sample direction
