@@ -19,7 +19,7 @@ Chain::Chain(
 
     // Calculate the spring resting position
     double total_delta = 0;
-    for (int i = 1; i < init_chain.size(); ++i) {
+    for (size_t i = 1; i < init_chain.size(); ++i) {
         cv::Vec3d segment = init_chain[i] - init_chain[i - 1];
         total_delta += sqrt(segment.dot(segment));
     }
