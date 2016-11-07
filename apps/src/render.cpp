@@ -136,7 +136,8 @@ int main(int argc, char* argv[])
                   << std::endl;
         return EXIT_FAILURE;
     }
-    vpkg.volume().setCacheMemoryInBytes(systemMemorySize());
+    double cacheBytes = 0.75 * systemMemorySize();
+    vpkg.volume().setCacheMemoryInBytes(static_cast<size_t>(cacheBytes));
 
     ///// Set the segmentation ID /////
     vpkg.setActiveSegmentation(segID);
@@ -203,13 +204,13 @@ int main(int argc, char* argv[])
     if (outputPath.extension() == ".PLY" || outputPath.extension() == ".ply") {
         std::cout << "Writing to PLY..." << std::endl;
         volcart::io::plyWriter writer(
-            outputPath.string(), input, result.texture());
+            outputPath.string(), itkACVD, result.texture());
         writer.write();
     } else if (
         outputPath.extension() == ".OBJ" || outputPath.extension() == ".obj") {
         std::cout << "Writing to OBJ..." << std::endl;
         volcart::io::objWriter writer;
-        writer.setMesh(input);
+        writer.setMesh(itkACVD);
         writer.setRendering(rendering);
         writer.setPath(outputPath.string());
         writer.write();
@@ -219,7 +220,7 @@ int main(int argc, char* argv[])
         cv::imwrite(outputPath.string(), rendering.getTexture().getImage(0));
     } else {
         std::cout << "Writing to Volume Package..." << std::endl;
-        vpkg.saveMesh(input, result.texture());
+        vpkg.saveMesh(itkACVD, result.texture());
     }
 
     return EXIT_SUCCESS;
