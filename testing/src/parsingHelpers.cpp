@@ -104,7 +104,7 @@ void ParsingHelpers::parsePlyFile(
                 plyLine = volcart::testing::ParsingHelpers::split_string(line);
 
                 //<< Do something with the property for the face information
-                //here >>
+                // here >>
 
                 // if (plyLine[0] == "property") {
                 //
