@@ -32,3 +32,10 @@ deps/
 tags
 .ycm_extra_conf.py
 .ycm_extra_conf.pyc
+
+# Python
+__pycache__
+
+#Doxygen
+doc/latex/
+doc/html/

@@ -2,9 +2,9 @@
 #include <iomanip>
 #include <iostream>
 #include <memory>
+#include <sstream>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-#include <sstream>
 
 using namespace volcart;
 namespace fs = boost::filesystem;
@@ -97,11 +97,12 @@ fs::path Volume::getSlicePath(int32_t index) const
     return slicePath_ / ss.str();
 }
 
-Slice Volume::reslice(const Voxel center,
-                      const cv::Vec3d xvec,
-                      const cv::Vec3d yvec,
-                      int32_t width,
-                      int32_t height) const
+Slice Volume::reslice(
+    const Voxel center,
+    const cv::Vec3d xvec,
+    const cv::Vec3d yvec,
+    int32_t width,
+    int32_t height) const
 {
     const auto xnorm = cv::normalize(xvec);
     const auto ynorm = cv::normalize(yvec);
@@ -118,20 +119,21 @@ Slice Volume::reslice(const Voxel center,
     return Slice(m, origin, xnorm, ynorm);
 }
 
-StructureTensor Volume::structureTensorAt(int32_t vx,
-                                          int32_t vy,
-                                          int32_t vz,
-                                          int32_t voxelRadius,
-                                          int32_t gradientKernelSize) const
+StructureTensor Volume::structureTensorAt(
+    int32_t vx,
+    int32_t vy,
+    int32_t vz,
+    int32_t voxelRadius,
+    int32_t gradientKernelSize) const
 {
     // Safety checks
-    assert(vx >= 0 && vx < sliceWidth_ &&
-           "x must be in range [0, slice_width]");
-    assert(vy >= 0 && vy < sliceHeight_ &&
-           "y must be in range [0, slice_height]");
+    assert(
+        vx >= 0 && vx < sliceWidth_ && "x must be in range [0, slice_width]");
+    assert(
+        vy >= 0 && vy < sliceHeight_ && "y must be in range [0, slice_height]");
     assert(vz >= 0 && vz < numSlices_ && "z must be in range [0, #slices]");
-    assert(gradientKernelSize >= 3 &&
-           "gradient kernel size must be at least 3");
+    assert(
+        gradientKernelSize >= 3 && "gradient kernel size must be at least 3");
 
     // Get voxels in radius voxelRadius around voxel (x, y, z)
     auto v = getVoxelNeighborsCubic<double>({vx, vy, vz}, voxelRadius);
@@ -169,13 +171,13 @@ StructureTensor Volume::interpolatedStructureTensorAt(
     int32_t gradientKernelSize) const
 {
     // Safety checks
-    assert(vx >= 0 && vx < sliceWidth_ &&
-           "x must be in range [0, slice_width]");
-    assert(vy >= 0 && vy < sliceHeight_ &&
-           "y must be in range [0, slice_height]");
+    assert(
+        vx >= 0 && vx < sliceWidth_ && "x must be in range [0, slice_width]");
+    assert(
+        vy >= 0 && vy < sliceHeight_ && "y must be in range [0, slice_height]");
     assert(vz >= 0 && vz < numSlices_ && "z must be in range [0, #slices]");
-    assert(gradientKernelSize >= 3 &&
-           "gradient kernel size must be at least 3");
+    assert(
+        gradientKernelSize >= 3 && "gradient kernel size must be at least 3");
 
     // Get voxels in radius voxelRadius around voxel (x, y, z)
     auto v =
@@ -201,11 +203,12 @@ StructureTensor Volume::interpolatedStructureTensorAt(
     return StructureTensor(matSum);
 }
 
-EigenPairs Volume::eigenPairsAt(int32_t x,
-                                int32_t y,
-                                int32_t z,
-                                int32_t voxelRadius,
-                                int32_t gradientKernelSize) const
+EigenPairs Volume::eigenPairsAt(
+    int32_t x,
+    int32_t y,
+    int32_t z,
+    int32_t voxelRadius,
+    int32_t gradientKernelSize) const
 {
     auto st = structureTensorAt(x, y, z, voxelRadius, gradientKernelSize);
     cv::Vec3d eigenValues;
@@ -223,11 +226,12 @@ EigenPairs Volume::eigenPairsAt(int32_t x,
     };
 }
 
-EigenPairs Volume::interpolatedEigenPairsAt(double x,
-                                            double y,
-                                            double z,
-                                            int32_t voxelRadius,
-                                            int32_t gradientKernelSize) const
+EigenPairs Volume::interpolatedEigenPairsAt(
+    double x,
+    double y,
+    double z,
+    int32_t voxelRadius,
+    int32_t gradientKernelSize) const
 {
     auto st =
         interpolatedStructureTensorAt(x, y, z, voxelRadius, gradientKernelSize);
@@ -258,13 +262,14 @@ StructureTensor tensorize(const cv::Vec3d gradient)
     // clang-format on
 }
 
-Tensor3D<cv::Vec3d> Volume::volumeGradient(const Tensor3D<double>& v,
-                                           int32_t gradientKernelSize) const
+Tensor3D<cv::Vec3d> Volume::volumeGradient(
+    const Tensor3D<double>& v, int32_t gradientKernelSize) const
 {
     // Limitation of OpenCV: Kernel size must be 1, 3, 5, or 7
-    assert((gradientKernelSize == 1 || gradientKernelSize == 3 ||
-            gradientKernelSize == 5 || gradientKernelSize == 7) &&
-           "gradientKernelSize must be one of [1, 3, 5, 7]");
+    assert(
+        (gradientKernelSize == 1 || gradientKernelSize == 3 ||
+         gradientKernelSize == 5 || gradientKernelSize == 7) &&
+        "gradientKernelSize must be one of [1, 3, 5, 7]");
 
     // Calculate gradient field around specified voxel
     Tensor3D<cv::Vec3d> gradientField{v.dx, v.dy, v.dz};
@@ -299,9 +304,8 @@ Tensor3D<cv::Vec3d> Volume::volumeGradient(const Tensor3D<double>& v,
 // Helper function to calculate gradient using best choice for given kernel
 // size. If the kernel size is 3, uses the Scharr() operator to calculate the
 // gradient which is more accurate than 3x3 Sobel operator
-cv::Mat_<double> Volume::gradient(const cv::Mat_<double>& input,
-                                  GradientAxis axis,
-                                  int32_t ksize) const
+cv::Mat_<double> Volume::gradient(
+    const cv::Mat_<double>& input, GradientAxis axis, int32_t ksize) const
 {
     // OpenCV params for gradients
     // XXX Revisit this and see if changing these makes a big difference
@@ -311,24 +315,28 @@ cv::Mat_<double> Volume::gradient(const cv::Mat_<double>& input,
     cv::Mat_<double> grad(input.rows, input.cols);
 
     switch (axis) {
-    case GradientAxis::X:
-        if (ksize == 3) {
-            cv::Scharr(input, grad, CV_64F, 1, 0, SCALE, DELTA,
-                       cv::BORDER_REPLICATE);
-        } else {
-            cv::Sobel(input, grad, CV_64F, 1, 0, ksize, SCALE, DELTA,
-                      cv::BORDER_REPLICATE);
-        }
-        break;
-    case GradientAxis::Y:
-        if (ksize == 3) {
-            cv::Scharr(input, grad, CV_64F, 0, 1, SCALE, DELTA,
-                       cv::BORDER_REPLICATE);
-        } else {
-            cv::Sobel(input, grad, CV_64F, 0, 1, ksize, SCALE, DELTA,
-                      cv::BORDER_REPLICATE);
-        }
-        break;
+        case GradientAxis::X:
+            if (ksize == 3) {
+                cv::Scharr(
+                    input, grad, CV_64F, 1, 0, SCALE, DELTA,
+                    cv::BORDER_REPLICATE);
+            } else {
+                cv::Sobel(
+                    input, grad, CV_64F, 1, 0, ksize, SCALE, DELTA,
+                    cv::BORDER_REPLICATE);
+            }
+            break;
+        case GradientAxis::Y:
+            if (ksize == 3) {
+                cv::Scharr(
+                    input, grad, CV_64F, 0, 1, SCALE, DELTA,
+                    cv::BORDER_REPLICATE);
+            } else {
+                cv::Sobel(
+                    input, grad, CV_64F, 0, 1, ksize, SCALE, DELTA,
+                    cv::BORDER_REPLICATE);
+            }
+            break;
     }
     return grad;
 }

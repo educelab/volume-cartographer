@@ -8,8 +8,11 @@
 #include <itkScaleTransform.h>
 #include <itkTransformMeshFilter.h>
 
-namespace volcart {
-    namespace meshing {
-            void scaleMesh( VC_MeshType::Pointer input, VC_MeshType::Pointer output, double scale_factor );
-    } // meshing
-} // volcart
+namespace volcart
+{
+namespace meshing
+{
+void scaleMesh(
+    ITKMesh::Pointer input, ITKMesh::Pointer output, double scale_factor);
+}  // meshing
+}  // volcart

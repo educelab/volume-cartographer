@@ -38,6 +38,11 @@ std::ostream& operator<<(std::ostream& s, std::vector<T> v)
     return s << v.back() << "]";
 }
 
+namespace volcart
+{
+namespace segmentation
+{
+
 template <typename T1, typename T2>
 std::vector<std::pair<T1, T2>> zip(
     const std::vector<T1>& v1, const std::vector<T2>& v2)
@@ -124,3 +129,5 @@ std::vector<double> squareDiff(
 
 double sumSquareDiff(
     const std::vector<double>& v1, const std::vector<double>& v2);
+}
+}

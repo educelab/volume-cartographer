@@ -1,37 +1,37 @@
 #include <iostream>
 #include <string>
 
-#include <pcl/io/pcd_io.h>
-#include <pcl/common/common.h>
-#include <pcl/point_types.h>
-#include <pcl/console/parse.h>
-#include <pcl/io/ply_io.h>
-#include <boost/filesystem.hpp>
+#include <common/io/PointSetIO.h>
+#include <common/io/plyWriter.h>
+#include <common/types/Point.h>
+#include "meshing/OrderedPointSetMesher.h"
 
-#include "meshing/orderedPCDMesher.h"
+#include <boost/filesystem.hpp>
+#include <common/types/PointSet.h>
 
 namespace fs = boost::filesystem;
+namespace vc = volcart;
 
-int main(int argc, char* argv[]) {
-  if (argc < 2)
-  {
-    std::cerr << "Usage:" << std::endl;
-    std::cerr << argv[0] << " orderedFile.pcd" << std::endl;
-    return (1);
-  }
-  
-  pcl::PointCloud<pcl::PointXYZRGB>::Ptr inputCloud (new pcl::PointCloud<pcl::PointXYZRGB>);
-  
-  if (pcl::io::loadPCDFile<pcl::PointXYZRGB> (argv[1], *inputCloud) == -1) //* load the file
-  {
-    PCL_ERROR ("Couldn't read file \n");
-    return (-1);
-  }
+int main(int argc, char* argv[])
+{
+    if (argc < 2) {
+        std::cerr << "Usage:" << std::endl;
+        std::cerr << argv[0] << "orderedFile.vcps" << std::endl;
+        return (1);
+    }
 
-  fs::path outfile{argv[1]};
-  outfile.replace_extension("ply");
-  
-  volcart::meshing::orderedPCDMesher(inputCloud, outfile);
+    // Load the file
+    auto inputCloud = vc::PointSetIO<vc::Point3d>::ReadOrderedPointSet(argv[1]);
 
-  exit(EXIT_SUCCESS);
+    // Set the output
+    fs::path outfile{argv[1]};
+    outfile.replace_extension("ply");
+
+    vc::meshing::OrderedPointSetMesher mesh(inputCloud);
+    mesh.compute();
+
+    auto output = mesh.getOutputMesh();
+    vc::io::plyWriter writer(outfile, output);
+
+    exit(EXIT_SUCCESS);
 }

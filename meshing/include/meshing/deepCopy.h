@@ -5,11 +5,14 @@
 
 #include "common/vc_defines.h"
 
-namespace volcart {
-    namespace meshing {
-        class deepCopy {
-        public:
-            deepCopy(VC_MeshType::Pointer input, VC_MeshType::Pointer output);
-        }; // deepCopy
-    } // meshing
-} // volcart
+namespace volcart
+{
+namespace meshing
+{
+class deepCopy
+{
+public:
+    deepCopy(ITKMesh::Pointer input, ITKMesh::Pointer output);
+};  // deepCopy
+}  // meshing
+}  // volcart

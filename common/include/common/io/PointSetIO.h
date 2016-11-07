@@ -89,7 +89,7 @@ public:
     static std::string MakeHeader(PointSet<T> ps)
     {
         std::stringstream ss;
-        ss << "size: " << ps.capacity() << std::endl;
+        ss << "size: " << ps.size() << std::endl;
         ss << "dim: " << Point::dim << std::endl;
         ss << "ordered: false" << std::endl;
 
@@ -304,7 +304,7 @@ private:
         PointSet<T> ps{header.size};
 
         T tmp;
-        for (size_t i = 0; i < ps.capacity(); ++i) {
+        for (size_t i = 0; i < header.size; ++i) {
             infile >> tmp;
             ps.push_back(tmp);
         }
@@ -323,7 +323,7 @@ private:
 
         // Get header
         auto header = PointSetIO<T>::ParseHeader(infile, true);
-        OrderedPointSet<T> ps{header.width, header.height};
+        OrderedPointSet<T> ps{header.width};
 
         T tmp;
         for (size_t h = 0; h < header.height; ++h) {
@@ -333,7 +333,7 @@ private:
                 infile >> tmp;
                 points.push_back(tmp);
             }
-            ps.push_row(points);
+            ps.pushRow(points);
         }
 
         return ps;
@@ -361,7 +361,7 @@ private:
 
         // Read data
         T t;
-        for (size_t i = 0; i < ps.capacity(); ++i) {
+        for (size_t i = 0; i < header.size; ++i) {
             auto nbytes = header.dim * typeBytes;
             infile.read(t.bytes(), nbytes);
             ps.push_back(t);
@@ -379,7 +379,7 @@ private:
             throw IOException(msg);
         }
         auto header = PointSetIO<T>::ParseHeader(infile, true);
-        OrderedPointSet<T> ps{header.width, header.height};
+        OrderedPointSet<T> ps{header.width};
 
         // Size of binary elements to read
         size_t typeBytes;
@@ -401,7 +401,7 @@ private:
                 infile.read(t.bytes(), nbytes);
                 points.push_back(t);
             }
-            ps.push_row(points);
+            ps.pushRow(points);
         }
 
         return ps;

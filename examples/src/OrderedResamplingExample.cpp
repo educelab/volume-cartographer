@@ -4,13 +4,14 @@
 
 #include <iostream>
 
+#include "common/io/objWriter.h"
+#include "common/shapes/Arch.h"
+#include "common/shapes/Plane.h"
 #include "common/vc_defines.h"
 #include "meshing/OrderedResampling.h"
-#include "common/io/objWriter.h"
-#include "common/shapes/Plane.h"
-#include "common/shapes/Arch.h"
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
 
     volcart::io::objWriter writer;
 
@@ -38,4 +39,4 @@ int main(int argc, char* argv[]) {
     writer.write();
 
     return EXIT_SUCCESS;
-} //main
+}  // main

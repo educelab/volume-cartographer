@@ -7,16 +7,13 @@
 #include <fstream>
 #include <iostream>
 
-#include "common/vc_defines.h"
 #include "boost/filesystem/path.hpp"
+#include "common/vc_defines.h"
 
 namespace volcart
 {
 namespace io
 {
-bool ply2itkmesh(boost::filesystem::path plyPath,
-                 VC_MeshType::Pointer mesh,
-                 int &width,
-                 int &height);
+bool PLYReader(boost::filesystem::path path, ITKMesh::Pointer mesh);
 }
 }

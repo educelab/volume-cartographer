@@ -1,10 +1,10 @@
+#include <cmath>
 #include <iostream>
 #include <random>
 #include <sstream>
-#include <cmath>
+#include <H5Cpp.h>
 #include <boost/filesystem.hpp>
 #include <opencv2/core/core.hpp>
-#include <H5Cpp.h>
 #include "volumepkg/volumepkg.h"
 
 namespace fs = boost::filesystem;
@@ -34,16 +34,23 @@ std::ostream& operator<<(std::ostream& s, const PolarCoord& p)
 CartesianCoord polarToCartesian(const PolarCoord coord, const int32_t z);
 void draw(const volcart::Volume& vol, const CartesianCoord c);
 template <int32_t Radius>
-void writeDataToH5File(const fs::path& filename,
-                       const volcart::Tensor3D<uint16_t>& volume,
-                       const StructureTensor st, const EigenPairs& pairs);
+void writeDataToH5File(
+    const fs::path& filename,
+    const volcart::Tensor3D<uint16_t>& volume,
+    const StructureTensor st,
+    const EigenPairs& pairs);
 
 const StructureTensor zero(0, 0, 0, 0, 0, 0, 0, 0, 0);
 
-void worker(VolumePkg& volpkg, const int32_t nsamples,
-            const int32_t innerRadius, const int32_t outerRadius,
-            const int32_t zmin, const int32_t zmax, const int32_t stRadius,
-            const fs::path& outputDir);
+void worker(
+    VolumePkg& volpkg,
+    const int32_t nsamples,
+    const int32_t innerRadius,
+    const int32_t outerRadius,
+    const int32_t zmin,
+    const int32_t zmax,
+    const int32_t stRadius,
+    const fs::path& outputDir);
 
 // Center of the dataset on XY-plane
 int32_t g_centerX;
@@ -89,14 +96,20 @@ int main(int argc, char** argv)
     fs::create_directory(outputDir / "7");
     fs::create_directory(outputDir / "15");
 
-    worker(volpkg, nsamples, innerRadius, outerRadius, zmin, zmax, stRadius,
-           outputDir);
+    worker(
+        volpkg, nsamples, innerRadius, outerRadius, zmin, zmax, stRadius,
+        outputDir);
 }
 
-void worker(VolumePkg& volpkg, const int32_t nsamples,
-            const int32_t innerRadius, const int32_t outerRadius,
-            const int32_t zmin, const int32_t zmax, const int32_t stRadius,
-            const fs::path& outputDir)
+void worker(
+    VolumePkg& volpkg,
+    const int32_t nsamples,
+    const int32_t innerRadius,
+    const int32_t outerRadius,
+    const int32_t zmin,
+    const int32_t zmax,
+    const int32_t stRadius,
+    const fs::path& outputDir)
 {
     // Make generator and distributions
     std::random_device rd;
@@ -161,14 +174,17 @@ void worker(VolumePkg& volpkg, const int32_t nsamples,
 // Change polar coordinate to cartesian, taking into account offset center value
 CartesianCoord polarToCartesian(const PolarCoord p, const int32_t z)
 {
-    return CartesianCoord(g_centerX + std::round(p.r * std::cos(p.theta)),
-                          g_centerY + std::round(p.r * std::sin(p.theta)), z);
+    return CartesianCoord(
+        g_centerX + std::round(p.r * std::cos(p.theta)),
+        g_centerY + std::round(p.r * std::sin(p.theta)), z);
 }
 
 template <int32_t Radius>
-void writeDataToH5File(const fs::path& filename,
-                       const volcart::Tensor3D<uint16_t>& volume,
-                       const StructureTensor st, const EigenPairs& pairs)
+void writeDataToH5File(
+    const fs::path& filename,
+    const volcart::Tensor3D<uint16_t>& volume,
+    const StructureTensor st,
+    const EigenPairs& pairs)
 {
     constexpr int32_t volRank = 4;
     const hsize_t volDims[] = {1, hsize_t(volume.dz), hsize_t(volume.dy),
@@ -214,8 +230,8 @@ void writeDataToH5File(const fs::path& filename,
 
         // Write structure tensor
         H5::DataSpace stSpace(stRank, stDims);
-        auto stDSet = f.createDataSet("structure_tensor",
-                                      H5::PredType::IEEE_F64LE, stSpace);
+        auto stDSet = f.createDataSet(
+            "structure_tensor", H5::PredType::IEEE_F64LE, stSpace);
         stDSet.write(stBuf, H5::PredType::IEEE_F64LE);
 
         // Write eigenvectors

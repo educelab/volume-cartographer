@@ -1,7 +1,7 @@
 #pragma once
 
-#include <vector>
 #include <memory>
+#include <vector>
 #include <opencv2/core/core.hpp>
 
 namespace volcart
@@ -19,10 +19,11 @@ public:
 
     Tensor3D<DType>() = default;
 
-    Tensor3D<DType>(const int32_t x,
-                    const int32_t y,
-                    const int32_t z,
-                    const bool zero = true)
+    Tensor3D<DType>(
+        const int32_t x,
+        const int32_t y,
+        const int32_t z,
+        const bool zero = true)
         : dx(x), dy(y), dz(z)
     {
         tensor_.reserve(dz);
@@ -53,9 +54,8 @@ public:
         return zSlice;
     }
 
-    const DType& operator()(const int32_t x,
-                            const int32_t y,
-                            const int32_t z) const
+    const DType& operator()(
+        const int32_t x, const int32_t y, const int32_t z) const
     {
         assert(x < dx && x >= 0 && "index out of range");
         assert(y < dy && y >= 0 && "index out of range");
@@ -87,8 +87,8 @@ public:
 }
 
 template <typename DType>
-std::ostream& operator<<(std::ostream& s,
-                         const volcart::Tensor3D<DType>& tensor)
+std::ostream& operator<<(
+    std::ostream& s, const volcart::Tensor3D<DType>& tensor)
 {
     for (int32_t z = 0; z < tensor.dz; ++z) {
         s << tensor.xySlice(z) << std::endl;

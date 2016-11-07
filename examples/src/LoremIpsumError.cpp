@@ -1,6 +1,6 @@
-#include "volumepkg/volumepkg.h"
-#include <boost/filesystem.hpp>
 #include <iostream>
+#include <boost/filesystem.hpp>
+#include "volumepkg/volumepkg.h"
 
 namespace fs = boost::filesystem;
 
@@ -13,10 +13,10 @@ int main(int argc, char** argv)
     auto cloud = volpkg.openCloud();
 
     double errsum = 0;
-    for (auto p : *cloud) {
-        errsum += std::abs(p.y - 13);
+    for (auto p : cloud) {
+        errsum += std::abs(p[1] - 13);
     }
 
-    std::cout << "num points: " << cloud->size() << std::endl;
-    std::cout << "error metric: " << errsum / cloud->size() << std::endl;
+    std::cout << "num points: " << cloud.size() << std::endl;
+    std::cout << "error metric: " << errsum / cloud.size() << std::endl;
 }

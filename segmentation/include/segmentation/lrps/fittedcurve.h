@@ -1,7 +1,7 @@
 #pragma once
 
-#include <vector>
 #include <cassert>
+#include <vector>
 #include "segmentation/lrps/common.h"
 #include "segmentation/lrps/spline.h"
 
@@ -27,7 +27,7 @@ public:
 
     const std::vector<Voxel>& points() const { return points_; }
 
-    const decltype(spline_)& spline() const { return spline_; }
+    const decltype(spline_) & spline() const { return spline_; }
 
     Pixel eval(double t) const { return spline_(t); }
 

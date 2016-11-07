@@ -1,9 +1,11 @@
 stages:
     - build
     - test
+    - docs
     - collect
     - deploy
 
+### Debian ###
 build:debian:
     image: volcart/vcbuilder-debian:latest
     stage: build
@@ -47,6 +49,7 @@ test:debian:
         - qt5
         - ninja
 
+### OSX ###
 build:osx:
     stage: build
     script:
@@ -88,6 +91,57 @@ test:osx:
         - qt5
         - ninja
 
+
+### Extra Checks and Tests ###
+lint:
+    before_script:
+      - git fetch --all
+    stage: test
+    script:
+        - echo $CI_BUILD_REF_NAME $CI_BUILD_STAGE
+        - scripts/clang-format.py --no-diff
+    allow_failure: yes
+    tags:
+        - source
+
+### Documentation ###
+doxygen:html:
+    only:
+        - master
+        - develop
+    stage: docs
+    script:
+        - cd doc/
+        - doxygen Doxyfile Modules.dox
+    artifacts:
+        name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
+        paths:
+            - doc/html/*
+        expire_in: 5 days
+    allow_failure: yes
+    tags:
+        - doxy
+
+doxygen:pdf:
+    only:
+        - master
+        - develop
+    stage: docs
+    script:
+        - cd doc/
+        - doxygen Doxyfile Modules.dox
+        - cd latex/
+        - make
+    artifacts:
+        name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
+        paths:
+            - doc/latex/*.pdf
+        expire_in: 5 days
+    allow_failure: yes
+    tags:
+        - doxy
+
+### Collect & Deploy ###
 collect:source:
     only:
         - master
@@ -128,7 +182,6 @@ collect:osx:
     tags:
         - deploy
         - osx
-        - prebuilt
         - qt5
 
 deploy:
@@ -144,8 +197,8 @@ deploy:
         - mkdir -p ~/Dropbox/VC-Releases/v${version}
         - cp VC*.dmg ~/Dropbox/VC-Releases/v${version}
         - cp VC-${vershort}-source.tar.gz ~/Dropbox/VC-Releases/v${version}
+    environment: production
     tags:
         - deploy
         - osx
-        - prebuilt
         - qt5

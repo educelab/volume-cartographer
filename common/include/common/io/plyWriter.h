@@ -21,13 +21,14 @@ class plyWriter
 {
 public:
     plyWriter(){};
-    plyWriter(boost::filesystem::path outputPath, VC_MeshType::Pointer mesh);
-    plyWriter(boost::filesystem::path outputPath,
-              VC_MeshType::Pointer mesh,
-              volcart::Texture texture);
+    plyWriter(boost::filesystem::path outputPath, ITKMesh::Pointer mesh);
+    plyWriter(
+        boost::filesystem::path outputPath,
+        ITKMesh::Pointer mesh,
+        volcart::Texture texture);
 
     void setPath(boost::filesystem::path path) { _outputPath = path; };
-    void setMesh(VC_MeshType::Pointer mesh) { _mesh = mesh; };
+    void setMesh(ITKMesh::Pointer mesh) { _mesh = mesh; };
     void setTexture(volcart::Texture texture) { _texture = texture; };
 
     boost::filesystem::path getPath() const { return _outputPath; }
@@ -41,7 +42,7 @@ private:
                                           // include the .obj extension.
     std::ofstream _outputMesh;
 
-    VC_MeshType::Pointer _mesh;
+    ITKMesh::Pointer _mesh;
     volcart::Texture _texture;
 
     int _writeHeader();
