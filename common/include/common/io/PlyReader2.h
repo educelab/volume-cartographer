@@ -7,7 +7,8 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
-#include <string.h>
+#include <cstring>
+#include <tuple>
 
 #include "boost/algorithm/string/classification.hpp"
 #include "boost/algorithm/string/split.hpp"
@@ -35,6 +36,50 @@ namespace volcart
 {
 namespace io
 {
-bool PLYReader2(boost::filesystem::path path, volcart::ITKMesh::Pointer mesh);
-}
-}
+class PLYReader2{
+public:
+    PLYReader2();
+    PLYReader2(boost::filesystem::path path, volcart::ITKMesh::Pointer mesh);
+
+    void setPath(boost::filesystem::path path) {_inputPath = path;}
+
+
+    bool read();
+
+
+private:
+    struct Point{
+        double x = 0;
+        double y = 0;
+        double z = 0;
+        double nx = 0;
+        double ny = 0;
+        double nz = 0;
+        std::string r = "0";
+        std::string g = "0";
+        std::string b = "0";
+    };
+    boost::filesystem::path _inputPath;
+    ITKMesh::Pointer _outMesh;
+
+    std::ifstream _plyFile;
+    std::string _line;
+
+    void _createMesh();
+    void _parseHeader();
+
+
+    std::vector<std::tuple<int,int,int>> _faceList;
+    void _readFaces();
+
+    std::vector<Point> _pointList;
+    void _readPoints();
+    int _numOfVertices;
+    int _numOfFaces;
+    std::map<std::string,int> properties;
+
+    bool _facesFirst;
+    bool _leadingChar = true;
+}; //PLYReader
+} //io
+} //volcart

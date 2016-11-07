@@ -80,7 +80,8 @@ struct ReadITKSphereMeshFixture {
 
 BOOST_FIXTURE_TEST_CASE(ReadArchMeshTest, ReadITKArchMeshFixture)
 {
-    volcart::io::PLYReader2("PLYReader2_arch.ply", _read_ArchMesh);
+    volcart::io::PLYReader2 reader("PLYReader2_arch.ply", _read_ArchMesh);
+    reader.read();
     BOOST_CHECK_EQUAL(
         _in_ArchMesh->GetNumberOfPoints(), _read_ArchMesh->GetNumberOfPoints());
     BOOST_CHECK_EQUAL(
@@ -122,7 +123,8 @@ BOOST_FIXTURE_TEST_CASE(ReadArchMeshTest, ReadITKArchMeshFixture)
 
 BOOST_FIXTURE_TEST_CASE(ReadPlaneMeshTest, ReadITKPlaneMeshFixture)
 {
-    volcart::io::PLYReader2("PLYReader2_plane.ply", _read_PlaneMesh);
+    volcart::io::PLYReader2 reader("PLYReader2_plane.ply", _read_PlaneMesh);
+    reader.read();
     BOOST_CHECK_EQUAL(
         _in_PlaneMesh->GetNumberOfPoints(),
         _read_PlaneMesh->GetNumberOfPoints());
@@ -165,7 +167,8 @@ BOOST_FIXTURE_TEST_CASE(ReadPlaneMeshTest, ReadITKPlaneMeshFixture)
 
 BOOST_FIXTURE_TEST_CASE(ReadConeMeshTest, ReadITKConeMeshFixture)
 {
-    volcart::io::PLYReader2("PLYReader2_cone.ply", _read_ConeMesh);
+    volcart::io::PLYReader2 reader("PLYReader2_cone.ply", _read_ConeMesh);
+    reader.read();
     BOOST_CHECK_EQUAL(
         _in_ConeMesh->GetNumberOfPoints(), _read_ConeMesh->GetNumberOfPoints());
     BOOST_CHECK_EQUAL(
@@ -207,7 +210,8 @@ BOOST_FIXTURE_TEST_CASE(ReadConeMeshTest, ReadITKConeMeshFixture)
 
 BOOST_FIXTURE_TEST_CASE(ReadSphereMeshTest, ReadITKSphereMeshFixture)
 {
-    volcart::io::PLYReader2("PLYReader2_sphere.ply", _read_SphereMesh);
+    volcart::io::PLYReader2 reader("PLYReader2_sphere.ply", _read_SphereMesh);
+    reader.read();
     BOOST_CHECK_EQUAL(
         _in_SphereMesh->GetNumberOfPoints(),
         _read_SphereMesh->GetNumberOfPoints());
