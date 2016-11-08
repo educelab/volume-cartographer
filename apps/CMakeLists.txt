@@ -33,6 +33,7 @@ add_executable(vc_segment src/segment.cpp)
 target_link_libraries(vc_segment
     vc_volumepkg
     vc_segmentation
+    vc_meshing
     Boost::program_options
 )
 

@@ -43,6 +43,7 @@ if(PCL_FOUND)
     target_link_libraries(vc_convert_pcd_to_ps
         vc_common
         vc_volumepkg
+        vc_meshing
         Boost::filesystem
         ${PCL_COMMON_LIBRARIES}
         ${PCL_IO_LIBRARIES}

@@ -53,6 +53,7 @@ target_include_directories(${target}
 )
 target_link_libraries(${target}
     vc_common
+    vc_meshing
     vc_segmentation
     vc_volumepkg
     Boost::filesystem

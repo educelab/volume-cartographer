@@ -6,7 +6,6 @@
 #include "common/io/plyWriter.h"
 #include "common/types/OrderedPointSet.h"
 #include "common/types/Point.h"
-#include "meshing/OrderedPointSetMesher.h"
 
 namespace fs = boost::filesystem;
 
@@ -243,19 +242,12 @@ int VolumePkg::saveCloud(
     return EXIT_SUCCESS;
 }
 
-int VolumePkg::saveMesh(
-    const volcart::OrderedPointSet<volcart::Point3d>& segmentedCloud) const
+int VolumePkg::saveMesh(const volcart::ITKMesh::Pointer mesh) const
 {
     fs::path outputName = segs_dir / activeSeg / "cloud.ply";
-    // Creates a OrderedPointSetMesher type than uses the compute function to
-    // generate a mesh
-    volcart::meshing::OrderedPointSetMesher mesher(segmentedCloud);
-    mesher.compute();
-    auto mesh = mesher.getOutputMesh();
     // Creates a PLY writer type and then writes the mesh out to the file
     volcart::io::plyWriter writer(outputName, mesh);
     writer.write();
-    std::cerr << "volcart::volpkg::Mesh file saved." << std::endl;
     return EXIT_SUCCESS;
 }
 

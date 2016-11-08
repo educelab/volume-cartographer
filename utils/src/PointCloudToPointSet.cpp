@@ -10,6 +10,7 @@
 #include "common/types/OrderedPointSet.h"
 #include "common/types/Point.h"
 #include "common/types/PointSet.h"
+#include "meshing/OrderedPointSetMesher.h"
 #include "volumepkg/volumepkg.h"
 
 using namespace volcart;
@@ -70,7 +71,9 @@ int main(int argc, char** argv)
 
         // Mesh the cloud if possible
         if (ps.height() > 1) {
-            pkg.saveMesh(ps);
+            volcart::meshing::OrderedPointSetMesher mesher{ps};
+            mesher.compute();
+            pkg.saveMesh(mesher.getOutputMesh());
         }
     }
 
