@@ -11,7 +11,7 @@
 /************************************************************************************
  *                                                                                  *
  *  LRUCacheTest.cpp - tests the functionality of
- * /v-c/common/datatypes/LRUCache.h  *
+ * /v-c/common/datatypes/LRUCache.h
  *  The ultimate goal of this file is the following: *
  *                                                                                  *
  *  Check that we are able to create a cache, retrieve/set key-value pairs *
