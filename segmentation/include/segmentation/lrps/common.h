@@ -42,6 +42,7 @@ namespace volcart
 {
 namespace segmentation
 {
+
 template <typename T1, typename T2>
 std::vector<std::pair<T1, T2>> zip(
     const std::vector<T1>& v1, const std::vector<T2>& v2)
@@ -111,15 +112,14 @@ std::vector<cv::Vec<double, Len>> normalizeVector(
     const std::vector<cv::Vec<T, Len>> vs)
 {
     std::vector<cv::Vec<double, Len>> new_vs(vs.size());
-    std::transform(
-        begin(vs), end(vs), std::begin(new_vs), [](const cv::Vec<T, Len> v) {
-            cv::Vec<double, Len> dv(v);
-            if (cv::norm(dv) < 1e-5) {
-                return dv;
-            } else {
-                return dv / cv::norm(dv);
-            }
-        });
+    std::transform(begin(vs), end(vs), std::begin(new_vs), [](auto v) {
+        cv::Vec<double, Len> dv(v);
+        if (cv::norm(dv) < 1e-5) {
+            return dv;
+        } else {
+            return dv / cv::norm(dv);
+        }
+    });
     return new_vs;
 }
 

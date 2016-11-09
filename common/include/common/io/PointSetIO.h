@@ -161,7 +161,7 @@ public:
         while (std::getline(infile, line)) {
             boost::trim(line);
             boost::split(strs, line, boost::is_any_of(":"));
-            std::for_each(std::begin(strs), std::end(strs), [](std::string& t) {
+            std::for_each(std::begin(strs), std::end(strs), [](auto& t) {
                 boost::trim(t);
             });
 

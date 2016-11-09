@@ -50,7 +50,7 @@ double EnergyMetrics::AbsCurvatureSum(const FittedCurve& curve)
     }
 
     auto k = curve.curvature();
-    std::transform(std::begin(k), std::end(k), std::begin(k), [](double e) {
+    std::transform(std::begin(k), std::end(k), std::begin(k), [](auto e) {
         return std::abs(e);
     });
     k = normalizeVector(k);

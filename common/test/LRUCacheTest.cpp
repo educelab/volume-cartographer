@@ -11,7 +11,7 @@
 /************************************************************************************
  *                                                                                  *
  *  LRUCacheTest.cpp - tests the functionality of
- * /v-c/common/datatypes/LRUCache.h  *
+ * /v-c/common/datatypes/LRUCache.h
  *  The ultimate goal of this file is the following: *
  *                                                                                  *
  *  Check that we are able to create a cache, retrieve/set key-value pairs *
@@ -114,8 +114,8 @@ BOOST_FIXTURE_TEST_CASE(CheckAbilityToResizeCache, ResizingCacheFixture)
 
     BOOST_CHECK_EQUAL(
         _DefaultCache.capacity(), 200);  // check original capacity of 200
-    BOOST_CHECK_EQUAL(_DefaultCache.size(), 0);  // check that item list is
-                                                 // empty
+    BOOST_CHECK_EQUAL(_DefaultCache.size(), 0);       // check that item list is
+                                                      // empty
     _DefaultCache.setCapacity(_in_NewCap);            // change capacity
     BOOST_CHECK_EQUAL(_DefaultCache.capacity(), 50);  // check new capacity
     BOOST_CHECK_EQUAL(
