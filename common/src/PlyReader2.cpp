@@ -22,7 +22,6 @@ bool PLYReader2::read() {
     {
         auto msg = "Open file " + _inputPath.string() + " failed.";
         throw volcart::IOException(msg);
-        return false;
     }
     _parseHeader();
     if(_facesFirst){
@@ -195,14 +194,14 @@ void PLYReader2::_readFaces() {
                 _faceList.push_back(face);
             }
         } else {
-            if (curFace.size() == 3) {
+            if (curFace.size() != 3) {
+                auto msg = "Error: Not a Triangular Mesh";
+                throw volcart::IOException(msg);
+            } else {
                 face = Cell(
                     std::stoul(curFace[1]), std::stoul(curFace[2]),
                     std::stoul(curFace[3]));
                 _faceList.push_back(face);
-            } else {
-                auto msg = "Error: Not a Triangular Mesh";
-                throw volcart::IOException(msg);
             }
         }
         std::getline(_plyFile, _line);
@@ -210,19 +209,19 @@ void PLYReader2::_readFaces() {
 }
 
 void PLYReader2::_createMesh() {
-    ITKPoint P;
-    unsigned long point_cnt = 0;
+    ITKPoint p;
+    uint32_t point_cnt = 0;
     for(auto& cur : _pointList){
-        P[0] = cur.x;
-        P[1] = cur.y;
-        P[2] = cur.z;
-        _outMesh -> SetPoint(point_cnt,P);
+        p[0] = cur.x;
+        p[1] = cur.y;
+        p[2] = cur.z;
+        _outMesh->SetPoint(point_cnt, p);
         if (_pointNorm) {
-            ITKPixel Q;
-            Q[0] = cur.nx;
-            Q[1] = cur.ny;
-            Q[2] = cur.nz;
-            _outMesh -> SetPointData(point_cnt,Q);
+            ITKPixel q;
+            q[0] = cur.nx;
+            q[1] = cur.ny;
+            q[2] = cur.nz;
+            _outMesh->SetPointData(point_cnt, q);
         }
         point_cnt++;
     }
@@ -230,17 +229,10 @@ void PLYReader2::_createMesh() {
     for (auto& cur: _faceList) {
         ITKCell::CellAutoPointer cellpointer;
         cellpointer.TakeOwnership(new ITKTriangle);
-        for(int j =0; j < 3; j ++){
-            if (j == 0)
-            {
-                cellpointer->SetPointId(j, cur.v1);
-            }
-            else if (j == 1){
-                cellpointer->SetPointId(j, cur.v2);
-            } else if (j == 2){
-                cellpointer->SetPointId(j, cur.v3);
-            }
-        }
+
+        cellpointer->SetPointId(0, cur.v1);
+        cellpointer->SetPointId(1, cur.v2);
+        cellpointer->SetPointId(2, cur.v3);
         _outMesh -> SetCell(face_cnt, cellpointer);
         face_cnt++;
     }
