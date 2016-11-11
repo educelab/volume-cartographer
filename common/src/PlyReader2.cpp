@@ -44,6 +44,7 @@ void PLYReader2::_parseHeader() {
     while(_line.find("element",0) == std::string::npos){
         std::getline(_plyFile,_line);
     }
+
     //Assumes that if there's face information, there's also vertex information
     if(_line.find("vertex",0) == std::string::npos && _line.find("face", 0) != std::string::npos){
         _facesFirst = true;
@@ -52,86 +53,60 @@ void PLYReader2::_parseHeader() {
         );
         _numOfFaces=std::stoi(facenum[2]);
         std::getline(_plyFile, _line);
+
         if(_line.find("uchar") == std::string::npos){
             _leadingChar = false;
         }
+
         std::getline(_plyFile, _line);
         boost::split(vertnum,_line,boost::is_any_of(" "), boost::token_compress_on);
         _numOfVertices=std::stoi(vertnum[2]);
         std::getline(_plyFile, _line);
         int currentLine = 0;
+
         while (_line.find("element", 0) == std::string::npos &&
                _line.find("end_header", 0) == std::string::npos) {
             std::vector<std::string> curline;
             boost::split(curline,_line,boost::is_any_of(" "), boost::token_compress_on);
-            for(auto& element : curline){
-                if(element == "nx") {
-                    _pointNorm = true;
-                    properties["nx"] = currentLine;
-                } else if (element == "ny"){
-                    properties["ny"] = currentLine;
-                } else if (element == "nz"){
-                    properties["nz"] = currentLine;
-                } else if (element == "x"){
-                    properties["x"] = currentLine;
-                } else if(element == "y"){
-                    properties["y"] = currentLine;
-                } else if (element == "z"){
-                    properties["z"] = currentLine;
-                } else if (element == "r"){
-                    properties["r"] = currentLine;
-                } else if(element == "g"){
-                    properties["g"] = currentLine;
-                } else if (element == "b"){
-                    properties["b"] = currentLine;
-                }//if-else
-            }//for
+            if (curline[2] == "nx") {
+                _pointNorm = true;
+            }
+            properties[curline[2]] = currentLine;
             std::getline(_plyFile, _line);
             currentLine++;
-        }//while
+        }
     }
-    else if(_line.find("vertex",0) == std::string::npos && _line.find("face", 0) == std::string::npos){
+
+    else if (
+        _line.find("vertex", 0) == std::string::npos &&
+        _line.find("face", 0) == std::string::npos) {
         auto msg = "No header information, file cannot be parsed";
         throw volcart::IOException(msg);
     }
-    else{
+
+    else {
         _facesFirst = false;
         boost::split(vertnum,_line,boost::is_any_of(" "), boost::token_compress_on);
         _numOfVertices=std::stoi(vertnum[2]);
         std::getline(_plyFile, _line);
         int currentLine = 0;
+
         while (_line.find("element", 0) == std::string::npos &&
                _line.find("end_header", 0) == std::string::npos) {
             std::vector<std::string> curline;
             boost::split(curline,_line,boost::is_any_of(" "), boost::token_compress_on);
-            for(auto& element : curline){
-                if(element == "nx") {
-                    _pointNorm = true;
-                    properties["nx"] = currentLine;
-                } else if (element == "ny"){
-                    properties["ny"] = currentLine;
-                } else if (element == "nz"){
-                    properties["nz"] = currentLine;
-                } else if (element == "x"){
-                    properties["x"] = currentLine;
-                } else if(element == "y"){
-                    properties["y"] = currentLine;
-                } else if (element == "z"){
-                    properties["z"] = currentLine;
-                } else if (element == "r"){
-                    properties["r"] = currentLine;
-                }else if(element == "g"){
-                    properties["g"] = currentLine;
-                }else if (element == "b"){
-                    properties["b"] = currentLine;
-                }//if-else
-            }//for
+            if (curline[2] == "nx") {
+                _pointNorm = true;
+            }
+            properties[curline[2]] = currentLine;
             std::getline(_plyFile, _line);
             currentLine++;
-        }//while
+        }
+
         boost::split(
                 facenum,_line,boost::is_any_of(" "), boost::token_compress_on
         );
+
         if(_line.find("face",0) == std::string::npos){
             std::cerr << "Warning: No face information found, reading in vertices only" << std::endl;
             _numOfFaces = 0;
@@ -143,8 +118,10 @@ void PLYReader2::_parseHeader() {
                 _leadingChar = false;
             }
         }
+
         std::getline(_plyFile, _line);
-    }//else
+    }
+
     while (_line.find("end_header", 0) == std::string::npos) {
         std::getline(_plyFile, _line);
     }
@@ -193,6 +170,7 @@ void PLYReader2::_readFaces() {
                     std::stoul(curFace[3]));
                 _faceList.push_back(face);
             }
+
         } else {
             if (curFace.size() != 3) {
                 auto msg = "Error: Not a Triangular Mesh";
@@ -225,7 +203,7 @@ void PLYReader2::_createMesh() {
         }
         point_cnt++;
     }
-    unsigned long face_cnt = 0;
+    uint32_t face_cnt = 0;
     for (auto& cur: _faceList) {
         ITKCell::CellAutoPointer cellpointer;
         cellpointer.TakeOwnership(new ITKTriangle);

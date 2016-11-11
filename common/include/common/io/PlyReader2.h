@@ -127,6 +127,7 @@ private:
      * @see common/include/common/vc_defines.h
      */
     std::vector<volcart::Vertex> _pointList;
+
     /**
      * @brief Reads in each point and stores them as a vertex
      * @see common/include/common/vc_defines.h
