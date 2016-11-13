@@ -3,10 +3,8 @@
 #include <cstdlib>
 #include <iostream>
 
-#include <boost/foreach.hpp>
-#include <boost/lexical_cast.hpp>
-
 #include <boost/filesystem.hpp>
+
 #include "common/types/OrderedPointSet.h"
 #include "common/types/Point.h"
 #include "common/types/Texture.h"
@@ -51,15 +49,6 @@ public:
     VolumePkg(const boost::filesystem::path& file_location);
 
     /**
-     * @brief Initialize an empty .volpkg file on disk.
-     *
-     * Used when setting up a new VolumePkg file. This function fails if
-     * VolumePkg read-only flag is set or if file is unwritable..
-     * @return `EXIT_SUCCESS` or `EXIT_FAILURE`
-     */
-    int initialize();
-
-    /**
      * @brief Prints the JSON object that stores VolumePkg metadata. Debug only.
      */
     void printJSON() const { config.printObject(); };
@@ -72,7 +61,7 @@ public:
     {
         std::cout << "root: " << root_dir << " seg: " << segs_dir
                   << " slice: " << slice_dir << std::endl;
-    };
+    }
 
     /** @name Metadata */
     //@{
@@ -131,13 +120,16 @@ public:
     /**
      * @brief Saves the metadata to the VolumePkg (.volpkg) file.
      */
-    void saveMetadata();
+    void saveMetadata() { config.save(root_dir / "config.json"); }
 
     /**
      * @brief Saves the metadata to a user-specified location.
      * @param filePath Path to output file
      */
-    void saveMetadata(const boost::filesystem::path& filePath);
+    void saveMetadata(const boost::filesystem::path& filePath)
+    {
+        config.save(filePath);
+    }
     //@}
 
     /** @name Volume Data */

@@ -1,27 +1,27 @@
 /** @file volumepkg.cpp */
 
-#include "volumepkg/volumepkg.h"
+#include <boost/range/iterator_range.hpp>
+
 #include "common/io/PointSetIO.h"
 #include "common/io/objWriter.h"
 #include "common/io/plyWriter.h"
 #include "common/types/OrderedPointSet.h"
 #include "common/types/Point.h"
+#include "volumepkg/volumepkg.h"
 
 namespace fs = boost::filesystem;
 
 // CONSTRUCTORS //
 // Make a volpkg of a particular version number
-VolumePkg::VolumePkg(
-    const fs::path& file_location,
-    int version)  // Changed type from double to int
+VolumePkg::VolumePkg(const fs::path& file_location, int version)
 {
     // Lookup the metadata template from our library of versions
     auto findDict = volcart::VersionLibrary.find(version);
     if (findDict == std::end(volcart::VersionLibrary)) {
         throw std::runtime_error("No dictionary found for volpkg");
-    } else {
-        config = VolumePkg::_initConfig(findDict->second, version);
     }
+
+    config = VolumePkg::_initConfig(findDict->second, version);
 
     // Create the directories with the default values
     // TODO: We need a better way of handling default values
@@ -29,12 +29,13 @@ VolumePkg::VolumePkg(
     segs_dir = file_location / "paths";
     slice_dir = file_location / "slices";
     config.set("slice location", "/slices/");
+    _makeDirTree();
 
     // Initialize volume object
     vol_ = volcart::Volume(
         slice_dir, config.get<int>("number of slices"),
         config.get<int>("width"), config.get<int>("height"));
-};
+}
 
 // Use this when reading a volpkg from a file
 VolumePkg::VolumePkg(const fs::path& file_location)
@@ -68,45 +69,29 @@ VolumePkg::VolumePkg(const fs::path& file_location)
     vol_ = volcart::Volume(
         slice_dir, config.get<int>("number of slices"),
         config.get<int>("width"), config.get<int>("height"));
-};
-
-// WRITE TO DISK //
-int VolumePkg::initialize()
-{
-    // A check to see if the file can be written to disk
-    if (_readOnly) {
-        volcart::ERR_READONLY();
-    }
-
-    // Build the directory tree
-    _makeDirTree();
-
-    // Save the JSON to disk
-    saveMetadata();
-
-    return EXIT_SUCCESS;
-};
+}
 
 int VolumePkg::_makeDirTree()
 {
     // Directories we need to make
-    std::vector<boost::filesystem::path> dirs;
+    std::vector<fs::path> dirs;
     dirs.push_back(root_dir);
     dirs.push_back(segs_dir);
     dirs.push_back(slice_dir);
 
     // Make directories that don't exist
-    for (auto dir = dirs.begin(); dir != dirs.end(); ++dir) {
-        if (boost::filesystem::exists(*dir))
-            std::cerr << "WARNING: " << *dir
+    for (auto dir : dirs) {
+        if (fs::exists(dir)) {
+            std::cerr << "WARNING: " << dir
                       << " already exists. Skipping folder creation."
                       << std::endl;
-        else
-            boost::filesystem::create_directory(*dir);
+        } else {
+            fs::create_directory(dir);
+        }
     }
 
     return EXIT_SUCCESS;
-};
+}
 
 // METADATA RETRIEVAL //
 // Returns Volume Name from JSON config
@@ -118,12 +103,9 @@ std::string VolumePkg::getPkgName() const
         return name;
     else
         return "UnnamedVolume";
-};
+}
 
-int VolumePkg::getVersion() const
-{
-    return config.get<int>("version");
-};  // Changed type from double to int
+int VolumePkg::getVersion() const { return config.get<int>("version"); }
 
 // Returns no. of slices from JSON config
 int VolumePkg::getNumberOfSlices() const
@@ -144,16 +126,6 @@ double VolumePkg::getMaterialThickness() const
 {
     return config.get<double>("materialthickness");
 }
-
-// METADATA EXPORT //
-// Save metadata to any file
-void VolumePkg::saveMetadata(const fs::path& filePath)
-{
-    config.save(filePath);
-}
-
-// Alias for saving to the default config.json
-void VolumePkg::saveMetadata() { saveMetadata(root_dir / "config.json"); }
 
 // Slice manipulation functions
 bool VolumePkg::setSliceData(size_t index, const cv::Mat& slice)
@@ -203,10 +175,7 @@ void VolumePkg::setActiveSegmentation(const std::string& name)
 // Return the id of the active segmentation
 std::string VolumePkg::getActiveSegmentation() { return activeSeg; };
 
-boost::filesystem::path VolumePkg::getActiveSegPath()
-{
-    return segs_dir / activeSeg;
-};
+fs::path VolumePkg::getActiveSegPath() { return segs_dir / activeSeg; }
 
 // Return the point cloud currently on disk for the activeSegmentation
 volcart::OrderedPointSet<volcart::Point3d> VolumePkg::openCloud() const
@@ -263,7 +232,7 @@ void VolumePkg::saveMesh(
     writer.setTexture(texture.getImage(0));
     writer.setUVMap(texture.uvMap());
     writer.write();
-};
+}
 
 void VolumePkg::saveTextureData(const cv::Mat& texture, const std::string& name)
 {
