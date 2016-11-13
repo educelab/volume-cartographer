@@ -1,17 +1,18 @@
-
 #pragma once
 
 #include <cmath>
+#include <cstring>
 #include <fstream>
 #include <iostream>
-#include <cstring>
 #include <tuple>
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/filesystem/path.hpp>
-#include <common/types/Exceptions.h>
-#include <common/vc_defines.h>
+
+#include "common/types/Exceptions.h"
+#include "common/vc_defines.h"
+
 /**
  * @class PlyReader2.h
  * @author Hannah Hatch
@@ -31,7 +32,8 @@ namespace volcart
 {
 namespace io
 {
-class PLYReader2{
+class PLYReader2
+{
 public:
     /**
      * @brief Constructs a reader with no parameters set
@@ -39,7 +41,7 @@ public:
      * This function creates a reader but does not set the input file
      * or the output mesh. This must be done before calling read.
      */
-    PLYReader2();
+    PLYReader2() {}
 
     /**
      * @brief Constructs a reader and sets the parameters
@@ -51,13 +53,16 @@ public:
      * @param path Path to the file you want to read in, relative or absolute
      * @param mesh Pointer to an ITK mesh where the data read in will be stored
      */
-    PLYReader2(boost::filesystem::path path, volcart::ITKMesh::Pointer mesh);
+    PLYReader2(boost::filesystem::path path, volcart::ITKMesh::Pointer mesh)
+        : _inputPath(path), _outMesh(mesh)
+    {
+    }
 
     /**
      * @brief Sets the input file
      * @param path Path to the file you want to read in, relative or absolute
      */
-    void setPath(boost::filesystem::path path) {_inputPath = path;}
+    void setPath(boost::filesystem::path path) { _inputPath = path; }
     /**
      * @brief Sets the output mesh
      * @param mesh Pointer to an ITK mesh where the data read in will be stored
@@ -74,7 +79,6 @@ public:
      * @warning This function assumes all parameters have been set
      */
     bool read();
-
 
 private:
     /**
@@ -141,7 +145,7 @@ private:
     int _numOfFaces;
 
     /** Map that maps positions in a string to a particular attribute*/
-    std::map<std::string,int> properties;
+    std::map<std::string, int> properties;
 
     /** Bool to keep track if the list of faces comes before the list of
      * vertices*/
@@ -153,6 +157,6 @@ private:
 
     /** Bool to keep track of if there are point normals*/
     bool _pointNorm = false;
-}; //PLYReader
-} //io
-} //volcart
+};  // PLYReader
+}  // io
+}  // volcart
