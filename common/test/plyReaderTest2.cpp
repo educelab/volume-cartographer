@@ -1,5 +1,3 @@
-
-
 #define BOOST_TEST_MODULE plyReader2
 
 #include <boost/test/unit_test.hpp>
