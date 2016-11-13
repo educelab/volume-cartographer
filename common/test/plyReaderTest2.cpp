@@ -4,7 +4,7 @@
 
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
-#include "common/io/PlyReader2.h"
+#include "common/io/PLYReader2.h"
 #include "common/io/plyWriter.h"
 #include "common/shapes/Arch.h"
 #include "common/shapes/Cone.h"

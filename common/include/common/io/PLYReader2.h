@@ -14,7 +14,7 @@
 #include "common/vc_defines.h"
 
 /**
- * @class PlyReader2.h
+ * @class PLYReader2.h
  * @author Hannah Hatch
  * @date 10/18/16
  * @brief Reads in a PLY file

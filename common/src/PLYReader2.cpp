@@ -1,6 +1,6 @@
-/**@file PlyReader2.cpp */
+/**@file PLYReader2.cpp */
 
-#include "common/io/PlyReader2.h"
+#include "common/io/PLYReader2.h"
 
 using Props = std::pair<char, int>;
 
