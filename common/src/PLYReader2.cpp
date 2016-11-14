@@ -156,8 +156,7 @@ void PLYReader2::_readPoints()
 
 void PLYReader2::_readFaces()
 {
-    int i;
-    for (i = 0; i < _numOfFaces; i++) {
+    for (int i = 0; i < _numOfFaces; i++) {
         std::vector<std::string> curFace;
         volcart::Cell face;
         boost::split(
