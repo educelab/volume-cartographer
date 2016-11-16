@@ -13,7 +13,10 @@ namespace fs = boost::filesystem;
 
 // CONSTRUCTORS //
 // Make a volpkg of a particular version number
-VolumePkg::VolumePkg(const fs::path& file_location, int version)
+VolumePkg::VolumePkg(fs::path file_location, int version)
+    : root_dir(file_location)
+    , segs_dir(file_location / "paths")
+    , slice_dir(file_location / "slices")
 {
     // Lookup the metadata template from our library of versions
     auto findDict = volcart::VersionLibrary.find(version);
@@ -21,15 +24,17 @@ VolumePkg::VolumePkg(const fs::path& file_location, int version)
         throw std::runtime_error("No dictionary found for volpkg");
     }
 
-    config = VolumePkg::_initConfig(findDict->second, version);
-
     // Create the directories with the default values
     // TODO: We need a better way of handling default values
-    root_dir = file_location;
-    segs_dir = file_location / "paths";
-    slice_dir = file_location / "slices";
+    config = VolumePkg::_initConfig(findDict->second, version);
     config.set("slice location", "/slices/");
-    _makeDirTree();
+
+    // Make directories
+    for (auto d : {root_dir, segs_dir, slice_dir}) {
+        if (!fs::exists(d)) {
+            fs::create_directory(d);
+        }
+    }
 
     // Initialize volume object
     vol_ = volcart::Volume(
@@ -38,22 +43,18 @@ VolumePkg::VolumePkg(const fs::path& file_location, int version)
 }
 
 // Use this when reading a volpkg from a file
-VolumePkg::VolumePkg(const fs::path& file_location)
+VolumePkg::VolumePkg(fs::path file_location)
+    : root_dir(file_location)
+    , segs_dir(file_location / "paths")
+    , slice_dir(file_location / "slices")
 {
-    root_dir = file_location;
-    if (!fs::exists(root_dir)) {
-        auto errmsg = "location " + file_location.string() + " does not exist";
-        throw std::runtime_error(errmsg);
+    if (!(fs::exists(root_dir) && fs::exists(segs_dir) &&
+          fs::exists(slice_dir))) {
+        throw std::runtime_error("invalid volumepkg structure");
     }
+
     // Loads the metadata
     config = volcart::Metadata(file_location / "config.json");
-
-    segs_dir = file_location / "paths";
-    slice_dir = file_location / "slices";
-    if (!(fs::exists(segs_dir) || fs::exists(slice_dir))) {
-        auto errmsg = "invalid volumepkg structure";
-        throw std::runtime_error(errmsg);
-    }
 
     // Copy segmentation paths to segmentations vector
     auto range =
@@ -69,28 +70,6 @@ VolumePkg::VolumePkg(const fs::path& file_location)
     vol_ = volcart::Volume(
         slice_dir, config.get<int>("number of slices"),
         config.get<int>("width"), config.get<int>("height"));
-}
-
-int VolumePkg::_makeDirTree()
-{
-    // Directories we need to make
-    std::vector<fs::path> dirs;
-    dirs.push_back(root_dir);
-    dirs.push_back(segs_dir);
-    dirs.push_back(slice_dir);
-
-    // Make directories that don't exist
-    for (auto dir : dirs) {
-        if (fs::exists(dir)) {
-            std::cerr << "WARNING: " << dir
-                      << " already exists. Skipping folder creation."
-                      << std::endl;
-        } else {
-            fs::create_directory(dir);
-        }
-    }
-
-    return EXIT_SUCCESS;
 }
 
 // METADATA RETRIEVAL //

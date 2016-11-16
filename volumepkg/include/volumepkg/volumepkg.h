@@ -39,14 +39,14 @@ public:
      * @param file_location The location to store the VolPkg
      * @param version Version of VolumePkg you wish to construct
      */
-    VolumePkg(const boost::filesystem::path& file_location, int version);
+    VolumePkg(boost::filesystem::path file_location, int version);
 
     /**
      * @brief Construct a VolumePkg from a .volpkg file stored at
      * `file_location.`
      * @param file_location The root of the VolumePkg file
      */
-    VolumePkg(const boost::filesystem::path& file_location);
+    VolumePkg(boost::filesystem::path file_location);
 
     /**
      * @brief Prints the JSON object that stores VolumePkg metadata. Debug only.
@@ -126,7 +126,7 @@ public:
      * @brief Saves the metadata to a user-specified location.
      * @param filePath Path to output file
      */
-    void saveMetadata(const boost::filesystem::path& filePath)
+    void saveMetadata(boost::filesystem::path filePath)
     {
         config.save(filePath);
     }
@@ -370,12 +370,6 @@ private:
 
     /** Container for slice data. */
     volcart::Volume vol_;
-
-    /**
-     * @brief Creates the subdirectories for a new VolumePkg (.volpkg) file.
-     * @return `EXIT_SUCCESS`
-     */
-    int _makeDirTree();
 
     /** The root directory of the VolumePkg. */
     boost::filesystem::path root_dir;
