@@ -41,98 +41,49 @@ bool PLYReader2::read()
 
 void PLYReader2::_parseHeader()
 {
-    std::vector<std::string> facenum;
-    std::vector<std::string> vertnum;
+    int currentLine;
     std::getline(_plyFile, _line);
-    while (_line.find("element", 0) == std::string::npos) {
-        std::getline(_plyFile, _line);
-    }
-
-    // Assumes that if there's face information, there's also vertex information
-    if (_line.find("vertex", 0) == std::string::npos &&
-        _line.find("face", 0) != std::string::npos) {
-        _facesFirst = true;
-        boost::split(
-            facenum, _line, boost::is_any_of(" "), boost::token_compress_on);
-        _numOfFaces = std::stoi(facenum[2]);
-        std::getline(_plyFile, _line);
-
-        if (_line.find("uchar") == std::string::npos) {
-            _leadingChar = false;
-        }
-
-        std::getline(_plyFile, _line);
-        boost::split(
-            vertnum, _line, boost::is_any_of(" "), boost::token_compress_on);
-        _numOfVertices = std::stoi(vertnum[2]);
-        std::getline(_plyFile, _line);
-        int currentLine = 0;
-
-        while (_line.find("element", 0) == std::string::npos &&
-               _line.find("end_header", 0) == std::string::npos) {
-            std::vector<std::string> curline;
+    while (_line != "end_header") {
+        if (_line.find("element") != std::string::npos) {
+            std::vector<std::string> splitLine;
             boost::split(
-                curline, _line, boost::is_any_of(" "),
+                splitLine, _line, boost::is_any_of(" "),
                 boost::token_compress_on);
-            if (curline[2] == "nx") {
-                _pointNorm = true;
+            if (splitLine[1] == "vertex") {
+                _numOfVertices = std::stoi(splitLine[2]);
+            } else if (splitLine[1] == "face") {
+                _numOfFaces = std::stoi(splitLine[2]);
             }
-            _properties[curline[2]] = currentLine;
-            std::getline(_plyFile, _line);
-            currentLine++;
-        }
-    }
-
-    else if (
-        _line.find("vertex", 0) == std::string::npos &&
-        _line.find("face", 0) == std::string::npos) {
-        auto msg = "No header information, file cannot be parsed";
-        throw volcart::IOException(msg);
-    }
-
-    else {
-        _facesFirst = false;
-        boost::split(
-            vertnum, _line, boost::is_any_of(" "), boost::token_compress_on);
-        _numOfVertices = std::stoi(vertnum[2]);
-        std::getline(_plyFile, _line);
-        int currentLine = 0;
-
-        while (_line.find("element", 0) == std::string::npos &&
-               _line.find("end_header", 0) == std::string::npos) {
-            std::vector<std::string> curline;
+            getline(_plyFile, _line);
             boost::split(
-                curline, _line, boost::is_any_of(" "),
+                splitLine, _line, boost::is_any_of(" "),
                 boost::token_compress_on);
-            if (curline[2] == "nx") {
-                _pointNorm = true;
+            currentLine = 0;
+            while (splitLine[0] == "property") {
+                if (splitLine[1] == "list") {
+                    if (_line.find("uchar") == std::string::npos) {
+                        _leadingChar = false;
+                    }
+                }
+                // Not sure how to handle if it's not the vertices or faces
+                else {
+                    if (splitLine[2] == "nx") {
+                        _pointNorm = true;
+                    }
+                    _properties[splitLine[2]] = currentLine;
+                }
+                getline(_plyFile, _line);
+                currentLine++;
+                boost::split(
+                    splitLine, _line, boost::is_any_of(" "),
+                    boost::token_compress_on);
             }
-            _properties[curline[2]] = currentLine;
-            std::getline(_plyFile, _line);
-            currentLine++;
-        }
-
-        boost::split(
-            facenum, _line, boost::is_any_of(" "), boost::token_compress_on);
-
-        if (_line.find("face", 0) == std::string::npos) {
-            std::cerr << "Warning: No face information found, reading in "
-                         "vertices only"
-                      << std::endl;
-            _numOfFaces = 0;
         } else {
-            _numOfFaces = std::stoi(facenum[2]);
-            std::getline(_plyFile, _line);
-            if (_line.find("uchar") == std::string::npos) {
-                _leadingChar = false;
-            }
+            getline(_plyFile, _line);
         }
-
-        std::getline(_plyFile, _line);
     }
-
-    while (_line.find("end_header", 0) == std::string::npos) {
-        std::getline(_plyFile, _line);
+    if (_numOfFaces == 0) {
+        std::cerr << "Warning: No face information found" << std::endl;
     }
     std::getline(_plyFile, _line);
 
