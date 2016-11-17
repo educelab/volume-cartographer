@@ -3,6 +3,7 @@
 //
 
 #include "texturing/compositeTextureV2.h"
+#include "common/util/FloatComparison.h"
 
 namespace volcart
 {
@@ -74,7 +75,8 @@ int compositeTextureV2::_process()
             searchPoint[0] = uv[0];
             searchPoint[1] = uv[1];
             searchPoint[2] = 0.0;
-            _kdTree->FindClosestNPoints(searchPoint, 100, neighborhood);
+            _kdTree->FindClosestNPoints(
+                searchPoint, _kdSearchSize, neighborhood);
 
             // Find which triangle this pixel lies inside of
             bool in2D = false;  // Is the current pixel in this cell?
@@ -89,8 +91,11 @@ int compositeTextureV2::_process()
                 baryCoord = _BarycentricCoord(
                     uv, info.Pts2D[0], info.Pts2D[1], info.Pts2D[2]);
                 in2D =
-                    (baryCoord[0] >= 0 && baryCoord[1] >= 0 &&
-                     baryCoord[2] >= 0 && baryCoord[0] + baryCoord[1] <= 1);
+                    ((baryCoord[0] > 0.0 || AlmostEqual(baryCoord[0], 0.0)) &&
+                     (baryCoord[1] > 0.0 || AlmostEqual(baryCoord[1], 0.0)) &&
+                     (baryCoord[2] > 0.0 || AlmostEqual(baryCoord[2], 0.0)) &&
+                     (baryCoord[0] + baryCoord[1] < 1.0 ||
+                      AlmostEqual(baryCoord[0] + baryCoord[1], 1.0)));
 
                 if (in2D)
                     break;
@@ -188,6 +193,10 @@ int compositeTextureV2::_generateCellInfo()
 
     _kdTree->SetPoints(_cellCentroids->GetPoints());
     _kdTree->Initialize();
+    _kdSearchSize =
+        (_cellCentroids->GetNumberOfPoints() < KD_DEFAULT_SEARCH_SIZE)
+            ? _cellCentroids->GetNumberOfPoints()
+            : KD_DEFAULT_SEARCH_SIZE;
 
     return EXIT_SUCCESS;
 }

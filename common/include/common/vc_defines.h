@@ -40,6 +40,7 @@ struct Cell {
 };
 
 struct Ratio {
+    Ratio() : width(1), height(1), aspect(1){};
     double width, height, aspect;
 };
 
