@@ -9,13 +9,12 @@
 #include <opencv2/opencv.hpp>
 #include <vtkCleanPolyData.h>
 
-#include "common/vc_defines.h"
-#include "volumepkg/volumepkg.h"
-
 #include "common/io/PLYReader.h"
 #include "common/io/objWriter.h"
 #include "common/io/plyWriter.h"
+#include "common/types/VolumePkg.h"
 #include "common/util/meshMath.h"
+#include "common/vc_defines.h"
 #include "meshing/ACVD.h"
 #include "meshing/smoothNormals.h"
 #include "texturing/AngleBasedFlattening.h"

@@ -2,8 +2,8 @@
 // Created by Seth Parker on 6/24/15.
 //
 
+#include "common/types/VolumePkg.h"
 #include "common/vc_defines.h"
-#include "volumepkg/volumepkg.h"
 
 #include "common/io/PLYReader.h"
 #include "common/io/plyWriter.h"

@@ -9,9 +9,9 @@
 #include "common/types/Point.h"
 #include "common/types/Texture.h"
 #include "common/types/Volume.h"
+#include "common/types/VolumePkgVersion.h"
 #include "common/vc_defines.h"
 #include "external/json.hpp"
-#include "volumepkg/volumepkg_version.h"
 
 /**
  * @class VolumePkg

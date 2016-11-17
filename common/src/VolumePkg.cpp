@@ -7,7 +7,7 @@
 #include "common/io/plyWriter.h"
 #include "common/types/OrderedPointSet.h"
 #include "common/types/Point.h"
-#include "volumepkg/volumepkg.h"
+#include "common/types/VolumePkg.h"
 
 namespace fs = boost::filesystem;
 

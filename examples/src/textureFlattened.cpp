@@ -2,17 +2,15 @@
 // Created by Seth Parker on 6/24/15.
 //
 
-#include "common/vc_defines.h"
-#include "volumepkg/volumepkg.h"
+#include <vtkPLYReader.h>
+#include <vtkSmartPointer.h>
 
 #include "common/io/PLYReader.h"
 #include "common/io/objWriter.h"
 #include "common/io/plyWriter.h"
+#include "common/types/VolumePkg.h"
+#include "common/vc_defines.h"
 #include "meshing/itk2vtk.h"
-
-#include <vtkPLYReader.h>
-#include <vtkSmartPointer.h>
-
 #include "texturing/compositeTextureV2.h"
 #include "texturing/simpleUV.h"
 

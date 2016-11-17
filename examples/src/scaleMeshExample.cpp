@@ -9,8 +9,8 @@
  *          v-c/testing/meshing.
  */
 
-#include <common/io/objWriter.h>
 #include <itkMeshFileWriter.h>
+#include "common/io/objWriter.h"
 #include "common/shapes/Arch.h"
 #include "common/shapes/Cone.h"
 #include "common/shapes/Cube.h"

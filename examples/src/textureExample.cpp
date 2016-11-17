@@ -6,9 +6,8 @@
 #include "common/io/objWriter.h"
 #include "common/io/plyWriter.h"
 #include "common/types/Texture.h"
+#include "common/types/VolumePkg.h"
 #include "common/vc_defines.h"
-#include "volumepkg/volumepkg.h"
-
 #include "texturing/compositeTextureV2.h"
 #include "texturing/simpleUV.h"
 

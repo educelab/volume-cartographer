@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <iostream>
-#include <opencv2/opencv.hpp>
-#include "volumepkg/volumepkg.h"
+#include <opencv2/core.hpp>
+#include "common/types/VolumePkg.h"
 
 void draw(
     const volcart::Volume& v,

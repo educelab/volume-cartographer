@@ -8,6 +8,7 @@
 #include <vtkPLYReader.h>
 
 #include "common/io/objWriter.h"
+#include "common/types/VolumePkg.h"
 #include "common/vc_defines.h"
 #include "meshing/itk2vtk.h"
 #include "texturing/ClothModelingUVMapping.h"
