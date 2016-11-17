@@ -73,7 +73,7 @@ foreach(src ${test_srcs})
     target_link_libraries(${testname}
         vc_texturing
         vc_testing
-	Boost::unit_test_framework
+        Boost::unit_test_framework
         ${public_deps}
     )
     add_test(
