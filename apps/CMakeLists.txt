@@ -67,6 +67,7 @@ target_link_libraries(vc_projection2
     vc_common
     vtkCommonCore
     vtkCommonDataModel
+    vtkFiltersGeneral
     vtkIOPLY
 )
 

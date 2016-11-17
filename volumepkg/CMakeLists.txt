@@ -15,8 +15,6 @@ target_link_libraries(${target}
     PUBLIC
         vc_common
         vc_external
-    PRIVATE
-        vc_meshing
 )
 
 install(TARGETS ${target}
