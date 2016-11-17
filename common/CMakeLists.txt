@@ -16,7 +16,8 @@ set(srcs
     src/objWriter.cpp
     src/PLYReader.cpp
     src/plyWriter.cpp
-    src/PLYReader2.cpp)
+    src/PLYReader2.cpp
+)
 
 add_library(${target} ${srcs})
 target_include_directories(${target}
@@ -63,7 +64,7 @@ set(test_srcs
     test/OrderedPointSetTest.cpp
     test/OrderedPointSetIOTest.cpp
     test/PointTest.cpp
-    test/plyReaderTest2.cpp
+    test/PLYReaderTest.cpp
 )
 
 # Add a test executable for each src
