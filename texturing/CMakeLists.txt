@@ -24,7 +24,7 @@ if (VC_USE_LIBIGL)
 endif()
 if (VC_USE_BULLET)
     list(APPEND srcs src/ClothModelingUVMapping.cpp)
-    list(APPEND public_deps bullet)
+    list(APPEND public_deps bullet ${BULLET_LIBRARIES})
     list(APPEND defs VC_USE_BULLET)
 endif()
 
@@ -71,11 +71,9 @@ foreach(src ${test_srcs})
     set(testname ${target}_${filename})
     add_executable(${testname} ${src})
     target_link_libraries(${testname}
-        vc_common
         vc_texturing
         vc_testing
-        vc_meshing
-        Boost::unit_test_framework
+	Boost::unit_test_framework
         ${public_deps}
     )
     add_test(
