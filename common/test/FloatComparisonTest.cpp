@@ -10,16 +10,26 @@
 
 using namespace volcart;
 
-struct SmallFloats {
-    float f0 = std::numeric_limits<float>::min();
-    float f1 = 1e-8;
+struct SmallDifferences {
+    SmallDifferences()
+    {
+        for (auto i = 0; i < 10; ++i) {
+            f1 += float(0.1);
+            d1 += float(0.1);
+        }
+    }
 
-    double d0 = std::numeric_limits<double>::min();
-    double d1 = 1e-24;
+    float f0 = 1.0;
+    float f1 = 0.0;
+    double d0 = 1.0;
+    double d1 = 0.0;
 };
 
-BOOST_FIXTURE_TEST_CASE(AlmostEqualTest, SmallFloats)
+BOOST_FIXTURE_TEST_CASE(AlmostEqualTest, SmallDifferences)
 {
-    BOOST_CHECK_EQUAL(true, AlmostEqual(f0, f1));
-    BOOST_CHECK_EQUAL(true, AlmostEqual(d0, d1));
+    BOOST_CHECK(f0 != f1);
+    BOOST_CHECK(AlmostEqual(f0, f1));
+
+    BOOST_CHECK(d0 != d1);
+    BOOST_CHECK(AlmostEqual(d0, d1));
 }
