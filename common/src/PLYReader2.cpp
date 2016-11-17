@@ -15,6 +15,7 @@ bool PLYReader2::read()
     _pointList.clear();
     _faceList.clear();
     _properties.clear();
+    _elementsList.clear();
     _outMesh = ITKMesh::New();
     _numOfVertices = 0;
     _numOfFaces = 0;
@@ -27,12 +28,12 @@ bool PLYReader2::read()
         throw volcart::IOException(msg);
     }
     _parseHeader();
-    if (_facesFirst) {
-        _readFaces();
-        _readPoints();
-    } else {
-        _readPoints();
-        _readFaces();
+    for (auto& cur : _elementsList) {
+        if (cur == "vertex") {
+            _readPoints();
+        } else if (cur == "face") {
+            _readFaces();
+        }
     }
     _plyFile.close();
     _createMesh();
@@ -49,6 +50,7 @@ void PLYReader2::_parseHeader()
             boost::split(
                 splitLine, _line, boost::is_any_of(" "),
                 boost::token_compress_on);
+            _elementsList.push_back(splitLine[1]);
             if (splitLine[1] == "vertex") {
                 _numOfVertices = std::stoi(splitLine[2]);
             } else if (splitLine[1] == "face") {

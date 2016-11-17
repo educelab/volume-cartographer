@@ -109,6 +109,9 @@ private:
     */
     std::vector<volcart::Vertex> _pointList;
 
+    /** List of elements that were parsed*/
+    std::vector<std::string> _elementsList;
+
     /** Number of vertices in the mesh */
     int _numOfVertices;
 
