@@ -25,7 +25,6 @@
 #include <iostream>
 #include <math.h>
 
-#include <BulletSoftBody/btDefaultSoftBodySolver.h>
 #include <BulletSoftBody/btSoftBody.h>
 #include <BulletSoftBody/btSoftBodyRigidBodyCollisionConfiguration.h>
 #include <BulletSoftBody/btSoftRigidDynamicsWorld.h>
@@ -34,8 +33,6 @@
 
 #include "common/types/UVMap.h"
 #include "common/vc_defines.h"
-#include "meshing/deepCopy.h"
-#include "meshing/itk2bullet.h"
 
 namespace volcart
 {
