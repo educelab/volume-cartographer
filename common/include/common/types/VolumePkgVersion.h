@@ -1,5 +1,5 @@
 /**
-  @file   volumepkg_version.h
+  @file   VolumePkgVersion.h
   @author Seth Parker
   @date   April 2015
 

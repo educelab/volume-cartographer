@@ -51,7 +51,6 @@ if(VC_BUILD_TESTS)
 endif()
 
 add_subdirectory(meshing)
-add_subdirectory(volumepkg)
 add_subdirectory(segmentation)
 add_subdirectory(texturing)
 
