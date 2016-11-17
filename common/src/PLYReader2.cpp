@@ -11,6 +11,16 @@ namespace io
 
 bool PLYReader2::read()
 {
+    // Resets values of member variables in case of 2nd reading
+    _pointList.clear();
+    _faceList.clear();
+    _properties.clear();
+    _outMesh = ITKMesh::New();
+    _numOfVertices = 0;
+    _numOfFaces = 0;
+    _leadingChar = true;
+    _pointNorm = false;
+
     _plyFile.open(_inputPath.string());
     if (!_plyFile.is_open()) {
         auto msg = "Open file " + _inputPath.string() + " failed.";
@@ -67,7 +77,7 @@ void PLYReader2::_parseHeader()
             if (curline[2] == "nx") {
                 _pointNorm = true;
             }
-            properties[curline[2]] = currentLine;
+            _properties[curline[2]] = currentLine;
             std::getline(_plyFile, _line);
             currentLine++;
         }
@@ -97,7 +107,7 @@ void PLYReader2::_parseHeader()
             if (curline[2] == "nx") {
                 _pointNorm = true;
             }
-            properties[curline[2]] = currentLine;
+            _properties[curline[2]] = currentLine;
             std::getline(_plyFile, _line);
             currentLine++;
         }
@@ -136,18 +146,18 @@ void PLYReader2::_readPoints()
         std::vector<std::string> curLine;
         boost::split(
             curLine, _line, boost::is_any_of(" "), boost::token_compress_on);
-        curPoint.x = std::stod(curLine[properties["x"]]);
-        curPoint.y = std::stod(curLine[properties["y"]]);
-        curPoint.z = std::stod(curLine[properties["z"]]);
-        if (properties.find("nx") != properties.end()) {
-            curPoint.nx = std::stod(curLine[properties["nx"]]);
-            curPoint.ny = std::stod(curLine[properties["ny"]]);
-            curPoint.nz = std::stod(curLine[properties["nz"]]);
+        curPoint.x = std::stod(curLine[_properties["x"]]);
+        curPoint.y = std::stod(curLine[_properties["y"]]);
+        curPoint.z = std::stod(curLine[_properties["z"]]);
+        if (_properties.find("nx") != _properties.end()) {
+            curPoint.nx = std::stod(curLine[_properties["nx"]]);
+            curPoint.ny = std::stod(curLine[_properties["ny"]]);
+            curPoint.nz = std::stod(curLine[_properties["nz"]]);
         }
-        if (properties.find("r") != properties.end()) {
-            curPoint.r = stoi(curLine[properties["r"]]);
-            curPoint.g = stoi(curLine[properties["g"]]);
-            curPoint.b = stoi(curLine[properties["b"]]);
+        if (_properties.find("r") != _properties.end()) {
+            curPoint.r = stoi(curLine[_properties["r"]]);
+            curPoint.g = stoi(curLine[_properties["g"]]);
+            curPoint.b = stoi(curLine[_properties["b"]]);
         }
         _pointList.push_back(curPoint);
         std::getline(_plyFile, _line);
