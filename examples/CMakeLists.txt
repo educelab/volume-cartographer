@@ -105,3 +105,6 @@ add_executable(vc_orderedPointSetMesher_example
     src/OrderedPointSetMesherExample.cpp
 )
 target_link_libraries(vc_orderedPointSetMesher_example VC::meshing)
+
+add_executable(vc_obj_reader_example src/OBJReaderExample.cpp)
+target_link_libraries(vc_obj_reader_example VC::core)
