@@ -71,10 +71,8 @@ foreach(src ${test_srcs})
     set(testname ${target}_${filename})
     add_executable(${testname} ${src})
     target_link_libraries(${testname}
-        vc_common
         vc_texturing
         vc_testing
-        vc_meshing
         Boost::unit_test_framework
         ${public_deps}
     )

@@ -5,17 +5,10 @@
 
 #ifdef VC_USE_BULLET
 
-#include <LinearMath/btScalar.h>
-#include <LinearMath/btVector3.h>
-#include "common/vc_defines.h"
-
-// Bullet Soft Body
-#include <BulletSoftBody/btDefaultSoftBodySolver.h>
 #include <BulletSoftBody/btSoftBody.h>
-#include <BulletSoftBody/btSoftBodyHelpers.h>
-#include <BulletSoftBody/btSoftBodyRigidBodyCollisionConfiguration.h>
 #include <BulletSoftBody/btSoftRigidDynamicsWorld.h>
-#include <btBulletDynamicsCommon.h>
+
+#include "common/vc_defines.h"
 
 namespace volcart
 {

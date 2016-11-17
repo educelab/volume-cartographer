@@ -25,7 +25,7 @@ if (VC_USE_ACVD)
 endif()
 if (VC_USE_BULLET)
     list(APPEND srcs src/itk2bullet.cpp)
-    list(APPEND deps bullet)
+    list(APPEND deps bullet ${BULLET_LIBRARIES})
     list(APPEND defs VC_USE_BULLET)
 endif()
 if(VC_USE_VCG)
@@ -43,7 +43,7 @@ target_include_directories(${target}
 )
 target_link_libraries(${target}
     PUBLIC
-        ${deps} 
+        ${deps}
     PRIVATE
         ITKTransform
         vtkFiltersGeneral
