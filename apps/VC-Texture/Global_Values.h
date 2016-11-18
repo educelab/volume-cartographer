@@ -15,7 +15,7 @@
 #include <QApplication>
 #include <QImage>
 #include <QMainWindow>
-#include <QMenuBar>
+#include <QMenu>
 #include <QPixmap>
 #include <QRect>
 #include "common/types/Rendering.h"
