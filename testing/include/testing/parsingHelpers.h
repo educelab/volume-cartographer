@@ -4,7 +4,7 @@
 #pragma once
 
 #include <boost/filesystem/path.hpp>
-#include "common/vc_defines.h"
+#include "core/vc_defines.h"
 
 /*
  * Purpose of File:

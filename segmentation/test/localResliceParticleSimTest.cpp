@@ -4,7 +4,7 @@
 #include <boost/test/floating_point_comparison.hpp>
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
-#include "common/types/VolumePkg.h"
+#include "core/types/VolumePkg.h"
 #include "segmentation/lrps/localResliceParticleSim.h"
 
 using namespace volcart::segmentation;

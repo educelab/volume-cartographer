@@ -4,7 +4,7 @@
 
 #include <iostream>
 #include <set>
-#include <common/types/Point.h>
+#include <core/types/Point.h>
 #include <opencv2/opencv.hpp>
 
 namespace ChaoVis

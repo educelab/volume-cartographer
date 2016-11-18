@@ -90,7 +90,7 @@ This was a huge release. Only notable changes are included below.
     -  __New:__ Several UV map generators: ClothModelingUVMapping,
     AngleBasedFlattening, LeastSquaresConformalMapping (!44)
 - volumepkg
-    - Abstract most functionality to the common/types.
+    - Abstract most functionality to the core/types.
 - cmake
     - Refactor of the entire cmake build system. We can install stuff now! (!55)
     - Replace picojson with ModernJSON (!49)

@@ -2,12 +2,12 @@
 // Created by Seth Parker on 6/24/15.
 //
 
-#include "common/io/PLYReader.h"
-#include "common/io/objWriter.h"
-#include "common/io/plyWriter.h"
-#include "common/types/Texture.h"
-#include "common/types/VolumePkg.h"
-#include "common/vc_defines.h"
+#include "core/io/PLYReader.h"
+#include "core/io/objWriter.h"
+#include "core/io/plyWriter.h"
+#include "core/types/Texture.h"
+#include "core/types/VolumePkg.h"
+#include "core/vc_defines.h"
 #include "texturing/compositeTextureV2.h"
 #include "texturing/simpleUV.h"
 

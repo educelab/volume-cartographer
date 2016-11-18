@@ -16,7 +16,7 @@ target_include_directories(${target}
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(${target} PUBLIC vc_common)
+target_link_libraries(${target} PUBLIC vc_core)
 target_compile_definitions(${target} PUBLIC ${defs})
 
 install(TARGETS ${target}
@@ -38,7 +38,7 @@ foreach(src ${test_srcs})
     set(testname ${target}_${filename})
     add_executable(${testname} ${src})
     target_link_libraries(${testname}
-        vc_common
+        vc_core
         vc_testing
         Boost::unit_test_framework
     )

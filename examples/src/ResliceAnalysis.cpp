@@ -2,7 +2,7 @@
 #include <iostream>
 #include <random>
 #include <opencv2/core.hpp>
-#include "common/types/VolumePkg.h"
+#include "core/types/VolumePkg.h"
 
 const cv::Vec3d KVector(0, 0, 1);
 const int32_t WIDTH = 64;

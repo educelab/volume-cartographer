@@ -3,7 +3,7 @@
 //
 
 #include "texturing/compositeTextureV2.h"
-#include "common/util/FloatComparison.h"
+#include "core/util/FloatComparison.h"
 
 namespace volcart
 {

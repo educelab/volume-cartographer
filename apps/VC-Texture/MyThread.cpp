@@ -11,8 +11,8 @@
 //----------------------------------------------------------------------------------------------------------------------------------------
 
 #include "MyThread.h"
-#include "common/io/PLYReader.h"
-#include "common/io/objWriter.h"
+#include "core/io/PLYReader.h"
+#include "core/io/objWriter.h"
 
 namespace fs = boost::filesystem;
 

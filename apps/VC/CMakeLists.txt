@@ -52,7 +52,7 @@ target_include_directories(${target}
         ${CMAKE_CURRENT_BINARY_DIR}
 )
 target_link_libraries(${target}
-    vc_common
+    vc_core
     vc_meshing
     vc_segmentation
     Boost::filesystem

@@ -7,9 +7,9 @@
 #include <boost/program_options.hpp>
 #include <vtkPLYReader.h>
 
-#include "common/io/objWriter.h"
-#include "common/types/VolumePkg.h"
-#include "common/vc_defines.h"
+#include "core/io/objWriter.h"
+#include "core/types/VolumePkg.h"
+#include "core/vc_defines.h"
 #include "meshing/itk2vtk.h"
 #include "texturing/ClothModelingUVMapping.h"
 #include "texturing/compositeTextureV2.h"

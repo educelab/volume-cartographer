@@ -5,10 +5,10 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "common/types/Texture.h"
-#include "common/types/UVMap.h"
-#include "common/types/VolumePkg.h"
-#include "common/vc_defines.h"
+#include "core/types/Texture.h"
+#include "core/types/UVMap.h"
+#include "core/types/VolumePkg.h"
+#include "core/vc_defines.h"
 
 #include "texturingUtils.h"
 

@@ -4,10 +4,10 @@
 // Created by Seth Parker on 10/20/15.
 #pragma once
 
-#include "common/types/Texture.h"
-#include "common/types/UVMap.h"
-#include "common/types/VolumePkg.h"
-#include "common/vc_defines.h"
+#include "core/types/Texture.h"
+#include "core/types/UVMap.h"
+#include "core/types/VolumePkg.h"
+#include "core/vc_defines.h"
 
 #include "texturing/simpleUV.h"
 #include "texturing/texturingUtils.h"

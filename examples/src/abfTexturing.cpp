@@ -2,11 +2,11 @@
 // Created by Seth Parker on 6/24/15.
 //
 
-#include "common/types/VolumePkg.h"
-#include "common/vc_defines.h"
+#include "core/types/VolumePkg.h"
+#include "core/vc_defines.h"
 
-#include "common/io/PLYReader.h"
-#include "common/io/plyWriter.h"
+#include "core/io/PLYReader.h"
+#include "core/io/plyWriter.h"
 #include "meshing/itk2vtk.h"
 
 #include <itkQuadEdgeMeshDecimationCriteria.h>
@@ -18,9 +18,9 @@
 #include <vtkSmartPointer.h>
 #include <vtkSmoothPolyDataFilter.h>
 
-#include "common/io/objWriter.h"
-#include "common/types/Rendering.h"
-#include "common/util/meshMath.h"
+#include "core/io/objWriter.h"
+#include "core/types/Rendering.h"
+#include "core/util/meshMath.h"
 #include "meshing/ACVD.h"
 #include "texturing/AngleBasedFlattening.h"
 #include "texturing/compositeTextureV2.h"

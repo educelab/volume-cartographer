@@ -6,11 +6,11 @@
 #include <boost/filesystem/path.hpp>
 #include <pcl/io/pcd_io.h>
 
-#include "common/io/PointSetIO.h"
-#include "common/types/OrderedPointSet.h"
-#include "common/types/Point.h"
-#include "common/types/PointSet.h"
-#include "common/types/VolumePkg.h"
+#include "core/io/PointSetIO.h"
+#include "core/types/OrderedPointSet.h"
+#include "core/types/Point.h"
+#include "core/types/PointSet.h"
+#include "core/types/VolumePkg.h"
 #include "meshing/OrderedPointSetMesher.h"
 
 using namespace volcart;
