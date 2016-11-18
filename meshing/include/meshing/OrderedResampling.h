@@ -16,11 +16,16 @@ namespace meshing
  * @author Hannah Hatch
  * @date 7/25/16
  *
- * @brief Algorithm that reduces the number of points and faces in a mesh
+ * @brief Resample an ITKMesh using point ordering information.
  *
- * This class takes in a base mesh and reduced the number of points
- * and faces by removing every other point along the horizatal
- * and vertical axes.
+ * Reduce the number of points and faces in a mesh by removing every other point
+ * along the horizontal and vertical axes of the ordering matrix defined by the
+ * width and height parameters. Assumes the input mesh was constructed from an
+ * OrderedPointSet using OrderedPointSetMesher.
+ *
+ * @warning This function assumes the input mesh was constructed from an
+ * OrderedPointSet using OrderedPointSetMesher, and will produce undesired
+ * results for any other type of triangulation.
  *
  * @ingroup Meshing
  *
@@ -30,93 +35,74 @@ namespace meshing
 class OrderedResampling
 {
 public:
-    /**
-     * Creates a member of the class without initalizing anything
-     */
+    /** @name Constructors */
+    //@{
     OrderedResampling();
 
     /**
-     * @brief Creates a member of the class and initializes everything
-     *
-     * The width of the height is how many rows of points there are.
-     * The height of the mesh is how many points are in each row.
-     *
-     * @param mesh Mesh you want to resample
-     * @param in_width Width of the mesh
-     * @param in_height Height of the mesh
+     * @param mesh Mesh to be resampled
+     * @param in_width Width of the ordering matrix
+     * @param in_height Height of the ordering matrix
      */
     OrderedResampling(ITKMesh::Pointer mesh, int in_width, int in_height);
+    //@}
 
+    /** @name Input/Output */
+    //@{
     /**
-     * @brief Sets the input mesh and the height and width of that mesh
+     * @brief Set the input mesh and the dimensions of the ordering matrix.
      *
-     * The width of the height is how many rows of points there are.
-     * The height of the mesh is how many points are in each row.
+     * Width defines the number of vertices in each row of the ordering matrix.
+     * Height defines the number of rows in the ordering matrix.
      *
-     * @param mesh Mesh you want to resample
-     * @param in_width Width of the mesh
-     * @param in_height Height of the mesh
+     * @param mesh Mesh to be resampled
+     * @param in_width Width of the ordering matrix
+     * @param in_height Height of the ordering matrix
      */
     void setMesh(ITKMesh::Pointer mesh, int in_width, int in_height);
 
     /**
-     * @brief Gets a Pointer to the resampled mesh
-     * @return A pointer to an ITK mesh
+     * @brief Get the resampled mesh.
      */
     ITKMesh::Pointer getOutputMesh() const;
 
     /**
-     * @brief Gets the width of the resampled mesh
-     *
-     * @return Width of the resampled mesh
+     * @brief Get the width of the resampled mesh.
      */
     int getOutputWidth() const;
 
     /**
-     * @brief Gets the height of the resampled mesh
-     * @return Height of the resampled mesh
+     * @brief Get the height of the resampled mesh.
      */
     int getOutputHeight() const;
+    //@}
 
+    /** @name Processing */
     /**
-     * @brief Resamples the mesh
-     *
-     * This functions walks through the points of the mesh
-     * and removes every other point along the horizantal
-     * and vertical axes. It then recreates the faces based
-     * the new set of points.
-     *
-     * @warning This function assumed that the mesh is ordered and may
-     * produce undesired results for an unordered mesh
+     * @brief Compute resampled mesh.
      */
     void compute();
+    //@}
 
 private:
-    /** The mesh that is to be resampled */
     ITKMesh::Pointer _input;
-
-    /** The number of rows in the mesh */
-    int _inWidth;   // how many rows
-
-    /** The number of points per row in the mesh*/
-    int _inHeight;  // how many points per row
-
-    /** Pointer to the mesh that has been resampled*/
     ITKMesh::Pointer _output;
-    /**The number of rows in the resampled mesh */
+
+    /** The number of columns in the input ordering matrix */
+    int _inWidth;   // how many rows
+    /** The number of rows in the input ordering matrix */
+    int _inHeight;  // how many points per row
+    /** The number of columns in the output ordering matrix */
     int _outWidth;
-    /**The number of points per row in the resampled */
+    /** The number of rows in the output ordering matrix */
     int _outHeight;
 
     /**
-     * @brief Used to add a cell to an ITK Mesh
+     * @brief Add a face to the output mesh.
      *
-     * This function adds a cell to an ITK mesh
-     * based on the three points given to it.
-     *
-     * @param a ITK Point that makes up one corner of the cell
-     * @param b ITK Point that makes up one corner of the cell
-     * @param c ITK Point that makes up one corner of the cell
+     * @param a ID for the first vertex in the face
+     * @param b ID for the second vertex in the face
+     * @param c ID for the third vertex in the face
      */
     void _addCell(unsigned long a, unsigned long b, unsigned long c);
 

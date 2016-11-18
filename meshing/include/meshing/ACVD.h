@@ -1,3 +1,7 @@
+/**
+ * @file ACVD.h
+ * @brief Mesh resampling using Approximated Centroidal Voronoi Diagrams.
+ */
 #pragma once
 
 #include <vtkPolyData.h>
@@ -11,11 +15,6 @@ namespace volcart
 {
 namespace meshing
 {
-/**
- * @file ACVD.h
- * @brief Mesh resampling using Approximated Centroidal Voronoi Diagrams.
- */
-
 /**
  * @fn void ACVD( vtkPolyData* inputMesh, vtkPolyData* outputMesh,
  * int numberOfSamples, float gradation, int consoleOutput,

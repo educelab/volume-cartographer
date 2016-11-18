@@ -1,4 +1,7 @@
-
+/**
+ * @file scaleMesh.h
+ * @brief Scale an ITKMesh by a linear scale factor.
+ */
 #pragma once
 /**
  * @class scaleMesh
@@ -16,17 +19,18 @@ namespace volcart
 namespace meshing
 {
 /**
- * @file scaleMesh.h
  * @author Seth Parker
  * @date 10/22/15
- * @ingroup Meshing
- * @brief Scales the mesh down by a specifed factor
  *
- * This function scales the mesh uniformly by applying
- * an ITK filter.
- * @param input Pointer to an ITKMesh that needs to be scaled
- * @param output Pointer to an ITKMesh that has been scaled
- * @param scale_factor Factor by which the mesh should be scaled up or down
+ * @brief Scale an ITKMesh by a linear scale factor.
+ *
+ * Uniform scaling of an ITKMesh by a linear scale factor (not an area scale
+ * factor).
+ *
+ * @warning Output parameter should point to an empty ITKMesh. This function
+ * will not initialize a new ITKMesh::Pointer.
+ *
+ * @ingroup Meshing
  */
 void scaleMesh(
     ITKMesh::Pointer input, ITKMesh::Pointer output, double scale_factor);

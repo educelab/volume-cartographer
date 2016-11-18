@@ -1,13 +1,13 @@
-
 #pragma once
 
 #include <iostream>
-// vcglib has order-specific includes, so disable clang-format for these so they
-// don't get reordered
+
+// vcglib has order-specific includes. Don't let clang-format mess with them.
 // clang-format off
 #include <vcg/complex/complex.h>
 #include <vcg/complex/algorithms/local_optimization/tri_edge_collapse_quadric.h>
 // clang-format on
+
 #include "core/vc_defines.h"
 
 namespace volcart
@@ -19,20 +19,17 @@ namespace meshing
  * @author Hannah Hatch
  * @date 8/12/16
  *
- * @brief Resamples the mesh using a Quadric Edge Collapse algorithm
+ * @brief Resample an ITKMesh using Quadric Edge Collapse.
  *
- * This class reduces the mesh by using a quadric error metric, a matrix,
- * to decide if it should collapse and edge and recalculate the points
- * and faces. It does this repeatedly until the desired number of faces
- * is reached.
+ * Reduce the number of vertices and faces in the mesh. Iteratively uses the
+ * quadric error metric to collapse edges until the desired number of faces has
+ * been reached.
  *
  * @ingroup Meshing
  */
 class QuadricEdgeCollapseDecimation
 {
 
-    /** @name VCG Data structures */
-    //@{
     class VcgVertex;
     class VcgEdge;
     class VcgFace;
@@ -49,9 +46,10 @@ class QuadricEdgeCollapseDecimation
                               vcg::Use<VcgEdge>::AsEdgeType,
                               vcg::Use<VcgFace>::AsFaceType> {
     };
+
     /**
      * @class VcgVertex
-     * @brief Sets up the details of the vertexes for the vcgMesh
+     * @brief Sets up the details of the vertexes for the vcgMesh.
      *
      * This sets the vertex for a 3D mesh with point normals.
      *
@@ -119,10 +117,7 @@ class QuadricEdgeCollapseDecimation
         : public vcg::tri::TriMesh<std::vector<VcgVertex>, std::vector<VcgFace>>
     {
     };
-    //@}
 
-    /** @name Edge Collapse classes & typedefs */
-    //@{
     /**
      * @typedef VertexPair
      * @brief Defines a pair of verices of the vcgVertex type defined earlier
@@ -167,7 +162,6 @@ class QuadricEdgeCollapseDecimation
             const VertexPair& p, int i, vcg::BaseParameterClass* pp)
             : TECQ(p, i, pp){};
     };
-    //@}
 
 public:
     /** @name Initializers*/
@@ -296,7 +290,7 @@ public:
     void setQuadricEpsilon(double epsilon)
     {
         collapseParams_.QuadricEpsilon = epsilon;
-    }  // Default:1e-15
+    }
     /**
      * @brief Sets whether or not you want to check the quailty of the mesh
      * The default is true.

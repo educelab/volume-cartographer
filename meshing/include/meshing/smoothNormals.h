@@ -1,4 +1,7 @@
-
+/**
+ * @file smoothNormals.h
+ * @brief Smooth vertex normals within a specified radius.
+ */
 #pragma once
 
 #include <fstream>
@@ -15,23 +18,18 @@ namespace volcart
 namespace meshing
 {
 /**
- * @file smoothNormals.h
  * @author Abigail Coleman
  * @date June 2015
  *
+ * @brief Smooth vertex normals within a specified radius.
+ *
+ * Uses ITK's neighborhood locator to get the list of neighboring vertices
+ * within the provided spherical radius. Returns a deepCopy of the
+ * original mesh, with smoothed vertex normals.
+ *
  * @ingroup Meshing
-/**
- * @brief Calculates normals so they are similar in an area
  *
- * This function smooths the normals so they are more similar
- * so that patterns can be more easily seen in an area. This
- * is done by recalculating the normals in a neighborhood of pixels.
- * The bigger the neighborhood, the more generalized the normals will
- * be.
- *
- * @param input Pointer to an ITK Mesh whose normals should be smoothed
- * @param radius Indicates how big of a neighborhood you want
- * @return Pointer to an ITK Mesh with smoothed normals
+ * @param radius Size of the spherical neighborhood
  */
 ITKMesh::Pointer smoothNormals(ITKMesh::Pointer input, double radius);
 }
