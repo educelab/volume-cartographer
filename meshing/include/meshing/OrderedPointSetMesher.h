@@ -13,11 +13,10 @@ namespace meshing
  * @author Hannah Hatch
  * @date 8/23/16
  *
- * @brief Creates a mesh using an OrderedPointSet
+ * @brief Generate an ordered mesh from an OrderedPointSet.
  *
- * This class takes in an OrderedPointSet and creates
- * a mesh of ordered points and triangular faces.
- * It then returns a pointer to this mesh.
+ * Create a mesh from an OrderedPointSet, using the ordering information to
+ * generate a triangulation of the vertices.
  *
  * @ingroup Meshing
  *
@@ -28,16 +27,12 @@ namespace meshing
 class OrderedPointSetMesher
 {
 public:
-    /** @name Initializers */
+    /** @name Constructors/Destructors */
     //@{
-    /**
-     * Creates a member of the class without setting the original PointSet
-     */
     OrderedPointSetMesher();
 
     /**
-     * Creates a member of the class and sets the original PointSet
-     * @param points OrderedPointSet that you want to use to create the mesh
+     * @param points OrderedPointSet to be meshed
      */
     OrderedPointSetMesher(OrderedPointSet<Point3d> points) : input_(points) {}
     //@}
@@ -45,44 +40,43 @@ public:
     /** @name Input/Output */
     //@{
     /**
-     * Sets the initial OrderedPointSet
-     * @param points OrderedPointSet that you want to use to create the mesh
+     * Set the input OrderedPointSet.
+     * @param points OrderedPointSet to be meshed
      */
     void setPointSet(OrderedPointSet<Point3d> points) { input_ = points; }
 
     /**
-     * Returns a pointer to the mesh that was generated
-     * @return Pointer to an ITK Mesh
+     * Get the generated mesh.
      */
     ITKMesh::Pointer getOutputMesh() const { return output_; }
     //@}
 
+    /** @name Processing */
+    //@{
     /**
-     * @brief Function that creates the mesh
+     * @brief Compute the mesh triangulation.
      *
-     * This function takes the points in the OrderedPointSet and adds them
-     * to the mesh. It then adds the cells by taking 4 points that make
-     * a square and then creating two faces by "cutting it in half".
+     * Triangulation relies upon the ordering information inherent to the
+     * OrderedPointSet and is independent of the actual 3D position of vertices.
+     * Vertices are grouped into "squares" according to their position within
+     * the ordering matrix. These squares are then subdivided into two
+     * triangles and added to the output mesh.
+     *
+     * Vertex normals are computed using CalculateNormals.
      */
     void compute();
+    //@}
 
 private:
-    /** OrderedPointSet that contains the points for the mesh */
     OrderedPointSet<Point3d> input_;
-
-    /** Pointer to the mesh that is generated */
     ITKMesh::Pointer output_;
 
     /**
-     * @brief Used to add a cell to the ITK Mesh
+     * @brief Add a face to the output mesh.
      *
-     * This function adds a cell to the mesh and
-     * assumes that the corners of the cell are the
-     * points given
-     *
-     * @param a ITK Point that makes up one corner of the cell
-     * @param b ITK Point that makes up one corner of the cell
-     * @param c ITK Point that makes up one corner of the cell
+     * @param a ID for the first vertex in the face
+     * @param b ID for the second vertex in the face
+     * @param c ID for the third vertex in the face
      */
     void addCell_(size_t a, size_t b, size_t c);
 };

@@ -5,7 +5,7 @@
 
 /**
 @defgroup Meshing Meshing 
-@brief Library for creating and manipulating meshes 
+@brief Library for mesh creation, manipulation, resampling, and conversion.
 */
 
 /**

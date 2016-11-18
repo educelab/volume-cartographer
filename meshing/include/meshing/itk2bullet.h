@@ -1,4 +1,3 @@
-
 #pragma once
 
 #ifdef VC_USE_BULLET
@@ -17,34 +16,17 @@ namespace meshing
  * @author Abigail Coleman
  * @date 10/21/15
  *
- * @brief Converts between ITK Mesh and a Bullet Soft body
+ * @brief Convert from an ITKMesh to a btSoftBody.
  *
- * This class copies vertex information between the two and
- * then converts either cells of the mesh into faces
- * @newline
- *
- * This class can only be used if Bullet is found.
- *
- * @newline
- * This is used for performing virtual unraveling.
+ * Copy vertex and face information from a btSoftBody to an ITKMesh.
  *
  * @ingroup Meshing
- *
  */
 class itk2bullet
 {
 public:
     /**
-    * @brief Converts an itk Mesh into a Bullet softbody
-    *
-    * This functions takes in an ITK mesh then copies the
-    * points to a Bullet soft body. It then converts the
-    * cells into faces.
-    *
-    * @param input Mesh that needs to be converted
-    * @param worldInfo Gives information about the container
-    *        for the soft body
-    * @param output Bullet Soft body that models the mesh
+    * @param worldInfo Soft Body world configuration
     */
     itk2bullet(
         ITKMesh::Pointer input,
@@ -57,35 +39,16 @@ public:
  * @author Abigail Coleman
  * @date 10/21/15
  *
- * @brief Converts between ITK Mesh and a Bullet Soft body
+ * @brief Convert from a btSoftBody to an ITKMesh.
  *
- * This class copies vertex information between the two and
- * then converts the faces into cells .
- * @newline
- *
- * This class can only be used if Bullet is found.
- *
- * @newline
- * This is used for performing virtual unraveling.
+ * Copy vertex and face information from a btSoftBody to an ITKMesh.
  *
  * @ingroup Meshing
- *
  */
-
 class bullet2itk
 {
 public:
-    /**
-    * @brief Converts a Bullet softbody into an itk Mesh
-    *
-    * This class takes in a bullet soft body and
-    * copies the vertex information. It then converts
-    * the faces into cells.
-    *
-    * @param softbody body that needs to be converted
-    * @param output Pointer to the mesh that was created
-    */
-    bullet2itk(btSoftBody* softBody, ITKMesh::Pointer output);
+    bullet2itk(btSoftBody* input, ITKMesh::Pointer output);
 };
 
 }  // namespace meshing
