@@ -16,6 +16,7 @@ Segmentations_Viewer::Segmentations_Viewer(
 {
     _globals = globals;
     _texture_Viewer = texture_Viewer;
+    currentHighlightedIndex = 0;
 
     // RIGHT SIDE OF GUI
     //********************************************************************************************
@@ -83,15 +84,44 @@ Segmentations_Viewer::Segmentations_Viewer(
 void Segmentations_Viewer::itemClickedSlot()
 {
     if (currentSegmentation != segmentations->currentItem()->text()) {
+
+        // Check Status...
+        if (_globals->getStatus() == ThreadStatus::Successful) {
+
+            // Ask User to Save unsaved Data
+            QMessageBox msgBox;
+            msgBox.setWindowTitle("Discard changes?");
+            msgBox.setText(tr(
+                "Changes will be lost! Discard changes before continuing?\n"));
+            msgBox.setStandardButtons(
+                QMessageBox::Discard | QMessageBox::Cancel);
+            msgBox.setDefaultButton(QMessageBox::Cancel);
+            int option = msgBox.exec();
+
+            switch (option) {
+                case QMessageBox::Discard:
+                    // Discard was clicked
+                    _globals->setThreadStatus(ThreadStatus::Inactive);
+                    break;
+                case QMessageBox::Cancel:
+                    // Cancel was clicked
+                    segmentations->setCurrentRow(currentHighlightedIndex);
+                    return;
+                default:
+                    // should never be reached
+                    return;
+            }
+        } else {
+            _globals->setThreadStatus(ThreadStatus::Inactive);
+        }
+
+        currentHighlightedIndex = segmentations->currentRow();
         currentSegmentation = segmentations->currentItem()->text();
         _globals->clearRendering();
         _texture_Viewer->clearImageLabel();
 
-        QString s =
-            segmentations->currentItem()
-                ->text();  // Gets a QString for the Current Item Selected
-        _globals->getVolPkg()->setActiveSegmentation(
-            s.toStdString());  // Sets the active Segmentation
+        QString s = segmentations->currentItem()->text();
+        _globals->getVolPkg()->setActiveSegmentation(s.toStdString());
 
         cv::Mat texture = _globals->getVolPkg()->getTextureData().clone();
 
@@ -130,8 +160,8 @@ void Segmentations_Viewer::generateTextureImage()
 {
     if (_globals->isVPKG_Intantiated() &&
         _globals->getSegmentations().size() > 0) {
-        auto flags =
-            _globals->getWindow()->windowFlags();  // save current configuration
+        // save current configuration
+        auto flags = _globals->getWindow()->windowFlags();
         QSize size = _globals->getWindow()->frameSize();
 
         _globals->getWindow()->setWindowFlags(
@@ -154,13 +184,12 @@ void Segmentations_Viewer::generateTextureImage()
             processing, SIGNAL(finished()), processing,
             SLOT(deleteLater()));  // Deletes Thread After Completion (Clean-Up)
 
-        while (_globals->getProcessing()) {
+        while (_globals->getStatus() == ThreadStatus::Active) {
             qApp->processEvents();  // Updates GUI Window
         }
 
-        // Set Processing Status to -999 if Cancelled...
-        if (_globals->getForcedClose()) {
-            _globals->setStatus(-999);
+        // Set Processing Status to Foced Close if Cancelled...
+        if (_globals->getStatus() == ThreadStatus::ForcedClose) {
             processing->terminate();  // Clean up Threading
             processing->wait();
         }
@@ -169,7 +198,7 @@ void Segmentations_Viewer::generateTextureImage()
 
         bool test = false;
 
-        if (_globals->getStatus() == 1) {
+        if (_globals->getStatus() == ThreadStatus::Successful) {
             test = loadImage(
                 _globals->getRendering().getTexture().getImage(0).clone());
 
@@ -178,7 +207,7 @@ void Segmentations_Viewer::generateTextureImage()
             }
         }
 
-        if (_globals->getStatus() == 1 &&
+        if (_globals->getStatus() == ThreadStatus::Successful &&
             test)  // If Processing successfully loaded an Image
         {
             QMessageBox::warning(
@@ -186,17 +215,17 @@ void Segmentations_Viewer::generateTextureImage()
                 "The Generated Texture Image is not Saved, if you wish to save "
                 "it, please select \"File\" -> \"Save Texture\".");
 
-        } else if (_globals->getStatus() == -1) {
+        } else if (_globals->getStatus() == ThreadStatus::CloudError) {
             QMessageBox::warning(
                 _globals->getWindow(), "Error",
                 "Failed to Generate Texture Image [cloud.ply] error.");
 
-        } else if (_globals->getStatus() == -2) {
+        } else if (_globals->getStatus() == ThreadStatus::Failed) {
             QMessageBox::warning(
                 _globals->getWindow(), "Error",
                 "Failed to Generate Texture Image.");
 
-        } else if (_globals->getStatus() == -999) {
+        } else if (_globals->getStatus() == ThreadStatus::ForcedClose) {
             QMessageBox::warning(
                 _globals->getWindow(), "Cancelled", "Successfully Cancelled.");
         }
@@ -274,6 +303,7 @@ void Segmentations_Viewer::setSegmentations()
         0)  // Loads first Image to Screen by default
     {
         segmentations->setCurrentRow(0);
+        currentHighlightedIndex = 0;
         currentSegmentation = "null";
         itemClickedSlot();
     }

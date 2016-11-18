@@ -53,24 +53,21 @@ public slots:
 
 private:
     MyThread* processing;
-
+    Global_Values* _globals;
     Texture_Viewer* _texture_Viewer;
 
-    QVBoxLayout* panels;  // Main Layout for Right Side of GUI
-
+    QVBoxLayout* panels;
     QLabel* volume_Package;
     QListWidget* segmentations;
     QString currentSegmentation;
-
     QLabel* parameters;
-    Global_Values* _globals;
     QSpinBox* radius;
     QComboBox* texture_Method;
     QComboBox* sample_Direction;
     QPushButton* generate;
-
     QFormLayout* inputs;
     QVBoxLayout* user_input;
-
     QImage newImage;
+
+    int currentHighlightedIndex;
 };
