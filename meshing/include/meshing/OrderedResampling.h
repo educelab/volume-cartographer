@@ -89,7 +89,7 @@ private:
     ITKMesh::Pointer _output;
 
     /** The number of columns in the input ordering matrix */
-    int _inWidth;   // how many rows
+    int _inWidth;  // how many rows
     /** The number of rows in the input ordering matrix */
     int _inHeight;  // how many points per row
     /** The number of columns in the output ordering matrix */
