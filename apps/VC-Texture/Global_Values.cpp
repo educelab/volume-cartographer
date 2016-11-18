@@ -116,4 +116,10 @@ ThreadStatus Global_Values::getStatus() { return _status; }
 
 void Global_Values::setFileMenu(QMenu* fileMenu) { _fileMenu = fileMenu; }
 
-void Global_Values::enableMenus(bool value) { _fileMenu->setEnabled(value); }
+void Global_Values::enableMenus(bool value)
+{
+    int numElements = _fileMenu->actions().size();
+    for (int i = 0; i < numElements; i++) {
+        _fileMenu->actions().at(i)->setEnabled(value);
+    }
+}

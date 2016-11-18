@@ -71,10 +71,18 @@ MainWindow::MainWindow(Global_Values* globals)
     create_Menus();    // Creates the Menus and adds them to the Menu Bar
 }
 
-void MainWindow::getFilePath()  // Gets the Folder Path of the Volume Package
-                                // location, and initiates a Volume Package.
+// Gets the Folder Path of the Volume Package location, and initiates a Volume
+// Package.
+void MainWindow::getFilePath()
 {
-    // Check Status...
+    // If processing...
+    if (_globals->getStatus() == ThreadStatus::Active) {
+        QMessageBox::information(
+            this, tr("Error Message"), "Please Wait While Texture Generates.");
+        return;
+    }
+
+    // If there's something to save...
     if (_globals->getStatus() == ThreadStatus::Successful) {
 
         // Ask User to Save unsaved Data
@@ -106,6 +114,7 @@ void MainWindow::getFilePath()  // Gets the Folder Path of the Volume Package
                 break;
         }
     }
+
     _globals->setThreadStatus(ThreadStatus::Inactive);
     clearGUI();
     QFileDialog* dialogBox = new QFileDialog();
@@ -168,6 +177,13 @@ void MainWindow::getFilePath()  // Gets the Folder Path of the Volume Package
 // newly Generated Texture Image.
 void MainWindow::saveTexture()
 {
+    // If processing...
+    if (_globals->getStatus() == ThreadStatus::Active) {
+        QMessageBox::information(
+            this, tr("Error Message"), "Please Wait While Texture Generates.");
+        return;
+    }
+
     // If A Volume Package is Loaded and there are Segmentations (continue)
     if (_globals->isVPKG_Intantiated() &&
         _globals->getVolPkg()->getSegmentations().size() != 0) {
@@ -205,6 +221,12 @@ void MainWindow::saveTexture()
 // Exports the Image as .tif, .tiff, .png, .jpg, and .jpeg
 void MainWindow::exportTexture()
 {
+    // If processing...
+    if (_globals->getStatus() == ThreadStatus::Active) {
+        QMessageBox::information(
+            this, tr("Error Message"), "Please Wait While Texture Generates.");
+        return;
+    }
 
     // Return if no volume package is loaded or if volpkg doesn't have
     // segmentations
