@@ -9,7 +9,6 @@ set(srcs
 )
 set(public_deps
     vc_common
-    vc_volumepkg
 )
 set(private_deps
     vc_meshing

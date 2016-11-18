@@ -1,7 +1,7 @@
 // VC Metadata Viewer/Editor
 #include <iostream>
 
-#include "volumepkg/volumepkg.h"
+#include "common/types/VolumePkg.h"
 
 std::string volpkgpath = "";
 std::string mode = "";

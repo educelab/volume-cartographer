@@ -16,6 +16,7 @@ set(srcs
     src/objWriter.cpp
     src/PLYReader.cpp
     src/plyWriter.cpp
+    src/VolumePkg.cpp
 )
 
 add_library(${target} ${srcs})

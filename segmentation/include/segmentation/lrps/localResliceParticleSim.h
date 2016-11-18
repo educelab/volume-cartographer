@@ -2,9 +2,9 @@
 
 #include <iostream>
 #include "common/types/OrderedPointSet.h"
+#include "common/types/VolumePkg.h"
 #include "segmentation/lrps/common.h"
 #include "segmentation/lrps/fittedcurve.h"
-#include "volumepkg/volumepkg.h"
 
 namespace volcart
 {

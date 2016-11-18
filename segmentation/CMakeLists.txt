@@ -12,7 +12,6 @@ set(VC_SEGMENTATION_SRCS
 )
 set(VC_SEGMENTATION_DEPENDENCIES
     vc_common
-    vc_volumepkg
 )
 
 add_library(vc_segmentation ${VC_SEGMENTATION_SRCS})
@@ -29,7 +28,6 @@ target_compile_options(vc_segmentation
 target_link_libraries(vc_segmentation
     PUBLIC
         vc_common
-        vc_volumepkg
 )
 
 install(TARGETS vc_segmentation

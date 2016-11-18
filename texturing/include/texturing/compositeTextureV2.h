@@ -7,8 +7,8 @@
 
 #include "common/types/Texture.h"
 #include "common/types/UVMap.h"
+#include "common/types/VolumePkg.h"
 #include "common/vc_defines.h"
-#include "volumepkg/volumepkg.h"
 
 #include "texturingUtils.h"
 

@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 #include "common/scales/scales.h"
-#include "volumepkg/volumepkg.h"
+#include "common/types/VolumePkg.h"
 
 int main(int argc, char* argv[])
 {

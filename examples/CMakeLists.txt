@@ -8,7 +8,7 @@ if (VC_USE_ACVD)
 endif()
 
 add_executable(vc_volpkg_example src/volpkg.cpp)
-target_link_libraries(vc_volpkg_example vc_volumepkg)
+target_link_libraries(vc_volpkg_example vc_common)
 
 add_executable(vc_uvmap_example src/uvMapExample.cpp)
 target_link_libraries(vc_uvmap_example vc_common)
@@ -16,14 +16,13 @@ target_link_libraries(vc_uvmap_example vc_common)
 add_executable(vc_texture_flattened src/textureFlattened.cpp)
 target_link_libraries(vc_texture_flattened
     vc_common
-    vc_volumepkg
     vc_meshing
     vc_texturing
     vtkIOPLY
 )
 
 add_executable(vc_texture_example src/textureExample.cpp)
-target_link_libraries(vc_texture_example vc_common vc_volumepkg vc_texturing)
+target_link_libraries(vc_texture_example vc_common vc_texturing)
 
 add_executable(vc_smooth_normals_example src/smoothNormalsExample.cpp)
 target_link_libraries(vc_smooth_normals_example vc_common vc_meshing)
@@ -37,7 +36,7 @@ target_link_libraries(vc_raytrace_example vc_common vc_meshing)
 
 if (VC_USE_LIBIGL)
     add_executable(vc_lscm_example src/lscmExample.cpp)
-    target_link_libraries(vc_lscm_example vc_common vc_volumepkg vc_texturing)
+    target_link_libraries(vc_lscm_example vc_common vc_texturing)
 endif()
 
 add_executable(vc_itk2vtk_example src/itk2vtkExample.cpp)
@@ -59,19 +58,18 @@ if (VC_USE_ACVD)
         vc_common
         vc_meshing
         vc_texturing
-        vc_volumepkg
         Boost::filesystem
     )
-    
+
     add_executable(vc_abf_example src/abfExample.cpp)
-    target_link_libraries(vc_abf_example vc_common vc_texturing vc_volumepkg)
+    target_link_libraries(vc_abf_example vc_common vc_texturing)
 endif()
 
 add_executable(vc_structure_tensor_client src/StructureTensorClient.cpp)
-target_link_libraries(vc_structure_tensor_client vc_volumepkg)
+target_link_libraries(vc_structure_tensor_client vc_common)
 
 add_executable(vc_reslice_analysis src/ResliceAnalysis.cpp)
-target_link_libraries(vc_reslice_analysis vc_volumepkg)
+target_link_libraries(vc_reslice_analysis vc_common)
 
 add_executable(vc_ordered_resample_example src/OrderedResamplingExample.cpp)
 target_link_libraries(vc_ordered_resample_example vc_common vc_meshing)
@@ -82,7 +80,7 @@ target_link_libraries(vc_obj_writer_example vc_common)
 # Skip NeuralNetwork train example
 
 add_executable(vc_lorem_ipsum_error src/LoremIpsumError.cpp)
-target_link_libraries(vc_lorem_ipsum_error vc_volumepkg)
+target_link_libraries(vc_lorem_ipsum_error vc_common)
 
 if(VC_USE_VCG)
     add_executable(vc_quadric_edge_collapse_decimation_example src/QuadricEdgeCollapseDecimationExample.cpp)

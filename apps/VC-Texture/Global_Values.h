@@ -19,9 +19,9 @@
 #include <QPixmap>
 #include <QRect>
 #include "common/types/Rendering.h"
+#include "common/types/VolumePkg.h"
+#include "common/types/VolumePkg.h"
 #include "common/vc_defines.h"
-#include "volumepkg/volumepkg.h"
-#include "volumepkg/volumepkg.h"
 
 // Determines the _status of the thread running texturing
 enum ThreadStatus {

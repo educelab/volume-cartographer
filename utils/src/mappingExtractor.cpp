@@ -5,8 +5,8 @@
 
 #include "common/io/objWriter.h"
 #include "common/types/Texture.h"
+#include "common/types/VolumePkg.h"
 #include "common/vc_defines.h"
-#include "volumepkg/volumepkg.h"
 
 using namespace volcart;
 namespace fs = boost::filesystem;

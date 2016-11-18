@@ -4,7 +4,7 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "volumepkg/volumepkg.h"
+#include "common/types/VolumePkg.h"
 
 #include "segmentation/stps/chain.h"
 #include "segmentation/stps/particle.h"

@@ -8,12 +8,11 @@
  * v-c/testing/texturing.
  */
 
-#include "common/vc_defines.h"
-#include "volumepkg/volumepkg.h"
-
 #include "common/io/objWriter.h"
 #include "common/shapes/Arch.h"
 #include "common/shapes/Plane.h"
+#include "common/types/VolumePkg.h"
+#include "common/vc_defines.h"
 #include "texturing/LeastSquaresConformalMapping.h"
 
 int main(int argc, char* argv[])

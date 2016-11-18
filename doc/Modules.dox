@@ -1,6 +1,6 @@
 /**
  @defgroup VolumePackage Volume Package
- @brief Library for accessing and manipulating the .volpkg file format.
+ @brief Class for accessing and manipulating the .volpkg file format.
 */
 
 /**

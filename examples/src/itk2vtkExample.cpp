@@ -12,8 +12,8 @@
  *          include normals when it writes to file
  */
 
-#include <common/io/objWriter.h>
 #include <vtkPLYWriter.h>
+#include "common/io/objWriter.h"
 #include "common/shapes/Arch.h"
 #include "common/shapes/Cone.h"
 #include "common/shapes/Cube.h"

@@ -20,7 +20,6 @@ target_link_libraries(vc_mesher
 ## Packager ##
 add_executable(vc_packager src/packager.cpp src/SliceImage.cpp)
 target_link_libraries(vc_packager
-    vc_volumepkg
     vc_common
     Boost::filesystem
     Boost::program_options
@@ -31,7 +30,7 @@ target_include_directories(vc_packager PUBLIC include)
 ## Segment ##
 add_executable(vc_segment src/segment.cpp)
 target_link_libraries(vc_segment
-    vc_volumepkg
+    vc_common
     vc_segmentation
     vc_meshing
     Boost::program_options
@@ -41,7 +40,6 @@ target_link_libraries(vc_segment
 add_executable(vc_render src/render.cpp)
 target_link_libraries(vc_render
     vc_common
-    vc_volumepkg
     vc_texturing
     vc_meshing
     Boost::filesystem
@@ -50,20 +48,18 @@ target_link_libraries(vc_render
 
 ## Metadata Editor ##
 add_executable(vc_metaedit src/metadata.cpp)
-target_link_libraries(vc_metaedit vc_volumepkg)
+target_link_libraries(vc_metaedit vc_common)
 
 ## Slice Projection ##
 # Old
 add_executable(vc_projection src/projection.cpp)
 target_link_libraries(vc_projection
     vc_common
-    vc_volumepkg
 )
 
 # New
 add_executable(vc_projection2 src/projection2.cpp)
 target_link_libraries(vc_projection2
-    vc_volumepkg
     vc_common
     vtkCommonCore
     vtkCommonDataModel
