@@ -4,7 +4,7 @@
 #include "common/types/OrderedPointSet.h"
 #include "segmentation/lrps/common.h"
 #include "segmentation/lrps/fittedcurve.h"
-#include "volumepkg/volumepkg.h"
+#include "common/types/VolumePkg.h"
 
 namespace volcart
 {

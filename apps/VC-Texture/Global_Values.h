@@ -20,8 +20,8 @@
 #include <QRect>
 #include "common/types/Rendering.h"
 #include "common/vc_defines.h"
-#include "volumepkg/volumepkg.h"
-#include "volumepkg/volumepkg.h"
+#include "common/types/VolumePkg.h"
+#include "common/types/VolumePkg.h"
 
 class Global_Values
 {

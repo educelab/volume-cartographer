@@ -8,7 +8,7 @@
 #include "common/io/PointSetIO.h"
 #include "common/types/Point.h"
 #include "common/vc_defines.h"
-#include "volumepkg/volumepkg.h"
+#include "common/types/VolumePkg.h"
 
 namespace fs = boost::filesystem;
 

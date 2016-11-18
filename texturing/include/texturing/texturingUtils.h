@@ -6,7 +6,7 @@
 #include <opencv2/opencv.hpp>
 #include "QuickSort.h"
 #include "common/vc_defines.h"
-#include "volumepkg/volumepkg.h"
+#include "common/types/VolumePkg.h"
 
 //#define _DEBUG
 

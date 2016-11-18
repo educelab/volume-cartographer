@@ -14,7 +14,7 @@
 #include "common/io/PLYReader.h"
 #include "common/vc_defines.h"
 #include "texturing/compositeTexture.h"
-#include "volumepkg/volumepkg.h"
+#include "common/types/VolumePkg.h"
 
 #include "Global_Values.h"
 #include "MyThread.h"

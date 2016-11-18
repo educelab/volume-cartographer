@@ -11,7 +11,7 @@
 #include "common/types/Point.h"
 #include "common/types/PointSet.h"
 #include "meshing/OrderedPointSetMesher.h"
-#include "volumepkg/volumepkg.h"
+#include "common/types/VolumePkg.h"
 
 using namespace volcart;
 namespace fs = boost::filesystem;

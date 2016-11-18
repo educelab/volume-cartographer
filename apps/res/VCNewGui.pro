@@ -11,7 +11,7 @@ HEADERS = CMesh.h \
     ../meshEditor/Ply/object.h \
     ../meshEditor/Ply/unknown.h \
     ../../volumepkg/picojson.h \
-    ../../volumepkg/volumepkg.h \
+    ../../common/types/VolumePkg.h \
     ../../volumepkg/volumepkgcfg.h \
     HBase.h \
     ../../common/objTester/list.h \

@@ -55,7 +55,6 @@ target_link_libraries(${target}
     vc_common
     vc_meshing
     vc_segmentation
-    vc_volumepkg
     Boost::filesystem
     Boost::program_options
     Qt5::Core
