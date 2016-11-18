@@ -12,9 +12,9 @@
 #pragma once
 
 #include "common/io/PLYReader.h"
+#include "common/types/VolumePkg.h"
 #include "common/vc_defines.h"
 #include "texturing/compositeTexture.h"
-#include "common/types/VolumePkg.h"
 
 #include "Global_Values.h"
 #include "MyThread.h"

@@ -10,8 +10,8 @@
 #include "common/types/OrderedPointSet.h"
 #include "common/types/Point.h"
 #include "common/types/PointSet.h"
-#include "meshing/OrderedPointSetMesher.h"
 #include "common/types/VolumePkg.h"
+#include "meshing/OrderedPointSetMesher.h"
 
 using namespace volcart;
 namespace fs = boost::filesystem;
