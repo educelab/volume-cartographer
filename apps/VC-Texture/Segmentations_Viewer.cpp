@@ -90,9 +90,9 @@ void Segmentations_Viewer::itemClickedSlot()
 
             // Ask User to Save unsaved Data
             QMessageBox msgBox;
-            msgBox.setText(
-                "A new texture image was generated, if you discard it will be "
-                "erased.");
+            msgBox.setWindowTitle("Discard changes?");
+            msgBox.setText(tr(
+                "Changes will be lost! Discard changes before continuing?\n"));
             msgBox.setStandardButtons(
                 QMessageBox::Discard | QMessageBox::Cancel);
             msgBox.setDefaultButton(QMessageBox::Cancel);
@@ -103,12 +103,10 @@ void Segmentations_Viewer::itemClickedSlot()
                     // Discard was clicked
                     _globals->setThreadStatus(ThreadStatus::Inactive);
                     break;
-
                 case QMessageBox::Cancel:
                     // Cancel was clicked
                     segmentations->setCurrentRow(currentHighlightedIndex);
                     return;
-
                 default:
                     // should never be reached
                     return;
@@ -122,11 +120,8 @@ void Segmentations_Viewer::itemClickedSlot()
         _globals->clearRendering();
         _texture_Viewer->clearImageLabel();
 
-        QString s =
-            segmentations->currentItem()
-                ->text();  // Gets a QString for the Current Item Selected
-        _globals->getVolPkg()->setActiveSegmentation(
-            s.toStdString());  // Sets the active Segmentation
+        QString s = segmentations->currentItem()->text();
+        _globals->getVolPkg()->setActiveSegmentation(s.toStdString());
 
         cv::Mat texture = _globals->getVolPkg()->getTextureData().clone();
 
@@ -165,8 +160,8 @@ void Segmentations_Viewer::generateTextureImage()
 {
     if (_globals->isVPKG_Intantiated() &&
         _globals->getSegmentations().size() > 0) {
-        auto flags =
-            _globals->getWindow()->windowFlags();  // save current configuration
+        // save current configuration
+        auto flags = _globals->getWindow()->windowFlags();
         QSize size = _globals->getWindow()->frameSize();
 
         _globals->getWindow()->setWindowFlags(

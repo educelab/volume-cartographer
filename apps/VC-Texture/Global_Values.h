@@ -81,13 +81,10 @@ public:
 
     void enableMenus(bool value);
 
-    void setThreadStatus(ThreadStatus newStatus);
+    void setThreadStatus(ThreadStatus status);
 
 private:
-    // Determines the _status of the thread running texturing
-    // enum ThreadStatus { Inactive, Active, Successful,
-    // CloudError, Failed, ForcedClose};
-
+    // The status of the thread running the texturing process
     ThreadStatus _status;
 
     bool VPKG_Instantiated = false;

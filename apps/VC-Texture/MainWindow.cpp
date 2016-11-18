@@ -105,10 +105,9 @@ void MainWindow::getFilePath()  // Gets the Folder Path of the Volume Package
                 // should never be reached
                 break;
         }
-    } else {
-        _globals->setThreadStatus(ThreadStatus::Inactive);
     }
-
+    _globals->setThreadStatus(ThreadStatus::Inactive);
+    clearGUI();
     QFileDialog* dialogBox = new QFileDialog();
     QString filename = dialogBox->getExistingDirectory();
     std::string file_Name = filename.toStdString();
@@ -122,8 +121,7 @@ void MainWindow::getFilePath()  // Gets the Folder Path of the Volume Package
         {
             try {
                 _globals->setPath(filename);  // Sets Folder Path in Globals
-                _globals
-                    ->createVolumePackage();  // Creates a Volume Package Object
+                _globals->createVolumePackage();
 
                 // Check for Volume Package Version Number
                 if (_globals->getVolPkg()->getVersion() !=
@@ -247,7 +245,7 @@ void MainWindow::exportTexture()
 
     // If no path provided/dialog cancelled
     if (outputPath.empty()) {
-        std::cerr << "vc::export::_status: dialog cancelled." << std::endl;
+        std::cerr << "vc::export::status: dialog cancelled." << std::endl;
         return;
     }
 
@@ -278,7 +276,7 @@ void MainWindow::exportTexture()
     if (extension == ".JPG" || extension == ".JPEG") {
         output = output.clone();
         output.convertTo(output, CV_8U, 255.0 / 65535.0);
-        std::cerr << "vc::export::_status: downsampled to 8U" << std::endl;
+        std::cerr << "vc::export::status: downsampled to 8U" << std::endl;
     }
 
     // Write the image
@@ -291,7 +289,7 @@ void MainWindow::exportTexture()
         return;
     }
 
-    std::cerr << "vc::export::_status: export successful" << std::endl;
+    std::cerr << "vc::export::status: export successful" << std::endl;
 }
 
 void MainWindow::create_Actions()
@@ -328,6 +326,7 @@ void MainWindow::closeEvent(QCloseEvent* closing)
             "generated. Please wait until the texturing process is complete "
             "and try again.");
         closing->ignore();
+        return;
     } else if (_globals->getStatus() == ThreadStatus::Successful) {
 
         // Ask User to Save unsaved Data
@@ -347,8 +346,6 @@ void MainWindow::closeEvent(QCloseEvent* closing)
 
             // Discard was clicked
             case QMessageBox::Discard:
-                // Reset ThreadStatus
-                _globals->setThreadStatus(ThreadStatus::Inactive);
                 break;
 
             // Cancel was clicked
@@ -357,14 +354,17 @@ void MainWindow::closeEvent(QCloseEvent* closing)
                 return;
 
             default:
-                // should never be reached
                 break;
         }
-
-        // Exit the program
-        closing->accept();
-
-    } else {
-        closing->accept();
     }
+
+    // Exit
+    closing->accept();
+}
+
+void MainWindow::clearGUI()
+{
+    _globals->clearGUI();
+    _segmentations_Viewer->clearGUI();
+    update();
 }

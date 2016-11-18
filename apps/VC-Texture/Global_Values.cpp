@@ -19,10 +19,9 @@ Global_Values::Global_Values(QRect rec)
     , _radius(0)
     , _textureMethod(0)
     , _sampleDirection(0)
-    , _status(Inactive)
-
-{ /* Do Nothing*/
-}  // End of Default Constructor()
+    , _status(ThreadStatus::Inactive)
+{
+}
 
 int Global_Values::getHeight() { return height; }
 
@@ -54,7 +53,7 @@ void Global_Values::clearGUI()
     _radius = 0;
     _textureMethod = 0;
     _sampleDirection = 0;
-    _status = Inactive;
+    _status = ThreadStatus::Inactive;
 }
 
 void Global_Values::getMySegmentations()
@@ -111,12 +110,7 @@ void Global_Values::setSampleDirection(int sampleDirection)
 
 int Global_Values::getSampleDirection() { return _sampleDirection; }
 
-// void Global_Values::setStatus(ThreadStatus myStatus) { _status = myStatus; }
-
-void Global_Values::setThreadStatus(ThreadStatus newStatus)
-{
-    _status = newStatus;
-};
+void Global_Values::setThreadStatus(ThreadStatus status) { _status = status; };
 
 ThreadStatus Global_Values::getStatus() { return _status; }
 

@@ -97,6 +97,7 @@ void MyThread::run()
         rendering.setMesh(itkACVD);
 
         _globals->setRendering(rendering);
+        _globals->setThreadStatus(ThreadStatus::Successful);
 
     } catch (...) {
         if (cloudProblem) {
@@ -106,8 +107,4 @@ void MyThread::run()
             _globals->setThreadStatus(ThreadStatus::Failed);
         }
     };
-
-    if (_globals->getStatus() == ThreadStatus::Active) {
-        _globals->setThreadStatus(ThreadStatus::Successful);
-    }
 }
