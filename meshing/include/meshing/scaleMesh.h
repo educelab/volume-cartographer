@@ -3,12 +3,7 @@
  * @brief Scale an ITKMesh by a linear scale factor.
  */
 #pragma once
-/**
- * @class scaleMesh
- * @author Seth Parker
- * @date 10/22/15
- * @ingroup Meshing
- */
+
 #include "core/vc_defines.h"
 
 #include <itkScaleTransform.h>
