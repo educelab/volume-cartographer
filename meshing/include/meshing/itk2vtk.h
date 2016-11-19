@@ -11,7 +11,7 @@
 #include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
 
-#include "common/vc_defines.h"
+#include "core/vc_defines.h"
 
 namespace volcart
 {

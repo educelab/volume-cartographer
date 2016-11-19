@@ -8,9 +8,9 @@
  *          v-c/testing/meshing.
  */
 
-#include "common/io/objWriter.h"
-#include "common/shapes/Plane.h"
-#include "common/vc_defines.h"
+#include "core/io/objWriter.h"
+#include "core/shapes/Plane.h"
+#include "core/vc_defines.h"
 
 int main(int argc, char* argv[])
 {

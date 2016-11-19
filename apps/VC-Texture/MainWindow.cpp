@@ -11,7 +11,7 @@
 
 #include "MainWindow.h"
 #include <boost/algorithm/string/case_conv.hpp>
-#include "common/io/objWriter.h"
+#include "core/io/objWriter.h"
 
 // Volpkg version required byt this app
 static constexpr int VOLPKG_SUPPORTED_VERSION = 3;

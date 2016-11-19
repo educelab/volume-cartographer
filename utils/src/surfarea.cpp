@@ -4,9 +4,9 @@
 #include <fstream>
 #include <iostream>
 
-#include "common/io/PLYReader.h"
-#include "common/types/VolumePkg.h"
-#include "common/vc_defines.h"
+#include "core/io/PLYReader.h"
+#include "core/types/VolumePkg.h"
+#include "core/vc_defines.h"
 #include "meshing/itk2vtk.h"
 
 #include <vtkMassProperties.h>

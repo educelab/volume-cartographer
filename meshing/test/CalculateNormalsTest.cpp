@@ -6,8 +6,8 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "common/shapes/Plane.h"
-#include "common/vc_defines.h"
+#include "core/shapes/Plane.h"
+#include "core/vc_defines.h"
 #include "meshing/CalculateNormals.h"
 #include "testing/testingUtils.h"
 

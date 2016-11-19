@@ -8,7 +8,7 @@ set(srcs
     src/AngleBasedFlattening.cpp
 )
 set(public_deps
-    vc_common
+    vc_core
 )
 set(private_deps
     vc_meshing

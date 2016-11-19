@@ -3,7 +3,7 @@
 #include "CWindow.h"
 #include "CVolumeViewerWithCurve.h"
 #include "UDataManipulateUtils.h"
-#include "common/types/Exceptions.h"
+#include "core/types/Exceptions.h"
 #include "meshing/OrderedPointSetMesher.h"
 
 #define _DEBUG

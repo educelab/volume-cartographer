@@ -11,9 +11,9 @@
 
 #pragma once
 
-#include "common/io/PLYReader.h"
-#include "common/types/VolumePkg.h"
-#include "common/vc_defines.h"
+#include "core/io/PLYReader.h"
+#include "core/types/VolumePkg.h"
+#include "core/vc_defines.h"
 #include "texturing/compositeTexture.h"
 
 #include "Global_Values.h"

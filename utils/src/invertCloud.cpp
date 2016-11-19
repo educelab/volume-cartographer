@@ -5,10 +5,10 @@
 #include <iostream>
 
 #include <boost/filesystem/path.hpp>
-#include "common/io/PointSetIO.h"
-#include "common/types/Point.h"
-#include "common/types/VolumePkg.h"
-#include "common/vc_defines.h"
+#include "core/io/PointSetIO.h"
+#include "core/types/Point.h"
+#include "core/types/VolumePkg.h"
+#include "core/vc_defines.h"
 
 namespace fs = boost::filesystem;
 

@@ -8,7 +8,7 @@
 #include <BulletSoftBody/btSoftBody.h>
 #include <BulletSoftBody/btSoftRigidDynamicsWorld.h>
 
-#include "common/vc_defines.h"
+#include "core/vc_defines.h"
 
 namespace volcart
 {

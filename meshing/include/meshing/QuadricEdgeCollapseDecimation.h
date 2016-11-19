@@ -10,7 +10,7 @@
 #include <vcg/complex/complex.h>
 #include <vcg/complex/algorithms/local_optimization/tri_edge_collapse_quadric.h>
 // clang-format on
-#include "common/vc_defines.h"
+#include "core/vc_defines.h"
 
 namespace volcart
 {

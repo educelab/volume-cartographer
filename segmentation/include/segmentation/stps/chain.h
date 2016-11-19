@@ -9,7 +9,7 @@
 #include <vector>
 #include <opencv2/core/core.hpp>
 
-#include "common/types/VolumePkg.h"
+#include "core/types/VolumePkg.h"
 #include "segmentation/stps/particle.h"
 
 class Chain

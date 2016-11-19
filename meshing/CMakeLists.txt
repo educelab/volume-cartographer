@@ -12,7 +12,7 @@ set(srcs
     src/OrderedPointSetMesher.cpp
     )
 set(deps
-    vc_common
+    vc_core
     Boost::filesystem
 )
 set(defs "")
@@ -88,7 +88,7 @@ foreach(src ${test_srcs})
     set(testname ${target}_${filename})
     add_executable(${testname} ${src})
     target_link_libraries(${testname}
-        vc_common
+        vc_core
         vc_meshing
         vc_testing
         Boost::unit_test_framework

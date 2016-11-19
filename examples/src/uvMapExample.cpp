@@ -2,8 +2,8 @@
 // Created by Seth Parker on 10/20/15.
 //
 
-#include "common/types/UVMap.h"
-#include "common/vc_defines.h"
+#include "core/types/UVMap.h"
+#include "core/vc_defines.h"
 
 int main(int argc, char* argv[])
 {

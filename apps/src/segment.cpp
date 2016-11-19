@@ -1,6 +1,6 @@
 #include <iostream>
 #include <boost/program_options.hpp>
-#include "common/types/VolumePkg.h"
+#include "core/types/VolumePkg.h"
 #include "meshing/OrderedPointSetMesher.h"
 #include "segmentation/lrps/localResliceParticleSim.h"
 #include "segmentation/stps/structureTensorParticleSim.h"

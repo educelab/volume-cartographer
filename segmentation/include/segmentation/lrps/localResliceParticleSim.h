@@ -1,8 +1,8 @@
 #pragma once
 
 #include <iostream>
-#include "common/types/OrderedPointSet.h"
-#include "common/types/VolumePkg.h"
+#include "core/types/OrderedPointSet.h"
+#include "core/types/VolumePkg.h"
 #include "segmentation/lrps/common.h"
 #include "segmentation/lrps/fittedcurve.h"
 
