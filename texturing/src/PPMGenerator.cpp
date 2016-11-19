@@ -2,9 +2,10 @@
 // Created by Seth on 11/3/16.
 //
 
-#include "texturing/PPMGenerator.h"
 #include <exception>
-#include "common/util/FloatComparison.h"
+
+#include "core/util/FloatComparison.h"
+#include "texturing/PPMGenerator.h"
 
 using namespace volcart;
 using namespace texturing;

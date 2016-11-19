@@ -1,9 +1,10 @@
 #pragma once
 
 #include <opencv2/core.hpp>
-#include "common/types/PerPixelMap.h"
-#include "common/types/UVMap.h"
-#include "common/vc_defines.h"
+
+#include "core/types/PerPixelMap.h"
+#include "core/types/UVMap.h"
+#include "core/vc_defines.h"
 
 namespace volcart
 {

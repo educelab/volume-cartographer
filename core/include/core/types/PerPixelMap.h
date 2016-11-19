@@ -12,7 +12,8 @@
 
 #include <boost/filesystem.hpp>
 #include <opencv2/opencv.hpp>
-#include "common/types/UVMap.h"
+
+#include "core/types/UVMap.h"
 
 namespace volcart
 {
