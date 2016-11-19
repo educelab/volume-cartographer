@@ -206,10 +206,7 @@ public:
      *
      * Default: \f$ \frac{\pi}{2} \f$.
      */
-    void setCosineThr(double thr)
-    {
-        collapseParams_.CosineThr = thr;
-    }
+    void setCosineThr(double thr) { collapseParams_.CosineThr = thr; }
 
     /**
      * @brief Set use Fast Boundary Preserve.
@@ -229,20 +226,14 @@ public:
      *
      * Default: False.
      */
-    void setNormalCheck(bool set)
-    {
-        collapseParams_.NormalCheck = set;
-    }
+    void setNormalCheck(bool set) { collapseParams_.NormalCheck = set; }
 
     /**
      * @brief Set vertex normal angle threshold.
      *
      * Default: \f$ \frac{\pi}{2} \f$.
      */
-    void setNormalThrRad(double rad)
-    {
-        collapseParams_.NormalThrRad = rad;
-    }
+    void setNormalThrRad(double rad) { collapseParams_.NormalThrRad = rad; }
 
     /**
      * @brief Set use optimal vertex placement.
@@ -295,40 +286,28 @@ public:
      *
      * Default: True
      */
-    void setQualityCheck(bool set)
-    {
-        collapseParams_.QualityCheck = set;
-    }
+    void setQualityCheck(bool set) { collapseParams_.QualityCheck = set; }
 
     /**
      * @brief Set use quadric error for quality check.
      *
      * Default: False
      */
-    void setQualityQuadric(bool set)
-    {
-        collapseParams_.QualityQuadric = set;
-    }
+    void setQualityQuadric(bool set) { collapseParams_.QualityQuadric = set; }
 
     /**
      * @brief Set the quality threshold.
      *
      * Default: 0.3
      */
-    void setQualityThr(double thr)
-    {
-        collapseParams_.QualityThr = thr;
-    }
+    void setQualityThr(double thr) { collapseParams_.QualityThr = thr; }
 
     /**
      * @brief Set use weighted quality measure.
      *
      * Default: False
      */
-    void setQualityWeight(bool set)
-    {
-        collapseParams_.QualityWeight = set;
-    }
+    void setQualityWeight(bool set) { collapseParams_.QualityWeight = set; }
 
     /**
      * @brief Set the quality weight factor.
@@ -347,10 +326,7 @@ public:
      *
      * Default: 1.0
      */
-    void setScaleFactor(double scale)
-    {
-        collapseParams_.ScaleFactor = scale;
-    }
+    void setScaleFactor(double scale) { collapseParams_.ScaleFactor = scale; }
 
     /**
      * @brief Set compute quadric independent of mesh scale.
@@ -369,20 +345,14 @@ public:
      *
      * Default: True
      */
-    void setUseArea(bool set)
-    {
-        collapseParams_.UseArea = set;
-    }
+    void setUseArea(bool set) { collapseParams_.UseArea = set; }
 
     /**
      * @brief Set use vertex weighting for quadric computation.
      *
      * Default: False
      */
-    void setUseVertexWeight(bool set)
-    {
-        collapseParams_.UseVertexWeight = set;
-    }
+    void setUseVertexWeight(bool set) { collapseParams_.UseVertexWeight = set; }
     //@}
 
     /**
