@@ -36,10 +36,7 @@ class QuadricEdgeCollapseDecimation
 
     /**
      * @struct VcgUsedTypes
-     * @brief Declaration of vcg types
-     *
-     * Sets up the vertex, edge, and face types
-     * for the vcg mesh
+     * @brief Associate classes with vcg types
      */
     struct VcgUsedTypes : public vcg::UsedTypes<
                               vcg::Use<VcgVertex>::AsVertexType,
@@ -49,21 +46,14 @@ class QuadricEdgeCollapseDecimation
 
     /**
      * @class VcgVertex
-     * @brief Sets up the details of the vertexes for the vcgMesh.
+     * @brief Vertex type for a VcgMesh.
      *
-     * This sets the vertex for a 3D mesh with point normals.
+     * Defines a vertex with 3D coordinates, 3D normals, face adjacency
+     * information, a vertex quality measure (this stores the quadric error),
+     * and a deletion marker.
      *
-     * It includes a place to mark if the vertex is actually supposed to
-     * be part of the mesh since vcg doesn't actually delete the vertexes
-     * in decimation, it simply marks them as gone.
-     *
-     * It also sets up a a place for the vertex to store all of the faces
-     * that it is adjacent to.
-     *
-     * @newline
-     *
-     * This class is also where the quadric is set up to compute the
-     * error of an edge collapse
+     * @warning vcg's QECD algorithm does not remove vertices from
+     * the mesh representation. It only marks them for deletion.
      */
     class VcgVertex : public vcg::Vertex<
                           VcgUsedTypes,
@@ -75,7 +65,6 @@ class QuadricEdgeCollapseDecimation
                           vcg::vertex::BitFlags>
     {
     public:
-        // Used to compute error as a result of an edge collapse
         vcg::math::Quadric<double>& Qd() { return q; }
     private:
         vcg::math::Quadric<double> q;
@@ -83,12 +72,13 @@ class QuadricEdgeCollapseDecimation
 
     /**
      * @class VcgFace
-     * @brief Sets up the details of the faces for the vcgMesh
+     * @brief Face type for a VcgMesh.
      *
-     * This sets up the faces so that they have a list of all
-     * vertices they are adjacent to. The list of vertices of
-     * the face are stored in VertexRef. It also stores a list
-     * of flags to keep track of things such as deletion.
+     * Defines a face with vertex adjacency information, a list of the vertices
+     * that compose the face, and a deletion marker.
+     *
+     * @warning vcg's QECD algorithm does not remove faces from
+     * the mesh representation. It only marks them for deletion.
      */
     class VcgFace : public vcg::Face<
                         VcgUsedTypes,
@@ -100,7 +90,7 @@ class QuadricEdgeCollapseDecimation
 
     /**
      * @class VcgEdge
-     * @brief Sets up the edges of the vcgMesh
+     * @brief Edge type for a VcgMesh.
      */
     class VcgEdge : public vcg::Edge<VcgUsedTypes>
     {
@@ -108,10 +98,9 @@ class QuadricEdgeCollapseDecimation
 
     /**
      * @class VcgMesh
-     * @brief Sets up a vcgMesh
      *
-     * This sets up a vcgMesh with triangular faces and uses
-     * the vertexes and faces that were set up previous to this.
+     * Defines a triangular mesh composed of vertices with type VcgVertex and
+     * faces with type VcgFace.
      */
     class VcgMesh
         : public vcg::tri::TriMesh<std::vector<VcgVertex>, std::vector<VcgFace>>
@@ -120,29 +109,18 @@ class QuadricEdgeCollapseDecimation
 
     /**
      * @typedef VertexPair
-     * @brief Defines a pair of verices of the vcgVertex type defined earlier
+     *
+     * Used to represent pairs of vertices being considered for removal by QECD.
      */
     typedef vcg::tri::BasicVertexPair<VcgVertex> VertexPair;
 
     /**
      * @class VcgTriEdgeCollapse
-     * @brief Used to performing the Edge Collapse computation
+     * @brief Quadric Edge Collapse Decimation.
      *
-     * This is the class that is used to prepare for, and perform the
-     * edge collapse computation. It sets the meshtype to be the type defined
-     * previously. It also has the QInfoStandard which is used to retrieve
-     * information about the vertex type.
-     *
-     * @newline
-     *
-     * This class also defines the Edgetype for the mesh and several
-     * the type TriEdgeCollapse.
-     *
-     * @newline
-     *
-     * In the definition of this class, it defines the error metric using
-     * TECQ. It also takes a pair of vertices that define an edge that
-     * is being considered for collapse.
+     * Templates vcg's Quadric Edge Collapse Decimation for the VcgMesh type.
+     * Includes QInfoStandard which is used to retrieve information about the
+     * vertices.
      */
     class VcgTriEdgeCollapse : public vcg::tri::TriEdgeCollapseQuadric<
                                    VcgMesh,
@@ -164,16 +142,15 @@ class QuadricEdgeCollapseDecimation
     };
 
 public:
-    /** @name Initializers*/
+    /** @name Constructors */
     //@{
     /**
-     * @brief Initializes a member of the class without setting the input mesh
+     * Default constructor.
      */
     QuadricEdgeCollapseDecimation();
 
     /**
-     * @brief Initializes a member of the class and sets the input mesh
-     * @param mesh Pointer to an ITK Mesh that needs to be decimated
+     * @param mesh Mesh which will be decimated
      */
     QuadricEdgeCollapseDecimation(ITKMesh::Pointer mesh);
     //@}
@@ -181,23 +158,25 @@ public:
     /** @name Parameters */
     //@{
     /**
-     * @brief Sets the mesh that is to be decimated
-     * @param mesh Pointer to an ITK mesh
+     * @brief Set the input mesh.
+     * @param mesh Mesh which will be decimated
      */
     void setMesh(ITKMesh::Pointer mesh);
 
     /**
-     * @brief Sets all the parameters to their defaults
-     * All of the defaults are set by VCG with the except
-     * of PreserverBoundary and PreserveTopology
+     * @brief Reset all parameters to their default values.
+     *
+     * All of the defaults are set by vcg with the exception of
+     * PreserveBoundary and PreserveTopology.
      */
     void setDefaultParams();
+
     /**
-     * @brief Sets the VCG parameter type
-     * Sets the Parameters for VCG mesh based on a set of
-     * parameters that is passed in. This is useful if
-     * you need to change a lot of the parameters.
-     * @param newParams VCG parameter type with all parameters set
+     * @brief Set all parameters.
+     *
+     * Useful to update all of the parameters at once.
+     *
+     * @param newParams Set of new QECD parameters.
      */
     void setAllParams(vcg::tri::TriEdgeCollapseQuadricParameter newParams)
     {
@@ -205,215 +184,241 @@ public:
     }
 
     /**
-     * @brief Sets desired number of faces
-     * @param n Number of faces you want
+     * @brief Set the desired number of output faces.
+     *
+     * If the desired number of faces has not been set, the algorithm runs
+     * until the quadric error is minimized.
      */
     void setDesiredFaces(size_t n) { desiredFaces_ = n; };
+
     /**
-     * @brief Sets the boundary weight
-     * The default is .5.
-     * @param weight Desired Boundary weight
+     * @brief Set the boundary weight factor.
+     *
+     * Default: 0.5.
      */
     void setBoundaryWeight(double weight)
     {
         collapseParams_.CosineThr = weight;
-    }  // Default: .5
+    }
+
     /**
-     * @brief Sets the Cosine Angle
-     * The default is pi/2.
-     * @param thr Desired Angle
+     * @brief Set the cosine threshold.
+     *
+     * Default: \f$ \frac{\pi}{2} \f$.
      */
     void setCosineThr(double thr)
     {
         collapseParams_.CosineThr = thr;
-    }  // Default: cos(M_PI/2)
+    }
+
     /**
-     * @brief Sets whether or not to use Fast Boundary Preserve
-     * The defualt is false.
-     * @param set bool to tell if you want to use this feature.
+     * @brief Set use Fast Boundary Preserve.
+     *
+     * Default: False
      */
     void setFastPreserveBoundary(bool set)
     {
         collapseParams_.FastPreserveBoundary = set;
-    }  // Default: false
+    }
+
     /**
-     * @brief Sets whether or not it checks the point normals
-     * The default is false.
-     * @param set Bool to tell if you want to use this feature
+     * @brief Set use vertex normal check.
+     *
+     * Vertex normal check includes vertex normals as part of the quadric
+     * error calculation.
+     *
+     * Default: False.
      */
     void setNormalCheck(bool set)
     {
         collapseParams_.NormalCheck = set;
-    }  // Default: false
+    }
+
     /**
-     * @brief Sets the angle of the normals to the plane
-     * The defualt is pi/2.
-     * @param rad Desired Angle to the plane
+     * @brief Set vertex normal angle threshold.
+     *
+     * Default: \f$ \frac{\pi}{2} \f$.
      */
     void setNormalThrRad(double rad)
     {
         collapseParams_.NormalThrRad = rad;
-    }  // Default: M_PI/2
+    }
+
     /**
-     * @brief Sets whether or not you want the optimal placement of the edges
-     * The default is true.
-     * @param set Bool to tell if you want to use this feature.
+     * @brief Set use optimal vertex placement.
+     *
+     * If enabled, for each edge collapse, a new vertex is produced which
+     * minimizes the resulting quadric error. Otherwise, an existing vertex is
+     * used.
+     *
+     * Default: True
      */
     void setOptimalPlacement(bool set)
     {
         collapseParams_.OptimalPlacement = set;
-    }  // Default: true
+    }
+
     /**
-     * @brief Sets whether or not you want to preserve the topology
-     * The default is true.
-     * @param set Bool to tell if you want to use this feature
+     * @brief Set preserve topology.
+     *
+     * Default: True
      */
     void setPreserveTopology(bool set)
     {
         collapseParams_.PreserveTopology = set;
-    }  // Default: true
+    }
+
     /**
-     * @brief Sets whether or not you want to preserve the boundary
-     * The default is true. The decimation will preserve the boundary
-     * of the mesh.
-     * @param set Bool to tell if you want to use this feature.
+     * @brief Set preserve mesh boundary.
+     *
+     * If set, QECD will attempt to preserve boundary features of the mesh.
+     *
+     * Default: True
      */
     void setPreserveBoundary(bool set)
     {
         collapseParams_.PreserveBoundary = set;
-    }  // Default: true
+    }
+
     /**
-     * @brief Sets the error boundary
-     * The default is 1e-15
-     * @param epsilon Desired error boundary
+     * @brief Set the quadric error threshold.
+     *
+     * Default: 1e-15
      */
     void setQuadricEpsilon(double epsilon)
     {
         collapseParams_.QuadricEpsilon = epsilon;
     }
+
     /**
-     * @brief Sets whether or not you want to check the quailty of the mesh
-     * The default is true.
-     * @param set Bool to tell if you want to use this feature.
+     * @brief Set use mesh quality check.
+     *
+     * Default: True
      */
     void setQualityCheck(bool set)
     {
         collapseParams_.QualityCheck = set;
-    }  // Default: true
+    }
+
     /**
-     * @brief Sets whether or not to use the quadric to determine the quality
-     * The default is false.
-     * @param set Bool to tell if you want to use this feature
+     * @brief Set use quadric error for quality check.
+     *
+     * Default: False
      */
     void setQualityQuadric(bool set)
     {
         collapseParams_.QualityQuadric = set;
-    }  // Default: false
+    }
+
     /**
-     * @brief Sets the quality threshold
-     * The default is .3.
-     * @param thr Desired quality threshold
+     * @brief Set the quality threshold.
+     *
+     * Default: 0.3
      */
     void setQualityThr(double thr)
     {
         collapseParams_.QualityThr = thr;
-    }  // Default: .3
+    }
+
     /**
-     * @brief Sets whether or not to give the quality weight
-     * The default is false.
-     * @param set Bool to tell if you want to use this feature
+     * @brief Set use weighted quality measure.
+     *
+     * Default: False
      */
     void setQualityWeight(bool set)
     {
         collapseParams_.QualityWeight = set;
-    }  // Default: false
+    }
+
     /**
-     * @brief Sets the quality weight factor
-     * This only matters if using QuailtyWeight.
-     * The default is 100.
-     * @param factor Desired weight factor for quality
+     * @brief Set the quality weight factor.
+     *
+     * Has no effect if QualityWeight is not enabled.
+     *
+     * Default: 100
      */
     void setQualityWeightFactor(double factor)
     {
         collapseParams_.QualityWeight = factor;
-    }  // Default: 100.0
+    }
+
     /**
-     * @brief Sets the factor by which to scale the mesh
-     * The default is 1.
-     * @param scale Desired scale factor of the mesh
+     * @brief Set mesh scale factor.
+     *
+     * Default: 1.0
      */
     void setScaleFactor(double scale)
     {
         collapseParams_.ScaleFactor = scale;
-    }  // Default: 1.0
+    }
+
     /**
-     * @brief Sets wheter the scale is independent of other factors
-     * The default is true.
-     * @param set Bool to tell if you want to use this feature
+     * @brief Set compute quadric independent of mesh scale.
+     *
+     * Default: True
      */
     void setScaleIndependent(bool set)
     {
         collapseParams_.ScaleIndependent = set;
-    }  // Default: true
+    }
+
     /**
-     * @brief Sets whether or not to use Area to determine edge collapse
-     * The default is true.
-     * @param set Bool to tell if you want to use this feature
+     * @brief Set use area to compute quadric.
+     *
+     * If disabled, edge vectors are normalized for quadric computation.
+     *
+     * Default: True
      */
     void setUseArea(bool set)
     {
         collapseParams_.UseArea = set;
-    }  // Default: true;
+    }
+
     /**
-     * @brief Sets wheter to use Vertex Weight to determine edge collapse
-     * The default is false.
-     * @param set Bool to tell if you want to use this feature
+     * @brief Set use vertex weighting for quadric computation.
+     *
+     * Default: False
      */
     void setUseVertexWeight(bool set)
     {
         collapseParams_.UseVertexWeight = set;
-    }  // Default: false
+    }
     //@}
 
     /**
-     * @brief Computes the edge collapse
-     * This uses the default number of desired faces.
-     * If the desired number of faces has not been set,
-     * the algorithm runs until the error is minimized.
+     * @brief Compute decimated mesh.
+     *
+     * If the desired number of faces has not been set, the algorithm runs
+     * until the quadric error is minimized.
      */
     void compute();
 
     /**
-     * @brief Computes the edge collapse
-     * This computes the edge collapse using the desired
-     * number of faces to the number that was passed in.
-     * @param desiredFaces Number of faces you want in the new mesh
+     * @brief Compute decimated mesh with target number of faces.
+     *
+     * This computes the edge collapse decimation, targeting the desired number
+     * of faces.
      */
     void compute(size_t desiredFaces);
 
     /**
-     * @brief Returns a pointer to the decimated mesh
-     * @return Pointer to an ITK Mesh which has been decimated
+     * @brief Get the decimated output mesh.
      */
     ITKMesh::Pointer getMesh();
 
 private:
     /**
-     * @brief Converts the ITK mesh to a vcgMesh
-     * This takes in the ITK mesh passed in and
-     * converts it to an vcgMesh so that the collapse
-     * operations can be performed.
+     * @brief Convert the ITK mesh to a vcgMesh.
      */
     void convertMeshtoVCG_();
-    /** Pointer to an ITK Mesh that needs to be decimated*/
+
     ITKMesh::Pointer itkInput_;
-    /** Converted ITK Mesh that needs to be decimated*/
     VcgMesh vcgInput_;
-    /** Pointer to an ITK Mesh which has been decimated */
     ITKMesh::Pointer outputMesh_;
-    /** Desired number of faces in the new mesh */
+
+    /** Desired number of faces in the output mesh */
     size_t desiredFaces_;
-    /** The parameters for the edge collapse*/
+    /** QECD parameter set */
     vcg::tri::TriEdgeCollapseQuadricParameter collapseParams_;
 
 };  // QuadricEdgeCollapse
