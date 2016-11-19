@@ -2,6 +2,8 @@
 // Created by Hannah Hatch on 7/25/16.
 //
 
+/* @file OrderedResampling.cpp*/
+
 #include "meshing/OrderedResampling.h"
 #include "meshing/CalculateNormals.h"
 

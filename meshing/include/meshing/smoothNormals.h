@@ -1,5 +1,7 @@
-// smoothNormals.h
-// Abigail Coleman June 2015
+/**
+ * @file smoothNormals.h
+ * @brief Smooth vertex normals within a specified radius.
+ */
 #pragma once
 
 #include <fstream>
@@ -15,6 +17,20 @@ namespace volcart
 {
 namespace meshing
 {
+/**
+ * @author Abigail Coleman
+ * @date June 2015
+ *
+ * @brief Smooth vertex normals within a specified radius.
+ *
+ * Uses ITK's neighborhood locator to get the list of neighboring vertices
+ * within the provided spherical radius. Returns a deepCopy of the
+ * original mesh, with smoothed vertex normals.
+ *
+ * @ingroup Meshing
+ *
+ * @param radius Size of the spherical neighborhood
+ */
 ITKMesh::Pointer smoothNormals(ITKMesh::Pointer input, double radius);
 }
 }

@@ -1,6 +1,4 @@
-//
-// Created by Abigail Coleman 10/21/15
-//
+/** @file itk2bullet.cpp */
 
 #include "meshing/itk2bullet.h"
 
@@ -48,24 +46,23 @@ itk2bullet::itk2bullet(
     }
 };
 
-bullet2itk::bullet2itk(btSoftBody* softBody, ITKMesh::Pointer output)
+bullet2itk::bullet2itk(btSoftBody* input, ITKMesh::Pointer output)
 {
-
     ITKCell::CellAutoPointer cellpointer;
     ITKPoint p;
     ITKPixel n;
-    int NUM_OF_POINTS = softBody->m_nodes.size();
+    int NUM_OF_POINTS = input->m_nodes.size();
 
     // iterate through points of bullet mesh (softBody)
     for (int i = 0; i < NUM_OF_POINTS; ++i) {
 
-        p[0] = softBody->m_nodes[i].m_x.x();
-        p[1] = softBody->m_nodes[i].m_x.y();
-        p[2] = softBody->m_nodes[i].m_x.z();
+        p[0] = input->m_nodes[i].m_x.x();
+        p[1] = input->m_nodes[i].m_x.y();
+        p[2] = input->m_nodes[i].m_x.z();
 
-        n[0] = softBody->m_nodes[i].m_n.x();
-        n[1] = softBody->m_nodes[i].m_n.y();
-        n[2] = softBody->m_nodes[i].m_n.z();
+        n[0] = input->m_nodes[i].m_n.x();
+        n[1] = input->m_nodes[i].m_n.y();
+        n[2] = input->m_nodes[i].m_n.z();
 
         output->SetPoint(i, p);
         output->SetPointData(i, n);
