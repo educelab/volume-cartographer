@@ -5,6 +5,7 @@
 #include <opencv2/opencv.hpp>
 #include "meshing/deepCopy.h"
 
+using namespace volcart;
 using namespace volcart::texturing;
 
 ///// Constructors /////
@@ -50,6 +51,7 @@ volcart::UVMap LeastSquaresConformalMapping::getUVMap()
 
     // Setup uvMap
     volcart::UVMap uvMap;
+    uvMap.origin(VC_ORIGIN_BOTTOM_LEFT);
 
     double min_u = std::numeric_limits<double>::max();
     double max_u = std::numeric_limits<double>::min();
@@ -84,7 +86,7 @@ volcart::UVMap LeastSquaresConformalMapping::getUVMap()
         // Add the uv coordinates into our map at the point index specified
         uvMap.set(i, uv);
     }
-
+    uvMap.origin(VC_ORIGIN_TOP_LEFT);
     return uvMap;
 }
 

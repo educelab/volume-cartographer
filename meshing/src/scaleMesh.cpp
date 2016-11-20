@@ -2,6 +2,8 @@
 // Created by Seth Parker on 10/22/15.
 //
 
+/**@file scaleMesh.cpp  */
+
 #include "meshing/scaleMesh.h"
 
 namespace volcart

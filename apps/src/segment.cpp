@@ -1,8 +1,9 @@
 #include <iostream>
 #include <boost/program_options.hpp>
+#include "core/types/VolumePkg.h"
+#include "meshing/OrderedPointSetMesher.h"
 #include "segmentation/lrps/localResliceParticleSim.h"
 #include "segmentation/stps/structureTensorParticleSim.h"
-#include "volumepkg/volumepkg.h"
 
 namespace po = boost::program_options;
 namespace vs = volcart::segmentation;
@@ -247,5 +248,7 @@ int main(int argc, char* argv[])
 
     // Save point cloud and mesh
     volpkg.saveCloud(immutableCloud);
-    volpkg.saveMesh(immutableCloud);
+    volcart::meshing::OrderedPointSetMesher mesher{immutableCloud};
+    mesher.compute();
+    volpkg.saveMesh(mesher.getOutputMesh());
 }

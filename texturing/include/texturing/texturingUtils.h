@@ -5,8 +5,8 @@
 #include <vector>
 #include <opencv2/opencv.hpp>
 #include "QuickSort.h"
-#include "common/vc_defines.h"
-#include "volumepkg/volumepkg.h"
+#include "core/types/VolumePkg.h"
+#include "core/vc_defines.h"
 
 //#define _DEBUG
 

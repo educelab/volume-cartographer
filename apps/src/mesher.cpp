@@ -1,13 +1,14 @@
 #include <iostream>
 #include <string>
 
-#include <common/io/PointSetIO.h>
-#include <common/io/plyWriter.h>
-#include <common/types/Point.h>
+#include "core/io/PointSetIO.h"
+#include "core/io/plyWriter.h"
+#include "core/types/Point.h"
+#include "core/types/PointSet.h"
+#include "core/types/VolumePkg.h"
 #include "meshing/OrderedPointSetMesher.h"
 
 #include <boost/filesystem.hpp>
-#include <common/types/PointSet.h>
 
 namespace fs = boost::filesystem;
 namespace vc = volcart;

@@ -4,6 +4,11 @@
 
 #include "texturing/ClothModelingUVMapping.h"
 
+#include <BulletSoftBody/btDefaultSoftBodySolver.h>
+
+#include "meshing/deepCopy.h"
+#include "meshing/itk2bullet.h"
+
 //// Callbacks ////
 /* Note: Callbacks won't compile if they're not wrapped in the namespace.
  * `using namespace volcart::texturing` doesn't work. I'm assuming this is some

@@ -4,24 +4,22 @@
 // operates without interference
 // Developer: Michael Royal - mgro224@g.uky.edu
 // October 12, 2015 - Spring Semester 2016
-// Last Updated 09/26/2016 by: Michael Royal
+// Last Updated 10/24/2016 by: Michael Royal
 
 // Copyright 2015 (Brent Seales: Volume Cartography Research)
 // University of Kentucky VisCenter
 //----------------------------------------------------------------------------------------------------------------------------------------
 
 #include "MyThread.h"
-#include "common/io/PLYReader.h"
-#include "common/io/objWriter.h"
+#include "core/io/PLYReader.h"
+#include "core/io/objWriter.h"
 
 namespace fs = boost::filesystem;
 
 MyThread::MyThread(Global_Values* globals)
 {
     _globals = globals;
-    _globals->setStatus(0);  // Status Running/Active
-    _globals->setProcessing(true);
-    _globals->setForcedClose(false);
+    _globals->setThreadStatus(ThreadStatus::Active);  // Status Running/Active
     this->start();
 }
 
@@ -99,19 +97,14 @@ void MyThread::run()
         rendering.setMesh(itkACVD);
 
         _globals->setRendering(rendering);
+        _globals->setThreadStatus(ThreadStatus::Successful);
 
     } catch (...) {
         if (cloudProblem) {
-            _globals->setStatus(-1);
+            _globals->setThreadStatus(ThreadStatus::CloudError);
 
         } else {
-            _globals->setStatus(-2);
+            _globals->setThreadStatus(ThreadStatus::Failed);
         }
     };
-
-    if (_globals->getStatus() == 0) {
-        _globals->setStatus(1);
-    }
-
-    _globals->setProcessing(false);
 }

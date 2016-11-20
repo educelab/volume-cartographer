@@ -11,7 +11,7 @@
 
 #include "MainWindow.h"
 #include <boost/algorithm/string/case_conv.hpp>
-#include "common/io/objWriter.h"
+#include "core/io/objWriter.h"
 
 // Volpkg version required byt this app
 static constexpr int VOLPKG_SUPPORTED_VERSION = 3;
@@ -71,15 +71,52 @@ MainWindow::MainWindow(Global_Values* globals)
     create_Menus();    // Creates the Menus and adds them to the Menu Bar
 }
 
-void MainWindow::getFilePath()  // Gets the Folder Path of the Volume Package
-                                // location, and initiates a Volume Package.
+// Gets the Folder Path of the Volume Package location, and initiates a Volume
+// Package.
+void MainWindow::getFilePath()
 {
+    // If processing...
+    if (_globals->getStatus() == ThreadStatus::Active) {
+        QMessageBox::information(
+            this, tr("Error Message"), "Please Wait While Texture Generates.");
+        return;
+    }
 
-    _globals->clearGUI();               // Clear variables from Globals
-    _segmentations_Viewer->clearGUI();  // Clear variables from
-                                        // Segmentations_Viewer AND  Clear
-                                        // variables from Texture_Viewer
+    // If there's something to save...
+    if (_globals->getStatus() == ThreadStatus::Successful) {
 
+        // Ask User to Save unsaved Data
+        QMessageBox msgBox;
+        msgBox.setText(
+            "A new texture image was generated, do you want to save it?");
+        msgBox.setStandardButtons(
+            QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+        int option = msgBox.exec();
+
+        switch (option) {
+
+            // Save was clicked
+            case QMessageBox::Save:
+                saveTexture();
+                break;
+
+            // Discard was clicked
+            case QMessageBox::Discard:
+                _globals->setThreadStatus(ThreadStatus::Inactive);
+                break;
+
+            // Cancel was clicked
+            case QMessageBox::Cancel:
+                return;
+
+            default:
+                // should never be reached
+                break;
+        }
+    }
+
+    _globals->setThreadStatus(ThreadStatus::Inactive);
+    clearGUI();
     QFileDialog* dialogBox = new QFileDialog();
     QString filename = dialogBox->getExistingDirectory();
     std::string file_Name = filename.toStdString();
@@ -93,8 +130,7 @@ void MainWindow::getFilePath()  // Gets the Folder Path of the Volume Package
         {
             try {
                 _globals->setPath(filename);  // Sets Folder Path in Globals
-                _globals
-                    ->createVolumePackage();  // Creates a Volume Package Object
+                _globals->createVolumePackage();
 
                 // Check for Volume Package Version Number
                 if (_globals->getVolPkg()->getVersion() !=
@@ -120,18 +156,13 @@ void MainWindow::getFilePath()  // Gets the Folder Path of the Volume Package
                     return;
                 }
 
-                _globals->getMySegmentations();  // Gets Segmentations and
-                // assigns them to
-                // "segmentations" in Globals
-                _segmentations_Viewer->setSegmentations();  // Sets the
-                // Segmentations for
-                // the Segmentation
-                // Viewer and
-                // assigns the
-                _segmentations_Viewer->setVol_Package_Name(
-                    filename);  // Sets the name of the Volume Package to
-                // Display on the GUI
-
+                // Gets Segmentations and assigns them to "segmentations" in
+                // Globals
+                _globals->getMySegmentations();
+                // Initialize Segmentations in segmentations_Viewer
+                _segmentations_Viewer->setSegmentations();
+                // Sets the name of the Volume Package to display on the GUI
+                _segmentations_Viewer->setVol_Package_Name(filename);
             } catch (...) {
                 QMessageBox::warning(
                     this, tr("Error Message"), "Error Opening File.");
@@ -146,6 +177,13 @@ void MainWindow::getFilePath()  // Gets the Folder Path of the Volume Package
 // newly Generated Texture Image.
 void MainWindow::saveTexture()
 {
+    // If processing...
+    if (_globals->getStatus() == ThreadStatus::Active) {
+        QMessageBox::information(
+            this, tr("Error Message"), "Please Wait While Texture Generates.");
+        return;
+    }
+
     // If A Volume Package is Loaded and there are Segmentations (continue)
     if (_globals->isVPKG_Intantiated() &&
         _globals->getVolPkg()->getSegmentations().size() != 0) {
@@ -160,7 +198,7 @@ void MainWindow::saveTexture()
                 mesh_writer.setPath(path.string());
                 mesh_writer.setRendering(_globals->getRendering());
                 mesh_writer.write();
-
+                _globals->setThreadStatus(ThreadStatus::Inactive);
                 QMessageBox::information(
                     this, tr("Error Message"), "Saved Successfully.");
 
@@ -183,6 +221,12 @@ void MainWindow::saveTexture()
 // Exports the Image as .tif, .tiff, .png, .jpg, and .jpeg
 void MainWindow::exportTexture()
 {
+    // If processing...
+    if (_globals->getStatus() == ThreadStatus::Active) {
+        QMessageBox::information(
+            this, tr("Error Message"), "Please Wait While Texture Generates.");
+        return;
+    }
 
     // Return if no volume package is loaded or if volpkg doesn't have
     // segmentations
@@ -297,13 +341,52 @@ void MainWindow::create_Menus()
 // User cannot exit program while texture is still running.
 void MainWindow::closeEvent(QCloseEvent* closing)
 {
-    if (_globals->getProcessing()) {
+    if (_globals->getStatus() == ThreadStatus::Active) {
         QMessageBox::warning(
             this, "Error",
             "This application cannot be closed while a texture is being "
             "generated. Please wait until the texturing process is complete "
             "and try again.");
         closing->ignore();
-    } else
-        closing->accept();
+        return;
+    } else if (_globals->getStatus() == ThreadStatus::Successful) {
+
+        // Ask User to Save unsaved Data
+        QMessageBox msgBox;
+        msgBox.setText(
+            "A new texture image was generated, do you want to save it before "
+            "quitting?");
+        msgBox.setStandardButtons(
+            QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+        int option = msgBox.exec();
+
+        switch (option) {
+            // Save was clicked
+            case QMessageBox::Save:
+                saveTexture();
+                break;
+
+            // Discard was clicked
+            case QMessageBox::Discard:
+                break;
+
+            // Cancel was clicked
+            case QMessageBox::Cancel:
+                closing->ignore();
+                return;
+
+            default:
+                break;
+        }
+    }
+
+    // Exit
+    closing->accept();
+}
+
+void MainWindow::clearGUI()
+{
+    _globals->clearGUI();
+    _segmentations_Viewer->clearGUI();
+    update();
 }

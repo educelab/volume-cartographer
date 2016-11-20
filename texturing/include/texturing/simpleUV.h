@@ -11,8 +11,8 @@
 // THIS FUNCTION HAS LIMITED USE AND SHOULD BE USED WITH CAUTION
 #pragma once
 
-#include "common/types/UVMap.h"
-#include "common/vc_defines.h"
+#include "core/types/UVMap.h"
+#include "core/vc_defines.h"
 
 namespace volcart
 {

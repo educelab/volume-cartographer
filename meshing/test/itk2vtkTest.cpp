@@ -7,12 +7,12 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
 
-#include "common/shapes/Arch.h"
-#include "common/shapes/Cone.h"
-#include "common/shapes/Cube.h"
-#include "common/shapes/Plane.h"
-#include "common/shapes/Sphere.h"
-#include "common/vc_defines.h"
+#include "core/shapes/Arch.h"
+#include "core/shapes/Cone.h"
+#include "core/shapes/Cube.h"
+#include "core/shapes/Plane.h"
+#include "core/shapes/Sphere.h"
+#include "core/vc_defines.h"
 #include "meshing/itk2vtk.h"
 #include "testing/parsingHelpers.h"
 #include "testing/testingUtils.h"

@@ -10,9 +10,9 @@
 
 #include <iostream>
 
-#include "common/io/objWriter.h"
-#include "common/shapes/Arch.h"
-#include "common/vc_defines.h"
+#include "core/io/objWriter.h"
+#include "core/shapes/Arch.h"
+#include "core/vc_defines.h"
 #include "texturing/ClothModelingUVMapping.h"
 
 int main()

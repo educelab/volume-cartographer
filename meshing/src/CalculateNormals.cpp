@@ -1,9 +1,6 @@
-//
-// Created by Hannah Hatch on 7/26/16.
-//
-
+/** @file CalculateNormals.cpp */
 #include "meshing/CalculateNormals.h"
-#include "common/vc_defines.h"
+#include "core/vc_defines.h"
 #include "meshing/deepCopy.h"
 
 using namespace volcart::meshing;
@@ -16,7 +13,6 @@ CalculateNormals::CalculateNormals(ITKMesh::Pointer mesh)
     _input = mesh;
     _output = ITKMesh::New();
     deepCopy(_input, _output);
-    _vertex_normals = std::vector<cv::Vec3d>(_output->GetNumberOfPoints(), 0);
 }
 
 ///// Input/Output /////
@@ -25,7 +21,6 @@ void CalculateNormals::setMesh(ITKMesh::Pointer mesh)
     _input = mesh;
     _output = ITKMesh::New();
     deepCopy(_input, _output);
-    _vertex_normals = std::vector<cv::Vec3d>(_output->GetNumberOfPoints(), 0);
 }
 
 volcart::ITKMesh::Pointer CalculateNormals::getMesh() const { return _output; }
@@ -39,6 +34,7 @@ void CalculateNormals::compute()
 
 void CalculateNormals::_computeNormals()
 {
+    _vertex_normals = std::vector<cv::Vec3d>(_output->GetNumberOfPoints(), 0);
 
     for (auto c_it = _input->GetCells()->Begin();
          c_it != _input->GetCells()->End(); ++c_it) {

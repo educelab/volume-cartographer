@@ -1,18 +1,38 @@
-//
-// Created by Media Team on 8/12/15.
-//
+/**
+ * @file rayTrace.h
+ * @brief Mesh resampling using ray tracing.
+ */
 #pragma once
 
 #include <vector>
 #include <opencv2/opencv.hpp>
-#include "common/vc_defines.h"
+#include "core/vc_defines.h"
 
 namespace volcart
 {
 namespace meshing
 {
-// Using vtk's OBBTree to test a ray's intersection with the
-// faces/cells/triangles in the mesh
+
+/**
+ * @author Mike Roup, Abigail Coleman, Seth Parker
+ * @date 8/12/15
+ *
+ * @brief Mesh resampling using ray tracing.
+ *
+ * Uses ray tracing and intersection to compute ordered intersection points on
+ * the surface of an ITKMesh.
+ *
+ * @warning Don't use this function for anything.
+ *
+ * @ingroup Meshing
+ *
+ * @param itkMesh
+ * @param aTraceDir Rotation direction (1 for clockwise)
+ * @param width Number of rotational samples
+ * @param height Number of vertical samples
+ * @param uvMap Parameterized UV position for each point in the return vector
+ * @return Vector of intersection points and the normal to that point
+ */
 std::vector<cv::Vec6f> rayTrace(
     ITKMesh::Pointer itkMesh,
     int aTraceDir,
