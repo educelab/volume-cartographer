@@ -25,7 +25,7 @@ public:
     PerPixelMap() : _width(0), _height(0){};
 
     // Create new
-    PerPixelMap(int height, int width);
+    PerPixelMap(size_t height, size_t width);
 
     // Construct map from file
     PerPixelMap(boost::filesystem::path path);
@@ -35,12 +35,12 @@ public:
 
     ///// Operators /////
     // Forward to the Mat_ operators
-    cv::Vec6d& operator()(int y, int x) { return _map(y, x); };
+    cv::Vec6d& operator()(size_t y, size_t x) { return _map(y, x); };
 
     ///// Metadata /////
-    void setDimensions(int w, int h);
-    void setWidth(int w);
-    void setHeight(int h);
+    void setDimensions(size_t w, size_t h);
+    void setWidth(size_t w);
+    void setHeight(size_t h);
     int width() const { return _width; };
     int height() const { return _height; };
 
@@ -51,7 +51,7 @@ public:
     void setMask(cv::Mat m) { _mask = m.clone(); };
     cv::Mat getMask() const { return _mask; };
     cv::Mat getMaskCopy() const { return _mask.clone(); };
-    bool hasMapping(int y, int x);
+    bool hasMapping(size_t y, size_t x);
 
     ///// Disk IO /////
     void write(boost::filesystem::path path);
@@ -59,7 +59,7 @@ public:
 
 private:
     void _initializeMap();
-    int _width, _height;
+    size_t _width, _height;
     cv::Mat_<cv::Vec6d> _map;
     cv::Mat _mask;
     UVMap _uvmap;

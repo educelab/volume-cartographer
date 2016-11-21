@@ -13,7 +13,7 @@ using namespace texturing;
 constexpr static size_t KD_DEFAULT_SEARCH_SIZE = 100;
 
 // Parameters
-void PPMGenerator::setDimensions(uint8_t w, uint8_t h)
+void PPMGenerator::setDimensions(size_t w, size_t h)
 {
     _width = w;
     _height = h;
@@ -99,8 +99,8 @@ void PPMGenerator::_generatePPM()
 
     // Iterate over all of the pixels
     size_t pixelsNotInCell = 0;
-    for (int y = 0; y < _height; ++y) {
-        for (int x = 0; x < _width; ++x) {
+    for (size_t y = 0; y < _height; ++y) {
+        for (size_t x = 0; x < _width; ++x) {
             _progress = (double)(x + 1 + (_width * y)) /
                         (double)(_width * _height) * (double)100;
             std::cerr << "volcart::texturing::PPMGenerator:: Processing: "

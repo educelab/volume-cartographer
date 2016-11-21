@@ -20,7 +20,7 @@ public:
     // Set/Get Parameters
     void setMesh(ITKMesh::Pointer m) { _inputMesh = m; };
     void setUVMap(const UVMap& u) { _uvMap = u; };
-    void setDimensions(uint8_t w, uint8_t h);
+    void setDimensions(size_t w, size_t h);
 
     // Run
     void compute();
@@ -56,8 +56,8 @@ private:
     UVMap _uvMap;
     PerPixelMap _ppm;
 
-    uint8_t _width;
-    uint8_t _height;
+    size_t _width;
+    size_t _height;
 
     double _progress;
 };

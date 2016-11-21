@@ -8,7 +8,8 @@ using namespace volcart;
 
 ///// Constructors /////
 // Empty Map of width x height
-PerPixelMap::PerPixelMap(int height, int width) : _height(height), _width(width)
+PerPixelMap::PerPixelMap(size_t height, size_t width)
+    : _height(height), _width(width)
 {
     _initializeMap();
 }
@@ -17,26 +18,26 @@ PerPixelMap::PerPixelMap(int height, int width) : _height(height), _width(width)
 PerPixelMap::PerPixelMap(boost::filesystem::path path) { read(path); }
 
 ///// Metadata /////
-void PerPixelMap::setDimensions(int w, int h)
+void PerPixelMap::setDimensions(size_t w, size_t h)
 {
     _width = w;
     _height = h;
     _initializeMap();
 }
 
-void PerPixelMap::setWidth(int w)
+void PerPixelMap::setWidth(size_t w)
 {
     _width = w;
     _initializeMap();
 }
 
-void PerPixelMap::setHeight(int h)
+void PerPixelMap::setHeight(size_t h)
 {
     _height = h;
     _initializeMap();
 }
 
-bool PerPixelMap::hasMapping(int y, int x)
+bool PerPixelMap::hasMapping(size_t y, size_t x)
 {
     return (_mask.at<unsigned char>(y, x) == 255);
 }
@@ -74,8 +75,8 @@ void PerPixelMap::read(boost::filesystem::path path)
     cv::FileNode map = file["PerPixelMapping"];
 
     // Read the header info
-    _height = (int)map["rows"];
-    _width = (int)map["cols"];
+    _height = static_cast<int>(map["rows"]);
+    _width = static_cast<int>(map["cols"]);
 
     // Fill the _map from the list of doubles
     _map = cv::Mat_<cv::Vec6d>(_height, _width, cv::Vec6d(0, 0, 0, 0, 0, 0));
