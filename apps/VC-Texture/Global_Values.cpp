@@ -12,13 +12,13 @@
 #include "Global_Values.h"
 
 Global_Values::Global_Values(QRect rec)
-    : VPKG_Instantiated(false)
+    : _status(ThreadStatus::Inactive)
+    , VPKG_Instantiated(false)
     , height(rec.height())
     , width(rec.width())
     , _radius(0)
     , _textureMethod(0)
     , _sampleDirection(0)
-    , _status(ThreadStatus::Inactive)
 {
 }
 
