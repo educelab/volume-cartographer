@@ -22,6 +22,8 @@ bool PLYReader2::read()
     _leadingChar = true;
     _pointNorm = false;
 
+    int skippedElementCnt = 0;
+
     _plyFile.open(_inputPath.string());
     if (!_plyFile.is_open()) {
         auto msg = "Open file " + _inputPath.string() + " failed.";
@@ -33,6 +35,12 @@ bool PLYReader2::read()
             _readPoints();
         } else if (cur == "face") {
             _readFaces();
+        } else {
+            int curSkip = _skippedLine[skippedElementCnt];
+            for (int i = 0; i < curSkip; i++) {
+                getline(_plyFile, _line);
+            }
+            skippedElementCnt++;
         }
     }
     _plyFile.close();
@@ -55,6 +63,8 @@ void PLYReader2::_parseHeader()
                 _numOfVertices = std::stoi(splitLine[2]);
             } else if (splitLine[1] == "face") {
                 _numOfFaces = std::stoi(splitLine[2]);
+            } else {
+                _skippedLine.push_back(std::stoi(splitLine[2]));
             }
             getline(_plyFile, _line);
             boost::split(
@@ -93,8 +103,7 @@ void PLYReader2::_parseHeader()
 
 void PLYReader2::_readPoints()
 {
-    int i;
-    for (i = 0; i < _numOfVertices; i++) {
+    for (int i = 0; i < _numOfVertices; i++) {
         volcart::Vertex curPoint;
         std::vector<std::string> curLine;
         boost::split(

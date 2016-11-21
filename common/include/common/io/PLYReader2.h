@@ -112,6 +112,9 @@ private:
     /** List of elements that were parsed*/
     std::vector<std::string> _elementsList;
 
+    /** List of lines to skip for each unchecked element*/
+    std::vector<int> _skippedLine;
+
     /** Number of vertices in the mesh */
     int _numOfVertices;
 
