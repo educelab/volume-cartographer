@@ -15,7 +15,7 @@
 #include <opencv2/opencv.hpp>
 #include "core/vc_defines.h"
 
-constexpr static size_t VC_UVMAP_MIN_DEBUG_WIDTH = 500;
+constexpr static int VC_UVMAP_MIN_DEBUG_WIDTH = 500;
 
 namespace volcart
 {

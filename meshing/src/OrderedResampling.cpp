@@ -13,14 +13,14 @@ using namespace volcart::meshing;
 OrderedResampling::OrderedResampling() : _inWidth{0}, _inHeight{0} {}
 
 OrderedResampling::OrderedResampling(
-    ITKMesh::Pointer mesh, uint32_t in_width, uint32_t in_height)
+    ITKMesh::Pointer mesh, int in_width, int in_height)
     : _input{mesh}, _inWidth{in_width}, _inHeight{in_height}
 {
 }
 
 //// Set Inputs/Get Output ////
 void OrderedResampling::setMesh(
-    ITKMesh::Pointer mesh, uint32_t in_width, uint32_t in_height)
+    ITKMesh::Pointer mesh, int in_width, int in_height)
 {
     _input = mesh;
     _inWidth = in_width;
@@ -36,8 +36,8 @@ volcart::ITKMesh::Pointer OrderedResampling::getOutputMesh() const
         return _output;
 }
 
-uint32_t OrderedResampling::getOutputWidth() const { return _outWidth; };
-uint32_t OrderedResampling::getOutputHeight() const { return _outHeight; };
+int OrderedResampling::getOutputWidth() const { return _outWidth; };
+int OrderedResampling::getOutputHeight() const { return _outHeight; };
 
 ///// Processing /////
 void OrderedResampling::compute()
@@ -53,7 +53,7 @@ void OrderedResampling::compute()
     bool line_skip = false;
 
     // Loop iterator
-    uint32_t k = 0;
+    int k = 0;
     ITKPointIterator pointsIterator = _input->GetPoints()->Begin();
 
     // Adds certain points from old mesh into the new mesh
@@ -80,7 +80,8 @@ void OrderedResampling::compute()
     // Something went wrong with resampling. Number of points aren't what we
     // expect...
     assert(
-        _output->GetNumberOfPoints() == _outWidth * _outHeight &&
+        static_cast<int>(_output->GetNumberOfPoints()) ==
+            _outWidth * _outHeight &&
         "Error resampling. Output and expected output don't match.");
 
     // Vertices for each face in the new mesh
@@ -88,8 +89,8 @@ void OrderedResampling::compute()
 
     // Create two new faces each iteration based on new set of points and keeps
     // normals same as original
-    for (uint32_t i = 0; i < _outHeight - 1; i++) {
-        for (uint32_t j = 0; j < _outWidth - 1; j++) {
+    for (int i = 0; i < _outHeight - 1; i++) {
+        for (int j = 0; j < _outWidth - 1; j++) {
 
             // 4 points allows us to create the upper and lower faces at the
             // same time

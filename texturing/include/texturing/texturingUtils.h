@@ -102,6 +102,7 @@ inline void Sectioning(
                         tmp;  // REVISIT - we assume we have enough space
                     aDataCnt++;
                 }
+                break;
             }
             case volcart::DirectionOption::Positive: {
                 // Calculate point as scaled and sampled normal vector + center
@@ -115,6 +116,7 @@ inline void Sectioning(
                 // Store point in return array
                 nData[aDataCnt] = tmp;
                 aDataCnt++;
+                break;
             }
             case volcart::DirectionOption::Negative: {
                 aPos[0] = nCenter[0] - aDir[0];
@@ -128,6 +130,7 @@ inline void Sectioning(
                 nData[aDataCnt] =
                     tmp;  // REVISIT - we assume we have enough space
                 aDataCnt++;
+                break;
             }
         }
     }  // for i
@@ -295,6 +298,7 @@ inline void SamplingWithinEllipse(
                                                         // we have enough space
                                 aDataCnt++;
                             }  // for t
+                            break;
                         }
                         case volcart::DirectionOption::Positive: {
                             for (int t = 0; t < 4; ++t) {
@@ -323,6 +327,7 @@ inline void SamplingWithinEllipse(
                                                         // we have enough space
                                 aDataCnt++;
                             }  // for t
+                            break;
                         }
                         case volcart::DirectionOption::Negative: {
                             for (int t = 0; t < 4; ++t) {
@@ -351,6 +356,7 @@ inline void SamplingWithinEllipse(
                                                         // we have enough space
                                 aDataCnt++;
                             }  // for t
+                            break;
                         }
                     }
                 }  // if
