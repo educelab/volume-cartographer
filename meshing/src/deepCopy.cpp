@@ -1,6 +1,4 @@
-//
-// Created by Seth Parker on 12/21/15.
-//
+/** @file deepCopy.cpp */
 
 #include "meshing/deepCopy.h"
 

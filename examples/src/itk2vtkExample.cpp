@@ -12,14 +12,14 @@
  *          include normals when it writes to file
  */
 
-#include <common/io/objWriter.h>
 #include <vtkPLYWriter.h>
-#include "common/shapes/Arch.h"
-#include "common/shapes/Cone.h"
-#include "common/shapes/Cube.h"
-#include "common/shapes/Plane.h"
-#include "common/shapes/Sphere.h"
-#include "common/vc_defines.h"
+#include "core/io/objWriter.h"
+#include "core/shapes/Arch.h"
+#include "core/shapes/Cone.h"
+#include "core/shapes/Cube.h"
+#include "core/shapes/Plane.h"
+#include "core/shapes/Sphere.h"
+#include "core/vc_defines.h"
 #include "meshing/itk2vtk.h"
 
 void writePLYHeaderAndPoints(std::ostream& out, vtkPolyData* mesh);

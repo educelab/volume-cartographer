@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
-project(VC VERSION 2.7.1)
+project(VC VERSION 2.8.0)
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
@@ -8,7 +8,7 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 set(VC_INSTALL_INCLUDE_PREFIX include/volcart)
 
 # Use modern C++ for everything
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CXX_STANDARD_REQUIRED on)
 
 # Global configs
@@ -44,14 +44,13 @@ endif()
 
 ## VC Libraries ##
 add_subdirectory(external)
-add_subdirectory(common)
+add_subdirectory(core)
 
 if(VC_BUILD_TESTS)
     add_subdirectory(testing)
 endif()
 
 add_subdirectory(meshing)
-add_subdirectory(volumepkg)
 add_subdirectory(segmentation)
 add_subdirectory(texturing)
 

@@ -5,8 +5,8 @@
 // October 12, 2015 - Spring Semester 2016
 // Last Updated 11/13/2015 by: Michael Royal
 
-// Copy Right ©2015 (Brent Seales: Volume Cartography Research) - University of
-// Kentucky Center for Visualization and Virtualization
+// Copyright 2015 (Brent Seales: Volume Cartography Research)
+// University of Kentucky VisCenter
 //----------------------------------------------------------------------------------------------------------------------------------------
 
 #pragma once
@@ -44,6 +44,7 @@ public slots:
     void exportTexture();
 
 private:
+    void clearGUI();
     void create_Actions();
     void create_Menus();
     void closeEvent(QCloseEvent* closing);

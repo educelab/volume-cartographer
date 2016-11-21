@@ -1,0 +1,14 @@
+/**
+ @defgroup VolumePackage Volume Package
+ @brief Class for accessing and manipulating the .volpkg file format.
+*/
+
+/**
+@defgroup Meshing Meshing 
+@brief Library for mesh creation, manipulation, resampling, and conversion.
+*/
+
+/**
+ @defgroup ExampleDocs Documentation Examples
+ @brief Files that demonstrate how code should be formatted for Doxygen.
+*/

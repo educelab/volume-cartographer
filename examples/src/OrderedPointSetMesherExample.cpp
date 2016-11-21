@@ -3,10 +3,10 @@
 //
 
 #include <iostream>
-#include "common/io/objWriter.h"
-#include "common/types/OrderedPointSet.h"
-#include "common/types/Point.h"
-#include "common/vc_defines.h"
+#include "core/io/objWriter.h"
+#include "core/types/OrderedPointSet.h"
+#include "core/types/Point.h"
+#include "core/vc_defines.h"
 #include "meshing/OrderedPointSetMesher.h"
 
 using namespace volcart;

@@ -3,6 +3,7 @@
 //
 
 #include "texturing/AngleBasedFlattening.h"
+#include <cmath>
 #include "external/eigen_capi.h"
 #include "meshing/deepCopy.h"
 
@@ -47,6 +48,7 @@ volcart::UVMap AngleBasedFlattening::getUVMap()
 
     // Setup uvMap
     volcart::UVMap uvMap;
+    uvMap.origin(VC_ORIGIN_BOTTOM_LEFT);
 
     double min_u = std::numeric_limits<double>::max();
     double max_u = std::numeric_limits<double>::min();
@@ -83,6 +85,7 @@ volcart::UVMap AngleBasedFlattening::getUVMap()
         uvMap.set(vert->id, uv);
     }
 
+    uvMap.origin(VC_ORIGIN_TOP_LEFT);
     return uvMap;
 }
 
@@ -99,8 +102,6 @@ void AngleBasedFlattening::compute()
     // Construct the mesh and get the angles
     _fillHalfEdgeMesh();
 
-    // Scale beta to prevent degenerate cases and generate ABF solutions for
-    // angles
     if (_useABF) {
         _scale();
         _solve_abf();
@@ -160,7 +161,7 @@ void AngleBasedFlattening::_scale()
     for (auto v = _heMesh.getVert(0); v; v = v->nextlink) {
         if (v->interior()) {
 
-            double anglesum = 0.0, scale;
+            double anglesum = 0.0;
 
             auto e = v->edge;
             do {
@@ -168,14 +169,18 @@ void AngleBasedFlattening::_scale()
                 e = e->next->next->pair;
             } while (e && (e != v->edge));
 
-            scale = (anglesum == 0.0f) ? 0.0f : 2.0f * M_PI / anglesum;
-
-            e = v->edge;
-            do {
-                e->angle->beta = e->angle->alpha = e->angle->beta * scale;
-                e = e->next->next->pair;
-            } while (e && (e != v->edge));
+            // Update optimal angle
+            if (anglesum == 0.0f) {
+                v->edge->angle->phi = 0.0;
+            } else {
+                v->edge->angle->phi =
+                    v->edge->angle->beta * 2.0f * M_PI / anglesum;
+            }
         }
+
+        // Re-calculate weight
+        v->edge->angle->weight =
+            1 / (v->edge->angle->phi * v->edge->angle->phi);
     }
 }
 
@@ -199,7 +204,6 @@ void AngleBasedFlattening::_solve_abf()
                 << "volcart::texturing::abf: ABF failed to invert matrix after "
                 << i + 1 << " iterations. Falling back to LSCM." << std::endl;
             throw std::runtime_error("ABF failed to invert matrix");
-            break;
         }
 
         // Update the HEM with their new sine/cosine values
@@ -231,9 +235,9 @@ double AngleBasedFlattening::_computeGradient()
         auto e0 = f->edge, e1 = e0->next, e2 = e1->next;
         double gTriangle, gAlpha0, gAlpha1, gAlpha2;
 
-        gAlpha0 = _computeGradientAlpha(f, e0);
-        gAlpha1 = _computeGradientAlpha(f, e1);
-        gAlpha2 = _computeGradientAlpha(f, e2);
+        gAlpha0 = _computeGradientAlpha(e0);
+        gAlpha1 = _computeGradientAlpha(e1);
+        gAlpha2 = _computeGradientAlpha(e2);
 
         e0->angle->bAlpha = -gAlpha0;
         e1->angle->bAlpha = -gAlpha1;
@@ -272,30 +276,9 @@ double AngleBasedFlattening::_computeGradient()
     return norm;
 }
 
-double AngleBasedFlattening::_computeGradientAlpha(
-    volcart::HalfEdgeMesh::FacePtr f, volcart::HalfEdgeMesh::EdgePtr e0)
+double AngleBasedFlattening::_computeGradientAlpha(HalfEdgeMesh::EdgePtr e0)
 {
-    volcart::HalfEdgeMesh::VertPtr v0 = e0->vert, v1 = e0->next->vert,
-                                   v2 = e0->next->next->vert;
-
-    double deriv = (e0->angle->alpha - e0->angle->beta) * e0->angle->weight;
-    deriv += f->lambdaTriangle;
-
-    if (v0->interior()) {
-        deriv += v0->lambdaPlanar;
-    }
-
-    if (v1->interior()) {
-        double product = _computeSinProduct(v1, v0->id);
-        deriv += v1->lambdaLength * product;
-    }
-
-    if (v2->interior()) {
-        double product = _computeSinProduct(v2, v0->id);
-        deriv += v2->lambdaLength * product;
-    }
-
-    return deriv;
+    return pow(e0->angle->alpha - e0->angle->phi, 2) * e0->angle->weight;
 }
 
 // Edge length constraint calculation
@@ -621,7 +604,7 @@ bool AngleBasedFlattening::_invertMatrix()
 void AngleBasedFlattening::_solve_lscm()
 {
     // find two pins and compute their positions
-    auto MinMaxPair = _getMinMaxPointIDs();
+    auto MinMaxPair = _getMinZPointIDs();
     _pin0 = MinMaxPair.first;
     _pin1 = MinMaxPair.second;
     _computePinUV();
@@ -746,48 +729,42 @@ AngleBasedFlattening::_getMinMaxPointIDs()
     return std::make_pair(minVert, maxVert);
 }
 
+// Get the ID's of two points near the minimum z position
+std::pair<volcart::HalfEdgeMesh::IDType, volcart::HalfEdgeMesh::IDType>
+AngleBasedFlattening::_getMinZPointIDs()
+{
+    auto it = _heMesh.getBoundaryBegin();
+    double min = (*it)->xyz[2];
+    volcart::HalfEdgeMesh::IDType minVert = (*it)->id;
+    volcart::HalfEdgeMesh::IDType nextVert = (*(it + 1))->id;
+
+    for (; it != _heMesh.getBoundaryEnd(); ++it) {
+
+        // Min
+        if ((*it)->xyz[2] < min) {
+            min = (*it)->xyz[2];
+            minVert = (*it)->id;
+            if ((it + 1) != _heMesh.getBoundaryEnd()) {
+                nextVert = (*(it + 1))->id;
+            } else {
+                nextVert = (*(it - 1))->id;
+            }
+        }
+    }
+
+    return std::make_pair(minVert, nextVert);
+}
+
 // Generate a good starting UV position for the two starting "pinned" points
 // This is supposedly arbitrary
 void AngleBasedFlattening::_computePinUV()
 {
-    if (_pin0 == _pin1) {
-        // Degenerate case, get two other points
-        auto it = _heMesh.getBoundaryBegin();
-        _pin0 = (*it)->id;
-        _pin1 = (*std::next(it))->id;
-
-        _heMesh.getVert(_pin0)->uv = cv::Vec2d(0.0, 0.5);
-        _heMesh.getVert(_pin1)->uv = cv::Vec2d(1.0, 0.5);
-    } else {
-        int diru, dirv, dirx, diry;
-
-        cv::Vec3d pin0_xyz = _heMesh.getVert(_pin0)->xyz;
-        cv::Vec3d pin1_xyz = _heMesh.getVert(_pin1)->xyz;
-        cv::Vec3d sub;
-        cv::absdiff(pin0_xyz, pin1_xyz, sub);
-
-        if ((sub[0] > sub[1]) && (sub[0] > sub[2])) {
-            dirx = 0;
-            diry = (sub[1] > sub[2]) ? 1 : 2;
-        } else if ((sub[1] > sub[0]) && (sub[1] > sub[2])) {
-            dirx = 1;
-            diry = (sub[0] > sub[2]) ? 0 : 2;
-        } else {
-            dirx = 2;
-            diry = (sub[0] > sub[1]) ? 0 : 1;
-        }
-
-        if (dirx == 2) {
-            diru = 1;
-            dirv = 0;
-        } else {
-            diru = 0;
-            dirv = 1;
-        }
-
-        _heMesh.getVert(_pin0)->uv[diru] = pin0_xyz[dirx];
-        _heMesh.getVert(_pin0)->uv[dirv] = pin0_xyz[diry];
-        _heMesh.getVert(_pin1)->uv[diru] = pin1_xyz[dirx];
-        _heMesh.getVert(_pin1)->uv[dirv] = pin1_xyz[diry];
-    }
+    auto p0_xyz = _heMesh.getVert(_pin0)->xyz;
+    auto p1_xyz = _heMesh.getVert(_pin1)->xyz;
+    cv::Vec2d xy1(p0_xyz[0], p0_xyz[1]);
+    cv::Vec2d xy2(p1_xyz[0], p1_xyz[1]);
+    double u_dist = cv::norm(xy1, xy2);
+    double v_dist = p0_xyz[2] - p1_xyz[2];
+    _heMesh.getVert(_pin0)->uv = cv::Vec2d(0.0, 0.0);
+    _heMesh.getVert(_pin1)->uv = cv::Vec2d(u_dist, v_dist);
 }

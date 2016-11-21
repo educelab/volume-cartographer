@@ -10,8 +10,8 @@
 #include <boost/program_options.hpp>
 
 #include "apps/SliceImage.h"
-#include "common/vc_defines.h"
-#include "volumepkg/volumepkg.h"
+#include "core/types/VolumePkg.h"
+#include "core/vc_defines.h"
 
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;
@@ -106,7 +106,6 @@ int main(int argc, char* argv[])
     volpkg.setMetadata("volumepkg name", volpkgPath.stem().string());
     volpkg.setMetadata("voxelsize", voxelsize);
     volpkg.setMetadata("materialthickness", thickness);
-    volpkg.initialize();
 
     // Filter the slice path directory by extension and sort the vector of files
     std::cout << "Reading the slice directory..." << std::endl;

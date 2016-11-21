@@ -8,8 +8,8 @@
 // http://doc.qt.io/qt-5/qtwidgets-widgets-imageviewer-example.html ---(I
 // edited/formatted the code to suit our purposes)
 
-// Copy Right ©2015 (Brent Seales: Volume Cartography Research) - University of
-// Kentucky Center for Visualization and Virtualization
+// Copyright 2015 (Brent Seales: Volume Cartography Research)
+// University of Kentucky VisCenter
 //-----------------------------------------------------------------------------------------------------------------------------------------
 
 #include "Texture_Viewer.h"
@@ -122,8 +122,7 @@ void Texture_Viewer::reset_Size()
 
 void Texture_Viewer::quitThread()
 {
-    _globals->setForcedClose(true);
-    _globals->setProcessing(false);
+    _globals->setThreadStatus(ThreadStatus::ForcedClose);
 }
 
 // END OF PRIVATE SLOTS
@@ -165,6 +164,13 @@ void Texture_Viewer::clearImageLabel()
     zoomIn->setEnabled(false);
     zoomOut->setEnabled(false);
     refresh->setEnabled(false);
+}
+
+void Texture_Viewer::clearGUI()
+{
+
+    clearImageLabel();  // Clear the Image
+    scaleFactor = 1.0;
 }
 
 void Texture_Viewer::create_Actions()

@@ -5,16 +5,16 @@
 // October 12, 2015 - Spring Semester 2016
 // Last Updated 09/26/2016 by: Michael Royal
 
-// Copy Right ©2015 (Brent Seales: Volume Cartography Research) - University of
-// Kentucky Center for Visualization and Virtualization
+// Copyright 2015 (Brent Seales: Volume Cartography Research)
+// University of Kentucky VisCenter
 //----------------------------------------------------------------------------------------------------------------------------------------
 
 #pragma once
 
-#include "common/io/PLYReader.h"
-#include "common/vc_defines.h"
+#include "core/io/PLYReader.h"
+#include "core/types/VolumePkg.h"
+#include "core/vc_defines.h"
 #include "texturing/compositeTexture.h"
-#include "volumepkg/volumepkg.h"
 
 #include "Global_Values.h"
 #include "MyThread.h"
@@ -41,6 +41,7 @@ public:
     Segmentations_Viewer(
         Global_Values* globals, Texture_Viewer* texture_Viewer);
     QVBoxLayout* getLayout();
+    void clearGUI();
     void setSegmentations();
     bool loadImage(cv::Mat texture);
     void setVol_Package_Name(QString name);
@@ -52,24 +53,21 @@ public slots:
 
 private:
     MyThread* processing;
-
+    Global_Values* _globals;
     Texture_Viewer* _texture_Viewer;
 
-    QVBoxLayout* panels;  // Main Layout for Right Side of GUI
-
+    QVBoxLayout* panels;
     QLabel* volume_Package;
     QListWidget* segmentations;
     QString currentSegmentation;
-
     QLabel* parameters;
-    Global_Values* _globals;
     QSpinBox* radius;
     QComboBox* texture_Method;
     QComboBox* sample_Direction;
     QPushButton* generate;
-
     QFormLayout* inputs;
     QVBoxLayout* user_input;
-
     QImage newImage;
+
+    int currentHighlightedIndex;
 };

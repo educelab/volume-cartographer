@@ -5,8 +5,8 @@
 // October 7, 2015 - Spring Semester 2016
 // Last Updated 11/23/2015 by: Michael Royal
 
-// Copyright ©2015 (Brent Seales: Volume Cartography Research) - University of
-// Kentucky Center for Visualization and Virtualization
+// Copyright 2015 (Brent Seales: Volume Cartography Research)
+// University of Kentucky VisCenter
 //----------------------------------------------------------------------------------------------------------------------------------------
 #include <QtWidgets>
 #include "MainWindow.h"

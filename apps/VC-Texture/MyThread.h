@@ -6,8 +6,8 @@
 // October 12, 2015 - Spring Semester 2016
 // Last Updated 09/26/2016 by: Michael Royal
 
-// Copy Right ©2015 (Brent Seales: Volume Cartography Research) - University of
-// Kentucky Center for Visualization and Virtualization
+// Copyright 2015 (Brent Seales: Volume Cartography Research)
+// University of Kentucky VisCenter
 //----------------------------------------------------------------------------------------------------------------------------------------
 
 #pragma once
@@ -18,7 +18,7 @@
 
 #include <vtkCleanPolyData.h>
 
-#include "common/util/meshMath.h"
+#include "core/util/meshMath.h"
 #include "meshing/ACVD.h"
 #include "texturing/AngleBasedFlattening.h"
 #include "texturing/compositeTextureV2.h"

@@ -5,8 +5,8 @@
 // October 12, 2015 - Spring Semester 2016
 // Last Updated 10/23/2015 by: Michael Royal
 
-// Copy Right ©2015 (Brent Seales: Volume Cartography Research) - University of
-// Kentucky Center for Visualization and Virtualization
+// Copyright 2015 (Brent Seales: Volume Cartography Research)
+// University of Kentucky VisCenter
 //----------------------------------------------------------------------------------------------------------------------------------------
 
 #include "Global_Values.h"
@@ -19,12 +19,9 @@ Global_Values::Global_Values(QRect rec)
     , _radius(0)
     , _textureMethod(0)
     , _sampleDirection(0)
-    , _status(0)
-    , _active(false)
-    , _forcedClose(false)
-
-{ /* Do Nothing*/
-}  // End of Default Constructor()
+    , _status(ThreadStatus::Inactive)
+{
+}
 
 int Global_Values::getHeight() { return height; }
 
@@ -38,6 +35,25 @@ void Global_Values::createVolumePackage()
 {
     vpkg = new VolumePkg(path.toStdString());  // Creates a Volume Package
     VPKG_Instantiated = true;
+}
+
+void Global_Values::clearVolumePackage()
+{
+    vpkg = nullptr;             // Clear vpkg
+    VPKG_Instantiated = false;  // Clear VPKG_Instantiated
+}
+
+void Global_Values::clearGUI()
+{
+    VPKG_Instantiated = false;
+    path = "";
+    vpkg = nullptr;
+    segmentations.clear();
+    clearRendering();
+    _radius = 0;
+    _textureMethod = 0;
+    _sampleDirection = 0;
+    _status = ThreadStatus::Inactive;
 }
 
 void Global_Values::getMySegmentations()
@@ -94,21 +110,16 @@ void Global_Values::setSampleDirection(int sampleDirection)
 
 int Global_Values::getSampleDirection() { return _sampleDirection; }
 
-void Global_Values::setProcessing(bool active) { _active = active; }
+void Global_Values::setThreadStatus(ThreadStatus status) { _status = status; };
 
-bool Global_Values::getProcessing() { return _active; }
-
-void Global_Values::setForcedClose(bool forcedClose)
-{
-    _forcedClose = forcedClose;
-}
-
-bool Global_Values::getForcedClose() { return _forcedClose; }
-
-void Global_Values::setStatus(int status) { _status = status; }
-
-int Global_Values::getStatus() { return _status; }
+ThreadStatus Global_Values::getStatus() { return _status; }
 
 void Global_Values::setFileMenu(QMenu* fileMenu) { _fileMenu = fileMenu; }
 
-void Global_Values::enableMenus(bool value) { _fileMenu->setEnabled(value); }
+void Global_Values::enableMenus(bool value)
+{
+    int numElements = _fileMenu->actions().size();
+    for (int i = 0; i < numElements; i++) {
+        _fileMenu->actions().at(i)->setEnabled(value);
+    }
+}

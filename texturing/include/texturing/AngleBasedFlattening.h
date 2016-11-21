@@ -16,9 +16,9 @@
 #include <itkQuadEdgeMeshBoundaryEdgesMeshFunction.h>
 #include <opencv2/opencv.hpp>
 
-#include "common/types/HalfEdgeMesh.h"
-#include "common/types/UVMap.h"
-#include "common/vc_defines.h"
+#include "core/types/HalfEdgeMesh.h"
+#include "core/types/UVMap.h"
+#include "core/vc_defines.h"
 
 // This is terrible but it'll work for now - SP
 #define SHIFT3(type, a, b, c) \
@@ -58,7 +58,7 @@ public:
     void compute();
 
     ///// Default values /////
-    static const int DEFAULT_MAX_ABF_ITERATIONS = 8;
+    static const int DEFAULT_MAX_ABF_ITERATIONS = 5;
 
 private:
     ///// Setup /////
@@ -70,8 +70,7 @@ private:
 
     void _computeSines();
     double _computeGradient();
-    double _computeGradientAlpha(
-        HalfEdgeMesh::FacePtr face, HalfEdgeMesh::EdgePtr e0);
+    double _computeGradientAlpha(HalfEdgeMesh::EdgePtr e0);
     double _computeSinProduct(HalfEdgeMesh::VertPtr v);
     double _computeSinProduct(
         HalfEdgeMesh::VertPtr v, HalfEdgeMesh::IDType a_id);
@@ -88,6 +87,7 @@ private:
 
     ///// Helper Functions - LSCM /////
     std::pair<HalfEdgeMesh::IDType, HalfEdgeMesh::IDType> _getMinMaxPointIDs();
+    std::pair<HalfEdgeMesh::IDType, HalfEdgeMesh::IDType> _getMinZPointIDs();
     void _computePinUV();
 
     ///// Storage /////

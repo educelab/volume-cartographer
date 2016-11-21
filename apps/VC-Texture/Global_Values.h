@@ -6,8 +6,8 @@
 // October 12, 2015 - Spring Semester 2016
 // Last Updated 10/23/2015 by: Michael Royal
 
-// Copy Right ©2015 (Brent Seales: Volume Cartography Research) - University of
-// Kentucky Center for Visualization and Virtualization
+// Copyright 2015 (Brent Seales: Volume Cartography Research)
+// University of Kentucky VisCenter
 //---------------------------------------------------------------------------------------------------------------------------------------------
 
 #pragma once
@@ -15,16 +15,23 @@
 #include <QApplication>
 #include <QImage>
 #include <QMainWindow>
-#include <QMenuBar>
+#include <QMenu>
 #include <QPixmap>
 #include <QRect>
-#include "common/types/Rendering.h"
-#include "common/vc_defines.h"
-#include "volumepkg/volumepkg.h"
-#include "volumepkg/volumepkg.h"
+#include "core/types/Rendering.h"
+#include "core/types/VolumePkg.h"
+#include "core/types/VolumePkg.h"
+#include "core/vc_defines.h"
 
-// Volpkg version required byt this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 3;
+// Determines the _status of the thread running texturing
+enum ThreadStatus {
+    Inactive,
+    Active,
+    Successful,
+    CloudError,
+    Failed,
+    ForcedClose
+};
 
 class Global_Values
 {
@@ -37,6 +44,10 @@ public:
 
     void createVolumePackage();
     VolumePkg* getVolPkg();
+
+    void clearVolumePackage();
+
+    void clearGUI();
 
     void setPath(QString newPath);
 
@@ -64,20 +75,18 @@ public:
     void setSampleDirection(int sampleDirection);
     int getSampleDirection();
 
-    void setProcessing(bool active);
-    bool getProcessing();
-
-    void setForcedClose(bool forcedClose);
-    bool getForcedClose();
-
-    void setStatus(int status);
-    int getStatus();
+    ThreadStatus getStatus();
 
     void setFileMenu(QMenu* fileMenu);
 
     void enableMenus(bool value);
 
+    void setThreadStatus(ThreadStatus status);
+
 private:
+    // The status of the thread running the texturing process
+    ThreadStatus _status;
+
     bool VPKG_Instantiated = false;
     int height;
     int width;
@@ -90,10 +99,6 @@ private:
     double _radius;
     int _textureMethod;
     int _sampleDirection;
-    int _status;
 
     QMenu* _fileMenu;
-
-    bool _active;
-    bool _forcedClose;
 };
