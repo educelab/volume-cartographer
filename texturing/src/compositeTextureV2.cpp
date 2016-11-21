@@ -12,22 +12,22 @@ namespace texturing
 
 // Constructor
 compositeTextureV2::compositeTextureV2(
-    ITKMesh::Pointer inputMesh,
-    VolumePkg& volpkg,
-    UVMap uvMap,
-    double radius,
-    int width,
-    int height,
-    CompositeOption method,
-    DirectionOption direction)
-    : _volpkg(volpkg)
-    , _input(inputMesh)
-    , _uvMap(uvMap)
-    , _radius(radius)
-    , _width(width)
-    , _height(height)
-    , _method(method)
-    , _direction(direction)
+    ITKMesh::Pointer m,
+    VolumePkg& v,
+    UVMap uv,
+    double r,
+    size_t w,
+    size_t h,
+    CompositeOption o,
+    DirectionOption d)
+    : _volpkg(v)
+    , _input(m)
+    , _uvMap(uv)
+    , _radius(r)
+    , _width(w)
+    , _height(h)
+    , _method(o)
+    , _direction(d)
 {
     _process();
 };
@@ -35,26 +35,25 @@ compositeTextureV2::compositeTextureV2(
 // Do the hard work
 int compositeTextureV2::_process()
 {
-
     // Auto-generate minor radius for elliptical search
     double searchMinorRadius;
-    if ((searchMinorRadius = _radius / 3) < 1)
+    if ((searchMinorRadius = _radius / 3) < 1) {
         searchMinorRadius = 1;
+    }
 
     // Generate PPM
     PPMGenerator gen(_height, _width);
     gen.setMesh(_input);
     gen.setUVMap(_uvMap);
     gen.compute();
-    PerPixelMap ppm = gen.getPPM();
+    auto ppm = gen.getPPM();
 
     // Iterate over every pixel in the output image
     cv::Mat image = cv::Mat::zeros(_height, _width, CV_16UC1);
-
-    for (int y = 0; y < _height; ++y) {
-        for (int x = 0; x < _width; ++x) {
-            double progress = (double)(x + 1 + (_width * y)) /
-                              (double)(_width * _height) * (double)100;
+    for (size_t y = 0; y < _height; ++y) {
+        for (size_t x = 0; x < _width; ++x) {
+            auto progress =
+                (x + 1.0 + (_width * y)) * 100.0 / (_width * _height);
             std::cerr << "volcart::texturing::compositeTexturing: Generating "
                          "texture: "
                       << std::to_string(progress) << "%\r" << std::flush;
@@ -68,16 +67,15 @@ int compositeTextureV2::_process()
             auto pixelInfo = ppm(y, x);
 
             cv::Vec3d xyz{pixelInfo[0], pixelInfo[1], pixelInfo[2]};
-            // Use the cell normal as the normal for this point
             cv::Vec3d xyz_norm{pixelInfo[3], pixelInfo[4], pixelInfo[5]};
 
             // Generate the intensity value
-            double value = textureWithMethod(
+            auto value = textureWithMethod(
                 xyz, xyz_norm, _volpkg, _method, _radius, searchMinorRadius,
                 0.5, _direction);
 
             // Assign the intensity value at the UV position
-            image.at<unsigned short>(y, x) = (unsigned short)value;
+            image.at<unsigned short>(y, x) = static_cast<unsigned short>(value);
         }
     }
     std::cerr << std::endl;

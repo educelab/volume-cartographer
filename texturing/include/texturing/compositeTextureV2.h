@@ -25,8 +25,8 @@ public:
         VolumePkg& volpkg,
         UVMap uvMap,
         double radius,
-        int width,
-        int height,
+        size_t width,
+        size_t height,
         CompositeOption method = CompositeOption::NonMaximumSuppression,
         DirectionOption direction = DirectionOption::Bidirectional);
 
@@ -38,8 +38,8 @@ private:
     // Variables
     ITKMesh::Pointer _input;
     VolumePkg& _volpkg;
-    int _width;
-    int _height;
+    size_t _width;
+    size_t _height;
     double _radius;
     CompositeOption _method;
     DirectionOption _direction;

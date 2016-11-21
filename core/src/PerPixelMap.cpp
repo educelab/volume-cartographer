@@ -3,6 +3,7 @@
 //
 
 #include "core/types/PerPixelMap.h"
+#include "core/types/Exceptions.h"
 
 using namespace volcart;
 
@@ -46,8 +47,7 @@ bool PerPixelMap::hasMapping(size_t y, size_t x)
 void PerPixelMap::_initializeMap()
 {
     if (_height > 0 && _width > 0) {
-        _map =
-            cv::Mat_<cv::Vec6d>(_height, _width, cv::Vec6d(0, 0, 0, 0, 0, 0));
+        _map = cv::Mat_<cv::Vec6d>(_height, _width, {0, 0, 0, 0, 0, 0});
     }
 }
 
@@ -80,19 +80,22 @@ void PerPixelMap::read(boost::filesystem::path path)
 
     // Fill the _map from the list of doubles
     _map = cv::Mat_<cv::Vec6d>(_height, _width, cv::Vec6d(0, 0, 0, 0, 0, 0));
-    cv::Vec6d v;
-    cv::FileNodeIterator dbl = map["data"].begin();
+    auto dbl = map["data"].begin();
 
     // Make sure the size is as expected
-    // To-do: Throw exception if they don't match
     bool matches = map["data"].size() == _height * _width * 6;
+    if (!matches) {
+        auto msg = "Header dimensions do not match data dimensions";
+        throw IOException(msg);
+    }
 
-    for (int y = 0; y < _height; ++y) {
-        for (int x = 0; x < _width; ++x) {
+    cv::Vec6d v;
+    for (size_t y = 0; y < _height; ++y) {
+        for (size_t x = 0; x < _width; ++x) {
 
             // Fill each cv::Vec6d
             for (int n = 0; n < 6; ++n, ++dbl) {
-                v(n) = (double)(*dbl);
+                v(n) = static_cast<double>(*dbl);
             }
 
             // Assign _map in the correct position

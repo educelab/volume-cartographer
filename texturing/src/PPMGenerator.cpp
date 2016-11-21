@@ -25,8 +25,8 @@ void PPMGenerator::compute()
     if (_inputMesh.IsNull() || _inputMesh->GetNumberOfPoints() == 0 ||
         _inputMesh->GetNumberOfCells() == 0 || _uvMap.empty() || _width == 0 ||
         _height == 0) {
-        // To-do: Throw exception
-        return;
+        auto msg = "Invalid input parameters";
+        throw std::invalid_argument(msg);
     }
 
     // Make sure the storage vectors are clean
@@ -44,12 +44,12 @@ void PPMGenerator::_generateCentroidMesh()
     CellInfo info;
     for (auto cell = _inputMesh->GetCells()->Begin();
          cell != _inputMesh->GetCells()->End(); ++cell) {
-        info = CellInfo();
+        info.reset();
 
         cv::Vec3d _2D, _3D;
         for (ITKPointInCellIterator point = cell->Value()->PointIdsBegin();
              point != cell->Value()->PointIdsEnd(); ++point) {
-            unsigned long pointID = *point;
+            auto pointID = *point;
 
             _2D[0] = _uvMap.get(pointID)[0];
             _2D[1] = _uvMap.get(pointID)[1];
@@ -63,15 +63,11 @@ void PPMGenerator::_generateCentroidMesh()
         }
 
         // Calculate the cell centroid
-        cv::Vec3d temp_cent =
-            (info.Pts2D[0] + info.Pts2D[1] + info.Pts2D[2]) / 3;
-        centroid[0] = temp_cent[0];
-        centroid[1] = temp_cent[1];
-        centroid[2] = temp_cent[2];
+        centroid = ((info.Pts2D[0] + info.Pts2D[1] + info.Pts2D[2]) / 3).val;
 
         // Generate the surface normal for this cell
-        cv::Vec3d v1v0 = info.Pts3D[1] - info.Pts3D[0];
-        cv::Vec3d v2v0 = info.Pts3D[2] - info.Pts3D[0];
+        auto v1v0 = info.Pts3D[1] - info.Pts3D[0];
+        auto v2v0 = info.Pts3D[2] - info.Pts3D[0];
         info.Normal = cv::normalize(v1v0.cross(v2v0));
 
         _cellInformation.push_back(info);
@@ -82,13 +78,12 @@ void PPMGenerator::_generateCentroidMesh()
 void PPMGenerator::_generatePPM()
 {
     // Setup the output
-    _ppm = PerPixelMap();
-    _ppm.setDimensions(_height, _width);
+    _ppm = PerPixelMap(_height, _width);
     cv::Mat mask = cv::Mat::zeros(_height, _width, CV_8UC1);
     _progress = 0.0;
 
     // Setup the search tree
-    ITKPointsLocator::Pointer kdTree = ITKPointsLocator::New();
+    auto kdTree = ITKPointsLocator::New();
     kdTree->SetPoints(_centroidMesh->GetPoints());
     kdTree->Initialize();
     auto kdSearchSize =
@@ -101,19 +96,17 @@ void PPMGenerator::_generatePPM()
     size_t pixelsNotInCell = 0;
     for (size_t y = 0; y < _height; ++y) {
         for (size_t x = 0; x < _width; ++x) {
-            _progress = (double)(x + 1 + (_width * y)) /
-                        (double)(_width * _height) * (double)100;
-            std::cerr << "volcart::texturing::PPMGenerator:: Processing: "
+            _progress = (x + 1.0 + (_width * y)) * 100.0 / (_width * _height);
+            std::cerr << "volcart::texturing::PPMGenerator: "
                       << std::to_string(_progress) << "%\r" << std::flush;
 
             // This pixel's uv coordinate
-            cv::Vec3d uv(0, 0, 0);
-            uv[0] = (double)x / (double)(_width - 1);
-            uv[1] = (double)y / (double)(_height - 1);
+            cv::Vec3d uv{0, 0, 0};
+            uv[0] = x / (_width - 1.0);
+            uv[1] = y / (_height - 1.0);
 
             // Empty our averaging variables
-            if (!neighborhood.empty())
-                neighborhood.clear();
+            neighborhood.clear();
 
             // find k nearest neighbors for current point
             ITKPoint searchPoint;
@@ -124,15 +117,14 @@ void PPMGenerator::_generatePPM()
 
             // Find which triangle this pixel lies inside of
             // Is the current pixel in this cell?
-            bool in2D = false;
+            auto in2D = false;
             CellInfo info;
-            cv::Vec3d baryCoord(0, 0, 0);
+            cv::Vec3d baryCoord{0, 0, 0};
             for (auto c_id = neighborhood.begin(); c_id != neighborhood.end();
                  ++c_id) {
                 info = _cellInformation[*c_id];
 
-                // Calculate the 3D position of this pixel using the homography
-                // matrix
+                // Calculate the 3D correspondence for this pixel
                 baryCoord = _BarycentricCoord(
                     uv, info.Pts2D[0], info.Pts2D[1], info.Pts2D[2]);
                 in2D =
@@ -142,8 +134,9 @@ void PPMGenerator::_generatePPM()
                      (baryCoord[0] + baryCoord[1] < 1.0 ||
                       AlmostEqual(baryCoord[0] + baryCoord[1], 1.0)));
 
-                if (in2D)
+                if (in2D) {
                     break;
+                }
             }
 
             // Set this pixel to black if not part of a cell
@@ -187,16 +180,16 @@ cv::Vec3d PPMGenerator::_BarycentricCoord(
     const cv::Vec3d& nB,
     const cv::Vec3d& nC)
 {
-    cv::Vec3d v0 = nB - nA;
-    cv::Vec3d v1 = nC - nA;
-    cv::Vec3d v2 = nXYZ - nA;
+    auto v0 = nB - nA;
+    auto v1 = nC - nA;
+    auto v2 = nXYZ - nA;
 
-    double dot00 = v0.dot(v0);
-    double dot01 = v0.dot(v1);
-    double dot11 = v1.dot(v1);
-    double dot20 = v2.dot(v0);
-    double dot21 = v2.dot(v1);
-    double invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+    auto dot00 = v0.dot(v0);
+    auto dot01 = v0.dot(v1);
+    auto dot11 = v1.dot(v1);
+    auto dot20 = v2.dot(v0);
+    auto dot21 = v2.dot(v1);
+    auto invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
 
     cv::Vec3d output;
     output[1] = (dot11 * dot20 - dot01 * dot21) * invDenom;
