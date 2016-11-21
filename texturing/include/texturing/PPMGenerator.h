@@ -15,12 +15,13 @@ class PPMGenerator
 {
 public:
     // Constructors/Destructors
-    PPMGenerator() : _width(0), _height(0){};
+    PPMGenerator() : _height(0), _width(0){};
+    PPMGenerator(size_t h, size_t w) : _height(h), _width(w){};
 
     // Set/Get Parameters
     void setMesh(ITKMesh::Pointer m) { _inputMesh = m; };
     void setUVMap(const UVMap& u) { _uvMap = u; };
-    void setDimensions(size_t w, size_t h);
+    void setDimensions(size_t h, size_t w);
 
     // Run
     void compute();

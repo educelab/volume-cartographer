@@ -18,10 +18,10 @@ PerPixelMap::PerPixelMap(size_t height, size_t width)
 PerPixelMap::PerPixelMap(boost::filesystem::path path) { read(path); }
 
 ///// Metadata /////
-void PerPixelMap::setDimensions(size_t w, size_t h)
+void PerPixelMap::setDimensions(size_t h, size_t w)
 {
-    _width = w;
     _height = h;
+    _width = w;
     _initializeMap();
 }
 

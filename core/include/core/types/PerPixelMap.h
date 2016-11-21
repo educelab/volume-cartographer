@@ -38,7 +38,7 @@ public:
     cv::Vec6d& operator()(size_t y, size_t x) { return _map(y, x); };
 
     ///// Metadata /////
-    void setDimensions(size_t w, size_t h);
+    void setDimensions(size_t h, size_t w);
     void setWidth(size_t w);
     void setHeight(size_t h);
     int width() const { return _width; };

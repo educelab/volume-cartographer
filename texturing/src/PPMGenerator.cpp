@@ -13,10 +13,10 @@ using namespace texturing;
 constexpr static size_t KD_DEFAULT_SEARCH_SIZE = 100;
 
 // Parameters
-void PPMGenerator::setDimensions(size_t w, size_t h)
+void PPMGenerator::setDimensions(size_t h, size_t w)
 {
-    _width = w;
     _height = h;
+    _width = w;
 }
 
 // Compute
@@ -83,7 +83,7 @@ void PPMGenerator::_generatePPM()
 {
     // Setup the output
     _ppm = PerPixelMap();
-    _ppm.setDimensions(_width, _height);
+    _ppm.setDimensions(_height, _width);
     cv::Mat mask = cv::Mat::zeros(_height, _width, CV_8UC1);
     _progress = 0.0;
 

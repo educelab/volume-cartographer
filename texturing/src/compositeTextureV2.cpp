@@ -42,8 +42,7 @@ int compositeTextureV2::_process()
         searchMinorRadius = 1;
 
     // Generate PPM
-    PPMGenerator gen;
-    gen.setDimensions(_width, _height);
+    PPMGenerator gen(_height, _width);
     gen.setMesh(_input);
     gen.setUVMap(_uvMap);
     gen.compute();
