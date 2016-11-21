@@ -16,7 +16,10 @@ int main(int argc, char* argv[])
     // declare pointer to new Mesh object
     auto itkMesh = volcart::ITKMesh::New();
 
-    if (!volcart::io::PLYReader(meshName, itkMesh)) {
+    volcart::io::PLYReader reader(meshName);
+    reader.read();
+    itkMesh = reader.getMesh();
+    if (itkMesh->GetNumberOfPoints() == 0) {
         exit(EXIT_SUCCESS);
     }
 

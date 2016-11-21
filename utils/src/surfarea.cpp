@@ -40,7 +40,10 @@ int main(int argc, char* argv[])
     auto mesh = volcart::ITKMesh::New();
 
     // try to convert the ply to an ITK mesh
-    if (!volcart::io::PLYReader(meshName, mesh)) {
+    volcart::io::PLYReader reader(meshName);
+    reader.read();
+    mesh = reader.getMesh();
+    if (mesh->GetNumberOfPoints() == 0) {
         exit(-1);
     };
 
