@@ -15,7 +15,7 @@ set(srcs
     src/meshMath.cpp
     src/objWriter.cpp
     src/PLYReader.cpp
-    src/PLYReader2.cpp
+    src/PLYReader.cpp
     src/plyWriter.cpp
     src/VolumePkg.cpp
 )
