@@ -162,6 +162,8 @@ collect:osx:
     only:
         - master
     stage: collect
+    variables:
+        - CACHE: "0"
     script:
         - version=$(utils/scripts/version-gen.sh)
         - git submodule update --init
