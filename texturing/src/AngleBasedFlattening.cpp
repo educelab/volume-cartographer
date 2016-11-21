@@ -48,6 +48,7 @@ volcart::UVMap AngleBasedFlattening::getUVMap()
 
     // Setup uvMap
     volcart::UVMap uvMap;
+    uvMap.origin(VC_ORIGIN_BOTTOM_LEFT);
 
     double min_u = std::numeric_limits<double>::max();
     double max_u = std::numeric_limits<double>::min();
@@ -84,6 +85,7 @@ volcart::UVMap AngleBasedFlattening::getUVMap()
         uvMap.set(vert->id, uv);
     }
 
+    uvMap.origin(VC_ORIGIN_TOP_LEFT);
     return uvMap;
 }
 
@@ -602,7 +604,7 @@ bool AngleBasedFlattening::_invertMatrix()
 void AngleBasedFlattening::_solve_lscm()
 {
     // find two pins and compute their positions
-    auto MinMaxPair = _getMinMaxPointIDs();
+    auto MinMaxPair = _getMinZPointIDs();
     _pin0 = MinMaxPair.first;
     _pin1 = MinMaxPair.second;
     _computePinUV();
@@ -757,44 +759,12 @@ AngleBasedFlattening::_getMinZPointIDs()
 // This is supposedly arbitrary
 void AngleBasedFlattening::_computePinUV()
 {
-    if (_pin0 == _pin1) {
-        // Degenerate case, get two other points
-        auto it = _heMesh.getBoundaryBegin();
-        _pin0 = (*it)->id;
-        _pin1 = (*std::next(it))->id;
-
-        _heMesh.getVert(_pin0)->uv = cv::Vec2d(0.0, 0.5);
-        _heMesh.getVert(_pin1)->uv = cv::Vec2d(1.0, 0.5);
-    } else {
-        int diru, dirv, dirx, diry;
-
-        cv::Vec3d pin0_xyz = _heMesh.getVert(_pin0)->xyz;
-        cv::Vec3d pin1_xyz = _heMesh.getVert(_pin1)->xyz;
-        cv::Vec3d sub;
-        cv::absdiff(pin0_xyz, pin1_xyz, sub);
-
-        if ((sub[0] > sub[1]) && (sub[0] > sub[2])) {
-            dirx = 0;
-            diry = (sub[1] > sub[2]) ? 1 : 2;
-        } else if ((sub[1] > sub[0]) && (sub[1] > sub[2])) {
-            dirx = 1;
-            diry = (sub[0] > sub[2]) ? 0 : 2;
-        } else {
-            dirx = 2;
-            diry = (sub[0] > sub[1]) ? 0 : 1;
-        }
-
-        if (dirx == 2) {
-            diru = 1;
-            dirv = 0;
-        } else {
-            diru = 0;
-            dirv = 1;
-        }
-
-        _heMesh.getVert(_pin0)->uv[diru] = pin0_xyz[dirx];
-        _heMesh.getVert(_pin0)->uv[dirv] = pin0_xyz[diry];
-        _heMesh.getVert(_pin1)->uv[diru] = pin1_xyz[dirx];
-        _heMesh.getVert(_pin1)->uv[dirv] = pin1_xyz[diry];
-    }
+    auto p0_xyz = _heMesh.getVert(_pin0)->xyz;
+    auto p1_xyz = _heMesh.getVert(_pin1)->xyz;
+    cv::Vec2d xy1(p0_xyz[0], p0_xyz[1]);
+    cv::Vec2d xy2(p1_xyz[0], p1_xyz[1]);
+    double u_dist = cv::norm(xy1, xy2);
+    double v_dist = p0_xyz[2] - p1_xyz[2];
+    _heMesh.getVert(_pin0)->uv = cv::Vec2d(0.0, 0.0);
+    _heMesh.getVert(_pin1)->uv = cv::Vec2d(u_dist, v_dist);
 }

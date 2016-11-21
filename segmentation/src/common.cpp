@@ -8,9 +8,7 @@ std::vector<double> volcart::segmentation::squareDiff(
     const auto zipped = zip(v1, v2);
     std::transform(
         std::begin(zipped), std::end(zipped), std::begin(res),
-        [](const std::pair<Voxel, Voxel> p) {
-            return cv::norm(p.first, p.second);
-        });
+        [](auto p) { return cv::norm(p.first, p.second); });
     return res;
 }
 

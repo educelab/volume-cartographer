@@ -3,14 +3,13 @@ set(VC_INSTALL_UTILS "")
 
 # vc_addScale
 add_executable(vc_addScale src/addScale.cpp)
-target_link_libraries(vc_addScale vc_volumepkg vc_common)
+target_link_libraries(vc_addScale vc_core)
 list(APPEND VC_INSTALL_UTILS vc_addScale)
 
 # vc_area
 add_executable(vc_area src/surfarea.cpp)
 target_link_libraries(vc_area
-    vc_volumepkg
-    vc_common
+    vc_core
     vc_meshing
     Boost::filesystem
 )
@@ -19,18 +18,17 @@ list(APPEND VC_INSTALL_UTILS vc_area)
 # vc_invertcloud
 add_executable(vc_invertcloud src/invertCloud.cpp)
 target_link_libraries(vc_invertcloud
-    vc_volumepkg
-    vc_common
+    vc_core
     Boost::filesystem
 )
 
 # vc_mappingExtractor
 add_executable(vc_mappingExtractor src/mappingExtractor.cpp)
-target_link_libraries(vc_mappingExtractor vc_volumepkg vc_common)
+target_link_libraries(vc_mappingExtractor vc_core)
 
 # vc_csv2uv
 add_executable(vc_csv2uv src/csv2uv.cpp)
-target_link_libraries(vc_csv2uv vc_common vc_meshing vtkIOPLY)
+target_link_libraries(vc_csv2uv vc_core vc_meshing vtkIOPLY)
 
 # vc_convert_pcd_to_ps
 if(PCL_FOUND)
@@ -41,8 +39,8 @@ if(PCL_FOUND)
             ${PCL_IO_INCLUDE_DIRS}
     )
     target_link_libraries(vc_convert_pcd_to_ps
-        vc_common
-        vc_volumepkg
+        vc_core
+        vc_meshing
         Boost::filesystem
         ${PCL_COMMON_LIBRARIES}
         ${PCL_IO_LIBRARIES}

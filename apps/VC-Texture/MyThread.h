@@ -18,7 +18,7 @@
 
 #include <vtkCleanPolyData.h>
 
-#include "common/util/meshMath.h"
+#include "core/util/meshMath.h"
 #include "meshing/ACVD.h"
 #include "texturing/AngleBasedFlattening.h"
 #include "texturing/compositeTextureV2.h"

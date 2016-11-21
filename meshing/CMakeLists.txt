@@ -12,7 +12,7 @@ set(srcs
     src/OrderedPointSetMesher.cpp
     )
 set(deps
-    vc_common
+    vc_core
     Boost::filesystem
 )
 set(defs "")
@@ -25,7 +25,7 @@ if (VC_USE_ACVD)
 endif()
 if (VC_USE_BULLET)
     list(APPEND srcs src/itk2bullet.cpp)
-    list(APPEND deps bullet)
+    list(APPEND deps bullet ${BULLET_LIBRARIES})
     list(APPEND defs VC_USE_BULLET)
 endif()
 if(VC_USE_VCG)
@@ -43,7 +43,7 @@ target_include_directories(${target}
 )
 target_link_libraries(${target}
     PUBLIC
-        ${deps} 
+        ${deps}
     PRIVATE
         ITKTransform
         vtkFiltersGeneral
@@ -88,7 +88,7 @@ foreach(src ${test_srcs})
     set(testname ${target}_${filename})
     add_executable(${testname} ${src})
     target_link_libraries(${testname}
-        vc_common
+        vc_core
         vc_meshing
         vc_testing
         Boost::unit_test_framework

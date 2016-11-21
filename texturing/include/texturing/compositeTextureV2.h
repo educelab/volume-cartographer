@@ -5,10 +5,10 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "common/types/Texture.h"
-#include "common/types/UVMap.h"
-#include "common/vc_defines.h"
-#include "volumepkg/volumepkg.h"
+#include "core/types/Texture.h"
+#include "core/types/UVMap.h"
+#include "core/types/VolumePkg.h"
+#include "core/vc_defines.h"
 
 #include "texturingUtils.h"
 
@@ -25,6 +25,8 @@ public:
         std::vector<cv::Vec3d> Pts3D;
         cv::Vec3d Normal;
     };
+
+    constexpr static size_t KD_DEFAULT_SEARCH_SIZE = 100;
 
     compositeTextureV2(
         ITKMesh::Pointer inputMesh,
@@ -67,6 +69,7 @@ private:
     std::vector<cellInfo> _cellInformation;
     ITKMesh::Pointer _cellCentroids;
     ITKPointsLocator::Pointer _kdTree;
+    size_t _kdSearchSize;
 };
 }
 }

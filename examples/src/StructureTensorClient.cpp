@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <iostream>
-#include <opencv2/opencv.hpp>
-#include "volumepkg/volumepkg.h"
+#include <opencv2/core.hpp>
+#include "core/types/VolumePkg.h"
 
 void draw(
     const volcart::Volume& v,
@@ -37,11 +37,9 @@ int main(int argc, char** argv)
     } else {
         auto pairs = v.eigenPairsAt(x, y, z, radius);
         std::cout << "eigenvalues/eigenvectors" << std::endl;
-        std::for_each(
-            pairs.begin(), pairs.end(),
-            [](const std::pair<EigenValue, EigenVector>& p) {
-                std::cout << p.first << ": " << p.second << std::endl;
-            });
+        std::for_each(pairs.begin(), pairs.end(), [](const auto& p) {
+            std::cout << p.first << ": " << p.second << std::endl;
+        });
         draw(v, z, pairs[0].second, {x, y});
     }
 }

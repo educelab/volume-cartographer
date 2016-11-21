@@ -8,9 +8,9 @@
 #include <boost/format.hpp>
 #include <opencv2/opencv.hpp>
 
-#include "common/io/PLYReader.h"
-#include "common/vc_defines.h"
-#include "volumepkg/volumepkg.h"
+#include "core/io/PLYReader.h"
+#include "core/types/VolumePkg.h"
+#include "core/vc_defines.h"
 
 #define RED cv::Scalar(0, 0, 255)
 

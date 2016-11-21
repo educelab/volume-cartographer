@@ -6,11 +6,12 @@
 #include <boost/filesystem/path.hpp>
 #include <pcl/io/pcd_io.h>
 
-#include "common/io/PointSetIO.h"
-#include "common/types/OrderedPointSet.h"
-#include "common/types/Point.h"
-#include "common/types/PointSet.h"
-#include "volumepkg/volumepkg.h"
+#include "core/io/PointSetIO.h"
+#include "core/types/OrderedPointSet.h"
+#include "core/types/Point.h"
+#include "core/types/PointSet.h"
+#include "core/types/VolumePkg.h"
+#include "meshing/OrderedPointSetMesher.h"
 
 using namespace volcart;
 namespace fs = boost::filesystem;
@@ -70,7 +71,9 @@ int main(int argc, char** argv)
 
         // Mesh the cloud if possible
         if (ps.height() > 1) {
-            pkg.saveMesh(ps);
+            volcart::meshing::OrderedPointSetMesher mesher{ps};
+            mesher.compute();
+            pkg.saveMesh(mesher.getOutputMesh());
         }
     }
 
