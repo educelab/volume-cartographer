@@ -75,7 +75,7 @@ int compositeTextureV2::_process()
                 0.5, _direction);
 
             // Assign the intensity value at the UV position
-            image.at<unsigned short>(y, x) = static_cast<unsigned short>(value);
+            image.at<uint16_t>(y, x) = static_cast<uint16_t>(value);
         }
     }
     std::cerr << std::endl;

@@ -11,7 +11,7 @@
 #pragma once
 
 #include <boost/filesystem.hpp>
-#include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
 
 #include "core/types/UVMap.h"
 

@@ -47,7 +47,7 @@ void PPMGenerator::_generateCentroidMesh()
         info.reset();
 
         cv::Vec3d _2D, _3D;
-        for (ITKPointInCellIterator point = cell->Value()->PointIdsBegin();
+        for (auto point = cell->Value()->PointIdsBegin();
              point != cell->Value()->PointIdsEnd(); ++point) {
             auto pointID = *point;
 
@@ -153,7 +153,7 @@ void PPMGenerator::_generatePPM()
             cv::Vec3d xyz_norm = info.Normal;
 
             // Assign the intensity value at the UV position
-            mask.at<unsigned char>(y, x) = 255;
+            mask.at<uint8_t>(y, x) = 255;
 
             // Assign 3D position to the lookup map
             _ppm(y, x) = cv::Vec6d(
@@ -175,10 +175,10 @@ void PPMGenerator::_generatePPM()
 // Code from:
 // http://gamedev.stackexchange.com/questions/23743/whats-the-most-efficient-way-to-find-barycentric-coordinates
 cv::Vec3d PPMGenerator::_BarycentricCoord(
-    const cv::Vec3d& nXYZ,
-    const cv::Vec3d& nA,
-    const cv::Vec3d& nB,
-    const cv::Vec3d& nC)
+    const cv::Vec3d nXYZ,
+    const cv::Vec3d nA,
+    const cv::Vec3d nB,
+    const cv::Vec3d nC)
 {
     auto v0 = nB - nA;
     auto v1 = nC - nA;
@@ -201,10 +201,10 @@ cv::Vec3d PPMGenerator::_BarycentricCoord(
 
 // Find Cartesian coordinates of point in triangle given barycentric coordinate
 cv::Vec3d PPMGenerator::_CartesianCoord(
-    const cv::Vec3d& nUVW,
-    const cv::Vec3d& nA,
-    const cv::Vec3d& nB,
-    const cv::Vec3d& nC)
+    const cv::Vec3d nUVW,
+    const cv::Vec3d nA,
+    const cv::Vec3d nB,
+    const cv::Vec3d nC)
 {
     return nUVW[0] * nA + nUVW[1] * nB + nUVW[2] * nC;
 }

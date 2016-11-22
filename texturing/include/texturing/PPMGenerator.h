@@ -29,6 +29,7 @@ public:
     // Output
     const PerPixelMap& getPPM() const { return _ppm; };
     PerPixelMap& getPPM() { return _ppm; };
+
 private:
     struct CellInfo {
         void reset()
@@ -45,15 +46,15 @@ private:
     void _generateCentroidMesh();
     void _generatePPM();
     cv::Vec3d _BarycentricCoord(
-        const cv::Vec3d& nXYZ,
-        const cv::Vec3d& nA,
-        const cv::Vec3d& nB,
-        const cv::Vec3d& nC);
+        const cv::Vec3d nXYZ,
+        const cv::Vec3d nA,
+        const cv::Vec3d nB,
+        const cv::Vec3d nC);
     cv::Vec3d _CartesianCoord(
-        const cv::Vec3d& nUVW,
-        const cv::Vec3d& nA,
-        const cv::Vec3d& nB,
-        const cv::Vec3d& nC);
+        const cv::Vec3d nUVW,
+        const cv::Vec3d nA,
+        const cv::Vec3d nB,
+        const cv::Vec3d nC);
 
     // Data members
     ITKMesh::Pointer _inputMesh;

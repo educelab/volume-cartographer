@@ -40,7 +40,7 @@ void PerPixelMap::setHeight(size_t h)
 
 bool PerPixelMap::hasMapping(size_t y, size_t x)
 {
-    return (_mask.at<unsigned char>(y, x) == 255);
+    return _mask.at<unsigned char>(y, x) == 255;
 }
 
 // Initialize map
@@ -80,16 +80,15 @@ void PerPixelMap::read(boost::filesystem::path path)
 
     // Fill the _map from the list of doubles
     _map = cv::Mat_<cv::Vec6d>(_height, _width, cv::Vec6d(0, 0, 0, 0, 0, 0));
-    auto dbl = map["data"].begin();
 
     // Make sure the size is as expected
-    bool matches = map["data"].size() == _height * _width * 6;
-    if (!matches) {
+    if (map["data"].size() != _height * _width * 6) {
         auto msg = "Header dimensions do not match data dimensions";
         throw IOException(msg);
     }
 
     cv::Vec6d v;
+    auto dbl = map["data"].begin();
     for (size_t y = 0; y < _height; ++y) {
         for (size_t x = 0; x < _width; ++x) {
 
