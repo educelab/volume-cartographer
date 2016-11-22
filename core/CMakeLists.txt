@@ -65,6 +65,7 @@ set(test_srcs
     test/OrderedPointSetIOTest.cpp
     test/PointTest.cpp
     test/FloatComparisonTest.cpp
+    test/PerPixelMapTest.cpp
 )
 
 # Add a test executable for each src

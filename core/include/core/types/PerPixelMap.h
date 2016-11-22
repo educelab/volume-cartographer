@@ -27,9 +27,6 @@ public:
     // Create new
     PerPixelMap(size_t height, size_t width);
 
-    // Construct map from file
-    PerPixelMap(boost::filesystem::path path);
-
     ///// Check if initialized /////
     bool initialized() const { return _map.data && _width > 0 && _height > 0; };
 
@@ -54,8 +51,8 @@ public:
     bool hasMapping(size_t y, size_t x);
 
     ///// Disk IO /////
-    void write(boost::filesystem::path path);
-    void read(boost::filesystem::path path);
+    static void WritePPM(boost::filesystem::path path, const PerPixelMap& map);
+    static PerPixelMap ReadPPM(boost::filesystem::path path);
 
 private:
     void _initializeMap();

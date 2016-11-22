@@ -163,7 +163,7 @@ int main(int argc, char* argv[])
         cv::imwrite("PerPixelMask.png", result.texture().getMask());
 
     if (result.texture().getMap().initialized()) {
-        result.texture().getMap().write("PerPixelMapping");
+        PerPixelMap::WritePPM("PerPixelMapping", result.texture().getMap());
     }
 
     return 0;
