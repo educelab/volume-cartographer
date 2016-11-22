@@ -1,13 +1,11 @@
-/**@file PLYReader2.cpp */
+/**@file PLYReader.cpp */
 
 #include "core/io/PLYReader.h"
 
 using Props = std::pair<char, int>;
 
-namespace volcart
-{
-namespace io
-{
+using namespace volcart;
+using namespace volcart::io;
 
 bool PLYReader::read()
 {
@@ -190,5 +188,3 @@ void PLYReader::_createMesh()
         face_cnt++;
     }
 }
-}  // namespace io
-}  // namespace volcart

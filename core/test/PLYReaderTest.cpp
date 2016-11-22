@@ -1,7 +1,8 @@
-#define BOOST_TEST_MODULE plyReader2
+#define BOOST_TEST_MODULE PLYReader
 
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
+
 #include "core/io/PLYReader.h"
 #include "core/io/plyWriter.h"
 #include "core/shapes/Arch.h"

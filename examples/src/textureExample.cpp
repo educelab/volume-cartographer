@@ -22,9 +22,11 @@ int main(int argc, char* argv[])
 
     // try to convert the ply to an ITK mesh
     volcart::io::PLYReader reader(vpkg.getMeshPath());
-    reader.read();
-    inputMesh = reader.getMesh();
-    if (inputMesh->GetNumberOfPoints() == 0) {
+    try {
+        reader.read();
+        inputMesh = reader.getMesh();
+    } catch (volcart::IOException e) {
+        std::cerr << e.what() << std::endl;
         exit(EXIT_SUCCESS);
     };
 

@@ -17,9 +17,11 @@ int main(int argc, char* argv[])
     auto itkMesh = volcart::ITKMesh::New();
 
     volcart::io::PLYReader reader(meshName);
-    reader.read();
-    itkMesh = reader.getMesh();
-    if (itkMesh->GetNumberOfPoints() == 0) {
+    try {
+        reader.read();
+        itkMesh = reader.getMesh();
+    } catch (volcart::IOException e) {
+        std::cerr << e.what() << std::endl;
         exit(EXIT_SUCCESS);
     }
 
