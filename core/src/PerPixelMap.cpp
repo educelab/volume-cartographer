@@ -7,6 +7,8 @@
 
 using namespace volcart;
 
+constexpr static size_t PPM_ELEMENT_SIZE = 6;
+
 ///// Constructors /////
 // Empty Map of width x height
 PerPixelMap::PerPixelMap(size_t height, size_t width)
@@ -78,8 +80,8 @@ void PerPixelMap::read(boost::filesystem::path path)
     _height = static_cast<int>(map["rows"]);
     _width = static_cast<int>(map["cols"]);
 
-    // Fill the _map from the list of doubles
-    _map = cv::Mat_<cv::Vec6d>(_height, _width, cv::Vec6d(0, 0, 0, 0, 0, 0));
+    // Initialize an empty map
+    _map = cv::Mat_<cv::Vec6d>(_height, _width, {0, 0, 0, 0, 0, 0});
 
     // Make sure the size is as expected
     if (map["data"].size() != _height * _width * 6) {
@@ -93,7 +95,7 @@ void PerPixelMap::read(boost::filesystem::path path)
         for (size_t x = 0; x < _width; ++x) {
 
             // Fill each cv::Vec6d
-            for (int n = 0; n < 6; ++n, ++dbl) {
+            for (size_t n = 0; n < PPM_ELEMENT_SIZE; ++n, ++dbl) {
                 v(n) = static_cast<double>(*dbl);
             }
 
