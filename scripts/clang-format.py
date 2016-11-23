@@ -8,7 +8,7 @@ import re
 import sys
 from distutils.version import LooseVersion
 
-from . import common
+import common
 
 # The version we care about
 MIN_VERSION_REQUIRED = LooseVersion('3.8.0')
@@ -105,13 +105,13 @@ if __name__ == '__main__':
     cf = ClangFormatter(path_to_cf)
     if cf.version < MIN_VERSION_REQUIRED:
         logging.error(
-            '''Incorrect version of clang-format: got {} but at least {} is \
-                    required'''.format(cf.version, MIN_VERSION_REQUIRED)
+            '''Incorrect version of {}: got {} but at least {} is required'''
+            .format(PROGNAME, cf.version, MIN_VERSION_REQUIRED)
         )
         sys.exit(1)
 
     # Find changed files from last common ancestor with develop
-    changes = common.changed_files()
+    changes = common.changed_files(filter_regex=r'\.(h|hpp|c|cpp)$')
     if not changes:
         logging.info('No changed files, exiting')
         sys.exit(0)

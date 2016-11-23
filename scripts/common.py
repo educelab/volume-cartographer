@@ -5,15 +5,15 @@ import subprocess
 import sys
 import re
 import tarfile
+import tempfile
 import urllib.request
 
-from typing import Iterator, List, Union
+from typing import Iterator, List, Pattern, Union
 
 # URL location of the 'cached' copy of clang-format to download
 # for users which do not have clang-format installed
 HTTP_LINUX_URL = 'http://llvm.org/releases/3.9.0/clang+llvm-3.9.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz'
 HTTP_DARWIN_URL = 'http://llvm.org/releases/3.9.0/clang+llvm-3.9.0-x86_64-apple-darwin.tar.xz'
-
 # Path to extract clang-format to in source tree
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 EXTRACT_DIR = os.path.join(BASE_DIR, 'bin')
@@ -28,18 +28,22 @@ def callo(cmd: Union[List[str], str]) -> str:
     return subprocess.check_output(cmd).decode('utf-8').strip()
 
 
-def changed_source_files() -> Iterator[str]:
+def changed_files(filter_regex: str=r'') -> List[str]:
     '''
-    Determines all changed files from prior commit to HEAD.
+    Determines all changed files from prior commit to HEAD. Optionally filters
+    based on `filter_regex`.
     '''
     current_branch = callo('git rev-parse --abbrev-ref @')
     develop = 'origin/develop'
     branch_point = callo('git merge-base {} {}'.format(develop, current_branch))
     diffcmd = 'git diff --name-only {}..{}'.format(branch_point, current_branch)
+    all_changes = callo(diffcmd).split('\n')
     
     # Filter based on extension - only C/C++ source/header files
-    ext = re.compile(r'\.(h|hpp|c|cpp)$')
-    return filter(lambda f: re.search(ext, f), callo(diffcmd).splitlines())
+    if filter_regex:
+        return list(filter(lambda f: re.search(filter_regex, f), all_changes))
+    else:
+        return all_changes
 
 
 def fetch_clang_binary(
@@ -51,16 +55,16 @@ def fetch_clang_binary(
     dest = tempfile.gettempdir()
     tmptar = os.path.join(dest, 'temp.tar.xz')
     logging.info(
-        'Downloading clang-format {} from {}, saving to {}'.
-        format(MIN_VERSION_REQUIRED, url, tmptar)
+        'Downloading {} from {}, saving to {}'.
+        format(binary, url, tmptar)
     )
     urllib.request.urlretrieve(url, tmptar)
 
-    if not os.path.isdir(extractdir):
-        os.mkdir(extractdir)
+    if not os.path.isdir(extract_dir):
+        os.mkdir(extract_dir)
 
     with tarfile.open(tmptar, 'r:xz') as tar:
-        logging.info('Extracting {} from {}'.format(PROGNAME, tmptar))
+        logging.info('Extracting {} from {}'.format(binary, tmptar))
 
         # Find clang-format inside tar, extract to tmp directory
         path_in_tar = next(
@@ -70,7 +74,7 @@ def fetch_clang_binary(
         tar.extract(path_in_tar, path=tar_extract_path)
 
         # Move to final location
-        final_location = os.path.join(extractdir, PROGNAME)
+        final_location = os.path.join(extract_dir, binary)
         shutil.move(os.path.join(tar_extract_path, path_in_tar), final_location)
         logging.info('Extracted {} to {}'.format(path_in_tar, final_location))
 
