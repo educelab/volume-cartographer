@@ -12,8 +12,9 @@ PROGNAME = 'clang-tidy'
 
 
 class ClangTidier:
-    def __init__(self, path: str) -> None:
+    def __init__(self, path: str, build_dir: str) -> None:
         self.path = path
+        self.build_dir = build_dir
 
     def __str__(self):
         return self.path
@@ -23,22 +24,22 @@ class ClangTidier:
         lines = common.callo([self.path, '--version']).split('\n')
         return LooseVersion(lines[1].split()[2])
 
-    def lint(self, source_file, print_output=True):
+    def lint(self, source_file, print_output=False):
         '''
-        Lints a given C++ (as in ending in .cpp) `source_file` with clang-tidy.
+        Lints a given C++ `source_file` (as in ending in .cpp) with clang-tidy.
         '''
         base_dir = common.callo('git rev-parse --show-toplevel')
-        build_dir = os.path.join(base_dir, 'build')
+        compile_commands_dir = os.path.join(base_dir, self.build_dir)
         tidy_out = common.callo(
             [
                 self.path,
-                '-p={}'.format(build_dir),
+                '-p={}'.format(compile_commands_dir),
                 "-config=''",
                 source_file,
             ]
         )
 
-        if tidy_out and print_output:
+        if print_output:
             print(tidy_out)
 
         return not tidy_out
@@ -67,11 +68,18 @@ if __name__ == '__main__':
         default=False,
         action='store_true',
     )
+    parser.add_argument(
+        '-b',
+        '--build-dir',
+        default='build',
+        metavar='DIR',
+        help='Build dir containing compile_commands.json',
+    )
     args = parser.parse_args()
 
     # Find clang-tidy, validate version
     path_to_ct = common.find_binary(args.path, PROGNAME)
-    ct = ClangTidier(path_to_ct)
+    ct = ClangTidier(path_to_ct, args.build_dir)
     if ct.version < MIN_VERSION_REQUIRED:
         logging.error(
             '''Incorrect version of {}: got {} but at least {} is required'''
@@ -81,7 +89,7 @@ if __name__ == '__main__':
 
     # clang-tidy operates only on c/cpp files (h/hpp files are linted
     # transitively). Only check c/cpp files.
-    changes = common.changed_files(filter_regex=r'\.(c|cpp)$')
+    changes = common.changed_files(filter_regex=r'\.(c|cpp|cc)$')
     if not changes:
         logging.info('No changed files, exiting')
         sys.exit(0)

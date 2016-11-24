@@ -100,6 +100,7 @@ lint:
     script:
         - echo $CI_BUILD_REF_NAME $CI_BUILD_STAGE
         - scripts/clang-format.py --no-diff
+        - scripts/clang-tidy.py --print-output
     allow_failure: yes
     tags:
         - source
