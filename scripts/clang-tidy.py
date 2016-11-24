@@ -2,6 +2,7 @@
 
 import argparse
 import logging
+import os
 import sys
 from distutils.version import LooseVersion
 
@@ -24,20 +25,20 @@ class ClangTidier:
         lines = common.callo([self.path, '--version']).split('\n')
         return LooseVersion(lines[1].split()[2])
 
-    def lint(self, source_file, print_output=False):
+    def lint(self, source_file, print_output):
         '''
         Lints a given C++ `source_file` (as in ending in .cpp) with clang-tidy.
         '''
         base_dir = common.callo('git rev-parse --show-toplevel')
         compile_commands_dir = os.path.join(base_dir, self.build_dir)
-        tidy_out = common.callo(
-            [
-                self.path,
-                '-p={}'.format(compile_commands_dir),
-                "-config=''",
-                source_file,
-            ]
-        )
+        cmd = [
+            self.path,
+            '-p={}'.format(compile_commands_dir),
+            '-config=',
+            source_file,
+        ]
+        logging.debug('cmd: {}'.format(' '.join(cmd)))
+        tidy_out = common.callo(cmd)
 
         if print_output:
             print(tidy_out)
@@ -49,7 +50,7 @@ if __name__ == '__main__':
     # Set up some logging
     logging.basicConfig(
         stream=sys.stdout,
-        level=logging.DEBUG,
+        level=logging.INFO,
         format='%(asctime)s %(name)s %(levelname)s %(message)s',
         datefmt='%m-%d %H:%M',
     )
