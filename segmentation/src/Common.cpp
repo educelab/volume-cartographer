@@ -1,3 +1,6 @@
+/**
+ *@file Common.cpp
+ */
 #include "segmentation/lrps/Common.h"
 
 std::vector<double> volcart::segmentation::squareDiff(

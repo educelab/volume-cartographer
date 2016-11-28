@@ -15,6 +15,9 @@ namespace segmentation
 
 // To be used later on when this is more parameterized
 // clang-format off
+/**
+ * Array of common first derivative coefficients
+ */
 static std::array<std::array<double, 9>, 4> d1CentralDiffCoeffs = {
     0,     0,      0,    -1/2, 0, 1/2, 0,     0,     0,
     0,     0,      1/12, -2/3, 0, 2/3, -1/12, 0,     0,
@@ -22,6 +25,9 @@ static std::array<std::array<double, 9>, 4> d1CentralDiffCoeffs = {
     1/280, -4/105, 1/5,  -4/5, 0, 4/5, -1/5,  4/105, -1/280
 };
 
+/**
+ * Array of common second derivative coefficients
+ */
 static std::array<std::array<double, 9>, 4> d2CentralDiffCoeffs = {
     0,      0,     0,     1,   -2,      1,   0,     0,     0,
     0,      0,     -1/12, 4/3, -5/2,    4/3, -1/12, 0,     0,
@@ -30,6 +36,14 @@ static std::array<std::array<double, 9>, 4> d2CentralDiffCoeffs = {
 };
 // clang-format on
 
+/**
+ * @fn T d1forward(const std::vector<T>& vs, int32_t index, int32_t hstep=1)
+ * @brief Returns the value of the next position after the index in the first
+ * derivative array
+ * @param vs Vector you want to move forward in
+ * @param index Starting point in the vector
+ * @param hstep How many elements you want to move by each time you move
+ */
 template <typename T>
 T d1Forward(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
 {
@@ -39,6 +53,14 @@ T d1Forward(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
     return (-vs[index] + vs[index + hstep]) / double(hstep);
 }
 
+/**
+ * @fn T d1Backward(const std::vector<T>& vs, int32_t index, int32_t hstep=1)
+ * @brief Returns the value in the position behind the index in the first
+ * derivative array
+ * @param hstep How many elements you want to move by each time you move
+ * @param index Starting point in the vector
+ * @param vs Vector you want to move in
+ */
 template <typename T>
 T d1Backward(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
 {
@@ -48,6 +70,13 @@ T d1Backward(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
     return (-vs[index - hstep] + vs[index]) / double(hstep);
 }
 
+/**
+ * @fn T d1Central(const std::vector<T>&vs, int32_t index, int32_t hstep=1)
+ * @brief Returns the position in between index and hstep
+ * @param vs The vector that you want a value from
+ * @param hstep How many elements to move each time you move in the vector
+ * @param index Starting point in the vector
+ */
 template <typename T>
 T d1Central(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
 {
@@ -61,6 +90,15 @@ T d1Central(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
 
 // from: https://en.wikipedia.org/wiki/Finite_difference_coefficient
 // TODO: Implement more accurate derivatives
+/**
+ * @fn T d1FivePointStencil(const std::vector<T>& vs, int32_t index, int32_t
+ * hstep = 1)
+ * @brief Moves to the center of 5 points
+ * @param vs Vector of possible coefficients
+ * @param index Starting point in the vector
+ * @param hstep Number of elements to move by each time you move
+ * @return Current element
+ */
 template <typename T>
 T d1FivePointStencil(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
 {
@@ -80,6 +118,13 @@ T d1FivePointStencil(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
     // clang-format on
 }
 
+/**
+ * @fn T d1At(const std::vector<T>&vs, int32_t index, int32_t hstep = 1)
+ * @param vs Vector you wish to traverse
+ * @param index Starting Point
+ * @param hstep Number of elements to move by
+ * @return The current location in the array
+ */
 template <typename T>
 T d1At(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
 {
@@ -95,6 +140,14 @@ T d1At(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
     }
 }
 
+/**
+ * @fn std::vector<T> d1(const std::vector<T>& vs, int32_t hstep =1)
+ * @brief Calculates the first derivative cofficents
+ * @param vs Vector of derivative coffiecents
+ * @param hstep Number of elements you want to move by
+ * @see https://en.wikipedia.org/wiki/Finite_difference_coefficient
+ * @return Vector of the first derivative coefficients
+ */
 template <typename T>
 std::vector<T> d1(const std::vector<T>& vs, int32_t hstep = 1)
 {
@@ -106,6 +159,11 @@ std::vector<T> d1(const std::vector<T>& vs, int32_t hstep = 1)
     return dvs;
 }
 
+/**
+ * @fn T d2Forward(const std::vector<T>&vs, int32_t index, int32_t hstep=1)
+ * @copydoc d1Forward(const std::vector<T>& vs, int32_t index, int32_t hstep =
+ * 1)
+ */
 template <typename T>
 T d2Forward(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
 {

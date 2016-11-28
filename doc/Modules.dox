@@ -9,6 +9,11 @@
 */
 
 /**
+@defgroup Segmentation Segmentation
+@brief Library for segmenting the volume 
+*/ 
+
+/**
  @defgroup ExampleDocs Documentation Examples
  @brief Files that demonstrate how code should be formatted for Doxygen.
 */
