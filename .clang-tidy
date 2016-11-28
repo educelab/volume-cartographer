@@ -1,7 +1,7 @@
 ---
-Checks:          'clang-diagnostic-*,clang-analyzer-*,-clang-analyzer-alpha*,readability-*,cppcoreguidelines-*,llvm-*,-llvm-include-order,-llvm-header-guard,misc-*,modernize-*,performance-*'
+Checks:          'clang-diagnostic-*,clang-analyzer-*,-clang-analyzer-alpha*,readability-*,cppcoreguidelines-*,llvm-*,-llvm-include-order,-llvm-header-guard,misc-*,-misc-argument-comment,modernize-*,performance-*'
 WarningsAsErrors: ''
-HeaderFilterRegex: 'include/(core|examples|meshing|segmentation|testing|texturing)'
+HeaderFilterRegex: 'include/(core|meshing|segmentation|testing|texturing)'
 AnalyzeTemporaryDtors: false
 User:            skarlage
 CheckOptions:    
