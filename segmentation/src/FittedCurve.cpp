@@ -1,3 +1,4 @@
+/**@file fittedcurve.cpp */
 #include <algorithm>
 #include <cmath>
 #include <iostream>
