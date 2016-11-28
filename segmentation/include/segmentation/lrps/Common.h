@@ -67,14 +67,14 @@ namespace volcart
 {
 namespace segmentation
 {
-
+// clang-format off
 /**
- * @fn std::vector<std::pair<T1,T2>> zip(const std::vector<T1>&v1, const
+ * @fn std::vector<std::pair<T1,T2>> zip(const std::vector<T1>&v1,const
  * std::vector<T2>& v2)
  * @brief Combines v1 and v2 into a single vector
+ *
  * Combines 2 vectors but pairing one element from the first vector with one
- * element from the second
- * vector.
+ * element from the second vector.
  */
 template <typename T1, typename T2>
 std::vector<std::pair<T1, T2>> zip(
@@ -90,13 +90,13 @@ std::vector<std::pair<T1, T2>> zip(
 }
 
 /**
- * @fn std::pair<std::vector<T>, std::vector<T>> unzip(const
+ * @fn std::pair<std::vector<T>,std::vector<T>> unzip(const
  * std::vector<cv::Vec<T,Length>>&vs)
  * @brief Separates 1 vector of pairs into 2 vectors
+ *
  * This is essentially the revese of zip. Takes one vector of pairs and puts the
- * first
- * element of the pair into one vector and the second element of the pair into
- * the other vector
+ * first element of the pair into one vector and the second element of the pair
+ * into the other vector.
  */
 template <typename T, int32_t Length>
 std::pair<std::vector<T>, std::vector<T>> unzip(
@@ -160,7 +160,7 @@ std::vector<double> normalizeVector(
 /**
  * @fn std::vector<cv::Vec<double,Len>> normalizeVector(const
  * std::vector<cv::Vec<T,Len>> vs)
- * @brief normalizes a vector with no limits on range of points
+ * @brief Normalizes a vector with no limits on range of points
  */
 template <typename T, int32_t Len>
 std::vector<cv::Vec<double, Len>> normalizeVector(
@@ -189,10 +189,11 @@ std::vector<double> squareDiff(
 
 /**
  * @fn double sumSquareDiff(const std::vector<double>& v1, const
- * std::vector<double& v2)
+ * std::vector<double>& v2)
  * @brief Sums the square differences between two vectors
  */
 double sumSquareDiff(
     const std::vector<double>& v1, const std::vector<double>& v2);
 }
 }
+// clang-format on

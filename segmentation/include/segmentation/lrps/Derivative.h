@@ -1,5 +1,11 @@
 #pragma once
 
+/** @file derivative.h
+ *  @brief A small derivative library that handles calculating derivatives up to
+ * second order
+ *  @ingroup Segmentation
+ */
+
 #include <array>
 #include <cassert>
 #include <vector>
@@ -8,10 +14,6 @@ namespace volcart
 {
 namespace segmentation
 {
-/*
- * A small derivative library that handles calculating derivatives up to second
- * order
- */
 
 // To be used later on when this is more parameterized
 // clang-format off
@@ -37,7 +39,7 @@ static std::array<std::array<double, 9>, 4> d2CentralDiffCoeffs = {
 // clang-format on
 
 /**
- * @fn T d1forward(const std::vector<T>& vs, int32_t index, int32_t hstep=1)
+ * @fn T d1Forward(const std::vector<T>&vs, int32_t index, int32_t hstep=1)
  * @brief Returns the value of the next position after the index in the first
  * derivative array
  * @param vs Vector you want to move forward in
@@ -97,6 +99,7 @@ T d1Central(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
  * @param vs Vector of possible coefficients
  * @param index Starting point in the vector
  * @param hstep Number of elements to move by each time you move
+ * @see https://en.wikipedia.org/wiki/Finite_difference_coefficient
  * @return Current element
  */
 template <typename T>
@@ -145,7 +148,6 @@ T d1At(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
  * @brief Calculates the first derivative cofficents
  * @param vs Vector of derivative coffiecents
  * @param hstep Number of elements you want to move by
- * @see https://en.wikipedia.org/wiki/Finite_difference_coefficient
  * @return Vector of the first derivative coefficients
  */
 template <typename T>
@@ -161,8 +163,11 @@ std::vector<T> d1(const std::vector<T>& vs, int32_t hstep = 1)
 
 /**
  * @fn T d2Forward(const std::vector<T>&vs, int32_t index, int32_t hstep=1)
- * @copydoc d1Forward(const std::vector<T>& vs, int32_t index, int32_t hstep =
- * 1)
+ * @brief Returns the value of the next position after the index in the second
+ * derivative array
+ * @param vs Vector you want to move forward in
+ * @param index Starting point in the vector
+ * @param hstep How many elements you want to move by each time you move
  */
 template <typename T>
 T d2Forward(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
@@ -174,6 +179,14 @@ T d2Forward(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
            double(hstep * hstep);
 }
 
+/**
+ * @fn T d2Backward(const std::vector<T>&vs, int32_t index, int32_t hstep=1)
+ * @brief Returns the value in the position behind the index in the second
+ * derivative array
+ * @param hstep How many elements you want to move by each time you move
+ * @param index Starting point in the vector
+ * @param vs Vector you want to move in
+ */
 template <typename T>
 T d2Backward(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
 {
@@ -184,6 +197,9 @@ T d2Backward(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
            double(hstep * hstep);
 }
 
+/**
+ * @copydoc d1Central()
+ */
 template <typename T>
 T d2Central(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
 {
@@ -197,6 +213,8 @@ T d2Central(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
 
 // from: https://en.wikipedia.org/wiki/Finite_difference_coefficient
 // TODO: Implement more accurate derivatives
+
+/** @copydoc d1FivePointStencil() */
 template <typename T>
 T d2FivePointStencil(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
 {
@@ -217,6 +235,7 @@ T d2FivePointStencil(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
     // clang-format on
 }
 
+/** @copydoc d1At() */
 template <typename T>
 T d2At(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
 {
@@ -232,6 +251,7 @@ T d2At(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
     }
 }
 
+/** @copydoc d1() */
 template <typename T>
 std::vector<T> d2(const std::vector<T>& vs, int32_t hstep = 1)
 {
