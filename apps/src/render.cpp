@@ -151,7 +151,7 @@ int main(int argc, char* argv[])
         reader.read();
         input = reader.getMesh();
     } catch (volcart::IOException e) {
-        std::cerr << e.what() << endl;
+        std::cerr << e.what() << std::endl;
         return EXIT_FAILURE;
     }
 

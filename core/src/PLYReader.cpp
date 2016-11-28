@@ -64,16 +64,14 @@ void PLYReader::_parseHeader()
             } else {
                 _skippedLine.push_back(std::stoi(splitLine[2]));
             }
-            getline(_plyFile, _line);
+            std::getline(_plyFile, _line);
             boost::split(
                 splitLine, _line, boost::is_any_of(" "),
                 boost::token_compress_on);
             currentLine = 0;
             while (splitLine[0] == "property") {
                 if (splitLine[1] == "list") {
-                    if (_line.find("uchar") == std::string::npos) {
-                        _leadingChar = false;
-                    }
+                    _leadingChar = _line.find("uchar") != std::string::npos;
                 }
                 // Not sure how to handle if it's not the vertices or faces
                 else {
@@ -82,14 +80,14 @@ void PLYReader::_parseHeader()
                     }
                     _properties[splitLine[2]] = currentLine;
                 }
-                getline(_plyFile, _line);
+                std::getline(_plyFile, _line);
                 currentLine++;
                 boost::split(
                     splitLine, _line, boost::is_any_of(" "),
                     boost::token_compress_on);
             }
         } else {
-            getline(_plyFile, _line);
+            std::getline(_plyFile, _line);
         }
     }
     if (_numOfFaces == 0) {

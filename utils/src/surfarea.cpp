@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
     } catch (volcart::IOException e) {
         std::cerr << e.what() << std::endl;
         exit(-1);
-    };
+    }
 
     vtkPolyData* smoothVTK = vtkPolyData::New();
     volcart::meshing::itk2vtk(mesh, smoothVTK);

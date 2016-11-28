@@ -45,13 +45,11 @@ void MyThread::run()
         try {
             reader.read();
             mesh = reader.getMesh();
-        }
-
-        catch (volcart::IOException e) {
+        } catch (volcart::IOException e) {
             cloudProblem = true;
             std::cerr << e.what() << std::endl;
-            throw(__EXCEPTIONS);  // Error
-        };
+            throw;  // Error
+        }
 
         // Calculate sampling density
         double voxelsize = _globals->getVolPkg()->getVoxelSize();

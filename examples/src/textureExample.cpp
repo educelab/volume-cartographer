@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
     } catch (volcart::IOException e) {
         std::cerr << e.what() << std::endl;
         exit(EXIT_SUCCESS);
-    };
+    }
 
     int width = 608 * 2;
     int height = 370 * 2;
