@@ -1,11 +1,14 @@
 #pragma once
 
+#include <cassert>
 #include <memory>
 #include <vector>
+
 #include <opencv2/core/core.hpp>
 
 namespace volcart
 {
+
 template <typename DType>
 class Tensor3D
 {
@@ -13,17 +16,13 @@ private:
     std::vector<cv::Mat_<DType>> tensor_;
 
 public:
-    const int32_t dx;
-    const int32_t dy;
-    const int32_t dz;
+    int32_t dx;
+    int32_t dy;
+    int32_t dz;
 
     Tensor3D<DType>() = default;
 
-    Tensor3D<DType>(
-        const int32_t x,
-        const int32_t y,
-        const int32_t z,
-        const bool zero = true)
+    Tensor3D<DType>(int32_t x, int32_t y, int32_t z, bool zero = true)
         : dx(x), dy(y), dz(z)
     {
         tensor_.reserve(dz);
@@ -43,9 +42,9 @@ public:
         }
     }
 
-    const cv::Mat_<DType>& xySlice(const int32_t z) const { return tensor_[z]; }
-    cv::Mat_<DType>& xySlice(const int32_t z) { return tensor_[z]; }
-    cv::Mat_<DType> xzSlice(const int32_t layer) const
+    const cv::Mat_<DType>& xySlice(int32_t z) const { return tensor_[z]; }
+    cv::Mat_<DType>& xySlice(int32_t z) { return tensor_[z]; }
+    cv::Mat_<DType> xzSlice(int32_t layer) const
     {
         cv::Mat_<DType> zSlice(dz, dx);
         for (int32_t z = 0; z < dz; ++z) {
@@ -54,8 +53,7 @@ public:
         return zSlice;
     }
 
-    const DType& operator()(
-        const int32_t x, const int32_t y, const int32_t z) const
+    const DType& operator()(int32_t x, int32_t y, int32_t z) const
     {
         assert(x < dx && x >= 0 && "index out of range");
         assert(y < dy && y >= 0 && "index out of range");
@@ -63,7 +61,7 @@ public:
         return tensor_[z](y, x);
     }
 
-    DType& operator()(const int32_t x, const int32_t y, const int32_t z)
+    DType& operator()(int32_t x, int32_t y, int32_t z)
     {
         assert(x < dx && x >= 0 && "index out of range");
         assert(y < dy && y >= 0 && "index out of range");
@@ -71,7 +69,7 @@ public:
         return tensor_[z](y, x);
     }
 
-    std::unique_ptr<DType[]> buffer(void) const
+    std::unique_ptr<DType[]> buffer() const
     {
         auto buf = std::unique_ptr<DType[]>(new DType[dx * dy * dz]);
         for (int32_t z = 0; z < dz; ++z) {

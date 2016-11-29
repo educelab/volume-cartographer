@@ -2,8 +2,10 @@
 
 #include <array>
 #include <string>
+
 #include <boost/filesystem.hpp>
 #include <opencv2/core/core.hpp>
+
 #include "core/types/LRUCache.h"
 #include "core/types/Slice.h"
 #include "core/types/Tensor3D.h"
@@ -31,7 +33,7 @@ public:
         int32_t nslices,
         int32_t sliceWidth,
         int32_t sliceHeight)
-        : slicePath_(slicePath)
+        : slicePath_(std::move(slicePath))
         , numSlices_(nslices)
         , sliceWidth_(sliceWidth)
         , sliceHeight_(sliceHeight)
@@ -56,7 +58,7 @@ public:
 
     int32_t numSlices() const { return numSlices_; }
 
-    bool isInBounds(const Voxel v) const
+    bool isInBounds(const Voxel& v) const
     {
         return v(0) >= 0 && v(0) < sliceWidth_ && v(1) >= 0 &&
                v(1) < sliceHeight_ && v(2) >= 0 && v(2) < numSlices_;
@@ -71,9 +73,9 @@ public:
 
     boost::filesystem::path getNormalPathAtIndex(int32_t index) const;
 
-    uint16_t interpolateAt(const Voxel point) const;
+    uint16_t interpolateAt(const Voxel& point) const;
 
-    uint16_t interpolatedIntensityAt(const Voxel nonGridPoint) const
+    uint16_t interpolatedIntensityAt(const Voxel& nonGridPoint) const
     {
         return interpolateAt(nonGridPoint);
     }
@@ -90,13 +92,12 @@ public:
         return interpolateAt({x, y, z});
     }
 
-    uint16_t intensityAt(const cv::Vec3d v) const
+    uint16_t intensityAt(const cv::Vec3d& v) const
     {
         return intensityAt(int32_t(v(0)), int32_t(v(1)), int32_t(v(2)));
     }
 
-    uint16_t intensityAt(
-        const int32_t x, const int32_t y, const int32_t z) const
+    uint16_t intensityAt(int32_t x, int32_t y, int32_t z) const
     {
         // clang-format off
         if (x < 0 || x >= sliceWidth_ ||
@@ -124,16 +125,16 @@ public:
     size_t getCacheSize() const { return cache_.size(); };
 
     Slice reslice(
-        const Voxel center,
-        const cv::Vec3d xvec,
-        const cv::Vec3d yvec,
+        const Voxel& center,
+        const cv::Vec3d& xvec,
+        const cv::Vec3d& yvec,
         int32_t width = 64,
         int32_t height = 64) const;
 
     StructureTensor structureTensorAt(
-        int32_t x,
-        int32_t y,
-        int32_t z,
+        int32_t vx,
+        int32_t vy,
+        int32_t vz,
         int32_t voxelRadius = 1,
         int32_t gradientKernelSize = 3) const;
 
@@ -147,9 +148,9 @@ public:
     }
 
     StructureTensor interpolatedStructureTensorAt(
-        double x,
-        double y,
-        double z,
+        double vx,
+        double vy,
+        double vz,
         int32_t voxelRadius = 1,
         int32_t gradientKernelSize = 3) const;
 
@@ -284,8 +285,6 @@ private:
         const Tensor3D<double>& v, int32_t gradientKernelSize) const;
 
     cv::Mat_<double> gradient(
-        const cv::Mat_<double>& input,
-        GradientAxis axis,
-        int32_t gradientKernelSize) const;
+        const cv::Mat_<double>& input, GradientAxis axis, int32_t ksize) const;
 };
 }

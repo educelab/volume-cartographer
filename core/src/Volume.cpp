@@ -1,24 +1,26 @@
 #include "core/types/Volume.h"
+
 #include <iomanip>
 #include <iostream>
 #include <memory>
 #include <sstream>
+
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
 using namespace volcart;
 namespace fs = boost::filesystem;
 
-StructureTensor tensorize(const cv::Vec3d vec);
+StructureTensor tensorize(cv::Vec3d gradient);
 
-std::unique_ptr<double[]> makeUniformGaussianField(const int32_t radius);
+std::unique_ptr<double[]> makeUniformGaussianField(int32_t radius);
 
 // Trilinear Interpolation: Particles are not required
 // to be at integer positions so we estimate their
 // normals with their neighbors's known normals.
 //
 // formula from http://paulbourke.net/miscellaneous/interpolation/
-uint16_t Volume::interpolateAt(const Voxel point) const
+uint16_t Volume::interpolateAt(const Voxel& point) const
 {
     double int_part;
     const double dx = std::modf(point(0), &int_part);
@@ -98,9 +100,9 @@ fs::path Volume::getSlicePath(int32_t index) const
 }
 
 Slice Volume::reslice(
-    const Voxel center,
-    const cv::Vec3d xvec,
-    const cv::Vec3d yvec,
+    const Voxel& center,
+    const cv::Vec3d& xvec,
+    const cv::Vec3d& yvec,
     int32_t width,
     int32_t height) const
 {
@@ -149,9 +151,9 @@ StructureTensor Volume::structureTensorAt(
     // Modulate by gaussian distribution (element-wise) and sum
     auto gaussianField = makeUniformGaussianField(voxelRadius);
     StructureTensor sum(0, 0, 0, 0, 0, 0, 0, 0, 0);
-    for (int32_t z = 0; z < v.dz; ++z) {
-        for (int32_t y = 0; y < v.dy; ++y) {
-            for (int32_t x = 0; x < v.dx; ++x) {
+    for (size_t z = 0; z < v.dz; ++z) {
+        for (size_t y = 0; y < v.dy; ++y) {
+            for (size_t x = 0; x < v.dx; ++x) {
                 sum += gaussianField[z * v.dy * v.dx + y * v.dx + x] *
                        tensorize(gradientField(x, y, z));
             }
@@ -189,9 +191,9 @@ StructureTensor Volume::interpolatedStructureTensorAt(
     // Modulate by gaussian distribution (element-wise) and sum
     auto gaussianField = makeUniformGaussianField(voxelRadius);
     StructureTensor sum(0, 0, 0, 0, 0, 0, 0, 0, 0);
-    for (int32_t z = 0; z < v.dz; ++z) {
-        for (int32_t y = 0; y < v.dy; ++y) {
-            for (int32_t x = 0; x < v.dx; ++x) {
+    for (size_t z = 0; z < v.dz; ++z) {
+        for (size_t y = 0; y < v.dy; ++y) {
+            for (size_t x = 0; x < v.dx; ++x) {
                 sum += gaussianField[z * v.dy * v.dx + y * v.dx + x] *
                        tensorize(gradientField(x, y, z));
             }
@@ -250,7 +252,7 @@ EigenPairs Volume::interpolatedEigenPairsAt(
     };
 }
 
-StructureTensor tensorize(const cv::Vec3d gradient)
+StructureTensor tensorize(cv::Vec3d gradient)
 {
     double ix = gradient(0);
     double iy = gradient(1);
@@ -352,9 +354,9 @@ std::unique_ptr<double[]> makeUniformGaussianField(int32_t radius)
     const double N = 1.0 / (sigma3 * std::pow(2 * M_PI, 3.0 / 2.0));
 
     // Fill field
-    for (int32_t z = -radius; z <= radius; ++z) {
-        for (int32_t y = -radius; y <= radius; ++y) {
-            for (int32_t x = -radius; x <= radius; ++x) {
+    for (int64_t z = -radius; z <= radius; ++z) {
+        for (int64_t y = -radius; y <= radius; ++y) {
+            for (int64_t x = -radius; x <= radius; ++x) {
                 double val = std::exp(-(x * x + y * y + z * z));
                 // clang-format off
                 field[(z + radius) * sideLength * sideLength +
