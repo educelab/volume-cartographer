@@ -25,7 +25,9 @@ def callo(cmd: Union[List[str], str]) -> str:
     '''
     if isinstance(cmd, str):
         cmd = cmd.split()
-    return subprocess.check_output(cmd).decode('utf-8').strip()
+    return subprocess.check_output(
+        cmd, stderr=subprocess.DEVNULL
+    ).decode('utf-8').strip()
 
 
 def changed_files(filter_regex: str=r'') -> List[str]:
@@ -38,7 +40,7 @@ def changed_files(filter_regex: str=r'') -> List[str]:
     branch_point = callo('git merge-base {} {}'.format(develop, current_branch))
     diffcmd = 'git diff --name-only {}..{}'.format(branch_point, current_branch)
     all_changes = callo(diffcmd).split('\n')
-    
+
     # Filter based on extension - only C/C++ source/header files
     if filter_regex:
         return list(filter(lambda f: re.search(filter_regex, f), all_changes))
@@ -55,8 +57,7 @@ def fetch_clang_binary(
     dest = tempfile.gettempdir()
     tmptar = os.path.join(dest, 'temp.tar.xz')
     logging.info(
-        'Downloading {} from {}, saving to {}'.
-        format(binary, url, tmptar)
+        'Downloading {} from {}, saving to {}'.format(binary, url, tmptar)
     )
     urllib.request.urlretrieve(url, tmptar)
 

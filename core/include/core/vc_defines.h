@@ -124,9 +124,10 @@ enum class DirectionOption { Bidirectional, Positive, Negative };
 ///// Time Helper /////
 inline std::string DATE_TIME()
 {
-    time_t now = std::time(0);
-    struct tm tstruct;
-    std::array<char, 80> buf;
+    time_t now = std::time(nullptr);
+    struct tm tstruct {
+    };
+    std::array<char, 80> buf{};
     tstruct = *std::localtime(&now);
     std::strftime(buf.data(), buf.size(), "%Y%m%d%H%M%S", &tstruct);
     return std::string(buf.data());

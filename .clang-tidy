@@ -1,5 +1,5 @@
 ---
-Checks:          'clang-diagnostic-*,clang-analyzer-*,-clang-analyzer-alpha*,readability-*,cppcoreguidelines-*,llvm-*,-llvm-include-order,-llvm-header-guard,misc-*,-misc-argument-comment,modernize-*,performance-*'
+Checks:          'clang-diagnostic-*,clang-analyzer-*,-clang-analyzer-alpha*,readability-*,-readability-else-after-return,cppcoreguidelines-*,llvm-*,-llvm-include-order,-llvm-header-guard,misc-*,-misc-argument-comment,modernize-*,performance-*,-performance-unnecessary-value-param'
 WarningsAsErrors: ''
 HeaderFilterRegex: 'include/(core|meshing|segmentation|testing|texturing)'
 AnalyzeTemporaryDtors: false

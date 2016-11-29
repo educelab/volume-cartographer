@@ -8,9 +8,6 @@ double MINANGLE = M_PI / 180.0;
 double MAXANGLE = M_PI - MINANGLE;
 
 using namespace volcart;
-///// Constructors & Destructors /////
-HalfEdgeMesh::HalfEdgeMesh(){};
-HalfEdgeMesh::~HalfEdgeMesh() { clear(); };
 
 void HalfEdgeMesh::clear()
 {
@@ -27,8 +24,9 @@ HalfEdgeMesh::VertPtr HalfEdgeMesh::addVert(double x, double y, double z)
 {
     HalfEdgeMesh::VertPtr v = std::make_shared<HalfEdgeMesh::Vert>();
     v->id = _verts.size();
-    if (_verts.size() > 0)
+    if (!_verts.empty()) {
         _verts.back()->nextlink = v;
+    }
 
     v->xyz = cv::Vec3d(x, y, z);
     v->uv = cv::Vec2d(0, 0);
@@ -75,12 +73,15 @@ HalfEdgeMesh::FacePtr HalfEdgeMesh::addFace(IDType v0, IDType v1, IDType v2)
     e2->vert = _verts[v2];
 
     // Link the vertices to their edges if they dont have one
-    if (e0->vert->edge == nullptr)
+    if (e0->vert->edge == nullptr) {
         e0->vert->edge = e0;
-    if (e1->vert->edge == nullptr)
+    }
+    if (e1->vert->edge == nullptr) {
         e1->vert->edge = e1;
-    if (e2->vert->edge == nullptr)
+    }
+    if (e2->vert->edge == nullptr) {
         e2->vert->edge = e2;
+    }
 
     // Compute the current angles
     cv::Vec3d a;
@@ -90,10 +91,11 @@ HalfEdgeMesh::FacePtr HalfEdgeMesh::addFace(IDType v0, IDType v1, IDType v2)
 
     // Clamping
     for (int i = 0; i < 3; ++i) {
-        if (a[i] < MINANGLE)
+        if (a[i] < MINANGLE) {
             a[i] = MINANGLE;
-        else if (a[i] > MAXANGLE)
+        } else if (a[i] > MAXANGLE) {
             a[i] = MAXANGLE;
+        }
     }
 
     // Assign the most recent values
@@ -106,8 +108,9 @@ HalfEdgeMesh::FacePtr HalfEdgeMesh::addFace(IDType v0, IDType v1, IDType v2)
 
     // Add everything to their respective arrays
     e0->id = _edges.size();
-    if (_edges.size() > 0)
+    if (!_edges.empty()) {
         _edges.back()->nextlink = e0;
+    }
     _edges.push_back(e0);
 
     e1->id = _edges.size();
@@ -120,104 +123,14 @@ HalfEdgeMesh::FacePtr HalfEdgeMesh::addFace(IDType v0, IDType v1, IDType v2)
 
     f->id = _faces.size();
     f->lambdaTriangle = 0.0;
-    if (_faces.size() > 0)
+    if (!_faces.empty()) {
         _faces.back()->nextlink = f;
+    }
     f->connected = false;
     _faces.push_back(f);
 
     return f;
 }
-
-///// Vertex Access /////
-// Get a vertex by vertex id
-HalfEdgeMesh::VertPtr HalfEdgeMesh::getVert(IDType id) const
-{
-    return _verts[id];
-};
-// Get reference to the vertices begin iterator
-std::vector<HalfEdgeMesh::VertPtr>::iterator HalfEdgeMesh::getVertsBegin()
-{
-    return _verts.begin();
-};
-// Get reference to the vertices end iterator
-std::vector<HalfEdgeMesh::VertPtr>::iterator HalfEdgeMesh::getVertsEnd()
-{
-    return _verts.end();
-};
-
-///// Edge Access /////
-// Get an edge by edge id
-HalfEdgeMesh::EdgePtr HalfEdgeMesh::getEdge(IDType id) const
-{
-    return _edges[id];
-};
-// Get reference to the edges begin iterator
-std::vector<HalfEdgeMesh::EdgePtr>::iterator HalfEdgeMesh::getEdgesBegin()
-{
-    return _edges.begin();
-};
-// Get reference to the edges end iterator
-std::vector<HalfEdgeMesh::EdgePtr>::iterator HalfEdgeMesh::getEdgesEnd()
-{
-    return _edges.end();
-};
-
-///// Face Access /////
-// Get a face by face id
-HalfEdgeMesh::FacePtr HalfEdgeMesh::getFace(IDType id) const
-{
-    return _faces[id];
-};
-// Get reference to the vertices begin iterator
-std::vector<HalfEdgeMesh::FacePtr>::iterator HalfEdgeMesh::getFacesBegin()
-{
-    return _faces.begin();
-};
-// Get reference to the vertices end iterator
-std::vector<HalfEdgeMesh::FacePtr>::iterator HalfEdgeMesh::getFacesEnd()
-{
-    return _faces.end();
-};
-
-///// Interior/Boundary Access /////
-// Get reference to the interior vertices begin iterator
-std::vector<HalfEdgeMesh::VertPtr>::iterator HalfEdgeMesh::getInteriorBegin()
-{
-    return _interior.begin();
-};
-// Get reference to the interior vertices end iterator
-std::vector<HalfEdgeMesh::VertPtr>::iterator HalfEdgeMesh::getInteriorEnd()
-{
-    return _interior.end();
-};
-// Get reference to the boundary vertices begin iterator
-std::vector<HalfEdgeMesh::VertPtr>::iterator HalfEdgeMesh::getBoundaryBegin()
-{
-    return _boundary.begin();
-};
-// Get reference to the boundary vertices end iterator
-std::vector<HalfEdgeMesh::VertPtr>::iterator HalfEdgeMesh::getBoundaryEnd()
-{
-    return _boundary.end();
-};
-
-///// Sizes //////
-// Get size of the vertices vector
-size_t HalfEdgeMesh::getNumberOfVerts() const { return _verts.size(); };
-// Get size of the edges vector
-size_t HalfEdgeMesh::getNumberOfEdges() const { return _edges.size(); };
-// Get size of the faces vector
-size_t HalfEdgeMesh::getNumberOfFaces() const { return _faces.size(); };
-// Get size of the interior vector
-size_t HalfEdgeMesh::getNumberOfInteriorPoints() const
-{
-    return _interior.size();
-};
-// Get size of the boundary vector
-size_t HalfEdgeMesh::getNumberOfBoundaryPoints() const
-{
-    return _boundary.size();
-};
 
 ///// Special Construction Tasks /////
 void HalfEdgeMesh::constructConnectedness()
@@ -235,8 +148,9 @@ void HalfEdgeMesh::_connectAllPairs()
     HalfEdgeMesh::EdgePtr e0, e1, e2;
 
     for (auto f = _faces[0]; f; f = f->nextlink) {
-        if (f->connected)
+        if (f->connected) {
             continue;
+        }
 
         e0 = f->edge;
         e1 = e0->next;
@@ -244,20 +158,23 @@ void HalfEdgeMesh::_connectAllPairs()
 
         // If we don't find a pair, set the vert's only edge to this one
         e0->pair = _findEdgePair(e0->vert->id, e1->vert->id);
-        if (e0->pair != nullptr)
+        if (e0->pair != nullptr) {
             e0->pair->pair = e0;
-        else
+        } else {
             e0->vert->edge = e0;
+        }
         e1->pair = _findEdgePair(e1->vert->id, e2->vert->id);
-        if (e1->pair != nullptr)
+        if (e1->pair != nullptr) {
             e1->pair->pair = e1;
-        else
+        } else {
             e1->vert->edge = e1;
+        }
         e2->pair = _findEdgePair(e2->vert->id, e0->vert->id);
-        if (e2->pair != nullptr)
+        if (e2->pair != nullptr) {
             e2->pair->pair = e2;
-        else
+        } else {
             e2->vert->edge = e2;
+        }
 
         f->connected = true;
     }
@@ -270,7 +187,6 @@ HalfEdgeMesh::EdgePtr HalfEdgeMesh::_findEdgePair(
     HalfEdgeMesh::EdgePtr pair = nullptr;
     // Check these id's against each edge
     for (auto e = _edges[0]; e; e = e->nextlink) {
-        auto f_id = e->face->id;
         // If the current edge's first if matches this one's B, and vice versa,
         // it's the pair we want
         if ((e->vert->id == B) && (e->next->vert->id == A)) {
@@ -286,28 +202,13 @@ HalfEdgeMesh::EdgePtr HalfEdgeMesh::_findEdgePair(
 void HalfEdgeMesh::_computeBoundary()
 {
     for (auto v = _verts[0]; v; v = v->nextlink) {
-        if (v->interior())
+        if (v->interior()) {
             _interior.push_back(v);
-        else
+        } else {
             _boundary.push_back(v);
+        }
     }
 }
-
-///// Topology Traversal /////
-HalfEdgeMesh::EdgePtr HalfEdgeMesh::nextWheelEdge(EdgePtr e)
-{
-    return e->next->next->pair;
-};
-
-HalfEdgeMesh::EdgePtr HalfEdgeMesh::prevWheelEdge(EdgePtr e)
-{
-    return (e->pair) ? e->pair->next : nullptr;
-};
-
-HalfEdgeMesh::EdgePtr HalfEdgeMesh::nextBoundaryEdge(EdgePtr e)
-{
-    return e->next->vert->edge;
-};
 
 HalfEdgeMesh::EdgePtr HalfEdgeMesh::prevBoundaryEdge(EdgePtr e)
 {
@@ -334,10 +235,11 @@ double HalfEdgeMesh::_angle(cv::Vec3d A, cv::Vec3d B, cv::Vec3d C)
 
     double dot = vec_1.dot(vec_2);
 
-    if (dot <= -1.0f)
+    if (dot <= -1.0f) {
         return M_PI;
-    else if (dot >= 1.0f)
+    } else if (dot >= 1.0f) {
         return 0.0f;
-    else
+    } else {
         return acos(dot);
+    }
 }

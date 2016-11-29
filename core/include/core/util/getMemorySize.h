@@ -9,6 +9,6 @@
 
 #pragma once
 
-#include <stddef.h>
+#include <cstddef>
 
 size_t systemMemorySize();
