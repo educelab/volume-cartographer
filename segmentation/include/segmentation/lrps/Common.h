@@ -67,10 +67,9 @@ namespace volcart
 {
 namespace segmentation
 {
-// clang-format off
 /**
- * @fn std::vector<std::pair<T1,T2>> zip(const std::vector<T1>&v1,const
- * std::vector<T2>& v2)
+ * @fn std::vector<T1,T2> zip(const std::vector<T1>&v1,const
+ *     std::vector<T2>& v2)
  * @brief Combines v1 and v2 into a single vector
  *
  * Combines 2 vectors but pairing one element from the first vector with one
@@ -90,8 +89,8 @@ std::vector<std::pair<T1, T2>> zip(
 }
 
 /**
- * @fn std::pair<std::vector<T>,std::vector<T>> unzip(const
- * std::vector<cv::Vec<T,Length>>&vs)
+ * @fn std::pair<vector,vector> unzip(const
+ *     std::vector<cv::Vec<T,Length>>&vs)
  * @brief Separates 1 vector of pairs into 2 vectors
  *
  * This is essentially the revese of zip. Takes one vector of pairs and puts the
@@ -114,9 +113,9 @@ std::pair<std::vector<T>, std::vector<T>> unzip(
 
 /**
  * @fn std::vector<double> normalizeVector(const std::vector<T>& v, double
- * newMin=0, double newMax =1)
+ *     newMin=0, double newMax =1)
  * @brief Normalizes a vector so that each member is within the range of the
- * newMin and newMax
+ *        newMin and newMax
  * @param newMin Minimum value of all of the elements of the vector
  * @param newMax Maximum value of all the elements of the vector
  */
@@ -158,9 +157,9 @@ std::vector<double> normalizeVector(
 }
 
 /**
- * @fn std::vector<cv::Vec<double,Len>> normalizeVector(const
- * std::vector<cv::Vec<T,Len>> vs)
- * @brief Normalizes a vector with no limits on range of points
+ * @fn std::vector<int> normalizeVector(const
+ *     std::vector<cv::Vec<T,Len>> vs)
+ * @brief Normalizes a vector with no limits on points
  */
 template <typename T, int32_t Len>
 std::vector<cv::Vec<double, Len>> normalizeVector(
@@ -181,7 +180,7 @@ std::vector<cv::Vec<double, Len>> normalizeVector(
 // Some useful utility functions for doing math on std::vectors
 /**
  * @fn std::vector<double> squareDiff(const std::vector<Voxel>& v1, const
- * std::vector<Voxel>& v2)
+ *     std::vector<Voxel>& v2)
  * @brief Computes the difference of Squares on two vectors
  */
 std::vector<double> squareDiff(
@@ -189,11 +188,10 @@ std::vector<double> squareDiff(
 
 /**
  * @fn double sumSquareDiff(const std::vector<double>& v1, const
- * std::vector<double>& v2)
+ *     std::vector<double>& v2)
  * @brief Sums the square differences between two vectors
  */
 double sumSquareDiff(
     const std::vector<double>& v1, const std::vector<double>& v2);
 }
 }
-// clang-format on
