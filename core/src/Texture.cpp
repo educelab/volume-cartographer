@@ -22,9 +22,9 @@ Texture::Texture(std::string path)
 
     // Check for meta-type
     if (_metadata.get<std::string>("type") != "texture") {
-        std::cerr << "volcart::texture::error: metadata not of type \"texture\""
+        std::cerr << "volcart::texture::error: metadata not of type 'texture'"
                   << std::endl;
-    };
+    }
 
     // To-Do: Load the UV Map
 
@@ -35,7 +35,7 @@ Texture::Texture(std::string path)
             _path.string() + "/" + std::to_string(i_id) + ".png";
         _images.push_back(cv::imread(i_path, -1));
     }
-};
+}
 
 // Add an image
 void Texture::addImage(cv::Mat image)
@@ -46,7 +46,7 @@ void Texture::addImage(cv::Mat image)
     }
     _images.push_back(image);
     _metadata.set<size_t>("number-of-images", _images.size());
-};
+}
 
 // Return the intensity for a Point ID
 double Texture::intensity(int point_ID, int image_ID)
@@ -59,4 +59,4 @@ double Texture::intensity(int point_ID, int image_ID)
     } else {
         return volcart::TEXTURE_NO_VALUE;
     }
-};
+}
