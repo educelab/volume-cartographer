@@ -37,6 +37,8 @@ public:
     /**
      * @brief Initializes a fitted curve and sets the points and a place to
      * start
+     * @param vs List of points where a curve is to be fit
+     * @param zIndex Current location in curve
      */
     FittedCurve(const std::vector<Voxel>& vs, int32_t zIndex);
 
@@ -55,7 +57,10 @@ public:
     /** @brief Returns a vector of points that are evenly spaced*/
     std::vector<Voxel> evenlySpacePoints() { return resample(1.0); }
 
-    /** @brief Returns a vector of points that have been resapmled */
+    /** @brief Returns a vector of points that have been resapmled
+     *  @param resamplePerc Percent of faces to be remaining after resample
+     *                      Default: 1, no faces removed
+     */
     std::vector<Voxel> resample(double resamplePerc = 1.0);
 
     /** @brief Returns a vector with the first numPoints points*/
@@ -64,7 +69,10 @@ public:
     /** @brief Returns the voxel located at index */
     Voxel operator()(int32_t index) const;
 
-    /**@brief Calculates the curvature of the spline  */
+    /**@brief Calculates the curvature of the spline
+     * @param hstep How much to move by each time you move
+     *              Default: 1 point
+     */
     std::vector<double> curvature(int32_t hstep = 1) const;
 
     /**@brief Calculates the archlenght of the curve  */

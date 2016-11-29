@@ -50,7 +50,6 @@ public:
     /**
      * @brief Plane evaluation at t-space value t in [0, 1]
      */
-
     Pixel operator()(Scalar t) const
     {
         assert(t >= 0 && t <= 1 && "t must be in range [0, 1]");

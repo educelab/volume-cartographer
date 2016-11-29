@@ -22,7 +22,13 @@ namespace segmentation
 class IntensityMap
 {
 public:
-    /** @brief Initializes the class and sets parameters */
+    /** @brief Initializes the class and sets parameters
+     * @param stepSize How many points to move by each time you move
+     * @param peakDistanceWeight How much the distance between points
+     *                           should be taken into account
+     * @param shouldIncludeMiddle Whether or not to include points
+     *                            in the middle
+     */
     IntensityMap(
         cv::Mat,
         int32_t stepSize,
@@ -46,7 +52,7 @@ public:
      */
     void setChosenMaximaIndex(int32_t index) { chosenMaximaIndex_ = index; }
 
-    /** @brief Returns the curren Maxima Index*/
+    /** @brief Returns the current Maxima Index*/
     int32_t chosenMaximaIndex() const { return chosenMaximaIndex_; }
 
     /** @brief Increases the Maxima Index by 1 */
@@ -63,7 +69,8 @@ private:
     }
     /** How much you want to move each time you leave an element */
     int32_t stepSize_;
-    /** Greatest Weight Distance */
+    /** How much the distance between two points should be taken
+     * into account */
     int32_t peakDistanceWeight_;
     /** List of Intensities in the Image*/
     cv::Mat_<double> intensities_;
@@ -71,7 +78,7 @@ private:
     cv::Mat_<uint8_t> resliceData_;
     /** Width of the image when it's displayed*/
     int32_t displayWidth_;
-    /** Height of hte image when it's displayed*/
+    /** Height of the image when it's displayed*/
     int32_t displayHeight_;
     /** Where the Intensity map is saved*/
     cv::Mat drawTarget_;
@@ -81,7 +88,7 @@ private:
     int32_t mapWidth_;
     /** Maxima Index*/
     int32_t chosenMaximaIndex_;
-    /** Determines whether or not to include pixel in the middle*/
+    /** Determines whether or not to include pixels in the middle*/
     bool shouldIncludeMiddle_;
     /** Largest radius when searching a neighborhood of pixel*/
     const int32_t peakRadius_ = 5;

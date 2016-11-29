@@ -36,8 +36,10 @@ using Pixel = cv::Vec2d;
 
 /**
  * @fn std::ostream& operator<<(std::ostream& , std::pair<T1,T2> p)
- * @brief Overwrites the output operator to output contents of a pair,Useful for
- * debugging
+ * @brief Overwrites the output operator to output contents of a pair
+ * Useful for debugging
+ * @param s Stream where the output will be sent
+ * @tparam p Pair to be output
  */
 template <typename T1, typename T2>
 std::ostream& operator<<(std::ostream& s, std::pair<T1, T2> p)
@@ -48,6 +50,8 @@ std::ostream& operator<<(std::ostream& s, std::pair<T1, T2> p)
 /**
  * @fn std::ostream& operator<<(std::ostream& s, std::vector<T> v)
  * @brief Overwrites the output operator to output contents of a vector
+ * @param s Stream where the output will be sent
+ * @tparam v Vector to be output
  */
 template <typename T>
 std::ostream& operator<<(std::ostream& s, std::vector<T> v)
@@ -74,6 +78,8 @@ namespace segmentation
  *
  * Combines 2 vectors but pairing one element from the first vector with one
  * element from the second vector.
+ * @tparam v1 First Vector to be combined
+ * @tparam v2 Second Vector to be combined
  */
 template <typename T1, typename T2>
 std::vector<std::pair<T1, T2>> zip(
@@ -96,6 +102,8 @@ std::vector<std::pair<T1, T2>> zip(
  * This is essentially the revese of zip. Takes one vector of pairs and puts the
  * first element of the pair into one vector and the second element of the pair
  * into the other vector.
+ *
+ * @tparam vs Vector to be split into 2
  */
 template <typename T, int32_t Length>
 std::pair<std::vector<T>, std::vector<T>> unzip(
@@ -118,6 +126,7 @@ std::pair<std::vector<T>, std::vector<T>> unzip(
  *        newMin and newMax
  * @param newMin Minimum value of all of the elements of the vector
  * @param newMax Maximum value of all the elements of the vector
+ * @tparam v Vector to be normalized
  */
 template <typename T>
 std::vector<double> normalizeVector(
@@ -160,6 +169,7 @@ std::vector<double> normalizeVector(
  * @fn std::vector<int> normalizeVector(const
  *     std::vector<cv::Vec<T,Len>> vs)
  * @brief Normalizes a vector with no limits on points
+ * @tparam vs Vector to be normalized
  */
 template <typename T, int32_t Len>
 std::vector<cv::Vec<double, Len>> normalizeVector(
@@ -178,10 +188,14 @@ std::vector<cv::Vec<double, Len>> normalizeVector(
 }
 
 // Some useful utility functions for doing math on std::vectors
+/** @name VectorMath*/
+//@{
 /**
  * @fn std::vector<double> squareDiff(const std::vector<Voxel>& v1, const
  *     std::vector<Voxel>& v2)
  * @brief Computes the difference of Squares on two vectors
+ * @param v1 First vector to square
+ * @param v2 Second vector to square
  */
 std::vector<double> squareDiff(
     const std::vector<Voxel>& v1, const std::vector<Voxel>& v2);
@@ -190,8 +204,11 @@ std::vector<double> squareDiff(
  * @fn double sumSquareDiff(const std::vector<double>& v1, const
  *     std::vector<double>& v2)
  * @brief Sums the square differences between two vectors
+ * @param v1 First vector to square
+ * @param v2 Second vector to square
  */
 double sumSquareDiff(
     const std::vector<double>& v1, const std::vector<double>& v2);
+//@}
 }
 }

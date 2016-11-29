@@ -13,7 +13,8 @@ namespace segmentation
 {
 /**
  * @class LocalResliceSegmentation
- * @brief Used to perform segmentation using the Local Reslice approach
+ * @brief Used to perform segmentation using the Local Reslice Particle
+ * Simpulation approach
  *
  * This algorithm performs segmentation by first making sure that all of
  * the points are evenly spaced. It then generates candidate positions for
@@ -39,7 +40,7 @@ public:
      * @param endIndex Last slice to be segmented
      * @param numIters Number of interations to be performed for each slice
      * @param stepNumLayers Number of layers to move each iteration, NOTE TO
-     * SETH: This doesn't match the CPP
+     * SETH: The name of this parameter doesn't match the CPP
      * @param alpha Used to calculate energy
      * @param k1 Used to calculate energy
      * @param k2 Used to calculate energy
@@ -71,11 +72,19 @@ private:
     /** Where the segmentation is stored */
     VolumePkg& pkg_;
 
-    /** @brief Estimates the normals to the Voxels at the current slice  */
+    /** @brief Estimates the normals to the Voxels at the current slice
+     * @param curve Curve whose normals are being estimated
+     * @param index Starting point in the curve
+     */
     cv::Vec3d estimateNormalAtIndex(const FittedCurve& curve, int32_t index);
 
     /** @brief Used for visualization, saves the points to a Mat that can be
-     * displayed */
+     * displayed
+     * @param curve Curve where particles are located
+     * @param sliceIndex Starting Slice
+     * @param particleIndex Starting point on curve
+     * @param showSpline Bool to determine if spline should be displayed
+     */
     cv::Mat drawParticlesOnSlice(
         const FittedCurve& curve,
         int32_t sliceIndex,
