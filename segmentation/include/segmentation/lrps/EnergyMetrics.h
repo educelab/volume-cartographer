@@ -13,7 +13,7 @@ namespace segmentation
  * Use various algorithms and formulas to calculate how particles
  * move through the volume
  *
- * @ingroup Segmentation
+ * @ingroup lrps
  */
 class EnergyMetrics
 {

@@ -8,7 +8,7 @@
 /**
  * @file common.h
  * @brief Defines vector functions that are commonly used in segmentation
- * @ingroup Segmentation
+ * @ingroup lrps
  */
 #define BGR_RED cv::Scalar(0, 0, 0xFF)
 #define BGR_GREEN cv::Scalar(0, 0xFF, 0)

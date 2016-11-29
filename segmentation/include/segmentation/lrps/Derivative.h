@@ -3,7 +3,7 @@
 /** @file derivative.h
  *  @brief A small derivative library that handles calculating derivatives up to
  * second order
- *  @ingroup Segmentation
+ *  @ingroup lrps
  */
 
 #include <array>

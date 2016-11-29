@@ -1,3 +1,4 @@
+/** @file IntensityMap.cpp */
 #include <limits>
 
 #include <opencv2/core.hpp>

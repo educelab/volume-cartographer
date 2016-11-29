@@ -12,7 +12,7 @@ namespace segmentation
 /**
  * @class FittedCurve
  * @brief Creates a curve to fit a set of points
- * @ingroup Segmentation
+ * @ingroup lrps
  */
 class FittedCurve
 {
