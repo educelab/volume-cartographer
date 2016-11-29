@@ -61,24 +61,22 @@ vtkSmartPointer<vtkPolyData> ShapePrimitive::vtkMesh()
     for (unsigned long p_id = 0; p_id < _points.size(); ++p_id) {
 
         // put normals for the current point in an array
-        double ptNorm[3] = {_points[p_id].nx, _points[p_id].ny,
-                            _points[p_id].nz};
+        std::array<double, 3> ptNorm = {_points[p_id].nx, _points[p_id].ny,
+                                        _points[p_id].nz};
 
         // set the point and normal values for each point
         points->InsertPoint(
             p_id, _points[p_id].x, _points[p_id].y, _points[p_id].z);
-        pointNormals->SetTuple(p_id, ptNorm);
+        pointNormals->SetTuple(p_id, ptNorm.data());
     }
 
     // polys
     vtkCellArray* polys = vtkCellArray::New();
-    for (unsigned long c_id = 0; c_id < _cells.size(); ++c_id) {
-
+    for (auto cell : _cells) {
         vtkIdList* poly = vtkIdList::New();
-        poly->InsertNextId(_cells[c_id].v1);
-        poly->InsertNextId(_cells[c_id].v2);
-        poly->InsertNextId(_cells[c_id].v3);
-
+        poly->InsertNextId(cell.v1);
+        poly->InsertNextId(cell.v2);
+        poly->InsertNextId(cell.v3);
         polys->InsertNextCell(poly);
     }
 
@@ -98,8 +96,9 @@ volcart::OrderedPointSet<volcart::Point3d> ShapePrimitive::orderedPoints(
     volcart::OrderedPointSet<volcart::Point3d> output(_orderedWidth);
     std::vector<Point3d> temp_row;
     double offset = 0.0;
-    if (noisify)
+    if (noisify) {
         offset = 5.0;
+    }
     int point_counter = 0;  // This is the worst. // SP
     int width_cnt = 0;
     for (auto p_id : _points) {
@@ -117,8 +116,9 @@ volcart::OrderedPointSet<volcart::Point3d> ShapePrimitive::orderedPoints(
             point[2] = p_id.z + offset;
             point[1] = p_id.z;  // added this to take the points out of the x-z
             // plane to test impact of mls
-        } else
+        } else {
             point[2] = p_id.z;
+        }
         temp_row.push_back(point);
         ++point_counter;
         ++width_cnt;
@@ -174,7 +174,7 @@ volcart::OrderedPointSet<volcart::Point6d> ShapePrimitive::orderedPointNormal()
     }
 
     return output;
-};
+}
 
 volcart::PointSet<volcart::Point6d> ShapePrimitive::unOrderedPointNormal()
 {

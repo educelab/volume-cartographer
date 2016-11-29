@@ -97,4 +97,4 @@ public:
 protected:
     Container _data;
 };
-}
+}  // namespace volcart

@@ -3,11 +3,13 @@
 #include <cassert>
 #include <iostream>
 #include <stdexcept>
+
 #include "core/types/Exceptions.h"
 #include "core/types/PointSet.h"
 
 namespace volcart
 {
+
 template <typename T>
 class OrderedPointSet : public PointSet<T>
 {
@@ -141,4 +143,4 @@ public:
 private:
     size_t _width;
 };
-}
+}  // namespace volcart

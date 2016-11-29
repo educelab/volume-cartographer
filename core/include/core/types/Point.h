@@ -130,15 +130,12 @@ public:
     const T& back() const { return data_.back(); }
 
     // Serialize to bytes
-    char* bytes() { return reinterpret_cast<char*>(data_.data()); }
-    const char* bytes() const
-    {
-        return reinterpret_cast<const char*>(data_.data());
-    }
+    char* bytes() { return static_cast<char*>(data_.data()); }
+    const char* bytes() const { return static_cast<const char*>(data_.data()); }
 
     // Accessors
-    const T& operator[](size_t idx) const { return data_[idx]; }
-    T& operator[](size_t idx) { return data_[idx]; }
+    const T& operator[](size_t idx) const { return data_[idx]; }  // NOLINT
+    T& operator[](size_t idx) { return data_[idx]; }              // NOLINT
 
     size_t size() const { return dim; }
 
@@ -328,4 +325,4 @@ std::ostream& operator<<(std::ostream& s, const Point<T, N>& p)
     }
     return s << p.back();
 }
-}
+}  // namespace volcart
