@@ -5,19 +5,20 @@
 //
 #pragma once
 
-#include <math.h>
+#include <cmath>
+#include <string>
+#include <unordered_map>
 
 #include <opencv2/opencv.hpp>
 
 #include "core/shapes/ShapePrimitive.h"
 #include "core/vc_defines.h"
 
-#include <unordered_map>
-
 namespace volcart
 {
 namespace shapes
 {
+
 class Sphere : public ShapePrimitive
 {
 public:
