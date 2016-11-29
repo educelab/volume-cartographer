@@ -5,12 +5,11 @@
 #include "core/io/PLYReader.h"
 #include <boost/filesystem.hpp>
 
-namespace volcart
-{
-namespace io
-{
+using namespace volcart;
+using namespace volcart::io;
+namespace fs = boost::filesystem;
 
-bool PLYReader(boost::filesystem::path path, ITKMesh::Pointer mesh)
+bool PLYReader(const fs::path& path, const ITKMesh::Pointer& mesh)
 {
     // open ply file
     std::ifstream plyFile(path.string());
@@ -35,12 +34,12 @@ bool PLYReader(boost::filesystem::path path, ITKMesh::Pointer mesh)
         // element and the number of that element that should be in the file
         if (line.find("element") != std::string::npos) {
             size_t lpos = 0;
-            size_t pos = line.find(" ", lpos);
+            size_t pos = line.find(' ', lpos);
 
             while (pos != std::string::npos) {
                 parsed.push_back(line.substr(lpos, pos - lpos));
                 lpos = pos + 1;
-                pos = line.find(" ", pos + 1);
+                pos = line.find(' ', pos + 1);
             }
 
             // pickup the last element
@@ -120,5 +119,3 @@ bool PLYReader(boost::filesystem::path path, ITKMesh::Pointer mesh)
     plyFile.close();
     return true;
 }
-}  // namespace io
-}  // namespace volcart

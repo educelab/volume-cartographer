@@ -7,13 +7,16 @@
 #include <fstream>
 #include <iostream>
 
-#include "boost/filesystem/path.hpp"
+#include <boost/filesystem/path.hpp>
+
 #include "core/vc_defines.h"
 
 namespace volcart
 {
 namespace io
 {
-bool PLYReader(boost::filesystem::path path, ITKMesh::Pointer mesh);
-}
-}
+
+bool PLYReader(
+    const boost::filesystem::path& path, const ITKMesh::Pointer& mesh);
+}  // namespace io
+}  // namespace volcart
