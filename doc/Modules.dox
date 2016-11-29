@@ -15,12 +15,14 @@
 
 /**
 @defgroup lrps Local Reslice Particle Simulation
-@brief Local Reslice Pariticle Simulation Algorithm 
+@brief Files used for the Local Reslice Pariticle Simulation Algorithm 
 @ingroup Segmentation 
 */
 
 /**
-@defgroup  
+@defgroup stps Structure Tensor Particle Simulation 
+@brief Files used for the Structure Tensor Paricle Simulation Algorithm
+@ingroup Segmentation
 */
 
 /**

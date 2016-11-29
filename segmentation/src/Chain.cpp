@@ -1,3 +1,4 @@
+/** @file Chain.cpp*/
 #include "segmentation/stps/Chain.h"
 
 // (doc) Why the parameters that we're giving it?
@@ -150,7 +151,7 @@ cv::Vec3d Chain::gravity(int index)
     return offset * _gravity_scale;
 }
 
-// Convert Chain's _history to an ordered Point Cloud object
+// Convert Chain's _history to an ordered Point Set object
 volcart::OrderedPointSet<cv::Vec3d> Chain::orderedPCD()
 {
     // Allocate space for one row of the output cloud

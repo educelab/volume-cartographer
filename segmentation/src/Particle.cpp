@@ -1,3 +1,4 @@
+/** @file Particle.cpp */
 #include "segmentation/stps/Particle.h"
 
 Particle::Particle(cv::Vec3d position)
