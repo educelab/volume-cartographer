@@ -126,7 +126,7 @@ public:
      * @brief Saves the metadata to a user-specified location.
      * @param filePath Path to output file
      */
-    void saveMetadata(boost::filesystem::path filePath)
+    void saveMetadata(const boost::filesystem::path& filePath)
     {
         config.save(filePath);
     }
@@ -235,7 +235,7 @@ public:
      * active segmentation. To get data from other segmentations, you must first
      * change the active segmentation using this function.
      *
-     * @param id Segmentation ID of desired active segmentation
+     * @param id Segmentation name of desired active segmentation
      */
     void setActiveSegmentation(const std::string& id);
 
@@ -274,10 +274,11 @@ public:
      * @warning Data currently saved in the active segmentation's directory will
      * be overwritten. This function can be called when the VolumePkg read-only
      * flag is not set.
-     * @param ps OrderedPointSet to be saved to the .volpkg file.
+     * @param segmentedCloud OrderedPointSet to be saved to the .volpkg file.
      * @return `EXIT_SUCCESS`
      */
-    int saveCloud(const volcart::OrderedPointSet<volcart::Point3d>& ps) const;
+    int saveCloud(
+        const volcart::OrderedPointSet<volcart::Point3d>& segmentedCloud) const;
     //@}
 
     /** @name Render Data */
@@ -302,7 +303,7 @@ public:
      * @param mesh Mesh to be saved to the .volpkg file.
      * @return `EXIT_SUCCESS`
      */
-    int saveMesh(const volcart::ITKMesh::Pointer ps) const;
+    int saveMesh(const volcart::ITKMesh::Pointer& mesh) const;
 
     /**
      * @brief Saves the provided mesh and texture information active
@@ -319,7 +320,7 @@ public:
      * @see core/types/Texture.h
      */
     void saveMesh(
-        const volcart::ITKMesh::Pointer mesh,
+        const volcart::ITKMesh::Pointer& mesh,
         const volcart::Texture& texture) const;
 
     /**
@@ -355,7 +356,7 @@ public:
      * @param index The index of the desired image in `texture`'s image array
      * [Default: 0]
      */
-    void saveTextureData(volcart::Texture texture, int index = 0)
+    void saveTextureData(const volcart::Texture& texture, int index = 0)
     {
         saveTextureData(texture.getImage(index));
     }

@@ -130,8 +130,11 @@ public:
     const T& back() const { return data_.back(); }
 
     // Serialize to bytes
-    char* bytes() { return static_cast<char*>(data_.data()); }
-    const char* bytes() const { return static_cast<const char*>(data_.data()); }
+    char* bytes() { return reinterpret_cast<char*>(data_.data()); }  // NOLINT
+    const char* bytes() const
+    {
+        return reinterpret_cast<const char*>(data_.data());  // NOLINT
+    }
 
     // Accessors
     const T& operator[](size_t idx) const { return data_[idx]; }  // NOLINT

@@ -31,14 +31,17 @@ public:
         volcart::UVMap uvMap,
         cv::Mat uvImg);
 
-    void setPath(boost::filesystem::path path) { _outputPath = path; };
+    void setPath(boost::filesystem::path path)
+    {
+        _outputPath = std::move(path);
+    }
 
     void setRendering(volcart::Rendering rendering);
 
     // Set pieces individually
-    void setMesh(ITKMesh::Pointer mesh) { _mesh = mesh; };
-    void setUVMap(volcart::UVMap uvMap) { _textCoords = uvMap; };
-    void setTexture(cv::Mat uvImg) { _texture = uvImg; };
+    void setMesh(const ITKMesh::Pointer& mesh) { _mesh = mesh; }
+    void setUVMap(volcart::UVMap uvMap) { _textCoords = std::move(uvMap); }
+    void setTexture(const cv::Mat& uvImg) { _texture = uvImg; }
 
     bool validate();  // make sure all required output parameters have been set
 

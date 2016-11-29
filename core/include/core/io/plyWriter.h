@@ -27,9 +27,12 @@ public:
         ITKMesh::Pointer mesh,
         volcart::Texture texture);
 
-    void setPath(boost::filesystem::path path) { _outputPath = path; };
-    void setMesh(ITKMesh::Pointer mesh) { _mesh = mesh; };
-    void setTexture(volcart::Texture texture) { _texture = texture; };
+    void setPath(boost::filesystem::path path)
+    {
+        _outputPath = std::move(path);
+    }
+    void setMesh(const ITKMesh::Pointer& mesh) { _mesh = mesh; }
+    void setTexture(volcart::Texture texture) { _texture = std::move(texture); }
 
     boost::filesystem::path getPath() const { return _outputPath; }
 

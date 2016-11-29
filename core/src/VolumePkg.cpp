@@ -1,5 +1,7 @@
 /** @file volumepkg.cpp */
 
+#include <iostream>
+
 #include <boost/range/iterator_range.hpp>
 
 #include "core/io/PointSetIO.h"
@@ -30,7 +32,7 @@ VolumePkg::VolumePkg(fs::path file_location, int version)
     config.set("slice location", "/slices/");
 
     // Make directories
-    for (auto d : {root_dir, segs_dir, slice_dir}) {
+    for (const auto& d : {root_dir, segs_dir, slice_dir}) {
         if (!fs::exists(d)) {
             fs::create_directory(d);
         }
@@ -78,10 +80,11 @@ std::string VolumePkg::getPkgName() const
 {
     // Gets the Volume name from the configuration file
     std::string name = config.get<std::string>("volumepkg name");
-    if (name != "NULL")
+    if (name != "NULL") {
         return name;
-    else
+    } else {
         return "UnnamedVolume";
+    }
 }
 
 int VolumePkg::getVersion() const { return config.get<int>("version"); }
@@ -145,10 +148,10 @@ std::vector<std::string> VolumePkg::getSegmentations() const
 }
 
 // Set the private variable activeSeg to the seg we want to work with
-void VolumePkg::setActiveSegmentation(const std::string& name)
+void VolumePkg::setActiveSegmentation(const std::string& id)
 {
     // TODO: Check that this seg actually exists in the volume
-    activeSeg = name;
+    activeSeg = id;
 }
 
 // Return the id of the active segmentation
@@ -190,7 +193,7 @@ int VolumePkg::saveCloud(
     return EXIT_SUCCESS;
 }
 
-int VolumePkg::saveMesh(const volcart::ITKMesh::Pointer mesh) const
+int VolumePkg::saveMesh(const volcart::ITKMesh::Pointer& mesh) const
 {
     fs::path outputName = segs_dir / activeSeg / "cloud.ply";
     // Creates a PLY writer type and then writes the mesh out to the file
@@ -200,7 +203,8 @@ int VolumePkg::saveMesh(const volcart::ITKMesh::Pointer mesh) const
 }
 
 void VolumePkg::saveMesh(
-    const volcart::ITKMesh::Pointer mesh, const volcart::Texture& texture) const
+    const volcart::ITKMesh::Pointer& mesh,
+    const volcart::Texture& texture) const
 {
     // Creates an OBJ writer type and then writes the mesh and the texture out
     // to the file
@@ -217,7 +221,7 @@ void VolumePkg::saveTextureData(const cv::Mat& texture, const std::string& name)
 {
     auto texturePath = segs_dir / activeSeg / (name + ".png");
     cv::imwrite(texturePath.string(), texture);
-    printf("Texture image saved.\n");
+    std::cout << "Texture image saved" << std::endl;
 }
 
 volcart::Metadata VolumePkg::_initConfig(
