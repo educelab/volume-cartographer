@@ -1,10 +1,8 @@
-//
-// Created by Seth Parker on 3/18/16.
-//
-
 #include "core/types/PerPixelMap.h"
+#include "core/types/Exceptions.h"
 
 using namespace volcart;
+namespace fs = boost::filesystem;
 
 ///// Constructors /////
 // Empty Map of width x height
@@ -14,12 +12,11 @@ PerPixelMap::PerPixelMap(int height, int width) : _height(height), _width(width)
 }
 
 // Construct map from file
-PerPixelMap::PerPixelMap(boost::filesystem::path path) { read(path); }
+PerPixelMap::PerPixelMap(fs::path path) { read(path); }
 
 ///// Disk IO /////
-void PerPixelMap::write(boost::filesystem::path path)
+void PerPixelMap::write(fs::path path)
 {
-
     // Ensure proper file extension
     path.replace_extension(".yml.gz");
 
@@ -31,9 +28,8 @@ void PerPixelMap::write(boost::filesystem::path path)
     fs.release();
 }
 
-void PerPixelMap::read(boost::filesystem::path path)
+void PerPixelMap::read(const fs::path& path)
 {
-
     std::cerr << "volcart::PerPixelMap: Reading from file " << path.filename()
               << std::endl;
     cv::FileStorage file(path.string(), cv::FileStorage::READ);
@@ -49,8 +45,9 @@ void PerPixelMap::read(boost::filesystem::path path)
     cv::FileNodeIterator dbl = map["data"].begin();
 
     // Make sure the size is as expected
-    // To-do: Throw exception if they don't match
-    bool matches = map["data"].size() == _height * _width * 6;
+    if (static_cast<int>(map["data"].size()) != _height * _width * 6) {
+        throw IOException("size mismatch");
+    }
 
     for (int y = 0; y < _height; ++y) {
         for (int x = 0; x < _width; ++x) {
