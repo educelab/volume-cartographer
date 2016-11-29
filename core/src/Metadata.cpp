@@ -5,7 +5,7 @@ namespace fs = boost::filesystem;
 using namespace volcart;
 
 // Read a json config from disk
-Metadata::Metadata(const fs::path& file_location) : _path(file_location)
+Metadata::Metadata(fs::path file_location) : _path(file_location)
 {
     // open the file
     if (!fs::exists(file_location)) {
