@@ -12,7 +12,6 @@ namespace shapes
 
 Sphere::Sphere(float /*radius*/, int recursionLevel)
 {
-
     // create 12 vertices of a icosahedron
     double t = (1.0 + sqrt(5.0)) / 2.0;
 
