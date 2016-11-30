@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
     try {
         reader.read();
         mesh = reader.getMesh();
-    } catch (volcart::IOException e) {
+    } catch (std::exception e) {
         std::cerr << e.what() << std::endl;
         exit(-1);
     }

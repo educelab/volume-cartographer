@@ -1,16 +1,7 @@
 #pragma once
 
-#include <cmath>
-#include <cstring>
-#include <fstream>
-#include <iostream>
-#include <tuple>
+#include <boost/filesystem.hpp>
 
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/filesystem/path.hpp>
-
-#include "core/types/Exceptions.h"
 #include "core/vc_defines.h"
 
 /**
@@ -26,7 +17,7 @@
  *
  * @warning If faces aren't set, it will not hard fail but will give an error
  *
- * @ingroup Common
+ * @ingroup Core
  */
 namespace volcart
 {
@@ -99,13 +90,13 @@ private:
     /**
   * List of faces in the mesh, each cell contains
   * 3 vertices that make up that cell
-  * @see common/include/common/vc_defines.h
+  * @see core/include/core/vc_defines.h
   */
     std::vector<volcart::Cell> _faceList;
 
     /**
     * List of points in the mesh
-    * @see common/include/common/vc_defines.h
+    * @see core/include/core/vc_defines.h
     */
     std::vector<volcart::Vertex> _pointList;
 
@@ -157,7 +148,7 @@ private:
 
     /**
      * @brief Reads in each point and stores them as a vertex
-     * @see common/include/common/vc_defines.h
+     * @see core/include/core/vc_defines.h
      */
     void _readPoints();
 };  // PLYReader

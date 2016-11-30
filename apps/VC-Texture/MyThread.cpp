@@ -45,10 +45,10 @@ void MyThread::run()
         try {
             reader.read();
             mesh = reader.getMesh();
-        } catch (volcart::IOException e) {
+        } catch (std::exception e) {
             cloudProblem = true;
             std::cerr << e.what() << std::endl;
-            throw;  // Error
+            throw;
         }
 
         // Calculate sampling density

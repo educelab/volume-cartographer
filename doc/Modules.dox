@@ -14,7 +14,7 @@
 */
 
 /**
-@defgroup Common Common
-@brief Functions that make up the core of Volume Cartographer
+@defgroup Core Core
+@brief Library containing fundamental VC datatypes and operations.
 */ 
 
