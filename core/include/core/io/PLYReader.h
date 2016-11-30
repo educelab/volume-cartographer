@@ -4,151 +4,130 @@
 
 #include "core/vc_defines.h"
 
-/**
- * @class PLYReader.h
- * @author Hannah Hatch
- * @date 10/18/16
- * @brief Reads in a PLY file
- *
- * Reads in a PLY file by first reading in the header and then
- * reads in ther vertices and faces.
- *
- * It also only works for triangular meshes.
- *
- * @warning If faces aren't set, it will not hard fail but will give an error
- *
- * @ingroup Core
- */
 namespace volcart
 {
 namespace io
 {
+
+/**
+ * @class PLYReader
+ * @author Hannah Hatch
+ * @date 10/18/16
+ *
+ * @brief Read a PLY file to an ITKMesh
+ *
+ * Only supports vertices, vertex normals, and faces. Will write a warning to
+ * std::cerr if the PLY file doesn't contain faces.
+ *
+ * @ingroup Core
+ */
 class PLYReader
 {
 public:
+    //** @name Constructors */
+    //@{
     /**
-     * @brief Constructs a reader with no parameters set
-     *
-     * This function creates a reader but does not set the input file.
-     * This must be done before calling read.
+     * @brief Default constructor
      */
     PLYReader() {}
 
     /**
-     * @brief Constructs a reader and sets the parameters
+     * @brief Constructs a reader and initialize the input path parameter
      *
-     * This function creates a reader and and sets the input file.
-     *  These can be changed by calling the appropriate function.
-     * if you are reading in multiple files.
-     *
-     * @param path Path to the file you want to read in, relative or absolute
-     * @param mesh Pointer to an ITK mesh where the data read in will be stored
+     * @param path Path to the file to be read
      */
     PLYReader(boost::filesystem::path path) : _inputPath(path) {}
+    //@}
 
     /**
-     * @brief Sets the input file
-     * @param path Path to the file you want to read in, relative or absolute
+     * @brief Set the input file path
+     * @param path Path to the file to be read
      */
     void setPath(boost::filesystem::path path) { _inputPath = path; }
+
     /**
-     * @brief Sets the output mesh
-     * @param mesh Pointer to an ITK mesh where the data read in will be stored
+     * @brief Get the parsed output as an ITKMesh
      */
     ITKMesh::Pointer getMesh() { return _outMesh; }
 
     /**
-     * @brief Performs the actual reading in of the file
-     *
-     * This function simply calls the functions that read in
-     * the PLY file in the appropriate order so that the vertices
-     * and faces are read in the correct order.
-     *
-     * @warning This function assumes all parameters have been set
+     * @brief Parse the input file
      */
     bool read();
 
 private:
     /**
-     * Path to the file you want to read in, realtive or absolute
+     * Path to the file to be read in, relative or absolute
      */
     boost::filesystem::path _inputPath;
+
     /**
-     * Pointer to the mesh where the data that is read in will be stored
+     * Mesh where the parsed data will be stored
      */
     ITKMesh::Pointer _outMesh;
 
     /**
-     * Stream that is used to read in the file
+     * Input file stream
      */
     std::ifstream _plyFile;
+
     /**
-     * String that represents the line currenly being parsed
+     * Line currently being parsed
      */
     std::string _line;
 
     /**
-  * List of faces in the mesh, each cell contains
-  * 3 vertices that make up that cell
-  * @see core/include/core/vc_defines.h
-  */
+     * Temporary face list
+     */
     std::vector<volcart::Cell> _faceList;
 
     /**
-    * List of points in the mesh
-    * @see core/include/core/vc_defines.h
+    * Temporary vertex list
     */
     std::vector<volcart::Vertex> _pointList;
 
-    /** List of elements that were parsed*/
+    /** List of elements parsed from the header */
     std::vector<std::string> _elementsList;
 
-    /** List of lines to skip for each unchecked element*/
-    std::vector<int> _skippedLine;
-
-    /** Number of vertices in the mesh */
+    /** Number of vertices expected in the parsed mesh */
     int _numOfVertices;
 
-    /** Number of faces in the mesh */
+    /** Number of faces expected in the parsed mesh */
     int _numOfFaces;
 
-    /** Map that maps positions in a string to a particular attribute*/
+    /** Number of lines used by the elements we can't handle */
+    std::vector<int> _skippedLine;
+
+    /** Maps positions in a string to a particular attribute */
     std::map<std::string, int> _properties;
 
-    /** Bool to keep track if the list of faces comes before the list of
-     * vertices*/
-    bool _facesFirst;
-
-    /** Bool to keep track if there is a leading character in front of each face
-     * line telling how many vertices are in that face*/
+    /** Track if there is a leading character in front of each face line telling
+     * how many vertices are in that face */
     bool _leadingChar = true;
 
-    /** Bool to keep track of if there are point normals*/
+    /** Track if there are point normals */
     bool _pointNorm = false;
 
     /**
-     * @brief Creates a mesh based on stored points and faces
-     *
-     * This function creates a mesh using the points and faces
-     * stored in the appropriate vectors that were read in.
+     * @brief Generate a mesh from the temporary vertices and faces
      */
     void _createMesh();
     /**
-     * @brief Parses the header
-     * This function parses the header so that the location of
-     * each element in a line is known. This information is stored
+     * @brief Parse the header
+     *
+     * The header defines the expected layout for the body of the PLY file,
+     * including the count for each element. This information is stored
      * in a map and used when reading in faces and vertices.
      */
     void _parseHeader();
 
     /**
-     * @brief Reads in the faces and creates a list
+     * @brief Fill the temporary face list with parsed face information
      */
     void _readFaces();
 
     /**
-     * @brief Reads in each point and stores them as a vertex
-     * @see core/include/core/vc_defines.h
+     * @brief Fill the temporary vertex list with parsed vertex information
      */
     void _readPoints();
 };  // PLYReader

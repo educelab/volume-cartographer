@@ -14,6 +14,11 @@ using namespace volcart::io;
 
 bool PLYReader::read()
 {
+    if (_inputPath.empty() || !boost::filesystem::exists(_inputPath)) {
+        auto msg = "File not provided or does not exist.";
+        throw volcart::IOException(msg);
+    }
+
     // Resets values of member variables in case of 2nd reading
     _pointList.clear();
     _faceList.clear();
