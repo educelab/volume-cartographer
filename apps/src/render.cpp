@@ -142,13 +142,15 @@ int main(int argc, char* argv[])
     vpkg.setActiveSegmentation(segID);
     fs::path meshName = vpkg.getMeshPath();
 
-    // declare pointer to new Mesh object
-    auto input = ITKMesh::New();
-
     // try to convert the ply to an ITK mesh
-    if (!volcart::io::PLYReader(meshName, input)) {
-        exit(-1);
-    };
+    volcart::io::PLYReader reader(meshName);
+    try {
+        reader.read();
+    } catch (volcart::IOException e) {
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+    auto input = reader.getMesh();
 
     // Calculate sampling density
     double voxelsize = vpkg.getVoxelSize();
