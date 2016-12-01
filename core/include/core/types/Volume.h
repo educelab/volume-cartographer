@@ -245,22 +245,25 @@ public:
 
         Tensor3D<DType> v(2 * rx + 1, 2 * ry + 1, 2 * rz + 1);
         double k = center.z - rz;
-        double j = center.y - ry;
-        double i = center.x - rx;
-        for (int32_t c = 0; c < 2 * rz + 1; ++c, k += 1.0) {
+        for (int c = 0; c < 2 * rz + 1; ++c, k += 1.0) {
             if (k < 0.0f || k > static_cast<double>(numSlices_)) {
                 continue;
             }
-            for (int32_t b = 0; b < 2 * ry + 1; ++b, j += 1.0) {
-                for (int32_t a = 0; a < 2 * rx + 1; ++a, i += 1.0) {
-                    if (i >= 0 && i < sliceWidth_ && j > 0 &&
-                        j < sliceHeight_) {
-                        v(a, b, c) = DType(interpolatedIntensityAt(i, j, k));
-                    }
+
+            double j = center.y - ry;
+            for (int b = 0; b < 2 * ry + 1; ++b, j += 1.0) {
+                if (j < 0.0 || j > static_cast<double>(sliceHeight_)) {
+                    continue;
                 }
-                i = center.x - rx;
+
+                double i = center.x - rx;
+                for (int a = 0; a < 2 * rx + 1; ++a, i += 1.0) {
+                    if (i < 0.0 || i > static_cast<double>(sliceWidth_)) {
+                        continue;
+                    }
+                    v(a, b, c) = DType(interpolatedIntensityAt(i, j, k));
+                }
             }
-            j = center.y - ry;
         }
 
         return v;
