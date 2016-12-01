@@ -20,12 +20,18 @@ namespace io
 class plyWriter
 {
 public:
-    plyWriter(){};
-    plyWriter(boost::filesystem::path outputPath, ITKMesh::Pointer mesh);
+    plyWriter() {}
+    plyWriter(boost::filesystem::path outputPath, ITKMesh::Pointer mesh)
+        : _outputPath(outputPath), _mesh(mesh)
+    {
+    }
     plyWriter(
         boost::filesystem::path outputPath,
         ITKMesh::Pointer mesh,
-        volcart::Texture texture);
+        volcart::Texture texture)
+        : _outputPath(outputPath), _mesh(mesh), _texture(texture)
+    {
+    }
 
     void setPath(boost::filesystem::path path)
     {

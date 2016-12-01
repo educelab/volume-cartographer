@@ -210,7 +210,7 @@ void HalfEdgeMesh::_computeBoundary()
     }
 }
 
-HalfEdgeMesh::EdgePtr HalfEdgeMesh::prevBoundaryEdge(EdgePtr e)
+HalfEdgeMesh::EdgePtr HalfEdgeMesh::prevBoundaryEdge(const EdgePtr& e)
 {
     HalfEdgeMesh::EdgePtr we = e, last;
 
@@ -224,9 +224,9 @@ HalfEdgeMesh::EdgePtr HalfEdgeMesh::prevBoundaryEdge(EdgePtr e)
 
 ///// Math Functions /////
 // Returns the angle between ab and ac
-double HalfEdgeMesh::_angle(cv::Vec3d A, cv::Vec3d B, cv::Vec3d C)
+double HalfEdgeMesh::_angle(
+    const cv::Vec3d& A, const cv::Vec3d& B, const cv::Vec3d& C)
 {
-
     cv::Vec3d vec_1 = B - A;
     cv::Vec3d vec_2 = C - A;
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <fstream>
+
 #include <boost/filesystem/path.hpp>
 
 #include "core/vc_defines.h"
@@ -36,14 +38,14 @@ public:
      *
      * @param path Path to the file to be read
      */
-    PLYReader(boost::filesystem::path path) : _inputPath(path) {}
+    PLYReader(boost::filesystem::path path) : _inputPath(std::move(path)) {}
     //@}
 
     /**
      * @brief Set the input file path
      * @param path Path to the file to be read
      */
-    void setPath(boost::filesystem::path path) { _inputPath = path; }
+    void setPath(boost::filesystem::path path) { _inputPath = std::move(path); }
 
     /**
      * @brief Get the parsed output as an ITKMesh

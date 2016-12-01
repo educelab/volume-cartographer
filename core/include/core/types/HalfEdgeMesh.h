@@ -66,13 +66,13 @@ public:
 
     // Topology traversal
     // The wheel is the set of edges that surround a single vertex
-    EdgePtr nextWheelEdge(EdgePtr e) { return e->next->next->pair; }
-    EdgePtr prevWheelEdge(EdgePtr e)
+    EdgePtr nextWheelEdge(const EdgePtr& e) { return e->next->next->pair; }
+    EdgePtr prevWheelEdge(const EdgePtr& e)
     {
         return (e->pair) ? e->pair->next : nullptr;
     }
-    EdgePtr nextBoundaryEdge(EdgePtr e) { return e->next->vert->edge; }
-    EdgePtr prevBoundaryEdge(EdgePtr e);
+    EdgePtr nextBoundaryEdge(const EdgePtr& e) { return e->next->vert->edge; }
+    EdgePtr prevBoundaryEdge(const EdgePtr& e);
 
     class Angle
     {
@@ -192,6 +192,6 @@ private:
     void _computeBoundary();
 
     ///// Math functions /////
-    double _angle(cv::Vec3d A, cv::Vec3d B, cv::Vec3d C);
+    double _angle(const cv::Vec3d& A, const cv::Vec3d& B, const cv::Vec3d& C);
 };
 }  // namespace volcart

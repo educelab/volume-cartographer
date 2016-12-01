@@ -4,6 +4,7 @@
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/filesystem/operations.hpp>
 
 #include "core/types/Exceptions.h"
 
@@ -11,10 +12,11 @@ using Props = std::pair<char, int>;
 
 using namespace volcart;
 using namespace volcart::io;
+namespace fs = boost::filesystem;
 
 bool PLYReader::read()
 {
-    if (_inputPath.empty() || !boost::filesystem::exists(_inputPath)) {
+    if (_inputPath.empty() || !fs::exists(_inputPath)) {
         auto msg = "File not provided or does not exist.";
         throw volcart::IOException(msg);
     }

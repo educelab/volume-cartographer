@@ -36,7 +36,7 @@ public:
         _outputPath = std::move(path);
     }
 
-    void setRendering(volcart::Rendering rendering);
+    void setRendering(const volcart::Rendering& rendering);
 
     // Set pieces individually
     void setMesh(const ITKMesh::Pointer& mesh) { _mesh = mesh; }

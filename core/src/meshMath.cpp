@@ -11,7 +11,7 @@ namespace meshMath
 // Calculate the surface area of the mesh using Heron's formula
 // Use the version that is stable for small angles from
 // "Miscalculating Area and Angles of a Needle-like Triangle" by Kahan
-double SurfaceArea(const ITKMesh::Pointer input)
+double SurfaceArea(const ITKMesh::Pointer& input)
 {
     double surface_area = 0;
 
