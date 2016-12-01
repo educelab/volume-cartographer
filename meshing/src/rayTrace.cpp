@@ -3,10 +3,13 @@
 //
 /**@file rayTrace.cpp */
 #include "meshing/rayTrace.h"
+
 #include <cstdio>
+
 #include <vtkOBBTree.h>
 #include <vtkPolyDataNormals.h>
 #include <vtkSmartPointer.h>
+
 #include "meshing/itk2vtk.h"
 
 // Parameters used to create cylindrical ray tracing
@@ -21,10 +24,10 @@ namespace meshing
 // returns a vector of vectors that holds the points of intersections and the
 // corresponding normals
 std::vector<cv::Vec6f> rayTrace(
-    ITKMesh::Pointer itkMesh,
+    const ITKMesh::Pointer& itkMesh,
     int aTraceDir,
-    int width,
-    int height,
+    int /*width*/,
+    int /*height*/,
     std::map<int, cv::Vec2d> uvMap)
 {
 
@@ -38,10 +41,6 @@ std::vector<cv::Vec6f> rayTrace(
     // Get the bounds of the mesh
     double bounds[6];
     vtkMesh->GetBounds(bounds);
-
-    // Set ray width and height, used for texturing
-    height = (int)(bounds[5] - bounds[4]);
-    width = OUT_X;
 
     // Generate normals for the cells of the mesh
     vtkSmartPointer<vtkPolyDataNormals> calcNormals =
@@ -108,16 +107,16 @@ std::vector<cv::Vec6f> rayTrace(
 
             if (intersectPoints->GetNumberOfPoints() > 0) {
                 cv::Vec6f point;
-                point[0] = intersectPoints->GetPoint(0)[0];
-                point[1] = intersectPoints->GetPoint(0)[1];
-                point[2] = intersectPoints->GetPoint(0)[2];
-                point[3] = vtkMesh->GetCellData()->GetNormals()->GetTuple(
-                    intersectCells->GetId(0))[0];
-                point[4] = vtkMesh->GetCellData()->GetNormals()->GetTuple(
-                    intersectCells->GetId(0))[1];
-                point[5] = vtkMesh->GetCellData()->GetNormals()->GetTuple(
-                    intersectCells->GetId(0))[2];
-                intersections.push_back(point);
+                auto obbPoint = intersectPoints->GetPoint(0);
+                point[0] = obbPoint[0];
+                point[1] = obbPoint[1];
+                point[2] = obbPoint[2];
+
+                auto id = intersectCells->GetId(0);
+                auto tuple = vtkMesh->GetCellData()->GetNormals()->GetTuple(id);
+                point[3] = tuple[0];
+                point[4] = tuple[1];
+                point[5] = tuple[2];
 
                 // Add the uv coordinates into our map at the point index
                 // specified

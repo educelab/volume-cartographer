@@ -13,8 +13,9 @@ using namespace volcart::meshing;
 void OrderedPointSetMesher::compute()
 {
     // Verify before computation
-    if (input_.empty())
+    if (input_.empty()) {
         throw std::invalid_argument("Attempted to mesh empty point set.");
+    }
 
     // Create a clean output mesh
     output_ = ITKMesh::New();

@@ -23,7 +23,8 @@ QuadricEdgeCollapseDecimation::QuadricEdgeCollapseDecimation(
 }
 
 ///// Set inputs & params /////
-void QuadricEdgeCollapseDecimation::setMesh(volcart::ITKMesh::Pointer mesh)
+void QuadricEdgeCollapseDecimation::setMesh(
+    const volcart::ITKMesh::Pointer& mesh)
 {
     itkInput_ = mesh;
 }
@@ -75,13 +76,13 @@ volcart::ITKMesh::Pointer QuadricEdgeCollapseDecimation::getMesh()
 
     // Takes vcg vertices and stores their coordinates into an itk point and
     // adds it to itk mesh
-    for (auto vi = vcgInput_.vert.begin(); vi != vcgInput_.vert.end(); vi++) {
-        vp = &(*vi);
+    for (auto v : vcgInput_.vert) {
+        vp = &v;
         indices[vp] = j;
-        if (!vi->IsD()) {
-            point[0] = vi->P()[0];
-            point[1] = vi->P()[1];
-            point[2] = vi->P()[2];
+        if (!v.IsD()) {
+            point[0] = v.P()[0];
+            point[1] = v.P()[1];
+            point[2] = v.P()[2];
 
             outputMesh_->SetPoint(j, point);
             j++;
@@ -92,13 +93,13 @@ volcart::ITKMesh::Pointer QuadricEdgeCollapseDecimation::getMesh()
     // itk mesh
     unsigned long cellID = 0;
     volcart::ITKCell::CellAutoPointer newCell;
-    for (auto fi = vcgInput_.face.begin(); fi != vcgInput_.face.end(); fi++) {
-        if (!fi->IsD()) {
+    for (auto f : vcgInput_.face) {
+        if (!f.IsD()) {
             newCell.TakeOwnership(new ITKTriangle);
 
-            auto point1 = indices[fi->V(0)];
-            auto point2 = indices[fi->V(1)];
-            auto point3 = indices[fi->V(2)];
+            auto point1 = indices[f.V(0)];
+            auto point2 = indices[f.V(1)];
+            auto point3 = indices[f.V(2)];
 
             newCell->SetPointId(0, point1);
             newCell->SetPointId(1, point2);
@@ -128,7 +129,7 @@ void QuadricEdgeCollapseDecimation::convertMeshtoVCG_()
 
     // Iterates over the cells in the itk mesh and the points within those cells
     // to create cells for the vcg mesh
-    VcgMesh::FaceIterator fi = vcg::tri::Allocator<VcgMesh>::AddFaces(
+    auto fi = vcg::tri::Allocator<VcgMesh>::AddFaces(
         vcgInput_, itkInput_.GetPointer()->GetNumberOfCells());
     for (auto c_It = itkInput_->GetCells()->Begin();
          c_It != itkInput_->GetCells()->End(); c_It++) {

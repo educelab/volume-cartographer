@@ -36,14 +36,17 @@ class OrderedResampling
 public:
     /** @name Constructors */
     //@{
-    OrderedResampling();
+    OrderedResampling() : _inWidth{0}, _inHeight{0} {}
 
     /**
      * @param mesh Mesh to be resampled
      * @param in_width Width of the ordering matrix
      * @param in_height Height of the ordering matrix
      */
-    OrderedResampling(ITKMesh::Pointer mesh, int in_width, int in_height);
+    OrderedResampling(ITKMesh::Pointer mesh, int in_width, int in_height)
+        : _input{mesh}, _inWidth{in_width}, _inHeight{in_height}
+    {
+    }
     //@}
 
     /** @name Input/Output */
@@ -58,7 +61,7 @@ public:
      * @param in_width Width of the ordering matrix
      * @param in_height Height of the ordering matrix
      */
-    void setMesh(ITKMesh::Pointer mesh, int in_width, int in_height);
+    void setMesh(const ITKMesh::Pointer& mesh, int in_width, int in_height);
 
     /**
      * @brief Get the resampled mesh.

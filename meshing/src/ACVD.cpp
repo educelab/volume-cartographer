@@ -22,6 +22,7 @@ namespace volcart
 {
 namespace meshing
 {
+
 void ACVD(
     vtkPolyData* inputMesh,
     vtkPolyData* outputMesh,
@@ -59,27 +60,24 @@ void ACVD(
 
         int Cluster, NumberOfMisclassedItems = 0;
 
-        double** ClustersQuadrics = new double*[numberOfSamples];
-        for (int i = 0; i < numberOfSamples; i++) {
-            ClustersQuadrics[i] = new double[9];
-            for (int j = 0; j < 9; j++) {
-                ClustersQuadrics[i][j] = 0;
-            }
-        }
+        std::vector<std::array<double, 9>> ClustersQuadrics(
+            numberOfSamples, {0});
+
         vtkIdList* FList = vtkIdList::New();
         for (int i = 0; i < Remesh->GetNumberOfItems(); i++) {
             Cluster = Clustering->GetValue(i);
             if ((Cluster >= 0) && (Cluster < numberOfSamples)) {
                 if (Remesh->GetClusteringType() == 0) {
                     vtkQuadricTools::AddTriangleQuadric(
-                        ClustersQuadrics[Cluster], Remesh->GetInput(), i,
+                        ClustersQuadrics[Cluster].data(), Remesh->GetInput(), i,
                         false);
                 } else {
                     Remesh->GetInput()->GetVertexNeighbourFaces(i, FList);
-                    for (int j = 0; j < FList->GetNumberOfIds(); j++)
+                    for (int j = 0; j < FList->GetNumberOfIds(); j++) {
                         vtkQuadricTools::AddTriangleQuadric(
-                            ClustersQuadrics[Cluster], Remesh->GetInput(),
-                            FList->GetId(j), false);
+                            ClustersQuadrics[Cluster].data(),
+                            Remesh->GetInput(), FList->GetId(j), false);
+                    }
                 }
             } else {
                 NumberOfMisclassedItems++;
@@ -87,7 +85,7 @@ void ACVD(
         }
         FList->Delete();
 
-        if (NumberOfMisclassedItems) {
+        if (NumberOfMisclassedItems == 0) {
             std::cout << NumberOfMisclassedItems
                       << " Items with wrong cluster association" << std::endl;
         }
@@ -96,11 +94,9 @@ void ACVD(
         for (int i = 0; i < numberOfSamples; i++) {
             Remesh->GetOutput()->GetPoint(i, P);
             vtkQuadricTools::ComputeRepresentativePoint(
-                ClustersQuadrics[i], P, QuadricsOptimizationLevel);
+                ClustersQuadrics[i].data(), P, QuadricsOptimizationLevel);
             Remesh->GetOutput()->SetPointCoordinates(i, P);
-            delete[] ClustersQuadrics[i];
         }
-        delete[] ClustersQuadrics;
 
         Mesh->GetPoints()->Modified();
 

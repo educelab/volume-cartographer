@@ -9,7 +9,7 @@ namespace volcart
 namespace meshing
 {
 
-ITKMesh::Pointer smoothNormals(ITKMesh::Pointer input, double radius)
+ITKMesh::Pointer smoothNormals(const ITKMesh::Pointer& input, double radius)
 {
 
     std::cerr << "volcart::meshing::smoothNormals: radius " << radius
@@ -35,8 +35,9 @@ ITKMesh::Pointer smoothNormals(ITKMesh::Pointer input, double radius)
                   << input->GetNumberOfPoints() - 1 << "\r" << std::flush;
 
         // Empty our averaging variables
-        if (!neighborhood.empty())
+        if (!neighborhood.empty()) {
             neighborhood.clear();
+        }
         neighborCount = 0;
         neighborAvg = cv::Vec3d(0, 0, 0);
 
@@ -53,10 +54,9 @@ ITKMesh::Pointer smoothNormals(ITKMesh::Pointer input, double radius)
             point->Value(), radius, neighborhood);
 
         // Sum the normals of the neighbors
-        for (auto n_pt = neighborhood.begin(); n_pt != neighborhood.end();
-             ++n_pt) {
+        for (auto pt : neighborhood) {
             ITKPixel neighborNormal;
-            input->GetPointData(*n_pt, &neighborNormal);
+            input->GetPointData(pt, &neighborNormal);
 
             neighborAvg[0] += neighborNormal[0];
             neighborAvg[1] += neighborNormal[1];
