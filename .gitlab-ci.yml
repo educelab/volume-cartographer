@@ -107,6 +107,8 @@ lint:clang-format:
 lint:clang-tidy:
     before_script:
       - git fetch --all
+      - mkdir build && cd build
+      - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -GNinja -DVC_PREBUILT_LIBS=on -DVC_USE_BULLET=on -DVC_USE_ACVD=on -DVC_USE_VCG=on --DVC_USE_LIBIGL=on ..
     stage: test
     script:
         - echo $CI_BUILD_REF_NAME $CI_BUILD_STAGE
@@ -114,7 +116,6 @@ lint:clang-tidy:
     allow_failure: yes
     tags:
         - source
-
 
 ### Documentation ###
 doxygen:html:
