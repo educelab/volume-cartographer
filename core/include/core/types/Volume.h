@@ -244,22 +244,23 @@ public:
             "center must be inside volume");
 
         Tensor3D<DType> v(2 * rx + 1, 2 * ry + 1, 2 * rz + 1);
-        double i, j, k;
-        int32_t a, b, c;
-        for (k = center.z - rz, c = 0; k <= center.z + rz; k += 1.0f, ++c) {
-            // If k index is out of bounds, then keep it at zeros and go on
-            if (k < 0 || k >= numSlices_) {
+        double k = center.z - rz;
+        double j = center.y - ry;
+        double i = center.x - rx;
+        for (int32_t c = 0; c < 2 * rz + 1; ++c, k += 1.0) {
+            if (k < 0.0f || k > static_cast<double>(numSlices_)) {
                 continue;
             }
-            for (j = center.y - ry, b = 0; j <= center.y + ry; j += 1.0f, ++b) {
-                for (i = center.x - rx, a = 0; i <= center.x + rx;
-                     i += 1.0f, ++a) {
-                    if (i >= 0 && j >= 0 && i < sliceWidth_ &&
+            for (int32_t b = 0; b < 2 * ry + 1; ++b, j += 1.0) {
+                for (int32_t a = 0; a < 2 * rx + 1; ++a, i += 1.0) {
+                    if (i >= 0 && i < sliceWidth_ && j > 0 &&
                         j < sliceHeight_) {
                         v(a, b, c) = DType(interpolatedIntensityAt(i, j, k));
                     }
                 }
+                i = center.x - rx;
             }
+            j = center.y - ry;
         }
 
         return v;
