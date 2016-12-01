@@ -2,11 +2,24 @@ Volume Cartographer Changelog
 =============================
 v2.8.0
 ------
+- all
+    - Project now uses C++14 (!112)
+- apps
+    - (VC-Texture) Warn the user if changing segmentations/VolPkgs will result
+    in data loss. We won't let you save your changes, but we definitely won't
+    let you lose them, either (!106)
+    - (VC-Texture) Disable menu options while generating a texture image (!102)
 - core
     - Rename vc_common library to vc_core (!119)
     - Fix bug that wouldn't let you overwrite values in a UV Map (!108)
+    - Various little bug fixes related to texturing tasks (!111)
+    - VolumePkg now only depends on vc_core (!113, !115)
+    - (VolumePkg) Why did we have an initialize() function in the first place?
+    (!114)
 - docs
     - Added Doxygen documentation framework and examples (!100)
+- meshing
+    - Add Doxygen documentation (!109)
 - texturing
     - Improvements (not fixes, unfortunately) to ABF parameterization (!107)
 - volumepkg

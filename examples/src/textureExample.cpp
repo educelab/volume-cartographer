@@ -21,9 +21,14 @@ int main(int argc, char* argv[])
     auto inputMesh = volcart::ITKMesh::New();
 
     // try to convert the ply to an ITK mesh
-    if (!volcart::io::PLYReader(vpkg.getMeshPath(), inputMesh)) {
+    volcart::io::PLYReader reader(vpkg.getMeshPath());
+    try {
+        reader.read();
+        inputMesh = reader.getMesh();
+    } catch (std::exception e) {
+        std::cerr << e.what() << std::endl;
         exit(EXIT_SUCCESS);
-    };
+    }
 
     int width = 608 * 2;
     int height = 370 * 2;

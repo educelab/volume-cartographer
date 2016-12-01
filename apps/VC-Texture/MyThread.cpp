@@ -41,10 +41,15 @@ void MyThread::run()
         auto mesh = volcart::ITKMesh::New();
 
         // try to convert the ply to an ITK mesh
-        if (!volcart::io::PLYReader(meshName, mesh)) {
+        volcart::io::PLYReader reader(meshName);
+        try {
+            reader.read();
+            mesh = reader.getMesh();
+        } catch (std::exception e) {
             cloudProblem = true;
-            throw(__EXCEPTIONS);  // Error
-        };
+            std::cerr << e.what() << std::endl;
+            throw;
+        }
 
         // Calculate sampling density
         double voxelsize = _globals->getVolPkg()->getVoxelSize();
