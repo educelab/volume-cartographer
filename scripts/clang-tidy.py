@@ -55,10 +55,10 @@ class ClangTidier:
         logging.debug('cmd: {}'.format(' '.join(cmd)))
         tidy_out = common.callo(cmd, stderr=subprocess.DEVNULL)
 
-        if print_output:
+        # Only print if requested and if there's output
+        if print_output and tidy_out:
             print(tidy_out)
 
-        print(not tidy_out)
         return not tidy_out
 
     def blacklisted_file(self, source_file: str) -> bool:

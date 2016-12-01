@@ -16,16 +16,16 @@ program_name = 'clang-format'
 
 class ClangFormatter:
     def __init__(self, path_to_cf: str) -> None:
-        self.exepath = path_to_cf
+        self.path = path_to_cf
         self.toplevel = common.callo('git rev-parse --show-toplevel')
 
     def __str__(self):
-        return self.exepath
+        return self.path
 
     @property
     def version(self) -> LooseVersion:
         return LooseVersion(
-            common.callo(' '.join([self.exepath, '--version'])).split()[2]
+            common.callo(' '.join([self.path, '--version'])).split()[2]
         )
 
     # Lint a given file - return whether or not the file is formatted correctly
