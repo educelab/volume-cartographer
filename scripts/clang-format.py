@@ -11,15 +11,13 @@ from distutils.version import LooseVersion
 import common
 
 # The version we care about
-MIN_VERSION_REQUIRED = LooseVersion('3.8.0')
-
-# Name of clang-format as a binary
-PROGNAME = 'clang-format'
+program_name = 'clang-format'
 
 
 class ClangFormatter:
     def __init__(self, path_to_cf: str) -> None:
         self.exepath = path_to_cf
+        self.toplevel = common.callo('git rev-parse --show-toplevel')
 
     def __str__(self):
         return self.exepath
@@ -30,29 +28,25 @@ class ClangFormatter:
             common.callo(' '.join([self.exepath, '--version'])).split()[2]
         )
 
-    # Format a given source_file
-    def format(self, source_file: str) -> str:
-        cmd = ' '.join([self.exepath, '--style=file', source_file])
-        return common.callo(cmd)
-
     # Lint a given file - return whether or not the file is formatted correctly
     def lint(self, source_file: str, show_diff: bool=True) -> bool:
+        '''
+        Lint `source_file` with clang-format, optionally showing the diff.
+        '''
+        # Get original and formatted text
         with open(source_file, 'r', errors='ignore') as original_file:
             original_text = original_file.read()
-
-        original_lines = original_text.splitlines()
-        formatted_lines = self.format(source_file).splitlines()
+        formatted_text = common.callo([self.path, '--style=file', source_file])
 
         # Create some nice git-like metadata for the diff
-        base_git_dir = common.callo('git rev-parse --show-toplevel')
-        relpath = os.path.relpath(source_file, base_git_dir)
+        relpath = os.path.relpath(source_file, self.toplevel)
         fromfile = os.path.join('a', relpath)
         tofile = os.path.join('b', relpath)
 
         diff = list(
             difflib.unified_diff(
-                original_lines,
-                formatted_lines,
+                original_text.splitlines(),
+                formatted_text.splitlines(),
                 fromfile=fromfile,
                 tofile=tofile
             )
@@ -75,14 +69,6 @@ class ClangFormatter:
 
 
 if __name__ == '__main__':
-    # Set up some logging
-    logging.basicConfig(
-        stream=sys.stdout,
-        level=logging.DEBUG,
-        format='%(asctime)s %(name)s %(levelname)s %(message)s',
-        datefmt='%m-%d %H:%M',
-    )
-
     parser = argparse.ArgumentParser('clang-format')
     parser.add_argument(
         '-c',
@@ -97,16 +83,32 @@ if __name__ == '__main__':
         default=False,
         action='store_true',
     )
+    parser.add_argument(
+        '-v',
+        '--verbose',
+        help='Increase logging',
+        default=False,
+        action='store_true',
+    )
     args = parser.parse_args()
+
+    # Set up some logging
+    level = logging.INFO if not args.verbose else logging.DEBUG
+    logging.basicConfig(
+        stream=sys.stdout,
+        level=level,
+        format='%(asctime)s %(name)s %(levelname)s %(message)s',
+        datefmt='%m-%d %H:%M',
+    )
     show_diff = not args.no_diff
 
     # Find clang-format, validate version
-    path_to_cf = common.find_binary(args.path, PROGNAME)
+    path_to_cf = common.find_binary(program_name, args.path)
     cf = ClangFormatter(path_to_cf)
-    if cf.version < MIN_VERSION_REQUIRED:
+    if cf.version < common.MIN_VERSION_REQUIRED:
         logging.error(
-            '''Incorrect version of {}: got {} but at least {} is required'''
-            .format(PROGNAME, cf.version, MIN_VERSION_REQUIRED)
+            'Incorrect version of {}: got {} but at least {} is required'
+            .format(program_name, cf.version, common.MIN_VERSION_REQUIRED)
         )
         sys.exit(1)
 

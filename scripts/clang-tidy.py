@@ -3,18 +3,29 @@
 import argparse
 import logging
 import os
+import subprocess
 import sys
 from distutils.version import LooseVersion
+from fnmatch import fnmatch
 
 import common
 
-MIN_VERSION_REQUIRED = LooseVersion('3.8.0')
-PROGNAME = 'clang-tidy'
+program_name = 'clang-tidy'
 
 
 class ClangTidier:
+    # Blacklist certain files - tests, examples, etc. List entries should be in
+    # the style of unix globs, e.g. *.cpp matches all files in the current dir
+    # ending in .cpp
+    BLACKLIST = [
+        '*/test/*',
+        'examples/*',
+        'external/*',
+    ]
+
     def __init__(self, path: str, build_dir: str) -> None:
         self.path = path
+        self.toplevel = common.callo('git rev-parse --show-toplevel')
         self.build_dir = build_dir
 
     def __str__(self):
@@ -29,8 +40,12 @@ class ClangTidier:
         '''
         Lints a given C++ `source_file` (as in ending in .cpp) with clang-tidy.
         '''
-        base_dir = common.callo('git rev-parse --show-toplevel')
-        compile_commands_dir = os.path.join(base_dir, self.build_dir)
+        # Check if source_file is blacklisted from checks
+        if self.blacklisted_file(source_file):
+            logging.debug('Skipping {}, blacklisted'.format(source_file))
+            return True
+
+        compile_commands_dir = os.path.join(self.toplevel, self.build_dir)
         cmd = [
             self.path,
             '-p={}'.format(compile_commands_dir),
@@ -38,23 +53,22 @@ class ClangTidier:
             source_file,
         ]
         logging.debug('cmd: {}'.format(' '.join(cmd)))
-        tidy_out = common.callo(cmd)
+        tidy_out = common.callo(cmd, stderr=subprocess.DEVNULL)
 
         if print_output:
             print(tidy_out)
 
+        print(not tidy_out)
         return not tidy_out
+
+    def blacklisted_file(self, source_file: str) -> bool:
+        '''
+        Checks whether `source_file` is blacklisted from clang-tidy checks.
+        '''
+        return any(fnmatch(source_file, pattern) for pattern in self.BLACKLIST)
 
 
 if __name__ == '__main__':
-    # Set up some logging
-    logging.basicConfig(
-        stream=sys.stdout,
-        level=logging.INFO,
-        format='%(asctime)s %(name)s %(levelname)s %(message)s',
-        datefmt='%m-%d %H:%M',
-    )
-
     parser = argparse.ArgumentParser('clang-tidy')
     parser.add_argument(
         '-c',
@@ -76,15 +90,31 @@ if __name__ == '__main__':
         metavar='DIR',
         help='Build dir containing compile_commands.json',
     )
+    parser.add_argument(
+        '-v',
+        '--verbose',
+        default=False,
+        action='store_true',
+        help='Print debug log statements',
+    )
     args = parser.parse_args()
 
+    # Set up some logging
+    level = logging.INFO if not args.verbose else logging.DEBUG
+    logging.basicConfig(
+        stream=sys.stdout,
+        level=level,
+        format='%(asctime)s %(name)s %(levelname)s %(message)s',
+        datefmt='%m-%d %H:%M',
+    )
+
     # Find clang-tidy, validate version
-    path_to_ct = common.find_binary(args.path, PROGNAME)
+    path_to_ct = common.find_binary(program_name, args.path)
     ct = ClangTidier(path_to_ct, args.build_dir)
-    if ct.version < MIN_VERSION_REQUIRED:
+    if ct.version < common.MIN_VERSION_REQUIRED:
         logging.error(
-            '''Incorrect version of {}: got {} but at least {} is required'''
-            .format(PROGNAME, ct.version, MIN_VERSION_REQUIRED)
+            'Incorrect version of {}: got {} but at least {} is required'
+            .format(program_name, ct.version, common.MIN_VERSION_REQUIRED)
         )
         sys.exit(1)
 

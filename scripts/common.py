@@ -1,33 +1,43 @@
 import logging
 import os
 import shutil
+import shlex
 import subprocess
 import sys
 import re
 import tarfile
 import tempfile
 import urllib.request
-
-from typing import Iterator, List, Pattern, Union
+from distutils.version import LooseVersion
+from typing import Any, Dict, Iterator, List, Pattern, Union
 
 # URL location of the 'cached' copy of clang-format to download
 # for users which do not have clang-format installed
 HTTP_LINUX_URL = 'http://llvm.org/releases/3.9.0/clang+llvm-3.9.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz'
 HTTP_DARWIN_URL = 'http://llvm.org/releases/3.9.0/clang+llvm-3.9.0-x86_64-apple-darwin.tar.xz'
+
 # Path to extract clang-format to in source tree
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 EXTRACT_DIR = os.path.join(BASE_DIR, 'bin')
 
+# Minimum required clang-tools version
+MIN_VERSION_REQUIRED = LooseVersion('3.8.0')
 
-def callo(cmd: Union[List[str], str]) -> str:
+
+class MissingBinaryException(Exception):
+    '''
+    Exception specifying that a binary could not be found.
+    '''
+    pass
+
+
+def callo(cmd: Union[List[str], str], **kwargs: Any) -> str:
     '''
     shell-out, returns stdout
     '''
-    if isinstance(cmd, str):
-        cmd = cmd.split()
-    return subprocess.check_output(
-        cmd, stderr=subprocess.DEVNULL
-    ).decode('utf-8').strip()
+    cmd = shlex.split(cmd) if isinstance(cmd, str) else cmd
+    logging.debug('Running: {}'.format(' '.join(cmd)))
+    return subprocess.check_output(cmd, **kwargs).decode('utf-8').strip()
 
 
 def changed_files(filter_regex: str=r'') -> List[str]:
@@ -89,7 +99,7 @@ def executable(path: str) -> bool:
     if not os.path.isfile(path):
         return False
     try:
-        callo('{} -h'.format(path))
+        callo('{} --help'.format(path))
     except subprocess.CalledProcessError:
         return False
     return True
@@ -106,25 +116,10 @@ def find_binary(binary: str, init_path: str=None) -> str:
     if init_path:
         return init_path
 
-    # Check for the previously-extracted clang-format and make sure it's
-    # executable
-    prev_extracted = os.path.join(EXTRACT_DIR, binary)
-    if executable(prev_extracted):
-        return prev_extracted
-
     # Check system PATH
     try:
         return callo('which {}'.format(binary))
     except subprocess.CalledProcessError:
-        msg = '''Could not find suitable {} in path. Attempting to \
-                download from LLVM release page'''.format(binary)
-        logging.info(msg)
-
-        # Fetch clang-format from LLVM servers
-        if sys.platform == 'linux':
-            return fetch_clang_binary(HTTP_LINUX_URL, binary)
-        elif sys.platform == 'darwin':
-            return fetch_clang_binary(HTTP_DARWIN_URL, binary)
-        else:
-            logging.error('Platorm {} not supported'.format(platform.system()))
-            sys.exit(1)
+        msg = '''Could not find suitable {} in path.'''.format(binary)
+        logging.error(msg)
+        raise MissingBinaryException(msg)
