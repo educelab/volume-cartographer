@@ -108,7 +108,7 @@ int compositeTexture::_process()
 
     // Assign and return the output
     _texture.addImage(textureImage);
-    _texture.getMap().setUVMap(_uvMap);
+    _texture.ppm().setUVMap(_uvMap);
 
     return EXIT_SUCCESS;
 }

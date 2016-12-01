@@ -38,8 +38,8 @@ objWriter::objWriter(
 void objWriter::setRendering(volcart::Rendering rendering)
 {
     _mesh = rendering.getMesh();
-    _texture = rendering.getTexture().getImage(0);
-    _textCoords = rendering.getTexture().getUVMap();
+    _texture = rendering.getTexture().image(0);
+    _textCoords = rendering.getTexture().uvMap();
 }
 
 ///// Validation /////

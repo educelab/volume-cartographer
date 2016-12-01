@@ -58,8 +58,8 @@ int plyWriter::write()
     }
 
     // Capture the starting origin and set origin to what PLY reader needs
-    Origin starting_origin = _texture.getUVMap().origin();
-    _texture.getUVMap().origin(VC_ORIGIN_TOP_LEFT);
+    Origin starting_origin = _texture.uvMap().origin();
+    _texture.uvMap().origin(VC_ORIGIN_TOP_LEFT);
 
     _writeHeader();
     _writeVertices();
@@ -68,7 +68,7 @@ int plyWriter::write()
     _outputMesh.close();
 
     // Restore the starting origin
-    _texture.getUVMap().origin(starting_origin);
+    _texture.uvMap().origin(starting_origin);
 
     return EXIT_SUCCESS;
 };

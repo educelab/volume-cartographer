@@ -30,23 +30,23 @@ public:
     bool hasMap() const { return _ppm.initialized(); };
 
     // PPM
-    void setMap(PerPixelMap m) { _ppm = m; };
-    const PerPixelMap& getMap() const { return _ppm; };
-    PerPixelMap& getMap() { return _ppm; };
+    void setPPM(PerPixelMap m) { _ppm = m; };
+    const PerPixelMap& ppm() const { return _ppm; };
+    PerPixelMap& ppm() { return _ppm; };
 
     // Get UV Map
-    const volcart::UVMap& getUVMap() const { return _ppm.getUVMap(); };
-    volcart::UVMap& getUVMap() { return _ppm.getUVMap(); };
+    const volcart::UVMap& uvMap() const { return _ppm.uvMap(); };
+    volcart::UVMap& uvMap() { return _ppm.uvMap(); };
 
     // Get/Add Texture Image
-    cv::Mat getImage(int id) const { return _images[id]; };
+    cv::Mat image(int id) const { return _images[id]; };
     void addImage(cv::Mat image);
 
     // Return the intensity for a Point ID
     double intensity(int point_ID, int image_ID = 0);
 
     // Extra Metadata
-    cv::Mat getMask() { return _ppm.getMask(); };
+    cv::Mat mask() { return _ppm.mask(); };
 
 private:
     volcart::Metadata _metadata;

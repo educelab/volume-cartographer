@@ -82,7 +82,7 @@ int compositeTextureV2::_process()
 
     // Set output
     _texture.addImage(image);
-    _texture.setMap(ppm);
+    _texture.setPPM(ppm);
 
     return EXIT_SUCCESS;
 };

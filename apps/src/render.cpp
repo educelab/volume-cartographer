@@ -218,7 +218,7 @@ int main(int argc, char* argv[])
     } else if (
         outputPath.extension() == ".PNG" || outputPath.extension() == ".png") {
         std::cout << "Writing to PNG..." << std::endl;
-        cv::imwrite(outputPath.string(), rendering.getTexture().getImage(0));
+        cv::imwrite(outputPath.string(), rendering.getTexture().image(0));
     } else {
         std::cout << "Writing to Volume Package..." << std::endl;
         vpkg.saveMesh(itkACVD, result.texture());

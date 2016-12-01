@@ -42,12 +42,12 @@ public:
     int height() const { return _height; };
 
     void setUVMap(UVMap u) { _uvmap = u; };
-    const UVMap& getUVMap() const { return _uvmap; };
-    UVMap& getUVMap() { return _uvmap; };
+    const UVMap& uvMap() const { return _uvmap; };
+    UVMap& uvMap() { return _uvmap; };
 
     void setMask(cv::Mat m) { _mask = m.clone(); };
-    cv::Mat getMask() const { return _mask; };
-    cv::Mat getMaskCopy() const { return _mask.clone(); };
+    cv::Mat mask() const { return _mask; };
+    cv::Mat maskCopy() const { return _mask.clone(); };
     bool hasMapping(size_t y, size_t x);
 
     ///// Disk IO /////

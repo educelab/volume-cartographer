@@ -24,7 +24,7 @@ public:
     void setDimensions(size_t h, size_t w);
 
     // Run
-    void compute();
+    PerPixelMap& compute();
 
     // Output
     const PerPixelMap& getPPM() const { return _ppm; };
@@ -46,15 +46,9 @@ private:
     void _generateCentroidMesh();
     void _generatePPM();
     cv::Vec3d _BarycentricCoord(
-        const cv::Vec3d nXYZ,
-        const cv::Vec3d nA,
-        const cv::Vec3d nB,
-        const cv::Vec3d nC);
+        cv::Vec3d nXYZ, cv::Vec3d nA, cv::Vec3d nB, cv::Vec3d nC);
     cv::Vec3d _CartesianCoord(
-        const cv::Vec3d nUVW,
-        const cv::Vec3d nA,
-        const cv::Vec3d nB,
-        const cv::Vec3d nC);
+        cv::Vec3d nUVW, cv::Vec3d nA, cv::Vec3d nB, cv::Vec3d nC);
 
     // Data members
     ITKMesh::Pointer _inputMesh;
