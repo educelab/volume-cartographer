@@ -18,6 +18,7 @@ class ClangTidier:
     # the style of unix globs, e.g. *.cpp matches all files in the current dir
     # ending in .cpp
     BLACKLIST = [
+        'apps/*',
         '*/test/*',
         'examples/*',
         'external/*',
