@@ -93,17 +93,28 @@ test:osx:
 
 
 ### Extra Checks and Tests ###
-lint:
+lint:clang-format:
     before_script:
       - git fetch --all
     stage: test
     script:
         - echo $CI_BUILD_REF_NAME $CI_BUILD_STAGE
-        - scripts/clang-format.py --no-diff
+        - scripts/clang-format.py --print-output
+    allow_failure: yes
+    tags:
+        - source
+
+lint:clang-tidy:
+    before_script:
+      - git fetch --all
+    stage: test
+    script:
+        - echo $CI_BUILD_REF_NAME $CI_BUILD_STAGE
         - scripts/clang-tidy.py --print-output
     allow_failure: yes
     tags:
         - source
+
 
 ### Documentation ###
 doxygen:html:
