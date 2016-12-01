@@ -46,21 +46,29 @@ public:
     /**
      * @brief Returns vector offset that tries to maintain distance between
      * particles
-     * This offset is saved in _spring_resting_x
+     *
+     * This offset is saved in _spring_resting_x.
+     *
      * @newline
+     *
      * The spring equation (Hooke's law) is -kx where
      * k is the spring constant (stiffness)
      * x is displacement from rest (starting distance between points)
+     *
      * @newline
+     *
      * There are two if blocks to account for the first and last particles in
      * the chain only having one neighbor.
+     *
      */
     cv::Vec3d springForce(int);
+
     /**
      * @brief Project a vector onto the plane described by the structure
      * tensor-computed normals
      */
     cv::Vec3d gravity(int);
+
     /** @brief Converts Chain's history into an Ordered Point Set */
     volcart::OrderedPointSet<cv::Vec3d> orderedPCD();
 

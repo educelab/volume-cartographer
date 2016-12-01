@@ -21,6 +21,7 @@ public:
     /** @brief Sets the particle as stopped */
     void stop();
     /** @brief Overwrites operator to add to the position
+     *
     * Overwrites the += operator so that it adds every
     * component of the parameter vec to the position
     * vector of the particle.
