@@ -32,7 +32,9 @@ int main(int argc, char* argv[])
 
     // Load the mesh
     auto mesh = ITKMesh::New();
-    volcart::io::PLYReader(volpkg.getMeshPath(), mesh);
+    volcart::io::PLYReader reader(volpkg.getMeshPath());
+    reader.read();
+    mesh = reader.getMesh();
 
     // PNG Compression params
     std::vector<int> compression_params;
