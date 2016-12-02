@@ -13,7 +13,7 @@ constexpr static size_t PPM_ELEMENT_SIZE = 6;
 ///// Constructors /////
 // Empty Map of width x height
 PerPixelMap::PerPixelMap(size_t height, size_t width)
-    : _height(height), _width(width)
+    : _height{height}, _width{width}
 {
     _initializeMap();
 }

@@ -56,20 +56,20 @@ void PPMGenerator::_generateCentroidMesh()
             _2D[0] = _uvMap.get(pointID)[0];
             _2D[1] = _uvMap.get(pointID)[1];
             _2D[2] = 0.0;
-            info.Pts2D.push_back(_2D);
+            info.pts2D.push_back(_2D);
 
             _3D[0] = _inputMesh->GetPoint(pointID)[0];
             _3D[1] = _inputMesh->GetPoint(pointID)[1];
             _3D[2] = _inputMesh->GetPoint(pointID)[2];
-            info.Pts3D.push_back(_3D);
+            info.pts3D.push_back(_3D);
         }
 
         // Calculate the cell centroid
-        centroid = ((info.Pts2D[0] + info.Pts2D[1] + info.Pts2D[2]) / 3).val;
+        centroid = ((info.pts2D[0] + info.pts2D[1] + info.pts2D[2]) / 3).val;
 
         // Generate the surface normal for this cell
-        auto v1v0 = info.Pts3D[1] - info.Pts3D[0];
-        auto v2v0 = info.Pts3D[2] - info.Pts3D[0];
+        auto v1v0 = info.pts3D[1] - info.pts3D[0];
+        auto v2v0 = info.pts3D[2] - info.pts3D[0];
         info.Normal = cv::normalize(v1v0.cross(v2v0));
 
         _cellInformation.push_back(info);
@@ -128,7 +128,7 @@ void PPMGenerator::_generatePPM()
 
                 // Calculate the 3D correspondence for this pixel
                 baryCoord = _BarycentricCoord(
-                    uv, info.Pts2D[0], info.Pts2D[1], info.Pts2D[2]);
+                    uv, info.pts2D[0], info.pts2D[1], info.pts2D[2]);
                 in2D =
                     ((baryCoord[0] > 0.0 || AlmostEqual(baryCoord[0], 0.0)) &&
                      (baryCoord[1] > 0.0 || AlmostEqual(baryCoord[1], 0.0)) &&
@@ -149,7 +149,7 @@ void PPMGenerator::_generatePPM()
 
             // Find the xyz coordinate of the original point
             cv::Vec3d xyz = _CartesianCoord(
-                baryCoord, info.Pts3D[0], info.Pts3D[1], info.Pts3D[2]);
+                baryCoord, info.pts3D[0], info.pts3D[1], info.pts3D[2]);
 
             // Use the cell normal as the normal for this point
             cv::Vec3d xyz_norm = info.Normal;

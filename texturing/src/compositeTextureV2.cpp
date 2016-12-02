@@ -20,14 +20,14 @@ compositeTextureV2::compositeTextureV2(
     size_t h,
     CompositeOption o,
     DirectionOption d)
-    : _volpkg(v)
-    , _input(m)
-    , _uvMap(uv)
-    , _radius(r)
-    , _width(w)
-    , _height(h)
-    , _method(o)
-    , _direction(d)
+    : _volpkg{v}
+    , _input{m}
+    , _uvMap{uv}
+    , _radius{r}
+    , _width{w}
+    , _height{h}
+    , _method{o}
+    , _direction{d}
 {
     _process();
 };
@@ -36,8 +36,8 @@ compositeTextureV2::compositeTextureV2(
 int compositeTextureV2::_process()
 {
     // Auto-generate minor radius for elliptical search
-    double searchMinorRadius;
-    if ((searchMinorRadius = _radius / 3) < 1) {
+    double searchMinorRadius = _radius / 3;
+    if (searchMinorRadius < 1) {
         searchMinorRadius = 1;
     }
 

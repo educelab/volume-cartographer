@@ -34,11 +34,11 @@ private:
     struct CellInfo {
         void reset()
         {
-            Pts2D.clear();
-            Pts3D.clear();
+            pts2D.clear();
+            pts3D.clear();
         }
-        std::vector<cv::Vec3d> Pts2D;
-        std::vector<cv::Vec3d> Pts3D;
+        std::vector<cv::Vec3d> pts2D;
+        std::vector<cv::Vec3d> pts3D;
         cv::Vec3d Normal;
     };
 
