@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
     volcart::io::objWriter mesh_writer;
     mesh_writer.setPath("compV2Test.obj");
     mesh_writer.setMesh(inputMesh);
-    mesh_writer.setTexture(compText.texture().getImage(0));
+    mesh_writer.setTexture(compText.texture().image(0));
     mesh_writer.setUVMap(compText.texture().uvMap());
     mesh_writer.write();
 

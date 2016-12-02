@@ -244,7 +244,7 @@ void MainWindow::exportTexture()
     // Export the generated texture first, otherwise the one already saved to
     // disk
     if (_globals->getRendering().getTexture().hasImages())
-        output = _globals->getRendering().getTexture().getImage(0);
+        output = _globals->getRendering().getTexture().image(0);
     else
         output = _globals->getVolPkg()->getTextureData();
 
