@@ -122,9 +122,8 @@ void PPMGenerator::_generatePPM()
             auto in2D = false;
             CellInfo info;
             cv::Vec3d baryCoord{0, 0, 0};
-            for (auto c_id = neighborhood.begin(); c_id != neighborhood.end();
-                 ++c_id) {
-                info = _cellInformation[*c_id];
+            for (auto c_id : neighborhood) {
+                info = _cellInformation[c_id];
 
                 // Calculate the 3D correspondence for this pixel
                 baryCoord = _BarycentricCoord(
