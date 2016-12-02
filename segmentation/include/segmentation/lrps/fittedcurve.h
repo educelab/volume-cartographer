@@ -23,7 +23,7 @@ public:
 
     FittedCurve(const std::vector<Voxel>& vs, int32_t zIndex);
 
-    size_t size(void) const { return npoints_; }
+    size_t size() const { return npoints_; }
 
     const std::vector<Voxel>& points() const { return points_; }
 

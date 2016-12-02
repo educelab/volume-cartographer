@@ -16,7 +16,7 @@ bool Particle::isStopped() { return _isStopped; }
 void Particle::stop() { _isStopped = true; }
 
 // Component wise operators
-void Particle::operator+=(cv::Vec3d v) { _position += v; }
+void Particle::operator+=(const cv::Vec3d& v) { _position += v; }
 
 float Particle::operator()(int index) { return _position(index); }
 

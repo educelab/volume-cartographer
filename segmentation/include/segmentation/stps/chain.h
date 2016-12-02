@@ -3,7 +3,7 @@
 // vectors. Neighboring particles are kept in line with a "spring".
 #pragma once
 
-#define DEFAULT_OFFSET -1
+#define DEFAULT_OFFSET (-1)
 
 #include <list>
 #include <vector>
@@ -24,8 +24,8 @@ public:
         double spring_constant_k = -0.5);
     void step();
     bool isMoving();
-    cv::Vec3d springForce(int);
-    cv::Vec3d gravity(int);
+    cv::Vec3d springForce(int index);
+    cv::Vec3d gravity(int index);
     volcart::OrderedPointSet<volcart::Point3d> orderedPCD();
 
 private:

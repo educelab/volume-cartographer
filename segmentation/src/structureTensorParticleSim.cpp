@@ -21,7 +21,8 @@ volcart::OrderedPointSet<volcart::Point3d> structureTensorParticleSim(
     int endOffset)
 {
     // Organize the points into a connected chain
-    Chain particle_chain(segPath, volpkg, gravity_scale, threshold, endOffset);
+    Chain particle_chain(
+        std::move(segPath), volpkg, gravity_scale, threshold, endOffset);
 
     // The only stop condition is that each particle has reached the target
     // index.

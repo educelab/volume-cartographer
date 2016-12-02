@@ -20,7 +20,7 @@ public:
         int32_t startIndex,
         int32_t endIndex,
         int32_t numIters,
-        int32_t stepNumLayers,
+        int32_t step,
         double alpha,
         double k1,
         double k2,
@@ -34,7 +34,8 @@ public:
 private:
     VolumePkg& pkg_;
 
-    cv::Vec3d estimateNormalAtIndex(const FittedCurve& curve, int32_t index);
+    cv::Vec3d estimateNormalAtIndex(
+        const FittedCurve& currentCurve, int32_t index);
 
     cv::Mat drawParticlesOnSlice(
         const FittedCurve& curve,

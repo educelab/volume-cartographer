@@ -14,7 +14,7 @@ Chain::Chain(
     std::vector<Particle> init_chain;
 
     for (auto p : segPath) {
-        init_chain.push_back(p.toCvVec());
+        init_chain.emplace_back(p.toCvVec());
     }
 
     // Calculate the spring resting position
@@ -34,9 +34,11 @@ Chain::Chain(
 
     // Find the lowest slice index in the starting chain
     _start_index = _history.front()[0](2);
-    for (int i = 0; i < _chain_length; ++i)
-        if (_history.front()[i](2) < _start_index)
+    for (int i = 0; i < _chain_length; ++i) {
+        if (_history.front()[i](2) < _start_index) {
             _start_index = _history.front()[i](2);
+        }
+    }
 
     // Set the slice index we will end at
     // If user does not define endOffset, target index == last slice with a
@@ -47,8 +49,9 @@ Chain::Chain(
                                                  // and slices lost in
                                                  // calculating normal vector
              : (_start_index + endOffset));
-    if (_target_index >= volpkg.getNumberOfSlices())
+    if (_target_index >= volpkg.getNumberOfSlices()) {
         _target_index = volpkg.getNumberOfSlices() - 1;
+    }
 
     // Set _realIterationsCount based on starting index, target index, and how
     // frequently we want to sample the segmentation
@@ -56,9 +59,11 @@ Chain::Chain(
         (int)(ceil(((_target_index - _start_index) + 1) / _threshold));
 
     // Go ahead and stop any particles that are already at the target index
-    for (int i = 0; i < _chain_length; ++i)
-        if (_history.front()[i](2) >= _target_index)
+    for (int i = 0; i < _chain_length; ++i) {
+        if (_history.front()[i](2) >= _target_index) {
             _history.front()[i].stop();
+        }
+    }
 }
 
 // This function defines how particles are updated
@@ -71,8 +76,9 @@ void Chain::step()
 
     // calculate forces acting on particles
     for (int i = 0; i < _chain_length; ++i) {
-        if (update_chain[i].isStopped())
+        if (update_chain[i].isStopped()) {
             continue;
+        }
 
         force_vector[i] += this->springForce(i);
         force_vector[i] += this->gravity(i);
@@ -93,10 +99,9 @@ void Chain::step()
 // Returns true if any Particle in the chain is still moving
 bool Chain::isMoving()
 {
-    bool result = true;
-    for (int i = 0; i < _chain_length; ++i)
-        result &= _history.front()[i].isStopped();
-    return !result;
+    return std::any_of(
+        std::begin(_history.front()), std::end(_history.front()),
+        [](auto p) { return !p.isStopped(); });
 }
 
 // Returns vector offset that tries to maintain distance between particles as
@@ -113,8 +118,9 @@ cv::Vec3d Chain::springForce(int index)
     cv::Vec3d f(0, 0, 0);
     // Adjust particle with a neighbor to the right
     if (index != _chain_length - 1) {
+        auto sindex = static_cast<size_t>(index);
         cv::Vec3d to_right =
-            _history.front()[index] - _history.front()[index + 1];
+            _history.front()[sindex] - _history.front()[sindex + 1];
         double length = sqrt(to_right.dot(to_right));
         normalize(
             to_right, to_right,
@@ -170,11 +176,7 @@ volcart::OrderedPointSet<volcart::Point3d> Chain::orderedPCD()
 
     // Push each point in _history into its ordered position in storage if it
     // passes the distance threshold
-    for (std::list<std::vector<Particle>>::iterator it = _history.begin();
-         it != _history.end(); ++it) {
-        // Get a row of Particles in _history
-        std::vector<Particle> row_at = *it;
-
+    for (auto row_at : _history) {
         // Add each Particle in the row into storage at the correct position
         for (int i = 0; i < _chain_length; ++i) {
             int currentCell = (int)((
@@ -187,8 +189,8 @@ volcart::OrderedPointSet<volcart::Point3d> Chain::orderedPCD()
 
     // Move points out of storage into the point cloud
     volcart::OrderedPointSet<volcart::Point3d> cloud;
-    for (int i = 0; i < _real_iterations; ++i) {
-        for (int j = 0; j < _chain_length; ++j) {
+    for (size_t i = 0; i < _real_iterations; ++i) {
+        for (size_t j = 0; j < _chain_length; ++j) {
             cloud[j + (i * _chain_length)] = storage[i][j];
         }
     }

@@ -7,7 +7,9 @@
 #include <sstream>
 #include <tuple>
 #include <type_traits>
+
 #include <opencv2/core/core.hpp>
+
 #include "core/util/zip.h"
 
 namespace volcart
@@ -35,7 +37,7 @@ public:
     }
 
     // Construct a Point from a cv::Vec
-    Point(cv::Vec<T, N> v) { std::copy(v.val, v.val + N, std::begin(data_)); }
+    Point(cv::Vec<T, N> v) { std::memcpy(data_.data(), v.val, sizeof(T) * N); }
 
     static Point fill(T fillVal)
     {

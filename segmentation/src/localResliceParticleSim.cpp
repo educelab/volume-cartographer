@@ -112,7 +112,7 @@ LocalResliceSegmentation::segmentPath(
             const auto reslice =
                 vol.reslice(currentCurve(i), normal, {0, 0, 1}, 32, 32);
             reslices.push_back(reslice);
-            const cv::Mat resliceIntensities = reslice.sliceData();
+            auto resliceIntensities = reslice.sliceData();
 
             // Make the intensity map `step` layers down from current position
             // and find the maxima
@@ -127,7 +127,7 @@ LocalResliceSegmentation::segmentPath(
 
             // Handle case where there's no maxima - go straight down
             if (allMaxima.empty()) {
-                nextPositions.push_back(
+                nextPositions.emplace_back(
                     std::deque<Voxel>{reslice.sliceToVoxelCoord<int32_t>(
                         {center.x, nextLayerIndex})});
                 continue;
@@ -245,7 +245,7 @@ LocalResliceSegmentation::segmentPath(
         while (*maxVal > 10.0 && settlingIters++ < 100) {
             Voxel newPoint;
             int32_t i = maxVal - begin(normDeriv2);
-            Voxel diff = 0.5 * nextVs[i + 1] - 0.5 * nextVs[i - 1];
+            Voxel diff = 0.5 * nextVs[size_t(i) + 1] - 0.5 * nextVs[i - 1];
             newPoint = nextVs[i - 1] + diff;
             nextVs[i] = newPoint;
 
@@ -382,9 +382,12 @@ cv::Mat LocalResliceSegmentation::drawParticlesOnSlice(
     // Superimpose interpolated currentCurve on window
     if (showSpline) {
         const int32_t n = 500;
-        for (double sum = 0; sum <= 1; sum += 1.0 / (n - 1)) {
+        double sum = 0;
+        int i = 0;
+        while (i < n && sum <= 1.0) {
             cv::Point p(curve.eval(sum));
             cv::circle(pkgSlice, p, 1, BGR_BLUE, -1);
+            sum += 1.0 / (n - 1);
         }
     }
 

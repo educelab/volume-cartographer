@@ -36,7 +36,7 @@ T d1Forward(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
     assert(
         index >= 0 && index < int32_t(vs.size()) && "index not in range of vs");
     assert(index <= int32_t(vs.size()) && "index must not be last point");
-    return (-vs[index] + vs[index + hstep]) / double(hstep);
+    return (-vs[index] + vs[size_t(index) + hstep]) / double(hstep);
 }
 
 template <typename T>
@@ -55,7 +55,7 @@ T d1Central(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
         index >= 0 && index < int32_t(vs.size()) && "index not in range of vs");
     assert(index - hstep >= 0 && "index out of range");
     assert(index + hstep < int32_t(vs.size()) && "index out of range");
-    return ((-0.5) * vs[index - hstep] + (0.5) * vs[index + hstep]) /
+    return ((-0.5) * vs[index - hstep] + (0.5) * vs[size_t(index) + hstep]) /
            double(hstep);
 }
 
@@ -74,8 +74,8 @@ T d1FivePointStencil(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
     return (
         (1.0/12) * vs[index - 2 * hstep] +
         (-2.0/3) * vs[index - hstep] +
-         (2.0/3) * vs[index + hstep] +
-       (-1.0/12) * vs[index + 2 * hstep]) /
+         (2.0/3) * vs[size_t(index) + hstep] +
+       (-1.0/12) * vs[size_t(index) + 2 * hstep]) /
            double(hstep);
     // clang-format on
 }
@@ -112,7 +112,8 @@ T d2Forward(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
     assert(index >= 0 && index < int32_t(vs.size()) && "index out of range");
     assert(index + hstep < int32_t(vs.size()) && "index out of range");
     assert(index + 2 * hstep < int32_t(vs.size()) && "index out of  range");
-    return (vs[index] + (-2.0) * vs[index + hstep] + vs[index + 2 * hstep]) /
+    return (vs[index] + (-2.0) * vs[size_t(index) + hstep] +
+            vs[size_t(index) + 2 * hstep]) /
            double(hstep * hstep);
 }
 
@@ -133,7 +134,8 @@ T d2Central(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
         index >= 0 && index < int32_t(vs.size()) && "index not in range of vs");
     assert(index - hstep >= 0 && "index out of range");
     assert(index + hstep < int32_t(vs.size()) && "index out of range");
-    return (vs[index - hstep] + (-2.0) * vs[index] + vs[index + hstep]) /
+    return (vs[index - hstep] + (-2.0) * vs[index] +
+            vs[size_t(index) + hstep]) /
            double(hstep * hstep);
 }
 
@@ -153,8 +155,8 @@ T d2FivePointStencil(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
        (-1.0/12) * vs[index - 2 * hstep] +
          (4.0/3) * vs[index - hstep] +
         (-5.0/2) * vs[index] + 
-         (4.0/3) * vs[index + hstep] +
-       (-1.0/12) * vs[index + 2 * hstep]) /
+         (4.0/3) * vs[size_t(index) + hstep] +
+       (-1.0/12) * vs[size_t(index) + 2 * hstep]) /
            double(hstep * hstep);
     // clang-format on
 }

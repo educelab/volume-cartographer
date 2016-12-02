@@ -17,7 +17,7 @@ class IntensityMap
 {
 public:
     IntensityMap(
-        cv::Mat,
+        cv::Mat r,
         int32_t stepSize,
         int32_t peakDistanceWeight,
         bool shouldIncludeMiddle);
