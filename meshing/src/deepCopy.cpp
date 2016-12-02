@@ -27,9 +27,8 @@ deepCopy::deepCopy(ITKMesh::Pointer input, ITKMesh::Pointer output)
          cell != input->GetCells()->End(); ++cell) {
 
         c.TakeOwnership(new ITKTriangle);
-        for (int p_id = 0; p_id < cell.Value()->GetNumberOfPoints(); ++p_id) {
+        for (int p_id = 0; p_id < cell.Value()->GetNumberOfPoints(); ++p_id)
             c->SetPointId(p_id, cell.Value()->GetPointIdsContainer()[p_id]);
-        }
 
         output->SetCell(cell->Index(), c);
     }

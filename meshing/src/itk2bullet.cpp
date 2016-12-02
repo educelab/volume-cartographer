@@ -21,7 +21,7 @@ itk2bullet::itk2bullet(
         new_point = new btVector3(old_point[0], old_point[1], old_point[2]);
 
         if (it == input->GetPoints()->Begin()) {
-            *output = new btSoftBody(&worldInfo, 1, new_point, nullptr);
+            *output = new btSoftBody(&worldInfo, 1, new_point, 0);
         } else {
             (*output)->appendNode(*new_point, 0);
         }
@@ -29,6 +29,7 @@ itk2bullet::itk2bullet(
 
     // convert the cells to faces
     unsigned long v0, v1, v2;
+    v0 = v1 = v2 = 0;
 
     for (ITKCellIterator cell = input->GetCells()->Begin();
          cell != input->GetCells()->End(); ++cell) {

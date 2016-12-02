@@ -112,7 +112,7 @@ class QuadricEdgeCollapseDecimation
      *
      * Used to represent pairs of vertices being considered for removal by QECD.
      */
-    using VertexPair = vcg::tri::BasicVertexPair<VcgVertex>;
+    typedef vcg::tri::BasicVertexPair<VcgVertex> VertexPair;
 
     /**
      * @class VcgTriEdgeCollapse
@@ -129,12 +129,13 @@ class QuadricEdgeCollapseDecimation
                                    vcg::tri::QInfoStandard<VcgVertex>>
     {
     public:
-        using TECQ = vcg::tri::TriEdgeCollapseQuadric<
+        typedef vcg::tri::TriEdgeCollapseQuadric<
             VcgMesh,
             VertexPair,
             VcgTriEdgeCollapse,
-            vcg::tri::QInfoStandard<VcgVertex>>;
-        using EdgeType = VcgMesh::VertexType::EdgeType;
+            vcg::tri::QInfoStandard<VcgVertex>>
+            TECQ;
+        typedef VcgMesh::VertexType::EdgeType EdgeType;
         inline VcgTriEdgeCollapse(
             const VertexPair& p, int i, vcg::BaseParameterClass* pp)
             : TECQ(p, i, pp){};
@@ -160,7 +161,7 @@ public:
      * @brief Set the input mesh.
      * @param mesh Mesh which will be decimated
      */
-    void setMesh(const ITKMesh::Pointer& mesh);
+    void setMesh(ITKMesh::Pointer mesh);
 
     /**
      * @brief Reset all parameters to their default values.
@@ -317,7 +318,7 @@ public:
      */
     void setQualityWeightFactor(double factor)
     {
-        collapseParams_.QualityWeight = static_cast<bool>(factor);
+        collapseParams_.QualityWeight = factor;
     }
 
     /**

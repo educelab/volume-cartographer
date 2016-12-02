@@ -42,10 +42,7 @@ public:
     /**
      * @param points OrderedPointSet to be meshed
      */
-    OrderedPointSetMesher(OrderedPointSet<Point3d> points)
-        : input_(std::move(points))
-    {
-    }
+    OrderedPointSetMesher(OrderedPointSet<Point3d> points) : input_(points) {}
     //@}
 
     /** @name Input/Output */
@@ -54,10 +51,7 @@ public:
      * Set the input OrderedPointSet.
      * @param points OrderedPointSet to be meshed
      */
-    void setPointSet(OrderedPointSet<Point3d> points)
-    {
-        input_ = std::move(points);
-    }
+    void setPointSet(OrderedPointSet<Point3d> points) { input_ = points; }
 
     /**
      * @brief Get the generated mesh.

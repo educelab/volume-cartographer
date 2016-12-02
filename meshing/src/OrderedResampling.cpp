@@ -9,24 +9,38 @@
 
 using namespace volcart::meshing;
 
-//// Set Inputs/Get Output ////
-void OrderedResampling::setMesh(
-    const ITKMesh::Pointer& mesh, int in_width, int in_height)
+//// Constructors ////
+OrderedResampling::OrderedResampling()
+{
+    _inWidth = 0;
+    _inHeight = 0;
+}  // constructor
+
+OrderedResampling::OrderedResampling(
+    ITKMesh::Pointer mesh, int in_width, int in_height)
 {
     _input = mesh;
     _inWidth = in_width;
     _inHeight = in_height;
-}
+}  // constructor with parameters
+
+//// Set Inputs/Get Output ////
+void OrderedResampling::setMesh(
+    ITKMesh::Pointer mesh, int in_width, int in_height)
+{
+    _input = mesh;
+    _inWidth = in_width;
+    _inHeight = in_height;
+}  // setParameters
 
 volcart::ITKMesh::Pointer OrderedResampling::getOutputMesh() const
 {
     if (_output.IsNull()) {
         std::cerr << "Error: Output Mesh is not set" << std::endl;
-        return nullptr;
-    } else {
+        return NULL;
+    } else
         return _output;
-    }
-}
+}  // getOutput
 
 int OrderedResampling::getOutputWidth() const { return _outWidth; };
 int OrderedResampling::getOutputHeight() const { return _outHeight; };
@@ -60,15 +74,13 @@ void OrderedResampling::compute()
         }
 
         // Skip this point if we're skipping this line
-        if (line_skip) {
+        if (line_skip)
             continue;
-        }
 
         // Only add every other point
-        if (k % 2 == 0) {
+        if (k % 2 == 0)
             _output->SetPoint(
                 _output->GetNumberOfPoints(), pointsIterator.Value());
-        }
     }
 
     // Something went wrong with resampling. Number of points aren't what we
@@ -116,7 +128,8 @@ void OrderedResampling::compute()
         << _output->GetNumberOfPoints() << std::endl;
     std::cerr << "volcart::meshing::OrderedResampling: Cells in resampled mesh "
               << _output->GetNumberOfCells() << std::endl;
-}
+
+}  // compute
 
 void OrderedResampling::_addCell(
     unsigned long a, unsigned long b, unsigned long c)
@@ -130,4 +143,4 @@ void OrderedResampling::_addCell(
     current_C->SetPointId(2, c);
 
     _output->SetCell(_output->GetNumberOfCells(), current_C);
-}
+}  // addCell

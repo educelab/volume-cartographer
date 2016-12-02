@@ -4,7 +4,6 @@
 #include <opencv2/opencv.hpp>
 
 #include "core/vc_defines.h"
-#include "meshing/deepCopy.h"
 
 namespace volcart
 {
@@ -27,16 +26,12 @@ class CalculateNormals
 public:
     //** @name Constructors */
     //@{
-    CalculateNormals() = default;
+    CalculateNormals();
 
     /**
      * @param mesh Input Mesh whose normals you want computed
      */
-    CalculateNormals(ITKMesh::Pointer mesh)
-        : _input{mesh}, _output{ITKMesh::New()}
-    {
-        deepCopy(_input, _output);
-    }
+    CalculateNormals(ITKMesh::Pointer mesh);
     //@}
 
     //** @name Input/Output */
@@ -45,12 +40,12 @@ public:
      * @brief Set the input mesh.
      * @param mesh The mesh for which normals will be calculated
      */
-    void setMesh(const ITKMesh::Pointer& mesh);
+    void setMesh(ITKMesh::Pointer mesh);
 
     /**
      * @brief Get the output mesh with computed normals
      */
-    ITKMesh::Pointer getMesh() const { return _output; }
+    ITKMesh::Pointer getMesh() const;
     //@}
 
     /**

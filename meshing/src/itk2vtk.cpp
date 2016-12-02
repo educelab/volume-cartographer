@@ -41,9 +41,8 @@ itk2vtk::itk2vtk(ITKMesh::Pointer input, vtkSmartPointer<vtkPolyData> output)
 
         auto poly = vtkSmartPointer<vtkIdList>::New();
         for (ITKPointInCellIterator point = cell.Value()->PointIdsBegin();
-             point != cell.Value()->PointIdsEnd(); ++point) {
+             point != cell.Value()->PointIdsEnd(); ++point)
             poly->InsertNextId(*point);
-        }
 
         polys->InsertNextCell(poly);
     }
@@ -51,10 +50,9 @@ itk2vtk::itk2vtk(ITKMesh::Pointer input, vtkSmartPointer<vtkPolyData> output)
     // assign to the mesh
     output->SetPoints(points);
     output->SetPolys(polys);
-    if (pointNormals->GetNumberOfTuples() > 0) {
+    if (pointNormals->GetNumberOfTuples() > 0)
         output->GetPointData()->SetNormals(pointNormals);
-    }
-}
+};
 
 ///// VTK Polydata -> ITK Mesh /////
 vtk2itk::vtk2itk(vtkSmartPointer<vtkPolyData> input, ITKMesh::Pointer output)
@@ -87,7 +85,7 @@ vtk2itk::vtk2itk(vtkSmartPointer<vtkPolyData> input, ITKMesh::Pointer output)
 
         output->SetCell(c_id, cell);
     }
-}
+};
 
 ///// ITK Mesh -> ITK QuadEdge Mesh /////
 itk2itkQE::itk2itkQE(ITKMesh::Pointer input, volcart::QuadMesh::Pointer output)
@@ -103,9 +101,8 @@ itk2itkQE::itk2itkQE(ITKMesh::Pointer input, volcart::QuadMesh::Pointer output)
         output->SetPoint(point->Index(), p);
 
         // Assign the normal
-        if (input->GetPointData(point->Index(), &n)) {
+        if (input->GetPointData(point->Index(), &n))
             output->SetPointData(point->Index(), n);
-        }
     }
 
     // Faces
@@ -136,9 +133,8 @@ itkQE2itk::itkQE2itk(volcart::QuadMesh::Pointer input, ITKMesh::Pointer output)
         output->SetPoint(point->Index(), p);
 
         // Assign the normal
-        if (input->GetPointData(point->Index(), &n)) {
+        if (input->GetPointData(point->Index(), &n))
             output->SetPointData(point->Index(), n);
-        }
     }
 
     // Faces

@@ -12,13 +12,11 @@ namespace meshing
 {
 
 void scaleMesh(
-    const ITKMesh::Pointer& input,
-    const ITKMesh::Pointer& output,
-    double scale_factor)
+    ITKMesh::Pointer input, ITKMesh::Pointer output, double scale_factor)
 {
 
     // Scale uniformly
-    using VC_3DScaleType = itk::ScaleTransform<double, 3>;
+    typedef itk::ScaleTransform<double, 3> VC_3DScaleType;
     VC_3DScaleType::Pointer scaleTransform = VC_3DScaleType::New();
     itk::FixedArray<double, 3> scale;
     scale[0] = scale_factor;
@@ -31,8 +29,8 @@ void scaleMesh(
 
     // Apply the scale
     std::cerr << "volcart::meshing::Scaling the mesh..." << std::endl;
-    using VC_ScaleMeshFilter =
-        itk::TransformMeshFilter<ITKMesh, ITKMesh, VC_3DScaleType>;
+    typedef itk::TransformMeshFilter<ITKMesh, ITKMesh, VC_3DScaleType>
+        VC_ScaleMeshFilter;
     VC_ScaleMeshFilter::Pointer scaleFilter = VC_ScaleMeshFilter::New();
     scaleFilter->SetTransform(scaleTransform);
 
