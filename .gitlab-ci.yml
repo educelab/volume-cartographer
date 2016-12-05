@@ -7,7 +7,7 @@ stages:
 
 ### Debian ###
 build:debian:
-    image: volcart/vcbuilder-debian:latest
+    image: volcart/vcbuilder-debian:ocv3
     stage: build
     script:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
@@ -27,7 +27,7 @@ build:debian:
         - ninja
 
 test:debian:
-    image: volcart/vcbuilder-debian:latest
+    image: volcart/vcbuilder-debian:ocv3
     stage: test
     script:
         - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
