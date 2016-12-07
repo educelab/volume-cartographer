@@ -40,9 +40,14 @@ int main(int argc, char* argv[])
     auto mesh = volcart::ITKMesh::New();
 
     // try to convert the ply to an ITK mesh
-    if (!volcart::io::PLYReader(meshName, mesh)) {
+    volcart::io::PLYReader reader(meshName);
+    try {
+        reader.read();
+        mesh = reader.getMesh();
+    } catch (std::exception e) {
+        std::cerr << e.what() << std::endl;
         exit(-1);
-    };
+    }
 
     vtkPolyData* smoothVTK = vtkPolyData::New();
     volcart::meshing::itk2vtk(mesh, smoothVTK);

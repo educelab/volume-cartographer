@@ -349,7 +349,7 @@ public:
      * @brief Saves a texture image to the active segmentation's subdirectory in
      * the .volpkg file.
      *
-     * Writes the image stored in a `texture.getImage(index)`. File is written
+     * Writes the image stored in `texture.image(index)`. File is written
      * to `textured.png` in the active segmentation's subdirectory.
      * @param texture Populated Texture object
      * @param index The index of the desired image in `texture`'s image array
@@ -357,7 +357,7 @@ public:
      */
     void saveTextureData(volcart::Texture texture, int index = 0)
     {
-        saveTextureData(texture.getImage(index));
+        saveTextureData(texture.image(index));
     }
     //@}
 

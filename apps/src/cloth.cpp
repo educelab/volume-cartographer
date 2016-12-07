@@ -156,14 +156,15 @@ int main(int argc, char* argv[])
     volcart::texturing::compositeTextureV2 result(
         mesh, vpkg, clothUV.getUVMap(), 7, width, height);
     volcart::io::objWriter objwriter(
-        "textured.obj", mesh, uvMap, result.texture().getImage(0));
+        "textured.obj", mesh, uvMap, result.texture().image(0));
     objwriter.write();
 
-    if (result.texture().getMask().data)
-        cv::imwrite("PerPixelMask.png", result.texture().getMask());
+    if (result.texture().mask().data) {
+        cv::imwrite("PerPixelMask.png", result.texture().mask());
+    }
 
-    if (result.texture().getMap().initialized()) {
-        result.texture().getMap().write("PerPixelMapping");
+    if (result.texture().ppm().initialized()) {
+        PerPixelMap::WritePPM("PerPixelMapping", result.texture().ppm());
     }
 
     return 0;

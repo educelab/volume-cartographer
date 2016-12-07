@@ -6,6 +6,7 @@ set(srcs
     src/compositeTextureV2.cpp
     src/simpleUV.cpp
     src/AngleBasedFlattening.cpp
+    src/PPMGenerator.cpp
 )
 set(public_deps
     vc_core

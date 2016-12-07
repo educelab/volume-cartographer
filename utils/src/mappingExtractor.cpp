@@ -38,7 +38,7 @@ int main(int /*argc*/, char* argv[])
               << std::endl;
 
     std::string ppm_path = segPath.string() + "/PerPixelMapping.yml.gz";
-    _perPixelMap.read(ppm_path);
+    _perPixelMap = PerPixelMap::ReadPPM(ppm_path);
 
     // ROI params
     int tl_x = std::stoi(argv[3]);

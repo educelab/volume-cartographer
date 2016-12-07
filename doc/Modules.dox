@@ -12,3 +12,9 @@
  @defgroup ExampleDocs Documentation Examples
  @brief Files that demonstrate how code should be formatted for Doxygen.
 */
+
+/**
+@defgroup Core Core
+@brief Library containing fundamental VC datatypes and operations.
+*/ 
+

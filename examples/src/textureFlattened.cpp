@@ -85,7 +85,7 @@ int main(int /*argc*/, char* argv[])
         inputMesh, vpkg, uvMap, 7, (int)aspect_width, (int)aspect_height);
     volcart::io::objWriter objwriter(
         "cloth.obj", inputMesh, result.texture().uvMap(),
-        result.texture().getImage(0));
+        result.texture().image(0));
     objwriter.write();
 
     return EXIT_SUCCESS;
