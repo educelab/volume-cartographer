@@ -1,6 +1,9 @@
 project(libvc_segmentation VERSION 0.1 LANGUAGES CXX)
 
-set(VC_SEGMENTATION_SRCS
+set(component segmentation)
+set(target "vc_${component}")
+
+set(srcs
     src/chain.cpp
     src/common.cpp
     src/energymetrics.cpp
@@ -10,33 +13,45 @@ set(VC_SEGMENTATION_SRCS
     src/particle.cpp
     src/structureTensorParticleSim.cpp
 )
-set(VC_SEGMENTATION_DEPENDENCIES
+set(deps
     vc_core
 )
 
-add_library(vc_segmentation ${VC_SEGMENTATION_SRCS})
-target_include_directories(vc_segmentation
+add_library(${target} ${srcs})
+target_include_directories(${target}
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
-# Get rid of annoying warnings
-target_compile_options(vc_segmentation
-    PRIVATE
-        -Wno-c++11-narrowing
+target_compile_options(${target}
+	PUBLIC
+		-Wno-c++11-narrowing
 )
-target_link_libraries(vc_segmentation
+target_link_libraries(${target}
     PUBLIC
-        vc_core
+        ${deps}
 )
 
-install(TARGETS vc_segmentation
-    ARCHIVE DESTINATION lib COMPONENT Libraries
-    LIBRARY DESTINATION lib COMPONENT Libraries
+set(export_config SegmentationConfig)
+install(TARGETS ${target}
+    EXPORT ${export_config}
+    ARCHIVE DESTINATION lib COMPONENT ${component}
+    LIBRARY DESTINATION lib COMPONENT ${component}
     RUNTIME DESTINATION bin
 )
-install(DIRECTORY include/ DESTINATION ${VC_INSTALL_INCLUDE_PREFIX} COMPONENT Includes)
-export(TARGETS vc_segmentation FILE VCSegmentation.cmake)
+install(
+    DIRECTORY include/
+    DESTINATION ${VC_INSTALL_INCLUDE_PREFIX}
+    COMPONENT ${component}
+)
+install(
+    EXPORT ${export_config}
+    DESTINATION share/${component}/cmake
+)
+export(
+    TARGETS ${target}
+    FILE ${export_config}.cmake
+)
 
 ### Testing ###
 if(VC_BUILD_TESTS)

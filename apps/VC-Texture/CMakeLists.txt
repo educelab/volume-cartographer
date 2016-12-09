@@ -59,10 +59,10 @@ target_link_libraries(${target}
     ${OSXSecurity}
 )
 
-install(TARGETS ${target}
-    BUNDLE DESTINATION . COMPONENT Programs
-    RUNTIME DESTINATION bin COMPONENT Programs
-)
+#install(TARGETS ${target}
+#    BUNDLE DESTINATION . COMPONENT Programs
+#    RUNTIME DESTINATION bin COMPONENT Programs
+#)
 
 if (APPLE)
     set(vc_exe "VC-Texture.app")
@@ -80,12 +80,12 @@ set(components Programs)
 if(APPLE OR WIN32)
     include(DeployQt5)
     install_qt5_executable(
-        "${vc_exe}"
-        "${plugins}"
-        "${extra_libs}"
-        "${extra_dirs}"
-        "${plugins_dir}"
-        "${request_qt_conf}"
-        "${components}"
+        ${vc_exe}
+        ${plugins}
+        ${extra_libs}
+        ${extra_dirs}
+        ${plugins_dir}
+        ${request_qt_conf}
+        ${components}
     )
 endif()

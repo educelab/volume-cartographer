@@ -18,10 +18,23 @@ target_link_libraries(${target}
         eigen3
 )
 
+set(export_config ExternalConfig)
 install(TARGETS ${target}
-    ARCHIVE DESTINATION lib COMPONENT Libraries
-    LIBRARY DESTINATION lib COMPONENT Libraries
+    EXPORT ${export_config}
+    ARCHIVE DESTINATION lib COMPONENT external
+    LIBRARY DESTINATION lib COMPONENT external
     RUNTIME DESTINATION bin
 )
-install(DIRECTORY include/ DESTINATION ${VC_INSTALL_INCLUDE_PREFIX} COMPONENT Includes)
-export(TARGETS ${target} FILE VCExternal.cmake)
+install(
+    DIRECTORY include/
+    DESTINATION ${VC_INSTALL_INCLUDE_PREFIX}
+    COMPONENT external
+)
+install(
+    EXPORT ${export_config}
+    DESTINATION share/external/cmake
+)
+export(
+    TARGETS ${target}
+    FILE ${export_config}.cmake
+)

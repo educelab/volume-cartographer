@@ -1,5 +1,6 @@
 project(libvc_meshing VERSION 0.1 LANGUAGES CXX)
-set(target vc_meshing)
+set(component meshing)
+set(target "vc_${component}")
 
 set(srcs
     src/deepCopy.cpp
@@ -10,7 +11,7 @@ set(srcs
     src/CalculateNormals.cpp
     src/OrderedResampling.cpp
     src/OrderedPointSetMesher.cpp
-    )
+)
 set(deps
     vc_core
     Boost::filesystem
@@ -50,13 +51,26 @@ target_link_libraries(${target}
         vtkFiltersCore
 )
 
+set(export_config MeshingConfig)
 install(TARGETS ${target}
-    ARCHIVE DESTINATION lib COMPONENT Libraries
-    LIBRARY DESTINATION lib COMPONENT Libraries
+    EXPORT ${export_config}
+    ARCHIVE DESTINATION lib COMPONENT ${component}
+    LIBRARY DESTINATION lib COMPONENT ${component}
     RUNTIME DESTINATION bin
 )
-install(DIRECTORY include/ DESTINATION ${VC_INSTALL_INCLUDE_PREFIX} COMPONENT Includes)
-export(TARGETS ${target} FILE VCMeshing.cmake)
+install(
+    DIRECTORY include/
+    DESTINATION ${VC_INSTALL_INCLUDE_PREFIX}
+    COMPONENT ${component}
+)
+install(
+    EXPORT ${export_config}
+    DESTINATION share/${component}/cmake
+)
+export(
+    TARGETS ${target}
+    FILE ${export_config}.cmake
+)
 
 ### Testing ###
 if(VC_BUILD_TESTS)

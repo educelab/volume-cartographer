@@ -1,5 +1,6 @@
 project(libvc_testing VERSION 0.1 LANGUAGES CXX)
-set(target vc_testing)
+set(component testing)
+set(target "vc_${component}")
 
 set(srcs
     src/parsingHelpers.cpp
@@ -19,13 +20,26 @@ target_include_directories(${target}
 target_link_libraries(${target} PUBLIC vc_core)
 target_compile_definitions(${target} PUBLIC ${defs})
 
+set(export_config TestingConfig)
 install(TARGETS ${target}
-    ARCHIVE DESTINATION lib
-    LIBRARY DESTINATION lib
+    EXPORT ${export_config}
+    ARCHIVE DESTINATION lib COMPONENT ${component}
+    LIBRARY DESTINATION lib COMPONENT ${component}
     RUNTIME DESTINATION bin
 )
-install(DIRECTORY include/ DESTINATION ${VC_INSTALL_INCLUDE_PREFIX})
-export(TARGETS ${target} FILE VCTesting.cmake)
+install(
+    DIRECTORY include/
+    DESTINATION ${VC_INSTALL_INCLUDE_PREFIX}
+    COMPONENT ${component}
+)
+install(
+    EXPORT ${export_config}
+    DESTINATION share/${component}/cmake
+)
+export(
+    TARGETS ${target}
+    FILE ${export_config}.cmake
+)
 
 # Testing tests
 # Add a test executable for each src

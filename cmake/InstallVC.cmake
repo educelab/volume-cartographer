@@ -3,20 +3,27 @@ install(
   FILES 
     "${PROJECT_SOURCE_DIR}/doc/VC-Workflow.txt"
     "${PROJECT_SOURCE_DIR}/LICENSE"
-  DESTINATION .
-  COMPONENT Resources
+  DESTINATION share/
+  COMPONENT resources
 )
 
 # What components to install
-set(INSTALL_COMPONENTS "Libraries" "Includes" "Resources")
+set(INSTALL_COMPONENTS
+    core
+    meshing
+    segmentation
+    resources
+    testing
+    texturing
+)
 if(VC_INSTALL_APPS)
-    list(APPEND INSTALL_COMPONENTS "Programs")
+    list(APPEND INSTALL_COMPONENTS Programs)
 endif()
 if(VC_INSTALL_UTILS)
-    list(APPEND INSTALL_COMPONENTS "Utilities")
+    list(APPEND INSTALL_COMPONENTS Utilities)
 endif()
 if(VC_INSTALL_EXAMPLES)
-    list(APPEND INSTALL_COMPONENTS "Examples")
+    list(APPEND INSTALL_COMPONENTS Examples)
 endif()
 
 # Configure Cpack

@@ -1,5 +1,6 @@
 project(libvc_core VERSION 0.1 LANGUAGES CXX)
-set(target vc_core)
+set(component core)
+set(target "vc_${component}")
 
 set(srcs
     src/HalfEdgeMesh.cpp
@@ -40,65 +41,75 @@ target_link_libraries(${target}
         vc_external
 )
 
+set(export_config CoreConfig)
 install(TARGETS ${target}
-    ARCHIVE DESTINATION lib COMPONENT Libraries
-    LIBRARY DESTINATION lib COMPONENT Libraries
+    EXPORT ${export_config}
+    ARCHIVE DESTINATION lib COMPONENT ${component}
+    LIBRARY DESTINATION lib COMPONENT ${component}
     RUNTIME DESTINATION bin
 )
-install(DIRECTORY include/ DESTINATION ${VC_INSTALL_INCLUDE_PREFIX} COMPONENT Includes)
-export(TARGETS ${target} FILE VCCommon.cmake)
+install(
+    DIRECTORY include/
+    DESTINATION ${VC_INSTALL_INCLUDE_PREFIX}
+    COMPONENT ${component}
+)
+install(
+    EXPORT ${export_config}
+    DESTINATION share/${component}/cmake
+)
+export(
+    TARGETS ${target}
+    FILE ${export_config}.cmake
+)
 
 ### Testing ###
 if(VC_BUILD_TESTS)
-
-# Set source files
-set(test_srcs
-    test/LRUCacheTest.cpp
-    test/ObjWriterTest.cpp
-    test/MetadataTest.cpp
-    test/TextureTest.cpp
-    test/UVMapTest.cpp
-    test/plyWriterTest.cpp
-    test/PointSetTest.cpp
-    test/PointSetIOTest.cpp
-    test/OrderedPointSetTest.cpp
-    test/OrderedPointSetIOTest.cpp
-    test/PointTest.cpp
-    test/PLYReaderTest.cpp
-    test/FloatComparisonTest.cpp
-    test/PerPixelMapTest.cpp
-)
-
-# Add a test executable for each src
-foreach(src ${test_srcs})
-    get_filename_component(filename ${src} NAME_WE)
-    set(testname ${target}_${filename})
-    add_executable(${testname} ${src})
-    target_link_libraries(${testname}
-        vc_core
-        vc_testing
-        Boost::unit_test_framework
+    set(test_srcs
+        test/LRUCacheTest.cpp
+        test/ObjWriterTest.cpp
+        test/MetadataTest.cpp
+        test/TextureTest.cpp
+        test/UVMapTest.cpp
+        test/plyWriterTest.cpp
+        test/PointSetTest.cpp
+        test/PointSetIOTest.cpp
+        test/OrderedPointSetTest.cpp
+        test/OrderedPointSetIOTest.cpp
+        test/PointTest.cpp
+        test/PLYReaderTest.cpp
+        test/FloatComparisonTest.cpp
+        test/PerPixelMapTest.cpp
     )
-    target_compile_options(${testname}
-        PUBLIC
-            -Wno-c++11-narrowing
+    
+    # Add a test executable for each src
+    foreach(src ${test_srcs})
+        get_filename_component(filename ${src} NAME_WE)
+        set(testname ${target}_${filename})
+        add_executable(${testname} ${src})
+        target_link_libraries(${testname}
+            vc_core
+            vc_testing
+            Boost::unit_test_framework
+        )
+        target_compile_options(${testname}
+            PUBLIC
+                -Wno-c++11-narrowing
+        )
+        add_test(
+            NAME ${testname}
+            WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
+            COMMAND ${testname}
+        )
+    endforeach()
+    
+    # Set test resource files
+    set(COMMON_TEST_RES
+        test/res/PlyWriter_Plane.ply
+        test/res/GenericGradient.tif
     )
-    add_test(
-        NAME ${testname}
-        WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
-        COMMAND ${testname}
-    )
-endforeach()
-
-# Set test resource files
-set(COMMON_TEST_RES
-    test/res/PlyWriter_Plane.ply
-    test/res/GenericGradient.tif
-)
-
-# Copy each test resource file
-foreach(r ${COMMON_TEST_RES})
-    file(COPY ${r} DESTINATION ${EXECUTABLE_OUTPUT_PATH})
-endforeach()
-
-endif(VC_BUILD_TESTS)
+    
+    # Copy each test resource file
+    foreach(r ${COMMON_TEST_RES})
+        file(COPY ${r} DESTINATION ${EXECUTABLE_OUTPUT_PATH})
+    endforeach()
+endif()
