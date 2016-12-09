@@ -27,6 +27,7 @@ option(VC_INSTALL_EXAMPLES  "Install VC example programs" off)
 
 # Look for external dependencies
 include(ConfigDependencies)
+include(VCWarnings)
 
 # Enable output highlighting if using Ninja
 # XXX Hack to get ninja output colorized. I don't think there's an 'all' target
@@ -36,16 +37,11 @@ include(ConfigDependencies)
 #
 if (CMAKE_GENERATOR MATCHES "Ninja")
     add_compile_options(-fdiagnostics-color=always)
+endif()
 
-    # Also enable warnings project-wide
-    set(project_warnings
-        -Wall
-        -Wextra
-        -Wno-missing-braces
-        -Wno-c++11-narrowing
-        -Wimplicit-fallthrough
-    )
-    add_compile_options(${project_warnings})
+# Weird bug on macOS where system includes aren't included with the right flag
+if (APPLE)
+    set(CMAKE_INCLUDE_SYSTEM_FLAG_CXX "-isystem ")
 endif()
 
 if(VC_BUILD_TESTS)

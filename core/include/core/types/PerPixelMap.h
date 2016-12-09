@@ -22,7 +22,7 @@ class PerPixelMap
 public:
     ///// Constructors /////
     // Create empty
-    PerPixelMap() : _height(0), _width(0){};
+    PerPixelMap() : _width{0}, _height{0} {}
 
     // Create new
     PerPixelMap(size_t height, size_t width);

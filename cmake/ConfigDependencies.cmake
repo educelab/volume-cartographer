@@ -36,7 +36,11 @@ include(${ITK_USE_FILE})
 ### VTK ###
 find_package(VTK QUIET REQUIRED)
 include(${VTK_USE_FILE})
-set(VTK_LIBRARIES_TMP ${VTK_LIBRARIES}) # Save these for later
+
+# VTK does not mark its headers as system headers with -isystem, which makes
+# warnings from those headers show up in builds. Do some property manipulation
+# to get rid of this.
+include_directories(SYSTEM ${VTK_INCLUDE_DIRS})
 
 ### Eigen ###
 # Make it into a target
@@ -45,9 +49,6 @@ add_library(eigen3 INTERFACE IMPORTED)
 set_target_properties(eigen3 PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES ${EIGEN3_INCLUDE_DIR}
 )
-
-# Put VTK libraries back because PCL silently overwrites them
-set(VTK_LIBRARIES ${VTK_LIBRARIES_TMP})
 
 ### OpenCV ###
 find_package(OpenCV REQUIRED)
@@ -65,7 +66,11 @@ endif()
 option(VC_USE_PCL "Use PCL library" off)
 if (VC_USE_PCL)
     set(PCL_STATIC on)
+
+    # PCL silently overwrites these, so save them and put them back afterward
+    set(VTK_LIBRARIES_TMP ${VTK_LIBRARIES})
     find_package(PCL 1.7 QUIET)
+    set(VTK_LIBRARIES ${VTK_LIBRARIES_TMP})
 endif()
 
 ### ACVD ###
