@@ -5,7 +5,6 @@ project(VC VERSION 2.8.0)
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
-set(VC_INSTALL_INCLUDE_PREFIX include/vc)
 
 # Use modern C++ for everything
 set(CMAKE_CXX_STANDARD 14)
@@ -26,6 +25,7 @@ option(VC_INSTALL_UTILS     "Install VC utility programs" on)
 option(VC_INSTALL_EXAMPLES  "Install VC example programs" off)
 
 # Look for external dependencies
+include(VCConstants)
 include(ConfigDependencies)
 
 # Enable output highlighting if using Ninja
@@ -43,13 +43,18 @@ if(VC_BUILD_TESTS)
 endif()
 
 ## VC Libraries ##
+# All the targets we wish to install. Filled in by submodules as necessary.
+set(installable_targets "")
+
+# The list of include directories to install
+set(installable_include_dirs "")
+
+# CMake sub-projects for each major library/component
 add_subdirectory(external)
 add_subdirectory(core)
-
 if(VC_BUILD_TESTS)
     add_subdirectory(testing)
 endif()
-
 add_subdirectory(meshing)
 add_subdirectory(segmentation)
 add_subdirectory(texturing)

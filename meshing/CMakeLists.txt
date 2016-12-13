@@ -1,6 +1,6 @@
 project(libvc_meshing VERSION 0.1 LANGUAGES CXX)
-set(component meshing)
-set(target "vc_${component}")
+set(module "meshing")
+set(target "vc_${module}")
 
 set(srcs
     src/deepCopy.cpp
@@ -40,7 +40,7 @@ target_compile_definitions(${target} PUBLIC ${defs})
 target_include_directories(${target}
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
+        $<INSTALL_INTERFACE:${include_install_dir}>
 )
 target_link_libraries(${target}
     PUBLIC
@@ -51,25 +51,18 @@ target_link_libraries(${target}
         vtkFiltersCore
 )
 
-set(export_config MeshingConfig)
-install(TARGETS ${target}
-    EXPORT ${export_config}
-    ARCHIVE DESTINATION lib COMPONENT ${component}
-    LIBRARY DESTINATION lib COMPONENT ${component}
-    RUNTIME DESTINATION bin
-)
 install(
-    DIRECTORY include/
-    DESTINATION ${VC_INSTALL_INCLUDE_PREFIX}
-    COMPONENT ${component}
-)
-install(
-    EXPORT ${export_config}
-    DESTINATION share/${component}/cmake
-)
-export(
     TARGETS ${target}
-    FILE ${export_config}.cmake
+    EXPORT ${targets_export_name}
+    ARCHIVE DESTINATION "lib"
+    LIBRARY DESTINATION "lib"
+    RUNTIME DESTINATION "bin"
+    INCLUDES DESTINATION "${include_install_dir}/${module}"
+)
+install(
+    DIRECTORY "include/${module}"
+    DESTINATION "${include_install_dir}"
+    FILES_MATCHING REGEX ".*\.(h|hpp)$"
 )
 
 ### Testing ###

@@ -40,16 +40,11 @@ set(VTK_LIBRARIES_TMP ${VTK_LIBRARIES}) # Save these for later
 
 ### Eigen ###
 # Make it into a target
-find_package(Eigen3 QUIET REQUIRED)
-add_library(eigen3 INTERFACE IMPORTED)
-set_target_properties(eigen3 PROPERTIES
-    INTERFACE_INCLUDE_DIRECTORIES "${EIGEN3_INCLUDE_DIR}"
-)
+find_package(Eigen3 CONFIG QUIET REQUIRED)
 
 ### PCL ###
 set(PCL_STATIC on)
 find_package(PCL 1.7 QUIET)
-
 
 # Put VTK libraries back because PCL silently overwrites them
 set(VTK_LIBRARIES ${VTK_LIBRARIES_TMP})
