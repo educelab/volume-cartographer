@@ -48,10 +48,10 @@ target_include_directories(${target}
         ${CMAKE_CURRENT_BINARY_DIR}
 )
 target_link_libraries(${target}
-    vc_core
-    vc_texturing
-    vc_external
-    vc_meshing
+    VC::core
+    VC::texturing
+    VC::external
+    VC::meshing
     Boost::filesystem
     Qt5::Core
     Qt5::Gui
@@ -59,7 +59,7 @@ target_link_libraries(${target}
     ${OSXSecurity}
 )
 
-if (${VC_INSTALL_APPS})
+if (VC_INSTALL_APPS)
     install(TARGETS ${target}
         BUNDLE DESTINATION . COMPONENT Programs
         RUNTIME DESTINATION bin COMPONENT Programs
@@ -79,7 +79,7 @@ set(extra_dirs "${CMAKE_PREFIX_PATH}")
 set(request_qt_conf off)
 set(plugins_dir "")
 set(components Programs)
-if (${VC_INSTALL_APPS} AND (APPLE OR WIN32))
+if (VC_INSTALL_APPS AND (APPLE OR WIN32))
     include(DeployQt5)
     install_qt5_executable(
         "${vc_exe}"

@@ -21,6 +21,7 @@ set(srcs
 )
 
 add_library(${target} ${srcs})
+add_library("${namespace}${module}" ALIAS "${target}")
 target_include_directories(${target}
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -38,7 +39,11 @@ target_link_libraries(${target}
         vtkCommonDataModel
         vtkCommonCore
         vtkIOLegacy
-        vc_external
+        VC::external
+)
+set_target_properties(${target} PROPERTIES
+    VERSION "${PROJECT_VERSION}"
+    EXPORT_NAME "${module}"
 )
 
 install(
@@ -80,8 +85,8 @@ if(VC_BUILD_TESTS)
         set(testname ${target}_${filename})
         add_executable(${testname} ${src})
         target_link_libraries(${testname}
-            vc_core
-            vc_testing
+            VC::core
+            VC::testing
             Boost::unit_test_framework
         )
         target_compile_options(${testname}

@@ -52,9 +52,9 @@ target_include_directories(${target}
         ${CMAKE_CURRENT_BINARY_DIR}
 )
 target_link_libraries(${target}
-    vc_core
-    vc_meshing
-    vc_segmentation
+    VC::core
+    VC::meshing
+    VC::segmentation
     Boost::filesystem
     Boost::program_options
     Qt5::Core
@@ -83,7 +83,7 @@ set(extra_dirs "${CMAKE_PREFIX_PATH}")
 set(request_qt_conf off)
 set(plugins_dir "")
 set(components Programs)
-if (${VC_INSTALL_APPS} AND (APPLE OR WIN32))
+if (VC_INSTALL_APPS AND (APPLE OR WIN32))
     include(DeployQt5)
     install_qt5_executable(
         "${vc_exe}"

@@ -10,11 +10,11 @@ set(srcs
     src/PPMGenerator.cpp
 )
 set(public_deps
-    vc_core
+    VC::core
 )
 set(private_deps
-    vc_meshing
-    vc_external
+    VC::meshing
+    VC::external
 )
 set(defs "")
 
@@ -30,6 +30,7 @@ if (VC_USE_BULLET)
 endif()
 
 add_library(${target} ${srcs})
+add_library("${namespace}${module}" ALIAS "${target}")
 target_compile_definitions(${target} PUBLIC ${defs})
 target_include_directories(${target}
     PUBLIC
@@ -39,6 +40,10 @@ target_include_directories(${target}
 target_link_libraries(${target}
     PUBLIC ${public_deps}
     PRIVATE ${private_deps}
+)
+set_target_properties(${target} PROPERTIES
+    VERSION "${PROJECT_VERSION}"
+    EXPORT_NAME "${module}"
 )
 
 install(
@@ -76,8 +81,8 @@ foreach(src ${test_srcs})
     set(testname ${target}_${filename})
     add_executable(${testname} ${src})
     target_link_libraries(${testname}
-        vc_texturing
-        vc_testing
+        VC::texturing
+        VC::testing
         Boost::unit_test_framework
         ${public_deps}
     )

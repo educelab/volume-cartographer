@@ -12,16 +12,23 @@ if (NOT Boost_USE_STATIC_LIBS)
 endif()
 
 add_library(${target} ${srcs})
+add_library("${namespace}${module}" ALIAS "${target}")
 target_include_directories(${target}
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:${include_install_dir}>
 )
 target_link_libraries(${target}
-    PUBLIC vc_core
+    PUBLIC
+        VC::core
 )
 target_compile_definitions(${target}
-    PUBLIC ${defs}
+    PUBLIC
+        ${defs}
+)
+set_target_properties(${target} PROPERTIES
+    VERSION "${PROJECT_VERSION}"
+    EXPORT_NAME "${module}"
 )
 
 install(
@@ -49,8 +56,8 @@ foreach(src ${test_srcs})
     set(testname ${target}_${filename})
     add_executable(${testname} ${src})
     target_link_libraries(${testname}
-        vc_core
-        vc_testing
+        VC::core
+        VC::testing
         Boost::unit_test_framework
     )
     add_test(

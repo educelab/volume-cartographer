@@ -9,6 +9,7 @@ set(srcs
 )
 
 add_library(${target} ${srcs})
+add_library("${namespace}${module}" ALIAS "${target}")
 target_include_directories(${target}
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -16,7 +17,11 @@ target_include_directories(${target}
 )
 target_link_libraries(${target}
     PUBLIC
-        Eigen3::Eigen
+        eigen3
+)
+set_target_properties(${target} PROPERTIES
+    VERSION "${PROJECT_VERSION}"
+    EXPORT_NAME "${module}"
 )
 
 install(

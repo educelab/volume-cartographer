@@ -13,7 +13,7 @@ set(srcs
     src/OrderedPointSetMesher.cpp
 )
 set(deps
-    vc_core
+    VC::core
     Boost::filesystem
 )
 set(defs "")
@@ -36,6 +36,7 @@ if(VC_USE_VCG)
 endif()
 
 add_library(${target} ${srcs})
+add_library("${namespace}${module}" ALIAS "${target}")
 target_compile_definitions(${target} PUBLIC ${defs})
 target_include_directories(${target}
     PUBLIC
@@ -49,6 +50,10 @@ target_link_libraries(${target}
         ITKTransform
         vtkFiltersGeneral
         vtkFiltersCore
+)
+set_target_properties(${target} PROPERTIES
+    VERSION "${PROJECT_VERSION}"
+    EXPORT_NAME "${module}"
 )
 
 install(
@@ -95,9 +100,9 @@ foreach(src ${test_srcs})
     set(testname ${target}_${filename})
     add_executable(${testname} ${src})
     target_link_libraries(${testname}
-        vc_core
-        vc_meshing
-        vc_testing
+        VC::core
+        VC::meshing
+        VC::testing
         Boost::unit_test_framework
     )
     add_test(
