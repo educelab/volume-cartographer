@@ -4,13 +4,13 @@ set(target VC)
 set(srcs
     CSimpleNumEditBox.cpp
     VCAppMain.cpp
-	CMesh.cpp
+    CMesh.cpp
     CWindow.cpp
-	CXCurve.cpp
-	UDataManipulateUtils.cpp
+    CXCurve.cpp
+    UDataManipulateUtils.cpp
     CVolumeViewer.cpp
-	CVolumeViewerWithCurve.cpp
-	CBSpline.cpp
+    CVolumeViewerWithCurve.cpp
+    CBSpline.cpp
     CBezierCurve.cpp
 )
 
@@ -65,15 +65,15 @@ target_link_libraries(${target}
 
 if (${VC_INSTALL_APPS})
     install(TARGETS ${target}
-        BUNDLE DESTINATION . COMPONENT Programs
+        BUNDLE DESTINATION ${VC_BUNDLE_LOCATION} COMPONENT Programs
         RUNTIME DESTINATION bin COMPONENT Programs
     )
 endif()
 
 if (APPLE)
-    set(vc_exe "VC.app")
+    set(vc_exe "${VC_BUNDLE_LOCATION}/VC.app")
 elseif (WIN32)
-    set(vc_exe "VC.exe")
+    set(vc_exe "${VC_BUNDLE_LOCATION}/VC.exe")
 else ()
     set(vc_exe "VC")
 endif()
