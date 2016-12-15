@@ -38,8 +38,8 @@ find_package(VTK QUIET REQUIRED)
 include(${VTK_USE_FILE})
 
 # VTK does not mark its headers as system headers with -isystem, which makes
-# warnings from those headers show up in builds. Do some property manipulation
-# to get rid of this.
+# warnings from those headers show up in builds. This marks them as "system"
+# headers.
 include_directories(SYSTEM ${VTK_INCLUDE_DIRS})
 
 ### Eigen ###
