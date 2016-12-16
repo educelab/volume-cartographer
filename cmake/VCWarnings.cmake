@@ -5,5 +5,20 @@ set(project_warnings
     -Wno-missing-braces
     -Wno-c++11-narrowing
     -Wimplicit-fallthrough
+    -Wexplicit-ownership-type
+    -Wheader-hygiene
+    -Wimplicit-fallthrough
+    -Wold-style-cast
+    -Wshadow
+    -Wshadow-ivar
+    -Wswitch-enum
+    -Wtautological-compare
+    -Wtypename-missing
+    -Wunreachable-code
+    -Wunused-macros
+    -Wunused-member-function
+    -Wunneeded-member-function
+    -Wno-c++1z-extensions
+    -pedantic
 )
 add_compile_options(${project_warnings})

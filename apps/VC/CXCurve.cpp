@@ -31,7 +31,9 @@ void CXCurve::SetPointByDifference(
             SetPoint(
                 nIndex - i,
                 fLastState[nIndex - i] +
-                    nDiff * ImpactFunc(1.0, (double)i / nImpactRange, 1.0));
+                    nDiff *
+                        ImpactFunc(
+                            1.0, static_cast<double>(i) / nImpactRange, 1.0));
         }
         if (i == 0) {
             continue;
@@ -40,7 +42,9 @@ void CXCurve::SetPointByDifference(
             SetPoint(
                 nIndex + i,
                 fLastState[nIndex + i] +
-                    nDiff * ImpactFunc(1.0, (double)i / nImpactRange, 1.0));
+                    nDiff *
+                        ImpactFunc(
+                            1.0, static_cast<double>(i) / nImpactRange, 1.0));
         }
     }
 }

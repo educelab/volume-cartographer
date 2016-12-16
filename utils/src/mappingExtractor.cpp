@@ -17,7 +17,6 @@ volcart::PerPixelMap _perPixelMap;
 
 ITKPoint lookup2Dto3D(int x, int y);
 #define RED cv::Scalar(0, 0, 255)
-#define RED_OVERLAY cv::Scalar(0, 0, 255, 0.25)
 
 int main(int /*argc*/, char* argv[])
 {
@@ -81,8 +80,8 @@ int main(int /*argc*/, char* argv[])
                 normal[0] = mapInfo(3);
                 normal[1] = mapInfo(4);
                 normal[2] = mapInfo(5);
-                u = (double)x / (width - 1);
-                v = (double)y / (height - 1);
+                u = static_cast<double>(x) / (width - 1);
+                v = static_cast<double>(y) / (height - 1);
                 texture.uvMap().set(point_counter, cv::Vec2d(u, v));
                 outputMesh->SetPoint(point_counter, pt);
                 outputMesh->SetPointData(point_counter, normal);

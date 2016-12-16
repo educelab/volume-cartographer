@@ -40,7 +40,7 @@ std::vector<cv::Vec6f> rayTrace(
     vtkMesh->GetBounds(bounds);
 
     // Set ray width and height, used for texturing
-    height = (int)(bounds[5] - bounds[4]);
+    height = static_cast<int>(bounds[5] - bounds[4]);
     width = OUT_X;
 
     // Generate normals for the cells of the mesh
@@ -74,9 +74,10 @@ std::vector<cv::Vec6f> rayTrace(
     int pointID = 0;
 
     // For each slice/row generate rays and interpolate new points
-    for (int z = (int)bounds[4]; z < (int)bounds[5]; ++z) {
+    for (int z = static_cast<int>(bounds[4]); z < static_cast<int>(bounds[5]);
+         ++z) {
         std::cout << "\rvolcart::rayTrace :: Ray tracing for Z index: " << z
-                  << "/" << (int)bounds[5] - 1 << std::flush;
+                  << "/" << static_cast<int>(bounds[5]) - 1 << std::flush;
 
         origin(2) = z;  // update the z-component of the origin
 

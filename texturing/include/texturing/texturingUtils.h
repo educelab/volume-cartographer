@@ -95,11 +95,12 @@ inline void Sectioning(
                     aPos[2] = nCenter[2] - aDir[2];
 
                     // Get interpolated intensity at point
-                    double tmp = VolPkg.volume().interpolatedIntensityAt(aPos);
+                    double intensity =
+                        VolPkg.volume().interpolatedIntensityAt(aPos);
 
                     // Store point in return array
                     nData[aDataCnt] =
-                        tmp;  // REVISIT - we assume we have enough space
+                        intensity;  // REVISIT - we assume we have enough space
                     aDataCnt++;
                 }
                 break;

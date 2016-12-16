@@ -52,8 +52,8 @@ Chain::Chain(
 
     // Set _realIterationsCount based on starting index, target index, and how
     // frequently we want to sample the segmentation
-    _real_iterations =
-        (int)(ceil(((_target_index - _start_index) + 1) / _threshold));
+    _real_iterations = static_cast<int>(
+        ceil(((_target_index - _start_index) + 1) / _threshold));
 
     // Go ahead and stop any particles that are already at the target index
     for (int i = 0; i < _chain_length; ++i)
@@ -177,10 +177,10 @@ volcart::OrderedPointSet<volcart::Point3d> Chain::orderedPCD()
 
         // Add each Particle in the row into storage at the correct position
         for (int i = 0; i < _chain_length; ++i) {
-            int currentCell = (int)((
-                (row_at[i](2)) -
-                _start_index /
-                    _threshold));  // *To-Do: Something seems wrong here.
+            int currentCell = static_cast<int>(
+                ((row_at[i](2)) -
+                 _start_index /
+                     _threshold));  // *To-Do: Something seems wrong here.
             storage[currentCell][i] = volcart::Point3d(row_at[i].position());
         }
     }

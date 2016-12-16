@@ -34,7 +34,7 @@ int main(int /*argc*/, char* argv[])
     vpkg.volume().setCacheMemoryInBytes(10000000000);
     vpkg.setActiveSegmentation(argv[2]);
     int radius = std::stoi(argv[3]);
-    int type = std::stoi(argv[4]);
+    auto type = static_cast<volcart::CompositeOption>(std::stoi(argv[4]));
 
     // Read the mesh
     fs::path meshName = vpkg.getMeshPath();
@@ -106,13 +106,12 @@ int main(int /*argc*/, char* argv[])
     // Get uv map
     volcart::UVMap uvMap = abf.getUVMap();
     int width = std::ceil(uvMap.ratio().width);
-    int height = std::ceil((double)width / uvMap.ratio().aspect);
+    int height = std::ceil(static_cast<double>(width) / uvMap.ratio().aspect);
 
     std::cout << width << "x" << height << std::endl;
 
     volcart::texturing::compositeTextureV2 compText(
-        itkACVD, vpkg, uvMap, radius, width, height,
-        (volcart::CompositeOption)type);
+        itkACVD, vpkg, uvMap, radius, width, height, type);
 
     // Setup rendering
     volcart::Rendering rendering;
@@ -120,7 +119,8 @@ int main(int /*argc*/, char* argv[])
     rendering.setMesh(itkACVD);
 
     volcart::io::objWriter mesh_writer;
-    mesh_writer.setPath("textured-" + std::to_string(type) + ".obj");
+    mesh_writer.setPath(
+        "textured-" + std::to_string(static_cast<int>(type)) + ".obj");
     mesh_writer.setRendering(rendering);
     mesh_writer.write();
 

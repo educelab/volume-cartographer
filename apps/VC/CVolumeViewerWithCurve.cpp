@@ -220,12 +220,12 @@ void CVolumeViewerWithCurve::WidgetLoc2ImgLoc(
 
     // the image position within its parent, the scroll area
     QPoint aP = fCanvas->pos();
-    QWidget* aCurWidget = (QWidget*)fCanvas->parent();
+    QWidget* aCurWidget = static_cast<QWidget*>(fCanvas->parent());
 
     // the widget loc from the event is relative to this widget, so stop here
     while (aCurWidget != this) {
         aP = aCurWidget->mapToParent(aP);
-        aCurWidget = (QWidget*)(aCurWidget->parent());
+        aCurWidget = static_cast<QWidget*>(aCurWidget->parent());
     }
 
     x -= aP.x();

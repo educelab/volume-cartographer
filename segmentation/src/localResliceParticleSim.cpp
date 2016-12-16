@@ -297,10 +297,10 @@ LocalResliceSegmentation::segmentPath(
                 cv::Mat chain = drawParticlesOnSlice(currentCurve, zIndex, i);
                 cv::Mat resliceMat = reslices[i].draw();
                 cv::Mat map = maps[i].draw();
-                std::stringstream ss;
-                ss << std::setw(nchars) << std::setfill('0') << zIndex << "_"
-                   << std::setw(nchars) << std::setfill('0') << i;
-                const fs::path base = zIdxDir / ss.str();
+                std::stringstream stream;
+                stream << std::setw(nchars) << std::setfill('0') << zIndex
+                       << "_" << std::setw(nchars) << std::setfill('0') << i;
+                const fs::path base = zIdxDir / stream.str();
                 cv::imwrite(base.string() + "_chain.png", chain);
                 cv::imwrite(base.string() + "_reslice.png", resliceMat);
                 cv::imwrite(base.string() + "_map.png", map);

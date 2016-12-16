@@ -168,12 +168,12 @@ BOOST_FIXTURE_TEST_CASE(AddImageToTextureTest, TextureWithImageFixture)
             TestImage.datastart, TestImage.dataend);
 
         // assign img data
-        ushort* matData = (ushort*)_Texture.image(img_id).data;
+        uint16_t* matData = _Texture.image(img_id).ptr<uint16_t>();
 
         // step size --> helper
-        size_t step = _Texture.image(img_id).step / sizeof(ushort);
+        size_t step = _Texture.image(img_id).step / sizeof(uint16_t);
 
-        ushort value;
+        uint16_t value;
         for (int row = 0; row < _Texture.image(img_id).rows; row++) {
             for (int col = 0; col < _Texture.image(img_id).cols; col++) {
 

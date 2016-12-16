@@ -145,7 +145,8 @@ BOOST_FIXTURE_TEST_CASE(CheckReferenceToOutOfBoundsKey, ReferenceBadKeyFixture)
         // casting negative size_t value to int
         std::cout << e.what() << std::endl;
         std::cout << "Key Tried: "
-                  << (int)(_Cache.capacity() - (_Cache.capacity() + 1))
+                  << static_cast<int>(
+                         _Cache.capacity() - (_Cache.capacity() + 1))
                   << std::endl;
         BOOST_CHECK(true);
     }

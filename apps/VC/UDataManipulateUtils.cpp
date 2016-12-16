@@ -68,7 +68,7 @@ bool SplitVertexAndElementBuffer(
                 // element array (vertex index)
                 int aVertexIndexNew = i * 3 + j;
                 (*nElementBufferData)[aArrayIndex][aVertexIndexNew] =
-                    (unsigned short)(aVertexIndexNew);
+                    static_cast<uint16_t>(aVertexIndexNew);
 
                 // REVISIT - IMPROVE - notice we don't deal with duplication of
                 // vertices, which is a big waste of memory space
@@ -107,8 +107,8 @@ bool SplitVertexAndElementBuffer(
 cv::Mat QImage2Mat(const QImage& nSrc)
 {
     cv::Mat tmp(
-        nSrc.height(), nSrc.width(), CV_8UC3, (uchar*)nSrc.bits(),
-        nSrc.bytesPerLine());
+        nSrc.height(), nSrc.width(), CV_8UC3,
+        const_cast<const uchar*>(nSrc.bits()), nSrc.bytesPerLine());
     cv::Mat result;  // deep copy
     cvtColor(tmp, result, CV_BGR2RGB);
     return result;
@@ -120,7 +120,7 @@ QImage Mat2QImage(const cv::Mat& nSrc)
     cv::Mat tmp;
     cvtColor(nSrc, tmp, CV_BGR2RGB);  // copy and convert color space
     QImage result(
-        (const uchar*)tmp.data, tmp.cols, tmp.rows, tmp.step,
+        static_cast<const uint8_t*>(tmp.data), tmp.cols, tmp.rows, tmp.step,
         QImage::Format_RGB888);
     result.bits();  // enforce depp copy, see documentation of
     // QImage::QImage( const uchar *dta, int width, int height, Format format )

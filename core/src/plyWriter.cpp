@@ -145,8 +145,9 @@ int plyWriter::_writeVertices()
             else
                 intensity = 0;
 
-            _outputMesh << " " << (int)intensity << " " << (int)intensity << " "
-                        << (int)intensity;
+            _outputMesh << " " << static_cast<int>(intensity) << " "
+                        << static_cast<int>(intensity) << " "
+                        << static_cast<int>(intensity);
         }
 
         _outputMesh << std::endl;

@@ -27,7 +27,6 @@ option(VC_INSTALL_EXAMPLES  "Install VC example programs" off)
 
 # Look for external dependencies
 include(ConfigDependencies)
-include(VCWarnings)
 
 # Enable output highlighting if using Ninja
 # XXX Hack to get ninja output colorized. I don't think there's an 'all' target
@@ -50,6 +49,9 @@ endif()
 
 ## VC Libraries ##
 add_subdirectory(external)
+
+# Enable warnings after 'external' lib.
+include(VCWarnings)
 add_subdirectory(core)
 
 if(VC_BUILD_TESTS)

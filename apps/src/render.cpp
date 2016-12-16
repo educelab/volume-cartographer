@@ -94,9 +94,8 @@ int main(int argc, char* argv[])
         volpkgPath = parsedOptions["volpkg"].as<std::string>();
         segID = parsedOptions["seg"].as<std::string>();
         radius = parsedOptions["radius"].as<int>();
-        aFilterOption = (CompositeOption)parsedOptions["method"].as<int>();
-        aDirectionOption =
-            (DirectionOption)parsedOptions["direction"].as<int>();
+        aFilterOption = parsedOptions["method"].as<CompositeOption>();
+        aDirectionOption = parsedOptions["direction"].as<DirectionOption>();
 
         // Check for output file
         if (parsedOptions.count("output-file")) {
@@ -190,7 +189,7 @@ int main(int argc, char* argv[])
     // Get uv map
     volcart::UVMap uvMap = abf.getUVMap();
     int width = std::ceil(uvMap.ratio().width);
-    int height = std::ceil((double)width / uvMap.ratio().aspect);
+    int height = std::ceil(static_cast<double>(width) / uvMap.ratio().aspect);
 
     volcart::texturing::compositeTextureV2 result(
         itkACVD, vpkg, uvMap, radius, width, height, aFilterOption,

@@ -101,7 +101,7 @@ int compositeTexture::_process()
             v = cvRound(_uvMap.get(pointID)[1] * (_height - 1));
 
             // Assign the intensity value at the UV position
-            textureImage.at<unsigned short>(v, u) = (unsigned short)value;
+            textureImage.at<uint16_t>(v, u) = static_cast<uint16_t>(value);
         }
     }
     std::cout << std::endl;

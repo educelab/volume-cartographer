@@ -189,13 +189,13 @@ public:
 
             // Dim
             else if (std::regex_match(strs[0], dim)) {
-                auto dim = std::stoul(strs[1]);
-                if (dim != T::dim) {
+                auto parsed_dim = std::stoul(strs[1]);
+                if (parsed_dim != T::dim) {
                     auto msg =
                         "Incorrect dimension read for template specification";
                     throw IOException(msg);
                 }
-                h.dim = dim;
+                h.dim = parsed_dim;
             }
 
             // Ordering

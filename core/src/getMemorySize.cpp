@@ -61,7 +61,7 @@ size_t systemMemorySize()
     int64_t size = 0;    /* 64-bit */
     size_t len = sizeof(size);
     if (sysctl(mib, 2, &size, &len, NULL, 0) == 0)
-        return (size_t)size;
+        return static_cast<size_t>(size);
     return 0L; /* Failed? */
 
 #elif defined(_SC_AIX_REALMEM)

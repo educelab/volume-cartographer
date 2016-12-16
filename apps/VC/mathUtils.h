@@ -624,8 +624,8 @@ Mat44<T> ComposeRT(const Mat33<T>& nR, const Vec3<T>& nT)
         }
         aResult[i][3] = nT[i];
     }
-    aResult[3][0] = aResult[3][1] = aResult[3][2] = (T)(0.0);
-    aResult[3][0] = (T)(1.0);
+    aResult[3][0] = aResult[3][1] = aResult[3][2] = static_cast<T>(0.0);
+    aResult[3][0] = static_cast<T>(1.0);
 
     return aResult;
 }

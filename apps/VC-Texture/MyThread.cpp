@@ -32,10 +32,10 @@ void MyThread::run()
 
         fs::path meshName = _globals->getVolPkg()->getMeshPath();
 
-        volcart::CompositeOption aFilterOption =
-            (volcart::CompositeOption)_globals->getTextureMethod();
-        volcart::DirectionOption aDirectionOption =
-            (volcart::DirectionOption)_globals->getSampleDirection();
+        auto aFilterOption =
+            static_cast<volcart::CompositeOption>(_globals->getTextureMethod());
+        auto aDirectionOption = static_cast<volcart::DirectionOption>(
+            _globals->getSampleDirection());
 
         // declare pointer to new Mesh object
         auto mesh = volcart::ITKMesh::New();
@@ -90,7 +90,8 @@ void MyThread::run()
         // Get uv map
         volcart::UVMap uvMap = abf.getUVMap();
         int width = std::ceil(uvMap.ratio().width);
-        int height = std::ceil((double)width / uvMap.ratio().aspect);
+        int height =
+            std::ceil(static_cast<double>(width) / uvMap.ratio().aspect);
 
         volcart::texturing::compositeTextureV2 result(
             itkACVD, *_globals->getVolPkg(), uvMap, _radius, width, height,

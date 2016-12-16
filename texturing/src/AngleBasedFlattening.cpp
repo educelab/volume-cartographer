@@ -140,7 +140,7 @@ void AngleBasedFlattening::_fillHalfEdgeMesh()
 
         _heMesh.addFace(v_ids[0], v_ids[1], v_ids[2]);
     }
-    _J2dt = cv::Mat((int)_heMesh.getNumberOfEdges(), 3, CV_64F);
+    _J2dt = cv::Mat(static_cast<int>(_heMesh.getNumberOfEdges()), 3, CV_64F);
     _limit = (_heMesh.getNumberOfFaces() > 100) ? 1.0f : 0.001f;
 
     ///// Connectivity /////

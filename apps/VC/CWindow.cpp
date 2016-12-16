@@ -6,8 +6,6 @@
 #include "core/types/Exceptions.h"
 #include "meshing/OrderedPointSetMesher.h"
 
-#define _DEBUG
-
 using namespace ChaoVis;
 
 // Constructor
@@ -222,12 +220,12 @@ void CWindow::CreateWidgets(void)
         aBtnStartSeg, SIGNAL(clicked()), this, SLOT(OnBtnStartSegClicked()));
 
     // Impact Range slider
-    QSlider* fEdtImpactRange = this->findChild<QSlider*>("sldImpactRange");
+    QSlider* fEdtImpactRng = this->findChild<QSlider*>("sldImpactRange");
     connect(
-        fEdtImpactRange, SIGNAL(valueChanged(int)), this,
+        fEdtImpactRng, SIGNAL(valueChanged(int)), this,
         SLOT(OnEdtImpactRange(int)));
     fLabImpactRange = this->findChild<QLabel*>("labImpactRange");
-    fLabImpactRange->setText(QString::number(fEdtImpactRange->value()));
+    fLabImpactRange->setText(QString::number(fEdtImpactRng->value()));
 
     // Setup the _status bar
     statusBar = this->findChild<QStatusBar*>("statusBar");
@@ -609,7 +607,8 @@ void CWindow::SetUpCurves(void)
         CXCurve aCurve;
         for (size_t j = 0; j < fMasterCloud.width(); ++j) {
             int pointIndex = j + (i * fMasterCloud.width());
-            aCurve.SetSliceIndex((int)floor(fMasterCloud[pointIndex][2]));
+            aCurve.SetSliceIndex(
+                static_cast<int>(floor(fMasterCloud[pointIndex][2])));
             aCurve.InsertPoint(Vec2<float>(
                 fMasterCloud[pointIndex][0], fMasterCloud[pointIndex][1]));
         }

@@ -52,7 +52,7 @@ int main(int argc, char* argv[])
             continue;
 
         // get the z-index for this point (floored int)
-        int this_z = (int)point->Value()[INDEX_Z];
+        int this_z = static_cast<int>(point->Value()[INDEX_Z]);
 
         // add point id to the vector for this z-index
         // make a vector for this z-index if it doesn't exist in the map

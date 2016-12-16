@@ -109,7 +109,7 @@ void CBSpline::UpdateCurve(void)
 
     // solve for control points for each Bezier curve segment
     // # of unknowns = # of curve segments = # of control points - 1
-    int aNumUnknowns = (int)fControlPoints.size() - 1;
+    int aNumUnknowns = static_cast<int>(fControlPoints.size()) - 1;
     CVectorN<double> aX(aNumUnknowns), aY(aNumUnknowns), aB(aNumUnknowns);
     CMatrixMN<double> aA = Zero<double>(aNumUnknowns, aNumUnknowns);
 

@@ -724,12 +724,14 @@ inline void SVD(
                 nm = l - 1;
 
                 if (l == 0 ||
-                    fabs((float)(fabs(rv1[l]) + anorm) - anorm) < 1e-6) {
+                    fabs(static_cast<float>(fabs(rv1[l]) + anorm) - anorm) <
+                        1e-6) {
                     flag = 0;
                     break;
                 }  // if
 
-                if (fabs((float)(fabs(aW[nm]) + anorm) - anorm) < 1e-6) {
+                if (fabs(static_cast<float>(fabs(aW[nm]) + anorm) - anorm) <
+                    1e-6) {
                     break;
                 }
 
@@ -745,7 +747,8 @@ inline void SVD(
                     f = s * rv1[i];
                     rv1[i] = c * rv1[i];
 
-                    if (fabs((float)(fabs(f) + anorm) - anorm) < 1e-6) {
+                    if (fabs(static_cast<float>(fabs(f) + anorm) - anorm) <
+                        1e-6) {
                         break;
                     }
                     g = aW[i];
@@ -855,11 +858,11 @@ inline void SVD(
     aA.Dump();
 
     // copy back to U
-    for (int i = 0; i < aA.GetRows(); ++i) {
-        for (int j = 0; j < aA.GetCols(); ++j) {
-            nU(i, j) = aA(i, j);
-        }  // for j
-    }      // for i
+    for (int m = 0; m < aA.GetRows(); ++m) {
+        for (int n = 0; n < aA.GetCols(); ++n) {
+            nU(m, n) = aA(m, n);
+        }  // for n
+    }      // for m
 }
 
 // Thomas tri-diagonal matrix
