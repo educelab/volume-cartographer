@@ -6,9 +6,9 @@
 
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
-#include "common/io/objWriter.h"
-#include "common/shapes/Plane.h"
-#include "common/vc_defines.h"
+#include "core/io/objWriter.h"
+#include "core/shapes/Plane.h"
+#include "core/vc_defines.h"
 
 /************************************************************************************
  *                                                                                  *
@@ -17,8 +17,8 @@
  *  goal of this file is the following: *
  *                                                                                  *
  *        1. check whether a testing mesh, created by *
- *           common/shapes/Plane.h, can be written into *
- *           an object file by common/io/objWriter.cpp. *
+ *           core/shapes/Plane.h, can be written into *
+ *           an object file by core/io/objWriter.cpp. *
  *                                                                                  *
  *        2. read contents of obj file and compare data with testing mesh *
  *                                                                                  *

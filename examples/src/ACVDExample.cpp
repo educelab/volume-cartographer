@@ -2,9 +2,9 @@
 // Created by Seth Parker on 9/24/15.
 //
 
-#include "common/io/PLYReader.h"
-#include "common/io/objWriter.h"
-#include "common/vc_defines.h"
+#include "core/io/PLYReader.h"
+#include "core/io/objWriter.h"
+#include "core/vc_defines.h"
 #include "meshing/ACVD.h"
 #include "meshing/itk2vtk.h"
 
@@ -16,7 +16,12 @@ int main(int argc, char* argv[])
     // declare pointer to new Mesh object
     auto itkMesh = volcart::ITKMesh::New();
 
-    if (!volcart::io::PLYReader(meshName, itkMesh)) {
+    volcart::io::PLYReader reader(meshName);
+    try {
+        reader.read();
+        itkMesh = reader.getMesh();
+    } catch (std::exception e) {
+        std::cerr << e.what() << std::endl;
         exit(EXIT_SUCCESS);
     }
 

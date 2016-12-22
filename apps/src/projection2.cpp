@@ -16,8 +16,8 @@
 #include <vtkPlane.h>
 #include <vtkSmartPointer.h>
 #include <vtkStripper.h>
-#include "common/vc_defines.h"
-#include "volumepkg/volumepkg.h"
+#include "core/types/VolumePkg.h"
+#include "core/vc_defines.h"
 
 int main(int argc, char* argv[])
 {

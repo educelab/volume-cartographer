@@ -2,13 +2,12 @@
 // Created by Seth Parker on 6/24/15.
 //
 
-#include "common/io/PLYReader.h"
-#include "common/io/objWriter.h"
-#include "common/io/plyWriter.h"
-#include "common/types/Texture.h"
-#include "common/vc_defines.h"
-#include "volumepkg/volumepkg.h"
-
+#include "core/io/PLYReader.h"
+#include "core/io/objWriter.h"
+#include "core/io/plyWriter.h"
+#include "core/types/Texture.h"
+#include "core/types/VolumePkg.h"
+#include "core/vc_defines.h"
 #include "texturing/compositeTextureV2.h"
 #include "texturing/simpleUV.h"
 
@@ -22,9 +21,14 @@ int main(int argc, char* argv[])
     auto inputMesh = volcart::ITKMesh::New();
 
     // try to convert the ply to an ITK mesh
-    if (!volcart::io::PLYReader(vpkg.getMeshPath(), inputMesh)) {
+    volcart::io::PLYReader reader(vpkg.getMeshPath());
+    try {
+        reader.read();
+        inputMesh = reader.getMesh();
+    } catch (std::exception e) {
+        std::cerr << e.what() << std::endl;
         exit(EXIT_SUCCESS);
-    };
+    }
 
     int width = 608 * 2;
     int height = 370 * 2;
@@ -43,7 +47,7 @@ int main(int argc, char* argv[])
     volcart::io::objWriter mesh_writer;
     mesh_writer.setPath("compV2Test.obj");
     mesh_writer.setMesh(inputMesh);
-    mesh_writer.setTexture(compText.texture().getImage(0));
+    mesh_writer.setTexture(compText.texture().image(0));
     mesh_writer.setUVMap(compText.texture().uvMap());
     mesh_writer.write();
 

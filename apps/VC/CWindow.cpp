@@ -6,7 +6,8 @@
 
 #include "CVolumeViewerWithCurve.h"
 #include "UDataManipulateUtils.h"
-#include "common/types/Exceptions.h"
+#include "core/types/Exceptions.h"
+#include "meshing/OrderedPointSetMesher.h"
 
 #define _DEBUG
 
@@ -231,7 +232,7 @@ void CWindow::CreateWidgets(void)
     fLabImpactRange = this->findChild<QLabel*>("labImpactRange");
     fLabImpactRange->setText(QString::number(fEdtImpactRange->value()));
 
-    // Setup the status bar
+    // Setup the _status bar
     statusBar = this->findChild<QStatusBar*>("statusBar");
 }
 
@@ -808,7 +809,10 @@ void CWindow::SavePointCloud(void)
         std::cerr << "VC::message: Cloud height <= 1. Nothing to mesh."
                   << std::endl;
     } else {
-        if (fVpkg->saveMesh(fMasterCloud) != EXIT_SUCCESS) {
+        // Mesh pointset
+        volcart::meshing::OrderedPointSetMesher mesher{fMasterCloud};
+        mesher.compute();
+        if (fVpkg->saveMesh(mesher.getOutputMesh()) != EXIT_SUCCESS) {
             QMessageBox::warning(
                 this, "Error", "Failed to write mesh to volume package.");
             return;
@@ -859,7 +863,7 @@ void CWindow::OnPathItemClicked(QListWidgetItem* nItem)
     ChangePathItem(nItem->text().toStdString());
 }
 
-// Toggle the status of the pen tool
+// Toggle the _status of the pen tool
 void CWindow::TogglePenTool(void)
 {
     if (fPenTool->isChecked()) {
@@ -884,7 +888,7 @@ void CWindow::TogglePenTool(void)
     UpdateView();
 }
 
-// Toggle the status of the segmentation tool
+// Toggle the _status of the segmentation tool
 void CWindow::ToggleSegmentationTool(void)
 {
     if (fSegTool->isChecked()) {

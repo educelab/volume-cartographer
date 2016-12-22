@@ -10,8 +10,8 @@
 
 #include <opencv2/core.hpp>
 
+#include "core/types/VolumePkg.h"
 #include "segmentation/stps/particle.h"
-#include "volumepkg/volumepkg.h"
 
 class Chain
 {

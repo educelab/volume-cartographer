@@ -1,6 +1,5 @@
-//
-// Created by Seth Parker on 7/31/15.
-//
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
 
 #include "apps/SliceImage.h"
 

@@ -7,7 +7,7 @@
 
 #include <opencv2/core.hpp>
 
-#include "common/types/Point.h"
+#include "core/types/Point.h"
 
 namespace ChaoVis
 {

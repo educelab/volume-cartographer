@@ -10,9 +10,9 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include "common/io/PLYReader.h"
-#include "common/vc_defines.h"
-#include "volumepkg/volumepkg.h"
+#include "core/io/PLYReader.h"
+#include "core/types/VolumePkg.h"
+#include "core/vc_defines.h"
 
 #define RED cv::Scalar(0, 0, 255)
 
@@ -34,7 +34,9 @@ int main(int argc, char* argv[])
 
     // Load the mesh
     auto mesh = ITKMesh::New();
-    volcart::io::PLYReader(volpkg.getMeshPath(), mesh);
+    volcart::io::PLYReader reader(volpkg.getMeshPath());
+    reader.read();
+    mesh = reader.getMesh();
 
     // PNG Compression params
     std::vector<int> compression_params;

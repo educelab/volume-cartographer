@@ -5,10 +5,10 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include "common/io/objWriter.h"
-#include "common/types/Texture.h"
-#include "common/vc_defines.h"
-#include "volumepkg/volumepkg.h"
+#include "core/io/objWriter.h"
+#include "core/types/Texture.h"
+#include "core/types/VolumePkg.h"
+#include "core/vc_defines.h"
 
 using namespace volcart;
 namespace fs = boost::filesystem;
@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
               << std::endl;
 
     std::string ppm_path = segPath.string() + "/PerPixelMapping.yml.gz";
-    _perPixelMap.read(ppm_path);
+    _perPixelMap = PerPixelMap::ReadPPM(ppm_path);
 
     // ROI params
     int tl_x = std::stoi(argv[3]);

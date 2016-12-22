@@ -9,13 +9,12 @@
 #include <opencv2/imgcodecs.hpp>
 #include <vtkCleanPolyData.h>
 
-#include "common/vc_defines.h"
-#include "volumepkg/volumepkg.h"
-
-#include "common/io/PLYReader.h"
-#include "common/io/objWriter.h"
-#include "common/io/plyWriter.h"
-#include "common/util/meshMath.h"
+#include "core/io/PLYReader.h"
+#include "core/io/objWriter.h"
+#include "core/io/plyWriter.h"
+#include "core/types/VolumePkg.h"
+#include "core/util/meshMath.h"
+#include "core/vc_defines.h"
 #include "meshing/ACVD.h"
 #include "meshing/smoothNormals.h"
 #include "texturing/AngleBasedFlattening.h"
@@ -136,19 +135,22 @@ int main(int argc, char* argv[])
                   << std::endl;
         return EXIT_FAILURE;
     }
-    vpkg.volume().setCacheMemoryInBytes(systemMemorySize());
+    double cacheBytes = 0.75 * systemMemorySize();
+    vpkg.volume().setCacheMemoryInBytes(static_cast<size_t>(cacheBytes));
 
     ///// Set the segmentation ID /////
     vpkg.setActiveSegmentation(segID);
     fs::path meshName = vpkg.getMeshPath();
 
-    // declare pointer to new Mesh object
-    auto input = ITKMesh::New();
-
     // try to convert the ply to an ITK mesh
-    if (!volcart::io::PLYReader(meshName, input)) {
-        exit(-1);
-    };
+    volcart::io::PLYReader reader(meshName);
+    try {
+        reader.read();
+    } catch (volcart::IOException e) {
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+    auto input = reader.getMesh();
 
     // Calculate sampling density
     double voxelsize = vpkg.getVoxelSize();
@@ -203,23 +205,23 @@ int main(int argc, char* argv[])
     if (outputPath.extension() == ".PLY" || outputPath.extension() == ".ply") {
         std::cout << "Writing to PLY..." << std::endl;
         volcart::io::plyWriter writer(
-            outputPath.string(), input, result.texture());
+            outputPath.string(), itkACVD, result.texture());
         writer.write();
     } else if (
         outputPath.extension() == ".OBJ" || outputPath.extension() == ".obj") {
         std::cout << "Writing to OBJ..." << std::endl;
         volcart::io::objWriter writer;
-        writer.setMesh(input);
+        writer.setMesh(itkACVD);
         writer.setRendering(rendering);
         writer.setPath(outputPath.string());
         writer.write();
     } else if (
         outputPath.extension() == ".PNG" || outputPath.extension() == ".png") {
         std::cout << "Writing to PNG..." << std::endl;
-        cv::imwrite(outputPath.string(), rendering.getTexture().getImage(0));
+        cv::imwrite(outputPath.string(), rendering.getTexture().image(0));
     } else {
         std::cout << "Writing to Volume Package..." << std::endl;
-        vpkg.saveMesh(input, result.texture());
+        vpkg.saveMesh(itkACVD, result.texture());
     }
 
     return EXIT_SUCCESS;

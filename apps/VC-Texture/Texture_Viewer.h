@@ -54,6 +54,8 @@ private:
     void scale_Texture(double factor);
     void adjustScrollBar(QScrollBar* scrollBar, double factor);
 
+    Global_Values* _globals;
+
     QPushButton* zoomIn;
     QPushButton* zoomOut;
     QPushButton* refresh;
@@ -65,15 +67,11 @@ private:
     QHBoxLayout* zoom;
     QVBoxLayout* image_Management;
     QProgressBar* progressBar;
-
     QPixmap pix;
-
-    double scaleFactor;
-
-    Global_Values* _globals;
-
     QAction* zoomInAction;
     QAction* zoomOutAction;
     QAction* resetSizeAction;
     QAction* _cancel;
+
+    double scaleFactor;
 };

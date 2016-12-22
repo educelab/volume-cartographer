@@ -42,6 +42,7 @@ public slots:
     void exportTexture();
 
 private:
+    void clearGUI();
     void create_Actions();
     void create_Menus();
     void closeEvent(QCloseEvent* closing);

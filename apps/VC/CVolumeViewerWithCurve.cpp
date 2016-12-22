@@ -272,7 +272,7 @@ void CVolumeViewerWithCurve::DrawIntersectionCurve(void)
     }
 }
 
-// Update the status of the buttons
+// Update the _status of the buttons
 void CVolumeViewerWithCurve::UpdateButtons(void)
 {
     fZoomInBtn->setEnabled(fImgQImage != nullptr && fScaleFactor < 3.0);

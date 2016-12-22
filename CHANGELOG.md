@@ -2,13 +2,29 @@ Volume Cartographer Changelog
 =============================
 v2.8.0
 ------
-- common
+- all
+    - Project now uses C++14 (!112)
+- apps
+    - (VC-Texture) Warn the user if changing segmentations/VolPkgs will result
+    in data loss. We won't let you save your changes, but we definitely won't
+    let you lose them, either (!106)
+    - (VC-Texture) Disable menu options while generating a texture image (!102)
+- core
+    - Rename vc_common library to vc_core (!119)
     - Fix bug that wouldn't let you overwrite values in a UV Map (!108)
+    - Various little bug fixes related to texturing tasks (!111)
+    - VolumePkg now only depends on vc_core (!113, !115)
+    - (VolumePkg) Why did we have an initialize() function in the first place?
+    (!114)
 - docs
     - Added Doxygen documentation framework and examples (!100)
+- meshing
+    - Add Doxygen documentation (!109)
 - texturing
     - Improvements (not fixes, unfortunately) to ABF parameterization (!107)
 - volumepkg
+    - Move VolumePkg to vc_core and remove vc_volumepkg library (!118). Goodbye
+    old friend.
     - Add Doxygen documentation (!100)
 
 v2.7.1
@@ -19,7 +35,7 @@ v2.7.0
 ------
 This release sees the replacement of PCL's PointCloud datatype with our new
 PointSet and OrderedPointSet types! This change allows us to remove the last
-traces of PCL from our library, which should improve our build stability. 
+traces of PCL from our library, which should improve our build stability.
 **crosses fingers** However, this release is not compatible with version 2
 Volume Packages. Please use the `vc_convert_pcd_to_ps` utility to upgrade your
 packages to version 3.  
@@ -32,10 +48,10 @@ packages to version 3.
     - (VC) Add support for simple linear paths (!90)
     - (VC) Fix crash when navigating while there is no volpkg loaded (!86)
     - (VC) Fix bug where you could get stuck in editing/drawing mode (!81)
-    - Learned what C++11 is, so now we test against `nullptr` instead of 
+    - Learned what C++11 is, so now we test against `nullptr` instead of
     `NULL` (!89)
 - common
-    - What? OrderedPointSet is evolving! OrderedPointSet learned `getRow()`, 
+    - What? OrderedPointSet is evolving! OrderedPointSet learned `getRow()`,
     `copyRows()`, and `reset()`! (!96, !97)
     - Remove the `VC_` typedefs and replace them with easy-to-read `volcart::`
     typedefs (!95)

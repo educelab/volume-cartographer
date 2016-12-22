@@ -11,8 +11,7 @@ set(VC_SEGMENTATION_SRCS
     src/structureTensorParticleSim.cpp
 )
 set(VC_SEGMENTATION_DEPENDENCIES
-    vc_common
-    vc_volumepkg
+    vc_core
 )
 
 add_library(vc_segmentation ${VC_SEGMENTATION_SRCS})
@@ -28,10 +27,7 @@ target_compile_options(vc_segmentation
 )
 target_link_libraries(vc_segmentation
     PUBLIC
-        vc_common
-        vc_volumepkg
-    PRIVATE
-        opencv_highgui
+        vc_core
 )
 
 install(TARGETS vc_segmentation
@@ -62,7 +58,7 @@ foreach(src ${VC_SEGMENTATION_TEST_SRCS})
     set(testname vc_segmentation_${filename})
     add_executable(${testname} ${src})
     target_link_libraries(${testname}
-        vc_common
+        vc_core
         vc_segmentation
         vc_testing
         Boost::unit_test_framework

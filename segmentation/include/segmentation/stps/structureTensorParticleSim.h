@@ -2,9 +2,9 @@
 
 #include <iostream>
 
+#include "core/types/VolumePkg.h"
 #include "segmentation/stps/chain.h"
 #include "segmentation/stps/particle.h"
-#include "volumepkg/volumepkg.h"
 
 namespace volcart
 {

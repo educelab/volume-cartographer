@@ -103,15 +103,14 @@ std::deque<std::pair<int32_t, double>> IntensityMap::sortedMaxima()
     crossings.erase(
         std::remove_if(
             std::begin(crossings), std::end(crossings),
-            [this](const IndexIntensityPair v) {
+            [this](auto v) {
                 return std::abs(v.first - mapWidth_ / 2) > peakRadius_;
             }),
         std::end(crossings));
 
     // Sort by distance from middle
     std::sort(
-        std::begin(crossings), std::end(crossings),
-        [this](IndexIntensityPair lhs, IndexIntensityPair rhs) {
+        std::begin(crossings), std::end(crossings), [this](auto lhs, auto rhs) {
             const int32_t centerX = resliceData_.cols / 2;
             const auto ldist = std::sqrt(
                 (lhs.first - centerX) * (lhs.first - centerX) +

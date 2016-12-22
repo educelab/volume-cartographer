@@ -6,10 +6,10 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "common/io/objWriter.h"
-#include "common/io/plyWriter.h"
-#include "common/shapes/Plane.h"
-#include "common/vc_defines.h"
+#include "core/io/objWriter.h"
+#include "core/io/plyWriter.h"
+#include "core/shapes/Plane.h"
+#include "core/vc_defines.h"
 #include "testing/parsingHelpers.h"
 #include "testing/testingUtils.h"
 

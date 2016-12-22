@@ -102,7 +102,7 @@ lint:
         - scripts/clang-format.py --no-diff
     allow_failure: yes
     tags:
-        - source
+        - lint
 
 ### Documentation ###
 doxygen:html:

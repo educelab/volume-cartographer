@@ -11,13 +11,13 @@ HEADERS = CMesh.h \
     ../meshEditor/Ply/object.h \
     ../meshEditor/Ply/unknown.h \
     ../../volumepkg/picojson.h \
-    ../../volumepkg/volumepkg.h \
+    ../../core/types/VolumePkg.h \
     ../../volumepkg/volumepkgcfg.h \
     HBase.h \
-    ../../common/objTester/list.h \
-    ../../common/objTester/obj_parser.h \
-    ../../common/objTester/objLoader.h \
-    ../../common/objTester/string_extra.h \
+    ../../core/objTester/list.h \
+    ../../core/objTester/obj_parser.h \
+    ../../core/objTester/objLoader.h \
+    ../../core/objTester/string_extra.h \
     VCNewGuiHeader.h \
     CPlyHelper.h \
     CBezierCurve.h \
@@ -42,10 +42,10 @@ SOURCES = CMesh.cpp \
     ../meshEditor/Ply/unknown.cpp \
     ../../volumepkg/volumepkg.cpp \
     ../../volumepkg/volumepkgcfg.cpp \
-    ../../common/objTester/list.cpp \
-    ../../common/objTester/obj_parser.cpp \
-    ../../common/objTester/objLoader.cpp \
-    ../../common/objTester/string_extra.cpp \
+    ../../core/objTester/list.cpp \
+    ../../core/objTester/obj_parser.cpp \
+    ../../core/objTester/objLoader.cpp \
+    ../../core/objTester/string_extra.cpp \
     CPlyHelper.cpp \
     CBezierCurve.cpp \
     CBSpline.cpp \
@@ -55,7 +55,7 @@ SOURCES = CMesh.cpp \
     ../../segmentation/structureTensorParticleSim.cpp
 
 INCLUDEPATH += "/usr/include/"
-INCLUDEPATH += "../../common/"
+INCLUDEPATH += "../../core/"
 INCLUDEPATH += "../meshEditor/"
 INCLUDEPATH += "/usr/include/pcl-1.7/"
 INCLUDEPATH += "/usr/include/eigen3/"

@@ -11,10 +11,10 @@
 
 #pragma once
 
-#include "common/io/PLYReader.h"
-#include "common/vc_defines.h"
+#include "core/io/PLYReader.h"
+#include "core/types/VolumePkg.h"
+#include "core/vc_defines.h"
 #include "texturing/compositeTexture.h"
-#include "volumepkg/volumepkg.h"
 
 #include "Global_Values.h"
 #include "MyThread.h"
@@ -53,24 +53,21 @@ public slots:
 
 private:
     MyThread* processing;
-
+    Global_Values* _globals;
     Texture_Viewer* _texture_Viewer;
 
-    QVBoxLayout* panels;  // Main Layout for Right Side of GUI
-
+    QVBoxLayout* panels;
     QLabel* volume_Package;
     QListWidget* segmentations;
     QString currentSegmentation;
-
     QLabel* parameters;
-    Global_Values* _globals;
     QSpinBox* radius;
     QComboBox* texture_Method;
     QComboBox* sample_Direction;
     QPushButton* generate;
-
     QFormLayout* inputs;
     QVBoxLayout* user_input;
-
     QImage newImage;
+
+    int currentHighlightedIndex;
 };

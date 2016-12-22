@@ -45,7 +45,7 @@ std::vector<Voxel> FittedCurve::sample(size_t numPoints) const
     auto ts = generateTVals(numPoints);
     std::transform(
         std::begin(ts), std::end(ts), std::begin(newPoints),
-        [this](double t) -> Voxel {
+        [this](auto t) -> Voxel {
             auto p = spline_(t);
             return {p(0), p(1), zIndex_};
         });

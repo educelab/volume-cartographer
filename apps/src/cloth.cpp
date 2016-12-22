@@ -8,8 +8,9 @@
 #include <opencv2/imgcodecs.hpp>
 #include <vtkPLYReader.h>
 
-#include "common/io/objWriter.h"
-#include "common/vc_defines.h"
+#include "core/io/objWriter.h"
+#include "core/types/VolumePkg.h"
+#include "core/vc_defines.h"
 #include "meshing/itk2vtk.h"
 #include "texturing/ClothModelingUVMapping.h"
 #include "texturing/compositeTextureV2.h"
@@ -156,14 +157,15 @@ int main(int argc, char* argv[])
     volcart::texturing::compositeTextureV2 result(
         mesh, vpkg, clothUV.getUVMap(), 7, width, height);
     volcart::io::objWriter objwriter(
-        "textured.obj", mesh, uvMap, result.texture().getImage(0));
+        "textured.obj", mesh, uvMap, result.texture().image(0));
     objwriter.write();
 
-    if (result.texture().getMask().data)
-        cv::imwrite("PerPixelMask.png", result.texture().getMask());
+    if (result.texture().mask().data) {
+        cv::imwrite("PerPixelMask.png", result.texture().mask());
+    }
 
-    if (result.texture().getMap().initialized()) {
-        result.texture().getMap().write("PerPixelMapping");
+    if (result.texture().ppm().initialized()) {
+        PerPixelMap::WritePPM("PerPixelMapping", result.texture().ppm());
     }
 
     return 0;

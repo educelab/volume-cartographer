@@ -6,10 +6,10 @@ set(srcs
     src/compositeTextureV2.cpp
     src/simpleUV.cpp
     src/AngleBasedFlattening.cpp
+    src/PPMGenerator.cpp
 )
 set(public_deps
-    vc_common
-    vc_volumepkg
+    vc_core
 )
 set(private_deps
     vc_meshing
@@ -71,10 +71,8 @@ foreach(src ${test_srcs})
     set(testname ${target}_${filename})
     add_executable(${testname} ${src})
     target_link_libraries(${testname}
-        vc_common
         vc_texturing
         vc_testing
-        vc_meshing
         Boost::unit_test_framework
         ${public_deps}
     )

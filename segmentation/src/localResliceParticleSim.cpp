@@ -54,7 +54,7 @@ LocalResliceSegmentation::segmentPath(
 
     // Check that incoming points are all within volume bounds. If not, then
     // return empty cloud back
-    if (std::any_of(begin(currentVs), end(currentVs), [vol](Voxel v) {
+    if (std::any_of(begin(currentVs), end(currentVs), [vol](auto v) {
             return !vol.isInBounds(v);
         })) {
         std::cerr << "[info]: one or more particles is outside volume bounds, "
@@ -188,11 +188,9 @@ LocalResliceSegmentation::segmentPath(
 
             // - Sort paired index-Voxel in increasing local internal energy
             auto pairs = zip(indices, squareDiff(currentVs, nextVs));
-            std::sort(
-                begin(pairs), end(pairs), [](std::pair<int32_t, double> p1,
-                                             std::pair<int32_t, double> p2) {
-                    return p1.second < p2.second;
-                });
+            std::sort(begin(pairs), end(pairs), [](auto p1, auto p2) {
+                return p1.second < p2.second;
+            });
 
             // - Go through the sorted list in reverse order, optimizing each
             // particle. If we find an optimum, then start over with the new
@@ -243,7 +241,7 @@ LocalResliceSegmentation::segmentPath(
         std::vector<double> normDeriv2(secondDeriv.size());
         std::transform(
             begin(secondDeriv) + 1, end(secondDeriv) - 1, begin(normDeriv2),
-            [](Voxel d) { return cv::norm(d) * cv::norm(d); });
+            [](auto d) { return cv::norm(d) * cv::norm(d); });
 
         // Don't resettle points at the beginning or end of the chain
         auto maxVal =
@@ -262,7 +260,7 @@ LocalResliceSegmentation::segmentPath(
             secondDeriv = d2(nextVs);
             std::transform(
                 begin(secondDeriv), end(secondDeriv), begin(normDeriv2),
-                [](Voxel d) { return cv::norm(d) * cv::norm(d); });
+                [](auto d) { return cv::norm(d) * cv::norm(d); });
 
             // Don't resettle points at the beginning or end of the chain
             maxVal =
@@ -271,7 +269,7 @@ LocalResliceSegmentation::segmentPath(
 
         // Check if any points in nextVs are outside volume boundaries. If so,
         // stop iterating and dump the resulting pointcloud.
-        if (std::any_of(begin(nextVs), end(nextVs), [vol](Voxel v) {
+        if (std::any_of(begin(nextVs), end(nextVs), [vol](auto v) {
                 return !vol.isInBounds(v);
             })) {
             std::cout

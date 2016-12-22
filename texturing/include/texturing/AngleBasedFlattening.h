@@ -17,9 +17,9 @@
 #include <itkQuadEdgeMeshBoundaryEdgesMeshFunction.h>
 #include <opencv2/core.hpp>
 
-#include "common/types/HalfEdgeMesh.h"
-#include "common/types/UVMap.h"
-#include "common/vc_defines.h"
+#include "core/types/HalfEdgeMesh.h"
+#include "core/types/UVMap.h"
+#include "core/vc_defines.h"
 
 // This is terrible but it'll work for now - SP
 #define SHIFT3(type, a, b, c) \

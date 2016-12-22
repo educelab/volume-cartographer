@@ -2,10 +2,10 @@
 
 #include <opencv2/core.hpp>
 
-#include "common/types/Texture.h"
-#include "common/types/UVMap.h"
-#include "common/vc_defines.h"
-#include "volumepkg/volumepkg.h"
+#include "core/types/Texture.h"
+#include "core/types/UVMap.h"
+#include "core/types/VolumePkg.h"
+#include "core/vc_defines.h"
 
 #include "texturingUtils.h"
 
@@ -17,19 +17,13 @@ namespace texturing
 class compositeTextureV2
 {
 public:
-    struct cellInfo {
-        std::vector<cv::Vec3d> Pts2D;
-        std::vector<cv::Vec3d> Pts3D;
-        cv::Vec3d Normal;
-    };
-
     compositeTextureV2(
         ITKMesh::Pointer inputMesh,
         VolumePkg& volpkg,
         UVMap uvMap,
         double radius,
-        int width,
-        int height,
+        size_t width,
+        size_t height,
         CompositeOption method = CompositeOption::NonMaximumSuppression,
         DirectionOption direction = DirectionOption::Bidirectional);
 
@@ -37,33 +31,18 @@ public:
     volcart::Texture& texture() { return _texture; };
 private:
     int _process();
-    int _generateCellInfo();
-    cv::Vec3d _BarycentricCoord(
-        const cv::Vec3d& nXYZ,
-        const cv::Vec3d& nA,
-        const cv::Vec3d& nB,
-        const cv::Vec3d& nC);
-    cv::Vec3d _CartesianCoord(
-        const cv::Vec3d& nUVW,
-        const cv::Vec3d& nA,
-        const cv::Vec3d& nB,
-        const cv::Vec3d& nC);
 
     // Variables
     ITKMesh::Pointer _input;
     VolumePkg& _volpkg;
-    int _width;
-    int _height;
+    size_t _width;
+    size_t _height;
     double _radius;
     CompositeOption _method;
     DirectionOption _direction;
 
     UVMap _uvMap;
     Texture _texture;
-
-    std::vector<cellInfo> _cellInformation;
-    ITKMesh::Pointer _cellCentroids;
-    ITKPointsLocator::Pointer _kdTree;
 };
 }
 }

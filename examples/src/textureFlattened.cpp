@@ -2,17 +2,15 @@
 // Created by Seth Parker on 6/24/15.
 //
 
-#include "common/vc_defines.h"
-#include "volumepkg/volumepkg.h"
-
-#include "common/io/PLYReader.h"
-#include "common/io/objWriter.h"
-#include "common/io/plyWriter.h"
-#include "meshing/itk2vtk.h"
-
 #include <vtkPLYReader.h>
 #include <vtkSmartPointer.h>
 
+#include "core/io/PLYReader.h"
+#include "core/io/objWriter.h"
+#include "core/io/plyWriter.h"
+#include "core/types/VolumePkg.h"
+#include "core/vc_defines.h"
+#include "meshing/itk2vtk.h"
 #include "texturing/compositeTextureV2.h"
 #include "texturing/simpleUV.h"
 
@@ -88,7 +86,7 @@ int main(int argc, char* argv[])
         inputMesh, vpkg, uvMap, 7, (int)aspect_width, (int)aspect_height);
     volcart::io::objWriter objwriter(
         "cloth.obj", inputMesh, result.texture().uvMap(),
-        result.texture().getImage(0));
+        result.texture().image(0));
     objwriter.write();
 
     return EXIT_SUCCESS;
