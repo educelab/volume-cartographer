@@ -3,9 +3,7 @@
 //
 #pragma once
 
-#include <core/types/OrderedPointSet.h>
-#include <core/types/Point.h>
-#include <core/types/PointSet.h>
+#include <opencv2/core.hpp>
 #include <vtkCellArray.h>
 #include <vtkCellData.h>
 #include <vtkDoubleArray.h>
@@ -14,7 +12,10 @@
 #include <vtkPolyData.h>
 #include <vtkPolyDataReader.h>
 #include <vtkSmartPointer.h>
-#include "../vc_defines.h"
+
+#include "core/types/OrderedPointSet.h"
+#include "core/types/PointSet.h"
+#include "core/vc_defines.h"
 
 namespace volcart
 {
@@ -26,10 +27,10 @@ class ShapePrimitive
 public:
     ITKMesh::Pointer itkMesh();
     vtkSmartPointer<vtkPolyData> vtkMesh();
-    OrderedPointSet<Point3d> orderedPoints(bool noisify = false);
-    PointSet<Point3d> unorderedPoints(bool noisify = false);
-    OrderedPointSet<Point6d> orderedPointNormal();
-    PointSet<Point6d> unOrderedPointNormal();
+    OrderedPointSet<cv::Vec3d> orderedPoints(bool noisify = false);
+    PointSet<cv::Vec3d> unorderedPoints(bool noisify = false);
+    OrderedPointSet<cv::Vec6d> orderedPointNormal();
+    PointSet<cv::Vec6d> unOrderedPointNormal();
 
     // overload
     std::vector<Vertex> getPoints() const { return _points; }
