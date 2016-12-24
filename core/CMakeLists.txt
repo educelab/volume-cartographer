@@ -66,6 +66,7 @@ set(test_srcs
     test/PointTest.cpp
     test/PLYReaderTest.cpp
     test/FloatComparisonTest.cpp
+    test/PerPixelMapTest.cpp
 )
 
 # Add a test executable for each src

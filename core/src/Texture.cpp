@@ -51,7 +51,7 @@ void Texture::addImage(cv::Mat image)
 // Return the intensity for a Point ID
 double Texture::intensity(int point_ID, int image_ID)
 {
-    cv::Vec2d mapping = _uvMap.get(point_ID);
+    cv::Vec2d mapping = _ppm.uvMap().get(point_ID);
     if (mapping != VC_UVMAP_NULL_MAPPING) {
         int u = cvRound(mapping[0] * (_width - 1));
         int v = cvRound(mapping[1] * (_height - 1));

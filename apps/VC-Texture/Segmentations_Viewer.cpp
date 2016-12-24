@@ -200,7 +200,7 @@ void Segmentations_Viewer::generateTextureImage()
 
         if (_globals->getStatus() == ThreadStatus::Successful) {
             test = loadImage(
-                _globals->getRendering().getTexture().getImage(0).clone());
+                _globals->getRendering().getTexture().image(0).clone());
 
             if (test) {
                 _texture_Viewer->setImage();

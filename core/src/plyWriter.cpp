@@ -35,13 +35,13 @@ int plyWriter::write()
         return EXIT_FAILURE;
     }
 
+    // Open the file stream
     _outputMesh.open(_outputPath.string());
     if (!_outputMesh.is_open()) {
         return EXIT_FAILURE;
     }
 
-    // Capture the starting origin. Ensure uvMap origin is relative to what we
-    // need it to be.
+    // Capture the starting origin and set origin to what PLY reader needs
     Origin starting_origin = _texture.uvMap().origin();
     _texture.uvMap().origin(VC_ORIGIN_TOP_LEFT);
 
@@ -49,9 +49,10 @@ int plyWriter::write()
     _writeVertices();
     _writeFaces();
 
-    _outputMesh.close();  // Close the file stream
+    _outputMesh.close();
 
-    _texture.uvMap().origin(starting_origin);  // Restore the starting origin
+    // Restore the starting origin
+    _texture.uvMap().origin(starting_origin);
 
     return EXIT_SUCCESS;
 }

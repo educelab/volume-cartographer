@@ -212,7 +212,7 @@ void VolumePkg::saveMesh(
     auto meshPath = segs_dir / activeSeg / "textured.obj";
     writer.setPath(meshPath);
     writer.setMesh(mesh);
-    writer.setTexture(texture.getImage(0));
+    writer.setTexture(texture.image(0));
     writer.setUVMap(texture.uvMap());
     writer.write();
 }
