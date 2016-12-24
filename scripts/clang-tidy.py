@@ -43,17 +43,17 @@ class ClangTidier:
         '''
         # Check if source_file is blacklisted from checks
         if self.blacklisted_file(source_file):
-            logging.debug('Skipping {}, blacklisted'.format(source_file))
+            logging.debug(f'Skipping {source_file}, blacklisted')
             return True
 
         compile_commands_dir = os.path.join(self.toplevel, self.build_dir)
         cmd = [
             self.path,
-            '-p={}'.format(compile_commands_dir),
+            f'-p={compile_commands_dir}',
             '-config=',
             source_file,
         ]
-        logging.debug('cmd: {}'.format(' '.join(cmd)))
+        logging.debug(f'cmd: {" ".join(cmd)}')
         tidy_out = common.callo(cmd, stderr=subprocess.DEVNULL)
 
         # Only print if requested and if there's output
@@ -114,8 +114,8 @@ if __name__ == '__main__':
     ct = ClangTidier(path_to_ct, args.build_dir)
     if ct.version < common.MIN_VERSION_REQUIRED:
         logging.error(
-            'Incorrect version of {}: got {} but at least {} is required'
-            .format(program_name, ct.version, common.MIN_VERSION_REQUIRED)
+            f'''Incorrect version of {program_name}: got {cf.version} but at \
+                least {common.MIN_VERSION_REQUIRED} is required'''
         )
         sys.exit(1)
 

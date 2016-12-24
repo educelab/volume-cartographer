@@ -53,13 +53,10 @@ class ClangFormatter:
         )
 
         if diff:
-            print('Found formatting changes for file:', source_file)
+            print(f'Found formatting changes for file: {source_file}')
 
             if show_diff:
-                print(
-                    'To fix, run "{} --style=file -i {}"'.
-                    format(cf, source_file)
-                )
+                print(f'To fix, run "{cf} --style=file -i {source_file}"')
                 print('Suggested changes:')
                 for line in diff:
                     print(line.strip())
@@ -106,8 +103,8 @@ if __name__ == '__main__':
     cf = ClangFormatter(path_to_cf)
     if cf.version < common.MIN_VERSION_REQUIRED:
         logging.error(
-            'Incorrect version of {}: got {} but at least {} is required'
-            .format(program_name, cf.version, common.MIN_VERSION_REQUIRED)
+            f'''Incorrect version of {program_name}: got {cf.version} but at \
+                least {common.MIN_VERSION_REQUIRED} is required'''
         )
         sys.exit(1)
 

@@ -36,7 +36,7 @@ def callo(cmd: Union[List[str], str], **kwargs: Any) -> str:
     shell-out, returns stdout
     '''
     cmd = shlex.split(cmd) if isinstance(cmd, str) else cmd
-    logging.debug('Running: {}'.format(' '.join(cmd)))
+    logging.debug(f'Running: {" ".join(cmd)}')
     return subprocess.check_output(cmd, **kwargs).decode('utf-8').strip()
 
 
@@ -47,8 +47,8 @@ def changed_files(filter_regex: str=r'') -> List[str]:
     '''
     current_branch = callo('git rev-parse --abbrev-ref @')
     develop = 'origin/develop'
-    branch_point = callo('git merge-base {} {}'.format(develop, current_branch))
-    diffcmd = 'git diff --name-only {}..{}'.format(branch_point, current_branch)
+    branch_point = callo(f'git merge-base {develop} {current_branch}')
+    diffcmd = f'git diff --name-only {branch_point}..{current_branch}'
     all_changes = callo(diffcmd).split('\n')
 
     # Filter based on extension - only C/C++ source/header files
@@ -66,20 +66,18 @@ def fetch_clang_binary(
     '''
     dest = tempfile.gettempdir()
     tmptar = os.path.join(dest, 'temp.tar.xz')
-    logging.info(
-        'Downloading {} from {}, saving to {}'.format(binary, url, tmptar)
-    )
+    logging.info(f'Downloading {binary} from {url}, saving to {tmptar}')
     urllib.request.urlretrieve(url, tmptar)
 
     if not os.path.isdir(extract_dir):
         os.mkdir(extract_dir)
 
     with tarfile.open(tmptar, 'r:xz') as tar:
-        logging.info('Extracting {} from {}'.format(binary, tmptar))
+        logging.info(f'Extracting {binary} from {tmptar}')
 
         # Find clang-format inside tar, extract to tmp directory
         path_in_tar = next(
-            filter(lambda n: n.endswith('/{}'.format(binary)), tar.getnames())
+            filter(lambda n: n.endswith(f'/{binary}'), tar.getnames())
         )
         tar_extract_path = tempfile.gettempdir()
         tar.extract(path_in_tar, path=tar_extract_path)
@@ -87,7 +85,7 @@ def fetch_clang_binary(
         # Move to final location
         final_location = os.path.join(extract_dir, binary)
         shutil.move(os.path.join(tar_extract_path, path_in_tar), final_location)
-        logging.info('Extracted {} to {}'.format(path_in_tar, final_location))
+        logging.info(f'Extracted {path_in_tar} to {final_location}')
 
     return final_location
 
@@ -99,7 +97,7 @@ def executable(path: str) -> bool:
     if not os.path.isfile(path):
         return False
     try:
-        callo('{} --help'.format(path))
+        callo(f'{path} --help')
     except subprocess.CalledProcessError:
         return False
     return True
@@ -118,8 +116,8 @@ def find_binary(binary: str, init_path: str=None) -> str:
 
     # Check system PATH
     try:
-        return callo('which {}'.format(binary))
+        return callo(f'which {binary}')
     except subprocess.CalledProcessError:
-        msg = '''Could not find suitable {} in path.'''.format(binary)
+        msg = f'Could not find suitable {binary} in path.'
         logging.error(msg)
         raise MissingBinaryException(msg)
