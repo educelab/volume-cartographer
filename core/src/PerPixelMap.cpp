@@ -6,14 +6,6 @@ namespace fs = boost::filesystem;
 
 constexpr static size_t PPM_ELEMENT_SIZE = 6;
 
-///// Constructors /////
-// Empty Map of width x height
-PerPixelMap::PerPixelMap(size_t height, size_t width)
-    : _height{height}, _width{width}
-{
-    _initializeMap();
-}
-
 ///// Metadata /////
 void PerPixelMap::setDimensions(size_t h, size_t w)
 {
@@ -32,11 +24,6 @@ void PerPixelMap::setHeight(size_t h)
 {
     _height = h;
     _initializeMap();
-}
-
-bool PerPixelMap::hasMapping(size_t y, size_t x)
-{
-    return _mask.at<uint8_t>(y, x) == 255;
 }
 
 // Initialize map
@@ -61,7 +48,7 @@ void PerPixelMap::WritePPM(fs::path path, const PerPixelMap& map)
     fs.release();
 }
 
-PerPixelMap PerPixelMap::ReadPPM(fs::path path)
+PerPixelMap PerPixelMap::ReadPPM(const fs::path& path)
 {
     std::cerr << "volcart::PerPixelMap: Reading from file " << path.filename()
               << std::endl;

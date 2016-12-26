@@ -22,7 +22,7 @@ class PerPixelMap
 public:
     ///// Constructors /////
     // Create empty
-    PerPixelMap() : _width(0), _height(0) {}
+    PerPixelMap() : _width(0), _height(0) { _initializeMap(); }
 
     // Create new
     PerPixelMap(size_t height, size_t width);
@@ -44,18 +44,21 @@ public:
     int width() const { return _width; };
     int height() const { return _height; };
 
-    void setUVMap(UVMap u) { _uvmap = u; };
+    void setUVMap(const UVMap& u) { _uvmap = u; };
     const UVMap& uvMap() const { return _uvmap; };
     UVMap& uvMap() { return _uvmap; };
 
-    void setMask(cv::Mat m) { _mask = m.clone(); };
+    void setMask(const cv::Mat& m) { _mask = m.clone(); };
     cv::Mat mask() const { return _mask; };
     cv::Mat maskCopy() const { return _mask.clone(); };
-    bool hasMapping(size_t y, size_t x);
+    bool hasMapping(size_t y, size_t x)
+    {
+        return _mask.at<uint8_t>(y, x) == 255;
+    }
 
     ///// Disk IO /////
     static void WritePPM(boost::filesystem::path path, const PerPixelMap& map);
-    static PerPixelMap ReadPPM(boost::filesystem::path path);
+    static PerPixelMap ReadPPM(const boost::filesystem::path& path);
 
 private:
     void _initializeMap();
