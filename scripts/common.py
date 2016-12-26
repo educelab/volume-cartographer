@@ -4,7 +4,6 @@ import shutil
 import shlex
 import subprocess
 import sys
-import re
 import tarfile
 import tempfile
 import urllib.request
@@ -33,7 +32,7 @@ class MissingBinaryException(Exception):
 
 def callo(cmd: Union[List[str], str], **kwargs: Any) -> str:
     '''
-    shell-out, returns stdout
+    Shell-out, returns stdout
     '''
     cmd = shlex.split(cmd) if isinstance(cmd, str) else cmd
     logging.debug(f'Running: {" ".join(cmd)}')
@@ -48,14 +47,14 @@ def changed_files(filter_regex: str=r'') -> List[str]:
     current_branch = callo('git rev-parse --abbrev-ref @')
     develop = 'origin/develop'
     branch_point = callo(f'git merge-base {develop} {current_branch}')
-    diffcmd = f'git diff --name-only {branch_point}..{current_branch}'
-    all_changes = callo(diffcmd).split('\n')
+    diffcmd = f'git diff --name-status {branch_point}..{current_branch}'
 
-    # Filter based on extension - only C/C++ source/header files
-    if filter_regex:
-        return list(filter(lambda f: re.search(filter_regex, f), all_changes))
-    else:
-        return all_changes
+    # Return source files, only if they haven't been deleted. This prevents
+    # trying to operate on a missing file.
+    for line in callo(diffcmd).split('\n'):
+        status, source_file = line.split('\t')
+        if status != 'D':
+            yield source_file
 
 
 def fetch_clang_binary(

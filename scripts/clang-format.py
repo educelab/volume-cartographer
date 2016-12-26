@@ -65,7 +65,7 @@ class ClangFormatter:
         return not diff
 
 
-if __name__ == '__main__':
+def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser('clang-format')
     parser.add_argument(
         '-c',
@@ -87,7 +87,11 @@ if __name__ == '__main__':
         default=False,
         action='store_true',
     )
-    args = parser.parse_args()
+    return parser.parse_args()
+
+
+def main() -> bool:
+    args = parse_arguments()
 
     # Set up some logging
     level = logging.INFO if not args.verbose else logging.DEBUG
@@ -108,13 +112,13 @@ if __name__ == '__main__':
         )
         sys.exit(1)
 
-    # Find changed files from last common ancestor with develop
-    changes = common.changed_files(filter_regex=r'\.(h|hpp|c|cpp)$')
-    if not changes:
-        logging.info('No changed files, exiting')
-        sys.exit(0)
+    # Find changed source files from last common ancestor with develop.
+    source_files = re.compile(r'\.(h|hpp|c|cpp)$')
+    changes = [f for f in common.changed_files() if re.search(source_files, f)]
 
     # Validate each with clang-format
-    clean = all([cf.lint(f, print_output=args.print_output) for f in changes])
+    return all(cf.lint(f, print_output=args.print_output) for f in changes)
 
-    sys.exit(0) if clean else sys.exit(1)
+
+if __name__ == '__main__':
+    sys.exit(int(not main()))    

@@ -4,6 +4,7 @@ import argparse
 import logging
 import multiprocessing as mp
 import os
+import re
 import subprocess
 import sys
 from distutils.version import LooseVersion
@@ -128,10 +129,8 @@ def main() -> bool:
 
     # clang-tidy operates only on c/cpp files (h/hpp files are linted
     # transitively). Only check c/cpp files.
-    changes = common.changed_files(filter_regex=r'\.(c|cpp|cc)$')
-    if not changes:
-        logging.info('No changed files, exiting')
-        sys.exit(0)
+    cpp_files = re.compile(r'\.(c|cpp|cc|cxx)$')
+    changes = [f for f in common.changed_files() if re.search(cpp_files, f)]
 
     # Validate each with clang-tidy in parallel
     with mp.Pool(nprocs) as pool:
