@@ -2,6 +2,7 @@
 
 import argparse
 import logging
+import multiprocessing as mp
 import os
 import subprocess
 import sys
@@ -11,6 +12,8 @@ from fnmatch import fnmatch
 import common
 
 program_name = 'clang-tidy'
+output_queue = mp.Queue()
+nprocs = 4
 
 
 class ClangTidier:
@@ -37,7 +40,7 @@ class ClangTidier:
         lines = common.callo([self.path, '--version']).split('\n')
         return LooseVersion(lines[1].split()[2])
 
-    def lint(self, source_file, print_output):
+    def lint(self, source_file: str, print_output: bool=False) -> bool:
         '''
         Lints a given C++ `source_file` (as in ending in .cpp) with clang-tidy.
         '''
@@ -58,7 +61,7 @@ class ClangTidier:
 
         # Only print if requested and if there's output
         if print_output and tidy_out:
-            print(tidy_out)
+            output_queue.put(tidy_out)
 
         return not tidy_out
 
@@ -69,7 +72,7 @@ class ClangTidier:
         return any(fnmatch(source_file, pattern) for pattern in self.BLACKLIST)
 
 
-if __name__ == '__main__':
+def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser('clang-tidy')
     parser.add_argument(
         '-c',
@@ -98,7 +101,11 @@ if __name__ == '__main__':
         action='store_true',
         help='Print debug log statements',
     )
-    args = parser.parse_args()
+    return parser.parse_args()
+
+
+def main() -> bool:
+    args = parse_arguments()
 
     # Set up some logging
     level = logging.INFO if not args.verbose else logging.DEBUG
@@ -126,7 +133,24 @@ if __name__ == '__main__':
         logging.info('No changed files, exiting')
         sys.exit(0)
 
-    # Validate each with clang-tidy
-    clean = all([ct.lint(f, print_output=args.print_output) for f in changes])
+    # Validate each with clang-tidy in parallel
+    with mp.Pool(nprocs) as pool:
+        tasks = [
+            pool.apply_async(
+                ct.lint,
+                args=(f,),
+                kwds=dict(print_output=args.print_output),
+            ) for f in changes
+        ]
+        result = all(task.get() for task in tasks)
 
-    sys.exit(0) if clean else sys.exit(1)
+        # Print output
+        while args.print_output and not output_queue.empty():
+            print(output_queue.get())
+
+        return result
+
+
+# Note: exit with `not main()` so that 0 return code means everything's fine
+if __name__ == '__main__':
+    sys.exit(int(not main()))
