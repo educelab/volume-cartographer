@@ -3,7 +3,7 @@
 #include <array>
 #include <boost/test/unit_test.hpp>
 #include "core/types/Point.h"
-#include "testing/testingUtils.h"
+#include "testing/TestingUtils.h"
 
 using namespace volcart;
 using namespace volcart::testing;

@@ -3,9 +3,9 @@ set(target VC-Texture)
 
 set(srcs
     VCTextureMain.cpp
-    Texture_Viewer.cpp
-    Segmentations_Viewer.cpp
-    Global_Values.cpp
+    TextureViewer.cpp
+    SegmentationsViewer.cpp
+    GlobalValues.cpp
     MainWindow.cpp
     MyThread.cpp
 )

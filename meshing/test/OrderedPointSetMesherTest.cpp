@@ -5,13 +5,13 @@
 #define BOOST_TEST_MODULE OrderedResampling
 
 #include <boost/test/unit_test.hpp>
-#include "core/io/objWriter.h"
+#include "core/io/OBJWriter.h"
 #include "core/types/OrderedPointSet.h"
 #include "core/types/Point.h"
 #include "core/vc_defines.h"
 #include "meshing/OrderedPointSetMesher.h"
-#include "testing/parsingHelpers.h"
-#include "testing/testingUtils.h"
+#include "testing/ParsingHelpers.h"
+#include "testing/TestingUtils.h"
 
 using namespace volcart;
 

@@ -2,7 +2,7 @@
 // Chao Du 2014 Dec
 #pragma once
 
-#include "mathUtils.h"
+#include "MathUtils.h"
 
 #include <vector>
 

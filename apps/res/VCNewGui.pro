@@ -3,7 +3,7 @@ HEADERS = CMesh.h \
           CWindow.h \
     UDataManipulateUtils.h \
     UObjHelper.h \
-          mathUtils.h \
+          MathUtils.h \
     ../../meshing/orderedPCDMesher.h \
     ../meshEditor/Ply/base.h \
     ../meshEditor/Ply/header.h \

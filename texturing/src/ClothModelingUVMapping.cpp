@@ -2,12 +2,11 @@
 // Created by Seth Parker on 3/14/16.
 //
 
-#include "texturing/ClothModelingUVMapping.h"
-
 #include <BulletSoftBody/btDefaultSoftBodySolver.h>
 
-#include "meshing/deepCopy.h"
-#include "meshing/itk2bullet.h"
+#include "meshing/DeepCopy.h"
+#include "meshing/ITK2Bullet.h"
+#include "texturing/ClothModelingUVMapping.h"
 
 //// Callbacks ////
 /* Note: Callbacks won't compile if they're not wrapped in the namespace.
@@ -99,7 +98,7 @@ ClothModelingUVMapping::ClothModelingUVMapping(
     _World->addRigidBody(_collisionPlane);
 
     // Convert mesh to a softbody
-    volcart::meshing::itk2bullet::itk2bullet(
+    volcart::meshing::ITK2Bullet::ITK2Bullet(
         _mesh, _World->getWorldInfo(), &_softBody);
 
     // Scale the mesh so that max dimension <= 80m
@@ -201,7 +200,7 @@ volcart::UVMap ClothModelingUVMapping::getUVMap()
 volcart::ITKMesh::Pointer ClothModelingUVMapping::getMesh()
 {
     auto output = volcart::ITKMesh::New();
-    volcart::meshing::deepCopy(_mesh, output);
+    volcart::meshing::DeepCopy(_mesh, output);
     volcart::meshing::bullet2itk::bullet2itk(_softBody, output);
     return output;
 }

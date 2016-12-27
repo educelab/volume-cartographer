@@ -2,9 +2,9 @@ project(libvc_texturing VERSION 0.1 LANGUAGES CXX)
 set(target vc_texturing)
 
 set(srcs
-    src/compositeTexture.cpp
-    src/compositeTextureV2.cpp
-    src/simpleUV.cpp
+    src/CompositeTexture.cpp
+    src/CompositeTextureV2.cpp
+    src/SimpleUV.cpp
     src/AngleBasedFlattening.cpp
     src/PPMGenerator.cpp
 )
@@ -55,14 +55,14 @@ if(VC_BUILD_TESTS)
 
 # Set source files
 set(test_srcs
-    test/abfTest.cpp
-    test/simpleUVTest.cpp
+    test/ABFTest.cpp
+    test/SimpleUVTest.cpp
 )
 if (VC_USE_BULLET)
-    list(APPEND test_srcs test/clothTest.cpp)
+    list(APPEND test_srcs test/ClothTest.cpp)
 endif()
 if (VC_USE_LIBIGL)
-    list(APPEND test_srcs test/lscmTest.cpp)
+    list(APPEND test_srcs test/LSCMTest.cpp)
 endif()
 
 # Add a test executable for each src

@@ -11,11 +11,11 @@ set(srcs
     src/Sphere.cpp
     src/Texture.cpp
     src/Volume.cpp
-    src/getMemorySize.cpp
-    src/meshMath.cpp
-    src/objWriter.cpp
+    src/GetMemorySize.cpp
+    src/MeshMath.cpp
+    src/OBJWriter.cpp
     src/PLYReader.cpp
-    src/plyWriter.cpp
+    src/PLYWriter.cpp
     src/VolumePkg.cpp
 )
 
@@ -54,11 +54,11 @@ if(VC_BUILD_TESTS)
 # Set source files
 set(test_srcs
     test/LRUCacheTest.cpp
-    test/ObjWriterTest.cpp
+    test/OBJWriterTest.cpp
     test/MetadataTest.cpp
     test/TextureTest.cpp
     test/UVMapTest.cpp
-    test/plyWriterTest.cpp
+    test/PLYWriterTest.cpp
     test/PointSetTest.cpp
     test/PointSetIOTest.cpp
     test/OrderedPointSetTest.cpp

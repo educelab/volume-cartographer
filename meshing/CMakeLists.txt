@@ -2,15 +2,15 @@ project(libvc_meshing VERSION 0.1 LANGUAGES CXX)
 set(target vc_meshing)
 
 set(srcs
-    src/deepCopy.cpp
-    src/itk2vtk.cpp
-    src/rayTrace.cpp
-    src/scaleMesh.cpp
-    src/smoothNormals.cpp
+    src/DeepCopy.cpp
+    src/ITK2VTK.cpp
+    src/RayTrace.cpp
+    src/ScaleMesh.cpp
+    src/SmoothNormals.cpp
     src/CalculateNormals.cpp
     src/OrderedResampling.cpp
     src/OrderedPointSetMesher.cpp
-    )
+)
 set(deps
     vc_core
     Boost::filesystem
@@ -24,7 +24,7 @@ if (VC_USE_ACVD)
     list(APPEND defs VC_USE_ACVD)
 endif()
 if (VC_USE_BULLET)
-    list(APPEND srcs src/itk2bullet.cpp)
+    list(APPEND srcs src/ITK2Bullet.cpp)
     list(APPEND deps bullet ${BULLET_LIBRARIES})
     list(APPEND defs VC_USE_BULLET)
 endif()
@@ -65,10 +65,10 @@ if(VC_BUILD_TESTS)
 set(test_srcs
     test/CalculateNormalsTest.cpp
     test/OrderedResamplingTest.cpp
-    test/itk2vtkTest.cpp
-    test/rayTraceTest.cpp
-    test/scaleMeshTest.cpp
-    test/smoothNormalsTest.cpp
+    test/ITK2VTKTest.cpp
+    test/RayTraceTest.cpp
+    test/ScaleMeshTest.cpp
+    test/SmoothNormalsTest.cpp
     test/OrderedPointSetMesherTest.cpp
 )
 

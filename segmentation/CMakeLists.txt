@@ -1,14 +1,14 @@
 project(libvc_segmentation VERSION 0.1 LANGUAGES CXX)
 
 set(VC_SEGMENTATION_SRCS
-    src/chain.cpp
-    src/common.cpp
-    src/energymetrics.cpp
-    src/fittedcurve.cpp
-    src/intensitymap.cpp
-    src/localResliceParticleSim.cpp
-    src/particle.cpp
-    src/structureTensorParticleSim.cpp
+    src/Chain.cpp
+    src/Common.cpp
+    src/EnergyMetrics.cpp
+    src/FittedCurve.cpp
+    src/IntensityMap.cpp
+    src/LocalResliceParticleSim.cpp
+    src/Particle.cpp
+    src/StructureTensorParticleSim.cpp
 )
 set(VC_SEGMENTATION_DEPENDENCIES
     vc_core
@@ -43,13 +43,13 @@ if(VC_BUILD_TESTS)
 
 # Set source files
 set(VC_SEGMENTATION_TEST_SRCS
-    test/commonTest.cpp
-    test/cubicSplineTest.cpp
-    test/derivativeTest.cpp
-    test/energyMetricsTest.cpp
-    test/fittedCurveTest.cpp
-    test/intensitymapTest.cpp
-    test/localResliceParticleSimTest.cpp
+    test/CommonTest.cpp
+    test/CubicSplineTest.cpp
+    test/DerivativeTest.cpp
+    test/EnergyMetricsTest.cpp
+    test/FittedCurveTest.cpp
+    test/IntensityMapTest.cpp
+    test/LocalResliceParticleSimTest.cpp
 )
 
 # Add a test executable for each src

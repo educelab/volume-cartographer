@@ -2,7 +2,7 @@ project(libvc_testing VERSION 0.1 LANGUAGES CXX)
 set(target vc_testing)
 
 set(srcs
-    src/parsingHelpers.cpp
+    src/ParsingHelpers.cpp
 )
 set(defs "")
 

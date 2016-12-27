@@ -13,8 +13,8 @@
 #include "core/vc_defines.h"
 #include "meshing/CalculateNormals.h"
 #include "meshing/QuadricEdgeCollapseDecimation.h"
-#include "testing/parsingHelpers.h"
-#include "testing/testingUtils.h"
+#include "testing/ParsingHelpers.h"
+#include "testing/TestingUtils.h"
 
 using namespace volcart;
 

@@ -4,7 +4,7 @@
 
 #include <vector>
 
-#include "mathUtils.h"
+#include "MathUtils.h"
 
 #include <opencv2/opencv.hpp>
 

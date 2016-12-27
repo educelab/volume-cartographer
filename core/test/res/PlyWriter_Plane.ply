@@ -1,7 +1,7 @@
 ply
 format ascii 1.0
 comment VC PLY Exporter v1.0
-comment Used by plyWriterTest.cpp
+comment Used by PLYWriterTest.cpp
 element vertex 25
 property float x
 property float y

@@ -6,12 +6,12 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "core/io/objWriter.h"
-#include "core/io/plyWriter.h"
+#include "core/io/OBJWriter.h"
+#include "core/io/PLYWriter.h"
 #include "core/shapes/Plane.h"
 #include "core/vc_defines.h"
-#include "testing/parsingHelpers.h"
-#include "testing/testingUtils.h"
+#include "testing/ParsingHelpers.h"
+#include "testing/TestingUtils.h"
 
 using namespace volcart;
 using namespace volcart::testing;
@@ -54,7 +54,7 @@ BOOST_FIXTURE_TEST_CASE(ParseOBJTest, PlaneFixture)
 {
 
     // Write the mesh
-    volcart::io::objWriter OBJWriter;
+    volcart::io::OBJWriter OBJWriter;
     OBJWriter.setMesh(_input);
     OBJWriter.setPath("ParsingHelpers_Plane.obj");
     OBJWriter.write();
@@ -95,7 +95,7 @@ BOOST_FIXTURE_TEST_CASE(ParsePLYTest, PlaneFixture)
 {
 
     // Write the mesh
-    volcart::io::plyWriter PLYWriter;
+    volcart::io::PLYWriter PLYWriter;
     PLYWriter.setMesh(_input);
     PLYWriter.setPath("ParsingHelpers_Plane.ply");
     PLYWriter.write();

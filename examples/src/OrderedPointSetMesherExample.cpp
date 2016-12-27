@@ -3,7 +3,7 @@
 //
 
 #include <iostream>
-#include "core/io/objWriter.h"
+#include "core/io/OBJWriter.h"
 #include "core/types/OrderedPointSet.h"
 #include "core/types/Point.h"
 #include "core/vc_defines.h"
@@ -46,7 +46,7 @@ int main()
     mesher_plane.compute();
     ITKMesh::Pointer output_plane = mesher_plane.getOutputMesh();
 
-    volcart::io::objWriter writer;
+    volcart::io::OBJWriter writer;
     writer.setPath("OrderedPointSetMesher_Plane.obj");
     writer.setMesh(output_plane);
     writer.write();

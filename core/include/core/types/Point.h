@@ -8,7 +8,7 @@
 #include <tuple>
 #include <type_traits>
 #include <opencv2/core/core.hpp>
-#include "core/util/zip.h"
+#include "core/util/Zip.h"
 
 namespace volcart
 {

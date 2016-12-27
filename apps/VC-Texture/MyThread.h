@@ -18,22 +18,22 @@
 
 #include <vtkCleanPolyData.h>
 
-#include "core/util/meshMath.h"
+#include "core/util/MeshMath.h"
 #include "meshing/ACVD.h"
 #include "texturing/AngleBasedFlattening.h"
-#include "texturing/compositeTextureV2.h"
+#include "texturing/CompositeTextureV2.h"
 
-#include "Global_Values.h"
+#include "GlobalValues.h"
 
 class MyThread : public QThread
 {
 
 public:
-    explicit MyThread(Global_Values* globals);
+    explicit MyThread(GlobalValues* globals);
     void run();
 
 private:
-    Global_Values* _globals;
+    GlobalValues* _globals;
 
     static const uint16_t CLEANER_MIN_REQ_POINTS = 100;
 };

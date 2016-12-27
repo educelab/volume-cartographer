@@ -1,9 +1,10 @@
-#include "texturing/LeastSquaresConformalMapping.h"
 #include <igl/boundary_loop.h>
 #include <igl/doublearea.h>
 #include <igl/lscm.h>
 #include <opencv2/opencv.hpp>
-#include "meshing/deepCopy.h"
+
+#include "meshing/DeepCopy.h"
+#include "texturing/LeastSquaresConformalMapping.h"
 
 using namespace volcart;
 using namespace volcart::texturing;
@@ -29,7 +30,7 @@ void LeastSquaresConformalMapping::setMesh(ITKMesh::Pointer input)
 ITKMesh::Pointer LeastSquaresConformalMapping::getMesh()
 {
     ITKMesh::Pointer output = ITKMesh::New();
-    volcart::meshing::deepCopy(_mesh, output);
+    volcart::meshing::DeepCopy(_mesh, output);
 
     // Update the point positions
     ITKPoint p;

@@ -4,7 +4,7 @@
 
 #include "CMatrixMN.h"
 #include "CVectorN.h"
-#include "mathUtils.h"
+#include "MathUtils.h"
 
 namespace ChaoVis
 {

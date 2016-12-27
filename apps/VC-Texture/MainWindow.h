@@ -22,9 +22,9 @@
 #include <boost/filesystem.hpp>
 #include <opencv2/opencv.hpp>
 
-#include "Global_Values.h"
-#include "Segmentations_Viewer.h"
-#include "Texture_Viewer.h"
+#include "GlobalValues.h"
+#include "SegmentationsViewer.h"
+#include "TextureViewer.h"
 
 class MainWindow : public QMainWindow
 {
@@ -34,9 +34,9 @@ class MainWindow : public QMainWindow
 
 public:
     // Creates a Constructor for the MainWindow Class that takes in The
-    // Global_Values as a *pointer and Segmentations_Viewer as a *pointer so
+    // GlobalValues as a *pointer and SegmentationsViewer as a *pointer so
     // that it can have access to these Objects.
-    MainWindow(Global_Values* globals);
+    MainWindow(GlobalValues* globals);
 
 public slots:
     void getFilePath();
@@ -55,6 +55,6 @@ private:
     QAction* actionSave;
     QAction* actionExport;
 
-    Global_Values* _globals;
-    Segmentations_Viewer* _segmentations_Viewer;
+    GlobalValues* _globals;
+    SegmentationsViewer* _segmentations_Viewer;
 };

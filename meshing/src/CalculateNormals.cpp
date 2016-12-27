@@ -1,7 +1,7 @@
 /** @file CalculateNormals.cpp */
 #include "meshing/CalculateNormals.h"
 #include "core/vc_defines.h"
-#include "meshing/deepCopy.h"
+#include "meshing/DeepCopy.h"
 
 using namespace volcart::meshing;
 
@@ -12,7 +12,7 @@ CalculateNormals::CalculateNormals(ITKMesh::Pointer mesh)
 {
     _input = mesh;
     _output = ITKMesh::New();
-    deepCopy(_input, _output);
+    DeepCopy(_input, _output);
 }
 
 ///// Input/Output /////
@@ -20,7 +20,7 @@ void CalculateNormals::setMesh(ITKMesh::Pointer mesh)
 {
     _input = mesh;
     _output = ITKMesh::New();
-    deepCopy(_input, _output);
+    DeepCopy(_input, _output);
 }
 
 volcart::ITKMesh::Pointer CalculateNormals::getMesh() const { return _output; }

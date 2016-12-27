@@ -12,7 +12,7 @@
 #include <itkQuadEdgeMeshExtendedTraits.h>
 #include <itkTriangleCell.h>
 #include <opencv2/core/core.hpp>
-#include "core/util/getMemorySize.h"
+#include "core/util/GetMemorySize.h"
 
 ///// GLOBAL VARIABLES /////
 // This define determines the default dictionary used when creating a new
