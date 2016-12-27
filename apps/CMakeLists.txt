@@ -48,7 +48,7 @@ target_link_libraries(vc_render
 
 ## Metadata Editor ##
 add_executable(vc_metaedit src/metadata.cpp)
-target_link_libraries(vc_metaedit vc_core)
+target_link_libraries(vc_metaedit vc_core Boost::program_options Boost::filesystem)
 
 ## Slice Projection ##
 # Old

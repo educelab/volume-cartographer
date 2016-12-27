@@ -233,12 +233,16 @@ volcart::Metadata VolumePkg::_initConfig(
         }
 
         // Default values
-        if (entry.second == "int") {
-            config.set(entry.first, int{});
-        } else if (entry.second == "double") {
-            config.set(entry.first, double{});
-        } else {
-            config.set(entry.first, std::string{});
+        switch (entry.second) {
+            case volcart::Type::INT:
+                config.set(entry.first, int{});
+                break;
+            case volcart::Type::DOUBLE:
+                config.set(entry.first, double{});
+                break;
+            case volcart::Type::STRING:
+                config.set(entry.first, std::string{});
+                break;
         }
     }
 
