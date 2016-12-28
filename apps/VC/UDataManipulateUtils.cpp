@@ -107,8 +107,8 @@ bool SplitVertexAndElementBuffer(
 cv::Mat QImage2Mat(const QImage& nSrc)
 {
     cv::Mat tmp(
-        nSrc.height(), nSrc.width(), CV_8UC3,
-        const_cast<const uchar*>(nSrc.bits()), nSrc.bytesPerLine());
+        nSrc.height(), nSrc.width(), CV_8UC3, const_cast<uchar*>(nSrc.bits()),
+        nSrc.bytesPerLine());
     cv::Mat result;  // deep copy
     cvtColor(tmp, result, CV_BGR2RGB);
     return result;

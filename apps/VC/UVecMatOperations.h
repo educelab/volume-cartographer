@@ -858,11 +858,11 @@ inline void SVD(
     aA.Dump();
 
     // copy back to U
-    for (int m = 0; m < aA.GetRows(); ++m) {
-        for (int n = 0; n < aA.GetCols(); ++n) {
-            nU(m, n) = aA(m, n);
-        }  // for n
-    }      // for m
+    for (int p = 0; p < aA.GetRows(); ++p) {
+        for (int q = 0; q < aA.GetCols(); ++q) {
+            nU(p, q) = aA(p, q);
+        }  // for q
+    }      // for p
 }
 
 // Thomas tri-diagonal matrix
