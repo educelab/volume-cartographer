@@ -1,7 +1,8 @@
 #pragma once
 
+#include <opencv2/core.hpp>
+
 #include "core/types/OrderedPointSet.h"
-#include "core/types/Point.h"
 #include "core/vc_defines.h"
 
 namespace volcart
@@ -42,7 +43,7 @@ public:
     /**
      * @param points OrderedPointSet to be meshed
      */
-    OrderedPointSetMesher(OrderedPointSet<Point3d> points) : input_(points) {}
+    OrderedPointSetMesher(OrderedPointSet<cv::Vec3d> points) : input_(points) {}
     //@}
 
     /** @name Input/Output */
@@ -51,7 +52,7 @@ public:
      * Set the input OrderedPointSet.
      * @param points OrderedPointSet to be meshed
      */
-    void setPointSet(OrderedPointSet<Point3d> points) { input_ = points; }
+    void setPointSet(OrderedPointSet<cv::Vec3d> points) { input_ = points; }
 
     /**
      * @brief Get the generated mesh.
@@ -68,7 +69,7 @@ public:
     //@}
 
 private:
-    OrderedPointSet<Point3d> input_;
+    OrderedPointSet<cv::Vec3d> input_;
     ITKMesh::Pointer output_;
 
     /**

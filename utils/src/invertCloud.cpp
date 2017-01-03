@@ -5,8 +5,9 @@
 #include <iostream>
 
 #include <boost/filesystem/path.hpp>
+#include <opencv2/core.hpp>
+
 #include "core/io/PointSetIO.h"
-#include "core/types/Point.h"
 #include "core/types/VolumePkg.h"
 #include "core/vc_defines.h"
 
@@ -33,8 +34,8 @@ int main(int argc, char* argv[])
     std::cout << input_path << std::endl;
 
     // Load the cloud
-    volcart::OrderedPointSet<volcart::Point3d> input;
-    input = volcart::PointSetIO<volcart::Point3d>::ReadOrderedPointSet(
+    volcart::OrderedPointSet<cv::Vec3d> input;
+    input = volcart::PointSetIO<cv::Vec3d>::ReadOrderedPointSet(
         input_path.string());
 
     for (auto pt : input) {
@@ -42,7 +43,7 @@ int main(int argc, char* argv[])
             pt[2] = vpkg.getNumberOfSlices() - 1 - pt[2];
     }
 
-    volcart::PointSetIO<volcart::Point3d>::WriteOrderedPointSet(
+    volcart::PointSetIO<cv::Vec3d>::WriteOrderedPointSet(
         output_path.string(), input);
 
     return 0;
