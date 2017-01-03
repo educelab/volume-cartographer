@@ -148,7 +148,17 @@ int main(int argc, char* argv[])
         for (auto&& pair : parsedMetadata) {
             std::cout << "Attempting to set key \"" << pair.first
                       << "\" to value \"" << pair.second << "\"" << std::endl;
-            switch (typeMap[pair.first]) {
+
+            // Find the key mapping
+            auto t = typeMap.find(pair.first);
+            if (t == typeMap.end()) {
+                std::cout << "Key \"" << pair.first
+                          << "\" not found in dictionary. Skipping."
+                          << std::endl;
+                continue;
+            }
+
+            switch (t->second) {
                 case volcart::Type::STRING:
                     volpkg.setMetadata(pair.first, pair.second);
                     break;
@@ -157,6 +167,9 @@ int main(int argc, char* argv[])
                     break;
                 case volcart::Type::DOUBLE:
                     volpkg.setMetadata(pair.first, std::stod(pair.second));
+                    break;
+                default:
+                    // Not in dictionary
                     break;
             }
             std::cout << std::endl;
