@@ -20,11 +20,6 @@ target_include_directories(vc_segmentation
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
-# Get rid of annoying warnings
-target_compile_options(vc_segmentation
-    PRIVATE
-        -Wno-c++11-narrowing
-)
 target_link_libraries(vc_segmentation
     PUBLIC
         vc_core

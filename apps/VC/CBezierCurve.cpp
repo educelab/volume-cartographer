@@ -34,9 +34,6 @@ CBezierCurve::CBezierCurve(
     }
 }
 
-// Destructor
-CBezierCurve::~CBezierCurve(void) {}
-
 // Set control points
 void CBezierCurve::SetControlPoints(
     const std::vector<Vec2<double>>& nControlPoints)
@@ -177,7 +174,7 @@ void CBezierCurve::DrawOnImage(cv::Mat& nImg, const cv::Scalar& nColor)
     int aNumOfPts = aTotalLen / fSampleInterval;
     float aInterval = 1.0 / aNumOfPts;
 
-    float prev_x, prev_y;
+    float prev_x{}, prev_y{};
     for (int i = 0; i < aNumOfPts; i++) {
         float xa =
             GetPt(fControlPoints[0][0], fControlPoints[1][0], i * aInterval);

@@ -1,24 +1,126 @@
 # Also enable warnings project-wide
 set(project_warnings
+    # Group warnings
     -Wall
     -Wextra
-    -Wno-missing-braces
-    -Wno-c++11-narrowing
-    -Wimplicit-fallthrough
+    -pedantic
+    -Weffc++
+
+    # Extra warnings we want to enable
+    -Waddress-of-array-temporary
+    -Waddress-of-temporary
+    -Wambiguous-member-template
+    -Warray-bounds
+    -Warray-bounds-pointer-arithmetic
+    -Wbad-array-new-length
+    -Wbad-function-cast
+    -Wbind-to-temporary-copy
+    -Wbitfield-constant-conversion
+    -Wbitwise-op-parentheses
+    -Wbool-conversion
+    -Wbool-conversions
+    -Wbuiltin-macro-redefined
+    -Wbuiltin-requires-header
+    -Wc++11-extra-semi
+    -Wc++11-long-long
+    -Wcast-align
+    -Wcomment
+    -Wcomments
+    -Wcompare-distinct-pointer-types
+    -Wconditional-uninitialized
+    -Wconstant-conversion
+    -Wcovered-switch-default
+    -Wctor-dtor-privacy
+    -Wdangling-else
+    -Wdangling-field
+    -Wdelegating-ctor-cycles
+    -Wdelete-incomplete
+    -Wdelete-non-virtual-dtor
+    -Wdeprecated-declarations
+    -Wdeprecated-implementations
+    -Wdeprecated-increment-bool
+    -Wdeprecated-register
+    -Wdeprecated-writable-strings
+    -Wdisabled-optimization
+    -Wdiv-by-zero
+    -Wdivision-by-zero
+    -Wempty-body
+    -Wenum-conversion
     -Wexplicit-ownership-type
+    -Wextra-tokens
+    -Wfor-loop-analysis
     -Wheader-hygiene
+    -Wimplicit-conversion-floating-point-to-bool
     -Wimplicit-fallthrough
+    -Wimplicit-fallthrough-per-function
+    -Wimplicit-function-declaration
+    -Wimplicit-int
+    -Wincompatible-pointer-types
+    -Wint-conversion
+    -Wint-conversions
+    -Wint-to-pointer-cast
+    -Wint-to-void-pointer-cast
+    -Wlarge-by-value-copy
+    -Wliteral-conversion
+    -Wliteral-range
+    -Wlocal-type-template-args
+    -Wlogical-not-parentheses
+    -Wlogical-op-parentheses
+    -Wlong-long
+    -Wloop-analysis
+    -Wmain
+    -Wmismatched-parameter-types
+    -Wmismatched-return-types
+    -Wmissing-braces
+    -Wmissing-declarations
+    -Wmove
+    -Wnull-arithmetic
+    -Wnull-character
+    -Wnull-conversion
+    -Wnull-dereference
+    -Wnullability
     -Wold-style-cast
+    -Wold-style-definition
+    -Wout-of-line-declaration
+    -Woverflow
+    -Woverloaded-shift-op-parentheses
+    -Woverloaded-virtual
+    -Wparentheses
+    -Wparentheses-equality
+    -Wpessimizing-move
+    -Wpointer-arith
+    -Wpointer-to-int-cast
+    -Wredeclared-class-member
+    -Wredundant-move
+    -Wsemicolon-before-method-body
     -Wshadow
     -Wshadow-ivar
-    -Wswitch-enum
+    -Wsizeof-array-argument
+    -Wsizeof-array-decay
+    -Wsometimes-uninitialized
+    -Wswitch
     -Wtautological-compare
+    -Wthread-safety-analysis
+    -Wtrigraphs
+    -Wtype-safety
     -Wtypename-missing
+    -Wuninitialized
+    -Wunneeded-member-function
+    -Wunneeded-member-function
     -Wunreachable-code
+    -Wunreachable-code
+    -Wunsupported-nan
+    -Wunused
     -Wunused-macros
     -Wunused-member-function
-    -Wunneeded-member-function
+    -Wused-but-marked-unused
+    -Wvexing-parse
+
+    # Disable noisy or unncessary warnings
+    -Wno-c++11-narrowing
     -Wno-c++1z-extensions
-    -pedantic
+    -Wno-c++98-compat
+    -Wno-missing-braces
+    -Wno-switch-enum
 )
 add_compile_options(${project_warnings})

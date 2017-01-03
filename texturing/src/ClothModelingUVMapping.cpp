@@ -357,9 +357,6 @@ void ClothModelingUVMapping::setAcceleration(Stage s, double a)
         case Stage::Expansion:
             _expansionA = a;
             break;
-        default:
-            // Should not occur
-            break;
     }
 };
 

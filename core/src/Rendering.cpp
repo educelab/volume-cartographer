@@ -15,8 +15,6 @@ Rendering::Rendering()
     _metadata.set<std::string>("id", DATE_TIME());
 }
 
-Rendering::~Rendering(){};
-
 ///// Metadata /////
 volcart::Metadata Rendering::metadata() const { return _metadata; };
 std::string Rendering::id() const { return _metadata.get<std::string>("id"); };

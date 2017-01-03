@@ -135,7 +135,7 @@ LocalResliceSegmentation::segmentPath(
 
             // Convert maxima to voxel positions
             std::deque<Voxel> maximaQueue;
-            for (const auto maxima : allMaxima) {
+            for (auto&& maxima : allMaxima) {
                 maximaQueue.emplace_back(reslice.sliceToVoxelCoord<double>(
                     {maxima.first, nextLayerIndex}));
             }

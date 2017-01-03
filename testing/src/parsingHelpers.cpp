@@ -43,7 +43,7 @@ void ParsingHelpers::parsePlyFile(
     Vertex plyVertex;
     Cell plyCell;
 
-    int numVertices, numFaces, vertsPerFace, width, height;
+    int numVertices{}, numFaces{}, vertsPerFace{}, width{}, height{};
     std::vector<std::string> typeOfPointInformation;
     bool headerFinished = false;
     bool isWidth = false;

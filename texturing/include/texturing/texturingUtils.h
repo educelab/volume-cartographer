@@ -644,7 +644,6 @@ inline double textureWithMethod(
     switch (nFilter) {
         case volcart::CompositeOption::Intersection:
             return FilterIntersection(nPoint, VolPkg);
-
             break;
         case volcart::CompositeOption::Mean:
             return FilterMean(
@@ -669,10 +668,6 @@ inline double textureWithMethod(
         case volcart::CompositeOption::MedianAverage:
             return FilterMedianAverage(
                 nPoint, nNormal, VolPkg, nR1, nR2, nSampleDist, nSamplingDir);
-            break;
-        default:
-            return FilterIntersection(nPoint, VolPkg);
-
             break;
     }  // switch nFilter
 }

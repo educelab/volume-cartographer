@@ -63,7 +63,7 @@ std::pair<std::vector<T>, std::vector<T>> unzip(
     std::vector<T> xs, ys;
     xs.reserve(vs.size());
     ys.reserve(vs.size());
-    for (const auto v : vs) {
+    for (const auto& v : vs) {
         xs.push_back(v(0));
         ys.push_back(v(1));
     }

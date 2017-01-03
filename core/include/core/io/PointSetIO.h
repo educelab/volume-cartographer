@@ -350,7 +350,7 @@ private:
         PointSet<T> ps{header.size};
 
         // Size of binary elements to read
-        size_t typeBytes;
+        size_t typeBytes{};
         if (header.type == "float") {
             typeBytes = sizeof(float);
         } else if (header.type == "double") {

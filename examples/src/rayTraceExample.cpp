@@ -19,7 +19,6 @@
 
 int main()
 {
-
     // Init Shape Meshes
     volcart::ITKMesh::Pointer in_PlaneMesh, in_ArchMesh, in_CubeMesh,
         in_SphereMesh, in_ConeMesh;
@@ -43,7 +42,7 @@ int main()
     int Width = 0, Height = 0;
 
     std::ofstream MeshOutputFileStream;
-    int NumberOfPoints;
+    int NumberOfPoints{};
 
     // Prepare to start writing loop
     int ShapeCounter = 0;

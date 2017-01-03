@@ -149,7 +149,7 @@ int main(int argc, char* argv[])
 
     ///// Analyze the slices /////
     bool vol_consistent = true;
-    double vol_min, vol_max;
+    double vol_min{}, vol_max{};
     unsigned long counter = 1;
     for (auto slice = slices.begin(); slice != slices.end(); ++slice) {
         std::cout << "Analyzing slice: " << counter << "/" << slices.size()

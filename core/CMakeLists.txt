@@ -79,10 +79,6 @@ foreach(src ${test_srcs})
         vc_testing
         Boost::unit_test_framework
     )
-    target_compile_options(${testname}
-        PUBLIC
-            -Wno-c++11-narrowing
-    )
     add_test(
         NAME ${testname}
         WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
