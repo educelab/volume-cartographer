@@ -42,18 +42,20 @@ int main(int argc, char* argv[])
         std::exit(1);
     }
 
+    // Warn of missing options
+    try {
+        po::notify(opts);
+    } catch (po::error& e) {
+        std::cerr << "ERROR: " << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+
     // Verify only one mode specified
-    if (opts.count("print") + opts.count("test") + opts.count("write") > 1) {
+    if (opts.count("test") + opts.count("write") > 1) {
         std::cerr
             << "Multiple modes specified. Only pick one of [print/test/write]"
             << std::endl;
         std::exit(1);
-    }
-
-    auto configs = opts["configs"].as<std::vector<std::string>>();
-    if (configs.empty()) {
-        std::cout << "No metadata changes to make, exiting" << std::endl;
-        std::exit(0);
     }
 
     // Build volumepkg
@@ -61,17 +63,21 @@ int main(int argc, char* argv[])
 
     // Print metadata
     if (opts.count("print")) {
-        std::cout << "INITIAL METADATA: " << std::endl;
+        std::cout << "Initial metadata: " << std::endl;
         volpkg.printJSON();
         std::cout << std::endl;
-        return EXIT_SUCCESS;
     }
 
     // Test or write metadata
     if (opts.count("test") || opts.count("write")) {
-        std::map<std::string, std::string> parsedMetadata;
+        if (!opts.count("configs")) {
+            std::cout << "No metadata changes to make, exiting" << std::endl;
+            std::exit(0);
+        }
+        auto configs = opts["configs"].as<std::vector<std::string>>();
 
         // Parse the metadata key and its value
+        std::map<std::string, std::string> parsedMetadata;
         for (auto&& config : configs) {
             auto delimiter = config.find("=");
             if (delimiter == std::string::npos) {
@@ -158,7 +164,7 @@ int main(int argc, char* argv[])
 
         // Only print, don't save.
         if (opts.count("test")) {
-            std::cout << "FINAL METADATA: " << std::endl;
+            std::cout << "Final metadata: " << std::endl;
             volpkg.printJSON();
             std::cout << std::endl;
             return EXIT_SUCCESS;
@@ -167,7 +173,6 @@ int main(int argc, char* argv[])
         // Actually save.
         if (opts.count("write")) {
             volpkg.readOnly(false);
-            // save the new json file to test.json
             std::cout << "Writing metadata to file..." << std::endl;
             volpkg.saveMetadata();
             std::cout << "Metadata written successfully." << std::endl
