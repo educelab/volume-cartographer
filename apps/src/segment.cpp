@@ -200,7 +200,7 @@ int main(int argc, char* argv[])
     segPath.erase(
         std::remove_if(
             std::begin(segPath), std::end(segPath),
-            [](volcart::Point3d e) { return e[2] == -1; }),
+            [](auto e) { return e[2] == -1; }),
         std::end(segPath));
 
     // Starting paths must have the same number of points as the input width to
@@ -219,7 +219,7 @@ int main(int argc, char* argv[])
     }
 
     // Run the algorithms
-    volcart::OrderedPointSet<volcart::Point3d> mutableCloud;
+    volcart::OrderedPointSet<cv::Vec3d> mutableCloud;
     if (alg == Algorithm::STPS) {
         double gravityScale = opts["gravity-scale"].as<double>();
         mutableCloud = vs::structureTensorParticleSim(

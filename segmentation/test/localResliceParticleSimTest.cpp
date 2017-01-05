@@ -13,7 +13,7 @@ namespace tt = boost::test_tools;
 struct PointXYZ {
     float x, y, z;
 
-    PointXYZ(const volcart::Point3d p) : x(p[0]), y(p[1]), z(p[2]) {}
+    PointXYZ(const cv::Vec3d p) : x(p[0]), y(p[1]), z(p[2]) {}
 };
 
 std::ostream& operator<<(std::ostream& s, PointXYZ p)
@@ -51,8 +51,7 @@ BOOST_FIXTURE_TEST_CASE(DefaultSegmentationTest, LocalResliceSegmentationFix)
     _pkg.setActiveSegmentation(startingCloudSeg);
     auto startingCloud = _pkg.openCloud();
 
-    volcart::OrderedPointSet<volcart::Point3d> seededCloud(
-        startingCloud.width());
+    volcart::OrderedPointSet<cv::Vec3d> seededCloud(startingCloud.width());
     auto seededPoints = startingCloud.getRow(0);
 
     // Run segmentation

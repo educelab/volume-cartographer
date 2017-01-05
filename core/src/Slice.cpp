@@ -1,6 +1,6 @@
-#include <opencv2/imgproc.hpp>
+#include "core/types/Slice.h"
 
-#include "common/types/Slice.h"
+#include <opencv2/imgproc.hpp>
 
 #define BGR_MAGENTA cv::Scalar(0xFF, 0, 0xFF)
 

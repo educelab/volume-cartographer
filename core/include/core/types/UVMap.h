@@ -15,12 +15,13 @@
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include "common/vc_defines.h"
+#include "core/vc_defines.h"
 
 constexpr static size_t VC_UVMAP_MIN_DEBUG_WIDTH = 500;
 
 namespace volcart
 {
+
 class UVMap
 {
 public:
@@ -93,4 +94,5 @@ private:
     cv::Vec2d _origin;  // origin inserted and retrieved points are relative to
     Ratio _ratio;
 };
+
 }  // volcart

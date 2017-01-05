@@ -36,10 +36,15 @@ namespace volcart
 {
 
 /**
+ * Types stored in `Dictionaries`
+ */
+enum class Type { STRING, INT, DOUBLE };
+
+/**
  * Holds a set of key-value pairs that map JSON metadata keys to the expected
  * type of the value. A template for the structure of a VolumePkg's metadata.
  */
-using Dictionary = std::unordered_map<std::string, std::string>;
+using Dictionary = std::unordered_map<std::string, Type>;
 
 /**
  * Holds a set of key-value pairs that map version number keys to a specific
@@ -51,45 +56,45 @@ using Library = std::unordered_map<int, Dictionary>;
 /** Metadata dictionary for VolumePkg v1. */
 const Dictionary _1 =
         {
-        {"volumepkg name",   "string"},
-        {"version",          "int"},
-        {"width",            "int"},
-        {"height",           "int"},
-        {"number of slices", "int"},
-        {"slice location",   "string"},
-        {"min",              "double"},
-        {"max",              "double"},
-        {"voxelsize",        "double"}
+        {"volumepkg name",   Type::STRING},
+        {"version",          Type::INT},
+        {"width",            Type::INT},
+        {"height",           Type::INT},
+        {"number of slices", Type::INT},
+        {"slice location",   Type::STRING},
+        {"min",              Type::DOUBLE},
+        {"max",              Type::DOUBLE},
+        {"voxelsize",        Type::DOUBLE}
         };
 
 /** Metadata dictionary for VolumePkg v2. */
 const Dictionary _2 =
         {
-        {"volumepkg name",   "string"},
-        {"version",          "int"},
-        {"width",            "int"},
-        {"height",           "int"},
-        {"number of slices", "int"},
-        {"slice location",   "string"},
-        {"min",              "double"},
-        {"max",              "double"},
-        {"voxelsize",        "double"},
-        {"materialthickness","double"}
+        {"volumepkg name",   Type::STRING},
+        {"version",          Type::INT},
+        {"width",            Type::INT},
+        {"height",           Type::INT},
+        {"number of slices", Type::INT},
+        {"slice location",   Type::STRING},
+        {"min",              Type::DOUBLE},
+        {"max",              Type::DOUBLE},
+        {"voxelsize",        Type::DOUBLE},
+        {"materialthickness",Type::DOUBLE}
         };
 
 /** Metadata dictionary for VolumePkg v3. */
 const Dictionary _3 =
         {
-        {"volumepkg name",   "string"},
-        {"version",          "int"},
-        {"width",            "int"},
-        {"height",           "int"},
-        {"number of slices", "int"},
-        {"slice location",   "string"},
-        {"min",              "double"},
-        {"max",              "double"},
-        {"voxelsize",        "double"},
-        {"materialthickness","double"}
+        {"volumepkg name",   Type::STRING},
+        {"version",          Type::INT},
+        {"width",            Type::INT},
+        {"height",           Type::INT},
+        {"number of slices", Type::INT},
+        {"slice location",   Type::STRING},
+        {"min",              Type::DOUBLE},
+        {"max",              Type::DOUBLE},
+        {"voxelsize",        Type::DOUBLE},
+        {"materialthickness",Type::DOUBLE}
         };
 // clang-format on
 

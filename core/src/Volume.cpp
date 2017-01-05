@@ -1,3 +1,5 @@
+#include "core/types/Volume.h"
+
 #include <iomanip>
 #include <iostream>
 #include <memory>
@@ -6,8 +8,6 @@
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
-
-#include "core/types/Volume.h"
 
 using namespace volcart;
 namespace fs = boost::filesystem;

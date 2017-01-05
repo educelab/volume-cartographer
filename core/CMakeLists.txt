@@ -64,7 +64,6 @@ set(test_srcs
     test/PointSetIOTest.cpp
     test/OrderedPointSetTest.cpp
     test/OrderedPointSetIOTest.cpp
-    test/PointTest.cpp
     test/PLYReaderTest.cpp
     test/FloatComparisonTest.cpp
     test/PerPixelMapTest.cpp

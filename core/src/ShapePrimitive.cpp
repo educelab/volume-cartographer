@@ -91,19 +91,17 @@ vtkSmartPointer<vtkPolyData> ShapePrimitive::vtkMesh()
 }
 
 // Return Point Cloud
-volcart::OrderedPointSet<volcart::Point3d> ShapePrimitive::orderedPoints(
-    bool noisify)
+volcart::OrderedPointSet<cv::Vec3d> ShapePrimitive::orderedPoints(bool noisify)
 {
-
-    volcart::OrderedPointSet<volcart::Point3d> output(_orderedWidth);
-    std::vector<Point3d> temp_row;
+    volcart::OrderedPointSet<cv::Vec3d> output(_orderedWidth);
+    std::vector<cv::Vec3d> temp_row;
     double offset = 0.0;
     if (noisify)
         offset = 5.0;
     int point_counter = 0;  // This is the worst. // SP
     int width_cnt = 0;
     for (auto p_id : _points) {
-        volcart::Point3d point;
+        cv::Vec3d point;
         if (width_cnt == output.width()) {
             output.pushRow(temp_row);
             temp_row.clear();
@@ -125,15 +123,14 @@ volcart::OrderedPointSet<volcart::Point3d> ShapePrimitive::orderedPoints(
     }
     return output;
 }
-volcart::PointSet<volcart::Point3d> ShapePrimitive::unorderedPoints(
-    bool noisify)
+volcart::PointSet<cv::Vec3d> ShapePrimitive::unorderedPoints(bool noisify)
 {
 
-    volcart::PointSet<volcart::Point3d> output;
+    volcart::PointSet<cv::Vec3d> output;
     double offset = (noisify ? 5.0 : 0.0);
     int point_counter = 0;  // This is the worst. // SP
     for (auto p_id : _points) {
-        volcart::Point3d point;
+        cv::Vec3d point;
 
         point[0] = p_id.x;
         point[1] = p_id.y;
@@ -153,13 +150,13 @@ volcart::PointSet<volcart::Point3d> ShapePrimitive::unorderedPoints(
 }
 
 // Return Point Cloud
-volcart::OrderedPointSet<volcart::Point6d> ShapePrimitive::orderedPointNormal()
+volcart::OrderedPointSet<cv::Vec6d> ShapePrimitive::orderedPointNormal()
 {
 
-    volcart::OrderedPointSet<volcart::Point6d> output(_orderedWidth);
-    std::vector<volcart::Point6d> temp_row;
+    volcart::OrderedPointSet<cv::Vec6d> output(_orderedWidth);
+    std::vector<cv::Vec6d> temp_row;
     for (auto p_id : _points) {
-        volcart::Point6d point;
+        cv::Vec6d point;
         for (int i = 0; i < _orderedWidth; i++) {
             point[0] = p_id.x;
             point[1] = p_id.y;
@@ -176,11 +173,11 @@ volcart::OrderedPointSet<volcart::Point6d> ShapePrimitive::orderedPointNormal()
     return output;
 };
 
-volcart::PointSet<volcart::Point6d> ShapePrimitive::unOrderedPointNormal()
+volcart::PointSet<cv::Vec6d> ShapePrimitive::unOrderedPointNormal()
 {
-    volcart::PointSet<volcart::Point6d> output;
+    volcart::PointSet<cv::Vec6d> output;
     for (auto p_id : _points) {
-        volcart::Point6d point;
+        cv::Vec6d point;
         point[0] = p_id.x;
         point[1] = p_id.y;
         point[2] = p_id.z;

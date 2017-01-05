@@ -17,7 +17,7 @@ class Chain
 {
 public:
     Chain(
-        std::vector<volcart::Point3d> segPath,
+        std::vector<cv::Vec3d> segPath,
         const VolumePkg& volpkg,
         double gravity_scale,
         int threshold,
@@ -27,7 +27,7 @@ public:
     bool isMoving();
     cv::Vec3d springForce(int);
     cv::Vec3d gravity(int);
-    volcart::OrderedPointSet<volcart::Point3d> orderedPCD();
+    volcart::OrderedPointSet<cv::Vec3d> orderedPCD();
 
 private:
     const VolumePkg& _volpkg;
