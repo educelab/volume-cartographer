@@ -138,7 +138,9 @@ class QuadricEdgeCollapseDecimation
         typedef VcgMesh::VertexType::EdgeType EdgeType;
         inline VcgTriEdgeCollapse(
             const VertexPair& p, int i, vcg::BaseParameterClass* pp)
-            : TECQ(p, i, pp){};
+            : TECQ(p, i, pp)
+        {
+        }
     };
 
 public:
@@ -189,7 +191,7 @@ public:
      * If the desired number of faces has not been set, the algorithm runs
      * until the quadric error is minimized.
      */
-    void setDesiredFaces(size_t n) { desiredFaces_ = n; };
+    void setDesiredFaces(size_t n) { desiredFaces_ = n; }
 
     /**
      * @brief Set the boundary weight factor.

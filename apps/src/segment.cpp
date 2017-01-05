@@ -162,8 +162,8 @@ int main(int argc, char* argv[])
     // Get some info about the cloud, including chain length and z-index's
     // represented by seg.
     auto chainLength = masterCloud.width();
-    int minIndex = floor(masterCloud.front()[2]);
-    int maxIndex = floor(masterCloud.max()[2]);
+    auto minIndex = static_cast<int>(floor(masterCloud.front()[2]));
+    auto maxIndex = static_cast<int>(floor(masterCloud.max()[2]));
 
     // If no start index is given, our starting path is all of the points
     // already on the largest slice index
@@ -199,7 +199,7 @@ int main(int argc, char* argv[])
     segPath.erase(
         std::remove_if(
             std::begin(segPath), std::end(segPath),
-            [](volcart::Point3d e) { return e[2] == -1; }),
+            [](auto e) { return e[2] == -1; }),
         std::end(segPath));
 
     // Starting paths must have the same number of points as the input width to
@@ -218,7 +218,7 @@ int main(int argc, char* argv[])
     }
 
     // Run the algorithms
-    volcart::OrderedPointSet<volcart::Point3d> mutableCloud;
+    volcart::OrderedPointSet<cv::Vec3d> mutableCloud;
     if (alg == Algorithm::STPS) {
         double gravityScale = opts["gravity-scale"].as<double>();
         mutableCloud = vs::structureTensorParticleSim(

@@ -30,8 +30,8 @@ public:
         CompositeOption method = CompositeOption::NonMaximumSuppression,
         DirectionOption direction = DirectionOption::Bidirectional);
 
-    const volcart::Texture& texture() const { return _texture; };
-    volcart::Texture& texture() { return _texture; };
+    const volcart::Texture& texture() const { return _texture; }
+    volcart::Texture& texture() { return _texture; }
 private:
     int _process();
 

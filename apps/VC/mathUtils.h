@@ -39,15 +39,10 @@ private:
     T val[2];
 
 public:
-    Vec2(void)
+    Vec2()
     {
         val[0] = T(0);
         val[1] = T(0);
-    }
-    Vec2(const Vec2& nCopy)
-    {
-        val[0] = nCopy[0];
-        val[1] = nCopy[1];
     }
     Vec2(T v1, T v2)
     {

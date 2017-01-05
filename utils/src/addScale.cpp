@@ -64,8 +64,8 @@ int main(int argc, char* argv[])
     }
 
     // Overlay Image
-    double originX = outImage.cols - resizedScale.cols;
-    double originY = outImage.rows - resizedScale.rows;
+    int originX = outImage.cols - resizedScale.cols;
+    int originY = outImage.rows - resizedScale.rows;
     if (originX < 0)
         originX = 0;
     if (originY < 0)

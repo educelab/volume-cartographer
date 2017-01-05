@@ -1,5 +1,10 @@
 // CBezierCurve.cpp
 // Chao Du 2015 April
+
+// Ignore this warning because it is very noisy for this file
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wfloat-conversion"
+
 #include "CBezierCurve.h"
 
 //#define _DEBUG
@@ -71,7 +76,7 @@ void CBezierCurve::GetSamplePoints(std::vector<Vec2<double>>& nSamplePoints)
                               fControlPoints[2][1] - fControlPoints[3][1]);
 
     int aNumOfPts = aTotalLength / fSampleInterval;
-    float aInterval = 1.0 / aNumOfPts;
+    float aInterval = 1.0f / aNumOfPts;
 
     for (int i = 0; i < aNumOfPts; i++) {
         float xa =
@@ -113,7 +118,7 @@ void CBezierCurve::GetSamplePoints(std::vector<cv::Vec2f>& nSamplePoints)
                               fControlPoints[2][1] - fControlPoints[3][1]);
 
     int aNumOfPts = aTotalLength / fSampleInterval;
-    float aInterval = 1.0 / aNumOfPts;
+    float aInterval = 1.0f / aNumOfPts;
 
     for (int i = 0; i < aNumOfPts; i++) {
         float xa =
@@ -161,18 +166,18 @@ void CBezierCurve::DrawOnImage(cv::Mat& nImg, const cv::Scalar& nColor)
         cv::Scalar(255, 0, 0), 1);
 #endif  // _DEBUG
 
-    float aTotalLen = pythag(
-                          fControlPoints[0][0] - fControlPoints[1][0],
-                          fControlPoints[0][1] - fControlPoints[1][1]) +
-                      pythag(
-                          fControlPoints[1][0] - fControlPoints[2][0],
-                          fControlPoints[1][1] - fControlPoints[2][1]) +
-                      pythag(
-                          fControlPoints[2][0] - fControlPoints[3][0],
-                          fControlPoints[2][1] - fControlPoints[3][1]);
+    double aTotalLen = pythag<double>(
+                           fControlPoints[0][0] - fControlPoints[1][0],
+                           fControlPoints[0][1] - fControlPoints[1][1]) +
+                       pythag<double>(
+                           fControlPoints[1][0] - fControlPoints[2][0],
+                           fControlPoints[1][1] - fControlPoints[2][1]) +
+                       pythag<double>(
+                           fControlPoints[2][0] - fControlPoints[3][0],
+                           fControlPoints[2][1] - fControlPoints[3][1]);
 
     int aNumOfPts = aTotalLen / fSampleInterval;
-    float aInterval = 1.0 / aNumOfPts;
+    float aInterval = 1.0f / aNumOfPts;
 
     float prev_x{}, prev_y{};
     for (int i = 0; i < aNumOfPts; i++) {
@@ -227,3 +232,5 @@ void CBezierCurve::DrawOnImage(cv::Mat& nImg, const cv::Scalar& nColor)
 #endif  // _DEBUG
     }
 }
+
+#pragma clang diagnostic pop

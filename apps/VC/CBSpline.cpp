@@ -194,8 +194,8 @@ void CBSpline::DrawOnImage(cv::Mat& nImg, const cv::Scalar& nColor)
 {
     // Handle drawing curves with only 2 points
     if (fControlPoints.size() == 2) {
-        cv::Point2f start(fControlPoints[0][0], fControlPoints[0][1]);
-        cv::Point2f end(fControlPoints[1][0], fControlPoints[1][1]);
+        cv::Point2d start(fControlPoints[0][0], fControlPoints[0][1]);
+        cv::Point2d end(fControlPoints[1][0], fControlPoints[1][1]);
         cv::line(nImg, start, end, nColor);
         return;
     }

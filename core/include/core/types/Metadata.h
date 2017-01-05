@@ -21,22 +21,18 @@ class Metadata
 
 public:
     Metadata() {}
-
     Metadata(const boost::filesystem::path& file_location);
 
     // Path
-    boost::filesystem::path path() const { return _path; };
-
-    void setPath(const std::string& path) { _path = path; };
+    boost::filesystem::path path() const { return _path; }
+    void setPath(const std::string& path) { _path = path; }
 
     // Save to file
     void save(const boost::filesystem::path& path);
-
-    void save() { save(_path); };
+    void save() { save(_path); }
 
     // Debug function
     void printString() const { std::cout << _json << std::endl; }
-
     void printObject() const { std::cout << _json.dump(4) << std::endl; }
 
     // Retrieval
@@ -59,7 +55,6 @@ public:
 
 protected:
     nlohmann::json _json;
-
     boost::filesystem::path _path;
 };
 }

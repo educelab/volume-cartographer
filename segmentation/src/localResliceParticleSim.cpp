@@ -16,12 +16,11 @@ namespace fs = boost::filesystem;
 using std::begin;
 using std::end;
 
-volcart::OrderedPointSet<volcart::Point3d> exportAsPCD(
+volcart::OrderedPointSet<cv::Vec3d> exportAsPCD(
     const std::vector<std::vector<Voxel>>& points);
 
-volcart::OrderedPointSet<volcart::Point3d>
-LocalResliceSegmentation::segmentPath(
-    std::vector<volcart::Point3d> cloud,
+volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
+    std::vector<cv::Vec3d> cloud,
     int32_t startIndex,
     int32_t endIndex,
     int32_t numIters,
@@ -53,7 +52,7 @@ LocalResliceSegmentation::segmentPath(
         std::cerr << "[info]: one or more particles is outside volume bounds, "
                      "halting segmentation"
                   << std::endl;
-        return volcart::OrderedPointSet<volcart::Point3d>();
+        return volcart::OrderedPointSet<cv::Vec3d>();
     }
 
     const fs::path outputDir("debugvis");
@@ -321,9 +320,9 @@ LocalResliceSegmentation::segmentPath(
 cv::Vec3d LocalResliceSegmentation::estimateNormalAtIndex(
     const FittedCurve& currentCurve, int32_t index)
 {
-    const Voxel currentVoxel = currentCurve(index);
-    auto stRadius =
-        std::ceil(pkg_.getMaterialThickness() / pkg_.getVoxelSize()) / 2;
+    const cv::Vec3i currentVoxel = currentCurve(index);
+    auto stRadius = static_cast<int>(
+        std::ceil(pkg_.getMaterialThickness() / pkg_.getVoxelSize()) / 2);
     const auto eigenPairs = pkg_.volume().eigenPairsAt(
         currentVoxel(0), currentVoxel(1), currentVoxel(2), stRadius);
     const double exp0 = std::log10(eigenPairs[0].first);
@@ -335,13 +334,13 @@ cv::Vec3d LocalResliceSegmentation::estimateNormalAtIndex(
     return tan3d.cross(cv::Vec3d{0, 0, 1});
 }
 
-volcart::OrderedPointSet<volcart::Point3d> exportAsPCD(
+volcart::OrderedPointSet<cv::Vec3d> exportAsPCD(
     const std::vector<std::vector<Voxel>>& points)
 {
     int32_t rows = points.size();
     int32_t cols = points[0].size();
-    std::vector<volcart::Point3d> temp_row;
-    volcart::OrderedPointSet<volcart::Point3d> cloud(cols);
+    std::vector<cv::Vec3d> temp_row;
+    volcart::OrderedPointSet<cv::Vec3d> cloud(cols);
 
     for (int32_t i = 0; i < rows; ++i) {
         for (int32_t j = 0; j < cols; ++j) {

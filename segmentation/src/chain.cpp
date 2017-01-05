@@ -2,7 +2,7 @@
 
 // (doc) Why the parameters that we're giving it?
 Chain::Chain(
-    std::vector<volcart::Point3d> segPath,
+    std::vector<cv::Vec3d> segPath,
     const VolumePkg& volpkg,
     double gravity_scale,
     int threshold,
@@ -12,9 +12,9 @@ Chain::Chain(
 {
     // Convert the point cloud segPath into a vector of Particles
     std::vector<Particle> init_chain;
-
+    init_chain.reserve(segPath.size());
     for (auto p : segPath) {
-        init_chain.push_back(p.toCvVec());
+        init_chain.push_back(p);
     }
 
     // Calculate the spring resting position
@@ -33,10 +33,10 @@ Chain::Chain(
     _threshold = threshold;
 
     // Find the lowest slice index in the starting chain
-    _start_index = _history.front()[0](2);
+    _start_index = static_cast<int>(_history.front()[0](2));
     for (int i = 0; i < _chain_length; ++i)
         if (_history.front()[i](2) < _start_index)
-            _start_index = _history.front()[i](2);
+            _start_index = static_cast<int>(_history.front()[i](2));
 
     // Set the slice index we will end at
     // If user does not define endOffset, target index == last slice with a
@@ -151,19 +151,19 @@ cv::Vec3d Chain::gravity(int index)
 }
 
 // Convert Chain's _history to an ordered Point Cloud object
-volcart::OrderedPointSet<volcart::Point3d> Chain::orderedPCD()
+volcart::OrderedPointSet<cv::Vec3d> Chain::orderedPCD()
 {
     // Allocate space for one row of the output cloud
-    std::vector<volcart::Point3d> storage_row;
+    std::vector<cv::Vec3d> storage_row;
     for (int i = 0; i < _chain_length; ++i) {
-        volcart::Point3d point;
+        cv::Vec3d point;
         point[2] = -1;  // To-Do: Make this a constant
         storage_row.push_back(point);
     }
 
     // Allocate space for all rows of the output cloud
     // storage will represent the cloud with 2D indexes
-    std::vector<std::vector<volcart::Point3d>> storage;
+    std::vector<std::vector<cv::Vec3d>> storage;
     for (int i = 0; i < _real_iterations; ++i) {
         storage.push_back(storage_row);
     }
@@ -181,12 +181,12 @@ volcart::OrderedPointSet<volcart::Point3d> Chain::orderedPCD()
                 ((row_at[i](2)) -
                  _start_index /
                      _threshold));  // *To-Do: Something seems wrong here.
-            storage[currentCell][i] = volcart::Point3d(row_at[i].position());
+            storage[currentCell][i] = cv::Vec3d(row_at[i].position());
         }
     }
 
     // Move points out of storage into the point cloud
-    volcart::OrderedPointSet<volcart::Point3d> cloud;
+    volcart::OrderedPointSet<cv::Vec3d> cloud;
     for (int i = 0; i < _real_iterations; ++i) {
         for (int j = 0; j < _chain_length; ++j) {
             cloud[j + (i * _chain_length)] = storage[i][j];

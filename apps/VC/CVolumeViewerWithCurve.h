@@ -43,7 +43,7 @@ public:
     void SetImpactRange(int nImpactRange);
 
     void UpdateView(void);
-    void SetShowCurve(bool b) { showCurve = b; };
+    void SetShowCurve(bool b) { showCurve = b; }
 
     void SetViewState(EViewState nViewState) { fViewState = nViewState; }
     EViewState GetViewState(void) { return fViewState; }

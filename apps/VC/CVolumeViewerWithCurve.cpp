@@ -165,7 +165,7 @@ void CVolumeViewerWithCurve::mouseMoveEvent(QMouseEvent* event)
 
     // Convert to image coordinates and get delta of change
     WidgetLoc2ImgLoc(aWidgetLoc, aImgLoc);
-    Vec2<float> aDelta;
+    Vec2<double> aDelta;
     aDelta[0] = aImgLoc[0] - fLastPos.x();
     aDelta[1] = aImgLoc[1] - fLastPos.y();
 
@@ -243,10 +243,10 @@ void CVolumeViewerWithCurve::WidgetLoc2ImgLoc(
 int CVolumeViewerWithCurve::SelectPointOnCurve(
     const CXCurve* nCurve, const cv::Vec2f& nPt)
 {
-    const float DIST_THRESHOLD = 1.5 * fScaleFactor;
+    const double DIST_THRESHOLD = 1.5 * fScaleFactor;
 
     for (size_t i = 0; i < nCurve->GetPointsNum(); ++i) {
-        if (Norm<float>(Vec2<float>(
+        if (Norm<double>(Vec2<double>(
                 nCurve->GetPoint(i)[0] - nPt[0],
                 nCurve->GetPoint(i)[1] - nPt[1])) < DIST_THRESHOLD) {
             return i;
@@ -261,7 +261,7 @@ void CVolumeViewerWithCurve::DrawIntersectionCurve(void)
     if (fIntersectionCurveRef != nullptr) {
         for (size_t i = 0; i < fIntersectionCurveRef->GetPointsNum(); ++i) {
             cv::circle(
-                fImgMat, cv::Point2f(
+                fImgMat, cv::Point2d(
                              fIntersectionCurveRef->GetPoint(i)[0],
                              fIntersectionCurveRef->GetPoint(i)[1]),
                 1, cv::Scalar(255, 0, 0));

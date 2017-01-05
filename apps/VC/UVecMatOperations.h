@@ -525,7 +525,7 @@ inline void SVD(
     int m = nMat.GetRows();
     int n = nMat.GetCols();
     int dim = m < n ? m : n;
-    float anorm, c, f, g, h, s, scale, x, y, z;
+    double anorm, c, f, g, h, s, scale, x, y, z;
 
     CVectorN<T> aW(m > n ? m : n);
     CVectorN<T> rv1(n);
@@ -724,13 +724,13 @@ inline void SVD(
                 nm = l - 1;
 
                 if (l == 0 ||
-                    fabs(static_cast<float>(fabs(rv1[l]) + anorm) - anorm) <
+                    fabs(static_cast<double>(fabs(rv1[l]) + anorm) - anorm) <
                         1e-6) {
                     flag = 0;
                     break;
                 }  // if
 
-                if (fabs(static_cast<float>(fabs(aW[nm]) + anorm) - anorm) <
+                if (fabs(static_cast<double>(fabs(aW[nm]) + anorm) - anorm) <
                     1e-6) {
                     break;
                 }
@@ -747,12 +747,12 @@ inline void SVD(
                     f = s * rv1[i];
                     rv1[i] = c * rv1[i];
 
-                    if (fabs(static_cast<float>(fabs(f) + anorm) - anorm) <
+                    if (fabs(static_cast<double>(fabs(f) + anorm) - anorm) <
                         1e-6) {
                         break;
                     }
                     g = aW[i];
-                    h = pythag<float>(f, g);
+                    h = pythag<double>(f, g);
                     aW[i] = h;
                     h = 1.0 / h;
                     c = g * h;
@@ -793,7 +793,7 @@ inline void SVD(
             g = rv1[nm];
             h = rv1[k];
             f = ((y - z) * (y + z) + (g - h) * (g + h)) / (2.0 * h * y);
-            g = pythag<float>(f, 1.0);
+            g = pythag<double>(f, 1.0);
             f = ((x - z) * (x + z) + h * ((y / (f + SIGN(g, f))) - h)) / x;
             c = s = 1.0;
 
@@ -805,7 +805,7 @@ inline void SVD(
                 y = aW[i];
                 h = s * g;
                 g = c * g;
-                z = pythag<float>(f, h);
+                z = pythag<double>(f, h);
                 rv1[j] = z;
                 c = f / z;
                 s = h / z;
@@ -821,7 +821,7 @@ inline void SVD(
                     nV(jj, i) = z * c - x * s;
                 }  // for jj
 
-                z = pythag<float>(f, h);
+                z = pythag<double>(f, h);
                 aW[j] = z;
 
                 // Rotation can be arbitrary if z = 0.

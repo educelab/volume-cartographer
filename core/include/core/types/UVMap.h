@@ -23,15 +23,15 @@ namespace volcart
 class UVMap
 {
 public:
-    UVMap() : _origin(VC_ORIGIN_TOP_LEFT){};
-    UVMap(Origin o) { _origin = o; };
+    UVMap() : _origin(VC_ORIGIN_TOP_LEFT) {}
+    UVMap(Origin o) { _origin = o; }
 
-    size_t size() const { return _map.size(); };
-    bool empty() const { return _map.empty(); };
+    size_t size() const { return _map.size(); }
+    bool empty() const { return _map.empty(); }
 
     // Get and set origin
-    Origin origin() const { return _origin; };
-    void origin(Origin o) { _origin = o; };
+    Origin origin() const { return _origin; }
+    void origin(Origin o) { _origin = o; }
 
     // Set the uv mapping for point p_id
     void set(size_t p_id, cv::Vec2d uv)
@@ -40,7 +40,7 @@ public:
         cv::Vec2d transformed;
         cv::absdiff(uv, _origin, transformed);
         _map[p_id] = transformed;
-    };
+    }
 
     // Get the uv mapping for point p_id
     cv::Vec2d get(size_t p_id)
@@ -54,29 +54,29 @@ public:
             return transformed;
         } else
             return VC_UVMAP_NULL_MAPPING;
-    };
+    }
 
     // Ratio information
-    Ratio ratio() const { return _ratio; };
-    void ratio(double a) { _ratio.aspect = a; };
+    Ratio ratio() const { return _ratio; }
+    void ratio(double a) { _ratio.aspect = a; }
     void ratio(double w, double h)
     {
         _ratio.width = w;
         _ratio.height = h;
         _ratio.aspect = w / h;
-    };
+    }
 
     // Plot the UV points on a cv::Mat img
     cv::Mat drawUVMap() const
     {
-        int w = std::ceil(_ratio.width);
+        auto w = static_cast<int>(std::ceil(_ratio.width));
         if (w < VC_UVMAP_MIN_DEBUG_WIDTH) {
             std::cerr
                 << "volcart::UVMap:: Width less than minimum. Scaling image."
                 << std::endl;
             w = VC_UVMAP_MIN_DEBUG_WIDTH;
         }
-        int h = std::ceil(w / _ratio.aspect);
+        auto h = static_cast<int>(std::ceil(w / _ratio.aspect));
         cv::Mat r = cv::Mat::zeros(h, w, CV_8UC1);
 
         for (auto it : _map) {
@@ -92,5 +92,4 @@ private:
     cv::Vec2d _origin;  // origin inserted and retrieved points are relative to
     Ratio _ratio;
 };
-
 }  // volcart

@@ -130,7 +130,7 @@ struct PlaneRayTraceFixture {
     }
 
     // Variables needed for call to rayTrace()
-    std::vector<cv::Vec6f> _PlaneRayTraceResults;
+    std::vector<cv::Vec6d> _PlaneRayTraceResults;
     ITKMesh::Pointer _in_PlaneMesh;
     volcart::shapes::Plane _Plane;
     std::map<int, cv::Vec2d> _UVMap;
@@ -226,7 +226,7 @@ struct CubeRayTraceFixture {
     }
 
     // Variables needed for call to rayTrace()
-    std::vector<cv::Vec6f> _CubeRayTraceResults;
+    std::vector<cv::Vec6d> _CubeRayTraceResults;
     ITKMesh::Pointer _in_CubeMesh;
     volcart::shapes::Cube _Cube;
     std::map<int, cv::Vec2d> _UVMap;
@@ -322,7 +322,7 @@ struct ArchRayTraceFixture {
     }
 
     // Variables needed for call to rayTrace()
-    std::vector<cv::Vec6f> _ArchRayTraceResults;
+    std::vector<cv::Vec6d> _ArchRayTraceResults;
     ITKMesh::Pointer _in_ArchMesh;
     volcart::shapes::Arch _Arch;
     std::map<int, cv::Vec2d> _UVMap;
@@ -417,7 +417,7 @@ struct SphereRayTraceFixture {
     }
 
     // Variables needed for call to rayTrace()
-    std::vector<cv::Vec6f> _SphereRayTraceResults;
+    std::vector<cv::Vec6d> _SphereRayTraceResults;
     ITKMesh::Pointer _in_SphereMesh;
     volcart::shapes::Sphere _Sphere;
     std::map<int, cv::Vec2d> _UVMap;
@@ -514,7 +514,7 @@ struct ConeRayTraceFixture {
     }
 
     // Variables needed for call to rayTrace()
-    std::vector<cv::Vec6f> _ConeRayTraceResults;
+    std::vector<cv::Vec6d> _ConeRayTraceResults;
     ITKMesh::Pointer _in_ConeMesh;
     volcart::shapes::Cone _Cone;
     std::map<int, cv::Vec2d> _UVMap;

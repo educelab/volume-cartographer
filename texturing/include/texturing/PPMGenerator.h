@@ -19,16 +19,16 @@ public:
     PPMGenerator(size_t h, size_t w) : _width{w}, _height{h} {}
 
     // Set/Get Parameters
-    void setMesh(ITKMesh::Pointer m) { _inputMesh = m; };
-    void setUVMap(const UVMap& u) { _uvMap = u; };
+    void setMesh(ITKMesh::Pointer m) { _inputMesh = m; }
+    void setUVMap(const UVMap& u) { _uvMap = u; }
     void setDimensions(size_t h, size_t w);
 
     // Run
     PerPixelMap& compute();
 
     // Output
-    const PerPixelMap& getPPM() const { return _ppm; };
-    PerPixelMap& getPPM() { return _ppm; };
+    const PerPixelMap& getPPM() const { return _ppm; }
+    PerPixelMap& getPPM() { return _ppm; }
 
 private:
     struct CellInfo {

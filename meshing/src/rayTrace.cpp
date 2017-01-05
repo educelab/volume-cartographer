@@ -20,7 +20,7 @@ namespace meshing
 {
 // returns a vector of vectors that holds the points of intersections and the
 // corresponding normals
-std::vector<cv::Vec6f> rayTrace(
+std::vector<cv::Vec6d> rayTrace(
     ITKMesh::Pointer itkMesh,
     int aTraceDir,
     int width,
@@ -29,7 +29,7 @@ std::vector<cv::Vec6f> rayTrace(
 {
 
     // Essential data structure to return points and normals
-    std::vector<cv::Vec6f> intersections;
+    std::vector<cv::Vec6d> intersections;
 
     // Convert the itk mesh to a vtk mesh
     vtkPolyData* vtkMesh = vtkPolyData::New();
@@ -66,7 +66,7 @@ std::vector<cv::Vec6f> rayTrace(
         vtkSmartPointer<vtkIdList>::New();
 
     // Calculate the origin by averaging the bounds of each coordinate
-    cv::Vec3f origin;
+    cv::Vec3d origin;
     origin(0) = (bounds[0] + bounds[1]) / 2;
     origin(1) = (bounds[2] + bounds[3]) / 2;
 
@@ -94,12 +94,12 @@ std::vector<cv::Vec6f> rayTrace(
 
             // Calculate direction of ray according to current degree of
             // rotation along the cylinder
-            cv::Vec3f direction(cos(radian), sin(radian), 0);
+            cv::Vec3d direction(cos(radian), sin(radian), 0);
             cv::normalize(direction);
 
             // Create a second point along the ray using the origin and
             // direction
-            cv::Vec3f end_point = origin + 400 * direction;
+            cv::Vec3d end_point = origin + 400 * direction;
 
             double start[3] = {origin[0], origin[1], origin[2]};
             double end[3] = {end_point[0], end_point[1], end_point[2]};
@@ -108,7 +108,7 @@ std::vector<cv::Vec6f> rayTrace(
                 start, end, intersectPoints, intersectCells);
 
             if (intersectPoints->GetNumberOfPoints() > 0) {
-                cv::Vec6f point;
+                cv::Vec6d point;
                 point[0] = intersectPoints->GetPoint(0)[0];
                 point[1] = intersectPoints->GetPoint(0)[1];
                 point[2] = intersectPoints->GetPoint(0)[2];

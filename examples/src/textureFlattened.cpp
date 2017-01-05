@@ -70,7 +70,7 @@ int main(int /*argc*/, char* argv[])
 
         for (auto pt = cell.Value()->PointIdsBegin();
              pt != cell.Value()->PointIdsEnd(); ++pt) {
-            double p_id = *pt;
+            auto p_id = *pt;
             u = (uvmap->GetPoint(p_id)[0] - min_u) / (max_u - min_u);
             v = (uvmap->GetPoint(p_id)[2] - min_v) / (max_v - min_v);
             cv::Vec2d uv(u, v);

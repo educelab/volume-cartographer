@@ -3,118 +3,90 @@ set(project_warnings
     # Group warnings
     -Wall
     -Wextra
-    -pedantic
     -Weffc++
+    -pedantic
 
     # Extra warnings we want to enable
-    -Waddress-of-array-temporary
-    -Waddress-of-temporary
-    -Wambiguous-member-template
-    -Warray-bounds
+    -Wambiguous-ellipsis
     -Warray-bounds-pointer-arithmetic
-    -Wbad-array-new-length
+    -Wassign-enum
+    -Wattributes
     -Wbad-function-cast
     -Wbind-to-temporary-copy
     -Wbitfield-constant-conversion
     -Wbitwise-op-parentheses
     -Wbool-conversion
-    -Wbool-conversions
-    -Wbuiltin-macro-redefined
-    -Wbuiltin-requires-header
-    -Wc++11-extra-semi
+    -Wc++14-compat
     -Wc++11-long-long
     -Wcast-align
+    -Wcast-qual
+    -Wchar-subscripts
+    -Wclass-varargs
+    -Wcomma
     -Wcomment
-    -Wcomments
-    -Wcompare-distinct-pointer-types
     -Wconditional-uninitialized
-    -Wconstant-conversion
+    -Wconversion                    # Disable ones you don't want
     -Wcovered-switch-default
-    -Wctor-dtor-privacy
-    -Wdangling-else
-    -Wdangling-field
-    -Wdelegating-ctor-cycles
     -Wdelete-incomplete
     -Wdelete-non-virtual-dtor
-    -Wdeprecated-declarations
     -Wdeprecated-implementations
-    -Wdeprecated-increment-bool
-    -Wdeprecated-register
-    -Wdeprecated-writable-strings
-    -Wdisabled-optimization
-    -Wdiv-by-zero
+    -Wdirect-ivar-access
     -Wdivision-by-zero
-    -Wempty-body
+    -Wdocumentation
+    -Wduplicate-enum
+    -Wduplicate-method-arg
+    -Wduplicate-method-match
+    -Wenum-compare
     -Wenum-conversion
     -Wexplicit-ownership-type
+    -Wextra-semi
     -Wextra-tokens
-    -Wfor-loop-analysis
+    -Wfloat-overflow-conversion
+    -Wheader-guard
     -Wheader-hygiene
-    -Wimplicit-conversion-floating-point-to-bool
+    -Widiomatic-parentheses
+    -Wimplicit
     -Wimplicit-fallthrough
-    -Wimplicit-fallthrough-per-function
-    -Wimplicit-function-declaration
-    -Wimplicit-int
-    -Wincompatible-pointer-types
-    -Wint-conversion
-    -Wint-conversions
-    -Wint-to-pointer-cast
-    -Wint-to-void-pointer-cast
-    -Wlarge-by-value-copy
-    -Wliteral-conversion
-    -Wliteral-range
+    -Winfinite-recursion
     -Wlocal-type-template-args
-    -Wlogical-not-parentheses
-    -Wlogical-op-parentheses
     -Wlong-long
     -Wloop-analysis
     -Wmain
-    -Wmismatched-parameter-types
-    -Wmismatched-return-types
-    -Wmissing-braces
-    -Wmissing-declarations
+    -Wmethod-signatures
+    -Wmismatched-tags
+    -Wmissing-field-initializers
+    -Wmissing-noreturn
+    -Wmissing-prototypes
     -Wmove
-    -Wnull-arithmetic
-    -Wnull-character
-    -Wnull-conversion
-    -Wnull-dereference
-    -Wnullability
+    -Wnew-returns-null
+    -Wnonportable-system-include-path
     -Wold-style-cast
-    -Wold-style-definition
-    -Wout-of-line-declaration
-    -Woverflow
-    -Woverloaded-shift-op-parentheses
     -Woverloaded-virtual
-    -Wparentheses
-    -Wparentheses-equality
     -Wpessimizing-move
     -Wpointer-arith
-    -Wpointer-to-int-cast
-    -Wredeclared-class-member
     -Wredundant-move
+    -Wself-assign
+    -Wself-move
     -Wsemicolon-before-method-body
-    -Wshadow
-    -Wshadow-ivar
-    -Wsizeof-array-argument
-    -Wsizeof-array-decay
+    -Wshadow-all
     -Wsometimes-uninitialized
-    -Wswitch
+    -Wstring-conversion
+    -Wstrlcpy-strlcat-size
+    -Wstrncat-size
     -Wtautological-compare
     -Wthread-safety-analysis
-    -Wtrigraphs
-    -Wtype-safety
-    -Wtypename-missing
+    -Wundef
     -Wuninitialized
-    -Wunneeded-member-function
-    -Wunneeded-member-function
+    -Wunneeded-internal-declaration
     -Wunreachable-code
-    -Wunreachable-code
-    -Wunsupported-nan
+    -Wunreachable-code-break
+    -Wunreachable-code-return
     -Wunused
     -Wunused-macros
     -Wunused-member-function
     -Wused-but-marked-unused
     -Wvexing-parse
+    -Wvla
 
     # Disable noisy or unncessary warnings
     -Wno-c++11-narrowing
@@ -122,5 +94,7 @@ set(project_warnings
     -Wno-c++98-compat
     -Wno-missing-braces
     -Wno-switch-enum
+    -Wno-sign-conversion
+    -Wno-shorten-64-to-32
 )
 add_compile_options(${project_warnings})

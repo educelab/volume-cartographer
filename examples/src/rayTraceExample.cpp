@@ -36,7 +36,7 @@ int main()
     in_ConeMesh = Cone.itkMesh();
 
     // Int all the variables needed for the call to rayTrace()
-    std::vector<cv::Vec6f> TraceResults;
+    std::vector<cv::Vec6d> TraceResults;
     std::map<int, cv::Vec2d> UVMap;
     int TraceDir = 0;
     int Width = 0, Height = 0;

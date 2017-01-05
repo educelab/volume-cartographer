@@ -19,14 +19,14 @@ inline bool IsLess(const double& nV1, const double& nV2) { return (nV1 < nV2); }
 
 // Check whether the point is local maximum
 inline bool IsLocalMaximum(
-    const cv::Vec3f& nPoint, VolumePkg& VolPkg, double nSampleInterval = 0.2)
+    const cv::Vec3d& nPoint, VolumePkg& VolPkg, double nSampleInterval = 0.2)
 {
     // uniformly sample around the point in 3D and check the intensity value
     bool aIsLocalMax = true;
-    cv::Vec3f aVecs[6] = {
-        cv::Vec3f(nSampleInterval, 0, 0), cv::Vec3f(-nSampleInterval, 0, 0),
-        cv::Vec3f(0, nSampleInterval, 0), cv::Vec3f(0, -nSampleInterval, 0),
-        cv::Vec3f(0, 0, nSampleInterval), cv::Vec3f(0, 0, -nSampleInterval)};
+    cv::Vec3d aVecs[6] = {
+        cv::Vec3d(nSampleInterval, 0, 0), cv::Vec3d(-nSampleInterval, 0, 0),
+        cv::Vec3d(0, nSampleInterval, 0), cv::Vec3d(0, -nSampleInterval, 0),
+        cv::Vec3d(0, 0, nSampleInterval), cv::Vec3d(0, 0, -nSampleInterval)};
     double aCurValue = VolPkg.volume().interpolatedIntensityAt(nPoint);
 
     for (int i = 0; i < 6; ++i) {
@@ -43,21 +43,21 @@ inline bool IsLocalMaximum(
 inline void Sectioning(
     double nSections,                       // number of sections
     double range,                           // thickness of material in voxels
-    const cv::Vec3f& nCenter,               // given point
-    const cv::Vec3f& nMajorAxisDir,         // normal
+    const cv::Vec3d& nCenter,               // given point
+    const cv::Vec3d& nMajorAxisDir,         // normal
     VolumePkg& VolPkg,                      // volume package
     double /*nA*/,                          // neighborhood's radius (Axis)
     volcart::DirectionOption nSamplingDir,  // sampling direction
     double* nData)                          // [out] samples
 {
-    if (nMajorAxisDir == cv::Vec3f(0, 0, 0)) {
+    if (nMajorAxisDir == cv::Vec3d(0, 0, 0)) {
         printf("ERROR: zero normal vector.\n");
         return;
     }
 
     // Normalize normal to be the length of half of the material's thickness
     // (pixels)
-    cv::Vec3f aNormalVec(nMajorAxisDir[0], nMajorAxisDir[1], nMajorAxisDir[2]);
+    cv::Vec3d aNormalVec(nMajorAxisDir[0], nMajorAxisDir[1], nMajorAxisDir[2]);
     cv::normalize(
         aNormalVec, aNormalVec, 0, range / 2, cv::NORM_MINMAX, CV_32F);
 
@@ -66,8 +66,8 @@ inline void Sectioning(
                       2;  // Assume given point is in the middle of the material
 
     int aDataCnt = 0;
-    cv::Vec3f aPos;
-    cv::Vec3f aDir;
+    cv::Vec3d aPos;
+    cv::Vec3d aDir;
 
     // Loop over the number of samples required on the normal vector
     for (int i = 0; aDataCnt < nSections; ++i) {
@@ -141,8 +141,8 @@ inline void Sectioning(
 inline void SamplingAlongNormal(
     double nA,                                // normal length
     double nSampleInterval,                   // sample interval
-    const cv::Vec3f& nCenter,                 // center
-    const cv::Vec3f& nMajorAxisDir,           // normal
+    const cv::Vec3d& nCenter,                 // center
+    const cv::Vec3d& nMajorAxisDir,           // normal
     VolumePkg& VolPkg,                        // volume package
     volcart::DirectionOption nSamplingDir,    // sampling direction
     double* nData,                            // [out] samples
@@ -151,20 +151,20 @@ inline void SamplingAlongNormal(
                                               // SUPPRESSION
 {
     // uniformly sample along the normal
-    int aSizeMajor = nA / nSampleInterval;
+    int aSizeMajor = static_cast<int>(nA / nSampleInterval);
 
-    if (nMajorAxisDir == cv::Vec3f(0, 0, 0)) {
+    if (nMajorAxisDir == cv::Vec3d(0, 0, 0)) {
         printf("ERROR: zero normal vector.\n");
         *nSize = 0;
         return;
     }
 
-    cv::Vec3f aNormalVec(nMajorAxisDir[0], nMajorAxisDir[1], nMajorAxisDir[2]);
+    cv::Vec3d aNormalVec(nMajorAxisDir[0], nMajorAxisDir[1], nMajorAxisDir[2]);
     cv::normalize(aNormalVec, aNormalVec);
 
     int aDataCnt = 0;
-    cv::Vec3f aPos;
-    cv::Vec3f aDir;
+    cv::Vec3d aPos;
+    cv::Vec3d aDir;
 
     // Loop over the number of samples required on the normal vector
     for (int i = 0; i < aSizeMajor; ++i) {
@@ -208,8 +208,8 @@ inline void SamplingWithinEllipse(
     double nA,                       // normal length
     double nB,                       // normal length
     double nSampleInterval,          // sample interval
-    const cv::Vec3f& nCenter,        // center
-    const cv::Vec3f& nMajorAxisDir,  // normal
+    const cv::Vec3d& nCenter,        // center
+    const cv::Vec3d& nMajorAxisDir,  // normal
     VolumePkg& VolPkg,               // volume package
     volcart::DirectionOption nSamplingDir,
     double* nData,                        // [out] samples
@@ -219,13 +219,13 @@ inline void SamplingWithinEllipse(
 
     // uniformly sample within the ellipse
     // uniformly sample along the major axis
-    int aSizeMajor = nA / nSampleInterval;
-    int aSizeMinor = nB / nSampleInterval;
+    int aSizeMajor = static_cast<int>(nA / nSampleInterval);
+    int aSizeMinor = static_cast<int>(nB / nSampleInterval);
 
     /* vector used to parameterize surface defined by nMajorAxisDir */
     /* need to create two vectors that are orthogonal to one another */
     /* and orthogonal to nMajorAxisDir */
-    cv::Vec3f G(0, 0, 1);
+    cv::Vec3d G(0, 0, 1);
 
     /* project G onto plane defined by nMajorAxisDir */
     /*                                   */
@@ -233,23 +233,23 @@ inline void SamplingWithinEllipse(
     /* aMinorAxisDir1 = G - ------- * n  */
     /*                       n * n       */
     /*                                   */
-    cv::Vec3f aMinorAxisDir1 =
+    cv::Vec3d aMinorAxisDir1 =
         G -
         (nMajorAxisDir.dot(G) / nMajorAxisDir.dot(nMajorAxisDir)) *
             nMajorAxisDir;
 
     /* cross product of G and nMajorAxisDir, simplifies nicely to the following
      */
-    cv::Vec3f aMinorAxisDir2 =
-        cv::Vec3f(0, -nMajorAxisDir(2), nMajorAxisDir(1));
+    cv::Vec3d aMinorAxisDir2 =
+        cv::Vec3d(0, -nMajorAxisDir(2), nMajorAxisDir(1));
 
     cv::normalize(aMinorAxisDir1);
     cv::normalize(aMinorAxisDir2);
-    /* cv::Vec3f aMinorAxisDir2 = aMinorAxisDir1.cross( nMajorAxisDir ); */
+    /* cv::Vec3d aMinorAxisDir2 = aMinorAxisDir1.cross( nMajorAxisDir ); */
 
     int aDataCnt = 0;
-    cv::Vec3f aPos;
-    cv::Vec3f aDir;
+    cv::Vec3d aPos;
+    cv::Vec3d aDir;
 
     int aSign[8][3] = {{1, 1, 1},   {1, 1, -1},  {1, -1, 1},  {-1, 1, 1},
                        {1, -1, -1}, {-1, 1, -1}, {-1, -1, 1}, {-1, -1, -1}};
@@ -369,15 +369,15 @@ inline void SamplingWithinEllipse(
 }
 
 // Filter by returning the color at the point location
-inline double FilterIntersection(const cv::Vec3f& nPoint, VolumePkg& VolPkg)
+inline double FilterIntersection(const cv::Vec3d& nPoint, VolumePkg& VolPkg)
 {
     return VolPkg.volume().interpolatedIntensityAt(nPoint);
 }
 
 // Filter by non maximum suppression
 inline double FilterNonMaximumSuppression(
-    const cv::Vec3f& nPoint,   // point location
-    const cv::Vec3f& nNormal,  // point normal direction
+    const cv::Vec3d& nPoint,   // point location
+    const cv::Vec3d& nNormal,  // point normal direction
     VolumePkg& VolPkg,         // volume package
     double nR1 = 3.0,          // sample region radius 1, major axis
     double /*nR2*/ = 1.0,      // sample region radius 2, minor axis
@@ -415,8 +415,8 @@ inline double FilterNonMaximumSuppression(
 
 // Filter by finding the maximum
 inline double FilterMax(
-    const cv::Vec3f& nPoint,   // point location
-    const cv::Vec3f& nNormal,  // point normal direction
+    const cv::Vec3d& nPoint,   // point location
+    const cv::Vec3d& nNormal,  // point normal direction
     VolumePkg& VolPkg,         // volume package
     double nR1 = 3.0,          // sample region radius 1, major axis
     double /*nR2*/ = 1.0,      // sample region radius 2, minor axis
@@ -455,8 +455,8 @@ inline double FilterMax(
 
 // Filter by finding the minimum
 inline double FilterMin(
-    const cv::Vec3f& nPoint,   // point location
-    const cv::Vec3f& nNormal,  // point normal direction
+    const cv::Vec3d& nPoint,   // point location
+    const cv::Vec3d& nNormal,  // point normal direction
     VolumePkg& VolPkg,         // volume package
     double nR1 = 3.0,          // sample region radius 1, major axis
     double /*nR2*/ = 1.0,      // sample region radius 2, minor axis
@@ -496,8 +496,8 @@ inline double FilterMin(
 
 // Filter by finding the median, then do the averaging
 inline double FilterMedianAverage(
-    const cv::Vec3f& nPoint,   // point location
-    const cv::Vec3f& nNormal,  // point normal direction
+    const cv::Vec3d& nPoint,   // point location
+    const cv::Vec3d& nNormal,  // point normal direction
     VolumePkg& VolPkg,         // volume package
     double nR1 = 3.0,          // sample region radius 1, major axis
     double /*nR2*/ = 1.0,      // sample region radius 2, minor axis
@@ -523,7 +523,7 @@ inline double FilterMedianAverage(
         ChaoVis::QuickSort<double>(aData, 0, aNumSamples - 1, IsLess);
 
         // use the average of 10% of the data array
-        int aRange = aNumSamples * 0.05;
+        int aRange = aNumSamples / 2;
         int aCenter = aNumSamples / 2;
         aResult = aData[aCenter];
         int aCnt = 1;
@@ -550,8 +550,8 @@ inline double FilterMedianAverage(
 
 // Filter by finding the median
 inline double FilterMedian(
-    const cv::Vec3f& nPoint,   // point location
-    const cv::Vec3f& nNormal,  // point normal direction
+    const cv::Vec3d& nPoint,   // point location
+    const cv::Vec3d& nNormal,  // point normal direction
     VolumePkg& VolPkg,         // volume package
     double nR1 = 3.0,          // sample region radius 1, major axis
     double /*nR2*/ = 1.0,      // sample region radius 2, minor axis
@@ -593,8 +593,8 @@ inline double FilterMedian(
 
 // Filter by calculating the mean
 inline double FilterMean(
-    const cv::Vec3f& nPoint,   // point location
-    const cv::Vec3f& nNormal,  // point normal direction
+    const cv::Vec3d& nPoint,   // point location
+    const cv::Vec3d& nNormal,  // point normal direction
     VolumePkg& VolPkg,         // volume package
     double nR1 = 3.0,          // sample region radius 1, major axis
     double /*nR2*/ = 1.0,      // sample region radius 2, minor axis
@@ -631,8 +631,8 @@ inline double FilterMean(
 }
 
 inline double textureWithMethod(
-    const cv::Vec3f& nPoint,           // point location
-    const cv::Vec3f& nNormal,          // point normal direction
+    const cv::Vec3d& nPoint,           // point location
+    const cv::Vec3d& nNormal,          // point normal direction
     VolumePkg& VolPkg,                 // volume package
     volcart::CompositeOption nFilter,  // filter option
     double nR1 = 3.0,                  // sample region radius 1, major axis

@@ -57,7 +57,8 @@ void MyThread::run()
                     (voxelsize * voxelsize) *
                     (0.001 * 0.001);  // convert vx^2 -> mm^2;
         double densityFactor = 50;
-        uint16_t numberOfVertices = std::round(densityFactor * sa);
+        auto numberOfVertices =
+            static_cast<uint16_t>(std::round(densityFactor * sa));
         numberOfVertices = (numberOfVertices < CLEANER_MIN_REQ_POINTS)
                                ? CLEANER_MIN_REQ_POINTS
                                : numberOfVertices;
@@ -89,9 +90,9 @@ void MyThread::run()
 
         // Get uv map
         volcart::UVMap uvMap = abf.getUVMap();
-        int width = std::ceil(uvMap.ratio().width);
-        int height =
-            std::ceil(static_cast<double>(width) / uvMap.ratio().aspect);
+        auto width = static_cast<int>(std::ceil(uvMap.ratio().width));
+        auto height = static_cast<int>(
+            std::ceil(static_cast<double>(width) / uvMap.ratio().aspect));
 
         volcart::texturing::compositeTextureV2 result(
             itkACVD, *_globals->getVolPkg(), uvMap, _radius, width, height,

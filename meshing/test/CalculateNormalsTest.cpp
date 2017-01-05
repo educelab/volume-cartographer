@@ -13,7 +13,7 @@
 
 struct PlaneFixture {
     PlaneFixture() { _in_Mesh = _Plane.itkMesh(); }
-    ~PlaneFixture(){};
+    ~PlaneFixture() {}
 
     volcart::shapes::Plane _Plane;
     volcart::ITKMesh::Pointer _in_Mesh, _out_Mesh;

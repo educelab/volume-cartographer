@@ -27,9 +27,8 @@ compositeTexture::compositeTexture(
     ///// Generate UV Map /////
     // To-Do: Generate this map independent of point ordering - SP, 10/2015
     _uvMap = volcart::texturing::simpleUV(inputMesh, _width, _height);
-
     _process();
-};
+}
 
 compositeTexture::compositeTexture(
     ITKMesh::Pointer inputMesh,
@@ -45,8 +44,8 @@ compositeTexture::compositeTexture(
     , _direction(direction)
     , _uvMap(uvMap)
 {
-    _width = uvMap.ratio().width;
-    _height = uvMap.ratio().height;
+    _width = static_cast<int>(uvMap.ratio().width);
+    _height = static_cast<int>(uvMap.ratio().height);
 
     _process();
 }
@@ -69,7 +68,7 @@ int compositeTexture::_process()
     ITKPointInCellIterator pointsIterator;
 
     unsigned long pointID;
-    double u, v;
+    int u, v;
 
     // Iterate over all of the cells to lay out the faces in the output texture
     for (; cellIterator != cellEnd; ++cellIterator) {
@@ -92,8 +91,8 @@ int compositeTexture::_process()
             // Fill in the output pixel with a value
             // cv::Mat.at uses (row, column)
             double value = textureWithMethod(
-                cv::Vec3f(p[0], p[1], p[2]),
-                cv::Vec3f(normal[0], normal[1], normal[2]), _volpkg, _method,
+                cv::Vec3d(p[0], p[1], p[2]),
+                cv::Vec3d(normal[0], normal[1], normal[2]), _volpkg, _method,
                 _radius, searchMinorRadius, 0.5, _direction);
 
             // Retrieve the point's uv position from the UV Map

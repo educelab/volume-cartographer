@@ -210,7 +210,7 @@ int objWriter::_writeTextureCoordinates()
 
     // Iterate over all of the saved coordinates in our coordinate map
     double vt_Index = 1;
-    for (double p_id = 0; p_id < _textCoords.size(); ++p_id) {
+    for (size_t p_id = 0; p_id < _textCoords.size(); ++p_id) {
         cv::Vec2d uv = _textCoords.get(p_id);
         _outputMesh << "vt " << uv[0] << " " << uv[1] << std::endl;
 
