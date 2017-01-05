@@ -1,3 +1,7 @@
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wconversion"
+#pragma clang diagnostic ignored "-Wold-style-cast"
+
 //
 // Created by Media Team on 8/12/15.
 //
@@ -20,7 +24,7 @@ namespace meshing
 {
 // returns a vector of vectors that holds the points of intersections and the
 // corresponding normals
-std::vector<cv::Vec6d> rayTrace(
+std::vector<cv::Vec6f> rayTrace(
     ITKMesh::Pointer itkMesh,
     int aTraceDir,
     int width,
@@ -29,7 +33,7 @@ std::vector<cv::Vec6d> rayTrace(
 {
 
     // Essential data structure to return points and normals
-    std::vector<cv::Vec6d> intersections;
+    std::vector<cv::Vec6f> intersections;
 
     // Convert the itk mesh to a vtk mesh
     vtkPolyData* vtkMesh = vtkPolyData::New();
@@ -40,7 +44,7 @@ std::vector<cv::Vec6d> rayTrace(
     vtkMesh->GetBounds(bounds);
 
     // Set ray width and height, used for texturing
-    height = static_cast<int>(bounds[5] - bounds[4]);
+    height = (int)(bounds[5] - bounds[4]);
     width = OUT_X;
 
     // Generate normals for the cells of the mesh
@@ -66,7 +70,7 @@ std::vector<cv::Vec6d> rayTrace(
         vtkSmartPointer<vtkIdList>::New();
 
     // Calculate the origin by averaging the bounds of each coordinate
-    cv::Vec3d origin;
+    cv::Vec3f origin;
     origin(0) = (bounds[0] + bounds[1]) / 2;
     origin(1) = (bounds[2] + bounds[3]) / 2;
 
@@ -74,10 +78,9 @@ std::vector<cv::Vec6d> rayTrace(
     int pointID = 0;
 
     // For each slice/row generate rays and interpolate new points
-    for (int z = static_cast<int>(bounds[4]); z < static_cast<int>(bounds[5]);
-         ++z) {
+    for (int z = (int)bounds[4]; z < (int)bounds[5]; ++z) {
         std::cout << "\rvolcart::rayTrace :: Ray tracing for Z index: " << z
-                  << "/" << static_cast<int>(bounds[5]) - 1 << std::flush;
+                  << "/" << (int)bounds[5] - 1 << std::flush;
 
         origin(2) = z;  // update the z-component of the origin
 
@@ -94,12 +97,12 @@ std::vector<cv::Vec6d> rayTrace(
 
             // Calculate direction of ray according to current degree of
             // rotation along the cylinder
-            cv::Vec3d direction(cos(radian), sin(radian), 0);
+            cv::Vec3f direction(cos(radian), sin(radian), 0);
             cv::normalize(direction);
 
             // Create a second point along the ray using the origin and
             // direction
-            cv::Vec3d end_point = origin + 400 * direction;
+            cv::Vec3f end_point = origin + 400 * direction;
 
             double start[3] = {origin[0], origin[1], origin[2]};
             double end[3] = {end_point[0], end_point[1], end_point[2]};
@@ -108,7 +111,7 @@ std::vector<cv::Vec6d> rayTrace(
                 start, end, intersectPoints, intersectCells);
 
             if (intersectPoints->GetNumberOfPoints() > 0) {
-                cv::Vec6d point;
+                cv::Vec6f point;
                 point[0] = intersectPoints->GetPoint(0)[0];
                 point[1] = intersectPoints->GetPoint(0)[1];
                 point[2] = intersectPoints->GetPoint(0)[2];
@@ -136,3 +139,5 @@ std::vector<cv::Vec6d> rayTrace(
 }  // rayTrace
 }  // namespace meshing
 }  // namespace volcart
+
+#pragma clang diagnostic pop

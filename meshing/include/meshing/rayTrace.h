@@ -26,14 +26,14 @@ namespace meshing
  *
  * @ingroup Meshing
  *
- * @param itkMesh The ITKMesh
+ * @param itkMesh Mesh to resample
  * @param aTraceDir Rotation direction (1 for clockwise)
  * @param width Number of rotational samples
  * @param height Number of vertical samples
  * @param uvMap Parameterized UV position for each point in the return vector
  * @return Vector of intersection points and the normal to that point
  */
-std::vector<cv::Vec6d> rayTrace(
+std::vector<cv::Vec6f> rayTrace(
     ITKMesh::Pointer itkMesh,
     int aTraceDir,
     int width,

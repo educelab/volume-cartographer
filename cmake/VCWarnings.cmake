@@ -22,7 +22,7 @@ set(project_warnings
     -Wcast-qual
     -Wchar-subscripts
     -Wclass-varargs
-    -Wcomma
+    #-Wcomma
     -Wcomment
     -Wconditional-uninitialized
     -Wconversion                    # Disable ones you don't want
@@ -41,7 +41,7 @@ set(project_warnings
     -Wexplicit-ownership-type
     -Wextra-semi
     -Wextra-tokens
-    -Wfloat-overflow-conversion
+    #-Wfloat-overflow-conversion
     -Wheader-guard
     -Wheader-hygiene
     -Widiomatic-parentheses
@@ -59,7 +59,7 @@ set(project_warnings
     -Wmissing-prototypes
     -Wmove
     -Wnew-returns-null
-    -Wnonportable-system-include-path
+    #-Wnonportable-system-include-path
     -Wold-style-cast
     -Woverloaded-virtual
     -Wpessimizing-move
@@ -68,7 +68,7 @@ set(project_warnings
     -Wself-assign
     -Wself-move
     -Wsemicolon-before-method-body
-    -Wshadow-all
+    #-Wshadow-all
     -Wsometimes-uninitialized
     -Wstring-conversion
     -Wstrlcpy-strlcat-size

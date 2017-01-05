@@ -53,7 +53,7 @@ cv::Mat IntensityMap::draw()
     auto maxima = sortedMaxima();
 
     // A line for each candidate position
-    for (const auto m : maxima) {
+    for (const auto& m : maxima) {
         cv::line(
             drawTarget_, cv::Point(binWidth_ * m.first, 0),
             cv::Point(binWidth_ * m.first, drawTarget_.rows), BGR_BLUE);
