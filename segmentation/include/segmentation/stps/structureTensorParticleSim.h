@@ -2,10 +2,7 @@
 
 #include <iostream>
 
-#include <opencv2/opencv.hpp>
-
 #include "core/types/VolumePkg.h"
-
 #include "segmentation/stps/chain.h"
 #include "segmentation/stps/particle.h"
 

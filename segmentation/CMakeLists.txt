@@ -12,6 +12,7 @@ set(VC_SEGMENTATION_SRCS
 )
 set(VC_SEGMENTATION_DEPENDENCIES
     vc_core
+    opencv_highgui
 )
 
 add_library(vc_segmentation ${VC_SEGMENTATION_SRCS})
@@ -27,7 +28,7 @@ target_compile_options(vc_segmentation
 )
 target_link_libraries(vc_segmentation
     PUBLIC
-        vc_core
+        ${VC_SEGMENTATION_DEPENDENCIES}
 )
 
 install(TARGETS vc_segmentation

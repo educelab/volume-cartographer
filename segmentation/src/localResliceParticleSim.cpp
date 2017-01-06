@@ -1,10 +1,17 @@
 #include "segmentation/lrps/localResliceParticleSim.h"
+
 #include <iomanip>
 #include <limits>
 #include <list>
 #include <tuple>
+
 #include <boost/circular_buffer.hpp>
 #include <boost/filesystem.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
+
 #include "segmentation/lrps/common.h"
 #include "segmentation/lrps/derivative.h"
 #include "segmentation/lrps/energymetrics.h"
@@ -362,7 +369,7 @@ cv::Mat LocalResliceSegmentation::drawParticlesOnSlice(
     auto pkgSlice = pkg_.volume().getSliceDataCopy(sliceIndex);
     pkgSlice.convertTo(
         pkgSlice, CV_8UC3, 1.0 / std::numeric_limits<uint8_t>::max());
-    cv::cvtColor(pkgSlice, pkgSlice, CV_GRAY2BGR);
+    cv::cvtColor(pkgSlice, pkgSlice, cv::COLOR_GRAY2BGR);
 
     // Draw circles on the pkgSlice window for each point
     for (size_t i = 0; i < curve.size(); ++i) {

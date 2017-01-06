@@ -2,9 +2,11 @@
 #include <iostream>
 #include <random>
 #include <sstream>
+
 #include <H5Cpp.h>
 #include <boost/filesystem.hpp>
-#include <opencv2/core/core.hpp>
+#include <opencv2/core.hpp>
+
 #include "core/types/VolumePkg.h"
 
 namespace fs = boost::filesystem;

@@ -1,6 +1,11 @@
 #include <algorithm>
 #include <iostream>
+
 #include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
+
 #include "core/types/VolumePkg.h"
 
 void draw(
@@ -53,7 +58,7 @@ void draw(
     auto slice = v.getSliceDataCopy(zSlice);
     slice /= 255.0;
     slice.convertTo(slice, CV_8UC3);
-    cv::cvtColor(slice, slice, CV_GRAY2BGR);
+    cv::cvtColor(slice, slice, cv::COLOR_GRAY2BGR);
 
     constexpr int32_t scale = 50;
     const cv::Point p2{cvRound(p1.x + vec(0) * scale),

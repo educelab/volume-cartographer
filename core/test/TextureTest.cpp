@@ -5,6 +5,8 @@
 #define BOOST_TEST_MODULE Texture
 
 #include <boost/test/unit_test.hpp>
+#include <opencv2/imgcodecs.hpp>
+
 #include "core/types/Texture.h"
 
 /************************************************************************************

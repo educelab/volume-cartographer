@@ -2,6 +2,7 @@
 
 #include <boost/range/iterator_range.hpp>
 #include <opencv2/core.hpp>
+#include <opencv2/imgcodecs.hpp>
 
 #include "core/io/PointSetIO.h"
 #include "core/io/objWriter.h"
