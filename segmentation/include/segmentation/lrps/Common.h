@@ -1,3 +1,8 @@
+/**
+ * @file common.h
+ * @brief Commonly used typedefs and functions for LRPS
+ * @ingroup lrps
+ */
 #pragma once
 
 #include <algorithm>
@@ -5,11 +10,7 @@
 #include <vector>
 
 #include <opencv2/core.hpp>
-/**
- * @file common.h
- * @brief Defines vector functions that are commonly used in segmentation
- * @ingroup lrps
- */
+
 #define BGR_RED cv::Scalar(0, 0, 0xFF)
 #define BGR_GREEN cv::Scalar(0, 0xFF, 0)
 #define BGR_BLUE cv::Scalar(0xFF, 0, 0)
@@ -17,29 +18,20 @@
 #define BGR_MAGENTA cv::Scalar(0xFF, 0, 0xFF)
 #define BGR_BLACK cv::Scalar(0, 0, 0)
 
-/**
- * Defines the Index Intesnity as an integer and a double pair
- */
 using IndexIntensityPair = std::pair<int32_t, double>;
-/**
- * Defines a vector of the Index Intensity Pairs
- */
 using IndexIntensityPairVec = typename std::vector<IndexIntensityPair>;
-/**
- * Defines a Voxel to have 3 vertices
- */
 using Voxel = cv::Vec3d;
-/**
- * Defines a Pixel to have 2 vertices
- */
 using Pixel = cv::Vec2d;
 
 /**
- * @fn std::ostream& operator<<(std::ostream& , std::pair<T1,T2> p)
- * @brief Overwrites the output operator to output contents of a pair
- * Useful for debugging
- * @param s Stream where the output will be sent
- * @tparam p Pair to be output
+ * @fn operator<<(std::ostream& s, std::pair<T1,T2> p)
+ * @brief Write std::pair to std::ostream.
+ *
+ * Pair is formatted as round-bracketed, comma-separated elements. e.g.
+ * "(T1, T2)"
+ *
+ * @param s Output stream
+ * @param p Input pair
  */
 template <typename T1, typename T2>
 std::ostream& operator<<(std::ostream& s, std::pair<T1, T2> p)
@@ -48,10 +40,14 @@ std::ostream& operator<<(std::ostream& s, std::pair<T1, T2> p)
 }
 
 /**
- * @fn std::ostream& operator<<(std::ostream& s, std::vector<T> v)
- * @brief Overwrites the output operator to output contents of a vector
- * @param s Stream where the output will be sent
- * @tparam v Vector to be output
+ * @fn operator<<(std::ostream& s, std::vector<T> v)
+ * @brief Write std::vector to std::ostream.
+ *
+ * Vectors are formatted as square-bracketed, comma-separated elements.
+ * e.g. "[a, b, c, d]"
+ *
+ * @param s Output stream
+ * @param v Input vector
  */
 template <typename T>
 std::ostream& operator<<(std::ostream& s, std::vector<T> v)
@@ -71,15 +67,22 @@ namespace volcart
 {
 namespace segmentation
 {
+
 /**
- * @fn std::vector<T1,T2> zip(const std::vector<T1>&v1,const
- *     std::vector<T2>& v2)
- * @brief Combines v1 and v2 into a single vector
+ * @fn std::vector< std::pair< T1, T2 > > zip(const std::vector<T1>& v1, const
+ * std::vector<T2>& v2)
+ * @brief Combine two equal-sized vectors into a single vector of paired
+ * elements.
  *
- * Combines 2 vectors but pairing one element from the first vector with one
- * element from the second vector.
- * @tparam v1 First Vector to be combined
- * @tparam v2 Second Vector to be combined
+ * Elements from v1 and v2 are combined into std::pair<T1, T2>.
+ *
+ * e.g. \n
+ * v1 = [a, b, c, d] \n
+ * v2 = [1, 2, 3, 4] \n
+ * res = [<a, 1>, <b, 2>, <c, 3>, <d, 4>]
+ *
+ * @param v1 First vector to be combined
+ * @param v2 Second vector to be combined
  */
 template <typename T1, typename T2>
 std::vector<std::pair<T1, T2>> zip(
@@ -95,15 +98,11 @@ std::vector<std::pair<T1, T2>> zip(
 }
 
 /**
- * @fn std::pair<vector,vector> unzip(const
- *     std::vector<cv::Vec<T,Length>>&vs)
- * @brief Separates 1 vector of pairs into 2 vectors
+ * @fn std::pair<vector,vector> unzip(const std::vector<cv::Vec<T,Length>>&vs)
+ * @brief Separate single vector of paired elements into two vectors
+ * of single elements.
  *
- * This is essentially the revese of zip. Takes one vector of pairs and puts the
- * first element of the pair into one vector and the second element of the pair
- * into the other vector.
- *
- * @tparam vs Vector to be split into 2
+ * @param vs Input vector
  */
 template <typename T, int32_t Length>
 std::pair<std::vector<T>, std::vector<T>> unzip(
@@ -121,12 +120,12 @@ std::pair<std::vector<T>, std::vector<T>> unzip(
 
 /**
  * @fn std::vector<double> normalizeVector(const std::vector<T>& v, double
- *     newMin=0, double newMax =1)
- * @brief Normalizes a vector so that each member is within the range of the
- *        newMin and newMax
- * @param newMin Minimum value of all of the elements of the vector
- * @param newMax Maximum value of all the elements of the vector
- * @tparam v Vector to be normalized
+ *     newMin, double newMax)
+ * @brief Normalize vector elements to within the range [newMin, newMax].
+ *
+ * @param v Vector to be normalized
+ * @param newMin Minimum value
+ * @param newMax Maximum value
  */
 template <typename T>
 std::vector<double> normalizeVector(
@@ -168,8 +167,9 @@ std::vector<double> normalizeVector(
 /**
  * @fn std::vector<int> normalizeVector(const
  *     std::vector<cv::Vec<T,Len>> vs)
- * @brief Normalizes a vector with no limits on points
- * @tparam vs Vector to be normalized
+ * @brief Normalizes a vector of cv::Vec using cv::norm
+ *
+ * @param vs Vector to be normalized
  */
 template <typename T, int32_t Len>
 std::vector<cv::Vec<double, Len>> normalizeVector(
