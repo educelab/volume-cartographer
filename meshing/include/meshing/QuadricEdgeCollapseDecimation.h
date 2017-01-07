@@ -318,7 +318,7 @@ public:
      *
      * Default: 100
      */
-    void setQualityWeightFactor(double factor)
+    void setQualityWeightFactor(bool factor)
     {
         collapseParams_.QualityWeight = factor;
     }
