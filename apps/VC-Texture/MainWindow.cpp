@@ -10,7 +10,10 @@
 //----------------------------------------------------------------------------------------------------------------------------------------
 
 #include "MainWindow.h"
+
 #include <boost/algorithm/string/case_conv.hpp>
+#include <opencv2/imgcodecs.hpp>
+
 #include "core/io/objWriter.h"
 
 // Volpkg version required byt this app

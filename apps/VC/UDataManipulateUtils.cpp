@@ -1,7 +1,10 @@
 // UDataManipulateUtils.cpp
 // Chao Du 2014 Dec
-#include "UDataManipulateUtils.h"
+#include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
+
 #include "HBase.h"
+#include "UDataManipulateUtils.h"
 
 namespace ChaoVis
 {
@@ -110,7 +113,7 @@ cv::Mat QImage2Mat(const QImage& nSrc)
         nSrc.height(), nSrc.width(), CV_8UC3, const_cast<uchar*>(nSrc.bits()),
         nSrc.bytesPerLine());
     cv::Mat result;  // deep copy
-    cvtColor(tmp, result, CV_BGR2RGB);
+    cvtColor(tmp, result, cv::COLOR_BGR2RGB);
     return result;
 }
 
@@ -118,7 +121,7 @@ cv::Mat QImage2Mat(const QImage& nSrc)
 QImage Mat2QImage(const cv::Mat& nSrc)
 {
     cv::Mat tmp;
-    cvtColor(nSrc, tmp, CV_BGR2RGB);  // copy and convert color space
+    cvtColor(nSrc, tmp, cv::COLOR_BGR2RGB);  // copy and convert color space
     QImage result(
         static_cast<const uint8_t*>(tmp.data), tmp.cols, tmp.rows, tmp.step,
         QImage::Format_RGB888);

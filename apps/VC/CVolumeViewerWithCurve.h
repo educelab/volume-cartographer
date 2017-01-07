@@ -5,7 +5,7 @@
 #include <QCheckBox>
 #include <QCheckBox>
 #include <vector>
-#include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
 #include "CBSpline.h"
 #include "CVolumeViewer.h"
 #include "CXCurve.h"

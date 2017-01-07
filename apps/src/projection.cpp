@@ -6,7 +6,9 @@
 #include <stdio.h>
 
 #include <boost/format.hpp>
-#include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
 
 #include "core/io/PLYReader.h"
 #include "core/types/VolumePkg.h"
@@ -38,7 +40,7 @@ int main(int argc, char* argv[])
 
     // PNG Compression params
     std::vector<int> compression_params;
-    compression_params.push_back(CV_IMWRITE_PNG_COMPRESSION);
+    compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
     compression_params.push_back(9);
 
     // Sort the points by z-index
@@ -74,7 +76,7 @@ int main(int argc, char* argv[])
         // .clone() to make sure we don't modify the cached version
         cv::Mat slice = volpkg.volume().getSliceData(z_id->first).clone();
         slice.convertTo(slice, CV_8U, 255.0 / 65535.0);
-        cv::cvtColor(slice, slice, CV_GRAY2BGR);
+        cv::cvtColor(slice, slice, cv::COLOR_GRAY2BGR);
 
         // Iterate over the points for this z-index and project the points
         for (auto p_id = z_id->second.begin(); p_id != z_id->second.end();

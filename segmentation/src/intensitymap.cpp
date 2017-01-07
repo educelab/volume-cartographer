@@ -1,5 +1,9 @@
 #include "segmentation/lrps/intensitymap.h"
+
 #include <limits>
+
+#include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
 
 using namespace volcart::segmentation;
 
@@ -21,8 +25,9 @@ IntensityMap::IntensityMap(
     cv::equalizeHist(r, r);
     resliceData_ = r;
 
-    cv::normalize(r, r, 0, 1, CV_MINMAX, CV_64FC1);
-    intensities_ = r.row(r.rows / 2 + stepSize);
+    cv::Mat normReslice(r.rows, r.cols, CV_64F);
+    cv::normalize(r, normReslice, 0, 1, cv::NORM_MINMAX, CV_64F);
+    intensities_ = normReslice.row(normReslice.rows / 2 + stepSize);
     mapWidth_ = intensities_.cols;
     binWidth_ = cvRound(float(displayWidth_) / mapWidth_);
 }

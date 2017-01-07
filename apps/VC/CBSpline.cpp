@@ -2,6 +2,8 @@
 // Chao Du 2015 April
 #include "CBSpline.h"
 
+#include <opencv2/imgproc.hpp>
+
 #include "CMatrixMN.h"
 #include "UVecMatOperations.h"
 

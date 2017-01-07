@@ -8,7 +8,7 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
-#include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
 
 #include "core/types/Rendering.h"
 #include "core/types/UVMap.h"

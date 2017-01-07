@@ -6,7 +6,9 @@
 #include <stdio.h>
 
 #include <boost/format.hpp>
-#include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
 
 #include <vtkCell.h>
 #include <vtkCutter.h>
@@ -87,7 +89,7 @@ int main(int argc, char* argv[])
                     static_cast<int>(intersection->GetPoint(p_id)[0]),
                     static_cast<int>(intersection->GetPoint(p_id)[1])));
             }
-            cv::polylines(outputImg, contour, false, 255, 1, CV_AA);
+            cv::polylines(outputImg, contour, false, 255, 1, cv::LINE_AA);
             contour.clear();
         }
 

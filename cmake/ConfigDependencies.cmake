@@ -51,7 +51,7 @@ set_target_properties(eigen3 PROPERTIES
 )
 
 ### OpenCV ###
-find_package(OpenCV REQUIRED)
+find_package(OpenCV 3 REQUIRED)
 
 ############
 # Optional #

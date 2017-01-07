@@ -1,6 +1,9 @@
 // CWindow.cpp
 // Chao Du 2014 Dec
 #include "CWindow.h"
+
+#include <opencv2/imgproc.hpp>
+
 #include "CVolumeViewerWithCurve.h"
 #include "UDataManipulateUtils.h"
 #include "core/types/Exceptions.h"
@@ -636,7 +639,7 @@ void CWindow::OpenSlice(void)
     if (fVpkg != nullptr) {
         aImgMat = fVpkg->volume().getSliceDataCopy(fPathOnSliceIndex);
         aImgMat.convertTo(aImgMat, CV_8UC3, 1.0 / 256.0);
-        cvtColor(aImgMat, aImgMat, CV_GRAY2BGR);
+        cvtColor(aImgMat, aImgMat, cv::COLOR_GRAY2BGR);
     } else
         aImgMat = cv::Mat::zeros(10, 10, CV_8UC3);
 

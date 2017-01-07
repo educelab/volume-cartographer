@@ -4,7 +4,7 @@
 #include <string>
 
 #include <boost/filesystem.hpp>
-#include <opencv2/core/core.hpp>
+#include <opencv2/core.hpp>
 
 #include "core/types/LRUCache.h"
 #include "core/types/Slice.h"

@@ -6,7 +6,6 @@
 #include <QMessageBox>
 #include <QRect>
 #include <QtWidgets>
-#include <opencv2/opencv.hpp>
 
 #include "CBSpline.h"
 #include "CXCurve.h"
