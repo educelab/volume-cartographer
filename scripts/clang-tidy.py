@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import argparse
 import logging
 import multiprocessing as mp
@@ -141,9 +140,9 @@ def main() -> bool:
                 kwds=dict(print_output=args.print_output),
             ) for f in changes
         ]
-        result = all(task.get() for task in tasks)
 
-        # Print output
+        # Execute and print output (if necessary)
+        result = all([task.get() for task in tasks])
         while args.print_output and not output_queue.empty():
             print(output_queue.get())
 

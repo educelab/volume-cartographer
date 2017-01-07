@@ -35,7 +35,7 @@ size_t systemMemorySize()
     MEMORYSTATUS status;
     status.dwLength = sizeof(status);
     GlobalMemoryStatus(&status);
-    return (size_t)status.dwTotalPhys;
+    return static_cast<size_t>(status.dwTotalPhys);
 
 #elif defined(_WIN32)
     /* Windows. ------------------------------------------------- */
@@ -43,7 +43,7 @@ size_t systemMemorySize()
     MEMORYSTATUSEX status;
     status.dwLength = sizeof(status);
     GlobalMemoryStatusEx(&status);
-    return (size_t)status.ullTotalPhys;
+    return static_cast<size_t>(status.ullTotalPhys);
 
 #elif defined(__unix__) || defined(__unix) || defined(unix) || \
     (defined(__APPLE__) && defined(__MACH__))
@@ -61,21 +61,24 @@ size_t systemMemorySize()
     int64_t size = 0;    /* 64-bit */
     size_t len = sizeof(size);
     if (sysctl(mib, 2, &size, &len, nullptr, 0) == 0) {
-        return (size_t)size;
+        return static_cast<size_t>(size);
     }
     return 0L; /* Failed? */
 
 #elif defined(_SC_AIX_REALMEM)
     /* AIX. ----------------------------------------------------- */
-    return (size_t)sysconf(_SC_AIX_REALMEM) * (size_t)1024L;
+    return static_cast<size_t>(sysconf(_SC_AIX_REALMEM)) *
+           static_cast<size_t>(1024L);
 
 #elif defined(_SC_PHYS_PAGES) && defined(_SC_PAGESIZE)
     /* FreeBSD, Linux, OpenBSD, and Solaris. -------------------- */
-    return (size_t)sysconf(_SC_PHYS_PAGES) * (size_t)sysconf(_SC_PAGESIZE);
+    return static_cast<size_t>(sysconf(_SC_PHYS_PAGES)) *
+           static_cast<size_t>(sysconf(_SC_PAGESIZE));
 
 #elif defined(_SC_PHYS_PAGES) && defined(_SC_PAGE_SIZE)
     /* Legacy. -------------------------------------------------- */
-    return (size_t)sysconf(_SC_PHYS_PAGES) * (size_t)sysconf(_SC_PAGE_SIZE);
+    return static_cast<size_t>(sysconf(_SC_PHYS_PAGES)) *
+           static_cast<size_t>(sysconf(_SC_PAGE_SIZE));
 
 #elif defined(CTL_HW) && (defined(HW_PHYSMEM) || defined(HW_REALMEM))
     /* DragonFly BSD, FreeBSD, NetBSD, OpenBSD, and OSX. -------- */
@@ -89,7 +92,7 @@ size_t systemMemorySize()
     unsigned int size = 0; /* 32-bit */
     size_t len = sizeof(size);
     if (sysctl(mib, 2, &size, &len, NULL, 0) == 0)
-        return (size_t)size;
+        return static_cast<size_t>(size);
     return 0L; /* Failed? */
 #endif /* sysctl and sysconf variants */
 

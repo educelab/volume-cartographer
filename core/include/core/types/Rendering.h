@@ -17,7 +17,7 @@ class Rendering
 public:
     ///// Constructors/Destructors /////
     Rendering();
-    Rendering(boost::filesystem::path path);
+    explicit Rendering(boost::filesystem::path path);
 
     ///// Metadata /////
     volcart::Metadata metadata() const { return _metadata; }

@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+#include <opencv2/core.hpp>
+
 namespace volcart
 {
 template <typename T>
@@ -66,21 +68,27 @@ public:
         if (empty()) {
             throw std::range_error("empty PointSet");
         }
-        return *std::min_element(std::begin(_data), std::end(_data));
+        return *std::min_element(
+            std::begin(_data), std::end(_data),
+            [](auto lhs, auto rhs) { return cv::norm(lhs) < cv::norm(rhs); });
     }
     T max() const
     {
         if (empty()) {
             throw std::range_error("empty PointSet");
         }
-        return *std::max_element(std::begin(_data), std::end(_data));
+        return *std::max_element(
+            std::begin(_data), std::end(_data),
+            [](auto lhs, auto rhs) { return cv::norm(lhs) < cv::norm(rhs); });
     }
     std::pair<T, T> minMax() const
     {
         if (empty()) {
             throw std::range_error("empty PointSet");
         }
-        auto pair = std::minmax_element(std::begin(_data), std::end(_data));
+        auto pair = std::minmax_element(
+            std::begin(_data), std::end(_data),
+            [](auto lhs, auto rhs) { return cv::norm(lhs) < cv::norm(rhs); });
         return {*pair.first, *pair.second};
     }
 

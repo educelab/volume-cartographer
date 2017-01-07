@@ -4,7 +4,7 @@
 // Created by Seth Parker on 10/20/15.
 #pragma once
 
-#include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
 
 #include "core/types/Metadata.h"
 #include "core/types/PerPixelMap.h"
@@ -17,7 +17,7 @@ class Texture
 {
 public:
     Texture();
-    Texture(std::string path);
+    explicit Texture(std::string path);
 
     // Get metadata
     volcart::Metadata metadata() const { return _metadata; }

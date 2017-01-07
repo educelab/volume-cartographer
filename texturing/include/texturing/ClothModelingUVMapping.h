@@ -29,7 +29,6 @@
 #include <BulletSoftBody/btSoftBodyRigidBodyCollisionConfiguration.h>
 #include <BulletSoftBody/btSoftRigidDynamicsWorld.h>
 #include <btBulletDynamicsCommon.h>
-#include <opencv2/opencv.hpp>
 
 #include "core/types/UVMap.h"
 #include "core/vc_defines.h"

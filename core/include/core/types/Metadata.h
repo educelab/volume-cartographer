@@ -8,11 +8,11 @@
 
 #include <fstream>
 #include <iostream>
+
 #include <boost/filesystem.hpp>
 
-#include "external/json.hpp"
-
 #include "core/vc_defines.h"
+#include "external/json.hpp"
 
 namespace volcart
 {
@@ -21,8 +21,7 @@ class Metadata
 
 public:
     Metadata() {}
-
-    Metadata(boost::filesystem::path file_location);
+    explicit Metadata(boost::filesystem::path file_location);
 
     // Path
     boost::filesystem::path path() const { return _path; };

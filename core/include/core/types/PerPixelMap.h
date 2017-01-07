@@ -22,10 +22,13 @@ class PerPixelMap
 public:
     ///// Constructors /////
     // Create empty
-    PerPixelMap() : _width(0), _height(0) { _initializeMap(); }
+    PerPixelMap() : _width{0}, _height{0} { _initializeMap(); }
 
     // Create new
-    PerPixelMap(size_t height, size_t width);
+    PerPixelMap(size_t height, size_t width) : _width{width}, _height{height}
+    {
+        _initializeMap();
+    }
 
     ///// Check if initialized /////
     bool initialized() const

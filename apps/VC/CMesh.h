@@ -4,8 +4,8 @@
 
 #include <iostream>
 #include <set>
-#include <core/types/Point.h>
-#include <opencv2/opencv.hpp>
+
+#include <opencv2/core.hpp>
 
 namespace ChaoVis
 {
@@ -46,7 +46,7 @@ public:
     // gets
 public:
     // point list
-    std::vector<volcart::Point3d> fPoints;
+    std::vector<cv::Vec3d> fPoints;
     // face list
     std::vector<cv::Vec3i> fFaces;
     // edge list

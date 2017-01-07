@@ -1,14 +1,15 @@
 // What am I?
 #pragma once
 
-#include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
 
 using ParticleStopped = bool;
 
 class Particle
 {
 public:
-    Particle(cv::Vec3d position);
+    explicit Particle(cv::Vec3d position);
+
     cv::Vec3d position();
     bool isStopped();
     void stop();

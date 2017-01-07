@@ -1,6 +1,6 @@
 #pragma once
 
-#include <opencv2/core/core.hpp>
+#include <opencv2/core.hpp>
 
 // A simple wrapper around a cv::Mat of data sliced from the volume at an
 // arbitrary x and y vector and an origin point.

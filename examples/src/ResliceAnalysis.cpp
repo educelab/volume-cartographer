@@ -1,7 +1,12 @@
 #include <cmath>
 #include <iostream>
 #include <random>
+
 #include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
+
 #include "core/types/VolumePkg.h"
 
 const cv::Vec3d KVector(0, 0, 1);
@@ -14,12 +19,10 @@ inline double rad2deg(double rad) { return rad * 180.0 / M_PI; }
 
 inline double deg2rad(double deg) { return deg * M_PI / 180.0; }
 
-inline double VectorAngleTheta(const cv::Vec3d v)
+inline std::pair<double, double> CartesianToSpherical(cv::Vec3d v)
 {
-    return std::atan(v(1) / v(0));
+    return {std::atan(v(1) / v(0)), std::acos(v(2))};
 }
-
-inline double VectorAnglePhi(const cv::Vec3d v) { return std::acos(v(2)); }
 
 inline cv::Vec3d SphericalToCartesian(double theta, double phi)
 {
@@ -80,8 +83,8 @@ int main(int argc, char** argv)
     // Get our normal estimate from the structure tensor
     auto pairs = vol.eigenPairsAt(cx, cy, cz, 5);
     auto normalVector = pairs[0].second;
-    auto theta = VectorAngleTheta(normalVector);
-    auto phi = VectorAnglePhi(normalVector);
+    double theta, phi;
+    std::tie(theta, phi) = CartesianToSpherical(normalVector);
 
     // Loop until key other than left/right arrow is pressed
     while (true) {
@@ -154,7 +157,7 @@ void drawSliceWithResliceVector(
     // Convert the CT slice to 8-bit RGB
     auto slice = v.getSliceDataCopy(int32_t(center(2)));
     slice.convertTo(slice, CV_8UC3, 1.0 / 255.0);
-    cv::cvtColor(slice, slice, CV_GRAY2BGR);
+    cv::cvtColor(slice, slice, cv::COLOR_GRAY2BGR);
 
     // Draw scaled vector on it
     constexpr int32_t scale = 20;

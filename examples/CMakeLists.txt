@@ -68,10 +68,10 @@ if (VC_USE_ACVD)
 endif()
 
 add_executable(vc_structure_tensor_client src/StructureTensorClient.cpp)
-target_link_libraries(vc_structure_tensor_client vc_core)
+target_link_libraries(vc_structure_tensor_client vc_core opencv_highgui)
 
 add_executable(vc_reslice_analysis src/ResliceAnalysis.cpp)
-target_link_libraries(vc_reslice_analysis vc_core)
+target_link_libraries(vc_reslice_analysis vc_core opencv_highgui)
 
 add_executable(vc_ordered_resample_example src/OrderedResamplingExample.cpp)
 target_link_libraries(vc_ordered_resample_example vc_core vc_meshing)

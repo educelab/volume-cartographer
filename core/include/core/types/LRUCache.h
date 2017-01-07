@@ -24,7 +24,8 @@ public:
     using TListIterator = typename std::list<TPair>::iterator;
 
     LRUCache() : capacity_(kDefaultCapacity) {}
-    LRUCache(int64_t capacity) : capacity_(capacity) {}
+    explicit LRUCache(int64_t capacity) : capacity_(capacity) {}
+
     void setCapacity(const int64_t newCapacity)
     {
 

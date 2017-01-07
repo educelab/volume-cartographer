@@ -31,45 +31,41 @@ static std::array<std::array<double, 9>, 4> d2CentralDiffCoeffs = {
 // clang-format on
 
 template <typename T>
-T d1Forward(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
+T d1Forward(const std::vector<T>& vs, int index, int hstep = 1)
 {
-    assert(
-        index >= 0 && index < int32_t(vs.size()) && "index not in range of vs");
-    assert(index <= int32_t(vs.size()) && "index must not be last point");
+    assert(index >= 0 && index < int(vs.size()) && "index not in range of vs");
+    assert(index <= int(vs.size()) && "index must not be last point");
     return (-vs[index] + vs[size_t(index) + hstep]) / double(hstep);
 }
 
 template <typename T>
-T d1Backward(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
+T d1Backward(const std::vector<T>& vs, int index, int hstep = 1)
 {
-    assert(
-        index >= 0 && index < int32_t(vs.size()) && "index not in range of vs");
+    assert(index >= 0 && index < int(vs.size()) && "index not in range of vs");
     assert(index >= hstep && "index must not be first point");
     return (-vs[index - hstep] + vs[index]) / double(hstep);
 }
 
 template <typename T>
-T d1Central(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
+T d1Central(const std::vector<T>& vs, int index, int hstep = 1)
 {
-    assert(
-        index >= 0 && index < int32_t(vs.size()) && "index not in range of vs");
+    assert(index >= 0 && index < int(vs.size()) && "index not in range of vs");
     assert(index - hstep >= 0 && "index out of range");
-    assert(index + hstep < int32_t(vs.size()) && "index out of range");
+    assert(index + hstep < int(vs.size()) && "index out of range");
     return ((-0.5) * vs[index - hstep] + (0.5) * vs[size_t(index) + hstep]) /
            double(hstep);
 }
 
 // from: https://en.wikipedia.org/wiki/Finite_difference_coefficient
-// TODO: Implement more accurate derivatives
+// TODO(skarlage): Implement more accurate derivatives
 template <typename T>
-T d1FivePointStencil(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
+T d1FivePointStencil(const std::vector<T>& vs, int index, int hstep = 1)
 {
-    assert(
-        index >= 0 && index < int32_t(vs.size()) && "index not in range of vs");
+    assert(index >= 0 && index < int(vs.size()) && "index not in range of vs");
     assert(index - 2 * hstep >= 0 && "index out of range\n");
     assert(index - 1 * hstep >= 0 && "index out of range\n");
-    assert(index + 1 * hstep < int32_t(vs.size()) && "index out of range\n");
-    assert(index + 2 * hstep < int32_t(vs.size()) && "index out of range\n");
+    assert(index + 1 * hstep < int(vs.size()) && "index out of range\n");
+    assert(index + 2 * hstep < int(vs.size()) && "index out of range\n");
     // clang-format off
     return (
         (1.0/12) * vs[index - 2 * hstep] +
@@ -81,14 +77,14 @@ T d1FivePointStencil(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
 }
 
 template <typename T>
-T d1At(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
+T d1At(const std::vector<T>& vs, int index, int hstep = 1)
 {
     if (index - hstep < 0) {
         return d1Forward(vs, index, hstep);
-    } else if (index + hstep > int32_t(vs.size()) - 1) {
+    } else if (index + hstep > int(vs.size()) - 1) {
         return d1Backward(vs, index, hstep);
     } else if (
-        index - hstep < hstep || index + hstep >= int32_t(vs.size()) - hstep) {
+        index - hstep < hstep || index + hstep >= int(vs.size()) - hstep) {
         return d1Central(vs, index, hstep);
     } else {
         return d1FivePointStencil(vs, index, hstep);
@@ -96,7 +92,7 @@ T d1At(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
 }
 
 template <typename T>
-std::vector<T> d1(const std::vector<T>& vs, int32_t hstep = 1)
+std::vector<T> d1(const std::vector<T>& vs, int hstep = 1)
 {
     std::vector<T> dvs;
     dvs.reserve(vs.size());
@@ -107,20 +103,20 @@ std::vector<T> d1(const std::vector<T>& vs, int32_t hstep = 1)
 }
 
 template <typename T>
-T d2Forward(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
+T d2Forward(const std::vector<T>& vs, int index, int hstep = 1)
 {
-    assert(index >= 0 && index < int32_t(vs.size()) && "index out of range");
-    assert(index + hstep < int32_t(vs.size()) && "index out of range");
-    assert(index + 2 * hstep < int32_t(vs.size()) && "index out of  range");
+    assert(index >= 0 && index < int(vs.size()) && "index out of range");
+    assert(index + hstep < int(vs.size()) && "index out of range");
+    assert(index + 2 * hstep < int(vs.size()) && "index out of  range");
     return (vs[index] + (-2.0) * vs[size_t(index) + hstep] +
             vs[size_t(index) + 2 * hstep]) /
            double(hstep * hstep);
 }
 
 template <typename T>
-T d2Backward(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
+T d2Backward(const std::vector<T>& vs, int index, int hstep = 1)
 {
-    assert(index >= 0 && index < int32_t(vs.size()) && "index out of range");
+    assert(index >= 0 && index < int(vs.size()) && "index out of range");
     assert(index - 2 * hstep >= 0 && "index out of range");
     assert(index - 1 * hstep >= 0 && "index out of range");
     return (vs[index - 2 * hstep] + (-2.0) * vs[index - hstep] + vs[index]) /
@@ -128,28 +124,26 @@ T d2Backward(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
 }
 
 template <typename T>
-T d2Central(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
+T d2Central(const std::vector<T>& vs, int index, int hstep = 1)
 {
-    assert(
-        index >= 0 && index < int32_t(vs.size()) && "index not in range of vs");
+    assert(index >= 0 && index < int(vs.size()) && "index not in range of vs");
     assert(index - hstep >= 0 && "index out of range");
-    assert(index + hstep < int32_t(vs.size()) && "index out of range");
+    assert(index + hstep < int(vs.size()) && "index out of range");
     return (vs[index - hstep] + (-2.0) * vs[index] +
             vs[size_t(index) + hstep]) /
            double(hstep * hstep);
 }
 
 // from: https://en.wikipedia.org/wiki/Finite_difference_coefficient
-// TODO: Implement more accurate derivatives
+// TODO(skarlage): Implement more accurate derivatives
 template <typename T>
-T d2FivePointStencil(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
+T d2FivePointStencil(const std::vector<T>& vs, int index, int hstep = 1)
 {
-    assert(
-        index >= 0 && index < int32_t(vs.size()) && "index not in range of vs");
+    assert(index >= 0 && index < int(vs.size()) && "index not in range of vs");
     assert(index - 2 * hstep >= 0 && "index out of range");
     assert(index - 1 * hstep >= 0 && "index out of range");
-    assert(index + 1 * hstep < int32_t(vs.size()) && "index out of range");
-    assert(index + 2 * hstep < int32_t(vs.size()) && "index out of range");
+    assert(index + 1 * hstep < int(vs.size()) && "index out of range");
+    assert(index + 2 * hstep < int(vs.size()) && "index out of range");
     // clang-format off
     return (
        (-1.0/12) * vs[index - 2 * hstep] +
@@ -162,14 +156,14 @@ T d2FivePointStencil(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
 }
 
 template <typename T>
-T d2At(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
+T d2At(const std::vector<T>& vs, int index, int hstep = 1)
 {
     if (index - hstep < 0) {
         return d2Forward(vs, index, hstep);
-    } else if (index + hstep > int32_t(vs.size()) - 1) {
+    } else if (index + hstep > int(vs.size()) - 1) {
         return d2Backward(vs, index, hstep);
     } else if (
-        index - hstep < hstep || index + hstep >= int32_t(vs.size()) - hstep) {
+        index - hstep < hstep || index + hstep >= int(vs.size()) - hstep) {
         return d2Central(vs, index, hstep);
     } else {
         return d2FivePointStencil(vs, index, hstep);
@@ -177,7 +171,7 @@ T d2At(const std::vector<T>& vs, int32_t index, int32_t hstep = 1)
 }
 
 template <typename T>
-std::vector<T> d2(const std::vector<T>& vs, int32_t hstep = 1)
+std::vector<T> d2(const std::vector<T>& vs, int hstep = 1)
 {
     std::vector<T> dvs;
     dvs.reserve(vs.size());

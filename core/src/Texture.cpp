@@ -1,6 +1,7 @@
 //
 // Created by Seth Parker on 12/3/15.
 //
+#include <opencv2/imgcodecs.hpp>
 
 #include "core/types/Texture.h"
 
@@ -55,7 +56,7 @@ double Texture::intensity(int point_ID, int image_ID)
     if (mapping != VC_UVMAP_NULL_MAPPING) {
         int u = cvRound(mapping[0] * (_width - 1));
         int v = cvRound(mapping[1] * (_height - 1));
-        return _images[image_ID].at<unsigned short>(v, u);
+        return _images[image_ID].at<uint16_t>(v, u);
     } else {
         return volcart::TEXTURE_NO_VALUE;
     }

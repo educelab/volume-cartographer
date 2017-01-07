@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include <boost/program_options.hpp>
+#include <opencv2/imgcodecs.hpp>
 #include <vtkPLYReader.h>
 
 #include "core/io/objWriter.h"

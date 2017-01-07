@@ -38,7 +38,10 @@ public:
      *
      * @param path Path to the file to be read
      */
-    PLYReader(boost::filesystem::path path) : _inputPath(std::move(path)) {}
+    explicit PLYReader(boost::filesystem::path path)
+        : _inputPath(std::move(path))
+    {
+    }
     //@}
 
     /**

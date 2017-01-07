@@ -3,6 +3,10 @@
 
 #include "apps/SliceImage.h"
 
+#include <opencv2/core.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
+
 namespace volcart
 {
 
@@ -19,8 +23,8 @@ bool SliceImage::analyze()
         return false;
 
     cv::Mat image;
-    image = cv::imread(
-        path.string(), CV_LOAD_IMAGE_ANYCOLOR | CV_LOAD_IMAGE_ANYDEPTH);
+    image =
+        cv::imread(path.string(), cv::IMREAD_ANYCOLOR | cv::IMREAD_ANYDEPTH);
 
     _w = image.cols;
     _h = image.rows;
@@ -36,10 +40,9 @@ bool SliceImage::analyze()
 
 cv::Mat SliceImage::conformedImage()
 {
-
     // Load the input
-    cv::Mat input = cv::imread(
-        path.string(), CV_LOAD_IMAGE_ANYCOLOR | CV_LOAD_IMAGE_ANYDEPTH);
+    cv::Mat input =
+        cv::imread(path.string(), cv::IMREAD_ANYCOLOR | cv::IMREAD_ANYDEPTH);
     cv::Mat output;
 
     // Remap 8 bit values to 16 bit
@@ -59,7 +62,7 @@ cv::Mat SliceImage::conformedImage()
     if (input.channels() > 1) {
         cv::cvtColor(
             output, output,
-            CV_BGR2GRAY);  // OpenCV uses BGR to represent color image
+            cv::COLOR_BGR2GRAY);  // OpenCV uses BGR to represent color image
     }
 
     return output;

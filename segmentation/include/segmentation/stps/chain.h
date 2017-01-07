@@ -7,7 +7,8 @@
 
 #include <list>
 #include <vector>
-#include <opencv2/core/core.hpp>
+
+#include <opencv2/core.hpp>
 
 #include "core/types/VolumePkg.h"
 #include "segmentation/stps/particle.h"
@@ -16,7 +17,7 @@ class Chain
 {
 public:
     Chain(
-        std::vector<volcart::Point3d> segPath,
+        std::vector<cv::Vec3d> segPath,
         const VolumePkg& volpkg,
         double gravity_scale,
         int threshold,
@@ -26,7 +27,7 @@ public:
     bool isMoving();
     cv::Vec3d springForce(int index);
     cv::Vec3d gravity(int index);
-    volcart::OrderedPointSet<volcart::Point3d> orderedPCD();
+    volcart::OrderedPointSet<cv::Vec3d> orderedPCD();
 
 private:
     const VolumePkg& _volpkg;

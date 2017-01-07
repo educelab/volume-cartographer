@@ -6,7 +6,6 @@
 #include <QMessageBox>
 #include <QRect>
 #include <QtWidgets>
-#include <opencv2/opencv.hpp>
 
 #include "CBSpline.h"
 #include "CXCurve.h"
@@ -160,9 +159,9 @@ private:
 
     SSegParams fSegParams;
 
-    volcart::OrderedPointSet<volcart::Point3d> fMasterCloud;
-    volcart::OrderedPointSet<volcart::Point3d> fUpperPart;
-    std::vector<volcart::Point3d> fStartingPath;
+    volcart::OrderedPointSet<cv::Vec3d> fMasterCloud;
+    volcart::OrderedPointSet<cv::Vec3d> fUpperPart;
+    std::vector<cv::Vec3d> fStartingPath;
 
     // window components
     QMenu* fFileMenu;

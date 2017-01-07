@@ -4,9 +4,9 @@
 #include <iostream>
 
 #include <boost/filesystem.hpp>
+#include <opencv2/core.hpp>
 
 #include "core/types/OrderedPointSet.h"
-#include "core/types/Point.h"
 #include "core/types/Texture.h"
 #include "core/types/Volume.h"
 #include "core/types/VolumePkgVersion.h"
@@ -46,7 +46,7 @@ public:
      * `file_location.`
      * @param file_location The root of the VolumePkg file
      */
-    VolumePkg(boost::filesystem::path file_location);
+    explicit VolumePkg(boost::filesystem::path file_location);
 
     /**
      * @brief Prints the JSON object that stores VolumePkg metadata. Debug only.
@@ -262,7 +262,7 @@ public:
      *
      * @return Segmented surface as an OrderedPointSet
      */
-    volcart::OrderedPointSet<volcart::Point3d> openCloud() const;
+    volcart::OrderedPointSet<cv::Vec3d> openCloud() const;
 
     /**
      * @brief Saves an OrderedPointSet for the active segmentation to the
@@ -274,11 +274,10 @@ public:
      * @warning Data currently saved in the active segmentation's directory will
      * be overwritten. This function can be called when the VolumePkg read-only
      * flag is not set.
-     * @param segmentedCloud OrderedPointSet to be saved to the .volpkg file.
+     * @param ps PointSet to be saved to the .volpkg file.
      * @return `EXIT_SUCCESS`
      */
-    int saveCloud(
-        const volcart::OrderedPointSet<volcart::Point3d>& segmentedCloud) const;
+    int saveCloud(const volcart::OrderedPointSet<cv::Vec3d>& ps) const;
     //@}
 
     /** @name Render Data */

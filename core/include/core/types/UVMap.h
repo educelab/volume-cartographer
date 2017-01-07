@@ -12,8 +12,8 @@
 
 #include <unordered_map>
 
+#include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
-#include <opencv2/opencv.hpp>
 
 #include "core/vc_defines.h"
 
@@ -25,8 +25,8 @@ namespace volcart
 class UVMap
 {
 public:
-    UVMap() : _origin(VC_ORIGIN_TOP_LEFT) {}
-    UVMap(Origin o) { _origin = o; }
+    UVMap() : _origin{VC_ORIGIN_TOP_LEFT} {}
+    explicit UVMap(Origin o) : _origin{o} {}
 
     size_t size() const { return _map.size(); }
     bool empty() const { return _map.empty(); }
