@@ -1,6 +1,7 @@
 //
 // Created by Seth Parker on 12/3/15.
 //
+#include <opencv2/imgcodecs.hpp>
 
 #include "core/types/Texture.h"
 

@@ -3,9 +3,11 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+
 #include <boost/test/unit_test.hpp>
+#include <opencv2/core.hpp>
+
 #include "core/io/PointSetIO.h"
-#include "core/types/Point.h"
 #include "core/types/PointSet.h"
 
 constexpr auto TEST_HEADER_FILENAME = "test_header.txt";
@@ -13,7 +15,7 @@ constexpr auto TEST_HEADER_FILENAME = "test_header.txt";
 using namespace volcart;
 
 struct Point3iUnorderedPointSet {
-    PointSet<Point3i> ps;
+    PointSet<cv::Vec3i> ps;
 
     Point3iUnorderedPointSet() : ps(3)
     {
@@ -27,8 +29,8 @@ BOOST_FIXTURE_TEST_CASE(
     WriteThenReadBinaryUnorderedPointSet, Point3iUnorderedPointSet)
 {
     // Binary IO is default
-    PointSetIO<Point3i>::WritePointSet("tmp.txt", ps);
-    auto readPs = PointSetIO<Point3i>::ReadPointSet("tmp.txt");
+    PointSetIO<cv::Vec3i>::WritePointSet("tmp.txt", ps);
+    auto readPs = PointSetIO<cv::Vec3i>::ReadPointSet("tmp.txt");
     BOOST_CHECK_EQUAL(readPs[0], ps[0]);
     BOOST_CHECK_EQUAL(readPs[1], ps[1]);
     BOOST_CHECK_EQUAL(readPs[2], ps[2]);
@@ -37,8 +39,8 @@ BOOST_FIXTURE_TEST_CASE(
 BOOST_FIXTURE_TEST_CASE(
     WriteThenReadAsciiUnorderedPointSet, Point3iUnorderedPointSet)
 {
-    PointSetIO<Point3i>::WritePointSet("tmp.txt", ps, IOMode::ASCII);
-    auto readPs = PointSetIO<Point3i>::ReadPointSet("tmp.txt", IOMode::ASCII);
+    PointSetIO<cv::Vec3i>::WritePointSet("tmp.txt", ps, IOMode::ASCII);
+    auto readPs = PointSetIO<cv::Vec3i>::ReadPointSet("tmp.txt", IOMode::ASCII);
     BOOST_CHECK_EQUAL(readPs[0], ps[0]);
     BOOST_CHECK_EQUAL(readPs[1], ps[1]);
     BOOST_CHECK_EQUAL(readPs[2], ps[2]);
@@ -69,7 +71,7 @@ BOOST_AUTO_TEST_CASE(ParseHeaderIgnoreComments)
 
     writeTestHeader(commentHeader);
     std::ifstream inHeader(TEST_HEADER_FILENAME);
-    auto header = PointSetIO<Point3i>::ParseHeader(inHeader, true);
+    auto header = PointSetIO<cv::Vec3i>::ParseHeader(inHeader, true);
 
     BOOST_CHECK_EQUAL(header.width, 3);
     BOOST_CHECK_EQUAL(header.height, 1);
@@ -91,7 +93,7 @@ BOOST_AUTO_TEST_CASE(ParseHeaderOffsetKeywords)
 
     writeTestHeader(commentHeader);
     std::ifstream inHeader(TEST_HEADER_FILENAME);
-    auto header = PointSetIO<Point3i>::ParseHeader(inHeader, true);
+    auto header = PointSetIO<cv::Vec3i>::ParseHeader(inHeader, true);
 
     BOOST_CHECK_EQUAL(header.width, 3);
     BOOST_CHECK_EQUAL(header.height, 1);
@@ -114,7 +116,7 @@ BOOST_AUTO_TEST_CASE(UnorderedPointSetWithWidthThrows)
     std::ifstream inHeader(TEST_HEADER_FILENAME);
 
     BOOST_CHECK_THROW(
-        PointSetIO<Point3i>::ParseHeader(inHeader, false), IOException);
+        PointSetIO<cv::Vec3i>::ParseHeader(inHeader, false), IOException);
 }
 
 BOOST_AUTO_TEST_CASE(OrderedPointSetWithSizeThrows)
@@ -131,7 +133,7 @@ BOOST_AUTO_TEST_CASE(OrderedPointSetWithSizeThrows)
     std::ifstream inHeader(TEST_HEADER_FILENAME);
 
     BOOST_CHECK_THROW(
-        PointSetIO<Point3i>::ParseHeader(inHeader, true), IOException);
+        PointSetIO<cv::Vec3i>::ParseHeader(inHeader, true), IOException);
 }
 
 BOOST_AUTO_TEST_CASE(PointSetWithoutDimThrows)
@@ -147,7 +149,7 @@ BOOST_AUTO_TEST_CASE(PointSetWithoutDimThrows)
     std::ifstream inHeader(TEST_HEADER_FILENAME);
 
     BOOST_CHECK_THROW(
-        PointSetIO<Point3i>::ParseHeader(inHeader, false), IOException);
+        PointSetIO<cv::Vec3i>::ParseHeader(inHeader, false), IOException);
 }
 
 BOOST_AUTO_TEST_CASE(PointSetWithoutTypeThrows)
@@ -163,7 +165,7 @@ BOOST_AUTO_TEST_CASE(PointSetWithoutTypeThrows)
     std::ifstream inHeader(TEST_HEADER_FILENAME);
 
     BOOST_CHECK_THROW(
-        PointSetIO<Point3i>::ParseHeader(inHeader, false), IOException);
+        PointSetIO<cv::Vec3i>::ParseHeader(inHeader, false), IOException);
 }
 
 BOOST_AUTO_TEST_CASE(PointSetWithWrongTypeThrows)
@@ -180,7 +182,7 @@ BOOST_AUTO_TEST_CASE(PointSetWithWrongTypeThrows)
     std::ifstream inHeader(TEST_HEADER_FILENAME);
 
     BOOST_CHECK_THROW(
-        PointSetIO<Point3i>::ParseHeader(inHeader, false), IOException);
+        PointSetIO<cv::Vec3i>::ParseHeader(inHeader, false), IOException);
 }
 
 BOOST_AUTO_TEST_CASE(PointSetWithWrongVersionThrows)
@@ -192,14 +194,14 @@ BOOST_AUTO_TEST_CASE(PointSetWithWrongVersionThrows)
         "type: int\n";
 
     commentHeader += "version: " +
-                     std::to_string(PointSet<Point3i>::FORMAT_VERSION + 1) +
+                     std::to_string(PointSet<cv::Vec3i>::FORMAT_VERSION + 1) +
                      "\n<>\n";
 
     writeTestHeader(commentHeader);
     std::ifstream inHeader(TEST_HEADER_FILENAME);
 
     BOOST_CHECK_THROW(
-        PointSetIO<Point3i>::ParseHeader(inHeader, false), IOException);
+        PointSetIO<cv::Vec3i>::ParseHeader(inHeader, false), IOException);
 }
 
 BOOST_AUTO_TEST_CASE(PointSetWithWrongDimThrows)
@@ -216,5 +218,5 @@ BOOST_AUTO_TEST_CASE(PointSetWithWrongDimThrows)
     std::ifstream inHeader(TEST_HEADER_FILENAME);
 
     BOOST_CHECK_THROW(
-        PointSetIO<Point3i>::ParseHeader(inHeader, false), IOException);
+        PointSetIO<cv::Vec3i>::ParseHeader(inHeader, false), IOException);
 }

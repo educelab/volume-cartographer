@@ -75,7 +75,7 @@ struct CreatePlaneSimpleUVFixture {
     // declare Plane mesh and width and height
     volcart::shapes::Plane _Plane;
     volcart::ITKMesh::Pointer _in_PlaneITKMesh;
-    volcart::OrderedPointSet<volcart::Point3d> _in_PlanePointCloud;
+    volcart::OrderedPointSet<cv::Vec3d> _in_PlanePointCloud;
     int _width, _height;
 
     // declare uvMap to hold output from simpleUV call
@@ -112,7 +112,7 @@ struct CreateArchSimpleUVFixture {
     ITKMesh::Pointer _in_ArchITKMesh;
     volcart::UVMap _out_ArchUVMap;
 
-    volcart::OrderedPointSet<volcart::Point3d> _in_ArchPointCloud;
+    volcart::OrderedPointSet<cv::Vec3d> _in_ArchPointCloud;
     int _width, _height;
 };
 

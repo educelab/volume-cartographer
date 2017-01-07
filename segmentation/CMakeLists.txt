@@ -14,6 +14,7 @@ set(srcs
 )
 set(deps
     VC::core
+    opencv_highgui
 )
 
 add_library(${target} ${srcs})
@@ -89,4 +90,4 @@ file(
     DESTINATION
         ${EXECUTABLE_OUTPUT_PATH}/Testing.volpkg/paths/lrps-test-results
 )
-endif(VC_BUILD_TESTS)
+endif()

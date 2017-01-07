@@ -3,9 +3,9 @@
 //
 
 #include <iostream>
+
 #include "core/io/objWriter.h"
 #include "core/types/OrderedPointSet.h"
-#include "core/types/Point.h"
 #include "core/vc_defines.h"
 #include "meshing/OrderedPointSetMesher.h"
 
@@ -13,9 +13,8 @@ using namespace volcart;
 
 int main()
 {
-
     // Plane
-    OrderedPointSet<Point3d> Plane(5);
+    OrderedPointSet<cv::Vec3d> Plane(5);
     Plane.pushRow({{0.0, 0.0, 0.0},
                    {0.0, 0.0, 2.0},
                    {0.0, 0.0, 4.0},
@@ -52,7 +51,7 @@ int main()
     writer.write();
 
     // Arch
-    OrderedPointSet<Point3d> Arch(5);
+    OrderedPointSet<cv::Vec3d> Arch(5);
     Arch.pushRow({{5.0, 0.0, 0.0},
                   {4.04508, 2.93893, 0.0},
                   {1.54508, 4.75528, 0.0},

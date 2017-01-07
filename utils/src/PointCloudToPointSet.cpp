@@ -4,11 +4,11 @@
 
 #include <iostream>
 #include <boost/filesystem/path.hpp>
+#include <opencv2/core.hpp>
 #include <pcl/io/pcd_io.h>
 
 #include "core/io/PointSetIO.h"
 #include "core/types/OrderedPointSet.h"
-#include "core/types/Point.h"
 #include "core/types/PointSet.h"
 #include "core/types/VolumePkg.h"
 #include "meshing/OrderedPointSetMesher.h"
@@ -44,9 +44,9 @@ int main(int argc, char** argv)
         };
 
         // Convert to OrderedPointSet
-        OrderedPointSet<Point3d> ps(cloud->width);
+        OrderedPointSet<cv::Vec3d> ps(cloud->width);
         for (size_t j = 0; j < cloud->height; ++j) {
-            std::vector<Point3d> points;
+            std::vector<cv::Vec3d> points;
             points.reserve(cloud->width);
             for (size_t i = 0; i < cloud->width; ++i) {
                 points.push_back(
@@ -57,10 +57,10 @@ int main(int argc, char** argv)
 
         // Write to disk
         auto psPath = pkg.getActiveSegPath() / "pointset.vcps";
-        PointSetIO<Point3d>::WriteOrderedPointSet(psPath, ps);
+        PointSetIO<cv::Vec3d>::WriteOrderedPointSet(psPath, ps);
 
         // Read back, verify it's correct
-        auto newPs = PointSetIO<Point3d>::ReadOrderedPointSet(psPath);
+        auto newPs = PointSetIO<cv::Vec3d>::ReadOrderedPointSet(psPath);
         for (size_t j = 0; j < newPs.height(); ++j) {
             for (size_t i = 0; i < newPs.width(); ++i) {
                 assert(newPs(i, j)[0] == (*cloud)(i, j).x);
