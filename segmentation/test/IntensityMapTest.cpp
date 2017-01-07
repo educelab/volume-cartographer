@@ -38,7 +38,7 @@ BOOST_AUTO_TEST_CASE(AllMaxima)
     std::vector<uint16_t> rowVec{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    cv::Mat_<uint16_t> row(1, WIDTH, rowVec.data());
+    cv::Mat_<uint16_t> row = cv::Mat_<uint16_t>(rowVec).t();
     row *= 1000;
     row.copyTo(_reslice.row(HEIGHT / 2 + 2));
 
@@ -59,9 +59,10 @@ BOOST_AUTO_TEST_CASE(OneMaximaInTheMiddle)
     std::vector<uint16_t> rowVec{0,  0,  0,  0,  0,  0,  0,  2,  4,  8,  10,
                                  12, 14, 16, 18, 20, 32, 20, 18, 16, 14, 12,
                                  10, 8,  4,  2,  0,  0,  0,  0,  0,  0};
-    cv::Mat_<uint16_t> row(1, WIDTH, rowVec.data());
+    cv::Mat_<uint16_t> row = cv::Mat_<uint16_t>(rowVec).t();
 
-    // Scale it a bit so normalization/histo equalization doesn't flatten values
+    // Scale it a bit so normalization/histo equalization doesn't flatten
+    // values
     row *= 1000;
     row.copyTo(_reslice.row(HEIGHT / 2 + 1));
 
@@ -79,7 +80,7 @@ BOOST_AUTO_TEST_CASE(OneMaximaShifted)
     std::vector<uint16_t> rowVec{0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
                                  0,  2,  4,  8,  10, 12, 14, 16, 18, 20, 32,
                                  20, 18, 16, 14, 12, 10, 8,  4,  2,  0};
-    cv::Mat_<uint16_t> row(1, WIDTH, rowVec.data());
+    cv::Mat_<uint16_t> row = cv::Mat_<uint16_t>(rowVec).t();
 
     // Scale it a bit so normalization/histo equalization doesn't flatten values
     row *= 1000;
@@ -104,7 +105,7 @@ BOOST_AUTO_TEST_CASE(TwoMaximaEquallySpacedInPeakRadius)
     std::vector<uint16_t> rowVec{0,  0,  0,  0,  2,  4, 8,  10, 12, 14, 16,
                                  18, 20, 32, 20, 10, 0, 10, 20, 32, 20, 18,
                                  16, 14, 12, 10, 8,  4, 2,  0,  0,  0};
-    cv::Mat_<uint16_t> row(1, WIDTH, rowVec.data());
+    cv::Mat_<uint16_t> row = cv::Mat_<uint16_t>(rowVec).t();
     row *= 1000;
     row.copyTo(_reslice.row(HEIGHT / 2 + 1));
 
@@ -121,7 +122,7 @@ BOOST_AUTO_TEST_CASE(TwoMaximaOneInsidePeakRadius)
     std::vector<uint16_t> rowVec{0,  0,  0,  0,  2,  4, 8, 10, 12, 14, 16,
                                  18, 20, 32, 20, 14, 8, 2, 0,  2,  8,  14,
                                  20, 24, 32, 16, 8,  4, 2, 1,  0,  0};
-    cv::Mat_<uint16_t> row(1, WIDTH, rowVec.data());
+    cv::Mat_<uint16_t> row = cv::Mat_<uint16_t>(rowVec).t();
     row *= 1000;
     row.copyTo(_reslice.row(HEIGHT / 2 + 1));
 
@@ -137,7 +138,7 @@ BOOST_AUTO_TEST_CASE(TwoMaximaOneCloserToMiddle)
     std::vector<uint16_t> rowVec{0,  0,  0,  0,  2,  4, 8,  10, 12, 14, 16,
                                  18, 20, 32, 20, 10, 0, 32, 28, 24, 20, 18,
                                  16, 14, 12, 10, 8,  4, 2,  0,  0,  0};
-    cv::Mat_<uint16_t> row(1, WIDTH, rowVec.data());
+    cv::Mat_<uint16_t> row = cv::Mat_<uint16_t>(rowVec).t();
     row *= 1000;
     row.copyTo(_reslice.row(HEIGHT / 2 + 1));
 
@@ -154,7 +155,7 @@ BOOST_AUTO_TEST_CASE(TwoMaximaOneCloserToMiddleButShorter)
     std::vector<uint16_t> rowVec{0,  0,  0,  0,  2,  4, 8, 10, 12, 14, 16,
                                  18, 20, 32, 20, 10, 0, 5, 14, 12, 10, 8,
                                  4,  2,  0,  0,  0,  0, 0, 0,  0,  0};
-    cv::Mat_<uint16_t> row(1, WIDTH, rowVec.data());
+    cv::Mat_<uint16_t> row = cv::Mat_<uint16_t>(rowVec).t();
     row *= 1000;
     row.copyTo(_reslice.row(HEIGHT / 2 + 1));
 

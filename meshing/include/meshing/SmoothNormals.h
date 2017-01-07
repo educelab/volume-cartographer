@@ -6,9 +6,7 @@
 
 #include <fstream>
 #include <iostream>
-
 #include <vector>
-#include <opencv2/opencv.hpp>
 
 #include "core/vc_defines.h"
 #include "meshing/DeepCopy.h"

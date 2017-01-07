@@ -2,9 +2,11 @@
 
 #include <iostream>
 #include <numeric>
+
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
-#include <opencv2/core/core.hpp>
+#include <opencv2/core.hpp>
+
 #include "segmentation/lrps/Derivative.h"
 
 using Voxel = cv::Vec3d;

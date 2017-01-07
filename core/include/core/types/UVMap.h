@@ -11,8 +11,10 @@
 #pragma once
 
 #include <unordered_map>
+
+#include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
-#include <opencv2/opencv.hpp>
+
 #include "core/vc_defines.h"
 
 constexpr static size_t VC_UVMAP_MIN_DEBUG_WIDTH = 500;

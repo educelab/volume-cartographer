@@ -2,10 +2,10 @@
 #include <string>
 
 #include <boost/filesystem.hpp>
+#include <opencv2/core.hpp>
 
 #include "core/io/PLYWriter.h"
 #include "core/io/PointSetIO.h"
-#include "core/types/Point.h"
 #include "core/types/PointSet.h"
 #include "core/types/VolumePkg.h"
 #include "meshing/OrderedPointSetMesher.h"
@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
     }
 
     // Load the file
-    auto inputCloud = vc::PointSetIO<vc::Point3d>::ReadOrderedPointSet(argv[1]);
+    auto inputCloud = vc::PointSetIO<cv::Vec3d>::ReadOrderedPointSet(argv[1]);
 
     // Set the output
     fs::path outfile{argv[1]};

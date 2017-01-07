@@ -19,8 +19,6 @@
 #include <QObject>
 #include <QtWidgets>
 #include <boost/filesystem.hpp>
-#include <boost/filesystem.hpp>
-#include <opencv2/opencv.hpp>
 
 #include "GlobalValues.h"
 #include "SegmentationsViewer.h"

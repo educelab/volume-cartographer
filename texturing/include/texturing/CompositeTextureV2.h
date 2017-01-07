@@ -1,9 +1,6 @@
-//
-// Created by Seth Parker on 12/28/15.
-//
 #pragma once
 
-#include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
 
 #include "core/types/Texture.h"
 #include "core/types/UVMap.h"

@@ -16,8 +16,8 @@ class LocalResliceSegmentation
 public:
     LocalResliceSegmentation(VolumePkg& pkg) : pkg_(pkg) {}
 
-    volcart::OrderedPointSet<volcart::Point3d> segmentPath(
-        std::vector<volcart::Point3d> cloud,
+    volcart::OrderedPointSet<cv::Vec3d> segmentPath(
+        std::vector<cv::Vec3d> cloud,
         int32_t startIndex,
         int32_t endIndex,
         int32_t numIters,

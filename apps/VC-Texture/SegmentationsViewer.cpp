@@ -9,6 +9,8 @@
 // University of Kentucky VisCenter
 //----------------------------------------------------------------------------------------------------------------------------------------
 
+#include <opencv2/imgproc.hpp>
+
 #include "SegmentationsViewer.h"
 
 SegmentationsViewer::SegmentationsViewer(
@@ -254,7 +256,7 @@ bool SegmentationsViewer::loadImage(cv::Mat texture)
         } else {
             // Convert to QPixMap and Display
             texture.convertTo(texture, CV_8U, 255.0 / 65535.0);
-            cv::cvtColor(texture, texture, CV_GRAY2RGB);
+            cv::cvtColor(texture, texture, cv::COLOR_GRAY2RGB);
 
             QImage Image(
                 texture.data, texture.cols, texture.rows, texture.step,

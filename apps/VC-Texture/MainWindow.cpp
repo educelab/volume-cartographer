@@ -9,10 +9,10 @@
 // University of Kentucky VisCenter
 //----------------------------------------------------------------------------------------------------------------------------------------
 
-#include "MainWindow.h"
-
 #include <boost/algorithm/string/case_conv.hpp>
+#include <opencv2/imgcodecs.hpp>
 
+#include "MainWindow.h"
 #include "core/io/OBJWriter.h"
 
 // Volpkg version required byt this app

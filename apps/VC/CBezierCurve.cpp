@@ -2,6 +2,8 @@
 // Chao Du 2015 April
 #include "CBezierCurve.h"
 
+#include <opencv2/imgproc.hpp>
+
 //#define _DEBUG
 
 using namespace ChaoVis;

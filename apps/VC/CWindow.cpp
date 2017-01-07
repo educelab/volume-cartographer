@@ -1,6 +1,9 @@
 // CWindow.cpp
 // Chao Du 2014 Dec
 #include "CWindow.h"
+
+#include <opencv2/imgproc.hpp>
+
 #include "CVolumeViewerWithCurve.h"
 #include "UDataManipulateUtils.h"
 #include "core/types/Exceptions.h"
@@ -450,8 +453,7 @@ void CWindow::SplitCloud(void)
     if (fPathOnSliceIndex > fMinSegIndex) {
         fUpperPart = fMasterCloud.copyRows(0, pathIndex - 1);
     } else {
-        fUpperPart =
-            volcart::OrderedPointSet<volcart::Point3d>(fMasterCloud.width());
+        fUpperPart = volcart::OrderedPointSet<cv::Vec3d>(fMasterCloud.width());
     }
 
     // Lower part, the starting path
@@ -461,7 +463,7 @@ void CWindow::SplitCloud(void)
     fStartingPath.erase(
         std::remove_if(
             std::begin(fStartingPath), std::end(fStartingPath),
-            [](volcart::Point3d e) { return e[2] == -1; }),
+            [](auto e) { return e[2] == -1; }),
         std::end(fStartingPath));
 
     // Make sure the sizes match now
@@ -637,7 +639,7 @@ void CWindow::OpenSlice(void)
     if (fVpkg != nullptr) {
         aImgMat = fVpkg->volume().getSliceDataCopy(fPathOnSliceIndex);
         aImgMat.convertTo(aImgMat, CV_8UC3, 1.0 / 256.0);
-        cvtColor(aImgMat, aImgMat, CV_GRAY2BGR);
+        cvtColor(aImgMat, aImgMat, cv::COLOR_GRAY2BGR);
     } else
         aImgMat = cv::Mat::zeros(10, 10, CV_8UC3);
 
@@ -667,9 +669,9 @@ void CWindow::SetPathPointCloud(void)
     std::vector<cv::Vec2f> aSamplePts;
     fSplineCurve.GetSamplePoints(aSamplePts);
 
-    volcart::Point3d point;
+    cv::Vec3d point;
     fMasterCloud.setWidth(aSamplePts.size());
-    std::vector<volcart::Point3d> points;
+    std::vector<cv::Vec3d> points;
     for (size_t i = 0; i < aSamplePts.size(); ++i) {
         point[0] = aSamplePts[i][0];
         point[1] = aSamplePts[i][1];
@@ -1118,7 +1120,7 @@ void CWindow::OnPathChanged(void)
     if (fWindowState == EWindowState::WindowStateSegmentation) {
         // update current slice
         fStartingPath.clear();
-        volcart::Point3d tempPt;
+        cv::Vec3d tempPt;
         for (size_t i = 0; i < fIntersectionCurve.GetPointsNum(); ++i) {
             tempPt[0] = fIntersectionCurve.GetPoint(i)[0];
             tempPt[1] = fIntersectionCurve.GetPoint(i)[1];

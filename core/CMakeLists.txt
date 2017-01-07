@@ -19,6 +19,7 @@ set(srcs
     src/VolumePkg.cpp
 )
 
+message("OpenCV3 libs: ${OpenCV_LIBS}")
 add_library(${target} ${srcs})
 target_include_directories(${target}
     PUBLIC
@@ -29,8 +30,8 @@ target_link_libraries(${target}
     PUBLIC
         Boost::filesystem
         opencv_core
-        opencv_highgui
         opencv_imgproc
+        opencv_imgcodecs
         ITKCommon
         ITKMesh
         ITKQuadEdgeMesh
@@ -63,7 +64,6 @@ set(test_srcs
     test/PointSetIOTest.cpp
     test/OrderedPointSetTest.cpp
     test/OrderedPointSetIOTest.cpp
-    test/PointTest.cpp
     test/PLYReaderTest.cpp
     test/FloatComparisonTest.cpp
     test/PerPixelMapTest.cpp

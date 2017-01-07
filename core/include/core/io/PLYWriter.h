@@ -8,7 +8,6 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
-#include <opencv2/opencv.hpp>
 
 #include "core/types/Texture.h"
 #include "core/vc_defines.h"

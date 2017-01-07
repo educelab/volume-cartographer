@@ -1,12 +1,13 @@
 /** @file volumepkg.cpp */
 
 #include <boost/range/iterator_range.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/imgcodecs.hpp>
 
 #include "core/io/OBJWriter.h"
 #include "core/io/PLYWriter.h"
 #include "core/io/PointSetIO.h"
 #include "core/types/OrderedPointSet.h"
-#include "core/types/Point.h"
 #include "core/types/VolumePkg.h"
 
 namespace fs = boost::filesystem;
@@ -157,11 +158,11 @@ std::string VolumePkg::getActiveSegmentation() { return activeSeg; };
 fs::path VolumePkg::getActiveSegPath() { return segs_dir / activeSeg; }
 
 // Return the point cloud currently on disk for the activeSegmentation
-volcart::OrderedPointSet<volcart::Point3d> VolumePkg::openCloud() const
+volcart::OrderedPointSet<cv::Vec3d> VolumePkg::openCloud() const
 {
     // TODO: Error if activeSeg not set
     auto outputName = segs_dir / activeSeg / "pointset.vcps";
-    return volcart::PointSetIO<volcart::Point3d>::ReadOrderedPointSet(
+    return volcart::PointSetIO<cv::Vec3d>::ReadOrderedPointSet(
         outputName.string());
 }
 
@@ -180,11 +181,11 @@ cv::Mat VolumePkg::getTextureData() const
 
 // Save a point cloud back to the volumepkg
 int VolumePkg::saveCloud(
-    const volcart::OrderedPointSet<volcart::Point3d>& segmentedCloud) const
+    const volcart::OrderedPointSet<cv::Vec3d>& segmentedCloud) const
 {
     auto outputName = segs_dir / activeSeg / "pointset.vcps";
     std::cerr << "volcart::volpkg::Writing point cloud to file..." << std::endl;
-    volcart::PointSetIO<volcart::Point3d>::WriteOrderedPointSet(
+    volcart::PointSetIO<cv::Vec3d>::WriteOrderedPointSet(
         outputName.string(), segmentedCloud);
     std::cerr << "volcart::volpkg::Point cloud saved." << std::endl;
     return EXIT_SUCCESS;
@@ -233,12 +234,16 @@ volcart::Metadata VolumePkg::_initConfig(
         }
 
         // Default values
-        if (entry.second == "int") {
-            config.set(entry.first, int{});
-        } else if (entry.second == "double") {
-            config.set(entry.first, double{});
-        } else {
-            config.set(entry.first, std::string{});
+        switch (entry.second) {
+            case volcart::Type::INT:
+                config.set(entry.first, int{});
+                break;
+            case volcart::Type::DOUBLE:
+                config.set(entry.first, double{});
+                break;
+            case volcart::Type::STRING:
+                config.set(entry.first, std::string{});
+                break;
         }
     }
 

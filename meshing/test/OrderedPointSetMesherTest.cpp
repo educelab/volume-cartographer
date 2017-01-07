@@ -5,9 +5,10 @@
 #define BOOST_TEST_MODULE OrderedResampling
 
 #include <boost/test/unit_test.hpp>
+#include <opencv2/core.hpp>
+
 #include "core/io/OBJWriter.h"
 #include "core/types/OrderedPointSet.h"
-#include "core/types/Point.h"
 #include "core/vc_defines.h"
 #include "meshing/OrderedPointSetMesher.h"
 #include "testing/ParsingHelpers.h"
@@ -47,7 +48,7 @@ struct OrderedPlaneFixture {
         volcart::testing::ParsingHelpers::parseObjFile(
             "OrderedPointSetMesher_Plane.obj", _SavedPoints, _SavedCells);
     }
-    OrderedPointSet<Point3d> _Plane;
+    OrderedPointSet<cv::Vec3d> _Plane;
     ITKMesh::Pointer _out_Mesh;
     std::vector<Vertex> _SavedPoints;
     std::vector<Cell> _SavedCells;
@@ -85,7 +86,7 @@ struct OrderedArchFixture {
         volcart::testing::ParsingHelpers::parseObjFile(
             "OrderedPointSetMesher_Arch.obj", _SavedPoints, _SavedCells);
     }
-    OrderedPointSet<Point3d> _Arch;
+    OrderedPointSet<cv::Vec3d> _Arch;
     ITKMesh::Pointer _out_Mesh;
     std::vector<Vertex> _SavedPoints;
     std::vector<Cell> _SavedCells;
