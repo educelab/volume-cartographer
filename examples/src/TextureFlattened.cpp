@@ -91,8 +91,9 @@ int main(int /*argc*/, char* argv[])
         result.texture().image(0));
     objwriter.write();
 
-    if (result.texture().mask().data)
+    if (result.texture().mask().data) {
         cv::imwrite("PerPixelMask.png", result.texture().mask());
+    }
 
     if (result.texture().ppm().initialized()) {
         volcart::PerPixelMap::WritePPM(
