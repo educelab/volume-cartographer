@@ -8,7 +8,7 @@ import tarfile
 import tempfile
 import urllib.request
 from distutils.version import LooseVersion
-from typing import Any, Dict, Iterator, List, Pattern, Union
+from typing import Any, Dict, Iterator, List, Pattern, Union, Generator
 
 # URL location of the 'cached' copy of clang-format to download
 # for users which do not have clang-format installed
@@ -39,10 +39,9 @@ def callo(cmd: Union[List[str], str], **kwargs: Any) -> str:
     return subprocess.check_output(cmd, **kwargs).decode('utf-8').strip()
 
 
-def changed_files(filter_regex: str=r'') -> List[str]:
+def changed_files() -> Generator[str, None, None]:
     '''
-    Determines all changed files from prior commit to HEAD. Optionally filters
-    based on `filter_regex`.
+    Determines all changed files from prior commit to HEAD.
     '''
     current_branch = callo('git rev-parse --abbrev-ref @')
     develop = 'origin/develop'
@@ -55,6 +54,14 @@ def changed_files(filter_regex: str=r'') -> List[str]:
         status, source_file = line.split('\t')
         if status != 'D':
             yield source_file
+
+
+def all_files() -> Generator[str, None, None]:
+    '''
+    Lists all project files under version control.
+    '''
+    for f in callo('git ls-files').split():
+        yield f
 
 
 def fetch_clang_binary(

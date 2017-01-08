@@ -40,7 +40,12 @@ class ClangTidier:
         lines = common.callo([self.path, '--version']).split('\n')
         return LooseVersion(lines[1].split()[2])
 
-    def lint(self, source_file: str, print_output: bool=False) -> bool:
+    def lint(
+        self,
+        source_file: str,
+        print_output: bool=False,
+        fix: bool=False,
+    ) -> bool:
         '''
         Lints a given C++ `source_file` (as in ending in .cpp) with clang-tidy.
         '''
@@ -50,12 +55,13 @@ class ClangTidier:
             return True
 
         compile_commands_dir = os.path.join(self.toplevel, self.build_dir)
-        cmd = [
-            self.path,
+        args = [
             f'-p={compile_commands_dir}',
             '-config=',
-            source_file,
         ]
+        if fix:
+            args.append('-fix')
+        cmd = [self.path] + args + [source_file]
         logging.debug(f'cmd: {" ".join(cmd)}')
         tidy_out = common.callo(cmd, stderr=subprocess.DEVNULL)
 
@@ -95,6 +101,19 @@ def parse_arguments() -> argparse.Namespace:
         help='Build dir containing compile_commands.json',
     )
     parser.add_argument(
+        '-A',
+        '--all-files',
+        help='Operate on all files under revision control',
+        default=False,
+        action='store_true',
+    )
+    parser.add_argument(
+        '--fix',
+        help='Fix suggestions according to clang-tidy',
+        default=False,
+        action='store_true',
+    )
+    parser.add_argument(
         '-v',
         '--verbose',
         default=False,
@@ -129,7 +148,8 @@ def main() -> bool:
     # clang-tidy operates only on c/cpp files (h/hpp files are linted
     # transitively). Only check c/cpp files.
     cpp_files = re.compile(r'\.(c|cpp|cc|cxx)$')
-    changes = [f for f in common.changed_files() if re.search(cpp_files, f)]
+    files = common.all_files() if args.all_files else common.changed_files()
+    changes = [f for f in files if re.search(cpp_files, f)]
 
     # Validate each with clang-tidy in parallel
     with mp.Pool(nprocs) as pool:
@@ -137,7 +157,7 @@ def main() -> bool:
             pool.apply_async(
                 ct.lint,
                 args=(f,),
-                kwds=dict(print_output=args.print_output),
+                kwds=dict(print_output=args.print_output, fix=args.fix),
             ) for f in changes
         ]
 

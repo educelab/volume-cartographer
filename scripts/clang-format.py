@@ -81,6 +81,13 @@ def parse_arguments() -> argparse.Namespace:
         action='store_true',
     )
     parser.add_argument(
+        '-A',
+        '--all-files',
+        help='Operate on all files under revision control',
+        default=False,
+        action='store_true',
+    )
+    parser.add_argument(
         '-v',
         '--verbose',
         help='Increase logging',
@@ -112,9 +119,10 @@ def main() -> bool:
         )
         sys.exit(1)
 
-    # Find changed source files from last common ancestor with develop.
+    # Find changed source files.
     source_files = re.compile(r'\.(h|hpp|c|cpp)$')
-    changes = [f for f in common.changed_files() if re.search(source_files, f)]
+    files = common.all_files() if args.all_files else common.changed_files
+    changes = [f for f in files if re.search(source_files, f)]
 
     # Validate each with clang-format
     return all(cf.lint(f, print_output=args.print_output) for f in changes)
