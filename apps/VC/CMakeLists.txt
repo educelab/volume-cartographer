@@ -4,13 +4,13 @@ set(target VC)
 set(srcs
     CSimpleNumEditBox.cpp
     VCAppMain.cpp
-	CMesh.cpp
+    CMesh.cpp
     CWindow.cpp
-	CXCurve.cpp
-	UDataManipulateUtils.cpp
+    CXCurve.cpp
+    UDataManipulateUtils.cpp
     CVolumeViewer.cpp
-	CVolumeViewerWithCurve.cpp
-	CBSpline.cpp
+    CVolumeViewerWithCurve.cpp
+    CBSpline.cpp
     CBezierCurve.cpp
 )
 
