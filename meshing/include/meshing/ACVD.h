@@ -8,8 +8,8 @@
 #include <vtkPolyDataNormals.h>
 #include "vtkIsotropicDiscreteRemeshing.h"
 
+#include "ITK2VTK.h"
 #include "core/vc_defines.h"
-#include "itk2vtk.h"
 
 namespace volcart
 {

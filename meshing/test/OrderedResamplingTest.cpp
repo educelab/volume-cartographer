@@ -9,8 +9,8 @@
 #include "core/shapes/Plane.h"
 #include "core/vc_defines.h"
 #include "meshing/OrderedResampling.h"
-#include "testing/parsingHelpers.h"
-#include "testing/testingUtils.h"
+#include "testing/ParsingHelpers.h"
+#include "testing/TestingUtils.h"
 
 using namespace volcart;
 

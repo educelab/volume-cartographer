@@ -12,13 +12,13 @@ endif()
 #################
 
 ## Mesher ##
-add_executable(vc_mesher src/mesher.cpp)
+add_executable(vc_mesher src/Mesher.cpp)
 target_link_libraries(vc_mesher
     VC::meshing
 )
 
 ## Packager ##
-add_executable(vc_packager src/packager.cpp src/SliceImage.cpp)
+add_executable(vc_packager src/Packager.cpp src/SliceImage.cpp)
 target_link_libraries(vc_packager
     VC::core
     Boost::filesystem
@@ -28,7 +28,7 @@ target_link_libraries(vc_packager
 target_include_directories(vc_packager PUBLIC include)
 
 ## Segment ##
-add_executable(vc_segment src/segment.cpp)
+add_executable(vc_segment src/Segment.cpp)
 target_link_libraries(vc_segment
     VC::core
     VC::segmentation
@@ -37,7 +37,7 @@ target_link_libraries(vc_segment
 )
 
 ## Rendering ##
-add_executable(vc_render src/render.cpp)
+add_executable(vc_render src/Render.cpp)
 target_link_libraries(vc_render
     VC::core
     VC::texturing
@@ -47,7 +47,7 @@ target_link_libraries(vc_render
 )
 
 ## Metadata Editor ##
-add_executable(vc_metaedit src/metadata.cpp)
+add_executable(vc_metaedit src/Metadata.cpp)
 target_link_libraries(vc_metaedit
     VC::core
     Boost::program_options
@@ -56,11 +56,13 @@ target_link_libraries(vc_metaedit
 
 ## Slice Projection ##
 # Old
-add_executable(vc_projection src/projection.cpp)
-target_link_libraries(vc_projection VC::core)
+add_executable(vc_projection src/Projection.cpp)
+target_link_libraries(vc_projection
+    VC::core
+)
 
 # New
-add_executable(vc_projection2 src/projection2.cpp)
+add_executable(vc_projection2 src/Projection2.cpp)
 target_link_libraries(vc_projection2
     VC::core
     vtkCommonCore
@@ -71,7 +73,7 @@ target_link_libraries(vc_projection2
 
 ## Cloth Flattening ##
 if (VC_USE_BULLET)
-    add_executable(vc_cloth src/cloth.cpp)
+    add_executable(vc_cloth src/Cloth.cpp)
     target_link_libraries(vc_cloth
         VC::core
         VC::meshing

@@ -6,7 +6,7 @@
 
 #include <opencv2/core.hpp>
 
-#include "mathUtils.h"
+#include "MathUtils.h"
 
 namespace ChaoVis
 {

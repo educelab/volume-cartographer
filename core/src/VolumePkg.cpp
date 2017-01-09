@@ -4,9 +4,9 @@
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 
+#include "core/io/OBJWriter.h"
+#include "core/io/PLYWriter.h"
 #include "core/io/PointSetIO.h"
-#include "core/io/objWriter.h"
-#include "core/io/plyWriter.h"
 #include "core/types/OrderedPointSet.h"
 #include "core/types/VolumePkg.h"
 
@@ -195,7 +195,7 @@ int VolumePkg::saveMesh(const volcart::ITKMesh::Pointer mesh) const
 {
     fs::path outputName = segs_dir / activeSeg / "cloud.ply";
     // Creates a PLY writer type and then writes the mesh out to the file
-    volcart::io::plyWriter writer(outputName, mesh);
+    volcart::io::PLYWriter writer(outputName, mesh);
     writer.write();
     return EXIT_SUCCESS;
 }
@@ -205,7 +205,7 @@ void VolumePkg::saveMesh(
 {
     // Creates an OBJ writer type and then writes the mesh and the texture out
     // to the file
-    volcart::io::objWriter writer;
+    volcart::io::OBJWriter writer;
     auto meshPath = segs_dir / activeSeg / "textured.obj";
     writer.setPath(meshPath);
     writer.setMesh(mesh);

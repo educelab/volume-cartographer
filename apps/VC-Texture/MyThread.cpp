@@ -11,12 +11,12 @@
 //----------------------------------------------------------------------------------------------------------------------------------------
 
 #include "MyThread.h"
+#include "core/io/OBJWriter.h"
 #include "core/io/PLYReader.h"
-#include "core/io/objWriter.h"
 
 namespace fs = boost::filesystem;
 
-MyThread::MyThread(Global_Values* globals)
+MyThread::MyThread(GlobalValues* globals)
 {
     _globals = globals;
     _globals->setThreadStatus(ThreadStatus::Active);  // Status Running/Active
@@ -53,7 +53,7 @@ void MyThread::run()
 
         // Calculate sampling density
         double voxelsize = _globals->getVolPkg()->getVoxelSize();
-        double sa = volcart::meshMath::SurfaceArea(mesh) *
+        double sa = volcart::meshmath::SurfaceArea(mesh) *
                     (voxelsize * voxelsize) *
                     (0.001 * 0.001);  // convert vx^2 -> mm^2;
         double densityFactor = 50;
@@ -65,7 +65,7 @@ void MyThread::run()
 
         // Convert to polydata
         auto vtkMesh = vtkSmartPointer<vtkPolyData>::New();
-        volcart::meshing::itk2vtk(mesh, vtkMesh);
+        volcart::meshing::ITK2VTK(mesh, vtkMesh);
 
         // Decimate using ACVD
         std::cout << "Resampling mesh..." << std::endl;

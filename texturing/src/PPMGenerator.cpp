@@ -2,7 +2,7 @@
 // Created by Seth on 11/3/16.
 //
 
-#include <exception>
+#include <stdexcept>
 
 #include "core/util/FloatComparison.h"
 #include "texturing/PPMGenerator.h"

@@ -5,7 +5,7 @@
 
 #include "CVectorN.h"
 #include "HBase.h"
-#include "mathUtils.h"
+#include "MathUtils.h"
 
 #include <stdio.h>
 #include <string.h>

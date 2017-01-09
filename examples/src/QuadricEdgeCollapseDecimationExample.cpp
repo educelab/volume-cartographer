@@ -4,7 +4,7 @@
 #ifdef VC_USE_VCGLIB
 
 #include <iostream>
-#include "core/io/objWriter.h"
+#include "core/io/OBJWriter.h"
 #include "core/shapes/Arch.h"
 #include "core/shapes/Cone.h"
 #include "core/shapes/Cube.h"
@@ -17,7 +17,7 @@
 int main()
 {
     volcart::meshing::QuadricEdgeCollapseDecimation Resampler;
-    volcart::io::objWriter writer;
+    volcart::io::OBJWriter writer;
 
     // Plane
     volcart::shapes::Plane plane(10, 10);

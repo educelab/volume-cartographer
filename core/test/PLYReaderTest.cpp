@@ -4,21 +4,21 @@
 #include <boost/test/unit_test_log.hpp>
 
 #include "core/io/PLYReader.h"
-#include "core/io/plyWriter.h"
+#include "core/io/PLYWriter.h"
 #include "core/shapes/Arch.h"
 #include "core/shapes/Cone.h"
 #include "core/shapes/Plane.h"
 #include "core/shapes/Sphere.h"
 #include "core/vc_defines.h"
-#include "testing/parsingHelpers.h"
-#include "testing/testingUtils.h"
+#include "testing/ParsingHelpers.h"
+#include "testing/TestingUtils.h"
 
 struct ReadITKPlaneMeshFixture {
     ReadITKPlaneMeshFixture()
     {
         _in_PlaneMesh = _Plane.itkMesh();
 
-        volcart::io::plyWriter writer("PLYReader_plane.ply", _in_PlaneMesh);
+        volcart::io::PLYWriter writer("PLYReader_plane.ply", _in_PlaneMesh);
         writer.write();
     }
 
@@ -32,7 +32,7 @@ struct ReadITKArchMeshFixture {
     {
         _in_ArchMesh = _Arch.itkMesh();
 
-        volcart::io::plyWriter writer("PLYReader_arch.ply", _in_ArchMesh);
+        volcart::io::PLYWriter writer("PLYReader_arch.ply", _in_ArchMesh);
         writer.write();
 
         volcart::testing::ParsingHelpers::parsePlyFile(
@@ -52,7 +52,7 @@ struct ReadITKConeMeshFixture {
     {
         _in_ConeMesh = _Cone.itkMesh();
 
-        volcart::io::plyWriter writer("PLYReader_cone.ply", _in_ConeMesh);
+        volcart::io::PLYWriter writer("PLYReader_cone.ply", _in_ConeMesh);
         writer.write();
     }
 
@@ -66,7 +66,7 @@ struct ReadITKSphereMeshFixture {
     {
         _in_SphereMesh = _Sphere.itkMesh();
 
-        volcart::io::plyWriter writer("PLYReader_sphere.ply", _in_SphereMesh);
+        volcart::io::PLYWriter writer("PLYReader_sphere.ply", _in_SphereMesh);
         writer.write();
     }
 

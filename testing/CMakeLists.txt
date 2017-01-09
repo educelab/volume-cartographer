@@ -3,7 +3,7 @@ set(module "testing")
 set(target "vc_${module}")
 
 set(srcs
-    src/parsingHelpers.cpp
+    src/ParsingHelpers.cpp
 )
 set(defs "")
 
