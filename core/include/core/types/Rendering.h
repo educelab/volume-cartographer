@@ -18,7 +18,6 @@ public:
     ///// Constructors/Destructors /////
     Rendering();                              // make new
     Rendering(boost::filesystem::path path);  // load from disk
-    ~Rendering();
 
     ///// Metadata /////
     volcart::Metadata metadata() const;

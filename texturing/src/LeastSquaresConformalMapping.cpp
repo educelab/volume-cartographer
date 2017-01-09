@@ -1,3 +1,5 @@
+#include <cmath>
+
 #include <igl/boundary_loop.h>
 #include <igl/doublearea.h>
 #include <igl/lscm.h>
@@ -16,7 +18,7 @@ LeastSquaresConformalMapping::LeastSquaresConformalMapping(
     : _mesh(input)
 {
     _fillEigenMatrices();
-};
+}
 
 ///// Input/Output /////
 // Set input mesh
@@ -35,7 +37,7 @@ ITKMesh::Pointer LeastSquaresConformalMapping::getMesh()
 
     // Update the point positions
     ITKPoint p;
-    for (unsigned long i = 0; i < _vertices_UV.rows(); ++i) {
+    for (int64_t i = 0; i < _vertices_UV.rows(); ++i) {
         p[0] = _vertices_UV(i, 0);
         p[1] = 0;
         p[2] = _vertices_UV(i, 1);
@@ -43,7 +45,6 @@ ITKMesh::Pointer LeastSquaresConformalMapping::getMesh()
     }
 
     // To-do: Recompute normals
-
     return output;
 }
 
@@ -101,7 +102,7 @@ void LeastSquaresConformalMapping::compute()
     Eigen::VectorXi bnd, b(2, 1);
     igl::boundary_loop(_faces, bnd);
     b(0) = bnd(0);
-    b(1) = bnd(round(bnd.size() / 2));
+    b(1) = bnd(std::lround(bnd.size() / 2));
     Eigen::MatrixXd bc(2, 2);
     bc << 0, 0, 1, 1;
 

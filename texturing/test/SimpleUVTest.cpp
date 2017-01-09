@@ -20,7 +20,7 @@ using namespace volcart;
  *  The ultimate goal of this file is the following: *
  *                                                                                     *
  *    Confirm that a uvMap created from mesh encodes the pointIDs of the *
- *    mesh in <u,v> coords. *
+ *    mesh in u,v coords. *
  *                                                                                     *
  *  This file is broken up into a test fixture which initializes the objects *
  *  used in each of the test cases. *

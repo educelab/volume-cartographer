@@ -14,13 +14,13 @@ endif()
 ## Mesher ##
 add_executable(vc_mesher src/Mesher.cpp)
 target_link_libraries(vc_mesher
-    vc_meshing
+    VC::meshing
 )
 
 ## Packager ##
 add_executable(vc_packager src/Packager.cpp src/SliceImage.cpp)
 target_link_libraries(vc_packager
-    vc_core
+    VC::core
     Boost::filesystem
     Boost::program_options
 )
@@ -30,37 +30,41 @@ target_include_directories(vc_packager PUBLIC include)
 ## Segment ##
 add_executable(vc_segment src/Segment.cpp)
 target_link_libraries(vc_segment
-    vc_core
-    vc_segmentation
-    vc_meshing
+    VC::core
+    VC::segmentation
+    VC::meshing
     Boost::program_options
 )
 
 ## Rendering ##
 add_executable(vc_render src/Render.cpp)
 target_link_libraries(vc_render
-    vc_core
-    vc_texturing
-    vc_meshing
+    VC::core
+    VC::texturing
+    VC::meshing
     Boost::filesystem
     Boost::program_options
 )
 
 ## Metadata Editor ##
 add_executable(vc_metaedit src/Metadata.cpp)
-target_link_libraries(vc_metaedit vc_core Boost::program_options Boost::filesystem)
+target_link_libraries(vc_metaedit
+    VC::core
+    Boost::program_options
+    Boost::filesystem
+)
 
 ## Slice Projection ##
 # Old
 add_executable(vc_projection src/Projection.cpp)
 target_link_libraries(vc_projection
-    vc_core
+    VC::core
 )
 
 # New
 add_executable(vc_projection2 src/Projection2.cpp)
 target_link_libraries(vc_projection2
-    vc_core
+    VC::core
     vtkCommonCore
     vtkCommonDataModel
     vtkFiltersGeneral
@@ -71,9 +75,9 @@ target_link_libraries(vc_projection2
 if (VC_USE_BULLET)
     add_executable(vc_cloth src/Cloth.cpp)
     target_link_libraries(vc_cloth
-        vc_core
-        vc_meshing
-        vc_texturing
+        VC::core
+        VC::meshing
+        VC::texturing
         Boost::program_options
         ${BULLET_LIBRARIES}
     )

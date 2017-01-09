@@ -39,15 +39,10 @@ private:
     T val[2];
 
 public:
-    Vec2(void)
+    Vec2()
     {
         val[0] = T(0);
         val[1] = T(0);
-    }
-    Vec2(const Vec2& nCopy)
-    {
-        val[0] = nCopy[0];
-        val[1] = nCopy[1];
     }
     Vec2(T v1, T v2)
     {
@@ -612,31 +607,6 @@ inline Mat33<T> Inverse(const Mat33<T>& nSrc)
     return aResult;
 }
 
-// inverse 4x4
-template <typename T>
-Mat44<T> Inverse(const Mat44<T>& nSrc)
-{
-    Mat44<T> aResult;
-    // T aDeterminant = nSrc[ 0 ][ 0 ] * nSrc[ 1 ][ 1 ] - nSrc[ 0 ][ 1 ] * nSrc[
-    // 1 ][ 0 ];
-
-    // if ( fabs( aDeterminant ) < TOO_SMALL ) {
-    //	printf( "ERROR: division by zero when invert a matrix\n" );
-    //	exit( -1 );
-    //}
-
-    // aResult[ 0 ][ 0 ] = nSrc[ 0 ][ 0 ] / aDeterminant; aResult[ 0 ][ 1 ] =
-    // -nSrc[ 0 ][ 1 ] / aDeterminant;
-    // aResult[ 1 ][ 0 ] = -nSrc[ 1 ][ 0 ] / aDeterminant; aResult[ 1 ][ 1 ] =
-    // nSrc[ 0 ][ 0 ] / aDeterminant;
-
-    // REVISIT - Chao 20141204 - FILL ME HERE, not implemented
-    // for A = [ R, t; 0, 1 ], A^-1 = [ R^-1, -R^-1 * t; 0, 1 ]
-    printf("ERROR: matrix 4x4 inversion not implemented\n");
-
-    return aResult;
-}
-
 // compose R (3x3) and t (3x1) into one matrix (4x4)
 template <typename T>
 Mat44<T> ComposeRT(const Mat33<T>& nR, const Vec3<T>& nT)
@@ -649,8 +619,8 @@ Mat44<T> ComposeRT(const Mat33<T>& nR, const Vec3<T>& nT)
         }
         aResult[i][3] = nT[i];
     }
-    aResult[3][0] = aResult[3][1] = aResult[3][2] = (T)(0.0);
-    aResult[3][0] = (T)(1.0);
+    aResult[3][0] = aResult[3][1] = aResult[3][2] = static_cast<T>(0.0);
+    aResult[3][0] = static_cast<T>(1.0);
 
     return aResult;
 }

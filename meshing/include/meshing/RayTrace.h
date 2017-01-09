@@ -28,7 +28,7 @@ namespace meshing
  *
  * @ingroup Meshing
  *
- * @param itkMesh
+ * @param itkMesh Mesh to resample
  * @param aTraceDir Rotation direction (1 for clockwise)
  * @param width Number of rotational samples
  * @param height Number of vertical samples

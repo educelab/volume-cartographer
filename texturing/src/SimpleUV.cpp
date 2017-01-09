@@ -16,8 +16,8 @@ volcart::UVMap simpleUV(ITKMesh::Pointer mesh, int width, int height)
     double u, v;
 
     // Account for zero indexing of points
-    double maxIndexX = (double)(width - 1);
-    double maxIndexY = (double)(height - 1);
+    auto maxIndexX = static_cast<double>(width - 1);
+    auto maxIndexY = static_cast<double>(height - 1);
 
     // Generate UV coord for each point in mesh
     ITKPointIterator point = mesh->GetPoints()->Begin();
@@ -33,8 +33,8 @@ volcart::UVMap simpleUV(ITKMesh::Pointer mesh, int width, int height)
         ArrayY = (pointID - ArrayX) / width;
 
         // Calculate the point's UV position
-        u = (double)ArrayX / maxIndexX;
-        v = (double)ArrayY / maxIndexY;
+        u = static_cast<double>(ArrayX) / maxIndexX;
+        v = static_cast<double>(ArrayY) / maxIndexY;
 
         cv::Vec2d uv(u, v);
 

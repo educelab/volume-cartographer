@@ -16,9 +16,8 @@
 #include "core/shapes/Plane.h"
 #include "texturing/AngleBasedFlattening.h"
 
-int main(int argc, char* argv[])
+int main()
 {
-
     // Create the mesh writer
     volcart::io::OBJWriter mesh_writer;
 

@@ -11,7 +11,7 @@
 #include "texturing/CompositeTextureV2.h"
 #include "texturing/SimpleUV.h"
 
-int main(int argc, char* argv[])
+int main(int /*argc*/, char* argv[])
 {
 
     VolumePkg vpkg(argv[1]);

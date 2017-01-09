@@ -60,9 +60,9 @@ ClothModelingUVMapping::ClothModelingUVMapping(
     PinIDs expansionPins)
     : _mesh(input)
     , _unfurlIterations(unfurlIterations)
+    , _unfurlPins(unfurlPins)
     , _collideIterations(collideIterations)
     , _expandIterations(expandIterations)
-    , _unfurlPins(unfurlPins)
     , _expansionPins(expansionPins)
 {
     // Default starting parameters
@@ -110,8 +110,10 @@ ClothModelingUVMapping::ClothModelingUVMapping(
     maxDim = (maxDim < max.getZ()) ? max.getZ() : maxDim;
 
     _meshToWorldScale = 80 / maxDim;
-    _softBody->scale(
-        btVector3(_meshToWorldScale, _meshToWorldScale, _meshToWorldScale));
+    _softBody->scale(btVector3(
+        static_cast<float>(_meshToWorldScale),
+        static_cast<float>(_meshToWorldScale),
+        static_cast<float>(_meshToWorldScale)));
     _startingSurfaceArea = _SurfaceArea();
 
     // Set the mass for the whole cloth
@@ -123,7 +125,7 @@ ClothModelingUVMapping::ClothModelingUVMapping(
     _softBody->randomizeConstraints();
     _softBody->updateNormals();
     _World->addSoftBody(_softBody);
-};
+}
 
 // Destructor
 ClothModelingUVMapping::~ClothModelingUVMapping()
@@ -176,7 +178,6 @@ volcart::UVMap ClothModelingUVMapping::getUVMap()
     // Scale width and height back to volume coordinates
     double aspect_width = std::abs(max_u - min_u) * (1 / _meshToWorldScale);
     double aspect_height = std::abs(max_v - min_v) * (1 / _meshToWorldScale);
-    double aspect = aspect_width / aspect_height;
 
     volcart::UVMap uvMap;
     uvMap.ratio(aspect_width, aspect_height);
@@ -212,9 +213,9 @@ void ClothModelingUVMapping::_unfurl()
     // Set the simulation parameters
     _World->setInternalTickCallback(
         constrainMotionCallback, static_cast<void*>(this), true);
-    _World->setGravity(btVector3(_unfurlA, 0, 0));
+    _World->setGravity(btVector3(static_cast<float>(_unfurlA), 0.0f, 0.0f));
     _softBody->getWorldInfo()->m_gravity = _World->getGravity();
-    _softBody->m_cfg.kDP = 0.01;  // Damping coefficient of the soft body [0,1]
+    _softBody->m_cfg.kDP = 0.01f;  // Damping coefficient of the soft body [0,1]
     _softBody->m_materials[0]->m_kLST =
         1.0;  // Linear stiffness coefficient [0,1]
     _softBody->m_materials[0]->m_kAST =
@@ -243,12 +244,12 @@ void ClothModelingUVMapping::_collide()
     // Set the simulation parameters
     _World->setInternalTickCallback(
         axisLockCallback, static_cast<void*>(this), true);
-    _World->setGravity(btVector3(0, _collisionA, 0));
+    _World->setGravity(btVector3(0.0f, static_cast<float>(_collisionA), 0.0f));
     _collisionPlane->setFriction(0);  // (0-1] Default: 0.5
     _softBody->getWorldInfo()->m_gravity = _World->getGravity();
     _softBody->m_cfg.kDF =
-        0.1;  // Dynamic friction coefficient (0-1] Default: 0.2
-    _softBody->m_cfg.kDP = 0.01;  // Damping coefficient of the soft body [0,1]
+        0.1f;  // Dynamic friction coefficient (0-1] Default: 0.2
+    _softBody->m_cfg.kDP = 0.01f;  // Damping coefficient of the soft body [0,1]
 
     // Reset all pins to move
     for (auto n = 0; n < _softBody->m_nodes.size(); ++n) {
@@ -275,8 +276,8 @@ void ClothModelingUVMapping::_expand()
     _collisionPlane->setFriction(0);  // (0-1] Default: 0.5
     _softBody->getWorldInfo()->m_gravity = _World->getGravity();
     _softBody->m_cfg.kDF =
-        0.1;  // Dynamic friction coefficient (0-1] Default: 0.2
-    _softBody->m_cfg.kDP = 0.01;  // Damping coefficient of the soft body [0,1]
+        0.1f;  // Dynamic friction coefficient (0-1] Default: 0.2
+    _softBody->m_cfg.kDP = 0.01f;  // Damping coefficient of the soft body [0,1]
     _softBody->m_materials[0]->m_kLST =
         1.0;  // Linear stiffness coefficient [0,1]
     _softBody->m_materials[0]->m_kAST =
@@ -316,9 +317,9 @@ void ClothModelingUVMapping::_expand()
     // Relax the springs
     _World->setInternalTickCallback(
         axisLockCallback, static_cast<void*>(this), true);
-    _World->setGravity(btVector3(0, _expansionA, 0));
+    _World->setGravity(btVector3(0.0f, static_cast<float>(_expansionA), 0.0f));
     _softBody->getWorldInfo()->m_gravity = _World->getGravity();
-    _softBody->m_cfg.kDP = 0.1;
+    _softBody->m_cfg.kDP = 0.1f;
     int counter = 0;
     double relativeError = std::fabs(
         (_startingSurfaceArea - _SurfaceArea()) / _startingSurfaceArea);
@@ -356,9 +357,6 @@ void ClothModelingUVMapping::setAcceleration(Stage s, double a)
             break;
         case Stage::Expansion:
             _expansionA = a;
-            break;
-        default:
-            // Should not occur
             break;
     }
 };
@@ -411,7 +409,7 @@ double ClothModelingUVMapping::_SurfaceArea()
 
 ///// Callback Functions /////
 // Limits motion to be along the X axis only. Used in unfurl step.
-void ClothModelingUVMapping::_constrainMotion(btScalar timeStep)
+void ClothModelingUVMapping::_constrainMotion(btScalar /*timeStep*/)
 {
     for (auto n = 0; n < _softBody->m_nodes.size(); ++n) {
         btVector3 velocity = _softBody->m_nodes[n].m_v;
@@ -422,13 +420,13 @@ void ClothModelingUVMapping::_constrainMotion(btScalar timeStep)
 };
 // Apply opposite velocity to points that have "passed through" the collision
 // plane
-void ClothModelingUVMapping::_axisLock(btScalar timeStep)
+void ClothModelingUVMapping::_axisLock(btScalar /*timeStep*/)
 {
     for (auto n = 0; n < _softBody->m_nodes.size(); ++n) {
         btVector3 pos = _softBody->m_nodes[n].m_x;
         if (pos.getY() < 0.0) {
             btVector3 velocity = _softBody->m_nodes[n].m_v;
-            velocity.setY(velocity.getY() * -1.5);  // push it back some
+            velocity.setY(velocity.getY() * -1.5f);  // push it back some
             _softBody->m_nodes[n].m_v = velocity;
         }
     }
@@ -442,6 +440,6 @@ void ClothModelingUVMapping::_moveTowardTarget(btScalar timeStep)
     }
 };
 // This call back is used to disable other callbacks
-void ClothModelingUVMapping::_emptyPreTick(btScalar timeStep){
+void ClothModelingUVMapping::_emptyPreTick(btScalar /*timeStep*/){
     // Don't do anything
 };

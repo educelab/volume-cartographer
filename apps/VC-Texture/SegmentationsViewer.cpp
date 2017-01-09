@@ -296,7 +296,7 @@ void SegmentationsViewer::setSegmentations()
     std::vector<std::string> segments = _globals->getSegmentations();
     QString qstr;
 
-    for (int i = 0; i < _globals->getSegmentations().size(); i++) {
+    for (size_t i = 0; i < _globals->getSegmentations().size(); i++) {
         qstr = QString::fromStdString(segments[i]);
         segmentations->addItem(qstr);
     }

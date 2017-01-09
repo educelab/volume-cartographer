@@ -151,8 +151,8 @@ int main(int argc, char* argv[])
     volcart::UVMap uvMap = clothUV.getUVMap();
     int width, height;
 
-    width = std::ceil(uvMap.ratio().width);
-    height = std::ceil(uvMap.ratio().height);
+    width = static_cast<int>(std::ceil(uvMap.ratio().width));
+    height = static_cast<int>(std::ceil(uvMap.ratio().height));
 
     volcart::texturing::compositeTextureV2 result(
         mesh, vpkg, clothUV.getUVMap(), 7, width, height);

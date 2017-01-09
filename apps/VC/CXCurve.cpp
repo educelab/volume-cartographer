@@ -16,13 +16,10 @@ CXCurve::CXCurve(const CXCurve& nSrc)
     f3DPointsIndex = nSrc.f3DPointsIndex;
 }
 
-// Desctructor
-CXCurve::~CXCurve(void) {}
-
 // Change point position, use different weighting function
 void CXCurve::SetPointByDifference(
     int nIndex,
-    const Vec2<float>& nDiff,
+    const Vec2<double>& nDiff,
     double (*ImpactFunc)(double, double, double),
     int nImpactRange)
 {
@@ -31,16 +28,20 @@ void CXCurve::SetPointByDifference(
             SetPoint(
                 nIndex - i,
                 fLastState[nIndex - i] +
-                    nDiff * ImpactFunc(1.0, (double)i / nImpactRange, 1.0));
+                    nDiff *
+                        ImpactFunc(
+                            1.0, static_cast<double>(i) / nImpactRange, 1.0));
         }
         if (i == 0) {
             continue;
         }
-        if (nIndex + i < fPoints.size()) {
+        if (nIndex + i < static_cast<int>(fPoints.size())) {
             SetPoint(
                 nIndex + i,
                 fLastState[nIndex + i] +
-                    nDiff * ImpactFunc(1.0, (double)i / nImpactRange, 1.0));
+                    nDiff *
+                        ImpactFunc(
+                            1.0, static_cast<double>(i) / nImpactRange, 1.0));
         }
     }
 }

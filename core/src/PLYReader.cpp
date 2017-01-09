@@ -150,7 +150,6 @@ void PLYReader::_readFaces()
                     std::stoul(curFace[3]));
                 _faceList.push_back(face);
             }
-
         } else {
             if (curFace.size() != 3) {
                 auto msg = "Error: Not a Triangular Mesh";

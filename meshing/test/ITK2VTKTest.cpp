@@ -432,7 +432,8 @@ BOOST_FIXTURE_TEST_CASE(
     BOOST_CHECK_EQUAL(_out_Mesh->GetNumberOfPoints(), _SavedPoints.size());
 
     // Now iterate over point sets and compare coordinate and normal values
-    for (size_t pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints(); ++pnt_id) {
+    for (vtkIdType pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints();
+         ++pnt_id) {
         volcart::testing::SmallOrClose(
             _out_Mesh->GetPoint(pnt_id)[0], _SavedPoints[pnt_id].x);
         volcart::testing::SmallOrClose(
@@ -485,7 +486,8 @@ BOOST_FIXTURE_TEST_CASE(
     BOOST_CHECK_EQUAL(_out_Mesh->GetNumberOfPoints(), _SavedPoints.size());
 
     // Now iterate over point sets and compare coordinate and normal values
-    for (size_t pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints(); ++pnt_id) {
+    for (vtkIdType pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints();
+         ++pnt_id) {
         volcart::testing::SmallOrClose(
             _out_Mesh->GetPoint(pnt_id)[0], _SavedPoints[pnt_id].x);
         volcart::testing::SmallOrClose(
@@ -533,7 +535,8 @@ BOOST_FIXTURE_TEST_CASE(
     BOOST_CHECK_EQUAL(_out_Mesh->GetNumberOfPoints(), _SavedPoints.size());
 
     // Now iterate over point sets and compare coordinate and normal values
-    for (size_t pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints(); ++pnt_id) {
+    for (vtkIdType pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints();
+         ++pnt_id) {
         volcart::testing::SmallOrClose(
             _out_Mesh->GetPoint(pnt_id)[0], _SavedPoints[pnt_id].x);
         volcart::testing::SmallOrClose(
@@ -581,7 +584,8 @@ BOOST_FIXTURE_TEST_CASE(
     BOOST_CHECK_EQUAL(_out_Mesh->GetNumberOfPoints(), _SavedPoints.size());
 
     // Now iterate over point sets and compare coordinate and normal values
-    for (size_t pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints(); ++pnt_id) {
+    for (vtkIdType pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints();
+         ++pnt_id) {
         volcart::testing::SmallOrClose(
             _out_Mesh->GetPoint(pnt_id)[0], _SavedPoints[pnt_id].x);
         volcart::testing::SmallOrClose(
@@ -629,7 +633,8 @@ BOOST_FIXTURE_TEST_CASE(
     BOOST_CHECK_EQUAL(_out_Mesh->GetNumberOfPoints(), _SavedPoints.size());
 
     // Now iterate over point sets and compare coordinate and normal values
-    for (size_t pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints(); ++pnt_id) {
+    for (vtkIdType pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints();
+         ++pnt_id) {
         volcart::testing::SmallOrClose(
             _out_Mesh->GetPoint(pnt_id)[0], _SavedPoints[pnt_id].x);
         volcart::testing::SmallOrClose(

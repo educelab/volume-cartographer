@@ -14,7 +14,7 @@ public:
     void stop();
 
     void operator+=(cv::Vec3d);
-    float operator()(int);
+    double operator()(int);
     cv::Vec3d operator-(Particle);
 
 private:

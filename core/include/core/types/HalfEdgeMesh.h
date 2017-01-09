@@ -34,7 +34,7 @@ public:
     class Vert
     {
     public:
-        Vert(){};
+        Vert() {}
 
         VertPtr nextlink;
         IDType id;
@@ -47,13 +47,13 @@ public:
         double lambdaPlanar;
         double lambdaLength;
 
-        bool interior() const { return edge->pair != nullptr; };
+        bool interior() const { return edge->pair != nullptr; }
     };
 
     class Edge
     {
     public:
-        Edge(){};
+        Edge() {}
 
         EdgePtr nextlink;
         IDType id;
@@ -75,7 +75,7 @@ public:
     class Angle
     {
     public:
-        Angle(){};
+        Angle() {}
 
         EdgePtr edge;  // The edge that owns this angle
 
@@ -93,7 +93,7 @@ public:
     class Face
     {
     public:
-        Face(){};
+        Face() {}
         FacePtr nextlink;
         IDType id;
         ITKMesh::CellIdentifier cid;  // Original cell ID in ITK mesh

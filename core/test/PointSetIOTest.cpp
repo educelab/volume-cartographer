@@ -14,6 +14,8 @@ constexpr auto TEST_HEADER_FILENAME = "test_header.txt";
 
 using namespace volcart;
 
+void writeTestHeader(const std::string& testHeader);
+
 struct Point3iUnorderedPointSet {
     PointSet<cv::Vec3i> ps;
 

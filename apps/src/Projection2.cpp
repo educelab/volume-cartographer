@@ -46,8 +46,10 @@ int main(int argc, char* argv[])
     vtkSmartPointer<vtkPlane> cutPlane = vtkSmartPointer<vtkPlane>::New();
     cutPlane->SetOrigin(width / 2, height / 2, 0);
     cutPlane->SetNormal(0, 0, 1);
-    double z_min = std::floor(reader->GetOutput()->GetBounds()[4]);
-    double z_max = std::ceil(reader->GetOutput()->GetBounds()[5]);
+    auto z_min =
+        static_cast<int>(std::floor(reader->GetOutput()->GetBounds()[4]));
+    auto z_max =
+        static_cast<int>(std::ceil(reader->GetOutput()->GetBounds()[5]));
 
     // Bounds checks
     if (z_min < 0)
@@ -85,8 +87,8 @@ int main(int argc, char* argv[])
                  ++p_it) {
                 vtkIdType p_id = inputCell->GetPointId(p_it);
                 contour.push_back(cv::Point(
-                    intersection->GetPoint(p_id)[0],
-                    intersection->GetPoint(p_id)[1]));
+                    static_cast<int>(intersection->GetPoint(p_id)[0]),
+                    static_cast<int>(intersection->GetPoint(p_id)[1])));
             }
             cv::polylines(outputImg, contour, false, 255, 1, cv::LINE_AA);
             contour.clear();

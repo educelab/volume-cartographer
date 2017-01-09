@@ -15,9 +15,8 @@
 #include "core/vc_defines.h"
 #include "texturing/ClothModelingUVMapping.h"
 
-int main(int argc, char* argv[])
+int main()
 {
-
     // Create the mesh writer
     volcart::io::OBJWriter mesh_writer;
 

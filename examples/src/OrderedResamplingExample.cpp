@@ -10,9 +10,8 @@
 #include "core/vc_defines.h"
 #include "meshing/OrderedResampling.h"
 
-int main(int argc, char* argv[])
+int main()
 {
-
     volcart::io::OBJWriter writer;
 
     volcart::shapes::Plane plane(10, 10);
@@ -39,4 +38,4 @@ int main(int argc, char* argv[])
     writer.write();
 
     return EXIT_SUCCESS;
-}  // main
+}

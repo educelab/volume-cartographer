@@ -13,14 +13,17 @@ using namespace volcart::texturing;
 
 ///// Constructors & Destructors /////
 AngleBasedFlattening::AngleBasedFlattening()
-    : _maxABFIterations(DEFAULT_MAX_ABF_ITERATIONS), _useABF(true){};
+    : _useABF(true), _maxABFIterations(DEFAULT_MAX_ABF_ITERATIONS)
+{
+}
+
 AngleBasedFlattening::AngleBasedFlattening(ITKMesh::Pointer mesh)
-    : _mesh(mesh)
-    , _maxABFIterations(DEFAULT_MAX_ABF_ITERATIONS)
-    , _useABF(true){};
+    : _useABF(true), _maxABFIterations(DEFAULT_MAX_ABF_ITERATIONS), _mesh(mesh)
+{
+}
 
 ///// Access Functions /////
-void AngleBasedFlattening::setMesh(ITKMesh::Pointer mesh) { _mesh = mesh; };
+void AngleBasedFlattening::setMesh(ITKMesh::Pointer mesh) { _mesh = mesh; }
 
 ///// Get Output /////
 // Get output as mesh
@@ -138,7 +141,7 @@ void AngleBasedFlattening::_fillHalfEdgeMesh()
 
         _heMesh.addFace(v_ids[0], v_ids[1], v_ids[2]);
     }
-    _J2dt = cv::Mat((int)_heMesh.getNumberOfEdges(), 3, CV_64F);
+    _J2dt = cv::Mat(static_cast<int>(_heMesh.getNumberOfEdges()), 3, CV_64F);
     _limit = (_heMesh.getNumberOfFaces() > 100) ? 1.0f : 0.001f;
 
     ///// Connectivity /////

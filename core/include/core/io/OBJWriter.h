@@ -31,14 +31,14 @@ public:
         volcart::UVMap uvMap,
         cv::Mat uvImg);
 
-    void setPath(boost::filesystem::path path) { _outputPath = path; };
+    void setPath(boost::filesystem::path path) { _outputPath = path; }
 
     void setRendering(volcart::Rendering rendering);
 
     // Set pieces individually
-    void setMesh(ITKMesh::Pointer mesh) { _mesh = mesh; };
-    void setUVMap(volcart::UVMap uvMap) { _textCoords = uvMap; };
-    void setTexture(cv::Mat uvImg) { _texture = uvImg; };
+    void setMesh(ITKMesh::Pointer mesh) { _mesh = mesh; }
+    void setUVMap(volcart::UVMap uvMap) { _textCoords = uvMap; }
+    void setTexture(cv::Mat uvImg) { _texture = uvImg; }
 
     bool validate();  // make sure all required output parameters have been set
 
@@ -67,6 +67,5 @@ private:
     int _writeTextureCoordinates();
     int _writeFaces();
 };
-
 }  // namespace io
 }  // namespace volcart

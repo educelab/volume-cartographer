@@ -20,17 +20,17 @@ compositeTextureV2::compositeTextureV2(
     size_t h,
     CompositeOption o,
     DirectionOption d)
-    : _volpkg{v}
-    , _input{m}
-    , _uvMap{uv}
-    , _radius{r}
+    : _input{m}
+    , _volpkg{v}
     , _width{w}
     , _height{h}
+    , _radius{r}
     , _method{o}
     , _direction{d}
+    , _uvMap{uv}
 {
     _process();
-};
+}
 
 // Do the hard work
 int compositeTextureV2::_process()

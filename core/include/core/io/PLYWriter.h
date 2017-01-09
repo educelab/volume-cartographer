@@ -19,16 +19,16 @@ namespace io
 class PLYWriter
 {
 public:
-    PLYWriter(){};
+    PLYWriter() {}
     PLYWriter(boost::filesystem::path outputPath, ITKMesh::Pointer mesh);
     PLYWriter(
         boost::filesystem::path outputPath,
         ITKMesh::Pointer mesh,
         volcart::Texture texture);
 
-    void setPath(boost::filesystem::path path) { _outputPath = path; };
-    void setMesh(ITKMesh::Pointer mesh) { _mesh = mesh; };
-    void setTexture(volcart::Texture texture) { _texture = texture; };
+    void setPath(boost::filesystem::path path) { _outputPath = path; }
+    void setMesh(ITKMesh::Pointer mesh) { _mesh = mesh; }
+    void setTexture(volcart::Texture texture) { _texture = texture; }
 
     boost::filesystem::path getPath() const { return _outputPath; }
 

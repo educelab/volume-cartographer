@@ -75,7 +75,7 @@ public:
         // generate the cells for faces
         // Our two "center" points are v_id 0 && 1, so start at 2
         int B;  // second vertex of each face
-        for (int v_id = 2; v_id < _points.size(); ++v_id) {
+        for (size_t v_id = 2; v_id < _points.size(); ++v_id) {
 
             // Handle the last point in the circle
             if (v_id == _points.size() - 1)

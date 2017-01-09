@@ -1,9 +1,11 @@
 #define BOOST_TEST_MODULE LocalResliceSegmentation
 
 #include <cmath>
+
 #include <boost/test/floating_point_comparison.hpp>
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
+
 #include "core/types/VolumePkg.h"
 #include "segmentation/lrps/LocalResliceParticleSim.h"
 
@@ -11,17 +13,14 @@ using namespace volcart::segmentation;
 namespace tt = boost::test_tools;
 
 struct PointXYZ {
-    float x, y, z;
+    double x, y, z;
 
     PointXYZ(const cv::Vec3d p) : x(p[0]), y(p[1]), z(p[2]) {}
 };
 
-std::ostream& operator<<(std::ostream& s, PointXYZ p)
-{
-    return s << "[" << p.x << ", " << p.y << ", " << p.z << "]";
-}
+std::ostream& operator<<(std::ostream& s, PointXYZ p);
 
-inline float NormL2(const PointXYZ p1, const PointXYZ p2)
+inline double NormL2(const PointXYZ p1, const PointXYZ p2)
 {
     return std::sqrt(
         (p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y) +
@@ -83,9 +82,7 @@ BOOST_FIXTURE_TEST_CASE(DefaultSegmentationTest, LocalResliceSegmentationFix)
 
     // Compare clouds, make sure each point is within a certain tolerance.
     // Currently set in this file, may be set outside later on
-    // Note: differenceInVoxels must be a float because PCL stores PointXYZRGBs
-    // as floats
-    constexpr float voxelDiffTol = 10;  // %
+    constexpr double voxelDiffTol = 10;  // %
     size_t diffCount = 0;
     for (size_t i = 0; i < groundTruthCloud.size(); ++i) {
         PointXYZ trueV(groundTruthCloud[i]);
@@ -112,4 +109,9 @@ BOOST_FIXTURE_TEST_CASE(DefaultSegmentationTest, LocalResliceSegmentationFix)
     std::cout << "# different points: " << diffCount
               << " (max allowed: " << maxAllowedDiffCount << ")" << std::endl;
     BOOST_CHECK(diffCount < maxAllowedDiffCount);
+}
+
+std::ostream& operator<<(std::ostream& s, PointXYZ p)
+{
+    return s << "[" << p.x << ", " << p.y << ", " << p.z << "]";
 }

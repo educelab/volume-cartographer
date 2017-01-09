@@ -8,7 +8,7 @@
 #include "meshing/ACVD.h"
 #include "meshing/ITK2VTK.h"
 
-int main(int argc, char* argv[])
+int main(int /*argc*/, char* argv[])
 {
 
     std::string meshName = argv[1];

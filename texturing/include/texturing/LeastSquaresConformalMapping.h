@@ -19,7 +19,7 @@ namespace texturing
 class LeastSquaresConformalMapping
 {
 public:
-    LeastSquaresConformalMapping(){};
+    LeastSquaresConformalMapping() {}
     LeastSquaresConformalMapping(ITKMesh::Pointer input);
 
     // Input/Output

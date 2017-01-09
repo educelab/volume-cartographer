@@ -35,7 +35,7 @@ public:
         CompositeOption method,
         DirectionOption direction);
 
-    Texture texture() { return _texture; };
+    Texture texture() { return _texture; }
 private:
     int _process();
 

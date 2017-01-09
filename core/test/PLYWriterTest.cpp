@@ -166,9 +166,6 @@ BOOST_FIXTURE_TEST_CASE(
         ITKPixel _in_PlaneMeshNormal;
         _in_PlaneMesh->GetPointData(point.Index(), &_in_PlaneMeshNormal);
 
-        double ptNorm[3] = {_in_PlaneMeshNormal[0], _in_PlaneMeshNormal[1],
-                            _in_PlaneMeshNormal[2]};
-
         // Now compare the normals for the two meshes
         volcart::testing::SmallOrClose(
             _in_PlaneMeshNormal[0], _SavedPlanePoints[p_id].nx);
