@@ -14,11 +14,11 @@ namespace testing
 // observed value is as well. Otherwise, check whether the relative diff is
 // within percentDiffTolerance (in percentage units).
 // Taken from: http://stackoverflow.com/a/20050381/1917043
-void SmallOrClose(
-    const double& observed,
-    const double& expected,
-    const double& smallTolerance = 0.00001,
-    const double& percentDiffTolerance = 1.0)
+inline void SmallOrClose(
+    double observed,
+    double expected,
+    double smallTolerance = 0.00001,
+    double percentDiffTolerance = 1.0)
 {
     if (std::fabs(expected) < smallTolerance) {
         BOOST_CHECK_SMALL(observed, smallTolerance);

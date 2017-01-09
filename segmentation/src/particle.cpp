@@ -18,6 +18,6 @@ void Particle::stop() { _isStopped = true; }
 // Component wise operators
 void Particle::operator+=(cv::Vec3d v) { _position += v; }
 
-float Particle::operator()(int index) { return _position(index); }
+double Particle::operator()(int index) { return _position(index); }
 
 cv::Vec3d Particle::operator-(Particle p) { return _position - p.position(); }

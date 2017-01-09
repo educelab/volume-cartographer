@@ -14,7 +14,7 @@
 #include "texturing/compositeTextureV2.h"
 #include "texturing/simpleUV.h"
 
-int main(int argc, char* argv[])
+int main(int /*argc*/, char* argv[])
 {
 
     VolumePkg vpkg(argv[1]);
@@ -60,7 +60,6 @@ int main(int argc, char* argv[])
 
     double aspect_width = std::abs(max_u - min_u);
     double aspect_height = std::abs(max_v - min_v);
-    double aspect = aspect_width / aspect_height;
     volcart::UVMap uvMap;
     uvMap.ratio(aspect_width, aspect_height);
 
@@ -71,7 +70,7 @@ int main(int argc, char* argv[])
 
         for (auto pt = cell.Value()->PointIdsBegin();
              pt != cell.Value()->PointIdsEnd(); ++pt) {
-            double p_id = *pt;
+            auto p_id = *pt;
             u = (uvmap->GetPoint(p_id)[0] - min_u) / (max_u - min_u);
             v = (uvmap->GetPoint(p_id)[2] - min_v) / (max_v - min_v);
             cv::Vec2d uv(u, v);
@@ -83,7 +82,8 @@ int main(int argc, char* argv[])
 
     // Convert soft body to itk mesh
     volcart::texturing::compositeTextureV2 result(
-        inputMesh, vpkg, uvMap, 7, (int)aspect_width, (int)aspect_height);
+        inputMesh, vpkg, uvMap, 7, static_cast<int>(aspect_width),
+        static_cast<int>(aspect_height));
     volcart::io::objWriter objwriter(
         "cloth.obj", inputMesh, result.texture().uvMap(),
         result.texture().image(0));

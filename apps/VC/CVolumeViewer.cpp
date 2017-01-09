@@ -8,7 +8,6 @@ using namespace ChaoVis;
 // Constructor
 CVolumeViewer::CVolumeViewer(QWidget* parent)
     : QWidget(parent)
-    , fImgQImage(nullptr)
     , fCanvas(nullptr)
     , fScrollArea(nullptr)
     , fZoomInBtn(nullptr)
@@ -16,6 +15,7 @@ CVolumeViewer::CVolumeViewer(QWidget* parent)
     , fResetBtn(nullptr)
     , fNextBtn(nullptr)
     , fPrevBtn(nullptr)
+    , fImgQImage(nullptr)
     , fScaleFactor(1.0)
     , fImageIndex(0)
 {
@@ -106,17 +106,17 @@ void CVolumeViewer::SetImage(const QImage& nSrc)
 }
 
 // Handle mouse press event
-void CVolumeViewer::mousePressEvent(QMouseEvent* event)
+void CVolumeViewer::mousePressEvent(QMouseEvent* /*event*/)
 {
     QMessageBox::information(
         this, tr("info"), tr("mouse pressed inside the volume viewer"));
 }
 
 // Handle mouse move event
-void CVolumeViewer::mouseMoveEvent(QMouseEvent* event) {}
+void CVolumeViewer::mouseMoveEvent(QMouseEvent* /*event*/) {}
 
 // Handle paint event
-void CVolumeViewer::paintEvent(QPaintEvent* event)
+void CVolumeViewer::paintEvent(QPaintEvent* /*event*/)
 {
     // REVISIT - FILL ME HERE
 }

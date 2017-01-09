@@ -51,7 +51,7 @@ public:
     /**
      * @brief Prints the JSON object that stores VolumePkg metadata. Debug only.
      */
-    void printJSON() const { config.printObject(); };
+    void printJSON() const { config.printObject(); }
 
     /**
      * @brief Prints the paths to important VolumePkg subdirectories.
@@ -87,13 +87,13 @@ public:
      * When `true`, metadata values cannot be edited and slice data cannot be
      * added to the VolumePkg.
      */
-    bool readOnly() const { return _readOnly; };
+    bool readOnly() const { return _readOnly; }
 
     /**
      * @brief Set/unset the VolumePkg read-only flag.
      * @param b Boolean representing new value of read-only flag
      */
-    void readOnly(bool b) { _readOnly = b; };
+    void readOnly(bool b) { _readOnly = b; }
 
     /**
      * @brief Sets the value of `key` in the VolumePkg metadata.
@@ -299,7 +299,7 @@ public:
      * @warning Data currently saved in the active segmentation's directory will
      * be overwritten. This function can be called when the VolumePkg read-only
      * flag is not set.
-     * @param mesh Mesh to be saved to the .volpkg file.
+     * @param ps PointSet to be saved to the .volpkg file.
      * @return `EXIT_SUCCESS`
      */
     int saveMesh(const volcart::ITKMesh::Pointer ps) const;
@@ -314,7 +314,7 @@ public:
      * @warning Data currently saved in the active segmentation's directory will
      * be overwritten. This function can be called when the VolumePkg read-only
      * flag is not set.
-     * @param mesh
+     * @param mesh The mesh imfornation to be saved
      * @param texture Populated Texture object
      * @see core/types/Texture.h
      */

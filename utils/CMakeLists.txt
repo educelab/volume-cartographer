@@ -28,15 +28,15 @@ if(PCL_FOUND)
     add_executable(vc_convert_pcd_to_ps src/PointCloudToPointSet.cpp)
     target_include_directories(vc_convert_pcd_to_ps
         PUBLIC
-            ${PCL_COMMON_INCLUDE_DIRS}
-            ${PCL_IO_INCLUDE_DIRS}
+            pcl_common
+            pcl_io
     )
     target_link_libraries(vc_convert_pcd_to_ps
         VC::core
         VC::meshing
         Boost::filesystem
-        ${PCL_COMMON_LIBRARIES}
-        ${PCL_IO_LIBRARIES}
+        pcl_common
+        pcl_io
     )
     list(APPEND VC_INSTALL_UTILS vc_convert_pcd_to_ps)
 endif()

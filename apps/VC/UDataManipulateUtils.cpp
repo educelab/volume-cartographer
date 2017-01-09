@@ -11,7 +11,7 @@ namespace ChaoVis
 
 // Split vertex and face to memory chunk that can fit into OpenGL
 bool SplitVertexAndElementBuffer(
-    int nVertexNum,
+    int /*nVertexNum*/,
     int nFaceNum,
     const int* nElementBufferTmp,  // constant data, not constant pointer
     unsigned short*** nElementBufferData,
@@ -25,7 +25,6 @@ bool SplitVertexAndElementBuffer(
     int* nElementArrayNum)
 {
     const unsigned short MAX_NUM_FACE_IN_ARRAY = USHORT_SIZE / 3;
-    const unsigned short MAX_NUM_VERTEX_IN_ARRAY = MAX_NUM_FACE_IN_ARRAY * 3;
 
     int aArraySize = (nFaceNum * 3 / USHORT_SIZE) + 1;
     *nElementArrayNum = aArraySize;
@@ -44,7 +43,7 @@ bool SplitVertexAndElementBuffer(
     size_t aSurfaceBase = 0;
     size_t aArrayIndex = 0;
 
-    while (aSurfaceBase < nFaceNum) {
+    while (static_cast<int>(aSurfaceBase) < nFaceNum) {
 
         size_t aSurfaceCntRemained = nFaceNum - aSurfaceBase;
         size_t aSurfaceCntToProcess =
@@ -72,7 +71,7 @@ bool SplitVertexAndElementBuffer(
                 // element array (vertex index)
                 int aVertexIndexNew = i * 3 + j;
                 (*nElementBufferData)[aArrayIndex][aVertexIndexNew] =
-                    (unsigned short)(aVertexIndexNew);
+                    static_cast<uint16_t>(aVertexIndexNew);
 
                 // REVISIT - IMPROVE - notice we don't deal with duplication of
                 // vertices, which is a big waste of memory space
@@ -111,7 +110,7 @@ bool SplitVertexAndElementBuffer(
 cv::Mat QImage2Mat(const QImage& nSrc)
 {
     cv::Mat tmp(
-        nSrc.height(), nSrc.width(), CV_8UC3, (uchar*)nSrc.bits(),
+        nSrc.height(), nSrc.width(), CV_8UC3, const_cast<uchar*>(nSrc.bits()),
         nSrc.bytesPerLine());
     cv::Mat result;  // deep copy
     cvtColor(tmp, result, cv::COLOR_BGR2RGB);
@@ -124,7 +123,7 @@ QImage Mat2QImage(const cv::Mat& nSrc)
     cv::Mat tmp;
     cvtColor(nSrc, tmp, cv::COLOR_BGR2RGB);  // copy and convert color space
     QImage result(
-        (const uchar*)tmp.data, tmp.cols, tmp.rows, tmp.step,
+        static_cast<const uint8_t*>(tmp.data), tmp.cols, tmp.rows, tmp.step,
         QImage::Format_RGB888);
     result.bits();  // enforce depp copy, see documentation of
     // QImage::QImage( const uchar *dta, int width, int height, Format format )

@@ -141,7 +141,7 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
 
             // Convert maxima to voxel positions
             std::deque<Voxel> maximaQueue;
-            for (const auto maxima : allMaxima) {
+            for (auto&& maxima : allMaxima) {
                 maximaQueue.emplace_back(reslice.sliceToVoxelCoord<double>(
                     {maxima.first, nextLayerIndex}));
             }
@@ -303,10 +303,10 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
                 cv::Mat chain = drawParticlesOnSlice(currentCurve, zIndex, i);
                 cv::Mat resliceMat = reslices[i].draw();
                 cv::Mat map = maps[i].draw();
-                std::stringstream ss;
-                ss << std::setw(nchars) << std::setfill('0') << zIndex << "_"
-                   << std::setw(nchars) << std::setfill('0') << i;
-                const fs::path base = zIdxDir / ss.str();
+                std::stringstream stream;
+                stream << std::setw(nchars) << std::setfill('0') << zIndex
+                       << "_" << std::setw(nchars) << std::setfill('0') << i;
+                const fs::path base = zIdxDir / stream.str();
                 cv::imwrite(base.string() + "_chain.png", chain);
                 cv::imwrite(base.string() + "_reslice.png", resliceMat);
                 cv::imwrite(base.string() + "_map.png", map);
@@ -327,9 +327,9 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
 cv::Vec3d LocalResliceSegmentation::estimateNormalAtIndex(
     const FittedCurve& currentCurve, int32_t index)
 {
-    const Voxel currentVoxel = currentCurve(index);
-    auto stRadius =
-        std::ceil(pkg_.getMaterialThickness() / pkg_.getVoxelSize()) / 2;
+    const cv::Vec3i currentVoxel = currentCurve(index);
+    auto stRadius = static_cast<int>(
+        std::ceil(pkg_.getMaterialThickness() / pkg_.getVoxelSize()) / 2);
     const auto eigenPairs = pkg_.volume().eigenPairsAt(
         currentVoxel(0), currentVoxel(1), currentVoxel(2), stRadius);
     const double exp0 = std::log10(eigenPairs[0].first);

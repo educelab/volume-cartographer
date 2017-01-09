@@ -19,9 +19,8 @@ volcart::PerPixelMap _perPixelMap;
 
 ITKPoint lookup2Dto3D(int x, int y);
 #define RED cv::Scalar(0, 0, 255)
-#define RED_OVERLAY cv::Scalar(0, 0, 255, 0.25)
 
-int main(int argc, char* argv[])
+int main(int /*argc*/, char* argv[])
 {
 
     _volpkg = new VolumePkg(argv[1]);
@@ -57,9 +56,9 @@ int main(int argc, char* argv[])
     int feature_x = std::stoi(argv[7]);
     int feature_y = std::stoi(argv[8]);
     cv::Vec6d mapInfo = _perPixelMap(feature_y, feature_x);
-    int feature_slice_x = std::round(mapInfo(0));
-    int feature_slice_y = std::round(mapInfo(1));
-    int feature_slice_z = std::floor(mapInfo(2));
+    auto feature_slice_x = static_cast<int>(std::round(mapInfo(0)));
+    auto feature_slice_y = static_cast<int>(std::round(mapInfo(1)));
+    auto feature_slice_z = static_cast<int>(std::floor(mapInfo(2)));
 
     // Iterate over ROI
     ITKMesh::Pointer outputMesh = ITKMesh::New();
@@ -67,7 +66,7 @@ int main(int argc, char* argv[])
     texture.addImage(textureROI);
     double u, v;
     unsigned long point_counter = 0;
-    std::vector<cv::Point> intersections;
+    std::vector<cv::Point2d> intersections;
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
             if (maskROI.at<unsigned char>(y, x) == 255) {
@@ -78,13 +77,13 @@ int main(int argc, char* argv[])
                 pt[1] = mapInfo(1);
                 pt[2] = mapInfo(2);
                 if (std::floor(mapInfo(2)) == feature_slice_z) {
-                    intersections.push_back(cv::Point(mapInfo(0), mapInfo(1)));
+                    intersections.emplace_back(mapInfo(0), mapInfo(1));
                 }
                 normal[0] = mapInfo(3);
                 normal[1] = mapInfo(4);
                 normal[2] = mapInfo(5);
-                u = (double)x / (width - 1);
-                v = (double)y / (height - 1);
+                u = static_cast<double>(x) / (width - 1);
+                v = static_cast<double>(y) / (height - 1);
                 texture.uvMap().set(point_counter, cv::Vec2d(u, v));
                 outputMesh->SetPoint(point_counter, pt);
                 outputMesh->SetPointData(point_counter, normal);

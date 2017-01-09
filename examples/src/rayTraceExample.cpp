@@ -19,7 +19,6 @@
 
 int main()
 {
-
     // Init Shape Meshes
     volcart::ITKMesh::Pointer in_PlaneMesh, in_ArchMesh, in_CubeMesh,
         in_SphereMesh, in_ConeMesh;
@@ -40,10 +39,10 @@ int main()
     std::vector<cv::Vec6f> TraceResults;
     std::map<int, cv::Vec2d> UVMap;
     int TraceDir = 0;
-    int Width, Height;
+    int Width = 0, Height = 0;
 
     std::ofstream MeshOutputFileStream;
-    int NumberOfPoints;
+    int NumberOfPoints{};
 
     // Prepare to start writing loop
     int ShapeCounter = 0;

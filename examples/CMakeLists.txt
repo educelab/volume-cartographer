@@ -39,6 +39,8 @@ if (VC_USE_LIBIGL)
     target_link_libraries(vc_lscm_example VC::core VC::texturing)
 endif()
 
+add_executable(vc_bad_clang_format src/BadClangFormat2.cpp)
+
 add_executable(vc_itk2vtk_example src/itk2vtkExample.cpp)
 target_link_libraries(vc_itk2vtk_example
     VC::core

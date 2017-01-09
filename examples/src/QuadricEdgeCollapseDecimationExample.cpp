@@ -14,7 +14,7 @@
 #include "meshing/CalculateNormals.h"
 #include "meshing/QuadricEdgeCollapseDecimation.h"
 
-int main(int argc, char* argv[])
+int main()
 {
     volcart::meshing::QuadricEdgeCollapseDecimation Resampler;
     volcart::io::objWriter writer;

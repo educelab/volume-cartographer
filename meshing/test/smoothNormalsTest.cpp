@@ -577,8 +577,6 @@ BOOST_FIXTURE_TEST_CASE(SmoothWithZeroRadiusTest, SmoothNormalsFixture)
     ITKCellIterator ZeroRadiusSmoothedCell =
         ZeroRadiusSmoothedMesh->GetCells()->Begin();
 
-    int c = 0;
-
     while (in_ArchCell != _in_ArchMesh->GetCells()->End()) {
 
         // Initialize Iterators for Points in a Cell

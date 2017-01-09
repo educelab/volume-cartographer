@@ -58,7 +58,7 @@ cv::Mat IntensityMap::draw()
     auto maxima = sortedMaxima();
 
     // A line for each candidate position
-    for (const auto m : maxima) {
+    for (const auto& m : maxima) {
         cv::line(
             drawTarget_, cv::Point(binWidth_ * m.first, 0),
             cv::Point(binWidth_ * m.first, drawTarget_.rows), BGR_BLUE);
@@ -123,14 +123,16 @@ std::deque<std::pair<int32_t, double>> IntensityMap::sortedMaxima()
             // is in the range [0, 1]. So we scale this to the same range that
             // ldist and rdist will be, which is exactly [0, 2 * peakRadius]
             // because of the above filtering.
-            const int32_t leftVal = std::round(peakDistanceWeight_ * ldist) +
-                                    std::round(
-                                        (100 - peakDistanceWeight_) *
-                                        -lhs.second * 2 * peakRadius_);
-            const int32_t rightVal = std::round(peakDistanceWeight_ * rdist) +
-                                     std::round(
-                                         (100 - peakDistanceWeight_) *
-                                         -rhs.second * 2 * peakRadius_);
+            auto leftVal = static_cast<int>(
+                std::round(peakDistanceWeight_ * ldist) +
+                std::round(
+                    (100 - peakDistanceWeight_) * -lhs.second * 2 *
+                    peakRadius_));
+            auto rightVal = static_cast<int>(
+                std::round(peakDistanceWeight_ * rdist) +
+                std::round(
+                    (100 - peakDistanceWeight_) * -rhs.second * 2 *
+                    peakRadius_));
             return leftVal < rightVal;
         });
 

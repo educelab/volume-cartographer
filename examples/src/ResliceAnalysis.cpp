@@ -60,13 +60,12 @@ int main(int argc, char** argv)
     auto vol = volpkg.volume();
 
     // Set locations to do arbitrary reslicing
-    int32_t cx, cy, cz;
+    int cx, cy, cz;
     if (argc > 2) {
-        cx = std::stod(argv[2]);
-        cy = std::stod(argv[3]);
-        cz = std::stod(argv[4]);
+        cx = std::stoi(argv[2]);
+        cy = std::stoi(argv[3]);
+        cz = std::stoi(argv[4]);
     } else {
-
         // Generate random starting point
         std::random_device rd;
         std::default_random_engine eng(rd());

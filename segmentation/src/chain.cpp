@@ -19,7 +19,7 @@ Chain::Chain(
 
     // Calculate the spring resting position
     double total_delta = 0;
-    for (int i = 1; i < init_chain.size(); ++i) {
+    for (size_t i = 1; i < init_chain.size(); ++i) {
         cv::Vec3d segment = init_chain[i] - init_chain[i - 1];
         total_delta += sqrt(segment.dot(segment));
     }
@@ -33,10 +33,10 @@ Chain::Chain(
     _threshold = threshold;
 
     // Find the lowest slice index in the starting chain
-    _start_index = _history.front()[0](2);
+    _start_index = static_cast<int>(_history.front()[0](2));
     for (int i = 0; i < _chain_length; ++i)
         if (_history.front()[i](2) < _start_index)
-            _start_index = _history.front()[i](2);
+            _start_index = static_cast<int>(_history.front()[i](2));
 
     // Set the slice index we will end at
     // If user does not define endOffset, target index == last slice with a
@@ -52,8 +52,8 @@ Chain::Chain(
 
     // Set _realIterationsCount based on starting index, target index, and how
     // frequently we want to sample the segmentation
-    _real_iterations =
-        (int)(ceil(((_target_index - _start_index) + 1) / _threshold));
+    _real_iterations = static_cast<int>(
+        ceil(((_target_index - _start_index) + 1) / _threshold));
 
     // Go ahead and stop any particles that are already at the target index
     for (int i = 0; i < _chain_length; ++i)
@@ -177,10 +177,10 @@ volcart::OrderedPointSet<cv::Vec3d> Chain::orderedPCD()
 
         // Add each Particle in the row into storage at the correct position
         for (int i = 0; i < _chain_length; ++i) {
-            int currentCell = (int)((
-                (row_at[i](2)) -
-                _start_index /
-                    _threshold));  // *To-Do: Something seems wrong here.
+            int currentCell = static_cast<int>(
+                ((row_at[i](2)) -
+                 _start_index /
+                     _threshold));  // *To-Do: Something seems wrong here.
             storage[currentCell][i] = cv::Vec3d(row_at[i].position());
         }
     }

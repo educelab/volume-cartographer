@@ -1,3 +1,7 @@
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wconversion"
+#pragma clang diagnostic ignored "-Wold-style-cast"
+
 //
 // Created by Media Team on 8/12/15.
 //
@@ -135,3 +139,5 @@ std::vector<cv::Vec6f> rayTrace(
 }  // rayTrace
 }  // namespace meshing
 }  // namespace volcart
+
+#pragma clang diagnostic pop

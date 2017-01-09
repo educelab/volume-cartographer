@@ -52,13 +52,13 @@ private:
 
 // Constructor
 template <typename T>
-inline CVectorN<T>::CVectorN(void) : fLen(0), fData(NULL)
+inline CVectorN<T>::CVectorN(void) : fData(NULL), fLen(0)
 {
 }
 
 // Constructor
 template <typename T>
-inline CVectorN<T>::CVectorN(int nLen) : fLen(nLen), fData(NULL)
+inline CVectorN<T>::CVectorN(int nLen) : fData(NULL), fLen(nLen)
 {
     // REVISIT - FILL ME HERE fill in the data
     // REVISIT - IMPROVE - this is far less efficient! change this to
@@ -69,7 +69,7 @@ inline CVectorN<T>::CVectorN(int nLen) : fLen(nLen), fData(NULL)
 
 // Constructor
 template <typename T>
-inline CVectorN<T>::CVectorN(int nLen, const T* nData) : fLen(nLen), fData(NULL)
+inline CVectorN<T>::CVectorN(int nLen, const T* nData) : fData(NULL), fLen(nLen)
 {
     // REVISIT - FILL ME HERE fill in the data
     // REVISIT - IMPROVE - this is far less efficient! change this to
@@ -81,7 +81,7 @@ inline CVectorN<T>::CVectorN(int nLen, const T* nData) : fLen(nLen), fData(NULL)
 // Copy constructor
 template <typename T>
 inline CVectorN<T>::CVectorN(const CVectorN& nCpy)
-    : fLen(nCpy.GetLength()), fData(NULL)
+    : fData(NULL), fLen(nCpy.GetLength())
 {
     fData = new T[fLen];
     // REVISIT - why do we get const pointer then cast it away?

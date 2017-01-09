@@ -5,7 +5,7 @@
 #include "core/types/UVMap.h"
 #include "core/vc_defines.h"
 
-int main(int argc, char* argv[])
+int main()
 {
 
     volcart::UVMap uvMap;

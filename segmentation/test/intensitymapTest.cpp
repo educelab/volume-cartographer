@@ -12,7 +12,6 @@
 using namespace volcart::segmentation;
 
 // Global float comparison percent tolerance
-static const double tol = 1e-6;
 static const double perc = 0.01;  // %
 
 // Width/height of reslice window

@@ -12,9 +12,8 @@
 #include "core/shapes/Plane.h"
 #include "core/vc_defines.h"
 
-int main(int argc, char* argv[])
+int main()
 {
-
     // init shapes
     volcart::shapes::Plane Plane;
     volcart::ITKMesh::Pointer in_PlaneITKMesh = Plane.itkMesh();

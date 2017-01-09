@@ -27,14 +27,14 @@
 
 namespace fs = boost::filesystem;
 
-int main(int argc, char* argv[])
+int main(int /*argc*/, char* argv[])
 {
 
     VolumePkg vpkg(argv[1]);
     vpkg.volume().setCacheMemoryInBytes(10000000000);
     vpkg.setActiveSegmentation(argv[2]);
     int radius = std::stoi(argv[3]);
-    int type = std::stoi(argv[4]);
+    auto type = static_cast<volcart::CompositeOption>(std::stoi(argv[4]));
 
     // Read the mesh
     fs::path meshName = vpkg.getMeshPath();
@@ -58,7 +58,8 @@ int main(int argc, char* argv[])
                 (voxelsize * voxelsize) *
                 (0.001 * 0.001);  // convert vx^2 -> mm^2;
     double densityFactor = 50;
-    uint16_t numberOfVertices = std::round(densityFactor * sa);
+    auto numberOfVertices =
+        static_cast<uint16_t>(std::round(densityFactor * sa));
 
     // Convert to quad edge mesh and smooth the thing
     volcart::QuadMesh::Pointer qeRaw = volcart::QuadMesh::New();
@@ -105,14 +106,14 @@ int main(int argc, char* argv[])
 
     // Get uv map
     volcart::UVMap uvMap = abf.getUVMap();
-    int width = std::ceil(uvMap.ratio().width);
-    int height = std::ceil((double)width / uvMap.ratio().aspect);
+    auto width = static_cast<int>(std::ceil(uvMap.ratio().width));
+    auto height = static_cast<int>(
+        std::ceil(static_cast<double>(width) / uvMap.ratio().aspect));
 
     std::cout << width << "x" << height << std::endl;
 
     volcart::texturing::compositeTextureV2 compText(
-        itkACVD, vpkg, uvMap, radius, width, height,
-        (volcart::CompositeOption)type);
+        itkACVD, vpkg, uvMap, radius, width, height, type);
 
     // Setup rendering
     volcart::Rendering rendering;
@@ -120,7 +121,8 @@ int main(int argc, char* argv[])
     rendering.setMesh(itkACVD);
 
     volcart::io::objWriter mesh_writer;
-    mesh_writer.setPath("textured-" + std::to_string(type) + ".obj");
+    mesh_writer.setPath(
+        "textured-" + std::to_string(static_cast<int>(type)) + ".obj");
     mesh_writer.setRendering(rendering);
     mesh_writer.write();
 

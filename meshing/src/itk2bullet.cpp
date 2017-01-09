@@ -18,7 +18,9 @@ itk2bullet::itk2bullet(
          it != input->GetPoints()->End(); ++it) {
         // copy vertex info from itk mesh to btSoftBody
         old_point = it->Value();
-        new_point = new btVector3(old_point[0], old_point[1], old_point[2]);
+        new_point = new btVector3(
+            static_cast<float>(old_point[0]), static_cast<float>(old_point[1]),
+            static_cast<float>(old_point[2]));
 
         if (it == input->GetPoints()->Begin()) {
             *output = new btSoftBody(&worldInfo, 1, new_point, 0);

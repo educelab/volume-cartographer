@@ -168,9 +168,6 @@ int main(int argc, char* argv[])
                 case volcart::Type::DOUBLE:
                     volpkg.setMetadata(pair.first, std::stod(pair.second));
                     break;
-                default:
-                    // Not in dictionary
-                    break;
             }
             std::cout << std::endl;
         }
