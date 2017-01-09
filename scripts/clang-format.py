@@ -29,7 +29,7 @@ class ClangFormatter:
         )
 
     # Lint a given file - return whether or not the file is formatted correctly
-    def lint(self, source_file: str, print_output: bool) -> bool:
+    def lint(self, source_file: str, print_output: bool = False) -> bool:
         '''
         Lint `source_file` with clang-format, optionally showing the diff.
         '''
@@ -55,7 +55,7 @@ class ClangFormatter:
         if diff:
             print(f'Found formatting changes for file: {source_file}')
 
-            if show_diff:
+            if print_output:
                 print(f'To fix, run "{cf} --style=file -i {source_file}"')
                 print('Suggested changes:')
                 for line in diff:
@@ -121,7 +121,11 @@ def main() -> bool:
 
     # Find changed source files.
     source_files = re.compile(r'\.(h|hpp|c|cpp)$')
-    files = common.all_files() if args.all_files else common.changed_files
+    files = []
+    if args.all_files:
+        files = common.all_files()
+    else:
+        files = common.changed_files(compare_to='origin/develop')
     changes = [f for f in files if re.search(source_files, f)]
 
     # Validate each with clang-format

@@ -39,13 +39,12 @@ def callo(cmd: Union[List[str], str], **kwargs: Any) -> str:
     return subprocess.check_output(cmd, **kwargs).decode('utf-8').strip()
 
 
-def changed_files() -> Generator[str, None, None]:
+def changed_files(compare_to: str) -> Generator[str, None, None]:
     '''
-    Determines all changed files from prior commit to HEAD.
+    Determines all changed files from HEAD to branch `compare_to`.
     '''
     current_branch = callo('git rev-parse --abbrev-ref @')
-    develop = 'origin/develop'
-    branch_point = callo(f'git merge-base {develop} {current_branch}')
+    branch_point = callo(f'git merge-base {compare_to} {current_branch}')
     diffcmd = f'git diff --name-status {branch_point}..{current_branch}'
 
     # Return source files, only if they haven't been deleted. This prevents
@@ -61,7 +60,7 @@ def all_files() -> Generator[str, None, None]:
     Lists all project files under version control.
     '''
     for f in callo('git ls-files').split():
-        yield f
+        yield f 
 
 
 def fetch_clang_binary(

@@ -148,7 +148,11 @@ def main() -> bool:
     # clang-tidy operates only on c/cpp files (h/hpp files are linted
     # transitively). Only check c/cpp files.
     cpp_files = re.compile(r'\.(c|cpp|cc|cxx)$')
-    files = common.all_files() if args.all_files else common.changed_files()
+    files = []
+    if args.all_files:
+        files = common.all_files()
+    else:
+        files = common.changed_files(compare_to='origin/develop')
     changes = [f for f in files if re.search(cpp_files, f)]
 
     # Validate each with clang-tidy in parallel
