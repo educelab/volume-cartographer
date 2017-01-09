@@ -25,8 +25,8 @@ public:
         double spring_constant_k = -0.5);
     void step();
     bool isMoving();
-    cv::Vec3d springForce(int index);
-    cv::Vec3d gravity(int index);
+    cv::Vec3d springForce(size_t index);
+    cv::Vec3d gravity(size_t index);
     volcart::OrderedPointSet<cv::Vec3d> orderedPCD();
 
 private:
@@ -41,10 +41,11 @@ private:
     double _gravity_scale;  // To-Do: Rename.
 
     // -- Chain Size Information -- //
-    int _chain_length;     // Number of particles in the chain & width of output
+    size_t _chain_length;  // Number of particles in the chain & width of output
                            // PCD
-    int _real_iterations;  // Height of the output PCD To-Do: Do we need this?
-    int _start_index;      // Starting slice index
-    int _target_index;     // Target slice index
+    size_t
+        _real_iterations;  // Height of the output PCD To-Do: Do we need this?
+    size_t _start_index;   // Starting slice index
+    size_t _target_index;  // Target slice index
     int _threshold;        // To-Do: What is this for now? We may not need this.
 };
