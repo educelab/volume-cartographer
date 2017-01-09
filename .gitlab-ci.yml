@@ -102,6 +102,7 @@ lint:clang-format:
     allow_failure: yes
     tags:
         - clang-format
+        - osx
 
 lint:clang-tidy:
     before_script:
@@ -109,6 +110,7 @@ lint:clang-tidy:
       - mkdir -p build/
       - cd build/
       - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -GNinja -DVC_USE_BULLET=ON -DVC_USE_ACVD=ON -DVC_USE_VCG=ON ..
+      - cd ..
     stage: test
     script:
         - echo $CI_BUILD_REF_NAME $CI_BUILD_STAGE
