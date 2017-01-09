@@ -1,5 +1,6 @@
 project(libvc_core VERSION 0.1 LANGUAGES CXX)
-set(target vc_core)
+set(module "core")
+set(target "vc_${module}")
 
 set(srcs
     src/HalfEdgeMesh.cpp
@@ -19,12 +20,12 @@ set(srcs
     src/VolumePkg.cpp
 )
 
-message("OpenCV3 libs: ${OpenCV_LIBS}")
 add_library(${target} ${srcs})
+add_library("${namespace}${module}" ALIAS "${target}")
 target_include_directories(${target}
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
+        $<INSTALL_INTERFACE:${include_install_dir}>
 )
 target_link_libraries(${target}
     PUBLIC
@@ -38,21 +39,29 @@ target_link_libraries(${target}
         vtkCommonDataModel
         vtkCommonCore
         vtkIOLegacy
-        vc_external
+        VC::external
+)
+set_target_properties(${target} PROPERTIES
+    VERSION "${PROJECT_VERSION}"
+    EXPORT_NAME "${module}"
 )
 
-install(TARGETS ${target}
-    ARCHIVE DESTINATION lib COMPONENT Libraries
-    LIBRARY DESTINATION lib COMPONENT Libraries
-    RUNTIME DESTINATION bin
+install(
+    TARGETS "${target}"
+    EXPORT "${targets_export_name}"
+    ARCHIVE DESTINATION "lib"
+    LIBRARY DESTINATION "lib"
+    INCLUDES DESTINATION "${include_install_dir}/${module}"
+    RUNTIME DESTINATION "bin"
 )
-install(DIRECTORY include/ DESTINATION ${VC_INSTALL_INCLUDE_PREFIX} COMPONENT Includes)
-export(TARGETS ${target} FILE VCCommon.cmake)
+install(
+    DIRECTORY "include/${module}"
+    DESTINATION "${include_install_dir}"
+    FILES_MATCHING REGEX ".*\.(h|hpp)$"
+)
 
 ### Testing ###
 if(VC_BUILD_TESTS)
-
-# Set source files
 set(test_srcs
     test/LRUCacheTest.cpp
     test/ObjWriterTest.cpp
@@ -75,8 +84,8 @@ foreach(src ${test_srcs})
     set(testname ${target}_${filename})
     add_executable(${testname} ${src})
     target_link_libraries(${testname}
-        vc_core
-        vc_testing
+        VC::core
+        VC::testing
         Boost::unit_test_framework
     )
     target_compile_options(${testname}
@@ -100,5 +109,4 @@ set(COMMON_TEST_RES
 foreach(r ${COMMON_TEST_RES})
     file(COPY ${r} DESTINATION ${EXECUTABLE_OUTPUT_PATH})
 endforeach()
-
-endif(VC_BUILD_TESTS)
+endif()

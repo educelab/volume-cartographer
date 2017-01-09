@@ -39,7 +39,8 @@ include(${VTK_USE_FILE})
 set(VTK_LIBRARIES_TMP ${VTK_LIBRARIES}) # Save these for later
 
 ### Eigen ###
-# Make it into a target
+# XXX libigl requires Eigen 3.2.x, which doesn't support namespaced targets and
+# transitively-included dependencies, so make it into a target
 find_package(Eigen3 QUIET REQUIRED)
 add_library(eigen3 INTERFACE IMPORTED)
 set_target_properties(eigen3 PROPERTIES
@@ -49,7 +50,6 @@ set_target_properties(eigen3 PROPERTIES
 ### PCL ###
 set(PCL_STATIC on)
 find_package(PCL 1.7 QUIET)
-
 
 # Put VTK libraries back because PCL silently overwrites them
 set(VTK_LIBRARIES ${VTK_LIBRARIES_TMP})
