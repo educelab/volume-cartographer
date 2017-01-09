@@ -1,5 +1,6 @@
 project(libvc_meshing VERSION 0.1 LANGUAGES CXX)
-set(target vc_meshing)
+set(module "meshing")
+set(target "vc_${module}")
 
 set(srcs
     src/deepCopy.cpp
@@ -10,9 +11,9 @@ set(srcs
     src/CalculateNormals.cpp
     src/OrderedResampling.cpp
     src/OrderedPointSetMesher.cpp
-    )
+)
 set(deps
-    vc_core
+    VC::core
     Boost::filesystem
 )
 set(defs "")
@@ -35,11 +36,12 @@ if(VC_USE_VCG)
 endif()
 
 add_library(${target} ${srcs})
+add_library("${namespace}${module}" ALIAS "${target}")
 target_compile_definitions(${target} PUBLIC ${defs})
 target_include_directories(${target}
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
+        $<INSTALL_INTERFACE:${include_install_dir}>
 )
 target_link_libraries(${target}
     PUBLIC
@@ -49,14 +51,24 @@ target_link_libraries(${target}
         vtkFiltersGeneral
         vtkFiltersCore
 )
-
-install(TARGETS ${target}
-    ARCHIVE DESTINATION lib COMPONENT Libraries
-    LIBRARY DESTINATION lib COMPONENT Libraries
-    RUNTIME DESTINATION bin
+set_target_properties(${target} PROPERTIES
+    VERSION "${PROJECT_VERSION}"
+    EXPORT_NAME "${module}"
 )
-install(DIRECTORY include/ DESTINATION ${VC_INSTALL_INCLUDE_PREFIX} COMPONENT Includes)
-export(TARGETS ${target} FILE VCMeshing.cmake)
+
+install(
+    TARGETS ${target}
+    EXPORT ${targets_export_name}
+    ARCHIVE DESTINATION "lib"
+    LIBRARY DESTINATION "lib"
+    RUNTIME DESTINATION "bin"
+    INCLUDES DESTINATION "${include_install_dir}/${module}"
+)
+install(
+    DIRECTORY "include/${module}"
+    DESTINATION "${include_install_dir}"
+    FILES_MATCHING REGEX ".*\.(h|hpp)$"
+)
 
 ### Testing ###
 if(VC_BUILD_TESTS)
@@ -88,9 +100,9 @@ foreach(src ${test_srcs})
     set(testname ${target}_${filename})
     add_executable(${testname} ${src})
     target_link_libraries(${testname}
-        vc_core
-        vc_meshing
-        vc_testing
+        VC::core
+        VC::meshing
+        VC::testing
         Boost::unit_test_framework
     )
     add_test(

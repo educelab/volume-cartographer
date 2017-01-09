@@ -43,7 +43,8 @@ include(${VTK_USE_FILE})
 include_directories(SYSTEM ${VTK_INCLUDE_DIRS})
 
 ### Eigen ###
-# Make it into a target
+# XXX libigl requires Eigen 3.2.x, which doesn't support namespaced targets and
+# transitively-included dependencies, so make it into a target
 find_package(Eigen3 QUIET REQUIRED)
 add_library(eigen3 INTERFACE IMPORTED)
 set_target_properties(eigen3 PROPERTIES

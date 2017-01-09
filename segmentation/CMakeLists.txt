@@ -1,6 +1,8 @@
 project(libvc_segmentation VERSION 0.1 LANGUAGES CXX)
+set(module "segmentation")
+set(target "vc_${module}")
 
-set(VC_SEGMENTATION_SRCS
+set(srcs
     src/chain.cpp
     src/common.cpp
     src/energymetrics.cpp
@@ -10,29 +12,44 @@ set(VC_SEGMENTATION_SRCS
     src/particle.cpp
     src/structureTensorParticleSim.cpp
 )
-set(VC_SEGMENTATION_DEPENDENCIES
-    vc_core
+set(deps
+    VC::core
     opencv_highgui
 )
 
-add_library(vc_segmentation ${VC_SEGMENTATION_SRCS})
-target_include_directories(vc_segmentation
+add_library(${target} ${srcs})
+add_library("${namespace}${module}" ALIAS "${target}")
+target_include_directories(${target}
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
+        $<INSTALL_INTERFACE:${include_install_dir}>
 )
-target_link_libraries(vc_segmentation
+target_compile_options(${target}
+	PUBLIC
+		-Wno-c++11-narrowing
+)
+target_link_libraries(${target}
     PUBLIC
-        ${VC_SEGMENTATION_DEPENDENCIES}
+        ${deps}
+)
+set_target_properties(${target} PROPERTIES
+    VERSION "${PROJECT_VERSION}"
+    EXPORT_NAME "${module}"
 )
 
-install(TARGETS vc_segmentation
-    ARCHIVE DESTINATION lib COMPONENT Libraries
-    LIBRARY DESTINATION lib COMPONENT Libraries
-    RUNTIME DESTINATION bin
+install(
+    TARGETS ${target}
+    EXPORT ${targets_export_name}
+    ARCHIVE DESTINATION "lib"
+    LIBRARY DESTINATION "lib"
+    RUNTIME DESTINATION "bin"
+    INCLUDES DESTINATION "${include_install_dir}/${module}"
 )
-install(DIRECTORY include/ DESTINATION ${VC_INSTALL_INCLUDE_PREFIX} COMPONENT Includes)
-export(TARGETS vc_segmentation FILE VCSegmentation.cmake)
+install(
+    DIRECTORY "include/${module}"
+    DESTINATION "${include_install_dir}"
+    FILES_MATCHING REGEX ".*\.(h|hpp)$"
+)
 
 ### Testing ###
 if(VC_BUILD_TESTS)
@@ -54,9 +71,9 @@ foreach(src ${VC_SEGMENTATION_TEST_SRCS})
     set(testname vc_segmentation_${filename})
     add_executable(${testname} ${src})
     target_link_libraries(${testname}
-        vc_core
-        vc_segmentation
-        vc_testing
+        VC::core
+        VC::segmentation
+        VC::testing
         Boost::unit_test_framework
     )
     add_test(
@@ -73,4 +90,4 @@ file(
     DESTINATION
         ${EXECUTABLE_OUTPUT_PATH}/Testing.volpkg/paths/lrps-test-results
 )
-endif(VC_BUILD_TESTS)
+endif()

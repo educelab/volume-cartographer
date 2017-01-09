@@ -1,5 +1,6 @@
 project(libvc_external VERSION 0.1 LANGUAGES C CXX)
-set(target vc_external)
+set(module "external")
+set(target "vc_${module}")
 
 set(srcs
     src/eigenvalues.cc
@@ -8,20 +9,31 @@ set(srcs
 )
 
 add_library(${target} ${srcs})
+add_library("${namespace}${module}" ALIAS "${target}")
 target_include_directories(${target} SYSTEM
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
+        $<INSTALL_INTERFACE:${include_install_dir}>
 )
 target_link_libraries(${target}
     PUBLIC
         eigen3
 )
-
-install(TARGETS ${target}
-    ARCHIVE DESTINATION lib COMPONENT Libraries
-    LIBRARY DESTINATION lib COMPONENT Libraries
-    RUNTIME DESTINATION bin
+set_target_properties(${target} PROPERTIES
+    VERSION "${PROJECT_VERSION}"
+    EXPORT_NAME "${module}"
 )
-install(DIRECTORY include/ DESTINATION ${VC_INSTALL_INCLUDE_PREFIX} COMPONENT Includes)
-export(TARGETS ${target} FILE VCExternal.cmake)
+
+install(
+    TARGETS ${target}
+    EXPORT ${targets_export_name}
+    ARCHIVE DESTINATION "lib"
+    LIBRARY DESTINATION "lib"
+    RUNTIME DESTINATION "bin"
+    INCLUDES DESTINATION "${include_install_dir}/${module}"
+)
+install(
+    DIRECTORY "include/${module}"
+    DESTINATION "${include_install_dir}"
+    FILES_MATCHING REGEX ".*\.(h|hpp)$"
+)

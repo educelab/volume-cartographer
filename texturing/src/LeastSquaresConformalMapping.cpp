@@ -1,4 +1,4 @@
-#include "texturing/LeastSquaresConformalMapping.h"
+#include <cmath>
 
 #include <igl/boundary_loop.h>
 #include <igl/doublearea.h>
@@ -7,6 +7,7 @@
 #include <opencv2/imgproc.hpp>
 
 #include "meshing/deepCopy.h"
+#include "texturing/LeastSquaresConformalMapping.h"
 
 using namespace volcart;
 using namespace volcart::texturing;
@@ -101,7 +102,7 @@ void LeastSquaresConformalMapping::compute()
     Eigen::VectorXi bnd, b(2, 1);
     igl::boundary_loop(_faces, bnd);
     b(0) = bnd(0);
-    b(1) = bnd(round(bnd.size() / 2));
+    b(1) = bnd(std::lround(bnd.size() / 2));
     Eigen::MatrixXd bc(2, 2);
     bc << 0, 0, 1, 1;
 

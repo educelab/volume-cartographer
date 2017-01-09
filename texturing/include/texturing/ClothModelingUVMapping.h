@@ -38,14 +38,10 @@ namespace volcart
 namespace texturing
 {
 // Pretick callbacks
-[[maybe_unused]] static void constrainMotionCallback(
-    btDynamicsWorld* world, btScalar timeStep);
-[[maybe_unused]] static void axisLockCallback(
-    btDynamicsWorld* world, btScalar timeStep);
-[[maybe_unused]] static void moveTowardTargetCallback(
-    btDynamicsWorld* world, btScalar timeStep);
-[[maybe_unused]] static void emptyPreTickCallback(
-    btDynamicsWorld* world, btScalar timeStep);
+static void constrainMotionCallback(btDynamicsWorld* world, btScalar timeStep);
+static void axisLockCallback(btDynamicsWorld* world, btScalar timeStep);
+static void moveTowardTargetCallback(btDynamicsWorld* world, btScalar timeStep);
+static void emptyPreTickCallback(btDynamicsWorld* world, btScalar timeStep);
 
 class ClothModelingUVMapping
 {

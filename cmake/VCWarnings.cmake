@@ -49,7 +49,6 @@ set(project_warnings
     -Wimplicit-fallthrough
     -Winfinite-recursion
     -Wlocal-type-template-args
-    -Wlong-long
     -Wloop-analysis
     -Wmain
     -Wmethod-signatures
@@ -96,5 +95,7 @@ set(project_warnings
     -Wno-switch-enum
     -Wno-sign-conversion
     -Wno-shorten-64-to-32
+    -Wno-unknown-attributes
+    -Wno-unused-function
 )
 add_compile_options(${project_warnings})
