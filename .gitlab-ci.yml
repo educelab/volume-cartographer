@@ -101,21 +101,22 @@ lint:clang-format:
         - scripts/clang-format.py --print-output
     allow_failure: yes
     tags:
-        - source
+        - clang-format
 
 lint:clang-tidy:
     before_script:
       - git fetch --all
       - mkdir -p build/
       - cd build/
-      - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -GNinja -DVC_PREBUILT_LIBS=ON -DVC_USE_BULLET=ON -DVC_USE_ACVD=ON -DVC_USE_VCG=ON ..
+      - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -GNinja -DVC_USE_BULLET=ON -DVC_USE_ACVD=ON -DVC_USE_VCG=ON ..
     stage: test
     script:
         - echo $CI_BUILD_REF_NAME $CI_BUILD_STAGE
         - scripts/clang-tidy.py --print-output
     allow_failure: yes
     tags:
-        - lint
+        - clang-tidy
+        - homebrew
 
 ### Documentation ###
 doxygen:html:
