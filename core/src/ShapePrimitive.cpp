@@ -98,7 +98,7 @@ volcart::OrderedPointSet<cv::Vec3d> ShapePrimitive::orderedPoints(bool noisify)
         offset = 5.0;
     }
     int point_counter = 0;  // This is the worst. // SP
-    int width_cnt = 0;
+    size_t width_cnt = 0;
     for (auto p_id : _points) {
         cv::Vec3d point;
         if (width_cnt == output.width()) {
@@ -157,7 +157,7 @@ volcart::OrderedPointSet<cv::Vec6d> ShapePrimitive::orderedPointNormal()
     std::vector<cv::Vec6d> temp_row;
     for (auto p_id : _points) {
         cv::Vec6d point;
-        for (int i = 0; i < _orderedWidth; i++) {
+        for (size_t i = 0; i < _orderedWidth; i++) {
             point[0] = p_id.x;
             point[1] = p_id.y;
             point[2] = p_id.z;

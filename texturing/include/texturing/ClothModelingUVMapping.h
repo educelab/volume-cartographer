@@ -120,12 +120,6 @@ private:
     btSoftBodySolver* _WorldSoftBodySolver;
     btSoftRigidDynamicsWorld* _World;
 };
-
-//// Callbacks ////
-void constrainMotionCallback(btDynamicsWorld* world, btScalar timeStep);
-void axisLockCallback(btDynamicsWorld* world, btScalar timeStep);
-void moveTowardTargetCallback(btDynamicsWorld* world, btScalar timeStep);
-void emptyPreTickCallback(btDynamicsWorld* world, btScalar timeStep);
 }
 }
 

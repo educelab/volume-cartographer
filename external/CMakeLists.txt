@@ -10,7 +10,7 @@ set(srcs
 
 add_library(${target} ${srcs})
 add_library("${namespace}${module}" ALIAS "${target}")
-target_include_directories(${target}
+target_include_directories(${target} SYSTEM
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:${include_install_dir}>

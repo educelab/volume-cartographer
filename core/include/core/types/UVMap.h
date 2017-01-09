@@ -17,7 +17,7 @@
 
 #include "core/vc_defines.h"
 
-constexpr static size_t VC_UVMAP_MIN_DEBUG_WIDTH = 500;
+constexpr static int VC_UVMAP_MIN_DEBUG_WIDTH = 500;
 
 namespace volcart
 {
@@ -71,14 +71,14 @@ public:
     // Plot the UV points on a cv::Mat img
     cv::Mat drawUVMap() const
     {
-        int w = std::ceil(_ratio.width);
+        auto w = static_cast<int>(std::ceil(_ratio.width));
         if (w < VC_UVMAP_MIN_DEBUG_WIDTH) {
             std::cerr
                 << "volcart::UVMap:: Width less than minimum. Scaling image."
                 << std::endl;
             w = VC_UVMAP_MIN_DEBUG_WIDTH;
         }
-        int h = std::ceil(w / _ratio.aspect);
+        auto h = static_cast<int>(std::ceil(w / _ratio.aspect));
         cv::Mat r = cv::Mat::zeros(h, w, CV_8UC1);
 
         for (auto it : _map) {
@@ -94,4 +94,4 @@ private:
     cv::Vec2d _origin;  // origin inserted and retrieved points are relative to
     Ratio _ratio;
 };
-}  // namespace volcart
+}

@@ -2,7 +2,7 @@
 
 #include "testing/ClangTidyBadHeader.h"
 
-int main(int argc, char** argv)
+int main()
 {
     std::cout << "hello, world!" << std::endl;
     bool a = true;

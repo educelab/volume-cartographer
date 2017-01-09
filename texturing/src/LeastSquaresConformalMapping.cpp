@@ -1,4 +1,4 @@
-#include "texturing/LeastSquaresConformalMapping.h"
+#include <cmath>
 
 #include <igl/boundary_loop.h>
 #include <igl/doublearea.h>
@@ -6,7 +6,8 @@
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include "meshing/deepCopy.h"
+#include "meshing/DeepCopy.h"
+#include "texturing/LeastSquaresConformalMapping.h"
 
 using namespace volcart;
 using namespace volcart::texturing;
@@ -17,7 +18,7 @@ LeastSquaresConformalMapping::LeastSquaresConformalMapping(
     : _mesh(input)
 {
     _fillEigenMatrices();
-};
+}
 
 ///// Input/Output /////
 // Set input mesh
@@ -32,11 +33,11 @@ void LeastSquaresConformalMapping::setMesh(ITKMesh::Pointer input)
 ITKMesh::Pointer LeastSquaresConformalMapping::getMesh()
 {
     ITKMesh::Pointer output = ITKMesh::New();
-    volcart::meshing::deepCopy(_mesh, output);
+    volcart::meshing::DeepCopy(_mesh, output);
 
     // Update the point positions
     ITKPoint p;
-    for (unsigned long i = 0; i < _vertices_UV.rows(); ++i) {
+    for (int64_t i = 0; i < _vertices_UV.rows(); ++i) {
         p[0] = _vertices_UV(i, 0);
         p[1] = 0;
         p[2] = _vertices_UV(i, 1);
@@ -44,7 +45,6 @@ ITKMesh::Pointer LeastSquaresConformalMapping::getMesh()
     }
 
     // To-do: Recompute normals
-
     return output;
 }
 
@@ -102,7 +102,7 @@ void LeastSquaresConformalMapping::compute()
     Eigen::VectorXi bnd, b(2, 1);
     igl::boundary_loop(_faces, bnd);
     b(0) = bnd(0);
-    b(1) = bnd(round(bnd.size() / 2));
+    b(1) = bnd(std::lround(bnd.size() / 2));
     Eigen::MatrixXd bc(2, 2);
     bc << 0, 0, 1, 1;
 

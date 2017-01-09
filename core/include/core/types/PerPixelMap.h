@@ -38,22 +38,22 @@ public:
 
     ///// Operators /////
     // Forward to the Mat_ operators
-    cv::Vec6d& operator()(size_t y, size_t x) { return _map(y, x); };
+    cv::Vec6d& operator()(size_t y, size_t x) { return _map(y, x); }
 
     ///// Metadata /////
     void setDimensions(size_t h, size_t w);
     void setWidth(size_t w);
     void setHeight(size_t h);
-    int width() const { return _width; };
-    int height() const { return _height; };
+    int width() const { return _width; }
+    int height() const { return _height; }
 
-    void setUVMap(const UVMap& u) { _uvmap = u; };
-    const UVMap& uvMap() const { return _uvmap; };
-    UVMap& uvMap() { return _uvmap; };
+    void setUVMap(const UVMap& u) { _uvmap = u; }
+    const UVMap& uvMap() const { return _uvmap; }
+    UVMap& uvMap() { return _uvmap; }
 
-    void setMask(const cv::Mat& m) { _mask = m.clone(); };
-    cv::Mat mask() const { return _mask; };
-    cv::Mat maskCopy() const { return _mask.clone(); };
+    void setMask(const cv::Mat& m) { _mask = m.clone(); }
+    cv::Mat mask() const { return _mask; }
+    cv::Mat maskCopy() const { return _mask.clone(); }
     bool hasMapping(size_t y, size_t x)
     {
         return _mask.at<uint8_t>(y, x) == 255;

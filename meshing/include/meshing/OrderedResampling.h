@@ -103,8 +103,7 @@ private:
      * @param b ID for the second vertex in the face
      * @param c ID for the third vertex in the face
      */
-    void _addCell(unsigned long a, unsigned long b, unsigned long c);
-
+    void _addCell(uint32_t a, uint32_t b, uint32_t c);
 };  // OrderedResampling
 }  // meshing
 }  // volcart

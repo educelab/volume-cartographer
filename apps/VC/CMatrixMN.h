@@ -5,7 +5,7 @@
 
 #include "CVectorN.h"
 #include "HBase.h"
-#include "mathUtils.h"
+#include "MathUtils.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -116,7 +116,7 @@ inline CMatrixMN<T>::CMatrixMN(void) : fRows(0), fCols(0), fData(NULL)
 // Constructor
 template <typename T>
 inline CMatrixMN<T>::CMatrixMN(int nRows, int nCols)
-    : fRows(nRows), fCols(nCols), fData(NULL)
+    : fData(NULL), fRows(nRows), fCols(nCols)
 {
     if (nRows * nCols !=
         0) {  // make sure fData is NULL when dimension is not set
@@ -127,7 +127,7 @@ inline CMatrixMN<T>::CMatrixMN(int nRows, int nCols)
 // Copy constructor
 template <typename T>
 inline CMatrixMN<T>::CMatrixMN(const CMatrixMN<T>& nCpy)
-    : fRows(nCpy.fRows), fCols(nCpy.fCols), fData(NULL)
+    : fData(NULL), fRows(nCpy.fRows), fCols(nCpy.fCols)
 {
     if (fRows * fCols !=
         0) {  // make sure fData is NULL when dimension is not set

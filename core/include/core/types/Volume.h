@@ -114,7 +114,7 @@ public:
     {
         cache_.setCapacity(newCacheCapacity);
     }
-    size_t getCacheCapacity() const { return cache_.capacity(); };
+    size_t getCacheCapacity() const { return cache_.capacity(); }
 
     void setCacheMemoryInBytes(size_t nbytes)
     {
@@ -122,7 +122,7 @@ public:
     }
 
     // Number of elements in the cache
-    size_t getCacheSize() const { return cache_.size(); };
+    size_t getCacheSize() const { return cache_.size(); }
 
     Slice reslice(
         const Voxel& center,

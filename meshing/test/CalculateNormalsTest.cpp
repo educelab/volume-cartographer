@@ -9,11 +9,11 @@
 #include "core/shapes/Plane.h"
 #include "core/vc_defines.h"
 #include "meshing/CalculateNormals.h"
-#include "testing/testingUtils.h"
+#include "testing/TestingUtils.h"
 
 struct PlaneFixture {
     PlaneFixture() { _in_Mesh = _Plane.itkMesh(); }
-    ~PlaneFixture(){};
+    ~PlaneFixture() {}
 
     volcart::shapes::Plane _Plane;
     volcart::ITKMesh::Pointer _in_Mesh, _out_Mesh;

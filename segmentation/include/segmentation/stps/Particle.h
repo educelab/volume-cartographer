@@ -1,0 +1,24 @@
+// What am I?
+#pragma once
+
+#include <opencv2/core.hpp>
+
+using ParticleStopped = bool;
+
+class Particle
+{
+public:
+    explicit Particle(cv::Vec3d position);
+
+    cv::Vec3d position();
+    bool isStopped();
+    void stop();
+
+    void operator+=(const cv::Vec3d& v);
+    double operator()(int index);
+    cv::Vec3d operator-(Particle p);
+
+private:
+    cv::Vec3d _position;
+    bool _isStopped;
+};

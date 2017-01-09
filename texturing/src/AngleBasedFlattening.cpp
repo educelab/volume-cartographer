@@ -2,31 +2,35 @@
 // Created by Seth Parker on 6/9/16.
 //
 
-#include "texturing/AngleBasedFlattening.h"
 #include <cmath>
+
 #include "external/eigen_capi.h"
-#include "meshing/deepCopy.h"
+#include "meshing/DeepCopy.h"
+#include "texturing/AngleBasedFlattening.h"
 
 using namespace volcart;
 using namespace volcart::texturing;
 
 ///// Constructors & Destructors /////
 AngleBasedFlattening::AngleBasedFlattening()
-    : _maxABFIterations(DEFAULT_MAX_ABF_ITERATIONS), _useABF(true){};
+    : _useABF(true), _maxABFIterations(DEFAULT_MAX_ABF_ITERATIONS)
+{
+}
+
 AngleBasedFlattening::AngleBasedFlattening(ITKMesh::Pointer mesh)
-    : _mesh(mesh)
-    , _maxABFIterations(DEFAULT_MAX_ABF_ITERATIONS)
-    , _useABF(true){};
+    : _useABF(true), _maxABFIterations(DEFAULT_MAX_ABF_ITERATIONS), _mesh(mesh)
+{
+}
 
 ///// Access Functions /////
-void AngleBasedFlattening::setMesh(ITKMesh::Pointer mesh) { _mesh = mesh; };
+void AngleBasedFlattening::setMesh(ITKMesh::Pointer mesh) { _mesh = mesh; }
 
 ///// Get Output /////
 // Get output as mesh
 ITKMesh::Pointer AngleBasedFlattening::getMesh()
 {
     ITKMesh::Pointer output = ITKMesh::New();
-    volcart::meshing::deepCopy(_mesh, output);
+    volcart::meshing::DeepCopy(_mesh, output);
 
     // Update the point positions
     ITKPoint p;
@@ -137,7 +141,7 @@ void AngleBasedFlattening::_fillHalfEdgeMesh()
 
         _heMesh.addFace(v_ids[0], v_ids[1], v_ids[2]);
     }
-    _J2dt = cv::Mat((int)_heMesh.getNumberOfEdges(), 3, CV_64F);
+    _J2dt = cv::Mat(static_cast<int>(_heMesh.getNumberOfEdges()), 3, CV_64F);
     _limit = (_heMesh.getNumberOfFaces() > 100) ? 1.0f : 0.001f;
 
     ///// Connectivity /////

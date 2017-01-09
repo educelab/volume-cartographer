@@ -9,11 +9,11 @@
 
 #include "CBSpline.h"
 #include "CXCurve.h"
+#include "MathUtils.h"
 #include "VCNewGuiHeader.h"
-#include "mathUtils.h"
 #include "ui_VCMain.h"
 
-#include "segmentation/lrps/localResliceParticleSim.h"
+#include "segmentation/lrps/LocalResliceParticleSim.h"
 
 // Volpkg version required by this app
 static constexpr int VOLPKG_SUPPORTED_VERSION = 3;  // Version #3

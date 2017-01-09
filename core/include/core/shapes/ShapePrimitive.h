@@ -37,9 +37,9 @@ public:
     std::vector<Cell> getCells() const { return _cells; }
 
     // ordering
-    bool isOrdered() const { return _orderedPoints; };
-    uint32_t orderedWidth() const { return _orderedWidth; };
-    uint32_t orderedHeight() const { return _orderedHeight; };
+    bool isOrdered() const { return _orderedPoints; }
+    uint32_t orderedWidth() const { return _orderedWidth; }
+    uint32_t orderedHeight() const { return _orderedHeight; }
 
 protected:
     std::vector<Vertex> _points;
@@ -52,6 +52,5 @@ protected:
     bool _orderedPoints;
     uint32_t _orderedWidth, _orderedHeight;
 };
-
 }  // namespace shapes
 }  // namespace volcart

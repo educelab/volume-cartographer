@@ -33,12 +33,20 @@ if (CMAKE_GENERATOR MATCHES "Ninja")
     add_compile_options(-fdiagnostics-color=always)
 endif()
 
+# Weird bug on macOS where system includes aren't included with the right flag
+if (APPLE)
+    set(CMAKE_INCLUDE_SYSTEM_FLAG_CXX "-isystem ")
+endif()
+
 if (VC_BUILD_TESTS)
     enable_testing()
 endif()
 
 ## VC Libraries ##
 add_subdirectory(external)
+
+# Enable warnings after 'external' lib.
+include(VCWarnings)
 add_subdirectory(core)
 if (VC_BUILD_TESTS)
     add_subdirectory(testing)

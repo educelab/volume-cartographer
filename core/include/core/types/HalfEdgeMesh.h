@@ -46,7 +46,7 @@ public:
         double lambdaPlanar;
         double lambdaLength;
 
-        bool interior() const { return edge->pair != nullptr; };
+        bool interior() const { return edge->pair != nullptr; }
     };
 
     class Edge
@@ -107,17 +107,15 @@ public:
             , connected{}
         {
         }
+
         FacePtr nextlink;
         IDType id;
         ITKMesh::CellIdentifier cid;  // Original cell ID in ITK mesh
-
-        EdgePtr edge;  // First edge of the face
-
+        EdgePtr edge;                 // First edge of the face
         double lambdaTriangle;
         double bstar;
         double dstar;
         double bTriangle;
-
         bool connected;
     };
 

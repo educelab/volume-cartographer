@@ -190,13 +190,13 @@ public:
 
             // Dim
             else if (std::regex_match(strs[0], dim)) {
-                auto dim = std::stoul(strs[1]);
-                if (dim != T::channels) {
+                auto parsed_dim = std::stoul(strs[1]);
+                if (parsed_dim != T::channels) {
                     auto msg =
                         "Incorrect dimension read for template specification";
                     throw IOException(msg);
                 }
-                h.dim = dim;
+                h.dim = parsed_dim;
             }
 
             // Ordering
@@ -355,7 +355,7 @@ private:
         PointSet<T> ps{header.size};
 
         // Size of binary elements to read
-        size_t typeBytes;
+        size_t typeBytes{};
         if (header.type == "float") {
             typeBytes = sizeof(float);
         } else if (header.type == "double") {
@@ -387,7 +387,7 @@ private:
         OrderedPointSet<T> ps{header.width};
 
         // Size of binary elements to read
-        size_t typeBytes;
+        size_t typeBytes = sizeof(int);
         if (header.type == "float") {
             typeBytes = sizeof(float);
         } else if (header.type == "double") {
@@ -446,7 +446,7 @@ private:
         auto header = PointSetIO<T>::MakeHeader(ps);
         outfile.write(header.c_str(), header.size());
 
-        for (const auto p : ps) {
+        for (const auto& p : ps) {
             auto nbytes = T::channels * sizeof(typename T::value_type);
             outfile.write(reinterpret_cast<const char*>(p.val), nbytes);
         }

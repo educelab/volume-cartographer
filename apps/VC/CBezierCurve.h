@@ -6,7 +6,7 @@
 
 #include <opencv2/core.hpp>
 
-#include "mathUtils.h"
+#include "MathUtils.h"
 
 namespace ChaoVis
 {
@@ -22,7 +22,6 @@ public:
     CBezierCurve(
         const std::vector<Vec2<double>>& nControlPoints,
         int nSampleInterval = 5.0);
-    ~CBezierCurve(void);
 
     void SetControlPoints(const std::vector<Vec2<double>>& nControlPoints);
     void SetControlPoints(const std::vector<cv::Vec2f>& nControlPoints);

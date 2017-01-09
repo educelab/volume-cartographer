@@ -9,7 +9,9 @@ void func(T t)
 {
     char buf[BUFLEN];
     std::cout << sizeof(BUFLEN) << std::endl;
-    T other_t = T{};
-    other_t += T{};
+    std::cout << buf << std::endl;
+    auto otherT = T{};
+    otherT += T{};
+    otherT += t;
     return;
 }
