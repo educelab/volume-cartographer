@@ -33,24 +33,24 @@ public:
     PointSet<cv::Vec6d> unOrderedPointNormal();
 
     // overload
-    std::vector<Vertex> getPoints() const { return _points; }
-    std::vector<Cell> getCells() const { return _cells; }
+    std::vector<Vertex> getPoints() const { return points_; }
+    std::vector<Cell> getCells() const { return cells_; }
 
     // ordering
-    bool isOrdered() const { return _orderedPoints; }
-    uint32_t orderedWidth() const { return _orderedWidth; }
-    uint32_t orderedHeight() const { return _orderedHeight; }
+    bool isOrdered() const { return orderedPoints_; }
+    uint32_t orderedWidth() const { return orderedWidth_; }
+    uint32_t orderedHeight() const { return orderedHeight_; }
 
 protected:
-    std::vector<Vertex> _points;
-    std::vector<Cell> _cells;
+    std::vector<Vertex> points_;
+    std::vector<Cell> cells_;
 
-    void _add_vertex(double x, double y, double z);
-    void _add_cell(int v1, int v2, int v3);
-    void _update_normal(int vertex, double nx_in, double ny_in, double nz_in);
+    void addVertex_(double x, double y, double z);
+    void addCell_(int v1, int v2, int v3);
+    void updateNormal_(int vertex, double nx_in, double ny_in, double nz_in);
 
-    bool _orderedPoints;
-    uint32_t _orderedWidth, _orderedHeight;
+    bool orderedPoints_;
+    uint32_t orderedWidth_, orderedHeight_;
 };
-}  // namespace shapes
-}  // namespace volcart
+}
+}

@@ -151,7 +151,7 @@ void AngleBasedFlattening::_fillHalfEdgeMesh()
     _bInterior =
         std::vector<double>(_heMesh.getNumberOfInteriorPoints() * 2, 0);
     unsigned long interior_id = 0;
-    for (auto v = _heMesh.getVert(0); v; v = v->nextlink) {
+    for (auto v = _heMesh.getVert(0); v; v = v->nextLink) {
         if (v->interior())
             _interior[v->id] = interior_id++;
     }
@@ -162,7 +162,7 @@ void AngleBasedFlattening::_fillHalfEdgeMesh()
 void AngleBasedFlattening::_scale()
 {
 
-    for (auto v = _heMesh.getVert(0); v; v = v->nextlink) {
+    for (auto v = _heMesh.getVert(0); v; v = v->nextLink) {
         if (v->interior()) {
 
             double anglesum = 0.0;
@@ -234,7 +234,7 @@ double AngleBasedFlattening::_computeGradient()
     double norm = 0.0;
 
     // Gradient alpha per face
-    for (auto f = _heMesh.getFace(0); f; f = f->nextlink) {
+    for (auto f = _heMesh.getFace(0); f; f = f->nextLink) {
 
         auto e0 = f->edge, e1 = e0->next, e2 = e1->next;
         double gTriangle, gAlpha0, gAlpha1, gAlpha2;
@@ -255,7 +255,7 @@ double AngleBasedFlattening::_computeGradient()
     }
 
     // Planarity check for interior verts
-    for (auto v = _heMesh.getVert(0); v; v = v->nextlink) {
+    for (auto v = _heMesh.getVert(0); v; v = v->nextLink) {
         if (!v->interior())
             continue;  // Only consider interior points
 
@@ -357,7 +357,7 @@ bool AngleBasedFlattening::_invertMatrix()
 
     // For each face
     int counter = 0;
-    for (auto f = _heMesh.getFace(0); f; f = f->nextlink, ++counter) {
+    for (auto f = _heMesh.getFace(0); f; f = f->nextLink, ++counter) {
         // Setup a matrix
         double wi1, wi2, wi3, b, si, beta[3], j2[3][3], W[3][3];
         double row1[6], row2[6], row3[6];
@@ -521,7 +521,7 @@ bool AngleBasedFlattening::_invertMatrix()
 
     // if successful, update the HEM
     if (success) {
-        for (auto f = _heMesh.getFace(0); f; f = f->nextlink) {
+        for (auto f = _heMesh.getFace(0); f; f = f->nextLink) {
             double dlambda1, pre[3], dalpha;
 
             volcart::HalfEdgeMesh::EdgePtr e0 = f->edge, e1 = e0->next,

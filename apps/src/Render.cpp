@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
                   << std::endl;
         return EXIT_FAILURE;
     }
-    double cacheBytes = 0.75 * systemMemorySize();
+    double cacheBytes = 0.75 * SystemMemorySize();
     vpkg.volume().setCacheMemoryInBytes(static_cast<size_t>(cacheBytes));
 
     ///// Set the segmentation ID /////

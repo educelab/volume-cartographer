@@ -14,6 +14,7 @@ namespace volcart
 {
 namespace shapes
 {
+
 class Arch : public ShapePrimitive
 {
 public:
@@ -39,7 +40,7 @@ public:
 
         for (float z = 0; z < height; z += 1) {
             for (auto p_id = curve.begin(); p_id != curve.end(); ++p_id) {
-                _add_vertex(p_id->val[0], p_id->val[1], z);
+                addVertex_(p_id->val[0], p_id->val[1], z);
             }
         }
 
@@ -51,18 +52,16 @@ public:
                 v2 = v1 - 1;
                 v3 = v2 - width;
                 v4 = v1 - width;
-                _add_cell(v1, v2, v3);
-                _add_cell(v1, v3, v4);
+                addCell_(v1, v2, v3);
+                addCell_(v1, v3, v4);
             }
         }
 
         // Set this as an ordered mesh
-        _orderedPoints = true;
-        _orderedWidth = width;
-        _orderedHeight = height;
-
-    }  // Constructor
-
-};  // Arch
-}  // shapes
-}  // volcart
+        orderedPoints_ = true;
+        orderedWidth_ = width;
+        orderedHeight_ = height;
+    }
+};
+}
+}

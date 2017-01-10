@@ -23,12 +23,11 @@ public:
     using TPair = typename std::pair<TKey, TValue>;
     using TListIterator = typename std::list<TPair>::iterator;
 
-    LRUCache() : capacity_(kDefaultCapacity) {}
-    explicit LRUCache(int64_t capacity) : capacity_(capacity) {}
+    LRUCache() : capacity_{DEFAULT_CAPACITY} {}
+    explicit LRUCache(int64_t capacity) : capacity_{capacity} {}
 
-    void setCapacity(const int64_t newCapacity)
+    void setCapacity(int64_t newCapacity)
     {
-
         if (newCapacity <= 0) {
             throw std::invalid_argument(
                 "Cannot create cache with capacity <= 0");
@@ -94,6 +93,6 @@ private:
     std::unordered_map<TKey, TListIterator> lookup_;
     int64_t capacity_;
 
-    static const int64_t kDefaultCapacity = 200;
+    static constexpr int64_t DEFAULT_CAPACITY = 200;
 };
 }  // namespace volcart

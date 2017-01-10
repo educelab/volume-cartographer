@@ -12,9 +12,9 @@
 using namespace volcart;
 namespace fs = boost::filesystem;
 
-StructureTensor tensorize(cv::Vec3d gradient);
+StructureTensor Tensorize(cv::Vec3d gradient);
 
-std::unique_ptr<double[]> makeUniformGaussianField(int radius);
+std::unique_ptr<double[]> MakeUniformGaussianField(int radius);
 
 // Trilinear Interpolation: Particles are not required
 // to be at integer positions so we estimate their
@@ -25,13 +25,13 @@ uint16_t Volume::interpolateAt(const Voxel& point) const
 {
     double int_part;
     double dx = std::modf(point(0), &int_part);
-    int x0 = int(int_part);
+    auto x0 = static_cast<int>(int_part);
     int x1 = x0 + 1;
     double dy = std::modf(point(1), &int_part);
-    int y0 = int(int_part);
+    auto y0 = static_cast<int>(int_part);
     int y1 = y0 + 1;
     double dz = std::modf(point(2), &int_part);
-    int z0 = int(int_part);
+    auto z0 = static_cast<int>(int_part);
     int z1 = z0 + 1;
 
     // insert safety net
@@ -54,7 +54,7 @@ uint16_t Volume::interpolateAt(const Voxel& point) const
     auto c1 = c01 * (1 - dy) + c11 * dy;
 
     auto c = c0 * (1 - dz) + c1 * dz;
-    return uint16_t(cvRound(c));
+    return static_cast<uint16_t>(cvRound(c));
 }
 
 const cv::Mat& Volume::getSliceData(int index) const
@@ -143,16 +143,16 @@ StructureTensor Volume::structureTensorAt(
     }
 
     // Get gradient of volume
-    auto gradientField = volumeGradient(v, gradientKernelSize);
+    auto gradientField = volumeGradient_(v, gradientKernelSize);
 
     // Modulate by gaussian distribution (element-wise) and sum
-    auto gaussianField = makeUniformGaussianField(voxelRadius);
+    auto gaussianField = MakeUniformGaussianField(voxelRadius);
     StructureTensor sum(0, 0, 0, 0, 0, 0, 0, 0, 0);
     for (size_t z = 0; z < v.dz; ++z) {
         for (size_t y = 0; y < v.dy; ++y) {
             for (size_t x = 0; x < v.dx; ++x) {
                 sum += gaussianField[z * v.dy * v.dx + y * v.dx + x] *
-                       tensorize(gradientField(x, y, z));
+                       Tensorize(gradientField(x, y, z));
             }
         }
     }
@@ -183,16 +183,16 @@ StructureTensor Volume::interpolatedStructureTensorAt(
         getVoxelNeighborsCubicInterpolated<double>({vx, vy, vz}, voxelRadius);
 
     // Get gradient of volume
-    auto gradientField = volumeGradient(v, gradientKernelSize);
+    auto gradientField = volumeGradient_(v, gradientKernelSize);
 
     // Modulate by gaussian distribution (element-wise) and sum
-    auto gaussianField = makeUniformGaussianField(voxelRadius);
+    auto gaussianField = MakeUniformGaussianField(voxelRadius);
     StructureTensor sum(0, 0, 0, 0, 0, 0, 0, 0, 0);
     for (size_t z = 0; z < v.dz; ++z) {
         for (size_t y = 0; y < v.dy; ++y) {
             for (size_t x = 0; x < v.dx; ++x) {
                 sum += gaussianField[z * v.dy * v.dx + y * v.dx + x] *
-                       tensorize(gradientField(x, y, z));
+                       Tensorize(gradientField(x, y, z));
             }
         }
     }
@@ -241,7 +241,7 @@ EigenPairs Volume::interpolatedEigenPairsAt(
     };
 }
 
-StructureTensor tensorize(cv::Vec3d gradient)
+StructureTensor Tensorize(cv::Vec3d gradient)
 {
     double ix = gradient(0);
     double iy = gradient(1);
@@ -253,7 +253,7 @@ StructureTensor tensorize(cv::Vec3d gradient)
     // clang-format on
 }
 
-Tensor3D<cv::Vec3d> Volume::volumeGradient(
+Tensor3D<cv::Vec3d> Volume::volumeGradient_(
     const Tensor3D<double>& v, int gradientKernelSize) const
 {
     // Limitation of OpenCV: Kernel size must be 1, 3, 5, or 7
@@ -268,9 +268,9 @@ Tensor3D<cv::Vec3d> Volume::volumeGradient(
     // First do XY gradients
     for (size_t z = 0; z < v.dz; ++z) {
         auto xGradient =
-            gradient(v.xySlice(z), GradientAxis::X, gradientKernelSize);
+            gradient_(v.xySlice(z), GradientAxis::X, gradientKernelSize);
         auto yGradient =
-            gradient(v.xySlice(z), GradientAxis::Y, gradientKernelSize);
+            gradient_(v.xySlice(z), GradientAxis::Y, gradientKernelSize);
         for (size_t y = 0; y < v.dy; ++y) {
             for (size_t x = 0; x < v.dx; ++x) {
                 gradientField(x, y, z) = {xGradient(y, x), yGradient(y, x), 0};
@@ -281,7 +281,7 @@ Tensor3D<cv::Vec3d> Volume::volumeGradient(
     // Then Z gradients
     for (size_t layer = 0; layer < v.dy; ++layer) {
         auto zGradient =
-            gradient(v.xzSlice(layer), GradientAxis::Y, gradientKernelSize);
+            gradient_(v.xzSlice(layer), GradientAxis::Y, gradientKernelSize);
         for (size_t z = 0; z < v.dz; ++z) {
             for (size_t x = 0; x < v.dx; ++x) {
                 gradientField(x, layer, z)(2) = zGradient(z, x);
@@ -295,7 +295,7 @@ Tensor3D<cv::Vec3d> Volume::volumeGradient(
 // Helper function to calculate gradient using best choice for given kernel
 // size. If the kernel size is 3, uses the Scharr() operator to calculate the
 // gradient which is more accurate than 3x3 Sobel operator
-cv::Mat_<double> Volume::gradient(
+cv::Mat_<double> Volume::gradient_(
     const cv::Mat_<double>& input, GradientAxis axis, int ksize) const
 {
     // OpenCV params for gradients
@@ -332,7 +332,7 @@ cv::Mat_<double> Volume::gradient(
     return grad;
 }
 
-std::unique_ptr<double[]> makeUniformGaussianField(int radius)
+std::unique_ptr<double[]> MakeUniformGaussianField(int radius)
 {
     auto sideLength = 2 * static_cast<size_t>(radius) + 1;
     auto fieldSize = sideLength * sideLength * sideLength;

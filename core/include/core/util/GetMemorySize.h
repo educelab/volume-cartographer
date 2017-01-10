@@ -1,4 +1,4 @@
-// systemMemorySize()
+// SystemMemorySize()
 // Return the amount of system memory in bytes
 /*
  * Author:  David Robert Nadeau
@@ -8,5 +8,7 @@
  */
 
 #pragma once
+
+#include <cstddef>
 
 size_t SystemMemorySize();

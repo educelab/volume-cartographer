@@ -10,7 +10,7 @@ public:
     Slice(cv::Mat data, cv::Vec3d origin, cv::Vec3d xvec, cv::Vec3d yvec);
 
     template <typename T>
-    cv::Vec3d sliceToVoxelCoord(const cv::Point_<T> resliceCoord) const
+    cv::Vec3d sliceToVoxelCoord(const cv::Point_<T>& resliceCoord) const
     {
         return origin_ + (resliceCoord.x * xvec_ + resliceCoord.y * yvec_);
     }

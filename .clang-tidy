@@ -37,8 +37,6 @@ CheckOptions:
     value:           camelBack
   - key:             readability-identifier-naming.ClassMethodCase
     value:           CamelCase
-  - key:             readability-identifier-naming.ConstantCase
-    value:           UPPER_CASE
   - key:             readability-identifier-naming.ConstexprFunctionCase
     value:           camelBack
   - key:             readability-identifier-naming.ConstexprMethodCase

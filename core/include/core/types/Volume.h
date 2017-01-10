@@ -228,7 +228,7 @@ public:
 
     template <typename DType>
     Tensor3D<DType> getVoxelNeighborsCubic(
-        const cv::Vec3i center, int32_t radius) const
+        const cv::Vec3i& center, int32_t radius) const
     {
         return getVoxelNeighbors<DType>(center, radius, radius, radius);
     }
@@ -285,10 +285,10 @@ private:
     int32_t numSliceCharacters_;
     mutable volcart::LRUCache<int32_t, cv::Mat> cache_;
 
-    Tensor3D<cv::Vec3d> volumeGradient(
+    Tensor3D<cv::Vec3d> volumeGradient_(
         const Tensor3D<double>& v, int32_t gradientKernelSize) const;
 
-    cv::Mat_<double> gradient(
+    cv::Mat_<double> gradient_(
         const cv::Mat_<double>& input, GradientAxis axis, int32_t ksize) const;
 };
 }

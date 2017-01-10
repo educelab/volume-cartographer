@@ -140,7 +140,7 @@ int main(int argc, char* argv[])
 
     // Write the scaled mesh
     ITKMesh::Pointer output = clothUV.getMesh();
-    std::string path = volcart::DATE_TIME() + "_uvMap.obj";
+    std::string path = volcart::DateTime() + "_uvMap.obj";
     volcart::io::OBJWriter writer(path, output);
     writer.write();
 
