@@ -5,6 +5,7 @@
 #include <iostream>
 #include <math.h>
 
+#include <opencv2/core.hpp>
 #include <vtkMassProperties.h>
 #include <vtkPLYReader.h>
 #include <vtkSmartPointer.h>
@@ -20,13 +21,13 @@ using namespace volcart;
 int main(int argc, char* argv[])
 {
     if (argc < 2) {
-        std::cout << "Usage: vc_csv2uv [file.csv]" << std::endl;
+        std::cout << "Usage: vc_csv2uv [mesh.ply] [uvmap.csv]" << std::endl;
         exit(-1);
     }
 
     // Get Mesh
     vtkSmartPointer<vtkPLYReader> reader = vtkSmartPointer<vtkPLYReader>::New();
-    reader->SetFileName("decim.ply");
+    reader->SetFileName(argv[1]);
     reader->Update();
     ITKMesh::Pointer uvMap = ITKMesh::New();
     volcart::meshing::vtk2itk(reader->GetOutput(), uvMap);
@@ -38,7 +39,7 @@ int main(int argc, char* argv[])
     massProperties->Update();
     double original_sa = massProperties->GetSurfaceArea();
 
-    std::ifstream file(argv[1]);
+    std::ifstream file(argv[2]);
     std::string line;
 
     ITKPixel vertex;

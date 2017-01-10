@@ -2,6 +2,7 @@
 // Created by Seth Parker on 6/24/15.
 //
 
+#include <opencv2/imgcodecs.hpp>
 #include <vtkPLYReader.h>
 #include <vtkSmartPointer.h>
 
@@ -18,17 +19,19 @@ int main(int /*argc*/, char* argv[])
 {
 
     VolumePkg vpkg(argv[1]);
+    double radius = std::stod(argv[4]);
+    std::cout << radius << std::endl;
 
     // Read the mesh
     vtkSmartPointer<vtkPLYReader> reader = vtkSmartPointer<vtkPLYReader>::New();
-    reader->SetFileName("decim.ply");
+    reader->SetFileName(argv[2]);
     reader->Update();
     auto inputMesh = volcart::ITKMesh::New();
     volcart::meshing::vtk2itk(reader->GetOutput(), inputMesh);
 
     // Read the uv map
     auto reader2 = vtkSmartPointer<vtkPLYReader>::New();
-    reader2->SetFileName("uvmap.ply");
+    reader2->SetFileName(argv[3]);
     reader2->Update();
     auto uvmap = volcart::ITKMesh::New();
     volcart::meshing::vtk2itk(reader2->GetOutput(), uvmap);
@@ -81,12 +84,21 @@ int main(int /*argc*/, char* argv[])
 
     // Convert soft body to itk mesh
     volcart::texturing::compositeTextureV2 result(
-        inputMesh, vpkg, uvMap, 7, static_cast<int>(aspect_width),
+        inputMesh, vpkg, uvMap, radius, static_cast<int>(aspect_width),
         static_cast<int>(aspect_height));
     volcart::io::OBJWriter objwriter(
         "cloth.obj", inputMesh, result.texture().uvMap(),
         result.texture().image(0));
     objwriter.write();
+
+    if (result.texture().mask().data) {
+        cv::imwrite("PerPixelMask.png", result.texture().mask());
+    }
+
+    if (result.texture().ppm().initialized()) {
+        volcart::PerPixelMap::WritePPM(
+            "PerPixelMapping", result.texture().ppm());
+    }
 
     return EXIT_SUCCESS;
 }
