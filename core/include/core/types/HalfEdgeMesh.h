@@ -5,8 +5,6 @@
 // edge AB and edge BA
 #pragma once
 
-#include <exception>
-#include <iostream>
 #include <memory>
 
 #include <opencv2/core.hpp>
@@ -35,7 +33,7 @@ public:
     public:
         Vert() : id{}, pid{}, lambdaPlanar{}, lambdaLength{} {}
 
-        VertPtr nextlink;
+        VertPtr nextLink;
         IDType id;
         ITKMesh::PointIdentifier pid;  // Original point ID in ITK mesh
 
@@ -54,7 +52,7 @@ public:
     public:
         Edge() : id{} {}
 
-        EdgePtr nextlink;
+        EdgePtr nextLink;
         IDType id;
 
         VertPtr vert;  // Starting index
@@ -108,7 +106,7 @@ public:
         {
         }
 
-        FacePtr nextlink;
+        FacePtr nextLink;
         IDType id;
         ITKMesh::CellIdentifier cid;  // Original cell ID in ITK mesh
         EdgePtr edge;                 // First edge of the face
@@ -129,67 +127,67 @@ public:
     VertPtr addVert(double x, double y, double z);
     FacePtr addFace(IDType v0, IDType v1, IDType v2);
 
-    VertPtr getVert(IDType id) const { return _verts[id]; }
-    EdgePtr getEdge(IDType id) const { return _edges[id]; }
-    FacePtr getFace(IDType id) const { return _faces[id]; }
+    VertPtr getVert(IDType id) const { return verts_[id]; }
+    EdgePtr getEdge(IDType id) const { return edges_[id]; }
+    FacePtr getFace(IDType id) const { return faces_[id]; }
 
     std::vector<VertPtr>::iterator getVertsBegin()
     {
-        return std::begin(_verts);
+        return std::begin(verts_);
     }
-    std::vector<VertPtr>::iterator getVertsEnd() { return std::end(_verts); }
+    std::vector<VertPtr>::iterator getVertsEnd() { return std::end(verts_); }
     std::vector<EdgePtr>::iterator getEdgesBegin()
     {
-        return std::begin(_edges);
+        return std::begin(edges_);
     }
-    std::vector<EdgePtr>::iterator getEdgesEnd() { return std::end(_edges); }
+    std::vector<EdgePtr>::iterator getEdgesEnd() { return std::end(edges_); }
     std::vector<FacePtr>::iterator getFacesBegin()
     {
-        return std::begin(_faces);
+        return std::begin(faces_);
     }
-    std::vector<FacePtr>::iterator getFacesEnd() { return std::end(_faces); }
+    std::vector<FacePtr>::iterator getFacesEnd() { return std::end(faces_); }
 
     std::vector<VertPtr>::iterator getInteriorBegin()
     {
-        return std::begin(_interior);
+        return std::begin(interior_);
     }
     std::vector<VertPtr>::iterator getInteriorEnd()
     {
-        return std::end(_interior);
+        return std::end(interior_);
     }
     std::vector<VertPtr>::iterator getBoundaryBegin()
     {
-        return std::begin(_boundary);
+        return std::begin(boundary_);
     }
     std::vector<VertPtr>::iterator getBoundaryEnd()
     {
-        return std::end(_boundary);
+        return std::end(boundary_);
     }
 
-    size_t getNumberOfVerts() const { return _verts.size(); }
-    size_t getNumberOfEdges() const { return _edges.size(); }
-    size_t getNumberOfFaces() const { return _faces.size(); }
-    size_t getNumberOfInteriorPoints() const { return _interior.size(); }
-    size_t getNumberOfBoundaryPoints() const { return _boundary.size(); }
+    size_t getNumberOfVerts() const { return verts_.size(); }
+    size_t getNumberOfEdges() const { return edges_.size(); }
+    size_t getNumberOfFaces() const { return faces_.size(); }
+    size_t getNumberOfInteriorPoints() const { return interior_.size(); }
+    size_t getNumberOfBoundaryPoints() const { return boundary_.size(); }
 
     ///// Special Construction Tasks /////
     void constructConnectedness();
 
 private:
-    std::vector<VertPtr> _verts;
-    std::vector<EdgePtr> _edges;
-    std::vector<FacePtr> _faces;
+    std::vector<VertPtr> verts_;
+    std::vector<EdgePtr> edges_;
+    std::vector<FacePtr> faces_;
 
-    std::vector<VertPtr> _interior;
-    std::vector<VertPtr> _boundary;
+    std::vector<VertPtr> interior_;
+    std::vector<VertPtr> boundary_;
 
     ///// Special Construction Tasks /////
-    void _connectAllPairs();
-    HalfEdgeMesh::EdgePtr _findEdgePair(
-        HalfEdgeMesh::IDType A, HalfEdgeMesh::IDType B);
-    void _computeBoundary();
+    void connectAllPairs_();
+    HalfEdgeMesh::EdgePtr findEdgePair_(
+        HalfEdgeMesh::IDType a, HalfEdgeMesh::IDType b);
+    void computeBoundary_();
 
     ///// Math functions /////
-    double _angle(const cv::Vec3d& A, const cv::Vec3d& B, const cv::Vec3d& C);
+    double angle_(const cv::Vec3d& a, const cv::Vec3d& b, const cv::Vec3d& c);
 };
-}  // namespace volcart
+}

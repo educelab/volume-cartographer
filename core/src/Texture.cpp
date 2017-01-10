@@ -10,19 +10,19 @@ using namespace volcart;
 // Constructor
 Texture::Texture()
 {
-    _metadata.set<std::string>("type", "texture");
-    _metadata.set<std::string>("id", DATE_TIME());
-    _metadata.set<size_t>("number-of-images", 0);
+    metadata_.set<std::string>("type", "texture");
+    metadata_.set<std::string>("id", DateTime());
+    metadata_.set<size_t>("number-of-images", 0);
 }
 
 // Load from path
 Texture::Texture(std::string path)
 {
-    _path = path;
-    _metadata = volcart::Metadata(_path.string() + "/meta.json");
+    path_ = std::move(path);
+    metadata_ = volcart::Metadata(path_.string() + "/meta.json");
 
     // Check for meta-type
-    if (_metadata.get<std::string>("type") != "texture") {
+    if (metadata_.get<std::string>("type") != "texture") {
         std::cerr << "volcart::texture::error: metadata not of type 'texture'"
                   << std::endl;
     }
@@ -30,33 +30,31 @@ Texture::Texture(std::string path)
     // To-Do: Load the UV Map
 
     // Load the texture images
-    for (size_t i_id = 0; i_id < _metadata.get<size_t>("number-of-images");
-         ++i_id) {
-        std::string i_path =
-            _path.string() + "/" + std::to_string(i_id) + ".png";
-        _images.push_back(cv::imread(i_path, -1));
+    for (size_t i = 0; i < metadata_.get<size_t>("number-of-images"); ++i) {
+        auto imagePath = path_ / (std::to_string(i) + ".png");
+        images_.push_back(cv::imread(imagePath.string(), cv::IMREAD_ANYDEPTH));
     }
 }
 
 // Add an image
 void Texture::addImage(cv::Mat image)
 {
-    if (_images.empty()) {
-        _width = image.cols;
-        _height = image.rows;
+    if (images_.empty()) {
+        width_ = image.cols;
+        height_ = image.rows;
     }
-    _images.push_back(image);
-    _metadata.set<size_t>("number-of-images", _images.size());
+    images_.push_back(image);
+    metadata_.set<size_t>("number-of-images", images_.size());
 }
 
 // Return the intensity for a Point ID
-double Texture::intensity(int point_ID, int image_ID)
+double Texture::intensity(int pointId, int imageId)
 {
-    cv::Vec2d mapping = _ppm.uvMap().get(point_ID);
+    auto mapping = ppm_.uvMap().get(pointId);
     if (mapping != VC_UVMAP_NULL_MAPPING) {
-        int u = cvRound(mapping[0] * (_width - 1));
-        int v = cvRound(mapping[1] * (_height - 1));
-        return _images[image_ID].at<uint16_t>(v, u);
+        int u = cvRound(mapping[0] * (width_ - 1));
+        int v = cvRound(mapping[1] * (height_ - 1));
+        return images_[imageId].at<uint16_t>(v, u);
     } else {
         return volcart::TEXTURE_NO_VALUE;
     }

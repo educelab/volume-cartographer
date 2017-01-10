@@ -21,40 +21,40 @@ class Metadata
 
 public:
     Metadata() {}
-    explicit Metadata(boost::filesystem::path file_location);
+    explicit Metadata(boost::filesystem::path fileLocation);
 
     // Path
-    boost::filesystem::path path() const { return _path; }
-    void setPath(const std::string& path) { _path = path; }
+    boost::filesystem::path path() const { return path_; }
+    void setPath(const std::string& path) { path_ = path; }
 
     // Save to file
     void save(const boost::filesystem::path& path);
-    void save() { save(_path); }
+    void save() { save(path_); }
 
     // Debug function
-    void printString() const { std::cout << _json << std::endl; }
-    void printObject() const { std::cout << _json.dump(4) << std::endl; }
+    void printString() const { std::cout << json_ << std::endl; }
+    void printObject() const { std::cout << json_.dump(4) << std::endl; }
 
     // Retrieval
     template <typename T>
     T get(const std::string& key) const
     {
-        if (_json.find(key) == _json.end()) {
+        if (json_.find(key) == json_.end()) {
             auto msg = "could not find key '" + key + "' in metadata";
             throw std::runtime_error(msg);
         }
-        return _json[key].get<T>();
+        return json_[key].get<T>();
     }
 
     // Assignment
     template <typename T>
     void set(const std::string& key, T value)
     {
-        _json[key] = value;
+        json_[key] = value;
     }
 
 protected:
-    nlohmann::json _json;
-    boost::filesystem::path _path;
+    nlohmann::json json_;
+    boost::filesystem::path path_;
 };
 }

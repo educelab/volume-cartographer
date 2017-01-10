@@ -36,22 +36,22 @@ public:
      * location on disk. Note: You must call initialize() before the file can
      * be written to and accessed. Only metadata keys may be modified before
      * initialize is called.
-     * @param file_location The location to store the VolPkg
+     * @param fileLocation The location to store the VolPkg
      * @param version Version of VolumePkg you wish to construct
      */
-    VolumePkg(boost::filesystem::path file_location, int version);
+    VolumePkg(boost::filesystem::path fileLocation, int version);
 
     /**
      * @brief Construct a VolumePkg from a .volpkg file stored at
-     * `file_location.`
-     * @param file_location The root of the VolumePkg file
+     * `fileLocation.`
+     * @param fileLocation The root of the VolumePkg file
      */
-    explicit VolumePkg(boost::filesystem::path file_location);
+    explicit VolumePkg(boost::filesystem::path fileLocation);
 
     /**
      * @brief Prints the JSON object that stores VolumePkg metadata. Debug only.
      */
-    void printJSON() const { config.printObject(); }
+    void printJSON() const { config_.printObject(); }
 
     /**
      * @brief Prints the paths to important VolumePkg subdirectories.
@@ -59,8 +59,8 @@ public:
      */
     void printDirs() const
     {
-        std::cout << "root: " << root_dir << " seg: " << segs_dir
-                  << " slice: " << slice_dir << std::endl;
+        std::cout << "root: " << rootDir_ << " seg: " << segsDir_
+                  << " slice: " << sliceDir_ << std::endl;
     }
 
     /** @name Metadata */
@@ -87,13 +87,13 @@ public:
      * When `true`, metadata values cannot be edited and slice data cannot be
      * added to the VolumePkg.
      */
-    bool readOnly() const { return _readOnly; }
+    bool readOnly() const { return readOnly_; }
 
     /**
      * @brief Set/unset the VolumePkg read-only flag.
      * @param b Boolean representing new value of read-only flag
      */
-    void readOnly(bool b) { _readOnly = b; }
+    void readOnly(bool b) { readOnly_ = b; }
 
     /**
      * @brief Sets the value of `key` in the VolumePkg metadata.
@@ -109,18 +109,18 @@ public:
     template <typename T>
     int setMetadata(const std::string& key, T value)
     {
-        if (_readOnly) {
-            volcart::ERR_READONLY();
+        if (readOnly_) {
+            volcart::ErrReadonly();
         }
 
-        config.set<T>(key, value);
+        config_.set<T>(key, value);
         return EXIT_SUCCESS;
     }
 
     /**
      * @brief Saves the metadata to the VolumePkg (.volpkg) file.
      */
-    void saveMetadata() { config.save(root_dir / "config.json"); }
+    void saveMetadata() { config_.save(rootDir_ / "config.json"); }
 
     /**
      * @brief Saves the metadata to a user-specified location.
@@ -128,7 +128,7 @@ public:
      */
     void saveMetadata(const boost::filesystem::path& filePath)
     {
-        config.save(filePath);
+        config_.save(filePath);
     }
     //@}
 
@@ -363,29 +363,29 @@ public:
 
 private:
     /** VolumePkg read-only flag. */
-    bool _readOnly = true;
+    bool readOnly_ = true;
 
     /** VolumePkg metadata. */
-    volcart::Metadata config;
+    volcart::Metadata config_;
 
     /** Container for slice data. */
     volcart::Volume vol_;
 
     /** The root directory of the VolumePkg. */
-    boost::filesystem::path root_dir;
+    boost::filesystem::path rootDir_;
 
     /** The subdirectory containing Segmentation data. */
-    boost::filesystem::path segs_dir;
+    boost::filesystem::path segsDir_;
 
     /** The subdirectory containing slice data. */
-    boost::filesystem::path slice_dir;
+    boost::filesystem::path sliceDir_;
 
     /** Segmentation ID of the segmentation that is currently being worked on.
      */
-    std::string activeSeg;
+    std::string activeSeg_;
 
     /** The list of all segmentations in the VolumePkg. */
-    std::vector<std::string> segmentations;
+    std::vector<std::string> segmentations_;
 
     /**
      * @brief Populates an empty VolumePkg::config from a volcart::Dictionary
@@ -397,6 +397,6 @@ private:
      * @param version Version number of the passed Dictionary
      * @return volcart::Metadata populated with default keys
      */
-    static volcart::Metadata _initConfig(
+    static volcart::Metadata initConfig_(
         const volcart::Dictionary& dict, int version);
 };

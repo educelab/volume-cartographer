@@ -32,7 +32,7 @@ namespace volcart
 
 struct Vertex {
     double x, y, z, nx, ny, nz, s, t;
-    int r, g, b, face_count;
+    int r, g, b, faceCount;
 };
 
 struct Cell {
@@ -91,7 +91,7 @@ using QuadEdgeListPointer = QuadMesh::EdgeListPointerType;
 using QuadEdgeListIterator = QuadEdgeList::iterator;
 
 ///// ERROR MESSAGES /////
-inline int ERR_READONLY()
+inline int ErrReadonly()
 {
     std::cerr << "ERROR: VolPkg is set to read-only. Cannot write to file"
               << std::endl;
@@ -124,7 +124,7 @@ enum class CompositeOption {
 enum class DirectionOption { Bidirectional, Positive, Negative };
 
 ///// Time Helper /////
-inline std::string DATE_TIME()
+inline std::string DateTime()
 {
     time_t now = std::time(nullptr);
     struct tm tstruct {

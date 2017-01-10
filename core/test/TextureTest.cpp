@@ -140,7 +140,7 @@ BOOST_FIXTURE_TEST_CASE(
     BOOST_CHECK_EQUAL(_Type, "texture");
 
     std::string TestDate, TruncatedTestDate;
-    TestDate = volcart::DATE_TIME()[0 - 7];
+    TestDate = volcart::DateTime()[0 - 7];
     TruncatedTestDate = TestDate[0 - 7];
 
     // check id

@@ -9,28 +9,28 @@ constexpr static size_t PPM_ELEMENT_SIZE = 6;
 ///// Metadata /////
 void PerPixelMap::setDimensions(size_t h, size_t w)
 {
-    _height = h;
-    _width = w;
-    _initializeMap();
+    height_ = h;
+    width_ = w;
+    initializeMap_();
 }
 
 void PerPixelMap::setWidth(size_t w)
 {
-    _width = w;
-    _initializeMap();
+    width_ = w;
+    initializeMap_();
 }
 
 void PerPixelMap::setHeight(size_t h)
 {
-    _height = h;
-    _initializeMap();
+    height_ = h;
+    initializeMap_();
 }
 
 // Initialize map
-void PerPixelMap::_initializeMap()
+void PerPixelMap::initializeMap_()
 {
-    if (_height > 0 && _width > 0) {
-        _map = cv::Mat_<cv::Vec6d>(_height, _width, {0, 0, 0, 0, 0, 0});
+    if (height_ > 0 && width_ > 0) {
+        map_ = cv::Mat_<cv::Vec6d>(height_, width_, {0, 0, 0, 0, 0, 0});
     }
 }
 
@@ -44,7 +44,7 @@ void PerPixelMap::WritePPM(fs::path path, const PerPixelMap& map)
     std::cerr << "volcart::PerPixelMap: Writing to file " << path.filename()
               << std::endl;
     cv::FileStorage fs(path.string(), cv::FileStorage::WRITE);
-    fs << "PerPixelMapping" << map._map;
+    fs << "PerPixelMapping" << map.map_;
     fs.release();
 }
 
@@ -57,22 +57,22 @@ PerPixelMap PerPixelMap::ReadPPM(const fs::path& path)
     PerPixelMap ppm;
 
     // Read the header info
-    ppm._height = static_cast<int>(map["rows"]);
-    ppm._width = static_cast<int>(map["cols"]);
+    ppm.height_ = static_cast<int>(map["rows"]);
+    ppm.width_ = static_cast<int>(map["cols"]);
 
     // Initialize an empty map
-    ppm._map = cv::Mat_<cv::Vec6d>(ppm._height, ppm._width, {0, 0, 0, 0, 0, 0});
+    ppm.map_ = cv::Mat_<cv::Vec6d>(ppm.height_, ppm.width_, {0, 0, 0, 0, 0, 0});
 
     // Make sure the size is as expected
-    if (map["data"].size() != ppm._height * ppm._width * 6) {
+    if (map["data"].size() != ppm.height_ * ppm.width_ * 6) {
         auto msg = "Header dimensions do not match data dimensions";
         throw IOException(msg);
     }
 
     cv::Vec6d v;
     auto dbl = map["data"].begin();
-    for (size_t y = 0; y < ppm._height; ++y) {
-        for (size_t x = 0; x < ppm._width; ++x) {
+    for (size_t y = 0; y < ppm.height_; ++y) {
+        for (size_t x = 0; x < ppm.width_; ++x) {
 
             // Fill each cv::Vec6d
             for (size_t n = 0; n < PPM_ELEMENT_SIZE; ++n, ++dbl) {
@@ -80,7 +80,7 @@ PerPixelMap PerPixelMap::ReadPPM(const fs::path& path)
             }
 
             // Assign _map in the correct position
-            ppm._map(y, x) = v;
+            ppm.map_(y, x) = v;
         }
     }
 

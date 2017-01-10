@@ -22,41 +22,41 @@ class PerPixelMap
 public:
     ///// Constructors /////
     // Create empty
-    PerPixelMap() : _width{0}, _height{0} { _initializeMap(); }
+    PerPixelMap() : width_{0}, height_{0} { initializeMap_(); }
 
     // Create new
-    PerPixelMap(size_t height, size_t width) : _width{width}, _height{height}
+    PerPixelMap(size_t height, size_t width) : width_{width}, height_{height}
     {
-        _initializeMap();
+        initializeMap_();
     }
 
     ///// Check if initialized /////
     bool initialized() const
     {
-        return _map.data != nullptr && _width > 0 && _height > 0;
+        return map_.data != nullptr && width_ > 0 && height_ > 0;
     }
 
     ///// Operators /////
     // Forward to the Mat_ operators
-    cv::Vec6d& operator()(size_t y, size_t x) { return _map(y, x); }
+    cv::Vec6d& operator()(size_t y, size_t x) { return map_(y, x); }
 
     ///// Metadata /////
     void setDimensions(size_t h, size_t w);
     void setWidth(size_t w);
     void setHeight(size_t h);
-    int width() const { return _width; }
-    int height() const { return _height; }
+    int width() const { return width_; }
+    int height() const { return height_; }
 
-    void setUVMap(const UVMap& u) { _uvmap = u; }
-    const UVMap& uvMap() const { return _uvmap; }
-    UVMap& uvMap() { return _uvmap; }
+    void setUVMap(const UVMap& u) { uvMap_ = u; }
+    const UVMap& uvMap() const { return uvMap_; }
+    UVMap& uvMap() { return uvMap_; }
 
-    void setMask(const cv::Mat& m) { _mask = m.clone(); }
-    cv::Mat mask() const { return _mask; }
-    cv::Mat maskCopy() const { return _mask.clone(); }
+    void setMask(const cv::Mat& m) { mask_ = m.clone(); }
+    cv::Mat mask() const { return mask_; }
+    cv::Mat maskCopy() const { return mask_.clone(); }
     bool hasMapping(size_t y, size_t x)
     {
-        return _mask.at<uint8_t>(y, x) == 255;
+        return mask_.at<uint8_t>(y, x) == 255;
     }
 
     ///// Disk IO /////
@@ -64,10 +64,10 @@ public:
     static PerPixelMap ReadPPM(const boost::filesystem::path& path);
 
 private:
-    void _initializeMap();
-    size_t _width, _height;
-    cv::Mat_<cv::Vec6d> _map;
-    cv::Mat _mask;
-    UVMap _uvmap;
+    void initializeMap_();
+    size_t width_, height_;
+    cv::Mat_<cv::Vec6d> map_;
+    cv::Mat mask_;
+    UVMap uvMap_;
 };
 }  // namespace volcart

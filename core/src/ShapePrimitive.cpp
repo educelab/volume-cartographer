@@ -199,7 +199,7 @@ void ShapePrimitive::_add_vertex(double x, double y, double z)
     v.nx = 0;
     v.ny = 0;
     v.nz = 0;
-    v.face_count = 0;
+    v.faceCount = 0;
     _points.push_back(v);
 }
 
@@ -248,10 +248,10 @@ void ShapePrimitive::_update_normal(
 {
     // recalculate average (unaverage, add new component, recalculate average)
     Vertex v = _points[vertex];
-    v.nx = (v.nx * v.face_count + nx_in) / (v.face_count + 1);
-    v.ny = (v.ny * v.face_count + ny_in) / (v.face_count + 1);
-    v.nz = (v.nz * v.face_count + nz_in) / (v.face_count + 1);
-    v.face_count++;
+    v.nx = (v.nx * v.faceCount + nx_in) / (v.faceCount + 1);
+    v.ny = (v.ny * v.faceCount + ny_in) / (v.faceCount + 1);
+    v.nz = (v.nz * v.faceCount + nz_in) / (v.faceCount + 1);
+    v.faceCount++;
     _points[vertex] = v;
 }
 

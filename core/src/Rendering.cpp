@@ -8,6 +8,6 @@ using namespace volcart;
 ///// Constructors/Destructors /////
 Rendering::Rendering()
 {
-    _metadata.set<std::string>("type", "rendering");
-    _metadata.set<std::string>("id", DATE_TIME());
+    metadata_.set<std::string>("type", "rendering");
+    metadata_.set<std::string>("id", DateTime());
 }
