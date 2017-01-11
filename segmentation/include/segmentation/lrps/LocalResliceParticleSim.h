@@ -35,16 +35,16 @@ public:
 private:
     VolumePkg& pkg_;
 
-    cv::Vec3d estimateNormalAtIndex(
+    cv::Vec3d estimateNormalAtIndex_(
         const FittedCurve& currentCurve, int32_t index);
 
-    cv::Mat drawParticlesOnSlice(
+    cv::Mat drawParticleOnSlice_(
         const FittedCurve& curve,
         int32_t sliceIndex,
         int32_t particleIndex = -1,
         bool showSpline = false) const;
 
-    constexpr static double kDefaultMinEnergyGradient = 1e-7;
+    constexpr static double DEFAULT_MIN_ENERGY_GRADIENT = 1e-7;
 };
 }
 }

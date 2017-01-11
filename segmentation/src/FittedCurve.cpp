@@ -13,7 +13,7 @@ FittedCurve::FittedCurve(const std::vector<Voxel>& vs, int32_t zIndex)
     : npoints_(vs.size()), zIndex_(zIndex), ts_(generateTVals(npoints_))
 {
     std::vector<double> xs, ys;
-    std::tie(xs, ys) = unzip(vs);
+    std::tie(xs, ys) = Unzip(vs);
 
     spline_ = CubicSpline<double>(xs, ys);
 
@@ -63,11 +63,11 @@ Voxel FittedCurve::operator()(int32_t index) const
 std::vector<double> FittedCurve::curvature(int32_t hstep) const
 {
     std::vector<double> xs, ys;
-    std::tie(xs, ys) = unzip(points_);
-    const auto dx1 = d1(xs, hstep);
-    const auto dy1 = d1(ys, hstep);
-    const auto dx2 = d2(xs, hstep);
-    const auto dy2 = d2(ys, hstep);
+    std::tie(xs, ys) = Unzip(points_);
+    const auto dx1 = D1(xs, hstep);
+    const auto dy1 = D1(ys, hstep);
+    const auto dx2 = D2(xs, hstep);
+    const auto dy2 = D2(ys, hstep);
 
     // Calculate curvature
     // according to: http://mathworld.wolfram.com/Curvature.html

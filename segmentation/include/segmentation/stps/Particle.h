@@ -3,22 +3,23 @@
 
 #include <opencv2/core.hpp>
 
-using ParticleStopped = bool;
-
 class Particle
 {
 public:
-    explicit Particle(cv::Vec3d position);
+    explicit Particle(cv::Vec3d position)
+        : position_{std::move(position)}, isStopped_{false}
+    {
+    }
 
-    cv::Vec3d position();
-    bool isStopped();
-    void stop();
+    cv::Vec3d position() const { return position_; }
+    bool isStopped() const { return isStopped_; }
+    void stop() { isStopped_ = true; }
 
-    void operator+=(const cv::Vec3d& v);
-    double operator()(int index);
-    cv::Vec3d operator-(Particle p);
+    void operator+=(const cv::Vec3d& v) { position_ += v; }
+    double operator()(int index) const { return position_(index); }
+    cv::Vec3d operator-(Particle p) { return position_ - p.position(); }
 
 private:
-    cv::Vec3d _position;
-    bool _isStopped;
+    cv::Vec3d position_;
+    bool isStopped_;
 };

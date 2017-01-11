@@ -22,7 +22,7 @@ namespace fs = boost::filesystem;
 using std::begin;
 using std::end;
 
-volcart::OrderedPointSet<cv::Vec3d> exportAsPCD(
+volcart::OrderedPointSet<cv::Vec3d> ExportAsPCD(
     const std::vector<std::vector<Voxel>>& points);
 
 volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
@@ -98,7 +98,7 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
             const auto wholeChainPath = wholeChainDir / ss.str();
             cv::imwrite(
                 wholeChainPath.string(),
-                drawParticlesOnSlice(currentCurve, zIndex, -1, true));
+                drawParticleOnSlice_(currentCurve, zIndex, -1, true));
         }
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -113,7 +113,7 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
         // XXX DEBUG
         for (int32_t i = 0; i < int32_t(currentCurve.size()); ++i) {
             // Estimate normal and reslice along it
-            const cv::Vec3d normal = estimateNormalAtIndex(currentCurve, i);
+            const cv::Vec3d normal = estimateNormalAtIndex_(currentCurve, i);
             const auto reslice =
                 vol.reslice(currentCurve(i), normal, {0, 0, 1}, 32, 32);
             reslices.push_back(reslice);
@@ -180,12 +180,12 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
             // Break if our energy gradient is leveling off
             dEnergy.push_back(minEnergy);
             if (dEnergy.size() == 3 &&
-                0.5 * (dEnergy[0] - dEnergy[2]) < kDefaultMinEnergyGradient) {
+                0.5 * (dEnergy[0] - dEnergy[2]) < DEFAULT_MIN_ENERGY_GRADIENT) {
                 break;
             }
 
             // - Sort paired index-Voxel in increasing local internal energy
-            auto pairs = zip(indices, squareDiff(currentVs, nextVs));
+            auto pairs = Zip(indices, SquareDiff(currentVs, nextVs));
             std::sort(begin(pairs), end(pairs), [](auto p1, auto p2) {
                 return p1.second < p2.second;
             });
@@ -227,7 +227,7 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
         // 3. Clamp points that jumped too far back to a good (interpolated)
         // position. Do this by looking for places where the square of the
         // second derivative is large, and move them back. Tentatively, I'm only
-        // going to move back points whose d2^2 evaluates to > 10.
+        // going to move back points whose D2^2 evaluates to > 10.
         //
         // Currently, linear interpolation between the previous/next point is
         // used. This could be upgraded to some kind of other fit, possibly
@@ -235,7 +235,7 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
         // their two closest neighbors.
 
         // Take initial second derivative
-        auto secondDeriv = d2(nextVs);
+        auto secondDeriv = D2(nextVs);
         std::vector<double> normDeriv2(secondDeriv.size());
         std::transform(
             begin(secondDeriv) + 1, end(secondDeriv) - 1, begin(normDeriv2),
@@ -255,7 +255,7 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
             nextVs[i] = newPoint;
 
             // Re-evaluate second derivative of new curve
-            secondDeriv = d2(nextVs);
+            secondDeriv = D2(nextVs);
             std::transform(
                 begin(secondDeriv), end(secondDeriv), begin(normDeriv2),
                 [](auto d) { return cv::norm(d) * cv::norm(d); });
@@ -282,7 +282,7 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
             // Since points can change due to 2nd deriv optimization after main
             // optimization, refit a curve and draw that
             FittedCurve newChain(nextVs, zIndex + 1);
-            auto chain = drawParticlesOnSlice(newChain, zIndex + 1);
+            auto chain = drawParticleOnSlice_(newChain, zIndex + 1);
             cv::namedWindow("Next curve", cv::WINDOW_NORMAL);
             cv::imshow("Next curve", chain);
             cv::waitKey(0);
@@ -299,7 +299,7 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
 
             // Dump chain, map, reslice for every particle
             for (size_t i = 0; i < nextVs.size(); ++i) {
-                cv::Mat chain = drawParticlesOnSlice(currentCurve, zIndex, i);
+                cv::Mat chain = drawParticleOnSlice_(currentCurve, zIndex, i);
                 cv::Mat resliceMat = reslices[i].draw();
                 cv::Mat map = maps[i].draw();
                 std::stringstream stream;
@@ -320,10 +320,10 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
 
     ////////////////////////////////////////////////////////////////////////////////
     // 6. Output final mesh
-    return exportAsPCD(points);
+    return ExportAsPCD(points);
 }
 
-cv::Vec3d LocalResliceSegmentation::estimateNormalAtIndex(
+cv::Vec3d LocalResliceSegmentation::estimateNormalAtIndex_(
     const FittedCurve& currentCurve, int32_t index)
 {
     const cv::Vec3i currentVoxel = currentCurve(index);
@@ -336,30 +336,30 @@ cv::Vec3d LocalResliceSegmentation::estimateNormalAtIndex(
     if (std::abs(exp0 - exp1) > 2.0) {
         return eigenPairs[0].second;
     }
-    const auto tan3d = d1At(currentCurve.points(), index, 3);
+    const auto tan3d = D1At(currentCurve.points(), index, 3);
     return tan3d.cross(cv::Vec3d{0, 0, 1});
 }
 
-volcart::OrderedPointSet<cv::Vec3d> exportAsPCD(
+volcart::OrderedPointSet<cv::Vec3d> ExportAsPCD(
     const std::vector<std::vector<Voxel>>& points)
 {
     int32_t rows = points.size();
     int32_t cols = points[0].size();
-    std::vector<cv::Vec3d> temp_row;
+    std::vector<cv::Vec3d> tempRow;
     volcart::OrderedPointSet<cv::Vec3d> cloud(cols);
 
     for (int32_t i = 0; i < rows; ++i) {
         for (int32_t j = 0; j < cols; ++j) {
             Voxel v = points[i][j];
-            temp_row.emplace_back(v(0), v(1), v(2));
+            tempRow.emplace_back(v(0), v(1), v(2));
         }
-        cloud.pushRow(temp_row);
-        temp_row.clear();
+        cloud.pushRow(tempRow);
+        tempRow.clear();
     }
     return cloud;
 }
 
-cv::Mat LocalResliceSegmentation::drawParticlesOnSlice(
+cv::Mat LocalResliceSegmentation::drawParticleOnSlice_(
     const FittedCurve& curve,
     int32_t sliceIndex,
     int32_t particleIndex,

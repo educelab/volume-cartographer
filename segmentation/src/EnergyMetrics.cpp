@@ -15,11 +15,11 @@ double EnergyMetrics::ActiveContourInternal(
         return 0;
     }
 
-    auto d1current = normalizeVector(d1(curve.points()));
-    auto d2current = normalizeVector(d2(curve.points()));
+    auto D1current = NormalizeVector(D1(curve.points()));
+    auto D2current = NormalizeVector(D2(curve.points()));
 
     double intE = 0;
-    for (auto p : zip(d1current, d2current)) {
+    for (auto p : Zip(D1current, D2current)) {
         intE += k1 * std::pow(cv::norm(p.first), 2) +
                 k2 * std::pow(cv::norm(p.second), 2);
     }
@@ -54,7 +54,7 @@ double EnergyMetrics::AbsCurvatureSum(const FittedCurve& curve)
     std::transform(std::begin(k), std::end(k), std::begin(k), [](auto e) {
         return std::abs(e);
     });
-    k = normalizeVector(k);
+    k = NormalizeVector(k);
     return std::accumulate(
                begin(k), end(k), 0.0,
                [](double sum, double d) { return sum + d; }) /

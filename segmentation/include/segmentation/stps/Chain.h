@@ -30,22 +30,22 @@ public:
     volcart::OrderedPointSet<cv::Vec3d> orderedPCD();
 
 private:
-    const VolumePkg& _volpkg;
+    const VolumePkg& volpkg_;
 
     // History of the chain at each iteration
-    std::list<std::vector<Particle>> _history;
+    std::list<std::vector<Particle>> history_;
     // Parameters for calculating the spring effects
-    double _spring_constant_k;
-    double _spring_resting_x;
+    double springConstantK_;
+    double springRestingX_;
     // Limits the effect of the normal vector
-    double _gravity_scale;  // To-Do: Rename.
+    double gravityScale_;  // To-Do: Rename.
 
     // -- Chain Size Information -- //
-    size_t _chain_length;  // Number of particles in the chain & width of output
-                           // PCD
-    size_t
-        _real_iterations;  // Height of the output PCD To-Do: Do we need this?
-    size_t _start_index;   // Starting slice index
-    size_t _target_index;  // Target slice index
-    int _threshold;        // To-Do: What is this for now? We may not need this.
+    size_t chainLength_;  // Number of particles in the chain & width of output
+                          // PCD
+    // Height of the output PCD To-Do: Do we need this?
+    size_t realIterations_;
+    size_t startIndex_;   // Starting slice index
+    size_t targetIndex_;  // Target slice index
+    int threshold_;       // To-Do: What is this for now? We may not need this.
 };
