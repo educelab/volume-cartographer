@@ -22,14 +22,14 @@ VolumePkg::VolumePkg(fs::path fileLocation, int version)
     , sliceDir_{fileLocation / "slices"}
 {
     // Lookup the metadata template from our library of versions
-    auto findDict = volcart::VersionLibrary.find(version);
-    if (findDict == std::end(volcart::VersionLibrary)) {
+    auto findDict = volcart::VERSION_LIBRARY.find(version);
+    if (findDict == std::end(volcart::VERSION_LIBRARY)) {
         throw std::runtime_error("No dictionary found for volpkg");
     }
 
     // Create the directories with the default values
     // TODO(cparker): We need a better way of handling default values
-    config_ = VolumePkg::initConfig_(findDict->second, version);
+    config_ = VolumePkg::InitConfig(findDict->second, version);
     config_.set("slice location", "/slices/");
 
     // Make directories
@@ -224,7 +224,7 @@ void VolumePkg::saveTextureData(const cv::Mat& texture, const std::string& name)
     std::cout << "Texture image saved" << std::endl;
 }
 
-volcart::Metadata VolumePkg::initConfig_(
+volcart::Metadata VolumePkg::InitConfig(
     const volcart::Dictionary& dict, int version)
 {
     volcart::Metadata config;

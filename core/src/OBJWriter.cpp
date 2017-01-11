@@ -25,7 +25,6 @@ void OBJWriter::setRendering(const volcart::Rendering& rendering)
 // Make sure that all required parameters have been set and are okay
 bool OBJWriter::validate()
 {
-
     // Make sure the output path has a file extension for the OBJ
     bool hasExt =
         (outputPath_.extension() == ".OBJ" ||

@@ -23,15 +23,15 @@ std::unique_ptr<double[]> MakeUniformGaussianField(int radius);
 // formula from http://paulbourke.net/miscellaneous/interpolation/
 uint16_t Volume::interpolateAt(const Voxel& point) const
 {
-    double int_part;
-    double dx = std::modf(point(0), &int_part);
-    auto x0 = static_cast<int>(int_part);
+    double intPart;
+    double dx = std::modf(point(0), &intPart);
+    auto x0 = static_cast<int>(intPart);
     int x1 = x0 + 1;
-    double dy = std::modf(point(1), &int_part);
-    auto y0 = static_cast<int>(int_part);
+    double dy = std::modf(point(1), &intPart);
+    auto y0 = static_cast<int>(intPart);
     int y1 = y0 + 1;
-    double dz = std::modf(point(2), &int_part);
-    auto z0 = static_cast<int>(int_part);
+    double dz = std::modf(point(2), &intPart);
+    auto z0 = static_cast<int>(intPart);
     int z1 = z0 + 1;
 
     // insert safety net
@@ -340,7 +340,7 @@ std::unique_ptr<double[]> MakeUniformGaussianField(int radius)
     double sum = 0;
     double sigma = 1;
     double sigma3 = sigma * sigma * sigma;
-    double N = 1 / (sigma3 * std::pow(2 * M_PI, 3.0 / 2.0));
+    double n = 1 / (sigma3 * std::pow(2 * M_PI, 3.0 / 2.0));
 
     // Fill field
     for (int z = -radius; z <= radius; ++z) {
@@ -350,7 +350,7 @@ std::unique_ptr<double[]> MakeUniformGaussianField(int radius)
                 auto index = static_cast<size_t>(
                     (z + radius) * sideLength * sideLength +
                     (y + radius) * sideLength + (x + radius));
-                field[index] = N * val;
+                field[index] = n * val;
                 sum += val;
             }
         }

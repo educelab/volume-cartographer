@@ -142,8 +142,8 @@ void PLYReader::readFaces_()
         boost::split(
             curFace, line_, boost::is_any_of(" "), boost::token_compress_on);
         if (hasLeadingChar_) {
-            int points_per_face = std::stoi(curFace[0]);
-            if (points_per_face != 3) {
+            int pointsPerFace = std::stoi(curFace[0]);
+            if (pointsPerFace != 3) {
                 auto msg = "Error: Not a Triangular Mesh";
                 throw volcart::IOException(msg);
             } else {
@@ -170,22 +170,22 @@ void PLYReader::readFaces_()
 void PLYReader::createMesh_()
 {
     ITKPoint p;
-    uint32_t point_cnt = 0;
+    uint32_t pointCount = 0;
     for (auto& cur : pointList_) {
         p[0] = cur.x;
         p[1] = cur.y;
         p[2] = cur.z;
-        outMesh_->SetPoint(point_cnt, p);
+        outMesh_->SetPoint(pointCount, p);
         if (hasPointNorm_) {
             ITKPixel q;
             q[0] = cur.nx;
             q[1] = cur.ny;
             q[2] = cur.nz;
-            outMesh_->SetPointData(point_cnt, q);
+            outMesh_->SetPointData(pointCount, q);
         }
-        point_cnt++;
+        pointCount++;
     }
-    uint32_t face_cnt = 0;
+    uint32_t faceCount = 0;
     for (auto& cur : faceList_) {
         ITKCell::CellAutoPointer cellpointer;
         cellpointer.TakeOwnership(new ITKTriangle);
@@ -193,7 +193,7 @@ void PLYReader::createMesh_()
         cellpointer->SetPointId(0, cur.v1);
         cellpointer->SetPointId(1, cur.v2);
         cellpointer->SetPointId(2, cur.v3);
-        outMesh_->SetCell(face_cnt, cellpointer);
-        face_cnt++;
+        outMesh_->SetCell(faceCount, cellpointer);
+        faceCount++;
     }
 }

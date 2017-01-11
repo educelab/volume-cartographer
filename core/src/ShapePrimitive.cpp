@@ -88,35 +88,35 @@ vtkSmartPointer<vtkPolyData> ShapePrimitive::vtkMesh()
 // Return Point Cloud
 volcart::OrderedPointSet<cv::Vec3d> ShapePrimitive::orderedPoints(bool noisify)
 {
-    volcart::OrderedPointSet<cv::Vec3d> output(orderedWidth_);
-    std::vector<cv::Vec3d> temp_row;
+    volcart::OrderedPointSet<cv::Vec3d> output{orderedWidth_};
+    std::vector<cv::Vec3d> tempRow;
     double offset = 0.0;
     if (noisify) {
         offset = 5.0;
     }
-    int point_counter = 0;  // This is the worst. // SP
-    size_t width_cnt = 0;
+    int pointCounter = 0;  // This is the worst. // SP
+    size_t widthCount = 0;
     for (auto pId : points_) {
         cv::Vec3d point;
-        if (width_cnt == output.width()) {
-            output.pushRow(temp_row);
-            temp_row.clear();
-            width_cnt = 0;
+        if (widthCount == output.width()) {
+            output.pushRow(tempRow);
+            tempRow.clear();
+            widthCount = 0;
         }
 
         point[0] = pId.x;
         point[1] = pId.y;
 
-        if (noisify && (point_counter % 2 == 0)) {
+        if (noisify && (pointCounter % 2 == 0)) {
             point[2] = pId.z + offset;
             point[1] = pId.z;  // added this to take the points out of the x-z
             // plane to test impact of mls
         } else {
             point[2] = pId.z;
         }
-        temp_row.push_back(point);
-        ++point_counter;
-        ++width_cnt;
+        tempRow.push_back(point);
+        ++pointCounter;
+        ++widthCount;
     }
     return output;
 }
@@ -125,21 +125,21 @@ volcart::PointSet<cv::Vec3d> ShapePrimitive::unorderedPoints(bool noisify)
 
     volcart::PointSet<cv::Vec3d> output;
     double offset = (noisify ? 5.0 : 0.0);
-    int point_counter = 0;  // This is the worst. // SP
+    int pointCounter = 0;  // This is the worst. // SP
     for (auto pId : points_) {
         cv::Vec3d point;
 
         point[0] = pId.x;
         point[1] = pId.y;
 
-        if (noisify && (point_counter % 2 == 0)) {
+        if (noisify && (pointCounter % 2 == 0)) {
             point[2] = pId.z + offset;
             point[1] = pId.z;  // added this to take the points out of the x-z
             // plane to test impact of mls
         } else {
             point[2] = pId.z;
         }
-        ++point_counter;
+        ++pointCounter;
         output.push_back(point);
     }
 
@@ -150,21 +150,13 @@ volcart::PointSet<cv::Vec3d> ShapePrimitive::unorderedPoints(bool noisify)
 volcart::OrderedPointSet<cv::Vec6d> ShapePrimitive::orderedPointNormal()
 {
 
-    volcart::OrderedPointSet<cv::Vec6d> output(orderedWidth_);
-    std::vector<cv::Vec6d> temp_row;
-    for (auto pId : points_) {
-        cv::Vec6d point;
+    volcart::OrderedPointSet<cv::Vec6d> output{orderedWidth_};
+    std::vector<cv::Vec6d> tempRow;
+    for (auto p : points_) {
         for (size_t i = 0; i < orderedWidth_; i++) {
-            point[0] = pId.x;
-            point[1] = pId.y;
-            point[2] = pId.z;
-            point[3] = pId.nx;
-            point[4] = pId.ny;
-            point[5] = pId.nz;
-
-            temp_row.push_back(point);
+            tempRow.emplace_back(p.x, p.y, p.z, p.nx, p.ny, p.nz);
         }
-        output.pushRow(temp_row);
+        output.pushRow(tempRow);
     }
 
     return output;
@@ -233,14 +225,13 @@ void ShapePrimitive::addCell_(int v1, int v2, int v3)
     updateNormal_(v3, nx, ny, nz);
 }
 
-void ShapePrimitive::updateNormal_(
-    int vertex, double nx_in, double ny_in, double nz_in)
+void ShapePrimitive::updateNormal_(int vertex, double nx, double ny, double nz)
 {
     // recalculate average (unaverage, add new component, recalculate average)
     Vertex v = points_[vertex];
-    v.nx = (v.nx * v.faceCount + nx_in) / (v.faceCount + 1);
-    v.ny = (v.ny * v.faceCount + ny_in) / (v.faceCount + 1);
-    v.nz = (v.nz * v.faceCount + nz_in) / (v.faceCount + 1);
+    v.nx = (v.nx * v.faceCount + nx) / (v.faceCount + 1);
+    v.ny = (v.ny * v.faceCount + ny) / (v.faceCount + 1);
+    v.nz = (v.nz * v.faceCount + nz) / (v.faceCount + 1);
     v.faceCount++;
     points_[vertex] = v;
 }

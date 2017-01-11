@@ -16,7 +16,7 @@
   for each unique version of VolumePkg.
 
   @newline
-  volcart::VersionLibrary holds the metadata keys and expected value-types for
+  volcart::VERSION_LIBRARY holds the metadata keys and expected value-types for
   every version of VolumePkg. When creating a new VolumePkg, these dictionaries
   are used to define the default keys that populate the JSON file. In the
   future, applications that use VolumePkg will be able to query the Library in
@@ -101,5 +101,5 @@ const Dictionary V3 =
 /**
  * Global Library used to store all template Dictionaries.
  */
-const Library VersionLibrary = {{1, V1}, {2, V2}, {3, V3}};
+const Library VERSION_LIBRARY = {{1, V1}, {2, V2}, {3, V3}};
 }

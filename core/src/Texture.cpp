@@ -5,6 +5,7 @@
 
 #include "core/types/Texture.h"
 
+namespace fs = boost::filesystem;
 using namespace volcart;
 
 // Constructor
@@ -16,11 +17,9 @@ Texture::Texture()
 }
 
 // Load from path
-Texture::Texture(std::string path)
+Texture::Texture(fs::path path)
+    : metadata_{path / "meta.json"}, path_{std::move(path)}
 {
-    path_ = std::move(path);
-    metadata_ = volcart::Metadata(path_.string() + "/meta.json");
-
     // Check for meta-type
     if (metadata_.get<std::string>("type") != "texture") {
         std::cerr << "volcart::texture::error: metadata not of type 'texture'"

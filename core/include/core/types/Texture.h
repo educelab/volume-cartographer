@@ -4,6 +4,7 @@
 // Created by Seth Parker on 10/20/15.
 #pragma once
 
+#include <boost/filesystem/path.hpp>
 #include <opencv2/core.hpp>
 
 #include "core/types/Metadata.h"
@@ -16,7 +17,7 @@ class Texture
 {
 public:
     Texture();
-    explicit Texture(std::string path);
+    explicit Texture(boost::filesystem::path path);
 
     // Get metadata
     volcart::Metadata metadata() const { return metadata_; }

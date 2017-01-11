@@ -23,7 +23,7 @@ class OBJWriter
 public:
     OBJWriter() {}
     OBJWriter(boost::filesystem::path outputPath, ITKMesh::Pointer mesh)
-        : outputPath_{outputPath}, mesh_{mesh}
+        : outputPath_{std::move(outputPath)}, mesh_{mesh}
     {
     }
     OBJWriter(
@@ -31,10 +31,10 @@ public:
         ITKMesh::Pointer mesh,
         volcart::UVMap uvMap,
         cv::Mat uvImg)
-        : outputPath_{outputPath}
+        : outputPath_{std::move(outputPath)}
         , mesh_{mesh}
-        , textCoords_{uvMap}
-        , texture_{uvImg}
+        , textCoords_{std::move(uvMap)}
+        , texture_{std::move(uvImg)}
     {
     }
 

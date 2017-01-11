@@ -74,7 +74,8 @@ public:
     /**
      * @brief Returns the VolumePkg version.
      *
-     * Use in conjunction with volcart::VersionLibrary to verify the presence of
+     * Use in conjunction with volcart::VERSION_LIBRARY to verify the presence
+     * of
      * specific VolumePkg metadata keys.
      *
      * @return Version number of VolumePkg
@@ -397,6 +398,6 @@ private:
      * @param version Version number of the passed Dictionary
      * @return volcart::Metadata populated with default keys
      */
-    static volcart::Metadata initConfig_(
+    static volcart::Metadata InitConfig(
         const volcart::Dictionary& dict, int version);
 };
