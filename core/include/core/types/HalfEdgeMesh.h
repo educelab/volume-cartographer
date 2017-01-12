@@ -182,10 +182,10 @@ private:
     std::vector<VertPtr> boundary_;
 
     ///// Special Construction Tasks /////
-    void connectAllPairs_();
-    HalfEdgeMesh::EdgePtr findEdgePair_(
+    void connect_all_pairs_();
+    HalfEdgeMesh::EdgePtr find_edge_pair_(
         HalfEdgeMesh::IDType a, HalfEdgeMesh::IDType b);
-    void computeBoundary_();
+    void compute_boundary_();
 
     ///// Math functions /////
     double angle_(const cv::Vec3d& a, const cv::Vec3d& b, const cv::Vec3d& c);

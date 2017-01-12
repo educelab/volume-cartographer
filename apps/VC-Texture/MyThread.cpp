@@ -13,6 +13,7 @@
 #include "MyThread.h"
 #include "core/io/OBJWriter.h"
 #include "core/io/PLYReader.h"
+#include "meshing/ITK2VTK.h"
 
 namespace fs = boost::filesystem;
 
@@ -80,7 +81,7 @@ void MyThread::run()
         Cleaner->Update();
 
         auto itkACVD = volcart::ITKMesh::New();
-        volcart::meshing::vtk2itk(Cleaner->GetOutput(), itkACVD);
+        volcart::meshing::VTK2ITK(Cleaner->GetOutput(), itkACVD);
 
         // ABF flattening
         std::cout << "Computing parameterization..." << std::endl;

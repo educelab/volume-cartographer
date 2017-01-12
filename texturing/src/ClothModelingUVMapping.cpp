@@ -202,7 +202,7 @@ volcart::ITKMesh::Pointer ClothModelingUVMapping::getMesh()
 {
     auto output = volcart::ITKMesh::New();
     volcart::meshing::DeepCopy(_mesh, output);
-    volcart::meshing::bullet2itk::bullet2itk(_softBody, output);
+    volcart::meshing::Bullet2ITK::Bullet2ITK(_softBody, output);
     return output;
 }
 

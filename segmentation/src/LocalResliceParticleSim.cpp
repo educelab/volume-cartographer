@@ -98,7 +98,7 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
             const auto wholeChainPath = wholeChainDir / ss.str();
             cv::imwrite(
                 wholeChainPath.string(),
-                drawParticleOnSlice_(currentCurve, zIndex, -1, true));
+                draw_particle_on_slice_(currentCurve, zIndex, -1, true));
         }
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -113,7 +113,7 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
         // XXX DEBUG
         for (int i = 0; i < int(currentCurve.size()); ++i) {
             // Estimate normal and reslice along it
-            const cv::Vec3d normal = estimateNormalAtIndex_(currentCurve, i);
+            const cv::Vec3d normal = estimate_normal_at_index_(currentCurve, i);
             const auto reslice =
                 vol.reslice(currentCurve(i), normal, {0, 0, 1}, 32, 32);
             reslices.push_back(reslice);
@@ -282,7 +282,7 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
             // Since points can change due to 2nd deriv optimization after main
             // optimization, refit a curve and draw that
             FittedCurve newChain(nextVs, zIndex + 1);
-            auto chain = drawParticleOnSlice_(newChain, zIndex + 1);
+            auto chain = draw_particle_on_slice_(newChain, zIndex + 1);
             cv::namedWindow("Next curve", cv::WINDOW_NORMAL);
             cv::imshow("Next curve", chain);
             cv::waitKey(0);
@@ -299,7 +299,8 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
 
             // Dump chain, map, reslice for every particle
             for (size_t i = 0; i < nextVs.size(); ++i) {
-                cv::Mat chain = drawParticleOnSlice_(currentCurve, zIndex, i);
+                cv::Mat chain =
+                    draw_particle_on_slice_(currentCurve, zIndex, i);
                 cv::Mat resliceMat = reslices[i].draw();
                 cv::Mat map = maps[i].draw();
                 std::stringstream stream;
@@ -323,7 +324,7 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
     return ExportAsPCD(points);
 }
 
-cv::Vec3d LocalResliceSegmentation::estimateNormalAtIndex_(
+cv::Vec3d LocalResliceSegmentation::estimate_normal_at_index_(
     const FittedCurve& currentCurve, int index)
 {
     const cv::Vec3i currentVoxel = currentCurve(index);
@@ -359,7 +360,7 @@ volcart::OrderedPointSet<cv::Vec3d> ExportAsPCD(
     return cloud;
 }
 
-cv::Mat LocalResliceSegmentation::drawParticleOnSlice_(
+cv::Mat LocalResliceSegmentation::draw_particle_on_slice_(
     const FittedCurve& curve,
     int sliceIndex,
     int particleIndex,

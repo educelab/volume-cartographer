@@ -37,9 +37,9 @@ int PLYWriter::write()
     auto startingOrigin = texture_.uvMap().origin();
     texture_.uvMap().origin(VC_ORIGIN_TOP_LEFT);
 
-    writeHeader_();
-    writeVertices_();
-    writeFaces_();
+    write_header_();
+    write_vertices_();
+    write_faces_();
 
     outputMesh_.close();
 
@@ -50,7 +50,7 @@ int PLYWriter::write()
 }
 
 // Write our custom header
-int PLYWriter::writeHeader_()
+int PLYWriter::write_header_()
 {
     if (!outputMesh_.is_open()) {
         return EXIT_FAILURE;
@@ -91,7 +91,7 @@ int PLYWriter::writeHeader_()
 
 // Write the vertex information: 'v x y z'
 //                               'vn nx ny nz'
-int PLYWriter::writeVertices_()
+int PLYWriter::write_vertices_()
 {
     if (!outputMesh_.is_open() || mesh_->GetNumberOfPoints() == 0) {
         return EXIT_FAILURE;
@@ -136,7 +136,7 @@ int PLYWriter::writeVertices_()
 }
 
 // Write the face information: 'n#-of-verts v1 v1 ... vn'
-int PLYWriter::writeFaces_()
+int PLYWriter::write_faces_()
 {
     if (!outputMesh_.is_open() || mesh_->GetNumberOfCells() == 0) {
         return EXIT_FAILURE;

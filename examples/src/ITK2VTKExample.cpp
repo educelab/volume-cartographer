@@ -4,7 +4,7 @@
 
 /*
  * Purpose: Run volcart::meshing::ITK2VTK() and write results to file.
- *          Run volcart::meshing::vtk2itk() and write results to file.
+ *          Run volcart::meshing::VTK2ITK() and write results to file.
  *          Saved file wills be read in by the ITK2VTKTest.cpp file under
  *          v-c/testing/meshing.
  *
@@ -34,10 +34,10 @@ int main()
     volcart::shapes::Cone Cone;
 
     //
-    // vtk2itk conversions
+    // VTK2ITK conversions
     //
 
-    // init volcart::ITKMesh::Pointer objects to hold the output of vtk2itk
+    // init volcart::ITKMesh::Pointer objects to hold the output of VTK2ITK
     // conversions
     volcart::ITKMesh::Pointer out_ITKPlane = volcart::ITKMesh::New();
     volcart::ITKMesh::Pointer out_ITKCube = volcart::ITKMesh::New();
@@ -45,12 +45,12 @@ int main()
     volcart::ITKMesh::Pointer out_ITKSphere = volcart::ITKMesh::New();
     volcart::ITKMesh::Pointer out_ITKCone = volcart::ITKMesh::New();
 
-    // vtk2itk() calls
-    volcart::meshing::vtk2itk(Plane.vtkMesh(), out_ITKPlane);
-    volcart::meshing::vtk2itk(Cube.vtkMesh(), out_ITKCube);
-    volcart::meshing::vtk2itk(Arch.vtkMesh(), out_ITKArch);
-    volcart::meshing::vtk2itk(Sphere.vtkMesh(), out_ITKSphere);
-    volcart::meshing::vtk2itk(Cone.vtkMesh(), out_ITKCone);
+    // VTK2ITK() calls
+    volcart::meshing::VTK2ITK(Plane.vtkMesh(), out_ITKPlane);
+    volcart::meshing::VTK2ITK(Cube.vtkMesh(), out_ITKCube);
+    volcart::meshing::VTK2ITK(Arch.vtkMesh(), out_ITKArch);
+    volcart::meshing::VTK2ITK(Sphere.vtkMesh(), out_ITKSphere);
+    volcart::meshing::VTK2ITK(Cone.vtkMesh(), out_ITKCone);
 
     //
     // write itk meshes to file

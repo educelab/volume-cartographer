@@ -30,7 +30,7 @@ int main(int argc, char* argv[])
     reader->SetFileName(argv[1]);
     reader->Update();
     ITKMesh::Pointer uvMap = ITKMesh::New();
-    volcart::meshing::vtk2itk(reader->GetOutput(), uvMap);
+    volcart::meshing::VTK2ITK(reader->GetOutput(), uvMap);
 
     // Get the surface area for scaling
     vtkSmartPointer<vtkMassProperties> massProperties =

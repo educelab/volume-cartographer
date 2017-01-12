@@ -13,21 +13,22 @@ using namespace volcart::meshing;
 void OrderedPointSetMesher::compute()
 {
     // Verify before computation
-    if (input_.empty())
+    if (input_.empty()) {
         throw std::invalid_argument("Attempted to mesh empty point set.");
+    }
 
     // Create a clean output mesh
     output_ = ITKMesh::New();
 
     // Transfer the vertex info
-    ITKPoint temp_pt;
+    ITKPoint tmpPt;
     size_t cnt = 0;
     for (auto& i : input_) {
-        temp_pt[0] = i[0];
-        temp_pt[1] = i[1];
-        temp_pt[2] = i[2];
+        tmpPt[0] = i[0];
+        tmpPt[1] = i[1];
+        tmpPt[2] = i[2];
 
-        output_->SetPoint(cnt, temp_pt);
+        output_->SetPoint(cnt, tmpPt);
         ++cnt;
     }
 
@@ -70,13 +71,13 @@ void OrderedPointSetMesher::compute()
 
 void OrderedPointSetMesher::addCell_(size_t a, size_t b, size_t c)
 {
-    ITKCell::CellAutoPointer current_C;
+    ITKCell::CellAutoPointer currentC;
 
-    current_C.TakeOwnership(new ITKTriangle);
+    currentC.TakeOwnership(new ITKTriangle);
 
-    current_C->SetPointId(0, a);
-    current_C->SetPointId(1, b);
-    current_C->SetPointId(2, c);
+    currentC->SetPointId(0, a);
+    currentC->SetPointId(1, b);
+    currentC->SetPointId(2, c);
 
-    output_->SetCell(output_->GetNumberOfCells(), current_C);
+    output_->SetCell(output_->GetNumberOfCells(), currentC);
 }

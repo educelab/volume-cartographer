@@ -84,20 +84,20 @@ volcart::UVMap AngleBasedFlattening::getUVMap()
 void AngleBasedFlattening::compute()
 {
     // Construct the mesh and get the angles
-    fillHalfEdgeMesh_();
+    fill_half_edge_mesh_();
 
     if (useABF_) {
         scale_();
-        solveABF_();
+        solve_abf_();
     }
 
     // Solve the system via LSCM
-    solveLSCM_();
+    solve_lscm_();
 }
 
 ///// Setup /////
 // Fill the half edge mesh using the currently assigned mesh
-void AngleBasedFlattening::fillHalfEdgeMesh_()
+void AngleBasedFlattening::fill_half_edge_mesh_()
 {
     heMesh_.clear();
 
@@ -167,14 +167,14 @@ void AngleBasedFlattening::scale_()
 }
 
 // Angle minimization loop
-void AngleBasedFlattening::solveABF_()
+void AngleBasedFlattening::solve_abf_()
 {
-    computeSines_();
+    compute_sines_();
 
     double norm = 1e10;  // Magnitude of the error vector?
     int i = 0;
     for (; i < maxABFIterations_; ++i) {
-        norm = computeGradient_();
+        norm = compute_gradient_();
 
         // Break if we're below the error limit
         if (norm < limit_) {
@@ -182,7 +182,7 @@ void AngleBasedFlattening::solveABF_()
         }
 
         // Attempt to invert the matrix and solve
-        if (!invertMatrix_()) {
+        if (!invert_matrix_()) {
             std::cerr
                 << "volcart::texturing::abf: ABF failed to invert matrix after "
                 << i + 1 << " iterations. Falling back to LSCM." << std::endl;
@@ -190,7 +190,7 @@ void AngleBasedFlattening::solveABF_()
         }
 
         // Update the HEM with their new sine/cosine values
-        computeSines_();
+        compute_sines_();
     }
     std::cerr << "volcart::texturing::abf: Iterations: " << i
               << " || Final norm: " << norm << " || Limit: " << limit_
@@ -199,7 +199,7 @@ void AngleBasedFlattening::solveABF_()
 
 ///// Helpers - ABF /////
 // Compute the sine and cosine for each angle in the HEM
-void AngleBasedFlattening::computeSines_()
+void AngleBasedFlattening::compute_sines_()
 {
     for (auto e = heMesh_.getEdgesBegin(); e != heMesh_.getEdgesEnd(); ++e) {
         (*e)->angle->sine = sin((*e)->angle->alpha);
@@ -208,7 +208,7 @@ void AngleBasedFlattening::computeSines_()
 }
 
 // Calculate the magnitude of the error vector
-double AngleBasedFlattening::computeGradient_()
+double AngleBasedFlattening::compute_gradient_()
 {
     double norm = 0.0;
 
@@ -218,9 +218,9 @@ double AngleBasedFlattening::computeGradient_()
         auto e0 = f->edge, e1 = e0->next, e2 = e1->next;
         double gTriangle, gAlpha0, gAlpha1, gAlpha2;
 
-        gAlpha0 = computeGradientAlpha_(e0);
-        gAlpha1 = computeGradientAlpha_(e1);
-        gAlpha2 = computeGradientAlpha_(e2);
+        gAlpha0 = compute_gradient_alpha_(e0);
+        gAlpha1 = compute_gradient_alpha_(e1);
+        gAlpha2 = compute_gradient_alpha_(e2);
 
         e0->angle->bAlpha = -gAlpha0;
         e1->angle->bAlpha = -gAlpha1;
@@ -253,7 +253,7 @@ double AngleBasedFlattening::computeGradient_()
         bInterior_[iId] = -gplanar;
         norm += gplanar * gplanar;
 
-        glength = computeSinProduct_(v);
+        glength = compute_sin_product_(v);
         bInterior_[heMesh_.getNumberOfInteriorPoints() + iId] = -glength;
         norm += glength * glength;
     }
@@ -262,7 +262,7 @@ double AngleBasedFlattening::computeGradient_()
 }
 
 // Edge length constraint calculation
-double AngleBasedFlattening::computeSinProduct_(
+double AngleBasedFlattening::compute_sin_product_(
     const volcart::HalfEdgeMesh::VertPtr& v)
 {
     volcart::HalfEdgeMesh::EdgePtr e0, e1, e2;
@@ -284,7 +284,7 @@ double AngleBasedFlattening::computeSinProduct_(
 }
 
 // Same with alternate vertex aId
-double AngleBasedFlattening::computeSinProduct_(
+double AngleBasedFlattening::compute_sin_product_(
     const volcart::HalfEdgeMesh::VertPtr& v, volcart::HalfEdgeMesh::IDType aId)
 {
     volcart::HalfEdgeMesh::EdgePtr e0, e1, e2;
@@ -320,7 +320,7 @@ double AngleBasedFlattening::computeSinProduct_(
 }
 
 // Fill the matrix and attempt to solve
-bool AngleBasedFlattening::invertMatrix_()
+bool AngleBasedFlattening::invert_matrix_()
 {
     // Create a new solver + context
     bool success;
@@ -389,9 +389,9 @@ bool AngleBasedFlattening::invertMatrix_()
 
             j2dt_.at<double>(e0->id, 0) = j2[0][0] = 1.0f * wi1;
             j2dt_.at<double>(e1->id, 0) = j2[1][0] =
-                computeSinProduct_(e0->vert, e1->id) * wi2;
+                compute_sin_product_(e0->vert, e1->id) * wi2;
             j2dt_.at<double>(e2->id, 0) = j2[2][0] =
-                computeSinProduct_(e0->vert, e2->id) * wi3;
+                compute_sin_product_(e0->vert, e2->id) * wi3;
 
             EIG_linear_solver_right_hand_side_add(
                 context, 0, iId, j2[0][0] * beta[0]);
@@ -413,10 +413,10 @@ bool AngleBasedFlattening::invertMatrix_()
             vid[4] = ninterior + iId;
 
             j2dt_.at<double>(e0->id, 1) = j2[0][1] =
-                computeSinProduct_(e1->vert, e0->id) * wi1;
+                compute_sin_product_(e1->vert, e0->id) * wi1;
             j2dt_.at<double>(e1->id, 1) = j2[1][1] = 1.0f * wi2;
             j2dt_.at<double>(e2->id, 1) = j2[2][1] =
-                computeSinProduct_(e1->vert, e2->id) * wi3;
+                compute_sin_product_(e1->vert, e2->id) * wi3;
 
             EIG_linear_solver_right_hand_side_add(
                 context, 0, iId, j2[1][1] * beta[1]);
@@ -438,9 +438,9 @@ bool AngleBasedFlattening::invertMatrix_()
             vid[5] = ninterior + iId;
 
             j2dt_.at<double>(e0->id, 2) = j2[0][2] =
-                computeSinProduct_(e2->vert, e0->id) * wi1;
+                compute_sin_product_(e2->vert, e0->id) * wi1;
             j2dt_.at<double>(e1->id, 2) = j2[1][2] =
-                computeSinProduct_(e2->vert, e1->id) * wi2;
+                compute_sin_product_(e2->vert, e1->id) * wi2;
             j2dt_.at<double>(e2->id, 2) = j2[2][2] = 1.0f * wi3;
 
             EIG_linear_solver_right_hand_side_add(
@@ -589,11 +589,11 @@ bool AngleBasedFlattening::invertMatrix_()
 }
 
 ///// LSCM Loop /////
-void AngleBasedFlattening::solveLSCM_()
+void AngleBasedFlattening::solve_lscm_()
 {
     // find two pins and compute their positions
-    std::tie(pin0_, pin1_) = getMinZPointIDs_();
-    computePinUV_();
+    std::tie(pin0_, pin1_) = get_min_z_point_ids_();
+    compute_pin_uv_();
 
     // Setup solver context
     LinearSolver* context;
@@ -690,7 +690,7 @@ void AngleBasedFlattening::solveLSCM_()
 ///// Helpers - LSCM /////
 // Get the id's of the points with the minimum and maximum 3D positions
 std::pair<volcart::HalfEdgeMesh::IDType, volcart::HalfEdgeMesh::IDType>
-AngleBasedFlattening::getMinMaxPointIDs_()
+AngleBasedFlattening::get_min_max_point_ids_()
 {
     cv::Vec3d min(1e20), max(-1e20);
     volcart::HalfEdgeMesh::IDType minVert = 0;
@@ -717,7 +717,7 @@ AngleBasedFlattening::getMinMaxPointIDs_()
 
 // Get the ID's of two points near the minimum z position
 std::pair<volcart::HalfEdgeMesh::IDType, volcart::HalfEdgeMesh::IDType>
-AngleBasedFlattening::getMinZPointIDs_()
+AngleBasedFlattening::get_min_z_point_ids_()
 {
     auto it = heMesh_.getBoundaryBegin();
     double min = (*it)->xyz[2];
@@ -743,7 +743,7 @@ AngleBasedFlattening::getMinZPointIDs_()
 
 // Generate a good starting UV position for the two starting "pinned" points
 // This is supposedly arbitrary
-void AngleBasedFlattening::computePinUV_()
+void AngleBasedFlattening::compute_pin_uv_()
 {
     auto p0xyz = heMesh_.getVert(pin0_)->xyz;
     auto p1xyz = heMesh_.getVert(pin1_)->xyz;

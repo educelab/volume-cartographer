@@ -16,12 +16,17 @@
 // the centroid of each diagram as a new point
 // in the resampled output mesh.
 
+#include <vtkPolyDataNormals.h>
+#include "vtkIsotropicDiscreteRemeshing.h"
+
 #include "meshing/ACVD.h"
+#include "meshing/ITK2VTK.h"
 
 namespace volcart
 {
 namespace meshing
 {
+
 void ACVD(
     vtkPolyData* inputMesh,
     vtkPolyData* outputMesh,
@@ -32,77 +37,71 @@ void ACVD(
 {
 
     // ACVD's vtkSurface class used for resampling
-    vtkSurface* Mesh = vtkSurface::New();
-    Mesh->CreateFromPolyData(inputMesh);
-    Mesh->GetCellData()->Initialize();
-    Mesh->GetPointData()->Initialize();
+    auto mesh = vtkSurface::New();
+    mesh->CreateFromPolyData(inputMesh);
+    mesh->GetCellData()->Initialize();
+    mesh->GetPointData()->Initialize();
 
     ///// ACVD /////
     // initialize paramaters needed for ACVD resampling
-    int QuadricsOptimizationLevel = 1;
+    int quadricsOptimizationLevel = 1;
 
-    vtkIsotropicDiscreteRemeshing* Remesh =
-        vtkIsotropicDiscreteRemeshing::New();
+    auto remesh = vtkIsotropicDiscreteRemeshing::New();
 
-    Remesh->SetInput(Mesh);
-    Remesh->SetFileLoadSaveOption(0);
-    Remesh->SetNumberOfClusters(numberOfSamples);
-    Remesh->SetConsoleOutput(consoleOutput);
-    Remesh->SetSubsamplingThreshold(subsamplingThreshold);
-    Remesh->GetMetric()->SetGradation(gradation);
-    Remesh->Remesh();
+    remesh->SetInput(mesh);
+    remesh->SetFileLoadSaveOption(0);
+    remesh->SetNumberOfClusters(numberOfSamples);
+    remesh->SetConsoleOutput(consoleOutput);
+    remesh->SetSubsamplingThreshold(subsamplingThreshold);
+    remesh->GetMetric()->SetGradation(gradation);
+    remesh->Remesh();
 
-    if (QuadricsOptimizationLevel != 0) {
+    if (quadricsOptimizationLevel != 0) {
         // Note : this is an adaptation of Siggraph 2000 Paper :
         // Out-of-core simplification of large polygonal models
-        vtkIntArray* Clustering = Remesh->GetClustering();
+        auto clustering = remesh->GetClustering();
 
-        int Cluster, NumberOfMisclassedItems = 0;
+        int cluster, numMisclassedItems = 0;
 
-        double** ClustersQuadrics = new double*[numberOfSamples];
-        for (int i = 0; i < numberOfSamples; i++) {
-            ClustersQuadrics[i] = new double[9];
-            for (int j = 0; j < 9; j++) {
-                ClustersQuadrics[i][j] = 0;
-            }
-        }
-        vtkIdList* FList = vtkIdList::New();
-        for (int i = 0; i < Remesh->GetNumberOfItems(); i++) {
-            Cluster = Clustering->GetValue(i);
-            if ((Cluster >= 0) && (Cluster < numberOfSamples)) {
-                if (Remesh->GetClusteringType() == 0) {
+        std::vector<std::array<double, 9>> clusterQuadrics(
+            numberOfSamples, std::array<double, 9>{});
+        auto fList = vtkIdList::New();
+
+        for (int i = 0; i < remesh->GetNumberOfItems(); i++) {
+            cluster = clustering->GetValue(i);
+            if (cluster >= 0 && cluster < numberOfSamples) {
+                if (remesh->GetClusteringType() == 0) {
                     vtkQuadricTools::AddTriangleQuadric(
-                        ClustersQuadrics[Cluster], Remesh->GetInput(), i,
+                        clusterQuadrics[cluster].data(), remesh->GetInput(), i,
                         false);
                 } else {
-                    Remesh->GetInput()->GetVertexNeighbourFaces(i, FList);
-                    for (int j = 0; j < FList->GetNumberOfIds(); j++)
+                    remesh->GetInput()->GetVertexNeighbourFaces(i, fList);
+                    for (int j = 0; j < fList->GetNumberOfIds(); j++) {
                         vtkQuadricTools::AddTriangleQuadric(
-                            ClustersQuadrics[Cluster], Remesh->GetInput(),
-                            FList->GetId(j), false);
+                            clusterQuadrics[cluster].data(), remesh->GetInput(),
+                            fList->GetId(j), false);
+                    }
                 }
             } else {
-                NumberOfMisclassedItems++;
+                numMisclassedItems++;
             }
         }
-        FList->Delete();
+        fList->Delete();
 
-        if (NumberOfMisclassedItems) {
-            std::cout << NumberOfMisclassedItems
+        if (numMisclassedItems != 0) {
+            std::cout << numMisclassedItems
                       << " Items with wrong cluster association" << std::endl;
         }
 
-        double P[3];
+        std::array<double, 3> p{};
         for (int i = 0; i < numberOfSamples; i++) {
-            Remesh->GetOutput()->GetPoint(i, P);
+            remesh->GetOutput()->GetPoint(i, p.data());
             vtkQuadricTools::ComputeRepresentativePoint(
-                ClustersQuadrics[i], P, QuadricsOptimizationLevel);
-            Remesh->GetOutput()->SetPointCoordinates(i, P);
-            delete[] ClustersQuadrics[i];
+                clusterQuadrics[i].data(), p.data(), quadricsOptimizationLevel);
+            remesh->GetOutput()->SetPointCoordinates(i, p.data());
         }
-        delete[] ClustersQuadrics;
 
-        Mesh->GetPoints()->Modified();
+        mesh->GetPoints()->Modified();
 
         // Disabled because all it does is show info about the remeshing. - SP
         // std::cout << "After Quadrics Post-processing : " << std::endl;
@@ -111,14 +110,12 @@ void ACVD(
     ///// End ACVD /////
 
     // Convert the vtkSurface back to vtkPolydata, regenerating normals as we go
-    vtkSmartPointer<vtkPolyDataNormals> normalGenerator =
-        vtkSmartPointer<vtkPolyDataNormals>::New();
-    normalGenerator->SetInputData(Remesh->GetOutput());
+    auto normalGenerator = vtkSmartPointer<vtkPolyDataNormals>::New();
+    normalGenerator->SetInputData(remesh->GetOutput());
     normalGenerator->SetOutput(outputMesh);
     normalGenerator->ComputePointNormalsOn();
     normalGenerator->ComputeCellNormalsOn();
     normalGenerator->Update();
-
-}  // ACVD
-}  // namespace meshing
-}  // namespace volcart
+}
+}
+}

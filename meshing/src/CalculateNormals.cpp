@@ -1,69 +1,55 @@
 /** @file CalculateNormals.cpp */
 #include "meshing/CalculateNormals.h"
-#include "core/vc_defines.h"
-#include "meshing/DeepCopy.h"
 
 using namespace volcart::meshing;
 
-///// Construction /////
-CalculateNormals::CalculateNormals(){};
-
-CalculateNormals::CalculateNormals(ITKMesh::Pointer mesh)
-{
-    _input = mesh;
-    _output = ITKMesh::New();
-    DeepCopy(_input, _output);
-}
-
 ///// Input/Output /////
-void CalculateNormals::setMesh(ITKMesh::Pointer mesh)
+void CalculateNormals::setMesh(const ITKMesh::Pointer& mesh)
 {
-    _input = mesh;
-    _output = ITKMesh::New();
-    DeepCopy(_input, _output);
+    input_ = mesh;
+    output_ = ITKMesh::New();
+    DeepCopy(input_, output_);
 }
-
-volcart::ITKMesh::Pointer CalculateNormals::getMesh() const { return _output; }
 
 ///// Processing /////
 void CalculateNormals::compute()
 {
-    _computeNormals();
-    _assignToMesh();
+    computeNormals_();
+    assignToMesh_();
 }
 
-void CalculateNormals::_computeNormals()
+void CalculateNormals::computeNormals_()
 {
-    _vertex_normals = std::vector<cv::Vec3d>(_output->GetNumberOfPoints(), 0);
+    vertexNormals_ = std::vector<cv::Vec3d>(output_->GetNumberOfPoints(), 0);
 
-    for (auto c_it = _input->GetCells()->Begin();
-         c_it != _input->GetCells()->End(); ++c_it) {
+    for (auto cellIt = input_->GetCells()->Begin();
+         cellIt != input_->GetCells()->End(); ++cellIt) {
 
         // Empty vectors for the vertex and edge info
         cv::Vec3d v0, v1, v2, e0, e1;
 
         // Collect the point id's for this cell
-        std::vector<unsigned long> p_ids;
+        std::vector<uint64_t> pointIds;
         ITKPoint vert;
-        for (auto p = c_it->Value()->PointIdsBegin();
-             p != c_it->Value()->PointIdsEnd(); ++p) {
-            p_ids.push_back(*p);
+        for (auto p = cellIt->Value()->PointIdsBegin();
+             p != cellIt->Value()->PointIdsEnd(); ++p) {
+            pointIds.push_back(*p);
         }
 
         // To-Do: Throw exception if p_ids.size() != 3
 
         // Collect the vertex info for each point
-        vert = _input->GetPoint(p_ids[0]);
+        vert = input_->GetPoint(pointIds[0]);
         v0(0) = vert[0];
         v0(1) = vert[1];
         v0(2) = vert[2];
 
-        vert = _input->GetPoint(p_ids[1]);
+        vert = input_->GetPoint(pointIds[1]);
         v1(0) = vert[0];
         v1(1) = vert[1];
         v1(2) = vert[2];
 
-        vert = _input->GetPoint(p_ids[2]);
+        vert = input_->GetPoint(pointIds[2]);
         v2(0) = vert[0];
         v2(1) = vert[1];
         v2(2) = vert[2];
@@ -77,27 +63,24 @@ void CalculateNormals::_computeNormals()
         normals = e1.cross(e0);
 
         // Add the norm for this face to the running sum for each vertex
-        _vertex_normals[p_ids[0]] += normals;
-        _vertex_normals[p_ids[1]] += normals;
-        _vertex_normals[p_ids[2]] += normals;
-
-    }  // Cells loop
+        vertexNormals_[pointIds[0]] += normals;
+        vertexNormals_[pointIds[1]] += normals;
+        vertexNormals_[pointIds[2]] += normals;
+    }
 }
 
-void CalculateNormals::_assignToMesh()
+void CalculateNormals::assignToMesh_()
 {
-
-    for (auto point = _input->GetPoints()->Begin();
-         point != _input->GetPoints()->End(); ++point) {
-        cv::Vec3d norm = _vertex_normals[point.Index()];
+    for (auto point = input_->GetPoints()->Begin();
+         point != input_->GetPoints()->End(); ++point) {
+        cv::Vec3d norm = vertexNormals_[point.Index()];
         cv::normalize(norm, norm);
 
-        ITKPixel pnt_normal;
-        pnt_normal[0] = norm(0);
-        pnt_normal[1] = norm(1);
-        pnt_normal[2] = norm(2);
+        ITKPixel pointNormal;
+        pointNormal[0] = norm(0);
+        pointNormal[1] = norm(1);
+        pointNormal[2] = norm(2);
 
-        _output->SetPointData(point.Index(), pnt_normal);
-
-    }  // Points Loop
+        output_->SetPointData(point.Index(), pointNormal);
+    }
 }

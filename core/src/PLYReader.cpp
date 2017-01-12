@@ -39,12 +39,12 @@ bool PLYReader::read()
         auto msg = "Open file " + inputPath_.string() + " failed.";
         throw volcart::IOException(msg);
     }
-    parseHeader_();
+    parse_header_();
     for (auto& cur : elementsList_) {
         if (cur == "vertex") {
-            readPoints_();
+            read_points_();
         } else if (cur == "face") {
-            readFaces_();
+            read_faces_();
         } else {
             int curSkip = skippedLine_[skippedElementCnt];
             for (int i = 0; i < curSkip; i++) {
@@ -54,11 +54,11 @@ bool PLYReader::read()
         }
     }
     plyFile_.close();
-    createMesh_();
+    create_mesh_();
     return true;
 }
 
-void PLYReader::parseHeader_()
+void PLYReader::parse_header_()
 {
     int currentLine;
     std::getline(plyFile_, line_);
@@ -109,7 +109,7 @@ void PLYReader::parseHeader_()
 
 }  // ParseHeader
 
-void PLYReader::readPoints_()
+void PLYReader::read_points_()
 {
     for (int i = 0; i < numVertices_; i++) {
         volcart::Vertex curPoint;
@@ -134,7 +134,7 @@ void PLYReader::readPoints_()
     }
 }
 
-void PLYReader::readFaces_()
+void PLYReader::read_faces_()
 {
     for (int i = 0; i < numFaces_; i++) {
         std::vector<std::string> curFace;
@@ -167,7 +167,7 @@ void PLYReader::readFaces_()
     }
 }
 
-void PLYReader::createMesh_()
+void PLYReader::create_mesh_()
 {
     ITKPoint p;
     uint32_t pointCount = 0;

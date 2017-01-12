@@ -66,15 +66,15 @@ int OBJWriter::writeOBJ()
         return EXIT_FAILURE;
     }
 
-    writeHeader_();
-    writeVertices_();
+    write_header_();
+    write_vertices_();
 
     // Only write texture information if we have a UV map
     if (!textCoords_.empty()) {
-        writeTextureCoordinates_();
+        write_texture_coordinates_();
     }
 
-    writeFaces_();
+    write_faces_();
     outputMesh_.close();
 
     return EXIT_SUCCESS;
@@ -124,7 +124,7 @@ int OBJWriter::writeTexture()
 }
 
 // Write our custom header
-int OBJWriter::writeHeader_()
+int OBJWriter::write_header_()
 {
     if (!outputMesh_.is_open()) {
         return EXIT_FAILURE;
@@ -137,7 +137,7 @@ int OBJWriter::writeHeader_()
 
 // Write the vertex information: 'v x y z'
 //                               'vn nx ny nz'
-int OBJWriter::writeVertices_()
+int OBJWriter::write_vertices_()
 {
     if (!outputMesh_.is_open() || mesh_->GetNumberOfPoints() == 0) {
         return EXIT_FAILURE;
@@ -174,7 +174,7 @@ int OBJWriter::writeVertices_()
 
 // Write the UV coordinates that will be attached to points: 'vt u v'
 // To-Do: Separate out the mtllib and mtl assignment
-int OBJWriter::writeTextureCoordinates_()
+int OBJWriter::write_texture_coordinates_()
 {
     if (!outputMesh_.is_open() || textCoords_.empty()) {
         return EXIT_FAILURE;
@@ -213,7 +213,7 @@ int OBJWriter::writeTextureCoordinates_()
 // Note: This method currently assumes that *every* point in the mesh has an
 // associated normal and texture map
 // This will definitely not always be the case and should be fixed. - SP
-int OBJWriter::writeFaces_()
+int OBJWriter::write_faces_()
 {
     if (!outputMesh_.is_open() || mesh_->GetNumberOfCells() == 0) {
         return EXIT_FAILURE;

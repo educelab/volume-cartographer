@@ -52,9 +52,9 @@ private:
     std::ofstream outputMesh_;
     ITKMesh::Pointer mesh_;
     volcart::Texture texture_;
-    int writeHeader_();
-    int writeVertices_();
-    int writeFaces_();
+    int write_header_();
+    int write_vertices_();
+    int write_faces_();
 };
 }
 }

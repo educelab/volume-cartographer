@@ -6,12 +6,15 @@
 // Created by Media Team on 8/12/15.
 //
 /**@file RayTrace.cpp */
-#include "meshing/RayTrace.h"
 #include <cstdio>
+
+#include <vtkCellData.h>
 #include <vtkOBBTree.h>
 #include <vtkPolyDataNormals.h>
 #include <vtkSmartPointer.h>
+
 #include "meshing/ITK2VTK.h"
+#include "meshing/RayTrace.h"
 
 // Parameters used to create cylindrical ray tracing
 #define PI_X2 (2 * 3.1415926)
@@ -22,6 +25,7 @@ namespace volcart
 {
 namespace meshing
 {
+
 // returns a vector of vectors that holds the points of intersections and the
 // corresponding normals
 std::vector<cv::Vec6f> RayTrace(
@@ -36,38 +40,36 @@ std::vector<cv::Vec6f> RayTrace(
     std::vector<cv::Vec6f> intersections;
 
     // Convert the itk mesh to a vtk mesh
-    vtkPolyData* vtkMesh = vtkPolyData::New();
+    auto vtkMesh = vtkPolyData::New();
     volcart::meshing::ITK2VTK(itkMesh, vtkMesh);
 
     // Get the bounds of the mesh
-    double bounds[6];
-    vtkMesh->GetBounds(bounds);
+    std::array<double, 6> bounds{};
+    vtkMesh->GetBounds(bounds.data());
 
     // Set ray width and height, used for texturing
-    height = (int)(bounds[5] - bounds[4]);
+    height = static_cast<int>(bounds[5] - bounds[4]);
     width = OUT_X;
 
     // Generate normals for the cells of the mesh
-    vtkSmartPointer<vtkPolyDataNormals> calcNormals =
-        vtkSmartPointer<vtkPolyDataNormals>::New();
+    auto calcNormals = vtkSmartPointer<vtkPolyDataNormals>::New();
     calcNormals->SetInputData(vtkMesh);
     calcNormals->ComputeCellNormalsOn();
     calcNormals->Update();
     vtkMesh = calcNormals->GetOutput();
 
     // Create vtk OBBTree
-    vtkSmartPointer<vtkOBBTree> obbTree = vtkSmartPointer<vtkOBBTree>::New();
+    auto obbTree = vtkSmartPointer<vtkOBBTree>::New();
     obbTree->SetDataSet(vtkMesh);
-    obbTree->SetNumberOfCellsPerNode(
-        2);  // Increases BuildLocator time, but its worth it for large meshes
+
+    // Increases BuildLocator time, but its worth it for large meshes
+    obbTree->SetNumberOfCellsPerNode(2);
     obbTree->SetMaxLevel(48);
     std::cout << "volcart::RayTrace :: Building locator..." << std::endl;
     obbTree->BuildLocator();
 
-    vtkSmartPointer<vtkPoints> intersectPoints =
-        vtkSmartPointer<vtkPoints>::New();
-    vtkSmartPointer<vtkIdList> intersectCells =
-        vtkSmartPointer<vtkIdList>::New();
+    auto intersectPoints = vtkSmartPointer<vtkPoints>::New();
+    auto intersectCells = vtkSmartPointer<vtkIdList>::New();
 
     // Calculate the origin by averaging the bounds of each coordinate
     cv::Vec3f origin;
@@ -78,9 +80,10 @@ std::vector<cv::Vec6f> RayTrace(
     int pointID = 0;
 
     // For each slice/row generate rays and interpolate new points
-    for (int z = (int)bounds[4]; z < (int)bounds[5]; ++z) {
+    for (int z = static_cast<int>(bounds[4]); z < static_cast<int>(bounds[5]);
+         ++z) {
         std::cout << "\rvolcart::RayTrace :: Ray tracing for Z index: " << z
-                  << "/" << (int)bounds[5] - 1 << std::flush;
+                  << "/" << static_cast<int>(bounds[5] - 1) << std::flush;
 
         origin(2) = z;  // update the z-component of the origin
 
@@ -102,13 +105,13 @@ std::vector<cv::Vec6f> RayTrace(
 
             // Create a second point along the ray using the origin and
             // direction
-            cv::Vec3f end_point = origin + 400 * direction;
+            cv::Vec3f endPoint = origin + 400 * direction;
 
-            double start[3] = {origin[0], origin[1], origin[2]};
-            double end[3] = {end_point[0], end_point[1], end_point[2]};
+            std::array<double, 3> start = {origin[0], origin[1], origin[2]};
+            std::array<double, 3> end = {endPoint[0], endPoint[1], endPoint[2]};
 
             obbTree->IntersectWithLine(
-                start, end, intersectPoints, intersectCells);
+                start.data(), end.data(), intersectPoints, intersectCells);
 
             if (intersectPoints->GetNumberOfPoints() > 0) {
                 cv::Vec6f point;
@@ -136,8 +139,8 @@ std::vector<cv::Vec6f> RayTrace(
     }  // for each z
     std::cout << std::endl;
     return intersections;
-}  // RayTrace
-}  // namespace meshing
-}  // namespace volcart
+}
+}
+}
 
 #pragma clang diagnostic pop

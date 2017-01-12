@@ -72,10 +72,10 @@ private:
     volcart::UVMap textCoords_;  // UV map for points accessed by point index
     cv::Mat texture_;            // output texture image
 
-    int writeHeader_();
-    int writeVertices_();
-    int writeTextureCoordinates_();
-    int writeFaces_();
+    int write_header_();
+    int write_vertices_();
+    int write_texture_coordinates_();
+    int write_faces_();
 };
 }
 }

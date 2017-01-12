@@ -22,12 +22,12 @@ class PerPixelMap
 public:
     ///// Constructors /////
     // Create empty
-    PerPixelMap() : width_{0}, height_{0} { initializeMap_(); }
+    PerPixelMap() : width_{0}, height_{0} { initialize_map_(); }
 
     // Create new
     PerPixelMap(size_t height, size_t width) : width_{width}, height_{height}
     {
-        initializeMap_();
+        initialize_map_();
     }
 
     ///// Check if initialized /////
@@ -64,7 +64,7 @@ public:
     static PerPixelMap ReadPPM(const boost::filesystem::path& path);
 
 private:
-    void initializeMap_();
+    void initialize_map_();
     size_t width_, height_;
     cv::Mat_<cv::Vec6d> map_;
     cv::Mat mask_;

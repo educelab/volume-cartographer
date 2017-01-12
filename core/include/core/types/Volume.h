@@ -285,7 +285,7 @@ private:
     int32_t numSliceCharacters_;
     mutable volcart::LRUCache<int32_t, cv::Mat> cache_;
 
-    Tensor3D<cv::Vec3d> volumeGradient_(
+    Tensor3D<cv::Vec3d> volume_gradient_(
         const Tensor3D<double>& v, int32_t gradientKernelSize) const;
 
     cv::Mat_<double> gradient_(

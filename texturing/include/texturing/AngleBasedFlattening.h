@@ -83,23 +83,23 @@ public:
 
 private:
     ///// Setup /////
-    void fillHalfEdgeMesh_();
+    void fill_half_edge_mesh_();
 
     ///// Solve - ABF /////
-    void solveABF_();
+    void solve_abf_();
     void scale_();
 
-    void computeSines_();
-    double computeGradient_();
-    double computeGradientAlpha_(const HalfEdgeMesh::EdgePtr& e0)
+    void compute_sines_();
+    double compute_gradient_();
+    double compute_gradient_alpha_(const HalfEdgeMesh::EdgePtr& e0)
     {
         return std::pow(e0->angle->alpha - e0->angle->phi, 2) *
                e0->angle->weight;
     }
-    double computeSinProduct_(const HalfEdgeMesh::VertPtr& v);
-    double computeSinProduct_(
+    double compute_sin_product_(const HalfEdgeMesh::VertPtr& v);
+    double compute_sin_product_(
         const HalfEdgeMesh::VertPtr& v, HalfEdgeMesh::IDType aId);
-    bool invertMatrix_();
+    bool invert_matrix_();
 
     // Parameters
     bool useABF_;  // If false, only compute LSCM parameterization [default:
@@ -108,12 +108,14 @@ private:
     double limit_;          // Minimization limit
 
     ///// LSCM Loop /////
-    void solveLSCM_();
+    void solve_lscm_();
 
     ///// Helper Functions - LSCM /////
-    std::pair<HalfEdgeMesh::IDType, HalfEdgeMesh::IDType> getMinMaxPointIDs_();
-    std::pair<HalfEdgeMesh::IDType, HalfEdgeMesh::IDType> getMinZPointIDs_();
-    void computePinUV_();
+    std::pair<HalfEdgeMesh::IDType, HalfEdgeMesh::IDType>
+    get_min_max_point_ids_();
+    std::pair<HalfEdgeMesh::IDType, HalfEdgeMesh::IDType>
+    get_min_z_point_ids_();
+    void compute_pin_uv_();
 
     ///// Storage /////
     ITKMesh::Pointer mesh_;  // input mesh

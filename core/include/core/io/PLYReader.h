@@ -116,7 +116,7 @@ private:
     /**
      * @brief Generate a mesh from the temporary vertices and faces
      */
-    void createMesh_();
+    void create_mesh_();
     /**
      * @brief Parse the header
      *
@@ -124,17 +124,17 @@ private:
      * including the count for each element. This information is stored
      * in a map and used when reading in faces and vertices.
      */
-    void parseHeader_();
+    void parse_header_();
 
     /**
      * @brief Fill the temporary face list with parsed face information
      */
-    void readFaces_();
+    void read_faces_();
 
     /**
      * @brief Fill the temporary vertex list with parsed vertex information
      */
-    void readPoints_();
+    void read_points_();
 };  // PLYReader
 }  // io
 }  // volcart

@@ -11,23 +11,23 @@ void PerPixelMap::setDimensions(size_t h, size_t w)
 {
     height_ = h;
     width_ = w;
-    initializeMap_();
+    initialize_map_();
 }
 
 void PerPixelMap::setWidth(size_t w)
 {
     width_ = w;
-    initializeMap_();
+    initialize_map_();
 }
 
 void PerPixelMap::setHeight(size_t h)
 {
     height_ = h;
-    initializeMap_();
+    initialize_map_();
 }
 
 // Initialize map
-void PerPixelMap::initializeMap_()
+void PerPixelMap::initialize_map_()
 {
     if (height_ > 0 && width_ > 0) {
         map_ = cv::Mat_<cv::Vec6d>(height_, width_, {0, 0, 0, 0, 0, 0});

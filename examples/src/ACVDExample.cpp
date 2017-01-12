@@ -32,7 +32,7 @@ int main(int /*argc*/, char* argv[])
     volcart::meshing::ACVD(vtkMesh, acvdMesh, 10000);
 
     auto outputMesh = volcart::ITKMesh::New();
-    volcart::meshing::vtk2itk(acvdMesh, outputMesh);
+    volcart::meshing::VTK2ITK(acvdMesh, outputMesh);
 
     volcart::io::OBJWriter mesh_writer("acvd.obj", outputMesh);
     mesh_writer.write();

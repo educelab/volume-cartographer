@@ -35,10 +35,10 @@ public:
 private:
     VolumePkg& pkg_;
 
-    cv::Vec3d estimateNormalAtIndex_(
+    cv::Vec3d estimate_normal_at_index_(
         const FittedCurve& currentCurve, int index);
 
-    cv::Mat drawParticleOnSlice_(
+    cv::Mat draw_particle_on_slice_(
         const FittedCurve& curve,
         int sliceIndex,
         int particleIndex = -1,

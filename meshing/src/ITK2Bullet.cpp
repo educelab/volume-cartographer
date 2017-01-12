@@ -11,31 +11,26 @@ ITK2Bullet::ITK2Bullet(
     ITKMesh::Pointer input, btSoftBodyWorldInfo& worldInfo, btSoftBody** output)
 {
 
-    ITKPoint old_point;
-    btVector3* new_point;
-
-    for (ITKPointIterator it = input->GetPoints()->Begin();
-         it != input->GetPoints()->End(); ++it) {
+    for (auto it = input->GetPoints()->Begin(); it != input->GetPoints()->End();
+         ++it) {
         // copy vertex info from itk mesh to btSoftBody
-        old_point = it->Value();
-        new_point = new btVector3(
-            static_cast<float>(old_point[0]), static_cast<float>(old_point[1]),
-            static_cast<float>(old_point[2]));
+        auto oldPoint = it->Value();
+        auto newPoint = new btVector3(
+            static_cast<float>(oldPoint[0]), static_cast<float>(oldPoint[1]),
+            static_cast<float>(oldPoint[2]));
 
         if (it == input->GetPoints()->Begin()) {
-            *output = new btSoftBody(&worldInfo, 1, new_point, 0);
+            *output = new btSoftBody(&worldInfo, 1, newPoint, 0);
         } else {
-            (*output)->appendNode(*new_point, 0);
+            (*output)->appendNode(*newPoint, 0);
         }
     }
 
     // convert the cells to faces
-    unsigned long v0, v1, v2;
-    v0 = v1 = v2 = 0;
+    uint64_t v0 = 0, v1 = 0, v2 = 0;
 
-    for (ITKCellIterator cell = input->GetCells()->Begin();
+    for (auto cell = input->GetCells()->Begin();
          cell != input->GetCells()->End(); ++cell) {
-
         v0 = cell.Value()->GetPointIds()[0];
         v1 = cell.Value()->GetPointIds()[1];
         v2 = cell.Value()->GetPointIds()[2];
@@ -46,17 +41,16 @@ ITK2Bullet::ITK2Bullet(
 
         (*output)->appendFace(v0, v1, v2);
     }
-};
+}
 
-bullet2itk::bullet2itk(btSoftBody* input, ITKMesh::Pointer output)
+Bullet2ITK::Bullet2ITK(btSoftBody* input, ITKMesh::Pointer output)
 {
     ITKCell::CellAutoPointer cellpointer;
     ITKPoint p;
     ITKPixel n;
-    int NUM_OF_POINTS = input->m_nodes.size();
 
     // iterate through points of bullet mesh (softBody)
-    for (int i = 0; i < NUM_OF_POINTS; ++i) {
+    for (int i = 0; i < input->m_nodes.size(); ++i) {
 
         p[0] = input->m_nodes[i].m_x.x();
         p[1] = input->m_nodes[i].m_x.y();
@@ -69,7 +63,6 @@ bullet2itk::bullet2itk(btSoftBody* input, ITKMesh::Pointer output)
         output->SetPoint(i, p);
         output->SetPointData(i, n);
     }
-};
-
-}  // namespace meshing
-}  //  namespace volcart
+}
+}
+}

@@ -137,14 +137,14 @@ HalfEdgeMesh::FacePtr HalfEdgeMesh::addFace(IDType v0, IDType v1, IDType v2)
 void HalfEdgeMesh::constructConnectedness()
 {
     // Connect pairs
-    connectAllPairs_();
+    connect_all_pairs_();
 
     // Connect boundaries
-    computeBoundary_();
+    compute_boundary_();
 }
 
 // Connect the edges that have the same vertices as end points
-void HalfEdgeMesh::connectAllPairs_()
+void HalfEdgeMesh::connect_all_pairs_()
 {
     HalfEdgeMesh::EdgePtr e0, e1, e2;
 
@@ -158,19 +158,19 @@ void HalfEdgeMesh::connectAllPairs_()
         e2 = e1->next;
 
         // If we don't find a pair, set the vert's only edge to this one
-        e0->pair = findEdgePair_(e0->vert->id, e1->vert->id);
+        e0->pair = find_edge_pair_(e0->vert->id, e1->vert->id);
         if (e0->pair != nullptr) {
             e0->pair->pair = e0;
         } else {
             e0->vert->edge = e0;
         }
-        e1->pair = findEdgePair_(e1->vert->id, e2->vert->id);
+        e1->pair = find_edge_pair_(e1->vert->id, e2->vert->id);
         if (e1->pair != nullptr) {
             e1->pair->pair = e1;
         } else {
             e1->vert->edge = e1;
         }
-        e2->pair = findEdgePair_(e2->vert->id, e0->vert->id);
+        e2->pair = find_edge_pair_(e2->vert->id, e0->vert->id);
         if (e2->pair != nullptr) {
             e2->pair->pair = e2;
         } else {
@@ -182,7 +182,7 @@ void HalfEdgeMesh::connectAllPairs_()
 }
 
 // Find the other edge that shares the same two vertices
-HalfEdgeMesh::EdgePtr HalfEdgeMesh::findEdgePair_(
+HalfEdgeMesh::EdgePtr HalfEdgeMesh::find_edge_pair_(
     HalfEdgeMesh::IDType a, HalfEdgeMesh::IDType b)
 {
     HalfEdgeMesh::EdgePtr pair = nullptr;
@@ -200,7 +200,7 @@ HalfEdgeMesh::EdgePtr HalfEdgeMesh::findEdgePair_(
 }
 
 // Compute which edges are boundaries and which are interior
-void HalfEdgeMesh::computeBoundary_()
+void HalfEdgeMesh::compute_boundary_()
 {
     for (auto v = verts_[0]; v; v = v->nextLink) {
         if (v->interior()) {

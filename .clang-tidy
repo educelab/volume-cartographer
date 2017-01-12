@@ -72,7 +72,7 @@ CheckOptions:
   - key:             readability-identifier-naming.PrivateMemberSuffix
     value:           "_"
   - key:             readability-identifier-naming.PrivateMethodCase
-    value:           camelBack
+    value:           lower_case
   - key:             readability-identifier-naming.PrivateMethodSuffix
     value:           "_"
   - key:             readability-identifier-naming.ProtectedMemberCase

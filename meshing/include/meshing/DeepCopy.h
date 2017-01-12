@@ -26,6 +26,6 @@ class DeepCopy
 {
 public:
     DeepCopy(ITKMesh::Pointer input, ITKMesh::Pointer output);
-};  // DeepCopy
-}  // meshing
-}  // volcart
+};
+}
+}

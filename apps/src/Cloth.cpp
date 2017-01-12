@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
     reader->SetFileName(input_path.c_str());
     reader->Update();
     ITKMesh::Pointer mesh = ITKMesh::New();
-    volcart::meshing::vtk2itk(reader->GetOutput(), mesh);
+    volcart::meshing::VTK2ITK(reader->GetOutput(), mesh);
 
     // Get pinned points for unfurling step
     volcart::texturing::ClothModelingUVMapping::PinIDs unfurl;
@@ -186,7 +186,7 @@ void getPins(
     reader->SetFileName(path.c_str());
     reader->Update();
     ITKMesh::Pointer pins = ITKMesh::New();
-    volcart::meshing::vtk2itk(reader->GetOutput(), pins);
+    volcart::meshing::VTK2ITK(reader->GetOutput(), pins);
 
     // Setup points locator
     typename ITKPointsLocator::Pointer pointsLocator = ITKPointsLocator::New();

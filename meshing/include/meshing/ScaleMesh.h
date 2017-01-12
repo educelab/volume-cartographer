@@ -28,6 +28,6 @@ namespace meshing
  * @ingroup Meshing
  */
 void ScaleMesh(
-    ITKMesh::Pointer input, ITKMesh::Pointer output, double scale_factor);
-}  // meshing
-}  // volcart
+    ITKMesh::Pointer input, ITKMesh::Pointer output, double scaleFactor);
+}
+}

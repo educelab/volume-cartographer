@@ -60,7 +60,7 @@ int main(int /*argc*/, char* argv[])
 
     // Convert to quad edge mesh and smooth the thing
     volcart::QuadMesh::Pointer qeRaw = volcart::QuadMesh::New();
-    volcart::meshing::itk2itkQE(input, qeRaw);
+    volcart::meshing::ITK2ITKQE(input, qeRaw);
 
     typedef itk::SmoothingQuadEdgeMeshFilter<
         volcart::QuadMesh, volcart::QuadMesh>
@@ -73,7 +73,7 @@ int main(int /*argc*/, char* argv[])
     smoother->Update();
 
     auto smoothed = volcart::ITKMesh::New();
-    volcart::meshing::itkQE2itk(smoother->GetOutput(), smoothed);
+    volcart::meshing::ITKQE2ITK(smoother->GetOutput(), smoothed);
 
     // Convert to polydata
     vtkPolyData* vtkMesh = vtkPolyData::New();
@@ -93,7 +93,7 @@ int main(int /*argc*/, char* argv[])
     Cleaner->Update();
 
     auto itkACVD = volcart::ITKMesh::New();
-    volcart::meshing::vtk2itk(Cleaner->GetOutput(), itkACVD);
+    volcart::meshing::VTK2ITK(Cleaner->GetOutput(), itkACVD);
 
     // ABF flattening
     std::cout << "Computing parameterization..." << std::endl;

@@ -22,7 +22,7 @@ public:
     Spline(const ScalarVector& xs, const ScalarVector& ys) : npoints_{xs.size()}
     {
         assert(xs.size() == ys.size() && "xs and ys must be same length");
-        auto points = makeWideMatrix_(xs, ys);
+        auto points = make_wide_matrix_(xs, ys);
         spline_ = Eigen::SplineFitting<SplineType>::Interpolate(points, Degree);
     }
 
@@ -38,7 +38,7 @@ private:
     size_t npoints_;
     SplineType spline_;
 
-    Eigen::MatrixXd makeWideMatrix_(
+    Eigen::MatrixXd make_wide_matrix_(
         const ScalarVector& xs, const ScalarVector& ys)
     {
         Eigen::MatrixXd mat{2, xs.size()};

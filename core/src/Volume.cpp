@@ -143,7 +143,7 @@ StructureTensor Volume::structureTensorAt(
     }
 
     // Get gradient of volume
-    auto gradientField = volumeGradient_(v, gradientKernelSize);
+    auto gradientField = volume_gradient_(v, gradientKernelSize);
 
     // Modulate by gaussian distribution (element-wise) and sum
     auto gaussianField = MakeUniformGaussianField(voxelRadius);
@@ -183,7 +183,7 @@ StructureTensor Volume::interpolatedStructureTensorAt(
         getVoxelNeighborsCubicInterpolated<double>({vx, vy, vz}, voxelRadius);
 
     // Get gradient of volume
-    auto gradientField = volumeGradient_(v, gradientKernelSize);
+    auto gradientField = volume_gradient_(v, gradientKernelSize);
 
     // Modulate by gaussian distribution (element-wise) and sum
     auto gaussianField = MakeUniformGaussianField(voxelRadius);
@@ -253,7 +253,7 @@ StructureTensor Tensorize(cv::Vec3d gradient)
     // clang-format on
 }
 
-Tensor3D<cv::Vec3d> Volume::volumeGradient_(
+Tensor3D<cv::Vec3d> Volume::volume_gradient_(
     const Tensor3D<double>& v, int gradientKernelSize) const
 {
     // Limitation of OpenCV: Kernel size must be 1, 3, 5, or 7

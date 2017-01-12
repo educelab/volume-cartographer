@@ -5,10 +5,7 @@
 #pragma once
 
 #include <vtkPolyData.h>
-#include <vtkPolyDataNormals.h>
-#include "vtkIsotropicDiscreteRemeshing.h"
 
-#include "ITK2VTK.h"
 #include "core/vc_defines.h"
 
 namespace volcart

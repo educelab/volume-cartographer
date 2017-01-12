@@ -16,6 +16,7 @@
 #include "core/util/MeshMath.h"
 #include "core/vc_defines.h"
 #include "meshing/ACVD.h"
+#include "meshing/ITK2VTK.h"
 #include "meshing/SmoothNormals.h"
 #include "texturing/AngleBasedFlattening.h"
 #include "texturing/CompositeTextureV2.h"
@@ -179,7 +180,7 @@ int main(int argc, char* argv[])
     Cleaner->Update();
 
     auto itkACVD = volcart::ITKMesh::New();
-    volcart::meshing::vtk2itk(Cleaner->GetOutput(), itkACVD);
+    volcart::meshing::VTK2ITK(Cleaner->GetOutput(), itkACVD);
 
     // ABF flattening
     std::cout << "Computing parameterization..." << std::endl;
