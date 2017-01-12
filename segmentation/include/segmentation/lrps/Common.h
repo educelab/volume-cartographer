@@ -89,10 +89,9 @@ std::vector<double> NormalizeVector(
         return std::vector<double>{newMax};
     }
 
-    T min, max;
     auto p = std::minmax_element(begin(v), end(v));
-    min = p->first;
-    max = p->second;
+    auto min = *p.first;
+    auto max = *p.second;
     std::vector<double> vNorm(v.size());
 
     // Normalization of [min, max] --> [0, 1]

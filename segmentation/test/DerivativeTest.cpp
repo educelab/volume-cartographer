@@ -30,7 +30,7 @@ struct YEqualsXSquaredDoubleVectorFixture {
 
     YEqualsXSquaredDoubleVectorFixture() : _xs(20)
     {
-        int32_t start = 2;
+        int start = 2;
         std::iota(std::begin(_xs), std::end(_xs), start);
         for (auto x : _xs) {
             _ys.push_back(x * x);

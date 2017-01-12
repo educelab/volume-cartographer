@@ -7,10 +7,10 @@
 
 using namespace volcart::segmentation;
 
-std::vector<double> generateTVals(size_t count);
+std::vector<double> GenerateTVals(size_t count);
 
-FittedCurve::FittedCurve(const std::vector<Voxel>& vs, int32_t zIndex)
-    : npoints_(vs.size()), zIndex_(zIndex), ts_(generateTVals(npoints_))
+FittedCurve::FittedCurve(const std::vector<Voxel>& vs, int zIndex)
+    : npoints_(vs.size()), zIndex_(zIndex), ts_(GenerateTVals(npoints_))
 {
     std::vector<double> xs, ys;
     std::tie(xs, ys) = Unzip(vs);
@@ -31,7 +31,7 @@ std::vector<Voxel> FittedCurve::resample(double resamplePerc)
 
     // If we're resampling at 100%, re-use last tvals
     if (resamplePerc != 1.0) {
-        ts_ = generateTVals(npoints_);
+        ts_ = GenerateTVals(npoints_);
     }
 
     // Get new voxel positions
@@ -43,7 +43,7 @@ std::vector<Voxel> FittedCurve::sample(size_t numPoints) const
 {
     std::vector<Voxel> newPoints(numPoints);
     newPoints.reserve(numPoints);
-    auto ts = generateTVals(numPoints);
+    auto ts = GenerateTVals(numPoints);
     std::transform(
         std::begin(ts), std::end(ts), std::begin(newPoints),
         [this](auto t) -> Voxel {
@@ -53,14 +53,14 @@ std::vector<Voxel> FittedCurve::sample(size_t numPoints) const
     return newPoints;
 }
 
-Voxel FittedCurve::operator()(int32_t index) const
+Voxel FittedCurve::operator()(int index) const
 {
-    assert(index >= 0 && index < int32_t(ts_.size()) && "out of bounds");
+    assert(index >= 0 && index < int(ts_.size()) && "out of bounds");
     Pixel p = spline_(ts_[index]);
     return {p(0), p(1), double(zIndex_)};
 }
 
-std::vector<double> FittedCurve::curvature(int32_t hstep) const
+std::vector<double> FittedCurve::curvature(int hstep) const
 {
     std::vector<double> xs, ys;
     std::tie(xs, ys) = Unzip(points_);
@@ -91,7 +91,7 @@ double FittedCurve::arclength() const
     return length;
 }
 
-std::vector<double> generateTVals(size_t count)
+std::vector<double> GenerateTVals(size_t count)
 {
     std::vector<double> ts(count);
     if (count > 0) {

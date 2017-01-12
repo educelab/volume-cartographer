@@ -19,10 +19,10 @@ public:
     Chain(
         std::vector<cv::Vec3d> segPath,
         const VolumePkg& volpkg,
-        double gravity_scale,
+        double gravityScale,
         int threshold,
         int endOffset,
-        double spring_constant_k = -0.5);
+        double springConstantK = -0.5);
     void step();
     bool isMoving();
     cv::Vec3d springForce(size_t index);

@@ -190,13 +190,13 @@ public:
 
             // Dim
             else if (std::regex_match(strs[0], dim)) {
-                auto parsed_dim = std::stoul(strs[1]);
-                if (parsed_dim != T::channels) {
+                auto parsedDim = std::stoul(strs[1]);
+                if (parsedDim != T::channels) {
                     auto msg =
                         "Incorrect dimension read for template specification";
                     throw IOException(msg);
                 }
-                h.dim = parsed_dim;
+                h.dim = parsedDim;
             }
 
             // Ordering

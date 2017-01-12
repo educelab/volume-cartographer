@@ -27,16 +27,16 @@ volcart::OrderedPointSet<cv::Vec3d> ExportAsPCD(
 
 volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
     std::vector<cv::Vec3d> cloud,
-    int32_t startIndex,
-    int32_t endIndex,
-    int32_t numIters,
-    int32_t step,
+    int startIndex,
+    int endIndex,
+    int numIters,
+    int step,
     double alpha,
     double k1,
     double k2,
     double beta,
     double delta,
-    int32_t peakDistanceWeight,
+    int peakDistanceWeight,
     bool shouldIncludeMiddle,
     bool dumpVis,
     bool visualize)
@@ -74,7 +74,7 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
     points.push_back(currentVs);
 
     // Iterate over z-slices
-    for (int32_t zIndex = startIndex;
+    for (int zIndex = startIndex;
          zIndex <= endIndex && zIndex < pkg_.getNumberOfSlices();
          zIndex += step) {
         // std::cout << "slice: " << zIndex << std::endl;
@@ -111,7 +111,7 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
         maps.reserve(currentCurve.size());
         reslices.reserve(currentCurve.size());
         // XXX DEBUG
-        for (int32_t i = 0; i < int32_t(currentCurve.size()); ++i) {
+        for (int i = 0; i < int(currentCurve.size()); ++i) {
             // Estimate normal and reslice along it
             const cv::Vec3d normal = estimateNormalAtIndex_(currentCurve, i);
             const auto reslice =
@@ -123,7 +123,7 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
             // and find the maxima
             const cv::Point2i center{resliceIntensities.cols / 2,
                                      resliceIntensities.rows / 2};
-            const int32_t nextLayerIndex = center.y + step;
+            const int nextLayerIndex = center.y + step;
             IntensityMap map(
                 resliceIntensities, step, peakDistanceWeight,
                 shouldIncludeMiddle);
@@ -133,7 +133,7 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
             // Handle case where there's no maxima - go straight down
             if (allMaxima.empty()) {
                 nextPositions.emplace_back(
-                    std::deque<Voxel>{reslice.sliceToVoxelCoord<int32_t>(
+                    std::deque<Voxel>{reslice.sliceToVoxelCoord<int>(
                         {center.x, nextLayerIndex})});
                 continue;
             }
@@ -151,7 +151,7 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
         // 2. Construct initial guess using top maxima for each next position
         std::vector<Voxel> nextVs;
         nextVs.reserve(currentVs.size());
-        for (int32_t i = 0; i < int32_t(nextPositions.size()); ++i) {
+        for (int i = 0; i < int(nextPositions.size()); ++i) {
             nextVs.push_back(nextPositions[i].front());
             maps[i].setChosenMaximaIndex(0);
         }
@@ -168,11 +168,11 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
 
         ////////////////////////////////////////////////////////////////////////////////
         // 3. Optimize
-        std::vector<int32_t> indices(currentVs.size());
+        std::vector<int> indices(currentVs.size());
         std::iota(begin(indices), end(indices), 0);
 
         // - Go until either some hard limit or change in energy is minimal
-        int32_t n = 0;
+        int n = 0;
 
     iters_start:
         while (n++ < numIters) {
@@ -195,7 +195,7 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
             // optimal positions. Do this until convergence or we hit a cap on
             // number of iterations.
             while (!pairs.empty()) {
-                int32_t maxDiffIdx;
+                int maxDiffIdx;
                 double _;
                 std::tie(maxDiffIdx, _) = pairs.back();
                 pairs.pop_back();
@@ -244,12 +244,12 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
         // Don't resettle points at the beginning or end of the chain
         auto maxVal =
             std::max_element(begin(normDeriv2) + 1, end(normDeriv2) - 1);
-        int32_t settlingIters = 0;
+        int settlingIters = 0;
 
         // Iterate until we move all out-of-place points back into place
         while (*maxVal > 10.0 && settlingIters++ < 100) {
             Voxel newPoint;
-            int32_t i = maxVal - begin(normDeriv2);
+            int i = maxVal - begin(normDeriv2);
             Voxel diff = 0.5 * nextVs[size_t(i) + 1] - 0.5 * nextVs[i - 1];
             newPoint = nextVs[i - 1] + diff;
             nextVs[i] = newPoint;
@@ -324,7 +324,7 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
 }
 
 cv::Vec3d LocalResliceSegmentation::estimateNormalAtIndex_(
-    const FittedCurve& currentCurve, int32_t index)
+    const FittedCurve& currentCurve, int index)
 {
     const cv::Vec3i currentVoxel = currentCurve(index);
     auto stRadius = static_cast<int>(
@@ -343,13 +343,13 @@ cv::Vec3d LocalResliceSegmentation::estimateNormalAtIndex_(
 volcart::OrderedPointSet<cv::Vec3d> ExportAsPCD(
     const std::vector<std::vector<Voxel>>& points)
 {
-    int32_t rows = points.size();
-    int32_t cols = points[0].size();
+    int rows = points.size();
+    int cols = points[0].size();
     std::vector<cv::Vec3d> tempRow;
     volcart::OrderedPointSet<cv::Vec3d> cloud(cols);
 
-    for (int32_t i = 0; i < rows; ++i) {
-        for (int32_t j = 0; j < cols; ++j) {
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
             Voxel v = points[i][j];
             tempRow.emplace_back(v(0), v(1), v(2));
         }
@@ -361,8 +361,8 @@ volcart::OrderedPointSet<cv::Vec3d> ExportAsPCD(
 
 cv::Mat LocalResliceSegmentation::drawParticleOnSlice_(
     const FittedCurve& curve,
-    int32_t sliceIndex,
-    int32_t particleIndex,
+    int sliceIndex,
+    int particleIndex,
     bool showSpline) const
 {
     auto pkgSlice = pkg_.volume().getSliceDataCopy(sliceIndex);
@@ -372,7 +372,7 @@ cv::Mat LocalResliceSegmentation::drawParticleOnSlice_(
 
     // Draw circles on the pkgSlice window for each point
     for (size_t i = 0; i < curve.size(); ++i) {
-        cv::Point real{int32_t(curve(i)(0)), int32_t(curve(i)(1))};
+        cv::Point real{int(curve(i)(0)), int(curve(i)(1))};
         cv::circle(pkgSlice, real, (showSpline ? 2 : 1), BGR_GREEN, -1);
     }
 
@@ -380,13 +380,13 @@ cv::Mat LocalResliceSegmentation::drawParticleOnSlice_(
     if (particleIndex != -1) {
         const Voxel particle = curve(particleIndex);
         cv::circle(
-            pkgSlice, {int32_t(particle(0)), int32_t(particle(1))},
+            pkgSlice, {int(particle(0)), int(particle(1))},
             (showSpline ? 2 : 1), BGR_RED, -1);
     }
 
     // Superimpose interpolated currentCurve on window
     if (showSpline) {
-        const int32_t n = 500;
+        const int n = 500;
         double sum = 0;
         int i = 0;
         while (i < n && sum <= 1.0) {

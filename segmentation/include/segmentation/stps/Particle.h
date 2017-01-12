@@ -7,7 +7,7 @@ class Particle
 {
 public:
     explicit Particle(cv::Vec3d position)
-        : position_{std::move(position)}, isStopped_{false}
+        : position_{position}, isStopped_{false}
     {
     }
 
@@ -17,7 +17,7 @@ public:
 
     void operator+=(const cv::Vec3d& v) { position_ += v; }
     double operator()(int index) const { return position_(index); }
-    cv::Vec3d operator-(Particle p) { return position_ - p.position(); }
+    cv::Vec3d operator-(const Particle& p) { return position_ - p.position(); }
 
 private:
     cv::Vec3d position_;

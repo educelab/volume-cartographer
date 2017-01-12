@@ -4,14 +4,6 @@
 
 #define BGR_MAGENTA cv::Scalar(0xFF, 0, 0xFF)
 
-Slice::Slice(cv::Mat data, cv::Vec3d origin, cv::Vec3d xvec, cv::Vec3d yvec)
-    : sliceData_{std::move(data)}
-    , origin_{std::move(origin)}
-    , xvec_{std::move(xvec)}
-    , yvec_{std::move(yvec)}
-{
-}
-
 cv::Mat Slice::draw() const
 {
     auto debug = sliceData_.clone();

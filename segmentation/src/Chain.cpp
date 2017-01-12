@@ -16,7 +16,7 @@ Chain::Chain(
     std::vector<Particle> initChain;
     initChain.reserve(segPath.size());
     for (const auto& p : segPath) {
-        initChain.emplace_back(std::move(p));
+        initChain.emplace_back(p);
     }
 
     // Calculate the spring resting position

@@ -15,14 +15,14 @@ namespace segmentation
 
 // To be used later on when this is more parameterized
 // clang-format off
-static constexpr std::array<std::array<double, 9>, 4> D1CentralDiffCoeffs = {
+static constexpr std::array<std::array<double, 9>, 4> D1_CENTRAL_DIFF_COEFFS = {
     0,     0,      0,    -1/2, 0, 1/2, 0,     0,     0,
     0,     0,      1/12, -2/3, 0, 2/3, -1/12, 0,     0,
     0,     -1/60,  3/20, -3/4, 0, 3/4, -3/20, 1/60,  0,
     1/280, -4/105, 1/5,  -4/5, 0, 4/5, -1/5,  4/105, -1/280
 };
 
-static constexpr std::array<std::array<double, 9>, 4> D2CentralDiffCoeffs = {
+static constexpr std::array<std::array<double, 9>, 4> D2_CENTRAL_DIFF_COEFFS = {
     0,      0,     0,     1,   -2,      1,   0,     0,     0,
     0,      0,     -1/12, 4/3, -5/2,    4/3, -1/12, 0,     0,
     0,      1/90,  -3/20, 3/2, -49/18,  3/2, -3/20, 1/90,  0,

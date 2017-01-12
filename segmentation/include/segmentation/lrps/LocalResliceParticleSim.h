@@ -18,16 +18,16 @@ public:
 
     volcart::OrderedPointSet<cv::Vec3d> segmentPath(
         std::vector<cv::Vec3d> cloud,
-        int32_t startIndex,
-        int32_t endIndex,
-        int32_t numIters,
-        int32_t step,
+        int startIndex,
+        int endIndex,
+        int numIters,
+        int step,
         double alpha,
         double k1,
         double k2,
         double beta,
         double delta,
-        int32_t peakDistanceWeight,
+        int peakDistanceWeight,
         bool shouldIncludeMiddle,
         bool dumpVis,
         bool visualize);
@@ -36,12 +36,12 @@ private:
     VolumePkg& pkg_;
 
     cv::Vec3d estimateNormalAtIndex_(
-        const FittedCurve& currentCurve, int32_t index);
+        const FittedCurve& currentCurve, int index);
 
     cv::Mat drawParticleOnSlice_(
         const FittedCurve& curve,
-        int32_t sliceIndex,
-        int32_t particleIndex = -1,
+        int sliceIndex,
+        int particleIndex = -1,
         bool showSpline = false) const;
 
     constexpr static double DEFAULT_MIN_ENERGY_GRADIENT = 1e-7;

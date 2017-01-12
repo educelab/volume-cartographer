@@ -7,7 +7,10 @@
 class Slice
 {
 public:
-    Slice(cv::Mat data, cv::Vec3d origin, cv::Vec3d xvec, cv::Vec3d yvec);
+    Slice(cv::Mat data, cv::Vec3d origin, cv::Vec3d xvec, cv::Vec3d yvec)
+        : sliceData_{std::move(data)}, origin_{origin}, xvec_{xvec}, yvec_{yvec}
+    {
+    }
 
     template <typename T>
     cv::Vec3d sliceToVoxelCoord(const cv::Point_<T>& resliceCoord) const

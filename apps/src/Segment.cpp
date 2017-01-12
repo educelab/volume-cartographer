@@ -223,7 +223,7 @@ int main(int argc, char* argv[])
     volcart::OrderedPointSet<cv::Vec3d> mutableCloud;
     if (alg == Algorithm::STPS) {
         double gravityScale = opts["gravity-scale"].as<double>();
-        mutableCloud = vs::structureTensorParticleSim(
+        mutableCloud = vs::StructureTensorParticleSim(
             segPath, volpkg, gravityScale, step, endIndex - startIndex);
     } else {
         int32_t numIters = opts["num-iters"].as<int32_t>();
