@@ -56,7 +56,7 @@ class ClangFormatter:
             print(f'Found formatting changes for file: {source_file}')
 
             if print_output:
-                print(f'To fix, run "{self.cf} --style=file -i {source_file}"')
+                print(f'To fix, run "{self.path} --style=file -i {source_file}"')
                 print('Suggested changes:')
                 for line in diff:
                     print(line.strip())
@@ -129,7 +129,10 @@ def main() -> bool:
     changes = [f for f in files if re.search(source_files, f)]
 
     # Validate each with clang-format
-    return all(cf.lint(f, print_output=args.print_output) for f in changes)
+    lint_clean = []
+    for change in changes:
+        lint_clean.append(cf.lint(change, print_output=args.print_output))
+    return all(lint_clean)
 
 
 if __name__ == '__main__':

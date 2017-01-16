@@ -175,8 +175,10 @@ def main() -> bool:
             ) for f in changes
         ]
 
-        # Execute and print output (if necessary)
+        # Execute subtasks
         result = all([task.get() for task in tasks])
+
+        # Print any output if requested
         while args.print_output and not output_queue.empty():
             print(output_queue.get())
 
