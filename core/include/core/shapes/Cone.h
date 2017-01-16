@@ -3,7 +3,7 @@
 //
 #pragma once
 
-#include <math.h>
+#include <cmath>
 
 #include <opencv2/core.hpp>
 
@@ -63,32 +63,33 @@ public:
         }
 
         // generate the starting vertices
-        _add_vertex(0, 0, 0);       // cone point
-        _add_vertex(0, 0, height);  // mid point of circle
+        addVertex_(0, 0, 0);       // cone point
+        addVertex_(0, 0, height);  // mid point of circle
 
         // generate the circle points
         for (auto point = circle_list.begin(); point != circle_list.end();
              ++point) {
-            _add_vertex((*point)[0], (*point)[1], (*point)[2]);
+            addVertex_((*point)[0], (*point)[1], (*point)[2]);
         }
 
         // generate the cells for faces
         // Our two "center" points are v_id 0 && 1, so start at 2
         int B;  // second vertex of each face
-        for (size_t v_id = 2; v_id < _points.size(); ++v_id) {
+        for (size_t v_id = 2; v_id < points_.size(); ++v_id) {
 
             // Handle the last point in the circle
-            if (v_id == _points.size() - 1)
+            if (v_id == points_.size() - 1) {
                 B = 2;
-            else
+            } else {
                 B = v_id + 1;
+            }
 
-            _add_cell(v_id, B, 0);
-            _add_cell(v_id, B, 1);
+            addCell_(v_id, B, 0);
+            addCell_(v_id, B, 1);
         }
 
-        _orderedPoints = false;
-        _orderedWidth = _orderedHeight = 0;
+        orderedPoints_ = false;
+        orderedWidth_ = orderedHeight_ = 0;
 
     }  // Constructor
 

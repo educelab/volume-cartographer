@@ -3,7 +3,7 @@
 //
 #pragma once
 
-#include <boost/filesystem.hpp>
+#include <boost/filesystem/path.hpp>
 
 #include "core/types/Metadata.h"
 #include "core/types/Texture.h"
@@ -16,24 +16,23 @@ class Rendering
 {
 public:
     ///// Constructors/Destructors /////
-    Rendering();                              // make new
-    Rendering(boost::filesystem::path path);  // load from disk
+    Rendering();
+    explicit Rendering(boost::filesystem::path path);
 
     ///// Metadata /////
-    volcart::Metadata metadata() const;
-    std::string id() const;
+    volcart::Metadata metadata() const { return metadata_; }
+    std::string id() const { return metadata_.get<std::string>("id"); }
 
     ///// Access Functions /////
-    void setTexture(volcart::Texture texture);
-    volcart::Texture getTexture() const;
+    void setTexture(volcart::Texture texture) { texture_ = std::move(texture); }
+    volcart::Texture getTexture() const { return texture_; }
 
-    void setMesh(ITKMesh::Pointer mesh);
-    ITKMesh::Pointer getMesh() const;
+    void setMesh(const ITKMesh::Pointer& mesh) { mesh_ = mesh; }
+    ITKMesh::Pointer getMesh() const { return mesh_; }
 
 private:
-    volcart::Metadata _metadata;
-
-    volcart::Texture _texture;
-    ITKMesh::Pointer _mesh;
+    volcart::Metadata metadata_;
+    volcart::Texture texture_;
+    ITKMesh::Pointer mesh_;
 };
 }

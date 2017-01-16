@@ -60,7 +60,7 @@ BOOST_FIXTURE_TEST_CASE(ParseOBJTest, PlaneFixture)
     OBJWriter.write();
 
     // Parse the mesh
-    volcart::testing::ParsingHelpers::parseObjFile(
+    volcart::testing::ParsingHelpers::ParseOBJFile(
         "ParsingHelpers_Plane.obj", _SavedPoints, _SavedCells);
 
     // Check Points and Normals
@@ -101,7 +101,7 @@ BOOST_FIXTURE_TEST_CASE(ParsePLYTest, PlaneFixture)
     PLYWriter.write();
 
     // Parse the mesh
-    volcart::testing::ParsingHelpers::parsePlyFile(
+    volcart::testing::ParsingHelpers::ParsePLYFile(
         "ParsingHelpers_Plane.ply", _SavedPoints, _SavedCells);
 
     // Check Points and Normals

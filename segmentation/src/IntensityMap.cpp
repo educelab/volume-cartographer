@@ -8,10 +8,7 @@
 using namespace volcart::segmentation;
 
 IntensityMap::IntensityMap(
-    cv::Mat r,
-    int32_t stepSize,
-    int32_t peakDistanceWeight,
-    bool shouldIncludeMiddle)
+    cv::Mat r, int stepSize, int peakDistanceWeight, bool shouldIncludeMiddle)
     : stepSize_(stepSize)
     , peakDistanceWeight_(peakDistanceWeight)
     , displayWidth_(200)
@@ -38,7 +35,7 @@ cv::Mat IntensityMap::draw()
     drawTarget_ = BGR_BLACK;
 
     // Build intensity map
-    for (int32_t i = 1; i < mapWidth_; ++i) {
+    for (int i = 1; i < mapWidth_; ++i) {
         auto p1 = cv::Point(
             binWidth_ * (i - 1),
             displayHeight_ - cvRound(displayHeight_ * intensities_(i - 1)));
@@ -75,7 +72,7 @@ cv::Mat IntensityMap::draw()
     // Draw the final chosen index if it's available (only going to be when
     // we're dumping the config)
     if (chosenMaximaIndex_ != -1) {
-        int32_t max = maxima[chosenMaximaIndex_].first;
+        int max = maxima[chosenMaximaIndex_].first;
         cv::line(
             drawTarget_, cv::Point(binWidth_ * max, 0),
             cv::Point(binWidth_ * max, drawTarget_.rows), BGR_RED);
@@ -85,11 +82,11 @@ cv::Mat IntensityMap::draw()
 }
 
 // Finds the top 'N' maxima in the row being processed
-std::deque<std::pair<int32_t, double>> IntensityMap::sortedMaxima()
+std::deque<std::pair<int, double>> IntensityMap::sortedMaxima()
 {
     bool includesMiddle = false;
-    std::deque<std::pair<int32_t, double>> crossings;
-    for (int32_t i = 1; i < intensities_.cols - 1; ++i) {
+    std::deque<std::pair<int, double>> crossings;
+    for (int i = 1; i < intensities_.cols - 1; ++i) {
         if (intensities_(i) >= intensities_(i - 1) &&
             intensities_(i) >= intensities_(i + 1)) {
             crossings.emplace_back(i, intensities_(i));
@@ -111,7 +108,7 @@ std::deque<std::pair<int32_t, double>> IntensityMap::sortedMaxima()
     // Sort by distance from middle
     std::sort(
         std::begin(crossings), std::end(crossings), [this](auto lhs, auto rhs) {
-            const int32_t centerX = resliceData_.cols / 2;
+            const int centerX = resliceData_.cols / 2;
             const auto ldist = std::sqrt(
                 (lhs.first - centerX) * (lhs.first - centerX) +
                 stepSize_ * stepSize_);

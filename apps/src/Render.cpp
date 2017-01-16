@@ -16,6 +16,7 @@
 #include "core/util/MeshMath.h"
 #include "core/vc_defines.h"
 #include "meshing/ACVD.h"
+#include "meshing/ITK2VTK.h"
 #include "meshing/SmoothNormals.h"
 #include "texturing/AngleBasedFlattening.h"
 #include "texturing/CompositeTextureV2.h"
@@ -133,7 +134,7 @@ int main(int argc, char* argv[])
                   << std::endl;
         return EXIT_FAILURE;
     }
-    double cacheBytes = 0.75 * systemMemorySize();
+    double cacheBytes = 0.75 * SystemMemorySize();
     vpkg.volume().setCacheMemoryInBytes(static_cast<size_t>(cacheBytes));
 
     ///// Set the segmentation ID /////
@@ -179,7 +180,7 @@ int main(int argc, char* argv[])
     Cleaner->Update();
 
     auto itkACVD = volcart::ITKMesh::New();
-    volcart::meshing::vtk2itk(Cleaner->GetOutput(), itkACVD);
+    volcart::meshing::VTK2ITK(Cleaner->GetOutput(), itkACVD);
 
     // ABF flattening
     std::cout << "Computing parameterization..." << std::endl;
@@ -193,7 +194,7 @@ int main(int argc, char* argv[])
     auto height = static_cast<int>(
         std::ceil(static_cast<double>(width) / uvMap.ratio().aspect));
 
-    volcart::texturing::compositeTextureV2 result(
+    volcart::texturing::CompositeTextureV2 result(
         itkACVD, vpkg, uvMap, radius, width, height, aFilterOption,
         aDirectionOption);
 

@@ -14,20 +14,20 @@ namespace segmentation
 class LocalResliceSegmentation
 {
 public:
-    LocalResliceSegmentation(VolumePkg& pkg) : pkg_(pkg) {}
+    explicit LocalResliceSegmentation(VolumePkg& pkg) : pkg_{pkg} {}
 
     volcart::OrderedPointSet<cv::Vec3d> segmentPath(
         std::vector<cv::Vec3d> cloud,
-        int32_t startIndex,
-        int32_t endIndex,
-        int32_t numIters,
-        int32_t stepNumLayers,
+        int startIndex,
+        int endIndex,
+        int numIters,
+        int step,
         double alpha,
         double k1,
         double k2,
         double beta,
         double delta,
-        int32_t peakDistanceWeight,
+        int peakDistanceWeight,
         bool shouldIncludeMiddle,
         bool dumpVis,
         bool visualize);
@@ -35,15 +35,16 @@ public:
 private:
     VolumePkg& pkg_;
 
-    cv::Vec3d estimateNormalAtIndex(const FittedCurve& curve, int32_t index);
+    cv::Vec3d estimate_normal_at_index_(
+        const FittedCurve& currentCurve, int index);
 
-    cv::Mat drawParticlesOnSlice(
+    cv::Mat draw_particle_on_slice_(
         const FittedCurve& curve,
-        int32_t sliceIndex,
-        int32_t particleIndex = -1,
+        int sliceIndex,
+        int particleIndex = -1,
         bool showSpline = false) const;
 
-    constexpr static double kDefaultMinEnergyGradient = 1e-7;
+    constexpr static double DEFAULT_MIN_ENERGY_GRADIENT = 1e-7;
 };
 }
 }

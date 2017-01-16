@@ -13,7 +13,7 @@ class FittedCurve
 {
 private:
     size_t npoints_;
-    int32_t zIndex_;
+    int zIndex_;
     std::vector<double> ts_;
     std::vector<Voxel> points_;
     CubicSpline<double> spline_;
@@ -21,9 +21,9 @@ private:
 public:
     FittedCurve() : npoints_(0), zIndex_(0), ts_(), points_(), spline_() {}
 
-    FittedCurve(const std::vector<Voxel>& vs, int32_t zIndex);
+    FittedCurve(const std::vector<Voxel>& vs, int zIndex);
 
-    size_t size(void) const { return npoints_; }
+    size_t size() const { return npoints_; }
 
     const std::vector<Voxel>& points() const { return points_; }
 
@@ -37,9 +37,9 @@ public:
 
     std::vector<Voxel> sample(size_t numPoints) const;
 
-    Voxel operator()(int32_t index) const;
+    Voxel operator()(int index) const;
 
-    std::vector<double> curvature(int32_t hstep = 1) const;
+    std::vector<double> curvature(int hstep = 1) const;
 
     double arclength() const;
 };

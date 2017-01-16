@@ -6,6 +6,7 @@
 
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
+
 #include "core/shapes/Arch.h"
 #include "core/shapes/Cone.h"
 #include "core/shapes/Cube.h"
@@ -116,9 +117,9 @@ struct PlaneRayTraceFixture {
 
         // Read in data from .ply files
 
-        volcart::testing::ParsingHelpers::parsePlyFile(
+        volcart::testing::ParsingHelpers::ParsePLYFile(
             "SavedPlaneRayTraceData.ply", _SavedPoints, _SavedCells);
-        volcart::testing::ParsingHelpers::parsePlyFile(
+        volcart::testing::ParsingHelpers::ParsePLYFile(
             "TestPlaneRayTraceData.ply", _CurrentPoints, _CurrentCells);
 
         std::cerr << "\nsetting up PlaneRayTraceTest objects" << std::endl;
@@ -138,7 +139,7 @@ struct PlaneRayTraceFixture {
     int _Width, _Height;
 
     // Variables for writing to file
-    unsigned long _NumberOfPointsInMesh;
+    uint64_t _NumberOfPointsInMesh;
     std::ofstream _SavedPlaneMeshFile;
 
     // Vectors that will hold points and cells
@@ -212,9 +213,9 @@ struct CubeRayTraceFixture {
         _SavedCubeMeshFile.close();
 
         // Read in data from .ply files
-        volcart::testing::ParsingHelpers::parsePlyFile(
+        volcart::testing::ParsingHelpers::ParsePLYFile(
             "SavedCubeRayTraceData.ply", _SavedPoints, _SavedCells);
-        volcart::testing::ParsingHelpers::parsePlyFile(
+        volcart::testing::ParsingHelpers::ParsePLYFile(
             "TestCubeRayTraceData.ply", _CurrentPoints, _CurrentCells);
 
         std::cerr << "\nsetting up CubeRayTraceTest objects" << std::endl;
@@ -308,9 +309,9 @@ struct ArchRayTraceFixture {
         _SavedArchMeshFile.close();
 
         // Read in data from .ply files
-        volcart::testing::ParsingHelpers::parsePlyFile(
+        volcart::testing::ParsingHelpers::ParsePLYFile(
             "SavedArchRayTraceData.ply", _SavedPoints, _SavedCells);
-        volcart::testing::ParsingHelpers::parsePlyFile(
+        volcart::testing::ParsingHelpers::ParsePLYFile(
             "TestArchRayTraceData.ply", _CurrentPoints, _CurrentCells);
 
         std::cerr << "\nsetting up ArchRayTraceTest objects" << std::endl;
@@ -403,9 +404,9 @@ struct SphereRayTraceFixture {
 
         // Read in data from .ply files
 
-        volcart::testing::ParsingHelpers::parsePlyFile(
+        volcart::testing::ParsingHelpers::ParsePLYFile(
             "SavedSphereRayTraceData.ply", _SavedPoints, _SavedCells);
-        volcart::testing::ParsingHelpers::parsePlyFile(
+        volcart::testing::ParsingHelpers::ParsePLYFile(
             "TestSphereRayTraceData.ply", _CurrentPoints, _CurrentCells);
 
         std::cerr << "\nsetting up SphereRayTraceTest objects" << std::endl;
@@ -500,9 +501,9 @@ struct ConeRayTraceFixture {
 
         // Read in data from .ply files
 
-        volcart::testing::ParsingHelpers::parsePlyFile(
+        volcart::testing::ParsingHelpers::ParsePLYFile(
             "SavedConeRayTraceData.ply", _SavedPoints, _SavedCells);
-        volcart::testing::ParsingHelpers::parsePlyFile(
+        volcart::testing::ParsingHelpers::ParsePLYFile(
             "TestConeRayTraceData.ply", _CurrentPoints, _CurrentCells);
 
         std::cerr << "\nsetting up ConeRayTraceTest objects" << std::endl;

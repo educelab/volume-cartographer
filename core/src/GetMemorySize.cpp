@@ -26,7 +26,7 @@
 /**
  * Returns the size of physical memory (RAM) in bytes.
  */
-size_t systemMemorySize()
+size_t SystemMemorySize()
 {
 
 #if defined(_WIN32) && (defined(__CYGWIN__) || defined(__CYGWIN32__))
@@ -60,8 +60,9 @@ size_t systemMemorySize()
 #endif
     int64_t size = 0;    /* 64-bit */
     size_t len = sizeof(size);
-    if (sysctl(mib, 2, &size, &len, NULL, 0) == 0)
+    if (sysctl(mib, 2, &size, &len, nullptr, 0) == 0) {
         return static_cast<size_t>(size);
+    }
     return 0L; /* Failed? */
 
 #elif defined(_SC_AIX_REALMEM)

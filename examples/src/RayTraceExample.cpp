@@ -99,7 +99,7 @@ int main()
          * ply writer scaled down from orderePCDMesher.cpp
          *
          * Not including a width, height or face data.
-         * Should still be able to parse using ParsingHelpers::parsePlyFile()
+         * Should still be able to parse using ParsingHelpers::ParsePLYFile()
          *
          */
 

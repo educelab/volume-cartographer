@@ -28,7 +28,7 @@ using namespace volcart;
  *           and vice versa. *
  *                                                                                  *
  *        2. confirm saved .obj and .ply files match test-generated obj and *
- *           ply files after running ITK2VTK and vtk2itk *
+ *           ply files after running ITK2VTK and VTK2ITK *
  *                                                                                  *
  *  This file is broken up into two test fixtures (ivFix & viFix) which
  * initialize  *
@@ -51,7 +51,7 @@ using namespace volcart;
  *      original vtk and converted vtk data points match. *
  *                                                                                  *
  *   3. compareSavedITK (fixture test case): *
- *      Read in itk.obj and compare with mesh created from vtk2itk call result.
+ *      Read in itk.obj and compare with mesh created from VTK2ITK call result.
  * *
  *                                                                                  *
  *   4. compreSavedVTK (fixture test case): *
@@ -93,7 +93,7 @@ struct ITK2VTKPlaneFixture {
         volcart::meshing::ITK2VTK(_in_Mesh, _out_Mesh);
 
         // Read in the vtk.ply file
-        volcart::testing::ParsingHelpers::parsePlyFile(
+        volcart::testing::ParsingHelpers::ParsePLYFile(
             "ITKPlaneMeshConvertedToVTK.ply", _SavedPoints, _SavedCells);
 
         // std::cerr << "setting up ITK2VTK Plane test objects" << std::endl;
@@ -124,7 +124,7 @@ struct ITK2VTKCubeFixture {
         _in_Mesh = _Cube.itkMesh();
         _out_Mesh = vtkPolyData::New();
         volcart::meshing::ITK2VTK(_in_Mesh, _out_Mesh);
-        volcart::testing::ParsingHelpers::parsePlyFile(
+        volcart::testing::ParsingHelpers::ParsePLYFile(
             "ITKCubeMeshConvertedToVTK.ply", _SavedPoints, _SavedCells);
 
         // std::cerr << "setting up ITK2VTK Cube test objects" << std::endl;
@@ -148,7 +148,7 @@ struct ITK2VTKArchFixture {
         _in_Mesh = _Arch.itkMesh();
         _out_Mesh = vtkPolyData::New();
         volcart::meshing::ITK2VTK(_in_Mesh, _out_Mesh);
-        volcart::testing::ParsingHelpers::parsePlyFile(
+        volcart::testing::ParsingHelpers::ParsePLYFile(
             "ITKArchMeshConvertedToVTK.ply", _SavedPoints, _SavedCells);
 
         // std::cerr << "setting up ITK2VTK Arch test objects" << std::endl;
@@ -172,7 +172,7 @@ struct ITK2VTKSphereFixture {
         _in_Mesh = _Sphere.itkMesh();
         _out_Mesh = vtkPolyData::New();
         volcart::meshing::ITK2VTK(_in_Mesh, _out_Mesh);
-        volcart::testing::ParsingHelpers::parsePlyFile(
+        volcart::testing::ParsingHelpers::ParsePLYFile(
             "ITKSphereMeshConvertedToVTK.ply", _SavedPoints, _SavedCells);
 
         // std::cerr << "setting up ITK2VTK Sphere test objects" << std::endl;
@@ -196,7 +196,7 @@ struct ITK2VTKConeFixture {
         _in_Mesh = _Cone.itkMesh();
         _out_Mesh = vtkPolyData::New();
         volcart::meshing::ITK2VTK(_in_Mesh, _out_Mesh);
-        volcart::testing::ParsingHelpers::parsePlyFile(
+        volcart::testing::ParsingHelpers::ParsePLYFile(
             "ITKConeMeshConvertedToVTK.ply", _SavedPoints, _SavedCells);
 
         // std::cerr << "setting up ITK2VTK Cone test objects" << std::endl;
@@ -258,15 +258,15 @@ struct NoNormalsFixture {
 };
 
 /*
- * The following five fixture build test inputs for the vtk2itk tests
+ * The following five fixture build test inputs for the VTK2ITK tests
  *
  * Comments are included in the Plane Fixture only...the remainder of the fixure
  * copy the same ideas
  */
 
-struct vtk2itkPlaneFixture {
+struct VTK2ITKPlaneFixture {
 
-    vtk2itkPlaneFixture()
+    VTK2ITKPlaneFixture()
     {
 
         _in_Mesh = _Plane.vtkMesh();
@@ -276,17 +276,17 @@ struct vtk2itkPlaneFixture {
         vtkReadPlaneData = _in_Mesh.GetPointer();
 
         // convert from vtk mesh to itk mesh
-        volcart::meshing::vtk2itk(vtkReadPlaneData, _out_Mesh);
+        volcart::meshing::VTK2ITK(vtkReadPlaneData, _out_Mesh);
 
         // read data in from saved file created by ITK2VTKExample.cpp
-        volcart::testing::ParsingHelpers::parseObjFile(
+        volcart::testing::ParsingHelpers::ParseOBJFile(
             "VTKPlaneMeshConvertedToITK.obj", _SavedPoints, _SavedCells);
 
-        // std::cerr << "setting up vtk2itk Plane test objects" << std::endl;
+        // std::cerr << "setting up VTK2ITK Plane test objects" << std::endl;
     }
 
-    ~vtk2itkPlaneFixture()
-    { /*std::cerr << "cleaning up vtk2itk Plane test objects" << std::endl;*/}
+    ~VTK2ITKPlaneFixture()
+    { /*std::cerr << "cleaning up VTK2ITK Plane test objects" << std::endl;*/}
 
     // init shape
     volcart::shapes::Plane _Plane;
@@ -297,7 +297,7 @@ struct vtk2itkPlaneFixture {
     // pointer that will hold input mesh data for conversion to itk mesh
     vtkPolyData* vtkReadPlaneData;
 
-    // declare mesh to hold output of vtk2itk call
+    // declare mesh to hold output of VTK2ITK call
     ITKMesh::Pointer _out_Mesh;
 
     // declare vectors to hold points and cells from savedITK data file created
@@ -306,23 +306,23 @@ struct vtk2itkPlaneFixture {
     std::vector<Cell> _SavedCells;
 };
 
-struct vtk2itkCubeFixture {
+struct VTK2ITKCubeFixture {
 
-    vtk2itkCubeFixture()
+    VTK2ITKCubeFixture()
     {
 
         _in_Mesh = _Cube.vtkMesh();
         _out_Mesh = ITKMesh::New();
         vtkReadCubeData = _in_Mesh.GetPointer();
-        volcart::meshing::vtk2itk(vtkReadCubeData, _out_Mesh);
-        volcart::testing::ParsingHelpers::parseObjFile(
+        volcart::meshing::VTK2ITK(vtkReadCubeData, _out_Mesh);
+        volcart::testing::ParsingHelpers::ParseOBJFile(
             "VTKCubeMeshConvertedToITK.obj", _SavedPoints, _SavedCells);
 
-        // std::cerr << "setting up vtk2itk Cube test objects" << std::endl;
+        // std::cerr << "setting up VTK2ITK Cube test objects" << std::endl;
     }
 
-    ~vtk2itkCubeFixture()
-    { /*std::cerr << "cleaning up vtk2itk Cube test objects" << std::endl;*/}
+    ~VTK2ITKCubeFixture()
+    { /*std::cerr << "cleaning up VTK2ITK Cube test objects" << std::endl;*/}
 
     volcart::shapes::Cube _Cube;
     vtkSmartPointer<vtkPolyData> _in_Mesh;
@@ -332,23 +332,23 @@ struct vtk2itkCubeFixture {
     std::vector<Cell> _SavedCells;
 };
 
-struct vtk2itkArchFixture {
+struct VTK2ITKArchFixture {
 
-    vtk2itkArchFixture()
+    VTK2ITKArchFixture()
     {
 
         _in_Mesh = _Arch.vtkMesh();
         _out_Mesh = ITKMesh::New();
         vtkReadArchData = _in_Mesh.GetPointer();
-        volcart::meshing::vtk2itk(vtkReadArchData, _out_Mesh);
-        volcart::testing::ParsingHelpers::parseObjFile(
+        volcart::meshing::VTK2ITK(vtkReadArchData, _out_Mesh);
+        volcart::testing::ParsingHelpers::ParseOBJFile(
             "VTKArchMeshConvertedToITK.obj", _SavedPoints, _SavedCells);
 
-        // std::cerr << "setting up vtk2itk Arch test objects" << std::endl;
+        // std::cerr << "setting up VTK2ITK Arch test objects" << std::endl;
     }
 
-    ~vtk2itkArchFixture()
-    { /*std::cerr << "cleaning up vtk2itk Arch test objects" << std::endl;*/}
+    ~VTK2ITKArchFixture()
+    { /*std::cerr << "cleaning up VTK2ITK Arch test objects" << std::endl;*/}
 
     volcart::shapes::Arch _Arch;
     vtkSmartPointer<vtkPolyData> _in_Mesh;
@@ -358,23 +358,23 @@ struct vtk2itkArchFixture {
     std::vector<Cell> _SavedCells;
 };
 
-struct vtk2itkSphereFixture {
+struct VTK2ITKSphereFixture {
 
-    vtk2itkSphereFixture()
+    VTK2ITKSphereFixture()
     {
 
         _in_Mesh = _Sphere.vtkMesh();
         _out_Mesh = ITKMesh::New();
         vtkReadSphereData = _in_Mesh.GetPointer();
-        volcart::meshing::vtk2itk(vtkReadSphereData, _out_Mesh);
-        volcart::testing::ParsingHelpers::parseObjFile(
+        volcart::meshing::VTK2ITK(vtkReadSphereData, _out_Mesh);
+        volcart::testing::ParsingHelpers::ParseOBJFile(
             "VTKSphereMeshConvertedToITK.obj", _SavedPoints, _SavedCells);
 
-        // std::cerr << "setting up vtk2itk Sphere test objects" << std::endl;
+        // std::cerr << "setting up VTK2ITK Sphere test objects" << std::endl;
     }
 
-    ~vtk2itkSphereFixture()
-    { /*std::cerr << "cleaning up vtk2itk Sphere test objects" << std::endl*/}
+    ~VTK2ITKSphereFixture()
+    { /*std::cerr << "cleaning up VTK2ITK Sphere test objects" << std::endl*/}
 
     volcart::shapes::Sphere _Sphere;
     vtkSmartPointer<vtkPolyData> _in_Mesh;
@@ -384,23 +384,23 @@ struct vtk2itkSphereFixture {
     std::vector<Cell> _SavedCells;
 };
 
-struct vtk2itkConeFixture {
+struct VTK2ITKConeFixture {
 
-    vtk2itkConeFixture()
+    VTK2ITKConeFixture()
     {
 
         _in_Mesh = _Cone.vtkMesh();
         _out_Mesh = ITKMesh::New();
         vtkReadConeData = _in_Mesh.GetPointer();
-        volcart::meshing::vtk2itk(vtkReadConeData, _out_Mesh);
-        volcart::testing::ParsingHelpers::parseObjFile(
+        volcart::meshing::VTK2ITK(vtkReadConeData, _out_Mesh);
+        volcart::testing::ParsingHelpers::ParseOBJFile(
             "VTKConeMeshConvertedToITK.obj", _SavedPoints, _SavedCells);
 
-        // std::cerr << "setting up vtk2itk Cone test objects" << std::endl;
+        // std::cerr << "setting up VTK2ITK Cone test objects" << std::endl;
     }
 
-    ~vtk2itkConeFixture()
-    { /*std::cerr << "cleaning up vtk2itk Cone test objects" << std::endl;*/}
+    ~VTK2ITKConeFixture()
+    { /*std::cerr << "cleaning up VTK2ITK Cone test objects" << std::endl;*/}
 
     volcart::shapes::Cone _Cone;
     vtkSmartPointer<vtkPolyData> _in_Mesh;
@@ -689,7 +689,7 @@ BOOST_FIXTURE_TEST_CASE(
 
 BOOST_FIXTURE_TEST_CASE(
     CompareFixtureVTKToITKConvertedPlaneWithSavedPlaneITKFileTest,
-    vtk2itkPlaneFixture)
+    VTK2ITKPlaneFixture)
 {
 
     // Confirm equal number of points in both the saved itk mesh and the output
@@ -755,7 +755,7 @@ BOOST_FIXTURE_TEST_CASE(
 
 BOOST_FIXTURE_TEST_CASE(
     CompareFixtureVTKToITKConvertedCubeWithSavedCubeITKFileTest,
-    vtk2itkCubeFixture)
+    VTK2ITKCubeFixture)
 {
 
     BOOST_CHECK_EQUAL(_SavedPoints.size(), _out_Mesh->GetNumberOfPoints());
@@ -810,7 +810,7 @@ BOOST_FIXTURE_TEST_CASE(
 
 BOOST_FIXTURE_TEST_CASE(
     CompareFixtureVTKToITKConvertedArchWithSavedArchITKFileTest,
-    vtk2itkArchFixture)
+    VTK2ITKArchFixture)
 {
 
     BOOST_CHECK_EQUAL(_SavedPoints.size(), _out_Mesh->GetNumberOfPoints());
@@ -865,7 +865,7 @@ BOOST_FIXTURE_TEST_CASE(
 
 BOOST_FIXTURE_TEST_CASE(
     CompareFixtureVTKToITKConvertedSphereWithSavedSphereITKFileTest,
-    vtk2itkSphereFixture)
+    VTK2ITKSphereFixture)
 {
 
     BOOST_CHECK_EQUAL(_SavedPoints.size(), _out_Mesh->GetNumberOfPoints());
@@ -920,7 +920,7 @@ BOOST_FIXTURE_TEST_CASE(
 
 BOOST_FIXTURE_TEST_CASE(
     CompareFixtureVTKToITKConvertedConeWithSavedConeITKFileTest,
-    vtk2itkConeFixture)
+    VTK2ITKConeFixture)
 {
 
     BOOST_CHECK_EQUAL(_SavedPoints.size(), _out_Mesh->GetNumberOfPoints());
@@ -985,18 +985,18 @@ BOOST_FIXTURE_TEST_CASE(
 BOOST_FIXTURE_TEST_CASE(MeshWithNoNormals, NoNormalsFixture)
 {
     // ITK to VTK
-    vtkSmartPointer<vtkPolyData> vtk_Mesh = vtkSmartPointer<vtkPolyData>::New();
+    auto vtk_Mesh = vtkSmartPointer<vtkPolyData>::New();
     volcart::meshing::ITK2VTK(_itk_Mesh, vtk_Mesh);
 
     // VTK to ITK
     ITKMesh::Pointer itk_Mesh2 = ITKMesh::New();
-    volcart::meshing::vtk2itk(vtk_Mesh, itk_Mesh2);
+    volcart::meshing::VTK2ITK(vtk_Mesh, itk_Mesh2);
 
     // ITK to ITK Quad
     volcart::QuadMesh::Pointer itk_Quad = volcart::QuadMesh::New();
-    volcart::meshing::itk2itkQE(itk_Mesh2, itk_Quad);
+    volcart::meshing::ITK2ITKQE(itk_Mesh2, itk_Quad);
 
     // ITK Quad to ITK
     itk_Mesh2 = ITKMesh::New();
-    volcart::meshing::itkQE2itk(itk_Quad, itk_Mesh2);
+    volcart::meshing::ITKQE2ITK(itk_Quad, itk_Mesh2);
 }

@@ -40,7 +40,7 @@ public:
     };
 
     static OrderedPointSet<T> ReadOrderedPointSet(
-        boost::filesystem::path path, IOMode mode = IOMode::BINARY)
+        const boost::filesystem::path& path, IOMode mode = IOMode::BINARY)
     {
         switch (mode) {
             case IOMode::BINARY:
@@ -51,7 +51,7 @@ public:
     }
 
     static PointSet<T> ReadPointSet(
-        boost::filesystem::path path, IOMode mode = IOMode::BINARY)
+        const boost::filesystem::path& path, IOMode mode = IOMode::BINARY)
     {
         switch (mode) {
             case IOMode::BINARY:
@@ -62,7 +62,7 @@ public:
     }
 
     static void WriteOrderedPointSet(
-        boost::filesystem::path path,
+        const boost::filesystem::path& path,
         const OrderedPointSet<T>& ps,
         IOMode mode = IOMode::BINARY)
     {
@@ -75,7 +75,7 @@ public:
     }
 
     static void WritePointSet(
-        boost::filesystem::path path,
+        const boost::filesystem::path& path,
         const PointSet<T>& ps,
         IOMode mode = IOMode::BINARY)
     {
@@ -190,13 +190,13 @@ public:
 
             // Dim
             else if (std::regex_match(strs[0], dim)) {
-                auto parsed_dim = std::stoul(strs[1]);
-                if (parsed_dim != T::channels) {
+                auto parsedDim = std::stoul(strs[1]);
+                if (parsedDim != T::channels) {
                     auto msg =
                         "Incorrect dimension read for template specification";
                     throw IOException(msg);
                 }
-                h.dim = parsed_dim;
+                h.dim = parsedDim;
             }
 
             // Ordering
@@ -292,7 +292,7 @@ public:
     }
 
 private:
-    static PointSet<T> ReadPointSetAscii(boost::filesystem::path path)
+    static PointSet<T> ReadPointSetAscii(const boost::filesystem::path& path)
     {
         std::ifstream infile{path.string()};
         if (!infile.is_open()) {
@@ -316,7 +316,7 @@ private:
     }
 
     static OrderedPointSet<T> ReadOrderedPointSetAscii(
-        boost::filesystem::path path)
+        const boost::filesystem::path& path)
     {
         std::ifstream infile{path.string()};
         if (!infile.is_open()) {
@@ -334,7 +334,7 @@ private:
             for (size_t w = 0; w < header.width; ++w) {
                 std::array<typename T::value_type, T::channels> values;
                 for (size_t d = 0; d < header.dim; ++d) {
-                    infile >> values[d];
+                    infile >> values.at(d);
                 }
                 points.emplace_back(values.data());
             }
@@ -344,7 +344,7 @@ private:
         return ps;
     }
 
-    static PointSet<T> ReadPointSetBinary(boost::filesystem::path path)
+    static PointSet<T> ReadPointSetBinary(const boost::filesystem::path& path)
     {
         std::ifstream infile{path.string(), std::ios::binary};
         if (!infile.is_open()) {
@@ -376,7 +376,7 @@ private:
     }
 
     static OrderedPointSet<T> ReadOrderedPointSetBinary(
-        boost::filesystem::path path)
+        const boost::filesystem::path& path)
     {
         std::ifstream infile{path.string(), std::ios::binary};
         if (!infile.is_open()) {
@@ -394,6 +394,9 @@ private:
             typeBytes = sizeof(double);
         } else if (header.type == "int") {
             typeBytes = sizeof(int);
+        } else {
+            auto msg = "Unrecognized type: " + header.type;
+            throw IOException(msg);
         }
 
         // Read data
@@ -412,7 +415,8 @@ private:
         return ps;
     }
 
-    static void WritePointSetAscii(boost::filesystem::path path, PointSet<T> ps)
+    static void WritePointSetAscii(
+        const boost::filesystem::path& path, PointSet<T> ps)
     {
         std::ofstream outfile{path.string()};
         if (!outfile.is_open()) {
@@ -431,7 +435,7 @@ private:
     }
 
     static void WritePointSetBinary(
-        boost::filesystem::path path, PointSet<T> ps)
+        const boost::filesystem::path& path, PointSet<T> ps)
     {
         std::ofstream outfile{path.string(), std::ios::binary};
         if (!outfile.is_open()) {
@@ -449,7 +453,7 @@ private:
     }
 
     static void WriteOrderedPointSetAscii(
-        boost::filesystem::path path, OrderedPointSet<T> ps)
+        const boost::filesystem::path& path, OrderedPointSet<T> ps)
     {
         std::ofstream outfile{path.string()};
         if (!outfile.is_open()) {
@@ -468,7 +472,7 @@ private:
     }
 
     static void WriteOrderedPointSetBinary(
-        boost::filesystem::path path, OrderedPointSet<T> ps)
+        const boost::filesystem::path& path, OrderedPointSet<T> ps)
     {
         std::ofstream outfile{path.string(), std::ios::binary};
         if (!outfile.is_open()) {

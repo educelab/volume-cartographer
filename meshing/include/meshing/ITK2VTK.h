@@ -1,10 +1,5 @@
 #pragma once
 
-#include <vtkCellArray.h>
-#include <vtkCellData.h>
-#include <vtkDoubleArray.h>
-#include <vtkPointData.h>
-#include <vtkPoints.h>
 #include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
 
@@ -35,7 +30,7 @@ public:
 };
 
 /**
- * @class vtk2itk
+ * @class VTK2ITK
  * @author Seth Parker
  * @date 8/3/15
  *
@@ -48,14 +43,14 @@ public:
  *
  * @ingroup Meshing
  */
-class vtk2itk
+class VTK2ITK
 {
 public:
-    vtk2itk(vtkSmartPointer<vtkPolyData> input, ITKMesh::Pointer output);
+    VTK2ITK(vtkSmartPointer<vtkPolyData> input, ITKMesh::Pointer output);
 };
 
 /**
- * @class itk2itkQE
+ * @class ITK2ITKQE
  * @author Seth Parker
  * @date 8/3/15
  *
@@ -65,14 +60,14 @@ public:
  *
  * @ingroup Meshing
  */
-class itk2itkQE
+class ITK2ITKQE
 {
 public:
-    itk2itkQE(ITKMesh::Pointer input, volcart::QuadMesh::Pointer output);
+    ITK2ITKQE(ITKMesh::Pointer input, volcart::QuadMesh::Pointer output);
 };
 
 /**
- * @class itkQE2itk
+ * @class ITKQE2ITK
  * @author Seth Parker
  * @date 8/3/15
  *
@@ -82,11 +77,10 @@ public:
  *
  * @ingroup Meshing
  */
-class itkQE2itk
+class ITKQE2ITK
 {
 public:
-    itkQE2itk(volcart::QuadMesh::Pointer input, ITKMesh::Pointer output);
+    ITKQE2ITK(volcart::QuadMesh::Pointer input, ITKMesh::Pointer output);
 };
-
-}  // namespace meshing
-}  // namespace volcart
+}
+}

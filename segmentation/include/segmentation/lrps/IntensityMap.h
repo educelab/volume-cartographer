@@ -18,22 +18,22 @@ class IntensityMap
 {
 public:
     IntensityMap(
-        cv::Mat,
-        int32_t stepSize,
-        int32_t peakDistanceWeight,
+        cv::Mat r,
+        int stepSize,
+        int peakDistanceWeight,
         bool shouldIncludeMiddle);
 
     cv::Mat draw();
 
-    std::deque<std::pair<int32_t, double>> sortedMaxima();
+    std::deque<std::pair<int, double>> sortedMaxima();
 
-    void setChosenMaximaIndex(int32_t index) { chosenMaximaIndex_ = index; }
+    void setChosenMaximaIndex(int index) { chosenMaximaIndex_ = index; }
 
-    int32_t chosenMaximaIndex() const { return chosenMaximaIndex_; }
+    int chosenMaximaIndex() const { return chosenMaximaIndex_; }
 
     void incrementMaximaIndex() { chosenMaximaIndex_++; }
 
-    int32_t peakRadius() const { return peakRadius_; }
+    int peakRadius() const { return peakRadius_; }
 
 private:
     friend std::ostream& operator<<(std::ostream& s, const IntensityMap& m)
@@ -41,19 +41,19 @@ private:
         return s << m.intensities_;
     }
 
-    int32_t stepSize_;
-    int32_t peakDistanceWeight_;
+    int stepSize_;
+    int peakDistanceWeight_;
     cv::Mat_<double> intensities_;
     cv::Mat_<uint8_t> resliceData_;
-    int32_t displayWidth_;
-    int32_t displayHeight_;
+    int displayWidth_;
+    int displayHeight_;
     cv::Mat drawTarget_;
-    int32_t binWidth_;
-    int32_t mapWidth_;
-    int32_t chosenMaximaIndex_;
+    int binWidth_;
+    int mapWidth_;
+    int chosenMaximaIndex_;
     bool shouldIncludeMiddle_;
 
-    const int32_t peakRadius_ = 5;
+    const int peakRadius_ = 5;
 };
 }
 }

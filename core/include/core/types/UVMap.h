@@ -4,8 +4,8 @@
 
 // Internally, all mappings are stored relative to the "top-left" of the 2D
 // mapping space. get() & set() transform
-// values to and from this relative range based on the value of _origin. By
-// setting _origin prior to insertion and
+// values to and from this relative range based on the value of origin_. By
+// setting origin_ prior to insertion and
 // again prior to retrieval, mappings can be inserted relative to one origin but
 // retrieved relative to another.
 #pragma once
@@ -25,63 +25,63 @@ namespace volcart
 class UVMap
 {
 public:
-    UVMap() : _origin(VC_ORIGIN_TOP_LEFT) {}
-    UVMap(Origin o) { _origin = o; }
+    UVMap() : origin_{VC_ORIGIN_TOP_LEFT} {}
+    explicit UVMap(Origin o) : origin_{o} {}
 
-    size_t size() const { return _map.size(); }
-    bool empty() const { return _map.empty(); }
+    size_t size() const { return map_.size(); }
+    bool empty() const { return map_.empty(); }
 
     // Get and set origin
-    Origin origin() const { return _origin; }
-    void origin(Origin o) { _origin = o; }
+    Origin origin() const { return origin_; }
+    void origin(const Origin& o) { origin_ = o; }
 
-    // Set the uv mapping for point p_id
-    void set(size_t p_id, cv::Vec2d uv)
+    // Set the uv mapping for point id
+    void set(size_t id, const cv::Vec2d& uv)
     {
         // transform to be relative to top-left
         cv::Vec2d transformed;
-        cv::absdiff(uv, _origin, transformed);
-        _map[p_id] = transformed;
+        cv::absdiff(uv, origin_, transformed);
+        map_[id] = transformed;
     }
 
-    // Get the uv mapping for point p_id
-    cv::Vec2d get(size_t p_id)
+    // Get the uv mapping for point id
+    cv::Vec2d get(size_t id)
     {
-        auto it = _map.find(p_id);
-        if (it != _map.end()) {
+        auto it = map_.find(id);
+        if (it != map_.end()) {
+            // transform to be relative to origin_
             cv::Vec2d transformed;
-            cv::absdiff(
-                it->second, _origin,
-                transformed);  // transform to be relative to _origin
+            cv::absdiff(it->second, origin_, transformed);
             return transformed;
-        } else
+        } else {
             return VC_UVMAP_NULL_MAPPING;
+        }
     }
 
     // Ratio information
-    Ratio ratio() const { return _ratio; }
-    void ratio(double a) { _ratio.aspect = a; }
+    Ratio ratio() const { return ratio_; }
+    void ratio(double a) { ratio_.aspect = a; }
     void ratio(double w, double h)
     {
-        _ratio.width = w;
-        _ratio.height = h;
-        _ratio.aspect = w / h;
+        ratio_.width = w;
+        ratio_.height = h;
+        ratio_.aspect = w / h;
     }
 
     // Plot the UV points on a cv::Mat img
     cv::Mat drawUVMap() const
     {
-        auto w = static_cast<int>(std::ceil(_ratio.width));
+        auto w = static_cast<int>(std::ceil(ratio_.width));
         if (w < VC_UVMAP_MIN_DEBUG_WIDTH) {
             std::cerr
                 << "volcart::UVMap:: Width less than minimum. Scaling image."
                 << std::endl;
             w = VC_UVMAP_MIN_DEBUG_WIDTH;
         }
-        auto h = static_cast<int>(std::ceil(w / _ratio.aspect));
+        auto h = static_cast<int>(std::ceil(w / ratio_.aspect));
         cv::Mat r = cv::Mat::zeros(h, w, CV_8UC1);
 
-        for (auto it : _map) {
+        for (auto it : map_) {
             cv::Point2d p(it.second[0] * w, it.second[1] * h);
             cv::circle(r, p, 2, 255, -1);
         }
@@ -90,8 +90,9 @@ public:
     }
 
 private:
-    std::unordered_map<size_t, cv::Vec2d> _map;  // holds the mapping
-    cv::Vec2d _origin;  // origin inserted and retrieved points are relative to
-    Ratio _ratio;
+    std::unordered_map<size_t, cv::Vec2d> map_;
+    // origin inserted and retrieved points are relative to
+    cv::Vec2d origin_;
+    Ratio ratio_;
 };
-}  // volcart
+}

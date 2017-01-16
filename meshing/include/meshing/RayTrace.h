@@ -4,6 +4,7 @@
  */
 #pragma once
 
+#include <map>
 #include <vector>
 
 #include <opencv2/opencv.hpp>
@@ -36,10 +37,10 @@ namespace meshing
  * @return Vector of intersection points and the normal to that point
  */
 std::vector<cv::Vec6f> RayTrace(
-    ITKMesh::Pointer itkMesh,
+    const ITKMesh::Pointer& itkMesh,
     int aTraceDir,
     int width,
     int height,
-    std::map<int, cv::Vec2d> uvMap);
+    std::map<int, cv::Vec2d>& uvMap);
 }
 }

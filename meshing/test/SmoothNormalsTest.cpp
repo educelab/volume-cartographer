@@ -81,17 +81,17 @@ struct SmoothNormalsFixture {
             volcart::meshing::SmoothNormals(_in_ConeMesh, _SmoothingFactor);
 
         // read in saved obj files created by SmoothNormalsExample.cpp
-        volcart::testing::ParsingHelpers::parseObjFile(
+        volcart::testing::ParsingHelpers::ParseOBJFile(
             "PlaneWithSmoothedNormals.obj", _SavedPlanePoints,
             _SavedPlaneCells);
-        volcart::testing::ParsingHelpers::parseObjFile(
+        volcart::testing::ParsingHelpers::ParseOBJFile(
             "CubeWithSmoothedNormals.obj", _SavedCubePoints, _SavedCubeCells);
-        volcart::testing::ParsingHelpers::parseObjFile(
+        volcart::testing::ParsingHelpers::ParseOBJFile(
             "ArchWithSmoothedNormals.obj", _SavedArchPoints, _SavedArchCells);
-        volcart::testing::ParsingHelpers::parseObjFile(
+        volcart::testing::ParsingHelpers::ParseOBJFile(
             "SphereWithSmoothedNormals.obj", _SavedSpherePoints,
             _SavedSphereCells);
-        volcart::testing::ParsingHelpers::parseObjFile(
+        volcart::testing::ParsingHelpers::ParseOBJFile(
             "ConeWithSmoothedNormals.obj", _SavedConePoints, _SavedConeCells);
 
         std::cerr << "setting up SmoothNormals objects" << std::endl;

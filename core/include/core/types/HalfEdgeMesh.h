@@ -1,4 +1,3 @@
-//
 // Created by Seth Parker on 6/17/16.
 // Mostly copied from the HE structure used by Blender's parameterization
 // A half-edge mesh stores a unique edge for each edge of each face.
@@ -6,8 +5,6 @@
 // edge AB and edge BA
 #pragma once
 
-#include <exception>
-#include <iostream>
 #include <memory>
 
 #include <opencv2/core.hpp>
@@ -24,19 +21,19 @@ public:
     class Angle;
     class Face;
 
-    typedef std::shared_ptr<Vert> VertPtr;
-    typedef std::shared_ptr<Edge> EdgePtr;
-    typedef std::shared_ptr<Angle> AnglePtr;
-    typedef std::shared_ptr<Face> FacePtr;
+    using VertPtr = std::shared_ptr<Vert>;
+    using EdgePtr = std::shared_ptr<Edge>;
+    using AnglePtr = std::shared_ptr<Angle>;
+    using FacePtr = std::shared_ptr<Face>;
 
-    typedef unsigned long IDType;
+    using IDType = uint64_t;
 
     class Vert
     {
     public:
-        Vert() {}
+        Vert() : id{}, pid{}, lambdaPlanar{}, lambdaLength{} {}
 
-        VertPtr nextlink;
+        VertPtr nextLink;
         IDType id;
         ITKMesh::PointIdentifier pid;  // Original point ID in ITK mesh
 
@@ -53,9 +50,9 @@ public:
     class Edge
     {
     public:
-        Edge() {}
+        Edge() : id{} {}
 
-        EdgePtr nextlink;
+        EdgePtr nextLink;
         IDType id;
 
         VertPtr vert;  // Starting index
@@ -67,15 +64,20 @@ public:
 
     // Topology traversal
     // The wheel is the set of edges that surround a single vertex
-    EdgePtr nextWheelEdge(EdgePtr e);
-    EdgePtr prevWheelEdge(EdgePtr e);
-    EdgePtr nextBoundaryEdge(EdgePtr e);
-    EdgePtr prevBoundaryEdge(EdgePtr e);
+    EdgePtr nextWheelEdge(const EdgePtr& e) { return e->next->next->pair; }
+    EdgePtr prevWheelEdge(const EdgePtr& e)
+    {
+        return (e->pair) ? e->pair->next : nullptr;
+    }
+    EdgePtr nextBoundaryEdge(const EdgePtr& e) { return e->next->vert->edge; }
+    EdgePtr prevBoundaryEdge(const EdgePtr& e);
 
     class Angle
     {
     public:
-        Angle() {}
+        Angle() : alpha{}, beta{}, phi{}, weight{}, bAlpha{}, sine{}, cosine{}
+        {
+        }
 
         EdgePtr edge;  // The edge that owns this angle
 
@@ -93,24 +95,31 @@ public:
     class Face
     {
     public:
-        Face() {}
-        FacePtr nextlink;
+        Face()
+            : id{}
+            , cid{}
+            , lambdaTriangle{}
+            , bstar{}
+            , dstar{}
+            , bTriangle{}
+            , connected{}
+        {
+        }
+
+        FacePtr nextLink;
         IDType id;
         ITKMesh::CellIdentifier cid;  // Original cell ID in ITK mesh
-
-        EdgePtr edge;  // First edge of the face
-
+        EdgePtr edge;                 // First edge of the face
         double lambdaTriangle;
         double bstar;
         double dstar;
         double bTriangle;
-
         bool connected;
     };
 
 public:
-    HalfEdgeMesh();
-    ~HalfEdgeMesh();
+    HalfEdgeMesh() {}
+    ~HalfEdgeMesh() { clear(); }
 
     void clear();
 
@@ -118,46 +127,67 @@ public:
     VertPtr addVert(double x, double y, double z);
     FacePtr addFace(IDType v0, IDType v1, IDType v2);
 
-    VertPtr getVert(IDType id) const;
-    EdgePtr getEdge(IDType id) const;
-    FacePtr getFace(IDType id) const;
+    VertPtr getVert(IDType id) const { return verts_[id]; }
+    EdgePtr getEdge(IDType id) const { return edges_[id]; }
+    FacePtr getFace(IDType id) const { return faces_[id]; }
 
-    std::vector<VertPtr>::iterator getVertsBegin();
-    std::vector<VertPtr>::iterator getVertsEnd();
-    std::vector<EdgePtr>::iterator getEdgesBegin();
-    std::vector<EdgePtr>::iterator getEdgesEnd();
-    std::vector<FacePtr>::iterator getFacesBegin();
-    std::vector<FacePtr>::iterator getFacesEnd();
+    std::vector<VertPtr>::iterator getVertsBegin()
+    {
+        return std::begin(verts_);
+    }
+    std::vector<VertPtr>::iterator getVertsEnd() { return std::end(verts_); }
+    std::vector<EdgePtr>::iterator getEdgesBegin()
+    {
+        return std::begin(edges_);
+    }
+    std::vector<EdgePtr>::iterator getEdgesEnd() { return std::end(edges_); }
+    std::vector<FacePtr>::iterator getFacesBegin()
+    {
+        return std::begin(faces_);
+    }
+    std::vector<FacePtr>::iterator getFacesEnd() { return std::end(faces_); }
 
-    std::vector<VertPtr>::iterator getInteriorBegin();
-    std::vector<VertPtr>::iterator getInteriorEnd();
-    std::vector<VertPtr>::iterator getBoundaryBegin();
-    std::vector<VertPtr>::iterator getBoundaryEnd();
+    std::vector<VertPtr>::iterator getInteriorBegin()
+    {
+        return std::begin(interior_);
+    }
+    std::vector<VertPtr>::iterator getInteriorEnd()
+    {
+        return std::end(interior_);
+    }
+    std::vector<VertPtr>::iterator getBoundaryBegin()
+    {
+        return std::begin(boundary_);
+    }
+    std::vector<VertPtr>::iterator getBoundaryEnd()
+    {
+        return std::end(boundary_);
+    }
 
-    size_t getNumberOfVerts() const;
-    size_t getNumberOfEdges() const;
-    size_t getNumberOfFaces() const;
-    size_t getNumberOfInteriorPoints() const;
-    size_t getNumberOfBoundaryPoints() const;
+    size_t getNumberOfVerts() const { return verts_.size(); }
+    size_t getNumberOfEdges() const { return edges_.size(); }
+    size_t getNumberOfFaces() const { return faces_.size(); }
+    size_t getNumberOfInteriorPoints() const { return interior_.size(); }
+    size_t getNumberOfBoundaryPoints() const { return boundary_.size(); }
 
     ///// Special Construction Tasks /////
     void constructConnectedness();
 
 private:
-    std::vector<VertPtr> _verts;
-    std::vector<EdgePtr> _edges;
-    std::vector<FacePtr> _faces;
+    std::vector<VertPtr> verts_;
+    std::vector<EdgePtr> edges_;
+    std::vector<FacePtr> faces_;
 
-    std::vector<VertPtr> _interior;
-    std::vector<VertPtr> _boundary;
+    std::vector<VertPtr> interior_;
+    std::vector<VertPtr> boundary_;
 
     ///// Special Construction Tasks /////
-    void _connectAllPairs();
-    HalfEdgeMesh::EdgePtr _findEdgePair(
-        HalfEdgeMesh::IDType A, HalfEdgeMesh::IDType B);
-    void _computeBoundary();
+    void connect_all_pairs_();
+    HalfEdgeMesh::EdgePtr find_edge_pair_(
+        HalfEdgeMesh::IDType a, HalfEdgeMesh::IDType b);
+    void compute_boundary_();
 
     ///// Math functions /////
-    double _angle(cv::Vec3d A, cv::Vec3d B, cv::Vec3d C);
+    double angle_(const cv::Vec3d& a, const cv::Vec3d& b, const cv::Vec3d& c);
 };
 }

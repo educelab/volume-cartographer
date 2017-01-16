@@ -10,7 +10,7 @@ namespace volcart
 {
 namespace segmentation
 {
-template <typename Scalar = double, uint32_t Degree = 3>
+template <typename Scalar = double, int Degree = 3>
 class Spline
 {
 public:
@@ -19,11 +19,10 @@ public:
 
     Spline() = default;
 
-    Spline(const ScalarVector& xs, const ScalarVector& ys)
+    Spline(const ScalarVector& xs, const ScalarVector& ys) : npoints_{xs.size()}
     {
         assert(xs.size() == ys.size() && "xs and ys must be same length");
-        npoints_ = xs.size();
-        auto points = makeWideMatrix(xs, ys);
+        auto points = make_wide_matrix_(xs, ys);
         spline_ = Eigen::SplineFitting<SplineType>::Interpolate(points, Degree);
     }
 
@@ -39,7 +38,7 @@ private:
     size_t npoints_;
     SplineType spline_;
 
-    Eigen::MatrixXd makeWideMatrix(
+    Eigen::MatrixXd make_wide_matrix_(
         const ScalarVector& xs, const ScalarVector& ys)
     {
         Eigen::MatrixXd mat{2, xs.size()};

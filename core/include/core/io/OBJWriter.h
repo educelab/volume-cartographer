@@ -7,12 +7,10 @@
 #include <iostream>
 
 #include <boost/filesystem.hpp>
-#include <boost/lexical_cast.hpp>
 #include <opencv2/core.hpp>
 
 #include "core/types/Rendering.h"
 #include "core/types/UVMap.h"
-#include "core/vc_defines.h"
 
 namespace volcart
 {
@@ -23,49 +21,61 @@ class OBJWriter
 {
 
 public:
-    OBJWriter();
-    OBJWriter(boost::filesystem::path outputPath, ITKMesh::Pointer mesh);
+    OBJWriter() {}
+    OBJWriter(boost::filesystem::path outputPath, ITKMesh::Pointer mesh)
+        : outputPath_{std::move(outputPath)}, mesh_{mesh}
+    {
+    }
     OBJWriter(
         boost::filesystem::path outputPath,
         ITKMesh::Pointer mesh,
         volcart::UVMap uvMap,
-        cv::Mat uvImg);
+        cv::Mat uvImg)
+        : outputPath_{std::move(outputPath)}
+        , mesh_{mesh}
+        , textCoords_{std::move(uvMap)}
+        , texture_{std::move(uvImg)}
+    {
+    }
 
-    void setPath(boost::filesystem::path path) { _outputPath = path; }
+    void setPath(boost::filesystem::path path)
+    {
+        outputPath_ = std::move(path);
+    }
 
-    void setRendering(volcart::Rendering rendering);
+    void setRendering(const volcart::Rendering& rendering);
 
     // Set pieces individually
-    void setMesh(ITKMesh::Pointer mesh) { _mesh = mesh; }
-    void setUVMap(volcart::UVMap uvMap) { _textCoords = uvMap; }
-    void setTexture(cv::Mat uvImg) { _texture = uvImg; }
+    void setMesh(const ITKMesh::Pointer& mesh) { mesh_ = mesh; }
+    void setUVMap(volcart::UVMap uvMap) { textCoords_ = std::move(uvMap); }
+    void setTexture(const cv::Mat& uvImg) { texture_ = uvImg; }
 
     bool validate();  // make sure all required output parameters have been set
 
-    boost::filesystem::path getPath() const { return _outputPath; }
+    boost::filesystem::path getPath() const { return outputPath_; }
     int write();
     int writeOBJ();
     int writeMTL();
     int writeTexture();
 
 private:
-    boost::filesystem::path _outputPath;  // The desired filepath. This should
+    boost::filesystem::path outputPath_;  // The desired filepath. This should
                                           // include the .obj extension.
-    std::ofstream _outputMesh;
-    std::ofstream _outputMTL;
+    std::ofstream outputMesh_;
+    std::ofstream outputMTL_;
 
-    std::map<double, cv::Vec3d> _point_links;  // Keeps track of what we know
-                                               // about each point in the mesh:
-                                               // [ pointID, (v, vt, vn) ]
+    std::map<double, cv::Vec3d> pointLinks_;  // Keeps track of what we know
+                                              // about each point in the mesh:
+                                              // [ pointID, (v, vt, vn) ]
 
-    ITKMesh::Pointer _mesh;
-    volcart::UVMap _textCoords;  // UV map for points accessed by point index
-    cv::Mat _texture;            // output texture image
+    ITKMesh::Pointer mesh_;
+    volcart::UVMap textCoords_;  // UV map for points accessed by point index
+    cv::Mat texture_;            // output texture image
 
-    int _writeHeader();
-    int _writeVertices();
-    int _writeTextureCoordinates();
-    int _writeFaces();
+    int write_header_();
+    int write_vertices_();
+    int write_texture_coordinates_();
+    int write_faces_();
 };
-}  // namespace io
-}  // namespace volcart
+}
+}

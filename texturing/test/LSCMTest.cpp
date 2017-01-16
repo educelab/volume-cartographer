@@ -66,7 +66,7 @@ struct CreatePlaneLSCMUVFixture {
         _out_Mesh = lscm.getMesh();
 
         // Load pre-generated output from file
-        volcart::testing::ParsingHelpers::parseObjFile(
+        volcart::testing::ParsingHelpers::ParseOBJFile(
             "lscm_Plane.obj", _SavedPoints, _SavedCells);
     }
 
@@ -100,7 +100,7 @@ struct CreateArchLSCMUVFixture {
         _out_Mesh = lscm.getMesh();
 
         // Load pre-generated output from file
-        volcart::testing::ParsingHelpers::parseObjFile(
+        volcart::testing::ParsingHelpers::ParseOBJFile(
             "lscm_Arch.obj", _SavedPoints, _SavedCells);
     }
 

@@ -36,14 +36,17 @@ class OrderedResampling
 public:
     /** @name Constructors */
     //@{
-    OrderedResampling();
+    OrderedResampling() : inWidth_{0}, inHeight_{0} {}
 
     /**
      * @param mesh Mesh to be resampled
-     * @param in_width Width of the ordering matrix
-     * @param in_height Height of the ordering matrix
+     * @param inWidth of the ordering matrix
+     * @param inHeight Height of the ordering matrix
      */
-    OrderedResampling(ITKMesh::Pointer mesh, int in_width, int in_height);
+    OrderedResampling(ITKMesh::Pointer mesh, int inWidth, int inHeight)
+        : input_{mesh}, inWidth_{inWidth}, inHeight_{inHeight}
+    {
+    }
     //@}
 
     /** @name Input/Output */
@@ -55,10 +58,10 @@ public:
      * Height defines the number of rows in the ordering matrix.
      *
      * @param mesh Mesh to be resampled
-     * @param in_width Width of the ordering matrix
-     * @param in_height Height of the ordering matrix
+     * @param inWidth Width of the ordering matrix
+     * @param inHeight Height of the ordering matrix
      */
-    void setMesh(ITKMesh::Pointer mesh, int in_width, int in_height);
+    void setMesh(const ITKMesh::Pointer& mesh, int inWidth, int inHeight);
 
     /**
      * @brief Get the resampled mesh.
@@ -68,12 +71,12 @@ public:
     /**
      * @brief Get the width of the resampled mesh.
      */
-    int getOutputWidth() const;
+    int getOutputWidth() const { return outWidth_; }
 
     /**
      * @brief Get the height of the resampled mesh.
      */
-    int getOutputHeight() const;
+    int getOutputHeight() const { return outHeight_; }
     //@}
 
     /** @name Processing */
@@ -84,17 +87,17 @@ public:
     //@}
 
 private:
-    ITKMesh::Pointer _input;
-    ITKMesh::Pointer _output;
+    ITKMesh::Pointer input_;
+    ITKMesh::Pointer output_;
 
     /** The number of columns in the input ordering matrix */
-    int _inWidth;  // how many rows
+    int inWidth_;  // how many rows
     /** The number of rows in the input ordering matrix */
-    int _inHeight;  // how many points per row
+    int inHeight_;  // how many points per row
     /** The number of columns in the output ordering matrix */
-    int _outWidth;
+    int outWidth_;
     /** The number of rows in the output ordering matrix */
-    int _outHeight;
+    int outHeight_;
 
     /**
      * @brief Add a face to the output mesh.
@@ -103,7 +106,7 @@ private:
      * @param b ID for the second vertex in the face
      * @param c ID for the third vertex in the face
      */
-    void _addCell(uint32_t a, uint32_t b, uint32_t c);
-};  // OrderedResampling
-}  // meshing
-}  // volcart
+    void add_cell_(uint32_t a, uint32_t b, uint32_t c);
+};
+}
+}

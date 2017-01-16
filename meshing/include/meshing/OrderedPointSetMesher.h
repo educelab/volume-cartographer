@@ -43,7 +43,10 @@ public:
     /**
      * @param points OrderedPointSet to be meshed
      */
-    OrderedPointSetMesher(OrderedPointSet<cv::Vec3d> points) : input_(points) {}
+    explicit OrderedPointSetMesher(OrderedPointSet<cv::Vec3d> points)
+        : input_{std::move(points)}
+    {
+    }
     //@}
 
     /** @name Input/Output */
@@ -52,7 +55,10 @@ public:
      * Set the input OrderedPointSet.
      * @param points OrderedPointSet to be meshed
      */
-    void setPointSet(OrderedPointSet<cv::Vec3d> points) { input_ = points; }
+    void setPointSet(const OrderedPointSet<cv::Vec3d>& points)
+    {
+        input_ = points;
+    }
 
     /**
      * @brief Get the generated mesh.
@@ -79,8 +85,7 @@ private:
      * @param b ID for the second vertex in the face
      * @param c ID for the third vertex in the face
      */
-    void addCell_(size_t a, size_t b, size_t c);
+    void add_cell_(size_t a, size_t b, size_t c);
 };
-
-}  // meshing
-}  // volcart
+}
+}

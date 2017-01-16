@@ -1,13 +1,11 @@
 // VC PLY Exporter v1.0
 // Created by Media Team on 10/30/15.
-//
+
 #pragma once
 
 #include <fstream>
-#include <iostream>
 
 #include <boost/filesystem.hpp>
-#include <boost/lexical_cast.hpp>
 
 #include "core/types/Texture.h"
 #include "core/vc_defines.h"
@@ -16,37 +14,47 @@ namespace volcart
 {
 namespace io
 {
+
 class PLYWriter
 {
 public:
     PLYWriter() {}
-    PLYWriter(boost::filesystem::path outputPath, ITKMesh::Pointer mesh);
+    PLYWriter(boost::filesystem::path outputPath, ITKMesh::Pointer mesh)
+        : outputPath_{std::move(outputPath)}, mesh_{mesh}
+    {
+    }
     PLYWriter(
         boost::filesystem::path outputPath,
         ITKMesh::Pointer mesh,
-        volcart::Texture texture);
+        volcart::Texture texture)
+        : outputPath_{std::move(outputPath)}
+        , mesh_{mesh}
+        , texture_{std::move(texture)}
+    {
+    }
 
-    void setPath(boost::filesystem::path path) { _outputPath = path; }
-    void setMesh(ITKMesh::Pointer mesh) { _mesh = mesh; }
-    void setTexture(volcart::Texture texture) { _texture = texture; }
+    void setPath(boost::filesystem::path path)
+    {
+        outputPath_ = std::move(path);
+    }
+    void setMesh(const ITKMesh::Pointer& mesh) { mesh_ = mesh; }
+    void setTexture(volcart::Texture texture) { texture_ = std::move(texture); }
 
-    boost::filesystem::path getPath() const { return _outputPath; }
+    boost::filesystem::path getPath() const { return outputPath_; }
 
-    bool validate();  // make sure all required output parameters have been set
+    // make sure all required output parameters have been set
+    bool validate();
 
     int write();
 
 private:
-    boost::filesystem::path _outputPath;  // The desired filepath. This should
-                                          // include the .obj extension.
-    std::ofstream _outputMesh;
-
-    ITKMesh::Pointer _mesh;
-    volcart::Texture _texture;
-
-    int _writeHeader();
-    int _writeVertices();
-    int _writeFaces();
+    boost::filesystem::path outputPath_;
+    std::ofstream outputMesh_;
+    ITKMesh::Pointer mesh_;
+    volcart::Texture texture_;
+    int write_header_();
+    int write_vertices_();
+    int write_faces_();
 };
 }
 }

@@ -4,12 +4,7 @@
  */
 #pragma once
 
-#include <fstream>
-#include <iostream>
-#include <vector>
-
 #include "core/vc_defines.h"
-#include "meshing/DeepCopy.h"
 
 namespace volcart
 {
@@ -29,6 +24,6 @@ namespace meshing
  *
  * @param radius Size of the spherical neighborhood
  */
-ITKMesh::Pointer SmoothNormals(ITKMesh::Pointer input, double radius);
+ITKMesh::Pointer SmoothNormals(const ITKMesh::Pointer& input, double radius);
 }
 }

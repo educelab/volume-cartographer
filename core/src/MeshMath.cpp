@@ -11,13 +11,13 @@ namespace meshmath
 // Calculate the surface area of the mesh using Heron's formula
 // Use the version that is stable for small angles from
 // "Miscalculating Area and Angles of a Needle-like Triangle" by Kahan
-double SurfaceArea(const ITKMesh::Pointer input)
+double SurfaceArea(const ITKMesh::Pointer& input)
 {
-    double surface_area = 0;
+    double surfaceArea = 0;
 
-    unsigned long vID0 = 0, vID1 = 0, vID2 = 0;
+    uint64_t vID0 = 0, vID1 = 0, vID2 = 0;
     double a = 0, b = 0, c = 0, p = 0;
-    for (ITKCellIterator cell = input->GetCells()->Begin();
+    for (auto cell = input->GetCells()->Begin();
          cell != input->GetCells()->End(); ++cell) {
         vID0 = cell.Value()->GetPointIds()[0];
         vID1 = cell.Value()->GetPointIds()[1];
@@ -48,10 +48,10 @@ double SurfaceArea(const ITKMesh::Pointer input)
                 << cell.Index() << "]. Evaluating as 0." << std::endl;
             sa = 0.0;
         }
-        surface_area += sa;
+        surfaceArea += sa;
     }
 
-    return surface_area;
+    return surfaceArea;
 }
 }
 }

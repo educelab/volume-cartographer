@@ -5,7 +5,7 @@
 //
 #pragma once
 
-#include <cmath>
+#include <string>
 #include <unordered_map>
 
 #include "core/shapes/ShapePrimitive.h"
@@ -15,17 +15,17 @@ namespace volcart
 {
 namespace shapes
 {
+
 class Sphere : public ShapePrimitive
 {
 public:
-    Sphere(float radius = 5, int recursionLevel = 2);
+    explicit Sphere(float radius = 5, int recursionLevel = 2);
 
 private:
-    int _midpoint(int p1, int p2);
+    int midpoint_(int p1, int p2);
 
-    std::unordered_map<std::string, int> _indexCache;
+    std::unordered_map<std::string, int> indexCache_;
 
 };  // Sphere
-
-}  // shapes
-}  // volcart
+}
+}

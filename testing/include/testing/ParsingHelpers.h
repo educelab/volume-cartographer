@@ -22,17 +22,17 @@ class ParsingHelpers
 {
 
 public:
-    static void parsePlyFile(
+    static void ParsePLYFile(
         const boost::filesystem::path& filepath,
         std::vector<Vertex>& verts,
         std::vector<Cell>& faces);
-    static void parseObjFile(
+    static void ParseOBJFile(
         const boost::filesystem::path& filepath,
         std::vector<Vertex>& points,
         std::vector<Cell>& cells);
 
 private:
-    static std::vector<std::string> split_string(std::string input);
+    static std::vector<std::string> SplitString(std::string input);
 };
 }
 }

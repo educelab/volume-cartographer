@@ -62,7 +62,7 @@ struct WriteMeshUsingOBJWriterFixture {
         _in_PlaneITKMesh = _Plane.itkMesh();
 
         // load in written data
-        volcart::testing::ParsingHelpers::parseObjFile(
+        volcart::testing::ParsingHelpers::ParseOBJFile(
             "OBJWriterPlaneData.obj", _SavedPlanePoints, _SavedPlaneCells);
 
         std::cerr << "Creating a Plane itk mesh object for writing"

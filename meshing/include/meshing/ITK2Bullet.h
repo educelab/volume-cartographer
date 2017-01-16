@@ -35,7 +35,7 @@ public:
 };
 
 /**
- * @class bullet2itk
+ * @class Bullet2ITK
  * @author Abigail Coleman
  * @date 10/21/15
  *
@@ -45,13 +45,12 @@ public:
  *
  * @ingroup Meshing
  */
-class bullet2itk
+class Bullet2ITK
 {
 public:
-    bullet2itk(btSoftBody* input, ITKMesh::Pointer output);
+    Bullet2ITK(btSoftBody* input, ITKMesh::Pointer output);
 };
-
-}  // namespace meshing
-}  // namespace volcart
+}
+}
 
 #endif  // VC_USE_BULLET

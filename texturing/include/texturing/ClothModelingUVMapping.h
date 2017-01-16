@@ -22,8 +22,8 @@
 
 #ifdef VC_USE_BULLET
 
+#include <cmath>
 #include <iostream>
-#include <math.h>
 
 #include <BulletSoftBody/btSoftBody.h>
 #include <BulletSoftBody/btSoftBodyRigidBodyCollisionConfiguration.h>
@@ -46,11 +46,11 @@ static void emptyPreTickCallback(btDynamicsWorld* world, btScalar timeStep);
 class ClothModelingUVMapping
 {
 public:
-    typedef std::vector<unsigned long> PinIDs;
+    using PinIDs = std::vector<uint64_t>;
     enum Stage { Unfurl, Collision, Expansion };
 
     struct Pin {
-        unsigned long index;
+        uint64_t index;
         btSoftBody::Node* node;
         btVector3 target;
     };
@@ -85,40 +85,40 @@ public:
 
 private:
     // Softbody
-    const ITKMesh::Pointer _mesh;
-    btSoftBody* _softBody;
-    double _meshToWorldScale;
-    std::vector<Pin> _currentPins;
+    const ITKMesh::Pointer mesh_;
+    btSoftBody* softBody_;
+    double meshToWorldScale_;
+    std::vector<Pin> currentPins_;
 
     // Collision Plane
-    btRigidBody* _collisionPlane;
+    btRigidBody* collisionPlane_;
 
     // Simulation
-    uint16_t _unfurlIterations;
-    double _unfurlA;
-    PinIDs _unfurlPins;
-    void _unfurl();
+    uint16_t unfurlIterations_;
+    double unfurlA_;
+    PinIDs unfurlPins_;
+    void unfurl_();
 
-    uint16_t _collideIterations;
-    double _collisionA;
-    void _collide();
+    uint16_t collideIterations_;
+    double collisionA_;
+    void collide_();
 
-    uint16_t _expandIterations;
-    double _expansionA;
-    PinIDs _expansionPins;
-    void _expand();
+    uint16_t expandIterations_;
+    double expansionA_;
+    PinIDs expansionPins_;
+    void expand_();
 
     // Helpers
-    double _startingSurfaceArea;
-    double _SurfaceArea();
+    double startingSurfaceArea_;
+    double surface_area_();
 
     // Simulation World
-    btBroadphaseInterface* _WorldBroadphase;
-    btDefaultCollisionConfiguration* _WorldCollisionConfig;
-    btCollisionDispatcher* _WorldCollisionDispatcher;
-    btSequentialImpulseConstraintSolver* _WorldConstraintSolver;
-    btSoftBodySolver* _WorldSoftBodySolver;
-    btSoftRigidDynamicsWorld* _World;
+    btBroadphaseInterface* worldBroadphase_;
+    btDefaultCollisionConfiguration* worldCollisionConfig_;
+    btCollisionDispatcher* worldCollisionDispatcher_;
+    btSequentialImpulseConstraintSolver* worldConstraintSolver_;
+    btSoftBodySolver* worldSoftBodySolver_;
+    btSoftRigidDynamicsWorld* world_;
 };
 }
 }

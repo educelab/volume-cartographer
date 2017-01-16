@@ -12,14 +12,15 @@ namespace meshing
 {
 
 void ScaleMesh(
-    ITKMesh::Pointer input, ITKMesh::Pointer output, double scale_factor)
+    const ITKMesh::Pointer& input,
+    const ITKMesh::Pointer& output,
+    double scaleFactor)
 {
-
     // Scale uniformly
-    typedef itk::ScaleTransform<double, 3> VC_3DScaleType;
-    VC_3DScaleType::Pointer scaleTransform = VC_3DScaleType::New();
+    using VC3DScaleType = itk::ScaleTransform<double, 3>;
+    auto scaleTransform = VC3DScaleType::New();
     itk::FixedArray<double, 3> scale;
-    scale[0] = scale_factor;
+    scale[0] = scaleFactor;
     scale[1] = scale[0];  // uniform scaling
     scale[2] = scale[0];
     scaleTransform->SetScale(scale);
@@ -29,16 +30,15 @@ void ScaleMesh(
 
     // Apply the scale
     std::cerr << "volcart::meshing::Scaling the mesh..." << std::endl;
-    typedef itk::TransformMeshFilter<ITKMesh, ITKMesh, VC_3DScaleType>
-        VC_ScaleMeshFilter;
-    VC_ScaleMeshFilter::Pointer scaleFilter = VC_ScaleMeshFilter::New();
+    using VCScaleMeshFilter =
+        itk::TransformMeshFilter<ITKMesh, ITKMesh, VC3DScaleType>;
+    auto scaleFilter = VCScaleMeshFilter::New();
     scaleFilter->SetTransform(scaleTransform);
-
     scaleFilter->SetInput(input);
-    scaleFilter->SetOutput(output);  // This method is deprecated. Need to find
-                                     // a better solution. - SP, 10/2015
+
+    // This method is deprecated. Need to find a better solution. - SP, 10/2015
+    scaleFilter->SetOutput(output);
     scaleFilter->Update();
 };
-
-}  // meshing
-}  // volcart
+}
+}

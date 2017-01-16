@@ -5,10 +5,7 @@
 #pragma once
 
 #include <vtkPolyData.h>
-#include <vtkPolyDataNormals.h>
-#include "vtkIsotropicDiscreteRemeshing.h"
 
-#include "ITK2VTK.h"
 #include "core/vc_defines.h"
 
 namespace volcart
@@ -24,7 +21,7 @@ namespace meshing
  * This is a wrapper around the ACVD implementation found in the ACVD.cxx
  * example of <a href="https://github.com/valette/ACVD">ACVD</a>. This
  * implements the iterative process discussed in:
- *      Valette, Sébastien, and Jean‐Marc Chassery. "Approximated centroidal
+ *      Valette, Sebastien, and Jean-Marc Chassery. "Approximated centroidal
  *      voronoi diagrams for uniform polygonal mesh coarsening." Computer
  *      Graphics Forum. Vol. 23. No. 3. Blackwell Publishing, Inc, 2004.
  *

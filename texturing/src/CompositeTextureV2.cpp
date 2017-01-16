@@ -11,49 +11,49 @@ namespace texturing
 {
 
 // Constructor
-compositeTextureV2::compositeTextureV2(
-    ITKMesh::Pointer m,
-    VolumePkg& v,
-    UVMap uv,
-    double r,
-    size_t w,
-    size_t h,
-    CompositeOption o,
-    DirectionOption d)
-    : _input{m}
-    , _volpkg{v}
-    , _width{w}
-    , _height{h}
-    , _radius{r}
-    , _method{o}
-    , _direction{d}
-    , _uvMap{uv}
+CompositeTextureV2::CompositeTextureV2(
+    ITKMesh::Pointer inputMesh,
+    VolumePkg& volpkg,
+    UVMap uvMap,
+    double radius,
+    size_t width,
+    size_t height,
+    CompositeOption method,
+    DirectionOption direction)
+    : input_{inputMesh}
+    , volpkg_{volpkg}
+    , width_{width}
+    , height_{height}
+    , radius_{radius}
+    , method_{method}
+    , direction_{direction}
+    , uvMap_{std::move(uvMap)}
 {
-    _process();
+    process_();
 }
 
 // Do the hard work
-int compositeTextureV2::_process()
+int CompositeTextureV2::process_()
 {
     // Auto-generate minor radius for elliptical search
-    double searchMinorRadius = _radius / 3;
+    double searchMinorRadius = radius_ / 3;
     if (searchMinorRadius < 1) {
         searchMinorRadius = 1;
     }
 
     // Generate PPM
-    PPMGenerator gen(_height, _width);
-    gen.setMesh(_input);
-    gen.setUVMap(_uvMap);
+    PPMGenerator gen(height_, width_);
+    gen.setMesh(input_);
+    gen.setUVMap(uvMap_);
     gen.compute();
     auto ppm = gen.getPPM();
 
     // Iterate over every pixel in the output image
-    cv::Mat image = cv::Mat::zeros(_height, _width, CV_16UC1);
-    for (size_t y = 0; y < _height; ++y) {
-        for (size_t x = 0; x < _width; ++x) {
+    cv::Mat image = cv::Mat::zeros(height_, width_, CV_16UC1);
+    for (size_t y = 0; y < height_; ++y) {
+        for (size_t x = 0; x < width_; ++x) {
             auto progress =
-                (x + 1.0 + (_width * y)) * 100.0 / (_width * _height);
+                (x + 1.0 + (width_ * y)) * 100.0 / (width_ * height_);
             std::cerr << "volcart::texturing::compositeTexturing: Generating "
                          "texture: "
                       << std::to_string(progress) << "%\r" << std::flush;
@@ -67,12 +67,12 @@ int compositeTextureV2::_process()
             auto pixelInfo = ppm(y, x);
 
             cv::Vec3d xyz{pixelInfo[0], pixelInfo[1], pixelInfo[2]};
-            cv::Vec3d xyz_norm{pixelInfo[3], pixelInfo[4], pixelInfo[5]};
+            cv::Vec3d xyzNorm{pixelInfo[3], pixelInfo[4], pixelInfo[5]};
 
             // Generate the intensity value
-            auto value = textureWithMethod(
-                xyz, xyz_norm, _volpkg, _method, _radius, searchMinorRadius,
-                0.5, _direction);
+            auto value = TextureWithMethod(
+                xyz, xyzNorm, volpkg_, method_, radius_, searchMinorRadius, 0.5,
+                direction_);
 
             // Assign the intensity value at the UV position
             image.at<uint16_t>(y, x) = static_cast<uint16_t>(value);
@@ -81,8 +81,8 @@ int compositeTextureV2::_process()
     std::cerr << std::endl;
 
     // Set output
-    _texture.addImage(image);
-    _texture.setPPM(ppm);
+    texture_.addImage(image);
+    texture_.setPPM(ppm);
 
     return EXIT_SUCCESS;
 };

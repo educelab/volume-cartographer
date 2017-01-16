@@ -16,7 +16,7 @@
   for each unique version of VolumePkg.
 
   @newline
-  volcart::VersionLibrary holds the metadata keys and expected value-types for
+  volcart::VERSION_LIBRARY holds the metadata keys and expected value-types for
   every version of VolumePkg. When creating a new VolumePkg, these dictionaries
   are used to define the default keys that populate the JSON file. In the
   future, applications that use VolumePkg will be able to query the Library in
@@ -54,7 +54,7 @@ using Library = std::unordered_map<int, Dictionary>;
 
 // clang-format off
 /** Metadata dictionary for VolumePkg v1. */
-const Dictionary _1 =
+const Dictionary V1 =
         {
         {"volumepkg name",   Type::STRING},
         {"version",          Type::INT},
@@ -68,7 +68,7 @@ const Dictionary _1 =
         };
 
 /** Metadata dictionary for VolumePkg v2. */
-const Dictionary _2 =
+const Dictionary V2 =
         {
         {"volumepkg name",   Type::STRING},
         {"version",          Type::INT},
@@ -83,7 +83,7 @@ const Dictionary _2 =
         };
 
 /** Metadata dictionary for VolumePkg v3. */
-const Dictionary _3 =
+const Dictionary V3 =
         {
         {"volumepkg name",   Type::STRING},
         {"version",          Type::INT},
@@ -101,5 +101,5 @@ const Dictionary _3 =
 /**
  * Global Library used to store all template Dictionaries.
  */
-const Library VersionLibrary = {{1, _1}, {2, _2}, {3, _3}};
-}  // namespace volcart
+const Library VERSION_LIBRARY = {{1, V1}, {2, V2}, {3, V3}};
+}

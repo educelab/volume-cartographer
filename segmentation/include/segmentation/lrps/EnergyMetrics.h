@@ -31,11 +31,10 @@ public:
     // Determine arc length across a window of size 'windowSize' centered at
     // 'index'
     static double LocalWindowedArcLength(
-        const FittedCurve& curve, int32_t index, int32_t windowSize);
+        const FittedCurve& curve, int index, int windowSize);
 
     // Apply LocalWindowedArcLength across the entire curve
-    static double WindowedArcLength(
-        const FittedCurve& curve, int32_t windowSize);
+    static double WindowedArcLength(const FittedCurve& curve, int windowSize);
 };
 }
 }

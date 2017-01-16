@@ -9,6 +9,6 @@ namespace volcart
 {
 namespace meshmath
 {
-double SurfaceArea(const ITKMesh::Pointer input);
+double SurfaceArea(const ITKMesh::Pointer& input);
 }
 }

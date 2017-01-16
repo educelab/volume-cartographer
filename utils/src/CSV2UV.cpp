@@ -1,9 +1,9 @@
 // surfarea.cpp
 // Seth Parker, Aug 2015
 
+#include <cmath>
 #include <fstream>
 #include <iostream>
-#include <math.h>
 
 #include <opencv2/core.hpp>
 #include <vtkMassProperties.h>
@@ -18,7 +18,7 @@
 
 using namespace volcart;
 
-int main(int argc, char* argv[])
+int main(int argc, char** argv)
 {
     if (argc < 2) {
         std::cout << "Usage: vc_csv2uv [mesh.ply] [uvmap.csv]" << std::endl;
@@ -26,72 +26,74 @@ int main(int argc, char* argv[])
     }
 
     // Get Mesh
-    vtkSmartPointer<vtkPLYReader> reader = vtkSmartPointer<vtkPLYReader>::New();
+    auto reader = vtkSmartPointer<vtkPLYReader>::New();
     reader->SetFileName(argv[1]);
     reader->Update();
     ITKMesh::Pointer uvMap = ITKMesh::New();
-    volcart::meshing::vtk2itk(reader->GetOutput(), uvMap);
+    volcart::meshing::VTK2ITK(reader->GetOutput(), uvMap);
 
     // Get the surface area for scaling
-    vtkSmartPointer<vtkMassProperties> massProperties =
-        vtkMassProperties::New();
+    auto massProperties = vtkMassProperties::New();
     massProperties->AddInputData(reader->GetOutput());
     massProperties->Update();
-    double original_sa = massProperties->GetSurfaceArea();
+    double originalSA = massProperties->GetSurfaceArea();
 
     std::ifstream file(argv[2]);
     std::string line;
 
     ITKPixel vertex;
-    unsigned long v_id = 0;
+    uint64_t vId = 0;
 
     while (!file.eof()) {
         // Iterate over the three vertices in each face
-        for (int v_counter = 0; v_counter < 3; ++v_counter) {
+        for (int vCounter = 0; vCounter < 3; ++vCounter) {
 
             ///// Get the v_id from the csv
-            getline(file, line, ',');
-            if (line.empty())
+            std::getline(file, line, ',');
+            if (line.empty()) {
                 continue;  // Guard against empty lines
-            v_id = std::stoul(line);
+            }
+            vId = std::stoul(line);
 
             ///// Read UVW from the file /////
             // U -> X
-            getline(file, line, ',');
+            std::getline(file, line, ',');
             vertex[0] =
                 std::abs(1 - std::stod(line));  // Blender UVs are rotated 180
 
             // V -> Z
             // If this is the last vertex for this cell, look for new line
             // character instead
-            if (v_counter == 2)
-                getline(file, line);
-            else
-                getline(file, line, ',');
-            vertex[2] =
-                std::abs(std::stod(line));  // Blender UVs are rotated 180
+            if (vCounter == 2) {
+                std::getline(file, line);
+            } else {
+                std::getline(file, line, ',');
+            }
+
+            // Blender UVs are rotated 180
+            vertex[2] = std::abs(std::stod(line));
 
             // W -> Y
             vertex[1] = 0.0;
 
             // Adjust the vertex in the mesh with it's new UVW position
-            uvMap->SetPoint(v_id, vertex);
+            uvMap->SetPoint(vId, vertex);
         }
     }
     file.close();
 
     // Get the current surface area
-    vtkSmartPointer<vtkPolyData> uv_VTK = vtkPolyData::New();
-    volcart::meshing::ITK2VTK(uvMap, uv_VTK);
+    auto uvVTK = vtkPolyData::New();
+    volcart::meshing::ITK2VTK(uvMap, uvVTK);
     massProperties = vtkMassProperties::New();
-    massProperties->AddInputData(uv_VTK);
+    massProperties->AddInputData(uvVTK);
     massProperties->Update();
-    double current_sa = massProperties->GetSurfaceArea();
+    double currentSA = massProperties->GetSurfaceArea();
 
     // Scale up the mesh
     // Note: This only works if the parameterization didn't introduce much area
     // distortion
-    double scale = std::sqrt(original_sa / current_sa);
+    double scale = std::sqrt(originalSA / currentSA);
     ITKMesh::Pointer output = ITKMesh::New();
     volcart::meshing::ScaleMesh(uvMap, output, scale);
 
@@ -100,4 +102,4 @@ int main(int argc, char* argv[])
     writer.write();
 
     return 0;
-}  // end main
+}

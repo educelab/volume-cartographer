@@ -2,7 +2,7 @@
 // Created by Ryan Taber on 3/3/16.
 //
 
-#define BOOST_TEST_MODULE simpleUV
+#define BOOST_TEST_MODULE SimpleUV
 
 #include <boost/test/unit_test.hpp>
 
@@ -16,7 +16,7 @@ using namespace volcart;
 
 /***************************************************************************************
  *                                                                                     *
- *  simpleUVTest.cpp - tests the functionality of /v-c/texturing/simpleUV.cpp *
+ *  SimpleUVTest.cpp - tests the functionality of /v-c/texturing/SimpleUV.cpp *
  *  The ultimate goal of this file is the following: *
  *                                                                                     *
  *    Confirm that a uvMap created from mesh encodes the pointIDs of the *
@@ -65,7 +65,7 @@ struct CreatePlaneSimpleUVFixture {
 
         // create uvMap from mesh, width and height
         _out_PlaneUVMap =
-            volcart::texturing::simpleUV(_in_PlaneITKMesh, _width, _height);
+            volcart::texturing::SimpleUV(_in_PlaneITKMesh, _width, _height);
     }
 
     ~CreatePlaneSimpleUVFixture()
@@ -79,7 +79,7 @@ struct CreatePlaneSimpleUVFixture {
     volcart::OrderedPointSet<cv::Vec3d> _in_PlanePointCloud;
     int _width, _height;
 
-    // declare uvMap to hold output from simpleUV call
+    // declare uvMap to hold output from SimpleUV call
     volcart::UVMap _out_PlaneUVMap;
 };
 
@@ -100,7 +100,7 @@ struct CreateArchSimpleUVFixture {
 
         // create uvMap from mesh, width and height
         _out_ArchUVMap =
-            volcart::texturing::simpleUV(_in_ArchITKMesh, _width, _height);
+            volcart::texturing::SimpleUV(_in_ArchITKMesh, _width, _height);
     }
 
     ~CreateArchSimpleUVFixture()

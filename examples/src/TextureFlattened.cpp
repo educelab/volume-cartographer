@@ -27,14 +27,14 @@ int main(int /*argc*/, char* argv[])
     reader->SetFileName(argv[2]);
     reader->Update();
     auto inputMesh = volcart::ITKMesh::New();
-    volcart::meshing::vtk2itk(reader->GetOutput(), inputMesh);
+    volcart::meshing::VTK2ITK(reader->GetOutput(), inputMesh);
 
     // Read the uv map
     auto reader2 = vtkSmartPointer<vtkPLYReader>::New();
     reader2->SetFileName(argv[3]);
     reader2->Update();
     auto uvmap = volcart::ITKMesh::New();
-    volcart::meshing::vtk2itk(reader2->GetOutput(), uvmap);
+    volcart::meshing::VTK2ITK(reader2->GetOutput(), uvmap);
 
     // UV map setup
     double min_u = uvmap->GetPoint(0)[0];
@@ -83,7 +83,7 @@ int main(int /*argc*/, char* argv[])
     }
 
     // Convert soft body to itk mesh
-    volcart::texturing::compositeTextureV2 result(
+    volcart::texturing::CompositeTextureV2 result(
         inputMesh, vpkg, uvMap, radius, static_cast<int>(aspect_width),
         static_cast<int>(aspect_height));
     volcart::io::OBJWriter objwriter(
