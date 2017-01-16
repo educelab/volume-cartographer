@@ -78,10 +78,11 @@ public:
         for (size_t v_id = 2; v_id < points_.size(); ++v_id) {
 
             // Handle the last point in the circle
-            if (v_id == points_.size() - 1)
+            if (v_id == points_.size() - 1) {
                 B = 2;
-            else
+            } else {
                 B = v_id + 1;
+            }
 
             addCell_(v_id, B, 0);
             addCell_(v_id, B, 1);
