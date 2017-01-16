@@ -135,7 +135,7 @@ class QuadricEdgeCollapseDecimation
             VertexPair,
             VcgTriEdgeCollapse,
             vcg::tri::QInfoStandard<VcgVertex>>;
-        using EdgeTyp = VcgMesh::VertexType::EdgeType;
+        using EdgeType = VcgMesh::VertexType::EdgeType;
 
         VcgTriEdgeCollapse(
             const VertexPair& p, int i, vcg::BaseParameterClass* pp)

@@ -57,7 +57,7 @@ volcart::ITKMesh::Pointer QuadricEdgeCollapseDecimation::getMesh()
 
     // Takes vcg vertices and stores their coordinates into an itk point and
     // adds it to itk mesh
-    for (auto vert : vcgInput_.vert) {
+    for (auto& vert : vcgInput_.vert) {
         vp = &vert;
         indices[vp] = j;
         if (!vert.IsD()) {
