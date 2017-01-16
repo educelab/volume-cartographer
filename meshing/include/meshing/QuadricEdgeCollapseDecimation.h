@@ -66,6 +66,7 @@ class QuadricEdgeCollapseDecimation
     {
     public:
         vcg::math::Quadric<double>& Qd() { return q_; }
+
     private:
         vcg::math::Quadric<double> q_;
     };
@@ -135,7 +136,8 @@ class QuadricEdgeCollapseDecimation
             VcgTriEdgeCollapse,
             vcg::tri::QInfoStandard<VcgVertex>>;
         using EdgeTyp = VcgMesh::VertexType::EdgeType;
-        inline VcgTriEdgeCollapse(
+
+        VcgTriEdgeCollapse(
             const VertexPair& p, int i, vcg::BaseParameterClass* pp)
             : TECQ(p, i, pp)
         {
@@ -397,6 +399,5 @@ private:
     vcg::tri::TriEdgeCollapseQuadricParameter collapseParams_;
 
 };  // QuadricEdgeCollapse
-
 }  // meshing
 }  // volcart

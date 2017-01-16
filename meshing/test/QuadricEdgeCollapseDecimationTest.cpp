@@ -5,6 +5,7 @@
 #define BOOST_TEST_MODULE QuadricEdgeCollapseDecimation
 
 #include <boost/test/unit_test.hpp>
+
 #include "core/shapes/Arch.h"
 #include "core/shapes/Cone.h"
 #include "core/shapes/Cube.h"

@@ -56,7 +56,7 @@ class ClangFormatter:
             print(f'Found formatting changes for file: {source_file}')
 
             if print_output:
-                print(f'To fix, run "{cf} --style=file -i {source_file}"')
+                print(f'To fix, run "{self.cf} --style=file -i {source_file}"')
                 print('Suggested changes:')
                 for line in diff:
                     print(line.strip())
