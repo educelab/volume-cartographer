@@ -40,7 +40,7 @@ int main(int /*argc*/, char* argv[])
     uvMap.set(3, cv::Vec2d(1, 1));
     uvMap.ratio(width, height);
 
-    volcart::texturing::compositeTextureV2 compText(
+    volcart::texturing::CompositeTextureV2 compText(
         inputMesh, vpkg, uvMap, 1, width, height,
         volcart::CompositeOption::Minimum);
 

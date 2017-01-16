@@ -11,7 +11,7 @@ using namespace volcart::meshing;
 
 //// Set Inputs/Get Output ////
 void OrderedResampling::setMesh(
-    ITKMesh::Pointer mesh, int inWidth, int inHeight)
+    const ITKMesh::Pointer& mesh, int inWidth, int inHeight)
 {
     input_ = mesh;
     inWidth_ = inWidth;
@@ -97,8 +97,8 @@ void OrderedResampling::compute()
             }
 
             // Add both these faces to the mesh
-            addCell_(point2, point3, point4);
-            addCell_(point1, point2, point4);
+            add_cell_(point2, point3, point4);
+            add_cell_(point1, point2, point4);
         }
     }
 
@@ -113,7 +113,7 @@ void OrderedResampling::compute()
               << output_->GetNumberOfCells() << std::endl;
 }
 
-void OrderedResampling::addCell_(uint32_t a, uint32_t b, uint32_t c)
+void OrderedResampling::add_cell_(uint32_t a, uint32_t b, uint32_t c)
 {
     ITKCell::CellAutoPointer currentCell;
 

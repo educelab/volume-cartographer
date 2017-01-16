@@ -1,4 +1,4 @@
-// volcart::texturing::compositeTexture
+// volcart::texturing::CompositeTexture
 // Generate a Texture object using one of the various filters in
 // texturingUtils.h.
 // Created by Seth Parker on 10/20/15.
@@ -15,19 +15,20 @@ namespace volcart
 {
 namespace texturing
 {
-class compositeTexture
+
+class CompositeTexture
 {
 public:
-    compositeTexture(
+    CompositeTexture(
         ITKMesh::Pointer inputMesh,
         VolumePkg& volpkg,
-        int output_w,
-        int output_h,
+        int outputWidth,
+        int outputHeight,
         double radius,
         CompositeOption compositeMethod,
         DirectionOption compositeDirection);
 
-    compositeTexture(
+    CompositeTexture(
         ITKMesh::Pointer inputMesh,
         VolumePkg& volpkg,
         UVMap uvMap,
@@ -35,21 +36,22 @@ public:
         CompositeOption method,
         DirectionOption direction);
 
-    Texture texture() { return _texture; }
+    Texture texture() { return texture_; }
+
 private:
-    int _process();
+    int process_();
 
     // Variables
-    ITKMesh::Pointer _input;
-    VolumePkg& _volpkg;
-    int _width;
-    int _height;
-    double _radius;
-    CompositeOption _method;
-    DirectionOption _direction;
+    ITKMesh::Pointer input_;
+    VolumePkg& volpkg_;
+    int width_;
+    int height_;
+    double radius_;
+    CompositeOption method_;
+    DirectionOption direction_;
 
-    UVMap _uvMap;
-    Texture _texture;
-};  // compositeTexture
+    UVMap uvMap_;
+    Texture texture_;
+};  // CompositeTexture
 }  // volcart
 }  // texture

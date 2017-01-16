@@ -58,10 +58,10 @@ public:
      * Height defines the number of rows in the ordering matrix.
      *
      * @param mesh Mesh to be resampled
-     * @param in_width Width of the ordering matrix
-     * @param in_height Height of the ordering matrix
+     * @param inWidth Width of the ordering matrix
+     * @param inHeight Height of the ordering matrix
      */
-    void setMesh(ITKMesh::Pointer mesh, int in_width, int in_height);
+    void setMesh(const ITKMesh::Pointer& mesh, int inWidth, int inHeight);
 
     /**
      * @brief Get the resampled mesh.
@@ -106,7 +106,7 @@ private:
      * @param b ID for the second vertex in the face
      * @param c ID for the third vertex in the face
      */
-    void addCell_(uint32_t a, uint32_t b, uint32_t c);
+    void add_cell_(uint32_t a, uint32_t b, uint32_t c);
 };
 }
 }

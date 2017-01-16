@@ -85,7 +85,7 @@ private:
      * @param b ID for the second vertex in the face
      * @param c ID for the third vertex in the face
      */
-    void addCell_(size_t a, size_t b, size_t c);
+    void add_cell_(size_t a, size_t b, size_t c);
 };
 }
 }

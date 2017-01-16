@@ -14,11 +14,11 @@ void CalculateNormals::setMesh(const ITKMesh::Pointer& mesh)
 ///// Processing /////
 void CalculateNormals::compute()
 {
-    computeNormals_();
-    assignToMesh_();
+    compute_normals_();
+    assign_to_mesh_();
 }
 
-void CalculateNormals::computeNormals_()
+void CalculateNormals::compute_normals_()
 {
     vertexNormals_ = std::vector<cv::Vec3d>(output_->GetNumberOfPoints(), 0);
 
@@ -69,7 +69,7 @@ void CalculateNormals::computeNormals_()
     }
 }
 
-void CalculateNormals::assignToMesh_()
+void CalculateNormals::assign_to_mesh_()
 {
     for (auto point = input_->GetPoints()->Begin();
          point != input_->GetPoints()->End(); ++point) {

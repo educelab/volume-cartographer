@@ -13,10 +13,10 @@ namespace volcart
 namespace texturing
 {
 
-class compositeTextureV2
+class CompositeTextureV2
 {
 public:
-    compositeTextureV2(
+    CompositeTextureV2(
         ITKMesh::Pointer inputMesh,
         VolumePkg& volpkg,
         UVMap uvMap,
@@ -26,22 +26,23 @@ public:
         CompositeOption method = CompositeOption::NonMaximumSuppression,
         DirectionOption direction = DirectionOption::Bidirectional);
 
-    const volcart::Texture& texture() const { return _texture; }
-    volcart::Texture& texture() { return _texture; }
+    const volcart::Texture& texture() const { return texture_; }
+    volcart::Texture& texture() { return texture_; }
+
 private:
-    int _process();
+    int process_();
 
     // Variables
-    ITKMesh::Pointer _input;
-    VolumePkg& _volpkg;
-    size_t _width;
-    size_t _height;
-    double _radius;
-    CompositeOption _method;
-    DirectionOption _direction;
+    ITKMesh::Pointer input_;
+    VolumePkg& volpkg_;
+    size_t width_;
+    size_t height_;
+    double radius_;
+    CompositeOption method_;
+    DirectionOption direction_;
 
-    UVMap _uvMap;
-    Texture _texture;
+    UVMap uvMap_;
+    Texture texture_;
 };
 }
 }

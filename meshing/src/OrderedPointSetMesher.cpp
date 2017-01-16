@@ -58,10 +58,10 @@ void OrderedPointSetMesher::compute()
                     "of point set.");
             }
 
-            addCell_(p1, p2, p3);
-            addCell_(p0, p1, p3);
-        }  // j loop
-    }      // i loop
+            add_cell_(p1, p2, p3);
+            add_cell_(p0, p1, p3);
+        }
+    }
 
     // Sets the normals for the points and faces
     volcart::meshing::CalculateNormals calcNorm(output_);
@@ -69,7 +69,7 @@ void OrderedPointSetMesher::compute()
     output_ = calcNorm.getMesh();
 }
 
-void OrderedPointSetMesher::addCell_(size_t a, size_t b, size_t c)
+void OrderedPointSetMesher::add_cell_(size_t a, size_t b, size_t c)
 {
     ITKCell::CellAutoPointer currentC;
 

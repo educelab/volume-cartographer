@@ -18,13 +18,23 @@ nprocs = 4
 
 class ClangTidier:
     # Blacklist certain files - tests, examples, etc. List entries should be in
-    # the style of unix globs, e.g. *.cpp matches all files in the current dir
-    # ending in .cpp
+    # the style of unix globs (e.g. *.cpp matches all files in the current dir
+    # ending in .cpp) or full file paths.
     BLACKLIST = [
+        # These are going away to their own repo soon
         'apps/*',
+
+        # Don't care about linting test code
         '*/test/*',
+
+        # Generally don't care that much
         'examples/*',
+        
+        # Not code that we control
         'external/*',
+
+        # This file is going away at some point
+        'texturing/src/TexturingUtils.cpp'
     ]
 
     def __init__(self, path: str, build_dir: str) -> None:

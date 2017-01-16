@@ -12,9 +12,10 @@ namespace meshing
 {
 
 void ScaleMesh(
-    ITKMesh::Pointer input, ITKMesh::Pointer output, double scaleFactor)
+    const ITKMesh::Pointer& input,
+    const ITKMesh::Pointer& output,
+    double scaleFactor)
 {
-
     // Scale uniformly
     using VC3DScaleType = itk::ScaleTransform<double, 3>;
     auto scaleTransform = VC3DScaleType::New();

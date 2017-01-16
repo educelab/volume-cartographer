@@ -154,7 +154,7 @@ int main(int argc, char* argv[])
     width = static_cast<int>(std::ceil(uvMap.ratio().width));
     height = static_cast<int>(std::ceil(uvMap.ratio().height));
 
-    volcart::texturing::compositeTextureV2 result(
+    volcart::texturing::CompositeTextureV2 result(
         mesh, vpkg, clothUV.getUVMap(), 7, width, height);
     volcart::io::OBJWriter objwriter(
         "textured.obj", mesh, uvMap, result.texture().image(0));
@@ -197,7 +197,7 @@ void getPins(
     // the pinList
     for (ITKPointIterator pin = pins->GetPoints()->Begin();
          pin != pins->GetPoints()->End(); ++pin) {
-        unsigned long pinID =
+        uint64_t pinID =
             pointsLocator->FindClosestPoint(pins->GetPoint(pin->Index()));
         pinList.push_back(pinID);
     }

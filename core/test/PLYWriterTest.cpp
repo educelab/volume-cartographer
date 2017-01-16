@@ -81,8 +81,8 @@ struct CreateITKPlaneMeshFixture {
         _in_PlaneMesh = _Plane.itkMesh();
 
         // read in data from saved PlyWriter_Plane.ply via
-        // ParsingHelpers::parsePlyFile
-        volcart::testing::ParsingHelpers::parsePlyFile(
+        // ParsingHelpers::ParsePLYFile
+        volcart::testing::ParsingHelpers::ParsePLYFile(
             "PlyWriter_Plane.ply", _SavedPlanePoints, _SavedPlaneCells);
 
         BOOST_TEST_MESSAGE("setting up Plane mesh...");
@@ -147,7 +147,7 @@ BOOST_FIXTURE_TEST_CASE(
 
     /// Points ///
     std::cerr << "Comparing points..." << std::endl;
-    for (unsigned long p = 0; p < _SavedPlanePoints.size(); p++) {
+    for (uint64_t p = 0; p < _SavedPlanePoints.size(); p++) {
 
         volcart::testing::SmallOrClose(
             _SavedPlanePoints[p].x, _in_PlaneMesh->GetPoint(p)[0]);

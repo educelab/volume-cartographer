@@ -35,7 +35,7 @@ struct ReadITKArchMeshFixture {
         volcart::io::PLYWriter writer("PLYReader_arch.ply", _in_ArchMesh);
         writer.write();
 
-        volcart::testing::ParsingHelpers::parsePlyFile(
+        volcart::testing::ParsingHelpers::ParsePLYFile(
             "PLYReader_arch.ply", _SavedArchPoints, _SavedArchCells);
     }
 
@@ -84,7 +84,7 @@ BOOST_FIXTURE_TEST_CASE(ReadArchMeshTest, ReadITKArchMeshFixture)
         _in_ArchMesh->GetNumberOfPoints(), _read_ArchMesh->GetNumberOfPoints());
     BOOST_CHECK_EQUAL(
         _in_ArchMesh->GetNumberOfCells(), _read_ArchMesh->GetNumberOfCells());
-    for (unsigned long pnt_id = 0; pnt_id < _in_ArchMesh->GetNumberOfPoints();
+    for (uint64_t pnt_id = 0; pnt_id < _in_ArchMesh->GetNumberOfPoints();
          pnt_id++) {
         volcart::testing::SmallOrClose(
             _in_ArchMesh->GetPoint(pnt_id)[0],
@@ -107,7 +107,7 @@ BOOST_FIXTURE_TEST_CASE(ReadArchMeshTest, ReadITKArchMeshFixture)
         volcart::testing::SmallOrClose(in_normal[2], read_normal[2]);
     }
 
-    for (unsigned long cell_id = 0; cell_id < _in_ArchMesh->GetNumberOfCells();
+    for (uint64_t cell_id = 0; cell_id < _in_ArchMesh->GetNumberOfCells();
          cell_id++) {
         volcart::ITKCell::CellAutoPointer in_C;
         _in_ArchMesh->GetCell(cell_id, in_C);
@@ -129,7 +129,7 @@ BOOST_FIXTURE_TEST_CASE(ReadPlaneMeshTest, ReadITKPlaneMeshFixture)
         _read_PlaneMesh->GetNumberOfPoints());
     BOOST_CHECK_EQUAL(
         _in_PlaneMesh->GetNumberOfCells(), _read_PlaneMesh->GetNumberOfCells());
-    for (unsigned long pnt_id = 0; pnt_id < _in_PlaneMesh->GetNumberOfPoints();
+    for (uint64_t pnt_id = 0; pnt_id < _in_PlaneMesh->GetNumberOfPoints();
          pnt_id++) {
         volcart::testing::SmallOrClose(
             _in_PlaneMesh->GetPoint(pnt_id)[0],
@@ -152,7 +152,7 @@ BOOST_FIXTURE_TEST_CASE(ReadPlaneMeshTest, ReadITKPlaneMeshFixture)
         volcart::testing::SmallOrClose(in_normal[2], read_normal[2]);
     }
 
-    for (unsigned long cell_id = 0; cell_id < _in_PlaneMesh->GetNumberOfCells();
+    for (uint64_t cell_id = 0; cell_id < _in_PlaneMesh->GetNumberOfCells();
          cell_id++) {
         volcart::ITKCell::CellAutoPointer in_C;
         _in_PlaneMesh->GetCell(cell_id, in_C);
@@ -173,7 +173,7 @@ BOOST_FIXTURE_TEST_CASE(ReadConeMeshTest, ReadITKConeMeshFixture)
         _in_ConeMesh->GetNumberOfPoints(), _read_ConeMesh->GetNumberOfPoints());
     BOOST_CHECK_EQUAL(
         _in_ConeMesh->GetNumberOfCells(), _read_ConeMesh->GetNumberOfCells());
-    for (unsigned long pnt_id = 0; pnt_id < _in_ConeMesh->GetNumberOfPoints();
+    for (uint64_t pnt_id = 0; pnt_id < _in_ConeMesh->GetNumberOfPoints();
          pnt_id++) {
         volcart::testing::SmallOrClose(
             _in_ConeMesh->GetPoint(pnt_id)[0],
@@ -196,7 +196,7 @@ BOOST_FIXTURE_TEST_CASE(ReadConeMeshTest, ReadITKConeMeshFixture)
         volcart::testing::SmallOrClose(in_normal[2], read_normal[2]);
     }
 
-    for (unsigned long cell_id = 0; cell_id < _in_ConeMesh->GetNumberOfCells();
+    for (uint64_t cell_id = 0; cell_id < _in_ConeMesh->GetNumberOfCells();
          cell_id++) {
         volcart::ITKCell::CellAutoPointer in_C;
         _in_ConeMesh->GetCell(cell_id, in_C);
@@ -219,7 +219,7 @@ BOOST_FIXTURE_TEST_CASE(ReadSphereMeshTest, ReadITKSphereMeshFixture)
     BOOST_CHECK_EQUAL(
         _in_SphereMesh->GetNumberOfCells(),
         _read_SphereMesh->GetNumberOfCells());
-    for (unsigned long pnt_id = 0; pnt_id < _in_SphereMesh->GetNumberOfPoints();
+    for (uint64_t pnt_id = 0; pnt_id < _in_SphereMesh->GetNumberOfPoints();
          pnt_id++) {
         volcart::testing::SmallOrClose(
             _in_SphereMesh->GetPoint(pnt_id)[0],
@@ -242,8 +242,8 @@ BOOST_FIXTURE_TEST_CASE(ReadSphereMeshTest, ReadITKSphereMeshFixture)
         volcart::testing::SmallOrClose(in_normal[2], read_normal[2]);
     }
 
-    for (unsigned long cell_id = 0;
-         cell_id < _in_SphereMesh->GetNumberOfCells(); cell_id++) {
+    for (uint64_t cell_id = 0; cell_id < _in_SphereMesh->GetNumberOfCells();
+         cell_id++) {
         volcart::ITKCell::CellAutoPointer in_C;
         _in_SphereMesh->GetCell(cell_id, in_C);
         volcart::ITKCell::CellAutoPointer read_C;

@@ -9,7 +9,7 @@
     },
     "render": {
         "flatten": { 
-            "method":"simpleUV" 
+            "method":"SimpleUV" 
         },
         "texture": { 
             "method": "NonMaximumSuppresion",
@@ -20,7 +20,7 @@
         "export": {
             "method": "OBJWriter",
             "withTexture": true,
-            "basename": "simpleUV_NonMax2"
+            "basename": "SimpleUV_NonMax2"
         }
     },
 

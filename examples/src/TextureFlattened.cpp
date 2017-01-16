@@ -83,7 +83,7 @@ int main(int /*argc*/, char* argv[])
     }
 
     // Convert soft body to itk mesh
-    volcart::texturing::compositeTextureV2 result(
+    volcart::texturing::CompositeTextureV2 result(
         inputMesh, vpkg, uvMap, radius, static_cast<int>(aspect_width),
         static_cast<int>(aspect_height));
     volcart::io::OBJWriter objwriter(

@@ -66,7 +66,7 @@ private:
      * For each face, computes the normal to that face and adds the resulting
      * vector to a sum vector for each vertex in that face.
      */
-    void computeNormals_();
+    void compute_normals_();
 
     /**
      * @brief Assign the summed normals to the output mesh.
@@ -74,7 +74,7 @@ private:
      * Takes the summed normals for each vertex and assigns them to the
      * corresponding vertex in the output mesh.
      */
-    void assignToMesh_();
+    void assign_to_mesh_();
 
     /** Mesh for which normals will be calculated. */
     ITKMesh::Pointer input_;

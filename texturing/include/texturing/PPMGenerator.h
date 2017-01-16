@@ -15,20 +15,20 @@ class PPMGenerator
 {
 public:
     // Constructors/Destructors
-    PPMGenerator() : _width{0}, _height{0} {}
-    PPMGenerator(size_t h, size_t w) : _width{w}, _height{h} {}
+    PPMGenerator() : width_{0}, height_{0} {}
+    PPMGenerator(size_t h, size_t w) : width_{w}, height_{h} {}
 
     // Set/Get Parameters
-    void setMesh(ITKMesh::Pointer m) { _inputMesh = m; }
-    void setUVMap(const UVMap& u) { _uvMap = u; }
+    void setMesh(const ITKMesh::Pointer& m) { inputMesh_ = m; }
+    void setUVMap(const UVMap& u) { uvMap_ = u; }
     void setDimensions(size_t h, size_t w);
 
     // Run
     PerPixelMap& compute();
 
     // Output
-    const PerPixelMap& getPPM() const { return _ppm; }
-    PerPixelMap& getPPM() { return _ppm; }
+    const PerPixelMap& getPPM() const { return ppm_; }
+    PerPixelMap& getPPM() { return ppm_; }
 
 private:
     struct CellInfo {
@@ -39,28 +39,34 @@ private:
         }
         std::vector<cv::Vec3d> pts2D;
         std::vector<cv::Vec3d> pts3D;
-        cv::Vec3d Normal;
+        cv::Vec3d normal;
     };
 
     // Helpers
-    void _generateCentroidMesh();
-    void _generatePPM();
-    cv::Vec3d _BarycentricCoord(
-        cv::Vec3d nXYZ, cv::Vec3d nA, cv::Vec3d nB, cv::Vec3d nC);
-    cv::Vec3d _CartesianCoord(
-        cv::Vec3d nUVW, cv::Vec3d nA, cv::Vec3d nB, cv::Vec3d nC);
+    void generate_centroid_mesh_();
+    void generate_ppm_();
+    cv::Vec3d barycentric_coord_(
+        const cv::Vec3d& nXYZ,
+        const cv::Vec3d& nA,
+        const cv::Vec3d& nB,
+        const cv::Vec3d& nC);
+    cv::Vec3d cartesian_coord_(
+        const cv::Vec3d& nUVW,
+        const cv::Vec3d& nA,
+        const cv::Vec3d& nB,
+        const cv::Vec3d& nC);
 
     // Data members
-    ITKMesh::Pointer _inputMesh;
-    ITKMesh::Pointer _centroidMesh;
-    std::vector<CellInfo> _cellInformation;
-    UVMap _uvMap;
-    PerPixelMap _ppm;
+    ITKMesh::Pointer inputMesh_;
+    ITKMesh::Pointer centroidMesh_;
+    std::vector<CellInfo> cellInformation_;
+    UVMap uvMap_;
+    PerPixelMap ppm_;
 
-    size_t _width;
-    size_t _height;
+    size_t width_;
+    size_t height_;
 
-    double _progress;
+    double progress_;
 };
-}
+}  // namespace texturing
 }  // namespace volcart

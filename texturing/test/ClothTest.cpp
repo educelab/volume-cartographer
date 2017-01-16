@@ -87,12 +87,12 @@ struct CreateArchClothUVFixture {
         _out_Mesh_final = clothUV.getMesh();
 
         // Load pre-generated output from file
-        volcart::testing::ParsingHelpers::parseObjFile(
+        volcart::testing::ParsingHelpers::ParseOBJFile(
             "clothUV_Arch_Unfurl.obj", _SavedPoints_unfurl, _SavedCells_unfurl);
-        volcart::testing::ParsingHelpers::parseObjFile(
+        volcart::testing::ParsingHelpers::ParseOBJFile(
             "clothUV_Arch_Collide.obj", _SavedPoints_collide,
             _SavedCells_collide);
-        volcart::testing::ParsingHelpers::parseObjFile(
+        volcart::testing::ParsingHelpers::ParseOBJFile(
             "clothUV_Arch_Final.obj", _SavedPoints_final, _SavedCells_final);
     }
 

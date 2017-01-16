@@ -20,7 +20,7 @@ ITK2Bullet::ITK2Bullet(
             static_cast<float>(oldPoint[2]));
 
         if (it == input->GetPoints()->Begin()) {
-            *output = new btSoftBody(&worldInfo, 1, newPoint, 0);
+            *output = new btSoftBody(&worldInfo, 1, newPoint, nullptr);
         } else {
             (*output)->appendNode(*newPoint, 0);
         }

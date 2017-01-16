@@ -8,6 +8,7 @@ set(srcs
     src/SimpleUV.cpp
     src/AngleBasedFlattening.cpp
     src/PPMGenerator.cpp
+    src/TexturingUtils.cpp
 )
 set(public_deps
     VC::core

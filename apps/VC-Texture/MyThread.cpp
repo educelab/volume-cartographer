@@ -95,7 +95,7 @@ void MyThread::run()
         auto height = static_cast<int>(
             std::ceil(static_cast<double>(width) / uvMap.ratio().aspect));
 
-        volcart::texturing::compositeTextureV2 result(
+        volcart::texturing::CompositeTextureV2 result(
             itkACVD, *_globals->getVolPkg(), uvMap, _radius, width, height,
             aFilterOption, aDirectionOption);
 

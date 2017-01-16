@@ -109,7 +109,7 @@ int main(int /*argc*/, char* argv[])
 
     std::cout << width << "x" << height << std::endl;
 
-    volcart::texturing::compositeTextureV2 compText(
+    volcart::texturing::CompositeTextureV2 compText(
         itkACVD, vpkg, uvMap, radius, width, height, type);
 
     // Setup rendering
