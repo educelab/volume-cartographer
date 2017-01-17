@@ -49,7 +49,7 @@ def changed_files(compare_to: str) -> Generator[str, None, None]:
 
     # Return source files, only if they haven't been deleted. This prevents
     # trying to operate on a missing file.
-    for line in callo(diffcmd).split('\n'):
+    for line in callo(diffcmd).split():
         status, source_file = line.split('\t')
         if status != 'D':
             yield source_file
@@ -60,7 +60,7 @@ def all_files() -> Generator[str, None, None]:
     Lists all project files under version control.
     '''
     for f in callo('git ls-files').split():
-        yield f 
+        yield f
 
 
 def fetch_clang_binary(
