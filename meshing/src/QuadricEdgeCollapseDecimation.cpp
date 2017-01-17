@@ -4,7 +4,7 @@
 /** @file QuadricEdgeCollapseDecimation.cpp */
 #ifdef VC_USE_VCGLIB
 
-#include "meshing/QuadricEdgeCollapseDecimation.h"
+#include "meshing/QuadricEdgeCollapseDecimation.hpp"
 
 using namespace volcart::meshing;
 

@@ -4,8 +4,8 @@
 
 /* @file OrderedResampling.cpp*/
 
-#include "meshing/OrderedResampling.h"
-#include "meshing/CalculateNormals.h"
+#include "meshing/OrderedResampling.hpp"
+#include "meshing/CalculateNormals.hpp"
 
 using namespace volcart::meshing;
 

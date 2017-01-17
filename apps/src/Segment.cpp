@@ -2,10 +2,10 @@
 
 #include <boost/program_options.hpp>
 
-#include "core/types/VolumePkg.h"
-#include "meshing/OrderedPointSetMesher.h"
-#include "segmentation/lrps/LocalResliceParticleSim.h"
-#include "segmentation/stps/StructureTensorParticleSim.h"
+#include "core/types/VolumePkg.hpp"
+#include "meshing/OrderedPointSetMesher.hpp"
+#include "segmentation/lrps/LocalResliceParticleSim.hpp"
+#include "segmentation/stps/StructureTensorParticleSim.hpp"
 
 namespace po = boost::program_options;
 namespace vs = volcart::segmentation;

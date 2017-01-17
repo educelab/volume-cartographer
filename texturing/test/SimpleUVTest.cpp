@@ -6,11 +6,11 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "core/shapes/Arch.h"
-#include "core/shapes/Plane.h"
-#include "core/vc_defines.h"
-#include "testing/TestingUtils.h"
-#include "texturing/SimpleUV.h"
+#include "core/shapes/Arch.hpp"
+#include "core/shapes/Plane.hpp"
+#include "core/vc_defines.hpp"
+#include "testing/TestingUtils.hpp"
+#include "texturing/SimpleUV.hpp"
 
 using namespace volcart;
 

@@ -5,7 +5,7 @@
 
 #include <opencv2/imgcodecs.hpp>
 
-#include "core/io/OBJWriter.h"
+#include "core/io/OBJWriter.hpp"
 
 namespace fs = boost::filesystem;
 

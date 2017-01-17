@@ -3,7 +3,7 @@
 
 #include <QDesktopWidget>
 #include <qapplication.h>
-#include "CWindow.h"
+#include "CWindow.hpp"
 
 using namespace ChaoVis;
 

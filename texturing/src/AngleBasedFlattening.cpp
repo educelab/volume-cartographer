@@ -5,8 +5,8 @@
 #include <cmath>
 
 #include "external/eigen_capi.h"
-#include "meshing/DeepCopy.h"
-#include "texturing/AngleBasedFlattening.h"
+#include "meshing/DeepCopy.hpp"
+#include "texturing/AngleBasedFlattening.hpp"
 
 using namespace volcart;
 using namespace volcart::texturing;

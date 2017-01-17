@@ -7,16 +7,16 @@
 #include <boost/test/floating_point_comparison.hpp>
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
-#include <core/io/OBJWriter.h>
-#include "core/shapes/Arch.h"
-#include "core/shapes/Cone.h"
-#include "core/shapes/Cube.h"
-#include "core/shapes/Plane.h"
-#include "core/shapes/Sphere.h"
-#include "core/vc_defines.h"
-#include "meshing/ScaleMesh.h"
-#include "testing/ParsingHelpers.h"
-#include "testing/TestingUtils.h"
+#include <core/io/OBJWriter.hpp>
+#include "core/shapes/Arch.hpp"
+#include "core/shapes/Cone.hpp"
+#include "core/shapes/Cube.hpp"
+#include "core/shapes/Plane.hpp"
+#include "core/shapes/Sphere.hpp"
+#include "core/vc_defines.hpp"
+#include "meshing/ScaleMesh.hpp"
+#include "testing/ParsingHelpers.hpp"
+#include "testing/TestingUtils.hpp"
 
 using namespace volcart;
 

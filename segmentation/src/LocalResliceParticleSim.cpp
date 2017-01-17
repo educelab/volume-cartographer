@@ -10,12 +10,12 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include "segmentation/lrps/Common.h"
-#include "segmentation/lrps/Derivative.h"
-#include "segmentation/lrps/EnergyMetrics.h"
-#include "segmentation/lrps/FittedCurve.h"
-#include "segmentation/lrps/IntensityMap.h"
-#include "segmentation/lrps/LocalResliceParticleSim.h"
+#include "segmentation/lrps/Common.hpp"
+#include "segmentation/lrps/Derivative.hpp"
+#include "segmentation/lrps/EnergyMetrics.hpp"
+#include "segmentation/lrps/FittedCurve.hpp"
+#include "segmentation/lrps/IntensityMap.hpp"
+#include "segmentation/lrps/LocalResliceParticleSim.hpp"
 
 using namespace volcart::segmentation;
 namespace fs = boost::filesystem;

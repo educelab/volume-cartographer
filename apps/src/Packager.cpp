@@ -9,9 +9,9 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/program_options.hpp>
 
-#include "apps/SliceImage.h"
-#include "core/types/VolumePkg.h"
-#include "core/vc_defines.h"
+#include "apps/SliceImage.hpp"
+#include "core/types/VolumePkg.hpp"
+#include "core/vc_defines.hpp"
 
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;

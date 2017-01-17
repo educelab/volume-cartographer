@@ -6,11 +6,11 @@
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 
-#include "core/io/OBJWriter.h"
-#include "core/io/PLYWriter.h"
-#include "core/io/PointSetIO.h"
-#include "core/types/OrderedPointSet.h"
-#include "core/types/VolumePkg.h"
+#include "core/io/OBJWriter.hpp"
+#include "core/io/PLYWriter.hpp"
+#include "core/io/PointSetIO.hpp"
+#include "core/types/OrderedPointSet.hpp"
+#include "core/types/VolumePkg.hpp"
 
 namespace fs = boost::filesystem;
 

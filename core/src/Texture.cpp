@@ -3,7 +3,7 @@
 //
 #include <opencv2/imgcodecs.hpp>
 
-#include "core/types/Texture.h"
+#include "core/types/Texture.hpp"
 
 namespace fs = boost::filesystem;
 using namespace volcart;

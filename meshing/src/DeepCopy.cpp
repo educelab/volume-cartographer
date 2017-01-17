@@ -1,6 +1,6 @@
 /** @file DeepCopy.cpp */
 
-#include "meshing/DeepCopy.h"
+#include "meshing/DeepCopy.hpp"
 
 namespace volcart
 {

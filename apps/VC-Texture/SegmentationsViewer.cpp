@@ -11,7 +11,7 @@
 
 #include <opencv2/imgproc.hpp>
 
-#include "SegmentationsViewer.h"
+#include "SegmentationsViewer.hpp"
 
 SegmentationsViewer::SegmentationsViewer(
     GlobalValues* globals, TextureViewer* texture_Viewer)

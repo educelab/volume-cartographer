@@ -6,7 +6,7 @@
 
 #include <iostream>
 #include <boost/test/unit_test.hpp>
-#include "core/types/LRUCache.h"
+#include "core/types/LRUCache.hpp"
 
 /************************************************************************************
  *                                                                                  *

@@ -3,8 +3,8 @@
 #include <boost/test/unit_test.hpp>
 #include <opencv2/core.hpp>
 
-#include "core/types/Exceptions.h"
-#include "core/types/OrderedPointSet.h"
+#include "core/types/Exceptions.hpp"
+#include "core/types/OrderedPointSet.hpp"
 
 using namespace volcart;
 

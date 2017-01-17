@@ -1,11 +1,11 @@
 // CBSpline.cpp
 // Chao Du 2015 April
-#include "CBSpline.h"
+#include "CBSpline.hpp"
 
 #include <opencv2/imgproc.hpp>
 
-#include "CMatrixMN.h"
-#include "UVecMatOperations.h"
+#include "CMatrixMN.hpp"
+#include "UVecMatOperations.hpp"
 
 //#define _DEBUG
 

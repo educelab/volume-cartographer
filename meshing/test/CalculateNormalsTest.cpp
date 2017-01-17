@@ -6,10 +6,10 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "core/shapes/Plane.h"
-#include "core/vc_defines.h"
-#include "meshing/CalculateNormals.h"
-#include "testing/TestingUtils.h"
+#include "core/shapes/Plane.hpp"
+#include "core/vc_defines.hpp"
+#include "meshing/CalculateNormals.hpp"
+#include "testing/TestingUtils.hpp"
 
 struct PlaneFixture {
     PlaneFixture() { _in_Mesh = _Plane.itkMesh(); }

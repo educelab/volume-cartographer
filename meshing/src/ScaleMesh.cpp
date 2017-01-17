@@ -4,7 +4,7 @@
 
 /**@file ScaleMesh.cpp  */
 
-#include "meshing/ScaleMesh.h"
+#include "meshing/ScaleMesh.hpp"
 
 namespace volcart
 {
