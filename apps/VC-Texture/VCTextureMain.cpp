@@ -25,8 +25,8 @@ int main(int argc, char** argv)
                                                     // decisions about default
                                                     // display.
 
-    // Create new Global_Values Object
-    Global_Values* passValues = new Global_Values(rec);
+    // Create new GlobalValues Object
+    GlobalValues* passValues = new GlobalValues(rec);
 
     // MAIN WINDOW Attributes
     //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -35,7 +35,7 @@ int main(int argc, char** argv)
     // and passes in a pointer to the global values
     MainWindow* window = new MainWindow(passValues);
 
-    // Sets *window in "Global_Values" to the MainWindow/GUI
+    // Sets *window in "GlobalValues" to the MainWindow/GUI
     passValues->setWindow(window);
 
     window->show();

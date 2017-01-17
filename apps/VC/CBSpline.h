@@ -3,9 +3,11 @@
 #pragma once
 
 #include <vector>
-#include <opencv2/opencv.hpp>
+
+#include <opencv2/core.hpp>
+
 #include "CBezierCurve.h"
-#include "mathUtils.h"
+#include "MathUtils.h"
 
 namespace ChaoVis
 {

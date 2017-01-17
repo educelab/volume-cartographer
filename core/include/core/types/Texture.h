@@ -4,12 +4,12 @@
 // Created by Seth Parker on 10/20/15.
 #pragma once
 
-#include <opencv2/opencv.hpp>
+#include <boost/filesystem/path.hpp>
+#include <opencv2/core.hpp>
 
 #include "core/types/Metadata.h"
 #include "core/types/PerPixelMap.h"
 #include "core/types/UVMap.h"
-#include "core/vc_defines.h"
 
 namespace volcart
 {
@@ -17,46 +17,42 @@ class Texture
 {
 public:
     Texture();
-    Texture(std::string path);
+    explicit Texture(boost::filesystem::path path);
 
     // Get metadata
-    volcart::Metadata metadata() const { return _metadata; };
+    volcart::Metadata metadata() const { return metadata_; }
 
-    std::string id() const { return _metadata.get<std::string>("id"); };
-    int width() const { return _width; };
-    int height() const { return _height; };
-    size_t numberOfImages() const { return _images.size(); };
-    bool hasImages() const { return _images.size() > 0; };
-    bool hasMap() const { return _uvMap.size() > 0; };
+    std::string id() const { return metadata_.get<std::string>("id"); }
+    int width() const { return width_; }
+    int height() const { return height_; }
+    size_t numberOfImages() const { return images_.size(); }
+    bool hasImages() const { return !images_.empty(); }
+    bool hasMap() const { return ppm_.initialized(); }
 
-    // Get/Set UV Map
-    const volcart::UVMap& uvMap() const { return _uvMap; };
-    volcart::UVMap& uvMap() { return _uvMap; };
-    void uvMap(volcart::UVMap uvMap) { _uvMap = uvMap; };
+    // PPM
+    void setPPM(const PerPixelMap& m) { ppm_ = m; }
+    const PerPixelMap& ppm() const { return ppm_; }
+    PerPixelMap& ppm() { return ppm_; }
+
+    // Get UV Map
+    const volcart::UVMap& uvMap() const { return ppm_.uvMap(); }
+    volcart::UVMap& uvMap() { return ppm_.uvMap(); }
 
     // Get/Add Texture Image
-    cv::Mat getImage(int id) const { return _images[id]; };
+    cv::Mat image(int id) const { return images_[id]; }
     void addImage(cv::Mat image);
 
     // Return the intensity for a Point ID
-    double intensity(int point_ID, int image_ID = 0);
+    double intensity(int pointId, int imageId = 0);
 
     // Extra Metadata
-    void setMask(cv::Mat m) { _PerPixelMask = m; };
-    cv::Mat getMask() { return _PerPixelMask; };
-
-    void setMap(PerPixelMap m) { _PerPixelMapping = m; };
-    PerPixelMap getMap() { return _PerPixelMapping; };
+    cv::Mat mask() { return ppm_.mask(); }
 
 private:
-    volcart::Metadata _metadata;
-
-    boost::filesystem::path _path;
-    int _width, _height;
-    std::vector<cv::Mat> _images;
-    volcart::UVMap _uvMap;
-
-    cv::Mat _PerPixelMask;
-    PerPixelMap _PerPixelMapping;
+    volcart::Metadata metadata_;
+    boost::filesystem::path path_;
+    int width_, height_;
+    std::vector<cv::Mat> images_;
+    PerPixelMap ppm_;
 };
-}  // volcart
+}

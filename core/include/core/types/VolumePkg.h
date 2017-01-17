@@ -4,9 +4,9 @@
 #include <iostream>
 
 #include <boost/filesystem.hpp>
+#include <opencv2/core.hpp>
 
 #include "core/types/OrderedPointSet.h"
-#include "core/types/Point.h"
 #include "core/types/Texture.h"
 #include "core/types/Volume.h"
 #include "core/types/VolumePkgVersion.h"
@@ -36,22 +36,22 @@ public:
      * location on disk. Note: You must call initialize() before the file can
      * be written to and accessed. Only metadata keys may be modified before
      * initialize is called.
-     * @param file_location The location to store the VolPkg
+     * @param fileLocation The location to store the VolPkg
      * @param version Version of VolumePkg you wish to construct
      */
-    VolumePkg(boost::filesystem::path file_location, int version);
+    VolumePkg(boost::filesystem::path fileLocation, int version);
 
     /**
      * @brief Construct a VolumePkg from a .volpkg file stored at
-     * `file_location.`
-     * @param file_location The root of the VolumePkg file
+     * `fileLocation.`
+     * @param fileLocation The root of the VolumePkg file
      */
-    VolumePkg(boost::filesystem::path file_location);
+    explicit VolumePkg(boost::filesystem::path fileLocation);
 
     /**
      * @brief Prints the JSON object that stores VolumePkg metadata. Debug only.
      */
-    void printJSON() const { config.printObject(); };
+    void printJSON() const { config_.printObject(); }
 
     /**
      * @brief Prints the paths to important VolumePkg subdirectories.
@@ -59,8 +59,8 @@ public:
      */
     void printDirs() const
     {
-        std::cout << "root: " << root_dir << " seg: " << segs_dir
-                  << " slice: " << slice_dir << std::endl;
+        std::cout << "root: " << rootDir_ << " seg: " << segsDir_
+                  << " slice: " << sliceDir_ << std::endl;
     }
 
     /** @name Metadata */
@@ -74,7 +74,8 @@ public:
     /**
      * @brief Returns the VolumePkg version.
      *
-     * Use in conjunction with volcart::VersionLibrary to verify the presence of
+     * Use in conjunction with volcart::VERSION_LIBRARY to verify the presence
+     * of
      * specific VolumePkg metadata keys.
      *
      * @return Version number of VolumePkg
@@ -87,13 +88,13 @@ public:
      * When `true`, metadata values cannot be edited and slice data cannot be
      * added to the VolumePkg.
      */
-    bool readOnly() const { return _readOnly; };
+    bool readOnly() const { return readOnly_; }
 
     /**
      * @brief Set/unset the VolumePkg read-only flag.
      * @param b Boolean representing new value of read-only flag
      */
-    void readOnly(bool b) { _readOnly = b; };
+    void readOnly(bool b) { readOnly_ = b; }
 
     /**
      * @brief Sets the value of `key` in the VolumePkg metadata.
@@ -109,26 +110,26 @@ public:
     template <typename T>
     int setMetadata(const std::string& key, T value)
     {
-        if (_readOnly) {
-            volcart::ERR_READONLY();
+        if (readOnly_) {
+            volcart::ErrReadonly();
         }
 
-        config.set<T>(key, value);
+        config_.set<T>(key, value);
         return EXIT_SUCCESS;
     }
 
     /**
      * @brief Saves the metadata to the VolumePkg (.volpkg) file.
      */
-    void saveMetadata() { config.save(root_dir / "config.json"); }
+    void saveMetadata() { config_.save(rootDir_ / "config.json"); }
 
     /**
      * @brief Saves the metadata to a user-specified location.
      * @param filePath Path to output file
      */
-    void saveMetadata(boost::filesystem::path filePath)
+    void saveMetadata(const boost::filesystem::path& filePath)
     {
-        config.save(filePath);
+        config_.save(filePath);
     }
     //@}
 
@@ -235,7 +236,7 @@ public:
      * active segmentation. To get data from other segmentations, you must first
      * change the active segmentation using this function.
      *
-     * @param id Segmentation ID of desired active segmentation
+     * @param id Segmentation name of desired active segmentation
      */
     void setActiveSegmentation(const std::string& id);
 
@@ -262,7 +263,7 @@ public:
      *
      * @return Segmented surface as an OrderedPointSet
      */
-    volcart::OrderedPointSet<volcart::Point3d> openCloud() const;
+    volcart::OrderedPointSet<cv::Vec3d> openCloud() const;
 
     /**
      * @brief Saves an OrderedPointSet for the active segmentation to the
@@ -274,10 +275,10 @@ public:
      * @warning Data currently saved in the active segmentation's directory will
      * be overwritten. This function can be called when the VolumePkg read-only
      * flag is not set.
-     * @param ps OrderedPointSet to be saved to the .volpkg file.
+     * @param ps PointSet to be saved to the .volpkg file.
      * @return `EXIT_SUCCESS`
      */
-    int saveCloud(const volcart::OrderedPointSet<volcart::Point3d>& ps) const;
+    int saveCloud(const volcart::OrderedPointSet<cv::Vec3d>& ps) const;
     //@}
 
     /** @name Render Data */
@@ -299,10 +300,10 @@ public:
      * @warning Data currently saved in the active segmentation's directory will
      * be overwritten. This function can be called when the VolumePkg read-only
      * flag is not set.
-     * @param mesh Mesh to be saved to the .volpkg file.
+     * @param mesh PointSet to be saved to the .volpkg file.
      * @return `EXIT_SUCCESS`
      */
-    int saveMesh(const volcart::ITKMesh::Pointer ps) const;
+    int saveMesh(const volcart::ITKMesh::Pointer& mesh) const;
 
     /**
      * @brief Saves the provided mesh and texture information active
@@ -314,12 +315,12 @@ public:
      * @warning Data currently saved in the active segmentation's directory will
      * be overwritten. This function can be called when the VolumePkg read-only
      * flag is not set.
-     * @param mesh
+     * @param mesh The mesh imfornation to be saved
      * @param texture Populated Texture object
      * @see core/types/Texture.h
      */
     void saveMesh(
-        const volcart::ITKMesh::Pointer mesh,
+        const volcart::ITKMesh::Pointer& mesh,
         const volcart::Texture& texture) const;
 
     /**
@@ -349,43 +350,43 @@ public:
      * @brief Saves a texture image to the active segmentation's subdirectory in
      * the .volpkg file.
      *
-     * Writes the image stored in a `texture.getImage(index)`. File is written
+     * Writes the image stored in `texture.image(index)`. File is written
      * to `textured.png` in the active segmentation's subdirectory.
      * @param texture Populated Texture object
      * @param index The index of the desired image in `texture`'s image array
      * [Default: 0]
      */
-    void saveTextureData(volcart::Texture texture, int index = 0)
+    void saveTextureData(const volcart::Texture& texture, int index = 0)
     {
-        saveTextureData(texture.getImage(index));
+        saveTextureData(texture.image(index));
     }
     //@}
 
 private:
     /** VolumePkg read-only flag. */
-    bool _readOnly = true;
+    bool readOnly_ = true;
 
     /** VolumePkg metadata. */
-    volcart::Metadata config;
+    volcart::Metadata config_;
 
     /** Container for slice data. */
     volcart::Volume vol_;
 
     /** The root directory of the VolumePkg. */
-    boost::filesystem::path root_dir;
+    boost::filesystem::path rootDir_;
 
     /** The subdirectory containing Segmentation data. */
-    boost::filesystem::path segs_dir;
+    boost::filesystem::path segsDir_;
 
     /** The subdirectory containing slice data. */
-    boost::filesystem::path slice_dir;
+    boost::filesystem::path sliceDir_;
 
     /** Segmentation ID of the segmentation that is currently being worked on.
      */
-    std::string activeSeg;
+    std::string activeSeg_;
 
     /** The list of all segmentations in the VolumePkg. */
-    std::vector<std::string> segmentations;
+    std::vector<std::string> segmentations_;
 
     /**
      * @brief Populates an empty VolumePkg::config from a volcart::Dictionary
@@ -397,6 +398,6 @@ private:
      * @param version Version number of the passed Dictionary
      * @return volcart::Metadata populated with default keys
      */
-    static volcart::Metadata _initConfig(
+    static volcart::Metadata InitConfig(
         const volcart::Dictionary& dict, int version);
 };

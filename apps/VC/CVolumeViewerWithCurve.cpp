@@ -1,20 +1,23 @@
 // CVolumeViewerWithCurve.cpp
 // Chao Du 2015 April
 #include "CVolumeViewerWithCurve.h"
+
+#include <opencv2/imgproc.hpp>
+
 #include "UDataManipulateUtils.h"
 
 using namespace ChaoVis;
 
 // Constructor
 CVolumeViewerWithCurve::CVolumeViewerWithCurve(void)
-    : fSplineCurveRef(nullptr)
-    , fIntersectionCurveRef(nullptr)
-    , fViewState(EViewState::ViewStateIdle)
-    , fShowCurveBox(nullptr)
+    : fShowCurveBox(nullptr)
     , showCurve(true)
+    , fSplineCurveRef(nullptr)
+    , fIntersectionCurveRef(nullptr)
     , fSelectedPointIndex(-1)
     , fVertexIsChanged(false)
     , fImpactRange(5)
+    , fViewState(EViewState::ViewStateIdle)
 {
     // show curve box
     fShowCurveBox = new QCheckBox(this);
@@ -165,7 +168,7 @@ void CVolumeViewerWithCurve::mouseMoveEvent(QMouseEvent* event)
 
     // Convert to image coordinates and get delta of change
     WidgetLoc2ImgLoc(aWidgetLoc, aImgLoc);
-    Vec2<float> aDelta;
+    Vec2<double> aDelta;
     aDelta[0] = aImgLoc[0] - fLastPos.x();
     aDelta[1] = aImgLoc[1] - fLastPos.y();
 
@@ -181,7 +184,7 @@ void CVolumeViewerWithCurve::mouseMoveEvent(QMouseEvent* event)
 }
 
 // Handle mouse release event
-void CVolumeViewerWithCurve::mouseReleaseEvent(QMouseEvent* event)
+void CVolumeViewerWithCurve::mouseReleaseEvent(QMouseEvent* /*event*/)
 {
     if (fViewState != ViewStateEdit) {
         return;
@@ -198,7 +201,7 @@ void CVolumeViewerWithCurve::mouseReleaseEvent(QMouseEvent* event)
 }
 
 // Handle paint event
-void CVolumeViewerWithCurve::paintEvent(QPaintEvent* event) {}
+void CVolumeViewerWithCurve::paintEvent(QPaintEvent* /*event*/) {}
 
 // Handle setting the draw state for the curve
 void CVolumeViewerWithCurve::OnShowCurveStateChanged(int state)
@@ -220,12 +223,12 @@ void CVolumeViewerWithCurve::WidgetLoc2ImgLoc(
 
     // the image position within its parent, the scroll area
     QPoint aP = fCanvas->pos();
-    QWidget* aCurWidget = (QWidget*)fCanvas->parent();
+    QWidget* aCurWidget = static_cast<QWidget*>(fCanvas->parent());
 
     // the widget loc from the event is relative to this widget, so stop here
     while (aCurWidget != this) {
         aP = aCurWidget->mapToParent(aP);
-        aCurWidget = (QWidget*)(aCurWidget->parent());
+        aCurWidget = static_cast<QWidget*>(aCurWidget->parent());
     }
 
     x -= aP.x();
@@ -243,10 +246,10 @@ void CVolumeViewerWithCurve::WidgetLoc2ImgLoc(
 int CVolumeViewerWithCurve::SelectPointOnCurve(
     const CXCurve* nCurve, const cv::Vec2f& nPt)
 {
-    const float DIST_THRESHOLD = 1.5 * fScaleFactor;
+    const double DIST_THRESHOLD = 1.5 * fScaleFactor;
 
     for (size_t i = 0; i < nCurve->GetPointsNum(); ++i) {
-        if (Norm<float>(Vec2<float>(
+        if (Norm<double>(Vec2<double>(
                 nCurve->GetPoint(i)[0] - nPt[0],
                 nCurve->GetPoint(i)[1] - nPt[1])) < DIST_THRESHOLD) {
             return i;
@@ -261,7 +264,7 @@ void CVolumeViewerWithCurve::DrawIntersectionCurve(void)
     if (fIntersectionCurveRef != nullptr) {
         for (size_t i = 0; i < fIntersectionCurveRef->GetPointsNum(); ++i) {
             cv::circle(
-                fImgMat, cv::Point2f(
+                fImgMat, cv::Point2d(
                              fIntersectionCurveRef->GetPoint(i)[0],
                              fIntersectionCurveRef->GetPoint(i)[1]),
                 1, cv::Scalar(255, 0, 0));

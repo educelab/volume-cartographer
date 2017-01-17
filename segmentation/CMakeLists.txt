@@ -1,66 +1,76 @@
 project(libvc_segmentation VERSION 0.1 LANGUAGES CXX)
+set(module "segmentation")
+set(target "vc_${module}")
 
-set(VC_SEGMENTATION_SRCS
-    src/chain.cpp
-    src/common.cpp
-    src/energymetrics.cpp
-    src/fittedcurve.cpp
-    src/intensitymap.cpp
-    src/localResliceParticleSim.cpp
-    src/particle.cpp
-    src/structureTensorParticleSim.cpp
+set(srcs
+    src/Chain.cpp
+    src/Common.cpp
+    src/EnergyMetrics.cpp
+    src/FittedCurve.cpp
+    src/IntensityMap.cpp
+    src/LocalResliceParticleSim.cpp
+    src/StructureTensorParticleSim.cpp
 )
-set(VC_SEGMENTATION_DEPENDENCIES
-    vc_core
+set(deps
+    VC::core
+    opencv_highgui
 )
 
-add_library(vc_segmentation ${VC_SEGMENTATION_SRCS})
-target_include_directories(vc_segmentation
+add_library(${target} ${srcs})
+add_library("${namespace}${module}" ALIAS "${target}")
+target_include_directories(${target}
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
+        $<INSTALL_INTERFACE:${include_install_dir}>
 )
-# Get rid of annoying warnings
-target_compile_options(vc_segmentation
-    PRIVATE
-        -Wno-c++11-narrowing
+target_compile_options(${target}
+	PUBLIC
+		-Wno-c++11-narrowing
 )
-target_link_libraries(vc_segmentation
+target_link_libraries(${target}
     PUBLIC
-        vc_core
+        ${deps}
+)
+set_target_properties(${target} PROPERTIES
+    VERSION "${PROJECT_VERSION}"
+    EXPORT_NAME "${module}"
 )
 
-install(TARGETS vc_segmentation
-    ARCHIVE DESTINATION lib COMPONENT Libraries
-    LIBRARY DESTINATION lib COMPONENT Libraries
-    RUNTIME DESTINATION bin
+install(
+    TARGETS ${target}
+    EXPORT ${targets_export_name}
+    ARCHIVE DESTINATION "lib"
+    LIBRARY DESTINATION "lib"
+    RUNTIME DESTINATION "bin"
+    INCLUDES DESTINATION "${include_install_dir}/${module}"
 )
-install(DIRECTORY include/ DESTINATION ${VC_INSTALL_INCLUDE_PREFIX} COMPONENT Includes)
-export(TARGETS vc_segmentation FILE VCSegmentation.cmake)
+install(
+    DIRECTORY "include/${module}"
+    DESTINATION "${include_install_dir}"
+    FILES_MATCHING REGEX ".*\.(h|hpp)$"
+)
 
 ### Testing ###
 if(VC_BUILD_TESTS)
-
-# Set source files
-set(VC_SEGMENTATION_TEST_SRCS
-    test/commonTest.cpp
-    test/cubicSplineTest.cpp
-    test/derivativeTest.cpp
-    test/energyMetricsTest.cpp
-    test/fittedCurveTest.cpp
-    test/intensitymapTest.cpp
-    test/localResliceParticleSimTest.cpp
+set(test_srcs
+    test/CommonTest.cpp
+    test/CubicSplineTest.cpp
+    test/DerivativeTest.cpp
+    test/EnergyMetricsTest.cpp
+    test/FittedCurveTest.cpp
+    test/IntensityMapTest.cpp
+    test/LocalResliceParticleSimTest.cpp
 )
 
 # Add a test executable for each src
-foreach(src ${VC_SEGMENTATION_TEST_SRCS})
+foreach(src ${test_srcs})
     get_filename_component(filename ${src} NAME_WE)
     set(testname vc_segmentation_${filename})
     add_executable(${testname} ${src})
     target_link_libraries(${testname}
-        vc_core
-        vc_segmentation
-        vc_testing
+        VC::core
+        VC::segmentation
+        VC::testing
         Boost::unit_test_framework
     )
     add_test(
@@ -77,4 +87,4 @@ file(
     DESTINATION
         ${EXECUTABLE_OUTPUT_PATH}/Testing.volpkg/paths/lrps-test-results
 )
-endif(VC_BUILD_TESTS)
+endif()

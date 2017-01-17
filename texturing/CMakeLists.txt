@@ -1,18 +1,21 @@
 project(libvc_texturing VERSION 0.1 LANGUAGES CXX)
-set(target vc_texturing)
+set(module "texturing")
+set(target "vc_${module}")
 
 set(srcs
-    src/compositeTexture.cpp
-    src/compositeTextureV2.cpp
-    src/simpleUV.cpp
+    src/CompositeTexture.cpp
+    src/CompositeTextureV2.cpp
+    src/SimpleUV.cpp
     src/AngleBasedFlattening.cpp
+    src/PPMGenerator.cpp
+    src/TexturingUtils.cpp
 )
 set(public_deps
-    vc_core
+    VC::core
 )
 set(private_deps
-    vc_meshing
-    vc_external
+    VC::meshing
+    VC::external
 )
 set(defs "")
 
@@ -28,40 +31,49 @@ if (VC_USE_BULLET)
 endif()
 
 add_library(${target} ${srcs})
+add_library("${namespace}${module}" ALIAS "${target}")
 target_compile_definitions(${target} PUBLIC ${defs})
 target_include_directories(${target}
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
+        $<INSTALL_INTERFACE:${include_install_dir}>
 )
 target_link_libraries(${target}
-    PUBLIC
-        ${public_deps}
-    PRIVATE
-        ${private_deps}
+    PUBLIC ${public_deps}
+    PRIVATE ${private_deps}
+)
+set_target_properties(${target} PROPERTIES
+    VERSION "${PROJECT_VERSION}"
+    EXPORT_NAME "${module}"
 )
 
-install(TARGETS ${target}
-    ARCHIVE DESTINATION lib COMPONENT Libraries
-    LIBRARY DESTINATION lib COMPONENT Libraries
-    RUNTIME DESTINATION bin
+install(
+    TARGETS ${target}
+    EXPORT ${targets_export_name}
+    ARCHIVE DESTINATION "lib"
+    LIBRARY DESTINATION "lib"
+    RUNTIME DESTINATION "bin"
+    INCLUDES DESTINATION "${include_install_dir}/${module}"
 )
-install(DIRECTORY include/ DESTINATION ${VC_INSTALL_INCLUDE_PREFIX} COMPONENT Includes)
-export(TARGETS ${target} FILE VCTexturing.cmake)
+install(
+    DIRECTORY "include/${module}"
+    DESTINATION "${include_install_dir}"
+    FILES_MATCHING REGEX ".*\.(h|hpp)$"
+)
 
 ### Testing ###
 if(VC_BUILD_TESTS)
 
 # Set source files
 set(test_srcs
-    test/abfTest.cpp
-    test/simpleUVTest.cpp
+    test/ABFTest.cpp
+    test/SimpleUVTest.cpp
 )
 if (VC_USE_BULLET)
-    list(APPEND test_srcs test/clothTest.cpp)
+    list(APPEND test_srcs test/ClothTest.cpp)
 endif()
 if (VC_USE_LIBIGL)
-    list(APPEND test_srcs test/lscmTest.cpp)
+    list(APPEND test_srcs test/LSCMTest.cpp)
 endif()
 
 # Add a test executable for each src
@@ -70,8 +82,8 @@ foreach(src ${test_srcs})
     set(testname ${target}_${filename})
     add_executable(${testname} ${src})
     target_link_libraries(${testname}
-        vc_texturing
-        vc_testing
+        VC::texturing
+        VC::testing
         Boost::unit_test_framework
         ${public_deps}
     )

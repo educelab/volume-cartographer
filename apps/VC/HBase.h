@@ -57,7 +57,7 @@ inline double SigmoidImpactFunc(
 }
 
 inline double GaussianImpactFunc(
-    double nStartVal, double nCurrentPos, double nRange)
+    double nStartVal, double nCurrentPos, double /*nRange*/)
 {
     return (nStartVal * (pow(M_E, -(nCurrentPos) * (nCurrentPos))));
 }

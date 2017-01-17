@@ -1,25 +1,42 @@
-//
-// Created by Seth Parker on 3/18/16.
-//
-
 #include "core/types/PerPixelMap.h"
+#include "core/types/Exceptions.h"
 
 using namespace volcart;
+namespace fs = boost::filesystem;
 
-///// Constructors /////
-// Empty Map of width x height
-PerPixelMap::PerPixelMap(int height, int width) : _height(height), _width(width)
+constexpr static size_t PPM_ELEMENT_SIZE = 6;
+
+///// Metadata /////
+void PerPixelMap::setDimensions(size_t h, size_t w)
 {
-    _map = cv::Mat_<cv::Vec6d>(height, width, cv::Vec6d(0, 0, 0, 0, 0, 0));
+    height_ = h;
+    width_ = w;
+    initialize_map_();
 }
 
-// Construct map from file
-PerPixelMap::PerPixelMap(boost::filesystem::path path) { read(path); }
+void PerPixelMap::setWidth(size_t w)
+{
+    width_ = w;
+    initialize_map_();
+}
+
+void PerPixelMap::setHeight(size_t h)
+{
+    height_ = h;
+    initialize_map_();
+}
+
+// Initialize map
+void PerPixelMap::initialize_map_()
+{
+    if (height_ > 0 && width_ > 0) {
+        map_ = cv::Mat_<cv::Vec6d>(height_, width_, {0, 0, 0, 0, 0, 0});
+    }
+}
 
 ///// Disk IO /////
-void PerPixelMap::write(boost::filesystem::path path)
+void PerPixelMap::WritePPM(fs::path path, const PerPixelMap& map)
 {
-
     // Ensure proper file extension
     path.replace_extension(".yml.gz");
 
@@ -27,44 +44,46 @@ void PerPixelMap::write(boost::filesystem::path path)
     std::cerr << "volcart::PerPixelMap: Writing to file " << path.filename()
               << std::endl;
     cv::FileStorage fs(path.string(), cv::FileStorage::WRITE);
-    fs << "PerPixelMapping" << _map;
+    fs << "PerPixelMapping" << map.map_;
     fs.release();
 }
 
-void PerPixelMap::read(boost::filesystem::path path)
+PerPixelMap PerPixelMap::ReadPPM(const fs::path& path)
 {
-
     std::cerr << "volcart::PerPixelMap: Reading from file " << path.filename()
               << std::endl;
     cv::FileStorage file(path.string(), cv::FileStorage::READ);
     cv::FileNode map = file["PerPixelMapping"];
+    PerPixelMap ppm;
 
     // Read the header info
-    _height = (int)map["rows"];
-    _width = (int)map["cols"];
+    ppm.height_ = static_cast<int>(map["rows"]);
+    ppm.width_ = static_cast<int>(map["cols"]);
 
-    // Fill the _map from the list of doubles
-    _map = cv::Mat_<cv::Vec6d>(_height, _width, cv::Vec6d(0, 0, 0, 0, 0, 0));
-    cv::Vec6d v;
-    cv::FileNodeIterator dbl = map["data"].begin();
+    // Initialize an empty map
+    ppm.map_ = cv::Mat_<cv::Vec6d>(ppm.height_, ppm.width_, {0, 0, 0, 0, 0, 0});
 
     // Make sure the size is as expected
-    // To-do: Throw exception if they don't match
-    bool matches = map["data"].size() == _height * _width * 6;
+    if (map["data"].size() != ppm.height_ * ppm.width_ * 6) {
+        auto msg = "Header dimensions do not match data dimensions";
+        throw IOException(msg);
+    }
 
-    for (int y = 0; y < _height; ++y) {
-        for (int x = 0; x < _width; ++x) {
+    cv::Vec6d v;
+    auto dbl = map["data"].begin();
+    for (size_t y = 0; y < ppm.height_; ++y) {
+        for (size_t x = 0; x < ppm.width_; ++x) {
 
             // Fill each cv::Vec6d
-            for (int n = 0; n < 6; ++n, ++dbl) {
-                v(n) = (double)(*dbl);
+            for (size_t n = 0; n < PPM_ELEMENT_SIZE; ++n, ++dbl) {
+                v(n) = static_cast<double>(*dbl);
             }
 
             // Assign _map in the correct position
-            _map(y, x) = v;
-
-        }  // x
-    }      // y
+            ppm.map_(y, x) = v;
+        }
+    }
 
     file.release();
+    return ppm;
 }

@@ -11,12 +11,13 @@
 //----------------------------------------------------------------------------------------------------------------------------------------
 
 #include "MyThread.h"
+#include "core/io/OBJWriter.h"
 #include "core/io/PLYReader.h"
-#include "core/io/objWriter.h"
+#include "meshing/ITK2VTK.h"
 
 namespace fs = boost::filesystem;
 
-MyThread::MyThread(Global_Values* globals)
+MyThread::MyThread(GlobalValues* globals)
 {
     _globals = globals;
     _globals->setThreadStatus(ThreadStatus::Active);  // Status Running/Active
@@ -32,34 +33,40 @@ void MyThread::run()
 
         fs::path meshName = _globals->getVolPkg()->getMeshPath();
 
-        volcart::CompositeOption aFilterOption =
-            (volcart::CompositeOption)_globals->getTextureMethod();
-        volcart::DirectionOption aDirectionOption =
-            (volcart::DirectionOption)_globals->getSampleDirection();
+        auto aFilterOption =
+            static_cast<volcart::CompositeOption>(_globals->getTextureMethod());
+        auto aDirectionOption = static_cast<volcart::DirectionOption>(
+            _globals->getSampleDirection());
 
         // declare pointer to new Mesh object
         auto mesh = volcart::ITKMesh::New();
 
         // try to convert the ply to an ITK mesh
-        if (!volcart::io::PLYReader(meshName, mesh)) {
+        volcart::io::PLYReader reader(meshName);
+        try {
+            reader.read();
+            mesh = reader.getMesh();
+        } catch (std::exception e) {
             cloudProblem = true;
-            throw(__EXCEPTIONS);  // Error
-        };
+            std::cerr << e.what() << std::endl;
+            throw;
+        }
 
         // Calculate sampling density
         double voxelsize = _globals->getVolPkg()->getVoxelSize();
-        double sa = volcart::meshMath::SurfaceArea(mesh) *
+        double sa = volcart::meshmath::SurfaceArea(mesh) *
                     (voxelsize * voxelsize) *
                     (0.001 * 0.001);  // convert vx^2 -> mm^2;
         double densityFactor = 50;
-        uint16_t numberOfVertices = std::round(densityFactor * sa);
+        auto numberOfVertices =
+            static_cast<uint16_t>(std::round(densityFactor * sa));
         numberOfVertices = (numberOfVertices < CLEANER_MIN_REQ_POINTS)
                                ? CLEANER_MIN_REQ_POINTS
                                : numberOfVertices;
 
         // Convert to polydata
         auto vtkMesh = vtkSmartPointer<vtkPolyData>::New();
-        volcart::meshing::itk2vtk(mesh, vtkMesh);
+        volcart::meshing::ITK2VTK(mesh, vtkMesh);
 
         // Decimate using ACVD
         std::cout << "Resampling mesh..." << std::endl;
@@ -74,7 +81,7 @@ void MyThread::run()
         Cleaner->Update();
 
         auto itkACVD = volcart::ITKMesh::New();
-        volcart::meshing::vtk2itk(Cleaner->GetOutput(), itkACVD);
+        volcart::meshing::VTK2ITK(Cleaner->GetOutput(), itkACVD);
 
         // ABF flattening
         std::cout << "Computing parameterization..." << std::endl;
@@ -84,10 +91,11 @@ void MyThread::run()
 
         // Get uv map
         volcart::UVMap uvMap = abf.getUVMap();
-        int width = std::ceil(uvMap.ratio().width);
-        int height = std::ceil((double)width / uvMap.ratio().aspect);
+        auto width = static_cast<int>(std::ceil(uvMap.ratio().width));
+        auto height = static_cast<int>(
+            std::ceil(static_cast<double>(width) / uvMap.ratio().aspect));
 
-        volcart::texturing::compositeTextureV2 result(
+        volcart::texturing::CompositeTextureV2 result(
             itkACVD, *_globals->getVolPkg(), uvMap, _radius, width, height,
             aFilterOption, aDirectionOption);
 

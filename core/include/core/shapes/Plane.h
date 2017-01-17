@@ -20,7 +20,7 @@ public:
         double y = 0;
         for (double x = 0; x < width; ++x) {
             for (double z = 0; z < height; ++z) {
-                _add_vertex(x, y, z);
+                addVertex_(x, y, z);
             }
         }
 
@@ -32,15 +32,15 @@ public:
                 v2 = v1 - 1;
                 v3 = v2 - width;
                 v4 = v1 - width;
-                _add_cell(v1, v2, v3);
-                _add_cell(v1, v3, v4);
+                addCell_(v1, v2, v3);
+                addCell_(v1, v3, v4);
             }
         }
 
         // Set this as an ordered mesh
-        _orderedPoints = true;
-        _orderedWidth = width;
-        _orderedHeight = height;
+        orderedPoints_ = true;
+        orderedWidth_ = width;
+        orderedHeight_ = height;
 
     }  // Constructor
 

@@ -4,7 +4,7 @@
 
 namespace fs = boost::filesystem;
 
-int main(int argc, char** argv)
+int main(int /*argc*/, char** argv)
 {
     auto volpkgPath = fs::path(argv[1]);
     auto segID = std::string(argv[2]);

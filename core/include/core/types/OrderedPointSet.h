@@ -3,31 +3,33 @@
 #include <cassert>
 #include <iostream>
 #include <stdexcept>
+
 #include "core/types/Exceptions.h"
 #include "core/types/PointSet.h"
 
 namespace volcart
 {
+
 template <typename T>
 class OrderedPointSet : public PointSet<T>
 {
 public:
     using BaseClass = PointSet<T>;
     using BaseClass::BaseClass;
-    using BaseClass::_data;
+    using BaseClass::data_;
 
     // Could use a better way to determine the multiplier
     constexpr static size_t CAPACITY_MULTIPLIER = 20;
 
-    explicit OrderedPointSet() : BaseClass(), _width(0) {}
-    explicit OrderedPointSet(size_t width) : BaseClass(), _width(width)
+    explicit OrderedPointSet() : BaseClass(), width_(0) {}
+    explicit OrderedPointSet(size_t width) : BaseClass(), width_(width)
     {
-        _data.reserve(_width * CAPACITY_MULTIPLIER);
+        data_.reserve(width_ * CAPACITY_MULTIPLIER);
     }
     explicit OrderedPointSet(size_t width, T initVal)
-        : BaseClass(), _width(width)
+        : BaseClass(), width_(width)
     {
-        _data.assign(_width * CAPACITY_MULTIPLIER, initVal);
+        data_.assign(width_ * CAPACITY_MULTIPLIER, initVal);
     }
 
     // Fill static method
@@ -46,50 +48,50 @@ public:
     // NOTE: x, then y
     const T& operator()(size_t x, size_t y) const
     {
-        assert(x < _width && "x out of range");
-        assert(y * _width + x < _data.size() && "(x, y) out of range");
-        return _data[y * _width + x];
+        assert(x < width_ && "x out of range");
+        assert(y * width_ + x < data_.size() && "(x, y) out of range");
+        return data_[y * width_ + x];
     }
     T& operator()(size_t x, size_t y)
     {
-        assert(x < _width && "x out of range");
-        assert(y * _width + x < _data.size() && "(x, y) out of range");
-        return _data[y * _width + x];
+        assert(x < width_ && "x out of range");
+        assert(y * width_ + x < data_.size() && "(x, y) out of range");
+        return data_[y * width_ + x];
     }
-    size_t width() const { return _width; }
+    size_t width() const { return width_; }
 
-    // _data.size() should be a perfect multiple of _width, so this should
+    // data_.size() should be a perfect multiple of width_, so this should
     // return a whole integer
-    size_t height() const { return (_width == 0 ? 0 : this->size() / _width); }
+    size_t height() const { return (width_ == 0 ? 0 : this->size() / width_); }
 
     // Resize the width
     void setWidth(size_t width)
     {
-        if (_width != 0) {
+        if (width_ != 0) {
             auto msg = "Cannot change width if already set";
             throw std::logic_error(msg);
         }
-        _width = width;
+        width_ = width;
     }
 
     void reset()
     {
-        _width = 0;
+        width_ = 0;
         this->clear();
     }
 
     // Push a row of points to the OrderedPointSet
     void pushRow(const std::vector<T>& points)
     {
-        assert(points.size() == _width && "row incorrect size");
+        assert(points.size() == width_ && "row incorrect size");
         std::copy(
-            std::begin(points), std::end(points), std::back_inserter(_data));
+            std::begin(points), std::end(points), std::back_inserter(data_));
     }
     void pushRow(std::vector<T>&& points)
     {
-        assert(points.size() == _width && "row incorrect size");
+        assert(points.size() == width_ && "row incorrect size");
         std::copy(
-            std::begin(points), std::end(points), std::back_inserter(_data));
+            std::begin(points), std::end(points), std::back_inserter(data_));
     }
 
     // Not implemented for this class
@@ -101,12 +103,12 @@ public:
     void append(const OrderedPointSet<T>& ps)
     {
         // ps must be same width as this pointset
-        if (_width != ps.width()) {
+        if (width_ != ps.width()) {
             auto msg = "Cannot append pointset with different width";
             throw std::logic_error(msg);
         }
 
-        std::copy(std::begin(ps), std::end(ps), std::back_inserter(_data));
+        std::copy(std::begin(ps), std::end(ps), std::back_inserter(data_));
     }
 
     // Get a particular row
@@ -115,10 +117,10 @@ public:
         if (i >= this->height()) {
             throw std::range_error("out of range");
         }
-        std::vector<T> row(_width);
+        std::vector<T> row(width_);
         std::copy(
-            std::begin(_data) + _width * i,
-            std::begin(_data) + _width * (i + 1), std::begin(row));
+            std::begin(data_) + width_ * i,
+            std::begin(data_) + width_ * (i + 1), std::begin(row));
         return row;
     }
 
@@ -130,15 +132,15 @@ public:
         } else if (i > j) {
             throw std::logic_error("i must be less than j");
         }
-        OrderedPointSet ps(_width);
+        OrderedPointSet ps(width_);
         std::copy(
-            std::begin(_data) + _width * i,
-            std::begin(_data) + _width * (j + 1),
+            std::begin(data_) + width_ * i,
+            std::begin(data_) + width_ * (j + 1),
             std::back_inserter(ps.data()));
         return ps;
     }
 
 private:
-    size_t _width;
+    size_t width_;
 };
-}
+}  // namespace volcart

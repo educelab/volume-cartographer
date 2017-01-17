@@ -16,7 +16,7 @@
   for each unique version of VolumePkg.
 
   @newline
-  volcart::VersionLibrary holds the metadata keys and expected value-types for
+  volcart::VERSION_LIBRARY holds the metadata keys and expected value-types for
   every version of VolumePkg. When creating a new VolumePkg, these dictionaries
   are used to define the default keys that populate the JSON file. In the
   future, applications that use VolumePkg will be able to query the Library in
@@ -36,10 +36,15 @@ namespace volcart
 {
 
 /**
+ * Types stored in `Dictionaries`
+ */
+enum class Type { STRING, INT, DOUBLE };
+
+/**
  * Holds a set of key-value pairs that map JSON metadata keys to the expected
  * type of the value. A template for the structure of a VolumePkg's metadata.
  */
-using Dictionary = std::unordered_map<std::string, std::string>;
+using Dictionary = std::unordered_map<std::string, Type>;
 
 /**
  * Holds a set of key-value pairs that map version number keys to a specific
@@ -49,52 +54,52 @@ using Library = std::unordered_map<int, Dictionary>;
 
 // clang-format off
 /** Metadata dictionary for VolumePkg v1. */
-const Dictionary _1 =
+const Dictionary V1 =
         {
-        {"volumepkg name",   "string"},
-        {"version",          "int"},
-        {"width",            "int"},
-        {"height",           "int"},
-        {"number of slices", "int"},
-        {"slice location",   "string"},
-        {"min",              "double"},
-        {"max",              "double"},
-        {"voxelsize",        "double"}
+        {"volumepkg name",   Type::STRING},
+        {"version",          Type::INT},
+        {"width",            Type::INT},
+        {"height",           Type::INT},
+        {"number of slices", Type::INT},
+        {"slice location",   Type::STRING},
+        {"min",              Type::DOUBLE},
+        {"max",              Type::DOUBLE},
+        {"voxelsize",        Type::DOUBLE}
         };
 
 /** Metadata dictionary for VolumePkg v2. */
-const Dictionary _2 =
+const Dictionary V2 =
         {
-        {"volumepkg name",   "string"},
-        {"version",          "int"},
-        {"width",            "int"},
-        {"height",           "int"},
-        {"number of slices", "int"},
-        {"slice location",   "string"},
-        {"min",              "double"},
-        {"max",              "double"},
-        {"voxelsize",        "double"},
-        {"materialthickness","double"}
+        {"volumepkg name",   Type::STRING},
+        {"version",          Type::INT},
+        {"width",            Type::INT},
+        {"height",           Type::INT},
+        {"number of slices", Type::INT},
+        {"slice location",   Type::STRING},
+        {"min",              Type::DOUBLE},
+        {"max",              Type::DOUBLE},
+        {"voxelsize",        Type::DOUBLE},
+        {"materialthickness",Type::DOUBLE}
         };
 
 /** Metadata dictionary for VolumePkg v3. */
-const Dictionary _3 =
+const Dictionary V3 =
         {
-        {"volumepkg name",   "string"},
-        {"version",          "int"},
-        {"width",            "int"},
-        {"height",           "int"},
-        {"number of slices", "int"},
-        {"slice location",   "string"},
-        {"min",              "double"},
-        {"max",              "double"},
-        {"voxelsize",        "double"},
-        {"materialthickness","double"}
+        {"volumepkg name",   Type::STRING},
+        {"version",          Type::INT},
+        {"width",            Type::INT},
+        {"height",           Type::INT},
+        {"number of slices", Type::INT},
+        {"slice location",   Type::STRING},
+        {"min",              Type::DOUBLE},
+        {"max",              Type::DOUBLE},
+        {"voxelsize",        Type::DOUBLE},
+        {"materialthickness",Type::DOUBLE}
         };
 // clang-format on
 
 /**
  * Global Library used to store all template Dictionaries.
  */
-const Library VersionLibrary = {{1, _1}, {2, _2}, {3, _3}};
-}  // namespace volcart
+const Library VERSION_LIBRARY = {{1, V1}, {2, V2}, {3, V3}};
+}

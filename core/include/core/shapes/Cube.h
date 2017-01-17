@@ -3,9 +3,7 @@
 //
 #pragma once
 
-#include <math.h>
-
-#include <opencv2/opencv.hpp>
+#include <cmath>
 
 #include "core/shapes/ShapePrimitive.h"
 #include "core/vc_defines.h"
@@ -21,33 +19,33 @@ public:
     {
 
         // generate the 8 vertices
-        _add_vertex(0, 0, 0);
-        _add_vertex(0, 5, 0);
-        _add_vertex(5, 5, 0);
-        _add_vertex(5, 0, 0);
+        addVertex_(0, 0, 0);
+        addVertex_(0, 5, 0);
+        addVertex_(5, 5, 0);
+        addVertex_(5, 0, 0);
 
-        _add_vertex(0, 0, 5);
-        _add_vertex(0, 5, 5);
-        _add_vertex(5, 5, 5);
-        _add_vertex(5, 0, 5);
+        addVertex_(0, 0, 5);
+        addVertex_(0, 5, 5);
+        addVertex_(5, 5, 5);
+        addVertex_(5, 0, 5);
 
         // generate the 12 cells for faces
 
-        _add_cell(0, 1, 2);
-        _add_cell(0, 1, 5);
-        _add_cell(0, 2, 3);
-        _add_cell(0, 3, 4);
-        _add_cell(0, 4, 5);
-        _add_cell(1, 2, 6);
-        _add_cell(1, 5, 6);
-        _add_cell(2, 3, 7);
-        _add_cell(2, 6, 7);
-        _add_cell(3, 4, 7);
-        _add_cell(4, 5, 7);
-        _add_cell(5, 6, 7);
+        addCell_(0, 1, 2);
+        addCell_(0, 1, 5);
+        addCell_(0, 2, 3);
+        addCell_(0, 3, 4);
+        addCell_(0, 4, 5);
+        addCell_(1, 2, 6);
+        addCell_(1, 5, 6);
+        addCell_(2, 3, 7);
+        addCell_(2, 6, 7);
+        addCell_(3, 4, 7);
+        addCell_(4, 5, 7);
+        addCell_(5, 6, 7);
 
-        _orderedPoints = false;
-        _orderedWidth = _orderedHeight = 0;
+        orderedPoints_ = false;
+        orderedWidth_ = orderedHeight_ = 0;
 
     }  // Constructor
 

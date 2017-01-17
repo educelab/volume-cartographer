@@ -1,27 +1,28 @@
 // CWindow.cpp
 // Chao Du 2014 Dec
 #include "CWindow.h"
+
+#include <opencv2/imgproc.hpp>
+
 #include "CVolumeViewerWithCurve.h"
 #include "UDataManipulateUtils.h"
 #include "core/types/Exceptions.h"
 #include "meshing/OrderedPointSetMesher.h"
 
-#define _DEBUG
-
 using namespace ChaoVis;
 
 // Constructor
 CWindow::CWindow(void)
-    : fVpkg(nullptr)
+    : fWindowState(EWindowState::WindowStateIdle)
+    , fVpkg(nullptr)
+    , fSegmentationId("")
+    , fMinSegIndex(VOLPKG_SLICE_MIN_INDEX)
+    , fMaxSegIndex(VOLPKG_SLICE_MIN_INDEX)
     , fPathOnSliceIndex(0)
     , fVolumeViewerWidget(nullptr)
     , fPathListWidget(nullptr)
     , fPenTool(nullptr)
     , fSegTool(nullptr)
-    , fWindowState(EWindowState::WindowStateIdle)
-    , fSegmentationId("")
-    , fMinSegIndex(VOLPKG_SLICE_MIN_INDEX)
-    , fMaxSegIndex(VOLPKG_SLICE_MIN_INDEX)
 {
     ui.setupUi(this);
 
@@ -55,16 +56,16 @@ CWindow::CWindow(void)
 
 // Constructor with QRect windowSize
 CWindow::CWindow(QRect windowSize)
-    : fVpkg(nullptr)
+    : fWindowState(EWindowState::WindowStateIdle)
+    , fVpkg(nullptr)
+    , fSegmentationId("")
+    , fMinSegIndex(VOLPKG_SLICE_MIN_INDEX)
+    , fMaxSegIndex(VOLPKG_SLICE_MIN_INDEX)
     , fPathOnSliceIndex(0)
     , fVolumeViewerWidget(nullptr)
     , fPathListWidget(nullptr)
     , fPenTool(nullptr)
     , fSegTool(nullptr)
-    , fWindowState(EWindowState::WindowStateIdle)
-    , fSegmentationId("")
-    , fMinSegIndex(VOLPKG_SLICE_MIN_INDEX)
-    , fMaxSegIndex(VOLPKG_SLICE_MIN_INDEX)
 {
     ui.setupUi(this);
 
@@ -110,7 +111,7 @@ CWindow::CWindow(QRect windowSize)
 CWindow::~CWindow(void) { deleteNULL(fVpkg); }
 
 // Handle mouse press event
-void CWindow::mousePressEvent(QMouseEvent* nEvent) {}
+void CWindow::mousePressEvent(QMouseEvent* /*nEvent*/) {}
 
 // Handle key press event
 void CWindow::keyPressEvent(QKeyEvent* event)
@@ -222,12 +223,12 @@ void CWindow::CreateWidgets(void)
         aBtnStartSeg, SIGNAL(clicked()), this, SLOT(OnBtnStartSegClicked()));
 
     // Impact Range slider
-    QSlider* fEdtImpactRange = this->findChild<QSlider*>("sldImpactRange");
+    QSlider* fEdtImpactRng = this->findChild<QSlider*>("sldImpactRange");
     connect(
-        fEdtImpactRange, SIGNAL(valueChanged(int)), this,
+        fEdtImpactRng, SIGNAL(valueChanged(int)), this,
         SLOT(OnEdtImpactRange(int)));
     fLabImpactRange = this->findChild<QLabel*>("labImpactRange");
-    fLabImpactRange->setText(QString::number(fEdtImpactRange->value()));
+    fLabImpactRange->setText(QString::number(fEdtImpactRng->value()));
 
     // Setup the _status bar
     statusBar = this->findChild<QStatusBar*>("statusBar");
@@ -450,8 +451,7 @@ void CWindow::SplitCloud(void)
     if (fPathOnSliceIndex > fMinSegIndex) {
         fUpperPart = fMasterCloud.copyRows(0, pathIndex - 1);
     } else {
-        fUpperPart =
-            volcart::OrderedPointSet<volcart::Point3d>(fMasterCloud.width());
+        fUpperPart = volcart::OrderedPointSet<cv::Vec3d>(fMasterCloud.width());
     }
 
     // Lower part, the starting path
@@ -461,7 +461,7 @@ void CWindow::SplitCloud(void)
     fStartingPath.erase(
         std::remove_if(
             std::begin(fStartingPath), std::end(fStartingPath),
-            [](volcart::Point3d e) { return e[2] == -1; }),
+            [](auto e) { return e[2] == -1; }),
         std::end(fStartingPath));
 
     // Make sure the sizes match now
@@ -597,20 +597,21 @@ void CWindow::SetUpCurves(void)
     if (fMasterCloud.empty()) {
         minIndex = maxIndex = fPathOnSliceIndex;
     } else {
-        minIndex = floor(fMasterCloud[0][2]);
-        maxIndex = floor(fMasterCloud.max()[2]);
+        minIndex = static_cast<int>(floor(fMasterCloud[0][2]));
+        maxIndex = static_cast<int>(floor(fMasterCloud.max()[2]));
     }
 
     fMinSegIndex = minIndex;
     fMaxSegIndex = maxIndex;
 
     // assign rows of particles to the curves
-    for (int i = 0; i < fMasterCloud.height(); ++i) {
+    for (size_t i = 0; i < fMasterCloud.height(); ++i) {
         CXCurve aCurve;
-        for (int j = 0; j < fMasterCloud.width(); ++j) {
+        for (size_t j = 0; j < fMasterCloud.width(); ++j) {
             int pointIndex = j + (i * fMasterCloud.width());
-            aCurve.SetSliceIndex((int)floor(fMasterCloud[pointIndex][2]));
-            aCurve.InsertPoint(Vec2<float>(
+            aCurve.SetSliceIndex(
+                static_cast<int>(floor(fMasterCloud[pointIndex][2])));
+            aCurve.InsertPoint(Vec2<double>(
                 fMasterCloud[pointIndex][0], fMasterCloud[pointIndex][1]));
         }
         fIntersections.push_back(aCurve);
@@ -621,7 +622,8 @@ void CWindow::SetUpCurves(void)
 void CWindow::SetCurrentCurve(int nCurrentSliceIndex)
 {
     int curveIndex = nCurrentSliceIndex - fMinSegIndex;
-    if (curveIndex >= 0 && curveIndex < fIntersections.size() &&
+    if (curveIndex >= 0 &&
+        curveIndex < static_cast<int>(fIntersections.size()) &&
         fIntersections.size() != 0) {
         fIntersectionCurve = fIntersections[curveIndex];
     } else {
@@ -637,7 +639,7 @@ void CWindow::OpenSlice(void)
     if (fVpkg != nullptr) {
         aImgMat = fVpkg->volume().getSliceDataCopy(fPathOnSliceIndex);
         aImgMat.convertTo(aImgMat, CV_8UC3, 1.0 / 256.0);
-        cvtColor(aImgMat, aImgMat, CV_GRAY2BGR);
+        cvtColor(aImgMat, aImgMat, cv::COLOR_GRAY2BGR);
     } else
         aImgMat = cv::Mat::zeros(10, 10, CV_8UC3);
 
@@ -667,9 +669,9 @@ void CWindow::SetPathPointCloud(void)
     std::vector<cv::Vec2f> aSamplePts;
     fSplineCurve.GetSamplePoints(aSamplePts);
 
-    volcart::Point3d point;
+    cv::Vec3d point;
     fMasterCloud.setWidth(aSamplePts.size());
-    std::vector<volcart::Point3d> points;
+    std::vector<cv::Vec3d> points;
     for (size_t i = 0; i < aSamplePts.size(); ++i) {
         point[0] = aSamplePts[i][0];
         point[1] = aSamplePts[i][1];
@@ -678,7 +680,7 @@ void CWindow::SetPathPointCloud(void)
     }
     fMasterCloud.pushRow(points);
 
-    fMinSegIndex = floor(fMasterCloud[0][2]);
+    fMinSegIndex = static_cast<int>(floor(fMasterCloud[0][2]));
     fMaxSegIndex = fMinSegIndex;
 }
 
@@ -732,8 +734,8 @@ void CWindow::OpenVolume(void)
 
     fVpkgPath = aVpkgPath;
     fPathOnSliceIndex = 0;
-    fSegParams.fWindowWidth =
-        std::ceil(fVpkg->getMaterialThickness() / fVpkg->getVoxelSize());
+    fSegParams.fWindowWidth = static_cast<int>(
+        std::ceil(fVpkg->getMaterialThickness() / fVpkg->getVoxelSize()));
 }
 
 void CWindow::CloseVolume(void)
@@ -1033,7 +1035,7 @@ void CWindow::OnEdtSampleDistValChange( QString nText )
 */
 
 // Handle starting slice value change
-void CWindow::OnEdtStartingSliceValChange(QString nText)
+void CWindow::OnEdtStartingSliceValChange(QString /*nText*/)
 {
     // REVISIT - FILL ME HERE
     // REVISIT - should be equivalent to "set current slice", the same as
@@ -1118,7 +1120,7 @@ void CWindow::OnPathChanged(void)
     if (fWindowState == EWindowState::WindowStateSegmentation) {
         // update current slice
         fStartingPath.clear();
-        volcart::Point3d tempPt;
+        cv::Vec3d tempPt;
         for (size_t i = 0; i < fIntersectionCurve.GetPointsNum(); ++i) {
             tempPt[0] = fIntersectionCurve.GetPoint(i)[0];
             tempPt[1] = fIntersectionCurve.GetPoint(i)[1];

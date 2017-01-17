@@ -2,6 +2,8 @@
 // Chao Du 2015 April
 #include "CBSpline.h"
 
+#include <opencv2/imgproc.hpp>
+
 #include "CMatrixMN.h"
 #include "UVecMatOperations.h"
 
@@ -109,7 +111,7 @@ void CBSpline::UpdateCurve(void)
 
     // solve for control points for each Bezier curve segment
     // # of unknowns = # of curve segments = # of control points - 1
-    int aNumUnknowns = (int)fControlPoints.size() - 1;
+    int aNumUnknowns = static_cast<int>(fControlPoints.size()) - 1;
     CVectorN<double> aX(aNumUnknowns), aY(aNumUnknowns), aB(aNumUnknowns);
     CMatrixMN<double> aA = Zero<double>(aNumUnknowns, aNumUnknowns);
 
@@ -194,8 +196,8 @@ void CBSpline::DrawOnImage(cv::Mat& nImg, const cv::Scalar& nColor)
 {
     // Handle drawing curves with only 2 points
     if (fControlPoints.size() == 2) {
-        cv::Point2f start(fControlPoints[0][0], fControlPoints[0][1]);
-        cv::Point2f end(fControlPoints[1][0], fControlPoints[1][1]);
+        cv::Point2d start(fControlPoints[0][0], fControlPoints[0][1]);
+        cv::Point2d end(fControlPoints[1][0], fControlPoints[1][1]);
         cv::line(nImg, start, end, nColor);
         return;
     }

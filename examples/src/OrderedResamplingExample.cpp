@@ -4,16 +4,15 @@
 
 #include <iostream>
 
-#include "core/io/objWriter.h"
+#include "core/io/OBJWriter.h"
 #include "core/shapes/Arch.h"
 #include "core/shapes/Plane.h"
 #include "core/vc_defines.h"
 #include "meshing/OrderedResampling.h"
 
-int main(int argc, char* argv[])
+int main()
 {
-
-    volcart::io::objWriter writer;
+    volcart::io::OBJWriter writer;
 
     volcart::shapes::Plane plane(10, 10);
     int width = plane.orderedWidth();
@@ -39,4 +38,4 @@ int main(int argc, char* argv[])
     writer.write();
 
     return EXIT_SUCCESS;
-}  // main
+}

@@ -1,5 +1,6 @@
 project(libvc_core VERSION 0.1 LANGUAGES CXX)
-set(target vc_core)
+set(module "core")
+set(target "vc_${module}")
 
 set(srcs
     src/HalfEdgeMesh.cpp
@@ -11,60 +12,70 @@ set(srcs
     src/Sphere.cpp
     src/Texture.cpp
     src/Volume.cpp
-    src/getMemorySize.cpp
-    src/meshMath.cpp
-    src/objWriter.cpp
+    src/GetMemorySize.cpp
+    src/MeshMath.cpp
+    src/OBJWriter.cpp
     src/PLYReader.cpp
-    src/plyWriter.cpp
+    src/PLYWriter.cpp
     src/VolumePkg.cpp
 )
 
 add_library(${target} ${srcs})
+add_library("${namespace}${module}" ALIAS "${target}")
 target_include_directories(${target}
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
+        $<INSTALL_INTERFACE:${include_install_dir}>
 )
 target_link_libraries(${target}
     PUBLIC
         Boost::filesystem
         opencv_core
-        opencv_highgui
         opencv_imgproc
+        opencv_imgcodecs
         ITKCommon
         ITKMesh
         ITKQuadEdgeMesh
         vtkCommonDataModel
         vtkCommonCore
         vtkIOLegacy
-        vc_external
+        VC::external
+)
+set_target_properties(${target} PROPERTIES
+    VERSION "${PROJECT_VERSION}"
+    EXPORT_NAME "${module}"
 )
 
-install(TARGETS ${target}
-    ARCHIVE DESTINATION lib COMPONENT Libraries
-    LIBRARY DESTINATION lib COMPONENT Libraries
-    RUNTIME DESTINATION bin
+install(
+    TARGETS "${target}"
+    EXPORT "${targets_export_name}"
+    ARCHIVE DESTINATION "lib"
+    LIBRARY DESTINATION "lib"
+    INCLUDES DESTINATION "${include_install_dir}/${module}"
+    RUNTIME DESTINATION "bin"
 )
-install(DIRECTORY include/ DESTINATION ${VC_INSTALL_INCLUDE_PREFIX} COMPONENT Includes)
-export(TARGETS ${target} FILE VCCommon.cmake)
+install(
+    DIRECTORY "include/${module}"
+    DESTINATION "${include_install_dir}"
+    FILES_MATCHING REGEX ".*\.(h|hpp)$"
+)
 
 ### Testing ###
 if(VC_BUILD_TESTS)
-
-# Set source files
 set(test_srcs
     test/LRUCacheTest.cpp
-    test/ObjWriterTest.cpp
+    test/OBJWriterTest.cpp
     test/MetadataTest.cpp
     test/TextureTest.cpp
     test/UVMapTest.cpp
-    test/plyWriterTest.cpp
+    test/PLYWriterTest.cpp
     test/PointSetTest.cpp
     test/PointSetIOTest.cpp
     test/OrderedPointSetTest.cpp
     test/OrderedPointSetIOTest.cpp
-    test/PointTest.cpp
+    test/PLYReaderTest.cpp
     test/FloatComparisonTest.cpp
+    test/PerPixelMapTest.cpp
 )
 
 # Add a test executable for each src
@@ -73,13 +84,9 @@ foreach(src ${test_srcs})
     set(testname ${target}_${filename})
     add_executable(${testname} ${src})
     target_link_libraries(${testname}
-        vc_core
-        vc_testing
+        VC::core
+        VC::testing
         Boost::unit_test_framework
-    )
-    target_compile_options(${testname}
-        PUBLIC
-            -Wno-c++11-narrowing
     )
     add_test(
         NAME ${testname}
@@ -98,5 +105,4 @@ set(COMMON_TEST_RES
 foreach(r ${COMMON_TEST_RES})
     file(COPY ${r} DESTINATION ${EXECUTABLE_OUTPUT_PATH})
 endforeach()
-
-endif(VC_BUILD_TESTS)
+endif()

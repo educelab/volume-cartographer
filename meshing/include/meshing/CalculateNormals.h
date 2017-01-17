@@ -1,9 +1,11 @@
 #pragma once
 
 #include <iostream>
-#include <opencv2/opencv.hpp>
+
+#include <opencv2/core.hpp>
 
 #include "core/vc_defines.h"
+#include "meshing/DeepCopy.h"
 
 namespace volcart
 {
@@ -26,12 +28,16 @@ class CalculateNormals
 public:
     //** @name Constructors */
     //@{
-    CalculateNormals();
+    CalculateNormals() {}
 
     /**
      * @param mesh Input Mesh whose normals you want computed
      */
-    CalculateNormals(ITKMesh::Pointer mesh);
+    explicit CalculateNormals(ITKMesh::Pointer mesh)
+        : input_{mesh}, output_{ITKMesh::New()}
+    {
+        DeepCopy(input_, output_);
+    }
     //@}
 
     //** @name Input/Output */
@@ -40,12 +46,12 @@ public:
      * @brief Set the input mesh.
      * @param mesh The mesh for which normals will be calculated
      */
-    void setMesh(ITKMesh::Pointer mesh);
+    void setMesh(const ITKMesh::Pointer& mesh);
 
     /**
      * @brief Get the output mesh with computed normals
      */
-    ITKMesh::Pointer getMesh() const;
+    ITKMesh::Pointer getMesh() const { return output_; }
     //@}
 
     /**
@@ -60,7 +66,7 @@ private:
      * For each face, computes the normal to that face and adds the resulting
      * vector to a sum vector for each vertex in that face.
      */
-    void _computeNormals();
+    void compute_normals_();
 
     /**
      * @brief Assign the summed normals to the output mesh.
@@ -68,16 +74,16 @@ private:
      * Takes the summed normals for each vertex and assigns them to the
      * corresponding vertex in the output mesh.
      */
-    void _assignToMesh();
+    void assign_to_mesh_();
 
     /** Mesh for which normals will be calculated. */
-    ITKMesh::Pointer _input;
+    ITKMesh::Pointer input_;
 
     /** Mesh with calculated normals. */
-    ITKMesh::Pointer _output;
+    ITKMesh::Pointer output_;
 
     /** Storage for summed normals, organized by vertex ID */
-    std::vector<cv::Vec3d> _vertex_normals;
+    std::vector<cv::Vec3d> vertexNormals_;
 };
-}  // meshing
-}  // volcart
+}
+}

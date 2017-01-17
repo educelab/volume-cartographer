@@ -13,21 +13,33 @@
 #include <exception>
 #include <iostream>
 #include <memory>
+
 #include <itkQuadEdgeMeshBoundaryEdgesMeshFunction.h>
-#include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
 
 #include "core/types/HalfEdgeMesh.h"
 #include "core/types/UVMap.h"
 #include "core/vc_defines.h"
 
+/*
+ * Switch to this when we validate that it does the same as the macro
+template <typename T>
+void Shift3(T& a, T& b, T& c)
+{
+    T tmp = a;
+    a = c;
+    c = b;
+    b = tmp;
+}
+*/
 // This is terrible but it'll work for now - SP
 #define SHIFT3(type, a, b, c) \
     {                         \
         type tmp;             \
         tmp = a;              \
-        a = c;                \
-        c = b;                \
-        b = tmp;              \
+        (a) = c;              \
+        (c) = b;              \
+        (b) = tmp;            \
     }
 
 namespace volcart
@@ -39,20 +51,29 @@ class AngleBasedFlattening
 {
 public:
     ///// Constructors/Destructors /////
-    AngleBasedFlattening();
-    AngleBasedFlattening(ITKMesh::Pointer mesh);
+    AngleBasedFlattening()
+        : useABF_{true}, maxABFIterations_{DEFAULT_MAX_ABF_ITERATIONS}
+    {
+    }
+
+    explicit AngleBasedFlattening(ITKMesh::Pointer mesh)
+        : useABF_{true}
+        , maxABFIterations_{DEFAULT_MAX_ABF_ITERATIONS}
+        , mesh_{mesh}
+    {
+    }
 
     ///// Access Functions /////
     // Set inputs
-    void setMesh(ITKMesh::Pointer mesh);
+    void setMesh(const ITKMesh::Pointer& mesh) { mesh_ = mesh; }
 
     // Get outputs
     ITKMesh::Pointer getMesh();
     volcart::UVMap getUVMap();
 
     ///// Parameters /////
-    void setUseABF(bool a);
-    void setABFMaxIterations(int i);
+    void setUseABF(bool a) { useABF_ = a; }
+    void setABFMaxIterations(int i) { maxABFIterations_ = i; }
 
     ///// Process /////
     void compute();
@@ -62,50 +83,55 @@ public:
 
 private:
     ///// Setup /////
-    void _fillHalfEdgeMesh();
+    void fill_half_edge_mesh_();
 
     ///// Solve - ABF /////
-    void _solve_abf();
-    void _scale();
+    void solve_abf_();
+    void scale_();
 
-    void _computeSines();
-    double _computeGradient();
-    double _computeGradientAlpha(HalfEdgeMesh::EdgePtr e0);
-    double _computeSinProduct(HalfEdgeMesh::VertPtr v);
-    double _computeSinProduct(
-        HalfEdgeMesh::VertPtr v, HalfEdgeMesh::IDType a_id);
-    bool _invertMatrix();
+    void compute_sines_();
+    double compute_gradient_();
+    double compute_gradient_alpha_(const HalfEdgeMesh::EdgePtr& e0)
+    {
+        return std::pow(e0->angle->alpha - e0->angle->phi, 2) *
+               e0->angle->weight;
+    }
+    double compute_sin_product_(const HalfEdgeMesh::VertPtr& v);
+    double compute_sin_product_(
+        const HalfEdgeMesh::VertPtr& v, HalfEdgeMesh::IDType aId);
+    bool invert_matrix_();
 
     // Parameters
-    bool _useABF;  // If false, only compute LSCM parameterization [default:
+    bool useABF_;  // If false, only compute LSCM parameterization [default:
                    // true]
-    int _maxABFIterations;  // Max number of iterations
-    double _limit;          // Minimization limit
+    int maxABFIterations_;  // Max number of iterations
+    double limit_;          // Minimization limit
 
     ///// LSCM Loop /////
-    void _solve_lscm();
+    void solve_lscm_();
 
     ///// Helper Functions - LSCM /////
-    std::pair<HalfEdgeMesh::IDType, HalfEdgeMesh::IDType> _getMinMaxPointIDs();
-    std::pair<HalfEdgeMesh::IDType, HalfEdgeMesh::IDType> _getMinZPointIDs();
-    void _computePinUV();
+    std::pair<HalfEdgeMesh::IDType, HalfEdgeMesh::IDType>
+    get_min_max_point_ids_();
+    std::pair<HalfEdgeMesh::IDType, HalfEdgeMesh::IDType>
+    get_min_z_point_ids_();
+    void compute_pin_uv_();
 
     ///// Storage /////
-    ITKMesh::Pointer _mesh;  // input mesh
-    HalfEdgeMesh _heMesh;    // half-edge mesh for processing
+    ITKMesh::Pointer mesh_;  // input mesh
+    HalfEdgeMesh heMesh_;    // half-edge mesh for processing
 
     // Interior Vertices
     // < id in quadMesh, id in list >
     std::map<volcart::QuadPointIdentifier, volcart::QuadPointIdentifier>
-        _interior;
+        interior_;
 
-    std::vector<double> _bInterior;
-    cv::Mat _J2dt;
+    std::vector<double> bInterior_;
+    cv::Mat j2dt_;
 
     // Pinned Point IDs
-    HalfEdgeMesh::IDType _pin0;
-    HalfEdgeMesh::IDType _pin1;
+    HalfEdgeMesh::IDType pin0_;
+    HalfEdgeMesh::IDType pin1_;
 };
-
-}  // texturing
-}  // volcart
+}
+}

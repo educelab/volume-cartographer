@@ -23,16 +23,17 @@ public:
     using TPair = typename std::pair<TKey, TValue>;
     using TListIterator = typename std::list<TPair>::iterator;
 
-    LRUCache() : capacity_(kDefaultCapacity) {}
-    LRUCache(const int64_t capacity) : capacity_(capacity) {}
-    void setCapacity(const int64_t newCapacity)
-    {
+    LRUCache() : capacity_{DEFAULT_CAPACITY} {}
+    explicit LRUCache(int64_t capacity) : capacity_{capacity} {}
 
-        if (newCapacity <= 0)
+    void setCapacity(int64_t newCapacity)
+    {
+        if (newCapacity <= 0) {
             throw std::invalid_argument(
                 "Cannot create cache with capacity <= 0");
-        else
+        } else {
             capacity_ = newCapacity;
+        }
 
         // Cleanup elements that exceed the capacity
         while (int64_t(lookup_.size()) > capacity_) {
@@ -43,8 +44,8 @@ public:
         }
     }
 
-    int64_t capacity(void) const { return capacity_; }
-    size_t size(void) const { return lookup_.size(); }
+    int64_t capacity() const { return capacity_; }
+    size_t size() const { return lookup_.size(); }
 
     // Returning a const ref is better because then if you try to modify the
     // value without explicitly calling .clone() you'll get a compile error
@@ -79,18 +80,19 @@ public:
         }
     }
 
-    void purge(void)
+    void purge()
     {
         lookup_.clear();
         items_.clear();
     }
 
     bool exists(const TKey& k) { return lookup_.find(k) != std::end(lookup_); }
+
 private:
     std::list<TPair> items_;
     std::unordered_map<TKey, TListIterator> lookup_;
     int64_t capacity_;
 
-    static const int64_t kDefaultCapacity = 200;
+    static constexpr int64_t DEFAULT_CAPACITY = 200;
 };
 }  // namespace volcart

@@ -17,12 +17,12 @@ public:
 
     bool analyze();
     cv::Mat conformedImage();
-    int width() { return _w; };
-    int height() { return _h; };
-    int depth() { return _depth; };
-    double min() { return _min; };
-    double max() { return _max; };
-    bool needsConvert() { return _convert; };
+    int width() { return _w; }
+    int height() { return _h; }
+    int depth() { return _depth; }
+    double min() { return _min; }
+    double max() { return _max; }
+    bool needsConvert() { return _convert; }
 
     boost::filesystem::path path;
 
@@ -45,4 +45,4 @@ inline bool SlicePathLessThan(
     std::string b_filename =
         boost::to_lower_copy<std::string>(b.path.filename().native());
     return a_filename < b_filename;
-};
+}

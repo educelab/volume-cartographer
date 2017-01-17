@@ -6,15 +6,14 @@
 #include <QMessageBox>
 #include <QRect>
 #include <QtWidgets>
-#include <opencv2/opencv.hpp>
 
 #include "CBSpline.h"
 #include "CXCurve.h"
+#include "MathUtils.h"
 #include "VCNewGuiHeader.h"
-#include "mathUtils.h"
 #include "ui_VCMain.h"
 
-#include "segmentation/lrps/localResliceParticleSim.h"
+#include "segmentation/lrps/LocalResliceParticleSim.h"
 
 // Volpkg version required by this app
 static constexpr int VOLPKG_SUPPORTED_VERSION = 3;  // Version #3
@@ -160,9 +159,9 @@ private:
 
     SSegParams fSegParams;
 
-    volcart::OrderedPointSet<volcart::Point3d> fMasterCloud;
-    volcart::OrderedPointSet<volcart::Point3d> fUpperPart;
-    std::vector<volcart::Point3d> fStartingPath;
+    volcart::OrderedPointSet<cv::Vec3d> fMasterCloud;
+    volcart::OrderedPointSet<cv::Vec3d> fUpperPart;
+    std::vector<cv::Vec3d> fStartingPath;
 
     // window components
     QMenu* fFileMenu;

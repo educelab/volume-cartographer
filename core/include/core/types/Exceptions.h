@@ -11,10 +11,10 @@ class IOException : public std::exception
 {
 public:
     explicit IOException(const char* msg) : msg_(msg) {}
-    explicit IOException(const std::string& msg) : msg_(msg) {}
-    virtual const char* what() const noexcept { return msg_.c_str(); }
+    explicit IOException(std::string msg) : msg_(std::move(msg)) {}
+    const char* what() const noexcept override { return msg_.c_str(); }
 
 protected:
     std::string msg_;
 };
-}
+}  // namespace volcart

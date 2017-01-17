@@ -19,11 +19,11 @@ namespace texturing
 class LeastSquaresConformalMapping
 {
 public:
-    LeastSquaresConformalMapping(){};
-    LeastSquaresConformalMapping(ITKMesh::Pointer input);
+    LeastSquaresConformalMapping() {}
+    explicit LeastSquaresConformalMapping(ITKMesh::Pointer input);
 
     // Input/Output
-    void setMesh(ITKMesh::Pointer input);
+    void setMesh(const ITKMesh::Pointer& input);
     ITKMesh::Pointer getMesh();
     volcart::UVMap getUVMap();
 
@@ -31,18 +31,17 @@ public:
     void compute();
 
 private:
-    void _fillEigenMatrices();
-    void _emptyEigenMatrices();
+    void fill_eigen_matrices_();
+    void empty_eigen_matrices_();
 
-    double _area(const Eigen::MatrixXd& v, const Eigen::MatrixXi& f);
-    double _startingArea;
+    double area_(const Eigen::MatrixXd& v, const Eigen::MatrixXi& f);
+    double startingArea_;
 
-    ITKMesh::Pointer _mesh;
-    Eigen::MatrixXd _vertices;
-    Eigen::MatrixXi _faces;
-    Eigen::MatrixXd _vertices_UV;
+    ITKMesh::Pointer mesh_;
+    Eigen::MatrixXd vertices_;
+    Eigen::MatrixXi faces_;
+    Eigen::MatrixXd verticesUV_;
 };
-
 }  // texturing
 }  // volcart
 

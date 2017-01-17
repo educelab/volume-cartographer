@@ -65,9 +65,10 @@ class QuadricEdgeCollapseDecimation
                           vcg::vertex::BitFlags>
     {
     public:
-        vcg::math::Quadric<double>& Qd() { return q; }
+        vcg::math::Quadric<double>& Qd() { return q_; }
+
     private:
-        vcg::math::Quadric<double> q;
+        vcg::math::Quadric<double> q_;
     };
 
     /**
@@ -112,7 +113,7 @@ class QuadricEdgeCollapseDecimation
      *
      * Used to represent pairs of vertices being considered for removal by QECD.
      */
-    typedef vcg::tri::BasicVertexPair<VcgVertex> VertexPair;
+    using VertexPair = vcg::tri::BasicVertexPair<VcgVertex>;
 
     /**
      * @class VcgTriEdgeCollapse
@@ -129,16 +130,18 @@ class QuadricEdgeCollapseDecimation
                                    vcg::tri::QInfoStandard<VcgVertex>>
     {
     public:
-        typedef vcg::tri::TriEdgeCollapseQuadric<
+        using TECQ = vcg::tri::TriEdgeCollapseQuadric<
             VcgMesh,
             VertexPair,
             VcgTriEdgeCollapse,
-            vcg::tri::QInfoStandard<VcgVertex>>
-            TECQ;
-        typedef VcgMesh::VertexType::EdgeType EdgeType;
-        inline VcgTriEdgeCollapse(
+            vcg::tri::QInfoStandard<VcgVertex>>;
+        using EdgeType = VcgMesh::VertexType::EdgeType;
+
+        VcgTriEdgeCollapse(
             const VertexPair& p, int i, vcg::BaseParameterClass* pp)
-            : TECQ(p, i, pp){};
+            : TECQ(p, i, pp)
+        {
+        }
     };
 
 public:
@@ -147,12 +150,16 @@ public:
     /**
      * Default constructor.
      */
-    QuadricEdgeCollapseDecimation();
+    QuadricEdgeCollapseDecimation() : itkInput_{nullptr} { setDefaultParams(); }
 
     /**
      * @param mesh Mesh which will be decimated
      */
-    QuadricEdgeCollapseDecimation(ITKMesh::Pointer mesh);
+    explicit QuadricEdgeCollapseDecimation(ITKMesh::Pointer mesh)
+        : itkInput_{mesh}
+    {
+        setDefaultParams();
+    }
     //@}
 
     /** @name Parameters */
@@ -161,7 +168,7 @@ public:
      * @brief Set the input mesh.
      * @param mesh Mesh which will be decimated
      */
-    void setMesh(ITKMesh::Pointer mesh);
+    void setMesh(const ITKMesh::Pointer& mesh) { itkInput_ = mesh; }
 
     /**
      * @brief Reset all parameters to their default values.
@@ -189,7 +196,7 @@ public:
      * If the desired number of faces has not been set, the algorithm runs
      * until the quadric error is minimized.
      */
-    void setDesiredFaces(size_t n) { desiredFaces_ = n; };
+    void setDesiredFaces(size_t n) { desiredFaces_ = n; }
 
     /**
      * @brief Set the boundary weight factor.
@@ -316,7 +323,7 @@ public:
      *
      * Default: 100
      */
-    void setQualityWeightFactor(double factor)
+    void setQualityWeightFactor(bool factor)
     {
         collapseParams_.QualityWeight = factor;
     }
@@ -380,7 +387,7 @@ private:
     /**
      * @brief Convert the ITK mesh to a vcgMesh.
      */
-    void convertMeshtoVCG_();
+    void convert_mesh_to_vcg_();
 
     ITKMesh::Pointer itkInput_;
     VcgMesh vcgInput_;
@@ -392,6 +399,5 @@ private:
     vcg::tri::TriEdgeCollapseQuadricParameter collapseParams_;
 
 };  // QuadricEdgeCollapse
-
 }  // meshing
 }  // volcart

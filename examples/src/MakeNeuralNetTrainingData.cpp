@@ -2,9 +2,11 @@
 #include <iostream>
 #include <random>
 #include <sstream>
+
 #include <H5Cpp.h>
 #include <boost/filesystem.hpp>
-#include <opencv2/core/core.hpp>
+#include <opencv2/core.hpp>
+
 #include "core/types/VolumePkg.h"
 
 namespace fs = boost::filesystem;
@@ -13,7 +15,7 @@ struct CartesianCoord {
     int32_t x, y, z;
     CartesianCoord() = default;
     CartesianCoord(int32_t x, int32_t y, int32_t z) : x(x), y(y), z(z) {}
-    operator cv::Point3i() const { return {x, y, z}; }
+    operator cv::Vec3i() const { return {x, y, z}; }
 };
 
 std::ostream& operator<<(std::ostream& s, const CartesianCoord& c)
@@ -147,7 +149,7 @@ void worker(
         auto baseFilename = ss.str();
 
         // Generate volumes of radius 3, 7, and 15
-        cv::Point3i p = {c.x, c.y, c.z};
+        cv::Vec3i p = {c.x, c.y, c.z};
         auto volume3 = volpkg.volume().getVoxelNeighborsCubic<uint16_t>(p, 3);
         auto outfile3 = outputDir / std::to_string(3) /
                         (baseFilename + std::to_string(3) + ".h5");

@@ -6,13 +6,15 @@
 #include <array>
 #include <ctime>
 #include <iostream>
+
 #include <itkMesh.h>
 #include <itkPointsLocator.h>
 #include <itkQuadEdgeMesh.h>
 #include <itkQuadEdgeMeshExtendedTraits.h>
 #include <itkTriangleCell.h>
-#include <opencv2/core/core.hpp>
-#include "core/util/getMemorySize.h"
+#include <opencv2/core.hpp>
+
+#include "core/util/GetMemorySize.h"
 
 ///// GLOBAL VARIABLES /////
 // This define determines the default dictionary used when creating a new
@@ -30,17 +32,17 @@ namespace volcart
 
 struct Vertex {
     double x, y, z, nx, ny, nz, s, t;
-    int r, g, b, face_count;
+    int r, g, b, faceCount;
 };
 
 struct Cell {
     uint64_t v1, v2, v3;
     Cell() : v1{}, v2{}, v3{} {}
-    Cell(uint64_t p1, uint64_t p2, uint64_t p3) : v1{p1}, v2{p2}, v3{p3} {};
+    Cell(uint64_t p1, uint64_t p2, uint64_t p3) : v1{p1}, v2{p2}, v3{p3} {}
 };
 
 struct Ratio {
-    Ratio() : width(1), height(1), aspect(1){};
+    Ratio() : width(1), height(1), aspect(1) {}
     double width, height, aspect;
 };
 
@@ -89,7 +91,7 @@ using QuadEdgeListPointer = QuadMesh::EdgeListPointerType;
 using QuadEdgeListIterator = QuadEdgeList::iterator;
 
 ///// ERROR MESSAGES /////
-inline int ERR_READONLY()
+inline int ErrReadonly()
 {
     std::cerr << "ERROR: VolPkg is set to read-only. Cannot write to file"
               << std::endl;
@@ -122,11 +124,12 @@ enum class CompositeOption {
 enum class DirectionOption { Bidirectional, Positive, Negative };
 
 ///// Time Helper /////
-inline std::string DATE_TIME()
+inline std::string DateTime()
 {
-    time_t now = std::time(0);
-    struct tm tstruct;
-    std::array<char, 80> buf;
+    time_t now = std::time(nullptr);
+    struct tm tstruct {
+    };
+    std::array<char, 80> buf{};
     tstruct = *std::localtime(&now);
     std::strftime(buf.data(), buf.size(), "%Y%m%d%H%M%S", &tstruct);
     return std::string(buf.data());

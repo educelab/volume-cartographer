@@ -9,16 +9,18 @@
 // University of Kentucky VisCenter
 //----------------------------------------------------------------------------------------------------------------------------------------
 
-#include "MainWindow.h"
 #include <boost/algorithm/string/case_conv.hpp>
-#include "core/io/objWriter.h"
+#include <opencv2/imgcodecs.hpp>
+
+#include "MainWindow.h"
+#include "core/io/OBJWriter.h"
 
 // Volpkg version required byt this app
 static constexpr int VOLPKG_SUPPORTED_VERSION = 3;
 
 namespace fs = boost::filesystem;
 
-MainWindow::MainWindow(Global_Values* globals)
+MainWindow::MainWindow(GlobalValues* globals)
 {
     _globals = globals;  // Enables access to Global Values Object
 
@@ -38,22 +40,22 @@ MainWindow::MainWindow(Global_Values* globals)
     window()->setMaximumWidth(_globals->getWidth());
     //---------------------------------------------------------
 
-    // Create new Texture_Viewer Object (Left Side of GUI Display)
-    Texture_Viewer* texture_Image = new Texture_Viewer(globals);
-    // Create new Segmentations_Viewer Object (Right Side of GUI Display)
-    Segmentations_Viewer* segmentations =
-        new Segmentations_Viewer(globals, texture_Image);
+    // Create new TextureViewer Object (Left Side of GUI Display)
+    TextureViewer* texture_Image = new TextureViewer(globals);
+    // Create new SegmentationsViewer Object (Right Side of GUI Display)
+    SegmentationsViewer* segmentations =
+        new SegmentationsViewer(globals, texture_Image);
     _segmentations_Viewer = segmentations;
 
     QHBoxLayout* mainLayout = new QHBoxLayout();
     mainLayout->addLayout(
         texture_Image->getLayout());  // THIS LAYOUT HOLDS THE WIDGETS FOR THE
-                                      // OBJECT "Texture_Viewer" which Enables
+                                      // OBJECT "TextureViewer" which Enables
                                       // the user to view images, zoom in, zoom
                                       // out, and reset the image.
     mainLayout->addLayout(
         segmentations->getLayout());  // THIS LAYOUT HOLDS THE WIDGETS FOR THE
-                                      // OBJECT "Segmentations_Viewer" which
+                                      // OBJECT "SegmentationsViewer" which
                                       // Enables the user to load segmentations,
                                       // and generate new texture images.
 
@@ -194,7 +196,7 @@ void MainWindow::saveTexture()
             try {
                 fs::path path =
                     _globals->getVolPkg()->getActiveSegPath() / "textured.obj";
-                volcart::io::objWriter mesh_writer;
+                volcart::io::OBJWriter mesh_writer;
                 mesh_writer.setPath(path.string());
                 mesh_writer.setRendering(_globals->getRendering());
                 mesh_writer.write();
@@ -244,7 +246,7 @@ void MainWindow::exportTexture()
     // Export the generated texture first, otherwise the one already saved to
     // disk
     if (_globals->getRendering().getTexture().hasImages())
-        output = _globals->getRendering().getTexture().getImage(0);
+        output = _globals->getRendering().getTexture().image(0);
     else
         output = _globals->getVolPkg()->getTextureData();
 

@@ -3,9 +3,9 @@
 //
 
 #include <iostream>
-#include "core/io/objWriter.h"
+
+#include "core/io/OBJWriter.h"
 #include "core/types/OrderedPointSet.h"
-#include "core/types/Point.h"
 #include "core/vc_defines.h"
 #include "meshing/OrderedPointSetMesher.h"
 
@@ -13,9 +13,8 @@ using namespace volcart;
 
 int main()
 {
-
     // Plane
-    OrderedPointSet<Point3d> Plane(5);
+    OrderedPointSet<cv::Vec3d> Plane(5);
     Plane.pushRow({{0.0, 0.0, 0.0},
                    {0.0, 0.0, 2.0},
                    {0.0, 0.0, 4.0},
@@ -46,13 +45,13 @@ int main()
     mesher_plane.compute();
     ITKMesh::Pointer output_plane = mesher_plane.getOutputMesh();
 
-    volcart::io::objWriter writer;
+    volcart::io::OBJWriter writer;
     writer.setPath("OrderedPointSetMesher_Plane.obj");
     writer.setMesh(output_plane);
     writer.write();
 
     // Arch
-    OrderedPointSet<Point3d> Arch(5);
+    OrderedPointSet<cv::Vec3d> Arch(5);
     Arch.pushRow({{5.0, 0.0, 0.0},
                   {4.04508, 2.93893, 0.0},
                   {1.54508, 4.75528, 0.0},

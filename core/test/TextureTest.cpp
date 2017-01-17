@@ -5,6 +5,8 @@
 #define BOOST_TEST_MODULE Texture
 
 #include <boost/test/unit_test.hpp>
+#include <opencv2/imgcodecs.hpp>
+
 #include "core/types/Texture.h"
 
 /************************************************************************************
@@ -114,7 +116,7 @@ struct TextureWithUVMapToCheckIntensityFixture {
         _uvMap.set(3, cv::Vec2d(1, 1));
 
         // add uv map to texture
-        _Texture.uvMap(_uvMap);
+        _Texture.ppm().setUVMap(_uvMap);
     }
 
     ~TextureWithUVMapToCheckIntensityFixture()
@@ -138,7 +140,7 @@ BOOST_FIXTURE_TEST_CASE(
     BOOST_CHECK_EQUAL(_Type, "texture");
 
     std::string TestDate, TruncatedTestDate;
-    TestDate = volcart::DATE_TIME()[0 - 7];
+    TestDate = volcart::DateTime()[0 - 7];
     TruncatedTestDate = TestDate[0 - 7];
 
     // check id
@@ -155,28 +157,27 @@ BOOST_FIXTURE_TEST_CASE(AddImageToTextureTest, TextureWithImageFixture)
     BOOST_CHECK_EQUAL(_Texture.hasMap(), false);
 
     // check that each of the images added in fixture match identity mats
-    for (int img_id = 0; img_id < _Texture.numberOfImages(); img_id++) {
+    for (size_t img_id = 0; img_id < _Texture.numberOfImages(); img_id++) {
 
-        BOOST_CHECK_EQUAL(_Texture.getImage(img_id).rows, img_id + 2);
-        BOOST_CHECK_EQUAL(_Texture.getImage(img_id).cols, img_id + 2);
+        BOOST_CHECK_EQUAL(_Texture.image(img_id).rows, img_id + 2);
+        BOOST_CHECK_EQUAL(_Texture.image(img_id).cols, img_id + 2);
 
         cv::Mat TestImage = cv::Mat::eye(img_id + 2, img_id + 2, CV_16U);
 
         // check data props of two matrices
         BOOST_CHECK_EQUAL_COLLECTIONS(
-            _Texture.getImage(img_id).datastart,
-            _Texture.getImage(img_id).dataend, TestImage.datastart,
-            TestImage.dataend);
+            _Texture.image(img_id).datastart, _Texture.image(img_id).dataend,
+            TestImage.datastart, TestImage.dataend);
 
         // assign img data
-        ushort* matData = (ushort*)_Texture.getImage(img_id).data;
+        uint16_t* matData = _Texture.image(img_id).ptr<uint16_t>();
 
         // step size --> helper
-        size_t step = _Texture.getImage(img_id).step / sizeof(ushort);
+        size_t step = _Texture.image(img_id).step / sizeof(uint16_t);
 
-        ushort value;
-        for (int row = 0; row < _Texture.getImage(img_id).rows; row++) {
-            for (int col = 0; col < _Texture.getImage(img_id).cols; col++) {
+        uint16_t value;
+        for (int row = 0; row < _Texture.image(img_id).rows; row++) {
+            for (int col = 0; col < _Texture.image(img_id).cols; col++) {
 
                 value = matData[row * step + col];
 
@@ -197,12 +198,11 @@ BOOST_FIXTURE_TEST_CASE(
 {
 
     BOOST_CHECK_EQUAL(_Texture.numberOfImages(), 1);
-    BOOST_CHECK_EQUAL(_Texture.getImage(0).empty(), false);
-    BOOST_CHECK(_Texture.hasMap());
+    BOOST_CHECK_EQUAL(_Texture.image(0).empty(), false);
 
     // check dimensions
-    BOOST_CHECK_EQUAL(_Texture.getImage(0).cols, 100);
-    BOOST_CHECK_EQUAL(_Texture.getImage(0).rows, 100);
+    BOOST_CHECK_EQUAL(_Texture.image(0).cols, 100);
+    BOOST_CHECK_EQUAL(_Texture.image(0).rows, 100);
 
     // check intensity values
     BOOST_CHECK_EQUAL(_Texture.intensity(0), 65535);

@@ -5,7 +5,7 @@
 #include <QCheckBox>
 #include <QCheckBox>
 #include <vector>
-#include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
 #include "CBSpline.h"
 #include "CVolumeViewer.h"
 #include "CXCurve.h"
@@ -43,7 +43,7 @@ public:
     void SetImpactRange(int nImpactRange);
 
     void UpdateView(void);
-    void SetShowCurve(bool b) { showCurve = b; };
+    void SetShowCurve(bool b) { showCurve = b; }
 
     void SetViewState(EViewState nViewState) { fViewState = nViewState; }
     EViewState GetViewState(void) { return fViewState; }

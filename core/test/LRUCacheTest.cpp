@@ -128,7 +128,7 @@ BOOST_FIXTURE_TEST_CASE(CheckReferenceToOutOfBoundsKey, ReferenceBadKeyFixture)
     BOOST_CHECK_EQUAL(
         _Cache.capacity(), _Cache.size());  // capacity and size should be equal
 
-    for (size_t key = 0; key < _Cache.capacity(); key++) {
+    for (int64_t key = 0; key < _Cache.capacity(); key++) {
 
         BOOST_CHECK_EQUAL(
             _Cache.get(key), key * key);  // check that values are correct
@@ -145,7 +145,8 @@ BOOST_FIXTURE_TEST_CASE(CheckReferenceToOutOfBoundsKey, ReferenceBadKeyFixture)
         // casting negative size_t value to int
         std::cout << e.what() << std::endl;
         std::cout << "Key Tried: "
-                  << (int)(_Cache.capacity() - (_Cache.capacity() + 1))
+                  << static_cast<int>(
+                         _Cache.capacity() - (_Cache.capacity() + 1))
                   << std::endl;
         BOOST_CHECK(true);
     }
@@ -197,7 +198,7 @@ BOOST_FIXTURE_TEST_CASE(
         200);  // cache should have initial capacity of 200
     BOOST_CHECK_EQUAL(_DefaultCache.size(), 0);  // size should be 0
 
-    for (size_t key = 0; key < _DefaultCache.capacity();
+    for (int64_t key = 0; key < _DefaultCache.capacity();
          key += 2) {  // fill item list halfway
 
         // add even numbers, zero inclusive, and double their key as the value
@@ -212,7 +213,7 @@ BOOST_FIXTURE_TEST_CASE(
 
     // test to see what happens when referencing an odd-number key
     // also, checking if oddKey exists --> redundant
-    for (size_t oddKey = 1; oddKey < _DefaultCache.capacity(); oddKey += 2) {
+    for (int64_t oddKey = 1; oddKey < _DefaultCache.capacity(); oddKey += 2) {
 
         try {
 
@@ -228,7 +229,7 @@ BOOST_FIXTURE_TEST_CASE(
     _DefaultCache.setCapacity(50);  // update capacity to size 50
     // should pop items that are at the 'end' of the cache
     // thus, we'll check item key 98,96,...,2,0
-    for (size_t k = 0; k < _DefaultCache.capacity() * 2; k += 2) {
+    for (int64_t k = 0; k < _DefaultCache.capacity() * 2; k += 2) {
 
         try {
 
@@ -255,7 +256,7 @@ BOOST_FIXTURE_TEST_CASE(
         200);  // cache should have initial capacity of 200
     BOOST_CHECK_EQUAL(_DefaultCache.size(), 0);  // size should be 0
 
-    for (size_t key = 0; key <= _DefaultCache.capacity();
+    for (int64_t key = 0; key <= _DefaultCache.capacity();
          key++) {  // fill item list 1 past capacity
 
         _DefaultCache.put(key, key + key);

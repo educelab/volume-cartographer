@@ -19,11 +19,11 @@ else
 fi
 
 # Get git root repo
-git_root=$(git rev-parse --show-toplevel)
+#git_root=$(git rev-parse --show-toplevel)
 
 # Construct regex
 sed_cmd="s${sep}${old}${sep}${new}${sep}g"
 
 # Do replace
-ag -sl "$old" "$git_root" | xargs sed -i '' -e "$sed_cmd"
+ag -sl "$old" | xargs sed -i '' -e "$sed_cmd"
 exit 0
