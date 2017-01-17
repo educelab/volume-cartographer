@@ -5,7 +5,7 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wfloat-conversion"
 
-#include "CBezierCurve.h"
+#include "CBezierCurve.hpp"
 
 #include <opencv2/imgproc.hpp>
 

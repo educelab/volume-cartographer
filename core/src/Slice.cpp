@@ -1,4 +1,4 @@
-#include "core/types/Slice.h"
+#include "core/types/Slice.hpp"
 
 #include <opencv2/imgproc.hpp>
 

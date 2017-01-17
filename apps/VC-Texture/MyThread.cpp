@@ -10,10 +10,10 @@
 // University of Kentucky VisCenter
 //----------------------------------------------------------------------------------------------------------------------------------------
 
-#include "MyThread.h"
-#include "core/io/OBJWriter.h"
-#include "core/io/PLYReader.h"
-#include "meshing/ITK2VTK.h"
+#include "MyThread.hpp"
+#include "core/io/OBJWriter.hpp"
+#include "core/io/PLYReader.hpp"
+#include "meshing/ITK2VTK.hpp"
 
 namespace fs = boost::filesystem;
 

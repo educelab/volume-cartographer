@@ -7,11 +7,11 @@
 #include <opencv2/core.hpp>
 #include <pcl/io/pcd_io.h>
 
-#include "core/io/PointSetIO.h"
-#include "core/types/OrderedPointSet.h"
-#include "core/types/PointSet.h"
-#include "core/types/VolumePkg.h"
-#include "meshing/OrderedPointSetMesher.h"
+#include "core/io/PointSetIO.hpp"
+#include "core/types/OrderedPointSet.hpp"
+#include "core/types/PointSet.hpp"
+#include "core/types/VolumePkg.hpp"
+#include "meshing/OrderedPointSetMesher.hpp"
 
 using namespace volcart;
 namespace fs = boost::filesystem;

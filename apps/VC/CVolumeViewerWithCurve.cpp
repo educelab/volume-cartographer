@@ -1,10 +1,10 @@
 // CVolumeViewerWithCurve.cpp
 // Chao Du 2015 April
-#include "CVolumeViewerWithCurve.h"
+#include "CVolumeViewerWithCurve.hpp"
 
 #include <opencv2/imgproc.hpp>
 
-#include "UDataManipulateUtils.h"
+#include "UDataManipulateUtils.hpp"
 
 using namespace ChaoVis;
 

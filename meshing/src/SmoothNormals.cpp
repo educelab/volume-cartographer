@@ -6,8 +6,8 @@
 #include <iostream>
 #include <vector>
 
-#include "meshing/DeepCopy.h"
-#include "meshing/SmoothNormals.h"
+#include "meshing/DeepCopy.hpp"
+#include "meshing/SmoothNormals.hpp"
 
 namespace volcart
 {

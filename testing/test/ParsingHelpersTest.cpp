@@ -6,12 +6,12 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "core/io/OBJWriter.h"
-#include "core/io/PLYWriter.h"
-#include "core/shapes/Plane.h"
-#include "core/vc_defines.h"
-#include "testing/ParsingHelpers.h"
-#include "testing/TestingUtils.h"
+#include "core/io/OBJWriter.hpp"
+#include "core/io/PLYWriter.hpp"
+#include "core/shapes/Plane.hpp"
+#include "core/vc_defines.hpp"
+#include "testing/ParsingHelpers.hpp"
+#include "testing/TestingUtils.hpp"
 
 using namespace volcart;
 using namespace volcart::testing;
