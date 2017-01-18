@@ -6,6 +6,7 @@ set(srcs
     src/eigenvalues.cc
     src/linear_solver.cc
     src/svd.cc
+    src/GetMemorySize.cpp
 )
 
 add_library(${target} ${srcs})
