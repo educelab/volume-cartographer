@@ -2,9 +2,9 @@
 
 #include <opencv2/core.hpp>
 
-#include "core/types/VolumePkg.h"
-#include "core/vc_defines.h"
-#include "texturing/TexturingUtils.h"
+#include "core/types/VolumePkg.hpp"
+#include "core/vc_defines.hpp"
+#include "texturing/TexturingUtils.hpp"
 
 bool IsLocalMaximum(
     const cv::Vec3d& nPoint, VolumePkg& volpkg, double nSampleInterval)

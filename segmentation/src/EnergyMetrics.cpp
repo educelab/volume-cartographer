@@ -1,7 +1,7 @@
 #include <iostream>
 
-#include "segmentation/lrps/Derivative.h"
-#include "segmentation/lrps/EnergyMetrics.h"
+#include "segmentation/lrps/Derivative.hpp"
+#include "segmentation/lrps/EnergyMetrics.hpp"
 
 using namespace volcart::segmentation;
 

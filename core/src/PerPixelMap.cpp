@@ -1,5 +1,5 @@
-#include "core/types/PerPixelMap.h"
-#include "core/types/Exceptions.h"
+#include "core/types/PerPixelMap.hpp"
+#include "core/types/Exceptions.hpp"
 
 using namespace volcart;
 namespace fs = boost::filesystem;

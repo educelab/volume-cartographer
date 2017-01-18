@@ -2,7 +2,7 @@
 // Created by Media Team on 6/7/16.
 //
 
-#include "core/util/MeshMath.h"
+#include "core/util/MeshMath.hpp"
 namespace volcart
 {
 namespace meshmath

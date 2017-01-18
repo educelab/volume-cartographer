@@ -8,12 +8,12 @@
  * v-c/testing/texturing.
  */
 
-#include "core/io/OBJWriter.h"
-#include "core/shapes/Arch.h"
-#include "core/shapes/Plane.h"
-#include "core/types/VolumePkg.h"
-#include "core/vc_defines.h"
-#include "texturing/LeastSquaresConformalMapping.h"
+#include "core/io/OBJWriter.hpp"
+#include "core/shapes/Arch.hpp"
+#include "core/shapes/Plane.hpp"
+#include "core/types/VolumePkg.hpp"
+#include "core/vc_defines.hpp"
+#include "texturing/LeastSquaresConformalMapping.hpp"
 
 int main()
 {

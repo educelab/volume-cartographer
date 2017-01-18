@@ -5,11 +5,11 @@
 #define BOOST_TEST_MODULE ClothModelingUVMapping
 
 #include <boost/test/unit_test.hpp>
-#include "core/shapes/Arch.h"
-#include "core/vc_defines.h"
-#include "testing/ParsingHelpers.h"
-#include "testing/TestingUtils.h"
-#include "texturing/ClothModelingUVMapping.h"
+#include "core/shapes/Arch.hpp"
+#include "core/vc_defines.hpp"
+#include "testing/ParsingHelpers.hpp"
+#include "testing/TestingUtils.hpp"
+#include "texturing/ClothModelingUVMapping.hpp"
 
 using namespace volcart;
 

@@ -3,15 +3,15 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
 
-#include "core/io/PLYReader.h"
-#include "core/io/PLYWriter.h"
-#include "core/shapes/Arch.h"
-#include "core/shapes/Cone.h"
-#include "core/shapes/Plane.h"
-#include "core/shapes/Sphere.h"
-#include "core/vc_defines.h"
-#include "testing/ParsingHelpers.h"
-#include "testing/TestingUtils.h"
+#include "core/io/PLYReader.hpp"
+#include "core/io/PLYWriter.hpp"
+#include "core/shapes/Arch.hpp"
+#include "core/shapes/Cone.hpp"
+#include "core/shapes/Plane.hpp"
+#include "core/shapes/Sphere.hpp"
+#include "core/vc_defines.hpp"
+#include "testing/ParsingHelpers.hpp"
+#include "testing/TestingUtils.hpp"
 
 struct ReadITKPlaneMeshFixture {
     ReadITKPlaneMeshFixture()

@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "testing/ClangTidyBadHeader.h"
+#include "testing/ClangTidyBadHeader.hpp"
 
 int main()
 {

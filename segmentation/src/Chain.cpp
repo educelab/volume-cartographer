@@ -1,6 +1,6 @@
 #include <cmath>
 
-#include "segmentation/stps/Chain.h"
+#include "segmentation/stps/Chain.hpp"
 
 // (doc) Why the parameters that we're giving it?
 Chain::Chain(

@@ -4,11 +4,11 @@
 #include <boost/filesystem.hpp>
 #include <opencv2/core.hpp>
 
-#include "core/io/PLYWriter.h"
-#include "core/io/PointSetIO.h"
-#include "core/types/PointSet.h"
-#include "core/types/VolumePkg.h"
-#include "meshing/OrderedPointSetMesher.h"
+#include "core/io/PLYWriter.hpp"
+#include "core/io/PointSetIO.hpp"
+#include "core/types/PointSet.hpp"
+#include "core/types/VolumePkg.hpp"
+#include "meshing/OrderedPointSetMesher.hpp"
 
 namespace fs = boost::filesystem;
 namespace vc = volcart;

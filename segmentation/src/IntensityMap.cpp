@@ -3,7 +3,7 @@
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include "segmentation/lrps/IntensityMap.h"
+#include "segmentation/lrps/IntensityMap.hpp"
 
 using namespace volcart::segmentation;
 

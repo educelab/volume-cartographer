@@ -4,8 +4,8 @@
 
 #include <stdexcept>
 
-#include "core/util/FloatComparison.h"
-#include "texturing/PPMGenerator.h"
+#include "core/util/FloatComparison.hpp"
+#include "texturing/PPMGenerator.hpp"
 
 using namespace volcart;
 using namespace texturing;

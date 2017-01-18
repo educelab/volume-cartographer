@@ -4,15 +4,15 @@
 #ifdef VC_USE_VCGLIB
 
 #include <iostream>
-#include "core/io/OBJWriter.h"
-#include "core/shapes/Arch.h"
-#include "core/shapes/Cone.h"
-#include "core/shapes/Cube.h"
-#include "core/shapes/Plane.h"
-#include "core/shapes/Sphere.h"
-#include "core/vc_defines.h"
-#include "meshing/CalculateNormals.h"
-#include "meshing/QuadricEdgeCollapseDecimation.h"
+#include "core/io/OBJWriter.hpp"
+#include "core/shapes/Arch.hpp"
+#include "core/shapes/Cone.hpp"
+#include "core/shapes/Cube.hpp"
+#include "core/shapes/Plane.hpp"
+#include "core/shapes/Sphere.hpp"
+#include "core/vc_defines.hpp"
+#include "meshing/CalculateNormals.hpp"
+#include "meshing/QuadricEdgeCollapseDecimation.hpp"
 
 int main()
 {

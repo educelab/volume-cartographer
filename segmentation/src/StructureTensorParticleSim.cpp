@@ -1,4 +1,4 @@
-#include "segmentation/stps/StructureTensorParticleSim.h"
+#include "segmentation/stps/StructureTensorParticleSim.hpp"
 
 // structureTensorParticleSim uses "particles" to trace out the surfaces in a
 // volume.

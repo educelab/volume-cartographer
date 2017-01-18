@@ -4,9 +4,9 @@
 
 /** @file OrderedPointSetMesher.cpp */
 
-#include "meshing/OrderedPointSetMesher.h"
+#include "meshing/OrderedPointSetMesher.hpp"
 #include <iostream>
-#include "meshing/CalculateNormals.h"
+#include "meshing/CalculateNormals.hpp"
 
 using namespace volcart::meshing;
 

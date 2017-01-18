@@ -9,7 +9,7 @@
 // University of Kentucky VisCenter
 //----------------------------------------------------------------------------------------------------------------------------------------
 
-#include "GlobalValues.h"
+#include "GlobalValues.hpp"
 
 GlobalValues::GlobalValues(QRect rec)
     : _status(ThreadStatus::Inactive)

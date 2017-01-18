@@ -12,7 +12,7 @@
 // University of Kentucky VisCenter
 //-----------------------------------------------------------------------------------------------------------------------------------------
 
-#include "TextureViewer.h"
+#include "TextureViewer.hpp"
 #include <qmainwindow.h>
 
 TextureViewer::TextureViewer(GlobalValues* globals)

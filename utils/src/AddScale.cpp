@@ -6,8 +6,8 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include "core/scales/Scales.h"
-#include "core/types/VolumePkg.h"
+#include "core/scales/Scales.hpp"
+#include "core/types/VolumePkg.hpp"
 
 int main(int argc, char** argv)
 {
