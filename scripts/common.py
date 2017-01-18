@@ -1,5 +1,6 @@
 import logging
 import os
+import pprint
 import shutil
 import shlex
 import subprocess
@@ -41,19 +42,24 @@ def callo(cmd: Union[List[str], str], **kwargs: Any) -> str:
 
 def changed_files(compare_to: str) -> Generator[str, None, None]:
     '''
-    Determines all changed files from HEAD to branch `compare_to`.
+    Determines all changed files from HEAD to branch `compare_to`. Excludes files
+    that were deleted for renamed.
     '''
     current_branch = callo('git rev-parse --abbrev-ref @')
-    branch_point = callo(f'git merge-base {compare_to} {current_branch}')
-    diffcmd = f'git diff --name-status {branch_point}..{current_branch}'
+    diffcmd = f'git diff --name-status --diff-filter=dr \
+        {compare_to}...{current_branch}'
 
     # Return source files, only if they haven't been deleted. This prevents
     # trying to operate on a missing file.
-    for line in callo(diffcmd).split():
-        status, source_file = line.split('\t')
-        if status != 'D':
-            yield source_file
+    for line in callo(diffcmd).splitlines():
+        status, *rest = line.split()
 
+        # Renames look like:
+        #     R000   <oldfile>   <newfile>
+        if status.startswith('R'):
+            yield rest[1]
+        else:
+            yield rest[0]
 
 def all_files() -> Generator[str, None, None]:
     '''
