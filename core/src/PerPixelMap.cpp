@@ -4,8 +4,6 @@
 using namespace volcart;
 namespace fs = boost::filesystem;
 
-constexpr static size_t PPM_ELEMENT_SIZE = 6;
-
 ///// Metadata /////
 void PerPixelMap::setDimensions(size_t h, size_t w)
 {
