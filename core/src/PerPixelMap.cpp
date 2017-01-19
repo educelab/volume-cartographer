@@ -30,7 +30,7 @@ void PerPixelMap::setHeight(size_t h)
 void PerPixelMap::initialize_map_()
 {
     if (height_ > 0 && width_ > 0) {
-        map_ = cv::Mat_<cv::Vec6d>(height_, width_, {0, 0, 0, 0, 0, 0});
+        map_ = map_.Fill(width_, height_, {0, 0, 0, 0, 0, 0});
     }
 }
 
@@ -43,47 +43,46 @@ void PerPixelMap::WritePPM(fs::path path, const PerPixelMap& map)
     // Write to file
     std::cerr << "volcart::PerPixelMap: Writing to file " << path.filename()
               << std::endl;
-    cv::FileStorage fs(path.string(), cv::FileStorage::WRITE);
-    fs << "PerPixelMapping" << map.map_;
-    fs.release();
+    volcart::PointSetIO<cv::Vec6d>::WriteOrderedPointSet(path, map.map_);
 }
 
 PerPixelMap PerPixelMap::ReadPPM(const fs::path& path)
 {
     std::cerr << "volcart::PerPixelMap: Reading from file " << path.filename()
               << std::endl;
-    cv::FileStorage file(path.string(), cv::FileStorage::READ);
-    cv::FileNode map = file["PerPixelMapping"];
+//    cv::FileStorage file(path.string(), cv::FileStorage::READ);
+//    cv::FileNode map = file["PerPixelMapping"];
     PerPixelMap ppm;
+    ppm.map_ = volcart::PointSetIO<cv::Vec6d>::ReadOrderedPointSet(path);
 
-    // Read the header info
-    ppm.height_ = static_cast<int>(map["rows"]);
-    ppm.width_ = static_cast<int>(map["cols"]);
-
-    // Initialize an empty map
-    ppm.map_ = cv::Mat_<cv::Vec6d>(ppm.height_, ppm.width_, {0, 0, 0, 0, 0, 0});
-
-    // Make sure the size is as expected
-    if (map["data"].size() != ppm.height_ * ppm.width_ * 6) {
-        auto msg = "Header dimensions do not match data dimensions";
-        throw IOException(msg);
-    }
-
-    cv::Vec6d v;
-    auto dbl = map["data"].begin();
-    for (size_t y = 0; y < ppm.height_; ++y) {
-        for (size_t x = 0; x < ppm.width_; ++x) {
-
-            // Fill each cv::Vec6d
-            for (size_t n = 0; n < PPM_ELEMENT_SIZE; ++n, ++dbl) {
-                v(n) = static_cast<double>(*dbl);
-            }
-
-            // Assign _map in the correct position
-            ppm.map_(y, x) = v;
-        }
-    }
-
-    file.release();
+//    // Read the header info
+//    ppm.height_ = static_cast<int>(map["rows"]);
+//    ppm.width_ = static_cast<int>(map["cols"]);
+//
+//    // Initialize an empty map
+//    ppm.map_.Fill(ppm.width_, ppm.height_, {0, 0, 0, 0, 0, 0});
+//
+//    // Make sure the size is as expected
+//    if (map["data"].size() != ppm.height_ * ppm.width_ * 6) {
+//        auto msg = "Header dimensions do not match data dimensions";
+//        throw IOException(msg);
+//    }
+//
+//    cv::Vec6d v;
+//    auto dbl = map["data"].begin();
+//    for (size_t y = 0; y < ppm.height_; ++y) {
+//        for (size_t x = 0; x < ppm.width_; ++x) {
+//
+//            // Fill each cv::Vec6d
+//            for (size_t n = 0; n < PPM_ELEMENT_SIZE; ++n, ++dbl) {
+//                v(n) = static_cast<double>(*dbl);
+//            }
+//
+//            // Assign _map in the correct position
+//            ppm.map_(y, x) = v;
+//        }
+//    }
+//
+//    file.release();
     return ppm;
 }

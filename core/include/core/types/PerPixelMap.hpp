@@ -14,6 +14,8 @@
 #include <opencv2/core.hpp>
 
 #include "core/types/UVMap.hpp"
+#include "core/types/OrderedPointSet.hpp"
+#include "core/io/PointSetIO.hpp"
 
 namespace volcart
 {
@@ -33,12 +35,12 @@ public:
     ///// Check if initialized /////
     bool initialized() const
     {
-        return map_.data != nullptr && width_ > 0 && height_ > 0;
+        return width_ > 0 && height_ > 0;
     }
 
     ///// Operators /////
     // Forward to the Mat_ operators
-    cv::Vec6d& operator()(size_t y, size_t x) { return map_(y, x); }
+    cv::Vec6d& operator()(size_t y, size_t x) { return map_(x,y); }
 
     ///// Metadata /////
     void setDimensions(size_t h, size_t w);
@@ -66,7 +68,7 @@ public:
 private:
     void initialize_map_();
     size_t width_, height_;
-    cv::Mat_<cv::Vec6d> map_;
+    volcart::OrderedPointSet<cv::Vec6d> map_;
     cv::Mat mask_;
     UVMap uvMap_;
 };
