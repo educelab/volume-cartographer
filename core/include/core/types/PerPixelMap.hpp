@@ -35,12 +35,13 @@ public:
     ///// Check if initialized /////
     bool initialized() const
     {
-        return width_ == map_.width() && height_ == map_.width();
+        return width_ == map_.width() && height_ == map_.width() &&
+               width_ > 0 && height_ > 0;
     }
 
     ///// Operators /////
     // Forward to the Mat_ operators
-    cv::Vec6d& operator()(size_t y, size_t x) { return map_(x,y); }
+    cv::Vec6d& operator()(size_t y, size_t x) { return map_(x, y); }
 
     ///// Metadata /////
     void setDimensions(size_t h, size_t w);

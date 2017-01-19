@@ -51,8 +51,8 @@ PerPixelMap PerPixelMap::ReadPPM(const fs::path& path)
               << std::endl;
     PerPixelMap ppm;
     ppm.map_ = volcart::PointSetIO<cv::Vec6d>::ReadOrderedPointSet(path);
-    ppm.setHeight(ppm.map_.height());
-    ppm.setWidth(ppm.map_.width());
+    ppm.height_ = ppm.map_.height();
+    ppm.width_ = ppm.map_.width();
 
     return ppm;
 }
