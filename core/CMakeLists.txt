@@ -12,7 +12,6 @@ set(srcs
     src/Sphere.cpp
     src/Texture.cpp
     src/Volume.cpp
-    src/GetMemorySize.cpp
     src/MeshMath.cpp
     src/OBJWriter.cpp
     src/PLYReader.cpp

@@ -14,8 +14,6 @@
 #include <itkTriangleCell.h>
 #include <opencv2/core.hpp>
 
-#include "core/util/GetMemorySize.hpp"
-
 ///// GLOBAL VARIABLES /////
 // This define determines the default dictionary used when creating a new
 // volumepkg
