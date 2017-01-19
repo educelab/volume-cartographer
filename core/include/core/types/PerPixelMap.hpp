@@ -35,7 +35,7 @@ public:
     ///// Check if initialized /////
     bool initialized() const
     {
-        return width_ > 0 && height_ > 0;
+        return width_ == map_.width() && height_ == map_.width();
     }
 
     ///// Operators /////
