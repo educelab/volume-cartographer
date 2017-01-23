@@ -36,9 +36,6 @@ void PerPixelMap::initialize_map_()
 ///// Disk IO /////
 void PerPixelMap::WritePPM(fs::path path, const PerPixelMap& map)
 {
-    // Ensure proper file extension
-    path.replace_extension(".yml.gz");
-
     // Write to file
     std::cerr << "volcart::PerPixelMap: Writing to file " << path.filename()
               << std::endl;
