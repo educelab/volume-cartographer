@@ -19,7 +19,7 @@ BOOST_AUTO_TEST_CASE(GetSetIO)
             ppm(y, x) = {x, y, (x + y) / 2.0, x, y, (x + y) / 2.0};
         }
     }
-    PerPixelMap::WritePPM("PPM_Test", ppm);
+    PerPixelMap::WritePPM("PPM_Test.ppm", ppm);
 
     // Get the PPM
     auto result = PerPixelMap::ReadPPM("PPM_Test.yml.gz");
