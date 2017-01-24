@@ -96,8 +96,10 @@ int main(int argc, char* argv[])
         volpkgPath = parsedOptions["volpkg"].as<std::string>();
         segID = parsedOptions["seg"].as<std::string>();
         radius = parsedOptions["radius"].as<int>();
-        aFilterOption = parsedOptions["method"].as<CompositeOption>();
-        aDirectionOption = parsedOptions["direction"].as<DirectionOption>();
+        aFilterOption =
+            static_cast<CompositeOption>(parsedOptions["method"].as<int>());
+        aDirectionOption =
+            static_cast<DirectionOption>(parsedOptions["direction"].as<int>());
 
         // Check for output file
         if (parsedOptions.count("output-file")) {
