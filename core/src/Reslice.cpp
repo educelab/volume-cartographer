@@ -1,10 +1,12 @@
-#include "vc/core/types/Slice.hpp"
+#include "vc/core/types/Reslice.hpp"
 
 #include <opencv2/imgproc.hpp>
 
 #define BGR_MAGENTA cv::Scalar(0xFF, 0, 0xFF)
 
-cv::Mat Slice::draw() const
+using namespace volcart;
+
+cv::Mat Reslice::draw() const
 {
     auto debug = sliceData_.clone();
 

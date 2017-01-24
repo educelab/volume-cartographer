@@ -10,59 +10,130 @@
 
 namespace volcart
 {
+/**
+ * @class PointSet
+ * @brief Holds a collection of points
+ * @author Sean Karlage
+ *
+ * @ingroup Types
+ */
 template <typename T>
 class PointSet
 {
 public:
+    /** Point type */
     using Point = T;
+
+    /** Container type. Defines the underlying data structure. Should supply an
+     * STL compliant interface. */
     using Container = std::vector<Point>;
+
+    /** Iterator type */
     using Iterator = typename Container::iterator;
+
+    /** Const iterator type */
     using ConstIterator = typename Container::const_iterator;
+
+    /** PointSet version number */
     constexpr static int FORMAT_VERSION = 1;
+
+    /** PointSet header terminator */
     constexpr static auto HEADER_TERMINATOR = "<>";
+
+    /** Regex for header terminator */
     constexpr static auto HEADER_TERMINATOR_REGEX = "^<>$";
 
-    explicit PointSet() : data_{} {}
+    /**@{*/
+    /** @brief Default constructor */
+    explicit PointSet() = default;
+
+    /** @brief Construct and preallocate a number of Point elements */
     explicit PointSet(size_t initSize) { data_.reserve(initSize); }
+
+    /** @brief Construct and fill a number of elements with an initial value */
     explicit PointSet(size_t initSize, T initVal)
     {
         data_.assign(initSize, initVal);
     }
+    /**@}*/
 
-    // Fill static method
-    static PointSet Fill(size_t initSize, T initVal)
-    {
-        return PointSet(initSize, initVal);
-    }
-
-    // Linear access - no concept of 2D layout
+    /**@{*/
+    /** @brief Get a Point by index */
     const T& operator[](size_t idx) const
     {
         assert(idx < data_.size() && "idx out of range");
         return data_[idx];
     }
+
+    /** @copydoc operator[]() */
     T& operator[](size_t idx)
     {
         assert(idx < data_.size() && "idx out of range");
         return data_[idx];
     }
+    /**@}*/
 
-    // Metadata
+    /**@{*/
+    /** @brief Get the size of the PointSet */
     size_t size() const { return data_.size(); }
+
+    /** @brief Return whether the PointSet is empty */
     bool empty() const { return data_.empty(); }
-    std::vector<T>& data() { return data_; }
 
-    // Iterators and element accessors
+    /** @brief Get the PointSet storage container */
+    Container& data() { return data_; }
+
+    /** @brief Remove all elements from the PointSet */
+    void clear() { data_.clear(); }
+    /**@}*/
+
+    /**@{*/
+    /** @brief Add a Point to the PointSet */
+    void push_back(const T& val) { data_.push_back(val); }
+
+    /** @overload push_back() */
+    void push_back(T&& val) { data_.push_back(val); }
+
+    /** @brief Append a PointSet to the end of the current one */
+    void append(const PointSet<T>& ps)
+    {
+        std::copy(std::begin(ps), std::end(ps), std::back_inserter(data_));
+    }
+    /**@}*/
+
+    /**@{*/
+    /** @brief Return an iterator that points to the first element in the
+     * PointSet */
     Iterator begin() { return std::begin(data_); }
-    ConstIterator begin() const { return std::begin(data_); }
-    Iterator end() { return std::end(data_); }
-    ConstIterator end() const { return std::end(data_); }
-    T& front() { return data_.front(); }
-    const T& front() const { return data_.front(); }
-    T& back() { return data_.back(); }
-    const T& back() const { return data_.back(); }
 
-    // Some basic statistics
+    /** @copydoc begin() */
+    ConstIterator begin() const { return std::begin(data_); }
+
+    /** @brief Return an iterator that points to the \em past-the-end element
+     * in the PointSet */
+    Iterator end() { return std::end(data_); }
+
+    /** @copydoc end() */
+    ConstIterator end() const { return std::end(data_); }
+
+    /** @brief Return a reference to the first element in the PointSet */
+    T& front() { return data_.front(); }
+
+    /** @copydoc front() */
+    const T& front() const { return data_.front(); }
+
+    /** @brief Return a reference to the last element in the PointSet */
+    T& back() { return data_.back(); }
+
+    /** @copydoc back() */
+    const T& back() const { return data_.back(); }
+    /**@}*/
+
+    /**@{*/
+    /** @brief Return the element with the smallest absolute norm (L2)
+     *
+     * @warning Point type must be convertible to an OpenCV `cv::_InputArray`.
+     */
     T min() const
     {
         if (empty()) {
@@ -72,6 +143,11 @@ public:
             std::begin(data_), std::end(data_),
             [](auto lhs, auto rhs) { return cv::norm(lhs) < cv::norm(rhs); });
     }
+
+    /** @brief Return the element with the largest absolute norm (L2)
+     *
+     * @copydetails min()
+     */
     T max() const
     {
         if (empty()) {
@@ -81,6 +157,12 @@ public:
             std::begin(data_), std::end(data_),
             [](auto lhs, auto rhs) { return cv::norm(lhs) < cv::norm(rhs); });
     }
+
+    /** @brief Return a pair of elements containing the points with the smallest
+     * and largest absolute norm (L2)
+     *
+     * @copydetails min()
+     */
     std::pair<T, T> minMax() const
     {
         if (empty()) {
@@ -91,18 +173,19 @@ public:
             [](auto lhs, auto rhs) { return cv::norm(lhs) < cv::norm(rhs); });
         return {*pair.first, *pair.second};
     }
+    /**@}*/
 
-    // Add elements
-    void push_back(const T& val) { data_.push_back(val); }
-    void push_back(T&& val) { data_.push_back(val); }
-    void append(const PointSet<T>& ps)
+    /**@{*/
+    /** @brief Create a PointSet of a specific size, filled with an initial
+     * value */
+    static PointSet Fill(size_t initSize, T initVal)
     {
-        std::copy(std::begin(ps), std::end(ps), std::back_inserter(data_));
+        return PointSet(initSize, initVal);
     }
-
-    void clear() { data_.clear(); }
+    /**@}*/
 
 protected:
+    /** Point container */
     Container data_;
 };
 }  // namespace volcart

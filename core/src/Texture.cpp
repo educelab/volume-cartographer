@@ -1,6 +1,3 @@
-//
-// Created by Seth Parker on 12/3/15.
-//
 #include <opencv2/imgcodecs.hpp>
 
 #include "vc/core/types/Texture.hpp"
@@ -36,7 +33,7 @@ Texture::Texture(fs::path path)
 }
 
 // Add an image
-void Texture::addImage(cv::Mat image)
+size_t Texture::addImage(cv::Mat image)
 {
     if (images_.empty()) {
         width_ = image.cols;
@@ -44,6 +41,8 @@ void Texture::addImage(cv::Mat image)
     }
     images_.push_back(image);
     metadata_.set<size_t>("number-of-images", images_.size());
+
+    return images_.size() - 1;
 }
 
 // Return the intensity for a Point ID

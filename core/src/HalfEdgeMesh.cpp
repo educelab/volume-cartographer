@@ -1,6 +1,3 @@
-//
-// Created by Seth Parker on 6/17/16.
-//
 #include <cmath>
 
 #include "vc/core/types/HalfEdgeMesh.hpp"
@@ -188,8 +185,7 @@ HalfEdgeMesh::EdgePtr HalfEdgeMesh::find_edge_pair_(
     HalfEdgeMesh::EdgePtr pair = nullptr;
     // Check these id's against each edge
     for (auto e = edges_[0]; e; e = e->nextLink) {
-        // If the current edge's first if matches this one's B, and vice versa,
-        // it's the pair we want
+        // Check that the ID's are in opposite order
         if ((e->vert->id == b) && (e->next->vert->id == a)) {
             pair = e;
             break;

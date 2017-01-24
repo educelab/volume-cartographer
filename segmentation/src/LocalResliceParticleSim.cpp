@@ -22,6 +22,8 @@ namespace fs = boost::filesystem;
 using std::begin;
 using std::end;
 
+using Voxel = cv::Vec3d;
+
 volcart::OrderedPointSet<cv::Vec3d> ExportAsPCD(
     const std::vector<std::vector<Voxel>>& points);
 
@@ -107,7 +109,7 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
         nextPositions.reserve(currentCurve.size());
         // XXX DEBUG
         std::vector<IntensityMap> maps;
-        std::vector<Slice> reslices;
+        std::vector<Reslice> reslices;
         maps.reserve(currentCurve.size());
         reslices.reserve(currentCurve.size());
         // XXX DEBUG

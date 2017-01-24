@@ -50,11 +50,11 @@ int main(int argc, char* argv[])
          point != mesh->GetPoints()->End(); ++point) {
 
         // skip null points
-        if (point->Value()[INDEX_Z] == -1)
+        if (point->Value()[2] == -1)
             continue;
 
         // get the z-index for this point (floored int)
-        int this_z = static_cast<int>(point->Value()[INDEX_Z]);
+        int this_z = static_cast<int>(point->Value()[2]);
 
         // add point id to the vector for this z-index
         // make a vector for this z-index if it doesn't exist in the map
@@ -84,8 +84,8 @@ int main(int argc, char* argv[])
 
             ITKPoint point = mesh->GetPoint(*p_id);
             cv::Point pos;
-            pos.x = cvRound(point[INDEX_X]);
-            pos.y = cvRound(point[INDEX_Y]);
+            pos.x = cvRound(point[0]);
+            pos.y = cvRound(point[1]);
 
             cv::circle(slice, pos, 1, RED, -1);
         }

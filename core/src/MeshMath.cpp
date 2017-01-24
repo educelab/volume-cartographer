@@ -1,16 +1,10 @@
-//
-// Created by Media Team on 6/7/16.
-//
-
 #include "vc/core/util/MeshMath.hpp"
 namespace volcart
 {
 namespace meshmath
 {
 
-// Calculate the surface area of the mesh using Heron's formula
-// Use the version that is stable for small angles from
-// "Miscalculating Area and Angles of a Needle-like Triangle" by Kahan
+//
 double SurfaceArea(const ITKMesh::Pointer& input)
 {
     double surfaceArea = 0;

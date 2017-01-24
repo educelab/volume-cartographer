@@ -1,5 +1,3 @@
-/**@file PLYReader.cpp */
-
 #include "vc/core/io/PLYReader.hpp"
 
 #include <boost/algorithm/string/classification.hpp>
@@ -14,7 +12,7 @@ using namespace volcart;
 using namespace volcart::io;
 namespace fs = boost::filesystem;
 
-bool PLYReader::read()
+ITKMesh::Pointer PLYReader::read()
 {
     if (inputPath_.empty() || !fs::exists(inputPath_)) {
         auto msg = "File not provided or does not exist.";
@@ -55,7 +53,8 @@ bool PLYReader::read()
     }
     plyFile_.close();
     create_mesh_();
-    return true;
+
+    return outMesh_;
 }
 
 void PLYReader::parse_header_()

@@ -8,7 +8,7 @@ set(srcs
     src/PerPixelMap.cpp
     src/Rendering.cpp
     src/ShapePrimitive.cpp
-    src/Slice.cpp
+    src/Reslice.cpp
     src/Sphere.cpp
     src/Texture.cpp
     src/Volume.cpp
