@@ -5,12 +5,12 @@
 #define BOOST_TEST_MODULE LeastSquaresConformalMapping
 
 #include <boost/test/unit_test.hpp>
-#include "core/shapes/Arch.h"
-#include "core/shapes/Plane.h"
-#include "core/vc_defines.h"
-#include "testing/ParsingHelpers.h"
-#include "testing/TestingUtils.h"
-#include "texturing/LeastSquaresConformalMapping.h"
+#include "core/shapes/Arch.hpp"
+#include "core/shapes/Plane.hpp"
+#include "core/vc_defines.hpp"
+#include "testing/ParsingHelpers.hpp"
+#include "testing/TestingUtils.hpp"
+#include "texturing/LeastSquaresConformalMapping.hpp"
 
 /***************************************************************************************
  *                                                                                     *
@@ -66,7 +66,7 @@ struct CreatePlaneLSCMUVFixture {
         _out_Mesh = lscm.getMesh();
 
         // Load pre-generated output from file
-        volcart::testing::ParsingHelpers::parseObjFile(
+        volcart::testing::ParsingHelpers::ParseOBJFile(
             "lscm_Plane.obj", _SavedPoints, _SavedCells);
     }
 
@@ -100,7 +100,7 @@ struct CreateArchLSCMUVFixture {
         _out_Mesh = lscm.getMesh();
 
         // Load pre-generated output from file
-        volcart::testing::ParsingHelpers::parseObjFile(
+        volcart::testing::ParsingHelpers::ParseOBJFile(
             "lscm_Arch.obj", _SavedPoints, _SavedCells);
     }
 

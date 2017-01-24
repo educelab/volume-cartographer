@@ -3,15 +3,15 @@
 #include <iostream>
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
-#include "segmentation/lrps/EnergyMetrics.h"
+#include "segmentation/lrps/EnergyMetrics.hpp"
 
 using namespace volcart::segmentation;
 
 // Testing constants
 const double tolperc = 0.01;
 const double tol = 1e-9;
-const int32_t kDefaultWindowSize = 3;
-const int32_t kDefaultIndex = 0;
+const int kDefaultWindowSize = 3;
+const int kDefaultIndex = 0;
 const double kDefaultAlpha = 1.0 / 3.0;
 const double kDefaultBeta = 1.0 / 3.0;
 const double kDefaultDelta = 1.0 / 3.0;
@@ -77,7 +77,7 @@ BOOST_AUTO_TEST_CASE(LocalWindowedArcLengthWithEmptyCurve)
 
 BOOST_AUTO_TEST_CASE(LocalWindowedArcLengthWithEmptyCurveAndNegativeWindowSize)
 {
-    const int32_t negativeWindow = -1;
+    const int negativeWindow = -1;
     BOOST_CHECK_SMALL(
         EnergyMetrics::LocalWindowedArcLength(
             _curve, kDefaultIndex, negativeWindow),
@@ -86,7 +86,7 @@ BOOST_AUTO_TEST_CASE(LocalWindowedArcLengthWithEmptyCurveAndNegativeWindowSize)
 
 BOOST_AUTO_TEST_CASE(LocalWindowedArcLengthWithEmptyCurveAndLargeWindowSize)
 {
-    const int32_t largeWindow = _curve.size() + 1;
+    const int largeWindow = _curve.size() + 1;
     BOOST_CHECK_SMALL(
         EnergyMetrics::LocalWindowedArcLength(
             _curve, kDefaultIndex, largeWindow),
@@ -96,8 +96,8 @@ BOOST_AUTO_TEST_CASE(LocalWindowedArcLengthWithEmptyCurveAndLargeWindowSize)
 BOOST_AUTO_TEST_CASE(
     LocalWindowedArcLengthWithEmptyCurveAndNegativeWindowAndOOBIndex)
 {
-    const int32_t negativeIndex = -1;
-    const int32_t negativeWindow = -1;
+    const int negativeIndex = -1;
+    const int negativeWindow = -1;
     BOOST_CHECK_SMALL(
         EnergyMetrics::LocalWindowedArcLength(
             _curve, negativeIndex, negativeWindow),
@@ -106,28 +106,28 @@ BOOST_AUTO_TEST_CASE(
 
 BOOST_AUTO_TEST_CASE(WindowedArcLengthWithEmptyCurve)
 {
-    const int32_t zeroWindow = 0;
+    const int zeroWindow = 0;
     BOOST_CHECK_SMALL(
         EnergyMetrics::WindowedArcLength(_curve, zeroWindow), tol);
 }
 
 BOOST_AUTO_TEST_CASE(WindowedArcLengthWithEmptyCurveAndNegativeWindowSize)
 {
-    const int32_t negativeWindow = -1;
+    const int negativeWindow = -1;
     BOOST_CHECK_SMALL(
         EnergyMetrics::WindowedArcLength(_curve, negativeWindow), tol);
 }
 
 BOOST_AUTO_TEST_CASE(WindowedArcLengthWithEmptyCurveAndTooLargeWindowSize)
 {
-    const int32_t largeWindow = _curve.size() + 1;
+    const int largeWindow = _curve.size() + 1;
     BOOST_CHECK_SMALL(
         EnergyMetrics::WindowedArcLength(_curve, largeWindow), tol);
 }
 
 BOOST_AUTO_TEST_CASE(WindowedArcLengthWithEmptyCurveAndNonZeroWindowSize)
 {
-    const int32_t nonZeroWindow = kDefaultWindowSize;
+    const int nonZeroWindow = kDefaultWindowSize;
     BOOST_CHECK_SMALL(
         EnergyMetrics::WindowedArcLength(_curve, nonZeroWindow), tol);
 }
@@ -182,7 +182,7 @@ BOOST_AUTO_TEST_CASE(
 BOOST_AUTO_TEST_CASE(
     LocalWindowedArcLengthWithConstantCurveAndNegativeWindowSize)
 {
-    const int32_t negativeWindow = -1;
+    const int negativeWindow = -1;
     BOOST_CHECK_THROW(
         EnergyMetrics::LocalWindowedArcLength(
             _curve, kDefaultIndex, negativeWindow),
@@ -191,7 +191,7 @@ BOOST_AUTO_TEST_CASE(
 
 BOOST_AUTO_TEST_CASE(LocalWindowedArcLengthWithConstantCurveAndLargeWindowSize)
 {
-    const int32_t largeWindow = _curve.size() + 1;
+    const int largeWindow = _curve.size() + 1;
     BOOST_CHECK_THROW(
         EnergyMetrics::LocalWindowedArcLength(
             _curve, kDefaultIndex, largeWindow),
@@ -201,8 +201,8 @@ BOOST_AUTO_TEST_CASE(LocalWindowedArcLengthWithConstantCurveAndLargeWindowSize)
 BOOST_AUTO_TEST_CASE(
     LocalWindowedArcLengthWithConstantCurveAndNegativeWindowAndOOBIndex)
 {
-    const int32_t negativeIndex = -1;
-    const int32_t negativeWindow = -1;
+    const int negativeIndex = -1;
+    const int negativeWindow = -1;
     BOOST_CHECK_THROW(
         EnergyMetrics::LocalWindowedArcLength(
             _curve, negativeIndex, negativeWindow),
@@ -211,14 +211,14 @@ BOOST_AUTO_TEST_CASE(
 
 BOOST_AUTO_TEST_CASE(WindowedArcLengthWithConstantCurveAndDefaultWindowSize)
 {
-    const int32_t expected = kDefaultWindowSize / 2 * 2;
+    const int expected = kDefaultWindowSize / 2 * 2;
     auto result = EnergyMetrics::WindowedArcLength(_curve, kDefaultWindowSize);
     BOOST_CHECK_CLOSE(result, expected, tolperc);
 }
 
 BOOST_AUTO_TEST_CASE(WindowedArcLengthWithConstantCurveAndNegativeWindowSize)
 {
-    const int32_t negativeWindow = -1;
+    const int negativeWindow = -1;
     BOOST_CHECK_THROW(
         EnergyMetrics::WindowedArcLength(_curve, negativeWindow),
         std::invalid_argument);
@@ -226,7 +226,7 @@ BOOST_AUTO_TEST_CASE(WindowedArcLengthWithConstantCurveAndNegativeWindowSize)
 
 BOOST_AUTO_TEST_CASE(WindowedArcLengthWithConstantCurveAndTooLargeWindowSize)
 {
-    const int32_t largeWindow = _curve.size() + 1;
+    const int largeWindow = _curve.size() + 1;
     BOOST_CHECK_THROW(
         EnergyMetrics::WindowedArcLength(_curve, largeWindow),
         std::invalid_argument);

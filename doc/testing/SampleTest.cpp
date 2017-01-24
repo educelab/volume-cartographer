@@ -6,9 +6,9 @@
 
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
-#include "core/io/OBJWriter.h"
-#include "core/shapes/Plane.h"
-#include "core/vc_defines.h"
+#include "core/io/OBJWriter.hpp"
+#include "core/shapes/Plane.hpp"
+#include "core/vc_defines.hpp"
 
 /************************************************************************************
  *                                                                                  *

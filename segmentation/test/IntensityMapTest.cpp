@@ -7,7 +7,7 @@
 #include <vector>
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
-#include "segmentation/lrps/IntensityMap.h"
+#include "segmentation/lrps/IntensityMap.hpp"
 
 using namespace volcart::segmentation;
 

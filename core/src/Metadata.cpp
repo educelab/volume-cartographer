@@ -1,26 +1,26 @@
-#include "core/types/Metadata.h"
+#include "core/types/Metadata.hpp"
 
 namespace fs = boost::filesystem;
 
 using namespace volcart;
 
 // Read a json config from disk
-Metadata::Metadata(const fs::path& file_location) : _path(file_location)
+Metadata::Metadata(fs::path fileLocation) : path_{fileLocation}
 {
     // open the file
-    if (!fs::exists(file_location)) {
-        auto msg = "could not find json file '" + file_location.string() + "'";
+    if (!fs::exists(fileLocation)) {
+        auto msg = "could not find json file '" + fileLocation.string() + "'";
         throw std::runtime_error(msg);
     }
-    std::ifstream json_file(file_location.string());
-    if (!json_file) {
-        auto msg = "could not open json file '" + file_location.string() + "'";
+    std::ifstream jsonFile(fileLocation.string());
+    if (!jsonFile) {
+        auto msg = "could not open json file '" + fileLocation.string() + "'";
         throw std::ifstream::failure(msg);
     }
 
-    json_file >> _json;
-    if (json_file.bad()) {
-        auto msg = "could not read json file '" + file_location.string() + "'";
+    jsonFile >> json_;
+    if (jsonFile.bad()) {
+        auto msg = "could not read json file '" + fileLocation.string() + "'";
         throw std::ifstream::failure(msg);
     }
 }
@@ -29,11 +29,11 @@ Metadata::Metadata(const fs::path& file_location) : _path(file_location)
 void Metadata::save(const fs::path& path)
 {
     // open the file
-    std::ofstream json_file(path.string(), std::ofstream::out);
+    std::ofstream jsonFile(path.string(), std::ofstream::out);
 
     // try to push into the json file
-    json_file << _json << std::endl;
-    if (json_file.fail()) {
+    jsonFile << json_ << std::endl;
+    if (jsonFile.fail()) {
         auto msg = "could not write json file '" + path.string() + "'";
         throw std::ifstream::failure(msg);
     }

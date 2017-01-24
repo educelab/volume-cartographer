@@ -6,8 +6,8 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
 
-#include "core/types/VolumePkg.h"
-#include "segmentation/lrps/LocalResliceParticleSim.h"
+#include "core/types/VolumePkg.hpp"
+#include "segmentation/lrps/LocalResliceParticleSim.hpp"
 
 using namespace volcart::segmentation;
 namespace tt = boost::test_tools;
@@ -56,16 +56,16 @@ BOOST_FIXTURE_TEST_CASE(DefaultSegmentationTest, LocalResliceSegmentationFix)
     // Run segmentation
     // XXX These params are manually input now, later they will be dynamically
     // read from the parameters.json file in each segmentation directory
-    int32_t startIndex = 1;
-    int32_t endIndex = 182;
-    int32_t numIters = 15;
-    int32_t stepNumLayers = 1;
+    int startIndex = 1;
+    int endIndex = 182;
+    int numIters = 15;
+    int stepNumLayers = 1;
     double alpha = 1.0 / 3.0;
     double k1 = 0.5;
     double k2 = 0.5;
     double beta = 1.0 / 3.0;
     double delta = 1.0 / 3.0;
-    int32_t peakDistanceWeight = 50;
+    int peakDistanceWeight = 50;
     bool shouldIncludeMiddle = false;
     bool dumpVis = false;
     bool visualize = false;

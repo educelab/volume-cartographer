@@ -9,7 +9,6 @@ set(srcs
     src/FittedCurve.cpp
     src/IntensityMap.cpp
     src/LocalResliceParticleSim.cpp
-    src/Particle.cpp
     src/StructureTensorParticleSim.cpp
 )
 set(deps

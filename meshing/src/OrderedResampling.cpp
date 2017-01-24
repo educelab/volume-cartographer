@@ -4,84 +4,72 @@
 
 /* @file OrderedResampling.cpp*/
 
-#include "meshing/OrderedResampling.h"
-#include "meshing/CalculateNormals.h"
+#include "meshing/OrderedResampling.hpp"
+#include "meshing/CalculateNormals.hpp"
 
 using namespace volcart::meshing;
 
-//// Constructors ////
-OrderedResampling::OrderedResampling() : _inWidth{0}, _inHeight{0} {}
-
-OrderedResampling::OrderedResampling(
-    ITKMesh::Pointer mesh, int in_width, int in_height)
-    : _input{mesh}, _inWidth{in_width}, _inHeight{in_height}
-{
-}
-
 //// Set Inputs/Get Output ////
 void OrderedResampling::setMesh(
-    ITKMesh::Pointer mesh, int in_width, int in_height)
+    const ITKMesh::Pointer& mesh, int inWidth, int inHeight)
 {
-    _input = mesh;
-    _inWidth = in_width;
-    _inHeight = in_height;
+    input_ = mesh;
+    inWidth_ = inWidth;
+    inHeight_ = inHeight;
 }
 
 volcart::ITKMesh::Pointer OrderedResampling::getOutputMesh() const
 {
-    if (_output.IsNull()) {
+    if (output_.IsNull()) {
         std::cerr << "Error: Output Mesh is not set" << std::endl;
-        return NULL;
-    } else
-        return _output;
+        return nullptr;
+    } else {
+        return output_;
+    }
 }
-
-int OrderedResampling::getOutputWidth() const { return _outWidth; };
-int OrderedResampling::getOutputHeight() const { return _outHeight; };
 
 ///// Processing /////
 void OrderedResampling::compute()
 {
-    _output = ITKMesh::New();
+    output_ = ITKMesh::New();
 
     // Dimensions of resampled, ordered mesh
-    _outWidth = (_inWidth + 1) / 2;
-    _outHeight = (_inHeight + 1) / 2;
+    outWidth_ = (inWidth_ + 1) / 2;
+    outHeight_ = (inHeight_ + 1) / 2;
 
     // Tells the loop whether or not the points in that line should be added to
     // the new mesh
-    bool line_skip = false;
+    bool lineSkip = false;
 
     // Loop iterator
     int k = 0;
-    ITKPointIterator pointsIterator = _input->GetPoints()->Begin();
-
     // Adds certain points from old mesh into the new mesh
-    for (; pointsIterator != _input->GetPoints()->End();
-         pointsIterator++, k++) {
+    for (auto pointsIt = input_->GetPoints()->Begin();
+         pointsIt != input_->GetPoints()->End(); pointsIt++, k++) {
 
-        // If we've reached the end of a row, reset k and flip the line_skip
+        // If we've reached the end of a row, reset k and flip the lineSkip
         // bool
-        if (k == _inWidth) {
+        if (k == inWidth_) {
             k = 0;
-            line_skip = !line_skip;
+            lineSkip = !lineSkip;
         }
 
         // Skip this point if we're skipping this line
-        if (line_skip)
+        if (lineSkip) {
             continue;
+        }
 
         // Only add every other point
-        if (k % 2 == 0)
-            _output->SetPoint(
-                _output->GetNumberOfPoints(), pointsIterator.Value());
+        if (k % 2 == 0) {
+            output_->SetPoint(output_->GetNumberOfPoints(), pointsIt.Value());
+        }
     }
 
     // Something went wrong with resampling. Number of points aren't what we
     // expect...
     assert(
-        static_cast<int>(_output->GetNumberOfPoints()) ==
-            _outWidth * _outHeight &&
+        static_cast<int>(output_->GetNumberOfPoints()) ==
+            outWidth_ * outHeight_ &&
         "Error resampling. Output and expected output don't match.");
 
     // Vertices for each face in the new mesh
@@ -89,51 +77,51 @@ void OrderedResampling::compute()
 
     // Create two new faces each iteration based on new set of points and keeps
     // normals same as original
-    for (int i = 0; i < _outHeight - 1; i++) {
-        for (int j = 0; j < _outWidth - 1; j++) {
+    for (int i = 0; i < outHeight_ - 1; i++) {
+        for (int j = 0; j < outWidth_ - 1; j++) {
 
             // 4 points allows us to create the upper and lower faces at the
             // same time
-            point1 = i * _outWidth + j;
+            point1 = i * outWidth_ + j;
             point2 = point1 + 1;
-            point3 = point2 + _outWidth;
+            point3 = point2 + outWidth_;
             point4 = point3 - 1;
 
-            if (point1 >= _output->GetNumberOfPoints() ||
-                point2 >= _output->GetNumberOfPoints() ||
-                point3 >= _output->GetNumberOfPoints() ||
-                point4 >= _output->GetNumberOfPoints()) {
+            if (point1 >= output_->GetNumberOfPoints() ||
+                point2 >= output_->GetNumberOfPoints() ||
+                point3 >= output_->GetNumberOfPoints() ||
+                point4 >= output_->GetNumberOfPoints()) {
                 throw std::out_of_range(
                     "Predicted vertex index for face generation out of range "
                     "of point set.");
             }
 
             // Add both these faces to the mesh
-            _addCell(point2, point3, point4);
-            _addCell(point1, point2, point4);
+            add_cell_(point2, point3, point4);
+            add_cell_(point1, point2, point4);
         }
     }
 
-    volcart::meshing::CalculateNormals calcNorm(_output);
+    volcart::meshing::CalculateNormals calcNorm(output_);
     calcNorm.compute();
-    _output = calcNorm.getMesh();
+    output_ = calcNorm.getMesh();
 
     std::cerr
         << "volcart::meshing::OrderedResampling: Points in resampled mesh "
-        << _output->GetNumberOfPoints() << std::endl;
+        << output_->GetNumberOfPoints() << std::endl;
     std::cerr << "volcart::meshing::OrderedResampling: Cells in resampled mesh "
-              << _output->GetNumberOfCells() << std::endl;
+              << output_->GetNumberOfCells() << std::endl;
 }
 
-void OrderedResampling::_addCell(uint32_t a, uint32_t b, uint32_t c)
+void OrderedResampling::add_cell_(uint32_t a, uint32_t b, uint32_t c)
 {
-    ITKCell::CellAutoPointer current_C;
+    ITKCell::CellAutoPointer currentCell;
 
-    current_C.TakeOwnership(new ITKTriangle);
+    currentCell.TakeOwnership(new ITKTriangle);
 
-    current_C->SetPointId(0, a);
-    current_C->SetPointId(1, b);
-    current_C->SetPointId(2, c);
+    currentCell->SetPointId(0, a);
+    currentCell->SetPointId(1, b);
+    currentCell->SetPointId(2, c);
 
-    _output->SetCell(_output->GetNumberOfCells(), current_C);
+    output_->SetCell(output_->GetNumberOfCells(), currentCell);
 }

@@ -1,22 +1,22 @@
 // addScale - A utility to create
-#include <cstdio>
+#include <iostream>
 #include <string>
 
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include "core/scales/Scales.h"
-#include "core/types/VolumePkg.h"
+#include "core/scales/Scales.hpp"
+#include "core/types/VolumePkg.hpp"
 
-int main(int argc, char* argv[])
+int main(int argc, char** argv)
 {
     if (argc < 4) {
-        fprintf(stderr, "Usage: %s [volpkg] [segid] [scale index]\n", argv[0]);
-        fprintf(stderr, "       Scale Indexes:\n");
-        fprintf(stderr, "          0 = 3mm Scale Bar\n");
-        fprintf(stderr, "          1 = 10mm Scale Bar\n");
-        fprintf(stderr, "          2 = Greek Pi\n");
+        std::cerr << "Usage:" << std::endl;
+        std::cerr << "  Scale Indices" << std::endl;
+        std::cerr << "      0 = 3mm scale bar" << std::endl;
+        std::cerr << "      1 = 10mm scale bar" << std::endl;
+        std::cerr << "      2 = Greek Pi" << std::endl;
         return 1;
     }
 
@@ -35,18 +35,18 @@ int main(int argc, char* argv[])
     cv::Mat scaleImage;
     switch (atoi(argv[3])) {
         case 0:
-            scaleImage = cv::Mat(23, 82, CV_16U, &scale_micro);
+            scaleImage = cv::Mat(23, 82, CV_16U, &g_scaleMicro);
             break;
         case 1:
-            scaleImage = cv::Mat(27, 254, CV_16U, &scale_small);
+            scaleImage = cv::Mat(27, 254, CV_16U, &g_scaleSmall);
             break;
         case 2:
-            scaleImage = cv::Mat(76, 94, CV_16U, &scale_pi);
+            scaleImage = cv::Mat(76, 94, CV_16U, &g_scalePi);
             break;
         default:
-            scaleImage = cv::Mat(23, 82, CV_16U, &scale_micro);
+            scaleImage = cv::Mat(23, 82, CV_16U, &g_scaleSmall);
             break;
-    };
+    }
     scaleImage.convertTo(scaleImage, CV_16U, 65355, 0);
 
     // Setup the output image
@@ -69,10 +69,12 @@ int main(int argc, char* argv[])
     // Overlay Image
     int originX = outImage.cols - resizedScale.cols;
     int originY = outImage.rows - resizedScale.rows;
-    if (originX < 0)
+    if (originX < 0) {
         originX = 0;
-    if (originY < 0)
+    }
+    if (originY < 0) {
         originY = 0;
+    }
 
     cv::Mat outROI = outImage(
         cv::Rect(originX, originY, resizedScale.cols, resizedScale.rows));

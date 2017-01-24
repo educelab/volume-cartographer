@@ -9,13 +9,13 @@
  *          v-c/testing/meshing.
  */
 
-#include "core/shapes/Arch.h"
-#include "core/shapes/Cone.h"
-#include "core/shapes/Cube.h"
-#include "core/shapes/Plane.h"
-#include "core/shapes/Sphere.h"
-#include "core/vc_defines.h"
-#include "meshing/RayTrace.h"
+#include "core/shapes/Arch.hpp"
+#include "core/shapes/Cone.hpp"
+#include "core/shapes/Cube.hpp"
+#include "core/shapes/Plane.hpp"
+#include "core/shapes/Sphere.hpp"
+#include "core/vc_defines.hpp"
+#include "meshing/RayTrace.hpp"
 
 int main()
 {
@@ -99,7 +99,7 @@ int main()
          * ply writer scaled down from orderePCDMesher.cpp
          *
          * Not including a width, height or face data.
-         * Should still be able to parse using ParsingHelpers::parsePlyFile()
+         * Should still be able to parse using ParsingHelpers::ParsePLYFile()
          *
          */
 

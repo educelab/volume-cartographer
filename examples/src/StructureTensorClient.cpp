@@ -6,7 +6,7 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include "core/types/VolumePkg.h"
+#include "core/types/VolumePkg.hpp"
 
 void draw(
     const volcart::Volume& v,
@@ -37,7 +37,7 @@ int main(int argc, char** argv)
 
     StructureTensor st = v.structureTensorAt(x, y, z, radius);
     std::cout << "structure tensor:" << std::endl << st << std::endl;
-    if (st == volcart::ZeroStructureTensor) {
+    if (st == volcart::ZERO_STRUCTURE_TENSOR) {
         std::cout << "structure tensor was zero" << std::endl;
     } else {
         auto pairs = v.eigenPairsAt(x, y, z, radius);

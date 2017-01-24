@@ -5,12 +5,12 @@
 #define BOOST_TEST_MODULE AngleBasedFlattening
 
 #include <boost/test/unit_test.hpp>
-#include "core/shapes/Arch.h"
-#include "core/shapes/Plane.h"
-#include "core/vc_defines.h"
-#include "testing/ParsingHelpers.h"
-#include "testing/TestingUtils.h"
-#include "texturing/AngleBasedFlattening.h"
+#include "core/shapes/Arch.hpp"
+#include "core/shapes/Plane.hpp"
+#include "core/vc_defines.hpp"
+#include "testing/ParsingHelpers.hpp"
+#include "testing/TestingUtils.hpp"
+#include "texturing/AngleBasedFlattening.hpp"
 
 using namespace volcart;
 
@@ -68,7 +68,7 @@ struct CreatePlaneABFUVFixture {
         _out_Mesh = abf.getMesh();
 
         // Load pre-generated output from file
-        volcart::testing::ParsingHelpers::parseObjFile(
+        volcart::testing::ParsingHelpers::ParseOBJFile(
             "abf_Plane.obj", _SavedPoints, _SavedCells);
     }
 
@@ -104,7 +104,7 @@ struct CreatePlaneABFLSCMOnlyUVFixture {
         _out_Mesh = abf.getMesh();
 
         // Load pre-generated output from file
-        volcart::testing::ParsingHelpers::parseObjFile(
+        volcart::testing::ParsingHelpers::ParseOBJFile(
             "abf_Plane_LSCMOnly.obj", _SavedPoints, _SavedCells);
     }
 
@@ -138,7 +138,7 @@ struct CreateArchABFUVFixture {
         _out_Mesh = abf.getMesh();
 
         // Load pre-generated output from file
-        volcart::testing::ParsingHelpers::parseObjFile(
+        volcart::testing::ParsingHelpers::ParseOBJFile(
             "abf_Arch.obj", _SavedPoints, _SavedCells);
     }
 
@@ -174,7 +174,7 @@ struct CreateArchABFLSCMOnlyUVFixture {
         _out_Mesh = abf.getMesh();
 
         // Load pre-generated output from file
-        volcart::testing::ParsingHelpers::parseObjFile(
+        volcart::testing::ParsingHelpers::ParseOBJFile(
             "abf_Arch_LSCMOnly.obj", _SavedPoints, _SavedCells);
     }
 

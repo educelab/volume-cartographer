@@ -3,7 +3,10 @@
 //
 /** @file ITK2VTK.cpp */
 
-#include "meshing/ITK2VTK.h"
+#include <vtkDoubleArray.h>
+#include <vtkPointData.h>
+
+#include "meshing/ITK2VTK.hpp"
 
 namespace volcart
 {
@@ -19,7 +22,7 @@ ITK2VTK::ITK2VTK(ITKMesh::Pointer input, vtkSmartPointer<vtkPolyData> output)
     auto pointNormals = vtkSmartPointer<vtkDoubleArray>::New();
     pointNormals->SetNumberOfComponents(3);  // 3d normals (ie x,y,z)
 
-    for (ITKPointIterator point = input->GetPoints()->Begin();
+    for (auto point = input->GetPoints()->Begin();
          point != input->GetPoints()->End(); ++point) {
         // assign the point
         points->InsertPoint(
@@ -29,20 +32,21 @@ ITK2VTK::ITK2VTK(ITKMesh::Pointer input, vtkSmartPointer<vtkPolyData> output)
         // assign the normal
         ITKPixel normal;
         if (input->GetPointData(point.Index(), &normal)) {
-            double ptNorm[3] = {normal[0], normal[1], normal[2]};
-            pointNormals->InsertTuple(point->Index(), ptNorm);
+            std::array<double, 3> ptNorm = {normal[0], normal[1], normal[2]};
+            pointNormals->InsertTuple(point->Index(), ptNorm.data());
         }
     }
 
     // cells
     auto polys = vtkSmartPointer<vtkCellArray>::New();
-    for (ITKCellIterator cell = input->GetCells()->Begin();
+    for (auto cell = input->GetCells()->Begin();
          cell != input->GetCells()->End(); ++cell) {
 
         auto poly = vtkSmartPointer<vtkIdList>::New();
-        for (ITKPointInCellIterator point = cell.Value()->PointIdsBegin();
-             point != cell.Value()->PointIdsEnd(); ++point)
+        for (auto point = cell.Value()->PointIdsBegin();
+             point != cell.Value()->PointIdsEnd(); ++point) {
             poly->InsertNextId(*point);
+        }
 
         polys->InsertNextCell(poly);
     }
@@ -50,47 +54,47 @@ ITK2VTK::ITK2VTK(ITKMesh::Pointer input, vtkSmartPointer<vtkPolyData> output)
     // assign to the mesh
     output->SetPoints(points);
     output->SetPolys(polys);
-    if (pointNormals->GetNumberOfTuples() > 0)
+    if (pointNormals->GetNumberOfTuples() > 0) {
         output->GetPointData()->SetNormals(pointNormals);
-};
+    }
+}
 
 ///// VTK Polydata -> ITK Mesh /////
-vtk2itk::vtk2itk(vtkSmartPointer<vtkPolyData> input, ITKMesh::Pointer output)
+VTK2ITK::VTK2ITK(vtkSmartPointer<vtkPolyData> input, ITKMesh::Pointer output)
 {
 
     // points + normals
     auto pointNormals = input->GetPointData()->GetNormals();
-    for (vtkIdType p_id = 0; p_id < input->GetNumberOfPoints(); ++p_id) {
-
-        ITKPoint point = input->GetPoint(p_id);
-        output->SetPoint(p_id, point);
+    for (vtkIdType pointId = 0; pointId < input->GetNumberOfPoints();
+         ++pointId) {
+        auto point = input->GetPoint(pointId);
+        output->SetPoint(pointId, point);
         if (pointNormals != nullptr) {
-            ITKPixel normal = pointNormals->GetTuple(p_id);
-            output->SetPointData(p_id, normal);
+            auto normal = pointNormals->GetTuple(pointId);
+            output->SetPointData(pointId, normal);
         }
     }
 
     // cells
     ITKCell::CellAutoPointer cell;
-    for (vtkIdType c_id = 0; c_id < input->GetNumberOfCells(); ++c_id) {
+    for (vtkIdType cellId = 0; cellId < input->GetNumberOfCells(); ++cellId) {
+        auto inputCell = input->GetCell(cellId);  // input cell
+        cell.TakeOwnership(new ITKTriangle);      // output cell
 
-        auto inputCell = input->GetCell(c_id);  // input cell
-        cell.TakeOwnership(new ITKTriangle);    // output cell
-
-        for (vtkIdType p_id = 0; p_id < inputCell->GetNumberOfPoints();
-             ++p_id) {
+        for (vtkIdType pointId = 0; pointId < inputCell->GetNumberOfPoints();
+             ++pointId) {
             cell->SetPointId(
-                p_id, inputCell->GetPointId(p_id));  // assign the point id's
+                pointId,
+                inputCell->GetPointId(pointId));  // assign the point id's
         }
 
-        output->SetCell(c_id, cell);
+        output->SetCell(cellId, cell);
     }
 };
 
 ///// ITK Mesh -> ITK QuadEdge Mesh /////
-itk2itkQE::itk2itkQE(ITKMesh::Pointer input, volcart::QuadMesh::Pointer output)
+ITK2ITKQE::ITK2ITKQE(ITKMesh::Pointer input, volcart::QuadMesh::Pointer output)
 {
-
     // Vertices
     volcart::QuadPoint p;
     ITKPixel n;
@@ -101,28 +105,29 @@ itk2itkQE::itk2itkQE(ITKMesh::Pointer input, volcart::QuadMesh::Pointer output)
         output->SetPoint(point->Index(), p);
 
         // Assign the normal
-        if (input->GetPointData(point->Index(), &n))
+        if (input->GetPointData(point->Index(), &n)) {
             output->SetPointData(point->Index(), n);
+        }
     }
 
     // Faces
     for (auto cell = input->GetCells()->Begin();
          cell != input->GetCells()->End(); ++cell) {
         // Collect the point id's
-        std::vector<QuadPointIdentifier> v_ids;
+        std::vector<QuadPointIdentifier> vIds;
         for (auto point = cell.Value()->PointIdsBegin();
              point != cell.Value()->PointIdsEnd(); ++point) {
-            v_ids.push_back(*point);
+            vIds.push_back(*point);
         }
+
         // Assign to the mesh
-        output->AddFaceTriangle(v_ids[0], v_ids[1], v_ids[2]);
+        output->AddFaceTriangle(vIds[0], vIds[1], vIds[2]);
     }
 }
 
 ///// ITK QuadEdge Mesh -> ITK Mesh /////
-itkQE2itk::itkQE2itk(volcart::QuadMesh::Pointer input, ITKMesh::Pointer output)
+ITKQE2ITK::ITKQE2ITK(volcart::QuadMesh::Pointer input, ITKMesh::Pointer output)
 {
-
     // Vertices
     ITKPoint p;
     ITKPixel n;
@@ -133,23 +138,23 @@ itkQE2itk::itkQE2itk(volcart::QuadMesh::Pointer input, ITKMesh::Pointer output)
         output->SetPoint(point->Index(), p);
 
         // Assign the normal
-        if (input->GetPointData(point->Index(), &n))
+        if (input->GetPointData(point->Index(), &n)) {
             output->SetPointData(point->Index(), n);
+        }
     }
 
     // Faces
     ITKCell::CellAutoPointer cell;
     QuadCellIdentifier id =
         0;  // QE Meshes use a map so we have to reset their cell ids
-    for (auto c_it = input->GetCells()->Begin();
-         c_it != input->GetCells()->End(); ++c_it, ++id) {
+    for (auto cellIt = input->GetCells()->Begin();
+         cellIt != input->GetCells()->End(); ++cellIt, ++id) {
         cell.TakeOwnership(new ITKTriangle);  // output cell
         cell->SetPointIds(
-            c_it->Value()->PointIdsBegin(), c_it->Value()->PointIdsEnd());
+            cellIt->Value()->PointIdsBegin(), cellIt->Value()->PointIdsEnd());
 
         output->SetCell(id, cell);
     }
 }
-
-}  // namespace meshing
-}  // namespace volcart
+}
+}

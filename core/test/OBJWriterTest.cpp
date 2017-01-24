@@ -5,10 +5,10 @@
 #define BOOST_TEST_MODULE ObjWriter
 
 #include <boost/test/unit_test.hpp>
-#include "core/io/OBJWriter.h"
-#include "core/shapes/Plane.h"
-#include "testing/ParsingHelpers.h"
-#include "testing/TestingUtils.h"
+#include "core/io/OBJWriter.hpp"
+#include "core/shapes/Plane.hpp"
+#include "testing/ParsingHelpers.hpp"
+#include "testing/TestingUtils.hpp"
 
 using namespace volcart;
 
@@ -62,7 +62,7 @@ struct WriteMeshUsingOBJWriterFixture {
         _in_PlaneITKMesh = _Plane.itkMesh();
 
         // load in written data
-        volcart::testing::ParsingHelpers::parseObjFile(
+        volcart::testing::ParsingHelpers::ParseOBJFile(
             "OBJWriterPlaneData.obj", _SavedPlanePoints, _SavedPlaneCells);
 
         std::cerr << "Creating a Plane itk mesh object for writing"

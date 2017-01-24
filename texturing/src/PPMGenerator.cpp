@@ -4,8 +4,8 @@
 
 #include <stdexcept>
 
-#include "core/util/FloatComparison.h"
-#include "texturing/PPMGenerator.h"
+#include "core/util/FloatComparison.hpp"
+#include "texturing/PPMGenerator.hpp"
 
 using namespace volcart;
 using namespace texturing;
@@ -15,53 +15,53 @@ constexpr static size_t KD_DEFAULT_SEARCH_SIZE = 100;
 // Parameters
 void PPMGenerator::setDimensions(size_t h, size_t w)
 {
-    _height = h;
-    _width = w;
+    height_ = h;
+    width_ = w;
 }
 
 // Compute
 PerPixelMap& PPMGenerator::compute()
 {
-    if (_inputMesh.IsNull() || _inputMesh->GetNumberOfPoints() == 0 ||
-        _inputMesh->GetNumberOfCells() == 0 || _uvMap.empty() || _width == 0 ||
-        _height == 0) {
+    if (inputMesh_.IsNull() || inputMesh_->GetNumberOfPoints() == 0 ||
+        inputMesh_->GetNumberOfCells() == 0 || uvMap_.empty() || width_ == 0 ||
+        height_ == 0) {
         auto msg = "Invalid input parameters";
         throw std::invalid_argument(msg);
     }
 
     // Make sure the storage vectors are clean
-    _centroidMesh = ITKMesh::New();
-    _cellInformation.clear();
+    centroidMesh_ = ITKMesh::New();
+    cellInformation_.clear();
 
-    _generateCentroidMesh();
-    _generatePPM();
+    generate_centroid_mesh_();
+    generate_ppm_();
 
-    return _ppm;
+    return ppm_;
 }
 
 // Generate the centroid mesh and other temporary data structures
-void PPMGenerator::_generateCentroidMesh()
+void PPMGenerator::generate_centroid_mesh_()
 {
     ITKPoint centroid;
     CellInfo info;
-    for (auto cell = _inputMesh->GetCells()->Begin();
-         cell != _inputMesh->GetCells()->End(); ++cell) {
+    for (auto cell = inputMesh_->GetCells()->Begin();
+         cell != inputMesh_->GetCells()->End(); ++cell) {
         info.reset();
 
-        cv::Vec3d _2D, _3D;
+        cv::Vec3d twoD, threeD;
         for (auto point = cell->Value()->PointIdsBegin();
              point != cell->Value()->PointIdsEnd(); ++point) {
             auto pointID = *point;
 
-            _2D[0] = _uvMap.get(pointID)[0];
-            _2D[1] = _uvMap.get(pointID)[1];
-            _2D[2] = 0.0;
-            info.pts2D.push_back(_2D);
+            twoD[0] = uvMap_.get(pointID)[0];
+            twoD[1] = uvMap_.get(pointID)[1];
+            twoD[2] = 0.0;
+            info.pts2D.push_back(twoD);
 
-            _3D[0] = _inputMesh->GetPoint(pointID)[0];
-            _3D[1] = _inputMesh->GetPoint(pointID)[1];
-            _3D[2] = _inputMesh->GetPoint(pointID)[2];
-            info.pts3D.push_back(_3D);
+            threeD[0] = inputMesh_->GetPoint(pointID)[0];
+            threeD[1] = inputMesh_->GetPoint(pointID)[1];
+            threeD[2] = inputMesh_->GetPoint(pointID)[2];
+            info.pts3D.push_back(threeD);
         }
 
         // Calculate the cell centroid
@@ -70,42 +70,42 @@ void PPMGenerator::_generateCentroidMesh()
         // Generate the surface normal for this cell
         auto v1v0 = info.pts3D[1] - info.pts3D[0];
         auto v2v0 = info.pts3D[2] - info.pts3D[0];
-        info.Normal = cv::normalize(v1v0.cross(v2v0));
+        info.normal = cv::normalize(v1v0.cross(v2v0));
 
-        _cellInformation.push_back(info);
-        _centroidMesh->SetPoint(cell.Index(), centroid);
+        cellInformation_.push_back(info);
+        centroidMesh_->SetPoint(cell.Index(), centroid);
     }
 }
 
-void PPMGenerator::_generatePPM()
+void PPMGenerator::generate_ppm_()
 {
     // Setup the output
-    _ppm = PerPixelMap(_height, _width);
-    cv::Mat mask = cv::Mat::zeros(_height, _width, CV_8UC1);
-    _progress = 0.0;
+    ppm_ = PerPixelMap(height_, width_);
+    cv::Mat mask = cv::Mat::zeros(height_, width_, CV_8UC1);
+    progress_ = 0.0;
 
     // Setup the search tree
     auto kdTree = ITKPointsLocator::New();
-    kdTree->SetPoints(_centroidMesh->GetPoints());
+    kdTree->SetPoints(centroidMesh_->GetPoints());
     kdTree->Initialize();
     auto kdSearchSize =
-        (_centroidMesh->GetNumberOfPoints() < KD_DEFAULT_SEARCH_SIZE)
-            ? _centroidMesh->GetNumberOfPoints()
+        (centroidMesh_->GetNumberOfPoints() < KD_DEFAULT_SEARCH_SIZE)
+            ? centroidMesh_->GetNumberOfPoints()
             : KD_DEFAULT_SEARCH_SIZE;
     ITKPointsLocator::NeighborsIdentifierType neighborhood;
 
     // Iterate over all of the pixels
     size_t pixelsNotInCell = 0;
-    for (size_t y = 0; y < _height; ++y) {
-        for (size_t x = 0; x < _width; ++x) {
-            _progress = (x + 1.0 + (_width * y)) * 100.0 / (_width * _height);
+    for (size_t y = 0; y < height_; ++y) {
+        for (size_t x = 0; x < width_; ++x) {
+            progress_ = (x + 1.0 + (width_ * y)) * 100.0 / (width_ * height_);
             std::cerr << "volcart::texturing::PPMGenerator: "
-                      << std::to_string(_progress) << "%\r" << std::flush;
+                      << std::to_string(progress_) << "%\r" << std::flush;
 
             // This pixel's uv coordinate
             cv::Vec3d uv{0, 0, 0};
-            uv[0] = x / (_width - 1.0);
-            uv[1] = y / (_height - 1.0);
+            uv[0] = x / (width_ - 1.0);
+            uv[1] = y / (height_ - 1.0);
 
             // Empty our averaging variables
             neighborhood.clear();
@@ -122,11 +122,11 @@ void PPMGenerator::_generatePPM()
             auto in2D = false;
             CellInfo info;
             cv::Vec3d baryCoord{0, 0, 0};
-            for (auto c_id : neighborhood) {
-                info = _cellInformation[c_id];
+            for (auto cellId : neighborhood) {
+                info = cellInformation_[cellId];
 
                 // Calculate the 3D correspondence for this pixel
-                baryCoord = _BarycentricCoord(
+                baryCoord = barycentric_coord_(
                     uv, info.pts2D[0], info.pts2D[1], info.pts2D[2]);
                 in2D =
                     ((baryCoord[0] > 0.0 || AlmostEqual(baryCoord[0], 0.0)) &&
@@ -147,24 +147,24 @@ void PPMGenerator::_generatePPM()
             }
 
             // Find the xyz coordinate of the original point
-            cv::Vec3d xyz = _CartesianCoord(
+            cv::Vec3d xyz = cartesian_coord_(
                 baryCoord, info.pts3D[0], info.pts3D[1], info.pts3D[2]);
 
             // Use the cell normal as the normal for this point
-            cv::Vec3d xyz_norm = info.Normal;
+            cv::Vec3d xyzNorm = info.normal;
 
             // Assign the intensity value at the UV position
             mask.at<uint8_t>(y, x) = 255;
 
             // Assign 3D position to the lookup map
-            _ppm(y, x) = cv::Vec6d(
-                xyz(0), xyz(1), xyz(2), xyz_norm(0), xyz_norm(1), xyz_norm(2));
+            ppm_(y, x) = cv::Vec6d(
+                xyz(0), xyz(1), xyz(2), xyzNorm(0), xyzNorm(1), xyzNorm(2));
         }
     }
 
     // Finish setting up the output
-    _ppm.setUVMap(_uvMap);
-    _ppm.setMask(mask);
+    ppm_.setUVMap(uvMap_);
+    ppm_.setMask(mask);
 
     std::cerr << std::endl;
     std::cerr << "volcart::texturing::PPMGenerator:: Pixels not in cell: "
@@ -175,8 +175,11 @@ void PPMGenerator::_generatePPM()
 // From Christer Ericson's Real-Time Collision Detection
 // Code from:
 // http://gamedev.stackexchange.com/questions/23743/whats-the-most-efficient-way-to-find-barycentric-coordinates
-cv::Vec3d PPMGenerator::_BarycentricCoord(
-    cv::Vec3d nXYZ, cv::Vec3d nA, cv::Vec3d nB, cv::Vec3d nC)
+cv::Vec3d PPMGenerator::barycentric_coord_(
+    const cv::Vec3d& nXYZ,
+    const cv::Vec3d& nA,
+    const cv::Vec3d& nB,
+    const cv::Vec3d& nC)
 {
     auto v0 = nB - nA;
     auto v1 = nC - nA;
@@ -198,8 +201,11 @@ cv::Vec3d PPMGenerator::_BarycentricCoord(
 }
 
 // Find Cartesian coordinates of point in triangle given barycentric coordinate
-cv::Vec3d PPMGenerator::_CartesianCoord(
-    cv::Vec3d nUVW, cv::Vec3d nA, cv::Vec3d nB, cv::Vec3d nC)
+cv::Vec3d PPMGenerator::cartesian_coord_(
+    const cv::Vec3d& nUVW,
+    const cv::Vec3d& nA,
+    const cv::Vec3d& nB,
+    const cv::Vec3d& nC)
 {
     return nUVW[0] * nA + nUVW[1] * nB + nUVW[2] * nC;
 }

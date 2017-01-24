@@ -2,20 +2,24 @@
 // Abigail Coleman June 2015
 
 /** @file SmoothNormals.cpp*/
-#include "meshing/SmoothNormals.h"
+#include <fstream>
+#include <iostream>
+#include <vector>
+
+#include "meshing/DeepCopy.hpp"
+#include "meshing/SmoothNormals.hpp"
 
 namespace volcart
 {
 namespace meshing
 {
 
-ITKMesh::Pointer SmoothNormals(ITKMesh::Pointer input, double radius)
+ITKMesh::Pointer SmoothNormals(const ITKMesh::Pointer& input, double radius)
 {
-
     std::cerr << "volcart::meshing::SmoothNormals: radius " << radius
               << std::endl;
     // declare pointer to new Mesh object to be returned
-    ITKMesh::Pointer outputMesh = ITKMesh::New();
+    auto outputMesh = ITKMesh::New();
     volcart::meshing::DeepCopy(input, outputMesh);
 
     // Variables for normal smoothing
@@ -23,20 +27,21 @@ ITKMesh::Pointer SmoothNormals(ITKMesh::Pointer input, double radius)
     double neighborCount;
 
     // Use pointsLocator to find neighborhood within given radius
-    typename ITKPointsLocator::Pointer pointsLocator = ITKPointsLocator::New();
+    auto pointsLocator = ITKPointsLocator::New();
     pointsLocator->SetPoints(input->GetPoints());
     pointsLocator->Initialize();
     typename ITKPointsLocator::NeighborsIdentifierType neighborhood;
 
     // Iterate over all of the cells to lay out the faces in the output texture
-    for (ITKPointIterator point = input->GetPoints()->Begin();
+    for (auto point = input->GetPoints()->Begin();
          point != input->GetPoints()->End(); ++point) {
         std::cerr << "volcart::meshing::SmoothNormals: " << point.Index() << "/"
                   << input->GetNumberOfPoints() - 1 << "\r" << std::flush;
 
         // Empty our averaging variables
-        if (!neighborhood.empty())
+        if (!neighborhood.empty()) {
             neighborhood.clear();
+        }
         neighborCount = 0;
         neighborAvg = cv::Vec3d(0, 0, 0);
 
@@ -53,10 +58,9 @@ ITKMesh::Pointer SmoothNormals(ITKMesh::Pointer input, double radius)
             point->Value(), radius, neighborhood);
 
         // Sum the normals of the neighbors
-        for (auto n_pt = neighborhood.begin(); n_pt != neighborhood.end();
-             ++n_pt) {
+        for (auto nb : neighborhood) {
             ITKPixel neighborNormal;
-            input->GetPointData(*n_pt, &neighborNormal);
+            input->GetPointData(nb, &neighborNormal);
 
             neighborAvg[0] += neighborNormal[0];
             neighborAvg[1] += neighborNormal[1];
@@ -74,6 +78,5 @@ ITKMesh::Pointer SmoothNormals(ITKMesh::Pointer input, double radius)
 
     return outputMesh;
 }
-
-}  // meshing
-}  // volcart
+}
+}

@@ -1,5 +1,36 @@
 Volume Cartographer Changelog
 =============================
+v2.9.0
+------
+This release constitutes a major refactor of the entire API. Any previously 
+opened branches will need to be merged or rebased. Most things are 
+exactly where they were before, only now the functions and files are named 
+consistently (expect lots of case and underscore changes). We'll be updating the 
+style guides soon to reflect these changes.
+
+We also updated to require OpenCV 3+. This will probably cause headaches in the 
+short term as it can cause conflicts if installed alongside OpenCV 2, but the 
+benefits should outweigh the costs moving forward.
+- all 
+    - Improvements to the CI system (!124, !121)
+    - Update everything to use OpenCV 3+ (!131)
+    - Add ability to import VC libraries into external CMake projects using 
+    find_package (!127) Currently requires the external project to find_package 
+    dependencies as well. We hope to improve support for this in the future.
+    - Enable tons of build warnings and fix most of them! (!126)
+    - Huge refactor of everything to enforce code style, naming rules, and 
+    clang-tidy rules (!130, !133)
+- apps
+    - Fix bug in vc_metaedit where numerical data would get saved as a string 
+    (!129)
+- core
+    - Newly refactored PLYReader that can better handle unknown elements and 
+    attributes (!110)
+    - Replace all vc::Point usages with cv::Vec (!128) We didn't really need it.
+- texturing
+    - __New:__ PPMGenerator: Generates a rastered UV Map for doing rendering and 
+    provenance chain lookups (!117)
+
 v2.8.0
 ------
 - all

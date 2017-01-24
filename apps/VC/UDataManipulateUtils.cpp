@@ -3,8 +3,8 @@
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include "HBase.h"
-#include "UDataManipulateUtils.h"
+#include "HBase.hpp"
+#include "UDataManipulateUtils.hpp"
 
 namespace ChaoVis
 {

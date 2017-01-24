@@ -10,9 +10,10 @@
 // University of Kentucky VisCenter
 //----------------------------------------------------------------------------------------------------------------------------------------
 
-#include "MyThread.h"
-#include "core/io/OBJWriter.h"
-#include "core/io/PLYReader.h"
+#include "MyThread.hpp"
+#include "core/io/OBJWriter.hpp"
+#include "core/io/PLYReader.hpp"
+#include "meshing/ITK2VTK.hpp"
 
 namespace fs = boost::filesystem;
 
@@ -80,7 +81,7 @@ void MyThread::run()
         Cleaner->Update();
 
         auto itkACVD = volcart::ITKMesh::New();
-        volcart::meshing::vtk2itk(Cleaner->GetOutput(), itkACVD);
+        volcart::meshing::VTK2ITK(Cleaner->GetOutput(), itkACVD);
 
         // ABF flattening
         std::cout << "Computing parameterization..." << std::endl;
@@ -94,7 +95,7 @@ void MyThread::run()
         auto height = static_cast<int>(
             std::ceil(static_cast<double>(width) / uvMap.ratio().aspect));
 
-        volcart::texturing::compositeTextureV2 result(
+        volcart::texturing::CompositeTextureV2 result(
             itkACVD, *_globals->getVolPkg(), uvMap, _radius, width, height,
             aFilterOption, aDirectionOption);
 

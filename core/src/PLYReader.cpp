@@ -1,154 +1,156 @@
 /**@file PLYReader.cpp */
 
-#include "core/io/PLYReader.h"
+#include "core/io/PLYReader.hpp"
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/filesystem/operations.hpp>
 
-#include "core/types/Exceptions.h"
+#include "core/types/Exceptions.hpp"
 
 using Props = std::pair<char, int>;
 
 using namespace volcart;
 using namespace volcart::io;
+namespace fs = boost::filesystem;
 
 bool PLYReader::read()
 {
-    if (_inputPath.empty() || !boost::filesystem::exists(_inputPath)) {
+    if (inputPath_.empty() || !fs::exists(inputPath_)) {
         auto msg = "File not provided or does not exist.";
         throw volcart::IOException(msg);
     }
 
     // Resets values of member variables in case of 2nd reading
-    _pointList.clear();
-    _faceList.clear();
-    _properties.clear();
-    _elementsList.clear();
-    _outMesh = ITKMesh::New();
-    _numOfVertices = 0;
-    _numOfFaces = 0;
-    _leadingChar = true;
-    _pointNorm = false;
+    pointList_.clear();
+    faceList_.clear();
+    properties_.clear();
+    elementsList_.clear();
+    outMesh_ = ITKMesh::New();
+    numVertices_ = 0;
+    numFaces_ = 0;
+    hasLeadingChar_ = true;
+    hasPointNorm_ = false;
 
     int skippedElementCnt = 0;
 
-    _plyFile.open(_inputPath.string());
-    if (!_plyFile.is_open()) {
-        auto msg = "Open file " + _inputPath.string() + " failed.";
+    plyFile_.open(inputPath_.string());
+    if (!plyFile_.is_open()) {
+        auto msg = "Open file " + inputPath_.string() + " failed.";
         throw volcart::IOException(msg);
     }
-    _parseHeader();
-    for (auto& cur : _elementsList) {
+    parse_header_();
+    for (auto& cur : elementsList_) {
         if (cur == "vertex") {
-            _readPoints();
+            read_points_();
         } else if (cur == "face") {
-            _readFaces();
+            read_faces_();
         } else {
-            int curSkip = _skippedLine[skippedElementCnt];
+            int curSkip = skippedLine_[skippedElementCnt];
             for (int i = 0; i < curSkip; i++) {
-                getline(_plyFile, _line);
+                std::getline(plyFile_, line_);
             }
             skippedElementCnt++;
         }
     }
-    _plyFile.close();
-    _createMesh();
+    plyFile_.close();
+    create_mesh_();
     return true;
 }
 
-void PLYReader::_parseHeader()
+void PLYReader::parse_header_()
 {
     int currentLine;
-    std::getline(_plyFile, _line);
-    while (_line != "end_header") {
-        if (_line.find("element") != std::string::npos) {
+    std::getline(plyFile_, line_);
+    while (line_ != "end_header") {
+        if (line_.find("element") != std::string::npos) {
             std::vector<std::string> splitLine;
             boost::split(
-                splitLine, _line, boost::is_any_of(" "),
+                splitLine, line_, boost::is_any_of(" "),
                 boost::token_compress_on);
-            _elementsList.push_back(splitLine[1]);
+            elementsList_.push_back(splitLine[1]);
             if (splitLine[1] == "vertex") {
-                _numOfVertices = std::stoi(splitLine[2]);
+                numVertices_ = std::stoi(splitLine[2]);
             } else if (splitLine[1] == "face") {
-                _numOfFaces = std::stoi(splitLine[2]);
+                numFaces_ = std::stoi(splitLine[2]);
             } else {
-                _skippedLine.push_back(std::stoi(splitLine[2]));
+                skippedLine_.push_back(std::stoi(splitLine[2]));
             }
-            std::getline(_plyFile, _line);
+            std::getline(plyFile_, line_);
             boost::split(
-                splitLine, _line, boost::is_any_of(" "),
+                splitLine, line_, boost::is_any_of(" "),
                 boost::token_compress_on);
             currentLine = 0;
             while (splitLine[0] == "property") {
                 if (splitLine[1] == "list") {
-                    _leadingChar = _line.find("uchar") != std::string::npos;
+                    hasLeadingChar_ = line_.find("uchar") != std::string::npos;
                 }
                 // Not sure how to handle if it's not the vertices or faces
                 else {
                     if (splitLine[2] == "nx") {
-                        _pointNorm = true;
+                        hasPointNorm_ = true;
                     }
-                    _properties[splitLine[2]] = currentLine;
+                    properties_[splitLine[2]] = currentLine;
                 }
-                std::getline(_plyFile, _line);
+                std::getline(plyFile_, line_);
                 currentLine++;
                 boost::split(
-                    splitLine, _line, boost::is_any_of(" "),
+                    splitLine, line_, boost::is_any_of(" "),
                     boost::token_compress_on);
             }
         } else {
-            std::getline(_plyFile, _line);
+            std::getline(plyFile_, line_);
         }
     }
-    if (_numOfFaces == 0) {
+    if (numFaces_ == 0) {
         std::cerr << "Warning: No face information found" << std::endl;
     }
-    std::getline(_plyFile, _line);
+    std::getline(plyFile_, line_);
 
 }  // ParseHeader
 
-void PLYReader::_readPoints()
+void PLYReader::read_points_()
 {
-    for (int i = 0; i < _numOfVertices; i++) {
+    for (int i = 0; i < numVertices_; i++) {
         volcart::Vertex curPoint;
         std::vector<std::string> curLine;
         boost::split(
-            curLine, _line, boost::is_any_of(" "), boost::token_compress_on);
-        curPoint.x = std::stod(curLine[_properties["x"]]);
-        curPoint.y = std::stod(curLine[_properties["y"]]);
-        curPoint.z = std::stod(curLine[_properties["z"]]);
-        if (_properties.find("nx") != _properties.end()) {
-            curPoint.nx = std::stod(curLine[_properties["nx"]]);
-            curPoint.ny = std::stod(curLine[_properties["ny"]]);
-            curPoint.nz = std::stod(curLine[_properties["nz"]]);
+            curLine, line_, boost::is_any_of(" "), boost::token_compress_on);
+        curPoint.x = std::stod(curLine[properties_["x"]]);
+        curPoint.y = std::stod(curLine[properties_["y"]]);
+        curPoint.z = std::stod(curLine[properties_["z"]]);
+        if (properties_.find("nx") != properties_.end()) {
+            curPoint.nx = std::stod(curLine[properties_["nx"]]);
+            curPoint.ny = std::stod(curLine[properties_["ny"]]);
+            curPoint.nz = std::stod(curLine[properties_["nz"]]);
         }
-        if (_properties.find("r") != _properties.end()) {
-            curPoint.r = stoi(curLine[_properties["r"]]);
-            curPoint.g = stoi(curLine[_properties["g"]]);
-            curPoint.b = stoi(curLine[_properties["b"]]);
+        if (properties_.find("r") != properties_.end()) {
+            curPoint.r = stoi(curLine[properties_["r"]]);
+            curPoint.g = stoi(curLine[properties_["g"]]);
+            curPoint.b = stoi(curLine[properties_["b"]]);
         }
-        _pointList.push_back(curPoint);
-        std::getline(_plyFile, _line);
+        pointList_.push_back(curPoint);
+        std::getline(plyFile_, line_);
     }
 }
 
-void PLYReader::_readFaces()
+void PLYReader::read_faces_()
 {
-    for (int i = 0; i < _numOfFaces; i++) {
+    for (int i = 0; i < numFaces_; i++) {
         std::vector<std::string> curFace;
         volcart::Cell face;
         boost::split(
-            curFace, _line, boost::is_any_of(" "), boost::token_compress_on);
-        if (_leadingChar) {
-            int points_per_face = std::stoi(curFace[0]);
-            if (points_per_face != 3) {
+            curFace, line_, boost::is_any_of(" "), boost::token_compress_on);
+        if (hasLeadingChar_) {
+            int pointsPerFace = std::stoi(curFace[0]);
+            if (pointsPerFace != 3) {
                 auto msg = "Error: Not a Triangular Mesh";
                 throw volcart::IOException(msg);
             } else {
                 face = Cell(
                     std::stoul(curFace[1]), std::stoul(curFace[2]),
                     std::stoul(curFace[3]));
-                _faceList.push_back(face);
+                faceList_.push_back(face);
             }
         } else {
             if (curFace.size() != 3) {
@@ -158,40 +160,40 @@ void PLYReader::_readFaces()
                 face = Cell(
                     std::stoul(curFace[1]), std::stoul(curFace[2]),
                     std::stoul(curFace[3]));
-                _faceList.push_back(face);
+                faceList_.push_back(face);
             }
         }
-        std::getline(_plyFile, _line);
+        std::getline(plyFile_, line_);
     }
 }
 
-void PLYReader::_createMesh()
+void PLYReader::create_mesh_()
 {
     ITKPoint p;
-    uint32_t point_cnt = 0;
-    for (auto& cur : _pointList) {
+    uint32_t pointCount = 0;
+    for (auto& cur : pointList_) {
         p[0] = cur.x;
         p[1] = cur.y;
         p[2] = cur.z;
-        _outMesh->SetPoint(point_cnt, p);
-        if (_pointNorm) {
+        outMesh_->SetPoint(pointCount, p);
+        if (hasPointNorm_) {
             ITKPixel q;
             q[0] = cur.nx;
             q[1] = cur.ny;
             q[2] = cur.nz;
-            _outMesh->SetPointData(point_cnt, q);
+            outMesh_->SetPointData(pointCount, q);
         }
-        point_cnt++;
+        pointCount++;
     }
-    uint32_t face_cnt = 0;
-    for (auto& cur : _faceList) {
+    uint32_t faceCount = 0;
+    for (auto& cur : faceList_) {
         ITKCell::CellAutoPointer cellpointer;
         cellpointer.TakeOwnership(new ITKTriangle);
 
         cellpointer->SetPointId(0, cur.v1);
         cellpointer->SetPointId(1, cur.v2);
         cellpointer->SetPointId(2, cur.v3);
-        _outMesh->SetCell(face_cnt, cellpointer);
-        face_cnt++;
+        outMesh_->SetCell(faceCount, cellpointer);
+        faceCount++;
     }
 }

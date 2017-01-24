@@ -7,16 +7,16 @@
 #include <boost/test/floating_point_comparison.hpp>
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
-#include <core/io/OBJWriter.h>
-#include "core/shapes/Arch.h"
-#include "core/shapes/Cone.h"
-#include "core/shapes/Cube.h"
-#include "core/shapes/Plane.h"
-#include "core/shapes/Sphere.h"
-#include "core/vc_defines.h"
-#include "meshing/ScaleMesh.h"
-#include "testing/ParsingHelpers.h"
-#include "testing/TestingUtils.h"
+#include <core/io/OBJWriter.hpp>
+#include "core/shapes/Arch.hpp"
+#include "core/shapes/Cone.hpp"
+#include "core/shapes/Cube.hpp"
+#include "core/shapes/Plane.hpp"
+#include "core/shapes/Sphere.hpp"
+#include "core/vc_defines.hpp"
+#include "meshing/ScaleMesh.hpp"
+#include "testing/ParsingHelpers.hpp"
+#include "testing/TestingUtils.hpp"
 
 using namespace volcart;
 
@@ -78,7 +78,7 @@ struct ScaledPlaneFixture {
         volcart::meshing::ScaleMesh(
             _in_PlaneMeshUsedForRegressionTest,
             _out_PlaneMeshUsedForRegressionTest, 3);
-        volcart::testing::ParsingHelpers::parseObjFile(
+        volcart::testing::ParsingHelpers::ParseOBJFile(
             "ScaledPlaneMesh.obj", _SavedPlanePoints, _SavedPlaneCells);
 
         std::cerr << "setting up planar mesh for scaling" << std::endl;
@@ -113,7 +113,7 @@ struct ScaledCubeFixture {
         volcart::meshing::ScaleMesh(
             _in_CubeMeshUsedForRegressionTest,
             _out_CubeMeshUsedForRegressionTest, 3);
-        volcart::testing::ParsingHelpers::parseObjFile(
+        volcart::testing::ParsingHelpers::ParseOBJFile(
             "ScaledCubeMesh.obj", _SavedCubePoints, _SavedCubeCells);
         std::cerr << "setting up cube mesh for scaling" << std::endl;
     }
@@ -148,7 +148,7 @@ struct ScaledArchFixture {
         volcart::meshing::ScaleMesh(
             _in_ArchMeshUsedForRegressionTest,
             _out_ArchMeshUsedForRegressionTest, 3);
-        volcart::testing::ParsingHelpers::parseObjFile(
+        volcart::testing::ParsingHelpers::ParseOBJFile(
             "ScaledArchMesh.obj", _SavedArchPoints, _SavedArchCells);
     }
 
@@ -182,7 +182,7 @@ struct ScaledSphereFixture {
         volcart::meshing::ScaleMesh(
             _in_SphereMeshUsedForRegressionTest,
             _out_SphereMeshUsedForRegressionTest, 3);
-        volcart::testing::ParsingHelpers::parseObjFile(
+        volcart::testing::ParsingHelpers::ParseOBJFile(
             "ScaledSphereMesh.obj", _SavedSpherePoints, _SavedSphereCells);
     }
 
@@ -214,7 +214,7 @@ struct ScaledConeFixture {
         volcart::meshing::ScaleMesh(
             _in_ConeMeshUsedForRegressionTest,
             _out_ConeMeshUsedForRegressionTest, 3);
-        volcart::testing::ParsingHelpers::parseObjFile(
+        volcart::testing::ParsingHelpers::ParseOBJFile(
             "ScaledConeMesh.obj", _SavedConePoints, _SavedConeCells);
         std::cerr << "setting up cone mesh for scaling" << std::endl;
     }

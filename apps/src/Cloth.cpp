@@ -8,12 +8,12 @@
 #include <opencv2/imgcodecs.hpp>
 #include <vtkPLYReader.h>
 
-#include "core/io/OBJWriter.h"
-#include "core/types/VolumePkg.h"
-#include "core/vc_defines.h"
-#include "meshing/ITK2VTK.h"
-#include "texturing/ClothModelingUVMapping.h"
-#include "texturing/CompositeTextureV2.h"
+#include "core/io/OBJWriter.hpp"
+#include "core/types/VolumePkg.hpp"
+#include "core/vc_defines.hpp"
+#include "meshing/ITK2VTK.hpp"
+#include "texturing/ClothModelingUVMapping.hpp"
+#include "texturing/CompositeTextureV2.hpp"
 
 using namespace volcart;
 namespace po = boost::program_options;
@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
     reader->SetFileName(input_path.c_str());
     reader->Update();
     ITKMesh::Pointer mesh = ITKMesh::New();
-    volcart::meshing::vtk2itk(reader->GetOutput(), mesh);
+    volcart::meshing::VTK2ITK(reader->GetOutput(), mesh);
 
     // Get pinned points for unfurling step
     volcart::texturing::ClothModelingUVMapping::PinIDs unfurl;
@@ -140,7 +140,7 @@ int main(int argc, char* argv[])
 
     // Write the scaled mesh
     ITKMesh::Pointer output = clothUV.getMesh();
-    std::string path = volcart::DATE_TIME() + "_uvMap.obj";
+    std::string path = volcart::DateTime() + "_uvMap.obj";
     volcart::io::OBJWriter writer(path, output);
     writer.write();
 
@@ -154,7 +154,7 @@ int main(int argc, char* argv[])
     width = static_cast<int>(std::ceil(uvMap.ratio().width));
     height = static_cast<int>(std::ceil(uvMap.ratio().height));
 
-    volcart::texturing::compositeTextureV2 result(
+    volcart::texturing::CompositeTextureV2 result(
         mesh, vpkg, clothUV.getUVMap(), 7, width, height);
     volcart::io::OBJWriter objwriter(
         "textured.obj", mesh, uvMap, result.texture().image(0));
@@ -186,7 +186,7 @@ void getPins(
     reader->SetFileName(path.c_str());
     reader->Update();
     ITKMesh::Pointer pins = ITKMesh::New();
-    volcart::meshing::vtk2itk(reader->GetOutput(), pins);
+    volcart::meshing::VTK2ITK(reader->GetOutput(), pins);
 
     // Setup points locator
     typename ITKPointsLocator::Pointer pointsLocator = ITKPointsLocator::New();
@@ -197,7 +197,7 @@ void getPins(
     // the pinList
     for (ITKPointIterator pin = pins->GetPoints()->Begin();
          pin != pins->GetPoints()->End(); ++pin) {
-        unsigned long pinID =
+        uint64_t pinID =
             pointsLocator->FindClosestPoint(pins->GetPoint(pin->Index()));
         pinList.push_back(pinID);
     }

@@ -5,15 +5,15 @@
 #define BOOST_TEST_MODULE SmoothNormals
 
 #include <boost/test/unit_test.hpp>
-#include "core/shapes/Arch.h"
-#include "core/shapes/Cone.h"
-#include "core/shapes/Cube.h"
-#include "core/shapes/Plane.h"
-#include "core/shapes/Sphere.h"
-#include "core/vc_defines.h"
-#include "meshing/SmoothNormals.h"
-#include "testing/ParsingHelpers.h"
-#include "testing/TestingUtils.h"
+#include "core/shapes/Arch.hpp"
+#include "core/shapes/Cone.hpp"
+#include "core/shapes/Cube.hpp"
+#include "core/shapes/Plane.hpp"
+#include "core/shapes/Sphere.hpp"
+#include "core/vc_defines.hpp"
+#include "meshing/SmoothNormals.hpp"
+#include "testing/ParsingHelpers.hpp"
+#include "testing/TestingUtils.hpp"
 
 using namespace volcart;
 
@@ -81,17 +81,17 @@ struct SmoothNormalsFixture {
             volcart::meshing::SmoothNormals(_in_ConeMesh, _SmoothingFactor);
 
         // read in saved obj files created by SmoothNormalsExample.cpp
-        volcart::testing::ParsingHelpers::parseObjFile(
+        volcart::testing::ParsingHelpers::ParseOBJFile(
             "PlaneWithSmoothedNormals.obj", _SavedPlanePoints,
             _SavedPlaneCells);
-        volcart::testing::ParsingHelpers::parseObjFile(
+        volcart::testing::ParsingHelpers::ParseOBJFile(
             "CubeWithSmoothedNormals.obj", _SavedCubePoints, _SavedCubeCells);
-        volcart::testing::ParsingHelpers::parseObjFile(
+        volcart::testing::ParsingHelpers::ParseOBJFile(
             "ArchWithSmoothedNormals.obj", _SavedArchPoints, _SavedArchCells);
-        volcart::testing::ParsingHelpers::parseObjFile(
+        volcart::testing::ParsingHelpers::ParseOBJFile(
             "SphereWithSmoothedNormals.obj", _SavedSpherePoints,
             _SavedSphereCells);
-        volcart::testing::ParsingHelpers::parseObjFile(
+        volcart::testing::ParsingHelpers::ParseOBJFile(
             "ConeWithSmoothedNormals.obj", _SavedConePoints, _SavedConeCells);
 
         std::cerr << "setting up SmoothNormals objects" << std::endl;

@@ -6,8 +6,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
-#include "core/types/VolumePkg.h"
-#include "core/types/VolumePkgVersion.h"
+#include "core/types/VolumePkg.hpp"
+#include "core/types/VolumePkgVersion.hpp"
 
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
@@ -136,8 +136,8 @@ int main(int argc, char* argv[])
         }
 
         // Find metadata type mapping for given version.
-        auto types_it = volcart::VersionLibrary.find(volpkg.getVersion());
-        if (types_it == std::end(volcart::VersionLibrary)) {
+        auto types_it = volcart::VERSION_LIBRARY.find(volpkg.getVersion());
+        if (types_it == std::end(volcart::VERSION_LIBRARY)) {
             std::cerr << "Could not find type mapping for version "
                       << volpkg.getVersion() << std::endl;
             std::exit(1);

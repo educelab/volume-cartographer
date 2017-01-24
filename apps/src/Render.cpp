@@ -9,16 +9,18 @@
 #include <opencv2/imgcodecs.hpp>
 #include <vtkCleanPolyData.h>
 
-#include "core/io/OBJWriter.h"
-#include "core/io/PLYReader.h"
-#include "core/io/PLYWriter.h"
-#include "core/types/VolumePkg.h"
-#include "core/util/MeshMath.h"
-#include "core/vc_defines.h"
-#include "meshing/ACVD.h"
-#include "meshing/SmoothNormals.h"
-#include "texturing/AngleBasedFlattening.h"
-#include "texturing/CompositeTextureV2.h"
+#include "core/io/OBJWriter.hpp"
+#include "core/io/PLYReader.hpp"
+#include "core/io/PLYWriter.hpp"
+#include "core/types/VolumePkg.hpp"
+#include "core/util/MeshMath.hpp"
+#include "core/vc_defines.hpp"
+#include "external/GetMemorySize.hpp"
+#include "meshing/ACVD.hpp"
+#include "meshing/ITK2VTK.hpp"
+#include "meshing/SmoothNormals.hpp"
+#include "texturing/AngleBasedFlattening.hpp"
+#include "texturing/CompositeTextureV2.hpp"
 
 using namespace volcart;
 namespace fs = boost::filesystem;
@@ -133,7 +135,7 @@ int main(int argc, char* argv[])
                   << std::endl;
         return EXIT_FAILURE;
     }
-    double cacheBytes = 0.75 * systemMemorySize();
+    double cacheBytes = 0.75 * SystemMemorySize();
     vpkg.volume().setCacheMemoryInBytes(static_cast<size_t>(cacheBytes));
 
     ///// Set the segmentation ID /////
@@ -179,7 +181,7 @@ int main(int argc, char* argv[])
     Cleaner->Update();
 
     auto itkACVD = volcart::ITKMesh::New();
-    volcart::meshing::vtk2itk(Cleaner->GetOutput(), itkACVD);
+    volcart::meshing::VTK2ITK(Cleaner->GetOutput(), itkACVD);
 
     // ABF flattening
     std::cout << "Computing parameterization..." << std::endl;
@@ -193,7 +195,7 @@ int main(int argc, char* argv[])
     auto height = static_cast<int>(
         std::ceil(static_cast<double>(width) / uvMap.ratio().aspect));
 
-    volcart::texturing::compositeTextureV2 result(
+    volcart::texturing::CompositeTextureV2 result(
         itkACVD, vpkg, uvMap, radius, width, height, aFilterOption,
         aDirectionOption);
 

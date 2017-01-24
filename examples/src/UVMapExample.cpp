@@ -2,8 +2,8 @@
 // Created by Seth Parker on 10/20/15.
 //
 
-#include "core/types/UVMap.h"
-#include "core/vc_defines.h"
+#include "core/types/UVMap.hpp"
+#include "core/vc_defines.hpp"
 
 int main()
 {

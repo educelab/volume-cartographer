@@ -7,12 +7,12 @@
 #include <boost/test/unit_test.hpp>
 #include <opencv2/core.hpp>
 
-#include "core/io/OBJWriter.h"
-#include "core/types/OrderedPointSet.h"
-#include "core/vc_defines.h"
-#include "meshing/OrderedPointSetMesher.h"
-#include "testing/ParsingHelpers.h"
-#include "testing/TestingUtils.h"
+#include "core/io/OBJWriter.hpp"
+#include "core/types/OrderedPointSet.hpp"
+#include "core/vc_defines.hpp"
+#include "meshing/OrderedPointSetMesher.hpp"
+#include "testing/ParsingHelpers.hpp"
+#include "testing/TestingUtils.hpp"
 
 using namespace volcart;
 
@@ -45,7 +45,7 @@ struct OrderedPlaneFixture {
                         {8.0, 0.0, 6.0},
                         {8.0, 0.0, 8.0}});
 
-        volcart::testing::ParsingHelpers::parseObjFile(
+        volcart::testing::ParsingHelpers::ParseOBJFile(
             "OrderedPointSetMesher_Plane.obj", _SavedPoints, _SavedCells);
     }
     OrderedPointSet<cv::Vec3d> _Plane;
@@ -83,7 +83,7 @@ struct OrderedArchFixture {
                        {-1.54508, 4.75528, 8.0},
                        {-4.04508, 2.93893, 8.0}});
 
-        volcart::testing::ParsingHelpers::parseObjFile(
+        volcart::testing::ParsingHelpers::ParseOBJFile(
             "OrderedPointSetMesher_Arch.obj", _SavedPoints, _SavedCells);
     }
     OrderedPointSet<cv::Vec3d> _Arch;
@@ -100,7 +100,7 @@ BOOST_FIXTURE_TEST_CASE(MeshedPlaneTest, OrderedPlaneFixture)
 
     // Check Points and Normals
     BOOST_CHECK_EQUAL(_out_Mesh->GetNumberOfPoints(), _SavedPoints.size());
-    for (unsigned long pnt_id = 0; pnt_id < _SavedPoints.size(); pnt_id++) {
+    for (uint64_t pnt_id = 0; pnt_id < _SavedPoints.size(); pnt_id++) {
         volcart::testing::SmallOrClose(
             _out_Mesh->GetPoint(pnt_id)[0], _SavedPoints[pnt_id].x);
         volcart::testing::SmallOrClose(
@@ -120,7 +120,7 @@ BOOST_FIXTURE_TEST_CASE(MeshedPlaneTest, OrderedPlaneFixture)
     // Check Cells, Checks Point normals by ensuring that the first vertex is
     // the same in both
     BOOST_CHECK_EQUAL(_SavedCells.size(), _out_Mesh->GetNumberOfCells());
-    for (unsigned long cell_id = 0; cell_id < _SavedCells.size(); cell_id++) {
+    for (uint64_t cell_id = 0; cell_id < _SavedCells.size(); cell_id++) {
         ITKCell::CellAutoPointer current_C;
         _out_Mesh->GetCell(cell_id, current_C);
         BOOST_CHECK_EQUAL(current_C->GetPointIds()[0], _SavedCells[cell_id].v1);
@@ -137,7 +137,7 @@ BOOST_FIXTURE_TEST_CASE(MeshedArchTest, OrderedArchFixture)
 
     // Check Points and Normals
     BOOST_CHECK_EQUAL(_out_Mesh->GetNumberOfPoints(), _SavedPoints.size());
-    for (unsigned long pnt_id = 0; pnt_id < _SavedPoints.size(); pnt_id++) {
+    for (uint64_t pnt_id = 0; pnt_id < _SavedPoints.size(); pnt_id++) {
         volcart::testing::SmallOrClose(
             _out_Mesh->GetPoint(pnt_id)[0], _SavedPoints[pnt_id].x);
         volcart::testing::SmallOrClose(
@@ -157,7 +157,7 @@ BOOST_FIXTURE_TEST_CASE(MeshedArchTest, OrderedArchFixture)
     // Check Cells, Checks Point normals by ensuring that the first vertex is
     // the same in both
     BOOST_CHECK_EQUAL(_SavedCells.size(), _out_Mesh->GetNumberOfCells());
-    for (unsigned long cell_id = 0; cell_id < _SavedCells.size(); cell_id++) {
+    for (uint64_t cell_id = 0; cell_id < _SavedCells.size(); cell_id++) {
         ITKCell::CellAutoPointer current_C;
         _out_Mesh->GetCell(cell_id, current_C);
         BOOST_CHECK_EQUAL(current_C->GetPointIds()[0], _SavedCells[cell_id].v1);

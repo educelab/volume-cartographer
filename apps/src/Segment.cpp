@@ -2,10 +2,10 @@
 
 #include <boost/program_options.hpp>
 
-#include "core/types/VolumePkg.h"
-#include "meshing/OrderedPointSetMesher.h"
-#include "segmentation/lrps/LocalResliceParticleSim.h"
-#include "segmentation/stps/StructureTensorParticleSim.h"
+#include "core/types/VolumePkg.hpp"
+#include "meshing/OrderedPointSetMesher.hpp"
+#include "segmentation/lrps/LocalResliceParticleSim.hpp"
+#include "segmentation/stps/StructureTensorParticleSim.hpp"
 
 namespace po = boost::program_options;
 namespace vs = volcart::segmentation;
@@ -223,7 +223,7 @@ int main(int argc, char* argv[])
     volcart::OrderedPointSet<cv::Vec3d> mutableCloud;
     if (alg == Algorithm::STPS) {
         double gravityScale = opts["gravity-scale"].as<double>();
-        mutableCloud = vs::structureTensorParticleSim(
+        mutableCloud = vs::StructureTensorParticleSim(
             segPath, volpkg, gravityScale, step, endIndex - startIndex);
     } else {
         int32_t numIters = opts["num-iters"].as<int32_t>();
