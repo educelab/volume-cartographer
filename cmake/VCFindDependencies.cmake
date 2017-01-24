@@ -63,17 +63,6 @@ if(APPLE AND VC_BUILD_APPS)
     find_library(OSXSecurity Security)
 endif()
 
-### PCL ###
-option(VC_USE_PCL "Use PCL library" off)
-if (VC_USE_PCL)
-    set(PCL_STATIC on)
-
-    # PCL silently overwrites these, so save them and put them back afterward
-    set(VTK_LIBRARIES_TMP ${VTK_LIBRARIES})
-    find_package(PCL 1.7 QUIET)
-    set(VTK_LIBRARIES ${VTK_LIBRARIES_TMP})
-endif()
-
 ### ACVD ###
 # Currently required since VC-Texture needs it - SP
 option(VC_USE_ACVD "Use ACVD library" on)

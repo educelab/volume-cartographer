@@ -23,24 +23,6 @@ target_link_libraries(vc_mappingExtractor VC::core)
 add_executable(vc_csv2uv src/CSV2UV.cpp)
 target_link_libraries(vc_csv2uv VC::core VC::meshing vtkIOPLY)
 
-# vc_convert_pcd_to_ps
-if(PCL_FOUND)
-    add_executable(vc_convert_pcd_to_ps src/PointCloudToPointSet.cpp)
-    target_include_directories(vc_convert_pcd_to_ps
-        PUBLIC
-            pcl_common
-            pcl_io
-    )
-    target_link_libraries(vc_convert_pcd_to_ps
-        VC::core
-        VC::meshing
-        Boost::filesystem
-        pcl_common
-        pcl_io
-    )
-    list(APPEND VC_INSTALL_UTILS vc_convert_pcd_to_ps)
-endif()
-
 # Install targets
 install(
     TARGETS ${VC_INSTALL_UTILS}

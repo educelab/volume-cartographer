@@ -57,14 +57,13 @@ SOURCES = CMesh.cpp \
 INCLUDEPATH += "/usr/include/"
 INCLUDEPATH += "../../core/"
 INCLUDEPATH += "../meshEditor/"
-INCLUDEPATH += "/usr/include/pcl-1.7/"
 INCLUDEPATH += "/usr/include/eigen3/"
 INCLUDEPATH += "../../"
 INCLUDEPATH += "../../meshing/"
 INCLUDEPATH += "../../volumepkg/"
 INCLUDEPATH += "../../segmentation/"
 
-LIBS += -L"/usr/lib/x84_64-linux-gnu/" -lopencv_core -lopencv_highgui -lopencv_imgproc -lboost_system -lboost_filesystem -lpcl_io -lpcl_common
+LIBS += -L"/usr/lib/x84_64-linux-gnu/" -lopencv_core -lopencv_highgui -lopencv_imgproc -lboost_system -lboost_filesystem
 QT += widgets opengl
 QMAKE_CXXFLAGS += -std=c++11
 
