@@ -1,4 +1,5 @@
 #include "core/types/PerPixelMap.hpp"
+#include "core/io/PointSetIO.hpp"
 #include "core/types/Exceptions.hpp"
 
 using namespace volcart;
@@ -34,7 +35,7 @@ void PerPixelMap::initialize_map_()
 }
 
 ///// Disk IO /////
-void PerPixelMap::WritePPM(fs::path path, const PerPixelMap& map)
+void PerPixelMap::WritePPM(const fs::path& path, const PerPixelMap& map)
 {
     // Write to file
     std::cerr << "volcart::PerPixelMap: Writing to file " << path.filename()

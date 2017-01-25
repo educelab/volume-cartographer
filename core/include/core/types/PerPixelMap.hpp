@@ -13,7 +13,6 @@
 #include <boost/filesystem.hpp>
 #include <opencv2/core.hpp>
 
-#include "core/io/PointSetIO.hpp"
 #include "core/types/OrderedPointSet.hpp"
 #include "core/types/UVMap.hpp"
 
@@ -63,7 +62,8 @@ public:
     }
 
     ///// Disk IO /////
-    static void WritePPM(boost::filesystem::path path, const PerPixelMap& map);
+    static void WritePPM(
+        const boost::filesystem::path& path, const PerPixelMap& map);
     static PerPixelMap ReadPPM(const boost::filesystem::path& path);
 
 private:
