@@ -38,8 +38,7 @@ int main(int /*argc*/, char** argv)
     std::cout << "mask: " << perPixelMask.cols << ", " << perPixelMask.rows
               << std::endl;
 
-    auto ppmPath = segPath / "PerPixelMapping.ppm";
-    perPixelMap = PerPixelMap::ReadPPM(ppmPath);
+    perPixelMap = PerPixelMap::ReadPPM(segPath / "PerPixelMapping.ppm");
 
     // ROI params
     int tlX = std::stoi(argv[3]);

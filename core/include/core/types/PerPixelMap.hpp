@@ -31,7 +31,7 @@ public:
     /** @name Constructors*/
     //@{
     /** @brief Creates an empty PerPixelMap */
-    PerPixelMap() : width_{0}, height_{0} { initialize_map_(); }
+    PerPixelMap() : height_{0}, width_{0} { initialize_map_(); }
 
     /**
      * @brief Creates a new PerPixelMap with a set size
@@ -41,7 +41,7 @@ public:
      * Initializes a map of a specific height and width
      * with all zeros.
      */
-    PerPixelMap(size_t height, size_t width) : width_{width}, height_{height}
+    PerPixelMap(size_t height, size_t width) : height_{height}, width_{width}
     {
         initialize_map_();
     }
@@ -81,9 +81,9 @@ public:
     /** @brief Sets the height of the map*/
     void setHeight(size_t h);
     /** @brief Returns the width of the map*/
-    int width() const { return width_; }
+    size_t width() const { return width_; }
     /** @brief Returns the height of the map*/
-    int height() const { return height_; }
+    size_t height() const { return height_; }
 
     /**
      * @brief Sets the UVMap to the given UVMap
@@ -130,10 +130,10 @@ private:
      * initializes a map of that height and width with all zeros
      */
     void initialize_map_();
-    /** Width of the map*/
-    size_t width_;
     /** Height of the map*/
     size_t height_;
+    /** Width of the map*/
+    size_t width_;
     /** OrderedPointSet where the map is stored*/
     volcart::OrderedPointSet<cv::Vec6d> map_;
     /** @brief Mask for the image
