@@ -58,6 +58,22 @@ find_package(OpenCV 3 REQUIRED)
 # Optional #
 ############
 
+# If this option is set, then use all optional dependencies
+option(VC_USE_ALL "Use all optional third-party libs" off)
+
+# Individual options for third-party dependencies
+option(VC_USE_ACVD "Use ACVD library" on)
+option(VC_USE_BULLET "Use Bullet Physics library" off)
+option(VC_USE_LIBIGL "Use libigl" off)
+option(VC_USE_VCG "Use VCG library" off)
+
+if (VC_USE_ALL)
+    set(VC_USE_ACVD on)
+    set(VC_USE_BULLET on)
+    set(VC_USE_LIBIGL on)
+    set(VC_USE_VCG on)
+endif()
+
 ### OSX Code Signing ###
 if(APPLE AND VC_BUILD_APPS)
     find_library(OSXSecurity Security)
@@ -65,7 +81,6 @@ endif()
 
 ### ACVD ###
 # Currently required since VC-Texture needs it - SP
-option(VC_USE_ACVD "Use ACVD library" on)
 if (VC_USE_ACVD)
     find_package(ACVD QUIET REQUIRED)
     add_library(acvd INTERFACE IMPORTED)
@@ -78,7 +93,6 @@ if (VC_USE_ACVD)
 endif()
 
 ### Bullet Physics ###
-option(VC_USE_BULLET "Use Bullet Physics library" off)
 if (VC_USE_BULLET)
     find_package(Bullet QUIET REQUIRED)
     add_library(bullet INTERFACE IMPORTED)
@@ -89,7 +103,6 @@ if (VC_USE_BULLET)
 endif()
 
 ### libigl ###
-option(VC_USE_LIBIGL "Use libigl" off)
 if (VC_USE_LIBIGL)
     find_package(LIBIGL QUIET REQUIRED)
     add_library(libigl INTERFACE IMPORTED)
@@ -99,7 +112,6 @@ if (VC_USE_LIBIGL)
 endif()
 
 ### VCG ###
-option(VC_USE_VCG "Use VCG library" off)
 if(VC_USE_VCG)
     find_package(VCG QUIET REQUIRED)
     add_library(vcglib INTERFACE IMPORTED)
