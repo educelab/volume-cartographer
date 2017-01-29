@@ -62,16 +62,16 @@ BOOST_AUTO_TEST_CASE(PushRowAddsRow)
     std::vector<cv::Vec3i> points{{1, 1, 1}, {2, 2, 2}, {3, 3, 3}};
     ps.pushRow(points);
     BOOST_CHECK_EQUAL(ps(0, 0), cv::Vec3i(1, 1, 1));
-    BOOST_CHECK_EQUAL(ps(1, 0), cv::Vec3i(2, 2, 2));
-    BOOST_CHECK_EQUAL(ps(2, 0), cv::Vec3i(3, 3, 3));
+    BOOST_CHECK_EQUAL(ps(0, 1), cv::Vec3i(2, 2, 2));
+    BOOST_CHECK_EQUAL(ps(0, 2), cv::Vec3i(3, 3, 3));
 }
 
 BOOST_AUTO_TEST_CASE(FillOrderedPointSetStaticMethod)
 {
     auto ps = OrderedPointSet<cv::Vec3i>::Fill(3, 1, {2, 1, 3});
     BOOST_CHECK_EQUAL(ps(0, 0), cv::Vec3i(2, 1, 3));
-    BOOST_CHECK_EQUAL(ps(1, 0), cv::Vec3i(2, 1, 3));
-    BOOST_CHECK_EQUAL(ps(2, 0), cv::Vec3i(2, 1, 3));
+    BOOST_CHECK_EQUAL(ps(0, 1), cv::Vec3i(2, 1, 3));
+    BOOST_CHECK_EQUAL(ps(0, 2), cv::Vec3i(2, 1, 3));
 }
 
 BOOST_FIXTURE_TEST_CASE(GetRowFromPointSet, Vec3iOrderedPointSet)
@@ -94,13 +94,13 @@ BOOST_FIXTURE_TEST_CASE(CopyRowsFromOrderedPointSet, Vec3iOrderedPointSet4Rows)
     BOOST_CHECK_EQUAL(newPs.height(), 3);
     BOOST_CHECK_EQUAL(newPs.size(), 9);
     BOOST_CHECK_EQUAL(newPs(0, 0), cv::Vec3i(1, 1, 1));
-    BOOST_CHECK_EQUAL(newPs(1, 0), cv::Vec3i(2, 2, 2));
-    BOOST_CHECK_EQUAL(newPs(2, 0), cv::Vec3i(3, 3, 3));
-    BOOST_CHECK_EQUAL(newPs(0, 1), cv::Vec3i(4, 4, 4));
+    BOOST_CHECK_EQUAL(newPs(0, 1), cv::Vec3i(2, 2, 2));
+    BOOST_CHECK_EQUAL(newPs(0, 2), cv::Vec3i(3, 3, 3));
+    BOOST_CHECK_EQUAL(newPs(1, 0), cv::Vec3i(4, 4, 4));
     BOOST_CHECK_EQUAL(newPs(1, 1), cv::Vec3i(4, 4, 4));
-    BOOST_CHECK_EQUAL(newPs(2, 1), cv::Vec3i(4, 4, 4));
-    BOOST_CHECK_EQUAL(newPs(0, 2), cv::Vec3i(2, 2, 2));
-    BOOST_CHECK_EQUAL(newPs(1, 2), cv::Vec3i(2, 2, 2));
+    BOOST_CHECK_EQUAL(newPs(1, 2), cv::Vec3i(4, 4, 4));
+    BOOST_CHECK_EQUAL(newPs(2, 0), cv::Vec3i(2, 2, 2));
+    BOOST_CHECK_EQUAL(newPs(2, 1), cv::Vec3i(2, 2, 2));
     BOOST_CHECK_EQUAL(newPs(2, 2), cv::Vec3i(2, 2, 2));
 }
 
@@ -132,18 +132,18 @@ BOOST_FIXTURE_TEST_CASE(AppendOrderedPointSet, Vec3iOrderedPointSet)
     BOOST_CHECK_EQUAL(ps.width(), 3);
     BOOST_CHECK_EQUAL(ps.height(), 5);
     BOOST_CHECK_EQUAL(ps.size(), 15);
-    BOOST_CHECK_EQUAL(ps(0, 1), cv::Vec3i(1, 3, 5));
+    BOOST_CHECK_EQUAL(ps(1, 0), cv::Vec3i(1, 3, 5));
     BOOST_CHECK_EQUAL(ps(1, 1), cv::Vec3i(1, 3, 5));
-    BOOST_CHECK_EQUAL(ps(2, 1), cv::Vec3i(1, 3, 5));
-    BOOST_CHECK_EQUAL(ps(0, 2), cv::Vec3i(1, 3, 5));
     BOOST_CHECK_EQUAL(ps(1, 2), cv::Vec3i(1, 3, 5));
+    BOOST_CHECK_EQUAL(ps(2, 0), cv::Vec3i(1, 3, 5));
+    BOOST_CHECK_EQUAL(ps(2, 1), cv::Vec3i(1, 3, 5));
     BOOST_CHECK_EQUAL(ps(2, 2), cv::Vec3i(1, 3, 5));
-    BOOST_CHECK_EQUAL(ps(0, 3), cv::Vec3i(1, 3, 5));
-    BOOST_CHECK_EQUAL(ps(1, 3), cv::Vec3i(1, 3, 5));
-    BOOST_CHECK_EQUAL(ps(2, 3), cv::Vec3i(1, 3, 5));
-    BOOST_CHECK_EQUAL(ps(0, 4), cv::Vec3i(1, 3, 5));
-    BOOST_CHECK_EQUAL(ps(1, 4), cv::Vec3i(1, 3, 5));
-    BOOST_CHECK_EQUAL(ps(2, 4), cv::Vec3i(1, 3, 5));
+    BOOST_CHECK_EQUAL(ps(3, 0), cv::Vec3i(1, 3, 5));
+    BOOST_CHECK_EQUAL(ps(3, 1), cv::Vec3i(1, 3, 5));
+    BOOST_CHECK_EQUAL(ps(3, 2), cv::Vec3i(1, 3, 5));
+    BOOST_CHECK_EQUAL(ps(4, 0), cv::Vec3i(1, 3, 5));
+    BOOST_CHECK_EQUAL(ps(4, 1), cv::Vec3i(1, 3, 5));
+    BOOST_CHECK_EQUAL(ps(4, 2), cv::Vec3i(1, 3, 5));
 }
 
 BOOST_FIXTURE_TEST_CASE(AppendWiderPointSetThrows, Vec3iOrderedPointSet)
