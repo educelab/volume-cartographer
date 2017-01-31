@@ -45,7 +45,6 @@ public:
     }
 
     // 2D access
-    // NOTE: x, then y
     const T& operator()(size_t y, size_t x) const
     {
         assert(x < width_ && "x out of range");
