@@ -11,7 +11,7 @@ namespace segmentation
 {
 /**
  * @class FittedCurve
- * @brief Creates a curve to fit a set of points
+ * @brief Fits a curve to a set of points for resampling
  * @ingroup lrps
  */
 class FittedCurve
@@ -19,63 +19,66 @@ class FittedCurve
 private:
     /** Number of points in the curve*/
     size_t npoints_;
-    /** Where you are in the curve */
+    /** z-position of the curve */
     int zIndex_;
-    /** Point normals */
+    /** Parameterized nodes */
     std::vector<double> ts_;
-    /** List of points */
+    /** List of sampled points */
     std::vector<Voxel> points_;
-    /** Creates a spline based on the points */
+    /** Spline representation of curve */
     CubicSpline<double> spline_;
 
 public:
-    /**
-     * @brief Initializes a fitted curve with defualt settings
-     */
+    //** @name Constructors */
+    //@{
     FittedCurve() : npoints_(0), zIndex_(0), ts_(), points_(), spline_() {}
 
     /**
-     * @brief Initializes a fitted curve and sets the points and a place to
-     * start
-     * @param vs List of points where a curve is to be fit
+     * @brief Construct curve from set of points and z-Index
+     *
+     * All points in generated curve are assumed to be at z = zIndex.
+     *
+     * @param vs List of 2D points to fit
      * @param zIndex Current location in curve
      */
     FittedCurve(const std::vector<Voxel>& vs, int zIndex);
+    //@}
 
-    /** @brief Returns the number of points in the spline*/
+    /** @brief Return the current number of resampled points in the spline */
     size_t size() const { return npoints_; }
 
-    /** @brief Returns the list of points in the spline*/
+    /** @brief Return the current list of resampled points */
     const std::vector<Voxel>& points() const { return points_; }
 
-    /** @brief Returns the spline created from the points */
+    /** @brief Return the spline created from the input points */
     const decltype(spline_) & spline() const { return spline_; }
 
-    /** @brief Returns the value for a given t */
+    /** @brief Resample the curve at a given t-value in [0.0, 1.0] */
     Pixel eval(double t) const { return spline_(t); }
 
-    /** @brief Returns a vector of points that are evenly spaced*/
+    /** @brief Evenly resample the curve with the same number of points as the
+     * input set */
     std::vector<Voxel> evenlySpacePoints() { return resample(1.0); }
 
-    /** @brief Returns a vector of points that have been resapmled
-     *  @param resamplePerc Percent of faces to be remaining after resample
-     *                      Default: 1, no faces removed
+    /** @brief Resample the curve at a t-interval of resamplePerc
+     *  @param resamplePerc Sampling interval, in percent of original number
+     *  of points
      */
     std::vector<Voxel> resample(double resamplePerc = 1.0);
 
-    /** @brief Returns a vector with the first numPoints points*/
+    /** @brief Resample the curve to have numPoints of evenly spaced points */
     std::vector<Voxel> sample(size_t numPoints) const;
 
     /** @brief Returns the voxel located at index */
     Voxel operator()(int index) const;
 
-    /**@brief Calculates the curvature of the spline
+    /**@brief Calculate the local curvature along the spline
      * @param hstep How much to move by each time you move
      *              Default: 1 point
      */
     std::vector<double> curvature(int hstep = 1) const;
 
-    /**@brief Calculates the archlenght of the curve  */
+    /**@brief Calculate the arc length of the curve  */
     double arclength() const;
 };
 }

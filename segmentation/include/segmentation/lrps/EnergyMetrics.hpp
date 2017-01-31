@@ -8,7 +8,7 @@ namespace segmentation
 /**
  * @class EnergyMetrics
  *
- * @brief Calcuate energy to see how particles move
+ * @brief Calculate energy to see how particles move
  *
  * Use various algorithms and formulas to calculate how particles
  * move through the volume

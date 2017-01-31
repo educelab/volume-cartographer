@@ -160,9 +160,9 @@ std::vector<double> NormalizeVector(
 }
 
 /**
- * @fn std::vector<int> normalizeVector(const
- *     std::vector<cv::Vec<T,Len>> vs)
- * @brief Normalizes a vector of cv::Vec using cv::norm
+ * @fn std::vector<cv::Vec<double, Len>> normalizeVector(const
+ *     std::vector<cv::Vec<T, Len>> vs)
+ * @brief Normalize vector of cv::Vec using cv::norm
  *
  * @param vs Vector to be normalized
  */

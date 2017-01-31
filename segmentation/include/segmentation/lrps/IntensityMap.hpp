@@ -15,15 +15,17 @@ namespace segmentation
 /**
  * @class IntensityMap
  * @brief A class representing the intensity map generated from a row of a
- * matrix
- *        normalized to the range [0, 1]
+ * matrix, normalized to the range [0, 1]
  * @ingroup lrps
  */
 class IntensityMap
 {
 public:
-    /** @brief Initializes the class and sets parameters
-     * @param stepSize How many points to move by each time you move
+    //** @name Constructors */
+    //@{
+    /**
+     * @brief
+     * @param stepSize Row offset (from center) for generating intensity values
      * @param peakDistanceWeight How much the distance between points
      *                           should be taken into account
      * @param shouldIncludeMiddle Whether or not to include points
@@ -34,6 +36,7 @@ public:
         int stepSize,
         int peakDistanceWeight,
         bool shouldIncludeMiddle);
+    //@}
 
     /**
      * @brief Creates the intensity map

@@ -1,4 +1,4 @@
-/** @file derivative.h
+/** @file Derivative.hpp
  *  @brief A small derivative library that handles calculating derivatives up to
  * second order
  *  @ingroup lrps
@@ -13,10 +13,6 @@ namespace volcart
 {
 namespace segmentation
 {
-/*
- * A small derivative library that handles calculating derivatives up to second
- * order
- */
 
 // To be used later on when this is more parameterized
 // clang-format off
