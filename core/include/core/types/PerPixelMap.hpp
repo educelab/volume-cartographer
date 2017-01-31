@@ -70,7 +70,7 @@ public:
      *
      * @see core/types/OrderedPointSet.hpp
      */
-    cv::Vec6d& operator()(size_t y, size_t x) { return map_(x, y); }
+    cv::Vec6d& operator()(size_t y, size_t x) { return map_(y, x); }
 
     /** @name Metadata */
     //@{
