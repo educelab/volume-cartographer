@@ -1,0 +1,28 @@
+# Setup project
+PROJECT_NAME           = "@CMAKE_PROJECT_NAME@"
+PROJECT_NUMBER         = @PROJECT_VERSION@
+INPUT                  = @CMAKE_SOURCE_DIR@
+STRIP_FROM_PATH        = @CMAKE_SOURCE_DIR@
+RECURSIVE              = YES
+DISTRIBUTE_GROUP_DOC   = YES
+EXTRACT_PRIVATE        = YES
+FILE_PATTERNS          = *.c \
+                         *.cc \
+                         *.cxx \
+                         *.cpp \
+                         *.c++ \
+                         *.h \
+                         *.hh \
+                         *.hxx \
+                         *.hpp \
+                         *.h++ \
+                         *.md
+EXCLUDE_PATTERNS       = */build/* \
+                         */external/* \
+                         */vc-deps/*
+PREDEFINED             =  VC_USE_BULLET = 1
+USE_MDFILE_AS_MAINPAGE = @CMAKE_SOURCE_DIR@/README.md
+
+# Setup logging
+QUIET                  = YES
+WARN_LOGFILE           = @CMAKE_CURRENT_BINARY_DIR@/doxywarn.log
