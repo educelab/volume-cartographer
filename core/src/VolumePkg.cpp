@@ -28,7 +28,7 @@ VolumePkg::VolumePkg(fs::path fileLocation, int version)
     }
 
     // Create the directories with the default values
-    // TODO: #181
+    // TODO(skarlage): #181
     config_ = VolumePkg::InitConfig(findDict->second, version);
     config_.set("slice location", "/slices/");
 
