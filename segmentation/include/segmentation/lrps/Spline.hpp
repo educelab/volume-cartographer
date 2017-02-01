@@ -12,7 +12,7 @@ namespace segmentation
 {
 /**
  * @class Spline
- * @brief Used to create Splines to generate the fitted curve
+ * @brief Simple spline wrapper around Eigen::Spline
  *
  * @ingroup lrps
  */
@@ -20,24 +20,16 @@ template <typename Scalar = double, int Degree = 3>
 class Spline
 {
 public:
-    /** Sets up a vector of pairs of doubles and 3 */
     using ScalarVector = std::vector<Scalar>;
-    /** Sets the Spline to be Quadratic */
     using SplineType = Eigen::Spline<Scalar, 2>;
 
-    /**
-     * @brief Sets the default constructor
-     */
     Spline() = default;
 
     /**
-     * @brief Constructor which sets the two scalar vectors
+     * @brief Construct a spline by fitting to a set of points
      *
-     * Uses two scalar vectors that are the same size to create a matrix
-     * of points and then interpolate them onto a cubic spline
-     *
-     * @param xs First Scalar Vector
-     * @param ys Second Scalar Vector
+     * @param xs Vector of X values
+     * @param ys Vector of Y values
      */
     Spline(const ScalarVector& xs, const ScalarVector& ys) : npoints_{xs.size()}
     {
@@ -47,7 +39,7 @@ public:
     }
 
     /**
-     * @brief Plane evaluation at t-space value t in [0, 1]
+     * @brief Spline evaluation at t-space value t in [0, 1]
      */
     Pixel operator()(Scalar t) const
     {
@@ -57,16 +49,14 @@ public:
     }
 
 private:
-    /** Number of points on the spline*/
+    /** Number of points on the spline */
     size_t npoints_;
-    /** Quadratic spline that is generated*/
+
+    /** Resulting spline */
     SplineType spline_;
 
     /**
-     * @brief Creates a matrix using 2 Scalar vectors
-     * @param xs Vector to make up the first row
-     * @param ys Vector to make up the second row
-     * @return Generated matrix
+     * @brief Combine X and Y values into an npoints_ x 2 matrix
      */
     Eigen::MatrixXd make_wide_matrix_(
         const ScalarVector& xs, const ScalarVector& ys)
@@ -78,8 +68,12 @@ private:
     }
 };
 
+/**
+ * A spline of degree three
+ *
+ * @ingroup lrps
+ * */
 template <typename Scalar>
-/** A spline of degree three using the previous definition of Scalar*/
 using CubicSpline = Spline<Scalar, 3>;
 }
 }

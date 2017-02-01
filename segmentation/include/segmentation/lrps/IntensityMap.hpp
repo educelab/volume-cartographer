@@ -16,6 +16,9 @@ namespace segmentation
  * @class IntensityMap
  * @brief A class representing the intensity map generated from a row of a
  * matrix, normalized to the range [0, 1]
+ *
+ * Attempts to classify and sort maxima relative to the horizontal center of
+ * the matrix.
  * @ingroup lrps
  */
 class IntensityMap
@@ -24,12 +27,9 @@ public:
     //** @name Constructors */
     //@{
     /**
-     * @brief
      * @param stepSize Row offset (from center) for generating intensity values
-     * @param peakDistanceWeight How much the distance between points
-     *                           should be taken into account
-     * @param shouldIncludeMiddle Whether or not to include points
-     *                            in the middle
+     * @param peakDistanceWeight Distance weight factor for maxima sorting
+     * @param shouldIncludeMiddle Include center of selected row as maxima
      */
     IntensityMap(
         cv::Mat r,
@@ -39,61 +39,68 @@ public:
     //@}
 
     /**
-     * @brief Creates the intensity map
+     * @brief Generate a rastered intensity map for debug
      */
     cv::Mat draw();
 
     /**
-     * @brief The top maxima in the row being processed, number of maxima
-     * determined by the peak radius
+     * @brief Return the row's maxima, sorted by intensity and weighted by
+     * distance from the center of the row
      */
     std::deque<std::pair<int, double>> sortedMaxima();
 
-    /**
-     * @brief Sets the Maxima Index
-     * @param index What you want the Maxima Index to be
-     */
+    /** @brief Select a maxima from the map by index */
     void setChosenMaximaIndex(int index) { chosenMaximaIndex_ = index; }
 
-    /** @brief Returns the current Maxima Index*/
+    /** @brief Return the currently selected maxima index */
     int chosenMaximaIndex() const { return chosenMaximaIndex_; }
 
-    /** @brief Increases the Maxima Index by 1 */
+    /** @brief Increase the maxima index by 1 */
     void incrementMaximaIndex() { chosenMaximaIndex_++; }
 
-    /** @brief Returns the Peak Radius  */
+    /** @brief Return the peak radius */
     int peakRadius() const { return peakRadius_; }
 
 private:
-    /**@brief Overwrites output operator to write the intensities  */
     friend std::ostream& operator<<(std::ostream& s, const IntensityMap& m)
     {
         return s << m.intensities_;
     }
+
     /** How much you want to move each time you leave an element */
     int stepSize_;
-    /** How much the distance between two points should be taken
-     * into account */
+
+    /** Distance weight factor for maxima sorting */
     int peakDistanceWeight_;
-    /** List of Intensities in the Image*/
+
+    /** Unsorted intensity plot of selected row */
     cv::Mat_<double> intensities_;
-    /** Image of the data from when the imaged was resliced */
+
+    /** Input matrix */
     cv::Mat_<uint8_t> resliceData_;
-    /** Width of the image when it's displayed*/
+
+    /** Width of the image returned by draw() */
     int displayWidth_;
-    /** Height of the image when it's displayed*/
+
+    /** Height of the image returned by draw() */
     int displayHeight_;
-    /** Where the Intensity map is saved*/
+
+    /** Image returned by draw() */
     cv::Mat drawTarget_;
-    /** Width of the bin to hold the image*/
+
+    /** Width of the bin to hold the image */
     int binWidth_;
-    /** Width of the intensity map*/
+
+    /** Width of the intensity map */
     int mapWidth_;
-    /** Maxima Index*/
+
+    /** Maxima Index */
     int chosenMaximaIndex_;
-    /** Determines whether or not to include pixels in the middle*/
+
+    /** Include center of selected row as maxima? */
     bool shouldIncludeMiddle_;
-    /** Largest radius when searching a neighborhood of pixel*/
+
+    /** Largest distance a maxima can be away from center */
     const int peakRadius_ = 5;
 };
 }
