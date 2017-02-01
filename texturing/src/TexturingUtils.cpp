@@ -166,7 +166,7 @@ void SamplingAlongNormal(
             double tmp = volpkg.volume().interpolatedIntensityAt(aPos);
 
             // Store point in return array
-            nData[aDataCnt] = tmp;  // REVISIT - we assume we have enough space
+            nData[aDataCnt] = tmp;  // REVISIT - #192
             aDataCnt++;
         }
 
@@ -180,7 +180,7 @@ void SamplingAlongNormal(
             double tmp = volpkg.volume().interpolatedIntensityAt(aPos);
 
             // Store point in return array
-            nData[aDataCnt] = tmp;  // REVISIT - we assume we have enough space
+            nData[aDataCnt] = tmp;  // REVISIT - #192
             aDataCnt++;
         }
 
@@ -241,7 +241,7 @@ void SamplingWithinEllipse(
     int aSamplingPositive[4] = {0, 1, 2, 4};
     int aSamplingNegative[4] = {3, 5, 6, 7};
 
-    // add the points on axis first // REVISIT - not fixed yet!!!
+    // add the points on axis first // REVISIT - #193
 
     for (int i = 1; i < aSizeMajor; ++i) {
         // uniformly sample the circle slice
@@ -267,7 +267,7 @@ void SamplingWithinEllipse(
                                 // are counted multiple times
                                 //           fixed this by starting from 1
                                 //           instead of 0, and add the points on
-                                //           axis first
+                                //           axis first (Issue #193)
                                 aPos[0] = nCenter[0] + aDir[0];
                                 aPos[1] = nCenter[1] + aDir[1];
                                 aPos[2] = nCenter[2] + aDir[2];
@@ -280,8 +280,7 @@ void SamplingWithinEllipse(
                                     !IsLocalMaximum(aPos, volpkg)) {
                                     tmp = 0.0;
                                 }
-                                nData[aDataCnt] = tmp;  // REVISIT - we assume
-                                                        // we have enough space
+                                nData[aDataCnt] = tmp;  // REVISIT #192
                                 aDataCnt++;
                             }  // for t
                             break;
@@ -309,8 +308,7 @@ void SamplingWithinEllipse(
                                     !IsLocalMaximum(aPos, volpkg)) {
                                     tmp = 0.0;
                                 }
-                                nData[aDataCnt] = tmp;  // REVISIT - we assume
-                                                        // we have enough space
+                                nData[aDataCnt] = tmp;  // REVISIT - #192
                                 aDataCnt++;
                             }  // for t
                             break;
@@ -338,8 +336,7 @@ void SamplingWithinEllipse(
                                     !IsLocalMaximum(aPos, volpkg)) {
                                     tmp = 0.0;
                                 }
-                                nData[aDataCnt] = tmp;  // REVISIT - we assume
-                                                        // we have enough space
+                                nData[aDataCnt] = tmp;  // REVISIT #192
                                 aDataCnt++;
                             }  // for t
                             break;
