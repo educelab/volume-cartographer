@@ -85,8 +85,7 @@ void Sectioning(
                         volpkg.volume().interpolatedIntensityAt(aPos);
 
                     // Store point in return array
-                    nData[aDataCnt] =
-                        intensity;  // REVISIT - we assume we have enough space
+                    nData[aDataCnt] = intensity;  // REVISIT #192
                     aDataCnt++;
                 }
                 break;
@@ -114,8 +113,7 @@ void Sectioning(
                 double tmp = volpkg.volume().interpolatedIntensityAt(aPos);
 
                 // Store point in return array
-                nData[aDataCnt] =
-                    tmp;  // REVISIT - we assume we have enough space
+                nData[aDataCnt] = tmp;  // REVISIT - #192
                 aDataCnt++;
                 break;
             }
@@ -166,7 +164,7 @@ void SamplingAlongNormal(
             double tmp = volpkg.volume().interpolatedIntensityAt(aPos);
 
             // Store point in return array
-            nData[aDataCnt] = tmp;  // REVISIT - we assume we have enough space
+            nData[aDataCnt] = tmp;  // REVISIT - #192
             aDataCnt++;
         }
 
@@ -180,7 +178,7 @@ void SamplingAlongNormal(
             double tmp = volpkg.volume().interpolatedIntensityAt(aPos);
 
             // Store point in return array
-            nData[aDataCnt] = tmp;  // REVISIT - we assume we have enough space
+            nData[aDataCnt] = tmp;  // REVISIT - #192
             aDataCnt++;
         }
 
@@ -241,7 +239,7 @@ void SamplingWithinEllipse(
     int aSamplingPositive[4] = {0, 1, 2, 4};
     int aSamplingNegative[4] = {3, 5, 6, 7};
 
-    // add the points on axis first // REVISIT - not fixed yet!!!
+    // add the points on axis first // REVISIT - #193
 
     for (int i = 1; i < aSizeMajor; ++i) {
         // uniformly sample the circle slice
@@ -263,9 +261,9 @@ void SamplingWithinEllipse(
                                            aMinorAxisDir1 +
                                        k * nSampleInterval * aSign[t][2] *
                                            aMinorAxisDir2;
-                                // REVISIT - note that the points along the axis
-                                // are counted multiple times
-                                //           fixed this by starting from 1
+                                // REVISIT (Issue #193) - note that the points
+                                //           along the axis are counted multiple
+                                //           times fixed this by starting from 1
                                 //           instead of 0, and add the points on
                                 //           axis first
                                 aPos[0] = nCenter[0] + aDir[0];
@@ -280,8 +278,7 @@ void SamplingWithinEllipse(
                                     !IsLocalMaximum(aPos, volpkg)) {
                                     tmp = 0.0;
                                 }
-                                nData[aDataCnt] = tmp;  // REVISIT - we assume
-                                                        // we have enough space
+                                nData[aDataCnt] = tmp;  // REVISIT #192
                                 aDataCnt++;
                             }  // for t
                             break;
@@ -309,8 +306,7 @@ void SamplingWithinEllipse(
                                     !IsLocalMaximum(aPos, volpkg)) {
                                     tmp = 0.0;
                                 }
-                                nData[aDataCnt] = tmp;  // REVISIT - we assume
-                                                        // we have enough space
+                                nData[aDataCnt] = tmp;  // REVISIT - #192
                                 aDataCnt++;
                             }  // for t
                             break;
@@ -338,8 +334,7 @@ void SamplingWithinEllipse(
                                     !IsLocalMaximum(aPos, volpkg)) {
                                     tmp = 0.0;
                                 }
-                                nData[aDataCnt] = tmp;  // REVISIT - we assume
-                                                        // we have enough space
+                                nData[aDataCnt] = tmp;  // REVISIT #192
                                 aDataCnt++;
                             }  // for t
                             break;

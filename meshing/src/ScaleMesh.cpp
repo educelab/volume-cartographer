@@ -25,8 +25,7 @@ void ScaleMesh(
     scale[2] = scale[0];
     scaleTransform->SetScale(scale);
 
-    // To-Do: Translate/Set Scale origin? Unclear if this is necessary. - SP,
-    // 09-2015
+    // To-Do: #186
 
     // Apply the scale
     std::cerr << "volcart::meshing::Scaling the mesh..." << std::endl;

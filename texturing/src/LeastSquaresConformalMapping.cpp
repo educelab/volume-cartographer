@@ -44,7 +44,7 @@ ITKMesh::Pointer LeastSquaresConformalMapping::getMesh()
         output->SetPoint(i, p);
     }
 
-    // To-do: Recompute normals
+    // To-do #191
     return output;
 }
 
