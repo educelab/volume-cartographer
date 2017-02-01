@@ -85,8 +85,7 @@ void Sectioning(
                         volpkg.volume().interpolatedIntensityAt(aPos);
 
                     // Store point in return array
-                    nData[aDataCnt] =
-                        intensity;  // REVISIT - we assume we have enough space
+                    nData[aDataCnt] = intensity;  // REVISIT #192
                     aDataCnt++;
                 }
                 break;
@@ -114,8 +113,7 @@ void Sectioning(
                 double tmp = volpkg.volume().interpolatedIntensityAt(aPos);
 
                 // Store point in return array
-                nData[aDataCnt] =
-                    tmp;  // REVISIT - we assume we have enough space
+                nData[aDataCnt] = tmp;  // REVISIT - #192
                 aDataCnt++;
                 break;
             }
@@ -263,11 +261,11 @@ void SamplingWithinEllipse(
                                            aMinorAxisDir1 +
                                        k * nSampleInterval * aSign[t][2] *
                                            aMinorAxisDir2;
-                                // REVISIT - note that the points along the axis
-                                // are counted multiple times
-                                //           fixed this by starting from 1
+                                // REVISIT (Issue #193) - note that the points
+                                //           along the axis are counted multiple
+                                //           times fixed this by starting from 1
                                 //           instead of 0, and add the points on
-                                //           axis first (Issue #193)
+                                //           axis first
                                 aPos[0] = nCenter[0] + aDir[0];
                                 aPos[1] = nCenter[1] + aDir[1];
                                 aPos[2] = nCenter[2] + aDir[2];

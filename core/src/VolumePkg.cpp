@@ -28,7 +28,7 @@ VolumePkg::VolumePkg(fs::path fileLocation, int version)
     }
 
     // Create the directories with the default values
-    // TODO: 181
+    // TODO: #181
     config_ = VolumePkg::InitConfig(findDict->second, version);
     config_.set("slice location", "/slices/");
 
@@ -151,7 +151,7 @@ std::vector<std::string> VolumePkg::getSegmentations() const
 // Set the private variable activeSeg_ to the seg we want to work with
 void VolumePkg::setActiveSegmentation(const std::string& id)
 {
-    // TODO(csparker): Check that this seg actually exists in the volume
+    // TODO(csparker): #194
     activeSeg_ = id;
 }
 
@@ -163,7 +163,7 @@ fs::path VolumePkg::getActiveSegPath() { return segsDir_ / activeSeg_; }
 // Return the point cloud currently on disk for the activeSegmentation
 volcart::OrderedPointSet<cv::Vec3d> VolumePkg::openCloud() const
 {
-    // TODO(csparker): Error if activeSeg_ not set
+    // TODO(csparker): #195
     auto outputName = segsDir_ / activeSeg_ / "pointset.vcps";
     return volcart::PointSetIO<cv::Vec3d>::ReadOrderedPointSet(
         outputName.string());
