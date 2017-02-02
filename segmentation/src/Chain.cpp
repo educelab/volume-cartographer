@@ -114,8 +114,7 @@ bool Chain::isMoving()
 // x is displacement from rest (starting distance between points)
 //
 // There are two if blocks to account for the first and last particles in the
-// chain
-// only having one neighbor.
+// chain only having one neighbor.
 cv::Vec3d Chain::springForce(size_t index)
 {
     cv::Vec3d f(0, 0, 0);
@@ -149,7 +148,7 @@ cv::Vec3d Chain::gravity(size_t index)
 
     cv::Vec3d offset =
         volpkg_.volume()
-            .interpolatedEigenPairsAt(history_.front()[index].position(), 3)[0]
+            .interpolatedEigenPairsAt(history_.front()[index], 3)[0]
             .second;
 
     offset = gravity - (gravity.dot(offset)) / (offset.dot(offset)) * offset;
@@ -184,7 +183,7 @@ volcart::OrderedPointSet<cv::Vec3d> Chain::orderedPCD()
                 ((rowAt[i](2)) -
                  startIndex_ /
                      threshold_));  // *To-Do: Something seems wrong here.
-            storage[currentCell][i] = cv::Vec3d(rowAt[i].position());
+            storage[currentCell][i] = cv::Vec3d(rowAt[i]);
         }
     }
 

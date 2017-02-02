@@ -13,7 +13,7 @@ namespace segmentation
 {
 /**
  * @class LocalResliceSegmentation
- * @brief Local Reslice Particle Simulation (LRPS) segmentation
+ * @brief Local Reslice %Particle Simulation (LRPS) segmentation
  *
  * This algorithm propagates a chain of points forward through a volume from
  * a starting z-index to an ending z-index. Each point is assumed to start
@@ -86,7 +86,7 @@ private:
 
     /** @brief Debug: Draw curve on slice image
      * @param curve Input curve
-     * @param sliceIndex Slice on which to draw
+     * @param sliceIndex %Slice on which to draw
      * @param particleIndex Highlight point at particleIndex
      * @param showSpline Draw interpolated curve. Default only draws points
      */

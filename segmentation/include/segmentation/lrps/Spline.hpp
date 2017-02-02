@@ -39,7 +39,7 @@ public:
     }
 
     /**
-     * @brief Spline evaluation at t-space value t in [0, 1]
+     * @brief %Spline evaluation at t-space value t in [0, 1]
      */
     Pixel operator()(Scalar t) const
     {
@@ -52,7 +52,6 @@ private:
     /** Number of points on the spline */
     size_t npoints_;
 
-    /** Resulting spline */
     SplineType spline_;
 
     /**
