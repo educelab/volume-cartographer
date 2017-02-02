@@ -29,7 +29,7 @@ class ClangTidier:
 
         # Generally don't care that much
         'examples/*',
-        
+
         # Not code that we control
         'external/*',
 
@@ -60,7 +60,7 @@ class ClangTidier:
         Lints a given C++ `source_file` (as in ending in .cpp) with clang-tidy.
         '''
         # Check if source_file is blacklisted from checks
-        if self.blacklisted_file(source_file):
+        if self.is_blacklisted(source_file):
             logging.debug(f'Skipping {source_file}, blacklisted')
             return True
 
@@ -81,9 +81,9 @@ class ClangTidier:
 
         return not tidy_out
 
-    def blacklisted_file(self, source_file: str) -> bool:
+    def is_blacklisted(self, source_file: str) -> bool:
         '''
-        Checks whether `source_file` is blacklisted from clang-tidy checks.
+        Checks whether `source_file` is blacklisted from tool checks.
         '''
         return any(fnmatch(source_file, pattern) for pattern in self.BLACKLIST)
 

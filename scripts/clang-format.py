@@ -2,6 +2,7 @@
 
 import argparse
 import difflib
+from fnmatch import fnmatch
 import logging
 import os
 import re
@@ -15,6 +16,14 @@ program_name = 'clang-format'
 
 
 class ClangFormatter:
+    # Blacklist certain files - tests, examples, etc. List entries should be in
+    # the style of unix globs (e.g. *.cpp matches all files in the current dir
+    # ending in .cpp) or full file paths.
+    BLACKLIST = [
+        # Not code that we control
+        'external/*',
+    ]
+
     def __init__(self, path_to_cf: str) -> None:
         self.path = path_to_cf
         self.toplevel = common.callo('git rev-parse --show-toplevel')
@@ -33,6 +42,10 @@ class ClangFormatter:
         '''
         Lint `source_file` with clang-format, optionally showing the diff.
         '''
+        if self.is_blacklisted(source_file):
+            logging.debug(f'Skipping {source_file}, blacklisted')
+            return True
+
         # Get original and formatted text
         with open(source_file, 'r', errors='ignore') as original_file:
             original_text = original_file.read()
@@ -63,6 +76,13 @@ class ClangFormatter:
                 print()
 
         return not diff
+
+    def is_blacklisted(self, source_file: str) -> bool:
+        '''
+        Checks whether `source_file` is blacklisted from tool checks.
+        '''
+        return any(fnmatch(source_file, pattern) for pattern in self.BLACKLIST)
+
 
 
 def parse_arguments() -> argparse.Namespace:
