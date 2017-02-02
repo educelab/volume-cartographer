@@ -53,7 +53,7 @@ cv::Mat SliceImage::conformedImage()
         input.convertTo(
             output, CV_16U, 65535.0 / (maxVal - minVal),
             -minVal * 65535.0 / (maxVal - minVal));
-        // TODO: need to account for CV_8S and 32-bit images
+        // TODO: #178
     } else {
         input.copyTo(output);
     }
