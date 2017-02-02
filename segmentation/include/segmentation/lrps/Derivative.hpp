@@ -87,7 +87,7 @@ T D1Central(const std::vector<T>& vs, int index, int hstep = 1)
 }
 
 // from: https://en.wikipedia.org/wiki/Finite_difference_coefficient
-// TODO(skarlage): Implement more accurate derivatives
+// TODO(skarlage): #187
 /**
  * @fn T d1FivePointStencil(const std::vector<T>& vs, int32_t index, int32_t
  * hstep = 1)
@@ -208,7 +208,7 @@ T D2Central(const std::vector<T>& vs, int index, int hstep = 1)
 }
 
 // from: https://en.wikipedia.org/wiki/Finite_difference_coefficient
-// TODO(skarlage): Implement more accurate derivatives
+// TODO(skarlage): #187
 
 /** @copydoc d1FivePointStencil() */
 template <typename T>

@@ -27,7 +27,7 @@ ITKMesh::Pointer AngleBasedFlattening::getMesh()
         output->SetPoint((*it)->id, p);
     }
 
-    // To-do: Recompute normals
+    // To-do: #189
     return output;
 }
 

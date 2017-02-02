@@ -27,8 +27,8 @@ BOOST_FIXTURE_TEST_CASE(
     PointSetIO<cv::Vec3i>::WriteOrderedPointSet("binary.vcps", ps);
     auto readPs = PointSetIO<cv::Vec3i>::ReadOrderedPointSet("binary.vcps");
     BOOST_CHECK_EQUAL(readPs(0, 0), ps(0, 0));
-    BOOST_CHECK_EQUAL(readPs(1, 0), ps(1, 0));
-    BOOST_CHECK_EQUAL(readPs(2, 0), ps(2, 0));
+    BOOST_CHECK_EQUAL(readPs(0, 1), ps(0, 1));
+    BOOST_CHECK_EQUAL(readPs(0, 2), ps(0, 2));
 }
 
 BOOST_FIXTURE_TEST_CASE(WriteThenReadAsciiOrderedPointSet, Vec3iOrderedPointSet)
@@ -38,6 +38,6 @@ BOOST_FIXTURE_TEST_CASE(WriteThenReadAsciiOrderedPointSet, Vec3iOrderedPointSet)
     auto readPs =
         PointSetIO<cv::Vec3i>::ReadOrderedPointSet("ascii.vcps", IOMode::ASCII);
     BOOST_CHECK_EQUAL(readPs(0, 0), ps(0, 0));
-    BOOST_CHECK_EQUAL(readPs(1, 0), ps(1, 0));
-    BOOST_CHECK_EQUAL(readPs(2, 0), ps(2, 0));
+    BOOST_CHECK_EQUAL(readPs(0, 1), ps(0, 1));
+    BOOST_CHECK_EQUAL(readPs(0, 2), ps(0, 2));
 }

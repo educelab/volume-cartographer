@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
         fs::directory_iterator dir_end;
 
         // Filter out subfiles that aren't TIFs
-        // To-Do: Handle other formats
+        // To-Do: #177
         while (dir_subfile != dir_end) {
             std::string file_ext(boost::to_upper_copy<std::string>(
                 dir_subfile->path().extension().string()));

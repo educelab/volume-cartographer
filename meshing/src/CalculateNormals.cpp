@@ -36,7 +36,7 @@ void CalculateNormals::compute_normals_()
             pointIds.push_back(*p);
         }
 
-        // To-Do: Throw exception if p_ids.size() != 3
+        // To-Do: #185
 
         // Collect the vertex info for each point
         vert = input_->GetPoint(pointIds[0]);

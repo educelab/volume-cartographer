@@ -34,7 +34,7 @@ DerivePointerAlignment: false
 DisableFormat:   false
 ExperimentalAutoDetectBinPacking: false
 ForEachMacros:   [ foreach, Q_FOREACH, BOOST_FOREACH ]
-IncludeCategories: 
+IncludeCategories:
   - Regex:           '^<[^.>]*>'
     Priority:        1
   - Regex:           '^<c[^.>]*>'
@@ -43,14 +43,12 @@ IncludeCategories:
     Priority:        3
   - Regex:           '^<|"itk.*>'
     Priority:        4
-  - Regex:           '^<|"pcl.*>'
-    Priority:        5
   - Regex:           '^<|"opencv\d?.*>'
-    Priority:        6
+    Priority:        5
   - Regex:           '^<|".*'
-    Priority:        7
+    Priority:        6
   - Regex:           '.*'
-    Priority:        8
+    Priority:        7
 IndentCaseLabels: true
 IndentWidth:     4
 IndentWrappedFunctionNames: false

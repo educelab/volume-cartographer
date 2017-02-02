@@ -26,7 +26,7 @@ Texture::Texture(fs::path path)
                   << std::endl;
     }
 
-    // To-Do: Load the UV Map
+    // To-Do: #180
 
     // Load the texture images
     for (size_t i = 0; i < metadata_.get<size_t>("number-of-images"); ++i) {

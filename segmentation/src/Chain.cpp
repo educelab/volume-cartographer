@@ -70,7 +70,7 @@ Chain::Chain(
 }
 
 // This function defines how particles are updated
-// To-Do: Only iterate over particles once
+// To-Do: #188
 void Chain::step()
 {
     // Pull the most recent iteration from _history

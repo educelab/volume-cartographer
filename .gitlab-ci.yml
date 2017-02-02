@@ -126,12 +126,12 @@ doxygen:html:
         - develop
     stage: docs
     script:
-        - cd doc/
-        - doxygen Doxyfile Modules.dox
+        - cd build/
+        - ninja doc
     artifacts:
         name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
         paths:
-            - doc/html/*
+            - build/doc/html/*
         expire_in: 5 days
     allow_failure: yes
     tags:
@@ -143,14 +143,14 @@ doxygen:pdf:
         - develop
     stage: docs
     script:
-        - cd doc/
-        - doxygen Doxyfile Modules.dox
-        - cd latex/
+        - cd build/
+        - ninja doc
+        - cd doc/latex/
         - make
     artifacts:
         name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
         paths:
-            - doc/latex/*.pdf
+            - build/doc/latex/*.pdf
         expire_in: 5 days
     allow_failure: yes
     tags:

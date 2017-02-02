@@ -58,26 +58,22 @@ find_package(OpenCV 3 REQUIRED)
 # Optional #
 ############
 
+# If this option is set, then use all optional dependencies
+option(VC_USE_ALL "Use all optional third-party libs" off)
+if(VC_USE_ALL)
+    message(STATUS "All optional third-party libraries enabled. Individual \
+preferences will be ignored.")
+endif()
+
 ### OSX Code Signing ###
 if(APPLE AND VC_BUILD_APPS)
     find_library(OSXSecurity Security)
 endif()
 
-### PCL ###
-option(VC_USE_PCL "Use PCL library" off)
-if (VC_USE_PCL)
-    set(PCL_STATIC on)
-
-    # PCL silently overwrites these, so save them and put them back afterward
-    set(VTK_LIBRARIES_TMP ${VTK_LIBRARIES})
-    find_package(PCL 1.7 QUIET)
-    set(VTK_LIBRARIES ${VTK_LIBRARIES_TMP})
-endif()
-
 ### ACVD ###
 # Currently required since VC-Texture needs it - SP
 option(VC_USE_ACVD "Use ACVD library" on)
-if (VC_USE_ACVD)
+if (VC_USE_ACVD OR VC_USE_ALL)
     find_package(ACVD QUIET REQUIRED)
     add_library(acvd INTERFACE IMPORTED)
     set_target_properties(acvd PROPERTIES
@@ -90,7 +86,7 @@ endif()
 
 ### Bullet Physics ###
 option(VC_USE_BULLET "Use Bullet Physics library" off)
-if (VC_USE_BULLET)
+if (VC_USE_BULLET OR VC_USE_ALL)
     find_package(Bullet QUIET REQUIRED)
     add_library(bullet INTERFACE IMPORTED)
     set_target_properties(bullet PROPERTIES
@@ -101,7 +97,7 @@ endif()
 
 ### libigl ###
 option(VC_USE_LIBIGL "Use libigl" off)
-if (VC_USE_LIBIGL)
+if (VC_USE_LIBIGL OR VC_USE_ALL)
     find_package(LIBIGL QUIET REQUIRED)
     add_library(libigl INTERFACE IMPORTED)
     set_target_properties(libigl PROPERTIES
@@ -111,7 +107,7 @@ endif()
 
 ### VCG ###
 option(VC_USE_VCG "Use VCG library" off)
-if(VC_USE_VCG)
+if(VC_USE_VCG OR VC_USE_ALL)
     find_package(VCG QUIET REQUIRED)
     add_library(vcglib INTERFACE IMPORTED)
     set_target_properties(vcglib PROPERTIES

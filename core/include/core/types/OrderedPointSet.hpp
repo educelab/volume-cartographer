@@ -45,14 +45,13 @@ public:
     }
 
     // 2D access
-    // NOTE: x, then y
-    const T& operator()(size_t x, size_t y) const
+    const T& operator()(size_t y, size_t x) const
     {
         assert(x < width_ && "x out of range");
         assert(y * width_ + x < data_.size() && "(x, y) out of range");
         return data_[y * width_ + x];
     }
-    T& operator()(size_t x, size_t y)
+    T& operator()(size_t y, size_t x)
     {
         assert(x < width_ && "x out of range");
         assert(y * width_ + x < data_.size() && "(x, y) out of range");

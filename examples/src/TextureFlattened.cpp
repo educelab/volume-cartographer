@@ -97,7 +97,7 @@ int main(int /*argc*/, char* argv[])
 
     if (result.texture().ppm().initialized()) {
         volcart::PerPixelMap::WritePPM(
-            "PerPixelMapping", result.texture().ppm());
+            "PerPixelMapping.ppm", result.texture().ppm());
     }
 
     return EXIT_SUCCESS;
