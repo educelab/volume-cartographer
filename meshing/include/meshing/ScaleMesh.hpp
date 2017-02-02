@@ -6,9 +6,6 @@
 
 #include "core/vc_defines.hpp"
 
-#include <itkScaleTransform.h>
-#include <itkTransformMeshFilter.h>
-
 namespace volcart
 {
 namespace meshing
