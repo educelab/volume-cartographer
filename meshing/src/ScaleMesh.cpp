@@ -19,9 +19,10 @@ void ScaleMesh(
 {
     // Copies the input mesh onto the output mesh
     DeepCopy(input,output);
-    
+
     // Multiplies each component of each vertex by the scale factor
-    for (auto v = output->GetPoints()->Begin(); v != output->GetPoints()->End(); ++v) {
+    for (auto v = output->GetPoints()->Begin(); v != output->GetPoints()->End();
+         ++v) {
         v->Value()[0] *= scaleFactor;
         v->Value()[1] *= scaleFactor;
         v->Value()[2] *= scaleFactor;
