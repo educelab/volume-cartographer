@@ -16,11 +16,13 @@ option(VC_BUILD_APPS     "Compile VC core programs"    on)
 option(VC_BUILD_UTILS    "Compile VC utility programs" on)
 option(VC_BUILD_EXAMPLES "Compile VC example programs" on)
 option(VC_BUILD_TESTS    "Compile VC test programs"    on)
+option(VC_BUILD_DOC      "Compile VC documentation"    off)
 
 # Choose what to install
 option(VC_INSTALL_APPS      "Install VC core programs"    on)
 option(VC_INSTALL_UTILS     "Install VC utility programs" on)
 option(VC_INSTALL_EXAMPLES  "Install VC example programs" off)
+option(VC_INSTALL_DOC       "Install VC documentation"    off)
 
 # Look for external dependencies.
 include(VCFindDependencies)
@@ -68,6 +70,11 @@ endif()
 ## VC Example Apps ##
 if (VC_BUILD_EXAMPLES)
     add_subdirectory(examples)
+endif()
+
+## VC Documentation
+if (VC_BUILD_DOC)
+    add_subdirectory(doc)
 endif()
 
 # Install to system directories

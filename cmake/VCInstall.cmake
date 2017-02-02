@@ -52,6 +52,9 @@ endif()
 if(VC_INSTALL_EXAMPLES)
     list(APPEND install_components "Examples")
 endif()
+if(VC_INSTALL_DOC)
+    list(APPEND install_components "Documentation")
+endif()
 
 # Configure Cpack
 set(CPACK_GENERATOR "TGZ;ZIP")
