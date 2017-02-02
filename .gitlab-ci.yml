@@ -127,6 +127,7 @@ doxygen:html:
     stage: docs
     script:
         - cd build/
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_BUILD_DOC=ON -GNinja ..
         - ninja doc
     artifacts:
         name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
@@ -136,6 +137,7 @@ doxygen:html:
     allow_failure: yes
     tags:
         - doxy
+        - homebrew
 
 doxygen:pdf:
     only:
@@ -144,6 +146,7 @@ doxygen:pdf:
     stage: docs
     script:
         - cd build/
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_BUILD_DOC=ON -GNinja ..
         - ninja doc
         - cd doc/latex/
         - make
@@ -155,6 +158,7 @@ doxygen:pdf:
     allow_failure: yes
     tags:
         - doxy
+        - homebrew
 
 ### Collect & Deploy ###
 collect:source:
