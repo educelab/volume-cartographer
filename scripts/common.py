@@ -1,20 +1,18 @@
 import logging
 import os
-import pprint
 import shutil
 import shlex
 import subprocess
-import sys
 import tarfile
 import tempfile
 import urllib.request
 from distutils.version import LooseVersion
-from typing import Any, Dict, Iterator, List, Pattern, Union, Generator
+from typing import Any, List, Union, Generator
 
 # URL location of the 'cached' copy of clang-format to download
 # for users which do not have clang-format installed
-HTTP_LINUX_URL = 'http://llvm.org/releases/3.9.0/clang+llvm-3.9.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz'
-HTTP_DARWIN_URL = 'http://llvm.org/releases/3.9.0/clang+llvm-3.9.0-x86_64-apple-darwin.tar.xz'
+HTTP_LINUX_URL = 'http://llvm.org/releases/3.9.0/clang+llvm-3.9.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz'  # NOQA
+HTTP_DARWIN_URL = 'http://llvm.org/releases/3.9.0/clang+llvm-3.9.0-x86_64-apple-darwin.tar.xz'  # NOQA
 
 # Path to extract clang-format to in source tree
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -36,18 +34,20 @@ def callo(cmd: Union[List[str], str], **kwargs: Any) -> str:
     Shell-out, returns stdout
     '''
     cmd = shlex.split(cmd) if isinstance(cmd, str) else cmd
-    logging.debug(f'Running: {" ".join(cmd)}')
+    logging.debug('Running: {}'.format(' '.join(cmd)))
     return subprocess.check_output(cmd, **kwargs).decode('utf-8').strip()
 
 
 def changed_files(compare_to: str) -> Generator[str, None, None]:
     '''
-    Determines all changed files from HEAD to branch `compare_to`. Excludes files
-    that were deleted for renamed.
+    Determines all changed files from HEAD to branch `compare_to`. Excludes
+    files that were deleted for renamed.
     '''
     current_branch = callo('git rev-parse --abbrev-ref @')
-    diffcmd = f'git diff --name-status --diff-filter=dr \
-        {compare_to}...{current_branch}'
+    diffcmd = 'git diff --name-status --diff-filter=dr \
+        {compare_to}...{current_branch}'.format(
+        compare_to=compare_to, current_branch=current_branch
+    )
 
     # Return source files, only if they haven't been deleted. This prevents
     # trying to operate on a missing file.
@@ -60,6 +60,7 @@ def changed_files(compare_to: str) -> Generator[str, None, None]:
             yield rest[1]
         else:
             yield rest[0]
+
 
 def all_files() -> Generator[str, None, None]:
     '''
@@ -77,18 +78,29 @@ def fetch_clang_binary(
     '''
     dest = tempfile.gettempdir()
     tmptar = os.path.join(dest, 'temp.tar.xz')
-    logging.info(f'Downloading {binary} from {url}, saving to {tmptar}')
+    logging.info(
+        'Downloading {binary} from {url}, saving to {tmptar}'.format(
+            binary=binary, url=url, tmptar=tmptar
+        )
+    )
     urllib.request.urlretrieve(url, tmptar)
 
     if not os.path.isdir(extract_dir):
         os.mkdir(extract_dir)
 
     with tarfile.open(tmptar, 'r:xz') as tar:
-        logging.info(f'Extracting {binary} from {tmptar}')
+        logging.info(
+            'Extracting {binary} from {tmptar}'.format(
+                binary=binary, tmptar=tmptar
+            )
+        )
 
         # Find clang-format inside tar, extract to tmp directory
         path_in_tar = next(
-            filter(lambda n: n.endswith(f'/{binary}'), tar.getnames())
+            filter(
+                lambda n: n.endswith('/{binary}'.format(binary=binary)),
+                tar.getnames()
+            )
         )
         tar_extract_path = tempfile.gettempdir()
         tar.extract(path_in_tar, path=tar_extract_path)
@@ -96,7 +108,11 @@ def fetch_clang_binary(
         # Move to final location
         final_location = os.path.join(extract_dir, binary)
         shutil.move(os.path.join(tar_extract_path, path_in_tar), final_location)
-        logging.info(f'Extracted {path_in_tar} to {final_location}')
+        logging.info(
+            'Extracted {path_in_tar} to {final_location}'.format(
+                path_in_tar=path_in_tar, final_location=final_location
+            )
+        )
 
     return final_location
 
@@ -108,7 +124,7 @@ def executable(path: str) -> bool:
     if not os.path.isfile(path):
         return False
     try:
-        callo(f'{path} --help')
+        callo('{path} --help'.format(path=path))
     except subprocess.CalledProcessError:
         return False
     return True
@@ -127,8 +143,8 @@ def find_binary(binary: str, init_path: str=None) -> str:
 
     # Check system PATH
     try:
-        return callo(f'which {binary}')
+        return callo('which {binary}'.format(binary=binary))
     except subprocess.CalledProcessError:
-        msg = f'Could not find suitable {binary} in path.'
+        msg = 'Could not find suitable {binary} in path.'.format(binary=binary)
         logging.error(msg)
         raise MissingBinaryException(msg)
