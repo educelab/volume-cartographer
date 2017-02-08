@@ -16,10 +16,10 @@ namespace volcart
 class HalfEdgeMesh
 {
 public:
-    class Vert;
-    class Edge;
-    class Angle;
-    class Face;
+    struct Vert;
+    struct Edge;
+    struct Angle;
+    struct Face;
 
     using VertPtr = std::shared_ptr<Vert>;
     using EdgePtr = std::shared_ptr<Edge>;
@@ -28,9 +28,7 @@ public:
 
     using IDType = uint64_t;
 
-    class Vert
-    {
-    public:
+    struct Vert {
         Vert() : id{}, pid{}, lambdaPlanar{}, lambdaLength{} {}
 
         VertPtr nextLink;
@@ -47,9 +45,7 @@ public:
         bool interior() const { return edge->pair != nullptr; }
     };
 
-    class Edge
-    {
-    public:
+    struct Edge {
         Edge() : id{} {}
 
         EdgePtr nextLink;
@@ -72,9 +68,7 @@ public:
     EdgePtr nextBoundaryEdge(const EdgePtr& e) { return e->next->vert->edge; }
     EdgePtr prevBoundaryEdge(const EdgePtr& e);
 
-    class Angle
-    {
-    public:
+    struct Angle {
         Angle() : alpha{}, beta{}, phi{}, weight{}, bAlpha{}, sine{}, cosine{}
         {
         }
@@ -92,9 +86,7 @@ public:
         double cosine;
     };
 
-    class Face
-    {
-    public:
+    struct Face {
         Face()
             : id{}
             , cid{}
