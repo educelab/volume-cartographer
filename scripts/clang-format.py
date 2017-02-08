@@ -38,15 +38,12 @@ class ClangFormatter:
         )
 
     # Lint a given file - return whether or not the file is formatted correctly
-    def lint(self, source_file: str, print_output: bool=False) -> bool:
+    def lint(self, source_file: str, print_output: bool = False) -> bool:
         '''
         Lint `source_file` with clang-format, optionally showing the diff.
         '''
         if self.is_blacklisted(source_file):
-            logging.debug(
-                'Skipping {source_file}, blacklisted'.
-                format(source_file=source_file)
-            )
+            logging.debug(f'Skipping {source_file}, blacklisted')
             return True
 
         # Get original and formatted text
@@ -69,17 +66,10 @@ class ClangFormatter:
         )
 
         if diff:
-            print(
-                'Found formatting changes for file: {source_file}'.
-                format(source_file=source_file)
-            )
+            print(f'Found formatting changes for file: {source_file}')
 
             if print_output:
-                print(
-                    'To fix, run "{path} --style=file -i {source_file}"'.format(
-                        path=self.path, source_file=source_file
-                    )
-                )
+                print(f'To fix, run "{self.path} --style=file -i {source_file}"')
                 print('Suggested changes:')
                 for line in diff:
                     print(line.strip())
@@ -92,6 +82,7 @@ class ClangFormatter:
         Checks whether `source_file` is blacklisted from tool checks.
         '''
         return any(fnmatch(source_file, pattern) for pattern in self.BLACKLIST)
+
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -143,13 +134,8 @@ def main() -> bool:
     cf = ClangFormatter(path_to_cf)
     if cf.version < common.MIN_VERSION_REQUIRED:
         logging.error(
-            '''Incorrect version of {program_name}: got {version} but at least \
-            {version_required} is required'''.
-            format(
-                program_name=program_name,
-                version=cf.version,
-                version_required=common.MIN_VERSION_REQUIRED
-            )
+            f'''Incorrect version of {program_name}: got {cf.version} but at \
+                least {common.MIN_VERSION_REQUIRED} is required'''
         )
         sys.exit(1)
 
