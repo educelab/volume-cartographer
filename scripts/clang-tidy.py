@@ -61,18 +61,23 @@ class ClangTidier:
         '''
         # Check if source_file is blacklisted from checks
         if self.is_blacklisted(source_file):
-            logging.debug(f'Skipping {source_file}, blacklisted')
+            logging.debug(
+                'Skipping {source_file}, blacklisted'.
+                format(source_file=source_file)
+            )
             return True
 
         compile_commands_dir = os.path.join(self.toplevel, self.build_dir)
         args = [
-            f'-p={compile_commands_dir}',
+            '-p={compile_commands_dir}'.format(
+                compile_commands_dir=compile_commands_dir
+            ),
             '-config=',
         ]
         if fix:
             args.append('-fix')
         cmd = [self.path] + args + [source_file]
-        logging.debug(f'cmd: {" ".join(cmd)}')
+        logging.debug('cmd: {cmd}'.format(' '.join(cmd)))
         tidy_out = common.callo(cmd, stderr=subprocess.DEVNULL)
 
         # Only print if requested and if there's output
@@ -150,8 +155,12 @@ def main() -> bool:
     ct = ClangTidier(path_to_ct, args.build_dir)
     if ct.version < common.MIN_VERSION_REQUIRED:
         logging.error(
-            f'''Incorrect version of {program_name}: got {cf.version} but at \
-                least {common.MIN_VERSION_REQUIRED} is required'''
+            '''Incorrect version of {program_name}: got {version} but at \
+               least {version_required} is required'''.format(
+                program_name=program_name,
+                version=ct.version,
+                version_required=common.MIN_VERSION_REQUIRED
+            )
         )
         sys.exit(1)
 
@@ -170,8 +179,10 @@ def main() -> bool:
         tasks = [
             pool.apply_async(
                 ct.lint,
-                args=(f,),
-                kwds=dict(print_output=args.print_output, fix=args.fix),
+                args=(f, ),
+                kwds=dict(
+                    print_output=args.print_output, fix=args.fix
+                ),
             ) for f in changes
         ]
 
