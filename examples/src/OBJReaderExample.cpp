@@ -3,7 +3,6 @@
 //
 
 #include "core/io/OBJReader.hpp"
-#include "core/io/OBJWriter.h"
 
 namespace vc = volcart;
 
