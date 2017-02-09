@@ -6,7 +6,7 @@
 #include <opencv2/core.hpp>
 
 #include "core/io/OBJReader.hpp"
-#include "core/types/Exceptions.h"
+#include "core/types/Exceptions.hpp"
 
 using namespace volcart;
 

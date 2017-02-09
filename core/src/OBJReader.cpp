@@ -10,7 +10,7 @@
 #include <boost/algorithm/string.hpp>
 #include <opencv2/imgcodecs.hpp>
 
-#include "core/types/Exceptions.h"
+#include "core/types/Exceptions.hpp"
 
 using namespace volcart;
 using namespace volcart::io;

@@ -9,8 +9,8 @@
 #include <boost/filesystem.hpp>
 #include <opencv2/core.hpp>
 
-#include "core/types/UVMap.h"
-#include "core/vc_defines.h"
+#include "core/types/UVMap.hpp"
+#include "core/vc_defines.hpp"
 
 namespace volcart
 {
