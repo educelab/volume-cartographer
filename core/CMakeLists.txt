@@ -17,6 +17,7 @@ set(srcs
     src/PLYReader.cpp
     src/PLYWriter.cpp
     src/VolumePkg.cpp
+    src/OBJReader.cpp
 )
 
 add_library(${target} ${srcs})
@@ -30,6 +31,7 @@ target_link_libraries(${target}
     PUBLIC
         Boost::filesystem
         opencv_core
+        opencv_highgui
         opencv_imgproc
         opencv_imgcodecs
         ITKCommon
@@ -75,6 +77,7 @@ set(test_srcs
     test/PLYReaderTest.cpp
     test/FloatComparisonTest.cpp
     test/PerPixelMapTest.cpp
+    test/OBJReaderTest.cpp
 )
 
 # Add a test executable for each src
@@ -98,6 +101,14 @@ endforeach()
 set(COMMON_TEST_RES
     test/res/PlyWriter_Plane.ply
     test/res/GenericGradient.tif
+    test/res/OnlyFaces.obj
+    test/res/TexturedNoNormal.mtl
+    test/res/TexturedNoNormal.obj
+    test/res/TexturedPlane.mtl
+    test/res/TexturedPlane.obj
+    test/res/Texture.png
+    test/res/UntexturedPlane.obj
+    test/res/Vertices.obj
 )
 
 # Copy each test resource file
