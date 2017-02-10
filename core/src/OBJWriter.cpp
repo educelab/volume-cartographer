@@ -153,19 +153,19 @@ int OBJWriter::write_vertices_()
         // Make a new point link for this point
         cv::Vec3i pointLink(vIndex, UNSET_VALUE, UNSET_VALUE);
 
-        // Write the point position components and its normal components.
+        // Write the point position components
         outputMesh_ << "v " << point.Value()[0] << " " << point.Value()[1]
                     << " " << point.Value()[2] << std::endl;
 
-        if (!mesh_->GetPointData()->empty()) {
-            // Get the point's normal
-            ITKPixel normal;
-            mesh_->GetPointData(point.Index(), &normal);
+        // Write the point normal information
+        ITKPixel normal;
+        if (mesh_->GetPointData(point.Index(), &normal)) {
             outputMesh_ << "vn " << normal[0] << " " << normal[1] << " "
                         << normal[2] << std::endl;
             pointLink[2] = vIndex;
         }
 
+        // Add this vertex to the point links
         pointLinks_.insert({point.Index(), pointLink});
 
         ++vIndex;
