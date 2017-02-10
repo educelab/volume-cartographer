@@ -64,7 +64,7 @@ private:
     std::ofstream outputMesh_;
     std::ofstream outputMTL_;
 
-    std::map<double, cv::Vec3d> pointLinks_;  // Keeps track of what we know
+    std::map<double, cv::Vec3i> pointLinks_;  // Keeps track of what we know
                                               // about each point in the mesh:
                                               // [ pointID, (v, vt, vn) ]
 

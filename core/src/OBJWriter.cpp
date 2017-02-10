@@ -148,21 +148,24 @@ int OBJWriter::write_vertices_()
 
     // Iterate over all of the points
     auto point = mesh_->GetPoints()->Begin();
-    double vIndex = 1;
+    int vIndex = 1;
     while (point != mesh_->GetPoints()->End()) {
-
-        // Get the point's normal
-        ITKPixel normal;
-        mesh_->GetPointData(point.Index(), &normal);
+        // Make a new point link for this point
+        cv::Vec3i pointLink(vIndex, UNSET_VALUE, UNSET_VALUE);
 
         // Write the point position components and its normal components.
         outputMesh_ << "v " << point.Value()[0] << " " << point.Value()[1]
                     << " " << point.Value()[2] << std::endl;
-        outputMesh_ << "vn " << normal[0] << " " << normal[1] << " "
-                    << normal[2] << std::endl;
 
-        // Make a new point link for this point
-        cv::Vec3d pointLink(vIndex, UNSET_VALUE, vIndex);
+        if (!mesh_->GetPointData()->empty()) {
+            // Get the point's normal
+            ITKPixel normal;
+            mesh_->GetPointData(point.Index(), &normal);
+            outputMesh_ << "vn " << normal[0] << " " << normal[1] << " "
+                        << normal[2] << std::endl;
+            pointLink[2] = vIndex;
+        }
+
         pointLinks_.insert({point.Index(), pointLink});
 
         ++vIndex;
@@ -192,7 +195,7 @@ int OBJWriter::write_texture_coordinates_()
         << std::endl;  // Use the material named 'default' in the MTL file
 
     // Iterate over all of the saved coordinates in our coordinate map
-    double vtIndex = 1;
+    int vtIndex = 1;
     for (size_t pId = 0; pId < textCoords_.size(); ++pId) {
         cv::Vec2d uv = textCoords_.get(pId);
         outputMesh_ << "vt " << uv[0] << " " << uv[1] << std::endl;
@@ -234,15 +237,29 @@ int OBJWriter::write_faces_()
              point != cell.Value()->PointIdsEnd(); ++point) {
             std::string vIndex, vtIndex, vnIndex;
 
-            cv::Vec3d pointLink = pointLinks_.find(*point)->second;
+            cv::Vec3i pointLink = pointLinks_.find(*point)->second;
 
             vIndex = std::to_string(pointLink[0]);
+            outputMesh_ << vIndex;
+
+            // Write the vtIndex
             if (pointLink[1] != UNSET_VALUE) {
                 vtIndex = std::to_string(pointLink[1]);
+                outputMesh_ << "/" << vtIndex;
             }
-            vnIndex = std::to_string(pointLink[2]);
 
-            outputMesh_ << vIndex << "/" << vtIndex << "/" << vnIndex << " ";
+            // Write the vnIndex
+            if (pointLink[2] != UNSET_VALUE) {
+                // Write a buffer slash if there wasn't a vtIndex
+                if (pointLink[1] == UNSET_VALUE) {
+                    outputMesh_ << "/";
+                }
+
+                vnIndex = std::to_string(pointLink[2]);
+                outputMesh_ << "/" << vnIndex;
+            }
+
+            outputMesh_ << " ";
         }
         outputMesh_ << std::endl;
     }
