@@ -91,13 +91,19 @@ int OBJWriter::writeMTL()
         return EXIT_FAILURE;
     }
 
+    // Setup material properties
+    // Ka - Ambient light color
+    // Kd - Diffuse light color
+    // Ks - Specular light color
+    // illum - Illumination mode
+    // d - Dissolve. 1.0 == opaque
     std::cerr << "Writing MTL..." << std::endl;
     outputMTL_ << "newmtl default" << std::endl;
-    outputMTL_ << "Ka 1.0 1.0 1.0" << std::endl;  // Ambient light color
-    outputMTL_ << "Kd 1.0 1.0 1.0" << std::endl;  // Diffuse light color
-    outputMTL_ << "Ks 0.0 0.0 0.0" << std::endl;  // Specular light color
-    outputMTL_ << "illum 2" << std::endl;         // Illumination mode
-    outputMTL_ << "d 1.0" << std::endl;           // Dissolve. 1.0 == opaque
+    outputMTL_ << "Ka 1.0 1.0 1.0" << std::endl;
+    outputMTL_ << "Kd 1.0 1.0 1.0" << std::endl;
+    outputMTL_ << "Ks 0.0 0.0 0.0" << std::endl;
+    outputMTL_ << "illum 2" << std::endl;
+    outputMTL_ << "d 1.0" << std::endl;
 
     // Path to the texture file, relative to the MTL file
     if (!texture_.empty()) {
@@ -105,7 +111,7 @@ int OBJWriter::writeMTL()
                    << std::endl;
     }
 
-    outputMTL_.close();  // Close the file stream
+    outputMTL_.close();
     return EXIT_SUCCESS;
 }
 
@@ -135,8 +141,9 @@ int OBJWriter::write_header_()
     return EXIT_SUCCESS;
 }
 
-// Write the vertex information: 'v x y z'
-//                               'vn nx ny nz'
+// Write the vertex information:
+// Vertex: 'v x y z'
+// Vertex normal: 'vn nx ny nz'
 int OBJWriter::write_vertices_()
 {
     if (!outputMesh_.is_open() || mesh_->GetNumberOfPoints() == 0) {
@@ -148,7 +155,7 @@ int OBJWriter::write_vertices_()
 
     // Iterate over all of the points
     auto point = mesh_->GetPoints()->Begin();
-    int vIndex = 1;
+    uint32_t vIndex = 1;
     while (point != mesh_->GetPoints()->End()) {
         // Make a new point link for this point
         cv::Vec3i pointLink(vIndex, UNSET_VALUE, UNSET_VALUE);
@@ -187,16 +194,16 @@ int OBJWriter::write_texture_coordinates_()
     auto startingOrigin = textCoords_.origin();
     textCoords_.origin(VC_ORIGIN_BOTTOM_LEFT);
 
+    // Write mtl path, relative to OBJ
+    auto mtlpath = outputPath_.stem();
+    mtlpath.replace_extension("mtl");
     outputMesh_ << "# Texture information" << std::endl;
-    outputMesh_ << "mtllib " << outputPath_.stem().string() << ".mtl"
-                << std::endl;  // The path of the MTL file, relative to the obj
-    outputMesh_
-        << "usemtl default"
-        << std::endl;  // Use the material named 'default' in the MTL file
+    outputMesh_ << "mtllib " << mtlpath.string() << std::endl;
+    outputMesh_ << "usemtl default" << std::endl;
 
     // Iterate over all of the saved coordinates in our coordinate map
-    int vtIndex = 1;
-    for (size_t pId = 0; pId < textCoords_.size(); ++pId) {
+    uint32_t vtIndex = 1;
+    for (uint32_t pId = 0; pId < textCoords_.size(); ++pId) {
         cv::Vec2d uv = textCoords_.get(pId);
         outputMesh_ << "vt " << uv[0] << " " << uv[1] << std::endl;
 
@@ -207,14 +214,12 @@ int OBJWriter::write_texture_coordinates_()
         ++vtIndex;
     }
 
-    textCoords_.origin(startingOrigin);  // Restore the starting origin
+    // Restore the starting origin
+    textCoords_.origin(startingOrigin);
     return EXIT_SUCCESS;
 }
 
 // Write the face information: 'f v/vt/vn'
-// Note: This method currently assumes that *every* point in the mesh has an
-// associated normal and texture map
-// This will definitely not always be the case and should be fixed. - SP
 int OBJWriter::write_faces_()
 {
     if (!outputMesh_.is_open() || mesh_->GetNumberOfCells() == 0) {
@@ -226,7 +231,6 @@ int OBJWriter::write_faces_()
 
     // Iterate over the faces of the mesh
     ITKPointInCellIterator point;
-
     for (auto cell = mesh_->GetCells()->Begin();
          cell != mesh_->GetCells()->End(); ++cell) {
         // Starts a new face line
