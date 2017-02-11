@@ -154,29 +154,29 @@ int OBJWriter::write_vertices_()
     outputMesh_ << "# Vertices: " << mesh_->GetNumberOfPoints() << std::endl;
 
     // Iterate over all of the points
-    auto point = mesh_->GetPoints()->Begin();
     uint32_t vIndex = 1;
-    while (point != mesh_->GetPoints()->End()) {
+    uint32_t vnIndex = 1;
+    for (auto pt = mesh_->GetPoints()->Begin(); pt != mesh_->GetPoints()->End();
+         pt++) {
         // Make a new point link for this point
         cv::Vec3i pointLink(vIndex, UNSET_VALUE, UNSET_VALUE);
 
         // Write the point position components
-        outputMesh_ << "v " << point.Value()[0] << " " << point.Value()[1]
-                    << " " << point.Value()[2] << std::endl;
+        outputMesh_ << "v " << pt.Value()[0] << " " << pt.Value()[1] << " "
+                    << pt.Value()[2] << std::endl;
 
         // Write the point normal information
         ITKPixel normal;
-        if (mesh_->GetPointData(point.Index(), &normal)) {
+        if (mesh_->GetPointData(pt.Index(), &normal)) {
             outputMesh_ << "vn " << normal[0] << " " << normal[1] << " "
                         << normal[2] << std::endl;
-            pointLink[2] = vIndex;
+            pointLink[2] = vnIndex++;
         }
 
         // Add this vertex to the point links
-        pointLinks_.insert({point.Index(), pointLink});
+        pointLinks_.insert({pt.Index(), pointLink});
 
         ++vIndex;
-        ++point;
     }
 
     return EXIT_SUCCESS;
@@ -239,17 +239,14 @@ int OBJWriter::write_faces_()
         // Iterate over the points of this face
         for (point = cell.Value()->PointIdsBegin();
              point != cell.Value()->PointIdsEnd(); ++point) {
-            std::string vIndex, vtIndex, vnIndex;
 
             cv::Vec3i pointLink = pointLinks_.find(*point)->second;
 
-            vIndex = std::to_string(pointLink[0]);
-            outputMesh_ << vIndex;
+            outputMesh_ << pointLink[0];
 
             // Write the vtIndex
             if (pointLink[1] != UNSET_VALUE) {
-                vtIndex = std::to_string(pointLink[1]);
-                outputMesh_ << "/" << vtIndex;
+                outputMesh_ << "/" << pointLink[1];
             }
 
             // Write the vnIndex
@@ -259,8 +256,7 @@ int OBJWriter::write_faces_()
                     outputMesh_ << "/";
                 }
 
-                vnIndex = std::to_string(pointLink[2]);
-                outputMesh_ << "/" << vnIndex;
+                outputMesh_ << "/" << pointLink[2];
             }
 
             outputMesh_ << " ";
