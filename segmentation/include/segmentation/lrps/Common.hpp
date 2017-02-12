@@ -17,13 +17,34 @@ using IndexIntensityPairVec = typename std::vector<IndexIntensityPair>;
 using Voxel = cv::Vec3d;
 using Pixel = cv::Vec2d;
 
-// Helpful for printing out vector. Only for debug.
+/**
+ * @brief Write std::pair to std::ostream.
+ *
+ * Pair is formatted as round-bracketed, comma-separated elements. e.g.
+ * "(T1, T2)"
+ *
+ * @ingroup lrps
+ *
+ * @param s Output stream
+ * @param p Input pair
+ */
 template <typename T1, typename T2>
 std::ostream& operator<<(std::ostream& s, std::pair<T1, T2> p)
 {
     return s << "(" << std::get<0>(p) << ", " << std::get<1>(p) << ")";
 }
 
+/**
+ * @brief Write std::vector to std::ostream.
+ *
+ * Vectors are formatted as square-bracketed, comma-separated elements.
+ * e.g. "[a, b, c, d]"
+ *
+ * @ingroup lrps
+ *
+ * @param s Output stream
+ * @param v Input vector
+ */
 template <typename T>
 std::ostream& operator<<(std::ostream& s, std::vector<T> v)
 {
@@ -43,6 +64,22 @@ namespace volcart
 namespace segmentation
 {
 
+/**
+ * @brief Combine two equal-sized vectors into a single vector of paired
+ * elements.
+ *
+ * Elements from v1 and v2 are combined into std::pair\<T1, T2\>.
+ *
+ * e.g. \n
+ * v1 = [a, b, c, d] \n
+ * v2 = [1, 2, 3, 4] \n
+ * res = [\<a, 1\>, \<b, 2\>, \<c, 3\>, \<d, 4\>]
+ *
+ * @ingroup lrps
+ *
+ * @param v1 First vector to be combined
+ * @param v2 Second vector to be combined
+ */
 template <typename T1, typename T2>
 std::vector<std::pair<T1, T2>> Zip(
     const std::vector<T1>& v1, const std::vector<T2>& v2)
@@ -56,6 +93,14 @@ std::vector<std::pair<T1, T2>> Zip(
     return res;
 }
 
+/**
+ * @brief Separate single vector of paired elements into two vectors
+ * of single elements.
+ *
+ * @ingroup lrps
+ *
+ * @param vs Input vector
+ */
 template <typename T, int Length>
 std::pair<std::vector<T>, std::vector<T>> Unzip(
     const std::vector<cv::Vec<T, Length>>& vs)
@@ -70,6 +115,15 @@ std::pair<std::vector<T>, std::vector<T>> Unzip(
     return std::make_pair(xs, ys);
 }
 
+/**
+ * @brief Normalize vector elements to within the range [newMin, newMax].
+ *
+ * @ingroup lrps
+ *
+ * @param v Vector to be normalized
+ * @param newMin Minimum value
+ * @param newMax Maximum value
+ */
 template <typename T>
 std::vector<double> NormalizeVector(
     const std::vector<T>& v, double newMin = 0, double newMax = 1)
@@ -103,6 +157,13 @@ std::vector<double> NormalizeVector(
     return vNorm;
 }
 
+/**
+ * @brief Normalize vector of cv::Vec using cv::norm
+ *
+ * @ingroup lrps
+ *
+ * @param vs Vector to be normalized
+ */
 template <typename T, int Len>
 std::vector<cv::Vec<double, Len>> NormalizeVector(
     const std::vector<cv::Vec<T, Len>> vs)
@@ -120,10 +181,29 @@ std::vector<cv::Vec<double, Len>> NormalizeVector(
 }
 
 // Some useful utility functions for doing math on std::vectors
+/** @name VectorMath*/
+//@{
+/**
+ * @brief Computes the difference of Squares on two vectors
+ *
+ * @ingroup lrps
+ *
+ * @param v1 First vector to square
+ * @param v2 Second vector to square
+ */
 std::vector<double> SquareDiff(
     const std::vector<Voxel>& v1, const std::vector<Voxel>& v2);
 
+/**
+ * @brief Sums the square differences between two vectors
+ *
+ * @ingroup lrps
+ *
+ * @param v1 First vector to square
+ * @param v2 Second vector to square
+ */
 double SumSquareDiff(
     const std::vector<double>& v1, const std::vector<double>& v2);
+//@}
 }
 }

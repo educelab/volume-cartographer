@@ -1,4 +1,5 @@
 #pragma once
+// From: https://en.wikipedia.org/wiki/Finite_difference_coefficient
 
 #include <array>
 #include <cassert>
@@ -8,13 +9,13 @@ namespace volcart
 {
 namespace segmentation
 {
-/*
- * A small derivative library that handles calculating derivatives up to second
- * order
- */
 
 // To be used later on when this is more parameterized
 // clang-format off
+/**
+ * Central difference coefficients for first derivatives
+ * @ingroup deriv
+ */
 static constexpr std::array<std::array<double, 9>, 4> D1_CENTRAL_DIFF_COEFFS = {
     0,     0,      0,    -1/2, 0, 1/2, 0,     0,     0,
     0,     0,      1/12, -2/3, 0, 2/3, -1/12, 0,     0,
@@ -22,6 +23,10 @@ static constexpr std::array<std::array<double, 9>, 4> D1_CENTRAL_DIFF_COEFFS = {
     1/280, -4/105, 1/5,  -4/5, 0, 4/5, -1/5,  4/105, -1/280
 };
 
+/**
+ * Central difference coefficients for second derivatives
+ * @ingroup deriv
+ */
 static constexpr std::array<std::array<double, 9>, 4> D2_CENTRAL_DIFF_COEFFS = {
     0,      0,     0,     1,   -2,      1,   0,     0,     0,
     0,      0,     -1/12, 4/3, -5/2,    4/3, -1/12, 0,     0,
@@ -30,6 +35,16 @@ static constexpr std::array<std::array<double, 9>, 4> D2_CENTRAL_DIFF_COEFFS = {
 };
 // clang-format on
 
+/**
+ * @brief Calculate the first derivative for a sampled point
+ *
+ * Derivative is calculated from vs[index] to vs[index + hstep]
+ *
+ * @ingroup deriv
+ * @param vs Input samples
+ * @param index Index of sampled point in vector
+ * @param hstep Forward offset step
+ */
 template <typename T>
 T D1Forward(const std::vector<T>& vs, int index, int hstep = 1)
 {
@@ -38,6 +53,16 @@ T D1Forward(const std::vector<T>& vs, int index, int hstep = 1)
     return (-vs[index] + vs[size_t(index) + hstep]) / double(hstep);
 }
 
+/**
+ * @brief Calculate the first derivative for a sampled point
+ *
+ * Derivative is calculated from vs[index - hstep] to vs[index]
+ *
+ * @ingroup deriv
+ * @param vs Input samples
+ * @param index Index of sampled point in vector
+ * @param hstep Backward offset step
+ */
 template <typename T>
 T D1Backward(const std::vector<T>& vs, int index, int hstep = 1)
 {
@@ -46,6 +71,16 @@ T D1Backward(const std::vector<T>& vs, int index, int hstep = 1)
     return (-vs[index - hstep] + vs[index]) / double(hstep);
 }
 
+/**
+ * @brief Calculate the first derivative for a sampled point
+ *
+ * Derivative is calculated from vs[index - hstep] to vs[index + hstep]
+ *
+ * @ingroup deriv
+ * @param vs Input samples
+ * @param index Index of sampled point in vector
+ * @param hstep Offset step
+ */
 template <typename T>
 T D1Central(const std::vector<T>& vs, int index, int hstep = 1)
 {
@@ -56,8 +91,18 @@ T D1Central(const std::vector<T>& vs, int index, int hstep = 1)
            double(hstep);
 }
 
-// from: https://en.wikipedia.org/wiki/Finite_difference_coefficient
 // TODO(skarlage): #187
+/**
+ * @brief Calculate the first derivative for a sampled point using a five-point
+ * stencil
+ *
+ * @see https://en.wikipedia.org/wiki/Five-point_stencil
+ *
+ * @ingroup deriv
+ * @param vs Input samples
+ * @param index Index of sampled point in vector
+ * @param hstep Offset step
+ */
 template <typename T>
 T D1FivePointStencil(const std::vector<T>& vs, int index, int hstep = 1)
 {
@@ -76,6 +121,17 @@ T D1FivePointStencil(const std::vector<T>& vs, int index, int hstep = 1)
     // clang-format on
 }
 
+/**
+ * @brief Calculate the first derivative for a sampled point
+ *
+ * Uses D1Forward(), D1Backward(), D1Central(), or D1FivePointStencil() based
+ * on hstep and the size of vs.
+ *
+ * @ingroup deriv
+ * @param vs Input samples
+ * @param index Index of sampled point in vector
+ * @param hstep Offset step
+ */
 template <typename T>
 T D1At(const std::vector<T>& vs, int index, int hstep = 1)
 {
@@ -91,6 +147,14 @@ T D1At(const std::vector<T>& vs, int index, int hstep = 1)
     }
 }
 
+/**
+ * @brief Calculate the first derivative for a vector of sampled points
+ * @ingroup deriv
+ *
+ * @param vs Input samples
+ * @param hstep Offset step
+ * @return Vector of the first derivatives
+ */
 template <typename T>
 std::vector<T> D1(const std::vector<T>& vs, int hstep = 1)
 {
@@ -102,6 +166,12 @@ std::vector<T> D1(const std::vector<T>& vs, int hstep = 1)
     return dvs;
 }
 
+/**
+ * @brief Calculate the second derivative for a sampled point
+ * @copydetails D1Forward()
+ *
+ * @ingroup deriv
+ */
 template <typename T>
 T D2Forward(const std::vector<T>& vs, int index, int hstep = 1)
 {
@@ -113,6 +183,12 @@ T D2Forward(const std::vector<T>& vs, int index, int hstep = 1)
            double(hstep * hstep);
 }
 
+/**
+ * @brief Calculate the second derivative for a sampled point
+ * @copydetails D1Backward()
+ *
+ * @ingroup deriv
+ */
 template <typename T>
 T D2Backward(const std::vector<T>& vs, int index, int hstep = 1)
 {
@@ -123,6 +199,12 @@ T D2Backward(const std::vector<T>& vs, int index, int hstep = 1)
            double(hstep * hstep);
 }
 
+/**
+ * @brief Calculate the second derivative for a sampled point
+ * @copydetails D1Central()
+ *
+ * @ingroup deriv
+ */
 template <typename T>
 T D2Central(const std::vector<T>& vs, int index, int hstep = 1)
 {
@@ -134,8 +216,14 @@ T D2Central(const std::vector<T>& vs, int index, int hstep = 1)
            double(hstep * hstep);
 }
 
-// from: https://en.wikipedia.org/wiki/Finite_difference_coefficient
 // TODO(skarlage): #187
+/**
+ * @brief Calculate the second derivative for a sampled point using a
+ * five-point stencil
+ * @copydetails D1FivePointStencil()
+ *
+ * @ingroup deriv
+ */
 template <typename T>
 T D2FivePointStencil(const std::vector<T>& vs, int index, int hstep = 1)
 {
@@ -148,13 +236,24 @@ T D2FivePointStencil(const std::vector<T>& vs, int index, int hstep = 1)
     return (
        (-1.0/12) * vs[index - 2 * hstep] +
          (4.0/3) * vs[index - hstep] +
-        (-5.0/2) * vs[index] + 
+        (-5.0/2) * vs[index] +
          (4.0/3) * vs[size_t(index) + hstep] +
        (-1.0/12) * vs[size_t(index) + 2 * hstep]) /
            double(hstep * hstep);
     // clang-format on
 }
 
+/**
+ * @brief Calculate the second derivative for a sampled point
+ *
+ * Uses D2Forward(), D2Backward(), D2Central(), or D2FivePointStencil() based
+ * on hstep and the size of vs.
+ *
+ * @ingroup deriv
+ * @param vs Input samples
+ * @param index Index of sampled point in vector
+ * @param hstep Offset step
+ */
 template <typename T>
 T D2At(const std::vector<T>& vs, int index, int hstep = 1)
 {
@@ -170,6 +269,11 @@ T D2At(const std::vector<T>& vs, int index, int hstep = 1)
     }
 }
 
+/**
+ * @brief Calculate the second derivative for a vector of sampled points
+ * @copydetails D1()
+ * @ingroup deriv
+ */
 template <typename T>
 std::vector<T> D2(const std::vector<T>& vs, int hstep = 1)
 {

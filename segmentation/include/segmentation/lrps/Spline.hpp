@@ -10,6 +10,12 @@ namespace volcart
 {
 namespace segmentation
 {
+/**
+ * @class Spline
+ * @brief Simple spline wrapper around Eigen::Spline
+ *
+ * @ingroup lrps
+ */
 template <typename Scalar = double, int Degree = 3>
 class Spline
 {
@@ -19,6 +25,12 @@ public:
 
     Spline() = default;
 
+    /**
+     * @brief Construct a spline by fitting to a set of points
+     *
+     * @param xs Vector of X values
+     * @param ys Vector of Y values
+     */
     Spline(const ScalarVector& xs, const ScalarVector& ys) : npoints_{xs.size()}
     {
         assert(xs.size() == ys.size() && "xs and ys must be same length");
@@ -26,7 +38,9 @@ public:
         spline_ = Eigen::SplineFitting<SplineType>::Interpolate(points, Degree);
     }
 
-    // Plain evaluation at t-space value t \in [0, 1]
+    /**
+     * @brief %Spline evaluation at t-space value t in [0, 1]
+     */
     Pixel operator()(Scalar t) const
     {
         assert(t >= 0 && t <= 1 && "t must be in range [0, 1]");
@@ -35,9 +49,14 @@ public:
     }
 
 private:
+    /** Number of points on the spline */
     size_t npoints_;
+
     SplineType spline_;
 
+    /**
+     * @brief Combine X and Y values into an npoints_ x 2 matrix
+     */
     Eigen::MatrixXd make_wide_matrix_(
         const ScalarVector& xs, const ScalarVector& ys)
     {
@@ -48,6 +67,11 @@ private:
     }
 };
 
+/**
+ * A spline of degree three
+ *
+ * @ingroup lrps
+ * */
 template <typename Scalar>
 using CubicSpline = Spline<Scalar, 3>;
 }

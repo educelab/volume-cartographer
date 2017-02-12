@@ -1,22 +1,62 @@
 #pragma once
-
 #include "segmentation/lrps/FittedCurve.hpp"
 
 namespace volcart
 {
 namespace segmentation
 {
+/**
+ * @class EnergyMetrics
+ * @brief A collection of energy metrics for evaluating a FittedCurve
+ *
+ * @ingroup lrps
+ */
 class EnergyMetrics
 {
 public:
-    // Calculates the active contour internal energy. See:
-    // https://en.wikipedia.org/wiki/Active_contour_model#Internal_energy
-    // Note: k1 and k2 are constant for all particles in the curve
+    /**
+     * @brief Calculate the active contour internal energy of a FittedCurve
+     *
+     * k1 and k2 are user-defined weights on the first and second derivatives
+     * of the curve.
+     *
+     * From Wikipedia: "These control the internal energy function's
+     * sensitivity to the amount of stretch in the snake and the amount of
+     * curvature in the snake, respectively, and thereby control the number of
+     * constraints on the shape of the snake. In practice, a large weight k1
+     * for the continuity term penalizes changes in distances between points
+     * in the contour. A large weight k2 for the smoothness term penalizes
+     * oscillations in the contour and will cause the contour to act as a
+     * thin plate."
+     *
+     * @see https://en.wikipedia.org/wiki/Active_contour_model#Internal_energy
+     *
+     * @param curve Input curve
+     * @param k1 Stretch weight factor
+     * @param k2 Curvature weight factor
+     *
+     */
     static double ActiveContourInternal(
         const FittedCurve& curve, double k1, double k2);
 
-    // Amalgamation of energy metrics used parameterized by their coefficients.
-    // To disable a metric, simply set its coefficient to zero
+    /**
+     * @brief Combinatorial energy metric for a FittedCurve
+     *
+     * Calculates a weighted sum of ActiveContourInternal(), AbsCurvatureSum(),
+     * and WindowedArcLength().
+     * \f[
+       E_t = \alpha ACI(k1, k2) + \beta ACS() + \delta WAL(3);
+     * \f]
+     * To disable a metric, simply set its coefficient to zero.
+     *
+     * @param curve Input curve
+     * @param alpha ActiveContourInternal() total weight factor
+     * @param k1 ActiveContourInternal() stretch weight factor
+     * @param k2 ActiveContourInternal() curvature weight factor
+     * @param beta AbsCurvatureSum() total weight factor
+     * @param delta WindowedArcLength() total weight factor
+     *
+     */
     static double TotalEnergy(
         const FittedCurve& curve,
         double alpha,
@@ -25,15 +65,28 @@ public:
         double beta,
         double delta);
 
-    // Sum of the absolute value of the curvature from curve
+    /**
+     * @brief Sum of the absolute value of local curvature at each point along
+     * the curve
+     * @param curve Input curve
+     */
     static double AbsCurvatureSum(const FittedCurve& curve);
 
-    // Determine arc length across a window of size 'windowSize' centered at
-    // 'index'
+    /**
+     * @brief Calculate the arc length of the curve within a window centered
+     * at a point along the curve
+     * @param curve Input curve
+     * @param index Center point of calculation window
+     * @param windowSize Size of calculation window
+     */
     static double LocalWindowedArcLength(
         const FittedCurve& curve, int index, int windowSize);
 
-    // Apply LocalWindowedArcLength across the entire curve
+    /**
+     * @brief Average LocalWindowedArcLength() across the entire curve
+     * @param curve Input curve
+     * @param windowSize Size of calculation window
+     */
     static double WindowedArcLength(const FittedCurve& curve, int windowSize);
 };
 }

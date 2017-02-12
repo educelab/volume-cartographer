@@ -1,14 +1,5 @@
 #include "segmentation/stps/StructureTensorParticleSim.hpp"
 
-// structureTensorParticleSim uses "particles" to trace out the surfaces in a
-// volume.
-// A Particle Chain maintains their ordering and is responsible for updating
-// their
-// positions. This update moves particles according to the estimated normal
-// vector
-// and according to a "spring force" that helps to keep them ordered. The spring
-// force also encourages stagnated particles to move through the volume.
-
 namespace volcart
 {
 namespace segmentation

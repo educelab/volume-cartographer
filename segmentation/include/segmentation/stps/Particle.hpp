@@ -1,25 +1,27 @@
-// What am I?
 #pragma once
 
 #include <opencv2/core.hpp>
 
-class Particle
+/**
+ * @class Particle
+ * @brief Extends cv::Vec3d with some other things for STPS
+ *
+ * @warning Why would you use this class? Don't use this class.
+ *
+ * @ingroup stps
+ */
+class Particle : public cv::Vec3d
 {
 public:
-    explicit Particle(cv::Vec3d position)
-        : position_{position}, isStopped_{false}
-    {
-    }
+    /** @brief Constructor with Stop status initialization */
+    explicit Particle(cv::Vec3d p) : cv::Vec3d(p), isStopped_(false) {}
 
-    cv::Vec3d position() const { return position_; }
+    /** @brief Return Stop status of particle */
     bool isStopped() const { return isStopped_; }
+
+    /** @brief Set Stop status on particle */
     void stop() { isStopped_ = true; }
 
-    void operator+=(const cv::Vec3d& v) { position_ += v; }
-    double operator()(int index) const { return position_(index); }
-    cv::Vec3d operator-(const Particle& p) { return position_ - p.position(); }
-
 private:
-    cv::Vec3d position_;
     bool isStopped_;
 };
