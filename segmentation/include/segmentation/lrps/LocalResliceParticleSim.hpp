@@ -32,11 +32,11 @@ namespace segmentation
 class LocalResliceSegmentation
 {
 public:
-    //** @name Constructors */
-    //@{
+    /** @name Constructors */
+    /**@{*/
     /** @brief Construct with VolumePkg */
     explicit LocalResliceSegmentation(VolumePkg& pkg) : pkg_{pkg} {}
-    //@}
+    /**@}*/
 
     /**
      * @brief Run LRPS with the provided path

@@ -29,8 +29,8 @@ private:
     CubicSpline<double> spline_;
 
 public:
-    //** @name Constructors */
-    //@{
+    /** @name Constructors */
+    /**@{*/
     FittedCurve() : npoints_(0), zIndex_(0), ts_(), points_(), spline_() {}
 
     /**
@@ -42,7 +42,7 @@ public:
      * @param zIndex Current location in curve
      */
     FittedCurve(const std::vector<Voxel>& vs, int zIndex);
-    //@}
+    /**@}*/
 
     /** @brief Return the current number of resampled points in the spline */
     size_t size() const { return npoints_; }

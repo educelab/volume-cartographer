@@ -24,8 +24,8 @@ namespace segmentation
 class IntensityMap
 {
 public:
-    //** @name Constructors */
-    //@{
+    /** @name Constructors */
+    /**@{*/
     /**
      * @param stepSize Row offset (from center) for generating intensity values
      * @param peakDistanceWeight Distance weight factor for maxima sorting
@@ -36,7 +36,7 @@ public:
         int stepSize,
         int peakDistanceWeight,
         bool shouldIncludeMiddle);
-    //@}
+    /**@}*/
 
     /**
      * @brief Generate a rastered intensity map for debug

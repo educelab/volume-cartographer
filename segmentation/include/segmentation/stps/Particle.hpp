@@ -13,7 +13,7 @@
 class Particle : public cv::Vec3d
 {
 public:
-    /**@brief Constructor with Stop status initialization */
+    /** @brief Constructor with Stop status initialization */
     explicit Particle(cv::Vec3d p) : cv::Vec3d(p), isStopped_(false) {}
 
     /** @brief Return Stop status of particle */

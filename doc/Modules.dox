@@ -26,6 +26,13 @@
 */
 
 /**
+@defgroup deriv Derivative Library
+@brief A small derivative library that handles calculating derivatives up to
+the second order.
+@ingroup lrps
+*/
+
+/**
 @defgroup stps Structure Tensor Particle Simulation 
 @brief Structure Tensor %Particle Simulation (STPS) segmentation
 @ingroup Segmentation

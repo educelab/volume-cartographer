@@ -1,8 +1,3 @@
-/** @file Derivative.hpp
- *  @brief A small derivative library that handles calculating derivatives up to
- * second order
- *  @ingroup lrps
- */
 #pragma once
 
 #include <array>
@@ -18,6 +13,7 @@ namespace segmentation
 // clang-format off
 /**
  * Array of common first derivative coefficients
+ * @ingroup deriv
  */
 static constexpr std::array<std::array<double, 9>, 4> D1_CENTRAL_DIFF_COEFFS = {
     0,     0,      0,    -1/2, 0, 1/2, 0,     0,     0,
@@ -28,6 +24,7 @@ static constexpr std::array<std::array<double, 9>, 4> D1_CENTRAL_DIFF_COEFFS = {
 
 /**
  * Array of common second derivative coefficients
+ * @ingroup deriv
  */
 static constexpr std::array<std::array<double, 9>, 4> D2_CENTRAL_DIFF_COEFFS = {
     0,      0,     0,     1,   -2,      1,   0,     0,     0,
@@ -38,9 +35,9 @@ static constexpr std::array<std::array<double, 9>, 4> D2_CENTRAL_DIFF_COEFFS = {
 // clang-format on
 
 /**
- * @fn T d1Forward(const std::vector<T>&vs, int32_t index, int32_t hstep=1)
  * @brief Returns the value of the next position after the index in the first
  * derivative array
+ * @ingroup deriv
  * @param vs Vector you want to move forward in
  * @param index Starting point in the vector
  * @param hstep How many elements you want to move by each time you move
@@ -54,9 +51,9 @@ T D1Forward(const std::vector<T>& vs, int index, int hstep = 1)
 }
 
 /**
- * @fn T d1Backward(const std::vector<T>& vs, int32_t index, int32_t hstep=1)
  * @brief Returns the value in the position behind the index in the first
  * derivative array
+ * @ingroup deriv
  * @param hstep How many elements you want to move by each time you move
  * @param index Starting point in the vector
  * @param vs Vector you want to move in
@@ -70,8 +67,8 @@ T D1Backward(const std::vector<T>& vs, int index, int hstep = 1)
 }
 
 /**
- * @fn T d1Central(const std::vector<T>&vs, int32_t index, int32_t hstep=1)
  * @brief Returns the position in between index and hstep
+ * @ingroup deriv
  * @param vs The vector that you want a value from
  * @param hstep How many elements to move each time you move in the vector
  * @param index Starting point in the vector
@@ -89,9 +86,8 @@ T D1Central(const std::vector<T>& vs, int index, int hstep = 1)
 // from: https://en.wikipedia.org/wiki/Finite_difference_coefficient
 // TODO(skarlage): #187
 /**
- * @fn T d1FivePointStencil(const std::vector<T>& vs, int32_t index, int32_t
- * hstep = 1)
  * @brief Moves to the center of 5 points
+ * @ingroup deriv
  * @param vs Vector of possible coefficients
  * @param index Starting point in the vector
  * @param hstep Number of elements to move by each time you move
@@ -117,7 +113,7 @@ T D1FivePointStencil(const std::vector<T>& vs, int index, int hstep = 1)
 }
 
 /**
- * @fn T d1At(const std::vector<T>&vs, int32_t index, int32_t hstep = 1)
+ * @ingroup deriv
  * @param vs Vector you wish to traverse
  * @param index Starting Point
  * @param hstep Number of elements to move by
@@ -139,8 +135,8 @@ T D1At(const std::vector<T>& vs, int index, int hstep = 1)
 }
 
 /**
- * @fn std::vector<T> d1(const std::vector<T>& vs, int32_t hstep =1)
  * @brief Calculates the first derivative cofficents
+ * @ingroup deriv
  * @param vs Vector of derivative coffiecents
  * @param hstep Number of elements you want to move by
  * @return Vector of the first derivative coefficients
@@ -157,9 +153,9 @@ std::vector<T> D1(const std::vector<T>& vs, int hstep = 1)
 }
 
 /**
- * @fn T d2Forward(const std::vector<T>&vs, int32_t index, int32_t hstep=1)
  * @brief Returns the value of the next position after the index in the second
  * derivative array
+ * @ingroup deriv
  * @param vs Vector you want to move forward in
  * @param index Starting point in the vector
  * @param hstep How many elements you want to move by each time you move
@@ -176,9 +172,9 @@ T D2Forward(const std::vector<T>& vs, int index, int hstep = 1)
 }
 
 /**
- * @fn T d2Backward(const std::vector<T>&vs, int32_t index, int32_t hstep=1)
  * @brief Returns the value in the position behind the index in the second
  * derivative array
+ * @ingroup deriv
  * @param hstep How many elements you want to move by each time you move
  * @param index Starting point in the vector
  * @param vs Vector you want to move in

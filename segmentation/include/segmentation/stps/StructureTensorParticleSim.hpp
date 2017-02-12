@@ -1,7 +1,3 @@
-/**
- * @file StructureTensorParticleSim.hpp
- * @brief Structure Tensor %Particle Simulation (STPS) segmentation
- */
 #pragma once
 
 #include <iostream>
@@ -15,12 +11,6 @@ namespace volcart
 namespace segmentation
 {
 /**
- * @fn volcart::OrderedPointSet<cv::Vec3d> StructureTensorParticleSim(
-    std::vector<cv::Vec3d> segPath,
-    const VolumePkg& volpkg,
-    double gravityScale,
-    int threshold,
-    int endOffset);
  * @brief Structure Tensor %Particle Simulation (STPS) segmentation
  *
  * This algorithm propagates a chain of particles forward through a volume from
