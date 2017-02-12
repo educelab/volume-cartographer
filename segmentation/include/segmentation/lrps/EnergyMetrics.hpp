@@ -7,11 +7,7 @@ namespace segmentation
 {
 /**
  * @class EnergyMetrics
- *
- * @brief Calculate energy to see how particles move
- *
- * Use various algorithms and formulas to calculate how particles
- * move through the volume
+ * @brief A collection of energy metrics for evaluating a FittedCurve
  *
  * @ingroup lrps
  */
@@ -19,38 +15,46 @@ class EnergyMetrics
 {
 public:
     /**
-     * @brief Calculates the active contour internal energy
+     * @brief Calculate the active contour internal energy of a FittedCurve
      *
-     * Calculates the internal energy of fitted curved based on the
-     * first and second derivatives of that curve squared. The result
-     * for the first curve is then multiplied by k1 and the result
-     * for the second curive is multiplied by k2
-     * Note: k1 and k2 are constant for all particles in the curve.
+     * k1 and k2 are user-defined weights on the first and second derivatives
+     * of the curve.
      *
-     * @param curve Curve whose Internal Energy you wish to calculate
-     * @param k1 Modifier for the first derivative
-     * @param k2 Modifier for the second derivative
+     * From Wikipedia: "These control the internal energy function's
+     * sensitivity to the amount of stretch in the snake and the amount of
+     * curvature in the snake, respectively, and thereby control the number of
+     * constraints on the shape of the snake. In practice, a large weight k1
+     * for the continuity term penalizes changes in distances between points
+     * in the contour. A large weight k2 for the smoothness term penalizes
+     * oscillations in the contour and will cause the contour to act as a
+     * thin plate."
      *
      * @see https://en.wikipedia.org/wiki/Active_contour_model#Internal_energy
+     *
+     * @param curve Input curve
+     * @param k1 Stretch weight factor
+     * @param k2 Curvature weight factor
+     *
      */
     static double ActiveContourInternal(
         const FittedCurve& curve, double k1, double k2);
 
     /**
-     * @brief Amalgamation of energy metrics used, parameterized by their
-     * coefficients
+     * @brief Combinatorial energy metric for a FittedCurve
      *
-     * Uses the internal energy, the arc length and the sum of the curvature to
-     * calculate the total amount of energy in the system so that when
-     * segmenting the rules of energy can be followed.
-     * Note: To disable a metric, simply set its coefficient to zero
+     * Calculates a weighted sum of ActiveContourInternal(), AbsCurvatureSum(),
+     * and WindowedArcLength().
+     * \f[
+       E_t = \alpha ACI(k1, k2) + \beta ACS() + \delta WAL(3);
+     * \f]
+     * To disable a metric, simply set its coefficient to zero.
      *
-     * @param curve Curve whose total energy you wish to calculate
-     * @param alpha Used as a multiplier
-     * @param k1 Used to find internal energy
-     * @param k2 Used to find internal energy
-     * @param beta Used as a multiplier
-     * @param delta Used as a multiplier
+     * @param curve Input curve
+     * @param alpha ActiveContourInternal() total weight factor
+     * @param k1 ActiveContourInternal() stretch weight factor
+     * @param k2 ActiveContourInternal() curvature weight factor
+     * @param beta AbsCurvatureSum() total weight factor
+     * @param delta WindowedArcLength() total weight factor
      *
      */
     static double TotalEnergy(
@@ -62,25 +66,26 @@ public:
         double delta);
 
     /**
-     * @brief Sum of the absolute value of the curvature from curve
-     * @param curve Curve who's curvature sum you wish to find
+     * @brief Sum of the absolute value of local curvature at each point along
+     * the curve
+     * @param curve Input curve
      */
     static double AbsCurvatureSum(const FittedCurve& curve);
 
     /**
-     * @brief arc length across a window of size 'windowSize' centered at
-     * 'index'
-     * @param curve Curve who's arc length you wish to find
-     * @param index Center of arc length
-     * @param windowSize Size of window where curve will be displayed
+     * @brief Calculate the arc length of the curve within a window centered
+     * at a point along the curve
+     * @param curve Input curve
+     * @param index Center point of calculation window
+     * @param windowSize Size of calculation window
      */
     static double LocalWindowedArcLength(
         const FittedCurve& curve, int index, int windowSize);
 
     /**
-     * @brief Apply LocalWindowedArcLength across the entire curve
-     * @param windowSize Size of window where curve will be displayed
-     * @param curve Curve you wish to display
+     * @brief Average LocalWindowedArcLength() across the entire curve
+     * @param curve Input curve
+     * @param windowSize Size of calculation window
      */
     static double WindowedArcLength(const FittedCurve& curve, int windowSize);
 };

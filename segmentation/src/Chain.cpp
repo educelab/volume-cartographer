@@ -1,9 +1,7 @@
-/** @file Chain.cpp*/
 #include <cmath>
 
 #include "segmentation/stps/Chain.hpp"
 
-// (doc) Why the parameters that we're giving it?
 Chain::Chain(
     std::vector<cv::Vec3d> segPath,
     const VolumePkg& volpkg,

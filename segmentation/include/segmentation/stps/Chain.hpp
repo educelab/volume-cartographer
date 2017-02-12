@@ -100,7 +100,7 @@ private:
     double gravityScale_;
 
     /** @name Chain metadata */
-    //@{
+    /**@{*/
     /** Number of particles in the chain */
     size_t chainLength_;
     /** Number of sampled iterations */
@@ -112,5 +112,5 @@ private:
     /** Distance threshold at which to sample the chain (from previous sampled
      * position) */
     int threshold_;  // To-Do: What is this for now? We may not need this.
-    //@}
+    /**@}*/
 };
