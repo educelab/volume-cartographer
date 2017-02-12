@@ -173,7 +173,6 @@ int OBJWriter::write_vertices_()
 }
 
 // Write the UV coordinates that will be attached to points: 'vt u v'
-// To-Do: #179
 int OBJWriter::write_texture_coordinates_()
 {
     if (!outputMesh_.is_open() || textCoords_.empty()) {

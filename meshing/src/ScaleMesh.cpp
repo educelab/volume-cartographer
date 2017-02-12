@@ -5,6 +5,7 @@
 /**@file ScaleMesh.cpp  */
 
 #include "meshing/ScaleMesh.hpp"
+#include "meshing/DeepCopy.hpp"
 
 namespace volcart
 {
@@ -16,28 +17,16 @@ void ScaleMesh(
     const ITKMesh::Pointer& output,
     double scaleFactor)
 {
-    // Scale uniformly
-    using VC3DScaleType = itk::ScaleTransform<double, 3>;
-    auto scaleTransform = VC3DScaleType::New();
-    itk::FixedArray<double, 3> scale;
-    scale[0] = scaleFactor;
-    scale[1] = scale[0];  // uniform scaling
-    scale[2] = scale[0];
-    scaleTransform->SetScale(scale);
+    // Copies the input mesh onto the output mesh
+    DeepCopy(input, output);
 
-    // To-Do: #186
-
-    // Apply the scale
-    std::cerr << "volcart::meshing::Scaling the mesh..." << std::endl;
-    using VCScaleMeshFilter =
-        itk::TransformMeshFilter<ITKMesh, ITKMesh, VC3DScaleType>;
-    auto scaleFilter = VCScaleMeshFilter::New();
-    scaleFilter->SetTransform(scaleTransform);
-    scaleFilter->SetInput(input);
-
-    // This method is deprecated. Need to find a better solution. - SP, 10/2015
-    scaleFilter->SetOutput(output);
-    scaleFilter->Update();
+    // Multiplies each component of each vertex by the scale factor
+    for (auto v = output->GetPoints()->Begin(); v != output->GetPoints()->End();
+         ++v) {
+        v->Value()[0] *= scaleFactor;
+        v->Value()[1] *= scaleFactor;
+        v->Value()[2] *= scaleFactor;
+    }
 };
 }
 }
