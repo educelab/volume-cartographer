@@ -37,7 +37,7 @@ public:
         const FittedCurve& curve, double k1, double k2);
 
     /**
-     * @brief Amalgamation of energy metrics used parameterized by their
+     * @brief Amalgamation of energy metrics used, parameterized by their
      * coefficients
      *
      * Uses the internal energy, the arc length and the sum of the curvature to

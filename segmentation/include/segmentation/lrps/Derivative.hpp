@@ -1,4 +1,5 @@
 #pragma once
+// From: https://en.wikipedia.org/wiki/Finite_difference_coefficient
 
 #include <array>
 #include <cassert>
@@ -12,7 +13,7 @@ namespace segmentation
 // To be used later on when this is more parameterized
 // clang-format off
 /**
- * Array of common first derivative coefficients
+ * Central difference coefficients for first derivatives
  * @ingroup deriv
  */
 static constexpr std::array<std::array<double, 9>, 4> D1_CENTRAL_DIFF_COEFFS = {
@@ -23,7 +24,7 @@ static constexpr std::array<std::array<double, 9>, 4> D1_CENTRAL_DIFF_COEFFS = {
 };
 
 /**
- * Array of common second derivative coefficients
+ * Central difference coefficients for second derivatives
  * @ingroup deriv
  */
 static constexpr std::array<std::array<double, 9>, 4> D2_CENTRAL_DIFF_COEFFS = {
@@ -35,12 +36,14 @@ static constexpr std::array<std::array<double, 9>, 4> D2_CENTRAL_DIFF_COEFFS = {
 // clang-format on
 
 /**
- * @brief Returns the value of the next position after the index in the first
- * derivative array
+ * @brief Calculate the first derivative for a sampled point
+ *
+ * Derivative is calculated from vs[index] to vs[index + hstep]
+ *
  * @ingroup deriv
- * @param vs Vector you want to move forward in
- * @param index Starting point in the vector
- * @param hstep How many elements you want to move by each time you move
+ * @param vs Input samples
+ * @param index Index of sampled point in vector
+ * @param hstep Forward offset step
  */
 template <typename T>
 T D1Forward(const std::vector<T>& vs, int index, int hstep = 1)
@@ -51,12 +54,14 @@ T D1Forward(const std::vector<T>& vs, int index, int hstep = 1)
 }
 
 /**
- * @brief Returns the value in the position behind the index in the first
- * derivative array
+ * @brief Calculate the first derivative for a sampled point
+ *
+ * Derivative is calculated from vs[index - hstep] to vs[index]
+ *
  * @ingroup deriv
- * @param hstep How many elements you want to move by each time you move
- * @param index Starting point in the vector
- * @param vs Vector you want to move in
+ * @param vs Input samples
+ * @param index Index of sampled point in vector
+ * @param hstep Backward offset step
  */
 template <typename T>
 T D1Backward(const std::vector<T>& vs, int index, int hstep = 1)
@@ -67,11 +72,14 @@ T D1Backward(const std::vector<T>& vs, int index, int hstep = 1)
 }
 
 /**
- * @brief Returns the position in between index and hstep
+ * @brief Calculate the first derivative for a sampled point
+ *
+ * Derivative is calculated from vs[index - hstep] to vs[index + hstep]
+ *
  * @ingroup deriv
- * @param vs The vector that you want a value from
- * @param hstep How many elements to move each time you move in the vector
- * @param index Starting point in the vector
+ * @param vs Input samples
+ * @param index Index of sampled point in vector
+ * @param hstep Offset step
  */
 template <typename T>
 T D1Central(const std::vector<T>& vs, int index, int hstep = 1)
@@ -83,16 +91,17 @@ T D1Central(const std::vector<T>& vs, int index, int hstep = 1)
            double(hstep);
 }
 
-// from: https://en.wikipedia.org/wiki/Finite_difference_coefficient
 // TODO(skarlage): #187
 /**
- * @brief Moves to the center of 5 points
+ * @brief Calculate the first derivative for a sampled point using a five-point
+ * stencil
+ *
+ * @see https://en.wikipedia.org/wiki/Five-point_stencil
+ *
  * @ingroup deriv
- * @param vs Vector of possible coefficients
- * @param index Starting point in the vector
- * @param hstep Number of elements to move by each time you move
- * @see https://en.wikipedia.org/wiki/Finite_difference_coefficient
- * @return Current element
+ * @param vs Input samples
+ * @param index Index of sampled point in vector
+ * @param hstep Offset step
  */
 template <typename T>
 T D1FivePointStencil(const std::vector<T>& vs, int index, int hstep = 1)
@@ -113,11 +122,15 @@ T D1FivePointStencil(const std::vector<T>& vs, int index, int hstep = 1)
 }
 
 /**
+ * @brief Calculate the first derivative for a sampled point
+ *
+ * Uses D1Forward(), D1Backward(), D1Central(), or D1FivePointStencil() based
+ * on hstep and the size of vs.
+ *
  * @ingroup deriv
- * @param vs Vector you wish to traverse
- * @param index Starting Point
- * @param hstep Number of elements to move by
- * @return The current location in the array
+ * @param vs Input samples
+ * @param index Index of sampled point in vector
+ * @param hstep Offset step
  */
 template <typename T>
 T D1At(const std::vector<T>& vs, int index, int hstep = 1)
@@ -135,11 +148,12 @@ T D1At(const std::vector<T>& vs, int index, int hstep = 1)
 }
 
 /**
- * @brief Calculates the first derivative cofficents
+ * @brief Calculate the first derivative for a vector of sampled points
  * @ingroup deriv
- * @param vs Vector of derivative coffiecents
- * @param hstep Number of elements you want to move by
- * @return Vector of the first derivative coefficients
+ *
+ * @param vs Input samples
+ * @param hstep Offset step
+ * @return Vector of the first derivatives
  */
 template <typename T>
 std::vector<T> D1(const std::vector<T>& vs, int hstep = 1)
@@ -153,12 +167,10 @@ std::vector<T> D1(const std::vector<T>& vs, int hstep = 1)
 }
 
 /**
- * @brief Returns the value of the next position after the index in the second
- * derivative array
+ * @brief Calculate the second derivative for a sampled point
+ * @copydetails D1Forward()
+ *
  * @ingroup deriv
- * @param vs Vector you want to move forward in
- * @param index Starting point in the vector
- * @param hstep How many elements you want to move by each time you move
  */
 template <typename T>
 T D2Forward(const std::vector<T>& vs, int index, int hstep = 1)
@@ -172,12 +184,10 @@ T D2Forward(const std::vector<T>& vs, int index, int hstep = 1)
 }
 
 /**
- * @brief Returns the value in the position behind the index in the second
- * derivative array
+ * @brief Calculate the second derivative for a sampled point
+ * @copydetails D1Backward()
+ *
  * @ingroup deriv
- * @param hstep How many elements you want to move by each time you move
- * @param index Starting point in the vector
- * @param vs Vector you want to move in
  */
 template <typename T>
 T D2Backward(const std::vector<T>& vs, int index, int hstep = 1)
@@ -190,7 +200,10 @@ T D2Backward(const std::vector<T>& vs, int index, int hstep = 1)
 }
 
 /**
- * @copydoc d1Central()
+ * @brief Calculate the second derivative for a sampled point
+ * @copydetails D1Central()
+ *
+ * @ingroup deriv
  */
 template <typename T>
 T D2Central(const std::vector<T>& vs, int index, int hstep = 1)
@@ -203,10 +216,14 @@ T D2Central(const std::vector<T>& vs, int index, int hstep = 1)
            double(hstep * hstep);
 }
 
-// from: https://en.wikipedia.org/wiki/Finite_difference_coefficient
 // TODO(skarlage): #187
-
-/** @copydoc d1FivePointStencil() */
+/**
+ * @brief Calculate the second derivative for a sampled point using a
+ * five-point stencil
+ * @copydetails D1FivePointStencil()
+ *
+ * @ingroup deriv
+ */
 template <typename T>
 T D2FivePointStencil(const std::vector<T>& vs, int index, int hstep = 1)
 {
@@ -226,7 +243,17 @@ T D2FivePointStencil(const std::vector<T>& vs, int index, int hstep = 1)
     // clang-format on
 }
 
-/** @copydoc d1At() */
+/**
+ * @brief Calculate the second derivative for a sampled point
+ *
+ * Uses D2Forward(), D2Backward(), D2Central(), or D2FivePointStencil() based
+ * on hstep and the size of vs.
+ *
+ * @ingroup deriv
+ * @param vs Input samples
+ * @param index Index of sampled point in vector
+ * @param hstep Offset step
+ */
 template <typename T>
 T D2At(const std::vector<T>& vs, int index, int hstep = 1)
 {
@@ -242,7 +269,11 @@ T D2At(const std::vector<T>& vs, int index, int hstep = 1)
     }
 }
 
-/** @copydoc d1() */
+/**
+ * @brief Calculate the second derivative for a vector of sampled points
+ * @copydetails D1()
+ * @ingroup deriv
+ */
 template <typename T>
 std::vector<T> D2(const std::vector<T>& vs, int hstep = 1)
 {
