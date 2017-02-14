@@ -4,8 +4,8 @@
 
 #include <BulletSoftBody/btDefaultSoftBodySolver.h>
 
-#include "meshing/DeepCopy.hpp"
-#include "meshing/ITK2Bullet.hpp"
+#include "vc/meshing/DeepCopy.hpp"
+#include "vc/meshing/ITK2Bullet.hpp"
 #include "texturing/ClothModelingUVMapping.hpp"
 
 //// Callbacks ////

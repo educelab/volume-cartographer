@@ -1,6 +1,6 @@
 /** @file ITK2Bullet.cpp */
 
-#include "meshing/ITK2Bullet.hpp"
+#include "vc/meshing/ITK2Bullet.hpp"
 
 namespace volcart
 {

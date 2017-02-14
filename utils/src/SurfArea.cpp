@@ -11,7 +11,7 @@
 #include "vc/core/io/PLYReader.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/vc_defines.hpp"
-#include "meshing/ITK2VTK.hpp"
+#include "vc/meshing/ITK2VTK.hpp"
 
 namespace fs = boost::filesystem;
 

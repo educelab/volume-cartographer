@@ -12,9 +12,9 @@
 
 #include "vc/core/io/PLYWriter.hpp"
 #include "vc/core/vc_defines.hpp"
-#include "meshing/DeepCopy.hpp"
-#include "meshing/ITK2VTK.hpp"
-#include "meshing/ScaleMesh.hpp"
+#include "vc/meshing/DeepCopy.hpp"
+#include "vc/meshing/ITK2VTK.hpp"
+#include "vc/meshing/ScaleMesh.hpp"
 
 using namespace volcart;
 

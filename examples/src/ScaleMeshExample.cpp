@@ -17,7 +17,7 @@
 #include "vc/core/shapes/Plane.hpp"
 #include "vc/core/shapes/Sphere.hpp"
 #include "vc/core/vc_defines.hpp"
-#include "meshing/ScaleMesh.hpp"
+#include "vc/meshing/ScaleMesh.hpp"
 
 int main()
 {

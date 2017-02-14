@@ -11,7 +11,7 @@
 #include "vc/core/shapes/Plane.hpp"
 #include "vc/core/shapes/Sphere.hpp"
 #include "vc/core/vc_defines.hpp"
-#include "meshing/SmoothNormals.hpp"
+#include "vc/meshing/SmoothNormals.hpp"
 #include "testing/ParsingHelpers.hpp"
 #include "testing/TestingUtils.hpp"
 

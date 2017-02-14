@@ -5,7 +5,7 @@
 #include <opencv2/core.hpp>
 
 #include "vc/core/vc_defines.hpp"
-#include "meshing/DeepCopy.hpp"
+#include "vc/meshing/DeepCopy.hpp"
 
 namespace volcart
 {

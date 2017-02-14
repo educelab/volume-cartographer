@@ -6,7 +6,7 @@
 #include <vtkDoubleArray.h>
 #include <vtkPointData.h>
 
-#include "meshing/ITK2VTK.hpp"
+#include "vc/meshing/ITK2VTK.hpp"
 
 namespace volcart
 {

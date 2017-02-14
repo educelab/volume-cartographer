@@ -4,8 +4,8 @@
 
 /**@file ScaleMesh.cpp  */
 
-#include "meshing/ScaleMesh.hpp"
-#include "meshing/DeepCopy.hpp"
+#include "vc/meshing/ScaleMesh.hpp"
+#include "vc/meshing/DeepCopy.hpp"
 
 namespace volcart
 {

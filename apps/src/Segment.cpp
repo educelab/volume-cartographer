@@ -3,7 +3,7 @@
 #include <boost/program_options.hpp>
 
 #include "vc/core/types/VolumePkg.hpp"
-#include "meshing/OrderedPointSetMesher.hpp"
+#include "vc/meshing/OrderedPointSetMesher.hpp"
 #include "segmentation/lrps/LocalResliceParticleSim.hpp"
 #include "segmentation/stps/StructureTensorParticleSim.hpp"
 

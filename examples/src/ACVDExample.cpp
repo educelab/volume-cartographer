@@ -5,8 +5,8 @@
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/io/PLYReader.hpp"
 #include "vc/core/vc_defines.hpp"
-#include "meshing/ACVD.hpp"
-#include "meshing/ITK2VTK.hpp"
+#include "vc/meshing/ACVD.hpp"
+#include "vc/meshing/ITK2VTK.hpp"
 
 int main(int /*argc*/, char* argv[])
 {

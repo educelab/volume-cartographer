@@ -13,7 +13,7 @@
 #include "vc/core/shapes/Plane.hpp"
 #include "vc/core/shapes/Sphere.hpp"
 #include "vc/core/vc_defines.hpp"
-#include "meshing/ITK2VTK.hpp"
+#include "vc/meshing/ITK2VTK.hpp"
 #include "testing/ParsingHelpers.hpp"
 #include "testing/TestingUtils.hpp"
 

@@ -16,9 +16,9 @@
 #include "vc/core/util/MeshMath.hpp"
 #include "vc/core/vc_defines.hpp"
 #include "vc/external/GetMemorySize.hpp"
-#include "meshing/ACVD.hpp"
-#include "meshing/ITK2VTK.hpp"
-#include "meshing/SmoothNormals.hpp"
+#include "vc/meshing/ACVD.hpp"
+#include "vc/meshing/ITK2VTK.hpp"
+#include "vc/meshing/SmoothNormals.hpp"
 #include "texturing/AngleBasedFlattening.hpp"
 #include "texturing/CompositeTextureV2.hpp"
 

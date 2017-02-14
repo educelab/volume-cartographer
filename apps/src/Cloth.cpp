@@ -11,7 +11,7 @@
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/vc_defines.hpp"
-#include "meshing/ITK2VTK.hpp"
+#include "vc/meshing/ITK2VTK.hpp"
 #include "texturing/ClothModelingUVMapping.hpp"
 #include "texturing/CompositeTextureV2.hpp"
 

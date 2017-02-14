@@ -11,8 +11,8 @@
 #include "vc/core/shapes/Plane.hpp"
 #include "vc/core/shapes/Sphere.hpp"
 #include "vc/core/vc_defines.hpp"
-#include "meshing/CalculateNormals.hpp"
-#include "meshing/QuadricEdgeCollapseDecimation.hpp"
+#include "vc/meshing/CalculateNormals.hpp"
+#include "vc/meshing/QuadricEdgeCollapseDecimation.hpp"
 
 int main()
 {

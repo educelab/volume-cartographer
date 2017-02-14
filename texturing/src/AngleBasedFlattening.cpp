@@ -5,7 +5,7 @@
 #include <cmath>
 
 #include "vc/external/eigen_capi.h"
-#include "meshing/DeepCopy.hpp"
+#include "vc/meshing/DeepCopy.hpp"
 #include "texturing/AngleBasedFlattening.hpp"
 
 using namespace volcart;

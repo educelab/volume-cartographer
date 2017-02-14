@@ -15,7 +15,7 @@
 #include "vc/core/shapes/Plane.hpp"
 #include "vc/core/shapes/Sphere.hpp"
 #include "vc/core/vc_defines.hpp"
-#include "meshing/RayTrace.hpp"
+#include "vc/meshing/RayTrace.hpp"
 
 int main()
 {

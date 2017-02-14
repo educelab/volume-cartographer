@@ -1,5 +1,5 @@
 /** @file CalculateNormals.cpp */
-#include "meshing/CalculateNormals.hpp"
+#include "vc/meshing/CalculateNormals.hpp"
 
 using namespace volcart::meshing;
 
