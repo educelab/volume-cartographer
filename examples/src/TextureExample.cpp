@@ -8,8 +8,8 @@
 #include "vc/core/types/Texture.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/vc_defines.hpp"
-#include "texturing/CompositeTextureV2.hpp"
-#include "texturing/SimpleUV.hpp"
+#include "vc/texturing/CompositeTextureV2.hpp"
+#include "vc/texturing/SimpleUV.hpp"
 
 int main(int /*argc*/, char* argv[])
 {

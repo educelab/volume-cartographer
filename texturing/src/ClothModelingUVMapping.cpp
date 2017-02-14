@@ -6,7 +6,7 @@
 
 #include "vc/meshing/DeepCopy.hpp"
 #include "vc/meshing/ITK2Bullet.hpp"
-#include "texturing/ClothModelingUVMapping.hpp"
+#include "vc/texturing/ClothModelingUVMapping.hpp"
 
 //// Callbacks ////
 /* Note: Callbacks won't compile if they're not wrapped in the namespace.

@@ -14,7 +14,7 @@
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/shapes/Arch.hpp"
 #include "vc/core/shapes/Plane.hpp"
-#include "texturing/AngleBasedFlattening.hpp"
+#include "vc/texturing/AngleBasedFlattening.hpp"
 
 int main()
 {

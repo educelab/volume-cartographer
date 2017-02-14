@@ -7,7 +7,7 @@
 #include <opencv2/imgproc.hpp>
 
 #include "vc/meshing/DeepCopy.hpp"
-#include "texturing/LeastSquaresConformalMapping.hpp"
+#include "vc/texturing/LeastSquaresConformalMapping.hpp"
 
 using namespace volcart;
 using namespace volcart::texturing;

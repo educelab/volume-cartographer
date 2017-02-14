@@ -6,7 +6,7 @@
 #include "vc/core/types/UVMap.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/vc_defines.hpp"
-#include "texturing/TexturingUtils.hpp"
+#include "vc/texturing/TexturingUtils.hpp"
 
 namespace volcart
 {

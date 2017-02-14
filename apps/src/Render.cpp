@@ -19,8 +19,8 @@
 #include "vc/meshing/ACVD.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
 #include "vc/meshing/SmoothNormals.hpp"
-#include "texturing/AngleBasedFlattening.hpp"
-#include "texturing/CompositeTextureV2.hpp"
+#include "vc/texturing/AngleBasedFlattening.hpp"
+#include "vc/texturing/CompositeTextureV2.hpp"
 
 using namespace volcart;
 namespace fs = boost::filesystem;

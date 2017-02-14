@@ -8,8 +8,8 @@
 #include "vc/core/types/UVMap.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/vc_defines.hpp"
-#include "texturing/SimpleUV.hpp"
-#include "texturing/TexturingUtils.hpp"
+#include "vc/texturing/SimpleUV.hpp"
+#include "vc/texturing/TexturingUtils.hpp"
 
 namespace volcart
 {

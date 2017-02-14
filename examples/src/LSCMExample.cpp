@@ -13,7 +13,7 @@
 #include "vc/core/shapes/Plane.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/vc_defines.hpp"
-#include "texturing/LeastSquaresConformalMapping.hpp"
+#include "vc/texturing/LeastSquaresConformalMapping.hpp"
 
 int main()
 {

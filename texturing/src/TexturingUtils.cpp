@@ -4,7 +4,7 @@
 
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/vc_defines.hpp"
-#include "texturing/TexturingUtils.hpp"
+#include "vc/texturing/TexturingUtils.hpp"
 
 bool IsLocalMaximum(
     const cv::Vec3d& nPoint, VolumePkg& volpkg, double nSampleInterval)

@@ -12,8 +12,8 @@
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/vc_defines.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
-#include "texturing/ClothModelingUVMapping.hpp"
-#include "texturing/CompositeTextureV2.hpp"
+#include "vc/texturing/ClothModelingUVMapping.hpp"
+#include "vc/texturing/CompositeTextureV2.hpp"
 
 using namespace volcart;
 namespace po = boost::program_options;

@@ -19,8 +19,8 @@
 #include "vc/core/vc_defines.hpp"
 #include "vc/meshing/ACVD.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
-#include "texturing/AngleBasedFlattening.hpp"
-#include "texturing/CompositeTextureV2.hpp"
+#include "vc/texturing/AngleBasedFlattening.hpp"
+#include "vc/texturing/CompositeTextureV2.hpp"
 
 namespace fs = boost::filesystem;
 

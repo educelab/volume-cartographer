@@ -10,7 +10,7 @@
 #include "vc/core/vc_defines.hpp"
 #include "vc/testing/ParsingHelpers.hpp"
 #include "vc/testing/TestingUtils.hpp"
-#include "texturing/LeastSquaresConformalMapping.hpp"
+#include "vc/texturing/LeastSquaresConformalMapping.hpp"
 
 /***************************************************************************************
  *                                                                                     *

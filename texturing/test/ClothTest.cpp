@@ -9,7 +9,7 @@
 #include "vc/core/vc_defines.hpp"
 #include "vc/testing/ParsingHelpers.hpp"
 #include "vc/testing/TestingUtils.hpp"
-#include "texturing/ClothModelingUVMapping.hpp"
+#include "vc/texturing/ClothModelingUVMapping.hpp"
 
 using namespace volcart;
 
