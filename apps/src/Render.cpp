@@ -15,7 +15,7 @@
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/MeshMath.hpp"
 #include "vc/core/vc_defines.hpp"
-#include "external/GetMemorySize.hpp"
+#include "vc/external/GetMemorySize.hpp"
 #include "meshing/ACVD.hpp"
 #include "meshing/ITK2VTK.hpp"
 #include "meshing/SmoothNormals.hpp"

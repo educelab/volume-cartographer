@@ -11,7 +11,7 @@
 #include "Volume.hpp"
 #include "VolumePkgVersion.hpp"
 #include "vc/core/vc_defines.hpp"
-#include "external/json.hpp"
+#include "vc/external/json.hpp"
 
 /**
  * @class VolumePkg

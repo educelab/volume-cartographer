@@ -25,6 +25,6 @@
  */
 #pragma once
 
-#include "external/eigenvalues.h"
-#include "external/linear_solver.h"
-#include "external/svd.h"
+#include "vc/external/eigenvalues.h"
+#include "vc/external/linear_solver.h"
+#include "vc/external/svd.h"

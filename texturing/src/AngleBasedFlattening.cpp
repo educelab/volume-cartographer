@@ -4,7 +4,7 @@
 
 #include <cmath>
 
-#include "external/eigen_capi.h"
+#include "vc/external/eigen_capi.h"
 #include "meshing/DeepCopy.hpp"
 #include "texturing/AngleBasedFlattening.hpp"
 

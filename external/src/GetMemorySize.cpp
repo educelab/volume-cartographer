@@ -5,7 +5,7 @@
  *          http://creativecommons.org/licenses/by/3.0/deed.en_US
  */
 
-#include "external/GetMemorySize.hpp"
+#include "vc/external/GetMemorySize.hpp"
 
 #if defined(_WIN32)
 #include <Windows.h>
