@@ -14,8 +14,8 @@
 #include "vc/core/shapes/Sphere.hpp"
 #include "vc/core/vc_defines.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
-#include "testing/ParsingHelpers.hpp"
-#include "testing/TestingUtils.hpp"
+#include "vc/testing/ParsingHelpers.hpp"
+#include "vc/testing/TestingUtils.hpp"
 
 using namespace volcart;
 

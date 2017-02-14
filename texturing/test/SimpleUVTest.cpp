@@ -9,7 +9,7 @@
 #include "vc/core/shapes/Arch.hpp"
 #include "vc/core/shapes/Plane.hpp"
 #include "vc/core/vc_defines.hpp"
-#include "testing/TestingUtils.hpp"
+#include "vc/testing/TestingUtils.hpp"
 #include "texturing/SimpleUV.hpp"
 
 using namespace volcart;

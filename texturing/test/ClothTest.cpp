@@ -7,8 +7,8 @@
 #include <boost/test/unit_test.hpp>
 #include "vc/core/shapes/Arch.hpp"
 #include "vc/core/vc_defines.hpp"
-#include "testing/ParsingHelpers.hpp"
-#include "testing/TestingUtils.hpp"
+#include "vc/testing/ParsingHelpers.hpp"
+#include "vc/testing/TestingUtils.hpp"
 #include "texturing/ClothModelingUVMapping.hpp"
 
 using namespace volcart;

@@ -9,7 +9,7 @@
 #include "vc/core/shapes/Plane.hpp"
 #include "vc/core/vc_defines.hpp"
 #include "vc/meshing/CalculateNormals.hpp"
-#include "testing/TestingUtils.hpp"
+#include "vc/testing/TestingUtils.hpp"
 
 struct PlaneFixture {
     PlaneFixture() { _in_Mesh = _Plane.itkMesh(); }

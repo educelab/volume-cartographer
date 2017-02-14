@@ -7,8 +7,8 @@
 #include <boost/test/unit_test.hpp>
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/shapes/Plane.hpp"
-#include "testing/ParsingHelpers.hpp"
-#include "testing/TestingUtils.hpp"
+#include "vc/testing/ParsingHelpers.hpp"
+#include "vc/testing/TestingUtils.hpp"
 
 using namespace volcart;
 
