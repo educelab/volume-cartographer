@@ -3,7 +3,7 @@
 #include <iostream>
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
-#include "segmentation/lrps/EnergyMetrics.hpp"
+#include "vc/segmentation/lrps/EnergyMetrics.hpp"
 
 using namespace volcart::segmentation;
 

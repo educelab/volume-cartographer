@@ -2,8 +2,8 @@
 
 #include <cassert>
 #include <vector>
-#include "segmentation/lrps/Common.hpp"
-#include "segmentation/lrps/Spline.hpp"
+#include "vc/segmentation/lrps/Common.hpp"
+#include "vc/segmentation/lrps/Spline.hpp"
 
 namespace volcart
 {

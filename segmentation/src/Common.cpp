@@ -1,4 +1,4 @@
-#include "segmentation/lrps/Common.hpp"
+#include "vc/segmentation/lrps/Common.hpp"
 
 std::vector<double> volcart::segmentation::SquareDiff(
     const std::vector<Voxel>& v1, const std::vector<Voxel>& v2)

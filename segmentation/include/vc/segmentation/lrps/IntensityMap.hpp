@@ -6,7 +6,7 @@
 
 #include <opencv2/core.hpp>
 
-#include "segmentation/lrps/Common.hpp"
+#include "vc/segmentation/lrps/Common.hpp"
 
 namespace volcart
 {

@@ -7,7 +7,7 @@
 #include <boost/test/unit_test_log.hpp>
 
 #include "vc/core/types/VolumePkg.hpp"
-#include "segmentation/lrps/LocalResliceParticleSim.hpp"
+#include "vc/segmentation/lrps/LocalResliceParticleSim.hpp"
 
 using namespace volcart::segmentation;
 namespace tt = boost::test_tools;

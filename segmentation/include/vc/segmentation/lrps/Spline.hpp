@@ -4,7 +4,7 @@
 #include <unsupported/Eigen/Splines>
 #include <vector>
 
-#include "segmentation/lrps/Common.hpp"
+#include "vc/segmentation/lrps/Common.hpp"
 
 namespace volcart
 {

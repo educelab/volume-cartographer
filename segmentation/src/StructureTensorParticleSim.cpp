@@ -1,4 +1,4 @@
-#include "segmentation/stps/StructureTensorParticleSim.hpp"
+#include "vc/segmentation/stps/StructureTensorParticleSim.hpp"
 
 namespace volcart
 {

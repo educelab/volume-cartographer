@@ -1,5 +1,5 @@
 #pragma once
-#include "segmentation/lrps/FittedCurve.hpp"
+#include "vc/segmentation/lrps/FittedCurve.hpp"
 
 namespace volcart
 {

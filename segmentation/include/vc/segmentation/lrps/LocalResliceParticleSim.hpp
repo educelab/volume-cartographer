@@ -4,8 +4,8 @@
 
 #include "vc/core/types/OrderedPointSet.hpp"
 #include "vc/core/types/VolumePkg.hpp"
-#include "segmentation/lrps/Common.hpp"
-#include "segmentation/lrps/FittedCurve.hpp"
+#include "vc/segmentation/lrps/Common.hpp"
+#include "vc/segmentation/lrps/FittedCurve.hpp"
 
 namespace volcart
 {

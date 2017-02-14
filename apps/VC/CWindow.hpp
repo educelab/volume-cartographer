@@ -13,7 +13,7 @@
 #include "VCNewGuiHeader.hpp"
 #include "ui_VCMain.h"
 
-#include "segmentation/lrps/LocalResliceParticleSim.hpp"
+#include "vc/segmentation/lrps/LocalResliceParticleSim.hpp"
 
 // Volpkg version required by this app
 static constexpr int VOLPKG_SUPPORTED_VERSION = 3;  // Version #3

@@ -3,8 +3,8 @@
 #include <iostream>
 
 #include "vc/core/types/VolumePkg.hpp"
-#include "segmentation/stps/Chain.hpp"
-#include "segmentation/stps/Particle.hpp"
+#include "vc/segmentation/stps/Chain.hpp"
+#include "vc/segmentation/stps/Particle.hpp"
 
 namespace volcart
 {
