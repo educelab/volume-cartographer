@@ -10,8 +10,8 @@
 #include <boost/program_options.hpp>
 
 #include "apps/SliceImage.hpp"
-#include "core/types/VolumePkg.hpp"
-#include "core/vc_defines.hpp"
+#include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/vc_defines.hpp"
 
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;

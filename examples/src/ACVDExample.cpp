@@ -2,9 +2,9 @@
 // Created by Seth Parker on 9/24/15.
 //
 
-#include "core/io/OBJWriter.hpp"
-#include "core/io/PLYReader.hpp"
-#include "core/vc_defines.hpp"
+#include "vc/core/io/OBJWriter.hpp"
+#include "vc/core/io/PLYReader.hpp"
+#include "vc/core/vc_defines.hpp"
 #include "meshing/ACVD.hpp"
 #include "meshing/ITK2VTK.hpp"
 

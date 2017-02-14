@@ -13,9 +13,9 @@
 #include <vtkPolyDataReader.h>
 #include <vtkSmartPointer.h>
 
-#include "core/types/OrderedPointSet.hpp"
-#include "core/types/PointSet.hpp"
-#include "core/vc_defines.hpp"
+#include "vc/core/types/OrderedPointSet.hpp"
+#include "vc/core/types/PointSet.hpp"
+#include "vc/core/vc_defines.hpp"
 
 namespace volcart
 {

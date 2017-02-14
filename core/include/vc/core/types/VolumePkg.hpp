@@ -6,11 +6,11 @@
 #include <boost/filesystem.hpp>
 #include <opencv2/core.hpp>
 
-#include "core/types/OrderedPointSet.hpp"
-#include "core/types/Texture.hpp"
-#include "core/types/Volume.hpp"
-#include "core/types/VolumePkgVersion.hpp"
-#include "core/vc_defines.hpp"
+#include "OrderedPointSet.hpp"
+#include "Texture.hpp"
+#include "Volume.hpp"
+#include "VolumePkgVersion.hpp"
+#include "vc/core/vc_defines.hpp"
 #include "external/json.hpp"
 
 /**

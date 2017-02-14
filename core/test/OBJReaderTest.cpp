@@ -5,8 +5,8 @@
 #include <boost/test/unit_test.hpp>
 #include <opencv2/core.hpp>
 
-#include "core/io/OBJReader.hpp"
-#include "core/types/Exceptions.hpp"
+#include "vc/core/io/OBJReader.hpp"
+#include "vc/core/types/Exceptions.hpp"
 
 using namespace volcart;
 

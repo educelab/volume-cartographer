@@ -5,12 +5,12 @@
 #define BOOST_TEST_MODULE SmoothNormals
 
 #include <boost/test/unit_test.hpp>
-#include "core/shapes/Arch.hpp"
-#include "core/shapes/Cone.hpp"
-#include "core/shapes/Cube.hpp"
-#include "core/shapes/Plane.hpp"
-#include "core/shapes/Sphere.hpp"
-#include "core/vc_defines.hpp"
+#include "vc/core/shapes/Arch.hpp"
+#include "vc/core/shapes/Cone.hpp"
+#include "vc/core/shapes/Cube.hpp"
+#include "vc/core/shapes/Plane.hpp"
+#include "vc/core/shapes/Sphere.hpp"
+#include "vc/core/vc_defines.hpp"
 #include "meshing/SmoothNormals.hpp"
 #include "testing/ParsingHelpers.hpp"
 #include "testing/TestingUtils.hpp"

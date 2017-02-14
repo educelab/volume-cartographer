@@ -7,8 +7,8 @@
 
 #include <opencv2/core.hpp>
 
-#include "core/types/VolumePkg.hpp"
-#include "core/vc_defines.hpp"
+#include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/vc_defines.hpp"
 
 //#define _DEBUG
 

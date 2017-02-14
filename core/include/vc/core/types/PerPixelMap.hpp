@@ -3,8 +3,8 @@
 #include <boost/filesystem.hpp>
 #include <opencv2/core.hpp>
 
-#include "core/types/OrderedPointSet.hpp"
-#include "core/types/UVMap.hpp"
+#include "OrderedPointSet.hpp"
+#include "UVMap.hpp"
 
 namespace volcart
 {

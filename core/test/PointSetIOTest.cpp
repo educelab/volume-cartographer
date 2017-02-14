@@ -7,8 +7,8 @@
 #include <boost/test/unit_test.hpp>
 #include <opencv2/core.hpp>
 
-#include "core/io/PointSetIO.hpp"
-#include "core/types/PointSet.hpp"
+#include "vc/core/io/PointSetIO.hpp"
+#include "vc/core/types/PointSet.hpp"
 
 constexpr auto TEST_HEADER_FILENAME = "test_header.txt";
 

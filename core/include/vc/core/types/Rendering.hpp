@@ -5,9 +5,9 @@
 
 #include <boost/filesystem/path.hpp>
 
-#include "core/types/Metadata.hpp"
-#include "core/types/Texture.hpp"
-#include "core/vc_defines.hpp"
+#include "Metadata.hpp"
+#include "Texture.hpp"
+#include "vc/core/vc_defines.hpp"
 
 namespace volcart
 {

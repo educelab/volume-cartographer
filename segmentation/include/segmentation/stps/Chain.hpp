@@ -7,7 +7,7 @@
 
 #include <opencv2/core.hpp>
 
-#include "core/types/VolumePkg.hpp"
+#include "vc/core/types/VolumePkg.hpp"
 #include "segmentation/stps/Particle.hpp"
 /**
  * @brief A chain of particles and their propagation histories

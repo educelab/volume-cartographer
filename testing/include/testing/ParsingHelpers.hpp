@@ -5,7 +5,7 @@
 
 #include <boost/filesystem/path.hpp>
 
-#include "core/vc_defines.hpp"
+#include "vc/core/vc_defines.hpp"
 
 /*
  * Purpose of File:

@@ -30,8 +30,8 @@
 #include <BulletSoftBody/btSoftRigidDynamicsWorld.h>
 #include <btBulletDynamicsCommon.h>
 
-#include "core/types/UVMap.hpp"
-#include "core/vc_defines.hpp"
+#include "vc/core/types/UVMap.hpp"
+#include "vc/core/vc_defines.hpp"
 
 namespace volcart
 {

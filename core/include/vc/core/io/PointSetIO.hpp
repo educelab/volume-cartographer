@@ -11,9 +11,9 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem/path.hpp>
 
-#include "core/types/Exceptions.hpp"
-#include "core/types/OrderedPointSet.hpp"
-#include "core/types/PointSet.hpp"
+#include "vc/core/types/Exceptions.hpp"
+#include "vc/core/types/OrderedPointSet.hpp"
+#include "vc/core/types/PointSet.hpp"
 
 namespace volcart
 {

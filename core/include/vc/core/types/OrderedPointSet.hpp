@@ -4,8 +4,8 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "core/types/Exceptions.hpp"
-#include "core/types/PointSet.hpp"
+#include "Exceptions.hpp"
+#include "PointSet.hpp"
 
 namespace volcart
 {

@@ -10,8 +10,8 @@
 #include <vtkPLYReader.h>
 #include <vtkSmartPointer.h>
 
-#include "core/io/PLYWriter.hpp"
-#include "core/vc_defines.hpp"
+#include "vc/core/io/PLYWriter.hpp"
+#include "vc/core/vc_defines.hpp"
 #include "meshing/DeepCopy.hpp"
 #include "meshing/ITK2VTK.hpp"
 #include "meshing/ScaleMesh.hpp"

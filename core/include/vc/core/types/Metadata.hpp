@@ -11,7 +11,7 @@
 
 #include <boost/filesystem.hpp>
 
-#include "core/vc_defines.hpp"
+#include "vc/core/vc_defines.hpp"
 #include "external/json.hpp"
 
 namespace volcart

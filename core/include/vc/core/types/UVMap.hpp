@@ -15,7 +15,7 @@
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include "core/vc_defines.hpp"
+#include "vc/core/vc_defines.hpp"
 
 constexpr static int VC_UVMAP_MIN_DEBUG_WIDTH = 500;
 

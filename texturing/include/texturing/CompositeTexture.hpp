@@ -4,10 +4,10 @@
 // Created by Seth Parker on 10/20/15.
 #pragma once
 
-#include "core/types/Texture.hpp"
-#include "core/types/UVMap.hpp"
-#include "core/types/VolumePkg.hpp"
-#include "core/vc_defines.hpp"
+#include "vc/core/types/Texture.hpp"
+#include "vc/core/types/UVMap.hpp"
+#include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/vc_defines.hpp"
 #include "texturing/SimpleUV.hpp"
 #include "texturing/TexturingUtils.hpp"
 

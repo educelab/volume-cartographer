@@ -1,7 +1,7 @@
 //
 // Created by Seth Parker on 6/9/16.
 //
-#include "core/types/Rendering.hpp"
+#include "vc/core/types/Rendering.hpp"
 
 using namespace volcart;
 

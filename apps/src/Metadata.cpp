@@ -6,8 +6,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
-#include "core/types/VolumePkg.hpp"
-#include "core/types/VolumePkgVersion.hpp"
+#include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/types/VolumePkgVersion.hpp"
 
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;

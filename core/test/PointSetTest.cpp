@@ -3,7 +3,7 @@
 #include <boost/test/unit_test.hpp>
 #include <opencv2/core.hpp>
 
-#include "core/types/PointSet.hpp"
+#include "vc/core/types/PointSet.hpp"
 
 using namespace volcart;
 

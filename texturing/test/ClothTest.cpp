@@ -5,8 +5,8 @@
 #define BOOST_TEST_MODULE ClothModelingUVMapping
 
 #include <boost/test/unit_test.hpp>
-#include "core/shapes/Arch.hpp"
-#include "core/vc_defines.hpp"
+#include "vc/core/shapes/Arch.hpp"
+#include "vc/core/vc_defines.hpp"
 #include "testing/ParsingHelpers.hpp"
 #include "testing/TestingUtils.hpp"
 #include "texturing/ClothModelingUVMapping.hpp"

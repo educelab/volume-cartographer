@@ -5,8 +5,8 @@
 
 #include <cmath>
 
-#include "core/shapes/ShapePrimitive.hpp"
-#include "core/vc_defines.hpp"
+#include "ShapePrimitive.hpp"
+#include "vc/core/vc_defines.hpp"
 
 namespace volcart
 {

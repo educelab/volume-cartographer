@@ -2,7 +2,7 @@
 // Created by Seth Parker on 11/11/16.
 //
 
-#include "core/io/OBJReader.hpp"
+#include "vc/core/io/OBJReader.hpp"
 
 #include <regex>
 #include <string>
@@ -10,7 +10,7 @@
 #include <boost/algorithm/string.hpp>
 #include <opencv2/imgcodecs.hpp>
 
-#include "core/types/Exceptions.hpp"
+#include "vc/core/types/Exceptions.hpp"
 
 using namespace volcart;
 using namespace volcart::io;

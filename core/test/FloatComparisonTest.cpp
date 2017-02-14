@@ -6,7 +6,7 @@
 
 #include <iostream>
 #include <boost/test/unit_test.hpp>
-#include "core/util/FloatComparison.hpp"
+#include "vc/core/util/FloatComparison.hpp"
 
 using namespace volcart;
 

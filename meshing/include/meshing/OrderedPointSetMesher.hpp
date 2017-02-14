@@ -2,8 +2,8 @@
 
 #include <opencv2/core.hpp>
 
-#include "core/types/OrderedPointSet.hpp"
-#include "core/vc_defines.hpp"
+#include "vc/core/types/OrderedPointSet.hpp"
+#include "vc/core/vc_defines.hpp"
 
 namespace volcart
 {

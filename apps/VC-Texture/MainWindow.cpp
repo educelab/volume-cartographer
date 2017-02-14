@@ -13,7 +13,7 @@
 #include <opencv2/imgcodecs.hpp>
 
 #include "MainWindow.hpp"
-#include "core/io/OBJWriter.hpp"
+#include "vc/core/io/OBJWriter.hpp"
 
 // Volpkg version required byt this app
 static constexpr int VOLPKG_SUPPORTED_VERSION = 3;

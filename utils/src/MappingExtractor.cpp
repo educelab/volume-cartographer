@@ -5,11 +5,11 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include "core/io/OBJWriter.hpp"
-#include "core/types/PerPixelMap.hpp"
-#include "core/types/Texture.hpp"
-#include "core/types/VolumePkg.hpp"
-#include "core/vc_defines.hpp"
+#include "vc/core/io/OBJWriter.hpp"
+#include "vc/core/types/PerPixelMap.hpp"
+#include "vc/core/types/Texture.hpp"
+#include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/vc_defines.hpp"
 
 using namespace volcart;
 namespace fs = boost::filesystem;

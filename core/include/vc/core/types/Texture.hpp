@@ -7,9 +7,9 @@
 #include <boost/filesystem/path.hpp>
 #include <opencv2/core.hpp>
 
-#include "core/types/Metadata.hpp"
-#include "core/types/PerPixelMap.hpp"
-#include "core/types/UVMap.hpp"
+#include "Metadata.hpp"
+#include "PerPixelMap.hpp"
+#include "UVMap.hpp"
 
 namespace volcart
 {

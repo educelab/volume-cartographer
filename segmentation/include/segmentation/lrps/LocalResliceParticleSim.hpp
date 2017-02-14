@@ -2,8 +2,8 @@
 
 #include <iostream>
 
-#include "core/types/OrderedPointSet.hpp"
-#include "core/types/VolumePkg.hpp"
+#include "vc/core/types/OrderedPointSet.hpp"
+#include "vc/core/types/VolumePkg.hpp"
 #include "segmentation/lrps/Common.hpp"
 #include "segmentation/lrps/FittedCurve.hpp"
 

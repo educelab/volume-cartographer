@@ -10,13 +10,13 @@
 #include <vtkSmartPointer.h>
 #include <vtkSmoothPolyDataFilter.h>
 
-#include "core/io/OBJWriter.hpp"
-#include "core/io/PLYReader.hpp"
-#include "core/io/PLYWriter.hpp"
-#include "core/types/Rendering.hpp"
-#include "core/types/VolumePkg.hpp"
-#include "core/util/MeshMath.hpp"
-#include "core/vc_defines.hpp"
+#include "vc/core/io/OBJWriter.hpp"
+#include "vc/core/io/PLYReader.hpp"
+#include "vc/core/io/PLYWriter.hpp"
+#include "vc/core/types/Rendering.hpp"
+#include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/util/MeshMath.hpp"
+#include "vc/core/vc_defines.hpp"
 #include "meshing/ACVD.hpp"
 #include "meshing/ITK2VTK.hpp"
 #include "texturing/AngleBasedFlattening.hpp"

@@ -17,9 +17,9 @@
 #include <itkQuadEdgeMeshBoundaryEdgesMeshFunction.h>
 #include <opencv2/core.hpp>
 
-#include "core/types/HalfEdgeMesh.hpp"
-#include "core/types/UVMap.hpp"
-#include "core/vc_defines.hpp"
+#include "vc/core/types/HalfEdgeMesh.hpp"
+#include "vc/core/types/UVMap.hpp"
+#include "vc/core/vc_defines.hpp"
 
 /*
  * Switch to this when we validate that it does the same as the macro

@@ -6,9 +6,9 @@
 #include <boost/filesystem.hpp>
 #include <opencv2/core.hpp>
 
-#include "core/types/LRUCache.hpp"
-#include "core/types/Slice.hpp"
-#include "core/types/Tensor3D.hpp"
+#include "LRUCache.hpp"
+#include "Slice.hpp"
+#include "Tensor3D.hpp"
 
 using Voxel = cv::Vec3d;
 using EigenValue = double;

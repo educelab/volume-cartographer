@@ -6,11 +6,11 @@
 #include <vtkPLYReader.h>
 #include <vtkSmartPointer.h>
 
-#include "core/io/OBJWriter.hpp"
-#include "core/io/PLYReader.hpp"
-#include "core/io/PLYWriter.hpp"
-#include "core/types/VolumePkg.hpp"
-#include "core/vc_defines.hpp"
+#include "vc/core/io/OBJWriter.hpp"
+#include "vc/core/io/PLYReader.hpp"
+#include "vc/core/io/PLYWriter.hpp"
+#include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/vc_defines.hpp"
 #include "meshing/ITK2VTK.hpp"
 #include "texturing/CompositeTextureV2.hpp"
 #include "texturing/SimpleUV.hpp"

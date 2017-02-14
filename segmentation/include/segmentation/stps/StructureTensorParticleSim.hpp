@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#include "core/types/VolumePkg.hpp"
+#include "vc/core/types/VolumePkg.hpp"
 #include "segmentation/stps/Chain.hpp"
 #include "segmentation/stps/Particle.hpp"
 

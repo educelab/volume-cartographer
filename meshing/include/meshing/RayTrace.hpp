@@ -9,7 +9,7 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "core/vc_defines.hpp"
+#include "vc/core/vc_defines.hpp"
 
 namespace volcart
 {
