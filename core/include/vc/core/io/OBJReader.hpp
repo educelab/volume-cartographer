@@ -34,7 +34,7 @@ class OBJReader
 {
 public:
     /** @brief Set the OBJ file path */
-    void setPath(boost::filesystem::path p) { path_ = p; }
+    void setPath(const boost::filesystem::path& p) { path_ = p; }
 
     /** @brief Read the mesh from file */
     ITKMesh::Pointer read();

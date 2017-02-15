@@ -177,7 +177,7 @@ void OBJReader::parse_mtllib_(const std::vector<std::string>& strs)
     }
 
     // Find the map_kd line
-    std::regex map_kd{"^map_Kd"};
+    std::regex mapKd{"^map_Kd"};
 
     // Parse the file
     std::string line;
@@ -190,7 +190,7 @@ void OBJReader::parse_mtllib_(const std::vector<std::string>& strs)
             [](std::string& t) { boost::trim(t); });
 
         // Handle map_Kd
-        if (std::regex_match(mtlstrs[0], map_kd)) {
+        if (std::regex_match(mtlstrs[0], mapKd)) {
             texturePath_ = mtlstrs[1];
         }
         mtlstrs.clear();
@@ -262,22 +262,22 @@ void OBJReader::build_mesh_()
         }
 
         cell.TakeOwnership(new ITKTriangle);
-        auto id_in_cell = 0;
+        auto idInCell = 0;
         for (auto vinfo : face) {
             if (vinfo[0] - 1 < 0 ||
                 vinfo[0] - 1 >= static_cast<int>(vertices_.size())) {
                 throw IOException("Out-of-range vertex reference");
             }
-            auto vertex_id = vinfo[0] - 1;
+            auto vertexID = vinfo[0] - 1;
 
-            cell->SetPointId(id_in_cell++, vertex_id);
+            cell->SetPointId(idInCell++, vertexID);
 
             if (vinfo[1] != NOT_PRESENT) {
                 if (vinfo[1] - 1 < 0 ||
                     vinfo[1] - 1 >= static_cast<int>(uvs_.size())) {
                     throw IOException("Out-of-range UV reference");
                 }
-                uvMap_.set(vertex_id, uvs_[vinfo[1] - 1]);
+                uvMap_.set(vertexID, uvs_[vinfo[1] - 1]);
             }
 
             if (vinfo[2] != NOT_PRESENT) {
@@ -285,7 +285,7 @@ void OBJReader::build_mesh_()
                     vinfo[2] - 1 >= static_cast<int>(normals_.size())) {
                     throw IOException("Out-of-range normal reference");
                 }
-                mesh_->SetPointData(vertex_id, normals_[vinfo[2] - 1].val);
+                mesh_->SetPointData(vertexID, normals_[vinfo[2] - 1].val);
             }
         }
         mesh_->SetCell(cid++, cell);
