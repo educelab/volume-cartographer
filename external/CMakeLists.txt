@@ -34,7 +34,7 @@ install(
     INCLUDES DESTINATION "${include_install_dir}/${module}"
 )
 install(
-    DIRECTORY "include/${module}"
+    DIRECTORY "${include_install_dir}/${module}"
     DESTINATION "${include_install_dir}"
     FILES_MATCHING REGEX ".*\.(h|hpp)$"
 )
