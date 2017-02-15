@@ -22,7 +22,7 @@
  *  and the reason for such modification.
  */
 
-#include "external/linear_solver.h"
+#include "vc/external/linear_solver.h"
 
 #include <Eigen/Sparse>
 

@@ -8,10 +8,10 @@
 #include <vtkPolyData.h>
 #include <vtkSmoothPolyDataFilter.h>
 
-#include "core/io/PLYReader.hpp"
-#include "core/types/VolumePkg.hpp"
-#include "core/vc_defines.hpp"
-#include "meshing/ITK2VTK.hpp"
+#include "vc/core/io/PLYReader.hpp"
+#include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/vc_defines.hpp"
+#include "vc/meshing/ITK2VTK.hpp"
 
 namespace fs = boost::filesystem;
 

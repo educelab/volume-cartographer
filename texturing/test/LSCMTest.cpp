@@ -5,12 +5,12 @@
 #define BOOST_TEST_MODULE LeastSquaresConformalMapping
 
 #include <boost/test/unit_test.hpp>
-#include "core/shapes/Arch.hpp"
-#include "core/shapes/Plane.hpp"
-#include "core/vc_defines.hpp"
-#include "testing/ParsingHelpers.hpp"
-#include "testing/TestingUtils.hpp"
-#include "texturing/LeastSquaresConformalMapping.hpp"
+#include "vc/core/shapes/Arch.hpp"
+#include "vc/core/shapes/Plane.hpp"
+#include "vc/core/vc_defines.hpp"
+#include "vc/testing/ParsingHelpers.hpp"
+#include "vc/testing/TestingUtils.hpp"
+#include "vc/texturing/LeastSquaresConformalMapping.hpp"
 
 /***************************************************************************************
  *                                                                                     *

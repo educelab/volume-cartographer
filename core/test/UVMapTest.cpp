@@ -5,8 +5,8 @@
 #define BOOST_TEST_MODULE uvMap
 
 #include <boost/test/unit_test.hpp>
-#include "core/types/UVMap.hpp"
-#include "core/vc_defines.hpp"
+#include "vc/core/types/UVMap.hpp"
+#include "vc/core/vc_defines.hpp"
 
 using namespace volcart;
 

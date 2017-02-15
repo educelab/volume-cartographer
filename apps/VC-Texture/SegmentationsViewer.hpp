@@ -11,10 +11,10 @@
 
 #pragma once
 
-#include "core/io/PLYReader.hpp"
-#include "core/types/VolumePkg.hpp"
-#include "core/vc_defines.hpp"
-#include "texturing/CompositeTexture.hpp"
+#include "vc/core/io/PLYReader.hpp"
+#include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/vc_defines.hpp"
+#include "vc/texturing/CompositeTexture.hpp"
 
 #include "GlobalValues.hpp"
 #include "MyThread.hpp"

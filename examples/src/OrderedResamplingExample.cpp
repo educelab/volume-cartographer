@@ -4,11 +4,11 @@
 
 #include <iostream>
 
-#include "core/io/OBJWriter.hpp"
-#include "core/shapes/Arch.hpp"
-#include "core/shapes/Plane.hpp"
-#include "core/vc_defines.hpp"
-#include "meshing/OrderedResampling.hpp"
+#include "vc/core/io/OBJWriter.hpp"
+#include "vc/core/shapes/Arch.hpp"
+#include "vc/core/shapes/Plane.hpp"
+#include "vc/core/vc_defines.hpp"
+#include "vc/meshing/OrderedResampling.hpp"
 
 int main()
 {

@@ -19,8 +19,8 @@
 #include <vtkIsotropicDiscreteRemeshing.h>
 #include <vtkPolyDataNormals.h>
 
-#include "meshing/ACVD.hpp"
-#include "meshing/ITK2VTK.hpp"
+#include "vc/meshing/ACVD.hpp"
+#include "vc/meshing/ITK2VTK.hpp"
 
 namespace volcart
 {

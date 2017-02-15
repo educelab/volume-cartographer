@@ -32,7 +32,7 @@
 #include <Eigen/Core>
 #include <Eigen/Eigenvalues>
 
-#include "external/eigenvalues.h"
+#include "vc/external/eigenvalues.h"
 
 using Eigen::SelfAdjointEigenSolver;
 

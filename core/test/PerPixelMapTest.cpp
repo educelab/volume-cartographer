@@ -6,7 +6,7 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "core/types/PerPixelMap.hpp"
+#include "vc/core/types/PerPixelMap.hpp"
 
 using namespace volcart;
 

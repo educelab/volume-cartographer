@@ -7,9 +7,9 @@
 #include <boost/filesystem/path.hpp>
 #include <opencv2/core.hpp>
 
-#include "core/io/PointSetIO.hpp"
-#include "core/types/VolumePkg.hpp"
-#include "core/vc_defines.hpp"
+#include "vc/core/io/PointSetIO.hpp"
+#include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/vc_defines.hpp"
 
 namespace fs = boost::filesystem;
 

@@ -6,7 +6,7 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include "core/types/VolumePkg.hpp"
+#include "vc/core/types/VolumePkg.hpp"
 
 void draw(
     const volcart::Volume& v,

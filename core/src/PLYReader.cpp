@@ -1,12 +1,12 @@
 /**@file PLYReader.cpp */
 
-#include "core/io/PLYReader.hpp"
+#include "vc/core/io/PLYReader.hpp"
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/filesystem/operations.hpp>
 
-#include "core/types/Exceptions.hpp"
+#include "vc/core/types/Exceptions.hpp"
 
 using Props = std::pair<char, int>;
 

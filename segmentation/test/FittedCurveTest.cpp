@@ -6,7 +6,7 @@
 #include <vector>
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
-#include "segmentation/lrps/FittedCurve.hpp"
+#include "vc/segmentation/lrps/FittedCurve.hpp"
 
 using namespace volcart::segmentation;
 

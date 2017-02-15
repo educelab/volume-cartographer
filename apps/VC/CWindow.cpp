@@ -6,8 +6,8 @@
 
 #include "CVolumeViewerWithCurve.hpp"
 #include "UDataManipulateUtils.hpp"
-#include "core/types/Exceptions.hpp"
-#include "meshing/OrderedPointSetMesher.hpp"
+#include "vc/core/types/Exceptions.hpp"
+#include "vc/meshing/OrderedPointSetMesher.hpp"
 
 using namespace ChaoVis;
 

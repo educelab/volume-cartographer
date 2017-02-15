@@ -2,7 +2,7 @@
 // Created by Seth Parker on 10/20/15.
 //
 
-#include "texturing/CompositeTexture.hpp"
+#include "vc/texturing/CompositeTexture.hpp"
 
 namespace volcart
 {

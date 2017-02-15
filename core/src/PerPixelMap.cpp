@@ -1,7 +1,7 @@
 /** @file PerPixelMap.cpp*/
-#include "core/types/PerPixelMap.hpp"
-#include "core/io/PointSetIO.hpp"
-#include "core/types/Exceptions.hpp"
+#include "vc/core/types/PerPixelMap.hpp"
+#include "vc/core/io/PointSetIO.hpp"
+#include "vc/core/types/Exceptions.hpp"
 
 using namespace volcart;
 namespace fs = boost::filesystem;

@@ -11,9 +11,9 @@
 //----------------------------------------------------------------------------------------------------------------------------------------
 
 #include "MyThread.hpp"
-#include "core/io/OBJWriter.hpp"
-#include "core/io/PLYReader.hpp"
-#include "meshing/ITK2VTK.hpp"
+#include "vc/core/io/OBJWriter.hpp"
+#include "vc/core/io/PLYReader.hpp"
+#include "vc/meshing/ITK2VTK.hpp"
 
 namespace fs = boost::filesystem;
 

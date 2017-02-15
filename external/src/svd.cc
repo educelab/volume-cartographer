@@ -32,7 +32,7 @@
 #include <Eigen/Core>
 #include <Eigen/SVD>
 
-#include "external/svd.h"
+#include "vc/external/svd.h"
 
 using Eigen::JacobiSVD;
 

@@ -2,7 +2,7 @@
 // Created by Seth Parker on 10/22/15.
 //
 
-#include "texturing/SimpleUV.hpp"
+#include "vc/texturing/SimpleUV.hpp"
 
 using namespace volcart::texturing;
 

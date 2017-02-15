@@ -7,7 +7,7 @@
 #include <boost/test/unit_test_log.hpp>
 #include <opencv2/core.hpp>
 
-#include "segmentation/lrps/Common.hpp"
+#include "vc/segmentation/lrps/Common.hpp"
 
 using namespace volcart::segmentation;
 

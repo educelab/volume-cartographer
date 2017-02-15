@@ -1,6 +1,6 @@
 #include <cmath>
 
-#include "segmentation/stps/Chain.hpp"
+#include "vc/segmentation/stps/Chain.hpp"
 
 Chain::Chain(
     std::vector<cv::Vec3d> segPath,

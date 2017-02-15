@@ -18,10 +18,10 @@
 #include <QMenu>
 #include <QPixmap>
 #include <QRect>
-#include "core/types/Rendering.hpp"
-#include "core/types/VolumePkg.hpp"
-#include "core/types/VolumePkg.hpp"
-#include "core/vc_defines.hpp"
+#include "vc/core/types/Rendering.hpp"
+#include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/vc_defines.hpp"
 
 // Determines the _status of the thread running texturing
 enum ThreadStatus {
