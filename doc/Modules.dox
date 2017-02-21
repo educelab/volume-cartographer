@@ -1,6 +1,12 @@
 /**
+@defgroup Core Core
+@brief Library containing fundamental VC datatypes and operations.
+*/
+
+/**
  @defgroup VolumePackage Volume Package
  @brief Class for accessing and manipulating the .volpkg file format.
+ @ingroup Core
 */
 
 /**
@@ -9,12 +15,31 @@
 */
 
 /**
- @defgroup ExampleDocs Documentation Examples
- @brief Files that demonstrate how code should be formatted for Doxygen.
+@defgroup Segmentation Segmentation
+@brief Library for volume segmentation algorithms.
+*/ 
+
+/**
+@defgroup lrps Local Reslice Particle Simulation
+@brief Local Reslice %Particle Simulation (LRPS) segmentation
+@ingroup Segmentation 
 */
 
 /**
-@defgroup Core Core
-@brief Library containing fundamental VC datatypes and operations.
-*/ 
+@defgroup deriv Derivative Library
+@brief A small derivative library that handles calculating derivatives up to
+the second order.
+@ingroup lrps
+*/
+
+/**
+@defgroup stps Structure Tensor Particle Simulation 
+@brief Structure Tensor %Particle Simulation (STPS) segmentation
+@ingroup Segmentation
+*/
+
+/**
+ @defgroup ExampleDocs Documentation Examples
+ @brief Files that demonstrate how code should be formatted for Doxygen.
+*/
 

@@ -10,11 +10,11 @@
 #include <vtkPLYReader.h>
 #include <vtkSmartPointer.h>
 
-#include "core/io/PLYWriter.h"
-#include "core/vc_defines.h"
-#include "meshing/DeepCopy.h"
-#include "meshing/ITK2VTK.h"
-#include "meshing/ScaleMesh.h"
+#include "vc/core/io/PLYWriter.hpp"
+#include "vc/core/vc_defines.hpp"
+#include "vc/meshing/DeepCopy.hpp"
+#include "vc/meshing/ITK2VTK.hpp"
+#include "vc/meshing/ScaleMesh.hpp"
 
 using namespace volcart;
 

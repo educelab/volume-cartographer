@@ -9,9 +9,9 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/program_options.hpp>
 
-#include "apps/SliceImage.h"
-#include "core/types/VolumePkg.h"
-#include "core/vc_defines.h"
+#include "apps/SliceImage.hpp"
+#include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/vc_defines.hpp"
 
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;
@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
         fs::directory_iterator dir_end;
 
         // Filter out subfiles that aren't TIFs
-        // To-Do: Handle other formats
+        // To-Do: #177
         while (dir_subfile != dir_end) {
             std::string file_ext(boost::to_upper_copy<std::string>(
                 dir_subfile->path().extension().string()));

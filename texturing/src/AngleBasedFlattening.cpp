@@ -4,9 +4,9 @@
 
 #include <cmath>
 
-#include "external/eigen_capi.h"
-#include "meshing/DeepCopy.h"
-#include "texturing/AngleBasedFlattening.h"
+#include "vc/external/eigen_capi.h"
+#include "vc/meshing/DeepCopy.hpp"
+#include "vc/texturing/AngleBasedFlattening.hpp"
 
 using namespace volcart;
 using namespace volcart::texturing;
@@ -27,7 +27,7 @@ ITKMesh::Pointer AngleBasedFlattening::getMesh()
         output->SetPoint((*it)->id, p);
     }
 
-    // To-do: Recompute normals
+    // To-do: #189
     return output;
 }
 

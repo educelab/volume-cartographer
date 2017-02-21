@@ -4,9 +4,9 @@
 
 #include <BulletSoftBody/btDefaultSoftBodySolver.h>
 
-#include "meshing/DeepCopy.h"
-#include "meshing/ITK2Bullet.h"
-#include "texturing/ClothModelingUVMapping.h"
+#include "vc/meshing/DeepCopy.hpp"
+#include "vc/meshing/ITK2Bullet.hpp"
+#include "vc/texturing/ClothModelingUVMapping.hpp"
 
 //// Callbacks ////
 /* Note: Callbacks won't compile if they're not wrapped in the namespace.

@@ -5,10 +5,10 @@
 #define BOOST_TEST_MODULE ObjWriter
 
 #include <boost/test/unit_test.hpp>
-#include "core/io/OBJWriter.h"
-#include "core/shapes/Plane.h"
-#include "testing/ParsingHelpers.h"
-#include "testing/TestingUtils.h"
+#include "vc/core/io/OBJWriter.hpp"
+#include "vc/core/shapes/Plane.hpp"
+#include "vc/testing/ParsingHelpers.hpp"
+#include "vc/testing/TestingUtils.hpp"
 
 using namespace volcart;
 

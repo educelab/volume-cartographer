@@ -10,17 +10,17 @@
 #include <vtkSmartPointer.h>
 #include <vtkSmoothPolyDataFilter.h>
 
-#include "core/io/OBJWriter.h"
-#include "core/io/PLYReader.h"
-#include "core/io/PLYWriter.h"
-#include "core/types/Rendering.h"
-#include "core/types/VolumePkg.h"
-#include "core/util/MeshMath.h"
-#include "core/vc_defines.h"
-#include "meshing/ACVD.h"
-#include "meshing/ITK2VTK.h"
-#include "texturing/AngleBasedFlattening.h"
-#include "texturing/CompositeTextureV2.h"
+#include "vc/core/io/OBJWriter.hpp"
+#include "vc/core/io/PLYReader.hpp"
+#include "vc/core/io/PLYWriter.hpp"
+#include "vc/core/types/Rendering.hpp"
+#include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/util/MeshMath.hpp"
+#include "vc/core/vc_defines.hpp"
+#include "vc/meshing/ACVD.hpp"
+#include "vc/meshing/ITK2VTK.hpp"
+#include "vc/texturing/AngleBasedFlattening.hpp"
+#include "vc/texturing/CompositeTextureV2.hpp"
 
 namespace fs = boost::filesystem;
 

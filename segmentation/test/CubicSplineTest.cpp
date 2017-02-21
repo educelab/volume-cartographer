@@ -7,7 +7,7 @@
 #include <boost/test/floating_point_comparison.hpp>
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
-#include "segmentation/lrps/Spline.h"
+#include "vc/segmentation/lrps/Spline.hpp"
 
 using namespace volcart::segmentation;
 namespace btt = boost::test_tools;

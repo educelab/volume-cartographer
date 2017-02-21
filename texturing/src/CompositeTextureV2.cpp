@@ -2,8 +2,8 @@
 // Created by Seth Parker on 12/28/15.
 //
 
-#include "texturing/CompositeTextureV2.h"
-#include "texturing/PPMGenerator.h"
+#include "vc/texturing/CompositeTextureV2.hpp"
+#include "vc/texturing/PPMGenerator.hpp"
 
 namespace volcart
 {

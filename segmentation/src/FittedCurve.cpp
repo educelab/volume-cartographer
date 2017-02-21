@@ -2,8 +2,8 @@
 #include <cmath>
 #include <iostream>
 
-#include "segmentation/lrps/Derivative.h"
-#include "segmentation/lrps/FittedCurve.h"
+#include "vc/segmentation/lrps/Derivative.hpp"
+#include "vc/segmentation/lrps/FittedCurve.hpp"
 
 using namespace volcart::segmentation;
 

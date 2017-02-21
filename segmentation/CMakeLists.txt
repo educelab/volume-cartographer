@@ -21,7 +21,7 @@ add_library("${namespace}${module}" ALIAS "${target}")
 target_include_directories(${target}
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:${include_install_dir}>
+        $<INSTALL_INTERFACE:include>
 )
 target_compile_options(${target}
 	PUBLIC
@@ -45,7 +45,7 @@ install(
     INCLUDES DESTINATION "${include_install_dir}/${module}"
 )
 install(
-    DIRECTORY "include/${module}"
+    DIRECTORY "${include_install_dir}/${module}"
     DESTINATION "${include_install_dir}"
     FILES_MATCHING REGEX ".*\.(h|hpp)$"
 )

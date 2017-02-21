@@ -9,17 +9,18 @@
 #include <opencv2/imgcodecs.hpp>
 #include <vtkCleanPolyData.h>
 
-#include "core/io/OBJWriter.h"
-#include "core/io/PLYReader.h"
-#include "core/io/PLYWriter.h"
-#include "core/types/VolumePkg.h"
-#include "core/util/MeshMath.h"
-#include "core/vc_defines.h"
-#include "meshing/ACVD.h"
-#include "meshing/ITK2VTK.h"
-#include "meshing/SmoothNormals.h"
-#include "texturing/AngleBasedFlattening.h"
-#include "texturing/CompositeTextureV2.h"
+#include "vc/core/io/OBJWriter.hpp"
+#include "vc/core/io/PLYReader.hpp"
+#include "vc/core/io/PLYWriter.hpp"
+#include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/util/MeshMath.hpp"
+#include "vc/core/vc_defines.hpp"
+#include "vc/external/GetMemorySize.hpp"
+#include "vc/meshing/ACVD.hpp"
+#include "vc/meshing/ITK2VTK.hpp"
+#include "vc/meshing/SmoothNormals.hpp"
+#include "vc/texturing/AngleBasedFlattening.hpp"
+#include "vc/texturing/CompositeTextureV2.hpp"
 
 using namespace volcart;
 namespace fs = boost::filesystem;
@@ -95,8 +96,10 @@ int main(int argc, char* argv[])
         volpkgPath = parsedOptions["volpkg"].as<std::string>();
         segID = parsedOptions["seg"].as<std::string>();
         radius = parsedOptions["radius"].as<int>();
-        aFilterOption = parsedOptions["method"].as<CompositeOption>();
-        aDirectionOption = parsedOptions["direction"].as<DirectionOption>();
+        aFilterOption =
+            static_cast<CompositeOption>(parsedOptions["method"].as<int>());
+        aDirectionOption =
+            static_cast<DirectionOption>(parsedOptions["direction"].as<int>());
 
         // Check for output file
         if (parsedOptions.count("output-file")) {

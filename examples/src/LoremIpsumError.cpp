@@ -1,6 +1,6 @@
 #include <iostream>
 #include <boost/filesystem.hpp>
-#include "core/types/VolumePkg.h"
+#include "vc/core/types/VolumePkg.hpp"
 
 namespace fs = boost::filesystem;
 

@@ -10,10 +10,10 @@
 
 #include <iostream>
 
-#include "core/io/OBJWriter.h"
-#include "core/shapes/Arch.h"
-#include "core/vc_defines.h"
-#include "texturing/ClothModelingUVMapping.h"
+#include "vc/core/io/OBJWriter.hpp"
+#include "vc/core/shapes/Arch.hpp"
+#include "vc/core/vc_defines.hpp"
+#include "vc/texturing/ClothModelingUVMapping.hpp"
 
 int main()
 {

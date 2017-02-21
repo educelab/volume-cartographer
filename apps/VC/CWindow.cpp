@@ -1,13 +1,13 @@
 // CWindow.cpp
 // Chao Du 2014 Dec
-#include "CWindow.h"
+#include "CWindow.hpp"
 
 #include <opencv2/imgproc.hpp>
 
-#include "CVolumeViewerWithCurve.h"
-#include "UDataManipulateUtils.h"
-#include "core/types/Exceptions.h"
-#include "meshing/OrderedPointSetMesher.h"
+#include "CVolumeViewerWithCurve.hpp"
+#include "UDataManipulateUtils.hpp"
+#include "vc/core/types/Exceptions.hpp"
+#include "vc/meshing/OrderedPointSetMesher.hpp"
 
 using namespace ChaoVis;
 

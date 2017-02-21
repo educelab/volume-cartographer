@@ -1,7 +1,7 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include "apps/SliceImage.h"
+#include "apps/SliceImage.hpp"
 
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -53,7 +53,7 @@ cv::Mat SliceImage::conformedImage()
         input.convertTo(
             output, CV_16U, 65535.0 / (maxVal - minVal),
             -minVal * 65535.0 / (maxVal - minVal));
-        // TODO: need to account for CV_8S and 32-bit images
+        // TODO: #178
     } else {
         input.copyTo(output);
     }

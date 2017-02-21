@@ -7,7 +7,7 @@
 #include <boost/filesystem.hpp>
 #include <opencv2/core.hpp>
 
-#include "core/types/VolumePkg.h"
+#include "vc/core/types/VolumePkg.hpp"
 
 namespace fs = boost::filesystem;
 

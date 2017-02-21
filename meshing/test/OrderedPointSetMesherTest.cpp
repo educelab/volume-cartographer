@@ -7,12 +7,12 @@
 #include <boost/test/unit_test.hpp>
 #include <opencv2/core.hpp>
 
-#include "core/io/OBJWriter.h"
-#include "core/types/OrderedPointSet.h"
-#include "core/vc_defines.h"
-#include "meshing/OrderedPointSetMesher.h"
-#include "testing/ParsingHelpers.h"
-#include "testing/TestingUtils.h"
+#include "vc/core/io/OBJWriter.hpp"
+#include "vc/core/types/OrderedPointSet.hpp"
+#include "vc/core/vc_defines.hpp"
+#include "vc/meshing/OrderedPointSetMesher.hpp"
+#include "vc/testing/ParsingHelpers.hpp"
+#include "vc/testing/TestingUtils.hpp"
 
 using namespace volcart;
 

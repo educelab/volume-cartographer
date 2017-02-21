@@ -3,7 +3,7 @@
 //
 #include <cmath>
 
-#include "core/types/HalfEdgeMesh.h"
+#include "vc/core/types/HalfEdgeMesh.hpp"
 
 static constexpr double MINANGLE = M_PI / 180.0;
 static constexpr double MAXANGLE = M_PI - MINANGLE;

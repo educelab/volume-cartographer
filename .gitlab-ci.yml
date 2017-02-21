@@ -126,16 +126,18 @@ doxygen:html:
         - develop
     stage: docs
     script:
-        - cd doc/
-        - doxygen Doxyfile Modules.dox
+        - cd build/
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_BUILD_DOC=ON -GNinja ..
+        - ninja doc
     artifacts:
         name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
         paths:
-            - doc/html/*
+            - build/doc/html/*
         expire_in: 5 days
     allow_failure: yes
     tags:
         - doxy
+        - homebrew
 
 doxygen:pdf:
     only:
@@ -143,18 +145,20 @@ doxygen:pdf:
         - develop
     stage: docs
     script:
-        - cd doc/
-        - doxygen Doxyfile Modules.dox
-        - cd latex/
+        - cd build/
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_BUILD_DOC=ON -GNinja ..
+        - ninja doc
+        - cd doc/latex/
         - make
     artifacts:
         name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
         paths:
-            - doc/latex/*.pdf
+            - build/doc/latex/*.pdf
         expire_in: 5 days
     allow_failure: yes
     tags:
         - doxy
+        - homebrew
 
 ### Collect & Deploy ###
 collect:source:

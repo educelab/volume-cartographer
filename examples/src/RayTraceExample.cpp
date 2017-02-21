@@ -9,13 +9,13 @@
  *          v-c/testing/meshing.
  */
 
-#include "core/shapes/Arch.h"
-#include "core/shapes/Cone.h"
-#include "core/shapes/Cube.h"
-#include "core/shapes/Plane.h"
-#include "core/shapes/Sphere.h"
-#include "core/vc_defines.h"
-#include "meshing/RayTrace.h"
+#include "vc/core/shapes/Arch.hpp"
+#include "vc/core/shapes/Cone.hpp"
+#include "vc/core/shapes/Cube.hpp"
+#include "vc/core/shapes/Plane.hpp"
+#include "vc/core/shapes/Sphere.hpp"
+#include "vc/core/vc_defines.hpp"
+#include "vc/meshing/RayTrace.hpp"
 
 int main()
 {

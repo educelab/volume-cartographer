@@ -6,14 +6,14 @@
 #include <vtkPLYReader.h>
 #include <vtkSmartPointer.h>
 
-#include "core/io/OBJWriter.h"
-#include "core/io/PLYReader.h"
-#include "core/io/PLYWriter.h"
-#include "core/types/VolumePkg.h"
-#include "core/vc_defines.h"
-#include "meshing/ITK2VTK.h"
-#include "texturing/CompositeTextureV2.h"
-#include "texturing/SimpleUV.h"
+#include "vc/core/io/OBJWriter.hpp"
+#include "vc/core/io/PLYReader.hpp"
+#include "vc/core/io/PLYWriter.hpp"
+#include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/vc_defines.hpp"
+#include "vc/meshing/ITK2VTK.hpp"
+#include "vc/texturing/CompositeTextureV2.hpp"
+#include "vc/texturing/SimpleUV.hpp"
 
 int main(int /*argc*/, char* argv[])
 {
@@ -97,7 +97,7 @@ int main(int /*argc*/, char* argv[])
 
     if (result.texture().ppm().initialized()) {
         volcart::PerPixelMap::WritePPM(
-            "PerPixelMapping", result.texture().ppm());
+            "PerPixelMapping.ppm", result.texture().ppm());
     }
 
     return EXIT_SUCCESS;

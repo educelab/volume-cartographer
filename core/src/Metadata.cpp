@@ -1,4 +1,4 @@
-#include "core/types/Metadata.h"
+#include "vc/core/types/Metadata.hpp"
 
 namespace fs = boost::filesystem;
 

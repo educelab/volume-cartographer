@@ -10,9 +10,9 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include "core/io/PLYReader.h"
-#include "core/types/VolumePkg.h"
-#include "core/vc_defines.h"
+#include "vc/core/io/PLYReader.hpp"
+#include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/vc_defines.hpp"
 
 #define RED cv::Scalar(0, 0, 255)
 

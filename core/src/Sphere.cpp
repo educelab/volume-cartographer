@@ -3,8 +3,8 @@
 //
 #include <cmath>
 
-#include "core/shapes/Sphere.h"
-#include "core/vc_defines.h"
+#include "vc/core/shapes/Sphere.hpp"
+#include "vc/core/vc_defines.hpp"
 
 using namespace volcart;
 using namespace volcart::shapes;

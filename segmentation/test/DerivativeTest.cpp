@@ -7,7 +7,7 @@
 #include <boost/test/unit_test_log.hpp>
 #include <opencv2/core.hpp>
 
-#include "segmentation/lrps/Derivative.h"
+#include "vc/segmentation/lrps/Derivative.hpp"
 
 using Voxel = cv::Vec3d;
 using namespace volcart::segmentation;

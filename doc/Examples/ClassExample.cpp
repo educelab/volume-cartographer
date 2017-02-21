@@ -4,7 +4,7 @@
 * @date 10/18/16
 */
 
-#include "ClassExample.h"
+#include "ClassExample.hpp"
 
 // Implementation does not need to be marked up right now, but should have good
 // comments for maintainers.

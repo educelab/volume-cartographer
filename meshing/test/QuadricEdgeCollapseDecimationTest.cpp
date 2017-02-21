@@ -6,16 +6,16 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "core/shapes/Arch.h"
-#include "core/shapes/Cone.h"
-#include "core/shapes/Cube.h"
-#include "core/shapes/Plane.h"
-#include "core/shapes/Sphere.h"
-#include "core/vc_defines.h"
-#include "meshing/CalculateNormals.h"
-#include "meshing/QuadricEdgeCollapseDecimation.h"
-#include "testing/ParsingHelpers.h"
-#include "testing/TestingUtils.h"
+#include "vc/core/shapes/Arch.hpp"
+#include "vc/core/shapes/Cone.hpp"
+#include "vc/core/shapes/Cube.hpp"
+#include "vc/core/shapes/Plane.hpp"
+#include "vc/core/shapes/Sphere.hpp"
+#include "vc/core/vc_defines.hpp"
+#include "vc/meshing/CalculateNormals.hpp"
+#include "vc/meshing/QuadricEdgeCollapseDecimation.hpp"
+#include "vc/testing/ParsingHelpers.hpp"
+#include "vc/testing/TestingUtils.hpp"
 
 using namespace volcart;
 

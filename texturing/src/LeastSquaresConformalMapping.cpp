@@ -6,8 +6,8 @@
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include "meshing/DeepCopy.h"
-#include "texturing/LeastSquaresConformalMapping.h"
+#include "vc/meshing/DeepCopy.hpp"
+#include "vc/texturing/LeastSquaresConformalMapping.hpp"
 
 using namespace volcart;
 using namespace volcart::texturing;
@@ -44,7 +44,7 @@ ITKMesh::Pointer LeastSquaresConformalMapping::getMesh()
         output->SetPoint(i, p);
     }
 
-    // To-do: Recompute normals
+    // To-do #191
     return output;
 }
 

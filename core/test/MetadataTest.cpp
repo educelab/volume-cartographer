@@ -5,7 +5,7 @@
 #define BOOST_TEST_MODULE Metadata
 
 #include <boost/test/unit_test.hpp>
-#include "core/types/Metadata.h"
+#include "vc/core/types/Metadata.hpp"
 
 /************************************************************************************
  *                                                                                  *

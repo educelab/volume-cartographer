@@ -3,7 +3,7 @@
 //
 #include <opencv2/imgcodecs.hpp>
 
-#include "core/types/Texture.h"
+#include "vc/core/types/Texture.hpp"
 
 namespace fs = boost::filesystem;
 using namespace volcart;
@@ -26,7 +26,7 @@ Texture::Texture(fs::path path)
                   << std::endl;
     }
 
-    // To-Do: Load the UV Map
+    // To-Do: #180
 
     // Load the texture images
     for (size_t i = 0; i < metadata_.get<size_t>("number-of-images"); ++i) {

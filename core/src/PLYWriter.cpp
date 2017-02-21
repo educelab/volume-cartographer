@@ -2,7 +2,7 @@
 // Created by Media Team on 10/30/15.
 //
 
-#include "core/io/PLYWriter.h"
+#include "vc/core/io/PLYWriter.hpp"
 
 namespace fs = boost::filesystem;
 using namespace volcart::io;

@@ -2,11 +2,11 @@
 // Created by Seth Parker on 9/24/15.
 //
 
-#include "core/io/OBJWriter.h"
-#include "core/io/PLYReader.h"
-#include "core/vc_defines.h"
-#include "meshing/ACVD.h"
-#include "meshing/ITK2VTK.h"
+#include "vc/core/io/OBJWriter.hpp"
+#include "vc/core/io/PLYReader.hpp"
+#include "vc/core/vc_defines.hpp"
+#include "vc/meshing/ACVD.hpp"
+#include "vc/meshing/ITK2VTK.hpp"
 
 int main(int /*argc*/, char* argv[])
 {

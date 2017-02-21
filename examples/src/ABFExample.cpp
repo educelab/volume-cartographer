@@ -8,13 +8,13 @@
  * v-c/testing/texturing.
  */
 
-#include "core/types/VolumePkg.h"
-#include "core/vc_defines.h"
+#include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/vc_defines.hpp"
 
-#include "core/io/OBJWriter.h"
-#include "core/shapes/Arch.h"
-#include "core/shapes/Plane.h"
-#include "texturing/AngleBasedFlattening.h"
+#include "vc/core/io/OBJWriter.hpp"
+#include "vc/core/shapes/Arch.hpp"
+#include "vc/core/shapes/Plane.hpp"
+#include "vc/texturing/AngleBasedFlattening.hpp"
 
 int main()
 {

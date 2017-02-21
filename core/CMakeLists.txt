@@ -12,12 +12,12 @@ set(srcs
     src/Sphere.cpp
     src/Texture.cpp
     src/Volume.cpp
-    src/GetMemorySize.cpp
     src/MeshMath.cpp
     src/OBJWriter.cpp
     src/PLYReader.cpp
     src/PLYWriter.cpp
     src/VolumePkg.cpp
+    src/OBJReader.cpp
 )
 
 add_library(${target} ${srcs})
@@ -25,12 +25,13 @@ add_library("${namespace}${module}" ALIAS "${target}")
 target_include_directories(${target}
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:${include_install_dir}>
+        $<INSTALL_INTERFACE:include>
 )
 target_link_libraries(${target}
     PUBLIC
         Boost::filesystem
         opencv_core
+        opencv_highgui
         opencv_imgproc
         opencv_imgcodecs
         ITKCommon
@@ -55,7 +56,7 @@ install(
     RUNTIME DESTINATION "bin"
 )
 install(
-    DIRECTORY "include/${module}"
+    DIRECTORY "${include_install_dir}/${module}"
     DESTINATION "${include_install_dir}"
     FILES_MATCHING REGEX ".*\.(h|hpp)$"
 )
@@ -76,6 +77,7 @@ set(test_srcs
     test/PLYReaderTest.cpp
     test/FloatComparisonTest.cpp
     test/PerPixelMapTest.cpp
+    test/OBJReaderTest.cpp
 )
 
 # Add a test executable for each src
@@ -99,6 +101,14 @@ endforeach()
 set(COMMON_TEST_RES
     test/res/PlyWriter_Plane.ply
     test/res/GenericGradient.tif
+    test/res/OnlyFaces.obj
+    test/res/TexturedNoNormal.mtl
+    test/res/TexturedNoNormal.obj
+    test/res/TexturedPlane.mtl
+    test/res/TexturedPlane.obj
+    test/res/Texture.png
+    test/res/UntexturedPlane.obj
+    test/res/Vertices.obj
 )
 
 # Copy each test resource file

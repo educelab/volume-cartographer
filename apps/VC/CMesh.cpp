@@ -1,6 +1,6 @@
 // CMesh.cpp
 // Chao Du Sept. 2014
-#include "CMesh.h"
+#include "CMesh.hpp"
 
 namespace ChaoVis
 {

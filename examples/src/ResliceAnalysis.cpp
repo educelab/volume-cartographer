@@ -7,7 +7,7 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include "core/types/VolumePkg.h"
+#include "vc/core/types/VolumePkg.hpp"
 
 const cv::Vec3d KVector(0, 0, 1);
 const int32_t WIDTH = 64;

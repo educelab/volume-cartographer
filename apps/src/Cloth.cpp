@@ -8,12 +8,12 @@
 #include <opencv2/imgcodecs.hpp>
 #include <vtkPLYReader.h>
 
-#include "core/io/OBJWriter.h"
-#include "core/types/VolumePkg.h"
-#include "core/vc_defines.h"
-#include "meshing/ITK2VTK.h"
-#include "texturing/ClothModelingUVMapping.h"
-#include "texturing/CompositeTextureV2.h"
+#include "vc/core/io/OBJWriter.hpp"
+#include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/vc_defines.hpp"
+#include "vc/meshing/ITK2VTK.hpp"
+#include "vc/texturing/ClothModelingUVMapping.hpp"
+#include "vc/texturing/CompositeTextureV2.hpp"
 
 using namespace volcart;
 namespace po = boost::program_options;

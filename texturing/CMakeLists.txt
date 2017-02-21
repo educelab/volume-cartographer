@@ -36,7 +36,7 @@ target_compile_definitions(${target} PUBLIC ${defs})
 target_include_directories(${target}
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:${include_install_dir}>
+        $<INSTALL_INTERFACE:include>
 )
 target_link_libraries(${target}
     PUBLIC ${public_deps}
@@ -56,7 +56,7 @@ install(
     INCLUDES DESTINATION "${include_install_dir}/${module}"
 )
 install(
-    DIRECTORY "include/${module}"
+    DIRECTORY "${include_install_dir}/${module}"
     DESTINATION "${include_install_dir}"
     FILES_MATCHING REGEX ".*\.(h|hpp)$"
 )

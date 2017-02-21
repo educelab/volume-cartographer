@@ -10,7 +10,7 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/filesystem.hpp>
 
-#include "testing/ParsingHelpers.h"
+#include "vc/testing/ParsingHelpers.hpp"
 
 namespace fs = boost::filesystem;
 

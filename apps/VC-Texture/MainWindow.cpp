@@ -12,8 +12,8 @@
 #include <boost/algorithm/string/case_conv.hpp>
 #include <opencv2/imgcodecs.hpp>
 
-#include "MainWindow.h"
-#include "core/io/OBJWriter.h"
+#include "MainWindow.hpp"
+#include "vc/core/io/OBJWriter.hpp"
 
 // Volpkg version required byt this app
 static constexpr int VOLPKG_SUPPORTED_VERSION = 3;

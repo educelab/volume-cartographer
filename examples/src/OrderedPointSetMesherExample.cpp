@@ -4,10 +4,10 @@
 
 #include <iostream>
 
-#include "core/io/OBJWriter.h"
-#include "core/types/OrderedPointSet.h"
-#include "core/vc_defines.h"
-#include "meshing/OrderedPointSetMesher.h"
+#include "vc/core/io/OBJWriter.hpp"
+#include "vc/core/types/OrderedPointSet.hpp"
+#include "vc/core/vc_defines.hpp"
+#include "vc/meshing/OrderedPointSetMesher.hpp"
 
 using namespace volcart;
 
