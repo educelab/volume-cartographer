@@ -1,5 +1,43 @@
 Volume Cartographer Changelog
 =============================
+v2.10.0
+-------
+- all
+    - Change all C++ header file extensions to `.hpp` (!135)
+    - Fix problem for external projects where headers couldn't be found. From 
+     now on, all includes should have the `vc/` subdirectory. e.g. `#include 
+      <vc/core/vc_defines.hpp>` (!153)
+    - Update Modern JSON to version 2.1.0 (!146)
+    - Add a blacklist to clang-format (!147)
+    - Convert inline To-Do's with Gitlab issues (!145)
+    - Add CMake VC_USE_ALL option to enable all optional dependencies. This 
+    should be used with care and really only as an option for development (!142)
+- apps
+    - Fix bad cast of program options to enumerated values (!141)
+- core
+    - __New:__ OBJReader: Read a textured OBJ file! Oh the possibilities! (!116)
+    - Fix bug in OBJWriter where integer types were getting written as floats. 
+    Also add conditionally writing vertex normals on whether or not the mesh 
+    actually has that information. It's kind of amazing that this didn't cause 
+    problems before now (!152)
+    - Simplify HalfEdgeMesh subtypes into structs (!151)
+    - Standardize OrderedPointSet on the y,x operator ordering using by OpenCV. 
+    This will just save us a lot of confusion (!143)
+    - PerPixelMap refactored to use OrderedPointSet as its base type (!137)
+- docs
+    - Add support for building Doxygen documentation through CMake and the 
+    build system (!144)
+    - Add Contributors log for the main VC team (!139)
+- external
+    - Move GetMemorySize to external lib (!136)
+- meshing
+    - Remove deprecated ITK feature from ScaleMesh (!148)
+- segmentation
+    - Add Doxygen documentation (!125)
+- utils
+    - Remove PCL point cloud converter. And just like that, the last vestiges 
+    of PCL's tyranny are gone (!140)
+
 v2.9.0
 ------
 This release constitutes a major refactor of the entire API. Any previously 
