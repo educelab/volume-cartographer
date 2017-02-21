@@ -8,6 +8,7 @@
 #include "vc/segmentation/stps/StructureTensorParticleSim.hpp"
 
 namespace po = boost::program_options;
+namespace vc = volcart;
 namespace vs = volcart::segmentation;
 
 // Volpkg version required by this app
@@ -29,6 +30,7 @@ static const double kDefaultBeta = 1.0 / 3.0;
 static const double kDefaultDelta = 1.0 / 3.0;
 static const int32_t kDefaultPeakDistanceWeight = 50;
 static const bool kDefaultConsiderPrevious = false;
+static constexpr int kDefaultResliceSize = 32;
 
 enum class Algorithm { STPS, LRPS };
 
@@ -65,6 +67,8 @@ int main(int argc, char* argv[])
     lrpsOptions.add_options()
         ("num-iters,n", po::value<int32_t>()->default_value(kDefaultNumIters),
             "Number of optimization iterations")
+        ("reslice-size,r", po::value<int32_t>()->default_value(kDefaultResliceSize),
+         "Size of reslice window")
         ("alpha,a", po::value<double>()->default_value(kDefaultAlpha),
             "Coefficient for internal energy metric")
         ("k1", po::value<double>()->default_value(kDefaultK1),
@@ -73,9 +77,9 @@ int main(int argc, char* argv[])
             "Coefficient for second derivative term in internal energy metric")
         ("beta,b", po::value<double>()->default_value(kDefaultBeta),
             "Coefficient for curve tension energy metric")
-        ("delta", po::value<double>()->default_value(kDefaultDelta),
+        ("delta,d", po::value<double>()->default_value(kDefaultDelta),
             "Coefficient for curve curvature energy metric")
-        ("distance-weight,d",
+        ("distance-weight",
             po::value<int32_t>()->default_value(kDefaultPeakDistanceWeight),
             "Weighting for distance vs maxima intensity")
         ("consider-previous,p",
@@ -192,10 +196,17 @@ int main(int argc, char* argv[])
 
     // Prepare our clouds
     // Get the upper, immutable cloud
-    auto immutableCloud = masterCloud.copyRows(minIndex, startIndex - 1);
+    vc::OrderedPointSet<cv::Vec3d> immutableCloud;
+    size_t pathInCloudIndex = startIndex - minIndex;
+    if (startIndex > minIndex) {
+        immutableCloud = masterCloud.copyRows(0, pathInCloudIndex - 1);
+    } else {
+        immutableCloud =
+            volcart::OrderedPointSet<cv::Vec3d>(masterCloud.width());
+    }
 
     // Get the starting path pts.
-    auto segPath = masterCloud.getRow(startIndex);
+    auto segPath = masterCloud.getRow(pathInCloudIndex);
 
     // Filter -1 points
     segPath.erase(
@@ -227,9 +238,10 @@ int main(int argc, char* argv[])
             segPath, volpkg, gravityScale, step, endIndex - startIndex);
     } else {
         int32_t numIters = opts["num-iters"].as<int32_t>();
+        int32_t resliceSize = opts["reslice-size"].as<int32_t>();
         double alpha = opts["alpha"].as<double>();
         double k1 = opts["k1"].as<double>();
-        double k2 = opts["k1"].as<double>();
+        double k2 = opts["k2"].as<double>();
         double beta = opts["beta"].as<double>();
         double delta = opts["delta"].as<double>();
         int32_t distanceWeight = opts["distance-weight"].as<int32_t>();
@@ -239,6 +251,7 @@ int main(int argc, char* argv[])
 
         // Run segmentation using path as our starting points
         vs::LocalResliceSegmentation segmenter(volpkg);
+        segmenter.setResliceSize(resliceSize);
         mutableCloud = segmenter.segmentPath(
             segPath, startIndex, endIndex, numIters, step, alpha, k1, k2, beta,
             delta, distanceWeight, considerPrevious, dumpVis, visualize);

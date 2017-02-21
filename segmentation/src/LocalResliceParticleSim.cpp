@@ -114,8 +114,8 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
         for (int i = 0; i < int(currentCurve.size()); ++i) {
             // Estimate normal and reslice along it
             const cv::Vec3d normal = estimate_normal_at_index_(currentCurve, i);
-            const auto reslice =
-                vol.reslice(currentCurve(i), normal, {0, 0, 1}, 32, 32);
+            const auto reslice = vol.reslice(
+                currentCurve(i), normal, {0, 0, 1}, resliceSize_, resliceSize_);
             reslices.push_back(reslice);
             auto resliceIntensities = reslice.sliceData();
 
@@ -371,10 +371,23 @@ cv::Mat LocalResliceSegmentation::draw_particle_on_slice_(
         pkgSlice, CV_8UC3, 1.0 / std::numeric_limits<uint8_t>::max());
     cv::cvtColor(pkgSlice, pkgSlice, cv::COLOR_GRAY2BGR);
 
-    // Draw circles on the pkgSlice window for each point
-    for (size_t i = 0; i < curve.size(); ++i) {
-        cv::Point real{int(curve(i)(0)), int(curve(i)(1))};
-        cv::circle(pkgSlice, real, (showSpline ? 2 : 1), BGR_GREEN, -1);
+    // Superimpose interpolated currentCurve on window
+    if (showSpline) {
+        const int n = 500;
+        double sum = 0;
+        int i = 0;
+        std::vector<cv::Point> contour;
+        while (i < n && sum <= 1.0) {
+            contour.emplace_back(curve.eval(sum));
+            sum += 1.0 / (n - 1);
+        }
+        cv::polylines(pkgSlice, contour, false, BGR_BLUE, 1, cv::LINE_AA);
+    } else {
+        // Draw circles on the pkgSlice window for each point
+        for (size_t i = 0; i < curve.size(); ++i) {
+            cv::Point real{int(curve(i)(0)), int(curve(i)(1))};
+            cv::circle(pkgSlice, real, (showSpline ? 2 : 1), BGR_GREEN, -1);
+        }
     }
 
     // Only highlight a point if particleIndex isn't default -1
@@ -383,18 +396,6 @@ cv::Mat LocalResliceSegmentation::draw_particle_on_slice_(
         cv::circle(
             pkgSlice, {int(particle(0)), int(particle(1))},
             (showSpline ? 2 : 1), BGR_RED, -1);
-    }
-
-    // Superimpose interpolated currentCurve on window
-    if (showSpline) {
-        const int n = 500;
-        double sum = 0;
-        int i = 0;
-        while (i < n && sum <= 1.0) {
-            cv::Point p(curve.eval(sum));
-            cv::circle(pkgSlice, p, 1, BGR_BLUE, -1);
-            sum += 1.0 / (n - 1);
-        }
     }
 
     return pkgSlice;
