@@ -1006,9 +1006,7 @@ void CWindow::OnEdtWindowWidthChange()
     bool aIsOk;
     int aNewVal = fEdtWindowWidth->text().toInt(&aIsOk);
     if (aIsOk) {
-        if (aNewVal > 20) {
-            aNewVal = 20;
-        } else if (aNewVal < 1) {
+        if (aNewVal < 1) {
             aNewVal = 1;
         }
         fEdtWindowWidth->setText(QString::number(aNewVal));

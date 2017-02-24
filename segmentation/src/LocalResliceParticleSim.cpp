@@ -327,10 +327,10 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
 cv::Vec3d LocalResliceSegmentation::estimate_normal_at_index_(
     const FittedCurve& currentCurve, int index)
 {
-    const cv::Vec3i currentVoxel = currentCurve(index);
+    const cv::Vec3d currentVoxel = currentCurve(index);
     auto stRadius = static_cast<int>(
         std::ceil(pkg_.getMaterialThickness() / pkg_.getVoxelSize()) / 2);
-    const auto eigenPairs = pkg_.volume().eigenPairsAt(
+    const auto eigenPairs = pkg_.volume().interpolatedEigenPairsAt(
         currentVoxel(0), currentVoxel(1), currentVoxel(2), stRadius);
     const double exp0 = std::log10(eigenPairs[0].first);
     const double exp1 = std::log10(eigenPairs[1].first);
