@@ -201,8 +201,7 @@ int main(int argc, char* argv[])
     if (startIndex > minIndex) {
         immutableCloud = masterCloud.copyRows(0, pathInCloudIndex - 1);
     } else {
-        immutableCloud =
-            volcart::OrderedPointSet<cv::Vec3d>(masterCloud.width());
+        immutableCloud.setWidth(masterCloud.width());
     }
 
     // Get the starting path pts.
