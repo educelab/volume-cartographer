@@ -33,15 +33,13 @@ int main(int argc, char* argv[])
             ("volpkg,v", po::value<std::string>(),
                 "Path for the output volume package");
 
-        po::options_description extras("Extra Options");
+        // Useful transforms for origin adjustment
+        po::options_description extras("Volume Transformations");
         extras.add_options()
-            ("vertical-flip", po::bool_switch()->default_value(false),
-             "Apply vertical flip to slice images. Useful for reorienting "
-             "volumes with origins in the bottom-left of the slice image "
-             "(e.g. Skyscan datasets)")
             ("horizontal-flip", po::bool_switch()->default_value(false),
-             "Apply horizontal flip to slice images. Useful for reorienting "
-             "volumes with origins in the top-right of the slice image");
+             "Apply a horizontal flip to slice images.")
+            ("vertical-flip", po::bool_switch()->default_value(false),
+             "Apply a vertical flip to slice images.");
         // clang-format on
         po::options_description all("Usage");
         all.add(options).add(extras);
@@ -230,7 +228,7 @@ int main(int argc, char* argv[])
             // Get slice
             auto tmp = slice->conformedImage();
 
-            // Apply flip
+            // Apply flips
             if (verticalFlip && horizontalFlip) {
                 cv::flip(tmp, tmp, -1);
             } else if (verticalFlip) {
@@ -239,7 +237,7 @@ int main(int argc, char* argv[])
                 cv::flip(tmp, tmp, 1);
             }
 
-            // Apply to volume
+            // Add to volume
             volpkg.setSliceData(counter, tmp);
         } else {
             fs::copy(slice->path, volpkg.volume().getSlicePath(counter));
