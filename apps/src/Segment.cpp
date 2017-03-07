@@ -8,27 +8,29 @@
 #include "vc/segmentation/stps/StructureTensorParticleSim.hpp"
 
 namespace po = boost::program_options;
+namespace vc = volcart;
 namespace vs = volcart::segmentation;
 
 // Volpkg version required by this app
 static constexpr int VOLPKG_SUPPORTED_VERSION = 3;
 
 // Default values for global options
-static const int32_t kDefaultStep = 1;
+static const int kDefaultStep = 1;
 
 // Default values for STPS options
 static const double kDefaultGravity = 0.5;
 
 // Default values for LRPS options
-static const int32_t kDefaultStartIndex = -1;
-static const int32_t kDefaultNumIters = 15;
+static const int kDefaultStartIndex = -1;
+static const int kDefaultNumIters = 15;
 static const double kDefaultAlpha = 1.0 / 3.0;
 static const double kDefaultK1 = 0.5;
 static const double kDefaultK2 = 0.5;
 static const double kDefaultBeta = 1.0 / 3.0;
 static const double kDefaultDelta = 1.0 / 3.0;
-static const int32_t kDefaultPeakDistanceWeight = 50;
+static const int kDefaultPeakDistanceWeight = 50;
 static const bool kDefaultConsiderPrevious = false;
+static constexpr int kDefaultResliceSize = 32;
 
 enum class Algorithm { STPS, LRPS };
 
@@ -43,14 +45,14 @@ int main(int argc, char* argv[])
         ("seg-id,s", po::value<std::string>()->required(), "Segmentation ID")
         ("method,m", po::value<std::string>()->required(),
             "Segmentation method: STPS, LRPS")
-        ("start-index", po::value<int32_t>()->default_value(kDefaultStartIndex),
+        ("start-index", po::value<int>()->default_value(kDefaultStartIndex),
             "Starting slice index. Default to highest z-index in path")
-        ("end-index", po::value<int32_t>(),
+        ("end-index", po::value<int>(),
             "Ending slice index. Mutually exclusive with 'stride'")
-        ("stride", po::value<int32_t>(),
+        ("stride", po::value<int>(),
             "Number of slices to propagate through relative to the starting slice index. "
             "Mutually exclusive with 'end-index'")
-        ("step-size", po::value<int32_t>()->default_value(kDefaultStep),
+        ("step-size", po::value<int>()->default_value(kDefaultStep),
             "Z distance travelled per iteration");
 
 
@@ -63,8 +65,10 @@ int main(int argc, char* argv[])
     // LRPS options
     po::options_description lrpsOptions("Local Reslice Particle Sim Options");
     lrpsOptions.add_options()
-        ("num-iters,n", po::value<int32_t>()->default_value(kDefaultNumIters),
+        ("num-iters,n", po::value<int>()->default_value(kDefaultNumIters),
             "Number of optimization iterations")
+        ("reslice-size,r", po::value<int>()->default_value(kDefaultResliceSize),
+         "Size of reslice window")
         ("alpha,a", po::value<double>()->default_value(kDefaultAlpha),
             "Coefficient for internal energy metric")
         ("k1", po::value<double>()->default_value(kDefaultK1),
@@ -73,10 +77,10 @@ int main(int argc, char* argv[])
             "Coefficient for second derivative term in internal energy metric")
         ("beta,b", po::value<double>()->default_value(kDefaultBeta),
             "Coefficient for curve tension energy metric")
-        ("delta", po::value<double>()->default_value(kDefaultDelta),
+        ("delta,d", po::value<double>()->default_value(kDefaultDelta),
             "Coefficient for curve curvature energy metric")
-        ("distance-weight,d",
-            po::value<int32_t>()->default_value(kDefaultPeakDistanceWeight),
+        ("distance-weight",
+            po::value<int>()->default_value(kDefaultPeakDistanceWeight),
             "Weighting for distance vs maxima intensity")
         ("consider-previous,p",
             po::value<bool>()->default_value(kDefaultConsiderPrevious),
@@ -149,8 +153,8 @@ int main(int argc, char* argv[])
 
     // Setup
     // Cache arguments
-    int32_t startIndex = opts["start-index"].as<int32_t>();
-    int32_t step = opts["step-size"].as<int32_t>();
+    auto startIndex = opts["start-index"].as<int>();
+    auto step = opts["step-size"].as<int>();
     if (alg == Algorithm::STPS && step != 1) {
         std::cerr << "[warning]: STPS algorithm can only handle stepsize of 1. "
                      "Defaulting to 1."
@@ -176,9 +180,9 @@ int main(int argc, char* argv[])
     }
 
     // Figure out endIndex using either start-index or stride
-    int32_t endIndex =
-        (opts.count("end-index") ? opts["end-index"].as<int32_t>()
-                                 : startIndex + opts["stride"].as<int32_t>());
+    int endIndex =
+        (opts.count("end-index") ? opts["end-index"].as<int>()
+                                 : startIndex + opts["stride"].as<int>());
 
     // Sanity check for whether we actually need to run the algorithm
     if (startIndex >= endIndex) {
@@ -192,10 +196,16 @@ int main(int argc, char* argv[])
 
     // Prepare our clouds
     // Get the upper, immutable cloud
-    auto immutableCloud = masterCloud.copyRows(minIndex, startIndex - 1);
+    vc::OrderedPointSet<cv::Vec3d> immutableCloud;
+    size_t pathInCloudIndex = startIndex - minIndex;
+    if (startIndex > minIndex) {
+        immutableCloud = masterCloud.copyRows(0, pathInCloudIndex - 1);
+    } else {
+        immutableCloud.setWidth(masterCloud.width());
+    }
 
     // Get the starting path pts.
-    auto segPath = masterCloud.getRow(startIndex);
+    auto segPath = masterCloud.getRow(pathInCloudIndex);
 
     // Filter -1 points
     segPath.erase(
@@ -226,19 +236,21 @@ int main(int argc, char* argv[])
         mutableCloud = vs::StructureTensorParticleSim(
             segPath, volpkg, gravityScale, step, endIndex - startIndex);
     } else {
-        int32_t numIters = opts["num-iters"].as<int32_t>();
+        int numIters = opts["num-iters"].as<int>();
+        int resliceSize = opts["reslice-size"].as<int>();
         double alpha = opts["alpha"].as<double>();
         double k1 = opts["k1"].as<double>();
-        double k2 = opts["k1"].as<double>();
+        double k2 = opts["k2"].as<double>();
         double beta = opts["beta"].as<double>();
         double delta = opts["delta"].as<double>();
-        int32_t distanceWeight = opts["distance-weight"].as<int32_t>();
+        int distanceWeight = opts["distance-weight"].as<int>();
         bool considerPrevious = opts["consider-previous"].as<bool>();
         bool visualize = opts.count("visualize");
         bool dumpVis = opts.count("dump-vis");
 
         // Run segmentation using path as our starting points
         vs::LocalResliceSegmentation segmenter(volpkg);
+        segmenter.setResliceSize(resliceSize);
         mutableCloud = segmenter.segmentPath(
             segPath, startIndex, endIndex, numIters, step, alpha, k1, k2, beta,
             delta, distanceWeight, considerPrevious, dumpVis, visualize);

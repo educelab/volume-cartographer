@@ -489,6 +489,7 @@ void CWindow::DoSegmentation(void)
 
     // 2) do segmentation from the starting slice
     volcart::segmentation::LocalResliceSegmentation segmenter(*fVpkg);
+    segmenter.setResliceSize(fSegParams.fWindowWidth);
     auto result = segmenter.segmentPath(
         fStartingPath, fEdtStartIndex->text().toInt(),
         fEdtEndIndex->text().toInt() - 1, fSegParams.fNumIters, 1,
@@ -1005,9 +1006,7 @@ void CWindow::OnEdtWindowWidthChange()
     bool aIsOk;
     int aNewVal = fEdtWindowWidth->text().toInt(&aIsOk);
     if (aIsOk) {
-        if (aNewVal > 20) {
-            aNewVal = 20;
-        } else if (aNewVal < 1) {
+        if (aNewVal < 1) {
             aNewVal = 1;
         }
         fEdtWindowWidth->setText(QString::number(aNewVal));
