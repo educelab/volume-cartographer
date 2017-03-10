@@ -10,6 +10,7 @@
 #include "vc/meshing/OrderedPointSetMesher.hpp"
 
 using namespace ChaoVis;
+using qga = QGuiApplication;
 
 // Constructor
 CWindow::CWindow(void)
@@ -1091,26 +1092,38 @@ void CWindow::OnLoadAnySlice(int nSliceIndex)
 // Handle loading the next slice
 void CWindow::OnLoadNextSlice(void)
 {
-    if (fPathOnSliceIndex < fVpkg->getNumberOfSlices() - 1) {
-        ++fPathOnSliceIndex;
+    int shift = (qga::keyboardModifiers() == Qt::ShiftModifier) ? 10 : 1;
+    if (fPathOnSliceIndex + shift >= fVpkg->getNumberOfSlices()) {
+        shift = fVpkg->getNumberOfSlices() - fPathOnSliceIndex - 1;
+    }
+
+    if (shift != 0) {
+        fPathOnSliceIndex += shift;
         OpenSlice();
         SetCurrentCurve(fPathOnSliceIndex);
         UpdateView();
-    } else
+    } else {
         statusBar->showMessage(tr("Already at the end of the volume!"), 10000);
+    }
 }
 
 // Handle loading the previous slice
 void CWindow::OnLoadPrevSlice(void)
 {
-    if (fPathOnSliceIndex > 0) {
-        --fPathOnSliceIndex;
+    int shift = (qga::keyboardModifiers() == Qt::ShiftModifier) ? 10 : 1;
+    if (fPathOnSliceIndex - shift < 0) {
+        shift = fPathOnSliceIndex;
+    }
+
+    if (shift != 0) {
+        fPathOnSliceIndex -= shift;
         OpenSlice();
         SetCurrentCurve(fPathOnSliceIndex);
         UpdateView();
-    } else
+    } else {
         statusBar->showMessage(
             tr("Already at the beginning of the volume!"), 10000);
+    }
 }
 
 // Handle path change event
