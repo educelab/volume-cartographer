@@ -1,31 +1,48 @@
 Volume Cartographer Changelog
 =============================
+v2.11.0
+-------
+- apps
+    - (VC.app) Actually use the reslice window width parameter for LRPS (!156)
+    - (VC.app) "Next Slice" button skips by 10 slices when holding the Shift
+    key (!157)
+    - (vc_packager) Add option to flip slice images (!156)
+    - (vc_segment) Add option for reslice window size. Fix bugs in LRPS
+    k2 parameter and the calculation of the starting index (!156)
+- segmentation
+    - (LRPS) Add option for changing reslice window size (!156)
+    - (LRPS) Interpolate eigenvalues at floating point positions when estimating
+    surface normals (!156)
+    - (LRPS) Rework debug drawing to produce clearer images (!156)
+- texturing
+    - Remove unnecessary origin flips in UV generation (!156)
+
 v2.10.0
 -------
 - all
     - Change all C++ header file extensions to `.hpp` (!135)
-    - Fix problem for external projects where headers couldn't be found. From 
-     now on, all includes should have the `vc/` subdirectory. e.g. `#include 
+    - Fix problem for external projects where headers couldn't be found. From
+     now on, all includes should have the `vc/` subdirectory. e.g. `#include
       <vc/core/vc_defines.hpp>` (!153)
     - Update Modern JSON to version 2.1.0 (!146)
     - Add a blacklist to clang-format (!147)
     - Convert inline To-Do's with Gitlab issues (!145)
-    - Add CMake VC_USE_ALL option to enable all optional dependencies. This 
+    - Add CMake VC_USE_ALL option to enable all optional dependencies. This
     should be used with care and really only as an option for development (!142)
 - apps
     - Fix bad cast of program options to enumerated values (!141)
 - core
     - __New:__ OBJReader: Read a textured OBJ file! Oh the possibilities! (!116)
-    - Fix bug in OBJWriter where integer types were getting written as floats. 
-    Also add conditionally writing vertex normals on whether or not the mesh 
-    actually has that information. It's kind of amazing that this didn't cause 
+    - Fix bug in OBJWriter where integer types were getting written as floats.
+    Also add conditionally writing vertex normals on whether or not the mesh
+    actually has that information. It's kind of amazing that this didn't cause
     problems before now (!152)
     - Simplify HalfEdgeMesh subtypes into structs (!151)
-    - Standardize OrderedPointSet on the y,x operator ordering using by OpenCV. 
+    - Standardize OrderedPointSet on the y,x operator ordering using by OpenCV.
     This will just save us a lot of confusion (!143)
     - PerPixelMap refactored to use OrderedPointSet as its base type (!137)
 - docs
-    - Add support for building Doxygen documentation through CMake and the 
+    - Add support for building Doxygen documentation through CMake and the
     build system (!144)
     - Add Contributors log for the main VC team (!139)
 - external
@@ -35,38 +52,38 @@ v2.10.0
 - segmentation
     - Add Doxygen documentation (!125)
 - utils
-    - Remove PCL point cloud converter. And just like that, the last vestiges 
+    - Remove PCL point cloud converter. And just like that, the last vestiges
     of PCL's tyranny are gone (!140)
 
 v2.9.0
 ------
-This release constitutes a major refactor of the entire API. Any previously 
-opened branches will need to be merged or rebased. Most things are 
-exactly where they were before, only now the functions and files are named 
-consistently (expect lots of case and underscore changes). We'll be updating the 
+This release constitutes a major refactor of the entire API. Any previously
+opened branches will need to be merged or rebased. Most things are
+exactly where they were before, only now the functions and files are named
+consistently (expect lots of case and underscore changes). We'll be updating the
 style guides soon to reflect these changes.
 
-We also updated to require OpenCV 3+. This will probably cause headaches in the 
-short term as it can cause conflicts if installed alongside OpenCV 2, but the 
+We also updated to require OpenCV 3+. This will probably cause headaches in the
+short term as it can cause conflicts if installed alongside OpenCV 2, but the
 benefits should outweigh the costs moving forward.
-- all 
+- all
     - Improvements to the CI system (!124, !121)
     - Update everything to use OpenCV 3+ (!131)
-    - Add ability to import VC libraries into external CMake projects using 
-    find_package (!127) Currently requires the external project to find_package 
+    - Add ability to import VC libraries into external CMake projects using
+    find_package (!127) Currently requires the external project to find_package
     dependencies as well. We hope to improve support for this in the future.
     - Enable tons of build warnings and fix most of them! (!126)
-    - Huge refactor of everything to enforce code style, naming rules, and 
+    - Huge refactor of everything to enforce code style, naming rules, and
     clang-tidy rules (!130, !133)
 - apps
-    - Fix bug in vc_metaedit where numerical data would get saved as a string 
+    - Fix bug in vc_metaedit where numerical data would get saved as a string
     (!129)
 - core
-    - Newly refactored PLYReader that can better handle unknown elements and 
+    - Newly refactored PLYReader that can better handle unknown elements and
     attributes (!110)
     - Replace all vc::Point usages with cv::Vec (!128) We didn't really need it.
 - texturing
-    - __New:__ PPMGenerator: Generates a rastered UV Map for doing rendering and 
+    - __New:__ PPMGenerator: Generates a rastered UV Map for doing rendering and
     provenance chain lookups (!117)
 
 v2.8.0
