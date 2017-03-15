@@ -21,6 +21,7 @@ int main(int argc, char* argv[])
 
     ///// Parse the command line options /////
     fs::path slicesPath, volpkgPath;
+    bool verticalFlip, horizontalFlip;
     try {
         // All command line options
         // clang-format off
@@ -31,18 +32,28 @@ int main(int argc, char* argv[])
                 "Directory of input slice data")
             ("volpkg,v", po::value<std::string>(),
                 "Path for the output volume package");
+
+        // Useful transforms for origin adjustment
+        po::options_description extras("Volume Transformations");
+        extras.add_options()
+            ("horizontal-flip", po::bool_switch()->default_value(false),
+             "Apply a horizontal flip to slice images.")
+            ("vertical-flip", po::bool_switch()->default_value(false),
+             "Apply a vertical flip to slice images.");
         // clang-format on
+        po::options_description all("Usage");
+        all.add(options).add(extras);
 
         // parsedOptions will hold the values of all parsed options as a Map
         po::variables_map parsedOptions;
         po::store(
-            po::command_line_parser(argc, argv).options(options).run(),
+            po::command_line_parser(argc, argv).options(all).run(),
             parsedOptions);
         po::notify(parsedOptions);
 
         // Show the help message
         if (parsedOptions.count("help") || argc < 2) {
-            std::cout << options << std::endl;
+            std::cout << all << std::endl;
             return EXIT_SUCCESS;
         }
 
@@ -65,6 +76,10 @@ int main(int argc, char* argv[])
             std::cout << options << std::endl;
             return EXIT_FAILURE;
         }
+
+        // Flips?
+        verticalFlip = parsedOptions["vertical-flip"].as<bool>();
+        horizontalFlip = parsedOptions["horizontal-flip"].as<bool>();
     } catch (const std::exception& e) {
         std::cerr << "ERROR: " << e.what() << std::endl;
         return EXIT_FAILURE;
@@ -209,10 +224,24 @@ int main(int argc, char* argv[])
     for (auto slice = slices.begin(); slice != slices.end(); ++slice) {
         std::cout << "Saving slice image to volume package: " << counter + 1
                   << "/" << slices.size() << "\r" << std::flush;
-        if (slice->needsConvert())
-            volpkg.setSliceData(counter, slice->conformedImage());
-        else
+        if (slice->needsConvert() || verticalFlip || horizontalFlip) {
+            // Get slice
+            auto tmp = slice->conformedImage();
+
+            // Apply flips
+            if (verticalFlip && horizontalFlip) {
+                cv::flip(tmp, tmp, -1);
+            } else if (verticalFlip) {
+                cv::flip(tmp, tmp, 0);
+            } else if (horizontalFlip) {
+                cv::flip(tmp, tmp, 1);
+            }
+
+            // Add to volume
+            volpkg.setSliceData(counter, tmp);
+        } else {
             fs::copy(slice->path, volpkg.volume().getSlicePath(counter));
+        }
 
         ++counter;
     }
