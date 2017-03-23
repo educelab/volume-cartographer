@@ -4,6 +4,7 @@
 
 #include <cmath>
 
+#include "vc/core/util/MeshMath.hpp"
 #include "vc/external/eigen_capi.h"
 #include "vc/meshing/DeepCopy.hpp"
 #include "vc/texturing/AngleBasedFlattening.hpp"
@@ -59,10 +60,13 @@ volcart::UVMap AngleBasedFlattening::getUVMap()
         }
     }
 
-    // Scale width and height back to volume coordinates
+    // Set the UV map ratio an scale width and height back to volume coordinates
+    auto scale = sqrt(
+        volcart::meshmath::SurfaceArea(mesh_) /
+        volcart::meshmath::SurfaceArea(getMesh()));
     double aspectWidth = std::abs(uMax - uMin);
     double aspectHeight = std::abs(vMax - vMin);
-    uvMap.ratio(aspectWidth, aspectHeight);
+    uvMap.ratio(aspectWidth * scale, aspectHeight * scale);
 
     // Calculate uv coordinates
     cv::Vec2d uv;
