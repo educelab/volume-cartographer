@@ -35,7 +35,10 @@ public:
     /** @name Constructors */
     /**@{*/
     /** @brief Construct with VolumePkg */
-    explicit LocalResliceSegmentation(VolumePkg& pkg) : pkg_{pkg} {}
+    explicit LocalResliceSegmentation(VolumePkg& pkg)
+        : pkg_{pkg}, resliceSize_{32}
+    {
+    }
     /**@}*/
 
     /**
@@ -73,6 +76,9 @@ public:
         bool dumpVis,
         bool visualize);
 
+    /** @brief Set the reslice window size */
+    void setResliceSize(int s) { resliceSize_ = s; }
+
 private:
     /** VolumePkg from which to pull intensity information */
     VolumePkg& pkg_;
@@ -98,6 +104,9 @@ private:
 
     /** Default minimum energy gradient */
     constexpr static double DEFAULT_MIN_ENERGY_GRADIENT = 1e-7;
+
+    /** Window size for reslice */
+    int resliceSize_;
 };
 }
 }

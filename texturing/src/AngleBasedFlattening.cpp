@@ -36,7 +36,6 @@ volcart::UVMap AngleBasedFlattening::getUVMap()
 {
     // Setup uvMap
     volcart::UVMap uvMap;
-    uvMap.origin(VC_ORIGIN_BOTTOM_LEFT);
 
     double uMin = std::numeric_limits<double>::max();
     double uMax = std::numeric_limits<double>::min();
@@ -76,7 +75,6 @@ volcart::UVMap AngleBasedFlattening::getUVMap()
         uvMap.set(vert->id, uv);
     }
 
-    uvMap.origin(VC_ORIGIN_TOP_LEFT);
     return uvMap;
 }
 
