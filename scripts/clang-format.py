@@ -141,7 +141,6 @@ def main() -> bool:
 
     # Find changed source files.
     source_files = re.compile(r'\.(h|hpp|c|cpp)$')
-    files = []
     if args.all_files:
         files = common.all_files()
     else:

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 import argparse
 import logging
 import multiprocessing as mp
@@ -150,7 +151,7 @@ def main() -> bool:
     ct = ClangTidier(path_to_ct, args.build_dir)
     if ct.version < common.MIN_VERSION_REQUIRED:
         logging.error(
-            f'''Incorrect version of {program_name}: got {cf.version} but at \
+            f'''Incorrect version of {program_name}: got {ct.version} but at \
                 least {common.MIN_VERSION_REQUIRED} is required'''
         )
         sys.exit(1)
@@ -158,7 +159,6 @@ def main() -> bool:
     # clang-tidy operates only on c/cpp files (h/hpp files are linted
     # transitively). Only check c/cpp files.
     cpp_files = re.compile(r'\.(c|cpp|cc|cxx)$')
-    files = []
     if args.all_files:
         files = common.all_files()
     else:
