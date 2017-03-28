@@ -19,6 +19,8 @@
  *
  * Provides access to volume, segmentation, and rendering data stored on disk.
  *
+ * @warning VolumePkg is not thread safe.
+ *
  * @ingroup VolumePackage
  *
  * @see apps/src/packager.cpp
