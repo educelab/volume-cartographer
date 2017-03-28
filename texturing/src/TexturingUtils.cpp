@@ -15,10 +15,10 @@ bool IsLocalMaximum(
         cv::Vec3d(nSampleInterval, 0, 0), cv::Vec3d(-nSampleInterval, 0, 0),
         cv::Vec3d(0, nSampleInterval, 0), cv::Vec3d(0, -nSampleInterval, 0),
         cv::Vec3d(0, 0, nSampleInterval), cv::Vec3d(0, 0, -nSampleInterval)};
-    double aCurValue = volpkg.volume().interpolatedIntensityAt(nPoint);
+    double aCurValue = volpkg.volume()->interpolatedIntensityAt(nPoint);
 
     for (const auto& v : aVecs) {
-        if (aCurValue < volpkg.volume().interpolatedIntensityAt(nPoint + v)) {
+        if (aCurValue < volpkg.volume()->interpolatedIntensityAt(nPoint + v)) {
             aIsLocalMax = false;
             break;
         }
@@ -68,7 +68,7 @@ void Sectioning(
                 aPos[2] = nCenter[2] + aDir[2];
 
                 // Get interpolated intensity at point
-                double tmp = volpkg.volume().interpolatedIntensityAt(aPos);
+                double tmp = volpkg.volume()->interpolatedIntensityAt(aPos);
 
                 // Store point in return array
                 nData[aDataCnt] = tmp;
@@ -82,7 +82,7 @@ void Sectioning(
 
                     // Get interpolated intensity at point
                     double intensity =
-                        volpkg.volume().interpolatedIntensityAt(aPos);
+                        volpkg.volume()->interpolatedIntensityAt(aPos);
 
                     // Store point in return array
                     nData[aDataCnt] = intensity;  // REVISIT #192
@@ -97,7 +97,7 @@ void Sectioning(
                 aPos[2] = nCenter[2] + aDir[2];
 
                 // Get interpolated intensity at point
-                double tmp = volpkg.volume().interpolatedIntensityAt(aPos);
+                double tmp = volpkg.volume()->interpolatedIntensityAt(aPos);
 
                 // Store point in return array
                 nData[aDataCnt] = tmp;
@@ -110,7 +110,7 @@ void Sectioning(
                 aPos[2] = nCenter[2] - aDir[2];
 
                 // Get interpolated intensity at point
-                double tmp = volpkg.volume().interpolatedIntensityAt(aPos);
+                double tmp = volpkg.volume()->interpolatedIntensityAt(aPos);
 
                 // Store point in return array
                 nData[aDataCnt] = tmp;  // REVISIT - #192
@@ -161,7 +161,7 @@ void SamplingAlongNormal(
             aPos[2] = nCenter[2] + aDir[2];
 
             // Get interpolated intensity at point
-            double tmp = volpkg.volume().interpolatedIntensityAt(aPos);
+            double tmp = volpkg.volume()->interpolatedIntensityAt(aPos);
 
             // Store point in return array
             nData[aDataCnt] = tmp;  // REVISIT - #192
@@ -175,7 +175,7 @@ void SamplingAlongNormal(
             aPos[2] = nCenter[2] - aDir[2];
 
             // Get interpolated intensity at point
-            double tmp = volpkg.volume().interpolatedIntensityAt(aPos);
+            double tmp = volpkg.volume()->interpolatedIntensityAt(aPos);
 
             // Store point in return array
             nData[aDataCnt] = tmp;  // REVISIT - #192
@@ -271,7 +271,7 @@ void SamplingWithinEllipse(
                                 aPos[2] = nCenter[2] + aDir[2];
 
                                 double tmp =
-                                    volpkg.volume().interpolatedIntensityAt(
+                                    volpkg.volume()->interpolatedIntensityAt(
                                         aPos);
                                 // suppress the data if it's not local maximum
                                 if (nWithNonMaxSuppression &&
@@ -299,7 +299,7 @@ void SamplingWithinEllipse(
                                 aPos[2] = nCenter[2] + aDir[2];
 
                                 double tmp =
-                                    volpkg.volume().interpolatedIntensityAt(
+                                    volpkg.volume()->interpolatedIntensityAt(
                                         aPos);
                                 // suppress the data if it's not local maximum
                                 if (nWithNonMaxSuppression &&
@@ -327,7 +327,7 @@ void SamplingWithinEllipse(
                                 aPos[2] = nCenter[2] + aDir[2];
 
                                 double tmp =
-                                    volpkg.volume().interpolatedIntensityAt(
+                                    volpkg.volume()->interpolatedIntensityAt(
                                         aPos);
                                 // suppress the data if it's not local maximum
                                 if (nWithNonMaxSuppression &&
@@ -351,7 +351,7 @@ void SamplingWithinEllipse(
 // Filter by returning the color at the point location
 double FilterIntersection(const cv::Vec3d& nPoint, VolumePkg& volpkg)
 {
-    return volpkg.volume().interpolatedIntensityAt(nPoint);
+    return volpkg.volume()->interpolatedIntensityAt(nPoint);
 }
 
 // Filter by non maximum suppression

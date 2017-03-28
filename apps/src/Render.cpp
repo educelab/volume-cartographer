@@ -138,7 +138,7 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
     double cacheBytes = 0.75 * SystemMemorySize();
-    vpkg.volume().setCacheMemoryInBytes(static_cast<size_t>(cacheBytes));
+    vpkg.volume()->setCacheMemoryInBytes(static_cast<size_t>(cacheBytes));
 
     ///// Set the segmentation ID /////
     vpkg.setActiveSegmentation(segID);

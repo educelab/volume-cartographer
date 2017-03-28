@@ -6,9 +6,10 @@
 #include <boost/filesystem.hpp>
 #include <opencv2/core.hpp>
 
-#include "LRUCache.hpp"
-#include "Reslice.hpp"
-#include "Tensor3D.hpp"
+#include "vc/core/types/LRUCache.hpp"
+#include "vc/core/types/Metadata.hpp"
+#include "vc/core/types/Reslice.hpp"
+#include "vc/core/types/Tensor3D.hpp"
 
 namespace volcart
 {
@@ -49,9 +50,23 @@ public:
     /** @enum Axis labels */
     enum class Axis { X, Y };
 
+    /** Shared pointer type */
+    using Pointer = std::shared_ptr<Volume>;
+
     /**@{*/
     /** @brief Default constructor */
     Volume() = default;
+
+    /**
+     * @brief Load a Volume from file
+     *
+     * The path pointed to by `slicePath` should provide a JSON metadata file
+     * describing the Volume.
+     */
+    explicit Volume(boost::filesystem::path slicePath);
+
+    /** @brief Construct a Volume and return a shared pointer */
+    static Pointer New(boost::filesystem::path path);
 
     /** @brief Construct a Volume using existing slice data
      *
@@ -78,6 +93,9 @@ public:
     /**@}*/
 
     /**@{*/
+    /** @brief Get the human readable name for the Volume */
+    std::string name() { return metadata_.get<std::string>("name"); }
+
     /** @brief Get the slice width */
     int32_t sliceWidth() const { return sliceWidth_; }
 
@@ -431,15 +449,17 @@ public:
 private:
     /** Directory containing the slice images */
     boost::filesystem::path slicePath_;
+    /** Volume metadata */
+    volcart::Metadata metadata_;
     /** Number of slices in the Volume */
-    int32_t numSlices_;
+    int numSlices_;
     /** Width of the slice images */
-    int32_t sliceWidth_;
+    int sliceWidth_;
     /** Height of the slice images */
-    int32_t sliceHeight_;
+    int sliceHeight_;
     /** Number of characters in each slice filename. Used to account for
      * zero-padding. */
-    int32_t numSliceCharacters_;
+    int numSliceCharacters_;
     /** Slice image cache */
     mutable volcart::LRUCache<int32_t, cv::Mat> cache_;
 

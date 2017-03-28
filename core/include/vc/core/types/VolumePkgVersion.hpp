@@ -53,6 +53,14 @@ using Dictionary = std::unordered_map<std::string, Type>;
 using Library = std::unordered_map<int, Dictionary>;
 
 // clang-format off
+/** Metadata dictionary for VolumePkg v4. */
+const Dictionary V4 =
+        {
+        {"name",             Type::STRING},
+        {"version",          Type::INT},
+        {"materialthickness",Type::DOUBLE}
+        };
+
 /** Metadata dictionary for VolumePkg v1. */
 const Dictionary V1 =
         {
@@ -101,5 +109,5 @@ const Dictionary V3 =
 /**
  * Global Library used to store all template Dictionaries.
  */
-const Library VERSION_LIBRARY = {{1, V1}, {2, V2}, {3, V3}};
+const Library VERSION_LIBRARY = {{1, V1}, {2, V2}, {3, V3}, {4, V4}};
 }

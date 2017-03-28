@@ -639,7 +639,7 @@ void CWindow::OpenSlice(void)
 {
     cv::Mat aImgMat;
     if (fVpkg != nullptr) {
-        aImgMat = fVpkg->volume().getSliceDataCopy(fPathOnSliceIndex);
+        aImgMat = fVpkg->volume()->getSliceDataCopy(fPathOnSliceIndex);
         aImgMat.convertTo(aImgMat, CV_8UC3, 1.0 / 256.0);
         cvtColor(aImgMat, aImgMat, cv::COLOR_GRAY2BGR);
     } else

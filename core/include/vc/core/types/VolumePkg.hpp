@@ -6,10 +6,10 @@
 #include <boost/filesystem.hpp>
 #include <opencv2/core.hpp>
 
-#include "OrderedPointSet.hpp"
-#include "Texture.hpp"
-#include "Volume.hpp"
-#include "VolumePkgVersion.hpp"
+#include "vc/core/types/OrderedPointSet.hpp"
+#include "vc/core/types/Texture.hpp"
+#include "vc/core/types/Volume.hpp"
+#include "vc/core/types/VolumePkgVersion.hpp"
 #include "vc/core/vc_defines.hpp"
 #include "vc/external/json.hpp"
 
@@ -75,7 +75,7 @@ public:
     void printDirs() const
     {
         std::cout << "root: " << rootDir_ << " seg: " << segsDir_
-                  << " slice: " << sliceDir_ << std::endl;
+                  << " slice: " << volsDir_ << std::endl;
     }
     /**@}*/
 
@@ -151,15 +151,22 @@ public:
 
     /** @name Volume Data */
     /**@{*/
+    size_t numberOfVolumes() { return volumes_.size(); }
+
+    const std::vector<volcart::Volume::Pointer>& volumes() { return volumes_; }
+
     /**
      * @brief Returns the Volume object that stores slice data.
      * @return Reference to the volcart::Volume for this VolumePkg
      * @see volcart::Volume.h
      */
-    const volcart::Volume& volume() const { return vol_; }
+    const volcart::Volume::Pointer volume(size_t v = 0) const
+    {
+        return volumes_[v];
+    }
 
     /** @copydoc VolumePkg::volume() const */
-    volcart::Volume& volume() { return vol_; }
+    volcart::Volume::Pointer volume(size_t v = 0) { return volumes_[v]; }
 
     /**
      * @brief Returns the width of the slice images.
@@ -390,7 +397,9 @@ private:
     /** The subdirectory containing Segmentation data */
     boost::filesystem::path segsDir_;
     /** The subdirectory containing slice data */
-    boost::filesystem::path sliceDir_;
+    boost::filesystem::path volsDir_;
+    /** The list of all volumes in the VolumePkg. */
+    std::vector<volcart::Volume::Pointer> volumes_;
     /** Segmentation ID of the segmentation that is currently being worked on */
     std::string activeSeg_;
     /** The list of all segmentations in the VolumePkg */

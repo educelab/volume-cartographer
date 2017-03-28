@@ -160,7 +160,7 @@ int main(int argc, char* argv[])
     // Sort the Slices by their filenames
     std::sort(slices.begin(), slices.end(), SlicePathLessThan);
     std::cout << "Slice images found: " << slices.size() << std::endl;
-    volpkg.volume().setNumberOfSlices(slices.size());
+    volpkg.volume()->setNumberOfSlices(slices.size());
 
     ///// Analyze the slices /////
     bool vol_consistent = true;
@@ -240,7 +240,7 @@ int main(int argc, char* argv[])
             // Add to volume
             volpkg.setSliceData(counter, tmp);
         } else {
-            fs::copy(slice->path, volpkg.volume().getSlicePath(counter));
+            fs::copy(slice->path, volpkg.volume()->getSlicePath(counter));
         }
 
         ++counter;

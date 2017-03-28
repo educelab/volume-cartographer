@@ -10,6 +10,7 @@
 #include "vc/core/types/OrderedPointSet.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 
+namespace vc = volcart;
 namespace fs = boost::filesystem;
 
 // CONSTRUCTORS //
@@ -17,7 +18,7 @@ namespace fs = boost::filesystem;
 VolumePkg::VolumePkg(fs::path fileLocation, int version)
     : rootDir_{fileLocation}
     , segsDir_{fileLocation / "paths"}
-    , sliceDir_{fileLocation / "slices"}
+    , volsDir_{fileLocation / "vols"}
 {
     // Lookup the metadata template from our library of versions
     auto findDict = volcart::VERSION_LIBRARY.find(version);
@@ -28,29 +29,26 @@ VolumePkg::VolumePkg(fs::path fileLocation, int version)
     // Create the directories with the default values
     // TODO(skarlage): #181
     config_ = VolumePkg::InitConfig(findDict->second, version);
-    config_.set("slice location", "/slices/");
 
     // Make directories
-    for (const auto& d : {rootDir_, segsDir_, sliceDir_}) {
+    for (const auto& d : {rootDir_, segsDir_, volsDir_}) {
         if (!fs::exists(d)) {
             fs::create_directory(d);
         }
     }
 
-    // Initialize volume object
-    vol_ = volcart::Volume(
-        sliceDir_, config_.get<int>("number of slices"),
-        config_.get<int>("width"), config_.get<int>("height"));
+    // To-do: Initialize new volume?
 }
 
 // Use this when reading a volpkg from a file
 VolumePkg::VolumePkg(fs::path fileLocation)
     : rootDir_{fileLocation}
     , segsDir_{fileLocation / "paths"}
-    , sliceDir_{fileLocation / "slices"}
+    , volsDir_{fileLocation / "vols"}
 {
+    // Check directory structure
     if (!(fs::exists(rootDir_) && fs::exists(segsDir_) &&
-          fs::exists(sliceDir_))) {
+          fs::exists(volsDir_))) {
         throw std::runtime_error("invalid volumepkg structure");
     }
 
@@ -61,16 +59,18 @@ VolumePkg::VolumePkg(fs::path fileLocation)
     auto range =
         boost::make_iterator_range(fs::directory_iterator(segsDir_), {});
     for (const auto& entry : range) {
-        if (entry == "") {
-            continue;
+        if (fs::is_directory(entry)) {
+            segmentations_.push_back(fs::basename(entry));
         }
-        segmentations_.push_back(fs::basename(entry));
     }
 
-    // Initialize volume object
-    vol_ = volcart::Volume(
-        sliceDir_, config_.get<int>("number of slices"),
-        config_.get<int>("width"), config_.get<int>("height"));
+    // Load volumes into volumes_ vector
+    range = boost::make_iterator_range(fs::directory_iterator(volsDir_), {});
+    for (const auto& entry : range) {
+        if (fs::is_directory(entry)) {
+            volumes_.emplace_back(vc::Volume::New(entry));
+        }
+    }
 }
 
 // Shared pointer volumepkg construction

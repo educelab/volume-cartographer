@@ -136,12 +136,12 @@ void worker(
 
         // Generate structure tensor and eigenpairs once per point
         const auto st =
-            volpkg.volume().structureTensorAt(c.x, c.y, c.z, stRadius);
+            volpkg.volume()->structureTensorAt(c.x, c.y, c.z, stRadius);
         if (st == zero) {
             continue;
         }
         const auto pairs =
-            volpkg.volume().eigenPairsAt(c.x, c.y, c.z, stRadius);
+            volpkg.volume()->eigenPairsAt(c.x, c.y, c.z, stRadius);
 
         // Start constructing filename
         std::stringstream ss;
@@ -150,13 +150,14 @@ void worker(
 
         // Generate volumes of radius 3, 7, and 15
         cv::Vec3i p = {c.x, c.y, c.z};
-        auto volume3 = volpkg.volume().getVoxelNeighborsCubic<uint16_t>(p, 3);
+        auto volume3 = volpkg.volume()->getVoxelNeighborsCubic<uint16_t>(p, 3);
         auto outfile3 = outputDir / std::to_string(3) /
                         (baseFilename + std::to_string(3) + ".h5");
-        auto volume7 = volpkg.volume().getVoxelNeighborsCubic<uint16_t>(p, 7);
+        auto volume7 = volpkg.volume()->getVoxelNeighborsCubic<uint16_t>(p, 7);
         auto outfile7 = outputDir / std::to_string(7) /
                         (baseFilename + std::to_string(7) + ".h5");
-        auto volume15 = volpkg.volume().getVoxelNeighborsCubic<uint16_t>(p, 15);
+        auto volume15 =
+            volpkg.volume()->getVoxelNeighborsCubic<uint16_t>(p, 15);
         auto outfile15 = outputDir / std::to_string(15) /
                          (baseFilename + std::to_string(15) + ".h5");
 

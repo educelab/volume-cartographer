@@ -146,7 +146,7 @@ cv::Vec3d Chain::gravity(size_t index)
 
     cv::Vec3d offset =
         volpkg_.volume()
-            .interpolatedEigenPairsAt(history_.front()[index], 3)[0]
+            ->interpolatedEigenPairsAt(history_.front()[index], 3)[0]
             .second;
 
     offset = gravity - (gravity.dot(offset)) / (offset.dot(offset)) * offset;

@@ -12,6 +12,20 @@
 using namespace volcart;
 namespace fs = boost::filesystem;
 
+Volume::Volume(fs::path slicePath) : slicePath_(std::move(slicePath))
+{
+    metadata_ = volcart::Metadata(slicePath_ / "meta.json");
+    sliceWidth_ = metadata_.get<int>("width");
+    sliceHeight_ = metadata_.get<int>("height");
+    numSlices_ = metadata_.get<int>("slices");
+    numSliceCharacters_ = std::to_string(numSlices_).size();
+}
+
+Volume::Pointer Volume::New(fs::path path)
+{
+    return std::make_shared<Volume>(path);
+}
+
 StructureTensor Tensorize(cv::Vec3d gradient);
 
 std::unique_ptr<double[]> MakeUniformGaussianField(int radius);

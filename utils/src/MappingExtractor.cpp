@@ -134,7 +134,7 @@ int main(int /*argc*/, char** argv)
     cv::imwrite("ROI_texture.png", texture8bpc);
 
     ///// Write the slice intersection image /////
-    cv::Mat sliceView = volpkg->volume().getSliceDataCopy(zFeatureSlice);
+    cv::Mat sliceView = volpkg->volume()->getSliceDataCopy(zFeatureSlice);
     cv::normalize(sliceView, sliceView, 0, 255, cv::NORM_MINMAX, CV_8UC3);
     cv::cvtColor(sliceView, sliceView, cv::COLOR_GRAY2BGR);
 
