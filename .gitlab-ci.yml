@@ -13,7 +13,7 @@ build:debian:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
         - mkdir -p build
         - cd build/
-        - cmake -DBoost_USE_STATIC_LIBS=ON -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -GNinja ..
+        - cmake -DBoost_USE_STATIC_LIBS=ON -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -DBUILD_SHARED_LIBS=ON -GNinja ..
         - ninja
     artifacts:
         paths:
@@ -32,7 +32,7 @@ test:debian:
     script:
         - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
         - cd build/
-        - cmake -DBoost_USE_STATIC_LIBS=ON -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -GNinja ..
+        - cmake -DBoost_USE_STATIC_LIBS=ON -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -DBUILD_SHARED_LIBS=ON -GNinja ..
         - ctest -j 4
     dependencies:
         - build:debian
@@ -56,7 +56,7 @@ build:osx:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
         - mkdir -p build
         - cd build/
-        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -DVC_USE_VCG=ON -GNinja ..
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -DVC_USE_VCG=ON  -DBUILD_SHARED_LIBS=ON -GNinja ..
         - ninja
     artifacts:
         paths:
@@ -74,7 +74,7 @@ test:osx:
     script:
         - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
         - cd build/
-        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -DVC_USE_VCG=ON -GNinja ..
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -DVC_USE_VCG=ON  -DBUILD_SHARED_LIBS=ON -GNinja ..
         - ctest -j 4
     dependencies:
         - build:osx
@@ -109,7 +109,7 @@ lint:clang-tidy:
       - git fetch --all
       - mkdir -p build/
       - cd build/
-      - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -GNinja -DVC_USE_BULLET=ON -DVC_USE_ACVD=ON -DVC_USE_VCG=ON ..
+      - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -GNinja -DVC_USE_BULLET=ON -DVC_USE_ACVD=ON -DVC_USE_VCG=ON -DBUILD_SHARED_LIBS=ON ..
       - cd ..
     stage: test
     script:
@@ -127,7 +127,7 @@ doxygen:html:
     stage: docs
     script:
         - cd build/
-        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_BUILD_DOC=ON -GNinja ..
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_BUILD_DOC=ON -GNinja -DBUILD_SHARED_LIBS=ON ..
         - ninja doc
     artifacts:
         name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
@@ -146,7 +146,7 @@ doxygen:pdf:
     stage: docs
     script:
         - cd build/
-        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_BUILD_DOC=ON -GNinja ..
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_BUILD_DOC=ON -GNinja -DBUILD_SHARED_LIBS=ON ..
         - ninja doc
         - cd doc/latex/
         - make
@@ -189,7 +189,7 @@ collect:osx:
         - cd ..
         - mkdir -p build
         - cd build/
-        - cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -DVC_BUILD_EXAMPLES=OFF -DVC_BUILD_TESTS=OFF -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DCMAKE_OSX_SYSROOT=../vc-deps/build/SDKs/MacOSX10.9.sdk/ ..
+        - cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -DVC_BUILD_EXAMPLES=OFF -DVC_BUILD_TESTS=OFF -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DCMAKE_OSX_SYSROOT=../vc-deps/build/SDKs/MacOSX10.9.sdk/ -DBUILD_SHARED_LIBS=ON ..
         - ninja
         - ninja package
         - mv VC*.dmg ../
