@@ -11,6 +11,9 @@ set(CMAKE_CXX_STANDARD 14)
 set(CXX_STANDARD_REQUIRED on)
 set(CMAKE_EXPORT_COMPILE_COMMANDS on)
 
+#Choose whether to build statically or dynamically
+#option(VC_DYNAMIC_LIBS OFF)
+
 # Choose what to build
 option(VC_BUILD_APPS     "Compile VC core programs"    on)
 option(VC_BUILD_UTILS    "Compile VC utility programs" on)
@@ -56,6 +59,10 @@ endif()
 add_subdirectory(meshing)
 add_subdirectory(segmentation)
 add_subdirectory(texturing)
+
+#if(VC_DYNAMIC_LIBS)
+	#set(BUILD_SHARED_LIBS ON)
+#endif()
 
 ## VC Core Apps ##
 if (VC_BUILD_APPS)
