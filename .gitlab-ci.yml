@@ -13,7 +13,7 @@ build:debian:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
         - mkdir -p build
         - cd build/
-        - cmake -DBoost_USE_STATIC_LIBS=ON -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -DBUILD_SHARED_LIBS=ON -GNinja ..
+        - cmake -DBoost_USE_STATIC_LIBS=ON -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -GNinja ..
         - ninja
     artifacts:
         paths:
@@ -32,7 +32,7 @@ test:debian:
     script:
         - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
         - cd build/
-        - cmake -DBoost_USE_STATIC_LIBS=ON -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -DBUILD_SHARED_LIBS=ON -GNinja ..
+        - cmake -DBoost_USE_STATIC_LIBS=ON -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -GNinja ..
         - ctest -j 4
     dependencies:
         - build:debian
