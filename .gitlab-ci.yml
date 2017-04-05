@@ -82,7 +82,7 @@ test:osx:
       name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
       paths:
         - build/testing/Temporary/
-        - /build/lib
+        - /build/lib/
       when: always
       expire_in: 4 weeks
     tags:
