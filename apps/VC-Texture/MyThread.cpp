@@ -101,7 +101,7 @@ void MyThread::run()
 
         // Setup rendering
         volcart::Rendering rendering;
-        rendering.setTexture(result.texture());
+        rendering.setTexture(result.getTexture());
         rendering.setMesh(itkACVD);
 
         _globals->setRendering(rendering);

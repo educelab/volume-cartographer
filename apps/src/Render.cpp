@@ -206,13 +206,13 @@ int main(int argc, char* argv[])
 
     // Setup rendering
     volcart::Rendering rendering;
-    rendering.setTexture(result.texture());
+    rendering.setTexture(result.getTexture());
     rendering.setMesh(itkACVD);
 
     if (outputPath.extension() == ".PLY" || outputPath.extension() == ".ply") {
         std::cout << "Writing to PLY..." << std::endl;
         volcart::io::PLYWriter writer(
-            outputPath.string(), itkACVD, result.texture());
+            outputPath.string(), itkACVD, result.getTexture());
         writer.write();
     } else if (
         outputPath.extension() == ".OBJ" || outputPath.extension() == ".obj") {
@@ -228,7 +228,7 @@ int main(int argc, char* argv[])
         cv::imwrite(outputPath.string(), rendering.getTexture().image(0));
     } else {
         std::cout << "Writing to Volume Package..." << std::endl;
-        vpkg.saveMesh(itkACVD, result.texture());
+        vpkg.saveMesh(itkACVD, result.getTexture());
     }
 
     return EXIT_SUCCESS;

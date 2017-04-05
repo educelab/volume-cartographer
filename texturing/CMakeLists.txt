@@ -3,9 +3,7 @@ set(module "texturing")
 set(target "vc_${module}")
 
 set(srcs
-    src/CompositeTexture.cpp
     src/CompositeTextureV2.cpp
-    src/SimpleUV.cpp
     src/AngleBasedFlattening.cpp
     src/PPMGenerator.cpp
     src/TexturingUtils.cpp
@@ -19,12 +17,12 @@ set(private_deps
 )
 set(defs "")
 
-if (VC_USE_LIBIGL)
+if (VC_USE_LIBIGL OR VC_USE_ALL)
     list(APPEND srcs src/LeastSquaresConformalMapping.cpp)
     list(APPEND public_deps libigl)
     list(APPEND defs VC_USE_LIBIGL)
 endif()
-if (VC_USE_BULLET)
+if (VC_USE_BULLET OR VC_USE_ALL)
     list(APPEND srcs src/ClothModelingUVMapping.cpp)
     list(APPEND public_deps bullet ${BULLET_LIBRARIES})
     list(APPEND defs VC_USE_BULLET)
@@ -67,12 +65,11 @@ if(VC_BUILD_TESTS)
 # Set source files
 set(test_srcs
     test/ABFTest.cpp
-    test/SimpleUVTest.cpp
 )
-if (VC_USE_BULLET)
+if (VC_USE_BULLET OR VC_USE_ALL)
     list(APPEND test_srcs test/ClothTest.cpp)
 endif()
-if (VC_USE_LIBIGL)
+if (VC_USE_LIBIGL OR VC_USE_ALL)
     list(APPEND test_srcs test/LSCMTest.cpp)
 endif()
 
@@ -101,14 +98,14 @@ set(VC_TEXTURING_TEST_RES
     test/res/abf_Arch.obj
     test/res/abf_Arch_LSCMOnly.obj
 )
-if (VC_USE_BULLET)
+if (VC_USE_BULLET OR VC_USE_ALL)
     list(APPEND VC_TEXTURING_TEST_RES
         test/res/clothUV_Arch_Unfurl.obj
         test/res/clothUV_Arch_Collide.obj
         test/res/clothUV_Arch_Final.obj
     )
 endif()
-if (VC_USE_LIBIGL)
+if (VC_USE_LIBIGL OR VC_USE_ALL)
     list(APPEND VC_TEXTURING_TEST_RES
         test/res/lscm_Plane.obj
         test/res/lscm_Arch.obj

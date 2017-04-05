@@ -98,7 +98,7 @@ volcart::UVMap LeastSquaresConformalMapping::getUVMap()
 
 ///// Processing /////
 // Compute the parameterization
-void LeastSquaresConformalMapping::compute()
+UVMap LeastSquaresConformalMapping::compute()
 {
 
     // Fix two points on the boundary
@@ -127,6 +127,8 @@ void LeastSquaresConformalMapping::compute()
     cv::fitLine(points, line, cv::DIST_L2, 0, 0.01, 0.01);
     Eigen::Rotation2Dd rot(std::atan(line(1) / line(0)));
     verticesUV_ *= rot.matrix();
+
+    return getUVMap();
 }
 
 ///// Utilities /////

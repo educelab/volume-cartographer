@@ -21,25 +21,25 @@ namespace texturing
 static void constrainMotionCallback(btDynamicsWorld* world, btScalar timeStep)
 {
     auto w = static_cast<ClothModelingUVMapping*>(world->getWorldUserInfo());
-    w->_constrainMotion(timeStep);
+    w->cbConstrainMotion(timeStep);
 }
 
 static void axisLockCallback(btDynamicsWorld* world, btScalar timeStep)
 {
     auto w = static_cast<ClothModelingUVMapping*>(world->getWorldUserInfo());
-    w->_axisLock(timeStep);
+    w->cbAxisLock(timeStep);
 }
 
 static void moveTowardTargetCallback(btDynamicsWorld* world, btScalar timeStep)
 {
     auto w = static_cast<ClothModelingUVMapping*>(world->getWorldUserInfo());
-    w->_moveTowardTarget(timeStep);
+    w->cbMoveTowardTarget(timeStep);
 }
 
 static void emptyPreTickCallback(btDynamicsWorld* world, btScalar timeStep)
 {
     auto w = static_cast<ClothModelingUVMapping*>(world->getWorldUserInfo());
-    w->_emptyPreTick(timeStep);
+    w->cbEmptyPreTick(timeStep);
 }
 }  // texturing
 }  // volcart
@@ -52,20 +52,18 @@ ClothModelingUVMapping::ClothModelingUVMapping(
     uint16_t unfurlIterations,
     uint16_t collideIterations,
     uint16_t expandIterations,
-    PinIDs unfurlPins,
-    PinIDs expansionPins)
+    VertIDList unfurlPins,
+    VertIDList expansionPins)
     : mesh_(input)
     , unfurlIterations_(unfurlIterations)
+    , unfurlA_(10)
     , unfurlPins_(std::move(unfurlPins))
     , collideIterations_(collideIterations)
+    , collisionA_(-10)
     , expandIterations_(expandIterations)
+    , expansionA_(-10)
     , expansionPins_(std::move(expansionPins))
 {
-    // Default starting parameters
-    unfurlA_ = 10;
-    collisionA_ = -10;
-    expansionA_ = -10;
-
     // Create Dynamic world for bullet cloth simulation
     worldBroadphase_ = new btDbvtBroadphase();
     worldCollisionConfig_ = new btSoftBodyRigidBodyCollisionConfiguration();
@@ -141,7 +139,7 @@ ClothModelingUVMapping::~ClothModelingUVMapping()
 }
 
 // Process this mesh
-void ClothModelingUVMapping::run()
+volcart::UVMap ClothModelingUVMapping::compute()
 {
     if (unfurlIterations_ > 0) {
         unfurl_();
@@ -152,6 +150,8 @@ void ClothModelingUVMapping::run()
     if (expandIterations_ > 0) {
         expand_();
     }
+
+    return getUVMap();
 }
 
 // Call the stages individually
@@ -413,7 +413,7 @@ double ClothModelingUVMapping::surface_area_()
 
 ///// Callback Functions /////
 // Limits motion to be along the X axis only. Used in unfurl step.
-void ClothModelingUVMapping::_constrainMotion(btScalar /*timeStep*/)
+void ClothModelingUVMapping::cbConstrainMotion(btScalar /*timeStep*/)
 {
     for (auto n = 0; n < softBody_->m_nodes.size(); ++n) {
         btVector3 velocity = softBody_->m_nodes[n].m_v;
@@ -424,9 +424,8 @@ void ClothModelingUVMapping::_constrainMotion(btScalar /*timeStep*/)
 }
 
 // Apply opposite velocity to points that have "passed through" the
-// collision
-// plane
-void ClothModelingUVMapping::_axisLock(btScalar /*timeStep*/)
+// collision plane
+void ClothModelingUVMapping::cbAxisLock(btScalar /*timeStep*/)
 {
     for (auto n = 0; n < softBody_->m_nodes.size(); ++n) {
         btVector3 pos = softBody_->m_nodes[n].m_x;
@@ -439,7 +438,7 @@ void ClothModelingUVMapping::_axisLock(btScalar /*timeStep*/)
 }
 
 // Move points in the currentPins_ vector towards their respective targets
-void ClothModelingUVMapping::_moveTowardTarget(btScalar timeStep)
+void ClothModelingUVMapping::cbMoveTowardTarget(btScalar timeStep)
 {
     for (auto pin = currentPins_.begin(); pin < currentPins_.end(); ++pin) {
         btVector3 delta = (pin->target - pin->node->m_x).normalized();
@@ -447,7 +446,7 @@ void ClothModelingUVMapping::_moveTowardTarget(btScalar timeStep)
     }
 }
 // This call back is used to disable other callbacks
-void ClothModelingUVMapping::_emptyPreTick(btScalar /*timeStep*/)
+void ClothModelingUVMapping::cbEmptyPreTick(btScalar /*timeStep*/)
 {
     // Don't do anything
 }

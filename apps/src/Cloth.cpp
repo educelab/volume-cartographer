@@ -21,7 +21,7 @@ namespace po = boost::program_options;
 void getPins(
     std::string path,
     ITKMesh::Pointer mesh,
-    volcart::texturing::ClothModelingUVMapping::PinIDs& pinList);
+    volcart::texturing::ClothModelingUVMapping::VertIDList& pinList);
 
 int main(int argc, char* argv[])
 {
@@ -120,11 +120,11 @@ int main(int argc, char* argv[])
     volcart::meshing::VTK2ITK(reader->GetOutput(), mesh);
 
     // Get pinned points for unfurling step
-    volcart::texturing::ClothModelingUVMapping::PinIDs unfurl;
+    volcart::texturing::ClothModelingUVMapping::VertIDList unfurl;
     getPins(uPins_path, mesh, unfurl);
 
     // Get pinned points for expansion step
-    volcart::texturing::ClothModelingUVMapping::PinIDs expand;
+    volcart::texturing::ClothModelingUVMapping::VertIDList expand;
     getPins(ePins_path, mesh, expand);
 
     // Run the simulation
@@ -136,7 +136,7 @@ int main(int argc, char* argv[])
         volcart::texturing::ClothModelingUVMapping::Stage::Collision, -10);
     clothUV.setAcceleration(
         volcart::texturing::ClothModelingUVMapping::Stage::Expansion, 10);
-    clothUV.run();
+    clothUV.compute();
 
     // Write the scaled mesh
     ITKMesh::Pointer output = clothUV.getMesh();
@@ -157,15 +157,15 @@ int main(int argc, char* argv[])
     volcart::texturing::CompositeTextureV2 result(
         mesh, vpkg, clothUV.getUVMap(), 7, width, height);
     volcart::io::OBJWriter objwriter(
-        "textured.obj", mesh, uvMap, result.texture().image(0));
+        "textured.obj", mesh, uvMap, result.getTexture().image(0));
     objwriter.write();
 
-    if (result.texture().mask().data) {
-        cv::imwrite("PerPixelMask.png", result.texture().mask());
+    if (result.getTexture().mask().data) {
+        cv::imwrite("PerPixelMask.png", result.getTexture().mask());
     }
 
-    if (result.texture().ppm().initialized()) {
-        PerPixelMap::WritePPM("PerPixelMapping", result.texture().ppm());
+    if (result.getTexture().ppm().initialized()) {
+        PerPixelMap::WritePPM("PerPixelMapping", result.getTexture().ppm());
     }
 
     return 0;
@@ -175,7 +175,7 @@ int main(int argc, char* argv[])
 void getPins(
     std::string path,
     ITKMesh::Pointer mesh,
-    volcart::texturing::ClothModelingUVMapping::PinIDs& pinList)
+    volcart::texturing::ClothModelingUVMapping::VertIDList& pinList)
 {
 
     // Clear the pin list

@@ -12,7 +12,7 @@ namespace texturing
 
 // Constructor
 CompositeTextureV2::CompositeTextureV2(
-    ITKMesh::Pointer inputMesh,
+    ITKMesh::Pointer input,
     VolumePkg& volpkg,
     UVMap uvMap,
     double radius,
@@ -20,14 +20,14 @@ CompositeTextureV2::CompositeTextureV2(
     size_t height,
     CompositeOption method,
     DirectionOption direction)
-    : input_{inputMesh}
+    : input_{input}
+    , uvMap_{std::move(uvMap)}
     , volpkg_{volpkg}
     , width_{width}
     , height_{height}
     , radius_{radius}
     , method_{method}
     , direction_{direction}
-    , uvMap_{std::move(uvMap)}
 {
     process_();
 }

@@ -24,8 +24,8 @@ target_include_directories(${target}
         $<INSTALL_INTERFACE:include>
 )
 target_compile_options(${target}
-	PUBLIC
-		-Wno-c++11-narrowing
+    PUBLIC
+        -Wno-c++11-narrowing
 )
 target_link_libraries(${target}
     PUBLIC

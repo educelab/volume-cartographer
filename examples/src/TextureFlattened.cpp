@@ -13,7 +13,6 @@
 #include "vc/core/vc_defines.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
 #include "vc/texturing/CompositeTextureV2.hpp"
-#include "vc/texturing/SimpleUV.hpp"
 
 int main(int /*argc*/, char* argv[])
 {
@@ -87,17 +86,17 @@ int main(int /*argc*/, char* argv[])
         inputMesh, vpkg, uvMap, radius, static_cast<int>(aspect_width),
         static_cast<int>(aspect_height));
     volcart::io::OBJWriter objwriter(
-        "cloth.obj", inputMesh, result.texture().uvMap(),
-        result.texture().image(0));
+        "cloth.obj", inputMesh, result.getTexture().uvMap(),
+        result.getTexture().image(0));
     objwriter.write();
 
-    if (result.texture().mask().data) {
-        cv::imwrite("PerPixelMask.png", result.texture().mask());
+    if (result.getTexture().mask().data) {
+        cv::imwrite("PerPixelMask.png", result.getTexture().mask());
     }
 
-    if (result.texture().ppm().initialized()) {
+    if (result.getTexture().ppm().initialized()) {
         volcart::PerPixelMap::WritePPM(
-            "PerPixelMapping.ppm", result.texture().ppm());
+            "PerPixelMapping.ppm", result.getTexture().ppm());
     }
 
     return EXIT_SUCCESS;
