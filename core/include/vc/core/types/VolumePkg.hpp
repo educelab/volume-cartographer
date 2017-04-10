@@ -19,6 +19,8 @@
  *
  * Provides access to volume, segmentation, and rendering data stored on disk.
  *
+ * @warning VolumePkg is not thread safe.
+ *
  * @ingroup VolumePackage
  *
  * @see apps/src/packager.cpp
@@ -47,6 +49,15 @@ public:
      * @param fileLocation The root of the VolumePkg file
      */
     explicit VolumePkg(boost::filesystem::path fileLocation);
+
+    /** VolumePkg shared pointer */
+    using Pointer = std::shared_ptr<VolumePkg>;
+
+    /** @copybrief VolumePkg(boost::filesystem::path fileLocation)
+     *
+     * Returns a shared pointer to the VolumePkg.
+     */
+    static Pointer New(boost::filesystem::path fileLocation);
 
     /**
      * @brief Prints the JSON object that stores VolumePkg metadata. Debug only.
