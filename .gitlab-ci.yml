@@ -128,7 +128,6 @@ test:osx-dynamic:
         - qt5
         - ninja
 
-
 ### Extra Checks and Tests ###
 lint:clang-format:
     before_script:
@@ -140,6 +139,7 @@ lint:clang-format:
     tags:
         - clang-format
         - osx
+
 lint:clang-tidy:
     before_script:
       - git fetch --all
@@ -225,7 +225,7 @@ collect:osx:
         - cd ..
         - mkdir -p build
         - cd build/
-        - cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -DVC_BUILD_EXAMPLES=OFF -DVC_BUILD_TESTS=OFF -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DCMAKE_OSX_SYSROOT=../vc-deps/build/SDKs/MacOSX10.9.sdk/ -DBUILD_SHARED_LIBS=ON ..
+        - cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -DVC_BUILD_EXAMPLES=OFF -DVC_BUILD_TESTS=OFF -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DCMAKE_OSX_SYSROOT=../vc-deps/build/SDKs/MacOSX10.9.sdk/ ..
         - ninja
         - ninja package
         - mv VC*.dmg ../
