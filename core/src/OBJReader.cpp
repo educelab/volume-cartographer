@@ -191,7 +191,8 @@ void OBJReader::parse_mtllib_(const std::vector<std::string>& strs)
 
         // Handle map_Kd
         if (std::regex_match(mtlstrs[0], mapKd)) {
-            texturePath_ = mtlstrs[1];
+            texturePath_ =
+                fs::canonical(fs::canonical(path_.parent_path()) / mtlstrs[1]);
         }
         mtlstrs.clear();
     }
