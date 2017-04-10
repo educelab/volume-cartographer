@@ -197,6 +197,9 @@ int main(int argc, char* argv[])
     auto height = static_cast<int>(
         std::ceil(static_cast<double>(width) / uvMap.ratio().aspect));
 
+    // Generate texture image
+    std::cout << "Generating texture..." << std::endl;
+    std::cout << "Size: " << width << "x" << height << std::endl;
     volcart::texturing::CompositeTextureV2 result(
         itkACVD, vpkg, uvMap, radius, width, height, aFilterOption,
         aDirectionOption);

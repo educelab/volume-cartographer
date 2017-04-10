@@ -21,27 +21,6 @@
 #include "vc/core/types/UVMap.hpp"
 #include "vc/core/vc_defines.hpp"
 
-/*
- * Switch to this when we validate that it does the same as the macro
-template <typename T>
-void Shift3(T& a, T& b, T& c)
-{
-    T tmp = a;
-    a = c;
-    c = b;
-    b = tmp;
-}
-*/
-// This is terrible but it'll work for now - SP
-#define SHIFT3(type, a, b, c) \
-    {                         \
-        type tmp;             \
-        tmp = a;              \
-        (a) = c;              \
-        (c) = b;              \
-        (b) = tmp;            \
-    }
-
 namespace volcart
 {
 namespace texturing
@@ -80,6 +59,16 @@ public:
 
     ///// Default values /////
     static const int DEFAULT_MAX_ABF_ITERATIONS = 5;
+
+    /** @brief Shift values */
+    template <typename T>
+    void Shift3(T& a, T& b, T& c)
+    {
+        T tmp = a;
+        a = c;
+        c = b;
+        b = tmp;
+    }
 
 private:
     ///// Setup /////
