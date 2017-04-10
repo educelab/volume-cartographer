@@ -50,7 +50,47 @@ test:debian:
         - ninja
 
 ### OSX ###
-build:osx:
+build:osx-static:
+    stage: build
+    script:
+        - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
+        - mkdir -p build
+        - cd build/
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -DVC_USE_VCG=ON -GNinja ..
+        - ninja
+    artifacts:
+        paths:
+            - build/bin/
+        expire_in: 1 day
+    tags:
+        - build
+        - osx
+        - homebrew
+        - qt5
+        - ninja
+test:osx-static:
+    stage: test
+    script:
+        - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
+        - cd build/
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -DVC_USE_VCG=ON -GNinja ..
+        - ctest -j 4
+    dependencies:
+        - build:osx
+    artifacts:
+      name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
+      paths:
+        - build/testing/Temporary/
+      when: always
+      expire_in: 4 weeks
+    tags:
+        - test
+        - osx
+        - homebrew
+        - qt5
+        - ninja
+
+build:osx-dynamic:
     stage: build
     script:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
@@ -70,7 +110,7 @@ build:osx:
         - qt5
         - ninja
 
-test:osx:
+test:osx-dynamic:
     stage: test
     script:
         - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
@@ -79,10 +119,6 @@ test:osx:
         - ctest -j 4
     dependencies:
         - build:osx
-    artifacts:
-      name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
-      paths:
-        - build/testing/Temporary/
       when: always
       expire_in: 4 weeks
     tags:
@@ -104,13 +140,12 @@ lint:clang-format:
     tags:
         - clang-format
         - osx
-
 lint:clang-tidy:
     before_script:
       - git fetch --all
       - mkdir -p build/
       - cd build/
-      - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -GNinja -DVC_USE_BULLET=ON -DVC_USE_ACVD=ON -DVC_USE_VCG=ON -DBUILD_SHARED_LIBS=ON ..
+      - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -GNinja -DVC_USE_BULLET=ON -DVC_USE_ACVD=ON -DVC_USE_VCG=ON ..
       - cd ..
     stage: test
     script:
@@ -128,7 +163,7 @@ doxygen:html:
     stage: docs
     script:
         - cd build/
-        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_BUILD_DOC=ON -GNinja -DBUILD_SHARED_LIBS=ON ..
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_BUILD_DOC=ON -GNinja ..
         - ninja doc
     artifacts:
         name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
@@ -147,7 +182,7 @@ doxygen:pdf:
     stage: docs
     script:
         - cd build/
-        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_BUILD_DOC=ON -GNinja -DBUILD_SHARED_LIBS=ON ..
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_BUILD_DOC=ON -GNinja ..
         - ninja doc
         - cd doc/latex/
         - make
