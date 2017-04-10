@@ -102,6 +102,7 @@ build:osx:dynamic:
     artifacts:
         paths:
             - build/bin/
+            - build/lib/
         expire_in: 1 day
     tags:
         - build
