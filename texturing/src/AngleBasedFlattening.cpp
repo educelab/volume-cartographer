@@ -4,6 +4,7 @@
 
 #include <cmath>
 
+#include "vc/core/util/MeshMath.hpp"
 #include "vc/external/eigen_capi.h"
 #include "vc/meshing/DeepCopy.hpp"
 #include "vc/texturing/AngleBasedFlattening.hpp"
@@ -59,10 +60,13 @@ volcart::UVMap AngleBasedFlattening::getUVMap()
         }
     }
 
-    // Scale width and height back to volume coordinates
+    // Set the UV map ratio an scale width and height back to volume coordinates
+    auto scale = sqrt(
+        volcart::meshmath::SurfaceArea(mesh_) /
+        volcart::meshmath::SurfaceArea(getMesh()));
     double aspectWidth = std::abs(uMax - uMin);
     double aspectHeight = std::abs(vMax - vMin);
-    uvMap.ratio(aspectWidth, aspectHeight);
+    uvMap.ratio(aspectWidth * scale, aspectHeight * scale);
 
     // Calculate uv coordinates
     cv::Vec2d uv;
@@ -637,14 +641,14 @@ void AngleBasedFlattening::solve_lscm_()
         // Shift verts for stable order
         // Careful. Only use these values going forward through the loop
         if (sin2 != sinmax) {
-            SHIFT3(volcart::HalfEdgeMesh::IDType, v0, v1, v2);
-            SHIFT3(double, a0, a1, a2);
-            SHIFT3(double, sin0, sin1, sin2);
+            Shift3<HalfEdgeMesh::IDType>(v0, v1, v2);
+            Shift3<double>(a0, a1, a2);
+            Shift3<double>(sin0, sin1, sin2);
 
             if (sin1 == sinmax) {
-                SHIFT3(QuadPointIdentifier, v0, v1, v2);
-                SHIFT3(double, a0, a1, a2);
-                SHIFT3(double, sin0, sin1, sin2);
+                Shift3<HalfEdgeMesh::IDType>(v0, v1, v2);
+                Shift3<double>(a0, a1, a2);
+                Shift3<double>(sin0, sin1, sin2);
             }
         }
 

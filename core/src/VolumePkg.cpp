@@ -75,6 +75,12 @@ VolumePkg::VolumePkg(fs::path fileLocation)
         config_.get<int>("width"), config_.get<int>("height"));
 }
 
+// Shared pointer volumepkg construction
+VolumePkg::Pointer VolumePkg::New(boost::filesystem::path fileLocation)
+{
+    return std::make_shared<VolumePkg>(fileLocation);
+}
+
 // METADATA RETRIEVAL //
 // Returns Volume Name from JSON config
 std::string VolumePkg::getPkgName() const

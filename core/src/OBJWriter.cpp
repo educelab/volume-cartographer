@@ -125,7 +125,7 @@ int OBJWriter::writeTexture()
     std::cerr << "Writing texture image..." << std::endl;
     fs::path p = outputPath_;
     p.replace_extension("png");
-    cv::imwrite(p.string(), texture_);
+    cv::imwrite(p.string(), texture_, {cv::IMWRITE_PNG_COMPRESSION, 6});
     return EXIT_SUCCESS;
 }
 

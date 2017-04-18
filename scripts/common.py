@@ -70,7 +70,8 @@ def all_files() -> Generator[str, None, None]:
 
 
 def fetch_clang_binary(
-    url: str, binary: str, extract_dir: str=EXTRACT_DIR
+    url: str, binary: str,
+    extract_dir: str=EXTRACT_DIR,
 ) -> str:
     '''
     Extract `binary` from `url` to `extract_dir`.
