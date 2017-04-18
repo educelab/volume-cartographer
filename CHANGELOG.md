@@ -1,5 +1,16 @@
 Volume Cartographer Changelog
 =============================
+v2.12.0
+-------
+- all
+    - Add CI testing for dynamic linking (!163)
+- core
+    - (OBJReader) Fix relative image path bug (!164)
+    - (OBJWriter) Add compression to texture image output (7a3e931c)
+    - (VolumePkg) Add shared pointer typedefs (!160)
+- texturing
+    - Scale ABF generated mesh to same surface area as input mesh (!162)
+
 v2.11.0
 -------
 - apps
