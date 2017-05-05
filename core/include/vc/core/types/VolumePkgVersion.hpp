@@ -24,7 +24,7 @@
   of a VolumePkg. In this way, developers will be able to maintain backwards
   compatibility with older datasets.
 
-  @ingroup VolumePackage
+  @ingroup Types
  */
 
 #pragma once

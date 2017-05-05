@@ -1,4 +1,3 @@
-/** @file PerPixelMap.cpp*/
 #include "vc/core/types/PerPixelMap.hpp"
 #include "vc/core/io/PointSetIO.hpp"
 #include "vc/core/types/Exceptions.hpp"

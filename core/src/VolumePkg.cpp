@@ -1,5 +1,3 @@
-/** @file volumepkg.cpp */
-
 #include <iostream>
 
 #include <boost/range/iterator_range.hpp>

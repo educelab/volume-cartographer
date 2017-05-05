@@ -110,3 +110,6 @@ target_link_libraries(vc_orderedPointSetMesher_example VC::meshing)
 
 add_executable(vc_obj_reader_example src/OBJReaderExample.cpp)
 target_link_libraries(vc_obj_reader_example VC::core)
+
+add_executable(vc_scale_gen_example src/ScalesExample.cpp)
+target_link_libraries(vc_scale_gen_example VC::core)

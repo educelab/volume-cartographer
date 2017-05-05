@@ -1,10 +1,36 @@
-//
-// Created by Media Team on 5/6/15.
-//
+/**
+ * @file Scales.hpp
+ * @author Seth Parker
+ * @date 5/6/15
+ *
+ * @brief Binary images used to provide a sense of scale to generated data
+ *
+ * Each array in this set is a binary mask image. These images can be
+ * superimposed on texture image data in order to provide a sense of scale.
+ *
+ * They can be easily converted into a `cv::Mat`:
+ * \code{.cpp}
+ * // Create Mat
+ * cv::Mat img(23, 82, CV_16UC1, g_scaleMicro);
+ *
+ * // Scale to 16bpc range
+ * img *= 65535;
+ * \endcode
+ *
+ * @ingroup Scales
+ */
 #pragma once
 
 #include <cstdint>
 
+/**
+ * @brief 3mm Ruler
+ *
+ * Resolution: 40 um/px
+ *
+ * @image html scale-micro+border.png height=50px
+ * <em>* Image shown with added border</em>
+ */
 static uint16_t g_scaleMicro[23][82] = {
     {1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -99,6 +125,16 @@ static uint16_t g_scaleMicro[23][82] = {
      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}};
 
+/**
+ * @brief Greek Pi character
+ *
+ * Created from BYU photograph of opened Herculaneum material.
+ *
+ * Resolution: 40 um/px
+ *
+ * @image html scale-pi+border.png height=100px
+ * <em>* Image shown with added border</em>
+ */
 static uint16_t g_scalePi[76][94] = {
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
      0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -405,6 +441,14 @@ static uint16_t g_scalePi[76][94] = {
      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
 
+/**
+ * @brief 1cm Ruler
+ *
+ * Resolution: 40 um/px
+ *
+ * @image html scale-small+border.png height=50px
+ * <em>* Image shown with added border</em>
+ */
 static uint16_t g_scaleSmall[27][254] = {
     {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,

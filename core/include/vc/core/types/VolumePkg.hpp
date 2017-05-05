@@ -21,6 +21,7 @@
  *
  * @warning VolumePkg is not thread safe.
  *
+ * @ingroup Types
  * @ingroup VolumePackage
  *
  * @see apps/src/packager.cpp
@@ -31,6 +32,7 @@
 class VolumePkg
 {
 public:
+    /**@{*/
     /**
      * @brief Construct an empty VolumePkg of a specific version number.
      *
@@ -58,7 +60,9 @@ public:
      * Returns a shared pointer to the VolumePkg.
      */
     static Pointer New(boost::filesystem::path fileLocation);
+    /**@}*/
 
+    /**@{*/
     /**
      * @brief Prints the JSON object that stores VolumePkg metadata. Debug only.
      */
@@ -73,9 +77,10 @@ public:
         std::cout << "root: " << rootDir_ << " seg: " << segsDir_
                   << " slice: " << sliceDir_ << std::endl;
     }
+    /**@}*/
 
     /** @name Metadata */
-    //@{
+    /**@{*/
     /**
      * @brief Returns the identifying name of the VolumePkg.
      * @return Name of the VolumePkg
@@ -142,14 +147,14 @@ public:
     {
         config_.save(filePath);
     }
-    //@}
+    /**@}*/
 
     /** @name Volume Data */
-    //@{
+    /**@{*/
     /**
      * @brief Returns the Volume object that stores slice data.
      * @return Reference to the volcart::Volume for this VolumePkg
-     * @see core/types/Volume.h
+     * @see volcart::Volume.h
      */
     const volcart::Volume& volume() const { return vol_; }
 
@@ -218,10 +223,10 @@ public:
      * @return Boolean for write success/failure
      */
     bool setSliceData(size_t index, const cv::Mat& slice);
-    //@}
+    /**@}*/
 
     /** @name Segmentation Data */
-    //@{
+    /**@{*/
     /**
      * @brief Creates a new segmentation.
      *
@@ -290,10 +295,10 @@ public:
      * @return `EXIT_SUCCESS`
      */
     int saveCloud(const volcart::OrderedPointSet<cv::Vec3d>& ps) const;
-    //@}
+    /**@}*/
 
     /** @name Render Data */
-    //@{
+    /**@{*/
     /**
      * @brief Returns the file path of the meshed segmentation data.
      *
@@ -328,7 +333,7 @@ public:
      * flag is not set.
      * @param mesh The mesh imfornation to be saved
      * @param texture Populated Texture object
-     * @see core/types/Texture.h
+     * @see volcart::Texture.h
      */
     void saveMesh(
         const volcart::ITKMesh::Pointer& mesh,
@@ -371,37 +376,29 @@ public:
     {
         saveTextureData(texture.image(index));
     }
-    //@}
+    /**@}*/
 
 private:
-    /** VolumePkg read-only flag. */
+    /** VolumePkg read-only flag */
     bool readOnly_ = true;
-
-    /** VolumePkg metadata. */
+    /** VolumePkg metadata */
     volcart::Metadata config_;
-
-    /** Container for slice data. */
+    /** Container for slice data */
     volcart::Volume vol_;
-
-    /** The root directory of the VolumePkg. */
+    /** The root directory of the VolumePkg */
     boost::filesystem::path rootDir_;
-
-    /** The subdirectory containing Segmentation data. */
+    /** The subdirectory containing Segmentation data */
     boost::filesystem::path segsDir_;
-
-    /** The subdirectory containing slice data. */
+    /** The subdirectory containing slice data */
     boost::filesystem::path sliceDir_;
-
-    /** Segmentation ID of the segmentation that is currently being worked on.
-     */
+    /** Segmentation ID of the segmentation that is currently being worked on */
     std::string activeSeg_;
-
-    /** The list of all segmentations in the VolumePkg. */
+    /** The list of all segmentations in the VolumePkg */
     std::vector<std::string> segmentations_;
 
     /**
      * @brief Populates an empty VolumePkg::config from a volcart::Dictionary
-     * template.
+     * template
      *
      * The configuration is populated with all keys found in `dict`. This is not
      * validated against what is expected for the passed `version` number.

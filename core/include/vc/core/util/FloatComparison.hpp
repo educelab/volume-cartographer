@@ -1,17 +1,17 @@
 /**
-  @file   FloatComparison.h
-  @author Seth Parker
-  @date   November 2016
-
-  @brief  Methods for comparing floating point numbers.
-
-  Provides templated methods for floating-point comparison. Based off the
-  algorithms
-  <a
-  href="https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/">
-  described by Bruce Dawson</a>.
-
-  @ingroup Common
+ * @file   FloatComparison.hpp
+ * @author Seth Parker
+ * @date   November 2016
+ *
+ * @brief  Methods for comparing floating point numbers.
+ *
+ * Provides templated methods for floating-point comparison. Based off the
+ * algorithms
+ * <a
+ * href="https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/">
+ * described by Bruce Dawson</a>.
+ *
+ * @ingroup Util
  */
 
 #pragma once
@@ -27,22 +27,21 @@ namespace volcart
 static constexpr double DEFAULT_MAX_DIFFERENCE = 0.0000001;
 
 /**
-  @brief Compare if two floating-point numbers are "almost equal".
-
-  Two numbers are "almost equal" if the absolute difference between the numbers
-  is below some absolute error `epsMax` or if the absolute difference is
-  smaller than `epsRel`% of the largest input parameter.
-
-  @warning This method should not be assumed to be good for comparing against
-  zero. Depending on the circumstance, either an absolute or relative difference
-  might be preferable.
-
-  @param lhs Left operand
-  @param rhs Right operand
-  @param epsMax Maximum absolute difference. Useful when comparing numbers
-  close to 0.
-  @param epsRel Maximum relative difference.
-  @return `TRUE` or `FALSE`
+ * @brief Compare if two floating-point numbers are "almost equal"
+ *
+ * Two numbers are "almost equal" if the absolute difference between the numbers
+ * is below the absolute error `epsMax` or if the absolute difference is
+ * smaller than `epsRel`% of the largest input parameter.
+ *
+ * @warning This method should not be assumed to be good for comparing against
+ * zero. Depending on the circumstance, either an absolute or relative
+ * difference might be preferable.
+ *
+ * @param lhs Left operand
+ * @param rhs Right operand
+ * @param epsMax Maximum absolute difference. Useful when comparing numbers
+ * close to 0.
+ * @param epsRel Maximum relative difference.
  */
 template <
     typename T,

@@ -1,7 +1,3 @@
-//
-// Created by Seth Parker on 11/11/16.
-//
-
 #pragma once
 
 #include <fstream>
@@ -28,7 +24,7 @@ namespace io
  * include. Other material properties are currently ignored. Throws
  * volcart::IOException on error.
  *
- * @ingroup Core
+ * @ingroup IO
  */
 class OBJReader
 {

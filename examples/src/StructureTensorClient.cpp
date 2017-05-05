@@ -8,6 +8,8 @@
 
 #include "vc/core/types/VolumePkg.hpp"
 
+using namespace volcart;
+
 void draw(
     const volcart::Volume& v,
     const int32_t zSlice,

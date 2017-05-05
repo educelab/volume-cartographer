@@ -18,14 +18,31 @@
 namespace volcart
 {
 
-// I/O modes
+/** @brief IO Mode for file readers/writers
+ *
+ * @ingroup IO
+ */
 enum class IOMode { ASCII, BINARY };
 
+/**
+ * @class PointSetIO
+ * @author Sean Karlage
+ * @brief Read and write PointSet and OrderedPointSet
+ *
+ * PointSet and OrderedPointSet files always begin with an ASCII header. Point
+ * information is then encoded in either ASCII or binary, as determined at
+ * time of write.
+ *
+ * @ingroup IO
+ *
+ * @see volcart::PointSet
+ * @see volcart::OrderedPointSet
+ */
 template <typename T>
 class PointSetIO
 {
 public:
-    // Header definition
+    /** @brief PointSet file header information */
     struct Header {
         size_t width;
         size_t height;
@@ -39,6 +56,14 @@ public:
         }
     };
 
+    /**@{*/
+    /**
+     * @brief Read OrderedPointSet from file
+     *
+     * The IOMode should match the encoding type of the file. Point information
+     * is expected to be stored in the type and order specified by the template
+     * parameter T.
+     */
     static OrderedPointSet<T> ReadOrderedPointSet(
         const boost::filesystem::path& path, IOMode mode = IOMode::BINARY)
     {
@@ -50,6 +75,10 @@ public:
         }
     }
 
+    /** @brief Read PointSet from file
+     *
+     * @copydetails PointSetIO::ReadOrderedPointSet()
+     */
     static PointSet<T> ReadPointSet(
         const boost::filesystem::path& path, IOMode mode = IOMode::BINARY)
     {
@@ -60,7 +89,10 @@ public:
                 return ReadPointSetAscii(path);
         }
     }
+    /**@}*/
 
+    /**@{*/
+    /** @brief Write an OrderedPointSet to disk */
     static void WriteOrderedPointSet(
         const boost::filesystem::path& path,
         const OrderedPointSet<T>& ps,
@@ -74,6 +106,7 @@ public:
         }
     }
 
+    /** @brief Write a PointSet to disk */
     static void WritePointSet(
         const boost::filesystem::path& path,
         const PointSet<T>& ps,
@@ -86,7 +119,10 @@ public:
                 return WritePointSetAscii(path, ps);
         }
     }
+    /**@}*/
 
+    /**@{*/
+    /** @brief Generate a PointSet header string */
     static std::string MakeHeader(PointSet<T> ps)
     {
         std::stringstream ss;
@@ -112,7 +148,7 @@ public:
 
         return ss.str();
     }
-
+    /** @brief Generate an OrderedPointSet header string */
     static std::string MakeOrderedHeader(OrderedPointSet<T> ps)
     {
         std::stringstream ss;
@@ -140,7 +176,13 @@ public:
         return ss.str();
     }
 
-    // Note: assumes infile is already open
+    /**
+     * @brief Parse a PointSet/OrderedPointSet file header
+     *
+     * The input file stream should be open and pointing at the beginning of
+     * the file. Will throw an exception if the ordered parameter does not match
+     * the ordereing type of the file.
+     */
     static Header ParseHeader(std::ifstream& infile, bool ordered = true)
     {
         // Regexes
@@ -290,8 +332,11 @@ public:
 
         return h;
     }
+    /**@}*/
 
 private:
+    /**@{*/
+    /** @brief Read an ASCII PointSet */
     static PointSet<T> ReadPointSetAscii(const boost::filesystem::path& path)
     {
         std::ifstream infile{path.string()};
@@ -315,6 +360,7 @@ private:
         return ps;
     }
 
+    /** @brief Read an ASCII OrderedPointSet */
     static OrderedPointSet<T> ReadOrderedPointSetAscii(
         const boost::filesystem::path& path)
     {
@@ -344,6 +390,7 @@ private:
         return ps;
     }
 
+    /** @brief Read a binary PointSet */
     static PointSet<T> ReadPointSetBinary(const boost::filesystem::path& path)
     {
         std::ifstream infile{path.string(), std::ios::binary};
@@ -375,6 +422,7 @@ private:
         return ps;
     }
 
+    /** @brief Read a binary OrderedPointSet */
     static OrderedPointSet<T> ReadOrderedPointSetBinary(
         const boost::filesystem::path& path)
     {
@@ -414,7 +462,10 @@ private:
 
         return ps;
     }
+    /**@}*/
 
+    /**@{*/
+    /** @brief Write an ASCII PointSet */
     static void WritePointSetAscii(
         const boost::filesystem::path& path, PointSet<T> ps)
     {
@@ -434,6 +485,7 @@ private:
         }
     }
 
+    /** @brief Write a binary PointSet */
     static void WritePointSetBinary(
         const boost::filesystem::path& path, PointSet<T> ps)
     {
@@ -452,6 +504,7 @@ private:
         }
     }
 
+    /** @brief Write an ASCII OrderedPointSet */
     static void WriteOrderedPointSetAscii(
         const boost::filesystem::path& path, OrderedPointSet<T> ps)
     {
@@ -471,6 +524,7 @@ private:
         }
     }
 
+    /** @brief Write a binary OrderedPointSet */
     static void WriteOrderedPointSetBinary(
         const boost::filesystem::path& path, OrderedPointSet<T> ps)
     {
@@ -488,5 +542,6 @@ private:
             outfile.write(reinterpret_cast<const char*>(p.val), nbytes);
         }
     }
+    /**@}*/
 };
 }

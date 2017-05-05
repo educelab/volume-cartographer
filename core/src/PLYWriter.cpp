@@ -1,7 +1,3 @@
-//
-// Created by Media Team on 10/30/15.
-//
-
 #include "vc/core/io/PLYWriter.hpp"
 
 namespace fs = boost::filesystem;
@@ -35,7 +31,7 @@ int PLYWriter::write()
 
     // Capture the starting origin and set origin to what PLY reader needs
     auto startingOrigin = texture_.uvMap().origin();
-    texture_.uvMap().origin(VC_ORIGIN_TOP_LEFT);
+    texture_.uvMap().setOrigin(VC_ORIGIN_TOP_LEFT);
 
     write_header_();
     write_vertices_();
@@ -44,7 +40,7 @@ int PLYWriter::write()
     outputMesh_.close();
 
     // Restore the starting origin
-    texture_.uvMap().origin(startingOrigin);
+    texture_.uvMap().setOrigin(startingOrigin);
 
     return EXIT_SUCCESS;
 }
@@ -89,8 +85,7 @@ int PLYWriter::write_header_()
     return EXIT_SUCCESS;
 }
 
-// Write the vertex information: 'v x y z'
-//                               'vn nx ny nz'
+// Write the vertex information: 'x y z nx ny nz'
 int PLYWriter::write_vertices_()
 {
     if (!outputMesh_.is_open() || mesh_->GetNumberOfPoints() == 0) {
@@ -112,7 +107,7 @@ int PLYWriter::write_vertices_()
         outputMesh_ << normal[0] << " " << normal[1] << " " << normal[2];
 
         // If the texture has images and a uv map, write texture info
-        if (texture_.hasImages() && texture_.hasMap()) {
+        if (texture_.hasImages() && !texture_.uvMap().empty()) {
 
             // Get the intensity for this point from the texture. If it doesn't
             // exist, set to 0.

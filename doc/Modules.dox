@@ -1,28 +1,53 @@
 /**
 @defgroup Core Core
-@brief Library containing fundamental VC datatypes and operations.
+@brief Library containing fundamental VC data types and operations.
 */
 
 /**
- @defgroup VolumePackage Volume Package
- @brief Class for accessing and manipulating the .volpkg file format.
- @ingroup Core
+@defgroup IO IO
+@brief Read and write commonly used data types.
+@ingroup Core
 */
 
 /**
-@defgroup Meshing Meshing 
+@defgroup Scales Scales
+@brief Add frames of reference to volumetric data
+@ingroup Core
+*/
+
+/**
+@defgroup Shapes Shape Generators
+@brief Generate basic 3D objects for testing mesh operations
+@ingroup Core
+*/
+
+/**
+@defgroup Types Types
+@brief Core types and data structures
+@ingroup Core
+*/
+
+/**
+@defgroup Util Utilities
+@brief Miscellaneous utility functions
+@ingroup Core
+*/
+
+
+/**
+@defgroup Meshing Meshing
 @brief Library for mesh creation, manipulation, resampling, and conversion.
 */
 
 /**
 @defgroup Segmentation Segmentation
 @brief Library for volume segmentation algorithms.
-*/ 
+*/
 
 /**
 @defgroup lrps Local Reslice Particle Simulation
 @brief Local Reslice %Particle Simulation (LRPS) segmentation
-@ingroup Segmentation 
+@ingroup Segmentation
 */
 
 /**
@@ -33,7 +58,7 @@ the second order.
 */
 
 /**
-@defgroup stps Structure Tensor Particle Simulation 
+@defgroup stps Structure Tensor Particle Simulation
 @brief Structure Tensor %Particle Simulation (STPS) segmentation
 @ingroup Segmentation
 */
@@ -42,4 +67,3 @@ the second order.
  @defgroup ExampleDocs Documentation Examples
  @brief Files that demonstrate how code should be formatted for Doxygen.
 */
-

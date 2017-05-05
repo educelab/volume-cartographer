@@ -1,11 +1,12 @@
-//
-// Created by Seth Parker on 9/18/15.
-//
-
 #include "vc/core/shapes/ShapePrimitive.hpp"
 
 using namespace volcart;
 using namespace volcart::shapes;
+
+ShapePrimitive::ShapePrimitive()
+    : ordered_(false), orderedWidth_(0), orderedHeight_(0)
+{
+}
 
 ///// Type Conversions /////
 // return an itk mesh
@@ -85,70 +86,56 @@ vtkSmartPointer<vtkPolyData> ShapePrimitive::vtkMesh()
     return output;
 }
 
-// Return Point Cloud
-volcart::OrderedPointSet<cv::Vec3d> ShapePrimitive::orderedPoints(bool noisify)
+// Return point set (unordered)
+volcart::PointSet<cv::Vec3d> ShapePrimitive::unorderedPoints()
 {
+    volcart::PointSet<cv::Vec3d> output;
+
+    for (auto& p : points_) {
+        output.push_back({p.x, p.y, p.z});
+    }
+
+    return output;
+}
+
+// Return point set + normals (unordered)
+volcart::PointSet<cv::Vec6d> ShapePrimitive::unorderedPointNormal()
+{
+    volcart::PointSet<cv::Vec6d> output;
+    for (auto p : points_) {
+        output.push_back({p.x, p.y, p.z, p.nx, p.ny, p.nz});
+    }
+    return output;
+}
+
+// Return point set (ordered)
+volcart::OrderedPointSet<cv::Vec3d> ShapePrimitive::orderedPoints()
+{
+    if (!ordered_) {
+        throw std::runtime_error("Shape vertices not ordered");
+    }
+
     volcart::OrderedPointSet<cv::Vec3d> output{orderedWidth_};
     std::vector<cv::Vec3d> tempRow;
-    double offset = 0.0;
-    if (noisify) {
-        offset = 5.0;
-    }
-    int pointCounter = 0;  // This is the worst. // SP
-    size_t widthCount = 0;
-    for (auto pId : points_) {
-        cv::Vec3d point;
-        if (widthCount == output.width()) {
+
+    for (auto& p : points_) {
+
+        if (tempRow.size() == output.width()) {
             output.pushRow(tempRow);
             tempRow.clear();
-            widthCount = 0;
         }
 
-        point[0] = pId.x;
-        point[1] = pId.y;
-
-        if (noisify && (pointCounter % 2 == 0)) {
-            point[2] = pId.z + offset;
-            point[1] = pId.z;  // added this to take the points out of the x-z
-            // plane to test impact of mls
-        } else {
-            point[2] = pId.z;
-        }
-        tempRow.push_back(point);
-        ++pointCounter;
-        ++widthCount;
+        tempRow.emplace_back(p.x, p.y, p.z);
     }
     return output;
 }
-volcart::PointSet<cv::Vec3d> ShapePrimitive::unorderedPoints(bool noisify)
-{
 
-    volcart::PointSet<cv::Vec3d> output;
-    double offset = (noisify ? 5.0 : 0.0);
-    int pointCounter = 0;  // This is the worst. // SP
-    for (auto pId : points_) {
-        cv::Vec3d point;
-
-        point[0] = pId.x;
-        point[1] = pId.y;
-
-        if (noisify && (pointCounter % 2 == 0)) {
-            point[2] = pId.z + offset;
-            point[1] = pId.z;  // added this to take the points out of the x-z
-            // plane to test impact of mls
-        } else {
-            point[2] = pId.z;
-        }
-        ++pointCounter;
-        output.push_back(point);
-    }
-
-    return output;
-}
-
-// Return Point Cloud
+// Return point set + normals (ordered)
 volcart::OrderedPointSet<cv::Vec6d> ShapePrimitive::orderedPointNormal()
 {
+    if (!ordered_) {
+        throw std::runtime_error("Shape vertices not ordered");
+    }
 
     volcart::OrderedPointSet<cv::Vec6d> output{orderedWidth_};
     std::vector<cv::Vec6d> tempRow;
@@ -159,15 +146,6 @@ volcart::OrderedPointSet<cv::Vec6d> ShapePrimitive::orderedPointNormal()
         output.pushRow(tempRow);
     }
 
-    return output;
-}
-
-volcart::PointSet<cv::Vec6d> ShapePrimitive::unOrderedPointNormal()
-{
-    volcart::PointSet<cv::Vec6d> output;
-    for (auto p : points_) {
-        output.push_back({p.x, p.y, p.z, p.nx, p.ny, p.nz});
-    }
     return output;
 }
 
@@ -225,13 +203,13 @@ void ShapePrimitive::addCell_(int v1, int v2, int v3)
     updateNormal_(v3, nx, ny, nz);
 }
 
-void ShapePrimitive::updateNormal_(int vertex, double nx, double ny, double nz)
+void ShapePrimitive::updateNormal_(int vertID, double nx, double ny, double nz)
 {
     // recalculate average (unaverage, add new component, recalculate average)
-    Vertex v = points_[vertex];
+    Vertex v = points_[vertID];
     v.nx = (v.nx * v.faceCount + nx) / (v.faceCount + 1);
     v.ny = (v.ny * v.faceCount + ny) / (v.faceCount + 1);
     v.nz = (v.nz * v.faceCount + nz) / (v.faceCount + 1);
     v.faceCount++;
-    points_[vertex] = v;
+    points_[vertID] = v;
 }
