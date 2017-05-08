@@ -24,12 +24,12 @@ int main()
     volcart::shapes::Arch arch;
 
     // Get pinned points for unfurling step
-    volcart::texturing::ClothModelingUVMapping::PinIDs unfurl;
+    volcart::texturing::ClothModelingUVMapping::VertIDList unfurl;
     unfurl.push_back(0);
     unfurl.push_back(90);
 
     // Get pinned points for expansion step
-    volcart::texturing::ClothModelingUVMapping::PinIDs expand;
+    volcart::texturing::ClothModelingUVMapping::VertIDList expand;
     //    The arch currently doesn't need to be expanded, but leaving this here
     //    in case the expansion forces get balanced.
     //    expand.push_back(0);

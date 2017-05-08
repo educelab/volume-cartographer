@@ -107,8 +107,8 @@ struct CreateArchClothUVFixture {
     ITKMesh::Pointer _out_Mesh_unfurl, _out_Mesh_collide, _out_Mesh_final;
 
     // Simulation
-    volcart::texturing::ClothModelingUVMapping::PinIDs _unfurlPins;
-    volcart::texturing::ClothModelingUVMapping::PinIDs _expandPins;
+    volcart::texturing::ClothModelingUVMapping::VertIDList _unfurlPins;
+    volcart::texturing::ClothModelingUVMapping::VertIDList _expandPins;
     uint16_t _unfurlIt;
     uint16_t _collisionIt;
     uint16_t _expansionIt;

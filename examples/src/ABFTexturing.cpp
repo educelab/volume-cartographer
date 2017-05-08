@@ -114,7 +114,7 @@ int main(int /*argc*/, char* argv[])
 
     // Setup rendering
     volcart::Rendering rendering;
-    rendering.setTexture(compText.texture());
+    rendering.setTexture(compText.getTexture());
     rendering.setMesh(itkACVD);
 
     volcart::io::OBJWriter meshWriter;

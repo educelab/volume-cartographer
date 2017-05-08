@@ -9,7 +9,6 @@
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/vc_defines.hpp"
 #include "vc/texturing/CompositeTextureV2.hpp"
-#include "vc/texturing/SimpleUV.hpp"
 
 int main(int /*argc*/, char* argv[])
 {
@@ -47,8 +46,8 @@ int main(int /*argc*/, char* argv[])
     volcart::io::OBJWriter mesh_writer;
     mesh_writer.setPath("compV2Test.obj");
     mesh_writer.setMesh(inputMesh);
-    mesh_writer.setTexture(compText.texture().image(0));
-    mesh_writer.setUVMap(compText.texture().uvMap());
+    mesh_writer.setTexture(compText.getTexture().image(0));
+    mesh_writer.setUVMap(compText.getTexture().uvMap());
     mesh_writer.write();
 
     return EXIT_SUCCESS;

@@ -3,7 +3,7 @@
 ############
 add_subdirectory(VC)
 
-if (VC_USE_ACVD)
+if (VC_USE_ACVD OR VC_USE_ALL)
     add_subdirectory(VC-Texture)
 endif()
 
@@ -72,7 +72,7 @@ target_link_libraries(vc_projection2
 )
 
 ## Cloth Flattening ##
-if (VC_USE_BULLET)
+if (VC_USE_BULLET OR VC_USE_ALL)
     add_executable(vc_cloth src/Cloth.cpp)
     target_link_libraries(vc_cloth
         VC::core

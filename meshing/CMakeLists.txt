@@ -19,17 +19,17 @@ set(deps
 set(defs "")
 
 # Conditional compilation of ACVD and Bullet stuff
-if (VC_USE_ACVD)
+if (VC_USE_ACVD OR VC_USE_ALL)
     list(APPEND srcs src/ACVD.cpp)
     list(APPEND deps acvd)
     list(APPEND defs VC_USE_ACVD)
 endif()
-if (VC_USE_BULLET)
+if (VC_USE_BULLET OR VC_USE_ALL)
     list(APPEND srcs src/ITK2Bullet.cpp)
     list(APPEND deps bullet ${BULLET_LIBRARIES})
     list(APPEND defs VC_USE_BULLET)
 endif()
-if(VC_USE_VCG)
+if(VC_USE_VCG OR VC_USE_ALL)
     list(APPEND srcs src/QuadricEdgeCollapseDecimation.cpp)
     list(APPEND deps vcglib)
     list(APPEND defs VC_USE_VCGLIB)
@@ -84,7 +84,7 @@ set(test_srcs
     test/OrderedPointSetMesherTest.cpp
 )
 
-if(VC_USE_VCG)
+if(VC_USE_VCG OR VC_USE_ALL)
     list(APPEND test_srcs test/QuadricEdgeCollapseDecimationTest.cpp)
     set(QUADRIC_EDGE_COLLAPSE_DECIMATION_TEST_RES
             test/res/QuadricEdgeCollapse_Plane.obj
