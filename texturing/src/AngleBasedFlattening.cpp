@@ -661,14 +661,14 @@ void AngleBasedFlattening::solve_lscm_()
         // Shift verts for stable order
         // Careful. Only use these values going forward through the loop
         if (sin2 != sinmax) {
-            Shift3<HalfEdgeMesh::IDType>(v0, v1, v2);
-            Shift3<double>(a0, a1, a2);
-            Shift3<double>(sin0, sin1, sin2);
+            shift3_<HalfEdgeMesh::IDType>(v0, v1, v2);
+            shift3_<double>(a0, a1, a2);
+            shift3_<double>(sin0, sin1, sin2);
 
             if (sin1 == sinmax) {
-                Shift3<HalfEdgeMesh::IDType>(v0, v1, v2);
-                Shift3<double>(a0, a1, a2);
-                Shift3<double>(sin0, sin1, sin2);
+                shift3_<HalfEdgeMesh::IDType>(v0, v1, v2);
+                shift3_<double>(a0, a1, a2);
+                shift3_<double>(sin0, sin1, sin2);
             }
         }
 
