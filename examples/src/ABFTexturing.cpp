@@ -27,7 +27,7 @@ namespace fs = boost::filesystem;
 int main(int /*argc*/, char* argv[])
 {
 
-    VolumePkg vpkg(argv[1]);
+    volcart::VolumePkg vpkg(argv[1]);
     vpkg.volume()->setCacheMemoryInBytes(10000000000);
     vpkg.setActiveSegmentation(argv[2]);
     int radius = std::stoi(argv[3]);

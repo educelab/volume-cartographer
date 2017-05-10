@@ -55,7 +55,7 @@ public:
 
     /**@{*/
     /** @brief Default constructor */
-    Volume() = default;
+    Volume() = delete;
 
     /**
      * @brief Load a Volume from file
@@ -63,10 +63,17 @@ public:
      * The path pointed to by `slicePath` should provide a JSON metadata file
      * describing the Volume.
      */
-    explicit Volume(boost::filesystem::path slicePath);
+    explicit Volume(boost::filesystem::path path);
 
-    /** @brief Construct a Volume and return a shared pointer */
-    static Pointer New(boost::filesystem::path path);
+    /**
+     * @brief Setup a new Volume on disk
+     *
+     * @warning Should only be used to construct a new Volume on disk
+     *
+     * @param path Path to the Volume root directory
+     * @param uuid Unique ID of the Volume
+     */
+    Volume(boost::filesystem::path path, std::string uuid, std::string name);
 
     /** @brief Construct a Volume using existing slice data
      *
@@ -83,13 +90,20 @@ public:
         int32_t nslices,
         int32_t sliceWidth,
         int32_t sliceHeight)
-        : slicePath_(std::move(slicePath))
+        : path_(std::move(slicePath))
         , numSlices_(nslices)
         , sliceWidth_(sliceWidth)
         , sliceHeight_(sliceHeight)
     {
         numSliceCharacters_ = std::to_string(nslices).size();
     }
+
+    /** @brief Load a Volume from file and return a pointer to it */
+    static Pointer New(boost::filesystem::path path);
+
+    /** @brief Construct a new Volume on disk and return a pointer */
+    static Pointer New(
+        boost::filesystem::path path, std::string uuid, std::string name);
     /**@}*/
 
     /**@{*/
@@ -97,7 +111,7 @@ public:
     std::string name() { return metadata_.get<std::string>("name"); }
 
     /** @brief Get the slice width */
-    int32_t sliceWidth() const { return sliceWidth_; }
+    int32_t sliceWidth() const { return metadata_.get<int>("width"); }
 
     /** @brief Get the slice height */
     int32_t sliceHeight() const { return sliceHeight_; }
@@ -112,6 +126,49 @@ public:
                v(1) < sliceHeight_ && v(2) >= 0 && v(2) < numSlices_;
     }
 
+    /** @brief Set the human-readable name of the volume */
+    void setName(std::string n) { metadata_.set("name", n); }
+
+    /** @brief Set the expected width of the slice images */
+    void setSliceWidth(int32_t w)
+    {
+        sliceWidth_ = w;
+        metadata_.set("width", w);
+    }
+
+    /** @brief Set the expected height of the slice images */
+    void setSliceHeight(int32_t h)
+    {
+        sliceHeight_ = h;
+        metadata_.set("height", h);
+    }
+
+    /** @brief Set the Volume voxel size in microns */
+    void setVoxelSize(double s) { metadata_.set("voxelsize", s); }
+
+    /** @brief Set the minimum value in the Volume */
+    void setMin(double m) { metadata_.set("min", m); }
+
+    /** @brief Set the maximum value in the Volume */
+    void setMax(double m) { metadata_.set("max", m); }
+
+    /**
+     * @brief Sets the number of slices in the Volume
+     *
+     * @warning Should only be used when creating a new Volume on disk
+     */
+    void setNumberOfSlices(size_t numSlices)
+    {
+        numSlices_ = numSlices;
+        numSliceCharacters_ = std::to_string(numSlices_).size();
+        metadata_.set("slices", numSlices);
+    }
+
+    /** @brief Update metadata on disk */
+    void saveMetadata() { metadata_.save(); }
+    /**@}*/
+
+    /**@{*/
     /**
      * @brief Get a slice by index number
      *
@@ -125,24 +182,13 @@ public:
     cv::Mat getSliceDataCopy(int32_t index) const;
 
     /**
-     * @brief Sets the number of slices in the Volume
-     *
-     * @warning Should only be used when creating a new Volume on disk
-     */
-    void setNumberOfSlices(size_t numSlices)
-    {
-        numSlices_ = numSlices;
-        numSliceCharacters_ = std::to_string(numSlices_).size();
-    }
-
-    /**
      * @brief Set a slice by index number
      *
      * Index must be less than the number of slices in the volume.
      *
      * @warning This will overwrite any existing slice data on disk.
      */
-    bool setSliceData(int32_t index, const cv::Mat& slice);
+    void setSliceData(int32_t index, const cv::Mat& slice);
 
     /** @brief Get the file path of a slice by index */
     boost::filesystem::path getSlicePath(int32_t index) const;
@@ -448,7 +494,7 @@ public:
 
 private:
     /** Directory containing the slice images */
-    boost::filesystem::path slicePath_;
+    boost::filesystem::path path_;
     /** Volume metadata */
     volcart::Metadata metadata_;
     /** Number of slices in the Volume */

@@ -1,3 +1,5 @@
+/////
+
 /**
  @defgroup Core Core
  @brief Library containing fundamental VC data types and operations.
@@ -33,11 +35,14 @@
  @ingroup Core
 */
 
+/////
 
 /**
  @defgroup Meshing Meshing
  @brief Library for mesh creation, manipulation, resampling, and conversion.
 */
+
+/////
 
 /**
  @defgroup Segmentation Segmentation
@@ -63,10 +68,7 @@
  @ingroup Segmentation
 */
 
-/**
- @defgroup ExampleDocs Documentation Examples
- @brief Files that demonstrate how code should be formatted for Doxygen.
-*/
+/////
 
 /** 
  @defgroup Render Rendering
@@ -83,4 +85,11 @@
  @defgroup Texture Texturing
  @brief Texture generation
  @ingroup Render
+*/
+
+/////
+
+/**
+ @defgroup ExampleDocs Documentation Examples
+ @brief Files that demonstrate how code should be formatted for Doxygen.
 */

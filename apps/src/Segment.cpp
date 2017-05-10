@@ -140,7 +140,7 @@ int main(int argc, char* argv[])
         std::exit(1);
     }
 
-    VolumePkg volpkg(opts["volpkg"].as<std::string>());
+    volcart::VolumePkg volpkg(opts["volpkg"].as<std::string>());
     volpkg.setActiveSegmentation(opts["seg-id"].as<std::string>());
     if (volpkg.getVersion() != VOLPKG_SUPPORTED_VERSION) {
         std::cerr << "[error]: Volume package is version "

@@ -86,8 +86,6 @@ target_link_libraries(vc_ordered_resample_example VC::core VC::meshing)
 add_executable(vc_obj_writer_example src/OBJWriterExample.cpp)
 target_link_libraries(vc_obj_writer_example VC::core)
 
-# Skip NeuralNetwork train example
-
 add_executable(vc_lorem_ipsum_error src/LoremIpsumError.cpp)
 target_link_libraries(vc_lorem_ipsum_error VC::core)
 

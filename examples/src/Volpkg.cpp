@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
 
-    VolumePkg volpkg(volpkgpath);
+    volcart::VolumePkg volpkg(volpkgpath);
     for (auto v : volpkg.volumes()) {
         std::cout << v->name() << std::endl;
     }

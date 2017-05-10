@@ -2,6 +2,8 @@
 
 #include "vc/segmentation/stps/Chain.hpp"
 
+using namespace volcart::segmentation;
+
 Chain::Chain(
     std::vector<cv::Vec3d> segPath,
     const VolumePkg& volpkg,

@@ -11,7 +11,7 @@
 using namespace volcart;
 
 void draw(
-    const volcart::Volume::Pointer& v,
+    const volcart::Volume::Pointer v,
     const int32_t zSlice,
     const EigenVector vec,
     const cv::Point p1);
@@ -52,7 +52,7 @@ int main(int argc, char** argv)
 }
 
 void draw(
-    const volcart::Volume::Pointer& v,
+    const volcart::Volume::Pointer v,
     const int32_t zSlice,
     const EigenVector vec,
     const cv::Point p1)

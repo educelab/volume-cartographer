@@ -11,6 +11,7 @@
 
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
+namespace vc = volcart;
 
 int main(int argc, char* argv[])
 {
@@ -59,7 +60,7 @@ int main(int argc, char* argv[])
     }
 
     // Build volumepkg
-    VolumePkg volpkg{opts["volpkg"].as<fs::path>()};
+    vc::VolumePkg volpkg{opts["volpkg"].as<fs::path>()};
 
     // Print metadata
     if (opts.count("print")) {
@@ -106,31 +107,6 @@ int main(int argc, char* argv[])
             std::cerr
                 << "ERROR: Version upgrading is not available at this time."
                 << std::endl;
-            /* We only have one volpkg version, so this is disabled for right
-            now - SP, 4/30/2015
-            int currentVersion = volpkg.getVersion();
-            int newVersion = std::stoi(versionFind->second);
-            if (currentVersion == newVersion) {
-                std::cout << "Volpkg v." << currentVersion << " == v." <<
-            versionFind->second << std::endl;
-                std::cout << "Volpkg will not be converted." << std::endl;
-                parsedMetadata.erase(versionFind);
-            } else {
-                std::cout << "Attempting to convert volpkg from v." <<
-            currentVersion << " -> v." <<
-                versionFind->second << std::endl;
-                if (volpkg.setMetadata(versionFind->first,
-            versionFind->second) == EXIT_SUCCESS) {
-                    // To-Do: Upgrade the json object to match the new dict
-                    std::cout << "Version set successfully." << std::endl;
-                    parsedMetadata.erase(versionFind);
-                }
-                else {
-                    std::cerr << "ERROR: Volpkg could not be converted." <<
-            std::endl;
-                    return EXIT_FAILURE;
-                }
-            } */
             parsedMetadata.erase(versionFind->first);
             std::cout << std::endl;
         }
@@ -182,7 +158,6 @@ int main(int argc, char* argv[])
 
         // Actually save.
         if (opts.count("write")) {
-            volpkg.readOnly(false);
             std::cout << "Writing metadata to file..." << std::endl;
             volpkg.saveMetadata();
             std::cout << "Metadata written successfully." << std::endl

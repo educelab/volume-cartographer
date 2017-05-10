@@ -26,13 +26,14 @@ int GlobalValues::getHeight() { return height; }
 
 int GlobalValues::getWidth() { return width; }
 
-VolumePkg* GlobalValues::getVolPkg() { return vpkg; }
+volcart::VolumePkg* GlobalValues::getVolPkg() { return vpkg; }
 
 void GlobalValues::setPath(QString newPath) { path = newPath; }
 
 void GlobalValues::createVolumePackage()
 {
-    vpkg = new VolumePkg(path.toStdString());  // Creates a Volume Package
+    // Creates a Volume Package
+    vpkg = new volcart::VolumePkg(path.toStdString());
     VPKG_Instantiated = true;
 }
 

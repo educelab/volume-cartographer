@@ -13,12 +13,11 @@
 #include "VCNewGuiHeader.hpp"
 #include "ui_VCMain.h"
 
+#include "vc/core/types/VolumePkg.hpp"
 #include "vc/segmentation/lrps/LocalResliceParticleSim.hpp"
 
 // Volpkg version required by this app
 static constexpr int VOLPKG_SUPPORTED_VERSION = 3;  // Version #3
-
-class VolumePkg;
 
 namespace ChaoVis
 {
@@ -135,7 +134,7 @@ private:
     // data model
     EWindowState fWindowState;
 
-    VolumePkg* fVpkg;
+    volcart::VolumePkg* fVpkg;
     QString fVpkgPath;
     std::string fVpkgName;
     bool fVpkgChanged;

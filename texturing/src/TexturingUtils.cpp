@@ -2,12 +2,10 @@
 
 #include <opencv2/core.hpp>
 
-#include "vc/core/types/VolumePkg.hpp"
-#include "vc/core/vc_defines.hpp"
 #include "vc/texturing/TexturingUtils.hpp"
 
 bool IsLocalMaximum(
-    const cv::Vec3d& nPoint, VolumePkg& volpkg, double nSampleInterval)
+    const cv::Vec3d& nPoint, volcart::VolumePkg& volpkg, double nSampleInterval)
 {
     // uniformly sample around the point in 3D and check the intensity value
     bool aIsLocalMax = true;
@@ -31,7 +29,7 @@ void Sectioning(
     double range,
     const cv::Vec3d& nCenter,
     const cv::Vec3d& nMajorAxisDir,
-    VolumePkg& volpkg,
+    volcart::VolumePkg& volpkg,
     double /*nA*/,
     volcart::DirectionOption nSamplingDir,
     double* nData)
@@ -126,7 +124,7 @@ void SamplingAlongNormal(
     double nSampleInterval,                   // sample interval
     const cv::Vec3d& nCenter,                 // center
     const cv::Vec3d& nMajorAxisDir,           // normal
-    VolumePkg& volpkg,                        // volume package
+    volcart::VolumePkg& volpkg,               // volume package
     volcart::DirectionOption nSamplingDir,    // sampling direction
     double* nData,                            // [out] samples
     int* nSize,                               // [out] number of samples
@@ -193,7 +191,7 @@ void SamplingWithinEllipse(
     double nSampleInterval,          // sample interval
     const cv::Vec3d& nCenter,        // center
     const cv::Vec3d& nMajorAxisDir,  // normal
-    VolumePkg& volpkg,               // volume package
+    volcart::VolumePkg& volpkg,      // volume package
     volcart::DirectionOption nSamplingDir,
     double* nData,                // [out] samples
     int* nSize,                   // [out] number of samples
@@ -217,9 +215,8 @@ void SamplingWithinEllipse(
     /*                       n * n       */
     /*                                   */
     cv::Vec3d aMinorAxisDir1 =
-        G -
-        (nMajorAxisDir.dot(G) / nMajorAxisDir.dot(nMajorAxisDir)) *
-            nMajorAxisDir;
+        G - (nMajorAxisDir.dot(G) / nMajorAxisDir.dot(nMajorAxisDir)) *
+                nMajorAxisDir;
 
     /* cross product of G and nMajorAxisDir, simplifies nicely to the following
      */
@@ -245,10 +242,10 @@ void SamplingWithinEllipse(
         // uniformly sample the circle slice
         for (int j = 1; j < aSizeMinor; ++j) {
             for (int k = 1; k < aSizeMinor; ++k) {
-                double aEllipseDist = nB * sqrt(
-                                               1. -
-                                               (i * nSampleInterval - nA) *
-                                                   (i * nSampleInterval - nA));
+                auto aEllipseDist =
+                    nB * sqrt(
+                             1. - (i * nSampleInterval - nA) *
+                                      (i * nSampleInterval - nA));
                 if (j * nSampleInterval <
                     aEllipseDist) {  // must satisfy ellipse constraint,
                                      // (x/a)^2+(y/b)^2)=1
@@ -349,19 +346,19 @@ void SamplingWithinEllipse(
 }
 
 // Filter by returning the color at the point location
-double FilterIntersection(const cv::Vec3d& nPoint, VolumePkg& volpkg)
+double FilterIntersection(const cv::Vec3d& nPoint, volcart::VolumePkg& volpkg)
 {
     return volpkg.volume()->interpolatedIntensityAt(nPoint);
 }
 
 // Filter by non maximum suppression
 double FilterNonMaximumSuppression(
-    const cv::Vec3d& nPoint,   // point location
-    const cv::Vec3d& nNormal,  // point normal direction
-    VolumePkg& volpkg,         // volume package
-    double nR1,                // sample region radius 1, major axis
-    double /*nR2*/,            // sample region radius 2, minor axis
-    double nSampleDist,        // interval between samples
+    const cv::Vec3d& nPoint,     // point location
+    const cv::Vec3d& nNormal,    // point normal direction
+    volcart::VolumePkg& volpkg,  // volume package
+    double nR1,                  // sample region radius 1, major axis
+    double /*nR2*/,              // sample region radius 2, minor axis
+    double nSampleDist,          // interval between samples
     volcart::DirectionOption nSamplingDir)  // sample direction
 {
     const int MAX_ARRAY_CAPACITY = 50000;
@@ -394,12 +391,12 @@ double FilterNonMaximumSuppression(
 
 // Filter by finding the maximum
 double FilterMax(
-    const cv::Vec3d& nPoint,   // point location
-    const cv::Vec3d& nNormal,  // point normal direction
-    VolumePkg& volpkg,         // volume package
-    double nR1,                // sample region radius 1, major axis
-    double /*nR2*/,            // sample region radius 2, minor axis
-    double nSampleDist,        // interval between samples
+    const cv::Vec3d& nPoint,     // point location
+    const cv::Vec3d& nNormal,    // point normal direction
+    volcart::VolumePkg& volpkg,  // volume package
+    double nR1,                  // sample region radius 1, major axis
+    double /*nR2*/,              // sample region radius 2, minor axis
+    double nSampleDist,          // interval between samples
     volcart::DirectionOption nSamplingDir)  // sample direction
 {
     const int MAX_ARRAY_CAPACITY = 50000;
@@ -433,12 +430,12 @@ double FilterMax(
 
 // Filter by finding the minimum
 double FilterMin(
-    const cv::Vec3d& nPoint,   // point location
-    const cv::Vec3d& nNormal,  // point normal direction
-    VolumePkg& volpkg,         // volume package
-    double nR1,                // sample region radius 1, major axis
-    double /*nR2*/,            // sample region radius 2, minor axis
-    double nSampleDist,        // interval between samples
+    const cv::Vec3d& nPoint,     // point location
+    const cv::Vec3d& nNormal,    // point normal direction
+    volcart::VolumePkg& volpkg,  // volume package
+    double nR1,                  // sample region radius 1, major axis
+    double /*nR2*/,              // sample region radius 2, minor axis
+    double nSampleDist,          // interval between samples
     volcart::DirectionOption nSamplingDir)  // sample direction
 
 {
@@ -473,12 +470,12 @@ double FilterMin(
 
 // Filter by finding the median, then do the averaging
 double FilterMedianAverage(
-    const cv::Vec3d& nPoint,   // point location
-    const cv::Vec3d& nNormal,  // point normal direction
-    VolumePkg& volpkg,         // volume package
-    double nR1,                // sample region radius 1, major axis
-    double /*nR2*/,            // sample region radius 2, minor axis
-    double nSampleDist,        // interval between samples
+    const cv::Vec3d& nPoint,     // point location
+    const cv::Vec3d& nNormal,    // point normal direction
+    volcart::VolumePkg& volpkg,  // volume package
+    double nR1,                  // sample region radius 1, major axis
+    double /*nR2*/,              // sample region radius 2, minor axis
+    double nSampleDist,          // interval between samples
     volcart::DirectionOption nSamplingDir)  // sample direction
 {
     const int MAX_ARRAY_CAPACITY = 50000;
@@ -526,12 +523,12 @@ double FilterMedianAverage(
 
 // Filter by finding the median
 double FilterMedian(
-    const cv::Vec3d& nPoint,   // point location
-    const cv::Vec3d& nNormal,  // point normal direction
-    VolumePkg& volpkg,         // volume package
-    double nR1,                // sample region radius 1, major axis
-    double /*nR2*/,            // sample region radius 2, minor axis
-    double nSampleDist,        // interval between samples
+    const cv::Vec3d& nPoint,     // point location
+    const cv::Vec3d& nNormal,    // point normal direction
+    volcart::VolumePkg& volpkg,  // volume package
+    double nR1,                  // sample region radius 1, major axis
+    double /*nR2*/,              // sample region radius 2, minor axis
+    double nSampleDist,          // interval between samples
     volcart::DirectionOption nSamplingDir)  // sample direction
 {
     const int MAX_ARRAY_CAPACITY = 50000;
@@ -568,12 +565,12 @@ double FilterMedian(
 
 // Filter by calculating the mean
 double FilterMean(
-    const cv::Vec3d& nPoint,   // point location
-    const cv::Vec3d& nNormal,  // point normal direction
-    VolumePkg& volpkg,         // volume package
-    double nR1,                // sample region radius 1, major axis
-    double /*nR2*/,            // sample region radius 2, minor axis
-    double nSampleDist,        // interval between samples
+    const cv::Vec3d& nPoint,     // point location
+    const cv::Vec3d& nNormal,    // point normal direction
+    volcart::VolumePkg& volpkg,  // volume package
+    double nR1,                  // sample region radius 1, major axis
+    double /*nR2*/,              // sample region radius 2, minor axis
+    double nSampleDist,          // interval between samples
     volcart::DirectionOption nSamplingDir)  // sample direction
 {
     const int MAX_ARRAY_CAPACITY = 50000;
@@ -607,7 +604,7 @@ double FilterMean(
 double TextureWithMethod(
     cv::Vec3d nPoint,                  // point location
     cv::Vec3d nNormal,                 // point normal direction
-    VolumePkg& volpkg,                 // volume package
+    volcart::VolumePkg& volpkg,        // volume package
     volcart::CompositeOption nFilter,  // filter option
     double nR1,                        // sample region radius 1, major axis
     double nR2,                        // sample region radius 2, minor axis

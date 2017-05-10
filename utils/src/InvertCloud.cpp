@@ -21,7 +21,7 @@ int main(int argc, char** argv)
         std::exit(-1);
     }
 
-    VolumePkg vpkg{argv[1]};
+    volcart::VolumePkg vpkg{argv[1]};
     fs::path inputPath = argv[2];
     fs::path outputPath = argv[3];
 

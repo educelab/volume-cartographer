@@ -33,7 +33,7 @@ inline cv::Vec3d SphericalToCartesian(double theta, double phi)
 void drawReslice(cv::Mat reslice);
 
 void drawSliceWithResliceVector(
-    volcart::Volume::Pointer& volume,
+    volcart::Volume::Pointer volume,
     const cv::Vec3d resliceVector,
     const cv::Vec3d center);
 
@@ -56,7 +56,7 @@ int main(int argc, char** argv)
     }
 
     const std::string vpkgPath(argv[1]);
-    VolumePkg volpkg(vpkgPath);
+    volcart::VolumePkg volpkg(vpkgPath);
     auto vol = volpkg.volume();
 
     // Set locations to do arbitrary reslicing
@@ -149,7 +149,7 @@ void drawReslice(cv::Mat reslice)
 }
 
 void drawSliceWithResliceVector(
-    volcart::Volume::Pointer& v,
+    volcart::Volume::Pointer v,
     const cv::Vec3d resliceVector,
     const cv::Vec3d center)
 {

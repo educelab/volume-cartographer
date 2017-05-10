@@ -12,18 +12,43 @@
 using namespace volcart;
 namespace fs = boost::filesystem;
 
-Volume::Volume(fs::path slicePath) : slicePath_(std::move(slicePath))
+static const fs::path METADATA_FILE = "meta.json";
+
+Volume::Volume(fs::path path) : path_(std::move(path))
 {
-    metadata_ = volcart::Metadata(slicePath_ / "meta.json");
+    metadata_ = volcart::Metadata(path_ / METADATA_FILE);
     sliceWidth_ = metadata_.get<int>("width");
     sliceHeight_ = metadata_.get<int>("height");
     numSlices_ = metadata_.get<int>("slices");
     numSliceCharacters_ = std::to_string(numSlices_).size();
 }
 
+Volume::Volume(fs::path path, std::string uuid, std::string name)
+    : path_(std::move(path))
+    , numSlices_(0)
+    , sliceWidth_(0)
+    , sliceHeight_(0)
+    , numSliceCharacters_(0)
+{
+    metadata_.setPath((path_ / METADATA_FILE));
+    metadata_.set("uuid", uuid);
+    metadata_.set("name", name);
+    metadata_.set("width", sliceWidth_);
+    metadata_.set("height", sliceHeight_);
+    metadata_.set("slices", numSlices_);
+    metadata_.set("voxelsize", double{});
+    metadata_.set("min", double{});
+    metadata_.set("max", double{});
+}
+
 Volume::Pointer Volume::New(fs::path path)
 {
     return std::make_shared<Volume>(path);
+}
+
+Volume::Pointer Volume::New(fs::path path, std::string uuid, std::string name)
+{
+    return std::make_shared<Volume>(path, uuid, name);
 }
 
 StructureTensor Tensorize(cv::Vec3d gradient);
@@ -92,18 +117,15 @@ cv::Mat Volume::getSliceDataCopy(int index) const
 }
 
 // Data Assignment
-bool Volume::setSliceData(int index, const cv::Mat& slice)
+void Volume::setSliceData(int index, const cv::Mat& slice)
 {
     if (index >= numSlices_) {
-        std::cerr << "ERROR: Atttempted to save a slice image to an out of "
-                     "bounds index."
-                  << std::endl;
-        return false;
+        auto msg = "Attempted to save a slice to an out-of-bounds index.";
+        throw std::range_error(msg);
     }
 
     auto filepath = getSlicePath(index);
     cv::imwrite(filepath.string(), slice);
-    return true;
 }
 
 fs::path Volume::getSlicePath(int index) const
@@ -111,7 +133,7 @@ fs::path Volume::getSlicePath(int index) const
     std::stringstream ss;
     ss << std::setw(numSliceCharacters_) << std::setfill('0') << index
        << ".tif";
-    return slicePath_ / ss.str();
+    return path_ / ss.str();
 }
 
 Reslice Volume::reslice(

@@ -1,5 +1,5 @@
 /**
-  @file   VolumePkgVersion.h
+  @file   VolumePkgVersion.hpp
   @author Seth Parker
   @date   April 2015
 
@@ -61,8 +61,8 @@ const Dictionary V4 =
         {"materialthickness",Type::DOUBLE}
         };
 
-/** Metadata dictionary for VolumePkg v1. */
-const Dictionary V1 =
+/** Metadata dictionary for VolumePkg v3. */
+const Dictionary V3 =
         {
         {"volumepkg name",   Type::STRING},
         {"version",          Type::INT},
@@ -72,7 +72,8 @@ const Dictionary V1 =
         {"slice location",   Type::STRING},
         {"min",              Type::DOUBLE},
         {"max",              Type::DOUBLE},
-        {"voxelsize",        Type::DOUBLE}
+        {"voxelsize",        Type::DOUBLE},
+        {"materialthickness",Type::DOUBLE}
         };
 
 /** Metadata dictionary for VolumePkg v2. */
@@ -90,8 +91,8 @@ const Dictionary V2 =
         {"materialthickness",Type::DOUBLE}
         };
 
-/** Metadata dictionary for VolumePkg v3. */
-const Dictionary V3 =
+/** Metadata dictionary for VolumePkg v1. */
+const Dictionary V1 =
         {
         {"volumepkg name",   Type::STRING},
         {"version",          Type::INT},
@@ -101,8 +102,7 @@ const Dictionary V3 =
         {"slice location",   Type::STRING},
         {"min",              Type::DOUBLE},
         {"max",              Type::DOUBLE},
-        {"voxelsize",        Type::DOUBLE},
-        {"materialthickness",Type::DOUBLE}
+        {"voxelsize",        Type::DOUBLE}
         };
 // clang-format on
 

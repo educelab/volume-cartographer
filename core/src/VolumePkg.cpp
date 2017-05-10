@@ -10,15 +10,20 @@
 #include "vc/core/types/OrderedPointSet.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 
+using namespace volcart;
+
 namespace vc = volcart;
 namespace fs = boost::filesystem;
+
+static const fs::path SUBPATH_SEGS{"paths"};
+static const fs::path SUBPATH_VOLS{"volumes"};
 
 // CONSTRUCTORS //
 // Make a volpkg of a particular version number
 VolumePkg::VolumePkg(fs::path fileLocation, int version)
     : rootDir_{fileLocation}
-    , segsDir_{fileLocation / "paths"}
-    , volsDir_{fileLocation / "vols"}
+    , segsDir_{fileLocation / SUBPATH_SEGS}
+    , volsDir_{fileLocation / SUBPATH_VOLS}
 {
     // Lookup the metadata template from our library of versions
     auto findDict = volcart::VERSION_LIBRARY.find(version);
@@ -36,15 +41,13 @@ VolumePkg::VolumePkg(fs::path fileLocation, int version)
             fs::create_directory(d);
         }
     }
-
-    // To-do: Initialize new volume?
 }
 
 // Use this when reading a volpkg from a file
 VolumePkg::VolumePkg(fs::path fileLocation)
     : rootDir_{fileLocation}
-    , segsDir_{fileLocation / "paths"}
-    , volsDir_{fileLocation / "vols"}
+    , segsDir_{fileLocation / SUBPATH_SEGS}
+    , volsDir_{fileLocation / SUBPATH_VOLS}
 {
     // Check directory structure
     if (!(fs::exists(rootDir_) && fs::exists(segsDir_) &&
@@ -114,16 +117,29 @@ double VolumePkg::getMaterialThickness() const
     return config_.get<double>("materialthickness");
 }
 
-// Slice manipulation functions
-bool VolumePkg::setSliceData(size_t index, const cv::Mat& slice)
+// VOLUME FUNCTIONS //
+Volume::Pointer VolumePkg::newVolume(std::string name)
 {
-    /**< Performs a read only check and then sets the data*/
-    if (readOnly_) {
-        volcart::ErrReadonly();
-        return false;
-    } else {
-        return vol_.setSliceData(index, slice);
+    // Generate a uuid
+    auto uuid = DateTime();
+
+    // Get dir name if not specified
+    if (name.empty()) {
+        name = uuid;
     }
+
+    // Make the volume directory
+    auto volDir = volsDir_ / uuid;
+    if (!fs::exists(volDir)) {
+        fs::create_directory(volDir);
+    } else {
+        throw std::runtime_error("Volume directory already exists");
+    }
+
+    // Make the volume
+    volumes_.emplace_back(Volume::New(volDir, uuid, name));
+
+    return volumes_.back();
 }
 
 // SEGMENTATION FUNCTIONS //

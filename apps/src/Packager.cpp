@@ -15,6 +15,7 @@
 
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;
+namespace vc = volcart;
 
 int main(int argc, char* argv[])
 {
@@ -116,10 +117,8 @@ int main(int argc, char* argv[])
     }
 
     // Generate an empty volpkg and save it to disk
-    VolumePkg volpkg(volpkgPath.string(), VOLPKG_VERSION_LATEST);
-    volpkg.readOnly(false);
-    volpkg.setMetadata("volumepkg name", volpkgPath.stem().string());
-    volpkg.setMetadata("voxelsize", voxelsize);
+    vc::VolumePkg volpkg(volpkgPath.string(), VOLPKG_VERSION_LATEST);
+    volpkg.setMetadata("name", volpkgPath.stem().string());
     volpkg.setMetadata("materialthickness", thickness);
 
     // Filter the slice path directory by extension and sort the vector of files
@@ -160,7 +159,6 @@ int main(int argc, char* argv[])
     // Sort the Slices by their filenames
     std::sort(slices.begin(), slices.end(), SlicePathLessThan);
     std::cout << "Slice images found: " << slices.size() << std::endl;
-    volpkg.volume()->setNumberOfSlices(slices.size());
 
     ///// Analyze the slices /////
     bool vol_consistent = true;
@@ -204,11 +202,13 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    ///// Add data to the volume package /////
+    ///// Add data to the volume /////
     // Metadata
-    volpkg.setMetadata("number of slices", slices.size());
-    volpkg.setMetadata("width", slices.begin()->width());
-    volpkg.setMetadata("height", slices.begin()->height());
+    auto volume = volpkg.newVolume("A new name");
+    volume->setNumberOfSlices(slices.size());
+    volume->setSliceWidth(slices.front().width());
+    volume->setSliceHeight(slices.front().height());
+    volume->setVoxelSize(voxelsize);
 
     // Scale 8-bit min/max values
     // To-Do: Handle other bit depths
@@ -216,9 +216,9 @@ int main(int argc, char* argv[])
         vol_min = vol_min * 65535.00 / 255.00;
         vol_max = vol_max * 65535.00 / 255.00;
     }
-    volpkg.setMetadata("min", vol_min);
-    volpkg.setMetadata("max", vol_max);
-    volpkg.saveMetadata();  // Save final metadata changes to disk
+    volume->setMin(vol_min);
+    volume->setMax(vol_max);
+    volume->saveMetadata();  // Save final metadata changes to disk
 
     counter = 0;
     for (auto slice = slices.begin(); slice != slices.end(); ++slice) {
@@ -238,9 +238,9 @@ int main(int argc, char* argv[])
             }
 
             // Add to volume
-            volpkg.setSliceData(counter, tmp);
+            volume->setSliceData(counter, tmp);
         } else {
-            fs::copy(slice->path, volpkg.volume()->getSlicePath(counter));
+            fs::copy(slice->path, volume->getSlicePath(counter));
         }
 
         ++counter;
