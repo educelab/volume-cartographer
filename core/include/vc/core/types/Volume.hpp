@@ -53,25 +53,43 @@ public:
     /** Shared pointer type */
     using Pointer = std::shared_ptr<Volume>;
 
+    /** Volume ID type */
+    using Identifier = std::string;
+
     /**@{*/
-    /** @brief Default constructor */
+    /**
+     * Default constructor. The Volume class is always backed by on-disk
+     * information. If you want to use your slice files as a Volume, you have
+     * two options:
+     *  - Volume(boost::filesystem::path path) if the directory already has a
+     *  metadata file.
+     *  - Volume(boost::filesystem::path, std::string, std::string) if the
+     *  directory doesn't already have a metadata file.
+     */
     Volume() = delete;
 
     /**
      * @brief Load a Volume from file
      *
-     * The path pointed to by `slicePath` should provide a JSON metadata file
-     * describing the Volume.
+     * The path pointed to by `path` is expected to provide a JSON metadata file
+     * that describes the Volume. Use
+     * Volume(boost::filesystem::path, std::string, std::string) if the
+     * directory does not have such a file.
      */
     explicit Volume(boost::filesystem::path path);
 
     /**
-     * @brief Setup a new Volume on disk
+     * @brief Load a directory of slices as a Volume
      *
-     * @warning Should only be used to construct a new Volume on disk
+     * Should be used when the directory being loaded does not already have
+     * a metadata file. It's a good idea to set the slice dimensions, number of
+     * slices, and the voxel size of the Volume at a minimum. After being set,
+     * the metadata can be written to disk using saveMetadata() and the Volume
+     * can be reloaded in the future using Volume(boost::filesystem::path).
      *
      * @param path Path to the Volume root directory
-     * @param uuid Unique ID of the Volume
+     * @param uuid "Unique" ID of the Volume
+     * @param name Human-readable name for the Volume
      */
     Volume(boost::filesystem::path path, std::string uuid, std::string name);
 
@@ -98,16 +116,19 @@ public:
         numSliceCharacters_ = std::to_string(nslices).size();
     }
 
-    /** @brief Load a Volume from file and return a pointer to it */
+    /** @copydoc Volume(boost::filesystem::path) */
     static Pointer New(boost::filesystem::path path);
 
-    /** @brief Construct a new Volume on disk and return a pointer */
+    /** @copydoc Volume(boost::filesystem::path, std::string, std::string) */
     static Pointer New(
-        boost::filesystem::path path, std::string uuid, std::string name);
+        boost::filesystem::path path, Identifier uuid, std::string name);
     /**@}*/
 
     /**@{*/
-    /** @brief Get the human readable name for the Volume */
+    /** @brief Get the "unique" Volume ID */
+    Identifier id() { return metadata_.get<std::string>("uuid"); }
+
+    /** @brief Get the human-readable name for the Volume */
     std::string name() { return metadata_.get<std::string>("name"); }
 
     /** @brief Get the slice width */
@@ -119,6 +140,9 @@ public:
     /** @brief Get the number of slices */
     int32_t numSlices() const { return numSlices_; }
 
+    /** @brief Get the voxel size (in microns) */
+    double voxelSize() const { return metadata_.get<double>("voxelsize"); }
+
     /** @brief Return whether a position is within the volume bounds */
     bool isInBounds(const cv::Vec3d& v) const
     {
@@ -127,7 +151,7 @@ public:
     }
 
     /** @brief Set the human-readable name of the volume */
-    void setName(std::string n) { metadata_.set("name", n); }
+    void setName(std::string n) { metadata_.set("name", std::move(n)); }
 
     /** @brief Set the expected width of the slice images */
     void setSliceWidth(int32_t w)
@@ -143,7 +167,7 @@ public:
         metadata_.set("height", h);
     }
 
-    /** @brief Set the Volume voxel size in microns */
+    /** @brief Set the voxel size (in microns) */
     void setVoxelSize(double s) { metadata_.set("voxelsize", s); }
 
     /** @brief Set the minimum value in the Volume */
@@ -152,11 +176,7 @@ public:
     /** @brief Set the maximum value in the Volume */
     void setMax(double m) { metadata_.set("max", m); }
 
-    /**
-     * @brief Sets the number of slices in the Volume
-     *
-     * @warning Should only be used when creating a new Volume on disk
-     */
+    /** @brief Set the expected number of slice images */
     void setNumberOfSlices(size_t numSlices)
     {
         numSlices_ = numSlices;

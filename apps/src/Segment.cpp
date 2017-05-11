@@ -12,7 +12,7 @@ namespace vc = volcart;
 namespace vs = volcart::segmentation;
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 3;
+static constexpr int VOLPKG_SUPPORTED_VERSION = 4;
 
 // Default values for global options
 static const int kDefaultStep = 1;

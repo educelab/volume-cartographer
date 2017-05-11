@@ -23,6 +23,11 @@ target_link_libraries(vc_mappingExtractor VC::core)
 add_executable(vc_csv2uv src/CSV2UV.cpp)
 target_link_libraries(vc_csv2uv VC::core VC::meshing vtkIOPLY)
 
+# vc_volpkg_v3to4
+add_executable(vc_volpkg_v3to4 src/Volpkg3to4.cpp)
+target_link_libraries(vc_volpkg_v3to4 VC::core)
+list(APPEND VC_INSTALL_UTILS vc_volpkg_v3to4)
+
 # Install targets
 install(
     TARGETS ${VC_INSTALL_UTILS}

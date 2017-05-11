@@ -7,7 +7,6 @@
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/io/PLYWriter.hpp"
 #include "vc/core/io/PointSetIO.hpp"
-#include "vc/core/types/OrderedPointSet.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 
 using namespace volcart;
@@ -15,6 +14,7 @@ using namespace volcart;
 namespace vc = volcart;
 namespace fs = boost::filesystem;
 
+static const fs::path SUBPATH_META{"config.json"};
 static const fs::path SUBPATH_SEGS{"paths"};
 static const fs::path SUBPATH_VOLS{"volumes"};
 
@@ -56,7 +56,7 @@ VolumePkg::VolumePkg(fs::path fileLocation)
     }
 
     // Loads the metadata
-    config_ = volcart::Metadata(fileLocation / "config.json");
+    config_ = volcart::Metadata(fileLocation / SUBPATH_META);
 
     // Copy segmentation paths to segmentations_ vector
     auto range =
@@ -71,7 +71,8 @@ VolumePkg::VolumePkg(fs::path fileLocation)
     range = boost::make_iterator_range(fs::directory_iterator(volsDir_), {});
     for (const auto& entry : range) {
         if (fs::is_directory(entry)) {
-            volumes_.emplace_back(vc::Volume::New(entry));
+            auto v = Volume::New(entry);
+            volumes_.emplace(v->id(), v);
         }
     }
 }
@@ -97,27 +98,21 @@ std::string VolumePkg::getPkgName() const
 
 int VolumePkg::getVersion() const { return config_.get<int>("version"); }
 
-// Returns no. of slices from JSON config
-int VolumePkg::getNumberOfSlices() const
-{
-    return config_.get<int>("number of slices");
-}
-
-int VolumePkg::getSliceWidth() const { return config_.get<int>("width"); }
-
-int VolumePkg::getSliceHeight() const { return config_.get<int>("height"); }
-
-double VolumePkg::getVoxelSize() const
-{
-    return config_.get<double>("voxelsize");
-}
-
 double VolumePkg::getMaterialThickness() const
 {
     return config_.get<double>("materialthickness");
 }
 
 // VOLUME FUNCTIONS //
+std::vector<Volume::Identifier> VolumePkg::volumes() const
+{
+    std::vector<Volume::Identifier> ids;
+    for (auto& v : volumes_) {
+        ids.emplace_back(v.first);
+    }
+    return ids;
+}
+
 Volume::Pointer VolumePkg::newVolume(std::string name)
 {
     // Generate a uuid
@@ -137,10 +132,23 @@ Volume::Pointer VolumePkg::newVolume(std::string name)
     }
 
     // Make the volume
-    volumes_.emplace_back(Volume::New(volDir, uuid, name));
+    auto r = volumes_.emplace(uuid, Volume::New(volDir, uuid, name));
+    if (r.second) {
+        auto msg = "Volume already exists with id " + uuid;
+        throw std::runtime_error(msg);
+    }
 
-    return volumes_.back();
+    // Return the Volume Pointer
+    return r.first->second;
 }
+
+int VolumePkg::getNumberOfSlices() const { return volume()->numSlices(); }
+
+int VolumePkg::getSliceWidth() const { return volume()->sliceWidth(); }
+
+int VolumePkg::getSliceHeight() const { return volume()->sliceHeight(); }
+
+double VolumePkg::getVoxelSize() const { return volume()->voxelSize(); }
 
 // SEGMENTATION FUNCTIONS //
 // Make a new folder inside the volume package to house everything for this

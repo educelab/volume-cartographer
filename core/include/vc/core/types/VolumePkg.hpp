@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <map>
 
 #include <boost/filesystem.hpp>
 #include <opencv2/core.hpp>
@@ -105,9 +106,7 @@ public:
     /**
      * @brief Sets the value of `key` in the VolumePkg metadata.
      *
-     * These values are only stored in memory until saveMetadata() is called.
-     * If VolumePkg is set to read-only, value is not set and function returns
-     * `EXIT_SUCCESS`.
+     * These values are stored only in memory until saveMetadata() is called.
      *
      * @param key Metadata key identifier
      * @param value Value to be stored
@@ -139,21 +138,33 @@ public:
     size_t numberOfVolumes() { return volumes_.size(); }
 
     /** @brief Get the list of volumes */
-    const std::vector<Volume::Pointer>& volumes() { return volumes_; }
+    std::vector<Volume::Identifier> volumes() const;
 
     /**
      * @brief Add a new Volume to the VolumePkg
      * @param name Human-readable name for the new Volume. Defaults to the
-     * Volume's ID.
+     * auto-generated Volume ID.
      * @return Pointer to the new Volume
      */
     Volume::Pointer newVolume(std::string name = "");
 
-    /** @brief Get a Volume by index number */
-    const Volume::Pointer volume(size_t v = 0) const { return volumes_.at(v); }
+    /** @brief Get the first Volume */
+    const Volume::Pointer volume() const { return volumes_.begin()->second; }
 
-    /** @copydoc VolumePkg::volume() const */
-    Volume::Pointer volume(size_t v = 0) { return volumes_.at(v); }
+    /** @copydoc volume() */
+    Volume::Pointer volume() { return volumes_.begin()->second; }
+
+    /** @brief Get a Volume by index number */
+    const Volume::Pointer volume(const Volume::Identifier& id) const
+    {
+        return volumes_.at(id);
+    }
+
+    /** @copydoc VolumePkg::volume(std::string) const */
+    Volume::Pointer volume(const Volume::Identifier& id)
+    {
+        return volumes_.at(id);
+    }
 
     /**
      * @brief Returns the width of the slice images.
@@ -271,8 +282,8 @@ public:
      * .volpkg file. Throws volcart::IOException on write failure. Otherwise
      * returns integer success code.
      * @warning Data currently saved in the active segmentation's directory will
-     * be overwritten. This function can be called when the VolumePkg read-only
-     * flag is not set.
+     * be overwritten.
+     *
      * @param ps PointSet to be saved to the .volpkg file.
      * @return `EXIT_SUCCESS`
      */
@@ -296,8 +307,8 @@ public:
      *
      * Saves a volcart::ITKMesh to the volpkg file
      * @warning Data currently saved in the active segmentation's directory will
-     * be overwritten. This function can be called when the VolumePkg read-only
-     * flag is not set.
+     * be overwritten.
+     *
      * @param mesh PointSet to be saved to the .volpkg file.
      * @return `EXIT_SUCCESS`
      */
@@ -311,11 +322,11 @@ public:
      * volcart::Texture object should be populated with a UVMap and at least one
      * texture image. This function will save only the first texture image.
      * @warning Data currently saved in the active segmentation's directory will
-     * be overwritten. This function can be called when the VolumePkg read-only
-     * flag is not set.
+     * be overwritten.
+     *
      * @param mesh The mesh imfornation to be saved
      * @param texture Populated Texture object
-     * @see Texture.h
+     * @see volcart::Texture
      */
     void saveMesh(const ITKMesh::Pointer& mesh, const Texture& texture) const;
 
@@ -334,8 +345,8 @@ public:
      *
      * File is written to `{name}.png`.
      * @warning Data currently saved in the active segmentation's directory will
-     * be overwritten. This function can be called when the VolumePkg read-only
-     * flag is not set.
+     * be overwritten.
+     *
      * @param texture Texture image data
      * @param name Filename w/o extension [Default: "textured"]
      */
@@ -368,7 +379,7 @@ private:
     /** The subdirectory containing slice data */
     boost::filesystem::path volsDir_;
     /** The list of all volumes in the VolumePkg. */
-    std::vector<Volume::Pointer> volumes_;
+    std::map<Volume::Identifier, Volume::Pointer> volumes_;
     /** Segmentation ID of the segmentation that is currently being worked on */
     std::string activeSeg_;
     /** The list of all segmentations in the VolumePkg */

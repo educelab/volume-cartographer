@@ -27,7 +27,7 @@ namespace fs = boost::filesystem;
 namespace po = boost::program_options;
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 3;
+static constexpr int VOLPKG_SUPPORTED_VERSION = 4;
 
 // Min. number of points required to do flattening
 static constexpr uint16_t CLEANER_MIN_REQ_POINTS = 100;

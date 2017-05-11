@@ -117,9 +117,10 @@ int main(int argc, char* argv[])
     }
 
     // Generate an empty volpkg and save it to disk
-    vc::VolumePkg volpkg(volpkgPath.string(), VOLPKG_VERSION_LATEST);
+    vc::VolumePkg volpkg(volpkgPath, VOLPKG_VERSION_LATEST);
     volpkg.setMetadata("name", volpkgPath.stem().string());
     volpkg.setMetadata("materialthickness", thickness);
+    volpkg.saveMetadata();
 
     // Filter the slice path directory by extension and sort the vector of files
     std::cout << "Reading the slice directory..." << std::endl;

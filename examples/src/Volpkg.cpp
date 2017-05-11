@@ -1,9 +1,6 @@
 // Volume Package Functionality Examples
 #include <iostream>
 
-#include <opencv2/core.hpp>
-#include <opencv2/imgcodecs.hpp>
-
 #include "vc/core/types/VolumePkg.hpp"
 
 std::string volpkgpath = "";
@@ -25,13 +22,18 @@ int main(int argc, char* argv[])
     }
 
     volcart::VolumePkg volpkg(volpkgpath);
-    for (auto v : volpkg.volumes()) {
-        std::cout << v->name() << std::endl;
-    }
 
-    std::string path;
-    for (size_t i = 0; i < volpkg.numberOfVolumes(); i++) {
-        path = "test" + std::to_string(i) + ".png";
-        cv::imwrite(path, volpkg.volume(i)->getSliceData(0));
-    }
+    // print the object input
+    std::cout << "Volume package name before change: " << volpkg.getPkgName()
+              << std::endl;
+
+    // change a value
+    volpkg.setMetadata("name", "Transformed Name");
+
+    // print the changed object
+    std::cout << "Volume package name after change: " << volpkg.getPkgName()
+              << std::endl;
+
+    // save the new json file to test.json
+    volpkg.saveMetadata("test.json");
 }

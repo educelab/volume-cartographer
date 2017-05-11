@@ -14,6 +14,7 @@ namespace fs = boost::filesystem;
 
 static const fs::path METADATA_FILE = "meta.json";
 
+// Load a Volume from disk
 Volume::Volume(fs::path path) : path_(std::move(path))
 {
     metadata_ = volcart::Metadata(path_ / METADATA_FILE);
@@ -23,6 +24,7 @@ Volume::Volume(fs::path path) : path_(std::move(path))
     numSliceCharacters_ = std::to_string(numSlices_).size();
 }
 
+// Setup a Volume from a folder of slices
 Volume::Volume(fs::path path, std::string uuid, std::string name)
     : path_(std::move(path))
     , numSlices_(0)
@@ -41,11 +43,13 @@ Volume::Volume(fs::path path, std::string uuid, std::string name)
     metadata_.set("max", double{});
 }
 
+// Load a Volume from disk, return a pointer
 Volume::Pointer Volume::New(fs::path path)
 {
     return std::make_shared<Volume>(path);
 }
 
+// Set a Volume from a folder of slices, return a pointer
 Volume::Pointer Volume::New(fs::path path, std::string uuid, std::string name)
 {
     return std::make_shared<Volume>(path, uuid, name);

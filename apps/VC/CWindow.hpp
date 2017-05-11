@@ -17,7 +17,7 @@
 #include "vc/segmentation/lrps/LocalResliceParticleSim.hpp"
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 3;  // Version #3
+static constexpr int VOLPKG_SUPPORTED_VERSION = 4;
 
 namespace ChaoVis
 {
