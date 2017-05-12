@@ -35,14 +35,13 @@ struct Vertex {
 /** Generic triangular face structure */
 struct Cell {
     uint64_t v1, v2, v3;
-    Cell() : v1{}, v2{}, v3{} {}
+    Cell() = default;
     Cell(uint64_t p1, uint64_t p2, uint64_t p3) : v1{p1}, v2{p2}, v3{p3} {}
 };
 
 /** Aspect ratio structure */
 struct Ratio {
-    Ratio() : width(1), height(1), aspect(1) {}
-    double width, height, aspect;
+    double width{1}, height{1}, aspect{1};
 };
 /**@}*/
 

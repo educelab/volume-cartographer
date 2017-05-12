@@ -2,23 +2,34 @@ project(libvc_core VERSION 0.1 LANGUAGES CXX)
 set(module "core")
 set(target "vc_${module}")
 
-set(srcs
+set(io_srcs
+    src/OBJReader.cpp
+    src/OBJWriter.cpp
+    src/PLYReader.cpp
+    src/PLYWriter.cpp
+)
+
+set(shape_srcs
+    src/ShapePrimitive.cpp
+    src/Sphere.cpp
+)
+
+set(type_srcs
     src/HalfEdgeMesh.cpp
     src/Metadata.cpp
     src/PerPixelMap.cpp
     src/Rendering.cpp
-    src/ShapePrimitive.cpp
     src/Reslice.cpp
-    src/Sphere.cpp
     src/Texture.cpp
     src/Volume.cpp
-    src/MeshMath.cpp
-    src/OBJWriter.cpp
-    src/PLYReader.cpp
-    src/PLYWriter.cpp
     src/VolumePkg.cpp
-    src/OBJReader.cpp
 )
+
+set(util_srcs
+    src/MeshMath.cpp
+)
+
+set(srcs ${io_srcs} ${shape_srcs} ${type_srcs} ${util_srcs})
 
 add_library(${target} ${srcs})
 add_library("${namespace}${module}" ALIAS "${target}")

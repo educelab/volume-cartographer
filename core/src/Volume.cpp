@@ -9,6 +9,8 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
+#include "vc/core/util/FloatComparison.hpp"
+
 using namespace volcart;
 namespace fs = boost::filesystem;
 
@@ -78,8 +80,7 @@ uint16_t Volume::interpolateAt(const Voxel& point) const
     int z1 = z0 + 1;
 
     // insert safety net
-    if (x0 < 0 || y0 < 0 || z0 < 0 || x1 >= sliceWidth_ || y1 >= sliceHeight_ ||
-        z1 >= numSlices_) {
+    if (!isInBounds(point)) {
         return 0;
     }
 
@@ -400,4 +401,51 @@ std::unique_ptr<double[]> MakeUniformGaussianField(int radius)
     }
 
     return field;
+}
+
+Neighborhood Volume::getVoxelNeighborsLinearInterpolated(
+    const cv::Vec3d& center,
+    cv::Vec3d majorAxis,
+    double radius,
+    double interval,
+    Direction direction) const
+{
+    // Interval bounds
+    if (AlmostEqual(interval, 0.0)) {
+        throw std::domain_error("Sampling interval too small");
+    }
+
+    // Normalize axis and ensure properly oriented radius
+    cv::normalize(majorAxis, majorAxis);
+    radius = std::abs(radius);
+
+    // Setup Range
+    double min, max;
+    switch (direction) {
+        case Direction::Bidirectional: {
+            min = -1 * radius;
+            max = radius;
+            break;
+        }
+        case Direction::Positive: {
+            min = 0;
+            max = radius;
+            break;
+        }
+        case Direction::Negative: {
+            min = -1 * radius;
+            max = 0;
+            break;
+        }
+    }
+
+    // Iterate through range
+    Neighborhood n;
+    auto count = static_cast<size_t>(std::floor((max - min) / interval) + 1);
+    for (size_t it = 0; it < count; count++) {
+        auto offset = min + (it * interval);
+        n.emplace_back(interpolateAt(center + (majorAxis * offset)));
+    }
+
+    return n;
 }
