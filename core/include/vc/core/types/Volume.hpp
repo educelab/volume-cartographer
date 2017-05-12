@@ -6,9 +6,10 @@
 #include <boost/filesystem.hpp>
 #include <opencv2/core.hpp>
 
-#include "LRUCache.hpp"
-#include "Reslice.hpp"
-#include "Tensor3D.hpp"
+#include "vc/core/types/LRUCache.hpp"
+#include "vc/core/types/Metadata.hpp"
+#include "vc/core/types/Reslice.hpp"
+#include "vc/core/types/Tensor3D.hpp"
 
 namespace volcart
 {
@@ -49,9 +50,48 @@ public:
     /** @enum Axis labels */
     enum class Axis { X, Y };
 
+    /** Shared pointer type */
+    using Pointer = std::shared_ptr<Volume>;
+
+    /** Volume ID type */
+    using Identifier = std::string;
+
     /**@{*/
-    /** @brief Default constructor */
-    Volume() = default;
+    /**
+     * Default constructor. The Volume class is always backed by on-disk
+     * information. If you want to use your slice files as a Volume, you have
+     * two options:
+     *  - Volume(boost::filesystem::path path) if the directory already has a
+     *  metadata file.
+     *  - Volume(boost::filesystem::path, std::string, std::string) if the
+     *  directory doesn't already have a metadata file.
+     */
+    Volume() = delete;
+
+    /**
+     * @brief Load a Volume from file
+     *
+     * The path pointed to by `path` is expected to provide a JSON metadata file
+     * that describes the Volume. Use
+     * Volume(boost::filesystem::path, std::string, std::string) if the
+     * directory does not have such a file.
+     */
+    explicit Volume(boost::filesystem::path path);
+
+    /**
+     * @brief Load a directory of slices as a Volume
+     *
+     * Should be used when the directory being loaded does not already have
+     * a metadata file. It's a good idea to set the slice dimensions, number of
+     * slices, and the voxel size of the Volume at a minimum. After being set,
+     * the metadata can be written to disk using saveMetadata() and the Volume
+     * can be reloaded in the future using Volume(boost::filesystem::path).
+     *
+     * @param path Path to the Volume root directory
+     * @param uuid "Unique" ID of the Volume
+     * @param name Human-readable name for the Volume
+     */
+    Volume(boost::filesystem::path path, std::string uuid, std::string name);
 
     /** @brief Construct a Volume using existing slice data
      *
@@ -68,24 +108,40 @@ public:
         int32_t nslices,
         int32_t sliceWidth,
         int32_t sliceHeight)
-        : slicePath_(std::move(slicePath))
+        : path_(std::move(slicePath))
         , numSlices_(nslices)
         , sliceWidth_(sliceWidth)
         , sliceHeight_(sliceHeight)
     {
         numSliceCharacters_ = std::to_string(nslices).size();
     }
+
+    /** @copydoc Volume(boost::filesystem::path) */
+    static Pointer New(boost::filesystem::path path);
+
+    /** @copydoc Volume(boost::filesystem::path, std::string, std::string) */
+    static Pointer New(
+        boost::filesystem::path path, Identifier uuid, std::string name);
     /**@}*/
 
     /**@{*/
+    /** @brief Get the "unique" Volume ID */
+    Identifier id() { return metadata_.get<std::string>("uuid"); }
+
+    /** @brief Get the human-readable name for the Volume */
+    std::string name() { return metadata_.get<std::string>("name"); }
+
     /** @brief Get the slice width */
-    int32_t sliceWidth() const { return sliceWidth_; }
+    int32_t sliceWidth() const { return metadata_.get<int>("width"); }
 
     /** @brief Get the slice height */
     int32_t sliceHeight() const { return sliceHeight_; }
 
     /** @brief Get the number of slices */
     int32_t numSlices() const { return numSlices_; }
+
+    /** @brief Get the voxel size (in microns) */
+    double voxelSize() const { return metadata_.get<double>("voxelsize"); }
 
     /** @brief Return whether a position is within the volume bounds */
     bool isInBounds(const cv::Vec3d& v) const
@@ -94,6 +150,45 @@ public:
                v(1) < sliceHeight_ && v(2) >= 0 && v(2) < numSlices_;
     }
 
+    /** @brief Set the human-readable name of the volume */
+    void setName(std::string n) { metadata_.set("name", std::move(n)); }
+
+    /** @brief Set the expected width of the slice images */
+    void setSliceWidth(int32_t w)
+    {
+        sliceWidth_ = w;
+        metadata_.set("width", w);
+    }
+
+    /** @brief Set the expected height of the slice images */
+    void setSliceHeight(int32_t h)
+    {
+        sliceHeight_ = h;
+        metadata_.set("height", h);
+    }
+
+    /** @brief Set the voxel size (in microns) */
+    void setVoxelSize(double s) { metadata_.set("voxelsize", s); }
+
+    /** @brief Set the minimum value in the Volume */
+    void setMin(double m) { metadata_.set("min", m); }
+
+    /** @brief Set the maximum value in the Volume */
+    void setMax(double m) { metadata_.set("max", m); }
+
+    /** @brief Set the expected number of slice images */
+    void setNumberOfSlices(size_t numSlices)
+    {
+        numSlices_ = numSlices;
+        numSliceCharacters_ = std::to_string(numSlices_).size();
+        metadata_.set("slices", numSlices);
+    }
+
+    /** @brief Update metadata on disk */
+    void saveMetadata() { metadata_.save(); }
+    /**@}*/
+
+    /**@{*/
     /**
      * @brief Get a slice by index number
      *
@@ -107,24 +202,13 @@ public:
     cv::Mat getSliceDataCopy(int32_t index) const;
 
     /**
-     * @brief Sets the number of slices in the Volume
-     *
-     * @warning Should only be used when creating a new Volume on disk
-     */
-    void setNumberOfSlices(size_t numSlices)
-    {
-        numSlices_ = numSlices;
-        numSliceCharacters_ = std::to_string(numSlices_).size();
-    }
-
-    /**
      * @brief Set a slice by index number
      *
      * Index must be less than the number of slices in the volume.
      *
      * @warning This will overwrite any existing slice data on disk.
      */
-    bool setSliceData(int32_t index, const cv::Mat& slice);
+    void setSliceData(int32_t index, const cv::Mat& slice);
 
     /** @brief Get the file path of a slice by index */
     boost::filesystem::path getSlicePath(int32_t index) const;
@@ -430,16 +514,18 @@ public:
 
 private:
     /** Directory containing the slice images */
-    boost::filesystem::path slicePath_;
+    boost::filesystem::path path_;
+    /** Volume metadata */
+    volcart::Metadata metadata_;
     /** Number of slices in the Volume */
-    int32_t numSlices_;
+    int numSlices_;
     /** Width of the slice images */
-    int32_t sliceWidth_;
+    int sliceWidth_;
     /** Height of the slice images */
-    int32_t sliceHeight_;
+    int sliceHeight_;
     /** Number of characters in each slice filename. Used to account for
      * zero-padding. */
-    int32_t numSliceCharacters_;
+    int numSliceCharacters_;
     /** Slice image cache */
     mutable volcart::LRUCache<int32_t, cv::Mat> cache_;
 

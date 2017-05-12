@@ -33,7 +33,7 @@ struct LocalResliceSegmentationFix {
 
     ~LocalResliceSegmentationFix() {}
 
-    VolumePkg _pkg;
+    volcart::VolumePkg _pkg;
     LocalResliceSegmentation _segmenter;
 };
 

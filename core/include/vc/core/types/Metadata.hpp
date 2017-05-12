@@ -39,7 +39,7 @@ public:
     boost::filesystem::path path() const { return path_; }
 
     /** @brief Set the path where the metadata file will be written */
-    void setPath(const std::string& path) { path_ = path; }
+    void setPath(const boost::filesystem::path& path) { path_ = path; }
 
     /** @brief Save the metadata file to the stored path */
     void save() { save(path_); }

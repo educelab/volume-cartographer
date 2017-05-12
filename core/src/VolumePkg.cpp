@@ -7,17 +7,22 @@
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/io/PLYWriter.hpp"
 #include "vc/core/io/PointSetIO.hpp"
-#include "vc/core/types/OrderedPointSet.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 
+using namespace volcart;
+
 namespace fs = boost::filesystem;
+
+static const fs::path SUBPATH_META{"config.json"};
+static const fs::path SUBPATH_SEGS{"paths"};
+static const fs::path SUBPATH_VOLS{"volumes"};
 
 // CONSTRUCTORS //
 // Make a volpkg of a particular version number
 VolumePkg::VolumePkg(fs::path fileLocation, int version)
     : rootDir_{fileLocation}
-    , segsDir_{fileLocation / "paths"}
-    , sliceDir_{fileLocation / "slices"}
+    , segsDir_{fileLocation / SUBPATH_SEGS}
+    , volsDir_{fileLocation / SUBPATH_VOLS}
 {
     // Lookup the metadata template from our library of versions
     auto findDict = volcart::VERSION_LIBRARY.find(version);
@@ -28,49 +33,47 @@ VolumePkg::VolumePkg(fs::path fileLocation, int version)
     // Create the directories with the default values
     // TODO(skarlage): #181
     config_ = VolumePkg::InitConfig(findDict->second, version);
-    config_.set("slice location", "/slices/");
 
     // Make directories
-    for (const auto& d : {rootDir_, segsDir_, sliceDir_}) {
+    for (const auto& d : {rootDir_, segsDir_, volsDir_}) {
         if (!fs::exists(d)) {
             fs::create_directory(d);
         }
     }
-
-    // Initialize volume object
-    vol_ = volcart::Volume(
-        sliceDir_, config_.get<int>("number of slices"),
-        config_.get<int>("width"), config_.get<int>("height"));
 }
 
 // Use this when reading a volpkg from a file
 VolumePkg::VolumePkg(fs::path fileLocation)
     : rootDir_{fileLocation}
-    , segsDir_{fileLocation / "paths"}
-    , sliceDir_{fileLocation / "slices"}
+    , segsDir_{fileLocation / SUBPATH_SEGS}
+    , volsDir_{fileLocation / SUBPATH_VOLS}
 {
+    // Check directory structure
     if (!(fs::exists(rootDir_) && fs::exists(segsDir_) &&
-          fs::exists(sliceDir_))) {
+          fs::exists(volsDir_))) {
         throw std::runtime_error("invalid volumepkg structure");
     }
 
     // Loads the metadata
-    config_ = volcart::Metadata(fileLocation / "config.json");
+    config_ = volcart::Metadata(fileLocation / SUBPATH_META);
 
     // Copy segmentation paths to segmentations_ vector
     auto range =
         boost::make_iterator_range(fs::directory_iterator(segsDir_), {});
     for (const auto& entry : range) {
-        if (entry == "") {
-            continue;
+        if (fs::is_directory(entry)) {
+            segmentations_.push_back(fs::basename(entry));
         }
-        segmentations_.push_back(fs::basename(entry));
     }
 
-    // Initialize volume object
-    vol_ = volcart::Volume(
-        sliceDir_, config_.get<int>("number of slices"),
-        config_.get<int>("width"), config_.get<int>("height"));
+    // Load volumes into volumes_ vector
+    range = boost::make_iterator_range(fs::directory_iterator(volsDir_), {});
+    for (const auto& entry : range) {
+        if (fs::is_directory(entry)) {
+            auto v = Volume::New(entry);
+            volumes_.emplace(v->id(), v);
+        }
+    }
 }
 
 // Shared pointer volumepkg construction
@@ -94,37 +97,57 @@ std::string VolumePkg::getPkgName() const
 
 int VolumePkg::getVersion() const { return config_.get<int>("version"); }
 
-// Returns no. of slices from JSON config
-int VolumePkg::getNumberOfSlices() const
-{
-    return config_.get<int>("number of slices");
-}
-
-int VolumePkg::getSliceWidth() const { return config_.get<int>("width"); }
-
-int VolumePkg::getSliceHeight() const { return config_.get<int>("height"); }
-
-double VolumePkg::getVoxelSize() const
-{
-    return config_.get<double>("voxelsize");
-}
-
 double VolumePkg::getMaterialThickness() const
 {
     return config_.get<double>("materialthickness");
 }
 
-// Slice manipulation functions
-bool VolumePkg::setSliceData(size_t index, const cv::Mat& slice)
+// VOLUME FUNCTIONS //
+std::vector<Volume::Identifier> VolumePkg::volumes() const
 {
-    /**< Performs a read only check and then sets the data*/
-    if (readOnly_) {
-        volcart::ErrReadonly();
-        return false;
-    } else {
-        return vol_.setSliceData(index, slice);
+    std::vector<Volume::Identifier> ids;
+    for (auto& v : volumes_) {
+        ids.emplace_back(v.first);
     }
+    return ids;
 }
+
+Volume::Pointer VolumePkg::newVolume(std::string name)
+{
+    // Generate a uuid
+    auto uuid = DateTime();
+
+    // Get dir name if not specified
+    if (name.empty()) {
+        name = uuid;
+    }
+
+    // Make the volume directory
+    auto volDir = volsDir_ / uuid;
+    if (!fs::exists(volDir)) {
+        fs::create_directory(volDir);
+    } else {
+        throw std::runtime_error("Volume directory already exists");
+    }
+
+    // Make the volume
+    auto r = volumes_.emplace(uuid, Volume::New(volDir, uuid, name));
+    if (r.second) {
+        auto msg = "Volume already exists with id " + uuid;
+        throw std::runtime_error(msg);
+    }
+
+    // Return the Volume Pointer
+    return r.first->second;
+}
+
+int VolumePkg::getNumberOfSlices() const { return volume()->numSlices(); }
+
+int VolumePkg::getSliceWidth() const { return volume()->sliceWidth(); }
+
+int VolumePkg::getSliceHeight() const { return volume()->sliceHeight(); }
+
+double VolumePkg::getVoxelSize() const { return volume()->voxelSize(); }
 
 // SEGMENTATION FUNCTIONS //
 // Make a new folder inside the volume package to house everything for this

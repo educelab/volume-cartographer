@@ -17,7 +17,7 @@
 int main(int /*argc*/, char* argv[])
 {
 
-    VolumePkg vpkg(argv[1]);
+    volcart::VolumePkg vpkg(argv[1]);
     double radius = std::stod(argv[4]);
     std::cout << radius << std::endl;
 

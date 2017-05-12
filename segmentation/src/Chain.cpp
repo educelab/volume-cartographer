@@ -2,6 +2,8 @@
 
 #include "vc/segmentation/stps/Chain.hpp"
 
+using namespace volcart::segmentation;
+
 Chain::Chain(
     std::vector<cv::Vec3d> segPath,
     const VolumePkg& volpkg,
@@ -146,7 +148,7 @@ cv::Vec3d Chain::gravity(size_t index)
 
     cv::Vec3d offset =
         volpkg_.volume()
-            .interpolatedEigenPairsAt(history_.front()[index], 3)[0]
+            ->interpolatedEigenPairsAt(history_.front()[index], 3)[0]
             .second;
 
     offset = gravity - (gravity.dot(offset)) / (offset.dot(offset)) * offset;

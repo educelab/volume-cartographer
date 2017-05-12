@@ -13,7 +13,7 @@
 int main(int /*argc*/, char* argv[])
 {
 
-    VolumePkg vpkg(argv[1]);
+    volcart::VolumePkg vpkg(argv[1]);
     vpkg.setActiveSegmentation(argv[2]);
 
     // declare pointer to new Mesh object

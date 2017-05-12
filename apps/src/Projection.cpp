@@ -69,12 +69,13 @@ int main(int argc, char* argv[])
     }
 
     // Iterate over each z-index and generate a projected slice image
+    auto volume = volpkg.volume();
     for (auto z_id = z_map.begin(); z_id != z_map.end(); ++z_id) {
         std::cout << "Projecting slice " + std::to_string(z_id->first) + "\r"
                   << std::flush;
         // get the slice image and cvt to CV_8UC3
         // .clone() to make sure we don't modify the cached version
-        cv::Mat slice = volpkg.volume().getSliceData(z_id->first).clone();
+        cv::Mat slice = volume->getSliceDataCopy(z_id->first);
         slice.convertTo(slice, CV_8U, 255.0 / 65535.0);
         cv::cvtColor(slice, slice, cv::COLOR_GRAY2BGR);
 

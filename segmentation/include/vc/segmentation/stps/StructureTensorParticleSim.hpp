@@ -31,7 +31,7 @@ namespace segmentation
  */
 volcart::OrderedPointSet<cv::Vec3d> StructureTensorParticleSim(
     std::vector<cv::Vec3d> segPath,
-    const VolumePkg& volpkg,
+    const volcart::VolumePkg& volpkg,
     double gravityScale = 0.5,
     int threshold = 1,
     int endOffset = -1);

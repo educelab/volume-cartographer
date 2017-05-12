@@ -1,18 +1,16 @@
 #include "vc/segmentation/stps/StructureTensorParticleSim.hpp"
 
-namespace volcart
-{
-namespace segmentation
-{
-volcart::OrderedPointSet<cv::Vec3d> StructureTensorParticleSim(
+namespace vcs = volcart::segmentation;
+
+volcart::OrderedPointSet<cv::Vec3d> vcs::StructureTensorParticleSim(
     std::vector<cv::Vec3d> segPath,
-    const VolumePkg& volpkg,
+    const volcart::VolumePkg& volpkg,
     double gravityScale,
     int threshold,
     int endOffset)
 {
     // Organize the points into a connected chain
-    Chain particleChain(
+    vcs::Chain particleChain(
         std::move(segPath), volpkg, gravityScale, threshold, endOffset);
 
     // The only stop condition is that each particle has reached the target
@@ -26,5 +24,3 @@ volcart::OrderedPointSet<cv::Vec3d> StructureTensorParticleSim(
 
     return particleChain.orderedPCD();
 }
-}  // namespace segmentation
-}  // namespace volcart
