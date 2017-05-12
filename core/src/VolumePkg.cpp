@@ -11,7 +11,6 @@
 
 using namespace volcart;
 
-namespace vc = volcart;
 namespace fs = boost::filesystem;
 
 static const fs::path SUBPATH_META{"config.json"};

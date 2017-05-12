@@ -120,6 +120,12 @@ test:osx:dynamic:
         - ctest -j 4
     dependencies:
         - build:osx:dynamic
+    artifacts:
+      name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
+      paths:
+        - build/testing/Temporary/
+      when: always
+      expire_in: 4 weeks
     tags:
         - test
         - osx
