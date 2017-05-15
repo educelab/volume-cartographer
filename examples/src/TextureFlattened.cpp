@@ -12,7 +12,8 @@
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/vc_defines.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
-#include "vc/texturing/CompositeTextureV2.hpp"
+#include "vc/texturing/CompositeTexture.hpp"
+#include "vc/texturing/PPMGenerator.hpp"
 
 int main(int /*argc*/, char* argv[])
 {
@@ -81,10 +82,19 @@ int main(int /*argc*/, char* argv[])
         }
     }
 
-    // Convert soft body to itk mesh
-    volcart::texturing::CompositeTextureV2 result(
-        inputMesh, vpkg, uvMap, radius, static_cast<int>(aspect_width),
-        static_cast<int>(aspect_height));
+    auto width = static_cast<size_t>(aspect_width);
+    auto height = static_cast<size_t>(aspect_height);
+    volcart::texturing::PPMGenerator ppmGen(height, width);
+    ppmGen.setMesh(inputMesh);
+    ppmGen.setUVMap(uvMap);
+    ppmGen.compute();
+
+    volcart::texturing::CompositeTexture result;
+    result.setPerPixelMap(ppmGen.getPPM());
+    result.setVolume(vpkg.volume());
+    result.setSamplingRadius(radius);
+    result.compute();
+
     volcart::io::OBJWriter objwriter(
         "cloth.obj", inputMesh, result.getTexture().uvMap(),
         result.getTexture().image(0));

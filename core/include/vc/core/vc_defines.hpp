@@ -171,26 +171,6 @@ using Origin = cv::Vec2d;
 /**@{*/
 /** Defines an empty texture to be -1 */
 constexpr static double TEXTURE_NO_VALUE = -1.0;
-
-/** @brief Composite Texturing Filters */
-enum class CompositeOption {
-    Intersection,
-    NonMaximumSuppression,
-    Maximum,
-    Minimum,
-    MedianAverage,
-    Median,
-    Mean
-};
-
-/** @brief Neighborhood Directional Filtering Options
- *
- * Bidirectional: Consider data in both the positive and negative normal
- * direction \n
- * Positive: Only consider data in the positive normal direction \n
- * Negative: Only consider data in the negative normal direction \n
- */
-enum class DirectionOption { Bidirectional, Positive, Negative };
 /**@}*/
 
 /**@{*/

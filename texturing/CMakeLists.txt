@@ -4,10 +4,8 @@ set(target "vc_${module}")
 
 set(srcs
     src/CompositeTexture.cpp
-    src/CompositeTextureV2.cpp
     src/AngleBasedFlattening.cpp
     src/PPMGenerator.cpp
-    src/TexturingUtils.cpp
     src/IntersectionTexture.cpp
 )
 set(public_deps

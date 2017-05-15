@@ -46,13 +46,11 @@ SegmentationsViewer::SegmentationsViewer(
     sample_Direction = new QComboBox();
     generate = new QPushButton("Generate Texture");
 
-    texture_Method->addItem("Intersection");
-    texture_Method->addItem("Non-Maximum Suppression");
-    texture_Method->addItem("Maximum");
     texture_Method->addItem("Minimum");
-    texture_Method->addItem("Median w/ Averaging");
+    texture_Method->addItem("Maximum");
     texture_Method->addItem("Median");
     texture_Method->addItem("Mean");
+    texture_Method->addItem("Median w/ Averaging");
 
     sample_Direction->addItem("Omni");
     sample_Direction->addItem("Positive");

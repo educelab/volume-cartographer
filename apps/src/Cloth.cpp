@@ -13,7 +13,8 @@
 #include "vc/core/vc_defines.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
 #include "vc/texturing/ClothModelingUVMapping.hpp"
-#include "vc/texturing/CompositeTextureV2.hpp"
+#include "vc/texturing/CompositeTexture.hpp"
+#include "vc/texturing/PPMGenerator.hpp"
 
 using namespace volcart;
 namespace po = boost::program_options;
@@ -144,18 +145,27 @@ int main(int argc, char* argv[])
     volcart::io::OBJWriter writer(path, output);
     writer.write();
 
-    if (!genTexture)
+    if (!genTexture) {
         return EXIT_SUCCESS;
+    }
 
     // Convert soft body to itk mesh
     volcart::UVMap uvMap = clothUV.getUVMap();
-    int width, height;
 
-    width = static_cast<int>(std::ceil(uvMap.ratio().width));
-    height = static_cast<int>(std::ceil(uvMap.ratio().height));
+    auto width = static_cast<size_t>(std::ceil(uvMap.ratio().width));
+    auto height = static_cast<size_t>(std::ceil(uvMap.ratio().height));
 
-    volcart::texturing::CompositeTextureV2 result(
-        mesh, vpkg, clothUV.getUVMap(), 7, width, height);
+    volcart::texturing::PPMGenerator ppmGen(height, width);
+    ppmGen.setUVMap(uvMap);
+    ppmGen.setMesh(mesh);
+    ppmGen.compute();
+
+    volcart::texturing::CompositeTexture result;
+    result.setPerPixelMap(ppmGen.getPPM());
+    result.setVolume(vpkg.volume());
+    result.setSamplingRadius(7);
+    result.compute();
+
     volcart::io::OBJWriter objwriter(
         "textured.obj", mesh, uvMap, result.getTexture().image(0));
     objwriter.write();
@@ -168,7 +178,7 @@ int main(int argc, char* argv[])
         PerPixelMap::WritePPM("PerPixelMapping", result.getTexture().ppm());
     }
 
-    return 0;
+    return EXIT_SUCCESS;
 }
 
 /////////// Get pinned points from file //////////

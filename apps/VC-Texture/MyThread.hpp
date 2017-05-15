@@ -18,11 +18,6 @@
 
 #include <vtkCleanPolyData.h>
 
-#include "vc/core/util/MeshMath.hpp"
-#include "vc/meshing/ACVD.hpp"
-#include "vc/texturing/AngleBasedFlattening.hpp"
-#include "vc/texturing/CompositeTextureV2.hpp"
-
 #include "GlobalValues.hpp"
 
 class MyThread : public QThread

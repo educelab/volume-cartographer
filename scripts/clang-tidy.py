@@ -33,9 +33,6 @@ class ClangTidier:
 
         # Not code that we control
         'external/*',
-
-        # This file is going away at some point
-        'texturing/src/TexturingUtils.cpp'
     ]
 
     def __init__(self, path: str, build_dir: str) -> None:

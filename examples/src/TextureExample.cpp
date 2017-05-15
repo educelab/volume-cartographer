@@ -8,7 +8,8 @@
 #include "vc/core/types/Texture.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/vc_defines.hpp"
-#include "vc/texturing/CompositeTextureV2.hpp"
+#include "vc/texturing/CompositeTexture.hpp"
+#include "vc/texturing/PPMGenerator.hpp"
 
 int main(int /*argc*/, char* argv[])
 {
@@ -29,8 +30,8 @@ int main(int /*argc*/, char* argv[])
         exit(EXIT_SUCCESS);
     }
 
-    int width = 608 * 2;
-    int height = 370 * 2;
+    size_t width = 608 * 2;
+    size_t height = 370 * 2;
 
     volcart::UVMap uvMap;
     uvMap.set(0, cv::Vec2d(0, 0));
@@ -39,9 +40,17 @@ int main(int /*argc*/, char* argv[])
     uvMap.set(3, cv::Vec2d(1, 1));
     uvMap.ratio(width, height);
 
-    volcart::texturing::CompositeTextureV2 compText(
-        inputMesh, vpkg, uvMap, 1, width, height,
-        volcart::CompositeOption::Minimum);
+    volcart::texturing::PPMGenerator ppmGen(height, width);
+    ppmGen.setMesh(inputMesh);
+    ppmGen.setUVMap(uvMap);
+    ppmGen.compute();
+
+    volcart::texturing::CompositeTexture compText;
+    compText.setPerPixelMap(ppmGen.getPPM());
+    compText.setVolume(vpkg.volume());
+    compText.setFilter(volcart::texturing::CompositeTexture::Filter::Minimum);
+    compText.setSamplingRadius(1);
+    compText.compute();
 
     volcart::io::OBJWriter mesh_writer;
     mesh_writer.setPath("compV2Test.obj");
