@@ -8,6 +8,7 @@ set(srcs
     src/PPMGenerator.cpp
     src/IntersectionTexture.cpp
     src/IntegralTexture.cpp
+    src/LayerTexture.cpp
 )
 set(public_deps
     VC::core
