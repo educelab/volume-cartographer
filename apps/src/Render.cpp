@@ -20,6 +20,7 @@
 #include "vc/meshing/SmoothNormals.hpp"
 #include "vc/texturing/AngleBasedFlattening.hpp"
 #include "vc/texturing/CompositeTexture.hpp"
+#include "vc/texturing/IntegralTexture.hpp"
 #include "vc/texturing/IntersectionTexture.hpp"
 #include "vc/texturing/PPMGenerator.hpp"
 
@@ -36,7 +37,7 @@ static constexpr double UM_TO_MM = 0.001 * 0.001;
 // Min. number of points required to do flattening
 static constexpr uint16_t CLEANER_MIN_REQ_POINTS = 100;
 
-enum class Method { Composite = 0, Intersection };
+enum class Method { Composite = 0, Intersection, Integral };
 
 int main(int argc, char* argv[])
 {
@@ -48,34 +49,48 @@ int main(int argc, char* argv[])
         ("volpkg,v", po::value<std::string>()->required(), "VolumePkg path")
         ("seg,s", po::value<std::string>()->required(), "Segmentation ID")
         ("method,m", po::value<int>()->default_value(0),
-             "Texturing method: \n"
-                 "  0 = Composite\n"
-                 "  1 = Intersection\n")
+            "Texturing method: \n"
+                "  0 = Composite\n"
+                "  1 = Intersection\n"
+                "  2 = Integral")
         ("output-file,o", po::value<std::string>(),
             "Output file path. If not specified, the file will be saved to the "
-            "volume package.");
+            "volume package.")
+        ("output-ppm", po::value<std::string>(),
+            "Output file path for the generated PPM.");
 
-    po::options_description compositeOptions("Composite Texture Options");
-    compositeOptions.add_options()
+    po::options_description filterOptions("Generic Filtering Options");
+    filterOptions.add_options()
         ("radius,r", po::value<double>(), "Search radius. Defaults to value "
             "calculated from estimated layer thickness.")
         ("interval,i", po::value<double>()->default_value(1.0),
             "Sampling interval")
-        ("filter,f", po::value<int>()->default_value(1),
-         "Filter:\n"
-                 "  0 = Minimum\n"
-                 "  1 = Maximum\n"
-                 "  2 = Median\n"
-                 "  3 = Mean\n"
-                 "  4 = Median w/ Averaging\n")
         ("direction,d", po::value<int>()->default_value(0),
-         "Sample Direction:\n"
-                 "  0 = Omni\n"
-                 "  1 = Positive\n"
-                 "  2 = Negative\n");
+            "Sample Direction:\n"
+                "  0 = Omni\n"
+                "  1 = Positive\n"
+                "  2 = Negative");
+
+    po::options_description compositeOptions("Composite Texture Options");
+    compositeOptions.add_options()
+        ("filter,f", po::value<int>()->default_value(1),
+            "Filter:\n"
+                "  0 = Minimum\n"
+                "  1 = Maximum\n"
+                "  2 = Median\n"
+                "  3 = Mean\n"
+                "  4 = Median w/ Averaging");
+
+    po::options_description integralOptions("Integral Texture Options");
+    integralOptions.add_options()
+        ("weight,w", po::value<int>()->default_value(2),
+            "Value weighting:\n"
+                "  0 = Favor the + normal direction\n"
+                "  1 = Favor the - normal direction\n"
+                "  2 = No weighting");
 
     po::options_description all("Usage");
-    all.add(required).add(compositeOptions);
+    all.add(required).add(filterOptions).add(compositeOptions).add(integralOptions);
     // clang-format on
 
     // Parse the cmd line
@@ -140,6 +155,8 @@ int main(int argc, char* argv[])
     auto direction = static_cast<vc::Direction>(parsed["direction"].as<int>());
     auto filter = static_cast<vc::texturing::CompositeTexture::Filter>(
         parsed["filter"].as<int>());
+    auto weight = static_cast<vc::texturing::IntegralTexture::Weight>(
+        parsed["weight"].as<int>());
 
     ///// Load and resample the segmentation /////
     vpkg.setActiveSegmentation(segID);
@@ -207,7 +224,9 @@ int main(int argc, char* argv[])
         textureGen.setVolume(vpkg.volume());
         textureGen.setPerPixelMap(ppm);
         texture = textureGen.compute();
-    } else {
+    }
+
+    else if (method == Method::Composite) {
         vc::texturing::CompositeTexture textureGen;
         textureGen.setPerPixelMap(ppm);
         textureGen.setVolume(vpkg.volume());
@@ -218,7 +237,18 @@ int main(int argc, char* argv[])
         texture = textureGen.compute();
     }
 
-    // Setup rendering
+    else if (method == Method::Integral) {
+        vc::texturing::IntegralTexture textureGen;
+        textureGen.setPerPixelMap(ppm);
+        textureGen.setVolume(vpkg.volume());
+        textureGen.setSamplingRadius(radius);
+        textureGen.setSamplingInterval(interval);
+        textureGen.setSamplingDirection(direction);
+        textureGen.setWeight(weight);
+        texture = textureGen.compute();
+    }
+
+    // Save rendering
     volcart::Rendering rendering;
     rendering.setTexture(texture);
     rendering.setMesh(itkACVD);
@@ -243,6 +273,13 @@ int main(int argc, char* argv[])
     } else {
         std::cout << "Writing to Volume Package..." << std::endl;
         vpkg.saveMesh(itkACVD, rendering.getTexture());
+    }
+
+    // Save the PPM
+    if (parsed.count("output-ppm")) {
+        std::cout << "Writing PPM..." << std::endl;
+        fs::path ppmPath = parsed["output-ppm"].as<std::string>();
+        volcart::PerPixelMap::WritePPM(ppmPath, ppm);
     }
 
     return EXIT_SUCCESS;

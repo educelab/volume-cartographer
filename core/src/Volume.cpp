@@ -442,7 +442,7 @@ Neighborhood Volume::getVoxelNeighborsLinearInterpolated(
     // Iterate through range
     Neighborhood n;
     auto count = static_cast<size_t>(std::floor((max - min) / interval) + 1);
-    for (size_t it = 0; it < count; count++) {
+    for (size_t it = 0; it < count; it++) {
         auto offset = min + (it * interval);
         n.emplace_back(interpolateAt(center + (majorAxis * offset)));
     }

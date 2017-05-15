@@ -9,6 +9,8 @@ using namespace volcart::texturing;
 
 Texture IntersectionTexture::compute()
 {
+    // Setup
+    result_ = Texture();
     auto height = static_cast<int>(ppm_.height());
     auto width = static_cast<int>(ppm_.width());
 

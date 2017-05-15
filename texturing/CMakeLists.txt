@@ -7,6 +7,7 @@ set(srcs
     src/AngleBasedFlattening.cpp
     src/PPMGenerator.cpp
     src/IntersectionTexture.cpp
+    src/IntegralTexture.cpp
 )
 set(public_deps
     VC::core
