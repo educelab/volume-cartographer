@@ -12,7 +12,6 @@
 
 #include "vc/core/io/PLYReader.hpp"
 #include "vc/core/types/VolumePkg.hpp"
-#include "vc/core/vc_defines.hpp"
 
 #define RED cv::Scalar(0, 0, 255)
 

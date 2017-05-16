@@ -7,7 +7,7 @@
 #include <boost/test/unit_test.hpp>
 #include "vc/core/shapes/Arch.hpp"
 #include "vc/core/shapes/Plane.hpp"
-#include "vc/core/vc_defines.hpp"
+#include "vc/core/types/SimpleMesh.hpp"
 #include "vc/testing/ParsingHelpers.hpp"
 #include "vc/testing/TestingUtils.hpp"
 #include "vc/texturing/AngleBasedFlattening.hpp"
@@ -82,8 +82,8 @@ struct CreatePlaneABFUVFixture {
     ITKMesh::Pointer _in_Mesh;
     ITKMesh::Pointer _out_Mesh;
 
-    std::vector<Vertex> _SavedPoints;
-    std::vector<Cell> _SavedCells;
+    std::vector<SimpleMesh::Vertex> _SavedPoints;
+    std::vector<SimpleMesh::Cell> _SavedCells;
 };
 
 struct CreatePlaneABFLSCMOnlyUVFixture {
@@ -118,8 +118,8 @@ struct CreatePlaneABFLSCMOnlyUVFixture {
     ITKMesh::Pointer _in_Mesh;
     ITKMesh::Pointer _out_Mesh;
 
-    std::vector<Vertex> _SavedPoints;
-    std::vector<Cell> _SavedCells;
+    std::vector<SimpleMesh::Vertex> _SavedPoints;
+    std::vector<SimpleMesh::Cell> _SavedCells;
 };
 
 struct CreateArchABFUVFixture {
@@ -152,8 +152,8 @@ struct CreateArchABFUVFixture {
     ITKMesh::Pointer _in_Mesh;
     ITKMesh::Pointer _out_Mesh;
 
-    std::vector<Vertex> _SavedPoints;
-    std::vector<Cell> _SavedCells;
+    std::vector<SimpleMesh::Vertex> _SavedPoints;
+    std::vector<SimpleMesh::Cell> _SavedCells;
 };
 
 struct CreateArchABFLSCMOnlyUVFixture {
@@ -188,8 +188,8 @@ struct CreateArchABFLSCMOnlyUVFixture {
     ITKMesh::Pointer _in_Mesh;
     ITKMesh::Pointer _out_Mesh;
 
-    std::vector<Vertex> _SavedPoints;
-    std::vector<Cell> _SavedCells;
+    std::vector<SimpleMesh::Vertex> _SavedPoints;
+    std::vector<SimpleMesh::Cell> _SavedCells;
 };
 
 /*

@@ -13,7 +13,7 @@
 #include "vc/core/shapes/Cube.hpp"
 #include "vc/core/shapes/Plane.hpp"
 #include "vc/core/shapes/Sphere.hpp"
-#include "vc/core/vc_defines.hpp"
+#include "vc/core/types/SimpleMesh.hpp"
 #include "vc/meshing/ScaleMesh.hpp"
 #include "vc/testing/ParsingHelpers.hpp"
 #include "vc/testing/TestingUtils.hpp"
@@ -96,8 +96,8 @@ struct ScaledPlaneFixture {
 
     // used for regression testing
     ITKMesh::Pointer _out_PlaneMeshUsedForRegressionTest = ITKMesh::New();
-    std::vector<Vertex> _SavedPlanePoints;
-    std::vector<Cell> _SavedPlaneCells;
+    std::vector<SimpleMesh::Vertex> _SavedPlanePoints;
+    std::vector<SimpleMesh::Cell> _SavedPlaneCells;
 };
 
 struct ScaledCubeFixture {
@@ -129,8 +129,8 @@ struct ScaledCubeFixture {
     double _ScaleFactor;
 
     ITKMesh::Pointer _out_CubeMeshUsedForRegressionTest = ITKMesh::New();
-    std::vector<Vertex> _SavedCubePoints;
-    std::vector<Cell> _SavedCubeCells;
+    std::vector<SimpleMesh::Vertex> _SavedCubePoints;
+    std::vector<SimpleMesh::Cell> _SavedCubeCells;
 };
 
 struct ScaledArchFixture {
@@ -163,8 +163,8 @@ struct ScaledArchFixture {
     double _ScaleFactor;
 
     ITKMesh::Pointer _out_ArchMeshUsedForRegressionTest = ITKMesh::New();
-    std::vector<Vertex> _SavedArchPoints;
-    std::vector<Cell> _SavedArchCells;
+    std::vector<SimpleMesh::Vertex> _SavedArchPoints;
+    std::vector<SimpleMesh::Cell> _SavedArchCells;
 };
 
 struct ScaledSphereFixture {
@@ -197,8 +197,8 @@ struct ScaledSphereFixture {
     double _ScaleFactor;
 
     ITKMesh::Pointer _out_SphereMeshUsedForRegressionTest = ITKMesh::New();
-    std::vector<Vertex> _SavedSpherePoints;
-    std::vector<Cell> _SavedSphereCells;
+    std::vector<SimpleMesh::Vertex> _SavedSpherePoints;
+    std::vector<SimpleMesh::Cell> _SavedSphereCells;
 };
 
 struct ScaledConeFixture {
@@ -230,8 +230,8 @@ struct ScaledConeFixture {
     double _ScaleFactor;
 
     ITKMesh::Pointer _out_ConeMeshUsedForRegressionTest = ITKMesh::New();
-    std::vector<Vertex> _SavedConePoints;
-    std::vector<Cell> _SavedConeCells;
+    std::vector<SimpleMesh::Vertex> _SavedConePoints;
+    std::vector<SimpleMesh::Cell> _SavedConeCells;
 };
 
 BOOST_FIXTURE_TEST_CASE(ScaledPlaneTest, ScaledPlaneFixture)

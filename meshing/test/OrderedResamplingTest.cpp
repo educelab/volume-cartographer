@@ -7,7 +7,7 @@
 #include <boost/test/unit_test.hpp>
 #include "vc/core/shapes/Arch.hpp"
 #include "vc/core/shapes/Plane.hpp"
-#include "vc/core/vc_defines.hpp"
+#include "vc/core/types/SimpleMesh.hpp"
 #include "vc/meshing/OrderedResampling.hpp"
 #include "vc/testing/ParsingHelpers.hpp"
 #include "vc/testing/TestingUtils.hpp"
@@ -27,8 +27,8 @@ struct OrderedPlaneFixture {
     volcart::shapes::Plane _Plane;
     ITKMesh::Pointer _in_Mesh, _out_Mesh;
     int _in_height, _in_width;
-    std::vector<Vertex> _SavedPoints;
-    std::vector<Cell> _SavedCells;
+    std::vector<SimpleMesh::Vertex> _SavedPoints;
+    std::vector<SimpleMesh::Cell> _SavedCells;
 };
 
 struct OrderedArchFixture {
@@ -44,8 +44,8 @@ struct OrderedArchFixture {
     volcart::shapes::Arch _Arch;
     ITKMesh::Pointer _in_Mesh, _out_Mesh;
     int _in_height, _in_width;
-    std::vector<Vertex> _SavedPoints;
-    std::vector<Cell> _SavedCells;
+    std::vector<SimpleMesh::Vertex> _SavedPoints;
+    std::vector<SimpleMesh::Cell> _SavedCells;
 };
 
 BOOST_FIXTURE_TEST_CASE(ResampledPlaneTest, OrderedPlaneFixture)

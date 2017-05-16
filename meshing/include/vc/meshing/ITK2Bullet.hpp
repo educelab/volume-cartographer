@@ -26,8 +26,8 @@ class ITK2Bullet
 {
 public:
     /**
-    * @param worldInfo Soft Body world configuration
-    */
+     * @param worldInfo Soft Body world configuration
+     */
     ITK2Bullet(
         ITKMesh::Pointer input,
         btSoftBodyWorldInfo& worldInfo,

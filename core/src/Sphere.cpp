@@ -1,10 +1,12 @@
 #include <cmath>
 
 #include "vc/core/shapes/Sphere.hpp"
-#include "vc/core/vc_defines.hpp"
+#include "vc/core/types/SimpleMesh.hpp"
 
 using namespace volcart;
 using namespace volcart::shapes;
+
+using Cell = SimpleMesh::Cell;
 
 Sphere::Sphere(float /*radius*/, int recursion)
 {

@@ -12,7 +12,7 @@
 #include "vc/core/shapes/Cube.hpp"
 #include "vc/core/shapes/Plane.hpp"
 #include "vc/core/shapes/Sphere.hpp"
-#include "vc/core/vc_defines.hpp"
+#include "vc/core/types/SimpleMesh.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
 #include "vc/testing/ParsingHelpers.hpp"
 #include "vc/testing/TestingUtils.hpp"
@@ -112,8 +112,8 @@ struct ITK2VTKPlaneFixture {
     vtkPolyData* _out_Mesh;
 
     // Declare vectors that will hold read data created by ITK2VTKExample.cpp
-    std::vector<Vertex> _SavedPoints;
-    std::vector<Cell> _SavedCells;
+    std::vector<SimpleMesh::Vertex> _SavedPoints;
+    std::vector<SimpleMesh::Cell> _SavedCells;
 };
 
 struct ITK2VTKCubeFixture {
@@ -136,8 +136,8 @@ struct ITK2VTKCubeFixture {
     volcart::shapes::Cube _Cube;
     ITKMesh::Pointer _in_Mesh;
     vtkPolyData* _out_Mesh;
-    std::vector<Vertex> _SavedPoints;
-    std::vector<Cell> _SavedCells;
+    std::vector<SimpleMesh::Vertex> _SavedPoints;
+    std::vector<SimpleMesh::Cell> _SavedCells;
 };
 
 struct ITK2VTKArchFixture {
@@ -160,8 +160,8 @@ struct ITK2VTKArchFixture {
     volcart::shapes::Arch _Arch;
     ITKMesh::Pointer _in_Mesh;
     vtkPolyData* _out_Mesh;
-    std::vector<Vertex> _SavedPoints;
-    std::vector<Cell> _SavedCells;
+    std::vector<SimpleMesh::Vertex> _SavedPoints;
+    std::vector<SimpleMesh::Cell> _SavedCells;
 };
 
 struct ITK2VTKSphereFixture {
@@ -184,8 +184,8 @@ struct ITK2VTKSphereFixture {
     volcart::shapes::Sphere _Sphere;
     ITKMesh::Pointer _in_Mesh;
     vtkPolyData* _out_Mesh;
-    std::vector<Vertex> _SavedPoints;
-    std::vector<Cell> _SavedCells;
+    std::vector<SimpleMesh::Vertex> _SavedPoints;
+    std::vector<SimpleMesh::Cell> _SavedCells;
 };
 
 struct ITK2VTKConeFixture {
@@ -208,8 +208,8 @@ struct ITK2VTKConeFixture {
     volcart::shapes::Cone _Cone;
     ITKMesh::Pointer _in_Mesh;
     vtkPolyData* _out_Mesh;
-    std::vector<Vertex> _SavedPoints;
-    std::vector<Cell> _SavedCells;
+    std::vector<SimpleMesh::Vertex> _SavedPoints;
+    std::vector<SimpleMesh::Cell> _SavedCells;
 };
 
 // This fixture builds a simple plane but *does not* calculate normals for the
@@ -302,8 +302,8 @@ struct VTK2ITKPlaneFixture {
 
     // declare vectors to hold points and cells from savedITK data file created
     // by ITK2VTKExample.cpp
-    std::vector<Vertex> _SavedPoints;
-    std::vector<Cell> _SavedCells;
+    std::vector<SimpleMesh::Vertex> _SavedPoints;
+    std::vector<SimpleMesh::Cell> _SavedCells;
 };
 
 struct VTK2ITKCubeFixture {
@@ -328,8 +328,8 @@ struct VTK2ITKCubeFixture {
     vtkSmartPointer<vtkPolyData> _in_Mesh;
     vtkPolyData* vtkReadCubeData;
     ITKMesh::Pointer _out_Mesh;
-    std::vector<Vertex> _SavedPoints;
-    std::vector<Cell> _SavedCells;
+    std::vector<SimpleMesh::Vertex> _SavedPoints;
+    std::vector<SimpleMesh::Cell> _SavedCells;
 };
 
 struct VTK2ITKArchFixture {
@@ -354,8 +354,8 @@ struct VTK2ITKArchFixture {
     vtkSmartPointer<vtkPolyData> _in_Mesh;
     vtkPolyData* vtkReadArchData;
     ITKMesh::Pointer _out_Mesh;
-    std::vector<Vertex> _SavedPoints;
-    std::vector<Cell> _SavedCells;
+    std::vector<SimpleMesh::Vertex> _SavedPoints;
+    std::vector<SimpleMesh::Cell> _SavedCells;
 };
 
 struct VTK2ITKSphereFixture {
@@ -380,8 +380,8 @@ struct VTK2ITKSphereFixture {
     vtkSmartPointer<vtkPolyData> _in_Mesh;
     vtkPolyData* vtkReadSphereData;
     ITKMesh::Pointer _out_Mesh;
-    std::vector<Vertex> _SavedPoints;
-    std::vector<Cell> _SavedCells;
+    std::vector<SimpleMesh::Vertex> _SavedPoints;
+    std::vector<SimpleMesh::Cell> _SavedCells;
 };
 
 struct VTK2ITKConeFixture {
@@ -406,8 +406,8 @@ struct VTK2ITKConeFixture {
     vtkSmartPointer<vtkPolyData> _in_Mesh;
     vtkPolyData* vtkReadConeData;
     ITKMesh::Pointer _out_Mesh;
-    std::vector<Vertex> _SavedPoints;
-    std::vector<Cell> _SavedCells;
+    std::vector<SimpleMesh::Vertex> _SavedPoints;
+    std::vector<SimpleMesh::Cell> _SavedCells;
 };
 
 /**********************************************************************************************************************/

@@ -16,7 +16,6 @@
 #include "vc/core/types/Rendering.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/MeshMath.hpp"
-#include "vc/core/vc_defines.hpp"
 #include "vc/meshing/ACVD.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
 #include "vc/texturing/AngleBasedFlattening.hpp"

@@ -9,7 +9,7 @@
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/io/PLYWriter.hpp"
 #include "vc/core/shapes/Plane.hpp"
-#include "vc/core/vc_defines.hpp"
+#include "vc/core/types/SimpleMesh.hpp"
 #include "vc/testing/ParsingHelpers.hpp"
 #include "vc/testing/TestingUtils.hpp"
 
@@ -46,8 +46,8 @@ struct PlaneFixture {
     }
 
     ITKMesh::Pointer _input;
-    std::vector<Vertex> _SavedPoints;
-    std::vector<Cell> _SavedCells;
+    std::vector<SimpleMesh::Vertex> _SavedPoints;
+    std::vector<SimpleMesh::Cell> _SavedCells;
 };
 
 BOOST_FIXTURE_TEST_CASE(ParseOBJTest, PlaneFixture)

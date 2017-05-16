@@ -9,7 +9,6 @@
 #include "vc/core/types/PerPixelMap.hpp"
 #include "vc/core/types/Texture.hpp"
 #include "vc/core/types/VolumePkg.hpp"
-#include "vc/core/vc_defines.hpp"
 
 using namespace volcart;
 namespace fs = boost::filesystem;

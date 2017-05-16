@@ -20,7 +20,6 @@
 #include <QRect>
 #include "vc/core/types/Rendering.hpp"
 #include "vc/core/types/VolumePkg.hpp"
-#include "vc/core/vc_defines.hpp"
 
 // Determines the _status of the thread running texturing
 enum ThreadStatus {

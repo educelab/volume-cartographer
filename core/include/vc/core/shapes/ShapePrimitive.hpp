@@ -13,7 +13,7 @@
 #include "vc/core/types/ITKMesh.hpp"
 #include "vc/core/types/OrderedPointSet.hpp"
 #include "vc/core/types/PointSet.hpp"
-#include "vc/core/vc_defines.hpp"
+#include "vc/core/types/SimpleMesh.hpp"
 
 namespace volcart
 {
@@ -62,11 +62,11 @@ public:
     /**@}*/
 
     /**@{*/
-    /** @brief Return the vertices as a list of volcart::Vertex */
-    std::vector<Vertex> getPoints() const { return points_; }
+    /** @brief Return the vertices as a list of SimpleMesh::Vertex */
+    std::vector<SimpleMesh::Vertex> getPoints() const { return points_; }
 
     /** @brief Return the faces as a list of volcart::Cell */
-    std::vector<Cell> getCells() const { return cells_; }
+    std::vector<SimpleMesh::Cell> getCells() const { return cells_; }
     /**@}*/
 
     /**@{*/
@@ -101,9 +101,9 @@ protected:
     ShapePrimitive();
 
     /** Vertex storage */
-    std::vector<Vertex> points_;
+    std::vector<SimpleMesh::Vertex> points_;
     /** Face storage */
-    std::vector<Cell> cells_;
+    std::vector<SimpleMesh::Cell> cells_;
 
     /** @brief Add a new vertex to the shape */
     void addVertex_(double x, double y, double z);

@@ -10,7 +10,7 @@
 #include "vc/core/shapes/Cube.hpp"
 #include "vc/core/shapes/Plane.hpp"
 #include "vc/core/shapes/Sphere.hpp"
-#include "vc/core/vc_defines.hpp"
+#include "vc/core/types/SimpleMesh.hpp"
 #include "vc/meshing/SmoothNormals.hpp"
 #include "vc/testing/ParsingHelpers.hpp"
 #include "vc/testing/TestingUtils.hpp"
@@ -117,10 +117,10 @@ struct SmoothNormalsFixture {
     double _SmoothingFactor;
 
     // init vectors to hold points and cells from savedITK data files
-    std::vector<Vertex> _SavedPlanePoints, _SavedCubePoints, _SavedArchPoints,
-        _SavedSpherePoints, _SavedConePoints;
-    std::vector<Cell> _SavedPlaneCells, _SavedCubeCells, _SavedArchCells,
-        _SavedSphereCells, _SavedConeCells;
+    std::vector<SimpleMesh::Vertex> _SavedPlanePoints, _SavedCubePoints,
+        _SavedArchPoints, _SavedSpherePoints, _SavedConePoints;
+    std::vector<SimpleMesh::Cell> _SavedPlaneCells, _SavedCubeCells,
+        _SavedArchCells, _SavedSphereCells, _SavedConeCells;
 };
 
 /*

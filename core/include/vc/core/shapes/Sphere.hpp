@@ -4,7 +4,6 @@
 #include <unordered_map>
 
 #include "ShapePrimitive.hpp"
-#include "vc/core/vc_defines.hpp"
 
 namespace volcart
 {

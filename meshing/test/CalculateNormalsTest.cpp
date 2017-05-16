@@ -7,7 +7,6 @@
 #include <boost/test/unit_test.hpp>
 
 #include "vc/core/shapes/Plane.hpp"
-#include "vc/core/vc_defines.hpp"
 #include "vc/meshing/CalculateNormals.hpp"
 #include "vc/testing/TestingUtils.hpp"
 

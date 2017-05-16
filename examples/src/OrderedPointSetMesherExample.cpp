@@ -6,7 +6,6 @@
 
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/types/OrderedPointSet.hpp"
-#include "vc/core/vc_defines.hpp"
 #include "vc/meshing/OrderedPointSetMesher.hpp"
 
 using namespace volcart;

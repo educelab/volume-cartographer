@@ -9,7 +9,6 @@
 
 #include "vc/core/io/PointSetIO.hpp"
 #include "vc/core/types/VolumePkg.hpp"
-#include "vc/core/vc_defines.hpp"
 
 namespace fs = boost::filesystem;
 

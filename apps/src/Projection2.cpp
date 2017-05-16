@@ -18,7 +18,6 @@
 #include <vtkStripper.h>
 
 #include "vc/core/types/VolumePkg.hpp"
-#include "vc/core/vc_defines.hpp"
 
 int main(int argc, char* argv[])
 {
