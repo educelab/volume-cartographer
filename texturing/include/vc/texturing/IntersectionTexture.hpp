@@ -1,8 +1,6 @@
 #pragma once
 
-#include "vc/core/types/PerPixelMap.hpp"
-#include "vc/core/types/Texture.hpp"
-#include "vc/core/types/Volume.hpp"
+#include "vc/texturing/TexturingAlgorithmBaseClass.hpp"
 
 namespace volcart
 {
@@ -18,37 +16,13 @@ namespace texturing
  *
  * @ingroup Texture
  */
-class IntersectionTexture
+class IntersectionTexture : public TexturingAlgorithmBaseClass
 {
 public:
-    /**@{*/
-    /** @brief Set the input PerPixelMap */
-    void setPerPixelMap(PerPixelMap ppm) { ppm_ = std::move(ppm); }
-
-    /** @brief Set the input Volume */
-    void setVolume(Volume::Pointer vol) { vol_ = std::move(vol); }
-    /**@}*/
-
     /**@{*/
     /** @brief Compute the Texture */
     Texture compute();
     /**@}*/
-
-    /**@{*/
-    /** @brief Get the generated Texture */
-    const Texture& getTexture() const { return result_; }
-
-    /** @copydoc getTexture() const */
-    Texture& getTexture() { return result_; }
-    /**@}*/
-
-private:
-    /** PPM */
-    PerPixelMap ppm_;
-    /** Volume */
-    Volume::Pointer vol_;
-    /** Output */
-    Texture result_;
 };
 }
 }
