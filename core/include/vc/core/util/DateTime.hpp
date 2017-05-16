@@ -22,5 +22,4 @@ inline std::string DateTime()
     std::strftime(buf.data(), buf.size(), "%Y%m%d%H%M%S", std::localtime(&now));
     return std::string(buf.data());
 }
-
 }

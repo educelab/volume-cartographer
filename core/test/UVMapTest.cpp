@@ -96,13 +96,13 @@ BOOST_FIXTURE_TEST_CASE(TransformationTest, CreateUVMapFixture)
 
     // get the original points
     volcart::UVMap map = _BaseUVMap;
-    map.setOrigin(VC_ORIGIN_TOP_LEFT);  // standard origin
+    map.setOrigin(UVMap::Origin::TopLeft);  // standard origin
 
     std::cout << "Transforming against (0,0) and comparing expected results"
               << std::endl;
 
     // Retrieve mappings relative to the top-left (0,0)
-    _BaseUVMap.setOrigin(VC_ORIGIN_TOP_LEFT);
+    _BaseUVMap.setOrigin(UVMap::Origin::TopLeft);
     int pnt_id = 0;
     for (auto it = _Storage.begin(); it != _Storage.end(); ++it) {
 
@@ -121,7 +121,7 @@ BOOST_FIXTURE_TEST_CASE(TransformationTest, CreateUVMapFixture)
               << std::endl;
 
     // Retrieve mappings relative to the bottom-left (0,1)
-    _BaseUVMap.setOrigin(VC_ORIGIN_BOTTOM_LEFT);
+    _BaseUVMap.setOrigin(UVMap::Origin::BottomLeft);
     pnt_id = 0;
     for (auto it = _Storage.begin(); it != _Storage.end(); ++it) {
 
@@ -140,7 +140,7 @@ BOOST_FIXTURE_TEST_CASE(TransformationTest, CreateUVMapFixture)
               << std::endl;
 
     // Retrieve mappings relative to the top-right (1,0)
-    _BaseUVMap.setOrigin(VC_ORIGIN_TOP_RIGHT);
+    _BaseUVMap.setOrigin(UVMap::Origin::TopRight);
     pnt_id = 0;
     for (auto it = _Storage.begin(); it != _Storage.end(); ++it) {
 
@@ -159,7 +159,7 @@ BOOST_FIXTURE_TEST_CASE(TransformationTest, CreateUVMapFixture)
               << std::endl;
 
     // Retrieve mappings relative to the bottom-right (1,1)
-    _BaseUVMap.setOrigin(VC_ORIGIN_BOTTOM_RIGHT);
+    _BaseUVMap.setOrigin(UVMap::Origin::BottomRight);
     pnt_id = 0;
     for (auto it = _Storage.begin(); it != _Storage.end(); ++it) {
 

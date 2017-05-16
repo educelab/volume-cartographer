@@ -240,7 +240,7 @@ void OBJReader::build_mesh_()
 {
     // Reset output structures
     uvMap_ = UVMap();
-    uvMap_.setOrigin(VC_ORIGIN_BOTTOM_LEFT);
+    uvMap_.setOrigin(UVMap::Origin::BottomLeft);
     mesh_ = ITKMesh::New();
 
     // Add the vertices to the mesh
@@ -291,5 +291,5 @@ void OBJReader::build_mesh_()
         }
         mesh_->SetCell(cid++, cell);
     }
-    uvMap_.setOrigin(VC_ORIGIN_TOP_LEFT);
+    uvMap_.setOrigin(UVMap::Origin::TopLeft);
 }

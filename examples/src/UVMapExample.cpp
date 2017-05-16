@@ -1,9 +1,9 @@
 //
 // Created by Seth Parker on 10/20/15.
 //
+#include <iostream>
 
 #include "vc/core/types/UVMap.hpp"
-#include "vc/core/vc_defines.hpp"
 
 int main()
 {
@@ -30,7 +30,7 @@ int main()
     std::cout << std::endl;
 
     // Retrieve mappings relative to the bottom-left
-    uvMap.setOrigin(VC_ORIGIN_BOTTOM_LEFT);
+    uvMap.setOrigin(volcart::UVMap::Origin::BottomLeft);
     pointID = 0;
     for (auto it = storage.begin(); it != storage.end(); ++it) {
         std::cout << "Point: " << pointID << " | " << uvMap.get(pointID)
@@ -40,7 +40,7 @@ int main()
 
     std::cout << std::endl;
 
-    if (uvMap.get(uvMap.size()) == VC_UVMAP_NULL_MAPPING)
+    if (uvMap.get(uvMap.size()) == volcart::NULL_MAPPING)
         std::cout << "UV Mapping not found for p_id: " << uvMap.size()
                   << std::endl;
 

@@ -38,11 +38,6 @@ struct Cell {
     Cell() = default;
     Cell(uint64_t p1, uint64_t p2, uint64_t p3) : v1{p1}, v2{p2}, v3{p3} {}
 };
-
-/** Aspect ratio structure */
-struct Ratio {
-    double width{1}, height{1}, aspect{1};
-};
 /**@}*/
 
 /** @name ITK Mesh */
@@ -150,27 +145,5 @@ using QuadEdgeListPointer = QuadMesh::EdgeListPointerType;
 /** ITK QEM Edge List Iterator */
 using QuadEdgeListIterator = QuadEdgeList::iterator;
 /** @}*/
-
-/**@{*/
-/** UV Map Origin Type */
-using Origin = cv::Vec2d;
-
-/** Top-left UV Origin */
-#define VC_ORIGIN_TOP_LEFT volcart::Origin(0, 0)
-/** Top-right UV Origin */
-#define VC_ORIGIN_TOP_RIGHT volcart::Origin(1, 0)
-/** Bottom-left UV Origin */
-#define VC_ORIGIN_BOTTOM_LEFT volcart::Origin(0, 1)
-/** Bottom-right UV Origin */
-#define VC_ORIGIN_BOTTOM_RIGHT volcart::Origin(1, 1)
-
-/** Null/Undefined UV Mapping */
-#define VC_UVMAP_NULL_MAPPING cv::Vec2d(-1, -1)
-/**@}*/
-
-/**@{*/
-/** Defines an empty texture to be -1 */
-constexpr static double TEXTURE_NO_VALUE = -1.0;
-/**@}*/
 
 }  // namespace volcart

@@ -50,11 +50,11 @@ size_t Texture::addImage(cv::Mat image)
 double Texture::intensity(int pointId, int imageId)
 {
     auto mapping = ppm_.uvMap().get(pointId);
-    if (mapping != VC_UVMAP_NULL_MAPPING) {
+    if (mapping != volcart::NULL_MAPPING) {
         int u = cvRound(mapping[0] * (width_ - 1));
         int v = cvRound(mapping[1] * (height_ - 1));
         return images_[imageId].at<uint16_t>(v, u);
     } else {
-        return volcart::TEXTURE_NO_VALUE;
+        return NO_VALUE;
     }
 }
