@@ -9,6 +9,7 @@ set(srcs
     src/IntersectionTexture.cpp
     src/IntegralTexture.cpp
     src/LayerTexture.cpp
+    src/TexturingAlgorithmBaseClass.cpp
 )
 set(public_deps
     VC::core

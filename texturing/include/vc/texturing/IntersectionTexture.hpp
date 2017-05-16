@@ -21,7 +21,7 @@ class IntersectionTexture : public TexturingAlgorithmBaseClass
 public:
     /**@{*/
     /** @brief Compute the Texture */
-    Texture compute();
+    Texture compute() override;
     /**@}*/
 };
 }

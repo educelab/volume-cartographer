@@ -42,7 +42,7 @@ public:
 
     /**@{*/
     /** @brief Compute the Texture */
-    Texture compute();
+    Texture compute() override;
     /**@}*/
 
 private:

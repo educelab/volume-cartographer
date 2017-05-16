@@ -44,17 +44,13 @@ public:
 
     /**@{*/
     /** @brief Compute the Texture */
-    Texture compute();
+    Texture compute() override;
     /**@}*/
 private:
     /** Weighting option */
     Weight weightType_{Weight::None};
-    /** Current weight value */
-    double currentWeight_;
-    /** Current weight increment value */
-    double weightStep_;
     /** Setup the weight values */
-    void setup_weights_(size_t s);
+    std::vector<double> setup_weights_();
 };
 
 }  // texturing

@@ -77,17 +77,14 @@ uint16_t CompositeTexture::max_(Neighborhood n)
 
 uint16_t CompositeTexture::median_(Neighborhood n)
 {
-    std::sort(n.begin(), n.end());
+    std::nth_element(n.begin(), n.begin() + n.size() / 2, n.end());
     return n[n.size() / 2];
 }
 
 uint16_t CompositeTexture::mean_(Neighborhood n)
 {
-    double res = 0.0;
-    for (auto& v : n) {
-        res += v;
-    }
-    return static_cast<uint16_t>(std::round(res / n.size()));
+    auto sum = std::accumulate(std::begin(n), std::end(n), double{0});
+    return static_cast<uint16_t>(std::round(sum / n.size()));
 }
 
 uint16_t CompositeTexture::median_mean_(Neighborhood n, double range)
@@ -108,11 +105,9 @@ uint16_t CompositeTexture::median_mean_(Neighborhood n, double range)
     auto offset = static_cast<size_t>(std::floor((n.size() - count) / 2.0));
 
     // Sum
-    double res = 0.0;
-    for (auto it = offset; it < offset + count; it++) {
-        res += n.at(it);
-    }
+    auto sum = std::accumulate(
+        n.begin() + offset, n.begin() + offset + count, double{0});
 
     // Average
-    return static_cast<uint16_t>(std::round(res / count));
+    return static_cast<uint16_t>(std::round(sum / count));
 }

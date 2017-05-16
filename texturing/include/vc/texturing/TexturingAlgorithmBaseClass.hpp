@@ -53,6 +53,7 @@ public:
     /**@}*/
 
 protected:
+    /** Default constructor */
     TexturingAlgorithmBaseClass() = default;
 
     /** PPM */
@@ -67,6 +68,9 @@ protected:
     double interval_{1.0};
     /** Result */
     Texture result_;
+
+    /** Calculate the size of each neighborhood based on current options */
+    size_t neighborhood_count_();
 };
 }
 }

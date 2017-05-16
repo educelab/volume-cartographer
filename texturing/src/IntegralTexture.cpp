@@ -19,6 +19,9 @@ Texture IntegralTexture::compute()
     auto height = static_cast<int>(ppm_.height());
     auto width = static_cast<int>(ppm_.width());
 
+    // Setup the weights
+    auto weights = setup_weights_();
+
     cv::Mat image = cv::Mat::zeros(height, width, CV_64FC1);
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
@@ -36,13 +39,12 @@ Texture IntegralTexture::compute()
             auto neighborhood = vol_->getVoxelNeighborsLinearInterpolated(
                 xyz, xyzNorm, radius_, interval_, direction_);
 
+            // Weight the neighborhood
+            std::vector<double> weighted;
+            cv::multiply(neighborhood, weights, weighted);
+
             // Sum the neighborhood
-            double value = 0.0;
-            setup_weights_(neighborhood.size());
-            for (auto val : neighborhood) {
-                value += (val * currentWeight_);
-                currentWeight_ += weightStep_;
-            }
+            auto value = std::accumulate(weighted.begin(), weighted.end(), 0.0);
 
             // Assign the intensity value at the UV position
             image.at<double>(y, x) = value;
@@ -63,23 +65,36 @@ Texture IntegralTexture::compute()
     return result_;
 }
 
-void IntegralTexture::setup_weights_(size_t s)
+std::vector<double> IntegralTexture::setup_weights_()
 {
+    // Neighborhood size
+    size_t size = neighborhood_count_();
+
     // Linear Weighted Sum Setup
+    double weight;
+    double weightStep;
     switch (weightType_) {
         case Weight::None:
-            currentWeight_ = 1.0;
-            weightStep_ = 0.0;
-            return;
+            weight = 1.0;
+            weightStep = 0.0;
+            break;
         // Favor the voxels along the negative normal
         case Weight::Negative:
-            currentWeight_ = 1.0;
-            weightStep_ = -1.0 / s;
-            return;
+            weight = 1.0;
+            weightStep = -1.0 / size;
+            break;
         // Favor the voxels along the positive normal
         case Weight::Positive:
-            currentWeight_ = 0.0;
-            weightStep_ = 1.0 / s;
-            return;
+            weight = 0.0;
+            weightStep = 1.0 / size;
+            break;
     }
+
+    // Build a weight matrix
+    std::vector<double> weights(size);
+    for (size_t i = 0; i < size; i++, weight += weightStep) {
+        weights.push_back(weight);
+    }
+
+    return weights;
 }

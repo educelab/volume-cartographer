@@ -26,12 +26,8 @@ class LayerTexture : public TexturingAlgorithmBaseClass
 public:
     /**@{*/
     /** @brief Compute the Texture */
-    Texture compute();
+    Texture compute() override;
     /**@}*/
-
-private:
-    /** Calculate the size of each neighborhood based on current options */
-    size_t neighborhood_count_();
 };
 
 }  // texturing
