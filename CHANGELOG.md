@@ -1,5 +1,29 @@
 Volume Cartographer Changelog
 =============================
+v2.13.0
+-------
+This release marks a fairly extensive refactor of the main algorithms in the 
+Texturing library. The _old_ CompositeTexture and CompositeTextureV2 have been 
+removed in favor of a _new_ CompositeTexture that no longer relies on the old 
+texturing utilities. We all wept tears of joy to see it get removed.
+
+VolumePkg also got an upgrade to version 4, and with that upgrade comes basic 
+support for multi-volumes in one VolumePkg. Old VolumePkg's will need to be 
+upgraded, so there's also a new utility to do that (vc_volpkg_v3to4).
+
+Also, a shout-out to Hannah Hatch (hjha225) for finishing up Doxygen 
+documentation on all of the main VC libraries. It was no small task, and we're 
+all in debt to Hannah's incredible patience.
+
+- core
+    - Complete Doxygen documentation (!158)
+    - (VolumePkg) Move to the volcart namespace and add multi-volume support. 
+     Upgrades VolumePkg to v4 (!161)
+- texturing
+    - Complete Doxygen documentation (!167)
+    - __New:__ Texture algorithms galore! CompositeTexture, IntersectionTexture,
+     IntegralTexture, and LayerTexture (!168)
+
 v2.12.0
 -------
 - all
