@@ -35,14 +35,13 @@ struct Vertex {
 /** Generic triangular face structure */
 struct Cell {
     uint64_t v1, v2, v3;
-    Cell() : v1{}, v2{}, v3{} {}
+    Cell() = default;
     Cell(uint64_t p1, uint64_t p2, uint64_t p3) : v1{p1}, v2{p2}, v3{p3} {}
 };
 
 /** Aspect ratio structure */
 struct Ratio {
-    Ratio() : width(1), height(1), aspect(1) {}
-    double width, height, aspect;
+    double width{1}, height{1}, aspect{1};
 };
 /**@}*/
 
@@ -172,26 +171,6 @@ using Origin = cv::Vec2d;
 /**@{*/
 /** Defines an empty texture to be -1 */
 constexpr static double TEXTURE_NO_VALUE = -1.0;
-
-/** @brief Composite Texturing Filters */
-enum class CompositeOption {
-    Intersection,
-    NonMaximumSuppression,
-    Maximum,
-    Minimum,
-    MedianAverage,
-    Median,
-    Mean
-};
-
-/** @brief Neighborhood Directional Filtering Options
- *
- * Bidirectional: Consider data in both the positive and negative normal
- * direction \n
- * Positive: Only consider data in the positive normal direction \n
- * Negative: Only consider data in the negative normal direction \n
- */
-enum class DirectionOption { Bidirectional, Positive, Negative };
 /**@}*/
 
 /**@{*/

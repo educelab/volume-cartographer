@@ -61,7 +61,7 @@ public:
 
     /**@{*/
     /** @brief Get a Texture image by index number */
-    cv::Mat image(int id) const { return images_[id]; }
+    cv::Mat image(size_t id) const { return images_[id]; }
 
     /**
      * @brief Add an image to the Texture

@@ -25,7 +25,11 @@ public:
      * @param xvec Vector defining the direction of the Reslice X-axis
      * @param yvec Vector defining the direction of the Reslice Y-axis
      */
-    Reslice(cv::Mat data, cv::Vec3d origin, cv::Vec3d xvec, cv::Vec3d yvec)
+    Reslice(
+        cv::Mat data,
+        const cv::Vec3d& origin,
+        const cv::Vec3d& xvec,
+        const cv::Vec3d& yvec)
         : sliceData_{std::move(data)}, origin_{origin}, xvec_{xvec}, yvec_{yvec}
     {
     }

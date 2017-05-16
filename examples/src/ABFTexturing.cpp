@@ -20,7 +20,8 @@
 #include "vc/meshing/ACVD.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
 #include "vc/texturing/AngleBasedFlattening.hpp"
-#include "vc/texturing/CompositeTextureV2.hpp"
+#include "vc/texturing/CompositeTexture.hpp"
+#include "vc/texturing/PPMGenerator.hpp"
 
 namespace fs = boost::filesystem;
 
@@ -30,8 +31,9 @@ int main(int /*argc*/, char* argv[])
     volcart::VolumePkg vpkg(argv[1]);
     vpkg.volume()->setCacheMemoryInBytes(10000000000);
     vpkg.setActiveSegmentation(argv[2]);
-    int radius = std::stoi(argv[3]);
-    auto type = static_cast<volcart::CompositeOption>(std::stoi(argv[4]));
+    double radius = std::stod(argv[3]);
+    auto type = static_cast<volcart::texturing::CompositeTexture::Filter>(
+        std::stoi(argv[4]));
 
     // Read the mesh
     fs::path meshName = vpkg.getMeshPath();
@@ -103,14 +105,23 @@ int main(int /*argc*/, char* argv[])
 
     // Get uv map
     volcart::UVMap uvMap = abf.getUVMap();
-    auto width = static_cast<int>(std::ceil(uvMap.ratio().width));
-    auto height = static_cast<int>(
+    auto width = static_cast<size_t>(std::ceil(uvMap.ratio().width));
+    auto height = static_cast<size_t>(
         std::ceil(static_cast<double>(width) / uvMap.ratio().aspect));
 
     std::cout << width << "x" << height << std::endl;
 
-    volcart::texturing::CompositeTextureV2 compText(
-        itkACVD, vpkg, uvMap, radius, width, height, type);
+    volcart::texturing::PPMGenerator ppmGen(height, width);
+    ppmGen.setMesh(itkACVD);
+    ppmGen.setUVMap(uvMap);
+    ppmGen.compute();
+
+    volcart::texturing::CompositeTexture compText;
+    compText.setPerPixelMap(ppmGen.getPPM());
+    compText.setVolume(vpkg.volume());
+    compText.setFilter(type);
+    compText.setSamplingRadius(radius);
+    compText.compute();
 
     // Setup rendering
     volcart::Rendering rendering;

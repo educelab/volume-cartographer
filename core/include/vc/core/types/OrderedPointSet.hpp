@@ -43,7 +43,7 @@ public:
 
     /**@{*/
     /** @brief Default constructor */
-    explicit OrderedPointSet() : BaseClass(), width_(0) {}
+    explicit OrderedPointSet() = default;
 
     /** @brief Constructor with width parameter */
     explicit OrderedPointSet(size_t width) : BaseClass(), width_(width)
@@ -211,7 +211,7 @@ public:
 
 private:
     /** Number of columns */
-    size_t width_;
+    size_t width_{0};
     /** Number of rows preallocated */
     constexpr static size_t CAPACITY_MULTIPLIER = 20;
 };

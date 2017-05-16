@@ -3,10 +3,13 @@ set(module "texturing")
 set(target "vc_${module}")
 
 set(srcs
-    src/CompositeTextureV2.cpp
+    src/CompositeTexture.cpp
     src/AngleBasedFlattening.cpp
     src/PPMGenerator.cpp
-    src/TexturingUtils.cpp
+    src/IntersectionTexture.cpp
+    src/IntegralTexture.cpp
+    src/LayerTexture.cpp
+    src/TexturingAlgorithmBaseClass.cpp
 )
 set(public_deps
     VC::core
