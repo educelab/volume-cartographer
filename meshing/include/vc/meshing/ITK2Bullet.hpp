@@ -5,7 +5,7 @@
 #include <BulletSoftBody/btSoftBody.h>
 #include <BulletSoftBody/btSoftRigidDynamicsWorld.h>
 
-#include "vc/core/vc_defines.hpp"
+#include "vc/core/types/ITKMesh.hpp"
 
 namespace volcart
 {

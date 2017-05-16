@@ -30,8 +30,8 @@
 #include <opencv2/core.hpp>
 
 #include "vc/core/types/HalfEdgeMesh.hpp"
+#include "vc/core/types/ITKMesh.hpp"
 #include "vc/core/types/UVMap.hpp"
-#include "vc/core/vc_defines.hpp"
 
 namespace volcart
 {
@@ -178,8 +178,7 @@ private:
     HalfEdgeMesh heMesh_;
 
     /** Interior Vertices */
-    std::map<volcart::QuadPointIdentifier, volcart::QuadPointIdentifier>
-        interior_;
+    std::map<ITKMesh::PointIdentifier, ITKMesh::PointIdentifier> interior_;
 
     /** ABF metric for interior points */
     std::vector<double> bInterior_;

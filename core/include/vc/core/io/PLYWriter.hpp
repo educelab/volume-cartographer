@@ -4,6 +4,7 @@
 
 #include <boost/filesystem.hpp>
 
+#include "vc/core/types/ITKMesh.hpp"
 #include "vc/core/types/Texture.hpp"
 #include "vc/core/vc_defines.hpp"
 

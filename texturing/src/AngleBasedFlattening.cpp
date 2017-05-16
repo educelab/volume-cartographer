@@ -20,6 +20,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <array>
 #include <cmath>
 
 #include "vc/core/util/MeshMath.hpp"

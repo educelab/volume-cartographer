@@ -1,9 +1,11 @@
 #pragma once
 
 #include <fstream>
+#include <map>
 
 #include <boost/filesystem/path.hpp>
 
+#include "vc/core/types/ITKMesh.hpp"
 #include "vc/core/vc_defines.hpp"
 
 namespace volcart

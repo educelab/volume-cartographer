@@ -993,7 +993,7 @@ BOOST_FIXTURE_TEST_CASE(MeshWithNoNormals, NoNormalsFixture)
     volcart::meshing::VTK2ITK(vtk_Mesh, itk_Mesh2);
 
     // ITK to ITK Quad
-    volcart::QuadMesh::Pointer itk_Quad = volcart::QuadMesh::New();
+    volcart::QuadEdgeMesh::Pointer itk_Quad = volcart::QuadEdgeMesh::New();
     volcart::meshing::ITK2ITKQE(itk_Mesh2, itk_Quad);
 
     // ITK Quad to ITK

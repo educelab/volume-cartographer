@@ -2,8 +2,9 @@
 
 #include <boost/filesystem/path.hpp>
 
-#include "Metadata.hpp"
-#include "Texture.hpp"
+#include "vc/core/types/ITKMesh.hpp"
+#include "vc/core/types/Metadata.hpp"
+#include "vc/core/types/Texture.hpp"
 #include "vc/core/vc_defines.hpp"
 
 namespace volcart

@@ -3,7 +3,8 @@
 #include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
 
-#include "vc/core/vc_defines.hpp"
+#include "vc/core/types/ITKMesh.hpp"
+#include "vc/core/types/QuadEdgeMesh.hpp"
 
 namespace volcart
 {
@@ -63,7 +64,7 @@ public:
 class ITK2ITKQE
 {
 public:
-    ITK2ITKQE(ITKMesh::Pointer input, volcart::QuadMesh::Pointer output);
+    ITK2ITKQE(ITKMesh::Pointer input, QuadEdgeMesh::Pointer output);
 };
 
 /**
@@ -80,7 +81,7 @@ public:
 class ITKQE2ITK
 {
 public:
-    ITKQE2ITK(volcart::QuadMesh::Pointer input, ITKMesh::Pointer output);
+    ITKQE2ITK(QuadEdgeMesh::Pointer input, ITKMesh::Pointer output);
 };
 }
 }

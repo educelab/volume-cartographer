@@ -10,6 +10,7 @@
 #include <vtkPolyDataReader.h>
 #include <vtkSmartPointer.h>
 
+#include "vc/core/types/ITKMesh.hpp"
 #include "vc/core/types/OrderedPointSet.hpp"
 #include "vc/core/types/PointSet.hpp"
 #include "vc/core/vc_defines.hpp"

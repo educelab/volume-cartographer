@@ -7,6 +7,7 @@
 #include <boost/filesystem.hpp>
 #include <opencv2/core.hpp>
 
+#include "vc/core/types/ITKMesh.hpp"
 #include "vc/core/types/OrderedPointSet.hpp"
 #include "vc/core/types/Texture.hpp"
 #include "vc/core/types/Volume.hpp"

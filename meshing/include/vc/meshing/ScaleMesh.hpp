@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "vc/core/vc_defines.hpp"
+#include "vc/core/types/ITKMesh.hpp"
 
 namespace volcart
 {

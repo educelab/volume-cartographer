@@ -1,8 +1,6 @@
 //
 // Created by Seth Parker on 8/3/15.
 //
-/** @file ITK2VTK.cpp */
-
 #include <vtkDoubleArray.h>
 #include <vtkPointData.h>
 
@@ -93,7 +91,7 @@ VTK2ITK::VTK2ITK(vtkSmartPointer<vtkPolyData> input, ITKMesh::Pointer output)
 };
 
 ///// ITK Mesh -> ITK QuadEdge Mesh /////
-ITK2ITKQE::ITK2ITKQE(ITKMesh::Pointer input, volcart::QuadMesh::Pointer output)
+ITK2ITKQE::ITK2ITKQE(ITKMesh::Pointer input, QuadEdgeMesh::Pointer output)
 {
     // Vertices
     volcart::QuadPoint p;
@@ -126,7 +124,7 @@ ITK2ITKQE::ITK2ITKQE(ITKMesh::Pointer input, volcart::QuadMesh::Pointer output)
 }
 
 ///// ITK QuadEdge Mesh -> ITK Mesh /////
-ITKQE2ITK::ITKQE2ITK(volcart::QuadMesh::Pointer input, ITKMesh::Pointer output)
+ITKQE2ITK::ITKQE2ITK(QuadEdgeMesh::Pointer input, ITKMesh::Pointer output)
 {
     // Vertices
     ITKPoint p;

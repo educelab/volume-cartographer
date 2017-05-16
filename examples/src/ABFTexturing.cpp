@@ -61,13 +61,13 @@ int main(int /*argc*/, char* argv[])
         static_cast<uint16_t>(std::round(densityFactor * sa));
 
     // Convert to quad edge mesh and smooth the thing
-    volcart::QuadMesh::Pointer qeRaw = volcart::QuadMesh::New();
+    volcart::QuadEdgeMesh::Pointer qeRaw = volcart::QuadEdgeMesh::New();
     volcart::meshing::ITK2ITKQE(input, qeRaw);
 
     typedef itk::SmoothingQuadEdgeMeshFilter<
-        volcart::QuadMesh, volcart::QuadMesh>
+        volcart::QuadEdgeMesh, volcart::QuadEdgeMesh>
         QuadSmoother;
-    itk::OnesMatrixCoefficients<volcart::QuadMesh> coeff0;
+    itk::OnesMatrixCoefficients<volcart::QuadEdgeMesh> coeff0;
     QuadSmoother::Pointer smoother = QuadSmoother::New();
     smoother->SetInput(qeRaw);
     smoother->SetNumberOfIterations(3);
