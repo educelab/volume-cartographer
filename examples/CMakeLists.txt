@@ -1,4 +1,4 @@
-if (VC_USE_ACVD)
+if (VC_USE_ACVD OR VC_USE_ALL)
     add_executable(vc_acvd_example src/ACVDExample.cpp)
     target_link_libraries(vc_acvd_example
         VC::core
@@ -36,7 +36,7 @@ target_link_libraries(vc_bad_clang_tidy vc_testing)
 add_executable(vc_raytrace_example src/RayTraceExample.cpp)
 target_link_libraries(vc_raytrace_example VC::core VC::meshing)
 
-if (VC_USE_LIBIGL)
+if (VC_USE_LIBIGL OR VC_USE_ALL)
     add_executable(vc_lscm_example src/LSCMExample.cpp)
     target_link_libraries(vc_lscm_example VC::core VC::texturing)
 endif()
@@ -51,7 +51,7 @@ target_link_libraries(vc_itk2vtk_example
     ITKIOMesh
 )
 
-if (VC_USE_BULLET)
+if (VC_USE_BULLET OR VC_USE_ALL)
     add_executable(vc_cloth_example src/ClothExample.cpp)
     target_link_libraries(vc_cloth_example
         VC::core
@@ -61,7 +61,7 @@ if (VC_USE_BULLET)
     )
 endif()
 
-if (VC_USE_ACVD)
+if (VC_USE_ACVD OR VC_USE_ALL)
     add_executable(vc_abf_texturing src/ABFTexturing.cpp)
     target_link_libraries(vc_abf_texturing
         VC::core
@@ -86,12 +86,10 @@ target_link_libraries(vc_ordered_resample_example VC::core VC::meshing)
 add_executable(vc_obj_writer_example src/OBJWriterExample.cpp)
 target_link_libraries(vc_obj_writer_example VC::core)
 
-# Skip NeuralNetwork train example
-
 add_executable(vc_lorem_ipsum_error src/LoremIpsumError.cpp)
 target_link_libraries(vc_lorem_ipsum_error VC::core)
 
-if(VC_USE_VCG)
+if(VC_USE_VCG OR VC_USE_ALL)
     add_executable(vc_quadric_edge_collapse_decimation_example
         src/QuadricEdgeCollapseDecimationExample.cpp
     )
@@ -110,3 +108,6 @@ target_link_libraries(vc_orderedPointSetMesher_example VC::meshing)
 
 add_executable(vc_obj_reader_example src/OBJReaderExample.cpp)
 target_link_libraries(vc_obj_reader_example VC::core)
+
+add_executable(vc_scale_gen_example src/ScalesExample.cpp)
+target_link_libraries(vc_scale_gen_example VC::core)

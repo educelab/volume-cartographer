@@ -1,6 +1,25 @@
-//
-// Created by Seth Parker on 6/17/16.
-//
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * Contributor(s):
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
+
 #include <cmath>
 
 #include "vc/core/types/HalfEdgeMesh.hpp"
@@ -188,8 +207,7 @@ HalfEdgeMesh::EdgePtr HalfEdgeMesh::find_edge_pair_(
     HalfEdgeMesh::EdgePtr pair = nullptr;
     // Check these id's against each edge
     for (auto e = edges_[0]; e; e = e->nextLink) {
-        // If the current edge's first if matches this one's B, and vice versa,
-        // it's the pair we want
+        // Check that the ID's are in opposite order
         if ((e->vert->id == b) && (e->next->vert->id == a)) {
             pair = e;
             break;

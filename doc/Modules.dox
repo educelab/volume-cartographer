@@ -1,45 +1,90 @@
+///// Core Groups /////
 /**
-@defgroup Core Core
-@brief Library containing fundamental VC datatypes and operations.
+ @defgroup Core Core
+ @brief Library containing fundamental VC data types and operations.
 */
 
 /**
- @defgroup VolumePackage Volume Package
- @brief Class for accessing and manipulating the .volpkg file format.
+ @defgroup IO IO
+ @brief Read and write commonly used data types.
  @ingroup Core
 */
 
 /**
-@defgroup Meshing Meshing 
-@brief Library for mesh creation, manipulation, resampling, and conversion.
+ @defgroup Scales Scales
+ @brief Add frames of reference to volumetric data
+ @ingroup Core
 */
 
 /**
-@defgroup Segmentation Segmentation
-@brief Library for volume segmentation algorithms.
-*/ 
-
-/**
-@defgroup lrps Local Reslice Particle Simulation
-@brief Local Reslice %Particle Simulation (LRPS) segmentation
-@ingroup Segmentation 
+ @defgroup Shapes Shape Generators
+ @brief Generate basic 3D objects for testing mesh operations
+ @ingroup Core
 */
 
 /**
-@defgroup deriv Derivative Library
-@brief A small derivative library that handles calculating derivatives up to
-the second order.
-@ingroup lrps
+ @defgroup Types Types
+ @brief Core types and data structures
+ @ingroup Core
 */
 
 /**
-@defgroup stps Structure Tensor Particle Simulation 
-@brief Structure Tensor %Particle Simulation (STPS) segmentation
-@ingroup Segmentation
+ @defgroup Util Utilities
+ @brief Miscellaneous utility functions
+ @ingroup Core
 */
 
+///// Meshing Groups /////
+/**
+ @defgroup Meshing Meshing
+ @brief Library for mesh creation, manipulation, resampling, and conversion.
+*/
+
+///// Segmentation Groups /////
+/**
+ @defgroup Segmentation Segmentation
+ @brief Library for volume segmentation algorithms.
+*/
+
+/**
+ @defgroup lrps Local Reslice Particle Simulation
+ @brief Local Reslice %Particle Simulation (LRPS) segmentation
+ @ingroup Segmentation
+*/
+
+/**
+ @defgroup deriv Derivative Library
+ @brief A small derivative library that handles calculating derivatives up to
+ the second order.
+ @ingroup lrps
+*/
+
+/**
+ @defgroup stps Structure Tensor Particle Simulation
+ @brief Structure Tensor %Particle Simulation (STPS) segmentation
+ @ingroup Segmentation
+*/
+
+///// Rendering Groups /////
+/** 
+ @defgroup Render Rendering
+ @brief Library for creating UV maps and textured meshes
+*/
+
+/**
+ @defgroup UV Parameterization
+ @brief Mesh parameterizations/UV maps
+ @ingroup Render
+*/
+
+/**
+ @defgroup Texture Texturing
+ @brief Texture generation
+ @ingroup Render
+*/
+
+///// Example Groups /////
 /**
  @defgroup ExampleDocs Documentation Examples
  @brief Files that demonstrate how code should be formatted for Doxygen.
 */
-

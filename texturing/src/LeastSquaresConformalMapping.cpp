@@ -54,7 +54,7 @@ volcart::UVMap LeastSquaresConformalMapping::getUVMap()
 
     // Setup uvMap
     volcart::UVMap uvMap;
-    uvMap.origin(VC_ORIGIN_BOTTOM_LEFT);
+    uvMap.setOrigin(VC_ORIGIN_BOTTOM_LEFT);
 
     double umin = std::numeric_limits<double>::max();
     double umax = std::numeric_limits<double>::min();
@@ -92,13 +92,13 @@ volcart::UVMap LeastSquaresConformalMapping::getUVMap()
         // Add the uv coordinates into our map at the point index specified
         uvMap.set(i, uv);
     }
-    uvMap.origin(VC_ORIGIN_TOP_LEFT);
+    uvMap.setOrigin(VC_ORIGIN_TOP_LEFT);
     return uvMap;
 }
 
 ///// Processing /////
 // Compute the parameterization
-void LeastSquaresConformalMapping::compute()
+UVMap LeastSquaresConformalMapping::compute()
 {
 
     // Fix two points on the boundary
@@ -127,6 +127,8 @@ void LeastSquaresConformalMapping::compute()
     cv::fitLine(points, line, cv::DIST_L2, 0, 0.01, 0.01);
     Eigen::Rotation2Dd rot(std::atan(line(1) / line(0)));
     verticesUV_ *= rot.matrix();
+
+    return getUVMap();
 }
 
 ///// Utilities /////

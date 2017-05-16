@@ -14,133 +14,151 @@
 #include "vc/core/io/PLYWriter.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/MeshMath.hpp"
-#include "vc/core/vc_defines.hpp"
 #include "vc/external/GetMemorySize.hpp"
 #include "vc/meshing/ACVD.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
 #include "vc/meshing/SmoothNormals.hpp"
 #include "vc/texturing/AngleBasedFlattening.hpp"
-#include "vc/texturing/CompositeTextureV2.hpp"
+#include "vc/texturing/CompositeTexture.hpp"
+#include "vc/texturing/IntegralTexture.hpp"
+#include "vc/texturing/IntersectionTexture.hpp"
+#include "vc/texturing/PPMGenerator.hpp"
 
-using namespace volcart;
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;
+namespace vc = volcart;
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 3;
-
+static constexpr int VOLPKG_SUPPORTED_VERSION = 4;
+// Number of vertices per square millimeter
+static constexpr double SAMPLING_DENSITY_FACTOR = 50;
+// Square Micron to square millimeter conversion factor
+static constexpr double UM_TO_MM = 0.001 * 0.001;
 // Min. number of points required to do flattening
 static constexpr uint16_t CLEANER_MIN_REQ_POINTS = 100;
 
+enum class Method { Composite = 0, Intersection, Integral };
+
 int main(int argc, char* argv[])
 {
-    std::cout << "vc_render" << std::endl;
     ///// Parse the command line options /////
-    fs::path volpkgPath, outputPath;
-    std::string segID;
-    double radius;
-    CompositeOption aFilterOption;
-    DirectionOption aDirectionOption;
+    // clang-format off
+    po::options_description required("General Options");
+    required.add_options()
+        ("help,h", "Show this message")
+        ("volpkg,v", po::value<std::string>()->required(), "VolumePkg path")
+        ("seg,s", po::value<std::string>()->required(), "Segmentation ID")
+        ("method,m", po::value<int>()->default_value(0),
+            "Texturing method: \n"
+                "  0 = Composite\n"
+                "  1 = Intersection\n"
+                "  2 = Integral")
+        ("output-file,o", po::value<std::string>(),
+            "Output file path. If not specified, the file will be saved to the "
+            "volume package.")
+        ("output-ppm", po::value<std::string>(),
+            "Output file path for the generated PPM.");
 
-    try {
-        // All command line options
-        // clang-format off
-        po::options_description options("Options");
-        options.add_options()
-            ("help,h", "Show this message")
-            ("volpkg,v", po::value<std::string>()->required(),
-                "Path to the volume package")
-            ("seg,s", po::value<std::string>()->required(),
-                "Segmenation ID number")
-            ("radius,r", po::value<int>()->required(), "Texture search radius")
-            ("method,m", po::value<int>()->default_value(1),
-                "Texture method:\n"
-                "  0 = Intersection\n"
-                "  1 = Non-Maximum Suppression\n"
-                "  2 = Maximum\n"
-                "  3 = Minimum\n"
-                "  4 = Median w/ Averaging\n"
-                "  5 = Median\n"
-                "  6 = Mean\n")
-            ("direction,d", po::value<int>()->default_value(0),
-                "Sample Direction:\n"
+    po::options_description filterOptions("Generic Filtering Options");
+    filterOptions.add_options()
+        ("radius,r", po::value<double>(), "Search radius. Defaults to value "
+            "calculated from estimated layer thickness.")
+        ("interval,i", po::value<double>()->default_value(1.0),
+            "Sampling interval")
+        ("direction,d", po::value<int>()->default_value(0),
+            "Sample Direction:\n"
                 "  0 = Omni\n"
                 "  1 = Positive\n"
-                "  2 = Negative\n")
-            ("output-file,o", po::value<std::string>(),
-                "Output file path. If not specified, file will be saved to"
-                " volume package.");
-        // clang-format on
+                "  2 = Negative");
 
-        // parsedOptions will hold the values of all parsed options as a Map
-        po::variables_map parsedOptions;
-        po::store(
-            po::command_line_parser(argc, argv).options(options).run(),
-            parsedOptions);
+    po::options_description compositeOptions("Composite Texture Options");
+    compositeOptions.add_options()
+        ("filter,f", po::value<int>()->default_value(1),
+            "Filter:\n"
+                "  0 = Minimum\n"
+                "  1 = Maximum\n"
+                "  2 = Median\n"
+                "  3 = Mean\n"
+                "  4 = Median w/ Averaging");
 
-        // Show the help message
-        if (parsedOptions.count("help") || argc < 2) {
-            std::cout << options << std::endl;
-            return EXIT_SUCCESS;
-        }
+    po::options_description integralOptions("Integral Texture Options");
+    integralOptions.add_options()
+        ("weight,w", po::value<int>()->default_value(2),
+            "Value weighting:\n"
+                "  0 = Favor the + normal direction\n"
+                "  1 = Favor the - normal direction\n"
+                "  2 = No weighting");
 
-        // Warn of missing options
-        try {
-            po::notify(parsedOptions);
-        } catch (po::error& e) {
-            std::cerr << "ERROR: " << e.what() << std::endl;
-            return EXIT_FAILURE;
-        }
+    po::options_description all("Usage");
+    all.add(required).add(filterOptions).add(compositeOptions).add(integralOptions);
+    // clang-format on
 
-        // Get the parsed options
-        volpkgPath = parsedOptions["volpkg"].as<std::string>();
-        segID = parsedOptions["seg"].as<std::string>();
-        radius = parsedOptions["radius"].as<int>();
-        aFilterOption =
-            static_cast<CompositeOption>(parsedOptions["method"].as<int>());
-        aDirectionOption =
-            static_cast<DirectionOption>(parsedOptions["direction"].as<int>());
+    // Parse the cmd line
+    po::variables_map parsed;
+    po::store(po::command_line_parser(argc, argv).options(all).run(), parsed);
 
-        // Check for output file
-        if (parsedOptions.count("output-file")) {
-            outputPath = parsedOptions["output-file"].as<std::string>();
-            if (fs::exists(fs::canonical(outputPath.parent_path())))
-                outputPath = fs::canonical(outputPath.parent_path()).string() +
-                             "/" + outputPath.filename().string();
-            else
-                std::cerr << "ERROR: Cannot write to provided output file. "
-                             "Output directory does not exist."
-                          << std::endl;
-        }
+    // Show the help message
+    if (parsed.count("help") || argc < 5) {
+        std::cerr << all << std::endl;
+        return EXIT_SUCCESS;
+    }
 
-    } catch (std::exception& e) {
+    // Warn of missing options
+    try {
+        po::notify(parsed);
+    } catch (po::error& e) {
         std::cerr << "ERROR: " << e.what() << std::endl;
         return EXIT_FAILURE;
     }
 
-    ///// Load the volume package /////
-    if (fs::exists(volpkgPath) ||
-        (fs::canonical(volpkgPath).extension() != ".volpkg")) {
-        volpkgPath = fs::canonical(volpkgPath);
-    } else {
-        std::cerr << "ERROR: Volume package does not exist/not recognized at "
-                     "provided path: "
-                  << volpkgPath << std::endl;
-        return EXIT_FAILURE;
+    // Get the parsed options
+    fs::path volpkgPath = parsed["volpkg"].as<std::string>();
+    auto segID = parsed["seg"].as<std::string>();
+    Method method = static_cast<Method>(parsed["method"].as<int>());
+
+    // Check for output file
+    fs::path outputPath;
+    if (parsed.count("output-file")) {
+        outputPath = parsed["output-file"].as<std::string>();
+        if (fs::exists(fs::canonical(outputPath.parent_path()))) {
+            outputPath = fs::canonical(outputPath.parent_path()).string() +
+                         "/" + outputPath.filename().string();
+        } else {
+            std::cerr << "ERROR: Cannot write to provided output file. "
+                         "Output directory does not exist."
+                      << std::endl;
+        }
     }
 
-    VolumePkg vpkg(volpkgPath);
+    ///// Load the volume package /////
+    vc::VolumePkg vpkg(volpkgPath);
     if (vpkg.getVersion() != VOLPKG_SUPPORTED_VERSION) {
         std::cerr << "ERROR: Volume package is version " << vpkg.getVersion()
-                  << " but this program requires a version "
-                  << std::to_string(VOLPKG_SUPPORTED_VERSION) << "."
-                  << std::endl;
+                  << " but this program requires version "
+                  << VOLPKG_SUPPORTED_VERSION << "." << std::endl;
         return EXIT_FAILURE;
     }
     double cacheBytes = 0.75 * SystemMemorySize();
-    vpkg.volume().setCacheMemoryInBytes(static_cast<size_t>(cacheBytes));
+    vpkg.volume()->setCacheMemoryInBytes(static_cast<size_t>(cacheBytes));
 
-    ///// Set the segmentation ID /////
+    ///// Get some post-vpkg loading command line arguments /////
+    // Get the texturing radius. If not specified, default to a radius
+    // defined by the estimated thickness of the layer
+    double radius;
+    if (parsed.count("radius")) {
+        radius = parsed["radius"].as<double>();
+    } else {
+        radius = vpkg.getMaterialThickness() / vpkg.volume()->voxelSize();
+    }
+
+    auto interval = parsed["interval"].as<double>();
+    auto direction = static_cast<vc::Direction>(parsed["direction"].as<int>());
+    auto filter = static_cast<vc::texturing::CompositeTexture::Filter>(
+        parsed["filter"].as<int>());
+    auto weight = static_cast<vc::texturing::IntegralTexture::Weight>(
+        parsed["weight"].as<int>());
+
+    ///// Load and resample the segmentation /////
     vpkg.setActiveSegmentation(segID);
     fs::path meshName = vpkg.getMeshPath();
 
@@ -155,16 +173,11 @@ int main(int argc, char* argv[])
     auto input = reader.getMesh();
 
     // Calculate sampling density
-    double voxelsize = vpkg.getVoxelSize();
-    double sa = volcart::meshmath::SurfaceArea(input) *
-                (voxelsize * voxelsize) *
-                (0.001 * 0.001);  // convert vx^2 -> mm^2;
-    double densityFactor = 50;
-    auto numberOfVertices =
-        static_cast<uint16_t>(std::round(densityFactor * sa));
-    numberOfVertices = (numberOfVertices < CLEANER_MIN_REQ_POINTS)
-                           ? CLEANER_MIN_REQ_POINTS
-                           : numberOfVertices;
+    auto voxelToMicron = std::pow(vpkg.volume()->voxelSize(), 2);
+    auto area = vc::meshmath::SurfaceArea(input) * voxelToMicron * UM_TO_MM;
+    auto vertCount = static_cast<uint16_t>(SAMPLING_DENSITY_FACTOR * area);
+    vertCount = (vertCount < CLEANER_MIN_REQ_POINTS) ? CLEANER_MIN_REQ_POINTS
+                                                     : vertCount;
 
     // Convert to polydata
     auto vtkMesh = vtkSmartPointer<vtkPolyData>::New();
@@ -173,7 +186,7 @@ int main(int argc, char* argv[])
     // Decimate using ACVD
     std::cout << "Resampling mesh..." << std::endl;
     auto acvdMesh = vtkSmartPointer<vtkPolyData>::New();
-    volcart::meshing::ACVD(vtkMesh, acvdMesh, numberOfVertices);
+    volcart::meshing::ACVD(vtkMesh, acvdMesh, vertCount);
 
     // Merge Duplicates
     // Note: This merging has to be the last in the process chain for some
@@ -185,34 +198,65 @@ int main(int argc, char* argv[])
     auto itkACVD = volcart::ITKMesh::New();
     volcart::meshing::VTK2ITK(Cleaner->GetOutput(), itkACVD);
 
-    // ABF flattening
+    ///// ABF flattening /////
     std::cout << "Computing parameterization..." << std::endl;
     volcart::texturing::AngleBasedFlattening abf(itkACVD);
-    // abf.setABFMaxIterations(5);
     abf.compute();
 
-    // Get uv map
+    // Get UV map
     volcart::UVMap uvMap = abf.getUVMap();
-    auto width = static_cast<int>(std::ceil(uvMap.ratio().width));
-    auto height = static_cast<int>(
-        std::ceil(static_cast<double>(width) / uvMap.ratio().aspect));
+    auto width = static_cast<size_t>(std::ceil(uvMap.ratio().width));
+    auto height = static_cast<size_t>(std::ceil(uvMap.ratio().height));
 
-    // Generate texture image
-    std::cout << "Generating texture..." << std::endl;
-    std::cout << "Size: " << width << "x" << height << std::endl;
-    volcart::texturing::CompositeTextureV2 result(
-        itkACVD, vpkg, uvMap, radius, width, height, aFilterOption,
-        aDirectionOption);
+    // Generate the PPM
+    std::cout << "Generating PPM..." << std::endl;
+    vc::texturing::PPMGenerator ppmGen;
+    ppmGen.setMesh(itkACVD);
+    ppmGen.setUVMap(uvMap);
+    ppmGen.setDimensions(height, width);
+    auto ppm = ppmGen.compute();
 
-    // Setup rendering
+    ///// Generate texture /////
+    volcart::Texture texture;
+    std::cout << "Generating Texture..." << std::endl;
+    if (method == Method::Intersection) {
+        vc::texturing::IntersectionTexture textureGen;
+        textureGen.setVolume(vpkg.volume());
+        textureGen.setPerPixelMap(ppm);
+        texture = textureGen.compute();
+    }
+
+    else if (method == Method::Composite) {
+        vc::texturing::CompositeTexture textureGen;
+        textureGen.setPerPixelMap(ppm);
+        textureGen.setVolume(vpkg.volume());
+        textureGen.setFilter(filter);
+        textureGen.setSamplingRadius(radius);
+        textureGen.setSamplingInterval(interval);
+        textureGen.setSamplingDirection(direction);
+        texture = textureGen.compute();
+    }
+
+    else if (method == Method::Integral) {
+        vc::texturing::IntegralTexture textureGen;
+        textureGen.setPerPixelMap(ppm);
+        textureGen.setVolume(vpkg.volume());
+        textureGen.setSamplingRadius(radius);
+        textureGen.setSamplingInterval(interval);
+        textureGen.setSamplingDirection(direction);
+        textureGen.setWeight(weight);
+        texture = textureGen.compute();
+    }
+
+    // Save rendering
     volcart::Rendering rendering;
-    rendering.setTexture(result.texture());
+    rendering.setTexture(texture);
     rendering.setMesh(itkACVD);
 
     if (outputPath.extension() == ".PLY" || outputPath.extension() == ".ply") {
         std::cout << "Writing to PLY..." << std::endl;
         volcart::io::PLYWriter writer(
-            outputPath.string(), itkACVD, result.texture());
+            outputPath.string(), itkACVD, rendering.getTexture());
         writer.write();
     } else if (
         outputPath.extension() == ".OBJ" || outputPath.extension() == ".obj") {
@@ -228,7 +272,14 @@ int main(int argc, char* argv[])
         cv::imwrite(outputPath.string(), rendering.getTexture().image(0));
     } else {
         std::cout << "Writing to Volume Package..." << std::endl;
-        vpkg.saveMesh(itkACVD, result.texture());
+        vpkg.saveMesh(itkACVD, rendering.getTexture());
+    }
+
+    // Save the PPM
+    if (parsed.count("output-ppm")) {
+        std::cout << "Writing PPM..." << std::endl;
+        fs::path ppmPath = parsed["output-ppm"].as<std::string>();
+        volcart::PerPixelMap::WritePPM(ppmPath, ppm);
     }
 
     return EXIT_SUCCESS;

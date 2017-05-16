@@ -9,6 +9,12 @@
 
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/segmentation/stps/Particle.hpp"
+
+namespace volcart
+{
+namespace segmentation
+{
+
 /**
  * @brief A chain of particles and their propagation histories
  *
@@ -114,3 +120,5 @@ private:
     int threshold_;  // To-Do: What is this for now? We may not need this.
     /**@}*/
 };
+}
+}

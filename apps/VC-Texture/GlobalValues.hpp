@@ -20,7 +20,6 @@
 #include <QRect>
 #include "vc/core/types/Rendering.hpp"
 #include "vc/core/types/VolumePkg.hpp"
-#include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/vc_defines.hpp"
 
 // Determines the _status of the thread running texturing
@@ -43,7 +42,7 @@ public:
     int getWidth();
 
     void createVolumePackage();
-    VolumePkg* getVolPkg();
+    volcart::VolumePkg* getVolPkg();
 
     void clearVolumePackage();
 
@@ -91,7 +90,7 @@ private:
     int height;
     int width;
     QString path;
-    VolumePkg* vpkg;
+    volcart::VolumePkg* vpkg;
     std::vector<std::string> segmentations;
     QPixmap pix;
     QMainWindow* _window;

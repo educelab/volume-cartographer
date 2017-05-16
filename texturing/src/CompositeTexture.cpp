@@ -1,108 +1,113 @@
 //
-// Created by Seth Parker on 10/20/15.
+// Created by Seth Parker on 5/12/17.
 //
 
 #include "vc/texturing/CompositeTexture.hpp"
 
-namespace volcart
+#include <algorithm>
+
+#include "vc/core/util/FloatComparison.hpp"
+
+static constexpr double MEDIAN_MEAN_PERCENT_RANGE = 0.70;
+
+using namespace volcart;
+using namespace volcart::texturing;
+
+Texture CompositeTexture::compute()
 {
-namespace texturing
-{
+    // Setup
+    result_ = Texture();
+    auto height = static_cast<int>(ppm_.height());
+    auto width = static_cast<int>(ppm_.width());
 
-CompositeTexture::CompositeTexture(
-    ITKMesh::Pointer inputMesh,
-    VolumePkg& volpkg,
-    int outputWidth,
-    int outputHeight,
-    double radius,
-    CompositeOption compositeMethod,
-    DirectionOption compositeDirection)
-    : input_(inputMesh)
-    , volpkg_(volpkg)
-    , width_(outputWidth)
-    , height_(outputHeight)
-    , radius_(radius)
-    , method_(compositeMethod)
-    , direction_(compositeDirection)
-{
-    ///// Generate UV Map /////
-    // To-Do: Generate this map independent of point ordering - SP, 10/2015
-    uvMap_ = volcart::texturing::SimpleUV(inputMesh, width_, height_);
-    process_();
-}
+    cv::Mat image = cv::Mat::zeros(height, width, CV_16UC1);
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            // Skip this pixel if we have no mapping
+            if (!ppm_.hasMapping(y, x)) {
+                continue;
+            }
 
-CompositeTexture::CompositeTexture(
-    ITKMesh::Pointer inputMesh,
-    VolumePkg& volpkg,
-    UVMap uvMap,
-    double radius,
-    CompositeOption method,
-    DirectionOption direction)
-    : input_(inputMesh)
-    , volpkg_(volpkg)
-    , radius_(radius)
-    , method_(method)
-    , direction_(direction)
-    , uvMap_(uvMap)
-{
-    width_ = static_cast<int>(uvMap.ratio().width);
-    height_ = static_cast<int>(uvMap.ratio().height);
-    process_();
-}
+            // Find the xyz coordinate of the original point
+            auto pixelInfo = ppm_(y, x);
+            cv::Vec3d xyz{pixelInfo[0], pixelInfo[1], pixelInfo[2]};
+            cv::Vec3d xyzNorm{pixelInfo[3], pixelInfo[4], pixelInfo[5]};
 
-int CompositeTexture::process_()
-{
-    ///// Generate Texture Image /////
-    cv::Mat textureImage = cv::Mat::zeros(height_, width_, CV_16UC1);
-
-    // Auto-generate minor radius for elliptical search
-    double searchMinorRadius = radius_ / 3.0;
-    if (searchMinorRadius < 1) {
-        searchMinorRadius = 1;
-    }
-
-    // Iterate over all of the cells to lay out the faces in the output texture
-    auto cells = input_->GetCells();
-    for (auto cellIt = cells->Begin(); cellIt != cells->End(); ++cellIt) {
-        // Link the pointer to our current cell
-        auto cell = cellIt.Value();
-
-        std::cerr << "volcart::CompositeTexture::message: Texturing face "
-                  << cellIt.Index() << "/" << cells->End().Index() << "\r"
-                  << std::flush;
-
-        // Iterate over the vertices of the current cell
-        for (auto pointsIt = cell->PointIdsBegin();
-             pointsIt != cell->PointIdsEnd(); ++pointsIt) {
-            auto pointID = *pointsIt;
-
-            ITKPoint p = input_->GetPoint(pointID);
-            ITKPixel normal;
-            input_->GetPointData(pointID, &normal);
-
-            // Fill in the output pixel with a value
-            // cv::Mat.at uses (row, column)
-            cv::Vec3d v1{p[0], p[1], p[2]};
-            cv::Vec3d v2{normal[0], normal[1], normal[2]};
-            double value = TextureWithMethod(
-                v1, v2, volpkg_, method_, radius_, searchMinorRadius, 0.5,
-                direction_);
-
-            // Retrieve the point's uv position from the UV Map
-            auto u = cvRound(uvMap_.get(pointID)[0] * (width_ - 1));
-            auto v = cvRound(uvMap_.get(pointID)[1] * (height_ - 1));
+            // Generate the neighborhood
+            auto neighborhood = vol_->getVoxelNeighborsLinearInterpolated(
+                xyz, xyzNorm, radius_, interval_, direction_);
 
             // Assign the intensity value at the UV position
-            textureImage.at<uint16_t>(v, u) = static_cast<uint16_t>(value);
+            image.at<uint16_t>(y, x) = filter_neighborhood_(neighborhood);
         }
     }
-    std::cout << std::endl;
 
-    // Assign and return the output
-    texture_.addImage(textureImage);
-    texture_.ppm().setUVMap(uvMap_);
+    // Set output
+    result_.addImage(image);
+    result_.setPPM(ppm_);
 
-    return EXIT_SUCCESS;
+    return result_;
 }
-}  // texturing
-}  // volcart
+
+uint16_t CompositeTexture::filter_neighborhood_(const Neighborhood& n)
+{
+    switch (filter_) {
+        case Filter::Minimum:
+            return min_(n);
+        case Filter::Maximum:
+            return max_(n);
+        case Filter::Median:
+            return median_(n);
+        case Filter::Mean:
+            return mean_(n);
+        case Filter::MedianAverage:
+            return median_mean_(n, MEDIAN_MEAN_PERCENT_RANGE);
+    }
+}
+
+uint16_t CompositeTexture::min_(Neighborhood n)
+{
+    return *std::min_element(n.begin(), n.end());
+}
+
+uint16_t CompositeTexture::max_(Neighborhood n)
+{
+    return *std::max_element(n.begin(), n.end());
+}
+
+uint16_t CompositeTexture::median_(Neighborhood n)
+{
+    std::nth_element(n.begin(), n.begin() + n.size() / 2, n.end());
+    return n[n.size() / 2];
+}
+
+uint16_t CompositeTexture::mean_(Neighborhood n)
+{
+    auto sum = std::accumulate(std::begin(n), std::end(n), double{0});
+    return static_cast<uint16_t>(std::round(sum / n.size()));
+}
+
+uint16_t CompositeTexture::median_mean_(Neighborhood n, double range)
+{
+    // If the range is 1.0, it's just a normal mean operation
+    if (AlmostEqual<double>(range, 1.0)) {
+        return mean_(n);
+    } else if (AlmostEqual<double>(range, 0.0)) {
+        return 0;
+    }
+
+    // Sort
+    std::sort(n.begin(), n.end());
+
+    // The number of things we're going to sum
+    auto count = static_cast<size_t>(std::ceil(n.size() * range));
+    // The number of things before we start summing
+    auto offset = static_cast<size_t>(std::floor((n.size() - count) / 2.0));
+
+    // Sum
+    auto sum = std::accumulate(
+        n.begin() + offset, n.begin() + offset + count, double{0});
+
+    // Average
+    return static_cast<uint16_t>(std::round(sum / count));
+}

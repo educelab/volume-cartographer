@@ -12,13 +12,13 @@
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/vc_defines.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
-#include "vc/texturing/CompositeTextureV2.hpp"
-#include "vc/texturing/SimpleUV.hpp"
+#include "vc/texturing/CompositeTexture.hpp"
+#include "vc/texturing/PPMGenerator.hpp"
 
 int main(int /*argc*/, char* argv[])
 {
 
-    VolumePkg vpkg(argv[1]);
+    volcart::VolumePkg vpkg(argv[1]);
     double radius = std::stod(argv[4]);
     std::cout << radius << std::endl;
 
@@ -82,22 +82,31 @@ int main(int /*argc*/, char* argv[])
         }
     }
 
-    // Convert soft body to itk mesh
-    volcart::texturing::CompositeTextureV2 result(
-        inputMesh, vpkg, uvMap, radius, static_cast<int>(aspect_width),
-        static_cast<int>(aspect_height));
+    auto width = static_cast<size_t>(aspect_width);
+    auto height = static_cast<size_t>(aspect_height);
+    volcart::texturing::PPMGenerator ppmGen(height, width);
+    ppmGen.setMesh(inputMesh);
+    ppmGen.setUVMap(uvMap);
+    ppmGen.compute();
+
+    volcart::texturing::CompositeTexture result;
+    result.setPerPixelMap(ppmGen.getPPM());
+    result.setVolume(vpkg.volume());
+    result.setSamplingRadius(radius);
+    result.compute();
+
     volcart::io::OBJWriter objwriter(
-        "cloth.obj", inputMesh, result.texture().uvMap(),
-        result.texture().image(0));
+        "cloth.obj", inputMesh, result.getTexture().uvMap(),
+        result.getTexture().image(0));
     objwriter.write();
 
-    if (result.texture().mask().data) {
-        cv::imwrite("PerPixelMask.png", result.texture().mask());
+    if (result.getTexture().mask().data) {
+        cv::imwrite("PerPixelMask.png", result.getTexture().mask());
     }
 
-    if (result.texture().ppm().initialized()) {
+    if (result.getTexture().ppm().initialized()) {
         volcart::PerPixelMap::WritePPM(
-            "PerPixelMapping.ppm", result.texture().ppm());
+            "PerPixelMapping.ppm", result.getTexture().ppm());
     }
 
     return EXIT_SUCCESS;

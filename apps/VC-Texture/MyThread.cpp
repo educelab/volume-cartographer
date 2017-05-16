@@ -11,9 +11,15 @@
 //----------------------------------------------------------------------------------------------------------------------------------------
 
 #include "MyThread.hpp"
+
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/io/PLYReader.hpp"
+#include "vc/core/util/MeshMath.hpp"
+#include "vc/meshing/ACVD.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
+#include "vc/texturing/AngleBasedFlattening.hpp"
+#include "vc/texturing/CompositeTexture.hpp"
+#include "vc/texturing/PPMGenerator.hpp"
 
 namespace fs = boost::filesystem;
 
@@ -34,9 +40,10 @@ void MyThread::run()
         fs::path meshName = _globals->getVolPkg()->getMeshPath();
 
         auto aFilterOption =
-            static_cast<volcart::CompositeOption>(_globals->getTextureMethod());
-        auto aDirectionOption = static_cast<volcart::DirectionOption>(
-            _globals->getSampleDirection());
+            static_cast<volcart::texturing::CompositeTexture::Filter>(
+                _globals->getTextureMethod());
+        auto aDirectionOption =
+            static_cast<volcart::Direction>(_globals->getSampleDirection());
 
         // declare pointer to new Mesh object
         auto mesh = volcart::ITKMesh::New();
@@ -91,17 +98,26 @@ void MyThread::run()
 
         // Get uv map
         volcart::UVMap uvMap = abf.getUVMap();
-        auto width = static_cast<int>(std::ceil(uvMap.ratio().width));
-        auto height = static_cast<int>(
+        auto width = static_cast<size_t>(std::ceil(uvMap.ratio().width));
+        auto height = static_cast<size_t>(
             std::ceil(static_cast<double>(width) / uvMap.ratio().aspect));
 
-        volcart::texturing::CompositeTextureV2 result(
-            itkACVD, *_globals->getVolPkg(), uvMap, _radius, width, height,
-            aFilterOption, aDirectionOption);
+        volcart::texturing::PPMGenerator ppmGen(height, width);
+        ppmGen.setMesh(itkACVD);
+        ppmGen.setUVMap(uvMap);
+        ppmGen.compute();
+
+        volcart::texturing::CompositeTexture result;
+        result.setPerPixelMap(ppmGen.getPPM());
+        result.setVolume(_globals->getVolPkg()->volume());
+        result.setFilter(aFilterOption);
+        result.setSamplingRadius(_radius);
+        result.setSamplingDirection(aDirectionOption);
+        result.compute();
 
         // Setup rendering
         volcart::Rendering rendering;
-        rendering.setTexture(result.texture());
+        rendering.setTexture(result.getTexture());
         rendering.setMesh(itkACVD);
 
         _globals->setRendering(rendering);

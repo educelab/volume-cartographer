@@ -25,8 +25,7 @@
  *  3. InsertIntoCacheAndConfirmExistence *
  *  4. CheckCacheWithDifferingCapacityAndSize *
  *  5. TryToInsertMorePairsThanCurrentCapacity *
- *  6. CreateNegativeCapacityCache *
- *  7. PurgeTheCache *
+ *  6. PurgeTheCache *
  *                                                                                  *
  * Input: *
  *     No required inputs for this sample test. *
@@ -72,7 +71,7 @@ struct ResizingCacheFixture {
     ~ResizingCacheFixture() { std::cerr << "Destroying cache..." << std::endl; }
 
     volcart::LRUCache<size_t, int> _DefaultCache;
-    int64_t _in_NewCap;
+    size_t _in_NewCap;
 };
 
 struct ReferenceBadKeyFixture {
@@ -100,7 +99,7 @@ struct ReferenceBadKeyFixture {
     }
 
     volcart::LRUCache<size_t, int> _Cache;
-    int64_t _in_Cap;
+    size_t _in_Cap;
 };
 
 /***************
@@ -128,7 +127,7 @@ BOOST_FIXTURE_TEST_CASE(CheckReferenceToOutOfBoundsKey, ReferenceBadKeyFixture)
     BOOST_CHECK_EQUAL(
         _Cache.capacity(), _Cache.size());  // capacity and size should be equal
 
-    for (int64_t key = 0; key < _Cache.capacity(); key++) {
+    for (size_t key = 0; key < _Cache.capacity(); key++) {
 
         BOOST_CHECK_EQUAL(
             _Cache.get(key), key * key);  // check that values are correct
@@ -198,7 +197,7 @@ BOOST_FIXTURE_TEST_CASE(
         200);  // cache should have initial capacity of 200
     BOOST_CHECK_EQUAL(_DefaultCache.size(), 0);  // size should be 0
 
-    for (int64_t key = 0; key < _DefaultCache.capacity();
+    for (size_t key = 0; key < _DefaultCache.capacity();
          key += 2) {  // fill item list halfway
 
         // add even numbers, zero inclusive, and double their key as the value
@@ -213,7 +212,7 @@ BOOST_FIXTURE_TEST_CASE(
 
     // test to see what happens when referencing an odd-number key
     // also, checking if oddKey exists --> redundant
-    for (int64_t oddKey = 1; oddKey < _DefaultCache.capacity(); oddKey += 2) {
+    for (size_t oddKey = 1; oddKey < _DefaultCache.capacity(); oddKey += 2) {
 
         try {
 
@@ -229,7 +228,7 @@ BOOST_FIXTURE_TEST_CASE(
     _DefaultCache.setCapacity(50);  // update capacity to size 50
     // should pop items that are at the 'end' of the cache
     // thus, we'll check item key 98,96,...,2,0
-    for (int64_t k = 0; k < _DefaultCache.capacity() * 2; k += 2) {
+    for (size_t k = 0; k < _DefaultCache.capacity() * 2; k += 2) {
 
         try {
 
@@ -256,7 +255,7 @@ BOOST_FIXTURE_TEST_CASE(
         200);  // cache should have initial capacity of 200
     BOOST_CHECK_EQUAL(_DefaultCache.size(), 0);  // size should be 0
 
-    for (int64_t key = 0; key <= _DefaultCache.capacity();
+    for (size_t key = 0; key <= _DefaultCache.capacity();
          key++) {  // fill item list 1 past capacity
 
         _DefaultCache.put(key, key + key);
@@ -280,26 +279,6 @@ BOOST_FIXTURE_TEST_CASE(
     try {
         _DefaultCache.setCapacity(0);  // try to create negative cap cache
         _DefaultCache.put(0, 1);       // put shouldn't occur
-        BOOST_CHECK(
-            false);  // test should fail if allowed to create negative cap cache
-    } catch (std::exception& e) {
-
-        std::cout << e.what() << std::endl;
-        BOOST_CHECK(true);  // handled correctly -- pass test
-    }
-
-    BOOST_CHECK_EQUAL(
-        _DefaultCache.capacity(), 200);  // capacity should remain unchanged
-    BOOST_CHECK_EQUAL(_DefaultCache.size(), 0);  // size should still be 0
-}
-
-BOOST_FIXTURE_TEST_CASE(
-    CreateNegativeCapacityCache, CreateCacheWithDefaultConstructorFixture)
-{
-
-    try {
-        _DefaultCache.setCapacity(-5);  // try to create negative cap cache
-        _DefaultCache.put(0, 1);        // put shouldn't occur
         BOOST_CHECK(
             false);  // test should fail if allowed to create negative cap cache
     } catch (std::exception& e) {

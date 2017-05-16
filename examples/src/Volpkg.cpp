@@ -21,14 +21,14 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
 
-    VolumePkg volpkg(volpkgpath);
+    volcart::VolumePkg volpkg(volpkgpath);
 
     // print the object input
     std::cout << "Volume package name before change: " << volpkg.getPkgName()
               << std::endl;
 
     // change a value
-    volpkg.setMetadata("volumepkg name", "Transformed Name");
+    volpkg.setMetadata("name", "Transformed Name");
 
     // print the changed object
     std::cout << "Volume package name after change: " << volpkg.getPkgName()

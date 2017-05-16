@@ -1,3 +1,9 @@
+/**
+ * @file Zip.hpp
+ * @brief Make a variable-sized tuple
+ *
+ * @ingroup Util
+ */
 #pragma once
 
 #include <boost/iterator/zip_iterator.hpp>
@@ -6,6 +12,9 @@
 
 namespace volcart
 {
+/**
+ * @brief Make a variable-sized tuple
+ */
 template <typename... T>
 auto zip(const T&... cs) -> boost::iterator_range<
     boost::zip_iterator<decltype(boost::make_tuple(std::begin(cs)...))>>

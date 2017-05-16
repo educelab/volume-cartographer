@@ -9,8 +9,53 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
+#include "vc/core/util/FloatComparison.hpp"
+
 using namespace volcart;
 namespace fs = boost::filesystem;
+
+static const fs::path METADATA_FILE = "meta.json";
+
+// Load a Volume from disk
+Volume::Volume(fs::path path) : path_(std::move(path))
+{
+    metadata_ = volcart::Metadata(path_ / METADATA_FILE);
+    sliceWidth_ = metadata_.get<int>("width");
+    sliceHeight_ = metadata_.get<int>("height");
+    numSlices_ = metadata_.get<int>("slices");
+    numSliceCharacters_ = std::to_string(numSlices_).size();
+}
+
+// Setup a Volume from a folder of slices
+Volume::Volume(fs::path path, std::string uuid, std::string name)
+    : path_(std::move(path))
+    , numSlices_(0)
+    , sliceWidth_(0)
+    , sliceHeight_(0)
+    , numSliceCharacters_(0)
+{
+    metadata_.setPath((path_ / METADATA_FILE));
+    metadata_.set("uuid", uuid);
+    metadata_.set("name", name);
+    metadata_.set("width", sliceWidth_);
+    metadata_.set("height", sliceHeight_);
+    metadata_.set("slices", numSlices_);
+    metadata_.set("voxelsize", double{});
+    metadata_.set("min", double{});
+    metadata_.set("max", double{});
+}
+
+// Load a Volume from disk, return a pointer
+Volume::Pointer Volume::New(fs::path path)
+{
+    return std::make_shared<Volume>(path);
+}
+
+// Set a Volume from a folder of slices, return a pointer
+Volume::Pointer Volume::New(fs::path path, std::string uuid, std::string name)
+{
+    return std::make_shared<Volume>(path, uuid, name);
+}
 
 StructureTensor Tensorize(cv::Vec3d gradient);
 
@@ -35,8 +80,7 @@ uint16_t Volume::interpolateAt(const Voxel& point) const
     int z1 = z0 + 1;
 
     // insert safety net
-    if (x0 < 0 || y0 < 0 || z0 < 0 || x1 >= sliceWidth_ || y1 >= sliceHeight_ ||
-        z1 >= numSlices_) {
+    if (!isInBounds(point)) {
         return 0;
     }
 
@@ -78,18 +122,15 @@ cv::Mat Volume::getSliceDataCopy(int index) const
 }
 
 // Data Assignment
-bool Volume::setSliceData(int index, const cv::Mat& slice)
+void Volume::setSliceData(int index, const cv::Mat& slice)
 {
     if (index >= numSlices_) {
-        std::cerr << "ERROR: Atttempted to save a slice image to an out of "
-                     "bounds index."
-                  << std::endl;
-        return false;
+        auto msg = "Attempted to save a slice to an out-of-bounds index.";
+        throw std::range_error(msg);
     }
 
     auto filepath = getSlicePath(index);
     cv::imwrite(filepath.string(), slice);
-    return true;
 }
 
 fs::path Volume::getSlicePath(int index) const
@@ -97,10 +138,10 @@ fs::path Volume::getSlicePath(int index) const
     std::stringstream ss;
     ss << std::setw(numSliceCharacters_) << std::setfill('0') << index
        << ".tif";
-    return slicePath_ / ss.str();
+    return path_ / ss.str();
 }
 
-Slice Volume::reslice(
+Reslice Volume::reslice(
     const Voxel& center,
     const cv::Vec3d& xvec,
     const cv::Vec3d& yvec,
@@ -119,7 +160,7 @@ Slice Volume::reslice(
         }
     }
 
-    return Slice(m, origin, xnorm, ynorm);
+    return Reslice(m, origin, xnorm, ynorm);
 }
 
 StructureTensor Volume::structureTensorAt(
@@ -138,7 +179,7 @@ StructureTensor Volume::structureTensorAt(
     auto v = getVoxelNeighborsCubic<double>({vx, vy, vz}, voxelRadius);
 
     // Normalize voxel neighbors to [0, 1]
-    for (size_t z = 0; z < v.dz; ++z) {
+    for (size_t z = 0; z < v.dz(); ++z) {
         v.xySlice(z) /= std::numeric_limits<uint16_t>::max();
     }
 
@@ -148,17 +189,17 @@ StructureTensor Volume::structureTensorAt(
     // Modulate by gaussian distribution (element-wise) and sum
     auto gaussianField = MakeUniformGaussianField(voxelRadius);
     StructureTensor sum(0, 0, 0, 0, 0, 0, 0, 0, 0);
-    for (size_t z = 0; z < v.dz; ++z) {
-        for (size_t y = 0; y < v.dy; ++y) {
-            for (size_t x = 0; x < v.dx; ++x) {
-                sum += gaussianField[z * v.dy * v.dx + y * v.dx + x] *
+    for (size_t z = 0; z < v.dz(); ++z) {
+        for (size_t y = 0; y < v.dy(); ++y) {
+            for (size_t x = 0; x < v.dx(); ++x) {
+                sum += gaussianField[z * v.dy() * v.dx() + y * v.dx() + x] *
                        Tensorize(gradientField(x, y, z));
             }
         }
     }
 
     cv::Mat matSum(sum);
-    matSum /= v.dx * v.dy * v.dz;
+    matSum /= v.dx() * v.dy() * v.dz();
     return StructureTensor(matSum);
 }
 
@@ -188,17 +229,17 @@ StructureTensor Volume::interpolatedStructureTensorAt(
     // Modulate by gaussian distribution (element-wise) and sum
     auto gaussianField = MakeUniformGaussianField(voxelRadius);
     StructureTensor sum(0, 0, 0, 0, 0, 0, 0, 0, 0);
-    for (size_t z = 0; z < v.dz; ++z) {
-        for (size_t y = 0; y < v.dy; ++y) {
-            for (size_t x = 0; x < v.dx; ++x) {
-                sum += gaussianField[z * v.dy * v.dx + y * v.dx + x] *
+    for (size_t z = 0; z < v.dz(); ++z) {
+        for (size_t y = 0; y < v.dy(); ++y) {
+            for (size_t x = 0; x < v.dx(); ++x) {
+                sum += gaussianField[z * v.dy() * v.dx() + y * v.dx() + x] *
                        Tensorize(gradientField(x, y, z));
             }
         }
     }
 
     cv::Mat matSum(sum);
-    matSum /= v.dx * v.dy * v.dz;
+    matSum /= v.dx() * v.dy() * v.dz();
     return StructureTensor(matSum);
 }
 
@@ -263,27 +304,25 @@ Tensor3D<cv::Vec3d> Volume::volume_gradient_(
         "gradientKernelSize must be one of [1, 3, 5, 7]");
 
     // Calculate gradient field around specified voxel
-    Tensor3D<cv::Vec3d> gradientField{v.dx, v.dy, v.dz};
+    Tensor3D<cv::Vec3d> gradientField{v.dx(), v.dy(), v.dz()};
 
     // First do XY gradients
-    for (size_t z = 0; z < v.dz; ++z) {
-        auto xGradient =
-            gradient_(v.xySlice(z), GradientAxis::X, gradientKernelSize);
-        auto yGradient =
-            gradient_(v.xySlice(z), GradientAxis::Y, gradientKernelSize);
-        for (size_t y = 0; y < v.dy; ++y) {
-            for (size_t x = 0; x < v.dx; ++x) {
+    for (size_t z = 0; z < v.dz(); ++z) {
+        auto xGradient = gradient_(v.xySlice(z), Axis::X, gradientKernelSize);
+        auto yGradient = gradient_(v.xySlice(z), Axis::Y, gradientKernelSize);
+        for (size_t y = 0; y < v.dy(); ++y) {
+            for (size_t x = 0; x < v.dx(); ++x) {
                 gradientField(x, y, z) = {xGradient(y, x), yGradient(y, x), 0};
             }
         }
     }
 
     // Then Z gradients
-    for (size_t layer = 0; layer < v.dy; ++layer) {
+    for (size_t layer = 0; layer < v.dy(); ++layer) {
         auto zGradient =
-            gradient_(v.xzSlice(layer), GradientAxis::Y, gradientKernelSize);
-        for (size_t z = 0; z < v.dz; ++z) {
-            for (size_t x = 0; x < v.dx; ++x) {
+            gradient_(v.xzSlice(layer), Axis::Y, gradientKernelSize);
+        for (size_t z = 0; z < v.dz(); ++z) {
+            for (size_t x = 0; x < v.dx(); ++x) {
                 gradientField(x, layer, z)(2) = zGradient(z, x);
             }
         }
@@ -296,7 +335,7 @@ Tensor3D<cv::Vec3d> Volume::volume_gradient_(
 // size. If the kernel size is 3, uses the Scharr() operator to calculate the
 // gradient which is more accurate than 3x3 Sobel operator
 cv::Mat_<double> Volume::gradient_(
-    const cv::Mat_<double>& input, GradientAxis axis, int ksize) const
+    const cv::Mat_<double>& input, Axis axis, int ksize) const
 {
     // OpenCV params for gradients
     // XXX Revisit this and see if changing these makes a big difference
@@ -306,7 +345,7 @@ cv::Mat_<double> Volume::gradient_(
     cv::Mat_<double> grad(input.rows, input.cols);
 
     switch (axis) {
-        case GradientAxis::X:
+        case Axis::X:
             if (ksize == 3) {
                 cv::Scharr(
                     input, grad, CV_64F, 1, 0, SCALE, DELTA,
@@ -317,7 +356,7 @@ cv::Mat_<double> Volume::gradient_(
                     cv::BORDER_REPLICATE);
             }
             break;
-        case GradientAxis::Y:
+        case Axis::Y:
             if (ksize == 3) {
                 cv::Scharr(
                     input, grad, CV_64F, 0, 1, SCALE, DELTA,
@@ -362,4 +401,51 @@ std::unique_ptr<double[]> MakeUniformGaussianField(int radius)
     }
 
     return field;
+}
+
+Neighborhood Volume::getVoxelNeighborsLinearInterpolated(
+    const cv::Vec3d& center,
+    cv::Vec3d majorAxis,
+    double radius,
+    double interval,
+    Direction direction) const
+{
+    // Interval bounds
+    if (AlmostEqual(interval, 0.0)) {
+        throw std::domain_error("Sampling interval too small");
+    }
+
+    // Normalize axis and ensure properly oriented radius
+    cv::normalize(majorAxis, majorAxis);
+    radius = std::abs(radius);
+
+    // Setup Range
+    double min, max;
+    switch (direction) {
+        case Direction::Bidirectional: {
+            min = -1 * radius;
+            max = radius;
+            break;
+        }
+        case Direction::Positive: {
+            min = 0;
+            max = radius;
+            break;
+        }
+        case Direction::Negative: {
+            min = -1 * radius;
+            max = 0;
+            break;
+        }
+    }
+
+    // Iterate through range
+    Neighborhood n;
+    auto count = static_cast<size_t>(std::floor((max - min) / interval) + 1);
+    for (size_t it = 0; it < count; it++) {
+        auto offset = min + (it * interval);
+        n.emplace_back(interpolateAt(center + (majorAxis * offset)));
+    }
+
+    return n;
 }

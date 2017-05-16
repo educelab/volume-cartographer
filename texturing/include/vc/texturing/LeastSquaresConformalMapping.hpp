@@ -1,13 +1,9 @@
-// Created 2016-05-17 by Seth Parker
-// Least Squares Conformal Mapping UV Generator
-// Uses libigl to compute a mesh parameterization via LSCM method
 #pragma once
-
-#ifdef VC_USE_LIBIGL
 
 #include <iostream>
 
 #include <Eigen/Geometry>
+
 #include "vc/core/types/UVMap.hpp"
 #include "vc/core/vc_defines.hpp"
 
@@ -15,34 +11,61 @@ namespace volcart
 {
 namespace texturing
 {
-
+/**
+ * @class LeastSquaresConformalMapping
+ * @author Seth Parker
+ * @date 5/17/16
+ *
+ * @brief Computes a 2D parameterization of a triangular mesh using Least
+ * Squares Conformal Mapping (LSCM).
+ *
+ * @ingroup UV
+ */
 class LeastSquaresConformalMapping
 {
 public:
-    LeastSquaresConformalMapping() {}
+    /**@{*/
+    /** @brief Default constructor */
+    LeastSquaresConformalMapping() = default;
+
+    /** @brief Constructor with mesh parameter */
     explicit LeastSquaresConformalMapping(ITKMesh::Pointer input);
+    /**@}*/
 
-    // Input/Output
+    /**@{*/
+    /** @brief Set the input mesh */
     void setMesh(const ITKMesh::Pointer& input);
-    ITKMesh::Pointer getMesh();
-    volcart::UVMap getUVMap();
 
-    // Processing
-    void compute();
+    /** @brief Get the flattened surface as a mesh */
+    ITKMesh::Pointer getMesh();
+
+    /** @brief Get the flattened surface as a UV map */
+    UVMap getUVMap();
+    /**@}*/
+
+    /**@{*/
+    /** @brief Compute the parameterization */
+    UVMap compute();
+    /**@}*/
 
 private:
+    /** Convert the mesh into eigen matrices */
     void fill_eigen_matrices_();
+    /** Clear the eigen matrices */
     void empty_eigen_matrices_();
-
+    /** Calculate the surface area of the mesh */
     double area_(const Eigen::MatrixXd& v, const Eigen::MatrixXi& f);
-    double startingArea_;
 
+    /** Input mesh */
     ITKMesh::Pointer mesh_;
+    /** Surface area of the input mesh */
+    double startingArea_;
+    /** Vertices Eigen matrix */
     Eigen::MatrixXd vertices_;
+    /** Face Eigen matrix */
     Eigen::MatrixXi faces_;
+    /** Vertex UV Eigen matrix */
     Eigen::MatrixXd verticesUV_;
 };
 }  // texturing
 }  // volcart
-
-#endif  // VC_USE_LIBIGL

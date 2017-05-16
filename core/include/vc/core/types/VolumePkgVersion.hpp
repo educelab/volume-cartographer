@@ -1,5 +1,5 @@
 /**
-  @file   VolumePkgVersion.h
+  @file   VolumePkgVersion.hpp
   @author Seth Parker
   @date   April 2015
 
@@ -24,7 +24,7 @@
   of a VolumePkg. In this way, developers will be able to maintain backwards
   compatibility with older datasets.
 
-  @ingroup VolumePackage
+  @ingroup Types
  */
 
 #pragma once
@@ -53,32 +53,11 @@ using Dictionary = std::unordered_map<std::string, Type>;
 using Library = std::unordered_map<int, Dictionary>;
 
 // clang-format off
-/** Metadata dictionary for VolumePkg v1. */
-const Dictionary V1 =
+/** Metadata dictionary for VolumePkg v4. */
+const Dictionary V4 =
         {
-        {"volumepkg name",   Type::STRING},
+        {"name",             Type::STRING},
         {"version",          Type::INT},
-        {"width",            Type::INT},
-        {"height",           Type::INT},
-        {"number of slices", Type::INT},
-        {"slice location",   Type::STRING},
-        {"min",              Type::DOUBLE},
-        {"max",              Type::DOUBLE},
-        {"voxelsize",        Type::DOUBLE}
-        };
-
-/** Metadata dictionary for VolumePkg v2. */
-const Dictionary V2 =
-        {
-        {"volumepkg name",   Type::STRING},
-        {"version",          Type::INT},
-        {"width",            Type::INT},
-        {"height",           Type::INT},
-        {"number of slices", Type::INT},
-        {"slice location",   Type::STRING},
-        {"min",              Type::DOUBLE},
-        {"max",              Type::DOUBLE},
-        {"voxelsize",        Type::DOUBLE},
         {"materialthickness",Type::DOUBLE}
         };
 
@@ -96,10 +75,39 @@ const Dictionary V3 =
         {"voxelsize",        Type::DOUBLE},
         {"materialthickness",Type::DOUBLE}
         };
+
+/** Metadata dictionary for VolumePkg v2. */
+const Dictionary V2 =
+        {
+        {"volumepkg name",   Type::STRING},
+        {"version",          Type::INT},
+        {"width",            Type::INT},
+        {"height",           Type::INT},
+        {"number of slices", Type::INT},
+        {"slice location",   Type::STRING},
+        {"min",              Type::DOUBLE},
+        {"max",              Type::DOUBLE},
+        {"voxelsize",        Type::DOUBLE},
+        {"materialthickness",Type::DOUBLE}
+        };
+
+/** Metadata dictionary for VolumePkg v1. */
+const Dictionary V1 =
+        {
+        {"volumepkg name",   Type::STRING},
+        {"version",          Type::INT},
+        {"width",            Type::INT},
+        {"height",           Type::INT},
+        {"number of slices", Type::INT},
+        {"slice location",   Type::STRING},
+        {"min",              Type::DOUBLE},
+        {"max",              Type::DOUBLE},
+        {"voxelsize",        Type::DOUBLE}
+        };
 // clang-format on
 
 /**
  * Global Library used to store all template Dictionaries.
  */
-const Library VERSION_LIBRARY = {{1, V1}, {2, V2}, {3, V3}};
+const Library VERSION_LIBRARY = {{1, V1}, {2, V2}, {3, V3}, {4, V4}};
 }

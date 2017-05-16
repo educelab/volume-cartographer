@@ -2,6 +2,11 @@
 
 #include <opencv2/core.hpp>
 
+namespace volcart
+{
+namespace segmentation
+{
+
 /**
  * @class Particle
  * @brief Extends cv::Vec3d with some other things for STPS
@@ -25,3 +30,5 @@ public:
 private:
     bool isStopped_;
 };
+}
+}

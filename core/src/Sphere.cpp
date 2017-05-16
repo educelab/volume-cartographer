@@ -1,6 +1,3 @@
-//
-// Created by Melissa Shankle on 12/16/15.
-//
 #include <cmath>
 
 #include "vc/core/shapes/Sphere.hpp"
@@ -9,7 +6,7 @@
 using namespace volcart;
 using namespace volcart::shapes;
 
-Sphere::Sphere(float /*radius*/, int recursionLevel)
+Sphere::Sphere(float /*radius*/, int recursion)
 {
     // create 12 vertices of a icosahedron
     double t = (1.0 + std::sqrt(5.0)) / 2.0;
@@ -64,7 +61,7 @@ Sphere::Sphere(float /*radius*/, int recursionLevel)
     tmpCells.emplace_back(Cell(9, 8, 1));
 
     // refine triangles
-    for (int i = 0; i < recursionLevel; i++) {
+    for (int i = 0; i < recursion; i++) {
         std::vector<Cell> tmpCells2;
 
         for (auto cell : tmpCells) {
@@ -85,9 +82,6 @@ Sphere::Sphere(float /*radius*/, int recursionLevel)
     for (auto cell : tmpCells) {
         addCell_(cell.v1, cell.v2, cell.v3);
     }
-
-    orderedPoints_ = false;
-    orderedWidth_ = orderedHeight_ = 0;
 }
 
 int Sphere::midpoint_(int p1, int p2)

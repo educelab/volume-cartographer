@@ -30,7 +30,7 @@ int main(int argc, char* argv[])
     }
 
     // Load the volume package
-    VolumePkg volpkg(argv[1]);
+    volcart::VolumePkg volpkg(argv[1]);
     volpkg.setActiveSegmentation(argv[2]);
     std::string outputDir = argv[3];
     int width = volpkg.getSliceWidth();

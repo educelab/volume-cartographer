@@ -33,7 +33,7 @@ inline cv::Vec3d SphericalToCartesian(double theta, double phi)
 void drawReslice(cv::Mat reslice);
 
 void drawSliceWithResliceVector(
-    volcart::Volume& volume,
+    volcart::Volume::Pointer volume,
     const cv::Vec3d resliceVector,
     const cv::Vec3d center);
 
@@ -56,7 +56,7 @@ int main(int argc, char** argv)
     }
 
     const std::string vpkgPath(argv[1]);
-    VolumePkg volpkg(vpkgPath);
+    volcart::VolumePkg volpkg(vpkgPath);
     auto vol = volpkg.volume();
 
     // Set locations to do arbitrary reslicing
@@ -80,7 +80,7 @@ int main(int argc, char** argv)
     const cv::Vec3d center(cx, cy, cz);
 
     // Get our normal estimate from the structure tensor
-    auto pairs = vol.eigenPairsAt(cx, cy, cz, 5);
+    auto pairs = vol->eigenPairsAt(cx, cy, cz, 5);
     auto normalVector = pairs[0].second;
     double theta, phi;
     std::tie(theta, phi) = CartesianToSpherical(normalVector);
@@ -99,7 +99,7 @@ int main(int argc, char** argv)
 
         // Do reslice
         auto reslice =
-            vol.reslice(center, normalVector, orthogonalVector, HEIGHT, WIDTH);
+            vol->reslice(center, normalVector, orthogonalVector, HEIGHT, WIDTH);
 
         // Draw
         drawReslice(reslice.draw());
@@ -149,12 +149,14 @@ void drawReslice(cv::Mat reslice)
 }
 
 void drawSliceWithResliceVector(
-    volcart::Volume& v, const cv::Vec3d resliceVector, const cv::Vec3d center)
+    volcart::Volume::Pointer v,
+    const cv::Vec3d resliceVector,
+    const cv::Vec3d center)
 {
     const auto windowName = "Slice with reslice vector";
 
     // Convert the CT slice to 8-bit RGB
-    auto slice = v.getSliceDataCopy(int32_t(center(2)));
+    auto slice = v->getSliceDataCopy(int32_t(center(2)));
     slice.convertTo(slice, CV_8UC3, 1.0 / 255.0);
     cv::cvtColor(slice, slice, cv::COLOR_GRAY2BGR);
 

@@ -22,6 +22,8 @@ namespace fs = boost::filesystem;
 using std::begin;
 using std::end;
 
+using Voxel = cv::Vec3d;
+
 volcart::OrderedPointSet<cv::Vec3d> ExportAsPCD(
     const std::vector<std::vector<Voxel>>& points);
 
@@ -48,12 +50,12 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
         currentVs.emplace_back(p[0], p[1], p[2]);
     }
 
-    const volcart::Volume& vol = pkg_.volume();  // Debug output information
+    const auto vol = pkg_.volume();  // Debug output information
 
     // Check that incoming points are all within volume bounds. If not, then
     // return empty cloud back
     if (std::any_of(begin(currentVs), end(currentVs), [vol](auto v) {
-            return !vol.isInBounds(v);
+            return !vol->isInBounds(v);
         })) {
         std::cerr << "[info]: one or more particles is outside volume bounds, "
                      "halting segmentation"
@@ -107,14 +109,14 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
         nextPositions.reserve(currentCurve.size());
         // XXX DEBUG
         std::vector<IntensityMap> maps;
-        std::vector<Slice> reslices;
+        std::vector<Reslice> reslices;
         maps.reserve(currentCurve.size());
         reslices.reserve(currentCurve.size());
         // XXX DEBUG
         for (int i = 0; i < int(currentCurve.size()); ++i) {
             // Estimate normal and reslice along it
             const cv::Vec3d normal = estimate_normal_at_index_(currentCurve, i);
-            const auto reslice = vol.reslice(
+            const auto reslice = vol->reslice(
                 currentCurve(i), normal, {0, 0, 1}, resliceSize_, resliceSize_);
             reslices.push_back(reslice);
             auto resliceIntensities = reslice.sliceData();
@@ -268,7 +270,7 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
         // Check if any points in nextVs are outside volume boundaries. If so,
         // stop iterating and dump the resulting pointcloud.
         if (std::any_of(begin(nextVs), end(nextVs), [vol](auto v) {
-                return !vol.isInBounds(v);
+                return !vol->isInBounds(v);
             })) {
             std::cout
                 << "Stopping because segmentation is outside volume bounds"
@@ -330,7 +332,7 @@ cv::Vec3d LocalResliceSegmentation::estimate_normal_at_index_(
     const cv::Vec3d currentVoxel = currentCurve(index);
     auto stRadius = static_cast<int>(
         std::ceil(pkg_.getMaterialThickness() / pkg_.getVoxelSize()) / 2);
-    const auto eigenPairs = pkg_.volume().interpolatedEigenPairsAt(
+    const auto eigenPairs = pkg_.volume()->interpolatedEigenPairsAt(
         currentVoxel(0), currentVoxel(1), currentVoxel(2), stRadius);
     const double exp0 = std::log10(eigenPairs[0].first);
     const double exp1 = std::log10(eigenPairs[1].first);
@@ -366,7 +368,7 @@ cv::Mat LocalResliceSegmentation::draw_particle_on_slice_(
     int particleIndex,
     bool showSpline) const
 {
-    auto pkgSlice = pkg_.volume().getSliceDataCopy(sliceIndex);
+    auto pkgSlice = pkg_.volume()->getSliceDataCopy(sliceIndex);
     pkgSlice.convertTo(
         pkgSlice, CV_8UC3, 1.0 / std::numeric_limits<uint8_t>::max());
     cv::cvtColor(pkgSlice, pkgSlice, cv::COLOR_GRAY2BGR);

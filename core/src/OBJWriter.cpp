@@ -1,6 +1,3 @@
-//
-// Created by Media Team on 6/24/15.
-//
 #include <string>
 
 #include <opencv2/imgcodecs.hpp>
@@ -47,19 +44,19 @@ int OBJWriter::write()
     }
 
     // Write the OBJ
-    writeOBJ();
+    write_obj_();
 
     // Write texture stuff if we have a UV coordinate map
     if (!textCoords_.empty()) {
-        writeMTL();
-        writeTexture();
+        write_mtl_();
+        write_texture_();
     }
 
     return EXIT_SUCCESS;
 }
 
 // Write the OBJ file to disk
-int OBJWriter::writeOBJ()
+int OBJWriter::write_obj_()
 {
     outputMesh_.open(outputPath_.string());
     if (!outputMesh_.is_open()) {
@@ -82,7 +79,7 @@ int OBJWriter::writeOBJ()
 
 // Write the MTL file to disk
 // See http://paulbourke.net/dataformats/mtl/ for more options
-int OBJWriter::writeMTL()
+int OBJWriter::write_mtl_()
 {
     fs::path p = outputPath_;
     p.replace_extension("mtl");
@@ -116,7 +113,7 @@ int OBJWriter::writeMTL()
 }
 
 // Write the PNG texture file to disk
-int OBJWriter::writeTexture()
+int OBJWriter::write_texture_()
 {
     if (texture_.empty()) {
         return EXIT_FAILURE;
@@ -192,7 +189,7 @@ int OBJWriter::write_texture_coordinates_()
 
     // Ensure coordinates are relative to bottom left
     auto startingOrigin = textCoords_.origin();
-    textCoords_.origin(VC_ORIGIN_BOTTOM_LEFT);
+    textCoords_.setOrigin(VC_ORIGIN_BOTTOM_LEFT);
 
     // Write mtl path, relative to OBJ
     auto mtlpath = outputPath_.stem();
@@ -215,7 +212,7 @@ int OBJWriter::write_texture_coordinates_()
     }
 
     // Restore the starting origin
-    textCoords_.origin(startingOrigin);
+    textCoords_.setOrigin(startingOrigin);
     return EXIT_SUCCESS;
 }
 

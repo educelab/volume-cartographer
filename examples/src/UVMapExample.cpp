@@ -30,7 +30,7 @@ int main()
     std::cout << std::endl;
 
     // Retrieve mappings relative to the bottom-left
-    uvMap.origin(VC_ORIGIN_BOTTOM_LEFT);
+    uvMap.setOrigin(VC_ORIGIN_BOTTOM_LEFT);
     pointID = 0;
     for (auto it = storage.begin(); it != storage.end(); ++it) {
         std::cout << "Point: " << pointID << " | " << uvMap.get(pointID)

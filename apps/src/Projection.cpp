@@ -50,11 +50,11 @@ int main(int argc, char* argv[])
          point != mesh->GetPoints()->End(); ++point) {
 
         // skip null points
-        if (point->Value()[INDEX_Z] == -1)
+        if (point->Value()[2] == -1)
             continue;
 
         // get the z-index for this point (floored int)
-        int this_z = static_cast<int>(point->Value()[INDEX_Z]);
+        int this_z = static_cast<int>(point->Value()[2]);
 
         // add point id to the vector for this z-index
         // make a vector for this z-index if it doesn't exist in the map
@@ -69,12 +69,13 @@ int main(int argc, char* argv[])
     }
 
     // Iterate over each z-index and generate a projected slice image
+    auto volume = volpkg.volume();
     for (auto z_id = z_map.begin(); z_id != z_map.end(); ++z_id) {
         std::cout << "Projecting slice " + std::to_string(z_id->first) + "\r"
                   << std::flush;
         // get the slice image and cvt to CV_8UC3
         // .clone() to make sure we don't modify the cached version
-        cv::Mat slice = volpkg.volume().getSliceData(z_id->first).clone();
+        cv::Mat slice = volume->getSliceDataCopy(z_id->first);
         slice.convertTo(slice, CV_8U, 255.0 / 65535.0);
         cv::cvtColor(slice, slice, cv::COLOR_GRAY2BGR);
 
@@ -84,8 +85,8 @@ int main(int argc, char* argv[])
 
             ITKPoint point = mesh->GetPoint(*p_id);
             cv::Point pos;
-            pos.x = cvRound(point[INDEX_X]);
-            pos.y = cvRound(point[INDEX_Y]);
+            pos.x = cvRound(point[0]);
+            pos.y = cvRound(point[1]);
 
             cv::circle(slice, pos, 1, RED, -1);
         }

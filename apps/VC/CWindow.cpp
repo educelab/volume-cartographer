@@ -290,7 +290,7 @@ bool CWindow::InitializeVolumePkg(const std::string& nVpkgPath)
     deleteNULL(fVpkg);
 
     try {
-        fVpkg = new VolumePkg(nVpkgPath);
+        fVpkg = new volcart::VolumePkg(nVpkgPath);
     } catch (...) {
         std::cerr << "VC::Error: Volume package failed to initialize."
                   << std::endl;
@@ -468,8 +468,9 @@ void CWindow::SplitCloud(void)
     // Make sure the sizes match now
     if (fStartingPath.size() != fMasterCloud.width()) {
         QMessageBox::information(
-            this, tr("Error"), tr("Starting chain length has null points. "
-                                  "Try segmenting from an earlier slice."));
+            this, tr("Error"),
+            tr("Starting chain length has null points. Try segmenting from an "
+               "earlier slice."));
         CleanupSegmentation();
         return;
     }
@@ -639,7 +640,7 @@ void CWindow::OpenSlice(void)
 {
     cv::Mat aImgMat;
     if (fVpkg != nullptr) {
-        aImgMat = fVpkg->volume().getSliceDataCopy(fPathOnSliceIndex);
+        aImgMat = fVpkg->volume()->getSliceDataCopy(fPathOnSliceIndex);
         aImgMat.convertTo(aImgMat, CV_8UC3, 1.0 / 256.0);
         cvtColor(aImgMat, aImgMat, cv::COLOR_GRAY2BGR);
     } else
@@ -719,17 +720,12 @@ void CWindow::OpenVolume(void)
 
     // Check version number
     if (fVpkg->getVersion() != VOLPKG_SUPPORTED_VERSION) {
-        std::cerr << "VC::Error: Volume package is version "
-                  << fVpkg->getVersion()
-                  << " but this program requires a version "
-                  << std::to_string(VOLPKG_SUPPORTED_VERSION) << "."
-                  << std::endl;
-        QMessageBox::warning(
-            this, tr("ERROR"), "Volume package is version " +
-                                   QString::number(fVpkg->getVersion()) +
-                                   " but this program requires version " +
-                                   QString::number(VOLPKG_SUPPORTED_VERSION) +
-                                   ".");
+        std::string msg = "VC::Error: Volume package is version " +
+                          std::to_string(fVpkg->getVersion()) +
+                          " but this program requires a version " +
+                          std::to_string(VOLPKG_SUPPORTED_VERSION) + ".";
+        std::cerr << msg << std::endl;
+        QMessageBox::warning(this, tr("ERROR"), QString(msg.c_str()));
         fVpkg = nullptr;
         return;
     }

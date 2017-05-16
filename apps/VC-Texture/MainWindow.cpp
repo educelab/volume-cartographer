@@ -15,8 +15,8 @@
 #include "MainWindow.hpp"
 #include "vc/core/io/OBJWriter.hpp"
 
-// Volpkg version required byt this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 3;
+// Volpkg version required by this app
+static constexpr int VOLPKG_SUPPORTED_VERSION = 4;
 
 namespace fs = boost::filesystem;
 
