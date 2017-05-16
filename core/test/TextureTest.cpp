@@ -8,6 +8,7 @@
 #include <opencv2/imgcodecs.hpp>
 
 #include "vc/core/types/Texture.hpp"
+#include "vc/core/util/DateTime.hpp"
 
 /************************************************************************************
  *                                                                                  *

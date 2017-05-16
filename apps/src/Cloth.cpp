@@ -10,7 +10,7 @@
 
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/types/VolumePkg.hpp"
-#include "vc/core/vc_defines.hpp"
+#include "vc/core/util/DateTime.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
 #include "vc/texturing/ClothModelingUVMapping.hpp"
 #include "vc/texturing/CompositeTexture.hpp"

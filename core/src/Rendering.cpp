@@ -1,5 +1,7 @@
 #include "vc/core/types/Rendering.hpp"
 
+#include "vc/core/util/DateTime.hpp"
+
 using namespace volcart;
 
 ///// Constructors/Destructors /////

@@ -173,28 +173,4 @@ using Origin = cv::Vec2d;
 constexpr static double TEXTURE_NO_VALUE = -1.0;
 /**@}*/
 
-/**@{*/
-/** @brief Volume Package Read Only Error */
-inline int ErrReadonly()
-{
-    std::cerr << "ERROR: VolPkg is set to read-only. Cannot write to file"
-              << std::endl;
-    return EXIT_FAILURE;
-}
-
-/** @brief Returns a string representation of the current date and time
- *
- * Format: YYYYMMDDHMS
- */
-inline std::string DateTime()
-{
-    time_t now = std::time(nullptr);
-    struct tm tstruct {
-    };
-    std::array<char, 80> buf{};
-    tstruct = *std::localtime(&now);
-    std::strftime(buf.data(), buf.size(), "%Y%m%d%H%M%S", &tstruct);
-    return std::string(buf.data());
-}
-/**@}*/
 }  // namespace volcart

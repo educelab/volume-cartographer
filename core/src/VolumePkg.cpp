@@ -8,6 +8,7 @@
 #include "vc/core/io/PLYWriter.hpp"
 #include "vc/core/io/PointSetIO.hpp"
 #include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/util/DateTime.hpp"
 
 using namespace volcart;
 
