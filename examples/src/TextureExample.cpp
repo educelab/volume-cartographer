@@ -7,7 +7,6 @@
 #include "vc/core/io/PLYWriter.hpp"
 #include "vc/core/types/Texture.hpp"
 #include "vc/core/types/VolumePkg.hpp"
-#include "vc/core/vc_defines.hpp"
 #include "vc/texturing/CompositeTexture.hpp"
 #include "vc/texturing/PPMGenerator.hpp"
 

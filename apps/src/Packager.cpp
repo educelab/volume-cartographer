@@ -11,7 +11,6 @@
 
 #include "apps/SliceImage.hpp"
 #include "vc/core/types/VolumePkg.hpp"
-#include "vc/core/vc_defines.hpp"
 
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;
@@ -117,7 +116,7 @@ int main(int argc, char* argv[])
     }
 
     // Generate an empty volpkg and save it to disk
-    vc::VolumePkg volpkg(volpkgPath, VOLPKG_VERSION_LATEST);
+    vc::VolumePkg volpkg(volpkgPath, vc::VOLPKG_VERSION_LATEST);
     volpkg.setMetadata("name", volpkgPath.stem().string());
     volpkg.setMetadata("materialthickness", thickness);
     volpkg.saveMetadata();

@@ -10,7 +10,6 @@
 #include "vc/core/shapes/Cube.hpp"
 #include "vc/core/shapes/Plane.hpp"
 #include "vc/core/shapes/Sphere.hpp"
-#include "vc/core/vc_defines.hpp"
 #include "vc/meshing/CalculateNormals.hpp"
 #include "vc/meshing/QuadricEdgeCollapseDecimation.hpp"
 

@@ -1,10 +1,12 @@
 #pragma once
 
 #include <fstream>
+#include <map>
 
 #include <boost/filesystem/path.hpp>
 
-#include "vc/core/vc_defines.hpp"
+#include "vc/core/types/ITKMesh.hpp"
+#include "vc/core/types/SimpleMesh.hpp"
 
 namespace volcart
 {
@@ -60,9 +62,9 @@ private:
     /** Line currently being parsed */
     std::string line_;
     /** Temporary face list */
-    std::vector<volcart::Cell> faceList_;
+    std::vector<SimpleMesh::Cell> faceList_;
     /** Temporary vertex list */
-    std::vector<volcart::Vertex> pointList_;
+    std::vector<SimpleMesh::Vertex> pointList_;
     /** List of elements parsed from the header */
     std::vector<std::string> elementsList_;
     /** Number of vertices expected in the parsed mesh */

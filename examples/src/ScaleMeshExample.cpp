@@ -9,14 +9,12 @@
  *          v-c/testing/meshing.
  */
 
-#include <itkMeshFileWriter.h>
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/shapes/Arch.hpp"
 #include "vc/core/shapes/Cone.hpp"
 #include "vc/core/shapes/Cube.hpp"
 #include "vc/core/shapes/Plane.hpp"
 #include "vc/core/shapes/Sphere.hpp"
-#include "vc/core/vc_defines.hpp"
 #include "vc/meshing/ScaleMesh.hpp"
 
 int main()

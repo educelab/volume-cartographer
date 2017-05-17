@@ -8,7 +8,6 @@
 #include <boost/test/unit_test_log.hpp>
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/shapes/Plane.hpp"
-#include "vc/core/vc_defines.hpp"
 
 /************************************************************************************
  *                                                                                  *

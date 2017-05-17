@@ -21,6 +21,7 @@ set(type_srcs
     src/Rendering.cpp
     src/Reslice.cpp
     src/Texture.cpp
+    src/UVMap.cpp
     src/Volume.cpp
     src/VolumePkg.cpp
 )

@@ -7,6 +7,7 @@
 #include <boost/test/unit_test.hpp>
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/shapes/Plane.hpp"
+#include "vc/core/types/SimpleMesh.hpp"
 #include "vc/testing/ParsingHelpers.hpp"
 #include "vc/testing/TestingUtils.hpp"
 
@@ -76,8 +77,8 @@ struct WriteMeshUsingOBJWriterFixture {
 
     volcart::shapes::Plane _Plane;
     ITKMesh::Pointer _in_PlaneITKMesh;
-    std::vector<Vertex> _SavedPlanePoints;
-    std::vector<Cell> _SavedPlaneCells;
+    std::vector<SimpleMesh::Vertex> _SavedPlanePoints;
+    std::vector<SimpleMesh::Cell> _SavedPlaneCells;
 };
 
 BOOST_FIXTURE_TEST_CASE(

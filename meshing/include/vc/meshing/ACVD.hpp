@@ -6,8 +6,6 @@
 
 #include <vtkPolyData.h>
 
-#include "vc/core/vc_defines.hpp"
-
 namespace volcart
 {
 namespace meshing

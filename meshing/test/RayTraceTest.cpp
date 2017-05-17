@@ -12,7 +12,7 @@
 #include "vc/core/shapes/Cube.hpp"
 #include "vc/core/shapes/Plane.hpp"
 #include "vc/core/shapes/Sphere.hpp"
-#include "vc/core/vc_defines.hpp"
+#include "vc/core/types/SimpleMesh.hpp"
 #include "vc/meshing/RayTrace.hpp"
 #include "vc/testing/ParsingHelpers.hpp"
 #include "vc/testing/TestingUtils.hpp"
@@ -143,8 +143,8 @@ struct PlaneRayTraceFixture {
     std::ofstream _SavedPlaneMeshFile;
 
     // Vectors that will hold points and cells
-    std::vector<Vertex> _SavedPoints, _CurrentPoints;
-    std::vector<Cell> _SavedCells, _CurrentCells;
+    std::vector<SimpleMesh::Vertex> _SavedPoints, _CurrentPoints;
+    std::vector<SimpleMesh::Cell> _SavedCells, _CurrentCells;
 };
 
 struct CubeRayTraceFixture {
@@ -239,8 +239,8 @@ struct CubeRayTraceFixture {
     std::ofstream _SavedCubeMeshFile;
 
     // Vectors that will hold points and cells
-    std::vector<Vertex> _SavedPoints, _CurrentPoints;
-    std::vector<Cell> _SavedCells, _CurrentCells;
+    std::vector<SimpleMesh::Vertex> _SavedPoints, _CurrentPoints;
+    std::vector<SimpleMesh::Cell> _SavedCells, _CurrentCells;
 };
 
 struct ArchRayTraceFixture {
@@ -335,8 +335,8 @@ struct ArchRayTraceFixture {
     std::ofstream _SavedArchMeshFile;
 
     // Vectors that will hold points and cells
-    std::vector<Vertex> _SavedPoints, _CurrentPoints;
-    std::vector<Cell> _SavedCells, _CurrentCells;
+    std::vector<SimpleMesh::Vertex> _SavedPoints, _CurrentPoints;
+    std::vector<SimpleMesh::Cell> _SavedCells, _CurrentCells;
 };
 
 struct SphereRayTraceFixture {
@@ -430,8 +430,8 @@ struct SphereRayTraceFixture {
     std::ofstream _SavedSphereMeshFile;
 
     // Vectors that will hold points and cells
-    std::vector<Vertex> _SavedPoints, _CurrentPoints;
-    std::vector<Cell> _SavedCells, _CurrentCells;
+    std::vector<SimpleMesh::Vertex> _SavedPoints, _CurrentPoints;
+    std::vector<SimpleMesh::Cell> _SavedCells, _CurrentCells;
 };
 
 struct ConeRayTraceFixture {
@@ -527,8 +527,8 @@ struct ConeRayTraceFixture {
     std::ofstream _SavedConeMeshFile;
 
     // Vectors that will hold points and cells
-    std::vector<Vertex> _SavedPoints, _CurrentPoints;
-    std::vector<Cell> _SavedCells, _CurrentCells;
+    std::vector<SimpleMesh::Vertex> _SavedPoints, _CurrentPoints;
+    std::vector<SimpleMesh::Cell> _SavedCells, _CurrentCells;
 };
 
 BOOST_FIXTURE_TEST_CASE(SavedPlaneRayTraceComparison, PlaneRayTraceFixture)

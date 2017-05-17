@@ -21,8 +21,8 @@ namespace testing
 
 void ParsingHelpers::ParsePLYFile(
     const fs::path& filepath,
-    std::vector<Vertex>& verts,
-    std::vector<Cell>& faces)
+    std::vector<SimpleMesh::Vertex>& verts,
+    std::vector<SimpleMesh::Cell>& faces)
 {
 
     std::ifstream inputMesh(filepath.string());
@@ -41,8 +41,8 @@ void ParsingHelpers::ParsePLYFile(
     std::vector<std::string> plyLine;
 
     //   VC types to put store appropriate values read in from file
-    Vertex plyVertex;
-    Cell plyCell;
+    SimpleMesh::Vertex plyVertex;
+    SimpleMesh::Cell plyCell;
 
     int numVertices{}, numFaces{}, vertsPerFace{};
     std::vector<std::string> typeOfPointInformation;
@@ -215,8 +215,8 @@ void ParsingHelpers::ParsePLYFile(
  */
 void ParsingHelpers::ParseOBJFile(
     const fs::path& filepath,
-    std::vector<Vertex>& points,
-    std::vector<Cell>& cells)
+    std::vector<SimpleMesh::Vertex>& points,
+    std::vector<SimpleMesh::Cell>& cells)
 {
 
     std::ifstream inputMesh(filepath.string());
@@ -235,8 +235,8 @@ void ParsingHelpers::ParseOBJFile(
     std::vector<std::string> objLine;
 
     //   VC types to put store appropriate values read in from file
-    Vertex objVertex;
-    Cell objCell;
+    SimpleMesh::Vertex objVertex;
+    SimpleMesh::Cell objCell;
 
     int normalCounter = 0;
     std::vector<std::string> typeOfPointInformation;

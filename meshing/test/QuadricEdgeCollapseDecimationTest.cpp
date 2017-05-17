@@ -11,7 +11,7 @@
 #include "vc/core/shapes/Cube.hpp"
 #include "vc/core/shapes/Plane.hpp"
 #include "vc/core/shapes/Sphere.hpp"
-#include "vc/core/vc_defines.hpp"
+#include "vc/core/types/SimpleMesh.hpp"
 #include "vc/meshing/CalculateNormals.hpp"
 #include "vc/meshing/QuadricEdgeCollapseDecimation.hpp"
 #include "vc/testing/ParsingHelpers.hpp"
@@ -61,8 +61,8 @@ struct QuadricPlaneFixture {
     }
     volcart::shapes::Plane _Plane;
     ITKMesh::Pointer _in_Mesh, _out_Mesh;
-    std::vector<Vertex> _SavedPoints;
-    std::vector<Cell> _SavedCells;
+    std::vector<SimpleMesh::Vertex> _SavedPoints;
+    std::vector<SimpleMesh::Cell> _SavedCells;
 };
 
 struct QuadricArchFixture {
@@ -75,8 +75,8 @@ struct QuadricArchFixture {
     }
     volcart::shapes::Arch _Arch;
     ITKMesh::Pointer _in_Mesh, _out_Mesh;
-    std::vector<Vertex> _SavedPoints;
-    std::vector<Cell> _SavedCells;
+    std::vector<SimpleMesh::Vertex> _SavedPoints;
+    std::vector<SimpleMesh::Cell> _SavedCells;
 };
 
 struct QuadricConeFixture {
@@ -89,8 +89,8 @@ struct QuadricConeFixture {
     }
     volcart::shapes::Cone _Cone;
     ITKMesh::Pointer _in_Mesh, _out_Mesh;
-    std::vector<Vertex> _SavedPoints;
-    std::vector<Cell> _SavedCells;
+    std::vector<SimpleMesh::Vertex> _SavedPoints;
+    std::vector<SimpleMesh::Cell> _SavedCells;
 };
 
 struct QuadricCubeFixture {
@@ -103,8 +103,8 @@ struct QuadricCubeFixture {
     }
     volcart::shapes::Cube _Cube;
     ITKMesh::Pointer _in_Mesh, _out_Mesh;
-    std::vector<Vertex> _SavedPoints;
-    std::vector<Cell> _SavedCells;
+    std::vector<SimpleMesh::Vertex> _SavedPoints;
+    std::vector<SimpleMesh::Cell> _SavedCells;
 };
 
 struct QuadricSphereFixture {
@@ -117,8 +117,8 @@ struct QuadricSphereFixture {
     }
     volcart::shapes::Sphere _Sphere;
     ITKMesh::Pointer _in_Mesh, _out_Mesh;
-    std::vector<Vertex> _SavedPoints;
-    std::vector<Cell> _SavedCells;
+    std::vector<SimpleMesh::Vertex> _SavedPoints;
+    std::vector<SimpleMesh::Cell> _SavedCells;
 };
 
 // Tests by Shape

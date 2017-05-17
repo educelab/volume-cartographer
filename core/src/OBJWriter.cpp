@@ -189,7 +189,7 @@ int OBJWriter::write_texture_coordinates_()
 
     // Ensure coordinates are relative to bottom left
     auto startingOrigin = textCoords_.origin();
-    textCoords_.setOrigin(VC_ORIGIN_BOTTOM_LEFT);
+    textCoords_.setOrigin(UVMap::Origin::BottomLeft);
 
     // Write mtl path, relative to OBJ
     auto mtlpath = outputPath_.stem();

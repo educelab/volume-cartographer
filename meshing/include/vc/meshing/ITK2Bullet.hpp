@@ -5,7 +5,7 @@
 #include <BulletSoftBody/btSoftBody.h>
 #include <BulletSoftBody/btSoftRigidDynamicsWorld.h>
 
-#include "vc/core/vc_defines.hpp"
+#include "vc/core/types/ITKMesh.hpp"
 
 namespace volcart
 {
@@ -26,8 +26,8 @@ class ITK2Bullet
 {
 public:
     /**
-    * @param worldInfo Soft Body world configuration
-    */
+     * @param worldInfo Soft Body world configuration
+     */
     ITK2Bullet(
         ITKMesh::Pointer input,
         btSoftBodyWorldInfo& worldInfo,

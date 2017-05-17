@@ -6,6 +6,8 @@
 #include <iostream>
 #include <vector>
 
+#include <opencv2/core.hpp>
+
 #include "vc/meshing/DeepCopy.hpp"
 #include "vc/meshing/SmoothNormals.hpp"
 

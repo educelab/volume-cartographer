@@ -9,7 +9,7 @@
 #include "vc/core/shapes/Cone.hpp"
 #include "vc/core/shapes/Plane.hpp"
 #include "vc/core/shapes/Sphere.hpp"
-#include "vc/core/vc_defines.hpp"
+#include "vc/core/types/SimpleMesh.hpp"
 #include "vc/testing/ParsingHelpers.hpp"
 #include "vc/testing/TestingUtils.hpp"
 
@@ -43,8 +43,8 @@ struct ReadITKArchMeshFixture {
     volcart::ITKMesh::Pointer _read_ArchMesh;
     volcart::shapes::Arch _Arch;
 
-    std::vector<volcart::Vertex> _SavedArchPoints;
-    std::vector<volcart::Cell> _SavedArchCells;
+    std::vector<volcart::SimpleMesh::Vertex> _SavedArchPoints;
+    std::vector<volcart::SimpleMesh::Cell> _SavedArchCells;
 };
 
 struct ReadITKConeMeshFixture {

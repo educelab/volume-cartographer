@@ -5,10 +5,11 @@
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include "vc/core/vc_defines.hpp"
-
 namespace volcart
 {
+/** Null/Undefined UV Mapping */
+const static cv::Vec2d NULL_MAPPING{-1, -1};
+
 /**
  * @class UVMap
  * @author Seth Parker
@@ -43,9 +44,17 @@ namespace volcart
 class UVMap
 {
 public:
+    /** Origin corner position enumeration */
+    enum class Origin { TopLeft, TopRight, BottomLeft, BottomRight };
+
+    /** Aspect ratio structure */
+    struct Ratio {
+        double width{1}, height{1}, aspect{1};
+    };
+
     /**@{*/
     /** @brief Construct and set origin */
-    explicit UVMap(const Origin& o = VC_ORIGIN_TOP_LEFT) : origin_{o} {}
+    explicit UVMap(Origin o = Origin::TopLeft) : origin_{o} {}
     /**@}*/
 
     /**@{*/
@@ -74,45 +83,28 @@ public:
      *
      * Point is inserted relative to the provided origin.
      */
-    void set(size_t id, const cv::Vec2d& uv, const Origin& o)
-    {
-        // transform to be relative to top-left
-        cv::Vec2d transformed;
-        cv::absdiff(uv, o, transformed);
-        map_[id] = transformed;
-    }
+    void set(size_t id, const cv::Vec2d& uv, const Origin& o);
 
     /**
      * @copybrief set()
      *
      * Point is inserted relative to the origin returned by origin().
      */
-    void set(size_t id, const cv::Vec2d& uv) { set(id, uv, origin_); }
+    void set(size_t id, const cv::Vec2d& uv);
 
     /**
      * @brief Get the UV value for a point by ID
      *
      * Point is retrieved relative to the provided origin.
      */
-    cv::Vec2d get(size_t id, const Origin& o)
-    {
-        auto it = map_.find(id);
-        if (it != map_.end()) {
-            // transform to be relative to the provided origin
-            cv::Vec2d transformed;
-            cv::absdiff(it->second, o, transformed);
-            return transformed;
-        } else {
-            return VC_UVMAP_NULL_MAPPING;
-        }
-    }
+    cv::Vec2d get(size_t id, const Origin& o);
 
     /**
      * @copybrief get()
      *
      * Point is retrieved relative to the origin returned by origin().
      */
-    cv::Vec2d get(size_t id) { return get(id, origin_); }
+    cv::Vec2d get(size_t id);
     /**@}*/
 
     /**@{*/
@@ -162,8 +154,10 @@ private:
     /** UV storage */
     std::unordered_map<size_t, cv::Vec2d> map_;
     /** Origin for set and get functions */
-    cv::Vec2d origin_;
+    Origin origin_;
     /** Aspect ratio */
     Ratio ratio_;
+
+    cv::Vec2d origin_vector_(const Origin& o);
 };
 }

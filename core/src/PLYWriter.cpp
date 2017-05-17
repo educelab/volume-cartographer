@@ -31,7 +31,7 @@ int PLYWriter::write()
 
     // Capture the starting origin and set origin to what PLY reader needs
     auto startingOrigin = texture_.uvMap().origin();
-    texture_.uvMap().setOrigin(VC_ORIGIN_TOP_LEFT);
+    texture_.uvMap().setOrigin(UVMap::Origin::TopLeft);
 
     write_header_();
     write_vertices_();
@@ -112,7 +112,7 @@ int PLYWriter::write_vertices_()
             // Get the intensity for this point from the texture. If it doesn't
             // exist, set to 0.
             double intensity = texture_.intensity(point.Index());
-            if (intensity != TEXTURE_NO_VALUE) {
+            if (intensity != Texture::NO_VALUE) {
                 // map 16bit to 8bit
                 intensity = cvRound(intensity * 255.0 / 65535.0);
             } else {

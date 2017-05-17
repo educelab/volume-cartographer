@@ -8,7 +8,7 @@
 #include <boost/test/unit_test_log.hpp>
 #include "vc/core/io/PLYWriter.hpp"
 #include "vc/core/shapes/Plane.hpp"
-#include "vc/core/vc_defines.hpp"
+#include "vc/core/types/SimpleMesh.hpp"
 #include "vc/testing/ParsingHelpers.hpp"
 #include "vc/testing/TestingUtils.hpp"
 
@@ -100,8 +100,8 @@ struct CreateITKPlaneMeshFixture {
     volcart::shapes::Plane _Plane;
 
     // vectors to hold vertices and faces saved in PlyWriter_Plane.ply
-    std::vector<Vertex> _SavedPlanePoints;
-    std::vector<Cell> _SavedPlaneCells;
+    std::vector<SimpleMesh::Vertex> _SavedPlanePoints;
+    std::vector<SimpleMesh::Cell> _SavedPlaneCells;
 };
 
 // Test for checking successful write

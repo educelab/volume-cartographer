@@ -111,7 +111,7 @@ void PLYReader::parse_header_()
 void PLYReader::read_points_()
 {
     for (int i = 0; i < numVertices_; i++) {
-        volcart::Vertex curPoint;
+        SimpleMesh::Vertex curPoint;
         std::vector<std::string> curLine;
         boost::split(
             curLine, line_, boost::is_any_of(" "), boost::token_compress_on);
@@ -137,7 +137,7 @@ void PLYReader::read_faces_()
 {
     for (int i = 0; i < numFaces_; i++) {
         std::vector<std::string> curFace;
-        volcart::Cell face;
+        SimpleMesh::Cell face;
         boost::split(
             curFace, line_, boost::is_any_of(" "), boost::token_compress_on);
         if (hasLeadingChar_) {
@@ -146,7 +146,7 @@ void PLYReader::read_faces_()
                 auto msg = "Error: Not a Triangular Mesh";
                 throw volcart::IOException(msg);
             } else {
-                face = Cell(
+                face = SimpleMesh::Cell(
                     std::stoul(curFace[1]), std::stoul(curFace[2]),
                     std::stoul(curFace[3]));
                 faceList_.push_back(face);
@@ -156,7 +156,7 @@ void PLYReader::read_faces_()
                 auto msg = "Error: Not a Triangular Mesh";
                 throw volcart::IOException(msg);
             } else {
-                face = Cell(
+                face = SimpleMesh::Cell(
                     std::stoul(curFace[1]), std::stoul(curFace[2]),
                     std::stoul(curFace[3]));
                 faceList_.push_back(face);

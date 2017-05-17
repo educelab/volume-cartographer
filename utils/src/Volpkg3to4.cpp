@@ -6,7 +6,7 @@
 
 #include "vc/core/types/Metadata.hpp"
 #include "vc/core/types/Volume.hpp"
-#include "vc/core/vc_defines.hpp"
+#include "vc/core/util/DateTime.hpp"
 
 namespace fs = boost::filesystem;
 namespace vc = volcart;

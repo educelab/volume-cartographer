@@ -13,7 +13,6 @@
 
 #include "vc/core/io/PLYReader.hpp"
 #include "vc/core/types/VolumePkg.hpp"
-#include "vc/core/vc_defines.hpp"
 
 #include "GlobalValues.hpp"
 #include "MyThread.hpp"
