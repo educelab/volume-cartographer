@@ -54,7 +54,7 @@ public:
 
     /**@{*/
     /** @brief Construct and set origin */
-    explicit UVMap(const Origin& o = Origin::TopLeft) : origin_{o} {}
+    explicit UVMap(Origin o = Origin::TopLeft) : origin_{o} {}
     /**@}*/
 
     /**@{*/
