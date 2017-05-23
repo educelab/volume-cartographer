@@ -91,7 +91,8 @@ std::vector<double> IntegralTexture::setup_weights_()
     }
 
     // Build a weight matrix
-    std::vector<double> weights(size);
+    std::vector<double> weights;
+    weights.reserve(size);
     for (size_t i = 0; i < size; i++, weight += weightStep) {
         weights.push_back(weight);
     }

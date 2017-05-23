@@ -98,10 +98,6 @@ void PPMGenerator::generate_ppm_()
     size_t pixelsNotInCell = 0;
     for (size_t y = 0; y < height_; ++y) {
         for (size_t x = 0; x < width_; ++x) {
-            progress_ = (x + 1.0 + (width_ * y)) * 100.0 / (width_ * height_);
-            std::cerr << "volcart::texturing::PPMGenerator: "
-                      << std::to_string(progress_) << "%\r" << std::flush;
-
             // This pixel's uv coordinate
             cv::Vec3d uv{0, 0, 0};
             uv[0] = x / (width_ - 1.0);
@@ -165,10 +161,6 @@ void PPMGenerator::generate_ppm_()
     // Finish setting up the output
     ppm_.setUVMap(uvMap_);
     ppm_.setMask(mask);
-
-    std::cerr << std::endl;
-    std::cerr << "volcart::texturing::PPMGenerator:: Pixels not in cell: "
-              << pixelsNotInCell << std::endl;
 }
 
 // Find barycentric coordinates of point in triangle

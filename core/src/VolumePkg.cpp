@@ -104,11 +104,11 @@ double VolumePkg::getMaterialThickness() const
 }
 
 // VOLUME FUNCTIONS //
-std::vector<Volume::Identifier> VolumePkg::volumes() const
+std::vector<Volume::Description> VolumePkg::volumes() const
 {
-    std::vector<Volume::Identifier> ids;
+    std::vector<Volume::Description> ids;
     for (auto& v : volumes_) {
-        ids.emplace_back(v.first);
+        ids.emplace_back(v.first, v.second->name());
     }
     return ids;
 }
@@ -133,7 +133,7 @@ Volume::Pointer VolumePkg::newVolume(std::string name)
 
     // Make the volume
     auto r = volumes_.emplace(uuid, Volume::New(volDir, uuid, name));
-    if (r.second) {
+    if (!r.second) {
         auto msg = "Volume already exists with id " + uuid;
         throw std::runtime_error(msg);
     }

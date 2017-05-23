@@ -39,6 +39,14 @@ static constexpr uint16_t CLEANER_MIN_REQ_POINTS = 100;
 
 enum class Method { Composite = 0, Intersection, Integral };
 
+template <typename T1, typename T2>
+void PrintPairList(const std::vector<std::pair<T1, T2>>& list, std::ostream& s)
+{
+    for (auto& i : list) {
+        s << "\t" << i.first << ": " << i.second << std::endl;
+    }
+}
+
 int main(int argc, char* argv[])
 {
     ///// Parse the command line options /////
@@ -53,6 +61,8 @@ int main(int argc, char* argv[])
                 "  0 = Composite\n"
                 "  1 = Intersection\n"
                 "  2 = Integral")
+        ("volume", po::value<std::string>(),
+            "Volume to use for texturing. Default: First volume.")
         ("output-file,o", po::value<std::string>(),
             "Output file path. If not specified, the file will be saved to the "
             "volume package.")
@@ -89,8 +99,12 @@ int main(int argc, char* argv[])
                 "  1 = Favor the - normal direction\n"
                 "  2 = No weighting");
 
+    po::options_description vpkgOptions("VolumePkg Options");
+    vpkgOptions.add_options()
+            ("list-vols","List the Volumes");
+
     po::options_description all("Usage");
-    all.add(required).add(filterOptions).add(compositeOptions).add(integralOptions);
+    all.add(required).add(filterOptions).add(compositeOptions).add(integralOptions).add(vpkgOptions);
     // clang-format on
 
     // Parse the cmd line
@@ -140,6 +154,14 @@ int main(int argc, char* argv[])
     }
     double cacheBytes = 0.75 * SystemMemorySize();
     vpkg.volume()->setCacheMemoryInBytes(static_cast<size_t>(cacheBytes));
+
+    // Check the list options first
+    if (parsed.count("list-vols")) {
+        std::cout << "Volumes: " << std::endl;
+        PrintPairList(vpkg.volumes(), std::cout);
+        std::cout << std::endl;
+        return EXIT_SUCCESS;
+    }
 
     ///// Get some post-vpkg loading command line arguments /////
     // Get the texturing radius. If not specified, default to a radius
@@ -216,12 +238,20 @@ int main(int argc, char* argv[])
     ppmGen.setDimensions(height, width);
     auto ppm = ppmGen.compute();
 
+    ///// Load the Volume /////
+    vc::Volume::Pointer volume;
+    if (parsed.count("volume")) {
+        volume = vpkg.volume();
+    } else {
+        volume = vpkg.volume(parsed["volume"].as<std::string>());
+    }
+
     ///// Generate texture /////
     volcart::Texture texture;
     std::cout << "Generating Texture..." << std::endl;
     if (method == Method::Intersection) {
         vc::texturing::IntersectionTexture textureGen;
-        textureGen.setVolume(vpkg.volume());
+        textureGen.setVolume(volume);
         textureGen.setPerPixelMap(ppm);
         texture = textureGen.compute();
     }
@@ -229,7 +259,7 @@ int main(int argc, char* argv[])
     else if (method == Method::Composite) {
         vc::texturing::CompositeTexture textureGen;
         textureGen.setPerPixelMap(ppm);
-        textureGen.setVolume(vpkg.volume());
+        textureGen.setVolume(volume);
         textureGen.setFilter(filter);
         textureGen.setSamplingRadius(radius);
         textureGen.setSamplingInterval(interval);
@@ -240,7 +270,7 @@ int main(int argc, char* argv[])
     else if (method == Method::Integral) {
         vc::texturing::IntegralTexture textureGen;
         textureGen.setPerPixelMap(ppm);
-        textureGen.setVolume(vpkg.volume());
+        textureGen.setVolume(volume);
         textureGen.setSamplingRadius(radius);
         textureGen.setSamplingInterval(interval);
         textureGen.setSamplingDirection(direction);
