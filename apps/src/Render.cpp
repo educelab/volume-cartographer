@@ -39,14 +39,6 @@ static constexpr uint16_t CLEANER_MIN_REQ_POINTS = 100;
 
 enum class Method { Composite = 0, Intersection, Integral };
 
-template <typename T1, typename T2>
-void PrintPairList(const std::vector<std::pair<T1, T2>>& list, std::ostream& s)
-{
-    for (auto& i : list) {
-        s << "\t" << i.first << ": " << i.second << std::endl;
-    }
-}
-
 int main(int argc, char* argv[])
 {
     ///// Parse the command line options /////
@@ -99,12 +91,8 @@ int main(int argc, char* argv[])
                 "  1 = Favor the - normal direction\n"
                 "  2 = No weighting");
 
-    po::options_description vpkgOptions("VolumePkg Options");
-    vpkgOptions.add_options()
-            ("list-vols","List the Volumes");
-
     po::options_description all("Usage");
-    all.add(required).add(filterOptions).add(compositeOptions).add(integralOptions).add(vpkgOptions);
+    all.add(required).add(filterOptions).add(compositeOptions).add(integralOptions);
     // clang-format on
 
     // Parse the cmd line
@@ -152,16 +140,16 @@ int main(int argc, char* argv[])
                   << VOLPKG_SUPPORTED_VERSION << "." << std::endl;
         return EXIT_FAILURE;
     }
-    double cacheBytes = 0.75 * SystemMemorySize();
-    vpkg.volume()->setCacheMemoryInBytes(static_cast<size_t>(cacheBytes));
 
-    // Check the list options first
-    if (parsed.count("list-vols")) {
-        std::cout << "Volumes: " << std::endl;
-        PrintPairList(vpkg.volumes(), std::cout);
-        std::cout << std::endl;
-        return EXIT_SUCCESS;
+    ///// Load the Volume /////
+    vc::Volume::Pointer volume;
+    if (parsed.count("volume")) {
+        volume = vpkg.volume();
+    } else {
+        volume = vpkg.volume(parsed["volume"].as<std::string>());
     }
+    double cacheBytes = 0.75 * SystemMemorySize();
+    volume->setCacheMemoryInBytes(static_cast<size_t>(cacheBytes));
 
     ///// Get some post-vpkg loading command line arguments /////
     // Get the texturing radius. If not specified, default to a radius
@@ -170,7 +158,7 @@ int main(int argc, char* argv[])
     if (parsed.count("radius")) {
         radius = parsed["radius"].as<double>();
     } else {
-        radius = vpkg.getMaterialThickness() / vpkg.volume()->voxelSize();
+        radius = vpkg.getMaterialThickness() / volume->voxelSize();
     }
 
     auto interval = parsed["interval"].as<double>();
@@ -195,7 +183,7 @@ int main(int argc, char* argv[])
     auto input = reader.getMesh();
 
     // Calculate sampling density
-    auto voxelToMicron = std::pow(vpkg.volume()->voxelSize(), 2);
+    auto voxelToMicron = std::pow(volume->voxelSize(), 2);
     auto area = vc::meshmath::SurfaceArea(input) * voxelToMicron * UM_TO_MM;
     auto vertCount = static_cast<uint16_t>(SAMPLING_DENSITY_FACTOR * area);
     vertCount = (vertCount < CLEANER_MIN_REQ_POINTS) ? CLEANER_MIN_REQ_POINTS
@@ -237,14 +225,6 @@ int main(int argc, char* argv[])
     ppmGen.setUVMap(uvMap);
     ppmGen.setDimensions(height, width);
     auto ppm = ppmGen.compute();
-
-    ///// Load the Volume /////
-    vc::Volume::Pointer volume;
-    if (parsed.count("volume")) {
-        volume = vpkg.volume();
-    } else {
-        volume = vpkg.volume(parsed["volume"].as<std::string>());
-    }
 
     ///// Generate texture /////
     volcart::Texture texture;

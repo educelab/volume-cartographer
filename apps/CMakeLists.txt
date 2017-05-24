@@ -96,6 +96,13 @@ target_link_libraries(vc_projection2
     vtkIOPLY
 )
 
+add_executable(vc_volpkg_explorer src/VolPkgExplorer.cpp)
+target_link_libraries(vc_volpkg_explorer
+    VC::core
+    Boost::program_options
+    Boost::filesystem
+)
+
 ## Cloth Flattening ##
 if (VC_USE_BULLET OR VC_USE_ALL)
     add_executable(vc_cloth src/Cloth.cpp)
@@ -118,6 +125,7 @@ install(
         vc_metaedit
         vc_projection
         vc_projection2
+        vc_volpkg_explorer
     RUNTIME DESTINATION bin
     COMPONENT Programs
 )
