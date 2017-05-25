@@ -122,7 +122,6 @@ install(
         vc_packager
         vc_segment
         vc_render
-        vc_metaedit
         vc_projection
         vc_projection2
         vc_volpkg_explorer
