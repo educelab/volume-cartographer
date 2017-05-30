@@ -16,7 +16,17 @@ namespace fs = boost::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
 
-void AddVolume(vc::VolumePkg& volpkg, fs::path slicesPath);
+enum class Flip { None, Horizontal, Vertical, Both };
+
+struct VolumeInfo {
+    fs::path path;
+    std::string name;
+    double voxelsize;
+    Flip flipOption{Flip::None};
+};
+
+VolumeInfo GetVolumeInfo(fs::path slicesPath);
+void AddVolume(vc::VolumePkg& volpkg, VolumeInfo info);
 
 int main(int argc, char* argv[])
 {
@@ -95,84 +105,96 @@ int main(int argc, char* argv[])
 
     ///// Add Volumes /////
     // Get the input slices dir
-    std::vector<std::string> volumesList;
+    std::vector<std::string> volumesPaths;
     if (parsed.count("slices")) {
-        volumesList = parsed["slices"].as<std::vector<std::string>>();
+        volumesPaths = parsed["slices"].as<std::vector<std::string>>();
     }
 
+    // Get info
+    std::vector<VolumeInfo> volumesList;
+    for (auto& v : volumesPaths) {
+        volumesList.emplace_back(GetVolumeInfo(v));
+    }
+
+    // Add them in sequence
     for (auto& v : volumesList) {
         AddVolume(volpkg, v);
     }
 }
 
-void AddVolume(vc::VolumePkg& volpkg, fs::path slicesPath)
+VolumeInfo GetVolumeInfo(fs::path slicesPath)
 {
-    std::cout << "Adding Volume: " << slicesPath << std::endl;
+    VolumeInfo info;
+    info.path = slicesPath;
+
+    std::cout << "Describing Volume: " << slicesPath << std::endl;
 
     // Volume Name
-    std::string volName;
     std::cout << "Enter a descriptive name for the volume: ";
-    std::getline(std::cin, volName);
+    std::getline(std::cin, info.name);
 
     // get voxel size
     std::string input;
-    double voxelsize;
     do {
         std::cout << "Enter the voxel size of the volume in microns "
                      "(e.g. 13.546): ";
         std::getline(std::cin, input);
-    } while (!boost::conversion::try_lexical_convert(input, voxelsize));
+    } while (!boost::conversion::try_lexical_convert(input, info.voxelsize));
 
     // Flip options
     std::cout << "Flip options: Vertical flip (vf), horizontal flip (hf), "
                  "both, [none] : ";
     std::getline(std::cin, input);
 
-    auto verticalFlip = false;
-    auto horizontalFlip = false;
     if (input == "vf") {
-        verticalFlip = true;
+        info.flipOption = Flip::Vertical;
     } else if (input == "hf") {
-        horizontalFlip = true;
+        info.flipOption = Flip::Horizontal;
     } else if (input == "both") {
-        verticalFlip = horizontalFlip = true;
+        info.flipOption = Flip::Both;
     }
+
+    return info;
+}
+
+void AddVolume(vc::VolumePkg& volpkg, VolumeInfo info)
+{
+    std::cout << "Adding Volume: " << info.path << std::endl;
 
     // Filter the slice path directory by extension and sort the vector of files
     std::cout << "Reading the slice directory..." << std::endl;
     std::vector<volcart::SliceImage> slices;
-    if (fs::exists(slicesPath) && fs::is_directory(slicesPath)) {
-
-        // Directory iterators
-        fs::directory_iterator dir_subfile(slicesPath);
-        fs::directory_iterator dir_end;
-
-        // Filter out subfiles that aren't TIFs
-        // To-Do: #177
-        while (dir_subfile != dir_end) {
-            std::string file_ext(boost::to_upper_copy<std::string>(
-                dir_subfile->path().extension().string()));
-            if (is_regular_file(dir_subfile->path()) &&
-                (file_ext == ".TIF" || file_ext == ".TIFF")) {
-                volcart::SliceImage temp;
-                temp.path = *dir_subfile;
-                slices.push_back(temp);
-            }
-            ++dir_subfile;
-        }
-    } else {
+    if (!fs::exists(info.path) || !fs::is_directory(info.path)) {
         std::cerr
             << "ERROR: Slices directory does not exist/is not a directory."
             << std::endl;
         std::cerr << "Please provide a directory of slice images." << std::endl;
         return;
     }
+
+    // Filter out subfiles that aren't TIFs
+    // To-Do: #177
+    fs::directory_iterator subfile(info.path);
+    fs::directory_iterator dirEnd;
+    while (subfile != dirEnd) {
+        auto ext(subfile->path().extension().string());
+        ext = boost::to_upper_copy<std::string>(ext);
+        if (fs::is_regular_file(subfile->path()) &&
+            (ext == ".TIF" || ext == ".TIFF")) {
+            volcart::SliceImage temp;
+            temp.path = *subfile;
+            slices.push_back(temp);
+        }
+        ++subfile;
+    }
+
     if (slices.empty()) {
         std::cerr << "ERROR: No supported image files found in provided slices "
                      "directory."
                   << std::endl;
         return;
     }
+
     // Sort the Slices by their filenames
     std::sort(slices.begin(), slices.end(), SlicePathLessThan);
     std::cout << "Slice images found: " << slices.size() << std::endl;
@@ -221,11 +243,11 @@ void AddVolume(vc::VolumePkg& volpkg, fs::path slicesPath)
 
     ///// Add data to the volume /////
     // Metadata
-    auto volume = volpkg.newVolume(volName);
+    auto volume = volpkg.newVolume(info.name);
     volume->setNumberOfSlices(slices.size());
     volume->setSliceWidth(slices.front().width());
     volume->setSliceHeight(slices.front().height());
-    volume->setVoxelSize(voxelsize);
+    volume->setVoxelSize(info.voxelsize);
 
     // Scale 8-bit min/max values
     // To-Do: Handle other bit depths
@@ -237,21 +259,33 @@ void AddVolume(vc::VolumePkg& volpkg, fs::path slicesPath)
     volume->setMax(vol_max);
     volume->saveMetadata();  // Save final metadata changes to disk
 
+    // Do we need to flip?
+    auto needsFlip = info.flipOption == Flip::Horizontal ||
+                     info.flipOption == Flip::Vertical ||
+                     info.flipOption == Flip::Both;
+
     counter = 0;
     for (auto& slice : slices) {
         std::cout << "Saving slice image to volume package: " << counter + 1
                   << "/" << slices.size() << "\r" << std::flush;
-        if (slice.needsConvert() || verticalFlip || horizontalFlip) {
+        if (slice.needsConvert() || needsFlip) {
             // Get slice
             auto tmp = slice.conformedImage();
 
             // Apply flips
-            if (verticalFlip && horizontalFlip) {
-                cv::flip(tmp, tmp, -1);
-            } else if (verticalFlip) {
-                cv::flip(tmp, tmp, 0);
-            } else if (horizontalFlip) {
-                cv::flip(tmp, tmp, 1);
+            switch (info.flipOption) {
+                case Flip::Both:
+                    cv::flip(tmp, tmp, -1);
+                    break;
+                case Flip::Vertical:
+                    cv::flip(tmp, tmp, 0);
+                    break;
+                case Flip::Horizontal:
+                    cv::flip(tmp, tmp, 1);
+                    break;
+                case Flip::None:
+                    // Do nothing
+                    break;
             }
 
             // Add to volume
