@@ -141,7 +141,7 @@ public:
     std::vector<Volume::Identifier> volumeIDs() const;
 
     /** @brief Get the list of volumes names */
-    std::vector<Volume::Identifier> volumeNames() const;
+    std::vector<std::string> volumeNames() const;
 
     /**
      * @brief Add a new Volume to the VolumePkg

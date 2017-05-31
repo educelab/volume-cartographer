@@ -113,7 +113,7 @@ std::vector<Volume::Identifier> VolumePkg::volumeIDs() const
     return ids;
 }
 
-std::vector<Volume::Identifier> VolumePkg::volumeNames() const
+std::vector<std::string> VolumePkg::volumeNames() const
 {
     std::vector<Volume::Identifier> names;
     for (auto& v : volumes_) {
