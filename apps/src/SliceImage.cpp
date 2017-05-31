@@ -15,6 +15,13 @@ bool SliceImage::operator==(const SliceImage& b) const
     return (_w == b._w && _h == b._h && _depth == b._depth);
 }
 
+bool SliceImage::operator<(const SliceImage& b) const
+{
+    auto aName = boost::to_lower_copy<std::string>(path.filename().native());
+    auto bName = boost::to_lower_copy<std::string>(b.path.filename().native());
+    return aName < bName;
+}
+
 bool SliceImage::analyze()
 {
     // return if the path is wrong or if this isn't a regular file

@@ -76,13 +76,15 @@ int main(int argc, char* argv[])
     // Get the output volpkg path
     fs::path volpkgPath = parsed["volpkg"].as<std::string>();
 
-    // Check the extension and make sure the pkg doesn't already exist
-    if (volpkgPath.extension().string() != ".volpkg")
+    // Check the extension
+    if (volpkgPath.extension().string() != ".volpkg") {
         volpkgPath.replace_extension(".volpkg");
+    }
+
+    // Make sure the package doesn't already exist
     if (fs::exists(volpkgPath)) {
-        std::cerr << "ERROR: Volume package already exists at path specified."
-                  << std::endl;
-        std::cerr << "This program does not currently allow for modification "
+        std::cerr << "ERROR: Volume package already exists at path specified. "
+                     "This program does not currently allow for modification "
                      "of existing volume packages."
                   << std::endl;
         return EXIT_FAILURE;
@@ -110,13 +112,13 @@ int main(int argc, char* argv[])
         volumesPaths = parsed["slices"].as<std::vector<std::string>>();
     }
 
-    // Get info
+    // Get info from user
     std::vector<VolumeInfo> volumesList;
     for (auto& v : volumesPaths) {
         volumesList.emplace_back(GetVolumeInfo(v));
     }
 
-    // Add them in sequence
+    // Add volumes in sequence
     for (auto& v : volumesList) {
         AddVolume(volpkg, v);
     }
@@ -165,10 +167,9 @@ void AddVolume(vc::VolumePkg& volpkg, VolumeInfo info)
     std::cout << "Reading the slice directory..." << std::endl;
     std::vector<volcart::SliceImage> slices;
     if (!fs::exists(info.path) || !fs::is_directory(info.path)) {
-        std::cerr
-            << "ERROR: Slices directory does not exist/is not a directory."
-            << std::endl;
-        std::cerr << "Please provide a directory of slice images." << std::endl;
+        std::cerr << "ERROR: Provided slice path does not exist/is not a "
+                     "directory. Please provide a directory of slice images."
+                  << std::endl;
         return;
     }
 
@@ -176,18 +177,21 @@ void AddVolume(vc::VolumePkg& volpkg, VolumeInfo info)
     // To-Do: #177
     fs::directory_iterator subfile(info.path);
     fs::directory_iterator dirEnd;
-    while (subfile != dirEnd) {
+    for (; subfile != dirEnd; subfile++) {
+        // Skip if not a regular file
+        if (!fs::is_regular_file(subfile->path())) {
+            continue;
+        }
+
+        // Compare against the file extension
         auto ext(subfile->path().extension().string());
         ext = boost::to_upper_copy<std::string>(ext);
-        if (fs::is_regular_file(subfile->path()) &&
-            (ext == ".TIF" || ext == ".TIFF")) {
-            volcart::SliceImage temp;
-            temp.path = *subfile;
-            slices.push_back(temp);
+        if (ext == ".TIF" || ext == ".TIFF") {
+            slices.emplace_back(*subfile);
         }
-        ++subfile;
     }
 
+    // Return if we didn't find any slices
     if (slices.empty()) {
         std::cerr << "ERROR: No supported image files found in provided slices "
                      "directory."
@@ -196,45 +200,50 @@ void AddVolume(vc::VolumePkg& volpkg, VolumeInfo info)
     }
 
     // Sort the Slices by their filenames
-    std::sort(slices.begin(), slices.end(), SlicePathLessThan);
+    std::sort(slices.begin(), slices.end());
+
+    // Report the number of slices
     std::cout << "Slice images found: " << slices.size() << std::endl;
 
     ///// Analyze the slices /////
-    bool vol_consistent = true;
-    double vol_min{}, vol_max{};
-    uint64_t counter = 1;
-    for (auto slice = slices.begin(); slice != slices.end(); ++slice) {
-        std::cout << "Analyzing slice: " << counter << "/" << slices.size()
+    auto consistent = true;
+    auto volMin = std::numeric_limits<double>::max();
+    auto volMax = std::numeric_limits<double>::lowest();
+    int32_t counter = 1;
+    for (auto& slice : slices) {
+        // Report progress
+        std::cout << "Analyzing slice: " << counter++ << "/" << slices.size()
                   << "\r" << std::flush;
-        if (!slice->analyze())
-            continue;  // skip if we can't analyze
 
-        // Compare all slices to the properties of the first slice
-        if (slice == slices.begin()) {
-            vol_min = slice->min();
-            vol_max = slice->max();
-        } else {
-            // Check for consistency of slices
-            if (*slice != *slices.begin()) {
-                vol_consistent = false;
-                std::cerr << std::endl
-                          << slice->path.filename()
-                          << " does not match the initial slice of the volume."
-                          << std::endl;
-                continue;
-            }
-
-            // Update the volume's min and max
-            if (slice->min() < vol_min)
-                vol_min = slice->min();
-            if (slice->max() > vol_max)
-                vol_max = slice->max();
+        // Skip if we can't analyze
+        if (!slice.analyze()) {
+            continue;
         }
 
-        ++counter;
+        // Compare all slices to the properties of the first slice
+        // Don't quit yet so we can get a list of the problematic files
+        if (slice != *slices.begin()) {
+            consistent = false;
+            std::cerr << std::endl
+                      << slice.path.filename()
+                      << " does not match the initial slice of the volume."
+                      << std::endl;
+            continue;
+        }
+
+        // Update the volume's min and max
+        if (slice.min() < volMin) {
+            volMin = slice.min();
+        }
+
+        if (slice.max() > volMax) {
+            volMax = slice.max();
+        }
     }
     std::cout << std::endl;
-    if (!vol_consistent) {
+
+    // Quit if the volume isn't consistent
+    if (!consistent) {
         std::cerr << "ERROR: Slices in slice directory do not have matching "
                      "properties (width/height/depth)."
                   << std::endl;
@@ -251,23 +260,26 @@ void AddVolume(vc::VolumePkg& volpkg, VolumeInfo info)
 
     // Scale 8-bit min/max values
     // To-Do: Handle other bit depths
-    if (slices.begin()->depth() == 0) {
-        vol_min = vol_min * 65535.00 / 255.00;
-        vol_max = vol_max * 65535.00 / 255.00;
+    if (slices.begin()->depth() == CV_8U) {
+        volMin = volMin * 65535.00 / 255.00;
+        volMax = volMax * 65535.00 / 255.00;
     }
-    volume->setMin(vol_min);
-    volume->setMax(vol_max);
-    volume->saveMetadata();  // Save final metadata changes to disk
+    volume->setMin(volMin);
+    volume->setMax(volMax);
+    volume->saveMetadata();
 
     // Do we need to flip?
     auto needsFlip = info.flipOption == Flip::Horizontal ||
                      info.flipOption == Flip::Vertical ||
                      info.flipOption == Flip::Both;
 
+    // Move the slices into the VolPkg
     counter = 0;
     for (auto& slice : slices) {
         std::cout << "Saving slice image to volume package: " << counter + 1
                   << "/" << slices.size() << "\r" << std::flush;
+
+        // Convert or flip
         if (slice.needsConvert() || needsFlip) {
             // Get slice
             auto tmp = slice.conformedImage();
@@ -290,7 +302,10 @@ void AddVolume(vc::VolumePkg& volpkg, VolumeInfo info)
 
             // Add to volume
             volume->setSliceData(counter, tmp);
-        } else {
+        }
+
+        // Just copy to the volume
+        else {
             fs::copy(slice.path, volume->getSlicePath(counter));
         }
 

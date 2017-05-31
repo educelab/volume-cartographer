@@ -144,9 +144,9 @@ int main(int argc, char* argv[])
     ///// Load the Volume /////
     vc::Volume::Pointer volume;
     if (parsed.count("volume")) {
-        volume = vpkg.volume();
-    } else {
         volume = vpkg.volume(parsed["volume"].as<std::string>());
+    } else {
+        volume = vpkg.volume();
     }
     double cacheBytes = 0.75 * SystemMemorySize();
     volume->setCacheMemoryInBytes(static_cast<size_t>(cacheBytes));
@@ -173,10 +173,10 @@ int main(int argc, char* argv[])
     fs::path meshName = vpkg.getMeshPath();
 
     // try to convert the ply to an ITK mesh
-    volcart::io::PLYReader reader(meshName);
+    vc::io::PLYReader reader(meshName);
     try {
         reader.read();
-    } catch (volcart::IOException e) {
+    } catch (vc::IOException e) {
         std::cerr << e.what() << std::endl;
         return EXIT_FAILURE;
     }
@@ -191,30 +191,30 @@ int main(int argc, char* argv[])
 
     // Convert to polydata
     auto vtkMesh = vtkSmartPointer<vtkPolyData>::New();
-    volcart::meshing::ITK2VTK(input, vtkMesh);
+    vc::meshing::ITK2VTK(input, vtkMesh);
 
     // Decimate using ACVD
     std::cout << "Resampling mesh..." << std::endl;
     auto acvdMesh = vtkSmartPointer<vtkPolyData>::New();
-    volcart::meshing::ACVD(vtkMesh, acvdMesh, vertCount);
+    vc::meshing::ACVD(vtkMesh, acvdMesh, vertCount);
 
     // Merge Duplicates
     // Note: This merging has to be the last in the process chain for some
     // really weird reason. - SP
-    auto Cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
-    Cleaner->SetInputData(acvdMesh);
-    Cleaner->Update();
+    auto cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
+    cleaner->SetInputData(acvdMesh);
+    cleaner->Update();
 
-    auto itkACVD = volcart::ITKMesh::New();
-    volcart::meshing::VTK2ITK(Cleaner->GetOutput(), itkACVD);
+    auto itkACVD = vc::ITKMesh::New();
+    vc::meshing::VTK2ITK(cleaner->GetOutput(), itkACVD);
 
     ///// ABF flattening /////
     std::cout << "Computing parameterization..." << std::endl;
-    volcart::texturing::AngleBasedFlattening abf(itkACVD);
+    vc::texturing::AngleBasedFlattening abf(itkACVD);
     abf.compute();
 
     // Get UV map
-    volcart::UVMap uvMap = abf.getUVMap();
+    vc::UVMap uvMap = abf.getUVMap();
     auto width = static_cast<size_t>(std::ceil(uvMap.ratio().width));
     auto height = static_cast<size_t>(std::ceil(uvMap.ratio().height));
 
@@ -227,7 +227,7 @@ int main(int argc, char* argv[])
     auto ppm = ppmGen.compute();
 
     ///// Generate texture /////
-    volcart::Texture texture;
+    vc::Texture texture;
     std::cout << "Generating Texture..." << std::endl;
     if (method == Method::Intersection) {
         vc::texturing::IntersectionTexture textureGen;
@@ -259,19 +259,19 @@ int main(int argc, char* argv[])
     }
 
     // Save rendering
-    volcart::Rendering rendering;
+    vc::Rendering rendering;
     rendering.setTexture(texture);
     rendering.setMesh(itkACVD);
 
     if (outputPath.extension() == ".PLY" || outputPath.extension() == ".ply") {
         std::cout << "Writing to PLY..." << std::endl;
-        volcart::io::PLYWriter writer(
+        vc::io::PLYWriter writer(
             outputPath.string(), itkACVD, rendering.getTexture());
         writer.write();
     } else if (
         outputPath.extension() == ".OBJ" || outputPath.extension() == ".obj") {
         std::cout << "Writing to OBJ..." << std::endl;
-        volcart::io::OBJWriter writer;
+        vc::io::OBJWriter writer;
         writer.setMesh(itkACVD);
         writer.setRendering(rendering);
         writer.setPath(outputPath.string());
@@ -289,7 +289,7 @@ int main(int argc, char* argv[])
     if (parsed.count("output-ppm")) {
         std::cout << "Writing PPM..." << std::endl;
         fs::path ppmPath = parsed["output-ppm"].as<std::string>();
-        volcart::PerPixelMap::WritePPM(ppmPath, ppm);
+        vc::PerPixelMap::WritePPM(ppmPath, ppm);
     }
 
     return EXIT_SUCCESS;
