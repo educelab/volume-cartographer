@@ -3,12 +3,12 @@ set(module "meshing")
 set(target "vc_${module}")
 
 set(srcs
+    src/CalculateNormals.cpp
     src/DeepCopy.cpp
     src/ITK2VTK.cpp
     src/RayTrace.cpp
     src/ScaleMesh.cpp
     src/SmoothNormals.cpp
-    src/CalculateNormals.cpp
     src/OrderedResampling.cpp
     src/OrderedPointSetMesher.cpp
 )

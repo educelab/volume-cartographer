@@ -61,18 +61,21 @@ namespace texturing
 class AngleBasedFlattening
 {
 public:
+    /** Default maximum number of ABF iterations */
+    static const int DEFAULT_ITERATIONS = 5;
+
     /**@{*/
     /** @brief Default constructor */
     AngleBasedFlattening()
-        : useABF_{true}, maxABFIterations_{DEFAULT_MAX_ABF_ITERATIONS}
+        : useABF_{true}, maxABFIterations_{DEFAULT_ITERATIONS}
     {
     }
 
     /** @brief Construct and set the input mesh */
     explicit AngleBasedFlattening(ITKMesh::Pointer mesh)
         : useABF_{true}
-        , maxABFIterations_{DEFAULT_MAX_ABF_ITERATIONS}
-        , mesh_{mesh}
+        , maxABFIterations_{DEFAULT_ITERATIONS}
+        , mesh_{std::move(mesh)}
     {
     }
     /**@}*/
@@ -158,11 +161,7 @@ private:
     /** Compute the parameterization using LSCM */
     void solve_lscm_();
 
-    /** Get the ID's of the vertices with the minimum and maximum positions */
-    std::pair<HalfEdgeMesh::IDType, HalfEdgeMesh::IDType>
-    get_min_max_point_ids_();
-
-    /** Get the ID's of the vertices with the minimum and maximum Z-positions */
+    /** Get the ID's of two points near the minimum z position */
     std::pair<HalfEdgeMesh::IDType, HalfEdgeMesh::IDType>
     get_min_z_point_ids_();
 
@@ -170,6 +169,9 @@ private:
      * supposedly arbitrary. */
     void compute_pin_uv_();
     /**@}*/
+
+    /** Orient UV positions */
+    void orient_uv_positions_();
 
     /** Input mesh */
     ITKMesh::Pointer mesh_;
@@ -201,9 +203,6 @@ private:
         c = b;
         b = tmp;
     }
-
-    /** Default maximum number of ABF iterations */
-    static const int DEFAULT_MAX_ABF_ITERATIONS = 5;
 };
 }
 }

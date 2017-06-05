@@ -31,6 +31,8 @@
 using namespace volcart;
 using namespace volcart::texturing;
 
+using HEM = volcart::HalfEdgeMesh;
+
 ///// Get Output /////
 // Get output as mesh
 ITKMesh::Pointer AngleBasedFlattening::getMesh()
@@ -57,10 +59,10 @@ volcart::UVMap AngleBasedFlattening::getUVMap()
     // Setup uvMap
     volcart::UVMap uvMap;
 
-    double uMin = std::numeric_limits<double>::max();
-    double uMax = std::numeric_limits<double>::min();
-    double vMin = std::numeric_limits<double>::max();
-    double vMax = std::numeric_limits<double>::min();
+    auto uMin = std::numeric_limits<double>::max();
+    auto uMax = std::numeric_limits<double>::min();
+    auto vMin = std::numeric_limits<double>::max();
+    auto vMax = std::numeric_limits<double>::min();
 
     // Get the min and max values for u & v respectively
     for (auto it = heMesh_.getVertsBegin(); it != heMesh_.getVertsEnd(); ++it) {
@@ -114,6 +116,9 @@ UVMap AngleBasedFlattening::compute()
 
     // Solve the system via LSCM
     solve_lscm_();
+
+    // Orient UVs
+    orient_uv_positions_();
 
     return getUVMap();
 }
@@ -184,8 +189,8 @@ void AngleBasedFlattening::scale_()
         }
 
         // Re-calculate weight
-        v->edge->angle->weight =
-            1 / (v->edge->angle->phi * v->edge->angle->phi);
+        auto e = v->edge;
+        e->angle->weight = 1 / (e->angle->phi * e->angle->phi);
     }
 }
 
@@ -194,7 +199,7 @@ void AngleBasedFlattening::solve_abf_()
 {
     compute_sines_();
 
-    double norm = 1e10;  // Magnitude of the error vector?
+    double norm = std::numeric_limits<double>::max();
     int i = 0;
     for (; i < maxABFIterations_; ++i) {
         norm = compute_gradient_();
@@ -239,18 +244,17 @@ double AngleBasedFlattening::compute_gradient_()
     for (auto f = heMesh_.getFace(0); f; f = f->nextLink) {
 
         auto e0 = f->edge, e1 = e0->next, e2 = e1->next;
-        double gTriangle, gAlpha0, gAlpha1, gAlpha2;
 
-        gAlpha0 = compute_gradient_alpha_(e0);
-        gAlpha1 = compute_gradient_alpha_(e1);
-        gAlpha2 = compute_gradient_alpha_(e2);
+        auto gAlpha0 = compute_gradient_alpha_(e0);
+        auto gAlpha1 = compute_gradient_alpha_(e1);
+        auto gAlpha2 = compute_gradient_alpha_(e2);
 
         e0->angle->bAlpha = -gAlpha0;
         e1->angle->bAlpha = -gAlpha1;
         e2->angle->bAlpha = -gAlpha2;
 
         norm += gAlpha0 * gAlpha0 + gAlpha1 * gAlpha1 + gAlpha2 * gAlpha2;
-        gTriangle =
+        auto gTriangle =
             e0->angle->alpha + e1->angle->alpha + e2->angle->alpha - M_PI;
         f->bTriangle = -gTriangle;
         norm += gTriangle * gTriangle;
@@ -265,9 +269,8 @@ double AngleBasedFlattening::compute_gradient_()
 
         auto iId = interior_[v->id];
         double gplanar = -2 * M_PI;
-        double glength;
 
-        volcart::HalfEdgeMesh::EdgePtr e = v->edge;
+        auto e = v->edge;
         do {
             gplanar += e->angle->alpha;
             e = e->next->next->pair;
@@ -276,7 +279,7 @@ double AngleBasedFlattening::compute_gradient_()
         bInterior_[iId] = -gplanar;
         norm += gplanar * gplanar;
 
-        glength = compute_sin_product_(v);
+        auto glength = compute_sin_product_(v);
         bInterior_[heMesh_.getNumberOfInteriorPoints() + iId] = -glength;
         norm += glength * glength;
     }
@@ -285,10 +288,9 @@ double AngleBasedFlattening::compute_gradient_()
 }
 
 // Edge length constraint calculation
-double AngleBasedFlattening::compute_sin_product_(
-    const volcart::HalfEdgeMesh::VertPtr& v)
+double AngleBasedFlattening::compute_sin_product_(const HEM::VertPtr& v)
 {
-    volcart::HalfEdgeMesh::EdgePtr e0, e1, e2;
+    HEM::EdgePtr e0, e1, e2;
     double sin1, sin2;
     sin1 = sin2 = 1.0;
 
@@ -308,9 +310,9 @@ double AngleBasedFlattening::compute_sin_product_(
 
 // Same with alternate vertex aId
 double AngleBasedFlattening::compute_sin_product_(
-    const volcart::HalfEdgeMesh::VertPtr& v, volcart::HalfEdgeMesh::IDType aId)
+    const HEM::VertPtr& v, HEM::IDType aId)
 {
-    volcart::HalfEdgeMesh::EdgePtr e0, e1, e2;
+    HEM::EdgePtr e0, e1, e2;
     double sin1, sin2;
     sin1 = sin2 = 1.0;
 
@@ -347,28 +349,24 @@ bool AngleBasedFlattening::invert_matrix_()
 {
     // Create a new solver + context
     bool success;
-    LinearSolver* context;
-    volcart::HalfEdgeMesh::IDType ninterior = interior_.size();
+    auto ninterior = interior_.size();
 
-    context = EIG_linear_solver_new(0, ninterior * 2, 1);
+    auto context = EIG_linear_solver_new(0, ninterior * 2, 1);
 
     // Add the bInterior_ points to RHS
-    for (volcart::HalfEdgeMesh::IDType i = 0; i < bInterior_.size(); ++i) {
+    for (HEM::IDType i = 0; i < bInterior_.size(); ++i) {
         EIG_linear_solver_right_hand_side_add(context, 0, i, bInterior_[i]);
     }
 
     // For each face
-    int counter = 0;
-    for (auto f = heMesh_.getFace(0); f; f = f->nextLink, ++counter) {
+    for (auto f = heMesh_.getFace(0); f; f = f->nextLink) {
         // Setup a matrix
         double wi1, wi2, wi3, b, si, beta[3], j2[3][3], w[3][3];
         double row1[6], row2[6], row3[6];
         int vid[6];
 
-        volcart::HalfEdgeMesh::EdgePtr e0 = f->edge, e1 = e0->next,
-                                       e2 = e1->next;
-        volcart::HalfEdgeMesh::VertPtr v0 = e0->vert, v1 = e1->vert,
-                                       v2 = e2->vert;
+        auto e0 = f->edge, e1 = e0->next, e2 = e1->next;
+        auto v0 = e0->vert, v1 = e1->vert, v2 = e2->vert;
 
         wi1 = 1.0f / e0->angle->weight;
         wi2 = 1.0f / e1->angle->weight;
@@ -531,17 +529,15 @@ bool AngleBasedFlattening::invert_matrix_()
         for (auto f = heMesh_.getFace(0); f; f = f->nextLink) {
             double dlambda1, pre[3], dalpha;
 
-            volcart::HalfEdgeMesh::EdgePtr e0 = f->edge, e1 = e0->next,
-                                           e2 = e1->next;
-            volcart::HalfEdgeMesh::VertPtr v0 = e0->vert, v1 = e1->vert,
-                                           v2 = e2->vert;
+            auto e0 = f->edge, e1 = e0->next, e2 = e1->next;
+            auto v0 = e0->vert, v1 = e1->vert, v2 = e2->vert;
 
             pre[0] = pre[1] = pre[2] = 0.0;
 
             if (v0->interior()) {
                 auto iId = interior_[v0->id];
-                double x = EIG_linear_solver_variable_get(context, 0, iId);
-                double x2 =
+                auto x = EIG_linear_solver_variable_get(context, 0, iId);
+                auto x2 =
                     EIG_linear_solver_variable_get(context, 0, ninterior + iId);
                 pre[0] += j2dt_.at<double>(e0->id, 0) * x;
                 pre[1] += j2dt_.at<double>(e1->id, 0) * x2;
@@ -550,8 +546,8 @@ bool AngleBasedFlattening::invert_matrix_()
 
             if (v1->interior()) {
                 auto iId = interior_[v1->id];
-                double x = EIG_linear_solver_variable_get(context, 0, iId);
-                double x2 =
+                auto x = EIG_linear_solver_variable_get(context, 0, iId);
+                auto x2 =
                     EIG_linear_solver_variable_get(context, 0, ninterior + iId);
                 pre[0] += j2dt_.at<double>(e0->id, 1) * x2;
                 pre[1] += j2dt_.at<double>(e1->id, 1) * x;
@@ -560,8 +556,8 @@ bool AngleBasedFlattening::invert_matrix_()
 
             if (v2->interior()) {
                 auto iId = interior_[v2->id];
-                double x = EIG_linear_solver_variable_get(context, 0, iId);
-                double x2 =
+                auto x = EIG_linear_solver_variable_get(context, 0, iId);
+                auto x2 =
                     EIG_linear_solver_variable_get(context, 0, ninterior + iId);
                 pre[0] += j2dt_.at<double>(e0->id, 2) * x2;
                 pre[1] += j2dt_.at<double>(e1->id, 2) * x2;
@@ -594,7 +590,7 @@ bool AngleBasedFlattening::invert_matrix_()
             } while (e != f->edge);
         }
 
-        volcart::HalfEdgeMesh::IDType pId, iId;
+        HEM::IDType pId, iId;
         for (auto it : interior_) {
             std::tie(pId, iId) = it;
             heMesh_.getVert(pId)->lambdaPlanar +=
@@ -619,8 +615,7 @@ void AngleBasedFlattening::solve_lscm_()
     compute_pin_uv_();
 
     // Setup solver context
-    LinearSolver* context;
-    context = EIG_linear_least_squares_solver_new(
+    auto context = EIG_linear_least_squares_solver_new(
         2 * heMesh_.getNumberOfFaces(), 2 * heMesh_.getNumberOfVerts(), 1);
 
     // Add pins to solver
@@ -639,44 +634,43 @@ void AngleBasedFlattening::solve_lscm_()
         context, 0, 2 * pin1_ + 1, heMesh_.getVert(pin1_)->uv[1]);
 
     // Construct matrix
-    volcart::HalfEdgeMesh::IDType row = 0;
+    HEM::IDType row = 0;
     for (auto f = heMesh_.getFacesBegin(); f != heMesh_.getFacesEnd(); ++f) {
-        volcart::HalfEdgeMesh::EdgePtr e0 = (*f)->edge, e1 = e0->next,
-                                       e2 = e1->next;
+        auto e0 = (*f)->edge, e1 = e0->next, e2 = e1->next;
 
-        volcart::HalfEdgeMesh::IDType v0 = e0->vert->id;
-        volcart::HalfEdgeMesh::IDType v1 = e1->vert->id;
-        volcart::HalfEdgeMesh::IDType v2 = e2->vert->id;
+        auto v0 = e0->vert->id;
+        auto v1 = e1->vert->id;
+        auto v2 = e2->vert->id;
 
-        double a0 = e0->angle->alpha;
-        double a1 = e1->angle->alpha;
-        double a2 = e2->angle->alpha;
+        auto a0 = e0->angle->alpha;
+        auto a1 = e1->angle->alpha;
+        auto a2 = e2->angle->alpha;
 
         // Find max sin from angles
-        double sin0 = sin(a0);
-        double sin1 = sin(a1);
-        double sin2 = sin(a2);
+        auto sin0 = std::sin(a0);
+        auto sin1 = std::sin(a1);
+        auto sin2 = std::sin(a2);
 
-        double sinmax = std::max(sin0, std::max(sin1, sin2));
+        auto sinmax = std::max(sin0, std::max(sin1, sin2));
 
         // Shift verts for stable order
         // Careful. Only use these values going forward through the loop
         if (sin2 != sinmax) {
-            shift3_<HalfEdgeMesh::IDType>(v0, v1, v2);
+            shift3_<HEM::IDType>(v0, v1, v2);
             shift3_<double>(a0, a1, a2);
             shift3_<double>(sin0, sin1, sin2);
 
             if (sin1 == sinmax) {
-                shift3_<HalfEdgeMesh::IDType>(v0, v1, v2);
+                shift3_<HEM::IDType>(v0, v1, v2);
                 shift3_<double>(a0, a1, a2);
                 shift3_<double>(sin0, sin1, sin2);
             }
         }
 
         // Setup angle based lscm
-        double ratio = (sin2 == 0.0) ? 1.0 : sin1 / sin2;
-        double cosine = cos(a0) * ratio;
-        double sine = sin0 * ratio;
+        auto ratio = (sin2 == 0.0) ? 1.0 : sin1 / sin2;
+        auto cosine = std::cos(a0) * ratio;
+        auto sine = sin0 * ratio;
 
         EIG_linear_solver_matrix_add(context, row, 2 * v0, cosine - 1.0f);
         EIG_linear_solver_matrix_add(context, row, 2 * v0 + 1, -sine);
@@ -711,41 +705,13 @@ void AngleBasedFlattening::solve_lscm_()
 }
 
 ///// Helpers - LSCM /////
-// Get the id's of the points with the minimum and maximum 3D positions
-std::pair<volcart::HalfEdgeMesh::IDType, volcart::HalfEdgeMesh::IDType>
-AngleBasedFlattening::get_min_max_point_ids_()
-{
-    cv::Vec3d min(1e20), max(-1e20);
-    volcart::HalfEdgeMesh::IDType minVert = 0;
-    volcart::HalfEdgeMesh::IDType maxVert = 0;
-
-    for (auto it = heMesh_.getVertsBegin(); it != heMesh_.getVertsEnd(); ++it) {
-
-        // Min
-        if ((*it)->xyz[0] < min[0] && (*it)->xyz[1] < min[1] &&
-            (*it)->xyz[2] < min[2]) {
-            min = (*it)->xyz;
-            minVert = (*it)->id;
-            // Max
-        } else if (
-            (*it)->xyz[0] > max[0] && (*it)->xyz[0] > max[1] &&
-            (*it)->xyz[0] > max[2]) {
-            max = (*it)->xyz;
-            maxVert = (*it)->id;
-        }
-    }
-
-    return std::make_pair(minVert, maxVert);
-}
-
 // Get the ID's of two points near the minimum z position
-std::pair<volcart::HalfEdgeMesh::IDType, volcart::HalfEdgeMesh::IDType>
-AngleBasedFlattening::get_min_z_point_ids_()
+std::pair<HEM::IDType, HEM::IDType> AngleBasedFlattening::get_min_z_point_ids_()
 {
     auto it = heMesh_.getBoundaryBegin();
     double min = (*it)->xyz[2];
-    volcart::HalfEdgeMesh::IDType minVert = (*it)->id;
-    volcart::HalfEdgeMesh::IDType nextVert = (*(it + 1))->id;
+    auto minVert = (*it)->id;
+    auto nextVert = (*(it + 1))->id;
 
     for (; it != heMesh_.getBoundaryEnd(); ++it) {
 
@@ -765,15 +731,55 @@ AngleBasedFlattening::get_min_z_point_ids_()
 }
 
 // Generate a good starting UV position for the two starting "pinned" points
-// This is supposedly arbitrary
 void AngleBasedFlattening::compute_pin_uv_()
 {
-    auto p0xyz = heMesh_.getVert(pin0_)->xyz;
-    auto p1xyz = heMesh_.getVert(pin1_)->xyz;
-    cv::Vec2d xy1(p0xyz[0], p0xyz[1]);
-    cv::Vec2d xy2(p1xyz[0], p1xyz[1]);
-    double uDist = cv::norm(xy1, xy2);
-    double vDist = p0xyz[2] - p1xyz[2];
-    heMesh_.getVert(pin0_)->uv = cv::Vec2d(0.0, 0.0);
-    heMesh_.getVert(pin1_)->uv = cv::Vec2d(uDist, vDist);
+    auto& p0xyz = heMesh_.getVert(pin0_)->xyz;
+    auto& p1xyz = heMesh_.getVert(pin1_)->xyz;
+    cv::Vec2d xy1{p0xyz[0], p0xyz[1]};
+    cv::Vec2d xy2{p1xyz[0], p1xyz[1]};
+    auto uDist = cv::norm(xy1, xy2);
+    auto vDist = p0xyz[2] - p1xyz[2];
+    heMesh_.getVert(pin0_)->uv = cv::Vec2d{0.0, 0.0};
+    heMesh_.getVert(pin1_)->uv = cv::Vec2d{uDist, vDist};
+}
+
+void AngleBasedFlattening::orient_uv_positions_()
+{
+    // Get the UV points + Z from the original mesh
+    std::vector<cv::Vec3d> pts;
+    for (auto v = heMesh_.getVertsBegin(); v != heMesh_.getVertsEnd(); v++) {
+        pts.emplace_back((*v)->uv[0], (*v)->uv[1], (*v)->xyz[2]);
+    }
+
+    // Fit a 3D least-squares line
+    cv::Vec6d line;
+    cv::fitLine(pts, line, CV_DIST_L2, 0, 0.01, 0.01);
+
+    // Calculate a rotation angle between the fitted line and the y vec
+    cv::Vec2d fitVecUV{line[0], line[1]};
+    cv::Vec2d downVecUV{0, 1};
+    auto cos = fitVecUV.dot(downVecUV) / cv::norm(fitVecUV);
+    auto angle = std::acos(cos);
+
+    // If z-gradient is decreasing, rot. 180 deg s.t. z = 0 is at the top
+    if (line[2] < 0) {
+        angle += M_PI;
+        cos = std::cos(angle);
+    }
+    auto sin = std::sin(angle);
+
+    // Get counter-clockwise rotation matrix
+    cv::Mat rotMat = cv::Mat::zeros(2, 2, CV_64F);
+    rotMat.at<double>(0, 0) = cos;
+    rotMat.at<double>(0, 1) = sin;
+    rotMat.at<double>(1, 0) = -sin;
+    rotMat.at<double>(1, 1) = cos;
+
+    // Apply to the UVs
+    cv::Vec2d oldUV;
+    for (auto v = heMesh_.getVertsBegin(); v != heMesh_.getVertsEnd(); v++) {
+        // Apply the transform
+        cv::Mat newUV = rotMat * cv::Mat((*v)->uv);
+        (*v)->uv = {newUV.at<double>(0), newUV.at<double>(1)};
+    }
 }

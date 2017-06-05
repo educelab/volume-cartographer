@@ -15,6 +15,7 @@ set(public_deps
     VC::core
 )
 set(private_deps
+    opencv_imgproc
     VC::meshing
     VC::external
 )
