@@ -137,8 +137,11 @@ public:
     /** @brief Get the number of Volumes */
     size_t numberOfVolumes() { return volumes_.size(); }
 
-    /** @brief Get the list of volumes */
-    std::vector<Volume::Identifier> volumes() const;
+    /** @brief Get the list of volume IDs */
+    std::vector<Volume::Identifier> volumeIDs() const;
+
+    /** @brief Get the list of volumes names */
+    std::vector<std::string> volumeNames() const;
 
     /**
      * @brief Add a new Volume to the VolumePkg

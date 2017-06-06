@@ -67,6 +67,9 @@ public:
     /** Volume ID type */
     using Identifier = std::string;
 
+    /** ID/Name paid */
+    using Description = std::pair<Identifier, std::string>;
+
     /**@{*/
     /**
      * Default constructor. The Volume class is always backed by on-disk

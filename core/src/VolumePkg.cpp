@@ -88,7 +88,7 @@ VolumePkg::Pointer VolumePkg::New(boost::filesystem::path fileLocation)
 std::string VolumePkg::getPkgName() const
 {
     // Gets the Volume name from the configuration file
-    auto name = config_.get<std::string>("volumepkg name");
+    auto name = config_.get<std::string>("name");
     if (name != "NULL") {
         return name;
     } else {
@@ -104,13 +104,22 @@ double VolumePkg::getMaterialThickness() const
 }
 
 // VOLUME FUNCTIONS //
-std::vector<Volume::Identifier> VolumePkg::volumes() const
+std::vector<Volume::Identifier> VolumePkg::volumeIDs() const
 {
     std::vector<Volume::Identifier> ids;
     for (auto& v : volumes_) {
         ids.emplace_back(v.first);
     }
     return ids;
+}
+
+std::vector<std::string> VolumePkg::volumeNames() const
+{
+    std::vector<Volume::Identifier> names;
+    for (auto& v : volumes_) {
+        names.emplace_back(v.second->name());
+    }
+    return names;
 }
 
 Volume::Pointer VolumePkg::newVolume(std::string name)
@@ -133,7 +142,7 @@ Volume::Pointer VolumePkg::newVolume(std::string name)
 
     // Make the volume
     auto r = volumes_.emplace(uuid, Volume::New(volDir, uuid, name));
-    if (r.second) {
+    if (!r.second) {
         auto msg = "Volume already exists with id " + uuid;
         throw std::runtime_error(msg);
     }
