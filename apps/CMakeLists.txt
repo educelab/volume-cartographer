@@ -80,15 +80,8 @@ target_link_libraries(vc_metaedit
 )
 
 ## Slice Projection ##
-# Old
 add_executable(vc_projection src/Projection.cpp)
 target_link_libraries(vc_projection
-    VC::core
-)
-
-# New
-add_executable(vc_projection2 src/Projection2.cpp)
-target_link_libraries(vc_projection2
     VC::core
     VC::meshing
     vtkCommonCore
@@ -124,7 +117,6 @@ install(
         vc_segment
         vc_render
         vc_projection
-        vc_projection2
         vc_volpkg_explorer
     RUNTIME DESTINATION bin
     COMPONENT Programs

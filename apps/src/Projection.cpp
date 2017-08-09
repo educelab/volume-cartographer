@@ -2,100 +2,105 @@
 // Seth Parker 10/2015
 // Project the mesh onto each slice in order to check the quality of
 // segmentation
+#include <cstdio>
 #include <map>
-#include <stdio.h>
 
 #include <boost/format.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include "vc/core/io/PLYReader.hpp"
+#include <vtkCell.h>
+#include <vtkCutter.h>
+#include <vtkPLYReader.h>
+#include <vtkPlane.h>
+#include <vtkSmartPointer.h>
+#include <vtkStripper.h>
+
+#include "vc/core/io/OBJReader.hpp"
 #include "vc/core/types/VolumePkg.hpp"
-
-#define RED cv::Scalar(0, 0, 255)
-
-using namespace volcart;
+#include "vc/meshing/ITK2VTK.hpp"
 
 int main(int argc, char* argv[])
 {
     printf("Running tool: vc_projection\n");
-    std::cout << std::endl;
     if (argc < 4) {
-        printf("Usage: vc_projection volpkg seg-id output-dir\n");
+        std::cout << std::endl;
+        printf("Usage: vc_projection volpkg mesh.obj output-dir\n");
         exit(-1);
     }
 
     // Load the volume package
-    VolumePkg volpkg(argv[1]);
-    volpkg.setActiveSegmentation(argv[2]);
+    volcart::VolumePkg volpkg(argv[1]);
     std::string outputDir = argv[3];
+    int width = volpkg.getSliceWidth();
+    int height = volpkg.getSliceHeight();
+    int padding = std::to_string(volpkg.getNumberOfSlices()).size();
 
-    // Load the mesh
-    auto mesh = ITKMesh::New();
-    volcart::io::PLYReader reader(volpkg.getMeshPath());
-    reader.read();
-    mesh = reader.getMesh();
+    // Get Mesh
+    volcart::io::OBJReader reader;
+    reader.setPath(argv[2]);
+    auto mesh = reader.read();
+    auto vtkMesh = vtkSmartPointer<vtkPolyData>::New();
+    volcart::meshing::ITK2VTK(mesh, vtkMesh);
 
-    // PNG Compression params
-    std::vector<int> compression_params;
-    compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
-    compression_params.push_back(9);
+    // Setup plane
+    vtkSmartPointer<vtkPlane> cutPlane = vtkSmartPointer<vtkPlane>::New();
+    cutPlane->SetOrigin(width / 2, height / 2, 0);
+    cutPlane->SetNormal(0, 0, 1);
+    auto z_min = static_cast<int>(std::floor(vtkMesh->GetBounds()[4]));
+    auto z_max = static_cast<int>(std::ceil(vtkMesh->GetBounds()[5]));
 
-    // Sort the points by z-index
-    std::map<int, std::vector<int>> z_map;
+    // Bounds checks
+    if (z_min < 0)
+        z_min = 0;
+    if (z_max >= volpkg.getNumberOfSlices())
+        z_max = volpkg.getNumberOfSlices() - 1;
+    if (z_min == z_max)
+        z_max += 1;
 
-    for (auto point = mesh->GetPoints()->Begin();
-         point != mesh->GetPoints()->End(); ++point) {
+    // Setup cutting and stripping pipeline
+    auto cutter = vtkSmartPointer<vtkCutter>::New();
+    cutter->SetCutFunction(cutPlane);
+    cutter->SetInputData(vtkMesh);
 
-        // skip null points
-        if (point->Value()[2] == -1)
-            continue;
+    auto stripper = vtkSmartPointer<vtkStripper>::New();
+    stripper->SetInputConnection(cutter->GetOutputPort());
 
-        // get the z-index for this point (floored int)
-        int this_z = static_cast<int>(point->Value()[2]);
+    // Iterate over every z-index in the range between z_min and z_max
+    // Cut the mesh and draw its corresponding intersection onto a new output
+    // image
+    cv::Mat outputImg;
+    std::vector<cv::Point> contour;
+    for (int it = z_min; it < z_max; ++it) {
+        std::cerr << "volcart::projection::Projecting " << std::to_string(it)
+                  << "\r" << std::flush;
+        cutPlane->SetOrigin(width / 2, height / 2, it);
+        stripper->Update();
+        auto intersection = stripper->GetOutput();
 
-        // add point id to the vector for this z-index
-        // make a vector for this z-index if it doesn't exist in the map
-        auto lookup_z = z_map.find(this_z);
-        if (lookup_z != z_map.end()) {
-            lookup_z->second.push_back(point->Index());
-        } else {
-            std::vector<int> z_vector;
-            z_vector.push_back(point->Index());
-            z_map.insert({this_z, z_vector});
+        outputImg = cv::Mat::zeros(height, width, CV_8UC1);
+        for (vtkIdType c_id = 0; c_id < intersection->GetNumberOfCells();
+             ++c_id) {
+            auto inputCell = intersection->GetCell(c_id);  // input cell
+            for (vtkIdType p_it = 0; p_it < inputCell->GetNumberOfPoints();
+                 ++p_it) {
+                auto p_id = inputCell->GetPointId(p_it);
+                contour.push_back(cv::Point(
+                    static_cast<int>(intersection->GetPoint(p_id)[0]),
+                    static_cast<int>(intersection->GetPoint(p_id)[1])));
+            }
+            cv::polylines(outputImg, contour, false, 255, 1, cv::LINE_AA);
+            contour.clear();
         }
+
+        // Save the output to the provided directory
+        std::stringstream filename;
+        filename << std::setw(padding) << std::setfill('0') << it << ".png";
+        std::string path = outputDir + "/" + filename.str();
+        cv::imwrite(path, outputImg);
     }
-
-    // Iterate over each z-index and generate a projected slice image
-    auto volume = volpkg.volume();
-    for (auto z_id = z_map.begin(); z_id != z_map.end(); ++z_id) {
-        std::cout << "Projecting slice " + std::to_string(z_id->first) + "\r"
-                  << std::flush;
-        // get the slice image and cvt to CV_8UC3
-        // .clone() to make sure we don't modify the cached version
-        cv::Mat slice = volume->getSliceDataCopy(z_id->first);
-        slice.convertTo(slice, CV_8U, 255.0 / 65535.0);
-        cv::cvtColor(slice, slice, cv::COLOR_GRAY2BGR);
-
-        // Iterate over the points for this z-index and project the points
-        for (auto p_id = z_id->second.begin(); p_id != z_id->second.end();
-             ++p_id) {
-
-            ITKPoint point = mesh->GetPoint(*p_id);
-            cv::Point pos;
-            pos.x = cvRound(point[0]);
-            pos.y = cvRound(point[1]);
-
-            cv::circle(slice, pos, 1, RED, -1);
-        }
-
-        // Generate an output path from the z-index
-        std::stringstream outputPath;
-        outputPath << boost::format(outputDir + "/proj%04i.png") % z_id->first;
-        cv::imwrite(outputPath.str(), slice, compression_params);
-    }
-    std::cout << std::endl;
+    std::cerr << std::endl;
 
     return EXIT_SUCCESS;
 }
