@@ -1,18 +1,19 @@
-#include <opencv2/highgui.hpp>
-#include <opencv2/imgproc.hpp>
-
-#include "apps/SliceImage.hpp"
+#include <limits>
 
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
+
+#include "apps/SliceImage.hpp"
+
+static const double MAX_16BPC = std::numeric_limits<uint16_t>::max();
 
 namespace volcart
 {
 
 bool SliceImage::operator==(const SliceImage& b) const
 {
-    return (_w == b._w && _h == b._h && _depth == b._depth);
+    return (w_ == b.w_ && h_ == b.h_ && depth_ == b.depth_);
 }
 
 bool SliceImage::operator<(const SliceImage& b) const
@@ -33,14 +34,19 @@ bool SliceImage::analyze()
     image =
         cv::imread(path.string(), cv::IMREAD_ANYCOLOR | cv::IMREAD_ANYDEPTH);
 
-    _w = image.cols;
-    _h = image.rows;
+    w_ = image.cols;
+    h_ = image.rows;
 
-    _depth = image.depth();
-    if (_depth != CV_16U)
-        _convert = true;  // Convert if not a 16-bit, unsigned image
+    depth_ = image.depth();
+    if (image.depth() != CV_16U) {
+        needsScale_ = true;
+    }
 
-    cv::minMaxLoc(image, &_min, &_max);
+    if (image.type() != CV_16UC1) {
+        needsConvert_ = true;
+    }
+
+    cv::minMaxLoc(image, &min_, &max_);
 
     return true;
 };
@@ -52,14 +58,11 @@ cv::Mat SliceImage::conformedImage()
         cv::imread(path.string(), cv::IMREAD_ANYCOLOR | cv::IMREAD_ANYDEPTH);
     cv::Mat output;
 
-    // Remap 8 bit values to 16 bit
-    if (input.depth() == CV_8U) {
-        int minVal, maxVal;
-        minVal = 0;
-        maxVal = 255;
+    // Remap values to 16 bit
+    if (needsScale_) {
         input.convertTo(
-            output, CV_16U, 65535.0 / (maxVal - minVal),
-            -minVal * 65535.0 / (maxVal - minVal));
+            output, CV_16U, MAX_16BPC / (max_ - min_),
+            -min_ * MAX_16BPC / (max_ - min_));
         // TODO: #178
     } else {
         input.copyTo(output);

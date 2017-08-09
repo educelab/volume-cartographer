@@ -3,6 +3,7 @@
 //
 
 #include <iostream>
+#include <limits>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
@@ -18,10 +19,13 @@ namespace vc = volcart;
 
 enum class Flip { None, Horizontal, Vertical, Both };
 
+static const double MIN_16BPC = std::numeric_limits<uint16_t>::min();
+static const double MAX_16BPC = std::numeric_limits<uint16_t>::max();
+
 struct VolumeInfo {
     fs::path path;
     std::string name;
-    double voxelsize;
+    double voxelsize{0};
     Flip flipOption{Flip::None};
 };
 
@@ -258,14 +262,14 @@ void AddVolume(vc::VolumePkg& volpkg, VolumeInfo info)
     volume->setSliceHeight(slices.front().height());
     volume->setVoxelSize(info.voxelsize);
 
-    // Scale 8-bit min/max values
-    // To-Do: Handle other bit depths
-    if (slices.begin()->depth() == CV_8U) {
-        volMin = volMin * 65535.00 / 255.00;
-        volMax = volMax * 65535.00 / 255.00;
+    // Scale min/max values
+    if (slices.begin()->needsScale()) {
+        volume->setMin(MIN_16BPC);
+        volume->setMax(MAX_16BPC);
+    } else {
+        volume->setMin(volMin);
+        volume->setMax(volMax);
     }
-    volume->setMin(volMin);
-    volume->setMax(volMax);
     volume->saveMetadata();
 
     // Do we need to flip?
@@ -280,7 +284,12 @@ void AddVolume(vc::VolumePkg& volpkg, VolumeInfo info)
                   << "/" << slices.size() << "\r" << std::flush;
 
         // Convert or flip
-        if (slice.needsConvert() || needsFlip) {
+        if (slice.needsConvert() || slice.needsScale() || needsFlip) {
+            // Apply scale
+            if (slice.needsScale()) {
+                slice.setScale(volMax, volMin);
+            }
+
             // Get slice
             auto tmp = slice.conformedImage();
 

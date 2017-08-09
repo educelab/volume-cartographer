@@ -12,7 +12,7 @@ namespace volcart
 class SliceImage
 {
 public:
-    SliceImage(boost::filesystem::path p) : path{std::move(p)} {}
+    explicit SliceImage(boost::filesystem::path p) : path{std::move(p)} {}
 
     bool operator==(const SliceImage& b) const;
     bool operator!=(const SliceImage& b) const { return !operator==(b); }
@@ -20,18 +20,28 @@ public:
 
     bool analyze();
     cv::Mat conformedImage();
-    int width() { return _w; }
-    int height() { return _h; }
-    int depth() { return _depth; }
-    double min() { return _min; }
-    double max() { return _max; }
-    bool needsConvert() { return _convert; }
+    int width() { return w_; }
+    int height() { return h_; }
+    int depth() { return depth_; }
+    double min() { return min_; }
+    double max() { return max_; }
+    bool needsConvert() { return needsConvert_; }
+    bool needsScale() { return needsScale_; }
+    void setScale(double max, double min)
+    {
+        max_ = max;
+        min_ = min;
+    }
 
     boost::filesystem::path path;
 
 private:
-    int _w, _h, _depth;
-    double _min, _max;
-    bool _convert = false;  // true if file needs to be converted
+    int w_{0};
+    int h_{0};
+    int depth_{0};
+    double min_{0};
+    double max_{0};
+    bool needsConvert_{false};
+    bool needsScale_{false};
 };
 }
