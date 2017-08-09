@@ -17,38 +17,39 @@
 #include <vtkSmartPointer.h>
 #include <vtkStripper.h>
 
+#include "vc/core/io/OBJReader.hpp"
 #include "vc/core/types/VolumePkg.hpp"
+#include "vc/meshing/ITK2VTK.hpp"
 
 int main(int argc, char* argv[])
 {
     printf("Running tool: vc_projection\n");
     if (argc < 4) {
         std::cout << std::endl;
-        printf("Usage: vc_projection volpkg seg-id output-dir\n");
+        printf("Usage: vc_projection volpkg mesh.obj output-dir\n");
         exit(-1);
     }
 
     // Load the volume package
     volcart::VolumePkg volpkg(argv[1]);
-    volpkg.setActiveSegmentation(argv[2]);
     std::string outputDir = argv[3];
     int width = volpkg.getSliceWidth();
     int height = volpkg.getSliceHeight();
     int padding = std::to_string(volpkg.getNumberOfSlices()).size();
 
     // Get Mesh
-    vtkSmartPointer<vtkPLYReader> reader = vtkSmartPointer<vtkPLYReader>::New();
-    reader->SetFileName("0-decim.ply");
-    reader->Update();
+    volcart::io::OBJReader reader;
+    reader.setPath(argv[2]);
+    auto mesh = reader.read();
+    auto vtkMesh = vtkSmartPointer<vtkPolyData>::New();
+    volcart::meshing::ITK2VTK(mesh, vtkMesh);
 
     // Setup plane
     vtkSmartPointer<vtkPlane> cutPlane = vtkSmartPointer<vtkPlane>::New();
     cutPlane->SetOrigin(width / 2, height / 2, 0);
     cutPlane->SetNormal(0, 0, 1);
-    auto z_min =
-        static_cast<int>(std::floor(reader->GetOutput()->GetBounds()[4]));
-    auto z_max =
-        static_cast<int>(std::ceil(reader->GetOutput()->GetBounds()[5]));
+    auto z_min = static_cast<int>(std::floor(vtkMesh->GetBounds()[4]));
+    auto z_max = static_cast<int>(std::ceil(vtkMesh->GetBounds()[5]));
 
     // Bounds checks
     if (z_min < 0)
@@ -59,11 +60,11 @@ int main(int argc, char* argv[])
         z_max += 1;
 
     // Setup cutting and stripping pipeline
-    vtkSmartPointer<vtkCutter> cutter = vtkSmartPointer<vtkCutter>::New();
+    auto cutter = vtkSmartPointer<vtkCutter>::New();
     cutter->SetCutFunction(cutPlane);
-    cutter->SetInputConnection(reader->GetOutputPort());
+    cutter->SetInputData(vtkMesh);
 
-    vtkSmartPointer<vtkStripper> stripper = vtkSmartPointer<vtkStripper>::New();
+    auto stripper = vtkSmartPointer<vtkStripper>::New();
     stripper->SetInputConnection(cutter->GetOutputPort());
 
     // Iterate over every z-index in the range between z_min and z_max
@@ -76,15 +77,15 @@ int main(int argc, char* argv[])
                   << "\r" << std::flush;
         cutPlane->SetOrigin(width / 2, height / 2, it);
         stripper->Update();
-        vtkSmartPointer<vtkPolyData> intersection = stripper->GetOutput();
+        auto intersection = stripper->GetOutput();
 
         outputImg = cv::Mat::zeros(height, width, CV_8UC1);
         for (vtkIdType c_id = 0; c_id < intersection->GetNumberOfCells();
              ++c_id) {
-            vtkCell* inputCell = intersection->GetCell(c_id);  // input cell
+            auto inputCell = intersection->GetCell(c_id);  // input cell
             for (vtkIdType p_it = 0; p_it < inputCell->GetNumberOfPoints();
                  ++p_it) {
-                vtkIdType p_id = inputCell->GetPointId(p_it);
+                auto p_id = inputCell->GetPointId(p_it);
                 contour.push_back(cv::Point(
                     static_cast<int>(intersection->GetPoint(p_id)[0]),
                     static_cast<int>(intersection->GetPoint(p_id)[1])));

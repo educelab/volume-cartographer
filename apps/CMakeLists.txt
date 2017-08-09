@@ -90,6 +90,7 @@ target_link_libraries(vc_projection
 add_executable(vc_projection2 src/Projection2.cpp)
 target_link_libraries(vc_projection2
     VC::core
+    VC::meshing
     vtkCommonCore
     vtkCommonDataModel
     vtkFiltersGeneral
