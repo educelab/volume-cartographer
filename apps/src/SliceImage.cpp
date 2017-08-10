@@ -13,7 +13,7 @@ namespace volcart
 
 bool SliceImage::operator==(const SliceImage& b) const
 {
-    return (w_ == b.w_ && h_ == b.h_ && depth_ == b.depth_);
+    return (w_ == b.w_ && h_ == b.h_ && type_ == b.type_);
 }
 
 bool SliceImage::operator<(const SliceImage& b) const
@@ -30,20 +30,19 @@ bool SliceImage::analyze()
         !(boost::filesystem::is_regular_file(path)))
         return false;
 
-    cv::Mat image;
-    image =
+    auto image =
         cv::imread(path.string(), cv::IMREAD_ANYCOLOR | cv::IMREAD_ANYDEPTH);
 
     w_ = image.cols;
     h_ = image.rows;
 
-    depth_ = image.depth();
-    if (image.depth() != CV_16U) {
-        needsScale_ = true;
+    type_ = image.type();
+    if (type_ != CV_16UC1) {
+        needsConvert_ = true;
     }
 
-    if (image.type() != CV_16UC1) {
-        needsConvert_ = true;
+    if (image.depth() != CV_16U) {
+        needsScale_ = true;
     }
 
     cv::minMaxLoc(image, &min_, &max_);
@@ -53,29 +52,23 @@ bool SliceImage::analyze()
 
 cv::Mat SliceImage::conformedImage()
 {
-    // Load the input
-    cv::Mat input =
+    // Load the image
+    auto image =
         cv::imread(path.string(), cv::IMREAD_ANYCOLOR | cv::IMREAD_ANYDEPTH);
-    cv::Mat output;
 
     // Remap values to 16 bit
     if (needsScale_) {
-        input.convertTo(
-            output, CV_16U, MAX_16BPC / (max_ - min_),
+        image.convertTo(
+            image, CV_16U, MAX_16BPC / (max_ - min_),
             -min_ * MAX_16BPC / (max_ - min_));
-        // TODO: #178
-    } else {
-        input.copyTo(output);
     }
 
     // Convert colorspace to grayscale
-    if (input.channels() > 1) {
-        cv::cvtColor(
-            output, output,
-            cv::COLOR_BGR2GRAY);  // OpenCV uses BGR to represent color image
+    if (image.channels() > 1) {
+        cv::cvtColor(image, image, cv::COLOR_BGR2GRAY);
     }
 
-    return output;
+    return image;
 };
 
 }  // namespace volcart

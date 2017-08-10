@@ -285,7 +285,7 @@ void AddVolume(vc::VolumePkg& volpkg, VolumeInfo info)
 
         // Convert or flip
         if (slice.needsConvert() || slice.needsScale() || needsFlip) {
-            // Apply scale
+            // Override slice min/max with volume min/max
             if (slice.needsScale()) {
                 slice.setScale(volMax, volMin);
             }

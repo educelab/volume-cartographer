@@ -22,7 +22,6 @@ public:
     cv::Mat conformedImage();
     int width() { return w_; }
     int height() { return h_; }
-    int depth() { return depth_; }
     double min() { return min_; }
     double max() { return max_; }
     bool needsConvert() { return needsConvert_; }
@@ -38,7 +37,7 @@ public:
 private:
     int w_{0};
     int h_{0};
-    int depth_{0};
+    int type_{0};
     double min_{0};
     double max_{0};
     bool needsConvert_{false};
