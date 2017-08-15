@@ -9,6 +9,7 @@
 
 #include "vc/core/types/ITKMesh.hpp"
 #include "vc/core/types/OrderedPointSet.hpp"
+#include "vc/core/types/Segmentation.hpp"
 #include "vc/core/types/Texture.hpp"
 #include "vc/core/types/Volume.hpp"
 #include "vc/core/types/VolumePkgVersion.hpp"
@@ -157,7 +158,7 @@ public:
     /** @copydoc volume() */
     Volume::Pointer volume() { return volumes_.begin()->second; }
 
-    /** @brief Get a Volume by index number */
+    /** @brief Get a Volume by uuid */
     const Volume::Pointer volume(const Volume::Identifier& id) const
     {
         return volumes_.at(id);
@@ -223,6 +224,10 @@ public:
 
     /** @name Segmentation Data */
     /**@{*/
+    std::vector<Segmentation::Identifier> segmentationIDs() const;
+
+    std::vector<std::string> segmentationNames() const;
+
     /**
      * @brief Creates a new segmentation.
      *
@@ -230,7 +235,20 @@ public:
      * ID to the internal list of segmentations.
      * @return Identifier name of the new segmentation
      */
-    std::string newSegmentation();
+    Segmentation::Pointer newSegmentation(std::string name = "");
+
+    /** @brief Get a Segmentation by uuid */
+    const Segmentation::Pointer segmentation(
+        const Segmentation::Identifier& id) const
+    {
+        return segs_.at(id);
+    }
+
+    /** @copydoc VolumePkg::segmentation(std::string) const */
+    Segmentation::Pointer segmentation(const Segmentation::Identifier& id)
+    {
+        return segs_.at(id);
+    }
 
     /**
      * @brief Returns the list of Segmentation IDs for the VolumePkg.
@@ -383,6 +401,9 @@ private:
     boost::filesystem::path volsDir_;
     /** The list of all volumes in the VolumePkg. */
     std::map<Volume::Identifier, Volume::Pointer> volumes_;
+    /** The list of all segmentations in the VolumePkg. */
+    std::map<Segmentation::Identifier, Segmentation::Pointer> segs_;
+
     /** Segmentation ID of the segmentation that is currently being worked on */
     std::string activeSeg_;
     /** The list of all segmentations in the VolumePkg */

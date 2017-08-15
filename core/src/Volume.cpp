@@ -37,6 +37,7 @@ Volume::Volume(fs::path path, std::string uuid, std::string name)
     metadata_.setPath((path_ / METADATA_FILE));
     metadata_.set("uuid", uuid);
     metadata_.set("name", name);
+    metadata_.set("type", "vol");
     metadata_.set("width", sliceWidth_);
     metadata_.set("height", sliceHeight_);
     metadata_.set("slices", numSlices_);

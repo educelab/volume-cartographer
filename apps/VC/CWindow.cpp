@@ -831,7 +831,8 @@ void CWindow::OnNewPathClicked(void)
         return;
 
     // Make a new segmentation in the volpkg
-    std::string newSegmentationId = fVpkg->newSegmentation();
+    auto seg = fVpkg->newSegmentation();
+    std::string newSegmentationId = seg->id();
 
     // add new path to path list
     QListWidgetItem* aNewPath =

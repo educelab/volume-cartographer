@@ -67,6 +67,15 @@ VolumePkg::VolumePkg(fs::path fileLocation)
         }
     }
 
+    // Load segmentations into the segs_ vector
+    range = boost::make_iterator_range(fs::directory_iterator(segsDir_), {});
+    for (const auto& entry : range) {
+        if (fs::is_directory(entry)) {
+            auto s = Segmentation::New(entry);
+            segs_.emplace(s->id(), s);
+        }
+    }
+
     // Load volumes into volumes_ vector
     range = boost::make_iterator_range(fs::directory_iterator(volsDir_), {});
     for (const auto& entry : range) {
@@ -91,9 +100,9 @@ std::string VolumePkg::getPkgName() const
     auto name = config_.get<std::string>("name");
     if (name != "NULL") {
         return name;
-    } else {
-        return "UnnamedVolume";
     }
+
+    return "UnnamedVolume";
 }
 
 int VolumePkg::getVersion() const { return config_.get<int>("version"); }
@@ -160,22 +169,54 @@ int VolumePkg::getSliceHeight() const { return volume()->sliceHeight(); }
 double VolumePkg::getVoxelSize() const { return volume()->voxelSize(); }
 
 // SEGMENTATION FUNCTIONS //
+std::vector<Segmentation::Identifier> VolumePkg::segmentationIDs() const
+{
+    std::vector<Segmentation::Identifier> ids;
+    for (auto& s : segs_) {
+        ids.emplace_back(s.first);
+    }
+    return ids;
+}
+
+std::vector<std::string> VolumePkg::segmentationNames() const
+{
+    std::vector<std::string> names;
+    for (auto& s : segs_) {
+        names.emplace_back(s.second->name());
+    }
+    return names;
+}
+
 // Make a new folder inside the volume package to house everything for this
 // segmentation and push back the new segmentation into our vector of
 // segmentations_
-std::string VolumePkg::newSegmentation()
+Segmentation::Pointer VolumePkg::newSegmentation(std::string name)
 {
-    // make a new dir based off the current date and time
-    auto newSegName = volcart::DateTime();
-    auto newPath = segsDir_ / newSegName;
+    // Generate a uuid
+    auto uuid = DateTime();
 
-    // If the directory is successfully created, adds the name of the
-    // segementation to the list
-    if (fs::create_directory(newPath)) {
-        segmentations_.push_back(newSegName);
+    // Get dir name if not specified
+    if (name.empty()) {
+        name = uuid;
     }
 
-    return newSegName;
+    // Make the volume directory
+    auto segDir = segsDir_ / uuid;
+    if (!fs::exists(segDir)) {
+        fs::create_directory(segDir);
+    } else {
+        throw std::runtime_error("Segmentation directory already exists");
+    }
+
+    // Make the Segmentation
+    auto r = segs_.emplace(uuid, Segmentation::New(segDir, uuid, name));
+    if (!r.second) {
+        auto msg = "Segmentation already exists with id " + uuid;
+        throw std::runtime_error(msg);
+    }
+
+    // Return the Segmentation Pointer
+    return r.first->second;
 }
 
 // Return a vector of strings representing the names of segmentations_ in the

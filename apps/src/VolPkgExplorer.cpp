@@ -10,7 +10,7 @@ namespace po = boost::program_options;
 namespace vc = volcart;
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 4;
+static constexpr int VOLPKG_SUPPORTED_VERSION = 5;
 
 int main(int argc, char* argv[])
 {
@@ -77,9 +77,9 @@ int main(int argc, char* argv[])
 
     ///// List the segmentations /////
     std::cout << " --- Segmentations ---" << std::endl;
-    auto segIds = vpkg.getSegmentations();
-    for (auto& id : segIds) {
-        std::cout << "[" << id << "]" << std::endl;
+    for (const auto& s : vpkg.segmentationIDs()) {
+        auto seg = vpkg.segmentation(s);
+        std::cout << "[" << seg->id() << "] " << seg->name() << std::endl;
     }
     std::cout << std::endl;
 }
