@@ -13,7 +13,6 @@
 
 GlobalValues::GlobalValues(QRect rec)
     : _status(ThreadStatus::Inactive)
-    , VPKG_Instantiated(false)
     , height(rec.height())
     , width(rec.width())
     , _radius(0)
@@ -26,28 +25,30 @@ int GlobalValues::getHeight() { return height; }
 
 int GlobalValues::getWidth() { return width; }
 
-volcart::VolumePkg* GlobalValues::getVolPkg() { return vpkg; }
+volcart::VolumePkg::Pointer GlobalValues::getVolPkg() { return vpkg; }
 
 void GlobalValues::setPath(QString newPath) { path = newPath; }
 
 void GlobalValues::createVolumePackage()
 {
     // Creates a Volume Package
-    vpkg = new volcart::VolumePkg(path.toStdString());
+    vpkg = volcart::VolumePkg::New(path.toStdString());
     VPKG_Instantiated = true;
 }
 
 void GlobalValues::clearVolumePackage()
 {
-    vpkg = nullptr;             // Clear vpkg
-    VPKG_Instantiated = false;  // Clear VPKG_Instantiated
+    vpkg = nullptr;
+    activeSeg = nullptr;
+    VPKG_Instantiated = false;
 }
 
 void GlobalValues::clearGUI()
 {
     VPKG_Instantiated = false;
-    path = "";
+    path.clear();
     vpkg = nullptr;
+    activeSeg = nullptr;
     segmentations.clear();
     clearRendering();
     _radius = 0;
@@ -58,7 +59,7 @@ void GlobalValues::clearGUI()
 
 void GlobalValues::getMySegmentations()
 {
-    segmentations = vpkg->getSegmentations();
+    segmentations = vpkg->segmentationIDs();
 }
 
 std::vector<std::string> GlobalValues::getSegmentations()

@@ -24,9 +24,8 @@ int main(int /*argc*/, char** argv)
     PerPixelMap perPixelMap;
 
     volpkg = new VolumePkg(argv[1]);
-    volpkg->setActiveSegmentation(argv[2]);
-    fs::path segPath =
-        fs::canonical(fs::path(volpkg->getMeshPath()).parent_path());
+    auto seg = volpkg->segmentation(argv[2]);
+    fs::path segPath = fs::canonical(seg->path());
 
     // Load the initial stuff
     auto tex = cv::imread(segPath.string() + "/textured.png", -1);

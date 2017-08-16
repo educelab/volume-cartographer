@@ -79,12 +79,4 @@ foreach(src ${test_srcs})
         COMMAND ${testname}
     )
 endforeach()
-
-# Copy test resource files
-file(
-    COPY
-        ${EXECUTABLE_OUTPUT_PATH}/Testing.volpkg/paths/starting-path/pointset.vcps
-    DESTINATION
-        ${EXECUTABLE_OUTPUT_PATH}/Testing.volpkg/paths/lrps-test-results
-)
 endif()

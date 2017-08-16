@@ -31,8 +31,6 @@ inline double NormL2(const PointXYZ p1, const PointXYZ p2)
 struct LocalResliceSegmentationFix {
     LocalResliceSegmentationFix() : _pkg("Testing.volpkg"), _segmenter(_pkg) {}
 
-    ~LocalResliceSegmentationFix() {}
-
     volcart::VolumePkg _pkg;
     LocalResliceSegmentation _segmenter;
 };
@@ -41,17 +39,11 @@ struct LocalResliceSegmentationFix {
 BOOST_FIXTURE_TEST_CASE(DefaultSegmentationTest, LocalResliceSegmentationFix)
 {
     // Get the cloud to compare against
-    const std::string groundTruthSeg("local-reslice-particle-sim");
-    _pkg.setActiveSegmentation(groundTruthSeg);
-    const auto groundTruthCloud = _pkg.openCloud();
+    auto groundTruthSeg = _pkg.segmentation("local-reslice-particle-sim");
+    const auto groundTruthCloud = groundTruthSeg->getPointSet();
 
-    // Get the starting cloud to segment and trim it to only the starting path
-    const std::string startingCloudSeg("lrps-test-results");
-    _pkg.setActiveSegmentation(startingCloudSeg);
-    auto startingCloud = _pkg.openCloud();
-
-    volcart::OrderedPointSet<cv::Vec3d> seededCloud(startingCloud.width());
-    auto seededPoints = startingCloud.getRow(0);
+    // Get the starting cloud to segment
+    auto pathSeed = _pkg.segmentation("starting-path")->getPointSet().getRow(0);
 
     // Run segmentation
     // XXX These params are manually input now, later they will be dynamically
@@ -70,10 +62,13 @@ BOOST_FIXTURE_TEST_CASE(DefaultSegmentationTest, LocalResliceSegmentationFix)
     bool dumpVis = false;
     bool visualize = false;
     auto resultCloud = _segmenter.segmentPath(
-        seededPoints, startIndex, endIndex, numIters, stepNumLayers, alpha, k1,
-        k2, beta, delta, peakDistanceWeight, shouldIncludeMiddle, dumpVis,
+        pathSeed, startIndex, endIndex, numIters, stepNumLayers, alpha, k1, k2,
+        beta, delta, peakDistanceWeight, shouldIncludeMiddle, dumpVis,
         visualize);
-    _pkg.saveCloud(resultCloud);
+
+    // Save the results
+    auto testCloudSeg = _pkg.newSegmentation("lrps-test-results");
+    testCloudSeg->setPointSet(resultCloud);
 
     // First compare cloud sizes
     BOOST_REQUIRE_EQUAL(groundTruthCloud.size(), resultCloud.size());

@@ -16,7 +16,7 @@
 #include "vc/core/io/OBJWriter.hpp"
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 4;
+static constexpr int VOLPKG_SUPPORTED_VERSION = 5;
 
 namespace fs = boost::filesystem;
 
@@ -188,14 +188,14 @@ void MainWindow::saveTexture()
 
     // If A Volume Package is Loaded and there are Segmentations (continue)
     if (_globals->isVPKG_Intantiated() &&
-        _globals->getVolPkg()->getSegmentations().size() != 0) {
+        _globals->getVolPkg()->hasSegmentations()) {
         if (_globals->getRendering()
                 .getTexture()
                 .hasImages())  // Checks to see if there are images
         {
             try {
-                fs::path path =
-                    _globals->getVolPkg()->getActiveSegPath() / "textured.obj";
+                auto path =
+                    _globals->getActiveSegmentation()->path() / "textured.obj";
                 volcart::io::OBJWriter mesh_writer;
                 mesh_writer.setPath(path.string());
                 mesh_writer.setRendering(_globals->getRendering());
@@ -233,7 +233,7 @@ void MainWindow::exportTexture()
     // Return if no volume package is loaded or if volpkg doesn't have
     // segmentations
     if (!_globals->isVPKG_Intantiated() ||
-        !_globals->getVolPkg()->getSegmentations().size()) {
+        !_globals->getVolPkg()->hasSegmentations()) {
         QMessageBox::warning(
             this, "Error",
             "Volume package not loaded/no segmentations in volume.");
@@ -245,10 +245,12 @@ void MainWindow::exportTexture()
 
     // Export the generated texture first, otherwise the one already saved to
     // disk
-    if (_globals->getRendering().getTexture().hasImages())
+    if (_globals->getRendering().getTexture().hasImages()) {
         output = _globals->getRendering().getTexture().image(0);
-    else
-        output = _globals->getVolPkg()->getTextureData();
+    } else {
+        auto path = _globals->getActiveSegmentation()->path() / "textured.png";
+        output = cv::imread(path.string(), -1);
+    }
 
     // Return if no image to export
     if (!output.data) {

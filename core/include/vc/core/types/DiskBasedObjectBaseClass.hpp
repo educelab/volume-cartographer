@@ -31,10 +31,13 @@ public:
     using Identifier = std::string;
 
     /** @brief Get the "unique" ID for the object */
-    Identifier id() { return metadata_.get<std::string>("uuid"); }
+    Identifier id() const { return metadata_.get<std::string>("uuid"); }
+
+    /** @brief Get the path to the object */
+    boost::filesystem::path path() const { return path_; }
 
     /** @brief Get the human-readable name for the object */
-    std::string name() { return metadata_.get<std::string>("name"); }
+    std::string name() const { return metadata_.get<std::string>("name"); }
 
     /** @brief Update metadata on disk */
     void saveMetadata() { metadata_.save(); }

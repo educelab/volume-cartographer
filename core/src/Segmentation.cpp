@@ -44,6 +44,7 @@ void Segmentation::setPointSet(const OrderedPointSet<cv::Vec3d>& ps)
     // Set a name into the metadata if we haven't set one already
     if (metadata_.get<std::string>("vcps").empty()) {
         metadata_.set("vcps", "pointset.vcps");
+        metadata_.save();
     }
 
     // Write the pointset to the segmentation file

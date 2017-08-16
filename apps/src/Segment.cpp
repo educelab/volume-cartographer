@@ -12,7 +12,7 @@ namespace vc = volcart;
 namespace vs = volcart::segmentation;
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 4;
+static constexpr int VOLPKG_SUPPORTED_VERSION = 5;
 
 // Default values for global options
 static const int kDefaultStep = 1;
@@ -140,8 +140,8 @@ int main(int argc, char* argv[])
         std::exit(1);
     }
 
+    // Load the VolPkg
     volcart::VolumePkg volpkg(opts["volpkg"].as<std::string>());
-    volpkg.setActiveSegmentation(opts["seg-id"].as<std::string>());
     if (volpkg.getVersion() != VOLPKG_SUPPORTED_VERSION) {
         std::cerr << "[error]: Volume package is version "
                   << volpkg.getVersion()
@@ -162,8 +162,9 @@ int main(int argc, char* argv[])
         step = 1;
     }
 
-    // Load the activeSegmentation's current cloud
-    auto masterCloud = volpkg.openCloud();
+    // Load the segmentation
+    auto seg = volpkg.segmentation(opts["seg-id"].as<std::string>());
+    auto masterCloud = seg->getPointSet();
 
     // Get some info about the cloud, including chain length and z-index's
     // represented by seg.
@@ -261,8 +262,5 @@ int main(int argc, char* argv[])
     immutableCloud.append(mutableCloud);
 
     // Save point cloud and mesh
-    volpkg.saveCloud(immutableCloud);
-    volcart::meshing::OrderedPointSetMesher mesher{immutableCloud};
-    mesher.compute();
-    volpkg.saveMesh(mesher.getOutputMesh());
+    seg->setPointSet(immutableCloud);
 }

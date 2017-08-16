@@ -1,13 +1,7 @@
-#include <iostream>
+#include "vc/core/types/VolumePkg.hpp"
 
 #include <boost/range/iterator_range.hpp>
-#include <opencv2/core.hpp>
-#include <opencv2/imgcodecs.hpp>
 
-#include "vc/core/io/OBJWriter.hpp"
-#include "vc/core/io/PLYWriter.hpp"
-#include "vc/core/io/PointSetIO.hpp"
-#include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/DateTime.hpp"
 
 using namespace volcart;
@@ -58,21 +52,13 @@ VolumePkg::VolumePkg(fs::path fileLocation)
     // Loads the metadata
     config_ = volcart::Metadata(fileLocation / SUBPATH_META);
 
-    // Copy segmentation paths to segmentations_ vector
+    // Load segmentations into the segmentations_ vector
     auto range =
         boost::make_iterator_range(fs::directory_iterator(segsDir_), {});
     for (const auto& entry : range) {
         if (fs::is_directory(entry)) {
-            segmentations_.push_back(fs::basename(entry));
-        }
-    }
-
-    // Load segmentations into the segs_ vector
-    range = boost::make_iterator_range(fs::directory_iterator(segsDir_), {});
-    for (const auto& entry : range) {
-        if (fs::is_directory(entry)) {
             auto s = Segmentation::New(entry);
-            segs_.emplace(s->id(), s);
+            segmentations_.emplace(s->id(), s);
         }
     }
 
@@ -172,7 +158,7 @@ double VolumePkg::getVoxelSize() const { return volume()->voxelSize(); }
 std::vector<Segmentation::Identifier> VolumePkg::segmentationIDs() const
 {
     std::vector<Segmentation::Identifier> ids;
-    for (auto& s : segs_) {
+    for (auto& s : segmentations_) {
         ids.emplace_back(s.first);
     }
     return ids;
@@ -181,7 +167,7 @@ std::vector<Segmentation::Identifier> VolumePkg::segmentationIDs() const
 std::vector<std::string> VolumePkg::segmentationNames() const
 {
     std::vector<std::string> names;
-    for (auto& s : segs_) {
+    for (auto& s : segmentations_) {
         names.emplace_back(s.second->name());
     }
     return names;
@@ -209,7 +195,8 @@ Segmentation::Pointer VolumePkg::newSegmentation(std::string name)
     }
 
     // Make the Segmentation
-    auto r = segs_.emplace(uuid, Segmentation::New(segDir, uuid, name));
+    auto r =
+        segmentations_.emplace(uuid, Segmentation::New(segDir, uuid, name));
     if (!r.second) {
         auto msg = "Segmentation already exists with id " + uuid;
         throw std::runtime_error(msg);
@@ -217,89 +204,6 @@ Segmentation::Pointer VolumePkg::newSegmentation(std::string name)
 
     // Return the Segmentation Pointer
     return r.first->second;
-}
-
-// Return a vector of strings representing the names of segmentations_ in the
-// volpkg
-std::vector<std::string> VolumePkg::getSegmentations() const
-{
-    return segmentations_;
-}
-
-// Set the private variable activeSeg_ to the seg we want to work with
-void VolumePkg::setActiveSegmentation(const std::string& id)
-{
-    // TODO(csparker): #194
-    activeSeg_ = id;
-}
-
-// Return the id of the active segmentation
-std::string VolumePkg::getActiveSegmentation() { return activeSeg_; };
-
-fs::path VolumePkg::getActiveSegPath() { return segsDir_ / activeSeg_; }
-
-// Return the point cloud currently on disk for the activeSegmentation
-volcart::OrderedPointSet<cv::Vec3d> VolumePkg::openCloud() const
-{
-    // TODO(csparker): #195
-    auto outputName = segsDir_ / activeSeg_ / "pointset.vcps";
-    return volcart::PointSetIO<cv::Vec3d>::ReadOrderedPointSet(
-        outputName.string());
-}
-
-// Return the path to the active segmentation's mesh
-fs::path VolumePkg::getMeshPath() const
-{
-    return segsDir_ / activeSeg_ / "cloud.ply";
-}
-
-// Return the texture image as a CV mat
-cv::Mat VolumePkg::getTextureData() const
-{
-    auto texturePath = segsDir_ / activeSeg_ / "textured.png";
-    return cv::imread(texturePath.string(), -1);
-}
-
-// Save a point cloud back to the volumepkg
-int VolumePkg::saveCloud(const volcart::OrderedPointSet<cv::Vec3d>& ps) const
-{
-    auto outputName = segsDir_ / activeSeg_ / "pointset.vcps";
-    std::cerr << "volcart::volpkg::Writing point cloud to file..." << std::endl;
-    volcart::PointSetIO<cv::Vec3d>::WriteOrderedPointSet(
-        outputName.string(), ps);
-    std::cerr << "volcart::volpkg::Point cloud saved." << std::endl;
-    return EXIT_SUCCESS;
-}
-
-int VolumePkg::saveMesh(const volcart::ITKMesh::Pointer& mesh) const
-{
-    fs::path outputName = segsDir_ / activeSeg_ / "cloud.ply";
-    // Creates a PLY writer type and then writes the mesh out to the file
-    volcart::io::PLYWriter writer(outputName, mesh);
-    writer.write();
-    return EXIT_SUCCESS;
-}
-
-void VolumePkg::saveMesh(
-    const volcart::ITKMesh::Pointer& mesh,
-    const volcart::Texture& texture) const
-{
-    // Creates an OBJ writer type and then writes the mesh and the texture out
-    // to the file
-    volcart::io::OBJWriter writer;
-    auto meshPath = segsDir_ / activeSeg_ / "textured.obj";
-    writer.setPath(meshPath);
-    writer.setMesh(mesh);
-    writer.setTexture(texture.image(0));
-    writer.setUVMap(texture.uvMap());
-    writer.write();
-}
-
-void VolumePkg::saveTextureData(const cv::Mat& texture, const std::string& name)
-{
-    auto texturePath = segsDir_ / activeSeg_ / (name + ".png");
-    cv::imwrite(texturePath.string(), texture);
-    std::cout << "Texture image saved" << std::endl;
 }
 
 volcart::Metadata VolumePkg::InitConfig(

@@ -17,7 +17,7 @@
 #include "vc/segmentation/lrps/LocalResliceParticleSim.hpp"
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 4;
+static constexpr int VOLPKG_SUPPORTED_VERSION = 5;
 
 namespace ChaoVis
 {
@@ -140,6 +140,7 @@ private:
     bool fVpkgChanged;
 
     std::string fSegmentationId;
+    volcart::Segmentation::Pointer fSegmentation;
 
     int fMinSegIndex;
     int fMaxSegIndex;
