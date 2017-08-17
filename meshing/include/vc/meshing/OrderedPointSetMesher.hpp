@@ -38,7 +38,7 @@ class OrderedPointSetMesher
 public:
     /** @name Constructors */
     //@{
-    OrderedPointSetMesher();
+    OrderedPointSetMesher() = default;
 
     /**
      * @param points OrderedPointSet to be meshed
@@ -71,7 +71,7 @@ public:
     /**
      * @brief Compute the mesh triangulation.
      */
-    void compute();
+    ITKMesh::Pointer compute();
     //@}
 
 private:

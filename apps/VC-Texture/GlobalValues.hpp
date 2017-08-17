@@ -41,7 +41,13 @@ public:
     int getWidth();
 
     void createVolumePackage();
-    volcart::VolumePkg* getVolPkg();
+    volcart::VolumePkg::Pointer getVolPkg();
+
+    void setActiveSegmentation(std::string id)
+    {
+        activeSeg = vpkg->segmentation(id);
+    }
+    volcart::Segmentation::Pointer getActiveSegmentation() { return activeSeg; }
 
     void clearVolumePackage();
 
@@ -85,11 +91,12 @@ private:
     // The status of the thread running the texturing process
     ThreadStatus _status;
 
-    bool VPKG_Instantiated = false;
+    bool VPKG_Instantiated{false};
     int height;
     int width;
     QString path;
-    volcart::VolumePkg* vpkg;
+    volcart::VolumePkg::Pointer vpkg;
+    volcart::Segmentation::Pointer activeSeg;
     std::vector<std::string> segmentations;
     QPixmap pix;
     QMainWindow* _window;

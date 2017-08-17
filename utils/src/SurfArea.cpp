@@ -11,8 +11,7 @@
 #include "vc/core/io/PLYReader.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
-
-namespace fs = boost::filesystem;
+#include "vc/meshing/OrderedPointSetMesher.hpp"
 
 int main(int argc, char** argv)
 {
@@ -21,37 +20,22 @@ int main(int argc, char** argv)
         exit(-1);
     }
 
+    // Load the VolumePkg
     volcart::VolumePkg vpkg(argv[1]);
+
+    // Get the segmentation
     std::string segID = argv[2];
-    if (segID == "") {
-        std::cerr << "ERROR: Incorrect/missing segmentation ID!" << std::endl;
-        exit(EXIT_FAILURE);
-    }
-    if (vpkg.getVersion() < 2) {
-        std::cerr << "ERROR: Volume package is version " << vpkg.getVersion()
-                  << " but this program requires a version >= 2" << std::endl;
-        exit(EXIT_FAILURE);
-    }
-    vpkg.setActiveSegmentation(segID);
-    fs::path meshName = vpkg.getMeshPath();
+    auto seg = vpkg.segmentation(segID);
 
-    // declare pointer to new Mesh object
-    auto mesh = volcart::ITKMesh::New();
+    // Mesh the point cloud
+    volcart::meshing::OrderedPointSetMesher mesher;
+    mesher.setPointSet(seg->getPointSet());
+    auto mesh = mesher.compute();
 
-    // try to convert the ply to an ITK mesh
-    volcart::io::PLYReader reader(meshName);
-    try {
-        reader.read();
-        mesh = reader.getMesh();
-    } catch (const std::exception& e) {
-        std::cerr << e.what() << std::endl;
-        exit(-1);
-    }
-
-    vtkPolyData* smoothVTK = vtkPolyData::New();
+    auto smoothVTK = vtkPolyData::New();
     volcart::meshing::ITK2VTK(mesh, smoothVTK);
 
-    vtkSmoothPolyDataFilter* smooth = vtkSmoothPolyDataFilter::New();
+    auto smooth = vtkSmoothPolyDataFilter::New();
     smooth->SetInputData(smoothVTK);
     smooth->SetBoundarySmoothing(1);
     smooth->SetNumberOfIterations(10);
@@ -61,8 +45,8 @@ int main(int argc, char** argv)
     auto massProperties = vtkMassProperties::New();
     massProperties->AddInputData(smooth->GetOutput());
 
-    double areaVoxels = massProperties->GetSurfaceArea();
-    double voxelSize = vpkg.getVoxelSize();
+    auto areaVoxels = massProperties->GetSurfaceArea();
+    auto voxelSize = vpkg.getVoxelSize();
 
     long double umArea = areaVoxels * std::pow(voxelSize, 2);
     long double mmArea = umArea * std::pow(0.001, 2);

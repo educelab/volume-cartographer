@@ -3,31 +3,20 @@
 //
 
 #include "vc/core/io/OBJWriter.hpp"
-#include "vc/core/io/PLYReader.hpp"
-#include "vc/core/io/PLYWriter.hpp"
-#include "vc/core/types/Texture.hpp"
 #include "vc/core/types/VolumePkg.hpp"
+#include "vc/meshing/OrderedPointSetMesher.hpp"
 #include "vc/texturing/CompositeTexture.hpp"
 #include "vc/texturing/PPMGenerator.hpp"
 
 int main(int /*argc*/, char* argv[])
 {
-
     volcart::VolumePkg vpkg(argv[1]);
-    vpkg.setActiveSegmentation(argv[2]);
-
-    // declare pointer to new Mesh object
-    auto inputMesh = volcart::ITKMesh::New();
+    auto seg = vpkg.segmentation(argv[2]);
 
     // try to convert the ply to an ITK mesh
-    volcart::io::PLYReader reader(vpkg.getMeshPath());
-    try {
-        reader.read();
-        inputMesh = reader.getMesh();
-    } catch (std::exception e) {
-        std::cerr << e.what() << std::endl;
-        exit(EXIT_SUCCESS);
-    }
+    volcart::meshing::OrderedPointSetMesher mesher;
+    mesher.setPointSet(seg->getPointSet());
+    auto inputMesh = mesher.compute();
 
     size_t width = 608 * 2;
     size_t height = 370 * 2;

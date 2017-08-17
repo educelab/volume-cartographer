@@ -9,14 +9,13 @@
 #include <vtkCleanPolyData.h>
 
 #include "vc/core/io/OBJWriter.hpp"
-#include "vc/core/io/PLYReader.hpp"
-#include "vc/core/io/PLYWriter.hpp"
 #include "vc/core/types/PerPixelMap.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/MeshMath.hpp"
 #include "vc/external/GetMemorySize.hpp"
 #include "vc/meshing/ACVD.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
+#include "vc/meshing/OrderedPointSetMesher.hpp"
 #include "vc/meshing/SmoothNormals.hpp"
 #include "vc/texturing/AngleBasedFlattening.hpp"
 #include "vc/texturing/LayerTexture.hpp"
@@ -27,7 +26,7 @@ namespace po = boost::program_options;
 namespace vc = volcart;
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 4;
+static constexpr int VOLPKG_SUPPORTED_VERSION = 5;
 // Number of vertices per square millimeter
 static constexpr double SAMPLING_DENSITY_FACTOR = 50;
 // Square Micron to square millimeter conversion factor
@@ -131,18 +130,12 @@ int main(int argc, char* argv[])
     auto direction = static_cast<vc::Direction>(parsed["direction"].as<int>());
 
     ///// Load and resample the segmentation /////
-    vpkg.setActiveSegmentation(segID);
-    fs::path meshName = vpkg.getMeshPath();
+    auto seg = vpkg.segmentation(segID);
 
-    // try to convert the ply to an ITK mesh
-    vc::io::PLYReader reader(meshName);
-    try {
-        reader.read();
-    } catch (vc::IOException e) {
-        std::cerr << e.what() << std::endl;
-        return EXIT_FAILURE;
-    }
-    auto input = reader.getMesh();
+    // Mesh the point cloud
+    vc::meshing::OrderedPointSetMesher mesher;
+    mesher.setPointSet(seg->getPointSet());
+    auto input = mesher.compute();
 
     // Calculate sampling density
     auto voxelToMicron = std::pow(volume->voxelSize(), 2);

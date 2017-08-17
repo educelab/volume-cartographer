@@ -6,6 +6,7 @@
 
 #include "CVolumeViewerWithCurve.hpp"
 #include "UDataManipulateUtils.hpp"
+#include "vc/core/io/PLYWriter.hpp"
 #include "vc/core/types/Exceptions.hpp"
 #include "vc/meshing/OrderedPointSetMesher.hpp"
 
@@ -366,21 +367,12 @@ void CWindow::UpdateView(void)
     if (fSegParams.fEndOffset + fPathOnSliceIndex >= fVpkg->getNumberOfSlices())
         fSegParams.fEndOffset =
             (fVpkg->getNumberOfSlices() - 1) - fPathOnSliceIndex;
-    fEdtEndIndex->setText(QString("%1").arg(
-        fSegParams.fEndOffset + fPathOnSliceIndex));  // offset + starting index
+    // offset + starting index
+    fEdtEndIndex->setText(
+        QString("%1").arg(fSegParams.fEndOffset + fPathOnSliceIndex));
 
-    if (fIntersectionCurve.GetPointsNum() == 0) {  // no points in current slice
-        fSegTool->setEnabled(false);
-    } else {
-        fSegTool->setEnabled(true);
-    }
-
-    if (fSegmentationId.length() != 0 &&  // segmentation selected
-        fMasterCloud.empty()) {           // current cloud is empty
-        fPenTool->setEnabled(true);
-    } else {
-        fPenTool->setEnabled(false);
-    }
+    fSegTool->setEnabled(fIntersectionCurve.GetPointsNum() > 0);
+    fPenTool->setEnabled(!fSegmentationId.empty() && fMasterCloud.empty());
 
     // REVISIT - these two states should be mutually exclusive, we guarantee
     // this when we toggle the button, BUGGY!
@@ -424,14 +416,15 @@ void CWindow::ChangePathItem(std::string segID)
 
     // Activate requested segmentation
     fSegmentationId = segID;
-    fVpkg->setActiveSegmentation(fSegmentationId);
+    fSegmentation = fVpkg->segmentation(fSegmentationId);
 
     // load proper point cloud
-    try {
-        fMasterCloud = fVpkg->openCloud();
-    } catch (const volcart::IOException&) {
+    if (fSegmentation->hasPointSet()) {
+        fMasterCloud = fSegmentation->getPointSet();
+    } else {
         fMasterCloud.reset();
     }
+
     SetUpCurves();
 
     // Move us to the lowest slice index for the cloud
@@ -658,9 +651,8 @@ void CWindow::InitPathList(void)
     fPathListWidget->clear();
     if (fVpkg != nullptr) {
         // show the existing paths
-        for (size_t i = 0; i < fVpkg->getSegmentations().size(); ++i) {
-            fPathListWidget->addItem(new QListWidgetItem(
-                QString(fVpkg->getSegmentations()[i].c_str())));
+        for (auto& s : fVpkg->segmentationIDs()) {
+            fPathListWidget->addItem(new QListWidgetItem(QString(s.c_str())));
         }
     }
 }
@@ -740,6 +732,7 @@ void CWindow::CloseVolume(void)
 {
     fVpkg = nullptr;
     fSegmentationId = "";
+    fSegmentation = nullptr;
     fWindowState = EWindowState::WindowStateIdle;  // Set Window State to Idle
     fPenTool->setChecked(false);                   // Reset PenTool Button
     fSegTool->setChecked(false);                   // Reset Segmentation Button
@@ -788,34 +781,19 @@ void CWindow::About(void)
 // Save point cloud to path directory
 void CWindow::SavePointCloud(void)
 {
-    if (fMasterCloud.size() == 0) {
+    if (fMasterCloud.empty()) {
         std::cerr << "VC::message: Empty point cloud. Nothing to save."
                   << std::endl;
         return;
     }
 
     // Try to save cloud to volpkg
-    if (fVpkg->saveCloud(fMasterCloud) != EXIT_SUCCESS) {
+    try {
+        fSegmentation->setPointSet(fMasterCloud);
+    } catch (std::exception& e) {
         QMessageBox::warning(
             this, "Error", "Failed to write cloud to volume package.");
         return;
-    }
-
-    // Only mesh if we have more than one iteration of segmentation
-    if (fMasterCloud.height() <= 1) {
-        std::cerr << "VC::message: Cloud height <= 1. Nothing to mesh."
-                  << std::endl;
-    } else {
-        // Mesh pointset
-        volcart::meshing::OrderedPointSetMesher mesher{fMasterCloud};
-        mesher.compute();
-        if (fVpkg->saveMesh(mesher.getOutputMesh()) != EXIT_SUCCESS) {
-            QMessageBox::warning(
-                this, "Error", "Failed to write mesh to volume package.");
-            return;
-        } else {
-            std::cerr << "VC::message: Succesfully saved mesh." << std::endl;
-        }
     }
 
     statusBar->showMessage(tr("Volume saved."), 5000);
@@ -831,7 +809,8 @@ void CWindow::OnNewPathClicked(void)
         return;
 
     // Make a new segmentation in the volpkg
-    std::string newSegmentationId = fVpkg->newSegmentation();
+    auto seg = fVpkg->newSegmentation();
+    std::string newSegmentationId = seg->id();
 
     // add new path to path list
     QListWidgetItem* aNewPath =

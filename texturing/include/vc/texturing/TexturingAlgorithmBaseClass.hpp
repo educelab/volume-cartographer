@@ -61,7 +61,7 @@ protected:
     /** Volume */
     Volume::Pointer vol_;
     /** Search radius */
-    double radius_;
+    double radius_{1.0};
     /** Search direction */
     Direction direction_{Direction::Bidirectional};
     /** Search sampling interval */

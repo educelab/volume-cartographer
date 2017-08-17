@@ -23,17 +23,20 @@ int main(int argc, char** argv)
     // Load our sources from the volpkg
     volcart::VolumePkg volpkg(argv[1]);
     std::string segID = argv[2];
-    if (segID == "") {
+    if (segID.empty()) {
         std::cerr << "ERROR: Incorrect/missing segmentation ID!" << std::endl;
         exit(EXIT_FAILURE);
     }
-    volpkg.setActiveSegmentation(segID);
+
+    auto seg = volpkg.segmentation(segID);
+
     // Get the Texture Image
-    cv::Mat textureImage = volpkg.getTextureData().clone();
+    auto path = seg->path() / "textured.png";
+    cv::Mat textureImage = cv::imread(path.string(), -1);
 
     // Define which scale image we're going to use
     cv::Mat scaleImage;
-    switch (atoi(argv[3])) {
+    switch (std::stoi(argv[3])) {
         case 0:
             scaleImage = cv::Mat(23, 82, CV_16U, &g_scaleMicro);
             break;

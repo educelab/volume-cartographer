@@ -10,13 +10,13 @@
 #include <vtkCleanPolyData.h>
 
 #include "vc/core/io/OBJWriter.hpp"
-#include "vc/core/io/PLYReader.hpp"
 #include "vc/core/io/PLYWriter.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/MeshMath.hpp"
 #include "vc/external/GetMemorySize.hpp"
 #include "vc/meshing/ACVD.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
+#include "vc/meshing/OrderedPointSetMesher.hpp"
 #include "vc/meshing/SmoothNormals.hpp"
 #include "vc/texturing/AngleBasedFlattening.hpp"
 #include "vc/texturing/CompositeTexture.hpp"
@@ -29,7 +29,7 @@ namespace po = boost::program_options;
 namespace vc = volcart;
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 4;
+static constexpr int VOLPKG_SUPPORTED_VERSION = 5;
 // Number of vertices per square millimeter
 static constexpr double SAMPLING_DENSITY_FACTOR = 50;
 // Square Micron to square millimeter conversion factor
@@ -122,14 +122,8 @@ int main(int argc, char* argv[])
     fs::path outputPath;
     if (parsed.count("output-file")) {
         outputPath = parsed["output-file"].as<std::string>();
-        if (fs::exists(fs::canonical(outputPath.parent_path()))) {
-            outputPath = fs::canonical(outputPath.parent_path()).string() +
-                         "/" + outputPath.filename().string();
-        } else {
-            std::cerr << "ERROR: Cannot write to provided output file. "
-                         "Output directory does not exist."
-                      << std::endl;
-        }
+    } else {
+        outputPath = segID + "_render.obj";
     }
 
     ///// Load the volume package /////
@@ -169,18 +163,12 @@ int main(int argc, char* argv[])
         parsed["weight"].as<int>());
 
     ///// Load and resample the segmentation /////
-    vpkg.setActiveSegmentation(segID);
-    fs::path meshName = vpkg.getMeshPath();
+    auto seg = vpkg.segmentation(segID);
 
-    // try to convert the ply to an ITK mesh
-    vc::io::PLYReader reader(meshName);
-    try {
-        reader.read();
-    } catch (vc::IOException e) {
-        std::cerr << e.what() << std::endl;
-        return EXIT_FAILURE;
-    }
-    auto input = reader.getMesh();
+    // Mesh the point cloud
+    vc::meshing::OrderedPointSetMesher mesher;
+    mesher.setPointSet(seg->getPointSet());
+    auto input = mesher.compute();
 
     // Calculate sampling density
     auto voxelToMicron = std::pow(volume->voxelSize(), 2);
@@ -269,20 +257,16 @@ int main(int argc, char* argv[])
             outputPath.string(), itkACVD, rendering.getTexture());
         writer.write();
     } else if (
-        outputPath.extension() == ".OBJ" || outputPath.extension() == ".obj") {
+        outputPath.extension() == ".PNG" || outputPath.extension() == ".png") {
+        std::cout << "Writing to PNG..." << std::endl;
+        cv::imwrite(outputPath.string(), rendering.getTexture().image(0));
+    } else {
         std::cout << "Writing to OBJ..." << std::endl;
         vc::io::OBJWriter writer;
         writer.setMesh(itkACVD);
         writer.setRendering(rendering);
         writer.setPath(outputPath.string());
         writer.write();
-    } else if (
-        outputPath.extension() == ".PNG" || outputPath.extension() == ".png") {
-        std::cout << "Writing to PNG..." << std::endl;
-        cv::imwrite(outputPath.string(), rendering.getTexture().image(0));
-    } else {
-        std::cout << "Writing to Volume Package..." << std::endl;
-        vpkg.saveMesh(itkACVD, rendering.getTexture());
     }
 
     // Save the PPM

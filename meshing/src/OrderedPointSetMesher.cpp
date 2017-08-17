@@ -10,7 +10,7 @@
 
 using namespace volcart::meshing;
 
-void OrderedPointSetMesher::compute()
+volcart::ITKMesh::Pointer OrderedPointSetMesher::compute()
 {
     // Verify before computation
     if (input_.empty()) {
@@ -67,6 +67,8 @@ void OrderedPointSetMesher::compute()
     volcart::meshing::CalculateNormals calcNorm(output_);
     calcNorm.compute();
     output_ = calcNorm.getMesh();
+
+    return output_;
 }
 
 void OrderedPointSetMesher::add_cell_(size_t a, size_t b, size_t c)

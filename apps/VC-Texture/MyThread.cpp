@@ -17,11 +17,10 @@
 #include "vc/core/util/MeshMath.hpp"
 #include "vc/meshing/ACVD.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
+#include "vc/meshing/OrderedPointSetMesher.hpp"
 #include "vc/texturing/AngleBasedFlattening.hpp"
 #include "vc/texturing/CompositeTexture.hpp"
 #include "vc/texturing/PPMGenerator.hpp"
-
-namespace fs = boost::filesystem;
 
 MyThread::MyThread(GlobalValues* globals)
 {
@@ -32,12 +31,8 @@ MyThread::MyThread(GlobalValues* globals)
 
 void MyThread::run()
 {
-    bool cloudProblem = false;
-
     try {
         double _radius = _globals->getRadius();
-
-        fs::path meshName = _globals->getVolPkg()->getMeshPath();
 
         auto aFilterOption =
             static_cast<volcart::texturing::CompositeTexture::Filter>(
@@ -45,19 +40,29 @@ void MyThread::run()
         auto aDirectionOption =
             static_cast<volcart::Direction>(_globals->getSampleDirection());
 
-        // declare pointer to new Mesh object
-        auto mesh = volcart::ITKMesh::New();
-
-        // try to convert the ply to an ITK mesh
-        volcart::io::PLYReader reader(meshName);
-        try {
-            reader.read();
-            mesh = reader.getMesh();
-        } catch (std::exception e) {
-            cloudProblem = true;
-            std::cerr << e.what() << std::endl;
-            throw;
+        ///// Load and resample the segmentation /////
+        if (!_globals->getActiveSegmentation()->hasPointSet()) {
+            std::cerr << "VC::message: Empty pointset" << std::endl;
+            _globals->setThreadStatus(ThreadStatus::CloudError);
+            return;
         }
+
+        // Load the cloud
+        auto cloud = _globals->getActiveSegmentation()->getPointSet();
+
+        // Only do it if we have more than one iteration of segmentation
+        if (cloud.height() <= 1) {
+            std::cerr << "VC::message: Cloud height <= 1. Nothing to mesh."
+                      << std::endl;
+            return;
+        }
+
+        // Mesh the point cloud
+        volcart::meshing::OrderedPointSetMesher mesher;
+        mesher.setPointSet(cloud);
+
+        // declare pointer to new Mesh object
+        auto mesh = mesher.compute();
 
         // Calculate sampling density
         double voxelsize = _globals->getVolPkg()->getVoxelSize();
@@ -124,11 +129,6 @@ void MyThread::run()
         _globals->setThreadStatus(ThreadStatus::Successful);
 
     } catch (...) {
-        if (cloudProblem) {
-            _globals->setThreadStatus(ThreadStatus::CloudError);
-
-        } else {
-            _globals->setThreadStatus(ThreadStatus::Failed);
-        }
+        _globals->setThreadStatus(ThreadStatus::Failed);
     };
 }
