@@ -9,12 +9,12 @@ namespace volcart
 
 template <
     typename T,
-    int dim,
+    int Dim,
     typename = typename std::enable_if<std::is_arithmetic<T>::value, T>::type>
 class BoundingBox
 {
 public:
-    using Point = cv::Vec<T, dim>;
+    using Point = cv::Vec<T, Dim>;
 
     BoundingBox() = default;
 
@@ -25,7 +25,7 @@ public:
 
     T getLowerBoundByIndex(int i)
     {
-        if (i >= dim) {
+        if (i >= Dim) {
             throw std::domain_error("Invalid dimension index");
         }
         return p0_[i];
@@ -33,7 +33,7 @@ public:
 
     T getUpperBoundByIndex(int i)
     {
-        if (i >= dim) {
+        if (i >= Dim) {
             throw std::domain_error("Invalid dimension index");
         }
         return p1_[i];
@@ -44,7 +44,7 @@ public:
 
     void setLowerBoundByIndex(int i, T val)
     {
-        if (i >= dim) {
+        if (i >= Dim) {
             throw std::domain_error("Invalid dimension index");
         }
         p0_[i] = val;
@@ -52,7 +52,7 @@ public:
 
     void setUpperBoundByIndex(int i, T val)
     {
-        if (i >= dim) {
+        if (i >= Dim) {
             throw std::domain_error("Invalid dimension index");
         }
         p1_[i] = val;
@@ -60,7 +60,7 @@ public:
 
     bool isInBounds(const Point p) const
     {
-        for (int d = 0; d < dim; d++) {
+        for (int d = 0; d < Dim; d++) {
             if (p[d] < p0_[d] || p[d] >= p1_[d]) {
                 return false;
             }

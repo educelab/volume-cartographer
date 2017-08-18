@@ -6,29 +6,30 @@ namespace volcart
 {
 namespace segmentation
 {
-
 /**
  * @class Particle
  * @brief Extends cv::Vec3d with some other things for STPS
  *
- * @warning Why would you use this class? Don't use this class.
- *
  * @ingroup stps
  */
-class Particle : public cv::Vec3d
+class Particle
 {
 public:
-    /** @brief Constructor with Stop status initialization */
-    explicit Particle(cv::Vec3d p) : cv::Vec3d(p), isStopped_(false) {}
+    Particle() = default;
 
-    /** @brief Return Stop status of particle */
-    bool isStopped() const { return isStopped_; }
+    /** @brief Constructor */
+    explicit Particle(const cv::Vec3d& p) : pos(p) {}
 
-    /** @brief Set Stop status on particle */
-    void stop() { isStopped_ = true; }
+    Particle& operator+=(const cv::Vec3d& rhs);
+    Particle& operator*=(const double& rhs);
 
-private:
-    bool isStopped_;
+    cv::Vec3d pos{0, 0, 0};
+
+    double restingL{0};
+    double restingR{0};
 };
+
+Particle operator+(Particle lhs, const cv::Vec3d& rhs);
+Particle operator*(Particle lhs, const double& rhs);
 }
 }

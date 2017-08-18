@@ -25,7 +25,7 @@ using std::end;
 LocalResliceSegmentation::PointSet LocalResliceSegmentation::compute()
 {
     // Duplicate the starting chain
-    auto currentVs = chain_;
+    auto currentVs = startingChain_;
 
     // Update the user-defined boundary
     bb_.setUpperBoundByIndex(2, endIndex_ + 1);
@@ -58,7 +58,7 @@ LocalResliceSegmentation::PointSet LocalResliceSegmentation::compute()
     // Collection to hold all positions
     std::vector<std::vector<Voxel>> points;
     points.reserve(
-        (endIndex_ - startIndex + 1) / static_cast<unsigned long>(stepSize_));
+        (endIndex_ - startIndex + 1) / static_cast<uint64_t>(stepSize_));
     points.push_back(currentVs);
 
     // Iterate over z-slices

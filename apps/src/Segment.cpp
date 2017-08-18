@@ -5,8 +5,8 @@
 
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/meshing/OrderedPointSetMesher.hpp"
-#include "vc/segmentation/stps/StructureTensorParticleSim.hpp"
 #include "vc/segmentation/LocalResliceParticleSim.hpp"
+#include "vc/segmentation/StructureTensorParticleSim.hpp"
 
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;
@@ -133,13 +133,10 @@ int main(int argc, char* argv[])
         std::begin(methodStr), std::end(methodStr), std::back_inserter(lower),
         ::tolower);
     std::cout << "Segmentation method: " << lower << std::endl;
-    if (lower == "stps") {
-        alg = Algorithm::STPS;
-    } else if (lower == "lrps") {
+    if (lower == "lrps") {
         alg = Algorithm::LRPS;
     } else {
-        std::cerr << "[error]: Unknown algorithm type. Must be one of ['LRPS', "
-                     "'STPS']"
+        std::cerr << "[error]: Unknown algorithm type. Must be one of ['LRPS']"
                   << std::endl;
         std::exit(1);
     }
@@ -243,11 +240,7 @@ int main(int argc, char* argv[])
 
     // Run the algorithms
     vc::OrderedPointSet<cv::Vec3d> mutableCloud;
-    if (alg == Algorithm::STPS) {
-        double gravityScale = opts["gravity-scale"].as<double>();
-        mutableCloud = vs::StructureTensorParticleSim(
-            segPath, volpkg, gravityScale, step, endIndex - startIndex);
-    } else {
+    if (alg == Algorithm::LRPS) {
         // Run segmentation using path as our starting points
         vs::LocalResliceSegmentation segmenter;
         segmenter.setChain(segPath);

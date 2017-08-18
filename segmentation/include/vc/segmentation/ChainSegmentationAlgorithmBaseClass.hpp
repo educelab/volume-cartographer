@@ -27,7 +27,7 @@ public:
 
     void setBounds(Bounds b) { bb_ = std::move(b); }
 
-    void setChain(Chain c) { chain_ = std::move(c); }
+    void setChain(Chain c) { startingChain_ = std::move(c); }
 
     void setStepSize(double s) { stepSize_ = s; }
     /**@}*/
@@ -53,7 +53,7 @@ protected:
 
     /** Volume */
     Volume::Pointer vol_;
-    Chain chain_;
+    Chain startingChain_;
     Bounds bb_;
     double stepSize_{1.0};
     /** Result */
