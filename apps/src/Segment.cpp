@@ -1,15 +1,17 @@
 #include <iostream>
 
+#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/meshing/OrderedPointSetMesher.hpp"
-#include "vc/segmentation/lrps/LocalResliceParticleSim.hpp"
 #include "vc/segmentation/stps/StructureTensorParticleSim.hpp"
+#include "vc/segmentation/LocalResliceParticleSim.hpp"
 
+namespace fs = boost::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
-namespace vs = volcart::segmentation;
+namespace vs = vc::segmentation;
 
 // Volpkg version required by this app
 static constexpr int VOLPKG_SUPPORTED_VERSION = 5;
@@ -45,6 +47,8 @@ int main(int argc, char* argv[])
         ("seg-id,s", po::value<std::string>()->required(), "Segmentation ID")
         ("method,m", po::value<std::string>()->required(),
             "Segmentation method: STPS, LRPS")
+        ("volume", po::value<std::string>(),
+            "Volume to use for texturing. Default: First volume.")
         ("start-index", po::value<int>()->default_value(kDefaultStartIndex),
             "Starting slice index. Default to highest z-index in path")
         ("end-index", po::value<int>(),
@@ -140,15 +144,22 @@ int main(int argc, char* argv[])
         std::exit(1);
     }
 
-    // Load the VolPkg
-    volcart::VolumePkg volpkg(opts["volpkg"].as<std::string>());
+    ///// Load the volume package /////
+    fs::path volpkgPath = opts["volpkg"].as<std::string>();
+    vc::VolumePkg volpkg(volpkgPath);
     if (volpkg.getVersion() != VOLPKG_SUPPORTED_VERSION) {
-        std::cerr << "[error]: Volume package is version "
-                  << volpkg.getVersion()
-                  << " but this program requires a version "
-                  << std::to_string(VOLPKG_SUPPORTED_VERSION) << "."
-                  << std::endl;
-        std::exit(1);
+        std::cerr << "ERROR: Volume package is version " << volpkg.getVersion()
+                  << " but this program requires version "
+                  << VOLPKG_SUPPORTED_VERSION << "." << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    ///// Load the Volume /////
+    vc::Volume::Pointer volume;
+    if (opts.count("volume")) {
+        volume = volpkg.volume(opts["volume"].as<std::string>());
+    } else {
+        volume = volpkg.volume();
     }
 
     // Setup
@@ -231,30 +242,31 @@ int main(int argc, char* argv[])
     }
 
     // Run the algorithms
-    volcart::OrderedPointSet<cv::Vec3d> mutableCloud;
+    vc::OrderedPointSet<cv::Vec3d> mutableCloud;
     if (alg == Algorithm::STPS) {
         double gravityScale = opts["gravity-scale"].as<double>();
         mutableCloud = vs::StructureTensorParticleSim(
             segPath, volpkg, gravityScale, step, endIndex - startIndex);
     } else {
-        int numIters = opts["num-iters"].as<int>();
-        int resliceSize = opts["reslice-size"].as<int>();
-        double alpha = opts["alpha"].as<double>();
-        double k1 = opts["k1"].as<double>();
-        double k2 = opts["k2"].as<double>();
-        double beta = opts["beta"].as<double>();
-        double delta = opts["delta"].as<double>();
-        int distanceWeight = opts["distance-weight"].as<int>();
-        bool considerPrevious = opts["consider-previous"].as<bool>();
-        bool visualize = opts.count("visualize");
-        bool dumpVis = opts.count("dump-vis");
-
         // Run segmentation using path as our starting points
-        vs::LocalResliceSegmentation segmenter(volpkg);
-        segmenter.setResliceSize(resliceSize);
-        mutableCloud = segmenter.segmentPath(
-            segPath, startIndex, endIndex, numIters, step, alpha, k1, k2, beta,
-            delta, distanceWeight, considerPrevious, dumpVis, visualize);
+        vs::LocalResliceSegmentation segmenter;
+        segmenter.setChain(segPath);
+        segmenter.setVolume(volume);
+        segmenter.setMaterialThickness(volpkg.getMaterialThickness());
+        segmenter.setTargetZIndex(endIndex);
+        segmenter.setStepSize(step);
+        segmenter.setOptimizationIterations(opts["num-iters"].as<int>());
+        segmenter.setResliceSize(opts["reslice-size"].as<int>());
+        segmenter.setAlpha(opts["alpha"].as<double>());
+        segmenter.setK1(opts["k1"].as<double>());
+        segmenter.setK2(opts["k2"].as<double>());
+        segmenter.setBeta(opts["beta"].as<double>());
+        segmenter.setDelta(opts["delta"].as<double>());
+        segmenter.setDistanceWeightFactor(opts["distance-weight"].as<int>());
+        segmenter.setConsiderPrevious(opts["consider-previous"].as<bool>());
+        segmenter.setVisualize(opts.count("visualize") > 0);
+        segmenter.setDumpVis(opts.count("dump-vis") > 0);
+        mutableCloud = segmenter.compute();
     }
 
     // Update the master cloud with the points we saved and concat the new

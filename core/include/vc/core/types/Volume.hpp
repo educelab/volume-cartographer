@@ -6,6 +6,7 @@
 #include <boost/filesystem.hpp>
 #include <opencv2/core.hpp>
 
+#include "vc/core/types/BoundingBox.hpp"
 #include "vc/core/types/LRUCache.hpp"
 #include "vc/core/types/Metadata.hpp"
 #include "vc/core/types/Reslice.hpp"
@@ -69,6 +70,9 @@ public:
 
     /** ID/Name paid */
     using Description = std::pair<Identifier, std::string>;
+
+    /** Bounding Box type */
+    using Bounds = BoundingBox<double, 3>;
 
     /**@{*/
     /**
@@ -153,6 +157,12 @@ public:
 
     /** @brief Get the number of slices */
     int32_t numSlices() const { return numSlices_; }
+
+    /** @brief Get the bounding box */
+    Bounds bounds() const
+    {
+        return {{0, 0, 0}, {sliceWidth_, sliceHeight_, numSlices_}};
+    }
 
     /** @brief Get the voxel size (in microns) */
     double voxelSize() const { return metadata_.get<double>("voxelsize"); }

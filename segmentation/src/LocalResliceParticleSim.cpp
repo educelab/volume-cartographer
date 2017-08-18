@@ -10,92 +10,75 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
+#include "vc/segmentation/LocalResliceParticleSim.hpp"
 #include "vc/segmentation/lrps/Common.hpp"
 #include "vc/segmentation/lrps/Derivative.hpp"
 #include "vc/segmentation/lrps/EnergyMetrics.hpp"
 #include "vc/segmentation/lrps/FittedCurve.hpp"
 #include "vc/segmentation/lrps/IntensityMap.hpp"
-#include "vc/segmentation/lrps/LocalResliceParticleSim.hpp"
 
 using namespace volcart::segmentation;
 namespace fs = boost::filesystem;
 using std::begin;
 using std::end;
 
-using Voxel = cv::Vec3d;
-
-volcart::OrderedPointSet<cv::Vec3d> ExportAsPCD(
-    const std::vector<std::vector<Voxel>>& points);
-
-volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
-    std::vector<cv::Vec3d> cloud,
-    int startIndex,
-    int endIndex,
-    int numIters,
-    int step,
-    double alpha,
-    double k1,
-    double k2,
-    double beta,
-    double delta,
-    int peakDistanceWeight,
-    bool shouldIncludeMiddle,
-    bool dumpVis,
-    bool visualize)
+LocalResliceSegmentation::PointSet LocalResliceSegmentation::compute()
 {
-    // Convert incoming cloud to voxel vector representation
-    std::vector<Voxel> currentVs;
-    currentVs.reserve(cloud.size());
-    for (auto p : cloud) {
-        currentVs.emplace_back(p[0], p[1], p[2]);
-    }
+    // Duplicate the starting chain
+    auto currentVs = chain_;
 
-    const auto vol = pkg_.volume();  // Debug output information
+    // Update the user-defined boundary
+    bb_.setUpperBoundByIndex(2, endIndex_ + 1);
 
-    // Check that incoming points are all within volume bounds. If not, then
-    // return empty cloud back
-    if (std::any_of(begin(currentVs), end(currentVs), [vol](auto v) {
-            return !vol->isInBounds(v);
+    // Check that incoming points are all within bounds
+    if (std::any_of(begin(currentVs), end(currentVs), [this](auto v) {
+            return !bb_.isInBounds(v) || !vol_->isInBounds(v);
         })) {
-        std::cerr << "[info]: one or more particles is outside volume bounds, "
-                     "halting segmentation"
-                  << std::endl;
-        return volcart::OrderedPointSet<cv::Vec3d>();
+        status_ = Status::ReturnedEarly;
+        return create_final_pointset_({currentVs});
     }
 
     const fs::path outputDir("debugvis");
     const fs::path wholeChainDir(outputDir / "whole_chain");
-    if (dumpVis) {
+    if (dumpVis_) {
         fs::create_directory(outputDir);
         fs::create_directory(wholeChainDir);
     }
 
+    // Calculate the starting index
+    auto minZPoint = std::min_element(
+        begin(currentVs), end(currentVs),
+        [](auto a, auto b) { return a[2] < b[2]; });
+    auto startIndex = static_cast<int>(std::floor((*minZPoint)[2]));
+
+    if (endIndex_ <= startIndex) {
+        throw std::domain_error("end index <= start index");
+    }
+
     // Collection to hold all positions
     std::vector<std::vector<Voxel>> points;
-    points.reserve((endIndex - startIndex + 1) / step);
+    points.reserve(
+        (endIndex_ - startIndex + 1) / static_cast<unsigned long>(stepSize_));
     points.push_back(currentVs);
 
     // Iterate over z-slices
-    for (int zIndex = startIndex;
-         zIndex <= endIndex && zIndex < pkg_.getNumberOfSlices();
-         zIndex += step) {
-        // std::cout << "slice: " << zIndex << std::endl;
+    for (int zIndex = startIndex; zIndex <= endIndex_; zIndex += stepSize_) {
 
         // Directory to dump vis
         std::stringstream ss;
-        ss << std::setw(std::to_string(endIndex).size()) << std::setfill('0')
+        ss << std::setw(std::to_string(endIndex_).size()) << std::setfill('0')
            << zIndex;
         const fs::path zIdxDir = outputDir / ss.str();
 
-        ////////////////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////
         // 0. Resample current positions so they are evenly spaced
         FittedCurve currentCurve(currentVs, zIndex);
         currentVs = currentCurve.evenlySpacePoints();
 
         // Dump entire curve for easy viewing
-        if (dumpVis) {
+        if (dumpVis_) {
             ss.str(std::string());
-            ss << std::setw(std::to_string(endIndex).size())
+            ss << std::setw(std::to_string(endIndex_).size())
                << std::setfill('0') << zIndex << "_chain.png";
             const auto wholeChainPath = wholeChainDir / ss.str();
             cv::imwrite(
@@ -103,7 +86,7 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
                 draw_particle_on_slice_(currentCurve, zIndex, -1, true));
         }
 
-        ////////////////////////////////////////////////////////////////////////////////
+        /////////////////////////////////////////////////////////
         // 1. Generate all candidate positions for all particles
         std::vector<std::deque<Voxel>> nextPositions;
         nextPositions.reserve(currentCurve.size());
@@ -116,19 +99,19 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
         for (int i = 0; i < int(currentCurve.size()); ++i) {
             // Estimate normal and reslice along it
             const cv::Vec3d normal = estimate_normal_at_index_(currentCurve, i);
-            const auto reslice = vol->reslice(
+            const auto reslice = vol_->reslice(
                 currentCurve(i), normal, {0, 0, 1}, resliceSize_, resliceSize_);
             reslices.push_back(reslice);
             auto resliceIntensities = reslice.sliceData();
 
-            // Make the intensity map `step` layers down from current position
-            // and find the maxima
+            // Make the intensity map `stepSize_` layers down from current
+            // position and find the maxima
             const cv::Point2i center{resliceIntensities.cols / 2,
                                      resliceIntensities.rows / 2};
-            const int nextLayerIndex = center.y + step;
+            const int nextLayerIndex = center.y + static_cast<int>(stepSize_);
             IntensityMap map(
-                resliceIntensities, step, peakDistanceWeight,
-                shouldIncludeMiddle);
+                resliceIntensities, static_cast<int>(stepSize_),
+                peakDistanceWeight_, considerPrevious_);
             const auto allMaxima = map.sortedMaxima();
             maps.push_back(map);
 
@@ -149,7 +132,7 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
             nextPositions.push_back(maximaQueue);
         }
 
-        ////////////////////////////////////////////////////////////////////////////////
+        /////////////////////////////////////////////////////////
         // 2. Construct initial guess using top maxima for each next position
         std::vector<Voxel> nextVs;
         nextVs.reserve(currentVs.size());
@@ -168,7 +151,7 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
         boost::circular_buffer<double> dEnergy(3);
         dEnergy.push_back(minEnergy);
 
-        ////////////////////////////////////////////////////////////////////////////////
+        /////////////////////////////////////////////////////////
         // 3. Optimize
         std::vector<int> indices(currentVs.size());
         std::iota(begin(indices), end(indices), 0);
@@ -177,7 +160,7 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
         int n = 0;
 
     iters_start:
-        while (n++ < numIters) {
+        while (n++ < numIters_) {
 
             // Break if our energy gradient is leveling off
             dEnergy.push_back(minEnergy);
@@ -213,7 +196,7 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
 
                     // Found a new optimum?
                     double newE = EnergyMetrics::TotalEnergy(
-                        combCurve, alpha, k1, k2, beta, delta);
+                        combCurve, alpha_, k1_, k2_, beta_, delta_);
                     if (newE < minEnergy) {
                         minEnergy = newE;
                         maps[maxDiffIdx].incrementMaximaIndex();
@@ -225,7 +208,7 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
             }
         }
 
-        ////////////////////////////////////////////////////////////////////////////////
+        /////////////////////////////////////////////////////////
         // 3. Clamp points that jumped too far back to a good (interpolated)
         // position. Do this by looking for places where the square of the
         // second derivative is large, and move them back. Tentatively, I'm only
@@ -269,18 +252,16 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
 
         // Check if any points in nextVs are outside volume boundaries. If so,
         // stop iterating and dump the resulting pointcloud.
-        if (std::any_of(begin(nextVs), end(nextVs), [vol](auto v) {
-                return !vol->isInBounds(v);
+        if (std::any_of(begin(nextVs), end(nextVs), [this](auto v) {
+                return !bb_.isInBounds(v) || !vol_->isInBounds(v);
             })) {
-            std::cout
-                << "Stopping because segmentation is outside volume bounds"
-                << std::endl;
-            break;
+            status_ = Status::ReturnedEarly;
+            return create_final_pointset_(points);
         }
 
-        ////////////////////////////////////////////////////////////////////////////////
+        /////////////////////////////////////////////////////////
         // 4. Visualize if specified by user
-        if (visualize) {
+        if (visualize_) {
             // Since points can change due to 2nd deriv optimization after main
             // optimization, refit a curve and draw that
             FittedCurve newChain(nextVs, zIndex + 1);
@@ -292,9 +273,9 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
 
         // Don't dump IntensityMap until we know which position the
         // algorithm will choose.
-        if (dumpVis) {
+        if (dumpVis_) {
             // Create output directory for this iter's output
-            const size_t nchars = std::to_string(endIndex).size();
+            const size_t nchars = std::to_string(endIndex_).size();
             std::stringstream iterDirSS;
             iterDirSS << std::setw(nchars) << std::setfill('0') << zIndex;
             fs::create_directory(outputDir / iterDirSS.str());
@@ -315,15 +296,15 @@ volcart::OrderedPointSet<cv::Vec3d> LocalResliceSegmentation::segmentPath(
             }
         }
 
-        ////////////////////////////////////////////////////////////////////////////////
+        /////////////////////////////////////////////////////////
         // 5. Set up for next iteration
         currentVs = nextVs;
         points.push_back(nextVs);
     }
 
-    ////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////
     // 6. Output final mesh
-    return ExportAsPCD(points);
+    return create_final_pointset_(points);
 }
 
 cv::Vec3d LocalResliceSegmentation::estimate_normal_at_index_(
@@ -331,8 +312,8 @@ cv::Vec3d LocalResliceSegmentation::estimate_normal_at_index_(
 {
     const cv::Vec3d currentVoxel = currentCurve(index);
     auto stRadius = static_cast<int>(
-        std::ceil(pkg_.getMaterialThickness() / pkg_.getVoxelSize()) / 2);
-    const auto eigenPairs = pkg_.volume()->interpolatedEigenPairsAt(
+        std::ceil(materialThickness_ / vol_->voxelSize()) * 0.5);
+    const auto eigenPairs = vol_->interpolatedEigenPairsAt(
         currentVoxel(0), currentVoxel(1), currentVoxel(2), stRadius);
     const double exp0 = std::log10(eigenPairs[0].first);
     const double exp1 = std::log10(eigenPairs[1].first);
@@ -343,23 +324,25 @@ cv::Vec3d LocalResliceSegmentation::estimate_normal_at_index_(
     return tan3d.cross(cv::Vec3d{0, 0, 1});
 }
 
-volcart::OrderedPointSet<cv::Vec3d> ExportAsPCD(
+LocalResliceSegmentation::PointSet
+LocalResliceSegmentation::create_final_pointset_(
     const std::vector<std::vector<Voxel>>& points)
 {
     int rows = points.size();
     int cols = points[0].size();
     std::vector<cv::Vec3d> tempRow;
-    volcart::OrderedPointSet<cv::Vec3d> cloud(cols);
+    result_.clear();
+    result_.setWidth(cols);
 
     for (int i = 0; i < rows; ++i) {
         for (int j = 0; j < cols; ++j) {
             Voxel v = points[i][j];
             tempRow.emplace_back(v(0), v(1), v(2));
         }
-        cloud.pushRow(tempRow);
+        result_.pushRow(tempRow);
         tempRow.clear();
     }
-    return cloud;
+    return result_;
 }
 
 cv::Mat LocalResliceSegmentation::draw_particle_on_slice_(
@@ -368,7 +351,7 @@ cv::Mat LocalResliceSegmentation::draw_particle_on_slice_(
     int particleIndex,
     bool showSpline) const
 {
-    auto pkgSlice = pkg_.volume()->getSliceDataCopy(sliceIndex);
+    auto pkgSlice = vol_->getSliceDataCopy(sliceIndex);
     pkgSlice.convertTo(
         pkgSlice, CV_8UC3, 1.0 / std::numeric_limits<uint8_t>::max());
     cv::cvtColor(pkgSlice, pkgSlice, cv::COLOR_GRAY2BGR);
@@ -388,7 +371,7 @@ cv::Mat LocalResliceSegmentation::draw_particle_on_slice_(
         // Draw circles on the pkgSlice window for each point
         for (size_t i = 0; i < curve.size(); ++i) {
             cv::Point real{int(curve(i)(0)), int(curve(i)(1))};
-            cv::circle(pkgSlice, real, (showSpline ? 2 : 1), BGR_GREEN, -1);
+            cv::circle(pkgSlice, real, 1, BGR_GREEN, -1);
         }
     }
 

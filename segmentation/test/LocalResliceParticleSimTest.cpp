@@ -7,7 +7,7 @@
 #include <boost/test/unit_test_log.hpp>
 
 #include "vc/core/types/VolumePkg.hpp"
-#include "vc/segmentation/lrps/LocalResliceParticleSim.hpp"
+#include "vc/segmentation/LocalResliceParticleSim.hpp"
 
 using namespace volcart::segmentation;
 namespace tt = boost::test_tools;
@@ -29,26 +29,25 @@ inline double NormL2(const PointXYZ p1, const PointXYZ p2)
 
 // Main fixture containing the LocalResliceSegmentation object
 struct LocalResliceSegmentationFix {
-    LocalResliceSegmentationFix() : _pkg("Testing.volpkg"), _segmenter(_pkg) {}
+    LocalResliceSegmentationFix() : pkg_("Testing.volpkg") {}
 
-    volcart::VolumePkg _pkg;
-    LocalResliceSegmentation _segmenter;
+    volcart::VolumePkg pkg_;
+    LocalResliceSegmentation segmenter_;
 };
 
 // Test for default segmentation
 BOOST_FIXTURE_TEST_CASE(DefaultSegmentationTest, LocalResliceSegmentationFix)
 {
     // Get the cloud to compare against
-    auto groundTruthSeg = _pkg.segmentation("local-reslice-particle-sim");
+    auto groundTruthSeg = pkg_.segmentation("local-reslice-particle-sim");
     const auto groundTruthCloud = groundTruthSeg->getPointSet();
 
     // Get the starting cloud to segment
-    auto pathSeed = _pkg.segmentation("starting-path")->getPointSet().getRow(0);
+    auto pathSeed = pkg_.segmentation("starting-path")->getPointSet().getRow(0);
 
     // Run segmentation
     // XXX These params are manually input now, later they will be dynamically
     // read from the parameters.json file in each segmentation directory
-    int startIndex = 1;
     int endIndex = 182;
     int numIters = 15;
     int stepNumLayers = 1;
@@ -61,13 +60,26 @@ BOOST_FIXTURE_TEST_CASE(DefaultSegmentationTest, LocalResliceSegmentationFix)
     bool shouldIncludeMiddle = false;
     bool dumpVis = false;
     bool visualize = false;
-    auto resultCloud = _segmenter.segmentPath(
-        pathSeed, startIndex, endIndex, numIters, stepNumLayers, alpha, k1, k2,
-        beta, delta, peakDistanceWeight, shouldIncludeMiddle, dumpVis,
-        visualize);
+
+    segmenter_.setChain(pathSeed);
+    segmenter_.setVolume(pkg_.volume());
+    segmenter_.setTargetZIndex(endIndex);
+    segmenter_.setStepSize(stepNumLayers);
+    segmenter_.setOptimizationIterations(numIters);
+    segmenter_.setAlpha(alpha);
+    segmenter_.setK1(k1);
+    segmenter_.setK2(k2);
+    segmenter_.setBeta(beta);
+    segmenter_.setDelta(delta);
+    segmenter_.setMaterialThickness(pkg_.getMaterialThickness());
+    segmenter_.setDistanceWeightFactor(peakDistanceWeight);
+    segmenter_.setConsiderPrevious(shouldIncludeMiddle);
+    segmenter_.setVisualize(visualize);
+    segmenter_.setDumpVis(dumpVis);
+    auto resultCloud = segmenter_.compute();
 
     // Save the results
-    auto testCloudSeg = _pkg.newSegmentation("lrps-test-results");
+    auto testCloudSeg = pkg_.newSegmentation("lrps-test-results");
     testCloudSeg->setPointSet(resultCloud);
 
     // First compare cloud sizes

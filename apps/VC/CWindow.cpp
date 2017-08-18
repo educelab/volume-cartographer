@@ -41,7 +41,7 @@ CWindow::CWindow(void)
     fSegParams.fNumIters = 15;
     fSegParams.fPeakDistanceWeight = 50;
     fSegParams.fWindowWidth = 5;
-    fSegParams.fEndOffset = 5;
+    fSegParams.targetIndex = 5;
 
     // create UI widgets
     CreateWidgets();
@@ -94,7 +94,7 @@ CWindow::CWindow(QRect windowSize)
     fSegParams.fNumIters = 15;
     fSegParams.fPeakDistanceWeight = 50;
     fSegParams.fWindowWidth = 5;
-    fSegParams.fEndOffset = 5;
+    fSegParams.targetIndex = 5;
 
     // create UI widgets
     CreateWidgets();
@@ -364,12 +364,12 @@ void CWindow::UpdateView(void)
     fEdtWindowWidth->setText(QString("%1").arg(fSegParams.fWindowWidth));
     fEdtStartIndex->setText(QString("%1").arg(fPathOnSliceIndex));
 
-    if (fSegParams.fEndOffset + fPathOnSliceIndex >= fVpkg->getNumberOfSlices())
-        fSegParams.fEndOffset =
-            (fVpkg->getNumberOfSlices() - 1) - fPathOnSliceIndex;
-    // offset + starting index
-    fEdtEndIndex->setText(
-        QString("%1").arg(fSegParams.fEndOffset + fPathOnSliceIndex));
+    if (fPathOnSliceIndex + fEndTargetOffset >= fVpkg->getNumberOfSlices()) {
+        fEdtEndIndex->setText(QString::number(fVpkg->getNumberOfSlices() - 1));
+    } else {
+        fEdtEndIndex->setText(
+            QString::number(fPathOnSliceIndex + fEndTargetOffset));
+    }
 
     fSegTool->setEnabled(fIntersectionCurve.GetPointsNum() > 0);
     fPenTool->setEnabled(!fSegmentationId.empty() && fMasterCloud.empty());
@@ -483,14 +483,21 @@ void CWindow::DoSegmentation(void)
     }
 
     // 2) do segmentation from the starting slice
-    volcart::segmentation::LocalResliceSegmentation segmenter(*fVpkg);
+    volcart::segmentation::LocalResliceSegmentation segmenter;
+    segmenter.setChain(fStartingPath);
+    segmenter.setVolume(fVpkg->volume());
+    segmenter.setMaterialThickness(fVpkg->getMaterialThickness());
+    segmenter.setTargetZIndex(fSegParams.targetIndex);
+    segmenter.setOptimizationIterations(fSegParams.fNumIters);
     segmenter.setResliceSize(fSegParams.fWindowWidth);
-    auto result = segmenter.segmentPath(
-        fStartingPath, fEdtStartIndex->text().toInt(),
-        fEdtEndIndex->text().toInt() - 1, fSegParams.fNumIters, 1,
-        fSegParams.fAlpha, fSegParams.fK1, fSegParams.fK2, fSegParams.fBeta,
-        fSegParams.fDelta, fSegParams.fPeakDistanceWeight,
-        fSegParams.fIncludeMiddle, false, false);
+    segmenter.setAlpha(fSegParams.fAlpha);
+    segmenter.setK1(fSegParams.fK1);
+    segmenter.setK2(fSegParams.fK2);
+    segmenter.setBeta(fSegParams.fBeta);
+    segmenter.setDelta(fSegParams.fDelta);
+    segmenter.setDistanceWeightFactor(fSegParams.fPeakDistanceWeight);
+    segmenter.setConsiderPrevious(fSegParams.fIncludeMiddle);
+    auto result = segmenter.compute();
 
     // 3) concatenate the two parts to form the complete point cloud
     fUpperPart.append(result);
@@ -569,9 +576,7 @@ bool CWindow::SetUpSegParams(void)
     aNewVal = fEdtEndIndex->text().toInt(&aIsOk);
     if (aIsOk && aNewVal >= fPathOnSliceIndex &&
         aNewVal < fVpkg->getNumberOfSlices()) {
-        fSegParams.fEndOffset =
-            aNewVal - fPathOnSliceIndex;  // difference between the starting
-                                          // slice and ending slice
+        fSegParams.targetIndex = aNewVal;
     } else {
         return false;
     }
@@ -1025,14 +1030,12 @@ void CWindow::OnEdtEndingSliceValChange()
     int aNewVal = fEdtEndIndex->displayText().toInt(&aIsOk);
     if (aIsOk && aNewVal > fPathOnSliceIndex &&
         aNewVal < fVpkg->getNumberOfSlices()) {
-        fSegParams.fEndOffset =
-            aNewVal - fPathOnSliceIndex;  // difference between the starting
-                                          // slice and ending slice
+        fEndTargetOffset = aNewVal - fPathOnSliceIndex;
     } else {
         statusBar->showMessage(
             tr("ERROR: Selected slice is out of range of the volume!"), 10000);
         fEdtEndIndex->setText(
-            QString::number(fPathOnSliceIndex + fSegParams.fEndOffset));
+            QString::number(fPathOnSliceIndex + fEndTargetOffset));
     }
 }
 

@@ -14,7 +14,7 @@
 #include "ui_VCMain.h"
 
 #include "vc/core/types/VolumePkg.hpp"
-#include "vc/segmentation/lrps/LocalResliceParticleSim.hpp"
+#include "vc/segmentation/LocalResliceParticleSim.hpp"
 
 // Volpkg version required by this app
 static constexpr int VOLPKG_SUPPORTED_VERSION = 5;
@@ -49,7 +49,7 @@ public:
         int fPeakDistanceWeight;
         int fWindowWidth;
         bool fIncludeMiddle;
-        int fEndOffset;
+        int targetIndex;
     } SSegParams;
 
 public:
@@ -144,8 +144,8 @@ private:
 
     int fMinSegIndex;
     int fMaxSegIndex;
-    int fPathOnSliceIndex;  // effectively equivalent to the starting slice
-                            // index
+    int fPathOnSliceIndex;
+    int fEndTargetOffset{5};
 
     // for drawing mode
     CBSpline fSplineCurve;  // the curve at current slice
