@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
         ("volpkg,v", po::value<std::string>()->required(), "VolumePkg path")
         ("seg-id,s", po::value<std::string>()->required(), "Segmentation ID")
         ("method,m", po::value<std::string>()->required(),
-            "Segmentation method: STPS, LRPS")
+            "Segmentation method: LRPS")
         ("volume", po::value<std::string>(),
             "Volume to use for texturing. Default: First volume.")
         ("start-index", po::value<int>()->default_value(kDefaultStartIndex),

@@ -310,17 +310,16 @@ LocalResliceSegmentation::PointSet LocalResliceSegmentation::compute()
 cv::Vec3d LocalResliceSegmentation::estimate_normal_at_index_(
     const FittedCurve& currentCurve, int index)
 {
-    const cv::Vec3d currentVoxel = currentCurve(index);
-    auto stRadius = static_cast<int>(
+    auto currentVoxel = currentCurve(index);
+    auto radius = static_cast<int>(
         std::ceil(materialThickness_ / vol_->voxelSize()) * 0.5);
-    const auto eigenPairs = vol_->interpolatedEigenPairsAt(
-        currentVoxel(0), currentVoxel(1), currentVoxel(2), stRadius);
-    const double exp0 = std::log10(eigenPairs[0].first);
-    const double exp1 = std::log10(eigenPairs[1].first);
+    auto eigenPairs = vol_->interpolatedEigenPairsAt(currentVoxel, radius);
+    double exp0 = std::log10(eigenPairs[0].first);
+    double exp1 = std::log10(eigenPairs[1].first);
     if (std::abs(exp0 - exp1) > 2.0) {
         return eigenPairs[0].second;
     }
-    const auto tan3d = D1At(currentCurve.points(), index, 3);
+    auto tan3d = D1At(currentCurve.points(), index, 3);
     return tan3d.cross(cv::Vec3d{0, 0, 1});
 }
 
@@ -328,14 +327,14 @@ LocalResliceSegmentation::PointSet
 LocalResliceSegmentation::create_final_pointset_(
     const std::vector<std::vector<Voxel>>& points)
 {
-    int rows = points.size();
-    int cols = points[0].size();
+    auto rows = points.size();
+    auto cols = points[0].size();
     std::vector<cv::Vec3d> tempRow;
     result_.clear();
     result_.setWidth(cols);
 
-    for (int i = 0; i < rows; ++i) {
-        for (int j = 0; j < cols; ++j) {
+    for (size_t i = 0; i < rows; ++i) {
+        for (size_t j = 0; j < cols; ++j) {
             Voxel v = points[i][j];
             tempRow.emplace_back(v(0), v(1), v(2));
         }
@@ -371,7 +370,7 @@ cv::Mat LocalResliceSegmentation::draw_particle_on_slice_(
         // Draw circles on the pkgSlice window for each point
         for (size_t i = 0; i < curve.size(); ++i) {
             cv::Point real{int(curve(i)(0)), int(curve(i)(1))};
-            cv::circle(pkgSlice, real, 1, BGR_GREEN, -1);
+            cv::circle(pkgSlice, real, 2, BGR_GREEN, -1);
         }
     }
 

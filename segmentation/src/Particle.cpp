@@ -5,13 +5,13 @@ namespace vcs = volcart::segmentation;
 
 Particle& Particle::operator+=(const cv::Vec3d& rhs)
 {
-    pos += rhs;
+    pos_ += rhs;
     return *this;
 }
 
 Particle& Particle::operator*=(const double& rhs)
 {
-    pos *= rhs;
+    pos_ *= rhs;
     return *this;
 }
 

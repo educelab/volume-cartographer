@@ -26,7 +26,7 @@ namespace segmentation
  * each point, the algorithm then selects the propagated positions for all
  * points in the chain that minimize the energy loss of the chain curvature.
  *
- * Starting and ending indexes are inclusive.
+ * The ending index is inclusive.
  *
  * @ingroup lrps
  */
@@ -39,49 +39,73 @@ public:
     LocalResliceSegmentation() = default;
     /**@}*/
 
-    //    /**
-    //     * @brief Run LRPS with the provided path
-    //     * @param cloud Starting chain
-    //     * @param startIndex Starting z-index
-    //     * @param endIndex Ending z-index
-    //     * @param numIters Number of curve optimization iterations per step
-    //     * @param step Number of z-indices to move each iteration
-    //     * @param alpha Used to calculate energy
-    //     * @param k1 Used to calculate energy
-    //     * @param k2 Used to calculate energy
-    //     * @param beta Used to calculate energy
-    //     * @param delta Used to calculate energy
-    //     * @param peakDistanceWeight Distance weight factor for maxima
-    //     * @param shouldIncludeMiddle Include previous position as candidate
-    //     new
-    //     * position
-    //     * @param dumpVis Debug: Write reslices and IntensityMaps to disk
-    //     * @param visualize Debug: Show IntensityMaps in GUI window
-    //     * @return Segmentation surface point set
-    //     */
-    PointSet compute() override;
-
+    /**@{*/
+    /** @brief Set the target z-index */
     void setTargetZIndex(int z) { endIndex_ = z; }
+
+    /** @brief Set the number of curve optimization iterations per step */
     void setOptimizationIterations(int n) { numIters_ = n; }
 
+    /**
+     * @brief Set the weight for the Active Contour metric
+     * @see double ActiveContourInternal()
+     */
     void setAlpha(double a) { alpha_ = a; }
+
+    /**
+     * @brief Set the stretch weight factor
+     * @see double ActiveContourInternal()
+     */
     void setK1(double k) { k1_ = k; }
+
+    /**
+     * @brief Set the curvature weight factor
+     * @see double ActiveContourInternal()
+     */
     void setK2(double k) { k2_ = k; }
 
+    /**
+     * @brief Set the weight for the Absolute Curvature Sum metric
+     * @see double AbsCurvatureSum()
+     */
     void setBeta(double b) { beta_ = b; }
 
+    /**
+     * @brief Set the weight for the Arc Length metric
+     * @see double WindowedArcLength()
+     */
     void setDelta(double d) { delta_ = d; }
+
+    /**
+     * @brief Set the estimated thickness of the substrate (in um)
+     *
+     * Used to generate the radius of the structure tensor calculation
+     */
+    void setMaterialThickness(double m) { materialThickness_ = m; }
 
     /** @brief Set the reslice window size */
     void setResliceSize(int s) { resliceSize_ = s; }
+
+    /** @brief Set the distance weight factor for candidate positions */
     void setDistanceWeightFactor(int f) { peakDistanceWeight_ = f; }
 
+    /** @brief Set whether to consider previous position as candidate position
+     */
     void setConsiderPrevious(bool b) { considerPrevious_ = b; }
-    void setVisualize(bool b) { visualize_ = b; }
-    void setDumpVis(bool b) { dumpVis_ = b; }
+    /**@}*/
 
-    /** @brief Set normal estimation radius */
-    void setMaterialThickness(double m) { materialThickness_ = m; }
+    /**@{*/
+    /** @brief Compute the segmentation */
+    PointSet compute() override;
+    /**@}*/
+
+    /**@{*/
+    /** Debug: Shows intensity maps in GUI window */
+    void setVisualize(bool b) { visualize_ = b; }
+
+    /** Debug: Dumps reslices and intensity maps to disk */
+    void setDumpVis(bool b) { dumpVis_ = b; }
+    /**@}*/
 
 private:
     /**
@@ -105,23 +129,36 @@ private:
         int particleIndex = -1,
         bool showSpline = false) const;
 
+    /** @brief Convert the internal storage array into a final PointSet */
     PointSet create_final_pointset_(
         const std::vector<std::vector<Voxel>>& points);
 
     /** Default minimum energy gradient */
     constexpr static double DEFAULT_MIN_ENERGY_GRADIENT = 1e-7;
 
+    /** Target z-index */
     int endIndex_{0};
+    /** Active Contour weight parameter */
     double alpha_{1.0 / 3.0};
+    /** Active Contour stretch parameter */
     double k1_{0.5};
+    /** Active Contour curvature parameter */
     double k2_{0.5};
+    /** Abs. Curvature Sum weight parameter */
     double beta_{1.0 / 3.0};
+    /** Arc Length weight parameter */
     double delta_{1.0 / 3.0};
+    /** Distance weight factor for candidate positions */
     int peakDistanceWeight_{50};
+    /** Reconsider previous position flag */
     bool considerPrevious_{false};
+    /** Dump visualization to disk flag */
     bool dumpVis_{false};
+    /** Show visualization in GUI flag */
     bool visualize_{false};
+    /** Number of curve optimization iterations */
     int numIters_{15};
+    /** Estimated material thickness in um */
     double materialThickness_{100};
     /** Window size for reslice */
     int resliceSize_{32};

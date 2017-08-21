@@ -21,7 +21,7 @@ int main(int /*argc*/, char* argv[])
     vcs::StructureTensorParticleSim segmenter;
     segmenter.setChain(chain);
     segmenter.setVolume(volpkg.volume());
-    segmenter.setTargetZIndex(50);
+    segmenter.setNumberOfSteps(40);
     segmenter.setMaterialThickness(volpkg.getMaterialThickness());
     auto result = segmenter.compute();
 
