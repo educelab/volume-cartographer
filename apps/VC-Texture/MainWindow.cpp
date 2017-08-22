@@ -185,17 +185,18 @@ void MainWindow::saveTexture()
     // If A Volume Package is Loaded and there are Segmentations (continue)
     if (_globals->isVPKG_Intantiated() &&
         _globals->getVolPkg()->hasSegmentations()) {
-        if (_globals->getRendering()
-                .getTexture()
-                .hasImages())  // Checks to see if there are images
-        {
+        // Checks to see if there are images
+        if (_globals->getRendering().getTexture().hasImages()) {
             try {
                 auto path =
                     _globals->getActiveSegmentation()->path() / "textured.obj";
-                volcart::io::OBJWriter mesh_writer;
-                mesh_writer.setPath(path.string());
-                mesh_writer.setRendering(_globals->getRendering());
-                mesh_writer.write();
+                volcart::io::OBJWriter writer;
+                writer.setPath(path.string());
+                writer.setMesh(_globals->getRendering().getMesh());
+                writer.setUVMap(_globals->getRendering().getTexture().uvMap());
+                writer.setTexture(
+                    _globals->getRendering().getTexture().image(0));
+                writer.write();
                 _globals->setThreadStatus(ThreadStatus::Inactive);
                 QMessageBox::information(
                     this, tr("Error Message"), "Saved Successfully.");
