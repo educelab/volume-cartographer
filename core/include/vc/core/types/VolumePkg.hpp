@@ -6,6 +6,7 @@
 #include <boost/filesystem.hpp>
 
 #include "vc/core/types/Metadata.hpp"
+#include "vc/core/types/Render.hpp"
 #include "vc/core/types/Segmentation.hpp"
 #include "vc/core/types/Volume.hpp"
 #include "vc/core/types/VolumePkgVersion.hpp"
@@ -175,10 +176,10 @@ public:
 
     /** @name Segmentation Data */
     /**@{*/
-    /** @brief Return whether there are Volumes */
+    /** @brief Return whether there are Segmentations */
     bool hasSegmentations() { return !segmentations_.empty(); }
 
-    /** @brief Get the number of Volumes */
+    /** @brief Get the number of Segmentations */
     size_t numberOfSegmentations() { return segmentations_.size(); }
 
     /** @brief Get the list of Segmentation IDs */
@@ -210,19 +211,58 @@ public:
     }
     /**@}*/
 
+    /** @name Render Data */
+    /**@{*/
+    /** @brief Return whether there are Renders */
+    bool hasRenders() { return !renders_.empty(); }
+
+    /** @brief Get the number of Renders */
+    size_t numberOfRenders() { return renders_.size(); }
+
+    /** @brief Get the list of Render IDs */
+    std::vector<Render::Identifier> renderIDs() const;
+
+    /** @brief Get the list of Render names */
+    std::vector<std::string> renderNames() const;
+
+    /**
+     * @brief Creates a new Render.
+     *
+     * Populates the .volpkg file with a new Render directory and adds the ID to
+     * the internal list of Renders.
+     */
+    Render::Pointer newRender(std::string name = "");
+
+    /** @brief Get a Render by uuid */
+    const Render::Pointer render(const Render::Identifier& id) const
+    {
+        return renders_.at(id);
+    }
+
+    /** @copydoc VolumePkg::render(std::string) const */
+    Render::Pointer render(const Render::Identifier& id)
+    {
+        return renders_.at(id);
+    }
+    /**@}*/
+
 private:
     /** VolumePkg metadata */
     Metadata config_;
     /** The root directory of the VolumePkg */
     boost::filesystem::path rootDir_;
+    /** The subdirectory containing Volume data */
+    boost::filesystem::path volsDir_;
     /** The subdirectory containing Segmentation data */
     boost::filesystem::path segsDir_;
-    /** The subdirectory containing slice data */
-    boost::filesystem::path volsDir_;
-    /** The list of all volumes in the VolumePkg. */
+    /** The subdirectory containing Render data */
+    boost::filesystem::path rendDir_;
+    /** The list of all Volumes in the VolumePkg. */
     std::map<Volume::Identifier, Volume::Pointer> volumes_;
-    /** The list of all segmentations in the VolumePkg. */
+    /** The list of all Segmentations in the VolumePkg. */
     std::map<Segmentation::Identifier, Segmentation::Pointer> segmentations_;
+    /** The list of all Renders in the VolumePkg. */
+    std::map<Render::Identifier, Render::Pointer> renders_;
 
     /**
      * @brief Populates an empty VolumePkg::config from a volcart::Dictionary
