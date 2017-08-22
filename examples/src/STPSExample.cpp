@@ -22,7 +22,7 @@ int main(int /*argc*/, char* argv[])
     segmenter.setChain(chain);
     segmenter.setVolume(volpkg.volume());
     segmenter.setNumberOfSteps(40);
-    segmenter.setMaterialThickness(volpkg.getMaterialThickness());
+    segmenter.setMaterialThickness(volpkg.materialThickness());
     auto result = segmenter.compute();
 
     seg->setPointSet(result);

@@ -26,8 +26,8 @@ VolumePkg::VolumePkg(fs::path fileLocation, int version)
     }
 
     // Create the directories with the default values
-    // TODO(skarlage): #181
     config_ = VolumePkg::InitConfig(findDict->second, version);
+    config_.setPath(rootDir_ / "config.json");
 
     // Make directories
     for (const auto& d : {rootDir_, segsDir_, volsDir_}) {
@@ -35,6 +35,9 @@ VolumePkg::VolumePkg(fs::path fileLocation, int version)
             fs::create_directory(d);
         }
     }
+
+    // Do initial save
+    config_.save();
 }
 
 // Use this when reading a volpkg from a file
@@ -80,7 +83,7 @@ VolumePkg::Pointer VolumePkg::New(boost::filesystem::path fileLocation)
 
 // METADATA RETRIEVAL //
 // Returns Volume Name from JSON config
-std::string VolumePkg::getPkgName() const
+std::string VolumePkg::name() const
 {
     // Gets the Volume name from the configuration file
     auto name = config_.get<std::string>("name");
@@ -91,9 +94,9 @@ std::string VolumePkg::getPkgName() const
     return "UnnamedVolume";
 }
 
-int VolumePkg::getVersion() const { return config_.get<int>("version"); }
+int VolumePkg::version() const { return config_.get<int>("version"); }
 
-double VolumePkg::getMaterialThickness() const
+double VolumePkg::materialThickness() const
 {
     return config_.get<double>("materialthickness");
 }
@@ -145,14 +148,6 @@ Volume::Pointer VolumePkg::newVolume(std::string name)
     // Return the Volume Pointer
     return r.first->second;
 }
-
-int VolumePkg::getNumberOfSlices() const { return volume()->numSlices(); }
-
-int VolumePkg::getSliceWidth() const { return volume()->sliceWidth(); }
-
-int VolumePkg::getSliceHeight() const { return volume()->sliceHeight(); }
-
-double VolumePkg::getVoxelSize() const { return volume()->voxelSize(); }
 
 // SEGMENTATION FUNCTIONS //
 std::vector<Segmentation::Identifier> VolumePkg::segmentationIDs() const

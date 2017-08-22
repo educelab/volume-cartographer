@@ -350,7 +350,7 @@ void CWindow::UpdateView(void)
 
     // show volume package name
     this->findChild<QLabel*>("lblVpkgName")
-        ->setText(QString(fVpkg->getPkgName().c_str()));
+        ->setText(QString(fVpkg->name().c_str()));
 
     // set widget accessibility properly based on the states: is drawing? is
     // editing?
@@ -364,8 +364,9 @@ void CWindow::UpdateView(void)
     fEdtWindowWidth->setText(QString("%1").arg(fSegParams.fWindowWidth));
     fEdtStartIndex->setText(QString("%1").arg(fPathOnSliceIndex));
 
-    if (fPathOnSliceIndex + fEndTargetOffset >= fVpkg->getNumberOfSlices()) {
-        fEdtEndIndex->setText(QString::number(fVpkg->getNumberOfSlices() - 1));
+    if (fPathOnSliceIndex + fEndTargetOffset >= fVpkg->volume()->numSlices()) {
+        fEdtEndIndex->setText(
+            QString::number(fVpkg->volume()->numSlices() - 1));
     } else {
         fEdtEndIndex->setText(
             QString::number(fPathOnSliceIndex + fEndTargetOffset));
@@ -486,7 +487,7 @@ void CWindow::DoSegmentation(void)
     volcart::segmentation::LocalResliceSegmentation segmenter;
     segmenter.setChain(fStartingPath);
     segmenter.setVolume(fVpkg->volume());
-    segmenter.setMaterialThickness(fVpkg->getMaterialThickness());
+    segmenter.setMaterialThickness(fVpkg->materialThickness());
     segmenter.setTargetZIndex(fSegParams.targetIndex);
     segmenter.setOptimizationIterations(fSegParams.fNumIters);
     segmenter.setResliceSize(fSegParams.fWindowWidth);
@@ -575,7 +576,7 @@ bool CWindow::SetUpSegParams(void)
     // ending slice index
     aNewVal = fEdtEndIndex->text().toInt(&aIsOk);
     if (aIsOk && aNewVal >= fPathOnSliceIndex &&
-        aNewVal < fVpkg->getNumberOfSlices()) {
+        aNewVal < fVpkg->volume()->numSlices()) {
         fSegParams.targetIndex = aNewVal;
     } else {
         return false;
@@ -716,9 +717,9 @@ void CWindow::OpenVolume(void)
     }
 
     // Check version number
-    if (fVpkg->getVersion() != VOLPKG_SUPPORTED_VERSION) {
+    if (fVpkg->version() != VOLPKG_SUPPORTED_VERSION) {
         std::string msg = "VC::Error: Volume package is version " +
-                          std::to_string(fVpkg->getVersion()) +
+                          std::to_string(fVpkg->version()) +
                           " but this program requires a version " +
                           std::to_string(VOLPKG_SUPPORTED_VERSION) + ".";
         std::cerr << msg << std::endl;
@@ -730,7 +731,7 @@ void CWindow::OpenVolume(void)
     fVpkgPath = aVpkgPath;
     fPathOnSliceIndex = 0;
     fSegParams.fWindowWidth = static_cast<int>(
-        std::ceil(fVpkg->getMaterialThickness() / fVpkg->getVoxelSize()));
+        std::ceil(fVpkg->materialThickness() / fVpkg->volume()->voxelSize()));
 }
 
 void CWindow::CloseVolume(void)
@@ -1029,7 +1030,7 @@ void CWindow::OnEdtEndingSliceValChange()
     bool aIsOk = false;
     int aNewVal = fEdtEndIndex->displayText().toInt(&aIsOk);
     if (aIsOk && aNewVal > fPathOnSliceIndex &&
-        aNewVal < fVpkg->getNumberOfSlices()) {
+        aNewVal < fVpkg->volume()->numSlices()) {
         fEndTargetOffset = aNewVal - fPathOnSliceIndex;
     } else {
         statusBar->showMessage(
@@ -1057,7 +1058,7 @@ void CWindow::OnEdtImpactRange(int nImpactRange)
 // Handle loading any slice
 void CWindow::OnLoadAnySlice(int nSliceIndex)
 {
-    if (nSliceIndex >= 0 && nSliceIndex < fVpkg->getNumberOfSlices()) {
+    if (nSliceIndex >= 0 && nSliceIndex < fVpkg->volume()->numSlices()) {
         fPathOnSliceIndex = nSliceIndex;
         OpenSlice();
         SetCurrentCurve(fPathOnSliceIndex);
@@ -1071,8 +1072,8 @@ void CWindow::OnLoadAnySlice(int nSliceIndex)
 void CWindow::OnLoadNextSlice(void)
 {
     int shift = (qga::keyboardModifiers() == Qt::ShiftModifier) ? 10 : 1;
-    if (fPathOnSliceIndex + shift >= fVpkg->getNumberOfSlices()) {
-        shift = fVpkg->getNumberOfSlices() - fPathOnSliceIndex - 1;
+    if (fPathOnSliceIndex + shift >= fVpkg->volume()->numSlices()) {
+        shift = fVpkg->volume()->numSlices() - fPathOnSliceIndex - 1;
     }
 
     if (shift != 0) {

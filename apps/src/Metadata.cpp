@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
     // Print metadata
     if (opts.count("print")) {
         std::cout << "Initial metadata: " << std::endl;
-        volpkg.printJSON();
+        volpkg.metadata().printObject();
         std::cout << std::endl;
     }
 
@@ -112,10 +112,10 @@ int main(int argc, char* argv[])
         }
 
         // Find metadata type mapping for given version.
-        auto types_it = volcart::VERSION_LIBRARY.find(volpkg.getVersion());
+        auto types_it = volcart::VERSION_LIBRARY.find(volpkg.version());
         if (types_it == std::end(volcart::VERSION_LIBRARY)) {
             std::cerr << "Could not find type mapping for version "
-                      << volpkg.getVersion() << std::endl;
+                      << volpkg.version() << std::endl;
             std::exit(1);
         }
         auto typeMap = types_it->second;
@@ -151,7 +151,7 @@ int main(int argc, char* argv[])
         // Only print, don't save.
         if (opts.count("test")) {
             std::cout << "Final metadata: " << std::endl;
-            volpkg.printJSON();
+            volpkg.metadata().printObject();
             std::cout << std::endl;
             return EXIT_SUCCESS;
         }

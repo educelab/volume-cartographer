@@ -69,9 +69,9 @@ int main(int argc, char** argv)
         // Generate random starting point
         std::random_device rd;
         std::default_random_engine eng(rd());
-        std::uniform_int_distribution<> xdist(0, volpkg.getSliceWidth());
-        std::uniform_int_distribution<> ydist(0, volpkg.getSliceHeight());
-        std::uniform_int_distribution<> zdist(0, volpkg.getNumberOfSlices());
+        std::uniform_int_distribution<> xdist(0, vol->sliceWidth());
+        std::uniform_int_distribution<> ydist(0, vol->sliceHeight());
+        std::uniform_int_distribution<> zdist(0, vol->numSlices());
         cx = xdist(eng);
         cy = ydist(eng);
         cz = zdist(eng);
