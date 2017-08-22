@@ -3,12 +3,14 @@ set(module "segmentation")
 set(target "vc_${module}")
 
 set(srcs
-    src/Chain.cpp
     src/Common.cpp
     src/EnergyMetrics.cpp
+    src/ForceChain.cpp
     src/FittedCurve.cpp
     src/IntensityMap.cpp
     src/LocalResliceParticleSim.cpp
+    src/Particle.cpp
+    src/ParticleChain.cpp
     src/StructureTensorParticleSim.cpp
 )
 set(deps
