@@ -80,20 +80,22 @@ target_link_libraries(vc_metaedit
 )
 
 ## Slice Projection ##
-# Old
 add_executable(vc_projection src/Projection.cpp)
 target_link_libraries(vc_projection
     VC::core
-)
-
-# New
-add_executable(vc_projection2 src/Projection2.cpp)
-target_link_libraries(vc_projection2
-    VC::core
+    VC::meshing
+    Boost::filesystem
+    Boost::program_options
     vtkCommonCore
     vtkCommonDataModel
     vtkFiltersGeneral
-    vtkIOPLY
+)
+
+add_executable(vc_volpkg_explorer src/VolPkgExplorer.cpp)
+target_link_libraries(vc_volpkg_explorer
+    VC::core
+    Boost::program_options
+    Boost::filesystem
 )
 
 ## Cloth Flattening ##
@@ -115,9 +117,8 @@ install(
         vc_packager
         vc_segment
         vc_render
-        vc_metaedit
         vc_projection
-        vc_projection2
+        vc_volpkg_explorer
     RUNTIME DESTINATION bin
     COMPONENT Programs
 )

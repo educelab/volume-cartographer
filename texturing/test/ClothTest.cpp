@@ -6,7 +6,7 @@
 
 #include <boost/test/unit_test.hpp>
 #include "vc/core/shapes/Arch.hpp"
-#include "vc/core/vc_defines.hpp"
+#include "vc/core/types/SimpleMesh.hpp"
 #include "vc/testing/ParsingHelpers.hpp"
 #include "vc/testing/TestingUtils.hpp"
 #include "vc/texturing/ClothModelingUVMapping.hpp"
@@ -113,14 +113,14 @@ struct CreateArchClothUVFixture {
     uint16_t _collisionIt;
     uint16_t _expansionIt;
 
-    std::vector<Vertex> _SavedPoints_unfurl;
-    std::vector<Cell> _SavedCells_unfurl;
+    std::vector<SimpleMesh::Vertex> _SavedPoints_unfurl;
+    std::vector<SimpleMesh::Cell> _SavedCells_unfurl;
 
-    std::vector<Vertex> _SavedPoints_collide;
-    std::vector<Cell> _SavedCells_collide;
+    std::vector<SimpleMesh::Vertex> _SavedPoints_collide;
+    std::vector<SimpleMesh::Cell> _SavedCells_collide;
 
-    std::vector<Vertex> _SavedPoints_final;
-    std::vector<Cell> _SavedCells_final;
+    std::vector<SimpleMesh::Vertex> _SavedPoints_final;
+    std::vector<SimpleMesh::Cell> _SavedCells_final;
 };
 
 /*

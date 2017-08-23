@@ -16,6 +16,8 @@
 // the centroid of each diagram as a new point
 // in the resampled output mesh.
 
+#include <array>
+
 #include <vtkIsotropicDiscreteRemeshing.h>
 #include <vtkPolyDataNormals.h>
 

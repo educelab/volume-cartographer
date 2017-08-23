@@ -7,7 +7,7 @@
 #include <boost/test/unit_test_log.hpp>
 
 #include "vc/core/types/VolumePkg.hpp"
-#include "vc/segmentation/lrps/LocalResliceParticleSim.hpp"
+#include "vc/segmentation/LocalResliceParticleSim.hpp"
 
 using namespace volcart::segmentation;
 namespace tt = boost::test_tools;
@@ -29,34 +29,25 @@ inline double NormL2(const PointXYZ p1, const PointXYZ p2)
 
 // Main fixture containing the LocalResliceSegmentation object
 struct LocalResliceSegmentationFix {
-    LocalResliceSegmentationFix() : _pkg("Testing.volpkg"), _segmenter(_pkg) {}
+    LocalResliceSegmentationFix() : pkg_("Testing.volpkg") {}
 
-    ~LocalResliceSegmentationFix() {}
-
-    volcart::VolumePkg _pkg;
-    LocalResliceSegmentation _segmenter;
+    volcart::VolumePkg pkg_;
+    LocalResliceSegmentation segmenter_;
 };
 
 // Test for default segmentation
 BOOST_FIXTURE_TEST_CASE(DefaultSegmentationTest, LocalResliceSegmentationFix)
 {
     // Get the cloud to compare against
-    const std::string groundTruthSeg("local-reslice-particle-sim");
-    _pkg.setActiveSegmentation(groundTruthSeg);
-    const auto groundTruthCloud = _pkg.openCloud();
+    auto groundTruthSeg = pkg_.segmentation("local-reslice-particle-sim");
+    const auto groundTruthCloud = groundTruthSeg->getPointSet();
 
-    // Get the starting cloud to segment and trim it to only the starting path
-    const std::string startingCloudSeg("lrps-test-results");
-    _pkg.setActiveSegmentation(startingCloudSeg);
-    auto startingCloud = _pkg.openCloud();
-
-    volcart::OrderedPointSet<cv::Vec3d> seededCloud(startingCloud.width());
-    auto seededPoints = startingCloud.getRow(0);
+    // Get the starting cloud to segment
+    auto pathSeed = pkg_.segmentation("starting-path")->getPointSet().getRow(0);
 
     // Run segmentation
     // XXX These params are manually input now, later they will be dynamically
     // read from the parameters.json file in each segmentation directory
-    int startIndex = 1;
     int endIndex = 182;
     int numIters = 15;
     int stepNumLayers = 1;
@@ -69,11 +60,27 @@ BOOST_FIXTURE_TEST_CASE(DefaultSegmentationTest, LocalResliceSegmentationFix)
     bool shouldIncludeMiddle = false;
     bool dumpVis = false;
     bool visualize = false;
-    auto resultCloud = _segmenter.segmentPath(
-        seededPoints, startIndex, endIndex, numIters, stepNumLayers, alpha, k1,
-        k2, beta, delta, peakDistanceWeight, shouldIncludeMiddle, dumpVis,
-        visualize);
-    _pkg.saveCloud(resultCloud);
+
+    segmenter_.setChain(pathSeed);
+    segmenter_.setVolume(pkg_.volume());
+    segmenter_.setTargetZIndex(endIndex);
+    segmenter_.setStepSize(stepNumLayers);
+    segmenter_.setOptimizationIterations(numIters);
+    segmenter_.setAlpha(alpha);
+    segmenter_.setK1(k1);
+    segmenter_.setK2(k2);
+    segmenter_.setBeta(beta);
+    segmenter_.setDelta(delta);
+    segmenter_.setMaterialThickness(pkg_.materialThickness());
+    segmenter_.setDistanceWeightFactor(peakDistanceWeight);
+    segmenter_.setConsiderPrevious(shouldIncludeMiddle);
+    segmenter_.setVisualize(visualize);
+    segmenter_.setDumpVis(dumpVis);
+    auto resultCloud = segmenter_.compute();
+
+    // Save the results
+    auto testCloudSeg = pkg_.newSegmentation("lrps-test-results");
+    testCloudSeg->setPointSet(resultCloud);
 
     // First compare cloud sizes
     BOOST_REQUIRE_EQUAL(groundTruthCloud.size(), resultCloud.size());

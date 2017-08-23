@@ -5,7 +5,7 @@
 
 #include <boost/filesystem/path.hpp>
 
-#include "vc/core/vc_defines.hpp"
+#include "vc/core/types/SimpleMesh.hpp"
 
 /*
  * Purpose of File:
@@ -24,12 +24,12 @@ class ParsingHelpers
 public:
     static void ParsePLYFile(
         const boost::filesystem::path& filepath,
-        std::vector<Vertex>& verts,
-        std::vector<Cell>& faces);
+        std::vector<SimpleMesh::Vertex>& verts,
+        std::vector<SimpleMesh::Cell>& faces);
     static void ParseOBJFile(
         const boost::filesystem::path& filepath,
-        std::vector<Vertex>& points,
-        std::vector<Cell>& cells);
+        std::vector<SimpleMesh::Vertex>& points,
+        std::vector<SimpleMesh::Cell>& cells);
 
 private:
     static std::vector<std::string> SplitString(std::string input);

@@ -11,8 +11,6 @@
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/shapes/Arch.hpp"
 #include "vc/core/shapes/Plane.hpp"
-#include "vc/core/types/VolumePkg.hpp"
-#include "vc/core/vc_defines.hpp"
 #include "vc/texturing/LeastSquaresConformalMapping.hpp"
 
 int main()

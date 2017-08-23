@@ -18,9 +18,9 @@
 #include <QMenu>
 #include <QPixmap>
 #include <QRect>
-#include "vc/core/types/Rendering.hpp"
+
+#include "Rendering.hpp"
 #include "vc/core/types/VolumePkg.hpp"
-#include "vc/core/vc_defines.hpp"
 
 // Determines the _status of the thread running texturing
 enum ThreadStatus {
@@ -42,7 +42,13 @@ public:
     int getWidth();
 
     void createVolumePackage();
-    volcart::VolumePkg* getVolPkg();
+    volcart::VolumePkg::Pointer getVolPkg();
+
+    void setActiveSegmentation(std::string id)
+    {
+        activeSeg = vpkg->segmentation(id);
+    }
+    volcart::Segmentation::Pointer getActiveSegmentation() { return activeSeg; }
 
     void clearVolumePackage();
 
@@ -61,9 +67,9 @@ public:
     void setWindow(QMainWindow* window);
     QMainWindow* getWindow();
 
-    void setRendering(volcart::Rendering rendering);
+    void setRendering(Rendering rendering);
     void clearRendering();
-    volcart::Rendering getRendering();
+    Rendering getRendering();
 
     void setRadius(double radius);
     double getRadius();
@@ -86,15 +92,16 @@ private:
     // The status of the thread running the texturing process
     ThreadStatus _status;
 
-    bool VPKG_Instantiated = false;
+    bool VPKG_Instantiated{false};
     int height;
     int width;
     QString path;
-    volcart::VolumePkg* vpkg;
+    volcart::VolumePkg::Pointer vpkg;
+    volcart::Segmentation::Pointer activeSeg;
     std::vector<std::string> segmentations;
     QPixmap pix;
     QMainWindow* _window;
-    volcart::Rendering _rendering;
+    Rendering _rendering;
     double _radius;
     int _textureMethod;
     int _sampleDirection;

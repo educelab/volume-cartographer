@@ -2,12 +2,10 @@
 
 #include <boost/filesystem/path.hpp>
 
-#include "Metadata.hpp"
-#include "Texture.hpp"
-#include "vc/core/vc_defines.hpp"
+#include "vc/core/types/ITKMesh.hpp"
+#include "vc/core/types/Metadata.hpp"
+#include "vc/core/types/Texture.hpp"
 
-namespace volcart
-{
 /**
  * @class Rendering
  * @author Seth Parker
@@ -21,7 +19,9 @@ namespace volcart
  * process. This class provides a mechanism for grouping these results and
  * their associated metadata into a single data structure.
  *
- * @ingroup Types
+ * @warning This class's intended purpose is now supplied by volcart::Render.
+ * Please use that class instead for storing the final results of a rendering
+ * pipeline.
  */
 class Rendering
 {
@@ -49,10 +49,10 @@ public:
 
     /**@{*/
     /** @brief Set the ITKMesh */
-    void setMesh(const ITKMesh::Pointer& mesh) { mesh_ = mesh; }
+    void setMesh(const volcart::ITKMesh::Pointer& mesh) { mesh_ = mesh; }
 
     /** @brief Get the ITKMesh */
-    ITKMesh::Pointer getMesh() const { return mesh_; }
+    volcart::ITKMesh::Pointer getMesh() const { return mesh_; }
     /**@}*/
 
 private:
@@ -61,6 +61,5 @@ private:
     /** Texture */
     volcart::Texture texture_;
     /** ITKMesh */
-    ITKMesh::Pointer mesh_;
+    volcart::ITKMesh::Pointer mesh_;
 };
-}

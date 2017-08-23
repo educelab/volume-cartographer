@@ -6,6 +6,7 @@
 
 #include "CVolumeViewerWithCurve.hpp"
 #include "UDataManipulateUtils.hpp"
+#include "vc/core/io/PLYWriter.hpp"
 #include "vc/core/types/Exceptions.hpp"
 #include "vc/meshing/OrderedPointSetMesher.hpp"
 
@@ -40,7 +41,7 @@ CWindow::CWindow(void)
     fSegParams.fNumIters = 15;
     fSegParams.fPeakDistanceWeight = 50;
     fSegParams.fWindowWidth = 5;
-    fSegParams.fEndOffset = 5;
+    fSegParams.targetIndex = 5;
 
     // create UI widgets
     CreateWidgets();
@@ -93,7 +94,7 @@ CWindow::CWindow(QRect windowSize)
     fSegParams.fNumIters = 15;
     fSegParams.fPeakDistanceWeight = 50;
     fSegParams.fWindowWidth = 5;
-    fSegParams.fEndOffset = 5;
+    fSegParams.targetIndex = 5;
 
     // create UI widgets
     CreateWidgets();
@@ -349,7 +350,7 @@ void CWindow::UpdateView(void)
 
     // show volume package name
     this->findChild<QLabel*>("lblVpkgName")
-        ->setText(QString(fVpkg->getPkgName().c_str()));
+        ->setText(QString(fVpkg->name().c_str()));
 
     // set widget accessibility properly based on the states: is drawing? is
     // editing?
@@ -363,24 +364,16 @@ void CWindow::UpdateView(void)
     fEdtWindowWidth->setText(QString("%1").arg(fSegParams.fWindowWidth));
     fEdtStartIndex->setText(QString("%1").arg(fPathOnSliceIndex));
 
-    if (fSegParams.fEndOffset + fPathOnSliceIndex >= fVpkg->getNumberOfSlices())
-        fSegParams.fEndOffset =
-            (fVpkg->getNumberOfSlices() - 1) - fPathOnSliceIndex;
-    fEdtEndIndex->setText(QString("%1").arg(
-        fSegParams.fEndOffset + fPathOnSliceIndex));  // offset + starting index
-
-    if (fIntersectionCurve.GetPointsNum() == 0) {  // no points in current slice
-        fSegTool->setEnabled(false);
+    if (fPathOnSliceIndex + fEndTargetOffset >= fVpkg->volume()->numSlices()) {
+        fEdtEndIndex->setText(
+            QString::number(fVpkg->volume()->numSlices() - 1));
     } else {
-        fSegTool->setEnabled(true);
+        fEdtEndIndex->setText(
+            QString::number(fPathOnSliceIndex + fEndTargetOffset));
     }
 
-    if (fSegmentationId.length() != 0 &&  // segmentation selected
-        fMasterCloud.empty()) {           // current cloud is empty
-        fPenTool->setEnabled(true);
-    } else {
-        fPenTool->setEnabled(false);
-    }
+    fSegTool->setEnabled(fIntersectionCurve.GetPointsNum() > 0);
+    fPenTool->setEnabled(!fSegmentationId.empty() && fMasterCloud.empty());
 
     // REVISIT - these two states should be mutually exclusive, we guarantee
     // this when we toggle the button, BUGGY!
@@ -424,14 +417,15 @@ void CWindow::ChangePathItem(std::string segID)
 
     // Activate requested segmentation
     fSegmentationId = segID;
-    fVpkg->setActiveSegmentation(fSegmentationId);
+    fSegmentation = fVpkg->segmentation(fSegmentationId);
 
     // load proper point cloud
-    try {
-        fMasterCloud = fVpkg->openCloud();
-    } catch (const volcart::IOException&) {
+    if (fSegmentation->hasPointSet()) {
+        fMasterCloud = fSegmentation->getPointSet();
+    } else {
         fMasterCloud.reset();
     }
+
     SetUpCurves();
 
     // Move us to the lowest slice index for the cloud
@@ -490,14 +484,21 @@ void CWindow::DoSegmentation(void)
     }
 
     // 2) do segmentation from the starting slice
-    volcart::segmentation::LocalResliceSegmentation segmenter(*fVpkg);
+    volcart::segmentation::LocalResliceSegmentation segmenter;
+    segmenter.setChain(fStartingPath);
+    segmenter.setVolume(fVpkg->volume());
+    segmenter.setMaterialThickness(fVpkg->materialThickness());
+    segmenter.setTargetZIndex(fSegParams.targetIndex);
+    segmenter.setOptimizationIterations(fSegParams.fNumIters);
     segmenter.setResliceSize(fSegParams.fWindowWidth);
-    auto result = segmenter.segmentPath(
-        fStartingPath, fEdtStartIndex->text().toInt(),
-        fEdtEndIndex->text().toInt() - 1, fSegParams.fNumIters, 1,
-        fSegParams.fAlpha, fSegParams.fK1, fSegParams.fK2, fSegParams.fBeta,
-        fSegParams.fDelta, fSegParams.fPeakDistanceWeight,
-        fSegParams.fIncludeMiddle, false, false);
+    segmenter.setAlpha(fSegParams.fAlpha);
+    segmenter.setK1(fSegParams.fK1);
+    segmenter.setK2(fSegParams.fK2);
+    segmenter.setBeta(fSegParams.fBeta);
+    segmenter.setDelta(fSegParams.fDelta);
+    segmenter.setDistanceWeightFactor(fSegParams.fPeakDistanceWeight);
+    segmenter.setConsiderPrevious(fSegParams.fIncludeMiddle);
+    auto result = segmenter.compute();
 
     // 3) concatenate the two parts to form the complete point cloud
     fUpperPart.append(result);
@@ -575,10 +576,8 @@ bool CWindow::SetUpSegParams(void)
     // ending slice index
     aNewVal = fEdtEndIndex->text().toInt(&aIsOk);
     if (aIsOk && aNewVal >= fPathOnSliceIndex &&
-        aNewVal < fVpkg->getNumberOfSlices()) {
-        fSegParams.fEndOffset =
-            aNewVal - fPathOnSliceIndex;  // difference between the starting
-                                          // slice and ending slice
+        aNewVal < fVpkg->volume()->numSlices()) {
+        fSegParams.targetIndex = aNewVal;
     } else {
         return false;
     }
@@ -658,9 +657,8 @@ void CWindow::InitPathList(void)
     fPathListWidget->clear();
     if (fVpkg != nullptr) {
         // show the existing paths
-        for (size_t i = 0; i < fVpkg->getSegmentations().size(); ++i) {
-            fPathListWidget->addItem(new QListWidgetItem(
-                QString(fVpkg->getSegmentations()[i].c_str())));
+        for (auto& s : fVpkg->segmentationIDs()) {
+            fPathListWidget->addItem(new QListWidgetItem(QString(s.c_str())));
         }
     }
 }
@@ -719,9 +717,9 @@ void CWindow::OpenVolume(void)
     }
 
     // Check version number
-    if (fVpkg->getVersion() != VOLPKG_SUPPORTED_VERSION) {
+    if (fVpkg->version() != VOLPKG_SUPPORTED_VERSION) {
         std::string msg = "VC::Error: Volume package is version " +
-                          std::to_string(fVpkg->getVersion()) +
+                          std::to_string(fVpkg->version()) +
                           " but this program requires a version " +
                           std::to_string(VOLPKG_SUPPORTED_VERSION) + ".";
         std::cerr << msg << std::endl;
@@ -733,13 +731,14 @@ void CWindow::OpenVolume(void)
     fVpkgPath = aVpkgPath;
     fPathOnSliceIndex = 0;
     fSegParams.fWindowWidth = static_cast<int>(
-        std::ceil(fVpkg->getMaterialThickness() / fVpkg->getVoxelSize()));
+        std::ceil(fVpkg->materialThickness() / fVpkg->volume()->voxelSize()));
 }
 
 void CWindow::CloseVolume(void)
 {
     fVpkg = nullptr;
     fSegmentationId = "";
+    fSegmentation = nullptr;
     fWindowState = EWindowState::WindowStateIdle;  // Set Window State to Idle
     fPenTool->setChecked(false);                   // Reset PenTool Button
     fSegTool->setChecked(false);                   // Reset Segmentation Button
@@ -788,34 +787,19 @@ void CWindow::About(void)
 // Save point cloud to path directory
 void CWindow::SavePointCloud(void)
 {
-    if (fMasterCloud.size() == 0) {
+    if (fMasterCloud.empty()) {
         std::cerr << "VC::message: Empty point cloud. Nothing to save."
                   << std::endl;
         return;
     }
 
     // Try to save cloud to volpkg
-    if (fVpkg->saveCloud(fMasterCloud) != EXIT_SUCCESS) {
+    try {
+        fSegmentation->setPointSet(fMasterCloud);
+    } catch (std::exception& e) {
         QMessageBox::warning(
             this, "Error", "Failed to write cloud to volume package.");
         return;
-    }
-
-    // Only mesh if we have more than one iteration of segmentation
-    if (fMasterCloud.height() <= 1) {
-        std::cerr << "VC::message: Cloud height <= 1. Nothing to mesh."
-                  << std::endl;
-    } else {
-        // Mesh pointset
-        volcart::meshing::OrderedPointSetMesher mesher{fMasterCloud};
-        mesher.compute();
-        if (fVpkg->saveMesh(mesher.getOutputMesh()) != EXIT_SUCCESS) {
-            QMessageBox::warning(
-                this, "Error", "Failed to write mesh to volume package.");
-            return;
-        } else {
-            std::cerr << "VC::message: Succesfully saved mesh." << std::endl;
-        }
     }
 
     statusBar->showMessage(tr("Volume saved."), 5000);
@@ -831,7 +815,8 @@ void CWindow::OnNewPathClicked(void)
         return;
 
     // Make a new segmentation in the volpkg
-    std::string newSegmentationId = fVpkg->newSegmentation();
+    auto seg = fVpkg->newSegmentation();
+    std::string newSegmentationId = seg->id();
 
     // add new path to path list
     QListWidgetItem* aNewPath =
@@ -1045,15 +1030,13 @@ void CWindow::OnEdtEndingSliceValChange()
     bool aIsOk = false;
     int aNewVal = fEdtEndIndex->displayText().toInt(&aIsOk);
     if (aIsOk && aNewVal > fPathOnSliceIndex &&
-        aNewVal < fVpkg->getNumberOfSlices()) {
-        fSegParams.fEndOffset =
-            aNewVal - fPathOnSliceIndex;  // difference between the starting
-                                          // slice and ending slice
+        aNewVal < fVpkg->volume()->numSlices()) {
+        fEndTargetOffset = aNewVal - fPathOnSliceIndex;
     } else {
         statusBar->showMessage(
             tr("ERROR: Selected slice is out of range of the volume!"), 10000);
         fEdtEndIndex->setText(
-            QString::number(fPathOnSliceIndex + fSegParams.fEndOffset));
+            QString::number(fPathOnSliceIndex + fEndTargetOffset));
     }
 }
 
@@ -1075,7 +1058,7 @@ void CWindow::OnEdtImpactRange(int nImpactRange)
 // Handle loading any slice
 void CWindow::OnLoadAnySlice(int nSliceIndex)
 {
-    if (nSliceIndex >= 0 && nSliceIndex < fVpkg->getNumberOfSlices()) {
+    if (nSliceIndex >= 0 && nSliceIndex < fVpkg->volume()->numSlices()) {
         fPathOnSliceIndex = nSliceIndex;
         OpenSlice();
         SetCurrentCurve(fPathOnSliceIndex);
@@ -1089,8 +1072,8 @@ void CWindow::OnLoadAnySlice(int nSliceIndex)
 void CWindow::OnLoadNextSlice(void)
 {
     int shift = (qga::keyboardModifiers() == Qt::ShiftModifier) ? 10 : 1;
-    if (fPathOnSliceIndex + shift >= fVpkg->getNumberOfSlices()) {
-        shift = fVpkg->getNumberOfSlices() - fPathOnSliceIndex - 1;
+    if (fPathOnSliceIndex + shift >= fVpkg->volume()->numSlices()) {
+        shift = fVpkg->volume()->numSlices() - fPathOnSliceIndex - 1;
     }
 
     if (shift != 0) {

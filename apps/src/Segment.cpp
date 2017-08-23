@@ -1,18 +1,20 @@
 #include <iostream>
 
+#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/meshing/OrderedPointSetMesher.hpp"
-#include "vc/segmentation/lrps/LocalResliceParticleSim.hpp"
-#include "vc/segmentation/stps/StructureTensorParticleSim.hpp"
+#include "vc/segmentation/LocalResliceParticleSim.hpp"
+#include "vc/segmentation/StructureTensorParticleSim.hpp"
 
+namespace fs = boost::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
-namespace vs = volcart::segmentation;
+namespace vs = vc::segmentation;
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 4;
+static constexpr int VOLPKG_SUPPORTED_VERSION = 5;
 
 // Default values for global options
 static const int kDefaultStep = 1;
@@ -44,7 +46,9 @@ int main(int argc, char* argv[])
         ("volpkg,v", po::value<std::string>()->required(), "VolumePkg path")
         ("seg-id,s", po::value<std::string>()->required(), "Segmentation ID")
         ("method,m", po::value<std::string>()->required(),
-            "Segmentation method: STPS, LRPS")
+            "Segmentation method: LRPS")
+        ("volume", po::value<std::string>(),
+            "Volume to use for texturing. Default: First volume.")
         ("start-index", po::value<int>()->default_value(kDefaultStartIndex),
             "Starting slice index. Default to highest z-index in path")
         ("end-index", po::value<int>(),
@@ -129,26 +133,30 @@ int main(int argc, char* argv[])
         std::begin(methodStr), std::end(methodStr), std::back_inserter(lower),
         ::tolower);
     std::cout << "Segmentation method: " << lower << std::endl;
-    if (lower == "stps") {
-        alg = Algorithm::STPS;
-    } else if (lower == "lrps") {
+    if (lower == "lrps") {
         alg = Algorithm::LRPS;
     } else {
-        std::cerr << "[error]: Unknown algorithm type. Must be one of ['LRPS', "
-                     "'STPS']"
+        std::cerr << "[error]: Unknown algorithm type. Must be one of ['LRPS']"
                   << std::endl;
         std::exit(1);
     }
 
-    volcart::VolumePkg volpkg(opts["volpkg"].as<std::string>());
-    volpkg.setActiveSegmentation(opts["seg-id"].as<std::string>());
-    if (volpkg.getVersion() != VOLPKG_SUPPORTED_VERSION) {
-        std::cerr << "[error]: Volume package is version "
-                  << volpkg.getVersion()
-                  << " but this program requires a version "
-                  << std::to_string(VOLPKG_SUPPORTED_VERSION) << "."
-                  << std::endl;
-        std::exit(1);
+    ///// Load the volume package /////
+    fs::path volpkgPath = opts["volpkg"].as<std::string>();
+    vc::VolumePkg volpkg(volpkgPath);
+    if (volpkg.version() != VOLPKG_SUPPORTED_VERSION) {
+        std::cerr << "ERROR: Volume package is version " << volpkg.version()
+                  << " but this program requires version "
+                  << VOLPKG_SUPPORTED_VERSION << "." << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    ///// Load the Volume /////
+    vc::Volume::Pointer volume;
+    if (opts.count("volume")) {
+        volume = volpkg.volume(opts["volume"].as<std::string>());
+    } else {
+        volume = volpkg.volume();
     }
 
     // Setup
@@ -162,8 +170,9 @@ int main(int argc, char* argv[])
         step = 1;
     }
 
-    // Load the activeSegmentation's current cloud
-    auto masterCloud = volpkg.openCloud();
+    // Load the segmentation
+    auto seg = volpkg.segmentation(opts["seg-id"].as<std::string>());
+    auto masterCloud = seg->getPointSet();
 
     // Get some info about the cloud, including chain length and z-index's
     // represented by seg.
@@ -230,30 +239,27 @@ int main(int argc, char* argv[])
     }
 
     // Run the algorithms
-    volcart::OrderedPointSet<cv::Vec3d> mutableCloud;
-    if (alg == Algorithm::STPS) {
-        double gravityScale = opts["gravity-scale"].as<double>();
-        mutableCloud = vs::StructureTensorParticleSim(
-            segPath, volpkg, gravityScale, step, endIndex - startIndex);
-    } else {
-        int numIters = opts["num-iters"].as<int>();
-        int resliceSize = opts["reslice-size"].as<int>();
-        double alpha = opts["alpha"].as<double>();
-        double k1 = opts["k1"].as<double>();
-        double k2 = opts["k2"].as<double>();
-        double beta = opts["beta"].as<double>();
-        double delta = opts["delta"].as<double>();
-        int distanceWeight = opts["distance-weight"].as<int>();
-        bool considerPrevious = opts["consider-previous"].as<bool>();
-        bool visualize = opts.count("visualize");
-        bool dumpVis = opts.count("dump-vis");
-
+    vc::OrderedPointSet<cv::Vec3d> mutableCloud;
+    if (alg == Algorithm::LRPS) {
         // Run segmentation using path as our starting points
-        vs::LocalResliceSegmentation segmenter(volpkg);
-        segmenter.setResliceSize(resliceSize);
-        mutableCloud = segmenter.segmentPath(
-            segPath, startIndex, endIndex, numIters, step, alpha, k1, k2, beta,
-            delta, distanceWeight, considerPrevious, dumpVis, visualize);
+        vs::LocalResliceSegmentation segmenter;
+        segmenter.setChain(segPath);
+        segmenter.setVolume(volume);
+        segmenter.setMaterialThickness(volpkg.materialThickness());
+        segmenter.setTargetZIndex(endIndex);
+        segmenter.setStepSize(step);
+        segmenter.setOptimizationIterations(opts["num-iters"].as<int>());
+        segmenter.setResliceSize(opts["reslice-size"].as<int>());
+        segmenter.setAlpha(opts["alpha"].as<double>());
+        segmenter.setK1(opts["k1"].as<double>());
+        segmenter.setK2(opts["k2"].as<double>());
+        segmenter.setBeta(opts["beta"].as<double>());
+        segmenter.setDelta(opts["delta"].as<double>());
+        segmenter.setDistanceWeightFactor(opts["distance-weight"].as<int>());
+        segmenter.setConsiderPrevious(opts["consider-previous"].as<bool>());
+        segmenter.setVisualize(opts.count("visualize") > 0);
+        segmenter.setDumpVis(opts.count("dump-vis") > 0);
+        mutableCloud = segmenter.compute();
     }
 
     // Update the master cloud with the points we saved and concat the new
@@ -261,8 +267,5 @@ int main(int argc, char* argv[])
     immutableCloud.append(mutableCloud);
 
     // Save point cloud and mesh
-    volpkg.saveCloud(immutableCloud);
-    volcart::meshing::OrderedPointSetMesher mesher{immutableCloud};
-    mesher.compute();
-    volpkg.saveMesh(mesher.getOutputMesh());
+    seg->setPointSet(immutableCloud);
 }

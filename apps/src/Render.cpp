@@ -10,13 +10,13 @@
 #include <vtkCleanPolyData.h>
 
 #include "vc/core/io/OBJWriter.hpp"
-#include "vc/core/io/PLYReader.hpp"
 #include "vc/core/io/PLYWriter.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/MeshMath.hpp"
 #include "vc/external/GetMemorySize.hpp"
 #include "vc/meshing/ACVD.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
+#include "vc/meshing/OrderedPointSetMesher.hpp"
 #include "vc/meshing/SmoothNormals.hpp"
 #include "vc/texturing/AngleBasedFlattening.hpp"
 #include "vc/texturing/CompositeTexture.hpp"
@@ -29,7 +29,7 @@ namespace po = boost::program_options;
 namespace vc = volcart;
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 4;
+static constexpr int VOLPKG_SUPPORTED_VERSION = 5;
 // Number of vertices per square millimeter
 static constexpr double SAMPLING_DENSITY_FACTOR = 50;
 // Square Micron to square millimeter conversion factor
@@ -53,6 +53,8 @@ int main(int argc, char* argv[])
                 "  0 = Composite\n"
                 "  1 = Intersection\n"
                 "  2 = Integral")
+        ("volume", po::value<std::string>(),
+            "Volume to use for texturing. Default: First volume.")
         ("output-file,o", po::value<std::string>(),
             "Output file path. If not specified, the file will be saved to the "
             "volume package.")
@@ -120,26 +122,28 @@ int main(int argc, char* argv[])
     fs::path outputPath;
     if (parsed.count("output-file")) {
         outputPath = parsed["output-file"].as<std::string>();
-        if (fs::exists(fs::canonical(outputPath.parent_path()))) {
-            outputPath = fs::canonical(outputPath.parent_path()).string() +
-                         "/" + outputPath.filename().string();
-        } else {
-            std::cerr << "ERROR: Cannot write to provided output file. "
-                         "Output directory does not exist."
-                      << std::endl;
-        }
+    } else {
+        outputPath = segID + "_render.obj";
     }
 
     ///// Load the volume package /////
     vc::VolumePkg vpkg(volpkgPath);
-    if (vpkg.getVersion() != VOLPKG_SUPPORTED_VERSION) {
-        std::cerr << "ERROR: Volume package is version " << vpkg.getVersion()
+    if (vpkg.version() != VOLPKG_SUPPORTED_VERSION) {
+        std::cerr << "ERROR: Volume package is version " << vpkg.version()
                   << " but this program requires version "
                   << VOLPKG_SUPPORTED_VERSION << "." << std::endl;
         return EXIT_FAILURE;
     }
+
+    ///// Load the Volume /////
+    vc::Volume::Pointer volume;
+    if (parsed.count("volume")) {
+        volume = vpkg.volume(parsed["volume"].as<std::string>());
+    } else {
+        volume = vpkg.volume();
+    }
     double cacheBytes = 0.75 * SystemMemorySize();
-    vpkg.volume()->setCacheMemoryInBytes(static_cast<size_t>(cacheBytes));
+    volume->setCacheMemoryInBytes(static_cast<size_t>(cacheBytes));
 
     ///// Get some post-vpkg loading command line arguments /////
     // Get the texturing radius. If not specified, default to a radius
@@ -148,7 +152,7 @@ int main(int argc, char* argv[])
     if (parsed.count("radius")) {
         radius = parsed["radius"].as<double>();
     } else {
-        radius = vpkg.getMaterialThickness() / vpkg.volume()->voxelSize();
+        radius = vpkg.materialThickness() / volume->voxelSize();
     }
 
     auto interval = parsed["interval"].as<double>();
@@ -159,21 +163,15 @@ int main(int argc, char* argv[])
         parsed["weight"].as<int>());
 
     ///// Load and resample the segmentation /////
-    vpkg.setActiveSegmentation(segID);
-    fs::path meshName = vpkg.getMeshPath();
+    auto seg = vpkg.segmentation(segID);
 
-    // try to convert the ply to an ITK mesh
-    volcart::io::PLYReader reader(meshName);
-    try {
-        reader.read();
-    } catch (volcart::IOException e) {
-        std::cerr << e.what() << std::endl;
-        return EXIT_FAILURE;
-    }
-    auto input = reader.getMesh();
+    // Mesh the point cloud
+    vc::meshing::OrderedPointSetMesher mesher;
+    mesher.setPointSet(seg->getPointSet());
+    auto input = mesher.compute();
 
     // Calculate sampling density
-    auto voxelToMicron = std::pow(vpkg.volume()->voxelSize(), 2);
+    auto voxelToMicron = std::pow(volume->voxelSize(), 2);
     auto area = vc::meshmath::SurfaceArea(input) * voxelToMicron * UM_TO_MM;
     auto vertCount = static_cast<uint16_t>(SAMPLING_DENSITY_FACTOR * area);
     vertCount = (vertCount < CLEANER_MIN_REQ_POINTS) ? CLEANER_MIN_REQ_POINTS
@@ -181,30 +179,30 @@ int main(int argc, char* argv[])
 
     // Convert to polydata
     auto vtkMesh = vtkSmartPointer<vtkPolyData>::New();
-    volcart::meshing::ITK2VTK(input, vtkMesh);
+    vc::meshing::ITK2VTK(input, vtkMesh);
 
     // Decimate using ACVD
     std::cout << "Resampling mesh..." << std::endl;
     auto acvdMesh = vtkSmartPointer<vtkPolyData>::New();
-    volcart::meshing::ACVD(vtkMesh, acvdMesh, vertCount);
+    vc::meshing::ACVD(vtkMesh, acvdMesh, vertCount);
 
     // Merge Duplicates
     // Note: This merging has to be the last in the process chain for some
     // really weird reason. - SP
-    auto Cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
-    Cleaner->SetInputData(acvdMesh);
-    Cleaner->Update();
+    auto cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
+    cleaner->SetInputData(acvdMesh);
+    cleaner->Update();
 
-    auto itkACVD = volcart::ITKMesh::New();
-    volcart::meshing::VTK2ITK(Cleaner->GetOutput(), itkACVD);
+    auto itkACVD = vc::ITKMesh::New();
+    vc::meshing::VTK2ITK(cleaner->GetOutput(), itkACVD);
 
     ///// ABF flattening /////
     std::cout << "Computing parameterization..." << std::endl;
-    volcart::texturing::AngleBasedFlattening abf(itkACVD);
+    vc::texturing::AngleBasedFlattening abf(itkACVD);
     abf.compute();
 
     // Get UV map
-    volcart::UVMap uvMap = abf.getUVMap();
+    vc::UVMap uvMap = abf.getUVMap();
     auto width = static_cast<size_t>(std::ceil(uvMap.ratio().width));
     auto height = static_cast<size_t>(std::ceil(uvMap.ratio().height));
 
@@ -217,11 +215,11 @@ int main(int argc, char* argv[])
     auto ppm = ppmGen.compute();
 
     ///// Generate texture /////
-    volcart::Texture texture;
+    vc::Texture texture;
     std::cout << "Generating Texture..." << std::endl;
     if (method == Method::Intersection) {
         vc::texturing::IntersectionTexture textureGen;
-        textureGen.setVolume(vpkg.volume());
+        textureGen.setVolume(volume);
         textureGen.setPerPixelMap(ppm);
         texture = textureGen.compute();
     }
@@ -229,7 +227,7 @@ int main(int argc, char* argv[])
     else if (method == Method::Composite) {
         vc::texturing::CompositeTexture textureGen;
         textureGen.setPerPixelMap(ppm);
-        textureGen.setVolume(vpkg.volume());
+        textureGen.setVolume(volume);
         textureGen.setFilter(filter);
         textureGen.setSamplingRadius(radius);
         textureGen.setSamplingInterval(interval);
@@ -240,7 +238,7 @@ int main(int argc, char* argv[])
     else if (method == Method::Integral) {
         vc::texturing::IntegralTexture textureGen;
         textureGen.setPerPixelMap(ppm);
-        textureGen.setVolume(vpkg.volume());
+        textureGen.setVolume(volume);
         textureGen.setSamplingRadius(radius);
         textureGen.setSamplingInterval(interval);
         textureGen.setSamplingDirection(direction);
@@ -248,38 +246,29 @@ int main(int argc, char* argv[])
         texture = textureGen.compute();
     }
 
-    // Save rendering
-    volcart::Rendering rendering;
-    rendering.setTexture(texture);
-    rendering.setMesh(itkACVD);
-
     if (outputPath.extension() == ".PLY" || outputPath.extension() == ".ply") {
         std::cout << "Writing to PLY..." << std::endl;
-        volcart::io::PLYWriter writer(
-            outputPath.string(), itkACVD, rendering.getTexture());
-        writer.write();
-    } else if (
-        outputPath.extension() == ".OBJ" || outputPath.extension() == ".obj") {
-        std::cout << "Writing to OBJ..." << std::endl;
-        volcart::io::OBJWriter writer;
-        writer.setMesh(itkACVD);
-        writer.setRendering(rendering);
-        writer.setPath(outputPath.string());
+        vc::io::PLYWriter writer(outputPath.string(), itkACVD, texture);
         writer.write();
     } else if (
         outputPath.extension() == ".PNG" || outputPath.extension() == ".png") {
         std::cout << "Writing to PNG..." << std::endl;
-        cv::imwrite(outputPath.string(), rendering.getTexture().image(0));
+        cv::imwrite(outputPath.string(), texture.image(0));
     } else {
-        std::cout << "Writing to Volume Package..." << std::endl;
-        vpkg.saveMesh(itkACVD, rendering.getTexture());
+        std::cout << "Writing to OBJ..." << std::endl;
+        vc::io::OBJWriter writer;
+        writer.setMesh(itkACVD);
+        writer.setUVMap(uvMap);
+        writer.setTexture(texture.image(0));
+        writer.setPath(outputPath.string());
+        writer.write();
     }
 
     // Save the PPM
     if (parsed.count("output-ppm")) {
         std::cout << "Writing PPM..." << std::endl;
         fs::path ppmPath = parsed["output-ppm"].as<std::string>();
-        volcart::PerPixelMap::WritePPM(ppmPath, ppm);
+        vc::PerPixelMap::WritePPM(ppmPath, ppm);
     }
 
     return EXIT_SUCCESS;

@@ -3,7 +3,6 @@
 #include <cmath>
 
 #include "ShapePrimitive.hpp"
-#include "vc/core/vc_defines.hpp"
 
 namespace volcart
 {

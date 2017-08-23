@@ -54,7 +54,6 @@ volcart::UVMap LeastSquaresConformalMapping::getUVMap()
 
     // Setup uvMap
     volcart::UVMap uvMap;
-    uvMap.setOrigin(VC_ORIGIN_BOTTOM_LEFT);
 
     double umin = std::numeric_limits<double>::max();
     double umax = std::numeric_limits<double>::min();
@@ -92,7 +91,7 @@ volcart::UVMap LeastSquaresConformalMapping::getUVMap()
         // Add the uv coordinates into our map at the point index specified
         uvMap.set(i, uv);
     }
-    uvMap.setOrigin(VC_ORIGIN_TOP_LEFT);
+
     return uvMap;
 }
 

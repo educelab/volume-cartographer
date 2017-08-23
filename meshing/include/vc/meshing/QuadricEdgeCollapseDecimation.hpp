@@ -8,7 +8,7 @@
 #include <vcg/complex/algorithms/local_optimization/tri_edge_collapse_quadric.h>
 // clang-format on
 
-#include "vc/core/vc_defines.hpp"
+#include "vc/core/types/ITKMesh.hpp"
 
 namespace volcart
 {

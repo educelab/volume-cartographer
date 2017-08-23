@@ -10,14 +10,6 @@ static constexpr int UNSET_VALUE = -1;
 
 using namespace volcart::io;
 
-///// Access Functions /////
-void OBJWriter::setRendering(const volcart::Rendering& rendering)
-{
-    mesh_ = rendering.getMesh();
-    texture_ = rendering.getTexture().image(0);
-    textCoords_ = rendering.getTexture().uvMap();
-}
-
 ///// Validation /////
 // Make sure that all required parameters have been set and are okay
 bool OBJWriter::validate()
@@ -189,7 +181,7 @@ int OBJWriter::write_texture_coordinates_()
 
     // Ensure coordinates are relative to bottom left
     auto startingOrigin = textCoords_.origin();
-    textCoords_.setOrigin(VC_ORIGIN_BOTTOM_LEFT);
+    textCoords_.setOrigin(UVMap::Origin::BottomLeft);
 
     // Write mtl path, relative to OBJ
     auto mtlpath = outputPath_.stem();

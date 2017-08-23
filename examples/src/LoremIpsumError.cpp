@@ -9,8 +9,7 @@ int main(int /*argc*/, char** argv)
     auto volpkgPath = fs::path(argv[1]);
     auto segID = std::string(argv[2]);
     volcart::VolumePkg volpkg(volpkgPath);
-    volpkg.setActiveSegmentation(segID);
-    auto cloud = volpkg.openCloud();
+    auto cloud = volpkg.segmentation(segID)->getPointSet();
 
     double errsum = 0;
     for (auto p : cloud) {

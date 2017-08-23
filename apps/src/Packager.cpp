@@ -3,6 +3,7 @@
 //
 
 #include <iostream>
+#include <limits>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
@@ -11,242 +12,315 @@
 
 #include "apps/SliceImage.hpp"
 #include "vc/core/types/VolumePkg.hpp"
-#include "vc/core/vc_defines.hpp"
 
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
 
+enum class Flip { None, Horizontal, Vertical, Both };
+
+static const double MIN_16BPC = std::numeric_limits<uint16_t>::min();
+static const double MAX_16BPC = std::numeric_limits<uint16_t>::max();
+
+struct VolumeInfo {
+    fs::path path;
+    std::string name;
+    double voxelsize{0};
+    Flip flipOption{Flip::None};
+};
+
+VolumeInfo GetVolumeInfo(fs::path slicesPath);
+void AddVolume(vc::VolumePkg& volpkg, VolumeInfo info);
+
 int main(int argc, char* argv[])
 {
-
     ///// Parse the command line options /////
-    fs::path slicesPath, volpkgPath;
-    bool verticalFlip, horizontalFlip;
+    // All command line options
+    // clang-format off
+    po::options_description options("Options");
+    options.add_options()
+        ("help,h", "Show this message")
+        ("volpkg,v", po::value<std::string>()->required(),
+           "Path for the output volume package")
+        ("material-thickness,m", po::value<double>()->required(),
+           "Estimated thickness of a material layer (in microns)")
+        ("slices,s", po::value<std::vector<std::string>>(),
+           "Directory of input slice data. Can be specified multiple times to "
+           "add multiple volumes");
+
+    // Useful transforms for origin adjustment
+    po::options_description extras("Metadata");
+    extras.add_options()
+        ("name", po::value<std::string>(),
+           "Set a descriptive name for the VolumePkg. "
+           "Default: Filename specified by --volpkg");
+    // clang-format on
+    po::options_description all("Usage");
+    all.add(options).add(extras);
+
+    // parsed will hold the values of all parsed options as a Map
+    po::variables_map parsed;
+    po::store(po::command_line_parser(argc, argv).options(all).run(), parsed);
+
+    // Show the help message
+    if (parsed.count("help") || argc < 2) {
+        std::cout << all << std::endl;
+        return EXIT_SUCCESS;
+    }
+
+    // Warn of missing options
     try {
-        // All command line options
-        // clang-format off
-        po::options_description options("Options");
-        options.add_options()
-            ("help,h", "Show this message")
-            ("slices,s", po::value<std::string>(),
-                "Directory of input slice data")
-            ("volpkg,v", po::value<std::string>(),
-                "Path for the output volume package");
-
-        // Useful transforms for origin adjustment
-        po::options_description extras("Volume Transformations");
-        extras.add_options()
-            ("horizontal-flip", po::bool_switch()->default_value(false),
-             "Apply a horizontal flip to slice images.")
-            ("vertical-flip", po::bool_switch()->default_value(false),
-             "Apply a vertical flip to slice images.");
-        // clang-format on
-        po::options_description all("Usage");
-        all.add(options).add(extras);
-
-        // parsedOptions will hold the values of all parsed options as a Map
-        po::variables_map parsedOptions;
-        po::store(
-            po::command_line_parser(argc, argv).options(all).run(),
-            parsedOptions);
-        po::notify(parsedOptions);
-
-        // Show the help message
-        if (parsedOptions.count("help") || argc < 2) {
-            std::cout << all << std::endl;
-            return EXIT_SUCCESS;
-        }
-
-        // Get the input slices dir
-        if (parsedOptions.count("slices")) {
-            slicesPath = parsedOptions["slices"].as<std::string>();
-        } else {
-            std::cerr << "ERROR: Path to slices directory not supplied!"
-                      << std::endl;
-            std::cout << options << std::endl;
-            return EXIT_FAILURE;
-        }
-
-        // Get the output volpkg path
-        if (parsedOptions.count("volpkg")) {
-            volpkgPath = parsedOptions["volpkg"].as<std::string>();
-        } else {
-            std::cerr << "ERROR: Output Volume Package path not supplied!"
-                      << std::endl;
-            std::cout << options << std::endl;
-            return EXIT_FAILURE;
-        }
-
-        // Flips?
-        verticalFlip = parsedOptions["vertical-flip"].as<bool>();
-        horizontalFlip = parsedOptions["horizontal-flip"].as<bool>();
-    } catch (const std::exception& e) {
+        po::notify(parsed);
+    } catch (po::error& e) {
         std::cerr << "ERROR: " << e.what() << std::endl;
         return EXIT_FAILURE;
     }
 
-    ///// Get metadata values that have to be manually set /////
-    std::string input;
-    double voxelsize, thickness;
+    ///// New VolumePkg /////
+    // Get the output volpkg path
+    fs::path volpkgPath = parsed["volpkg"].as<std::string>();
 
-    // get voxel size
-    do {
-        std::cout << "Please enter the voxel size of the volume in microns "
-                     "(e.g. 13.546): ";
-        std::getline(std::cin, input);
-    } while (!boost::conversion::try_lexical_convert(input, voxelsize));
-    // get material thickness
-    do {
-        std::cout << "Please enter the estimated material thickness of the "
-                     "volume in microns (e.g. 56.026): ";
-        std::getline(std::cin, input);
-    } while (!boost::conversion::try_lexical_convert(input, thickness));
-
-    ///// Setup /////
-    // Check the extension and make sure the pkg doesn't already exist
-    if (volpkgPath.extension().string() != ".volpkg")
+    // Check the extension
+    if (volpkgPath.extension().string() != ".volpkg") {
         volpkgPath.replace_extension(".volpkg");
+    }
+
+    // Make sure the package doesn't already exist
     if (fs::exists(volpkgPath)) {
-        std::cerr << "ERROR: Volume package already exists at path specified."
-                  << std::endl;
-        std::cerr << "This program does not currently allow for modification "
+        std::cerr << "ERROR: Volume package already exists at path specified. "
+                     "This program does not currently allow for modification "
                      "of existing volume packages."
                   << std::endl;
         return EXIT_FAILURE;
     }
 
+    // Get volpkg name
+    std::string vpkgName = volpkgPath.stem().string();
+    if (parsed.count("name")) {
+        vpkgName = parsed["name"].as<std::string>();
+    }
+
+    // Get material thickness
+    auto thickness = parsed["material-thickness"].as<double>();
+
     // Generate an empty volpkg and save it to disk
-    vc::VolumePkg volpkg(volpkgPath, VOLPKG_VERSION_LATEST);
-    volpkg.setMetadata("name", volpkgPath.stem().string());
+    vc::VolumePkg volpkg(volpkgPath, vc::VOLPKG_VERSION_LATEST);
+    volpkg.setMetadata("name", vpkgName);
     volpkg.setMetadata("materialthickness", thickness);
     volpkg.saveMetadata();
+
+    ///// Add Volumes /////
+    // Get the input slices dir
+    std::vector<std::string> volumesPaths;
+    if (parsed.count("slices")) {
+        volumesPaths = parsed["slices"].as<std::vector<std::string>>();
+    }
+
+    // Get info from user
+    std::vector<VolumeInfo> volumesList;
+    for (auto& v : volumesPaths) {
+        volumesList.emplace_back(GetVolumeInfo(v));
+    }
+
+    // Add volumes in sequence
+    for (auto& v : volumesList) {
+        AddVolume(volpkg, v);
+    }
+}
+
+VolumeInfo GetVolumeInfo(fs::path slicesPath)
+{
+    VolumeInfo info;
+    info.path = slicesPath;
+
+    std::cout << "Describing Volume: " << slicesPath << std::endl;
+
+    // Volume Name
+    std::cout << "Enter a descriptive name for the volume: ";
+    std::getline(std::cin, info.name);
+
+    // get voxel size
+    std::string input;
+    do {
+        std::cout << "Enter the voxel size of the volume in microns "
+                     "(e.g. 13.546): ";
+        std::getline(std::cin, input);
+    } while (!boost::conversion::try_lexical_convert(input, info.voxelsize));
+
+    // Flip options
+    std::cout << "Flip options: Vertical flip (vf), horizontal flip (hf), "
+                 "both, [none] : ";
+    std::getline(std::cin, input);
+
+    if (input == "vf") {
+        info.flipOption = Flip::Vertical;
+    } else if (input == "hf") {
+        info.flipOption = Flip::Horizontal;
+    } else if (input == "both") {
+        info.flipOption = Flip::Both;
+    }
+
+    return info;
+}
+
+void AddVolume(vc::VolumePkg& volpkg, VolumeInfo info)
+{
+    std::cout << "Adding Volume: " << info.path << std::endl;
 
     // Filter the slice path directory by extension and sort the vector of files
     std::cout << "Reading the slice directory..." << std::endl;
     std::vector<volcart::SliceImage> slices;
-    if (fs::exists(slicesPath) && fs::is_directory(slicesPath)) {
-
-        // Directory iterators
-        fs::directory_iterator dir_subfile(slicesPath);
-        fs::directory_iterator dir_end;
-
-        // Filter out subfiles that aren't TIFs
-        // To-Do: #177
-        while (dir_subfile != dir_end) {
-            std::string file_ext(boost::to_upper_copy<std::string>(
-                dir_subfile->path().extension().string()));
-            if (is_regular_file(dir_subfile->path()) &&
-                (file_ext == ".TIF" || file_ext == ".TIFF")) {
-                volcart::SliceImage temp;
-                temp.path = *dir_subfile;
-                slices.push_back(temp);
-            }
-            ++dir_subfile;
-        }
-    } else {
-        std::cerr
-            << "ERROR: Slices directory does not exist/is not a directory."
-            << std::endl;
-        std::cerr << "Please provide a directory of slice images." << std::endl;
-        return EXIT_FAILURE;
+    if (!fs::exists(info.path) || !fs::is_directory(info.path)) {
+        std::cerr << "ERROR: Provided slice path does not exist/is not a "
+                     "directory. Please provide a directory of slice images."
+                  << std::endl;
+        return;
     }
+
+    // Filter out subfiles that aren't TIFs
+    // To-Do: #177
+    fs::directory_iterator subfile(info.path);
+    fs::directory_iterator dirEnd;
+    for (; subfile != dirEnd; subfile++) {
+        // Skip if not a regular file
+        if (!fs::is_regular_file(subfile->path())) {
+            continue;
+        }
+
+        // Compare against the file extension
+        auto ext(subfile->path().extension().string());
+        ext = boost::to_upper_copy<std::string>(ext);
+        if (ext == ".TIF" || ext == ".TIFF") {
+            slices.emplace_back(*subfile);
+        }
+    }
+
+    // Return if we didn't find any slices
     if (slices.empty()) {
         std::cerr << "ERROR: No supported image files found in provided slices "
                      "directory."
                   << std::endl;
-        return EXIT_FAILURE;
+        return;
     }
+
     // Sort the Slices by their filenames
-    std::sort(slices.begin(), slices.end(), SlicePathLessThan);
+    std::sort(slices.begin(), slices.end());
+
+    // Report the number of slices
     std::cout << "Slice images found: " << slices.size() << std::endl;
 
     ///// Analyze the slices /////
-    bool vol_consistent = true;
-    double vol_min{}, vol_max{};
-    uint64_t counter = 1;
-    for (auto slice = slices.begin(); slice != slices.end(); ++slice) {
-        std::cout << "Analyzing slice: " << counter << "/" << slices.size()
+    auto consistent = true;
+    auto volMin = std::numeric_limits<double>::max();
+    auto volMax = std::numeric_limits<double>::lowest();
+    int32_t counter = 1;
+    for (auto& slice : slices) {
+        // Report progress
+        std::cout << "Analyzing slice: " << counter++ << "/" << slices.size()
                   << "\r" << std::flush;
-        if (!slice->analyze())
-            continue;  // skip if we can't analyze
 
-        // Compare all slices to the properties of the first slice
-        if (slice == slices.begin()) {
-            vol_min = slice->min();
-            vol_max = slice->max();
-        } else {
-            // Check for consistency of slices
-            if (*slice != *slices.begin()) {
-                vol_consistent = false;
-                std::cerr << std::endl
-                          << slice->path.filename()
-                          << " does not match the initial slice of the volume."
-                          << std::endl;
-                continue;
-            }
-
-            // Update the volume's min and max
-            if (slice->min() < vol_min)
-                vol_min = slice->min();
-            if (slice->max() > vol_max)
-                vol_max = slice->max();
+        // Skip if we can't analyze
+        if (!slice.analyze()) {
+            continue;
         }
 
-        ++counter;
+        // Compare all slices to the properties of the first slice
+        // Don't quit yet so we can get a list of the problematic files
+        if (slice != *slices.begin()) {
+            consistent = false;
+            std::cerr << std::endl
+                      << slice.path.filename()
+                      << " does not match the initial slice of the volume."
+                      << std::endl;
+            continue;
+        }
+
+        // Update the volume's min and max
+        if (slice.min() < volMin) {
+            volMin = slice.min();
+        }
+
+        if (slice.max() > volMax) {
+            volMax = slice.max();
+        }
     }
     std::cout << std::endl;
-    if (!vol_consistent) {
+
+    // Quit if the volume isn't consistent
+    if (!consistent) {
         std::cerr << "ERROR: Slices in slice directory do not have matching "
                      "properties (width/height/depth)."
                   << std::endl;
-        return EXIT_FAILURE;
+        return;
     }
 
     ///// Add data to the volume /////
     // Metadata
-    auto volume = volpkg.newVolume("A new name");
+    auto volume = volpkg.newVolume(info.name);
     volume->setNumberOfSlices(slices.size());
     volume->setSliceWidth(slices.front().width());
     volume->setSliceHeight(slices.front().height());
-    volume->setVoxelSize(voxelsize);
+    volume->setVoxelSize(info.voxelsize);
 
-    // Scale 8-bit min/max values
-    // To-Do: Handle other bit depths
-    if (slices.begin()->depth() == 0) {
-        vol_min = vol_min * 65535.00 / 255.00;
-        vol_max = vol_max * 65535.00 / 255.00;
+    // Scale min/max values
+    if (slices.begin()->needsScale()) {
+        volume->setMin(MIN_16BPC);
+        volume->setMax(MAX_16BPC);
+    } else {
+        volume->setMin(volMin);
+        volume->setMax(volMax);
     }
-    volume->setMin(vol_min);
-    volume->setMax(vol_max);
-    volume->saveMetadata();  // Save final metadata changes to disk
+    volume->saveMetadata();
 
+    // Do we need to flip?
+    auto needsFlip = info.flipOption == Flip::Horizontal ||
+                     info.flipOption == Flip::Vertical ||
+                     info.flipOption == Flip::Both;
+
+    // Move the slices into the VolPkg
     counter = 0;
-    for (auto slice = slices.begin(); slice != slices.end(); ++slice) {
+    for (auto& slice : slices) {
         std::cout << "Saving slice image to volume package: " << counter + 1
                   << "/" << slices.size() << "\r" << std::flush;
-        if (slice->needsConvert() || verticalFlip || horizontalFlip) {
+
+        // Convert or flip
+        if (slice.needsConvert() || slice.needsScale() || needsFlip) {
+            // Override slice min/max with volume min/max
+            if (slice.needsScale()) {
+                slice.setScale(volMax, volMin);
+            }
+
             // Get slice
-            auto tmp = slice->conformedImage();
+            auto tmp = slice.conformedImage();
 
             // Apply flips
-            if (verticalFlip && horizontalFlip) {
-                cv::flip(tmp, tmp, -1);
-            } else if (verticalFlip) {
-                cv::flip(tmp, tmp, 0);
-            } else if (horizontalFlip) {
-                cv::flip(tmp, tmp, 1);
+            switch (info.flipOption) {
+                case Flip::Both:
+                    cv::flip(tmp, tmp, -1);
+                    break;
+                case Flip::Vertical:
+                    cv::flip(tmp, tmp, 0);
+                    break;
+                case Flip::Horizontal:
+                    cv::flip(tmp, tmp, 1);
+                    break;
+                case Flip::None:
+                    // Do nothing
+                    break;
             }
 
             // Add to volume
             volume->setSliceData(counter, tmp);
-        } else {
-            fs::copy(slice->path, volume->getSlicePath(counter));
+        }
+
+        // Just copy to the volume
+        else {
+            fs::copy(slice.path, volume->getSlicePath(counter));
         }
 
         ++counter;
     }
     std::cout << std::endl;
 
-    return EXIT_SUCCESS;
+    return;
 }

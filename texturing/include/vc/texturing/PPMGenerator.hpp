@@ -2,9 +2,9 @@
 
 #include <opencv2/core.hpp>
 
+#include "vc/core/types/ITKMesh.hpp"
 #include "vc/core/types/PerPixelMap.hpp"
 #include "vc/core/types/UVMap.hpp"
-#include "vc/core/vc_defines.hpp"
 
 namespace volcart
 {

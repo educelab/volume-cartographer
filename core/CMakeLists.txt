@@ -15,12 +15,15 @@ set(shape_srcs
 )
 
 set(type_srcs
+    src/DiskBasedObjectBaseClass.cpp
     src/HalfEdgeMesh.cpp
     src/Metadata.cpp
     src/PerPixelMap.cpp
-    src/Rendering.cpp
+    src/Render.cpp
     src/Reslice.cpp
+    src/Segmentation.cpp
     src/Texture.cpp
+    src/UVMap.cpp
     src/Volume.cpp
     src/VolumePkg.cpp
 )

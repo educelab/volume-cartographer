@@ -12,37 +12,35 @@ namespace volcart
 class SliceImage
 {
 public:
+    explicit SliceImage(boost::filesystem::path p) : path{std::move(p)} {}
+
     bool operator==(const SliceImage& b) const;
     bool operator!=(const SliceImage& b) const { return !operator==(b); }
+    bool operator<(const SliceImage& b) const;
 
     bool analyze();
     cv::Mat conformedImage();
-    int width() { return _w; }
-    int height() { return _h; }
-    int depth() { return _depth; }
-    double min() { return _min; }
-    double max() { return _max; }
-    bool needsConvert() { return _convert; }
+    int width() { return w_; }
+    int height() { return h_; }
+    double min() { return min_; }
+    double max() { return max_; }
+    bool needsConvert() { return needsConvert_; }
+    bool needsScale() { return needsScale_; }
+    void setScale(double max, double min)
+    {
+        max_ = max;
+        min_ = min;
+    }
 
     boost::filesystem::path path;
 
 private:
-    int _w, _h, _depth;
-    double _min, _max;
-    bool _convert = false;  // true if file needs to be converted
+    int w_{0};
+    int h_{0};
+    int type_{0};
+    double min_{0};
+    double max_{0};
+    bool needsConvert_{false};
+    bool needsScale_{false};
 };
-
-};  // namespace volcart
-
-// Compare slices by their filepaths for sorting. Lexicographical comparison,
-// but doesn't
-// handle non-padded numbers (e.g. file8, file9, file10, file11)
-inline bool SlicePathLessThan(
-    const volcart::SliceImage& a, const volcart::SliceImage& b)
-{
-    std::string a_filename =
-        boost::to_lower_copy<std::string>(a.path.filename().native());
-    std::string b_filename =
-        boost::to_lower_copy<std::string>(b.path.filename().native());
-    return a_filename < b_filename;
 }

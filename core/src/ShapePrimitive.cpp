@@ -1,5 +1,7 @@
 #include "vc/core/shapes/ShapePrimitive.hpp"
 
+#include <array>
+
 using namespace volcart;
 using namespace volcart::shapes;
 
@@ -152,7 +154,7 @@ volcart::OrderedPointSet<cv::Vec6d> ShapePrimitive::orderedPointNormal()
 ///// Mesh Generation Helper Functions /////
 void ShapePrimitive::addVertex_(double x, double y, double z)
 {
-    Vertex v;
+    SimpleMesh::Vertex v;
     v.x = x;
     v.y = y;
     v.z = z;
@@ -165,7 +167,7 @@ void ShapePrimitive::addVertex_(double x, double y, double z)
 
 void ShapePrimitive::addCell_(int v1, int v2, int v3)
 {
-    Cell f;
+    SimpleMesh::Cell f;
     f.v1 = v1;
     f.v2 = v2;
     f.v3 = v3;
@@ -175,9 +177,9 @@ void ShapePrimitive::addCell_(int v1, int v2, int v3)
     // get surface normal of this triangle
     double nx, ny, nz, vx, vy, vz, wx, wy, wz, magnitude;
 
-    Vertex vt1 = points_[v1];
-    Vertex vt2 = points_[v2];
-    Vertex vt3 = points_[v3];
+    SimpleMesh::Vertex vt1 = points_[v1];
+    SimpleMesh::Vertex vt2 = points_[v2];
+    SimpleMesh::Vertex vt3 = points_[v3];
 
     vx = vt2.x - vt1.x;
     vy = vt2.y - vt1.y;
@@ -206,7 +208,7 @@ void ShapePrimitive::addCell_(int v1, int v2, int v3)
 void ShapePrimitive::updateNormal_(int vertID, double nx, double ny, double nz)
 {
     // recalculate average (unaverage, add new component, recalculate average)
-    Vertex v = points_[vertID];
+    SimpleMesh::Vertex v = points_[vertID];
     v.nx = (v.nx * v.faceCount + nx) / (v.faceCount + 1);
     v.ny = (v.ny * v.faceCount + ny) / (v.faceCount + 1);
     v.nz = (v.nz * v.faceCount + nz) / (v.faceCount + 1);

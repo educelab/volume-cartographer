@@ -10,6 +10,8 @@
 // University of Kentucky VisCenter
 //----------------------------------------------------------------------------------------------------------------------------------------
 
+#include <cmath>
+
 #include "MyThread.hpp"
 
 #include "vc/core/io/OBJWriter.hpp"
@@ -17,11 +19,12 @@
 #include "vc/core/util/MeshMath.hpp"
 #include "vc/meshing/ACVD.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
+#include "vc/meshing/OrderedPointSetMesher.hpp"
 #include "vc/texturing/AngleBasedFlattening.hpp"
 #include "vc/texturing/CompositeTexture.hpp"
 #include "vc/texturing/PPMGenerator.hpp"
 
-namespace fs = boost::filesystem;
+namespace vc = volcart;
 
 MyThread::MyThread(GlobalValues* globals)
 {
@@ -32,12 +35,8 @@ MyThread::MyThread(GlobalValues* globals)
 
 void MyThread::run()
 {
-    bool cloudProblem = false;
-
     try {
         double _radius = _globals->getRadius();
-
-        fs::path meshName = _globals->getVolPkg()->getMeshPath();
 
         auto aFilterOption =
             static_cast<volcart::texturing::CompositeTexture::Filter>(
@@ -45,31 +44,38 @@ void MyThread::run()
         auto aDirectionOption =
             static_cast<volcart::Direction>(_globals->getSampleDirection());
 
-        // declare pointer to new Mesh object
-        auto mesh = volcart::ITKMesh::New();
-
-        // try to convert the ply to an ITK mesh
-        volcart::io::PLYReader reader(meshName);
-        try {
-            reader.read();
-            mesh = reader.getMesh();
-        } catch (std::exception e) {
-            cloudProblem = true;
-            std::cerr << e.what() << std::endl;
-            throw;
+        ///// Load and resample the segmentation /////
+        if (!_globals->getActiveSegmentation()->hasPointSet()) {
+            std::cerr << "VC::message: Empty pointset" << std::endl;
+            _globals->setThreadStatus(ThreadStatus::CloudError);
+            return;
         }
 
+        // Load the cloud
+        auto cloud = _globals->getActiveSegmentation()->getPointSet();
+
+        // Only do it if we have more than one iteration of segmentation
+        if (cloud.height() <= 1) {
+            std::cerr << "VC::message: Cloud height <= 1. Nothing to mesh."
+                      << std::endl;
+            return;
+        }
+
+        // Mesh the point cloud
+        volcart::meshing::OrderedPointSetMesher mesher;
+        mesher.setPointSet(cloud);
+
+        // declare pointer to new Mesh object
+        auto mesh = mesher.compute();
+
         // Calculate sampling density
-        double voxelsize = _globals->getVolPkg()->getVoxelSize();
-        double sa = volcart::meshmath::SurfaceArea(mesh) *
-                    (voxelsize * voxelsize) *
-                    (0.001 * 0.001);  // convert vx^2 -> mm^2;
+        auto voxelsize = _globals->getVolPkg()->volume()->voxelSize();
+        auto sa = vc::meshmath::SurfaceArea(mesh) * std::pow(voxelsize, 2) *
+                  (0.001 * 0.001);
         double densityFactor = 50;
-        auto numberOfVertices =
-            static_cast<uint16_t>(std::round(densityFactor * sa));
-        numberOfVertices = (numberOfVertices < CLEANER_MIN_REQ_POINTS)
-                               ? CLEANER_MIN_REQ_POINTS
-                               : numberOfVertices;
+        auto numVerts = static_cast<uint16_t>(std::round(densityFactor * sa));
+        numVerts = (numVerts < CLEANER_MIN_REQ_POINTS) ? CLEANER_MIN_REQ_POINTS
+                                                       : numVerts;
 
         // Convert to polydata
         auto vtkMesh = vtkSmartPointer<vtkPolyData>::New();
@@ -78,7 +84,7 @@ void MyThread::run()
         // Decimate using ACVD
         std::cout << "Resampling mesh..." << std::endl;
         auto acvdMesh = vtkSmartPointer<vtkPolyData>::New();
-        volcart::meshing::ACVD(vtkMesh, acvdMesh, numberOfVertices);
+        volcart::meshing::ACVD(vtkMesh, acvdMesh, numVerts);
 
         // Merge Duplicates
         // Note: This merging has to be the last in the process chain for some
@@ -116,7 +122,7 @@ void MyThread::run()
         result.compute();
 
         // Setup rendering
-        volcart::Rendering rendering;
+        Rendering rendering;
         rendering.setTexture(result.getTexture());
         rendering.setMesh(itkACVD);
 
@@ -124,11 +130,6 @@ void MyThread::run()
         _globals->setThreadStatus(ThreadStatus::Successful);
 
     } catch (...) {
-        if (cloudProblem) {
-            _globals->setThreadStatus(ThreadStatus::CloudError);
-
-        } else {
-            _globals->setThreadStatus(ThreadStatus::Failed);
-        }
+        _globals->setThreadStatus(ThreadStatus::Failed);
     };
 }

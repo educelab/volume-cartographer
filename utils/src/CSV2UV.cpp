@@ -11,7 +11,6 @@
 #include <vtkSmartPointer.h>
 
 #include "vc/core/io/PLYWriter.hpp"
-#include "vc/core/vc_defines.hpp"
 #include "vc/meshing/DeepCopy.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
 #include "vc/meshing/ScaleMesh.hpp"

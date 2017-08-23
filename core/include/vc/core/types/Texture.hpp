@@ -3,9 +3,9 @@
 #include <boost/filesystem/path.hpp>
 #include <opencv2/core.hpp>
 
-#include "Metadata.hpp"
-#include "PerPixelMap.hpp"
-#include "UVMap.hpp"
+#include "vc/core/types/Metadata.hpp"
+#include "vc/core/types/PerPixelMap.hpp"
+#include "vc/core/types/UVMap.hpp"
 
 namespace volcart
 {
@@ -100,6 +100,9 @@ public:
     /** @copydoc uvMap() */
     volcart::UVMap& uvMap() { return ppm_.uvMap(); }
     /**@}*/
+
+    /** Defines an empty texture to be -1 */
+    constexpr static double NO_VALUE = -1.0;
 
 private:
     /** Texture metadata */

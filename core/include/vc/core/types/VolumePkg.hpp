@@ -1,18 +1,15 @@
 #pragma once
 
-#include <cstdlib>
 #include <iostream>
 #include <map>
 
 #include <boost/filesystem.hpp>
-#include <opencv2/core.hpp>
 
-#include "vc/core/types/OrderedPointSet.hpp"
-#include "vc/core/types/Texture.hpp"
+#include "vc/core/types/Metadata.hpp"
+#include "vc/core/types/Render.hpp"
+#include "vc/core/types/Segmentation.hpp"
 #include "vc/core/types/Volume.hpp"
 #include "vc/core/types/VolumePkgVersion.hpp"
-#include "vc/core/vc_defines.hpp"
-#include "vc/external/json.hpp"
 
 namespace volcart
 {
@@ -67,30 +64,13 @@ public:
     static Pointer New(boost::filesystem::path fileLocation);
     /**@}*/
 
-    /**@{*/
-    /**
-     * @brief Prints the JSON object that stores VolumePkg metadata. Debug only.
-     */
-    void printJSON() const { config_.printObject(); }
-
-    /**
-     * @brief Prints the paths to important VolumePkg subdirectories.
-     * Debug only.
-     */
-    void printDirs() const
-    {
-        std::cout << "root: " << rootDir_ << " seg: " << segsDir_
-                  << " slice: " << volsDir_ << std::endl;
-    }
-    /**@}*/
-
     /** @name Metadata */
     /**@{*/
     /**
      * @brief Returns the identifying name of the VolumePkg.
      * @return Name of the VolumePkg
      */
-    std::string getPkgName() const;
+    std::string name() const;
 
     /**
      * @brief Returns the VolumePkg version.
@@ -101,7 +81,28 @@ public:
      *
      * @return Version number of VolumePkg
      */
-    int getVersion() const;
+    int version() const;
+
+    /**
+     * @brief Returns the approx. thickness of a material layer in microns (um).
+     *
+     * This value is approximated by the user when the VolumePkg is created.
+     * This is an intrinsic property of the scanned object and is therefore
+     * indepedent of scan resolution. The material thickness in microns can be
+     * used to estimate the material thickness in voxels for scans of any
+     * resolution.
+     *
+     * \f[
+        \frac{\mbox{Material Thickness }(um)}{\mbox{Voxel Size }(um)}
+        = \mbox{Material Thickness }(voxels)
+      \f]
+     *
+     * @return Layer thickness, measured in microns (um).
+     */
+    double materialThickness() const;
+
+    /** @brief Return the VolumePkg Metadata */
+    Metadata metadata() const { return config_; }
 
     /**
      * @brief Sets the value of `key` in the VolumePkg metadata.
@@ -120,7 +121,7 @@ public:
     /**
      * @brief Saves the metadata to the VolumePkg (.volpkg) file.
      */
-    void saveMetadata() { config_.save(rootDir_ / "config.json"); }
+    void saveMetadata() { config_.save(); }
 
     /**
      * @brief Saves the metadata to a user-specified location.
@@ -134,11 +135,17 @@ public:
 
     /** @name Volume Data */
     /**@{*/
+    /** @brief Return whether there are Volumes */
+    bool hasVolumes() { return !volumes_.empty(); }
+
     /** @brief Get the number of Volumes */
     size_t numberOfVolumes() { return volumes_.size(); }
 
-    /** @brief Get the list of volumes */
-    std::vector<Volume::Identifier> volumes() const;
+    /** @brief Get the list of volume IDs */
+    std::vector<Volume::Identifier> volumeIDs() const;
+
+    /** @brief Get the list of volumes names */
+    std::vector<std::string> volumeNames() const;
 
     /**
      * @brief Add a new Volume to the VolumePkg
@@ -154,7 +161,7 @@ public:
     /** @copydoc volume() */
     Volume::Pointer volume() { return volumes_.begin()->second; }
 
-    /** @brief Get a Volume by index number */
+    /** @brief Get a Volume by uuid */
     const Volume::Pointer volume(const Volume::Identifier& id) const
     {
         return volumes_.at(id);
@@ -165,61 +172,22 @@ public:
     {
         return volumes_.at(id);
     }
-
-    /**
-     * @brief Returns the width of the slice images.
-     *
-     * This number is retrieved from the metadata and is not validated
-     * against the slices stored in the .volpkg file.
-     */
-    int getSliceWidth() const;
-
-    /**
-     * @brief Returns the height of the slice images.
-     *
-     * This number is retrieved from the metadata and is not validated
-     * against the slices stored in the .volpkg file.
-     */
-    int getSliceHeight() const;
-
-    /**
-     * @brief Returns the number of slice images.
-     *
-     * This number is retrieved from the metadata and is not validated
-     * against the slices stored in the .volpkg file.
-     */
-    int getNumberOfSlices() const;
-
-    /**
-     * @brief Returns the size of voxels in microns (um).
-     *
-     * This is the "real-world" size of voxels. Only isometric voxels (voxels
-     * with equal edge lengths) are supported.
-     * @return Voxel size in microns (um)
-     */
-    double getVoxelSize() const;
-
-    /**
-     * @brief Returns the approx. thickness of a material layer in microns (um).
-     *
-     * This value is approximated by the user when the VolumePkg is created.
-     * This is an intrinsic property of the scanned object and is therefore
-     * indepedent of scan resolution. The material thickness in microns can be
-     * used to estimate the material thickness in voxels for scans of any
-     * resolution.
-     *
-     * \f[
-        \frac{\mbox{Material Thickness }(um)}{\mbox{Voxel Size }(um)}
-        = \mbox{Material Thickness }(voxels)
-      \f]
-     *
-     * @return Layer thickness, measured in microns (um).
-     */
-    double getMaterialThickness() const;
     /**@}*/
 
     /** @name Segmentation Data */
     /**@{*/
+    /** @brief Return whether there are Segmentations */
+    bool hasSegmentations() { return !segmentations_.empty(); }
+
+    /** @brief Get the number of Segmentations */
+    size_t numberOfSegmentations() { return segmentations_.size(); }
+
+    /** @brief Get the list of Segmentation IDs */
+    std::vector<Segmentation::Identifier> segmentationIDs() const;
+
+    /** @brief Get the list of Segmentation names */
+    std::vector<std::string> segmentationNames() const;
+
     /**
      * @brief Creates a new segmentation.
      *
@@ -227,145 +195,54 @@ public:
      * ID to the internal list of segmentations.
      * @return Identifier name of the new segmentation
      */
-    std::string newSegmentation();
+    Segmentation::Pointer newSegmentation(std::string name = "");
 
-    /**
-     * @brief Returns the list of Segmentation IDs for the VolumePkg.
-     *
-     * IDs in this list can be passed to setActiveSegmentation() in order to
-     * access data from a specific segmentation.
-     * @return List of segmentation IDs
-     */
-    std::vector<std::string> getSegmentations() const;
+    /** @brief Get a Segmentation by uuid */
+    const Segmentation::Pointer segmentation(
+        const Segmentation::Identifier& id) const
+    {
+        return segmentations_.at(id);
+    }
 
-    /**
-     * @brief Sets the active segmentation.
-     *
-     * Data access functions like openCloud() and getMesh() return data from the
-     * active segmentation. To get data from other segmentations, you must first
-     * change the active segmentation using this function.
-     *
-     * @param id Segmentation name of desired active segmentation
-     */
-    void setActiveSegmentation(const std::string& id);
-
-    /**
-     * @brief Returns the ID of the active segmentation.
-     * @return Segmentation ID of active segmentation
-     */
-    std::string getActiveSegmentation();
-
-    /**
-     * @brief Returns the directory path for the active segmentation.
-     *
-     * This path can be absolute or relative.
-     *
-     * @return Directory path to the active segmentation
-     */
-    boost::filesystem::path getActiveSegPath();
-
-    /**
-     * @brief Returns the OrderedPointSet for the active segmentation.
-     *
-     * This returns a point cloud that represents segmented surface points
-     * within the Volume. An OrderedPointSet provides 2D access to these points.
-     *
-     * @return Segmented surface as an OrderedPointSet
-     */
-    OrderedPointSet<cv::Vec3d> openCloud() const;
-
-    /**
-     * @brief Saves an OrderedPointSet for the active segmentation to the
-     * .volpkg file.
-     *
-     * Saves the points in `ps` to the active segmentation's subdirectory in the
-     * .volpkg file. Throws volcart::IOException on write failure. Otherwise
-     * returns integer success code.
-     * @warning Data currently saved in the active segmentation's directory will
-     * be overwritten.
-     *
-     * @param ps PointSet to be saved to the .volpkg file.
-     * @return `EXIT_SUCCESS`
-     */
-    int saveCloud(const OrderedPointSet<cv::Vec3d>& ps) const;
+    /** @copydoc VolumePkg::segmentation(std::string) const */
+    Segmentation::Pointer segmentation(const Segmentation::Identifier& id)
+    {
+        return segmentations_.at(id);
+    }
     /**@}*/
 
     /** @name Render Data */
     /**@{*/
-    /**
-     * @brief Returns the file path of the meshed segmentation data.
-     *
-     * Returns the file path to `cloud.ply`, the meshed representation of the
-     * segmented OrderedPointSet. Does not validate that this file exists.
-     * @return File path to segmentation mesh
-     */
-    boost::filesystem::path getMeshPath() const;
+    /** @brief Return whether there are Renders */
+    bool hasRenders() { return !renders_.empty(); }
+
+    /** @brief Get the number of Renders */
+    size_t numberOfRenders() { return renders_.size(); }
+
+    /** @brief Get the list of Render IDs */
+    std::vector<Render::Identifier> renderIDs() const;
+
+    /** @brief Get the list of Render names */
+    std::vector<std::string> renderNames() const;
 
     /**
-     * @brief Saves `mesh` to the active * segmentation's subdirectory in the
-     * .volpkg file.
+     * @brief Creates a new Render.
      *
-     * Saves a volcart::ITKMesh to the volpkg file
-     * @warning Data currently saved in the active segmentation's directory will
-     * be overwritten.
-     *
-     * @param mesh PointSet to be saved to the .volpkg file.
-     * @return `EXIT_SUCCESS`
+     * Populates the .volpkg file with a new Render directory and adds the ID to
+     * the internal list of Renders.
      */
-    int saveMesh(const ITKMesh::Pointer& mesh) const;
+    Render::Pointer newRender(std::string name = "");
 
-    /**
-     * @brief Saves the provided mesh and texture information active
-     * segmentation's subdirectory in the .volpkg file.
-     *
-     * Writes a texture-mapped OBJ file to `textured.{obj|mtl|png}`.
-     * volcart::Texture object should be populated with a UVMap and at least one
-     * texture image. This function will save only the first texture image.
-     * @warning Data currently saved in the active segmentation's directory will
-     * be overwritten.
-     *
-     * @param mesh The mesh imfornation to be saved
-     * @param texture Populated Texture object
-     * @see volcart::Texture
-     */
-    void saveMesh(const ITKMesh::Pointer& mesh, const Texture& texture) const;
-
-    /**
-     * @brief Returns the texture image saved in the active segmentation's
-     * subdirectory in the .volpkg file.
-     *
-     * Returns an empty `cv::Mat` if file does not exist or could not be read.
-     * @return A cv::Mat containing the image data
-     */
-    cv::Mat getTextureData() const;
-
-    /**
-     * @brief Saves a texture image to the active segmentation's subdirectory in
-     * the .volpkg file.
-     *
-     * File is written to `{name}.png`.
-     * @warning Data currently saved in the active segmentation's directory will
-     * be overwritten.
-     *
-     * @param texture Texture image data
-     * @param name Filename w/o extension [Default: "textured"]
-     */
-    void saveTextureData(
-        const cv::Mat& texture, const std::string& name = "textured");
-
-    /**
-     * @brief Saves a texture image to the active segmentation's subdirectory in
-     * the .volpkg file.
-     *
-     * Writes the image stored in `texture.image(index)`. File is written
-     * to `textured.png` in the active segmentation's subdirectory.
-     * @param texture Populated Texture object
-     * @param index The index of the desired image in `texture`'s image array
-     * [Default: 0]
-     */
-    void saveTextureData(const Texture& texture, int index = 0)
+    /** @brief Get a Render by uuid */
+    const Render::Pointer render(const Render::Identifier& id) const
     {
-        saveTextureData(texture.image(index));
+        return renders_.at(id);
+    }
+
+    /** @copydoc VolumePkg::render(std::string) const */
+    Render::Pointer render(const Render::Identifier& id)
+    {
+        return renders_.at(id);
     }
     /**@}*/
 
@@ -374,16 +251,18 @@ private:
     Metadata config_;
     /** The root directory of the VolumePkg */
     boost::filesystem::path rootDir_;
+    /** The subdirectory containing Volume data */
+    boost::filesystem::path volsDir_;
     /** The subdirectory containing Segmentation data */
     boost::filesystem::path segsDir_;
-    /** The subdirectory containing slice data */
-    boost::filesystem::path volsDir_;
-    /** The list of all volumes in the VolumePkg. */
+    /** The subdirectory containing Render data */
+    boost::filesystem::path rendDir_;
+    /** The list of all Volumes in the VolumePkg. */
     std::map<Volume::Identifier, Volume::Pointer> volumes_;
-    /** Segmentation ID of the segmentation that is currently being worked on */
-    std::string activeSeg_;
-    /** The list of all segmentations in the VolumePkg */
-    std::vector<std::string> segmentations_;
+    /** The list of all Segmentations in the VolumePkg. */
+    std::map<Segmentation::Identifier, Segmentation::Pointer> segmentations_;
+    /** The list of all Renders in the VolumePkg. */
+    std::map<Render::Identifier, Render::Pointer> renders_;
 
     /**
      * @brief Populates an empty VolumePkg::config from a volcart::Dictionary

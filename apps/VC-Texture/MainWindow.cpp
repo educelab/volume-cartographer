@@ -16,7 +16,7 @@
 #include "vc/core/io/OBJWriter.hpp"
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 4;
+static constexpr int VOLPKG_SUPPORTED_VERSION = 5;
 
 namespace fs = boost::filesystem;
 
@@ -120,41 +120,36 @@ void MainWindow::getFilePath()
     _globals->setThreadStatus(ThreadStatus::Inactive);
     clearGUI();
     QFileDialog* dialogBox = new QFileDialog();
-    QString filename = dialogBox->getExistingDirectory();
-    std::string file_Name = filename.toStdString();
+    fs::path filename = dialogBox->getExistingDirectory().toStdString();
 
-    if (!filename.isEmpty())  // If the user selected a Folder Path
-    {
+    // If the user selected a Folder Path
+    if (!filename.empty()) {
 
-        if ((file_Name.substr(file_Name.length() - 7, file_Name.length()))
-                .compare(".volpkg") ==
-            0)  // Checks the Folder Path for .volpkg extension
-        {
+        // Checks the Folder Path for .volpkg extension
+        if (filename.extension().string() != ".volpkg") {
             try {
-                _globals->setPath(filename);  // Sets Folder Path in Globals
+                // Sets Folder Path in Globals
+                _globals->setPath(filename.c_str());
                 _globals->createVolumePackage();
 
                 // Check for Volume Package Version Number
-                if (_globals->getVolPkg()->getVersion() !=
-                    VOLPKG_SUPPORTED_VERSION) {
-
+                auto version = _globals->getVolPkg()->version();
+                if (version != VOLPKG_SUPPORTED_VERSION) {
                     std::cerr << "VC::Error: Volume package is version "
-                              << _globals->getVolPkg()->getVersion()
+                              << version
                               << " but this program requires a version "
-                              << std::to_string(VOLPKG_SUPPORTED_VERSION) << "."
-                              << std::endl;
+                              << VOLPKG_SUPPORTED_VERSION << "." << std::endl;
 
                     QMessageBox::warning(
                         this, tr("ERROR"),
                         "Volume package is version " +
-                            QString::number(
-                                _globals->getVolPkg()->getVersion()) +
+                            QString::number(version) +
                             " but this program requires version " +
                             QString::number(VOLPKG_SUPPORTED_VERSION) + ".");
 
                     // Reset Values
-                    _globals->clearVolumePackage();  // Reset Volume Package
-                    _globals->setPath("");           // Clear filename path
+                    _globals->clearVolumePackage();
+                    _globals->setPath("");
                     return;
                 }
 
@@ -164,7 +159,8 @@ void MainWindow::getFilePath()
                 // Initialize Segmentations in segmentations_Viewer
                 _segmentations_Viewer->setSegmentations();
                 // Sets the name of the Volume Package to display on the GUI
-                _segmentations_Viewer->setVol_Package_Name(filename);
+                auto name = _globals->getVolPkg()->name();
+                _segmentations_Viewer->setVol_Package_Name(name.c_str());
             } catch (...) {
                 QMessageBox::warning(
                     this, tr("Error Message"), "Error Opening File.");
@@ -188,18 +184,19 @@ void MainWindow::saveTexture()
 
     // If A Volume Package is Loaded and there are Segmentations (continue)
     if (_globals->isVPKG_Intantiated() &&
-        _globals->getVolPkg()->getSegmentations().size() != 0) {
-        if (_globals->getRendering()
-                .getTexture()
-                .hasImages())  // Checks to see if there are images
-        {
+        _globals->getVolPkg()->hasSegmentations()) {
+        // Checks to see if there are images
+        if (_globals->getRendering().getTexture().hasImages()) {
             try {
-                fs::path path =
-                    _globals->getVolPkg()->getActiveSegPath() / "textured.obj";
-                volcart::io::OBJWriter mesh_writer;
-                mesh_writer.setPath(path.string());
-                mesh_writer.setRendering(_globals->getRendering());
-                mesh_writer.write();
+                auto path =
+                    _globals->getActiveSegmentation()->path() / "textured.obj";
+                volcart::io::OBJWriter writer;
+                writer.setPath(path.string());
+                writer.setMesh(_globals->getRendering().getMesh());
+                writer.setUVMap(_globals->getRendering().getTexture().uvMap());
+                writer.setTexture(
+                    _globals->getRendering().getTexture().image(0));
+                writer.write();
                 _globals->setThreadStatus(ThreadStatus::Inactive);
                 QMessageBox::information(
                     this, tr("Error Message"), "Saved Successfully.");
@@ -233,7 +230,7 @@ void MainWindow::exportTexture()
     // Return if no volume package is loaded or if volpkg doesn't have
     // segmentations
     if (!_globals->isVPKG_Intantiated() ||
-        !_globals->getVolPkg()->getSegmentations().size()) {
+        !_globals->getVolPkg()->hasSegmentations()) {
         QMessageBox::warning(
             this, "Error",
             "Volume package not loaded/no segmentations in volume.");
@@ -245,10 +242,12 @@ void MainWindow::exportTexture()
 
     // Export the generated texture first, otherwise the one already saved to
     // disk
-    if (_globals->getRendering().getTexture().hasImages())
+    if (_globals->getRendering().getTexture().hasImages()) {
         output = _globals->getRendering().getTexture().image(0);
-    else
-        output = _globals->getVolPkg()->getTextureData();
+    } else {
+        auto path = _globals->getActiveSegmentation()->path() / "textured.png";
+        output = cv::imread(path.string(), -1);
+    }
 
     // Return if no image to export
     if (!output.data) {

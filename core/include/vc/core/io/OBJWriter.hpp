@@ -6,7 +6,7 @@
 #include <boost/filesystem.hpp>
 #include <opencv2/core.hpp>
 
-#include "vc/core/types/Rendering.hpp"
+#include "vc/core/types/ITKMesh.hpp"
 #include "vc/core/types/UVMap.hpp"
 
 namespace volcart
@@ -60,9 +60,6 @@ public:
      * file extension (.obj/.OBJ).
      */
     void setPath(const boost::filesystem::path& path) { outputPath_ = path; }
-
-    /** @brief Set mesh and texturing information from a volcart::Rendering */
-    void setRendering(const volcart::Rendering& rendering);
 
     /** @brief Set the input mesh */
     void setMesh(const ITKMesh::Pointer& mesh) { mesh_ = mesh; }

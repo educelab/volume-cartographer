@@ -9,7 +9,7 @@
 
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/types/OrderedPointSet.hpp"
-#include "vc/core/vc_defines.hpp"
+#include "vc/core/types/SimpleMesh.hpp"
 #include "vc/meshing/OrderedPointSetMesher.hpp"
 #include "vc/testing/ParsingHelpers.hpp"
 #include "vc/testing/TestingUtils.hpp"
@@ -50,8 +50,8 @@ struct OrderedPlaneFixture {
     }
     OrderedPointSet<cv::Vec3d> _Plane;
     ITKMesh::Pointer _out_Mesh;
-    std::vector<Vertex> _SavedPoints;
-    std::vector<Cell> _SavedCells;
+    std::vector<SimpleMesh::Vertex> _SavedPoints;
+    std::vector<SimpleMesh::Cell> _SavedCells;
 };
 
 struct OrderedArchFixture {
@@ -88,8 +88,8 @@ struct OrderedArchFixture {
     }
     OrderedPointSet<cv::Vec3d> _Arch;
     ITKMesh::Pointer _out_Mesh;
-    std::vector<Vertex> _SavedPoints;
-    std::vector<Cell> _SavedCells;
+    std::vector<SimpleMesh::Vertex> _SavedPoints;
+    std::vector<SimpleMesh::Cell> _SavedCells;
 };
 
 BOOST_FIXTURE_TEST_CASE(MeshedPlaneTest, OrderedPlaneFixture)

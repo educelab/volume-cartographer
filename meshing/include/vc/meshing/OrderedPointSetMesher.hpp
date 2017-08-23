@@ -2,8 +2,8 @@
 
 #include <opencv2/core.hpp>
 
+#include "vc/core/types/ITKMesh.hpp"
 #include "vc/core/types/OrderedPointSet.hpp"
-#include "vc/core/vc_defines.hpp"
 
 namespace volcart
 {
@@ -38,7 +38,7 @@ class OrderedPointSetMesher
 public:
     /** @name Constructors */
     //@{
-    OrderedPointSetMesher();
+    OrderedPointSetMesher() = default;
 
     /**
      * @param points OrderedPointSet to be meshed
@@ -71,7 +71,7 @@ public:
     /**
      * @brief Compute the mesh triangulation.
      */
-    void compute();
+    ITKMesh::Pointer compute();
     //@}
 
 private:

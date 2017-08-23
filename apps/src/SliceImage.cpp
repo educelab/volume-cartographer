@@ -1,18 +1,26 @@
-#include <opencv2/highgui.hpp>
-#include <opencv2/imgproc.hpp>
-
-#include "apps/SliceImage.hpp"
+#include <limits>
 
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
+
+#include "apps/SliceImage.hpp"
+
+static const double MAX_16BPC = std::numeric_limits<uint16_t>::max();
 
 namespace volcart
 {
 
 bool SliceImage::operator==(const SliceImage& b) const
 {
-    return (_w == b._w && _h == b._h && _depth == b._depth);
+    return (w_ == b.w_ && h_ == b.h_ && type_ == b.type_);
+}
+
+bool SliceImage::operator<(const SliceImage& b) const
+{
+    auto aName = boost::to_lower_copy<std::string>(path.filename().native());
+    auto bName = boost::to_lower_copy<std::string>(b.path.filename().native());
+    return aName < bName;
 }
 
 bool SliceImage::analyze()
@@ -22,50 +30,45 @@ bool SliceImage::analyze()
         !(boost::filesystem::is_regular_file(path)))
         return false;
 
-    cv::Mat image;
-    image =
+    auto image =
         cv::imread(path.string(), cv::IMREAD_ANYCOLOR | cv::IMREAD_ANYDEPTH);
 
-    _w = image.cols;
-    _h = image.rows;
+    w_ = image.cols;
+    h_ = image.rows;
 
-    _depth = image.depth();
-    if (_depth != CV_16U)
-        _convert = true;  // Convert if not a 16-bit, unsigned image
+    type_ = image.type();
+    if (type_ != CV_16UC1) {
+        needsConvert_ = true;
+    }
 
-    cv::minMaxLoc(image, &_min, &_max);
+    if (image.depth() != CV_16U) {
+        needsScale_ = true;
+    }
+
+    cv::minMaxLoc(image, &min_, &max_);
 
     return true;
 };
 
 cv::Mat SliceImage::conformedImage()
 {
-    // Load the input
-    cv::Mat input =
+    // Load the image
+    auto image =
         cv::imread(path.string(), cv::IMREAD_ANYCOLOR | cv::IMREAD_ANYDEPTH);
-    cv::Mat output;
 
-    // Remap 8 bit values to 16 bit
-    if (input.depth() == CV_8U) {
-        int minVal, maxVal;
-        minVal = 0;
-        maxVal = 255;
-        input.convertTo(
-            output, CV_16U, 65535.0 / (maxVal - minVal),
-            -minVal * 65535.0 / (maxVal - minVal));
-        // TODO: #178
-    } else {
-        input.copyTo(output);
+    // Remap values to 16 bit
+    if (needsScale_) {
+        image.convertTo(
+            image, CV_16U, MAX_16BPC / (max_ - min_),
+            -min_ * MAX_16BPC / (max_ - min_));
     }
 
     // Convert colorspace to grayscale
-    if (input.channels() > 1) {
-        cv::cvtColor(
-            output, output,
-            cv::COLOR_BGR2GRAY);  // OpenCV uses BGR to represent color image
+    if (image.channels() > 1) {
+        cv::cvtColor(image, image, cv::COLOR_BGR2GRAY);
     }
 
-    return output;
+    return image;
 };
 
 }  // namespace volcart

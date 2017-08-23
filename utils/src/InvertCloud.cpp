@@ -9,7 +9,6 @@
 
 #include "vc/core/io/PointSetIO.hpp"
 #include "vc/core/types/VolumePkg.hpp"
-#include "vc/core/vc_defines.hpp"
 
 namespace fs = boost::filesystem;
 
@@ -25,8 +24,8 @@ int main(int argc, char** argv)
     fs::path inputPath = argv[2];
     fs::path outputPath = argv[3];
 
-    if (vpkg.getVersion() < 2) {
-        std::cerr << "ERROR: Volume package is version " << vpkg.getVersion()
+    if (vpkg.version() < 2) {
+        std::cerr << "ERROR: Volume package is version " << vpkg.version()
                   << " but this program requires a version >= 2" << std::endl;
         std::exit(EXIT_FAILURE);
     }
@@ -39,7 +38,7 @@ int main(int argc, char** argv)
 
     for (auto pt : input) {
         if (pt[2] != -1) {
-            pt[2] = vpkg.getNumberOfSlices() - 1 - pt[2];
+            pt[2] = vpkg.volume()->numSlices() - 1 - pt[2];
         }
     }
 

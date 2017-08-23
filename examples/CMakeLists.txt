@@ -22,7 +22,7 @@ target_link_libraries(vc_texture_flattened
 )
 
 add_executable(vc_texture_example src/TextureExample.cpp)
-target_link_libraries(vc_texture_example VC::core VC::texturing)
+target_link_libraries(vc_texture_example VC::core VC::meshing VC::texturing)
 
 add_executable(vc_smooth_normals_example src/SmoothNormalsExample.cpp)
 target_link_libraries(vc_smooth_normals_example VC::core VC::meshing)
@@ -62,14 +62,6 @@ if (VC_USE_BULLET OR VC_USE_ALL)
 endif()
 
 if (VC_USE_ACVD OR VC_USE_ALL)
-    add_executable(vc_abf_texturing src/ABFTexturing.cpp)
-    target_link_libraries(vc_abf_texturing
-        VC::core
-        VC::meshing
-        VC::texturing
-        Boost::filesystem
-    )
-
     add_executable(vc_abf_example src/ABFExample.cpp)
     target_link_libraries(vc_abf_example VC::core VC::texturing)
 endif()
@@ -111,3 +103,6 @@ target_link_libraries(vc_obj_reader_example VC::core)
 
 add_executable(vc_scale_gen_example src/ScalesExample.cpp)
 target_link_libraries(vc_scale_gen_example VC::core)
+
+add_executable(vc_stps_example src/STPSExample.cpp)
+target_link_libraries(vc_stps_example VC::core VC::meshing VC::segmentation)

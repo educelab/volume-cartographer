@@ -9,6 +9,7 @@
 // University of Kentucky VisCenter
 //----------------------------------------------------------------------------------------------------------------------------------------
 
+#include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
 #include "SegmentationsViewer.hpp"
@@ -121,9 +122,10 @@ void SegmentationsViewer::itemClickedSlot()
         _texture_Viewer->clearImageLabel();
 
         QString s = segmentations->currentItem()->text();
-        _globals->getVolPkg()->setActiveSegmentation(s.toStdString());
+        _globals->setActiveSegmentation(s.toStdString());
 
-        cv::Mat texture = _globals->getVolPkg()->getTextureData().clone();
+        auto path = _globals->getActiveSegmentation()->path() / "textured.png";
+        cv::Mat texture = cv::imread(path.string(), -1);
 
         bool test = loadImage(texture);
 
@@ -159,7 +161,7 @@ void SegmentationsViewer::setVol_Package_Name(QString name)
 void SegmentationsViewer::generateTextureImage()
 {
     if (_globals->isVPKG_Intantiated() &&
-        _globals->getSegmentations().size() > 0) {
+        !_globals->getSegmentations().empty()) {
         // save current configuration
         auto flags = _globals->getWindow()->windowFlags();
         QSize size = _globals->getWindow()->frameSize();
@@ -218,7 +220,7 @@ void SegmentationsViewer::generateTextureImage()
         } else if (_globals->getStatus() == ThreadStatus::CloudError) {
             QMessageBox::warning(
                 _globals->getWindow(), "Error",
-                "Failed to Generate Texture Image [cloud.ply] error.");
+                "Segmentation has empty pointset.");
 
         } else if (_globals->getStatus() == ThreadStatus::Failed) {
             QMessageBox::warning(
