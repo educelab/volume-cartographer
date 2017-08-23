@@ -5,6 +5,17 @@
 namespace volcart
 {
 
+/**
+ * @class Render
+ * @author Seth Parker
+ *
+ * @brief Dender data
+ *
+ * Provides access to Render information stored on disk, usually inside of
+ * a VolumePkg.
+ *
+ * @ingroup Types
+ */
 class Render : public DiskBasedObjectBaseClass
 {
 public:
