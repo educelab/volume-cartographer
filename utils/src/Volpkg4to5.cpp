@@ -58,6 +58,15 @@ int main(int argc, char* argv[])
         }
     }
 
+    // Add renders folder
+    fs::path rendersDir = vpkgPath / "renders";
+    if (!fs::exists(rendersDir)) {
+        fs::create_directory(rendersDir);
+    } else {
+        std::cout << "Package has renders directory: " << vpkgPath << std::endl;
+        return EXIT_FAILURE;
+    }
+
     // Try to load as a volpkg
     // Should fail if the constructor can't find new metadata
     try {

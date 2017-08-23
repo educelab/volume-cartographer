@@ -9,6 +9,7 @@ using namespace volcart;
 namespace fs = boost::filesystem;
 
 static const fs::path SUBPATH_META{"config.json"};
+static const fs::path SUBPATH_REND{"renders"};
 static const fs::path SUBPATH_SEGS{"paths"};
 static const fs::path SUBPATH_VOLS{"volumes"};
 
@@ -16,8 +17,9 @@ static const fs::path SUBPATH_VOLS{"volumes"};
 // Make a volpkg of a particular version number
 VolumePkg::VolumePkg(fs::path fileLocation, int version)
     : rootDir_{fileLocation}
-    , segsDir_{fileLocation / SUBPATH_SEGS}
     , volsDir_{fileLocation / SUBPATH_VOLS}
+    , segsDir_{fileLocation / SUBPATH_SEGS}
+    , rendDir_{fileLocation / SUBPATH_REND}
 {
     // Lookup the metadata template from our library of versions
     auto findDict = volcart::VERSION_LIBRARY.find(version);
@@ -26,35 +28,48 @@ VolumePkg::VolumePkg(fs::path fileLocation, int version)
     }
 
     // Create the directories with the default values
-    // TODO(skarlage): #181
     config_ = VolumePkg::InitConfig(findDict->second, version);
+    config_.setPath(rootDir_ / "config.json");
 
     // Make directories
-    for (const auto& d : {rootDir_, segsDir_, volsDir_}) {
+    for (const auto& d : {rootDir_, volsDir_, segsDir_, rendDir_}) {
         if (!fs::exists(d)) {
             fs::create_directory(d);
         }
     }
+
+    // Do initial save
+    config_.save();
 }
 
 // Use this when reading a volpkg from a file
 VolumePkg::VolumePkg(fs::path fileLocation)
     : rootDir_{fileLocation}
-    , segsDir_{fileLocation / SUBPATH_SEGS}
     , volsDir_{fileLocation / SUBPATH_VOLS}
+    , segsDir_{fileLocation / SUBPATH_SEGS}
+    , rendDir_{fileLocation / SUBPATH_REND}
 {
     // Check directory structure
     if (!(fs::exists(rootDir_) && fs::exists(segsDir_) &&
-          fs::exists(volsDir_))) {
+          fs::exists(volsDir_) && fs::exists(rendDir_))) {
         throw std::runtime_error("invalid volumepkg structure");
     }
 
     // Loads the metadata
     config_ = volcart::Metadata(fileLocation / SUBPATH_META);
 
-    // Load segmentations into the segmentations_ vector
+    // Load volumes into volumes_ vector
     auto range =
-        boost::make_iterator_range(fs::directory_iterator(segsDir_), {});
+        boost::make_iterator_range(fs::directory_iterator(volsDir_), {});
+    for (const auto& entry : range) {
+        if (fs::is_directory(entry)) {
+            auto v = Volume::New(entry);
+            volumes_.emplace(v->id(), v);
+        }
+    }
+
+    // Load segmentations into the segmentations_ vector
+    range = boost::make_iterator_range(fs::directory_iterator(segsDir_), {});
     for (const auto& entry : range) {
         if (fs::is_directory(entry)) {
             auto s = Segmentation::New(entry);
@@ -62,12 +77,12 @@ VolumePkg::VolumePkg(fs::path fileLocation)
         }
     }
 
-    // Load volumes into volumes_ vector
-    range = boost::make_iterator_range(fs::directory_iterator(volsDir_), {});
+    // Load Renders into the renders_ vector
+    range = boost::make_iterator_range(fs::directory_iterator(rendDir_), {});
     for (const auto& entry : range) {
         if (fs::is_directory(entry)) {
-            auto v = Volume::New(entry);
-            volumes_.emplace(v->id(), v);
+            auto r = Render::New(entry);
+            renders_.emplace(r->id(), r);
         }
     }
 }
@@ -80,7 +95,7 @@ VolumePkg::Pointer VolumePkg::New(boost::filesystem::path fileLocation)
 
 // METADATA RETRIEVAL //
 // Returns Volume Name from JSON config
-std::string VolumePkg::getPkgName() const
+std::string VolumePkg::name() const
 {
     // Gets the Volume name from the configuration file
     auto name = config_.get<std::string>("name");
@@ -91,9 +106,9 @@ std::string VolumePkg::getPkgName() const
     return "UnnamedVolume";
 }
 
-int VolumePkg::getVersion() const { return config_.get<int>("version"); }
+int VolumePkg::version() const { return config_.get<int>("version"); }
 
-double VolumePkg::getMaterialThickness() const
+double VolumePkg::materialThickness() const
 {
     return config_.get<double>("materialthickness");
 }
@@ -146,14 +161,6 @@ Volume::Pointer VolumePkg::newVolume(std::string name)
     return r.first->second;
 }
 
-int VolumePkg::getNumberOfSlices() const { return volume()->numSlices(); }
-
-int VolumePkg::getSliceWidth() const { return volume()->sliceWidth(); }
-
-int VolumePkg::getSliceHeight() const { return volume()->sliceHeight(); }
-
-double VolumePkg::getVoxelSize() const { return volume()->voxelSize(); }
-
 // SEGMENTATION FUNCTIONS //
 std::vector<Segmentation::Identifier> VolumePkg::segmentationIDs() const
 {
@@ -203,6 +210,56 @@ Segmentation::Pointer VolumePkg::newSegmentation(std::string name)
     }
 
     // Return the Segmentation Pointer
+    return r.first->second;
+}
+
+// RENDER FUNCTIONS //
+std::vector<Render::Identifier> VolumePkg::renderIDs() const
+{
+    std::vector<Render::Identifier> ids;
+    for (auto& r : renders_) {
+        ids.emplace_back(r.first);
+    }
+    return ids;
+}
+
+std::vector<std::string> VolumePkg::renderNames() const
+{
+    std::vector<std::string> names;
+    for (auto& r : renders_) {
+        names.emplace_back(r.second->name());
+    }
+    return names;
+}
+
+// Make a new folder inside the volume package to house everything for this
+// Render and push back the new render into our vector of renders_
+Render::Pointer VolumePkg::newRender(std::string name)
+{
+    // Generate a uuid
+    auto uuid = DateTime();
+
+    // Get dir name if not specified
+    if (name.empty()) {
+        name = uuid;
+    }
+
+    // Make the volume directory
+    auto renDir = rendDir_ / uuid;
+    if (!fs::exists(renDir)) {
+        fs::create_directory(renDir);
+    } else {
+        throw std::runtime_error("Render directory already exists");
+    }
+
+    // Make the Render
+    auto r = renders_.emplace(uuid, Render::New(renDir, uuid, name));
+    if (!r.second) {
+        auto msg = "Render already exists with id " + uuid;
+        throw std::runtime_error(msg);
+    }
+
+    // Return the Render Pointer
     return r.first->second;
 }
 

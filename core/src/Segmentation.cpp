@@ -8,8 +8,7 @@ namespace fs = boost::filesystem;
 
 // Load a Segmentation directory from disk
 // Reads and verifies metadata
-Segmentation::Segmentation(boost::filesystem::path path)
-    : DiskBasedObjectBaseClass(path)
+Segmentation::Segmentation(fs::path path) : DiskBasedObjectBaseClass(path)
 {
     if (metadata_.get<std::string>("type") != "seg") {
         throw std::runtime_error("File not of type: seg");

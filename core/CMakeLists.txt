@@ -19,7 +19,7 @@ set(type_srcs
     src/HalfEdgeMesh.cpp
     src/Metadata.cpp
     src/PerPixelMap.cpp
-    src/Rendering.cpp
+    src/Render.cpp
     src/Reslice.cpp
     src/Segmentation.cpp
     src/Texture.cpp

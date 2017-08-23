@@ -71,7 +71,7 @@ BOOST_FIXTURE_TEST_CASE(DefaultSegmentationTest, LocalResliceSegmentationFix)
     segmenter_.setK2(k2);
     segmenter_.setBeta(beta);
     segmenter_.setDelta(delta);
-    segmenter_.setMaterialThickness(pkg_.getMaterialThickness());
+    segmenter_.setMaterialThickness(pkg_.materialThickness());
     segmenter_.setDistanceWeightFactor(peakDistanceWeight);
     segmenter_.setConsiderPrevious(shouldIncludeMiddle);
     segmenter_.setVisualize(visualize);

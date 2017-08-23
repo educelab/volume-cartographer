@@ -144,8 +144,8 @@ int main(int argc, char* argv[])
     ///// Load the volume package /////
     fs::path volpkgPath = opts["volpkg"].as<std::string>();
     vc::VolumePkg volpkg(volpkgPath);
-    if (volpkg.getVersion() != VOLPKG_SUPPORTED_VERSION) {
-        std::cerr << "ERROR: Volume package is version " << volpkg.getVersion()
+    if (volpkg.version() != VOLPKG_SUPPORTED_VERSION) {
+        std::cerr << "ERROR: Volume package is version " << volpkg.version()
                   << " but this program requires version "
                   << VOLPKG_SUPPORTED_VERSION << "." << std::endl;
         return EXIT_FAILURE;
@@ -245,7 +245,7 @@ int main(int argc, char* argv[])
         vs::LocalResliceSegmentation segmenter;
         segmenter.setChain(segPath);
         segmenter.setVolume(volume);
-        segmenter.setMaterialThickness(volpkg.getMaterialThickness());
+        segmenter.setMaterialThickness(volpkg.materialThickness());
         segmenter.setTargetZIndex(endIndex);
         segmenter.setStepSize(step);
         segmenter.setOptimizationIterations(opts["num-iters"].as<int>());

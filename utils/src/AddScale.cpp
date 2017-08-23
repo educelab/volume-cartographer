@@ -59,7 +59,7 @@ int main(int argc, char** argv)
     // Resize the scale image to match the voxel size of the dataset
     cv::Mat resizedScale;
     double scaleVoxelSize = 40.0;
-    double scaleFactor = scaleVoxelSize / volpkg.getVoxelSize();
+    double scaleFactor = scaleVoxelSize / volpkg.volume()->voxelSize();
     resize(scaleImage, resizedScale, cv::Size(), scaleFactor, scaleFactor);
     if (resizedScale.cols > outImage.cols ||
         resizedScale.rows > outImage.rows) {

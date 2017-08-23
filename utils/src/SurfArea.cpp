@@ -46,7 +46,7 @@ int main(int argc, char** argv)
     massProperties->AddInputData(smooth->GetOutput());
 
     auto areaVoxels = massProperties->GetSurfaceArea();
-    auto voxelSize = vpkg.getVoxelSize();
+    auto voxelSize = vpkg.volume()->voxelSize();
 
     long double umArea = areaVoxels * std::pow(voxelSize, 2);
     long double mmArea = umArea * std::pow(0.001, 2);

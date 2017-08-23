@@ -83,7 +83,7 @@ public:
     }
 
     /** @brief Check if a Point is within the bounds of the box */
-    bool isInBounds(const Point p) const
+    bool isInBounds(const Point& p) const
     {
         for (int d = 0; d < Dim; d++) {
             if (p[d] < p0_[d] || p[d] >= p1_[d]) {

@@ -24,14 +24,14 @@ int main(int argc, char* argv[])
     volcart::VolumePkg volpkg(volpkgpath);
 
     // print the object input
-    std::cout << "Volume package name before change: " << volpkg.getPkgName()
+    std::cout << "Volume package name before change: " << volpkg.name()
               << std::endl;
 
     // change a value
     volpkg.setMetadata("name", "Transformed Name");
 
     // print the changed object
-    std::cout << "Volume package name after change: " << volpkg.getPkgName()
+    std::cout << "Volume package name after change: " << volpkg.name()
               << std::endl;
 
     // save the new json file to test.json

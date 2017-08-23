@@ -10,6 +10,8 @@
 // University of Kentucky VisCenter
 //----------------------------------------------------------------------------------------------------------------------------------------
 
+#include <cmath>
+
 #include "MyThread.hpp"
 
 #include "vc/core/io/OBJWriter.hpp"
@@ -21,6 +23,8 @@
 #include "vc/texturing/AngleBasedFlattening.hpp"
 #include "vc/texturing/CompositeTexture.hpp"
 #include "vc/texturing/PPMGenerator.hpp"
+
+namespace vc = volcart;
 
 MyThread::MyThread(GlobalValues* globals)
 {
@@ -65,16 +69,13 @@ void MyThread::run()
         auto mesh = mesher.compute();
 
         // Calculate sampling density
-        double voxelsize = _globals->getVolPkg()->getVoxelSize();
-        double sa = volcart::meshmath::SurfaceArea(mesh) *
-                    (voxelsize * voxelsize) *
-                    (0.001 * 0.001);  // convert vx^2 -> mm^2;
+        auto voxelsize = _globals->getVolPkg()->volume()->voxelSize();
+        auto sa = vc::meshmath::SurfaceArea(mesh) * std::pow(voxelsize, 2) *
+                  (0.001 * 0.001);
         double densityFactor = 50;
-        auto numberOfVertices =
-            static_cast<uint16_t>(std::round(densityFactor * sa));
-        numberOfVertices = (numberOfVertices < CLEANER_MIN_REQ_POINTS)
-                               ? CLEANER_MIN_REQ_POINTS
-                               : numberOfVertices;
+        auto numVerts = static_cast<uint16_t>(std::round(densityFactor * sa));
+        numVerts = (numVerts < CLEANER_MIN_REQ_POINTS) ? CLEANER_MIN_REQ_POINTS
+                                                       : numVerts;
 
         // Convert to polydata
         auto vtkMesh = vtkSmartPointer<vtkPolyData>::New();
@@ -83,7 +84,7 @@ void MyThread::run()
         // Decimate using ACVD
         std::cout << "Resampling mesh..." << std::endl;
         auto acvdMesh = vtkSmartPointer<vtkPolyData>::New();
-        volcart::meshing::ACVD(vtkMesh, acvdMesh, numberOfVertices);
+        volcart::meshing::ACVD(vtkMesh, acvdMesh, numVerts);
 
         // Merge Duplicates
         // Note: This merging has to be the last in the process chain for some
@@ -121,7 +122,7 @@ void MyThread::run()
         result.compute();
 
         // Setup rendering
-        volcart::Rendering rendering;
+        Rendering rendering;
         rendering.setTexture(result.getTexture());
         rendering.setMesh(itkACVD);
 

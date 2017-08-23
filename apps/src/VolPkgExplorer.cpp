@@ -48,8 +48,8 @@ int main(int argc, char* argv[])
 
     ///// Load the volume package /////
     vc::VolumePkg vpkg(volpkgPath);
-    if (vpkg.getVersion() != VOLPKG_SUPPORTED_VERSION) {
-        std::cerr << "ERROR: Volume package is version " << vpkg.getVersion()
+    if (vpkg.version() != VOLPKG_SUPPORTED_VERSION) {
+        std::cerr << "ERROR: Volume package is version " << vpkg.version()
                   << " but this program requires version "
                   << VOLPKG_SUPPORTED_VERSION << "." << std::endl;
         return EXIT_FAILURE;
@@ -58,8 +58,8 @@ int main(int argc, char* argv[])
     ///// VolumePkg /////
     std::cout << std::endl;
     std::cout << " --- VolumePkg ---" << std::endl;
-    std::cout << "Name: " << vpkg.getPkgName() << std::endl;
-    std::cout << "Material Thickness: " << vpkg.getMaterialThickness() << "um"
+    std::cout << "Name: " << vpkg.name() << std::endl;
+    std::cout << "Material Thickness: " << vpkg.materialThickness() << "um"
               << std::endl;
     std::cout << std::endl;
 

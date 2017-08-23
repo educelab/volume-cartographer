@@ -6,6 +6,7 @@
 #include <boost/filesystem.hpp>
 
 #include "vc/core/types/Metadata.hpp"
+#include "vc/core/types/Render.hpp"
 #include "vc/core/types/Segmentation.hpp"
 #include "vc/core/types/Volume.hpp"
 #include "vc/core/types/VolumePkgVersion.hpp"
@@ -63,30 +64,13 @@ public:
     static Pointer New(boost::filesystem::path fileLocation);
     /**@}*/
 
-    /**@{*/
-    /**
-     * @brief Prints the JSON object that stores VolumePkg metadata. Debug only.
-     */
-    void printJSON() const { config_.printObject(); }
-
-    /**
-     * @brief Prints the paths to important VolumePkg subdirectories.
-     * Debug only.
-     */
-    void printDirs() const
-    {
-        std::cout << "root: " << rootDir_ << " seg: " << segsDir_
-                  << " slice: " << volsDir_ << std::endl;
-    }
-    /**@}*/
-
     /** @name Metadata */
     /**@{*/
     /**
      * @brief Returns the identifying name of the VolumePkg.
      * @return Name of the VolumePkg
      */
-    std::string getPkgName() const;
+    std::string name() const;
 
     /**
      * @brief Returns the VolumePkg version.
@@ -97,7 +81,28 @@ public:
      *
      * @return Version number of VolumePkg
      */
-    int getVersion() const;
+    int version() const;
+
+    /**
+     * @brief Returns the approx. thickness of a material layer in microns (um).
+     *
+     * This value is approximated by the user when the VolumePkg is created.
+     * This is an intrinsic property of the scanned object and is therefore
+     * indepedent of scan resolution. The material thickness in microns can be
+     * used to estimate the material thickness in voxels for scans of any
+     * resolution.
+     *
+     * \f[
+        \frac{\mbox{Material Thickness }(um)}{\mbox{Voxel Size }(um)}
+        = \mbox{Material Thickness }(voxels)
+      \f]
+     *
+     * @return Layer thickness, measured in microns (um).
+     */
+    double materialThickness() const;
+
+    /** @brief Return the VolumePkg Metadata */
+    Metadata metadata() const { return config_; }
 
     /**
      * @brief Sets the value of `key` in the VolumePkg metadata.
@@ -116,7 +121,7 @@ public:
     /**
      * @brief Saves the metadata to the VolumePkg (.volpkg) file.
      */
-    void saveMetadata() { config_.save(rootDir_ / "config.json"); }
+    void saveMetadata() { config_.save(); }
 
     /**
      * @brief Saves the metadata to a user-specified location.
@@ -167,65 +172,14 @@ public:
     {
         return volumes_.at(id);
     }
-
-    /**
-     * @brief Returns the width of the slice images.
-     *
-     * This number is retrieved from the metadata and is not validated
-     * against the slices stored in the .volpkg file.
-     */
-    int getSliceWidth() const;
-
-    /**
-     * @brief Returns the height of the slice images.
-     *
-     * This number is retrieved from the metadata and is not validated
-     * against the slices stored in the .volpkg file.
-     */
-    int getSliceHeight() const;
-
-    /**
-     * @brief Returns the number of slice images.
-     *
-     * This number is retrieved from the metadata and is not validated
-     * against the slices stored in the .volpkg file.
-     */
-    int getNumberOfSlices() const;
-
-    /**
-     * @brief Returns the size of voxels in microns (um).
-     *
-     * This is the "real-world" size of voxels. Only isometric voxels (voxels
-     * with equal edge lengths) are supported.
-     * @return Voxel size in microns (um)
-     */
-    double getVoxelSize() const;
-
-    /**
-     * @brief Returns the approx. thickness of a material layer in microns (um).
-     *
-     * This value is approximated by the user when the VolumePkg is created.
-     * This is an intrinsic property of the scanned object and is therefore
-     * indepedent of scan resolution. The material thickness in microns can be
-     * used to estimate the material thickness in voxels for scans of any
-     * resolution.
-     *
-     * \f[
-        \frac{\mbox{Material Thickness }(um)}{\mbox{Voxel Size }(um)}
-        = \mbox{Material Thickness }(voxels)
-      \f]
-     *
-     * @return Layer thickness, measured in microns (um).
-     */
-    double getMaterialThickness() const;
     /**@}*/
 
     /** @name Segmentation Data */
     /**@{*/
-    /** @brief Return whether there are Volumes */
+    /** @brief Return whether there are Segmentations */
     bool hasSegmentations() { return !segmentations_.empty(); }
 
-    /** @brief Get the number of Volumes */
+    /** @brief Get the number of Segmentations */
     size_t numberOfSegmentations() { return segmentations_.size(); }
 
     /** @brief Get the list of Segmentation IDs */
@@ -257,19 +211,58 @@ public:
     }
     /**@}*/
 
+    /** @name Render Data */
+    /**@{*/
+    /** @brief Return whether there are Renders */
+    bool hasRenders() { return !renders_.empty(); }
+
+    /** @brief Get the number of Renders */
+    size_t numberOfRenders() { return renders_.size(); }
+
+    /** @brief Get the list of Render IDs */
+    std::vector<Render::Identifier> renderIDs() const;
+
+    /** @brief Get the list of Render names */
+    std::vector<std::string> renderNames() const;
+
+    /**
+     * @brief Creates a new Render.
+     *
+     * Populates the .volpkg file with a new Render directory and adds the ID to
+     * the internal list of Renders.
+     */
+    Render::Pointer newRender(std::string name = "");
+
+    /** @brief Get a Render by uuid */
+    const Render::Pointer render(const Render::Identifier& id) const
+    {
+        return renders_.at(id);
+    }
+
+    /** @copydoc VolumePkg::render(std::string) const */
+    Render::Pointer render(const Render::Identifier& id)
+    {
+        return renders_.at(id);
+    }
+    /**@}*/
+
 private:
     /** VolumePkg metadata */
     Metadata config_;
     /** The root directory of the VolumePkg */
     boost::filesystem::path rootDir_;
+    /** The subdirectory containing Volume data */
+    boost::filesystem::path volsDir_;
     /** The subdirectory containing Segmentation data */
     boost::filesystem::path segsDir_;
-    /** The subdirectory containing slice data */
-    boost::filesystem::path volsDir_;
-    /** The list of all volumes in the VolumePkg. */
+    /** The subdirectory containing Render data */
+    boost::filesystem::path rendDir_;
+    /** The list of all Volumes in the VolumePkg. */
     std::map<Volume::Identifier, Volume::Pointer> volumes_;
-    /** The list of all segmentations in the VolumePkg. */
+    /** The list of all Segmentations in the VolumePkg. */
     std::map<Segmentation::Identifier, Segmentation::Pointer> segmentations_;
+    /** The list of all Renders in the VolumePkg. */
+    std::map<Render::Identifier, Render::Pointer> renders_;
 
     /**
      * @brief Populates an empty VolumePkg::config from a volcart::Dictionary

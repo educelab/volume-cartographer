@@ -128,8 +128,8 @@ int main(int argc, char* argv[])
 
     ///// Load the volume package /////
     vc::VolumePkg vpkg(volpkgPath);
-    if (vpkg.getVersion() != VOLPKG_SUPPORTED_VERSION) {
-        std::cerr << "ERROR: Volume package is version " << vpkg.getVersion()
+    if (vpkg.version() != VOLPKG_SUPPORTED_VERSION) {
+        std::cerr << "ERROR: Volume package is version " << vpkg.version()
                   << " but this program requires version "
                   << VOLPKG_SUPPORTED_VERSION << "." << std::endl;
         return EXIT_FAILURE;
@@ -152,7 +152,7 @@ int main(int argc, char* argv[])
     if (parsed.count("radius")) {
         radius = parsed["radius"].as<double>();
     } else {
-        radius = vpkg.getMaterialThickness() / volume->voxelSize();
+        radius = vpkg.materialThickness() / volume->voxelSize();
     }
 
     auto interval = parsed["interval"].as<double>();
@@ -246,25 +246,20 @@ int main(int argc, char* argv[])
         texture = textureGen.compute();
     }
 
-    // Save rendering
-    vc::Rendering rendering;
-    rendering.setTexture(texture);
-    rendering.setMesh(itkACVD);
-
     if (outputPath.extension() == ".PLY" || outputPath.extension() == ".ply") {
         std::cout << "Writing to PLY..." << std::endl;
-        vc::io::PLYWriter writer(
-            outputPath.string(), itkACVD, rendering.getTexture());
+        vc::io::PLYWriter writer(outputPath.string(), itkACVD, texture);
         writer.write();
     } else if (
         outputPath.extension() == ".PNG" || outputPath.extension() == ".png") {
         std::cout << "Writing to PNG..." << std::endl;
-        cv::imwrite(outputPath.string(), rendering.getTexture().image(0));
+        cv::imwrite(outputPath.string(), texture.image(0));
     } else {
         std::cout << "Writing to OBJ..." << std::endl;
         vc::io::OBJWriter writer;
         writer.setMesh(itkACVD);
-        writer.setRendering(rendering);
+        writer.setUVMap(uvMap);
+        writer.setTexture(texture.image(0));
         writer.setPath(outputPath.string());
         writer.write();
     }
