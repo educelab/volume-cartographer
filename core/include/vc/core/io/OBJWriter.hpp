@@ -7,7 +7,6 @@
 #include <opencv2/core.hpp>
 
 #include "vc/core/types/ITKMesh.hpp"
-#include "vc/core/types/Rendering.hpp"
 #include "vc/core/types/UVMap.hpp"
 
 namespace volcart

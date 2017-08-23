@@ -122,7 +122,7 @@ void MyThread::run()
         result.compute();
 
         // Setup rendering
-        volcart::Rendering rendering;
+        Rendering rendering;
         rendering.setTexture(result.getTexture());
         rendering.setMesh(itkACVD);
 

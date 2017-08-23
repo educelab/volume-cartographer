@@ -18,7 +18,8 @@
 #include <QMenu>
 #include <QPixmap>
 #include <QRect>
-#include "vc/core/types/Rendering.hpp"
+
+#include "Rendering.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 
 // Determines the _status of the thread running texturing
@@ -66,9 +67,9 @@ public:
     void setWindow(QMainWindow* window);
     QMainWindow* getWindow();
 
-    void setRendering(volcart::Rendering rendering);
+    void setRendering(Rendering rendering);
     void clearRendering();
-    volcart::Rendering getRendering();
+    Rendering getRendering();
 
     void setRadius(double radius);
     double getRadius();
@@ -100,7 +101,7 @@ private:
     std::vector<std::string> segmentations;
     QPixmap pix;
     QMainWindow* _window;
-    volcart::Rendering _rendering;
+    Rendering _rendering;
     double _radius;
     int _textureMethod;
     int _sampleDirection;

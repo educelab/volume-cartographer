@@ -8,6 +8,7 @@ set(srcs
     GlobalValues.cpp
     MainWindow.cpp
     MyThread.cpp
+    Rendering.cpp
 )
 
 # Set up .app bundle stuff

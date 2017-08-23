@@ -80,18 +80,15 @@ void GlobalValues::setWindow(QMainWindow* window) { _window = window; }
 
 QMainWindow* GlobalValues::getWindow() { return _window; }
 
-void GlobalValues::setRendering(volcart::Rendering rendering)
-{
-    _rendering = rendering;
-}
+void GlobalValues::setRendering(Rendering rendering) { _rendering = rendering; }
 
 void GlobalValues::clearRendering()
 {
-    volcart::Rendering* empty = new volcart::Rendering;
+    Rendering* empty = new Rendering;
     _rendering = *empty;
 }
 
-volcart::Rendering GlobalValues::getRendering() { return _rendering; }
+Rendering GlobalValues::getRendering() { return _rendering; }
 
 void GlobalValues::setRadius(double radius) { _radius = radius; }
 
