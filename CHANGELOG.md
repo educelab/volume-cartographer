@@ -1,5 +1,35 @@
 Volume Cartographer Changelog
 =============================
+v2.14.0
+-------
+There are a lot of big VolumePkg changes in this release, so you'll want to use 
+the vc_volpkg_v4to5 utility to upgrade any old packages you may have. In 
+particular, VolumePkg now supports the new Segmentation and Render objects. 
+These are meant to provide a canonical interface for dealing with the final 
+results from each stage of the virtual unwrapping pipeline. They're currently 
+very basic, but expect them to grow over time as we figure out the best 
+functionality for each.
+
+- apps
+    - Add basic multi-volume support to some of the apps (!172)
+    - (vc_packager) Add support for more bit-depths (!174)
+    - (vc_projection) Remove the old version and update the new one with program
+      options. You can now project any OBJ mesh onto a volume (!175)
+- core
+    - __New:__ Add new Segmentation class for interacting with segmentation 
+      results on disk. Updates VolumePkg with the new interface and bumps 
+      the version to v5 (!176)
+    - __New:__ Add new Render class for interacting with render results on disk. 
+      Also updates VolumePkg with the new interface. This class is fairly empty 
+      for now, but will be expanding (!178)
+    - Remove `vc_defines.hpp`. No more magic includes! (!170)
+    - (VolumePkg) Cleanup old volume metadata functions (#170, !178)
+- segmentation
+    - __New:__ Refactor both LRPS and STPS to use a new common interface, 
+     ChainSegmentationAlgorithmBaseClass (!177)
+    - (STPS) Dramatic rearrangement of this class. Adds Runge-Kutta step 
+      prediction. Still should not be used in production code (!177)
+
 v2.13.0
 -------
 This release marks a fairly extensive refactor of the main algorithms in the 
