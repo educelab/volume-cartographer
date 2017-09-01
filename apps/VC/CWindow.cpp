@@ -444,7 +444,7 @@ void CWindow::SplitCloud(void)
 
     // Upper, "immutable" part
     if (fPathOnSliceIndex > fMinSegIndex) {
-        fUpperPart = fMasterCloud.copyRows(0, pathIndex - 1);
+        fUpperPart = fMasterCloud.copyRows(0, pathIndex);
     } else {
         fUpperPart = volcart::OrderedPointSet<cv::Vec3d>(fMasterCloud.width());
     }

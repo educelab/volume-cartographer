@@ -208,7 +208,7 @@ int main(int argc, char* argv[])
     vc::OrderedPointSet<cv::Vec3d> immutableCloud;
     size_t pathInCloudIndex = startIndex - minIndex;
     if (startIndex > minIndex) {
-        immutableCloud = masterCloud.copyRows(0, pathInCloudIndex - 1);
+        immutableCloud = masterCloud.copyRows(0, pathInCloudIndex);
     } else {
         immutableCloud.setWidth(masterCloud.width());
     }
