@@ -89,7 +89,7 @@ BOOST_FIXTURE_TEST_CASE(WrongRowInGetRowThrows, Vec3iOrderedPointSet)
 
 BOOST_FIXTURE_TEST_CASE(CopyRowsFromOrderedPointSet, Vec3iOrderedPointSet4Rows)
 {
-    auto newPs = ps.copyRows(0, 2);
+    auto newPs = ps.copyRows(0, 3);
     BOOST_CHECK_EQUAL(newPs.width(), 3);
     BOOST_CHECK_EQUAL(newPs.height(), 3);
     BOOST_CHECK_EQUAL(newPs.size(), 9);
@@ -113,7 +113,7 @@ BOOST_FIXTURE_TEST_CASE(
 BOOST_FIXTURE_TEST_CASE(
     CopyRowsWithOutOfRangeIndexThrows, Vec3iOrderedPointSet4Rows)
 {
-    BOOST_CHECK_THROW(ps.copyRows(0, 5), std::range_error);
+    BOOST_CHECK_THROW(ps.copyRows(0, 6), std::range_error);
 }
 
 BOOST_FIXTURE_TEST_CASE(AppendOrderedPointSet, Vec3iOrderedPointSet)

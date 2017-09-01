@@ -1,5 +1,11 @@
 Volume Cartographer Changelog
 =============================
+v2.14.1
+-------
+Patch release. Changes OrderedPointSet::copyRows to exclude the end row index. 
+This is something the STL does, and something that Sean (skarlage) did in the 
+first place, but I overruled him like an idiot. YOU WERE RIGHT, SEAN.
+
 v2.14.0
 -------
 There are a lot of big VolumePkg changes in this release, so you'll want to use 

@@ -173,22 +173,21 @@ public:
     /**
      * @brief Get multiple rows of points
      *
-     * Copies rows [i, j] (inclusive).
+     * Copies rows [i, j).
      *
-     * Throws a std::range_error if `i` or `j` are outside the range of row
-     * indices. Throws std::logic_error if `j > i`.
+     * Throws a std::range_error if `i` is outside the range of row
+     * indices. Throws std::logic_error if `j <= i`.
      */
     OrderedPointSet copyRows(size_t i, size_t j) const
     {
-        if (i >= this->height() || j >= this->height()) {
+        if (i >= this->height() || j > this->height()) {
             throw std::range_error("out of range");
-        } else if (i > j) {
+        } else if (j <= i) {
             throw std::logic_error("i must be less than j");
         }
         OrderedPointSet ps(width_);
         std::copy(
-            std::begin(data_) + width_ * i,
-            std::begin(data_) + width_ * (j + 1),
+            std::begin(data_) + width_ * i, std::begin(data_) + width_ * j,
             std::back_inserter(ps.data()));
         return ps;
     }
