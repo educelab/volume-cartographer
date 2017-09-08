@@ -114,5 +114,5 @@ const Dictionary V1 =
 /**
  * Global Library used to store all template Dictionaries.
  */
-const Library VERSION_LIBRARY = {{1, V1}, {2, V2}, {3, V3}, {4, V4}};
+const Library VERSION_LIBRARY = {{1, V1}, {2, V2}, {3, V3}, {4, V4}, {5, V5}};
 }
