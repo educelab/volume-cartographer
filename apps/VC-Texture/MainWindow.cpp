@@ -9,6 +9,8 @@
 // University of Kentucky VisCenter
 //----------------------------------------------------------------------------------------------------------------------------------------
 
+#include <regex>
+
 #include <boost/algorithm/string/case_conv.hpp>
 #include <opencv2/imgcodecs.hpp>
 
@@ -126,7 +128,8 @@ void MainWindow::getFilePath()
     if (!filename.empty()) {
 
         // Checks the Folder Path for .volpkg extension
-        if (filename.extension().string() != ".volpkg") {
+        std::regex volpkg(".*volpkg$");
+        if (std::regex_match(filename.extension().string(), volpkg)) {
             try {
                 // Sets Folder Path in Globals
                 _globals->setPath(filename.c_str());

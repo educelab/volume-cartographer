@@ -210,13 +210,11 @@ void CBezierCurve::DrawOnImage(cv::Mat& nImg, const cv::Scalar& nColor)
         } else {
             cv::line(
                 nImg, cv::Point2f(prev_x, prev_y), cv::Point2f(xxx, yyy),
-                nColor /*cv::Scalar( 0, 0, 255 )*/);
-            //            circle( nImg, cv::Point2f( xxx, yyy ), 5, cv::Scalar(
-            //            0, 0, 255 ) );
+                nColor);
+
             prev_x = xxx;
             prev_y = yyy;
         }
-// circle( nImg, cv::Point2f( xxx, yyy ), 1, cv::Scalar( 0, 0, 255 ) );
 
 #ifdef _DEBUG
         circle(
