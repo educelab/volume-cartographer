@@ -113,6 +113,8 @@ endif()
 # Install targets
 install(
     TARGETS
+        vc_layers
+        vc_layers_from_ppm
         vc_mesher
         vc_packager
         vc_segment

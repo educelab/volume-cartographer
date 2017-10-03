@@ -151,7 +151,7 @@ private:
     /** Maximum number of ABF minimization iterations */
     int maxABFIterations_;
     /** Threshold for determining a properly minimized mesh */
-    double limit_;
+    double limit_{0.001f};
     /**@}*/
 
     /**@{*/
@@ -187,10 +187,10 @@ private:
     cv::Mat j2dt_;
 
     /** ID of pinned point #1 */
-    HalfEdgeMesh::IDType pin0_;
+    HalfEdgeMesh::IDType pin0_{0};
 
     /** ID of pinned point #2 */
-    HalfEdgeMesh::IDType pin1_;
+    HalfEdgeMesh::IDType pin1_{1};
 
     /** Shift values around a triangle */
     template <typename T>
