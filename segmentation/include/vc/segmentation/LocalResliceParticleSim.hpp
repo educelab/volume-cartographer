@@ -37,6 +37,8 @@ public:
     /**@{*/
     /** @brief Default constructor */
     LocalResliceSegmentation() = default;
+    /** Default destructor */
+    ~LocalResliceSegmentation() override = default;
     /**@}*/
 
     /**@{*/

@@ -209,7 +209,7 @@ void AngleBasedFlattening::solve_abf_()
             std::cerr
                 << "volcart::texturing::abf: ABF failed to invert matrix after "
                 << i + 1 << " iterations. Falling back to LSCM." << std::endl;
-            throw std::runtime_error("ABF failed to invert matrix");
+            break;
         }
 
         // Update the HEM with their new sine/cosine values

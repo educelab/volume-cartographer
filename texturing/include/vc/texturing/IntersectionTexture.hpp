@@ -19,6 +19,9 @@ namespace texturing
 class IntersectionTexture : public TexturingAlgorithmBaseClass
 {
 public:
+    /** Default destructor */
+    ~IntersectionTexture() = default;
+
     /**@{*/
     /** @brief Compute the Texture */
     Texture compute() override;

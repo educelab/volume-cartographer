@@ -19,6 +19,9 @@ namespace texturing
 class IntegralTexture : public TexturingAlgorithmBaseClass
 {
 public:
+    /** Default destructor */
+    ~IntegralTexture() = default;
+
     /**
      * @brief Weight option
      *

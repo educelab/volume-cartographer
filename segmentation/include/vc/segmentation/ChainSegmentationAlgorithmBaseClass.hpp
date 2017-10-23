@@ -17,6 +17,9 @@ namespace segmentation
 class ChainSegmentationAlgorithmBaseClass
 {
 public:
+    /** Default destructor for virtual base class */
+    virtual ~ChainSegmentationAlgorithmBaseClass() = default;
+
     /** Chain type */
     using Chain = std::vector<cv::Vec3d>;
     /** PointSet type */
