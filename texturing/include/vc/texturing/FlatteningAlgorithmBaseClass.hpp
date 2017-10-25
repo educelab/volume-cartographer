@@ -16,7 +16,7 @@ public:
 
     /**@{*/
     /** @brief Set the input Mesh */
-    void setMesh(ITKMesh::Pointer mesh) { mesh_ = std::move(mesh); }
+    void setMesh(const ITKMesh::Pointer& m) { mesh_ = m; }
     /**@}*/
 
     /**@{*/
@@ -37,9 +37,9 @@ protected:
     FlatteningAlgorithmBaseClass() = default;
 
     /** Constructor with input mesh initialization */
-    explicit FlatteningAlgorithmBaseClass(ITKMesh::Pointer m)
+    explicit FlatteningAlgorithmBaseClass(const ITKMesh::Pointer& m)
     {
-        mesh_ = std::move(m);
+        mesh_ = m;
     }
 
     /** Input mesh */
