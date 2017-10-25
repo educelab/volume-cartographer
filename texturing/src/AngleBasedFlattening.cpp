@@ -35,10 +35,11 @@ using HEM = volcart::HalfEdgeMesh;
 
 ///// Get Output /////
 // Get output as mesh
-ITKMesh::Pointer AngleBasedFlattening::getMesh()
+void AngleBasedFlattening::fill_output_mesh_()
 {
-    auto output = ITKMesh::New();
-    volcart::meshing::DeepCopy(mesh_, output);
+    // Deep copy the original mesh
+    output_ = ITKMesh::New();
+    volcart::meshing::DeepCopy(mesh_, output_);
 
     // Update the point positions
     ITKPoint p;
@@ -46,65 +47,15 @@ ITKMesh::Pointer AngleBasedFlattening::getMesh()
         p[0] = (*it)->uv[0];
         p[1] = 0;
         p[2] = (*it)->uv[1];
-        output->SetPoint((*it)->id, p);
+        output_->SetPoint((*it)->id, p);
     }
 
-    // To-do: #189
-    return output;
-}
-
-// Get UV Map created from flattened object
-volcart::UVMap AngleBasedFlattening::getUVMap()
-{
-    // Setup uvMap
-    volcart::UVMap uvMap;
-
-    auto uMin = std::numeric_limits<double>::max();
-    auto uMax = std::numeric_limits<double>::min();
-    auto vMin = std::numeric_limits<double>::max();
-    auto vMax = std::numeric_limits<double>::min();
-
-    // Get the min and max values for u & v respectively
-    for (auto it = heMesh_.getVertsBegin(); it != heMesh_.getVertsEnd(); ++it) {
-        auto vert = (*it);
-        if (vert->uv[0] < uMin) {
-            uMin = vert->uv[0];
-        }
-        if (vert->uv[0] > uMax) {
-            uMax = vert->uv[0];
-        }
-        if (vert->uv[1] < vMin) {
-            vMin = vert->uv[1];
-        }
-        if (vert->uv[1] > vMax) {
-            vMax = vert->uv[1];
-        }
-    }
-
-    // Set the UV map ratio an scale width and height back to volume coordinates
-    auto scale = sqrt(
-        volcart::meshmath::SurfaceArea(mesh_) /
-        volcart::meshmath::SurfaceArea(getMesh()));
-    double aspectWidth = std::abs(uMax - uMin);
-    double aspectHeight = std::abs(vMax - vMin);
-    uvMap.ratio(aspectWidth * scale, aspectHeight * scale);
-
-    // Calculate uv coordinates
-    cv::Vec2d uv;
-    for (auto it = heMesh_.getVertsBegin(); it != heMesh_.getVertsEnd(); ++it) {
-        auto vert = (*it);
-        uv[0] = (vert->uv[0] - uMin) / (uMax - uMin);
-        uv[1] = (vert->uv[1] - vMin) / (vMax - vMin);
-
-        // Add the uv coordinates into our map at the point index specified
-        uvMap.set(vert->id, uv);
-    }
-
-    return uvMap;
+    // Rotate the mesh so that V_vec and Z_vec are parallel
+    orient_uvs_();
 }
 
 ///// Process //////
-UVMap AngleBasedFlattening::compute()
+ITKMesh::Pointer AngleBasedFlattening::compute()
 {
     // Construct the mesh and get the angles
     fill_half_edge_mesh_();
@@ -117,10 +68,10 @@ UVMap AngleBasedFlattening::compute()
     // Solve the system via LSCM
     solve_lscm_();
 
-    // Orient UVs
-    orient_uv_positions_();
+    // Convert back to an ITK mesh
+    fill_output_mesh_();
 
-    return getUVMap();
+    return output_;
 }
 
 ///// Setup /////
@@ -741,45 +692,4 @@ void AngleBasedFlattening::compute_pin_uv_()
     auto vDist = p0xyz[2] - p1xyz[2];
     heMesh_.getVert(pin0_)->uv = cv::Vec2d{0.0, 0.0};
     heMesh_.getVert(pin1_)->uv = cv::Vec2d{uDist, vDist};
-}
-
-void AngleBasedFlattening::orient_uv_positions_()
-{
-    // Get the UV points + Z from the original mesh
-    std::vector<cv::Vec3d> pts;
-    for (auto v = heMesh_.getVertsBegin(); v != heMesh_.getVertsEnd(); v++) {
-        pts.emplace_back((*v)->uv[0], (*v)->uv[1], (*v)->xyz[2]);
-    }
-
-    // Fit a 3D least-squares line
-    cv::Vec6d line;
-    cv::fitLine(pts, line, CV_DIST_L2, 0, 0.01, 0.01);
-
-    // Calculate a rotation angle between the fitted line and the y vec
-    cv::Vec2d fitVecUV{line[0], line[1]};
-    cv::Vec2d downVecUV{0, 1};
-    auto cos = fitVecUV.dot(downVecUV) / cv::norm(fitVecUV);
-    auto angle = std::acos(cos);
-
-    // If z-gradient is decreasing, rot. 180 deg s.t. z = 0 is at the top
-    if (line[2] < 0) {
-        angle += M_PI;
-        cos = std::cos(angle);
-    }
-    auto sin = std::sin(angle);
-
-    // Get counter-clockwise rotation matrix
-    cv::Mat rotMat = cv::Mat::zeros(2, 2, CV_64F);
-    rotMat.at<double>(0, 0) = cos;
-    rotMat.at<double>(0, 1) = sin;
-    rotMat.at<double>(1, 0) = -sin;
-    rotMat.at<double>(1, 1) = cos;
-
-    // Apply to the UVs
-    cv::Vec2d oldUV;
-    for (auto v = heMesh_.getVertsBegin(); v != heMesh_.getVertsEnd(); v++) {
-        // Apply the transform
-        cv::Mat newUV = rotMat * cv::Mat((*v)->uv);
-        (*v)->uv = {newUV.at<double>(0), newUV.at<double>(1)};
-    }
 }

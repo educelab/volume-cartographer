@@ -25,13 +25,34 @@ public:
     /**@}*/
 
     /**@{*/
-    /** @brief Get the generated Texture */
+    /** @brief Get the parameterized mesh */
+    ITKMesh::Pointer getMesh() { return output_; }
+
+    /** @brief Get the parameterized mesh as a UVMap  */
     UVMap getUVMap();
     /**@}*/
 
 protected:
+    /** Default constructor */
+    FlatteningAlgorithmBaseClass() = default;
+
+    /** Constructor with input mesh initialization */
+    explicit FlatteningAlgorithmBaseClass(ITKMesh::Pointer m)
+    {
+        mesh_ = std::move(m);
+    }
+
+    /** Input mesh */
     ITKMesh::Pointer mesh_;
+    /** Output mesh */
     ITKMesh::Pointer output_;
+
+    /**
+     * Reorient the UV map such that the Z-axis of the input mesh is parallel to
+     * the V-axis of the UV map. Assumes that the UV coordinates are stored in
+     * {output_.pt[0] = u, output_.pt[2] = v}.
+     */
+    void orient_uvs_();
 };
 }
 }

@@ -32,6 +32,7 @@
 #include "vc/core/types/HalfEdgeMesh.hpp"
 #include "vc/core/types/ITKMesh.hpp"
 #include "vc/core/types/UVMap.hpp"
+#include "vc/texturing/FlatteningAlgorithmBaseClass.hpp"
 
 namespace volcart
 {
@@ -58,7 +59,7 @@ namespace texturing
  *
  * @ingroup UV
  */
-class AngleBasedFlattening
+class AngleBasedFlattening : public FlatteningAlgorithmBaseClass
 {
 public:
     /** Default maximum number of ABF iterations */
@@ -66,29 +67,16 @@ public:
 
     /**@{*/
     /** @brief Default constructor */
-    AngleBasedFlattening()
-        : useABF_{true}, maxABFIterations_{DEFAULT_ITERATIONS}
-    {
-    }
+    AngleBasedFlattening() = default;
 
     /** @brief Construct and set the input mesh */
-    explicit AngleBasedFlattening(ITKMesh::Pointer mesh)
-        : useABF_{true}
-        , maxABFIterations_{DEFAULT_ITERATIONS}
-        , mesh_{std::move(mesh)}
+    explicit AngleBasedFlattening(ITKMesh::Pointer m)
+        : FlatteningAlgorithmBaseClass(m)
     {
     }
-    /**@}*/
 
-    /**@{*/
-    /** @brief Set the input mesh */
-    void setMesh(const ITKMesh::Pointer& mesh) { mesh_ = mesh; }
-
-    /** @brief Get the flattened surface as a mesh */
-    ITKMesh::Pointer getMesh();
-
-    /** @brief Get the flattened surface as a UV map */
-    volcart::UVMap getUVMap();
+    /** Default destructor */
+    ~AngleBasedFlattening() override = default;
     /**@}*/
 
     /**@{*/
@@ -112,13 +100,16 @@ public:
 
     /**@{*/
     /** @brief Compute the parameterization */
-    UVMap compute();
+    ITKMesh::Pointer compute() override;
     /**@}*/
 
 private:
     /**@{*/
     /** Convert the input mesh to a HalfEdgeMesh */
     void fill_half_edge_mesh_();
+
+    /** Convert the flattened mesh back to an ITKMesh */
+    void fill_output_mesh_();
 
     /** Compute the ABF minimized angles */
     void solve_abf_();
@@ -150,9 +141,9 @@ private:
     bool invert_matrix_();
 
     /** Whether to use ABF minimization */
-    bool useABF_;
+    bool useABF_{true};
     /** Maximum number of ABF minimization iterations */
-    int maxABFIterations_;
+    int maxABFIterations_{DEFAULT_ITERATIONS};
     /** Threshold for determining a properly minimized mesh */
     double limit_{0.001f};
     /**@}*/
@@ -169,12 +160,6 @@ private:
      * supposedly arbitrary. */
     void compute_pin_uv_();
     /**@}*/
-
-    /** Orient UV positions */
-    void orient_uv_positions_();
-
-    /** Input mesh */
-    ITKMesh::Pointer mesh_;
 
     /** HalfEdgeMesh for processing */
     HalfEdgeMesh heMesh_;

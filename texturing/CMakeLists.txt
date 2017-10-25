@@ -10,6 +10,7 @@ set(srcs
     src/IntegralTexture.cpp
     src/LayerTexture.cpp
     src/TexturingAlgorithmBaseClass.cpp
+    src/FlatteningAlgorithmBaseClass.cpp
 )
 set(public_deps
     VC::core
