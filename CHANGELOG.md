@@ -1,5 +1,22 @@
 Volume Cartographer Changelog
 =============================
+v2.15.0
+-------
+This is a very small release in order to keep momentum going on the monthly 
+releases. The only major change is the addition of better UV map reorientation.
+
+- all
+    - (OSX) Fix compiler warnings with the High Sierra-era command line tools 
+    (!184)
+    - Update `vc-deps` submodule to the most recent version (ace27a06)
+- texturing
+    - Add UV reorientation so that the dimensions are appropriately aligned 
+      along the vertical axis of the UV space (!173)
+    - __New:__ Add FlatteningAlgorithmBaseClass for parameterization algorithms 
+      (!173)
+    - Fixed exception where failure to compute ABF inversion should have fallen 
+      back to LSCM (!184)
+
 v2.14.2
 -------
 Patch release. Fixes bug where VolumePkg v5 wasn't properly registered.
