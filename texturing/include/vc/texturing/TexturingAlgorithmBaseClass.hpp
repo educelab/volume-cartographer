@@ -11,6 +11,9 @@ namespace texturing
 class TexturingAlgorithmBaseClass
 {
 public:
+    /** Default destructor for virtual base class */
+    virtual ~TexturingAlgorithmBaseClass() = default;
+
     /**@{*/
     /** @brief Set the input PerPixelMap */
     void setPerPixelMap(PerPixelMap ppm) { ppm_ = std::move(ppm); }

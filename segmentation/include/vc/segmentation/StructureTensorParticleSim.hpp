@@ -26,6 +26,8 @@ public:
     /**@{*/
     /** @brief Default constructor */
     StructureTensorParticleSim() = default;
+    /** Default destructor */
+    ~StructureTensorParticleSim() override = default;
     /**@}*/
 
     /**@{*/

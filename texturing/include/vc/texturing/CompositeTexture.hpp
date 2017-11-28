@@ -28,6 +28,9 @@ namespace texturing
 class CompositeTexture : public TexturingAlgorithmBaseClass
 {
 public:
+    /** Default destructor */
+    ~CompositeTexture() = default;
+
     /** Filter list */
     enum class Filter { Minimum, Maximum, Median, Mean, MedianAverage };
 

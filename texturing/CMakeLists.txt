@@ -10,11 +10,13 @@ set(srcs
     src/IntegralTexture.cpp
     src/LayerTexture.cpp
     src/TexturingAlgorithmBaseClass.cpp
+    src/FlatteningAlgorithmBaseClass.cpp
 )
 set(public_deps
     VC::core
 )
 set(private_deps
+    opencv_imgproc
     VC::meshing
     VC::external
 )

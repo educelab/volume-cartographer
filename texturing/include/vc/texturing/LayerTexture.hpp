@@ -24,6 +24,9 @@ namespace texturing
 class LayerTexture : public TexturingAlgorithmBaseClass
 {
 public:
+    /** Default destructor */
+    ~LayerTexture() = default;
+
     /**@{*/
     /** @brief Compute the Texture */
     Texture compute() override;
