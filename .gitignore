@@ -2,6 +2,8 @@
 bin/
 flycheck*
 *.o
+*.so
+*.a
 *.gch
 
 # Emacs

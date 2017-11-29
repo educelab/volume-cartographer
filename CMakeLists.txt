@@ -77,5 +77,9 @@ if (VC_BUILD_DOC)
     add_subdirectory(doc)
 endif()
 
+if(VC_BUILD_PYTHON_BINDINGS)
+    add_subdirectory(python)
+endif()
+
 # Install to system directories
 include(VCInstall)

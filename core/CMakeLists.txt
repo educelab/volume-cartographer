@@ -59,7 +59,25 @@ target_link_libraries(${target}
 set_target_properties(${target} PROPERTIES
     VERSION "${PROJECT_VERSION}"
     EXPORT_NAME "${module}"
+    POSITION_INDEPENDENT_CODE TRUE
 )
+
+if(VC_BUILD_PYTHON_BINDINGS)
+    set(python_srcs
+        python/pyCore.cpp
+        python/pyVolume.cpp
+    )
+    set(python_libs
+        VC::core
+    )
+
+    pybind11_add_module(Core ${python_srcs})
+    target_link_libraries(Core
+        PRIVATE
+            ${python_libs}
+    )
+endif()
+
 
 install(
     TARGETS "${target}"
