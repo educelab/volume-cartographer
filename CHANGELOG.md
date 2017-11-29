@@ -1,5 +1,9 @@
 Volume Cartographer Changelog
 =============================
+v2.15.1
+-------
+Patch release. Fixed vc-deps dependency issues. Sets up weekly dev build.
+
 v2.15.0
 -------
 This is a very small release in order to keep momentum going on the monthly 
