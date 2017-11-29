@@ -155,7 +155,7 @@ public:
     /**
      * @param mesh Mesh which will be decimated
      */
-    explicit QuadricEdgeCollapseDecimation(ITKMesh::Pointer mesh)
+    explicit QuadricEdgeCollapseDecimation(const ITKMesh::Pointer& mesh)
         : itkInput_{mesh}
     {
         setDefaultParams();
