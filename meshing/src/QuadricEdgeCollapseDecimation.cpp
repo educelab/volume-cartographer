@@ -11,7 +11,7 @@ using namespace volcart::meshing;
 ///// Set inputs & params /////
 void QuadricEdgeCollapseDecimation::setDefaultParams()
 {
-    collapseParams_.SetDefaultParams();
+    collapseParams_ = vcg::tri::TriEdgeCollapseQuadricParameter();
     collapseParams_.PreserveBoundary = true;
     collapseParams_.PreserveTopology = true;
 }
