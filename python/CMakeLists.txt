@@ -1,5 +1,19 @@
-set(target "pyvc")
+## Python wrapper utilities library ##
+set(module "python")
+set(target "vc_${module}")
 
+add_library(${target} INTERFACE)
+add_library("${namespace}${module}" ALIAS "${target}")
+target_include_directories(${target}
+    INTERFACE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+)
+set_target_properties(${target} PROPERTIES
+    EXPORT_NAME "${module}"
+)
+
+## PyPI Packaging ##
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/volcart/")
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/volcart/__init__.py" "")
 
@@ -15,6 +29,6 @@ add_custom_command(OUTPUT ${OUTPUT}
         COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
         DEPENDS ${INIT_PY})
 
-add_custom_target(target ALL DEPENDS ${OUTPUT})
+add_custom_target(build_py ALL DEPENDS ${OUTPUT})
 
 install(CODE "execute_process(COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY} install)")

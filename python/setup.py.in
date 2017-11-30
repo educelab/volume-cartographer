@@ -13,12 +13,13 @@ for idx, l in enumerate(libs):
 setup(
     name='volcart',
     version='${PROJECT_VERSION}',
+    author="Digital Restoration Initiative",
+    author_email="c.seth.parker@uky.edu",
+    description="Python wrapper around the Volume Cartographer library",
 
     package_dir={'volcart': '${CMAKE_CURRENT_BINARY_DIR}/volcart'},
     packages=['volcart'],
     package_data={'volcart': libs},
 
-    author="Digital Restoration Initiative",
-    author_email="c.seth.parker@uky.edu",
-    description="Python wrapper around the Volume Cartographer library"
+    requires=['numpy']
 )

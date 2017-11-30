@@ -1,6 +1,7 @@
 #include <pybind11/pybind11.h>
 
 #include "vc/core/types/Volume.hpp"
+#include "vc/python/PyMatCaster.hpp"
 
 namespace py = pybind11;
 namespace vc = volcart;
@@ -25,4 +26,5 @@ void init_Volume(py::module& m)
     vol.def("voxelSize", &vc::Volume::voxelSize);
 
     /** Slice Data */
+    vol.def("getSlice", &vc::Volume::getSliceData);
 }
