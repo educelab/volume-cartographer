@@ -12,11 +12,11 @@ void init_Volume(py::module&);
 void init_Volume(py::module& m)
 {
     /** Class */
-    py::class_<vc::Volume> vol(m, "Volume");
+    py::class_<vc::Volume, vc::Volume::Pointer> vol(m, "Volume");
 
     /** Constructors */
     // Load from path w/ metadata
-    vol.def(py::init([](std::string p) { return vc::Volume(p); }));
+    vol.def(py::init([](std::string p) { return vc::Volume::New(p); }));
 
     /** Metadata */
     vol.def("id", &vc::Volume::id);
@@ -56,8 +56,8 @@ void init_Volume(py::module& m)
         py::arg("center"),
         py::arg_v("x_vec", cv::Vec3d{1, 0, 0}, "{1,0,0}"),
         py::arg_v("y_vec", cv::Vec3d{0, 1, 0}, "{0,1,0}"),
-        py::arg_v("width", int(64), "64"),
-        py::arg_v("height", int(64), "64"));
+        py::arg("width") = 64,
+        py::arg("height") = 64);
     // clang-format on
 
     vol.def(

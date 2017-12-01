@@ -68,6 +68,7 @@ if(VC_BUILD_PYTHON_BINDINGS)
         python/PyCore.cpp
         python/PyReslice.cpp
         python/PyVolume.cpp
+        python/PyVolumePkg.cpp
     )
 
     # This sets the module name in Python and must match the name in PyCore.cpp
