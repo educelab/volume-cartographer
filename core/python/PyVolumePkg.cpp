@@ -11,28 +11,35 @@ void init_VolumePkg(py::module&);
 void init_VolumePkg(py::module& m)
 {
     /** Class */
-    py::class_<vc::VolumePkg, vc::VolumePkg::Pointer> v(m, "VolumePkg");
+    py::class_<vc::VolumePkg, vc::VolumePkg::Pointer> c(m, "VolumePkg");
+    c.doc() = "The interface to the VolumePkg (.volpkg) file format.";
 
     /** Constructors */
-    v.def(py::init([](std::string p) { return vc::VolumePkg::New(p); }));
+    c.def(
+        py::init([](std::string path) { return vc::VolumePkg::New(path); }),
+        py::arg("path"), "Load a VolumePkg from a filesystem path");
 
     /** Metadata */
-    v.def("name", &vc::VolumePkg::name);
-    v.def("version", &vc::VolumePkg::version);
-    v.def("materialThickness", &vc::VolumePkg::materialThickness);
+    c.def("name", &vc::VolumePkg::name, "Human-readable VolumePkg name");
+    c.def("version", &vc::VolumePkg::version, "The VolumePkg version number");
+    c.def(
+        "materialThickness", &vc::VolumePkg::materialThickness,
+        "Approximate thickness of a material layer in microns");
 
     /** Volumes */
-    v.def("numberOfVolumes", &vc::VolumePkg::numberOfVolumes);
-    v.def("volumeIDs", &vc::VolumePkg::volumeIDs);
-    v.def("volumeNames", &vc::VolumePkg::volumeNames);
-    v.def(
-        "volume",
-        [](vc::VolumePkg& vpkg, vc::Volume::Identifier id) {
-            if (id.empty()) {
-                return vpkg.volume();
-            } else {
-                return vpkg.volume(id);
-            }
-        },
-        py::arg("id") = "");
+    c.def(
+        "numberOfVolumes", &vc::VolumePkg::numberOfVolumes,
+        "Number of Volumes in the package");
+    c.def("volumeIDs", &vc::VolumePkg::volumeIDs, "Get the list of Volume IDs");
+    c.def(
+        "volumeNames", &vc::VolumePkg::volumeNames,
+        "Get the list of human-readable Volume names");
+    c.def(
+         "volume", py::overload_cast<>(&vc::VolumePkg::volume),
+         "Get the default Volume")
+        .def(
+            "volume",
+            py::overload_cast<const vc::Volume::Identifier&>(
+                &vc::VolumePkg::volume),
+            py::arg("id"), "Get a Volume by ID");
 }

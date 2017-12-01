@@ -8,6 +8,8 @@ void init_VolumePkg(py::module&);
 
 PYBIND11_MODULE(Core, m)
 {
+    m.doc() = "Library containing fundamental VC data types and operations.";
+
     // init types
     init_Reslice(m);
     init_Volume(m);
