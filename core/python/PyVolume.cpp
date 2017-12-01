@@ -64,7 +64,8 @@ void init_Volume(py::module& m)
         "subvolume",
         [](vc::Volume& v, cv::Vec3d c, int rx, int ry, int rz, cv::Vec3d xvec,
            cv::Vec3d yvec, cv::Vec3d zvec) {
-            auto s = v.getVoxelNeighborsInterpolated<uint16_t>(c, rx, ry, rz);
+            auto s = v.getVoxelNeighborsInterpolated<uint16_t>(
+                c, rx, ry, rz, xvec, yvec, zvec);
             auto buf = s.buffer();
             size_t size = sizeof(uint16_t);
             std::string format = py::format_descriptor<uint16_t>::format();

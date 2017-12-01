@@ -488,33 +488,28 @@ public:
      */
     template <typename DType>
     Tensor3D<DType> getVoxelNeighborsInterpolated(
-        const cv::Vec3d& center, int32_t rx, int32_t ry, int32_t rz) const
+        const cv::Vec3d& center,
+        int rx,
+        int ry,
+        int rz,
+        const cv::Vec3d& xvec = {1, 0, 0},
+        const cv::Vec3d& yvec = {0, 1, 0},
+        const cv::Vec3d& zvec = {0, 0, 1}) const
     {
-        // Safety checks
-        assert(
-            center(0) >= 0 && center(0) < sliceWidth_ && center(1) >= 0 &&
-            center(1) < sliceHeight_ && center(2) >= 0 &&
-            center(2) < numSlices_ && "center must be inside volume");
+        if (!isInBounds(center)) {
+            throw std::range_error("center not in bounds");
+        }
 
         Tensor3D<DType> v(2 * rx + 1, 2 * ry + 1, 2 * rz + 1);
-        double k = center(2) - rz;
-        for (int c = 0; c < 2 * rz + 1; ++c, k += 1.0) {
-            if (k < 0.0f || k > static_cast<double>(numSlices_)) {
-                continue;
-            }
-
-            double j = center(1) - ry;
-            for (int b = 0; b < 2 * ry + 1; ++b, j += 1.0) {
-                if (j < 0.0 || j > static_cast<double>(sliceHeight_)) {
-                    continue;
-                }
-
-                double i = center(0) - rx;
-                for (int a = 0; a < 2 * rx + 1; ++a, i += 1.0) {
-                    if (i < 0.0 || i > static_cast<double>(sliceWidth_)) {
-                        continue;
-                    }
-                    v(a, b, c) = DType(interpolatedIntensityAt(i, j, k));
+        for (int c = 0; c < 2 * rz + 1; ++c) {
+            for (int b = 0; b < 2 * ry + 1; ++b) {
+                for (int a = 0; a < 2 * rx + 1; ++a) {
+                    auto xOffset = -rx + a;
+                    auto yOffset = -ry + b;
+                    auto zOffset = -rz + c;
+                    auto p = center + (xvec * xOffset) + (yvec * yOffset) +
+                             (zvec * zOffset);
+                    v(a, b, c) = DType(interpolateAt(p));
                 }
             }
         }
