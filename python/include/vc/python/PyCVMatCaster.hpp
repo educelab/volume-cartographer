@@ -3,6 +3,10 @@
 #include <opencv2/core.hpp>
 #include <pybind11/numpy.h>
 
+/**
+ * cv::Mat -> Numpy array caster
+ * Inspired by: https://github.com/pybind/pybind11/issues/538
+ */
 namespace pybind11
 {
 namespace detail
@@ -11,7 +15,7 @@ namespace detail
 template <>
 struct type_caster<cv::Mat> {
 public:
-    PYBIND11_TYPE_CASTER(cv::Mat, _("cv::Mat"));
+    PYBIND11_TYPE_CASTER(cv::Mat, _("numpy.ndarray"));
 
     static handle cast(cv::Mat src, return_value_policy, handle)
     {
@@ -54,6 +58,8 @@ public:
             extents = {src.rows, src.cols, src.channels()};
             strides = {size * src.cols * src.channels(), size * src.channels(),
                        size};
+        } else {
+            throw std::runtime_error("unsupported number of dims");
         }
 
         return array(

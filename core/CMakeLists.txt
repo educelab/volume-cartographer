@@ -66,6 +66,7 @@ set_target_properties(${target} PROPERTIES
 if(VC_BUILD_PYTHON_BINDINGS)
     set(python_srcs
         python/PyCore.cpp
+        python/PyReslice.cpp
         python/PyVolume.cpp
     )
 

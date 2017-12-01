@@ -149,6 +149,10 @@ Reslice Volume::reslice(
     int width,
     int height) const
 {
+    if (!isInBounds(center)) {
+        throw std::range_error("center not in bounds");
+    }
+
     auto xnorm = cv::normalize(xvec);
     auto ynorm = cv::normalize(yvec);
     auto origin = center - ((width / 2) * xnorm + (height / 2) * ynorm);
@@ -289,9 +293,9 @@ StructureTensor Tensorize(cv::Vec3d gradient)
     double iy = gradient(1);
     double iz = gradient(2);
     // clang-format off
-    return StructureTensor(ix * ix, ix * iy, ix * iz,
+    return StructureTensor{ix * ix, ix * iy, ix * iz,
                            ix * iy, iy * iy, iy * iz,
-                           ix * iz, iy * iz, iz * iz);
+                           ix * iz, iy * iz, iz * iz};
     // clang-format on
 }
 
