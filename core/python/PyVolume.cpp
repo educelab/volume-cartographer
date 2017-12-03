@@ -89,7 +89,7 @@ void init_Volume(py::module& m)
             size_t size = sizeof(uint16_t);
             std::string format = py::format_descriptor<uint16_t>::format();
             std::vector<size_t> extents{s.dz(), s.dy(), s.dx()};
-            std::vector<size_t> strides{size * s.dy() * s.dx(), size * s.dy(),
+            std::vector<size_t> strides{size * s.dy() * s.dx(), size * s.dx(),
                                         size};
             return py::array(py::buffer_info{buf.release(), size, format, 3,
                                              extents, strides})
