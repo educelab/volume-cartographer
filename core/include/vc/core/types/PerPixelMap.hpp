@@ -46,7 +46,7 @@ class PerPixelMap
 public:
     /**@{*/
     /** @brief Default constructor */
-    PerPixelMap() : height_{0}, width_{0} {}
+    PerPixelMap() = default;
 
     /** @brief Constructor with width and height parameters */
     PerPixelMap(size_t height, size_t width) : height_{height}, width_{width}
@@ -130,9 +130,6 @@ public:
     /** @brief Get the pixel mask */
     const cv::Mat mask() const { return mask_; }
 
-    /** @brief Get a unique copy of the pixel mask */
-    cv::Mat maskCopy() const { return mask_.clone(); }
-
     /** @brief Set the pixel mask
      *
      * Not every pixel in the PerPixelMap will have a mapped value. The pixel
@@ -151,16 +148,17 @@ public:
     /**@}*/
 
 private:
-    /** Initialize the map for value assignment
+    /**
+     * Initialize the map for value assignment
      *
      * Does nothing if either the height or width are 0.
      */
     void initialize_map_();
 
     /** Height of the map */
-    size_t height_;
+    size_t height_{0};
     /** Width of the map */
-    size_t width_;
+    size_t width_{0};
     /** Map data storage */
     volcart::OrderedPointSet<cv::Vec6d> map_;
 
@@ -172,6 +170,6 @@ private:
     cv::Mat mask_;
 
     /** UVMap used to generate this map */
-    UVMap uvMap_;
+    UVMap uvMap_{};
 };
 }  // namespace volcart

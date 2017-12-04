@@ -9,14 +9,15 @@ namespace detail
 {
 
 /**
- * Numpy array <- cv::Vec3d -> Numpy array Caster
+ * Numpy array <- cv::Vec -> Numpy array Caster
  */
-template <>
-struct type_caster<cv::Vec3d> {
+template <typename T, int Dim>
+struct type_caster<cv::Vec<T, Dim>> {
 public:
-    PYBIND11_TYPE_CASTER(cv::Vec3d, _("numpy.array"));
+    using Vector = cv::Vec<T, Dim>;
+    PYBIND11_TYPE_CASTER(Vector, _("numpy.array"));
 
-    /** From np.array -> cv::Vec3d */
+    /** From np.array -> cv::Vec */
     bool load(handle src, bool)
     {
         // Make sure it's an array
@@ -25,39 +26,38 @@ public:
         }
 
         // Cast the array to a double
-        auto arr =
-            array_t<double, array::c_style | array::forcecast>::ensure(src);
+        auto arr = array_t<T, array::c_style | array::forcecast>::ensure(src);
         if (!arr)
             return false;
 
         // Dimensionality check
         if (arr.ndim() != 1) {
-            pybind11::print("Incorrect dims for Vec3d: ", arr.ndim());
+            pybind11::print("Incorrect dims for vector: ", arr.ndim());
             return false;
         }
 
         // Num. elements check
-        if (arr.size() != 3) {
-            pybind11::print("Incorrect size for Vec3d:  ", arr.size());
+        if (arr.size() != Dim) {
+            pybind11::print("Incorrect size for vector:  ", arr.size());
             return false;
         }
 
         // Assign the value
-        value = cv::Vec3d(arr.data());
+        value = Vector(arr.data());
 
         return true;
     }
 
-    /** From cv::Vec3d -> np.array */
-    static handle cast(cv::Vec3d src, return_value_policy, handle)
+    /** From cv::Vec -> np.array */
+    static handle cast(Vector src, return_value_policy, handle)
     {
         // Construct a py::array directly
         return array(buffer_info{src.val,
-                                 sizeof(double),
-                                 format_descriptor<double>::format(),
+                                 sizeof(T),
+                                 format_descriptor<T>::format(),
                                  1,
-                                 {3},
-                                 {sizeof(double)}})
+                                 {Dim},
+                                 {sizeof(T)}})
             .release();
     }
 };
