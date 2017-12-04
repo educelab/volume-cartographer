@@ -35,8 +35,8 @@ Volume::Volume(fs::path path, std::string uuid, std::string name)
     , numSliceCharacters_(0)
 {
     metadata_.setPath((path_ / METADATA_FILE));
-    metadata_.set("uuid", uuid);
-    metadata_.set("name", name);
+    metadata_.set("uuid", std::move(uuid));
+    metadata_.set("name", std::move(name));
     metadata_.set("type", "vol");
     metadata_.set("width", sliceWidth_);
     metadata_.set("height", sliceHeight_);
@@ -205,7 +205,7 @@ StructureTensor Volume::structureTensorAt(
 
     cv::Mat matSum(sum);
     matSum /= v.dx() * v.dy() * v.dz();
-    return StructureTensor(matSum);
+    return StructureTensor{matSum};
 }
 
 StructureTensor Volume::interpolatedStructureTensorAt(
@@ -245,7 +245,7 @@ StructureTensor Volume::interpolatedStructureTensorAt(
 
     cv::Mat matSum(sum);
     matSum /= v.dx() * v.dy() * v.dz();
-    return StructureTensor(matSum);
+    return StructureTensor{matSum};
 }
 
 EigenPairs Volume::eigenPairsAt(

@@ -34,7 +34,11 @@ find_package(ITK 4.10 QUIET REQUIRED)
 include(${ITK_USE_FILE})
 
 ### VTK ###
-find_package(VTK QUIET REQUIRED)
+# VTK's config only supports minimum version up to the next major release
+find_package(VTK 7 QUIET)
+if(NOT VTK_FOUND)
+    find_package(VTK 8 QUIET REQUIRED)
+endif()
 include(${VTK_USE_FILE})
 
 # VTK does not mark its headers as system headers with -isystem, which makes

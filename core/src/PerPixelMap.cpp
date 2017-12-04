@@ -7,7 +7,7 @@
 using namespace volcart;
 namespace fs = boost::filesystem;
 
-inline fs::path MASK_PATH(const fs::path& p)
+inline fs::path MaskPath(const fs::path& p)
 {
     return p.parent_path() / (p.stem().string() + "_mask.png");
 }
@@ -47,7 +47,7 @@ void PerPixelMap::WritePPM(const fs::path& path, const PerPixelMap& map)
     volcart::PointSetIO<cv::Vec6d>::WriteOrderedPointSet(path, map.map_);
 
     if (!map.mask_.empty()) {
-        cv::imwrite(MASK_PATH(path).string(), map.mask_);
+        cv::imwrite(MaskPath(path).string(), map.mask_);
     }
 }
 
@@ -58,9 +58,10 @@ PerPixelMap PerPixelMap::ReadPPM(const fs::path& path)
     ppm.height_ = ppm.map_.height();
     ppm.width_ = ppm.map_.width();
 
-    ppm.mask_ = cv::imread(MASK_PATH(path).string());
+    ppm.mask_ = cv::imread(MaskPath(path).string());
     if (ppm.mask_.empty()) {
-        throw IOException("Failed to read mask: " + MASK_PATH(path).string());
+        std::cerr << "Warning: Failed to read mask! " + MaskPath(path).string()
+                  << "\n";
     }
 
     return ppm;

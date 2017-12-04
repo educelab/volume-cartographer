@@ -73,12 +73,17 @@ public:
     /** @copydoc operator()() */
     cv::Vec6d& operator()(size_t y, size_t x) { return map_(y, x); }
 
-    /** @brief Return whether there is a mapping for the pixel at x,y
+    /**
+     * @brief Return whether there is a mapping for the pixel at x, y
      *
-     * Assumes that the pixel mask has been set by setMask().
+     * Returns `true` is the pixel mask has not been set or is empty
      */
     bool hasMapping(size_t y, size_t x)
     {
+        if (mask_.empty()) {
+            return true;
+        }
+
         return mask_.at<uint8_t>(y, x) == 255;
     }
     /**@}*/
@@ -112,7 +117,8 @@ public:
     /**@}*/
 
     /**@{*/
-    /** @brief Get the UVMap
+    /**
+     * @brief Get the UVMap
      *
      * Generally the UVMap from which this PPM was generated.
      */
@@ -121,7 +127,8 @@ public:
     /** @copydoc uvMap() const */
     UVMap& uvMap() { return uvMap_; }
 
-    /** @brief Set the UVMap
+    /**
+     * @brief Set the UVMap
      *
      * Useful for keeping a copy of the the UVMap that generated this PPM.
      */
@@ -130,7 +137,11 @@ public:
     /** @brief Get the pixel mask */
     const cv::Mat mask() const { return mask_; }
 
-    /** @brief Set the pixel mask
+    /**
+     * @brief Set the pixel mask
+     *
+     * If the pixel mask is not set or is empty, every pixel is assumed to have
+     * a mapping.
      *
      * Not every pixel in the PerPixelMap will have a mapped value. The pixel
      * mask is an 8bpc, single channel image that indicates which pixels do and
