@@ -44,16 +44,12 @@ class PointSetIO
 public:
     /** @brief PointSet file header information */
     struct Header {
-        size_t width;
-        size_t height;
-        size_t size;
-        size_t dim;
-        bool ordered;
+        size_t width{0};
+        size_t height{0};
+        size_t size{0};
+        size_t dim{0};
+        bool ordered{false};
         std::string type;
-
-        Header() : width(0), height(0), size(0), dim(0), ordered(false), type()
-        {
-        }
     };
 
     /**@{*/
@@ -308,23 +304,23 @@ public:
         }
 
         // Sanity check. Do we have a valid pointset header?
-        if (h.type == "") {
+        if (h.type.empty()) {
             auto msg = "Must provide type";
             throw IOException(msg);
         } else if (h.dim == 0) {
             auto msg = "Must provide dim";
             throw IOException(msg);
-        } else if (ordered == false && h.size == 0) {
+        } else if (!ordered && h.size == 0) {
             auto msg = "Unordered pointsets must have a size";
             throw IOException(msg);
-        } else if (ordered == true && (h.width == 0 || h.height == 0)) {
+        } else if (ordered && (h.width == 0 || h.height == 0)) {
             auto msg = "Ordered pointsets must have a nonzero width and height";
             throw IOException(msg);
-        } else if (ordered == true && h.ordered == false) {
+        } else if (ordered && !h.ordered) {
             auto msg =
                 "Tried to read unordered pointset with ordered PointSetIO";
             throw IOException(msg);
-        } else if (ordered == false && h.ordered == true) {
+        } else if (!ordered && h.ordered) {
             auto msg =
                 "Tried to read ordered pointset with unordered PointSetIO";
             throw IOException(msg);

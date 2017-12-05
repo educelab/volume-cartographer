@@ -59,8 +59,29 @@ target_link_libraries(${target}
 set_target_properties(${target} PROPERTIES
     VERSION "${PROJECT_VERSION}"
     EXPORT_NAME "${module}"
+    POSITION_INDEPENDENT_CODE TRUE
 )
 
+## Python bindings ##
+if(VC_BUILD_PYTHON_BINDINGS)
+    set(python_srcs
+        python/PyCore.cpp
+        python/PyPerPixelMap.cpp
+        python/PyReslice.cpp
+        python/PyVolume.cpp
+        python/PyVolumePkg.cpp
+    )
+
+    # This sets the module name in Python and must match the name in PyCore.cpp
+    pybind11_add_module(Core ${python_srcs})
+    target_link_libraries(Core
+        PRIVATE
+            VC::core
+            VC::python
+    )
+endif(VC_BUILD_PYTHON_BINDINGS)
+
+## Install targets ##
 install(
     TARGETS "${target}"
     EXPORT "${targets_export_name}"

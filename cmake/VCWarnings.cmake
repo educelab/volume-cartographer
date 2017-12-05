@@ -1,34 +1,54 @@
-# Also enable warnings project-wide
+# GCC & Clang
 set(project_warnings
-    # Group warnings
     -Wall
     -Wextra
-    -Weffc++
     -pedantic
+)
 
-    # Extra warnings we want to enable
+# Extra warnings we want to enable
+list(APPEND project_warnings
+    -Wattributes
+    -Wbad-function-cast
+    -Wc++14-compat
+    -Wcast-align
+    -Wcast-qual
+    -Wchar-subscripts
+    -Wcomment
+    -Wconversion
+    -Wdelete-incomplete
+    -Wdelete-non-virtual-dtor
+    -Wenum-compare
+    -Wimplicit
+    -Wmain
+    -Wmissing-field-initializers
+    -Wmissing-noreturn
+    -Wmissing-prototypes
+    -Wold-style-cast
+    -Woverloaded-virtual
+    -Wpointer-arith
+    -Wtautological-compare
+    -Wundef
+    -Wuninitialized
+    -Wunreachable-code
+    -Wunused
+    -Wunused-macros
+    -Wvla
+)
+
+# Clang specific?
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+list(APPEND project_warnings
     -Wambiguous-ellipsis
     -Warray-bounds-pointer-arithmetic
     -Wassign-enum
-    -Wattributes
-    -Wbad-function-cast
     -Wbind-to-temporary-copy
     -Wbitfield-constant-conversion
     -Wbitwise-op-parentheses
     -Wbool-conversion
-    -Wc++14-compat
     -Wc++11-long-long
-    -Wcast-align
-    -Wcast-qual
-    -Wchar-subscripts
     -Wclass-varargs
-    #-Wcomma
-    -Wcomment
     -Wconditional-uninitialized
-    -Wconversion                    # Disable ones you don't want
     -Wcovered-switch-default
-    -Wdelete-incomplete
-    -Wdelete-non-virtual-dtor
     -Wdeprecated-implementations
     -Wdirect-ivar-access
     -Wdivision-by-zero
@@ -36,59 +56,42 @@ set(project_warnings
     -Wduplicate-enum
     -Wduplicate-method-arg
     -Wduplicate-method-match
-    -Wenum-compare
     -Wenum-conversion
     -Wexplicit-ownership-type
     -Wextra-semi
     -Wextra-tokens
-    #-Wfloat-overflow-conversion
     -Wheader-guard
     -Wheader-hygiene
     -Widiomatic-parentheses
-    -Wimplicit
     -Wimplicit-fallthrough
     -Winfinite-recursion
     -Wlocal-type-template-args
     -Wloop-analysis
-    -Wmain
     -Wmethod-signatures
     -Wmismatched-tags
-    -Wmissing-field-initializers
-    -Wmissing-noreturn
-    -Wmissing-prototypes
     -Wmove
     -Wnew-returns-null
-    #-Wnonportable-system-include-path
-    -Wold-style-cast
-    -Woverloaded-virtual
     -Wpessimizing-move
-    -Wpointer-arith
     -Wredundant-move
     -Wself-assign
     -Wself-move
     -Wsemicolon-before-method-body
-    #-Wshadow-all
     -Wsometimes-uninitialized
     -Wstring-conversion
     -Wstrlcpy-strlcat-size
     -Wstrncat-size
-    -Wtautological-compare
     -Wthread-safety-analysis
-    -Wundef
-    -Wuninitialized
     -Wunneeded-internal-declaration
-    -Wunreachable-code
     -Wunreachable-code-break
     -Wunreachable-code-return
-    -Wunused
-    -Wunused-macros
-    -Wunused-member-function
     -Wused-but-marked-unused
     -Wvexing-parse
-    -Wvla
+)
+endif()
 
-    # Disable noisy or unncessary warnings
-    -Wno-c++11-narrowing
+# Disable noisy or unncessary warnings
+list(APPEND project_warnings
+    -Wno-narrowing
     -Wno-c++1z-extensions
     -Wno-c++98-compat
     -Wno-missing-braces

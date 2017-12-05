@@ -34,7 +34,11 @@ find_package(ITK 4.10 QUIET REQUIRED)
 include(${ITK_USE_FILE})
 
 ### VTK ###
-find_package(VTK QUIET REQUIRED)
+# VTK's config only supports minimum version up to the next major release
+find_package(VTK 7 QUIET)
+if(NOT VTK_FOUND)
+    find_package(VTK 8 QUIET REQUIRED)
+endif()
 include(${VTK_USE_FILE})
 
 # VTK does not mark its headers as system headers with -isystem, which makes
@@ -57,6 +61,11 @@ find_package(OpenCV 3 REQUIRED)
 ############
 # Optional #
 ############
+
+option(VC_BUILD_PYTHON_BINDINGS "Build Python bindings." off)
+if(VC_BUILD_PYTHON_BINDINGS)
+    find_package(pybind11 REQUIRED)
+endif()
 
 # If this option is set, then use all optional dependencies
 option(VC_USE_ALL "Use all optional third-party libs" off)
