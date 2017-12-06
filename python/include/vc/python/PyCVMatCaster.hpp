@@ -15,7 +15,7 @@ namespace detail
 template <>
 struct type_caster<cv::Mat> {
 public:
-    PYBIND11_TYPE_CASTER(cv::Mat, _("numpy.ndarray"));
+    PYBIND11_TYPE_CASTER(cv::Mat, _("array"));
 
     static handle cast(cv::Mat src, return_value_policy, handle)
     {

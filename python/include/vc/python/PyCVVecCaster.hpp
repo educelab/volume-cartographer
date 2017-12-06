@@ -1,7 +1,7 @@
 #pragma once
 
 #include <opencv2/core.hpp>
-#include <pybind11/numpy.h>
+#include <pybind11/pybind11.h>
 
 namespace pybind11
 {
@@ -15,50 +15,44 @@ template <typename T, int Dim>
 struct type_caster<cv::Vec<T, Dim>> {
 public:
     using Vector = cv::Vec<T, Dim>;
-    PYBIND11_TYPE_CASTER(Vector, _("numpy.array"));
+    PYBIND11_TYPE_CASTER(Vector, _("tuple"));
 
-    /** From np.array -> cv::Vec */
+    /** From Tuple -> cv::Vec */
     bool load(handle src, bool)
     {
         // Make sure it's an array
-        if (!isinstance<array>(src)) {
+        if (!isinstance<tuple>(src)) {
             return false;
         }
 
-        // Cast the array to a double
-        auto arr = array_t<T, array::c_style | array::forcecast>::ensure(src);
-        if (!arr)
-            return false;
-
-        // Dimensionality check
-        if (arr.ndim() != 1) {
-            pybind11::print("Incorrect dims for vector: ", arr.ndim());
-            return false;
-        }
+        // Cast the object to tuple
+        auto args = reinterpret_borrow<tuple>(src);
 
         // Num. elements check
-        if (arr.size() != Dim) {
-            pybind11::print("Incorrect size for vector:  ", arr.size());
+        if (args.size() != Dim) {
+            pybind11::print("Incorrect size for vector:  ", args.size());
             return false;
         }
 
-        // Assign the value
-        value = Vector(arr.data());
+        // Assign the values
+        value = Vector();
+        for (int i = 0; i < Dim; i++) {
+            value[i] = args[i].cast<T>();
+        }
 
         return true;
     }
 
-    /** From cv::Vec -> np.array */
+    /** From cv::Vec -> Tuple */
     static handle cast(Vector src, return_value_policy, handle)
     {
         // Construct a py::array directly
-        return array(buffer_info{src.val,
-                                 sizeof(T),
-                                 format_descriptor<T>::format(),
-                                 1,
-                                 {Dim},
-                                 {sizeof(T)}})
-            .release();
+        tuple value(Dim);
+        for (int i = 0; i < Dim; i++) {
+            value[i] = src[i];
+        }
+
+        return value.release();
     }
 };
 }

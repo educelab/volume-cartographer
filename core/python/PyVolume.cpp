@@ -30,9 +30,9 @@ void init_Volume(py::module& m)
     /** Metadata */
     c.def("id", &vc::Volume::id, "The Volume ID");
     c.def("name", &vc::Volume::name, "The human-readable Volume name");
-    c.def("sliceWidth", &vc::Volume::sliceWidth, "Width of a slice image");
-    c.def("sliceHeight", &vc::Volume::sliceHeight, "Height of a slice image");
-    c.def("numSlices", &vc::Volume::numSlices, "Number of slices");
+    c.def("width", &vc::Volume::sliceWidth, "Width of a slice image");
+    c.def("height", &vc::Volume::sliceHeight, "Height of a slice image");
+    c.def("slices", &vc::Volume::numSlices, "Number of slices");
     c.def("voxelSize", &vc::Volume::voxelSize, "Voxel size in microns");
 
     /** Caching policy */
@@ -51,29 +51,29 @@ void init_Volume(py::module& m)
 
     /** Slice Data */
     c.def(
-        "getSlice", &vc::Volume::getSliceData, py::arg("z"),
+        "slice", &vc::Volume::getSliceData, py::arg("z"),
         "Get a slice image by index");
 
     /** Voxel Data */
     c.def(
         "intensityAt",
-        py::overload_cast<int, int, int>(&vc::Volume::intensityAt, py::const_),
-        "Get the intensity at a voxel position", py::arg("x"), py::arg("y"),
-        py::arg("z"));
+        py::overload_cast<const cv::Vec3d&>(
+            &vc::Volume::intensityAt, py::const_),
+        "Get the intensity at a voxel position", py::arg_v("pos", "(x, y, z)"));
     c.def(
         "interpolateAt",
-        py::overload_cast<double, double, double>(
+        py::overload_cast<const cv::Vec3d&>(
             &vc::Volume::interpolatedIntensityAt, py::const_),
-        "Get the interpolated intensity at a subvoxel position", py::arg("x"),
-        py::arg("y"), py::arg("z"));
+        "Get the interpolated intensity at a subvoxel position",
+        py::arg_v("pos", "(x, y, z)"));
 
     /** Reslices and Subvolumes */
     c.def(
         "reslice", &vc::Volume::reslice,
         // clang-format off
-        py::arg("center"),
-        py::arg_v("x_vec", cv::Vec3d{1, 0, 0}, "{1, 0, 0}"),
-        py::arg_v("y_vec", cv::Vec3d{0, 1, 0}, "{0, 1, 0}"),
+        py::arg_v("center", "(x, y, z)"),
+        py::arg_v("x_vec", cv::Vec3d{1, 0, 0}, "(1, 0, 0)"),
+        py::arg_v("y_vec", cv::Vec3d{0, 1, 0}, "(0, 1, 0)"),
         py::arg("width") = 64,
         py::arg("height") = 64,
         "Generate an arbitrarily-oriented reslice image");
@@ -96,13 +96,13 @@ void init_Volume(py::module& m)
                 .release();
         },
         // clang-format off
-        py::arg("center"),
+        py::arg_v("center", "(x, y, z)"),
         py::arg("x_rad"),
         py::arg("y_rad"),
         py::arg("z_rad"),
-        py::arg_v("x_vec", cv::Vec3d{1, 0, 0}, "{1, 0, 0}"),
-        py::arg_v("y_vec", cv::Vec3d{0, 1, 0}, "{0, 1, 0}"),
-        py::arg_v("z_vec", cv::Vec3d{0, 0, 1}, "{0, 0, 1}"),
+        py::arg_v("x_vec", cv::Vec3d{1, 0, 0}, "(1, 0, 0)"),
+        py::arg_v("y_vec", cv::Vec3d{0, 1, 0}, "(0, 1, 0)"),
+        py::arg_v("z_vec", cv::Vec3d{0, 0, 1}, "(0, 0, 1)"),
         "Generate an arbitrarily-oriented subvolume");
     // clang-format on
 }
