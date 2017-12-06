@@ -62,7 +62,7 @@ find_package(OpenCV 3 REQUIRED)
 # Optional #
 ############
 
-option(VC_BUILD_PYTHON_BINDINGS "Build Python bindings." off)
+# Python bindings
 if(VC_BUILD_PYTHON_BINDINGS)
     find_package(pybind11 REQUIRED)
 endif()

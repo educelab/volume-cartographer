@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
-project(VC VERSION 2.15.1)
+set(VC_VERSION 2.15.1)
+if(VC_VERSION_TWEAK)
+    project(VC VERSION ${VC_VERSION}.${VC_VERSION_TWEAK})
+else()
+    project(VC VERSION ${VC_VERSION})
+endif()
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
@@ -17,12 +22,14 @@ option(VC_BUILD_UTILS    "Compile VC utility programs" on)
 option(VC_BUILD_EXAMPLES "Compile VC example programs" on)
 option(VC_BUILD_TESTS    "Compile VC test programs"    on)
 option(VC_BUILD_DOC      "Compile VC documentation"    off)
+option(VC_BUILD_PYTHON_BINDINGS "Build Python bindings." off)
 
 # Choose what to install
 option(VC_INSTALL_APPS      "Install VC core programs"    on)
 option(VC_INSTALL_UTILS     "Install VC utility programs" on)
 option(VC_INSTALL_EXAMPLES  "Install VC example programs" off)
 option(VC_INSTALL_DOC       "Install VC documentation"    off)
+option(VC_INSTALL_PYTHON_BINDINGS "Install Python bindings." off)
 
 # Look for external dependencies.
 include(VCFindDependencies)
