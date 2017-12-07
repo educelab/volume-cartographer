@@ -79,6 +79,11 @@ if(VC_BUILD_PYTHON_BINDINGS)
             VC::core
             VC::python
     )
+    set_target_properties(Core PROPERTIES
+        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/python/volcart"
+    )
+
+    set(PYBIND_TARGETS ${PYBIND_TARGETS} Core PARENT_SCOPE)
 endif(VC_BUILD_PYTHON_BINDINGS)
 
 ## Install targets ##

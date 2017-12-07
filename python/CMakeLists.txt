@@ -29,7 +29,7 @@ add_custom_command(OUTPUT ${OUTPUT}
         COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
         DEPENDS ${INIT_PY})
 
-add_custom_target(build_py ALL DEPENDS ${OUTPUT})
+add_custom_target(build_py ALL DEPENDS ${OUTPUT} ${PYBIND_TARGETS})
 
 if(VC_INSTALL_PYTHON_BINDINGS)
 install(CODE "execute_process(COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY} install)")
