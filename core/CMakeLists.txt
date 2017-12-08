@@ -1,4 +1,4 @@
-project(libvc_core VERSION 0.1 LANGUAGES CXX)
+project(libvc_core VERSION ${VC_VERSION} LANGUAGES CXX)
 set(module "core")
 set(target "vc_${module}")
 
@@ -87,6 +87,7 @@ if(VC_BUILD_PYTHON_BINDINGS)
 endif(VC_BUILD_PYTHON_BINDINGS)
 
 ## Install targets ##
+if(VC_INSTALL_LIBS)
 install(
     TARGETS "${target}"
     EXPORT "${targets_export_name}"
@@ -94,12 +95,15 @@ install(
     LIBRARY DESTINATION "lib"
     INCLUDES DESTINATION "${include_install_dir}/${module}"
     RUNTIME DESTINATION "bin"
+    COMPONENT Libraries
 )
 install(
     DIRECTORY "${include_install_dir}/${module}"
     DESTINATION "${include_install_dir}"
+    COMPONENT Libraries
     FILES_MATCHING REGEX ".*\.(h|hpp)$"
 )
+endif()
 
 ### Testing ###
 if(VC_BUILD_TESTS)

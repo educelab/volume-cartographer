@@ -1,4 +1,4 @@
-project(libvc_testing VERSION 0.1 LANGUAGES CXX)
+project(libvc_testing VERSION ${VC_VERSION} LANGUAGES CXX)
 set(module "testing")
 set(target "vc_${module}")
 
@@ -31,6 +31,7 @@ set_target_properties(${target} PROPERTIES
     EXPORT_NAME "${module}"
 )
 
+if(VC_INSTALL_LIBS)
 install(
     TARGETS ${target}
     EXPORT ${targets_export_name}
@@ -44,6 +45,7 @@ install(
     DESTINATION "${include_install_dir}"
     FILES_MATCHING REGEX ".*\.(h|hpp)$"
 )
+endif()
 
 # Testing tests
 # Add a test executable for each src
