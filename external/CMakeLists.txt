@@ -1,4 +1,4 @@
-project(libvc_external VERSION 0.1 LANGUAGES C CXX)
+project(libvc_external VERSION ${VC_VERSION} LANGUAGES C CXX)
 set(module "external")
 set(target "vc_${module}")
 
@@ -25,6 +25,7 @@ set_target_properties(${target} PROPERTIES
     EXPORT_NAME "${module}"
 )
 
+if(VC_INSTALL_LIBS)
 install(
     TARGETS ${target}
     EXPORT ${targets_export_name}
@@ -32,9 +33,12 @@ install(
     LIBRARY DESTINATION "lib"
     RUNTIME DESTINATION "bin"
     INCLUDES DESTINATION "${include_install_dir}/${module}"
+    COMPONENT Libraries
 )
 install(
     DIRECTORY "${include_install_dir}/${module}"
     DESTINATION "${include_install_dir}"
+    COMPONENT Libraries
     FILES_MATCHING REGEX ".*\.(h|hpp)$"
 )
+endif()

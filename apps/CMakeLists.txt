@@ -111,6 +111,7 @@ if (VC_USE_BULLET OR VC_USE_ALL)
 endif()
 
 # Install targets
+if(VC_INSTALL_APPS)
 install(
     TARGETS
         vc_layers
@@ -124,3 +125,4 @@ install(
     RUNTIME DESTINATION bin
     COMPONENT Programs
 )
+endif()
