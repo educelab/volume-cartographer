@@ -1,11 +1,14 @@
 cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 set(VC_VERSION 2.15.1)
-if(VC_VERSION_TWEAK)
-    project(VC VERSION ${VC_VERSION}.${VC_VERSION_TWEAK})
-else()
-    project(VC VERSION ${VC_VERSION})
+
+option(VC_VERSION_DATESTAMP "Append date stamp to version number" off)
+if(VC_VERSION_DATESTAMP)
+string(TIMESTAMP VC_VERSION_TWEAK "%Y%m%d")
+set(VC_VERSION ${VC_VERSION}.${VC_VERSION_TWEAK})
 endif()
+
+project(VC VERSION ${VC_VERSION})
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
