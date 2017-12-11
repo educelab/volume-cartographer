@@ -22,9 +22,12 @@
 #include "vc/meshing/OrderedPointSetMesher.hpp"
 #include "vc/texturing/AngleBasedFlattening.hpp"
 #include "vc/texturing/CompositeTexture.hpp"
+#include "vc/texturing/IntegralTexture.hpp"
+#include "vc/texturing/IntersectionTexture.hpp"
 #include "vc/texturing/PPMGenerator.hpp"
 
 namespace vc = volcart;
+namespace vct = volcart::texturing;
 
 MyThread::MyThread(GlobalValues* globals)
 {
@@ -36,14 +39,6 @@ MyThread::MyThread(GlobalValues* globals)
 void MyThread::run()
 {
     try {
-        double _radius = _globals->getRadius();
-
-        auto aFilterOption =
-            static_cast<volcart::texturing::CompositeTexture::Filter>(
-                _globals->getTextureMethod());
-        auto aDirectionOption =
-            static_cast<volcart::Direction>(_globals->getSampleDirection());
-
         ///// Load and resample the segmentation /////
         if (!_globals->getActiveSegmentation()->hasPointSet()) {
             std::cerr << "VC::message: Empty pointset" << std::endl;
@@ -112,19 +107,45 @@ void MyThread::run()
         volcart::texturing::PPMGenerator ppmGen(height, width);
         ppmGen.setMesh(itkACVD);
         ppmGen.setUVMap(uvMap);
-        ppmGen.compute();
+        auto ppm = ppmGen.compute();
 
-        volcart::texturing::CompositeTexture result;
-        result.setPerPixelMap(ppmGen.getPPM());
-        result.setVolume(_globals->getVolPkg()->volume());
-        result.setFilter(aFilterOption);
-        result.setSamplingRadius(_radius);
-        result.setSamplingDirection(aDirectionOption);
-        result.compute();
+        // Rendering parameters
+        double radius = _globals->getRadius();
+        auto method = _globals->getTextureMethod();
+        auto direction =
+            static_cast<vc::Direction>(_globals->getSampleDirection());
+        auto volume = _globals->getVolPkg()->volume();
 
-        // Setup rendering
+        // Generate texture image
+        vc::Texture texture;
+        if (method == GlobalValues::Method::Intersection) {
+            vct::IntersectionTexture textureGen;
+            textureGen.setVolume(volume);
+            textureGen.setPerPixelMap(ppm);
+            texture = textureGen.compute();
+        }
+
+        else if (method == GlobalValues::Method::Integral) {
+            vc::texturing::IntegralTexture textureGen;
+            textureGen.setPerPixelMap(ppm);
+            textureGen.setVolume(volume);
+            textureGen.setSamplingRadius(radius);
+            textureGen.setSamplingDirection(direction);
+            texture = textureGen.compute();
+        }
+
+        else if (method == GlobalValues::Method::Composite) {
+            vct::CompositeTexture textureGen;
+            textureGen.setPerPixelMap(ppm);
+            textureGen.setVolume(volume);
+            textureGen.setFilter(_globals->getFilter());
+            textureGen.setSamplingRadius(radius);
+            textureGen.setSamplingDirection(direction);
+            texture = textureGen.compute();
+        }
+
         Rendering rendering;
-        rendering.setTexture(result.getTexture());
+        rendering.setTexture(texture);
         rendering.setMesh(itkACVD);
 
         _globals->setRendering(rendering);

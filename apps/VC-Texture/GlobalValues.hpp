@@ -21,6 +21,7 @@
 
 #include "Rendering.hpp"
 #include "vc/core/types/VolumePkg.hpp"
+#include "vc/texturing/CompositeTexture.hpp"
 
 // Determines the _status of the thread running texturing
 enum ThreadStatus {
@@ -36,7 +37,9 @@ class GlobalValues
 {
 
 public:
-    GlobalValues(QRect rec);
+    enum Method { Intersection = 0, Integral, Composite };
+
+    explicit GlobalValues(QRect rec);
 
     int getHeight();
     int getWidth();
@@ -44,7 +47,7 @@ public:
     void createVolumePackage();
     volcart::VolumePkg::Pointer getVolPkg();
 
-    void setActiveSegmentation(std::string id)
+    void setActiveSegmentation(const std::string& id)
     {
         activeSeg = vpkg->segmentation(id);
     }
@@ -62,7 +65,7 @@ public:
     void setQPixMapImage(QImage image);
     QPixmap getQPixMapImage();
 
-    bool isVPKG_Intantiated();
+    bool isVpkgInstantiated();
 
     void setWindow(QMainWindow* window);
     QMainWindow* getWindow();
@@ -74,8 +77,11 @@ public:
     void setRadius(double radius);
     double getRadius();
 
-    void setTextureMethod(int textureMethod);
-    int getTextureMethod();
+    void setTextureMethod(Method textureMethod);
+    Method getTextureMethod();
+
+    void setFilter(volcart::texturing::CompositeTexture::Filter f);
+    volcart::texturing::CompositeTexture::Filter getFilter();
 
     void setSampleDirection(int sampleDirection);
     int getSampleDirection();
@@ -92,7 +98,7 @@ private:
     // The status of the thread running the texturing process
     ThreadStatus _status;
 
-    bool VPKG_Instantiated{false};
+    bool VpkgInstantiated{false};
     int height;
     int width;
     QString path;
@@ -103,7 +109,8 @@ private:
     QMainWindow* _window;
     Rendering _rendering;
     double _radius;
-    int _textureMethod;
+    Method _textureMethod;
+    volcart::texturing::CompositeTexture::Filter textureFilter_;
     int _sampleDirection;
 
     QMenu* _fileMenu;

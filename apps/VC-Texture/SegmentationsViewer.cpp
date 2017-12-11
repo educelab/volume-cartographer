@@ -14,6 +14,10 @@
 
 #include "SegmentationsViewer.hpp"
 
+#include "vc/texturing/CompositeTexture.hpp"
+
+namespace vct = volcart::texturing;
+
 SegmentationsViewer::SegmentationsViewer(
     GlobalValues* globals, TextureViewer* texture_Viewer)
 {
@@ -44,14 +48,23 @@ SegmentationsViewer::SegmentationsViewer(
     parameters = new QLabel("Parameters");
     radius = new QSpinBox();
     texture_Method = new QComboBox();
+    texture_Filter = new QComboBox();
     sample_Direction = new QComboBox();
     generate = new QPushButton("Generate Texture");
 
-    texture_Method->addItem("Minimum");
-    texture_Method->addItem("Maximum");
-    texture_Method->addItem("Median");
-    texture_Method->addItem("Mean");
-    texture_Method->addItem("Median w/ Averaging");
+    texture_Method->addItem("Intersection");
+    texture_Method->addItem("Integral");
+    texture_Method->addItem("Composite");
+
+    texture_Filter->setEnabled(false);
+    texture_Filter->addItem("Minimum");
+    texture_Filter->addItem("Maximum");
+    texture_Filter->addItem("Median");
+    texture_Filter->addItem("Mean");
+    texture_Filter->addItem("Median w/ Averaging");
+    connect(
+        texture_Method, QOverload<int>::of(&QComboBox::currentIndexChanged),
+        [=](int v) { texture_Filter->setEnabled(v == 2); });
 
     sample_Direction->addItem("Omni");
     sample_Direction->addItem("Positive");
@@ -60,6 +73,7 @@ SegmentationsViewer::SegmentationsViewer(
     inputs = new QFormLayout();
     inputs->addRow("Radius: (Voxels)", radius);
     inputs->addRow("Texture Method:", texture_Method);
+    inputs->addRow("Composite Filter:", texture_Filter);
     inputs->addRow("Sample Direction:", sample_Direction);
 
     user_input = new QVBoxLayout();
@@ -160,88 +174,88 @@ void SegmentationsViewer::setVol_Package_Name(QString name)
 
 void SegmentationsViewer::generateTextureImage()
 {
-    if (_globals->isVPKG_Intantiated() &&
-        !_globals->getSegmentations().empty()) {
-        // save current configuration
-        auto flags = _globals->getWindow()->windowFlags();
-        QSize size = _globals->getWindow()->frameSize();
-
-        _globals->getWindow()->setWindowFlags(
-            Qt::CustomizeWindowHint | Qt::WindowTitleHint |
-            Qt::WindowMinimizeButtonHint | Qt::WindowMaximizeButtonHint);
-        _globals->getWindow()->resize(size);  // Resizes
-        _globals->getWindow()->show();        // Show Screen
-
-        _globals->setRadius(radius->text().toDouble());
-        _globals->setTextureMethod(texture_Method->currentIndex());
-        _globals->setSampleDirection(sample_Direction->currentIndex());
-
-        setEnabled(false);
-
-        _texture_Viewer->progressActive(true);  // Show Progress Loading Bar
-        qApp->processEvents();                  // Updates GUI Window
-
-        processing = new MyThread(_globals);  // Creates new thread
-        connect(
-            processing, SIGNAL(finished()), processing,
-            SLOT(deleteLater()));  // Deletes Thread After Completion (Clean-Up)
-
-        while (_globals->getStatus() == ThreadStatus::Active) {
-            qApp->processEvents();  // Updates GUI Window
-        }
-
-        // Set Processing Status to Foced Close if Cancelled...
-        if (_globals->getStatus() == ThreadStatus::ForcedClose) {
-            processing->terminate();  // Clean up Threading
-            processing->wait();
-        }
-
-        _texture_Viewer->progressActive(false);  // Hide Progress Loading Bar
-
-        bool test = false;
-
-        if (_globals->getStatus() == ThreadStatus::Successful) {
-            test = loadImage(
-                _globals->getRendering().getTexture().image(0).clone());
-
-            if (test) {
-                _texture_Viewer->setImage();
-            }
-        }
-
-        if (_globals->getStatus() == ThreadStatus::Successful &&
-            test)  // If Processing successfully loaded an Image
-        {
-            QMessageBox::warning(
-                _globals->getWindow(), "Warning",
-                "The Generated Texture Image is not Saved, if you wish to save "
-                "it, please select \"File\" -> \"Save Texture\".");
-
-        } else if (_globals->getStatus() == ThreadStatus::CloudError) {
-            QMessageBox::warning(
-                _globals->getWindow(), "Error",
-                "Segmentation has empty pointset.");
-
-        } else if (_globals->getStatus() == ThreadStatus::Failed) {
-            QMessageBox::warning(
-                _globals->getWindow(), "Error",
-                "Failed to Generate Texture Image.");
-
-        } else if (_globals->getStatus() == ThreadStatus::ForcedClose) {
-            QMessageBox::warning(
-                _globals->getWindow(), "Cancelled", "Successfully Cancelled.");
-        }
-
-        setEnabled(true);  // Allow User to Use Buttons
-        _globals->getWindow()->setWindowFlags(flags);  // restore
-        _globals->getWindow()->show();
-
-    } else
+    if (!_globals->isVpkgInstantiated() ||
+        _globals->getSegmentations().empty()) {
         QMessageBox::warning(
             _globals->getWindow(), "Error",
             "No Segmentation has been loaded, Please load Segmentation.");
+        return;
+    }
+    // save current configuration
+    auto flags = _globals->getWindow()->windowFlags();
+    QSize size = _globals->getWindow()->frameSize();
 
-}  // End of generateTextureImage()
+    _globals->getWindow()->setWindowFlags(
+        Qt::CustomizeWindowHint | Qt::WindowTitleHint |
+        Qt::WindowMinimizeButtonHint | Qt::WindowMaximizeButtonHint);
+    _globals->getWindow()->resize(size);
+    _globals->getWindow()->show();
+
+    _globals->setRadius(radius->text().toDouble());
+    _globals->setTextureMethod(
+        static_cast<GlobalValues::Method>(texture_Method->currentIndex()));
+    _globals->setFilter(static_cast<vct::CompositeTexture::Filter>(
+        texture_Filter->currentIndex()));
+    _globals->setSampleDirection(sample_Direction->currentIndex());
+
+    setEnabled(false);
+
+    // enable the progress bar
+    _texture_Viewer->progressActive(true);
+    qApp->processEvents();
+
+    // Create new thread and set for cleanup when complete
+    processing = new MyThread(_globals);
+    connect(processing, SIGNAL(finished()), processing, SLOT(deleteLater()));
+
+    while (_globals->getStatus() == ThreadStatus::Active) {
+        qApp->processEvents();
+    }
+
+    // Set Processing Status to Foced Close if Cancelled...
+    if (_globals->getStatus() == ThreadStatus::ForcedClose) {
+        processing->terminate();  // Clean up Threading
+        processing->wait();
+    }
+
+    _texture_Viewer->progressActive(false);
+
+    // If Processing successfully loaded an Image
+    switch (_globals->getStatus()) {
+        case ThreadStatus::Successful:
+            if (loadImage(
+                    _globals->getRendering().getTexture().image(0).clone())) {
+                _texture_Viewer->setImage();
+            } else {
+                QMessageBox::warning(
+                    _globals->getWindow(), "Error", "Failed to load image");
+            }
+            break;
+        case ThreadStatus::CloudError:
+            QMessageBox::warning(
+                _globals->getWindow(), "Error",
+                "Input point set is empty or has only one row");
+            break;
+        case ThreadStatus::Failed:
+            QMessageBox::warning(
+                _globals->getWindow(), "Error",
+                "Failed to Generate Texture Image.");
+            break;
+        case ThreadStatus::ForcedClose:
+            QMessageBox::warning(
+                _globals->getWindow(), "Cancelled", "Successfully Cancelled.");
+            break;
+        default:
+            break;
+    }
+
+    // Allow User to Use Buttons
+    setEnabled(true);
+
+    // restore
+    _globals->getWindow()->setWindowFlags(flags);
+    _globals->getWindow()->show();
+}
 
 bool SegmentationsViewer::loadImage(cv::Mat texture)
 {

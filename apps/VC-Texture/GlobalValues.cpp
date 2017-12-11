@@ -16,7 +16,7 @@ GlobalValues::GlobalValues(QRect rec)
     , height(rec.height())
     , width(rec.width())
     , _radius(0)
-    , _textureMethod(0)
+    , _textureMethod(Method::Intersection)
     , _sampleDirection(0)
 {
 }
@@ -33,26 +33,26 @@ void GlobalValues::createVolumePackage()
 {
     // Creates a Volume Package
     vpkg = volcart::VolumePkg::New(path.toStdString());
-    VPKG_Instantiated = true;
+    VpkgInstantiated = true;
 }
 
 void GlobalValues::clearVolumePackage()
 {
     vpkg = nullptr;
     activeSeg = nullptr;
-    VPKG_Instantiated = false;
+    VpkgInstantiated = false;
 }
 
 void GlobalValues::clearGUI()
 {
-    VPKG_Instantiated = false;
+    VpkgInstantiated = false;
     path.clear();
     vpkg = nullptr;
     activeSeg = nullptr;
     segmentations.clear();
     clearRendering();
     _radius = 0;
-    _textureMethod = 0;
+    _textureMethod = Method::Intersection;
     _sampleDirection = 0;
     _status = ThreadStatus::Inactive;
 }
@@ -74,19 +74,18 @@ void GlobalValues::setQPixMapImage(QImage image)
 
 QPixmap GlobalValues::getQPixMapImage() { return pix; }
 
-bool GlobalValues::isVPKG_Intantiated() { return VPKG_Instantiated; }
+bool GlobalValues::isVpkgInstantiated() { return VpkgInstantiated; }
 
 void GlobalValues::setWindow(QMainWindow* window) { _window = window; }
 
 QMainWindow* GlobalValues::getWindow() { return _window; }
 
-void GlobalValues::setRendering(Rendering rendering) { _rendering = rendering; }
-
-void GlobalValues::clearRendering()
+void GlobalValues::setRendering(Rendering rendering)
 {
-    Rendering* empty = new Rendering;
-    _rendering = *empty;
+    _rendering = std::move(rendering);
 }
+
+void GlobalValues::clearRendering() { _rendering = Rendering(); }
 
 Rendering GlobalValues::getRendering() { return _rendering; }
 
@@ -94,12 +93,22 @@ void GlobalValues::setRadius(double radius) { _radius = radius; }
 
 double GlobalValues::getRadius() { return _radius; }
 
-void GlobalValues::setTextureMethod(int textureMethod)
+void GlobalValues::setTextureMethod(GlobalValues::Method textureMethod)
 {
     _textureMethod = textureMethod;
 }
 
-int GlobalValues::getTextureMethod() { return _textureMethod; }
+GlobalValues::Method GlobalValues::getTextureMethod() { return _textureMethod; }
+
+void GlobalValues::setFilter(volcart::texturing::CompositeTexture::Filter f)
+{
+    textureFilter_ = f;
+}
+
+volcart::texturing::CompositeTexture::Filter GlobalValues::getFilter()
+{
+    return textureFilter_;
+}
 
 void GlobalValues::setSampleDirection(int sampleDirection)
 {

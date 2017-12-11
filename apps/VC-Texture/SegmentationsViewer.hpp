@@ -60,6 +60,7 @@ private:
     QLabel* parameters;
     QSpinBox* radius;
     QComboBox* texture_Method;
+    QComboBox* texture_Filter;
     QComboBox* sample_Direction;
     QPushButton* generate;
     QFormLayout* inputs;

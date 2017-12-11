@@ -186,7 +186,7 @@ void MainWindow::saveTexture()
     }
 
     // If A Volume Package is Loaded and there are Segmentations (continue)
-    if (_globals->isVPKG_Intantiated() &&
+    if (_globals->isVpkgInstantiated() &&
         _globals->getVolPkg()->hasSegmentations()) {
         // Checks to see if there are images
         if (_globals->getRendering().getTexture().hasImages()) {
@@ -232,7 +232,7 @@ void MainWindow::exportTexture()
 
     // Return if no volume package is loaded or if volpkg doesn't have
     // segmentations
-    if (!_globals->isVPKG_Intantiated() ||
+    if (!_globals->isVpkgInstantiated() ||
         !_globals->getVolPkg()->hasSegmentations()) {
         QMessageBox::warning(
             this, "Error",
