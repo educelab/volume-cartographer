@@ -58,6 +58,7 @@ void MyThread::run()
         if (cloud.height() <= 1) {
             std::cerr << "VC::message: Cloud height <= 1. Nothing to mesh."
                       << std::endl;
+            _globals->setThreadStatus(ThreadStatus::CloudError);
             return;
         }
 
