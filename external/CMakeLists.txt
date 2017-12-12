@@ -28,17 +28,17 @@ set_target_properties(${target} PROPERTIES
 if(VC_INSTALL_LIBS)
 install(
     TARGETS ${target}
+    COMPONENT "Libraries"
     EXPORT ${targets_export_name}
     ARCHIVE DESTINATION "lib"
     LIBRARY DESTINATION "lib"
     RUNTIME DESTINATION "bin"
     INCLUDES DESTINATION "${include_install_dir}/${module}"
-    COMPONENT Libraries
 )
 install(
     DIRECTORY "${include_install_dir}/${module}"
     DESTINATION "${include_install_dir}"
-    COMPONENT Libraries
+    COMPONENT "Libraries"
     FILES_MATCHING REGEX ".*\.(h|hpp)$"
 )
 endif()
