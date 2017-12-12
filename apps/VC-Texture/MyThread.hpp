@@ -1,4 +1,3 @@
-//----------------------------------------------------------------------------------------------------------------------------------------
 // MyThread.h file for MyThread Class , (Implements QThread)
 // Purpose: Run the Texture Functionality behind the scenes so that the GUI
 // operates without interference
@@ -8,7 +7,6 @@
 
 // Copyright 2015 (Brent Seales: Volume Cartography Research)
 // University of Kentucky VisCenter
-//----------------------------------------------------------------------------------------------------------------------------------------
 
 #pragma once
 
@@ -25,7 +23,7 @@ class MyThread : public QThread
 
 public:
     explicit MyThread(GlobalValues* globals);
-    void run();
+    void run() override;
 
 private:
     GlobalValues* _globals;

@@ -264,15 +264,16 @@ void CVolumeViewerWithCurve::DrawIntersectionCurve(void)
     if (fIntersectionCurveRef != nullptr) {
         for (size_t i = 0; i < fIntersectionCurveRef->GetPointsNum(); ++i) {
             cv::circle(
-                fImgMat, cv::Point2d(
-                             fIntersectionCurveRef->GetPoint(i)[0],
-                             fIntersectionCurveRef->GetPoint(i)[1]),
+                fImgMat,
+                cv::Point2d(
+                    fIntersectionCurveRef->GetPoint(i)[0],
+                    fIntersectionCurveRef->GetPoint(i)[1]),
                 1, cv::Scalar(255, 0, 0));
         }
     }
 }
 
-// Update the _status of the buttons
+// Update the status of the buttons
 void CVolumeViewerWithCurve::UpdateButtons(void)
 {
     fZoomInBtn->setEnabled(fImgQImage != nullptr && fScaleFactor < 3.0);

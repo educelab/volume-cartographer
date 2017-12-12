@@ -1,4 +1,3 @@
-//----------------------------------------------------------------------------------------------------------------------------------------
 // TextureViewer.h file for TextureViewer Class
 // Purpose: Create header file for TextureViewer Class
 // Developer: Michael Royal - mgro224@g.uky.edu
@@ -10,11 +9,9 @@
 
 // Copyright 2015 (Brent Seales: Volume Cartography Research)
 // University of Kentucky VisCenter
-//----------------------------------------------------------------------------------------------------------------------------------------
 
 #pragma once
 
-#include <QAction>
 #include <QAction>
 #include <QLabel>
 #include <QLayout>
@@ -33,45 +30,41 @@ class TextureViewer : QObject
     Q_OBJECT
 
 public:
-    TextureViewer(GlobalValues* globals);
+    explicit TextureViewer(GlobalValues* globals);
     QVBoxLayout* getLayout();
     void clearGUI();
-    void setImage();
-    void clearImageLabel();
-    void progressActive(bool value);
+    void loadImageFromGlobals();
+    void clearImageArea();
+    void setProgressActive(bool value);
     void setEnabled(bool value);
     void clearLabel();
 
 private slots:
-    void open();
-    void zoom_In();
-    void zoom_Out();
-    void reset_Size();
-    void quitThread();
+    void zoom_in_();
+    void zoom_out_();
+    void zoom_reset_();
 
 private:
-    void create_Actions();
-    void scale_Texture(double factor);
-    void adjustScrollBar(QScrollBar* scrollBar, double factor);
+    void setup_actions_();
+    void scale_image_(double factor);
+    void adjust_scroll_bar_(QScrollBar* scrollBar, double factor);
 
-    GlobalValues* _globals;
+    GlobalValues* globals_;
 
-    QPushButton* zoomIn;
-    QPushButton* zoomOut;
-    QPushButton* refresh;
-    QPushButton* cancel;
-    QLabel* spacer;
-    QLabel* viewer;
-    QLabel* imageLabel;
-    QScrollArea* scrollArea;
-    QHBoxLayout* zoom;
-    QVBoxLayout* image_Management;
-    QProgressBar* progressBar;
-    QPixmap pix;
-    QAction* zoomInAction;
-    QAction* zoomOutAction;
-    QAction* resetSizeAction;
-    QAction* _cancel;
+    QPushButton* zoomIn_;
+    QPushButton* zoomOut_;
+    QPushButton* refresh_;
+    QLabel* spacer_;
+    QLabel* viewer_;
+    QLabel* imageLabel_;
+    QScrollArea* scrollArea_;
+    QHBoxLayout* zoomPanel_;
+    QVBoxLayout* viewerPanel_;
+    QProgressBar* progressBar_;
+    QPixmap pix_;
+    QAction* zoomInAction_;
+    QAction* zoomOutAction_;
+    QAction* zoomResetAction_;
 
-    double scaleFactor;
+    double scaleFactor_{1};
 };

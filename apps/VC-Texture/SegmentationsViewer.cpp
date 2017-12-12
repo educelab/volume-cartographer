@@ -1,4 +1,3 @@
-//----------------------------------------------------------------------------------------------------------------------------------------
 // SegmentationsViewer.cpp file for SegmentationsViewer Class
 // Purpose: Create SegmentationsViewer Class
 // Developer: Michael Royal - mgro224@g.uky.edu
@@ -7,87 +6,96 @@
 
 // Copyright 2015 (Brent Seales: Volume Cartography Research)
 // University of Kentucky VisCenter
-//----------------------------------------------------------------------------------------------------------------------------------------
 
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
 #include "SegmentationsViewer.hpp"
 
+#include "vc/texturing/CompositeTexture.hpp"
+
+namespace vct = volcart::texturing;
+
 SegmentationsViewer::SegmentationsViewer(
     GlobalValues* globals, TextureViewer* texture_Viewer)
 {
-    _globals = globals;
-    _texture_Viewer = texture_Viewer;
-    currentHighlightedIndex = 0;
+    globals_ = globals;
+    textureViewer_ = texture_Viewer;
+    activeSegIndex_ = 0;
 
     // RIGHT SIDE OF GUI
     //********************************************************************************************
 
-    panels = new QVBoxLayout();
+    panels_ = new QVBoxLayout();
 
     // Volume_Package Section
-    //----------------------------------------------------------
-    volume_Package = new QLabel("Volume_Package");
-    volume_Package->setMaximumWidth(400);
-    segmentations = new QListWidget();
-    segmentations->setMaximumSize(400, _globals->getHeight());
+    volPkgLabel_ = new QLabel("Volume_Package");
+    volPkgLabel_->setMaximumWidth(400);
+    segList_ = new QListWidget();
+    segList_->setMaximumSize(400, globals_->getHeight());
 
-    panels->addWidget(volume_Package);
-    panels->addWidget(segmentations);
+    panels_->addWidget(volPkgLabel_);
+    panels_->addWidget(segList_);
     // End of Volume_Package Section
-    //-----------------------------------------------------------
 
     // Parameters Section
-    //-------------------------------------------------------------
 
-    parameters = new QLabel("Parameters");
-    radius = new QSpinBox();
-    texture_Method = new QComboBox();
-    sample_Direction = new QComboBox();
-    generate = new QPushButton("Generate Texture");
+    paramsLabel_ = new QLabel("Parameters");
+    radiusSelect_ = new QSpinBox();
+    methodSelect_ = new QComboBox();
+    filterSelect_ = new QComboBox();
+    directionSelect_ = new QComboBox();
+    startGen_ = new QPushButton("Generate Texture");
 
-    texture_Method->addItem("Minimum");
-    texture_Method->addItem("Maximum");
-    texture_Method->addItem("Median");
-    texture_Method->addItem("Mean");
-    texture_Method->addItem("Median w/ Averaging");
+    methodSelect_->addItem("Intersection");
+    methodSelect_->addItem("Integral");
+    methodSelect_->addItem("Composite");
 
-    sample_Direction->addItem("Omni");
-    sample_Direction->addItem("Positive");
-    sample_Direction->addItem("Negative");
+    filterSelect_->setEnabled(false);
+    filterSelect_->addItem("Minimum");
+    filterSelect_->addItem("Maximum");
+    filterSelect_->addItem("Median");
+    filterSelect_->addItem("Mean");
+    filterSelect_->addItem("Median w/ Averaging");
+    connect(
+        methodSelect_, QOverload<int>::of(&QComboBox::currentIndexChanged),
+        [=](int v) { filterSelect_->setEnabled(v == 2); });
 
-    inputs = new QFormLayout();
-    inputs->addRow("Radius: (Voxels)", radius);
-    inputs->addRow("Texture Method:", texture_Method);
-    inputs->addRow("Sample Direction:", sample_Direction);
+    directionSelect_->addItem("Omni");
+    directionSelect_->addItem("Positive");
+    directionSelect_->addItem("Negative");
 
-    user_input = new QVBoxLayout();
-    user_input->addWidget(parameters);
-    user_input->addLayout(inputs);
-    user_input->addWidget(generate);
+    paramsContainer_ = new QFormLayout();
+    paramsContainer_->addRow("Radius: (Voxels)", radiusSelect_);
+    paramsContainer_->addRow("Texture Method:", methodSelect_);
+    paramsContainer_->addRow("Composite Filter:", filterSelect_);
+    paramsContainer_->addRow("Sample Direction:", directionSelect_);
 
-    panels->addLayout(user_input);
+    paramsSubcontainer_ = new QVBoxLayout();
+    paramsSubcontainer_->addWidget(paramsLabel_);
+    paramsSubcontainer_->addLayout(paramsContainer_);
+    paramsSubcontainer_->addWidget(startGen_);
+
+    panels_->addLayout(paramsSubcontainer_);
 
     // End of Parameters Section
-    //-------------------------------------------------------------
 
     connect(
-        segmentations, SIGNAL(itemClicked(QListWidgetItem*)), this,
-        SLOT(itemClickedSlot()));
-    connect(generate, SIGNAL(released()), this, SLOT(generateTextureImage()));
+        segList_, SIGNAL(itemClicked(QListWidgetItem*)), this,
+        SLOT(itemClicked()));
+    connect(startGen_, SIGNAL(released()), this, SLOT(generateTexture()));
 
     // END OF RIGHT SIDE OF GUI
     //********************************************************************************************
 
 }  // End of Default Constructor()
 
-void SegmentationsViewer::itemClickedSlot()
+void SegmentationsViewer::itemClicked()
 {
-    if (currentSegmentation != segmentations->currentItem()->text()) {
+    if (activeSegID_ != segList_->currentItem()->text()) {
 
         // Check Status...
-        if (_globals->getStatus() == ThreadStatus::Successful) {
+        if (globals_->getStatus() == ThreadStatus::Successful) {
 
             // Ask User to Save unsaved Data
             QMessageBox msgBox;
@@ -102,40 +110,40 @@ void SegmentationsViewer::itemClickedSlot()
             switch (option) {
                 case QMessageBox::Discard:
                     // Discard was clicked
-                    _globals->setThreadStatus(ThreadStatus::Inactive);
+                    globals_->setThreadStatus(ThreadStatus::Inactive);
                     break;
                 case QMessageBox::Cancel:
                     // Cancel was clicked
-                    segmentations->setCurrentRow(currentHighlightedIndex);
+                    segList_->setCurrentRow(activeSegIndex_);
                     return;
                 default:
                     // should never be reached
                     return;
             }
         } else {
-            _globals->setThreadStatus(ThreadStatus::Inactive);
+            globals_->setThreadStatus(ThreadStatus::Inactive);
         }
 
-        currentHighlightedIndex = segmentations->currentRow();
-        currentSegmentation = segmentations->currentItem()->text();
-        _globals->clearRendering();
-        _texture_Viewer->clearImageLabel();
+        activeSegIndex_ = segList_->currentRow();
+        activeSegID_ = segList_->currentItem()->text();
+        globals_->clearRendering();
+        textureViewer_->clearImageArea();
 
-        QString s = segmentations->currentItem()->text();
-        _globals->setActiveSegmentation(s.toStdString());
+        QString s = segList_->currentItem()->text();
+        globals_->setActiveSeg(s.toStdString());
 
-        auto path = _globals->getActiveSegmentation()->path() / "textured.png";
+        auto path = globals_->getActiveSegmentation()->path() / "textured.png";
         cv::Mat texture = cv::imread(path.string(), -1);
 
         bool test = loadImage(texture);
 
         if (test) {
-            _texture_Viewer->setImage();
+            textureViewer_->loadImageFromGlobals();
         }
     }
 }
 
-void SegmentationsViewer::setVol_Package_Name(QString name)
+void SegmentationsViewer::setVolPkgLabel(QString name)
 {
     const QChar test = '/';
     const QString _name = name;
@@ -155,101 +163,101 @@ void SegmentationsViewer::setVol_Package_Name(QString name)
     }
 
     const QString _filename = QString::fromStdString(filename);
-    volume_Package->setText("Volume Package: " + _filename);
+    volPkgLabel_->setText("Volume Package: " + _filename);
 }
 
-void SegmentationsViewer::generateTextureImage()
+void SegmentationsViewer::generateTexture()
 {
-    if (_globals->isVPKG_Intantiated() &&
-        !_globals->getSegmentations().empty()) {
-        // save current configuration
-        auto flags = _globals->getWindow()->windowFlags();
-        QSize size = _globals->getWindow()->frameSize();
-
-        _globals->getWindow()->setWindowFlags(
-            Qt::CustomizeWindowHint | Qt::WindowTitleHint |
-            Qt::WindowMinimizeButtonHint | Qt::WindowMaximizeButtonHint);
-        _globals->getWindow()->resize(size);  // Resizes
-        _globals->getWindow()->show();        // Show Screen
-
-        _globals->setRadius(radius->text().toDouble());
-        _globals->setTextureMethod(texture_Method->currentIndex());
-        _globals->setSampleDirection(sample_Direction->currentIndex());
-
-        setEnabled(false);
-
-        _texture_Viewer->progressActive(true);  // Show Progress Loading Bar
-        qApp->processEvents();                  // Updates GUI Window
-
-        processing = new MyThread(_globals);  // Creates new thread
-        connect(
-            processing, SIGNAL(finished()), processing,
-            SLOT(deleteLater()));  // Deletes Thread After Completion (Clean-Up)
-
-        while (_globals->getStatus() == ThreadStatus::Active) {
-            qApp->processEvents();  // Updates GUI Window
-        }
-
-        // Set Processing Status to Foced Close if Cancelled...
-        if (_globals->getStatus() == ThreadStatus::ForcedClose) {
-            processing->terminate();  // Clean up Threading
-            processing->wait();
-        }
-
-        _texture_Viewer->progressActive(false);  // Hide Progress Loading Bar
-
-        bool test = false;
-
-        if (_globals->getStatus() == ThreadStatus::Successful) {
-            test = loadImage(
-                _globals->getRendering().getTexture().image(0).clone());
-
-            if (test) {
-                _texture_Viewer->setImage();
-            }
-        }
-
-        if (_globals->getStatus() == ThreadStatus::Successful &&
-            test)  // If Processing successfully loaded an Image
-        {
-            QMessageBox::warning(
-                _globals->getWindow(), "Warning",
-                "The Generated Texture Image is not Saved, if you wish to save "
-                "it, please select \"File\" -> \"Save Texture\".");
-
-        } else if (_globals->getStatus() == ThreadStatus::CloudError) {
-            QMessageBox::warning(
-                _globals->getWindow(), "Error",
-                "Segmentation has empty pointset.");
-
-        } else if (_globals->getStatus() == ThreadStatus::Failed) {
-            QMessageBox::warning(
-                _globals->getWindow(), "Error",
-                "Failed to Generate Texture Image.");
-
-        } else if (_globals->getStatus() == ThreadStatus::ForcedClose) {
-            QMessageBox::warning(
-                _globals->getWindow(), "Cancelled", "Successfully Cancelled.");
-        }
-
-        setEnabled(true);  // Allow User to Use Buttons
-        _globals->getWindow()->setWindowFlags(flags);  // restore
-        _globals->getWindow()->show();
-
-    } else
+    if (!globals_->pkgLoaded() || globals_->getSegIDs().empty()) {
         QMessageBox::warning(
-            _globals->getWindow(), "Error",
+            globals_->getWindow(), "Error",
             "No Segmentation has been loaded, Please load Segmentation.");
+        return;
+    }
+    // save current configuration
+    auto flags = globals_->getWindow()->windowFlags();
+    QSize size = globals_->getWindow()->frameSize();
 
-}  // End of generateTextureImage()
+    globals_->getWindow()->setWindowFlags(
+        Qt::CustomizeWindowHint | Qt::WindowTitleHint |
+        Qt::WindowMinimizeButtonHint | Qt::WindowMaximizeButtonHint);
+    globals_->getWindow()->resize(size);
+    globals_->getWindow()->show();
+
+    globals_->setRadius(radiusSelect_->text().toDouble());
+    globals_->setTextureMethod(
+        static_cast<GlobalValues::Method>(methodSelect_->currentIndex()));
+    globals_->setFilter(static_cast<vct::CompositeTexture::Filter>(
+        filterSelect_->currentIndex()));
+    globals_->setSampleDirection(directionSelect_->currentIndex());
+
+    setEnabled(false);
+
+    // enable the progress bar
+    textureViewer_->setProgressActive(true);
+    qApp->processEvents();
+
+    // Create new thread and set for cleanup when complete
+    procThread_ = new MyThread(globals_);
+    connect(procThread_, SIGNAL(finished()), procThread_, SLOT(deleteLater()));
+
+    while (globals_->getStatus() == ThreadStatus::Active) {
+        qApp->processEvents();
+    }
+
+    // Set Processing Status to Foced Close if Cancelled...
+    if (globals_->getStatus() == ThreadStatus::ForcedClose) {
+        procThread_->terminate();  // Clean up Threading
+        procThread_->wait();
+    }
+
+    textureViewer_->setProgressActive(false);
+
+    // If Processing successfully loaded an Image
+    switch (globals_->getStatus()) {
+        case ThreadStatus::Successful:
+            if (loadImage(
+                    globals_->getRendering().getTexture().image(0).clone())) {
+                textureViewer_->loadImageFromGlobals();
+            } else {
+                QMessageBox::warning(
+                    globals_->getWindow(), "Error", "Failed to load image");
+            }
+            break;
+        case ThreadStatus::CloudError:
+            QMessageBox::warning(
+                globals_->getWindow(), "Error",
+                "Cannot generate texture! Input point set is empty or has only "
+                "one row");
+            break;
+        case ThreadStatus::Failed:
+            QMessageBox::warning(
+                globals_->getWindow(), "Error",
+                "Failed to Generate Texture Image.");
+            break;
+        case ThreadStatus::ForcedClose:
+            QMessageBox::warning(
+                globals_->getWindow(), "Cancelled", "Successfully Cancelled.");
+            break;
+        default:
+            break;
+    }
+
+    // Allow User to Use Buttons
+    setEnabled(true);
+
+    // restore
+    globals_->getWindow()->setWindowFlags(flags);
+    globals_->getWindow()->show();
+}
 
 bool SegmentationsViewer::loadImage(cv::Mat texture)
 {
     try {
         if (texture.data == nullptr) {
-            _texture_Viewer->clearImageLabel();
+            textureViewer_->clearImageArea();
             QMessageBox::warning(
-                _globals->getWindow(), "Error",
+                globals_->getWindow(), "Error",
                 "There is no Current Texture Image");
             return false;
 
@@ -261,68 +269,67 @@ bool SegmentationsViewer::loadImage(cv::Mat texture)
             QImage Image(
                 texture.data, texture.cols, texture.rows, texture.step,
                 QImage::Format_RGB888);
-            newImage = Image;
-            _globals->setQPixMapImage(newImage);
+            displayImage_ = Image;
+            globals_->setQPixMapImage(displayImage_);
             return true;
         }
 
     } catch (...) {
         QMessageBox::warning(
-            _globals->getWindow(), "Error", "Failed to Load Image Properly!");
+            globals_->getWindow(), "Error", "Failed to Load Image Properly!");
     }
 
     return false;  // Should not reach here if successful
 }
 
-QVBoxLayout* SegmentationsViewer::getLayout() { return panels; }
+QVBoxLayout* SegmentationsViewer::getLayout() { return panels_; }
 
 void SegmentationsViewer::clearGUI()
 {
 
-    volume_Package->setText("");
-    segmentations->clear();  // Clear the Segmentation List
-    currentSegmentation = "";
-    radius->setValue(0);
-    texture_Method->setCurrentIndex(0);
-    sample_Direction->setCurrentIndex(0);
-    _texture_Viewer->clearGUI();  // Clear variables from _texture_Viewer
+    volPkgLabel_->setText("");
+    segList_->clear();  // Clear the Segmentation List
+    activeSegID_ = "";
+    radiusSelect_->setValue(0);
+    methodSelect_->setCurrentIndex(0);
+    directionSelect_->setCurrentIndex(0);
+    textureViewer_->clearGUI();  // Clear variables from textureViewer_
 }
 
 void SegmentationsViewer::setSegmentations()
 {
-    segmentations->clear();
-    _texture_Viewer->clearImageLabel();
+    segList_->clear();
+    textureViewer_->clearImageArea();
 
-    std::vector<std::string> segments = _globals->getSegmentations();
+    std::vector<std::string> segments = globals_->getSegIDs();
     QString qstr;
 
-    for (size_t i = 0; i < _globals->getSegmentations().size(); i++) {
+    for (size_t i = 0; i < globals_->getSegIDs().size(); i++) {
         qstr = QString::fromStdString(segments[i]);
-        segmentations->addItem(qstr);
+        segList_->addItem(qstr);
     }
 
-    if (_globals->getSegmentations().size() >
-        0)  // Loads first Image to Screen by default
-    {
-        segmentations->setCurrentRow(0);
-        currentHighlightedIndex = 0;
-        currentSegmentation = "null";
-        itemClickedSlot();
+    // Loads first Image to Screen by default
+    if (globals_->getSegIDs().empty()) {
+        segList_->setCurrentRow(0);
+        activeSegIndex_ = 0;
+        activeSegID_ = "null";
+        itemClicked();
     }
 }
 
 void SegmentationsViewer::setEnabled(bool value)
 {
-    segmentations->setEnabled(value);
-    radius->setEnabled(value);
-    texture_Method->setEnabled(value);
-    sample_Direction->setEnabled(value);
-    generate->setEnabled(value);
+    segList_->setEnabled(value);
+    radiusSelect_->setEnabled(value);
+    methodSelect_->setEnabled(value);
+    directionSelect_->setEnabled(value);
+    startGen_->setEnabled(value);
 
-    _globals->enableMenus(value);
+    globals_->enableMenus(value);
 
     if (!value) {
-        _texture_Viewer->clearLabel();
-        _texture_Viewer->setEnabled(value);
+        textureViewer_->clearLabel();
+        textureViewer_->setEnabled(value);
     }
 }

@@ -1,4 +1,3 @@
-//-----------------------------------------------------------------------------------------------------------------------------------------
 // TextureViewer.cpp file for TextureViewer Class
 // Purpose: Define TextureViewer Class
 // Developer: Michael Royal - mgro224@g.uky.edu
@@ -10,240 +9,176 @@
 
 // Copyright 2015 (Brent Seales: Volume Cartography Research)
 // University of Kentucky VisCenter
-//-----------------------------------------------------------------------------------------------------------------------------------------
 
 #include "TextureViewer.hpp"
 #include <qmainwindow.h>
 
-TextureViewer::TextureViewer(GlobalValues* globals)
+TextureViewer::TextureViewer(GlobalValues* globals) : globals_{globals}
 {
-    _globals = globals;
-
     // LEFT SIDE OF GUI
-    //*****************************************************************************************
+    //*****************
 
-    scaleFactor = 1;  // Instantiates scaleFactor to 1 for Resizing
+    imageLabel_ = new QLabel;
+    imageLabel_->setBackgroundRole(QPalette::Base);
+    imageLabel_->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+    imageLabel_->setScaledContents(true);
 
-    imageLabel = new QLabel;
-    imageLabel->setBackgroundRole(QPalette::Base);
-    imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-    imageLabel->setScaledContents(true);
-
-    scrollArea = new QScrollArea;
-    scrollArea->setBackgroundRole(QPalette::Dark);
-    scrollArea->show();
+    scrollArea_ = new QScrollArea;
+    scrollArea_->setBackgroundRole(QPalette::Dark);
+    scrollArea_->show();
 
     // Create Buttons
-    //------------------------------------------------------------------------
-    zoomIn = new QPushButton("Zoom In");    // Creates a QPushButton - Zoom_In
-    zoomOut = new QPushButton("Zoom Out");  // Creates a QPushButton - Zoom_Out
-    refresh = new QPushButton("Reset");     // Create a QPushButton - Refresh
-    spacer = new QLabel();
+    zoomIn_ = new QPushButton("Zoom In");
+    zoomOut_ = new QPushButton("Zoom Out");
+    refresh_ = new QPushButton("Reset");
+    spacer_ = new QLabel();
 
-    zoomIn->setMaximumSize(150, 50);   // Sets Max Size for Zoom_In Button
-    zoomOut->setMaximumSize(150, 50);  // Sets Max Size for Zoom_Out Button
-    refresh->setMaximumSize(150, 50);  // Sets Max Size for Refresh Button
-    zoomIn->setMinimumSize(150, 50);   // Sets Min Size for Zoom_In Button
-    zoomOut->setMinimumSize(150, 50);  // Sets Min Size for Zoom_Out Button
-    refresh->setMinimumSize(150, 50);  // Sets Min Size for Refresh Button
+    zoomIn_->setMaximumSize(150, 50);
+    zoomOut_->setMaximumSize(150, 50);
+    refresh_->setMaximumSize(150, 50);
+    zoomIn_->setMinimumSize(150, 50);
+    zoomOut_->setMinimumSize(150, 50);
+    refresh_->setMinimumSize(150, 50);
 
-    cancel = new QPushButton("Cancel");
-    cancel->setMaximumSize(150, 50);  // Sets Max Size for Cancel Button
-    cancel->setMinimumSize(150, 50);  // Sets Min Size for Cancel Button
-    cancel->setVisible(false);
-    //----------------------------------------------------------------------
-
-    progressBar = new QProgressBar();
-    progressBar->setVisible(false);
-    progressBar->setMinimumWidth(100);
-    progressBar->setMinimumHeight(10);
-    progressBar->setMinimum(0);
-    progressBar->setMaximum(0);
+    progressBar_ = new QProgressBar();
+    progressBar_->setVisible(false);
+    progressBar_->setMinimumWidth(100);
+    progressBar_->setMinimumHeight(10);
+    progressBar_->setMinimum(0);
+    progressBar_->setMaximum(0);
 
     // Default Not Enabled
-    zoomIn->setEnabled(false);
-    zoomOut->setEnabled(false);
-    refresh->setEnabled(false);
-    cancel->setEnabled(false);
+    zoomIn_->setEnabled(false);
+    zoomOut_->setEnabled(false);
+    refresh_->setEnabled(false);
 
-    viewer = new QLabel("Viewer");
-    viewer->setMaximumSize(50, 30);
+    viewer_ = new QLabel("Viewer");
+    viewer_->setMaximumSize(50, 30);
 
-    zoom = new QHBoxLayout();  // Lines Up the Following Buttons Horizontally
-    zoom->addWidget(spacer);
-    zoom->addWidget(progressBar);
-    zoom->addWidget(cancel);
-    zoom->addWidget(zoomIn);   // Zoom_In Button added to Horizontal_Layout
-    zoom->addWidget(zoomOut);  // Zoom_Out Button added to Horizontal_Layout
-    zoom->addWidget(refresh);  // Refresh Button added to Horizontal_Layout
-
-    image_Management =
-        new QVBoxLayout();  // Manages Left segment of screen - QWidgets
-    image_Management->addWidget(viewer);
-    image_Management->addWidget(scrollArea);
-    image_Management->addLayout(zoom);
+    zoomPanel_ = new QHBoxLayout();
+    zoomPanel_->addWidget(spacer_);
+    zoomPanel_->addWidget(progressBar_);
+    zoomPanel_->addWidget(zoomIn_);
+    zoomPanel_->addWidget(zoomOut_);
+    zoomPanel_->addWidget(refresh_);
+    viewerPanel_ = new QVBoxLayout();
+    viewerPanel_->addWidget(viewer_);
+    viewerPanel_->addWidget(scrollArea_);
+    viewerPanel_->addLayout(zoomPanel_);
 
     // END OF LEFT SIDE OF SCREEN
-    //********************************************************************************************
+    //***************************
 
-    create_Actions();
+    setup_actions_();
+}
 
-}  // End of TextureViewer() default Constructor
+// PRIVATE SLOTS //
+void TextureViewer::zoom_in_() { scale_image_(1.25); }
 
-// PRIVATE SLOTS
-//--------------------------------------------
+void TextureViewer::zoom_out_() { scale_image_(0.8); }
 
-void TextureViewer::open()
+void TextureViewer::zoom_reset_()
 {
-    // Implement Code Here
-
-}  // End of TextureViewer::Open()
-
-void TextureViewer::zoom_In()
-{
-    scale_Texture(1.25);
-
-}  // End of TextureViewer::zoom_In()
-
-void TextureViewer::zoom_Out()
-{
-    scale_Texture(0.8);
-
-}  // End of TextureViewer::zoom_Out()
-
-void TextureViewer::reset_Size()
-{
-    imageLabel->adjustSize();
-    scaleFactor = 1.0;
-    zoomIn->setEnabled(true);
-    zoomOut->setEnabled(true);
-
-}  // End of TextureViewer::reset_Size()
-
-void TextureViewer::quitThread()
-{
-    _globals->setThreadStatus(ThreadStatus::ForcedClose);
+    imageLabel_->adjustSize();
+    scaleFactor_ = 1.0;
+    zoomIn_->setEnabled(true);
+    zoomOut_->setEnabled(true);
 }
 
 // END OF PRIVATE SLOTS
-//----------------------------------------------
 
-QVBoxLayout* TextureViewer::getLayout()
+QVBoxLayout* TextureViewer::getLayout() { return viewerPanel_; }
+
+void TextureViewer::loadImageFromGlobals()
 {
-    return image_Management;
+    imageLabel_ = new QLabel;
+    imageLabel_->setBackgroundRole(QPalette::Base);
+    imageLabel_->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+    imageLabel_->setScaledContents(true);
 
-}  // End of TextureViewer::getLayout()
+    pix_ = globals_->getQPixMapImage();
+    imageLabel_->setPixmap(pix_);
+    scrollArea_->setWidget(imageLabel_);
 
-void TextureViewer::setImage()  // Minor Glitch, delay zooms, ext. Still needs
-                                // some Fixing
-{
-    imageLabel = new QLabel;
-    imageLabel->setBackgroundRole(QPalette::Base);
-    imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-    imageLabel->setScaledContents(true);
-
-    pix = _globals->getQPixMapImage();
-    imageLabel->setPixmap(pix);
-    scrollArea->setWidget(imageLabel);
-
-    if (!imageLabel->pixmap()->isNull()) {
-        zoomIn->setEnabled(true);
-        zoomOut->setEnabled(true);
-        refresh->setEnabled(true);
+    if (!imageLabel_->pixmap()->isNull()) {
+        zoomIn_->setEnabled(true);
+        zoomOut_->setEnabled(true);
+        refresh_->setEnabled(true);
     }
 
-    imageLabel->adjustSize();
-    scaleFactor = 1.0;
+    imageLabel_->adjustSize();
+    scaleFactor_ = 1.0;
 }
 
-void TextureViewer::clearImageLabel()
+void TextureViewer::clearImageArea()
 {
-    imageLabel->adjustSize();
-    scaleFactor = 1.0;
-    imageLabel->close();
-    zoomIn->setEnabled(false);
-    zoomOut->setEnabled(false);
-    refresh->setEnabled(false);
+    imageLabel_->adjustSize();
+    scaleFactor_ = 1.0;
+    imageLabel_->close();
+    zoomIn_->setEnabled(false);
+    zoomOut_->setEnabled(false);
+    refresh_->setEnabled(false);
 }
 
 void TextureViewer::clearGUI()
 {
 
-    clearImageLabel();  // Clear the Image
-    scaleFactor = 1.0;
+    clearImageArea();
+    scaleFactor_ = 1.0;
 }
 
-void TextureViewer::create_Actions()
+void TextureViewer::setup_actions_()
 {
-    zoomInAction = new QAction("Zoom In", this);
-    zoomInAction->setEnabled(false);
-    connect(zoomIn, SIGNAL(released()), this, SLOT(zoom_In()));
+    zoomInAction_ = new QAction("Zoom In", this);
+    zoomInAction_->setEnabled(false);
+    connect(zoomIn_, SIGNAL(released()), this, SLOT(zoom_in_()));
 
-    zoomOutAction = new QAction("Zoom Out", this);
-    zoomOutAction->setEnabled(false);
-    connect(zoomOut, SIGNAL(released()), this, SLOT(zoom_Out()));
+    zoomOutAction_ = new QAction("Zoom Out", this);
+    zoomOutAction_->setEnabled(false);
+    connect(zoomOut_, SIGNAL(released()), this, SLOT(zoom_out_()));
 
-    resetSizeAction = new QAction("Reset", this);
-    resetSizeAction->setEnabled(false);
-    connect(refresh, SIGNAL(released()), this, SLOT(reset_Size()));
+    zoomResetAction_ = new QAction("Reset", this);
+    zoomResetAction_->setEnabled(false);
+    connect(refresh_, SIGNAL(released()), this, SLOT(zoom_reset_()));
+}
 
-    _cancel = new QAction("Cancel", this);
-    _cancel->setEnabled(true);
-    connect(cancel, SIGNAL(released()), this, SLOT(quitThread()));
-
-}  // End of TextureViewer::create_Actions()
-
-void TextureViewer::adjustScrollBar(QScrollBar* scrollBar, double factor)
+void TextureViewer::adjust_scroll_bar_(QScrollBar* scrollBar, double factor)
 {
     scrollBar->setValue(
         int(factor * scrollBar->value() +
             ((factor - 1) * scrollBar->pageStep() / 2)));
+}
 
-}  // End of TextureViewer::adjustScrollBar(QScrollBar *scrollBar, double
-   // factor)
-
-void TextureViewer::scale_Texture(double factor)
+void TextureViewer::scale_image_(double factor)
 {
-    if (scaleFactor * factor <= 2.0 && scaleFactor * factor >= 0.15) {
-        scaleFactor *= factor;
+    if (scaleFactor_ * factor <= 2.0 && scaleFactor_ * factor >= 0.15) {
 
-        if (scaleFactor * 1.25 > 2.0) {
-            zoomIn->setEnabled(false);
+        scaleFactor_ *= factor;
+        zoomIn_->setEnabled(scaleFactor_ * 1.25 < 2.0);
+        zoomOut_->setEnabled(scaleFactor_ * 0.8 > 0.15);
 
-        } else
-            zoomIn->setEnabled(true);
+        imageLabel_->resize(scaleFactor_ * imageLabel_->pixmap()->size());
 
-        if (scaleFactor * 0.8 < 0.15) {
-            zoomOut->setEnabled(false);
-
-        } else
-            zoomOut->setEnabled(true);
-
-        imageLabel->resize(scaleFactor * imageLabel->pixmap()->size());
-
-        adjustScrollBar(scrollArea->horizontalScrollBar(), factor);
-        adjustScrollBar(scrollArea->verticalScrollBar(), factor);
+        adjust_scroll_bar_(scrollArea_->horizontalScrollBar(), factor);
+        adjust_scroll_bar_(scrollArea_->verticalScrollBar(), factor);
     }
+}
 
-}  // End of TextureViewer::scale_Texture(double factor)
-
-void TextureViewer::progressActive(bool value)
+void TextureViewer::setProgressActive(bool value)
 {
-    progressBar->setVisible(value);
-    // cancel->setVisible(value);
-    // cancel->setEnabled(value);
+    progressBar_->setVisible(value);
 }
 
 void TextureViewer::setEnabled(bool value)
 {
-    zoomIn->setEnabled(value);
-    zoomOut->setEnabled(value);
-    refresh->setEnabled(value);
+    zoomIn_->setEnabled(value);
+    zoomOut_->setEnabled(value);
+    refresh_->setEnabled(value);
 }
 
 void TextureViewer::clearLabel()  // Clears Label
 {
-    imageLabel->adjustSize();
-    scaleFactor = 1.0;
-    imageLabel->close();
+    imageLabel_->adjustSize();
+    scaleFactor_ = 1.0;
+    imageLabel_->close();
 }
