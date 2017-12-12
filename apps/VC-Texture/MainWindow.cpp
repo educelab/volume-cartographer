@@ -1,4 +1,3 @@
-//----------------------------------------------------------------------------------------------------------------------------------------
 // MainWindow.cpp file for MainWindow Class , (Implements QMainWindow)
 // Purpose: Create a Main Window for the GUI
 // Developer: Michael Royal - mgro224@g.uky.edu
@@ -7,7 +6,6 @@
 
 // Copyright 2015 (Brent Seales: Volume Cartography Research)
 // University of Kentucky VisCenter
-//----------------------------------------------------------------------------------------------------------------------------------------
 
 #include <regex>
 
@@ -24,7 +22,7 @@ namespace fs = boost::filesystem;
 
 MainWindow::MainWindow(GlobalValues* globals)
 {
-    _globals = globals;  // Enables access to Global Values Object
+    globals_ = globals;  // Enables access to Global Values Object
 
     setWindowTitle("VC Texture");  // Set Window Title
 
@@ -32,96 +30,77 @@ MainWindow::MainWindow(GlobalValues* globals)
     // will be different on other display screens,
     // if Resolution is too small may cause distortion
     // of Buttons Visually when Program first Initiates
-    //----------------------------------------------------------
 
     // MIN DIMENSIONS
-    window()->setMinimumHeight(_globals->getHeight() / 2);
-    window()->setMinimumWidth(_globals->getWidth() / 2);
+    window()->setMinimumHeight(globals_->getHeight() / 2);
+    window()->setMinimumWidth(globals_->getWidth() / 2);
     // MAX DIMENSIONS
-    window()->setMaximumHeight(_globals->getHeight());
-    window()->setMaximumWidth(_globals->getWidth());
-    //---------------------------------------------------------
+    window()->setMaximumHeight(globals_->getHeight());
+    window()->setMaximumWidth(globals_->getWidth());
 
     // Create new TextureViewer Object (Left Side of GUI Display)
-    TextureViewer* texture_Image = new TextureViewer(globals);
+    auto textureViewer = new TextureViewer(globals);
     // Create new SegmentationsViewer Object (Right Side of GUI Display)
-    SegmentationsViewer* segmentations =
-        new SegmentationsViewer(globals, texture_Image);
-    _segmentations_Viewer = segmentations;
+    auto segViewer = new SegmentationsViewer(globals, textureViewer);
+    segViewer_ = segViewer;
 
     QHBoxLayout* mainLayout = new QHBoxLayout();
-    mainLayout->addLayout(
-        texture_Image->getLayout());  // THIS LAYOUT HOLDS THE WIDGETS FOR THE
-                                      // OBJECT "TextureViewer" which Enables
-                                      // the user to view images, zoom in, zoom
-                                      // out, and reset the image.
-    mainLayout->addLayout(
-        segmentations->getLayout());  // THIS LAYOUT HOLDS THE WIDGETS FOR THE
-                                      // OBJECT "SegmentationsViewer" which
-                                      // Enables the user to load segmentations,
-                                      // and generate new texture images.
+    mainLayout->addLayout(textureViewer->getLayout());
+    mainLayout->addLayout(segViewer->getLayout());
 
-    QWidget* w = new QWidget();  // Creates the Primary Widget to display GUI
-                                 // Functionality
-    w->setLayout(
-        mainLayout);  // w(the main window) gets assigned the mainLayout
+    QWidget* w = new QWidget();
+    w->setLayout(mainLayout);
 
     // Display Window
-    //------------------------------
-    setCentralWidget(
-        w);  // w is a wrapper widget for all of the widgets in the main window.
+    setCentralWidget(w);
 
-    create_Actions();  // Creates the Actions for the Menu Bar & Sub-Menus
-    create_Menus();    // Creates the Menus and adds them to the Menu Bar
+    setupActions();
+    setupMenus();
 }
 
-// Gets the Folder Path of the Volume Package location, and initiates a Volume
-// Package.
+// Gets the Folder Path of the Volume Package location, and initiates a VolPkg
 void MainWindow::getFilePath()
 {
     // If processing...
-    if (_globals->getStatus() == ThreadStatus::Active) {
+    if (globals_->getStatus() == ThreadStatus::Active) {
         QMessageBox::information(
             this, tr("Error Message"), "Please Wait While Texture Generates.");
         return;
     }
 
     // If there's something to save...
-    if (_globals->getStatus() == ThreadStatus::Successful) {
+    if (globals_->getStatus() == ThreadStatus::Successful) {
 
         // Ask User to Save unsaved Data
         QMessageBox msgBox;
         msgBox.setText(
-            "A new texture image was generated, do you want to save it?");
+            "The texture image has not be saved. Do you want to save before "
+            "closing?");
         msgBox.setStandardButtons(
             QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
         int option = msgBox.exec();
 
         switch (option) {
-
             // Save was clicked
             case QMessageBox::Save:
                 saveTexture();
                 break;
-
             // Discard was clicked
             case QMessageBox::Discard:
-                _globals->setThreadStatus(ThreadStatus::Inactive);
+                globals_->setThreadStatus(ThreadStatus::Inactive);
                 break;
-
             // Cancel was clicked
             case QMessageBox::Cancel:
                 return;
-
             default:
                 // should never be reached
                 break;
         }
     }
 
-    _globals->setThreadStatus(ThreadStatus::Inactive);
-    clearGUI();
-    QFileDialog* dialogBox = new QFileDialog();
+    globals_->setThreadStatus(ThreadStatus::Inactive);
+    resetGUI();
+    auto dialogBox = new QFileDialog();
     fs::path filename = dialogBox->getExistingDirectory().toStdString();
 
     // If the user selected a Folder Path
@@ -132,11 +111,11 @@ void MainWindow::getFilePath()
         if (std::regex_match(filename.extension().string(), volpkg)) {
             try {
                 // Sets Folder Path in Globals
-                _globals->setPath(filename.c_str());
-                _globals->createVolumePackage();
+                globals_->setVolgPkgPath(filename.c_str());
+                globals_->loadVolPkg();
 
                 // Check for Volume Package Version Number
-                auto version = _globals->getVolPkg()->version();
+                auto version = globals_->volPkg()->version();
                 if (version != VOLPKG_SUPPORTED_VERSION) {
                     std::cerr << "VC::Error: Volume package is version "
                               << version
@@ -151,19 +130,18 @@ void MainWindow::getFilePath()
                             QString::number(VOLPKG_SUPPORTED_VERSION) + ".");
 
                     // Reset Values
-                    _globals->clearVolumePackage();
-                    _globals->setPath("");
+                    globals_->unloadVolPkg();
+                    globals_->setVolgPkgPath("");
                     return;
                 }
 
-                // Gets Segmentations and assigns them to "segmentations" in
-                // Globals
-                _globals->getMySegmentations();
+                // Gets Segmentations and assigns them to Globals
+                globals_->loadSegIDs();
                 // Initialize Segmentations in segmentations_Viewer
-                _segmentations_Viewer->setSegmentations();
+                segViewer_->setSegmentations();
                 // Sets the name of the Volume Package to display on the GUI
-                auto name = _globals->getVolPkg()->name();
-                _segmentations_Viewer->setVol_Package_Name(name.c_str());
+                auto name = globals_->volPkg()->name();
+                segViewer_->setVolPkgLabel(name.c_str());
             } catch (...) {
                 QMessageBox::warning(
                     this, tr("Error Message"), "Error Opening File.");
@@ -179,34 +157,33 @@ void MainWindow::getFilePath()
 void MainWindow::saveTexture()
 {
     // If processing...
-    if (_globals->getStatus() == ThreadStatus::Active) {
+    if (globals_->getStatus() == ThreadStatus::Active) {
         QMessageBox::information(
             this, tr("Error Message"), "Please Wait While Texture Generates.");
         return;
     }
 
     // If A Volume Package is Loaded and there are Segmentations (continue)
-    if (_globals->isVpkgInstantiated() &&
-        _globals->getVolPkg()->hasSegmentations()) {
+    if (globals_->pkgLoaded() && globals_->volPkg()->hasSegmentations()) {
         // Checks to see if there are images
-        if (_globals->getRendering().getTexture().hasImages()) {
+        if (globals_->getRendering().getTexture().hasImages()) {
             try {
                 auto path =
-                    _globals->getActiveSegmentation()->path() / "textured.obj";
+                    globals_->getActiveSegmentation()->path() / "textured.obj";
                 volcart::io::OBJWriter writer;
                 writer.setPath(path.string());
-                writer.setMesh(_globals->getRendering().getMesh());
-                writer.setUVMap(_globals->getRendering().getTexture().uvMap());
+                writer.setMesh(globals_->getRendering().getMesh());
+                writer.setUVMap(globals_->getRendering().getTexture().uvMap());
                 writer.setTexture(
-                    _globals->getRendering().getTexture().image(0));
+                    globals_->getRendering().getTexture().image(0));
                 writer.write();
-                _globals->setThreadStatus(ThreadStatus::Inactive);
+                globals_->setThreadStatus(ThreadStatus::Inactive);
                 QMessageBox::information(
                     this, tr("Error Message"), "Saved Successfully.");
 
             } catch (...) {
                 QMessageBox::warning(
-                    _globals->getWindow(), "Error",
+                    globals_->getWindow(), "Error",
                     "Failed to Save Texture Image Properly!");
             }
 
@@ -224,16 +201,14 @@ void MainWindow::saveTexture()
 void MainWindow::exportTexture()
 {
     // If processing...
-    if (_globals->getStatus() == ThreadStatus::Active) {
+    if (globals_->getStatus() == ThreadStatus::Active) {
         QMessageBox::information(
             this, tr("Error Message"), "Please Wait While Texture Generates.");
         return;
     }
 
-    // Return if no volume package is loaded or if volpkg doesn't have
-    // segmentations
-    if (!_globals->isVpkgInstantiated() ||
-        !_globals->getVolPkg()->hasSegmentations()) {
+    // Return if no vopkg is loaded or if volpkg doesn't have segmentations
+    if (!globals_->pkgLoaded() || !globals_->volPkg()->hasSegmentations()) {
         QMessageBox::warning(
             this, "Error",
             "Volume package not loaded/no segmentations in volume.");
@@ -243,12 +218,11 @@ void MainWindow::exportTexture()
 
     cv::Mat output;
 
-    // Export the generated texture first, otherwise the one already saved to
-    // disk
-    if (_globals->getRendering().getTexture().hasImages()) {
-        output = _globals->getRendering().getTexture().image(0);
+    // Export the new texture first, otherwise the one already saved to disk
+    if (globals_->getRendering().getTexture().hasImages()) {
+        output = globals_->getRendering().getTexture().image(0);
     } else {
-        auto path = _globals->getActiveSegmentation()->path() / "textured.png";
+        auto path = globals_->getActiveSegmentation()->path() / "textured.png";
         output = cv::imread(path.string(), -1);
     }
 
@@ -318,34 +292,34 @@ void MainWindow::exportTexture()
     std::cerr << "vc::export::status: export successful" << std::endl;
 }
 
-void MainWindow::create_Actions()
+void MainWindow::setupActions()
 {
-    actionGetFilePath = new QAction("Open Volume...", this);
-    connect(actionGetFilePath, SIGNAL(triggered()), this, SLOT(getFilePath()));
+    actionGetFilePath_ = new QAction("Open Volume...", this);
+    connect(actionGetFilePath_, SIGNAL(triggered()), this, SLOT(getFilePath()));
 
-    actionSave = new QAction("Save Texture", this);
-    connect(actionSave, SIGNAL(triggered()), this, SLOT(saveTexture()));
+    actionSave_ = new QAction("Save Texture", this);
+    connect(actionSave_, SIGNAL(triggered()), this, SLOT(saveTexture()));
 
-    actionExport = new QAction("Export Texture", this);
-    connect(actionExport, SIGNAL(triggered()), this, SLOT(exportTexture()));
+    actionExport_ = new QAction("Export Texture", this);
+    connect(actionExport_, SIGNAL(triggered()), this, SLOT(exportTexture()));
 }
 
-void MainWindow::create_Menus()
+void MainWindow::setupMenus()
 {
-    fileMenu = new QMenu(tr("&File"), this);
-    _globals->setFileMenu(fileMenu);
+    fileMenu_ = new QMenu(tr("&File"), this);
+    globals_->setFileMenu(fileMenu_);
 
-    fileMenu->addAction(actionGetFilePath);
-    fileMenu->addAction(actionSave);
-    fileMenu->addAction(actionExport);
+    fileMenu_->addAction(actionGetFilePath_);
+    fileMenu_->addAction(actionSave_);
+    fileMenu_->addAction(actionExport_);
 
-    menuBar()->addMenu(fileMenu);
+    menuBar()->addMenu(fileMenu_);
 }
 
 // User cannot exit program while texture is still running.
 void MainWindow::closeEvent(QCloseEvent* closing)
 {
-    if (_globals->getStatus() == ThreadStatus::Active) {
+    if (globals_->getStatus() == ThreadStatus::Active) {
         QMessageBox::warning(
             this, "Error",
             "This application cannot be closed while a texture is being "
@@ -353,7 +327,7 @@ void MainWindow::closeEvent(QCloseEvent* closing)
             "and try again.");
         closing->ignore();
         return;
-    } else if (_globals->getStatus() == ThreadStatus::Successful) {
+    } else if (globals_->getStatus() == ThreadStatus::Successful) {
 
         // Ask User to Save unsaved Data
         QMessageBox msgBox;
@@ -369,16 +343,13 @@ void MainWindow::closeEvent(QCloseEvent* closing)
             case QMessageBox::Save:
                 saveTexture();
                 break;
-
             // Discard was clicked
             case QMessageBox::Discard:
                 break;
-
             // Cancel was clicked
             case QMessageBox::Cancel:
                 closing->ignore();
                 return;
-
             default:
                 break;
         }
@@ -388,9 +359,9 @@ void MainWindow::closeEvent(QCloseEvent* closing)
     closing->accept();
 }
 
-void MainWindow::clearGUI()
+void MainWindow::resetGUI()
 {
-    _globals->clearGUI();
-    _segmentations_Viewer->clearGUI();
+    globals_->resetGUI();
+    segViewer_->clearGUI();
     update();
 }

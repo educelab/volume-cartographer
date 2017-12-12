@@ -1,4 +1,3 @@
-//----------------------------------------------------------------------------------------------------------------------------------------
 // MainWindow.h file for MainWindow Class , (Implements QMainWindow)
 // Purpose: Create a Main Window for the GUI
 // Developer: Michael Royal - mgro224@g.uky.edu
@@ -7,7 +6,6 @@
 
 // Copyright 2015 (Brent Seales: Volume Cartography Research)
 // University of Kentucky VisCenter
-//----------------------------------------------------------------------------------------------------------------------------------------
 
 #pragma once
 
@@ -34,7 +32,7 @@ public:
     // Creates a Constructor for the MainWindow Class that takes in The
     // GlobalValues as a *pointer and SegmentationsViewer as a *pointer so
     // that it can have access to these Objects.
-    MainWindow(GlobalValues* globals);
+    explicit MainWindow(GlobalValues* globals);
 
 public slots:
     void getFilePath();
@@ -42,17 +40,17 @@ public slots:
     void exportTexture();
 
 private:
-    void clearGUI();
-    void create_Actions();
-    void create_Menus();
-    void closeEvent(QCloseEvent* closing);
+    void resetGUI();
+    void setupActions();
+    void setupMenus();
+    void closeEvent(QCloseEvent* closing) override;
 
-    QMenu* fileMenu;
+    QMenu* fileMenu_;
 
-    QAction* actionGetFilePath;
-    QAction* actionSave;
-    QAction* actionExport;
+    QAction* actionGetFilePath_;
+    QAction* actionSave_;
+    QAction* actionExport_;
 
-    GlobalValues* _globals;
-    SegmentationsViewer* _segmentations_Viewer;
+    GlobalValues* globals_;
+    SegmentationsViewer* segViewer_;
 };

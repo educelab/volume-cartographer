@@ -1,4 +1,3 @@
-//---------------------------------------------------------------------------------------------------------------------------------------------
 // GlobalValues.h file for GlobalValues Class
 // Purpose: Used to pass values through the Program, Data that needs to be
 // shared between several Objects should be declared in globals
@@ -8,7 +7,6 @@
 
 // Copyright 2015 (Brent Seales: Volume Cartography Research)
 // University of Kentucky VisCenter
-//---------------------------------------------------------------------------------------------------------------------------------------------
 
 #pragma once
 
@@ -23,7 +21,7 @@
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/texturing/CompositeTexture.hpp"
 
-// Determines the _status of the thread running texturing
+// Determines the status of the thread running texturing
 enum ThreadStatus {
     Inactive,
     Active,
@@ -44,33 +42,33 @@ public:
     int getHeight();
     int getWidth();
 
-    void createVolumePackage();
-    volcart::VolumePkg::Pointer getVolPkg();
+    void setVolgPkgPath(QString p);
+    void loadVolPkg();
+    void unloadVolPkg();
+    bool pkgLoaded();
+    volcart::VolumePkg::Pointer volPkg();
 
-    void setActiveSegmentation(const std::string& id)
+    void setActiveSeg(const std::string& id)
     {
-        activeSeg = vpkg->segmentation(id);
+        activeSeg_ = vpkg_->segmentation(id);
     }
-    volcart::Segmentation::Pointer getActiveSegmentation() { return activeSeg; }
+    volcart::Segmentation::Pointer getActiveSegmentation()
+    {
+        return activeSeg_;
+    }
 
-    void clearVolumePackage();
+    void resetGUI();
 
-    void clearGUI();
-
-    void setPath(QString newPath);
-
-    void getMySegmentations();
-    std::vector<std::string> getSegmentations();
+    void loadSegIDs();
+    std::vector<std::string> getSegIDs();
 
     void setQPixMapImage(QImage image);
     QPixmap getQPixMapImage();
 
-    bool isVpkgInstantiated();
-
     void setWindow(QMainWindow* window);
     QMainWindow* getWindow();
 
-    void setRendering(Rendering rendering);
+    void setRendering(Rendering r);
     void clearRendering();
     Rendering getRendering();
 
@@ -96,22 +94,22 @@ public:
 
 private:
     // The status of the thread running the texturing process
-    ThreadStatus _status;
+    ThreadStatus status_{ThreadStatus::Inactive};
 
-    bool VpkgInstantiated{false};
-    int height;
-    int width;
-    QString path;
-    volcart::VolumePkg::Pointer vpkg;
-    volcart::Segmentation::Pointer activeSeg;
-    std::vector<std::string> segmentations;
-    QPixmap pix;
-    QMainWindow* _window;
-    Rendering _rendering;
-    double _radius;
-    Method _textureMethod;
-    volcart::texturing::CompositeTexture::Filter textureFilter_;
-    int _sampleDirection;
+    int winH_;
+    int winW_;
+    QString vpkgPath_;
+    volcart::VolumePkg::Pointer vpkg_;
+    volcart::Segmentation::Pointer activeSeg_;
+    std::vector<std::string> segIDs_;
+    QPixmap pix_;
+    QMainWindow* window_;
+    Rendering rendering_;
+    double radius_{1};
+    Method textureMethod_{Method::Intersection};
+    volcart::texturing::CompositeTexture::Filter textureFilter_{
+        volcart::texturing::CompositeTexture::Filter::Minimum};
+    int sampleDirection_{0};
 
-    QMenu* _fileMenu;
+    QMenu* fileMenu_;
 };

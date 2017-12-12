@@ -1,4 +1,3 @@
-//----------------------------------------------------------------------------------------------------------------------------------------
 // GlobalValues.cpp file for GlobalValues Class
 // Purpose: Implements GlobalValues Class
 // Developer: Michael Royal - mgro224@g.uky.edu
@@ -7,98 +6,78 @@
 
 // Copyright 2015 (Brent Seales: Volume Cartography Research)
 // University of Kentucky VisCenter
-//----------------------------------------------------------------------------------------------------------------------------------------
 
 #include "GlobalValues.hpp"
 
-GlobalValues::GlobalValues(QRect rec)
-    : _status(ThreadStatus::Inactive)
-    , height(rec.height())
-    , width(rec.width())
-    , _radius(0)
-    , _textureMethod(Method::Intersection)
-    , _sampleDirection(0)
+GlobalValues::GlobalValues(QRect rec) : winH_(rec.height()), winW_(rec.width())
 {
 }
 
-int GlobalValues::getHeight() { return height; }
+int GlobalValues::getHeight() { return winH_; }
 
-int GlobalValues::getWidth() { return width; }
+int GlobalValues::getWidth() { return winW_; }
 
-volcart::VolumePkg::Pointer GlobalValues::getVolPkg() { return vpkg; }
+volcart::VolumePkg::Pointer GlobalValues::volPkg() { return vpkg_; }
 
-void GlobalValues::setPath(QString newPath) { path = newPath; }
+void GlobalValues::setVolgPkgPath(QString p) { vpkgPath_ = std::move(p); }
 
-void GlobalValues::createVolumePackage()
+void GlobalValues::loadVolPkg()
 {
-    // Creates a Volume Package
-    vpkg = volcart::VolumePkg::New(path.toStdString());
-    VpkgInstantiated = true;
+    vpkg_ = volcart::VolumePkg::New(vpkgPath_.toStdString());
 }
 
-void GlobalValues::clearVolumePackage()
+void GlobalValues::unloadVolPkg()
 {
-    vpkg = nullptr;
-    activeSeg = nullptr;
-    VpkgInstantiated = false;
+    vpkg_ = nullptr;
+    activeSeg_ = nullptr;
 }
 
-void GlobalValues::clearGUI()
+bool GlobalValues::pkgLoaded() { return vpkg_ != nullptr; }
+
+void GlobalValues::resetGUI()
 {
-    VpkgInstantiated = false;
-    path.clear();
-    vpkg = nullptr;
-    activeSeg = nullptr;
-    segmentations.clear();
+    vpkgPath_.clear();
+    vpkg_ = nullptr;
+    activeSeg_ = nullptr;
+    segIDs_.clear();
     clearRendering();
-    _radius = 0;
-    _textureMethod = Method::Intersection;
-    _sampleDirection = 0;
-    _status = ThreadStatus::Inactive;
+    radius_ = 0;
+    textureMethod_ = Method::Intersection;
+    sampleDirection_ = 0;
+    status_ = ThreadStatus::Inactive;
 }
 
-void GlobalValues::getMySegmentations()
-{
-    segmentations = vpkg->segmentationIDs();
-}
+void GlobalValues::loadSegIDs() { segIDs_ = vpkg_->segmentationIDs(); }
 
-std::vector<std::string> GlobalValues::getSegmentations()
-{
-    return segmentations;
-}
+std::vector<std::string> GlobalValues::getSegIDs() { return segIDs_; }
 
 void GlobalValues::setQPixMapImage(QImage image)
 {
-    pix = QPixmap::fromImage(image);
+    pix_ = QPixmap::fromImage(image);
 }
 
-QPixmap GlobalValues::getQPixMapImage() { return pix; }
+QPixmap GlobalValues::getQPixMapImage() { return pix_; }
 
-bool GlobalValues::isVpkgInstantiated() { return VpkgInstantiated; }
+void GlobalValues::setWindow(QMainWindow* window) { window_ = window; }
 
-void GlobalValues::setWindow(QMainWindow* window) { _window = window; }
+QMainWindow* GlobalValues::getWindow() { return window_; }
 
-QMainWindow* GlobalValues::getWindow() { return _window; }
+void GlobalValues::setRendering(Rendering r) { rendering_ = std::move(r); }
 
-void GlobalValues::setRendering(Rendering rendering)
-{
-    _rendering = std::move(rendering);
-}
+void GlobalValues::clearRendering() { rendering_ = Rendering(); }
 
-void GlobalValues::clearRendering() { _rendering = Rendering(); }
+Rendering GlobalValues::getRendering() { return rendering_; }
 
-Rendering GlobalValues::getRendering() { return _rendering; }
+void GlobalValues::setRadius(double radius) { radius_ = radius; }
 
-void GlobalValues::setRadius(double radius) { _radius = radius; }
-
-double GlobalValues::getRadius() { return _radius; }
+double GlobalValues::getRadius() { return radius_; }
 
 void GlobalValues::setTextureMethod(GlobalValues::Method textureMethod)
 {
-    _textureMethod = textureMethod;
+    textureMethod_ = textureMethod;
 }
 
-GlobalValues::Method GlobalValues::getTextureMethod() { return _textureMethod; }
+GlobalValues::Method GlobalValues::getTextureMethod() { return textureMethod_; }
 
 void GlobalValues::setFilter(volcart::texturing::CompositeTexture::Filter f)
 {
@@ -112,21 +91,21 @@ volcart::texturing::CompositeTexture::Filter GlobalValues::getFilter()
 
 void GlobalValues::setSampleDirection(int sampleDirection)
 {
-    _sampleDirection = sampleDirection;
+    sampleDirection_ = sampleDirection;
 }
 
-int GlobalValues::getSampleDirection() { return _sampleDirection; }
+int GlobalValues::getSampleDirection() { return sampleDirection_; }
 
-void GlobalValues::setThreadStatus(ThreadStatus status) { _status = status; };
+void GlobalValues::setThreadStatus(ThreadStatus status) { status_ = status; };
 
-ThreadStatus GlobalValues::getStatus() { return _status; }
+ThreadStatus GlobalValues::getStatus() { return status_; }
 
-void GlobalValues::setFileMenu(QMenu* fileMenu) { _fileMenu = fileMenu; }
+void GlobalValues::setFileMenu(QMenu* fileMenu) { fileMenu_ = fileMenu; }
 
 void GlobalValues::enableMenus(bool value)
 {
-    int numElements = _fileMenu->actions().size();
+    int numElements = fileMenu_->actions().size();
     for (int i = 0; i < numElements; i++) {
-        _fileMenu->actions().at(i)->setEnabled(value);
+        fileMenu_->actions().at(i)->setEnabled(value);
     }
 }

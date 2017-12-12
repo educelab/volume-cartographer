@@ -1,4 +1,3 @@
-//----------------------------------------------------------------------------------------------------------------------------------------
 // MyThread.cpp file for MyThread Class , (Implements QThread)
 // Purpose: Run the Texture Functionality behind the scenes so that the GUI
 // operates without interference
@@ -8,7 +7,6 @@
 
 // Copyright 2015 (Brent Seales: Volume Cartography Research)
 // University of Kentucky VisCenter
-//----------------------------------------------------------------------------------------------------------------------------------------
 
 #include <cmath>
 
@@ -65,7 +63,7 @@ void MyThread::run()
         auto mesh = mesher.compute();
 
         // Calculate sampling density
-        auto voxelsize = _globals->getVolPkg()->volume()->voxelSize();
+        auto voxelsize = _globals->volPkg()->volume()->voxelSize();
         auto sa = vc::meshmath::SurfaceArea(mesh) * std::pow(voxelsize, 2) *
                   (0.001 * 0.001);
         double densityFactor = 50;
@@ -114,7 +112,7 @@ void MyThread::run()
         auto method = _globals->getTextureMethod();
         auto direction =
             static_cast<vc::Direction>(_globals->getSampleDirection());
-        auto volume = _globals->getVolPkg()->volume();
+        auto volume = _globals->volPkg()->volume();
 
         // Generate texture image
         vc::Texture texture;
