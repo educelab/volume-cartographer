@@ -38,7 +38,7 @@ Segmentation::Pointer Segmentation::New(
 }
 
 // Save the PointSet to disk
-void Segmentation::setPointSet(const OrderedPointSet<cv::Vec3d>& ps)
+void Segmentation::setPointSet(const PointSet& ps)
 {
     // Set a name into the metadata if we haven't set one already
     if (metadata_.get<std::string>("vcps").empty()) {
@@ -52,7 +52,7 @@ void Segmentation::setPointSet(const OrderedPointSet<cv::Vec3d>& ps)
 }
 
 // Load the PointSet from disk
-OrderedPointSet<cv::Vec3d> Segmentation::getPointSet() const
+Segmentation::PointSet Segmentation::getPointSet() const
 {
     // Make sure there's an associated pointset file
     if (metadata_.get<std::string>("vcps").empty()) {

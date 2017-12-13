@@ -41,6 +41,9 @@ public:
     using BaseClass::BaseClass;
     using BaseClass::data_;
 
+    /** Pointer type */
+    using Pointer = std::shared_ptr<OrderedPointSet<T>>;
+
     /**@{*/
     /** @brief Default constructor */
     explicit OrderedPointSet() = default;

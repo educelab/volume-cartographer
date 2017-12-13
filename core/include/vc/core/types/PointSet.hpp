@@ -43,6 +43,9 @@ public:
     /** Regex for header terminator */
     constexpr static auto HEADER_TERMINATOR_REGEX = "^<>$";
 
+    /** Pointer type */
+    using Pointer = std::shared_ptr<PointSet<T>>;
+
     /**@{*/
     /** @brief Default constructor */
     explicit PointSet() = default;

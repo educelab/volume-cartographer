@@ -22,6 +22,9 @@ namespace volcart
 class Segmentation : public DiskBasedObjectBaseClass
 {
 public:
+    /** Point set type */
+    using PointSet = OrderedPointSet<cv::Vec3d>;
+
     /** Shared pointer type */
     using Pointer = std::shared_ptr<Segmentation>;
 
@@ -52,13 +55,13 @@ public:
      * @warning This will overwrite the PointSet file associated with this
      * Segmentation.
      */
-    void setPointSet(const OrderedPointSet<cv::Vec3d>& ps);
+    void setPointSet(const PointSet& ps);
 
     /**
      * @brief Load the associated PointSet from the Segmentation file
      *
      * PointSet data is never cached in memory and is always loaded from disk.
      */
-    OrderedPointSet<cv::Vec3d> getPointSet() const;
+    PointSet getPointSet() const;
 };
 }
