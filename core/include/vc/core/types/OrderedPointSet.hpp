@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <iostream>
+#include <memory>
 #include <stdexcept>
 
 #include "Exceptions.hpp"
