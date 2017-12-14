@@ -12,6 +12,7 @@ set(io_srcs
 set(shape_srcs
     src/ShapePrimitive.cpp
     src/Sphere.cpp
+    src/Spiral.cpp
 )
 
 set(type_srcs
