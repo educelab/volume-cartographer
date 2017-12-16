@@ -1,4 +1,3 @@
-//----------------------------------------------------------------------------------------------------------------------------------------
 // SegmentationsViewer.h file for SegmentationsViewer Class
 // Purpose: Create header file for SegmentationsViewer Class
 // Developer: Michael Royal - mgro224@g.uky.edu
@@ -7,7 +6,6 @@
 
 // Copyright 2015 (Brent Seales: Volume Cartography Research)
 // University of Kentucky VisCenter
-//----------------------------------------------------------------------------------------------------------------------------------------
 
 #pragma once
 
@@ -31,9 +29,7 @@
 
 class SegmentationsViewer : QObject
 {
-    // NOTICE THIS MACRO
     Q_OBJECT
-    //
 
 public:
     SegmentationsViewer(GlobalValues* globals, TextureViewer* texture_Viewer);
@@ -41,30 +37,34 @@ public:
     void clearGUI();
     void setSegmentations();
     bool loadImage(cv::Mat texture);
-    void setVol_Package_Name(QString name);
+    void setVolPkgLabel(QString name);
 
 public slots:
-    void itemClickedSlot();
-    void generateTextureImage();
+    void itemClicked();
+    void generateTexture();
     void setEnabled(bool value);
 
 private:
-    MyThread* processing;
-    GlobalValues* _globals;
-    TextureViewer* _texture_Viewer;
+    MyThread* procThread_;
+    GlobalValues* globals_;
+    TextureViewer* textureViewer_;
 
-    QVBoxLayout* panels;
-    QLabel* volume_Package;
-    QListWidget* segmentations;
-    QString currentSegmentation;
-    QLabel* parameters;
-    QSpinBox* radius;
-    QComboBox* texture_Method;
-    QComboBox* sample_Direction;
-    QPushButton* generate;
-    QFormLayout* inputs;
-    QVBoxLayout* user_input;
-    QImage newImage;
+    QVBoxLayout* panels_;
+    QLabel* volPkgLabel_;
+    QListWidget* segList_;
+    QString activeSegID_;
 
-    int currentHighlightedIndex;
+    QLabel* paramsLabel_;
+    QSpinBox* radiusSelect_;
+    QComboBox* methodSelect_;
+    QComboBox* filterSelect_;
+    QComboBox* directionSelect_;
+
+    QPushButton* startGen_;
+    QFormLayout* paramsContainer_;
+    QVBoxLayout* paramsSubcontainer_;
+
+    QImage displayImage_;
+
+    int activeSegIndex_;
 };

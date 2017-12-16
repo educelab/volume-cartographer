@@ -171,7 +171,7 @@ void CVolumeViewer::OnImageIndexEditTextChanged(void)
     emit SendSignalOnLoadAnyImage(fImageIndexEdit->GetImageIndex());
 }
 
-// Update the _status of the buttons
+// Update the status of the buttons
 void CVolumeViewer::UpdateButtons(void)
 {
     fZoomInBtn->setEnabled(fImgQImage != nullptr && fScaleFactor < 3.0);

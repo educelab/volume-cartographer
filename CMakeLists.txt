@@ -1,6 +1,14 @@
 cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
-project(VC VERSION 2.15.1)
+set(VC_VERSION 2.16.0)
+
+option(VC_VERSION_DATESTAMP "Append date stamp to version number" off)
+if(VC_VERSION_DATESTAMP)
+string(TIMESTAMP VC_VERSION_TWEAK "%Y%m%d")
+set(VC_VERSION ${VC_VERSION}.${VC_VERSION_TWEAK})
+endif()
+
+project(VC VERSION ${VC_VERSION})
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
@@ -17,12 +25,15 @@ option(VC_BUILD_UTILS    "Compile VC utility programs" on)
 option(VC_BUILD_EXAMPLES "Compile VC example programs" on)
 option(VC_BUILD_TESTS    "Compile VC test programs"    on)
 option(VC_BUILD_DOC      "Compile VC documentation"    off)
+option(VC_BUILD_PYTHON_BINDINGS "Build Python bindings." off)
 
-# Choose what to install
+# Choose what to install into a CPack package
+# Annoyingly, CMake doesn't let you pick components installed by `make install`
 option(VC_INSTALL_APPS      "Install VC core programs"    on)
+option(VC_INSTALL_LIBS      "Install VC libraries"        on)
 option(VC_INSTALL_UTILS     "Install VC utility programs" on)
-option(VC_INSTALL_EXAMPLES  "Install VC example programs" off)
 option(VC_INSTALL_DOC       "Install VC documentation"    off)
+option(VC_INSTALL_PYTHON_BINDINGS "Install Python bindings." off)
 
 # Look for external dependencies.
 include(VCFindDependencies)
@@ -75,6 +86,10 @@ endif()
 ## VC Documentation
 if (VC_BUILD_DOC)
     add_subdirectory(doc)
+endif()
+
+if(VC_BUILD_PYTHON_BINDINGS)
+    add_subdirectory(python)
 endif()
 
 # Install to system directories

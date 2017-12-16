@@ -1,4 +1,4 @@
-project(libvc_segmentation VERSION 0.1 LANGUAGES CXX)
+project(libvc_segmentation VERSION ${VC_VERSION} LANGUAGES CXX)
 set(module "segmentation")
 set(target "vc_${module}")
 
@@ -38,9 +38,11 @@ set_target_properties(${target} PROPERTIES
     EXPORT_NAME "${module}"
 )
 
+if(VC_INSTALL_LIBS)
 install(
     TARGETS ${target}
     EXPORT ${targets_export_name}
+    COMPONENT "Libraries"
     ARCHIVE DESTINATION "lib"
     LIBRARY DESTINATION "lib"
     RUNTIME DESTINATION "bin"
@@ -49,8 +51,10 @@ install(
 install(
     DIRECTORY "${include_install_dir}/${module}"
     DESTINATION "${include_install_dir}"
+    COMPONENT "Libraries"
     FILES_MATCHING REGEX ".*\.(h|hpp)$"
 )
+endif()
 
 ### Testing ###
 if(VC_BUILD_TESTS)

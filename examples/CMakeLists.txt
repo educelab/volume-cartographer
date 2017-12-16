@@ -106,3 +106,6 @@ target_link_libraries(vc_scale_gen_example VC::core)
 
 add_executable(vc_stps_example src/STPSExample.cpp)
 target_link_libraries(vc_stps_example VC::core VC::meshing VC::segmentation)
+
+add_executable(vc_spiral_example src/SpiralGenerator.cpp)
+target_link_libraries(vc_spiral_example VC::core)

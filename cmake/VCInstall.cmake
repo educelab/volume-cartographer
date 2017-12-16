@@ -1,5 +1,6 @@
 # Mostly taken from github:forexample/package-example
 
+if(VC_INSTALL_LIBS)
 # Generated files directory (usually build/bin/generated)
 set(gen_dir "${CMAKE_CURRENT_BINARY_DIR}/generated")
 
@@ -25,6 +26,7 @@ configure_package_config_file(
 install(
     FILES "${project_config}" "${version_config}"
     DESTINATION "${config_install_dir}"
+    COMPONENT Libraries
 )
 
 # Install exported targets file
@@ -32,28 +34,36 @@ install(
     EXPORT "${targets_export_name}"
     NAMESPACE "${namespace}"
     DESTINATION "${config_install_dir}"
+    COMPONENT Libraries
 )
+endif()
 
-# Install resources (e.g. README, LICENSE, etc.)
+# What components to install
+unset(install_components)
+if(VC_INSTALL_APPS)
+    set(install_components ${install_components} Programs)
+endif()
+if(VC_INSTALL_LIBS)
+    set(install_components ${install_components} Libraries)
+endif()
+if(VC_INSTALL_UTILS)
+    set(install_components ${install_components} Utilities)
+endif()
+if(VC_INSTALL_EXAMPLES)
+    set(install_components ${install_components} Examples)
+endif()
+if(VC_INSTALL_DOC)
+    set(install_components ${install_components} Documentation)
+endif()
+
+# Install resources (e.g. README, LICENSE, etc.) if anything else is
+# getting installed
+if(install_components)
 install(
   FILES "doc/VC-Workflow.txt" "LICENSE"
   DESTINATION "${share_install_dir}"
-  COMPONENT "Resources"
+  COMPONENT Resources
 )
-
-# What components to install
-set(install_components "")
-if(VC_INSTALL_APPS)
-    list(APPEND install_components "Programs")
-endif()
-if(VC_INSTALL_UTILS)
-    list(APPEND install_components "Utilities")
-endif()
-if(VC_INSTALL_EXAMPLES)
-    list(APPEND install_components "Examples")
-endif()
-if(VC_INSTALL_DOC)
-    list(APPEND install_components "Documentation")
 endif()
 
 # Configure Cpack

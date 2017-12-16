@@ -91,8 +91,7 @@ ClothModelingUVMapping::ClothModelingUVMapping(
     world_->addRigidBody(collisionPlane_);
 
     // Convert mesh to a softbody
-    volcart::meshing::ITK2Bullet::ITK2Bullet(
-        mesh_, world_->getWorldInfo(), &softBody_);
+    volcart::meshing::ITK2Bullet(mesh_, world_->getWorldInfo(), &softBody_);
 
     // Scale the mesh so that max dimension <= 80m
     // Note: Assumes max is a positive coordinate. Not sure what this will do
@@ -199,7 +198,7 @@ volcart::ITKMesh::Pointer ClothModelingUVMapping::getMesh()
 {
     auto output = volcart::ITKMesh::New();
     volcart::meshing::DeepCopy(mesh_, output);
-    volcart::meshing::Bullet2ITK::Bullet2ITK(softBody_, output);
+    volcart::meshing::Bullet2ITK(softBody_, output);
     return output;
 }
 

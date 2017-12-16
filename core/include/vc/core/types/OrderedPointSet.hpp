@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <iostream>
+#include <memory>
 #include <stdexcept>
 
 #include "Exceptions.hpp"
@@ -40,6 +41,9 @@ public:
     using BaseClass = PointSet<T>;
     using BaseClass::BaseClass;
     using BaseClass::data_;
+
+    /** Pointer type */
+    using Pointer = std::shared_ptr<OrderedPointSet<T>>;
 
     /**@{*/
     /** @brief Default constructor */

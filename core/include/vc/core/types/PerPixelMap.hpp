@@ -46,7 +46,7 @@ class PerPixelMap
 public:
     /**@{*/
     /** @brief Default constructor */
-    PerPixelMap() : height_{0}, width_{0} {}
+    PerPixelMap() = default;
 
     /** @brief Constructor with width and height parameters */
     PerPixelMap(size_t height, size_t width) : height_{height}, width_{width}
@@ -73,12 +73,17 @@ public:
     /** @copydoc operator()() */
     cv::Vec6d& operator()(size_t y, size_t x) { return map_(y, x); }
 
-    /** @brief Return whether there is a mapping for the pixel at x,y
+    /**
+     * @brief Return whether there is a mapping for the pixel at x, y
      *
-     * Assumes that the pixel mask has been set by setMask().
+     * Returns `true` is the pixel mask has not been set or is empty
      */
     bool hasMapping(size_t y, size_t x)
     {
+        if (mask_.empty()) {
+            return true;
+        }
+
         return mask_.at<uint8_t>(y, x) == 255;
     }
     /**@}*/
@@ -112,7 +117,8 @@ public:
     /**@}*/
 
     /**@{*/
-    /** @brief Get the UVMap
+    /**
+     * @brief Get the UVMap
      *
      * Generally the UVMap from which this PPM was generated.
      */
@@ -121,7 +127,8 @@ public:
     /** @copydoc uvMap() const */
     UVMap& uvMap() { return uvMap_; }
 
-    /** @brief Set the UVMap
+    /**
+     * @brief Set the UVMap
      *
      * Useful for keeping a copy of the the UVMap that generated this PPM.
      */
@@ -130,10 +137,11 @@ public:
     /** @brief Get the pixel mask */
     const cv::Mat mask() const { return mask_; }
 
-    /** @brief Get a unique copy of the pixel mask */
-    cv::Mat maskCopy() const { return mask_.clone(); }
-
-    /** @brief Set the pixel mask
+    /**
+     * @brief Set the pixel mask
+     *
+     * If the pixel mask is not set or is empty, every pixel is assumed to have
+     * a mapping.
      *
      * Not every pixel in the PerPixelMap will have a mapped value. The pixel
      * mask is an 8bpc, single channel image that indicates which pixels do and
@@ -151,16 +159,17 @@ public:
     /**@}*/
 
 private:
-    /** Initialize the map for value assignment
+    /**
+     * Initialize the map for value assignment
      *
      * Does nothing if either the height or width are 0.
      */
     void initialize_map_();
 
     /** Height of the map */
-    size_t height_;
+    size_t height_{0};
     /** Width of the map */
-    size_t width_;
+    size_t width_{0};
     /** Map data storage */
     volcart::OrderedPointSet<cv::Vec6d> map_;
 
@@ -172,6 +181,6 @@ private:
     cv::Mat mask_;
 
     /** UVMap used to generate this map */
-    UVMap uvMap_;
+    UVMap uvMap_{};
 };
 }  // namespace volcart
