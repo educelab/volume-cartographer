@@ -1,24 +1,61 @@
 Volume Cartographer Changelog
 =============================
+v2.16.0
+-------
+This release holds an exciting addition for our Tensorflow efforts: Python
+bindings for some of the essential classes in the Core library! Besides being
+able to load Volume Packages, we think using the arbitrary reslice and subvolume
+extraction features of the Volume class will be particularly useful for machine
+learning on volumetric datasets. The bindings use the excellent
+[pybind11](https://github.com/pybind/pybind11) library, which made coding up
+the interface way easier than we thought it would be. Expanding the bindings
+to all classes and all project libraries is planned, but probably won't be
+explored extensively until after the 3.0 release.
+
+This release also (finally) includes proper component installation via CMake.
+You can find precompiled static libraries for macOS in this release's DMG.
+
+- all
+    - Proper component installation via CMake (!189)
+    - (CI) Start doing weekly pre-release builds. Adds the CMake flag
+    `VC_VERSION_DATESTAMP`, which appends the configure time and date to the
+    project version number (43acbe10, b0370b05)
+    - Fix some of the weirdness around warnings with different compilers
+    (1bdb9a07)
+- apps
+    - (VC-Texture) Add support for Intersection and Integral texturing (!190)
+    - (VC-Texture) Fix a bug where attempting to texture a segmentation with
+    only a single row of points resulted in an endless "processing" loop. (!190)
+    - (VC-Texture) Majorly cleanup this app, because I couldn't stand the
+    clutter... (!190)
+- core
+    - __New:__ Python bindings for some of the essential classes. These can be
+    built by enabling the `VC_BUILD_PYTHON_BINDINGS` CMake flag. If
+    `VC_INSTALL_PYTHON_BINDINGS` is enabled, a PyPI egg will be installed to your
+    current Python environment. See the
+    [pybind11 documentation](http://pybind11.readthedocs.io/en/stable/compiling.html#configuration-variables)
+    to control the version of Python for which the bindings are built. (!188)
+    - __New:__ Spiral shape generator! It looks like a scroll! Hooray! (!191)
+
 v2.15.1
 -------
 Patch release. Fixed vc-deps dependency issues. Sets up weekly dev build.
 
 v2.15.0
 -------
-This is a very small release in order to keep momentum going on the monthly 
+This is a very small release in order to keep momentum going on the monthly
 releases. The only major change is the addition of better UV map reorientation.
 
 - all
-    - (OSX) Fix compiler warnings with the High Sierra-era command line tools 
+    - (OSX) Fix compiler warnings with the High Sierra-era command line tools
     (!184)
     - Update `vc-deps` submodule to the most recent version (ace27a06)
 - texturing
-    - Add UV reorientation so that the dimensions are appropriately aligned 
+    - Add UV reorientation so that the dimensions are appropriately aligned
       along the vertical axis of the UV space (!173)
-    - __New:__ Add FlatteningAlgorithmBaseClass for parameterization algorithms 
+    - __New:__ Add FlatteningAlgorithmBaseClass for parameterization algorithms
       (!173)
-    - Fixed exception where failure to compute ABF inversion should have fallen 
+    - Fixed exception where failure to compute ABF inversion should have fallen
       back to LSCM (!184)
 
 v2.14.2
