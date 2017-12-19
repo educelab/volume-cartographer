@@ -67,6 +67,7 @@ target_link_libraries(vc_generate_ppm
 add_executable(vc_layers_from_ppm src/LayerFromPPM.cpp)
 target_link_libraries(vc_layers_from_ppm
     VC::core
+    VC::external
     VC::texturing
     Boost::filesystem
 )
