@@ -58,7 +58,7 @@ PerPixelMap PerPixelMap::ReadPPM(const fs::path& path)
     ppm.height_ = ppm.map_.height();
     ppm.width_ = ppm.map_.width();
 
-    ppm.mask_ = cv::imread(MaskPath(path).string());
+    ppm.mask_ = cv::imread(MaskPath(path).string(), cv::IMREAD_GRAYSCALE);
     if (ppm.mask_.empty()) {
         std::cerr << "Warning: Failed to read mask! " + MaskPath(path).string()
                   << "\n";
