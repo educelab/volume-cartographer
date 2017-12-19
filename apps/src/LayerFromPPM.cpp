@@ -7,6 +7,7 @@
 
 #include "vc/core/types/PerPixelMap.hpp"
 #include "vc/core/types/VolumePkg.hpp"
+#include "vc/external/GetMemorySize.hpp"
 #include "vc/texturing/LayerTexture.hpp"
 
 namespace vc = volcart;
@@ -30,6 +31,9 @@ int main(int argc, char* argv[])
 
     // Load volpkg
     vc::VolumePkg vpkg(vpkgPath);
+    auto volume = vpkg.volume();
+    double cacheBytes = 0.75 * SystemMemorySize();
+    volume->setCacheMemoryInBytes(static_cast<size_t>(cacheBytes));
 
     // Load ppm
     std::cout << "Loading per-pixel map..." << std::endl;
