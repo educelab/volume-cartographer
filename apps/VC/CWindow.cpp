@@ -161,9 +161,28 @@ void CWindow::CreateWidgets(void)
     QPushButton* aBtnNewPath = this->findChild<QPushButton*>("btnNewPath");
     QPushButton* aBtnRemovePath =
         this->findChild<QPushButton*>("btnRemovePath");
-    aBtnRemovePath->setEnabled(
-        false);  // Currently no methods from removing paths
+    aBtnRemovePath->setEnabled(false);
     connect(aBtnNewPath, SIGNAL(clicked()), this, SLOT(OnNewPathClicked()));
+
+    volSelect = this->findChild<QComboBox*>("volSelect");
+    connect(
+        volSelect, &QComboBox::currentTextChanged, [this](const QString& text) {
+            auto newVolume = fVpkg->volume(text.toStdString());
+            if (newVolume == nullptr) {
+                QMessageBox::warning(this, "Error", "Could not load volume.");
+                return;
+            }
+            currentVolume = newVolume;
+            OnLoadAnySlice(0);
+        });
+
+    assignVol = this->findChild<QPushButton*>("assignVol");
+    connect(assignVol, &QPushButton::clicked, [this](bool) {
+        if (fSegmentation == nullptr || fSegmentation->hasVolumeID())
+            return;
+        fSegmentation->setVolumeID(currentVolume->id());
+        UpdateView();
+    });
 
     // pen tool and edit tool
     fPenTool = this->findChild<QPushButton*>("btnPenTool");
@@ -342,7 +361,7 @@ void CWindow::UpdateView(void)
     if (fVpkg == nullptr) {
         setWidgetsEnabled(false);  // Disable Widgets for User
         this->findChild<QLabel*>("lblVpkgName")
-            ->setText("No Volume Package Loaded");
+            ->setText("[ No Volume Package Loaded ]");
         return;
     }
 
@@ -364,9 +383,8 @@ void CWindow::UpdateView(void)
     fEdtWindowWidth->setText(QString("%1").arg(fSegParams.fWindowWidth));
     fEdtStartIndex->setText(QString("%1").arg(fPathOnSliceIndex));
 
-    if (fPathOnSliceIndex + fEndTargetOffset >= fVpkg->volume()->numSlices()) {
-        fEdtEndIndex->setText(
-            QString::number(fVpkg->volume()->numSlices() - 1));
+    if (fPathOnSliceIndex + fEndTargetOffset >= currentVolume->numSlices()) {
+        fEdtEndIndex->setText(QString::number(currentVolume->numSlices() - 1));
     } else {
         fEdtEndIndex->setText(
             QString::number(fPathOnSliceIndex + fEndTargetOffset));
@@ -374,6 +392,9 @@ void CWindow::UpdateView(void)
 
     fSegTool->setEnabled(fIntersectionCurve.GetPointsNum() > 0);
     fPenTool->setEnabled(!fSegmentationId.empty() && fMasterCloud.empty());
+
+    volSelect->setEnabled(can_change_volume_());
+    assignVol->setEnabled(can_change_volume_());
 
     // REVISIT - these two states should be mutually exclusive, we guarantee
     // this when we toggle the button, BUGGY!
@@ -391,16 +412,12 @@ void CWindow::UpdateView(void)
         fVolumeViewerWidget->SetViewState(
             CVolumeViewerWithCurve::EViewState::ViewStateEdit);
         this->findChild<QGroupBox*>("grpVolManager")->setEnabled(false);
-        this->findChild<QGroupBox*>("grpSeg")->setEnabled(
-            true);  // segmentation can be done only when seg tool is selected
+        this->findChild<QGroupBox*>("grpSeg")->setEnabled(true);
     } else {
         // something else
     }
 
-    fEdtStartIndex->setEnabled(
-        false);  // starting slice is always the current slice
-    // fEdtSampleDist->setEnabled( false ); // currently we cannot let the user
-    // change the sample distance
+    fEdtStartIndex->setEnabled(false);
 
     fVolumeViewerWidget->UpdateView();
 
@@ -424,6 +441,12 @@ void CWindow::ChangePathItem(std::string segID)
         fMasterCloud = fSegmentation->getPointSet();
     } else {
         fMasterCloud.reset();
+    }
+
+    if (fSegmentation->hasVolumeID()) {
+        currentVolume = fVpkg->volume(fSegmentation->getVolumeID());
+        volSelect->setCurrentText(
+            QString::fromStdString(fSegmentation->getVolumeID()));
     }
 
     SetUpCurves();
@@ -486,7 +509,7 @@ void CWindow::DoSegmentation(void)
     // 2) do segmentation from the starting slice
     volcart::segmentation::LocalResliceSegmentation segmenter;
     segmenter.setChain(fStartingPath);
-    segmenter.setVolume(fVpkg->volume());
+    segmenter.setVolume(currentVolume);
     segmenter.setMaterialThickness(fVpkg->materialThickness());
     segmenter.setTargetZIndex(fSegParams.targetIndex);
     segmenter.setOptimizationIterations(fSegParams.fNumIters);
@@ -576,7 +599,7 @@ bool CWindow::SetUpSegParams(void)
     // ending slice index
     aNewVal = fEdtEndIndex->text().toInt(&aIsOk);
     if (aIsOk && aNewVal >= fPathOnSliceIndex &&
-        aNewVal < fVpkg->volume()->numSlices()) {
+        aNewVal < currentVolume->numSlices()) {
         fSegParams.targetIndex = aNewVal;
     } else {
         return false;
@@ -639,7 +662,7 @@ void CWindow::OpenSlice(void)
 {
     cv::Mat aImgMat;
     if (fVpkg != nullptr) {
-        aImgMat = fVpkg->volume()->getSliceDataCopy(fPathOnSliceIndex);
+        aImgMat = currentVolume->getSliceDataCopy(fPathOnSliceIndex);
         aImgMat.convertTo(aImgMat, CV_8UC3, 1.0 / 256.0);
         cvtColor(aImgMat, aImgMat, cv::COLOR_GRAY2BGR);
     } else
@@ -730,8 +753,13 @@ void CWindow::OpenVolume(void)
 
     fVpkgPath = aVpkgPath;
     fPathOnSliceIndex = 0;
+    currentVolume = fVpkg->volume();
+    volSelect->clear();
+    for (const auto& id : fVpkg->volumeIDs()) {
+        volSelect->addItem(QString::fromStdString(id));
+    }
     fSegParams.fWindowWidth = static_cast<int>(
-        std::ceil(fVpkg->materialThickness() / fVpkg->volume()->voxelSize()));
+        std::ceil(fVpkg->materialThickness() / currentVolume->voxelSize()));
 }
 
 void CWindow::CloseVolume(void)
@@ -739,6 +767,7 @@ void CWindow::CloseVolume(void)
     fVpkg = nullptr;
     fSegmentationId = "";
     fSegmentation = nullptr;
+    currentVolume = nullptr;
     fWindowState = EWindowState::WindowStateIdle;  // Set Window State to Idle
     fPenTool->setChecked(false);                   // Reset PenTool Button
     fSegTool->setChecked(false);                   // Reset Segmentation Button
@@ -796,6 +825,7 @@ void CWindow::SavePointCloud(void)
     // Try to save cloud to volpkg
     try {
         fSegmentation->setPointSet(fMasterCloud);
+        fSegmentation->setVolumeID(currentVolume->id());
     } catch (std::exception& e) {
         QMessageBox::warning(
             this, "Error", "Failed to write cloud to volume package.");
@@ -1030,7 +1060,7 @@ void CWindow::OnEdtEndingSliceValChange()
     bool aIsOk = false;
     int aNewVal = fEdtEndIndex->displayText().toInt(&aIsOk);
     if (aIsOk && aNewVal > fPathOnSliceIndex &&
-        aNewVal < fVpkg->volume()->numSlices()) {
+        aNewVal < currentVolume->numSlices()) {
         fEndTargetOffset = aNewVal - fPathOnSliceIndex;
     } else {
         statusBar->showMessage(
@@ -1058,7 +1088,7 @@ void CWindow::OnEdtImpactRange(int nImpactRange)
 // Handle loading any slice
 void CWindow::OnLoadAnySlice(int nSliceIndex)
 {
-    if (nSliceIndex >= 0 && nSliceIndex < fVpkg->volume()->numSlices()) {
+    if (nSliceIndex >= 0 && nSliceIndex < currentVolume->numSlices()) {
         fPathOnSliceIndex = nSliceIndex;
         OpenSlice();
         SetCurrentCurve(fPathOnSliceIndex);
@@ -1072,8 +1102,8 @@ void CWindow::OnLoadAnySlice(int nSliceIndex)
 void CWindow::OnLoadNextSlice(void)
 {
     int shift = (qga::keyboardModifiers() == Qt::ShiftModifier) ? 10 : 1;
-    if (fPathOnSliceIndex + shift >= fVpkg->volume()->numSlices()) {
-        shift = fVpkg->volume()->numSlices() - fPathOnSliceIndex - 1;
+    if (fPathOnSliceIndex + shift >= currentVolume->numSlices()) {
+        shift = currentVolume->numSlices() - fPathOnSliceIndex - 1;
     }
 
     if (shift != 0) {
@@ -1119,4 +1149,11 @@ void CWindow::OnPathChanged(void)
             fStartingPath.push_back(tempPt);
         }
     }
+}
+
+bool CWindow::can_change_volume_()
+{
+    return fVpkg != nullptr && fVpkg->numberOfVolumes() > 1 &&
+           (fSegmentation == nullptr || !fSegmentation->hasPointSet() ||
+            !fSegmentation->hasVolumeID());
 }

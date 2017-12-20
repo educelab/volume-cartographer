@@ -4,6 +4,7 @@
 
 #include "vc/core/types/DiskBasedObjectBaseClass.hpp"
 #include "vc/core/types/OrderedPointSet.hpp"
+#include "vc/core/types/Volume.hpp"
 
 namespace volcart
 {
@@ -16,6 +17,10 @@ namespace volcart
  *
  * Provides access to Segmentation information stored on disk, usually inside of
  * a VolumePkg.
+ *
+ * A Segmentation is generated within the coordinate frame of a Volume. Use the
+ * `[has\|get\|set]VolumeID()` methods to retrieve the ID of the Volume with
+ * which the Segmentation is associated.
  *
  * @ingroup Types
  */
@@ -63,5 +68,24 @@ public:
      * PointSet data is never cached in memory and is always loaded from disk.
      */
     PointSet getPointSet() const;
+
+    /** @brief Return whether this Segmentation is associated with a Volume */
+    bool hasVolumeID() const
+    {
+        return metadata_.hasKey("volume") && !getVolumeID().empty();
+    }
+
+    /** @brief Get the ID of the Volume associated with this Segmentation */
+    Volume::Identifier getVolumeID() const
+    {
+        return metadata_.get<Volume::Identifier>("volume");
+    }
+
+    /** @brief Set the ID of the Volume associated with this Segmentation */
+    void setVolumeID(const Volume::Identifier& id)
+    {
+        metadata_.set<std::string>("volume", id);
+        metadata_.save();
+    }
 };
 }

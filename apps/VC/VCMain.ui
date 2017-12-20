@@ -106,7 +106,7 @@
          </size>
         </property>
         <property name="title">
-         <string>Volume</string>
+         <string>Volume Package</string>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_3">
          <item>
@@ -157,6 +157,24 @@
             </widget>
            </item>
           </layout>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_5">
+           <property name="text">
+            <string>Volume</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+            <widget class="QComboBox" name="volSelect">
+            </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="assignVol">
+           <property name="text">
+            <string>Assign Segmentation to Volume</string>
+           </property>
+          </widget>
          </item>
         </layout>
        </widget>

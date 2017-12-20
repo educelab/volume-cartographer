@@ -30,12 +30,6 @@ namespace vc = volcart;
 
 // Volpkg version required by this app
 static constexpr int VOLPKG_SUPPORTED_VERSION = 5;
-// Number of vertices per square millimeter
-static constexpr double SAMPLING_DENSITY_FACTOR = 50;
-// Square Micron to square millimeter conversion factor
-static constexpr double UM_TO_MM = 0.001 * 0.001;
-// Min. number of points required to do flattening
-static constexpr uint16_t CLEANER_MIN_REQ_POINTS = 100;
 
 enum class Method { Composite = 0, Intersection, Integral };
 

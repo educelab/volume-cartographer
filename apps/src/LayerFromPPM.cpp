@@ -17,7 +17,8 @@ int main(int argc, char* argv[])
 {
     if (argc < 6) {
         std::cout << "Usage: " << argv[0];
-        std::cout << " [volpkg] [input.ppm] [radius] [interval] [output-dir]"
+        std::cout << " [volpkg] [input.ppm] [radius] [interval] [volume id] "
+                     "[output-dir]"
                   << std::endl;
         return EXIT_FAILURE;
     }
@@ -27,11 +28,12 @@ int main(int argc, char* argv[])
     fs::path ppmPath = argv[2];
     auto radius = std::stoi(argv[3]);
     auto interval = std::stod(argv[4]);
-    fs::path outputDir = argv[5];
+    vc::Volume::Identifier volID = argv[5];
+    fs::path outputDir = argv[6];
 
     // Load volpkg
     vc::VolumePkg vpkg(vpkgPath);
-    auto volume = vpkg.volume();
+    auto volume = vpkg.volume(volID);
     double cacheBytes = 0.75 * SystemMemorySize();
     volume->setCacheMemoryInBytes(static_cast<size_t>(cacheBytes));
 
@@ -42,7 +44,7 @@ int main(int argc, char* argv[])
     // Layer texture
     std::cout << "Generating layers..." << std::endl;
     vc::texturing::LayerTexture s;
-    s.setVolume(vpkg.volume());
+    s.setVolume(volume);
     s.setPerPixelMap(ppm);
     s.setSamplingRadius(radius);
     s.setSamplingInterval(interval);
