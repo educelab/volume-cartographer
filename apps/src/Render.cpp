@@ -1,5 +1,4 @@
 // render.cpp
-// Abigail Coleman Feb. 2015
 
 #include <fstream>
 #include <iostream>
@@ -54,7 +53,8 @@ int main(int argc, char* argv[])
                 "  1 = Intersection\n"
                 "  2 = Integral")
         ("volume", po::value<std::string>(),
-            "Volume to use for texturing. Default: First volume.")
+            "Volume to use for texturing. Default: Segmentation's associated "
+            "volume or the first volume in the volume package.")
         ("output-file,o", po::value<std::string>(),
             "Output file path. If not specified, the file will be saved to the "
             "volume package.")
@@ -135,10 +135,16 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
+    ///// Load the segmentation /////
+    auto seg = vpkg.segmentation(segID);
+
     ///// Load the Volume /////
     vc::Volume::Pointer volume;
     if (parsed.count("volume")) {
         volume = vpkg.volume(parsed["volume"].as<std::string>());
+    }
+    if (seg->hasVolumeID()) {
+        volume = vpkg.volume(seg->getVolumeID());
     } else {
         volume = vpkg.volume();
     }
@@ -162,9 +168,7 @@ int main(int argc, char* argv[])
     auto weight = static_cast<vc::texturing::IntegralTexture::Weight>(
         parsed["weight"].as<int>());
 
-    ///// Load and resample the segmentation /////
-    auto seg = vpkg.segmentation(segID);
-
+    ///// Resample the segmentation /////
     // Mesh the point cloud
     vc::meshing::OrderedPointSetMesher mesher;
     mesher.setPointSet(seg->getPointSet());

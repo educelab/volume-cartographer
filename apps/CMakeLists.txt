@@ -79,6 +79,7 @@ target_link_libraries(vc_layers_from_ppm
     VC::external
     VC::texturing
     Boost::filesystem
+    Boost::program_options
 )
 
 ## Metadata Editor ##
