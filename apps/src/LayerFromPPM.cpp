@@ -125,6 +125,7 @@ int main(int argc, char* argv[])
     s.setPerPixelMap(ppm);
     s.setSamplingRadius(radius);
     s.setSamplingInterval(interval);
+    s.setSamplingDirection(direction);
     auto texture = s.compute();
 
     std::cout << "Writing layers..." << std::endl;
