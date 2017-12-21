@@ -1,4 +1,5 @@
 // render.cpp
+// Abigail Coleman Feb. 2015
 
 #include <fstream>
 #include <iostream>
@@ -29,12 +30,6 @@ namespace vc = volcart;
 
 // Volpkg version required by this app
 static constexpr int VOLPKG_SUPPORTED_VERSION = 5;
-// Number of vertices per square millimeter
-static constexpr double SAMPLING_DENSITY_FACTOR = 50;
-// Square Micron to square millimeter conversion factor
-static constexpr double UM_TO_MM = 0.001 * 0.001;
-// Min. number of points required to do flattening
-static constexpr uint16_t CLEANER_MIN_REQ_POINTS = 100;
 
 enum class Method { Composite = 0, Intersection, Integral };
 
@@ -46,20 +41,16 @@ int main(int argc, char* argv[])
     required.add_options()
         ("help,h", "Show this message")
         ("volpkg,v", po::value<std::string>()->required(), "VolumePkg path")
-        ("seg,s", po::value<std::string>()->required(), "Segmentation ID")
+        ("ppm,p", po::value<std::string>()->required(), "Input PPM file")
         ("method,m", po::value<int>()->default_value(0),
             "Texturing method: \n"
                 "  0 = Composite\n"
                 "  1 = Intersection\n"
                 "  2 = Integral")
         ("volume", po::value<std::string>(),
-            "Volume to use for texturing. Default: Segmentation's associated "
-            "volume or the first volume in the volume package.")
-        ("output-file,o", po::value<std::string>(),
-            "Output file path. If not specified, the file will be saved to the "
-            "volume package.")
-        ("output-ppm", po::value<std::string>(),
-            "Output file path for the generated PPM.");
+            "Volume to use for texturing. Default: First volume.")
+        ("output-file,o", po::value<std::string>()->required(),
+            "Output image file path.");
 
     po::options_description filterOptions("Generic Filtering Options");
     filterOptions.add_options()
@@ -115,16 +106,9 @@ int main(int argc, char* argv[])
 
     // Get the parsed options
     fs::path volpkgPath = parsed["volpkg"].as<std::string>();
-    auto segID = parsed["seg"].as<std::string>();
+    fs::path inputPPMPath = parsed["ppm"].as<std::string>();
     Method method = static_cast<Method>(parsed["method"].as<int>());
-
-    // Check for output file
-    fs::path outputPath;
-    if (parsed.count("output-file")) {
-        outputPath = parsed["output-file"].as<std::string>();
-    } else {
-        outputPath = segID + "_render.obj";
-    }
+    fs::path outputPath = parsed["output-file"].as<std::string>();
 
     ///// Load the volume package /////
     vc::VolumePkg vpkg(volpkgPath);
@@ -135,16 +119,10 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    ///// Load the segmentation /////
-    auto seg = vpkg.segmentation(segID);
-
     ///// Load the Volume /////
     vc::Volume::Pointer volume;
     if (parsed.count("volume")) {
         volume = vpkg.volume(parsed["volume"].as<std::string>());
-    }
-    if (seg->hasVolumeID()) {
-        volume = vpkg.volume(seg->getVolumeID());
     } else {
         volume = vpkg.volume();
     }
@@ -168,55 +146,9 @@ int main(int argc, char* argv[])
     auto weight = static_cast<vc::texturing::IntegralTexture::Weight>(
         parsed["weight"].as<int>());
 
-    ///// Resample the segmentation /////
-    // Mesh the point cloud
-    vc::meshing::OrderedPointSetMesher mesher;
-    mesher.setPointSet(seg->getPointSet());
-    auto input = mesher.compute();
-
-    // Calculate sampling density
-    auto voxelToMicron = std::pow(volume->voxelSize(), 2);
-    auto area = vc::meshmath::SurfaceArea(input) * voxelToMicron * UM_TO_MM;
-    auto vertCount = static_cast<uint16_t>(SAMPLING_DENSITY_FACTOR * area);
-    vertCount = (vertCount < CLEANER_MIN_REQ_POINTS) ? CLEANER_MIN_REQ_POINTS
-                                                     : vertCount;
-
-    // Convert to polydata
-    auto vtkMesh = vtkSmartPointer<vtkPolyData>::New();
-    vc::meshing::ITK2VTK(input, vtkMesh);
-
-    // Decimate using ACVD
-    std::cout << "Resampling mesh..." << std::endl;
-    auto acvdMesh = vtkSmartPointer<vtkPolyData>::New();
-    vc::meshing::ACVD(vtkMesh, acvdMesh, vertCount);
-
-    // Merge Duplicates
-    // Note: This merging has to be the last in the process chain for some
-    // really weird reason. - SP
-    auto cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
-    cleaner->SetInputData(acvdMesh);
-    cleaner->Update();
-
-    auto itkACVD = vc::ITKMesh::New();
-    vc::meshing::VTK2ITK(cleaner->GetOutput(), itkACVD);
-
-    ///// ABF flattening /////
-    std::cout << "Computing parameterization..." << std::endl;
-    vc::texturing::AngleBasedFlattening abf(itkACVD);
-    abf.compute();
-
-    // Get UV map
-    vc::UVMap uvMap = abf.getUVMap();
-    auto width = static_cast<size_t>(std::ceil(uvMap.ratio().width));
-    auto height = static_cast<size_t>(std::ceil(uvMap.ratio().height));
-
-    // Generate the PPM
-    std::cout << "Generating PPM..." << std::endl;
-    vc::texturing::PPMGenerator ppmGen;
-    ppmGen.setMesh(itkACVD);
-    ppmGen.setUVMap(uvMap);
-    ppmGen.setDimensions(height, width);
-    auto ppm = ppmGen.compute();
+    // Read the ppm
+    std::cout << "Loading PPM..." << std::endl;
+    auto ppm = vc::PerPixelMap::ReadPPM(inputPPMPath);
 
     ///// Generate texture /////
     vc::Texture texture;
@@ -250,30 +182,7 @@ int main(int argc, char* argv[])
         texture = textureGen.compute();
     }
 
-    if (outputPath.extension() == ".PLY" || outputPath.extension() == ".ply") {
-        std::cout << "Writing to PLY..." << std::endl;
-        vc::io::PLYWriter writer(outputPath.string(), itkACVD, texture);
-        writer.write();
-    } else if (
-        outputPath.extension() == ".PNG" || outputPath.extension() == ".png") {
-        std::cout << "Writing to PNG..." << std::endl;
-        cv::imwrite(outputPath.string(), texture.image(0));
-    } else {
-        std::cout << "Writing to OBJ..." << std::endl;
-        vc::io::OBJWriter writer;
-        writer.setMesh(itkACVD);
-        writer.setUVMap(uvMap);
-        writer.setTexture(texture.image(0));
-        writer.setPath(outputPath.string());
-        writer.write();
-    }
-
-    // Save the PPM
-    if (parsed.count("output-ppm")) {
-        std::cout << "Writing PPM..." << std::endl;
-        fs::path ppmPath = parsed["output-ppm"].as<std::string>();
-        vc::PerPixelMap::WritePPM(ppmPath, ppm);
-    }
+    cv::imwrite(outputPath.string(), texture.image(0));
 
     return EXIT_SUCCESS;
 }  // end main

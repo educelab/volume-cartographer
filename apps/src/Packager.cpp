@@ -190,7 +190,7 @@ void AddVolume(vc::VolumePkg& volpkg, VolumeInfo info)
         // Compare against the file extension
         auto ext(subfile->path().extension().string());
         ext = boost::to_upper_copy<std::string>(ext);
-        if (ext == ".TIF" || ext == ".TIFF") {
+        if (ext == ".TIF" || ext == ".TIFF" || ext == ".BMP") {
             slices.emplace_back(*subfile);
         }
     }
@@ -321,6 +321,4 @@ void AddVolume(vc::VolumePkg& volpkg, VolumeInfo info)
         ++counter;
     }
     std::cout << std::endl;
-
-    return;
 }

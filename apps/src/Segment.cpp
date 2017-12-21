@@ -48,7 +48,8 @@ int main(int argc, char* argv[])
         ("method,m", po::value<std::string>()->required(),
             "Segmentation method: LRPS")
         ("volume", po::value<std::string>(),
-            "Volume to use for texturing. Default: First volume.")
+            "Volume to use for texturing. Default: Segmentation's associated "
+            "volume or the first volume in the volume package.")
         ("start-index", po::value<int>()->default_value(kDefaultStartIndex),
             "Starting slice index. Default to highest z-index in path")
         ("end-index", po::value<int>(),
@@ -151,10 +152,16 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
+    ///// Load the segmentation /////
+    auto seg = volpkg.segmentation(opts["seg-id"].as<std::string>());
+
     ///// Load the Volume /////
     vc::Volume::Pointer volume;
     if (opts.count("volume")) {
         volume = volpkg.volume(opts["volume"].as<std::string>());
+    }
+    if (seg->hasVolumeID()) {
+        volume = volpkg.volume(seg->getVolumeID());
     } else {
         volume = volpkg.volume();
     }
@@ -171,7 +178,6 @@ int main(int argc, char* argv[])
     }
 
     // Load the segmentation
-    auto seg = volpkg.segmentation(opts["seg-id"].as<std::string>());
     auto masterCloud = seg->getPointSet();
 
     // Get some info about the cloud, including chain length and z-index's

@@ -45,7 +45,8 @@ int main(int argc, char* argv[])
         ("volpkg,v", po::value<std::string>()->required(), "VolumePkg path")
         ("seg,s", po::value<std::string>()->required(), "Segmentation ID")
         ("volume", po::value<std::string>(),
-            "Volume to use for texturing. Default: First volume.")
+            "Volume to use for texturing. Default: Segmentation's associated "
+            "volume or the first volume in the volume package.")
         ("output-dir,o", po::value<std::string>()->required(),
             "Output directory for layer images.")
         ("output-ppm", po::value<std::string>(),
@@ -106,10 +107,16 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
+    ///// Load the segmentation /////
+    auto seg = vpkg.segmentation(segID);
+
     ///// Load the Volume /////
     vc::Volume::Pointer volume;
     if (parsed.count("volume")) {
         volume = vpkg.volume(parsed["volume"].as<std::string>());
+    }
+    if (seg->hasVolumeID()) {
+        volume = vpkg.volume(seg->getVolumeID());
     } else {
         volume = vpkg.volume();
     }
@@ -129,9 +136,7 @@ int main(int argc, char* argv[])
     auto interval = parsed["interval"].as<double>();
     auto direction = static_cast<vc::Direction>(parsed["direction"].as<int>());
 
-    ///// Load and resample the segmentation /////
-    auto seg = vpkg.segmentation(segID);
-
+    ///// Resample the segmentation /////
     // Mesh the point cloud
     vc::meshing::OrderedPointSetMesher mesher;
     mesher.setPointSet(seg->getPointSet());

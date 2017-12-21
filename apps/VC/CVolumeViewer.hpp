@@ -2,8 +2,6 @@
 // Chao Du 2015 April
 #pragma once
 
-#include "VCNewGuiHeader.hpp"
-
 #include <QtWidgets>
 
 #include "CSimpleNumEditBox.hpp"
