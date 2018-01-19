@@ -47,9 +47,10 @@ public:
     void save(const boost::filesystem::path& path);
     /**@}*/
 
+    /**@{*/
+    /** @brief Return whether the given key is defined */
     bool hasKey(const std::string& key) const { return json_.count(key) > 0; }
 
-    /**@{*/
     /** @brief Get a metadata value by key
      *
      * Throws an std::runtime_error if the key is not set.
