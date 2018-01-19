@@ -3,6 +3,7 @@
 #pragma once
 
 #include <QCloseEvent>
+#include <QComboBox>
 #include <QMessageBox>
 #include <QRect>
 #include <QtWidgets>
@@ -10,7 +11,6 @@
 #include "CBSpline.hpp"
 #include "CXCurve.hpp"
 #include "MathUtils.hpp"
-#include "VCNewGuiHeader.hpp"
 #include "ui_VCMain.h"
 
 #include "vc/core/types/VolumePkg.hpp"
@@ -18,6 +18,7 @@
 
 // Volpkg version required by this app
 static constexpr int VOLPKG_SUPPORTED_VERSION = 5;
+static constexpr int VOLPKG_SLICE_MIN_INDEX = 0;
 
 namespace ChaoVis
 {
@@ -141,6 +142,7 @@ private:
 
     std::string fSegmentationId;
     volcart::Segmentation::Pointer fSegmentation;
+    volcart::Volume::Pointer currentVolume;
 
     int fMinSegIndex;
     int fMaxSegIndex;
@@ -176,6 +178,8 @@ private:
     QListWidget* fPathListWidget;
     QPushButton* fPenTool;  // REVISIT - change me to QToolButton
     QPushButton* fSegTool;
+    QComboBox* volSelect;
+    QPushButton* assignVol;
 
     QLineEdit* fEdtWindowWidth;
     QLineEdit* fEdtDistanceWeight;
@@ -195,6 +199,8 @@ private:
     Ui_VCMainWindow ui;
 
     QStatusBar* statusBar;
+
+    bool can_change_volume_();
 
 };  // class CWindow
 

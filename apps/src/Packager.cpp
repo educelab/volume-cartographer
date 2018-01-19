@@ -22,6 +22,9 @@ enum class Flip { None, Horizontal, Vertical, Both };
 static const double MIN_16BPC = std::numeric_limits<uint16_t>::min();
 static const double MAX_16BPC = std::numeric_limits<uint16_t>::max();
 
+// Volpkg version required by this app
+static constexpr int VOLPKG_SUPPORTED_VERSION = 5;
+
 struct VolumeInfo {
     fs::path path;
     std::string name;
@@ -29,8 +32,8 @@ struct VolumeInfo {
     Flip flipOption{Flip::None};
 };
 
-VolumeInfo GetVolumeInfo(fs::path slicesPath);
-void AddVolume(vc::VolumePkg& volpkg, VolumeInfo info);
+VolumeInfo GetVolumeInfo(const fs::path& slicesPath);
+void AddVolume(vc::VolumePkg::Pointer& volpkg, VolumeInfo info);
 
 int main(int argc, char* argv[])
 {
@@ -42,7 +45,7 @@ int main(int argc, char* argv[])
         ("help,h", "Show this message")
         ("volpkg,v", po::value<std::string>()->required(),
            "Path for the output volume package")
-        ("material-thickness,m", po::value<double>()->required(),
+        ("material-thickness,m", po::value<double>(),
            "Estimated thickness of a material layer (in microns)")
         ("slices,s", po::value<std::vector<std::string>>(),
            "Directory of input slice data. Can be specified multiple times to "
@@ -79,35 +82,47 @@ int main(int argc, char* argv[])
     ///// New VolumePkg /////
     // Get the output volpkg path
     fs::path volpkgPath = parsed["volpkg"].as<std::string>();
-
-    // Check the extension
-    if (volpkgPath.extension().string() != ".volpkg") {
-        volpkgPath.replace_extension(".volpkg");
-    }
+    auto newPackageMode = !fs::exists(volpkgPath);
 
     // Make sure the package doesn't already exist
-    if (fs::exists(volpkgPath)) {
-        std::cerr << "ERROR: Volume package already exists at path specified. "
-                     "This program does not currently allow for modification "
-                     "of existing volume packages."
-                  << std::endl;
+    vc::VolumePkg::Pointer volpkg;
+    if (newPackageMode) {
+        // Check the extension
+        if (volpkgPath.extension().string() != ".volpkg") {
+            volpkgPath.replace_extension(".volpkg");
+        }
+        volpkg = vc::VolumePkg::New(volpkgPath, vc::VOLPKG_VERSION_LATEST);
+    } else {
+        volpkg = vc::VolumePkg::New(volpkgPath);
+    }
+
+    // Make sure we support this version of the VolPkg
+    if (volpkg->version() != VOLPKG_SUPPORTED_VERSION) {
+        std::cerr << "ERROR: Volume package is version " << volpkg->version()
+                  << " but this program requires version "
+                  << VOLPKG_SUPPORTED_VERSION << "." << std::endl;
         return EXIT_FAILURE;
     }
 
     // Get volpkg name
-    std::string vpkgName = volpkgPath.stem().string();
+    std::string vpkgName;
     if (parsed.count("name")) {
         vpkgName = parsed["name"].as<std::string>();
+    } else if (newPackageMode) {
+        vpkgName = volpkgPath.stem().string();
+    }
+    if (!vpkgName.empty()) {
+        volpkg->setMetadata("name", vpkgName);
     }
 
     // Get material thickness
-    auto thickness = parsed["material-thickness"].as<double>();
+    if (parsed.count("material-thickness")) {
+        auto thickness = parsed["material-thickness"].as<double>();
+        volpkg->setMetadata("materialthickness", thickness);
+    }
 
-    // Generate an empty volpkg and save it to disk
-    vc::VolumePkg volpkg(volpkgPath, vc::VOLPKG_VERSION_LATEST);
-    volpkg.setMetadata("name", vpkgName);
-    volpkg.setMetadata("materialthickness", thickness);
-    volpkg.saveMetadata();
+    // Update metadata on disk
+    volpkg->saveMetadata();
 
     ///// Add Volumes /////
     // Get the input slices dir
@@ -128,7 +143,7 @@ int main(int argc, char* argv[])
     }
 }
 
-VolumeInfo GetVolumeInfo(fs::path slicesPath)
+VolumeInfo GetVolumeInfo(const fs::path& slicesPath)
 {
     VolumeInfo info;
     info.path = slicesPath;
@@ -163,7 +178,7 @@ VolumeInfo GetVolumeInfo(fs::path slicesPath)
     return info;
 }
 
-void AddVolume(vc::VolumePkg& volpkg, VolumeInfo info)
+void AddVolume(vc::VolumePkg::Pointer& volpkg, VolumeInfo info)
 {
     std::cout << "Adding Volume: " << info.path << std::endl;
 
@@ -256,7 +271,7 @@ void AddVolume(vc::VolumePkg& volpkg, VolumeInfo info)
 
     ///// Add data to the volume /////
     // Metadata
-    auto volume = volpkg.newVolume(info.name);
+    auto volume = volpkg->newVolume(info.name);
     volume->setNumberOfSlices(slices.size());
     volume->setSliceWidth(slices.front().width());
     volume->setSliceHeight(slices.front().height());
@@ -321,6 +336,4 @@ void AddVolume(vc::VolumePkg& volpkg, VolumeInfo info)
         ++counter;
     }
     std::cout << std::endl;
-
-    return;
 }

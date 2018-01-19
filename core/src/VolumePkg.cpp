@@ -15,7 +15,7 @@ static const fs::path SUBPATH_VOLS{"volumes"};
 
 // CONSTRUCTORS //
 // Make a volpkg of a particular version number
-VolumePkg::VolumePkg(fs::path fileLocation, int version)
+VolumePkg::VolumePkg(const fs::path& fileLocation, int version)
     : rootDir_{fileLocation}
     , volsDir_{fileLocation / SUBPATH_VOLS}
     , segsDir_{fileLocation / SUBPATH_SEGS}
@@ -43,7 +43,7 @@ VolumePkg::VolumePkg(fs::path fileLocation, int version)
 }
 
 // Use this when reading a volpkg from a file
-VolumePkg::VolumePkg(fs::path fileLocation)
+VolumePkg::VolumePkg(const fs::path& fileLocation)
     : rootDir_{fileLocation}
     , volsDir_{fileLocation / SUBPATH_VOLS}
     , segsDir_{fileLocation / SUBPATH_SEGS}
@@ -87,8 +87,13 @@ VolumePkg::VolumePkg(fs::path fileLocation)
     }
 }
 
+VolumePkg::Pointer VolumePkg::New(fs::path fileLocation, int version)
+{
+    return std::make_shared<VolumePkg>(fileLocation, version);
+}
+
 // Shared pointer volumepkg construction
-VolumePkg::Pointer VolumePkg::New(boost::filesystem::path fileLocation)
+VolumePkg::Pointer VolumePkg::New(fs::path fileLocation)
 {
     return std::make_shared<VolumePkg>(fileLocation);
 }

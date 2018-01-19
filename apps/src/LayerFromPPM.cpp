@@ -3,51 +3,135 @@
 //
 
 #include <boost/filesystem.hpp>
+#include <boost/program_options.hpp>
 #include <opencv2/opencv.hpp>
 
 #include "vc/core/types/PerPixelMap.hpp"
 #include "vc/core/types/VolumePkg.hpp"
+#include "vc/external/GetMemorySize.hpp"
 #include "vc/texturing/LayerTexture.hpp"
 
 namespace vc = volcart;
 namespace fs = boost::filesystem;
+namespace po = boost::program_options;
+
+// Volpkg version required by this app
+static constexpr int VOLPKG_SUPPORTED_VERSION = 5;
 
 int main(int argc, char* argv[])
 {
-    if (argc < 6) {
-        std::cout << "Usage: " << argv[0];
-        std::cout << " [volpkg] [input.ppm] [radius] [interval] [output-dir]"
+    ///// Parse the command line options /////
+    // All command line options
+    // clang-format off
+    po::options_description required("General Options");
+    required.add_options()
+        ("help,h", "Show this message")
+        ("volpkg,v", po::value<std::string>()->required(), "VolumePkg path")
+        ("ppm,p", po::value<std::string>()->required(), "Input PPM file")
+        ("volume", po::value<std::string>(),
+            "Volume to use for texturing. Default: Segmentation's associated "
+            "volume or the first volume in the volume package.")
+        ("output-dir,o", po::value<std::string>()->required(),
+            "Output directory for layer images.")
+        ("output-ppm", po::value<std::string>(),
+            "Output file path for the generated PPM.");
+
+    po::options_description filterOptions("Generic Filtering Options");
+    filterOptions.add_options()
+        ("radius,r", po::value<double>(), "Search radius. Defaults to value "
+            "calculated from estimated layer thickness.")
+        ("interval,i", po::value<double>()->default_value(1.0),
+            "Sampling interval")
+        ("direction,d", po::value<int>()->default_value(0),
+            "Sample Direction:\n"
+                "  0 = Omni\n"
+                "  1 = Positive\n"
+                "  2 = Negative");
+
+    po::options_description all("Usage");
+    all.add(required).add(filterOptions);
+    // clang-format on
+
+    // Parse the cmd line
+    po::variables_map parsed;
+    po::store(po::command_line_parser(argc, argv).options(all).run(), parsed);
+
+    // Show the help message
+    if (parsed.count("help") || argc < 2) {
+        std::cout << all << std::endl;
+        return EXIT_SUCCESS;
+    }
+
+    // Warn of missing options
+    try {
+        po::notify(parsed);
+    } catch (po::error& e) {
+        std::cerr << "ERROR: " << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    // Get the parsed options
+    fs::path volpkgPath = fs::canonical(parsed["volpkg"].as<std::string>());
+    fs::path inputPPMPath = parsed["ppm"].as<std::string>();
+
+    // Check for output file
+    auto outputPath = fs::canonical(parsed["output-dir"].as<std::string>());
+    if (!fs::is_directory(outputPath) || !fs::exists(outputPath)) {
+        std::cerr << "Provided output path is not a directory or does not exist"
                   << std::endl;
         return EXIT_FAILURE;
     }
 
-    // Get inputs
-    fs::path vpkgPath = fs::canonical(argv[1]);
-    fs::path ppmPath = argv[2];
-    auto radius = std::stoi(argv[3]);
-    auto interval = std::stod(argv[4]);
-    fs::path outputDir = argv[5];
+    ///// Load the volume package /////
+    vc::VolumePkg vpkg(volpkgPath);
+    if (vpkg.version() != VOLPKG_SUPPORTED_VERSION) {
+        std::cerr << "ERROR: Volume package is version " << vpkg.version()
+                  << " but this program requires version "
+                  << VOLPKG_SUPPORTED_VERSION << "." << std::endl;
+        return EXIT_FAILURE;
+    }
 
-    // Load volpkg
-    vc::VolumePkg vpkg(vpkgPath);
+    ///// Load the Volume /////
+    vc::Volume::Pointer volume;
+    if (parsed.count("volume")) {
+        volume = vpkg.volume(parsed["volume"].as<std::string>());
+    } else {
+        volume = vpkg.volume();
+    }
+    double cacheBytes = 0.75 * SystemMemorySize();
+    volume->setCacheMemoryInBytes(static_cast<size_t>(cacheBytes));
 
-    // Load ppm
-    std::cout << "Loading per-pixel map..." << std::endl;
-    auto ppm = vc::PerPixelMap::ReadPPM(ppmPath);
+    ///// Get some post-vpkg loading command line arguments /////
+    // Get the texturing radius. If not specified, default to a radius
+    // defined by the estimated thickness of the layer
+    double radius;
+    if (parsed.count("radius")) {
+        radius = parsed["radius"].as<double>();
+    } else {
+        radius = vpkg.materialThickness() / volume->voxelSize();
+    }
+
+    auto interval = parsed["interval"].as<double>();
+    auto direction = static_cast<vc::Direction>(parsed["direction"].as<int>());
+
+    // Read the ppm
+    std::cout << "Loading PPM..." << std::endl;
+    auto ppm = vc::PerPixelMap::ReadPPM(inputPPMPath);
 
     // Layer texture
     std::cout << "Generating layers..." << std::endl;
     vc::texturing::LayerTexture s;
-    s.setVolume(vpkg.volume());
+    s.setVolume(volume);
     s.setPerPixelMap(ppm);
     s.setSamplingRadius(radius);
     s.setSamplingInterval(interval);
+    s.setSamplingDirection(direction);
     auto texture = s.compute();
 
     std::cout << "Writing layers..." << std::endl;
     fs::path filepath;
     for (size_t i = 0; i < texture.numberOfImages(); ++i) {
-        filepath = outputDir / (std::to_string(i) + ".png");
+        filepath = outputPath / (std::to_string(i) + ".png");
         cv::imwrite(filepath.string(), texture.image(i));
     }
 }

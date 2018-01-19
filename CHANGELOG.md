@@ -1,5 +1,20 @@
 Volume Cartographer Changelog
 =============================
+v2.17.0
+-------
+- apps
+    - (packager) Add ability to add Volumes to existing Volume Packages (!196)
+    - __New:__ `vc_render_from_ppm`: App that renders texture images using a 
+    precomputed PPM (!195)
+- core
+    - Fix PPM mask loading bug (!194)
+    - Add Associated Volume metadata to Segmentations (!195). This feature links 
+    a Segmentation to the Volume used as its originating frame of reference, an 
+    essential part of our digital provenance chain. Apps have also been updated 
+    to make use of this information when possible.
+- external
+    - Update to Modern JSON v3 (!193)
+
 v2.16.0
 -------
 This release holds an exciting addition for our Tensorflow efforts: Python

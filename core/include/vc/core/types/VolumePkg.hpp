@@ -45,19 +45,27 @@ public:
      * @param fileLocation The location to store the VolPkg
      * @param version Version of VolumePkg you wish to construct
      */
-    VolumePkg(boost::filesystem::path fileLocation, int version);
+    VolumePkg(const boost::filesystem::path& fileLocation, int version);
 
     /**
      * @brief Construct a VolumePkg from a .volpkg file stored at
      * `fileLocation.`
      * @param fileLocation The root of the VolumePkg file
      */
-    explicit VolumePkg(boost::filesystem::path fileLocation);
+    explicit VolumePkg(const boost::filesystem::path& fileLocation);
 
     /** VolumePkg shared pointer */
     using Pointer = std::shared_ptr<VolumePkg>;
 
-    /** @copybrief VolumePkg(boost::filesystem::path fileLocation)
+    /**
+     * @copybrief VolumePkg(boost::filesystem::path fileLocation, int version)
+     *
+     * Returns a shared pointer to the VolumePkg.
+     */
+    static Pointer New(boost::filesystem::path fileLocation, int version);
+
+    /**
+     * @copybrief VolumePkg(boost::filesystem::path fileLocation)
      *
      * Returns a shared pointer to the VolumePkg.
      */

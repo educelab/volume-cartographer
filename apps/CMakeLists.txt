@@ -46,6 +46,15 @@ target_link_libraries(vc_render
     Boost::program_options
 )
 
+add_executable(vc_render_from_ppm src/RenderFromPPM.cpp)
+target_link_libraries(vc_render_from_ppm
+    VC::core
+    VC::texturing
+    VC::meshing
+    Boost::filesystem
+    Boost::program_options
+)
+
 ## Layers ##
 add_executable(vc_layers src/Layers.cpp)
 target_link_libraries(vc_layers
@@ -67,8 +76,10 @@ target_link_libraries(vc_generate_ppm
 add_executable(vc_layers_from_ppm src/LayerFromPPM.cpp)
 target_link_libraries(vc_layers_from_ppm
     VC::core
+    VC::external
     VC::texturing
     Boost::filesystem
+    Boost::program_options
 )
 
 ## Metadata Editor ##
