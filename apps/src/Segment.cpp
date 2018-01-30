@@ -4,6 +4,7 @@
 #include <boost/program_options.hpp>
 
 #include "vc/core/types/VolumePkg.hpp"
+#include "vc/external/GetMemorySize.hpp"
 #include "vc/meshing/OrderedPointSetMesher.hpp"
 #include "vc/segmentation/LocalResliceParticleSim.hpp"
 #include "vc/segmentation/StructureTensorParticleSim.hpp"
@@ -44,7 +45,7 @@ int main(int argc, char* argv[])
     required.add_options()
         ("help,h", "Show this message")
         ("volpkg,v", po::value<std::string>()->required(), "VolumePkg path")
-        ("seg-id,s", po::value<std::string>()->required(), "Segmentation ID")
+        ("seg,s", po::value<std::string>()->required(), "Segmentation ID")
         ("method,m", po::value<std::string>()->required(),
             "Segmentation method: LRPS")
         ("volume", po::value<std::string>(),
@@ -98,22 +99,22 @@ int main(int argc, char* argv[])
     all.add(required).add(stpsOptions).add(lrpsOptions);
 
     // Parse and handle options
-    po::variables_map opts;
-    po::store(po::parse_command_line(argc, argv, all), opts);
+    po::variables_map parsed;
+    po::store(po::parse_command_line(argc, argv, all), parsed);
 
     // Display help
-    if (argc == 1 || opts.count("help")) {
+    if (argc == 1 || parsed.count("help")) {
         std::cout << all << std::endl;
         std::exit(1);
     }
 
     // Check mutually exclusive arguments
-    if (!(opts.count("start-index") || opts.count("stride"))) {
+    if (!(parsed.count("start-index") || parsed.count("stride"))) {
         std::cerr << "[error]: must specify one of [stride, start-index]"
                   << std::endl;
         std::exit(1);
     }
-    if (opts.count("end-index") && opts.count("stride")) {
+    if (parsed.count("end-index") && parsed.count("stride")) {
         std::cerr << "[error]: 'end-index' and 'stride' are mutually exclusive"
                   << std::endl;
         std::exit(1);
@@ -121,14 +122,14 @@ int main(int argc, char* argv[])
 
     // Warn of missing options
     try {
-        po::notify(opts);
+        po::notify(parsed);
     } catch (po::error& e) {
         std::cerr << "[error]: " << e.what() << std::endl;
         return EXIT_FAILURE;
     }
 
     Algorithm alg;
-    auto methodStr = opts["method"].as<std::string>();
+    auto methodStr = parsed["method"].as<std::string>();
     std::string lower;
     std::transform(
         std::begin(methodStr), std::end(methodStr), std::back_inserter(lower),
@@ -143,39 +144,58 @@ int main(int argc, char* argv[])
     }
 
     ///// Load the volume package /////
-    fs::path volpkgPath = opts["volpkg"].as<std::string>();
-    vc::VolumePkg volpkg(volpkgPath);
-    if (volpkg.version() != VOLPKG_SUPPORTED_VERSION) {
-        std::cerr << "ERROR: Volume package is version " << volpkg.version()
+    fs::path volpkgPath = parsed["volpkg"].as<std::string>();
+    vc::VolumePkg vpkg(volpkgPath);
+    if (vpkg.version() != VOLPKG_SUPPORTED_VERSION) {
+        std::cerr << "ERROR: Volume package is version " << vpkg.version()
                   << " but this program requires version "
                   << VOLPKG_SUPPORTED_VERSION << "." << std::endl;
         return EXIT_FAILURE;
     }
 
     ///// Load the segmentation /////
-    auto seg = volpkg.segmentation(opts["seg-id"].as<std::string>());
+    vc::Segmentation::Pointer seg;
+    auto segID = parsed["seg"].as<std::string>();
+    try {
+        seg = vpkg.segmentation(segID);
+    } catch (const std::exception& e) {
+        std::cerr << "Cannot load segmentation. ";
+        std::cerr << "Please check the provided ID: " << segID << std::endl;
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
 
     ///// Load the Volume /////
     vc::Volume::Pointer volume;
-    if (opts.count("volume")) {
-        volume = volpkg.volume(opts["volume"].as<std::string>());
+    vc::Volume::Identifier volID;
+
+    if (parsed.count("volume")) {
+        volID = parsed["volume"].as<std::string>();
+    } else if (seg->hasVolumeID()) {
+        volID = seg->getVolumeID();
     }
-    if (seg->hasVolumeID()) {
-        volume = volpkg.volume(seg->getVolumeID());
-    } else {
-        volume = volpkg.volume();
+
+    try {
+        if (!volID.empty()) {
+            volume = vpkg.volume(volID);
+        } else {
+            volume = vpkg.volume();
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Cannot load volume. ";
+        std::cerr << "Please check that the Volume Package has volumes and "
+                     "that the volume ID is correct. "
+                  << volID << std::endl;
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
     }
+    double cacheBytes = 0.75 * SystemMemorySize();
+    volume->setCacheMemoryInBytes(static_cast<size_t>(cacheBytes));
 
     // Setup
     // Cache arguments
-    auto startIndex = opts["start-index"].as<int>();
-    auto step = opts["step-size"].as<int>();
-    if (alg == Algorithm::STPS && step != 1) {
-        std::cerr << "[warning]: STPS algorithm can only handle stepsize of 1. "
-                     "Defaulting to 1."
-                  << std::endl;
-        step = 1;
-    }
+    auto startIndex = parsed["start-index"].as<int>();
+    auto step = parsed["step-size"].as<int>();
 
     // Load the segmentation
     auto masterCloud = seg->getPointSet();
@@ -196,8 +216,8 @@ int main(int argc, char* argv[])
 
     // Figure out endIndex using either start-index or stride
     int endIndex =
-        (opts.count("end-index") ? opts["end-index"].as<int>()
-                                 : startIndex + opts["stride"].as<int>());
+        (parsed.count("end-index") ? parsed["end-index"].as<int>()
+                                   : startIndex + parsed["stride"].as<int>());
 
     // Sanity check for whether we actually need to run the algorithm
     if (startIndex >= endIndex) {
@@ -251,20 +271,20 @@ int main(int argc, char* argv[])
         vs::LocalResliceSegmentation segmenter;
         segmenter.setChain(segPath);
         segmenter.setVolume(volume);
-        segmenter.setMaterialThickness(volpkg.materialThickness());
+        segmenter.setMaterialThickness(vpkg.materialThickness());
         segmenter.setTargetZIndex(endIndex);
         segmenter.setStepSize(step);
-        segmenter.setOptimizationIterations(opts["num-iters"].as<int>());
-        segmenter.setResliceSize(opts["reslice-size"].as<int>());
-        segmenter.setAlpha(opts["alpha"].as<double>());
-        segmenter.setK1(opts["k1"].as<double>());
-        segmenter.setK2(opts["k2"].as<double>());
-        segmenter.setBeta(opts["beta"].as<double>());
-        segmenter.setDelta(opts["delta"].as<double>());
-        segmenter.setDistanceWeightFactor(opts["distance-weight"].as<int>());
-        segmenter.setConsiderPrevious(opts["consider-previous"].as<bool>());
-        segmenter.setVisualize(opts.count("visualize") > 0);
-        segmenter.setDumpVis(opts.count("dump-vis") > 0);
+        segmenter.setOptimizationIterations(parsed["num-iters"].as<int>());
+        segmenter.setResliceSize(parsed["reslice-size"].as<int>());
+        segmenter.setAlpha(parsed["alpha"].as<double>());
+        segmenter.setK1(parsed["k1"].as<double>());
+        segmenter.setK2(parsed["k2"].as<double>());
+        segmenter.setBeta(parsed["beta"].as<double>());
+        segmenter.setDelta(parsed["delta"].as<double>());
+        segmenter.setDistanceWeightFactor(parsed["distance-weight"].as<int>());
+        segmenter.setConsiderPrevious(parsed["consider-previous"].as<bool>());
+        segmenter.setVisualize(parsed.count("visualize") > 0);
+        segmenter.setDumpVis(parsed.count("dump-vis") > 0);
         mutableCloud = segmenter.compute();
     }
 

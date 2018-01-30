@@ -164,22 +164,16 @@ public:
     Volume::Pointer newVolume(std::string name = "");
 
     /** @brief Get the first Volume */
-    const Volume::Pointer volume() const { return volumes_.begin()->second; }
+    const Volume::Pointer volume() const;
 
     /** @copydoc volume() */
-    Volume::Pointer volume() { return volumes_.begin()->second; }
+    Volume::Pointer volume();
 
     /** @brief Get a Volume by uuid */
-    const Volume::Pointer volume(const Volume::Identifier& id) const
-    {
-        return volumes_.at(id);
-    }
+    const Volume::Pointer volume(const Volume::Identifier& id) const;
 
     /** @copydoc VolumePkg::volume(std::string) const */
-    Volume::Pointer volume(const Volume::Identifier& id)
-    {
-        return volumes_.at(id);
-    }
+    Volume::Pointer volume(const Volume::Identifier& id);
     /**@}*/
 
     /** @name Segmentation Data */

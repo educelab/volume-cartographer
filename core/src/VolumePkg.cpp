@@ -166,6 +166,32 @@ Volume::Pointer VolumePkg::newVolume(std::string name)
     return r.first->second;
 }
 
+const Volume::Pointer VolumePkg::volume() const
+{
+    if (volumes_.empty()) {
+        throw std::out_of_range("No volumes in VolPkg");
+    }
+    return volumes_.begin()->second;
+}
+
+Volume::Pointer VolumePkg::volume()
+{
+    if (volumes_.empty()) {
+        throw std::out_of_range("No volumes in VolPkg");
+    }
+    return volumes_.begin()->second;
+}
+
+const Volume::Pointer VolumePkg::volume(const Volume::Identifier& id) const
+{
+    return volumes_.at(id);
+}
+
+Volume::Pointer VolumePkg::volume(const Volume::Identifier& id)
+{
+    return volumes_.at(id);
+}
+
 // SEGMENTATION FUNCTIONS //
 std::vector<Segmentation::Identifier> VolumePkg::segmentationIDs() const
 {

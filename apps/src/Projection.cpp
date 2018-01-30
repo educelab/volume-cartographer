@@ -111,10 +111,19 @@ int main(int argc, char* argv[])
 
     // Load the volume
     vc::Volume::Pointer volume;
-    if (parsed.count("volume")) {
-        volume = volpkg.volume(parsed["volume"].as<std::string>());
-    } else {
-        volume = volpkg.volume();
+    try {
+        if (parsed.count("volume")) {
+            volume = volpkg.volume(parsed["volume"].as<std::string>());
+        } else {
+            volume = volpkg.volume();
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Cannot load volume. ";
+        std::cerr << "Please check that the Volume Package has volumes and "
+                     "that the volume ID is correct."
+                  << std::endl;
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
     }
     auto width = volume->sliceWidth();
     auto height = volume->sliceHeight();

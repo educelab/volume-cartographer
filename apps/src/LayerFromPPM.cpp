@@ -29,8 +29,8 @@ int main(int argc, char* argv[])
         ("volpkg,v", po::value<std::string>()->required(), "VolumePkg path")
         ("ppm,p", po::value<std::string>()->required(), "Input PPM file")
         ("volume", po::value<std::string>(),
-            "Volume to use for texturing. Default: Segmentation's associated "
-            "volume or the first volume in the volume package.")
+            "Volume to use for texturing. Default: The first volume in the "
+            "volume package.")
         ("output-dir,o", po::value<std::string>()->required(),
             "Output directory for layer images.")
         ("output-ppm", po::value<std::string>(),
@@ -93,10 +93,19 @@ int main(int argc, char* argv[])
 
     ///// Load the Volume /////
     vc::Volume::Pointer volume;
-    if (parsed.count("volume")) {
-        volume = vpkg.volume(parsed["volume"].as<std::string>());
-    } else {
-        volume = vpkg.volume();
+    try {
+        if (parsed.count("volume")) {
+            volume = vpkg.volume(parsed["volume"].as<std::string>());
+        } else {
+            volume = vpkg.volume();
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Cannot load volume. ";
+        std::cerr << "Please check that the Volume Package has volumes and "
+                     "that the volume ID is correct."
+                  << std::endl;
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
     }
     double cacheBytes = 0.75 * SystemMemorySize();
     volume->setCacheMemoryInBytes(static_cast<size_t>(cacheBytes));

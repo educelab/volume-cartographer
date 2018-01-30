@@ -129,24 +129,46 @@ int main(int argc, char* argv[])
     ///// Load the volume package /////
     vc::VolumePkg vpkg(volpkgPath);
     if (vpkg.version() != VOLPKG_SUPPORTED_VERSION) {
-        std::cerr << "ERROR: Volume package is version " << vpkg.version()
+        std::cerr << "ERROR: Volume Package is version " << vpkg.version()
                   << " but this program requires version "
                   << VOLPKG_SUPPORTED_VERSION << "." << std::endl;
         return EXIT_FAILURE;
     }
 
     ///// Load the segmentation /////
-    auto seg = vpkg.segmentation(segID);
+    vc::Segmentation::Pointer seg;
+    try {
+        seg = vpkg.segmentation(segID);
+    } catch (const std::exception& e) {
+        std::cerr << "Cannot load segmentation. ";
+        std::cerr << "Please check the provided ID: " << segID << std::endl;
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
 
     ///// Load the Volume /////
     vc::Volume::Pointer volume;
+    vc::Volume::Identifier volID;
+
     if (parsed.count("volume")) {
-        volume = vpkg.volume(parsed["volume"].as<std::string>());
+        volID = parsed["volume"].as<std::string>();
+    } else if (seg->hasVolumeID()) {
+        volID = seg->getVolumeID();
     }
-    if (seg->hasVolumeID()) {
-        volume = vpkg.volume(seg->getVolumeID());
-    } else {
-        volume = vpkg.volume();
+
+    try {
+        if (!volID.empty()) {
+            volume = vpkg.volume(volID);
+        } else {
+            volume = vpkg.volume();
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Cannot load volume. ";
+        std::cerr << "Please check that the Volume Package has volumes and "
+                     "that the volume ID is correct. "
+                  << volID << std::endl;
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
     }
     double cacheBytes = 0.75 * SystemMemorySize();
     volume->setCacheMemoryInBytes(static_cast<size_t>(cacheBytes));
