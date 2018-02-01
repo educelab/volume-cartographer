@@ -30,8 +30,6 @@ namespace vc = volcart;
 
 // Volpkg version required by this app
 static constexpr int VOLPKG_SUPPORTED_VERSION = 5;
-// Number of vertices per square millimeter
-static constexpr double SAMPLING_DENSITY_FACTOR = 50;
 // Square Micron to square millimeter conversion factor
 static constexpr double UM_TO_MM = 0.001 * 0.001;
 // Min. number of points required to do flattening
@@ -58,13 +56,16 @@ int main(int argc, char* argv[])
             "Volume to use for texturing. Default: Segmentation's associated "
             "volume or the first volume in the volume package.")
         ("output-file,o", po::value<std::string>(),
-            "Output file path. If not specified, the file will be saved to the "
-            "volume package.")
+            "Output file path. If not specified, an OBJ file and texture image "
+            "will be placed in the current working directory.")
         ("output-ppm", po::value<std::string>(),
             "Output file path for the generated PPM.");
 
     po::options_description meshOptions("Mesh Filtering Options");
     meshOptions.add_options()
+        ("mesh-sampling-factor", po::value<double>()->default_value(50),
+            "Roughly, the number of vertices per square millimeter in the "
+            "output mesh")
         ("mesh-smoothing", po::value<int>()->default_value(0),
             "Smoothing Options:\n"
                 "  0 = Off\n"
@@ -211,7 +212,9 @@ int main(int argc, char* argv[])
     // Calculate sampling density
     auto voxelToMicron = std::pow(volume->voxelSize(), 2);
     auto area = vc::meshmath::SurfaceArea(input) * voxelToMicron * UM_TO_MM;
-    auto vertCount = static_cast<uint16_t>(SAMPLING_DENSITY_FACTOR * area);
+    auto currentDensityFactor = input->GetNumberOfPoints() / area;
+    auto newDensityFactor = parsed["mesh-sampling-factor"].as<double>();
+    auto vertCount = static_cast<uint16_t>(newDensityFactor * area);
     vertCount = (vertCount < CLEANER_MIN_REQ_POINTS) ? CLEANER_MIN_REQ_POINTS
                                                      : vertCount;
 
@@ -221,6 +224,7 @@ int main(int argc, char* argv[])
 
     // Pre-Smooth
     if (smooth == Smooth::Both || smooth == Smooth::Before) {
+        std::cout << "Smoothing mesh..." << std::endl;
         auto vtkSmoother = vtkSmartPointer<vtkSmoothPolyDataFilter>::New();
         vtkSmoother->SetInputData(vtkMesh);
         vtkSmoother->Update();
@@ -228,7 +232,8 @@ int main(int argc, char* argv[])
     }
 
     // Decimate using ACVD
-    std::cout << "Resampling mesh..." << std::endl;
+    std::cout << "Resampling mesh (Density: " << currentDensityFactor << " -> "
+              << newDensityFactor << ")..." << std::endl;
     auto acvdMesh = vtkSmartPointer<vtkPolyData>::New();
     vc::meshing::ACVD(vtkMesh, acvdMesh, vertCount);
 
@@ -242,6 +247,7 @@ int main(int argc, char* argv[])
 
     // Post-Smooth
     if (smooth == Smooth::Both || smooth == Smooth::After) {
+        std::cout << "Smoothing mesh..." << std::endl;
         auto vtkSmoother = vtkSmartPointer<vtkSmoothPolyDataFilter>::New();
         vtkSmoother->SetInputData(vtkMesh);
         vtkSmoother->Update();
