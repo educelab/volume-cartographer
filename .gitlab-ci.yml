@@ -1,6 +1,7 @@
 stages:
     - build
     - test
+    - lint
     - docs
     - collect
     - deploy
@@ -137,7 +138,7 @@ test:osx:dynamic:
 lint:clang-format:
     before_script:
       - git fetch --all
-    stage: test
+    stage: lint
     script:
         - scripts/clang-format.py --print-output
     allow_failure: yes
@@ -152,13 +153,14 @@ lint:clang-tidy:
       - cd build/
       - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -GNinja -DVC_USE_BULLET=ON -DVC_USE_ACVD=ON -DVC_USE_VCG=ON ..
       - cd ..
-    stage: test
+    stage: lint
     script:
         - echo $CI_BUILD_REF_NAME $CI_BUILD_STAGE
         - scripts/clang-tidy.py --print-output
     allow_failure: yes
     tags:
         - clang-tidy
+        - osx
 
 ### Documentation ###
 doxygen:html:
