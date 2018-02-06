@@ -27,7 +27,8 @@ int main(int argc, char* argv[])
             ("input-cloud,i", po::value<std::string>()->required(),
              "Path to the input Ordered Point Set")
             ("output-mesh,o", po::value<std::string>()->required(),
-             "Path for the output mesh");
+             "Path for the output mesh")
+            ("disable-triangulation", "Disable vertex triangulation");
     // clang-format on
 
     // parsed will hold the values of all parsed options as a Map
@@ -52,12 +53,17 @@ int main(int argc, char* argv[])
     fs::path outputPath = parsed["output-mesh"].as<std::string>();
 
     // Load the file
+    std::cout << "Loading file..." << std::endl;
     auto inputCloud = psio::ReadOrderedPointSet(inputPath);
 
-    vc::meshing::OrderedPointSetMesher mesh(inputCloud);
-    auto output = mesh.compute();
+    // Convert to a mesh
+    std::cout << "Generating mesh..." << std::endl;
+    vc::meshing::OrderedPointSetMesher mesher(inputCloud);
+    mesher.setComputeTriangulation(parsed.count("disable-triangulation") == 0);
+    auto output = mesher.compute();
 
     // Write the mesh
+    std::cout << "Writing OBJ..." << std::endl;
     vc::io::OBJWriter writer;
     writer.setPath(outputPath);
     writer.setMesh(output);
