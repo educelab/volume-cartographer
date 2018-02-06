@@ -204,9 +204,14 @@ int main(int argc, char* argv[])
         parsed["weight"].as<int>());
 
     ///// Resample the segmentation /////
+    // Load the point cloud
+    std::cout << "Loading segmentation..." << std::endl;
+    auto points = seg->getPointSet();
+
     // Mesh the point cloud
+    std::cout << "Meshing point set..." << std::endl;
     vc::meshing::OrderedPointSetMesher mesher;
-    mesher.setPointSet(seg->getPointSet());
+    mesher.setPointSet(points);
     auto input = mesher.compute();
 
     // Calculate sampling density
