@@ -14,7 +14,10 @@ endif()
 ## Mesher ##
 add_executable(vc_mesher src/Mesher.cpp)
 target_link_libraries(vc_mesher
+    VC::core
     VC::meshing
+    Boost::filesystem
+    Boost::program_options
 )
 
 ## Packager ##
