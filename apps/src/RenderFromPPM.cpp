@@ -27,6 +27,7 @@
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
+namespace vct = volcart::texturing;
 
 // Volpkg version required by this app
 static constexpr int VOLPKG_SUPPORTED_VERSION = 5;
@@ -76,11 +77,27 @@ int main(int argc, char* argv[])
 
     po::options_description integralOptions("Integral Texture Options");
     integralOptions.add_options()
-        ("weight,w", po::value<int>()->default_value(2),
-            "Value weighting:\n"
+        ("weight-type,w", po::value<int>()->default_value(0),
+            "Weight Type:\n"
+                "  0 = None\n"
+                "  1 = Linear\n"
+                "  2 = Exponential Difference")
+        ("linear-weight-direction", po::value<int>()->default_value(0),
+            "Linear Weight Direction:\n"
                 "  0 = Favor the + normal direction\n"
-                "  1 = Favor the - normal direction\n"
-                "  2 = No weighting");
+                "  1 = Favor the - normal direction")
+        ("expodiff-exponent", po::value<int>()->default_value(2), "Exponent "
+            "applied to the absolute difference values.")
+        ("expodiff-base-method", po::value<int>()->default_value(0),
+            "Exponential Difference Base Calculation Method:\n"
+                "  0 = Mean\n"
+                "  1 = Mode\n"
+                "  2 = Manually specified")
+        ("expodiff-base", po::value<double>()->default_value(0.0), "If the "
+            "base calculation method is set to Manual, the value from which "
+            "voxel values are differenced.")
+        ("clamp-to-max", po::value<uint16_t>(), "Clamp values to the specified "
+            "maximum.");
 
     po::options_description all("Usage");
     all.add(required).add(filterOptions).add(compositeOptions).add(integralOptions);
@@ -152,8 +169,19 @@ int main(int argc, char* argv[])
     auto direction = static_cast<vc::Direction>(parsed["direction"].as<int>());
     auto filter = static_cast<vc::texturing::CompositeTexture::Filter>(
         parsed["filter"].as<int>());
-    auto weight = static_cast<vc::texturing::IntegralTexture::Weight>(
-        parsed["weight"].as<int>());
+
+    // Integral options
+    auto weightType = static_cast<vct::IntegralTexture::WeightType>(
+        parsed["weight-type"].as<int>());
+    auto weightDirection =
+        static_cast<vct::IntegralTexture::LinearWeightDirection>(
+            parsed["linear-weight-direction"].as<int>());
+    auto weightExponent = parsed["expodiff-exponent"].as<int>();
+    auto expoDiffBaseMethod =
+        static_cast<vct::IntegralTexture::ExpoDiffBaseMethod>(
+            parsed["expodiff-base-method"].as<int>());
+    auto expoDiffBase = parsed["expodiff-base"].as<double>();
+    auto clampToMax = parsed.count("clamp-to-max") > 0;
 
     // Read the ppm
     std::cout << "Loading PPM..." << std::endl;
@@ -187,7 +215,15 @@ int main(int argc, char* argv[])
         textureGen.setSamplingRadius(radius);
         textureGen.setSamplingInterval(interval);
         textureGen.setSamplingDirection(direction);
-        textureGen.setWeight(weight);
+        textureGen.setWeightType(weightType);
+        textureGen.setLinearWeightDirection(weightDirection);
+        textureGen.setExponentialDiffExponent(weightExponent);
+        textureGen.setExponentialDiffBaseMethod(expoDiffBaseMethod);
+        textureGen.setExponentialDiffBase(expoDiffBase);
+        textureGen.setClampValuesToMax(clampToMax);
+        if (clampToMax) {
+            textureGen.setClampMax(parsed["clamp-to-max"].as<uint16_t>());
+        }
         texture = textureGen.compute();
     }
 
