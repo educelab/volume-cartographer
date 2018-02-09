@@ -124,30 +124,14 @@ public:
     /**@}*/
 
     /**@{*/
-    /** Minimum size of a UVMap debug image */
-    constexpr static int MIN_DEBUG_WIDTH = 500;
+    const static cv::Scalar DEFAULT_COLOR;
 
     /**
      * @brief Plot the UV points on an image
      *
      * For debug purposes only.
      */
-    cv::Mat drawUVMap() const
-    {
-        auto w = static_cast<int>(std::ceil(ratio_.width));
-        if (w < MIN_DEBUG_WIDTH) {
-            w = MIN_DEBUG_WIDTH;
-        }
-        auto h = static_cast<int>(std::ceil(w / ratio_.aspect));
-        cv::Mat r = cv::Mat::zeros(h, w, CV_8UC1);
-
-        for (auto it : map_) {
-            cv::Point2d p(it.second[0] * w, it.second[1] * h);
-            cv::circle(r, p, 2, 255, -1);
-        }
-
-        return r;
-    }
+    cv::Mat drawUVMap(const cv::Scalar& color = DEFAULT_COLOR) const;
     /**@}*/
 
 private:

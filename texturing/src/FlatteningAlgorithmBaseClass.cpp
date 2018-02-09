@@ -1,5 +1,6 @@
 #include "vc/texturing/FlatteningAlgorithmBaseClass.hpp"
 
+#include "vc/core/util/FloatComparison.hpp"
 #include "vc/core/util/MeshMath.hpp"
 
 using namespace volcart;
@@ -59,10 +60,11 @@ void FlatteningAlgorithmBaseClass::orient_uvs_()
     cv::fitLine(pts, line, CV_DIST_L2, 0, 0.01, 0.01);
 
     // Calculate a rotation angle between the fitted line and the y vec
-    cv::Vec2d fitVecUV;
-    cv::normalize(cv::Vec2d{line[0], line[1]}, fitVecUV);
-    cv::Vec2d downVecUV{0, 1};
-    auto cos = fitVecUV.dot(downVecUV) / cv::norm(fitVecUV);
+    cv::Point2d center(line[3], line[4]);
+    cv::Vec2d lineVec;
+    cv::normalize(cv::Vec2d{line[0], line[1]}, lineVec);
+    cv::Vec2d yAxis{0, 1};
+    auto cos = lineVec.dot(yAxis);
     auto angle = std::acos(cos);
 
     // If z-gradient is decreasing, rot. 180 deg s.t. z = 0 is at the top
@@ -70,19 +72,34 @@ void FlatteningAlgorithmBaseClass::orient_uvs_()
         angle += M_PI;
         cos = std::cos(angle);
     }
-
     auto sin = std::sin(angle);
 
+    // Clamp to zero
+    if (AlmostEqual<double>(cos, 0)) {
+        cos = 0;
+    }
+    if (AlmostEqual<double>(sin, 0)) {
+        sin = 0;
+    }
+
+    // Get translation matrix
+    cv::Mat transMat = cv::Mat::eye(3, 3, CV_64F);
+    transMat.at<double>(0, 2) = -center.x;
+    transMat.at<double>(1, 2) = -center.y;
+
     // Get counter-clockwise rotation matrix
-    cv::Mat rotMat = cv::Mat::zeros(3, 3, CV_64F);
+    cv::Mat rotMat = cv::Mat::eye(3, 3, CV_64F);
     rotMat.at<double>(0, 0) = cos;
     rotMat.at<double>(0, 1) = sin;
     rotMat.at<double>(1, 0) = -sin;
     rotMat.at<double>(1, 1) = cos;
-    rotMat.at<double>(2, 2) = 1.0;
 
-    // Rotate all of the points
-    cv::transform(pts, pts, rotMat);
+    // Composite
+    cv::Mat composite = rotMat * transMat;
+
+    // Translate and rotate all of the points
+    // Note: pts vector is column-major, so transpose the transform matrix
+    cv::transform(pts, pts, composite.t());
 
     // Apply to the UVs
     ITKMesh::PointType p;
