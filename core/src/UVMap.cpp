@@ -56,16 +56,16 @@ cv::Vec2d UVMap::origin_vector_(const Origin& o)
     }
 }
 
-cv::Mat UVMap::drawUVMap(const cv::Scalar& color) const
+cv::Mat UVMap::Plot(const UVMap& uv, const cv::Scalar& color)
 {
-    auto w = static_cast<int>(std::ceil(ratio_.width));
+    auto w = static_cast<int>(std::ceil(uv.ratio_.width));
     if (w < MIN_DEBUG_WIDTH) {
         w = MIN_DEBUG_WIDTH;
     }
-    auto h = static_cast<int>(std::ceil(w / ratio_.aspect));
+    auto h = static_cast<int>(std::ceil(w / uv.ratio_.aspect));
     cv::Mat r = cv::Mat::zeros(h, w, CV_8UC3);
 
-    for (auto it : map_) {
+    for (auto it : uv.map_) {
         cv::Point2d p(it.second[0] * w, it.second[1] * h);
         cv::circle(r, p, 1, color, -1);
     }

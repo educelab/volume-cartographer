@@ -130,6 +130,7 @@ int main(int argc, char* argv[])
     auto padding = static_cast<int>(std::to_string(volume->numSlices()).size());
 
     // Get Mesh
+    std::cout << "Loading mesh..." << std::endl;
     vc::io::OBJReader reader;
     reader.setPath(meshPath);
     auto mesh = reader.read();

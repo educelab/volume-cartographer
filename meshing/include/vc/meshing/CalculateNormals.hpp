@@ -57,7 +57,7 @@ public:
     /**
      * @brief Compute vertex normals for the mesh.
      */
-    void compute();
+    ITKMesh::Pointer compute();
 
 private:
     /**

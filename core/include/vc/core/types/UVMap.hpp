@@ -131,7 +131,8 @@ public:
      *
      * For debug purposes only.
      */
-    cv::Mat drawUVMap(const cv::Scalar& color = DEFAULT_COLOR) const;
+    static cv::Mat Plot(
+        const UVMap& uv, const cv::Scalar& color = DEFAULT_COLOR);
     /**@}*/
 
 private:
