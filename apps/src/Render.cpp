@@ -273,7 +273,7 @@ int main(int argc, char* argv[])
     auto height = static_cast<size_t>(std::ceil(uvMap.ratio().height));
 
     // Generate the PPM
-    std::cout << "Generating PPM..." << std::endl;
+    std::cout << "Generating PPM (" << width << "x" << height << ")...\n";
     vc::texturing::PPMGenerator ppmGen;
     ppmGen.setMesh(itkACVD);
     ppmGen.setUVMap(uvMap);
