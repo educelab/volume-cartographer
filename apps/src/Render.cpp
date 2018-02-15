@@ -81,7 +81,7 @@ int main(int argc, char* argv[])
         ("output-ppm", po::value<std::string>(),
             "Output file path for the generated PPM.");
 
-    po::options_description meshOptions("Mesh Filtering Options");
+    po::options_description meshOptions("Meshing Options");
     meshOptions.add_options()
         ("enable-mesh-resampling", "Enable ACVD mesh resampling. Automatically "
             "enabled if the input is a Segmentation")
@@ -98,7 +98,13 @@ int main(int argc, char* argv[])
                 "  2 = After mesh resampling\n"
                 "  3 = Both before and after mesh resampling");
 
-    po::options_description filterOptions("Generic Filtering Options");
+    po::options_description flatteningOptions("Flattening & UV Options");
+    flatteningOptions.add_options()
+        ("disable-abf", "Disable ABF and use only LSCM")
+        ("rotate-uv", po::value<double>(), "Rotate the generated UV map by an "
+            "angle in degrees.");
+
+    po::options_description filterOptions("Generic Texture Filtering Options");
     filterOptions.add_options()
         ("radius,r", po::value<double>(), "Search radius. Defaults to value "
             "calculated from estimated layer thickness.")
@@ -153,6 +159,7 @@ int main(int argc, char* argv[])
     po::options_description all("Usage");
     all.add(required)
         .add(meshOptions)
+        .add(flatteningOptions)
         .add(filterOptions)
         .add(compositeOptions)
         .add(integralOptions)
@@ -289,19 +296,28 @@ int main(int argc, char* argv[])
         input = resampleMesh(input, smooth);
     }
 
-    ///// ABF flattening /////
+    ///// Flattening /////
     std::cout << "Computing parameterization..." << std::endl;
-    vc::texturing::AngleBasedFlattening abf(input);
+    vct::AngleBasedFlattening abf(input);
+    abf.setUseABF(parsed_.count("disable-abf") == 0);
     abf.compute();
 
     // Get UV map
     vc::UVMap uvMap = abf.getUVMap();
+
+    // Rotate
+    if (parsed_.count("rotate-uv") > 0) {
+        std::cout << "Rotating UV map..." << std::endl;
+        auto theta = parsed_["rotate-uv"].as<double>() * M_PI / 180.0;
+        vc::UVMap::Rotate(uvMap, theta);
+    }
+
     auto width = static_cast<size_t>(std::ceil(uvMap.ratio().width));
     auto height = static_cast<size_t>(std::ceil(uvMap.ratio().height));
 
     // Generate the PPM
     std::cout << "Generating PPM (" << width << "x" << height << ")...\n";
-    vc::texturing::PPMGenerator ppmGen;
+    vct::PPMGenerator ppmGen;
     ppmGen.setMesh(input);
     ppmGen.setUVMap(uvMap);
     ppmGen.setDimensions(height, width);
@@ -311,14 +327,14 @@ int main(int argc, char* argv[])
     vc::Texture texture;
     std::cout << "Generating Texture..." << std::endl;
     if (method == Method::Intersection) {
-        vc::texturing::IntersectionTexture textureGen;
+        vct::IntersectionTexture textureGen;
         textureGen.setVolume(volume_);
         textureGen.setPerPixelMap(ppm);
         texture = textureGen.compute();
     }
 
     else if (method == Method::Composite) {
-        vc::texturing::CompositeTexture textureGen;
+        vct::CompositeTexture textureGen;
         textureGen.setPerPixelMap(ppm);
         textureGen.setVolume(volume_);
         textureGen.setFilter(filter);
@@ -329,7 +345,7 @@ int main(int argc, char* argv[])
     }
 
     else if (method == Method::Integral) {
-        vc::texturing::IntegralTexture textureGen;
+        vct::IntegralTexture textureGen;
         textureGen.setPerPixelMap(ppm);
         textureGen.setVolume(volume_);
         textureGen.setSamplingRadius(radius);
