@@ -7,22 +7,14 @@
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <opencv2/imgcodecs.hpp>
-#include <vtkCleanPolyData.h>
 
-#include "vc/core/io/OBJWriter.hpp"
-#include "vc/core/io/PLYWriter.hpp"
+#include "vc/core/types/PerPixelMap.hpp"
 #include "vc/core/types/VolumePkg.hpp"
-#include "vc/core/util/MeshMath.hpp"
+#include "vc/core/util/MemorySizeStringParser.hpp"
 #include "vc/external/GetMemorySize.hpp"
-#include "vc/meshing/ACVD.hpp"
-#include "vc/meshing/ITK2VTK.hpp"
-#include "vc/meshing/OrderedPointSetMesher.hpp"
-#include "vc/meshing/SmoothNormals.hpp"
-#include "vc/texturing/AngleBasedFlattening.hpp"
 #include "vc/texturing/CompositeTexture.hpp"
 #include "vc/texturing/IntegralTexture.hpp"
 #include "vc/texturing/IntersectionTexture.hpp"
-#include "vc/texturing/PPMGenerator.hpp"
 
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;
@@ -99,8 +91,18 @@ int main(int argc, char* argv[])
         ("clamp-to-max", po::value<uint16_t>(), "Clamp values to the specified "
             "maximum.");
 
+    po::options_description performanceOptions("Performance Options");
+    performanceOptions.add_options()
+        ("cache-memory-limit", po::value<std::string>(), "Maximum size of the "
+            "slice cache in bytes. Accepts the suffixes: (K|M|G|T)(B). "
+            "Default: 50% of the total system memory.");
+
     po::options_description all("Usage");
-    all.add(required).add(filterOptions).add(compositeOptions).add(integralOptions);
+    all.add(required)
+            .add(filterOptions)
+            .add(compositeOptions)
+            .add(integralOptions)
+            .add(performanceOptions);
     // clang-format on
 
     // Parse the cmd line
@@ -152,8 +154,16 @@ int main(int argc, char* argv[])
         std::cerr << e.what() << std::endl;
         return EXIT_FAILURE;
     }
-    double cacheBytes = 0.75 * SystemMemorySize();
-    volume->setCacheMemoryInBytes(static_cast<size_t>(cacheBytes));
+
+    // Set the cache size
+    size_t cacheBytes;
+    if (parsed.count("cache-memory-limit")) {
+        auto cacheSizeOpt = parsed["cache-memory-limit"].as<std::string>();
+        cacheBytes = vc::MemorySizeStringParser(cacheSizeOpt);
+    } else {
+        cacheBytes = SystemMemorySize() / 2;
+    }
+    volume->setCacheMemoryInBytes(cacheBytes);
 
     ///// Get some post-vpkg loading command line arguments /////
     // Get the texturing radius. If not specified, default to a radius

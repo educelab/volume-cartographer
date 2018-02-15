@@ -15,6 +15,7 @@
 #include "vc/core/io/PLYReader.hpp"
 #include "vc/core/io/PLYWriter.hpp"
 #include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/util/MemorySizeStringParser.hpp"
 #include "vc/core/util/MeshMath.hpp"
 #include "vc/external/GetMemorySize.hpp"
 #include "vc/meshing/ACVD.hpp"
@@ -143,8 +144,19 @@ int main(int argc, char* argv[])
         ("clamp-to-max", po::value<uint16_t>(), "Clamp values to the specified "
             "maximum.");
 
+    po::options_description performanceOptions("Performance Options");
+    performanceOptions.add_options()
+        ("cache-memory-limit", po::value<std::string>(), "Maximum size of the "
+            "slice cache in bytes. Accepts the suffixes: (K|M|G|T)(B). "
+            "Default: 50% of the total system memory.");
+
     po::options_description all("Usage");
-    all.add(required).add(meshOptions).add(filterOptions).add(compositeOptions).add(integralOptions);
+    all.add(required)
+        .add(meshOptions)
+        .add(filterOptions)
+        .add(compositeOptions)
+        .add(integralOptions)
+        .add(performanceOptions);
     // clang-format on
 
     // Parse the cmd line
@@ -232,8 +244,16 @@ int main(int argc, char* argv[])
         std::cerr << e.what() << std::endl;
         return EXIT_FAILURE;
     }
-    double cacheBytes = 0.75 * SystemMemorySize();
-    volume_->setCacheMemoryInBytes(static_cast<size_t>(cacheBytes));
+
+    // Set the cache size
+    size_t cacheBytes;
+    if (parsed_.count("cache-memory-limit")) {
+        auto cacheSizeOpt = parsed_["cache-memory-limit"].as<std::string>();
+        cacheBytes = vc::MemorySizeStringParser(cacheSizeOpt);
+    } else {
+        cacheBytes = SystemMemorySize() / 2;
+    }
+    volume_->setCacheMemoryInBytes(cacheBytes);
 
     ///// Get some post-vpkg loading command line arguments /////
     // Get the texturing radius. If not specified, default to a radius

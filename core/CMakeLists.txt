@@ -31,6 +31,7 @@ set(type_srcs
 
 set(util_srcs
     src/MeshMath.cpp
+    src/MemorySizeStringParser.cpp
 )
 
 set(srcs ${io_srcs} ${shape_srcs} ${type_srcs} ${util_srcs})
