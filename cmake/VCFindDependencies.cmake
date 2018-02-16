@@ -58,6 +58,9 @@ set_target_properties(eigen3 PROPERTIES
 ### OpenCV ###
 find_package(OpenCV 3 REQUIRED)
 
+### libtiff ###
+find_package(TIFF REQUIRED)
+
 ############
 # Optional #
 ############

@@ -22,8 +22,17 @@ public:
     /** Default destructor */
     ~IntegralTexture() override = default;
 
-    /** @brief Weighting options */
-    enum class WeightType { None = 0, Linear, ExpoDiff };
+    /**
+     * @brief Weighting Methods
+     *
+     * The method by which neighborhoods are weighted prior to integration:
+     *   - None: No weighting is performed.
+     *   - Linear: Values are linearly weighted based on their position in the
+     *    neighborhood. See LinearWeightDirection for more details.
+     *   - ExpoDiff: Intensity values are exponentially weighted based on their
+     *    difference from a base intensity value.
+     */
+    enum class WeightMethod { None = 0, Linear, ExpoDiff };
 
     /**
      * @brief Linear weight direction
@@ -33,19 +42,47 @@ public:
      * values along a point's surface normal are favored.
      *
      * The weight factors for the options are as follows:
-     * - Positive: Most Positive: 1.0, Least Positive: 0.0
-     * - Negative: Most Positive: 0.0, Least Positive: 1.0
+     *   - Positive: Most Positive: 1.0, Least Positive: 0.0
+     *   - Negative: Most Positive: 0.0, Least Positive: 1.0
      */
     enum class LinearWeightDirection { Positive = 0, Negative };
 
+    /**
+     * @brief Exponential difference base calculation method
+     *
+     * The method by which the base value is calculated for Exponential
+     * Difference weighting:
+     *   - Mean: The average intensity value on the surface of the mesh
+     *   - Mode: The most frequent intensity value on the surface of the mesh
+     *   - Manual: The value specified by setExponentialDiffBaseValue()
+     */
     enum class ExpoDiffBaseMethod { Mean = 0, Mode, Manual };
 
     /**@{*/
-    void setClampValuesToMax(bool b) { clamp_to_max_ = b; }
-    void setClampMax(uint16_t m) { clamp_max_ = m; }
+    /**
+     * @brief When enabled, clamp neighborhood intensities to the value
+     * specified by setClampMax()
+     *
+     * Note: Clamping is performed prior to integration of the neighborhood
+     */
+    void setClampValuesToMax(bool b) { clampToMax_ = b; }
 
-    /** @brief Set the weighting type */
-    void setWeightType(WeightType w) { weight_ = w; }
+    /**
+     * @brief The maximum intensity value allowed in neighborhood prior to
+     * integration
+     *
+     * Ignored if setClampValuesToMax() is set to `false`
+     *
+     * Default: std::numeric_limits<uint16_t>::max()
+     */
+    void setClampMax(uint16_t m) { clampMax_ = m; }
+
+    /**
+     * @brief Set the weighting method
+     *
+     * Default: None
+     */
+    void setWeightMethod(WeightMethod w) { weight_ = w; }
 
     /**
      * @brief Set the linear weight direction
@@ -57,56 +94,100 @@ public:
         linearWeight_ = w;
     }
 
-    /** @brief Set the exponent used by Exponential Difference weighting */
+    /**
+     * @brief Set the weighting exponent used by Exponential Difference
+     * weighting
+     */
     void setExponentialDiffExponent(int e) { expoDiffExponent_ = e; }
 
+    /**
+     * @brief Set the method used to calculate the Exponential Difference base
+     * value
+     *
+     * Default: Mean
+     */
     void setExponentialDiffBaseMethod(ExpoDiffBaseMethod m)
     {
         expoDiffBaseMethod_ = m;
     }
 
-    void setExponentialDiffBase(double b) { expoDiffManualBase_ = b; }
+    /** @brief Set the base value for Exponential Difference weighting */
+    void setExponentialDiffBaseValue(double b) { expoDiffManualBase_ = b; }
 
-    void setMin() {}
-    void setMax() {}
+    /**
+     * @brief When enabled, do not integrate intensity values below the base
+     * value
+     *
+     * For exponential difference weighting only.
+     *
+     * Default: True
+     */
+    void setExponentialDiffSuppressBelowBase(bool b) { suppressBelowBase_ = b; }
     /**@}*/
 
     /**@{*/
     /** @brief Compute the Texture */
     Texture compute() override;
     /**@}*/
+
 private:
-    /** Clamp */
-    bool clamp_to_max_{false};
-    uint16_t clamp_max_{std::numeric_limits<uint16_t>::max()};
+    /** Enable/Disable clamping to maximum value */
+    bool clampToMax_{false};
 
-    /** Selected Weighting option */
-    WeightType weight_{WeightType::None};
+    /** Maximum allowed value in neighborhood when clamping is enabled */
+    uint16_t clampMax_{std::numeric_limits<uint16_t>::max()};
 
-    /** Setup the weight values */
+    /** Selected Weighting method */
+    WeightMethod weight_{WeightMethod::None};
+
+    /** Setup the selected weighting method */
     void setup_weights_();
 
-    /** Apply weights to the neighborhood */
-    std::vector<double> apply_weights_(std::vector<double>& v);
+    /** Apply the selected weighting method */
+    std::vector<double> apply_weights_(std::vector<double>& n);
 
-    /** Linear Weighting option */
+    /** Linear weighting direction */
     LinearWeightDirection linearWeight_{LinearWeightDirection::Positive};
-    std::vector<double> linearWeights_;
-    void setup_linear_weights_();
-    std::vector<double> apply_linear_weights_(std::vector<double>& v);
 
-    /** Exponential Diff option */
+    /** Linear weights vector */
+    std::vector<double> linearWeights_;
+
+    /** Setup the linear weights vector */
+    void setup_linear_weights_();
+
+    /** Apply the linear weights vector to a neighborhood */
+    std::vector<double> apply_linear_weights_(std::vector<double>& n);
+
+    /** Exponential diff exponent */
     int expoDiffExponent_{2};
+
+    /** Exponential diff base calculation method */
     ExpoDiffBaseMethod expoDiffBaseMethod_{ExpoDiffBaseMethod::Mean};
+
+    /** Manually specified exponential diff base */
     double expoDiffManualBase_{0};
+
+    /** Exponential diff base value that is used */
     double expoDiffBase_{0};
+
+    /** Whether or not to ignore values below the base value */
     bool suppressBelowBase_{true};
+
+    /** Setup the expo diff weights */
     void setup_expodiff_weights_();
-    std::vector<uint16_t> expodiff_intersection_pts();
+
+    /** Get the list of intensities on the surface of the mesh */
+    std::vector<uint16_t> expodiff_intersection_pts_();
+
+    /** Calculate the mean base value */
     double expodiff_mean_base_();
+
+    /** Calculate the mode base value */
     double expodiff_mode_base_();
-    std::vector<double> apply_expodiff_weights_(std::vector<double>& v);
+
+    /** Apply the expo diff weights to a neighborhood */
+    std::vector<double> apply_expodiff_weights_(std::vector<double>& n);
 };
 
-}  // texturing
-}  // volcart
+}  // namespace texturing
+}  // namespace volcart

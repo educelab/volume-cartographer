@@ -38,6 +38,8 @@ namespace vct = volcart::texturing;
 static constexpr int VOLPKG_SUPPORTED_VERSION = 5;
 // Square Micron to square millimeter conversion factor
 static constexpr double UM_TO_MM = 0.001 * 0.001;
+// Degrees to Radians
+static constexpr double DEG_TO_RAD = M_PI / 180.0;
 // Min. number of points required to do flattening
 static constexpr uint16_t CLEANER_MIN_REQ_POINTS = 100;
 
@@ -101,8 +103,10 @@ int main(int argc, char* argv[])
     po::options_description flatteningOptions("Flattening & UV Options");
     flatteningOptions.add_options()
         ("disable-abf", "Disable ABF and use only LSCM")
-        ("rotate-uv", po::value<double>(), "Rotate the generated UV map by an "
-            "angle in degrees.");
+        ("uv-rotate", po::value<double>(), "Rotate the generated UV map by an "
+            "angle in degrees.")
+        ("uv-plot", po::value<std::string>(), "Plot the UV map and save "
+            "it to the provided image path.");
 
     po::options_description filterOptions("Generic Texture Filtering Options");
     filterOptions.add_options()
@@ -261,6 +265,10 @@ int main(int argc, char* argv[])
         cacheBytes = SystemMemorySize() / 2;
     }
     volume_->setCacheMemoryInBytes(cacheBytes);
+    std::cout << "Volume Cache :: ";
+    std::cout << "Capacity: " << volume_->getCacheCapacity() << " || ";
+    std::cout << "Size: " << vc::BytesToMemorySizeString(cacheBytes);
+    std::cout << std::endl;
 
     ///// Get some post-vpkg loading command line arguments /////
     // Get the texturing radius. If not specified, default to a radius
@@ -275,11 +283,13 @@ int main(int argc, char* argv[])
     // Generic texturing options
     auto interval = parsed_["interval"].as<double>();
     auto direction = static_cast<vc::Direction>(parsed_["direction"].as<int>());
+
+    ///// Composite options /////
     auto filter = static_cast<vc::texturing::CompositeTexture::Filter>(
         parsed_["filter"].as<int>());
 
-    // Integral options
-    auto weightType = static_cast<vct::IntegralTexture::WeightType>(
+    ///// Integral options /////
+    auto weightType = static_cast<vct::IntegralTexture::WeightMethod>(
         parsed_["weight-type"].as<int>());
     auto weightDirection =
         static_cast<vct::IntegralTexture::LinearWeightDirection>(
@@ -306,16 +316,23 @@ int main(int argc, char* argv[])
     vc::UVMap uvMap = abf.getUVMap();
 
     // Rotate
-    if (parsed_.count("rotate-uv") > 0) {
-        std::cout << "Rotating UV map..." << std::endl;
-        auto theta = parsed_["rotate-uv"].as<double>() * M_PI / 180.0;
+    if (parsed_.count("uv-rotate") > 0) {
+        auto theta = parsed_["uv-rotate"].as<double>();
+        std::cout << "Rotating UV map " << theta << " degrees..." << std::endl;
+        theta *= DEG_TO_RAD;
         vc::UVMap::Rotate(uvMap, theta);
     }
 
-    auto width = static_cast<size_t>(std::ceil(uvMap.ratio().width));
-    auto height = static_cast<size_t>(std::ceil(uvMap.ratio().height));
+    // Plot the UV Map
+    if (parsed_.count("uv-plot") > 0) {
+        std::cout << "Saving UV plot..." << std::endl;
+        fs::path uvPlotPath = parsed_["uv-plot"].as<std::string>();
+        cv::imwrite(uvPlotPath.string(), vc::UVMap::Plot(uvMap));
+    }
 
     // Generate the PPM
+    auto width = static_cast<size_t>(std::ceil(uvMap.ratio().width));
+    auto height = static_cast<size_t>(std::ceil(uvMap.ratio().height));
     std::cout << "Generating PPM (" << width << "x" << height << ")...\n";
     vct::PPMGenerator ppmGen;
     ppmGen.setMesh(input);
@@ -326,6 +343,25 @@ int main(int argc, char* argv[])
     ///// Generate texture /////
     vc::Texture texture;
     std::cout << "Generating Texture..." << std::endl;
+
+    // Report selected generic options
+    std::cout << "Neighborhood Parameters :: ";
+    if (method == Method::Intersection) {
+        std::cout << "Intersection";
+    } else {
+        std::cout << "Radius: " << radius << " || ";
+        std::cout << "Sampling Interval: " << interval << " || ";
+        std::cout << "Direction: ";
+        if (direction == vc::Direction::Positive) {
+            std::cout << "Positive";
+        } else if (direction == vc::Direction::Negative) {
+            std::cout << "Negative";
+        } else {
+            std::cout << "Both";
+        }
+    }
+    std::cout << std::endl;
+
     if (method == Method::Intersection) {
         vct::IntersectionTexture textureGen;
         textureGen.setVolume(volume_);
@@ -351,11 +387,11 @@ int main(int argc, char* argv[])
         textureGen.setSamplingRadius(radius);
         textureGen.setSamplingInterval(interval);
         textureGen.setSamplingDirection(direction);
-        textureGen.setWeightType(weightType);
+        textureGen.setWeightMethod(weightType);
         textureGen.setLinearWeightDirection(weightDirection);
         textureGen.setExponentialDiffExponent(weightExponent);
         textureGen.setExponentialDiffBaseMethod(expoDiffBaseMethod);
-        textureGen.setExponentialDiffBase(expoDiffBase);
+        textureGen.setExponentialDiffBaseValue(expoDiffBase);
         textureGen.setClampValuesToMax(clampToMax);
         if (clampToMax) {
             textureGen.setClampMax(parsed_["clamp-to-max"].as<uint16_t>());

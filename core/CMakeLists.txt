@@ -7,6 +7,7 @@ set(io_srcs
     src/OBJWriter.cpp
     src/PLYReader.cpp
     src/PLYWriter.cpp
+    src/TIFFIO.cpp
 )
 
 set(shape_srcs
@@ -57,6 +58,8 @@ target_link_libraries(${target}
         vtkCommonCore
         vtkIOLegacy
         VC::external
+    PRIVATE
+        TIFF::TIFF
 )
 set_target_properties(${target} PROPERTIES
     VERSION "${PROJECT_VERSION}"

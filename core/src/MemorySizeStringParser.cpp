@@ -11,6 +11,7 @@ static constexpr size_t BYTES_PER_TB = BYTES_PER_GB * 1024;
 
 size_t volcart::MemorySizeStringParser(const std::string& s)
 {
+    // Regex patterns. Stored as string for easy concatenation.
     std::string numRE{"^[0-9]+"};
     std::string multRE{"(K|M|G|T)?B?$"};
 
@@ -52,5 +53,38 @@ size_t volcart::MemorySizeStringParser(const std::string& s)
     // Bytes
     else {
         return value;
+    }
+}
+
+std::string volcart::BytesToMemorySizeString(
+    size_t bytes, const std::string& suffix)
+{
+    // Return value / multiplier
+    // TB
+    if (suffix == "T" || suffix == "t") {
+        return std::to_string(bytes / BYTES_PER_TB) + "TB";
+    }
+
+    // GB
+    else if (suffix == "G" || suffix == "g") {
+        return std::to_string(bytes / BYTES_PER_GB) + "GB";
+    }
+
+    // MB
+    else if (suffix == "M" || suffix == "m") {
+        return std::to_string(bytes / BYTES_PER_MB) + "MB";
+    }
+
+    // KB
+    else if (suffix == "K" || suffix == "k") {
+        return std::to_string(bytes / BYTES_PER_KB) + "KB";
+    }
+
+    else if (suffix == "B" || suffix == "b") {
+        return std::to_string(bytes) + "B";
+    }
+
+    else {
+        throw std::domain_error("Unrecognized suffix: " + suffix);
     }
 }

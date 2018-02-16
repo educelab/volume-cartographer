@@ -45,10 +45,10 @@ Texture IntegralTexture::compute()
                 xyz, xyzNorm, radius_, interval_, direction_);
 
             // Clamp values
-            if (clamp_to_max_) {
+            if (clampToMax_) {
                 std::replace_if(
                     neighborhood.begin(), neighborhood.end(),
-                    [this](uint16_t v) { return v > clamp_max_; }, clamp_max_);
+                    [this](uint16_t v) { return v > clampMax_; }, clampMax_);
             }
 
             // Convert to double and weight the neighborhood
@@ -81,11 +81,11 @@ Texture IntegralTexture::compute()
 void IntegralTexture::setup_weights_()
 {
     switch (weight_) {
-        case WeightType::None:
+        case WeightMethod::None:
             return;
-        case WeightType::Linear:
+        case WeightMethod::Linear:
             return setup_linear_weights_();
-        case WeightType::ExpoDiff:
+        case WeightMethod::ExpoDiff:
             return setup_expodiff_weights_();
     }
 }
@@ -93,11 +93,11 @@ void IntegralTexture::setup_weights_()
 DoublesVec IntegralTexture::apply_weights_(DoublesVec& n)
 {
     switch (weight_) {
-        case WeightType::None:
+        case WeightMethod::None:
             return n;
-        case WeightType::Linear:
+        case WeightMethod::Linear:
             return apply_linear_weights_(n);
-        case WeightType::ExpoDiff:
+        case WeightMethod::ExpoDiff:
             return apply_expodiff_weights_(n);
     }
 }
@@ -156,14 +156,14 @@ void IntegralTexture::setup_expodiff_weights_()
     }
 }
 
-std::vector<uint16_t> IntegralTexture::expodiff_intersection_pts()
+std::vector<uint16_t> IntegralTexture::expodiff_intersection_pts_()
 {
     // Get all of the intensity values
     std::vector<uint16_t> values;
-    auto height = static_cast<int>(ppm_.height());
-    auto width = static_cast<int>(ppm_.width());
-    for (int y = 0; y < height; ++y) {
-        for (int x = 0; x < width; ++x) {
+    auto height = ppm_.height();
+    auto width = ppm_.width();
+    for (size_t y = 0; y < height; ++y) {
+        for (size_t x = 0; x < width; ++x) {
             // Skip this pixel if we have no mapping
             if (!ppm_.hasMapping(y, x)) {
                 continue;
@@ -183,7 +183,7 @@ std::vector<uint16_t> IntegralTexture::expodiff_intersection_pts()
 double IntegralTexture::expodiff_mean_base_()
 {
     // Get intersection points
-    auto values = expodiff_intersection_pts();
+    auto values = expodiff_intersection_pts_();
 
     // Calculate the mean
     size_t n = 0;
@@ -199,7 +199,7 @@ double IntegralTexture::expodiff_mean_base_()
 double IntegralTexture::expodiff_mode_base_()
 {
     // Get intersection points
-    auto values = expodiff_intersection_pts();
+    auto values = expodiff_intersection_pts_();
 
     // Generate a histogram
     std::map<uint16_t, int> histogram;
@@ -226,8 +226,9 @@ DoublesVec IntegralTexture::apply_expodiff_weights_(std::vector<double>& n)
 {
     std::vector<double> weighted;
     for (const auto& val : n) {
-        if (suppressBelowBase_ && expoDiffBase_ >= val)
+        if (suppressBelowBase_ && expoDiffBase_ >= val) {
             continue;
+        }
         double diff = std::abs(val - expoDiffBase_);
         weighted.emplace_back(std::pow(diff, expoDiffExponent_));
     }

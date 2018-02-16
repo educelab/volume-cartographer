@@ -164,6 +164,10 @@ int main(int argc, char* argv[])
         cacheBytes = SystemMemorySize() / 2;
     }
     volume->setCacheMemoryInBytes(cacheBytes);
+    std::cout << "Volume Cache :: ";
+    std::cout << "Capacity: " << volume->getCacheCapacity() << " || ";
+    std::cout << "Size: " << vc::BytesToMemorySizeString(cacheBytes);
+    std::cout << std::endl;
 
     ///// Get some post-vpkg loading command line arguments /////
     // Get the texturing radius. If not specified, default to a radius
@@ -177,11 +181,13 @@ int main(int argc, char* argv[])
 
     auto interval = parsed["interval"].as<double>();
     auto direction = static_cast<vc::Direction>(parsed["direction"].as<int>());
+
+    ///// Composite options /////
     auto filter = static_cast<vc::texturing::CompositeTexture::Filter>(
         parsed["filter"].as<int>());
 
-    // Integral options
-    auto weightType = static_cast<vct::IntegralTexture::WeightType>(
+    ///// Integral options /////
+    auto weightType = static_cast<vct::IntegralTexture::WeightMethod>(
         parsed["weight-type"].as<int>());
     auto weightDirection =
         static_cast<vct::IntegralTexture::LinearWeightDirection>(
@@ -200,6 +206,25 @@ int main(int argc, char* argv[])
     ///// Generate texture /////
     vc::Texture texture;
     std::cout << "Generating Texture..." << std::endl;
+
+    // Report selected generic options
+    std::cout << "Neighborhood Parameters :: ";
+    if (method == Method::Intersection) {
+        std::cout << "Intersection";
+    } else {
+        std::cout << "Radius: " << radius << " || ";
+        std::cout << "Sampling Interval: " << interval << " || ";
+        std::cout << "Direction: ";
+        if (direction == vc::Direction::Positive) {
+            std::cout << "Positive";
+        } else if (direction == vc::Direction::Negative) {
+            std::cout << "Negative";
+        } else {
+            std::cout << "Both";
+        }
+    }
+    std::cout << std::endl;
+
     if (method == Method::Intersection) {
         vc::texturing::IntersectionTexture textureGen;
         textureGen.setVolume(volume);
@@ -225,11 +250,11 @@ int main(int argc, char* argv[])
         textureGen.setSamplingRadius(radius);
         textureGen.setSamplingInterval(interval);
         textureGen.setSamplingDirection(direction);
-        textureGen.setWeightType(weightType);
+        textureGen.setWeightMethod(weightType);
         textureGen.setLinearWeightDirection(weightDirection);
         textureGen.setExponentialDiffExponent(weightExponent);
         textureGen.setExponentialDiffBaseMethod(expoDiffBaseMethod);
-        textureGen.setExponentialDiffBase(expoDiffBase);
+        textureGen.setExponentialDiffBaseValue(expoDiffBase);
         textureGen.setClampValuesToMax(clampToMax);
         if (clampToMax) {
             textureGen.setClampMax(parsed["clamp-to-max"].as<uint16_t>());
