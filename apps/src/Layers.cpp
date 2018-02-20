@@ -48,9 +48,7 @@ int main(int argc, char* argv[])
             "Volume to use for texturing. Default: Segmentation's associated "
             "volume or the first volume in the volume package.")
         ("output-dir,o", po::value<std::string>()->required(),
-            "Output directory for layer images.")
-        ("output-ppm", po::value<std::string>(),
-            "Output file path for the generated PPM.");
+            "Output directory for layer images.");
 
     po::options_description filterOptions("Generic Filtering Options");
     filterOptions.add_options()
@@ -221,13 +219,6 @@ int main(int argc, char* argv[])
     for (size_t i = 0; i < texture.numberOfImages(); ++i) {
         auto filepath = outputPath / (std::to_string(i) + ".png");
         cv::imwrite(filepath.string(), texture.image(i));
-    }
-
-    // Save the PPM
-    if (parsed.count("output-ppm")) {
-        std::cout << "Writing PPM..." << std::endl;
-        fs::path ppmPath = parsed["output-ppm"].as<std::string>();
-        vc::PerPixelMap::WritePPM(ppmPath, ppm);
     }
 
     return EXIT_SUCCESS;

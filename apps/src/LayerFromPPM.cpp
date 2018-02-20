@@ -32,9 +32,7 @@ int main(int argc, char* argv[])
             "Volume to use for texturing. Default: The first volume in the "
             "volume package.")
         ("output-dir,o", po::value<std::string>()->required(),
-            "Output directory for layer images.")
-        ("output-ppm", po::value<std::string>(),
-            "Output file path for the generated PPM.");
+            "Output directory for layer images.");
 
     po::options_description filterOptions("Generic Filtering Options");
     filterOptions.add_options()

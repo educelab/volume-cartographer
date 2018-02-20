@@ -542,7 +542,7 @@ public:
      */
     Neighborhood getVoxelNeighborsLinearInterpolated(
         const cv::Vec3d& center,
-        cv::Vec3d majorAxis,
+        const cv::Vec3d& majorAxis,
         double radius,
         double interval,
         Direction direction = Direction::Bidirectional) const;
@@ -579,4 +579,4 @@ private:
     cv::Mat_<double> gradient_(
         const cv::Mat_<double>& input, Axis axis, int32_t ksize) const;
 };
-}
+}  // namespace volcart

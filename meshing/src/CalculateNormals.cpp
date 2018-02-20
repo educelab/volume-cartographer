@@ -1,6 +1,7 @@
 /** @file CalculateNormals.cpp */
 #include "vc/meshing/CalculateNormals.hpp"
 
+using namespace volcart;
 using namespace volcart::meshing;
 
 ///// Input/Output /////
@@ -12,10 +13,12 @@ void CalculateNormals::setMesh(const ITKMesh::Pointer& mesh)
 }
 
 ///// Processing /////
-void CalculateNormals::compute()
+ITKMesh::Pointer CalculateNormals::compute()
 {
     compute_normals_();
     assign_to_mesh_();
+
+    return output_;
 }
 
 void CalculateNormals::compute_normals_()

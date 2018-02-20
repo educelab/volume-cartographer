@@ -1,6 +1,6 @@
 #pragma once
 
-#include <unordered_map>
+#include <map>
 
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
@@ -131,12 +131,21 @@ public:
      *
      * For debug purposes only.
      */
-    cv::Mat drawUVMap(const cv::Scalar& color = DEFAULT_COLOR) const;
+    static cv::Mat Plot(
+        const UVMap& uv, const cv::Scalar& color = DEFAULT_COLOR);
+
+    /**
+     * @brief Rotate the UVMap by a specified angle in radians
+     *
+     * Rotation is performed in UV space, relative to `center` position
+     */
+    static void Rotate(
+        UVMap& uv, double theta, const cv::Vec2d& center = {0.5, 0.5});
     /**@}*/
 
 private:
     /** UV storage */
-    std::unordered_map<size_t, cv::Vec2d> map_;
+    std::map<size_t, cv::Vec2d> map_;
     /** Origin for set and get functions */
     Origin origin_;
     /** Aspect ratio */
