@@ -138,6 +138,7 @@ install(
         vc_packager
         vc_segment
         vc_render
+        vc_render_from_ppm
         vc_projection
         vc_volpkg_explorer
     RUNTIME DESTINATION bin
