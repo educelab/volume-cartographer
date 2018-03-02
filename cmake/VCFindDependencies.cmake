@@ -21,13 +21,13 @@ set(VC_BOOST_COMPONENTS
     iostreams
     unit_test_framework
 )
-find_package(Boost REQUIRED COMPONENTS ${VC_BOOST_COMPONENTS})
+find_package(Boost 1.58 REQUIRED COMPONENTS ${VC_BOOST_COMPONENTS})
 if (VC_PREBUILT_LIBS)
     set(Boost_USE_STATIC_LIBS on)
 endif()
 
 ### Qt5 ###
-find_package(Qt5 QUIET REQUIRED COMPONENTS Widgets Gui Core)
+find_package(Qt5 5.7 QUIET REQUIRED COMPONENTS Widgets Gui Core)
 
 ### ITK ###
 find_package(ITK 4.10 QUIET REQUIRED)
@@ -49,7 +49,7 @@ include_directories(SYSTEM ${VTK_INCLUDE_DIRS})
 ### Eigen ###
 # XXX libigl requires Eigen 3.2.x, which doesn't support namespaced targets and
 # transitively-included dependencies, so make it into a target
-find_package(Eigen3 QUIET REQUIRED)
+find_package(Eigen3 3.2.0 QUIET REQUIRED)
 add_library(eigen3 INTERFACE IMPORTED)
 set_target_properties(eigen3 PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES ${EIGEN3_INCLUDE_DIR}
@@ -59,7 +59,7 @@ set_target_properties(eigen3 PROPERTIES
 find_package(OpenCV 3 REQUIRED)
 
 ### libtiff ###
-find_package(TIFF REQUIRED)
+find_package(TIFF 4.0 REQUIRED)
 
 ############
 # Optional #
