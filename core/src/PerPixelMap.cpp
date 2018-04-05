@@ -34,11 +34,18 @@ void PerPixelMap::setHeight(size_t h)
     initialize_map_();
 }
 
+// Sort and return valid mappings
 std::vector<PPM::PixelMap> PerPixelMap::getSortedMappings(size_t sortElement)
 {
+    // Sort element must be in proper range
+    if (sortElement > 2) {
+        throw std::invalid_argument("Sort element not in range [0-2]");
+    }
 
+    // Output vector
     std::vector<PixelMap> mappings;
 
+    // For each pixel...
     for (int y = 0; y < static_cast<int>(height_); ++y) {
         for (int x = 0; x < static_cast<int>(width_); ++x) {
             // Skip this pixel if we have no mapping
@@ -51,6 +58,7 @@ std::vector<PPM::PixelMap> PerPixelMap::getSortedMappings(size_t sortElement)
         }
     }
 
+    // Sort by the specified sortElement
     std::sort(
         mappings.begin(), mappings.end(),
         [sortElement](const PixelMap& lhs, const PixelMap& rhs) {
