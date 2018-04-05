@@ -14,21 +14,15 @@ Texture IntersectionTexture::compute()
     auto height = static_cast<int>(ppm_.height());
     auto width = static_cast<int>(ppm_.width());
 
-    cv::Mat image = cv::Mat::zeros(height, width, CV_16UC1);
-    for (int y = 0; y < height; ++y) {
-        for (int x = 0; x < width; ++x) {
-            // Skip this pixel if we have no mapping
-            if (!ppm_.hasMapping(y, x)) {
-                continue;
-            }
+    // Output image
+    cv::Mat image = cv::Mat::zeros(height, width, CV_64FC1);
 
-            // Find the xyz coordinate of the original point
-            auto p = ppm_(y, x);
-
-            // Assign the intensity value at the XY position
-            image.at<uint16_t>(y, x) =
-                vol_->interpolatedIntensityAt(p[0], p[1], p[2]);
-        }
+    // Iterate through the mappings
+    auto mappings = ppm_.getSortedMappings();
+    for (const auto& pixel : mappings) {
+        // Assign the intensity value at the XY position
+        image.at<uint16_t>(pixel.y, pixel.x) =
+            vol_->interpolatedIntensityAt(pixel.pos);
     }
 
     // Set output

@@ -44,6 +44,30 @@ namespace volcart
 class PerPixelMap
 {
 public:
+    /** Convenience structure for a single pixel's mapping information */
+    struct PixelMap {
+        /** Default constructor */
+        PixelMap() = default;
+
+        /** Construct and initialize */
+        PixelMap(int x, int y, cv::Vec6d value)
+            : x{x}
+            , y{y}
+            , pos{value[0], value[1], value[2]}
+            , normal{value[3], value[4], value[5]}
+        {
+        }
+
+        /** PPM Pixel position X */
+        int x{0};
+        /** PPM Pixel position Y */
+        int y{0};
+        /** Mapped Volume position */
+        cv::Vec3d pos;
+        /** Surface normal at mapped Volume position */
+        cv::Vec3d normal;
+    };
+
     /**@{*/
     /** @brief Default constructor */
     PerPixelMap() = default;
@@ -86,6 +110,16 @@ public:
 
         return mask_.at<uint8_t>(y, x) == 255;
     }
+
+    /**
+     * @brief Get all valid pixel mappings as a sorted list of PixelMap
+     *
+     * Uses hasMapping() to determine which pixels in the PPM are valid. The
+     * resulting list is then sorted using an element of the stored position
+     * value. The `sortElement` should be 0, 1, or 2, which correspond to X, Y,
+     * and Z respectively.
+     */
+    std::vector<PixelMap> getSortedMappings(size_t sortElement = 2);
     /**@}*/
 
     /**@{*/

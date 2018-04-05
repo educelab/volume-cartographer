@@ -20,7 +20,7 @@ class IntersectionTexture : public TexturingAlgorithmBaseClass
 {
 public:
     /** Default destructor */
-    ~IntersectionTexture() = default;
+    ~IntersectionTexture() override = default;
 
     /**@{*/
     /** @brief Compute the Texture */
