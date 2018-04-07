@@ -21,10 +21,18 @@ Texture CompositeTexture::compute()
     auto width = static_cast<int>(ppm_.width());
 
     // Output image
-    cv::Mat image = cv::Mat::zeros(height, width, CV_64FC1);
+    cv::Mat image = cv::Mat::zeros(height, width, CV_16UC1);
+
+    // Get the mappings
+    auto mappings = ppm_.getMappings();
+
+    // Sort the mappings by Z-value
+    std::sort(
+        mappings.begin(), mappings.end(), [](const auto& lhs, const auto& rhs) {
+            return lhs.pos[2] < rhs.pos[2];
+        });
 
     // Iterate through the mappings
-    auto mappings = ppm_.getSortedMappings();
     for (const auto& pixel : mappings) {
         // Generate the neighborhood
         auto neighborhood = vol_->getVoxelNeighborsLinearInterpolated(

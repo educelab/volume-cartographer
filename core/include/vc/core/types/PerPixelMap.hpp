@@ -112,14 +112,11 @@ public:
     }
 
     /**
-     * @brief Get all valid pixel mappings as a sorted list of PixelMap
+     * @brief Get all valid pixel mappings as a list of PixelMap
      *
-     * Uses hasMapping() to determine which pixels in the PPM are valid. The
-     * resulting list is then sorted using an element of the stored position
-     * value. The `sortElement` should be 0, 1, or 2, which correspond to X, Y,
-     * and Z respectively.
+     * Uses hasMapping() to determine which pixels in the PPM are valid.
      */
-    std::vector<PixelMap> getSortedMappings(size_t sortElement = 2);
+    std::vector<PixelMap> getMappings();
     /**@}*/
 
     /**@{*/
