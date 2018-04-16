@@ -30,6 +30,18 @@ add_executable(vc_volpkg_v4to5 src/Volpkg4to5.cpp)
 target_link_libraries(vc_volpkg_v4to5 VC::core)
 set(utils_install_list ${utils_install_list} vc_volpkg_v4to5)
 
+# vc_flip_mesh
+add_executable(vc_flip_mesh src/FlipMesh.cpp)
+target_link_libraries(vc_flip_mesh VC::core Boost::filesystem Boost::program_options)
+
+# vc_flip_uv
+add_executable(vc_flip_uv src/FlipUV.cpp)
+target_link_libraries(vc_flip_uv VC::core Boost::filesystem Boost::program_options)
+
+# vc_retexture_mesh
+add_executable(vc_retexture_mesh src/RetextureMesh.cpp)
+target_link_libraries(vc_retexture_mesh VC::core Boost::filesystem Boost::program_options)
+
 # Install targets
 if(VC_INSTALL_UTILS)
 install(

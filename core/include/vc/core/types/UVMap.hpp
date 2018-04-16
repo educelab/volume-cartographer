@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <memory>
 
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
@@ -44,6 +45,9 @@ const static cv::Vec2d NULL_MAPPING{-1, -1};
 class UVMap
 {
 public:
+    /** Pointer type */
+    using Pointer = std::shared_ptr<UVMap>;
+
     /** Origin corner position enumeration */
     enum class Origin { TopLeft, TopRight, BottomLeft, BottomRight };
 
@@ -53,8 +57,17 @@ public:
     };
 
     /**@{*/
+    /** @brief Default constructor */
+    UVMap() = default;
+
     /** @brief Construct and set origin */
-    explicit UVMap(Origin o = Origin::TopLeft) : origin_{o} {}
+    explicit UVMap(Origin o) : origin_{o} {}
+
+    /** @copydoc UVMap() */
+    static Pointer New() { return std::make_shared<UVMap>(); }
+
+    /** @copydoc UVMap(Origin o) */
+    static Pointer New(Origin o) { return std::make_shared<UVMap>(o); }
     /**@}*/
 
     /**@{*/
@@ -126,6 +139,9 @@ public:
     /**@{*/
     const static cv::Scalar DEFAULT_COLOR;
 
+    /** Flipping axis enumeration */
+    enum class FlipAxis { Vertical = 0, Horizontal, Both };
+
     /**
      * @brief Plot the UV points on an image
      *
@@ -135,19 +151,23 @@ public:
         const UVMap& uv, const cv::Scalar& color = DEFAULT_COLOR);
 
     /**
-     * @brief Rotate the UVMap by a specified angle in radians
+     * @brief Rotate a UVMap by a specified angle in radians
      *
-     * Rotation is performed in UV space, relative to `center` position
+     * Rotation is performed in UV space and is counter-clockwise relative to
+     * `center` position
      */
     static void Rotate(
         UVMap& uv, double theta, const cv::Vec2d& center = {0.5, 0.5});
+
+    /** @brief Flip a UVMap across one or both of its axes */
+    static void Flip(UVMap& uv, FlipAxis axis);
     /**@}*/
 
 private:
     /** UV storage */
     std::map<size_t, cv::Vec2d> map_;
     /** Origin for set and get functions */
-    Origin origin_;
+    Origin origin_{Origin::TopLeft};
     /** Aspect ratio */
     Ratio ratio_;
 
