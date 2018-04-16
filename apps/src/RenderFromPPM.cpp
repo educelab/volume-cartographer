@@ -176,7 +176,7 @@ int main(int argc, char* argv[])
     if (parsed.count("radius")) {
         radius = parsed["radius"].as<double>();
     } else {
-        radius = vpkg.materialThickness() / volume->voxelSize();
+        radius = vpkg.materialThickness() / 2 / volume->voxelSize();
     }
 
     auto interval = parsed["interval"].as<double>();

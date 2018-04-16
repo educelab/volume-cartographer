@@ -5,16 +5,14 @@ using namespace volcart;
 using namespace volcart::meshing;
 
 ///// Input/Output /////
-void CalculateNormals::setMesh(const ITKMesh::Pointer& mesh)
-{
-    input_ = mesh;
-    output_ = ITKMesh::New();
-    DeepCopy(input_, output_);
-}
+void CalculateNormals::setMesh(const ITKMesh::Pointer& mesh) { input_ = mesh; }
 
 ///// Processing /////
 ITKMesh::Pointer CalculateNormals::compute()
 {
+    output_ = ITKMesh::New();
+    DeepCopy(input_, output_);
+
     compute_normals_();
     assign_to_mesh_();
 
