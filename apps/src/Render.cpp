@@ -109,6 +109,13 @@ int main(int argc, char* argv[])
         ("disable-abf", "Disable ABF and use only LSCM")
         ("uv-rotate", po::value<double>(), "Rotate the generated UV map by an "
             "angle in degrees.")
+        ("uv-flip", po::value<int>(),
+            "Flip the UV map along an axis. If uv-rotate is specified, flip is "
+            "performed after rotation.\n"
+            "Axis along which to flip:\n"
+                "  0 = Vertical\n"
+                "  1 = Horizontal\n"
+                "  2 = Both")
         ("uv-plot", po::value<std::string>(), "Plot the UV map and save "
             "it to the provided image path.");
 
@@ -337,6 +344,14 @@ int main(int argc, char* argv[])
         std::cout << "Rotating UV map " << theta << " degrees..." << std::endl;
         theta *= DEG_TO_RAD;
         vc::UVMap::Rotate(uvMap, theta);
+    }
+
+    // Flip
+    if (parsed_.count("uv-flip") > 0) {
+        auto axis =
+            static_cast<vc::UVMap::FlipAxis>(parsed_["uv-flip"].as<int>());
+        std::cout << "Flipping UV map..." << std::endl;
+        vc::UVMap::Flip(uvMap, axis);
     }
 
     // Plot the UV Map

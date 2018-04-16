@@ -148,3 +148,20 @@ void UVMap::Rotate(UVMap& uv, double theta, const cv::Vec2d& center)
         row++;
     }
 }
+
+void UVMap::Flip(UVMap& uv, FlipAxis axis)
+{
+    for (auto& p : uv.map_) {
+        switch (axis) {
+            case FlipAxis::Horizontal:
+                p.second[0] = 1 - p.second[0];
+                continue;
+            case FlipAxis::Vertical:
+                p.second[1] = 1 - p.second[1];
+                continue;
+            case FlipAxis::Both:
+                p.second = cv::Vec2d{1, 1} - p.second;
+                continue;
+        }
+    }
+}
