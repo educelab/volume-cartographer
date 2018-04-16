@@ -11,7 +11,9 @@
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
+#include <vtkAppendPolyData.h>
 #include <vtkCell.h>
+#include <vtkCleanPolyData.h>
 #include <vtkCutter.h>
 #include <vtkPlane.h>
 #include <vtkSmartPointer.h>
@@ -42,8 +44,9 @@ int main(int argc, char* argv[])
     po::options_description required("General Options");
     required.add_options()
             ("help,h", "Show this message")
-            ("input-mesh,i", po::value<std::string>()->required(),
-                 "OBJ mesh to project onto the volume")
+            ("input-mesh,i", po::value<std::vector<std::string>>()->required(),
+                 "OBJ mesh to project onto the volume. Can be specified "
+                 "multiple times.")
             ("volpkg,v", po::value<std::string>()->required(), "VolumePkg path")
             ("volume", po::value<std::string>(),
                  "Volume to use for texturing. Default: First volume")
@@ -83,7 +86,7 @@ int main(int argc, char* argv[])
     }
 
     // Get options
-    fs::path meshPath = parsed["input-mesh"].as<std::string>();
+    auto meshPaths = parsed["input-mesh"].as<std::vector<std::string>>();
     fs::path volpkgPath = parsed["volpkg"].as<std::string>();
     fs::path outputDir = parsed["output-dir"].as<std::string>();
     auto intersectOnly = parsed.count("intersect-only") > 0;
@@ -129,15 +132,39 @@ int main(int argc, char* argv[])
     auto height = volume->sliceHeight();
     auto padding = static_cast<int>(std::to_string(volume->numSlices()).size());
 
-    // Get Mesh
-    std::cout << "Loading mesh..." << std::endl;
+    // Get meshes
+    std::cout << "Loading meshes..." << std::endl;
     vc::io::OBJReader reader;
-    reader.setPath(meshPath);
-    auto mesh = reader.read();
-    auto vtkMesh = vtkSmartPointer<vtkPolyData>::New();
-    vc::meshing::ITK2VTK(mesh, vtkMesh);
+    std::vector<vtkSmartPointer<vtkPolyData>> meshes;
+    for (const auto& p : meshPaths) {
+        reader.setPath(p);
+        auto mesh = reader.read();
+        auto vtkMesh = vtkSmartPointer<vtkPolyData>::New();
+        vc::meshing::ITK2VTK(mesh, vtkMesh);
+        meshes.push_back(vtkMesh);
+    }
 
-    // Setup plane
+    // Combine meshes if we have multiple
+    vtkSmartPointer<vtkPolyData> vtkMesh;
+    if (meshes.size() > 1) {
+        // Append all of the meshes into a single polydata
+        auto append = vtkSmartPointer<vtkAppendPolyData>::New();
+        for (auto& m : meshes) {
+            append->AddInputData(m);
+        }
+        append->Update();
+
+        // Clean it up
+        auto cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
+        cleaner->SetInputConnection(append->GetOutputPort());
+        cleaner->Update();
+
+        vtkMesh = cleaner->GetOutput();
+    } else {
+        vtkMesh = meshes[0];
+    }
+
+    // Setup intersection plane
     vtkSmartPointer<vtkPlane> cutPlane = vtkSmartPointer<vtkPlane>::New();
     cutPlane->SetOrigin(width / 2, height / 2, 0);
     cutPlane->SetNormal(0, 0, 1);
