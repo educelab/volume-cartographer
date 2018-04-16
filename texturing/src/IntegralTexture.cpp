@@ -9,9 +9,6 @@
 
 #include <opencv2/core.hpp>
 
-constexpr static uint16_t MAX_INTENSITY_16BPC =
-    std::numeric_limits<uint16_t>::max();
-
 using namespace volcart;
 using namespace volcart::texturing;
 
@@ -64,12 +61,7 @@ Texture IntegralTexture::compute()
         image.at<double>(pixel.y, pixel.x) = value;
     }
 
-    // Scale to uint16_t
-    double min, max;
-    cv::minMaxLoc(image, &min, &max);
-    image.convertTo(
-        image, CV_16U, MAX_INTENSITY_16BPC / (max - min),
-        -min * MAX_INTENSITY_16BPC / (max - min));
+    cv::normalize(image, image, 0.0, 1.0, cv::NORM_MINMAX);
 
     // Set output
     result_.addImage(image);

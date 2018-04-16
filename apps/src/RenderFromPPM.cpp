@@ -8,9 +8,12 @@
 #include <boost/program_options.hpp>
 #include <opencv2/imgcodecs.hpp>
 
+#include "vc/core/io/FileExtensionFilter.hpp"
+#include "vc/core/io/TIFFIO.hpp"
 #include "vc/core/types/PerPixelMap.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/MemorySizeStringParser.hpp"
+#include "vc/core/util/QuantizeImage.hpp"
 #include "vc/external/GetMemorySize.hpp"
 #include "vc/texturing/CompositeTexture.hpp"
 #include "vc/texturing/IntegralTexture.hpp"
@@ -20,6 +23,9 @@ namespace fs = boost::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
 namespace vct = volcart::texturing;
+
+// File loading
+auto ExtFilter = &vc::io::FileExtensionFilter;
 
 // Volpkg version required by this app
 static constexpr int VOLPKG_SUPPORTED_VERSION = 5;
@@ -43,7 +49,9 @@ int main(int argc, char* argv[])
         ("volume", po::value<std::string>(),
             "Volume to use for texturing. Default: First volume.")
         ("output-file,o", po::value<std::string>()->required(),
-            "Output image file path.");
+            "Output image file path.")
+        ("tiff-floating-point", "When outputting to the TIFF format, save a "
+            "floating-point image.");
 
     po::options_description filterOptions("Generic Filtering Options");
     filterOptions.add_options()
@@ -262,7 +270,32 @@ int main(int argc, char* argv[])
         texture = textureGen.compute();
     }
 
-    cv::imwrite(outputPath.string(), texture.image(0));
+    // Convert to/from floating point
+    auto requestTIFF = ExtFilter(outputPath, {"tiff", "tif"});
+    auto requestFloat = parsed.count("tiff-floating-point") > 0;
+    if (requestTIFF && requestFloat) {
+        auto m = vc::QuantizeImage(texture.image(0), CV_32F);
+        texture.setImage(0, m);
+    } else {
+        auto m = texture.image(0);
+        if (m.depth() == CV_32F || m.depth() == CV_64F) {
+            m = vc::QuantizeImage(m, CV_16U);
+            texture.setImage(0, m);
+        }
+    }
+
+    // Write the output
+    if (requestTIFF && requestFloat) {
+        std::cout << "Writing to floating-point TIF ..." << std::endl;
+        vc::tiffio::WriteTIFF(outputPath, texture.image(0));
+    } else if (ExtFilter(outputPath, {"png", "jpg", "jpeg", "tiff", "tif"})) {
+        std::cout << "Writing to image..." << std::endl;
+        cv::imwrite(outputPath.string(), texture.image(0));
+    } else {
+        std::cerr << "Unrecognized output format: " << outputPath.extension();
+        std::cerr << std::endl;
+        return EXIT_FAILURE;
+    }
 
     return EXIT_SUCCESS;
 }  // end main
