@@ -14,9 +14,11 @@
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/io/PLYReader.hpp"
 #include "vc/core/io/PLYWriter.hpp"
+#include "vc/core/io/TIFFIO.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/MemorySizeStringParser.hpp"
 #include "vc/core/util/MeshMath.hpp"
+#include "vc/core/util/QuantizeImage.hpp"
 #include "vc/external/GetMemorySize.hpp"
 #include "vc/meshing/ACVD.hpp"
 #include "vc/meshing/CalculateNormals.hpp"
@@ -83,7 +85,9 @@ int main(int argc, char* argv[])
             "Output file path. If not specified, an OBJ file and texture image "
             "will be placed in the current working directory.")
         ("output-ppm", po::value<std::string>(),
-            "Output file path for the generated PPM.");
+            "Output file path for the generated PPM.")
+        ("tiff-floating-point", "When outputting to the TIFF format, save a "
+            "floating-point image.");
 
     po::options_description meshOptions("Meshing Options");
     meshOptions.add_options()
@@ -437,7 +441,25 @@ int main(int argc, char* argv[])
         texture = textureGen.compute();
     }
 
-    if (outputPath.extension() == ".PLY" || outputPath.extension() == ".ply") {
+    // Convert to/from floating point
+    auto requestTIFF = ExtFilter(outputPath, {"tiff", "tif"});
+    auto requestFloat = parsed_.count("tiff-floating-point") > 0;
+    if (requestTIFF && requestFloat) {
+        auto m = vc::QuantizeImage(texture.image(0), CV_32F);
+        texture.setImage(0, m);
+    } else {
+        auto m = texture.image(0);
+        if (m.depth() == CV_32F || m.depth() == CV_64F) {
+            m = vc::QuantizeImage(m, CV_16U);
+            texture.setImage(0, m);
+        }
+    }
+
+    // Write the output
+    if (requestTIFF && requestFloat) {
+        std::cout << "Writing to floating-point TIF ..." << std::endl;
+        vc::tiffio::WriteTIFF(outputPath, texture.image(0));
+    } else if (ExtFilter(outputPath, {"ply"})) {
         std::cout << "Writing to PLY..." << std::endl;
         vc::io::PLYWriter writer(outputPath.string(), input, texture);
         writer.write();

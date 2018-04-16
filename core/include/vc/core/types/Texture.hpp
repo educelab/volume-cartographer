@@ -70,6 +70,13 @@ public:
      */
     size_t addImage(cv::Mat image);
 
+    /**
+     * @brief Assign an image to an index within the Texture
+     *
+     * @throws std::out_of_range If `id` is not in the range of image indices
+     */
+    void setImage(size_t id, cv::Mat m);
+
     /** @brief Get the intensity value for an ITKPoint by ID
      *
      * Will return volcart::TEXTURE_NO_VALUE if the ITKPoint does not have a
@@ -85,7 +92,7 @@ public:
     /** @brief Get the PerPixelMap */
     const PerPixelMap& ppm() const { return ppm_; }
 
-    /** @copydoc ppm() */
+    /** @copydoc ppm() const */
     PerPixelMap& ppm() { return ppm_; }
 
     /** @brief Get the pixel mask
@@ -97,7 +104,7 @@ public:
     /** @brief Get the UVMap */
     const volcart::UVMap& uvMap() const { return ppm_.uvMap(); }
 
-    /** @copydoc uvMap() */
+    /** @copydoc uvMap() const */
     volcart::UVMap& uvMap() { return ppm_.uvMap(); }
     /**@}*/
 

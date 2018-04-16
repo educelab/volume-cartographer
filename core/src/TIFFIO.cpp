@@ -1,5 +1,7 @@
 #include "vc/core/io/TIFFIO.hpp"
 
+#include <cstring>
+
 #include <boost/algorithm/string.hpp>
 #include <opencv2/imgproc.hpp>
 
@@ -110,7 +112,7 @@ void tio::WriteTIFF(const fs::path& path, const cv::Mat& img)
 
     // For each row
     for (unsigned row = 0; row < height; row++) {
-        memcpy(&buffer[0], imgCopy.ptr(row), bufferSize);
+        std::memcpy(&buffer[0], imgCopy.ptr(row), bufferSize);
         auto result = lt::TIFFWriteScanline(out, &buffer[0], row, 0);
         if (result == -1) {
             lt::TIFFClose(out);
