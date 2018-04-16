@@ -8,6 +8,7 @@
 
 #include "vc/core/types/PerPixelMap.hpp"
 #include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/util/MemorySizeStringParser.hpp"
 #include "vc/external/GetMemorySize.hpp"
 #include "vc/texturing/LayerTexture.hpp"
 
@@ -46,8 +47,16 @@ int main(int argc, char* argv[])
                 "  1 = Positive\n"
                 "  2 = Negative");
 
+    po::options_description performanceOptions("Performance Options");
+    performanceOptions.add_options()
+        ("cache-memory-limit", po::value<std::string>(), "Maximum size of the "
+            "slice cache in bytes. Accepts the suffixes: (K|M|G|T)(B). "
+            "Default: 50% of the total system memory.");
+
     po::options_description all("Usage");
-    all.add(required).add(filterOptions);
+    all.add(required)
+        .add(filterOptions)
+        .add(performanceOptions);
     // clang-format on
 
     // Parse the cmd line
@@ -105,8 +114,20 @@ int main(int argc, char* argv[])
         std::cerr << e.what() << std::endl;
         return EXIT_FAILURE;
     }
-    double cacheBytes = 0.75 * SystemMemorySize();
-    volume->setCacheMemoryInBytes(static_cast<size_t>(cacheBytes));
+
+    // Set the cache size
+    size_t cacheBytes;
+    if (parsed.count("cache-memory-limit")) {
+        auto cacheSizeOpt = parsed["cache-memory-limit"].as<std::string>();
+        cacheBytes = vc::MemorySizeStringParser(cacheSizeOpt);
+    } else {
+        cacheBytes = SystemMemorySize() / 2;
+    }
+    volume->setCacheMemoryInBytes(cacheBytes);
+    std::cout << "Volume Cache :: ";
+    std::cout << "Capacity: " << volume->getCacheCapacity() << " || ";
+    std::cout << "Size: " << vc::BytesToMemorySizeString(cacheBytes);
+    std::cout << std::endl;
 
     ///// Get some post-vpkg loading command line arguments /////
     // Get the texturing radius. If not specified, default to a radius
@@ -115,7 +136,7 @@ int main(int argc, char* argv[])
     if (parsed.count("radius")) {
         radius = parsed["radius"].as<double>();
     } else {
-        radius = vpkg.materialThickness() / volume->voxelSize();
+        radius = vpkg.materialThickness() / 2 / volume->voxelSize();
     }
 
     auto interval = parsed["interval"].as<double>();

@@ -41,7 +41,7 @@ static constexpr double UM_TO_MM = 0.001 * 0.001;
 // Degrees to Radians
 static constexpr double DEG_TO_RAD = M_PI / 180.0;
 // Min. number of points required to do flattening
-static constexpr uint16_t CLEANER_MIN_REQ_POINTS = 100;
+static constexpr int CLEANER_MIN_REQ_POINTS = 100;
 
 enum class Method { Composite = 0, Intersection, Integral };
 enum class Smooth { Off = 0, Before, After, Both };
@@ -51,8 +51,10 @@ po::variables_map parsed_;
 vc::VolumePkg::Pointer vpkg_;
 vc::Segmentation::Pointer seg_;
 vc::Volume::Pointer volume_;
+vc::UVMap parsedUVMap_;
 
 // File loading
+auto ExtFilter = &vc::io::FileExtensionFilter;
 vc::ITKMesh::Pointer loadSegmentation(const vc::Segmentation::Identifier& id);
 vc::ITKMesh::Pointer loadMeshFile(const fs::path& p);
 
@@ -102,6 +104,8 @@ int main(int argc, char* argv[])
 
     po::options_description flatteningOptions("Flattening & UV Options");
     flatteningOptions.add_options()
+        ("reuse-uv", "If input-mesh is specified, attempt to use its existing "
+            "UV map instead of generating a new one.")
         ("disable-abf", "Disable ABF and use only LSCM")
         ("uv-rotate", po::value<double>(), "Rotate the generated UV map by an "
             "angle in degrees.")
@@ -277,7 +281,7 @@ int main(int argc, char* argv[])
     if (parsed_.count("radius")) {
         radius = parsed_["radius"].as<double>();
     } else {
-        radius = vpkg_->materialThickness() / volume_->voxelSize();
+        radius = vpkg_->materialThickness() / 2 / volume_->voxelSize();
     }
 
     // Generic texturing options
@@ -302,18 +306,30 @@ int main(int argc, char* argv[])
     auto clampToMax = parsed_.count("clamp-to-max") > 0;
 
     ///// Resample and smooth the mesh /////
-    if (loadSeg || parsed_.count("enable-mesh-resampling")) {
+    auto needResample = loadSeg || parsed_.count("enable-mesh-resampling");
+    if (needResample) {
         input = resampleMesh(input, smooth);
     }
 
     ///// Flattening /////
-    std::cout << "Computing parameterization..." << std::endl;
-    vct::AngleBasedFlattening abf(input);
-    abf.setUseABF(parsed_.count("disable-abf") == 0);
-    abf.compute();
+    vc::UVMap uvMap;
+    if (parsed_.count("reuse-uv")) {
+        if (!needResample) {
+            uvMap = parsedUVMap_;
+        } else {
+            std::cerr << "Warning: 'reuse-uv' option provided, but input mesh "
+                         "has been resampled. Ignoring existing UV map.\n";
+        }
+    }
 
-    // Get UV map
-    vc::UVMap uvMap = abf.getUVMap();
+    // If we don't have a valid UV map yet, make one
+    if (uvMap.empty()) {
+        std::cout << "Computing parameterization..." << std::endl;
+        vct::AngleBasedFlattening abf(input);
+        abf.setUseABF(parsed_.count("disable-abf") == 0);
+        abf.compute();
+        uvMap = abf.getUVMap();
+    }
 
     // Rotate
     if (parsed_.count("uv-rotate") > 0) {
@@ -339,6 +355,13 @@ int main(int argc, char* argv[])
     ppmGen.setUVMap(uvMap);
     ppmGen.setDimensions(height, width);
     auto ppm = ppmGen.compute();
+
+    // Save the PPM
+    if (parsed_.count("output-ppm")) {
+        std::cout << "Writing PPM..." << std::endl;
+        fs::path ppmPath = parsed_["output-ppm"].as<std::string>();
+        vc::PerPixelMap::WritePPM(ppmPath, ppm);
+    }
 
     ///// Generate texture /////
     vc::Texture texture;
@@ -403,11 +426,10 @@ int main(int argc, char* argv[])
         std::cout << "Writing to PLY..." << std::endl;
         vc::io::PLYWriter writer(outputPath.string(), input, texture);
         writer.write();
-    } else if (
-        outputPath.extension() == ".PNG" || outputPath.extension() == ".png") {
-        std::cout << "Writing to PNG..." << std::endl;
+    } else if (ExtFilter(outputPath, {"png", "jpg", "jpeg", "tiff", "tif"})) {
+        std::cout << "Writing to image..." << std::endl;
         cv::imwrite(outputPath.string(), texture.image(0));
-    } else {
+    } else if (ExtFilter(outputPath, {"obj"})) {
         std::cout << "Writing to OBJ..." << std::endl;
         vc::io::OBJWriter writer;
         writer.setMesh(input);
@@ -415,13 +437,10 @@ int main(int argc, char* argv[])
         writer.setTexture(texture.image(0));
         writer.setPath(outputPath.string());
         writer.write();
-    }
-
-    // Save the PPM
-    if (parsed_.count("output-ppm")) {
-        std::cout << "Writing PPM..." << std::endl;
-        fs::path ppmPath = parsed_["output-ppm"].as<std::string>();
-        vc::PerPixelMap::WritePPM(ppmPath, ppm);
+    } else {
+        std::cerr << "Unrecognized output format: " << outputPath.extension();
+        std::cerr << std::endl;
+        return EXIT_FAILURE;
     }
 
     return EXIT_SUCCESS;
@@ -453,14 +472,23 @@ vc::ITKMesh::Pointer loadMeshFile(const fs::path& p)
 {
     std::cout << "Loading mesh..." << std::endl;
     // OBJs
-    if (vc::io::FileExtensionFilter(p, {"obj"})) {
+    if (ExtFilter(p, {"obj"})) {
         vc::io::OBJReader r;
         r.setPath(p);
-        return r.read();
+        r.read();
+        try {
+            auto texture = r.getTextureMat();
+            parsedUVMap_ = r.getUVMap();
+            parsedUVMap_.ratio(texture.cols, texture.rows);
+        } catch (...) {
+            // Do nothing if there's no texture image
+        }
+
+        return r.getMesh();
     }
 
     // PLYs
-    else if (vc::io::FileExtensionFilter(p, {"ply"})) {
+    else if (ExtFilter(p, {"ply"})) {
         vc::io::PLYReader r(p);
         return r.read();
     }
@@ -477,17 +505,17 @@ vc::ITKMesh::Pointer resampleMesh(vc::ITKMesh::Pointer m, Smooth smooth)
 {
     ///// Resample the segmentation /////
     // Calculate sampling density
-    uint16_t vertCount{CLEANER_MIN_REQ_POINTS};
+    int vertCount{0};
     auto voxelToMicron = std::pow(volume_->voxelSize(), 2);
     auto area = vc::meshmath::SurfaceArea(m) * voxelToMicron * UM_TO_MM;
     auto currentDensityFactor = m->GetNumberOfPoints() / area;
     double newDensityFactor;
     if (parsed_.count("mesh-resample-keep-vcount")) {
         newDensityFactor = currentDensityFactor;
-        vertCount = static_cast<uint16_t>(m->GetNumberOfPoints());
+        vertCount = static_cast<int>(m->GetNumberOfPoints());
     } else {
         newDensityFactor = parsed_["mesh-resample-factor"].as<double>();
-        vertCount = static_cast<uint16_t>(newDensityFactor * area);
+        vertCount = static_cast<int>(newDensityFactor * area);
     }
 
     vertCount = (vertCount < CLEANER_MIN_REQ_POINTS) ? CLEANER_MIN_REQ_POINTS
