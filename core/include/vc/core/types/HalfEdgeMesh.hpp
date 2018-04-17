@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <map>
 #include <memory>
 
 #include <opencv2/core.hpp>
@@ -344,8 +345,10 @@ private:
     /** Find the edge that has vertex end points with the same IDs, but in the
      * opposite order.
      */
-    HalfEdgeMesh::EdgePtr find_edge_pair_(
-        HalfEdgeMesh::IDType a, HalfEdgeMesh::IDType b);
+    EdgePtr find_edge_pair_(IDType a, IDType b);
+
+    /** Multimap for looking up edges by their starting vertex index */
+    std::multimap<HalfEdgeMesh::IDType, HalfEdgeMesh::EdgePtr> PairLookupMap;
 
     /** Compute boundary edges */
     void compute_boundary_();
