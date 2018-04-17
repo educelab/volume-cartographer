@@ -212,9 +212,6 @@ public:
 
 public:
     /**@{*/
-    HalfEdgeMesh() = default;
-    ~HalfEdgeMesh() { clear(); }
-
     /** @brief Empty the mesh of all vertices, faces, and edges */
     void clear();
     /**@}*/
@@ -348,7 +345,7 @@ private:
     EdgePtr find_edge_pair_(IDType a, IDType b);
 
     /** Multimap for looking up edges by their starting vertex index */
-    std::multimap<HalfEdgeMesh::IDType, HalfEdgeMesh::EdgePtr> PairLookupMap;
+    std::multimap<IDType, EdgePtr> pairLookupMap_;
 
     /** Compute boundary edges */
     void compute_boundary_();

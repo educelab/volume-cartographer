@@ -142,7 +142,7 @@ HalfEdgeMesh::FacePtr HalfEdgeMesh::addFace(IDType v0, IDType v1, IDType v2)
     edges_.push_back(e2);
 
     // For quick edge pair lookups during connect_all_pairs_();
-    PairLookupMap.insert({{v0, e0}, {v1, e1}, {v2, e2}});
+    pairLookupMap_.insert({{v0, e0}, {v1, e1}, {v2, e2}});
 
     f->id = faces_.size();
     f->lambdaTriangle = 0.0;
@@ -210,14 +210,14 @@ void HalfEdgeMesh::connect_all_pairs_()
     }
 
     // Don't need the lookup map anymore
-    PairLookupMap.clear();
+    pairLookupMap_.clear();
 }
 
 // Find the other edge that shares the same two vertices
 HalfEdgeMesh::EdgePtr HalfEdgeMesh::find_edge_pair_(IDType a, IDType b)
 {
     // Lookup the edges that start with the ending ID number
-    auto edges = PairLookupMap.equal_range(b);
+    auto edges = pairLookupMap_.equal_range(b);
 
     // Find the edge that ends with the starting ID number
     for (auto it = edges.first; it != edges.second; ++it) {
