@@ -34,6 +34,11 @@ void PerPixelMap::setHeight(size_t h)
     initialize_map_();
 }
 
+PPM::PixelMap PerPixelMap::getAsPixelMap(size_t y, size_t x)
+{
+    return {x, y, map_(y, x)};
+}
+
 // Sort and return valid mappings
 std::vector<PPM::PixelMap> PerPixelMap::getMappings()
 {

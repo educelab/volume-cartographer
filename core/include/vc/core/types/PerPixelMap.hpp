@@ -111,6 +111,8 @@ public:
         return mask_.at<uint8_t>(y, x) == 255;
     }
 
+    PixelMap getAsPixelMap(size_t y, size_t x);
+
     /**
      * @brief Get all valid pixel mappings as a list of PixelMap
      *
