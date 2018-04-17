@@ -10,7 +10,7 @@ const static cv::Vec2d ORIGIN_BOTTOM_LEFT(0, 1);
 const static cv::Vec2d ORIGIN_BOTTOM_RIGHT(1, 1);
 
 /** Minimum size of a UVMap debug image */
-constexpr static int MIN_DEBUG_WIDTH = 500;
+constexpr static int MIN_DEBUG_WIDTH = 50;
 
 using namespace volcart;
 
