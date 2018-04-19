@@ -70,7 +70,7 @@ public:
     AngleBasedFlattening() = default;
 
     /** @brief Construct and set the input mesh */
-    explicit AngleBasedFlattening(ITKMesh::Pointer m)
+    explicit AngleBasedFlattening(const ITKMesh::Pointer& m)
         : FlatteningAlgorithmBaseClass(m)
     {
     }

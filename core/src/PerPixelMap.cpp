@@ -34,20 +34,21 @@ void PerPixelMap::setHeight(size_t h)
     initialize_map_();
 }
 
+// Get individual mappings
 PPM::PixelMap PerPixelMap::getAsPixelMap(size_t y, size_t x)
 {
     return {x, y, map_(y, x)};
 }
 
-// Sort and return valid mappings
+// Return only valid mappings
 std::vector<PPM::PixelMap> PerPixelMap::getMappings()
 {
     // Output vector
     std::vector<PixelMap> mappings;
 
     // For each pixel...
-    for (int y = 0; y < static_cast<int>(height_); ++y) {
-        for (int x = 0; x < static_cast<int>(width_); ++x) {
+    for (size_t y = 0; y < height_; ++y) {
+        for (size_t x = 0; x < width_; ++x) {
             // Skip this pixel if we have no mapping
             if (!hasMapping(y, x)) {
                 continue;

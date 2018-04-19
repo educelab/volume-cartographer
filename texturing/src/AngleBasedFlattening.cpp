@@ -152,14 +152,18 @@ void AngleBasedFlattening::solve_abf_()
     compute_sines_();
 
     // Always do at least one iteration
-    int i = 0;
+    int iteration = 0;
     double norm = compute_gradient_();
-    for (; i < maxABFIterations_; ++i) {
+    while (iteration < maxABFIterations_) {
+        // Update iteration counter
+        iteration++;
+
         // Attempt to invert the matrix and solve
         if (!invert_matrix_()) {
-            std::cerr
-                << "volcart::texturing::abf: Failed to invert matrix during "
-                << i + 1 << " iteration. Falling back to LSCM." << std::endl;
+            std::cerr << "volcart::texturing::abf: ";
+            std::cerr << "Failed to invert matrix during " << iteration
+                      << " iteration. ";
+            std::cerr << "Falling back to LSCM." << std::endl;
             break;
         }
 
@@ -174,9 +178,10 @@ void AngleBasedFlattening::solve_abf_()
             break;
         }
     }
-    std::cerr << "volcart::texturing::abf: ABF Iterations: " << i
-              << " || Final norm: " << norm << " || Limit: " << limit_
-              << std::endl;
+    std::cerr << "volcart::texturing::abf: ";
+    std::cerr << "ABF Iterations: " << iteration << " || ";
+    std::cerr << "Final norm: " << norm << " || ";
+    std::cerr << "Limit: " << limit_ << std::endl;
 }
 
 ///// Helpers - ABF /////

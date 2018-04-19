@@ -39,7 +39,8 @@ Texture CompositeTexture::compute()
             pixel.pos, pixel.normal, radius_, interval_, direction_);
 
         // Assign the intensity value at the UV position
-        image.at<uint16_t>(pixel.y, pixel.x) =
+        image.at<uint16_t>(
+            static_cast<int>(pixel.y), static_cast<int>(pixel.x)) =
             filter_neighborhood_(neighborhood);
     }
 

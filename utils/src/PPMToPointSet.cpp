@@ -14,6 +14,7 @@ namespace fs = boost::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
 
+// Region-of-Interest
 struct ROI {
     size_t x{0};
     size_t y{0};
@@ -21,6 +22,7 @@ struct ROI {
     size_t height{0};
 };
 
+// Converts ROI string to ROI struct
 ROI ParseROI(const std::string& opt);
 
 int main(int argc, char* argv[])
@@ -33,8 +35,9 @@ int main(int argc, char* argv[])
         ("help,h", "Show this message")
         ("ppm,p", po::value<std::string>()->required(), "Input PPM file")
         ("output-mesh,o", po::value<std::string>()->required(),
-             "Output mesh file")
-        ("roi", po::value<std::string>(), "Format: X+Y+WxH");
+             "Output OBJ mesh file")
+        ("roi", po::value<std::string>(), "String describing origin and width "
+             "and height of region-of-interest. Format: X+Y+WxH");
 
     po::options_description all("Usage");
     all.add(required);
@@ -45,7 +48,7 @@ int main(int argc, char* argv[])
     po::store(po::command_line_parser(argc, argv).options(all).run(), parsed);
 
     // Show the help message
-    if (parsed.count("help") || argc < 2) {
+    if (parsed.count("help") > 0 || argc < 2) {
         std::cout << all << std::endl;
         return EXIT_SUCCESS;
     }
@@ -63,6 +66,7 @@ int main(int argc, char* argv[])
     std::cout << "Reading PPM..." << std::endl;
     auto ppm = vc::PerPixelMap::ReadPPM(ppmPath);
 
+    // Setup ROI
     size_t minX = 0;
     size_t minY = 0;
     size_t maxX = ppm.width();
@@ -103,6 +107,7 @@ int main(int argc, char* argv[])
     writer.write();
 }
 
+// Convert ROI string to ROI struct
 ROI ParseROI(const std::string& opt)
 {
     // Match against regex
