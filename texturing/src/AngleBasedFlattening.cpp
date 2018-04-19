@@ -148,30 +148,33 @@ void AngleBasedFlattening::scale_()
 // Angle minimization loop
 void AngleBasedFlattening::solve_abf_()
 {
+    std::cerr << "volcart::texturing::abf: Solving ABF..." << std::endl;
     compute_sines_();
 
-    double norm = std::numeric_limits<double>::max();
+    // Always do at least one iteration
     int i = 0;
+    double norm = compute_gradient_();
     for (; i < maxABFIterations_; ++i) {
+        // Attempt to invert the matrix and solve
+        if (!invert_matrix_()) {
+            std::cerr
+                << "volcart::texturing::abf: Failed to invert matrix during "
+                << i + 1 << " iteration. Falling back to LSCM." << std::endl;
+            break;
+        }
+
+        // Update the HEM with their new sine/cosine values
+        compute_sines_();
+
+        // Recompute the norm
         norm = compute_gradient_();
 
         // Break if we're below the error limit
         if (norm < limit_) {
             break;
         }
-
-        // Attempt to invert the matrix and solve
-        if (!invert_matrix_()) {
-            std::cerr
-                << "volcart::texturing::abf: ABF failed to invert matrix after "
-                << i + 1 << " iterations. Falling back to LSCM." << std::endl;
-            break;
-        }
-
-        // Update the HEM with their new sine/cosine values
-        compute_sines_();
     }
-    std::cerr << "volcart::texturing::abf: Iterations: " << i
+    std::cerr << "volcart::texturing::abf: ABF Iterations: " << i
               << " || Final norm: " << norm << " || Limit: " << limit_
               << std::endl;
 }
@@ -639,6 +642,7 @@ void AngleBasedFlattening::solve_lscm_()
     }
 
     // Solve
+    std::cerr << "volcart::texturing::abf: Solving LSCM..." << std::endl;
     bool success = EIG_linear_solver_solve(context);
     if (!success) {
         throw std::runtime_error("Failed to solve lscm.");
