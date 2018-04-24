@@ -50,7 +50,7 @@ public:
         PixelMap() = default;
 
         /** Construct and initialize */
-        PixelMap(int x, int y, cv::Vec6d value)
+        PixelMap(size_t x, size_t y, cv::Vec6d value)
             : x{x}
             , y{y}
             , pos{value[0], value[1], value[2]}
@@ -59,9 +59,9 @@ public:
         }
 
         /** PPM Pixel position X */
-        int x{0};
+        size_t x{0};
         /** PPM Pixel position Y */
-        int y{0};
+        size_t y{0};
         /** Mapped Volume position */
         cv::Vec3d pos;
         /** Surface normal at mapped Volume position */
@@ -110,6 +110,9 @@ public:
 
         return mask_.at<uint8_t>(y, x) == 255;
     }
+
+    /** @brief Get the mapping for a pixel as a PixelMap */
+    PixelMap getAsPixelMap(size_t y, size_t x);
 
     /**
      * @brief Get all valid pixel mappings as a list of PixelMap

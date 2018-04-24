@@ -34,7 +34,7 @@ public:
     OBJWriter() = default;
 
     /** @brief Constructor with output path and input mesh */
-    OBJWriter(boost::filesystem::path outputPath, ITKMesh::Pointer mesh)
+    OBJWriter(boost::filesystem::path outputPath, const ITKMesh::Pointer& mesh)
         : outputPath_{std::move(outputPath)}, mesh_{mesh}
     {
     }
@@ -42,7 +42,7 @@ public:
     /** @brief Constructor with output path and textured mesh information */
     OBJWriter(
         boost::filesystem::path outputPath,
-        ITKMesh::Pointer mesh,
+        const ITKMesh::Pointer& mesh,
         volcart::UVMap uvMap,
         cv::Mat uvImg)
         : outputPath_{std::move(outputPath)}

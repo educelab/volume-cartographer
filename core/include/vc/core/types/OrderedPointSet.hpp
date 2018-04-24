@@ -144,7 +144,7 @@ public:
     /**
      * @brief Append an OrderedPointSet to the end of the current one
      *
-     * Throws a std::logic_error if the widths of the two point sets do not
+     * @throws std::logic_error If the widths of the two point sets do not
      * match.
      */
     void append(const OrderedPointSet<T>& ps)

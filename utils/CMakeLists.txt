@@ -42,6 +42,10 @@ target_link_libraries(vc_flip_uv VC::core Boost::filesystem Boost::program_optio
 add_executable(vc_retexture_mesh src/RetextureMesh.cpp)
 target_link_libraries(vc_retexture_mesh VC::core Boost::filesystem Boost::program_options)
 
+# vc_ppm_to_pointset
+add_executable(vc_ppm_to_pointset src/PPMToPointSet.cpp)
+target_link_libraries(vc_ppm_to_pointset VC::core Boost::filesystem Boost::program_options)
+
 # Install targets
 if(VC_INSTALL_UTILS)
 install(

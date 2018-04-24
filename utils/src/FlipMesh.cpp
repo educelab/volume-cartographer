@@ -1,4 +1,3 @@
-#include <fstream>
 #include <iostream>
 
 #include <boost/filesystem.hpp>
@@ -46,7 +45,7 @@ int main(int argc, char** argv)
     po::store(po::command_line_parser(argc, argv).options(all).run(), parsed);
 
     // Show the help message
-    if (parsed.count("help") || argc < 2) {
+    if (parsed.count("help") > 0 || argc < 2) {
         std::cout << all << std::endl;
         return EXIT_SUCCESS;
     }
@@ -74,7 +73,7 @@ int main(int argc, char** argv)
     // Load the Volume
     vc::Volume::Pointer volume;
     try {
-        if (parsed.count("volume")) {
+        if (parsed.count("volume") > 0) {
             volume = vpkg->volume(parsed["volume"].as<std::string>());
         } else {
             volume = vpkg->volume();
