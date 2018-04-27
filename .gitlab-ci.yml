@@ -7,14 +7,14 @@ stages:
     - deploy
 
 ### Debian ###
-build:debian:
-    image: volcart/vcbuilder-debian:latest
+build:debian:static:
+    image: volcart/vcbuilder-debian:latest.static
     stage: build
     script:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
         - mkdir -p build
         - cd build/
-        - cmake -DBoost_USE_STATIC_LIBS=ON -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -GNinja ..
+        - cmake -DBoost_USE_STATIC_LIBS=ON -DVC_USE_ACVD=ON -GNinja ..
         - ninja
     artifacts:
         paths:
@@ -27,16 +27,16 @@ build:debian:
         - qt5
         - ninja
 
-test:debian:
-    image: volcart/vcbuilder-debian:latest
+test:debian:static:
+    image: volcart/vcbuilder-debian:latest.static
     stage: test
     script:
         - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
         - cd build/
-        - cmake -DBoost_USE_STATIC_LIBS=ON -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -GNinja ..
+        - cmake -DBoost_USE_STATIC_LIBS=ON -DVC_USE_ACVD=ON -GNinja ..
         - ctest -j 4
     dependencies:
-        - build:debian
+        - build:debian:static
     artifacts:
       name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
       paths:
@@ -50,14 +50,57 @@ test:debian:
         - qt5
         - ninja
 
-### OSX ###
-build:osx:static:
+build:debian:dynamic:
+    image: volcart/vcbuilder-debian:latest.dynamic
     stage: build
     script:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
         - mkdir -p build
         - cd build/
-        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -DVC_USE_VCG=ON -GNinja ..
+        - cmake -DVC_USE_ACVD=ON -GNinja ..
+        - ninja
+    artifacts:
+        paths:
+            - build/bin/
+        expire_in: 1 day
+    tags:
+        - build
+        - linux
+        - static
+        - qt5
+        - ninja
+
+test:debian:dynamic:
+    image: volcart/vcbuilder-debian:latest.dynamic
+    stage: test
+    script:
+        - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
+        - cd build/
+        - cmake -DVC_USE_ACVD=ON -GNinja ..
+        - ctest -j 4
+    dependencies:
+        - build:debian:dynamic
+    artifacts:
+      name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
+      paths:
+        - build/Testing/Temporary/
+      when: always
+      expire_in: 4 weeks
+    tags:
+        - test
+        - linux
+        - static
+        - qt5
+        - ninja
+
+### macOS ###
+build:macos:static:
+    stage: build
+    script:
+        - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
+        - mkdir -p build
+        - cd build/
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_USE_ACVD=ON -DVC_USE_VCG=ON -GNinja ..
         - ninja
     artifacts:
         paths:
@@ -70,15 +113,15 @@ build:osx:static:
         - qt5
         - ninja
 
-test:osx:static:
+test:macos:static:
     stage: test
     script:
         - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
         - cd build/
-        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -DVC_USE_VCG=ON -GNinja ..
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_USE_ACVD=ON -DVC_USE_VCG=ON -GNinja ..
         - ctest -j 4
     dependencies:
-        - build:osx:static
+        - build:macos:static
     artifacts:
       name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
       paths:
@@ -92,13 +135,13 @@ test:osx:static:
         - qt5
         - ninja
 
-build:osx:dynamic:
+build:macos:dynamic:
     stage: build
     script:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
         - mkdir -p build
         - cd build/
-        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -DVC_USE_VCG=ON -DBUILD_SHARED_LIBS=ON -GNinja ..
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_USE_ACVD=ON -DVC_USE_VCG=ON -DBUILD_SHARED_LIBS=ON -GNinja ..
         - ninja
     artifacts:
         paths:
@@ -112,15 +155,15 @@ build:osx:dynamic:
         - qt5
         - ninja
 
-test:osx:dynamic:
+test:macos:dynamic:
     stage: test
     script:
         - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
         - cd build/
-        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -DVC_USE_VCG=ON -DBUILD_SHARED_LIBS=ON -GNinja ..
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_USE_ACVD=ON -DVC_USE_VCG=ON -DBUILD_SHARED_LIBS=ON -GNinja ..
         - ctest -j 4
     dependencies:
-        - build:osx:dynamic
+        - build:macos:dynamic
     artifacts:
       name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
       paths:
@@ -151,7 +194,7 @@ lint:clang-tidy:
       - git fetch --all
       - mkdir -p build/
       - cd build/
-      - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -GNinja -DVC_USE_BULLET=ON -DVC_USE_ACVD=ON -DVC_USE_VCG=ON ..
+      - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -GNinja -DVC_USE_ACVD=ON -DVC_USE_VCG=ON ..
       - cd ..
     stage: lint
     script:
@@ -220,18 +263,24 @@ collect:source:
     tags:
       - source
 
-collect:osx:
+collect:macos:
     only:
         - master
     stage: collect
+    variables:
+        OSX_SDK_VERSION: "10.9"
+        OSX_SDK_PATH: "../vc-deps/build/osx-sdk-prefix/src/osx-sdk/SDKs/MacOSX10.9.sdk/"
     script:
         - git submodule update --init
         - cd vc-deps/
-        - ./build-deps.sh -universal
-        - cd ..
+        - mkdir -p build/
+        - cd build/
+        - cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DBUILD_UNIVERSAL_LIBS=ON ..
+        - ninja
+        - cd ../..
         - mkdir -p build
         - cd build/
-        - cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -DVC_BUILD_EXAMPLES=OFF -DVC_BUILD_TESTS=OFF -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DCMAKE_OSX_SYSROOT=../vc-deps/build/SDKs/MacOSX10.9.sdk/ ..
+        - cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DVC_USE_ACVD=ON -DVC_BUILD_EXAMPLES=OFF -DVC_BUILD_TESTS=OFF -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DCMAKE_OSX_DEPLOYMENT_TARGET=$OSX_SDK_VERSION -DCMAKE_OSX_SYSROOT=$OSX_SDK_PATH ..
         - ninja
         - ninja package
         - mv VC*.dmg ../
@@ -251,14 +300,20 @@ deploy:develop:
     except:
         - /(?!develop)$/i
     stage: deploy
+    variables:
+        OSX_SDK_VERSION: "10.9"
+        OSX_SDK_PATH: "../vc-deps/build/osx-sdk-prefix/src/osx-sdk/SDKs/MacOSX10.9.sdk/"
     script:
         - git submodule update --init
         - cd vc-deps/
-        - ./build-deps.sh -universal
-        - cd ..
+        - mkdir -p build/
+        - cd build/
+        - cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DBUILD_UNIVERSAL_LIBS=ON ..
+        - ninja
+        - cd ../..
         - mkdir -p build
         - cd build/
-        - cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DVC_VERSION_DATESTAMP=ON -DVC_PREBUILT_LIBS=ON -DVC_USE_ACVD=ON -DVC_USE_BULLET=ON -DVC_BUILD_EXAMPLES=OFF -DVC_BUILD_TESTS=OFF -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DCMAKE_OSX_SYSROOT=../vc-deps/build/SDKs/MacOSX10.9.sdk/ ..
+        - cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DVC_VERSION_DATESTAMP=ON -DVC_PREBUILT_LIBS=ON -DVC_USE_ACVD=ON -DVC_BUILD_EXAMPLES=OFF -DVC_BUILD_TESTS=OFF -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DCMAKE_OSX_DEPLOYMENT_TARGET=$OSX_SDK_VERSION -DCMAKE_OSX_SYSROOT=$OSX_SDK_PATH ..
         - ninja
         - ninja package
         - mv VC*.dmg ../
@@ -279,7 +334,7 @@ deploy:release:
     stage: deploy
     dependencies:
       - collect:source
-      - collect:osx
+      - collect:macos
     script:
         - version=$(utils/scripts/version-gen.sh)
         - vershort=$(utils/scripts/version-gen.sh --short)
