@@ -3,7 +3,7 @@
 ############
 add_subdirectory(VC)
 
-if (VC_USE_ACVD OR VC_USE_ALL)
+if (VC_USE_ACVD OR VC_USE_OPTIONAL)
     add_subdirectory(VC-Texture)
 endif()
 

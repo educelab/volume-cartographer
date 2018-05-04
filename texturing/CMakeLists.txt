@@ -22,7 +22,7 @@ set(private_deps
 )
 set(defs "")
 
-if (VC_USE_LIBIGL OR VC_USE_ALL)
+if (VC_USE_LIBIGL OR VC_USE_OPTIONAL)
     list(APPEND srcs src/LeastSquaresConformalMapping.cpp)
     list(APPEND public_deps libigl)
     list(APPEND defs VC_USE_LIBIGL)
@@ -70,7 +70,7 @@ if(VC_BUILD_TESTS)
 set(test_srcs
     test/ABFTest.cpp
 )
-if (VC_USE_LIBIGL OR VC_USE_ALL)
+if (VC_USE_LIBIGL OR VC_USE_OPTIONAL)
     list(APPEND test_srcs test/LSCMTest.cpp)
 endif()
 
@@ -99,7 +99,7 @@ set(VC_TEXTURING_TEST_RES
     test/res/abf_Arch.obj
     test/res/abf_Arch_LSCMOnly.obj
 )
-if (VC_USE_LIBIGL OR VC_USE_ALL)
+if (VC_USE_LIBIGL OR VC_USE_OPTIONAL)
     list(APPEND VC_TEXTURING_TEST_RES
         test/res/lscm_Plane.obj
         test/res/lscm_Arch.obj
