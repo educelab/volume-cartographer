@@ -42,3 +42,6 @@ __pycache__
 #Doxygen
 doc/latex/
 doc/html/
+
+# CLion
+cmake-build*/

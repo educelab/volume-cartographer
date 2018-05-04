@@ -7,11 +7,12 @@
 #include <boost/test/unit_test.hpp>
 #include "vc/core/shapes/Arch.hpp"
 #include "vc/core/types/SimpleMesh.hpp"
+#include "vc/experimental/texturing/ClothModelingUVMapping.hpp"
 #include "vc/testing/ParsingHelpers.hpp"
 #include "vc/testing/TestingUtils.hpp"
-#include "vc/texturing/ClothModelingUVMapping.hpp"
 
 using namespace volcart;
+namespace vce = volcart::experimental;
 
 /***************************************************************************************
  *                                                                                     *
@@ -68,15 +69,15 @@ struct CreateArchClothUVFixture {
         _unfurlPins.push_back(90);
 
         // Setup the simulation
-        volcart::texturing::ClothModelingUVMapping clothUV(
+        vce::texturing::ClothModelingUVMapping clothUV(
             _in_Mesh, _unfurlIt, _collisionIt, _expansionIt, _unfurlPins,
             _expandPins);
         clothUV.setAcceleration(
-            volcart::texturing::ClothModelingUVMapping::Stage::Unfurl, 10);
+            vce::texturing::ClothModelingUVMapping::Stage::Unfurl, 10);
         clothUV.setAcceleration(
-            volcart::texturing::ClothModelingUVMapping::Stage::Collision, -10);
+            vce::texturing::ClothModelingUVMapping::Stage::Collision, -10);
         clothUV.setAcceleration(
-            volcart::texturing::ClothModelingUVMapping::Stage::Expansion, -10);
+            vce::texturing::ClothModelingUVMapping::Stage::Expansion, -10);
 
         // Run the simulation in parts
         clothUV.unfurl();
@@ -107,8 +108,8 @@ struct CreateArchClothUVFixture {
     ITKMesh::Pointer _out_Mesh_unfurl, _out_Mesh_collide, _out_Mesh_final;
 
     // Simulation
-    volcart::texturing::ClothModelingUVMapping::VertIDList _unfurlPins;
-    volcart::texturing::ClothModelingUVMapping::VertIDList _expandPins;
+    vce::texturing::ClothModelingUVMapping::VertIDList _unfurlPins;
+    vce::texturing::ClothModelingUVMapping::VertIDList _expandPins;
     uint16_t _unfurlIt;
     uint16_t _collisionIt;
     uint16_t _expansionIt;

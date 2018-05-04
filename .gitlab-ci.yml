@@ -8,7 +8,7 @@ stages:
 
 ### Debian ###
 build:debian:static:
-    image: volcart/vcbuilder-debian:latest.static
+    image: volcart/vcbuilder-debian:9_v4.static
     stage: build
     script:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
@@ -28,7 +28,7 @@ build:debian:static:
         - ninja
 
 test:debian:static:
-    image: volcart/vcbuilder-debian:latest.static
+    image: volcart/vcbuilder-debian:9_v4.static
     stage: test
     script:
         - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
@@ -51,7 +51,7 @@ test:debian:static:
         - ninja
 
 build:debian:dynamic:
-    image: volcart/vcbuilder-debian:latest.dynamic
+    image: volcart/vcbuilder-debian:9_v4.dynamic
     stage: build
     script:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
@@ -71,7 +71,7 @@ build:debian:dynamic:
         - ninja
 
 test:debian:dynamic:
-    image: volcart/vcbuilder-debian:latest.dynamic
+    image: volcart/vcbuilder-debian:9_v4.dynamic
     stage: test
     script:
         - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
@@ -80,6 +80,49 @@ test:debian:dynamic:
         - ctest -j 4
     dependencies:
         - build:debian:dynamic
+    artifacts:
+      name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
+      paths:
+        - build/Testing/Temporary/
+      when: always
+      expire_in: 4 weeks
+    tags:
+        - test
+        - linux
+        - static
+        - qt5
+        - ninja
+
+build:debian:experimental:
+    image: volcart/vcbuilder-debian:9_v4.experimental
+    stage: build
+    script:
+        - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
+        - mkdir -p build
+        - cd build/
+        - cmake -DVC_BUILD_EXPERIMENTAL=ON -DBoost_USE_STATIC_LIBS=ON -DVC_USE_ACVD=ON -GNinja ..
+        - ninja
+    artifacts:
+        paths:
+            - build/bin/
+        expire_in: 1 day
+    tags:
+        - build
+        - linux
+        - static
+        - qt5
+        - ninja
+
+test:debian:experimental:
+    image: volcart/vcbuilder-debian:9_v4.experimental
+    stage: test
+    script:
+        - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
+        - cd build/
+        - cmake -DVC_BUILD_EXPERIMENTAL=ON -DBoost_USE_STATIC_LIBS=ON -DVC_USE_ACVD=ON -GNinja ..
+        - ctest -j 4
+    dependencies:
+        - build:debian:experimental
     artifacts:
       name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
       paths:

@@ -9,6 +9,8 @@
 
 namespace volcart
 {
+namespace experimental
+{
 namespace meshing
 {
 /**
@@ -50,7 +52,8 @@ class Bullet2ITK
 public:
     Bullet2ITK(btSoftBody* input, ITKMesh::Pointer output);
 };
-}
-}
+}  // namespace meshing
+}  // namespace experimental
+}  // namespace volcart
 
 #endif  // VC_USE_BULLET

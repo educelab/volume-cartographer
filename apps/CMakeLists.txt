@@ -3,7 +3,7 @@
 ############
 add_subdirectory(VC)
 
-if (VC_USE_ACVD OR VC_USE_ALL)
+if (VC_USE_ACVD OR VC_USE_OPTIONAL)
     add_subdirectory(VC-Texture)
 endif()
 
@@ -117,14 +117,14 @@ target_link_libraries(vc_volpkg_explorer
 )
 
 ## Cloth Flattening ##
-if (VC_USE_BULLET OR VC_USE_ALL)
+if (VC_BUILD_EXPERIMENTAL)
     add_executable(vc_cloth src/Cloth.cpp)
     target_link_libraries(vc_cloth
         VC::core
+        VC::experimental
         VC::meshing
         VC::texturing
         Boost::program_options
-        ${BULLET_LIBRARIES}
     )
 endif()
 

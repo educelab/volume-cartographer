@@ -35,6 +35,9 @@ option(VC_INSTALL_UTILS     "Install VC utility programs" on)
 option(VC_INSTALL_DOC       "Install VC documentation"    off)
 option(VC_INSTALL_PYTHON_BINDINGS "Install Python bindings." off)
 
+# Extra options
+option(VC_BUILD_EXPERIMENTAL "Build the experimental library" off)
+
 # Look for external dependencies.
 include(VCFindDependencies)
 
@@ -67,6 +70,11 @@ endif()
 add_subdirectory(meshing)
 add_subdirectory(segmentation)
 add_subdirectory(texturing)
+
+# Build experimental library last
+if(VC_BUILD_EXPERIMENTAL)
+    add_subdirectory(experimental)
+endif()
 
 ## VC Core Apps ##
 if (VC_BUILD_APPS)
