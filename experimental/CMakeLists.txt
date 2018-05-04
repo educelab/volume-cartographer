@@ -1,33 +1,33 @@
-project(libvc_texturing VERSION ${VC_VERSION} LANGUAGES CXX)
-set(module "texturing")
+project(libvc_experimental VERSION ${VC_VERSION} LANGUAGES C CXX)
+set(module "experimental")
 set(target "vc_${module}")
 
+
+### Dependencies ###
+find_package(Bullet QUIET REQUIRED)
+add_library(bullet INTERFACE IMPORTED)
+set_target_properties(bullet PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${BULLET_INCLUDE_DIRS}"
+    INTERFACE_LINK_LIBRARIES "${BULLET_LIBRARIES}"
+)
+
+### Setup sources and link libs ###
 set(srcs
-    src/CompositeTexture.cpp
-    src/AngleBasedFlattening.cpp
-    src/PPMGenerator.cpp
-    src/IntersectionTexture.cpp
-    src/IntegralTexture.cpp
-    src/LayerTexture.cpp
-    src/TexturingAlgorithmBaseClass.cpp
-    src/FlatteningAlgorithmBaseClass.cpp
+    src/ClothModelingUVMapping.cpp
 )
 set(public_deps
     VC::core
+    bullet
+    ${BULLET_LIBRARIES}
 )
 set(private_deps
-    opencv_imgproc
     VC::meshing
-    VC::external
 )
-set(defs "")
+set(defs
+    VC_USE_BULLET
+)
 
-if (VC_USE_LIBIGL OR VC_USE_ALL)
-    list(APPEND srcs src/LeastSquaresConformalMapping.cpp)
-    list(APPEND public_deps libigl)
-    list(APPEND defs VC_USE_LIBIGL)
-endif()
-
+### Setup this library ###
 add_library(${target} ${srcs})
 add_library("${namespace}${module}" ALIAS "${target}")
 target_compile_definitions(${target} PUBLIC ${defs})
@@ -45,11 +45,12 @@ set_target_properties(${target} PROPERTIES
     EXPORT_NAME "${module}"
 )
 
+### Install lib ###
 if(VC_INSTALL_LIBS)
 install(
     TARGETS ${target}
-    EXPORT ${targets_export_name}
     COMPONENT "Libraries"
+    EXPORT ${targets_export_name}
     ARCHIVE DESTINATION "lib"
     LIBRARY DESTINATION "lib"
     RUNTIME DESTINATION "bin"
@@ -68,11 +69,8 @@ if(VC_BUILD_TESTS)
 
 # Set source files
 set(test_srcs
-    test/ABFTest.cpp
+    test/ClothTest.cpp
 )
-if (VC_USE_LIBIGL OR VC_USE_ALL)
-    list(APPEND test_srcs test/LSCMTest.cpp)
-endif()
 
 # Add a test executable for each src
 foreach(src ${test_srcs})
@@ -80,34 +78,26 @@ foreach(src ${test_srcs})
     set(testname ${target}_${filename})
     add_executable(${testname} ${src})
     target_link_libraries(${testname}
-        VC::texturing
-        VC::testing
-        Boost::unit_test_framework
-        ${public_deps}
-    )
-    add_test(
-        NAME ${testname}
-        WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
-        COMMAND ${testname}
-    )
+    VC::experimental
+    VC::testing
+    Boost::unit_test_framework
+    ${public_deps}
+)
+add_test(
+    NAME ${testname}
+    WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
+    COMMAND ${testname}
+)
 endforeach()
 
-# Set test resource files
-set(VC_TEXTURING_TEST_RES
-    test/res/abf_Plane.obj
-    test/res/abf_Plane_LSCMOnly.obj
-    test/res/abf_Arch.obj
-    test/res/abf_Arch_LSCMOnly.obj
+set(VC_EXPERIMENTAL_TEST_RES
+    test/res/clothUV_Arch_Unfurl.obj
+    test/res/clothUV_Arch_Collide.obj
+    test/res/clothUV_Arch_Final.obj
 )
-if (VC_USE_LIBIGL OR VC_USE_ALL)
-    list(APPEND VC_TEXTURING_TEST_RES
-        test/res/lscm_Plane.obj
-        test/res/lscm_Arch.obj
-    )
-endif()
 
 # Copy each test resource file
-foreach(r ${VC_TEXTURING_TEST_RES})
+foreach(r ${VC_EXPERIMENTAL_TEST_RES})
     file(COPY ${r} DESTINATION ${EXECUTABLE_OUTPUT_PATH})
 endforeach()
 

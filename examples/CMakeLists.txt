@@ -51,13 +51,13 @@ target_link_libraries(vc_itk2vtk_example
     ITKIOMesh
 )
 
-if (VC_USE_BULLET OR VC_USE_ALL)
+if (VC_BUILD_EXPERIMENTAL)
     add_executable(vc_cloth_example src/ClothExample.cpp)
     target_link_libraries(vc_cloth_example
         VC::core
+        VC::experimental
         VC::texturing
         VC::meshing
-        ${BULLET_LIBRARIES}
     )
 endif()
 

@@ -96,17 +96,6 @@ if (VC_USE_ACVD OR VC_USE_ALL)
     )
 endif()
 
-### Bullet Physics ###
-option(VC_USE_BULLET "Use Bullet Physics library" off)
-if (VC_USE_BULLET OR VC_USE_ALL)
-    find_package(Bullet QUIET REQUIRED)
-    add_library(bullet INTERFACE IMPORTED)
-    set_target_properties(bullet PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${BULLET_INCLUDE_DIRS}"
-        INTERFACE_LINK_LIBRARIES "${BULLET_LIBRARIES}"
-    )
-endif()
-
 ### libigl ###
 option(VC_USE_LIBIGL "Use libigl" off)
 if (VC_USE_LIBIGL OR VC_USE_ALL)

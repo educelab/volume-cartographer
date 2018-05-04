@@ -6,7 +6,7 @@
 
 #include "vc/meshing/DeepCopy.hpp"
 #include "vc/meshing/ITK2Bullet.hpp"
-#include "vc/texturing/ClothModelingUVMapping.hpp"
+#include "vc/experimental/texturing/ClothModelingUVMapping.hpp"
 
 //// Callbacks ////
 /* Note: Callbacks won't compile if they're not wrapped in the namespace.
@@ -15,36 +15,39 @@
 
 namespace volcart
 {
-namespace texturing
-{
+namespace experimental {
+    namespace texturing {
 // Forward pretick callbacks to functions in a stupid Bullet physics way
-static void constrainMotionCallback(btDynamicsWorld* world, btScalar timeStep)
-{
-    auto w = static_cast<ClothModelingUVMapping*>(world->getWorldUserInfo());
-    w->cbConstrainMotion(timeStep);
-}
+        static void
+        constrainMotionCallback(btDynamicsWorld *world, btScalar timeStep) {
+            auto w = static_cast<ClothModelingUVMapping *>(world->getWorldUserInfo());
+            w->cbConstrainMotion(timeStep);
+        }
 
-static void axisLockCallback(btDynamicsWorld* world, btScalar timeStep)
-{
-    auto w = static_cast<ClothModelingUVMapping*>(world->getWorldUserInfo());
-    w->cbAxisLock(timeStep);
-}
+        static void
+        axisLockCallback(btDynamicsWorld *world, btScalar timeStep) {
+            auto w = static_cast<ClothModelingUVMapping *>(world->getWorldUserInfo());
+            w->cbAxisLock(timeStep);
+        }
 
-static void moveTowardTargetCallback(btDynamicsWorld* world, btScalar timeStep)
-{
-    auto w = static_cast<ClothModelingUVMapping*>(world->getWorldUserInfo());
-    w->cbMoveTowardTarget(timeStep);
-}
+        static void
+        moveTowardTargetCallback(btDynamicsWorld *world, btScalar timeStep) {
+            auto w = static_cast<ClothModelingUVMapping *>(world->getWorldUserInfo());
+            w->cbMoveTowardTarget(timeStep);
+        }
 
-static void emptyPreTickCallback(btDynamicsWorld* world, btScalar timeStep)
-{
-    auto w = static_cast<ClothModelingUVMapping*>(world->getWorldUserInfo());
-    w->cbEmptyPreTick(timeStep);
-}
-}  // texturing
+        static void
+        emptyPreTickCallback(btDynamicsWorld *world, btScalar timeStep) {
+            auto w = static_cast<ClothModelingUVMapping *>(world->getWorldUserInfo());
+            w->cbEmptyPreTick(timeStep);
+        }
+
+
+    }  // texturing
+} // experimental
 }  // volcart
 
-using namespace volcart::texturing;
+using namespace volcart::experimental::texturing;
 
 // Constructor
 ClothModelingUVMapping::ClothModelingUVMapping(
