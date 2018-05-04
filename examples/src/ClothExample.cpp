@@ -2,7 +2,7 @@
 // Created by Seth Parker on 7/29/16.
 //
 /*
- * Purpose: Run volcart::texturing::ClothModelingUVMapping() and write results
+ * Purpose: Run vce::texturing::ClothModelingUVMapping() and write results
  * to file for each stage.
  *          Saved file will be read in by the clothTest.cpp file under
  * v-c/testing/texturing.
@@ -12,7 +12,9 @@
 
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/shapes/Arch.hpp"
-#include "vc/texturing/ClothModelingUVMapping.hpp"
+#include "vc/experimental/texturing/ClothModelingUVMapping.hpp"
+
+namespace vce = volcart::experimental;
 
 int main()
 {
@@ -23,12 +25,12 @@ int main()
     volcart::shapes::Arch arch;
 
     // Get pinned points for unfurling step
-    volcart::texturing::ClothModelingUVMapping::VertIDList unfurl;
+    vce::texturing::ClothModelingUVMapping::VertIDList unfurl;
     unfurl.push_back(0);
     unfurl.push_back(90);
 
     // Get pinned points for expansion step
-    volcart::texturing::ClothModelingUVMapping::VertIDList expand;
+    vce::texturing::ClothModelingUVMapping::VertIDList expand;
     //    The arch currently doesn't need to be expanded, but leaving this here
     //    in case the expansion forces get balanced.
     //    expand.push_back(0);
@@ -41,14 +43,14 @@ int main()
     uint16_t expansionIt = 5000;
 
     // Run the simulation
-    volcart::texturing::ClothModelingUVMapping clothUV(
+    vce::texturing::ClothModelingUVMapping clothUV(
         arch.itkMesh(), unfurlIt, collisionIt, expansionIt, unfurl, expand);
     clothUV.setAcceleration(
-        volcart::texturing::ClothModelingUVMapping::Stage::Unfurl, 10);
+        vce::texturing::ClothModelingUVMapping::Stage::Unfurl, 10);
     clothUV.setAcceleration(
-        volcart::texturing::ClothModelingUVMapping::Stage::Collision, -10);
+        vce::texturing::ClothModelingUVMapping::Stage::Collision, -10);
     clothUV.setAcceleration(
-        volcart::texturing::ClothModelingUVMapping::Stage::Expansion, -10);
+        vce::texturing::ClothModelingUVMapping::Stage::Expansion, -10);
 
     clothUV.unfurl();
     mesh_writer.setMesh(clothUV.getMesh());

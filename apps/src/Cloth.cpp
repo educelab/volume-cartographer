@@ -11,18 +11,19 @@
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/DateTime.hpp"
+#include "vc/experimental/texturing/ClothModelingUVMapping.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
-#include "vc/texturing/ClothModelingUVMapping.hpp"
 #include "vc/texturing/CompositeTexture.hpp"
 #include "vc/texturing/PPMGenerator.hpp"
 
 using namespace volcart;
 namespace po = boost::program_options;
+namespace vce = volcart::experimental;
 
 void getPins(
     std::string path,
     ITKMesh::Pointer mesh,
-    volcart::texturing::ClothModelingUVMapping::VertIDList& pinList);
+    vce::texturing::ClothModelingUVMapping::VertIDList& pinList);
 
 int main(int argc, char* argv[])
 {
@@ -121,22 +122,22 @@ int main(int argc, char* argv[])
     volcart::meshing::VTK2ITK(reader->GetOutput(), mesh);
 
     // Get pinned points for unfurling step
-    volcart::texturing::ClothModelingUVMapping::VertIDList unfurl;
+    vce::texturing::ClothModelingUVMapping::VertIDList unfurl;
     getPins(uPins_path, mesh, unfurl);
 
     // Get pinned points for expansion step
-    volcart::texturing::ClothModelingUVMapping::VertIDList expand;
+    vce::texturing::ClothModelingUVMapping::VertIDList expand;
     getPins(ePins_path, mesh, expand);
 
     // Run the simulation
-    volcart::texturing::ClothModelingUVMapping clothUV(
+    vce::texturing::ClothModelingUVMapping clothUV(
         mesh, unfurlIt, collisionIt, expansionIt, unfurl, expand);
     clothUV.setAcceleration(
-        volcart::texturing::ClothModelingUVMapping::Stage::Unfurl, 10);
+        vce::texturing::ClothModelingUVMapping::Stage::Unfurl, 10);
     clothUV.setAcceleration(
-        volcart::texturing::ClothModelingUVMapping::Stage::Collision, -10);
+        vce::texturing::ClothModelingUVMapping::Stage::Collision, -10);
     clothUV.setAcceleration(
-        volcart::texturing::ClothModelingUVMapping::Stage::Expansion, 10);
+        vce::texturing::ClothModelingUVMapping::Stage::Expansion, 10);
     clothUV.compute();
 
     // Write the scaled mesh
@@ -185,7 +186,7 @@ int main(int argc, char* argv[])
 void getPins(
     std::string path,
     ITKMesh::Pointer mesh,
-    volcart::texturing::ClothModelingUVMapping::VertIDList& pinList)
+    vce::texturing::ClothModelingUVMapping::VertIDList& pinList)
 {
 
     // Clear the pin list

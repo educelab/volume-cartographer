@@ -14,6 +14,7 @@ set_target_properties(bullet PROPERTIES
 ### Setup sources and link libs ###
 set(srcs
     src/ClothModelingUVMapping.cpp
+    src/ITK2Bullet.cpp
 )
 set(public_deps
     VC::core

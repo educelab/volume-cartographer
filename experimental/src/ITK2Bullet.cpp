@@ -1,11 +1,8 @@
 /** @file ITK2Bullet.cpp */
 
-#include "vc/meshing/ITK2Bullet.hpp"
+#include "vc/experimental/meshing/ITK2Bullet.hpp"
 
-namespace volcart
-{
-namespace meshing
-{
+using namespace volcart::experimental::meshing;
 
 ITK2Bullet::ITK2Bullet(
     ITKMesh::Pointer input, btSoftBodyWorldInfo& worldInfo, btSoftBody** output)
@@ -63,6 +60,4 @@ Bullet2ITK::Bullet2ITK(btSoftBody* input, ITKMesh::Pointer output)
         output->SetPoint(i, p);
         output->SetPointData(i, n);
     }
-}
-}
 }

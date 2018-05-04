@@ -4,9 +4,9 @@
 
 #include <BulletSoftBody/btDefaultSoftBodySolver.h>
 
-#include "vc/meshing/DeepCopy.hpp"
-#include "vc/meshing/ITK2Bullet.hpp"
+#include "vc/experimental/meshing/ITK2Bullet.hpp"
 #include "vc/experimental/texturing/ClothModelingUVMapping.hpp"
+#include "vc/meshing/DeepCopy.hpp"
 
 //// Callbacks ////
 /* Note: Callbacks won't compile if they're not wrapped in the namespace.
@@ -15,43 +15,47 @@
 
 namespace volcart
 {
-namespace experimental {
-    namespace texturing {
+
+namespace experimental
+{
+namespace texturing
+{
 // Forward pretick callbacks to functions in a stupid Bullet physics way
-        static void
-        constrainMotionCallback(btDynamicsWorld *world, btScalar timeStep) {
-            auto w = static_cast<ClothModelingUVMapping *>(world->getWorldUserInfo());
-            w->cbConstrainMotion(timeStep);
-        }
+static void constrainMotionCallback(btDynamicsWorld* world, btScalar timeStep)
+{
+    auto w = static_cast<ClothModelingUVMapping*>(world->getWorldUserInfo());
+    w->cbConstrainMotion(timeStep);
+}
 
-        static void
-        axisLockCallback(btDynamicsWorld *world, btScalar timeStep) {
-            auto w = static_cast<ClothModelingUVMapping *>(world->getWorldUserInfo());
-            w->cbAxisLock(timeStep);
-        }
+static void axisLockCallback(btDynamicsWorld* world, btScalar timeStep)
+{
+    auto w = static_cast<ClothModelingUVMapping*>(world->getWorldUserInfo());
+    w->cbAxisLock(timeStep);
+}
 
-        static void
-        moveTowardTargetCallback(btDynamicsWorld *world, btScalar timeStep) {
-            auto w = static_cast<ClothModelingUVMapping *>(world->getWorldUserInfo());
-            w->cbMoveTowardTarget(timeStep);
-        }
+static void moveTowardTargetCallback(btDynamicsWorld* world, btScalar timeStep)
+{
+    auto w = static_cast<ClothModelingUVMapping*>(world->getWorldUserInfo());
+    w->cbMoveTowardTarget(timeStep);
+}
 
-        static void
-        emptyPreTickCallback(btDynamicsWorld *world, btScalar timeStep) {
-            auto w = static_cast<ClothModelingUVMapping *>(world->getWorldUserInfo());
-            w->cbEmptyPreTick(timeStep);
-        }
+static void emptyPreTickCallback(btDynamicsWorld* world, btScalar timeStep)
+{
+    auto w = static_cast<ClothModelingUVMapping*>(world->getWorldUserInfo());
+    w->cbEmptyPreTick(timeStep);
+}
 
+}  // namespace texturing
+}  // namespace experimental
+}  // namespace volcart
 
-    }  // texturing
-} // experimental
-}  // volcart
-
+namespace vc = volcart;
+namespace vce = volcart::experimental;
 using namespace volcart::experimental::texturing;
 
 // Constructor
 ClothModelingUVMapping::ClothModelingUVMapping(
-    volcart::ITKMesh::Pointer input,
+    vc::ITKMesh::Pointer input,
     uint16_t unfurlIterations,
     uint16_t collideIterations,
     uint16_t expandIterations,
@@ -94,7 +98,7 @@ ClothModelingUVMapping::ClothModelingUVMapping(
     world_->addRigidBody(collisionPlane_);
 
     // Convert mesh to a softbody
-    volcart::meshing::ITK2Bullet(mesh_, world_->getWorldInfo(), &softBody_);
+    vce::meshing::ITK2Bullet(mesh_, world_->getWorldInfo(), &softBody_);
 
     // Scale the mesh so that max dimension <= 80m
     // Note: Assumes max is a positive coordinate. Not sure what this will do
@@ -141,7 +145,7 @@ ClothModelingUVMapping::~ClothModelingUVMapping()
 }
 
 // Process this mesh
-volcart::UVMap ClothModelingUVMapping::compute()
+vc::UVMap ClothModelingUVMapping::compute()
 {
     if (unfurlIterations_ > 0) {
         unfurl_();
@@ -162,7 +166,7 @@ void ClothModelingUVMapping::collide() { collide_(); };
 void ClothModelingUVMapping::expand() { expand_(); };
 
 // Get UV Map created from flattened object
-volcart::UVMap ClothModelingUVMapping::getUVMap()
+vc::UVMap ClothModelingUVMapping::getUVMap()
 {
     // Get the current XZ bounds of the softbody
     btVector3 min, max;
@@ -178,7 +182,7 @@ volcart::UVMap ClothModelingUVMapping::getUVMap()
     double aspectWidth = std::abs(umax - umin) * (1 / meshToWorldScale_);
     double aspectHeight = std::abs(vmax - vmin) * (1 / meshToWorldScale_);
 
-    volcart::UVMap uvMap;
+    vc::UVMap uvMap;
     uvMap.ratio(aspectWidth, aspectHeight);
 
     // Calculate uv coordinates
@@ -197,11 +201,11 @@ volcart::UVMap ClothModelingUVMapping::getUVMap()
 
 // Get mesh version of flattened object
 // Note: This is still in world coordinates, not volume coordinates
-volcart::ITKMesh::Pointer ClothModelingUVMapping::getMesh()
+vc::ITKMesh::Pointer ClothModelingUVMapping::getMesh()
 {
-    auto output = volcart::ITKMesh::New();
-    volcart::meshing::DeepCopy(mesh_, output);
-    volcart::meshing::Bullet2ITK(softBody_, output);
+    auto output = vc::ITKMesh::New();
+    vc::meshing::DeepCopy(mesh_, output);
+    vce::meshing::Bullet2ITK(softBody_, output);
     return output;
 }
 
