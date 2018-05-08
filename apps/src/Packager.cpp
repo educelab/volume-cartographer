@@ -11,13 +11,18 @@
 #include <boost/program_options.hpp>
 
 #include "apps/SliceImage.hpp"
+#include "vc/core/io/FileExtensionFilter.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
+namespace vci = volcart::io;
 
 enum class Flip { None, Horizontal, Vertical, Both };
+
+static const vc::io::ExtensionList AcceptedExtensions{"tif", "tiff", "png",
+                                                      "jpg", "jpeg", "bmp"};
 
 static const double MIN_16BPC = std::numeric_limits<uint16_t>::min();
 static const double MAX_16BPC = std::numeric_limits<uint16_t>::max();
@@ -193,7 +198,6 @@ void AddVolume(vc::VolumePkg::Pointer& volpkg, VolumeInfo info)
     }
 
     // Filter out subfiles that aren't TIFs
-    // To-Do: #177
     fs::directory_iterator subfile(info.path);
     fs::directory_iterator dirEnd;
     for (; subfile != dirEnd; subfile++) {
@@ -203,10 +207,8 @@ void AddVolume(vc::VolumePkg::Pointer& volpkg, VolumeInfo info)
         }
 
         // Compare against the file extension
-        auto ext(subfile->path().extension().string());
-        ext = boost::to_upper_copy<std::string>(ext);
-        if (ext == ".TIF" || ext == ".TIFF") {
-            slices.emplace_back(*subfile);
+        if (vc::io::FileExtensionFilter(subfile->path(), AcceptedExtensions)) {
+            slices.emplace_back(subfile->path());
         }
     }
 
@@ -330,7 +332,7 @@ void AddVolume(vc::VolumePkg::Pointer& volpkg, VolumeInfo info)
 
         // Just copy to the volume
         else {
-            fs::copy(slice.path, volume->getSlicePath(counter));
+            fs::copy_file(slice.path, volume->getSlicePath(counter));
         }
 
         ++counter;
