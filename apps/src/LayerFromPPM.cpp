@@ -33,7 +33,9 @@ int main(int argc, char* argv[])
             "Volume to use for texturing. Default: The first volume in the "
             "volume package.")
         ("output-dir,o", po::value<std::string>()->required(),
-            "Output directory for layer images.");
+            "Output directory for layer images.")
+        ("output-ppm", po::value<std::string>(), "Create and save a new PPM "
+            "that maps to the layer subvolume.");
 
     po::options_description filterOptions("Generic Filtering Options");
     filterOptions.add_options()
@@ -47,6 +49,12 @@ int main(int argc, char* argv[])
                 "  1 = Positive\n"
                 "  2 = Negative");
 
+    po::options_description ppmOptions("PPM Generation Options");
+    ppmOptions.add_options()
+        ("negative-normal", "Orient normals in the negative Z direction. By "
+            "default, normals in the new PPM are oriented in the positive "
+            "Z direction.");
+
     po::options_description performanceOptions("Performance Options");
     performanceOptions.add_options()
         ("cache-memory-limit", po::value<std::string>(), "Maximum size of the "
@@ -56,6 +64,7 @@ int main(int argc, char* argv[])
     po::options_description all("Usage");
     all.add(required)
         .add(filterOptions)
+        .add(ppmOptions)
         .add(performanceOptions);
     // clang-format on
 
@@ -161,5 +170,33 @@ int main(int argc, char* argv[])
     for (size_t i = 0; i < texture.numberOfImages(); ++i) {
         filepath = outputPath / (std::to_string(i) + ".png");
         cv::imwrite(filepath.string(), texture.image(i));
+    }
+
+    if (parsed.count("output-ppm") > 0) {
+        std::cout << "Generating new PPM..." << std::endl;
+        fs::path outputPPMPath = parsed["output-ppm"].as<std::string>();
+
+        // Setup new PPM
+        auto height = ppm.height();
+        auto width = ppm.width();
+        vc::PerPixelMap newPPM(height, width);
+        newPPM.setMask(ppm.mask());
+
+        // Fill new PPM
+        auto z = (texture.numberOfImages() - 1) / 2.0;
+        auto normal = (parsed.count("negative-normal") > 0) ? -1.0 : 1.0;
+        for (size_t y = 0; y < height; y++) {
+            for (size_t x = 0; x < width; x++) {
+                if (!newPPM.hasMapping(y, x)) {
+                    continue;
+                }
+
+                newPPM(y, x) = {x, y, z, 0, 0, normal};
+            }
+        }
+
+        // Write the new PPM
+        std::cout << "Writing new PPM..." << std::endl;
+        vc::PerPixelMap::WritePPM(outputPPMPath, newPPM);
     }
 }
