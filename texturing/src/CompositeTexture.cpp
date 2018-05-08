@@ -20,26 +20,28 @@ Texture CompositeTexture::compute()
     auto height = static_cast<int>(ppm_.height());
     auto width = static_cast<int>(ppm_.width());
 
+    // Output image
     cv::Mat image = cv::Mat::zeros(height, width, CV_16UC1);
-    for (int y = 0; y < height; ++y) {
-        for (int x = 0; x < width; ++x) {
-            // Skip this pixel if we have no mapping
-            if (!ppm_.hasMapping(y, x)) {
-                continue;
-            }
 
-            // Find the xyz coordinate of the original point
-            auto pixelInfo = ppm_(y, x);
-            cv::Vec3d xyz{pixelInfo[0], pixelInfo[1], pixelInfo[2]};
-            cv::Vec3d xyzNorm{pixelInfo[3], pixelInfo[4], pixelInfo[5]};
+    // Get the mappings
+    auto mappings = ppm_.getMappings();
 
-            // Generate the neighborhood
-            auto neighborhood = vol_->getVoxelNeighborsLinearInterpolated(
-                xyz, xyzNorm, radius_, interval_, direction_);
+    // Sort the mappings by Z-value
+    std::sort(
+        mappings.begin(), mappings.end(), [](const auto& lhs, const auto& rhs) {
+            return lhs.pos[2] < rhs.pos[2];
+        });
 
-            // Assign the intensity value at the UV position
-            image.at<uint16_t>(y, x) = filter_neighborhood_(neighborhood);
-        }
+    // Iterate through the mappings
+    for (const auto& pixel : mappings) {
+        // Generate the neighborhood
+        auto neighborhood = vol_->getVoxelNeighborsLinearInterpolated(
+            pixel.pos, pixel.normal, radius_, interval_, direction_);
+
+        // Assign the intensity value at the UV position
+        image.at<uint16_t>(
+            static_cast<int>(pixel.y), static_cast<int>(pixel.x)) =
+            filter_neighborhood_(neighborhood);
     }
 
     // Set output

@@ -13,15 +13,20 @@
 
 namespace volcart
 {
+namespace experimental
+{
 namespace texturing
 {
 
 /** Forward the constrain motion callback @memberof ClothModelingUVMapping */
 static void constrainMotionCallback(btDynamicsWorld* world, btScalar timeStep);
+
 /** Forward the axis lock callback @memberof ClothModelingUVMapping */
 static void axisLockCallback(btDynamicsWorld* world, btScalar timeStep);
+
 /** Forward the "move to target" callback @memberof ClothModelingUVMapping */
 static void moveTowardTargetCallback(btDynamicsWorld* world, btScalar timeStep);
+
 /** Forward the "do nothing" callback @memberof ClothModelingUVMapping */
 static void emptyPreTickCallback(btDynamicsWorld* world, btScalar timeStep);
 
@@ -185,6 +190,7 @@ private:
     double unfurlA_;
     /** Pinned vertices for the unfurl stage */
     VertIDList unfurlPins_;
+
     /** Run the unfurl stage */
     void unfurl_();
 
@@ -194,6 +200,7 @@ private:
     double collisionA_;
     /** Collision plane rigid body */
     btRigidBody* collisionPlane_;
+
     /** Run the collision stage */
     void collide_();
 
@@ -203,6 +210,7 @@ private:
     double expansionA_;
     /** Pinned vertices for the expansion stage */
     VertIDList expansionPins_;
+
     /** Run the expansion stage */
     void expand_();
 
@@ -222,5 +230,6 @@ private:
     /** Bullet physics simulation world */
     btSoftRigidDynamicsWorld* world_;
 };
-}
-}
+}  // namespace texturing
+}  // namespace experimental
+}  // namespace volcart

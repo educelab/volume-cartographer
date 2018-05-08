@@ -7,6 +7,8 @@
 using namespace volcart;
 namespace fs = boost::filesystem;
 
+using PPM = PerPixelMap;
+
 inline fs::path MaskPath(const fs::path& p)
 {
     return p.parent_path() / (p.stem().string() + "_mask.png");
@@ -30,6 +32,34 @@ void PerPixelMap::setHeight(size_t h)
 {
     height_ = h;
     initialize_map_();
+}
+
+// Get individual mappings
+PPM::PixelMap PerPixelMap::getAsPixelMap(size_t y, size_t x)
+{
+    return {x, y, map_(y, x)};
+}
+
+// Return only valid mappings
+std::vector<PPM::PixelMap> PerPixelMap::getMappings()
+{
+    // Output vector
+    std::vector<PixelMap> mappings;
+
+    // For each pixel...
+    for (size_t y = 0; y < height_; ++y) {
+        for (size_t x = 0; x < width_; ++x) {
+            // Skip this pixel if we have no mapping
+            if (!hasMapping(y, x)) {
+                continue;
+            }
+
+            // Put it in the vector if we go have one
+            mappings.emplace_back(x, y, map_(y, x));
+        }
+    }
+
+    return mappings;
 }
 
 // Initialize map

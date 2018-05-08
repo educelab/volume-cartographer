@@ -32,6 +32,11 @@ volcart::ITKMesh::Pointer OrderedPointSetMesher::compute()
         ++cnt;
     }
 
+    // Return early if we're not triangulating
+    if (!generateTriangles_) {
+        return output_;
+    }
+
     // Creates 2 cells per iteration and adds them to the mesh
     size_t p0, p1, p2, p3;
     for (size_t i = 0; i < input_.height() - 1; i++) {

@@ -7,6 +7,7 @@ set(io_srcs
     src/OBJWriter.cpp
     src/PLYReader.cpp
     src/PLYWriter.cpp
+    src/TIFFIO.cpp
 )
 
 set(shape_srcs
@@ -31,6 +32,7 @@ set(type_srcs
 
 set(util_srcs
     src/MeshMath.cpp
+    src/MemorySizeStringParser.cpp
 )
 
 set(srcs ${io_srcs} ${shape_srcs} ${type_srcs} ${util_srcs})
@@ -56,6 +58,8 @@ target_link_libraries(${target}
         vtkCommonCore
         vtkIOLegacy
         VC::external
+    PRIVATE
+        TIFF::TIFF
 )
 set_target_properties(${target} PROPERTIES
     VERSION "${PROJECT_VERSION}"

@@ -46,6 +46,13 @@ size_t Texture::addImage(cv::Mat image)
     return images_.size() - 1;
 }
 
+// Set an image to index
+void Texture::setImage(size_t id, cv::Mat image)
+{
+    images_.at(id) = std::move(image);
+    metadata_.set<size_t>("number-of-images", images_.size());
+}
+
 // Return the intensity for a Point ID
 double Texture::intensity(int pointId, int imageId)
 {

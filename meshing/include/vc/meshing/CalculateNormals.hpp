@@ -28,12 +28,12 @@ class CalculateNormals
 public:
     //** @name Constructors */
     //@{
-    CalculateNormals() {}
+    CalculateNormals() = default;
 
     /**
      * @param mesh Input Mesh whose normals you want computed
      */
-    explicit CalculateNormals(ITKMesh::Pointer mesh)
+    explicit CalculateNormals(const ITKMesh::Pointer& mesh)
         : input_{mesh}, output_{ITKMesh::New()}
     {
         DeepCopy(input_, output_);
@@ -57,7 +57,7 @@ public:
     /**
      * @brief Compute vertex normals for the mesh.
      */
-    void compute();
+    ITKMesh::Pointer compute();
 
 private:
     /**

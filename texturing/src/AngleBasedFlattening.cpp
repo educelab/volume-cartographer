@@ -148,32 +148,40 @@ void AngleBasedFlattening::scale_()
 // Angle minimization loop
 void AngleBasedFlattening::solve_abf_()
 {
+    std::cerr << "volcart::texturing::abf: Solving ABF..." << std::endl;
     compute_sines_();
 
-    double norm = std::numeric_limits<double>::max();
-    int i = 0;
-    for (; i < maxABFIterations_; ++i) {
+    // Always do at least one iteration
+    int iteration = 0;
+    double norm = compute_gradient_();
+    while (iteration < maxABFIterations_) {
+        // Update iteration counter
+        iteration++;
+
+        // Attempt to invert the matrix and solve
+        if (!invert_matrix_()) {
+            std::cerr << "volcart::texturing::abf: ";
+            std::cerr << "Failed to invert matrix during " << iteration
+                      << " iteration. ";
+            std::cerr << "Falling back to LSCM." << std::endl;
+            break;
+        }
+
+        // Update the HEM with their new sine/cosine values
+        compute_sines_();
+
+        // Recompute the norm
         norm = compute_gradient_();
 
         // Break if we're below the error limit
         if (norm < limit_) {
             break;
         }
-
-        // Attempt to invert the matrix and solve
-        if (!invert_matrix_()) {
-            std::cerr
-                << "volcart::texturing::abf: ABF failed to invert matrix after "
-                << i + 1 << " iterations. Falling back to LSCM." << std::endl;
-            break;
-        }
-
-        // Update the HEM with their new sine/cosine values
-        compute_sines_();
     }
-    std::cerr << "volcart::texturing::abf: Iterations: " << i
-              << " || Final norm: " << norm << " || Limit: " << limit_
-              << std::endl;
+    std::cerr << "volcart::texturing::abf: ";
+    std::cerr << "ABF Iterations: " << iteration << " || ";
+    std::cerr << "Final norm: " << norm << " || ";
+    std::cerr << "Limit: " << limit_ << std::endl;
 }
 
 ///// Helpers - ABF /////
@@ -639,6 +647,7 @@ void AngleBasedFlattening::solve_lscm_()
     }
 
     // Solve
+    std::cerr << "volcart::texturing::abf: Solving LSCM..." << std::endl;
     bool success = EIG_linear_solver_solve(context);
     if (!success) {
         throw std::runtime_error("Failed to solve lscm.");

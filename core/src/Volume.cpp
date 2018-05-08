@@ -262,7 +262,8 @@ EigenPairs Volume::eigenPairsAt(
     EigenVector e1{row1(0), row1(1), row1(2)};
     EigenVector e2{row2(0), row2(1), row2(2)};
     return {
-        std::make_pair(eigenValues(0), e0), std::make_pair(eigenValues(1), e1),
+        std::make_pair(eigenValues(0), e0),
+        std::make_pair(eigenValues(1), e1),
         std::make_pair(eigenValues(2), e2),
     };
 }
@@ -282,7 +283,8 @@ EigenPairs Volume::interpolatedEigenPairsAt(
     EigenVector e1{row1(0), row1(1), row1(2)};
     EigenVector e2{row2(0), row2(1), row2(2)};
     return {
-        std::make_pair(eigenValues(0), e0), std::make_pair(eigenValues(1), e1),
+        std::make_pair(eigenValues(0), e0),
+        std::make_pair(eigenValues(1), e1),
         std::make_pair(eigenValues(2), e2),
     };
 }
@@ -410,7 +412,7 @@ std::unique_ptr<double[]> MakeUniformGaussianField(int radius)
 
 Neighborhood Volume::getVoxelNeighborsLinearInterpolated(
     const cv::Vec3d& center,
-    cv::Vec3d majorAxis,
+    const cv::Vec3d& majorAxis,
     double radius,
     double interval,
     Direction direction) const
@@ -421,7 +423,8 @@ Neighborhood Volume::getVoxelNeighborsLinearInterpolated(
     }
 
     // Normalize axis and ensure properly oriented radius
-    cv::normalize(majorAxis, majorAxis);
+    cv::Vec3d axis;
+    cv::normalize(majorAxis, axis);
     radius = std::abs(radius);
 
     // Setup Range
@@ -449,7 +452,7 @@ Neighborhood Volume::getVoxelNeighborsLinearInterpolated(
     auto count = static_cast<size_t>(std::floor((max - min) / interval) + 1);
     for (size_t it = 0; it < count; it++) {
         auto offset = min + (it * interval);
-        n.emplace_back(interpolateAt(center + (majorAxis * offset)));
+        n.emplace_back(interpolateAt(center + (axis * offset)));
     }
 
     return n;

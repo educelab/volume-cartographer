@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
-set(VC_VERSION 2.17.0)
+set(VC_VERSION 2.18.0)
 
 option(VC_VERSION_DATESTAMP "Append date stamp to version number" off)
 if(VC_VERSION_DATESTAMP)
@@ -35,6 +35,9 @@ option(VC_INSTALL_UTILS     "Install VC utility programs" on)
 option(VC_INSTALL_DOC       "Install VC documentation"    off)
 option(VC_INSTALL_PYTHON_BINDINGS "Install Python bindings." off)
 
+# Extra options
+option(VC_BUILD_EXPERIMENTAL "Build the experimental library" off)
+
 # Look for external dependencies.
 include(VCFindDependencies)
 
@@ -67,6 +70,11 @@ endif()
 add_subdirectory(meshing)
 add_subdirectory(segmentation)
 add_subdirectory(texturing)
+
+# Build experimental library last
+if(VC_BUILD_EXPERIMENTAL)
+    add_subdirectory(experimental)
+endif()
 
 ## VC Core Apps ##
 if (VC_BUILD_APPS)

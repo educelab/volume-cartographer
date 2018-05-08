@@ -8,6 +8,7 @@
 
 #include "vc/core/types/PerPixelMap.hpp"
 #include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/util/MemorySizeStringParser.hpp"
 #include "vc/external/GetMemorySize.hpp"
 #include "vc/texturing/LayerTexture.hpp"
 
@@ -29,12 +30,10 @@ int main(int argc, char* argv[])
         ("volpkg,v", po::value<std::string>()->required(), "VolumePkg path")
         ("ppm,p", po::value<std::string>()->required(), "Input PPM file")
         ("volume", po::value<std::string>(),
-            "Volume to use for texturing. Default: Segmentation's associated "
-            "volume or the first volume in the volume package.")
+            "Volume to use for texturing. Default: The first volume in the "
+            "volume package.")
         ("output-dir,o", po::value<std::string>()->required(),
-            "Output directory for layer images.")
-        ("output-ppm", po::value<std::string>(),
-            "Output file path for the generated PPM.");
+            "Output directory for layer images.");
 
     po::options_description filterOptions("Generic Filtering Options");
     filterOptions.add_options()
@@ -48,8 +47,16 @@ int main(int argc, char* argv[])
                 "  1 = Positive\n"
                 "  2 = Negative");
 
+    po::options_description performanceOptions("Performance Options");
+    performanceOptions.add_options()
+        ("cache-memory-limit", po::value<std::string>(), "Maximum size of the "
+            "slice cache in bytes. Accepts the suffixes: (K|M|G|T)(B). "
+            "Default: 50% of the total system memory.");
+
     po::options_description all("Usage");
-    all.add(required).add(filterOptions);
+    all.add(required)
+        .add(filterOptions)
+        .add(performanceOptions);
     // clang-format on
 
     // Parse the cmd line
@@ -93,13 +100,34 @@ int main(int argc, char* argv[])
 
     ///// Load the Volume /////
     vc::Volume::Pointer volume;
-    if (parsed.count("volume")) {
-        volume = vpkg.volume(parsed["volume"].as<std::string>());
-    } else {
-        volume = vpkg.volume();
+    try {
+        if (parsed.count("volume")) {
+            volume = vpkg.volume(parsed["volume"].as<std::string>());
+        } else {
+            volume = vpkg.volume();
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Cannot load volume. ";
+        std::cerr << "Please check that the Volume Package has volumes and "
+                     "that the volume ID is correct."
+                  << std::endl;
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
     }
-    double cacheBytes = 0.75 * SystemMemorySize();
-    volume->setCacheMemoryInBytes(static_cast<size_t>(cacheBytes));
+
+    // Set the cache size
+    size_t cacheBytes;
+    if (parsed.count("cache-memory-limit")) {
+        auto cacheSizeOpt = parsed["cache-memory-limit"].as<std::string>();
+        cacheBytes = vc::MemorySizeStringParser(cacheSizeOpt);
+    } else {
+        cacheBytes = SystemMemorySize() / 2;
+    }
+    volume->setCacheMemoryInBytes(cacheBytes);
+    std::cout << "Volume Cache :: ";
+    std::cout << "Capacity: " << volume->getCacheCapacity() << " || ";
+    std::cout << "Size: " << vc::BytesToMemorySizeString(cacheBytes);
+    std::cout << std::endl;
 
     ///// Get some post-vpkg loading command line arguments /////
     // Get the texturing radius. If not specified, default to a radius
@@ -108,7 +136,7 @@ int main(int argc, char* argv[])
     if (parsed.count("radius")) {
         radius = parsed["radius"].as<double>();
     } else {
-        radius = vpkg.materialThickness() / volume->voxelSize();
+        radius = vpkg.materialThickness() / 2 / volume->voxelSize();
     }
 
     auto interval = parsed["interval"].as<double>();

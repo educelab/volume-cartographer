@@ -48,9 +48,7 @@ int main(int argc, char* argv[])
             "Volume to use for texturing. Default: Segmentation's associated "
             "volume or the first volume in the volume package.")
         ("output-dir,o", po::value<std::string>()->required(),
-            "Output directory for layer images.")
-        ("output-ppm", po::value<std::string>(),
-            "Output file path for the generated PPM.");
+            "Output directory for layer images.");
 
     po::options_description filterOptions("Generic Filtering Options");
     filterOptions.add_options()
@@ -108,17 +106,39 @@ int main(int argc, char* argv[])
     }
 
     ///// Load the segmentation /////
-    auto seg = vpkg.segmentation(segID);
+    vc::Segmentation::Pointer seg;
+    try {
+        seg = vpkg.segmentation(segID);
+    } catch (const std::exception& e) {
+        std::cerr << "Cannot load segmentation. ";
+        std::cerr << "Please check the provided ID: " << segID << std::endl;
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
 
     ///// Load the Volume /////
     vc::Volume::Pointer volume;
+    vc::Volume::Identifier volID;
+
     if (parsed.count("volume")) {
-        volume = vpkg.volume(parsed["volume"].as<std::string>());
+        volID = parsed["volume"].as<std::string>();
+    } else if (seg->hasVolumeID()) {
+        volID = seg->getVolumeID();
     }
-    if (seg->hasVolumeID()) {
-        volume = vpkg.volume(seg->getVolumeID());
-    } else {
-        volume = vpkg.volume();
+
+    try {
+        if (!volID.empty()) {
+            volume = vpkg.volume(volID);
+        } else {
+            volume = vpkg.volume();
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Cannot load volume. ";
+        std::cerr << "Please check that the Volume Package has volumes and "
+                     "that the volume ID is correct. "
+                  << volID << std::endl;
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
     }
     double cacheBytes = 0.75 * SystemMemorySize();
     volume->setCacheMemoryInBytes(static_cast<size_t>(cacheBytes));
@@ -199,13 +219,6 @@ int main(int argc, char* argv[])
     for (size_t i = 0; i < texture.numberOfImages(); ++i) {
         auto filepath = outputPath / (std::to_string(i) + ".png");
         cv::imwrite(filepath.string(), texture.image(i));
-    }
-
-    // Save the PPM
-    if (parsed.count("output-ppm")) {
-        std::cout << "Writing PPM..." << std::endl;
-        fs::path ppmPath = parsed["output-ppm"].as<std::string>();
-        vc::PerPixelMap::WritePPM(ppmPath, ppm);
     }
 
     return EXIT_SUCCESS;

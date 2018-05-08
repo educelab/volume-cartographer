@@ -4,6 +4,8 @@
 
 #include "vc/texturing/IntersectionTexture.hpp"
 
+#include <algorithm>
+
 using namespace volcart;
 using namespace volcart::texturing;
 
@@ -14,21 +16,24 @@ Texture IntersectionTexture::compute()
     auto height = static_cast<int>(ppm_.height());
     auto width = static_cast<int>(ppm_.width());
 
+    // Output image
     cv::Mat image = cv::Mat::zeros(height, width, CV_16UC1);
-    for (int y = 0; y < height; ++y) {
-        for (int x = 0; x < width; ++x) {
-            // Skip this pixel if we have no mapping
-            if (!ppm_.hasMapping(y, x)) {
-                continue;
-            }
 
-            // Find the xyz coordinate of the original point
-            auto p = ppm_(y, x);
+    // Get the mappings
+    auto mappings = ppm_.getMappings();
 
-            // Assign the intensity value at the XY position
-            image.at<uint16_t>(y, x) =
-                vol_->interpolatedIntensityAt(p[0], p[1], p[2]);
-        }
+    // Sort the mappings by Z-value
+    std::sort(
+        mappings.begin(), mappings.end(), [](const auto& lhs, const auto& rhs) {
+            return lhs.pos[2] < rhs.pos[2];
+        });
+
+    // Iterate through the mappings
+    for (const auto& pixel : mappings) {
+        // Assign the intensity value at the XY position
+        image.at<uint16_t>(
+            static_cast<int>(pixel.y), static_cast<int>(pixel.x)) =
+            vol_->interpolatedIntensityAt(pixel.pos);
     }
 
     // Set output

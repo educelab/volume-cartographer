@@ -36,47 +36,50 @@ namespace meshing
 class OrderedPointSetMesher
 {
 public:
-    /** @name Constructors */
-    //@{
+    /**@{*/
+    /** @brief Default Constructor */
     OrderedPointSetMesher() = default;
 
-    /**
-     * @param points OrderedPointSet to be meshed
-     */
+    /** @brief Construct with OrderedPointSet to be converted */
     explicit OrderedPointSetMesher(OrderedPointSet<cv::Vec3d> points)
         : input_{std::move(points)}
     {
     }
-    //@}
+    /**@}*/
 
-    /** @name Input/Output */
-    //@{
-    /**
-     * Set the input OrderedPointSet.
-     * @param points OrderedPointSet to be meshed
-     */
+    /**@{*/
+    /** @brief Set the input OrderedPointSet */
     void setPointSet(const OrderedPointSet<cv::Vec3d>& points)
     {
         input_ = points;
     }
 
     /**
-     * @brief Get the generated mesh.
+     * @brief Set whether to compute a triangulation from point ordering
+     *
+     * When enabled, use point ordering to generate a triangulation.
+     * Otherwise, the resulting mesh is only filled with vertices.
+     *
+     * Default: Enabled
      */
-    ITKMesh::Pointer getOutputMesh() const { return output_; }
-    //@}
+    void setComputeTriangulation(bool b) { generateTriangles_ = b; }
 
-    /** @name Processing */
-    //@{
+    /** @brief Get the generated mesh */
+    ITKMesh::Pointer getOutputMesh() const { return output_; }
+    /**@}*/
+
+    /**@{*/
     /**
      * @brief Compute the mesh triangulation.
      */
     ITKMesh::Pointer compute();
-    //@}
+    /**@}*/
 
 private:
     OrderedPointSet<cv::Vec3d> input_;
     ITKMesh::Pointer output_;
+
+    bool generateTriangles_{true};
 
     /**
      * @brief Add a face to the output mesh.

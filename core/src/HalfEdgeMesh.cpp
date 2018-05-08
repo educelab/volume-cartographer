@@ -141,6 +141,9 @@ HalfEdgeMesh::FacePtr HalfEdgeMesh::addFace(IDType v0, IDType v1, IDType v2)
     edges_.back()->nextLink = e2;
     edges_.push_back(e2);
 
+    // For quick edge pair lookups during connect_all_pairs_();
+    pairLookupMap_.insert({{v0, e0}, {v1, e1}, {v2, e2}});
+
     f->id = faces_.size();
     f->lambdaTriangle = 0.0;
     if (!faces_.empty()) {
@@ -176,45 +179,55 @@ void HalfEdgeMesh::connect_all_pairs_()
         e1 = e0->next;
         e2 = e1->next;
 
-        // If we don't find a pair, set the vert's only edge to this one
-        e0->pair = find_edge_pair_(e0->vert->id, e1->vert->id);
-        if (e0->pair != nullptr) {
-            e0->pair->pair = e0;
-        } else {
-            e0->vert->edge = e0;
+        // If we don't have a pair, find one
+        // If we can't find one, set the vert's only edge to this one
+        if (e0->pair == nullptr) {
+            e0->pair = find_edge_pair_(e0->vert->id, e1->vert->id);
+            if (e0->pair != nullptr) {
+                e0->pair->pair = e0;
+            } else {
+                e0->vert->edge = e0;
+            }
         }
-        e1->pair = find_edge_pair_(e1->vert->id, e2->vert->id);
-        if (e1->pair != nullptr) {
-            e1->pair->pair = e1;
-        } else {
-            e1->vert->edge = e1;
+        if (e1->pair == nullptr) {
+            e1->pair = find_edge_pair_(e1->vert->id, e2->vert->id);
+            if (e1->pair != nullptr) {
+                e1->pair->pair = e1;
+            } else {
+                e1->vert->edge = e1;
+            }
         }
-        e2->pair = find_edge_pair_(e2->vert->id, e0->vert->id);
-        if (e2->pair != nullptr) {
-            e2->pair->pair = e2;
-        } else {
-            e2->vert->edge = e2;
+        if (e2->pair == nullptr) {
+            e2->pair = find_edge_pair_(e2->vert->id, e0->vert->id);
+            if (e2->pair != nullptr) {
+                e2->pair->pair = e2;
+            } else {
+                e2->vert->edge = e2;
+            }
         }
 
         f->connected = true;
     }
+
+    // Don't need the lookup map anymore
+    pairLookupMap_.clear();
 }
 
 // Find the other edge that shares the same two vertices
-HalfEdgeMesh::EdgePtr HalfEdgeMesh::find_edge_pair_(
-    HalfEdgeMesh::IDType a, HalfEdgeMesh::IDType b)
+HalfEdgeMesh::EdgePtr HalfEdgeMesh::find_edge_pair_(IDType a, IDType b)
 {
-    HalfEdgeMesh::EdgePtr pair = nullptr;
-    // Check these id's against each edge
-    for (auto e = edges_[0]; e; e = e->nextLink) {
-        // Check that the ID's are in opposite order
-        if ((e->vert->id == b) && (e->next->vert->id == a)) {
-            pair = e;
-            break;
+    // Lookup the edges that start with the ending ID number
+    auto edges = pairLookupMap_.equal_range(b);
+
+    // Find the edge that ends with the starting ID number
+    for (auto it = edges.first; it != edges.second; ++it) {
+        auto e = it->second;
+        if (e->next->vert->id == a) {
+            return e;
         }
     }
 
-    return pair;
+    return nullptr;
 }
 
 // Compute which edges are boundaries and which are interior

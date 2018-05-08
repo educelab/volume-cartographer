@@ -79,7 +79,11 @@ int main(int argc, char* argv[])
     std::cout << " --- Segmentations ---" << std::endl;
     for (const auto& s : vpkg.segmentationIDs()) {
         auto seg = vpkg.segmentation(s);
-        std::cout << "[" << seg->id() << "] " << seg->name() << std::endl;
+        std::cout << "[" << seg->id() << "] " << seg->name();
+        if (seg->hasVolumeID()) {
+            std::cout << ", associated volume: " << seg->getVolumeID();
+        }
+        std::cout << std::endl;
     }
     std::cout << std::endl;
 }

@@ -3,7 +3,7 @@
 ############
 add_subdirectory(VC)
 
-if (VC_USE_ACVD OR VC_USE_ALL)
+if (VC_USE_ACVD OR VC_USE_OPTIONAL)
     add_subdirectory(VC-Texture)
 endif()
 
@@ -14,7 +14,10 @@ endif()
 ## Mesher ##
 add_executable(vc_mesher src/Mesher.cpp)
 target_link_libraries(vc_mesher
+    VC::core
     VC::meshing
+    Boost::filesystem
+    Boost::program_options
 )
 
 ## Packager ##
@@ -24,7 +27,7 @@ target_link_libraries(vc_packager
     Boost::filesystem
     Boost::program_options
 )
-# Special - need to include SliceImage.h
+# Special - need to include SliceImage.hpp
 target_include_directories(vc_packager PUBLIC include)
 
 ## Segment ##
@@ -46,6 +49,7 @@ target_link_libraries(vc_render
     Boost::program_options
 )
 
+## Render from PPM
 add_executable(vc_render_from_ppm src/RenderFromPPM.cpp)
 target_link_libraries(vc_render_from_ppm
     VC::core
@@ -65,6 +69,7 @@ target_link_libraries(vc_layers
     Boost::program_options
 )
 
+## PPM Generator
 add_executable(vc_generate_ppm src/GeneratePPM.cpp)
 target_link_libraries(vc_generate_ppm
     VC::core
@@ -73,6 +78,7 @@ target_link_libraries(vc_generate_ppm
     Boost::filesystem
 )
 
+## Layers from PPM
 add_executable(vc_layers_from_ppm src/LayerFromPPM.cpp)
 target_link_libraries(vc_layers_from_ppm
     VC::core
@@ -102,6 +108,7 @@ target_link_libraries(vc_projection
     vtkFiltersGeneral
 )
 
+## VolPkg Explorer ##
 add_executable(vc_volpkg_explorer src/VolPkgExplorer.cpp)
 target_link_libraries(vc_volpkg_explorer
     VC::core
@@ -110,14 +117,14 @@ target_link_libraries(vc_volpkg_explorer
 )
 
 ## Cloth Flattening ##
-if (VC_USE_BULLET OR VC_USE_ALL)
+if (VC_BUILD_EXPERIMENTAL)
     add_executable(vc_cloth src/Cloth.cpp)
     target_link_libraries(vc_cloth
         VC::core
+        VC::experimental
         VC::meshing
         VC::texturing
         Boost::program_options
-        ${BULLET_LIBRARIES}
     )
 endif()
 
@@ -131,6 +138,7 @@ install(
         vc_packager
         vc_segment
         vc_render
+        vc_render_from_ppm
         vc_projection
         vc_volpkg_explorer
     RUNTIME DESTINATION bin
