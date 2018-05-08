@@ -1,5 +1,66 @@
 Volume Cartographer Changelog
 =============================
+v2.18.0
+-------
+This release is long overdue, but contains a lot of very important changes, 
+particularly to texturing. First, a major bug in `AngleBasedFlattening` has 
+been fixed (!210), resulting in dramatically improved computation times for 
+large meshes. Second, the texturing algorithms have been reworked to optimize 
+neighborhood requests from the `Volume` (!206, !212), decreasing the cache 
+thrashing that would occur when the UV maps were axis-aligned. Finally, there 
+are a lot of new options and flags in the apps related to UV maps and the 
+integral texture method.
+
+- all
+    - Update `find_package` calls with the actual minimum versions of 
+    dependencies (!204)
+    - Update to latest `vc-deps` which uses CMake for building (!213)
+    - Rename CMake option `VC_USE_ALL` -> `VC_USE_OPTIONAL` (!215)
+- apps
+    - Improve reporting when there's an exception in the cmd line apps (!198)
+    - (mesher) Fix bug where mesh was not being written. Add vertex-only mode. 
+    (!200)
+    - (render) Add mesh smoothing option (!199)
+    - (render\[_from_ppm\]) Add new option `cache-memory-limit` to limit the 
+    Volume's memory usage. (!202)
+    - (render) Load mesh as input and new options around mesh resampling (!202)
+    - (render) Add options for UV rotation and plotting (!202)
+    - (render) Add option to reuse UV map from input mesh if one is available 
+    (!207)
+    - Fix bug in various apps for auto-radius calculation (!207)
+    - (projection) Add support for projecting multiple meshes (!207)
+- core
+    - __New:__ `TIFFIO`: Method for writing floating-point tiff images (!202)
+    - __New:__ `FileExtensionFilter`: Method to filter a path by a list of 
+    recognized extensions (!202)
+    - __New:__ `MemorySizeStringParser`: Convert strings such as "6TB" to the 
+    corresponding integer amount of bytes (!202)
+    - (UVMap) Add `Rotate` method (!202)
+    - (UVMap) Move `drawUV` -> `Plot` (!202)
+    - (UVMap) Add `Flip` method (!208)
+- __New:__ experimental library
+    - Move `texturing::ClothModelingUVMapping` and `meshing::ITK2Bullet` to 
+    `experimental` library (!215) Note that this also moves the classes into a 
+    new namespace, `experimental::texturing` and `experimental::meshing` 
+    respectively.
+- texturing
+    - (FlatteningAlgorithmBaseClass) Fix bug where reorientation wasn't 
+    rotating around the center of the UV map (!201)
+    - (IntegralTexture) Add new filtering and weighting options (!202):
+        - Exponential Difference weighting: Weight neighborhood values by their 
+        difference from a base value (mean, mode, or user-provided), taken 
+        to an exponent
+        - Clamp values to maximum intensity value
+    - (IntegralTexture) Return floating-point image. Add corresponding option 
+    to apps (!209)
+    - (ABF) Fix bug in `HalfEdgeMesh` construction that were making ABF much 
+    slower than it should have been (!210)
+    - Dramatically speed up all texturing algorithms when the UV map is not 
+    axis-aligned (!206, !212)
+- utils
+    - __New:__ `vc_ppm_to_pointset` Create a point set from a PPM's mappings 
+    (!212)
+
 v2.17.0
 -------
 - apps
