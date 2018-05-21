@@ -2,6 +2,7 @@
 // Created by Seth Parker on 7/30/15.
 //
 
+#include <algorithm>
 #include <iostream>
 #include <limits>
 
@@ -19,7 +20,7 @@ namespace po = boost::program_options;
 namespace vc = volcart;
 namespace vci = volcart::io;
 
-enum class Flip { None, Horizontal, Vertical, Both };
+enum class Flip { None, Horizontal, Vertical, ZFlip, Both };
 
 static const vc::io::ExtensionList AcceptedExtensions{"tif", "tiff", "png",
                                                       "jpg", "jpeg", "bmp"};
@@ -169,7 +170,7 @@ VolumeInfo GetVolumeInfo(const fs::path& slicesPath)
 
     // Flip options
     std::cout << "Flip options: Vertical flip (vf), horizontal flip (hf), "
-                 "both, [none] : ";
+                 "both, z-flip (zf), [none] : ";
     std::getline(std::cin, input);
 
     if (input == "vf") {
@@ -178,6 +179,8 @@ VolumeInfo GetVolumeInfo(const fs::path& slicesPath)
         info.flipOption = Flip::Horizontal;
     } else if (input == "both") {
         info.flipOption = Flip::Both;
+    } else if (input == "zf") {
+        info.flipOption = Flip::ZFlip;
     }
 
     return info;
@@ -289,6 +292,10 @@ void AddVolume(vc::VolumePkg::Pointer& volpkg, VolumeInfo info)
     }
     volume->saveMetadata();
 
+    if (info.flipOption == Flip::ZFlip) {
+        std::reverse(slices.begin(), slices.end());
+    }
+
     // Do we need to flip?
     auto needsFlip = info.flipOption == Flip::Horizontal ||
                      info.flipOption == Flip::Vertical ||
@@ -320,6 +327,9 @@ void AddVolume(vc::VolumePkg::Pointer& volpkg, VolumeInfo info)
                     break;
                 case Flip::Horizontal:
                     cv::flip(tmp, tmp, 1);
+                    break;
+                case Flip::ZFlip:
+                    // Do nothing
                     break;
                 case Flip::None:
                     // Do nothing
