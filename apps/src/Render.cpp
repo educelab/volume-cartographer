@@ -24,6 +24,7 @@
 #include "vc/meshing/CalculateNormals.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
 #include "vc/meshing/OrderedPointSetMesher.hpp"
+#include "vc/meshing/ScaleMesh.hpp"
 #include "vc/texturing/AngleBasedFlattening.hpp"
 #include "vc/texturing/CompositeTexture.hpp"
 #include "vc/texturing/IntegralTexture.hpp"
@@ -91,6 +92,8 @@ int main(int argc, char* argv[])
 
     po::options_description meshOptions("Meshing Options");
     meshOptions.add_options()
+        ("scale-mesh", po::value<double>(), "Scale the mesh by a linear scale "
+            "factor")
         ("enable-mesh-resampling", "Enable ACVD mesh resampling. Automatically "
             "enabled if the input is a Segmentation")
         ("mesh-resample-factor", po::value<double>()->default_value(50),
@@ -315,6 +318,15 @@ int main(int argc, char* argv[])
             parsed_["expodiff-base-method"].as<int>());
     auto expoDiffBase = parsed_["expodiff-base"].as<double>();
     auto clampToMax = parsed_.count("clamp-to-max") > 0;
+
+    //// Scale the mesh /////
+    if (parsed_.count("scale-mesh") > 0) {
+        std::cout << "Scaling mesh..." << std::endl;
+        auto scaleFactor = parsed_["scale-mesh"].as<double>();
+        auto scaled = vc::ITKMesh::New();
+        vcm::ScaleMesh(input, scaled, scaleFactor);
+        input = scaled;
+    }
 
     ///// Resample and smooth the mesh /////
     auto needResample = loadSeg || parsed_.count("enable-mesh-resampling");
