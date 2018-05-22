@@ -2,6 +2,7 @@
 // Created by Seth Parker on 7/30/15.
 //
 
+#include <algorithm>
 #include <iostream>
 #include <limits>
 
@@ -11,13 +12,18 @@
 #include <boost/program_options.hpp>
 
 #include "apps/SliceImage.hpp"
+#include "vc/core/io/FileExtensionFilter.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
+namespace vci = volcart::io;
 
-enum class Flip { None, Horizontal, Vertical, Both };
+enum class Flip { None, Horizontal, Vertical, ZFlip, Both };
+
+static const vc::io::ExtensionList AcceptedExtensions{"tif", "tiff", "png",
+                                                      "jpg", "jpeg", "bmp"};
 
 static const double MIN_16BPC = std::numeric_limits<uint16_t>::min();
 static const double MAX_16BPC = std::numeric_limits<uint16_t>::max();
@@ -164,7 +170,7 @@ VolumeInfo GetVolumeInfo(const fs::path& slicesPath)
 
     // Flip options
     std::cout << "Flip options: Vertical flip (vf), horizontal flip (hf), "
-                 "both, [none] : ";
+                 "both, z-flip (zf), [none] : ";
     std::getline(std::cin, input);
 
     if (input == "vf") {
@@ -173,6 +179,8 @@ VolumeInfo GetVolumeInfo(const fs::path& slicesPath)
         info.flipOption = Flip::Horizontal;
     } else if (input == "both") {
         info.flipOption = Flip::Both;
+    } else if (input == "zf") {
+        info.flipOption = Flip::ZFlip;
     }
 
     return info;
@@ -193,7 +201,6 @@ void AddVolume(vc::VolumePkg::Pointer& volpkg, VolumeInfo info)
     }
 
     // Filter out subfiles that aren't TIFs
-    // To-Do: #177
     fs::directory_iterator subfile(info.path);
     fs::directory_iterator dirEnd;
     for (; subfile != dirEnd; subfile++) {
@@ -203,10 +210,8 @@ void AddVolume(vc::VolumePkg::Pointer& volpkg, VolumeInfo info)
         }
 
         // Compare against the file extension
-        auto ext(subfile->path().extension().string());
-        ext = boost::to_upper_copy<std::string>(ext);
-        if (ext == ".TIF" || ext == ".TIFF") {
-            slices.emplace_back(*subfile);
+        if (vc::io::FileExtensionFilter(subfile->path(), AcceptedExtensions)) {
+            slices.emplace_back(subfile->path());
         }
     }
 
@@ -287,6 +292,10 @@ void AddVolume(vc::VolumePkg::Pointer& volpkg, VolumeInfo info)
     }
     volume->saveMetadata();
 
+    if (info.flipOption == Flip::ZFlip) {
+        std::reverse(slices.begin(), slices.end());
+    }
+
     // Do we need to flip?
     auto needsFlip = info.flipOption == Flip::Horizontal ||
                      info.flipOption == Flip::Vertical ||
@@ -319,6 +328,9 @@ void AddVolume(vc::VolumePkg::Pointer& volpkg, VolumeInfo info)
                 case Flip::Horizontal:
                     cv::flip(tmp, tmp, 1);
                     break;
+                case Flip::ZFlip:
+                    // Do nothing
+                    break;
                 case Flip::None:
                     // Do nothing
                     break;
@@ -330,7 +342,7 @@ void AddVolume(vc::VolumePkg::Pointer& volpkg, VolumeInfo info)
 
         // Just copy to the volume
         else {
-            fs::copy(slice.path, volume->getSlicePath(counter));
+            fs::copy_file(slice.path, volume->getSlicePath(counter));
         }
 
         ++counter;
