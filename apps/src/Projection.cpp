@@ -43,25 +43,25 @@ int main(int argc, char* argv[])
     // clang-format off
     po::options_description required("General Options");
     required.add_options()
-            ("help,h", "Show this message")
-            ("input-mesh,i", po::value<std::vector<std::string>>()->required(),
-                 "OBJ mesh to project onto the volume. Can be specified "
-                 "multiple times.")
-            ("volpkg,v", po::value<std::string>()->required(), "VolumePkg path")
-            ("volume", po::value<std::string>(),
-                 "Volume to use for texturing. Default: First volume")
-            ("output-dir,o", po::value<std::string>()->required(),
-                 "Output directory");
+        ("help,h", "Show this message")
+        ("input-mesh,i", po::value<std::vector<std::string>>()->required(),
+             "OBJ mesh to project onto the volume. Can be specified "
+             "multiple times.")
+        ("volpkg,v", po::value<std::string>()->required(), "VolumePkg path")
+        ("volume", po::value<std::string>(),
+             "Volume to use for texturing. Default: First volume")
+        ("output-dir,o", po::value<std::string>()->required(),
+             "Output directory");
 
     po::options_description visOptions("Visualization Options");
     visOptions.add_options()
-            ("color,c", po::value<int>()->default_value(0),
-             "Color of the intersection line:\n"
-                 "  0 = White\n"
-                 "  1 = Red\n"
-                 "  2 = Green\n"
-                 "  3 = Blue\n")
-            ("intersect-only", "Draws the intersection on a black image");
+        ("color,c", po::value<int>()->default_value(0),
+         "Color of the intersection line:\n"
+             "  0 = White\n"
+             "  1 = Red\n"
+             "  2 = Green\n"
+             "  3 = Blue\n")
+        ("intersect-only", "Draws the intersection on a black image");
 
     po::options_description all("Usage");
     all.add(required).add(visOptions);

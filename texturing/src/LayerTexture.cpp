@@ -16,7 +16,7 @@ Texture LayerTexture::compute()
     auto width = static_cast<int>(ppm_.width());
 
     // Setup output images
-    for (size_t i = 0; i < neighborhood_count_(); i++) {
+    for (size_t i = 0; i < gen_->extents()[0]; i++) {
         result_.addImage(cv::Mat::zeros(height, width, CV_16UC1));
     }
 
@@ -32,14 +32,13 @@ Texture LayerTexture::compute()
     // Iterate through the mappings
     for (const auto& pixel : mappings) {
         // Generate the neighborhood
-        auto neighborhood = vol_->getVoxelNeighborsLinearInterpolated(
-            pixel.pos, pixel.normal, radius_, interval_, direction_);
+        auto neighborhood = gen_->compute(vol_, pixel.pos, {pixel.normal});
 
         // Assign to the output images
-        for (size_t i = 0; i < neighborhood.size(); i++) {
-            result_.image(i).at<uint16_t>(
-                static_cast<int>(pixel.y), static_cast<int>(pixel.x)) =
-                neighborhood[i];
+        size_t it = 0;
+        for (const auto& v : neighborhood) {
+            result_.image(it++).at<uint16_t>(
+                static_cast<int>(pixel.y), static_cast<int>(pixel.x)) = v;
         }
     }
 

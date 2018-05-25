@@ -1,4 +1,4 @@
-#include "vc/texturing/FlatteningAlgorithmBaseClass.hpp"
+#include "vc/texturing/FlatteningAlgorithm.hpp"
 
 #include "vc/core/util/FloatComparison.hpp"
 #include "vc/core/util/MeshMath.hpp"
@@ -8,7 +8,7 @@ using namespace volcart::texturing;
 
 namespace mm = volcart::meshmath;
 
-UVMap FlatteningAlgorithmBaseClass::getUVMap()
+UVMap FlatteningAlgorithm::getUVMap()
 {
     // Setup uvMap
     volcart::UVMap uvMap;
@@ -46,7 +46,7 @@ UVMap FlatteningAlgorithmBaseClass::getUVMap()
 // Reorient the UV map such that the Z-axis of the input is parallel to V-axis.
 // The original orientation is approximated by a least-squares fit of the pts
 // in UV space. Assumes that the UV coordinates are stored in output_
-void FlatteningAlgorithmBaseClass::orient_uvs_()
+void FlatteningAlgorithm::orient_uvs_()
 {
     // Get the UV points + Z (from the original mesh)
     std::vector<cv::Vec3d> pts;

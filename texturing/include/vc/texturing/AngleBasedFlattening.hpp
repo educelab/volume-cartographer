@@ -32,7 +32,7 @@
 #include "vc/core/types/HalfEdgeMesh.hpp"
 #include "vc/core/types/ITKMesh.hpp"
 #include "vc/core/types/UVMap.hpp"
-#include "vc/texturing/FlatteningAlgorithmBaseClass.hpp"
+#include "vc/texturing/FlatteningAlgorithm.hpp"
 
 namespace volcart
 {
@@ -59,7 +59,7 @@ namespace texturing
  *
  * @ingroup UV
  */
-class AngleBasedFlattening : public FlatteningAlgorithmBaseClass
+class AngleBasedFlattening : public FlatteningAlgorithm
 {
 public:
     /** Default maximum number of ABF iterations */
@@ -71,7 +71,7 @@ public:
 
     /** @brief Construct and set the input mesh */
     explicit AngleBasedFlattening(const ITKMesh::Pointer& m)
-        : FlatteningAlgorithmBaseClass(m)
+        : FlatteningAlgorithm(m)
     {
     }
 
@@ -189,5 +189,5 @@ private:
         b = tmp;
     }
 };
-}
-}
+}  // namespace texturing
+}  // namespace volcart
