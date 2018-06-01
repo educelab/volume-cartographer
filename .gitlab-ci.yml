@@ -404,9 +404,6 @@ deploy:release:
         - rclone -v copy ${directory}/ volume-cartographer:releases/${directory}/
     environment: production
     tags:
-        - deploy
-        - osx
-        - qt5
         - rclone
 
 deploy:nightly:
@@ -428,7 +425,4 @@ deploy:nightly:
         - rclone -v copy ${directory}/ volume-cartographer:nightlies/${directory}/
     environment: development
     tags:
-        - deploy
-        - osx
-        - qt5
         - rclone
