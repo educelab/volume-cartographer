@@ -344,7 +344,7 @@ collect:nightly:source:
         - /(?!develop)$/i
     stage: collect
     script:
-        - datetime=$(date '+%Y-%m-%d')
+        - datetime=$(date '+%Y%m%d')
         - vershort=$(utils/scripts/version-gen.sh --short)
         - sha=$(git log -1 --format="%h")
         - git archive --format=tar.gz -o VC-${datetime}-${vershort}.${sha}-source.tar.gz HEAD
@@ -416,10 +416,11 @@ deploy:nightly:
       - collect:nightly:source
       - collect:nightly:macos
     script:
-        - datetime=$(date '+%Y-%m-%d')
+        - datetime=$(date '+%Y%m%d')
         - vershort=$(utils/scripts/version-gen.sh --short)
         - sha=$(git log -1 --format="%h")
         - directory=${datetime}-${vershort}.${sha}
+        - mkdir -p ${directory}
         - cp VC*.dmg ${directory}
         - cp VC*.tar.gz ${directory}
         - rclone -v copy ${directory}/ volume-cartographer:nightlies/${directory}/
