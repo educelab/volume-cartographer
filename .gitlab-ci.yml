@@ -306,7 +306,7 @@ collect:source:
     tags:
       - source
 
-collect:macos:
+collect:release:macos:
     only:
         - master
     stage: collect
@@ -337,12 +337,12 @@ collect:macos:
         - osx
         - qt5
 
-deploy:develop:
+collect:nightly:macos:
     only:
         - schedules
     except:
         - /(?!develop)$/i
-    stage: deploy
+    stage: collect
     variables:
         OSX_SDK_VERSION: "10.9"
         OSX_SDK_PATH: "../vc-deps/build/osx-sdk-prefix/src/osx-sdk/SDKs/MacOSX10.9.sdk/"
@@ -364,8 +364,7 @@ deploy:develop:
       name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
       paths:
         - ./*.dmg
-      expire_in: 2 weeks
-    environment: development
+      expire_in: 1 day
     tags:
         - deploy
         - osx
@@ -377,15 +376,37 @@ deploy:release:
     stage: deploy
     dependencies:
       - collect:source
-      - collect:macos
+      - collect:release:macos
     script:
         - version=$(utils/scripts/version-gen.sh)
         - vershort=$(utils/scripts/version-gen.sh --short)
-        - mkdir -p ~/Dropbox/VC-Releases/v${version}
-        - cp VC*.dmg ~/Dropbox/VC-Releases/v${version}
-        - cp VC-${vershort}-source.tar.gz ~/Dropbox/VC-Releases/v${version}
+        - mkdir -p v${version}
+        - cp VC*.dmg v${version}
+        - cp VC-${vershort}-source.tar.gz v${version}
+        - rclone -v copy v${version}/ volume-cartographer:releases/v${version}/
     environment: production
     tags:
         - deploy
         - osx
         - qt5
+        - rclone
+
+deploy:nightly:
+    only:
+        - schedules
+    except:
+        - /(?!develop)$/i
+    stage: deploy
+    dependencies:
+      - collect:nightly:macos
+    script:
+        - version=$(utils/scripts/version-gen.sh)
+        - mkdir -p v${version}
+        - cp VC*.dmg v${version}
+        - rclone -v copy v${version}/ volume-cartographer:nightlies/v${version}/
+    environment: development
+    tags:
+        - deploy
+        - osx
+        - qt5
+        - rclone
