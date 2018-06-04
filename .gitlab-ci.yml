@@ -143,7 +143,7 @@ build:macos:static:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
         - mkdir -p build
         - cd build/
-        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_USE_ACVD=ON -DVC_USE_VCG=ON -GNinja ..
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_USE_ACVD=ON -GNinja ..
         - ninja
     artifacts:
         paths:
@@ -161,7 +161,7 @@ test:macos:static:
     script:
         - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
         - cd build/
-        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_USE_ACVD=ON -DVC_USE_VCG=ON -GNinja ..
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_USE_ACVD=ON -GNinja ..
         - ctest -j 4
     dependencies:
         - build:macos:static
@@ -184,7 +184,7 @@ build:macos:dynamic:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
         - mkdir -p build
         - cd build/
-        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_USE_ACVD=ON -DVC_USE_VCG=ON -DBUILD_SHARED_LIBS=ON -GNinja ..
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_USE_ACVD=ON -DBUILD_SHARED_LIBS=ON -GNinja ..
         - ninja
     artifacts:
         paths:
@@ -203,7 +203,7 @@ test:macos:dynamic:
     script:
         - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
         - cd build/
-        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_USE_ACVD=ON -DVC_USE_VCG=ON -DBUILD_SHARED_LIBS=ON -GNinja ..
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_USE_ACVD=ON -DBUILD_SHARED_LIBS=ON -GNinja ..
         - ctest -j 4
     dependencies:
         - build:macos:dynamic
@@ -237,7 +237,7 @@ lint:clang-tidy:
       - git fetch --all
       - mkdir -p build/
       - cd build/
-      - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -GNinja -DVC_USE_ACVD=ON -DVC_USE_VCG=ON ..
+      - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -GNinja -DVC_USE_ACVD=ON ..
       - cd ..
     stage: lint
     script:
@@ -290,7 +290,7 @@ doxygen:pdf:
         - homebrew
 
 ### Collect & Deploy ###
-collect:source:
+collect:release:source:
     only:
         - master
     stage: collect
@@ -306,7 +306,7 @@ collect:source:
     tags:
       - source
 
-collect:macos:
+collect:release:macos:
     only:
         - master
     stage: collect
@@ -337,12 +337,31 @@ collect:macos:
         - osx
         - qt5
 
-deploy:develop:
+collect:nightly:source:
     only:
         - schedules
     except:
         - /(?!develop)$/i
-    stage: deploy
+    stage: collect
+    script:
+        - datetime=$(date '+%Y%m%d')
+        - vershort=$(utils/scripts/version-gen.sh --short)
+        - sha=$(git log -1 --format="%h")
+        - git archive --format=tar.gz -o VC-${datetime}-${vershort}.${sha}-source.tar.gz HEAD
+    artifacts:
+      name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
+      paths:
+         - ./*.tar.gz
+      expire_in: 1 day
+    tags:
+      - source
+
+collect:nightly:macos:
+    only:
+        - schedules
+    except:
+        - /(?!develop)$/i
+    stage: collect
     variables:
         OSX_SDK_VERSION: "10.9"
         OSX_SDK_PATH: "../vc-deps/build/osx-sdk-prefix/src/osx-sdk/SDKs/MacOSX10.9.sdk/"
@@ -364,8 +383,7 @@ deploy:develop:
       name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
       paths:
         - ./*.dmg
-      expire_in: 2 weeks
-    environment: development
+      expire_in: 1 day
     tags:
         - deploy
         - osx
@@ -376,16 +394,36 @@ deploy:release:
         - master
     stage: deploy
     dependencies:
-      - collect:source
-      - collect:macos
+      - collect:release:source
+      - collect:release:macos
     script:
-        - version=$(utils/scripts/version-gen.sh)
-        - vershort=$(utils/scripts/version-gen.sh --short)
-        - mkdir -p ~/Dropbox/VC-Releases/v${version}
-        - cp VC*.dmg ~/Dropbox/VC-Releases/v${version}
-        - cp VC-${vershort}-source.tar.gz ~/Dropbox/VC-Releases/v${version}
+        - directory=v$(utils/scripts/version-gen.sh)
+        - mkdir -p ${directory}
+        - cp VC*.dmg ${directory}
+        - cp VC*.tar.gz ${directory}
+        - rclone -v copy ${directory}/ volume-cartographer:releases/${directory}/
     environment: production
     tags:
-        - deploy
-        - osx
-        - qt5
+        - rclone
+
+deploy:nightly:
+    only:
+        - schedules
+    except:
+        - /(?!develop)$/i
+    stage: deploy
+    dependencies:
+      - collect:nightly:source
+      - collect:nightly:macos
+    script:
+        - datetime=$(date '+%Y%m%d')
+        - vershort=$(utils/scripts/version-gen.sh --short)
+        - sha=$(git log -1 --format="%h")
+        - directory=${datetime}-${vershort}.${sha}
+        - mkdir -p ${directory}
+        - cp VC*.dmg ${directory}
+        - cp VC*.tar.gz ${directory}
+        - rclone -v copy ${directory}/ volume-cartographer:nightlies/${directory}/
+    environment: development
+    tags:
+        - rclone

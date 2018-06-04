@@ -11,39 +11,49 @@
 #include "vc/core/types/VolumePkg.hpp"
 
 namespace fs = boost::filesystem;
+namespace vc = volcart;
 
 int main(int argc, char** argv)
 {
-    if (argc < 3) {
-        std::cout << "Usage: vc_invertCloud volpkg [input].vcps [output].vcps"
+    if (argc < 5) {
+        std::cout << "Usage: vc_invertCloud [volpkg] [volume-id] [input].vcps "
+                     "[output].vcps"
                   << std::endl;
         std::exit(-1);
     }
 
-    volcart::VolumePkg vpkg{argv[1]};
-    fs::path inputPath = argv[2];
-    fs::path outputPath = argv[3];
+    vc::VolumePkg vpkg{argv[1]};
+    auto volumeID = argv[2];
+    fs::path inputPath = argv[3];
+    fs::path outputPath = argv[4];
 
-    if (vpkg.version() < 2) {
+    if (vpkg.version() != 5) {
         std::cerr << "ERROR: Volume package is version " << vpkg.version()
-                  << " but this program requires a version >= 2" << std::endl;
+                  << " but this program requires a version >= 5" << std::endl;
         std::exit(EXIT_FAILURE);
     }
 
     std::cout << inputPath << std::endl;
 
     // Load the cloud
-    auto input =
-        volcart::PointSetIO<cv::Vec3d>::ReadOrderedPointSet(inputPath.string());
+    auto input = vc::PointSetIO<cv::Vec3d>::ReadOrderedPointSet(inputPath);
 
-    for (auto pt : input) {
+    // Flip the rows
+    vc::OrderedPointSet<cv::Vec3d> output(input.width());
+    for (size_t r = 0; r < input.height(); r++) {
+        size_t index = input.height() - 1 - r;
+        output.pushRow(input.getRow(index));
+    }
+
+    // Flip the z-indices of the pts
+    auto maxZ = vpkg.volume(volumeID)->numSlices() - 1;
+    for (auto& pt : output) {
         if (pt[2] != -1) {
-            pt[2] = vpkg.volume()->numSlices() - 1 - pt[2];
+            pt[2] = maxZ - pt[2];
         }
     }
 
-    volcart::PointSetIO<cv::Vec3d>::WriteOrderedPointSet(
-        outputPath.string(), input);
+    vc::PointSetIO<cv::Vec3d>::WriteOrderedPointSet(outputPath, output);
 
     return 0;
 }  // end main

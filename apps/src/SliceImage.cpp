@@ -5,6 +5,7 @@
 #include <opencv2/imgproc.hpp>
 
 #include "apps/SliceImage.hpp"
+#include "vc/core/io/FileExtensionFilter.hpp"
 
 static const double MAX_16BPC = std::numeric_limits<uint16_t>::max();
 
@@ -20,7 +21,15 @@ bool SliceImage::operator<(const SliceImage& b) const
 {
     auto aName = boost::to_lower_copy<std::string>(path.filename().native());
     auto bName = boost::to_lower_copy<std::string>(b.path.filename().native());
-    return aName < bName;
+
+    // Lexicographical sort if paths are the same length
+    if (aName.size() == bName.size()) {
+        return aName < bName;
+    }
+
+    // Otherwise, compare only the size
+    // This is a hack to deal with files with non-leading zeros
+    return aName.size() < bName.size();
 }
 
 bool SliceImage::analyze()
@@ -29,6 +38,9 @@ bool SliceImage::analyze()
     if (!(boost::filesystem::exists(path)) ||
         !(boost::filesystem::is_regular_file(path)))
         return false;
+
+    // Set needsConvert_ if it's not a tif
+    needsConvert_ = !io::FileExtensionFilter(path, {"tif", "tiff"});
 
     auto image =
         cv::imread(path.string(), cv::IMREAD_ANYCOLOR | cv::IMREAD_ANYDEPTH);
