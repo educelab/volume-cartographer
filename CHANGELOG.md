@@ -1,5 +1,17 @@
 Volume Cartographer Changelog
 =============================
+v2.18.1
+-------
+Patch release to fix CI builds. Success deploy builds are now uploaded to
+Google Drive.
+- all
+    - (CI) Disable all vcglib builds
+- apps
+    - (packager) Add basic support for slice formats other than TIFFs. Add
+    z-flip/invert slice ordering option. (!217)
+- utils
+    - (invertcloud) Fix bug where this didn't actually work anymore (!219)
+
 v2.18.0
 -------
 This release is long overdue, but contains a lot of very important changes, 
