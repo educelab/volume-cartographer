@@ -33,17 +33,6 @@ using StructureTensor = cv::Matx33d;
 static const auto ZERO_STRUCTURE_TENSOR =
     StructureTensor(0, 0, 0, 0, 0, 0, 0, 0, 0);
 
-using Neighborhood = std::vector<uint16_t>;
-
-/** @brief Neighborhood Directional Filtering Options
- *
- * Bidirectional: Consider data in both the positive and negative normal
- * direction \n
- * Positive: Only consider data in the positive normal direction \n
- * Negative: Only consider data in the negative normal direction \n
- */
-enum class Direction { Bidirectional, Positive, Negative };
-
 /**
  * @class Volume
  * @author Sean Karlage
@@ -529,23 +518,6 @@ public:
         return getVoxelNeighborsInterpolated<DType>(
             center, radius, radius, radius);
     }
-
-    /**
-     * @brief Get the subvoxels that intersect a ray projected from a center
-     * subvoxel
-     *
-     * @param center Ray origin/center
-     * @param majorAxis The direction of the ray
-     * @param radius Length of the ray (in voxel units)
-     * @param interval Sampling interval (in voxel units)
-     * @param direction See volcart::Direction
-     */
-    Neighborhood getVoxelNeighborsLinearInterpolated(
-        const cv::Vec3d& center,
-        const cv::Vec3d& majorAxis,
-        double radius,
-        double interval,
-        Direction direction = Direction::Bidirectional) const;
     /**@}*/
 
 private:

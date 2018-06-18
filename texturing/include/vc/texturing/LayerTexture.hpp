@@ -1,6 +1,8 @@
 #pragma once
 
-#include "vc/texturing/TexturingAlgorithmBaseClass.hpp"
+#include "vc/texturing/TexturingAlgorithm.hpp"
+
+#include "vc/core/neighborhood/LineGenerator.hpp"
 
 namespace volcart
 {
@@ -21,17 +23,33 @@ namespace texturing
  *
  * @ingroup Texture
  */
-class LayerTexture : public TexturingAlgorithmBaseClass
+class LayerTexture : public TexturingAlgorithm
 {
 public:
+    /** Pointer type */
+    using Pointer = std::shared_ptr<LayerTexture>;
+
+    /** Make shared pointer */
+    static Pointer New() { return std::make_shared<LayerTexture>(); }
+
     /** Default destructor */
-    ~LayerTexture() = default;
+    ~LayerTexture() override = default;
+
+    /**
+     * @brief Set the Neighborhood generator
+     *
+     * This class only supports LineGenerator
+     */
+    void setGenerator(LineGenerator::Pointer g) { gen_ = std::move(g); }
 
     /**@{*/
     /** @brief Compute the Texture */
     Texture compute() override;
     /**@}*/
+private:
+    /** Neighborhood Generator */
+    LineGenerator::Pointer gen_;
 };
 
-}  // texturing
-}  // volcart
+}  // namespace texturing
+}  // namespace volcart

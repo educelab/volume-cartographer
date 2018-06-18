@@ -9,6 +9,7 @@
 #include <vtkPLYReader.h>
 
 #include "vc/core/io/OBJWriter.hpp"
+#include "vc/core/neighborhood/LineGenerator.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/DateTime.hpp"
 #include "vc/experimental/texturing/ClothModelingUVMapping.hpp"
@@ -32,38 +33,38 @@ int main(int argc, char* argv[])
     // clang-format off
     po::options_description required("Required arguments");
     required.add_options()
-            ("help,h", "Show this message")
-            ("volpkg,v", po::value<std::string>()->required(), "VolumePkg path")
-            ("input-mesh,i", po::value<std::string>()->required(), "Input mesh path [PLY]")
-            ("generate-texture,t",
-                    po::value<bool>()->default_value(false),
-                    "Generate a textured mesh from the resulting UV map");
+        ("help,h", "Show this message")
+        ("volpkg,v", po::value<std::string>()->required(), "VolumePkg path")
+        ("input-mesh,i", po::value<std::string>()->required(), "Input mesh path [PLY]")
+        ("generate-texture,t",
+            po::value<bool>()->default_value(false),
+            "Generate a textured mesh from the resulting UV map");
 
     // Unfurl options
     po::options_description unfurlOptions("Unfurl options");
     unfurlOptions.add_options()
-            ("unfurl-iterations", po::value<uint16_t>()->required(),
-             "Number of iterations to run the unfurl step")
-            ("unfurl-a", po::value<double>()->default_value(10),
-             "Acceleration rate of unpinned points (m/s^2) during the unfurl step")
-            ("unfurl-pins", po::value<std::string>(), "PLY containing pins used during unfurl step");
+        ("unfurl-iterations", po::value<uint16_t>()->required(),
+         "Number of iterations to run the unfurl step")
+        ("unfurl-a", po::value<double>()->default_value(10),
+         "Acceleration rate of unpinned points (m/s^2) during the unfurl step")
+        ("unfurl-pins", po::value<std::string>(), "PLY containing pins used during unfurl step");
 
     // Collision options
     po::options_description collisionOptions("Collision options");
     collisionOptions.add_options()
-            ("collision-iterations", po::value<uint16_t>()->required(),
-             "Number of iterations to run the collision step")
-            ("collision-a", po::value<double>()->default_value(-10),
-             "Acceleration rate of unpinned points (m/s^2) during the collision step");
+        ("collision-iterations", po::value<uint16_t>()->required(),
+         "Number of iterations to run the collision step")
+        ("collision-a", po::value<double>()->default_value(-10),
+         "Acceleration rate of unpinned points (m/s^2) during the collision step");
 
     // Expansion options
     po::options_description expandOptions("Expansion/Relaxation options");
     expandOptions.add_options()
-            ("expand-iterations", po::value<uint16_t>()->required(),
-             "Number of iterations to run the expansion step")
-            ("expand-a", po::value<double>()->default_value(10),
-             "Acceleration rate of unpinned points (m/s^2) during the expansion step")
-            ("expand-pins", po::value<std::string>(), "PLY containing pins used during expansion step");
+        ("expand-iterations", po::value<uint16_t>()->required(),
+         "Number of iterations to run the expansion step")
+        ("expand-a", po::value<double>()->default_value(10),
+         "Acceleration rate of unpinned points (m/s^2) during the expansion step")
+        ("expand-pins", po::value<std::string>(), "PLY containing pins used during expansion step");
 
     // clang-format on
     po::options_description all("Usage");
@@ -161,10 +162,13 @@ int main(int argc, char* argv[])
     ppmGen.setMesh(mesh);
     ppmGen.compute();
 
+    auto line = volcart::LineGenerator::New();
+    line->setSamplingRadius(7);
+
     volcart::texturing::CompositeTexture result;
     result.setPerPixelMap(ppmGen.getPPM());
     result.setVolume(vpkg.volume());
-    result.setSamplingRadius(7);
+    result.setGenerator(line);
     result.compute();
 
     volcart::io::OBJWriter objwriter(

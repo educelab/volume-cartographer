@@ -8,11 +8,11 @@ namespace volcart
 namespace texturing
 {
 
-class FlatteningAlgorithmBaseClass
+class FlatteningAlgorithm
 {
 public:
     /** Default destructor for virtual base class */
-    virtual ~FlatteningAlgorithmBaseClass() = default;
+    virtual ~FlatteningAlgorithm() = default;
 
     /**@{*/
     /** @brief Set the input Mesh */
@@ -34,13 +34,10 @@ public:
 
 protected:
     /** Default constructor */
-    FlatteningAlgorithmBaseClass() = default;
+    FlatteningAlgorithm() = default;
 
     /** Constructor with input mesh initialization */
-    explicit FlatteningAlgorithmBaseClass(const ITKMesh::Pointer& m)
-    {
-        mesh_ = m;
-    }
+    explicit FlatteningAlgorithm(const ITKMesh::Pointer& m) { mesh_ = m; }
 
     /** Input mesh */
     ITKMesh::Pointer mesh_;
@@ -54,5 +51,5 @@ protected:
      */
     void orient_uvs_();
 };
-}
-}
+}  // namespace texturing
+}  // namespace volcart

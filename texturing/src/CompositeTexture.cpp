@@ -15,6 +15,10 @@ using namespace volcart::texturing;
 
 Texture CompositeTexture::compute()
 {
+    if (gen_->dim() < 1) {
+        throw std::runtime_error("Generator dimension below required");
+    }
+
     // Setup
     result_ = Texture();
     auto height = static_cast<int>(ppm_.height());
@@ -35,8 +39,7 @@ Texture CompositeTexture::compute()
     // Iterate through the mappings
     for (const auto& pixel : mappings) {
         // Generate the neighborhood
-        auto neighborhood = vol_->getVoxelNeighborsLinearInterpolated(
-            pixel.pos, pixel.normal, radius_, interval_, direction_);
+        auto neighborhood = get_neighborhood_(pixel.pos, pixel.normal);
 
         // Assign the intensity value at the UV position
         image.at<uint16_t>(
@@ -80,7 +83,7 @@ uint16_t CompositeTexture::max_(Neighborhood n)
 uint16_t CompositeTexture::median_(Neighborhood n)
 {
     std::nth_element(n.begin(), n.begin() + n.size() / 2, n.end());
-    return n[n.size() / 2];
+    return n(n.size() / 2);
 }
 
 uint16_t CompositeTexture::mean_(Neighborhood n)
@@ -112,4 +115,13 @@ uint16_t CompositeTexture::median_mean_(Neighborhood n, double range)
 
     // Average
     return static_cast<uint16_t>(std::round(sum / count));
+}
+
+Neighborhood CompositeTexture::get_neighborhood_(
+    const cv::Vec3d& p, const cv::Vec3d& n)
+{
+    auto neighborhood = gen_->compute(vol_, p, {n});
+    Neighborhood::Flatten(neighborhood, 1);
+
+    return neighborhood;
 }

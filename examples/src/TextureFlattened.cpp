@@ -9,6 +9,7 @@
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/io/PLYReader.hpp"
 #include "vc/core/io/PLYWriter.hpp"
+#include "vc/core/neighborhood/LineGenerator.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
 #include "vc/texturing/CompositeTexture.hpp"
@@ -88,10 +89,13 @@ int main(int /*argc*/, char* argv[])
     ppmGen.setUVMap(uvMap);
     ppmGen.compute();
 
+    auto generator = volcart::LineGenerator::New();
+    generator->setSamplingRadius(radius);
+
     volcart::texturing::CompositeTexture result;
     result.setPerPixelMap(ppmGen.getPPM());
     result.setVolume(vpkg.volume());
-    result.setSamplingRadius(radius);
+    result.setGenerator(generator);
     result.compute();
 
     volcart::io::OBJWriter objwriter(

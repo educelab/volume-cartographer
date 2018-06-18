@@ -1,6 +1,8 @@
 #pragma once
 
-#include "vc/texturing/TexturingAlgorithmBaseClass.hpp"
+#include "vc/texturing/TexturingAlgorithm.hpp"
+
+#include "vc/core/neighborhood/NeighborhoodGenerator.hpp"
 
 namespace volcart
 {
@@ -12,16 +14,13 @@ namespace texturing
  * @date 11/24/2016
  *
  * @brief Generate a Texture by taking the discrete integral (summation) of the
- * linear neighborhood adjacent to a point
+ * neighborhood adjacent to a point
  *
  * @ingroup Texture
  */
-class IntegralTexture : public TexturingAlgorithmBaseClass
+class IntegralTexture : public TexturingAlgorithm
 {
 public:
-    /** Default destructor */
-    ~IntegralTexture() override = default;
-
     /**
      * @brief Weighting Methods
      *
@@ -59,6 +58,24 @@ public:
     enum class ExpoDiffBaseMethod { Mean = 0, Mode, Manual };
 
     /**@{*/
+    /** Pointer type */
+    using Pointer = std::shared_ptr<IntegralTexture>;
+
+    /** Make shared pointer */
+    static Pointer New() { return std::make_shared<IntegralTexture>(); }
+
+    /** Default destructor */
+    ~IntegralTexture() override = default;
+    /**@}*/
+
+    /**@{*/
+    /**
+     * @brief Set the Neighborhood generator
+     *
+     * This class supports generators of dimension >= 1
+     */
+    void setGenerator(NeighborhoodGenerator::Pointer g) { gen_ = std::move(g); }
+
     /**
      * @brief When enabled, clamp neighborhood intensities to the value
      * specified by setClampMax()
@@ -131,6 +148,9 @@ public:
     /**@}*/
 
 private:
+    /** Neighborhood generator */
+    NeighborhoodGenerator::Pointer gen_;
+
     /** Enable/Disable clamping to maximum value */
     bool clampToMax_{false};
 
@@ -144,19 +164,19 @@ private:
     void setup_weights_();
 
     /** Apply the selected weighting method */
-    std::vector<double> apply_weights_(std::vector<double>& n);
+    NDArray<double> apply_weights_(NDArray<double>& n);
 
     /** Linear weighting direction */
     LinearWeightDirection linearWeight_{LinearWeightDirection::Positive};
 
     /** Linear weights vector */
-    std::vector<double> linearWeights_;
+    NDArray<double> linearWeights_{1};
 
     /** Setup the linear weights vector */
     void setup_linear_weights_();
 
     /** Apply the linear weights vector to a neighborhood */
-    std::vector<double> apply_linear_weights_(std::vector<double>& n);
+    NDArray<double> apply_linear_weights_(NDArray<double>& n);
 
     /** Exponential diff exponent */
     int expoDiffExponent_{2};
@@ -186,7 +206,7 @@ private:
     double expodiff_mode_base_();
 
     /** Apply the expo diff weights to a neighborhood */
-    std::vector<double> apply_expodiff_weights_(std::vector<double>& n);
+    NDArray<double> apply_expodiff_weights_(NDArray<double>& n);
 };
 
 }  // namespace texturing

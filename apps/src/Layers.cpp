@@ -206,12 +206,19 @@ int main(int argc, char* argv[])
     ppmGen.setDimensions(height, width);
     auto ppm = ppmGen.compute();
 
+    // Setup line generator
+    auto line = vc::LineGenerator::New();
+    line->setSamplingRadius(radius);
+    line->setSamplingInterval(interval);
+    line->setSamplingDirection(direction);
+
+    // Layer texture
+    std::cout << "Generating layers..." << std::endl;
     vc::texturing::LayerTexture s;
     s.setVolume(volume);
     s.setPerPixelMap(ppm);
-    s.setSamplingRadius(radius);
-    s.setSamplingInterval(interval);
-    s.setSamplingDirection(direction);
+    s.setGenerator(line);
+
     auto texture = s.compute();
 
     // Write the layers

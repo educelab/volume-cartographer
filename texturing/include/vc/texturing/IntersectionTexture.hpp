@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vc/texturing/TexturingAlgorithmBaseClass.hpp"
+#include "vc/texturing/TexturingAlgorithm.hpp"
 
 namespace volcart
 {
@@ -16,9 +16,15 @@ namespace texturing
  *
  * @ingroup Texture
  */
-class IntersectionTexture : public TexturingAlgorithmBaseClass
+class IntersectionTexture : public TexturingAlgorithm
 {
 public:
+    /** Pointer type */
+    using Pointer = std::shared_ptr<IntersectionTexture>;
+
+    /** Make shared pointer */
+    static Pointer New() { return std::make_shared<IntersectionTexture>(); }
+
     /** Default destructor */
     ~IntersectionTexture() override = default;
 
@@ -27,5 +33,5 @@ public:
     Texture compute() override;
     /**@}*/
 };
-}
-}
+}  // namespace texturing
+}  // namespace volcart

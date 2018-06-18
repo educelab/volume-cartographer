@@ -46,6 +46,10 @@ target_link_libraries(vc_retexture_mesh VC::core Boost::filesystem Boost::progra
 add_executable(vc_ppm_to_pointset src/PPMToPointSet.cpp)
 target_link_libraries(vc_ppm_to_pointset VC::core Boost::filesystem Boost::program_options)
 
+# vc_canny_segment
+add_executable(vc_canny_segment src/CannySegment.cpp)
+target_link_libraries(vc_canny_segment VC::core Boost::filesystem Boost::program_options opencv_core)
+
 # Install targets
 if(VC_INSTALL_UTILS)
 install(
