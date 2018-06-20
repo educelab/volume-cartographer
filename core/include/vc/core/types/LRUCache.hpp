@@ -3,6 +3,8 @@
 #include <list>
 #include <unordered_map>
 
+#include "vc/core/types/Cache.hpp"
+
 namespace volcart
 {
 /**
@@ -26,9 +28,12 @@ namespace volcart
  * @ingroup Types
  */
 template <typename TKey, typename TValue>
-class LRUCache
+class LRUCache final : public Cache<TKey, TValue>
 {
 public:
+    using BaseClass = Cache<TKey, TValue>;
+    using BaseClass::capacity_;
+
     /**
      * @brief Templated Key/Value pair
      *
@@ -43,23 +48,35 @@ public:
      */
     using TListIterator = typename std::list<TPair>::iterator;
 
+    /** Shared pointer type */
+    using Pointer = std::shared_ptr<LRUCache<TKey, TValue>>;
+
     /**@{*/
     /** @brief Default constructor */
-    LRUCache() : capacity_{DEFAULT_CAPACITY} {}
+    LRUCache() : BaseClass() {}
 
     /** @brief Constructor with cache capacity parameter */
-    explicit LRUCache(size_t capacity) : capacity_{capacity} {}
+    explicit LRUCache(size_t capacity) : BaseClass(capacity) {}
+
+    /** @overload LRUCache() */
+    static Pointer New() { return std::make_shared<LRUCache<TKey, TValue>>(); }
+
+    /** @overload LRUCache(size_t) */
+    static Pointer New(size_t capacity)
+    {
+        return std::make_shared<LRUCache<TKey, TValue>>(capacity);
+    }
     /**@}*/
 
     /**@{*/
     /** @brief Set the maximum number of elements in the cache */
-    void setCapacity(size_t newCapacity)
+    void setCapacity(size_t capacity) override
     {
-        if (newCapacity <= 0) {
+        if (capacity <= 0) {
             throw std::invalid_argument(
                 "Cannot create cache with capacity <= 0");
         } else {
-            capacity_ = newCapacity;
+            capacity_ = capacity;
         }
 
         // Cleanup elements that exceed the capacity
@@ -72,22 +89,15 @@ public:
     }
 
     /** @brief Get the maximum number of elements in the cache */
-    size_t capacity() const { return capacity_; }
+    size_t capacity() const override { return capacity_; }
 
     /** @brief Get the current number of elements in the cache */
-    size_t size() const { return lookup_.size(); }
+    size_t size() const override { return lookup_.size(); }
     /**@}*/
 
     /**@{*/
-    /**
-     * @brief Get an item from the cache by key
-     *
-     * Returns a const reference because we typically use the LRUCache for
-     * cv::Mat data. Returning a const ref is better because then if you try to
-     * modify the value without explicitly calling .clone() you'll get a
-     * compile error.
-     */
-    const TValue& get(const TKey& k)
+    /** @brief Get an item from the cache by key */
+    TValue get(const TKey& k) override
     {
         auto lookupIter = lookup_.find(k);
         if (lookupIter == std::end(lookup_)) {
@@ -99,7 +109,7 @@ public:
     }
 
     /** @brief Put an item into the cache */
-    void put(const TKey& k, const TValue& v)
+    void put(const TKey& k, const TValue& v) override
     {
         // If already in cache, need to refresh it
         auto lookupIter = lookup_.find(k);
@@ -120,10 +130,13 @@ public:
     }
 
     /** @brief Check if an item is already in the cache */
-    bool exists(const TKey& k) { return lookup_.find(k) != std::end(lookup_); }
+    bool exists(const TKey& k) override
+    {
+        return lookup_.find(k) != std::end(lookup_);
+    }
 
     /** @brief Clear the cache */
-    void purge()
+    void purge() override
     {
         lookup_.clear();
         items_.clear();
@@ -131,13 +144,9 @@ public:
     /**@}*/
 
 private:
-    /** Default cache capacity */
-    static constexpr size_t DEFAULT_CAPACITY = 200;
     /** Cache data storage */
     std::list<TPair> items_;
     /** Cache usage information */
     std::unordered_map<TKey, TListIterator> lookup_;
-    /** Maximum number of elements in the cache */
-    size_t capacity_;
 };
 }  // namespace volcart
