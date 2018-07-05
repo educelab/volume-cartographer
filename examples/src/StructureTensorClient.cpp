@@ -6,6 +6,7 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
+#include "vc/core/math/StructureTensor.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 
 using namespace volcart;
@@ -37,12 +38,12 @@ int main(int argc, char** argv)
     std::cout << "{" << x << ", " << y << ", " << z << "} @ " << radius
               << std::endl;
 
-    StructureTensor st = v->structureTensorAt(x, y, z, radius);
+    StructureTensor st = ComputeVoxelStructureTensor(v, x, y, z, radius);
     std::cout << "structure tensor:" << std::endl << st << std::endl;
     if (st == volcart::ZERO_STRUCTURE_TENSOR) {
         std::cout << "structure tensor was zero" << std::endl;
     } else {
-        auto pairs = v->eigenPairsAt(x, y, z, radius);
+        auto pairs = ComputeVoxelEigenPairs(v, x, y, z, radius);
         std::cout << "eigenvalues/eigenvectors" << std::endl;
         std::for_each(pairs.begin(), pairs.end(), [](const auto& p) {
             std::cout << p.first << ": " << p.second << std::endl;

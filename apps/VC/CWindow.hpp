@@ -17,7 +17,7 @@
 #include "vc/segmentation/LocalResliceParticleSim.hpp"
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 5;
+static constexpr int VOLPKG_SUPPORTED_VERSION = 6;
 static constexpr int VOLPKG_SLICE_MIN_INDEX = 0;
 
 namespace ChaoVis

@@ -10,6 +10,10 @@ set(io_srcs
     src/TIFFIO.cpp
 )
 
+set(math_srcs
+    src/StructureTensor.cpp
+)
+
 set(neighborhood_srcs
     src/CuboidGenerator.cpp
     src/LineGenerator.cpp
@@ -40,7 +44,7 @@ set(util_srcs
     src/MemorySizeStringParser.cpp
 )
 
-set(srcs ${io_srcs} ${neighborhood_srcs} ${shape_srcs} ${type_srcs} ${util_srcs})
+set(srcs ${io_srcs} ${math_srcs} ${neighborhood_srcs} ${shape_srcs} ${type_srcs} ${util_srcs})
 
 add_library(${target} ${srcs})
 add_library("${namespace}${module}" ALIAS "${target}")

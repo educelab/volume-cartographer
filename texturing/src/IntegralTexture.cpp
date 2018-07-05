@@ -171,7 +171,7 @@ std::vector<uint16_t> IntegralTexture::expodiff_intersection_pts_()
             auto pixelInfo = ppm_(y, x);
             cv::Vec3d xyz{pixelInfo[0], pixelInfo[1], pixelInfo[2]};
 
-            values.emplace_back(vol_->interpolatedIntensityAt(xyz));
+            values.emplace_back(vol_->interpolateAt(xyz));
         }
     }
 
