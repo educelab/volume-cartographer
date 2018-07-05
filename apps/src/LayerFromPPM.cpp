@@ -18,7 +18,7 @@ namespace fs = boost::filesystem;
 namespace po = boost::program_options;
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 5;
+static constexpr int VOLPKG_SUPPORTED_VERSION = 6;
 
 int main(int argc, char* argv[])
 {

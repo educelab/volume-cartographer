@@ -20,15 +20,10 @@ target_link_libraries(vc_mappingExtractor VC::core)
 add_executable(vc_csv2uv src/CSV2UV.cpp)
 target_link_libraries(vc_csv2uv VC::core VC::meshing vtkIOPLY)
 
-# vc_volpkg_v3to4
-add_executable(vc_volpkg_v3to4 src/Volpkg3to4.cpp)
-target_link_libraries(vc_volpkg_v3to4 VC::core)
-set(utils_install_list ${utils_install_list} vc_volpkg_v3to4)
-
-# vc_volpkg_v4to5
-add_executable(vc_volpkg_v4to5 src/Volpkg4to5.cpp)
-target_link_libraries(vc_volpkg_v4to5 VC::core)
-set(utils_install_list ${utils_install_list} vc_volpkg_v4to5)
+# vc_volpkg_upgrade
+add_executable(vc_volpkg_upgrade src/VolpkgUpgrade.cpp)
+target_link_libraries(vc_volpkg_upgrade VC::core)
+set(utils_install_list ${utils_install_list} vc_volpkg_upgrade)
 
 # vc_flip_mesh
 add_executable(vc_flip_mesh src/FlipMesh.cpp)

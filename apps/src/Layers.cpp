@@ -26,7 +26,7 @@ namespace po = boost::program_options;
 namespace vc = volcart;
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 5;
+static constexpr int VOLPKG_SUPPORTED_VERSION = 6;
 // Number of vertices per square millimeter
 static constexpr double SAMPLING_DENSITY_FACTOR = 50;
 // Square Micron to square millimeter conversion factor

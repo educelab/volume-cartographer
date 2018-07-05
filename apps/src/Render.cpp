@@ -26,7 +26,7 @@ namespace vc = volcart;
 namespace vcm = volcart::meshing;
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 5;
+static constexpr int VOLPKG_SUPPORTED_VERSION = 6;
 
 // Globals
 po::variables_map parsed_;
