@@ -207,8 +207,9 @@ cv::Mat Volume::cache_slice_(int index) const
     try {
         return cache_->get(index);
     } catch (const std::exception& ex) {
+        auto slice = load_slice_(index);
         // Put into cache so we can use it later
-        cache_->put(index, load_slice_(index));
-        return cache_->get(index);
+        cache_->put(index, slice);
+        return slice;
     }
 }
