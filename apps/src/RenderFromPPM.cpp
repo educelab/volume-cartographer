@@ -10,6 +10,8 @@
 
 #include "vc/core/io/FileExtensionFilter.hpp"
 #include "vc/core/io/TIFFIO.hpp"
+#include "vc/core/neighborhood/CuboidGenerator.hpp"
+#include "vc/core/neighborhood/LineGenerator.hpp"
 #include "vc/core/types/PerPixelMap.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/MemorySizeStringParser.hpp"
@@ -28,9 +30,10 @@ namespace vct = volcart::texturing;
 auto ExtFilter = &vc::io::FileExtensionFilter;
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 5;
+static constexpr int VOLPKG_SUPPORTED_VERSION = 6;
 
 enum class Method { Composite = 0, Intersection, Integral };
+enum class Shape { Line = 0, Cuboid };
 
 int main(int argc, char* argv[])
 {
@@ -63,7 +66,11 @@ int main(int argc, char* argv[])
             "Sample Direction:\n"
                 "  0 = Omni\n"
                 "  1 = Positive\n"
-                "  2 = Negative");
+                "  2 = Negative")
+        ("neighborhood-shape,n", po::value<int>()->default_value(0),
+             "Neighborhood shape:\n"
+                 "  0 = Linear\n"
+                 "  1 = Cuboid");
 
     po::options_description compositeOptions("Composite Texture Options");
     compositeOptions.add_options()
@@ -180,15 +187,17 @@ int main(int argc, char* argv[])
     ///// Get some post-vpkg loading command line arguments /////
     // Get the texturing radius. If not specified, default to a radius
     // defined by the estimated thickness of the layer
-    double radius;
+    cv::Vec3d radius{0, 0, 0};
     if (parsed.count("radius")) {
-        radius = parsed["radius"].as<double>();
+        radius[0] = parsed["radius"].as<double>();
     } else {
         radius = vpkg.materialThickness() / 2 / volume->voxelSize();
     }
+    radius[1] = radius[2] = std::abs(std::sqrt(radius[0]));
 
     auto interval = parsed["interval"].as<double>();
     auto direction = static_cast<vc::Direction>(parsed["direction"].as<int>());
+    auto shape = static_cast<Shape>(parsed["neighborhood-shape"].as<int>());
 
     ///// Composite options /////
     auto filter = static_cast<vc::texturing::CompositeTexture::Filter>(
@@ -211,6 +220,19 @@ int main(int argc, char* argv[])
     std::cout << "Loading PPM..." << std::endl;
     auto ppm = vc::PerPixelMap::ReadPPM(inputPPMPath);
 
+    ///// Setup Neighborhood /////
+    vc::NeighborhoodGenerator::Pointer generator;
+    if (shape == Shape::Line) {
+        auto line = vc::LineGenerator::New();
+        generator = std::static_pointer_cast<vc::NeighborhoodGenerator>(line);
+    } else {
+        auto cube = vc::CuboidGenerator::New();
+        generator = std::static_pointer_cast<vc::NeighborhoodGenerator>(cube);
+    }
+    generator->setSamplingRadius(radius);
+    generator->setSamplingInterval(interval);
+    generator->setSamplingDirection(direction);
+
     ///// Generate texture /////
     vc::Texture texture;
     std::cout << "Generating Texture..." << std::endl;
@@ -220,6 +242,12 @@ int main(int argc, char* argv[])
     if (method == Method::Intersection) {
         std::cout << "Intersection";
     } else {
+        std::cout << "Shape: ";
+        if (shape == Shape::Line) {
+            std::cout << "Line || ";
+        } else {
+            std::cout << "Cuboid || ";
+        }
         std::cout << "Radius: " << radius << " || ";
         std::cout << "Sampling Interval: " << interval << " || ";
         std::cout << "Direction: ";
@@ -245,9 +273,7 @@ int main(int argc, char* argv[])
         textureGen.setPerPixelMap(ppm);
         textureGen.setVolume(volume);
         textureGen.setFilter(filter);
-        textureGen.setSamplingRadius(radius);
-        textureGen.setSamplingInterval(interval);
-        textureGen.setSamplingDirection(direction);
+        textureGen.setGenerator(generator);
         texture = textureGen.compute();
     }
 
@@ -255,9 +281,7 @@ int main(int argc, char* argv[])
         vc::texturing::IntegralTexture textureGen;
         textureGen.setPerPixelMap(ppm);
         textureGen.setVolume(volume);
-        textureGen.setSamplingRadius(radius);
-        textureGen.setSamplingInterval(interval);
-        textureGen.setSamplingDirection(direction);
+        textureGen.setGenerator(generator);
         textureGen.setWeightMethod(weightType);
         textureGen.setLinearWeightDirection(weightDirection);
         textureGen.setExponentialDiffExponent(weightExponent);

@@ -137,7 +137,7 @@ private:
     /** Size of the Z-axis */
     size_t dz_;
 };
-}
+}  // namespace volcart
 
 /**
  * @brief Write a Tensor3D to an output stream

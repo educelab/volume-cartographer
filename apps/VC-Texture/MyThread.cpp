@@ -14,6 +14,7 @@
 
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/io/PLYReader.hpp"
+#include "vc/core/neighborhood/LineGenerator.hpp"
 #include "vc/core/util/MeshMath.hpp"
 #include "vc/meshing/ACVD.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
@@ -114,6 +115,10 @@ void MyThread::run()
             static_cast<vc::Direction>(_globals->getSampleDirection());
         auto volume = _globals->volPkg()->volume();
 
+        auto generator = vc::LineGenerator::New();
+        generator->setSamplingRadius(radius);
+        generator->setSamplingDirection(direction);
+
         // Generate texture image
         vc::Texture texture;
         if (method == GlobalValues::Method::Intersection) {
@@ -127,8 +132,7 @@ void MyThread::run()
             vc::texturing::IntegralTexture textureGen;
             textureGen.setPerPixelMap(ppm);
             textureGen.setVolume(volume);
-            textureGen.setSamplingRadius(radius);
-            textureGen.setSamplingDirection(direction);
+            textureGen.setGenerator(generator);
             texture = textureGen.compute();
         }
 
@@ -137,8 +141,7 @@ void MyThread::run()
             textureGen.setPerPixelMap(ppm);
             textureGen.setVolume(volume);
             textureGen.setFilter(_globals->getFilter());
-            textureGen.setSamplingRadius(radius);
-            textureGen.setSamplingDirection(direction);
+            textureGen.setGenerator(generator);
             texture = textureGen.compute();
         }
 

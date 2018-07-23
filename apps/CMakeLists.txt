@@ -40,7 +40,13 @@ target_link_libraries(vc_segment
 )
 
 ## Rendering ##
-add_executable(vc_render src/Render.cpp)
+add_executable(vc_render
+    src/Render.cpp
+    src/RenderGeneral.cpp
+    src/RenderIO.cpp
+    src/RenderMeshing.cpp
+    src/RenderTexturing.cpp
+)
 target_link_libraries(vc_render
     VC::core
     VC::texturing
@@ -48,6 +54,7 @@ target_link_libraries(vc_render
     Boost::filesystem
     Boost::program_options
 )
+target_include_directories(vc_render PUBLIC include)
 
 ## Render from PPM
 add_executable(vc_render_from_ppm src/RenderFromPPM.cpp)

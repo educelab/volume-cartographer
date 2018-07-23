@@ -10,6 +10,7 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
+#include "vc/core/math/StructureTensor.hpp"
 #include "vc/segmentation/LocalResliceParticleSim.hpp"
 #include "vc/segmentation/lrps/Common.hpp"
 #include "vc/segmentation/lrps/Derivative.hpp"
@@ -313,7 +314,7 @@ cv::Vec3d LocalResliceSegmentation::estimate_normal_at_index_(
     auto currentVoxel = currentCurve(index);
     auto radius = static_cast<int>(
         std::ceil(materialThickness_ / vol_->voxelSize()) * 0.5);
-    auto eigenPairs = vol_->interpolatedEigenPairsAt(currentVoxel, radius);
+    auto eigenPairs = ComputeSubvoxelEigenPairs(vol_, currentVoxel, radius);
     double exp0 = std::log10(eigenPairs[0].first);
     double exp1 = std::log10(eigenPairs[1].first);
     if (std::abs(exp0 - exp1) > 2.0) {

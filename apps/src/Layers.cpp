@@ -26,7 +26,7 @@ namespace po = boost::program_options;
 namespace vc = volcart;
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 5;
+static constexpr int VOLPKG_SUPPORTED_VERSION = 6;
 // Number of vertices per square millimeter
 static constexpr double SAMPLING_DENSITY_FACTOR = 50;
 // Square Micron to square millimeter conversion factor
@@ -206,12 +206,19 @@ int main(int argc, char* argv[])
     ppmGen.setDimensions(height, width);
     auto ppm = ppmGen.compute();
 
+    // Setup line generator
+    auto line = vc::LineGenerator::New();
+    line->setSamplingRadius(radius);
+    line->setSamplingInterval(interval);
+    line->setSamplingDirection(direction);
+
+    // Layer texture
+    std::cout << "Generating layers..." << std::endl;
     vc::texturing::LayerTexture s;
     s.setVolume(volume);
     s.setPerPixelMap(ppm);
-    s.setSamplingRadius(radius);
-    s.setSamplingInterval(interval);
-    s.setSamplingDirection(direction);
+    s.setGenerator(line);
+
     auto texture = s.compute();
 
     // Write the layers

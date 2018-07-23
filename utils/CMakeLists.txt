@@ -20,15 +20,10 @@ target_link_libraries(vc_mappingExtractor VC::core)
 add_executable(vc_csv2uv src/CSV2UV.cpp)
 target_link_libraries(vc_csv2uv VC::core VC::meshing vtkIOPLY)
 
-# vc_volpkg_v3to4
-add_executable(vc_volpkg_v3to4 src/Volpkg3to4.cpp)
-target_link_libraries(vc_volpkg_v3to4 VC::core)
-set(utils_install_list ${utils_install_list} vc_volpkg_v3to4)
-
-# vc_volpkg_v4to5
-add_executable(vc_volpkg_v4to5 src/Volpkg4to5.cpp)
-target_link_libraries(vc_volpkg_v4to5 VC::core)
-set(utils_install_list ${utils_install_list} vc_volpkg_v4to5)
+# vc_volpkg_upgrade
+add_executable(vc_volpkg_upgrade src/VolpkgUpgrade.cpp)
+target_link_libraries(vc_volpkg_upgrade VC::core)
+set(utils_install_list ${utils_install_list} vc_volpkg_upgrade)
 
 # vc_flip_mesh
 add_executable(vc_flip_mesh src/FlipMesh.cpp)
@@ -45,6 +40,22 @@ target_link_libraries(vc_retexture_mesh VC::core Boost::filesystem Boost::progra
 # vc_ppm_to_pointset
 add_executable(vc_ppm_to_pointset src/PPMToPointSet.cpp)
 target_link_libraries(vc_ppm_to_pointset VC::core Boost::filesystem Boost::program_options)
+
+# vc_canny_segment
+add_executable(vc_canny_segment src/CannySegment.cpp)
+target_link_libraries(vc_canny_segment VC::core Boost::filesystem Boost::program_options opencv_core)
+
+# vc_transform_mesh
+add_executable(vc_transform_mesh src/TransformMesh.cpp)
+target_link_libraries(vc_transform_mesh
+    VC::core
+    Boost::filesystem
+    Boost::program_options
+    ITKIOTransformBase
+    ITKIOTransformHDF5
+    ITKIOTransformInsightLegacy
+    ITKIOTransformMatlab
+)
 
 # Install targets
 if(VC_INSTALL_UTILS)

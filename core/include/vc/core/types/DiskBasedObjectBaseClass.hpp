@@ -24,11 +24,14 @@ namespace volcart
 class DiskBasedObjectBaseClass
 {
 public:
-    /** Default constructor */
-    DiskBasedObjectBaseClass() = delete;
-
     /** @brief Identifier type */
     using Identifier = std::string;
+
+    /** ID/Name pair */
+    using Description = std::pair<Identifier, std::string>;
+
+    /** Default constructor */
+    DiskBasedObjectBaseClass() = delete;
 
     /** @brief Get the "unique" ID for the object */
     Identifier id() const { return metadata_.get<std::string>("uuid"); }
@@ -38,6 +41,9 @@ public:
 
     /** @brief Get the human-readable name for the object */
     std::string name() const { return metadata_.get<std::string>("name"); }
+
+    /** @brief Set the human-readable name of the object */
+    void setName(std::string n) { metadata_.set("name", std::move(n)); }
 
     /** @brief Update metadata on disk */
     void saveMetadata() { metadata_.save(); }
@@ -56,4 +62,4 @@ protected:
     /** Location for the object on disk */
     boost::filesystem::path path_;
 };
-}
+}  // namespace volcart

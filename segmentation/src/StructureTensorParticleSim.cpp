@@ -1,5 +1,7 @@
 #include "vc/segmentation/StructureTensorParticleSim.hpp"
 
+#include "vc/core/math/StructureTensor.hpp"
+
 namespace vc = volcart;
 using namespace vc::segmentation;
 
@@ -99,7 +101,7 @@ ForceChain StructureTensorParticleSim::calc_prop_forces_(ParticleChain c)
     Force zDir{0, 0, 1};
 
     for (const auto& p : c) {
-        auto ep = vol_->interpolatedEigenPairsAt(p.pos(), radius_);
+        auto ep = ComputeSubvoxelEigenPairs(vol_, p.pos(), radius_);
         auto offset = ep[0].second;
         offset = zDir - (zDir.dot(offset)) / (offset.dot(offset)) * offset;
         cv::normalize(offset, offset);

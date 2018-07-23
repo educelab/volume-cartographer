@@ -15,7 +15,7 @@ namespace tt = boost::test_tools;
 struct PointXYZ {
     double x, y, z;
 
-    PointXYZ(const cv::Vec3d p) : x(p[0]), y(p[1]), z(p[2]) {}
+    explicit PointXYZ(const cv::Vec3d& p) : x(p[0]), y(p[1]), z(p[2]) {}
 };
 
 std::ostream& operator<<(std::ostream& s, PointXYZ p);
@@ -29,9 +29,9 @@ inline double NormL2(const PointXYZ p1, const PointXYZ p2)
 
 // Main fixture containing the LocalResliceSegmentation object
 struct LocalResliceSegmentationFix {
-    LocalResliceSegmentationFix() : pkg_("Testing.volpkg") {}
+    LocalResliceSegmentationFix() = default;
 
-    volcart::VolumePkg pkg_;
+    volcart::VolumePkg pkg_{"Testing.volpkg"};
     LocalResliceSegmentation segmenter_;
 };
 

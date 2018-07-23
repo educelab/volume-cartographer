@@ -18,9 +18,9 @@ class FittedCurve
 {
 private:
     /** Number of points in the curve*/
-    size_t npoints_;
+    size_t npoints_{0};
     /** z-position of the curve */
-    int zIndex_;
+    int zIndex_{0};
     /** Parameterized nodes */
     std::vector<double> ts_;
     /** List of sampled points */
@@ -31,7 +31,7 @@ private:
 public:
     /** @name Constructors */
     /**@{*/
-    FittedCurve() : npoints_(0), zIndex_(0), ts_(), points_(), spline_() {}
+    FittedCurve() = default;
 
     /**
      * @brief Construct curve from set of points and z-Index
@@ -51,7 +51,7 @@ public:
     const std::vector<Voxel>& points() const { return points_; }
 
     /** @brief Return the spline created from the input points */
-    const decltype(spline_) & spline() const { return spline_; }
+    const decltype(spline_)& spline() const { return spline_; }
 
     /** @brief Resample the curve at a given t-value in [0.0, 1.0] */
     Pixel eval(double t) const { return spline_(t); }
@@ -81,5 +81,5 @@ public:
     /**@brief Calculate the arc length of the curve  */
     double arclength() const;
 };
-}
-}
+}  // namespace segmentation
+}  // namespace volcart

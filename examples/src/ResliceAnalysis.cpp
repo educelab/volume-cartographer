@@ -7,6 +7,7 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
+#include "vc/core/math/StructureTensor.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 
 const cv::Vec3d KVector(0, 0, 1);
@@ -80,7 +81,7 @@ int main(int argc, char** argv)
     const cv::Vec3d center(cx, cy, cz);
 
     // Get our normal estimate from the structure tensor
-    auto pairs = vol->eigenPairsAt(cx, cy, cz, 5);
+    auto pairs = volcart::ComputeVoxelEigenPairs(vol, cx, cy, cz, 5);
     auto normalVector = pairs[0].second;
     double theta, phi;
     std::tie(theta, phi) = CartesianToSpherical(normalVector);

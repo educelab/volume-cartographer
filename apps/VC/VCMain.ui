@@ -159,7 +159,7 @@
           </layout>
          </item>
          <item>
-          <widget class="QLabel" name="label_5">
+          <widget class="QLabel" name="label_vol">
            <property name="text">
             <string>Volume</string>
            </property>

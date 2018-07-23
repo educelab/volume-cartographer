@@ -11,6 +11,18 @@
 */
 
 /**
+ @defgroup Math Math
+ @brief Mathematical operations
+ @ingroup Core
+*/
+
+/**
+ @defgroup Neighborhoods Neighborhood Generators
+ @brief Generate volumetric neighborhoods
+ @ingroup Core
+*/
+
+/**
  @defgroup Scales Scales
  @brief Add frames of reference to volumetric data
  @ingroup Core

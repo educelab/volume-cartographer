@@ -24,7 +24,14 @@ ALWAYS_DETAILED_SEC    = NO
 INLINE_INHERITED_MEMB  = NO
 FULL_PATH_NAMES        = YES
 STRIP_FROM_PATH        = @CMAKE_SOURCE_DIR@
-STRIP_FROM_INC_PATH    =
+STRIP_FROM_INC_PATH    = @CMAKE_SOURCE_DIR@/core/include/ \
+                         @CMAKE_SOURCE_DIR@/experimental/include/ \
+                         @CMAKE_SOURCE_DIR@/external/include/ \
+                         @CMAKE_SOURCE_DIR@/meshing/include/ \
+                         @CMAKE_SOURCE_DIR@/python/include/ \
+                         @CMAKE_SOURCE_DIR@/segmentation/include/ \
+                         @CMAKE_SOURCE_DIR@/testing/include/ \
+                         @CMAKE_SOURCE_DIR@/texturing/include/
 SHORT_NAMES            = NO
 JAVADOC_AUTOBRIEF      = NO
 QT_AUTOBRIEF           = NO

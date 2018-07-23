@@ -19,11 +19,10 @@ ITKPoint Lookup2Dto3D(int y, int x, volcart::PerPixelMap& map);
 
 int main(int /*argc*/, char** argv)
 {
-    VolumePkg* volpkg;
     cv::Mat perPixelMask, currentSlice;
     PerPixelMap perPixelMap;
 
-    volpkg = new VolumePkg(argv[1]);
+    auto volpkg = VolumePkg::New(argv[1]);
     auto seg = volpkg->segmentation(argv[2]);
     fs::path segPath = fs::canonical(seg->path());
 

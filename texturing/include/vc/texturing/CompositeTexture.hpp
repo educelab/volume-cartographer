@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vc/texturing/TexturingAlgorithmBaseClass.hpp"
+#include "vc/texturing/TexturingAlgorithm.hpp"
 
 namespace volcart
 {
@@ -25,9 +25,15 @@ namespace texturing
  *
  * @ingroup Texture
  */
-class CompositeTexture : public TexturingAlgorithmBaseClass
+class CompositeTexture : public TexturingAlgorithm
 {
 public:
+    /** Pointer type */
+    using Pointer = std::shared_ptr<CompositeTexture>;
+
+    /** Make shared pointer */
+    static Pointer New() { return std::make_shared<CompositeTexture>(); }
+
     /** Default destructor */
     ~CompositeTexture() override = default;
 
@@ -35,6 +41,13 @@ public:
     enum class Filter { Minimum, Maximum, Median, Mean, MedianAverage };
 
     /**@{*/
+    /**
+     * @brief Set the Neighborhood generator
+     *
+     * This class supports generators of dimension >= 1
+     */
+    void setGenerator(NeighborhoodGenerator::Pointer g) { gen_ = std::move(g); }
+
     /**
      * @brief Set the filtering method
      *
@@ -49,6 +62,11 @@ public:
     /**@}*/
 
 private:
+    /** Neighborhood shape */
+    NeighborhoodGenerator::Pointer gen_;
+    /** Get neighborhood */
+    Neighborhood get_neighborhood_(const cv::Vec3d& p, const cv::Vec3d& n);
+
     /** Filter method */
     Filter filter_{Filter::Maximum};
 
@@ -66,5 +84,5 @@ private:
      * a percent of the neighborhood. */
     uint16_t median_mean_(Neighborhood n, double range);
 };
-}
-}
+}  // namespace texturing
+}  // namespace volcart

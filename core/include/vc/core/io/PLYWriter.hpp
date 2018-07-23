@@ -34,14 +34,14 @@ public:
     PLYWriter() = default;
 
     /** @brief Constructor with output path and input mesh */
-    PLYWriter(boost::filesystem::path outputPath, ITKMesh::Pointer mesh)
+    PLYWriter(boost::filesystem::path outputPath, const ITKMesh::Pointer& mesh)
         : outputPath_{std::move(outputPath)}, mesh_{mesh}
     {
     }
     /** @brief Constructor with output path and textured mesh information */
     PLYWriter(
         boost::filesystem::path outputPath,
-        ITKMesh::Pointer mesh,
+        const ITKMesh::Pointer& mesh,
         volcart::Texture texture)
         : outputPath_{std::move(outputPath)}
         , mesh_{mesh}
@@ -107,5 +107,5 @@ private:
      */
     int write_faces_();
 };
-}
-}
+}  // namespace io
+}  // namespace volcart

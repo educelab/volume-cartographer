@@ -12,8 +12,6 @@
 using namespace volcart;
 using namespace volcart::texturing;
 
-using DoublesVec = std::vector<double>;
-
 Texture IntegralTexture::compute()
 {
     // Setup
@@ -40,18 +38,18 @@ Texture IntegralTexture::compute()
     // Iterate through the mappings
     for (const auto& pixel : mappings) {
         // Generate the neighborhood
-        auto neighborhood = vol_->getVoxelNeighborsLinearInterpolated(
-            pixel.pos, pixel.normal, radius_, interval_, direction_);
+        auto n = gen_->compute(vol_, pixel.pos, {pixel.normal});
 
         // Clamp values
         if (clampToMax_) {
             std::replace_if(
-                neighborhood.begin(), neighborhood.end(),
+                n.begin(), n.end(),
                 [this](uint16_t v) { return v > clampMax_; }, clampMax_);
         }
 
         // Convert to double and weight the neighborhood
-        DoublesVec neighborhoodD(neighborhood.begin(), neighborhood.end());
+        NDArray<double> neighborhoodD(
+            n.dims(), n.extents(), n.begin(), n.end());
         auto weighted = apply_weights_(neighborhoodD);
 
         // Sum the neighborhood
@@ -84,7 +82,7 @@ void IntegralTexture::setup_weights_()
     }
 }
 
-DoublesVec IntegralTexture::apply_weights_(DoublesVec& n)
+NDArray<double> IntegralTexture::apply_weights_(NDArray<double>& n)
 {
     switch (weight_) {
         case WeightMethod::None:
@@ -100,7 +98,8 @@ DoublesVec IntegralTexture::apply_weights_(DoublesVec& n)
 void IntegralTexture::setup_linear_weights_()
 {
     // Neighborhood size
-    size_t size = neighborhood_count_();
+    auto extents = gen_->extents();
+    linearWeights_ = NDArray<double>(gen_->dim(), extents);
 
     // Linear Weighted Sum Setup
     double weight;
@@ -109,29 +108,34 @@ void IntegralTexture::setup_linear_weights_()
         // Favor the voxels along the negative normal
         case LinearWeightDirection::Negative:
             weight = 1.0;
-            weightStep = -1.0 / size;
+            weightStep = -1.0 / extents[0];
             break;
         // Favor the voxels along the positive normal
         case LinearWeightDirection::Positive:
             weight = 0.0;
-            weightStep = 1.0 / size;
+            weightStep = 1.0 / extents[0];
             break;
     }
 
     // Build a weight matrix
-    linearWeights_.clear();
-    linearWeights_.reserve(size);
-    for (size_t i = 0; i < size; i++) {
-        linearWeights_.push_back(weight);
-        weight += weightStep;
+    size_t count = 0;
+    for (auto& v : linearWeights_) {
+        v = weight;
+
+        count++;
+        if (count == extents[0]) {
+            weight += weightStep;
+            count = 0;
+        }
     }
 }
 
-DoublesVec IntegralTexture::apply_linear_weights_(DoublesVec& n)
+NDArray<double> IntegralTexture::apply_linear_weights_(NDArray<double>& n)
 {
     std::vector<double> weighted;
-    cv::multiply(n, linearWeights_, weighted);
-    return weighted;
+    cv::multiply(n.data(), linearWeights_.data(), weighted);
+    return NDArray<double>(
+        n.dims(), n.extents(), weighted.begin(), weighted.end());
 }
 
 ///// Exponential Difference weighting /////
@@ -167,7 +171,7 @@ std::vector<uint16_t> IntegralTexture::expodiff_intersection_pts_()
             auto pixelInfo = ppm_(y, x);
             cv::Vec3d xyz{pixelInfo[0], pixelInfo[1], pixelInfo[2]};
 
-            values.emplace_back(vol_->interpolatedIntensityAt(xyz));
+            values.emplace_back(vol_->interpolateAt(xyz));
         }
     }
 
@@ -216,16 +220,16 @@ double IntegralTexture::expodiff_mode_base_()
     return sorter.begin()->first;
 }
 
-DoublesVec IntegralTexture::apply_expodiff_weights_(std::vector<double>& n)
+NDArray<double> IntegralTexture::apply_expodiff_weights_(NDArray<double>& n)
 {
-    std::vector<double> weighted;
+    std::vector<double> vals;
     for (const auto& val : n) {
         if (suppressBelowBase_ && expoDiffBase_ >= val) {
             continue;
         }
         double diff = std::abs(val - expoDiffBase_);
-        weighted.emplace_back(std::pow(diff, expoDiffExponent_));
+        vals.emplace_back(std::pow(diff, expoDiffExponent_));
     }
 
-    return weighted;
+    return NDArray<double>(n.dims(), n.extents(), vals.begin(), vals.end());
 }

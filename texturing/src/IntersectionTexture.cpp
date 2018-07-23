@@ -33,7 +33,7 @@ Texture IntersectionTexture::compute()
         // Assign the intensity value at the XY position
         image.at<uint16_t>(
             static_cast<int>(pixel.y), static_cast<int>(pixel.x)) =
-            vol_->interpolatedIntensityAt(pixel.pos);
+            vol_->interpolateAt(pixel.pos);
     }
 
     // Set output
