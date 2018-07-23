@@ -21,11 +21,7 @@ build:debian:static:
             - build/bin/
         expire_in: 1 day
     tags:
-        - build
-        - linux
-        - static
-        - qt5
-        - ninja
+        - docker
 
 test:debian:static:
     image: volcart/vcbuilder-debian:9_v4.static
@@ -44,11 +40,7 @@ test:debian:static:
       when: always
       expire_in: 4 weeks
     tags:
-        - test
-        - linux
-        - static
-        - qt5
-        - ninja
+        - docker
 
 build:debian:dynamic:
     image: volcart/vcbuilder-debian:9_v4.dynamic
@@ -64,11 +56,7 @@ build:debian:dynamic:
             - build/bin/
         expire_in: 1 day
     tags:
-        - build
-        - linux
-        - static
-        - qt5
-        - ninja
+        - docker
 
 test:debian:dynamic:
     image: volcart/vcbuilder-debian:9_v4.dynamic
@@ -87,11 +75,7 @@ test:debian:dynamic:
       when: always
       expire_in: 4 weeks
     tags:
-        - test
-        - linux
-        - static
-        - qt5
-        - ninja
+        - docker
 
 build:debian:experimental:
     image: volcart/vcbuilder-debian:9_v4.experimental
@@ -107,11 +91,7 @@ build:debian:experimental:
             - build/bin/
         expire_in: 1 day
     tags:
-        - build
-        - linux
-        - static
-        - qt5
-        - ninja
+        - docker
 
 test:debian:experimental:
     image: volcart/vcbuilder-debian:9_v4.experimental
@@ -130,11 +110,7 @@ test:debian:experimental:
       when: always
       expire_in: 4 weeks
     tags:
-        - test
-        - linux
-        - static
-        - qt5
-        - ninja
+        - docker
 
 ### macOS ###
 build:macos:static:

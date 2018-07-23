@@ -8,30 +8,33 @@ static const std::vector<cv::Vec3d> BASIS_VECTORS = {
 using namespace volcart;
 
 Neighborhood CuboidGenerator::compute(
-    Volume::Pointer v, cv::Vec3d pt, std::vector<cv::Vec3d> axes)
+    const Volume::Pointer& v,
+    const cv::Vec3d& pt,
+    const std::vector<cv::Vec3d>& axes)
 {
     // Auto-generate missing axes
+    auto bases = axes;
     if (autoGenAxes_) {
-        if (axes.size() == 1) {
+        if (bases.size() == 1) {
             // Find a basis vector not parallel to n
             cv::Vec3d basis;
             for (const auto& b : BASIS_VECTORS) {
-                if (axes[0].dot(b) != 1.0) {
+                if (bases[0].dot(b) != 1.0) {
                     basis = b;
                     break;
                 }
             }
-            axes.emplace_back(cv::normalize(axes[0].cross(basis)));
+            bases.emplace_back(cv::normalize(bases[0].cross(basis)));
         }
 
-        if (axes.size() == 2) {
-            axes.emplace_back(cv::normalize(axes[0].cross(axes[1])));
+        if (bases.size() == 2) {
+            bases.emplace_back(cv::normalize(bases[0].cross(bases[1])));
         }
     }
 
     // If we don't have enough axes by this point, we're doing it wrong
-    if (axes.size() < 3) {
-        auto msg = "Invalid number of axes (" + std::to_string(axes.size()) +
+    if (bases.size() < 3) {
+        auto msg = "Invalid number of axes (" + std::to_string(bases.size()) +
                    "). Need 3.";
         throw std::invalid_argument(msg);
     }
@@ -41,7 +44,7 @@ Neighborhood CuboidGenerator::compute(
     auto radius = radius_;
     if (direction_ != Direction::Bidirectional) {
         radius[0] /= 2.0;
-        auto offset = axes[0] * radius[0];
+        auto offset = bases[0] * radius[0];
         if (direction_ == Direction::Negative) {
             offset *= -1;
         }
@@ -63,8 +66,8 @@ Neighborhood CuboidGenerator::compute(
                 auto xOffset = -radius[2] + (x * interval_);
 
                 // Current 3D position
-                auto p = center + (axes[2] * xOffset) + (axes[1] * yOffset) +
-                         (axes[0] * zOffset);
+                auto p = center + (bases[2] * xOffset) + (bases[1] * yOffset) +
+                         (bases[0] * zOffset);
 
                 // Assign to the subvolume array
                 output(z, y, x) = v->interpolateAt(p);

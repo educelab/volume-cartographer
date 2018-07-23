@@ -88,7 +88,9 @@ public:
     /**@{*/
     /** @brief Compute a neighborhood centered on a point */
     virtual Neighborhood compute(
-        Volume::Pointer v, cv::Vec3d pt, std::vector<cv::Vec3d> axes) = 0;
+        const Volume::Pointer& v,
+        const cv::Vec3d& pt,
+        const std::vector<cv::Vec3d>& axes) = 0;
     /**@}*/
 
 protected:

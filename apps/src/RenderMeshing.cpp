@@ -17,7 +17,7 @@ extern po::variables_map parsed_;
 extern vc::Volume::Pointer volume_;
 
 // Square Micron to square millimeter conversion factor
-static constexpr double UM_TO_MM = 0.001 * 0.001;
+static constexpr double UM_TO_MM = 0.000001;
 // Min. number of points required to do flattening
 static constexpr int CLEANER_MIN_REQ_POINTS = 100;
 
@@ -55,7 +55,7 @@ vc::ITKMesh::Pointer ResampleMesh(const vc::ITKMesh::Pointer& m)
     ///// Resample the segmentation /////
     // Calculate sampling density
     int vertCount{0};
-    auto voxelToMicron = std::pow(volume_->voxelSize(), 2);
+    auto voxelToMicron = volume_->voxelSize() * volume_->voxelSize();
     auto area = vc::meshmath::SurfaceArea(m) * voxelToMicron * UM_TO_MM;
     auto currentDensityFactor = m->GetNumberOfPoints() / area;
     double newDensityFactor;

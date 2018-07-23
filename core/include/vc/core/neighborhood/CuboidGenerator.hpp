@@ -44,7 +44,9 @@ public:
      * provided, only the 3rd will be generated.
      */
     Neighborhood compute(
-        Volume::Pointer v, cv::Vec3d pt, std::vector<cv::Vec3d> axes) override;
+        const Volume::Pointer& v,
+        const cv::Vec3d& pt,
+        const std::vector<cv::Vec3d>& axes) override;
     /**@}*/
 };
 

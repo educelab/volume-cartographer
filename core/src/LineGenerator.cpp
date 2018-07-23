@@ -5,7 +5,9 @@
 using namespace volcart;
 
 Neighborhood LineGenerator::compute(
-    Volume::Pointer v, cv::Vec3d pt, std::vector<cv::Vec3d> axes)
+    const Volume::Pointer& v,
+    const cv::Vec3d& pt,
+    const std::vector<cv::Vec3d>& axes)
 {
     // If we don't have enough axes by this point, we're doing it wrong
     if (axes.empty()) {

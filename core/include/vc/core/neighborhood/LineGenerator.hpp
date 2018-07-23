@@ -41,7 +41,9 @@ public:
      * This class does not make use of the value of `setAutoGenAxes()`.
      */
     Neighborhood compute(
-        Volume::Pointer v, cv::Vec3d pt, std::vector<cv::Vec3d> axes) override;
+        const Volume::Pointer& v,
+        const cv::Vec3d& pt,
+        const std::vector<cv::Vec3d>& axes) override;
     /**@}*/
 };
 

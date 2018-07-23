@@ -45,6 +45,18 @@ target_link_libraries(vc_ppm_to_pointset VC::core Boost::filesystem Boost::progr
 add_executable(vc_canny_segment src/CannySegment.cpp)
 target_link_libraries(vc_canny_segment VC::core Boost::filesystem Boost::program_options opencv_core)
 
+# vc_transform_mesh
+add_executable(vc_transform_mesh src/TransformMesh.cpp)
+target_link_libraries(vc_transform_mesh
+    VC::core
+    Boost::filesystem
+    Boost::program_options
+    ITKIOTransformBase
+    ITKIOTransformHDF5
+    ITKIOTransformInsightLegacy
+    ITKIOTransformMatlab
+)
+
 # Install targets
 if(VC_INSTALL_UTILS)
 install(
