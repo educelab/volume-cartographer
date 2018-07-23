@@ -1,5 +1,35 @@
 Volume Cartographer Changelog
 =============================
+v2.19.0
+-------
+This release contains a major refactor of the `Volume` class, which brings it 
+in line with the `DiskBasedObject` interface that is intended for the major
+`VolumePkg` sub-objects. It should functionally be the same with the exception 
+of the `StructureTensor` methods, which have become free functions in
+`volcart::Core`. You can now find them in `vc/core/math/StructureTensor.hpp`.
+
+- all
+    - Update CI and submodule settings to reflect code server migration (!223)
+- apps
+    - (layers_from_ppm) New option to save a PPM from in the layers volume (!218)
+- core
+    - __New:__ NeighborhoodGenerators: Common interface for requesting ROIs 
+    from a Volume (!221)
+    - (Volume) Cleanup interface and derive from DiskBasedObject (!222)
+    - Moved StructureTensor methods to `vc/core/math/StructureTensor.hpp` (!222)
+    - (VolumePkg) Add v6 metadata
+- testing
+    - Upgrade `Testing.volpkg` to v6 (499b7ea0)
+- texturing
+    - Refactor all texturing algorithms to use NeighborhoodGenerators interface
+     (!221)
+    - Small performance fixes post-refactor (!223)
+- utils
+    - __New:__ `vc_volpkg_upgrade`: Single utility to upgrade a VolumePkg to the 
+    latest version (!222)
+    - __New:__ `vc_transform_mesh`: New utility to apply affine transforms to a 
+    mesh (!223)
+
 v2.18.1
 -------
 Patch release to fix CI builds. Success deploy builds are now uploaded to
