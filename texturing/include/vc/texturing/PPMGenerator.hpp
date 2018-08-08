@@ -26,6 +26,8 @@ class PPMGenerator
 {
 public:
     /**@{*/
+    enum class Shading { Flat, Smooth };
+
     /** Default constructor */
     PPMGenerator() : width_{0}, height_{0} {}
 
@@ -44,6 +46,9 @@ public:
     /**@{*/
     /** @brief Set the dimensions of the output PPM */
     void setDimensions(size_t h, size_t w);
+
+    /** @brief Set the normal shading method */
+    void setShading(Shading s) { shading_ = s; }
     /**@}*/
 
     /**@{*/
@@ -67,13 +72,14 @@ private:
         {
             pts2D.clear();
             pts3D.clear();
+            normals.clear();
         }
         /** 2D vertices */
         std::vector<cv::Vec3d> pts2D;
         /** 3D vertices */
         std::vector<cv::Vec3d> pts3D;
         /** 3D surface normal */
-        cv::Vec3d normal;
+        std::vector<cv::Vec3d> normals;
     };
 
     /** Preprocess mesh to aid in correspondence look ups */
@@ -86,8 +92,14 @@ private:
         const cv::Vec3d& nA,
         const cv::Vec3d& nB,
         const cv::Vec3d& nC);
-    /** Convert from Cartesian coordinates to Barycentric coordinates */
+    /** Convert from Barycentric coordinates to Cartesian coordinates*/
     cv::Vec3d cartesian_coord_(
+        const cv::Vec3d& nUVW,
+        const cv::Vec3d& nA,
+        const cv::Vec3d& nB,
+        const cv::Vec3d& nC);
+    /** Convert from Barycentric coordinates to an interpolated normal */
+    cv::Vec3d gouraud_normal_(
         const cv::Vec3d& nUVW,
         const cv::Vec3d& nA,
         const cv::Vec3d& nB,
@@ -103,15 +115,19 @@ private:
     /** Face correspondence information */
     std::vector<CellInfo> cellInformation_;
 
+    /** Working mesh */
+    ITKMesh::Pointer workingMesh_;
     /** Output PerPixelMap */
     PerPixelMap ppm_;
+    /** Output shading */
+    Shading shading_{Shading::Smooth};
     /** Output width of the PerPixelMap */
     size_t width_;
     /** Output height of the PerPixelMap */
     size_t height_;
 
     /** Algorithm progress tracker */
-    double progress_;
+    double progress_{0.0};
 };
 }  // namespace texturing
 }  // namespace volcart

@@ -77,11 +77,6 @@ void CalculateNormals::assign_to_mesh_()
         cv::Vec3d norm = vertexNormals_[point.Index()];
         cv::normalize(norm, norm);
 
-        ITKPixel pointNormal;
-        pointNormal[0] = norm(0);
-        pointNormal[1] = norm(1);
-        pointNormal[2] = norm(2);
-
-        output_->SetPointData(point.Index(), pointNormal);
+        output_->SetPointData(point.Index(), norm.val);
     }
 }
