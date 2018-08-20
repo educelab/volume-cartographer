@@ -12,6 +12,8 @@
 using namespace volcart;
 using namespace texturing;
 
+namespace vcm = volcart::meshing;
+
 constexpr static size_t KD_DEFAULT_SEARCH_SIZE = 100;
 
 // Parameters
@@ -34,7 +36,7 @@ PerPixelMap& PPMGenerator::compute()
     // Generate normals
     if (shading_ == Shading::Smooth &&
         inputMesh_->GetPointData()->Size() != inputMesh_->GetNumberOfPoints()) {
-        meshing::CalculateNormals normCalc(inputMesh_);
+        vcm::CalculateNormals normCalc(inputMesh_);
         workingMesh_ = normCalc.compute();
     } else {
         workingMesh_ = inputMesh_;
@@ -233,6 +235,7 @@ cv::Vec3d PPMGenerator::cartesian_coord_(
     return nUVW[0] * nA + nUVW[1] * nB + nUVW[2] * nC;
 }
 
+// Convert from Barycentric coordinates to a smoothly interpolated normal
 cv::Vec3d PPMGenerator::gouraud_normal_(
     const cv::Vec3d& nUVW,
     const cv::Vec3d& nA,

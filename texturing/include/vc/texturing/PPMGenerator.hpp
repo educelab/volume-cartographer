@@ -26,7 +26,7 @@ class PPMGenerator
 {
 public:
     /**@{*/
-    enum class Shading { Flat, Smooth };
+    enum class Shading { Flat = 0, Smooth };
 
     /** Default constructor */
     PPMGenerator() : width_{0}, height_{0} {}
