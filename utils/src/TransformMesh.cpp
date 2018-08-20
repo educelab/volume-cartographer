@@ -34,13 +34,18 @@ int main(int argc, char** argv)
            "Input mesh file")
         ("output-mesh,o", po::value<std::string>()->required(),
            "Output mesh file")
-        ("output-tfm,t", po::value<std::string>(), "Output transformation file")
+        ("output-tfm,t", po::value<std::string>(), "Output transformation file");
+
+    po::options_description transformOpts("Transformations");
+    transformOpts.add_options()
         ("translate-x,x", po::value<double>()->default_value(0), "X translation")
         ("translate-y,y", po::value<double>()->default_value(0), "Y translation")
-        ("translate-z,z", po::value<double>()->default_value(0), "Z translation");
+        ("translate-z,z", po::value<double>()->default_value(0), "Z translation")
+        ("scale,s", po::value<double>()->default_value(1), "Linear scale factor")
+        ("scale-precompose", "If enabled, precompose scale transform");
 
     po::options_description all("Usage");
-    all.add(required);
+    all.add(required).add(transformOpts);
     // clang-format on
 
     // Parse the cmd line
@@ -72,13 +77,21 @@ int main(int argc, char** argv)
     auto compositeTrans = CompositeTransform::New();
 
     // Build affine transform
-    auto translate = AffineTransform::New();
+    auto affine = AffineTransform::New();
+
+    // Add translation
     Displacement displacement;
     displacement[0] = parsed["translate-x"].as<double>();
     displacement[1] = parsed["translate-y"].as<double>();
     displacement[2] = parsed["translate-z"].as<double>();
-    translate->Translate(displacement);
-    compositeTrans->AddTransform(translate);
+    affine->Translate(displacement);
+
+    // Add scale
+    auto precompose = parsed.count("scale-precompose") > 0;
+    affine->Scale(parsed["scale"].as<double>(), precompose);
+
+    // Build composite transform
+    compositeTrans->AddTransform(affine);
 
     // Apply the composite transform to the mesh
     std::cout << "Applying transform..." << std::endl;
