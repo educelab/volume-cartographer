@@ -68,6 +68,7 @@ if(VC_BUILD_TESTS)
 # Set source files
 set(test_srcs
     test/ABFTest.cpp
+    test/PPMGeneratorTest.cpp
 )
 if (VC_USE_LIBIGL OR VC_USE_OPTIONAL)
     list(APPEND test_srcs test/LSCMTest.cpp)
