@@ -30,6 +30,9 @@ static constexpr double PI_CONST = 3.14159265358979323846264338327950288;
 // Degrees to Radians
 static constexpr double DEG_TO_RAD = PI_CONST / 180.0;
 
+// Aliases
+using Shading = vct::PPMGenerator::Shading;
+
 po::options_description GetUVOpts()
 {
     // clang-format off
@@ -76,7 +79,11 @@ po::options_description GetFilteringOpts()
             "Sample Direction:\n"
                 "  0 = Omni\n"
                 "  1 = Positive\n"
-                "  2 = Negative");
+                "  2 = Negative")
+        ("shading", po::value<int>()->default_value(1),
+            "Surface Normal Shading:\n"
+                "  0 = Flat\n"
+                "  1 = Smooth");
     // clang-format on
 
     return opts;
@@ -196,6 +203,7 @@ vc::Texture TextureMesh(
     auto interval = parsed_["interval"].as<double>();
     auto direction = static_cast<vc::Direction>(parsed_["direction"].as<int>());
     auto shape = static_cast<Shape>(parsed_["neighborhood-shape"].as<int>());
+    auto shading = static_cast<Shading>(parsed_["shading"].as<int>());
 
     ///// Composite options /////
     auto filter = static_cast<vc::texturing::CompositeTexture::Filter>(
@@ -222,6 +230,7 @@ vc::Texture TextureMesh(
     ppmGen.setMesh(mesh);
     ppmGen.setUVMap(uvMap);
     ppmGen.setDimensions(height, width);
+    ppmGen.setShading(shading);
     auto ppm = ppmGen.compute();
 
     // Save the PPM
