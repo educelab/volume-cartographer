@@ -86,6 +86,8 @@ private:
     void generate_centroid_mesh_();
     /** Generate the PerPixelMap */
     void generate_ppm_();
+    /** Find the cell which belongs to a pixel */
+    void find_cell_(size_t x, size_t y, size_t& cellHint);
     /** Convert from Cartesian coordinates to Barycentric coordinates */
     cv::Vec3d barycentric_coord_(
         const cv::Vec3d& nXYZ,
@@ -104,21 +106,28 @@ private:
         const cv::Vec3d& nA,
         const cv::Vec3d& nB,
         const cv::Vec3d& nC);
+    /** Check if a barycentric coordinate is inside its triangle */
+    bool barycentric_in_triangle_(const cv::Vec3d& nUVW);
 
     /** Input mesh */
     ITKMesh::Pointer inputMesh_;
     /** Input UV Map */
     UVMap uvMap_;
-    /** Mesh where each vertex is the centroid of a face from the 2D mesh. Used
-     * to do nearest neighbor searches. */
+    /** Mesh where each vertex is the centroid of a face from the 2D mesh */
     ITKMesh::Pointer centroidMesh_;
     /** Face correspondence information */
     std::vector<CellInfo> cellInformation_;
+    /** kdTree for cell lookups */
+    ITKPointsLocator::Pointer kdTree_;
+    /** kdTree search size */
+    size_t kdSearchSize_{100};
 
     /** Working mesh */
     ITKMesh::Pointer workingMesh_;
     /** Output PerPixelMap */
     PerPixelMap ppm_;
+    /** Output PPM mask */
+    cv::Mat mask_;
     /** Output shading */
     Shading shading_{Shading::Smooth};
     /** Output width of the PerPixelMap */
