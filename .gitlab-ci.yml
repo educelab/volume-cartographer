@@ -119,7 +119,7 @@ build:macos:static:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
         - mkdir -p build
         - cd build/
-        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_USE_ACVD=ON -GNinja ..
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DVC_USE_ACVD=ON -GNinja ..
         - ninja
     artifacts:
         paths:
@@ -137,7 +137,7 @@ test:macos:static:
     script:
         - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
         - cd build/
-        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_USE_ACVD=ON -GNinja ..
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DVC_USE_ACVD=ON -GNinja ..
         - ctest -j 4
     dependencies:
         - build:macos:static
@@ -160,7 +160,7 @@ build:macos:dynamic:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
         - mkdir -p build
         - cd build/
-        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_USE_ACVD=ON -DBUILD_SHARED_LIBS=ON -GNinja ..
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DVC_USE_ACVD=ON -DBUILD_SHARED_LIBS=ON -GNinja ..
         - ninja
     artifacts:
         paths:
@@ -179,7 +179,7 @@ test:macos:dynamic:
     script:
         - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
         - cd build/
-        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_USE_ACVD=ON -DBUILD_SHARED_LIBS=ON -GNinja ..
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DVC_USE_ACVD=ON -DBUILD_SHARED_LIBS=ON -GNinja ..
         - ctest -j 4
     dependencies:
         - build:macos:dynamic
@@ -213,7 +213,7 @@ lint:clang-tidy:
       - git fetch --all
       - mkdir -p build/
       - cd build/
-      - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -GNinja -DVC_USE_ACVD=ON ..
+      - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -GNinja -DVC_USE_ACVD=ON ..
       - cd ..
     stage: lint
     script:
@@ -232,7 +232,7 @@ doxygen:html:
     stage: docs
     script:
         - cd build/
-        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_BUILD_DOC=ON -GNinja ..
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -DVC_BUILD_DOC=ON -GNinja ..
         - ninja doc
     artifacts:
         name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
@@ -251,7 +251,7 @@ doxygen:pdf:
     stage: docs
     script:
         - cd build/
-        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -DOpenCV_DIR=/usr/local/opt/opencv3/share/OpenCV -DVC_BUILD_DOC=ON -GNinja ..
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -DVC_BUILD_DOC=ON -GNinja ..
         - ninja doc
         - cd doc/latex/
         - make
