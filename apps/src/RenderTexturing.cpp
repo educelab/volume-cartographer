@@ -1,5 +1,6 @@
 #include "apps/RenderTexturing.hpp"
 
+#include <exception>
 #include <memory>
 
 #include <boost/filesystem.hpp>
@@ -8,12 +9,14 @@
 
 #include "vc/core/neighborhood/CuboidGenerator.hpp"
 #include "vc/core/neighborhood/LineGenerator.hpp"
+#include "vc/core/types/Color.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/texturing/AngleBasedFlattening.hpp"
 #include "vc/texturing/CompositeTexture.hpp"
 #include "vc/texturing/IntegralTexture.hpp"
 #include "vc/texturing/IntersectionTexture.hpp"
 #include "vc/texturing/PPMGenerator.hpp"
+#include "vc/texturing/ScaleMarkerGenerator.hpp"
 
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;
@@ -32,6 +35,11 @@ static constexpr double DEG_TO_RAD = PI_CONST / 180.0;
 
 // Aliases
 using Shading = vct::PPMGenerator::Shading;
+using ScaleGenerator = vct::ScaleMarkerGenerator;
+
+// Local functions
+enum class ScaleColorOpt { White = 0, Black, Red, Green, Cyan };
+vc::Color GetScaleColorOpt();
 
 po::options_description GetUVOpts()
 {
@@ -132,6 +140,34 @@ po::options_description GetIntegralOpts()
             "voxel values are differenced.")
         ("clamp-to-max", po::value<uint16_t>(), "Clamp values to the specified "
             "maximum.");
+    // clang-format on
+
+    return opts;
+}
+
+po::options_description GetPostProcessOpts()
+{
+    // clang-format off
+    po::options_description opts("Texture Post-Processing Options");
+    opts.add_options()
+        ("scale-marker", po::value<std::string>(),
+            "Output path for texture image with scale marker")
+        ("scale-marker-type", po::value<int>()->default_value(0),
+            "Scale Options:\n"
+                "  0 = Scale Bar (Centimeters)\n"
+                "  1 = Scale Bar (Inches)\n"
+                "  2 = Reference Image")
+        ("scale-marker-color", po::value<int>()->default_value(0),
+            "Scale bar color:\n"
+                "  0 = White\n"
+                "  1 = Black\n"
+                "  2 = Red\n"
+                "  3 = Green\n"
+                "  4 = Cyan")
+        ("scale-marker-ref-img", po::value<std::string>(),
+            "Path to reference image to be used as scale marker")
+        ("scale-marker-ref-pixsize", po::value<double>(),
+            "Pixel size (in microns) for the reference image");
     // clang-format on
 
     return opts;
@@ -315,4 +351,80 @@ vc::Texture TextureMesh(
     }
 
     return texture;
+}
+
+void RenderPostProcess(const vc::Texture& texture)
+{
+    ///// Scale Markers /////
+    if (parsed_.count("scale-marker") > 0) {
+        // Get scale generator type
+        auto type = static_cast<ScaleGenerator::Type>(
+            parsed_["scale-marker-type"].as<int>());
+
+        // Setup scale generator with what we know
+        ScaleGenerator scaleGen;
+        scaleGen.setInputImage(texture.image(0));
+        scaleGen.setInputImagePixelSize(volume_->voxelSize());
+        scaleGen.setScaleType(type);
+        scaleGen.setScaleBarColor(GetScaleColorOpt());
+
+        // Load reference image if necessary
+        auto haveRefOpts = parsed_.count("scale-marker-ref-img") > 0 &&
+                           (parsed_.count("scale-marker-ref-pixsize") > 0);
+        if (type == ScaleGenerator::Type::ReferenceImage && haveRefOpts) {
+            // Load the reference image
+            fs::path refImgPath =
+                parsed_["scale-marker-ref-img"].as<std::string>();
+            auto refImg = cv::imread(refImgPath.string(), cv::IMREAD_UNCHANGED);
+
+            // Get the pixel size of the reference image
+            auto refPixSize = parsed_["scale-marker-ref-pixsize"].as<double>();
+
+            // Set the appropriate
+            scaleGen.setReferenceImage(refImg);
+            scaleGen.setReferenceImagePixelSize(refPixSize);
+        }
+
+        // Revert to default bar if want reference image but missing req. opts
+        else if (type == ScaleGenerator::Type::ReferenceImage) {
+            std::cerr << "Warning: Specified reference image scale marker but "
+                         "missing required options. Falling back to default "
+                         "scale marker."
+                      << std::endl;
+            scaleGen.setScaleType(ScaleGenerator::Type::Metric);
+        }
+
+        // Generate scale marker
+        std::cout << "Generating scale markers..." << std::endl;
+        cv::Mat result;
+        try {
+            result = scaleGen.compute();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+            // Skip the rest of this block
+            return;
+        }
+
+        // Write to disk
+        fs::path scalePath = parsed_["scale-marker"].as<std::string>();
+        cv::imwrite(scalePath.string(), result);
+    }
+}
+
+vc::Color GetScaleColorOpt()
+{
+    auto colorOpt =
+        static_cast<ScaleColorOpt>(parsed_["scale-marker-color"].as<int>());
+    switch (colorOpt) {
+        case ScaleColorOpt::White:
+            return vc::color::WHITE;
+        case ScaleColorOpt::Black:
+            return vc::color::BLACK;
+        case ScaleColorOpt::Red:
+            return vc::color::RED;
+        case ScaleColorOpt::Green:
+            return vc::color::GREEN;
+        case ScaleColorOpt::Cyan:
+            return vc::color::CYAN;
+    }
 }

@@ -10,6 +10,7 @@ set(srcs
     src/IntegralTexture.cpp
     src/LayerTexture.cpp
     src/FlatteningAlgorithm.cpp
+    src/ScaleMarkerGenerator.cpp
 )
 set(public_deps
     VC::core

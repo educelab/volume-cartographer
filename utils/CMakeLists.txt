@@ -1,8 +1,3 @@
-# vc_addScale
-add_executable(vc_addScale src/AddScale.cpp)
-target_link_libraries(vc_addScale VC::core)
-set(utils_install_list ${utils_install_list} vc_addScale)
-
 # vc_area
 add_executable(vc_area src/SurfArea.cpp)
 target_link_libraries(vc_area VC::core VC::meshing Boost::filesystem)

@@ -24,6 +24,9 @@ target_link_libraries(vc_texture_flattened
 add_executable(vc_texture_example src/TextureExample.cpp)
 target_link_libraries(vc_texture_example VC::core VC::meshing VC::texturing)
 
+add_executable(vc_render_with_scale_example src/ScaleMarkerGeneratorExample.cpp)
+target_link_libraries(vc_render_with_scale_example VC::core VC::texturing opencv_imgcodecs)
+
 add_executable(vc_smooth_normals_example src/SmoothNormalsExample.cpp)
 target_link_libraries(vc_smooth_normals_example VC::core VC::meshing)
 
@@ -96,11 +99,11 @@ target_link_libraries(vc_orderedPointSetMesher_example VC::meshing)
 add_executable(vc_obj_reader_example src/OBJReaderExample.cpp)
 target_link_libraries(vc_obj_reader_example VC::core)
 
-add_executable(vc_scale_gen_example src/ScalesExample.cpp)
-target_link_libraries(vc_scale_gen_example VC::core)
-
 add_executable(vc_stps_example src/STPSExample.cpp)
 target_link_libraries(vc_stps_example VC::core VC::meshing VC::segmentation)
 
 add_executable(vc_spiral_example src/SpiralGenerator.cpp)
 target_link_libraries(vc_spiral_example VC::core)
+
+add_executable(vc_scale_marker_generator_example src/ScaleMarkerGeneratorExample.cpp)
+target_link_libraries(vc_scale_marker_generator_example VC::core VC::texturing opencv_imgcodecs)

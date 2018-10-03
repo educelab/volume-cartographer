@@ -112,8 +112,8 @@ int main(int argc, char* argv[])
         }
 
         // Find metadata type mapping for given version.
-        auto types_it = volcart::VERSION_LIBRARY.find(volpkg.version());
-        if (types_it == std::end(volcart::VERSION_LIBRARY)) {
+        auto types_it = vc::VERSION_LIBRARY.find(volpkg.version());
+        if (types_it == std::end(vc::VERSION_LIBRARY)) {
             std::cerr << "Could not find type mapping for version "
                       << volpkg.version() << std::endl;
             std::exit(1);
@@ -135,13 +135,13 @@ int main(int argc, char* argv[])
             }
 
             switch (t->second) {
-                case volcart::Type::STRING:
+                case vc::DictionaryEntryType::String:
                     volpkg.setMetadata(pair.first, pair.second);
                     break;
-                case volcart::Type::INT:
+                case vc::DictionaryEntryType::Int:
                     volpkg.setMetadata(pair.first, std::stoi(pair.second));
                     break;
-                case volcart::Type::DOUBLE:
+                case vc::DictionaryEntryType::Double:
                     volpkg.setMetadata(pair.first, std::stod(pair.second));
                     break;
             }

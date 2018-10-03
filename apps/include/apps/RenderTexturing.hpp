@@ -18,6 +18,9 @@ boost::program_options::options_description GetCompositeOpts();
 /** Get the Integral Texture options */
 boost::program_options::options_description GetIntegralOpts();
 
+/** Get the Texture Post Processing Options **/
+boost::program_options::options_description GetPostProcessOpts();
+
 /** Available neighborhood generators */
 enum class Shape { Line = 0, Cuboid };
 
@@ -31,3 +34,6 @@ volcart::UVMap FlattenMesh(
 /** Perform texturing ops */
 volcart::Texture TextureMesh(
     const volcart::ITKMesh::Pointer& mesh, const volcart::UVMap& uvMap);
+
+/** Perform any post processing to texture **/
+void RenderPostProcess(const volcart::Texture& texture);
