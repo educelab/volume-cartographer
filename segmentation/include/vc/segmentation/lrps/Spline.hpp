@@ -1,8 +1,9 @@
 #pragma once
 
 #include <cassert>
-#include <unsupported/Eigen/Splines>
 #include <vector>
+
+#include <unsupported/Eigen/Splines>
 
 #include "vc/segmentation/lrps/Common.hpp"
 

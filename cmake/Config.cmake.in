@@ -1,4 +1,30 @@
 @PACKAGE_INIT@
 
+include(CMakeFindDependencyMacro)
+
+### Required ###
+find_dependency(Boost 1.58 REQUIRED COMPONENTS @VC_BOOST_COMPONENTS@)
+find_dependency(ITK 4.10 QUIET REQUIRED)
+include(${ITK_USE_FILE})
+
+
+# VTK's config only supports minimum version up to the next major release
+find_dependency(VTK @VTK_VERSION_MAJOR@ QUIET)
+include(${VTK_USE_FILE})
+
+find_dependency(Eigen3 3.2 REQUIRED)
+
+find_dependency(OpenCV 3 REQUIRED)
+find_dependency(TIFF 4.0 REQUIRED)
+
+find_dependency(ACVD QUIET REQUIRED)
+add_library(acvd INTERFACE IMPORTED)
+set_target_properties(acvd PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${ACVD_INCLUDE_DIRS}"
+    # Hack to get around the fact that ACVD_LIBRARIES doesn't contain the
+    # needed VTK libs to actually compile it...
+    INTERFACE_LINK_LIBRARIES "${ACVD_LIBRARIES};${VTK_LIBRARIES}"
+)
+
 include("${CMAKE_CURRENT_LIST_DIR}/@targets_export_name@.cmake")
 check_required_components("@PROJECT_NAME@")

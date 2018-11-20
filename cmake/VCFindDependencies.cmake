@@ -47,13 +47,7 @@ include(${VTK_USE_FILE})
 include_directories(SYSTEM ${VTK_INCLUDE_DIRS})
 
 ### Eigen ###
-# XXX libigl requires Eigen 3.2.x, which doesn't support namespaced targets and
-# transitively-included dependencies, so make it into a target
-find_package(Eigen3 3.2.0 QUIET REQUIRED)
-add_library(eigen3 INTERFACE IMPORTED)
-set_target_properties(eigen3 PROPERTIES
-    INTERFACE_INCLUDE_DIRECTORIES ${EIGEN3_INCLUDE_DIR}
-)
+find_package(Eigen3 3.2 REQUIRED)
 
 ### OpenCV ###
 find_package(OpenCV 3 REQUIRED)
