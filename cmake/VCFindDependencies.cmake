@@ -90,16 +90,6 @@ if (VC_USE_ACVD OR VC_USE_OPTIONAL)
     )
 endif()
 
-### libigl ###
-option(VC_USE_LIBIGL "Use libigl" off)
-if (VC_USE_LIBIGL OR VC_USE_OPTIONAL)
-    find_package(LIBIGL QUIET REQUIRED)
-    add_library(libigl INTERFACE IMPORTED)
-    set_target_properties(libigl PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${LIBIGL_INCLUDE_DIRS}"
-    )
-endif()
-
 ### VCG ###
 option(VC_USE_VCG "Use VCG library" off)
 if(VC_USE_VCG OR VC_USE_OPTIONAL)

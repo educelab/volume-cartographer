@@ -19,7 +19,6 @@ A library and toolkit for the virtual unwrapping of volumetric datasets.
 **Optional**  
 * [Doxygen](http://www.doxygen.org/) - For documentation
 * [pybind11](https://github.com/pybind/pybind11) - For Python binding support
-* [libigl](https://github.com/libigl/libigl) - For libigl's LSCM algorithm
 * [VCG library](https://github.com/cnr-isti-vclab/vcglib) - For VCG's Quadric Edge Collapse Decimation
 
 ### Compilation  
