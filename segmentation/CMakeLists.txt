@@ -16,6 +16,7 @@ set(srcs
 set(deps
     VC::core
     opencv_highgui
+    Eigen3::Eigen
 )
 
 add_library(${target} ${srcs})

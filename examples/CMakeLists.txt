@@ -36,11 +36,6 @@ target_link_libraries(vc_bad_clang_tidy vc_testing)
 add_executable(vc_raytrace_example src/RayTraceExample.cpp)
 target_link_libraries(vc_raytrace_example VC::core VC::meshing)
 
-if (VC_USE_LIBIGL OR VC_USE_OPTIONAL)
-    add_executable(vc_lscm_example src/LSCMExample.cpp)
-    target_link_libraries(vc_lscm_example VC::core VC::texturing)
-endif()
-
 add_executable(vc_bad_clang_format src/BadClangFormat2.cpp)
 
 add_executable(vc_itk2vtk_example src/ITK2VTKExample.cpp)

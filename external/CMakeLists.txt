@@ -17,8 +17,8 @@ target_include_directories(${target} SYSTEM
         $<INSTALL_INTERFACE:include>
 )
 target_link_libraries(${target}
-    PUBLIC
-        eigen3
+    PRIVATE
+        Eigen3::Eigen
 )
 set_target_properties(${target} PROPERTIES
     VERSION "${PROJECT_VERSION}"

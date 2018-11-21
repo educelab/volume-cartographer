@@ -14,12 +14,11 @@ A library and toolkit for the virtual unwrapping of volumetric datasets.
 * Boost 1.58+
 * Qt 5.7+
 * [libtiff](https://gitlab.com/libtiff/libtiff) 4.0+
-* Eigen3 3.2.0
+* Eigen3 3.2+
 
 **Optional**  
 * [Doxygen](http://www.doxygen.org/) - For documentation
 * [pybind11](https://github.com/pybind/pybind11) - For Python binding support
-* [libigl](https://github.com/libigl/libigl) - For libigl's LSCM algorithm
 * [VCG library](https://github.com/cnr-isti-vclab/vcglib) - For VCG's Quadric Edge Collapse Decimation
 
 ### Compilation  

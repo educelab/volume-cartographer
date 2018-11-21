@@ -47,13 +47,7 @@ include(${VTK_USE_FILE})
 include_directories(SYSTEM ${VTK_INCLUDE_DIRS})
 
 ### Eigen ###
-# XXX libigl requires Eigen 3.2.x, which doesn't support namespaced targets and
-# transitively-included dependencies, so make it into a target
-find_package(Eigen3 3.2.0 QUIET REQUIRED)
-add_library(eigen3 INTERFACE IMPORTED)
-set_target_properties(eigen3 PROPERTIES
-    INTERFACE_INCLUDE_DIRECTORIES ${EIGEN3_INCLUDE_DIR}
-)
+find_package(Eigen3 3.2 REQUIRED)
 
 ### OpenCV ###
 find_package(OpenCV 3 REQUIRED)
@@ -94,16 +88,9 @@ if (VC_USE_ACVD OR VC_USE_OPTIONAL)
         # needed VTK libs to actually compile it...
         INTERFACE_LINK_LIBRARIES "${ACVD_LIBRARIES};${VTK_LIBRARIES}"
     )
-endif()
 
-### libigl ###
-option(VC_USE_LIBIGL "Use libigl" off)
-if (VC_USE_LIBIGL OR VC_USE_OPTIONAL)
-    find_package(LIBIGL QUIET REQUIRED)
-    add_library(libigl INTERFACE IMPORTED)
-    set_target_properties(libigl PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${LIBIGL_INCLUDE_DIRS}"
-    )
+    # Install a custom Find module
+    list(APPEND VC_CUSTOM_MODULES "${CMAKE_SOURCE_DIR}/cmake/FindACVD.cmake")
 endif()
 
 ### VCG ###
@@ -114,4 +101,7 @@ if(VC_USE_VCG OR VC_USE_OPTIONAL)
     set_target_properties(vcglib PROPERTIES
         INTERFACE_INCLUDE_DIRECTORIES "${VCG_INCLUDE_DIRS}"
     )
+
+    # Install a custom Find module
+    list(APPEND VC_CUSTOM_MODULES "${CMAKE_SOURCE_DIR}/cmake/FindVCG.cmake")
 endif()

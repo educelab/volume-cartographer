@@ -303,10 +303,12 @@ collect:release:macos:
         - ninja
         - ninja package
         - mv VC*.dmg ../
+        - mv VC*.tar.gz ../
     artifacts:
       name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
       paths:
         - ./*.dmg
+        - ./*.tar.gz
       expire_in: 1 day
     tags:
         - deploy
@@ -355,10 +357,12 @@ collect:nightly:macos:
         - ninja
         - ninja package
         - mv VC*.dmg ../
+        - mv VC*.tar.gz ../
     artifacts:
       name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
       paths:
         - ./*.dmg
+        - ./*.tar.gz
       expire_in: 1 day
     tags:
         - deploy
