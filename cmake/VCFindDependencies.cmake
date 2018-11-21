@@ -88,6 +88,9 @@ if (VC_USE_ACVD OR VC_USE_OPTIONAL)
         # needed VTK libs to actually compile it...
         INTERFACE_LINK_LIBRARIES "${ACVD_LIBRARIES};${VTK_LIBRARIES}"
     )
+
+    # Install a custom Find module
+    list(APPEND VC_CUSTOM_MODULES "${CMAKE_SOURCE_DIR}/cmake/FindACVD.cmake")
 endif()
 
 ### VCG ###
@@ -98,4 +101,7 @@ if(VC_USE_VCG OR VC_USE_OPTIONAL)
     set_target_properties(vcglib PROPERTIES
         INTERFACE_INCLUDE_DIRECTORIES "${VCG_INCLUDE_DIRS}"
     )
+
+    # Install a custom Find module
+    list(APPEND VC_CUSTOM_MODULES "${CMAKE_SOURCE_DIR}/cmake/FindVCG.cmake")
 endif()

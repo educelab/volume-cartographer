@@ -1,7 +1,13 @@
 @PACKAGE_INIT@
 
+# Setup for dependency management
 include(CMakeFindDependencyMacro)
+### Setup search path for custom FindXXX.cmake modules ###
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/Modules/")
 
+#####################################################################
+# Dependencies: This section should mirror VCFindDependencies.cmake #
+#####################################################################
 ### Boost ###
 find_dependency(Boost @Boost_MAJOR_VERSION@.@Boost_MINOR_VERSION@ QUIET REQUIRED COMPONENTS @VC_BOOST_COMPONENTS@)
 
@@ -23,6 +29,7 @@ find_dependency(OpenCV @OpenCV_VERSION_MAJOR@.@OpenCV_VERSION_MINOR@ QUIET REQUI
 find_dependency(TIFF QUIET REQUIRED)
 
 ### ACVD ###
+if(@VC_USE_ACVD@ OR @VC_USE_OPTIONAL@)
 find_dependency(ACVD QUIET REQUIRED)
 add_library(acvd INTERFACE IMPORTED)
 set_target_properties(acvd PROPERTIES
@@ -31,6 +38,17 @@ set_target_properties(acvd PROPERTIES
     # needed VTK libs to actually compile it...
     INTERFACE_LINK_LIBRARIES "${ACVD_LIBRARIES};${VTK_LIBRARIES}"
 )
+endif()
+
+### VCG ###
+if(@VC_USE_VCG@ OR @VC_USE_OPTIONAL@)
+find_dependency(VCG QUIET REQUIRED)
+add_library(vcglib INTERFACE IMPORTED)
+set_target_properties(vcglib PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${VCG_INCLUDE_DIRS}"
+)
+endif()
+#####################################################################
 
 ### Include VC targets ###
 include("${CMAKE_CURRENT_LIST_DIR}/@targets_export_name@.cmake")
