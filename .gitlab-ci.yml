@@ -128,7 +128,6 @@ build:macos:static:
     tags:
         - build
         - osx
-        - homebrew
         - qt5
         - ninja
 
@@ -150,7 +149,6 @@ test:macos:static:
     tags:
         - test
         - osx
-        - homebrew
         - qt5
         - ninja
 
@@ -170,7 +168,6 @@ build:macos:dynamic:
     tags:
         - build
         - osx
-        - homebrew
         - qt5
         - ninja
 
@@ -192,7 +189,6 @@ test:macos:dynamic:
     tags:
         - test
         - osx
-        - homebrew
         - qt5
         - ninja
 
@@ -242,7 +238,7 @@ doxygen:html:
     allow_failure: yes
     tags:
         - doxy
-        - homebrew
+        - osx
 
 doxygen:pdf:
     only:
@@ -263,7 +259,7 @@ doxygen:pdf:
     allow_failure: yes
     tags:
         - doxy
-        - homebrew
+        - osx
 
 ### Collect & Deploy ###
 collect:release:source:
