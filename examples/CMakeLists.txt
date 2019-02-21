@@ -33,8 +33,10 @@ target_link_libraries(vc_smooth_normals_example VC::core VC::meshing)
 add_executable(vc_scale_mesh_example src/ScaleMeshExample.cpp)
 target_link_libraries(vc_scale_mesh_example VC::core VC::meshing ITKIOMesh)
 
+if(VC_BUILD_TESTS)
 add_executable(vc_bad_clang_tidy src/BadClangTidy.cpp)
 target_link_libraries(vc_bad_clang_tidy vc_testing)
+endif(VC_BUILD_TESTS)
 
 add_executable(vc_raytrace_example src/RayTraceExample.cpp)
 target_link_libraries(vc_raytrace_example VC::core VC::meshing)
