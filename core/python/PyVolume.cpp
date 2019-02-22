@@ -1,5 +1,6 @@
 #include <pybind11/pybind11.h>
 
+#include "vc/core/neighborhood/CuboidGenerator.hpp"
 #include "vc/core/types/Volume.hpp"
 #include "vc/python/PyCVMatCaster.hpp"
 #include "vc/python/PyCVVecCaster.hpp"
@@ -63,7 +64,7 @@ void init_Volume(py::module& m)
     c.def(
         "interpolateAt",
         py::overload_cast<const cv::Vec3d&>(
-            &vc::Volume::interpolatedIntensityAt, py::const_),
+            &vc::Volume::interpolateAt, py::const_),
         "Get the interpolated intensity at a subvoxel position",
         py::arg_v("pos", "(x, y, z)"));
 
@@ -83,15 +84,17 @@ void init_Volume(py::module& m)
         "subvolume",
         [](vc::Volume& v, cv::Vec3d center, int rx, int ry, int rz,
            cv::Vec3d xvec, cv::Vec3d yvec, cv::Vec3d zvec) {
-            auto s = v.getVoxelNeighborsInterpolated<uint16_t>(
-                center, rx, ry, rz, xvec, yvec, zvec);
-            auto buf = s.buffer();
+            vc::CuboidGenerator subvolume;
+            subvolume.setSamplingRadius(rx, ry, rz);
+            auto s = subvolume.compute(
+                v.shared_from_this(), center, {xvec, yvec, zvec});
+            auto buf = s.data();
             size_t size = sizeof(uint16_t);
             std::string format = py::format_descriptor<uint16_t>::format();
-            std::vector<size_t> extents{s.dz(), s.dy(), s.dx()};
-            std::vector<size_t> strides{size * s.dy() * s.dx(), size * s.dx(),
-                                        size};
-            return py::array(py::buffer_info{buf.release(), size, format, 3,
+            auto extents = s.extents();
+            std::vector<size_t> strides{size * extents[1] * extents[0],
+                                        size * extents[0], size};
+            return py::array(py::buffer_info{buf.data(), size, format, 3,
                                              extents, strides})
                 .release();
         },
