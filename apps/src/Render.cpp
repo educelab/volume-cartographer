@@ -55,7 +55,7 @@ int main(int argc, char* argv[])
 
     // Show the help message
     if (parsed_.count("help") || argc < 5) {
-        std::cerr << all << std::endl;
+        std::cout << all << std::endl;
         return EXIT_SUCCESS;
     }
 

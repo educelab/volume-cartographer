@@ -74,7 +74,7 @@ int main(int argc, char* argv[])
 
     // Show the help message
     if (parsed.count("help") || argc < 4) {
-        std::cerr << all << std::endl;
+        std::cout << all << std::endl;
         return EXIT_SUCCESS;
     }
 
