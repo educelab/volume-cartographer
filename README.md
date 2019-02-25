@@ -147,3 +147,7 @@ vpkg = c.VolumePkg('/path/to/package.volpkg')
 vol = vpkg.volume()
 r = vol.reslice(np.array([0,0,0]))
 ```
+
+### Contributing
+
+See [CONTRIBUTING](CONTRIBUTING.md).
