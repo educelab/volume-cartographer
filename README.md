@@ -148,6 +148,20 @@ vol = vpkg.volume()
 r = vol.reslice(np.array([0,0,0]))
 ```
 
+__NOTE:__ Python modules are built as shared libraries, regardless of the `BUILD_SHARED_LIBS`
+flag set by this project. This can cause problems if the Volume Cartographer dependencies
+are not built as shared libraries. Either install the shared versions of these 
+libraries (preferred) or compile static libraries with position independent code (PIC).
+
+If using `vc-deps` to build the dependency libraries, set the appropriate CMake flags:
+```shell
+# Build shared libraries (preferred)
+cmake -DBUILD_SHARED_LIBS=ON ..
+
+# Build static libraries with PIC
+cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_POSITION_INDEPENDENT_CODE=ON ..
+```
+
 ### Contributing
 
 See [CONTRIBUTING](CONTRIBUTING.md).
