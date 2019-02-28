@@ -3,7 +3,6 @@ if (VC_USE_ACVD OR VC_USE_OPTIONAL)
     target_link_libraries(vc_acvd_example
         VC::core
         VC::meshing
-        acvd
     )
 endif()
 
