@@ -119,5 +119,5 @@ void ACVD(
     normalGenerator->ComputeCellNormalsOn();
     normalGenerator->Update();
 }
-}
-}
+}  // namespace meshing
+}  // namespace volcart

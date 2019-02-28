@@ -28,18 +28,6 @@ find_dependency(OpenCV @OpenCV_VERSION_MAJOR@.@OpenCV_VERSION_MINOR@ QUIET REQUI
 ### TIFF ###
 find_dependency(TIFF QUIET REQUIRED)
 
-### ACVD ###
-if(@VC_USE_ACVD@ OR @VC_USE_OPTIONAL@)
-find_dependency(ACVD QUIET REQUIRED)
-add_library(acvd INTERFACE IMPORTED)
-set_target_properties(acvd PROPERTIES
-    INTERFACE_INCLUDE_DIRECTORIES "${ACVD_INCLUDE_DIRS}"
-    # Hack to get around the fact that ACVD_LIBRARIES doesn't contain the
-    # needed VTK libs to actually compile it...
-    INTERFACE_LINK_LIBRARIES "${ACVD_LIBRARIES};${VTK_LIBRARIES}"
-)
-endif()
-
 ### VCG ###
 if(@VC_USE_VCG@ OR @VC_USE_OPTIONAL@)
 find_dependency(VCG QUIET REQUIRED)

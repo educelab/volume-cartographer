@@ -80,17 +80,7 @@ endif()
 # Currently required since VC-Texture needs it - SP
 option(VC_USE_ACVD "Use ACVD library" on)
 if (VC_USE_ACVD OR VC_USE_OPTIONAL)
-    find_package(ACVD QUIET REQUIRED)
-    add_library(acvd INTERFACE IMPORTED)
-    set_target_properties(acvd PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${ACVD_INCLUDE_DIRS}"
-        # Hack to get around the fact that ACVD_LIBRARIES doesn't contain the
-        # needed VTK libs to actually compile it...
-        INTERFACE_LINK_LIBRARIES "${ACVD_LIBRARIES};${VTK_LIBRARIES}"
-    )
-
-    # Install a custom Find module
-    list(APPEND VC_CUSTOM_MODULES "${CMAKE_SOURCE_DIR}/cmake/FindACVD.cmake")
+    find_package(ACVD 1.0.1 REQUIRED)
 endif()
 
 ### VCG ###

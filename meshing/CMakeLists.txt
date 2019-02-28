@@ -12,17 +12,14 @@ set(srcs
     src/OrderedResampling.cpp
     src/OrderedPointSetMesher.cpp
 )
-set(deps
-    VC::core
-    Boost::filesystem
-)
+set(public_deps "")
+set(private_deps "")
 set(defs "")
 
 # Conditional compilation of ACVD and Bullet stuff
 if (VC_USE_ACVD OR VC_USE_OPTIONAL)
     list(APPEND srcs src/ACVD.cpp)
-    list(APPEND deps acvd)
-    list(APPEND defs VC_USE_ACVD)
+    list(APPEND private_deps ACVD::vtkDiscreteRemeshing)
 endif()
 if(VC_USE_VCG OR VC_USE_OPTIONAL)
     list(APPEND srcs src/QuadricEdgeCollapseDecimation.cpp)
@@ -40,11 +37,13 @@ target_include_directories(${target}
 )
 target_link_libraries(${target}
     PUBLIC
-        ${deps}
+        VC::core
+        Boost::filesystem
     PRIVATE
         ITKTransform
         vtkFiltersGeneral
         vtkFiltersCore
+        ${private_deps}
 )
 set_target_properties(${target} PROPERTIES
     VERSION "${PROJECT_VERSION}"

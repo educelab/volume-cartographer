@@ -1,5 +1,4 @@
 stages:
-    - build
     - test
     - lint
     - docs
@@ -7,188 +6,105 @@ stages:
     - deploy
 
 ### Debian ###
-build:debian:static:
-    image: volcart/vcbuilder-debian:9_v4.static
-    stage: build
-    script:
-        - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
-        - mkdir -p build
-        - cd build/
-        - cmake -DBoost_USE_STATIC_LIBS=ON -DVC_USE_ACVD=ON -GNinja ..
-        - ninja
-    artifacts:
-        paths:
-            - build/bin/
-        expire_in: 1 day
-    tags:
-        - docker
-
 test:debian:static:
-    image: volcart/vcbuilder-debian:9_v4.static
+    image: volcart/vcbuilder-debian:9_v7.static
     stage: test
     script:
-        - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
-        - cd build/
-        - cmake -DBoost_USE_STATIC_LIBS=ON -DVC_USE_ACVD=ON -GNinja ..
-        - ctest -j 4
-    dependencies:
-        - build:debian:static
-    artifacts:
-      name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
-      paths:
-        - build/Testing/Temporary/
-      when: always
-      expire_in: 4 weeks
-    tags:
-        - docker
-
-build:debian:dynamic:
-    image: volcart/vcbuilder-debian:9_v4.dynamic
-    stage: build
-    script:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
         - mkdir -p build
         - cd build/
-        - cmake -DVC_USE_ACVD=ON -GNinja ..
+        - cmake -DBoost_USE_STATIC_LIBS=ON -DVC_USE_ACVD=ON -GNinja ..
         - ninja
+        - ctest -j 4
     artifacts:
+        name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
         paths:
-            - build/bin/
-        expire_in: 1 day
+            - build/Testing/Temporary/
+        when: always
+        expire_in: 4 weeks
     tags:
         - docker
 
 test:debian:dynamic:
-    image: volcart/vcbuilder-debian:9_v4.dynamic
+    image: volcart/vcbuilder-debian:9_v7.dynamic
     stage: test
-    script:
-        - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
-        - cd build/
-        - cmake -DVC_USE_ACVD=ON -GNinja ..
-        - ctest -j 4
-    dependencies:
-        - build:debian:dynamic
-    artifacts:
-      name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
-      paths:
-        - build/Testing/Temporary/
-      when: always
-      expire_in: 4 weeks
-    tags:
-        - docker
-
-build:debian:experimental:
-    image: volcart/vcbuilder-debian:9_v4.experimental
-    stage: build
     script:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
         - mkdir -p build
         - cd build/
-        - cmake -DVC_BUILD_EXPERIMENTAL=ON -DBoost_USE_STATIC_LIBS=ON -DVC_USE_ACVD=ON -GNinja ..
+        - cmake -DVC_USE_ACVD=ON -GNinja ..
         - ninja
+        - ctest -j 4
     artifacts:
+        name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
         paths:
-            - build/bin/
-        expire_in: 1 day
+            - build/Testing/Temporary/
+        when: always
+        expire_in: 4 weeks
     tags:
         - docker
 
 test:debian:experimental:
-    image: volcart/vcbuilder-debian:9_v4.experimental
+    image: volcart/vcbuilder-debian:9_v7.experimental
     stage: test
     script:
-        - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
+        - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
+        - mkdir -p build
         - cd build/
         - cmake -DVC_BUILD_EXPERIMENTAL=ON -DBoost_USE_STATIC_LIBS=ON -DVC_USE_ACVD=ON -GNinja ..
+        - ninja
         - ctest -j 4
-    dependencies:
-        - build:debian:experimental
     artifacts:
-      name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
-      paths:
-        - build/Testing/Temporary/
-      when: always
-      expire_in: 4 weeks
+        name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
+        paths:
+            - build/Testing/Temporary/
+        when: always
+        expire_in: 4 weeks
     tags:
         - docker
 
 ### macOS ###
-build:macos:static:
-    stage: build
-    script:
-        - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
-        - mkdir -p build
-        - cd build/
-        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DVC_USE_ACVD=ON -GNinja ..
-        - ninja
-    artifacts:
-        paths:
-            - build/bin/
-        expire_in: 1 day
-    tags:
-        - build
-        - osx
-        - qt5
-        - ninja
-
 test:macos:static:
     stage: test
     script:
-        - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
-        - cd build/
-        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DVC_USE_ACVD=ON -GNinja ..
-        - ctest -j 4
-    dependencies:
-        - build:macos:static
-    artifacts:
-      name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
-      paths:
-        - build/testing/Temporary/
-      when: always
-      expire_in: 4 weeks
-    tags:
-        - test
-        - osx
-        - qt5
-        - ninja
-
-build:macos:dynamic:
-    stage: build
-    script:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
         - mkdir -p build
         - cd build/
-        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DVC_USE_ACVD=ON -DBUILD_SHARED_LIBS=ON -GNinja ..
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DVC_USE_ACVD=ON -GNinja ..
         - ninja
+        - ctest -j 4
     artifacts:
+        name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
         paths:
-            - build/bin/
-            - build/lib/
-        expire_in: 1 day
+            - build/testing/Temporary/
+        when: always
+        expire_in: 4 weeks
     tags:
-        - build
+        - test
         - osx
+        - homebrew
         - qt5
         - ninja
 
 test:macos:dynamic:
     stage: test
     script:
-        - echo $CI_BUILD_REF_NAME  $CI_BUILD_STAGE
+        - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
+        - mkdir -p build
         - cd build/
         - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DVC_USE_ACVD=ON -DBUILD_SHARED_LIBS=ON -GNinja ..
+        - ninja
         - ctest -j 4
-    dependencies:
-        - build:macos:dynamic
     artifacts:
-      name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
-      paths:
-        - build/testing/Temporary/
-      when: always
-      expire_in: 4 weeks
+        name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
+        paths:
+            - build/testing/Temporary/
+        when: always
+        expire_in: 4 weeks
     tags:
         - test
         - osx
+        - homebrew
         - qt5
         - ninja
 
@@ -199,7 +115,7 @@ lint:clang-format:
     stage: lint
     script:
         - scripts/clang-format.py --print-output
-    allow_failure: yes
+    allow_failure: true
     tags:
         - clang-format
         - osx
@@ -215,32 +131,13 @@ lint:clang-tidy:
     script:
         - echo $CI_BUILD_REF_NAME $CI_BUILD_STAGE
         - scripts/clang-tidy.py --print-output
-    allow_failure: yes
+    allow_failure: true
     tags:
         - clang-tidy
         - osx
 
 ### Documentation ###
-doxygen:html:
-    only:
-        - master
-        - develop
-    stage: docs
-    script:
-        - cd build/
-        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -DVC_BUILD_DOC=ON -GNinja ..
-        - ninja doc
-    artifacts:
-        name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
-        paths:
-            - build/doc/html/*
-        expire_in: 5 days
-    allow_failure: yes
-    tags:
-        - doxy
-        - osx
-
-doxygen:pdf:
+doxygen:
     only:
         - master
         - develop
@@ -254,12 +151,13 @@ doxygen:pdf:
     artifacts:
         name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
         paths:
+            - build/doc/html/*
             - build/doc/latex/*.pdf
         expire_in: 5 days
-    allow_failure: yes
+    allow_failure: true
     tags:
         - doxy
-        - osx
+        - test
 
 ### Collect & Deploy ###
 collect:release:source:
