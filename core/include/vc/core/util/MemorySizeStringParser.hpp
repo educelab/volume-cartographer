@@ -11,6 +11,8 @@
 
 namespace volcart
 {
+
+enum class MemoryStringFormat { Int, Float };
 /**
  * @brief Converts strings describing memory sizes to byte values
  *
@@ -27,5 +29,7 @@ namespace volcart
 size_t MemorySizeStringParser(const std::string& s);
 
 std::string BytesToMemorySizeString(
-    size_t bytes, const std::string& suffix = "G");
-}
+    size_t bytes,
+    const std::string& suffix = "GB",
+    MemoryStringFormat fmt = MemoryStringFormat::Int);
+}  // namespace volcart
