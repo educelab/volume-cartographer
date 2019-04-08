@@ -1,13 +1,15 @@
 #include "vc/core/util/MemorySizeStringParser.hpp"
 
-#include <regex>
-
 #include <iostream>
+#include <regex>
+#include <sstream>
 
 static constexpr size_t BYTES_PER_KB = 1024;
 static constexpr size_t BYTES_PER_MB = BYTES_PER_KB * 1024;
 static constexpr size_t BYTES_PER_GB = BYTES_PER_MB * 1024;
 static constexpr size_t BYTES_PER_TB = BYTES_PER_GB * 1024;
+
+std::string to_string(const float val, const int n = 5);
 
 size_t volcart::MemorySizeStringParser(const std::string& s)
 {
@@ -57,27 +59,43 @@ size_t volcart::MemorySizeStringParser(const std::string& s)
 }
 
 std::string volcart::BytesToMemorySizeString(
-    size_t bytes, const std::string& suffix)
+    size_t bytes, const std::string& suffix, MemoryStringFormat fmt)
 {
     // Return value / multiplier
     // TB
-    if (suffix == "T" || suffix == "t") {
-        return std::to_string(bytes / BYTES_PER_TB) + "TB";
+    if (suffix == "TB" || suffix == "T" || suffix == "t") {
+        if (fmt == MemoryStringFormat::Float) {
+            return to_string(static_cast<float>(bytes) / BYTES_PER_TB) + "TB";
+        } else {
+            return std::to_string(bytes / BYTES_PER_TB) + "TB";
+        }
     }
 
     // GB
-    else if (suffix == "G" || suffix == "g") {
-        return std::to_string(bytes / BYTES_PER_GB) + "GB";
+    else if (suffix == "GB" || suffix == "G" || suffix == "g") {
+        if (fmt == MemoryStringFormat::Float) {
+            return to_string(static_cast<float>(bytes) / BYTES_PER_GB) + "GB";
+        } else {
+            return std::to_string(bytes / BYTES_PER_GB) + "GB";
+        }
     }
 
     // MB
-    else if (suffix == "M" || suffix == "m") {
-        return std::to_string(bytes / BYTES_PER_MB) + "MB";
+    else if (suffix == "MB" || suffix == "M" || suffix == "m") {
+        if (fmt == MemoryStringFormat::Float) {
+            return to_string(static_cast<float>(bytes) / BYTES_PER_MB) + "MB";
+        } else {
+            return std::to_string(bytes / BYTES_PER_MB) + "MB";
+        }
     }
 
     // KB
-    else if (suffix == "K" || suffix == "k") {
-        return std::to_string(bytes / BYTES_PER_KB) + "KB";
+    else if (suffix == "KB" || suffix == "K" || suffix == "k") {
+        if (fmt == MemoryStringFormat::Float) {
+            return to_string(static_cast<float>(bytes) / BYTES_PER_KB) + "KB";
+        } else {
+            return std::to_string(bytes / BYTES_PER_KB) + "KB";
+        }
     }
 
     else if (suffix == "B" || suffix == "b") {
@@ -87,4 +105,12 @@ std::string volcart::BytesToMemorySizeString(
     else {
         throw std::domain_error("Unrecognized suffix: " + suffix);
     }
+}
+
+std::string to_string(const float val, const int n)
+{
+    std::ostringstream out;
+    out.precision(n);
+    out << val;
+    return out.str();
 }
