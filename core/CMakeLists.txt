@@ -36,6 +36,7 @@ set(type_srcs
     src/Texture.cpp
     src/UVMap.cpp
     src/Volume.cpp
+    src/VolumeMask.cpp
     src/VolumePkg.cpp
 )
 
@@ -56,6 +57,7 @@ target_include_directories(${target}
 target_link_libraries(${target}
     PUBLIC
         Boost::filesystem
+        Eigen3::Eigen
         opencv_core
         opencv_highgui
         opencv_imgproc
@@ -137,6 +139,7 @@ set(test_srcs
     test/PerPixelMapTest.cpp
     test/OBJReaderTest.cpp
     test/NDArrayTest.cpp
+    test/VolumeMaskTest.cpp
 )
 
 # Add a test executable for each src
