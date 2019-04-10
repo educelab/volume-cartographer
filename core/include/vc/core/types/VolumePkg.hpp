@@ -109,6 +109,46 @@ public:
      */
     double materialThickness() const;
 
+    /*
+    std::string scanner() const;
+    double objToSource() const;
+    double cameraToSource() const;
+    // in kV
+    int sourceVoltage() const;
+    // in uA
+    int sourceCurrent() const;
+    // in bits
+    int depth() const;
+    // in ms
+    int exposureTime() const;
+    double rotationStep() const;
+    int connectedScanNum() const;
+    // how to use DateTime.hpp class?
+    int studyDateTime() const;
+    int scanDuration() const;
+
+    std::string datasetPrefix() const;
+    // how to use DateTime.hpp class?
+    int dateTime() const;
+    std::string resultFileType() const;
+    // in bytes
+    int resultHeaderLength() const;
+    // in pixels
+    int resultImgWidth() const;
+    // in um
+    float pixelSize() const;
+
+    // all in pixels
+    int topROI() const;
+    int bottomROI() const;
+    int leftROI() const;
+    int rightROI() const;
+    int referenceLength() const;
+
+    int filenameIndexLength() const;
+    std::string filenamePrefix() const;
+     */
+
     /** @brief Return the VolumePkg Metadata */
     Metadata metadata() const { return config_; }
 
