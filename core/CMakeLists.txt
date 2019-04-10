@@ -7,6 +7,7 @@ set(io_srcs
     src/OBJWriter.cpp
     src/PLYReader.cpp
     src/PLYWriter.cpp
+    src/SkyscanMetadataIO.cpp
     src/TIFFIO.cpp
 )
 
