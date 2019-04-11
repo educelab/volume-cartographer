@@ -51,6 +51,7 @@ set(type_srcs
 set(util_srcs
     src/MeshMath.cpp
     src/MemorySizeStringParser.cpp
+    src/FormatStrToRegexStr.cpp
 )
 
 set(srcs ${io_srcs} ${math_srcs} ${neighborhood_srcs} ${shape_srcs} ${landmark_srcs} ${type_srcs} ${util_srcs})
