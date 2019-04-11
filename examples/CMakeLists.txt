@@ -6,6 +6,10 @@ if (VC_USE_ACVD OR VC_USE_OPTIONAL)
     )
 endif()
 
+#LANDMARKS TESTING
+add_executable(vc_landmarks_example src/CreateLandmarks.cpp)
+target_link_libraries(vc_landmarks_example VC::core)
+
 add_executable(vc_volpkg_example src/Volpkg.cpp)
 target_link_libraries(vc_volpkg_example VC::core)
 

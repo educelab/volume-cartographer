@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include <boost/filesystem.hpp>
+#include <opencv2/core.hpp>
 
 #include "vc/external/json.hpp"
 
@@ -78,7 +79,6 @@ public:
     {
         json_[key] = value;
     }
-    /**@}*/
 
     /**@{*/
     /**
@@ -101,4 +101,27 @@ protected:
     /** Location where the JSON file will be stored*/
     boost::filesystem::path path_;
 };
-}
+}  // namespace volcart
+
+/** JSON Serializer for cv::Vec */
+namespace nlohmann
+{
+template <typename T, int Cn>
+struct adl_serializer<cv::Vec<T, Cn>> {
+    // NOLINTNEXTLINE(readability-identifier-naming): Must be exact signature
+    static void to_json(nlohmann::json& j, const cv::Vec<T, Cn>& v)
+    {
+        for (int i = 0; i < Cn; i++) {
+            j.push_back(v[i]);
+        }
+    }
+
+    // NOLINTNEXTLINE(readability-identifier-naming): Must be exact signature
+    static void from_json(const nlohmann::json& j, cv::Vec<T, Cn>& v)
+    {
+        for (int i = 0; i < Cn; i++) {
+            v[i] = j.at(i).get<T>();
+        }
+    }
+};
+}  // namespace nlohmann
