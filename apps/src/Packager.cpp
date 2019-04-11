@@ -17,6 +17,7 @@
 #include "vc/core/io/SkyscanMetadataIO.hpp"
 #include "vc/core/types/Metadata.hpp"
 #include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/util/FormatStrToRegexStr.hpp"
 
 using PathStringList = std::vector<std::string>;
 
@@ -27,8 +28,8 @@ namespace vci = volcart::io;
 
 enum class Flip { None, Horizontal, Vertical, ZFlip, Both };
 
-static const vc::io::ExtensionList AcceptedExtensions{"tif", "tiff", "png",
-                                                      "jpg", "jpeg", "bmp"};
+static const vci::ExtensionList ImageExts{"tif", "tiff", "png",
+                                          "jpg", "jpeg", "bmp"};
 
 static const double MIN_16BPC = std::numeric_limits<uint16_t>::min();
 static const double MAX_16BPC = std::numeric_limits<uint16_t>::max();
@@ -171,8 +172,8 @@ VolumeInfo GetVolumeInfo(const fs::path& slicePath)
     VolumeInfo info;
     bool voxelFound = false;
 
-    // If we have a logfile, try to read it
-    if (slicePath.extension().string() == ".log") {
+    // If path is a log file, try to read its info
+    if (vci::FileExtensionFilter(slicePath.filename(), {"log"})) {
         // Get the parent directory for the log
         info.path = slicePath.parent_path();
 
@@ -193,7 +194,17 @@ VolumeInfo GetVolumeInfo(const fs::path& slicePath)
                          "this a reconstruction log?"
                       << std::endl;
         }
-    } else {
+    }
+
+    // If the path is an image format, assume its a printf-pattern
+    else if (vci::FileExtensionFilter(slicePath.filename(), ImageExts)) {
+        info.path = slicePath.parent_path();
+        info.sliceRegex =
+            vc::FormatStrToRegexStr(slicePath.filename().string());
+    }
+
+    // Otherwise, assume it's a directory containing only slice images
+    else {
         info.path = slicePath;
     }
 
@@ -256,8 +267,8 @@ void AddVolume(vc::VolumePkg::Pointer& volpkg, const VolumeInfo& info)
 
         // Filter by either file extension or the provided regex
         if (info.sliceRegex.empty()) {
-            if (vc::io::FileExtensionFilter(
-                    subfile->path().filename(), AcceptedExtensions)) {
+            if (vci::FileExtensionFilter(
+                    subfile->path().filename(), ImageExts)) {
                 slices.emplace_back(subfile->path());
             }
         } else {
