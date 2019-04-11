@@ -156,7 +156,10 @@ EXCLUDE                =
 EXCLUDE_SYMLINKS       = NO
 EXCLUDE_PATTERNS       = */build/* \
                          */external/* \
-                         */vc-deps/*
+                         */vc-deps/* \
+                         */apps/* \
+                         */scripts/* \
+                         */test/*
 EXCLUDE_SYMBOLS        =
 EXAMPLE_PATH           =
 EXAMPLE_PATTERNS       = *

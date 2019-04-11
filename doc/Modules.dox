@@ -21,6 +21,17 @@
 */
 
 /**
+ * @namespace volcart::landmarks
+ * @brief Volume landmark classes
+ */
+
+/**
+ @defgroup Landmarks Landmarks
+ @brief Landmark classes for labeling volume features
+ @ingroup Core
+*/
+
+/**
  @defgroup Math Math
  @brief Mathematical operations
  @ingroup Core

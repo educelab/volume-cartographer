@@ -26,6 +26,13 @@ set(shape_srcs
     src/Spiral.cpp
 )
 
+set(landmark_srcs
+    src/VolumeLandmark.cpp
+    src/PointLandmark.cpp
+    src/PlaneLandmark.cpp
+    src/PolylineLandmark.cpp
+)
+
 set(type_srcs
     src/DiskBasedObjectBaseClass.cpp
     src/HalfEdgeMesh.cpp
@@ -46,7 +53,7 @@ set(util_srcs
     src/MemorySizeStringParser.cpp
 )
 
-set(srcs ${io_srcs} ${math_srcs} ${neighborhood_srcs} ${shape_srcs} ${type_srcs} ${util_srcs})
+set(srcs ${io_srcs} ${math_srcs} ${neighborhood_srcs} ${shape_srcs} ${landmark_srcs} ${type_srcs} ${util_srcs})
 
 add_library(${target} ${srcs})
 add_library("${namespace}${module}" ALIAS "${target}")
