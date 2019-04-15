@@ -1,5 +1,7 @@
 #include "vc/core/io/PLYWriter.hpp"
 
+#include "vc/core/util/Logging.hpp"
+
 namespace fs = boost::filesystem;
 using namespace volcart::io;
 
@@ -91,7 +93,7 @@ int PLYWriter::write_vertices_()
     if (!outputMesh_.is_open() || mesh_->GetNumberOfPoints() == 0) {
         return EXIT_FAILURE;
     }
-    std::cerr << "Writing vertices..." << std::endl;
+    logger->info("Writing vertices...");
 
     // Iterate over all of the points
     for (auto point = mesh_->GetPoints()->Begin();
@@ -136,7 +138,7 @@ int PLYWriter::write_faces_()
     if (!outputMesh_.is_open() || mesh_->GetNumberOfCells() == 0) {
         return EXIT_FAILURE;
     }
-    std::cerr << "Writing faces..." << std::endl;
+    logger->info("Writing faces...");
 
     // Iterate over the faces of the mesh
     ITKPointInCellIterator point;

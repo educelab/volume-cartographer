@@ -4,9 +4,13 @@
 
 #define BOOST_TEST_MODULE LRUCache
 
-#include <iostream>
-#include <boost/test/unit_test.hpp>
 #include "vc/core/types/LRUCache.hpp"
+
+#include <iostream>
+
+#include <boost/test/unit_test.hpp>
+
+#include "vc/core/util/Logging.hpp"
 
 /************************************************************************************
  *                                                                                  *
@@ -47,13 +51,12 @@ struct CreateCacheWithDefaultConstructorFixture {
 
     CreateCacheWithDefaultConstructorFixture()
     {
-
-        std::cerr << "Creating cache with empty constructor..." << std::endl;
+        volcart::logger->debug("Creating cache with empty constructor...");
     }
 
     ~CreateCacheWithDefaultConstructorFixture()
     {
-        std::cerr << "Destroying cache..." << std::endl;
+        volcart::logger->debug("Destroying cache...");
     }
 
     volcart::LRUCache<size_t, int> _DefaultCache;
@@ -63,12 +66,11 @@ struct ResizingCacheFixture {
 
     ResizingCacheFixture()
     {
-
-        std::cerr << "Creating cache that will be resized..." << std::endl;
+        volcart::logger->debug("Creating cache that will be resized...");
 
         _in_NewCap = 50;
     }
-    ~ResizingCacheFixture() { std::cerr << "Destroying cache..." << std::endl; }
+    ~ResizingCacheFixture() { volcart::logger->debug("Destroying cache..."); }
 
     volcart::LRUCache<size_t, int> _DefaultCache;
     size_t _in_NewCap;
@@ -79,7 +81,7 @@ struct ReferenceBadKeyFixture {
     ReferenceBadKeyFixture()
     {
 
-        std::cerr << "Creating cache..." << std::endl;
+        volcart::logger->debug("Creating cache...");
 
         // change capacity to 100
         _Cache.setCapacity(100);
@@ -93,10 +95,7 @@ struct ReferenceBadKeyFixture {
             _Cache.put(_in_Cap, (_in_Cap * _in_Cap));
         }
     }
-    ~ReferenceBadKeyFixture()
-    {
-        std::cerr << "Destroying cache..." << std::endl;
-    }
+    ~ReferenceBadKeyFixture() { volcart::logger->debug("Destroying cache..."); }
 
     volcart::LRUCache<size_t, int> _Cache;
     size_t _in_Cap;
@@ -142,11 +141,10 @@ BOOST_FIXTURE_TEST_CASE(CheckReferenceToOutOfBoundsKey, ReferenceBadKeyFixture)
 
         // exception output message
         // casting negative size_t value to int
-        std::cout << e.what() << std::endl;
-        std::cout << "Key Tried: "
-                  << static_cast<int>(
-                         _Cache.capacity() - (_Cache.capacity() + 1))
-                  << std::endl;
+        volcart::logger->debug("{}", e.what());
+        volcart::logger->debug(
+            "Key Tried: {}",
+            static_cast<int>(_Cache.capacity() - (_Cache.capacity() + 1)));
         BOOST_CHECK(true);
     }
 
@@ -155,8 +153,8 @@ BOOST_FIXTURE_TEST_CASE(CheckReferenceToOutOfBoundsKey, ReferenceBadKeyFixture)
         BOOST_CHECK(false);  // return failed test if exception not caught
     } catch (std::exception& e) {
 
-        std::cout << e.what() << std::endl;
-        std::cout << "Key Tried: " << _Cache.capacity() << std::endl;
+        volcart::logger->debug("{}", e.what());
+        volcart::logger->debug("Key Tried: {}", _Cache.capacity());
         BOOST_CHECK(true);
     }
 }
@@ -283,7 +281,7 @@ BOOST_FIXTURE_TEST_CASE(
             false);  // test should fail if allowed to create negative cap cache
     } catch (std::exception& e) {
 
-        std::cout << e.what() << std::endl;
+        volcart::logger->debug("{}", e.what());
         BOOST_CHECK(true);  // handled correctly -- pass test
     }
 

@@ -55,6 +55,9 @@ find_package(OpenCV 3 REQUIRED)
 ### libtiff ###
 find_package(TIFF 4.0 REQUIRED)
 
+### spdlog ###
+find_package(spdlog CONFIG REQUIRED)
+
 ############
 # Optional #
 ############

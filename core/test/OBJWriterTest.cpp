@@ -4,10 +4,13 @@
 
 #define BOOST_TEST_MODULE ObjWriter
 
-#include <boost/test/unit_test.hpp>
 #include "vc/core/io/OBJWriter.hpp"
+
+#include <boost/test/unit_test.hpp>
+
 #include "vc/core/shapes/Plane.hpp"
 #include "vc/core/types/SimpleMesh.hpp"
+#include "vc/core/util/Logging.hpp"
 #include "vc/testing/ParsingHelpers.hpp"
 #include "vc/testing/TestingUtils.hpp"
 
@@ -66,13 +69,12 @@ struct WriteMeshUsingOBJWriterFixture {
         volcart::testing::ParsingHelpers::ParseOBJFile(
             "OBJWriterPlaneData.obj", _SavedPlanePoints, _SavedPlaneCells);
 
-        std::cerr << "Creating a Plane itk mesh object for writing"
-                  << std::endl;
+        logger->debug("Creating a Plane itk mesh object for writing");
     }
 
     ~WriteMeshUsingOBJWriterFixture()
     {
-        std::cerr << "Cleaning up test objects" << std::endl;
+        logger->debug("Cleaning up test objects");
     }
 
     volcart::shapes::Plane _Plane;

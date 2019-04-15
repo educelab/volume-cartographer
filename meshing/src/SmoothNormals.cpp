@@ -18,8 +18,6 @@ namespace meshing
 
 ITKMesh::Pointer SmoothNormals(const ITKMesh::Pointer& input, double radius)
 {
-    std::cerr << "volcart::meshing::SmoothNormals: radius " << radius
-              << std::endl;
     // declare pointer to new Mesh object to be returned
     auto outputMesh = ITKMesh::New();
     volcart::meshing::DeepCopy(input, outputMesh);
@@ -37,8 +35,6 @@ ITKMesh::Pointer SmoothNormals(const ITKMesh::Pointer& input, double radius)
     // Iterate over all of the cells to lay out the faces in the output texture
     for (auto point = input->GetPoints()->Begin();
          point != input->GetPoints()->End(); ++point) {
-        std::cerr << "volcart::meshing::SmoothNormals: " << point.Index() << "/"
-                  << input->GetNumberOfPoints() - 1 << "\r" << std::flush;
 
         // Empty our averaging variables
         if (!neighborhood.empty()) {
@@ -76,9 +72,8 @@ ITKMesh::Pointer SmoothNormals(const ITKMesh::Pointer& input, double radius)
         currentNormal[2] = neighborAvg[2] / neighborCount;
         outputMesh->SetPointData(point.Index(), currentNormal);
     }
-    std::cerr << std::endl;
 
     return outputMesh;
 }
-}
-}
+}  // namespace meshing
+}  // namespace volcart

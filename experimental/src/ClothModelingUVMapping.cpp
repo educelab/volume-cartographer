@@ -4,6 +4,7 @@
 
 #include <BulletSoftBody/btDefaultSoftBodySolver.h>
 
+#include "vc/core/util/Logging.hpp"
 #include "vc/experimental/meshing/ITK2Bullet.hpp"
 #include "vc/experimental/texturing/ClothModelingUVMapping.hpp"
 #include "vc/meshing/DeepCopy.hpp"
@@ -343,15 +344,14 @@ void ClothModelingUVMapping::expand_()
                 startingSurfaceArea_);
         }
         if (counter >= expandIterations_ * 6) {
-            std::cerr << std::endl
-                      << "volcart::texturing::clothUV: Warning: Max relaxation "
-                         "iterations reached";
+            logger->warn("Max relaxation iterations reached");
             break;
         }
     }
-    std::cerr << std::endl
-              << "volcart::texturing::clothUV: Mesh Area Relative Error: "
-              << relativeError * 100 << "%" << std::endl;
+    std::cerr << std::endl;
+    logger->info(
+        "ClothUV: Mesh Area Relative Error: " +
+        std::to_string(relativeError * 100) + "%");
 }
 
 // Set acceleration for different stages
@@ -405,10 +405,9 @@ double ClothModelingUVMapping::surface_area_()
         // like
         // GMP
         if (std::isnan(sa)) {
-            std::cerr << std::endl
-                      << "volcart::texturing::clothUV: Warning: NaN surface "
-                         "area for face["
-                      << i << "]. Evaluating as 0." << std::endl;
+            logger->warn(
+                "ClothUV: Warning: NaN surface area for face [" +
+                std::to_string(i) + "]. Evaluating as 0.");
             sa = 0.0;
         }
         surfaceArea += sa;

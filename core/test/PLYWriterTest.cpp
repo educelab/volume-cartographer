@@ -4,11 +4,14 @@
 
 #define BOOST_TEST_MODULE PLYWriter
 
+#include "vc/core/io/PLYWriter.hpp"
+
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
-#include "vc/core/io/PLYWriter.hpp"
+
 #include "vc/core/shapes/Plane.hpp"
 #include "vc/core/types/SimpleMesh.hpp"
+#include "vc/core/util/Logging.hpp"
 #include "vc/testing/ParsingHelpers.hpp"
 #include "vc/testing/TestingUtils.hpp"
 
@@ -108,7 +111,7 @@ struct CreateITKPlaneMeshFixture {
 BOOST_FIXTURE_TEST_CASE(WriteMeshToPLYFileTest, CreateITKPlaneMeshFixture)
 {
 
-    std::cout << "Writing mesh to ply file..." << std::endl;
+    logger->debug("Writing mesh to ply file...");
 
     _MeshWriter.setPath("nothing");
     //_MeshWriter.setUVMap( uvMap );
@@ -146,7 +149,7 @@ BOOST_FIXTURE_TEST_CASE(
         _in_PlaneMesh->GetNumberOfCells(), _SavedPlaneCells.size());
 
     /// Points ///
-    std::cerr << "Comparing points..." << std::endl;
+    logger->debug("Comparing points...");
     for (uint64_t p = 0; p < _SavedPlanePoints.size(); p++) {
 
         volcart::testing::SmallOrClose(
@@ -158,7 +161,7 @@ BOOST_FIXTURE_TEST_CASE(
     }
 
     // Normals //
-    std::cerr << "Comparing normals..." << std::endl;
+    logger->debug("Comparing normals...");
     int p_id = 0;
     for (ITKPointIterator point = _in_PlaneMesh->GetPoints()->Begin();
          point != _in_PlaneMesh->GetPoints()->End(); ++point) {

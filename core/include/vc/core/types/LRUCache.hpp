@@ -1,6 +1,7 @@
 #pragma once
 
 #include <list>
+#include <memory>
 #include <unordered_map>
 
 #include "vc/core/types/Cache.hpp"

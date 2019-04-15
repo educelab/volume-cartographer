@@ -4,11 +4,13 @@
 
 #define BOOST_TEST_MODULE uvMap
 
+#include "vc/core/types/UVMap.hpp"
+
 #include <iostream>
 
 #include <boost/test/unit_test.hpp>
 
-#include "vc/core/types/UVMap.hpp"
+#include "vc/core/util/Logging.hpp"
 
 using namespace volcart;
 
@@ -54,7 +56,7 @@ struct CreateUVMapFixture {
     CreateUVMapFixture()
     {
 
-        std::cout << "Constructing uv map..." << std::endl;
+        logger->debug("Constructing uv map...");
 
         // fill storage vector
         for (double u = 0; u <= 1; u += 0.25) {
@@ -72,7 +74,7 @@ struct CreateUVMapFixture {
         }
     }
 
-    ~CreateUVMapFixture() { std::cout << "Destroying uv map..." << std::endl; }
+    ~CreateUVMapFixture() { logger->debug("Destroying uv map..."); }
 
     // Init uvMap
     volcart::UVMap _BaseUVMap;
@@ -100,8 +102,7 @@ BOOST_FIXTURE_TEST_CASE(TransformationTest, CreateUVMapFixture)
     volcart::UVMap map = _BaseUVMap;
     map.setOrigin(UVMap::Origin::TopLeft);  // standard origin
 
-    std::cout << "Transforming against (0,0) and comparing expected results"
-              << std::endl;
+    logger->debug("Transforming against (0,0) and comparing expected results");
 
     // Retrieve mappings relative to the top-left (0,0)
     _BaseUVMap.setOrigin(UVMap::Origin::TopLeft);
@@ -119,8 +120,7 @@ BOOST_FIXTURE_TEST_CASE(TransformationTest, CreateUVMapFixture)
         ++pnt_id;
     }
 
-    std::cout << "Transforming against (0,1) and comparing expected results"
-              << std::endl;
+    logger->debug("Transforming against (0,1) and comparing expected results");
 
     // Retrieve mappings relative to the bottom-left (0,1)
     _BaseUVMap.setOrigin(UVMap::Origin::BottomLeft);
@@ -138,8 +138,7 @@ BOOST_FIXTURE_TEST_CASE(TransformationTest, CreateUVMapFixture)
         ++pnt_id;
     }
 
-    std::cout << "Transforming against (1,0) and comparing expected results"
-              << std::endl;
+    logger->debug("Transforming against (1,0) and comparing expected results");
 
     // Retrieve mappings relative to the top-right (1,0)
     _BaseUVMap.setOrigin(UVMap::Origin::TopRight);
@@ -157,8 +156,7 @@ BOOST_FIXTURE_TEST_CASE(TransformationTest, CreateUVMapFixture)
         ++pnt_id;
     }
 
-    std::cout << "Transforming against (1,1) and comparing expected results"
-              << std::endl;
+    logger->debug("Transforming against (1,1) and comparing expected results");
 
     // Retrieve mappings relative to the bottom-right (1,1)
     _BaseUVMap.setOrigin(UVMap::Origin::BottomRight);

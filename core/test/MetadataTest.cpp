@@ -4,8 +4,11 @@
 
 #define BOOST_TEST_MODULE Metadata
 
-#include <boost/test/unit_test.hpp>
 #include "vc/core/types/Metadata.hpp"
+
+#include <boost/test/unit_test.hpp>
+
+#include "vc/core/util/Logging.hpp"
 
 /************************************************************************************
  *                                                                                  *
@@ -42,12 +45,12 @@ struct EmptyMetadataFixture {
 
     EmptyMetadataFixture()
     {
-        std::cerr << "Creating empty Metadata fixture..." << std::endl;
+        volcart::logger->debug("Creating empty Metadata fixture...");
     }
 
     ~EmptyMetadataFixture()
     {
-        std::cerr << "Destroying empty Metadata fixture..." << std::endl;
+        volcart::logger->debug("Destroying empty Metadata fixture...");
     }
 
     volcart::Metadata _metadata;
@@ -60,7 +63,7 @@ struct FilledMetadataFixture {
 
     FilledMetadataFixture()
     {
-        std::cerr << "Creating filled Metadata fixture..." << std::endl;
+        volcart::logger->debug("Creating filled Metadata fixture...");
         _metadata.set("int", i);
         _metadata.set("double", d);
         _metadata.set("string", s);
@@ -68,7 +71,7 @@ struct FilledMetadataFixture {
 
     ~FilledMetadataFixture()
     {
-        std::cerr << "Destroying filled Metadata fixture..." << std::endl;
+        volcart::logger->debug("Destroying filled Metadata fixture...");
     }
 
     volcart::Metadata _metadata;

@@ -22,7 +22,9 @@
 
 #include <array>
 #include <cmath>
+#include <sstream>
 
+#include "vc/core/util/Logging.hpp"
 #include "vc/core/util/MeshMath.hpp"
 #include "vc/external/eigen_capi.h"
 #include "vc/meshing/DeepCopy.hpp"
@@ -148,7 +150,7 @@ void AngleBasedFlattening::scale_()
 // Angle minimization loop
 void AngleBasedFlattening::solve_abf_()
 {
-    std::cerr << "volcart::texturing::abf: Solving ABF..." << std::endl;
+    logger->info("Solving ABF...");
     compute_sines_();
 
     // Always do at least one iteration
@@ -160,10 +162,10 @@ void AngleBasedFlattening::solve_abf_()
 
         // Attempt to invert the matrix and solve
         if (!invert_matrix_()) {
-            std::cerr << "volcart::texturing::abf: ";
-            std::cerr << "Failed to invert matrix during " << iteration
-                      << " iteration. ";
-            std::cerr << "Falling back to LSCM." << std::endl;
+            std::stringstream msg;
+            msg << "ABF: Failed to invert matrix, iteration " << iteration;
+            msg << " Falling back to LSCM.";
+            logger->warn(msg.str());
             break;
         }
 
@@ -178,10 +180,11 @@ void AngleBasedFlattening::solve_abf_()
             break;
         }
     }
-    std::cerr << "volcart::texturing::abf: ";
-    std::cerr << "ABF Iterations: " << iteration << " || ";
-    std::cerr << "Final norm: " << norm << " || ";
-    std::cerr << "Limit: " << limit_ << std::endl;
+    std::stringstream msg;
+    msg << "ABF Iterations: " << iteration << " || ";
+    msg << "Final norm: " << norm << " || ";
+    msg << "Limit: " << limit_;
+    logger->info(msg.str());
 }
 
 ///// Helpers - ABF /////
@@ -647,7 +650,7 @@ void AngleBasedFlattening::solve_lscm_()
     }
 
     // Solve
-    std::cerr << "volcart::texturing::abf: Solving LSCM..." << std::endl;
+    logger->info("ABF: Solving LSCM...");
     bool success = EIG_linear_solver_solve(context);
     if (!success) {
         throw std::runtime_error("Failed to solve lscm.");
