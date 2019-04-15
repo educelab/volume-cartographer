@@ -1,4 +1,6 @@
 #include "vc/core/util/MeshMath.hpp"
+
+#include "vc/core/util/Logging.hpp"
 namespace volcart
 {
 namespace meshmath
@@ -36,10 +38,10 @@ double SurfaceArea(const ITKMesh::Pointer& input)
         // Can get NaN's when using standard C++ math. Explore something like
         // GMP
         if (std::isnan(sa)) {
-            std::cerr
-                << std::endl
-                << "volcart::meshMath: Warning: NaN surface area for face["
-                << cell.Index() << "]. Evaluating as 0." << std::endl;
+            logger->error(
+                "volcart::meshMath: Warning: NaN surface area for face[{}]. "
+                "Evaluating as 0.",
+                cell.Index());
             sa = 0.0;
         }
         surfaceArea += sa;
@@ -47,5 +49,5 @@ double SurfaceArea(const ITKMesh::Pointer& input)
 
     return surfaceArea;
 }
-}
-}
+}  // namespace meshmath
+}  // namespace volcart

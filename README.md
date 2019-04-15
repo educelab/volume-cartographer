@@ -15,6 +15,7 @@ A library and toolkit for the virtual unwrapping of volumetric datasets.
 * Qt 5.7+
 * [libtiff](https://gitlab.com/libtiff/libtiff) 4.0+
 * Eigen3 3.2+
+* spdlog
 
 **Optional**  
 * [Doxygen](http://www.doxygen.org/) - For documentation

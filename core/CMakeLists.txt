@@ -54,9 +54,20 @@ set(util_srcs
     src/FormatStrToRegexStr.cpp
 )
 
-set(srcs ${io_srcs} ${math_srcs} ${neighborhood_srcs} ${shape_srcs} ${landmark_srcs} ${type_srcs} ${util_srcs})
+set(logging_srcs
+    src/Logging.cpp
+)
 
-add_library(${target} ${srcs})
+add_library(${target}
+    ${io_srcs}
+    ${math_srcs}
+    ${neighborhood_srcs}
+    ${shape_srcs}
+    ${landmark_srcs}
+    ${type_srcs}
+    ${util_srcs}
+    ${logging_srcs}
+)
 add_library("${namespace}${module}" ALIAS "${target}")
 target_include_directories(${target}
     PUBLIC
@@ -78,6 +89,7 @@ target_link_libraries(${target}
         vtkCommonCore
         vtkIOLegacy
         VC::external
+        spdlog::spdlog
     PRIVATE
         TIFF::TIFF
 )
@@ -149,6 +161,7 @@ set(test_srcs
     test/OBJReaderTest.cpp
     test/NDArrayTest.cpp
     test/VolumeMaskTest.cpp
+    test/LoggingTest.cpp
 )
 
 # Add a test executable for each src

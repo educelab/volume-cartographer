@@ -21,6 +21,7 @@
 
 #include "vc/core/io/OBJReader.hpp"
 #include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/util/Logging.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
 
 static const double MAX_8BPC = std::numeric_limits<uint8_t>::max();
@@ -82,7 +83,7 @@ int main(int argc, char* argv[])
     try {
         po::notify(parsed);
     } catch (po::error& e) {
-        std::cerr << "ERROR: " << e.what() << std::endl;
+        vc::logger->error(e.what());
         return EXIT_FAILURE;
     }
 

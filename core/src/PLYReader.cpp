@@ -5,6 +5,7 @@
 #include <boost/filesystem/operations.hpp>
 
 #include "vc/core/types/Exceptions.hpp"
+#include "vc/core/util/Logging.hpp"
 
 using Props = std::pair<char, int>;
 
@@ -102,7 +103,7 @@ void PLYReader::parse_header_()
         }
     }
     if (numFaces_ == 0) {
-        std::cerr << "Warning: No face information found" << std::endl;
+        logger->warn("Warning: No face information found");
     }
     std::getline(plyFile_, line_);
 
@@ -143,7 +144,7 @@ void PLYReader::read_faces_()
         if (hasLeadingChar_) {
             int pointsPerFace = std::stoi(curFace[0]);
             if (pointsPerFace != 3) {
-                auto msg = "Error: Not a Triangular Mesh";
+                auto msg = "Not a Triangular Mesh";
                 throw volcart::IOException(msg);
             } else {
                 face = SimpleMesh::Cell(
@@ -153,7 +154,7 @@ void PLYReader::read_faces_()
             }
         } else {
             if (curFace.size() != 3) {
-                auto msg = "Error: Not a Triangular Mesh";
+                auto msg = "Not a Triangular Mesh";
                 throw volcart::IOException(msg);
             } else {
                 face = SimpleMesh::Cell(

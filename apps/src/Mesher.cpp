@@ -8,6 +8,7 @@
 #include "vc/core/io/PointSetIO.hpp"
 #include "vc/core/types/OrderedPointSet.hpp"
 #include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/util/Logging.hpp"
 #include "vc/meshing/OrderedPointSetMesher.hpp"
 
 namespace fs = boost::filesystem;
@@ -45,7 +46,7 @@ int main(int argc, char* argv[])
     try {
         po::notify(parsed);
     } catch (po::error& e) {
-        std::cerr << "ERROR: " << e.what() << std::endl;
+        vc::logger->error(e.what());
         return EXIT_FAILURE;
     }
 

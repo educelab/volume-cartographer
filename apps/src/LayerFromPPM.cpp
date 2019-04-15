@@ -2,6 +2,8 @@
 // Created by Seth Parker on 3/23/17.
 //
 
+#include <sstream>
+
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <opencv2/opencv.hpp>
@@ -9,6 +11,7 @@
 #include "vc/core/neighborhood/LineGenerator.hpp"
 #include "vc/core/types/PerPixelMap.hpp"
 #include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/util/Logging.hpp"
 #include "vc/core/util/MemorySizeStringParser.hpp"
 #include "vc/external/GetMemorySize.hpp"
 #include "vc/texturing/LayerTexture.hpp"
@@ -83,7 +86,7 @@ int main(int argc, char* argv[])
     try {
         po::notify(parsed);
     } catch (po::error& e) {
-        std::cerr << "ERROR: " << e.what() << std::endl;
+        vc::logger->error(e.what());
         return EXIT_FAILURE;
     }
 
@@ -102,9 +105,11 @@ int main(int argc, char* argv[])
     ///// Load the volume package /////
     vc::VolumePkg vpkg(volpkgPath);
     if (vpkg.version() != VOLPKG_SUPPORTED_VERSION) {
-        std::cerr << "ERROR: Volume package is version " << vpkg.version()
-                  << " but this program requires version "
-                  << VOLPKG_SUPPORTED_VERSION << "." << std::endl;
+        std::stringstream msg;
+        msg << "Volume package is version " << vpkg.version()
+            << " but this program requires version " << VOLPKG_SUPPORTED_VERSION
+            << ".";
+        vc::logger->error(msg.str());
         return EXIT_FAILURE;
     }
 

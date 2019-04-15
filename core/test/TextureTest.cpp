@@ -4,11 +4,13 @@
 
 #define BOOST_TEST_MODULE Texture
 
+#include "vc/core/types/Texture.hpp"
+
 #include <boost/test/unit_test.hpp>
 #include <opencv2/imgcodecs.hpp>
 
-#include "vc/core/types/Texture.hpp"
 #include "vc/core/util/DateTime.hpp"
+#include "vc/core/util/Logging.hpp"
 
 /************************************************************************************
  *                                                                                  *
@@ -47,8 +49,8 @@ struct EmptyConstructorTextureFixture {
     EmptyConstructorTextureFixture()
     {
 
-        std::cerr << "Creating texture object using empty constructor..."
-                  << std::endl;
+        volcart::logger->debug(
+            "Creating texture object using empty constructor...");
 
         // store metadata --> not needed
         _ID = _Texture.metadata().get<std::string>("id");
@@ -61,7 +63,7 @@ struct EmptyConstructorTextureFixture {
 
     ~EmptyConstructorTextureFixture()
     {
-        std::cerr << "Destroying texture object..." << std::endl;
+        volcart::logger->debug("Destroying texture object...");
     }
 
     volcart::Texture _Texture;
@@ -77,7 +79,7 @@ struct TextureWithImageFixture {
     TextureWithImageFixture()
     {
 
-        std::cerr << "Creating texture with image(s)..." << std::endl;
+        volcart::logger->debug("Creating texture with image(s)...");
 
         // create cv::mat in loop and add to the texture
         for (int i = 2; i < 11; i++) {
@@ -89,7 +91,7 @@ struct TextureWithImageFixture {
 
     ~TextureWithImageFixture()
     {
-        std::cerr << "Destroying texture object..." << std::endl;
+        volcart::logger->debug("Destroying texture object...");
     }
 
     volcart::Texture _Texture;
@@ -104,7 +106,7 @@ struct TextureWithUVMapToCheckIntensityFixture {
     TextureWithUVMapToCheckIntensityFixture()
     {
 
-        std::cerr << "Creating texture with uv map..." << std::endl;
+        volcart::logger->debug("Creating texture with uv map...");
 
         // read in and add image to the texture
         _Gradient = cv::imread("GenericGradient.tif", -1);
@@ -122,7 +124,7 @@ struct TextureWithUVMapToCheckIntensityFixture {
 
     ~TextureWithUVMapToCheckIntensityFixture()
     {
-        std::cerr << "Destroying texture..." << std::endl;
+        volcart::logger->debug("Destroying texture...");
     }
 
     volcart::UVMap _uvMap;

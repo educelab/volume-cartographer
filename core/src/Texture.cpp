@@ -1,7 +1,9 @@
+#include "vc/core/types/Texture.hpp"
+
 #include <opencv2/imgcodecs.hpp>
 
-#include "vc/core/types/Texture.hpp"
 #include "vc/core/util/DateTime.hpp"
+#include "vc/core/util/Logging.hpp"
 
 namespace fs = boost::filesystem;
 using namespace volcart;
@@ -20,8 +22,7 @@ Texture::Texture(fs::path path)
 {
     // Check for meta-type
     if (metadata_.get<std::string>("type") != "texture") {
-        std::cerr << "volcart::texture::error: metadata not of type 'texture'"
-                  << std::endl;
+        logger->error("Metadata not of type 'texture'");
     }
 
     // To-Do: #180

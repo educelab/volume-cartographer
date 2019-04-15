@@ -5,6 +5,7 @@
 /* @file OrderedResampling.cpp*/
 
 #include "vc/meshing/OrderedResampling.hpp"
+#include "vc/core/util/Logging.hpp"
 #include "vc/meshing/CalculateNormals.hpp"
 
 using namespace volcart::meshing;
@@ -21,7 +22,7 @@ void OrderedResampling::setMesh(
 volcart::ITKMesh::Pointer OrderedResampling::getOutputMesh() const
 {
     if (output_.IsNull()) {
-        std::cerr << "Error: Output Mesh is not set" << std::endl;
+        logger->error("Output mesh is null");
         return nullptr;
     } else {
         return output_;
@@ -106,11 +107,12 @@ void OrderedResampling::compute()
     calcNorm.compute();
     output_ = calcNorm.getMesh();
 
-    std::cerr
-        << "volcart::meshing::OrderedResampling: Points in resampled mesh "
-        << output_->GetNumberOfPoints() << std::endl;
-    std::cerr << "volcart::meshing::OrderedResampling: Cells in resampled mesh "
-              << output_->GetNumberOfCells() << std::endl;
+    logger->info(
+        "OrderedResampling: Points in resampled mesh" +
+        std::to_string(output_->GetNumberOfPoints()));
+    logger->info(
+        "OrderedResampling: Cells in resampled mesh " +
+        std::to_string(output_->GetNumberOfCells()));
 }
 
 void OrderedResampling::add_cell_(uint32_t a, uint32_t b, uint32_t c)

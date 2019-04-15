@@ -1,8 +1,10 @@
 #include "vc/core/types/PerPixelMap.hpp"
-#include "vc/core/io/PointSetIO.hpp"
-#include "vc/core/types/Exceptions.hpp"
 
 #include <opencv2/imgcodecs.hpp>
+
+#include "vc/core/io/PointSetIO.hpp"
+#include "vc/core/types/Exceptions.hpp"
+#include "vc/core/util/Logging.hpp"
 
 using namespace volcart;
 namespace fs = boost::filesystem;
@@ -90,8 +92,7 @@ PerPixelMap PerPixelMap::ReadPPM(const fs::path& path)
 
     ppm.mask_ = cv::imread(MaskPath(path).string(), cv::IMREAD_GRAYSCALE);
     if (ppm.mask_.empty()) {
-        std::cerr << "Warning: Failed to read mask! " + MaskPath(path).string()
-                  << "\n";
+        logger->warn("Failed to read mask! {}", MaskPath(path).string());
     }
 
     return ppm;
