@@ -19,6 +19,11 @@ include(${ITK_USE_FILE})
 find_dependency(VTK @VTK_VERSION_MAJOR@.@VTK_VERSION_MINOR@ QUIET REQUIRED)
 include(${VTK_USE_FILE})
 
+### ACVD ###
+if(@VC_USE_ACVD@ OR @VC_USE_OPTIONAL@)
+    find_package(ACVD @ACVD_VERSION@ QUIET REQUIRED)
+endif()
+
 ### Eigen3 ###
 find_dependency(Eigen3 @Eigen3_VERSION_MAJOR@.@Eigen3_VERSION_MINOR@ QUIET REQUIRED)
 
