@@ -1,7 +1,3 @@
-//
-// Created by Ryan Taber on 11/19/15.
-//
-
 #include <algorithm>
 #include <fstream>
 #include <iostream>
@@ -312,5 +308,5 @@ std::vector<std::string> ParsingHelpers::SplitString(std::string input)
         output, input, boost::is_any_of("\t "), boost::token_compress_on);
     return output;
 }
-}
-}
+}  // namespace testing
+}  // namespace volcart

@@ -1,10 +1,9 @@
-#define BOOST_TEST_MODULE PointSetIOTest
+#include <gtest/gtest.h>
 
 #include <fstream>
 #include <iostream>
 #include <string>
 
-#include <boost/test/unit_test.hpp>
 #include <opencv2/core.hpp>
 
 #include "vc/core/io/PointSetIO.hpp"
@@ -16,7 +15,9 @@ using namespace volcart;
 
 void writeTestHeader(const std::string& testHeader);
 
-struct Point3iUnorderedPointSet {
+class Point3iUnorderedPointSet : public ::testing::Test
+{
+public:
     PointSet<cv::Vec3i> ps;
 
     Point3iUnorderedPointSet() : ps(3)
@@ -27,25 +28,23 @@ struct Point3iUnorderedPointSet {
     }
 };
 
-BOOST_FIXTURE_TEST_CASE(
-    WriteThenReadBinaryUnorderedPointSet, Point3iUnorderedPointSet)
+TEST_F(Point3iUnorderedPointSet, WriteThenReadBinaryUnorderedPointSet)
 {
     // Binary IO is default
     PointSetIO<cv::Vec3i>::WritePointSet("tmp.txt", ps);
     auto readPs = PointSetIO<cv::Vec3i>::ReadPointSet("tmp.txt");
-    BOOST_CHECK_EQUAL(readPs[0], ps[0]);
-    BOOST_CHECK_EQUAL(readPs[1], ps[1]);
-    BOOST_CHECK_EQUAL(readPs[2], ps[2]);
+    EXPECT_EQ(readPs[0], ps[0]);
+    EXPECT_EQ(readPs[1], ps[1]);
+    EXPECT_EQ(readPs[2], ps[2]);
 }
 
-BOOST_FIXTURE_TEST_CASE(
-    WriteThenReadAsciiUnorderedPointSet, Point3iUnorderedPointSet)
+TEST_F(Point3iUnorderedPointSet, WriteThenReadAsciiUnorderedPointSet)
 {
     PointSetIO<cv::Vec3i>::WritePointSet("tmp.txt", ps, IOMode::ASCII);
     auto readPs = PointSetIO<cv::Vec3i>::ReadPointSet("tmp.txt", IOMode::ASCII);
-    BOOST_CHECK_EQUAL(readPs[0], ps[0]);
-    BOOST_CHECK_EQUAL(readPs[1], ps[1]);
-    BOOST_CHECK_EQUAL(readPs[2], ps[2]);
+    EXPECT_EQ(readPs[0], ps[0]);
+    EXPECT_EQ(readPs[1], ps[1]);
+    EXPECT_EQ(readPs[2], ps[2]);
 }
 
 // Utility method for writing a test header defined in a test case
@@ -55,7 +54,7 @@ void writeTestHeader(const std::string& testHeader)
     out << testHeader;
 }
 
-BOOST_AUTO_TEST_CASE(ParseHeaderIgnoreComments)
+TEST(PointSetIOTest, ParseHeaderIgnoreComments)
 {
     const std::string commentHeader =
         "# This is a comment. It doesn't affect the header parser\n"
@@ -75,14 +74,14 @@ BOOST_AUTO_TEST_CASE(ParseHeaderIgnoreComments)
     std::ifstream inHeader(TEST_HEADER_FILENAME);
     auto header = PointSetIO<cv::Vec3i>::ParseHeader(inHeader, true);
 
-    BOOST_CHECK_EQUAL(header.width, 3);
-    BOOST_CHECK_EQUAL(header.height, 1);
-    BOOST_CHECK_EQUAL(header.ordered, true);
-    BOOST_CHECK_EQUAL(header.type, "int");
-    BOOST_CHECK_EQUAL(header.dim, 3);
+    EXPECT_EQ(header.width, 3);
+    EXPECT_EQ(header.height, 1);
+    EXPECT_EQ(header.ordered, true);
+    EXPECT_EQ(header.type, "int");
+    EXPECT_EQ(header.dim, 3);
 }
 
-BOOST_AUTO_TEST_CASE(ParseHeaderOffsetKeywords)
+TEST(PointSetIOTest, ParseHeaderOffsetKeywords)
 {
     const std::string commentHeader =
         "       width: 3\n"
@@ -97,14 +96,14 @@ BOOST_AUTO_TEST_CASE(ParseHeaderOffsetKeywords)
     std::ifstream inHeader(TEST_HEADER_FILENAME);
     auto header = PointSetIO<cv::Vec3i>::ParseHeader(inHeader, true);
 
-    BOOST_CHECK_EQUAL(header.width, 3);
-    BOOST_CHECK_EQUAL(header.height, 1);
-    BOOST_CHECK_EQUAL(header.ordered, true);
-    BOOST_CHECK_EQUAL(header.type, "int");
-    BOOST_CHECK_EQUAL(header.dim, 3);
+    EXPECT_EQ(header.width, 3);
+    EXPECT_EQ(header.height, 1);
+    EXPECT_EQ(header.ordered, true);
+    EXPECT_EQ(header.type, "int");
+    EXPECT_EQ(header.dim, 3);
 }
 
-BOOST_AUTO_TEST_CASE(UnorderedPointSetWithWidthThrows)
+TEST(PointSetIOTest, UnorderedPointSetWithWidthThrows)
 {
     const std::string commentHeader =
         "width: 3\n"
@@ -117,11 +116,11 @@ BOOST_AUTO_TEST_CASE(UnorderedPointSetWithWidthThrows)
     writeTestHeader(commentHeader);
     std::ifstream inHeader(TEST_HEADER_FILENAME);
 
-    BOOST_CHECK_THROW(
+    EXPECT_THROW(
         PointSetIO<cv::Vec3i>::ParseHeader(inHeader, false), IOException);
 }
 
-BOOST_AUTO_TEST_CASE(OrderedPointSetWithSizeThrows)
+TEST(PointSetIOTest, OrderedPointSetWithSizeThrows)
 {
     const std::string commentHeader =
         "size: 3\n"
@@ -134,11 +133,11 @@ BOOST_AUTO_TEST_CASE(OrderedPointSetWithSizeThrows)
     writeTestHeader(commentHeader);
     std::ifstream inHeader(TEST_HEADER_FILENAME);
 
-    BOOST_CHECK_THROW(
+    EXPECT_THROW(
         PointSetIO<cv::Vec3i>::ParseHeader(inHeader, true), IOException);
 }
 
-BOOST_AUTO_TEST_CASE(PointSetWithoutDimThrows)
+TEST(PointSetIOTest, PointSetWithoutDimThrows)
 {
     const std::string commentHeader =
         "size: 3\n"
@@ -150,11 +149,11 @@ BOOST_AUTO_TEST_CASE(PointSetWithoutDimThrows)
     writeTestHeader(commentHeader);
     std::ifstream inHeader(TEST_HEADER_FILENAME);
 
-    BOOST_CHECK_THROW(
+    EXPECT_THROW(
         PointSetIO<cv::Vec3i>::ParseHeader(inHeader, false), IOException);
 }
 
-BOOST_AUTO_TEST_CASE(PointSetWithoutTypeThrows)
+TEST(PointSetIOTest, PointSetWithoutTypeThrows)
 {
     const std::string commentHeader =
         "size: 3\n"
@@ -166,11 +165,11 @@ BOOST_AUTO_TEST_CASE(PointSetWithoutTypeThrows)
     writeTestHeader(commentHeader);
     std::ifstream inHeader(TEST_HEADER_FILENAME);
 
-    BOOST_CHECK_THROW(
+    EXPECT_THROW(
         PointSetIO<cv::Vec3i>::ParseHeader(inHeader, false), IOException);
 }
 
-BOOST_AUTO_TEST_CASE(PointSetWithWrongTypeThrows)
+TEST(PointSetIOTest, PointSetWithWrongTypeThrows)
 {
     const std::string commentHeader =
         "size: 3\n"
@@ -183,11 +182,11 @@ BOOST_AUTO_TEST_CASE(PointSetWithWrongTypeThrows)
     writeTestHeader(commentHeader);
     std::ifstream inHeader(TEST_HEADER_FILENAME);
 
-    BOOST_CHECK_THROW(
+    EXPECT_THROW(
         PointSetIO<cv::Vec3i>::ParseHeader(inHeader, false), IOException);
 }
 
-BOOST_AUTO_TEST_CASE(PointSetWithWrongVersionThrows)
+TEST(PointSetIOTest, PointSetWithWrongVersionThrows)
 {
     std::string commentHeader =
         "size: 3\n"
@@ -195,18 +194,18 @@ BOOST_AUTO_TEST_CASE(PointSetWithWrongVersionThrows)
         "dim: 3\n"
         "type: int\n";
 
-    commentHeader += "version: " +
-                     std::to_string(PointSet<cv::Vec3i>::FORMAT_VERSION + 1) +
-                     "\n<>\n";
+    commentHeader +=
+        "version: " + std::to_string(PointSet<cv::Vec3i>::FORMAT_VERSION + 1) +
+        "\n<>\n";
 
     writeTestHeader(commentHeader);
     std::ifstream inHeader(TEST_HEADER_FILENAME);
 
-    BOOST_CHECK_THROW(
+    EXPECT_THROW(
         PointSetIO<cv::Vec3i>::ParseHeader(inHeader, false), IOException);
 }
 
-BOOST_AUTO_TEST_CASE(PointSetWithWrongDimThrows)
+TEST(PointSetIOTest, PointSetWithWrongDimThrows)
 {
     const std::string commentHeader =
         "size: 3\n"
@@ -219,6 +218,6 @@ BOOST_AUTO_TEST_CASE(PointSetWithWrongDimThrows)
     writeTestHeader(commentHeader);
     std::ifstream inHeader(TEST_HEADER_FILENAME);
 
-    BOOST_CHECK_THROW(
+    EXPECT_THROW(
         PointSetIO<cv::Vec3i>::ParseHeader(inHeader, false), IOException);
 }

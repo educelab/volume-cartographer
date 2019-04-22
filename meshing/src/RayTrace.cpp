@@ -2,9 +2,6 @@
 #pragma clang diagnostic ignored "-Wconversion"
 #pragma clang diagnostic ignored "-Wold-style-cast"
 
-//
-// Created by Media Team on 8/12/15.
-//
 /**@file RayTrace.cpp */
 #include <cstdio>
 
@@ -140,7 +137,7 @@ std::vector<cv::Vec6f> RayTrace(
     std::cout << std::endl;
     return intersections;
 }
-}
-}
+}  // namespace meshing
+}  // namespace volcart
 
 #pragma clang diagnostic pop

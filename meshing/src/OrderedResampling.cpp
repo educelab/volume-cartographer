@@ -1,7 +1,3 @@
-//
-// Created by Hannah Hatch on 7/25/16.
-//
-
 /* @file OrderedResampling.cpp*/
 
 #include "vc/meshing/OrderedResampling.hpp"

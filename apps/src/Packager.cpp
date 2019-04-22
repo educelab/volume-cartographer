@@ -1,7 +1,3 @@
-//
-// Created by Seth Parker on 7/30/15.
-//
-
 #include <algorithm>
 #include <iostream>
 #include <limits>

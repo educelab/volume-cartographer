@@ -13,9 +13,9 @@ test:debian:static:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
         - mkdir -p build
         - cd build/
-        - cmake -DBoost_USE_STATIC_LIBS=ON -DVC_USE_ACVD=ON -GNinja ..
+        - cmake -DVC_USE_ACVD=ON -GNinja ..
         - ninja
-        - ctest -j 4
+        - ctest -V
     artifacts:
         name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
         paths:
@@ -34,7 +34,7 @@ test:debian:dynamic:
         - cd build/
         - cmake -DVC_USE_ACVD=ON -GNinja ..
         - ninja
-        - ctest -j 4
+        - ctest -V
     artifacts:
         name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
         paths:
@@ -51,9 +51,9 @@ test:debian:experimental:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
         - mkdir -p build
         - cd build/
-        - cmake -DVC_BUILD_EXPERIMENTAL=ON -DBoost_USE_STATIC_LIBS=ON -DVC_USE_ACVD=ON -GNinja ..
+        - cmake -DVC_BUILD_EXPERIMENTAL=ON -DVC_USE_ACVD=ON -GNinja ..
         - ninja
-        - ctest -j 4
+        - ctest -V
     artifacts:
         name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
         paths:
@@ -72,7 +72,7 @@ test:macos:static:
         - cd build/
         - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DVC_USE_ACVD=ON -GNinja ..
         - ninja
-        - ctest -j 4
+        - ctest -V
     artifacts:
         name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
         paths:
@@ -94,7 +94,7 @@ test:macos:dynamic:
         - cd build/
         - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DVC_USE_ACVD=ON -DBUILD_SHARED_LIBS=ON -GNinja ..
         - ninja
-        - ctest -j 4
+        - ctest -V
     artifacts:
         name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
         paths:

@@ -4,12 +4,9 @@ set(target "vc_${module}")
 
 set(srcs
     src/ParsingHelpers.cpp
+    src/TestingUtils.cpp
 )
 set(defs "")
-
-if (NOT Boost_USE_STATIC_LIBS)
-    list(APPEND defs BOOST_TEST_DYN_LINK)
-endif()
 
 add_library(${target} ${srcs})
 add_library("${namespace}${module}" ALIAS "${target}")
@@ -21,6 +18,7 @@ target_include_directories(${target}
 target_link_libraries(${target}
     PUBLIC
         VC::core
+        gtest
 )
 target_compile_definitions(${target}
     PUBLIC
@@ -60,7 +58,8 @@ foreach(src ${test_srcs})
     target_link_libraries(${testname}
         VC::core
         VC::testing
-        Boost::unit_test_framework
+        gtest_main
+        gmock_main
     )
     add_test(
         NAME ${testname}

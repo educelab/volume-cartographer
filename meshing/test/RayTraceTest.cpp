@@ -1,11 +1,4 @@
-//
-// Created by Ryan Taber on 11/30/15.
-//
-
-#define BOOST_TEST_MODULE RayTrace
-
-#include <boost/test/unit_test.hpp>
-#include <boost/test/unit_test_log.hpp>
+#include <gtest/gtest.h>
 
 #include "vc/core/shapes/Arch.hpp"
 #include "vc/core/shapes/Cone.hpp"
@@ -19,41 +12,9 @@
 
 using namespace volcart;
 
-/************************************************************************************
- *                                                                                  *
- *  RayTraceTest.cpp - tests the functionality of *
- *  v-c/meshing/RayTrace.cpp with the ultimate goal of the following: *
- *                                                                                  *
- *     Given the same curved input mesh, does a saved PLY file match a current *
- *     execution of RayTrace(). *
- *                                                                                  *
- *  This file is broken up into a test fixture RayTraceFix which initialize *
- *  the objects used in any subsequent fixture test cases. *
- *                                                                                  *
- *  Test Cases: *
- *  1. SavedPlaneRayTraceComparison (PlaneRayTraceFixture) *
- *  2. SavedCubeRayTraceComparison (CubeRayTraceFixture) *
- *  3. SavedArchRayTraceComparison (ArchRayTraceFixture) *
- *  4. SavedSphereRayTraceComparison (SphereRayTraceFixture) *
- *  5. SavedConeRayTraceComparison (ConeRayTraceFixture) *
- *                                                                                  *
- * *
- *  Input: *
- *     No required inputs for the test cases. Any test objects are created *
- *     internally by the various Fixtures() or within the test cases themselves.
- * *
- *                                                                                  *
- *  Test-Specific Output: *
- *     Specific test output only given on failure of any tests. Otherwise,
- * general  *
- *     number of testing errors is output to console. *
- *                                                                                  *
- *  Miscellaneous: *
- *     See the /testing/meshing wiki for more information on this test *
- * **********************************************************************************/
-
-struct PlaneRayTraceFixture {
-
+class PlaneRayTraceFixture : public ::testing::Test
+{
+public:
     PlaneRayTraceFixture()
     {
 
@@ -64,15 +25,11 @@ struct PlaneRayTraceFixture {
         _PlaneRayTraceResults = volcart::meshing::RayTrace(
             _in_PlaneMesh, _TraceDir, _Width, _Height, _UVMap);
 
-        //
         // Write ray trace results to file
-        //
 
         _NumberOfPointsInMesh = _PlaneRayTraceResults.size();
 
         _SavedPlaneMeshFile.open("TestPlaneRayTraceData.ply");
-
-        std::cout << "Writing RayTrace results to file..." << std::endl;
 
         // write header
         _SavedPlaneMeshFile
@@ -121,13 +78,6 @@ struct PlaneRayTraceFixture {
             "SavedPlaneRayTraceData.ply", _SavedPoints, _SavedCells);
         volcart::testing::ParsingHelpers::ParsePLYFile(
             "TestPlaneRayTraceData.ply", _CurrentPoints, _CurrentCells);
-
-        std::cerr << "\nsetting up PlaneRayTraceTest objects" << std::endl;
-    }
-
-    ~PlaneRayTraceFixture()
-    {
-        std::cerr << "\ncleaning up PlaneRayTraceTest objects" << std::endl;
     }
 
     // Variables needed for call to RayTrace()
@@ -136,7 +86,7 @@ struct PlaneRayTraceFixture {
     volcart::shapes::Plane _Plane;
     std::map<int, cv::Vec2d> _UVMap;
     int _TraceDir = 0;  // default direction is anything != 1
-    int _Width, _Height;
+    int _Width{0}, _Height{0};
 
     // Variables for writing to file
     uint64_t _NumberOfPointsInMesh;
@@ -147,8 +97,9 @@ struct PlaneRayTraceFixture {
     std::vector<SimpleMesh::Cell> _SavedCells, _CurrentCells;
 };
 
-struct CubeRayTraceFixture {
-
+class CubeRayTraceFixture : public ::testing::Test
+{
+public:
     CubeRayTraceFixture()
     {
 
@@ -166,8 +117,6 @@ struct CubeRayTraceFixture {
         _NumberOfPointsInMesh = _CubeRayTraceResults.size();
 
         _SavedCubeMeshFile.open("TestCubeRayTraceData.ply");
-
-        std::cout << "Writing RayTrace results to file..." << std::endl;
 
         // write header
         _SavedCubeMeshFile << "ply" << std::endl
@@ -217,13 +166,6 @@ struct CubeRayTraceFixture {
             "SavedCubeRayTraceData.ply", _SavedPoints, _SavedCells);
         volcart::testing::ParsingHelpers::ParsePLYFile(
             "TestCubeRayTraceData.ply", _CurrentPoints, _CurrentCells);
-
-        std::cerr << "\nsetting up CubeRayTraceTest objects" << std::endl;
-    }
-
-    ~CubeRayTraceFixture()
-    {
-        std::cerr << "\ncleaning up CubeRayTraceTest objects" << std::endl;
     }
 
     // Variables needed for call to RayTrace()
@@ -232,7 +174,7 @@ struct CubeRayTraceFixture {
     volcart::shapes::Cube _Cube;
     std::map<int, cv::Vec2d> _UVMap;
     int _TraceDir = 0;
-    int _Width, _Height;
+    int _Width{0}, _Height{0};
 
     // Variables for writing to file
     int _NumberOfPointsInMesh;
@@ -243,8 +185,9 @@ struct CubeRayTraceFixture {
     std::vector<SimpleMesh::Cell> _SavedCells, _CurrentCells;
 };
 
-struct ArchRayTraceFixture {
-
+class ArchRayTraceFixture : public ::testing::Test
+{
+public:
     ArchRayTraceFixture()
     {
 
@@ -262,8 +205,6 @@ struct ArchRayTraceFixture {
         _NumberOfPointsInMesh = _ArchRayTraceResults.size();
 
         _SavedArchMeshFile.open("TestArchRayTraceData.ply");
-
-        std::cout << "Writing RayTrace results to file..." << std::endl;
 
         // write header
         _SavedArchMeshFile << "ply" << std::endl
@@ -313,13 +254,6 @@ struct ArchRayTraceFixture {
             "SavedArchRayTraceData.ply", _SavedPoints, _SavedCells);
         volcart::testing::ParsingHelpers::ParsePLYFile(
             "TestArchRayTraceData.ply", _CurrentPoints, _CurrentCells);
-
-        std::cerr << "\nsetting up ArchRayTraceTest objects" << std::endl;
-    }
-
-    ~ArchRayTraceFixture()
-    {
-        std::cerr << "\ncleaning up ArchRayTraceTest objects" << std::endl;
     }
 
     // Variables needed for call to RayTrace()
@@ -328,7 +262,7 @@ struct ArchRayTraceFixture {
     volcart::shapes::Arch _Arch;
     std::map<int, cv::Vec2d> _UVMap;
     int _TraceDir = 0;  // default direction is anything != 1
-    int _Width, _Height;
+    int _Width{0}, _Height{0};
 
     // Variables for writing to file
     int _NumberOfPointsInMesh;
@@ -339,8 +273,9 @@ struct ArchRayTraceFixture {
     std::vector<SimpleMesh::Cell> _SavedCells, _CurrentCells;
 };
 
-struct SphereRayTraceFixture {
-
+class SphereRayTraceFixture : public ::testing::Test
+{
+public:
     SphereRayTraceFixture()
     {
 
@@ -358,8 +293,6 @@ struct SphereRayTraceFixture {
         _NumberOfPointsInMesh = _SphereRayTraceResults.size();
 
         _SavedSphereMeshFile.open("TestSphereRayTraceData.ply");
-
-        std::cout << "Writing RayTrace results to file..." << std::endl;
 
         // write header
         _SavedSphereMeshFile
@@ -408,13 +341,6 @@ struct SphereRayTraceFixture {
             "SavedSphereRayTraceData.ply", _SavedPoints, _SavedCells);
         volcart::testing::ParsingHelpers::ParsePLYFile(
             "TestSphereRayTraceData.ply", _CurrentPoints, _CurrentCells);
-
-        std::cerr << "\nsetting up SphereRayTraceTest objects" << std::endl;
-    }
-
-    ~SphereRayTraceFixture()
-    {
-        std::cerr << "\ncleaning up SphereRayTraceTest objects" << std::endl;
     }
 
     // Variables needed for call to RayTrace()
@@ -423,7 +349,7 @@ struct SphereRayTraceFixture {
     volcart::shapes::Sphere _Sphere;
     std::map<int, cv::Vec2d> _UVMap;
     int _TraceDir = 0;
-    int _Width, _Height;
+    int _Width{0}, _Height{0};
 
     // Variables for writing to file
     int _NumberOfPointsInMesh;
@@ -434,8 +360,9 @@ struct SphereRayTraceFixture {
     std::vector<SimpleMesh::Cell> _SavedCells, _CurrentCells;
 };
 
-struct ConeRayTraceFixture {
-
+class ConeRayTraceFixture : public ::testing::Test
+{
+public:
     ConeRayTraceFixture()
     {
 
@@ -453,8 +380,6 @@ struct ConeRayTraceFixture {
         _NumberOfPointsInMesh = _ConeRayTraceResults.size();
 
         _SavedConeMeshFile.open("TestConeRayTraceData.ply");
-
-        std::cout << "Writing RayTrace results to file..." << std::endl;
 
         // write header
         _SavedConeMeshFile << "ply" << std::endl
@@ -505,13 +430,6 @@ struct ConeRayTraceFixture {
             "SavedConeRayTraceData.ply", _SavedPoints, _SavedCells);
         volcart::testing::ParsingHelpers::ParsePLYFile(
             "TestConeRayTraceData.ply", _CurrentPoints, _CurrentCells);
-
-        std::cerr << "\nsetting up ConeRayTraceTest objects" << std::endl;
-    }
-
-    ~ConeRayTraceFixture()
-    {
-        std::cerr << "\ncleaning up ConeRayTraceTest objects" << std::endl;
     }
 
     // Variables needed for call to RayTrace()
@@ -520,7 +438,7 @@ struct ConeRayTraceFixture {
     volcart::shapes::Cone _Cone;
     std::map<int, cv::Vec2d> _UVMap;
     int _TraceDir = 0;
-    int _Width, _Height;
+    int _Width{0}, _Height{0};
 
     // Variables for writing to file
     int _NumberOfPointsInMesh;
@@ -531,122 +449,92 @@ struct ConeRayTraceFixture {
     std::vector<SimpleMesh::Cell> _SavedCells, _CurrentCells;
 };
 
-BOOST_FIXTURE_TEST_CASE(SavedPlaneRayTraceComparison, PlaneRayTraceFixture)
+TEST_F(PlaneRayTraceFixture, SavedPlaneRayTraceComparison)
 {
 
     // Compare the saved and fixture-created raytrace() points
-    BOOST_CHECK_EQUAL(_SavedPoints.size(), _CurrentPoints.size());
+    EXPECT_EQ(_SavedPoints.size(), _CurrentPoints.size());
 
     // loop over points
     for (size_t point = 0; point < _SavedPoints.size(); point++) {
 
-        volcart::testing::SmallOrClose(
-            _SavedPoints[point].x, _CurrentPoints[point].x);
-        volcart::testing::SmallOrClose(
-            _SavedPoints[point].y, _CurrentPoints[point].y);
-        volcart::testing::SmallOrClose(
-            _SavedPoints[point].z, _CurrentPoints[point].z);
-        volcart::testing::SmallOrClose(
-            _SavedPoints[point].nx, _CurrentPoints[point].nx);
-        volcart::testing::SmallOrClose(
-            _SavedPoints[point].ny, _CurrentPoints[point].ny);
-        volcart::testing::SmallOrClose(
-            _SavedPoints[point].nz, _CurrentPoints[point].nz);
+        EXPECT_DOUBLE_EQ(_SavedPoints[point].x, _CurrentPoints[point].x);
+        EXPECT_DOUBLE_EQ(_SavedPoints[point].y, _CurrentPoints[point].y);
+        EXPECT_DOUBLE_EQ(_SavedPoints[point].z, _CurrentPoints[point].z);
+        EXPECT_DOUBLE_EQ(_SavedPoints[point].nx, _CurrentPoints[point].nx);
+        EXPECT_DOUBLE_EQ(_SavedPoints[point].ny, _CurrentPoints[point].ny);
+        EXPECT_DOUBLE_EQ(_SavedPoints[point].nz, _CurrentPoints[point].nz);
     }
 }
 
-BOOST_FIXTURE_TEST_CASE(SavedCubeRayTraceComparison, CubeRayTraceFixture)
+TEST_F(CubeRayTraceFixture, SavedCubeRayTraceComparison)
 {
 
     // Compare the saved and fixture-created raytrace() points
-    BOOST_CHECK_EQUAL(_SavedPoints.size(), _CurrentPoints.size());
+    EXPECT_EQ(_SavedPoints.size(), _CurrentPoints.size());
 
     // loop over points
     for (size_t point = 0; point < _SavedPoints.size(); point++) {
 
-        volcart::testing::SmallOrClose(
-            _SavedPoints[point].x, _CurrentPoints[point].x);
-        volcart::testing::SmallOrClose(
-            _SavedPoints[point].y, _CurrentPoints[point].y);
-        volcart::testing::SmallOrClose(
-            _SavedPoints[point].z, _CurrentPoints[point].z);
-        volcart::testing::SmallOrClose(
-            _SavedPoints[point].nx, _CurrentPoints[point].nx);
-        volcart::testing::SmallOrClose(
-            _SavedPoints[point].ny, _CurrentPoints[point].ny);
-        volcart::testing::SmallOrClose(
-            _SavedPoints[point].nz, _CurrentPoints[point].nz);
+        EXPECT_DOUBLE_EQ(_SavedPoints[point].x, _CurrentPoints[point].x);
+        EXPECT_DOUBLE_EQ(_SavedPoints[point].y, _CurrentPoints[point].y);
+        EXPECT_DOUBLE_EQ(_SavedPoints[point].z, _CurrentPoints[point].z);
+        EXPECT_DOUBLE_EQ(_SavedPoints[point].nx, _CurrentPoints[point].nx);
+        EXPECT_DOUBLE_EQ(_SavedPoints[point].ny, _CurrentPoints[point].ny);
+        EXPECT_DOUBLE_EQ(_SavedPoints[point].nz, _CurrentPoints[point].nz);
     }
 }
 
-BOOST_FIXTURE_TEST_CASE(SavedArchRayTraceComparison, ArchRayTraceFixture)
+TEST_F(ArchRayTraceFixture, SavedArchRayTraceComparison)
 {
 
     // Compare the saved and fixture-created raytrace() points
-    BOOST_CHECK_EQUAL(_SavedPoints.size(), _CurrentPoints.size());
+    EXPECT_EQ(_SavedPoints.size(), _CurrentPoints.size());
 
     // check points
     for (size_t point = 0; point < _SavedPoints.size(); point++) {
 
-        volcart::testing::SmallOrClose(
-            _SavedPoints[point].x, _CurrentPoints[point].x);
-        volcart::testing::SmallOrClose(
-            _SavedPoints[point].y, _CurrentPoints[point].y);
-        volcart::testing::SmallOrClose(
-            _SavedPoints[point].z, _CurrentPoints[point].z);
-        volcart::testing::SmallOrClose(
-            _SavedPoints[point].nx, _CurrentPoints[point].nx);
-        volcart::testing::SmallOrClose(
-            _SavedPoints[point].ny, _CurrentPoints[point].ny);
-        volcart::testing::SmallOrClose(
-            _SavedPoints[point].nz, _CurrentPoints[point].nz);
+        EXPECT_DOUBLE_EQ(_SavedPoints[point].x, _CurrentPoints[point].x);
+        EXPECT_DOUBLE_EQ(_SavedPoints[point].y, _CurrentPoints[point].y);
+        EXPECT_DOUBLE_EQ(_SavedPoints[point].z, _CurrentPoints[point].z);
+        EXPECT_DOUBLE_EQ(_SavedPoints[point].nx, _CurrentPoints[point].nx);
+        EXPECT_DOUBLE_EQ(_SavedPoints[point].ny, _CurrentPoints[point].ny);
+        EXPECT_DOUBLE_EQ(_SavedPoints[point].nz, _CurrentPoints[point].nz);
     }
 }
 
-BOOST_FIXTURE_TEST_CASE(SavedSphereRayTraceComparison, SphereRayTraceFixture)
+TEST_F(SphereRayTraceFixture, SavedSphereRayTraceComparison)
 {
 
     // Compare the saved and fixture-created raytrace() points
-    BOOST_CHECK_EQUAL(_SavedPoints.size(), _CurrentPoints.size());
+    EXPECT_EQ(_SavedPoints.size(), _CurrentPoints.size());
 
     // loop over points
     for (size_t point = 0; point < _SavedPoints.size(); point++) {
 
-        volcart::testing::SmallOrClose(
-            _SavedPoints[point].x, _CurrentPoints[point].x);
-        volcart::testing::SmallOrClose(
-            _SavedPoints[point].y, _CurrentPoints[point].y);
-        volcart::testing::SmallOrClose(
-            _SavedPoints[point].z, _CurrentPoints[point].z);
-        volcart::testing::SmallOrClose(
-            _SavedPoints[point].nx, _CurrentPoints[point].nx);
-        volcart::testing::SmallOrClose(
-            _SavedPoints[point].ny, _CurrentPoints[point].ny);
-        volcart::testing::SmallOrClose(
-            _SavedPoints[point].nz, _CurrentPoints[point].nz);
+        EXPECT_DOUBLE_EQ(_SavedPoints[point].x, _CurrentPoints[point].x);
+        EXPECT_DOUBLE_EQ(_SavedPoints[point].y, _CurrentPoints[point].y);
+        EXPECT_DOUBLE_EQ(_SavedPoints[point].z, _CurrentPoints[point].z);
+        EXPECT_DOUBLE_EQ(_SavedPoints[point].nx, _CurrentPoints[point].nx);
+        EXPECT_DOUBLE_EQ(_SavedPoints[point].ny, _CurrentPoints[point].ny);
+        EXPECT_DOUBLE_EQ(_SavedPoints[point].nz, _CurrentPoints[point].nz);
     }
 }
 
-BOOST_FIXTURE_TEST_CASE(SavedConeRayTraceComparison, ConeRayTraceFixture)
+TEST_F(ConeRayTraceFixture, SavedConeRayTraceComparison)
 {
 
     // Compare the saved and fixture-created raytrace() points
-    BOOST_CHECK_EQUAL(_SavedPoints.size(), _CurrentPoints.size());
+    EXPECT_EQ(_SavedPoints.size(), _CurrentPoints.size());
 
     // loop over points
     for (size_t point = 0; point < _SavedPoints.size(); point++) {
 
-        volcart::testing::SmallOrClose(
-            _SavedPoints[point].x, _CurrentPoints[point].x);
-        volcart::testing::SmallOrClose(
-            _SavedPoints[point].y, _CurrentPoints[point].y);
-        volcart::testing::SmallOrClose(
-            _SavedPoints[point].z, _CurrentPoints[point].z);
-        volcart::testing::SmallOrClose(
-            _SavedPoints[point].nx, _CurrentPoints[point].nx);
-        volcart::testing::SmallOrClose(
-            _SavedPoints[point].ny, _CurrentPoints[point].ny);
-        volcart::testing::SmallOrClose(
-            _SavedPoints[point].nz, _CurrentPoints[point].nz);
+        EXPECT_DOUBLE_EQ(_SavedPoints[point].x, _CurrentPoints[point].x);
+        EXPECT_DOUBLE_EQ(_SavedPoints[point].y, _CurrentPoints[point].y);
+        EXPECT_DOUBLE_EQ(_SavedPoints[point].z, _CurrentPoints[point].z);
+        EXPECT_DOUBLE_EQ(_SavedPoints[point].nx, _CurrentPoints[point].nx);
+        EXPECT_DOUBLE_EQ(_SavedPoints[point].ny, _CurrentPoints[point].ny);
+        EXPECT_DOUBLE_EQ(_SavedPoints[point].nz, _CurrentPoints[point].nz);
     }
 }

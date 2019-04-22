@@ -1,9 +1,7 @@
-#define BOOST_TEST_MODULE PPMGenerator
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 #include <chrono>
-
-#include <boost/test/data/test_case.hpp>
-#include <boost/test/unit_test.hpp>
 
 #include "vc/core/shapes/Plane.hpp"
 #include "vc/texturing/PPMGenerator.hpp"
@@ -11,13 +9,14 @@
 namespace vc = volcart;
 namespace vct = volcart::texturing;
 
-namespace data = boost::unit_test::data;
+class PPMGeneratorTest : public ::testing::TestWithParam<int>
+{
+};
 
-// Test performance relative to mesh size
-BOOST_DATA_TEST_CASE(Performance, data::make({2, 5, 10, 50, 100, 500, 1000}))
+TEST_P(PPMGeneratorTest, PerformanceTest)
 {
     // Build Plane
-    vc::shapes::Plane plane(sample, sample);
+    vc::shapes::Plane plane(GetParam(), GetParam());
 
     // Get ITK Mesh
     auto mesh = plane.itkMesh();
@@ -25,10 +24,10 @@ BOOST_DATA_TEST_CASE(Performance, data::make({2, 5, 10, 50, 100, 500, 1000}))
     // Generate UV map
     vc::UVMap uvMap;
     size_t pID = 0;
-    for (int y = 0; y < sample; y++) {
-        auto v = double(y) / (sample - 1);
-        for (int x = 0; x < sample; x++) {
-            auto u = double(x) / (sample - 1);
+    for (int y = 0; y < GetParam(); y++) {
+        auto v = double(y) / (GetParam() - 1);
+        for (int x = 0; x < GetParam(); x++) {
+            auto u = double(x) / (GetParam() - 1);
             uvMap.set(pID++, {u, v});
         }
     }
@@ -44,5 +43,11 @@ BOOST_DATA_TEST_CASE(Performance, data::make({2, 5, 10, 50, 100, 500, 1000}))
     ppmGenerator.compute();
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<double> secs = end - start;
-    std::cout << "size: " << sample << " | elapsed: " << secs.count() << "s\n";
+    std::cout << "size: " << GetParam() << " | elapsed: " << secs.count()
+              << "s\n";
 }
+
+INSTANTIATE_TEST_CASE_P(
+    PerformanceTest,
+    PPMGeneratorTest,
+    ::testing::Values(2, 5, 10, 50, 100, 500, 1000), );

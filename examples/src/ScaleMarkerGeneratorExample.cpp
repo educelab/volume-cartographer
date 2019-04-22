@@ -1,6 +1,3 @@
-//
-// Created by Kyra Seevers on 10/17/18.
-//
 #include <iostream>
 
 #include <opencv2/imgcodecs.hpp>

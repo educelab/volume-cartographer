@@ -1,13 +1,13 @@
-#define BOOST_TEST_MODULE LocalResliceParticleSimIntensitymap
+#include <gtest/gtest.h>
 
 #include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <numeric>
 #include <vector>
-#include <boost/test/unit_test.hpp>
-#include <boost/test/unit_test_log.hpp>
+
 #include "vc/segmentation/lrps/IntensityMap.hpp"
+#include "vc/testing/TestingUtils.hpp"
 
 using namespace volcart::segmentation;
 
@@ -22,17 +22,17 @@ cv::Mat_<uint16_t> makeLinearIntensityProfile(
     const std::vector<std::pair<size_t, uint16_t>> maxima);
 
 // Fixture to generate a reslice
-struct ResliceFixture {
+class ResliceFixture : public ::testing::Test
+{
+public:
     cv::Mat_<uint16_t> _reslice;
-
     ResliceFixture() : _reslice(HEIGHT, WIDTH, uint16_t(0)) {}
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 // Tests with a constant intensity profile
-BOOST_FIXTURE_TEST_SUITE(FlatIntensityProfile, ResliceFixture)
 
-BOOST_AUTO_TEST_CASE(AllMaxima)
+TEST_F(ResliceFixture, AllMaxima)
 {
     std::vector<uint16_t> rowVec{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -43,16 +43,13 @@ BOOST_AUTO_TEST_CASE(AllMaxima)
 
     IntensityMap map(_reslice, 1, 50, false);
     auto result = map.sortedMaxima();
-    BOOST_CHECK_EQUAL(result.size(), map.peakRadius() * 2 + 1);
+    EXPECT_EQ(result.size(), map.peakRadius() * 2 + 1);
 }
-
-BOOST_AUTO_TEST_SUITE_END()
 
 ////////////////////////////////////////////////////////////////////////////////
 // Tests with a single maxima scaled and shifted
-BOOST_FIXTURE_TEST_SUITE(OneMaxima, ResliceFixture)
 
-BOOST_AUTO_TEST_CASE(OneMaximaInTheMiddle)
+TEST_F(ResliceFixture, OneMaximaInTheMiddle)
 {
     // Make a triangle-shaped row with maxima in the center
     std::vector<uint16_t> rowVec{0,  0,  0,  0,  0,  0,  0,  2,  4,  8,  10,
@@ -68,12 +65,12 @@ BOOST_AUTO_TEST_CASE(OneMaximaInTheMiddle)
     IntensityMap map(_reslice, 1, 50, false);
     auto result = map.sortedMaxima();
 
-    BOOST_REQUIRE_EQUAL(result.size(), 1);
-    BOOST_CHECK_EQUAL(result[0].first, WIDTH / 2);
-    BOOST_CHECK_CLOSE(result[0].second, 1, perc);
+    ASSERT_EQ(result.size(), 1);
+    EXPECT_EQ(result[0].first, WIDTH / 2);
+    volcart::testing::ExpectNear(result[0].second, 1, perc);
 }
 
-BOOST_AUTO_TEST_CASE(OneMaximaShifted)
+TEST_F(ResliceFixture, OneMaximaShifted)
 {
     // Make a triangle-shaped row with maxima in at center + 5
     std::vector<uint16_t> rowVec{0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -88,18 +85,15 @@ BOOST_AUTO_TEST_CASE(OneMaximaShifted)
     IntensityMap map(_reslice, 1, 50, false);
     auto result = map.sortedMaxima();
 
-    BOOST_REQUIRE_EQUAL(result.size(), 1);
-    BOOST_CHECK_EQUAL(result[0].first, WIDTH / 2 + 5);
-    BOOST_CHECK_CLOSE(result[0].second, 1, perc);
+    ASSERT_EQ(result.size(), 1);
+    EXPECT_EQ(result[0].first, WIDTH / 2 + 5);
+    volcart::testing::ExpectNear(result[0].second, 1, perc);
 }
-
-BOOST_AUTO_TEST_SUITE_END()
 
 ////////////////////////////////////////////////////////////////////////////////
 // Tests with two maxima
-BOOST_FIXTURE_TEST_SUITE(TwoMaxima, ResliceFixture)
 
-BOOST_AUTO_TEST_CASE(TwoMaximaEquallySpacedInPeakRadius)
+TEST_F(ResliceFixture, TwoMaximaEquallySpacedInPeakRadius)
 {
     std::vector<uint16_t> rowVec{0,  0,  0,  0,  2,  4, 8,  10, 12, 14, 16,
                                  18, 20, 32, 20, 10, 0, 10, 20, 32, 20, 18,
@@ -111,12 +105,12 @@ BOOST_AUTO_TEST_CASE(TwoMaximaEquallySpacedInPeakRadius)
     IntensityMap map(_reslice, 1, 50, false);
     auto result = map.sortedMaxima();
 
-    BOOST_REQUIRE_EQUAL(result.size(), 2);
-    BOOST_CHECK_EQUAL(result[0].first, WIDTH / 2 - 3);
-    BOOST_CHECK_EQUAL(result[1].first, WIDTH / 2 + 3);
+    ASSERT_EQ(result.size(), 2);
+    EXPECT_EQ(result[0].first, WIDTH / 2 - 3);
+    EXPECT_EQ(result[1].first, WIDTH / 2 + 3);
 }
 
-BOOST_AUTO_TEST_CASE(TwoMaximaOneInsidePeakRadius)
+TEST_F(ResliceFixture, TwoMaximaOneInsidePeakRadius)
 {
     std::vector<uint16_t> rowVec{0,  0,  0,  0,  2,  4, 8, 10, 12, 14, 16,
                                  18, 20, 32, 20, 14, 8, 2, 0,  2,  8,  14,
@@ -128,11 +122,11 @@ BOOST_AUTO_TEST_CASE(TwoMaximaOneInsidePeakRadius)
     IntensityMap map(_reslice, 1, 50, false);
     auto result = map.sortedMaxima();
 
-    BOOST_REQUIRE_EQUAL(result.size(), 1);
-    BOOST_CHECK_EQUAL(result[0].first, WIDTH / 2 - 3);
+    ASSERT_EQ(result.size(), 1);
+    EXPECT_EQ(result[0].first, WIDTH / 2 - 3);
 }
 
-BOOST_AUTO_TEST_CASE(TwoMaximaOneCloserToMiddle)
+TEST_F(ResliceFixture, TwoMaximaOneCloserToMiddle)
 {
     std::vector<uint16_t> rowVec{0,  0,  0,  0,  2,  4, 8,  10, 12, 14, 16,
                                  18, 20, 32, 20, 10, 0, 32, 28, 24, 20, 18,
@@ -144,12 +138,12 @@ BOOST_AUTO_TEST_CASE(TwoMaximaOneCloserToMiddle)
     IntensityMap map(_reslice, 1, 50, false);
     auto result = map.sortedMaxima();
 
-    BOOST_REQUIRE_EQUAL(result.size(), 2);
-    BOOST_CHECK_EQUAL(result[0].first, WIDTH / 2 + 1);
-    BOOST_CHECK_EQUAL(result[1].first, WIDTH / 2 - 3);
+    ASSERT_EQ(result.size(), 2);
+    EXPECT_EQ(result[0].first, WIDTH / 2 + 1);
+    EXPECT_EQ(result[1].first, WIDTH / 2 - 3);
 }
 
-BOOST_AUTO_TEST_CASE(TwoMaximaOneCloserToMiddleButShorter)
+TEST_F(ResliceFixture, TwoMaximaOneCloserToMiddleButShorter)
 {
     std::vector<uint16_t> rowVec{0,  0,  0,  0,  2,  4, 8, 10, 12, 14, 16,
                                  18, 20, 32, 20, 10, 0, 5, 14, 12, 10, 8,
@@ -161,9 +155,7 @@ BOOST_AUTO_TEST_CASE(TwoMaximaOneCloserToMiddleButShorter)
     IntensityMap map(_reslice, 1, 50, false);
     auto result = map.sortedMaxima();
 
-    BOOST_REQUIRE_EQUAL(result.size(), 2);
-    BOOST_CHECK_EQUAL(result[0].first, WIDTH / 2 - 3);
-    BOOST_CHECK_EQUAL(result[1].first, WIDTH / 2 + 2);
+    ASSERT_EQ(result.size(), 2);
+    EXPECT_EQ(result[0].first, WIDTH / 2 - 3);
+    EXPECT_EQ(result[1].first, WIDTH / 2 + 2);
 }
-
-BOOST_AUTO_TEST_SUITE_END()

@@ -1,8 +1,6 @@
-#define BOOST_TEST_MODULE NDArray
-
 #include <iostream>
 
-#include <boost/test/unit_test.hpp>
+#include <gtest/gtest.h>
 
 #include "vc/core/types/NDArray.hpp"
 
@@ -12,7 +10,7 @@ namespace vc = volcart;
 using IntArray = vc::NDArray<int>;
 using Idx = IntArray::IndexType;
 
-BOOST_AUTO_TEST_CASE(Array4D)
+TEST(NDArray, Array4D)
 {
     // Constructor
     IntArray::Extent size4{5, 4, 3, 2};
@@ -22,10 +20,10 @@ BOOST_AUTO_TEST_CASE(Array4D)
     array4(4, 3, 2, 1) = 18;
 
     // Retrieval
-    BOOST_TEST(array4(4, 3, 2, 1) == 18);
+    EXPECT_EQ(array4(4, 3, 2, 1), 18);
 }
 
-BOOST_AUTO_TEST_CASE(Array3D)
+TEST(NDArray, Array3D)
 {
     //// 3D array ////
     // Initialize the Extents with a list
@@ -44,10 +42,10 @@ BOOST_AUTO_TEST_CASE(Array3D)
         }
     }
 
-    BOOST_TEST(array3(3, 3, 3) == 81);
+    EXPECT_EQ(array3(3, 3, 3), 81);
 }
 
-BOOST_AUTO_TEST_CASE(Array2D)
+TEST(NDArray, Array2D)
 {
 
     // Fill a 3D array
@@ -59,21 +57,21 @@ BOOST_AUTO_TEST_CASE(Array2D)
 
     // Get 2D array by slicing the 3D array
     IntArray array2 = array3.slice(3);
-    BOOST_TEST(array2(3, 3) == 63);
+    EXPECT_EQ(array2(3, 3), 63);
 
     // Get 2D array by flattening the 3D array
     IntArray arrayFlattened = array3;
     IntArray::Flatten(arrayFlattened, 2);
-    BOOST_TEST(arrayFlattened(15, 3) == 63);
+    EXPECT_EQ(arrayFlattened(15, 3), 63);
 }
 
-BOOST_AUTO_TEST_CASE(BadConstructor)
+TEST(NDArray, BadConstructor)
 {
     // Get raw data
     std::vector<int> data = {0, 1, 2};
 
     // Try to make bad array
-    BOOST_CHECK_THROW(
+    EXPECT_THROW(
         IntArray array2_3(2, {5, 3}, data.begin(), data.end()),
         std::invalid_argument);
 }

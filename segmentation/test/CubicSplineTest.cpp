@@ -1,16 +1,14 @@
-#define BOOST_TEST_MODULE LocalResliceParticleSimCubicSpline
+#include <gtest/gtest.h>
 
 #include <cmath>
 #include <iostream>
 #include <numeric>
 #include <vector>
-#include <boost/test/floating_point_comparison.hpp>
-#include <boost/test/unit_test.hpp>
-#include <boost/test/unit_test_log.hpp>
+
 #include "vc/segmentation/lrps/Spline.hpp"
+#include "vc/testing/TestingUtils.hpp"
 
 using namespace volcart::segmentation;
-namespace btt = boost::test_tools;
 
 // Global float comparison percent tolerance
 static const double floatComparePercentTolerance = 0.01;  // %
@@ -19,6 +17,7 @@ std::vector<double> generateTVals(size_t count);
 
 // Fixture for a spline parameterizing y = 1
 struct ConstantCubicSpline {
+
     size_t _knotCount;
     double _yConstant;
     CubicSpline<double> _spline;
@@ -43,6 +42,7 @@ struct ConstantCubicSpline {
 
 // Fixture for a spline parameterizing y = x^2
 struct ParabolicCubicSpline {
+
     size_t _knotCount;
     double _splineStart;
     CubicSpline<double> _spline;
@@ -73,7 +73,7 @@ struct ParabolicCubicSpline {
 // Test tval generation
 // Note: use BOOST_REQUIRE_* here so we don't go on to other tests if this check
 // fails since those tests rely on this functionality
-BOOST_AUTO_TEST_CASE(CanGenerateCorrectTValues)
+TEST(CubicSplineTest, CanGenerateCorrectTValues)
 {
     // Create N t-values to evaluate the spline at and make sure we get a
     // constant back y-value back
@@ -83,17 +83,17 @@ BOOST_AUTO_TEST_CASE(CanGenerateCorrectTValues)
     // Start at 2 so we skip the first pair
     double firstDiff = ts[1] - ts[0];
     for (size_t i = 2; i < ts.size(); ++i) {
-        BOOST_REQUIRE_CLOSE(
+        volcart::testing::AssertNear(
             firstDiff, ts[i] - ts[i - 1], floatComparePercentTolerance);
     }
     for (const auto t : ts) {
-        BOOST_REQUIRE(t >= 0 && t <= 1);
+        ASSERT_TRUE(t >= 0 && t <= 1);
     }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Test constant spline
-BOOST_AUTO_TEST_CASE(YEqualsOne)
+TEST(CubicSplineTest, YEqualsOne)
 {
     size_t count = 10;
     ConstantCubicSpline s(count, 1.0);
@@ -117,24 +117,26 @@ BOOST_AUTO_TEST_CASE(YEqualsOne)
                     */
 
         // Check that p0 < p1 in x-domain
-        BOOST_CHECK(p0(0) < p1(0));
+        EXPECT_TRUE(p0(0) < p1(0));
 
         // Check that our y-value is constant
-        BOOST_CHECK_CLOSE(p0(1), s._yConstant, floatComparePercentTolerance);
-        BOOST_CHECK_CLOSE(p1(1), s._yConstant, floatComparePercentTolerance);
+        volcart::testing::ExpectNear(
+            p0(1), s._yConstant, floatComparePercentTolerance);
+        volcart::testing::ExpectNear(
+            p1(1), s._yConstant, floatComparePercentTolerance);
     }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Test parabolic spline
-BOOST_AUTO_TEST_CASE(YEqualsXSquaredValues)
+TEST(CubicSplineTest, YEqualsXSquaredValues)
 {
     size_t count = 20;
     ParabolicCubicSpline s(count, -10);
     auto ts = generateTVals(count * 2);
     for (auto t : ts) {
         auto p = s._spline(t);
-        BOOST_WARN_CLOSE(p(0) * p(0), p(1), 2.0);
+        volcart::testing::ExpectNear(p(0) * p(0), p(1), 2.0);
     }
 }
 

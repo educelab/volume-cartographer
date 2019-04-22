@@ -1,216 +1,73 @@
-//
-// Created by Ryan Taber on 12/9/15.
-//
-
-#define BOOST_TEST_MODULE PLYWriter
+#include <gtest/gtest.h>
 
 #include "vc/core/io/PLYWriter.hpp"
-
-#include <boost/test/unit_test.hpp>
-#include <boost/test/unit_test_log.hpp>
-
 #include "vc/core/shapes/Plane.hpp"
 #include "vc/core/types/SimpleMesh.hpp"
-#include "vc/core/util/Logging.hpp"
 #include "vc/testing/ParsingHelpers.hpp"
-#include "vc/testing/TestingUtils.hpp"
 
-using namespace volcart;
+namespace vc = volcart;
+namespace vcshapes = volcart::shapes;
+namespace vctest = volcart::testing;
 
-/***************************************************************************************
- *                                                                                     *
- *  PLYWriterTest.cpp - tests the functionality of /v-c/core/PLYWriter.cpp *
- *  The ultimate goal of this file is the following: *
- *                                                                                     *
- *        1. check whether a testing mesh, created by *
- *           core/shapes/Plane.h, can be written into *
- *           a .ply file by core/io/PLYWriter.cpp. *
- *                                                                                     *
- *        2. read contents of ply file and compare data with testing mesh *
- *                                                                                     *
- *  This file is broken up into a testing fixture, meshFix, which initializes
- * the      *
- *  objects used in each of the two test cases. *
- *                                                                                     *
- *  writeTest (test case): *
- *                                                                                     *
- *      attempts to write a testing mesh to file and compares final output path
- * *
- *      as a check for success. Note, this test always outputs the file as *
- *      "PlyWriter_Plane.ply" because there is no texture information included
- * when    *
- *      writing. *
- *                                                                                     *
- *  compareElements (test case): *
- *                                                                                     *
- *      Attempts to read in information from ply file using created by
- * PLYWriter.cpp.  *
- *      As data is read in from the ply file, collections of points and faces
- * are      *
- *      created to compare against points and faces created during
- * initialization      *
- *      of the testing mesh by meshFix. This parsing is done by the parsePly
- * method    *
- *      implemented in ParsingHelpers.cpp. The test then compares all
- * non-commented    *
- *      data from the file against the testing mesh data to ensure equality. *
- *                                                                                     *
- * Input: *
- *     No required inputs for this sample test. Note: the PlyWriter_Plane.ply
- * must be  *
- *     copied from test_data/common to curr_bin_dir when building, which is
- * handled    *
- *     by cmake. *
- *                                                                                     *
- * Test-Specific Output: *
- *     Specific test output only given on failure of any tests. Otherwise,
- * general     *
- *     number of testing errors is output. *
- *                                                                                     *
- * *************************************************************************************/
-
-/*
- * This fixture builds objects for each of the test cases below that reference
- * the fixture as their second argument
- *
- */
-
-struct CreateITKPlaneMeshFixture {
-
-    CreateITKPlaneMeshFixture()
+class PLYWriter : public ::testing::Test
+{
+public:
+    PLYWriter()
     {
-
-        // create the mesh for all the test cases to use
-        _in_PlaneMesh = _Plane.itkMesh();
-
-        // read in data from saved PlyWriter_Plane.ply via
-        // ParsingHelpers::ParsePLYFile
-        volcart::testing::ParsingHelpers::ParsePLYFile(
-            "PlyWriter_Plane.ply", _SavedPlanePoints, _SavedPlaneCells);
-
-        BOOST_TEST_MESSAGE("setting up Plane mesh...");
+        // create a test mesh
+        vcshapes::Plane plane;
+        mesh = plane.itkMesh();
+        writer.setMesh(mesh);
     }
 
-    ~CreateITKPlaneMeshFixture()
-    {
-        BOOST_TEST_MESSAGE("cleaning up Plane mesh objects...");
-    }
-
-    // file path and PLYWriter to be used in cases
-    volcart::io::PLYWriter _MeshWriter;
-    boost::filesystem::path ObjPath;
-    ITKMesh::Pointer _in_PlaneMesh;
-    volcart::shapes::Plane _Plane;
-
-    // vectors to hold vertices and faces saved in PlyWriter_Plane.ply
-    std::vector<SimpleMesh::Vertex> _SavedPlanePoints;
-    std::vector<SimpleMesh::Cell> _SavedPlaneCells;
+    vc::ITKMesh::Pointer mesh;
+    std::string path{"vc_core_PLYWriter_"};
+    vc::io::PLYWriter writer;
 };
 
-// Test for checking successful write
-BOOST_FIXTURE_TEST_CASE(WriteMeshToPLYFileTest, CreateITKPlaneMeshFixture)
+TEST_F(PLYWriter, UntexturedMesh)
 {
+    // Write test file
+    path += "Untextured.ply";
+    writer.setPath(path);
+    EXPECT_EQ(writer.write(), EXIT_SUCCESS);
 
-    logger->debug("Writing mesh to ply file...");
+    // load in written data
+    vc::SimpleMesh saved;
+    vctest::ParsingHelpers::ParsePLYFile(path, saved.verts, saved.faces);
 
-    _MeshWriter.setPath("nothing");
-    //_MeshWriter.setUVMap( uvMap );
-    // _MeshWriter.setTexture( uvImg );
+    // compare number of points and cells for equality
+    EXPECT_EQ(mesh->GetNumberOfPoints(), saved.verts.size());
+    EXPECT_EQ(mesh->GetNumberOfCells(), saved.faces.size());
 
-    ObjPath = _MeshWriter.getPath();
-    ObjPath = boost::filesystem::absolute(ObjPath);
+    // Check vertex values
+    size_t idx = 0;
+    vc::ITKPixel origN;
+    for (const auto& v : saved.verts) {
+        // Check 3D Position
+        auto orig = mesh->GetPoint(idx);
+        EXPECT_DOUBLE_EQ(v.x, orig[0]);
+        EXPECT_DOUBLE_EQ(v.y, orig[1]);
+        EXPECT_DOUBLE_EQ(v.z, orig[2]);
 
-    // _MeshWriter.write() runs validate() as well, but this lets us handle a
-    // mesh that can't be validated.
-    if (_MeshWriter.validate())
-        _MeshWriter.write();
-    else {
-        _MeshWriter.setPath("PlyWriter_Plane.ply");
-        _MeshWriter.setMesh(_in_PlaneMesh);
-        _MeshWriter.write();
+        // Check Normal
+        mesh->GetPointData(idx, &origN);
+        EXPECT_DOUBLE_EQ(v.nx, origN[0]);
+        EXPECT_DOUBLE_EQ(v.ny, origN[1]);
+        EXPECT_DOUBLE_EQ(v.nz, origN[2]);
+
+        idx++;
     }
 
-    // check the file path from the _MeshWriter.write() call above
-    // compare() returns 0 only if paths are same value
-    // lexicographically-speaking
-    // checking "PlyWriter_Plane.ply" here because the _in_PlaneMeshWriter
-    // shouldn't validate in the current case
-    BOOST_CHECK_EQUAL(_MeshWriter.getPath().compare("PlyWriter_Plane.ply"), 0);
-}
+    // Check face vertex IDs
+    idx = 0;
+    for (const auto& f : saved.faces) {
+        auto orig = mesh->GetCells()->GetElement(idx);
 
-BOOST_FIXTURE_TEST_CASE(
-    CompareFixtureMeshAndSavedMeshData, CreateITKPlaneMeshFixture)
-{
+        EXPECT_EQ(f.v1, orig->GetPointIds()[0]);
+        EXPECT_EQ(f.v2, orig->GetPointIds()[1]);
+        EXPECT_EQ(f.v3, orig->GetPointIds()[2]);
 
-    // compare number of points and cells in each mesh
-    BOOST_CHECK_EQUAL(
-        _in_PlaneMesh->GetNumberOfPoints(), _SavedPlanePoints.size());
-    BOOST_CHECK_EQUAL(
-        _in_PlaneMesh->GetNumberOfCells(), _SavedPlaneCells.size());
-
-    /// Points ///
-    logger->debug("Comparing points...");
-    for (uint64_t p = 0; p < _SavedPlanePoints.size(); p++) {
-
-        volcart::testing::SmallOrClose(
-            _SavedPlanePoints[p].x, _in_PlaneMesh->GetPoint(p)[0]);
-        volcart::testing::SmallOrClose(
-            _SavedPlanePoints[p].y, _in_PlaneMesh->GetPoint(p)[1]);
-        volcart::testing::SmallOrClose(
-            _SavedPlanePoints[p].z, _in_PlaneMesh->GetPoint(p)[2]);
-    }
-
-    // Normals //
-    logger->debug("Comparing normals...");
-    int p_id = 0;
-    for (ITKPointIterator point = _in_PlaneMesh->GetPoints()->Begin();
-         point != _in_PlaneMesh->GetPoints()->End(); ++point) {
-
-        ITKPixel _in_PlaneMeshNormal;
-        _in_PlaneMesh->GetPointData(point.Index(), &_in_PlaneMeshNormal);
-
-        // Now compare the normals for the two meshes
-        volcart::testing::SmallOrClose(
-            _in_PlaneMeshNormal[0], _SavedPlanePoints[p_id].nx);
-        volcart::testing::SmallOrClose(
-            _in_PlaneMeshNormal[1], _SavedPlanePoints[p_id].ny);
-        volcart::testing::SmallOrClose(
-            _in_PlaneMeshNormal[2], _SavedPlanePoints[p_id].nz);
-
-        p_id++;
-    }
-
-    /// Cells ///
-    // Initialize Cell Iterators
-    ITKCellIterator _in_PlaneMeshCell = _in_PlaneMesh->GetCells()->Begin();
-
-    int c = 0;
-
-    while (_in_PlaneMeshCell != _in_PlaneMesh->GetCells()->End()) {
-
-        // Initialize Iterators for Points in a Cell
-        ITKPointInCellIterator _in_PlaneMeshPoint =
-            _in_PlaneMeshCell.Value()->PointIdsBegin();
-
-        int counter = 0;
-        // while we have points in the cell
-        while (_in_PlaneMeshPoint != _in_PlaneMeshCell.Value()->PointIdsEnd()) {
-
-            // Now to check the points within the cells
-            if (counter == 0)
-                BOOST_CHECK_EQUAL(*_in_PlaneMeshPoint, _SavedPlaneCells[c].v1);
-            else if (counter == 1)
-                BOOST_CHECK_EQUAL(*_in_PlaneMeshPoint, _SavedPlaneCells[c].v2);
-            else if (counter == 2)
-                BOOST_CHECK_EQUAL(*_in_PlaneMeshPoint, _SavedPlaneCells[c].v3);
-
-            // increment points
-            _in_PlaneMeshPoint++;
-            counter++;
-        }
-
-        // increment cells
-        ++_in_PlaneMeshCell;
-        ++c;
+        idx++;
     }
 }

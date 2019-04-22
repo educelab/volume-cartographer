@@ -1,39 +1,9 @@
-//
-// Created by Seth Parker on 8/3/16.
-//
+#include <gtest/gtest.h>
 
-#define BOOST_TEST_MODULE Metadata
+#include <string>
 
 #include "vc/core/types/Metadata.hpp"
-
-#include <boost/test/unit_test.hpp>
-
 #include "vc/core/util/Logging.hpp"
-
-/************************************************************************************
- *                                                                                  *
- *  MetadataTest.cpp - tests the functionality of
- * /v-c/core/datatypes/Metadata.*  *
- *  The ultimate goal of this file is the following: *
- *                                                                                  *
- *  Check that we are able to create a Metadata, retrieve/set key-value pairs *
- *  appropriately, and serialize to and read from disk *
- *                                                                                  *
- *  This file is broken up into testing fixtures which initialize the *
- *  objects used in each of the three test cases. *
- *                                                                                  *
- *  1. Set/GetMetadata *
- *  2. IOMetadata *
- *                                                                                  *
- * Input: *
- *     No required inputs for this sample test. *
- *                                                                                  *
- * Test-Specific Output: *
- *     Specific test output only given on failure of any tests. Otherwise,
- * general  *
- *     number of testing errors is output. *
- *                                                                                  *
- * **********************************************************************************/
 
 /***************
  *
@@ -41,43 +11,24 @@
  *
  ***************/
 
-struct EmptyMetadataFixture {
-
-    EmptyMetadataFixture()
-    {
-        volcart::logger->debug("Creating empty Metadata fixture...");
-    }
-
-    ~EmptyMetadataFixture()
-    {
-        volcart::logger->debug("Destroying empty Metadata fixture...");
-    }
-
-    volcart::Metadata _metadata;
-    int i = 1;
-    double d = 1.0;
-    std::string s = "value";
+class Metadata_Empty : public ::testing::Test
+{
+public:
+    volcart::Metadata meta;
+    int i{1};
+    double d{1.0};
+    std::string s{"value"};
 };
 
-struct FilledMetadataFixture {
-
-    FilledMetadataFixture()
+class Metadata_Filled : public Metadata_Empty
+{
+public:
+    Metadata_Filled()
     {
-        volcart::logger->debug("Creating filled Metadata fixture...");
-        _metadata.set("int", i);
-        _metadata.set("double", d);
-        _metadata.set("string", s);
+        meta.set("int", i);
+        meta.set("double", d);
+        meta.set("string", s);
     }
-
-    ~FilledMetadataFixture()
-    {
-        volcart::logger->debug("Destroying filled Metadata fixture...");
-    }
-
-    volcart::Metadata _metadata;
-    int i = 1;
-    double d = 1.0;
-    std::string s = "value";
 };
 
 /***************
@@ -87,37 +38,33 @@ struct FilledMetadataFixture {
  ***************/
 
 // Set/Get metadata
-BOOST_FIXTURE_TEST_CASE(SetGetMetadata, EmptyMetadataFixture)
+TEST_F(Metadata_Empty, SetGetMetadata)
 {
     // int
-    _metadata.set("int", i);
-    BOOST_CHECK_EQUAL(_metadata.get<int>("int"), i);
+    meta.set("int", i);
+    EXPECT_EQ(meta.get<int>("int"), i);
 
     // double
-    _metadata.set("double", d);
-    BOOST_CHECK_EQUAL(_metadata.get<double>("double"), d);
+    meta.set("double", d);
+    EXPECT_EQ(meta.get<double>("double"), d);
 
     // string
-    _metadata.set("string", s);
-    BOOST_CHECK_EQUAL(_metadata.get<std::string>("string"), s);
+    meta.set("string", s);
+    EXPECT_EQ(meta.get<std::string>("string"), s);
 }
 
 // Write/Read metadata
-BOOST_FIXTURE_TEST_CASE(IOMetadata, FilledMetadataFixture)
+TEST_F(Metadata_Filled, IOMetadata)
 {
-
     // Save the Metadata to file
-    _metadata.setPath("FilledMetadata.json");
-    _metadata.save();
+    meta.setPath("FilledMetadata.json");
+    meta.save();
 
     // Read the Metadata from file
-    volcart::Metadata readMetadata("FilledMetadata.json");
+    volcart::Metadata read("FilledMetadata.json");
 
     // Check that what we read matches what we expect
-    BOOST_CHECK_EQUAL(readMetadata.get<int>("int"), _metadata.get<int>("int"));
-    BOOST_CHECK_EQUAL(
-        readMetadata.get<double>("double"), _metadata.get<double>("double"));
-    BOOST_CHECK_EQUAL(
-        readMetadata.get<std::string>("string"),
-        _metadata.get<std::string>("string"));
+    EXPECT_EQ(read.get<int>("int"), meta.get<int>("int"));
+    EXPECT_EQ(read.get<double>("double"), meta.get<double>("double"));
+    EXPECT_EQ(read.get<std::string>("string"), meta.get<std::string>("string"));
 }

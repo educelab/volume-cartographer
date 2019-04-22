@@ -1,6 +1,3 @@
-//
-// Created by Seth Parker on 7/24/15.
-//
 /*
  * Purpose: Run volcart::texturing::abf() and write results to file for each
  * shape. Saved file will be read in by the abfTest.cpp file under

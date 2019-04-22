@@ -34,9 +34,9 @@ public:
     /** N-Dim Array Index type */
     using Index = std::vector<IndexType>;
     /** Iterator type */
-    using Iterator = typename Container::iterator;
+    using iterator = typename Container::iterator;
     /** Const iterator type */
-    using ConstIterator = typename Container::const_iterator;
+    using const_iterator = typename Container::const_iterator;
 
     /**@{*/
     /** @brief Default constructor */
@@ -176,19 +176,19 @@ public:
     /**
      * @brief Return an iterator that points to the first element in the array
      */
-    Iterator begin() { return std::begin(data_); }
+    iterator begin() { return std::begin(data_); }
 
     /** @copydoc begin() */
-    ConstIterator begin() const { return std::begin(data_); }
+    const_iterator begin() const { return std::begin(data_); }
 
     /**
      * @brief Return an iterator that points to the \em past-the-end element
      * in the array
      */
-    Iterator end() { return std::end(data_); }
+    iterator end() { return std::end(data_); }
 
     /** @copydoc end() */
-    ConstIterator end() const { return std::end(data_); }
+    const_iterator end() const { return std::end(data_); }
 
     /** @brief Return a reference to the first element in the array */
     T& front() { return data_.front(); }

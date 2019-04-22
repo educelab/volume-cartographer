@@ -1,7 +1,3 @@
-//
-// Created by Seth Parker on 2/9/17.
-//
-
 #include "vc/core/io/OBJReader.hpp"
 
 namespace vc = volcart;

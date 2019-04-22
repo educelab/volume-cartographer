@@ -1,7 +1,3 @@
-//
-// Created by Seth Parker on 5/11/17.
-//
-
 #include <boost/filesystem.hpp>
 #include <boost/range/iterator_range.hpp>
 

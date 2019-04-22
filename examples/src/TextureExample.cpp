@@ -1,7 +1,3 @@
-//
-// Created by Seth Parker on 6/24/15.
-//
-
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/neighborhood/LineGenerator.hpp"
 #include "vc/core/types/VolumePkg.hpp"

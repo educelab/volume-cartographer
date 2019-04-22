@@ -1,6 +1,3 @@
-//
-// Created by Hannah Hatch on 8/15/16.
-//
 #ifdef VC_USE_VCGLIB
 
 #include <iostream>

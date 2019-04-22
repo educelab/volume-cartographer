@@ -1,10 +1,5 @@
-//
-// Created by Hannah Hatch on 7/26/16.
-//
+#include <gtest/gtest.h>
 
-#define BOOST_TEST_MODULE OrderedResampling
-
-#include <boost/test/unit_test.hpp>
 #include "vc/core/shapes/Arch.hpp"
 #include "vc/core/shapes/Plane.hpp"
 #include "vc/core/types/SimpleMesh.hpp"
@@ -14,7 +9,9 @@
 
 using namespace volcart;
 
-struct OrderedPlaneFixture {
+class OrderedPlaneFixture : public ::testing::Test
+{
+public:
     OrderedPlaneFixture()
     {
         _Plane = volcart::shapes::Plane(10, 10);
@@ -31,7 +28,9 @@ struct OrderedPlaneFixture {
     std::vector<SimpleMesh::Cell> _SavedCells;
 };
 
-struct OrderedArchFixture {
+class OrderedArchFixture : public ::testing::Test
+{
+public:
     OrderedArchFixture()
     {
         _Arch = volcart::shapes::Arch(20, 20);
@@ -48,7 +47,7 @@ struct OrderedArchFixture {
     std::vector<SimpleMesh::Cell> _SavedCells;
 };
 
-BOOST_FIXTURE_TEST_CASE(ResampledPlaneTest, OrderedPlaneFixture)
+TEST_F(OrderedPlaneFixture, ResampledPlaneTest)
 {
     volcart::meshing::OrderedResampling resample(
         _in_Mesh, _in_width, _in_height);
@@ -56,7 +55,7 @@ BOOST_FIXTURE_TEST_CASE(ResampledPlaneTest, OrderedPlaneFixture)
     _out_Mesh = resample.getOutputMesh();
 
     // Check Points and Normals
-    BOOST_CHECK_EQUAL(_out_Mesh->GetNumberOfPoints(), _SavedPoints.size());
+    EXPECT_EQ(_out_Mesh->GetNumberOfPoints(), _SavedPoints.size());
     for (uint64_t pnt_id = 0; pnt_id < _SavedPoints.size(); pnt_id++) {
         volcart::testing::SmallOrClose(
             _out_Mesh->GetPoint(pnt_id)[0], _SavedPoints[pnt_id].x);
@@ -76,17 +75,17 @@ BOOST_FIXTURE_TEST_CASE(ResampledPlaneTest, OrderedPlaneFixture)
 
     // Check Cells, Checks Point normals by ensuring that the first vertex is
     // the same in both
-    BOOST_CHECK_EQUAL(_SavedCells.size(), _out_Mesh->GetNumberOfCells());
+    EXPECT_EQ(_SavedCells.size(), _out_Mesh->GetNumberOfCells());
     for (uint64_t cell_id = 0; cell_id < _SavedCells.size(); cell_id++) {
         ITKCell::CellAutoPointer current_C;
         _out_Mesh->GetCell(cell_id, current_C);
-        BOOST_CHECK_EQUAL(current_C->GetPointIds()[0], _SavedCells[cell_id].v1);
-        BOOST_CHECK_EQUAL(current_C->GetPointIds()[1], _SavedCells[cell_id].v2);
-        BOOST_CHECK_EQUAL(current_C->GetPointIds()[2], _SavedCells[cell_id].v3);
+        EXPECT_EQ(current_C->GetPointIds()[0], _SavedCells[cell_id].v1);
+        EXPECT_EQ(current_C->GetPointIds()[1], _SavedCells[cell_id].v2);
+        EXPECT_EQ(current_C->GetPointIds()[2], _SavedCells[cell_id].v3);
     }
 }
 
-BOOST_FIXTURE_TEST_CASE(ResampledArchTest, OrderedArchFixture)
+TEST_F(OrderedArchFixture, ResampledArchTest)
 {
     volcart::meshing::OrderedResampling resample(
         _in_Mesh, _in_width, _in_height);
@@ -94,7 +93,7 @@ BOOST_FIXTURE_TEST_CASE(ResampledArchTest, OrderedArchFixture)
     _out_Mesh = resample.getOutputMesh();
 
     // Check Points and Normals
-    BOOST_CHECK_EQUAL(_out_Mesh->GetNumberOfPoints(), _SavedPoints.size());
+    EXPECT_EQ(_out_Mesh->GetNumberOfPoints(), _SavedPoints.size());
     for (uint64_t pnt_id = 0; pnt_id < _SavedPoints.size(); pnt_id++) {
         volcart::testing::SmallOrClose(
             _out_Mesh->GetPoint(pnt_id)[0], _SavedPoints[pnt_id].x);
@@ -114,12 +113,12 @@ BOOST_FIXTURE_TEST_CASE(ResampledArchTest, OrderedArchFixture)
 
     // Check Cells, Checks Point normals by ensuring that the first vertex is
     // the same in both
-    BOOST_CHECK_EQUAL(_SavedCells.size(), _out_Mesh->GetNumberOfCells());
+    EXPECT_EQ(_SavedCells.size(), _out_Mesh->GetNumberOfCells());
     for (uint64_t cell_id = 0; cell_id < _SavedCells.size(); cell_id++) {
         ITKCell::CellAutoPointer current_C;
         _out_Mesh->GetCell(cell_id, current_C);
-        BOOST_CHECK_EQUAL(current_C->GetPointIds()[0], _SavedCells[cell_id].v1);
-        BOOST_CHECK_EQUAL(current_C->GetPointIds()[1], _SavedCells[cell_id].v2);
-        BOOST_CHECK_EQUAL(current_C->GetPointIds()[2], _SavedCells[cell_id].v3);
+        EXPECT_EQ(current_C->GetPointIds()[0], _SavedCells[cell_id].v1);
+        EXPECT_EQ(current_C->GetPointIds()[1], _SavedCells[cell_id].v2);
+        EXPECT_EQ(current_C->GetPointIds()[2], _SavedCells[cell_id].v3);
     }
 }

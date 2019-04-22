@@ -93,6 +93,7 @@ target_link_libraries(${target}
     PRIVATE
         TIFF::TIFF
 )
+
 set_target_properties(${target} PROPERTIES
     VERSION "${PROJECT_VERSION}"
     EXPORT_NAME "${module}"
@@ -172,7 +173,8 @@ foreach(src ${test_srcs})
     target_link_libraries(${testname}
         VC::core
         VC::testing
-        Boost::unit_test_framework
+        gtest_main
+        gmock_main
     )
     add_test(
         NAME ${testname}
@@ -185,14 +187,14 @@ endforeach()
 set(COMMON_TEST_RES
     test/res/PlyWriter_Plane.ply
     test/res/GenericGradient.tif
-    test/res/OnlyFaces.obj
-    test/res/TexturedNoNormal.mtl
-    test/res/TexturedNoNormal.obj
-    test/res/TexturedPlane.mtl
-    test/res/TexturedPlane.obj
     test/res/Texture.png
-    test/res/UntexturedPlane.obj
-    test/res/Vertices.obj
+    test/res/vc_core_OBJReader_Invalid.obj
+    test/res/vc_core_OBJReader_Textured.mtl
+    test/res/vc_core_OBJReader_Textured.obj
+    test/res/vc_core_OBJReader_TexturedWithNormals.mtl
+    test/res/vc_core_OBJReader_TexturedWithNormals.obj
+    test/res/vc_core_OBJReader_UntexturedWithNormals.obj
+    test/res/vc_core_OBJReader_PointCloud.obj
 )
 
 # Copy each test resource file
