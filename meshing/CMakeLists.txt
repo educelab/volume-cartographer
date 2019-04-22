@@ -23,7 +23,7 @@ if (VC_USE_ACVD OR VC_USE_OPTIONAL)
 endif()
 if(VC_USE_VCG OR VC_USE_OPTIONAL)
     list(APPEND srcs src/QuadricEdgeCollapseDecimation.cpp)
-    list(APPEND deps vcglib Eigen3::Eigen)
+    list(APPEND public_deps vcglib Eigen3::Eigen)
     list(APPEND defs VC_USE_VCGLIB)
 endif()
 
@@ -39,6 +39,7 @@ target_link_libraries(${target}
     PUBLIC
         VC::core
         Boost::filesystem
+        ${public_deps}
     PRIVATE
         ITKTransform
         vtkFiltersGeneral
