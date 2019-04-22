@@ -17,6 +17,20 @@ namespace fs = boost::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
 
+// Canny values
+int blurSlider = 1;
+int gaussianKernel = 3;
+int minVal = 0;
+int maxVal = 255;
+int apertureSlider = 0;
+int aperture = 3;
+
+// Show Canny opts
+std::string windowName = "Canny Output";
+cv::Mat src, dst, mask;
+void ShowCanny(const cv::Mat& i);
+void CannyThreshold(int, void*);
+
 int main(int argc, char* argv[])
 {
     ///// Parse the command line options /////
@@ -32,8 +46,11 @@ int main(int argc, char* argv[])
 
     po::options_description segOpts("Segmentation Options");
     segOpts.add_options()
-        ("threshold", po::value<int>()->default_value(100), "Canny Threshold #1")
-        ("threshold2", po::value<int>()->default_value(150), "Canny Threshold #2");
+        ("calculate-midpoint", "When enabled, try to find a surface midpoint")
+        ("threshold-min", po::value<int>()->default_value(100), "Minimum Intensity Gradient")
+        ("threshold-max", po::value<int>()->default_value(150), "Maximum Intensity Gradient")
+        ("visualize", "Show Canny visualization before segmenting")
+        ("mask", po::value<std::string>(), "Mask the output of Canny using the provided image");
 
     po::options_description all("Usage");
     all.add(required).add(segOpts);
@@ -60,8 +77,8 @@ int main(int argc, char* argv[])
     // Get options
     fs::path volpkgPath = parsed["volpkg"].as<std::string>();
     fs::path outputPath = parsed["output-file"].as<std::string>();
-    auto threshold = parsed["threshold"].as<int>();
-    auto threshold2 = parsed["threshold2"].as<int>();
+    minVal = parsed["threshold-min"].as<int>();
+    maxVal = parsed["threshold-max"].as<int>();
 
     ///// Load the VolumePkg /////
     auto vpkg = vc::VolumePkg::New(volpkgPath);
@@ -83,30 +100,60 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
+    if (parsed.count("mask") > 0) {
+        mask = cv::imread(parsed["mask"].as<std::string>(), CV_8UC1);
+    }
+
+    if (parsed.count("visualize") > 0) {
+        ShowCanny(vc::QuantizeImage(volume->getSliceDataCopy(0), CV_8UC1));
+    }
+
+    auto midpoint = parsed.count("calculate-midpoint") > 0;
+
     // Segment
     std::cout << "Segmenting surface..." << std::endl;
     auto mesh = vc::ITKMesh::New();
+    cv::Vec3d first, last, middle;
     vc::ITKPoint pt;
     for (int z = 0; z < volume->numSlices(); z++) {
         // Get the slice and blur it
         auto slice = vc::QuantizeImage(volume->getSliceDataCopy(z), CV_8UC1);
-        cv::GaussianBlur(slice, slice, {3, 3}, 0);
+        cv::GaussianBlur(slice, slice, {gaussianKernel, gaussianKernel}, 0);
 
         // Run Canny Edge Detect
         cv::Mat cannySlice;
-        cv::Canny(slice, cannySlice, threshold, threshold2, 3, true);
+        cv::Canny(slice, cannySlice, minVal, maxVal, aperture, true);
+
+        cv::Mat processed;
+        cannySlice.copyTo(processed, mask);
 
         // Convert first canny edge along y axis to surface point
-        for (int x = 0; x < cannySlice.cols; x++) {
-            for (int y = 0; y < cannySlice.rows; y++) {
-                if (cannySlice.at<uint8_t>(y, x) != 0) {
-                    pt[0] = x;
-                    pt[1] = y;
-                    pt[2] = z;
-                    mesh->SetPoint(mesh->GetNumberOfPoints(), pt);
+        for (int x = 0; x < processed.cols; x++) {
+            // Get the first
+            auto haveFirst = false;
+            for (int y = 0; y < processed.rows; y++) {
+                if (!haveFirst && processed.at<uint8_t>(y, x) != 0) {
+                    first = {x, y, z};
+                    last = first;
+                    haveFirst = true;
+                    continue;
+                }
+
+                if (midpoint && haveFirst && processed.at<uint8_t>(y, x) != 0) {
+                    last = {x, y, z};
+                }
+
+                if (!midpoint && haveFirst) {
                     break;
                 }
             }
+
+            if (!haveFirst) {
+                continue;
+            }
+
+            middle = (first + last) / 2;
+            mesh->SetPoint(mesh->GetNumberOfPoints(), middle.val);
         }
     }
 
@@ -116,4 +163,41 @@ int main(int argc, char* argv[])
     writer.setMesh(mesh);
     writer.setPath(outputPath);
     writer.write();
+}
+
+void ShowCanny(const cv::Mat& i)
+{
+    src = i;
+    cv::namedWindow(windowName, cv::WINDOW_NORMAL);
+    cv::startWindowThread();
+    cv::createTrackbar(
+        "Blur Size:", windowName, &blurSlider, 30, CannyThreshold);
+    cv::createTrackbar(
+        "Min Threshold:", windowName, &minVal, 255, CannyThreshold);
+    cv::createTrackbar(
+        "Max Threshold:", windowName, &maxVal, 255, CannyThreshold);
+    cv::createTrackbar(
+        "Aperture Size:", windowName, &apertureSlider, 2, CannyThreshold);
+
+    CannyThreshold(0, nullptr);
+    cv::waitKey(0);
+    cv::destroyAllWindows();
+}
+
+void CannyThreshold(int, void*)
+{
+    gaussianKernel = 2 * blurSlider + 1;
+    aperture = 2 * apertureSlider + 3;
+    cv::Mat canny;
+    cv::GaussianBlur(src, canny, {gaussianKernel, gaussianKernel}, 0);
+
+    // Run Canny Edge Detect
+    cv::Canny(canny, canny, minVal, maxVal, aperture, true);
+
+    dst = cv::Scalar::all(0);
+    canny.copyTo(dst, mask);
+
+    cv::addWeighted(src, 0.5, dst, 0.5, 0, dst);
+
+    cv::imshow(windowName, dst);
 }
