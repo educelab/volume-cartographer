@@ -1,6 +1,3 @@
-//
-// Created by Seth Parker on 7/29/16.
-//
 /*
  * Purpose: Run vce::texturing::ClothModelingUVMapping() and write results
  * to file for each stage.

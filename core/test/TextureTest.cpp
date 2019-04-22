@@ -1,57 +1,24 @@
-//
-// Created by Ryan Taber on 12/9/15.
-//
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
-#define BOOST_TEST_MODULE Texture
-
-#include "vc/core/types/Texture.hpp"
-
-#include <boost/test/unit_test.hpp>
 #include <opencv2/imgcodecs.hpp>
 
+#include "vc/core/types/Texture.hpp"
 #include "vc/core/util/DateTime.hpp"
 #include "vc/core/util/Logging.hpp"
+#include "vc/testing/TestingUtils.hpp"
 
-/************************************************************************************
- *                                                                                  *
- *  TextureTest.cpp - tests the functionality of
- * /v-c/core/datatypes/Texture.cpp  *
- *  The ultimate goal of this file is the following: *
- *                                                                                  *
- *    Check that we can create a texture, add an image to it, add a uvMap, and *
- *    retrieve intensity values successfully from a texture image *
- *                                                                                  *
- *                                                                                  *
- *  This file is broken up into a testing fixture(s) which initializes the *
- *  objects used in each of the three test cases. *
- *                                                                                  *
- *  1. TestTextureEmptyConstructor *
- *  2. AddImageToTextureTest *
- *  3. IntensityRetrievalFromTextureImageTest *
- *                                                                                  *
- * Input: *
- *     No required inputs for this sample test. *
- *                                                                                  *
- * Test-Specific Output: *
- *     Specific test output only given on failure of any tests. Otherwise,
- * general  *
- *     number of testing errors is output. *
- *                                                                                  *
- * **********************************************************************************/
+namespace vctest = volcart::testing;
 
 /*
  * This fixtures builds objects for each of the test cases below that reference
  * the fixture as their second argument
  */
-
-struct EmptyConstructorTextureFixture {
-
+class EmptyConstructorTextureFixture : public ::testing::Test
+{
+public:
     EmptyConstructorTextureFixture()
     {
-
-        volcart::logger->debug(
-            "Creating texture object using empty constructor...");
-
         // store metadata --> not needed
         _ID = _Texture.metadata().get<std::string>("id");
         _Type = _Texture.metadata().get<std::string>("type");
@@ -59,11 +26,6 @@ struct EmptyConstructorTextureFixture {
 
         // strip off time information
         _TruncatedID = _ID[0 - 7];
-    }
-
-    ~EmptyConstructorTextureFixture()
-    {
-        volcart::logger->debug("Destroying texture object...");
     }
 
     volcart::Texture _Texture;
@@ -74,13 +36,11 @@ struct EmptyConstructorTextureFixture {
 /*
  * Used to test adding an image
  */
-struct TextureWithImageFixture {
-
+class TextureWithImageFixture : public ::testing::Test
+{
+public:
     TextureWithImageFixture()
     {
-
-        volcart::logger->debug("Creating texture with image(s)...");
-
         // create cv::mat in loop and add to the texture
         for (int i = 2; i < 11; i++) {
             // add 9 identity matrix images to the texture
@@ -89,25 +49,19 @@ struct TextureWithImageFixture {
         }
     }
 
-    ~TextureWithImageFixture()
-    {
-        volcart::logger->debug("Destroying texture object...");
-    }
-
     volcart::Texture _Texture;
     cv::Mat _img;
 };
 
 /*
  * Used to test retrieving intensity values
+ * TextureWithUVMapToCheckIntensityFixture
  */
-struct TextureWithUVMapToCheckIntensityFixture {
-
+class TextureWithUVMapToCheckIntensityFixture : public ::testing::Test
+{
+public:
     TextureWithUVMapToCheckIntensityFixture()
     {
-
-        volcart::logger->debug("Creating texture with uv map...");
-
         // read in and add image to the texture
         _Gradient = cv::imread("GenericGradient.tif", -1);
         _Texture.addImage(_Gradient);
@@ -122,55 +76,48 @@ struct TextureWithUVMapToCheckIntensityFixture {
         _Texture.ppm().setUVMap(_uvMap);
     }
 
-    ~TextureWithUVMapToCheckIntensityFixture()
-    {
-        volcart::logger->debug("Destroying texture...");
-    }
-
     volcart::UVMap _uvMap;
     volcart::Texture _Texture;
     cv::Mat _Gradient;
 };
 
-BOOST_FIXTURE_TEST_CASE(
-    TestTextureEmptyConstructor, EmptyConstructorTextureFixture)
+TEST_F(EmptyConstructorTextureFixture, TestTextureEmptyConstructor)
 {
 
     // confirm texture has no images
-    BOOST_CHECK_EQUAL(_NumberOfImages, 0);
+    EXPECT_EQ(_NumberOfImages, 0);
 
     // check type is texture
-    BOOST_CHECK_EQUAL(_Type, "texture");
+    EXPECT_EQ(_Type, "texture");
 
     std::string TestDate, TruncatedTestDate;
     TestDate = volcart::DateTime()[0 - 7];
     TruncatedTestDate = TestDate[0 - 7];
 
     // check id
-    BOOST_CHECK_EQUAL(TruncatedTestDate, _TruncatedID);
+    EXPECT_EQ(TruncatedTestDate, _TruncatedID);
 }
 
-BOOST_FIXTURE_TEST_CASE(AddImageToTextureTest, TextureWithImageFixture)
+TEST_F(TextureWithImageFixture, AddImageToTextureTest)
 {
 
     // check number of images
-    BOOST_CHECK_EQUAL(_Texture.numberOfImages(), 9);
+    EXPECT_EQ(_Texture.numberOfImages(), 9);
 
     // make sure no uvMap is in the texture
-    BOOST_CHECK_EQUAL(_Texture.hasMap(), false);
+    EXPECT_EQ(_Texture.hasMap(), false);
 
     // check that each of the images added in fixture match identity mats
     for (size_t img_id = 0; img_id < _Texture.numberOfImages(); img_id++) {
 
-        BOOST_CHECK_EQUAL(_Texture.image(img_id).rows, img_id + 2);
-        BOOST_CHECK_EQUAL(_Texture.image(img_id).cols, img_id + 2);
+        EXPECT_EQ(_Texture.image(img_id).rows, img_id + 2);
+        EXPECT_EQ(_Texture.image(img_id).cols, img_id + 2);
 
         cv::Mat TestImage = cv::Mat::eye(img_id + 2, img_id + 2, CV_16U);
 
         // check data props of two matrices
-        BOOST_CHECK_EQUAL_COLLECTIONS(
-            _Texture.image(img_id).datastart, _Texture.image(img_id).dataend,
-            TestImage.datastart, TestImage.dataend);
+        EXPECT_TRUE(
+            vctest::CvMatEqual<uint16_t>(_Texture.image(img_id), TestImage));
 
         // assign img data
         uint16_t* matData = _Texture.image(img_id).ptr<uint16_t>();
@@ -186,30 +133,30 @@ BOOST_FIXTURE_TEST_CASE(AddImageToTextureTest, TextureWithImageFixture)
 
                 // check that the values match identity matrix
                 if (row == col) {
-                    BOOST_CHECK_EQUAL(value, 1);
+                    EXPECT_EQ(value, 1);
                 } else {
-                    BOOST_CHECK_EQUAL(value, 0);
+                    EXPECT_EQ(value, 0);
                 }
             }
         }
     }
 }
 
-BOOST_FIXTURE_TEST_CASE(
-    IntensityRetrievalFromTextureImageTest,
-    TextureWithUVMapToCheckIntensityFixture)
+TEST_F(
+    TextureWithUVMapToCheckIntensityFixture,
+    IntensityRetrievalFromTextureImageTest)
 {
 
-    BOOST_CHECK_EQUAL(_Texture.numberOfImages(), 1);
-    BOOST_CHECK_EQUAL(_Texture.image(0).empty(), false);
+    EXPECT_EQ(_Texture.numberOfImages(), 1);
+    EXPECT_EQ(_Texture.image(0).empty(), false);
 
     // check dimensions
-    BOOST_CHECK_EQUAL(_Texture.image(0).cols, 100);
-    BOOST_CHECK_EQUAL(_Texture.image(0).rows, 100);
+    EXPECT_EQ(_Texture.image(0).cols, 100);
+    EXPECT_EQ(_Texture.image(0).rows, 100);
 
     // check intensity values
-    BOOST_CHECK_EQUAL(_Texture.intensity(0), 65535);
-    BOOST_CHECK_EQUAL(_Texture.intensity(1), 32767);
-    BOOST_CHECK_EQUAL(_Texture.intensity(2), 32767);
-    BOOST_CHECK_EQUAL(_Texture.intensity(3), 0);
+    EXPECT_EQ(_Texture.intensity(0), 65535);
+    EXPECT_EQ(_Texture.intensity(1), 32767);
+    EXPECT_EQ(_Texture.intensity(2), 32767);
+    EXPECT_EQ(_Texture.intensity(3), 0);
 }

@@ -1,6 +1,3 @@
-//
-// Created by Hannah Hatch on 8/12/16.
-//
 /** @file QuadricEdgeCollapseDecimation.cpp */
 #ifdef VC_USE_VCGLIB
 

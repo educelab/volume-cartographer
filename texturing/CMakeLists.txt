@@ -74,7 +74,8 @@ foreach(src ${test_srcs})
     target_link_libraries(${testname}
         VC::texturing
         VC::testing
-        Boost::unit_test_framework
+        gtest_main
+        gmock_main
         ${public_deps}
     )
     add_test(

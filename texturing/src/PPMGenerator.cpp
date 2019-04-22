@@ -1,7 +1,3 @@
-//
-// Created by Seth on 11/3/16.
-//
-
 #include <stdexcept>
 
 #include "vc/core/util/FloatComparison.hpp"

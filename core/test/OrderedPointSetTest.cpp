@@ -1,26 +1,17 @@
-#define BOOST_TEST_MODULE OrderedPointSetTest
+#include <gtest/gtest.h>
 
-#include <boost/test/unit_test.hpp>
 #include <opencv2/core.hpp>
 
-#include "vc/core/types/Exceptions.hpp"
 #include "vc/core/types/OrderedPointSet.hpp"
 
-using namespace volcart;
+namespace vc = volcart;
 
-struct Vec3iOrderedPointSet {
-    OrderedPointSet<cv::Vec3i> ps;
+class OrderedPointSet : public ::testing::Test
+{
+public:
+    vc::OrderedPointSet<cv::Vec3i> ps;
 
-    Vec3iOrderedPointSet() : ps(3)
-    {
-        ps.pushRow({{1, 1, 1}, {2, 2, 2}, {3, 3, 3}});
-    }
-};
-
-struct Vec3iOrderedPointSet4Rows {
-    OrderedPointSet<cv::Vec3i> ps;
-
-    Vec3iOrderedPointSet4Rows() : ps(3)
+    OrderedPointSet() : ps(3)
     {
         ps.pushRow({{1, 1, 1}, {2, 2, 2}, {3, 3, 3}});
         ps.pushRow({{4, 4, 4}, {4, 4, 4}, {4, 4, 4}});
@@ -29,126 +20,124 @@ struct Vec3iOrderedPointSet4Rows {
     }
 };
 
-BOOST_AUTO_TEST_CASE(ConstructEmptyOrderedPointSet)
+TEST_F(OrderedPointSet, EmptyConstructor)
 {
-    OrderedPointSet<cv::Vec3i> ps;
-    BOOST_CHECK_EQUAL(ps.size(), 0);
-    BOOST_CHECK_EQUAL(ps.width(), 0);
-    BOOST_CHECK_EQUAL(ps.height(), 0);
+    ps = vc::OrderedPointSet<cv::Vec3i>();
+    EXPECT_EQ(ps.size(), 0);
+    EXPECT_EQ(ps.width(), 0);
+    EXPECT_EQ(ps.height(), 0);
 }
 
-BOOST_AUTO_TEST_CASE(SetWidth)
+TEST_F(OrderedPointSet, SetWidth)
 {
-    OrderedPointSet<cv::Vec3i> ps;
+    ps = vc::OrderedPointSet<cv::Vec3i>();
     ps.setWidth(3);
-    BOOST_CHECK_EQUAL(ps.width(), 3);
+    EXPECT_EQ(ps.width(), 3);
     std::vector<cv::Vec3i> points{{1, 1, 1}, {2, 2, 2}, {3, 3, 3}};
-    BOOST_CHECK_NO_THROW(ps.pushRow(points));
-    BOOST_CHECK_THROW(ps.setWidth(4), std::logic_error);
+    EXPECT_NO_THROW(ps.pushRow(points));
+    EXPECT_THROW(ps.setWidth(4), std::logic_error);
 }
 
-BOOST_FIXTURE_TEST_CASE(
-    ResetPointSetClearsAndSetsWidthToZero, Vec3iOrderedPointSet)
+TEST_F(OrderedPointSet, Reset)
 {
     ps.reset();
-    BOOST_CHECK_EQUAL(ps.width(), 0);
-    BOOST_CHECK_EQUAL(ps.size(), 0);
-    BOOST_CHECK_NO_THROW(ps.setWidth(3));
+    EXPECT_EQ(ps.width(), 0);
+    EXPECT_EQ(ps.size(), 0);
+    EXPECT_NO_THROW(ps.setWidth(3));
 }
 
-BOOST_AUTO_TEST_CASE(PushRowAddsRow)
+TEST_F(OrderedPointSet, PushRow)
 {
-    OrderedPointSet<cv::Vec3i> ps{3};
+    ps = vc::OrderedPointSet<cv::Vec3i>{3};
     std::vector<cv::Vec3i> points{{1, 1, 1}, {2, 2, 2}, {3, 3, 3}};
     ps.pushRow(points);
-    BOOST_CHECK_EQUAL(ps(0, 0), cv::Vec3i(1, 1, 1));
-    BOOST_CHECK_EQUAL(ps(0, 1), cv::Vec3i(2, 2, 2));
-    BOOST_CHECK_EQUAL(ps(0, 2), cv::Vec3i(3, 3, 3));
+    EXPECT_EQ(ps(0, 0), cv::Vec3i(1, 1, 1));
+    EXPECT_EQ(ps(0, 1), cv::Vec3i(2, 2, 2));
+    EXPECT_EQ(ps(0, 2), cv::Vec3i(3, 3, 3));
 }
 
-BOOST_AUTO_TEST_CASE(FillOrderedPointSetStaticMethod)
+TEST_F(OrderedPointSet, Fill)
 {
-    auto ps = OrderedPointSet<cv::Vec3i>::Fill(3, 1, {2, 1, 3});
-    BOOST_CHECK_EQUAL(ps(0, 0), cv::Vec3i(2, 1, 3));
-    BOOST_CHECK_EQUAL(ps(0, 1), cv::Vec3i(2, 1, 3));
-    BOOST_CHECK_EQUAL(ps(0, 2), cv::Vec3i(2, 1, 3));
+    auto ps = vc::OrderedPointSet<cv::Vec3i>::Fill(3, 1, {2, 1, 3});
+    EXPECT_EQ(ps(0, 0), cv::Vec3i(2, 1, 3));
+    EXPECT_EQ(ps(0, 1), cv::Vec3i(2, 1, 3));
+    EXPECT_EQ(ps(0, 2), cv::Vec3i(2, 1, 3));
 }
 
-BOOST_FIXTURE_TEST_CASE(GetRowFromPointSet, Vec3iOrderedPointSet)
+TEST_F(OrderedPointSet, GetRow)
 {
     auto row = ps.getRow(0);
-    BOOST_CHECK_EQUAL(row[0], cv::Vec3i(1, 1, 1));
-    BOOST_CHECK_EQUAL(row[1], cv::Vec3i(2, 2, 2));
-    BOOST_CHECK_EQUAL(row[2], cv::Vec3i(3, 3, 3));
+    EXPECT_EQ(row[0], cv::Vec3i(1, 1, 1));
+    EXPECT_EQ(row[1], cv::Vec3i(2, 2, 2));
+    EXPECT_EQ(row[2], cv::Vec3i(3, 3, 3));
 }
 
-BOOST_FIXTURE_TEST_CASE(WrongRowInGetRowThrows, Vec3iOrderedPointSet)
+TEST_F(OrderedPointSet, GetRow_BoundsCheck)
 {
-    BOOST_CHECK_THROW(ps.getRow(2), std::range_error);
+    EXPECT_THROW(ps.getRow(-1), std::range_error);
+    EXPECT_THROW(ps.getRow(4), std::range_error);
 }
 
-BOOST_FIXTURE_TEST_CASE(CopyRowsFromOrderedPointSet, Vec3iOrderedPointSet4Rows)
+TEST_F(OrderedPointSet, CopyRows)
 {
     auto newPs = ps.copyRows(0, 3);
-    BOOST_CHECK_EQUAL(newPs.width(), 3);
-    BOOST_CHECK_EQUAL(newPs.height(), 3);
-    BOOST_CHECK_EQUAL(newPs.size(), 9);
-    BOOST_CHECK_EQUAL(newPs(0, 0), cv::Vec3i(1, 1, 1));
-    BOOST_CHECK_EQUAL(newPs(0, 1), cv::Vec3i(2, 2, 2));
-    BOOST_CHECK_EQUAL(newPs(0, 2), cv::Vec3i(3, 3, 3));
-    BOOST_CHECK_EQUAL(newPs(1, 0), cv::Vec3i(4, 4, 4));
-    BOOST_CHECK_EQUAL(newPs(1, 1), cv::Vec3i(4, 4, 4));
-    BOOST_CHECK_EQUAL(newPs(1, 2), cv::Vec3i(4, 4, 4));
-    BOOST_CHECK_EQUAL(newPs(2, 0), cv::Vec3i(2, 2, 2));
-    BOOST_CHECK_EQUAL(newPs(2, 1), cv::Vec3i(2, 2, 2));
-    BOOST_CHECK_EQUAL(newPs(2, 2), cv::Vec3i(2, 2, 2));
+    EXPECT_EQ(newPs.width(), 3);
+    EXPECT_EQ(newPs.height(), 3);
+    EXPECT_EQ(newPs.size(), 9);
+    EXPECT_EQ(newPs(0, 0), cv::Vec3i(1, 1, 1));
+    EXPECT_EQ(newPs(0, 1), cv::Vec3i(2, 2, 2));
+    EXPECT_EQ(newPs(0, 2), cv::Vec3i(3, 3, 3));
+    EXPECT_EQ(newPs(1, 0), cv::Vec3i(4, 4, 4));
+    EXPECT_EQ(newPs(1, 1), cv::Vec3i(4, 4, 4));
+    EXPECT_EQ(newPs(1, 2), cv::Vec3i(4, 4, 4));
+    EXPECT_EQ(newPs(2, 0), cv::Vec3i(2, 2, 2));
+    EXPECT_EQ(newPs(2, 1), cv::Vec3i(2, 2, 2));
+    EXPECT_EQ(newPs(2, 2), cv::Vec3i(2, 2, 2));
 }
 
-BOOST_FIXTURE_TEST_CASE(
-    CopyRowsWithGreaterFirstIndexThrows, Vec3iOrderedPointSet4Rows)
+TEST_F(OrderedPointSet, CopyRows_BadIndexOrder)
 {
-    BOOST_CHECK_THROW(ps.copyRows(3, 2), std::logic_error);
+    EXPECT_THROW(ps.copyRows(3, 2), std::logic_error);
 }
 
-BOOST_FIXTURE_TEST_CASE(
-    CopyRowsWithOutOfRangeIndexThrows, Vec3iOrderedPointSet4Rows)
+TEST_F(OrderedPointSet, CopyRows_BoundsCheck)
 {
-    BOOST_CHECK_THROW(ps.copyRows(0, 6), std::range_error);
+    EXPECT_THROW(ps.copyRows(0, 6), std::range_error);
 }
 
-BOOST_FIXTURE_TEST_CASE(AppendOrderedPointSet, Vec3iOrderedPointSet)
+TEST_F(OrderedPointSet, Append)
 {
-    auto other = OrderedPointSet<cv::Vec3i>::Fill(3, 4, {1, 3, 5});
-    BOOST_CHECK_EQUAL(other.size(), 12);
-    BOOST_CHECK_EQUAL(other.width(), 3);
-    BOOST_CHECK_EQUAL(other.height(), 4);
-    BOOST_CHECK_EQUAL(ps.size(), 3);
-    BOOST_CHECK_EQUAL(ps.width(), 3);
-    BOOST_CHECK_EQUAL(ps.height(), 1);
+    auto other = vc::OrderedPointSet<cv::Vec3i>::Fill(3, 4, {1, 3, 5});
+    EXPECT_EQ(other.size(), 12);
+    EXPECT_EQ(other.width(), 3);
+    EXPECT_EQ(other.height(), 4);
+    EXPECT_EQ(ps.size(), 12);
+    EXPECT_EQ(ps.width(), 3);
+    EXPECT_EQ(ps.height(), 4);
 
     // Append other to ps
     ps.append(other);
 
-    BOOST_CHECK_EQUAL(ps.width(), 3);
-    BOOST_CHECK_EQUAL(ps.height(), 5);
-    BOOST_CHECK_EQUAL(ps.size(), 15);
-    BOOST_CHECK_EQUAL(ps(1, 0), cv::Vec3i(1, 3, 5));
-    BOOST_CHECK_EQUAL(ps(1, 1), cv::Vec3i(1, 3, 5));
-    BOOST_CHECK_EQUAL(ps(1, 2), cv::Vec3i(1, 3, 5));
-    BOOST_CHECK_EQUAL(ps(2, 0), cv::Vec3i(1, 3, 5));
-    BOOST_CHECK_EQUAL(ps(2, 1), cv::Vec3i(1, 3, 5));
-    BOOST_CHECK_EQUAL(ps(2, 2), cv::Vec3i(1, 3, 5));
-    BOOST_CHECK_EQUAL(ps(3, 0), cv::Vec3i(1, 3, 5));
-    BOOST_CHECK_EQUAL(ps(3, 1), cv::Vec3i(1, 3, 5));
-    BOOST_CHECK_EQUAL(ps(3, 2), cv::Vec3i(1, 3, 5));
-    BOOST_CHECK_EQUAL(ps(4, 0), cv::Vec3i(1, 3, 5));
-    BOOST_CHECK_EQUAL(ps(4, 1), cv::Vec3i(1, 3, 5));
-    BOOST_CHECK_EQUAL(ps(4, 2), cv::Vec3i(1, 3, 5));
+    EXPECT_EQ(ps.width(), 3);
+    EXPECT_EQ(ps.height(), 8);
+    EXPECT_EQ(ps.size(), 24);
+    EXPECT_EQ(ps(4, 0), cv::Vec3i(1, 3, 5));
+    EXPECT_EQ(ps(4, 1), cv::Vec3i(1, 3, 5));
+    EXPECT_EQ(ps(4, 2), cv::Vec3i(1, 3, 5));
+    EXPECT_EQ(ps(5, 0), cv::Vec3i(1, 3, 5));
+    EXPECT_EQ(ps(5, 1), cv::Vec3i(1, 3, 5));
+    EXPECT_EQ(ps(5, 2), cv::Vec3i(1, 3, 5));
+    EXPECT_EQ(ps(6, 0), cv::Vec3i(1, 3, 5));
+    EXPECT_EQ(ps(6, 1), cv::Vec3i(1, 3, 5));
+    EXPECT_EQ(ps(6, 2), cv::Vec3i(1, 3, 5));
+    EXPECT_EQ(ps(7, 0), cv::Vec3i(1, 3, 5));
+    EXPECT_EQ(ps(7, 1), cv::Vec3i(1, 3, 5));
+    EXPECT_EQ(ps(7, 2), cv::Vec3i(1, 3, 5));
 }
 
-BOOST_FIXTURE_TEST_CASE(AppendWiderPointSetThrows, Vec3iOrderedPointSet)
+TEST_F(OrderedPointSet, Append_WidthCheck)
 {
-    OrderedPointSet<cv::Vec3i> other{4};
+    vc::OrderedPointSet<cv::Vec3i> other{4};
     other.pushRow({{1, 1, 1}, {2, 2, 2}, {3, 3, 3}, {4, 4, 4}});
-    BOOST_CHECK_THROW(ps.append(other), std::logic_error);
+    EXPECT_THROW(ps.append(other), std::logic_error);
 }

@@ -101,7 +101,7 @@ foreach(src ${test_srcs})
         VC::core
         VC::meshing
         VC::testing
-        Boost::unit_test_framework
+        gtest_main
     )
     add_test(
         NAME ${testname}

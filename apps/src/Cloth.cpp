@@ -1,7 +1,3 @@
-//
-// Created by Seth Parker on 3/14/16.
-//
-
 #include <iostream>
 
 #include <boost/program_options.hpp>

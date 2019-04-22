@@ -1,7 +1,3 @@
-//
-// Created by Seth Parker on 10/22/15.
-//
-
 /**@file ScaleMesh.cpp  */
 
 #include "vc/meshing/ScaleMesh.hpp"
@@ -28,5 +24,5 @@ void ScaleMesh(
         v->Value()[2] *= scaleFactor;
     }
 };
-}
-}
+}  // namespace meshing
+}  // namespace volcart

@@ -1,10 +1,5 @@
-//
-// Created by Ryan Taber on 1/29/16.
-//
+#include <gtest/gtest.h>
 
-#define BOOST_TEST_MODULE SmoothNormals
-
-#include <boost/test/unit_test.hpp>
 #include "vc/core/shapes/Arch.hpp"
 #include "vc/core/shapes/Cone.hpp"
 #include "vc/core/shapes/Cube.hpp"
@@ -17,44 +12,15 @@
 
 using namespace volcart;
 
-/************************************************************************************
- *                                                                                  *
- *  SmoothNormalsTest.cpp - tests the functionality of meshing/SmoothNormals.cpp
- * *
- *  The ultimate goal of this file is the following: *
- *                                                                                  *
- *        1. confirm volcart::meshing::SmoothNormals() works as expected *
- *                                                                                  *
- *  This file is broken up into a test fixture (SmoothNormalsFixture) which *
- *  intitializes the objects used for the test case. *
- *                                                                                  *
- *  1. CompareSmoothedPlane (fixture test case) *
- *  2. CompareSmoothedCube (fixture test case) *
- *  3. CompareSmoothedSphere (fixture test case) *
- *  4. CompareSmoothedArch (fixture test case) *
- *  5. SmoothWithZeroRadiusTest (fixture test case) *
- *                                                                                  *
- * Input: *
- *     No required inputs for this sample test. All test objects are created *
- *     internally. *
- *                                                                                  *
- * Test-Specific Output: *
- *     Specific test output only given on failure of any tests. Otherwise,
- * general  *
- *     number of testing errors is output. *
- *                                                                                  *
- * Miscellaneous: *
- *     See the /testing/meshing wiki for more information on this test *
- * **********************************************************************************/
-
 /*
  * This builds objects for the case below that reference
  * the fixture as their second argument
  *
  */
 
-struct SmoothNormalsFixture {
-
+class SmoothNormalsFixture : public ::testing::Test
+{
+public:
     SmoothNormalsFixture()
     {
 
@@ -93,13 +59,6 @@ struct SmoothNormalsFixture {
             _SavedSphereCells);
         volcart::testing::ParsingHelpers::ParseOBJFile(
             "ConeWithSmoothedNormals.obj", _SavedConePoints, _SavedConeCells);
-
-        std::cerr << "setting up SmoothNormals objects" << std::endl;
-    }
-
-    ~SmoothNormalsFixture()
-    {
-        std::cerr << "cleaning up SmoothNormals objects" << std::endl;
     }
 
     // init input and output mesh ptrs
@@ -137,14 +96,13 @@ struct SmoothNormalsFixture {
  *
  */
 
-BOOST_FIXTURE_TEST_CASE(
-    CompareFixtureSmoothedPlaneWithSavedPlaneTest, SmoothNormalsFixture)
+TEST_F(SmoothNormalsFixture, CompareFixtureSmoothedPlaneWithSavedPlaneTest)
 {
 
     // Check number of points in each mesh
-    BOOST_CHECK_EQUAL(
+    EXPECT_EQ(
         _out_SmoothedPlaneMesh->GetNumberOfPoints(), _SavedPlanePoints.size());
-    BOOST_CHECK_EQUAL(
+    EXPECT_EQ(
         _out_SmoothedPlaneMesh->GetNumberOfCells(), _SavedPlaneCells.size());
 
     // points
@@ -191,14 +149,11 @@ BOOST_FIXTURE_TEST_CASE(
 
             // Now to check the points within the cells
             if (counter == 0)
-                BOOST_CHECK_EQUAL(
-                    *out_PlaneMeshPointId, _SavedPlaneCells[c].v1);
+                EXPECT_EQ(*out_PlaneMeshPointId, _SavedPlaneCells[c].v1);
             else if (counter == 1)
-                BOOST_CHECK_EQUAL(
-                    *out_PlaneMeshPointId, _SavedPlaneCells[c].v2);
+                EXPECT_EQ(*out_PlaneMeshPointId, _SavedPlaneCells[c].v2);
             else if (counter == 2)
-                BOOST_CHECK_EQUAL(
-                    *out_PlaneMeshPointId, _SavedPlaneCells[c].v3);
+                EXPECT_EQ(*out_PlaneMeshPointId, _SavedPlaneCells[c].v3);
 
             // increment points
             out_PlaneMeshPointId++;
@@ -217,14 +172,13 @@ BOOST_FIXTURE_TEST_CASE(
 //           //
 //           //
 
-BOOST_FIXTURE_TEST_CASE(
-    CompareFixtureSmoothedCubeWithSavedCubeTest, SmoothNormalsFixture)
+TEST_F(SmoothNormalsFixture, CompareFixtureSmoothedCubeWithSavedCubeTest)
 {
 
     // Check number of points and cells in each mesh
-    BOOST_CHECK_EQUAL(
+    EXPECT_EQ(
         _out_SmoothedCubeMesh->GetNumberOfPoints(), _SavedCubePoints.size());
-    BOOST_CHECK_EQUAL(
+    EXPECT_EQ(
         _out_SmoothedCubeMesh->GetNumberOfCells(), _SavedCubeCells.size());
 
     // points
@@ -268,11 +222,11 @@ BOOST_FIXTURE_TEST_CASE(
 
             // Now to check the points within the cells
             if (counter == 0)
-                BOOST_CHECK_EQUAL(*out_CubeMeshPointId, _SavedCubeCells[c].v1);
+                EXPECT_EQ(*out_CubeMeshPointId, _SavedCubeCells[c].v1);
             else if (counter == 1)
-                BOOST_CHECK_EQUAL(*out_CubeMeshPointId, _SavedCubeCells[c].v2);
+                EXPECT_EQ(*out_CubeMeshPointId, _SavedCubeCells[c].v2);
             else if (counter == 2)
-                BOOST_CHECK_EQUAL(*out_CubeMeshPointId, _SavedCubeCells[c].v3);
+                EXPECT_EQ(*out_CubeMeshPointId, _SavedCubeCells[c].v3);
 
             // increment points
             out_CubeMeshPointId++;
@@ -291,15 +245,14 @@ BOOST_FIXTURE_TEST_CASE(
 //             //
 //             //
 
-BOOST_FIXTURE_TEST_CASE(
-    CompareFixtureSmoothedSphereWithSavedSphereTest, SmoothNormalsFixture)
+TEST_F(SmoothNormalsFixture, CompareFixtureSmoothedSphereWithSavedSphereTest)
 {
 
     // Check number of points in each mesh
-    BOOST_CHECK_EQUAL(
+    EXPECT_EQ(
         _out_SmoothedSphereMesh->GetNumberOfPoints(),
         _SavedSpherePoints.size());
-    BOOST_CHECK_EQUAL(
+    EXPECT_EQ(
         _out_SmoothedSphereMesh->GetNumberOfCells(), _SavedSphereCells.size());
 
     // points
@@ -347,14 +300,11 @@ BOOST_FIXTURE_TEST_CASE(
 
             // Now to check the points within the cells
             if (counter == 0)
-                BOOST_CHECK_EQUAL(
-                    *out_SphereMeshPointId, _SavedSphereCells[c].v1);
+                EXPECT_EQ(*out_SphereMeshPointId, _SavedSphereCells[c].v1);
             else if (counter == 1)
-                BOOST_CHECK_EQUAL(
-                    *out_SphereMeshPointId, _SavedSphereCells[c].v2);
+                EXPECT_EQ(*out_SphereMeshPointId, _SavedSphereCells[c].v2);
             else if (counter == 2)
-                BOOST_CHECK_EQUAL(
-                    *out_SphereMeshPointId, _SavedSphereCells[c].v3);
+                EXPECT_EQ(*out_SphereMeshPointId, _SavedSphereCells[c].v3);
 
             // increment points
             out_SphereMeshPointId++;
@@ -371,14 +321,13 @@ BOOST_FIXTURE_TEST_CASE(
 //   ARCH    //
 //           //
 
-BOOST_FIXTURE_TEST_CASE(
-    CompareFixtureSmoothedArchWithSavedArchTest, SmoothNormalsFixture)
+TEST_F(SmoothNormalsFixture, CompareFixtureSmoothedArchWithSavedArchTest)
 {
 
     // Check number of points in each mesh
-    BOOST_CHECK_EQUAL(
+    EXPECT_EQ(
         _out_SmoothedArchMesh->GetNumberOfPoints(), _SavedArchPoints.size());
-    BOOST_CHECK_EQUAL(
+    EXPECT_EQ(
         _out_SmoothedArchMesh->GetNumberOfCells(), _SavedArchCells.size());
 
     // points
@@ -422,11 +371,11 @@ BOOST_FIXTURE_TEST_CASE(
 
             // Now to check the points within the cells
             if (counter == 0)
-                BOOST_CHECK_EQUAL(*out_ArchMeshPointId, _SavedArchCells[c].v1);
+                EXPECT_EQ(*out_ArchMeshPointId, _SavedArchCells[c].v1);
             else if (counter == 1)
-                BOOST_CHECK_EQUAL(*out_ArchMeshPointId, _SavedArchCells[c].v2);
+                EXPECT_EQ(*out_ArchMeshPointId, _SavedArchCells[c].v2);
             else if (counter == 2)
-                BOOST_CHECK_EQUAL(*out_ArchMeshPointId, _SavedArchCells[c].v3);
+                EXPECT_EQ(*out_ArchMeshPointId, _SavedArchCells[c].v3);
 
             // increment points
             out_ArchMeshPointId++;
@@ -443,12 +392,11 @@ BOOST_FIXTURE_TEST_CASE(
 //   CONE    //
 //           //
 
-BOOST_FIXTURE_TEST_CASE(
-    CompareFixtureSmoothedConeWithSavedConeTest, SmoothNormalsFixture)
+TEST_F(SmoothNormalsFixture, CompareFixtureSmoothedConeWithSavedConeTest)
 {
 
     // Check number of points in each mesh
-    BOOST_CHECK_EQUAL(
+    EXPECT_EQ(
         _out_SmoothedConeMesh->GetNumberOfPoints(), _SavedConePoints.size());
 
     // points
@@ -479,7 +427,7 @@ BOOST_FIXTURE_TEST_CASE(
     // compare cells //
     //               //
 
-    BOOST_CHECK_EQUAL(
+    EXPECT_EQ(
         _out_SmoothedConeMesh->GetNumberOfCells(), _SavedConeCells.size());
 
     // Initialize Cell Iterators
@@ -499,14 +447,11 @@ BOOST_FIXTURE_TEST_CASE(
 
             // Now to check the points within the cells
             if (counter == 0)
-                BOOST_CHECK_EQUAL(
-                    *out_ConeMeshPointId, _SavedConeCells[c_id].v1);
+                EXPECT_EQ(*out_ConeMeshPointId, _SavedConeCells[c_id].v1);
             else if (counter == 1)
-                BOOST_CHECK_EQUAL(
-                    *out_ConeMeshPointId, _SavedConeCells[c_id].v2);
+                EXPECT_EQ(*out_ConeMeshPointId, _SavedConeCells[c_id].v2);
             else if (counter == 2)
-                BOOST_CHECK_EQUAL(
-                    *out_ConeMeshPointId, _SavedConeCells[c_id].v3);
+                EXPECT_EQ(*out_ConeMeshPointId, _SavedConeCells[c_id].v3);
 
             // increment points
             out_ConeMeshPointId++;
@@ -526,7 +471,7 @@ BOOST_FIXTURE_TEST_CASE(
  *
  */
 
-BOOST_FIXTURE_TEST_CASE(SmoothWithZeroRadiusTest, SmoothNormalsFixture)
+TEST_F(SmoothNormalsFixture, SmoothWithZeroRadiusTest)
 {
 
     // call SmoothNormals() and assign results
@@ -534,10 +479,10 @@ BOOST_FIXTURE_TEST_CASE(SmoothWithZeroRadiusTest, SmoothNormalsFixture)
         volcart::meshing::SmoothNormals(_in_ArchMesh, 0);
 
     // check number of points and cells are equivalent between the two meshes
-    BOOST_CHECK_EQUAL(
+    EXPECT_EQ(
         _in_ArchMesh->GetNumberOfPoints(),
         ZeroRadiusSmoothedMesh->GetNumberOfPoints());
-    BOOST_CHECK_EQUAL(
+    EXPECT_EQ(
         _in_ArchMesh->GetNumberOfCells(),
         ZeroRadiusSmoothedMesh->GetNumberOfCells());
 
@@ -591,11 +536,11 @@ BOOST_FIXTURE_TEST_CASE(SmoothWithZeroRadiusTest, SmoothNormalsFixture)
 
             // Now to check the points within the cells
             if (counter == 0)
-                BOOST_CHECK_EQUAL(*in_ArchMeshPointId, *ZeroRadiusMeshPointId);
+                EXPECT_EQ(*in_ArchMeshPointId, *ZeroRadiusMeshPointId);
             else if (counter == 1)
-                BOOST_CHECK_EQUAL(*in_ArchMeshPointId, *ZeroRadiusMeshPointId);
+                EXPECT_EQ(*in_ArchMeshPointId, *ZeroRadiusMeshPointId);
             else if (counter == 2)
-                BOOST_CHECK_EQUAL(*in_ArchMeshPointId, *ZeroRadiusMeshPointId);
+                EXPECT_EQ(*in_ArchMeshPointId, *ZeroRadiusMeshPointId);
 
             // increment points
             ++in_ArchMeshPointId;

@@ -1,7 +1,3 @@
-//
-// Created by Seth Parker on 11/11/16.
-//
-
 #include "vc/core/io/OBJReader.hpp"
 
 #include <regex>

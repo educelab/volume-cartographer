@@ -1,63 +1,22 @@
-//
-// Created by Ryan Taber on 12/11/15.
-//
-
-#define BOOST_TEST_MODULE uvMap
-
-#include "vc/core/types/UVMap.hpp"
+#include <gtest/gtest.h>
 
 #include <iostream>
 
-#include <boost/test/unit_test.hpp>
-
+#include "vc/core/types/UVMap.hpp"
 #include "vc/core/util/Logging.hpp"
 
 using namespace volcart;
-
-/***************************************************************************************
- *                                                                                     *
- *  UVMapTest.cpp - tests the functionality of /v-c/core/UVMap.h *
- *  The ultimate goal of this file is the following: *
- *                                                                                     *
- *        1. check whether transformations of uv map coords relative to the four
- * *
- *           possible origin locations (see vc_defines for naming) *
- *                                                                                     *
- *  This file is broken up into a test fixture, uvFix, which initializes the
- * objects   *
- *  used in each of the four test cases. *
- *                                                                                     *
- *        1. transformationTest - looks at four origin options *
- *           -relative to top left (0,0) *
- *           -relative to bottom left (0,1) *
- *           -relative to top right (1,0) *
- *           -relative to bottom right (1,1) *
- *                                                                                     *
- * Input: *
- *     No required inputs for this sample test. Note: the output.ply must be
- * copied    *
- *     from test_data/common to curr_bin_dir when building, which is handled by
- * cmake. *
- *                                                                                     *
- * Test-Specific Output: *
- *     Specific test output only given on failure of any tests. Otherwise,
- * general     *
- *     number of testing errors is output. *
- *                                                                                     *
- * *************************************************************************************/
 
 /*
  * This fixture builds  a uv map object for each of the test cases that will use
  * the
  */
 
-struct CreateUVMapFixture {
-
+class CreateUVMapFixture : public ::testing::Test
+{
+public:
     CreateUVMapFixture()
     {
-
-        logger->debug("Constructing uv map...");
-
         // fill storage vector
         for (double u = 0; u <= 1; u += 0.25) {
             for (double v = 0; v <= 1; v += 0.25) {
@@ -74,35 +33,31 @@ struct CreateUVMapFixture {
         }
     }
 
-    ~CreateUVMapFixture() { logger->debug("Destroying uv map..."); }
-
     // Init uvMap
     volcart::UVMap _BaseUVMap;
     std::vector<cv::Vec2d> _Storage;
 };
 
 // Check that we can set, get, and re-set values for a point
-BOOST_AUTO_TEST_CASE(GetSetTest)
+TEST(UVMapTest, GetSetTest)
 {
     volcart::UVMap map;
     cv::Vec2d p{0.0, 0.0};
     map.set(0, p);
-    BOOST_CHECK_EQUAL(map.get(0), p);
+    EXPECT_EQ(map.get(0), p);
 
     p[0] = 1.0;
     map.set(0, p);
-    BOOST_CHECK_EQUAL(map.get(0), p);
+    EXPECT_EQ(map.get(0), p);
 }
 
 // Check the fun origin transformation part of this class
-BOOST_FIXTURE_TEST_CASE(TransformationTest, CreateUVMapFixture)
+TEST_F(CreateUVMapFixture, TransformationTest)
 {
 
     // get the original points
     volcart::UVMap map = _BaseUVMap;
     map.setOrigin(UVMap::Origin::TopLeft);  // standard origin
-
-    logger->debug("Transforming against (0,0) and comparing expected results");
 
     // Retrieve mappings relative to the top-left (0,0)
     _BaseUVMap.setOrigin(UVMap::Origin::TopLeft);
@@ -114,8 +69,8 @@ BOOST_FIXTURE_TEST_CASE(TransformationTest, CreateUVMapFixture)
         ExpectedValues[0] = std::abs(map.get(pnt_id)[0]);  // u
         ExpectedValues[1] = std::abs(map.get(pnt_id)[1]);  // v
 
-        BOOST_CHECK_EQUAL(ExpectedValues[0], _BaseUVMap.get(pnt_id)[0]);
-        BOOST_CHECK_EQUAL(ExpectedValues[1], _BaseUVMap.get(pnt_id)[1]);
+        EXPECT_EQ(ExpectedValues[0], _BaseUVMap.get(pnt_id)[0]);
+        EXPECT_EQ(ExpectedValues[1], _BaseUVMap.get(pnt_id)[1]);
 
         ++pnt_id;
     }
@@ -132,8 +87,8 @@ BOOST_FIXTURE_TEST_CASE(TransformationTest, CreateUVMapFixture)
         ExpectedValues[0] = std::abs(map.get(pnt_id)[0] - 0);  // u
         ExpectedValues[1] = std::abs(map.get(pnt_id)[1] - 1);  // v
 
-        BOOST_CHECK_EQUAL(ExpectedValues[0], _BaseUVMap.get(pnt_id)[0]);
-        BOOST_CHECK_EQUAL(ExpectedValues[1], _BaseUVMap.get(pnt_id)[1]);
+        EXPECT_EQ(ExpectedValues[0], _BaseUVMap.get(pnt_id)[0]);
+        EXPECT_EQ(ExpectedValues[1], _BaseUVMap.get(pnt_id)[1]);
 
         ++pnt_id;
     }
@@ -150,13 +105,11 @@ BOOST_FIXTURE_TEST_CASE(TransformationTest, CreateUVMapFixture)
         ExpectedValues[0] = std::abs(map.get(pnt_id)[0] - 1);  // u
         ExpectedValues[1] = std::abs(map.get(pnt_id)[1] - 0);  // v
 
-        BOOST_CHECK_EQUAL(ExpectedValues[0], _BaseUVMap.get(pnt_id)[0]);
-        BOOST_CHECK_EQUAL(ExpectedValues[1], _BaseUVMap.get(pnt_id)[1]);
+        EXPECT_EQ(ExpectedValues[0], _BaseUVMap.get(pnt_id)[0]);
+        EXPECT_EQ(ExpectedValues[1], _BaseUVMap.get(pnt_id)[1]);
 
         ++pnt_id;
     }
-
-    logger->debug("Transforming against (1,1) and comparing expected results");
 
     // Retrieve mappings relative to the bottom-right (1,1)
     _BaseUVMap.setOrigin(UVMap::Origin::BottomRight);
@@ -168,8 +121,8 @@ BOOST_FIXTURE_TEST_CASE(TransformationTest, CreateUVMapFixture)
         ExpectedValues[0] = std::abs(map.get(pnt_id)[0] - 1);  // u
         ExpectedValues[1] = std::abs(map.get(pnt_id)[1] - 1);  // v
 
-        BOOST_CHECK_EQUAL(ExpectedValues[0], _BaseUVMap.get(pnt_id)[0]);
-        BOOST_CHECK_EQUAL(ExpectedValues[1], _BaseUVMap.get(pnt_id)[1]);
+        EXPECT_EQ(ExpectedValues[0], _BaseUVMap.get(pnt_id)[0]);
+        EXPECT_EQ(ExpectedValues[1], _BaseUVMap.get(pnt_id)[1]);
 
         ++pnt_id;
     }

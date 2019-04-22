@@ -1,12 +1,5 @@
-//
-// Created by Ryan Taber on 1/29/16.
-//
+#include <gtest/gtest.h>
 
-#define BOOST_TEST_MODULE ScaleMesh
-
-#include <boost/test/floating_point_comparison.hpp>
-#include <boost/test/unit_test.hpp>
-#include <boost/test/unit_test_log.hpp>
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/shapes/Arch.hpp"
 #include "vc/core/shapes/Cone.hpp"
@@ -20,53 +13,14 @@
 
 using namespace volcart;
 
-/************************************************************************************
- *                                                                                  *
- *  ScaleMeshTest.cpp - tests the functionality of /v-c/meshing/ScaleMesh.cpp *
- *  The ultimate goal of this file is the following: *
- *                                                                                  *
- *        1. check whether an itk mesh can be scaled correctly without changing
- * *
- *           the input mesh. *
- *                                                                                  *
- *  This file is broken up into test fixtures for each of the common mesh shapes
- * *
- *  (plane, cube, cone, sphere, arch) which initialize objects for the following
- * *
- *  test cases: *
- *                                                                                  *
- *  1.  ScaledPlaneTest (ScaledPlaneFixture) *
- *  2.  ScaledCubeTest (ScaledCubeFixture) *
- *  3.  ScaledArchTest (ScaledArchFixture) *
- *  4.  ScaledSphereTest (ScaledSphereFixture) *
- *  5.  ScaledConeTest (ScaledConeFixture) *
- *  6.  ConfirmInputPlaneMeshIsUnchangedAfterScalingTest (ScaledPlaneFixture) *
- *  7.  CompareSavedAndFixtureScaledPlaneMesh (ScaledPlaneFixture) *
- *  8.  CompareSavedAndFixtureScaledCubeMesh (ScaledCubeFixture) *
- *  9.  CompareSavedAndFixtureScaledArchMesh (ScaledArchFixture) *
- *  10. CompareSavedAndFixtureScaledSphereMesh (ScaledSphereFixture) *
- *  11. CompareSavedAndFixtureScaledConeMesh (ScaledConeFixture) *
- *                                                                                  *
- * Input: *
- *     No required external inputs for this sample test. All test objects are *
- *     created internally by the various test fixtures. *
- *                                                                                  *
- * Test-Specific Output: *
- *     Specific test output only given on failure of any tests. Otherwise,
- * general  *
- *     number of testing errors is output. *
- *                                                                                  *
- * Miscellaneous: *
- *     See the /testing/meshing wiki for more information on this test *
- * **********************************************************************************/
-
 /*
  * Individual test fixtures for each of the common shapes
  * Test cases call appropriate fixture
  */
 
-struct ScaledPlaneFixture {
-
+class ScaledPlaneFixture : public ::testing::Test
+{
+public:
     ScaledPlaneFixture()
     {
 
@@ -80,13 +34,6 @@ struct ScaledPlaneFixture {
             _out_PlaneMeshUsedForRegressionTest, 3);
         volcart::testing::ParsingHelpers::ParseOBJFile(
             "ScaledPlaneMesh.obj", _SavedPlanePoints, _SavedPlaneCells);
-
-        std::cerr << "setting up planar mesh for scaling" << std::endl;
-    }
-
-    ~ScaledPlaneFixture()
-    {
-        std::cerr << "cleaning up plane objects" << std::endl;
     }
 
     volcart::shapes::Plane _Plane;
@@ -100,8 +47,9 @@ struct ScaledPlaneFixture {
     std::vector<SimpleMesh::Cell> _SavedPlaneCells;
 };
 
-struct ScaledCubeFixture {
-
+class ScaledCubeFixture : public ::testing::Test
+{
+public:
     ScaledCubeFixture()
     {
 
@@ -115,12 +63,6 @@ struct ScaledCubeFixture {
             _out_CubeMeshUsedForRegressionTest, 3);
         volcart::testing::ParsingHelpers::ParseOBJFile(
             "ScaledCubeMesh.obj", _SavedCubePoints, _SavedCubeCells);
-        std::cerr << "setting up cube mesh for scaling" << std::endl;
-    }
-
-    ~ScaledCubeFixture()
-    {
-        std::cerr << "cleaning up cube objects" << std::endl;
     }
 
     ITKMesh::Pointer _in_CubeMesh, _in_CubeMeshUsedForRegressionTest;
@@ -133,13 +75,11 @@ struct ScaledCubeFixture {
     std::vector<SimpleMesh::Cell> _SavedCubeCells;
 };
 
-struct ScaledArchFixture {
-
+class ScaledArchFixture : public ::testing::Test
+{
+public:
     ScaledArchFixture()
     {
-
-        std::cerr << "setting up arch mesh for scaling" << std::endl;
-
         _in_ArchMesh = _Arch.itkMesh();
         _ScaleFactor = 3;
 
@@ -152,11 +92,6 @@ struct ScaledArchFixture {
             "ScaledArchMesh.obj", _SavedArchPoints, _SavedArchCells);
     }
 
-    ~ScaledArchFixture()
-    {
-        std::cerr << "cleaning up arch mesh objects" << std::endl;
-    }
-
     ITKMesh::Pointer _in_ArchMesh, _in_ArchMeshUsedForRegressionTest;
     ITKMesh::Pointer _out_ArchMesh = ITKMesh::New();
     volcart::shapes::Arch _Arch;
@@ -167,13 +102,11 @@ struct ScaledArchFixture {
     std::vector<SimpleMesh::Cell> _SavedArchCells;
 };
 
-struct ScaledSphereFixture {
-
+class ScaledSphereFixture : public ::testing::Test
+{
+public:
     ScaledSphereFixture()
     {
-
-        std::cerr << "setting up spherical mesh for scaling" << std::endl;
-
         _in_SphereMesh = _Sphere.itkMesh();
         _ScaleFactor = 3;
 
@@ -186,11 +119,6 @@ struct ScaledSphereFixture {
             "ScaledSphereMesh.obj", _SavedSpherePoints, _SavedSphereCells);
     }
 
-    ~ScaledSphereFixture()
-    {
-        std::cerr << "cleaning up spherical mesh for scaling" << std::endl;
-    }
-
     ITKMesh::Pointer _in_SphereMesh, _in_SphereMeshUsedForRegressionTest;
     ITKMesh::Pointer _out_SphereMesh = ITKMesh::New();
     volcart::shapes::Sphere _Sphere;
@@ -201,8 +129,9 @@ struct ScaledSphereFixture {
     std::vector<SimpleMesh::Cell> _SavedSphereCells;
 };
 
-struct ScaledConeFixture {
-
+class ScaledConeFixture : public ::testing::Test
+{
+public:
     ScaledConeFixture()
     {
 
@@ -216,12 +145,6 @@ struct ScaledConeFixture {
             _out_ConeMeshUsedForRegressionTest, 3);
         volcart::testing::ParsingHelpers::ParseOBJFile(
             "ScaledConeMesh.obj", _SavedConePoints, _SavedConeCells);
-        std::cerr << "setting up cone mesh for scaling" << std::endl;
-    }
-
-    ~ScaledConeFixture()
-    {
-        std::cerr << "cleaning up cone mesh for scaling" << std::endl;
     }
 
     ITKMesh::Pointer _in_ConeMesh, _in_ConeMeshUsedForRegressionTest;
@@ -234,7 +157,7 @@ struct ScaledConeFixture {
     std::vector<SimpleMesh::Cell> _SavedConeCells;
 };
 
-BOOST_FIXTURE_TEST_CASE(ScaledPlaneTest, ScaledPlaneFixture)
+TEST_F(ScaledPlaneFixture, ScaledPlaneTest)
 {
 
     // loop to cover positive, negative and zero value of factor
@@ -243,7 +166,7 @@ BOOST_FIXTURE_TEST_CASE(ScaledPlaneTest, ScaledPlaneFixture)
         volcart::meshing::ScaleMesh(
             _in_PlaneMesh, _out_PlaneMesh, _ScaleFactor);
 
-        BOOST_CHECK_EQUAL(
+        EXPECT_EQ(
             _in_PlaneMesh->GetNumberOfPoints(),
             _out_PlaneMesh->GetNumberOfPoints());
 
@@ -269,14 +192,14 @@ BOOST_FIXTURE_TEST_CASE(ScaledPlaneTest, ScaledPlaneFixture)
     }
 }
 
-BOOST_FIXTURE_TEST_CASE(ScaledCubeTest, ScaledCubeFixture)
+TEST_F(ScaledCubeFixture, ScaledCubeTest)
 {
 
     while (_ScaleFactor > -1.5) {
 
         volcart::meshing::ScaleMesh(_in_CubeMesh, _out_CubeMesh, _ScaleFactor);
 
-        BOOST_CHECK_EQUAL(
+        EXPECT_EQ(
             _in_CubeMesh->GetNumberOfPoints(),
             _out_CubeMesh->GetNumberOfPoints());
 
@@ -298,14 +221,14 @@ BOOST_FIXTURE_TEST_CASE(ScaledCubeTest, ScaledCubeFixture)
     }
 }
 
-BOOST_FIXTURE_TEST_CASE(ScaledArchTest, ScaledArchFixture)
+TEST_F(ScaledArchFixture, ScaledArchTest)
 {
 
     while (_ScaleFactor > -1.5) {
 
         volcart::meshing::ScaleMesh(_in_ArchMesh, _out_ArchMesh, _ScaleFactor);
 
-        BOOST_CHECK_EQUAL(
+        EXPECT_EQ(
             _in_ArchMesh->GetNumberOfPoints(),
             _out_ArchMesh->GetNumberOfPoints());
 
@@ -327,7 +250,7 @@ BOOST_FIXTURE_TEST_CASE(ScaledArchTest, ScaledArchFixture)
     }
 }
 
-BOOST_FIXTURE_TEST_CASE(ScaledSphereTest, ScaledSphereFixture)
+TEST_F(ScaledSphereFixture, ScaledSphereTest)
 {
 
     while (_ScaleFactor > -1.5) {
@@ -335,7 +258,7 @@ BOOST_FIXTURE_TEST_CASE(ScaledSphereTest, ScaledSphereFixture)
         volcart::meshing::ScaleMesh(
             _in_SphereMesh, _out_SphereMesh, _ScaleFactor);
 
-        BOOST_CHECK_EQUAL(
+        EXPECT_EQ(
             _in_SphereMesh->GetNumberOfPoints(),
             _out_SphereMesh->GetNumberOfPoints());
 
@@ -357,14 +280,14 @@ BOOST_FIXTURE_TEST_CASE(ScaledSphereTest, ScaledSphereFixture)
     }
 }
 
-BOOST_FIXTURE_TEST_CASE(ScaledConeTest, ScaledConeFixture)
+TEST_F(ScaledConeFixture, ScaledConeTest)
 {
 
     while (_ScaleFactor > -1.5) {
 
         volcart::meshing::ScaleMesh(_in_ConeMesh, _out_ConeMesh, _ScaleFactor);
 
-        BOOST_CHECK_EQUAL(
+        EXPECT_EQ(
             _in_ConeMesh->GetNumberOfPoints(),
             _out_ConeMesh->GetNumberOfPoints());
 
@@ -386,8 +309,7 @@ BOOST_FIXTURE_TEST_CASE(ScaledConeTest, ScaledConeFixture)
     }
 }
 
-BOOST_FIXTURE_TEST_CASE(
-    ConfirmInputPlaneMeshIsUnchangedAfterScalingTest, ScaledPlaneFixture)
+TEST_F(ScaledPlaneFixture, ConfirmInputPlaneMeshIsUnchangedAfterScalingTest)
 {
 
     // reassign scale factor to a arbitrary value
@@ -403,21 +325,21 @@ BOOST_FIXTURE_TEST_CASE(
     // through
     // ScaleMesh unchanged
 
-    BOOST_CHECK_EQUAL(
+    EXPECT_EQ(
         _in_PlaneMesh->GetNumberOfPoints(), NewPlaneMesh->GetNumberOfPoints());
-    BOOST_CHECK_EQUAL(
+    EXPECT_EQ(
         _in_PlaneMesh->GetNumberOfCells(), NewPlaneMesh->GetNumberOfCells());
 
     for (size_t point = 0; point < _in_PlaneMesh->GetNumberOfPoints();
          ++point) {
 
-        BOOST_CHECK_EQUAL(
+        EXPECT_EQ(
             _in_PlaneMesh->GetPoint(point)[0],
             NewPlaneMesh->GetPoint(point)[0]);
-        BOOST_CHECK_EQUAL(
+        EXPECT_EQ(
             _in_PlaneMesh->GetPoint(point)[1],
             NewPlaneMesh->GetPoint(point)[1]);
-        BOOST_CHECK_EQUAL(
+        EXPECT_EQ(
             _in_PlaneMesh->GetPoint(point)[2],
             NewPlaneMesh->GetPoint(point)[2]);
     }
@@ -440,11 +362,11 @@ BOOST_FIXTURE_TEST_CASE(
 
             // Now to check the points within the cells
             if (counter == 0)
-                BOOST_CHECK_EQUAL(*in_PlaneMeshPointId, *NewPlaneMeshPointId);
+                EXPECT_EQ(*in_PlaneMeshPointId, *NewPlaneMeshPointId);
             else if (counter == 1)
-                BOOST_CHECK_EQUAL(*in_PlaneMeshPointId, *NewPlaneMeshPointId);
+                EXPECT_EQ(*in_PlaneMeshPointId, *NewPlaneMeshPointId);
             else if (counter == 2)
-                BOOST_CHECK_EQUAL(*in_PlaneMeshPointId, *NewPlaneMeshPointId);
+                EXPECT_EQ(*in_PlaneMeshPointId, *NewPlaneMeshPointId);
 
             // increment points
             ++in_PlaneMeshPointId;
@@ -458,27 +380,26 @@ BOOST_FIXTURE_TEST_CASE(
     }
 }
 
-BOOST_FIXTURE_TEST_CASE(
-    CompareSavedAndFixtureScaledPlaneMesh, ScaledPlaneFixture)
+TEST_F(ScaledPlaneFixture, CompareSavedAndFixtureScaledPlaneMesh)
 {
 
-    BOOST_CHECK_EQUAL(
+    EXPECT_EQ(
         _out_PlaneMeshUsedForRegressionTest->GetNumberOfPoints(),
         _SavedPlanePoints.size());
-    BOOST_CHECK_EQUAL(
+    EXPECT_EQ(
         _out_PlaneMeshUsedForRegressionTest->GetNumberOfCells(),
         _SavedPlaneCells.size());
 
     // points
     for (size_t point = 0; point < _SavedPlanePoints.size(); ++point) {
 
-        BOOST_CHECK_EQUAL(
+        EXPECT_EQ(
             _out_PlaneMeshUsedForRegressionTest->GetPoint(point)[0],
             _SavedPlanePoints[point].x);
-        BOOST_CHECK_EQUAL(
+        EXPECT_EQ(
             _out_PlaneMeshUsedForRegressionTest->GetPoint(point)[1],
             _SavedPlanePoints[point].y);
-        BOOST_CHECK_EQUAL(
+        EXPECT_EQ(
             _out_PlaneMeshUsedForRegressionTest->GetPoint(point)[2],
             _SavedPlanePoints[point].z);
     }
@@ -495,13 +416,13 @@ BOOST_FIXTURE_TEST_CASE(
             point.Index(), &_out_PlaneMeshUsedForRegressionTestNormal);
 
         // Now compare the normals for the two meshes
-        BOOST_CHECK_EQUAL(
+        EXPECT_EQ(
             _out_PlaneMeshUsedForRegressionTestNormal[0],
             _SavedPlanePoints[p].nx);
-        BOOST_CHECK_EQUAL(
+        EXPECT_EQ(
             _out_PlaneMeshUsedForRegressionTestNormal[1],
             _SavedPlanePoints[p].ny);
-        BOOST_CHECK_EQUAL(
+        EXPECT_EQ(
             _out_PlaneMeshUsedForRegressionTestNormal[2],
             _SavedPlanePoints[p].nz);
 
@@ -530,15 +451,15 @@ BOOST_FIXTURE_TEST_CASE(
 
             // Now to check the points within the cells
             if (counter == 0)
-                BOOST_CHECK_EQUAL(
+                EXPECT_EQ(
                     *_out_PlaneMeshUsedForRegressionTestPointId,
                     _SavedPlaneCells[c].v1);
             else if (counter == 1)
-                BOOST_CHECK_EQUAL(
+                EXPECT_EQ(
                     *_out_PlaneMeshUsedForRegressionTestPointId,
                     _SavedPlaneCells[c].v2);
             else if (counter == 2)
-                BOOST_CHECK_EQUAL(
+                EXPECT_EQ(
                     *_out_PlaneMeshUsedForRegressionTestPointId,
                     _SavedPlaneCells[c].v3);
 
@@ -553,25 +474,25 @@ BOOST_FIXTURE_TEST_CASE(
     }
 }
 
-BOOST_FIXTURE_TEST_CASE(CompareSavedAndFixtureScaledCubeMesh, ScaledCubeFixture)
+TEST_F(ScaledCubeFixture, CompareSavedAndFixtureScaledCubeMesh)
 {
 
-    BOOST_CHECK_EQUAL(
+    EXPECT_EQ(
         _out_CubeMeshUsedForRegressionTest->GetNumberOfPoints(),
         _SavedCubePoints.size());
-    BOOST_CHECK_EQUAL(
+    EXPECT_EQ(
         _out_CubeMeshUsedForRegressionTest->GetNumberOfCells(),
         _SavedCubeCells.size());
 
     for (size_t point = 0; point < _SavedCubePoints.size(); ++point) {
 
-        BOOST_CHECK_EQUAL(
+        EXPECT_EQ(
             _out_CubeMeshUsedForRegressionTest->GetPoint(point)[0],
             _SavedCubePoints[point].x);
-        BOOST_CHECK_EQUAL(
+        EXPECT_EQ(
             _out_CubeMeshUsedForRegressionTest->GetPoint(point)[1],
             _SavedCubePoints[point].y);
-        BOOST_CHECK_EQUAL(
+        EXPECT_EQ(
             _out_CubeMeshUsedForRegressionTest->GetPoint(point)[2],
             _SavedCubePoints[point].z);
     }
@@ -586,13 +507,13 @@ BOOST_FIXTURE_TEST_CASE(CompareSavedAndFixtureScaledCubeMesh, ScaledCubeFixture)
         _out_CubeMeshUsedForRegressionTest->GetPointData(
             point.Index(), &_out_CubeMeshUsedForRegressionTestNormal);
 
-        BOOST_CHECK_EQUAL(
+        EXPECT_EQ(
             _out_CubeMeshUsedForRegressionTestNormal[0],
             _SavedCubePoints[p].nx);
-        BOOST_CHECK_EQUAL(
+        EXPECT_EQ(
             _out_CubeMeshUsedForRegressionTestNormal[1],
             _SavedCubePoints[p].ny);
-        BOOST_CHECK_EQUAL(
+        EXPECT_EQ(
             _out_CubeMeshUsedForRegressionTestNormal[2],
             _SavedCubePoints[p].nz);
 
@@ -613,15 +534,15 @@ BOOST_FIXTURE_TEST_CASE(CompareSavedAndFixtureScaledCubeMesh, ScaledCubeFixture)
                _out_CubeMeshUsedForRegressionTestCell.Value()->PointIdsEnd()) {
 
             if (counter == 0)
-                BOOST_CHECK_EQUAL(
+                EXPECT_EQ(
                     *_out_CubeMeshUsedForRegressionTestPointId,
                     _SavedCubeCells[c].v1);
             else if (counter == 1)
-                BOOST_CHECK_EQUAL(
+                EXPECT_EQ(
                     *_out_CubeMeshUsedForRegressionTestPointId,
                     _SavedCubeCells[c].v2);
             else if (counter == 2)
-                BOOST_CHECK_EQUAL(
+                EXPECT_EQ(
                     *_out_CubeMeshUsedForRegressionTestPointId,
                     _SavedCubeCells[c].v3);
 
@@ -633,13 +554,13 @@ BOOST_FIXTURE_TEST_CASE(CompareSavedAndFixtureScaledCubeMesh, ScaledCubeFixture)
     }
 }
 
-BOOST_FIXTURE_TEST_CASE(CompareSavedAndFixtureScaledArchMesh, ScaledArchFixture)
+TEST_F(ScaledArchFixture, CompareSavedAndFixtureScaledArchMesh)
 {
 
-    BOOST_CHECK_EQUAL(
+    EXPECT_EQ(
         _out_ArchMeshUsedForRegressionTest->GetNumberOfPoints(),
         _SavedArchPoints.size());
-    BOOST_CHECK_EQUAL(
+    EXPECT_EQ(
         _out_ArchMeshUsedForRegressionTest->GetNumberOfCells(),
         _SavedArchCells.size());
 
@@ -693,15 +614,15 @@ BOOST_FIXTURE_TEST_CASE(CompareSavedAndFixtureScaledArchMesh, ScaledArchFixture)
                _out_ArchMeshUsedForRegressionTestCell.Value()->PointIdsEnd()) {
 
             if (counter == 0)
-                BOOST_CHECK_EQUAL(
+                EXPECT_EQ(
                     *_out_ArchMeshUsedForRegressionTestPointId,
                     _SavedArchCells[c].v1);
             else if (counter == 1)
-                BOOST_CHECK_EQUAL(
+                EXPECT_EQ(
                     *_out_ArchMeshUsedForRegressionTestPointId,
                     _SavedArchCells[c].v2);
             else if (counter == 2)
-                BOOST_CHECK_EQUAL(
+                EXPECT_EQ(
                     *_out_ArchMeshUsedForRegressionTestPointId,
                     _SavedArchCells[c].v3);
 
@@ -713,14 +634,13 @@ BOOST_FIXTURE_TEST_CASE(CompareSavedAndFixtureScaledArchMesh, ScaledArchFixture)
     }
 }
 
-BOOST_FIXTURE_TEST_CASE(
-    CompareSavedAndFixtureScaledSphereMesh, ScaledSphereFixture)
+TEST_F(ScaledSphereFixture, CompareSavedAndFixtureScaledSphereMesh)
 {
 
-    BOOST_CHECK_EQUAL(
+    EXPECT_EQ(
         _out_SphereMeshUsedForRegressionTest->GetNumberOfPoints(),
         _SavedSpherePoints.size());
-    BOOST_CHECK_EQUAL(
+    EXPECT_EQ(
         _out_SphereMeshUsedForRegressionTest->GetNumberOfCells(),
         _SavedSphereCells.size());
 
@@ -775,15 +695,15 @@ BOOST_FIXTURE_TEST_CASE(
             _out_SphereMeshUsedForRegressionTestCell.Value()->PointIdsEnd()) {
 
             if (counter == 0)
-                BOOST_CHECK_EQUAL(
+                EXPECT_EQ(
                     *_out_SphereMeshUsedForRegressionTestPointId,
                     _SavedSphereCells[c].v1);
             else if (counter == 1)
-                BOOST_CHECK_EQUAL(
+                EXPECT_EQ(
                     *_out_SphereMeshUsedForRegressionTestPointId,
                     _SavedSphereCells[c].v2);
             else if (counter == 2)
-                BOOST_CHECK_EQUAL(
+                EXPECT_EQ(
                     *_out_SphereMeshUsedForRegressionTestPointId,
                     _SavedSphereCells[c].v3);
 
@@ -795,13 +715,13 @@ BOOST_FIXTURE_TEST_CASE(
     }
 }
 
-BOOST_FIXTURE_TEST_CASE(CompareSavedAndFixtureScaledConeMesh, ScaledConeFixture)
+TEST_F(ScaledConeFixture, CompareSavedAndFixtureScaledConeMesh)
 {
 
-    BOOST_CHECK_EQUAL(
+    EXPECT_EQ(
         _out_ConeMeshUsedForRegressionTest->GetNumberOfPoints(),
         _SavedConePoints.size());
-    BOOST_CHECK_EQUAL(
+    EXPECT_EQ(
         _out_ConeMeshUsedForRegressionTest->GetNumberOfCells(),
         _SavedConeCells.size());
 
@@ -855,15 +775,15 @@ BOOST_FIXTURE_TEST_CASE(CompareSavedAndFixtureScaledConeMesh, ScaledConeFixture)
                _out_ConeMeshUsedForRegressionTestCell.Value()->PointIdsEnd()) {
 
             if (counter == 0)
-                BOOST_CHECK_EQUAL(
+                EXPECT_EQ(
                     *_out_ConeMeshUsedForRegressionTestPointId,
                     _SavedConeCells[c].v1);
             else if (counter == 1)
-                BOOST_CHECK_EQUAL(
+                EXPECT_EQ(
                     *_out_ConeMeshUsedForRegressionTestPointId,
                     _SavedConeCells[c].v2);
             else if (counter == 2)
-                BOOST_CHECK_EQUAL(
+                EXPECT_EQ(
                     *_out_ConeMeshUsedForRegressionTestPointId,
                     _SavedConeCells[c].v3);
 

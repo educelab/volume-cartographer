@@ -1,12 +1,12 @@
-#define BOOST_TEST_MODULE LocalResliceParticleSimFittedCurve
+#include <gtest/gtest.h>
 
 #include <cmath>
 #include <iostream>
 #include <numeric>
 #include <vector>
-#include <boost/test/unit_test.hpp>
-#include <boost/test/unit_test_log.hpp>
+
 #include "vc/segmentation/lrps/FittedCurve.hpp"
+#include "vc/testing/TestingUtils.hpp"
 
 using namespace volcart::segmentation;
 
@@ -17,6 +17,7 @@ std::vector<double> makeTVals(size_t count);
 
 // Fixture for a constant line y = 1
 struct ConstantFittedCurve {
+
     size_t _pointCount;
     double _yConstant;
     FittedCurve _curve;
@@ -37,6 +38,7 @@ struct ConstantFittedCurve {
 
 // Generates a curve representing a circle with radius 'r' centered at (0, 0)
 struct CircleFittedCurve {
+
     size_t _degreeStep;
     double _radius;
     size_t _pointCount;
@@ -56,22 +58,21 @@ struct CircleFittedCurve {
     }
 };
 
-BOOST_AUTO_TEST_SUITE(ConstantCurveSuite)
-
-BOOST_AUTO_TEST_CASE(CheckIncreasingXAndConstantYFromInitialCurve)
+TEST(ConstantFittedCurve, CheckIncreasingXAndConstantYFromInitialCurve)
 {
     const double yConstant = 1;
     auto curve = ConstantFittedCurve(20, yConstant)._curve;
-    BOOST_CHECK_CLOSE(curve(0)(1), yConstant, tol);
+    volcart::testing::ExpectNear(curve(0)(1), yConstant, tol);
     for (size_t i = 1; i < curve.size(); ++i) {
         auto prev = curve(i - 1);
         auto curr = curve(i);
-        BOOST_CHECK(prev(0) < curr(0));
-        BOOST_CHECK_CLOSE(curr(1), yConstant, tol);
+        EXPECT_TRUE(prev(0) < curr(0));
+        volcart::testing::ExpectNear(curr(1), yConstant, tol);
     }
 }
 
-BOOST_AUTO_TEST_CASE(
+TEST(
+    ConstantFittedCurve,
     CheckIncreasingXAndConstantYAndEquidistancePointsFromEvenlySpacedCurve)
 {
     const double yConstant = 1;
@@ -79,84 +80,81 @@ BOOST_AUTO_TEST_CASE(
     auto evenlySpaced = curve.evenlySpacePoints();
 
     double firstDiff = cv::norm(curve(1), curve(0));
-    BOOST_CHECK_CLOSE(evenlySpaced[0](1), yConstant, tol);
+    volcart::testing::ExpectNear(evenlySpaced[0](1), yConstant, tol);
     for (size_t i = 1; i < evenlySpaced.size(); ++i) {
-        BOOST_CHECK_CLOSE(evenlySpaced[i](1), yConstant, tol);
-        BOOST_CHECK_CLOSE(
+        volcart::testing::ExpectNear(evenlySpaced[i](1), yConstant, tol);
+        volcart::testing::ExpectNear(
             cv::norm(evenlySpaced[i], evenlySpaced[i - 1]), firstDiff, tol);
     }
 }
 
-BOOST_AUTO_TEST_CASE(ReadIncreasingXAndConstantYFrom4xSampledCurve)
+TEST(ConstantFittedCurve, ReadIncreasingXAndConstantYFrom4xSampledCurve)
 {
     const double yConstant = 1;
     const size_t npoints = 20;
     auto curve = ConstantFittedCurve(npoints, yConstant)._curve;
     auto superSampled = curve.sample(npoints * 4);
 
-    BOOST_CHECK_CLOSE(superSampled[0](1), yConstant, tol);
+    volcart::testing::ExpectNear(superSampled[0](1), yConstant, tol);
     for (size_t i = 1; i < superSampled.size(); ++i) {
         auto curr = superSampled[i];
         auto prev = superSampled[i - 1];
-        BOOST_CHECK_CLOSE(curr(1), yConstant, tol);
-        BOOST_CHECK(curr(0) > prev(0));
+        volcart::testing::ExpectNear(curr(1), yConstant, tol);
+        EXPECT_TRUE(curr(0) > prev(0));
     }
 }
 
-BOOST_AUTO_TEST_CASE(VerifyWeGetTheSamePointsBackFor100PercentResample)
+TEST(ConstantFittedCurve, VerifyWeGetTheSamePointsBackFor100PercentResample)
 {
     const double yConstant = 1;
     const size_t npoints = 20;
     auto curve = ConstantFittedCurve(npoints, yConstant)._curve;
     auto beforeResamplePoints = curve.points();
     curve.resample(1.0);
-    BOOST_CHECK_EQUAL(curve.points().size(), beforeResamplePoints.size());
+    EXPECT_EQ(curve.points().size(), beforeResamplePoints.size());
     for (size_t i = 0; i < npoints; ++i) {
-        BOOST_CHECK_CLOSE(
+        volcart::testing::ExpectNear(
             cv::norm(beforeResamplePoints[i]), cv::norm(curve(i)), tol);
     }
 }
 
-BOOST_AUTO_TEST_CASE(EvalReturnsIncreasingXAndConstantY)
+TEST(ConstantFittedCurve, EvalReturnsIncreasingXAndConstantY)
 {
     const double yConstant = 1;
     const size_t npoints = 20;
     auto curve = ConstantFittedCurve(npoints, yConstant)._curve;
     auto ts = makeTVals(50);
 
-    BOOST_CHECK_CLOSE(curve.eval(ts[0])(1), yConstant, tol);
+    volcart::testing::ExpectNear(curve.eval(ts[0])(1), yConstant, tol);
     for (size_t i = 1; i < ts.size(); ++i) {
         auto prev = curve.eval(ts[i - 1]);
         auto curr = curve.eval(ts[i]);
-        BOOST_CHECK_CLOSE(curr(1), yConstant, tol);
-        BOOST_CHECK(curr(0) > prev(0));
+        volcart::testing::ExpectNear(curr(1), yConstant, tol);
+        EXPECT_TRUE(curr(0) > prev(0));
     }
 }
 
-BOOST_AUTO_TEST_CASE(ConstantCurveHasZeroCurvature)
+TEST(ConstantFittedCurve, ConstantCurveHasZeroCurvature)
 {
     const double yConstant = 1;
     const size_t npoints = 20;
     auto curve = ConstantFittedCurve(npoints, yConstant)._curve;
     for (auto k : curve.curvature()) {
-        BOOST_CHECK_SMALL(k, 1e-6);
+        EXPECT_PRED_FORMAT2(::testing::DoubleLE, k, 1e-6);
     }
 }
 
-BOOST_AUTO_TEST_CASE(ConstantCurveHasArcLengthOfNPointsMinusOne)
+TEST(ConstantFittedCurve, ConstantCurveHasArcLengthOfNPointsMinusOne)
 {
     const double yConstant = 1;
     const size_t npoints = 20;
     auto curve = ConstantFittedCurve(npoints, yConstant)._curve;
-    BOOST_CHECK_CLOSE(curve.arclength(), double(npoints - 1), tol);
+    volcart::testing::ExpectNear(curve.arclength(), double(npoints - 1), tol);
 }
 
-BOOST_AUTO_TEST_SUITE_END()
-
 // Testing CircleFittedCurve
-BOOST_AUTO_TEST_SUITE(CircleCurveSuite)
 
-BOOST_AUTO_TEST_CASE(CircleCurveHasConstantCurvature)
+TEST(CircleFittedCurve, CircleCurveHasConstantCurvature)
 {
     const double radius = 10;
     auto curve = CircleFittedCurve(radius)._curve;
@@ -164,33 +162,31 @@ BOOST_AUTO_TEST_CASE(CircleCurveHasConstantCurvature)
     for (auto k : ks) {
         // Note: increasing tol by 2x to cover start/endpoints that are less
         // accurate than middle points
-        BOOST_CHECK_CLOSE(k, ks.front(), tol * 2);
+        volcart::testing::ExpectNear(k, ks.front(), tol * 2);
     }
 }
 
-BOOST_AUTO_TEST_CASE(CircleCurveHasArcLength2PiR)
+TEST(CircleFittedCurve, CircleCurveHasArcLength2PiR)
 {
     const double radius = 10;
     auto curve = CircleFittedCurve(radius)._curve;
     // XXX This is kind of an arbitrary tolerance. There will be some error
     // since it's a linear approx of the circumference, but I'm not sure what a
     // proper error bound should be.
-    BOOST_CHECK_CLOSE(curve.arclength(), 2 * M_PI * radius, 0.3);
+    volcart::testing::ExpectNear(curve.arclength(), 2 * M_PI * radius, 0.3);
 }
 
-BOOST_AUTO_TEST_CASE(EvenlySampledCircleCurveHasEvenlySpacedPoints)
+TEST(CircleFittedCurve, EvenlySampledCircleCurveHasEvenlySpacedPoints)
 {
     const double radius = 10;
     auto curve = CircleFittedCurve(radius)._curve;
     auto evenlySpaced = curve.evenlySpacePoints();
     auto firstDiff = cv::norm(evenlySpaced[1], evenlySpaced[0]);
     for (size_t i = 1; i < evenlySpaced.size(); ++i) {
-        BOOST_CHECK_CLOSE(
+        volcart::testing::ExpectNear(
             cv::norm(evenlySpaced[i], evenlySpaced[i - 1]), firstDiff, tol);
     }
 }
-
-BOOST_AUTO_TEST_SUITE_END()
 
 std::vector<double> makeTVals(size_t count)
 {

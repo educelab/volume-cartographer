@@ -1,6 +1,6 @@
-#define BOOST_TEST_MODULE VolumeMask
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
-#include <boost/test/unit_test.hpp>
 #include <opencv2/core.hpp>
 
 #include "vc/core/types/VolumeMask.hpp"
@@ -13,9 +13,7 @@ using State = vc::VolumeMask::State;
 const int XY_SIZE = 3000;
 const int Z_SIZE = 3000;
 
-BOOST_TEST_DONT_PRINT_LOG_VALUE(VolumeMask::State)
-
-BOOST_AUTO_TEST_CASE(BasicAssignment)
+TEST(VolumeMask, BasicAssignment)
 {
     // Constructor
     VolumeMask mask(5, 5, 5);
@@ -25,16 +23,16 @@ BOOST_AUTO_TEST_CASE(BasicAssignment)
     mask.setVoxelState(voxel, State::Segmented);
 
     // Retrieval
-    BOOST_CHECK_EQUAL(mask.getVoxelState(voxel), State::Segmented);
+    EXPECT_EQ(mask.getVoxelState(voxel), State::Segmented);
 
     // Assignment
     mask.setVoxelState(voxel, State::Unsegmented);
 
     // Retrieval
-    BOOST_CHECK_EQUAL(mask.getVoxelState(voxel), State::Unsegmented);
+    EXPECT_EQ(mask.getVoxelState(voxel), State::Unsegmented);
 }
 
-BOOST_AUTO_TEST_CASE(Performance_LargeSlice)
+TEST(VolumeMask, Performance_LargeSlice)
 {
     // Constructor
     VolumeMask mask(XY_SIZE, XY_SIZE, Z_SIZE);
@@ -45,10 +43,10 @@ BOOST_AUTO_TEST_CASE(Performance_LargeSlice)
     mask.setVoxelState(voxel, State::Segmented);
 
     // Retrieval
-    BOOST_CHECK_EQUAL(mask.getVoxelState(voxel), State::Segmented);
+    EXPECT_EQ(mask.getVoxelState(voxel), State::Segmented);
 }
 
-BOOST_AUTO_TEST_CASE(Performance_ThousandVoxelSubvolume)
+TEST(VolumeMask, Performance_ThousandVoxelSubvolume)
 {
     // Constructor
     VolumeMask mask(XY_SIZE, XY_SIZE, Z_SIZE);
@@ -64,8 +62,7 @@ BOOST_AUTO_TEST_CASE(Performance_ThousandVoxelSubvolume)
     std::fill(key.begin(), key.end(), State::Segmented);
 
     // Retrieval
-    BOOST_CHECK_EQUAL_COLLECTIONS(
-        subvolume.begin(), subvolume.end(), key.begin(), key.end());
+    EXPECT_THAT(subvolume.data(), testing::ContainerEq(key));
 
     // Check unset values
     origin[2] = dims[2];
@@ -73,11 +70,10 @@ BOOST_AUTO_TEST_CASE(Performance_ThousandVoxelSubvolume)
     std::fill(key.begin(), key.end(), State::Unsegmented);
 
     // Retrieval
-    BOOST_CHECK_EQUAL_COLLECTIONS(
-        subvolume.begin(), subvolume.end(), key.begin(), key.end());
+    EXPECT_THAT(subvolume.data(), testing::ContainerEq(key));
 }
 
-BOOST_AUTO_TEST_CASE(Performance_EightThousandVoxelSubvolume)
+TEST(VolumeMask, Performance_EightThousandVoxelSubvolume)
 {
     // Constructor
     VolumeMask mask(XY_SIZE, XY_SIZE, Z_SIZE);
@@ -93,8 +89,7 @@ BOOST_AUTO_TEST_CASE(Performance_EightThousandVoxelSubvolume)
     std::fill(key.begin(), key.end(), State::Segmented);
 
     // Retrieval
-    BOOST_CHECK_EQUAL_COLLECTIONS(
-        subvolume.begin(), subvolume.end(), key.begin(), key.end());
+    EXPECT_THAT(subvolume.data(), testing::ContainerEq(key));
 
     // Check unset values
     origin[2] = dims[2];
@@ -102,6 +97,5 @@ BOOST_AUTO_TEST_CASE(Performance_EightThousandVoxelSubvolume)
     std::fill(key.begin(), key.end(), State::Unsegmented);
 
     // Retrieval
-    BOOST_CHECK_EQUAL_COLLECTIONS(
-        subvolume.begin(), subvolume.end(), key.begin(), key.end());
+    EXPECT_THAT(subvolume.data(), testing::ContainerEq(key));
 }

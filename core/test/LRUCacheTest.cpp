@@ -1,303 +1,180 @@
-//
-// Created by Ryan Taber on 2/29/16.
-//
-
-#define BOOST_TEST_MODULE LRUCache
-
-#include "vc/core/types/LRUCache.hpp"
-
 #include <iostream>
 
-#include <boost/test/unit_test.hpp>
+#include <gtest/gtest.h>
 
+#include "vc/core/types/LRUCache.hpp"
 #include "vc/core/util/Logging.hpp"
 
-/************************************************************************************
- *                                                                                  *
- *  LRUCacheTest.cpp - tests the functionality of
- * /v-c/core/datatypes/LRUCache.h
- *  The ultimate goal of this file is the following: *
- *                                                                                  *
- *  Check that we are able to create a cache, retrieve/set key-value pairs *
- *  appropriately, and handle exceptions *
- *                                                                                  *
- *  This file is broken up into testing fixtures which initialize the *
- *  objects used in each of the three test cases. *
- *                                                                                  *
- *  1. CheckAbilityToResizeCache *
- *  2. CheckReferenceToOutOfBoundsKey *
- *  3. InsertIntoCacheAndConfirmExistence *
- *  4. CheckCacheWithDifferingCapacityAndSize *
- *  5. TryToInsertMorePairsThanCurrentCapacity *
- *  6. PurgeTheCache *
- *                                                                                  *
- * Input: *
- *     No required inputs for this sample test. *
- *                                                                                  *
- * Test-Specific Output: *
- *     Specific test output only given on failure of any tests. Otherwise,
- * general  *
- *     number of testing errors is output. *
- *                                                                                  *
- * **********************************************************************************/
-
-/***************
- *
- * FIXTURES
- *
- ***************/
-
-struct CreateCacheWithDefaultConstructorFixture {
-
-    CreateCacheWithDefaultConstructorFixture()
-    {
-        volcart::logger->debug("Creating cache with empty constructor...");
-    }
-
-    ~CreateCacheWithDefaultConstructorFixture()
-    {
-        volcart::logger->debug("Destroying cache...");
-    }
-
-    volcart::LRUCache<size_t, int> _DefaultCache;
+///// FIXTURES /////
+class LRUCache_Empty : public ::testing::Test
+{
+public:
+    volcart::LRUCache<size_t, int> cache;
 };
 
-struct ResizingCacheFixture {
-
-    ResizingCacheFixture()
+class LRUCache_Filled : public LRUCache_Empty
+{
+public:
+    LRUCache_Filled()
     {
-        volcart::logger->debug("Creating cache that will be resized...");
-
-        _in_NewCap = 50;
-    }
-    ~ResizingCacheFixture() { volcart::logger->debug("Destroying cache..."); }
-
-    volcart::LRUCache<size_t, int> _DefaultCache;
-    size_t _in_NewCap;
-};
-
-struct ReferenceBadKeyFixture {
-
-    ReferenceBadKeyFixture()
-    {
-
-        volcart::logger->debug("Creating cache...");
-
         // change capacity to 100
-        _Cache.setCapacity(100);
+        cache.setCapacity(100);
 
         // fill cache with key ordered from 0-99 and values equaling to key^2
         // cache will push new pairs to front when adding, so final list order
         // will be 99,98,...,0
-        for (_in_Cap = 0; _in_Cap < _Cache.capacity(); _in_Cap++) {
+        for (size_t idx = 0; idx < cache.capacity(); idx++) {
 
             // set the cache item pairs
-            _Cache.put(_in_Cap, (_in_Cap * _in_Cap));
+            cache.put(idx, (idx * idx));
         }
     }
-    ~ReferenceBadKeyFixture() { volcart::logger->debug("Destroying cache..."); }
-
-    volcart::LRUCache<size_t, int> _Cache;
-    size_t _in_Cap;
 };
 
-/***************
- *
- * TEST CASES
- *
- ***************/
-
-BOOST_FIXTURE_TEST_CASE(CheckAbilityToResizeCache, ResizingCacheFixture)
+///// TEST CASES /////
+// checks the original capacity of 200 and that the item list is empty
+// then changes capacity and check the new capacity and that the list
+// is still empty
+TEST_F(LRUCache_Empty, ResizeCapacity)
 {
+    // Defaults
+    EXPECT_EQ(cache.capacity(), 200);
+    EXPECT_EQ(cache.size(), 0);
 
-    BOOST_CHECK_EQUAL(
-        _DefaultCache.capacity(), 200);  // check original capacity of 200
-    BOOST_CHECK_EQUAL(_DefaultCache.size(), 0);       // check that item list is
-                                                      // empty
-    _DefaultCache.setCapacity(_in_NewCap);            // change capacity
-    BOOST_CHECK_EQUAL(_DefaultCache.capacity(), 50);  // check new capacity
-    BOOST_CHECK_EQUAL(
-        _DefaultCache.size(), 0);  // check that item list is still empty
+    // Changed
+    cache.setCapacity(50);
+    EXPECT_EQ(cache.capacity(), 50);
+    EXPECT_EQ(cache.size(), 0);
 }
 
-BOOST_FIXTURE_TEST_CASE(CheckReferenceToOutOfBoundsKey, ReferenceBadKeyFixture)
+// checks that the capacity and size are equal and that the values are correct
+// then checks that referencing a negative key is caught
+// then checks that referencing a key greater that the cache size is caught
+TEST_F(LRUCache_Filled, CheckReferenceToOutOfBoundsKey)
 {
-
-    BOOST_CHECK_EQUAL(
-        _Cache.capacity(), _Cache.size());  // capacity and size should be equal
-
-    for (size_t key = 0; key < _Cache.capacity(); key++) {
-
-        BOOST_CHECK_EQUAL(
-            _Cache.get(key), key * key);  // check that values are correct
+    EXPECT_EQ(cache.capacity(), cache.size());
+    for (size_t key = 0; key < cache.capacity(); key++) {
+        EXPECT_EQ(cache.get(key), key * key);
     }
 
+    auto idx = cache.capacity() - (cache.capacity() + 1);
     try {
-        _Cache.get(
-            _Cache.capacity() -
-            (_Cache.capacity() + 1));  // try to reference key < 0
-        BOOST_CHECK(false);  // return failed test if exception not caught
+        EXPECT_ANY_THROW(cache.get(idx));
     } catch (std::exception& e) {
-
         // exception output message
         // casting negative size_t value to int
         volcart::logger->debug("{}", e.what());
-        volcart::logger->debug(
-            "Key Tried: {}",
-            static_cast<int>(_Cache.capacity() - (_Cache.capacity() + 1)));
-        BOOST_CHECK(true);
+        volcart::logger->debug("Key Tried: {}", idx);
+        EXPECT_TRUE(true);
     }
 
     try {
-        _Cache.get(_Cache.capacity());  // try to reference key > cache size
-        BOOST_CHECK(false);  // return failed test if exception not caught
+        EXPECT_ANY_THROW(cache.get(cache.capacity()));
     } catch (std::exception& e) {
-
         volcart::logger->debug("{}", e.what());
-        volcart::logger->debug("Key Tried: {}", _Cache.capacity());
-        BOOST_CHECK(true);
+        volcart::logger->debug("Key Tried: {}", cache.capacity());
     }
 }
 
-BOOST_FIXTURE_TEST_CASE(
-    InsertIntoCacheAndConfirmExistence, ReferenceBadKeyFixture)
+// checks that capacity and size equal 100 then inserts an item pair
+// checks that key == 100 exists and that capacity and size are unchanged
+// checks that item key == 0 was popped and the newly added pair is accessible
+TEST_F(LRUCache_Filled, InsertIntoCacheAndConfirmExistence)
 {
+    EXPECT_EQ(cache.capacity(), cache.size());
+    EXPECT_EQ(cache.capacity(), 100);
 
-    BOOST_CHECK_EQUAL(
-        _Cache.capacity(), _Cache.size());  // check capacity and size are equal
-    BOOST_CHECK_EQUAL(
-        _Cache.capacity(), 100);  // check cap is 100 (size implied)
+    cache.put(cache.capacity(), (cache.capacity() * cache.capacity()));
 
-    _Cache.put(
-        _Cache.capacity(),
-        (_Cache.capacity() * _Cache.capacity()));  // insert item pair
-
-    BOOST_CHECK(_Cache.exists(100));  // check that key == 100 exists now
-
-    BOOST_CHECK_EQUAL(
-        _Cache.capacity(), 100);  // capacity and size should be unchanged
-    BOOST_CHECK_EQUAL(_Cache.size(), 100);
-
-    BOOST_CHECK_EQUAL(
-        _Cache.exists(0), false);  // check that item key == 0 was popped
-
-    BOOST_CHECK_EQUAL(
-        _Cache.get(100), 10000);  // check that we can access newly added pair
+    EXPECT_TRUE(cache.exists(100));
+    EXPECT_EQ(cache.capacity(), 100);
+    EXPECT_EQ(cache.size(), 100);
+    EXPECT_EQ(cache.exists(0), false);
+    EXPECT_EQ(cache.get(100), 10000);
 }
 
-BOOST_FIXTURE_TEST_CASE(
-    CheckCacheWithDifferingCapacityAndSize,
-    CreateCacheWithDefaultConstructorFixture)
+TEST_F(LRUCache_Empty, CheckCacheWithDifferingCapacityAndSize)
 {
+    // checks that initial capacity is 200 with size 0 then fills the item list
+    // halfway and checks that the size is now 100 and capacity is unchanged
+    EXPECT_EQ(cache.capacity(), 200);
+    EXPECT_EQ(cache.size(), 0);
 
-    BOOST_CHECK_EQUAL(
-        _DefaultCache.capacity(),
-        200);  // cache should have initial capacity of 200
-    BOOST_CHECK_EQUAL(_DefaultCache.size(), 0);  // size should be 0
-
-    for (size_t key = 0; key < _DefaultCache.capacity();
-         key += 2) {  // fill item list halfway
-
+    for (size_t key = 0; key < cache.capacity(); key += 2) {
         // add even numbers, zero inclusive, and double their key as the value
         // will add items in descending key value order --> 198,196...,2,0
-        _DefaultCache.put(key, key + key);
+        cache.put(key, key + key);
     }
 
-    BOOST_CHECK_EQUAL(
-        _DefaultCache.capacity(),
-        200);  // now size should be 100 and capacity still 200
-    BOOST_CHECK_EQUAL(_DefaultCache.size(), 100);
+    EXPECT_EQ(cache.capacity(), 200);
+    EXPECT_EQ(cache.size(), 100);
 
     // test to see what happens when referencing an odd-number key
     // also, checking if oddKey exists --> redundant
-    for (size_t oddKey = 1; oddKey < _DefaultCache.capacity(); oddKey += 2) {
-
+    for (size_t oddKey = 1; oddKey < cache.capacity(); oddKey += 2) {
         try {
-
-            BOOST_CHECK_EQUAL(_DefaultCache.exists(oddKey), false);
-            _DefaultCache.get(oddKey);
-            BOOST_CHECK(false);
+            EXPECT_EQ(cache.exists(oddKey), false);
+            EXPECT_ANY_THROW(cache.get(oddKey));
         } catch (std::exception& e) {
+            EXPECT_TRUE(true);
+        }
+    }
+    // update capacity to size 50, which should pop items that are at the 'end'
+    // of the cache, thus, we'll check item key 98,96,...,2,0
+    cache.setCapacity(50);
 
-            BOOST_CHECK(true);
+    for (size_t k = 0; k < cache.capacity() * 2; k += 2) {
+        try {
+            EXPECT_EQ(cache.exists(k), false);
+            EXPECT_ANY_THROW(cache.get(k));
+        } catch (std::exception& e) {
+            EXPECT_TRUE(true);
         }
     }
 
-    _DefaultCache.setCapacity(50);  // update capacity to size 50
-    // should pop items that are at the 'end' of the cache
-    // thus, we'll check item key 98,96,...,2,0
-    for (size_t k = 0; k < _DefaultCache.capacity() * 2; k += 2) {
-
-        try {
-
-            BOOST_CHECK_EQUAL(_DefaultCache.exists(k), false);
-            _DefaultCache.get(k);
-            BOOST_CHECK(false);
-        } catch (std::exception& e) {
-            BOOST_CHECK(true);
-        }
-    }
-
-    BOOST_CHECK(
-        _DefaultCache.exists(100));  // check that keys 100 and 198 still exist
-    BOOST_CHECK(_DefaultCache.exists(198));
+    // check that keys 100 and 198 still exist
+    EXPECT_TRUE(cache.exists(100));
+    EXPECT_TRUE(cache.exists(198));
 }
 
-BOOST_FIXTURE_TEST_CASE(
-    TryToInsertMorePairsThanCurrentCapacity,
-    CreateCacheWithDefaultConstructorFixture)
+// checks that cache has initial capacity of 200 and size 0, then fills item
+// list 1 past capacity and checks that capacity is still 200 and size is 200
+// then checks that item key 0 should be popped with the last iteration of for
+// loop
+TEST_F(LRUCache_Empty, TryToInsertMorePairsThanCurrentCapacity)
 {
+    EXPECT_EQ(cache.capacity(), 200);
+    EXPECT_EQ(cache.size(), 0);
 
-    BOOST_CHECK_EQUAL(
-        _DefaultCache.capacity(),
-        200);  // cache should have initial capacity of 200
-    BOOST_CHECK_EQUAL(_DefaultCache.size(), 0);  // size should be 0
-
-    for (size_t key = 0; key <= _DefaultCache.capacity();
-         key++) {  // fill item list 1 past capacity
-
-        _DefaultCache.put(key, key + key);
+    for (size_t key = 0; key <= cache.capacity(); key++) {
+        cache.put(key, key + key);
     }
 
-    BOOST_CHECK_EQUAL(
-        _DefaultCache.capacity(),
-        200);  // cache should still have capacity of 200
-    BOOST_CHECK_EQUAL(_DefaultCache.size(), 200);  // size should be 200
-
-    BOOST_CHECK_EQUAL(
-        _DefaultCache.exists(0),
-        false);  // item key 0 should be popped with the last
-    // iteration of for loop above
+    EXPECT_EQ(cache.capacity(), 200);
+    EXPECT_EQ(cache.size(), 200);
+    EXPECT_EQ(cache.exists(0), false);
 }
 
-BOOST_FIXTURE_TEST_CASE(
-    TryToInsertIntoZeroCapacityCache, CreateCacheWithDefaultConstructorFixture)
+// checks that setting a negative cap cache fails, then checks
+// that capacity and size remain unchanged from initial values
+TEST_F(LRUCache_Empty, TryToInsertIntoZeroCapacityCache)
 {
-
     try {
-        _DefaultCache.setCapacity(0);  // try to create negative cap cache
-        _DefaultCache.put(0, 1);       // put shouldn't occur
-        BOOST_CHECK(
-            false);  // test should fail if allowed to create negative cap cache
+        EXPECT_ANY_THROW(cache.setCapacity(0));
     } catch (std::exception& e) {
-
         volcart::logger->debug("{}", e.what());
-        BOOST_CHECK(true);  // handled correctly -- pass test
     }
 
-    BOOST_CHECK_EQUAL(
-        _DefaultCache.capacity(), 200);  // capacity should remain unchanged
-    BOOST_CHECK_EQUAL(_DefaultCache.size(), 0);  // size should still be 0
+    EXPECT_EQ(cache.capacity(), 200);
+    EXPECT_EQ(cache.size(), 0);
 }
 
-BOOST_FIXTURE_TEST_CASE(PurgeTheCache, ReferenceBadKeyFixture)
+// checks that capacity and size are equal then after puring size is still 0
+// checks that item key 1 does not exist (implied by 0 size)
+TEST_F(LRUCache_Filled, PurgeTheCache)
 {
-
-    BOOST_CHECK_EQUAL(
-        _Cache.capacity(), _Cache.size());  // capacity and size should be equal
-    _Cache.purge();
-    BOOST_CHECK_EQUAL(_Cache.size(), 0);  // size should still be 0
-    BOOST_CHECK_EQUAL(
-        _Cache.exists(1),
-        false);  // item key 1 should not exist (implied by 0 size)
+    EXPECT_EQ(cache.capacity(), cache.size());
+    cache.purge();
+    EXPECT_EQ(cache.size(), 0);
+    EXPECT_EQ(cache.exists(1), false);
 }

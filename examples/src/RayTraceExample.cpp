@@ -1,7 +1,3 @@
-//
-// Created by Ryan Taber on 11/30/15.
-//
-
 /*
  * Purpose: Run volcart::meshing::RayTrace() for all volcart::shapes and write
  * results to file.

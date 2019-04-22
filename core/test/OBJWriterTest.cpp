@@ -1,169 +1,73 @@
-//
-// Created by Ryan Taber on 9/25/15.
-//
-
-#define BOOST_TEST_MODULE ObjWriter
+#include <gtest/gtest.h>
 
 #include "vc/core/io/OBJWriter.hpp"
-
-#include <boost/test/unit_test.hpp>
-
 #include "vc/core/shapes/Plane.hpp"
 #include "vc/core/types/SimpleMesh.hpp"
-#include "vc/core/util/Logging.hpp"
 #include "vc/testing/ParsingHelpers.hpp"
-#include "vc/testing/TestingUtils.hpp"
 
-using namespace volcart;
+namespace vc = volcart;
+namespace vcshapes = volcart::shapes;
+namespace vctest = volcart::testing;
 
-/***************************************************************************************
- *                                                                                     *
- *  ObjWriterTest.cpp - tests the functionality of /v-c/core/io/OBJWriter.cpp
- * *
- *  The ultimate goal of this file is the following: *
- *                                                                                     *
- *        1. check whether a mesh, created by core/shapes/Plane.h, *
- *           can be written into obj file by core/io/OBJWriter.cpp. This test
- * is     *
- *           implicit in the ObjWriterExample.cpp. *
- *                                                                                     *
- *        2. read contents of obj file and compare data with testing mesh *
- *                                                                                     *
- *  This file is broken up into a testing fixture which initializes the objects
- * used   *
- *  in the test case: *
- *                                                                                     *
- *  1. CompareWrittenMeshDataWithFixtureCreatedMesh *
- *      Read in saved data from OBJWriterPlaneData.obj and compare points,
- * normals,    *
- *      and cells with the fixture created mesh, _in_PlaneITKMesh. *
- *                                                                                     *
- *  Input: *
- *     No required inputs for this sample test. Note: the output.obj must be
- * copied    *
- *     from test_data/common to curr_bin_dir when building, which is handled by
- * cmake. *
- *                                                                                     *
- *  Test-Specific Output: *
- *     Specific test output only given on failure of any tests. Otherwise,
- * general     *
- *     number of testing errors is output. *
- *                                                                                     *
- * *************************************************************************************/
-
-/*
- * This fixture builds objects for each of the test cases below that reference
- * the fixture as their second argument
- *
- */
-
-struct WriteMeshUsingOBJWriterFixture {
-
-    WriteMeshUsingOBJWriterFixture()
+class OBJWriter : public ::testing::Test
+{
+public:
+    OBJWriter()
     {
-
-        // create the mesh for all the test cases to use
-        _in_PlaneITKMesh = _Plane.itkMesh();
-
-        // load in written data
-        volcart::testing::ParsingHelpers::ParseOBJFile(
-            "OBJWriterPlaneData.obj", _SavedPlanePoints, _SavedPlaneCells);
-
-        logger->debug("Creating a Plane itk mesh object for writing");
+        // create a test mesh
+        vcshapes::Plane plane;
+        mesh = plane.itkMesh();
+        writer.setMesh(mesh);
     }
 
-    ~WriteMeshUsingOBJWriterFixture()
-    {
-        logger->debug("Cleaning up test objects");
-    }
-
-    volcart::shapes::Plane _Plane;
-    ITKMesh::Pointer _in_PlaneITKMesh;
-    std::vector<SimpleMesh::Vertex> _SavedPlanePoints;
-    std::vector<SimpleMesh::Cell> _SavedPlaneCells;
+    vc::ITKMesh::Pointer mesh;
+    std::string path{"vc_core_OBJWriter_"};
+    vc::io::OBJWriter writer;
 };
 
-BOOST_FIXTURE_TEST_CASE(
-    CompareWrittenMeshDataWithFixtureCreatedMesh,
-    WriteMeshUsingOBJWriterFixture)
+TEST_F(OBJWriter, UntexturedMesh)
 {
+    // Write test file
+    path += "Untextured.obj";
+    writer.setPath(path);
+    EXPECT_EQ(writer.write(), EXIT_SUCCESS);
+
+    // load in written data
+    vc::SimpleMesh saved;
+    vctest::ParsingHelpers::ParseOBJFile(path, saved.verts, saved.faces);
 
     // compare number of points and cells for equality
-    BOOST_CHECK_EQUAL(
-        _in_PlaneITKMesh->GetNumberOfPoints(), _SavedPlanePoints.size());
-    BOOST_CHECK_EQUAL(
-        _in_PlaneITKMesh->GetNumberOfCells(), _SavedPlaneCells.size());
+    EXPECT_EQ(mesh->GetNumberOfPoints(), saved.verts.size());
+    EXPECT_EQ(mesh->GetNumberOfCells(), saved.faces.size());
 
-    // Now to test the objPoints created during fixture init vs points read in
-    // from file.
-    for (size_t pnt = 0; pnt < _SavedPlanePoints.size(); pnt++) {
+    // Check vertex values
+    size_t idx = 0;
+    vc::ITKPixel origN;
+    for (const auto& v : saved.verts) {
+        // Check 3D Position
+        auto orig = mesh->GetPoint(idx);
+        EXPECT_DOUBLE_EQ(v.x, orig[0]);
+        EXPECT_DOUBLE_EQ(v.y, orig[1]);
+        EXPECT_DOUBLE_EQ(v.z, orig[2]);
 
-        // checking the x,y,z,nx,ny,nz components
+        // Check Normal
+        mesh->GetPointData(idx, &origN);
+        EXPECT_DOUBLE_EQ(v.nx, origN[0]);
+        EXPECT_DOUBLE_EQ(v.ny, origN[1]);
+        EXPECT_DOUBLE_EQ(v.nz, origN[2]);
 
-        volcart::testing::SmallOrClose(
-            _in_PlaneITKMesh->GetPoint(pnt)[0], _SavedPlanePoints[pnt].x);
-        volcart::testing::SmallOrClose(
-            _in_PlaneITKMesh->GetPoint(pnt)[1], _SavedPlanePoints[pnt].y);
-        volcart::testing::SmallOrClose(
-            _in_PlaneITKMesh->GetPoint(pnt)[2], _SavedPlanePoints[pnt].z);
+        idx++;
     }
 
-    // Normals //
-    int p = 0;
-    ITKPointIterator point = _in_PlaneITKMesh->GetPoints()->Begin();
-    for (; point != _in_PlaneITKMesh->GetPoints()->End(); ++point) {
+    // Check face vertex IDs
+    idx = 0;
+    for (const auto& f : saved.faces) {
+        auto orig = mesh->GetCells()->GetElement(idx);
 
-        ITKPixel _in_PlaneITKMeshNormal;
-        _in_PlaneITKMesh->GetPointData(point.Index(), &_in_PlaneITKMeshNormal);
+        EXPECT_EQ(f.v1, orig->GetPointIds()[0]);
+        EXPECT_EQ(f.v2, orig->GetPointIds()[1]);
+        EXPECT_EQ(f.v3, orig->GetPointIds()[2]);
 
-        // Now compare the normals for the two meshes
-        volcart::testing::SmallOrClose(
-            _in_PlaneITKMeshNormal[0], _SavedPlanePoints[p].nx);
-        volcart::testing::SmallOrClose(
-            _in_PlaneITKMeshNormal[1], _SavedPlanePoints[p].ny);
-        volcart::testing::SmallOrClose(
-            _in_PlaneITKMeshNormal[2], _SavedPlanePoints[p].nz);
-
-        ++p;
-    }
-
-    // Cells (faces)
-
-    // Initialize Cell Iterators
-    ITKCellIterator _in_PlaneITKMeshCell =
-        _in_PlaneITKMesh->GetCells()->Begin();
-
-    int c = 0;
-
-    while (_in_PlaneITKMeshCell != _in_PlaneITKMesh->GetCells()->End()) {
-
-        // Initialize Iterators for Points in a Cell
-        ITKPointInCellIterator _in_PlaneITKMeshPointId =
-            _in_PlaneITKMeshCell.Value()->PointIdsBegin();
-
-        int counter = 0;
-        // while we have points in the cell
-        while (_in_PlaneITKMeshPointId !=
-               _in_PlaneITKMeshCell.Value()->PointIdsEnd()) {
-
-            // Now to check the points within the cells
-            if (counter == 0)
-                BOOST_CHECK_EQUAL(
-                    *_in_PlaneITKMeshPointId, _SavedPlaneCells[c].v1);
-            else if (counter == 1)
-                BOOST_CHECK_EQUAL(
-                    *_in_PlaneITKMeshPointId, _SavedPlaneCells[c].v2);
-            else if (counter == 2)
-                BOOST_CHECK_EQUAL(
-                    *_in_PlaneITKMeshPointId, _SavedPlaneCells[c].v3);
-
-            // increment points
-            _in_PlaneITKMeshPointId++;
-            counter++;
-        }
-
-        // increment cells
-        ++_in_PlaneITKMeshCell;
-        ++c;
+        idx++;
     }
 }

@@ -1,7 +1,3 @@
-//
-// Created by Seth Parker on 12/15/17.
-//
-
 #include <vc/core/io/OBJWriter.hpp>
 #include <vc/core/shapes/Spiral.hpp>
 

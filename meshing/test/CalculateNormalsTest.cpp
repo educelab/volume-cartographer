@@ -1,38 +1,32 @@
-//
-// Created by Hannah Hatch on 7/26/16.
-//
-
-#define BOOST_TEST_MODULE CalculateNormals
-
-#include <boost/test/unit_test.hpp>
+#include <gtest/gtest.h>
 
 #include "vc/core/shapes/Plane.hpp"
 #include "vc/meshing/CalculateNormals.hpp"
-#include "vc/testing/TestingUtils.hpp"
 
-struct PlaneFixture {
-    PlaneFixture() { _in_Mesh = _Plane.itkMesh(); }
-    ~PlaneFixture() {}
+class PlaneFixture : public ::testing::Test
+{
+public:
+    PlaneFixture() { inMesh = Plane.itkMesh(); }
 
-    volcart::shapes::Plane _Plane;
-    volcart::ITKMesh::Pointer _in_Mesh, _out_Mesh;
+    volcart::shapes::Plane Plane;
+    volcart::ITKMesh::Pointer inMesh, outMesh;
 };
 
-BOOST_FIXTURE_TEST_CASE(ComputePlaneNormalsTest, PlaneFixture)
+TEST_F(PlaneFixture, ComputePlaneNormalsTest)
 {
 
-    volcart::meshing::CalculateNormals calcNorm(_in_Mesh);
+    volcart::meshing::CalculateNormals calcNorm(inMesh);
     calcNorm.compute();
-    _out_Mesh = calcNorm.getMesh();
+    outMesh = calcNorm.getMesh();
 
-    for (auto p_it = _out_Mesh->GetPoints()->Begin();
-         p_it != _out_Mesh->GetPoints()->End(); ++p_it) {
-        volcart::ITKPixel out_Normal, in_Normal;
-        _out_Mesh->GetPointData(p_it.Index(), &out_Normal);
-        _in_Mesh->GetPointData(p_it.Index(), &in_Normal);
+    for (auto p_it = outMesh->GetPoints()->Begin();
+         p_it != outMesh->GetPoints()->End(); ++p_it) {
+        volcart::ITKPixel outNormal, inNormal;
+        outMesh->GetPointData(p_it.Index(), &outNormal);
+        inMesh->GetPointData(p_it.Index(), &inNormal);
 
-        volcart::testing::SmallOrClose(out_Normal[0], in_Normal[0]);
-        volcart::testing::SmallOrClose(out_Normal[1], in_Normal[1]);
-        volcart::testing::SmallOrClose(out_Normal[2], in_Normal[2]);
+        EXPECT_DOUBLE_EQ(outNormal[0], inNormal[0]);
+        EXPECT_DOUBLE_EQ(outNormal[1], inNormal[1]);
+        EXPECT_DOUBLE_EQ(outNormal[2], inNormal[2]);
     }
 }

@@ -1,7 +1,3 @@
-//
-// Created by Tam Nguyen on 10/16/18.
-//
-
 #include "vc/core/io/SkyscanMetadataIO.hpp"
 
 #include <fstream>

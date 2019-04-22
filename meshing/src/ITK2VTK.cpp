@@ -1,6 +1,3 @@
-//
-// Created by Seth Parker on 8/3/15.
-//
 #include <vtkDoubleArray.h>
 #include <vtkPointData.h>
 
@@ -154,5 +151,5 @@ ITKQE2ITK::ITKQE2ITK(QuadEdgeMesh::Pointer input, ITKMesh::Pointer output)
         output->SetCell(id, cell);
     }
 }
-}
-}
+}  // namespace meshing
+}  // namespace volcart

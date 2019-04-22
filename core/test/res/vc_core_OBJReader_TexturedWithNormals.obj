@@ -34,7 +34,7 @@ vn 0 1 0
 v 1000 0 1000
 vn 0 1 0
 # Texture information
-mtllib TexturedPlane.mtl
+mtllib vc_core_OBJReader_TexturedWithNormals.mtl
 usemtl default
 vt 0 1
 vt 0.333333 1

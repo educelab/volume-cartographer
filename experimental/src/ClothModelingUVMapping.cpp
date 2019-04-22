@@ -1,7 +1,3 @@
-//
-// Created by Seth Parker on 3/14/16.
-//
-
 #include <BulletSoftBody/btDefaultSoftBodySolver.h>
 
 #include "vc/core/util/Logging.hpp"

@@ -1,7 +1,3 @@
-//
-// Created by Seth Parker on 5/12/17.
-//
-
 #include "vc/texturing/IntersectionTexture.hpp"
 
 #include <algorithm>
