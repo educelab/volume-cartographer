@@ -12,7 +12,7 @@ write_basic_package_version_file(
 )
 
 # Configures VCConfig.cmake
-set(config_in "${CMAKE_SOURCE_DIR}/cmake/VCConfig.cmake.in")
+set(config_in "${PROJECT_SOURCE_DIR}/cmake/VCConfig.cmake.in")
 configure_package_config_file(
     "${config_in}"
     "${project_config}"
