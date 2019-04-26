@@ -16,6 +16,7 @@ flycheck*
 
 # Mac
 .DS_Store
+._*
 
 # Maven
 log/

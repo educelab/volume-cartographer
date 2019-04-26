@@ -2,39 +2,69 @@
 // Created by Seth Parker on 9/24/15.
 //
 
+#include "vc/core/io/FileExtensionFilter.hpp"
+#include "vc/core/io/OBJReader.hpp"
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/io/PLYReader.hpp"
 #include "vc/meshing/ACVD.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
 
-int main(int /*argc*/, char* argv[])
+namespace vc = volcart;
+
+int main(int argc, char* argv[])
 {
-
-    std::string meshName = argv[1];
-
-    // declare pointer to new Mesh object
-    auto itkMesh = volcart::ITKMesh::New();
-
-    volcart::io::PLYReader reader(meshName);
-    try {
-        reader.read();
-        itkMesh = reader.getMesh();
-    } catch (std::exception e) {
-        std::cerr << e.what() << std::endl;
-        exit(EXIT_SUCCESS);
+    // Not enough opts
+    if (argc != 4) {
+        std::cerr << argv[0]
+                  << " [input.ply | input.obj] [output.obj] [num. vertices]"
+                  << std::endl;
+        return EXIT_FAILURE;
     }
 
-    vtkPolyData* vtkMesh = vtkPolyData::New();
-    volcart::meshing::ITK2VTK(itkMesh, vtkMesh);
+    // Get cmd line params
+    std::string inPath = argv[1];
+    std::string outPath = argv[2];
+    auto numFaces = std::stoi(argv[3]);
 
-    vtkPolyData* acvdMesh = vtkPolyData::New();
-    volcart::meshing::ACVD(vtkMesh, acvdMesh, 10000);
+    /** Load mesh **/
+    std::cout << "Loading mesh..." << std::endl;
+    vc::ITKMesh::Pointer mesh;
+    // OBJs
+    if (vc::io::FileExtensionFilter(inPath, {"obj"})) {
+        vc::io::OBJReader r;
+        r.setPath(inPath);
+        mesh = r.read();
+    }
 
+    // PLYs
+    else if (vc::io::FileExtensionFilter(inPath, {"ply"})) {
+        vc::io::PLYReader r(inPath);
+        mesh = r.read();
+    }
+
+    // Can't load file
+    else {
+        std::cerr << "ERROR: Mesh file not of supported type: ";
+        std::cerr << inPath << std::endl;
+        std::exit(EXIT_FAILURE);
+    }
+
+    /** Process mesh **/
+    std::cout << "Processing mesh..." << std::endl;
+    // Convert to VTKPolyData
+    auto vtkMesh = vtkPolyData::New();
+    vc::meshing::ITK2VTK(mesh, vtkMesh);
+    // Remesh
+    auto acvdMesh = vtkPolyData::New();
+    vc::meshing::ACVD(vtkMesh, acvdMesh, numFaces);
+    // Convert back to ITKMesh
     auto outputMesh = volcart::ITKMesh::New();
-    volcart::meshing::VTK2ITK(acvdMesh, outputMesh);
+    vc::meshing::VTK2ITK(acvdMesh, outputMesh);
 
-    volcart::io::OBJWriter mesh_writer("acvd.obj", outputMesh);
-    mesh_writer.write();
+    /** Save mesh **/
+    std::cout << "Saving mesh..." << std::endl;
+    vc::io::OBJWriter writer(outPath, outputMesh);
+    writer.write();
 
     return EXIT_SUCCESS;
 }

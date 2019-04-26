@@ -1,12 +1,33 @@
-///// Core Groups /////
+///// Core Groups & Namespaces /////
+/**
+ * @namespace volcart
+ * @brief %Volume Cartographer library
+ */
+
 /**
  @defgroup Core Core
  @brief Library containing fundamental VC data types and operations.
 */
 
 /**
+ * @namespace volcart::io
+ * @brief IO classes
+ */
+
+/**
  @defgroup IO IO
  @brief Read and write commonly used data types.
+ @ingroup Core
+*/
+
+/**
+ * @namespace volcart::landmarks
+ * @brief Volume landmark classes
+ */
+
+/**
+ @defgroup Landmarks Landmarks
+ @brief Landmark classes for labeling volume features
  @ingroup Core
 */
 
@@ -23,10 +44,9 @@
 */
 
 /**
- @defgroup Scales Scales
- @brief Add frames of reference to volumetric data
- @ingroup Core
-*/
+ * @namespace volcart::shapes
+ * @brief Shape and mesh primitives
+ */
 
 /**
  @defgroup Shapes Shape Generators
@@ -41,6 +61,11 @@
 */
 
 /**
+ * @namespace volcart::meshmath
+ * @brief Mesh mathematical operations
+ */
+
+/**
  @defgroup Util Utilities
  @brief Miscellaneous utility functions
  @ingroup Core
@@ -48,11 +73,21 @@
 
 ///// Meshing Groups /////
 /**
+ * @namespace volcart::meshing
+ * @brief Mesh generation and modification library
+ */
+
+/**
  @defgroup Meshing Meshing
  @brief Library for mesh creation, manipulation, resampling, and conversion.
 */
 
 ///// Segmentation Groups /////
+/**
+ * @namespace volcart::segmentation
+ * @brief %Segmentation algorithms and utilities library
+ */
+
 /**
  @defgroup Segmentation Segmentation
  @brief Library for volume segmentation algorithms.
@@ -78,6 +113,11 @@
 */
 
 ///// Rendering Groups /////
+/**
+ * @namespace volcart::texturing
+ * @brief Texturing and parameterization algorithms and utilities library
+ */
+
 /** 
  @defgroup Render Rendering
  @brief Library for creating UV maps and textured meshes
@@ -94,6 +134,28 @@
  @brief Texture generation
  @ingroup Render
 */
+
+///// Testing Groups /////
+/**
+ * @namespace volcart::testing
+ * @brief Project testing utilities library
+ */
+
+///// Experimental /////
+/**
+ * @namespace volcart::experimental
+ * @brief Experimental algorithms and utilities library
+ */
+
+/**
+ * @namespace volcart::experimental::meshing
+ * @brief Experimental meshing algorithms library
+ */
+
+/**
+ * @namespace volcart::experimental::texturing
+ * @brief Experimental texturing algorithms library
+ */
 
 ///// Example Groups /////
 /**

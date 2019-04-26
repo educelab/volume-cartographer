@@ -308,13 +308,13 @@ volcart::Metadata VolumePkg::InitConfig(
 
         // Default values
         switch (entry.second) {
-            case volcart::Type::INT:
+            case volcart::DictionaryEntryType::Int:
                 config.set(entry.first, int{});
                 break;
-            case volcart::Type::DOUBLE:
+            case volcart::DictionaryEntryType::Double:
                 config.set(entry.first, double{});
                 break;
-            case volcart::Type::STRING:
+            case volcart::DictionaryEntryType::String:
                 config.set(entry.first, std::string{});
                 break;
         }

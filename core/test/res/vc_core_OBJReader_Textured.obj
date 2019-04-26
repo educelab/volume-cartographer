@@ -9,7 +9,7 @@
 # Faces: 18
 #
 ####
-mtllib ./TexturedNoNormal.mtl
+mtllib ./vc_core_OBJReader_Textured.mtl
 
 vt 0.000000 1.000000
 v 0.000000 0.000000 0.000000 0.752941 0.752941 0.752941

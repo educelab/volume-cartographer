@@ -10,6 +10,7 @@ set(srcs
     src/IntegralTexture.cpp
     src/LayerTexture.cpp
     src/FlatteningAlgorithm.cpp
+    src/ScaleMarkerGenerator.cpp
 )
 set(public_deps
     VC::core
@@ -20,12 +21,6 @@ set(private_deps
     VC::external
 )
 set(defs "")
-
-if (VC_USE_LIBIGL OR VC_USE_OPTIONAL)
-    list(APPEND srcs src/LeastSquaresConformalMapping.cpp)
-    list(APPEND public_deps libigl)
-    list(APPEND defs VC_USE_LIBIGL)
-endif()
 
 add_library(${target} ${srcs})
 add_library("${namespace}${module}" ALIAS "${target}")
@@ -68,10 +63,8 @@ if(VC_BUILD_TESTS)
 # Set source files
 set(test_srcs
     test/ABFTest.cpp
+    test/PPMGeneratorTest.cpp
 )
-if (VC_USE_LIBIGL OR VC_USE_OPTIONAL)
-    list(APPEND test_srcs test/LSCMTest.cpp)
-endif()
 
 # Add a test executable for each src
 foreach(src ${test_srcs})
@@ -81,7 +74,8 @@ foreach(src ${test_srcs})
     target_link_libraries(${testname}
         VC::texturing
         VC::testing
-        Boost::unit_test_framework
+        gtest_main
+        gmock_main
         ${public_deps}
     )
     add_test(
@@ -98,12 +92,6 @@ set(VC_TEXTURING_TEST_RES
     test/res/abf_Arch.obj
     test/res/abf_Arch_LSCMOnly.obj
 )
-if (VC_USE_LIBIGL OR VC_USE_OPTIONAL)
-    list(APPEND VC_TEXTURING_TEST_RES
-        test/res/lscm_Plane.obj
-        test/res/lscm_Arch.obj
-    )
-endif()
 
 # Copy each test resource file
 foreach(r ${VC_TEXTURING_TEST_RES})

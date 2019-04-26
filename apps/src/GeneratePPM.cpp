@@ -1,7 +1,3 @@
-//
-// Created by Seth Parker on 3/23/17.
-//
-
 #include <boost/filesystem.hpp>
 
 #include "vc/core/io/OBJReader.hpp"

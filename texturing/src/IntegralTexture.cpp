@@ -1,6 +1,3 @@
-//
-// Created by Seth on 11/24/16.
-//
 #include "vc/texturing/IntegralTexture.hpp"
 
 #include <algorithm>

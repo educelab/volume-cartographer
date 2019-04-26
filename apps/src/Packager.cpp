@@ -1,10 +1,7 @@
-//
-// Created by Seth Parker on 7/30/15.
-//
-
 #include <algorithm>
 #include <iostream>
 #include <limits>
+#include <regex>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
@@ -13,7 +10,12 @@
 
 #include "apps/SliceImage.hpp"
 #include "vc/core/io/FileExtensionFilter.hpp"
+#include "vc/core/io/SkyscanMetadataIO.hpp"
+#include "vc/core/types/Metadata.hpp"
 #include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/util/FormatStrToRegexStr.hpp"
+
+using PathStringList = std::vector<std::string>;
 
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;
@@ -22,8 +24,8 @@ namespace vci = volcart::io;
 
 enum class Flip { None, Horizontal, Vertical, ZFlip, Both };
 
-static const vc::io::ExtensionList AcceptedExtensions{"tif", "tiff", "png",
-                                                      "jpg", "jpeg", "bmp"};
+static const vci::ExtensionList ImageExts{"tif", "tiff", "png",
+                                          "jpg", "jpeg", "bmp"};
 
 static const double MIN_16BPC = std::numeric_limits<uint16_t>::min();
 static const double MAX_16BPC = std::numeric_limits<uint16_t>::max();
@@ -34,12 +36,14 @@ static constexpr int VOLPKG_SUPPORTED_VERSION = 6;
 struct VolumeInfo {
     fs::path path;
     std::string name;
+    std::string sliceRegex;
     double voxelsize{0};
     Flip flipOption{Flip::None};
+    vc::Metadata meta;
 };
 
-VolumeInfo GetVolumeInfo(const fs::path& slicesPath);
-void AddVolume(vc::VolumePkg::Pointer& volpkg, VolumeInfo info);
+VolumeInfo GetVolumeInfo(const fs::path& slicePath);
+void AddVolume(vc::VolumePkg::Pointer& volpkg, const VolumeInfo& info);
 
 int main(int argc, char* argv[])
 {
@@ -52,17 +56,19 @@ int main(int argc, char* argv[])
         ("volpkg,v", po::value<std::string>()->required(),
            "Path for the output volume package")
         ("material-thickness,m", po::value<double>(),
-           "Estimated thickness of a material layer (in microns)")
-        ("slices,s", po::value<std::vector<std::string>>(),
-           "Directory of input slice data. Can be specified multiple times to "
-           "add multiple volumes");
+           "Estimated thickness of a material layer (in microns). Required "
+           "when making a new volume package.")
+        ("slices,s", po::value<PathStringList>(),
+            "Path to input slice data. Ends with prefix of slice images or log "
+            "file path. Can be specified multiple times to add multiple "
+            "volumes.");
 
     // Useful transforms for origin adjustment
     po::options_description extras("Metadata");
     extras.add_options()
         ("name", po::value<std::string>(),
-           "Set a descriptive name for the VolumePkg. "
-           "Default: Filename specified by --volpkg");
+            "Set a descriptive name for the VolumePkg. Default: Filename "
+            "specified by --volpkg");
     // clang-format on
     po::options_description all("Usage");
     all.add(options).add(extras);
@@ -96,6 +102,13 @@ int main(int argc, char* argv[])
         // Check the extension
         if (volpkgPath.extension().string() != ".volpkg") {
             volpkgPath.replace_extension(".volpkg");
+        }
+        // Make sure we have the material thickness value
+        if (parsed.count("material-thickness") == 0) {
+            std::cerr << "ERROR: Making a new volume package but did not "
+                         "provide the material thickness."
+                      << std::endl;
+            return EXIT_FAILURE;
         }
         volpkg = vc::VolumePkg::New(volpkgPath, vc::VOLPKG_VERSION_LATEST);
     } else {
@@ -131,13 +144,12 @@ int main(int argc, char* argv[])
     volpkg->saveMetadata();
 
     ///// Add Volumes /////
-    // Get the input slices dir
-    std::vector<std::string> volumesPaths;
+    PathStringList volumesPaths;
     if (parsed.count("slices")) {
-        volumesPaths = parsed["slices"].as<std::vector<std::string>>();
+        volumesPaths = parsed["slices"].as<PathStringList>();
     }
 
-    // Get info from user
+    // Get volume info
     std::vector<VolumeInfo> volumesList;
     for (auto& v : volumesPaths) {
         volumesList.emplace_back(GetVolumeInfo(v));
@@ -149,24 +161,63 @@ int main(int argc, char* argv[])
     }
 }
 
-VolumeInfo GetVolumeInfo(const fs::path& slicesPath)
+VolumeInfo GetVolumeInfo(const fs::path& slicePath)
 {
-    VolumeInfo info;
-    info.path = slicesPath;
+    std::cout << "Getting info for Volume: " << slicePath << std::endl;
 
-    std::cout << "Describing Volume: " << slicesPath << std::endl;
+    VolumeInfo info;
+    bool voxelFound = false;
+
+    // If path is a log file, try to read its info
+    if (vci::FileExtensionFilter(slicePath.filename(), {"log"})) {
+        // Get the parent directory for the log
+        info.path = slicePath.parent_path();
+
+        // Read the Skyscan metadata
+        vc::SkyscanMetadataIO logReader;
+        logReader.setPath(slicePath);
+        info.meta = logReader.read();
+
+        // Get the slice file regex
+        info.sliceRegex = logReader.getSliceRegexString();
+
+        // Try to get the voxel size
+        try {
+            info.voxelsize = info.meta.get<double>("voxelSize");
+            voxelFound = true;
+        } catch (const std::exception&) {
+            std::cerr << "Warning: Log file does not contain voxel size. Is "
+                         "this a reconstruction log?"
+                      << std::endl;
+        }
+    }
+
+    // If the path is an image format, assume its a printf-pattern
+    else if (vci::FileExtensionFilter(slicePath.filename(), ImageExts)) {
+        info.path = slicePath.parent_path();
+        info.sliceRegex =
+            vc::FormatStrToRegexStr(slicePath.filename().string());
+    }
+
+    // Otherwise, assume it's a directory containing only slice images
+    else {
+        info.path = slicePath;
+    }
 
     // Volume Name
     std::cout << "Enter a descriptive name for the volume: ";
     std::getline(std::cin, info.name);
 
-    // get voxel size
+    // Get voxel size
     std::string input;
-    do {
-        std::cout << "Enter the voxel size of the volume in microns "
-                     "(e.g. 13.546): ";
-        std::getline(std::cin, input);
-    } while (!boost::conversion::try_lexical_convert(input, info.voxelsize));
+    if (!voxelFound) {
+        do {
+            std::cout << "Enter the voxel size of the volume in microns "
+                         "(e.g. 13.546): ";
+            std::getline(std::cin, input);
+        } while (
+            !boost::conversion::try_lexical_convert(input, info.voxelsize));
+    }
 
     // Flip options
     std::cout << "Flip options: Vertical flip (vf), horizontal flip (hf), "
@@ -186,13 +237,14 @@ VolumeInfo GetVolumeInfo(const fs::path& slicesPath)
     return info;
 }
 
-void AddVolume(vc::VolumePkg::Pointer& volpkg, VolumeInfo info)
+void AddVolume(vc::VolumePkg::Pointer& volpkg, const VolumeInfo& info)
 {
     std::cout << "Adding Volume: " << info.path << std::endl;
 
     // Filter the slice path directory by extension and sort the vector of files
     std::cout << "Reading the slice directory..." << std::endl;
     std::vector<volcart::SliceImage> slices;
+
     if (!fs::exists(info.path) || !fs::is_directory(info.path)) {
         std::cerr << "ERROR: Provided slice path does not exist/is not a "
                      "directory. Please provide a directory of slice images."
@@ -200,7 +252,7 @@ void AddVolume(vc::VolumePkg::Pointer& volpkg, VolumeInfo info)
         return;
     }
 
-    // Filter out subfiles that aren't TIFs
+    // Iterate through all files in the directory
     fs::directory_iterator subfile(info.path);
     fs::directory_iterator dirEnd;
     for (; subfile != dirEnd; subfile++) {
@@ -209,9 +261,18 @@ void AddVolume(vc::VolumePkg::Pointer& volpkg, VolumeInfo info)
             continue;
         }
 
-        // Compare against the file extension
-        if (vc::io::FileExtensionFilter(subfile->path(), AcceptedExtensions)) {
-            slices.emplace_back(subfile->path());
+        // Filter by either file extension or the provided regex
+        if (info.sliceRegex.empty()) {
+            if (vci::FileExtensionFilter(
+                    subfile->path().filename(), ImageExts)) {
+                slices.emplace_back(subfile->path());
+            }
+        } else {
+            if (std::regex_match(
+                    subfile->path().filename().string(),
+                    std::regex{info.sliceRegex})) {
+                slices.emplace_back(subfile->path());
+            }
         }
     }
 

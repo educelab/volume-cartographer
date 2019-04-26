@@ -1,6 +1,3 @@
-//
-// Created by Ryan Taber on 11/19/15.
-//
 #pragma once
 
 #include <boost/filesystem/path.hpp>
@@ -34,5 +31,5 @@ public:
 private:
     static std::vector<std::string> SplitString(std::string input);
 };
-}
-}
+}  // namespace testing
+}  // namespace volcart

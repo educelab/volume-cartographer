@@ -1,6 +1,3 @@
-//
-// Created by Seth Parker on 10/20/15.
-//
 #include <iostream>
 
 #include "vc/core/types/UVMap.hpp"

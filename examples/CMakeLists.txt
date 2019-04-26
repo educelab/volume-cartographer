@@ -3,9 +3,12 @@ if (VC_USE_ACVD OR VC_USE_OPTIONAL)
     target_link_libraries(vc_acvd_example
         VC::core
         VC::meshing
-        acvd
     )
 endif()
+
+#LANDMARKS TESTING
+add_executable(vc_landmarks_example src/CreateLandmarks.cpp)
+target_link_libraries(vc_landmarks_example VC::core)
 
 add_executable(vc_volpkg_example src/Volpkg.cpp)
 target_link_libraries(vc_volpkg_example VC::core)
@@ -24,22 +27,22 @@ target_link_libraries(vc_texture_flattened
 add_executable(vc_texture_example src/TextureExample.cpp)
 target_link_libraries(vc_texture_example VC::core VC::meshing VC::texturing)
 
+add_executable(vc_render_with_scale_example src/ScaleMarkerGeneratorExample.cpp)
+target_link_libraries(vc_render_with_scale_example VC::core VC::texturing opencv_imgcodecs)
+
 add_executable(vc_smooth_normals_example src/SmoothNormalsExample.cpp)
 target_link_libraries(vc_smooth_normals_example VC::core VC::meshing)
 
 add_executable(vc_scale_mesh_example src/ScaleMeshExample.cpp)
 target_link_libraries(vc_scale_mesh_example VC::core VC::meshing ITKIOMesh)
 
+if(VC_BUILD_TESTS)
 add_executable(vc_bad_clang_tidy src/BadClangTidy.cpp)
 target_link_libraries(vc_bad_clang_tidy vc_testing)
+endif(VC_BUILD_TESTS)
 
 add_executable(vc_raytrace_example src/RayTraceExample.cpp)
 target_link_libraries(vc_raytrace_example VC::core VC::meshing)
-
-if (VC_USE_LIBIGL OR VC_USE_OPTIONAL)
-    add_executable(vc_lscm_example src/LSCMExample.cpp)
-    target_link_libraries(vc_lscm_example VC::core VC::texturing)
-endif()
 
 add_executable(vc_bad_clang_format src/BadClangFormat2.cpp)
 
@@ -101,11 +104,11 @@ target_link_libraries(vc_orderedPointSetMesher_example VC::meshing)
 add_executable(vc_obj_reader_example src/OBJReaderExample.cpp)
 target_link_libraries(vc_obj_reader_example VC::core)
 
-add_executable(vc_scale_gen_example src/ScalesExample.cpp)
-target_link_libraries(vc_scale_gen_example VC::core)
-
 add_executable(vc_stps_example src/STPSExample.cpp)
 target_link_libraries(vc_stps_example VC::core VC::meshing VC::segmentation)
 
 add_executable(vc_spiral_example src/SpiralGenerator.cpp)
 target_link_libraries(vc_spiral_example VC::core)
+
+add_executable(vc_scale_marker_generator_example src/ScaleMarkerGeneratorExample.cpp)
+target_link_libraries(vc_scale_marker_generator_example VC::core VC::texturing opencv_imgcodecs)

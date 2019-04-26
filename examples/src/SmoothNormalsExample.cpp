@@ -1,7 +1,3 @@
-//
-// Created by Ryan Taber on 2/1/16.
-//
-
 /*
  * Purpose: Run volcart::meshing::SmoothNormals() and write results to file.
  *          Saved file will be read in by the SmoothNormalsTest.cpp file under

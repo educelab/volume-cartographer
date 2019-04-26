@@ -1,0 +1,51 @@
+@PACKAGE_INIT@
+
+# Setup for dependency management
+include(CMakeFindDependencyMacro)
+### Setup search path for custom FindXXX.cmake modules ###
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/Modules/")
+
+#####################################################################
+# Dependencies: This section should mirror VCFindDependencies.cmake #
+#####################################################################
+### Boost ###
+find_dependency(Boost @Boost_MAJOR_VERSION@.@Boost_MINOR_VERSION@ QUIET REQUIRED COMPONENTS @VC_BOOST_COMPONENTS@)
+
+### ITK ###
+find_dependency(ITK @ITK_VERSION_MAJOR@.@ITK_VERSION_MINOR@ QUIET REQUIRED)
+include(${ITK_USE_FILE})
+
+### VTK ###
+find_dependency(VTK @VTK_VERSION_MAJOR@.@VTK_VERSION_MINOR@ QUIET REQUIRED)
+include(${VTK_USE_FILE})
+
+### ACVD ###
+if(@VC_USE_ACVD@ OR @VC_USE_OPTIONAL@)
+    find_package(ACVD @ACVD_VERSION@ QUIET REQUIRED)
+endif()
+
+### Eigen3 ###
+find_dependency(Eigen3 @Eigen3_VERSION_MAJOR@.@Eigen3_VERSION_MINOR@ QUIET REQUIRED)
+
+### OpenCV ###
+find_dependency(OpenCV @OpenCV_VERSION_MAJOR@.@OpenCV_VERSION_MINOR@ QUIET REQUIRED)
+
+### TIFF ###
+find_dependency(TIFF QUIET REQUIRED)
+
+### spdlog ###
+find_dependency(spdlog CONFIG QUIET REQUIRED)
+
+### VCG ###
+if(@VC_USE_VCG@ OR @VC_USE_OPTIONAL@)
+find_dependency(VCG QUIET REQUIRED)
+add_library(vcglib INTERFACE IMPORTED)
+set_target_properties(vcglib PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${VCG_INCLUDE_DIRS}"
+)
+endif()
+#####################################################################
+
+### Include VC targets ###
+include("${CMAKE_CURRENT_LIST_DIR}/@targets_export_name@.cmake")
+check_required_components("@PROJECT_NAME@")

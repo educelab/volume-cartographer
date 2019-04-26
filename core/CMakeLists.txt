@@ -7,6 +7,7 @@ set(io_srcs
     src/OBJWriter.cpp
     src/PLYReader.cpp
     src/PLYWriter.cpp
+    src/SkyscanMetadataIO.cpp
     src/TIFFIO.cpp
 )
 
@@ -25,6 +26,13 @@ set(shape_srcs
     src/Spiral.cpp
 )
 
+set(landmark_srcs
+    src/VolumeLandmark.cpp
+    src/PointLandmark.cpp
+    src/PlaneLandmark.cpp
+    src/PolylineLandmark.cpp
+)
+
 set(type_srcs
     src/DiskBasedObjectBaseClass.cpp
     src/HalfEdgeMesh.cpp
@@ -36,17 +44,30 @@ set(type_srcs
     src/Texture.cpp
     src/UVMap.cpp
     src/Volume.cpp
+    src/VolumeMask.cpp
     src/VolumePkg.cpp
 )
 
 set(util_srcs
     src/MeshMath.cpp
     src/MemorySizeStringParser.cpp
+    src/FormatStrToRegexStr.cpp
 )
 
-set(srcs ${io_srcs} ${math_srcs} ${neighborhood_srcs} ${shape_srcs} ${type_srcs} ${util_srcs})
+set(logging_srcs
+    src/Logging.cpp
+)
 
-add_library(${target} ${srcs})
+add_library(${target}
+    ${io_srcs}
+    ${math_srcs}
+    ${neighborhood_srcs}
+    ${shape_srcs}
+    ${landmark_srcs}
+    ${type_srcs}
+    ${util_srcs}
+    ${logging_srcs}
+)
 add_library("${namespace}${module}" ALIAS "${target}")
 target_include_directories(${target}
     PUBLIC
@@ -56,6 +77,7 @@ target_include_directories(${target}
 target_link_libraries(${target}
     PUBLIC
         Boost::filesystem
+        Eigen3::Eigen
         opencv_core
         opencv_highgui
         opencv_imgproc
@@ -67,9 +89,11 @@ target_link_libraries(${target}
         vtkCommonCore
         vtkIOLegacy
         VC::external
+        spdlog::spdlog
     PRIVATE
         TIFF::TIFF
 )
+
 set_target_properties(${target} PROPERTIES
     VERSION "${PROJECT_VERSION}"
     EXPORT_NAME "${module}"
@@ -137,6 +161,8 @@ set(test_srcs
     test/PerPixelMapTest.cpp
     test/OBJReaderTest.cpp
     test/NDArrayTest.cpp
+    test/VolumeMaskTest.cpp
+    test/LoggingTest.cpp
 )
 
 # Add a test executable for each src
@@ -147,7 +173,8 @@ foreach(src ${test_srcs})
     target_link_libraries(${testname}
         VC::core
         VC::testing
-        Boost::unit_test_framework
+        gtest_main
+        gmock_main
     )
     add_test(
         NAME ${testname}
@@ -160,14 +187,14 @@ endforeach()
 set(COMMON_TEST_RES
     test/res/PlyWriter_Plane.ply
     test/res/GenericGradient.tif
-    test/res/OnlyFaces.obj
-    test/res/TexturedNoNormal.mtl
-    test/res/TexturedNoNormal.obj
-    test/res/TexturedPlane.mtl
-    test/res/TexturedPlane.obj
     test/res/Texture.png
-    test/res/UntexturedPlane.obj
-    test/res/Vertices.obj
+    test/res/vc_core_OBJReader_Invalid.obj
+    test/res/vc_core_OBJReader_Textured.mtl
+    test/res/vc_core_OBJReader_Textured.obj
+    test/res/vc_core_OBJReader_TexturedWithNormals.mtl
+    test/res/vc_core_OBJReader_TexturedWithNormals.obj
+    test/res/vc_core_OBJReader_UntexturedWithNormals.obj
+    test/res/vc_core_OBJReader_PointCloud.obj
 )
 
 # Copy each test resource file

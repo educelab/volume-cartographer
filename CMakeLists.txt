@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.11 FATAL_ERROR)
 
-set(VC_VERSION 2.19.0)
+set(VC_VERSION 2.20.0)
 
 option(VC_VERSION_DATESTAMP "Append date stamp to version number" off)
 if(VC_VERSION_DATESTAMP)
@@ -38,11 +38,11 @@ option(VC_INSTALL_PYTHON_BINDINGS "Install Python bindings." off)
 # Extra options
 option(VC_BUILD_EXPERIMENTAL "Build the experimental library" off)
 
-# Look for external dependencies.
-include(VCFindDependencies)
-
 # Some helpful constants to be used in subprojects.
 include(VCConstants)
+
+# Look for external dependencies.
+include(VCFindDependencies)
 
 # XXX Hack to get ninja output colorized for all source files.
 if (CMAKE_GENERATOR MATCHES "Ninja")
@@ -100,5 +100,7 @@ if(VC_BUILD_PYTHON_BINDINGS)
     add_subdirectory(python)
 endif()
 
+# Setup the config files #
+include(VCPackageConfig)
 # Install to system directories
 include(VCInstall)

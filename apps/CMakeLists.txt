@@ -53,6 +53,7 @@ target_link_libraries(vc_render
     VC::meshing
     Boost::filesystem
     Boost::program_options
+    vtkFiltersCore
 )
 target_include_directories(vc_render PUBLIC include)
 
@@ -74,6 +75,7 @@ target_link_libraries(vc_layers
     VC::meshing
     Boost::filesystem
     Boost::program_options
+    vtkFiltersCore
 )
 
 ## PPM Generator

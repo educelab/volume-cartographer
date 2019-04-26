@@ -1,8 +1,6 @@
-#define BOOST_TEST_MODULE OBJReaderTest
-
 #include <iostream>
 
-#include <boost/test/unit_test.hpp>
+#include <gtest/gtest.h>
 #include <opencv2/core.hpp>
 
 #include "vc/core/io/OBJReader.hpp"
@@ -10,63 +8,66 @@
 
 using namespace volcart;
 
-BOOST_AUTO_TEST_CASE(Read_v_vt_vn_OBJ)
+class OBJReader : public ::testing::Test
 {
+public:
+    OBJReader() = default;
     io::OBJReader reader;
-    reader.setPath("TexturedPlane.obj");
-    BOOST_CHECK_NO_THROW(reader.read());
+    std::string path{"vc_core_OBJReader_"};
+};
+
+TEST_F(OBJReader, TexturedWithNormals)
+{
+    reader.setPath(path + "TexturedWithNormals.obj");
+    EXPECT_NO_THROW(reader.read());
 
     auto mesh = reader.getMesh();
     auto uv = reader.getUVMap();
     auto img = reader.getTextureMat();
-    BOOST_CHECK_EQUAL(mesh->GetNumberOfPoints(), 16);
-    BOOST_CHECK_EQUAL(mesh->GetNumberOfCells(), 18);
-    BOOST_CHECK(!uv.empty());
-    BOOST_CHECK(!img.empty());
-};
+    EXPECT_EQ(mesh->GetNumberOfPoints(), 16);
+    EXPECT_EQ(mesh->GetNumberOfCells(), 18);
+    EXPECT_FALSE(uv.empty());
+    EXPECT_FALSE(img.empty());
+}
 
-BOOST_AUTO_TEST_CASE(Read_v_vt_OBJ)
+TEST_F(OBJReader, Textured)
 {
-    io::OBJReader reader;
-    reader.setPath("TexturedNoNormal.obj");
-    BOOST_CHECK_NO_THROW(reader.read());
+    reader.setPath(path + "Textured.obj");
+    EXPECT_NO_THROW(reader.read());
 
     auto mesh = reader.getMesh();
     auto uv = reader.getUVMap();
     auto img = reader.getTextureMat();
-    BOOST_CHECK_EQUAL(mesh->GetNumberOfPoints(), 16);
-    BOOST_CHECK_EQUAL(mesh->GetNumberOfCells(), 18);
-    BOOST_CHECK(!uv.empty());
-    BOOST_CHECK(!img.empty());
-};
+    EXPECT_EQ(mesh->GetNumberOfPoints(), 16);
+    EXPECT_EQ(mesh->GetNumberOfCells(), 18);
+    EXPECT_FALSE(uv.empty());
+    EXPECT_FALSE(img.empty());
+}
 
-BOOST_AUTO_TEST_CASE(Read_v_vn_OBJ)
+TEST_F(OBJReader, UntexturedWithNormals)
 {
-    io::OBJReader reader;
-    reader.setPath("UntexturedPlane.obj");
-    BOOST_CHECK_NO_THROW(reader.read());
+    reader.setPath(path + "UntexturedWithNormals.obj");
+    EXPECT_NO_THROW(reader.read());
 
     auto mesh = reader.getMesh();
     auto uv = reader.getUVMap();
-    BOOST_CHECK_EQUAL(mesh->GetNumberOfPoints(), 16);
-    BOOST_CHECK_EQUAL(mesh->GetNumberOfCells(), 18);
-    BOOST_CHECK(uv.empty());
-};
+    EXPECT_EQ(mesh->GetNumberOfPoints(), 16);
+    EXPECT_EQ(mesh->GetNumberOfCells(), 18);
+    EXPECT_TRUE(uv.empty());
+}
 
-BOOST_AUTO_TEST_CASE(Read_v_OBJ)
+TEST_F(OBJReader, PointCloud)
 {
-    io::OBJReader reader;
-    reader.setPath("Vertices.obj");
-    BOOST_CHECK_NO_THROW(reader.read());
+    reader.setPath(path + "PointCloud.obj");
+    EXPECT_NO_THROW(reader.read());
 
     auto mesh = reader.getMesh();
-    BOOST_CHECK_EQUAL(mesh->GetNumberOfPoints(), 16);
-    BOOST_CHECK_EQUAL(mesh->GetNumberOfCells(), 0);
-};
+    EXPECT_EQ(mesh->GetNumberOfPoints(), 16);
+    EXPECT_EQ(mesh->GetNumberOfCells(), 0);
+}
 
-BOOST_AUTO_TEST_CASE(ReadBadOBJ)
+TEST_F(OBJReader, Invalid)
 {
-    io::OBJReader reader;
-    reader.setPath("OnlyFaces.obj");
-    BOOST_CHECK_THROW(reader.read(), IOException);
-};
+    reader.setPath(path + "Invalid.obj");
+    EXPECT_THROW(reader.read(), IOException);
+}

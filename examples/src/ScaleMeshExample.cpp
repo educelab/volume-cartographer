@@ -1,7 +1,3 @@
-//
-// Created by Ryan Taber on 2/18/16.
-//
-
 /*
  * Purpose: Run volcart::meshing::ScaleMesh() and write results to file
  *          for each shape.

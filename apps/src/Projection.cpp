@@ -21,6 +21,7 @@
 
 #include "vc/core/io/OBJReader.hpp"
 #include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/util/Logging.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
 
 static const double MAX_8BPC = std::numeric_limits<uint8_t>::max();
@@ -61,6 +62,7 @@ int main(int argc, char* argv[])
              "  1 = Red\n"
              "  2 = Green\n"
              "  3 = Blue\n")
+        ("thickness,t", po::value<int>()->default_value(1), "Line thickness")
         ("intersect-only", "Draws the intersection on a black image");
 
     po::options_description all("Usage");
@@ -73,7 +75,7 @@ int main(int argc, char* argv[])
 
     // Show the help message
     if (parsed.count("help") || argc < 4) {
-        std::cerr << all << std::endl;
+        std::cout << all << std::endl;
         return EXIT_SUCCESS;
     }
 
@@ -81,7 +83,7 @@ int main(int argc, char* argv[])
     try {
         po::notify(parsed);
     } catch (po::error& e) {
-        std::cerr << "ERROR: " << e.what() << std::endl;
+        vc::logger->error(e.what());
         return EXIT_FAILURE;
     }
 
@@ -90,6 +92,7 @@ int main(int argc, char* argv[])
     fs::path volpkgPath = parsed["volpkg"].as<std::string>();
     fs::path outputDir = parsed["output-dir"].as<std::string>();
     auto intersectOnly = parsed.count("intersect-only") > 0;
+    auto thickness = parsed["thickness"].as<int>();
 
     // Color Option
     auto colorOpt = static_cast<Color>(parsed["color"].as<int>());
@@ -224,7 +227,8 @@ int main(int argc, char* argv[])
                     static_cast<int>(intersection->GetPoint(p_id)[1])));
             }
 
-            cv::polylines(outputImg, contour, false, color, 1, cv::LINE_AA);
+            cv::polylines(
+                outputImg, contour, false, color, thickness, cv::LINE_AA);
         }
 
         // Save the output to the provided directory

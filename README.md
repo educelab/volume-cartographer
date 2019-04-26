@@ -1,54 +1,162 @@
 Volume Cartographer
 ===================
+A library and toolkit for the virtual unwrapping of volumetric datasets.
 
-Toolkit to segment and analyze volumetric datasets.
 
-**The Tools**
+### Dependencies  
+**Required**  
+* C++14 compiler (gcc 4.9+, clang 3.4+ or VS 2015+)
+* CMake 3.5+
+* OpenCV 3+
+* Insight Toolkit (itk) 4.10+
+* Visualization Toolkit (vtk) 7 or 8
+    * [ACVD Mesh Simplification](https://github.com/valette/ACVD) add-on library
+* Boost 1.58+
+* Qt 5.7+
+* [libtiff](https://gitlab.com/libtiff/libtiff) 4.0+
+* Eigen3 3.2+
+* spdlog
 
-* Updates coming soon...
+**Optional**  
+* [Doxygen](http://www.doxygen.org/) - For documentation
+* [pybind11](https://github.com/pybind/pybind11) - For Python binding support
+* [VCG library](https://github.com/cnr-isti-vclab/vcglib) - For VCG's Quadric Edge Collapse Decimation
 
-**Build Environment**
-
-* C++ Compiler - gcc/clang
-* cmake  
-* pkg-config
-* OpenCV
-	* If you want static VC binaries, you must build OpenCV with static libraries: `cmake -DBUILD_SHARED_LIBS=OFF ${OPENCV_SOURCE_PATH}`
-* Insight Toolkit (itk)
-* Visualization Toolkit (vtk)
-* Boost
-* [ACVD Mesh Simplification](https://github.com/valette/ACVD)
-* Qt5 
-* Meshlab - Recommended for viewing meshes only
-
-**Installation**  
-The VC suite uses CMake to simplify builds. This suite is primarly developed and tested on OSX. It _should_ work on other *nix based systems, but this is currently untested. If you have the prerequisites listed above already installed and in your PATH, compilation should be as simple as:
-```
-git clone https://code.vis.uky.edu/seales-research/volume-cartographer.git
+### Compilation  
+The VC suite uses CMake to simplify builds. 
+This suite is primarily developed and tested on macOS and Debian. 
+It _should_ work on other Unix/Linux systems, but this is currently untested. 
+If you have already installed the dependencies listed above, compilation should be as simple as:  
+```shell
+git clone https://code.cs.uky.edu/seales-research/volume-cartographer.git
 cd volume-cartographer
 mkdir build
 cd build
 cmake ..
-make -j4
-sudo make install
-```  
-If you wish to deploy the apps to other machines, prebuild the dependencies statically and run 
-`make package` instead of `sudo make install`.  
-  
-To assist with this task, we have created the [vc-deps project](https://code.vis.uky.edu/seales-research/vc-deps) and have implemented it 
-as a git submodule to the main volume-cartographer repository. The only requirement for using this method is that cmake, pkgconfig, and Qt5 be installed first. Using a dynamically linked Qt5 for this process is fine. Here we use the Homebrew provided Qt5, which is currently not placed in the PATH:
+make
 ```
-git clone --recursive https://code.vis.uky.edu/seales-research/volume-cartographer.git
+
+Many `volume-cartographer` libraries can be built in parallel, and compilation times will be improved by running `make -j4`.
+Alternatively, you can use CMake to generate [Ninja](https://ninja-build.org/) build system files:  
+```shell
+cmake -GNinja ..
+ninja
+```
+
+
+##### (Optional) Use vc-deps dependencies
+To assist with installing dependencies, we have created the [vc-deps project](https://code.cs.uky.edu/seales-research/vc-deps).
+While this project can be used on its own to install the dependencies to the system, we also provide it as a git submodule within `volume-cartographer`.
+Note that `vc-deps` **does not** install CMake or Qt.  
+
+To build and link against in-source `vc-deps` libraries, run the following:  
+```shell
+# Get the source code plus all submodules
+git clone --recursive https://code.cs.uky.edu/seales-research/volume-cartographer.git
+
+# Build vc-deps
 cd volume-cartographer/vc-deps
-./build-deps.sh
-cd ..
+mkdir build && cd build
+cmake ..
+make
+
+# Return to the volume-cartographer directory
+cd ../..
+
+# Build volume-cartographer
 mkdir build
 cd build
-cmake -DVC_PREBUILT_LIBS=ON -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5/ ..
-make -j4
+cmake -DVC_PREBUILT_LIBS=ON ..
+make
+```
+
+### Installation
+To install the compiled software and libraries to the `CMAKE_INSTALL_PREFIX`, run the `install` target:
+```shell
+make install
+```
+
+### Packaging
+
+To generate an installer package, run the `package` target:
+```shell
 make package
 ```
-Due to an [on-going issue](https://code.vis.uky.edu/seales-research/volume-cartographer/issues/35), only the GUI applications can be 
-deployed in this way.  
-  
-If building for OSX, you can target OSX 10.9+ by modifying the previous commands to run `./build-deps.sh -universal` instead.
+
+##### (Optional) Build a deployable macOS installer
+To build a deployable macOS installer DMG for macOS 10.9+, use the `vc-deps` submodule to build the dependencies as universal libraries:
+```shell
+# Get the source code plus all submodules
+git clone --recursive https://code.cs.uky.edu/seales-research/volume-cartographer.git
+
+# Build vc-deps
+cd volume-cartographer/vc-deps
+mkdir build && cd build
+cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_UNIVERSAL_LIBS=ON ..
+make
+cd ../../
+
+# Build volume-cartographer
+mkdir build
+cd build
+export OSX_SDK_VERSION="10.9"
+export OSX_SDK_PATH="../vc-deps/build/osx-sdk-prefix/src/osx-sdk/SDKs/MacOSX10.9.sdk/"
+cmake -DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DCMAKE_OSX_DEPLOYMENT_TARGET=$OSX_SDK_VERSION -DCMAKE_OSX_SYSROOT=$OSX_SDK_PATH ..
+make && make package
+```
+
+### Testing
+Tests are built by default and use the Boost.Test framework.
+Test can be run using CTest or by running the `test` target:
+```shell
+make test
+```
+
+To disable tests, set the `VC_BUILD_TESTS` flag to off:
+```shell
+cmake -DVC_BUILD_TESTS=OFF ..
+```
+
+### Documentation
+Library documentation is built using Doxygen and can be enabled/disabled by setting the `VC_BUILD_DOC` flag.
+Documentation will be installed with the `install` target if the `VC_INSTALL_DOC` flag is enabled.
+```shell
+cmake -DVC_BUILD_DOC=ON -DVC_INSTALL_DOC=ON ..
+```
+
+### Python Bindings (WIP)
+We currently maintain limited Python binding support through pybind11. 
+They are a work-in-progress and should not be used in production code.  
+
+Bindings can be built and installed by setting the `VC_BUILD_PYTHON_BINDINGS` and `VC_INSTALL_PYTHON_BINDINGS` flags:
+```shell
+cmake -DVC_BUILD_PYTHON_BINDINGS=ON -DVC_INSTALL_PYTHON_BINDINGS=ON ..
+```
+
+To use these bindings in Python after installation, import from the `volcart` package:
+```python
+import volcart.Core as c
+import numpy as np
+
+vpkg = c.VolumePkg('/path/to/package.volpkg')
+vol = vpkg.volume()
+r = vol.reslice(np.array([0,0,0]))
+```
+
+__NOTE:__ Python modules are built as shared libraries, regardless of the `BUILD_SHARED_LIBS`
+flag set by this project. This can cause problems if the Volume Cartographer dependencies
+are not built as shared libraries. Either install the shared versions of these 
+libraries (preferred) or compile static libraries with position independent code (PIC).
+
+If using `vc-deps` to build the dependency libraries, set the appropriate CMake flags:
+```shell
+# Build shared libraries (preferred)
+cmake -DBUILD_SHARED_LIBS=ON ..
+
+# Build static libraries with PIC
+cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_POSITION_INDEPENDENT_CODE=ON ..
+```
+
+### Contributing
+
+See [CONTRIBUTING](CONTRIBUTING.md).

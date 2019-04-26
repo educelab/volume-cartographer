@@ -16,6 +16,7 @@ set(srcs
 set(deps
     VC::core
     opencv_highgui
+    Eigen3::Eigen
 )
 
 add_library(${target} ${srcs})
@@ -77,7 +78,8 @@ foreach(src ${test_srcs})
         VC::core
         VC::segmentation
         VC::testing
-        Boost::unit_test_framework
+        gtest_main
+        gmock_main
     )
     add_test(
         NAME ${testname}

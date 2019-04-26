@@ -1,18 +1,14 @@
-#define BOOST_TEST_MODULE LocalResliceSegmentation
+#include <gtest/gtest.h>
 
 #include <cmath>
-
-#include <boost/test/floating_point_comparison.hpp>
-#include <boost/test/unit_test.hpp>
-#include <boost/test/unit_test_log.hpp>
 
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/segmentation/LocalResliceParticleSim.hpp"
 
 using namespace volcart::segmentation;
-namespace tt = boost::test_tools;
 
 struct PointXYZ {
+
     double x, y, z;
 
     explicit PointXYZ(const cv::Vec3d& p) : x(p[0]), y(p[1]), z(p[2]) {}
@@ -28,7 +24,9 @@ inline double NormL2(const PointXYZ p1, const PointXYZ p2)
 }
 
 // Main fixture containing the LocalResliceSegmentation object
-struct LocalResliceSegmentationFix {
+class LocalResliceSegmentationFix : public ::testing::Test
+{
+public:
     LocalResliceSegmentationFix() = default;
 
     volcart::VolumePkg pkg_{"Testing.volpkg"};
@@ -36,7 +34,7 @@ struct LocalResliceSegmentationFix {
 };
 
 // Test for default segmentation
-BOOST_FIXTURE_TEST_CASE(DefaultSegmentationTest, LocalResliceSegmentationFix)
+TEST_F(LocalResliceSegmentationFix, DefaultSegmentationTest)
 {
     // Get the cloud to compare against
     auto groundTruthSeg = pkg_.segmentation("local-reslice-particle-sim");
@@ -83,9 +81,9 @@ BOOST_FIXTURE_TEST_CASE(DefaultSegmentationTest, LocalResliceSegmentationFix)
     testCloudSeg->setPointSet(resultCloud);
 
     // First compare cloud sizes
-    BOOST_REQUIRE_EQUAL(groundTruthCloud.size(), resultCloud.size());
-    BOOST_REQUIRE_EQUAL(groundTruthCloud.width(), resultCloud.width());
-    BOOST_REQUIRE_EQUAL(groundTruthCloud.height(), resultCloud.height());
+    ASSERT_EQ(groundTruthCloud.size(), resultCloud.size());
+    ASSERT_EQ(groundTruthCloud.width(), resultCloud.width());
+    ASSERT_EQ(groundTruthCloud.height(), resultCloud.height());
 
     // Compare clouds, make sure each point is within a certain tolerance.
     // Currently set in this file, may be set outside later on
@@ -104,10 +102,10 @@ BOOST_FIXTURE_TEST_CASE(DefaultSegmentationTest, LocalResliceSegmentationFix)
             diffCount++;
         }
 
-        BOOST_WARN_SMALL(normDiff, voxelDiffTol);
-        BOOST_WARN_SMALL(xdiff, voxelDiffTol);
-        BOOST_WARN_SMALL(ydiff, voxelDiffTol);
-        BOOST_WARN_SMALL(zdiff, voxelDiffTol);
+        EXPECT_PRED_FORMAT2(::testing::DoubleLE, normDiff, voxelDiffTol);
+        EXPECT_PRED_FORMAT2(::testing::DoubleLE, xdiff, voxelDiffTol);
+        EXPECT_PRED_FORMAT2(::testing::DoubleLE, ydiff, voxelDiffTol);
+        EXPECT_PRED_FORMAT2(::testing::DoubleLE, zdiff, voxelDiffTol);
     }
 
     // Check that the clouds never vary in point differences by 10%
@@ -115,7 +113,7 @@ BOOST_FIXTURE_TEST_CASE(DefaultSegmentationTest, LocalResliceSegmentationFix)
         size_t(std::round(0.1 * groundTruthCloud.size()));
     std::cout << "# different points: " << diffCount
               << " (max allowed: " << maxAllowedDiffCount << ")" << std::endl;
-    BOOST_CHECK(diffCount < maxAllowedDiffCount);
+    EXPECT_TRUE(diffCount < maxAllowedDiffCount);
 }
 
 std::ostream& operator<<(std::ostream& s, PointXYZ p)

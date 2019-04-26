@@ -1,7 +1,3 @@
-//
-// Created by Media Team on 6/24/15.
-//
-
 /*
  * Purpose: Run volcart::meshing::ITK2VTK() and write results to file.
  *          Run volcart::meshing::VTK2ITK() and write results to file.

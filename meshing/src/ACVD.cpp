@@ -21,6 +21,7 @@
 #include <vtkIsotropicDiscreteRemeshing.h>
 #include <vtkPolyDataNormals.h>
 
+#include "vc/core/util/Logging.hpp"
 #include "vc/meshing/ACVD.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
 
@@ -91,8 +92,9 @@ void ACVD(
         fList->Delete();
 
         if (numMisclassedItems != 0) {
-            std::cout << numMisclassedItems
-                      << " Items with wrong cluster association" << std::endl;
+            logger->warn(
+                "Items with wrong cluster association" +
+                std::to_string(numMisclassedItems));
         }
 
         std::array<double, 3> p{};
@@ -119,5 +121,5 @@ void ACVD(
     normalGenerator->ComputeCellNormalsOn();
     normalGenerator->Update();
 }
-}
-}
+}  // namespace meshing
+}  // namespace volcart

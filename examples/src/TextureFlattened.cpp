@@ -1,7 +1,3 @@
-//
-// Created by Seth Parker on 6/24/15.
-//
-
 #include <opencv2/imgcodecs.hpp>
 #include <vtkPLYReader.h>
 #include <vtkSmartPointer.h>

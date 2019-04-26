@@ -19,12 +19,8 @@ set(VC_BOOST_COMPONENTS
     filesystem
     program_options
     iostreams
-    unit_test_framework
 )
 find_package(Boost 1.58 REQUIRED COMPONENTS ${VC_BOOST_COMPONENTS})
-if (VC_PREBUILT_LIBS)
-    set(Boost_USE_STATIC_LIBS on)
-endif()
 
 ### Qt5 ###
 find_package(Qt5 5.7 QUIET REQUIRED COMPONENTS Widgets Gui Core)
@@ -47,13 +43,7 @@ include(${VTK_USE_FILE})
 include_directories(SYSTEM ${VTK_INCLUDE_DIRS})
 
 ### Eigen ###
-# XXX libigl requires Eigen 3.2.x, which doesn't support namespaced targets and
-# transitively-included dependencies, so make it into a target
-find_package(Eigen3 3.2.0 QUIET REQUIRED)
-add_library(eigen3 INTERFACE IMPORTED)
-set_target_properties(eigen3 PROPERTIES
-    INTERFACE_INCLUDE_DIRECTORIES ${EIGEN3_INCLUDE_DIR}
-)
+find_package(Eigen3 3.2 REQUIRED)
 
 ### OpenCV ###
 find_package(OpenCV 3 REQUIRED)
@@ -61,9 +51,29 @@ find_package(OpenCV 3 REQUIRED)
 ### libtiff ###
 find_package(TIFF 4.0 REQUIRED)
 
+### spdlog ###
+find_package(spdlog CONFIG REQUIRED)
+
 ############
 # Optional #
 ############
+
+### gtest ###
+if(VC_BUILD_TESTS)
+    include(FetchContent)
+
+    FetchContent_Declare(
+            googletest
+            GIT_REPOSITORY https://github.com/google/googletest.git
+            GIT_TAG        release-1.8.1
+    )
+
+    FetchContent_GetProperties(googletest)
+    if(NOT googletest_POPULATED)
+        FetchContent_Populate(googletest)
+        add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
+    endif()
+endif()
 
 # Python bindings
 if(VC_BUILD_PYTHON_BINDINGS)
@@ -86,24 +96,7 @@ endif()
 # Currently required since VC-Texture needs it - SP
 option(VC_USE_ACVD "Use ACVD library" on)
 if (VC_USE_ACVD OR VC_USE_OPTIONAL)
-    find_package(ACVD QUIET REQUIRED)
-    add_library(acvd INTERFACE IMPORTED)
-    set_target_properties(acvd PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${ACVD_INCLUDE_DIRS}"
-        # Hack to get around the fact that ACVD_LIBRARIES doesn't contain the
-        # needed VTK libs to actually compile it...
-        INTERFACE_LINK_LIBRARIES "${ACVD_LIBRARIES};${VTK_LIBRARIES}"
-    )
-endif()
-
-### libigl ###
-option(VC_USE_LIBIGL "Use libigl" off)
-if (VC_USE_LIBIGL OR VC_USE_OPTIONAL)
-    find_package(LIBIGL QUIET REQUIRED)
-    add_library(libigl INTERFACE IMPORTED)
-    set_target_properties(libigl PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${LIBIGL_INCLUDE_DIRS}"
-    )
+    find_package(ACVD 1.0.1 REQUIRED)
 endif()
 
 ### VCG ###
@@ -114,4 +107,7 @@ if(VC_USE_VCG OR VC_USE_OPTIONAL)
     set_target_properties(vcglib PROPERTIES
         INTERFACE_INCLUDE_DIRECTORIES "${VCG_INCLUDE_DIRS}"
     )
+
+    # Install a custom Find module
+    list(APPEND VC_CUSTOM_MODULES "${CMAKE_SOURCE_DIR}/cmake/FindVCG.cmake")
 endif()

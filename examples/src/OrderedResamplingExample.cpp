@@ -1,7 +1,3 @@
-//
-// Created by Hannah Hatch on 7/25/16.
-//
-
 #include <iostream>
 
 #include "vc/core/io/OBJWriter.hpp"

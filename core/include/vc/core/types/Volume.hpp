@@ -21,7 +21,10 @@ namespace volcart
  *
  * @ingroup Types
  */
-class Volume : public DiskBasedObjectBaseClass
+// shared_from_this used in Python bindings
+// https://en.cppreference.com/w/cpp/memory/enable_shared_from_this
+class Volume : public DiskBasedObjectBaseClass,
+               public std::enable_shared_from_this<Volume>
 {
 public:
     /** Bounding Box type */

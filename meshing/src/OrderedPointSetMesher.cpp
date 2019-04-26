@@ -1,7 +1,3 @@
-//
-// Created by Hannah Hatch on 8/23/16.
-//
-
 /** @file OrderedPointSetMesher.cpp */
 
 #include "vc/meshing/OrderedPointSetMesher.hpp"

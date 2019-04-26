@@ -13,6 +13,7 @@
 #include "vc/core/util/MemorySizeStringParser.hpp"
 #include "vc/external/GetMemorySize.hpp"
 #include "vc/meshing/ScaleMesh.hpp"
+#include "vc/texturing/ScaleMarkerGenerator.hpp"
 
 // App includes
 #include "apps/RenderGeneral.hpp"
@@ -24,6 +25,7 @@ namespace fs = boost::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
 namespace vcm = volcart::meshing;
+namespace vct = volcart::texturing;
 
 // Volpkg version required by this app
 static constexpr int VOLPKG_SUPPORTED_VERSION = 6;
@@ -45,14 +47,15 @@ int main(int argc, char* argv[])
         .add(GetUVOpts())
         .add(GetFilteringOpts())
         .add(GetCompositeOpts())
-        .add(GetIntegralOpts());
+        .add(GetIntegralOpts())
+        .add(GetPostProcessOpts());
 
     // Parse the cmd line
     po::store(po::command_line_parser(argc, argv).options(all).run(), parsed_);
 
     // Show the help message
     if (parsed_.count("help") || argc < 5) {
-        std::cerr << all << std::endl;
+        std::cout << all << std::endl;
         return EXIT_SUCCESS;
     }
 
@@ -161,6 +164,9 @@ int main(int argc, char* argv[])
 
     ///// Texturing /////
     auto texture = TextureMesh(input, uvMap);
+
+    ///// Post-processing /////
+    RenderPostProcess(texture);
 
     ///// Saving /////
     SaveOutput(outputPath, input, texture);
