@@ -278,4 +278,4 @@ private:
      */
     static Metadata InitConfig(const Dictionary& dict, int version);
 };
-}
+}  // namespace volcart

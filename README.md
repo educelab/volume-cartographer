@@ -117,12 +117,6 @@ To disable tests, set the `VC_BUILD_TESTS` flag to off:
 cmake -DVC_BUILD_TESTS=OFF ..
 ```
 
-If Boost.Test was built with static libraries, you must explicitly tell `volume-cartographer` to link against these static libraries:
-```shell
-cmake -DBoost_USE_STATIC_LIBS=ON ..
-make test
-```
-
 ### Documentation
 Library documentation is built using Doxygen and can be enabled/disabled by setting the `VC_BUILD_DOC` flag.
 Documentation will be installed with the `install` target if the `VC_INSTALL_DOC` flag is enabled.

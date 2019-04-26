@@ -1,5 +1,78 @@
 Volume Cartographer Changelog
 =============================
+v2.20.0
+-------
+This release includes a significant number of bug fixes and new features 
+throughout the entire library. Our primary focus has been improving the existing 
+pipeline and build system in order to better support new features that we 
+anticipate implementing over the next year. 
+
+The biggest change is that we've switched from the Boost Unit Test Framework to 
+the Google Test framework. We have historically had a lot of trouble getting new 
+developers up and running with the codebase because of some obscure limitation 
+introduced by one of our dependencies. One particularly annoying limitation was 
+that the developer needed to know (and specify) whether Boost was built 
+statically or dynamically when configuring volume-cartographer. If not 
+specified, compilation would fail with an undefined reference error. 
+In contrast, the Google Test framework is downloaded and built alongside our 
+libraries and "just works" with no special configuration necessary.
+
+- all
+    - (CI) Cleanup the build and test jobs (!234, !247, !255)
+    - Significant update to the massively out-of-date README. It should now be
+    useful! (!235, !254)
+    - Improve downstream project use: Add better CMake configs, remove libigl
+    dependency, remove old `FindXXX.cmake` files (!246)
+    - Add initial `CONTRIBUTING` file (!253)
+    - Improve how we find and import ACVD (!255, !261)
+    - Update to vc-deps 1.3.2 (!259)
+    - __New:__ Move all tests to the Google Test framework (!248)
+    - Various build issues (!263, !264)
+- apps
+    - (project) Add `--thickness` option (!230)
+    - (packager) Improve support for specifying input volumes (!238, !260). 
+    Previously, this program naively filtered the provided slice directory using 
+    only the file extension. Now, users can now provide the `--slices` flag 
+    with a printf-style file pattern (e.g. `slice%03d.tif`) or the path to a 
+    Skyscan reconstruction log file (e.g. `SliceRecon_rec.log`). In the latter 
+    case, the voxel size and the file pattern will additionally be read from
+    log file.
+- core
+    - (PyVolume) Update to match `vc::Volume` API (!252)
+    - (BytesToMemorySizeString) Add `int`/`float` formatting option (!258)
+    - __New:__ `SubvolumeMask`: A basic implementation of a class for 
+    providing per-voxel masking information (!245). It's current implementation 
+    is very memory efficient, but also very slow. Should not be used in 
+    production code.
+    - __New:__ `VolumeLandmarks`: A number of classes for keeping track
+    of points or regions-of-interest in the `Volume` (!233). Currently provides 
+    point, plane, and polyline classes.
+    - __New:__ `SkyscanMetadataIO`: Parses Skyscan reconstruction metadata 
+    log files (!238)
+    - __New:__ `volcart::logger`: Adds a standardized logging system for the 
+    entire project(!239). Many existing messages, but not all of them, have been 
+    updated to use the new logging system.
+- examples
+    - (acvd_example) Add command line options to make it more useful as a 
+    utility (!259)
+- texturing
+    - (PPMGenerator) Add "smooth shading" option and set as default (!228). 
+    Previously, each point inherited the surface normal of the face. Now, point 
+    normals are smoothly interpolated in a Gouraud/Phong-like way from the 
+    vertex normals. The original behavior can be restored by using 
+    `setShading(Shading::Flat)`. This option is also available through to 
+    `vc_render` with the `--shading` flag.
+    - (PPMGenerator) Accelerate generation times by keeping the previous 
+    intersection as a hint for the next (!229). Also adds performance tests for 
+    testing and comparing future improvements.
+    - __New:__ `ScaleMarkerGenerator`: Class for augmenting texture images 
+    with a scale bar (a.k.a ruler) or reference image (!236). Useful for 
+    conveying the scale of result images. Replaces the old `vc_addScale` 
+    utility.
+- utils
+    - (transform_mesh) Add `--scale` option (!227)
+    - (canny_segment) Add option to find the midpoint of a layer (!224)
+
 v2.19.0
 -------
 This release contains a major refactor of the `Volume` class, which brings it 
