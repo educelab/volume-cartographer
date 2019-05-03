@@ -63,9 +63,11 @@ if(VC_BUILD_TESTS)
     include(FetchContent)
 
     FetchContent_Declare(
-            googletest
-            GIT_REPOSITORY https://github.com/google/googletest.git
-            GIT_TAG        release-1.8.1
+        googletest
+        GIT_REPOSITORY https://github.com/google/googletest.git
+        GIT_TAG        release-1.8.1
+        CMAKE_CACHE_ARGS
+            -DINSTALL_GTEST:BOOL=OFF
     )
 
     FetchContent_GetProperties(googletest)
@@ -73,6 +75,7 @@ if(VC_BUILD_TESTS)
         FetchContent_Populate(googletest)
         add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
     endif()
+    set(INSTALL_GTEST OFF CACHE BOOL OFF FORCE)
 endif()
 
 # Python bindings

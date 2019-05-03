@@ -29,22 +29,6 @@ set_target_properties(${target} PROPERTIES
     EXPORT_NAME "${module}"
 )
 
-if(VC_INSTALL_LIBS)
-install(
-    TARGETS ${target}
-    EXPORT ${targets_export_name}
-    ARCHIVE DESTINATION "lib"
-    LIBRARY DESTINATION "lib"
-    RUNTIME DESTINATION "bin"
-    INCLUDES DESTINATION "${include_install_dir}/${module}"
-)
-install(
-    DIRECTORY "${include_install_dir}/${module}"
-    DESTINATION "${include_install_dir}"
-    FILES_MATCHING REGEX ".*\.(h|hpp)$"
-)
-endif()
-
 # Testing tests
 # Add a test executable for each src
 set(test_srcs
