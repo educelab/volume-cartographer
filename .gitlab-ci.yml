@@ -213,7 +213,7 @@ collect:nightly:source:
     only:
         - schedules
     except:
-        - /(?!develop)$/i
+        - ${CI_COMMIT_REF_NAME} != "develop"
     stage: collect
     script:
         - datetime=$(date '+%Y%m%d')
@@ -232,7 +232,7 @@ collect:nightly:macos:
     only:
         - schedules
     except:
-        - /(?!develop)$/i
+        - ${CI_COMMIT_REF_NAME} != "develop"
     stage: collect
     variables:
         OSX_SDK_VERSION: "10.9"
@@ -284,7 +284,7 @@ deploy:nightly:
     only:
         - schedules
     except:
-        - /(?!develop)$/i
+        - ${CI_COMMIT_REF_NAME} != "develop"
     stage: deploy
     dependencies:
       - collect:nightly:source
