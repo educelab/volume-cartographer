@@ -40,12 +40,12 @@ def query_yes_no(question, default="yes"):
 
 
 def replace_string_in_file(filename, old_str, new_str):
-    with open(filename, 'r') as f:
+    with open(filename, 'r', encoding='iso-8859-15') as f:
         file_contents = f.read()
 
     file_contents = file_contents.replace(old_str, new_str)
 
-    with open(filename, 'w') as f:
+    with open(filename, 'w', encoding='iso-8859-15') as f:
         f.write(file_contents)
 
 
@@ -147,15 +147,15 @@ def main():
                                 if os.path.isfile(os.path.join(input_directory, original_rec_dir, filename))
                                 and os.path.splitext(filename)[1] == '.log']
     for logfile in logfiles_full_names:
-        try:
+        if os.path.basename(logfile).startswith('._'):
+            print('    Skipping file {}'.format(logfile))
+            continue
+        print('    Patching logfile: {}'.format(logfile))
+        if original_rec_dir is not None:
             replace_string_in_file(logfile, original_rec_prefix, new_name + '_rec_')
             replace_string_in_file(logfile, original_rec_dir, new_name + '_rec')
-            replace_string_in_file(logfile, original_prefix, new_name + '_')
-            replace_string_in_file(logfile, original_dir_name, new_name)
-            print('    Patched logfile: {}'.format(logfile))
-        except UnicodeDecodeError:
-            print('    Skipping non-text logfile {}'.format(logfile))
-            continue
+        replace_string_in_file(logfile, original_prefix, new_name + '_')
+        replace_string_in_file(logfile, original_dir_name, new_name)
 
     # Rename files in reconstruction directory
     if original_rec_dir is not None:
