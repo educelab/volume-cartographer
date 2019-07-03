@@ -88,6 +88,8 @@ def main():
     if len(tifs) == 0:
         print('No .tifs detected in input directory: {}'.format(input_directory))
         return
+    while os.path.splitext(tifs[0])[0].endswith('_arc'):
+        tifs.pop(0)
     # Remove digits from end of filename to get prefix
     original_prefix = os.path.splitext(tifs[0])[0]
     while original_prefix[-1].isdigit() or original_prefix[-1] == '~':
@@ -111,16 +113,13 @@ def main():
                             if os.path.isfile(os.path.join(input_directory, original_rec_dir, filename))]
         logfiles_in_rec_dir = [filename for filename in files_in_rec_dir
                                if os.path.splitext(filename)[1] == '.log']
-        if len(logfiles_in_rec_dir) == 0:
-            print('No .log file found in reconstruction dir: {}, will not touch this directory'
-                  .format(original_rec_dir))
-            original_rec_dir = None
-        elif len(logfiles_in_rec_dir) > 1:
+        if len(logfiles_in_rec_dir) > 1:
             print('Multiple .log files found in reconstruction dir: {}, will not touch this directory'
                   .format(original_rec_dir))
             original_rec_dir = None
         else:
-            original_rec_prefix = os.path.splitext(logfiles_in_rec_dir[0])[0]
+            if len(logfiles_in_rec_dir) > 0:
+                original_rec_prefix = os.path.splitext(logfiles_in_rec_dir[0])[0]
 
     # Print summary, verify with user
     print('Name changes to be made:')
@@ -151,8 +150,9 @@ def main():
             print('    Skipping file {}'.format(logfile))
             continue
         print('    Patching logfile: {}'.format(logfile))
-        if original_rec_dir is not None:
+        if original_rec_prefix is not None:
             replace_string_in_file(logfile, original_rec_prefix, new_name + '_rec_')
+        if original_rec_dir is not None:
             replace_string_in_file(logfile, original_rec_dir, new_name + '_rec')
         replace_string_in_file(logfile, original_prefix, new_name + '_')
         replace_string_in_file(logfile, original_dir_name, new_name)
@@ -164,7 +164,10 @@ def main():
                      for filename in os.listdir(os.path.join(input_directory, original_rec_dir))
                      if os.path.isfile(os.path.join(input_directory, original_rec_dir, filename))]
         for filename in filenames:
-            fixed_filename = replace_string_in_filename(filename, original_rec_prefix, new_name + '_rec_')
+            if original_rec_prefix is not None:
+                fixed_filename = replace_string_in_filename(filename, original_rec_prefix, new_name + '_rec_')
+            else:
+                fixed_filename = filename
             replace_string_in_filename(fixed_filename, original_prefix, new_name + '_')
 
     # Rename reconstruction directory
