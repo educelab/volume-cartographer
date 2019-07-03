@@ -141,10 +141,11 @@ def main():
                            for filename in os.listdir(input_directory)
                            if os.path.isfile(os.path.join(input_directory, filename))
                            and os.path.splitext(filename)[1] == '.log']
-    logfiles_full_names += [os.path.join(input_directory, original_rec_dir, filename)
-                            for filename in os.listdir(os.path.join(input_directory, original_rec_dir))
-                            if os.path.isfile(os.path.join(input_directory, original_rec_dir, filename))
-                            and os.path.splitext(filename)[1] == '.log']
+    if original_rec_dir is not None:
+        logfiles_full_names += [os.path.join(input_directory, original_rec_dir, filename)
+                                for filename in os.listdir(os.path.join(input_directory, original_rec_dir))
+                                if os.path.isfile(os.path.join(input_directory, original_rec_dir, filename))
+                                and os.path.splitext(filename)[1] == '.log']
     for logfile in logfiles_full_names:
         try:
             replace_string_in_file(logfile, original_rec_prefix, new_name + '_rec_')
