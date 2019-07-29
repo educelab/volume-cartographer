@@ -8,7 +8,6 @@ set(project_warnings
 # Extra warnings we want to enable
 list(APPEND project_warnings
     -Wattributes
-    -Wbad-function-cast
     -Wc++14-compat
     -Wcast-align
     -Wcast-qual
@@ -18,11 +17,9 @@ list(APPEND project_warnings
     -Wdelete-incomplete
     -Wdelete-non-virtual-dtor
     -Wenum-compare
-    -Wimplicit
     -Wmain
     -Wmissing-field-initializers
     -Wmissing-noreturn
-    -Wmissing-prototypes
     -Wold-style-cast
     -Woverloaded-virtual
     -Wpointer-arith
@@ -41,6 +38,7 @@ list(APPEND project_warnings
     -Wambiguous-ellipsis
     -Warray-bounds-pointer-arithmetic
     -Wassign-enum
+    -Wbad-function-cast
     -Wbind-to-temporary-copy
     -Wbitfield-constant-conversion
     -Wbitwise-op-parentheses
@@ -63,12 +61,14 @@ list(APPEND project_warnings
     -Wheader-guard
     -Wheader-hygiene
     -Widiomatic-parentheses
+    -Wimplicit
     -Wimplicit-fallthrough
     -Winfinite-recursion
     -Wlocal-type-template-args
     -Wloop-analysis
     -Wmethod-signatures
     -Wmismatched-tags
+    -Wmissing-prototypes
     -Wmove
     -Wnew-returns-null
     -Wpessimizing-move
@@ -89,16 +89,23 @@ list(APPEND project_warnings
 )
 endif()
 
-# Disable noisy or unncessary warnings
+# Disable noisy or unnecessary warnings
 list(APPEND project_warnings
     -Wno-narrowing
-    -Wno-c++1z-extensions
-    -Wno-c++98-compat
     -Wno-missing-braces
     -Wno-switch-enum
     -Wno-sign-conversion
-    -Wno-shorten-64-to-32
-    -Wno-unknown-attributes
     -Wno-unused-function
 )
+
+# Clang specific?
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+list(APPEND project_warnings
+    -Wno-c++1z-extensions
+    -Wno-c++98-compat
+    -Wno-unknown-attributes
+    -Wno-shorten-64-to-32
+)
+endif()
+
 add_compile_options(${project_warnings})
