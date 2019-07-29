@@ -62,8 +62,8 @@ def replace_string_in_filename(filename, old_str, new_str):
 def main():
     # Arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input-directory', '-i')
-    parser.add_argument('--new-name', '-n')
+    parser.add_argument('--input-directory', '-i', required=True)
+    parser.add_argument('--new-name', '-n', required=True)
     args = parser.parse_args()
 
     input_directory = args.input_directory
