@@ -30,6 +30,11 @@ list(APPEND project_warnings
     -Wunused
     -Wunused-macros
     -Wvla
+    -Wno-narrowing
+    -Wno-missing-braces
+    -Wno-switch-enum
+    -Wno-sign-conversion
+    -Wno-unused-function
 )
 
 # Clang specific?
@@ -86,21 +91,6 @@ list(APPEND project_warnings
     -Wunreachable-code-return
     -Wused-but-marked-unused
     -Wvexing-parse
-)
-endif()
-
-# Disable noisy or unnecessary warnings
-list(APPEND project_warnings
-    -Wno-narrowing
-    -Wno-missing-braces
-    -Wno-switch-enum
-    -Wno-sign-conversion
-    -Wno-unused-function
-)
-
-# Clang specific?
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
-list(APPEND project_warnings
     -Wno-c++1z-extensions
     -Wno-c++98-compat
     -Wno-unknown-attributes
