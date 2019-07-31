@@ -99,7 +99,7 @@ list(APPEND project_warnings
 )
 
 # Clang specific?
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
 list(APPEND project_warnings
     -Wno-c++1z-extensions
     -Wno-c++98-compat
