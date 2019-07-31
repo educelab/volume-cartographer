@@ -33,7 +33,7 @@ list(APPEND project_warnings
 )
 
 # Clang specific?
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
 list(APPEND project_warnings
     -Wambiguous-ellipsis
     -Warray-bounds-pointer-arithmetic
