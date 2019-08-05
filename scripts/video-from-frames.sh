@@ -11,7 +11,7 @@ Options:
     exit 1
 fi
 
-while getopts "s:" opt; do
+while getopts "sf" opt; do
     case "$opt" in
     s)  start_idx=$OPTARG
         ;;
