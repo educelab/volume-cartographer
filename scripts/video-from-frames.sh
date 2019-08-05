@@ -1,6 +1,7 @@
 #!/bin/sh
 
 start_idx=0
+fps=30
 
 if [ "$#" -lt 2 ]; then
     echo "Usage: video-from-frames [input] [output] [opts]
