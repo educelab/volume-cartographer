@@ -6,7 +6,8 @@ fps=30
 if [ "$#" -lt 2 ]; then
     echo "Usage: video-from-frames [input] [output] [opts]
 Options:
-       -s <start_frame>"
+       -s <start_frame>
+       -f <fps>"
     exit 1
 fi
 
