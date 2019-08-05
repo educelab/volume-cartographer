@@ -15,6 +15,8 @@ while getopts "s:" opt; do
     case "$opt" in
     s)  start_idx=$OPTARG
         ;;
+    f) fps=$OPTARG
+        ;;
     esac
 done
 
