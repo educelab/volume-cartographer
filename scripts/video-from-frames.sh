@@ -22,6 +22,7 @@ done
 
 ffmpeg \
     -start_number ${start_idx} \
+    -r ${fps}
     -i $1 \
     -c:v "libx264" \
     -crf "18" \
