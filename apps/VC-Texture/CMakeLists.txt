@@ -68,28 +68,6 @@ if (VC_INSTALL_APPS)
     )
 endif()
 
-if (APPLE)
-    set(vc_exe "VC-Texture.app")
-elseif (WIN32)
-    set(vc_exe "VC-Texture.exe")
-else ()
-    set(vc_exe "VC-Texture")
-endif()
-set(plugins qcocoa)
-set(extra_libs "")
-set(extra_dirs "${CMAKE_PREFIX_PATH}")
-set(request_qt_conf off)
-set(plugins_dir "")
-set(components Programs)
 if (VC_INSTALL_APPS AND (APPLE OR WIN32))
-    include(DeployQt5)
-    install_qt5_executable(
-        "${vc_exe}"
-        "${plugins}"
-        "${extra_libs}"
-        "${extra_dirs}"
-        "${plugins_dir}"
-        "${request_qt_conf}"
-        "${components}"
-    )
+    qt5_deploy_bundle(${target})
 endif()

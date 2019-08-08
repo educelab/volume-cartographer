@@ -18,6 +18,7 @@ target_include_directories(${target}
 target_link_libraries(${target}
     PUBLIC
         VC::core
+    PRIVATE
         gtest
 )
 target_compile_definitions(${target}
