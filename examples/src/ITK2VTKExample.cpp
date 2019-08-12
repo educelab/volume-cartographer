@@ -8,7 +8,6 @@
  *          include normals when it writes to file
  */
 
-#include <vtkPLYWriter.h>
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/shapes/Arch.hpp"
 #include "vc/core/shapes/Cone.hpp"

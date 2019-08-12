@@ -34,7 +34,7 @@ add_executable(vc_smooth_normals_example src/SmoothNormalsExample.cpp)
 target_link_libraries(vc_smooth_normals_example VC::core VC::meshing)
 
 add_executable(vc_scale_mesh_example src/ScaleMeshExample.cpp)
-target_link_libraries(vc_scale_mesh_example VC::core VC::meshing ITKIOMesh)
+target_link_libraries(vc_scale_mesh_example VC::core VC::meshing)
 
 if(VC_BUILD_TESTS)
 add_executable(vc_bad_clang_tidy src/BadClangTidy.cpp)
@@ -51,7 +51,6 @@ target_link_libraries(vc_itk2vtk_example
     VC::core
     VC::meshing
     VC::testing
-    ITKIOMesh
 )
 
 if (VC_BUILD_EXPERIMENTAL)
