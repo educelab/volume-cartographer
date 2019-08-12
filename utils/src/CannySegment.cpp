@@ -50,6 +50,7 @@ int main(int argc, char* argv[])
         ("threshold-min", po::value<int>()->default_value(100), "Minimum Intensity Gradient")
         ("threshold-max", po::value<int>()->default_value(150), "Maximum Intensity Gradient")
         ("visualize", "Show Canny visualization before segmenting")
+        ("slice", po::value<int>()->default_value(0), "Slice to visualize")
         ("mask", po::value<std::string>(), "Mask the output of Canny using the provided image");
 
     po::options_description all("Usage");
@@ -105,7 +106,7 @@ int main(int argc, char* argv[])
     }
 
     if (parsed.count("visualize") > 0) {
-        ShowCanny(vc::QuantizeImage(volume->getSliceDataCopy(0), CV_8UC1));
+        ShowCanny(vc::QuantizeImage(volume->getSliceDataCopy(parsed["slice"].as<int>()), CV_8UC1));
     }
 
     auto midpoint = parsed.count("calculate-midpoint") > 0;
