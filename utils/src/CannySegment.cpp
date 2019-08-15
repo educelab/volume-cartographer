@@ -115,7 +115,6 @@ int main(int argc, char* argv[])
     std::cout << "Segmenting surface..." << std::endl;
     auto mesh = vc::ITKMesh::New();
     cv::Vec3d first, last, middle;
-    vc::ITKPoint pt;
     for (int z = 0; z < volume->numSlices(); z++) {
         // Get the slice and blur it
         auto slice = vc::QuantizeImage(volume->getSliceDataCopy(z), CV_8UC1);

@@ -7,7 +7,7 @@ stages:
 
 ### Debian ###
 test:debian:static:
-    image: volcart/vcbuilder-debian:9_v7.static
+    image: volcart/vcbuilder-debian:9_v8.static
     stage: test
     script:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
@@ -26,7 +26,7 @@ test:debian:static:
         - docker
 
 test:debian:dynamic:
-    image: volcart/vcbuilder-debian:9_v7.dynamic
+    image: volcart/vcbuilder-debian:9_v8.dynamic
     stage: test
     script:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
@@ -45,7 +45,7 @@ test:debian:dynamic:
         - docker
 
 test:debian:experimental:
-    image: volcart/vcbuilder-debian:9_v7.experimental
+    image: volcart/vcbuilder-debian:9_v8.experimental
     stage: test
     script:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE

@@ -138,6 +138,7 @@ if (VC_BUILD_EXPERIMENTAL)
         VC::meshing
         VC::texturing
         Boost::program_options
+        vtkIOPLY
     )
 endif()
 

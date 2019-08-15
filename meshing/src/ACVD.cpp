@@ -52,7 +52,6 @@ void ACVD(
     auto remesh = vtkIsotropicDiscreteRemeshing::New();
 
     remesh->SetInput(mesh);
-    remesh->SetFileLoadSaveOption(0);
     remesh->SetNumberOfClusters(numberOfSamples);
     remesh->SetConsoleOutput(consoleOutput);
     remesh->SetSubsamplingThreshold(subsamplingThreshold);
@@ -106,10 +105,6 @@ void ACVD(
         }
 
         mesh->GetPoints()->Modified();
-
-        // Disabled because all it does is show info about the remeshing. - SP
-        // std::cout << "After Quadrics Post-processing : " << std::endl;
-        // Remesh->GetOutput()->DisplayMeshProperties();
     }
     ///// End ACVD /////
 

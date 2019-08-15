@@ -47,9 +47,7 @@ target_link_libraries(vc_transform_mesh
     Boost::filesystem
     Boost::program_options
     ITKIOTransformBase
-    ITKIOTransformHDF5
     ITKIOTransformInsightLegacy
-    ITKIOTransformMatlab
 )
 
 # Install targets

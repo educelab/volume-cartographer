@@ -26,7 +26,15 @@ find_package(Boost 1.58 REQUIRED COMPONENTS ${VC_BOOST_COMPONENTS})
 find_package(Qt5 5.7 QUIET REQUIRED COMPONENTS Widgets Gui Core)
 
 ### ITK ###
-find_package(ITK 4.10 QUIET REQUIRED)
+set(VC_ITK_COMPONENTS
+    ITKCommon
+    ITKMesh
+    ITKQuadEdgeMesh
+    ITKTransform
+    ITKIOTransformBase
+    ITKIOTransformInsightLegacy
+)
+find_package(ITK 4.10 COMPONENTS ${VC_ITK_COMPONENTS} QUIET REQUIRED)
 include(${ITK_USE_FILE})
 
 ### VTK ###
