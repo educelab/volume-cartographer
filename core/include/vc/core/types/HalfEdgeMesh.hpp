@@ -96,7 +96,16 @@ public:
         double lambdaLength;
 
         /** @brief Returns true if the vertex is interior to the graph */
-        bool interior() const { return edge->pair != nullptr; }
+        bool interior() const
+        {
+            if (edge) {
+                return edge->pair != nullptr;
+            } else {
+                throw std::runtime_error(
+                    "Unreferenced vertex encountered in mesh. Consider "
+                    "removing unreferenced vertices.");
+            }
+        }
     };
 
     /** @brief %Edge between two vertices */
