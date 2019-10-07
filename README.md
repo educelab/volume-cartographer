@@ -70,6 +70,9 @@ cmake -DVC_PREBUILT_LIBS=ON ..
 make
 ```
 
+##### Qt
+It might be necessary to point CMake to your Qt installation. For example, for Qt5 installed with Homebrew on Mac, `-DQt5_DIR=/usr/local/opt/qt/lib/cmake/Qt5` should be added to the `cmake` command arguments.
+
 ### Installation
 To install the compiled software and libraries to the `CMAKE_INSTALL_PREFIX`, run the `install` target:
 ```shell
