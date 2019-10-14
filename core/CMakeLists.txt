@@ -194,6 +194,8 @@ set(COMMON_TEST_RES
     test/res/vc_core_OBJReader_TexturedWithNormals.mtl
     test/res/vc_core_OBJReader_TexturedWithNormals.obj
     test/res/vc_core_OBJReader_UntexturedWithNormals.obj
+    test/res/vc_core_OBJReader_VariableVertInfo.obj
+    test/res/vc_core_OBJReader_VariableVertInfo.mtl
     test/res/vc_core_OBJReader_PointCloud.obj
 )
 
