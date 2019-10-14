@@ -130,9 +130,9 @@ void OBJReader::parse_face_(const std::vector<std::string>& strs)
     OBJReader::Face f;
     std::vector<std::string> vinfo;
     std::vector<std::string> sub(std::begin(strs) + 1, std::end(strs));
-    auto faceType = classify_vertref_(sub[0]);
 
     for (auto s : sub) {
+        auto faceType = classify_vertref_(s);
         boost::split(vinfo, s, boost::is_any_of("/"));
         switch (faceType) {
             case RefType::Vertex:
@@ -245,7 +245,7 @@ void OBJReader::build_mesh_()
     }
 
     ITKMesh::PointIdentifier pid = 0;
-    for (auto v : vertices_) {
+    for (const auto& v : vertices_) {
         mesh_->SetPoint(pid++, v.val);
     }
 
@@ -253,7 +253,7 @@ void OBJReader::build_mesh_()
     // Note: OBJs index vert info from 1
     ITKCell::CellAutoPointer cell;
     ITKMesh::CellIdentifier cid = 0;
-    for (auto face : faces_) {
+    for (const auto& face : faces_) {
         if (face.size() != VALID_FACE_SIZE) {
             throw IOException("Parsed unsupported, non-triangular face");
         }

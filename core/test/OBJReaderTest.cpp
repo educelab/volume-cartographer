@@ -56,6 +56,20 @@ TEST_F(OBJReader, UntexturedWithNormals)
     EXPECT_TRUE(uv.empty());
 }
 
+TEST_F(OBJReader, VariableVertexInfo)
+{
+    reader.setPath(path + "VariableVertInfo.obj");
+    EXPECT_NO_THROW(reader.read());
+
+    auto mesh = reader.getMesh();
+    auto uv = reader.getUVMap();
+    auto img = reader.getTextureMat();
+    EXPECT_EQ(mesh->GetNumberOfPoints(), 16);
+    EXPECT_EQ(mesh->GetNumberOfCells(), 18);
+    EXPECT_FALSE(uv.empty());
+    EXPECT_FALSE(img.empty());
+}
+
 TEST_F(OBJReader, PointCloud)
 {
     reader.setPath(path + "PointCloud.obj");
