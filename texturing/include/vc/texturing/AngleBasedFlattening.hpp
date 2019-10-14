@@ -22,11 +22,9 @@
 
 #pragma once
 
-#include <exception>
 #include <iostream>
 #include <memory>
 
-#include <itkQuadEdgeMeshBoundaryEdgesMeshFunction.h>
 #include <opencv2/core.hpp>
 
 #include "vc/core/types/HalfEdgeMesh.hpp"
@@ -65,15 +63,21 @@ public:
     /** Default maximum number of ABF iterations */
     static const int DEFAULT_ITERATIONS = 5;
 
+    /** Pointer */
+    using Pointer = std::shared_ptr<AngleBasedFlattening>;
+
     /**@{*/
     /** @brief Default constructor */
     AngleBasedFlattening() = default;
 
+    /** Make a new shared instance */
+    static Pointer New();
+
     /** @brief Construct and set the input mesh */
-    explicit AngleBasedFlattening(const ITKMesh::Pointer& m)
-        : FlatteningAlgorithm(m)
-    {
-    }
+    explicit AngleBasedFlattening(const ITKMesh::Pointer& m);
+
+    /** Make a new shared instance */
+    static Pointer New(const ITKMesh::Pointer& m);
 
     /** Default destructor */
     ~AngleBasedFlattening() override = default;

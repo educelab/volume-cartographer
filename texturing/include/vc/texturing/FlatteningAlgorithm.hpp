@@ -11,6 +11,9 @@ namespace texturing
 class FlatteningAlgorithm
 {
 public:
+    /** Shared pointer type */
+    using Pointer = std::shared_ptr<FlatteningAlgorithm>;
+
     /** Default destructor for virtual base class */
     virtual ~FlatteningAlgorithm() = default;
 

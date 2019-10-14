@@ -22,6 +22,7 @@
 
 #include <array>
 #include <cmath>
+#include <exception>
 #include <sstream>
 
 #include "vc/core/util/Logging.hpp"
@@ -34,6 +35,22 @@ using namespace volcart;
 using namespace volcart::texturing;
 
 using HEM = volcart::HalfEdgeMesh;
+
+AngleBasedFlattening::Pointer AngleBasedFlattening::New()
+{
+    return std::make_shared<AngleBasedFlattening>();
+}
+
+AngleBasedFlattening::AngleBasedFlattening(const ITKMesh::Pointer& m)
+    : FlatteningAlgorithm(m)
+{
+}
+
+AngleBasedFlattening::Pointer AngleBasedFlattening::New(
+    const ITKMesh::Pointer& m)
+{
+    return std::make_shared<AngleBasedFlattening>(m);
+}
 
 ///// Get Output /////
 // Get output as mesh

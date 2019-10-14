@@ -11,6 +11,7 @@ set(srcs
     src/LayerTexture.cpp
     src/FlatteningAlgorithm.cpp
     src/ScaleMarkerGenerator.cpp
+    src/OrthographicProjectionFlattening.cpp
 )
 set(public_deps
     VC::core
@@ -19,6 +20,9 @@ set(private_deps
     opencv_imgproc
     VC::meshing
     VC::external
+    vtkCommonCore
+    vtkCommonDataModel
+    vtkFiltersGeneral
 )
 set(defs "")
 
