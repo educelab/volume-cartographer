@@ -15,6 +15,7 @@
 #include "vc/texturing/CompositeTexture.hpp"
 #include "vc/texturing/IntegralTexture.hpp"
 #include "vc/texturing/IntersectionTexture.hpp"
+#include "vc/texturing/OrthographicProjectionFlattening.hpp"
 #include "vc/texturing/PPMGenerator.hpp"
 #include "vc/texturing/ScaleMarkerGenerator.hpp"
 
@@ -41,14 +42,20 @@ using ScaleGenerator = vct::ScaleMarkerGenerator;
 enum class ScaleColorOpt { White = 0, Black, Red, Green, Cyan };
 vc::Color GetScaleColorOpt();
 
+enum class FlatteningAlgorithm { ABF = 0, LSCM, Orthographic };
+
 po::options_description GetUVOpts()
 {
     // clang-format off
     po::options_description opts("Flattening & UV Options");
     opts.add_options()
+        ("uv-algorithm", po::value<int>()->default_value(0),
+            "Select the flattening algorithm:\n"
+                "  0 = ABF\n"
+                "  1 = LSCM\n"
+                "  2 = Orthographic Projection")
         ("reuse-uv", "If input-mesh is specified, attempt to use its existing "
             "UV map instead of generating a new one.")
-        ("disable-abf", "Disable ABF and use only LSCM")
         ("uv-rotate", po::value<double>(), "Rotate the generated UV map by an "
             "angle in degrees.")
         ("uv-flip", po::value<int>(),
@@ -188,10 +195,24 @@ vc::UVMap FlattenMesh(const vc::ITKMesh::Pointer& mesh, bool resampled)
     // If we don't have a valid UV map yet, make one
     if (uvMap.empty()) {
         std::cout << "Computing parameterization..." << std::endl;
-        vct::AngleBasedFlattening abf(mesh);
-        abf.setUseABF(parsed_.count("disable-abf") == 0);
-        abf.compute();
-        uvMap = abf.getUVMap();
+        auto method =
+            static_cast<FlatteningAlgorithm>(parsed_["uv-algorithm"].as<int>());
+
+        // ABF and LSCM
+        if (method == FlatteningAlgorithm::ABF ||
+            method == FlatteningAlgorithm::LSCM) {
+            vct::AngleBasedFlattening abf(mesh);
+            abf.setUseABF(method == FlatteningAlgorithm::ABF);
+            abf.compute();
+            uvMap = abf.getUVMap();
+        }
+        // Orthographic
+        else if (method == FlatteningAlgorithm::Orthographic) {
+            vct::OrthographicProjectionFlattening ortho;
+            ortho.setMesh(mesh);
+            ortho.compute();
+            uvMap = ortho.getUVMap();
+        }
     }
 
     // Rotate
