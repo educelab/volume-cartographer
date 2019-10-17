@@ -24,11 +24,15 @@ int minVal = 0;
 int maxVal = 255;
 int apertureSlider = 0;
 int aperture = 3;
+int sliceIdx = 0;
+
+vc::Volume::Pointer volume;
 
 // Show Canny opts
-std::string windowName = "Canny Output";
+std::string outputWindowName = "Canny Output";
+std::string settingsWindowName = "Canny Settings";
 cv::Mat src, dst, mask;
-void ShowCanny(const cv::Mat& i);
+void ShowCanny();
 void CannyThreshold(int, void*);
 
 int main(int argc, char* argv[])
@@ -50,8 +54,8 @@ int main(int argc, char* argv[])
         ("threshold-min", po::value<int>()->default_value(100), "Minimum Intensity Gradient")
         ("threshold-max", po::value<int>()->default_value(150), "Maximum Intensity Gradient")
         ("visualize", "Show Canny visualization before segmenting")
-        ("slice", po::value<int>()->default_value(0), "Slice to visualize")
-        ("mask", po::value<std::string>(), "Mask the output of Canny using the provided image");
+        ("mask", po::value<std::string>(), "Mask the output of Canny using the provided image")
+        ("projection-edge,e", po::value<std::string>()->default_value("L"), "Edge to segment from: (L)eft, (R)ight, (T)op, (B)ottom");
 
     po::options_description all("Usage");
     all.add(required).add(segOpts);
@@ -81,11 +85,17 @@ int main(int argc, char* argv[])
     minVal = parsed["threshold-min"].as<int>();
     maxVal = parsed["threshold-max"].as<int>();
 
+    auto edge = parsed["projection-edge"].as<std::string>();
+    if (!(edge == "L" || edge == "R" || edge == "T" || edge == "B")) {
+        std::cerr << "ERROR: "
+                  << "projection-edge must be one of L,R,T,B" << std::endl;
+        return EXIT_FAILURE;
+    }
+
     ///// Load the VolumePkg /////
     auto vpkg = vc::VolumePkg::New(volpkgPath);
 
     ///// Load the Volume /////
-    vc::Volume::Pointer volume;
     try {
         if (parsed.count("volume") != 0) {
             volume = vpkg->volume(parsed["volume"].as<std::string>());
@@ -106,7 +116,7 @@ int main(int argc, char* argv[])
     }
 
     if (parsed.count("visualize") > 0) {
-        ShowCanny(vc::QuantizeImage(volume->getSliceDataCopy(parsed["slice"].as<int>()), CV_8UC1));
+        ShowCanny();
     }
 
     auto midpoint = parsed.count("calculate-midpoint") > 0;
@@ -127,11 +137,43 @@ int main(int argc, char* argv[])
         cv::Mat processed;
         cannySlice.copyTo(processed, mask);
 
-        // Convert first canny edge along y axis to surface point
-        for (int x = 0; x < processed.cols; x++) {
+        // To allow for choosing between left-right and top-down, use
+        // generalized inner and outer indices instead of x and y values.
+        // This simply changes the order in which the points are iterated over.
+        // There is no transformation applied to the image or the resulting
+        // points.
+        int x, y, outerCount, outerIdx, innerCount, innerIdx;
+
+        // If looking for edges left to right, the outer loop iterates over y
+        // values and the inner loop iterates over x values.
+        // If going top to bottom, it is the opposite.
+        if (edge == "T" || edge == "B") {
+            outerCount = processed.cols;
+            innerCount = processed.rows;
+        } else {
+            outerCount = processed.rows;
+            innerCount = processed.cols;
+        }
+
+        for (outerIdx = 0; outerIdx < outerCount; outerIdx++) {
             // Get the first
             auto haveFirst = false;
-            for (int y = 0; y < processed.rows; y++) {
+            for (innerIdx = 0; innerIdx < innerCount; innerIdx++) {
+
+                // Determine actual (x, y) position based on loop positions.
+                // In either case (left-right or top-down), can flip the
+                // direction to become right-left or bottom-up by reversing the
+                // inner loop position.
+                if (edge == "T" || edge == "B") {
+                    x = outerIdx;
+                    y = (edge == "R" || edge == "B") ? innerCount - innerIdx - 1
+                                                     : innerIdx;
+                } else {
+                    x = (edge == "R" || edge == "B") ? innerCount - innerIdx - 1
+                                                     : innerIdx;
+                    y = outerIdx;
+                }
+
                 if (!haveFirst && processed.at<uint8_t>(y, x) != 0) {
                     first = {x, y, z};
                     last = first;
@@ -165,19 +207,21 @@ int main(int argc, char* argv[])
     writer.write();
 }
 
-void ShowCanny(const cv::Mat& i)
+void ShowCanny()
 {
-    src = i;
-    cv::namedWindow(windowName, cv::WINDOW_NORMAL);
+    cv::namedWindow(outputWindowName, cv::WINDOW_NORMAL);
+    cv::namedWindow(settingsWindowName);
     cv::startWindowThread();
     cv::createTrackbar(
-        "Blur Size:", windowName, &blurSlider, 30, CannyThreshold);
+        "Blur Size:", settingsWindowName, &blurSlider, 30, CannyThreshold);
     cv::createTrackbar(
-        "Min Threshold:", windowName, &minVal, 255, CannyThreshold);
+        "Min Threshold:", settingsWindowName, &minVal, 255, CannyThreshold);
     cv::createTrackbar(
-        "Max Threshold:", windowName, &maxVal, 255, CannyThreshold);
+        "Max Threshold:", settingsWindowName, &maxVal, 255, CannyThreshold);
     cv::createTrackbar(
-        "Aperture Size:", windowName, &apertureSlider, 2, CannyThreshold);
+        "Aperture Size:", settingsWindowName, &apertureSlider, 2, CannyThreshold);
+    cv::createTrackbar(
+        "Slice: ", settingsWindowName, &sliceIdx, volume->numSlices() - 1, CannyThreshold);
 
     CannyThreshold(0, nullptr);
     cv::waitKey(0);
@@ -186,6 +230,8 @@ void ShowCanny(const cv::Mat& i)
 
 void CannyThreshold(int, void*)
 {
+    src = vc::QuantizeImage(volume->getSliceDataCopy(sliceIdx), CV_8UC1);
+
     gaussianKernel = 2 * blurSlider + 1;
     aperture = 2 * apertureSlider + 3;
     cv::Mat canny;
@@ -198,6 +244,6 @@ void CannyThreshold(int, void*)
     canny.copyTo(dst, mask);
 
     cv::addWeighted(src, 0.5, dst, 0.5, 0, dst);
-
-    cv::imshow(windowName, dst);
+    
+    cv::imshow(outputWindowName, dst);
 }
