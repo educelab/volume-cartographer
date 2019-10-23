@@ -54,7 +54,10 @@ include_directories(SYSTEM ${VTK_INCLUDE_DIRS})
 find_package(Eigen3 3.2 REQUIRED)
 
 ### OpenCV ###
-find_package(OpenCV 3 REQUIRED)
+find_package(OpenCV 3 QUIET)
+if(NOT OpenCV_FOUND)
+    find_package(OpenCV 4 QUIET REQUIRED)
+endif()
 
 ### libtiff ###
 find_package(TIFF 4.0 REQUIRED)
