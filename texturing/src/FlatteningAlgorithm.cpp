@@ -57,7 +57,7 @@ void FlatteningAlgorithm::orient_uvs_()
 
     // Fit a 3D least-squares line
     cv::Vec6d line;
-    cv::fitLine(pts, line, CV_DIST_L2, 0, 0.01, 0.01);
+    cv::fitLine(pts, line, cv::DIST_L2, 0, 0.01, 0.01);
 
     // Calculate a rotation angle between the fitted line and the y vec
     cv::Point2d center(line[3], line[4]);
