@@ -1,6 +1,6 @@
 #include <stdexcept>
 
-#include "vc/core/util/FloatComparison.hpp"
+#include "vc/core/util/BarycentricCoordinates.hpp"
 #include "vc/meshing/CalculateNormals.hpp"
 #include "vc/meshing/DeepCopy.hpp"
 #include "vc/texturing/PPMGenerator.hpp"
@@ -139,8 +139,8 @@ void PPMGenerator::find_cell_(size_t x, size_t y, size_t& cellHint)
     // Use the last cell as a hint
     info = cellInformation_[cellHint];
     baryCoord =
-        barycentric_coord_(uv, info.pts2D[0], info.pts2D[1], info.pts2D[2]);
-    auto cellFound = barycentric_in_triangle_(baryCoord);
+        CartesianToBarycentric(uv, info.pts2D[0], info.pts2D[1], info.pts2D[2]);
+    auto cellFound = BarycentricPointIsInTriangle(baryCoord);
 
     // If no cell found, use a kd-Tree to find one
     if (!cellFound) {
@@ -157,9 +157,9 @@ void PPMGenerator::find_cell_(size_t x, size_t y, size_t& cellHint)
 
             // Check if this pixel is in this cell
             info = cellInformation_[cell];
-            baryCoord = barycentric_coord_(
+            baryCoord = CartesianToBarycentric(
                 uv, info.pts2D[0], info.pts2D[1], info.pts2D[2]);
-            cellFound = barycentric_in_triangle_(baryCoord);
+            cellFound = BarycentricPointIsInTriangle(baryCoord);
 
             // Break if we found a matching cell
             if (cellFound) {
@@ -175,7 +175,7 @@ void PPMGenerator::find_cell_(size_t x, size_t y, size_t& cellHint)
     }
 
     // Find the xyz coordinate of the original point
-    cv::Vec3d xyz = cartesian_coord_(
+    cv::Vec3d xyz = BarycentricToCartesian(
         baryCoord, info.pts3D[0], info.pts3D[1], info.pts3D[2]);
 
     // Get this pixel's normal
@@ -185,7 +185,7 @@ void PPMGenerator::find_cell_(size_t x, size_t y, size_t& cellHint)
             xyzNorm = info.normals.at(0);
             break;
         case Shading::Smooth:
-            xyzNorm = gouraud_normal_(
+            xyzNorm = GouraudNormal(
                 baryCoord, info.normals.at(0), info.normals.at(1),
                 info.normals.at(2));
             break;
@@ -199,47 +199,8 @@ void PPMGenerator::find_cell_(size_t x, size_t y, size_t& cellHint)
         cv::Vec6d(xyz(0), xyz(1), xyz(2), xyzNorm(0), xyzNorm(1), xyzNorm(2));
 }
 
-// Find barycentric coordinates of point in triangle
-// From Christer Ericson's Real-Time Collision Detection
-// Code from:
-// http://gamedev.stackexchange.com/questions/23743/whats-the-most-efficient-way-to-find-barycentric-coordinates
-cv::Vec3d PPMGenerator::barycentric_coord_(
-    const cv::Vec3d& nXYZ,
-    const cv::Vec3d& nA,
-    const cv::Vec3d& nB,
-    const cv::Vec3d& nC)
-{
-    auto v0 = nB - nA;
-    auto v1 = nC - nA;
-    auto v2 = nXYZ - nA;
-
-    auto dot00 = v0.dot(v0);
-    auto dot01 = v0.dot(v1);
-    auto dot11 = v1.dot(v1);
-    auto dot20 = v2.dot(v0);
-    auto dot21 = v2.dot(v1);
-    auto invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
-
-    cv::Vec3d output;
-    output[1] = (dot11 * dot20 - dot01 * dot21) * invDenom;
-    output[2] = (dot00 * dot21 - dot01 * dot20) * invDenom;
-    output[0] = 1.0 - output[1] - output[2];
-
-    return output;
-}
-
-// Find Cartesian coordinates of point in triangle given barycentric coordinate
-cv::Vec3d PPMGenerator::cartesian_coord_(
-    const cv::Vec3d& nUVW,
-    const cv::Vec3d& nA,
-    const cv::Vec3d& nB,
-    const cv::Vec3d& nC)
-{
-    return nUVW[0] * nA + nUVW[1] * nB + nUVW[2] * nC;
-}
-
 // Convert from Barycentric coordinates to a smoothly interpolated normal
-cv::Vec3d PPMGenerator::gouraud_normal_(
+cv::Vec3d PPMGenerator::GouraudNormal(
     const cv::Vec3d& nUVW,
     const cv::Vec3d& nA,
     const cv::Vec3d& nB,
@@ -247,13 +208,4 @@ cv::Vec3d PPMGenerator::gouraud_normal_(
 {
     return cv::normalize(
         (1 - nUVW[0] - nUVW[1]) * nA + nUVW[1] * nB + nUVW[2] * nC);
-}
-
-bool PPMGenerator::barycentric_in_triangle_(const cv::Vec3d& nUVW)
-{
-    return (
-        (nUVW[0] > 0.0 || AlmostEqual(nUVW[0], 0.0)) &&
-        (nUVW[1] > 0.0 || AlmostEqual(nUVW[1], 0.0)) &&
-        (nUVW[2] > 0.0 || AlmostEqual(nUVW[2], 0.0)) &&
-        (nUVW[0] + nUVW[1] < 1.0 || AlmostEqual(nUVW[0] + nUVW[1], 1.0)));
 }

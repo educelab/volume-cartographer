@@ -7,25 +7,25 @@ namespace volcart
 namespace meshing
 {
 /**
- * @class DeepCopy
- * @author Seth Parker
- * @date 12/21/15
- *
  * @brief Create exact copy of ITKMesh.
  *
- * Copy all vertex and face information from the input mesh into the output
- * mesh. The resulting mesh is a unique (i.e. memory independent) copy of the
+ * Copy vertex and face information from the input mesh into the output mesh.
+ * The resulting mesh is a unique (i.e. memory independent) copy of the
  * original.
  *
  * @warning Output parameter should point to an empty ITKMesh. This function
- * will not initialize a new ITKMesh::Pointer.
+ * does not initialize a new ITKMesh::Pointer.
+ *
+ * @param copyVertices If `true,` copy vertices into the target mesh. Default:
+ * `true`
+ * @param copyFaces If `true,` copy faces into the target mesh. Default: `true`
  *
  * @ingroup Meshing
  */
-class DeepCopy
-{
-public:
-    DeepCopy(ITKMesh::Pointer input, ITKMesh::Pointer output);
-};
-}
-}
+void DeepCopy(
+    const ITKMesh::Pointer& input,
+    const ITKMesh::Pointer& output,
+    bool copyVertices = true,
+    bool copyFaces = true);
+}  // namespace meshing
+}  // namespace volcart

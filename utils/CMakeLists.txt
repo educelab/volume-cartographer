@@ -1,7 +1,7 @@
 # vc_area
 add_executable(vc_area src/SurfArea.cpp)
 target_link_libraries(vc_area VC::core VC::meshing Boost::filesystem vtkFiltersCore)
-set(utils_install_list ${utils_install_list} vc_area)
+list(APPEND utils_install_list vc_area)
 
 # vc_invertcloud
 add_executable(vc_invertcloud src/InvertCloud.cpp)
@@ -18,7 +18,7 @@ target_link_libraries(vc_csv2uv VC::core VC::meshing vtkIOPLY vtkFiltersCore)
 # vc_volpkg_upgrade
 add_executable(vc_volpkg_upgrade src/VolpkgUpgrade.cpp)
 target_link_libraries(vc_volpkg_upgrade VC::core)
-set(utils_install_list ${utils_install_list} vc_volpkg_upgrade)
+list(APPEND utils_install_list vc_volpkg_upgrade)
 
 # vc_flip_mesh
 add_executable(vc_flip_mesh src/FlipMesh.cpp)
@@ -31,6 +31,7 @@ target_link_libraries(vc_flip_uv VC::core Boost::filesystem Boost::program_optio
 # vc_retexture_mesh
 add_executable(vc_retexture_mesh src/RetextureMesh.cpp)
 target_link_libraries(vc_retexture_mesh VC::core Boost::filesystem Boost::program_options)
+list(APPEND utils_install_list vc_retexture_mesh)
 
 # vc_ppm_to_pointset
 add_executable(vc_ppm_to_pointset src/PPMToPointSet.cpp)
@@ -48,6 +49,16 @@ target_link_libraries(vc_transform_mesh
     Boost::program_options
     ITKIOTransformBase
     ITKIOTransformInsightLegacy
+)
+list(APPEND utils_install_list vc_transform_mesh)
+
+# vc_add_alignment_markers
+add_executable(vc_add_alignment_markers src/AlignmentMarkers.cpp)
+target_link_libraries(vc_add_alignment_markers
+    VC::core
+    VC::texturing
+    Boost::filesystem
+    Boost::program_options
 )
 
 # Install targets

@@ -107,6 +107,8 @@ private:
     ITKMesh::Pointer mesh_;
     /** Internal representation of UV Map */
     UVMap uvMap_;
+    /** Internal representation of texture image */
+    cv::Mat textureMat_;
 
     /** List of parsed vertex positions */
     std::vector<cv::Vec3d> vertices_;
@@ -118,5 +120,5 @@ private:
     std::vector<OBJReader::Face> faces_;
 };
 
-}  // io
-}  // volcart
+}  // namespace io
+}  // namespace volcart

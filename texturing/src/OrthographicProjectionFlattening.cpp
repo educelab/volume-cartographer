@@ -33,8 +33,6 @@ ITKMesh::Pointer OrthographicProjectionFlattening::compute()
     auto obbTree = vtkSmartPointer<vtkOBBTree>::New();
     obbTree->ComputeOBB(
         vtkMesh, origin.val, xAxis.val, yAxis.val, zAxis.val, size);
-    obbTree->SetDataSet(vtkMesh);
-    obbTree->BuildLocator();
 
     // Calculate UV positions
     // Largest two BB axes are the projection plane

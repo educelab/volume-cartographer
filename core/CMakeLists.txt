@@ -52,6 +52,8 @@ set(util_srcs
     src/MeshMath.cpp
     src/MemorySizeStringParser.cpp
     src/FormatStrToRegexStr.cpp
+    src/BarycentricCoordinates.cpp
+    src/ImageConversion.cpp
 )
 
 set(logging_srcs

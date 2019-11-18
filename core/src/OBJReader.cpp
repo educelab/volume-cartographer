@@ -27,14 +27,7 @@ ITKMesh::Pointer OBJReader::read()
 }
 
 // Get texture image
-cv::Mat OBJReader::getTextureMat()
-{
-    if (texturePath_.empty() || !fs::exists(texturePath_)) {
-        throw IOException("Invalid or unset texture image path");
-    }
-
-    return cv::imread(texturePath_.string(), -1);
-}
+cv::Mat OBJReader::getTextureMat() { return textureMat_; }
 
 // Prepare all data structures to read a new file
 void OBJReader::reset_()
@@ -44,6 +37,7 @@ void OBJReader::reset_()
     uvs_.clear();
     faces_.clear();
     texturePath_.clear();
+    textureMat_ = cv::Mat();
 }
 
 // Parse the file
@@ -288,4 +282,14 @@ void OBJReader::build_mesh_()
         mesh_->SetCell(cid++, cell);
     }
     uvMap_.setOrigin(UVMap::Origin::TopLeft);
+
+    // Read the image
+    if (!texturePath_.empty() && fs::exists(texturePath_)) {
+        textureMat_ = cv::imread(texturePath_.string(), -1);
+    }
+
+    // If we have a UV map and a texture image, set the dimensions on the UVMap
+    if (!uvMap_.empty() && !textureMat_.empty()) {
+        uvMap_.ratio(textureMat_.cols, textureMat_.rows);
+    }
 }

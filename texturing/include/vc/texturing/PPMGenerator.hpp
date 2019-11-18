@@ -88,26 +88,12 @@ private:
     void generate_ppm_();
     /** Find the cell which belongs to a pixel */
     void find_cell_(size_t x, size_t y, size_t& cellHint);
-    /** Convert from Cartesian coordinates to Barycentric coordinates */
-    cv::Vec3d barycentric_coord_(
-        const cv::Vec3d& nXYZ,
-        const cv::Vec3d& nA,
-        const cv::Vec3d& nB,
-        const cv::Vec3d& nC);
-    /** Convert from Barycentric coordinates to Cartesian coordinates*/
-    cv::Vec3d cartesian_coord_(
-        const cv::Vec3d& nUVW,
-        const cv::Vec3d& nA,
-        const cv::Vec3d& nB,
-        const cv::Vec3d& nC);
     /** Convert from Barycentric coordinates to an interpolated normal */
-    cv::Vec3d gouraud_normal_(
+    static cv::Vec3d GouraudNormal(
         const cv::Vec3d& nUVW,
         const cv::Vec3d& nA,
         const cv::Vec3d& nB,
         const cv::Vec3d& nC);
-    /** Check if a barycentric coordinate is inside its triangle */
-    bool barycentric_in_triangle_(const cv::Vec3d& nUVW);
 
     /** Input mesh */
     ITKMesh::Pointer inputMesh_;
