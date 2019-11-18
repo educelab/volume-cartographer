@@ -11,6 +11,7 @@ set(srcs
     src/SmoothNormals.cpp
     src/OrderedResampling.cpp
     src/OrderedPointSetMesher.cpp
+    src/UVMapToITKMesh.cpp
 )
 set(public_deps "")
 set(private_deps "")

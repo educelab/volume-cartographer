@@ -12,7 +12,7 @@
 #include "vc/core/io/PLYWriter.hpp"
 #include "vc/core/io/TIFFIO.hpp"
 #include "vc/core/types/VolumePkg.hpp"
-#include "vc/core/util/QuantizeImage.hpp"
+#include "vc/core/util/ImageConversion.hpp"
 #include "vc/meshing/OrderedPointSetMesher.hpp"
 
 namespace fs = boost::filesystem;

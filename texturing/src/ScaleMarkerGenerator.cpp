@@ -4,7 +4,7 @@
 
 #include <opencv2/imgproc.hpp>
 
-#include "vc/core/util/QuantizeImage.hpp"
+#include "vc/core/util/ImageConversion.hpp"
 
 namespace vc = volcart;
 namespace vct = volcart::texturing;

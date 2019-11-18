@@ -24,7 +24,7 @@
 namespace volcart
 {
 
-static constexpr double DEFAULT_MAX_DIFFERENCE = 0.0000001;
+static constexpr double DEFAULT_MAX_DIFFERENCE = 1e-7;
 
 /**
  * @brief Compare if two floating-point numbers are "almost equal"
@@ -39,7 +39,7 @@ static constexpr double DEFAULT_MAX_DIFFERENCE = 0.0000001;
  *
  * @param lhs Left operand
  * @param rhs Right operand
- * @param epsMax Maximum absolute difference. Useful when comparing numbers
+ * @param epsAbs Maximum absolute difference. Useful when comparing numbers
  * close to 0.
  * @param epsRel Maximum relative difference.
  */
@@ -50,11 +50,11 @@ template <
 inline bool AlmostEqual(
     const T lhs,
     const T rhs,
-    T epsMax = static_cast<T>(DEFAULT_MAX_DIFFERENCE),
+    T epsAbs = static_cast<T>(DEFAULT_MAX_DIFFERENCE),
     T epsRel = std::numeric_limits<T>::epsilon())
 {
     T d = std::fabs(lhs - rhs);
-    if (d <= epsMax) {
+    if (d <= epsAbs) {
         return true;
     }
     T l = std::fabs(lhs);
@@ -64,4 +64,4 @@ inline bool AlmostEqual(
     return d <= largest * epsRel;
 }
 
-}  // volcart
+}  // namespace volcart

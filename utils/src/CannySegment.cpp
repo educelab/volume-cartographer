@@ -11,7 +11,7 @@
 #include "vc/core/types/ITKMesh.hpp"
 #include "vc/core/types/Volume.hpp"
 #include "vc/core/types/VolumePkg.hpp"
-#include "vc/core/util/QuantizeImage.hpp"
+#include "vc/core/util/ImageConversion.hpp"
 
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;

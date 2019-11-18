@@ -12,6 +12,7 @@ set(srcs
     src/FlatteningAlgorithm.cpp
     src/ScaleMarkerGenerator.cpp
     src/OrthographicProjectionFlattening.cpp
+    src/AlignmentMarkerGenerator.cpp
 )
 set(public_deps
     VC::core
