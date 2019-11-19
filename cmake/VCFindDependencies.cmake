@@ -63,7 +63,7 @@ endif()
 find_package(TIFF 4.0 REQUIRED)
 
 ### spdlog ###
-find_package(spdlog CONFIG REQUIRED)
+find_package(spdlog 1.4.2 CONFIG REQUIRED)
 
 ############
 # Optional #

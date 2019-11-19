@@ -4,11 +4,8 @@
 #include <memory>
 #include <mutex>
 
-#include <spdlog/details/null_mutex.h>
 #include <spdlog/sinks/base_sink.h>
 #include <spdlog/sinks/basic_file_sink.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
-#include <spdlog/sinks/syslog_sink.h>
 
 namespace fs = boost::filesystem;
 namespace vcl = volcart::logging;
@@ -21,8 +18,8 @@ class SplitSink : public spdlog::sinks::base_sink<Mutex>
 protected:
     void sink_it_(const spdlog::details::log_msg& msg) override
     {
-        fmt::memory_buffer formatted;
-        spdlog::sinks::sink::formatter_->format(msg, formatted);
+        spdlog::memory_buf_t formatted;
+        spdlog::sinks::base_sink<Mutex>::formatter_->format(msg, formatted);
 
         // Everything below error is printed to std::cout
         if (msg.level <= spdlog::level::warn) {
