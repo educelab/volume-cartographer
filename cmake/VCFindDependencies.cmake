@@ -110,7 +110,7 @@ endif()
 # Currently required since VC-Texture needs it - SP
 option(VC_USE_ACVD "Use ACVD library" on)
 if (VC_USE_ACVD OR VC_USE_OPTIONAL)
-    find_package(ACVD 1.0.1 REQUIRED)
+    find_package(ACVD 1.1.1 REQUIRED)
 endif()
 
 ### VCG ###
