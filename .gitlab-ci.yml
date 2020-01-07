@@ -7,7 +7,7 @@ stages:
 
 ### Debian ###
 test:debian:static:
-    image: volcart/vcbuilder-debian:9_v8.static
+    image: volcart/vcbuilder-debian:9_v9.static
     stage: test
     script:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
@@ -26,7 +26,7 @@ test:debian:static:
         - docker
 
 test:debian:dynamic:
-    image: volcart/vcbuilder-debian:9_v8.dynamic
+    image: volcart/vcbuilder-debian:9_v9.dynamic
     stage: test
     script:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
@@ -45,7 +45,7 @@ test:debian:dynamic:
         - docker
 
 test:debian:experimental:
-    image: volcart/vcbuilder-debian:9_v8.experimental
+    image: volcart/vcbuilder-debian:9_v9.experimental
     stage: test
     script:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
@@ -181,8 +181,8 @@ collect:release:macos:
         - master
     stage: collect
     variables:
-        OSX_SDK_VERSION: "10.9"
-        OSX_SDK_PATH: "../vc-deps/build/osx-sdk-prefix/src/osx-sdk/SDKs/MacOSX10.9.sdk/"
+        OSX_SDK_VERSION: "10.13"
+        OSX_SDK_PATH: "../vc-deps/build/osx-sdk-prefix/src/osx-sdk/SDKs/MacOSX10.13.sdk/"
     script:
         - git submodule update --init
         - cd vc-deps/
@@ -233,10 +233,10 @@ collect:nightly:macos:
         - schedules
     except:
         - ${CI_COMMIT_REF_NAME} != "develop"
-    stage: collect
+    stage: test
     variables:
-        OSX_SDK_VERSION: "10.9"
-        OSX_SDK_PATH: "../vc-deps/build/osx-sdk-prefix/src/osx-sdk/SDKs/MacOSX10.9.sdk/"
+        OSX_SDK_VERSION: "10.13"
+        OSX_SDK_PATH: "../vc-deps/build/osx-sdk-prefix/src/osx-sdk/SDKs/MacOSX10.13.sdk/"
     script:
         - git submodule update --init
         - cd vc-deps/
