@@ -5,6 +5,8 @@ from PIL import Image
 import scipy.ndimage.filters as filter
 import numpy as np
 import timeit
+import argparse
+from tqdm import tqdm
 
 """
 This script converts a 3D dataset (nxs or hdf) to a series of tiff images.
@@ -13,28 +15,31 @@ Users can select the slice direction.
 Please use Unix convention for path  (/ instead of \ on window)
 """
 
-input_hdf = "I:/down_sample_5_5_5.hdf"
-output_dir = "I:/tif_8bit/"
+AXIS_OPTS= { 'X' : 0, 'Y': 1, 'Z': 2 }
+
+parser = argparse.ArgumentParser(description='Extract TIFF from NXS/HDF')
+parser.add_argument('--input-file', '-i', required=True, help='Input NXS/HDF file')
+parser.add_argument('--output-dir', '-o', required=True, help='Output directory')
+parser.add_argument('--depth', '-d', type=int, choices=[8,16,32], default=16, help='Pixel bit depth')
+parser.add_argument('--axis', '-a', choices=AXIS_OPTS.keys(), default='X', help='Slice axis')
+parser.add_argument('--start', type=int, default=0, help='Starting position')
+parser.add_argument('--end', type=int, default=-1, help='End position. Use -1 for all slices following start')
+parser.add_argument('--step', type=int, default=1, help='Step distance between extracted slices')
+parser.add_argument('--dataset', default='entry/data', help='HDF dataset path')
+args = parser.parse_args()
+
+input_hdf = args.input_file
+output_dir = args.output_dir
 
 # Select the output-bit of the tiff image
-convert_bit = 16  # Select 8, 16 or 32
+convert_bit = args.depth
 # Select the slice direction
-
 # Select 0,1,or 2. Note that slice through axis = 2 is extremely slow
-slice_axis = 0
+slice_axis = AXIS_OPTS[args.axis]
 # Select range of extracting slice
-start = 0
-stop = -1   # Use -1 for extracting all slices
-step = 1
-
-# Check the input parameters
-if not((convert_bit == 16) or (convert_bit == 8) or (convert_bit == 32)):
-    print("Please use one of 3 options: 8, 16, 32")
-    sys.exit(0)
-
-if not((slice_axis == 0) or (slice_axis == 1) or (slice_axis == 2)):
-    print("Please use one of 3 options: 0, 1, 2")
-    sys.exit(0)
+start = args.start
+stop = args.end # Use -1 for extracting all slices
+step = args.step
 
 # Create output directory
 try:
@@ -49,8 +54,11 @@ try:
     ifile = h5py.File(input_hdf, 'r')
 except:
     print("Cannot open hdf file {} !!!").format(input_hdf)
-    sys.exit(0)
-data3D = ifile['entry/data']
+    sys.exit(-1)
+data3D = ifile[args.dataset]
+if not isinstance(data3D, h5py.Dataset):
+    print(f'Error: Path object \'{data3D.__class__.__name__}\' is not of type \'Dataset\'')
+    sys.exit(-1)
 (depth, height, width) = data3D.shape
 
 time_start = timeit.default_timer()
@@ -61,7 +69,7 @@ if (convert_bit != 32):
     numsuse = len(listuse)
     listmin = np.zeros(numsuse, dtype=np.float32)
     listmax = np.zeros(numsuse, dtype=np.float32)
-    for i, j in enumerate(listuse):
+    for i, j in enumerate(tqdm(listuse, desc='Global min/max')):
         mat1 = data3D[j, :, :]
         mat1 = filter.gaussian_filter(mat1, (3, 3))
         listmin[i] = np.amin(mat1)
@@ -78,7 +86,7 @@ if (convert_bit != 32):
         else:
             stop = np.clip(stop, 0, depth - 1)
         # Extract to tif
-        for i in range(start, stop + 1, step):
+        for i in tqdm(range(start, stop + 1, step), desc='Extract TIFFs'):
             mat1 = data3D[i, :, :]
             mat1 = np.clip(mat1, globalmin, globalmax)
             mat1 = (mat1 - globalmin) / (globalmax - globalmin)
@@ -96,7 +104,7 @@ if (convert_bit != 32):
         else:
             stop = np.clip(stop, 0, height - 1)
         # Extract to tif
-        for i in range(start, stop + 1, step):
+        for i in tqdm(range(start, stop + 1, step), desc='Extract TIFFs'):
             mat1 = data3D[:, i, :]
             mat1 = np.clip(mat1, globalmin, globalmax)
             mat1 = (mat1 - globalmin) / (globalmax - globalmin)
@@ -114,7 +122,7 @@ if (convert_bit != 32):
         else:
             stop = np.clip(stop, 0, width - 1)
         # Extract to tif
-        for i in range(start, stop + 1, step):
+        for i in tqdm(range(start, stop + 1, step), desc='Extract TIFFs'):
             mat1 = data3D[:, :, i]
             mat1 = np.clip(mat1, globalmin, globalmax)
             mat1 = (mat1 - globalmin) / (globalmax - globalmin)
@@ -133,7 +141,7 @@ else:
         else:
             stop = np.clip(stop, 0, depth - 1)
         # Extract to tif
-        for i in range(start, stop + 1, step):
+        for i in tqdm(range(start, stop + 1, step), desc='Extract TIFFs'):
             mat1 = data3D[i, :, :]
             im = Image.fromarray(mat1)
             fileorder = "00000" + str(i)
@@ -145,7 +153,7 @@ else:
         else:
             stop = np.clip(stop, 0, height - 1)
         # Extract to tif
-        for i in range(start, stop + 1, step):
+        for i in tqdm(range(start, stop + 1, step), desc='Extract TIFFs'):
             mat1 = data3D[:, i, :]
             im = Image.fromarray(mat1)
             fileorder = "00000" + str(i)
@@ -157,11 +165,11 @@ else:
         else:
             stop = np.clip(stop, 0, width - 1)
         # Extract to tif
-        for i in range(start, stop + 1, step):
+        for i in tqdm(range(start, stop + 1, step), desc='Extract TIFFs'):
             mat1 = data3D[:, :, i]
             im = Image.fromarray(mat1)
             fileorder = "00000" + str(i)
             filename = output_dir + "/slice_" + fileorder[-5:] + ".tif"
             im.save(filename)
 time_stop = timeit.default_timer()
-print("Time cost {}").format(time_stop - time_start)
+print(f'Time cost {time_stop - time_start}')
