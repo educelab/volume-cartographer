@@ -26,7 +26,7 @@ parser.add_argument('--axis', '-a', choices=AXIS_OPTS.keys(), default='X', help=
 parser.add_argument('--start', type=int, default=0, help='Starting position')
 parser.add_argument('--end', type=int, default=-1, help='End position. Use -1 for all slices following start')
 parser.add_argument('--step', type=int, default=1, help='Step distance between extracted slices')
-parser.add_argument('--dataset', default='entry/data', help='HDF dataset path')
+parser.add_argument('--dataset', default='entry/data/data', help='HDF dataset path')
 parser.add_argument('--min-x', type=int, default=None, help='Crop the resulting slice images to have a minimum x value. Only used if slice axis is X.')
 parser.add_argument('--max-x', type=int, default=None, help='Crop the resulting slice images to have a maximum x value. Only used if slice axis is X.')
 parser.add_argument('--min-y', type=int, default=None, help='Crop the resulting slice images to have a minimum y value. Only used if slice axis is X.')
