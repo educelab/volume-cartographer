@@ -1,11 +1,12 @@
+import argparse
 import os
 import sys
+import timeit
+
 import h5py
+import numpy as np
 from PIL import Image
 import scipy.ndimage.filters as filter
-import numpy as np
-import timeit
-import argparse
 from tqdm import tqdm
 
 """
@@ -26,6 +27,10 @@ parser.add_argument('--start', type=int, default=0, help='Starting position')
 parser.add_argument('--end', type=int, default=-1, help='End position. Use -1 for all slices following start')
 parser.add_argument('--step', type=int, default=1, help='Step distance between extracted slices')
 parser.add_argument('--dataset', default='entry/data', help='HDF dataset path')
+parser.add_argument('--min-x', type=int, default=None, help='Crop the resulting slice images to have a minimum x value. Only used if slice axis is X.')
+parser.add_argument('--max-x', type=int, default=None, help='Crop the resulting slice images to have a maximum x value. Only used if slice axis is X.')
+parser.add_argument('--min-y', type=int, default=None, help='Crop the resulting slice images to have a minimum y value. Only used if slice axis is X.')
+parser.add_argument('--max-y', type=int, default=None, help='Crop the resulting slice images to have a maximum y value. Only used if slice axis is X.')
 args = parser.parse_args()
 
 input_hdf = args.input_file
@@ -40,6 +45,9 @@ slice_axis = AXIS_OPTS[args.axis]
 start = args.start
 stop = args.end # Use -1 for extracting all slices
 step = args.step
+
+min_x, max_x = args.min_x, args.max_x
+min_y, max_y = args.min_y, args.max_y
 
 # Create output directory
 try:
@@ -87,7 +95,7 @@ if (convert_bit != 32):
             stop = np.clip(stop, 0, depth - 1)
         # Extract to tif
         for i in tqdm(range(start, stop + 1, step), desc='Extract TIFFs'):
-            mat1 = data3D[i, :, :]
+            mat1 = data3D[i, min_y:max_y, min_x:max_x]
             mat1 = np.clip(mat1, globalmin, globalmax)
             mat1 = (mat1 - globalmin) / (globalmax - globalmin)
             if convert_bit == 16:
