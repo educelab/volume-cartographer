@@ -87,7 +87,7 @@ if (convert_bit != 32):
     # to be consistent between dataset
     globalmax = np.max(listmax)  # You may want to change this number manually
     # to be consistent between dataset
-    print("Global min {0} ; Global max {1}").format(globalmin, globalmax)
+    print("Global min {0} ; Global max {1}".format(globalmin, globalmax))
     if slice_axis == 0:
         if stop == -1:
             stop = depth - 1
