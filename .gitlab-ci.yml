@@ -114,7 +114,7 @@ lint:clang-format:
       - git fetch --all
     stage: lint
     script:
-        - scripts/clang-format.py --print-output
+        - utils/scripts/clang-format.py --print-output
     allow_failure: true
     tags:
         - clang-format
@@ -130,7 +130,7 @@ lint:clang-tidy:
     stage: lint
     script:
         - echo $CI_BUILD_REF_NAME $CI_BUILD_STAGE
-        - scripts/clang-tidy.py --print-output
+        - utils/scripts/clang-tidy.py --print-output
     allow_failure: true
     tags:
         - clang-tidy
