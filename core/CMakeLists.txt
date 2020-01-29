@@ -54,6 +54,7 @@ set(util_srcs
     src/FormatStrToRegexStr.cpp
     src/BarycentricCoordinates.cpp
     src/ImageConversion.cpp
+    src/ProgressIndicator.cpp
 )
 
 set(logging_srcs
