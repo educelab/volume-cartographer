@@ -12,6 +12,7 @@
 #include "vc/core/types/Volume.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/ImageConversion.hpp"
+#include "vc/core/util/ProgressIndicator.hpp"
 
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;
@@ -125,7 +126,9 @@ int main(int argc, char* argv[])
     std::cout << "Segmenting surface..." << std::endl;
     auto mesh = vc::ITKMesh::New();
     cv::Vec3d first, last, middle;
+    vc::ConsoleProgressIndicator progress(volume->numSlices(), "Slice");
     for (int z = 0; z < volume->numSlices(); z++) {
+        progress.update(z);
         // Get the slice and blur it
         auto slice = vc::QuantizeImage(volume->getSliceDataCopy(z), CV_8UC1);
         cv::GaussianBlur(slice, slice, {gaussianKernel, gaussianKernel}, 0);
@@ -198,6 +201,7 @@ int main(int argc, char* argv[])
             mesh->SetPoint(mesh->GetNumberOfPoints(), middle.val);
         }
     }
+    progress.complete();
 
     // Write mesh
     std::cout << "Writing mesh..." << std::endl;
@@ -219,9 +223,11 @@ void ShowCanny()
     cv::createTrackbar(
         "Max Threshold:", settingsWindowName, &maxVal, 255, CannyThreshold);
     cv::createTrackbar(
-        "Aperture Size:", settingsWindowName, &apertureSlider, 2, CannyThreshold);
+        "Aperture Size:", settingsWindowName, &apertureSlider, 2,
+        CannyThreshold);
     cv::createTrackbar(
-        "Slice: ", settingsWindowName, &sliceIdx, volume->numSlices() - 1, CannyThreshold);
+        "Slice: ", settingsWindowName, &sliceIdx, volume->numSlices() - 1,
+        CannyThreshold);
 
     CannyThreshold(0, nullptr);
     cv::waitKey(0);
@@ -244,6 +250,6 @@ void CannyThreshold(int, void*)
     canny.copyTo(dst, mask);
 
     cv::addWeighted(src, 0.5, dst, 0.5, 0, dst);
-    
+
     cv::imshow(outputWindowName, dst);
 }
