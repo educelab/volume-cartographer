@@ -31,8 +31,8 @@ ITKMesh::Pointer UVMapToITKMesh::compute()
 
         // If enabled, do position scaling
         if (scaleMesh_) {
-            uv[0] *= inputUVMap_.ratio().width - 1;
-            uv[1] *= inputUVMap_.ratio().height - 1;
+            uv[0] *= inputUVMap_.ratio().width;
+            uv[1] *= inputUVMap_.ratio().height;
         }
 
         // Assign to the point
