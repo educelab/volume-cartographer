@@ -7,6 +7,7 @@
 #include <opencv2/imgcodecs.hpp>
 
 #include "vc/core/types/Exceptions.hpp"
+#include "vc/core/util/Logging.hpp"
 
 using namespace volcart;
 using namespace volcart::io;
@@ -181,8 +182,7 @@ void OBJReader::parse_mtllib_(const std::vector<std::string>& strs)
 
         // Handle map_Kd
         if (std::regex_match(mtlstrs[0], mapKd)) {
-            texturePath_ =
-                fs::canonical(fs::canonical(path_.parent_path()) / mtlstrs[1]);
+            texturePath_ = path_.parent_path() / mtlstrs[1];
         }
         mtlstrs.clear();
     }
@@ -284,8 +284,14 @@ void OBJReader::build_mesh_()
     uvMap_.setOrigin(UVMap::Origin::TopLeft);
 
     // Read the image
-    if (!texturePath_.empty() && fs::exists(texturePath_)) {
-        textureMat_ = cv::imread(texturePath_.string(), -1);
+    if (!texturePath_.empty()) {
+        if (fs::exists(texturePath_)) {
+            textureMat_ =
+                cv::imread(texturePath_.string(), cv::IMREAD_UNCHANGED);
+        } else {
+            logger->warn(
+                "Texture image file not found: {}", texturePath_.string());
+        }
     }
 
     // If we have a UV map and a texture image, set the dimensions on the UVMap
