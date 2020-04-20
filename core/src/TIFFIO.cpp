@@ -55,6 +55,10 @@ void tio::WriteTIFF(const fs::path& path, const cv::Mat& img)
             sampleFormat = SAMPLEFORMAT_INT;
             bitsPerSample = 16;
             break;
+        case CV_32S:
+            sampleFormat = SAMPLEFORMAT_INT;
+            bitsPerSample = 32;
+            break;
         case CV_32F:
             sampleFormat = SAMPLEFORMAT_IEEEFP;
             bitsPerSample = 32;
