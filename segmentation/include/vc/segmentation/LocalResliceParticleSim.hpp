@@ -99,6 +99,9 @@ public:
     /**@{*/
     /** @brief Compute the segmentation */
     PointSet compute() override;
+
+    /** @brief Get progress as percent of total */
+    float getProgress() const override;
     /**@}*/
 
     /**@{*/

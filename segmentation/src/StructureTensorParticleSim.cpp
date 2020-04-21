@@ -1,11 +1,15 @@
 #include "vc/segmentation/StructureTensorParticleSim.hpp"
 
+#include <mutex>
+
 #include "vc/core/math/StructureTensor.hpp"
 
 namespace vc = volcart;
 using namespace vc::segmentation;
 
 static constexpr double RK_STEP_SCALE = 1.0 / 6.0;
+
+static std::mutex PROGRESS_LOCK;
 
 StructureTensorParticleSim::PointSet StructureTensorParticleSim::compute()
 {
@@ -43,6 +47,11 @@ StructureTensorParticleSim::PointSet StructureTensorParticleSim::compute()
 
     // Sampled output iterations
     for (size_t it = 0; it < outIters; it++) {
+        // Update progress
+        PROGRESS_LOCK.lock();
+        progress_ = it / float(outIters);
+        PROGRESS_LOCK.unlock();
+
         // Run Runge-Kutta multiple times to accumulate one full output step
         for (size_t rkIt = 0; rkIt < rkIters; rkIt++) {
             // K1
@@ -73,6 +82,10 @@ StructureTensorParticleSim::PointSet StructureTensorParticleSim::compute()
 
         add_chain_to_result_();
     }
+    // Update progress
+    PROGRESS_LOCK.lock();
+    progress_ = 1.0;
+    PROGRESS_LOCK.unlock();
 
     return result_;
 }
@@ -138,4 +151,10 @@ ForceChain StructureTensorParticleSim::calc_spring_forces_(ParticleChain c)
     }
 
     return res;
+}
+
+float StructureTensorParticleSim::getProgress() const
+{
+    std::lock_guard<std::mutex> guard(PROGRESS_LOCK);
+    return progress_;
 }

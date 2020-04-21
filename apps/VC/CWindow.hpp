@@ -1,13 +1,15 @@
-// CWindow.h
-// Chao Du 2014 Dec
 #pragma once
 
 #include <QCloseEvent>
 #include <QComboBox>
 #include <QMessageBox>
+#include <QObject>
 #include <QRect>
+#include <QThread>
+#include <QTimer>
 #include <QtWidgets>
 
+#include "BlockingDialog.hpp"
 #include "CBSpline.hpp"
 #include "CXCurve.hpp"
 #include "MathUtils.hpp"
@@ -53,6 +55,14 @@ public:
         int targetIndex;
     } SSegParams;
 
+    using Segmenter = volcart::segmentation::LocalResliceSegmentation;
+
+signals:
+    void submitSegmentation(Segmenter s);
+
+public slots:
+    void onSegmentationFinished(Segmenter::PointSet ps);
+
 public:
     CWindow(void);
     CWindow(QRect windowSize);
@@ -66,6 +76,7 @@ private:
     void CreateWidgets(void);
     void CreateMenus(void);
     void CreateActions(void);
+    void CreateBackend();
 
     void closeEvent(QCloseEvent* closing);
 
@@ -202,6 +213,32 @@ private:
 
     bool can_change_volume_();
 
+    QThread worker_thread_;
+    BlockingDialog worker_progress_;
+    QTimer worker_progress_updater_;
 };  // class CWindow
+
+class VolPkgBackend : public QObject
+{
+    Q_OBJECT
+public:
+    explicit VolPkgBackend(QObject* parent = nullptr) : QObject(parent) {}
+
+signals:
+    void segmentationStarted();
+    void segmentationFinished(CWindow::Segmenter::PointSet ps);
+
+public slots:
+    void startSegmentation(CWindow::Segmenter s)
+    {
+        segmenter = s;
+        emit segmentationStarted();
+        auto result = segmenter.compute();
+        emit segmentationFinished(result);
+    }
+
+public:
+    CWindow::Segmenter segmenter;
+};
 
 }  // namespace ChaoVis

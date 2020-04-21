@@ -2,6 +2,7 @@
 // Chao Du 2014 Dec
 #include "CWindow.hpp"
 
+#include <QProgressBar>
 #include <opencv2/imgproc.hpp>
 
 #include "CVolumeViewerWithCurve.hpp"
@@ -10,6 +11,7 @@
 #include "vc/core/types/Exceptions.hpp"
 #include "vc/meshing/OrderedPointSetMesher.hpp"
 
+namespace vc = volcart;
 using namespace ChaoVis;
 using qga = QGuiApplication;
 
@@ -49,6 +51,7 @@ CWindow::CWindow(void)
     // create menu
     CreateActions();
     CreateMenus();
+    CreateBackend();
 
     OpenSlice();
     UpdateView();
@@ -102,6 +105,7 @@ CWindow::CWindow(QRect windowSize)
     // create menu
     CreateActions();
     CreateMenus();
+    CreateBackend();
 
     OpenSlice();
     UpdateView();
@@ -110,7 +114,12 @@ CWindow::CWindow(QRect windowSize)
 }
 
 // Destructor
-CWindow::~CWindow(void) { deleteNULL(fVpkg); }
+CWindow::~CWindow(void)
+{
+    worker_thread_.quit();
+    worker_thread_.wait();
+    deleteNULL(fVpkg);
+}
 
 // Handle mouse press event
 void CWindow::mousePressEvent(QMouseEvent* /*nEvent*/) {}
@@ -283,6 +292,46 @@ void CWindow::CreateActions(void)
     fSavePointCloudAct = new QAction(tr("&Save volume..."), this);
     connect(
         fSavePointCloudAct, SIGNAL(triggered()), this, SLOT(SavePointCloud()));
+}
+
+void CWindow::CreateBackend()
+{
+    // Setup backend runner
+    auto worker = new VolPkgBackend();
+    worker->moveToThread(&worker_thread_);
+    connect(&worker_thread_, &QThread::finished, worker, &QObject::deleteLater);
+    connect(
+        this, &CWindow::submitSegmentation, worker,
+        &VolPkgBackend::startSegmentation);
+    connect(
+        worker, &VolPkgBackend::segmentationFinished, this,
+        &CWindow::onSegmentationFinished);
+    worker_thread_.start();
+
+    // Setup progress dialog
+    auto layout = new QVBoxLayout();
+    worker_progress_.setLayout(layout);
+    auto progressLabel = new QLabel("Segmentation in progress. Please wait...");
+    layout->addWidget(progressLabel);
+    auto progressBar = new QProgressBar();
+    layout->addWidget(progressBar);
+    progressBar->setMinimum(0);
+    progressBar->setMaximum(100);
+
+    // A dumb hack to ensure the user knows the program isn't frozen
+    worker_progress_updater_.setInterval(1000);
+    connect(
+        &worker_progress_updater_, &QTimer::timeout,
+        [progressLabel, progressBar, worker]() {
+            if (progressLabel->text() ==
+                "Segmentation in progress. Please wait...") {
+                progressLabel->setText("Segmentation in progress. Please wait");
+            } else {
+                progressLabel->setText(progressLabel->text().append('.'));
+            }
+            auto p = worker->segmenter.getProgress();
+            progressBar->setValue(static_cast<int>(p * 100));
+        });
 }
 
 // Asks User to Save Data Prior to VC.app Exit
@@ -521,14 +570,26 @@ void CWindow::DoSegmentation(void)
     segmenter.setDelta(fSegParams.fDelta);
     segmenter.setDistanceWeightFactor(fSegParams.fPeakDistanceWeight);
     segmenter.setConsiderPrevious(fSegParams.fIncludeMiddle);
-    auto result = segmenter.compute();
+    emit submitSegmentation(segmenter);
+    setWidgetsEnabled(false);
+    worker_progress_.show();
+    worker_progress_updater_.start();
+}
 
+void CWindow::onSegmentationFinished(Segmenter::PointSet ps)
+{
+    setWidgetsEnabled(true);
+    worker_progress_updater_.stop();
+    worker_progress_.close();
     // 3) concatenate the two parts to form the complete point cloud
-    fUpperPart.append(result);
+    fUpperPart.append(ps);
     fMasterCloud = fUpperPart;
 
     statusBar->showMessage(tr("Segmentation complete"));
     fVpkgChanged = true;
+
+    CleanupSegmentation();
+    UpdateView();
 }
 
 void CWindow::CleanupSegmentation(void)
@@ -1074,8 +1135,6 @@ void CWindow::OnEdtEndingSliceValChange()
 void CWindow::OnBtnStartSegClicked(void)
 {
     DoSegmentation();
-    CleanupSegmentation();
-    UpdateView();
 }
 
 // Handle start segmentation
