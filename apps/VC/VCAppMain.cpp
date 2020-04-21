@@ -10,11 +10,11 @@ using namespace ChaoVis;
 int main(int argc, char* argv[])
 {
     QApplication app(argc, argv);
-    QRect rec =
-        QApplication::desktop()->screenGeometry();  // Instantiates a QRec
-                                                    // "Rectangle" Object and
-                                                    // gives it the dimensions
-                                                    // of the screen display
+    qRegisterMetaType<CWindow::Segmenter>("Segmenter");
+    qRegisterMetaType<CWindow::Segmenter::PointSet>(
+        "CWindow::Segmenter::PointSet");
+
+    QRect rec = QApplication::desktop()->screenGeometry();
     CWindow aWin(rec);
     aWin.show();
     return app.exec();

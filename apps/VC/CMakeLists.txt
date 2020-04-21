@@ -12,6 +12,7 @@ set(srcs
     CVolumeViewerWithCurve.cpp
     CBSpline.cpp
     CBezierCurve.cpp
+    BlockingDialog.hpp
 )
 
 # Set up .app bundle stuff

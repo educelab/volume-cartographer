@@ -71,6 +71,9 @@ public:
 
     /** @brief Get the status of the previous computation */
     Status getStatus() const { return status_; }
+
+    /** @brief Get progress as percent of total */
+    virtual float getProgress() const = 0;
     /**@}*/
 
     /**@{*/
@@ -98,6 +101,8 @@ protected:
     PointSet result_;
     /** Computation status */
     Status status_{Status::Success};
+    /** progress */
+    float progress_{0.0};
 };
 }
 }

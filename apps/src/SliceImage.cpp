@@ -60,7 +60,7 @@ bool SliceImage::analyze()
     cv::minMaxLoc(image, &min_, &max_);
 
     return true;
-};
+}
 
 cv::Mat SliceImage::conformedImage()
 {
@@ -81,6 +81,6 @@ cv::Mat SliceImage::conformedImage()
     }
 
     return image;
-};
+}
 
 }  // namespace volcart
