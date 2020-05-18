@@ -79,7 +79,6 @@ target_link_libraries(vc_layers
     VC::meshing
     Boost::filesystem
     Boost::program_options
-    vtkFiltersCore
 )
 
 ## PPM Generator

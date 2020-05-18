@@ -28,6 +28,8 @@
 namespace vc = volcart;
 namespace vct = volcart::texturing;
 
+static const size_t CLEANER_MIN_REQ_POINTS = 100;
+
 MyThread::MyThread(GlobalValues* globals)
 {
     _globals = globals;
@@ -68,7 +70,7 @@ void MyThread::run()
         auto sa = vc::meshmath::SurfaceArea(mesh) * std::pow(voxelsize, 2) *
                   (0.001 * 0.001);
         double densityFactor = 50;
-        auto numVerts = static_cast<uint16_t>(std::round(densityFactor * sa));
+        auto numVerts = static_cast<size_t>(std::round(densityFactor * sa));
         numVerts = (numVerts < CLEANER_MIN_REQ_POINTS) ? CLEANER_MIN_REQ_POINTS
                                                        : numVerts;
 
@@ -79,17 +81,10 @@ void MyThread::run()
         // Decimate using ACVD
         std::cout << "Resampling mesh..." << std::endl;
         auto acvdMesh = vtkSmartPointer<vtkPolyData>::New();
-        volcart::meshing::ACVD(vtkMesh, acvdMesh, numVerts);
-
-        // Merge Duplicates
-        // Note: This merging has to be the last in the process chain for some
-        // really weird reason. - SP
-        auto Cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
-        Cleaner->SetInputData(acvdMesh);
-        Cleaner->Update();
-
-        auto itkACVD = volcart::ITKMesh::New();
-        volcart::meshing::VTK2ITK(Cleaner->GetOutput(), itkACVD);
+        volcart::meshing::ACVD remesh;
+        remesh.setInputMesh(mesh);
+        remesh.setNumberOfClusters(numVerts);
+        auto itkACVD = remesh.compute();
 
         // ABF flattening
         std::cout << "Computing parameterization..." << std::endl;

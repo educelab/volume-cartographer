@@ -13,7 +13,7 @@ test:debian:static:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
         - mkdir -p build
         - cd build/
-        - cmake -DVC_USE_ACVD=ON -GNinja ..
+        - cmake -DVC_BUILD_ACVD=ON -GNinja ..
         - ninja
         - ctest -V
     artifacts:
@@ -32,7 +32,7 @@ test:debian:dynamic:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
         - mkdir -p build
         - cd build/
-        - cmake -DVC_USE_ACVD=ON -GNinja ..
+        - cmake -DVC_BUILD_ACVD=ON -GNinja ..
         - ninja
         - ctest -V
     artifacts:
@@ -51,7 +51,7 @@ test:debian:experimental:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
         - mkdir -p build
         - cd build/
-        - cmake -DVC_BUILD_EXPERIMENTAL=ON -DVC_USE_ACVD=ON -GNinja ..
+        - cmake -DVC_BUILD_EXPERIMENTAL=ON -DVC_BUILD_ACVD=ON -GNinja ..
         - ninja
         - ctest -V
     artifacts:
@@ -70,7 +70,7 @@ test:macos:static:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
         - mkdir -p build
         - cd build/
-        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DVC_USE_ACVD=ON -GNinja ..
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DVC_BUILD_ACVD=ON -GNinja ..
         - ninja
         - ctest -V
     artifacts:
@@ -92,7 +92,7 @@ test:macos:dynamic:
         - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
         - mkdir -p build
         - cd build/
-        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DVC_USE_ACVD=ON -DBUILD_SHARED_LIBS=ON -GNinja ..
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DVC_BUILD_ACVD=ON -DBUILD_SHARED_LIBS=ON -GNinja ..
         - ninja
         - ctest -V
     artifacts:
@@ -125,7 +125,7 @@ lint:clang-tidy:
       - git fetch --all
       - mkdir -p build/
       - cd build/
-      - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -GNinja -DVC_USE_ACVD=ON ..
+      - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -GNinja -DVC_BUILD_ACVD=ON ..
       - cd ..
     stage: lint
     script:
@@ -188,12 +188,12 @@ collect:release:macos:
         - cd vc-deps/
         - mkdir -p build/
         - cd build/
-        - cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DBUILD_UNIVERSAL_LIBS=ON ..
+        - cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DBUILD_UNIVERSAL_LIBS=ON -DVCDEPS_BUILD_ACVD=OFF ..
         - ninja
         - cd ../..
         - mkdir -p build
         - cd build/
-        - cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DVC_USE_ACVD=ON -DVC_BUILD_EXAMPLES=OFF -DVC_BUILD_TESTS=OFF -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DCMAKE_OSX_DEPLOYMENT_TARGET=$OSX_SDK_VERSION -DCMAKE_OSX_SYSROOT=$OSX_SDK_PATH ..
+        - cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON -DVC_BUILD_EXAMPLES=OFF -DVC_BUILD_TESTS=OFF -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DCMAKE_OSX_DEPLOYMENT_TARGET=$OSX_SDK_VERSION -DCMAKE_OSX_SYSROOT=$OSX_SDK_PATH ..
         - ninja
         - ninja package
         - mv VC*.dmg ../
@@ -242,12 +242,12 @@ collect:nightly:macos:
         - cd vc-deps/
         - mkdir -p build/
         - cd build/
-        - cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DBUILD_UNIVERSAL_LIBS=ON ..
+        - cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DBUILD_UNIVERSAL_LIBS=ON -DVCDEPS_BUILD_ACVD=OFF ..
         - ninja
         - cd ../..
         - mkdir -p build
         - cd build/
-        - cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DVC_VERSION_DATESTAMP=ON -DVC_PREBUILT_LIBS=ON -DVC_USE_ACVD=ON -DVC_BUILD_EXAMPLES=OFF -DVC_BUILD_TESTS=OFF -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DCMAKE_OSX_DEPLOYMENT_TARGET=$OSX_SDK_VERSION -DCMAKE_OSX_SYSROOT=$OSX_SDK_PATH ..
+        - cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DVC_VERSION_DATESTAMP=ON -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON -DVC_BUILD_EXAMPLES=OFF -DVC_BUILD_TESTS=OFF -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DCMAKE_OSX_DEPLOYMENT_TARGET=$OSX_SDK_VERSION -DCMAKE_OSX_SYSROOT=$OSX_SDK_PATH ..
         - ninja
         - ninja package
         - mv VC*.dmg ../

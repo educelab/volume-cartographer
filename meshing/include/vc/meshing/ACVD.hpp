@@ -1,19 +1,12 @@
-/**
- * @file ACVD.h
- * @brief Mesh resampling using Approximated Centroidal Voronoi Diagrams.
- */
 #pragma once
 
-#include <vtkPolyData.h>
+#include "vc/core/types/ITKMesh.hpp"
 
 namespace volcart
 {
 namespace meshing
 {
 /**
- * @fn void ACVD( vtkPolyData* inputMesh, vtkPolyData* outputMesh,
- * int numberOfSamples, float gradation, int consoleOutput,
- * int subsamplingThreshold)
  * @brief Mesh resampling using Approximated Centroidal Voronoi Diagrams.
  *
  * This is a wrapper around the ACVD implementation found in the ACVD.cxx
@@ -28,27 +21,89 @@ namespace meshing
  * the point on the mesh that is nearest to the centroid of each diagram as a
  * new vertex in the resampled output mesh.
  *
- * @ingroup Meshing
+ * This class provides both the isotropic and anisotropic versions of the
+ * algorithm.
  *
- * @param inputMesh VTK PolyData to be remeshed
- * @param outputMesh Resampled VTK PolyData
- * @param numberOfSamples Number of desired points in output mesh
- * @param gradation Gradation parameter for ACVD
- *                  Default: 0 for uniform gradation. Higher values give
- *                  increasingly more importance to regions with high curvature
- * @param consoleOutput Sets the graphics display
- *                      0 : no display (default)
- *                      1 : display
- *                      2 : iterative display
- * @param subsamplingThreshold Higher values give better results but the input
- *                             mesh will be subdivided more times
+ * @ingroup Meshing
  */
-void ACVD(
-    vtkPolyData* inputMesh,
-    vtkPolyData* outputMesh,
-    int numberOfSamples,
-    float gradation = 0,
-    int consoleOutput = 0,
-    int subsamplingThreshold = 10);
-}
-}
+class ACVD
+{
+public:
+    /** @brief Isotropy modes */
+    enum class Mode { Isotropic, Anisotropic };
+
+    ACVD() = default;
+
+    /** @brief Set the input mesh */
+    void setInputMesh(ITKMesh::Pointer input);
+
+    /** @brief Set the isotropy mode */
+    void setMode(Mode m);
+
+    /**
+     * @brief The number of voronoi clusters to use for remeshing
+     *
+     * Because this algorithm uses the center of voronoi clusters as the
+     * vertices of the output mesh, this parameter sets the approximate
+     * number of vertices desired in the output mesh.
+     *
+     * If set to 0 (default), the number of vertices in the input mesh will
+     * be used.
+     */
+    void setNumberOfClusters(size_t n);
+
+    /**
+     * @brief Set the gradation (curvature) constraint
+     *
+     * If set to 0 (default), uniform clustering will be performed. Higher
+     * values will produce a clustering which favors regions of high curvature.
+     */
+    void setGradation(double g);
+
+    /**
+     * @brief Set the subsample threshold
+     *
+     * Input mesh will be iteratively divided until the subsample ratio is
+     * above the subsampling threshold. In practice, higher values produce
+     * better results, but require more subdivision.
+     */
+    void setSubsampleThreshold(size_t t);
+
+    /**
+     * @brief Set the quadrics optimization level
+     *
+     * For values greater than 0, refine the resampled vertices to minimize the
+     * quadric error between the input and output mesh. Only use if mode is
+     * `Mode::Isotropic`. Default value: 1
+     */
+    void setQuadricsOptimizationLevel(size_t l);
+
+    /** @brief Compute the resampled mesh */
+    ITKMesh::Pointer compute();
+
+    /** @brief Get the output mesh */
+    ITKMesh::Pointer getOutputMesh() const;
+
+private:
+    /** Input mesh */
+    ITKMesh::Pointer inputMesh_;
+    /** Output mesh */
+    ITKMesh::Pointer outputMesh_;
+
+    /** Compute ACVD isotropic */
+    void compute_isotropic_();
+    /** Compute ACVD anisotropic */
+    void compute_anisotropic_();
+    /** Isotropy mode */
+    Mode mode_{Mode::Isotropic};
+    /** Number of clusters */
+    size_t clusters_{0};
+    /** Gradation */
+    double gradation_{0};
+    /** Subsample Threshold */
+    size_t subsampleThreshold_{10};
+    /** Quadrics optimization level */
+    size_t quadricsOptLevel_{1};
+};
+}  // namespace meshing
+}  // namespace volcart

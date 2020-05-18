@@ -1,13 +1,8 @@
-// ACVD Example Program
-// Created by Seth Parker on 9/24/15.
-//
-
 #include "vc/core/io/FileExtensionFilter.hpp"
 #include "vc/core/io/OBJReader.hpp"
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/io/PLYReader.hpp"
 #include "vc/meshing/ACVD.hpp"
-#include "vc/meshing/ITK2VTK.hpp"
 
 namespace vc = volcart;
 
@@ -51,15 +46,10 @@ int main(int argc, char* argv[])
 
     /** Process mesh **/
     std::cout << "Processing mesh..." << std::endl;
-    // Convert to VTKPolyData
-    auto vtkMesh = vtkPolyData::New();
-    vc::meshing::ITK2VTK(mesh, vtkMesh);
-    // Remesh
-    auto acvdMesh = vtkPolyData::New();
-    vc::meshing::ACVD(vtkMesh, acvdMesh, numFaces);
-    // Convert back to ITKMesh
-    auto outputMesh = volcart::ITKMesh::New();
-    vc::meshing::VTK2ITK(acvdMesh, outputMesh);
+    vc::meshing::ACVD remesh;
+    remesh.setInputMesh(mesh);
+    remesh.setNumberOfClusters(numFaces);
+    auto outputMesh = remesh.compute();
 
     /** Save mesh **/
     std::cout << "Saving mesh..." << std::endl;

@@ -27,6 +27,4 @@ public:
 
 private:
     GlobalValues* _globals;
-
-    static const uint16_t CLEANER_MIN_REQ_POINTS = 100;
 };
