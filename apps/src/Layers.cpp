@@ -7,7 +7,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <opencv2/opencv.hpp>
-#include <vtkCleanPolyData.h>
 
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/types/PerPixelMap.hpp"
@@ -34,7 +33,7 @@ static constexpr double SAMPLING_DENSITY_FACTOR = 50;
 // Square Micron to square millimeter conversion factor
 static constexpr double UM_TO_MM = 0.001 * 0.001;
 // Min. number of points required to do flattening
-static constexpr uint16_t CLEANER_MIN_REQ_POINTS = 100;
+static constexpr size_t CLEANER_MIN_REQ_POINTS = 100;
 
 int main(int argc, char* argv[])
 {
@@ -169,32 +168,21 @@ int main(int argc, char* argv[])
     // Calculate sampling density
     auto voxelToMicron = std::pow(volume->voxelSize(), 2);
     auto area = vc::meshmath::SurfaceArea(input) * voxelToMicron * UM_TO_MM;
-    auto vertCount = static_cast<uint16_t>(SAMPLING_DENSITY_FACTOR * area);
+    auto vertCount = static_cast<size_t>(SAMPLING_DENSITY_FACTOR * area);
     vertCount = (vertCount < CLEANER_MIN_REQ_POINTS) ? CLEANER_MIN_REQ_POINTS
                                                      : vertCount;
 
-    // Convert to polydata
-    auto vtkMesh = vtkSmartPointer<vtkPolyData>::New();
-    vc::meshing::ITK2VTK(input, vtkMesh);
-
     // Decimate using ACVD
     std::cout << "Resampling mesh..." << std::endl;
-    auto acvdMesh = vtkSmartPointer<vtkPolyData>::New();
-    vc::meshing::ACVD(vtkMesh, acvdMesh, vertCount);
-
-    // Merge Duplicates
-    // Note: This merging has to be the last in the process chain for some
-    // really weird reason. - SP
-    auto cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
-    cleaner->SetInputData(acvdMesh);
-    cleaner->Update();
-
-    auto itkACVD = vc::ITKMesh::New();
-    vc::meshing::VTK2ITK(cleaner->GetOutput(), itkACVD);
+    vc::meshing::ACVD resampler;
+    resampler.setInputMesh(input);
+    resampler.setNumberOfClusters(vertCount);
+    auto itkACVD = resampler.compute();
 
     ///// ABF flattening /////
     std::cout << "Computing parameterization..." << std::endl;
-    vc::texturing::AngleBasedFlattening abf(itkACVD);
+    vc::texturing::AngleBasedFlattening abf;
+    abf.setMesh(itkACVD);
     abf.compute();
 
     // Get UV map

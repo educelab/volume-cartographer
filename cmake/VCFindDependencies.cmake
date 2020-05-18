@@ -1,6 +1,8 @@
 ########
 # Core #
 ########
+include(FetchContent)
+include(CMakeDependentOption)
 
 ### Use VC Prebuilt Libs ###
 # Built using vc-deps
@@ -71,8 +73,6 @@ find_package(spdlog 1.4.2 CONFIG REQUIRED)
 
 ### gtest ###
 if(VC_BUILD_TESTS)
-    include(FetchContent)
-
     FetchContent_Declare(
         googletest
         GIT_REPOSITORY https://github.com/google/googletest.git
@@ -107,11 +107,7 @@ preferences will be ignored.")
 endif()
 
 ### ACVD ###
-# Currently required since VC-Texture needs it - SP
-option(VC_USE_ACVD "Use ACVD library" on)
-if (VC_USE_ACVD OR VC_USE_OPTIONAL)
-    find_package(ACVD 1.1.1 REQUIRED)
-endif()
+include(BuildACVD)
 
 ### VCG ###
 option(VC_USE_VCG "Use VCG library" off)

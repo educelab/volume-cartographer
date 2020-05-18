@@ -1,77 +1,99 @@
-/** @file ACVD.cpp */
-
-// ACVD
-// This is a refactor of the ACVD implementation found in the ACVD.cxx example
-// of https://github.com/valette/ACVD
-// This function is essentially a wrapper around that functionality
-//
-// This implements the iterative process discussed in:
-//      Valette, Sebastien, and Jean-Marc Chassery. "Approximated centroidal
-//      voronoi diagrams for uniform polygonal mesh coarsening." Computer
-//      Graphics Forum. Vol. 23. No. 3. Blackwell Publishing, Inc, 2004.
-//
-// It iteratively loops over the mesh until the approximated centroidal voronoi
-// diagrams for the mesh are approximately
-// equivalent in area. It then takes the point on the mesh that is nearest to
-// the centroid of each diagram as a new point
-// in the resampled output mesh.
+#include "vc/meshing/ACVD.hpp"
 
 #include <array>
 
+#include <vtkAnisotropicDiscreteRemeshing.h>
+#include <vtkCleanPolyData.h>
 #include <vtkIsotropicDiscreteRemeshing.h>
+#include <vtkNew.h>
+#include <vtkPolyData.h>
 #include <vtkPolyDataNormals.h>
 
 #include "vc/core/util/Logging.hpp"
-#include "vc/meshing/ACVD.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
 
-namespace volcart
-{
-namespace meshing
-{
+using namespace volcart;
+using namespace volcart::meshing;
 
-void ACVD(
-    vtkPolyData* inputMesh,
-    vtkPolyData* outputMesh,
-    int numberOfSamples,
-    float gradation,
-    int consoleOutput,
-    int subsamplingThreshold)
+void ACVD::setInputMesh(ITKMesh::Pointer input)
 {
+    inputMesh_ = std::move(input);
+}
+
+void ACVD::setMode(Mode m) { mode_ = m; }
+
+void ACVD::setNumberOfClusters(size_t n) { clusters_ = n; }
+
+void ACVD::setGradation(double g) { gradation_ = g; }
+
+void ACVD::setSubsampleThreshold(size_t t) { subsampleThreshold_ = t; }
+
+void ACVD::setQuadricsOptimizationLevel(size_t l) { quadricsOptLevel_ = l; }
+
+ITKMesh::Pointer ACVD::getOutputMesh() const { return outputMesh_; }
+
+ITKMesh::Pointer ACVD::compute()
+{
+    logger->info(
+        "ACVD: Input: {} verts, {} faces", inputMesh_->GetNumberOfPoints(),
+        inputMesh_->GetNumberOfCells());
+    switch (mode_) {
+        case Mode::Isotropic:
+            compute_isotropic_();
+            break;
+        case Mode::Anisotropic:
+            compute_anisotropic_();
+            break;
+    }
+    logger->info(
+        "ACVD: Output: {} verts, {} faces", outputMesh_->GetNumberOfPoints(),
+        outputMesh_->GetNumberOfCells());
+    return outputMesh_;
+}
+
+void ACVD::compute_isotropic_()
+{
+    // Convert to polydata
+    vtkNew<vtkPolyData> vtkMesh;
+    ITK2VTK(inputMesh_, vtkMesh);
 
     // ACVD's vtkSurface class used for resampling
     auto mesh = vtkSurface::New();
-    mesh->CreateFromPolyData(inputMesh);
+    mesh->CreateFromPolyData(vtkMesh);
     mesh->GetCellData()->Initialize();
     mesh->GetPointData()->Initialize();
 
-    ///// ACVD /////
-    // initialize paramaters needed for ACVD resampling
-    int quadricsOptimizationLevel = 1;
+    // Validate clusters parameter
+    auto clusters = clusters_;
+    if (clusters_ == 0) {
+        clusters = inputMesh_->GetNumberOfPoints();
+    }
 
-    auto remesh = vtkIsotropicDiscreteRemeshing::New();
-
+    // Run ACVD
+    logger->info("ACVD: Performing isotropic mesh resampling...");
+    vtkNew<vtkIsotropicDiscreteRemeshing> remesh;
     remesh->SetInput(mesh);
-    remesh->SetNumberOfClusters(numberOfSamples);
-    remesh->SetConsoleOutput(consoleOutput);
-    remesh->SetSubsamplingThreshold(subsamplingThreshold);
-    remesh->GetMetric()->SetGradation(gradation);
+    remesh->SetNumberOfClusters(clusters);
+    remesh->SetSubsamplingThreshold(subsampleThreshold_);
+    remesh->GetMetric()->SetGradation(gradation_);
     remesh->Remesh();
 
-    if (quadricsOptimizationLevel != 0) {
-        // Note : this is an adaptation of Siggraph 2000 Paper :
-        // Out-of-core simplification of large polygonal models
+    // Note : this is an adaptation of Siggraph 2000 Paper :
+    // Out-of-core simplification of large polygonal models
+    // Use quadrics error to minimize distance between input and resampled
+    if (quadricsOptLevel_ != 0) {
+        logger->info("ACVD: Computing quadrics optimization...");
         auto clustering = remesh->GetClustering();
 
         int cluster, numMisclassedItems = 0;
 
         std::vector<std::array<double, 9>> clusterQuadrics(
-            numberOfSamples, std::array<double, 9>{});
+            clusters, std::array<double, 9>{});
         auto fList = vtkIdList::New();
 
         for (int i = 0; i < remesh->GetNumberOfItems(); i++) {
             cluster = clustering->GetValue(i);
-            if (cluster >= 0 && cluster < numberOfSamples) {
+            if (cluster >= 0 && cluster < clusters) {
                 if (remesh->GetClusteringType() == 0) {
                     vtkQuadricTools::AddTriangleQuadric(
                         clusterQuadrics[cluster].data(), remesh->GetInput(), i,
@@ -92,29 +114,79 @@ void ACVD(
 
         if (numMisclassedItems != 0) {
             logger->warn(
-                "Items with wrong cluster association" +
-                std::to_string(numMisclassedItems));
+                "ACVD: Items with wrong cluster association: {}",
+                numMisclassedItems);
         }
 
         std::array<double, 3> p{};
-        for (int i = 0; i < numberOfSamples; i++) {
+        for (size_t i = 0; i < clusters; i++) {
             remesh->GetOutput()->GetPoint(i, p.data());
             vtkQuadricTools::ComputeRepresentativePoint(
-                clusterQuadrics[i].data(), p.data(), quadricsOptimizationLevel);
+                clusterQuadrics[i].data(), p.data(), quadricsOptLevel_);
             remesh->GetOutput()->SetPointCoordinates(i, p.data());
         }
 
         mesh->GetPoints()->Modified();
     }
-    ///// End ACVD /////
 
     // Convert the vtkSurface back to vtkPolydata, regenerating normals as we go
+    vtkNew<vtkPolyData> vtkOut;
     auto normalGenerator = vtkSmartPointer<vtkPolyDataNormals>::New();
     normalGenerator->SetInputData(remesh->GetOutput());
-    normalGenerator->SetOutput(outputMesh);
+    normalGenerator->SetOutput(vtkOut);
     normalGenerator->ComputePointNormalsOn();
     normalGenerator->ComputeCellNormalsOn();
     normalGenerator->Update();
+
+    // Remove duplicate vertices
+    vtkNew<vtkCleanPolyData> cleaner;
+    cleaner->SetInputData(vtkOut);
+    cleaner->Update();
+
+    outputMesh_ = ITKMesh::New();
+    VTK2ITK(cleaner->GetOutput(), outputMesh_);
 }
-}  // namespace meshing
-}  // namespace volcart
+
+void ACVD::compute_anisotropic_()
+{
+    // Convert to polydata
+    vtkNew<vtkPolyData> vtkMesh;
+    ITK2VTK(inputMesh_, vtkMesh);
+
+    auto mesh = vtkSurface::New();
+    mesh->CreateFromPolyData(vtkMesh);
+    mesh->GetCellData()->Initialize();
+    mesh->GetPointData()->Initialize();
+
+    // Validate clusters parameter
+    auto clusters = clusters_;
+    if (clusters_ == 0) {
+        clusters = inputMesh_->GetNumberOfPoints();
+    }
+
+    // Run remeshing
+    logger->info("ACVD: Performing anisotropic mesh resampling...");
+    vtkNew<vtkAnisotropicDiscreteRemeshing> remesh;
+    remesh->SetInput(mesh);
+    remesh->SetNumberOfClusters(clusters);
+    remesh->SetSubsamplingThreshold(subsampleThreshold_);
+    remesh->GetMetric()->SetGradation(gradation_);
+    remesh->Remesh();
+
+    // Convert the vtkSurface back to vtkPolydata, regenerating normals as we go
+    vtkNew<vtkPolyData> vtkOut;
+    auto normalGenerator = vtkSmartPointer<vtkPolyDataNormals>::New();
+    normalGenerator->SetInputData(remesh->GetOutput());
+    normalGenerator->SetOutput(vtkOut);
+    normalGenerator->ComputePointNormalsOn();
+    normalGenerator->ComputeCellNormalsOn();
+    normalGenerator->Update();
+
+    // Remove duplicate vertices
+    vtkNew<vtkCleanPolyData> cleaner;
+    cleaner->SetInputData(vtkOut);
+    cleaner->Update();
+
+    outputMesh_ = ITKMesh::New();
+    VTK2ITK(cleaner->GetOutput(), outputMesh_);
+}
