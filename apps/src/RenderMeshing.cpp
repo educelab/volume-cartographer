@@ -1,14 +1,19 @@
 #include "apps/RenderMeshing.hpp"
 
+#include <boost/filesystem.hpp>
 #include <vtkCleanPolyData.h>
 #include <vtkSmoothPolyDataFilter.h>
 
+#include "vc/core/io/FileExtensionFilter.hpp"
+#include "vc/core/io/OBJWriter.hpp"
+#include "vc/core/io/PLYWriter.hpp"
 #include "vc/core/types/Volume.hpp"
 #include "vc/core/util/MeshMath.hpp"
 #include "vc/meshing/ACVD.hpp"
 #include "vc/meshing/CalculateNormals.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
 
+namespace fs = boost::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
 namespace vcm = volcart::meshing;
@@ -20,6 +25,8 @@ extern vc::Volume::Pointer volume_;
 static constexpr double UM_TO_MM = 0.000001;
 // Min. number of points required to do flattening
 static constexpr size_t CLEANER_MIN_REQ_POINTS = 100;
+// Default resampling factor
+static constexpr size_t DEFAULT_RESAMPLE_FACTOR = 50;
 
 po::options_description GetMeshingOpts()
 {
@@ -30,7 +37,7 @@ po::options_description GetMeshingOpts()
             "factor")
         ("enable-mesh-resampling", "Enable ACVD mesh resampling. Automatically "
             "enabled if the input is a Segmentation")
-        ("mesh-resample-factor", po::value<double>()->default_value(50),
+        ("mesh-resample-factor", po::value<double>()->default_value(DEFAULT_RESAMPLE_FACTOR),
          "Roughly, the number of vertices per square millimeter in the "
             "output mesh")
         ("mesh-resample-vcount", po::value<size_t>(), "The target number of vertices "
@@ -50,7 +57,10 @@ po::options_description GetMeshingOpts()
          "  0 = Off\n"
          "  1 = Before mesh resampling\n"
          "  2 = After mesh resampling\n"
-         "  3 = Both before and after mesh resampling");
+         "  3 = Both before and after mesh resampling")
+        ("intermediate-mesh", po::value<std::string>(),"Output file path for the "
+            "intermediate (i.e. scale + resampled) mesh. File is saved prior "
+            "to flattening. Useful for testing meshing parameters.");
     // clang-format on
 
     return opts;
@@ -139,6 +149,23 @@ vc::ITKMesh::Pointer ResampleMesh(const vc::ITKMesh::Pointer& m)
         vcm::CalculateNormals normals;
         normals.setMesh(workingMesh);
         workingMesh = normals.compute();
+    }
+
+    // Save the intermediate mesh
+    if (parsed_.count("intermediate-mesh")) {
+        std::cout << "Writing intermediate mesh..." << std::endl;
+        fs::path meshPath = parsed_["intermediate-mesh"].as<std::string>();
+        if (vc::io::FileExtensionFilter(meshPath, {"ply"})) {
+            vc::io::PLYWriter writer;
+            writer.setMesh(workingMesh);
+            writer.setPath(meshPath);
+            writer.write();
+        } else if (vc::io::FileExtensionFilter(meshPath, {"obj"})) {
+            vc::io::OBJWriter writer;
+            writer.setMesh(workingMesh);
+            writer.setPath(meshPath);
+            writer.write();
+        }
     }
 
     return workingMesh;
