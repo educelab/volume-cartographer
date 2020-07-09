@@ -34,7 +34,7 @@ Texture IntegralTexture::compute()
         });
 
     // Iterate through the mappings
-    ConsoleProgressIndicator progress(mappings.size(), "Mapping");
+    DiscreteConsoleProgressIndicator progress(mappings.size(), "Mapping");
     int counter = 0;
     for (const auto& pixel : mappings) {
         progress.update(counter++);

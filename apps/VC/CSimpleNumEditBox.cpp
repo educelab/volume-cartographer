@@ -65,7 +65,7 @@ void CSimpleNumEditBox::keyPressEvent(QKeyEvent* event)
         int aNewIndex = GetImageIndexFromText();
         if (aNewIndex != fImageIndex) {
             fImageIndex = aNewIndex;
-            emit SendSignalOnTextChanged();
+            SendSignalOnTextChanged();
         }
     } else {
         QTextEdit::keyPressEvent(event);

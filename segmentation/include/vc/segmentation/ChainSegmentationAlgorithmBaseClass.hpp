@@ -3,6 +3,7 @@
 #include "vc/core/types/BoundingBox.hpp"
 #include "vc/core/types/OrderedPointSet.hpp"
 #include "vc/core/types/Volume.hpp"
+#include "vc/core/util/Signals.hpp"
 
 namespace volcart
 {
@@ -28,6 +29,9 @@ public:
     using Bounds = volcart::BoundingBox<double, 3>;
     /** Computation result status */
     enum class Status { Success, Failure, ReturnedEarly };
+
+    /** Progress signal */
+    Signal<float> progressUpdated;
 
     /**@{*/
     /** @brief Set the input Volume */
@@ -71,9 +75,6 @@ public:
 
     /** @brief Get the status of the previous computation */
     Status getStatus() const { return status_; }
-
-    /** @brief Get progress as percent of total */
-    virtual float getProgress() const = 0;
     /**@}*/
 
     /**@{*/
@@ -101,8 +102,6 @@ protected:
     PointSet result_;
     /** Computation status */
     Status status_{Status::Success};
-    /** progress */
-    float progress_{0.0};
 };
 }
 }
