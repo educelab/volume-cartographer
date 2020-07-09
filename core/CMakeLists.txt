@@ -54,7 +54,6 @@ set(util_srcs
     src/FormatStrToRegexStr.cpp
     src/BarycentricCoordinates.cpp
     src/ImageConversion.cpp
-    src/ProgressIndicator.cpp
 )
 
 set(logging_srcs
@@ -166,6 +165,7 @@ set(test_srcs
     test/NDArrayTest.cpp
     test/VolumeMaskTest.cpp
     test/LoggingTest.cpp
+    test/SignalsTest.cpp
 )
 
 # Add a test executable for each src

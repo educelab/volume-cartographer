@@ -306,32 +306,32 @@ void CWindow::CreateBackend()
     connect(
         worker, &VolPkgBackend::segmentationFinished, this,
         &CWindow::onSegmentationFinished);
+    connect(worker, &VolPkgBackend::progressUpdated, [=](float p) {
+        progress_ = p;
+    });
     worker_thread_.start();
 
     // Setup progress dialog
     auto layout = new QVBoxLayout();
     worker_progress_.setLayout(layout);
-    auto progressLabel = new QLabel("Segmentation in progress. Please wait...");
-    layout->addWidget(progressLabel);
-    auto progressBar = new QProgressBar();
-    layout->addWidget(progressBar);
-    progressBar->setMinimum(0);
-    progressBar->setMaximum(100);
+    progressLabel_ = new QLabel("Segmentation in progress. Please wait...");
+    layout->addWidget(progressLabel_);
+    progressBar_ = new QProgressBar();
+    layout->addWidget(progressBar_);
+    progressBar_->setMinimum(0);
+    progressBar_->setMaximum(100);
 
-    // A dumb hack to ensure the user knows the program isn't frozen
+    // Update the GUI intermittently
     worker_progress_updater_.setInterval(1000);
-    connect(
-        &worker_progress_updater_, &QTimer::timeout,
-        [progressLabel, progressBar, worker]() {
-            if (progressLabel->text() ==
-                "Segmentation in progress. Please wait...") {
-                progressLabel->setText("Segmentation in progress. Please wait");
-            } else {
-                progressLabel->setText(progressLabel->text().append('.'));
-            }
-            auto p = worker->segmenter.getProgress();
-            progressBar->setValue(static_cast<int>(p * 100));
-        });
+    connect(&worker_progress_updater_, &QTimer::timeout, [=]() {
+        if (progressLabel_->text() ==
+            "Segmentation in progress. Please wait...") {
+            progressLabel_->setText("Segmentation in progress. Please wait");
+        } else {
+            progressLabel_->setText(progressLabel_->text().append('.'));
+        }
+        progressBar_->setValue(static_cast<int>(progress_ * 100));
+    });
 }
 
 // Asks User to Save Data Prior to VC.app Exit
@@ -570,7 +570,7 @@ void CWindow::DoSegmentation(void)
     segmenter.setDelta(fSegParams.fDelta);
     segmenter.setDistanceWeightFactor(fSegParams.fPeakDistanceWeight);
     segmenter.setConsiderPrevious(fSegParams.fIncludeMiddle);
-    emit submitSegmentation(segmenter);
+    submitSegmentation(segmenter);
     setWidgetsEnabled(false);
     worker_progress_.show();
     worker_progress_updater_.start();

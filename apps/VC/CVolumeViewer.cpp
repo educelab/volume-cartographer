@@ -153,22 +153,22 @@ void CVolumeViewer::OnResetClicked(void)
 // Handle next image click
 void CVolumeViewer::OnNextClicked(void)
 {
-    // emit signal to controller (MVC) in order to update the content
-    emit SendSignalOnNextClicked();
+    // send signal to controller (MVC) in order to update the content
+    SendSignalOnNextClicked();
 }
 
 // Handle previous image click
 void CVolumeViewer::OnPrevClicked(void)
 {
-    // emit signal to controller (MVC ) in order to update the content
-    emit SendSignalOnPrevClicked();
+    // send signal to controller (MVC ) in order to update the content
+    SendSignalOnPrevClicked();
 }
 
 // Handle image index change
 void CVolumeViewer::OnImageIndexEditTextChanged(void)
 {
-    // emit signal to controller in order to update the content
-    emit SendSignalOnLoadAnyImage(fImageIndexEdit->GetImageIndex());
+    // send signal to controller in order to update the content
+    SendSignalOnLoadAnyImage(fImageIndexEdit->GetImageIndex());
 }
 
 // Update the status of the buttons

@@ -1,4 +1,3 @@
-#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <chrono>
@@ -9,7 +8,7 @@
 namespace vc = volcart;
 namespace vct = volcart::texturing;
 
-class PPMGeneratorTest : public ::testing::TestWithParam<int>
+class PPMGeneratorTest : public testing::TestWithParam<int>
 {
 };
 
@@ -47,7 +46,7 @@ TEST_P(PPMGeneratorTest, PerformanceTest)
               << "s\n";
 }
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     PerformanceTest,
     PPMGeneratorTest,
-    ::testing::Values(2, 5, 10, 50, 100, 500, 1000), );
+    testing::Values(2, 5, 10, 50, 100, 500, 1000));

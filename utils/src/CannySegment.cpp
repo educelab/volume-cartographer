@@ -126,7 +126,7 @@ int main(int argc, char* argv[])
     std::cout << "Segmenting surface..." << std::endl;
     auto mesh = vc::ITKMesh::New();
     cv::Vec3d first, last, middle;
-    vc::ConsoleProgressIndicator progress(volume->numSlices(), "Slice");
+    vc::DiscreteConsoleProgressIndicator progress(volume->numSlices(), "Slice");
     for (int z = 0; z < volume->numSlices(); z++) {
         progress.update(z);
         // Get the slice and blur it

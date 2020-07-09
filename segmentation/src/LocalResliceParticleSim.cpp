@@ -1,7 +1,6 @@
 #include <iomanip>
 #include <limits>
 #include <list>
-#include <mutex>
 #include <tuple>
 
 #include <boost/circular_buffer.hpp>
@@ -24,14 +23,10 @@ namespace fs = boost::filesystem;
 using std::begin;
 using std::end;
 
-static std::mutex PROGRESS_LOCK;
-
 LocalResliceSegmentation::PointSet LocalResliceSegmentation::compute()
 {
     // reset progress
-    PROGRESS_LOCK.lock();
-    progress_ = 0.0;
-    PROGRESS_LOCK.unlock();
+    progressUpdated(0.0);
 
     // Duplicate the starting chain
     auto currentVs = startingChain_;
@@ -73,9 +68,8 @@ LocalResliceSegmentation::PointSet LocalResliceSegmentation::compute()
     // Iterate over z-slices
     for (int zIndex = startIndex; zIndex <= endIndex_; zIndex += stepSize_) {
         // Update progress
-        PROGRESS_LOCK.lock();
-        progress_ = (zIndex - startIndex) / float(endIndex_ + 1 - startIndex);
-        PROGRESS_LOCK.unlock();
+        progressUpdated(
+            (zIndex - startIndex) / float(endIndex_ + 1 - startIndex));
 
         // Directory to dump vis
         std::stringstream ss;
@@ -317,9 +311,7 @@ LocalResliceSegmentation::PointSet LocalResliceSegmentation::compute()
 
     /////////////////////////////////////////////////////////
     // Update progress
-    PROGRESS_LOCK.lock();
-    progress_ = 1.0;
-    PROGRESS_LOCK.unlock();
+    progressUpdated(1.0);
 
     // 6. Output final mesh
     return create_final_pointset_(points);
@@ -401,10 +393,4 @@ cv::Mat LocalResliceSegmentation::draw_particle_on_slice_(
     }
 
     return pkgSlice;
-}
-
-float LocalResliceSegmentation::getProgress() const
-{
-    std::lock_guard<std::mutex> guard(PROGRESS_LOCK);
-    return progress_;
 }
