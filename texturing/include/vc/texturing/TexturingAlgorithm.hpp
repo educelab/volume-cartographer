@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "vc/core/neighborhood/NeighborhoodGenerator.hpp"
+#include "vc/core/types/Mixins.hpp"
 #include "vc/core/types/PerPixelMap.hpp"
 #include "vc/core/types/Texture.hpp"
 #include "vc/core/types/Volume.hpp"
@@ -11,7 +12,7 @@ namespace volcart
 {
 namespace texturing
 {
-class TexturingAlgorithm
+class TexturingAlgorithm : public IterationsProgress
 {
 public:
     /** Pointer type */
@@ -40,6 +41,12 @@ public:
     /** @copydoc getTexture() const */
     Texture& getTexture() { return result_; }
     /**@}*/
+
+    /** @brief Returns the maximum progress value */
+    size_t progressIterations() const override
+    {
+        return ppm_.getMappings().size();
+    }
 
 protected:
     /** Default constructor */

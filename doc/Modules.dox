@@ -71,6 +71,11 @@
  @ingroup Core
 */
 
+/**
+ @defgroup Support App Support
+ @brief Support classes for making applications
+*/
+
 ///// Meshing Groups /////
 /**
  * @namespace volcart::meshing

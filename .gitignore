@@ -39,6 +39,7 @@ tags
 # Python
 __pycache__
 .ropeproject
+venv/*
 
 #Doxygen
 doc/latex/

@@ -1,5 +1,4 @@
 #include "vc/texturing/IntegralTexture.hpp"
-#include "vc/core/util/ProgressIndicator.hpp"
 
 #include <algorithm>
 #include <map>
@@ -34,10 +33,10 @@ Texture IntegralTexture::compute()
         });
 
     // Iterate through the mappings
-    DiscreteConsoleProgressIndicator progress(mappings.size(), "Mapping");
-    int counter = 0;
+    size_t counter = 0;
+    progressStarted();
     for (const auto& pixel : mappings) {
-        progress.update(counter++);
+        progressUpdated(counter++);
 
         // Generate the neighborhood
         auto n = gen_->compute(vol_, pixel.pos, {pixel.normal});
@@ -61,7 +60,7 @@ Texture IntegralTexture::compute()
         image.at<double>(static_cast<int>(pixel.y), static_cast<int>(pixel.x)) =
             value;
     }
-    progress.complete();
+    progressComplete();
 
     cv::normalize(image, image, 0.0, 1.0, cv::NORM_MINMAX);
 

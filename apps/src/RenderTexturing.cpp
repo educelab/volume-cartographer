@@ -1,4 +1,4 @@
-#include "apps/RenderTexturing.hpp"
+#include "vc/apps/render/RenderTexturing.hpp"
 
 #include <exception>
 #include <memory>
@@ -7,6 +7,7 @@
 #include <boost/program_options.hpp>
 #include <opencv2/imgcodecs.hpp>
 
+#include "vc/app_support/ProgressIndicator.hpp"
 #include "vc/core/neighborhood/CuboidGenerator.hpp"
 #include "vc/core/neighborhood/LineGenerator.hpp"
 #include "vc/core/types/Color.hpp"
@@ -23,6 +24,7 @@ namespace fs = boost::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
 namespace vct = volcart::texturing;
+namespace ind = indicators;
 
 extern po::variables_map parsed_;
 extern vc::VolumePkg::Pointer vpkg_;
@@ -282,12 +284,16 @@ vc::Texture TextureMesh(
     ///// Generate the PPM /////
     auto width = static_cast<size_t>(std::ceil(uvMap.ratio().width));
     auto height = static_cast<size_t>(std::ceil(uvMap.ratio().height));
-    std::cout << "Generating PPM (" << width << "x" << height << ")...\n";
     vct::PPMGenerator ppmGen;
     ppmGen.setMesh(mesh);
     ppmGen.setUVMap(uvMap);
     ppmGen.setDimensions(height, width);
     ppmGen.setShading(shading);
+
+    // Progress tracker
+    auto label = "Generating PPM (" + std::to_string(width) + "x" +
+                 std::to_string(height) + "):";
+    vc::ReportProgress(ppmGen, label);
     auto ppm = ppmGen.compute();
 
     // Save the PPM
@@ -338,38 +344,44 @@ vc::Texture TextureMesh(
     }
     std::cout << std::endl;
 
+    // Set method specific parameters
+    vct::TexturingAlgorithm::Pointer textureGeneric;
     if (method == Method::Intersection) {
-        vct::IntersectionTexture textureGen;
-        textureGen.setVolume(volume_);
-        textureGen.setPerPixelMap(ppm);
-        texture = textureGen.compute();
+        textureGeneric = vct::IntersectionTexture::New();
     }
 
     else if (method == Method::Composite) {
-        vct::CompositeTexture textureGen;
-        textureGen.setPerPixelMap(ppm);
-        textureGen.setVolume(volume_);
-        textureGen.setFilter(filter);
-        textureGen.setGenerator(generator);
-        texture = textureGen.compute();
+        auto textureSpecific = vct::CompositeTexture::New();
+        textureSpecific->setFilter(filter);
+        textureSpecific->setGenerator(generator);
+        textureGeneric = textureSpecific;
     }
 
     else if (method == Method::Integral) {
-        vct::IntegralTexture textureGen;
-        textureGen.setPerPixelMap(ppm);
-        textureGen.setVolume(volume_);
-        textureGen.setGenerator(generator);
-        textureGen.setWeightMethod(weightType);
-        textureGen.setLinearWeightDirection(weightDirection);
-        textureGen.setExponentialDiffExponent(weightExponent);
-        textureGen.setExponentialDiffBaseMethod(expoDiffBaseMethod);
-        textureGen.setExponentialDiffBaseValue(expoDiffBase);
-        textureGen.setClampValuesToMax(clampToMax);
+        auto textureSpecific = vct::IntegralTexture::New();
+        textureSpecific->setGenerator(generator);
+        textureSpecific->setWeightMethod(weightType);
+        textureSpecific->setLinearWeightDirection(weightDirection);
+        textureSpecific->setExponentialDiffExponent(weightExponent);
+        textureSpecific->setExponentialDiffBaseMethod(expoDiffBaseMethod);
+        textureSpecific->setExponentialDiffBaseValue(expoDiffBase);
+        textureSpecific->setClampValuesToMax(clampToMax);
         if (clampToMax) {
-            textureGen.setClampMax(parsed_["clamp-to-max"].as<uint16_t>());
+            textureSpecific->setClampMax(
+                parsed_["clamp-to-max"].as<uint16_t>());
         }
-        texture = textureGen.compute();
+        textureGeneric = textureSpecific;
     }
+
+    // Set method generic parameters
+    textureGeneric->setVolume(volume_);
+    textureGeneric->setPerPixelMap(ppm);
+
+    // Setup progress tracker
+    vc::ReportProgress(*textureGeneric, "Texturing:");
+
+    // Execute texture algorithm
+    texture = textureGeneric->compute();
 
     return texture;
 }

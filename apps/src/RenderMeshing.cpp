@@ -1,4 +1,4 @@
-#include "apps/RenderMeshing.hpp"
+#include "vc/apps/render/RenderMeshing.hpp"
 
 #include <boost/filesystem.hpp>
 #include <vtkCleanPolyData.h>

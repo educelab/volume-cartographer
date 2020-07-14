@@ -8,7 +8,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/program_options.hpp>
 
-#include "apps/SliceImage.hpp"
+#include "vc/apps/packager/SliceImage.hpp"
 #include "vc/core/io/FileExtensionFilter.hpp"
 #include "vc/core/io/SkyscanMetadataIO.hpp"
 #include "vc/core/types/Metadata.hpp"

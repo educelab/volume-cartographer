@@ -31,8 +31,9 @@ target_link_libraries(vc_packager
     Boost::filesystem
     Boost::program_options
 )
-# Special - need to include SliceImage.hpp
-target_include_directories(vc_packager PUBLIC include)
+target_include_directories(vc_packager PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+)
 
 ## Segment ##
 add_executable(vc_segment src/Segment.cpp)
@@ -52,6 +53,7 @@ add_executable(vc_render
     src/RenderTexturing.cpp
 )
 target_link_libraries(vc_render
+    VC::app_support
     VC::core
     VC::texturing
     VC::meshing
@@ -59,7 +61,9 @@ target_link_libraries(vc_render
     Boost::program_options
     vtkFiltersCore
 )
-target_include_directories(vc_render PUBLIC include)
+target_include_directories(vc_render PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+)
 
 ## Render from PPM
 add_executable(vc_render_from_ppm src/RenderFromPPM.cpp)
@@ -111,6 +115,7 @@ target_link_libraries(vc_metaedit
 ## Slice Projection ##
 add_executable(vc_projection src/Projection.cpp)
 target_link_libraries(vc_projection
+    VC::app_support
     VC::core
     VC::meshing
     Boost::filesystem

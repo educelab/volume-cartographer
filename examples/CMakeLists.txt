@@ -111,3 +111,6 @@ target_link_libraries(vc_spiral_example VC::core)
 
 add_executable(vc_scale_marker_generator_example src/ScaleMarkerGeneratorExample.cpp)
 target_link_libraries(vc_scale_marker_generator_example VC::core VC::texturing opencv_imgcodecs)
+
+add_executable(vc_signals_example src/SignalsExample.cpp)
+target_link_libraries(vc_signals_example VC::core)

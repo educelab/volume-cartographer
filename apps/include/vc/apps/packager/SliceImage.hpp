@@ -43,4 +43,4 @@ private:
     bool needsConvert_{false};
     bool needsScale_{false};
 };
-}
+}  // namespace volcart

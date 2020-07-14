@@ -39,7 +39,7 @@ target_link_libraries(vc_ppm_to_pointset VC::core Boost::filesystem Boost::progr
 
 # vc_canny_segment
 add_executable(vc_canny_segment src/CannySegment.cpp)
-target_link_libraries(vc_canny_segment VC::core Boost::filesystem Boost::program_options opencv_core)
+target_link_libraries(vc_canny_segment VC::app_support VC::core Boost::filesystem Boost::program_options opencv_core)
 
 # vc_uv2mesh
 add_executable(vc_uv2mesh src/UVMaptoFlatMesh.cpp)

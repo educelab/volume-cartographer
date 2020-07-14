@@ -3,6 +3,7 @@
 #include <opencv2/core.hpp>
 
 #include "vc/core/types/ITKMesh.hpp"
+#include "vc/core/types/Mixins.hpp"
 #include "vc/core/types/PerPixelMap.hpp"
 #include "vc/core/types/UVMap.hpp"
 
@@ -22,7 +23,7 @@ namespace texturing
  * @see volcart::PerPixelMap
  * @ingroup Texture
  */
-class PPMGenerator
+class PPMGenerator : public IterationsProgress
 {
 public:
     /**@{*/
@@ -63,6 +64,9 @@ public:
     /** @copydoc getPPM() const */
     PerPixelMap& getPPM() { return ppm_; }
     /**@}*/
+
+    /** @brief Returns the maximum progress value */
+    size_t progressIterations() const override { return width_ * height_; }
 
 private:
     /** Triangular face with 2D-to-3D correspondence */
@@ -120,9 +124,6 @@ private:
     size_t width_;
     /** Output height of the PerPixelMap */
     size_t height_;
-
-    /** Algorithm progress tracker */
-    double progress_{0.0};
 };
 }  // namespace texturing
 }  // namespace volcart

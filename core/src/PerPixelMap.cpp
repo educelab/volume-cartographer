@@ -43,7 +43,7 @@ PPM::PixelMap PerPixelMap::getAsPixelMap(size_t y, size_t x)
 }
 
 // Return only valid mappings
-std::vector<PPM::PixelMap> PerPixelMap::getMappings()
+std::vector<PPM::PixelMap> PerPixelMap::getMappings() const
 {
     // Output vector
     std::vector<PixelMap> mappings;

@@ -76,6 +76,12 @@ if(VC_BUILD_EXPERIMENTAL)
     add_subdirectory(experimental)
 endif()
 
+
+# App support library
+if(VC_BUILD_APPS OR VC_BUILD_UTILS)
+    add_subdirectory(app_support)
+endif()
+
 ## VC Core Apps ##
 if (VC_BUILD_APPS)
     add_subdirectory(apps)
