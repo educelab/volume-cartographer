@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <type_traits>
+#include <vector>
 
 namespace volcart
 {
@@ -17,7 +18,10 @@ namespace volcart
  *
  * Example Usage:
  * @code{.cpp}
- * void IntFn(int i) { std::cout << i << std::endl; }
+ * void IntFn(int i) {
+ *     std::cout << i << std::endl;
+ * }
+ *
  * Signal<int> signal;
  * signal.connect(IntFn);
  * signal.send(1); // prints "1"
@@ -49,7 +53,30 @@ public:
     template <class Obj, class ObjMemberFn>
     void connect(Obj* obj, ObjMemberFn&& fn)
     {
-        connections_.emplace_back(std::bind(fn, obj, std::placeholders::_1));
+        connections_.emplace_back(
+            [=](Types... args) { return (*obj.*fn)(args...); });
+    }
+
+    /**
+     * @brief Connect a valued signal to a no-parameter object member function
+     */
+    template <class Obj, class Ret>
+    void connect(Obj* obj, Ret (Obj::*fn)())
+    {
+        connections_.emplace_back(
+            [=](Types... /*unused*/) { return (*obj.*fn)(); });
+    }
+
+    /**
+     * @brief Connect a valued signal to a no-parameter object member function
+     *
+     * cv-qualified version.
+     */
+    template <class Obj, class Ret>
+    void connect(const Obj* obj, Ret (Obj::*fn)() const)
+    {
+        connections_.emplace_back(
+            [=](Types... /*unused*/) { return (*obj.*fn)(); });
     }
 
     /**
@@ -59,9 +86,9 @@ public:
         class Enabled = typename std::enable_if<
             std::is_empty<std::tuple<Types...>(Types...)>::value,
             bool>>
-    void connect(std::function<void()> slot)
+    void connect(const std::function<void()>& slot)
     {
-        connections_.emplace_back(std::bind(slot));
+        connections_.emplace_back([=](Types&&... /*unused*/) { slot(); });
     }
 
     /** @brief Remove all connections */
@@ -90,6 +117,14 @@ private:
     /** List of connections */
     std::vector<Connection> connections_;
 };
+
+/** Specialization of connect for signals without parameters */
+template <>
+template <class Obj, class ObjMemberFn>
+void Signal<>::connect(Obj* obj, ObjMemberFn&& fn)
+{
+    connections_.emplace_back([=]() { return (*obj.*fn)(); });
+}
 
 /** Full specialization of operator() for signals without parameters */
 template <>

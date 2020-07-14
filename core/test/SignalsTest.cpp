@@ -33,6 +33,11 @@ struct Receiver {
 
     void intSlot(int i) { intVal = i; }
     void floatSlot(float f) { floatVal = f; }
+    [[noreturn]] void exitSlot()
+    {
+        std::cerr << "Success" << std::endl;
+        std::exit(intVal);
+    }
 
     static void StaticFreeIntSlot(int i) { freeIntVal = i; }
     static void StaticFreeFloatSlot(float f) { freeFloatVal = f; }
@@ -108,10 +113,25 @@ TEST(Signals, MultiParameterFn)
     EXPECT_EQ(freeFloatVal, 2);
 }
 
-TEST(Signals, NoParameterFn)
+TEST(Signals, NoParameterFreeFn)
 {
     Signal<> signal;
     signal.connect(freeFnExit);
+    EXPECT_EXIT(signal(), ::testing::ExitedWithCode(0), "Success");
+}
+
+TEST(Signals, NoParameterMemberFn)
+{
+    Signal<> signal;
+    Receiver r;
+    signal.connect(&r, &Receiver::exitSlot);
+    EXPECT_EXIT(signal(), ::testing::ExitedWithCode(0), "Success");
+}
+
+TEST(Signals, NoParameterLambdaFn)
+{
+    Signal<> signal;
+    signal.connect([]() { freeFnExit(); });
     EXPECT_EXIT(signal(), ::testing::ExitedWithCode(0), "Success");
 }
 
@@ -120,6 +140,14 @@ TEST(Signals, NoParameterSlot)
     Signal<int> signal;
     signal.connect(freeFnExit);
     EXPECT_EXIT(signal.send(1), ::testing::ExitedWithCode(0), "Success");
+}
+
+TEST(Signals, NoParameterMemberSlot)
+{
+    Signal<int> signal;
+    Receiver r;
+    signal.connect(&r, &Receiver::exitSlot);
+    EXPECT_EXIT(signal(0), ::testing::ExitedWithCode(0), "Success");
 }
 
 TEST(Signals, ReferenceParameterFn)

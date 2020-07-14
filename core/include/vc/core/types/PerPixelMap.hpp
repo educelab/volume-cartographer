@@ -102,7 +102,7 @@ public:
      *
      * Returns `true` is the pixel mask has not been set or is empty
      */
-    bool hasMapping(size_t y, size_t x)
+    bool hasMapping(size_t y, size_t x) const
     {
         if (mask_.empty()) {
             return true;
@@ -119,7 +119,7 @@ public:
      *
      * Uses hasMapping() to determine which pixels in the PPM are valid.
      */
-    std::vector<PixelMap> getMappings();
+    std::vector<PixelMap> getMappings() const;
     /**@}*/
 
     /**@{*/

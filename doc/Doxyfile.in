@@ -24,7 +24,8 @@ ALWAYS_DETAILED_SEC    = NO
 INLINE_INHERITED_MEMB  = NO
 FULL_PATH_NAMES        = YES
 STRIP_FROM_PATH        = @CMAKE_SOURCE_DIR@
-STRIP_FROM_INC_PATH    = @CMAKE_SOURCE_DIR@/core/include/ \
+STRIP_FROM_INC_PATH    = @CMAKE_SOURCE_DIR@/app_support/include/ \
+                         @CMAKE_SOURCE_DIR@/core/include/ \
                          @CMAKE_SOURCE_DIR@/experimental/include/ \
                          @CMAKE_SOURCE_DIR@/external/include/ \
                          @CMAKE_SOURCE_DIR@/meshing/include/ \
@@ -159,7 +160,9 @@ EXCLUDE_PATTERNS       = */build/* \
                          */vc-deps/* \
                          */apps/* \
                          */scripts/* \
-                         */test/*
+                         */test/* \
+                         */_deps/* \
+                         */venv/*
 EXCLUDE_SYMBOLS        =
 EXAMPLE_PATH           =
 EXAMPLE_PATTERNS       = *
@@ -284,7 +287,7 @@ EXPAND_ONLY_PREDEF     = NO
 SEARCH_INCLUDES        = YES
 INCLUDE_PATH           =
 INCLUDE_FILE_PATTERNS  =
-PREDEFINED             =  VC_USE_BULLET = 1;
+PREDEFINED             =
 EXPAND_AS_DEFINED      =
 SKIP_FUNCTION_MACROS   = YES
 TAGFILES               =

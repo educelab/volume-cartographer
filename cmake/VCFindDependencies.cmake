@@ -67,6 +67,12 @@ find_package(TIFF 4.0 REQUIRED)
 ### spdlog ###
 find_package(spdlog 1.4.2 CONFIG REQUIRED)
 
+### indicators (for app use only)
+if(VC_BUILD_APPS OR VC_BUILD_UTILS)
+    include(BuildIndicators)
+endif()
+
+
 ############
 # Optional #
 ############

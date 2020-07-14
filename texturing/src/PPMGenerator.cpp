@@ -101,7 +101,6 @@ void PPMGenerator::generate_ppm_()
     // Setup the output
     ppm_ = PerPixelMap(height_, width_);
     mask_ = cv::Mat::zeros(height_, width_, CV_8UC1);
-    progress_ = 0.0;
 
     // Setup the search tree
     kdTree_ = ITKPointsLocator::New();
@@ -114,11 +113,14 @@ void PPMGenerator::generate_ppm_()
 
     // Iterate over all of the pixels
     size_t lastCell{0};
+    progressStarted();
     for (size_t y = 0; y < height_; ++y) {
         for (size_t x = 0; x < width_; ++x) {
+            progressUpdated(y * width_ + x);
             find_cell_(x, y, lastCell);
         }
     }
+    progressComplete();
 
     // Finish setting up the output
     ppm_.setUVMap(uvMap_);

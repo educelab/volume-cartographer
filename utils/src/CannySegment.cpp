@@ -7,12 +7,13 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
+#include "vc/app_support/ProgressIndicator.hpp"
 #include "vc/core/io/PLYWriter.hpp"
 #include "vc/core/types/ITKMesh.hpp"
 #include "vc/core/types/Volume.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/ImageConversion.hpp"
-#include "vc/core/util/ProgressIndicator.hpp"
+#include "vc/core/util/Ranges.hpp"
 
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;
@@ -126,9 +127,8 @@ int main(int argc, char* argv[])
     std::cout << "Segmenting surface..." << std::endl;
     auto mesh = vc::ITKMesh::New();
     cv::Vec3d first, last, middle;
-    vc::DiscreteConsoleProgressIndicator progress(volume->numSlices(), "Slice");
-    for (int z = 0; z < volume->numSlices(); z++) {
-        progress.update(z);
+    for (const auto& z :
+         vc::ProgressWrap(vc::Range(volume->numSlices()), "Slice:")) {
         // Get the slice and blur it
         auto slice = vc::QuantizeImage(volume->getSliceDataCopy(z), CV_8UC1);
         cv::GaussianBlur(slice, slice, {gaussianKernel, gaussianKernel}, 0);
@@ -201,7 +201,6 @@ int main(int argc, char* argv[])
             mesh->SetPoint(mesh->GetNumberOfPoints(), middle.val);
         }
     }
-    progress.complete();
 
     // Write mesh
     std::cout << "Writing mesh..." << std::endl;

@@ -1,31 +1,26 @@
 // render.cpp
 
-#include <cmath>
-#include <cstdint>
 #include <fstream>
 #include <iostream>
 
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
-#include <opencv2/imgcodecs.hpp>
 
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/MemorySizeStringParser.hpp"
 #include "vc/external/GetMemorySize.hpp"
 #include "vc/meshing/ScaleMesh.hpp"
-#include "vc/texturing/ScaleMarkerGenerator.hpp"
 
 // App includes
-#include "apps/RenderGeneral.hpp"
-#include "apps/RenderIO.hpp"
-#include "apps/RenderMeshing.hpp"
-#include "apps/RenderTexturing.hpp"
+#include "vc/apps/render/RenderGeneral.hpp"
+#include "vc/apps/render/RenderIO.hpp"
+#include "vc/apps/render/RenderMeshing.hpp"
+#include "vc/apps/render/RenderTexturing.hpp"
 
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
 namespace vcm = volcart::meshing;
-namespace vct = volcart::texturing;
 
 // Volpkg version required by this app
 static constexpr int VOLPKG_SUPPORTED_VERSION = 6;

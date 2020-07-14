@@ -25,12 +25,17 @@ Texture IntersectionTexture::compute()
         });
 
     // Iterate through the mappings
+    size_t counter{0};
+    progressStarted();
     for (const auto& pixel : mappings) {
+        progressUpdated(counter++);
+
         // Assign the intensity value at the XY position
         image.at<uint16_t>(
             static_cast<int>(pixel.y), static_cast<int>(pixel.x)) =
             vol_->interpolateAt(pixel.pos);
     }
+    progressComplete();
 
     // Set output
     result_.addImage(image);

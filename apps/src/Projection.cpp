@@ -19,9 +19,11 @@
 #include <vtkSmartPointer.h>
 #include <vtkStripper.h>
 
+#include "vc/app_support/ProgressIndicator.hpp"
 #include "vc/core/io/OBJReader.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/Logging.hpp"
+#include "vc/core/util/Ranges.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
 
 static const double MAX_8BPC = std::numeric_limits<uint8_t>::max();
@@ -198,9 +200,8 @@ int main(int argc, char* argv[])
     // image
     cv::Mat outputImg;
     std::vector<cv::Point> contour;
-    for (int it = z_min; it < z_max; ++it) {
-        std::cerr << "vc::projection::Projecting " << it << "\r" << std::flush;
-
+    for (const auto& it : vc::ProgressWrap(
+             vc::Range(z_min, z_max), "vc::projection::Projecting:")) {
         // Cut the mesh and get the intersection
         cutPlane->SetOrigin(width / 2, height / 2, it);
         stripper->Update();
@@ -237,7 +238,6 @@ int main(int argc, char* argv[])
         auto path = outputDir / filename.str();
         cv::imwrite(path.string(), outputImg);
     }
-    std::cerr << std::endl;
 
     return EXIT_SUCCESS;
 }

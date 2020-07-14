@@ -53,7 +53,6 @@ std::string DurationToDurationString(std::chrono::duration<Rep, Period> input)
     auto dc = d.count();
     auto hc = h.count();
     auto mc = m.count();
-    auto sc = s.count();
 
     std::stringstream ss;
     ss.fill('0');
@@ -72,12 +71,12 @@ std::string DurationToDurationString(std::chrono::duration<Rep, Period> input)
         }
         ss << m.count() << "m";
     }
-    if (dc || hc || mc || sc) {
-        if (dc || hc || mc) {
-            ss << std::setw(2);
-        }
-        ss << s.count() << 's';
+
+    // Always display seconds
+    if (dc || hc || mc) {
+        ss << std::setw(2);
     }
+    ss << s.count() << 's';
 
     return ss.str();
 }

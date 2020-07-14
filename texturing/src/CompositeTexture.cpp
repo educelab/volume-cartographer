@@ -33,7 +33,11 @@ Texture CompositeTexture::compute()
         });
 
     // Iterate through the mappings
+    size_t counter = 0;
+    progressStarted();
     for (const auto& pixel : mappings) {
+        progressUpdated(counter++);
+
         // Generate the neighborhood
         auto neighborhood = get_neighborhood_(pixel.pos, pixel.normal);
 
@@ -42,6 +46,7 @@ Texture CompositeTexture::compute()
             static_cast<int>(pixel.y), static_cast<int>(pixel.x)) =
             filter_neighborhood_(neighborhood);
     }
+    progressComplete();
 
     // Set output
     result_.addImage(image);
