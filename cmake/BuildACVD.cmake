@@ -6,7 +6,7 @@ if (VC_USE_ACVD OR VC_USE_OPTIONAL)
     FetchContent_Declare(
             acvd
             GIT_REPOSITORY https://github.com/csparker247/ACVD.git
-            GIT_TAG v1.1.2
+            GIT_TAG v1.1.3
     )
     
     # Populate the project but exclude from all
