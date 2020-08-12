@@ -135,7 +135,7 @@ void IntegralTexture::setup_linear_weights_()
 NDArray<double> IntegralTexture::apply_linear_weights_(NDArray<double>& n)
 {
     std::vector<double> weighted;
-    cv::multiply(n.data(), linearWeights_.data(), weighted);
+    cv::multiply(n.as_vector(), linearWeights_.as_vector(), weighted);
     return NDArray<double>(
         n.dims(), n.extents(), weighted.begin(), weighted.end());
 }

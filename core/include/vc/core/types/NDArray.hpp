@@ -168,10 +168,16 @@ public:
 
     /**@{*/
     /** @brief Return copy of raw data */
-    Container data() { return data_; }
+    Container as_vector() { return data_; }
+
+    /** @overload as_vector() */
+    Container as_vector() const { return data_; }
+
+    /** @brief Get a pointer to the start of the underlying data */
+    typename Container::value_type* data() { return data_.data(); }
 
     /** @overload data() */
-    Container data() const { return data_; }
+    typename Container::value_type* data() const { return data_.data(); }
 
     /**
      * @brief Return an iterator that points to the first element in the array
