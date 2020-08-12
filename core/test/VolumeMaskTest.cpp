@@ -62,7 +62,7 @@ TEST(VolumeMask, Performance_ThousandVoxelSubvolume)
     std::fill(key.begin(), key.end(), State::Segmented);
 
     // Retrieval
-    EXPECT_THAT(subvolume.data(), testing::ContainerEq(key));
+    EXPECT_THAT(subvolume.as_vector(), testing::ContainerEq(key));
 
     // Check unset values
     origin[2] = dims[2];
@@ -70,7 +70,7 @@ TEST(VolumeMask, Performance_ThousandVoxelSubvolume)
     std::fill(key.begin(), key.end(), State::Unsegmented);
 
     // Retrieval
-    EXPECT_THAT(subvolume.data(), testing::ContainerEq(key));
+    EXPECT_THAT(subvolume.as_vector(), testing::ContainerEq(key));
 }
 
 TEST(VolumeMask, Performance_EightThousandVoxelSubvolume)
@@ -89,7 +89,7 @@ TEST(VolumeMask, Performance_EightThousandVoxelSubvolume)
     std::fill(key.begin(), key.end(), State::Segmented);
 
     // Retrieval
-    EXPECT_THAT(subvolume.data(), testing::ContainerEq(key));
+    EXPECT_THAT(subvolume.as_vector(), testing::ContainerEq(key));
 
     // Check unset values
     origin[2] = dims[2];
@@ -97,5 +97,5 @@ TEST(VolumeMask, Performance_EightThousandVoxelSubvolume)
     std::fill(key.begin(), key.end(), State::Unsegmented);
 
     // Retrieval
-    EXPECT_THAT(subvolume.data(), testing::ContainerEq(key));
+    EXPECT_THAT(subvolume.as_vector(), testing::ContainerEq(key));
 }
