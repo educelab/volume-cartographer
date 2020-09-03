@@ -5,80 +5,76 @@ stages:
     - collect
     - deploy
 
-### Debian ###
-test:debian:static:
-    image: volcart/vcbuilder-debian:9_v9.static
-    stage: test
+### Prototype build jobs ###
+.build_script: &build_script
+    - mkdir -p build/
+    - cd build/
+    - echo $CMAKE_CMD
+    - $CMAKE_CMD
+    - ninja
+
+.test_script: &test_script
+    - ctest -V
+
+.build:
+    variables:
+        EXTRA_CMAKE_FLAGS: ""
+    before_script:
+        - export CMAKE_CMD="cmake -GNinja $EXTRA_CMAKE_FLAGS .."
     script:
-        - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
-        - mkdir -p build
-        - cd build/
-        - cmake -DVC_BUILD_ACVD=ON -GNinja ..
-        - ninja
-        - ctest -V
+        - *build_script
+
+.build_and_test:
+    extends: .build
+    script:
+        - *build_script
+        - *test_script
     artifacts:
         name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
         paths:
             - build/Testing/Temporary/
         when: always
         expire_in: 4 weeks
+
+### Debian ###
+test:debian:static:
+    extends: .build_and_test
+    stage: test
+    needs: []
+    image: volcart/vcbuilder-debian:10_v1.static
+    variables:
+        EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON"
     tags:
         - docker
 
 test:debian:dynamic:
-    image: volcart/vcbuilder-debian:9_v9.dynamic
+    extends: .build_and_test
     stage: test
-    script:
-        - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
-        - mkdir -p build
-        - cd build/
-        - cmake -DVC_BUILD_ACVD=ON -GNinja ..
-        - ninja
-        - ctest -V
-    artifacts:
-        name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
-        paths:
-            - build/Testing/Temporary/
-        when: always
-        expire_in: 4 weeks
+    needs: []
+    image: volcart/vcbuilder-debian:10_v1.dynamic
+    variables:
+        EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DBUILD_SHARED_LIBS=ON"
     tags:
         - docker
 
 test:debian:experimental:
-    image: volcart/vcbuilder-debian:9_v9.experimental
+    extends: .build_and_test
     stage: test
-    script:
-        - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
-        - mkdir -p build
-        - cd build/
-        - cmake -DVC_BUILD_EXPERIMENTAL=ON -DVC_BUILD_ACVD=ON -GNinja ..
-        - ninja
-        - ctest -V
-    artifacts:
-        name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
-        paths:
-            - build/Testing/Temporary/
-        when: always
-        expire_in: 4 weeks
+    needs: []
+    image: volcart/vcbuilder-debian:10_v1.experimental
+    variables:
+        EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DVC_BUILD_EXPERIMENTAL=ON"
     tags:
         - docker
 
 ### macOS ###
 test:macos:static:
+    extends: .build_and_test
     stage: test
-    script:
-        - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
-        - mkdir -p build
-        - cd build/
-        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DVC_BUILD_ACVD=ON -GNinja ..
-        - ninja
-        - ctest -V
-    artifacts:
-        name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
-        paths:
-            - build/testing/Temporary/
-        when: always
-        expire_in: 4 weeks
+    needs: []
+    variables:
+        Qt5_DIR: "/usr/local/opt/qt5/lib/cmake/Qt5"
+        EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON"
     tags:
         - test
         - osx
@@ -87,20 +83,12 @@ test:macos:static:
         - ninja
 
 test:macos:dynamic:
+    extends: .build_and_test
     stage: test
-    script:
-        - echo $CI_BUILD_REF_NAME   $CI_BUILD_STAGE
-        - mkdir -p build
-        - cd build/
-        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DVC_BUILD_ACVD=ON -DBUILD_SHARED_LIBS=ON -GNinja ..
-        - ninja
-        - ctest -V
-    artifacts:
-        name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
-        paths:
-            - build/testing/Temporary/
-        when: always
-        expire_in: 4 weeks
+    needs: []
+    variables:
+        Qt5_DIR: "/usr/local/opt/qt5/lib/cmake/Qt5"
+        EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DBUILD_SHARED_LIBS=ON"
     tags:
         - test
         - osx
@@ -110,9 +98,10 @@ test:macos:dynamic:
 
 ### Extra Checks and Tests ###
 lint:clang-format:
-    before_script:
-      - git fetch --all
     stage: lint
+    needs: []
+    before_script:
+        - git fetch --all
     script:
         - utils/scripts/clang-format.py --print-output
     allow_failure: true
@@ -121,13 +110,14 @@ lint:clang-format:
         - osx
 
 lint:clang-tidy:
-    before_script:
-      - git fetch --all
-      - mkdir -p build/
-      - cd build/
-      - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -GNinja -DVC_BUILD_ACVD=ON ..
-      - cd ..
     stage: lint
+    needs: []
+    before_script:
+        - git fetch --all
+        - mkdir -p build/
+        - cd build/
+        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -GNinja -DVC_BUILD_ACVD=ON ..
+        - cd ..
     script:
         - echo $CI_BUILD_REF_NAME $CI_BUILD_STAGE
         - utils/scripts/clang-tidy.py --print-output
@@ -138,13 +128,16 @@ lint:clang-tidy:
 
 ### Documentation ###
 doxygen:
+    stage: docs
+    needs: []
     only:
         - master
         - develop
-    stage: docs
+    variables:
+        Qt5_DIR: "/usr/local/opt/qt5/lib/cmake/Qt5"
     script:
         - cd build/
-        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -DVC_BUILD_DOC=ON -GNinja ..
+        - cmake -DVC_BUILD_DOC=ON -GNinja ..
         - ninja doc
         - cd doc/latex/
         - make
@@ -160,144 +153,173 @@ doxygen:
         - test
 
 ### Collect & Deploy ###
-collect:release:source:
-    only:
-        - master
-    stage: collect
-    script:
-        - version=$(utils/scripts/version-gen.sh)
-        - vershort=$(utils/scripts/version-gen.sh --short)
-        - git archive --format=tar.gz -o VC-${vershort}-source.tar.gz HEAD
-    artifacts:
-      name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
-      paths:
-         - ./*.tar.gz
-      expire_in: 1 day
-    tags:
-      - source
+.deploy_variables: &deploy_variables
+    - export DATETIME=$(date '+%Y%m%d')
+    - export VERSION=$(utils/scripts/version-gen.sh)
+    - export VERSHORT=$(utils/scripts/version-gen.sh --short)
+    - export SHA=$(git log -1 --format="%h")
 
-collect:release:macos:
+.collect:source:
+    variables:
+        TARNAME: "source.tar.gz"
+    script:
+        - git archive --format=tar.gz -o ${TARNAME} HEAD
+    artifacts:
+        name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
+        paths:
+            - ./*.tar.gz
+        expire_in: 1 day
+    tags:
+        - source
+
+collect:release:source:
+    extends: .collect:source
+    stage: collect
+    needs: []
     only:
         - master
-    stage: collect
-    variables:
-        OSX_SDK_VERSION: "10.13"
-        OSX_SDK_PATH: "../vc-deps/build/osx-sdk-prefix/src/osx-sdk/SDKs/MacOSX10.13.sdk/"
-    script:
-        - git submodule update --init
-        - cd vc-deps/
-        - mkdir -p build/
-        - cd build/
-        - cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DBUILD_UNIVERSAL_LIBS=ON -DVCDEPS_BUILD_ACVD=OFF ..
-        - ninja
-        - cd ../..
-        - mkdir -p build
-        - cd build/
-        - cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON -DVC_BUILD_EXAMPLES=OFF -DVC_BUILD_TESTS=OFF -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DCMAKE_OSX_DEPLOYMENT_TARGET=$OSX_SDK_VERSION -DCMAKE_OSX_SYSROOT=$OSX_SDK_PATH ..
-        - ninja
-        - ninja package
-        - mv VC*.dmg ../
-        - mv VC*.tar.gz ../
-    artifacts:
-      name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
-      paths:
-        - ./*.dmg
-        - ./*.tar.gz
-      expire_in: 1 day
-    tags:
-        - deploy
-        - osx
-        - qt5
+    before_script:
+        - *deploy_variables
+        - export TARNAME="VC-${VERSHORT}-source.tar.gz"
 
 collect:nightly:source:
-    only:
-        - schedules
-    except:
-        - ${CI_COMMIT_REF_NAME} != "develop"
+    extends: .collect:source
     stage: collect
-    script:
-        - datetime=$(date '+%Y%m%d')
-        - vershort=$(utils/scripts/version-gen.sh --short)
-        - sha=$(git log -1 --format="%h")
-        - git archive --format=tar.gz -o VC-${datetime}-${vershort}.${sha}-source.tar.gz HEAD
-    artifacts:
-      name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
-      paths:
-         - ./*.tar.gz
-      expire_in: 1 day
-    tags:
-      - source
-
-collect:nightly:macos:
+    needs: []
     only:
         - schedules
     except:
         - ${CI_COMMIT_REF_NAME} != "develop"
-    stage: test
+    before_script:
+        - *deploy_variables
+        - export TARNAME="VC-${DATETIME}-${VERSHORT}.${SHA}-source.tar.gz"
+
+.macos_move_package: &macos_move_package
+    - ninja package
+    - mv VC*.dmg ../
+    - mv VC*.tar.gz ../
+
+.collect:package:macos:
+    extends: .build
     variables:
-        OSX_SDK_VERSION: "10.13"
-        OSX_SDK_PATH: "../vc-deps/build/osx-sdk-prefix/src/osx-sdk/SDKs/MacOSX10.13.sdk/"
-    script:
+        MACOSX_DEPLOYMENT_TARGET: "10.13"
+        Qt5_DIR: "/usr/local/opt/qt5/lib/cmake/Qt5"
+        EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON -DVC_BUILD_EXAMPLES=OFF -DVC_BUILD_TESTS=OFF"
+    before_script:
+        - export VC_DEPS_PATH="$CI_PROJECT_DIR/vc-deps"
+        - export CMAKE_CMD="cmake -GNinja $EXTRA_CMAKE_FLAGS .."
         - git submodule update --init
         - cd vc-deps/
         - mkdir -p build/
         - cd build/
         - cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DBUILD_UNIVERSAL_LIBS=ON -DVCDEPS_BUILD_ACVD=OFF ..
         - ninja
-        - cd ../..
-        - mkdir -p build
-        - cd build/
-        - cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DVC_VERSION_DATESTAMP=ON -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON -DVC_BUILD_EXAMPLES=OFF -DVC_BUILD_TESTS=OFF -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5 -DCMAKE_OSX_DEPLOYMENT_TARGET=$OSX_SDK_VERSION -DCMAKE_OSX_SYSROOT=$OSX_SDK_PATH ..
-        - ninja
-        - ninja package
-        - mv VC*.dmg ../
-        - mv VC*.tar.gz ../
+        - cd ../../
+        - export SDKROOT="$CI_PROJECT_DIR/vc-deps/build/osx-sdk-prefix/SDKs/MacOSX${MACOSX_DEPLOYMENT_TARGET}.sdk/"
+    script:
+        - *build_script
+        - *macos_move_package
     artifacts:
-      name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
-      paths:
-        - ./*.dmg
-        - ./*.tar.gz
-      expire_in: 1 day
+        name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
+        paths:
+            - ./*.dmg
+            - ./*.tar.gz
+        expire_in: 1 day
     tags:
         - deploy
         - osx
         - qt5
 
-deploy:release:
-    only:
-        - master
-    stage: deploy
-    dependencies:
-      - collect:release:source
-      - collect:release:macos
+collect:release:macos:
+    extends: .collect:package:macos
+    stage: collect
+    rules:
+        - if: $CI_COMMIT_TAG
+          when: never
+        - if: '$CI_COMMIT_BRANCH == "master"'
+          when: always
+
+collect:release:tag_setup:
+    stage: collect
+    needs: []
+    rules:
+        - if: $CI_COMMIT_TAG
+          when: never
+        - if: '$CI_COMMIT_BRANCH == "master"'
     script:
-        - directory=v$(utils/scripts/version-gen.sh)
-        - mkdir -p ${directory}
-        - cp VC*.dmg ${directory}
-        - cp VC*.tar.gz ${directory}
-        - rclone -v copy ${directory}/ volume-cartographer:releases/${directory}/
-    environment: production
+        - *deploy_variables
+        - echo "TAG=v${VERSION}" >> variables.env
+    artifacts:
+        reports:
+            dotenv: variables.env
+
+collect:nightly:macos:
+    extends: .collect:package:macos
+    stage: collect
+    rules:
+        - if: $CI_COMMIT_TAG
+          when: never
+        - if: '$CI_COMMIT_BRANCH == "develop" && $CI_PIPELINE_SOURCE == "schedule"'
+          when: always
+    variables:
+        EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_VERSION_DATESTAMP=ON -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON -DVC_BUILD_EXAMPLES=OFF -DVC_BUILD_TESTS=OFF"
+
+.deploy:
+    variables:
+        REMOTE: "volume-cartographer"
+    script:
+        - mkdir -p ${BUILD_DIR}
+        - cp VC*.dmg ${BUILD_DIR}
+        - cp VC*.tar.gz ${BUILD_DIR}
+        - rclone -v copy ${BUILD_DIR}/ ${REMOTE}:${REMOTE_DIR}/${BUILD_DIR}/
     tags:
         - rclone
 
+deploy:release:
+    extends: .deploy
+    stage: deploy
+    needs: ["collect:release:source", "collect:release:macos"]
+    rules:
+        - if: $CI_COMMIT_TAG
+          when: never
+        - if: '$CI_COMMIT_BRANCH == "master"'
+    variables:
+        REMOTE_DIR: "releases"
+    before_script:
+        - *deploy_variables
+        - export BUILD_DIR=v${VERSION}
+
+deploy:release:tag:
+    stage: deploy
+    image: registry.gitlab.com/gitlab-org/release-cli:latest
+    needs:
+        - job: collect:release:tag_setup
+          artifacts: true
+    rules:
+        - if: $CI_COMMIT_TAG
+          when: never
+        - if: '$CI_COMMIT_BRANCH == "master"'
+    script:
+        - echo 'Creating release $TAG'
+    release:
+        name: 'Release $TAG'
+        tag_name: '$TAG'
+        description: 'Auto-created release'
+        ref: '$CI_COMMIT_SHA'
+
 deploy:nightly:
+    extends: .deploy
+    stage: deploy
+    needs: ["collect:nightly:source", "collect:nightly:macos"]
     only:
         - schedules
     except:
         - ${CI_COMMIT_REF_NAME} != "develop"
-    stage: deploy
     dependencies:
-      - collect:nightly:source
-      - collect:nightly:macos
-    script:
-        - datetime=$(date '+%Y%m%d')
-        - vershort=$(utils/scripts/version-gen.sh --short)
-        - sha=$(git log -1 --format="%h")
-        - directory=${datetime}-${vershort}.${sha}
-        - mkdir -p ${directory}
-        - cp VC*.dmg ${directory}
-        - cp VC*.tar.gz ${directory}
-        - rclone -v copy ${directory}/ volume-cartographer:nightlies/${directory}/
-    environment: development
-    tags:
-        - rclone
+        - collect:nightly:source
+        - collect:nightly:macos
+    variables:
+        REMOTE_DIR: "nightlies"
+    before_script:
+        - *deploy_variables
+        - export BUILD_DIR=${DATETIME}-${VERSHORT}.${SHA}

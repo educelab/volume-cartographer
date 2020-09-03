@@ -92,6 +92,9 @@ To build a deployable macOS installer DMG for macOS 10.9+, use the `vc-deps` sub
 # Get the source code plus all submodules
 git clone --recursive https://code.cs.uky.edu/seales-research/volume-cartographer.git
 
+# Setup macOS SDK version
+export MACOSX_DEPLOYMENT_TARGET="10.13"
+
 # Build vc-deps
 cd volume-cartographer/vc-deps
 mkdir build && cd build
@@ -99,12 +102,13 @@ cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_UNIVERSAL_LIBS=ON ..
 make
 cd ../../
 
+# Setup SDKROOT for volume-cartographer
+export SDKROOT=$PWD/vc-deps/build/osx-sdk-prefix/SDKs/MacOSX${MACOSX_DEPLOYMENT_TARGET}.sdk/
+
 # Build volume-cartographer
 mkdir build
 cd build
-export OSX_SDK_VERSION="10.9"
-export OSX_SDK_PATH="../vc-deps/build/osx-sdk-prefix/src/osx-sdk/SDKs/MacOSX10.9.sdk/"
-cmake -DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DCMAKE_OSX_DEPLOYMENT_TARGET=$OSX_SDK_VERSION -DCMAKE_OSX_SYSROOT=$OSX_SDK_PATH ..
+cmake -DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON ..
 make && make package
 ```
 
