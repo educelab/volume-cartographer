@@ -242,9 +242,6 @@ collect:release:macos:
     extends:
         - .collect:package:macos
     stage: collect
-    needs:
-        - job: "test:macos:static"
-          artifacts: false
     rules:
         *rules_release
 
@@ -252,9 +249,6 @@ collect:nightly:macos:
     extends:
         - .collect:package:macos
     stage: collect
-    needs:
-        - job: "test:macos:static"
-          artifacts: false
     rules:
         *rules_nightly
     variables:
@@ -283,6 +277,8 @@ deploy:release:
     before_script:
         - *deploy_variables
         - export BUILD_DIR=v${VERSION}
+    environment:
+        name: production
 
 deploy:release:tag:
     stage: deploy
@@ -312,3 +308,5 @@ deploy:nightly:
     before_script:
         - *deploy_variables
         - export BUILD_DIR=${DATETIME}-${VERSHORT}.${SHA}
+    environment:
+        name: development
