@@ -166,6 +166,7 @@ doxygen:
     - if: '$CI_COMMIT_BRANCH == "develop" && $CI_PIPELINE_SOURCE == "schedule"'
     - if: '$CI_COMMIT_BRANCH == "develop"'
       when: manual
+      allow_failure: false
 
 .collect:source:
     variables:
