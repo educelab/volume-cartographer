@@ -157,19 +157,15 @@ doxygen:
     - export VERSHORT=$(utils/scripts/version-gen.sh --short)
     - export SHA=$(git log -1 --format="%h")
 
-.rules:release:
-    rules:
-        - if: '$CI_COMMIT_TAG =~ /v*/'
-          when: always
+.rules:release: &rules_release
+    - if: '$CI_COMMIT_TAG =~ /^v.*$/'
 
-.rules:nightly:
-    rules:
-        - if: $CI_COMMIT_TAG
-          when: never
-        - if: '$CI_COMMIT_BRANCH == "develop" && $CI_PIPELINE_SOURCE == "schedule"'
-          when: always
-        - if: '$CI_COMMIT_BRANCH == "develop"'
-          when: manual
+.rules:nightly: &rules_nightly
+    - if: $CI_COMMIT_TAG
+      when: never
+    - if: '$CI_COMMIT_BRANCH == "develop" && $CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+      when: manual
 
 .collect:source:
     variables:
@@ -187,9 +183,10 @@ doxygen:
 collect:release:source:
     extends:
         - .collect:source
-        - .rules:release
     stage: collect
     needs: []
+    rules:
+        *rules_release
     before_script:
         - *deploy_variables
         - export TARNAME="VC-${VERSHORT}-source.tar.gz"
@@ -197,9 +194,10 @@ collect:release:source:
 collect:nightly:source:
     extends:
         - .collect:source
-        - .rules:nightly
     stage: collect
     needs: []
+    rules:
+        *rules_nightly
     before_script:
         - *deploy_variables
         - export TARNAME="VC-${DATETIME}-${VERSHORT}.${SHA}-source.tar.gz"
@@ -243,20 +241,22 @@ collect:nightly:source:
 collect:release:macos:
     extends:
         - .collect:package:macos
-        - .rules:release
     stage: collect
     needs:
         - job: "test:macos:static"
           artifacts: false
+    rules:
+        *rules_release
 
 collect:nightly:macos:
     extends:
         - .collect:package:macos
-        - .rules:nightly
     stage: collect
     needs:
         - job: "test:macos:static"
           artifacts: false
+    rules:
+        *rules_nightly
     variables:
         EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_VERSION_DATESTAMP=ON -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON -DVC_BUILD_EXAMPLES=OFF -DVC_BUILD_TESTS=OFF"
 
@@ -274,9 +274,10 @@ collect:nightly:macos:
 deploy:release:
     extends:
         - .deploy
-        - .rules:release
     stage: deploy
     needs: ["collect:release:source", "collect:release:macos"]
+    rules:
+        *rules_release
     variables:
         REMOTE_DIR: "releases"
     before_script:
@@ -284,10 +285,11 @@ deploy:release:
         - export BUILD_DIR=v${VERSION}
 
 deploy:release:tag:
-    extends: .rules:release
     stage: deploy
     image: registry.gitlab.com/gitlab-org/release-cli:latest
     needs: ["collect:release:source", "collect:release:macos"]
+    rules:
+        *rules_release
     script:
         - echo 'Creating release $CI_COMMIT_TAG'
     release:
@@ -301,9 +303,10 @@ deploy:release:tag:
 deploy:nightly:
     extends:
         - .deploy
-        - .rules:nightly
     stage: deploy
     needs: ["collect:nightly:source", "collect:nightly:macos"]
+    rules:
+        *rules_nightly
     variables:
         REMOTE_DIR: "nightlies"
     before_script:
