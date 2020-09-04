@@ -180,7 +180,7 @@ doxygen:
     tags:
         - source
 
-collect:release:source:
+collect:source:release:
     extends:
         - .collect:source
     stage: collect
@@ -191,7 +191,7 @@ collect:release:source:
         - *deploy_variables
         - export TARNAME="VC-${VERSHORT}-source.tar.gz"
 
-collect:nightly:source:
+collect:source:nightly:
     extends:
         - .collect:source
     stage: collect
@@ -238,14 +238,14 @@ collect:nightly:source:
         - osx
         - qt5
 
-collect:release:macos:
+collect:binaries:macos:release:
     extends:
         - .collect:package:macos
     stage: collect
     rules:
         *rules_release
 
-collect:nightly:macos:
+collect:binaries:macos:nightly:
     extends:
         - .collect:package:macos
     stage: collect
@@ -254,7 +254,7 @@ collect:nightly:macos:
     variables:
         EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_VERSION_DATESTAMP=ON -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON -DVC_BUILD_EXAMPLES=OFF -DVC_BUILD_TESTS=OFF"
 
-.upload_binaries:
+.upload_final_build:
     variables:
         REMOTE: "volume-cartographer"
     script:
@@ -263,20 +263,24 @@ collect:nightly:macos:
         - cp VC*.tar.gz ${BUILD_DIR}
         - rclone -v copy ${BUILD_DIR}/ ${REMOTE}:${REMOTE_DIR}/${BUILD_DIR}/
         - export DMG_NAME=$(basename ${BUILD_DIR}/VC-*-Darwin-*.dmg)
+        - export DMG_URL=$(rclone link ${REMOTE}:${REMOTE_DIR}/${BUILD_DIR}/${DMG_NAME})
+        - echo "${DMG_NAME}::${DMG_URL}"
+        - echo "DMG_URL=${DMG_URL}" >> variables.env
         - export TAR_NAME=$(basename ${BUILD_DIR}/VC-*-Darwin-*.tar.gz)
-        - echo "DMG_URL=$(rclone link ${REMOTE}:${REMOTE_DIR}/${BUILD_DIR}/${DMG_NAME})" >> variables.env
-        - echo "TAR_URL=$(rclone link ${REMOTE}:${REMOTE_DIR}/${BUILD_DIR}/${TAR_NAME})" >> variables.env
+        - export TAR_URL=$(rclone link ${REMOTE}:${REMOTE_DIR}/${BUILD_DIR}/${TAR_NAME})
+        - echo "${TAR_NAME}::${TAR_URL}"
+        - echo "TAR_URL=${TAR_URL}" >> variables.env
     artifacts:
         reports:
             dotenv: variables.env
     tags:
         - rclone
 
-deploy:binaries:release:
+deploy:release:
     extends:
-        - .upload_binaries
+        - .upload_final_build
     stage: deploy
-    needs: ["collect:release:source", "collect:release:macos"]
+    needs: ["collect:source:release", "collect:binaries:macos:release"]
     rules:
         *rules_release
     variables:
@@ -290,7 +294,7 @@ deploy:binaries:release:
 release:create:
     stage: release
     image: registry.gitlab.com/gitlab-org/release-cli:latest
-    needs: ["deploy:binaries:release"]
+    needs: ["deploy:release"]
     rules:
         *rules_release
     script:
@@ -305,11 +309,11 @@ release:create:
     tags:
         - docker
 
-deploy:binaries:nightly:
+deploy:nightly:
     extends:
-        - .upload_binaries
+        - .upload_final_build
     stage: deploy
-    needs: ["collect:nightly:source", "collect:nightly:macos"]
+    needs: ["collect:source:nightly", "collect:binaries:macos:nightly"]
     rules:
         *rules_nightly
     variables:
