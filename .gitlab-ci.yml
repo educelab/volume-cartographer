@@ -157,6 +157,20 @@ doxygen:
     - export VERSHORT=$(utils/scripts/version-gen.sh --short)
     - export SHA=$(git log -1 --format="%h")
 
+.rules:release:
+    rules:
+        - if: '$CI_COMMIT_TAG =~ /v*/'
+          when: always
+
+.rules:nightly:
+    rules:
+        - if: $CI_COMMIT_TAG
+          when: never
+        - if: '$CI_COMMIT_BRANCH == "develop" && $CI_PIPELINE_SOURCE == "schedule"'
+          when: always
+        - if: '$CI_COMMIT_BRANCH == "develop"'
+          when: manual
+
 .collect:source:
     variables:
         TARNAME: "source.tar.gz"
@@ -171,23 +185,21 @@ doxygen:
         - source
 
 collect:release:source:
-    extends: .collect:source
+    extends:
+        - .collect:source
+        - .rules:release
     stage: collect
     needs: []
-    only:
-        - master
     before_script:
         - *deploy_variables
         - export TARNAME="VC-${VERSHORT}-source.tar.gz"
 
 collect:nightly:source:
-    extends: .collect:source
+    extends:
+        - .collect:source
+        - .rules:nightly
     stage: collect
     needs: []
-    only:
-        - schedules
-    except:
-        - ${CI_COMMIT_REF_NAME} != "develop"
     before_script:
         - *deploy_variables
         - export TARNAME="VC-${DATETIME}-${VERSHORT}.${SHA}-source.tar.gz"
@@ -229,42 +241,22 @@ collect:nightly:source:
         - qt5
 
 collect:release:macos:
-    extends: .collect:package:macos
-    stage: collect
-    needs:
-       - job: "test:macos:static"
-         artifacts: false
-    rules:
-        - if: $CI_COMMIT_TAG
-          when: never
-        - if: '$CI_COMMIT_BRANCH == "master"'
-          when: always
-
-collect:release:tag_setup:
-    stage: collect
-    needs: []
-    rules:
-        - if: $CI_COMMIT_TAG
-          when: never
-        - if: '$CI_COMMIT_BRANCH == "master"'
-    script:
-        - *deploy_variables
-        - echo "TAG=v${VERSION}" >> variables.env
-    artifacts:
-        reports:
-            dotenv: variables.env
-
-collect:nightly:macos:
-    extends: .collect:package:macos
+    extends:
+        - .collect:package:macos
+        - .rules:release
     stage: collect
     needs:
         - job: "test:macos:static"
           artifacts: false
-    rules:
-        - if: $CI_COMMIT_TAG
-          when: never
-        - if: '$CI_COMMIT_BRANCH == "develop" && $CI_PIPELINE_SOURCE == "schedule"'
-          when: always
+
+collect:nightly:macos:
+    extends:
+        - .collect:package:macos
+        - .rules:nightly
+    stage: collect
+    needs:
+        - job: "test:macos:static"
+          artifacts: false
     variables:
         EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_VERSION_DATESTAMP=ON -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON -DVC_BUILD_EXAMPLES=OFF -DVC_BUILD_TESTS=OFF"
 
@@ -280,13 +272,11 @@ collect:nightly:macos:
         - rclone
 
 deploy:release:
-    extends: .deploy
+    extends:
+        - .deploy
+        - .rules:release
     stage: deploy
     needs: ["collect:release:source", "collect:release:macos"]
-    rules:
-        - if: $CI_COMMIT_TAG
-          when: never
-        - if: '$CI_COMMIT_BRANCH == "master"'
     variables:
         REMOTE_DIR: "releases"
     before_script:
@@ -294,34 +284,26 @@ deploy:release:
         - export BUILD_DIR=v${VERSION}
 
 deploy:release:tag:
+    extends: .rules:release
     stage: deploy
     image: registry.gitlab.com/gitlab-org/release-cli:latest
-    needs:
-        - job: collect:release:tag_setup
-          artifacts: true
-    rules:
-        - if: $CI_COMMIT_TAG
-          when: never
-        - if: '$CI_COMMIT_BRANCH == "master"'
+    needs: ["collect:release:source", "collect:release:macos"]
     script:
-        - echo 'Creating release $TAG'
+        - echo 'Creating release $CI_COMMIT_TAG'
     release:
-        name: 'Release $TAG'
-        tag_name: '$TAG'
-        description: 'Auto-created release'
-        ref: '$CI_COMMIT_SHA'
+        name: 'Release $CI_COMMIT_TAG'
+        tag_name: '$CI_COMMIT_TAG'
+        description: 'Auto-created release $CI_COMMIT_TAG'
+        ref: '$CI_COMMIT_TAG'
+    tags:
+        - docker
 
 deploy:nightly:
-    extends: .deploy
+    extends:
+        - .deploy
+        - .rules:nightly
     stage: deploy
     needs: ["collect:nightly:source", "collect:nightly:macos"]
-    only:
-        - schedules
-    except:
-        - ${CI_COMMIT_REF_NAME} != "develop"
-    dependencies:
-        - collect:nightly:source
-        - collect:nightly:macos
     variables:
         REMOTE_DIR: "nightlies"
     before_script:
