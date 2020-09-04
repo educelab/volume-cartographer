@@ -23,6 +23,6 @@ void ScaleMesh(
         v->Value()[1] *= scaleFactor;
         v->Value()[2] *= scaleFactor;
     }
-};
+}
 }  // namespace meshing
 }  // namespace volcart

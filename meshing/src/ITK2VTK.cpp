@@ -85,7 +85,7 @@ VTK2ITK::VTK2ITK(vtkSmartPointer<vtkPolyData> input, ITKMesh::Pointer output)
 
         output->SetCell(cellId, cell);
     }
-};
+}
 
 ///// ITK Mesh -> ITK QuadEdge Mesh /////
 ITK2ITKQE::ITK2ITKQE(ITKMesh::Pointer input, QuadEdgeMesh::Pointer output)

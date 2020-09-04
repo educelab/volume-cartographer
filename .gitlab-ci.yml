@@ -4,6 +4,7 @@ stages:
     - docs
     - collect
     - deploy
+    - release
 
 ### Prototype build jobs ###
 .build_script: &build_script
@@ -253,7 +254,7 @@ collect:nightly:macos:
     variables:
         EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_VERSION_DATESTAMP=ON -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON -DVC_BUILD_EXAMPLES=OFF -DVC_BUILD_TESTS=OFF"
 
-.deploy:
+.upload_binaries:
     variables:
         REMOTE: "volume-cartographer"
     script:
@@ -261,12 +262,19 @@ collect:nightly:macos:
         - cp VC*.dmg ${BUILD_DIR}
         - cp VC*.tar.gz ${BUILD_DIR}
         - rclone -v copy ${BUILD_DIR}/ ${REMOTE}:${REMOTE_DIR}/${BUILD_DIR}/
+        - export DMG_NAME=$(basename ${BUILD_DIR}/VC-*-Darwin-*.dmg)
+        - export TAR_NAME=$(basename ${BUILD_DIR}/VC-*-Darwin-*.tar.gz)
+        - echo "DMG_URL=$(rclone link ${REMOTE}:${REMOTE_DIR}/${BUILD_DIR}/${DMG_NAME})" >> variables.env
+        - echo "TAR_URL=$(rclone link ${REMOTE}:${REMOTE_DIR}/${BUILD_DIR}/${TAR_NAME})" >> variables.env
+    artifacts:
+        reports:
+            dotenv: variables.env
     tags:
         - rclone
 
-deploy:release:
+deploy:binaries:release:
     extends:
-        - .deploy
+        - .upload_binaries
     stage: deploy
     needs: ["collect:release:source", "collect:release:macos"]
     rules:
@@ -279,25 +287,27 @@ deploy:release:
     environment:
         name: production
 
-deploy:release:tag:
-    stage: deploy
+release:create:
+    stage: release
     image: registry.gitlab.com/gitlab-org/release-cli:latest
-    needs: ["collect:release:source", "collect:release:macos"]
+    needs: ["deploy:binaries:release"]
     rules:
         *rules_release
     script:
-        - echo 'Creating release $CI_COMMIT_TAG'
-    release:
-        name: 'Release $CI_COMMIT_TAG'
-        tag_name: '$CI_COMMIT_TAG'
-        description: 'Auto-created release $CI_COMMIT_TAG'
-        ref: '$CI_COMMIT_TAG'
+        - >
+            release-cli create
+            --name "$CI_COMMIT_TAG"
+            --description "Auto-created release $CI_COMMIT_TAG"
+            --tag-name "$CI_COMMIT_TAG"
+            --ref "$CI_COMMIT_TAG"
+            --assets-link "{\"name\":\"macOS 10.13+ Installer Package\",\"url\":\"${DMG_URL}\",\"link_type\":\"package\"}"
+            --assets-link "{\"name\":\"macOS 10.13+ Installer Tarball\",\"url\":\"${TAR_URL}\",\"link_type\":\"package\"}"
     tags:
         - docker
 
-deploy:nightly:
+deploy:binaries:nightly:
     extends:
-        - .deploy
+        - .upload_binaries
     stage: deploy
     needs: ["collect:nightly:source", "collect:nightly:macos"]
     rules:
