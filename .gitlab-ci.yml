@@ -6,6 +6,9 @@ stages:
     - deploy
     - release
 
+variables:
+    MACOSX_DEPLOYMENT_TARGET: "10.13"
+
 ### Prototype build jobs ###
 .build_script: &build_script
     - mkdir -p build/
@@ -210,7 +213,6 @@ collect:source:nightly:
 .collect:package:macos:
     extends: .build
     variables:
-        MACOSX_DEPLOYMENT_TARGET: "10.13"
         Qt5_DIR: "/usr/local/opt/qt5/lib/cmake/Qt5"
         EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON -DVC_BUILD_EXAMPLES=OFF -DVC_BUILD_TESTS=OFF"
     before_script:
@@ -304,8 +306,8 @@ release:create:
             --description "Auto-created release $CI_COMMIT_TAG"
             --tag-name "$CI_COMMIT_TAG"
             --ref "$CI_COMMIT_TAG"
-            --assets-link "{\"name\":\"macOS 10.13+ Installer Package\",\"url\":\"https://drive.google.com/open?id=${DMG_ID}\",\"link_type\":\"package\"}"
-            --assets-link "{\"name\":\"macOS 10.13+ Installer Tarball\",\"url\":\"https://drive.google.com/open?id=${TAR_ID}\",\"link_type\":\"package\"}"
+            --assets-link "{\"name\":\"macOS ${MACOSX_DEPLOYMENT_TARGET}+ Installer Package\",\"url\":\"https://drive.google.com/open?id=${DMG_ID}\",\"link_type\":\"package\"}"
+            --assets-link "{\"name\":\"macOS ${MACOSX_DEPLOYMENT_TARGET}+ Installer Tarball\",\"url\":\"https://drive.google.com/open?id=${TAR_ID}\",\"link_type\":\"package\"}"
     tags:
         - docker
 
