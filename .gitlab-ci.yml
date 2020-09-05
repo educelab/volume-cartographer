@@ -293,7 +293,7 @@ deploy:release:
 
 release:create:
     stage: release
-    image: registry.gitlab.com/gitlab-org/release-cli:latest
+    image: registry.gitlab.com/gitlab-org/release-cli:edge
     needs: ["deploy:release"]
     rules:
         *rules_release
