@@ -1,4 +1,4 @@
-#include "vc/apps/render/RenderGeneral.hpp"
+#include "vc/app_support/GeneralOptions.hpp"
 
 namespace po = boost::program_options;
 

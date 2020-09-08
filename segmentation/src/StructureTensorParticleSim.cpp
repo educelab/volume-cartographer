@@ -7,8 +7,16 @@ using namespace vc::segmentation;
 
 static constexpr double RK_STEP_SCALE = 1.0 / 6.0;
 
+size_t StructureTensorParticleSim::progressIterations() const
+{
+    return static_cast<size_t>(std::ceil(numSteps_ / stepSize_));
+}
+
 StructureTensorParticleSim::PointSet StructureTensorParticleSim::compute()
 {
+
+    progressStarted();
+
     // Convert the starting chain into a particle chain
     currentChain_.clear();
     for (const auto& s : startingChain_) {
@@ -44,7 +52,7 @@ StructureTensorParticleSim::PointSet StructureTensorParticleSim::compute()
     // Sampled output iterations
     for (size_t it = 0; it < outIters; it++) {
         // Update progress
-        progressUpdated(float(it) / float(outIters));
+        progressUpdated(it);
 
         // Run Runge-Kutta multiple times to accumulate one full output step
         for (size_t rkIt = 0; rkIt < rkIters; rkIt++) {
@@ -77,7 +85,7 @@ StructureTensorParticleSim::PointSet StructureTensorParticleSim::compute()
         add_chain_to_result_();
     }
     // Update progress
-    progressUpdated(1.0);
+    progressComplete();
 
     return result_;
 }

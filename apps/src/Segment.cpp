@@ -3,11 +3,17 @@
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
+#include "vc/app_support/GeneralOptions.hpp"
+#include "vc/app_support/ProgressIndicator.hpp"
+#include "vc/core/io/PointSetIO.hpp"
 #include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/util/Logging.hpp"
+#include "vc/core/util/MemorySizeStringParser.hpp"
 #include "vc/external/GetMemorySize.hpp"
 #include "vc/meshing/OrderedPointSetMesher.hpp"
 #include "vc/segmentation/LocalResliceParticleSim.hpp"
 #include "vc/segmentation/StructureTensorParticleSim.hpp"
+#include "vc/segmentation/ThinnedFloodFillSegmentation.hpp"
 
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;
@@ -18,13 +24,12 @@ namespace vs = vc::segmentation;
 static constexpr int VOLPKG_SUPPORTED_VERSION = 6;
 
 // Default values for global options
-static const int kDefaultStep = 1;
+static const double kDefaultStep = 1;
 
 // Default values for STPS options
 static const double kDefaultGravity = 0.5;
 
 // Default values for LRPS options
-static const int kDefaultStartIndex = -1;
 static const int kDefaultNumIters = 15;
 static const double kDefaultAlpha = 1.0 / 3.0;
 static const double kDefaultK1 = 0.5;
@@ -35,7 +40,17 @@ static const int kDefaultPeakDistanceWeight = 50;
 static const bool kDefaultConsiderPrevious = false;
 static constexpr int kDefaultResliceSize = 32;
 
-enum class Algorithm { STPS, LRPS };
+static int SaveInterval{-1};
+static int CurrentIteration{0};
+
+enum class Algorithm { STPS, LRPS, TFF };
+
+using PointSet = vs::ThinnedFloodFillSegmentation::PointSet;
+using VoxelMask = vs::ThinnedFloodFillSegmentation::VoxelMask;
+
+static void WritePointset(const PointSet& pointset);
+static void WriteIntermediatePointset(const PointSet& pointset);
+static void WriteMaskPointset(const VoxelMask& pointset);
 
 int main(int argc, char* argv[])
 {
@@ -43,24 +58,24 @@ int main(int argc, char* argv[])
     // clang-format off
     po::options_description required("Required arguments");
     required.add_options()
-        ("help,h", "Show this message")
         ("volpkg,v", po::value<std::string>()->required(), "VolumePkg path")
         ("seg,s", po::value<std::string>()->required(), "Segmentation ID")
         ("method,m", po::value<std::string>()->required(),
-            "Segmentation method: LRPS")
+            "Segmentation method: LRPS, TFF")
         ("volume", po::value<std::string>(),
             "Volume to use for texturing. Default: Segmentation's associated "
             "volume or the first volume in the volume package.")
-        ("start-index", po::value<int>()->default_value(kDefaultStartIndex),
+        ("start-index", po::value<size_t>(),
             "Starting slice index. Default to highest z-index in path")
-        ("end-index", po::value<int>(),
+        ("end-index", po::value<size_t>(),
             "Ending slice index. Mutually exclusive with 'stride'")
-        ("stride", po::value<int>(),
+        ("stride", po::value<size_t>(),
             "Number of slices to propagate through relative to the starting slice index. "
             "Mutually exclusive with 'end-index'")
-        ("step-size", po::value<int>()->default_value(kDefaultStep),
-            "Z distance travelled per iteration");
-
+        ("step-size", po::value<double>()->default_value(kDefaultStep),
+            "Z distance travelled per iteration")
+        ("dump-vis", "Write full visualization information to disk as algorithm runs")
+            ("verbose","Output debugging information");
 
     // STPS options
     po::options_description stpsOptions("Structure Tensor Particle Sim Options");
@@ -92,11 +107,35 @@ int main(int argc, char* argv[])
             po::value<bool>()->default_value(kDefaultConsiderPrevious),
             "Consider propagation of a point's previous XY position as a "
             "candidate when optimizing each iteration")
-        ("visualize", "Display curve visualization as algorithm runs")
-        ("dump-vis", "Write full visualization information to disk as algorithm runs");
+        ("visualize", "Display curve visualization as algorithm runs");
+
+    // TFF options
+    po::options_description tffOptions("Thinned Flood Fill Segmentation Options");
+    tffOptions.add_options()
+        ("tff-low-thresh,l", po::value<uint16_t>()->default_value(14135),
+             "Low threshold for the bounded flood-fill component [0-255]")
+        ("tff-high-thresh,t", po::value<uint16_t>()->default_value(65535),
+             "High threshold for the bounded flood-fill component [0-255]")
+        ("tff-dt-thresh", po::value<float>(),
+             "Low threshold for the normalized distance transform [0-1]")
+        ("closing-kernel-size,k", po::value<int>()->default_value(5),
+             "Size of the kernel used for closing")
+        ("spur-length", po::value<size_t>()->default_value(6),
+            "Spurs smaller than this size will be removed from the skeleton.")
+        ("max-seed-radius", po::value<size_t>(),
+            "Max radius a seed point can have when measuring the thickness of the page.")
+        ("measure-vert", "Measure the thickness of the page by going vertically (+/- y) "
+            "from each seed point (measures horizontally by default)")
+        ("save-interval", po::value<int>(),
+            "Save the segmentation after a specified number of slices.")
+        ("save-mask","Save the mask created by the segmentation algorithm.");
     // clang-format on
     po::options_description all("Usage");
-    all.add(required).add(stpsOptions).add(lrpsOptions);
+    all.add(GetGeneralOpts())
+        .add(required)
+        .add(stpsOptions)
+        .add(lrpsOptions)
+        .add(tffOptions);
 
     // Parse and handle options
     po::variables_map parsed;
@@ -106,6 +145,11 @@ int main(int argc, char* argv[])
     if (argc == 1 || parsed.count("help")) {
         std::cout << all << std::endl;
         std::exit(1);
+    }
+
+    // Set logging level
+    if (parsed.count("verbose") > 0) {
+        vc::logger->set_level(spdlog::level::debug);
     }
 
     // Check mutually exclusive arguments
@@ -129,22 +173,26 @@ int main(int argc, char* argv[])
     }
 
     Algorithm alg;
-    auto methodStr = parsed["method"].as<std::string>();
-    std::string lower;
-    std::transform(
-        std::begin(methodStr), std::end(methodStr), std::back_inserter(lower),
-        ::tolower);
-    std::cout << "Segmentation method: " << lower << std::endl;
-    if (lower == "lrps") {
+    auto method = parsed["method"].as<std::string>();
+    std::transform(method.begin(), method.end(), method.begin(), ::tolower);
+    std::cout << "Segmentation method: " << method << std::endl;
+    if (method == "lrps") {
         alg = Algorithm::LRPS;
+    } else if (method == "tff") {
+        alg = Algorithm::TFF;
     } else {
-        std::cerr << "[error]: Unknown algorithm type. Must be one of ['LRPS']"
-                  << std::endl;
+        std::cerr
+            << "[error]: Unknown algorithm type. Must be one of ['LRPS', 'TFF']"
+            << std::endl;
         std::exit(1);
     }
 
     ///// Load the volume package /////
     fs::path volpkgPath = parsed["volpkg"].as<std::string>();
+    if (not fs::exists(volpkgPath)) {
+        vc::logger->error("VolPkg does not exist: {}", volpkgPath.string());
+        return EXIT_FAILURE;
+    }
     vc::VolumePkg vpkg(volpkgPath);
     if (vpkg.version() != VOLPKG_SUPPORTED_VERSION) {
         std::cerr << "ERROR: Volume package is version " << vpkg.version()
@@ -189,35 +237,53 @@ int main(int argc, char* argv[])
         std::cerr << e.what() << std::endl;
         return EXIT_FAILURE;
     }
-    double cacheBytes = 0.75 * SystemMemorySize();
-    volume->setCacheMemoryInBytes(static_cast<size_t>(cacheBytes));
+
+    // Set the cache size
+    size_t cacheBytes;
+    if (parsed.count("cache-memory-limit")) {
+        auto cacheSizeOpt = parsed["cache-memory-limit"].as<std::string>();
+        cacheBytes = vc::MemorySizeStringParser(cacheSizeOpt);
+    } else {
+        cacheBytes = SystemMemorySize() / 2;
+    }
+    volume->setCacheMemoryInBytes(cacheBytes);
+    std::cout << "Volume Cache :: ";
+    std::cout << "Capacity: " << volume->getCacheCapacity() << " || ";
+    std::cout << "Size: " << vc::BytesToMemorySizeString(cacheBytes);
+    std::cout << std::endl;
 
     // Setup
-    // Cache arguments
-    auto startIndex = parsed["start-index"].as<int>();
-    auto step = parsed["step-size"].as<int>();
-
     // Load the segmentation
     auto masterCloud = seg->getPointSet();
 
     // Get some info about the cloud, including chain length and z-index's
     // represented by seg.
     auto chainLength = masterCloud.width();
-    auto minIndex = static_cast<int>(floor(masterCloud.front()[2]));
-    auto maxIndex = static_cast<int>(floor(masterCloud.max()[2]));
+    auto minIndex = static_cast<size_t>(floor(masterCloud.front()[2]));
+    auto maxIndex = static_cast<size_t>(floor(masterCloud.max()[2]));
 
+    // Cache arguments
     // If no start index is given, our starting path is all of the points
     // already on the largest slice index
-    if (startIndex == -1) {
+    size_t startIndex{0};
+    if (parsed.count("start-index") == 0) {
         startIndex = maxIndex;
         std::cout << "No starting index given, defaulting to Highest-Z: "
                   << startIndex << std::endl;
+    } else {
+        startIndex = parsed["start-index"].as<size_t>();
     }
 
+    // Step size
+    auto step = parsed["step-size"].as<double>();
+
     // Figure out endIndex using either start-index or stride
-    int endIndex =
-        (parsed.count("end-index") ? parsed["end-index"].as<int>()
-                                   : startIndex + parsed["stride"].as<int>());
+    size_t endIndex{0};
+    if (parsed.count("end-index") > 0) {
+        endIndex = parsed["end-index"].as<size_t>();
+    } else {
+        endIndex = startIndex + parsed["stride"].as<size_t>();
+    }
 
     // Sanity check for whether we actually need to run the algorithm
     if (startIndex >= endIndex) {
@@ -285,7 +351,46 @@ int main(int argc, char* argv[])
         segmenter.setConsiderPrevious(parsed["consider-previous"].as<bool>());
         segmenter.setVisualize(parsed.count("visualize") > 0);
         segmenter.setDumpVis(parsed.count("dump-vis") > 0);
+        vc::ReportProgress(segmenter, "Segmenting", true, false);
         mutableCloud = segmenter.compute();
+    }
+
+    else if (alg == Algorithm::TFF) {
+        vs::ThinnedFloodFillSegmentation segmenter;
+        segmenter.setSeedPoints(segPath);
+        segmenter.setVolume(volume);
+        segmenter.setIterations(endIndex - startIndex + 1);
+        segmenter.setFFLowThreshold(parsed["tff-low-thresh"].as<uint16_t>());
+        segmenter.setFFHighThreshold(parsed["tff-high-thresh"].as<uint16_t>());
+        if (parsed.count("tff-dt-thresh") > 0) {
+            auto dtt = parsed["tff-dt-thresh"].as<float>();
+            segmenter.setDistanceTransformThreshold(dtt);
+        }
+        segmenter.setClosingKernelSize(parsed["closing-kernel-size"].as<int>());
+        segmenter.setSpurLengthThreshold(parsed["spur-length"].as<size_t>());
+        if (parsed.count("max-seed-radius") > 0) {
+            auto r = parsed["max-seed-radius"].as<size_t>();
+            segmenter.setMaxRadius(r);
+        }
+        segmenter.setMeasureVertical(parsed.count("measure-vert") > 0);
+        segmenter.setDumpVis(parsed.count("dump-vis") > 0);
+
+        if (parsed.count("save-interval") > 0) {
+            SaveInterval = parsed["save-interval"].as<int>();
+            if (SaveInterval > 0) {
+                segmenter.pointsetUpdated.connect(WriteIntermediatePointset);
+            }
+        }
+        if (parsed.count("save-mask") > 0) {
+            segmenter.maskUpdated.connect(WriteMaskPointset);
+        }
+        vc::ReportProgress(segmenter, "Segmenting", true, false);
+        auto skeleton = segmenter.compute();
+
+        // Regular pointsets aren't fully supported in the main logic yet
+        // Write our point set and exit early
+        WritePointset(skeleton);
+        return 0;
     }
 
     // Update the master cloud with the points we saved and concat the new
@@ -294,4 +399,22 @@ int main(int argc, char* argv[])
 
     // Save point cloud and mesh
     seg->setPointSet(immutableCloud);
+}
+
+static void WritePointset(const PointSet& pointset)
+{
+    vc::PointSetIO<cv::Vec3d>::WritePointSet("pointset.vcps", pointset);
+}
+
+static void WriteIntermediatePointset(const PointSet& pointset)
+{
+    // Save intermediate pointsets if we're doing that
+    if (++CurrentIteration % SaveInterval == 0) {
+        WritePointset(pointset);
+    }
+}
+
+static void WriteMaskPointset(const VoxelMask& pointset)
+{
+    vc::PointSetIO<cv::Vec3i>::WritePointSet("mask_pointset.vcps", pointset);
 }

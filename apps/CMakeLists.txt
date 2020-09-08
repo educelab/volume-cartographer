@@ -38,6 +38,7 @@ target_include_directories(vc_packager PUBLIC
 ## Segment ##
 add_executable(vc_segment src/Segment.cpp)
 target_link_libraries(vc_segment
+    VC::app_support
     VC::core
     VC::segmentation
     VC::meshing
@@ -47,7 +48,6 @@ target_link_libraries(vc_segment
 ## Rendering ##
 add_executable(vc_render
     src/Render.cpp
-    src/RenderGeneral.cpp
     src/RenderIO.cpp
     src/RenderMeshing.cpp
     src/RenderTexturing.cpp

@@ -10,7 +10,7 @@
 namespace volcart
 {
 /** @brief Color type */
-using Color = cv::Scalar;
+using Color = cv::Vec3b;
 
 /**
  * @namespace volcart::color
