@@ -265,12 +265,14 @@ collect:binaries:macos:nightly:
         - cp VC*.tar.gz ${BUILD_DIR}
         - rclone -v copy ${BUILD_DIR}/ ${REMOTE}:${REMOTE_DIR}/${BUILD_DIR}/
         - export DMG_NAME=$(basename ${BUILD_DIR}/VC-*-Darwin-*.dmg)
-        - export DMG_ID=$(rclone link ${REMOTE}:${REMOTE_DIR}/${BUILD_DIR}/${DMG_NAME} | sed 's/https:\/\/drive.google.com\/open?id=//g')
-        - echo "${DMG_NAME}::${DMG_ID}"
+        - export DMG_URL=$(rclone link ${REMOTE}:${REMOTE_DIR}/${BUILD_DIR}/${DMG_NAME})
+        - export DMG_ID=$(echo ${DMG_URL} | sed 's/https:\/\/drive.google.com\/open?id=//g')
+        - echo "${DMG_NAME}" '\u2192' "${DMG_URL}"
         - echo "DMG_ID=${DMG_ID}" >> variables.env
         - export TAR_NAME=$(basename ${BUILD_DIR}/VC-*-Darwin-*.tar.gz)
-        - export TAR_ID=$(rclone link ${REMOTE}:${REMOTE_DIR}/${BUILD_DIR}/${TAR_NAME} | sed 's/https:\/\/drive.google.com\/open?id=//g')
-        - echo "${TAR_NAME}::${TAR_ID}"
+        - export TAR_URL=$(rclone link ${REMOTE}:${REMOTE_DIR}/${BUILD_DIR}/${TAR_NAME})
+        - export TAR_ID=$(echo ${TAR_URL} | sed 's/https:\/\/drive.google.com\/open?id=//g')
+        - echo "${TAR_NAME}" '\u2192' "${TAR_URL}"
         - echo "TAR_ID=${TAR_ID}" >> variables.env
     artifacts:
         reports:
