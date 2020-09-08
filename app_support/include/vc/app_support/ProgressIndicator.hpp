@@ -240,7 +240,7 @@ inline auto ProgressWrap(Iterable&& it, std::string label = "")
  */
 template <class ProgressEnabled>
 inline auto ReportProgress(
-    ProgressEnabled& p, std::string label, bool showIters)
+    ProgressEnabled& p, std::string label, bool showIters, bool useColors)
 {
     using namespace indicators;
     using namespace indicators::option;
@@ -248,9 +248,9 @@ inline auto ReportProgress(
     auto iters = p.progressIterations();
     auto progressBar = NewProgressBar(iters, std::move(label));
     // Set starting text color
-    progressBar->set_option(ForegroundColor{Color::yellow});
-    // Connect to progress started
-    p.progressStarted.connect([]() { show_console_cursor(false); });
+    if (useColors) {
+        progressBar->set_option(ForegroundColor{Color::yellow});
+    }
     // Connect to progress updates
     p.progressUpdated.connect([progressBar, iters, showIters](auto p) {
         if (showIters) {
@@ -260,14 +260,15 @@ inline auto ReportProgress(
         progressBar->set_progress(p);
     });
     // Connect to progress completed
-    p.progressComplete.connect([progressBar, iters, showIters]() {
+    p.progressComplete.connect([progressBar, iters, showIters, useColors]() {
         if (showIters) {
             auto post = std::to_string(iters) + "/" + std::to_string(iters);
             progressBar->set_option(PostfixText{post});
         }
-        progressBar->set_option(ForegroundColor{Color::green});
+        if (useColors) {
+            progressBar->set_option(ForegroundColor{Color::green});
+        }
         progressBar->tick();
-        show_console_cursor(true);
     });
     // Disconnect on completion
     p.progressComplete.connect([&p]() {
@@ -281,43 +282,43 @@ inline auto ReportProgress(
 }
 
 /**
- * @copydoc ReportProgress(ProgressEnabled&, std::string, bool)
+ * @copydoc ReportProgress(ProgressEnabled&, std::string, bool, bool)
  * @ingroup Support
  */
 template <class ProgressEnabled>
 inline auto ReportProgress(ProgressEnabled& p)
 {
-    return ReportProgress(p, "", true);
+    return ReportProgress(p, "", true, false);
 }
 
 /**
- * @copydoc ReportProgress(ProgressEnabled&, std::string, bool)
+ * @copydoc ReportProgress(ProgressEnabled&, std::string, bool, bool)
  * @ingroup Support
  */
 template <class ProgressEnabled>
 inline auto ReportProgress(ProgressEnabled& p, std::string label)
 {
-    return ReportProgress(p, std::move(label), true);
+    return ReportProgress(p, std::move(label), true, true);
 }
 
 /**
- * @copydoc ReportProgress(ProgressEnabled&, std::string, bool)
+ * @copydoc ReportProgress(ProgressEnabled&, std::string, bool, bool)
  * @ingroup Support
  */
 template <class ProgressEnabled>
 inline auto ReportProgress(ProgressEnabled& p, const char* label)
 {
-    return ReportProgress(p, label, true);
+    return ReportProgress(p, label, true, true);
 }
 
 /**
- * @copydoc ReportProgress(ProgressEnabled&, std::string, bool)
+ * @copydoc ReportProgress(ProgressEnabled&, std::string, bool, bool)
  * @ingroup Support
  */
 template <class ProgressEnabled>
 inline auto ReportProgress(ProgressEnabled& p, bool showIters)
 {
-    return ReportProgress(p, "", showIters);
+    return ReportProgress(p, "", showIters, true);
 }
 
 }  // namespace volcart

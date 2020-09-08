@@ -12,6 +12,7 @@ set(srcs
     src/Particle.cpp
     src/ParticleChain.cpp
     src/StructureTensorParticleSim.cpp
+    src/ThinnedFloodFillSegmentation.cpp
 )
 set(deps
     VC::core

@@ -169,3 +169,15 @@ TEST(Signals, PointerParameterFn)
     EXPECT_EQ(*val, 1);
     delete val;
 }
+
+TEST(Signals, Sendlval)
+{
+    size_t val{0};
+    Signal<size_t> signal;
+    signal.connect([&val](size_t v) { val = v; });
+
+    size_t i{1};
+    signal(i);
+
+    EXPECT_EQ(val, 1);
+}

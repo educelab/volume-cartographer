@@ -306,7 +306,7 @@ void CWindow::CreateBackend()
     connect(
         worker, &VolPkgBackend::segmentationFinished, this,
         &CWindow::onSegmentationFinished);
-    connect(worker, &VolPkgBackend::progressUpdated, [=](float p) {
+    connect(worker, &VolPkgBackend::progressUpdated, [=](size_t p) {
         progress_ = p;
     });
     worker_thread_.start();
@@ -319,7 +319,9 @@ void CWindow::CreateBackend()
     progressBar_ = new QProgressBar();
     layout->addWidget(progressBar_);
     progressBar_->setMinimum(0);
-    progressBar_->setMaximum(100);
+    connect(worker, &VolPkgBackend::segmentationStarted, [=](size_t its) {
+        progressBar_->setMaximum(its);
+    });
 
     // Update the GUI intermittently
     worker_progress_updater_.setInterval(1000);
@@ -330,7 +332,7 @@ void CWindow::CreateBackend()
         } else {
             progressLabel_->setText(progressLabel_->text().append('.'));
         }
-        progressBar_->setValue(static_cast<int>(progress_ * 100));
+        progressBar_->setValue(progress_);
     });
 }
 
@@ -1132,10 +1134,7 @@ void CWindow::OnEdtEndingSliceValChange()
 }
 
 // Handle start segmentation
-void CWindow::OnBtnStartSegClicked(void)
-{
-    DoSegmentation();
-}
+void CWindow::OnBtnStartSegClicked(void) { DoSegmentation(); }
 
 // Handle start segmentation
 void CWindow::OnEdtImpactRange(int nImpactRange)

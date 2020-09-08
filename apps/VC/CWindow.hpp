@@ -216,7 +216,7 @@ private:
     QThread worker_thread_;
     BlockingDialog worker_progress_;
     QTimer worker_progress_updater_;
-    float progress_{0};
+    size_t progress_{0};
     QLabel* progressLabel_;
     QProgressBar* progressBar_;
 };  // class CWindow
@@ -228,16 +228,17 @@ public:
     explicit VolPkgBackend(QObject* parent = nullptr) : QObject(parent) {}
 
 signals:
-    void segmentationStarted();
+    void segmentationStarted(size_t);
     void segmentationFinished(CWindow::Segmenter::PointSet ps);
-    void progressUpdated(float);
+    void progressUpdated(size_t);
 
 public slots:
     void startSegmentation(CWindow::Segmenter s)
     {
         segmenter = std::move(s);
-        segmenter.progressUpdated.connect([=](float f) { progressUpdated(f); });
-        segmentationStarted();
+        segmenter.progressUpdated.connect(
+            [=](size_t p) { progressUpdated(p); });
+        segmentationStarted(segmenter.progressIterations());
         auto result = segmenter.compute();
         segmentationFinished(result);
     }

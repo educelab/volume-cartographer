@@ -106,7 +106,7 @@ public:
     }
 
     /** @brief Convenience operator: Calls Signal::send(args) */
-    void operator()(Types&&... args) { send(std::forward<Types...>(args...)); }
+    void operator()(Types... args) { send(std::forward<Types>(args)...); }
 
 private:
     /** Basic connection struct */

@@ -12,7 +12,7 @@
 #include "vc/meshing/ScaleMesh.hpp"
 
 // App includes
-#include "vc/apps/render/RenderGeneral.hpp"
+#include "vc/app_support/GeneralOptions.hpp"
 #include "vc/apps/render/RenderIO.hpp"
 #include "vc/apps/render/RenderMeshing.hpp"
 #include "vc/apps/render/RenderTexturing.hpp"

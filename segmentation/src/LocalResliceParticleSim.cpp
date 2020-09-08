@@ -23,10 +23,19 @@ namespace fs = boost::filesystem;
 using std::begin;
 using std::end;
 
+size_t LocalResliceSegmentation::progressIterations() const
+{
+    auto minZPoint = std::min_element(
+        startingChain_.begin(), startingChain_.end(),
+        [](auto a, auto b) { return a[2] < b[2]; });
+    auto startIndex = static_cast<int>(std::floor((*minZPoint)[2]));
+    return static_cast<size_t>((endIndex_ - startIndex) / stepSize_);
+}
+
 LocalResliceSegmentation::PointSet LocalResliceSegmentation::compute()
 {
     // reset progress
-    progressUpdated(0.0);
+    progressStarted();
 
     // Duplicate the starting chain
     auto currentVs = startingChain_;
@@ -39,6 +48,7 @@ LocalResliceSegmentation::PointSet LocalResliceSegmentation::compute()
             return !bb_.isInBounds(v) || !vol_->isInBounds(v);
         })) {
         status_ = Status::ReturnedEarly;
+        progressComplete();
         return create_final_pointset_({currentVs});
     }
 
@@ -66,10 +76,10 @@ LocalResliceSegmentation::PointSet LocalResliceSegmentation::compute()
     points.push_back(currentVs);
 
     // Iterate over z-slices
+    size_t iteration{0};
     for (int zIndex = startIndex; zIndex <= endIndex_; zIndex += stepSize_) {
         // Update progress
-        progressUpdated(
-            (zIndex - startIndex) / float(endIndex_ + 1 - startIndex));
+        progressUpdated(iteration++);
 
         // Directory to dump vis
         std::stringstream ss;
@@ -311,7 +321,7 @@ LocalResliceSegmentation::PointSet LocalResliceSegmentation::compute()
 
     /////////////////////////////////////////////////////////
     // Update progress
-    progressUpdated(1.0);
+    progressComplete();
 
     // 6. Output final mesh
     return create_final_pointset_(points);

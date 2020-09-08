@@ -98,10 +98,18 @@ public:
     /** @overload push_back() */
     void push_back(T&& val) { data_.push_back(val); }
 
-    /** @brief Append a PointSet to the end of the current one */
-    void append(const PointSet<T>& ps)
+    /** @brief Emplace a Point at the back of the PointSet */
+    template <class... Args>
+    void emplace_back(Args&&... args)
     {
-        std::copy(std::begin(ps), std::end(ps), std::back_inserter(data_));
+        data_.emplace_back(std::forward<Args>(args)...);
+    }
+
+    /** @brief Append a PointSet to the end of the current one */
+    template <class ContainerType>
+    void append(const ContainerType& c)
+    {
+        std::copy(std::begin(c), std::end(c), std::back_inserter(data_));
     }
     /**@}*/
 

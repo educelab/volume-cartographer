@@ -55,6 +55,9 @@ public:
     PointSet compute() override;
     /**@}*/
 
+    /** Sends when the segmentation is updated with intermediate results */
+    size_t progressIterations() const override;
+
 private:
     /** Scale factor for propagation force */
     double propagationScaleFactor_{0.5};
@@ -86,5 +89,5 @@ private:
     /** Return whether or not any point in the chain is out of bounds */
     bool chain_stopped_();
 };
-}
-}
+}  // namespace segmentation
+}  // namespace volcart

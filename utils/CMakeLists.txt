@@ -40,6 +40,7 @@ target_link_libraries(vc_ppm_to_pointset VC::core Boost::filesystem Boost::progr
 # vc_canny_segment
 add_executable(vc_canny_segment src/CannySegment.cpp)
 target_link_libraries(vc_canny_segment VC::app_support VC::core Boost::filesystem Boost::program_options opencv_core)
+list(APPEND utils_install_list vc_canny_segment)
 
 # vc_uv2mesh
 add_executable(vc_uv2mesh src/UVMaptoFlatMesh.cpp)
@@ -69,6 +70,24 @@ target_link_libraries(vc_add_alignment_markers
     Boost::filesystem
     Boost::program_options
 )
+
+# vc_convert_pointset
+add_executable(vc_convert_pointset src/ConvertPointSet.cpp)
+target_link_libraries(vc_convert_pointset
+    VC::core
+    Boost::filesystem
+    Boost::program_options
+)
+list(APPEND utils_install_list vc_convert_pointset)
+
+# vc_merge_pointsets
+add_executable(vc_merge_pointset src/MergePointSets.cpp)
+target_link_libraries(vc_merge_pointset
+    VC::core
+    Boost::filesystem
+    Boost::program_options
+)
+list(APPEND utils_install_list vc_merge_pointset)
 
 # Install targets
 if(VC_INSTALL_UTILS)

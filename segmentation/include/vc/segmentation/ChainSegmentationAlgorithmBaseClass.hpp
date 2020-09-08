@@ -1,9 +1,9 @@
 #pragma once
 
 #include "vc/core/types/BoundingBox.hpp"
+#include "vc/core/types/Mixins.hpp"
 #include "vc/core/types/OrderedPointSet.hpp"
 #include "vc/core/types/Volume.hpp"
-#include "vc/core/util/Signals.hpp"
 
 namespace volcart
 {
@@ -15,7 +15,7 @@ namespace segmentation
  * @brief Base class for segmentation algorithms that propagate a collected
  * chain of points
  */
-class ChainSegmentationAlgorithmBaseClass
+class ChainSegmentationAlgorithmBaseClass : public IterationsProgress
 {
 public:
     /** Default destructor for virtual base class */
@@ -29,9 +29,6 @@ public:
     using Bounds = volcart::BoundingBox<double, 3>;
     /** Computation result status */
     enum class Status { Success, Failure, ReturnedEarly };
-
-    /** Progress signal */
-    Signal<float> progressUpdated;
 
     /**@{*/
     /** @brief Set the input Volume */
@@ -70,7 +67,7 @@ public:
     /**@}*/
 
     /**@{*/
-    /** @brief Compute the Texture */
+    /** @brief Compute the segmentation */
     virtual PointSet compute() = 0;
 
     /** @brief Get the status of the previous computation */
@@ -78,12 +75,15 @@ public:
     /**@}*/
 
     /**@{*/
-    /** @brief Get the generated Texture */
+    /** @brief Get the segmented pointset */
     const PointSet& getPointSet() const { return result_; }
 
-    /** @copydoc getTexture() const */
+    /** @copydoc getPointSet() const */
     PointSet& getPointSet() { return result_; }
     /**@}*/
+
+    /** @brief Returns the maximum progress value */
+    size_t progressIterations() const override { return numSteps_; }
 
 protected:
     /** Default constructor */
@@ -103,5 +103,5 @@ protected:
     /** Computation status */
     Status status_{Status::Success};
 };
-}
-}
+}  // namespace segmentation
+}  // namespace volcart

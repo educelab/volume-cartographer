@@ -109,6 +109,9 @@ public:
     void setDumpVis(bool b) { dumpVis_ = b; }
     /**@}*/
 
+    /** @brief Returns the maximum progress value */
+    size_t progressIterations() const override;
+
 private:
     /**
      * @brief Estimate the normal to the curve at point index
@@ -165,5 +168,5 @@ private:
     /** Window size for reslice */
     int resliceSize_{32};
 };
-}
-}
+}  // namespace segmentation
+}  // namespace volcart
