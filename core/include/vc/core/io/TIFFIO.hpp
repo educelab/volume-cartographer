@@ -20,9 +20,7 @@ namespace tiffio
  * @brief Write a TIFF image to file
  *
  * Supports writing floating point and signed integer TIFFs, in addition to
- * unsigned 8 & 16 bit integer types. Currently only supports single and
- * three-channel images. Unless you need to write one of the special types of
- * images, using cv::imwrite() is a better option.
+ * unsigned 8 & 16 bit integer types. Also supports 1-4 channel images.
  */
 void WriteTIFF(const boost::filesystem::path& path, const cv::Mat& img);
 }  // namespace tiffio

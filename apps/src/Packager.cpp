@@ -8,12 +8,14 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/program_options.hpp>
 
+#include "vc/app_support/ProgressIndicator.hpp"
 #include "vc/apps/packager/SliceImage.hpp"
 #include "vc/core/io/FileExtensionFilter.hpp"
 #include "vc/core/io/SkyscanMetadataIO.hpp"
 #include "vc/core/types/Metadata.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/FormatStrToRegexStr.hpp"
+#include "vc/core/util/Iteration.hpp"
 
 using PathStringList = std::vector<std::string>;
 
@@ -41,6 +43,8 @@ struct VolumeInfo {
     Flip flipOption{Flip::None};
     vc::Metadata meta;
 };
+
+static bool DoAnalyze{true};
 
 VolumeInfo GetVolumeInfo(const fs::path& slicePath);
 void AddVolume(vc::VolumePkg::Pointer& volpkg, const VolumeInfo& info);
@@ -70,8 +74,12 @@ int main(int argc, char* argv[])
             "Set a descriptive name for the VolumePkg. Default: Filename "
             "specified by --volpkg");
     // clang-format on
+    po::options_description helpOpts("Usage");
+    helpOpts.add(options).add(extras);
+
     po::options_description all("Usage");
-    all.add(options).add(extras);
+    all.add(helpOpts).add_options()(
+        "analyze", po::value<bool>()->default_value(true), "Analyze volumes");
 
     // parsed will hold the values of all parsed options as a Map
     po::variables_map parsed;
@@ -79,7 +87,7 @@ int main(int argc, char* argv[])
 
     // Show the help message
     if (parsed.count("help") || argc < 2) {
-        std::cout << all << std::endl;
+        std::cout << helpOpts << std::endl;
         return EXIT_SUCCESS;
     }
 
@@ -90,6 +98,9 @@ int main(int argc, char* argv[])
         std::cerr << "ERROR: " << e.what() << std::endl;
         return EXIT_FAILURE;
     }
+
+    // Set global opt
+    DoAnalyze = parsed["analyze"].as<bool>();
 
     ///// New VolumePkg /////
     // Get the output volpkg path
@@ -243,7 +254,7 @@ void AddVolume(vc::VolumePkg::Pointer& volpkg, const VolumeInfo& info)
 
     // Filter the slice path directory by extension and sort the vector of files
     std::cout << "Reading the slice directory..." << std::endl;
-    std::vector<volcart::SliceImage> slices;
+    std::vector<vc::SliceImage> slices;
 
     if (!fs::exists(info.path) || !fs::is_directory(info.path)) {
         std::cerr << "ERROR: Provided slice path does not exist/is not a "
@@ -294,38 +305,47 @@ void AddVolume(vc::VolumePkg::Pointer& volpkg, const VolumeInfo& info)
     auto consistent = true;
     auto volMin = std::numeric_limits<double>::max();
     auto volMax = std::numeric_limits<double>::lowest();
-    int32_t counter = 1;
-    for (auto& slice : slices) {
-        // Report progress
-        std::cout << "Analyzing slice: " << counter++ << "/" << slices.size()
-                  << "\r" << std::flush;
+    std::vector<fs::path> mismatches;
+    if (DoAnalyze) {
+        for (auto& slice : vc::ProgressWrap(slices, "Analyzing slices")) {
+            // Skip if we can't analyze
+            if (!slice.analyze()) {
+                continue;
+            }
 
-        // Skip if we can't analyze
-        if (!slice.analyze()) {
-            continue;
+            // Compare all slices to the properties of the first slice
+            // Don't quit yet so we can get a list of the problematic files
+            if (slice != *slices.begin()) {
+                consistent = false;
+                mismatches.push_back(slice.path.filename());
+                continue;
+            }
+
+            // Update the volume's min and max
+            if (slice.min() < volMin) {
+                volMin = slice.min();
+            }
+
+            if (slice.max() > volMax) {
+                volMax = slice.max();
+            }
         }
+    } else {
+        // Make sure the first slice is analyzed
+        slices.front().analyze();
+        volMin = MIN_16BPC;
+        volMax = MAX_16BPC;
+    }
 
-        // Compare all slices to the properties of the first slice
-        // Don't quit yet so we can get a list of the problematic files
-        if (slice != *slices.begin()) {
-            consistent = false;
-            std::cerr << std::endl
-                      << slice.path.filename()
-                      << " does not match the initial slice of the volume."
-                      << std::endl;
-            continue;
-        }
-
-        // Update the volume's min and max
-        if (slice.min() < volMin) {
-            volMin = slice.min();
-        }
-
-        if (slice.max() > volMax) {
-            volMax = slice.max();
+    // Report mismatched slices
+    if (not mismatches.empty()) {
+        std::cerr << "Found " << mismatches.size();
+        std::cerr << " files which did not match the initial slice:";
+        std::cerr << std::endl;
+        for (const auto& p : mismatches) {
+            std::cerr << "\t" << p << std::endl;
         }
     }
-    std::cout << std::endl;
 
     // Quit if the volume isn't consistent
     if (!consistent) {
@@ -363,11 +383,10 @@ void AddVolume(vc::VolumePkg::Pointer& volpkg, const VolumeInfo& info)
                      info.flipOption == Flip::Both;
 
     // Move the slices into the VolPkg
-    counter = 0;
-    for (auto& slice : slices) {
-        std::cout << "Saving slice image to volume package: " << counter + 1
-                  << "/" << slices.size() << "\r" << std::flush;
-
+    using vc::enumerate;
+    using vc::ProgressWrap;
+    for (auto [idx, slice] :
+         ProgressWrap(enumerate(slices), "Saving to volpkg")) {
         // Convert or flip
         if (slice.needsConvert() || slice.needsScale() || needsFlip) {
             // Override slice min/max with volume min/max
@@ -390,23 +409,18 @@ void AddVolume(vc::VolumePkg::Pointer& volpkg, const VolumeInfo& info)
                     cv::flip(tmp, tmp, 1);
                     break;
                 case Flip::ZFlip:
-                    // Do nothing
-                    break;
                 case Flip::None:
                     // Do nothing
                     break;
             }
 
             // Add to volume
-            volume->setSliceData(counter, tmp);
+            volume->setSliceData(idx, tmp);
         }
 
         // Just copy to the volume
         else {
-            fs::copy_file(slice.path, volume->getSlicePath(counter));
+            fs::copy_file(slice.path, volume->getSlicePath(idx));
         }
-
-        ++counter;
     }
-    std::cout << std::endl;
 }

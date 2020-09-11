@@ -22,8 +22,8 @@
 #include "vc/app_support/ProgressIndicator.hpp"
 #include "vc/core/io/OBJReader.hpp"
 #include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/util/Iteration.hpp"
 #include "vc/core/util/Logging.hpp"
-#include "vc/core/util/Ranges.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
 
 static const double MAX_8BPC = std::numeric_limits<uint8_t>::max();
@@ -201,7 +201,7 @@ int main(int argc, char* argv[])
     cv::Mat outputImg;
     std::vector<cv::Point> contour;
     for (const auto& it : vc::ProgressWrap(
-             vc::Range(z_min, z_max), "vc::projection::Projecting:")) {
+             vc::range(z_min, z_max), "vc::projection::Projecting:")) {
         // Cut the mesh and get the intersection
         cutPlane->SetOrigin(width / 2, height / 2, it);
         stripper->Update();

@@ -11,8 +11,8 @@
 
 #include "vc/core/types/Color.hpp"
 #include "vc/core/util/ImageConversion.hpp"
+#include "vc/core/util/Iteration.hpp"
 #include "vc/core/util/Logging.hpp"
-#include "vc/core/util/Ranges.hpp"
 
 namespace fs = boost::filesystem;
 
@@ -423,7 +423,7 @@ TFF::PointSet TFF::compute()
     }
 
     // Iterate over z-slices
-    for (auto it : Range(iterations_)) {
+    for (auto it : range(iterations_)) {
         // Update progress
         progressUpdated(it);
 

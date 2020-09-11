@@ -20,7 +20,7 @@ void PPMGenerator::setDimensions(size_t h, size_t w)
 }
 
 // Compute
-PerPixelMap& PPMGenerator::compute()
+PerPixelMap PPMGenerator::compute()
 {
     if (inputMesh_.IsNull() || inputMesh_->GetNumberOfPoints() == 0 ||
         inputMesh_->GetNumberOfCells() == 0 || uvMap_.empty() || width_ == 0 ||

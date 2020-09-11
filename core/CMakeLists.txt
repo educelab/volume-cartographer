@@ -60,6 +60,8 @@ set(logging_srcs
     src/Logging.cpp
 )
 
+configure_file(src/Version.cpp.in Version.cpp)
+
 add_library(${target}
     ${io_srcs}
     ${math_srcs}
@@ -69,6 +71,7 @@ add_library(${target}
     ${type_srcs}
     ${util_srcs}
     ${logging_srcs}
+    ${CMAKE_CURRENT_BINARY_DIR}/Version.cpp
 )
 add_library("${namespace}${module}" ALIAS "${target}")
 target_include_directories(${target}
@@ -166,6 +169,7 @@ set(test_srcs
     test/VolumeMaskTest.cpp
     test/LoggingTest.cpp
     test/SignalsTest.cpp
+    test/IterationTest.cpp
 )
 
 # Add a test executable for each src

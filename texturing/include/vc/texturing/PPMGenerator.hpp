@@ -54,15 +54,15 @@ public:
 
     /**@{*/
     /** @brief Compute the PerPixelMap */
-    PerPixelMap& compute();
+    PerPixelMap compute();
     /**@}*/
 
     /**@{*/
     /** @brief Get the generated PerPixelMap */
-    const PerPixelMap& getPPM() const { return ppm_; }
+    const PerPixelMap getPPM() const { return ppm_; }
 
     /** @copydoc getPPM() const */
-    PerPixelMap& getPPM() { return ppm_; }
+    PerPixelMap getPPM() { return ppm_; }
     /**@}*/
 
     /** @brief Returns the maximum progress value */

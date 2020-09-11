@@ -1,0 +1,57 @@
+#include "vc/core/Version.hpp"
+
+using namespace volcart;
+
+std::string ProjectInfo::Name()
+{
+    static std::string name{"volume-cartographer"};
+    return name;
+}
+
+uint32_t ProjectInfo::VersionMajor()
+{
+    static int vMaj{@PROJECT_VERSION_MAJOR@};
+    return vMaj;
+}
+
+uint32_t ProjectInfo::VersionMinor()
+{
+    static int vMin{@PROJECT_VERSION_MINOR@};
+    return vMin;
+}
+
+uint32_t ProjectInfo::VersionPatch()
+{
+    static int vPatch{@PROJECT_VERSION_PATCH@};
+    return vPatch;
+}
+
+std::string ProjectInfo::VersionString()
+{
+    static std::string version("@PROJECT_VERSION@");
+    return version;
+}
+
+std::string ProjectInfo::NameAndVersion()
+{
+    static std::string nameAndVersion{"volume-cartographer @PROJECT_VERSION@"};
+    return nameAndVersion;
+}
+
+std::string ProjectInfo::RepositoryURL()
+{
+    static std::string repo("https://github.com/viscenter/volume-cartographer");
+    return repo;
+}
+
+std::string ProjectInfo::RepositoryHash()
+{
+    static std::string hash("@GIT_SHA1@");
+    return hash;
+}
+
+std::string ProjectInfo::RepositoryShortHash()
+{
+    static std::string hashShort("@GIT_SHA1_SHORT@");
+    return hashShort;
+}
