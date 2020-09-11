@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iterator>
+
 #include <indicators/cursor_control.hpp>
 #include <indicators/progress_bar.hpp>
 
@@ -34,6 +36,10 @@ inline auto NewProgressBar(size_t maxProg, std::string label = "")
     // clang-format on
 }
 
+template <class Iterable>
+inline auto ProgressWrap(
+    Iterable&& it, std::string label = "", bool useColors = false);
+
 /**
  * Iterable wrapper for tracking iteration progress. This class's iterator meets
  * the LegacyIterator requirements. Each call to `begin()` initializes a new
@@ -41,34 +47,12 @@ inline auto NewProgressBar(size_t maxProg, std::string label = "")
  * advances the progress bar by one iteration. Copies of the iterator will
  * share the same progress bar instance.
  *
- * volcart::ProgressWrap provides a convenient method for constructing a
- * ProgressBarIterable for range-based for loops.
- *
- * @code
- *
- * using Vector = std::vector<int>;
- * using Iterator = Vector::iterator;
- * using ProgressBar = ProgressBarIterable<Iterator>;
- *
- * // Using ProgressBarIterable
- * Vector integers{0, 1, 2};
- * ProgressBar prog(integers.begin(), integers.end(), "Integers");
- * for(auto& i : prog) {
- *     i += 1;
- * }
- * // integers == {1, 2, 3}
- *
- * // Using ConsoleProgressBar
- * for(auto& i : ProgressWrap(integers)) {
- *     i += 1;
- * }
- * // integers == {2, 3, 4}
- *
- * @endcode
+ * Use volcart::ProgressWrap, which provides a convenient method
+ * for creating a ProgressBarIterable for range-based for loops.
  *
  * @ingroup Support
  */
-template <class IteratorType>
+template <class Iterable>
 class ProgressBarIterable
 {
 private:
@@ -89,6 +73,8 @@ private:
         size_t prog_{0};
         /** Max progress value */
         size_t maxProg_{0};
+        /** Use colors */
+        bool useColors_{false};
 
     public:
         /** @{ Iterator type traits */
@@ -101,20 +87,27 @@ private:
 
         /** Constructor for the begin() iterator */
         explicit ConsoleProgressIterator(
-            T beginIt, size_t max, std::string label)
-            : it_{beginIt}, maxProg_{max}
+            T beginIt, size_t max, std::string label, bool useColors)
+            : it_{beginIt}, maxProg_{max}, useColors_{useColors}
         {
-            using indicators::Color;
-            using indicators::option::ForegroundColor;
             bar_ = NewProgressBar(maxProg_, std::move(label));
-            bar_->set_option(ForegroundColor{Color::yellow});
+            if (useColors_) {
+                using indicators::Color;
+                using indicators::option::ForegroundColor;
+                bar_->set_option(ForegroundColor{Color::yellow});
+            }
         }
 
         /** Constructor for the end() iterator */
         explicit ConsoleProgressIterator(T endIt) : it_{endIt} {}
 
         /** Destructor */
-        ~ConsoleProgressIterator() { indicators::show_console_cursor(true); }
+        ~ConsoleProgressIterator()
+        {
+            if (useColors_) {
+                indicators::show_console_cursor(true);
+            }
+        }
 
         /** Get the underlying referenced object */
         reference operator*() const { return *it_; }
@@ -146,45 +139,60 @@ private:
             auto post = std::to_string(prog_) + "/" + std::to_string(maxProg_);
             bar_->set_option(PostfixText{post});
             if (prog_ < maxProg_) {
-                indicators::show_console_cursor(false);
+                if (useColors_) {
+                    indicators::show_console_cursor(false);
+                }
                 bar_->set_progress(prog_);
             } else {
-                bar_->set_option(ForegroundColor{Color::green});
+                if (useColors_) {
+                    bar_->set_option(ForegroundColor{Color::green});
+                }
                 bar_->tick();
-                indicators::show_console_cursor(true);
+                if (useColors_) {
+                    indicators::show_console_cursor(true);
+                }
             }
             return *this;
         }
     };
 
+    using IteratorType = decltype(std::begin(std::declval<Iterable&>()));
+    ProgressBarIterable(Iterable&& container, std::string label, bool useColors)
+        : container_{std::forward<Iterable>(container)}
+        , label_{std::move(label)}
+        , useColors_{useColors}
+    {
+    }
+
+    friend auto ProgressWrap<Iterable>(
+        Iterable&& it, std::string label, bool useColors);
+
 public:
     using iterator = ConsoleProgressIterator<IteratorType>;
     using const_iterator = ConsoleProgressIterator<const IteratorType>;
 
-    /** Constructor for range with label (optional) */
-    explicit ProgressBarIterable(
-        IteratorType begin, IteratorType end, std::string label = "")
-        : begin_{std::move(begin)}
-        , end_{std::move(end)}
-        , label_{std::move(label)}
-    {
-    }
-
     /** Destructor */
-    ~ProgressBarIterable() { indicators::show_console_cursor(true); }
+    ~ProgressBarIterable()
+    {
+        if (useColors_) {
+            indicators::show_console_cursor(true);
+        }
+    }
 
     /** Get a new ProgressIterable::iterator. Instantiates a new progress bar.
      */
     iterator begin()
     {
-        return iterator{begin_, std::distance(begin_, end_), label_};
+        auto begin = std::begin(container_);
+        auto end = std::end(container_);
+        return iterator{begin, std::distance(begin, end), label_, useColors_};
     }
 
     /**
      * Get the end-valued ProgressIterable::iterator. Does not instantiate a
      * new progress bar.
      */
-    iterator end() { return iterator{end_}; }
+    iterator end() { return iterator{std::end(container_)}; }
 
     /**
      * Get a new ProgressIterable::const_iterator. Instantiates a new progress
@@ -192,28 +200,43 @@ public:
      */
     const_iterator cbegin() const
     {
-        return const_iterator{begin_, std::distance(begin_, end_), label_};
+        auto begin = std::begin(container_);
+        auto end = std::end(container_);
+        return const_iterator{
+            begin, std::distance(begin, end), label_, useColors_};
     }
 
     /**
      * Get the end-valued ProgressIterable::const_iterator. Does not instantiate
      * a new progress bar.
      */
-    const_iterator cend() const { return const_iterator{end_}; }
+    const_iterator cend() const { return const_iterator{std::end(container_)}; }
 
 private:
-    /** Copy of range begin iterator */
-    IteratorType begin_;
-    /** Copy of range end iterator */
-    IteratorType end_;
+    Iterable container_;
     /** Progress bar label */
     std::string label_;
+    /** Use colors */
+    bool useColors_{false};
 };
 
 /**
  * @brief Wrap a progress bar around an Iterable object.
  *
  * Returns a ProgressBarIterable which wraps the provided Iterable object.
+ *
+ * @code
+ *
+ * using Vector = std::vector<int>;
+ *
+ * // Using ConsoleProgressBar
+ * Vector integers{0, 1, 2};
+ * for(auto& i : ProgressWrap(integers)) {
+ *     i += 1;
+ * }
+ * // integers == {1, 2, 3}
+ *
+ * @endcode
  *
  * @tparam Iterable Iterable container class. Iterable::iterator must meet
  * LegacyIterator requirements
@@ -223,11 +246,10 @@ private:
  * @ingroup Support
  */
 template <class Iterable>
-inline auto ProgressWrap(Iterable&& it, std::string label = "")
+inline auto ProgressWrap(Iterable&& it, std::string label, bool useColors)
 {
-    using IteratorType = decltype(std::begin(it));
-    return ProgressBarIterable<IteratorType>(
-        std::begin(it), std::end(it), std::move(label));
+    return ProgressBarIterable<Iterable>(
+        std::forward<Iterable>(it), std::move(label), useColors);
 }
 
 /**

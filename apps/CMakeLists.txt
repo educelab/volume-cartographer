@@ -28,6 +28,7 @@ target_link_libraries(vc_mesher
 add_executable(vc_packager src/Packager.cpp src/SliceImage.cpp)
 target_link_libraries(vc_packager
     VC::core
+    VC::app_support
     Boost::filesystem
     Boost::program_options
 )

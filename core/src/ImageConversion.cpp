@@ -2,6 +2,31 @@
 
 namespace vc = volcart;
 
+static inline cv::Mat CreateAlphaChannel(const cv::Size& size, int depth)
+{
+    // Create and scale the alpha channel
+    cv::Mat alpha = cv::Mat::ones(size, depth);
+    switch (alpha.depth()) {
+        case CV_8U:
+            alpha *= std::numeric_limits<uint8_t>::max();
+            break;
+        case CV_8S:
+            alpha *= std::numeric_limits<int8_t>::max();
+            break;
+        case CV_16U:
+            alpha *= std::numeric_limits<uint16_t>::max();
+            break;
+        case CV_16S:
+            alpha *= std::numeric_limits<int16_t>::max();
+            break;
+        default:
+            // do nothing
+            break;
+    }
+
+    return alpha;
+}
+
 cv::Mat vc::QuantizeImage(const cv::Mat& m, int depth)
 {
     // Make sure we have work to do
@@ -62,21 +87,34 @@ cv::Mat vc::ColorConvertImage(const cv::Mat& m, int channels)
         cv::cvtColor(m, output, cv::COLOR_GRAY2BGR);
     }
 
+    // 1 -> 2
+    else if (ic == 1 && oc == 2) {
+        auto alpha = CreateAlphaChannel(m.size(), m.depth());
+        cv::merge(std::vector<cv::Mat>{m, alpha}, output);
+    }
+
     // 1 -> 4
     else if (ic == 1 && oc == 4) {
         cv::cvtColor(m, output, cv::COLOR_GRAY2BGRA);
     }
 
+    // 2 -> 1
+    else if (ic == 2 && oc == 1) {
+        std::vector<cv::Mat> cns;
+        cv::split(m, cns);
+        output = cns[0];
+    }
+
     // 2 -> 3
     else if (ic == 2 && oc == 3) {
-        cv::Mat cns[2];
+        std::vector<cv::Mat> cns;
         cv::split(m, cns);
         cv::merge(std::vector<cv::Mat>{cns[0], cns[0], cns[0]}, output);
     }
 
     // 2 -> 4
     else if (ic == 2 && oc == 4) {
-        cv::Mat cns[2];
+        std::vector<cv::Mat> cns;
         cv::split(m, cns);
         cv::merge(std::vector<cv::Mat>{cns[0], cns[0], cns[0], cns[1]}, output);
     }
@@ -86,19 +124,44 @@ cv::Mat vc::ColorConvertImage(const cv::Mat& m, int channels)
         cv::cvtColor(m, output, cv::COLOR_BGR2GRAY);
     }
 
+    // 3 -> 2
+    else if (ic == 3 && oc == 2) {
+        // Convert color to gray
+        cv::Mat gray;
+        cv::cvtColor(m, gray, cv::COLOR_BGR2GRAY);
+
+        // Add alpha
+        auto alpha = CreateAlphaChannel(m.size(), m.depth());
+        cv::merge(std::vector<cv::Mat>{gray, alpha}, output);
+    }
+
     // 3 -> 4
     else if (ic == 3 && oc == 4) {
         cv::cvtColor(m, output, cv::COLOR_BGR2BGRA);
     }
 
-    // 4 -> 3
-    else if (ic == 4 && oc == 3) {
-        cv::cvtColor(m, output, cv::COLOR_BGRA2BGR);
-    }
-
     // 4 -> 1
     else if (ic == 4 && oc == 1) {
         cv::cvtColor(m, output, cv::COLOR_BGRA2GRAY);
+    }
+
+    // 4 -> 2
+    else if (ic == 4 && oc == 2) {
+        // Convert color to gray
+        cv::Mat gray;
+        cv::cvtColor(m, gray, cv::COLOR_BGRA2GRAY);
+
+        // Extract alpha
+        std::vector<cv::Mat> cns;
+        cv::split(m, cns);
+
+        // Merge gray + alpha
+        cv::merge(std::vector<cv::Mat>{gray, cns[3]}, output);
+    }
+
+    // 4 -> 3
+    else if (ic == 4 && oc == 3) {
+        cv::cvtColor(m, output, cv::COLOR_BGRA2BGR);
     }
 
     // unknown conversion

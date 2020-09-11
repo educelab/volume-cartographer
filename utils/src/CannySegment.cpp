@@ -13,11 +13,14 @@
 #include "vc/core/types/Volume.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/ImageConversion.hpp"
-#include "vc/core/util/Ranges.hpp"
+#include "vc/core/util/Iteration.hpp"
 
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
+
+// using vc::ProgressWrap;
+using vc::range;
 
 // Canny values
 int blurSlider = 1;
@@ -126,9 +129,10 @@ int main(int argc, char* argv[])
     // Segment
     std::cout << "Segmenting surface..." << std::endl;
     auto mesh = vc::ITKMesh::New();
-    cv::Vec3d first, last, middle;
-    for (const auto& z :
-         vc::ProgressWrap(vc::Range(volume->numSlices()), "Slice:")) {
+    cv::Vec3d first;
+    cv::Vec3d middle;
+    cv::Vec3d last;
+    for (const auto& z : ProgressWrap(range(volume->numSlices()), "Slice:")) {
         // Get the slice and blur it
         auto slice = vc::QuantizeImage(volume->getSliceDataCopy(z), CV_8UC1);
         cv::GaussianBlur(slice, slice, {gaussianKernel, gaussianKernel}, 0);
