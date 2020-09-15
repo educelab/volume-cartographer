@@ -258,22 +258,22 @@ public:
                     throw IOException(msg);
                 }
 
-                // Type validation
-                auto msg = "Type mismatch: vcps filetype '" + strs[1] +
-                           "' not compatible with reader type '";
-                if (strs[1] == "int" &&
-                    !std::is_same<typename T::value_type, int>::value) {
-                    msg += "int'";
-                    throw IOException(msg);
-                } else if (
-                    strs[1] == "float" &&
-                    !std::is_same<typename T::value_type, float>::value) {
-                    msg += "float'";
-                    throw IOException(msg);
-                } else if (
-                    strs[1] == "double" &&
-                    !std::is_same<typename T::value_type, double>::value) {
-                    msg += "double'";
+                // type validation
+                std::string readerType;
+                if (std::is_same<typename T::value_type, int>::value) {
+                    readerType = "int";
+                } else if (std::is_same<typename T::value_type, float>::value) {
+                    readerType = "float";
+                } else if (std::is_same<
+                               typename T::value_type, double>::value) {
+                    readerType = "double";
+                } else {
+                    throw IOException("unsupported reader type");
+                }
+                if (strs[1] != readerType) {
+                    auto msg = "Type mismatch: vcps filetype '" + strs[1] +
+                               "' not compatible with reader type '" +
+                               readerType + "'";
                     throw IOException(msg);
                 }
                 h.type = strs[1];
@@ -540,4 +540,4 @@ private:
     }
     /**@}*/
 };
-}
+}  // namespace volcart
