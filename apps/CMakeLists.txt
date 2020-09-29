@@ -134,6 +134,44 @@ target_link_libraries(vc_volpkg_explorer
     Boost::filesystem
 )
 
+## Volume Server ##
+add_executable(vc_volume_server
+    src/VolumeServerApp.cpp
+    src/VolumeServer.cpp
+    include/vc/apps/server/VolumeServer.hpp
+    include/vc/apps/server/VolumeProtocol.hpp)
+set_target_properties(vc_volume_server PROPERTIES
+    AUTOMOC on
+)
+target_link_libraries(vc_volume_server
+    VC::core
+    Boost::program_options
+    Boost::filesystem
+    Qt5::Network
+)
+target_include_directories(vc_volume_server PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+)
+
+## Volume Client ##
+add_executable(vc_volume_client
+    src/VolumeClientApp.cpp
+    src/VolumeClient.cpp
+    include/vc/apps/server/VolumeClient.hpp
+    include/vc/apps/server/VolumeProtocol.hpp)
+set_target_properties(vc_volume_client PROPERTIES
+    AUTOMOC on
+)
+target_link_libraries(vc_volume_client
+    VC::core
+    Boost::program_options
+    Boost::filesystem
+    Qt5::Network
+)
+target_include_directories(vc_volume_client PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+)
+
 ## Cloth Flattening ##
 if (VC_BUILD_EXPERIMENTAL)
     add_executable(vc_cloth src/Cloth.cpp)
@@ -160,6 +198,7 @@ install(
         vc_render_from_ppm
         vc_projection
         vc_volpkg_explorer
+        vc_volume_server
     RUNTIME DESTINATION bin
     COMPONENT Programs
 )

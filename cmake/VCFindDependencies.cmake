@@ -25,7 +25,7 @@ set(VC_BOOST_COMPONENTS
 find_package(Boost 1.58 REQUIRED COMPONENTS ${VC_BOOST_COMPONENTS})
 
 ### Qt5 ###
-find_package(Qt5 5.7 QUIET REQUIRED COMPONENTS Widgets Gui Core)
+find_package(Qt5 5.15 QUIET REQUIRED COMPONENTS Widgets Gui Core Network)
 
 ### ITK ###
 set(VC_ITK_COMPONENTS
