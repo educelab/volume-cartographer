@@ -9,7 +9,11 @@
 
 namespace volcart
 {
-/** @brief Color type */
+/**
+ * @brief Color type
+ *
+ * 8-bit unsigned int in BGR order
+ */
 using Color = cv::Vec3b;
 
 /**
