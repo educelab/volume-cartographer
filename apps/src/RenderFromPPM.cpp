@@ -27,7 +27,7 @@ namespace vc = volcart;
 namespace vct = volcart::texturing;
 
 // File loading
-auto ExtFilter = &vc::io::FileExtensionFilter;
+using vc::IsFileType;
 
 // Volpkg version required by this app
 static constexpr int VOLPKG_SUPPORTED_VERSION = 6;
@@ -295,7 +295,7 @@ int main(int argc, char* argv[])
     }
 
     // Convert to/from floating point
-    auto requestTIFF = ExtFilter(outputPath, {"tiff", "tif"});
+    auto requestTIFF = IsFileType(outputPath, {"tiff", "tif"});
     auto requestFloat = parsed.count("tiff-floating-point") > 0;
     if (requestTIFF && requestFloat) {
         auto m = vc::QuantizeImage(texture.image(0), CV_32F);
@@ -312,7 +312,7 @@ int main(int argc, char* argv[])
     if (requestTIFF && requestFloat) {
         std::cout << "Writing to floating-point TIF ..." << std::endl;
         vc::tiffio::WriteTIFF(outputPath, texture.image(0));
-    } else if (ExtFilter(outputPath, {"png", "jpg", "jpeg", "tiff", "tif"})) {
+    } else if (IsFileType(outputPath, {"png", "jpg", "jpeg", "tiff", "tif"})) {
         std::cout << "Writing to image..." << std::endl;
         cv::imwrite(outputPath.string(), texture.image(0));
     } else {
