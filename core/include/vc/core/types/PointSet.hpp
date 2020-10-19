@@ -25,6 +25,9 @@ public:
     /** Point type */
     using Point = T;
 
+    /** Iterator value type */
+    using value_type = Point;
+
     /** Container type. Defines the underlying data structure. Should supply an
      * STL compliant interface. */
     using Container = std::vector<Point>;
