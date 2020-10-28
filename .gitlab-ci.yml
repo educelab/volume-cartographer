@@ -164,7 +164,13 @@ doxygen:
 .rules:release: &rules_release
     - if: '$CI_COMMIT_TAG =~ /^v.*$/'
 
-.rules:nightly: &rules_nightly
+.rules:nightly:collect: &rules_nightly_collect
+    - if: $CI_COMMIT_TAG
+      when: never
+    - if: '$CI_COMMIT_BRANCH == "develop" && $CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$BUILD_NIGHTLY == "true"'
+
+.rules:nightly:deploy: &rules_nightly_deploy
     - if: $CI_COMMIT_TAG
       when: never
     - if: '$CI_COMMIT_BRANCH == "develop" && $CI_PIPELINE_SOURCE == "schedule"'
@@ -200,7 +206,7 @@ collect:source:nightly:
     stage: collect
     needs: []
     rules:
-        *rules_nightly
+        *rules_nightly_collect
     before_script:
         - *deploy_variables
         - export TARNAME="VC-${DATETIME}-${VERSHORT}.${SHA}-source.tar.gz"
@@ -252,7 +258,7 @@ collect:binaries:macos:nightly:
         - .collect:package:macos
     stage: collect
     rules:
-        *rules_nightly
+        *rules_nightly_collect
     variables:
         EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_VERSION_DATESTAMP=ON -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON -DVC_BUILD_EXAMPLES=OFF -DVC_BUILD_TESTS=OFF"
 
@@ -267,12 +273,12 @@ collect:binaries:macos:nightly:
         - export DMG_NAME=$(basename ${BUILD_DIR}/VC-*-Darwin-*.dmg)
         - export DMG_URL=$(rclone link ${REMOTE}:${REMOTE_DIR}/${BUILD_DIR}/${DMG_NAME})
         - export DMG_ID=$(echo ${DMG_URL} | sed 's/https:\/\/drive.google.com\/open?id=//g')
-        - echo "${DMG_NAME}" '\u2192' "${DMG_URL}"
+        - echo "${DMG_NAME} → ${DMG_URL}"
         - echo "DMG_ID=${DMG_ID}" >> variables.env
         - export TAR_NAME=$(basename ${BUILD_DIR}/VC-*-Darwin-*.tar.gz)
         - export TAR_URL=$(rclone link ${REMOTE}:${REMOTE_DIR}/${BUILD_DIR}/${TAR_NAME})
         - export TAR_ID=$(echo ${TAR_URL} | sed 's/https:\/\/drive.google.com\/open?id=//g')
-        - echo "${TAR_NAME}" '\u2192' "${TAR_URL}"
+        - echo "${TAR_NAME} → ${TAR_URL}"
         - echo "TAR_ID=${TAR_ID}" >> variables.env
     artifacts:
         reports:
@@ -319,7 +325,7 @@ deploy:nightly:
     stage: deploy
     needs: ["collect:source:nightly", "collect:binaries:macos:nightly"]
     rules:
-        *rules_nightly
+        *rules_nightly_deploy
     variables:
         REMOTE_DIR: "nightlies"
     before_script:
