@@ -508,7 +508,10 @@ TFF::PointSet TFF::compute()
         auto skeleton = PruneSpurs(thinnedMask, spurLength_);
 
         // Update seed points for the next iteration
-        seedPoints = skeleton;
+        seedPoints.clear();
+        for (const auto& s : skeleton) {
+            seedPoints.emplace(s[0], s[1], zIndex + 1);
+        }
 
         // Save the skeleton points to the final results
         result_ = AppendVoxelSetToPointSet(skeleton, result_);
