@@ -1,5 +1,7 @@
 #include <unordered_set>
 
+#include <algorithm>
+#include <cctype>
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/range/iterator_range.hpp>
@@ -39,8 +41,9 @@ struct VoxelHash {
 
 /*
  * Does a very simple merge--merges all .vcps files in a certain directory.
- * Does not remove 'overlap' between segmentations, though this would be
- * helpful.
+ * Merge pointsets can prune unnecessary parts of a segmentation if
+ * the vcps file is named: LAST_SLICE_NUM.vcps. Otherwise
+ * pruning will fail. TODO: a regex approach would be better
  * */
 int main(int argc, char* argv[])
 {
@@ -112,32 +115,27 @@ int main(int argc, char* argv[])
 
         // Prune as needed
         if (parsed.count("prune")) {
-            // Match the regex
-            static const std::regex SLICE_REG{".*?(\\d+)+\\.vcps$"};
-            std::smatch matches;
-            if (not std::regex_match(
-                    fs::path(file).string(), matches, SLICE_REG)) {
-                vc::logger->warn(
-                    "Filename does not match pruning pattern. File will not be "
-                    "pruned: \"{}\"",
-                    fpath.string());
-                continue;
-            }
-            else {
-                // Get the digits
-                // First match is the whole regex
-                // Second match is the capture group of one or more digits: \\d+
-                int maxSliceNum = std::stoi(matches[1].str());
+            auto filename = fs::path(file).stem().string();
+            if (std::all_of(filename.begin(), filename.end(), ::isdigit)) {
+                int maxSliceNum = std::stoi(filename);
 
                 volcart::PointSet<Voxel> prunedCloud;
                 for (auto& pt : tmpCloud) {
-                    // Check the z-value. Only add it to prunedCloud if z is less than the vcps name.
+                    // Check the z-value. Only add it to prunedCloud if z is
+                    // less than the vcps name.
                     if (pt[2] <= maxSliceNum) {
                         prunedCloud.push_back(pt);
                     }
                 }
                 tmpCloud = prunedCloud;
-                vc::logger->info("Pruned pointset to {} points", tmpCloud.size());
+                vc::logger->info(
+                    "Pruned pointset to {} points", tmpCloud.size());
+            } else {
+                vc::logger->warn(
+                    "Filename contains characters other than digits. File will "
+                    "not be "
+                    "pruned: \"{}\"",
+                    fpath.string());
             }
         }
         // Add all the points in the smaller cloud to the set
