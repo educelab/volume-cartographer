@@ -385,8 +385,9 @@ void AddVolume(vc::VolumePkg::Pointer& volpkg, const VolumeInfo& info)
     // Move the slices into the VolPkg
     using vc::enumerate;
     using vc::ProgressWrap;
-    for (auto [idx, slice] :
-         ProgressWrap(enumerate(slices), "Saving to volpkg")) {
+    for (auto pair : ProgressWrap(enumerate(slices), "Saving to volpkg")) {
+        const auto& idx = pair.first;
+        auto& slice = pair.second;
         // Convert or flip
         if (slice.needsConvert() || slice.needsScale() || needsFlip) {
             // Override slice min/max with volume min/max
