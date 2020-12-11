@@ -87,7 +87,9 @@ TEST(Iteration, Range2DEndOnly)
         for (size_t x = 0; x < 5; x++) {
 
             // Get iterator value
-            auto [v, u] = *it;
+            auto pair = *it;
+            const auto& v = pair.first;
+            const auto& u = pair.second;
 
             // Compare to loop indices
             EXPECT_EQ(v, y);
@@ -110,7 +112,9 @@ TEST(Iteration, Range2DStartEnd)
         for (size_t x = 1; x < 5; x++) {
 
             // Get iterator value
-            auto [v, u] = *it;
+            auto pair = *it;
+            const auto& v = pair.first;
+            const auto& u = pair.second;
 
             // Compare to loop indices
             EXPECT_EQ(v, y);
@@ -133,7 +137,9 @@ TEST(Iteration, Range2DStartEndStep)
         for (size_t x = 1; x < 6; x += 2) {
 
             // Get iterator value
-            auto [v, u] = *it;
+            auto pair = *it;
+            const auto& v = pair.first;
+            const auto& u = pair.second;
 
             // Compare to loop indices
             EXPECT_EQ(v, y);
@@ -160,7 +166,9 @@ TEST(Iteration, Range2DFloat)
     for (float y = yStart; y < yMax; y += step) {
         for (float x = xStart; x < xMax; x += step) {
             // Get iterator value
-            auto [v, u] = *it;
+            auto pair = *it;
+            const auto& v = pair.first;
+            const auto& u = pair.second;
 
             // Compare to loop indices
             EXPECT_FLOAT_EQ(v, y);
@@ -196,7 +204,9 @@ TEST(Iteration, EnumerateLVal)
 {
     std::vector<int> values{0, 1, 2, 3, 4};
     size_t idx{0};
-    for (auto [index, value] : enumerate(values)) {
+    for (auto pair : enumerate(values)) {
+        const auto& index = pair.first;
+        auto& value = pair.second;
         EXPECT_EQ(index, idx);
         EXPECT_EQ(value, values[idx]);
 
@@ -217,7 +227,9 @@ TEST(Iteration, EnumerateRVal)
 {
     std::vector<int> truth{0, 1, 2, 3, 4};
     size_t idx{0};
-    for (auto [index, value] : enumerate(std::vector<int>{0, 1, 2, 3, 4})) {
+    for (auto pair : enumerate(std::vector<int>{0, 1, 2, 3, 4})) {
+        const auto& index = pair.first;
+        const auto& value = pair.second;
         EXPECT_EQ(index, idx);
         EXPECT_EQ(value, truth[idx]);
         ++idx;
@@ -228,7 +240,9 @@ TEST(Iteration, EnumerateParamPack)
 {
     std::vector<int> truth{0, 1, 2, 3, 4};
     size_t idx{0};
-    for (auto [index, value] : enumerate(0, 1, 2, 3, 4)) {
+    for (auto pair : enumerate(0, 1, 2, 3, 4)) {
+        const auto& index = pair.first;
+        const auto& value = pair.second;
         EXPECT_EQ(index, idx);
         EXPECT_EQ(value, truth[idx]);
         ++idx;
@@ -239,7 +253,9 @@ TEST(Iteration, EnumerateRange)
 {
     std::vector<int> truth{0, 1, 2, 3, 4};
     size_t idx{0};
-    for (auto [index, value] : enumerate(range(5))) {
+    for (auto pair : enumerate(range(5))) {
+        const auto& index = pair.first;
+        const auto& value = pair.second;
         EXPECT_EQ(index, idx);
         EXPECT_EQ(value, truth[idx]);
         ++idx;

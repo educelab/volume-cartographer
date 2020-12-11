@@ -501,7 +501,7 @@ private:
  *     std::cout "values[" << val.first << "] == " << val.second << std::endl;
  * }
  *
- * // Use structured bindings
+ * // Use structured bindings (C++17 and up)
  * // Update the underlying data
  * for(auto [idx, val] : enumerate(values) {
  *     std::cout << val == values[idx] std::endl;
