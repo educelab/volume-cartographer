@@ -12,7 +12,7 @@ A library and toolkit for the virtual unwrapping of volumetric datasets.
 * Visualization Toolkit (vtk) 7 or 8
     * [ACVD Mesh Simplification](https://github.com/csparker247/ACVD) add-on library
 * Boost 1.58+
-* Qt 5.7+
+* Qt 5.15+
 * [libtiff](https://gitlab.com/libtiff/libtiff) 4.0+
 * Eigen3 3.2+
 * spdlog 1.4.2+
