@@ -269,7 +269,7 @@ static VoxelList DoFloodFill(
     // Initial points are their own 'parents'.
     for (const auto& pt : pts) {
         auto greyVal = img.at<uint16_t>(pt[1], pt[0]);
-        if (greyVal > low && greyVal < high) {
+        if (greyVal >= low && greyVal <= high) {
             q.emplace(pt, pt);
             visited.insert(pt);
         }
