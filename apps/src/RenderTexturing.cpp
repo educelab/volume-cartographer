@@ -265,8 +265,8 @@ vc::Texture TextureMesh(
     auto shading = static_cast<Shading>(parsed_["shading"].as<int>());
 
     ///// Composite options /////
-    auto filter = static_cast<vc::texturing::CompositeTexture::Filter>(
-        parsed_["filter"].as<int>());
+    auto filter =
+        static_cast<vct::CompositeTexture::Filter>(parsed_["filter"].as<int>());
 
     ///// Integral options /////
     auto weightType = static_cast<vct::IntegralTexture::WeightMethod>(
@@ -291,9 +291,13 @@ vc::Texture TextureMesh(
     ppmGen.setShading(shading);
 
     // Progress tracker
-    auto label = "Generating PPM (" + std::to_string(width) + "x" +
-                 std::to_string(height) + "):";
-    vc::ReportProgress(ppmGen, label);
+    if (parsed_["show-progress-bars"].as<bool>()) {
+        auto label = "Generating PPM (" + std::to_string(width) + "x" +
+                     std::to_string(height) + "):";
+        vc::ReportProgress(ppmGen, label);
+    } else {
+        std::cout << "Rendering PPM..." << std::endl;
+    }
     auto ppm = ppmGen.compute();
 
     // Save the PPM
@@ -378,7 +382,11 @@ vc::Texture TextureMesh(
     textureGeneric->setPerPixelMap(ppm);
 
     // Setup progress tracker
-    vc::ReportProgress(*textureGeneric, "Texturing:");
+    if (parsed_["show-progress-bars"].as<bool>()) {
+        vc::ReportProgress(*textureGeneric, "Texturing:");
+    } else {
+        std::cout << "Rendering texture image..." << std::endl;
+    }
 
     // Execute texture algorithm
     texture = textureGeneric->compute();

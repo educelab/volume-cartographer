@@ -104,7 +104,7 @@ void FlatteningAlgorithm::orient_uvs_()
     // Apply to the UVs
     ITKMesh::PointType p;
     p[1] = 0.0;
-    for (unsigned id = 0; id < output_->GetNumberOfPoints(); id++) {
+    for (size_t id = 0; id < output_->GetNumberOfPoints(); id++) {
         p[0] = pts.at(id)[0];
         p[2] = pts.at(id)[1];
         output_->SetPoint(id, p);
