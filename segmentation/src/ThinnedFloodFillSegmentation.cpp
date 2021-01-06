@@ -303,7 +303,7 @@ static VoxelList DoFloodFill(
             // Add the valid neighbor to the queue and mark it as visited.
             auto val = img.at<uint16_t>(neighbor[1], neighbor[0]);
             auto dist = EuclideanDistance(neighbor, pair.parent);
-            if (val > low && val < high && dist <= bound) {
+            if (val >= low && val =< high && dist <= bound) {
                 q.emplace(neighbor, pair.parent);
                 visited.insert(neighbor);
             }
