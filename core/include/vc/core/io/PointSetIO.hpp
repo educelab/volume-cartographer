@@ -303,6 +303,11 @@ public:
             strs.clear();
         }
 
+        // Set size
+        if (!ordered && h.width > 0 && h.height > 0) {
+            h.size = h.width * h.height;
+        }
+
         // Sanity check. Do we have a valid pointset header?
         if (h.type.empty()) {
             auto msg = "Must provide type";
@@ -319,10 +324,6 @@ public:
         } else if (ordered && !h.ordered) {
             auto msg =
                 "Tried to read unordered pointset with ordered PointSetIO";
-            throw IOException(msg);
-        } else if (!ordered && h.ordered) {
-            auto msg =
-                "Tried to read ordered pointset with unordered PointSetIO";
             throw IOException(msg);
         }
 

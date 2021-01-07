@@ -98,7 +98,7 @@ public:
     size_t numConnections() const { return connections_.size(); }
 
     /** @brief Signal all connections with parameters */
-    void send(Types... args)
+    void send(Types... args) const
     {
         for (const auto& c : connections_) {
             c.slot(args...);
@@ -106,7 +106,7 @@ public:
     }
 
     /** @brief Convenience operator: Calls Signal::send(args) */
-    void operator()(Types... args) { send(std::forward<Types>(args)...); }
+    void operator()(Types... args) const { send(std::forward<Types>(args)...); }
 
 private:
     /** Basic connection struct */
@@ -128,7 +128,7 @@ void Signal<>::connect(Obj* obj, ObjMemberFn&& fn)
 
 /** Full specialization of operator() for signals without parameters */
 template <>
-inline void Signal<>::operator()()
+inline void Signal<>::operator()() const
 {
     send();
 }

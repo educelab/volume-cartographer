@@ -192,7 +192,7 @@ public:
         OrderedPointSet ps(width_);
         std::copy(
             std::begin(data_) + width_ * i, std::begin(data_) + width_ * j,
-            std::back_inserter(ps.data()));
+            std::back_inserter(ps.data_));
         return ps;
     }
     /**@}*/

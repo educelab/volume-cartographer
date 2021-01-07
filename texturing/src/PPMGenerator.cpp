@@ -101,6 +101,8 @@ void PPMGenerator::generate_ppm_()
     // Setup the output
     ppm_ = PerPixelMap(height_, width_);
     mask_ = cv::Mat::zeros(height_, width_, CV_8UC1);
+    cellMap_ = cv::Mat(height_, width_, CV_32SC1);
+    cellMap_ = cv::Scalar::all(-1);
 
     // Setup the search tree
     kdTree_ = ITKPointsLocator::New();
@@ -125,6 +127,7 @@ void PPMGenerator::generate_ppm_()
     // Finish setting up the output
     ppm_.setUVMap(uvMap_);
     ppm_.setMask(mask_);
+    ppm_.setCellMap(cellMap_);
 }
 
 void PPMGenerator::find_cell_(size_t x, size_t y, size_t& cellHint)
@@ -192,6 +195,9 @@ void PPMGenerator::find_cell_(size_t x, size_t y, size_t& cellHint)
                 info.normals.at(2));
             break;
     }
+
+    // Assign the cell index to the cell map
+    cellMap_.at<int32_t>(y, x) = cellHint;
 
     // Assign the intensity value at the UV position
     mask_.at<uint8_t>(y, x) = 255;

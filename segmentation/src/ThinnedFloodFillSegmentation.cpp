@@ -10,9 +10,11 @@
 #include <opencv2/imgproc.hpp>
 
 #include "vc/core/types/Color.hpp"
+#include "vc/core/util/HashFunctions.hpp"
 #include "vc/core/util/ImageConversion.hpp"
 #include "vc/core/util/Iteration.hpp"
 #include "vc/core/util/Logging.hpp"
+#include "vc/segmentation/tff/FloodFill.hpp"
 
 namespace fs = boost::filesystem;
 
@@ -22,44 +24,8 @@ using namespace volcart::segmentation;
 using TFF = ThinnedFloodFillSegmentation;
 using Voxel = cv::Vec3i;
 
-struct VoxelHash {
-    size_t operator()(const Voxel& v) const
-    {
-        // Hash from:
-        // https://dmauro.com/post/77011214305/a-hashing-function-for-x-y-z-coordinates
-        auto max = std::max({v[0], v[1], v[2]});
-        size_t hash = (max * max * max) + (2 * max * v[2]) + v[2];
-        if (max == v[2]) {
-            auto val = std::max({v[0], v[1]});
-            hash += val * val;
-        }
-        if (v[1] >= v[0]) {
-            hash += v[0] + v[1];
-        } else {
-            hash += v[1];
-        }
-        return hash;
-    }
-};
-
 using VoxelList = std::vector<cv::Vec3i>;
-using VoxelSet = std::unordered_set<Voxel, VoxelHash>;
-
-struct VoxelPair {
-    VoxelPair() = default;
-    VoxelPair(const Voxel& v, const Voxel& parent) : v{v}, parent{parent} {}
-
-    Voxel v;
-    Voxel parent;
-};
-
-static VoxelList GetNeighbors(const Voxel& v)
-{
-    return {{v[0] - 1, v[1] - 1, v[2]}, {v[0], v[1] - 1, v[2]},
-            {v[0] + 1, v[1] - 1, v[2]}, {v[0] - 1, v[1], v[2]},
-            {v[0] + 1, v[1], v[2]},     {v[0] - 1, v[1] + 1, v[2]},
-            {v[0], v[1] + 1, v[2]},     {v[0] + 1, v[1] + 1, v[2]}};
-}
+using VoxelSet = std::unordered_set<Voxel, Vec3iHash>;
 
 static VoxelSet FindIntersections(const VoxelSet& pts)
 {
@@ -253,128 +219,6 @@ static VoxelSet ThinMask(VoxelSet& pts)
     return pts;
 }
 
-inline int EuclideanDistance(const Voxel& start, const Voxel& end)
-{
-    return static_cast<int>(cv::norm(end - start));
-}
-
-static VoxelList DoFloodFill(
-    const VoxelSet& pts, int bound, cv::Mat img, uint16_t low, uint16_t high)
-{
-    std::queue<VoxelPair> q;
-    VoxelList mask;
-    VoxelSet visited;
-
-    // Push all the initial points onto the queue.
-    // Initial points are their own 'parents'.
-    for (const auto& pt : pts) {
-        auto greyVal = img.at<uint16_t>(pt[1], pt[0]);
-        if (greyVal >= low && greyVal <= high) {
-            q.emplace(pt, pt);
-            visited.insert(pt);
-        }
-    }
-
-    while (!q.empty()) {
-        // Pick a VoxelPair off the queue
-        auto pair = q.front();
-        q.pop();
-
-        //'color'/record that voxel as part of the mask
-        mask.push_back(pair.v);
-
-        // check neighbors; if they're valid according to the user-defined
-        // threshold AND they are not outside the original(/parent) seed point's
-        // boundary, add them to the queue
-        for (const auto& neighbor : GetNeighbors(pair.v)) {
-            // Make sure this voxel hasn't already been added to the
-            // visited list: (We don't want to add it to the queue
-            // twice...)
-            if (visited.find(neighbor) != visited.end()) {
-                continue;
-            }
-
-            // Make sure this neighbor is in the image bounds
-            if (neighbor[0] < 0 or neighbor[0] >= img.cols or neighbor[1] < 0 or
-                neighbor[1] >= img.rows) {
-                continue;
-            }
-
-            // Add the valid neighbor to the queue and mark it as visited.
-            auto val = img.at<uint16_t>(neighbor[1], neighbor[0]);
-            auto dist = EuclideanDistance(neighbor, pair.parent);
-            if (val >= low && val <= high && dist <= bound) {
-                q.emplace(neighbor, pair.parent);
-                visited.insert(neighbor);
-            }
-        }
-    }
-    return mask;
-}
-
-// Estimate thickness of page from every seed point.
-// 2 basic options: vertical or horizontal. Better: estimate along
-// the normal of each point in the curve. This would be especially
-// helpful if this algorithm was applied to a scroll.
-size_t TFF::measure_thickness_(const Voxel& seed, const cv::Mat& slice) const
-{
-    int xPos{seed[0]};
-    int xNeg{seed[0]};
-    int yPos{seed[1]};
-    int yNeg{seed[1]};
-    bool foundMin{false};
-    bool foundMax{false};
-    size_t length{1};
-
-    while (!foundMin || !foundMax) {
-        if (measureVertically_) {
-            yPos++;
-            yNeg--;
-        } else {
-            xPos++;
-            xNeg--;
-        }
-
-        // We've found our bound if we're out of the image bounds now
-        foundMin = xNeg < 0 or yNeg < 0;
-        foundMax = xPos >= slice.cols or yPos >= slice.rows;
-
-        // Check the negative direction
-        if (!foundMin) {
-            auto val = slice.at<uint16_t>(yNeg, xNeg);
-            if (val < low_ or val > high_) {
-                foundMin = true;
-            }
-        }
-
-        // Check the positive direction
-        if (!foundMax) {
-            auto val = slice.at<uint16_t>(yPos, xPos);
-            if (val < low_ or val > high_) {
-                foundMax = true;
-            }
-        }
-
-        if (!(foundMin && foundMax)) {
-            length++;
-        }
-
-        // Break if our length is at the the max
-        if (length == maxRadius_) {
-            break;
-        }
-    }
-    return length;
-}
-
-// Given a vector of integer measurements of page thickness, one for every
-// seed point, compute the median thickness.
-inline size_t ComputeMedianThickness(std::vector<size_t> meas)
-{
-    std::nth_element(meas.begin(), meas.begin() + meas.size() / 2, meas.end());
-    return meas[meas.size() / 2];
-}
-
 static TFF::PointSet AppendVoxelSetToPointSet(
     const VoxelSet& points, TFF::PointSet result)
 {
@@ -415,11 +259,11 @@ TFF::PointSet TFF::compute()
 
     // Initialize running points with the provided starting seeds
     // Converts double-to-int by truncation
-    VoxelSet seedPoints;
+    VoxelList seedPoints;
     auto startSlice = std::numeric_limits<size_t>::max();
     for (const auto& pt : startingPoints_) {
         startSlice = std::min(startSlice, static_cast<size_t>(pt[2]));
-        seedPoints.emplace(pt[0], pt[1], pt[2]);
+        seedPoints.emplace_back(pt[0], pt[1], pt[2]);
     }
 
     // Iterate over z-slices
@@ -436,34 +280,17 @@ TFF::PointSet TFF::compute()
         // Estimate thickness of page from every seed point.
         std::vector<size_t> estimates;
         for (const auto& v : seedPoints) {
-            estimates.emplace_back(measure_thickness_(v, slice));
+            estimates.emplace_back(MeasureThickness(
+                v, slice, low_, high_, measureVertically_, maxRadius_));
         }
 
         // Calculate the median thickness.
         // Choose the median of the measurements to be the boundary for every
         // point.
-        auto bound = ComputeMedianThickness(estimates);
+        auto bound = Median(estimates);
 
         // Do flood-fill with the given seed points to the estimated thickness.
         auto sliceMask = DoFloodFill(seedPoints, bound, slice, low_, high_);
-
-        // Save to the full volume mask
-        volMask_.append(sliceMask);
-
-        // Dump image of mask on slice
-        if (dumpVis_) {
-            auto i = QuantizeImage(slice, CV_8U);
-            cv::cvtColor(i, i, cv::COLOR_GRAY2BGR);
-            for (const Voxel& v : sliceMask) {
-                i.at<cv::Vec3b>(v[1], v[0]) = color::BLUE;
-            }
-
-            std::stringstream ss;
-            ss << std::setw(std::to_string(vol_->numSlices()).size())
-               << std::setfill('0') << zIndex << "_mask.png";
-            const auto wholeMaskPath = maskDir / ss.str();
-            cv::imwrite(wholeMaskPath.string(), i);
-        }
 
         // Convert mask to a binary image so we can apply closing and distance
         // transform operations:
@@ -479,6 +306,34 @@ TFF::PointSet TFF::compute()
         cv::Mat kernel = cv::Mat::ones(kernel_, kernel_, CV_8U);
         cv::Mat closedImg;
         cv::morphologyEx(binaryImg, closedImg, cv::MORPH_CLOSE, kernel);
+
+        // Save to the full volume mask
+        for (const auto p : range2D(closedImg.rows, closedImg.cols)) {
+            const auto& x = p.second;
+            const auto& y = p.first;
+            if (closedImg.at<uint8_t>(y, x) > 0) {
+                volMask_.emplace_back(x, y, zIndex);
+            }
+        }
+
+        // Dump image of mask on slice
+        if (dumpVis_) {
+            auto i = QuantizeImage(slice, CV_8U);
+            cv::cvtColor(i, i, cv::COLOR_GRAY2BGR);
+            for (const auto v : range2D(closedImg.rows, closedImg.cols)) {
+                const auto& x = v.second;
+                const auto& y = v.first;
+                if (closedImg.at<uint8_t>(y, x) > 0) {
+                    i.at<cv::Vec3b>(y, x) = color::BLUE;
+                }
+            }
+
+            std::stringstream ss;
+            ss << std::setw(std::to_string(vol_->numSlices()).size())
+               << std::setfill('0') << zIndex << "_mask.png";
+            const auto wholeMaskPath = maskDir / ss.str();
+            cv::imwrite(wholeMaskPath.string(), i);
+        }
 
         // Do the distance transform.
         cv::Mat dtImg;
@@ -510,7 +365,7 @@ TFF::PointSet TFF::compute()
         // Update seed points for the next iteration
         seedPoints.clear();
         for (const auto& s : skeleton) {
-            seedPoints.emplace(s[0], s[1], zIndex + 1);
+            seedPoints.emplace_back(s[0], s[1], zIndex + 1);
         }
 
         // Save the skeleton points to the final results

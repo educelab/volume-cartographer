@@ -43,6 +43,7 @@ int main(int argc, char* argv[])
         .add(GetFilteringOpts())
         .add(GetCompositeOpts())
         .add(GetIntegralOpts())
+        .add(GetThicknessOpts())
         .add(GetPostProcessOpts());
 
     // Parse the cmd line

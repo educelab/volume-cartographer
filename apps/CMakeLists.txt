@@ -67,13 +67,17 @@ target_include_directories(vc_render PUBLIC
 )
 
 ## Render from PPM
-add_executable(vc_render_from_ppm src/RenderFromPPM.cpp)
+add_executable(vc_render_from_ppm src/RenderFromPPM.cpp src/RenderIO.cpp src/RenderTexturing.cpp)
 target_link_libraries(vc_render_from_ppm
     VC::core
     VC::texturing
     VC::meshing
+    VC::app_support
     Boost::filesystem
     Boost::program_options
+)
+target_include_directories(vc_render_from_ppm PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
 
 ## Layers ##

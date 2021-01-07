@@ -88,7 +88,7 @@ public:
     bool empty() const { return data_.empty(); }
 
     /** @brief Get the PointSet storage container */
-    Container& data() { return data_; }
+    Container as_vector() { return data_; }
 
     /** @brief Remove all elements from the PointSet */
     void clear() { data_.clear(); }

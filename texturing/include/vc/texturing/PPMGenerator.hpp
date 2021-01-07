@@ -63,6 +63,15 @@ public:
 
     /** @copydoc getPPM() const */
     PerPixelMap getPPM() { return ppm_; }
+
+    /**
+     * @brief Get the generated cell map
+     *
+     * The cell map is an image containing the face index associated with each
+     * pixel in the PPM. The cell map is of type `CV_32SC1`. Pixels without
+     * a face assignment have value equal to -1.
+     */
+    cv::Mat getCellMap() const { return cellMap_; }
     /**@}*/
 
     /** @brief Returns the maximum progress value */
@@ -118,6 +127,8 @@ private:
     PerPixelMap ppm_;
     /** Output PPM mask */
     cv::Mat mask_;
+    /** Output cell map */
+    cv::Mat cellMap_;
     /** Output shading */
     Shading shading_{Shading::Smooth};
     /** Output width of the PerPixelMap */

@@ -182,6 +182,22 @@ public:
      * do not have mappings. 0 = No mapping, 255 = Has mapping.
      */
     void setMask(const cv::Mat& m) { mask_ = m.clone(); }
+
+    /**
+     * @brief Get the cell map image
+     *
+     * The cell map contains the face assignment for each pixel in the PPM.
+     * This is an optional feature, and older PPMs may not make this information
+     * available.
+     */
+    const cv::Mat cellMap() const { return cellMap_; }
+
+    /**
+     * @brief Set the cell map image
+     *
+     * @copydetails cellMap()
+     */
+    void setCellMap(const cv::Mat& m) { cellMap_ = m.clone(); }
     /**@}*/
 
     /**@{*/
@@ -207,12 +223,16 @@ private:
     /** Map data storage */
     volcart::OrderedPointSet<cv::Vec6d> map_;
 
-    /** Pixel mask
+    /**
+     * Pixel mask
      *
      * The pixel mask is an 8bpc, single channel image that indicates which
      * pixels do and do not have mappings. 0 = No mapping, 255 = Has mapping.
      */
     cv::Mat mask_;
+
+    /** Cell map */
+    cv::Mat cellMap_;
 
     /** UVMap used to generate this map */
     UVMap uvMap_{};

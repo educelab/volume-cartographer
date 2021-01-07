@@ -18,6 +18,9 @@ boost::program_options::options_description GetCompositeOpts();
 /** Get the Integral Texture options */
 boost::program_options::options_description GetIntegralOpts();
 
+/** Get the Thickness Texture options */
+boost::program_options::options_description GetThicknessOpts();
+
 /** Get the Texture Post Processing Options **/
 boost::program_options::options_description GetPostProcessOpts();
 
@@ -25,7 +28,7 @@ boost::program_options::options_description GetPostProcessOpts();
 enum class Shape { Line = 0, Cuboid };
 
 /** Available texturing algorithms */
-enum class Method { Composite = 0, Intersection, Integral };
+enum class Method { Composite = 0, Intersection, Integral, Thickness };
 
 /** Perform flattening and UV ops */
 volcart::UVMap FlattenMesh(

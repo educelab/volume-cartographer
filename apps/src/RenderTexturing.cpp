@@ -8,10 +8,12 @@
 #include <opencv2/imgcodecs.hpp>
 
 #include "vc/app_support/ProgressIndicator.hpp"
+#include "vc/core/io/PointSetIO.hpp"
 #include "vc/core/neighborhood/CuboidGenerator.hpp"
 #include "vc/core/neighborhood/LineGenerator.hpp"
 #include "vc/core/types/Color.hpp"
 #include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/types/VolumetricMask.hpp"
 #include "vc/texturing/AngleBasedFlattening.hpp"
 #include "vc/texturing/CompositeTexture.hpp"
 #include "vc/texturing/IntegralTexture.hpp"
@@ -19,6 +21,7 @@
 #include "vc/texturing/OrthographicProjectionFlattening.hpp"
 #include "vc/texturing/PPMGenerator.hpp"
 #include "vc/texturing/ScaleMarkerGenerator.hpp"
+#include "vc/texturing/ThicknessTexture.hpp"
 
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;
@@ -83,7 +86,8 @@ po::options_description GetFilteringOpts()
              "Texturing method: \n"
                  "  0 = Composite\n"
                  "  1 = Intersection\n"
-                 "  2 = Integral")
+                 "  2 = Integral\n"
+                 "  3 = Thickness")
         ("neighborhood-shape,n", po::value<int>()->default_value(0),
              "Neighborhood shape:\n"
                  "  0 = Linear\n"
@@ -149,6 +153,22 @@ po::options_description GetIntegralOpts()
             "voxel values are differenced.")
         ("clamp-to-max", po::value<uint16_t>(), "Clamp values to the specified "
             "maximum.");
+    // clang-format on
+
+    return opts;
+}
+
+po::options_description GetThicknessOpts()
+{
+    // clang-format off
+    po::options_description opts("Thickness Texture Options");
+    opts.add_options()
+        ("volume-mask", po::value<std::string>(),
+            "Path to volumetric mask point set")
+        ("normalize-output", po::value<bool>()->default_value(true),
+            "Normalize the output image between [0, 1]. If enabled "
+            "(default), the output file should be a TIFF file and the "
+            "--tiff-floating-point flag should be provided.");
     // clang-format on
 
     return opts;
@@ -281,6 +301,13 @@ vc::Texture TextureMesh(
     auto expoDiffBase = parsed_["expodiff-base"].as<double>();
     auto clampToMax = parsed_.count("clamp-to-max") > 0;
 
+    ///// Thickness options /////
+    fs::path maskPath;
+    if (parsed_.count("volume-mask") > 0) {
+        maskPath = parsed_["volume-mask"].as<std::string>();
+    }
+    auto normalize = parsed_["normalize-output"].as<bool>();
+
     ///// Generate the PPM /////
     auto width = static_cast<size_t>(std::ceil(uvMap.ratio().width));
     auto height = static_cast<size_t>(std::ceil(uvMap.ratio().height));
@@ -291,7 +318,7 @@ vc::Texture TextureMesh(
     ppmGen.setShading(shading);
 
     // Progress tracker
-    if (parsed_["show-progress-bars"].as<bool>()) {
+    if (parsed_["progress"].as<bool>()) {
         auto label = "Generating PPM (" + std::to_string(width) + "x" +
                      std::to_string(height) + "):";
         vc::ReportProgress(ppmGen, label);
@@ -328,6 +355,10 @@ vc::Texture TextureMesh(
     std::cout << "Neighborhood Parameters :: ";
     if (method == Method::Intersection) {
         std::cout << "Intersection";
+    } else if (method == Method::Thickness) {
+        std::cout << "Thickness || ";
+        std::cout << "Sampling Interval: " << interval << " || ";
+        std::cout << "Normalize Output: " << std::boolalpha << normalize;
     } else {
         std::cout << "Shape: ";
         if (shape == Shape::Line) {
@@ -377,12 +408,30 @@ vc::Texture TextureMesh(
         textureGeneric = textureSpecific;
     }
 
+    else if (method == Method::Thickness) {
+        // Load mask
+        if (maskPath.empty()) {
+            std::cerr << "ERROR: Selected Thickness texturing, but did not "
+                         "provide volume mask path."
+                      << std::endl;
+            std::exit(EXIT_FAILURE);
+        }
+        auto pts = vc::PointSetIO<cv::Vec3i>::ReadPointSet(maskPath);
+        auto mask = vc::VolumetricMask::New(pts);
+
+        auto textureSpecific = vct::ThicknessTexture::New();
+        textureSpecific->setSamplingInterval(interval);
+        textureSpecific->setNormalizeOutput(normalize);
+        textureSpecific->setVolumetricMask(mask);
+        textureGeneric = textureSpecific;
+    }
+
     // Set method generic parameters
     textureGeneric->setVolume(volume_);
     textureGeneric->setPerPixelMap(ppm);
 
     // Setup progress tracker
-    if (parsed_["show-progress-bars"].as<bool>()) {
+    if (parsed_["progress"].as<bool>()) {
         vc::ReportProgress(*textureGeneric, "Texturing:");
     } else {
         std::cout << "Rendering texture image..." << std::endl;

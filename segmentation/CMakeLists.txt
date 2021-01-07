@@ -7,12 +7,14 @@ set(srcs
     src/EnergyMetrics.cpp
     src/ForceChain.cpp
     src/FittedCurve.cpp
+    src/FloodFill.cpp
     src/IntensityMap.cpp
     src/LocalResliceParticleSim.cpp
     src/Particle.cpp
     src/ParticleChain.cpp
     src/StructureTensorParticleSim.cpp
     src/ThinnedFloodFillSegmentation.cpp
+    src/ComputeVolumetricMask.cpp
 )
 set(deps
     VC::core

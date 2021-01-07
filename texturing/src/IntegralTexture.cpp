@@ -21,7 +21,7 @@ Texture IntegralTexture::compute()
     setup_weights_();
 
     // Output image
-    cv::Mat image = cv::Mat::zeros(height, width, CV_64FC1);
+    cv::Mat image = cv::Mat::zeros(height, width, CV_32FC1);
 
     // Get the mappings
     auto mappings = ppm_.getMappings();

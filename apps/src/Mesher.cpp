@@ -24,12 +24,12 @@ int main(int argc, char* argv[])
     // clang-format off
     po::options_description all("Usage");
     all.add_options()
-            ("help,h", "Show this message")
-            ("input-cloud,i", po::value<std::string>()->required(),
-             "Path to the input Ordered Point Set")
-            ("output-mesh,o", po::value<std::string>()->required(),
-             "Path for the output mesh")
-            ("disable-triangulation", "Disable vertex triangulation");
+        ("help,h", "Show this message")
+        ("input-cloud,i", po::value<std::string>()->required(),
+            "Path to the input Ordered Point Set")
+        ("output-mesh,o", po::value<std::string>()->required(),
+            "Path for the output mesh")
+        ("disable-triangulation", "Disable vertex triangulation");
     // clang-format on
 
     // parsed will hold the values of all parsed options as a Map

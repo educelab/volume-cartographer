@@ -109,33 +109,31 @@ void SaveOutput(
     const vc::ITKMesh::Pointer& mesh,
     vc::Texture texture)
 {
-    // Convert to/from floating point
-    auto requestTIFF = vc::io::FileExtensionFilter(outputPath, {"tiff", "tif"});
+    // Convert image depth
+    auto tgtDepth{CV_16U};
+    auto requestTIFF = vc::IsFileType(outputPath, {"tiff", "tif"});
     auto requestFloat = parsed_.count("tiff-floating-point") > 0;
     if (requestTIFF && requestFloat) {
-        auto m = vc::QuantizeImage(texture.image(0), CV_32F);
-        texture.setImage(0, m);
-    } else {
-        auto m = texture.image(0);
-        if (m.depth() == CV_32F || m.depth() == CV_64F) {
-            m = vc::QuantizeImage(m, CV_16U);
-            texture.setImage(0, m);
-        }
+        tgtDepth = CV_32F;
+    } else if (vc::IsFileType(outputPath, {"jpg", "jpeg"})) {
+        tgtDepth = CV_8U;
     }
+    auto m = vc::QuantizeImage(texture.image(0), tgtDepth);
+    texture.setImage(0, m);
 
     // Write the output
     if (requestTIFF && requestFloat) {
         std::cout << "Writing to floating-point TIF ..." << std::endl;
         vc::tiffio::WriteTIFF(outputPath, texture.image(0));
-    } else if (vc::io::FileExtensionFilter(outputPath, {"ply"})) {
+    } else if (vc::IsFileType(outputPath, {"ply"})) {
         std::cout << "Writing to PLY..." << std::endl;
         vc::io::PLYWriter writer(outputPath.string(), mesh, texture);
         writer.write();
-    } else if (vc::io::FileExtensionFilter(
+    } else if (vc::IsFileType(
                    outputPath, {"png", "jpg", "jpeg", "tiff", "tif"})) {
         std::cout << "Writing to image..." << std::endl;
         cv::imwrite(outputPath.string(), texture.image(0));
-    } else if (vc::io::FileExtensionFilter(outputPath, {"obj"})) {
+    } else if (vc::IsFileType(outputPath, {"obj"})) {
         std::cout << "Writing to OBJ..." << std::endl;
         vc::io::OBJWriter writer;
         writer.setMesh(mesh);

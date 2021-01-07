@@ -2,7 +2,7 @@
 FetchContent_Declare(
     indicators
     GIT_REPOSITORY https://github.com/p-ranav/indicators.git
-    GIT_TAG v1.9
+    GIT_TAG 312c49b
 )
 
 # Populate the project but exclude from all

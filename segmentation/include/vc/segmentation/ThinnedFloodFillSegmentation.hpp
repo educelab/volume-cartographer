@@ -2,6 +2,8 @@
 
 #include <limits>
 
+#include "vc/core/types/PointSet.hpp"
+#include "vc/core/types/VolumetricMask.hpp"
 #include "vc/segmentation/RegionGrowingSegmentationAlgorithmBaseClass.hpp"
 
 namespace volcart
@@ -126,9 +128,6 @@ private:
     size_t maxRadius_{std::numeric_limits<size_t>::max()};
     /** Mask */
     VoxelMask volMask_;
-    /** Measure the thickness of the layer relative to a seed */
-    size_t measure_thickness_(
-        const cv::Vec3i& seed, const cv::Mat& slice) const;
 };
 }  // namespace segmentation
 }  // namespace volcart

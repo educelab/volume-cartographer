@@ -3,6 +3,7 @@
 #include <opencv2/imgcodecs.hpp>
 
 #include "vc/core/io/PointSetIO.hpp"
+#include "vc/core/io/TIFFIO.hpp"
 #include "vc/core/types/Exceptions.hpp"
 #include "vc/core/util/Logging.hpp"
 
@@ -14,6 +15,11 @@ using PPM = PerPixelMap;
 inline fs::path MaskPath(const fs::path& p)
 {
     return p.parent_path() / (p.stem().string() + "_mask.png");
+}
+
+inline fs::path CellMapPath(const fs::path& p)
+{
+    return p.parent_path() / (p.stem().string() + "_cellmap.tif");
 }
 
 ///// Metadata /////
@@ -81,6 +87,10 @@ void PerPixelMap::WritePPM(const fs::path& path, const PerPixelMap& map)
     if (!map.mask_.empty()) {
         cv::imwrite(MaskPath(path).string(), map.mask_);
     }
+
+    if (!map.cellMap_.empty()) {
+        tiffio::WriteTIFF(CellMapPath(path), map.cellMap_);
+    }
 }
 
 PerPixelMap PerPixelMap::ReadPPM(const fs::path& path)
@@ -92,7 +102,12 @@ PerPixelMap PerPixelMap::ReadPPM(const fs::path& path)
 
     ppm.mask_ = cv::imread(MaskPath(path).string(), cv::IMREAD_GRAYSCALE);
     if (ppm.mask_.empty()) {
-        logger->warn("Failed to read mask! {}", MaskPath(path).string());
+        logger->warn("Failed to read mask: {}", MaskPath(path).string());
+    }
+
+    ppm.cellMap_ = cv::imread(CellMapPath(path).string(), cv::IMREAD_UNCHANGED);
+    if (ppm.cellMap_.empty()) {
+        logger->warn("Failed to read cell map: {}", CellMapPath(path).string());
     }
 
     return ppm;

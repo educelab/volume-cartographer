@@ -89,6 +89,48 @@ target_link_libraries(vc_merge_pointset
 )
 list(APPEND utils_install_list vc_merge_pointset)
 
+# vc_convert_mask
+add_executable(vc_convert_mask src/ConvertMask.cpp)
+target_link_libraries(vc_convert_mask
+    VC::core
+    VC::app_support
+    opencv_core
+    opencv_imgcodecs
+    Boost::filesystem
+    Boost::program_options
+)
+
+# vc_seg_to_pointmask
+add_executable(vc_seg_to_pointmask src/SegToPointMask.cpp)
+target_link_libraries(vc_seg_to_pointmask
+    VC::core
+    VC::segmentation
+    VC::app_support
+    opencv_core
+    Boost::filesystem
+    Boost::program_options
+)
+
+# vc_visualize_ppm
+add_executable(vc_visualize_ppm src/VisualizePPM.cpp)
+target_link_libraries(vc_visualize_ppm
+    VC::core
+    VC::app_support
+    Boost::filesystem
+    Boost::program_options
+)
+
+# vc_image_stats
+add_executable(vc_image_stats src/ImageStatistics.cpp)
+target_link_libraries(vc_image_stats
+    VC::core
+    VC::app_support
+    opencv_core
+    opencv_imgcodecs
+    Boost::filesystem
+    Boost::program_options
+)
+
 # Install targets
 if(VC_INSTALL_UTILS)
 install(
