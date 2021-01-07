@@ -74,7 +74,9 @@ target_link_libraries(vc_add_alignment_markers
 # vc_convert_pointset
 add_executable(vc_convert_pointset src/ConvertPointSet.cpp)
 target_link_libraries(vc_convert_pointset
+    VC::app_support
     VC::core
+    VC::texturing
     Boost::filesystem
     Boost::program_options
 )

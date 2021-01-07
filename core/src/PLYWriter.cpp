@@ -68,7 +68,8 @@ int PLYWriter::write_header_()
     outputMesh_ << "property float nz" << std::endl;
 
     // Color info for vertices
-    if (texture_.hasImages() && texture_.hasMap()) {
+    if ((texture_.hasImages() && !texture_.uvMap().empty()) or
+        not vcolors_.empty()) {
         outputMesh_ << "property uchar red" << std::endl;
         outputMesh_ << "property uchar green" << std::endl;
         outputMesh_ << "property uchar blue" << std::endl;
@@ -110,7 +111,6 @@ int PLYWriter::write_vertices_()
 
         // If the texture has images and a uv map, write texture info
         if (texture_.hasImages() && !texture_.uvMap().empty()) {
-
             // Get the intensity for this point from the texture. If it doesn't
             // exist, set to 0.
             double intensity = texture_.intensity(point.Index());
@@ -124,6 +124,10 @@ int PLYWriter::write_vertices_()
             auto intIntensity = static_cast<int>(intensity);
             outputMesh_ << " " << intIntensity << " " << intIntensity << " "
                         << intIntensity;
+        } else if (not vcolors_.empty()) {
+            float val = vcolors_.at(point.Index());
+            auto i = static_cast<int>(val * 255.F / 65535.F);
+            outputMesh_ << " " << i << " " << i << " " << i;
         }
 
         outputMesh_ << std::endl;
@@ -155,4 +159,9 @@ int PLYWriter::write_faces_()
     }
 
     return EXIT_SUCCESS;
+}
+
+void PLYWriter::setVertexColors(const std::vector<uint16_t>& c)
+{
+    vcolors_ = c;
 }
