@@ -18,6 +18,7 @@ namespace fs = boost::filesystem;
 namespace vc = volcart;
 namespace vct = volcart::texturing;
 
+
 vct::AlignmentMarkerGenerator::LineSegment ParseLineSegString(std::string s);
 
 int main(int argc, char* argv[])

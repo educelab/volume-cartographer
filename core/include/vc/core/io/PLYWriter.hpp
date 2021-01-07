@@ -67,6 +67,9 @@ public:
     /** @brief Set texture information from a volcart::Texture */
     void setTexture(const volcart::Texture& texture) { texture_ = texture; }
 
+    /** @brief Set per-vertex color information */
+    void setVertexColors(const std::vector<uint16_t>& c);
+
     /** @brief Validate parameters */
     bool validate();
     /**@}*/
@@ -89,6 +92,8 @@ private:
     ITKMesh::Pointer mesh_;
     /** Input texture information */
     volcart::Texture texture_;
+    /** Vertex colors */
+    std::vector<uint16_t> vcolors_;
 
     /** @brief Write the PLY header */
     int write_header_();
