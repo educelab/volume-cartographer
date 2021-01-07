@@ -46,6 +46,7 @@ set(type_srcs
     src/Volume.cpp
     src/VolumeMask.cpp
     src/VolumePkg.cpp
+    src/VolumetricMask.cpp
 )
 
 set(util_srcs

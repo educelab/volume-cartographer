@@ -1,4 +1,5 @@
 #include <iostream>
+#include <locale>
 #include <vector>
 
 #include <boost/filesystem.hpp>
@@ -21,15 +22,20 @@ namespace vc = volcart;
 
 // using vc::ProgressWrap;
 using vc::range;
+using vc::range2D;
 
 // Canny values
 int blurSlider = 1;
 int gaussianKernel = 3;
+int closingSlider = 4;
+int closingKernel = 9;
 int minVal = 0;
 int maxVal = 255;
 int apertureSlider = 0;
 int aperture = 3;
 int sliceIdx = 0;
+bool contour{false};
+bool bilateral{false};
 
 vc::Volume::Pointer volume;
 
@@ -60,7 +66,9 @@ int main(int argc, char* argv[])
         ("threshold-max", po::value<int>()->default_value(150), "Maximum Intensity Gradient")
         ("visualize", "Show Canny visualization before segmenting")
         ("mask", po::value<std::string>(), "Mask the output of Canny using the provided image")
-        ("projection-edge,e", po::value<std::string>()->default_value("L"), "Edge to segment from: (L)eft, (R)ight, (T)op, (B)ottom");
+        ("use-contour,c", "If enabled, draw contour around canny edges before projection")
+        ("bilateral,b", "If enabled, bilateral filter image")
+        ("projection-edge,e", po::value<std::string>()->default_value("L"), "Edge to segment from: (L)eft, (R)ight, (T)op, (B)ottom, (N)one");
 
     po::options_description all("Usage");
     all.add(required).add(segOpts);
@@ -89,11 +97,15 @@ int main(int argc, char* argv[])
     fs::path outputPath = parsed["output-file"].as<std::string>();
     minVal = parsed["threshold-min"].as<int>();
     maxVal = parsed["threshold-max"].as<int>();
+    contour = parsed.count("use-contour") > 0;
+    bilateral = parsed.count("bilateral") > 0;
 
     auto edge = parsed["projection-edge"].as<std::string>();
-    if (!(edge == "L" || edge == "R" || edge == "T" || edge == "B")) {
+    std::transform(edge.begin(), edge.end(), edge.begin(), ::toupper);
+    if (!(edge == "L" || edge == "R" || edge == "T" || edge == "B" ||
+          edge == "N")) {
         std::cerr << "ERROR: "
-                  << "projection-edge must be one of L,R,T,B" << std::endl;
+                  << "projection-edge must be one of L,R,T,B,N" << std::endl;
         return EXIT_FAILURE;
     }
 
@@ -134,8 +146,12 @@ int main(int argc, char* argv[])
     cv::Vec3d last;
     for (const auto& z : ProgressWrap(range(volume->numSlices()), "Slice:")) {
         // Get the slice and blur it
-        auto slice = vc::QuantizeImage(volume->getSliceDataCopy(z), CV_8UC1);
+        auto slice =
+            vc::QuantizeImage(volume->getSliceDataCopy(z), CV_8UC1, false);
         cv::GaussianBlur(slice, slice, {gaussianKernel, gaussianKernel}, 0);
+        if (bilateral) {
+            cv::bilateralFilter(slice.clone(), slice, gaussianKernel, 75, 75);
+        }
 
         // Run Canny Edge Detect
         cv::Mat cannySlice;
@@ -143,6 +159,34 @@ int main(int argc, char* argv[])
 
         cv::Mat processed;
         cannySlice.copyTo(processed, mask);
+
+        // Replace canny edges with contour edges
+        if (contour) {
+            // Apply closing to fill holes and gaps.
+            cv::Mat kernel = cv::Mat::ones(closingKernel, closingKernel, CV_8U);
+            cv::morphologyEx(processed, processed, cv::MORPH_CLOSE, kernel);
+
+            std::vector<std::vector<cv::Point2i>> contours;
+            cv::findContours(
+                processed, contours, cv::RETR_EXTERNAL,
+                cv::CHAIN_APPROX_SIMPLE);
+
+            processed = cv::Mat::zeros(slice.size(), CV_8UC1);
+            cv::drawContours(processed, contours, -1, {255});
+        }
+
+        // Keep all edges
+        if (edge == "N") {
+            for (const auto pt : range2D(processed.rows, processed.cols)) {
+                const auto& x = pt.second;
+                const auto& y = pt.first;
+                if (processed.at<uint8_t>(y, x) > 0) {
+                    middle = {x, y, z};
+                    mesh->SetPoint(mesh->GetNumberOfPoints(), middle.val);
+                }
+            }
+            continue;
+        }
 
         // To allow for choosing between left-right and top-down, use
         // generalized inner and outer indices instead of x and y values.
@@ -231,6 +275,11 @@ void ShowCanny()
     cv::createTrackbar(
         "Slice: ", settingsWindowName, &sliceIdx, volume->numSlices() - 1,
         CannyThreshold);
+    if (contour) {
+        cv::createTrackbar(
+            "Closing Size: ", settingsWindowName, &closingSlider, 32,
+            CannyThreshold);
+    }
 
     CannyThreshold(0, nullptr);
     cv::waitKey(0);
@@ -239,19 +288,43 @@ void ShowCanny()
 
 void CannyThreshold(int, void*)
 {
-    src = vc::QuantizeImage(volume->getSliceDataCopy(sliceIdx), CV_8UC1);
+    auto slice = volume->getSliceDataCopy(sliceIdx);
+    src = vc::QuantizeImage(slice, CV_8U, false);
 
     gaussianKernel = 2 * blurSlider + 1;
     aperture = 2 * apertureSlider + 3;
     cv::Mat canny;
     cv::GaussianBlur(src, canny, {gaussianKernel, gaussianKernel}, 0);
+    if (bilateral) {
+        src = canny;
+        canny = cv::Mat();
+        cv::bilateralFilter(src, canny, gaussianKernel, 75, 75);
+    }
 
     // Run Canny Edge Detect
     cv::Canny(canny, canny, minVal, maxVal, aperture, true);
 
+    // Apply the mask to the canny image
     dst = cv::Scalar::all(0);
     canny.copyTo(dst, mask);
 
+    // Draw contours
+    if (contour) {
+        closingKernel = 2 * closingSlider + 1;
+        // Apply closing to fill holes and gaps.
+        cv::Mat kernel = cv::Mat::ones(closingKernel, closingKernel, CV_8U);
+        cv::morphologyEx(dst, dst, cv::MORPH_CLOSE, kernel);
+
+        std::vector<std::vector<cv::Point2i>> contours;
+        cv::findContours(
+            dst, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
+
+        dst = cv::Mat::zeros(src.size(), CV_8UC3);
+        cv::drawContours(dst, contours, -1, {0, 255, 0});
+    }
+
+    src = vc::QuantizeImage(slice, CV_8U);
+    src = vc::ColorConvertImage(src, dst.channels());
     cv::addWeighted(src, 0.5, dst, 0.5, 0, dst);
 
     cv::imshow(outputWindowName, dst);

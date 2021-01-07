@@ -1,3 +1,4 @@
+#include <cmath>
 #include <iostream>
 
 #include <boost/filesystem.hpp>
@@ -12,7 +13,6 @@
 #include "vc/external/GetMemorySize.hpp"
 #include "vc/meshing/OrderedPointSetMesher.hpp"
 #include "vc/segmentation/LocalResliceParticleSim.hpp"
-#include "vc/segmentation/StructureTensorParticleSim.hpp"
 #include "vc/segmentation/ThinnedFloodFillSegmentation.hpp"
 
 namespace fs = boost::filesystem;
@@ -25,9 +25,6 @@ static constexpr int VOLPKG_SUPPORTED_VERSION = 6;
 
 // Default values for global options
 static const double kDefaultStep = 1;
-
-// Default values for STPS options
-static const double kDefaultGravity = 0.5;
 
 // Default values for LRPS options
 static const int kDefaultNumIters = 15;
@@ -43,7 +40,7 @@ static constexpr int kDefaultResliceSize = 32;
 static int SaveInterval{-1};
 static int CurrentIteration{0};
 
-enum class Algorithm { STPS, LRPS, TFF };
+enum class Algorithm { LRPS, TFF };
 
 using PointSet = vs::ThinnedFloodFillSegmentation::PointSet;
 using VoxelMask = vs::ThinnedFloodFillSegmentation::VoxelMask;
@@ -77,12 +74,6 @@ int main(int argc, char* argv[])
         ("dump-vis", "Write full visualization information to disk as algorithm runs")
             ("verbose","Output debugging information");
 
-    // STPS options
-    po::options_description stpsOptions("Structure Tensor Particle Sim Options");
-    stpsOptions.add_options()
-        ("gravity-scale", po::value<double>()->default_value(kDefaultGravity),
-            "Gravity scale");
-
     // LRPS options
     po::options_description lrpsOptions("Local Reslice Particle Sim Options");
     lrpsOptions.add_options()
@@ -113,9 +104,9 @@ int main(int argc, char* argv[])
     po::options_description tffOptions("Thinned Flood Fill Segmentation Options");
     tffOptions.add_options()
         ("tff-low-thresh,l", po::value<uint16_t>()->default_value(14135),
-             "Low threshold for the bounded flood-fill component [0-255]")
+             "Low threshold for the bounded flood-fill component [0-65535]")
         ("tff-high-thresh,t", po::value<uint16_t>()->default_value(65535),
-             "High threshold for the bounded flood-fill component [0-255]")
+             "High threshold for the bounded flood-fill component [0-65535]")
         ("tff-dt-thresh", po::value<float>(),
              "Low threshold for the normalized distance transform [0-1]")
         ("closing-kernel-size,k", po::value<int>()->default_value(5),
@@ -131,11 +122,7 @@ int main(int argc, char* argv[])
         ("save-mask","Save the mask created by the segmentation algorithm.");
     // clang-format on
     po::options_description all("Usage");
-    all.add(GetGeneralOpts())
-        .add(required)
-        .add(stpsOptions)
-        .add(lrpsOptions)
-        .add(tffOptions);
+    all.add(GetGeneralOpts()).add(required).add(lrpsOptions).add(tffOptions);
 
     // Parse and handle options
     po::variables_map parsed;
@@ -153,11 +140,6 @@ int main(int argc, char* argv[])
     }
 
     // Check mutually exclusive arguments
-    if (!(parsed.count("start-index") || parsed.count("stride"))) {
-        std::cerr << "[error]: must specify one of [stride, start-index]"
-                  << std::endl;
-        std::exit(1);
-    }
     if (parsed.count("end-index") && parsed.count("stride")) {
         std::cerr << "[error]: 'end-index' and 'stride' are mutually exclusive"
                   << std::endl;
@@ -283,6 +265,7 @@ int main(int argc, char* argv[])
         endIndex = parsed["end-index"].as<size_t>();
     } else {
         endIndex = startIndex + parsed["stride"].as<size_t>();
+        endIndex = std::min(endIndex, size_t(volume->numSlices() - 1));
     }
 
     // Sanity check for whether we actually need to run the algorithm

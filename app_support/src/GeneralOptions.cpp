@@ -11,7 +11,7 @@ po::options_description GetGeneralOpts()
         ("cache-memory-limit", po::value<std::string>(), "Maximum size of the "
             "slice cache in bytes. Accepts the suffixes: (K|M|G|T)(B). "
             "Default: 50% of the total system memory.")
-        ("show-progress-bars", po::value<bool>()->default_value(true),
+        ("progress", po::value<bool>()->default_value(true),
             "When enabled, show algorithm progress bars.");
     // clang-format on
 

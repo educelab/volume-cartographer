@@ -27,7 +27,7 @@ static inline cv::Mat CreateAlphaChannel(const cv::Size& size, int depth)
     return alpha;
 }
 
-cv::Mat vc::QuantizeImage(const cv::Mat& m, int depth)
+cv::Mat vc::QuantizeImage(const cv::Mat& m, int depth, bool scaleMinMax)
 {
     // Make sure we have work to do
     if (m.depth() == depth) {
@@ -59,8 +59,29 @@ cv::Mat vc::QuantizeImage(const cv::Mat& m, int depth)
     }
 
     // Scale to output
-    double min, max;
-    cv::minMaxLoc(output, &min, &max);
+    double min{0};
+    double max{1};
+    if (scaleMinMax) {
+        cv::minMaxLoc(output, &min, &max);
+    } else {
+        switch (m.depth()) {
+            case CV_8U:
+                max = std::numeric_limits<uint8_t>::max();
+                break;
+            case CV_8S:
+                max = std::numeric_limits<int8_t>::max();
+                break;
+            case CV_16U:
+                max = std::numeric_limits<uint16_t>::max();
+                break;
+            case CV_16S:
+                max = std::numeric_limits<int16_t>::max();
+                break;
+            default:
+                // do nothing
+                break;
+        }
+    }
     output.convertTo(
         output, depth, outputMax / (max - min), -min * outputMax / (max - min));
 

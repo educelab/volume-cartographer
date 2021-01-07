@@ -30,6 +30,7 @@ public:
 
     /** Seed points type */
     using SeedPoints = std::vector<cv::Vec3d>;
+
     /** PointSet type */
     using PointSet = volcart::PointSet<cv::Vec3d>;
 

@@ -13,6 +13,7 @@ set(srcs
     src/ScaleMarkerGenerator.cpp
     src/OrthographicProjectionFlattening.cpp
     src/AlignmentMarkerGenerator.cpp
+    src/ThicknessTexture.cpp
 )
 set(public_deps
     VC::core

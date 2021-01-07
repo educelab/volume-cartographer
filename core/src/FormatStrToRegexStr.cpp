@@ -13,7 +13,7 @@ std::string volcart::FormatStrToRegexStr(const std::string& s)
 
     // Replace the decimal values
     std::regex decim{"%([0-9]*)d"};
-    result = std::regex_replace(result, decim, "[[:digit:]]{$01}");
+    result = std::regex_replace(result, decim, "([[:digit:]]{$01})");
 
     // Replace empty braces with *
     // This is what I expect, but might not be what others expect

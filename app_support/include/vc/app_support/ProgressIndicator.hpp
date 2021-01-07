@@ -21,7 +21,7 @@ inline auto NewProgressBar(size_t maxProg, std::string label = "")
     return std::make_shared<indicators::ProgressBar>(
         opt::BarWidth{22},
         opt::PrefixText{std::move(label)},
-        opt::MaxProgress{static_cast<int>(maxProg)},
+        opt::MaxProgress{maxProg},
         opt::ShowPercentage{true},
         opt::ShowElapsedTime{true},
         opt::ShowRemainingTime{true},
@@ -29,10 +29,7 @@ inline auto NewProgressBar(size_t maxProg, std::string label = "")
         opt::Fill{"■"},
         opt::Lead{"■"},
         opt::Remainder{" "},
-        opt::End{"]"},
-        opt::ForegroundColor{Color::white},
-        opt::FontStyles{std::vector<FontStyle>{FontStyle::bold}
-        });
+        opt::End{"]"});
     // clang-format on
 }
 
