@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <map>
 #include <memory>
 
@@ -173,4 +175,4 @@ private:
 
     cv::Vec2d origin_vector_(const Origin& o);
 };
-}
+}  // namespace volcart

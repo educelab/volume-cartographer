@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <iostream>
 
 #define BUFLEN 42

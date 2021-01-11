@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <boost/program_options.hpp>
 
 /** Get general options related to all rendering */

@@ -1,9 +1,6 @@
 ########
 # Core #
 ########
-include(FetchContent)
-include(CMakeDependentOption)
-
 ### Use VC Prebuilt Libs ###
 # Built using vc-deps
 option(VC_PREBUILT_LIBS "Link against prebuilt dependencies" off)

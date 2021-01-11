@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <algorithm>
 #include <array>
 #include <fstream>

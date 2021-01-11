@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <cmath>
 #include <iostream>
 #include <type_traits>

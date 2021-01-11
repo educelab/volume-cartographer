@@ -61,8 +61,8 @@ vtkSmartPointer<vtkPolyData> ShapePrimitive::vtkMesh()
     for (size_t pId = 0; pId < points_.size(); ++pId) {
 
         // put normals for the current point in an array
-        std::array<double, 3> ptNorm = {points_[pId].nx, points_[pId].ny,
-                                        points_[pId].nz};
+        std::array<double, 3> ptNorm = {
+            points_[pId].nx, points_[pId].ny, points_[pId].nz};
 
         // set the point and normal values for each point
         points->InsertPoint(

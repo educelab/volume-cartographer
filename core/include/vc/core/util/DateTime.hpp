@@ -1,9 +1,10 @@
+#pragma once
+
 /**
  * @file DateTime.hpp
  *
  * @ingroup Core
  */
-#pragma once
 
 #include <chrono>
 #include <ctime>

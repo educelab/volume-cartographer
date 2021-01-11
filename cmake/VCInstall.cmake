@@ -12,7 +12,7 @@ endif()
 if(VC_INSTALL_EXAMPLES)
     set(install_components ${install_components} Examples)
 endif()
-if(VC_INSTALL_DOC)
+if(VC_INSTALL_DOCS)
     set(install_components ${install_components} Documentation)
 endif()
 

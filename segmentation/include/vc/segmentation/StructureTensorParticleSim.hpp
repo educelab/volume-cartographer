@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <opencv2/core.hpp>
 
 #include "vc/segmentation/ChainSegmentationAlgorithmBaseClass.hpp"

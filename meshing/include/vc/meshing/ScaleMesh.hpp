@@ -1,8 +1,6 @@
-/**
- * @file ScaleMesh.h
- * @brief Scale an ITKMesh by a linear scale factor.
- */
 #pragma once
+
+/** @file */
 
 #include "vc/core/types/ITKMesh.hpp"
 
@@ -28,5 +26,5 @@ void ScaleMesh(
     const ITKMesh::Pointer& input,
     const ITKMesh::Pointer& output,
     double scaleFactor);
-}
-}
+}  // namespace meshing
+}  // namespace volcart

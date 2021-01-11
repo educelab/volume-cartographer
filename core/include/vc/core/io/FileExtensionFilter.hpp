@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <regex>
 #include <string>
 #include <vector>

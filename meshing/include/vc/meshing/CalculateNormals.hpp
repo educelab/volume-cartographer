@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <iostream>
 
 #include <opencv2/core.hpp>
@@ -85,5 +87,5 @@ private:
     /** Storage for summed normals, organized by vertex ID */
     std::vector<cv::Vec3d> vertexNormals_;
 };
-}
-}
+}  // namespace meshing
+}  // namespace volcart

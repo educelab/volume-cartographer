@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <cmath>
 
 #include <opencv2/core.hpp>
@@ -97,5 +99,5 @@ public:
     }  // Constructor
 
 };  // Cone
-}  // shapes
-}  // volcart
+}  // namespace shapes
+}  // namespace volcart

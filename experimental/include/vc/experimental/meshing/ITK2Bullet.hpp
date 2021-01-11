@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #ifdef VC_USE_BULLET
 
 #include <BulletSoftBody/btSoftBody.h>

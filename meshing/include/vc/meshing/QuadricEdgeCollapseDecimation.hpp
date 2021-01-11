@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <iostream>
 
 // vcglib has order-specific includes. Don't let clang-format mess with them.
@@ -399,5 +401,5 @@ private:
     vcg::tri::TriEdgeCollapseQuadricParameter collapseParams_;
 
 };  // QuadricEdgeCollapse
-}  // meshing
-}  // volcart
+}  // namespace meshing
+}  // namespace volcart

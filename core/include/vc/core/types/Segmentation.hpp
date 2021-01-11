@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <boost/filesystem.hpp>
 
 #include "vc/core/types/DiskBasedObjectBaseClass.hpp"
@@ -88,4 +90,4 @@ public:
         metadata_.save();
     }
 };
-}
+}  // namespace volcart

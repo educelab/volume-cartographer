@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <deque>
 #include <iostream>
 #include <utility>
@@ -103,5 +105,5 @@ private:
     /** Largest distance a maxima can be away from center */
     const int peakRadius_ = 5;
 };
-}
-}
+}  // namespace segmentation
+}  // namespace volcart

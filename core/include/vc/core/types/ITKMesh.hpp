@@ -1,5 +1,6 @@
-/** @file ITKMesh.hpp @ingroup Types */
 #pragma once
+
+/** @file ITKMesh.hpp @ingroup Types */
 
 #include <itkMesh.h>
 #include <itkPointsLocator.h>
@@ -44,4 +45,4 @@ using ITKCellIterator = ITKMesh::CellsContainer::Iterator;
 /** ITK Mesh Vertex ID In Cell Iterator */
 using ITKPointInCellIterator = ITKCell::PointIdIterator;
 /**@}*/
-}
+}  // namespace volcart

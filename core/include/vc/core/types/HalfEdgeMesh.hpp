@@ -22,6 +22,8 @@
 
 #pragma once
 
+/** @file */
+
 #include <map>
 #include <memory>
 
@@ -365,4 +367,4 @@ private:
      */
     double angle_(const cv::Vec3d& a, const cv::Vec3d& b, const cv::Vec3d& c);
 };
-}
+}  // namespace volcart

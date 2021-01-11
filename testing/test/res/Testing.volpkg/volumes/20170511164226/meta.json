@@ -1,1 +1,11 @@
-{"height":21,"max":56151.0,"min":0.0,"name":"Lorem Ipsum Parallel (40um)","slices":183,"type":"vol","uuid":"20170511164226","voxelsize":40.0,"width":300}
+{
+  "height": 21,
+  "max": 56151.0,
+  "min": 0.0,
+  "name": "Lorem Ipsum Parallel (40um)",
+  "slices": 183,
+  "type": "vol",
+  "uuid": "20170511164226",
+  "voxelsize": 40.0,
+  "width": 300
+}

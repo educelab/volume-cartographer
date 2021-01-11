@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <limits>
 
 #include "vc/core/types/Mixins.hpp"

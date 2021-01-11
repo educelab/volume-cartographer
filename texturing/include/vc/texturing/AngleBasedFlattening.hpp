@@ -22,6 +22,8 @@
 
 #pragma once
 
+/** @file */
+
 #include <iostream>
 #include <memory>
 

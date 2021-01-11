@@ -1,9 +1,10 @@
+#pragma once
+
 /**
  * @file Color.hpp
  *
  * @ingroup Core
  */
-#pragma once
 
 #include <opencv2/core.hpp>
 

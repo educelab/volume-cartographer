@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <functional>
 #include <type_traits>
 #include <vector>

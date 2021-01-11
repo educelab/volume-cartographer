@@ -1,5 +1,5 @@
 /**
- * @file StructureTensor.hpp
+ * @file
  *
  * @ingroup Math
  */

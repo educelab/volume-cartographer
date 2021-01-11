@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include "vc/core/neighborhood/NeighborhoodGenerator.hpp"
 
 namespace volcart

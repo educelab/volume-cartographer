@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <iostream>
 
 #include "vc/core/types/OrderedPointSet.hpp"

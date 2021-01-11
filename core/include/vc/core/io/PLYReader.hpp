@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <fstream>
 #include <map>
 
@@ -104,5 +106,5 @@ private:
     /** @brief Fill the temporary vertex list with parsed vertex information */
     void read_points_();
 };
-}  // io
-}  // volcart
+}  // namespace io
+}  // namespace volcart

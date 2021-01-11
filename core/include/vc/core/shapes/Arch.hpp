@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <cmath>
 
 #include <opencv2/core.hpp>
@@ -75,5 +77,5 @@ public:
         orderedHeight_ = height;
     }
 };
-}
-}
+}  // namespace shapes
+}  // namespace volcart

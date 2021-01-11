@@ -1,9 +1,8 @@
 ---
 Checks:          'clang-diagnostic-*,clang-analyzer-*,-clang-analyzer-alpha*,readability-*,-readability-else-after-return,google-*,-google-readability-namespace-comments,-google-build-using-namespace,-google-runtime-references,cppcoreguidelines-*,-cppcoreguidelines-pro-type-member-init,-cppcoreguidelines-pro-bounds-array-to-pointer-decay,-cppcoreguidelines-pro-type-reinterpret-cast,-cppcoreguidelines-pro-bounds-constant-array-index,-cppcoreguidelines-pro-bounds-pointer-arithmetic,llvm-*,-llvm-include-order,-llvm-header-guard,-llvm-namespace-comment,misc-*,-misc-argument-comment,modernize-*,performance-*'
 WarningsAsErrors: ''
-HeaderFilterRegex: 'include/vc/(core|meshing|segmentation|testing|texturing)'
+HeaderFilterRegex: 'include/vc/(app_support|core|meshing|python|segmentation|testing|texturing)'
 AnalyzeTemporaryDtors: false
-User:            skarlage
 CheckOptions:    
   - key:             cert-oop11-cpp.UseCERTSemantics
     value:           '1'

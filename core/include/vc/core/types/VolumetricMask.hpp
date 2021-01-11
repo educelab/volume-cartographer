@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <memory>
 #include <unordered_set>
 

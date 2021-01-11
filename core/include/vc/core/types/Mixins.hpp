@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include "vc/core/util/Signals.hpp"
 
 namespace volcart

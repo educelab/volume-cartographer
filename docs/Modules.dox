@@ -163,7 +163,3 @@
  */
 
 ///// Example Groups /////
-/**
- @defgroup ExampleDocs Documentation Examples
- @brief Files that demonstrate how code should be formatted for Doxygen.
-*/

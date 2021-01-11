@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include "vc/core/types/DiskBasedObjectBaseClass.hpp"
 
 namespace volcart
@@ -36,4 +38,4 @@ public:
     static Pointer New(
         boost::filesystem::path path, Identifier uuid, std::string name);
 };
-}
+}  // namespace volcart

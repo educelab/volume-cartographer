@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include "vc/core/types/ITKMesh.hpp"
 #include "vc/core/types/UVMap.hpp"
 

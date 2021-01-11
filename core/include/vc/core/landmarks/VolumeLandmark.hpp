@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <boost/filesystem.hpp>
 #include <opencv2/core.hpp>
 

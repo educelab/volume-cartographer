@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <algorithm>
 #include <tuple>
 #include <vector>
@@ -205,5 +207,5 @@ std::vector<double> SquareDiff(
 double SumSquareDiff(
     const std::vector<double>& v1, const std::vector<double>& v2);
 //@}
-}
-}
+}  // namespace segmentation
+}  // namespace volcart

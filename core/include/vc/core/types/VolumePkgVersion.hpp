@@ -1,3 +1,5 @@
+#pragma once
+
 /**
   @file   VolumePkgVersion.hpp
   @author Seth Parker
@@ -9,13 +11,11 @@
   in a VolumePkg's metadata JSON file, based on the VolumePkg version
   number.
 
-  @newline
   A volcart::Dictionary defines a set of metadata keys and the associated types
   of the corresponding values (e.g. the key "version" should be interpreted as
   an `int`). A volcart::Library holds several such dictionaries: one dictionary
   for each unique version of VolumePkg.
 
-  @newline
   volcart::VERSION_LIBRARY holds the metadata keys and expected value-types for
   every version of VolumePkg. When creating a new VolumePkg, these dictionaries
   are used to define the default keys that populate the JSON file. In the
@@ -26,8 +26,6 @@
 
   @ingroup Types
  */
-
-#pragma once
 
 #include <string>
 #include <unordered_map>

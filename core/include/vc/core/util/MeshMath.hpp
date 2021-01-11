@@ -1,3 +1,5 @@
+#pragma once
+
 /**
  * @file MeshMath.hpp
  * @author Seth Parker
@@ -7,7 +9,6 @@
  *
  * @ingroup Util
  */
-#pragma once
 
 #include "vc/core/types/ITKMesh.hpp"
 
@@ -21,5 +22,5 @@ namespace meshmath
  * Uses a version of Heron's formula that is stable for small angles.
  */
 double SurfaceArea(const ITKMesh::Pointer& input);
-}
-}
+}  // namespace meshmath
+}  // namespace volcart

@@ -1,4 +1,7 @@
 #pragma once
+
+/** @file */
+
 #include "vc/segmentation/lrps/FittedCurve.hpp"
 
 namespace volcart
@@ -89,5 +92,5 @@ public:
      */
     static double WindowedArcLength(const FittedCurve& curve, int windowSize);
 };
-}
-}
+}  // namespace segmentation
+}  // namespace volcart

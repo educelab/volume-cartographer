@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <limits>
 
 #include "vc/core/types/PointSet.hpp"
@@ -28,6 +30,10 @@ namespace segmentation
  *
  * Note: This algorithm operates solely on two-dimensional slices and does not
  * use any 3D subvolumes.
+ *
+ * Implements the thinning algorithm described in section 8.6 of
+ * "Computer Vision: Principles, Algorithms, Applications, Learning" by
+ * E.R. Davies \cite davies2017computervision.
  *
  * @ingroup Segmentation
  */

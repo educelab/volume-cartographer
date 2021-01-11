@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <boost/filesystem.hpp>
 
 #include "vc/core/types/BoundingBox.hpp"
@@ -95,7 +97,7 @@ public:
     Bounds bounds() const;
     /** @brief Return whether a position is within the volume bounds */
     bool isInBounds(double x, double y, double z) const;
-    /** @overload isInBounds() */
+    /** @overload isInBounds(double, double, double) const */
     bool isInBounds(const cv::Vec3d& v) const;
     /**@}*/
 

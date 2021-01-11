@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <exception>
 #include <functional>
 #include <iostream>

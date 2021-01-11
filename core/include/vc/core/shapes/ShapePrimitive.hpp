@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <opencv2/core.hpp>
 #include <vtkCellArray.h>
 #include <vtkCellData.h>
@@ -131,5 +133,5 @@ protected:
     uint32_t orderedHeight_;
     /**@}*/
 };
-}
-}
+}  // namespace shapes
+}  // namespace volcart

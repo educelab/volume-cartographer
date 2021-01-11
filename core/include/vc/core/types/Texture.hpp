@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <boost/filesystem/path.hpp>
 #include <opencv2/core.hpp>
 
@@ -125,4 +127,4 @@ private:
     /** PerPixelMap from which this Texture was generated */
     PerPixelMap ppm_;
 };
-}
+}  // namespace volcart

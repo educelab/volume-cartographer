@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include "vc/core/landmarks/VolumeLandmark.hpp"
 
 namespace volcart
@@ -29,7 +31,9 @@ public:
         const Point& center,
         const cv::Vec3d& normal);
 
-    /** @copydoc PlaneLandmark(const Identifier&, const std::string&) */
+    /**
+     * @copydoc PlaneLandmark(const volcart::Identifier&, const std::string&)
+     */
     static Pointer New(const Identifier& uuid, const std::string& name);
 
     /** @copydoc PlaneLandmark(const Identifier&, const std::string&, const
