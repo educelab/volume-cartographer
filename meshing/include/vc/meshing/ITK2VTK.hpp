@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
 
@@ -83,5 +85,5 @@ class ITKQE2ITK
 public:
     ITKQE2ITK(QuadEdgeMesh::Pointer input, ITKMesh::Pointer output);
 };
-}
-}
+}  // namespace meshing
+}  // namespace volcart

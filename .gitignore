@@ -42,8 +42,8 @@ __pycache__
 venv/*
 
 #Doxygen
-doc/latex/
-doc/html/
+docs/latex/
+docs/html/
 
 # CLion
 cmake-build*/

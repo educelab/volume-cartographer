@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <cassert>
 #include <vector>
 #include "vc/segmentation/lrps/Common.hpp"

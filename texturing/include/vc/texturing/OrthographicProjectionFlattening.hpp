@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include "vc/texturing/FlatteningAlgorithm.hpp"
 
 namespace volcart

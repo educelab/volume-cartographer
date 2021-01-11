@@ -1,3 +1,5 @@
+#pragma once
+
 /**
  * @file SimpleMesh.hpp
  * @author Seth Parker
@@ -7,11 +9,9 @@
  *
  * @ingroup Types
  */
-#pragma once
 
 #include <iostream>
 
-/**@{*/
 namespace volcart
 {
 /** Generic mesh structure */
@@ -32,6 +32,5 @@ struct SimpleMesh {
     std::vector<Vertex> verts;
     std::vector<Cell> faces;
 };
-/**@}*/
 
 }  // namespace volcart

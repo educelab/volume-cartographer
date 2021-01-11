@@ -45,7 +45,7 @@ ninja
 
 
 ##### (Optional) Use vc-deps dependencies
-To assist with installing dependencies, we have created the [vc-deps project](https://code.cs.uky.edu/seales-research/vc-deps).
+To assist with installing dependencies, we have created the [vc-deps project](https://gitlab.com/educelab/vc-deps).
 While this project can be used on its own to install the dependencies to the system, we also provide it as a git submodule within `volume-cartographer`.
 Note that `vc-deps` **does not** install CMake or Qt.  
 
@@ -125,10 +125,10 @@ cmake -DVC_BUILD_TESTS=OFF ..
 ```
 
 ### Documentation
-Library documentation is built using Doxygen and can be enabled/disabled by setting the `VC_BUILD_DOC` flag.
-Documentation will be installed with the `install` target if the `VC_INSTALL_DOC` flag is enabled.
+Library documentation is built using Doxygen and can be enabled/disabled by setting the `VC_BUILD_DOCS` flag.
+Documentation will be installed with the `install` target if the `VC_INSTALL_DOCS` flag is enabled.
 ```shell
-cmake -DVC_BUILD_DOC=ON -DVC_INSTALL_DOC=ON ..
+cmake -DVC_BUILD_DOCS=ON -DVC_INSTALL_DOCS=ON ..
 ```
 
 ### Python Bindings (WIP)

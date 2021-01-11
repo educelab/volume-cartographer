@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <iterator>
 
 #include <indicators/cursor_control.hpp>

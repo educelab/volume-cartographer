@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <opencv2/core.hpp>
 
 namespace volcart
@@ -62,5 +64,5 @@ private:
 Particle operator+(Particle lhs, const cv::Vec3d& rhs);
 /** Free function operator for Particle and scale factor multiplication */
 Particle operator*(Particle lhs, const double& rhs);
-}
-}
+}  // namespace segmentation
+}  // namespace volcart

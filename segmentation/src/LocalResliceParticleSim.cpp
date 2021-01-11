@@ -123,8 +123,8 @@ LocalResliceSegmentation::PointSet LocalResliceSegmentation::compute()
 
             // Make the intensity map `stepSize_` layers down from current
             // position and find the maxima
-            const cv::Point2i center{resliceIntensities.cols / 2,
-                                     resliceIntensities.rows / 2};
+            const cv::Point2i center{
+                resliceIntensities.cols / 2, resliceIntensities.rows / 2};
             const int nextLayerIndex = center.y + static_cast<int>(stepSize_);
             IntensityMap map(
                 resliceIntensities, static_cast<int>(stepSize_),

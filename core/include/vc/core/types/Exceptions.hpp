@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <stdexcept>
 #include <string>
 

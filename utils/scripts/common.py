@@ -37,7 +37,7 @@ def callo(cmd: Union[List[str], str], **kwargs: Any) -> str:
     '''
     cmd = shlex.split(cmd) if isinstance(cmd, str) else cmd
     logging.debug(f'Running: {" ".join(cmd)}')
-    return subprocess.check_output(cmd, **kwargs).decode('utf-8').strip()
+    return subprocess.run(cmd, **kwargs, stdout=subprocess.PIPE).stdout.decode('utf-8').strip()
 
 
 def changed_files(compare_to: str) -> Generator[str, None, None]:
@@ -60,6 +60,7 @@ def changed_files(compare_to: str) -> Generator[str, None, None]:
             yield rest[1]
         else:
             yield rest[0]
+
 
 def all_files() -> Generator[str, None, None]:
     '''
@@ -115,7 +116,7 @@ def executable(path: str) -> bool:
     return True
 
 
-def find_binary(binary: str, init_path: str=None) -> str:
+def find_binary(binary: str, init_path: str=None) -> Union[str, None]:
     '''
     Search for `binary` in a few locations:
     1) `init_path`
@@ -128,7 +129,11 @@ def find_binary(binary: str, init_path: str=None) -> str:
 
     # Check system PATH
     try:
-        return callo(f'which {binary}')
+        path = callo(f'which {binary}')
+        if len(path) == 0:
+            return None
+        else:
+            return path
     except subprocess.CalledProcessError:
         msg = f'Could not find suitable {binary} in path.'
         logging.error(msg)

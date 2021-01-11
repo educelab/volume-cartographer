@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include "vc/texturing/TexturingAlgorithm.hpp"
 
 #include "vc/core/neighborhood/LineGenerator.hpp"

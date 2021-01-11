@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <opencv2/core.hpp>
 #include <pybind11/numpy.h>
 
@@ -56,8 +58,8 @@ public:
             strides = {size * src.cols, size};
         } else if (dims == 3) {
             extents = {src.rows, src.cols, src.channels()};
-            strides = {size * src.cols * src.channels(), size * src.channels(),
-                       size};
+            strides = {
+                size * src.cols * src.channels(), size * src.channels(), size};
         } else {
             throw std::runtime_error("unsupported number of dims");
         }
@@ -67,5 +69,5 @@ public:
             .release();
     }
 };
-}
-}
+}  // namespace detail
+}  // namespace pybind11

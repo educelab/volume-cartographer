@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <cassert>
 #include <vector>
 
@@ -75,5 +77,5 @@ private:
  * */
 template <typename Scalar>
 using CubicSpline = Spline<Scalar, 3>;
-}
-}
+}  // namespace segmentation
+}  // namespace volcart

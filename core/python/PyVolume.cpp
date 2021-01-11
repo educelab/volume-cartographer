@@ -8,7 +8,7 @@
 namespace py = pybind11;
 namespace vc = volcart;
 
-void init_Volume(py::module&);
+void init_Volume(py::module& m);
 
 void init_Volume(py::module& m)
 {
@@ -88,14 +88,14 @@ void init_Volume(py::module& m)
             subvolume.setSamplingRadius(rx, ry, rz);
             auto s = subvolume.compute(
                 v.shared_from_this(), center, {xvec, yvec, zvec});
-            auto buf = s.data();
+            auto buf = s.as_vector();
             size_t size = sizeof(uint16_t);
             std::string format = py::format_descriptor<uint16_t>::format();
             auto extents = s.extents();
-            std::vector<size_t> strides{size * extents[1] * extents[0],
-                                        size * extents[0], size};
-            return py::array(py::buffer_info{buf.data(), size, format, 3,
-                                             extents, strides})
+            std::vector<size_t> strides{
+                size * extents[1] * extents[0], size * extents[0], size};
+            return py::array(py::buffer_info{
+                                 buf.data(), size, format, 3, extents, strides})
                 .release();
         },
         // clang-format off

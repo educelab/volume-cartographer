@@ -1,5 +1,6 @@
-/** @file QuadEdgeMesh.hpp @ingroup Types */
 #pragma once
+
+/** @file QuadEdgeMesh.hpp @ingroup Types */
 
 #include <array>
 
@@ -77,4 +78,4 @@ using QuadEdgeListPointer = QuadEdgeMesh::EdgeListPointerType;
 /** ITK QEM Edge List Iterator */
 using QuadEdgeListIterator = QuadEdgeList::iterator;
 /**@}*/
-}
+}  // namespace volcart

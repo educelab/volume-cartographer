@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include "vc/core/types/BoundingBox.hpp"
 #include "vc/core/types/Mixins.hpp"
 #include "vc/core/types/OrderedPointSet.hpp"

@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <vector>
 
 #include <opencv2/core.hpp>
@@ -92,5 +94,5 @@ ParticleChain operator+(const ForceChain& rhs, ParticleChain lhs);
 ParticleChain operator*(ParticleChain lhs, const double& rhs);
 /** @copydoc operator*(ParticleChain, const double&) */
 ParticleChain operator*(const double& rhs, ParticleChain lhs);
-}
-}
+}  // namespace segmentation
+}  // namespace volcart

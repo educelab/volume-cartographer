@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include "vc/core/shapes/ShapePrimitive.hpp"
 
 namespace volcart
@@ -64,5 +66,5 @@ private:
     void construct_spiral_(
         int numCols, int numRows, double a, double b, double dTheta, double dH);
 };
-}
-}
+}  // namespace shapes
+}  // namespace volcart

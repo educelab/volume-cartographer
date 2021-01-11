@@ -1,5 +1,6 @@
 /**
- * @file TIFFIO.hpp
+ * @file
+ *
  * @brief IO Utilities for TIFF files
  * @author Seth Parker
  * @date 4/14/17

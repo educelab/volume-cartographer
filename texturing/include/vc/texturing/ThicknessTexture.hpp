@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <memory>
 
 #include "vc/core/types/VolumetricMask.hpp"
@@ -11,7 +13,7 @@ namespace texturing
 {
 
 /**
- * @brief Texture using the thickness of the segmented layer
+ * @brief Generate a Texture using the thickness of the segmented layer
  *
  * For each point, project bi-directionally along the surface normal until
  * finding the first positive and negative points <b>not</b> in the mask.
@@ -20,6 +22,8 @@ namespace texturing
  * between [0, 1]. Otherwise, raw distances will be returned.
  *
  * Returned image is single-channel, 32-bit floating point.
+ *
+ * @ingroup Texture
  */
 class ThicknessTexture : public TexturingAlgorithm
 {

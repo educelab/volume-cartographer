@@ -152,6 +152,6 @@ cv::Scalar HSVtoRGB(float h, float s, float v)
     cv::Mat rgb;
     cv::cvtColor(hsv, rgb, cv::COLOR_HSV2BGR);
 
-    return {255 * rgb.at<float>(2), 255 * rgb.at<float>(1),
-            255 * rgb.at<float>(0)};
+    return {
+        255 * rgb.at<float>(2), 255 * rgb.at<float>(1), 255 * rgb.at<float>(0)};
 }

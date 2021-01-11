@@ -1,14 +1,15 @@
 #pragma once
 
+/**
+ * @file
+ *
+ * Provides helpful parsing methods that are used by multiple testing files
+ * when reading in mesh or point cloud data
+ */
+
 #include <boost/filesystem/path.hpp>
 
 #include "vc/core/types/SimpleMesh.hpp"
-
-/*
- * Purpose of File:
- *     - provides helpful parsing methods that are used by multiple
- *       testing files when reading in mesh or point cloud data
- */
 
 namespace volcart
 {

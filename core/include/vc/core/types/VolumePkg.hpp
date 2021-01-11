@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <iostream>
 #include <map>
 
@@ -166,13 +168,13 @@ public:
     /** @brief Get the first Volume */
     const Volume::Pointer volume() const;
 
-    /** @copydoc volume() */
+    /** @copydoc volume() const */
     Volume::Pointer volume();
 
     /** @brief Get a Volume by uuid */
     const Volume::Pointer volume(const Volume::Identifier& id) const;
 
-    /** @copydoc VolumePkg::volume(std::string) const */
+    /** @copydoc VolumePkg::volume(const Volume::Identifier&) const */
     Volume::Pointer volume(const Volume::Identifier& id);
     /**@}*/
 

@@ -1,5 +1,10 @@
 #pragma once
-// From: https://en.wikipedia.org/wiki/Finite_difference_coefficient
+
+/**
+ * @file
+ *
+ * From: https://en.wikipedia.org/wiki/Finite_difference_coefficient
+ */
 
 #include <array>
 #include <cassert>
@@ -284,5 +289,5 @@ std::vector<T> D2(const std::vector<T>& vs, int hstep = 1)
     }
     return dvs;
 }
-}
-}
+}  // namespace segmentation
+}  // namespace volcart

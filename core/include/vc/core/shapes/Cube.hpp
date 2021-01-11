@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <cmath>
 
 #include "ShapePrimitive.hpp"
@@ -56,5 +58,5 @@ public:
     }  // Constructor
 
 };  // Cube
-}  // shapes
-}  // volcart
+}  // namespace shapes
+}  // namespace volcart

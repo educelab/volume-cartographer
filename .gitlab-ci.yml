@@ -140,14 +140,14 @@ doxygen:
         - mkdir -p build/
         - cd build/
         - cmake -DVC_BUILD_DOC=ON -GNinja ..
-        - ninja doc
-        - cd doc/latex/
+        - ninja docs
+        - cd docs/latex/
         - make
     artifacts:
         name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
         paths:
-            - build/doc/html/*
-            - build/doc/latex/*.pdf
+            - build/docs/html/*
+            - build/docs/latex/*.pdf
         expire_in: 5 days
     allow_failure: true
     tags:

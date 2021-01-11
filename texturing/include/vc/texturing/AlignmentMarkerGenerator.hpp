@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <vector>
 
 #include "vc/core/types/TexturedMesh.hpp"
@@ -52,7 +54,7 @@ public:
     /**
      * @brief Set the radius, in pixels, of the drawn markers.
      *
-     * @default: 5
+     * Default value: 5
      */
     void setMarkerRadius(int r);
 

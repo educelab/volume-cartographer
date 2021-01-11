@@ -9,6 +9,7 @@ import subprocess
 import sys
 from distutils.version import LooseVersion
 from fnmatch import fnmatch
+from multiprocessing.pool import ThreadPool
 
 import common
 
@@ -49,10 +50,10 @@ class ClangTidier:
         return LooseVersion(lines[1].split()[2])
 
     def lint(
-        self,
-        source_file: str,
-        print_output: bool=False,
-        fix: bool=False,
+            self,
+            source_file: str,
+            print_output: bool = False,
+            fix: bool = False,
     ) -> bool:
         '''
         Lints a given C++ `source_file` (as in ending in .cpp) with clang-tidy.
@@ -145,6 +146,10 @@ def main() -> bool:
 
     # Find clang-tidy, validate version
     path_to_ct = common.find_binary(program_name, args.path)
+    if path_to_ct is None:
+        print('Error: Could not find clang-tidy')
+        return False
+
     ct = ClangTidier(path_to_ct, args.build_dir)
     if ct.version < common.MIN_VERSION_REQUIRED:
         logging.error(
@@ -161,9 +166,15 @@ def main() -> bool:
     else:
         files = common.changed_files(compare_to='origin/develop')
     changes = [f for f in files if re.search(cpp_files, f)]
+    if args.all_files:
+        print('Running clang-tidy on all files.')
+    else:
+        print('Running clang-tidy on the following files:')
+        for f in changes:
+            print(f'\t- {f}')
 
     # Validate each with clang-tidy in parallel
-    with mp.Pool(nprocs) as pool:
+    with ThreadPool(nprocs) as pool:
         tasks = [
             pool.apply_async(
                 ct.lint,

@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 3.11 FATAL_ERROR)
+include(FetchContent)
+include(CMakeDependentOption)
 
 set(VC_VERSION 2.21.1)
 
@@ -24,7 +26,6 @@ option(VC_BUILD_APPS     "Compile VC core programs"    on)
 option(VC_BUILD_UTILS    "Compile VC utility programs" on)
 option(VC_BUILD_EXAMPLES "Compile VC example programs" on)
 option(VC_BUILD_TESTS    "Compile VC test programs"    on)
-option(VC_BUILD_DOC      "Compile VC documentation"    off)
 option(VC_BUILD_PYTHON_BINDINGS "Build Python bindings." off)
 
 # Choose what to install into a CPack package
@@ -32,7 +33,6 @@ option(VC_BUILD_PYTHON_BINDINGS "Build Python bindings." off)
 option(VC_INSTALL_APPS      "Install VC core programs"    on)
 option(VC_INSTALL_LIBS      "Install VC libraries"        on)
 option(VC_INSTALL_UTILS     "Install VC utility programs" on)
-option(VC_INSTALL_DOC       "Install VC documentation"    off)
 option(VC_INSTALL_PYTHON_BINDINGS "Install Python bindings." off)
 
 # Extra options
@@ -76,7 +76,6 @@ if(VC_BUILD_EXPERIMENTAL)
     add_subdirectory(experimental)
 endif()
 
-
 # App support library
 if(VC_BUILD_APPS OR VC_BUILD_UTILS)
     add_subdirectory(app_support)
@@ -98,8 +97,11 @@ if (VC_BUILD_EXAMPLES)
 endif()
 
 ## VC Documentation
-if (VC_BUILD_DOC)
-    add_subdirectory(doc)
+find_package(Doxygen OPTIONAL_COMPONENTS dot)
+CMAKE_DEPENDENT_OPTION(VC_BUILD_DOCS "Build VC Doxygen documentation" on "DOXYGEN_FOUND" off)
+CMAKE_DEPENDENT_OPTION(VC_INSTALL_DOCS "Install VC documentation" off "VC_BUILD_DOCS" off)
+if(VC_BUILD_DOCS)
+    add_subdirectory(docs)
 endif()
 
 if(VC_BUILD_PYTHON_BINDINGS)

@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include "ShapePrimitive.hpp"
 
 namespace volcart
@@ -54,5 +56,5 @@ public:
     }  // Constructor
 
 };  // Plane
-}  // shapes
-}  // volcart
+}  // namespace shapes
+}  // namespace volcart

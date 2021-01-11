@@ -64,8 +64,8 @@ void draw(
     cv::cvtColor(slice, slice, cv::COLOR_GRAY2BGR);
 
     constexpr int32_t scale = 50;
-    const cv::Point p2{cvRound(p1.x + vec(0) * scale),
-                       cvRound(p1.y + vec(1) * scale)};
+    const cv::Point p2{
+        cvRound(p1.x + vec(0) * scale), cvRound(p1.y + vec(1) * scale)};
     cv::line(slice, p1, p2, cv::Scalar(0, 0, 0xFF), 2);
     cv::namedWindow("slice", cv::WINDOW_NORMAL);
     cv::imshow("slice", slice);

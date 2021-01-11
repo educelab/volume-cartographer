@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <string>
 #include <unordered_map>
 
@@ -54,5 +56,5 @@ private:
     std::unordered_map<std::string, int> indexCache_;
 
 };  // Sphere
-}
-}
+}  // namespace shapes
+}  // namespace volcart

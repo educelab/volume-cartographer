@@ -1,8 +1,6 @@
-/**
- * @file RayTrace.h
- * @brief Mesh resampling using ray tracing.
- */
 #pragma once
+
+/** @file */
 
 #include <map>
 #include <vector>
@@ -42,5 +40,5 @@ std::vector<cv::Vec6f> RayTrace(
     int width,
     int height,
     std::map<int, cv::Vec2d>& uvMap);
-}
-}
+}  // namespace meshing
+}  // namespace volcart

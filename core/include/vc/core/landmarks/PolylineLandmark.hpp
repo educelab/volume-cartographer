@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include "vc/core/landmarks/VolumeLandmark.hpp"
 
 namespace volcart

@@ -27,8 +27,9 @@ inline std::pair<double, double> CartesianToSpherical(cv::Vec3d v)
 
 inline cv::Vec3d SphericalToCartesian(double theta, double phi)
 {
-    return {std::sin(phi) * std::cos(theta), std::sin(phi) * std::sin(theta),
-            std::cos(phi)};
+    return {
+        std::sin(phi) * std::cos(theta), std::sin(phi) * std::sin(theta),
+        std::cos(phi)};
 }
 
 void drawReslice(cv::Mat reslice);

@@ -1,3 +1,5 @@
+#pragma once
+
 /**
  * @file   FloatComparison.hpp
  * @author Seth Parker
@@ -13,8 +15,6 @@
  *
  * @ingroup Util
  */
-
-#pragma once
 
 #include <algorithm>
 #include <cmath>

@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <opencv2/core.hpp>
 
 #include "vc/core/types/ITKMesh.hpp"
@@ -90,5 +92,5 @@ private:
      */
     void add_cell_(size_t a, size_t b, size_t c);
 };
-}
-}
+}  // namespace meshing
+}  // namespace volcart

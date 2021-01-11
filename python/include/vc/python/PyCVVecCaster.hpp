@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <opencv2/core.hpp>
 #include <pybind11/pybind11.h>
 
@@ -55,5 +57,5 @@ public:
         return value.release();
     }
 };
-}
-}
+}  // namespace detail
+}  // namespace pybind11

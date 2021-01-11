@@ -1,10 +1,10 @@
+#pragma once
+
 /**
  * @file Logging.hpp
  *
  * @ingroup Util
  */
-
-#pragma once
 
 #include <boost/filesystem.hpp>
 

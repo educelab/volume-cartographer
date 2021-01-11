@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <cassert>
 #include <iostream>
 #include <memory>

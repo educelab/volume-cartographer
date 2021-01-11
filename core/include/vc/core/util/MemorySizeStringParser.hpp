@@ -1,3 +1,5 @@
+#pragma once
+
 /**
  * @file MemorySizeStringParser.hpp
  * @author Seth Parker
@@ -5,7 +7,6 @@
  *
  * @ingroup Util
  */
-#pragma once
 
 #include <string>
 

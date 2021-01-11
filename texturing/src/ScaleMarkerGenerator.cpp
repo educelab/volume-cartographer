@@ -113,8 +113,8 @@ cv::Mat vct::ScaleMarkerGenerator::generate_scale_bar_()
     cv::Point2f majorEnd{MAJOR_TICK_END_X, TICK_BEGIN_Y};
     cv::Point2f minorStart{TICK_BEGIN_X, TICK_BEGIN_Y};
     cv::Point2f minorEnd{MINOR_TICK_END_X, TICK_BEGIN_Y};
-    cv::Point2f textPos{MAJOR_TICK_END_X + TEXT_OFFSET_X,
-                        TICK_BEGIN_Y + TEXT_OFFSET_Y};
+    cv::Point2f textPos{
+        MAJOR_TICK_END_X + TEXT_OFFSET_X, TICK_BEGIN_Y + TEXT_OFFSET_Y};
 
     // Generate the scale bar
     for (int i = 0; i < numMajorTicks; i++) {

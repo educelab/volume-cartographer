@@ -1,5 +1,11 @@
 #pragma once
 
+/**
+ * @file
+ *
+ * @ingroup Math
+ */
+
 #include <cassert>
 #include <memory>
 #include <vector>

@@ -1,8 +1,6 @@
-/**
- * @file SmoothNormals.h
- * @brief Smooth vertex normals within a specified radius.
- */
 #pragma once
+
+/** @file */
 
 #include "vc/core/types/ITKMesh.hpp"
 
@@ -25,5 +23,5 @@ namespace meshing
  * @param radius Size of the spherical neighborhood
  */
 ITKMesh::Pointer SmoothNormals(const ITKMesh::Pointer& input, double radius);
-}
-}
+}  // namespace meshing
+}  // namespace volcart

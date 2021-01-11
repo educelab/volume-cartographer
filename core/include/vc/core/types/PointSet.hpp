@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <algorithm>
 #include <cassert>
 #include <memory>
@@ -98,7 +100,7 @@ public:
     /** @brief Add a Point to the PointSet */
     void push_back(const T& val) { data_.push_back(val); }
 
-    /** @overload push_back() */
+    /** @overload push_back(const T& val) */
     void push_back(T&& val) { data_.push_back(val); }
 
     /** @brief Emplace a Point at the back of the PointSet */

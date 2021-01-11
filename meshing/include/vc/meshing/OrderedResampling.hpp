@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <iostream>
 #include <stdexcept>
 #include <vector>
@@ -108,5 +110,5 @@ private:
      */
     void add_cell_(uint32_t a, uint32_t b, uint32_t c);
 };
-}
-}
+}  // namespace meshing
+}  // namespace volcart
