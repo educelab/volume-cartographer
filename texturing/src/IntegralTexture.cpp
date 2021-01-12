@@ -57,8 +57,9 @@ Texture IntegralTexture::compute()
         auto value = std::accumulate(weighted.begin(), weighted.end(), 0.0);
 
         // Assign the intensity value at the UV position
-        image.at<double>(static_cast<int>(pixel.y), static_cast<int>(pixel.x)) =
-            value;
+        auto x = static_cast<int>(pixel.x);
+        auto y = static_cast<int>(pixel.y);
+        image.at<float>(y, x) = static_cast<float>(value);
     }
     progressComplete();
 
