@@ -51,6 +51,17 @@ target_link_libraries(vc_uv2mesh
     Boost::program_options
 )
 
+# vc_volume_bump
+add_executable(vc_volume_bump src/VolumeBump.cpp)
+target_link_libraries(vc_volume_bump
+    VC::core
+    VC::external
+    Boost::filesystem
+    Boost::program_options
+    opencv_core
+    opencv_imgcodecs
+)
+
 # vc_transform_mesh
 add_executable(vc_transform_mesh src/TransformMesh.cpp)
 target_link_libraries(vc_transform_mesh
