@@ -13,6 +13,7 @@
 #include "vc/core/io/TIFFIO.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/ImageConversion.hpp"
+#include "vc/core/util/Logging.hpp"
 #include "vc/meshing/OrderedPointSetMesher.hpp"
 
 namespace fs = boost::filesystem;
@@ -51,21 +52,22 @@ po::options_description GetIOOpts()
 
 vc::ITKMesh::Pointer LoadSegmentation(const vc::Segmentation::Identifier& id)
 {
+    vc::Logger()->info("Loading segmentation: {}", id);
     try {
         seg_ = vpkg_->segmentation(id);
     } catch (const std::exception& e) {
-        std::cerr << "Cannot load segmentation. ";
-        std::cerr << "Please check the provided ID: " << id << std::endl;
-        std::cerr << e.what() << std::endl;
+        vc::Logger()->critical(
+            "Cannot load segmentation. Check that the provided ID exists: {}",
+            id);
+        vc::Logger()->debug(e.what());
         std::exit(EXIT_FAILURE);
     }
 
     // Load the point cloud
-    std::cout << "Loading segmentation..." << std::endl;
     auto points = seg_->getPointSet();
 
     // Mesh the point cloud
-    std::cout << "Meshing point set..." << std::endl;
+    vc::Logger()->info("Meshing point set");
     vcm::OrderedPointSetMesher mesher;
     mesher.setPointSet(points);
     return mesher.compute();
@@ -73,7 +75,7 @@ vc::ITKMesh::Pointer LoadSegmentation(const vc::Segmentation::Identifier& id)
 
 vc::ITKMesh::Pointer LoadMeshFile(const fs::path& p)
 {
-    std::cout << "Loading mesh..." << std::endl;
+    vc::Logger()->info("Loading mesh: {}", p.string());
     // OBJs
     if (vc::io::FileExtensionFilter(p, {"obj"})) {
         vc::io::OBJReader r;
@@ -98,8 +100,7 @@ vc::ITKMesh::Pointer LoadMeshFile(const fs::path& p)
 
     // Can't load file
     else {
-        std::cerr << "ERROR: Mesh file not of supported type: ";
-        std::cerr << p << std::endl;
+        vc::Logger()->error("Mesh file not of supported type: {}", p.string());
         std::exit(EXIT_FAILURE);
     }
 }
@@ -123,18 +124,18 @@ void SaveOutput(
 
     // Write the output
     if (requestTIFF && requestFloat) {
-        std::cout << "Writing to floating-point TIF ..." << std::endl;
+        vc::Logger()->info("Writing to floating-point TIF");
         vc::tiffio::WriteTIFF(outputPath, texture.image(0));
     } else if (vc::IsFileType(outputPath, {"ply"})) {
-        std::cout << "Writing to PLY..." << std::endl;
+        vc::Logger()->info("Writing to PLY");
         vc::io::PLYWriter writer(outputPath.string(), mesh, texture);
         writer.write();
     } else if (vc::IsFileType(
                    outputPath, {"png", "jpg", "jpeg", "tiff", "tif"})) {
-        std::cout << "Writing to image..." << std::endl;
+        vc::Logger()->info("Writing to image");
         cv::imwrite(outputPath.string(), texture.image(0));
     } else if (vc::IsFileType(outputPath, {"obj"})) {
-        std::cout << "Writing to OBJ..." << std::endl;
+        vc::Logger()->info("Writing to OBJ");
         vc::io::OBJWriter writer;
         writer.setMesh(mesh);
         writer.setUVMap(texture.uvMap());
@@ -142,7 +143,7 @@ void SaveOutput(
         writer.setPath(outputPath.string());
         writer.write();
     } else {
-        std::cerr << "Unrecognized output format: " << outputPath.extension();
-        std::cerr << std::endl;
+        vc::Logger()->error(
+            "Unrecognized output format: {}", outputPath.extension().string());
     }
 }

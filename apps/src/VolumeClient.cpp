@@ -4,13 +4,13 @@
 #include <QDataStream>
 #include <QTcpServer>
 
+#include "vc/app_support/GetMemorySize.hpp"
 #include "vc/apps/server/VolumeClient.hpp"
 #include "vc/apps/server/VolumeProtocol.hpp"
 #include "vc/core/neighborhood/CuboidGenerator.hpp"
 #include "vc/core/types/Volume.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/Logging.hpp"
-#include "vc/external/GetMemorySize.hpp"
 
 namespace vc = volcart;
 
@@ -35,7 +35,7 @@ void vc::VolumeClient::newConnection()
     // CarbonSquares
     // 20180509123106
     // 20180509123119
-    vc::logger->info("Connection established.");
+    vc::Logger()->info("Connection established.");
     protocol::RequestHdr requestHdr;
     requestHdr.numRequests = 2;
     client_->write(
@@ -77,7 +77,7 @@ void vc::VolumeClient::newConnection()
                 abort = true;
                 break;
             }
-            vc::logger->info("Skipping {} bytes.", responseArgs[i].size);
+            vc::Logger()->info("Skipping {} bytes.", responseArgs[i].size);
             int bytesSkipped = dataStream->skipRawData(responseArgs[i].size);
             if (bytesSkipped != responseArgs[i].size) {
                 dataStream->rollbackTransaction();
@@ -90,9 +90,9 @@ void vc::VolumeClient::newConnection()
         }
     }
     for (uint32_t i = 0; i < requestHdr.numRequests; i++) {
-        vc::logger->info("=== Response: #{} ===", i);
-        vc::logger->info("Volume Package: {}", responseArgs[i].volpkg);
-        vc::logger->info("Volume: {}", responseArgs[i].volume);
+        vc::Logger()->info("=== Response: #{} ===", i);
+        vc::Logger()->info("Volume Package: {}", responseArgs[i].volpkg);
+        vc::Logger()->info("Volume: {}", responseArgs[i].volume);
     }
     delete dataStream;
     delete[] responseArgs;
@@ -102,6 +102,6 @@ void vc::VolumeClient::newConnection()
 
 void vc::VolumeClient::connectionError(QAbstractSocket::SocketError socketError)
 {
-    vc::logger->error("{}", client_->errorString().toStdString());
+    vc::Logger()->error("{}", client_->errorString().toStdString());
     emit finished();
 }

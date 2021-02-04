@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
     try {
         po::notify(parsed);
     } catch (po::error& e) {
-        vc::logger->error(e.what());
+        vc::Logger()->error(e.what());
         return EXIT_FAILURE;
     }
 
@@ -97,7 +97,7 @@ int main(int argc, char* argv[])
     fs::path outPath = parsed["output-pts"].as<std::string>();
 
     // Read the segmentation pointset
-    vc::logger->info("Reading segmentation");
+    vc::Logger()->info("Reading segmentation");
     auto segmentation = vc::PointSetIO<cv::Vec3d>::ReadPointSet(ptsPath);
 
     // Setup the mask generator
@@ -121,7 +121,7 @@ int main(int argc, char* argv[])
     auto mask = maskGen.compute();
 
     // Save the mask
-    vc::logger->info("Saving mask");
+    vc::Logger()->info("Saving mask");
     vc::PointSet<cv::Vec3i> maskPts;
     maskPts.append(mask->as_vector());
     vc::PointSetIO<cv::Vec3i>::WritePointSet(outPath, maskPts);

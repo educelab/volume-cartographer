@@ -63,16 +63,16 @@ TEST_F(LRUCache_Filled, CheckReferenceToOutOfBoundsKey)
     } catch (std::exception& e) {
         // exception output message
         // casting negative size_t value to int
-        volcart::logger->debug("{}", e.what());
-        volcart::logger->debug("Key Tried: {}", idx);
+        volcart::Logger()->debug("{}", e.what());
+        volcart::Logger()->debug("Key Tried: {}", idx);
         EXPECT_TRUE(true);
     }
 
     try {
         EXPECT_ANY_THROW(cache.get(cache.capacity()));
     } catch (std::exception& e) {
-        volcart::logger->debug("{}", e.what());
-        volcart::logger->debug("Key Tried: {}", cache.capacity());
+        volcart::Logger()->debug("{}", e.what());
+        volcart::Logger()->debug("Key Tried: {}", cache.capacity());
     }
 }
 
@@ -162,7 +162,7 @@ TEST_F(LRUCache_Empty, TryToInsertIntoZeroCapacityCache)
     try {
         EXPECT_ANY_THROW(cache.setCapacity(0));
     } catch (std::exception& e) {
-        volcart::logger->debug("{}", e.what());
+        volcart::Logger()->debug("{}", e.what());
     }
 
     EXPECT_EQ(cache.capacity(), 200);

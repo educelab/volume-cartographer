@@ -18,7 +18,7 @@ void OrderedResampling::setMesh(
 volcart::ITKMesh::Pointer OrderedResampling::getOutputMesh() const
 {
     if (output_.IsNull()) {
-        logger->error("Output mesh is null");
+        Logger()->error("Output mesh is null");
         return nullptr;
     } else {
         return output_;
@@ -103,10 +103,10 @@ void OrderedResampling::compute()
     calcNorm.compute();
     output_ = calcNorm.getMesh();
 
-    logger->info(
+    Logger()->info(
         "OrderedResampling: Points in resampled mesh" +
         std::to_string(output_->GetNumberOfPoints()));
-    logger->info(
+    Logger()->info(
         "OrderedResampling: Cells in resampled mesh " +
         std::to_string(output_->GetNumberOfCells()));
 }

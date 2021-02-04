@@ -21,10 +21,10 @@ set(public_deps
 set(private_deps
     opencv_imgproc
     VC::meshing
-    VC::external
     vtkCommonCore
     vtkCommonDataModel
     vtkFiltersGeneral
+    OpenABF::OpenABF
 )
 set(defs "")
 

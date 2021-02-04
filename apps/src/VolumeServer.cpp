@@ -3,10 +3,10 @@
 #include <QCoreApplication>
 #include <QSignalMapper>
 
+#include "vc/app_support/GetMemorySize.hpp"
 #include "vc/apps/server/VolumeServer.hpp"
 #include "vc/core/neighborhood/CuboidGenerator.hpp"
 #include "vc/core/util/Logging.hpp"
-#include "vc/external/GetMemorySize.hpp"
 
 namespace vc = volcart;
 
@@ -25,9 +25,9 @@ vc::VolumeServer::VolumeServer(
         server_, &QTcpServer::newConnection, this,
         &VolumeServer::acceptConnection);
     if (!server_->listen(QHostAddress::Any, port)) {
-        vc::logger->info("Failed to start server.");
+        vc::Logger()->info("Failed to start server.");
     } else {
-        vc::logger->info("Listening on port: {}", port);
+        vc::Logger()->info("Listening on port: {}", port);
     }
 }
 
@@ -44,18 +44,18 @@ void vc::VolumeServer::socketReadyRead(QDataStream* dataStream)
         return;
     }
     if (requestHdr.magic != protocol::MAGIC) {
-        vc::logger->error(
+        vc::Logger()->error(
             "{}: magic value is incorrect: {}", socketStr_(socket),
             requestHdr.magic);
         // TODO: actually exit
     }
     if (requestHdr.version != protocol::V1) {
-        vc::logger->error(
+        vc::Logger()->error(
             "{}: version is unsupported: {}", socketStr_(socket),
             static_cast<uint32_t>(requestHdr.version));
         // TODO: actually exit
     }
-    vc::logger->info(
+    vc::Logger()->info(
         "{}: Need to resolve {} requests.", socketStr_(socket),
         requestHdr.numRequests);
     protocol::RequestArgs* requestArgs =
@@ -81,7 +81,7 @@ void vc::VolumeServer::socketReadyRead(QDataStream* dataStream)
         resolveRequest_(socket, &requestArgs[i]);
     }
     // Clean up
-    vc::logger->info("{}: Closing connection...", socketStr_(socket));
+    vc::Logger()->info("{}: Closing connection...", socketStr_(socket));
     delete[] requestArgs;
     delete dataStream;
     socket->disconnectFromHost();
@@ -92,7 +92,7 @@ void vc::VolumeServer::acceptConnection()
     QTcpSocket* socket = server_->nextPendingConnection();
     connect(
         socket, &QAbstractSocket::disconnected, socket, &QObject::deleteLater);
-    vc::logger->info("{}: Accepted connection...", socketStr_(socket));
+    vc::Logger()->info("{}: Accepted connection...", socketStr_(socket));
     QDataStream* dataStream = new QDataStream(socket);
     connect(socket, &QTcpSocket::readyRead, [this, dataStream] {
         socketReadyRead(dataStream);
@@ -108,7 +108,7 @@ void vc::VolumeServer::resolveRequest_(
     std::strncpy(responseArgs.volpkg, args->volpkg, protocol::VOLPKG_SZ);
     std::strncpy(responseArgs.volume, args->volume, protocol::VOLUME_SZ);
     if (!volumes_.count(args->volume)) {
-        vc::logger->info(
+        vc::Logger()->info(
             "{}: Request for volume ({}, {}): need to load for the first "
             "time",
             socketStr_(socket), args->volpkg, args->volume);
@@ -119,7 +119,7 @@ void vc::VolumeServer::resolveRequest_(
             std::size_t memPerVolume = static_cast<std::size_t>(
                 static_cast<double>(memory_) /
                 static_cast<double>(volumes_.size()));
-            vc::logger->info(
+            vc::Logger()->info(
                 "Reallocating memory per loaded volume to {} bytes.",
                 memPerVolume);
             for (auto& pair : volumes_) {
@@ -129,13 +129,13 @@ void vc::VolumeServer::resolveRequest_(
                         throw std::runtime_error("Cache capacity is 0");
                     }
                 } catch (const std::exception& e) {
-                    vc::logger->error("{}", e.what());
+                    vc::Logger()->error("{}", e.what());
                     // TODO: exit or something
                 }
             }
         } catch (std::exception& e) {
             // TODO: solve this
-            vc::logger->error("Unable to load volume: {}", e.what());
+            vc::Logger()->error("Unable to load volume: {}", e.what());
             socket->write(
                 reinterpret_cast<char*>(&responseArgs),
                 sizeof(protocol::ResponseArgs));
@@ -143,7 +143,7 @@ void vc::VolumeServer::resolveRequest_(
         }
     } else {
         volume = volumes_.at(args->volume);
-        vc::logger->info(
+        vc::Logger()->info(
             "{}: Request for volume ({}, {}): found in cache",
             socketStr_(socket), args->volpkg, args->volume);
     }
@@ -161,7 +161,7 @@ void vc::VolumeServer::resolveRequest_(
     // This must be in z/y/x order.
     vc::Neighborhood neighborhood =
         subvolume.compute(volume, center, {zvec, yvec, xvec});
-    vc::logger->info("{}: Subvolume generated...", socketStr_(socket));
+    vc::Logger()->info("{}: Subvolume generated...", socketStr_(socket));
     responseArgs.size =
         static_cast<uint32_t>(neighborhood.size() * sizeof(uint16_t));
     auto extents = neighborhood.extents();

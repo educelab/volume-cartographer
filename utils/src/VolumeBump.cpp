@@ -8,13 +8,13 @@
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 
+#include "vc/app_support/GetMemorySize.hpp"
 #include "vc/core/io/TIFFIO.hpp"
 #include "vc/core/types/PerPixelMap.hpp"
 #include "vc/core/types/Volume.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/Logging.hpp"
 #include "vc/core/util/MemorySizeStringParser.hpp"
-#include "vc/external/GetMemorySize.hpp"
 
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
     try {
         po::notify(parsed);
     } catch (po::error& e) {
-        vc::logger->error(e.what());
+        vc::Logger()->error(e.what());
         return EXIT_FAILURE;
     }
 
@@ -76,7 +76,7 @@ int main(int argc, char* argv[])
     fs::path volpkgPath = parsed["volpkg"].as<std::string>();
     auto vpkg = vc::VolumePkg::New(volpkgPath);
     if (vpkg->version() != VOLPKG_SUPPORTED_VERSION) {
-        vc::logger->error(
+        vc::Logger()->error(
             "Volume Package is version {} but this program requires version "
             "{}. ",
             vpkg->version(), VOLPKG_SUPPORTED_VERSION);
@@ -88,10 +88,10 @@ int main(int argc, char* argv[])
     try {
         volume = vpkg->volume(parsed["volume"].as<std::string>());
     } catch (const std::exception& e) {
-        vc::logger->error(
+        vc::Logger()->error(
             "Cannot load volume. Please check that the Volume Package has "
             "volumes and that the volume ID is correct.");
-        vc::logger->error(e.what());
+        vc::Logger()->error(e.what());
         return EXIT_FAILURE;
     }
     g_numSliceChars = std::to_string(volume->numSlices()).size();
@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
         cacheBytes = SystemMemorySize() / 2;
     }
     volume->setCacheMemoryInBytes(cacheBytes);
-    vc::logger->info(
+    vc::Logger()->info(
         "Volume Cache :: Capacity: {} || Size: {}", volume->getCacheCapacity(),
         vc::BytesToMemorySizeString(cacheBytes));
 
@@ -113,9 +113,9 @@ int main(int argc, char* argv[])
     g_outputDir = parsed["output-dir"].as<std::string>();
 
     ///// Load the PPM and the bump mask /////
-    vc::logger->info("Loading PPM: {}", parsed["ppm"].as<std::string>());
+    vc::Logger()->info("Loading PPM: {}", parsed["ppm"].as<std::string>());
     auto ppm = vc::PerPixelMap::ReadPPM(parsed["ppm"].as<std::string>());
-    vc::logger->info(
+    vc::Logger()->info(
         "Loading bump mask: {}", parsed["bump-mask"].as<std::string>());
     auto bumpMask = cv::imread(parsed["bump-mask"].as<std::string>(), -1);
 
@@ -184,6 +184,6 @@ void WriteBumpedSlice(const cv::Mat& slice, int index)
     std::stringstream ss;
     ss << std::setw(g_numSliceChars) << std::setfill('0') << index << ".tif";
     fs::path p = g_outputDir / ss.str();
-    vc::logger->info("Writing slice {}", p.string());
+    vc::Logger()->info("Writing slice {}", p.string());
     vc::tiffio::WriteTIFF(p, slice);
 }

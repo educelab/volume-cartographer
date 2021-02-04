@@ -1,14 +1,14 @@
 // render.cpp
 
-#include <fstream>
 #include <iostream>
 
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
+#include "vc/app_support/GetMemorySize.hpp"
 #include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/util/Logging.hpp"
 #include "vc/core/util/MemorySizeStringParser.hpp"
-#include "vc/external/GetMemorySize.hpp"
 #include "vc/meshing/ScaleMesh.hpp"
 
 // App includes
@@ -47,7 +47,13 @@ int main(int argc, char* argv[])
         .add(GetPostProcessOpts());
 
     // Parse the cmd line
-    po::store(po::command_line_parser(argc, argv).options(all).run(), parsed_);
+    try {
+        po::store(
+            po::command_line_parser(argc, argv).options(all).run(), parsed_);
+    } catch (const po::error& e) {
+        vc::Logger()->error(e.what());
+        return EXIT_FAILURE;
+    }
 
     // Show the help message
     if (parsed_.count("help") || argc < 5) {
@@ -59,17 +65,30 @@ int main(int argc, char* argv[])
     try {
         po::notify(parsed_);
     } catch (po::error& e) {
-        std::cerr << "ERROR: " << e.what() << std::endl;
+        vc::Logger()->error(e.what());
         return EXIT_FAILURE;
     }
 
+    // Set logging level
+    auto logLevel = parsed_["log-level"].as<std::string>();
+    std::transform(
+        logLevel.begin(), logLevel.end(), logLevel.begin(), ::tolower);
+    vc::logging::SetLogLevel(logLevel);
+
     ///// Load the volume package /////
     fs::path volpkgPath = parsed_["volpkg"].as<std::string>();
-    vpkg_ = vc::VolumePkg::New(volpkgPath);
+    vc::Logger()->info("Loading VolumePkg: {}", volpkgPath.string());
+    try {
+        vpkg_ = vc::VolumePkg::New(volpkgPath);
+    } catch (const std::exception& e) {
+        vc::Logger()->critical(e.what());
+        return EXIT_FAILURE;
+    }
+
     if (vpkg_->version() != VOLPKG_SUPPORTED_VERSION) {
-        std::cerr << "ERROR: Volume Package is version " << vpkg_->version()
-                  << " but this program requires version "
-                  << VOLPKG_SUPPORTED_VERSION << "." << std::endl;
+        vc::Logger()->error(
+            "Volume Package is version {} but this program requires version {}",
+            vpkg_->version(), VOLPKG_SUPPORTED_VERSION);
         return EXIT_FAILURE;
     }
 
@@ -79,14 +98,14 @@ int main(int argc, char* argv[])
     bool loadSeg = parsed_.count("seg") > 0;
     bool loadMesh = parsed_.count("input-mesh") > 0;
     if (!loadSeg && !loadMesh) {
-        std::cerr << "ERROR: Did not provide required flag Segmentation ID "
-                     "(--seg) or mesh path (--input-mesh)"
-                  << std::endl;
+        vc::Logger()->error(
+            "Did not provide required flag Segmentation ID (--seg) or mesh "
+            "path (--input-mesh)");
         return EXIT_FAILURE;
     } else if (loadSeg && loadMesh) {
-        std::cerr << "ERROR: Provided Segmentation ID and mesh path as input. "
-                     "Only one input is supported."
-                  << std::endl;
+        vc::Logger()->error(
+            "ERROR: Provided Segmentation ID and mesh path as input. Only one "
+            "input is supported.");
         return EXIT_FAILURE;
     }
 
@@ -99,6 +118,9 @@ int main(int argc, char* argv[])
         input = LoadMeshFile(meshPath);
         filenameBase = meshPath.stem().string();
     }
+    vc::Logger()->info(
+        "Input surface mesh :: Vertices {} || Faces: {}",
+        input->GetNumberOfPoints(), input->GetNumberOfCells());
 
     // Setup the output file
     fs::path outputPath;
@@ -118,11 +140,10 @@ int main(int argc, char* argv[])
             volume_ = vpkg_->volume();
         }
     } catch (const std::exception& e) {
-        std::cerr << "Cannot load volume. ";
-        std::cerr << "Please check that the Volume Package has volumes and "
-                     "that the volume ID is correct."
-                  << std::endl;
-        std::cerr << e.what() << std::endl;
+        vc::Logger()->error(
+            "Cannot load volume. Please check that the Volume Package has "
+            "volumes and that the volume ID is correct: {}",
+            e.what());
         return EXIT_FAILURE;
     }
 
@@ -135,14 +156,13 @@ int main(int argc, char* argv[])
         cacheBytes = SystemMemorySize() / 2;
     }
     volume_->setCacheMemoryInBytes(cacheBytes);
-    std::cout << "Volume Cache :: ";
-    std::cout << "Capacity: " << volume_->getCacheCapacity() << " || ";
-    std::cout << "Size: " << vc::BytesToMemorySizeString(cacheBytes);
-    std::cout << std::endl;
+    vc::Logger()->info(
+        "Volume Cache :: Capacity: {} || Size: {}", volume_->getCacheCapacity(),
+        vc::BytesToMemorySizeString(cacheBytes));
 
     //// Scale the mesh /////
     if (parsed_.count("scale-mesh") > 0) {
-        std::cout << "Scaling mesh..." << std::endl;
+        vc::Logger()->info("Scaling mesh");
         auto scaleFactor = parsed_["scale-mesh"].as<double>();
         auto scaled = vc::ITKMesh::New();
         vcm::ScaleMesh(input, scaled, scaleFactor);

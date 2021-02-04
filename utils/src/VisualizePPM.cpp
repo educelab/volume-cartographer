@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
     try {
         po::notify(parsed);
     } catch (po::error& e) {
-        vc::logger->error(e.what());
+        vc::Logger()->error(e.what());
         return EXIT_FAILURE;
     }
 
@@ -64,7 +64,8 @@ int main(int argc, char* argv[])
     cv::Vec3d dims;
     if (normalize) {
         if (parsed.count("volpkg") == 0) {
-            vc::logger->error("the option '--volpkg' is required but missing");
+            vc::Logger()->error(
+                "the option '--volpkg' is required but missing");
             return EXIT_FAILURE;
         }
         fs::path volpkgPath = parsed["volpkg"].as<std::string>();
@@ -76,7 +77,7 @@ int main(int argc, char* argv[])
                 vol = vpkg->volume();
             }
         } catch (const std::exception& e) {
-            vc::logger->error(
+            vc::Logger()->error(
                 "Cannot load volume. Please check that the Volume Package has "
                 "volumes and that the volume ID is correct.");
             return EXIT_FAILURE;
@@ -85,7 +86,7 @@ int main(int argc, char* argv[])
     }
 
     // Get input file
-    vc::logger->info("Reading PPM");
+    vc::Logger()->info("Reading PPM");
     fs::path ppmPath = parsed["ppm"].as<std::string>();
     auto ppm = vc::PerPixelMap::ReadPPM(ppmPath);
 
@@ -129,7 +130,7 @@ int main(int argc, char* argv[])
             if (tan == cv::Vec3d{-1, -1, -1} ||
                 bitan == cv::Vec3d{-1, -1, -1}) {
                 std::cout << std::endl;
-                vc::logger->warn(
+                vc::Logger()->warn(
                     "Can't calculate tangent/bitangent for ({},{})", m.x, m.y);
                 n = cv::Vec3d::all(0);
             } else {
@@ -150,7 +151,7 @@ int main(int argc, char* argv[])
 
     // Scale and shift the normal map to [0, 1]
     if (normalize) {
-        vc::logger->info("Scaling and shifting normal map");
+        vc::Logger()->info("Scaling and shifting normal map");
         norm *= 0.5F;
         norm += cv::Scalar(0.5F, 0.5F, 0.5F);
     }
@@ -161,9 +162,9 @@ int main(int argc, char* argv[])
     cv::cvtColor(norm, norm, cv::COLOR_BGR2RGB);
 
     // Write the images
-    vc::logger->info("Saving images");
+    vc::Logger()->info("Saving images");
     auto prefix = parsed["output-prefix"].as<std::string>();
     vc::tiffio::WriteTIFF(prefix + "pos.tif", pos);
     vc::tiffio::WriteTIFF(prefix + "normal.tif", norm);
-    vc::logger->info("Done.");
+    vc::Logger()->info("Done.");
 }

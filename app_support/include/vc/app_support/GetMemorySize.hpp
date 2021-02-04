@@ -1,3 +1,4 @@
+// clang-format off
 // SystemMemorySize()
 // Return the amount of system memory in bytes
 /*
@@ -12,3 +13,4 @@
 #include <cstddef>
 
 size_t SystemMemorySize();
+// clang-format on

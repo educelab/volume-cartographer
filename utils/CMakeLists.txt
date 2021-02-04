@@ -54,8 +54,8 @@ target_link_libraries(vc_uv2mesh
 # vc_volume_bump
 add_executable(vc_volume_bump src/VolumeBump.cpp)
 target_link_libraries(vc_volume_bump
+    VC::app_support
     VC::core
-    VC::external
     Boost::filesystem
     Boost::program_options
     opencv_core
@@ -143,6 +143,16 @@ target_link_libraries(vc_image_stats
     Boost::filesystem
     Boost::program_options
 )
+
+# vc_flatten_mesh
+add_executable(vc_flatten_mesh src/FlattenMesh.cpp)
+target_link_libraries(vc_flatten_mesh
+    VC::core
+    VC::texturing
+    Boost::filesystem
+    Boost::program_options
+)
+list(APPEND utils_install_list vc_flatten_mesh)
 
 # Install targets
 if(VC_INSTALL_UTILS)

@@ -5,12 +5,12 @@
 
 #include <QCoreApplication>
 
+#include "vc/app_support/GetMemorySize.hpp"
 #include "vc/apps/server/VolumeProtocol.hpp"
 #include "vc/apps/server/VolumeServer.hpp"
 #include "vc/core/neighborhood/CuboidGenerator.hpp"
 #include "vc/core/util/Logging.hpp"
 #include "vc/core/util/MemorySizeStringParser.hpp"
-#include "vc/external/GetMemorySize.hpp"
 
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;
@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
     try {
         po::notify(parsed);
     } catch (po::error& e) {
-        vc::logger->error("{}", e.what());
+        vc::Logger()->error("{}", e.what());
         return EXIT_FAILURE;
     }
 
@@ -68,27 +68,27 @@ int main(int argc, char* argv[])
             throw std::domain_error("Memory must be positive");
         }
     } catch (std::domain_error& e) {
-        vc::logger->error("{}", e.what());
+        vc::Logger()->error("{}", e.what());
         return EXIT_FAILURE;
     }
-    vc::logger->info(
+    vc::Logger()->info(
         "Server will use no more than {} bytes of memory for volumes.", memory);
 
     // Load the volume packages
     vc::VolumeServer::VolumePkgMap volpkgs;
     for (auto volpkgPath : volpkgPaths) {
-        vc::logger->info("Loading volume package: {}", volpkgPath);
+        vc::Logger()->info("Loading volume package: {}", volpkgPath);
         try {
             vc::VolumePkg volpkg(volpkgPath);
             if (volpkg.version() != VOLPKG_SUPPORTED_VERSION) {
-                vc::logger->error(
+                vc::Logger()->error(
                     "Volume package is version {} but this program requires "
                     "version {}.",
                     volpkg.version(), VOLPKG_SUPPORTED_VERSION);
                 return EXIT_FAILURE;
             }
             if (volpkgs.count(volpkg.name())) {
-                vc::logger->error(
+                vc::Logger()->error(
                     "Tried to load volume package with name {} but a volume "
                     "package with that name is already loaded.",
                     volpkg.name());
@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
             }
             volpkgs.insert({volpkg.name(), volpkg});
         } catch (std::runtime_error& e) {
-            vc::logger->error(
+            vc::Logger()->error(
                 "Failed to load volume package: {}: {}", volpkgPath, e.what());
             return EXIT_FAILURE;
         }

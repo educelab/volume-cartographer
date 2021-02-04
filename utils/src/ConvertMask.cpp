@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
     try {
         po::notify(parsed);
     } catch (po::error& e) {
-        vc::logger->error(e.what());
+        vc::Logger()->error(e.what());
         return EXIT_FAILURE;
     }
 
@@ -77,7 +77,8 @@ int main(int argc, char* argv[])
     if (vc::IsFileType(inPath, {"vcps"})) {
         // Load the volume package
         if (parsed.count("volpkg") == 0) {
-            vc::logger->error("the option '--volpkg' is required but missing");
+            vc::Logger()->error(
+                "the option '--volpkg' is required but missing");
             return EXIT_FAILURE;
         }
         fs::path volpkgPath = parsed["volpkg"].as<std::string>();
@@ -92,13 +93,13 @@ int main(int argc, char* argv[])
                 volume = vpkg->volume();
             }
         } catch (const std::exception& e) {
-            vc::logger->error("Cannot load volume: {}", e.what());
+            vc::Logger()->error("Cannot load volume: {}", e.what());
             return EXIT_FAILURE;
         }
 
         // Setup output directory
         if (not fs::is_directory(outPath)) {
-            vc::logger->error(
+            vc::Logger()->error(
                 "Output path is not directory: {}", outPath.string());
             return EXIT_FAILURE;
         }
@@ -109,11 +110,11 @@ int main(int argc, char* argv[])
     } else if (vc::IsFileType(inPath, {"jpg", "png", "tif", "bmp"})) {
         VolumeMaskToPointMask(inPath, outPath);
     } else {
-        vc::logger->error("Unknown file format: {}", inPath.string());
+        vc::Logger()->error("Unknown file format: {}", inPath.string());
         std::exit(EXIT_FAILURE);
     }
 
-    vc::logger->info("Done.");
+    vc::Logger()->info("Done.");
 }
 
 void PointMaskToVolumeMask(
@@ -122,18 +123,18 @@ void PointMaskToVolumeMask(
     const vc::Volume::Pointer& volume)
 {
     // Read the points
-    vc::logger->info("Loading point mask");
+    vc::Logger()->info("Loading point mask");
     auto ptsRaw = vc::PointSetIO<cv::Vec3i>::ReadPointSet(ptsPath);
 
     // Sort the points
-    vc::logger->info("Sorting points");
+    vc::Logger()->info("Sorting points");
     auto pts = ptsRaw.as_vector();
     std::sort(pts.begin(), pts.end(), [](const auto& a, const auto& b) {
         return a[2] < b[2];
     });
 
     // Mask the images
-    vc::logger->info("Converting mask");
+    vc::Logger()->info("Converting mask");
     size_t pad = std::to_string(volume->numSlices()).size();
     int sliceNum{pts[0][2]};
     cv::Size sliceSize(volume->sliceWidth(), volume->sliceHeight());
@@ -173,12 +174,12 @@ void VolumeMaskToPointMask(const fs::path& inPath, const fs::path& outPath)
     vc::PointSet<cv::Vec3i> pts;
 
     // Collect files
-    vc::logger->info("Collecting file list");
+    vc::Logger()->info("Collecting file list");
     auto files = CollectVolumeFiles(inPath);
-    vc::logger->info("Found {} slice images", files.size());
+    vc::Logger()->info("Found {} slice images", files.size());
 
     // Iterate over files
-    vc::logger->info("Converting mask");
+    vc::Logger()->info("Converting mask");
     for (const auto& p : vc::ProgressWrap(files, "Pixels to points")) {
         const auto& z = p.first;
         const auto& fpath = p.second;
@@ -194,7 +195,7 @@ void VolumeMaskToPointMask(const fs::path& inPath, const fs::path& outPath)
     }
 
     // Write point set
-    vc::logger->info("Writing point set...");
+    vc::Logger()->info("Writing point set...");
     vc::PointSetIO<cv::Vec3i>::WritePointSet(outPath, pts);
 }
 

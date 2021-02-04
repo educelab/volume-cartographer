@@ -319,7 +319,7 @@ inline auto ReportProgress(ProgressEnabled& p)
 template <class ProgressEnabled>
 inline auto ReportProgress(ProgressEnabled& p, std::string label)
 {
-    return ReportProgress(p, std::move(label), true, true);
+    return ReportProgress(p, std::move(label), true, false);
 }
 
 /**
@@ -329,7 +329,7 @@ inline auto ReportProgress(ProgressEnabled& p, std::string label)
 template <class ProgressEnabled>
 inline auto ReportProgress(ProgressEnabled& p, const char* label)
 {
-    return ReportProgress(p, label, true, true);
+    return ReportProgress(p, label, true, false);
 }
 
 /**
@@ -339,7 +339,7 @@ inline auto ReportProgress(ProgressEnabled& p, const char* label)
 template <class ProgressEnabled>
 inline auto ReportProgress(ProgressEnabled& p, bool showIters)
 {
-    return ReportProgress(p, "", showIters, true);
+    return ReportProgress(p, "", showIters, false);
 }
 
 }  // namespace volcart

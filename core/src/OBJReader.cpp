@@ -289,7 +289,7 @@ void OBJReader::build_mesh_()
             textureMat_ =
                 cv::imread(texturePath_.string(), cv::IMREAD_UNCHANGED);
         } else {
-            logger->warn(
+            Logger()->warn(
                 "Texture image file not found: {}", texturePath_.string());
         }
     }

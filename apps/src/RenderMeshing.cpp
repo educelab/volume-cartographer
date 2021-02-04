@@ -8,6 +8,7 @@
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/io/PLYWriter.hpp"
 #include "vc/core/types/Volume.hpp"
+#include "vc/core/util/Logging.hpp"
 #include "vc/core/util/MeshMath.hpp"
 #include "vc/meshing/ACVD.hpp"
 #include "vc/meshing/CalculateNormals.hpp"
@@ -100,7 +101,7 @@ vc::ITKMesh::Pointer ResampleMesh(const vc::ITKMesh::Pointer& m)
         auto vtkMesh = vtkSmartPointer<vtkPolyData>::New();
         vcm::ITK2VTK(workingMesh, vtkMesh);
         // Smoother
-        std::cout << "Smoothing mesh..." << std::endl;
+        vc::Logger()->info("Smoothing mesh");
         auto vtkSmoother = vtkSmartPointer<vtkSmoothPolyDataFilter>::New();
         vtkSmoother->SetInputData(vtkMesh);
         vtkSmoother->Update();
@@ -111,10 +112,9 @@ vc::ITKMesh::Pointer ResampleMesh(const vc::ITKMesh::Pointer& m)
     }
 
     // Decimate using ACVD
-    std::cout << "Resampling mesh ";
-    std::cout << "(Density: " << currentDensityFactor;
-    std::cout << " -> " << newDensityFactor << ")...";
-    std::cout << std::endl;
+    vc::Logger()->info(
+        "Resampling mesh (Density: {:.3g} -> {:.3g})", currentDensityFactor,
+        newDensityFactor);
 
     vcm::ACVD resampler;
     resampler.setInputMesh(workingMesh);
@@ -133,7 +133,7 @@ vc::ITKMesh::Pointer ResampleMesh(const vc::ITKMesh::Pointer& m)
         auto vtkMesh = vtkSmartPointer<vtkPolyData>::New();
         vcm::ITK2VTK(workingMesh, vtkMesh);
         // Smoother
-        std::cout << "Smoothing mesh..." << std::endl;
+        vc::Logger()->info("Smoothing mesh");
         auto vtkSmoother = vtkSmartPointer<vtkSmoothPolyDataFilter>::New();
         vtkSmoother->SetInputData(vtkMesh);
         vtkSmoother->Update();
@@ -153,7 +153,7 @@ vc::ITKMesh::Pointer ResampleMesh(const vc::ITKMesh::Pointer& m)
 
     // Save the intermediate mesh
     if (parsed_.count("intermediate-mesh")) {
-        std::cout << "Writing intermediate mesh..." << std::endl;
+        vc::Logger()->info("Writing intermediate mesh");
         fs::path meshPath = parsed_["intermediate-mesh"].as<std::string>();
         if (vc::io::FileExtensionFilter(meshPath, {"ply"})) {
             vc::io::PLYWriter writer;

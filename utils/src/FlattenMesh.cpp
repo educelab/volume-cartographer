@@ -6,11 +6,12 @@
 #include "vc/core/io/OBJReader.hpp"
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/util/Logging.hpp"
-#include "vc/meshing/UVMapToITKMesh.hpp"
+#include "vc/texturing/AngleBasedFlattening.hpp"
 
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
+namespace vct = volcart::texturing;
 
 int main(int argc, char** argv)
 {
@@ -21,9 +22,10 @@ int main(int argc, char** argv)
     required.add_options()
         ("help,h", "Show this message")
         ("input-mesh,i", po::value<std::string>()->required(),
-         "Input mesh file")
+            "Input mesh file")
         ("output-mesh,o", po::value<std::string>()->required(),
-         "Output mesh file");
+            "Output mesh file")
+        ("method,m", po::value<std::string>()->default_value("ABF"), "Flattening method: [ABF, LSCM]");
 
     po::options_description all("Usage");
     all.add(required);
@@ -47,42 +49,37 @@ int main(int argc, char** argv)
         return EXIT_FAILURE;
     }
 
-    // Get the parsed options
+    bool useABF{true};
+    auto method = parsed["method"].as<std::string>();
+    std::transform(method.begin(), method.end(), method.begin(), ::tolower);
+    if (method == "lscm") {
+        useABF = false;
+    } else if (method != "abf") {
+        std::cerr << "ERROR: Unknown flattening method: " << method;
+        std::cerr << std::endl;
+        return EXIT_FAILURE;
+    }
+
     // Load mesh
+    vc::Logger()->info("Loading mesh...");
     fs::path inputPath = parsed["input-mesh"].as<std::string>();
     vc::io::OBJReader reader;
     reader.setPath(inputPath);
     auto mesh = reader.read();
+    vc::Logger()->info(
+        "Mesh Loaded || Vertices: {} || Faces: {}", mesh->GetNumberOfPoints(),
+        mesh->GetNumberOfCells());
 
-    // get UVMap
-    vc::UVMap uvMap = reader.getUVMap();
-    if (uvMap.empty()) {
-        vc::Logger()->error("Input mesh has empty or null UV map.");
-        return EXIT_FAILURE;
-    }
+    // Run ABF
+    vct::AngleBasedFlattening abf;
+    abf.setUseABF(useABF);
+    abf.setMesh(mesh);
+    mesh = abf.compute();
 
-    // Call UVMap to ITKMesh
-    vc::meshing::UVMapToITKMesh mesher;
-    mesher.setScaleToUVDimensions(true);
-    mesher.setUVMap(uvMap);
-    mesher.setMesh(mesh);
-    vc::Logger()->info("Generating mesh from UV map...");
-    auto itkMesh = mesher.compute();
-
-    // Write the new mesh
+    vc::Logger()->info("Writing mesh...");
     fs::path outputPath = parsed["output-mesh"].as<std::string>();
     vc::io::OBJWriter writer;
     writer.setPath(outputPath);
-    writer.setMesh(itkMesh);
-
-    auto texture = reader.getTextureMat();
-    if (!texture.empty()) {
-        writer.setUVMap(uvMap);
-        writer.setTexture(reader.getTextureMat());
-    } else {
-        vc::Logger()->warn("Input mesh has empty or null texture image.");
-    }
+    writer.setMesh(mesh);
     writer.write();
-
-    return EXIT_SUCCESS;
 }

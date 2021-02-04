@@ -340,12 +340,12 @@ void ClothModelingUVMapping::expand_()
                 startingSurfaceArea_);
         }
         if (counter >= expandIterations_ * 6) {
-            logger->warn("Max relaxation iterations reached");
+            Logger()->warn("Max relaxation iterations reached");
             break;
         }
     }
     std::cerr << std::endl;
-    logger->info(
+    Logger()->info(
         "ClothUV: Mesh Area Relative Error: " +
         std::to_string(relativeError * 100) + "%");
 }
@@ -401,7 +401,7 @@ double ClothModelingUVMapping::surface_area_()
         // like
         // GMP
         if (std::isnan(sa)) {
-            logger->warn(
+            Logger()->warn(
                 "ClothUV: Warning: NaN surface area for face [" +
                 std::to_string(i) + "]. Evaluating as 0.");
             sa = 0.0;

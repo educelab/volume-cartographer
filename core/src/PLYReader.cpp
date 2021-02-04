@@ -103,7 +103,7 @@ void PLYReader::parse_header_()
         }
     }
     if (numFaces_ == 0) {
-        logger->warn("Warning: No face information found");
+        Logger()->warn("Warning: No face information found");
     }
     std::getline(plyFile_, line_);
 

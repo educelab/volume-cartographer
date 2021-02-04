@@ -83,6 +83,7 @@ target_include_directories(vc_render_from_ppm PUBLIC
 ## Layers ##
 add_executable(vc_layers src/Layers.cpp)
 target_link_libraries(vc_layers
+    VC::app_support
     VC::core
     VC::texturing
     VC::meshing
@@ -102,8 +103,8 @@ target_link_libraries(vc_generate_ppm
 ## Layers from PPM
 add_executable(vc_layers_from_ppm src/LayerFromPPM.cpp)
 target_link_libraries(vc_layers_from_ppm
+    VC::app_support
     VC::core
-    VC::external
     VC::texturing
     Boost::filesystem
     Boost::program_options
@@ -148,6 +149,7 @@ set_target_properties(vc_volume_server PROPERTIES
     AUTOMOC on
 )
 target_link_libraries(vc_volume_server
+    VC::app_support
     VC::core
     Boost::program_options
     Boost::filesystem
@@ -167,6 +169,7 @@ set_target_properties(vc_volume_client PROPERTIES
     AUTOMOC on
 )
 target_link_libraries(vc_volume_client
+    VC::app_support
     VC::core
     Boost::program_options
     Boost::filesystem

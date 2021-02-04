@@ -8,7 +8,7 @@
 #include <boost/filesystem.hpp>
 #include <opencv2/core.hpp>
 
-#include "vc/external/json.hpp"
+#include "vc/core/third_party/json.hpp"
 
 namespace volcart
 {

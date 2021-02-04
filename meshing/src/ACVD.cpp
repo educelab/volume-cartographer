@@ -34,7 +34,7 @@ ITKMesh::Pointer ACVD::getOutputMesh() const { return outputMesh_; }
 
 ITKMesh::Pointer ACVD::compute()
 {
-    logger->info(
+    Logger()->info(
         "ACVD: Input: {} verts, {} faces", inputMesh_->GetNumberOfPoints(),
         inputMesh_->GetNumberOfCells());
     switch (mode_) {
@@ -45,7 +45,7 @@ ITKMesh::Pointer ACVD::compute()
             compute_anisotropic_();
             break;
     }
-    logger->info(
+    Logger()->info(
         "ACVD: Output: {} verts, {} faces", outputMesh_->GetNumberOfPoints(),
         outputMesh_->GetNumberOfCells());
     return outputMesh_;
@@ -70,7 +70,7 @@ void ACVD::compute_isotropic_()
     }
 
     // Run ACVD
-    logger->info("ACVD: Performing isotropic mesh resampling...");
+    Logger()->info("ACVD: Performing isotropic mesh resampling...");
     vtkNew<vtkIsotropicDiscreteRemeshing> remesh;
     remesh->SetInput(mesh);
     remesh->SetNumberOfClusters(clusters);
@@ -82,7 +82,7 @@ void ACVD::compute_isotropic_()
     // Out-of-core simplification of large polygonal models
     // Use quadrics error to minimize distance between input and resampled
     if (quadricsOptLevel_ != 0) {
-        logger->info("ACVD: Computing quadrics optimization...");
+        Logger()->info("ACVD: Computing quadrics optimization...");
         auto clustering = remesh->GetClustering();
 
         int cluster, numMisclassedItems = 0;
@@ -113,7 +113,7 @@ void ACVD::compute_isotropic_()
         fList->Delete();
 
         if (numMisclassedItems != 0) {
-            logger->warn(
+            Logger()->warn(
                 "ACVD: Items with wrong cluster association: {}",
                 numMisclassedItems);
         }
@@ -165,7 +165,7 @@ void ACVD::compute_anisotropic_()
     }
 
     // Run remeshing
-    logger->info("ACVD: Performing anisotropic mesh resampling...");
+    Logger()->info("ACVD: Performing anisotropic mesh resampling...");
     vtkNew<vtkAnisotropicDiscreteRemeshing> remesh;
     remesh->SetInput(mesh);
     remesh->SetNumberOfClusters(clusters);
