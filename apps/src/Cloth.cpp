@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
     try {
         po::notify(opts);
     } catch (po::error& e) {
-        logger->error(e.what());
+        Logger()->error(e.what());
         return EXIT_FAILURE;
     }
 

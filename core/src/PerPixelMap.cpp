@@ -102,12 +102,13 @@ PerPixelMap PerPixelMap::ReadPPM(const fs::path& path)
 
     ppm.mask_ = cv::imread(MaskPath(path).string(), cv::IMREAD_GRAYSCALE);
     if (ppm.mask_.empty()) {
-        logger->warn("Failed to read mask: {}", MaskPath(path).string());
+        Logger()->warn("Failed to read mask: {}", MaskPath(path).string());
     }
 
     ppm.cellMap_ = cv::imread(CellMapPath(path).string(), cv::IMREAD_UNCHANGED);
     if (ppm.cellMap_.empty()) {
-        logger->warn("Failed to read cell map: {}", CellMapPath(path).string());
+        Logger()->warn(
+            "Failed to read cell map: {}", CellMapPath(path).string());
     }
 
     return ppm;

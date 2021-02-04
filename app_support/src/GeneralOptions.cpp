@@ -12,7 +12,10 @@ po::options_description GetGeneralOpts()
             "slice cache in bytes. Accepts the suffixes: (K|M|G|T)(B). "
             "Default: 50% of the total system memory.")
         ("progress", po::value<bool>()->default_value(true),
-            "When enabled, show algorithm progress bars.");
+            "When enabled, show algorithm progress bars.")
+        ("log-level", po::value<std::string>()->default_value("info"),
+         "Options: off, critical, error, warn, info, debug");
+    ;
     // clang-format on
 
     return opts;

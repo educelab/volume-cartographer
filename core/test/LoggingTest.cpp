@@ -21,7 +21,7 @@ std::string RGX_ERRO = "\\[error\\]";
 TEST(Logging, LoggerIsInitialized)
 {
     // Retrieval
-    EXPECT_NE(volcart::logger, nullptr);
+    EXPECT_NE(volcart::Logger(), nullptr);
 }
 
 TEST(Logging, AddLogFile)
@@ -29,20 +29,19 @@ TEST(Logging, AddLogFile)
     //// Setup the log file ////
     auto logPath = "vc_core_LoggingTest_" + vc::DateTime() + ".log";
     ASSERT_NO_THROW(vcl::AddLogFile(logPath));
-    std::cout << "Writing to log file: " << logPath << std::endl;
 
     //// Write test messages ////
     auto infoMsg = "Info message";
-    vc::logger->info(infoMsg);
+    vc::Logger()->info(infoMsg);
 
     auto warnMsg = "Warning message";
-    vc::logger->warn(warnMsg);
+    vc::Logger()->warn(warnMsg);
 
     auto errorMsg = "Error message";
-    vc::logger->error(errorMsg);
+    vc::Logger()->error(errorMsg);
 
     //// Flush the file logger to disk ////
-    vc::logger->flush();
+    vc::Logger()->flush();
 
     //// Check that the log file got created and can be opened ////
     std::ifstream logFile(logPath);

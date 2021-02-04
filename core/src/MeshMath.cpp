@@ -37,7 +37,7 @@ double SurfaceArea(const ITKMesh::Pointer& input)
         // Can get NaN's when using standard C++ math. Explore something like
         // GMP
         if (std::isnan(sa)) {
-            logger->error(
+            Logger()->error(
                 "volcart::meshMath: Warning: NaN surface area for face[{}]. "
                 "Evaluating as 0.",
                 cell.Index());

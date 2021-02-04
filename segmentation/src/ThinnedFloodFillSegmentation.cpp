@@ -111,7 +111,7 @@ static VoxelSet PruneSpurs(VoxelSet skeleton, size_t spurLength)
             // TODO: for now, the user needs to provide a fixed number.
             // TODO: later, try just pruning the shortest of the branches.
             if (length > 1 && length <= spurLength) {
-                logger->debug("Removing a {}-voxel spur.", length);
+                Logger()->debug("Removing a {}-voxel spur.", length);
                 for (const Voxel& v : visited) {
                     skeleton.erase(v);
                 }
@@ -193,7 +193,7 @@ static bool ThinPts(int dir, VoxelSet& pts)
     }
 
     // Report the number of removed points
-    logger->debug("Removed {} points in this pass.", ptsToRemove.size());
+    Logger()->debug("Removed {} points in this pass.", ptsToRemove.size());
 
     return !ptsToRemove.empty();
 }

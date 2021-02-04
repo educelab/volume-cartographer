@@ -1,3 +1,4 @@
+// clang-format off
 /*
  * Author:  David Robert Nadeau
  * Site:    http://NadeauSoftware.com/
@@ -5,7 +6,7 @@
  *          http://creativecommons.org/licenses/by/3.0/deed.en_US
  */
 
-#include "vc/external/GetMemorySize.hpp"
+#include "vc/app_support/GetMemorySize.hpp"
 
 #if defined(_WIN32)
 #include <Windows.h>
@@ -100,3 +101,4 @@ size_t SystemMemorySize()
     return 0L; /* Unknown OS. */
 #endif
 }
+// clang-format on

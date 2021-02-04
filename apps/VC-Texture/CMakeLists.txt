@@ -51,7 +51,6 @@ target_include_directories(${target}
 target_link_libraries(${target}
     VC::core
     VC::texturing
-    VC::external
     VC::meshing
     Boost::filesystem
     vtkFiltersCore

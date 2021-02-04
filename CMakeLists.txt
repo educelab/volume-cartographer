@@ -59,9 +59,6 @@ if (VC_BUILD_TESTS)
 endif()
 
 ## VC Libraries ##
-add_subdirectory(external)
-
-# Enable warnings after 'external' lib.
 include(VCWarnings)
 add_subdirectory(core)
 if (VC_BUILD_TESTS)

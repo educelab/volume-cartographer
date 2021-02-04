@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
     try {
         po::notify(PARSED);
     } catch (po::error& e) {
-        vc::logger->error(e.what());
+        vc::Logger()->error(e.what());
         return EXIT_FAILURE;
     }
 
@@ -68,7 +68,8 @@ int main(int argc, char* argv[])
     } else if (vc::IsFileType(inputPath, {"obj", "ply"})) {
         MeshToPointSet(inputPath, outputPath);
     } else {
-        vc::logger->error("Input file is unsupported: {}", inputPath.string());
+        vc::Logger()->error(
+            "Input file is unsupported: {}", inputPath.string());
         return EXIT_FAILURE;
     }
 }
@@ -76,9 +77,9 @@ int main(int argc, char* argv[])
 void PointSetToMesh(const fs::path& inputPath, const fs::path& outputPath)
 {
     // Load the file
-    vc::logger->info("Loading file...");
+    vc::Logger()->info("Loading file...");
     auto inputCloud = psio::ReadPointSet(inputPath);
-    vc::logger->info("Loaded PointSet with {} points", inputCloud.size());
+    vc::Logger()->info("Loaded PointSet with {} points", inputCloud.size());
 
     // Add vertex intensity
     std::vector<uint16_t> intensities;
@@ -122,20 +123,20 @@ void PointSetToMesh(const fs::path& inputPath, const fs::path& outputPath)
 
     // Write the file
     if (vc::IsFileType(outputPath, {"ply"})) {
-        vc::logger->info("Writing to PLY...");
+        vc::Logger()->info("Writing to PLY...");
         vc::io::PLYWriter writer(outputPath, mesh);
         writer.setVertexColors(intensities);
         writer.write();
-        vc::logger->info("File written: {}", outputPath.string());
+        vc::Logger()->info("File written: {}", outputPath.string());
     } else if (vc::IsFileType(outputPath, {"obj"})) {
-        vc::logger->info("Writing to OBJ...");
+        vc::Logger()->info("Writing to OBJ...");
         vc::io::OBJWriter writer;
         writer.setPath(outputPath);
         writer.setMesh(mesh);
         writer.write();
-        vc::logger->info("File written: {}", outputPath.string());
+        vc::Logger()->info("File written: {}", outputPath.string());
     } else {
-        vc::logger->error("Unknown file format: {}", outputPath.string());
+        vc::Logger()->error("Unknown file format: {}", outputPath.string());
         std::exit(EXIT_FAILURE);
     }
 }
@@ -144,7 +145,7 @@ void MeshToPointSet(const fs::path& inputPath, const fs::path& outputPath)
 {
     // Load the file
     vc::ITKMesh::Pointer mesh;
-    vc::logger->info("Loading file...");
+    vc::Logger()->info("Loading file...");
     if (vc::IsFileType(inputPath, {"ply"})) {
         vc::io::PLYReader reader(inputPath);
         mesh = reader.read();
@@ -153,7 +154,7 @@ void MeshToPointSet(const fs::path& inputPath, const fs::path& outputPath)
         reader.setPath(inputPath);
         mesh = reader.read();
     }
-    vc::logger->info("Loaded mesh with {} points", mesh->GetNumberOfPoints());
+    vc::Logger()->info("Loaded mesh with {} points", mesh->GetNumberOfPoints());
 
     // Create pointset
     vc::PointSet<cv::Vec3d> ps;
@@ -161,7 +162,7 @@ void MeshToPointSet(const fs::path& inputPath, const fs::path& outputPath)
          ++pt) {
         ps.emplace_back(pt->Value()[0], pt->Value()[1], pt->Value()[2]);
     }
-    vc::logger->info("Writing PointSet...");
+    vc::Logger()->info("Writing PointSet...");
     psio::WritePointSet(outputPath, ps);
-    vc::logger->info("File written: {}", outputPath.string());
+    vc::Logger()->info("File written: {}", outputPath.string());
 }

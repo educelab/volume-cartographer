@@ -22,7 +22,7 @@ Texture::Texture(fs::path path)
 {
     // Check for meta-type
     if (metadata_.get<std::string>("type") != "texture") {
-        logger->error("Metadata not of type 'texture'");
+        Logger()->error("Metadata not of type 'texture'");
     }
 
     // To-Do: #180

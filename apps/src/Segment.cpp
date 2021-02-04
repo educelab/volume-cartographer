@@ -5,12 +5,12 @@
 #include <boost/program_options.hpp>
 
 #include "vc/app_support/GeneralOptions.hpp"
+#include "vc/app_support/GetMemorySize.hpp"
 #include "vc/app_support/ProgressIndicator.hpp"
 #include "vc/core/io/PointSetIO.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/Logging.hpp"
 #include "vc/core/util/MemorySizeStringParser.hpp"
-#include "vc/external/GetMemorySize.hpp"
 #include "vc/meshing/OrderedPointSetMesher.hpp"
 #include "vc/segmentation/LocalResliceParticleSim.hpp"
 #include "vc/segmentation/ThinnedFloodFillSegmentation.hpp"
@@ -136,7 +136,7 @@ int main(int argc, char* argv[])
 
     // Set logging level
     if (parsed.count("verbose") > 0) {
-        vc::logger->set_level(spdlog::level::debug);
+        vc::Logger()->set_level(spdlog::level::debug);
     }
 
     // Check mutually exclusive arguments
@@ -172,7 +172,7 @@ int main(int argc, char* argv[])
     ///// Load the volume package /////
     fs::path volpkgPath = parsed["volpkg"].as<std::string>();
     if (not fs::exists(volpkgPath)) {
-        vc::logger->error("VolPkg does not exist: {}", volpkgPath.string());
+        vc::Logger()->error("VolPkg does not exist: {}", volpkgPath.string());
         return EXIT_FAILURE;
     }
     vc::VolumePkg vpkg(volpkgPath);

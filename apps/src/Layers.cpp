@@ -8,12 +8,12 @@
 #include <boost/program_options.hpp>
 #include <opencv2/opencv.hpp>
 
+#include "vc/app_support/GetMemorySize.hpp"
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/types/PerPixelMap.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/Logging.hpp"
 #include "vc/core/util/MeshMath.hpp"
-#include "vc/external/GetMemorySize.hpp"
 #include "vc/meshing/ACVD.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
 #include "vc/meshing/OrderedPointSetMesher.hpp"
@@ -81,7 +81,7 @@ int main(int argc, char* argv[])
     try {
         po::notify(parsed);
     } catch (po::error& e) {
-        vc::logger->error(e.what());
+        vc::Logger()->error(e.what());
         return EXIT_FAILURE;
     }
 
@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
         msg << "Volume package is version " << vpkg.version()
             << " but this program requires version " << VOLPKG_SUPPORTED_VERSION
             << ".";
-        vc::logger->error(msg.str());
+        vc::Logger()->error(msg.str());
         return EXIT_FAILURE;
     }
 

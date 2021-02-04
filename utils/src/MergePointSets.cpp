@@ -58,7 +58,7 @@ int main(int argc, char* argv[])
     try {
         po::notify(parsed);
     } catch (po::error& e) {
-        vc::logger->error(e.what());
+        vc::Logger()->error(e.what());
         return EXIT_FAILURE;
     }
 
@@ -70,7 +70,7 @@ int main(int argc, char* argv[])
     for (const fs::path p : inputPaths) {
         // Skip non-existent files
         if (not fs::exists(p)) {
-            vc::logger->warn("File does not exist: \"{}\"", p.string());
+            vc::Logger()->warn("File does not exist: \"{}\"", p.string());
             continue;
         }
 
@@ -79,7 +79,7 @@ int main(int argc, char* argv[])
             if (vc::IsFileType(p, {"vcps"})) {
                 resolvedPaths.emplace_back(p);
             } else {
-                vc::logger->info("Skipping file: \"{}\"", p.string());
+                vc::Logger()->info("Skipping file: \"{}\"", p.string());
             }
         }
 
@@ -93,7 +93,7 @@ int main(int argc, char* argv[])
                     if (vc::IsFileType(*dir, {"vcps"})) {
                         dirItems.emplace_back(*dir);
                     } else {
-                        vc::logger->info(
+                        vc::Logger()->info(
                             "Skipping file: \"{}\"", dir->path().string());
                     }
                 }
@@ -111,9 +111,9 @@ int main(int argc, char* argv[])
     // Read all vcps files in the directory:
     for (const auto& p : resolvedPaths) {
         // Load the file
-        vc::logger->info("Loading file: \"{}\"", p.string());
+        vc::Logger()->info("Loading file: \"{}\"", p.string());
         auto tmpCloud = psio::ReadPointSet(p);
-        vc::logger->info("Loaded pointset with {} points", tmpCloud.size());
+        vc::Logger()->info("Loaded pointset with {} points", tmpCloud.size());
 
         // Prune as needed
         if (parsed.count("prune")) {
@@ -130,10 +130,10 @@ int main(int argc, char* argv[])
                     }
                 }
                 tmpCloud = prunedCloud;
-                vc::logger->info(
+                vc::Logger()->info(
                     "Pruned pointset to {} points", tmpCloud.size());
             } else {
-                vc::logger->warn(
+                vc::Logger()->warn(
                     "Filename contains characters other than digits. File will "
                     "not be pruned: \"{}\"",
                     p.string());
@@ -156,7 +156,7 @@ int main(int argc, char* argv[])
                     ++i;
                 }
             }
-            vc::logger->info(
+            vc::Logger()->info(
                 "Removing {} points from overlapping region.",
                 origSize - pts.size());
         }
@@ -165,16 +165,16 @@ int main(int argc, char* argv[])
         auto origSize = pts.size();
         pts.reserve(pts.size() + tmpCloud.size());
         pts.insert(tmpCloud.begin(), tmpCloud.end());
-        vc::logger->info("Merged {} new points", pts.size() - origSize);
+        vc::Logger()->info("Merged {} new points", pts.size() - origSize);
     }
 
     // Main cloud will hold the merged result
     vc::PointSet<Voxel> cloud(pts.size());
     std::copy(pts.begin(), pts.end(), std::back_inserter(cloud));
-    vc::logger->info("Final pointset size: {} points", cloud.size());
+    vc::Logger()->info("Final pointset size: {} points", cloud.size());
 
     // Save the merged pointset
-    vc::logger->info("Writing final pointset...");
+    vc::Logger()->info("Writing final pointset...");
     psio::WritePointSet(outputPath, cloud);
-    vc::logger->info("Done.");
+    vc::Logger()->info("Done.");
 }

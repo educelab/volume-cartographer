@@ -75,7 +75,8 @@ TEST_F(CreateUVMapFixture, TransformationTest)
         ++pnt_id;
     }
 
-    logger->debug("Transforming against (0,1) and comparing expected results");
+    Logger()->debug(
+        "Transforming against (0,1) and comparing expected results");
 
     // Retrieve mappings relative to the bottom-left (0,1)
     _BaseUVMap.setOrigin(UVMap::Origin::BottomLeft);
@@ -93,7 +94,8 @@ TEST_F(CreateUVMapFixture, TransformationTest)
         ++pnt_id;
     }
 
-    logger->debug("Transforming against (1,0) and comparing expected results");
+    Logger()->debug(
+        "Transforming against (1,0) and comparing expected results");
 
     // Retrieve mappings relative to the top-right (1,0)
     _BaseUVMap.setOrigin(UVMap::Origin::TopRight);

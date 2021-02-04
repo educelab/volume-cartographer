@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
     try {
         po::notify(parsed);
     } catch (po::error& e) {
-        vc::logger->error(e.what());
+        vc::Logger()->error(e.what());
         return EXIT_FAILURE;
     }
 

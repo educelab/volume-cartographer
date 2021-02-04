@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
     try {
         po::notify(parsed);
     } catch (po::error& e) {
-        vc::logger->error(e.what());
+        vc::Logger()->error(e.what());
         return EXIT_FAILURE;
     }
 
@@ -92,7 +92,8 @@ int main(int argc, char* argv[])
         auto uv = reader.getUVMap();
         auto img = reader.getTextureMat();
         if (uv.empty() || img.empty()) {
-            vc::logger->warn("Mesh missing UV map and/or texture image: {}", p);
+            vc::Logger()->warn(
+                "Mesh missing UV map and/or texture image: {}", p);
             continue;
         } else {
             meshes.emplace_back(mesh, uv, img);
@@ -106,7 +107,8 @@ int main(int argc, char* argv[])
         try {
             r = ParseLineSegString(ls);
         } catch (const std::exception& e) {
-            vc::logger->error("Could not parse string as line segment: {}", ls);
+            vc::Logger()->error(
+                "Could not parse string as line segment: {}", ls);
             return EXIT_FAILURE;
         }
         auto ab = cv::normalize(r.b - r.a);
@@ -116,7 +118,7 @@ int main(int argc, char* argv[])
     }
 
     // Run marker generator
-    vc::logger->info("Generating alignment markers...");
+    vc::Logger()->info("Generating alignment markers...");
     vct::AlignmentMarkerGenerator marker;
     marker.setInputMeshes(meshes);
     marker.setMarkerRadius(radius);
@@ -124,7 +126,7 @@ int main(int argc, char* argv[])
     auto imgs = marker.compute();
 
     // Save all of the images
-    vc::logger->info("Saving alignment marked outputs...");
+    vc::Logger()->info("Saving alignment marked outputs...");
     for (size_t idx = 0; idx < imgs.size(); idx++) {
         // Get the file name
         auto path = fs::path(meshPaths[idx]).filename();

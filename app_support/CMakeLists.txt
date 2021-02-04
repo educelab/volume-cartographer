@@ -1,6 +1,6 @@
 project(libvc_app_support VERSION ${VC_VERSION} LANGUAGES CXX)
 
-set(srcs src/GeneralOptions.cpp)
+set(srcs src/GeneralOptions.cpp src/GetMemorySize.cpp)
 
 add_library(app_support ${srcs})
 add_library(VC::app_support ALIAS app_support)

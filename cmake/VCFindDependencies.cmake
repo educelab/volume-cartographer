@@ -50,7 +50,11 @@ include(${VTK_USE_FILE})
 include_directories(SYSTEM ${VTK_INCLUDE_DIRS})
 
 ### Eigen ###
-find_package(Eigen3 3.2 REQUIRED)
+find_package(Eigen3 3.3 REQUIRED)
+if(CMAKE_GENERATOR MATCHES "Ninja|.*Makefiles.*" AND "${CMAKE_BUILD_TYPE}" MATCHES "^$|Debug")
+    message(AUTHOR_WARNING "Configuring a Debug build. Eigen performance will be degraded. If you need debug symbols, \
+    consider setting CMAKE_BUILD_TYPE to RelWithDebInfo. Otherwise, set to Release to maximize performance.")
+endif()
 
 ### OpenCV ###
 find_package(OpenCV 3 QUIET)
@@ -63,6 +67,9 @@ find_package(TIFF 4.0 REQUIRED)
 
 ### spdlog ###
 find_package(spdlog 1.4.2 CONFIG REQUIRED)
+
+### OpenABF ###
+include(BuildOpenABF)
 
 ### indicators (for app use only)
 if(VC_BUILD_APPS OR VC_BUILD_UTILS)

@@ -88,7 +88,7 @@ int OBJWriter::write_mtl_()
     // Ks - Specular light color
     // illum - Illumination mode
     // d - Dissolve. 1.0 == opaque
-    logger->info("Writing MTL...");
+    Logger()->info("Writing MTL...");
     outputMTL_ << "newmtl default" << std::endl;
     outputMTL_ << "Ka 1.0 1.0 1.0" << std::endl;
     outputMTL_ << "Kd 1.0 1.0 1.0" << std::endl;
@@ -113,7 +113,7 @@ int OBJWriter::write_texture_()
         return EXIT_FAILURE;
     }
 
-    logger->info("Writing texture image...");
+    Logger()->info("Writing texture image...");
     fs::path p = outputPath_;
     p.replace_extension("png");
     cv::imwrite(p.string(), texture_, {cv::IMWRITE_PNG_COMPRESSION, 6});
@@ -140,7 +140,7 @@ int OBJWriter::write_vertices_()
     if (!outputMesh_.is_open() || mesh_->GetNumberOfPoints() == 0) {
         return EXIT_FAILURE;
     }
-    logger->info("Writing vertices...");
+    Logger()->info("Writing vertices...");
 
     outputMesh_ << "# Vertices: " << mesh_->GetNumberOfPoints() << std::endl;
 
@@ -179,7 +179,7 @@ int OBJWriter::write_texture_coordinates_()
     if (!outputMesh_.is_open() || textCoords_.empty()) {
         return EXIT_FAILURE;
     }
-    logger->info("Writing texture coordinates...");
+    Logger()->info("Writing texture coordinates...");
 
     // Ensure coordinates are relative to bottom left
     auto startingOrigin = textCoords_.origin();
@@ -216,7 +216,7 @@ int OBJWriter::write_faces_()
     if (!outputMesh_.is_open() || mesh_->GetNumberOfCells() == 0) {
         return EXIT_FAILURE;
     }
-    logger->info("Writing faces...");
+    Logger()->info("Writing faces...");
 
     outputMesh_ << "# Faces: " << mesh_->GetNumberOfCells() << std::endl;
 

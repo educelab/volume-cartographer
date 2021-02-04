@@ -94,7 +94,7 @@ int PLYWriter::write_vertices_()
     if (!outputMesh_.is_open() || mesh_->GetNumberOfPoints() == 0) {
         return EXIT_FAILURE;
     }
-    logger->info("Writing vertices...");
+    Logger()->info("Writing vertices...");
 
     // Iterate over all of the points
     for (auto point = mesh_->GetPoints()->Begin();
@@ -142,7 +142,7 @@ int PLYWriter::write_faces_()
     if (!outputMesh_.is_open() || mesh_->GetNumberOfCells() == 0) {
         return EXIT_FAILURE;
     }
-    logger->info("Writing faces...");
+    Logger()->info("Writing faces...");
 
     // Iterate over the faces of the mesh
     ITKPointInCellIterator point;

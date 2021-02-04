@@ -8,6 +8,7 @@
 #include <opencv2/imgcodecs.hpp>
 
 #include "vc/app_support/GeneralOptions.hpp"
+#include "vc/app_support/GetMemorySize.hpp"
 #include "vc/app_support/ProgressIndicator.hpp"
 #include "vc/apps/render/RenderIO.hpp"
 #include "vc/apps/render/RenderTexturing.hpp"
@@ -17,7 +18,6 @@
 #include "vc/core/types/PerPixelMap.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/MemorySizeStringParser.hpp"
-#include "vc/external/GetMemorySize.hpp"
 #include "vc/texturing/CompositeTexture.hpp"
 #include "vc/texturing/IntegralTexture.hpp"
 #include "vc/texturing/IntersectionTexture.hpp"

@@ -2,6 +2,7 @@
 
 #include <exception>
 #include <memory>
+#include <sstream>
 
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
@@ -14,6 +15,7 @@
 #include "vc/core/types/Color.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/types/VolumetricMask.hpp"
+#include "vc/core/util/Logging.hpp"
 #include "vc/texturing/AngleBasedFlattening.hpp"
 #include "vc/texturing/CompositeTexture.hpp"
 #include "vc/texturing/IntegralTexture.hpp"
@@ -209,14 +211,15 @@ vc::UVMap FlattenMesh(const vc::ITKMesh::Pointer& mesh, bool resampled)
         if (!resampled) {
             uvMap = parsedUVMap_;
         } else {
-            std::cerr << "Warning: 'reuse-uv' option provided, but input mesh "
-                         "has been resampled. Ignoring existing UV map.\n";
+            vc::Logger()->warn(
+                "Provided '--reuse-uv' option, but input mesh has been "
+                "resampled. Ignoring existing UV map.");
         }
     }
 
     // If we don't have a valid UV map yet, make one
     if (uvMap.empty()) {
-        std::cout << "Computing parameterization..." << std::endl;
+        vc::Logger()->info("Computing parameterization");
         auto method =
             static_cast<FlatteningAlgorithm>(parsed_["uv-algorithm"].as<int>());
 
@@ -225,7 +228,12 @@ vc::UVMap FlattenMesh(const vc::ITKMesh::Pointer& mesh, bool resampled)
             method == FlatteningAlgorithm::LSCM) {
             vct::AngleBasedFlattening abf(mesh);
             abf.setUseABF(method == FlatteningAlgorithm::ABF);
-            abf.compute();
+            try {
+                abf.compute();
+            } catch (const std::exception& e) {
+                vc::Logger()->critical(e.what());
+                std::exit(EXIT_FAILURE);
+            }
             uvMap = abf.getUVMap();
         }
         // Orthographic
@@ -240,7 +248,7 @@ vc::UVMap FlattenMesh(const vc::ITKMesh::Pointer& mesh, bool resampled)
     // Rotate
     if (parsed_.count("uv-rotate") > 0) {
         auto theta = parsed_["uv-rotate"].as<double>();
-        std::cout << "Rotating UV map " << theta << " degrees..." << std::endl;
+        vc::Logger()->info("Rotating UV map {} degrees", theta);
         theta *= DEG_TO_RAD;
         vc::UVMap::Rotate(uvMap, theta);
     }
@@ -249,13 +257,13 @@ vc::UVMap FlattenMesh(const vc::ITKMesh::Pointer& mesh, bool resampled)
     if (parsed_.count("uv-flip") > 0) {
         auto axis =
             static_cast<vc::UVMap::FlipAxis>(parsed_["uv-flip"].as<int>());
-        std::cout << "Flipping UV map..." << std::endl;
+        vc::Logger()->info("Flipping UV map");
         vc::UVMap::Flip(uvMap, axis);
     }
 
     // Plot the UV Map
     if (parsed_.count("uv-plot") > 0) {
-        std::cout << "Saving UV plot..." << std::endl;
+        vc::Logger()->info("Saving UV plot");
         fs::path uvPlotPath = parsed_["uv-plot"].as<std::string>();
         cv::imwrite(uvPlotPath.string(), vc::UVMap::Plot(uvMap));
     }
@@ -323,13 +331,13 @@ vc::Texture TextureMesh(
                      std::to_string(height) + "):";
         vc::ReportProgress(ppmGen, label);
     } else {
-        std::cout << "Rendering PPM..." << std::endl;
+        vc::Logger()->info("Rendering PPM");
     }
     auto ppm = ppmGen.compute();
 
     // Save the PPM
     if (parsed_.count("output-ppm")) {
-        std::cout << "Writing PPM..." << std::endl;
+        vc::Logger()->info("Writing PPM");
         fs::path ppmPath = parsed_["output-ppm"].as<std::string>();
         vc::PerPixelMap::WritePPM(ppmPath, ppm);
     }
@@ -349,35 +357,36 @@ vc::Texture TextureMesh(
 
     ///// Generate texture /////
     vc::Texture texture;
-    std::cout << "Generating Texture..." << std::endl;
+    vc::Logger()->info("Generating texture image");
 
     // Report selected generic options
-    std::cout << "Neighborhood Parameters :: ";
+    std::stringstream ss;
+    ss << "Neighborhood Parameters :: ";
     if (method == Method::Intersection) {
-        std::cout << "Intersection";
+        ss << "Intersection";
     } else if (method == Method::Thickness) {
-        std::cout << "Thickness || ";
-        std::cout << "Sampling Interval: " << interval << " || ";
-        std::cout << "Normalize Output: " << std::boolalpha << normalize;
+        ss << "Thickness || ";
+        ss << "Sampling Interval: " << interval << " || ";
+        ss << "Normalize Output: " << std::boolalpha << normalize;
     } else {
-        std::cout << "Shape: ";
+        ss << "Shape: ";
         if (shape == Shape::Line) {
-            std::cout << "Line || ";
+            ss << "Line || ";
         } else {
-            std::cout << "Cuboid || ";
+            ss << "Cuboid || ";
         }
-        std::cout << "Radius: " << radius << " || ";
-        std::cout << "Sampling Interval: " << interval << " || ";
-        std::cout << "Direction: ";
+        ss << "Radius: " << radius << " || ";
+        ss << "Sampling Interval: " << interval << " || ";
+        ss << "Direction: ";
         if (direction == vc::Direction::Positive) {
-            std::cout << "Positive";
+            ss << "Positive";
         } else if (direction == vc::Direction::Negative) {
-            std::cout << "Negative";
+            ss << "Negative";
         } else {
-            std::cout << "Both";
+            ss << "Both";
         }
     }
-    std::cout << std::endl;
+    vc::Logger()->info(ss.str());
 
     // Set method specific parameters
     vct::TexturingAlgorithm::Pointer textureGeneric;
@@ -411,9 +420,9 @@ vc::Texture TextureMesh(
     else if (method == Method::Thickness) {
         // Load mask
         if (maskPath.empty()) {
-            std::cerr << "ERROR: Selected Thickness texturing, but did not "
-                         "provide volume mask path."
-                      << std::endl;
+            vc::Logger()->critical(
+                "Selected Thickness texturing, but did not provide volume mask "
+                "path.");
             std::exit(EXIT_FAILURE);
         }
         auto pts = vc::PointSetIO<cv::Vec3i>::ReadPointSet(maskPath);
@@ -434,7 +443,7 @@ vc::Texture TextureMesh(
     if (parsed_["progress"].as<bool>()) {
         vc::ReportProgress(*textureGeneric, "Texturing:");
     } else {
-        std::cout << "Rendering texture image..." << std::endl;
+        vc::Logger()->info("Rendering texture image");
     }
 
     // Execute texture algorithm
@@ -477,20 +486,20 @@ void RenderPostProcess(const vc::Texture& texture)
 
         // Revert to default bar if want reference image but missing req. opts
         else if (type == ScaleGenerator::Type::ReferenceImage) {
-            std::cerr << "Warning: Specified reference image scale marker but "
-                         "missing required options. Falling back to default "
-                         "scale marker."
-                      << std::endl;
+            vc::Logger()->warn(
+                "Specified reference image scale marker but missing required "
+                "'--scale-marker-ref-*' options. Falling back to default scale "
+                "marker.");
             scaleGen.setScaleType(ScaleGenerator::Type::Metric);
         }
 
         // Generate scale marker
-        std::cout << "Generating scale markers..." << std::endl;
+        vc::Logger()->info("Generating scale markers");
         cv::Mat result;
         try {
             result = scaleGen.compute();
         } catch (const std::exception& e) {
-            std::cerr << e.what() << std::endl;
+            vc::Logger()->error(e.what());
             // Skip the rest of this block
             return;
         }
