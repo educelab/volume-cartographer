@@ -330,6 +330,7 @@ vc::Texture TextureMesh(
         auto label = "Generating PPM (" + std::to_string(width) + "x" +
                      std::to_string(height) + "):";
         vc::ReportProgress(ppmGen, label);
+        vc::Logger()->debug("Rendering PPM");
     } else {
         vc::Logger()->info("Rendering PPM");
     }
@@ -356,12 +357,9 @@ vc::Texture TextureMesh(
     generator->setSamplingDirection(direction);
 
     ///// Generate texture /////
-    vc::Texture texture;
-    vc::Logger()->info("Generating texture image");
-
     // Report selected generic options
     std::stringstream ss;
-    ss << "Neighborhood Parameters :: ";
+    ss << "Texturing neighborhood parameters :: ";
     if (method == Method::Intersection) {
         ss << "Intersection";
     } else if (method == Method::Thickness) {
@@ -442,12 +440,13 @@ vc::Texture TextureMesh(
     // Setup progress tracker
     if (parsed_["progress"].as<bool>()) {
         vc::ReportProgress(*textureGeneric, "Texturing:");
+        vc::Logger()->debug("Rendering texture image");
     } else {
         vc::Logger()->info("Rendering texture image");
     }
 
     // Execute texture algorithm
-    texture = textureGeneric->compute();
+    auto texture = textureGeneric->compute();
 
     return texture;
 }

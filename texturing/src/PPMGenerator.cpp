@@ -10,7 +10,13 @@ using namespace texturing;
 
 namespace vcm = volcart::meshing;
 
-constexpr static size_t KD_DEFAULT_SEARCH_SIZE = 100;
+static constexpr uint8_t MASK_TRUE{255};
+
+PPMGenerator::PPMGenerator(size_t h, size_t w) : width_{w}, height_{h} {}
+
+void PPMGenerator::setMesh(const ITKMesh::Pointer& m) { inputMesh_ = m; }
+
+void PPMGenerator::setUVMap(const UVMap& u) { uvMap_ = u; }
 
 // Parameters
 void PPMGenerator::setDimensions(size_t h, size_t w)
@@ -19,13 +25,21 @@ void PPMGenerator::setDimensions(size_t h, size_t w)
     width_ = w;
 }
 
+void PPMGenerator::setShading(PPMGenerator::Shading s) { shading_ = s; }
+
+PerPixelMap PPMGenerator::getPPM() const { return ppm_; }
+
+cv::Mat PPMGenerator::getCellMap() const { return cellMap_; }
+
+size_t PPMGenerator::progressIterations() const { return width_ * height_; }
+
 // Compute
 PerPixelMap PPMGenerator::compute()
 {
     if (inputMesh_.IsNull() || inputMesh_->GetNumberOfPoints() == 0 ||
         inputMesh_->GetNumberOfCells() == 0 || uvMap_.empty() || width_ == 0 ||
         height_ == 0) {
-        auto msg = "Invalid input parameters";
+        const auto* msg = "Invalid input parameters";
         throw std::invalid_argument(msg);
     }
 
@@ -57,8 +71,10 @@ void PPMGenerator::generate_centroid_mesh_()
          cell != workingMesh_->GetCells()->End(); ++cell) {
         info.reset();
 
-        cv::Vec3d twoD, threeD, normal;
-        for (auto point = cell->Value()->PointIdsBegin();
+        cv::Vec3d twoD;
+        cv::Vec3d threeD;
+        cv::Vec3d normal;
+        for (auto* point = cell->Value()->PointIdsBegin();
              point != cell->Value()->PointIdsEnd(); ++point) {
             auto pointID = *point;
 
@@ -80,8 +96,12 @@ void PPMGenerator::generate_centroid_mesh_()
             }
         }
 
-        // Calculate the cell centroid
-        centroid = ((info.pts2D[0] + info.pts2D[1] + info.pts2D[2]) / 3).val;
+        // Calculate the cell centroid and maximum centroid-vertex distance
+        info.centroid = ((info.pts2D[0] + info.pts2D[1] + info.pts2D[2]) / 3);
+        centroid = info.centroid.val;
+        for (const auto& v : info.pts2D) {
+            kdMaxDist_ = std::max(kdMaxDist_, cv::norm(v - info.centroid));
+        }
 
         // Get the flat surface normal for this cell
         if (shading_ == Shading::Flat) {
@@ -108,18 +128,15 @@ void PPMGenerator::generate_ppm_()
     kdTree_ = ITKPointsLocator::New();
     kdTree_->SetPoints(centroidMesh_->GetPoints());
     kdTree_->Initialize();
-    kdSearchSize_ =
-        (centroidMesh_->GetNumberOfPoints() < KD_DEFAULT_SEARCH_SIZE)
-            ? centroidMesh_->GetNumberOfPoints()
-            : KD_DEFAULT_SEARCH_SIZE;
 
     // Iterate over all of the pixels
+    bool hintValid{false};
     size_t lastCell{0};
     progressStarted();
     for (size_t y = 0; y < height_; ++y) {
         for (size_t x = 0; x < width_; ++x) {
             progressUpdated(y * width_ + x);
-            find_cell_(x, y, lastCell);
+            find_cell_(x, y, hintValid, lastCell);
         }
     }
     progressComplete();
@@ -130,33 +147,40 @@ void PPMGenerator::generate_ppm_()
     ppm_.setCellMap(cellMap_);
 }
 
-void PPMGenerator::find_cell_(size_t x, size_t y, size_t& cellHint)
+void PPMGenerator::find_cell_(
+    size_t x, size_t y, bool& useHint, size_t& cellHint)
 {
     // This pixel's uv coordinate
     cv::Vec3d uv{0, 0, 0};
-    uv[0] = x / (width_ - 1.0);
-    uv[1] = y / (height_ - 1.0);
+    uv[0] = static_cast<double>(x) / static_cast<double>(width_ - 1);
+    uv[1] = static_cast<double>(y) / static_cast<double>(height_ - 1);
 
     // Whether we've found a cell
     CellInfo info;
     cv::Vec3d baryCoord{0, 0, 0};
 
-    // Use the last cell as a hint
-    info = cellInformation_[cellHint];
-    baryCoord =
-        CartesianToBarycentric(uv, info.pts2D[0], info.pts2D[1], info.pts2D[2]);
-    auto cellFound = BarycentricPointIsInTriangle(baryCoord);
+    // Use the last cell as a hint if it's within the distance range
+    // Assumes norm is less expensive than barycentric test
+    bool cellFound{false};
+    if (useHint) {
+        info = cellInformation_[cellHint];
+        if (cv::norm(uv - info.centroid) <= kdMaxDist_) {
+            baryCoord = CartesianToBarycentric(
+                uv, info.pts2D[0], info.pts2D[1], info.pts2D[2]);
+            cellFound = BarycentricPointIsInTriangle(baryCoord);
+        }
+    }
 
     // If no cell found, use a kd-Tree to find one
     if (!cellFound) {
         // Find the nearest cells
         ITKPointsLocator::NeighborsIdentifierType neighborhood;
-        kdTree_->FindClosestNPoints(uv.val, kdSearchSize_, neighborhood);
+        kdTree_->FindPointsWithinRadius(uv.val, kdMaxDist_, neighborhood);
 
         // Iterate through the nearest cells
         for (const auto& cell : neighborhood) {
             // Skip the cell hint we've already checked
-            if (cell == cellHint) {
+            if (useHint and cell == cellHint) {
                 continue;
             }
 
@@ -168,6 +192,7 @@ void PPMGenerator::find_cell_(size_t x, size_t y, size_t& cellHint)
 
             // Break if we found a matching cell
             if (cellFound) {
+                useHint = true;
                 cellHint = cell;
                 break;
             }
@@ -200,7 +225,7 @@ void PPMGenerator::find_cell_(size_t x, size_t y, size_t& cellHint)
     cellMap_.at<int32_t>(y, x) = cellHint;
 
     // Assign the intensity value at the UV position
-    mask_.at<uint8_t>(y, x) = 255;
+    mask_.at<uint8_t>(y, x) = MASK_TRUE;
 
     // Assign 3D position to the lookup map
     ppm_(y, x) =

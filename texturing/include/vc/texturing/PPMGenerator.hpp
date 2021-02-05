@@ -32,18 +32,18 @@ public:
     enum class Shading { Flat = 0, Smooth };
 
     /** Default constructor */
-    PPMGenerator() : width_{0}, height_{0} {}
+    PPMGenerator() = default;
 
     /** Construct with dimension parameters */
-    PPMGenerator(size_t h, size_t w) : width_{w}, height_{h} {}
+    PPMGenerator(size_t h, size_t w);
     /**@}*/
 
     /**@{*/
     /** @brief Set the input mesh */
-    void setMesh(const ITKMesh::Pointer& m) { inputMesh_ = m; }
+    void setMesh(const ITKMesh::Pointer& m);
 
     /** @brief Set the input UV map */
-    void setUVMap(const UVMap& u) { uvMap_ = u; }
+    void setUVMap(const UVMap& u);
     /**@}*/
 
     /**@{*/
@@ -51,7 +51,7 @@ public:
     void setDimensions(size_t h, size_t w);
 
     /** @brief Set the normal shading method */
-    void setShading(Shading s) { shading_ = s; }
+    void setShading(Shading s);
     /**@}*/
 
     /**@{*/
@@ -61,10 +61,7 @@ public:
 
     /**@{*/
     /** @brief Get the generated PerPixelMap */
-    const PerPixelMap getPPM() const { return ppm_; }
-
-    /** @copydoc getPPM() const */
-    PerPixelMap getPPM() { return ppm_; }
+    PerPixelMap getPPM() const;
 
     /**
      * @brief Get the generated cell map
@@ -73,11 +70,11 @@ public:
      * pixel in the PPM. The cell map is of type `CV_32SC1`. Pixels without
      * a face assignment have value equal to -1.
      */
-    cv::Mat getCellMap() const { return cellMap_; }
+    cv::Mat getCellMap() const;
     /**@}*/
 
     /** @brief Returns the maximum progress value */
-    size_t progressIterations() const override { return width_ * height_; }
+    size_t progressIterations() const override;
 
 private:
     /** Triangular face with 2D-to-3D correspondence */
@@ -95,6 +92,8 @@ private:
         std::vector<cv::Vec3d> pts3D;
         /** 3D surface normal */
         std::vector<cv::Vec3d> normals;
+        /** This cell's 3D centroid */
+        cv::Vec3d centroid;
     };
 
     /** Preprocess mesh to aid in correspondence look ups */
@@ -102,7 +101,7 @@ private:
     /** Generate the PerPixelMap */
     void generate_ppm_();
     /** Find the cell which belongs to a pixel */
-    void find_cell_(size_t x, size_t y, size_t& cellHint);
+    void find_cell_(size_t x, size_t y, bool& useHint, size_t& cellHint);
     /** Convert from Barycentric coordinates to an interpolated normal */
     static cv::Vec3d GouraudNormal(
         const cv::Vec3d& nUVW,
@@ -120,8 +119,8 @@ private:
     std::vector<CellInfo> cellInformation_;
     /** kdTree for cell lookups */
     ITKPointsLocator::Pointer kdTree_;
-    /** kdTree search size */
-    size_t kdSearchSize_{100};
+    /** kdTree search distance */
+    double kdMaxDist_{0};
 
     /** Working mesh */
     ITKMesh::Pointer workingMesh_;
@@ -134,9 +133,9 @@ private:
     /** Output shading */
     Shading shading_{Shading::Smooth};
     /** Output width of the PerPixelMap */
-    size_t width_;
+    size_t width_{0};
     /** Output height of the PerPixelMap */
-    size_t height_;
+    size_t height_{0};
 };
 }  // namespace texturing
 }  // namespace volcart
