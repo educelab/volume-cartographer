@@ -28,7 +28,7 @@ This suite is primarily developed and tested on macOS and Debian.
 It _should_ work on other Unix/Linux systems, but this is currently untested. 
 If you have already installed the dependencies listed above, compilation should be as simple as:  
 ```shell
-git clone https://code.cs.uky.edu/seales-research/volume-cartographer.git
+git clone https://gitlab.com/educelab/volume-cartographer.git
 cd volume-cartographer
 mkdir build
 cd build
@@ -52,7 +52,7 @@ Note that `vc-deps` **does not** install CMake or Qt.
 To build and link against in-source `vc-deps` libraries, run the following:  
 ```shell
 # Get the source code plus all submodules
-git clone --recursive https://code.cs.uky.edu/seales-research/volume-cartographer.git
+git clone --recursive https://gitlab.com/educelab/volume-cartographer.git
 
 # Build vc-deps
 cd volume-cartographer/vc-deps
@@ -90,7 +90,7 @@ make package
 To build a deployable macOS installer DMG for macOS 10.9+, use the `vc-deps` submodule to build the dependencies as universal libraries:
 ```shell
 # Get the source code plus all submodules
-git clone --recursive https://code.cs.uky.edu/seales-research/volume-cartographer.git
+git clone --recursive https://gitlab.com/educelab/volume-cartographer.git
 
 # Setup macOS SDK version
 export MACOSX_DEPLOYMENT_TARGET="10.13"
@@ -125,6 +125,8 @@ cmake -DVC_BUILD_TESTS=OFF ..
 ```
 
 ## Documentation
+Visit our full library documentation [here](https://educelab.gitlab.io/volume-cartographer/docs/).
+
 Library documentation is built using Doxygen and can be enabled/disabled by setting the `VC_BUILD_DOCS` flag.
 Documentation will be installed with the `install` target if the `VC_INSTALL_DOCS` flag is enabled.
 ```shell

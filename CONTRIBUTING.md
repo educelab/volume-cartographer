@@ -12,4 +12,4 @@ git add [files]
 
 ## Style
 
-Please follow the [Seales Research C++ Style Guide](https://code.cs.uky.edu/seales-research/style-guides/blob/master/C++%20Style%20Guide.md). 
+Please follow the [EduceLab C++ Style Guide](https://gitlab.com/educelab/style-guides/-/blob/master/C++%20Style%20Guide.md). 
