@@ -1,9 +1,9 @@
-Volume Cartographer
-===================
-A library and toolkit for the virtual unwrapping of volumetric datasets.
+**Volume Cartographer** is a library and toolkit for virtually unwrapping 
+volumetric datasets.
 
+[[_TOC_]]
 
-### Dependencies  
+## Dependencies  
 **Required**  
 * C++14 compiler (gcc 4.9+, clang 3.4+ or VS 2015+)
 * CMake 3.5+
@@ -22,7 +22,7 @@ A library and toolkit for the virtual unwrapping of volumetric datasets.
 * [pybind11](https://github.com/pybind/pybind11) - For Python binding support
 * [VCG library](https://github.com/cnr-isti-vclab/vcglib) - For VCG's Quadric Edge Collapse Decimation
 
-### Compilation  
+## Compilation  
 The VC suite uses CMake to simplify builds. 
 This suite is primarily developed and tested on macOS and Debian. 
 It _should_ work on other Unix/Linux systems, but this is currently untested. 
@@ -44,7 +44,7 @@ ninja
 ```
 
 
-##### (Optional) Use vc-deps dependencies
+#### (Optional) Use vc-deps dependencies
 To assist with installing dependencies, we have created the [vc-deps project](https://gitlab.com/educelab/vc-deps).
 While this project can be used on its own to install the dependencies to the system, we also provide it as a git submodule within `volume-cartographer`.
 Note that `vc-deps` **does not** install CMake or Qt.  
@@ -70,23 +70,23 @@ cmake -DVC_PREBUILT_LIBS=ON ..
 make
 ```
 
-##### Qt
+#### Qt
 It might be necessary to point CMake to your Qt installation. For example, for Qt5 installed with Homebrew on Mac, `-DQt5_DIR=/usr/local/opt/qt/lib/cmake/Qt5` should be added to the `cmake` command arguments.
 
-### Installation
+## Installation
 To install the compiled software and libraries to the `CMAKE_INSTALL_PREFIX`, run the `install` target:
 ```shell
 make install
 ```
 
-### Packaging
+## Packaging
 
 To generate an installer package, run the `package` target:
 ```shell
 make package
 ```
 
-##### (Optional) Build a deployable macOS installer
+#### (Optional) Build a deployable macOS installer
 To build a deployable macOS installer DMG for macOS 10.9+, use the `vc-deps` submodule to build the dependencies as universal libraries:
 ```shell
 # Get the source code plus all submodules
@@ -112,7 +112,7 @@ cmake -DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON ..
 make && make package
 ```
 
-### Testing
+## Testing
 Tests are built by default and use the Boost.Test framework.
 Test can be run using CTest or by running the `test` target:
 ```shell
@@ -124,14 +124,14 @@ To disable tests, set the `VC_BUILD_TESTS` flag to off:
 cmake -DVC_BUILD_TESTS=OFF ..
 ```
 
-### Documentation
+## Documentation
 Library documentation is built using Doxygen and can be enabled/disabled by setting the `VC_BUILD_DOCS` flag.
 Documentation will be installed with the `install` target if the `VC_INSTALL_DOCS` flag is enabled.
 ```shell
 cmake -DVC_BUILD_DOCS=ON -DVC_INSTALL_DOCS=ON ..
 ```
 
-### Python Bindings (WIP)
+## Python Bindings (WIP)
 We currently maintain limited Python binding support through pybind11. 
 They are a work-in-progress and should not be used in production code.  
 
@@ -164,6 +164,12 @@ cmake -DBUILD_SHARED_LIBS=ON ..
 cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_POSITION_INDEPENDENT_CODE=ON ..
 ```
 
-### Contributing
+## Contributing
 
 See [CONTRIBUTING](CONTRIBUTING.md).
+
+## License
+Except where otherwise indicated, the software in this repository is licensed 
+under the [GNU General Public License v3.0](LICENSE). This project is free 
+software: you can redistribute it and/or modify it under the terms of the GPLv3 
+or (at your option) any later version.
