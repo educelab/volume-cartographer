@@ -27,12 +27,22 @@ variables:
         - export CMAKE_CMD="cmake -GNinja $EXTRA_CMAKE_FLAGS .."
     script:
         - *build_script
+    rules:
+        - if: '$CI_PROJECT_URL =~ /.*gitlab\.com.*/'
+          when: never
+        - if: '$CI_PROJECT_URL !~ /.*gitlab\.com.*/'
+          when: always
 
 .build_and_test:
     extends: .build
     script:
         - *build_script
         - *test_script
+    rules:
+        - if: '$CI_PROJECT_URL =~ /.*gitlab\.com.*/'
+          when: never
+        - if: '$CI_PROJECT_URL !~ /.*gitlab\.com.*/'
+          when: always
     artifacts:
         name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
         paths:
@@ -112,6 +122,11 @@ lint:clang-format:
     tags:
         - clang-format
         - osx
+    rules:
+        - if: '$CI_PROJECT_URL =~ /.*gitlab\.com.*/'
+          when: never
+        - if: '$CI_PROJECT_URL !~ /.*gitlab\.com.*/'
+          when: always
 
 lint:clang-tidy:
     stage: lint
@@ -129,30 +144,33 @@ lint:clang-tidy:
     tags:
         - clang-tidy
         - osx
+    rules:
+        - if: '$CI_PROJECT_URL =~ /.*gitlab\.com.*/'
+          when: never
+        - if: '$CI_PROJECT_URL !~ /.*gitlab\.com.*/'
+          when: always
 
 ### Documentation ###
-doxygen:
+pages:
     stage: docs
     needs: []
     variables:
         Qt5_DIR: "/usr/local/opt/qt5/lib/cmake/Qt5"
     script:
         - mkdir -p build/
-        - cd build/
-        - cmake -DVC_BUILD_DOC=ON -GNinja ..
-        - ninja docs
-        - cd docs/latex/
-        - make
+        - mkdir -p public/
+        - cmake -S . -B build/ -DVC_BUILD_DOC=ON
+        - cmake --build build/ --target docs
+        - mv build/docs/html/ public/docs/
     artifacts:
-        name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
         paths:
-            - build/docs/html/*
-            - build/docs/latex/*.pdf
-        expire_in: 5 days
+            - public
     allow_failure: true
     tags:
         - doxy
         - test
+    rules:
+        - if: '$CI_COMMIT_BRANCH == "develop"'
 
 ### Collect & Deploy ###
 .deploy_variables: &deploy_variables
@@ -167,11 +185,15 @@ doxygen:
 .rules:nightly:collect: &rules_nightly_collect
     - if: $CI_COMMIT_TAG
       when: never
+    - if: '$CI_PROJECT_URL =~ /.*gitlab\.com.*/'
+      when: never
     - if: '$CI_COMMIT_BRANCH == "develop" && $CI_PIPELINE_SOURCE == "schedule"'
     - if: '$BUILD_NIGHTLY == "true"'
 
 .rules:nightly:deploy: &rules_nightly_deploy
     - if: $CI_COMMIT_TAG
+      when: never
+    - if: '$CI_PROJECT_URL =~ /.*gitlab\.com.*/'
       when: never
     - if: '$CI_COMMIT_BRANCH == "develop" && $CI_PIPELINE_SOURCE == "schedule"'
     - if: '$CI_COMMIT_BRANCH == "develop" && $BUILD_NIGHTLY == "true"'
