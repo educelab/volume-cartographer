@@ -94,6 +94,7 @@ target_link_libraries(vc_layers
 ## PPM Generator
 add_executable(vc_generate_ppm src/GeneratePPM.cpp)
 target_link_libraries(vc_generate_ppm
+    VC::app_support
     VC::core
     VC::meshing
     VC::texturing

@@ -1,5 +1,6 @@
 #include <boost/filesystem.hpp>
 
+#include "vc/app_support/ProgressIndicator.hpp"
 #include "vc/core/io/OBJReader.hpp"
 #include "vc/core/types/PerPixelMap.hpp"
 #include "vc/texturing/AngleBasedFlattening.hpp"
@@ -38,11 +39,13 @@ int main(int argc, char* argv[])
     auto height = static_cast<size_t>(std::ceil(width / uvMap.ratio().aspect));
 
     // PPM
-    std::cout << "Generating per-pixel map..." << std::endl;
     vc::texturing::PPMGenerator p;
     p.setDimensions(height, width);
     p.setMesh(mesh);
     p.setUVMap(uvMap);
+    auto label = "Generating PPM (" + std::to_string(width) + "x" +
+                 std::to_string(height) + "):";
+    vc::ReportProgress(p, label);
     p.compute();
 
     // Write PPM
