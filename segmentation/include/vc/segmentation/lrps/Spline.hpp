@@ -9,9 +9,7 @@
 
 #include "vc/segmentation/lrps/Common.hpp"
 
-namespace volcart
-{
-namespace segmentation
+namespace volcart::segmentation
 {
 /**
  * @class Spline
@@ -77,5 +75,4 @@ private:
  * */
 template <typename Scalar>
 using CubicSpline = Spline<Scalar, 3>;
-}  // namespace segmentation
-}  // namespace volcart
+}  // namespace volcart::segmentation

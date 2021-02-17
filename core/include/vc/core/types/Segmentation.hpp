@@ -2,8 +2,7 @@
 
 /** @file */
 
-#include <boost/filesystem.hpp>
-
+#include "vc/core/filesystem.hpp"
 #include "vc/core/types/DiskBasedObjectBaseClass.hpp"
 #include "vc/core/types/OrderedPointSet.hpp"
 #include "vc/core/types/Volume.hpp"
@@ -36,19 +35,19 @@ public:
     using Pointer = std::shared_ptr<Segmentation>;
 
     /** @brief Load a Segmentation from file */
-    explicit Segmentation(boost::filesystem::path path);
+    explicit Segmentation(volcart::filesystem::path path);
 
     /** @brief Make a new Segmentation in a directory */
     Segmentation(
-        boost::filesystem::path path, Identifier uuid, std::string name);
+        volcart::filesystem::path path, Identifier uuid, std::string name);
 
-    /** @copydoc Segmentation(boost::filesystem::path path) */
-    static Pointer New(boost::filesystem::path path);
+    /** @copydoc Segmentation(volcart::filesystem::path path) */
+    static Pointer New(volcart::filesystem::path path);
 
-    /** @copydoc Segmentation(boost::filesystem::path path, Identifier uuid,
+    /** @copydoc Segmentation(volcart::filesystem::path path, Identifier uuid,
      * std::string name) */
     static Pointer New(
-        boost::filesystem::path path, Identifier uuid, std::string name);
+        volcart::filesystem::path path, Identifier uuid, std::string name);
 
     /** @brief Return if this Segmentation has an associated PointSet file */
     bool hasPointSet() const

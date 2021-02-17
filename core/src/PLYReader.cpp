@@ -1,17 +1,12 @@
 #include "vc/core/io/PLYReader.hpp"
 
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/filesystem/operations.hpp>
-
 #include "vc/core/types/Exceptions.hpp"
 #include "vc/core/util/Logging.hpp"
-
-using Props = std::pair<char, int>;
+#include "vc/core/util/String.hpp"
 
 using namespace volcart;
 using namespace volcart::io;
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 
 ITKMesh::Pointer PLYReader::read()
 {
@@ -60,14 +55,10 @@ ITKMesh::Pointer PLYReader::read()
 
 void PLYReader::parse_header_()
 {
-    int currentLine;
     std::getline(plyFile_, line_);
     while (line_ != "end_header") {
         if (line_.find("element") != std::string::npos) {
-            std::vector<std::string> splitLine;
-            boost::split(
-                splitLine, line_, boost::is_any_of(" "),
-                boost::token_compress_on);
+            auto splitLine = split(line_, ' ');
             elementsList_.push_back(splitLine[1]);
             if (splitLine[1] == "vertex") {
                 numVertices_ = std::stoi(splitLine[2]);
@@ -77,10 +68,8 @@ void PLYReader::parse_header_()
                 skippedLine_.push_back(std::stoi(splitLine[2]));
             }
             std::getline(plyFile_, line_);
-            boost::split(
-                splitLine, line_, boost::is_any_of(" "),
-                boost::token_compress_on);
-            currentLine = 0;
+            splitLine = split(line_, ' ');
+            int currentLine{0};
             while (splitLine[0] == "property") {
                 if (splitLine[1] == "list") {
                     hasLeadingChar_ = line_.find("uchar") != std::string::npos;
@@ -94,9 +83,7 @@ void PLYReader::parse_header_()
                 }
                 std::getline(plyFile_, line_);
                 currentLine++;
-                boost::split(
-                    splitLine, line_, boost::is_any_of(" "),
-                    boost::token_compress_on);
+                splitLine = split(line_, ' ');
             }
         } else {
             std::getline(plyFile_, line_);
@@ -113,9 +100,7 @@ void PLYReader::read_points_()
 {
     for (int i = 0; i < numVertices_; i++) {
         SimpleMesh::Vertex curPoint;
-        std::vector<std::string> curLine;
-        boost::split(
-            curLine, line_, boost::is_any_of(" "), boost::token_compress_on);
+        auto curLine = split(line_, ' ');
         curPoint.x = std::stod(curLine[properties_["x"]]);
         curPoint.y = std::stod(curLine[properties_["y"]]);
         curPoint.z = std::stod(curLine[properties_["z"]]);
@@ -137,10 +122,8 @@ void PLYReader::read_points_()
 void PLYReader::read_faces_()
 {
     for (int i = 0; i < numFaces_; i++) {
-        std::vector<std::string> curFace;
         SimpleMesh::Cell face;
-        boost::split(
-            curFace, line_, boost::is_any_of(" "), boost::token_compress_on);
+        auto curFace = split(line_, ' ');
         if (hasLeadingChar_) {
             int pointsPerFace = std::stoi(curFace[0]);
             if (pointsPerFace != 3) {

@@ -8,9 +8,7 @@
 
 #include "ShapePrimitive.hpp"
 
-namespace volcart
-{
-namespace shapes
+namespace volcart::shapes
 {
 /**
  * @author Melissa Shankle
@@ -77,5 +75,4 @@ public:
         orderedHeight_ = height;
     }
 };
-}  // namespace shapes
-}  // namespace volcart
+}  // namespace volcart::shapes

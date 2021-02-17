@@ -10,9 +10,7 @@
 #include "vc/segmentation/lrps/Common.hpp"
 #include "vc/segmentation/lrps/FittedCurve.hpp"
 
-namespace volcart
-{
-namespace segmentation
+namespace volcart::segmentation
 {
 /**
  * @class LocalResliceSegmentation
@@ -170,5 +168,4 @@ private:
     /** Window size for reslice */
     int resliceSize_{32};
 };
-}  // namespace segmentation
-}  // namespace volcart
+}  // namespace volcart::segmentation

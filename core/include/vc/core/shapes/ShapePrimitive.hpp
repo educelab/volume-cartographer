@@ -17,9 +17,7 @@
 #include "vc/core/types/PointSet.hpp"
 #include "vc/core/types/SimpleMesh.hpp"
 
-namespace volcart
-{
-namespace shapes
+namespace volcart::shapes
 {
 /**
  * @author Seth Parker
@@ -133,5 +131,4 @@ protected:
     uint32_t orderedHeight_;
     /**@}*/
 };
-}  // namespace shapes
-}  // namespace volcart
+}  // namespace volcart::shapes

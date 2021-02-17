@@ -9,9 +9,7 @@
 #include "vc/core/types/Volume.hpp"
 #include "vc/core/types/VolumetricMask.hpp"
 
-namespace volcart
-{
-namespace segmentation
+namespace volcart::segmentation
 {
 
 /**
@@ -92,5 +90,4 @@ private:
     VolumetricMask::Pointer mask_;
 };
 
-}  // namespace segmentation
-}  // namespace volcart
+}  // namespace volcart::segmentation

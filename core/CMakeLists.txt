@@ -1,6 +1,4 @@
 project(libvc_core VERSION ${VC_VERSION} LANGUAGES CXX)
-set(module "core")
-set(target "vc_${module}")
 
 set(io_srcs
     src/OBJReader.cpp
@@ -62,7 +60,7 @@ set(logging_srcs
 
 configure_file(src/Version.cpp.in Version.cpp)
 
-add_library(${target}
+add_library(vc_core
     ${io_srcs}
     ${math_srcs}
     ${neighborhood_srcs}
@@ -73,15 +71,15 @@ add_library(${target}
     ${logging_srcs}
     ${CMAKE_CURRENT_BINARY_DIR}/Version.cpp
 )
-add_library("${namespace}${module}" ALIAS "${target}")
-target_include_directories(${target}
+add_library(VC::core ALIAS vc_core)
+target_include_directories(vc_core
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(${target}
+target_link_libraries(vc_core
     PUBLIC
-        Boost::filesystem
+        ${VC_FS_LIB}
         Eigen3::Eigen
         opencv_core
         opencv_highgui
@@ -97,10 +95,11 @@ target_link_libraries(${target}
     PRIVATE
         TIFF::TIFF
 )
+target_compile_features(vc_core PUBLIC cxx_std_17)
 
-set_target_properties(${target} PROPERTIES
-    VERSION "${PROJECT_VERSION}"
-    EXPORT_NAME "${module}"
+set_target_properties(vc_core PROPERTIES
+    VERSION ${PROJECT_VERSION}
+    EXPORT_NAME core
     POSITION_INDEPENDENT_CODE TRUE
 )
 
@@ -131,16 +130,16 @@ endif(VC_BUILD_PYTHON_BINDINGS)
 ## Install targets ##
 if(VC_INSTALL_LIBS)
 install(
-    TARGETS "${target}"
+    TARGETS vc_core
     COMPONENT "Libraries"
     EXPORT "${targets_export_name}"
     ARCHIVE DESTINATION "lib"
     LIBRARY DESTINATION "lib"
-    INCLUDES DESTINATION "${include_install_dir}/${module}"
+    INCLUDES DESTINATION "${include_install_dir}/core"
     RUNTIME DESTINATION "bin"
 )
 install(
-    DIRECTORY "${include_install_dir}/${module}"
+    DIRECTORY "${include_install_dir}/core"
     DESTINATION "${include_install_dir}"
     COMPONENT "Libraries"
     FILES_MATCHING REGEX ".*\.(h|hpp)$"
@@ -174,7 +173,7 @@ set(test_srcs
 # Add a test executable for each src
 foreach(src ${test_srcs})
     get_filename_component(filename ${src} NAME_WE)
-    set(testname ${target}_${filename})
+    set(testname vc_core_${filename})
     add_executable(${testname} ${src})
     target_link_libraries(${testname}
         VC::core

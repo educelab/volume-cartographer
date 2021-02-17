@@ -1,16 +1,16 @@
 #include <iostream>
 
-#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <itkAffineTransform.h>
 #include <itkCompositeTransform.h>
 #include <itkTransformFileWriter.h>
 #include <itkTransformMeshFilter.h>
 
+#include "vc/core/filesystem.hpp"
 #include "vc/core/io/OBJReader.hpp"
 #include "vc/core/io/OBJWriter.hpp"
 
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
 

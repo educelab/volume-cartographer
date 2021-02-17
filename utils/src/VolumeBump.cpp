@@ -1,14 +1,15 @@
 #include <cmath>
+#include <iomanip>
 #include <limits>
 #include <map>
 #include <sstream>
 
-#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 
 #include "vc/app_support/GetMemorySize.hpp"
+#include "vc/core/filesystem.hpp"
 #include "vc/core/io/TIFFIO.hpp"
 #include "vc/core/types/PerPixelMap.hpp"
 #include "vc/core/types/Volume.hpp"
@@ -17,7 +18,7 @@
 #include "vc/core/util/MemorySizeStringParser.hpp"
 
 namespace po = boost::program_options;
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 namespace vc = volcart;
 
 // Volpkg version required by this app

@@ -17,8 +17,6 @@ set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 # Use modern C++ for everything and generate compile_commands database.
-set(CMAKE_CXX_STANDARD 14)
-set(CXX_STANDARD_REQUIRED on)
 set(CMAKE_EXPORT_COMPILE_COMMANDS on)
 
 # Choose what to build
@@ -59,7 +57,12 @@ if (VC_BUILD_TESTS)
 endif()
 
 ## VC Libraries ##
-include(VCWarnings)
+option(VC_DEVELOPER_WARNINGS "For developers: Enable extensive compiler warnings" OFF)
+mark_as_advanced(VC_DEVELOPER_WARNINGS)
+if(VC_DEVELOPER_WARNINGS)
+    include(VCWarnings)
+endif()
+
 add_subdirectory(core)
 if (VC_BUILD_TESTS)
     add_subdirectory(testing)

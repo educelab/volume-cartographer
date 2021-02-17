@@ -6,9 +6,7 @@
 
 #include "ShapePrimitive.hpp"
 
-namespace volcart
-{
-namespace shapes
+namespace volcart::shapes
 {
 /**
  * @author Melissa Shankle
@@ -58,5 +56,4 @@ public:
     }  // Constructor
 
 };  // Cube
-}  // namespace shapes
-}  // namespace volcart
+}  // namespace volcart::shapes

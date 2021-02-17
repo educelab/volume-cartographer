@@ -6,7 +6,7 @@
 #include <spdlog/sinks/dist_sink.h>
 #include <spdlog/sinks/stdout_sinks.h>
 
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 namespace vcl = volcart::logging;
 
 auto DistSink() -> std::shared_ptr<spdlog::sinks::dist_sink_mt>;

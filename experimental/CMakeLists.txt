@@ -1,7 +1,4 @@
 project(libvc_experimental VERSION ${VC_VERSION} LANGUAGES C CXX)
-set(module "experimental")
-set(target "vc_${module}")
-
 
 ### Dependencies ###
 find_package(Bullet QUIET REQUIRED)
@@ -29,36 +26,37 @@ set(defs
 )
 
 ### Setup this library ###
-add_library(${target} ${srcs})
-add_library("${namespace}${module}" ALIAS "${target}")
-target_compile_definitions(${target} PUBLIC ${defs})
-target_include_directories(${target}
+add_library(vc_experimental ${srcs})
+add_library(VC::experimental ALIAS vc_experimental)
+target_compile_definitions(vc_experimental PUBLIC ${defs})
+target_include_directories(vc_experimental
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(${target}
+target_link_libraries(vc_experimental
     PUBLIC ${public_deps}
     PRIVATE ${private_deps}
 )
-set_target_properties(${target} PROPERTIES
+target_compile_features(vc_experimental PUBLIC cxx_std_17)
+set_target_properties(vc_experimental PROPERTIES
     VERSION "${PROJECT_VERSION}"
-    EXPORT_NAME "${module}"
+    EXPORT_NAME experimental
 )
 
 ### Install lib ###
 if(VC_INSTALL_LIBS)
 install(
-    TARGETS ${target}
+    TARGETS vc_experimental
     COMPONENT "Libraries"
     EXPORT ${targets_export_name}
     ARCHIVE DESTINATION "lib"
     LIBRARY DESTINATION "lib"
     RUNTIME DESTINATION "bin"
-    INCLUDES DESTINATION "${include_install_dir}/${module}"
+    INCLUDES DESTINATION "${include_install_dir}/experimental"
 )
 install(
-    DIRECTORY "${include_install_dir}/${module}"
+    DIRECTORY "${include_install_dir}/experimental"
     DESTINATION "${include_install_dir}"
     COMPONENT "Libraries"
     FILES_MATCHING REGEX ".*\.(h|hpp)$"
@@ -76,7 +74,7 @@ set(test_srcs
 # Add a test executable for each src
 foreach(src ${test_srcs})
     get_filename_component(filename ${src} NAME_WE)
-    set(testname ${target}_${filename})
+    set(testname vc_experimental_${filename})
     add_executable(${testname} ${src})
     target_link_libraries(${testname}
     VC::experimental

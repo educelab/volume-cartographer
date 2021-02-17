@@ -1,7 +1,5 @@
 #pragma once
 
-#include <boost/filesystem/path.hpp>
-
 #include "vc/core/types/ITKMesh.hpp"
 #include "vc/core/types/Metadata.hpp"
 #include "vc/core/types/Texture.hpp"

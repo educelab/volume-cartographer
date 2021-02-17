@@ -30,7 +30,7 @@ TEST_F(PLYWriter, UntexturedMesh)
     // Write test file
     path += "Untextured.ply";
     writer.setPath(path);
-    EXPECT_EQ(writer.write(), EXIT_SUCCESS);
+    ASSERT_NO_THROW(writer.write());
 
     // load in written data
     vc::SimpleMesh saved;

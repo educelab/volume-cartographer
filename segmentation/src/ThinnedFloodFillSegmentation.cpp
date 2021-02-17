@@ -4,11 +4,11 @@
 #include <queue>
 #include <unordered_set>
 
-#include <boost/filesystem.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
+#include "vc/core/filesystem.hpp"
 #include "vc/core/types/Color.hpp"
 #include "vc/core/util/HashFunctions.hpp"
 #include "vc/core/util/ImageConversion.hpp"
@@ -16,7 +16,7 @@
 #include "vc/core/util/Logging.hpp"
 #include "vc/segmentation/tff/FloodFill.hpp"
 
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 
 using namespace volcart;
 using namespace volcart::segmentation;

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 
+#include "vc/core/filesystem.hpp"
 #include "vc/core/landmarks/PlaneLandmark.hpp"
 #include "vc/core/landmarks/PointLandmark.hpp"
 #include "vc/core/landmarks/PolylineLandmark.hpp"
@@ -8,7 +9,7 @@
 
 namespace vc = volcart;
 namespace vcld = volcart::landmarks;
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 
 using Ldm = vcld::VolumeLandmark;
 using PlnLdm = vcld::PlaneLandmark;
@@ -34,7 +35,7 @@ int main(int argc, char* argv[])
 
     // Get landmark path
     std::cout << "Path: ";
-    boost::filesystem::path path;
+    fs::path path;
     std::string pathTemp;
     std::getline(std::cin, pathTemp);
     path = pathTemp;

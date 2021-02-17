@@ -6,6 +6,7 @@
 
 #include "vc/apps/packager/SliceImage.hpp"
 #include "vc/core/io/FileExtensionFilter.hpp"
+#include "vc/core/util/String.hpp"
 
 static const double MAX_16BPC = std::numeric_limits<uint16_t>::max();
 
@@ -19,8 +20,8 @@ bool SliceImage::operator==(const SliceImage& b) const
 
 bool SliceImage::operator<(const SliceImage& b) const
 {
-    auto aName = boost::to_lower_copy<std::string>(path.filename().native());
-    auto bName = boost::to_lower_copy<std::string>(b.path.filename().native());
+    auto aName = to_lower_copy(path.filename().string());
+    auto bName = to_lower_copy(b.path.filename().string());
 
     // Lexicographical sort if paths are the same length
     if (aName.size() == bName.size()) {
@@ -35,9 +36,10 @@ bool SliceImage::operator<(const SliceImage& b) const
 bool SliceImage::analyze()
 {
     // return if the path is wrong or if this isn't a regular file
-    if (!(boost::filesystem::exists(path)) ||
-        !(boost::filesystem::is_regular_file(path)))
+    if (!(volcart::filesystem::exists(path)) ||
+        !(volcart::filesystem::is_regular_file(path))) {
         return false;
+    }
 
     // Set needsConvert_ if it's not a tif
     needsConvert_ = !io::FileExtensionFilter(path, {"tif", "tiff"});

@@ -6,9 +6,7 @@
 
 #include <opencv2/core.hpp>
 
-namespace volcart
-{
-namespace testing
+namespace volcart::testing
 {
 
 /**
@@ -36,5 +34,4 @@ bool CvMatEqual(const cv::Mat& a, const cv::Mat& b)
         a.template begin<T>(), a.template end<T>(), b.template begin<T>());
 }
 
-}  // namespace testing
-}  // namespace volcart
+}  // namespace volcart::testing

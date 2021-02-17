@@ -1,17 +1,17 @@
 #include <iostream>
 
-#include <boost/filesystem.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
+#include "vc/core/filesystem.hpp"
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/types/PerPixelMap.hpp"
 #include "vc/core/types/Texture.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 
 using namespace volcart;
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 
 ITKPoint Lookup2Dto3D(int y, int x, volcart::PerPixelMap& map);
 

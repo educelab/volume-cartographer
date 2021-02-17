@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include <boost/filesystem.hpp>
+#include "vc/core/filesystem.hpp"
 
 namespace volcart
 {
@@ -20,7 +20,7 @@ using ExtensionList = std::vector<std::string>;
  * insensitive.
  */
 inline bool FileExtensionFilter(
-    const boost::filesystem::path& path, const ExtensionList& exts)
+    const volcart::filesystem::path& path, const ExtensionList& exts)
 {
     std::string regexExpression = ".*\\.(";
     size_t count = 0;

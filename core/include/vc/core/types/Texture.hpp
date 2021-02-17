@@ -2,9 +2,9 @@
 
 /** @file */
 
-#include <boost/filesystem/path.hpp>
 #include <opencv2/core.hpp>
 
+#include "vc/core/filesystem.hpp"
 #include "vc/core/types/Metadata.hpp"
 #include "vc/core/types/PerPixelMap.hpp"
 #include "vc/core/types/UVMap.hpp"
@@ -35,7 +35,7 @@ public:
     Texture();
 
     /** @brief Open a Texture folder from disk */
-    explicit Texture(boost::filesystem::path path);
+    explicit Texture(volcart::filesystem::path path);
     /**@}*/
 
     /**@{*/
@@ -117,7 +117,7 @@ private:
     /** Texture metadata */
     volcart::Metadata metadata_;
     /** Location for the Texture on disk */
-    boost::filesystem::path path_;
+    volcart::filesystem::path path_;
     /** Width of the Texture image(s) */
     int width_;
     /** Height of the Texture image(s) */

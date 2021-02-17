@@ -1,12 +1,10 @@
-#include <boost/filesystem.hpp>
-#include <boost/range/iterator_range.hpp>
-
+#include "vc/core/filesystem.hpp"
 #include "vc/core/types/Metadata.hpp"
 #include "vc/core/types/Volume.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/DateTime.hpp"
 
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 namespace vc = volcart;
 
 void volpkgV3ToV4(const fs::path& path);
@@ -115,9 +113,7 @@ void volpkgV4ToV5(const fs::path& path)
     // Add metadata to all of the segmentations
     fs::path seg;
     fs::path segsDir = path / "paths";
-    auto range =
-        boost::make_iterator_range(fs::directory_iterator(segsDir), {});
-    for (const auto& entry : range) {
+    for (const auto& entry : fs::directory_iterator(segsDir)) {
         if (fs::is_directory(entry)) {
             // Get the folder as an fs::path
             seg = entry;
@@ -136,7 +132,7 @@ void volpkgV4ToV5(const fs::path& path)
             }
 
             // Save the new metadata
-            segMeta.save(entry / "meta.json");
+            segMeta.save(seg / "meta.json");
         }
     }
 
@@ -167,15 +163,13 @@ void volpkgV5ToV6(const fs::path& path)
     // Add metadata to all of the volumes
     fs::path vol;
     fs::path volsDir = path / "volumes";
-    auto range =
-        boost::make_iterator_range(fs::directory_iterator(volsDir), {});
-    for (const auto& entry : range) {
+    for (const auto& entry : fs::directory_iterator(volsDir)) {
         if (fs::is_directory(entry)) {
             // Get the folder as an fs::path
             vol = entry;
 
             // Generate basic metadata
-            vc::Metadata volMeta(entry / "meta.json");
+            vc::Metadata volMeta(vol / "meta.json");
             if (!volMeta.hasKey("uuid")) {
                 volMeta.set("uuid", vol.stem().string());
             }

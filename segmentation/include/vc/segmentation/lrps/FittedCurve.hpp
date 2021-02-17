@@ -7,9 +7,7 @@
 #include "vc/segmentation/lrps/Common.hpp"
 #include "vc/segmentation/lrps/Spline.hpp"
 
-namespace volcart
-{
-namespace segmentation
+namespace volcart::segmentation
 {
 /**
  * @class FittedCurve
@@ -83,5 +81,4 @@ public:
     /**@brief Calculate the arc length of the curve  */
     double arclength() const;
 };
-}  // namespace segmentation
-}  // namespace volcart
+}  // namespace volcart::segmentation

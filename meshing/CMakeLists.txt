@@ -1,6 +1,4 @@
 project(libvc_meshing VERSION ${VC_VERSION} LANGUAGES CXX)
-set(module "meshing")
-set(target "vc_${module}")
 
 set(srcs
     src/CalculateNormals.cpp
@@ -28,18 +26,17 @@ if(VC_USE_VCG OR VC_USE_OPTIONAL)
     list(APPEND defs VC_USE_VCGLIB)
 endif()
 
-add_library(${target} ${srcs})
-add_library("${namespace}${module}" ALIAS "${target}")
-target_compile_definitions(${target} PUBLIC ${defs})
-target_include_directories(${target}
+add_library(vc_meshing ${srcs})
+add_library(VC::meshing ALIAS vc_meshing)
+target_compile_definitions(vc_meshing PUBLIC ${defs})
+target_include_directories(vc_meshing
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(${target}
+target_link_libraries(vc_meshing
     PUBLIC
         VC::core
-        Boost::filesystem
         ${public_deps}
     PRIVATE
         ITKTransform
@@ -47,23 +44,24 @@ target_link_libraries(${target}
         vtkFiltersCore
         ${private_deps}
 )
-set_target_properties(${target} PROPERTIES
+target_compile_features(vc_meshing PUBLIC cxx_std_17)
+set_target_properties(vc_meshing PROPERTIES
     VERSION "${PROJECT_VERSION}"
-    EXPORT_NAME "${module}"
+    EXPORT_NAME meshing
 )
 
 if(VC_INSTALL_LIBS)
 install(
-    TARGETS ${target}
+    TARGETS vc_meshing
     EXPORT ${targets_export_name}
     COMPONENT "Libraries"
     ARCHIVE DESTINATION "lib"
     LIBRARY DESTINATION "lib"
     RUNTIME DESTINATION "bin"
-    INCLUDES DESTINATION "${include_install_dir}/${module}"
+    INCLUDES DESTINATION "${include_install_dir}/meshing"
 )
 install(
-    DIRECTORY "${include_install_dir}/${module}"
+    DIRECTORY "${include_install_dir}/meshing"
     DESTINATION "${include_install_dir}"
     COMPONENT "Libraries"
     FILES_MATCHING REGEX ".*\.(h|hpp)$"
@@ -97,7 +95,7 @@ endif()
 # Add a test executable for each src
 foreach(src ${test_srcs})
     get_filename_component(filename ${src} NAME_WE)
-    set(testname ${target}_${filename})
+    set(testname vc_meshing_${filename})
     add_executable(${testname} ${src})
     target_link_libraries(${testname}
         VC::core

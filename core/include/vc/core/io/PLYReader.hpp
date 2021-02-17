@@ -5,14 +5,11 @@
 #include <fstream>
 #include <map>
 
-#include <boost/filesystem/path.hpp>
-
+#include "vc/core/filesystem.hpp"
 #include "vc/core/types/ITKMesh.hpp"
 #include "vc/core/types/SimpleMesh.hpp"
 
-namespace volcart
-{
-namespace io
+namespace volcart::io
 {
 
 /**
@@ -35,7 +32,7 @@ public:
     PLYReader() = default;
 
     /** @brief Constructor with input file path */
-    explicit PLYReader(boost::filesystem::path path)
+    explicit PLYReader(volcart::filesystem::path path)
         : inputPath_{std::move(path)}
     {
     }
@@ -43,7 +40,7 @@ public:
 
     /**@{*/
     /** @brief Set the input file path */
-    void setPath(const boost::filesystem::path& path) { inputPath_ = path; }
+    void setPath(const volcart::filesystem::path& path) { inputPath_ = path; }
 
     /** @brief Get the parsed input as an ITKMesh */
     ITKMesh::Pointer getMesh() { return outMesh_; }
@@ -56,7 +53,7 @@ public:
 
 private:
     /** Input file path */
-    boost::filesystem::path inputPath_;
+    volcart::filesystem::path inputPath_;
     /** Input file stream */
     std::ifstream plyFile_;
     /** Output mesh */
@@ -106,5 +103,4 @@ private:
     /** @brief Fill the temporary vertex list with parsed vertex information */
     void read_points_();
 };
-}  // namespace io
-}  // namespace volcart
+}  // namespace volcart::io

@@ -2,11 +2,11 @@
 #include <iostream>
 #include <regex>
 
-#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 
+#include "vc/core/filesystem.hpp"
 #include "vc/core/io/OBJReader.hpp"
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/types/TexturedMesh.hpp"
@@ -14,10 +14,9 @@
 #include "vc/texturing/AlignmentMarkerGenerator.hpp"
 
 namespace po = boost::program_options;
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 namespace vc = volcart;
 namespace vct = volcart::texturing;
-
 
 vct::AlignmentMarkerGenerator::LineSegment ParseLineSegString(std::string s);
 
@@ -172,7 +171,8 @@ vct::AlignmentMarkerGenerator::LineSegment ParseLineSegString(std::string s)
     }
 
     // Convert to line segment
-    return {{components[0], components[1], components[2]},
-            {components[3], components[4]},
-            components[5]};
+    return {
+        {components[0], components[1], components[2]},
+        {components[3], components[4]},
+        components[5]};
 }

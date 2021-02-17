@@ -7,9 +7,7 @@
 #include "vc/core/types/VolumetricMask.hpp"
 #include "vc/texturing/TexturingAlgorithm.hpp"
 
-namespace volcart
-{
-namespace texturing
+namespace volcart::texturing
 {
 
 /**
@@ -74,5 +72,4 @@ private:
     /** Normalize output */
     bool normalize_{true};
 };
-}  // namespace texturing
-}  // namespace volcart
+}  // namespace volcart::texturing

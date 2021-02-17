@@ -3,9 +3,7 @@
 #include "vc/meshing/ScaleMesh.hpp"
 #include "vc/meshing/DeepCopy.hpp"
 
-namespace volcart
-{
-namespace meshing
+namespace volcart::meshing
 {
 
 void ScaleMesh(
@@ -24,5 +22,4 @@ void ScaleMesh(
         v->Value()[2] *= scaleFactor;
     }
 }
-}  // namespace meshing
-}  // namespace volcart
+}  // namespace volcart::meshing

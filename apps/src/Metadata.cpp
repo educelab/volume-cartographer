@@ -3,14 +3,14 @@
 #include <string>
 #include <vector>
 
-#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
+#include "vc/core/filesystem.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/types/VolumePkgVersion.hpp"
 
 namespace po = boost::program_options;
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 namespace vc = volcart;
 
 int main(int argc, char* argv[])

@@ -4,9 +4,7 @@
 
 #include "vc/texturing/FlatteningAlgorithm.hpp"
 
-namespace volcart
-{
-namespace texturing
+namespace volcart::texturing
 {
 /**
  * @brief Computes a 2D parameterization of a triangular mesh using
@@ -36,5 +34,4 @@ public:
     ITKMesh::Pointer compute() override;
 };
 
-}  // namespace texturing
-}  // namespace volcart
+}  // namespace volcart::texturing

@@ -1,13 +1,12 @@
-#include <boost/filesystem.hpp>
-
 #include "vc/app_support/ProgressIndicator.hpp"
+#include "vc/core/filesystem.hpp"
 #include "vc/core/io/OBJReader.hpp"
 #include "vc/core/types/PerPixelMap.hpp"
 #include "vc/texturing/AngleBasedFlattening.hpp"
 #include "vc/texturing/PPMGenerator.hpp"
 
 namespace vc = volcart;
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 
 int main(int argc, char* argv[])
 {

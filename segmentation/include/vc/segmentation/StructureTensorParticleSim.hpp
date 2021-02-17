@@ -8,9 +8,7 @@
 #include "vc/segmentation/stps/Particle.hpp"
 #include "vc/segmentation/stps/ParticleChain.hpp"
 
-namespace volcart
-{
-namespace segmentation
+namespace volcart::segmentation
 {
 /**
  * @class StructureTensorParticleSim
@@ -91,5 +89,4 @@ private:
     /** Return whether or not any point in the chain is out of bounds */
     bool chain_stopped_();
 };
-}  // namespace segmentation
-}  // namespace volcart
+}  // namespace volcart::segmentation

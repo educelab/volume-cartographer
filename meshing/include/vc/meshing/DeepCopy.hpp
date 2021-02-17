@@ -4,9 +4,7 @@
 
 #include "vc/core/types/ITKMesh.hpp"
 
-namespace volcart
-{
-namespace meshing
+namespace volcart::meshing
 {
 /**
  * @brief Create exact copy of ITKMesh.
@@ -29,5 +27,4 @@ void DeepCopy(
     const ITKMesh::Pointer& output,
     bool copyVertices = true,
     bool copyFaces = true);
-}  // namespace meshing
-}  // namespace volcart
+}  // namespace volcart::meshing

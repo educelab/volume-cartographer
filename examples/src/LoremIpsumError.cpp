@@ -1,8 +1,9 @@
 #include <iostream>
-#include <boost/filesystem.hpp>
+
+#include "vc/core/filesystem.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 
 int main(int /*argc*/, char** argv)
 {

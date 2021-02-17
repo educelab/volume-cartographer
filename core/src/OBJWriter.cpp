@@ -4,37 +4,21 @@
 
 #include <opencv2/imgcodecs.hpp>
 
+#include "vc/core/types/Exceptions.hpp"
 #include "vc/core/util/Logging.hpp"
 
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 
 static constexpr int UNSET_VALUE = -1;
 
 using namespace volcart::io;
 
-///// Validation /////
-// Make sure that all required parameters have been set and are okay
-bool OBJWriter::validate()
-{
-    // Make sure the output path has a file extension for the OBJ
-    bool hasExt =
-        (outputPath_.extension() == ".OBJ" ||
-         outputPath_.extension() == ".obj");
-    // Make sure the output directory exists
-    bool pathExists =
-        fs::is_directory(fs::canonical(outputPath_.parent_path()));
-    // Check that the mesh exists and has points
-    bool meshHasPoints = (mesh_.IsNotNull() && mesh_->GetNumberOfPoints() != 0);
-
-    return (hasExt && pathExists && meshHasPoints);
-}
-
 ///// Output Methods /////
 // Write everything (OBJ, MTL, and PNG) to disk
 int OBJWriter::write()
 {
-    if (!validate()) {
-        return EXIT_FAILURE;
+    if (not mesh_ or mesh_->GetNumberOfPoints() == 0) {
+        throw volcart::IOException("Mesh is empty or null");
     }
 
     // Write the OBJ

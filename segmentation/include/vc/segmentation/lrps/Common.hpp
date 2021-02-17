@@ -61,9 +61,7 @@ std::ostream& operator<<(std::ostream& s, std::vector<T> v)
     return s << v.back() << "]";
 }
 
-namespace volcart
-{
-namespace segmentation
+namespace volcart::segmentation
 {
 
 /**
@@ -207,5 +205,4 @@ std::vector<double> SquareDiff(
 double SumSquareDiff(
     const std::vector<double>& v1, const std::vector<double>& v2);
 //@}
-}  // namespace segmentation
-}  // namespace volcart
+}  // namespace volcart::segmentation

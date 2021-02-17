@@ -10,12 +10,11 @@
 #include <string>
 #include <vector>
 
-#include <boost/algorithm/string.hpp>
-#include <boost/filesystem/path.hpp>
-
+#include "vc/core/filesystem.hpp"
 #include "vc/core/types/Exceptions.hpp"
 #include "vc/core/types/OrderedPointSet.hpp"
 #include "vc/core/types/PointSet.hpp"
+#include "vc/core/util/String.hpp"
 
 namespace volcart
 {
@@ -63,7 +62,7 @@ public:
      * parameter T.
      */
     static OrderedPointSet<T> ReadOrderedPointSet(
-        const boost::filesystem::path& path, IOMode mode = IOMode::BINARY)
+        const volcart::filesystem::path& path, IOMode mode = IOMode::BINARY)
     {
         switch (mode) {
             case IOMode::BINARY:
@@ -78,7 +77,7 @@ public:
      * @copydetails PointSetIO::ReadOrderedPointSet()
      */
     static PointSet<T> ReadPointSet(
-        const boost::filesystem::path& path, IOMode mode = IOMode::BINARY)
+        const volcart::filesystem::path& path, IOMode mode = IOMode::BINARY)
     {
         switch (mode) {
             case IOMode::BINARY:
@@ -92,7 +91,7 @@ public:
     /**@{*/
     /** @brief Write an OrderedPointSet to disk */
     static void WriteOrderedPointSet(
-        const boost::filesystem::path& path,
+        const volcart::filesystem::path& path,
         const OrderedPointSet<T>& ps,
         IOMode mode = IOMode::BINARY)
     {
@@ -106,7 +105,7 @@ public:
 
     /** @brief Write a PointSet to disk */
     static void WritePointSet(
-        const boost::filesystem::path& path,
+        const volcart::filesystem::path& path,
         const PointSet<T>& ps,
         IOMode mode = IOMode::BINARY)
     {
@@ -200,11 +199,9 @@ public:
         std::vector<std::string> strs;
 
         while (std::getline(infile, line)) {
-            boost::trim(line);
-            boost::split(strs, line, boost::is_any_of(":"));
-            std::for_each(std::begin(strs), std::end(strs), [](auto& t) {
-                boost::trim(t);
-            });
+            trim(line);
+            strs = split(line, ':');
+            std::for_each(std::begin(strs), std::end(strs), &trim);
 
             // Comments: look like:
             // # This is a comment
@@ -241,7 +238,7 @@ public:
 
             // Ordering
             else if (std::regex_match(strs[0], ordering)) {
-                boost::algorithm::to_lower(strs[1]);
+                to_lower(strs[1]);
                 if (strs[1] == "true") {
                     h.ordered = true;
                 } else if (strs[1] == "false") {
@@ -336,7 +333,7 @@ public:
 private:
     /**@{*/
     /** @brief Read an ASCII PointSet */
-    static PointSet<T> ReadPointSetAscii(const boost::filesystem::path& path)
+    static PointSet<T> ReadPointSetAscii(const volcart::filesystem::path& path)
     {
         std::ifstream infile{path.string()};
         if (!infile.is_open()) {
@@ -361,7 +358,7 @@ private:
 
     /** @brief Read an ASCII OrderedPointSet */
     static OrderedPointSet<T> ReadOrderedPointSetAscii(
-        const boost::filesystem::path& path)
+        const volcart::filesystem::path& path)
     {
         std::ifstream infile{path.string()};
         if (!infile.is_open()) {
@@ -390,7 +387,7 @@ private:
     }
 
     /** @brief Read a binary PointSet */
-    static PointSet<T> ReadPointSetBinary(const boost::filesystem::path& path)
+    static PointSet<T> ReadPointSetBinary(const volcart::filesystem::path& path)
     {
         std::ifstream infile{path.string(), std::ios::binary};
         if (!infile.is_open()) {
@@ -423,7 +420,7 @@ private:
 
     /** @brief Read a binary OrderedPointSet */
     static OrderedPointSet<T> ReadOrderedPointSetBinary(
-        const boost::filesystem::path& path)
+        const volcart::filesystem::path& path)
     {
         std::ifstream infile{path.string(), std::ios::binary};
         if (!infile.is_open()) {
@@ -466,7 +463,7 @@ private:
     /**@{*/
     /** @brief Write an ASCII PointSet */
     static void WritePointSetAscii(
-        const boost::filesystem::path& path, PointSet<T> ps)
+        const volcart::filesystem::path& path, PointSet<T> ps)
     {
         std::ofstream outfile{path.string()};
         if (!outfile.is_open()) {
@@ -486,7 +483,7 @@ private:
 
     /** @brief Write a binary PointSet */
     static void WritePointSetBinary(
-        const boost::filesystem::path& path, PointSet<T> ps)
+        const volcart::filesystem::path& path, PointSet<T> ps)
     {
         std::ofstream outfile{path.string(), std::ios::binary};
         if (!outfile.is_open()) {
@@ -505,7 +502,7 @@ private:
 
     /** @brief Write an ASCII OrderedPointSet */
     static void WriteOrderedPointSetAscii(
-        const boost::filesystem::path& path, OrderedPointSet<T> ps)
+        const volcart::filesystem::path& path, OrderedPointSet<T> ps)
     {
         std::ofstream outfile{path.string()};
         if (!outfile.is_open()) {
@@ -525,7 +522,7 @@ private:
 
     /** @brief Write a binary OrderedPointSet */
     static void WriteOrderedPointSetBinary(
-        const boost::filesystem::path& path, OrderedPointSet<T> ps)
+        const volcart::filesystem::path& path, OrderedPointSet<T> ps)
     {
         std::ofstream outfile{path.string(), std::ios::binary};
         if (!outfile.is_open()) {

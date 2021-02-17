@@ -10,9 +10,7 @@
 #include <cassert>
 #include <vector>
 
-namespace volcart
-{
-namespace segmentation
+namespace volcart::segmentation
 {
 
 // To be used later on when this is more parameterized
@@ -289,5 +287,4 @@ std::vector<T> D2(const std::vector<T>& vs, int hstep = 1)
     }
     return dvs;
 }
-}  // namespace segmentation
-}  // namespace volcart
+}  // namespace volcart::segmentation

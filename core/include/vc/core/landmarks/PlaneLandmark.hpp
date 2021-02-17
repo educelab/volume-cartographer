@@ -4,9 +4,7 @@
 
 #include "vc/core/landmarks/VolumeLandmark.hpp"
 
-namespace volcart
-{
-namespace landmarks
+namespace volcart::landmarks
 {
 /**
  * @brief Boundless plane volume landmark
@@ -72,5 +70,4 @@ private:
     /** Update the metadata structure */
     void update_meta_();
 };
-}  // namespace landmarks
-}  // namespace volcart
+}  // namespace volcart::landmarks

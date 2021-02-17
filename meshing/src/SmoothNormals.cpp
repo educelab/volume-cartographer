@@ -11,9 +11,7 @@
 #include "vc/meshing/DeepCopy.hpp"
 #include "vc/meshing/SmoothNormals.hpp"
 
-namespace volcart
-{
-namespace meshing
+namespace volcart::meshing
 {
 
 ITKMesh::Pointer SmoothNormals(const ITKMesh::Pointer& input, double radius)
@@ -75,5 +73,4 @@ ITKMesh::Pointer SmoothNormals(const ITKMesh::Pointer& input, double radius)
 
     return outputMesh;
 }
-}  // namespace meshing
-}  // namespace volcart
+}  // namespace volcart::meshing

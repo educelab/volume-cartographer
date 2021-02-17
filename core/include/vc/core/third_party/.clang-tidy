@@ -1,0 +1,5 @@
+# Want to disable clang-format for this directory
+# https://stackoverflow.com/a/58379342
+Checks: '-*,misc-definitions-in-headers'
+CheckOptions:
+  - { key: HeaderFileExtensions, value: "null-format" }

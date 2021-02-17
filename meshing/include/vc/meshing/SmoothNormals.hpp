@@ -4,9 +4,7 @@
 
 #include "vc/core/types/ITKMesh.hpp"
 
-namespace volcart
-{
-namespace meshing
+namespace volcart::meshing
 {
 /**
  * @author Abigail Coleman
@@ -23,5 +21,4 @@ namespace meshing
  * @param radius Size of the spherical neighborhood
  */
 ITKMesh::Pointer SmoothNormals(const ITKMesh::Pointer& input, double radius);
-}  // namespace meshing
-}  // namespace volcart
+}  // namespace volcart::meshing

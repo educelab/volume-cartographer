@@ -1,11 +1,11 @@
 # vc_area
 add_executable(vc_area src/SurfArea.cpp)
-target_link_libraries(vc_area VC::core VC::meshing Boost::filesystem vtkFiltersCore)
+target_link_libraries(vc_area VC::core VC::meshing ${VC_FS_LIB} vtkFiltersCore)
 list(APPEND utils_install_list vc_area)
 
 # vc_invertcloud
 add_executable(vc_invertcloud src/InvertCloud.cpp)
-target_link_libraries(vc_invertcloud VC::core Boost::filesystem)
+target_link_libraries(vc_invertcloud VC::core ${VC_FS_LIB})
 
 # vc_mappingExtractor
 add_executable(vc_mappingExtractor src/MappingExtractor.cpp)
@@ -22,24 +22,24 @@ list(APPEND utils_install_list vc_volpkg_upgrade)
 
 # vc_flip_mesh
 add_executable(vc_flip_mesh src/FlipMesh.cpp)
-target_link_libraries(vc_flip_mesh VC::core Boost::filesystem Boost::program_options)
+target_link_libraries(vc_flip_mesh VC::core ${VC_FS_LIB} Boost::program_options)
 
 # vc_flip_uv
 add_executable(vc_flip_uv src/FlipUV.cpp)
-target_link_libraries(vc_flip_uv VC::core Boost::filesystem Boost::program_options)
+target_link_libraries(vc_flip_uv VC::core ${VC_FS_LIB} Boost::program_options)
 
 # vc_retexture_mesh
 add_executable(vc_retexture_mesh src/RetextureMesh.cpp)
-target_link_libraries(vc_retexture_mesh VC::core Boost::filesystem Boost::program_options)
+target_link_libraries(vc_retexture_mesh VC::core ${VC_FS_LIB} Boost::program_options)
 list(APPEND utils_install_list vc_retexture_mesh)
 
 # vc_ppm_to_pointset
 add_executable(vc_ppm_to_pointset src/PPMToPointSet.cpp)
-target_link_libraries(vc_ppm_to_pointset VC::core Boost::filesystem Boost::program_options)
+target_link_libraries(vc_ppm_to_pointset VC::core ${VC_FS_LIB} Boost::program_options)
 
 # vc_canny_segment
 add_executable(vc_canny_segment src/CannySegment.cpp)
-target_link_libraries(vc_canny_segment VC::app_support VC::core Boost::filesystem Boost::program_options opencv_core)
+target_link_libraries(vc_canny_segment VC::app_support VC::core ${VC_FS_LIB} Boost::program_options opencv_core)
 list(APPEND utils_install_list vc_canny_segment)
 
 # vc_uv2mesh
@@ -47,7 +47,7 @@ add_executable(vc_uv2mesh src/UVMaptoFlatMesh.cpp)
 target_link_libraries(vc_uv2mesh
     VC::core
     VC::meshing
-    Boost::filesystem
+    ${VC_FS_LIB}
     Boost::program_options
 )
 
@@ -56,7 +56,7 @@ add_executable(vc_volume_bump src/VolumeBump.cpp)
 target_link_libraries(vc_volume_bump
     VC::app_support
     VC::core
-    Boost::filesystem
+    ${VC_FS_LIB}
     Boost::program_options
     opencv_core
     opencv_imgcodecs
@@ -66,7 +66,7 @@ target_link_libraries(vc_volume_bump
 add_executable(vc_transform_mesh src/TransformMesh.cpp)
 target_link_libraries(vc_transform_mesh
     VC::core
-    Boost::filesystem
+    ${VC_FS_LIB}
     Boost::program_options
     ITKIOTransformBase
     ITKIOTransformInsightLegacy
@@ -78,7 +78,7 @@ add_executable(vc_add_alignment_markers src/AlignmentMarkers.cpp)
 target_link_libraries(vc_add_alignment_markers
     VC::core
     VC::texturing
-    Boost::filesystem
+    ${VC_FS_LIB}
     Boost::program_options
 )
 
@@ -88,7 +88,7 @@ target_link_libraries(vc_convert_pointset
     VC::app_support
     VC::core
     VC::texturing
-    Boost::filesystem
+    ${VC_FS_LIB}
     Boost::program_options
 )
 list(APPEND utils_install_list vc_convert_pointset)
@@ -97,7 +97,7 @@ list(APPEND utils_install_list vc_convert_pointset)
 add_executable(vc_merge_pointset src/MergePointSets.cpp)
 target_link_libraries(vc_merge_pointset
     VC::core
-    Boost::filesystem
+    ${VC_FS_LIB}
     Boost::program_options
 )
 list(APPEND utils_install_list vc_merge_pointset)
@@ -109,7 +109,7 @@ target_link_libraries(vc_convert_mask
     VC::app_support
     opencv_core
     opencv_imgcodecs
-    Boost::filesystem
+    ${VC_FS_LIB}
     Boost::program_options
 )
 
@@ -120,7 +120,7 @@ target_link_libraries(vc_seg_to_pointmask
     VC::segmentation
     VC::app_support
     opencv_core
-    Boost::filesystem
+    ${VC_FS_LIB}
     Boost::program_options
 )
 
@@ -129,7 +129,7 @@ add_executable(vc_visualize_ppm src/VisualizePPM.cpp)
 target_link_libraries(vc_visualize_ppm
     VC::core
     VC::app_support
-    Boost::filesystem
+    ${VC_FS_LIB}
     Boost::program_options
 )
 
@@ -140,7 +140,7 @@ target_link_libraries(vc_image_stats
     VC::app_support
     opencv_core
     opencv_imgcodecs
-    Boost::filesystem
+    ${VC_FS_LIB}
     Boost::program_options
 )
 
@@ -149,7 +149,7 @@ add_executable(vc_flatten_mesh src/FlattenMesh.cpp)
 target_link_libraries(vc_flatten_mesh
     VC::core
     VC::texturing
-    Boost::filesystem
+    ${VC_FS_LIB}
     Boost::program_options
 )
 list(APPEND utils_install_list vc_flatten_mesh)

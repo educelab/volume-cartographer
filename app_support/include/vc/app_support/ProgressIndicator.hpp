@@ -184,7 +184,9 @@ public:
     {
         auto begin = std::begin(container_);
         auto end = std::end(container_);
-        return iterator{begin, std::distance(begin, end), label_, useColors_};
+        return iterator{
+            begin, static_cast<size_t>(std::distance(begin, end)), label_,
+            useColors_};
     }
 
     /**

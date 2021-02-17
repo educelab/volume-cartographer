@@ -1,12 +1,11 @@
 // projection.cpp
 // Seth Parker 10/2015
 // Project the mesh onto a volume in order to check the quality of segmentation
+#include <iomanip>
 #include <iostream>
 #include <limits>
 #include <map>
 
-#include <boost/filesystem.hpp>
-#include <boost/format.hpp>
 #include <boost/program_options.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -20,6 +19,7 @@
 #include <vtkStripper.h>
 
 #include "vc/app_support/ProgressIndicator.hpp"
+#include "vc/core/filesystem.hpp"
 #include "vc/core/io/OBJReader.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/Iteration.hpp"
@@ -37,7 +37,7 @@ static const cv::Scalar RED{0, 0, 255};
 enum class Color { White = 0, Red, Green, Blue };
 
 namespace po = boost::program_options;
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 namespace vc = volcart;
 
 int main(int argc, char* argv[])

@@ -8,7 +8,7 @@
 #include "vc/core/util/Logging.hpp"
 
 using namespace volcart;
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 
 using PPM = PerPixelMap;
 

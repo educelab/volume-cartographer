@@ -2,11 +2,11 @@
 
 /** @file */
 
-#include <boost/filesystem.hpp>
 #include <opencv2/core.hpp>
 
-#include "OrderedPointSet.hpp"
-#include "UVMap.hpp"
+#include "vc/core/filesystem.hpp"
+#include "vc/core/types/OrderedPointSet.hpp"
+#include "vc/core/types/UVMap.hpp"
 
 namespace volcart
 {
@@ -205,9 +205,9 @@ public:
     /**@{*/
     /** @brief Write a PerPixelMap to disk */
     static void WritePPM(
-        const boost::filesystem::path& path, const PerPixelMap& map);
+        const volcart::filesystem::path& path, const PerPixelMap& map);
     /** @brief Read a PerPixelMap from disk */
-    static PerPixelMap ReadPPM(const boost::filesystem::path& path);
+    static PerPixelMap ReadPPM(const volcart::filesystem::path& path);
     /**@}*/
 
 private:

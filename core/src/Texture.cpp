@@ -5,7 +5,7 @@
 #include "vc/core/util/DateTime.hpp"
 #include "vc/core/util/Logging.hpp"
 
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 using namespace volcart;
 
 // Constructor

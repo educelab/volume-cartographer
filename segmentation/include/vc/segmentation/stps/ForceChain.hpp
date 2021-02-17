@@ -6,9 +6,7 @@
 
 #include <opencv2/core.hpp>
 
-namespace volcart
-{
-namespace segmentation
+namespace volcart::segmentation
 {
 /** Force type */
 using Force = cv::Vec3d;
@@ -100,5 +98,4 @@ ForceChain operator+(ForceChain lhs, const ForceChain& rhs);
 ForceChain operator*(ForceChain lhs, const double& rhs);
 /** @copydoc operator*(ForceChain, const double&) */
 ForceChain operator*(const double& rhs, ForceChain lhs);
-}  // namespace segmentation
-}  // namespace volcart
+}  // namespace volcart::segmentation

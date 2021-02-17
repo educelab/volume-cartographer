@@ -8,9 +8,7 @@
 #include "vc/core/types/VolumetricMask.hpp"
 #include "vc/segmentation/RegionGrowingSegmentationAlgorithmBaseClass.hpp"
 
-namespace volcart
-{
-namespace segmentation
+namespace volcart::segmentation
 {
 /**
  * @brief ThinnedFloodFillSegmentation
@@ -135,5 +133,4 @@ private:
     /** Mask */
     VoxelMask volMask_;
 };
-}  // namespace segmentation
-}  // namespace volcart
+}  // namespace volcart::segmentation

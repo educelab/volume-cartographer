@@ -4,9 +4,7 @@
 
 #include <opencv2/core.hpp>
 
-namespace volcart
-{
-namespace segmentation
+namespace volcart::segmentation
 {
 /**
  * @class Particle
@@ -64,5 +62,4 @@ private:
 Particle operator+(Particle lhs, const cv::Vec3d& rhs);
 /** Free function operator for Particle and scale factor multiplication */
 Particle operator*(Particle lhs, const double& rhs);
-}  // namespace segmentation
-}  // namespace volcart
+}  // namespace volcart::segmentation

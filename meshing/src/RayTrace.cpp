@@ -18,9 +18,7 @@
 #define OUT_X 2000
 #define D_THETA (PI_X2 / OUT_X)
 
-namespace volcart
-{
-namespace meshing
+namespace volcart::meshing
 {
 
 // returns a vector of vectors that holds the points of intersections and the
@@ -137,7 +135,6 @@ std::vector<cv::Vec6f> RayTrace(
     std::cout << std::endl;
     return intersections;
 }
-}  // namespace meshing
-}  // namespace volcart
+}  // namespace volcart::meshing
 
 #pragma clang diagnostic pop

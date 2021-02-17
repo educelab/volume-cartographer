@@ -4,11 +4,11 @@
 #include <memory>
 #include <sstream>
 
-#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <opencv2/imgcodecs.hpp>
 
 #include "vc/app_support/ProgressIndicator.hpp"
+#include "vc/core/filesystem.hpp"
 #include "vc/core/io/PointSetIO.hpp"
 #include "vc/core/neighborhood/CuboidGenerator.hpp"
 #include "vc/core/neighborhood/LineGenerator.hpp"
@@ -25,7 +25,7 @@
 #include "vc/texturing/ScaleMarkerGenerator.hpp"
 #include "vc/texturing/ThicknessTexture.hpp"
 
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
 namespace vct = volcart::texturing;

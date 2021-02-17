@@ -7,9 +7,7 @@
 #include "vc/core/types/OrderedPointSet.hpp"
 #include "vc/core/types/Volume.hpp"
 
-namespace volcart
-{
-namespace segmentation
+namespace volcart::segmentation
 {
 /**
  * @class ChainSegmentationAlgorithmBaseClass
@@ -105,5 +103,4 @@ protected:
     /** Computation status */
     Status status_{Status::Success};
 };
-}  // namespace segmentation
-}  // namespace volcart
+}  // namespace volcart::segmentation

@@ -3,9 +3,7 @@
 
 #include "vc/meshing/ITK2VTK.hpp"
 
-namespace volcart
-{
-namespace meshing
+namespace volcart::meshing
 {
 
 ///// ITK Mesh -> VTK Polydata /////
@@ -151,5 +149,4 @@ ITKQE2ITK::ITKQE2ITK(QuadEdgeMesh::Pointer input, ITKMesh::Pointer output)
         output->SetCell(id, cell);
     }
 }
-}  // namespace meshing
-}  // namespace volcart
+}  // namespace volcart::meshing

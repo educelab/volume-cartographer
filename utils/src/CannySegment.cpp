@@ -2,13 +2,13 @@
 #include <locale>
 #include <vector>
 
-#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
 #include "vc/app_support/ProgressIndicator.hpp"
+#include "vc/core/filesystem.hpp"
 #include "vc/core/io/PLYWriter.hpp"
 #include "vc/core/types/ITKMesh.hpp"
 #include "vc/core/types/Volume.hpp"
@@ -16,7 +16,7 @@
 #include "vc/core/util/ImageConversion.hpp"
 #include "vc/core/util/Iteration.hpp"
 
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
 
@@ -181,7 +181,9 @@ int main(int argc, char* argv[])
                 const auto& x = pt.second;
                 const auto& y = pt.first;
                 if (processed.at<uint8_t>(y, x) > 0) {
-                    middle = {x, y, z};
+                    middle = {
+                        static_cast<double>(x), static_cast<double>(y),
+                        static_cast<double>(z)};
                     mesh->SetPoint(mesh->GetNumberOfPoints(), middle.val);
                 }
             }
@@ -226,14 +228,18 @@ int main(int argc, char* argv[])
                 }
 
                 if (!haveFirst && processed.at<uint8_t>(y, x) != 0) {
-                    first = {x, y, z};
+                    first = {
+                        static_cast<double>(x), static_cast<double>(y),
+                        static_cast<double>(z)};
                     last = first;
                     haveFirst = true;
                     continue;
                 }
 
                 if (midpoint && haveFirst && processed.at<uint8_t>(y, x) != 0) {
-                    last = {x, y, z};
+                    last = {
+                        static_cast<double>(x), static_cast<double>(y),
+                        static_cast<double>(z)};
                 }
 
                 if (!midpoint && haveFirst) {

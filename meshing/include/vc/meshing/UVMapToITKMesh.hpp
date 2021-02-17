@@ -5,9 +5,7 @@
 #include "vc/core/types/ITKMesh.hpp"
 #include "vc/core/types/UVMap.hpp"
 
-namespace volcart
-{
-namespace meshing
+namespace volcart::meshing
 {
 
 /**
@@ -46,5 +44,4 @@ private:
     ITKMesh::Pointer outputMesh_;
 };
 
-}  // namespace meshing
-}  // namespace volcart
+}  // namespace volcart::meshing

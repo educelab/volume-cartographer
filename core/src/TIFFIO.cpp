@@ -14,7 +14,7 @@ namespace lt
 }
 
 namespace tio = volcart::tiffio;
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 
 // Write a TIFF to a file. This implementation heavily borrows from how OpenCV's
 // TIFFEncoder writes to the TIFF

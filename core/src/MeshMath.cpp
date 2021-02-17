@@ -1,9 +1,7 @@
 #include "vc/core/util/MeshMath.hpp"
 
 #include "vc/core/util/Logging.hpp"
-namespace volcart
-{
-namespace meshmath
+namespace volcart::meshmath
 {
 
 double SurfaceArea(const ITKMesh::Pointer& input)
@@ -48,5 +46,4 @@ double SurfaceArea(const ITKMesh::Pointer& input)
 
     return surfaceArea;
 }
-}  // namespace meshmath
-}  // namespace volcart
+}  // namespace volcart::meshmath

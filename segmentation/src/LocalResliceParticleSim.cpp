@@ -1,15 +1,15 @@
+#include <deque>
 #include <iomanip>
 #include <limits>
 #include <list>
 #include <tuple>
 
-#include <boost/circular_buffer.hpp>
-#include <boost/filesystem.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
+#include "vc/core/filesystem.hpp"
 #include "vc/core/math/StructureTensor.hpp"
 #include "vc/segmentation/LocalResliceParticleSim.hpp"
 #include "vc/segmentation/lrps/Common.hpp"
@@ -19,7 +19,7 @@
 #include "vc/segmentation/lrps/IntensityMap.hpp"
 
 using namespace volcart::segmentation;
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 using std::begin;
 using std::end;
 
@@ -165,7 +165,7 @@ LocalResliceSegmentation::PointSet LocalResliceSegmentation::compute()
         // Derivative of energy measure - keeps the previous three measurements
         // and will evaluate the central difference (when there's enough
         // measurements)
-        boost::circular_buffer<double> dEnergy(3);
+        std::deque<double> dEnergy;
         dEnergy.push_back(minEnergy);
 
         /////////////////////////////////////////////////////////
@@ -181,6 +181,9 @@ LocalResliceSegmentation::PointSet LocalResliceSegmentation::compute()
 
             // Break if our energy gradient is leveling off
             dEnergy.push_back(minEnergy);
+            if (dEnergy.size() > 3) {
+                dEnergy.pop_front();
+            }
             if (dEnergy.size() == 3 &&
                 0.5 * (dEnergy[0] - dEnergy[2]) < DEFAULT_MIN_ENERGY_GRADIENT) {
                 break;

@@ -51,8 +51,7 @@ public:
     }
 
     const T operator[](int i) const { return val[i]; }
-    T& operator[](int i) { return val[i]; }  // left value,
-                                             // http://stackoverflow.com/questions/6692982/how-to-assign-value-to-left-side-using-overload-operator
+    T& operator[](int i) { return val[i]; }
     void operator+=(const Vec2<T>& nRHS)
     {
         val[0] += nRHS[0];

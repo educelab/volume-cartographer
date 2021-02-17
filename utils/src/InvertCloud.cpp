@@ -4,13 +4,13 @@
 #include <fstream>
 #include <iostream>
 
-#include <boost/filesystem/path.hpp>
 #include <opencv2/core.hpp>
 
+#include "vc/core/filesystem.hpp"
 #include "vc/core/io/PointSetIO.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 namespace vc = volcart;
 
 int main(int argc, char** argv)

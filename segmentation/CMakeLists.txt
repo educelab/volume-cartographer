@@ -1,6 +1,4 @@
 project(libvc_segmentation VERSION ${VC_VERSION} LANGUAGES CXX)
-set(module "segmentation")
-set(target "vc_${module}")
 
 set(srcs
     src/Common.cpp
@@ -22,38 +20,41 @@ set(deps
     Eigen3::Eigen
 )
 
-add_library(${target} ${srcs})
-add_library("${namespace}${module}" ALIAS "${target}")
-target_include_directories(${target}
+add_library(vc_segmentation ${srcs})
+add_library(VC::segmentation ALIAS "vc_segmentation")
+target_include_directories(vc_segmentation
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
-target_compile_options(${target}
+target_compile_options(vc_segmentation
     PUBLIC
         -Wno-c++11-narrowing
 )
-target_link_libraries(${target}
+target_link_libraries(vc_segmentation
     PUBLIC
         ${deps}
+    PRIVATE
+        ${VC_FS_LIB}
 )
-set_target_properties(${target} PROPERTIES
+target_compile_features(vc_segmentation PUBLIC cxx_std_17)
+set_target_properties(vc_segmentation PROPERTIES
     VERSION "${PROJECT_VERSION}"
-    EXPORT_NAME "${module}"
+    EXPORT_NAME segmentation
 )
 
 if(VC_INSTALL_LIBS)
 install(
-    TARGETS ${target}
+    TARGETS vc_segmentation
     EXPORT ${targets_export_name}
     COMPONENT "Libraries"
     ARCHIVE DESTINATION "lib"
     LIBRARY DESTINATION "lib"
     RUNTIME DESTINATION "bin"
-    INCLUDES DESTINATION "${include_install_dir}/${module}"
+    INCLUDES DESTINATION "${include_install_dir}/segmentation"
 )
 install(
-    DIRECTORY "${include_install_dir}/${module}"
+    DIRECTORY "${include_install_dir}/segmentation"
     DESTINATION "${include_install_dir}"
     COMPONENT "Libraries"
     FILES_MATCHING REGEX ".*\.(h|hpp)$"

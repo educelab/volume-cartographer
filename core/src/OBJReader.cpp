@@ -3,16 +3,16 @@
 #include <regex>
 #include <string>
 
-#include <boost/algorithm/string.hpp>
 #include <opencv2/imgcodecs.hpp>
 
 #include "vc/core/types/Exceptions.hpp"
 #include "vc/core/util/Logging.hpp"
+#include "vc/core/util/String.hpp"
 
 using namespace volcart;
 using namespace volcart::io;
 
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 
 // Constant for validating face values
 constexpr static int NOT_PRESENT = -1;
@@ -59,11 +59,12 @@ void OBJReader::parse_()
     std::vector<std::string> strs;
     while (std::getline(ifs, line)) {
         // Parse the line
-        boost::trim(line);
-        boost::split(strs, line, boost::is_any_of(" "));
-        std::for_each(std::begin(strs), std::end(strs), [](std::string& t) {
-            boost::trim(t);
-        });
+        trim(line);
+        strs = split(line, ' ');
+        std::for_each(std::begin(strs), std::end(strs), &trim);
+        if (strs.empty()) {
+            continue;
+        }
 
         // Handle vertices
         if (std::regex_match(strs[0], vertex)) {
@@ -126,9 +127,9 @@ void OBJReader::parse_face_(const std::vector<std::string>& strs)
     std::vector<std::string> vinfo;
     std::vector<std::string> sub(std::begin(strs) + 1, std::end(strs));
 
-    for (auto s : sub) {
+    for (const auto& s : sub) {
         auto faceType = classify_vertref_(s);
-        boost::split(vinfo, s, boost::is_any_of("/"));
+        vinfo = split(s, '/');
         switch (faceType) {
             case RefType::Vertex:
                 f.emplace_back(std::stoi(vinfo[0]), NOT_PRESENT, NOT_PRESENT);
@@ -139,7 +140,7 @@ void OBJReader::parse_face_(const std::vector<std::string>& strs)
                 break;
             case RefType::VertexWithNormal:
                 f.emplace_back(
-                    std::stoi(vinfo[0]), NOT_PRESENT, std::stoi(vinfo[2]));
+                    std::stoi(vinfo[0]), NOT_PRESENT, std::stoi(vinfo[1]));
                 break;
             case RefType::VertexWithTextureAndNormal:
                 f.emplace_back(
@@ -157,9 +158,7 @@ void OBJReader::parse_face_(const std::vector<std::string>& strs)
 void OBJReader::parse_mtllib_(const std::vector<std::string>& strs)
 {
     // Get mtl path, relative to OBJ directory
-    // Two canonicals because path_ may be relative as well
-    fs::path mtlPath =
-        fs::canonical(fs::canonical(path_.parent_path()) / strs[1]);
+    fs::path mtlPath = path_.parent_path() / strs[1];
 
     // Open the mtl file
     std::ifstream ifs(mtlPath.string());
@@ -174,11 +173,12 @@ void OBJReader::parse_mtllib_(const std::vector<std::string>& strs)
     std::string line;
     std::vector<std::string> mtlstrs;
     while (std::getline(ifs, line)) {
-        boost::trim(line);
-        boost::split(mtlstrs, line, boost::is_any_of(" "));
-        std::for_each(
-            std::begin(mtlstrs), std::end(mtlstrs),
-            [](std::string& t) { boost::trim(t); });
+        trim(line);
+        mtlstrs = split(line, ' ');
+        std::for_each(std::begin(mtlstrs), std::end(mtlstrs), &trim);
+        if (mtlstrs.empty()) {
+            continue;
+        }
 
         // Handle map_Kd
         if (std::regex_match(mtlstrs[0], mapKd)) {

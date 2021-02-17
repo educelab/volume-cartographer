@@ -2,15 +2,15 @@
 #include <regex>
 #include <vector>
 
-#include <boost/algorithm/string.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
+#include "vc/core/filesystem.hpp"
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/types/ITKMesh.hpp"
 #include "vc/core/types/PerPixelMap.hpp"
+#include "vc/core/util/String.hpp"
 
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
 
@@ -118,17 +118,15 @@ ROI ParseROI(const std::string& opt)
     }
 
     // Split the opt string
-    std::vector<std::string> strs;
-    boost::split(strs, opt, boost::is_any_of("x,+"));
-    std::for_each(std::begin(strs), std::end(strs), [](std::string& t) {
-        boost::trim(t);
-    });
+    auto strs = vc::split(opt, 'x', ',', '+');
+    std::for_each(std::begin(strs), std::end(strs), &vc::trim);
 
     if (strs.size() != 4) {
         std::cerr << "Cannot parse ROI: " << opt << std::endl;
         exit(EXIT_FAILURE);
     }
 
-    return {std::stoull(strs[0]), std::stoull(strs[1]), std::stoull(strs[2]),
-            std::stoull(strs[3])};
+    return {
+        std::stoull(strs[0]), std::stoull(strs[1]), std::stoull(strs[2]),
+        std::stoull(strs[3])};
 }

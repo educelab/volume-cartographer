@@ -4,9 +4,7 @@
 
 #include "vc/texturing/TexturingAlgorithm.hpp"
 
-namespace volcart
-{
-namespace texturing
+namespace volcart::texturing
 {
 
 /**
@@ -86,5 +84,4 @@ private:
      * a percent of the neighborhood. */
     uint16_t median_mean_(Neighborhood n, double range);
 };
-}  // namespace texturing
-}  // namespace volcart
+}  // namespace volcart::texturing

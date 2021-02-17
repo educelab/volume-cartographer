@@ -2,6 +2,7 @@
 
 /** @file */
 
+#include "vc/core/filesystem.hpp"
 #include "vc/core/types/DiskBasedObjectBaseClass.hpp"
 
 namespace volcart
@@ -25,17 +26,17 @@ public:
     using Pointer = std::shared_ptr<Render>;
 
     /** @brief Load a Render from file */
-    explicit Render(boost::filesystem::path path);
+    explicit Render(volcart::filesystem::path path);
 
     /** @brief Make a new Render in a directory */
-    Render(boost::filesystem::path path, Identifier uuid, std::string name);
+    Render(volcart::filesystem::path path, Identifier uuid, std::string name);
 
-    /** @copydoc Render(boost::filesystem::path path) */
-    static Pointer New(boost::filesystem::path path);
+    /** @copydoc Render(volcart::filesystem::path path) */
+    static Pointer New(volcart::filesystem::path path);
 
-    /** @copydoc Render(boost::filesystem::path path, Identifier uuid,
+    /** @copydoc Render(volcart::filesystem::path path, Identifier uuid,
      * std::string name) */
     static Pointer New(
-        boost::filesystem::path path, Identifier uuid, std::string name);
+        volcart::filesystem::path path, Identifier uuid, std::string name);
 };
 }  // namespace volcart

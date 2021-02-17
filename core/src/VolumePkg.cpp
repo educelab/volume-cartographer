@@ -1,12 +1,10 @@
 #include "vc/core/types/VolumePkg.hpp"
 
-#include <boost/range/iterator_range.hpp>
-
 #include "vc/core/util/DateTime.hpp"
 
 using namespace volcart;
 
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 
 static const fs::path SUBPATH_META{"config.json"};
 static const fs::path SUBPATH_REND{"renders"};
@@ -59,9 +57,7 @@ VolumePkg::VolumePkg(const fs::path& fileLocation)
     config_ = volcart::Metadata(fileLocation / SUBPATH_META);
 
     // Load volumes into volumes_ vector
-    auto range =
-        boost::make_iterator_range(fs::directory_iterator(volsDir_), {});
-    for (const auto& entry : range) {
+    for (const auto& entry : fs::directory_iterator(volsDir_)) {
         if (fs::is_directory(entry)) {
             auto v = Volume::New(entry);
             volumes_.emplace(v->id(), v);
@@ -69,8 +65,7 @@ VolumePkg::VolumePkg(const fs::path& fileLocation)
     }
 
     // Load segmentations into the segmentations_ vector
-    range = boost::make_iterator_range(fs::directory_iterator(segsDir_), {});
-    for (const auto& entry : range) {
+    for (const auto& entry : fs::directory_iterator(segsDir_)) {
         if (fs::is_directory(entry)) {
             auto s = Segmentation::New(entry);
             segmentations_.emplace(s->id(), s);
@@ -78,8 +73,7 @@ VolumePkg::VolumePkg(const fs::path& fileLocation)
     }
 
     // Load Renders into the renders_ vector
-    range = boost::make_iterator_range(fs::directory_iterator(rendDir_), {});
-    for (const auto& entry : range) {
+    for (const auto& entry : fs::directory_iterator(rendDir_)) {
         if (fs::is_directory(entry)) {
             auto r = Render::New(entry);
             renders_.emplace(r->id(), r);
@@ -122,7 +116,7 @@ double VolumePkg::materialThickness() const
 std::vector<Volume::Identifier> VolumePkg::volumeIDs() const
 {
     std::vector<Volume::Identifier> ids;
-    for (auto& v : volumes_) {
+    for (const auto& v : volumes_) {
         ids.emplace_back(v.first);
     }
     return ids;
@@ -131,7 +125,7 @@ std::vector<Volume::Identifier> VolumePkg::volumeIDs() const
 std::vector<std::string> VolumePkg::volumeNames() const
 {
     std::vector<Volume::Identifier> names;
-    for (auto& v : volumes_) {
+    for (const auto& v : volumes_) {
         names.emplace_back(v.second->name());
     }
     return names;

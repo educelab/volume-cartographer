@@ -10,9 +10,7 @@
 
 #include "vc/segmentation/lrps/Common.hpp"
 
-namespace volcart
-{
-namespace segmentation
+namespace volcart::segmentation
 {
 /**
  * @class IntensityMap
@@ -105,5 +103,4 @@ private:
     /** Largest distance a maxima can be away from center */
     const int peakRadius_ = 5;
 };
-}  // namespace segmentation
-}  // namespace volcart
+}  // namespace volcart::segmentation

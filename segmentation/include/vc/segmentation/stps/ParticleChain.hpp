@@ -9,9 +9,7 @@
 #include "vc/segmentation/stps/ForceChain.hpp"
 #include "vc/segmentation/stps/Particle.hpp"
 
-namespace volcart
-{
-namespace segmentation
+namespace volcart::segmentation
 {
 /**
  * @class ParticleChain
@@ -94,5 +92,4 @@ ParticleChain operator+(const ForceChain& rhs, ParticleChain lhs);
 ParticleChain operator*(ParticleChain lhs, const double& rhs);
 /** @copydoc operator*(ParticleChain, const double&) */
 ParticleChain operator*(const double& rhs, ParticleChain lhs);
-}  // namespace segmentation
-}  // namespace volcart
+}  // namespace volcart::segmentation

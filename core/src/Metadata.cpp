@@ -1,6 +1,6 @@
 #include "vc/core/types/Metadata.hpp"
 
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 
 using namespace volcart;
 
