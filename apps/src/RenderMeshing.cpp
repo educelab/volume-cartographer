@@ -1,9 +1,9 @@
 #include "vc/apps/render/RenderMeshing.hpp"
 
-#include <boost/filesystem.hpp>
 #include <vtkCleanPolyData.h>
 #include <vtkSmoothPolyDataFilter.h>
 
+#include "vc/core/filesystem.hpp"
 #include "vc/core/io/FileExtensionFilter.hpp"
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/io/PLYWriter.hpp"
@@ -14,7 +14,7 @@
 #include "vc/meshing/CalculateNormals.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
 
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
 namespace vcm = volcart::meshing;

@@ -6,9 +6,7 @@
 
 #include "vc/core/types/Color.hpp"
 
-namespace volcart
-{
-namespace texturing
+namespace volcart::texturing
 {
 /**
  * @author Kyra Seevers
@@ -114,5 +112,4 @@ private:
     void draw_tick_label_(
         cv::Mat img, const std::string& value, const cv::Point& position);
 };
-}  // namespace texturing
-}  // namespace volcart
+}  // namespace volcart::texturing

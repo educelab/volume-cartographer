@@ -12,9 +12,7 @@
 
 #include "vc/core/types/ITKMesh.hpp"
 
-namespace volcart
-{
-namespace meshmath
+namespace volcart::meshmath
 {
 /**
  * @brief Calculate the surface area of an ITKMesh
@@ -22,5 +20,4 @@ namespace meshmath
  * Uses a version of Heron's formula that is stable for small angles.
  */
 double SurfaceArea(const ITKMesh::Pointer& input);
-}  // namespace meshmath
-}  // namespace volcart
+}  // namespace volcart::meshmath

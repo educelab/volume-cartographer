@@ -1,15 +1,14 @@
-#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
-
 #include <opencv2/imgproc.hpp>
 
 #include "vc/app_support/ProgressIndicator.hpp"
+#include "vc/core/filesystem.hpp"
 #include "vc/core/io/TIFFIO.hpp"
 #include "vc/core/types/PerPixelMap.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/Logging.hpp"
 
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
 
@@ -82,7 +81,10 @@ int main(int argc, char* argv[])
                 "volumes and that the volume ID is correct.");
             return EXIT_FAILURE;
         }
-        dims = {vol->sliceWidth(), vol->sliceHeight(), vol->numSlices()};
+        dims = {
+            static_cast<double>(vol->sliceWidth()),
+            static_cast<double>(vol->sliceHeight()),
+            static_cast<double>(vol->numSlices())};
     }
 
     // Get input file
@@ -91,7 +93,8 @@ int main(int argc, char* argv[])
     auto ppm = vc::PerPixelMap::ReadPPM(ppmPath);
 
     // Setup output images
-    cv::Size size{ppm.width(), ppm.height()};
+    cv::Size size{
+        static_cast<int>(ppm.width()), static_cast<int>(ppm.height())};
     cv::Mat pos = cv::Mat::zeros(size, CV_32FC3);
     cv::Mat norm = cv::Mat::zeros(size, CV_32FC3);
 

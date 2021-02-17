@@ -5,9 +5,8 @@
 #include <string>
 #include <vector>
 
-#include <boost/algorithm/string.hpp>
-
 #include "vc/core/types/Exceptions.hpp"
+#include "vc/core/util/String.hpp"
 
 using namespace volcart;
 
@@ -73,11 +72,9 @@ void SkyscanMetadataIO::parse_()
     std::vector<std::string> lineTokens;
     while (std::getline(ifs, line)) {
         // Parse the line
-        boost::trim(line);
-        boost::split(lineTokens, line, boost::is_any_of("="));
-        std::for_each(
-            std::begin(lineTokens), std::end(lineTokens),
-            [](std::string& t) { boost::trim(t); });
+        trim(line);
+        lineTokens = split(line, '=');
+        std::for_each(std::begin(lineTokens), std::end(lineTokens), &trim);
 
         if (std::regex_match(lineTokens[0], scanner)) {
             metadata_.set<std::string>("scanner", lineTokens[1]);

@@ -5,8 +5,7 @@
 #include <iostream>
 #include <map>
 
-#include <boost/filesystem.hpp>
-
+#include "vc/core/filesystem.hpp"
 #include "vc/core/types/Metadata.hpp"
 #include "vc/core/types/Render.hpp"
 #include "vc/core/types/Segmentation.hpp"
@@ -47,31 +46,31 @@ public:
      * @param fileLocation The location to store the VolPkg
      * @param version Version of VolumePkg you wish to construct
      */
-    VolumePkg(const boost::filesystem::path& fileLocation, int version);
+    VolumePkg(const volcart::filesystem::path& fileLocation, int version);
 
     /**
      * @brief Construct a VolumePkg from a .volpkg file stored at
      * `fileLocation.`
      * @param fileLocation The root of the VolumePkg file
      */
-    explicit VolumePkg(const boost::filesystem::path& fileLocation);
+    explicit VolumePkg(const volcart::filesystem::path& fileLocation);
 
     /** VolumePkg shared pointer */
     using Pointer = std::shared_ptr<VolumePkg>;
 
     /**
-     * @copybrief VolumePkg(boost::filesystem::path fileLocation, int version)
+     * @copybrief VolumePkg(volcart::filesystem::path fileLocation, int version)
      *
      * Returns a shared pointer to the VolumePkg.
      */
-    static Pointer New(boost::filesystem::path fileLocation, int version);
+    static Pointer New(volcart::filesystem::path fileLocation, int version);
 
     /**
-     * @copybrief VolumePkg(boost::filesystem::path fileLocation)
+     * @copybrief VolumePkg(volcart::filesystem::path fileLocation)
      *
      * Returns a shared pointer to the VolumePkg.
      */
-    static Pointer New(boost::filesystem::path fileLocation);
+    static Pointer New(volcart::filesystem::path fileLocation);
     /**@}*/
 
     /** @name Metadata */
@@ -137,7 +136,7 @@ public:
      * @brief Saves the metadata to a user-specified location.
      * @param filePath Path to output file
      */
-    void saveMetadata(const boost::filesystem::path& filePath)
+    void saveMetadata(const volcart::filesystem::path& filePath)
     {
         config_.save(filePath);
     }
@@ -254,13 +253,13 @@ private:
     /** VolumePkg metadata */
     Metadata config_;
     /** The root directory of the VolumePkg */
-    boost::filesystem::path rootDir_;
+    volcart::filesystem::path rootDir_;
     /** The subdirectory containing Volume data */
-    boost::filesystem::path volsDir_;
+    volcart::filesystem::path volsDir_;
     /** The subdirectory containing Segmentation data */
-    boost::filesystem::path segsDir_;
+    volcart::filesystem::path segsDir_;
     /** The subdirectory containing Render data */
-    boost::filesystem::path rendDir_;
+    volcart::filesystem::path rendDir_;
     /** The list of all Volumes in the VolumePkg. */
     std::map<Volume::Identifier, Volume::Pointer> volumes_;
     /** The list of all Segmentations in the VolumePkg. */

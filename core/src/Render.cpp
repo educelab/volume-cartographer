@@ -2,7 +2,7 @@
 
 using namespace volcart;
 
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 
 // Load a Render directory from disk
 // Reads and verifies metadata

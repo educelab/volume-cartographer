@@ -1,8 +1,10 @@
 #include <regex>
-#include <boost/filesystem.hpp>
+
 #include <gtest/gtest.h>
 
-namespace fs = boost::filesystem;
+#include "vc/core/filesystem.hpp"
+
+namespace fs = volcart::filesystem;
 
 /*
  * Tests for std::regex

@@ -5,15 +5,13 @@
 #include <fstream>
 #include <iostream>
 
-#include <boost/filesystem.hpp>
 #include <opencv2/core.hpp>
 
+#include "vc/core/filesystem.hpp"
 #include "vc/core/types/ITKMesh.hpp"
 #include "vc/core/types/UVMap.hpp"
 
-namespace volcart
-{
-namespace io
+namespace volcart::io
 {
 /**
  * @class OBJWriter
@@ -36,14 +34,15 @@ public:
     OBJWriter() = default;
 
     /** @brief Constructor with output path and input mesh */
-    OBJWriter(boost::filesystem::path outputPath, const ITKMesh::Pointer& mesh)
+    OBJWriter(
+        volcart::filesystem::path outputPath, const ITKMesh::Pointer& mesh)
         : outputPath_{std::move(outputPath)}, mesh_{mesh}
     {
     }
 
     /** @brief Constructor with output path and textured mesh information */
     OBJWriter(
-        boost::filesystem::path outputPath,
+        volcart::filesystem::path outputPath,
         const ITKMesh::Pointer& mesh,
         volcart::UVMap uvMap,
         cv::Mat uvImg)
@@ -61,7 +60,7 @@ public:
      * write() and validate() will fail if path does not have an expected
      * file extension (.obj/.OBJ).
      */
-    void setPath(const boost::filesystem::path& path) { outputPath_ = path; }
+    void setPath(const volcart::filesystem::path& path) { outputPath_ = path; }
 
     /** @brief Set the input mesh */
     void setMesh(const ITKMesh::Pointer& mesh) { mesh_ = mesh; }
@@ -71,9 +70,6 @@ public:
 
     /** @brief Set the input texture image */
     void setTexture(const cv::Mat& uvImg) { texture_ = uvImg; }
-
-    /** @brief Validate parameters */
-    bool validate();
     /**@}*/
 
     /**@{*/
@@ -86,7 +82,7 @@ public:
 
 private:
     /** Output file path */
-    boost::filesystem::path outputPath_;
+    volcart::filesystem::path outputPath_;
     /** Output OBJ filestream */
     std::ofstream outputMesh_;
     /** Output MTL filestream */
@@ -127,5 +123,4 @@ private:
     int write_faces_();
 };
 
-}  // namespace io
-}  // namespace volcart
+}  // namespace volcart::io

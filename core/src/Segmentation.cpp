@@ -4,7 +4,7 @@
 
 using namespace volcart;
 
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 
 // Load a Segmentation directory from disk
 // Reads and verifies metadata

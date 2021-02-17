@@ -10,7 +10,9 @@ TEST(PerPixelMap, WriteRead)
     PerPixelMap ppm(10, 10);
     for (auto y = 0; y < 10; ++y) {
         for (auto x = 0; x < 10; ++x) {
-            ppm(y, x) = {x, y, (x + y) / 2.0, x, y, (x + y) / 2.0};
+            auto dx = static_cast<double>(x);
+            auto dy = static_cast<double>(y);
+            ppm(y, x) = {dx, dy, (dx + dy) / 2.0, dx, dy, (dx + dy) / 2.0};
         }
     }
 

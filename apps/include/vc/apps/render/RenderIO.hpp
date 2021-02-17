@@ -1,8 +1,8 @@
 #pragma once
 
-#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
+#include "vc/core/filesystem.hpp"
 #include "vc/core/types/ITKMesh.hpp"
 #include "vc/core/types/Segmentation.hpp"
 #include "vc/core/types/Texture.hpp"
@@ -15,10 +15,10 @@ volcart::ITKMesh::Pointer LoadSegmentation(
     const volcart::Segmentation::Identifier& id);
 
 /** Load a mesh file from a path */
-volcart::ITKMesh::Pointer LoadMeshFile(const boost::filesystem::path& p);
+volcart::ITKMesh::Pointer LoadMeshFile(const volcart::filesystem::path& p);
 
 /** Save the generated texture and mesh to a path */
 void SaveOutput(
-    const boost::filesystem::path& outputPath,
+    const volcart::filesystem::path& outputPath,
     const volcart::ITKMesh::Pointer& mesh,
     volcart::Texture texture);

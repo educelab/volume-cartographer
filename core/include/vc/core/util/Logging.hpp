@@ -6,8 +6,9 @@
  * @ingroup Util
  */
 
-#include <boost/filesystem.hpp>
 #include <spdlog/spdlog.h>
+
+#include "vc/core/filesystem.hpp"
 
 /**
  * @namespace volcart::logging
@@ -22,7 +23,7 @@ namespace logging
  *
  * @throw spdlog::spdlog_ex
  */
-void AddLogFile(const boost::filesystem::path& path);
+void AddLogFile(const volcart::filesystem::path& path);
 
 /** @brief Set the logging level */
 void SetLogLevel(const std::string& s);

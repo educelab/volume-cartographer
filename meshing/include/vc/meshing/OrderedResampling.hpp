@@ -8,9 +8,7 @@
 
 #include "vc/core/types/ITKMesh.hpp"
 
-namespace volcart
-{
-namespace meshing
+namespace volcart::meshing
 {
 /**
  * @class OrderedResampling
@@ -110,5 +108,4 @@ private:
      */
     void add_cell_(uint32_t a, uint32_t b, uint32_t c);
 };
-}  // namespace meshing
-}  // namespace volcart
+}  // namespace volcart::meshing

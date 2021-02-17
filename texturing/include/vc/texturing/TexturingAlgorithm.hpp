@@ -10,9 +10,7 @@
 #include "vc/core/types/Texture.hpp"
 #include "vc/core/types/Volume.hpp"
 
-namespace volcart
-{
-namespace texturing
+namespace volcart::texturing
 {
 class TexturingAlgorithm : public IterationsProgress
 {
@@ -62,5 +60,4 @@ protected:
     /** Result */
     Texture result_;
 };
-}  // namespace texturing
-}  // namespace volcart
+}  // namespace volcart::texturing

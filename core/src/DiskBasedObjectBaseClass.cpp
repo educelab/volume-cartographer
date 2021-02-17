@@ -2,12 +2,13 @@
 
 using namespace volcart;
 
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 
 static const fs::path METADATA_FILE = "meta.json";
 
 // Load file from disk
-DiskBasedObjectBaseClass::DiskBasedObjectBaseClass(boost::filesystem::path path)
+DiskBasedObjectBaseClass::DiskBasedObjectBaseClass(
+    volcart::filesystem::path path)
     : path_(std::move(path))
 {
     metadata_ = volcart::Metadata(path_ / METADATA_FILE);

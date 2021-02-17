@@ -2,27 +2,14 @@
 
 #include "vc/core/util/Logging.hpp"
 
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 using namespace volcart::io;
 
-// Make sure that all required parameters have been set and are okay
-bool PLYWriter::validate()
-{
-    bool hasExt =
-        outputPath_.extension() == ".PLY" || outputPath_.extension() == ".ply";
-    bool pathExists =
-        fs::is_directory(fs::canonical(outputPath_.parent_path()));
-    bool meshHasPoints = mesh_.IsNotNull() && mesh_->GetNumberOfPoints() != 0;
-
-    return hasExt && pathExists && meshHasPoints;
-}
-
 ///// Output Methods /////
-// Write everything (OBJ, MTL, and PNG) to disk
 int PLYWriter::write()
 {
-    if (!validate()) {
-        return EXIT_FAILURE;
+    if (not mesh_ or mesh_->GetNumberOfPoints() == 0) {
+        throw volcart::IOException("Mesh is empty or null");
     }
 
     // Open the file stream

@@ -9,9 +9,7 @@
 
 #include "vc/core/types/ITKMesh.hpp"
 
-namespace volcart
-{
-namespace meshing
+namespace volcart::meshing
 {
 
 /**
@@ -40,5 +38,4 @@ std::vector<cv::Vec6f> RayTrace(
     int width,
     int height,
     std::map<int, cv::Vec2d>& uvMap);
-}  // namespace meshing
-}  // namespace volcart
+}  // namespace volcart::meshing

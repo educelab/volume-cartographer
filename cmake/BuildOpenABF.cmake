@@ -4,7 +4,7 @@ if(VC_BUILD_OPENABF)
   FetchContent_Declare(
       openabf
       GIT_REPOSITORY https://gitlab.com/educelab/OpenABF.git
-      GIT_TAG 628e72d4
+      GIT_TAG 34b717a5
   )
 
   # Populate the project but exclude from all

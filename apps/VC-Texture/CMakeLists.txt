@@ -52,7 +52,7 @@ target_link_libraries(${target}
     VC::core
     VC::texturing
     VC::meshing
-    Boost::filesystem
+    ${VC_FS_LIB}
     vtkFiltersCore
     Qt5::Core
     Qt5::Gui

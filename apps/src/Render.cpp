@@ -1,11 +1,10 @@
 // render.cpp
-
 #include <iostream>
 
-#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
 #include "vc/app_support/GetMemorySize.hpp"
+#include "vc/core/filesystem.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/Logging.hpp"
 #include "vc/core/util/MemorySizeStringParser.hpp"
@@ -17,7 +16,7 @@
 #include "vc/apps/render/RenderMeshing.hpp"
 #include "vc/apps/render/RenderTexturing.hpp"
 
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
 namespace vcm = volcart::meshing;

@@ -1,15 +1,15 @@
 #include <fstream>
 #include <iostream>
 
-#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <opencv2/core.hpp>
 
+#include "vc/core/filesystem.hpp"
 #include "vc/core/io/OBJReader.hpp"
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
 

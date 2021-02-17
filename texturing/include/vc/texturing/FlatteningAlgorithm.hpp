@@ -5,9 +5,7 @@
 #include "vc/core/types/ITKMesh.hpp"
 #include "vc/core/types/UVMap.hpp"
 
-namespace volcart
-{
-namespace texturing
+namespace volcart::texturing
 {
 
 class FlatteningAlgorithm
@@ -56,5 +54,4 @@ protected:
      */
     void orient_uvs_();
 };
-}  // namespace texturing
-}  // namespace volcart
+}  // namespace volcart::texturing

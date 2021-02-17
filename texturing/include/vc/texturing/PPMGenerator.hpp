@@ -9,9 +9,7 @@
 #include "vc/core/types/PerPixelMap.hpp"
 #include "vc/core/types/UVMap.hpp"
 
-namespace volcart
-{
-namespace texturing
+namespace volcart::texturing
 {
 /**
  * @class PPMGenerator
@@ -137,5 +135,4 @@ private:
     /** Output height of the PerPixelMap */
     size_t height_{0};
 };
-}  // namespace texturing
-}  // namespace volcart
+}  // namespace volcart::texturing

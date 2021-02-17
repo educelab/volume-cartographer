@@ -1,9 +1,9 @@
 #include <cmath>
 
-#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
 #include "vc/app_support/ProgressIndicator.hpp"
+#include "vc/core/filesystem.hpp"
 #include "vc/core/io/FileExtensionFilter.hpp"
 #include "vc/core/io/OBJReader.hpp"
 #include "vc/core/io/OBJWriter.hpp"
@@ -15,7 +15,7 @@
 #include "vc/core/util/Iteration.hpp"
 #include "vc/core/util/Logging.hpp"
 
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
 

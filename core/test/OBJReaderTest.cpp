@@ -19,7 +19,7 @@ public:
 TEST_F(OBJReader, TexturedWithNormals)
 {
     reader.setPath(path + "TexturedWithNormals.obj");
-    EXPECT_NO_THROW(reader.read());
+    ASSERT_NO_THROW(reader.read());
 
     auto mesh = reader.getMesh();
     auto uv = reader.getUVMap();
@@ -33,7 +33,7 @@ TEST_F(OBJReader, TexturedWithNormals)
 TEST_F(OBJReader, Textured)
 {
     reader.setPath(path + "Textured.obj");
-    EXPECT_NO_THROW(reader.read());
+    ASSERT_NO_THROW(reader.read());
 
     auto mesh = reader.getMesh();
     auto uv = reader.getUVMap();
@@ -47,7 +47,7 @@ TEST_F(OBJReader, Textured)
 TEST_F(OBJReader, UntexturedWithNormals)
 {
     reader.setPath(path + "UntexturedWithNormals.obj");
-    EXPECT_NO_THROW(reader.read());
+    ASSERT_NO_THROW(reader.read());
 
     auto mesh = reader.getMesh();
     auto uv = reader.getUVMap();
@@ -59,7 +59,7 @@ TEST_F(OBJReader, UntexturedWithNormals)
 TEST_F(OBJReader, VariableVertexInfo)
 {
     reader.setPath(path + "VariableVertInfo.obj");
-    EXPECT_NO_THROW(reader.read());
+    ASSERT_NO_THROW(reader.read());
 
     auto mesh = reader.getMesh();
     auto uv = reader.getUVMap();
@@ -73,7 +73,7 @@ TEST_F(OBJReader, VariableVertexInfo)
 TEST_F(OBJReader, PointCloud)
 {
     reader.setPath(path + "PointCloud.obj");
-    EXPECT_NO_THROW(reader.read());
+    ASSERT_NO_THROW(reader.read());
 
     auto mesh = reader.getMesh();
     EXPECT_EQ(mesh->GetNumberOfPoints(), 16);

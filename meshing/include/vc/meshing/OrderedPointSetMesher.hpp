@@ -7,9 +7,7 @@
 #include "vc/core/types/ITKMesh.hpp"
 #include "vc/core/types/OrderedPointSet.hpp"
 
-namespace volcart
-{
-namespace meshing
+namespace volcart::meshing
 {
 /**
  * @class OrderedPointSetMesher
@@ -92,5 +90,4 @@ private:
      */
     void add_cell_(size_t a, size_t b, size_t c);
 };
-}  // namespace meshing
-}  // namespace volcart
+}  // namespace volcart::meshing

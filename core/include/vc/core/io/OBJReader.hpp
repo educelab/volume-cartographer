@@ -4,15 +4,13 @@
 
 #include <fstream>
 
-#include <boost/filesystem.hpp>
 #include <opencv2/core.hpp>
 
+#include "vc/core/filesystem.hpp"
 #include "vc/core/types/ITKMesh.hpp"
 #include "vc/core/types/UVMap.hpp"
 
-namespace volcart
-{
-namespace io
+namespace volcart::io
 {
 
 /**
@@ -32,7 +30,7 @@ class OBJReader
 {
 public:
     /** @brief Set the OBJ file path */
-    void setPath(const boost::filesystem::path& p) { path_ = p; }
+    void setPath(const volcart::filesystem::path& p) { path_ = p; }
 
     /** @brief Read the mesh from file */
     ITKMesh::Pointer read();
@@ -102,9 +100,9 @@ private:
     void build_mesh_();
 
     /** Path to the OBJ file */
-    boost::filesystem::path path_;
+    volcart::filesystem::path path_;
     /** Path to the parsed texture image */
-    boost::filesystem::path texturePath_;
+    volcart::filesystem::path texturePath_;
     /** Internal representation of mesh structure */
     ITKMesh::Pointer mesh_;
     /** Internal representation of UV Map */
@@ -122,5 +120,4 @@ private:
     std::vector<OBJReader::Face> faces_;
 };
 
-}  // namespace io
-}  // namespace volcart
+}  // namespace volcart::io

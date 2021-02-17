@@ -1,10 +1,10 @@
 #include <sstream>
 
-#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <opencv2/opencv.hpp>
 
 #include "vc/app_support/GetMemorySize.hpp"
+#include "vc/core/filesystem.hpp"
 #include "vc/core/neighborhood/LineGenerator.hpp"
 #include "vc/core/types/PerPixelMap.hpp"
 #include "vc/core/types/VolumePkg.hpp"
@@ -13,7 +13,7 @@
 #include "vc/texturing/LayerTexture.hpp"
 
 namespace vc = volcart;
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
 
 // Volpkg version required by this app
@@ -190,15 +190,19 @@ int main(int argc, char* argv[])
         newPPM.setMask(ppm.mask());
 
         // Fill new PPM
-        auto z = (texture.numberOfImages() - 1) / 2.0;
+        auto z = static_cast<double>(texture.numberOfImages() - 1) / 2.0;
         auto normal = (parsed.count("negative-normal") > 0) ? -1.0 : 1.0;
         for (size_t y = 0; y < height; y++) {
             for (size_t x = 0; x < width; x++) {
                 if (!newPPM.hasMapping(y, x)) {
                     continue;
                 }
-
-                newPPM(y, x) = {x, y, z, 0, 0, normal};
+                newPPM(y, x) = {static_cast<double>(x),
+                                static_cast<double>(y),
+                                z,
+                                0.0,
+                                0.0,
+                                normal};
             }
         }
 

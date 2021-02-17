@@ -16,7 +16,6 @@
 #include <QCloseEvent>
 #include <QObject>
 #include <QtWidgets>
-#include <boost/filesystem.hpp>
 
 #include "GlobalValues.hpp"
 #include "SegmentationsViewer.hpp"

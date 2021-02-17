@@ -1,14 +1,12 @@
-// layers.cpp
-
 #include <fstream>
 #include <iostream>
 #include <sstream>
 
-#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <opencv2/opencv.hpp>
 
 #include "vc/app_support/GetMemorySize.hpp"
+#include "vc/core/filesystem.hpp"
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/types/PerPixelMap.hpp"
 #include "vc/core/types/VolumePkg.hpp"
@@ -22,7 +20,7 @@
 #include "vc/texturing/LayerTexture.hpp"
 #include "vc/texturing/PPMGenerator.hpp"
 
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
 

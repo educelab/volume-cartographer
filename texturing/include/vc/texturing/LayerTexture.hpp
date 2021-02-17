@@ -6,9 +6,7 @@
 
 #include "vc/core/neighborhood/LineGenerator.hpp"
 
-namespace volcart
-{
-namespace texturing
+namespace volcart::texturing
 {
 /**
  * @class LayerTexture
@@ -53,5 +51,4 @@ private:
     LineGenerator::Pointer gen_;
 };
 
-}  // namespace texturing
-}  // namespace volcart
+}  // namespace volcart::texturing

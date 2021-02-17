@@ -6,9 +6,7 @@
 
 #include "vc/core/types/TexturedMesh.hpp"
 
-namespace volcart
-{
-namespace texturing
+namespace volcart::texturing
 {
 /**
  * @brief Add 2D alignment markers to textured meshes
@@ -84,5 +82,4 @@ private:
     std::vector<cv::Mat> output_;
 };
 
-}  // namespace texturing
-}  // namespace volcart
+}  // namespace volcart::texturing

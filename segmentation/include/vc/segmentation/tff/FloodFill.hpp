@@ -8,9 +8,7 @@
 
 #include "vc/core/util/HashFunctions.hpp"
 
-namespace volcart
-{
-namespace segmentation
+namespace volcart::segmentation
 {
 
 /** Get the list of a voxel's eight neighbors */
@@ -55,5 +53,4 @@ std::vector<cv::Vec3i> DoFloodFill(
     uint16_t low,
     uint16_t high);
 
-}  // namespace segmentation
-}  // namespace volcart
+}  // namespace volcart::segmentation

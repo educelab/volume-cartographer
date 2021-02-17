@@ -4,9 +4,7 @@
 
 #include "ShapePrimitive.hpp"
 
-namespace volcart
-{
-namespace shapes
+namespace volcart::shapes
 {
 /**
  * @author Seth Parker
@@ -56,5 +54,4 @@ public:
     }  // Constructor
 
 };  // Plane
-}  // namespace shapes
-}  // namespace volcart
+}  // namespace volcart::shapes

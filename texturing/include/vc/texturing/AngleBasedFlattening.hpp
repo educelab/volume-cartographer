@@ -10,9 +10,7 @@
 #include "vc/core/types/UVMap.hpp"
 #include "vc/texturing/FlatteningAlgorithm.hpp"
 
-namespace volcart
-{
-namespace texturing
+namespace volcart::texturing
 {
 /**
  * @class AngleBasedFlattening
@@ -71,5 +69,4 @@ private:
     /** Maximum number of ABF minimization iterations */
     std::size_t maxABFIterations_{DEFAULT_ITERATIONS};
 };
-}  // namespace texturing
-}  // namespace volcart
+}  // namespace volcart::texturing

@@ -8,9 +8,7 @@
 #include "vc/core/types/ITKMesh.hpp"
 #include "vc/core/types/QuadEdgeMesh.hpp"
 
-namespace volcart
-{
-namespace meshing
+namespace volcart::meshing
 {
 /**
  * @class ITK2VTK
@@ -85,5 +83,4 @@ class ITKQE2ITK
 public:
     ITKQE2ITK(QuadEdgeMesh::Pointer input, ITKMesh::Pointer output);
 };
-}  // namespace meshing
-}  // namespace volcart
+}  // namespace volcart::meshing

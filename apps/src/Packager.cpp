@@ -3,13 +3,11 @@
 #include <limits>
 #include <regex>
 
-#include <boost/algorithm/string.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/lexical_cast.hpp>
 #include <boost/program_options.hpp>
 
 #include "vc/app_support/ProgressIndicator.hpp"
 #include "vc/apps/packager/SliceImage.hpp"
+#include "vc/core/filesystem.hpp"
 #include "vc/core/io/FileExtensionFilter.hpp"
 #include "vc/core/io/SkyscanMetadataIO.hpp"
 #include "vc/core/types/Metadata.hpp"
@@ -19,7 +17,7 @@
 
 using PathStringList = std::vector<std::string>;
 
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
 namespace vci = volcart::io;
@@ -222,12 +220,18 @@ VolumeInfo GetVolumeInfo(const fs::path& slicePath)
     // Get voxel size
     std::string input;
     if (!voxelFound) {
+        bool success{false};
         do {
             std::cout << "Enter the voxel size of the volume in microns "
                          "(e.g. 13.546): ";
             std::getline(std::cin, input);
-        } while (
-            !boost::conversion::try_lexical_convert(input, info.voxelsize));
+            try {
+                info.voxelsize = std::stod(input);
+                success = true;
+            } catch (...) {
+                std::cout << "Cannot parse input: " << input << std::endl;
+            }
+        } while (not success);
     }
 
     // Flip options

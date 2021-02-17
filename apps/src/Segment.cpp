@@ -1,12 +1,12 @@
 #include <cmath>
 #include <iostream>
 
-#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
 #include "vc/app_support/GeneralOptions.hpp"
 #include "vc/app_support/GetMemorySize.hpp"
 #include "vc/app_support/ProgressIndicator.hpp"
+#include "vc/core/filesystem.hpp"
 #include "vc/core/io/PointSetIO.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/Logging.hpp"
@@ -15,7 +15,7 @@
 #include "vc/segmentation/LocalResliceParticleSim.hpp"
 #include "vc/segmentation/ThinnedFloodFillSegmentation.hpp"
 
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
 namespace vs = vc::segmentation;

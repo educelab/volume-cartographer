@@ -8,18 +8,22 @@ if (VC_PREBUILT_LIBS)
     set(CMAKE_PREFIX_PATH ${PROJECT_SOURCE_DIR}/vc-deps/deps)
 endif()
 
-# For compiler sanitizers. Taken from:
-# https://github.com/arsenm/sanitizers-cmake/blob/master/README.md
-find_package(Sanitizers)
-
-### Boost ###
-set(VC_BOOST_COMPONENTS
-    system
-    filesystem
-    program_options
-    iostreams
-)
-find_package(Boost 1.58 REQUIRED COMPONENTS ${VC_BOOST_COMPONENTS})
+### Filesystem ###
+find_package(Filesystem)
+if(Filesystem_FOUND)
+    option(VC_USE_BOOSTFS "Use Boost as the filesystem library" OFF)
+else()
+    option(VC_USE_BOOSTFS "Use Boost as the filesystem library" ON)
+endif()
+if(VC_USE_BOOSTFS)
+    add_compile_definitions(VC_USE_BOOSTFS)
+    find_package(Boost 1.58 REQUIRED COMPONENTS system filesystem)
+    set(VC_FS_LIB Boost::filesystem)
+else()
+    set(VC_FS_LIB std::filesystem)
+endif()
+message(STATUS "Using filesystem library: ${VC_FS_LIB}")
+list(APPEND VC_CUSTOM_MODULES "${CMAKE_MODULE_PATH}/FindFilesystem.cmake")
 
 ### Qt5 ###
 find_package(Qt5 5.15 QUIET REQUIRED COMPONENTS Widgets Gui Core Network)
@@ -71,8 +75,9 @@ find_package(spdlog 1.4.2 CONFIG REQUIRED)
 ### OpenABF ###
 include(BuildOpenABF)
 
-### indicators (for app use only)
+### Boost and indicators (for app use only)
 if(VC_BUILD_APPS OR VC_BUILD_UTILS)
+    find_package(Boost 1.58 REQUIRED COMPONENTS system program_options)
     include(BuildIndicators)
 endif()
 

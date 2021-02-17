@@ -2,9 +2,7 @@
 
 #include <cstdint>
 
-namespace volcart
-{
-namespace protocol
+namespace volcart::protocol
 {
 
 /**
@@ -67,5 +65,4 @@ struct ResponseArgs {
     uint32_t size;
 };
 
-}  // namespace protocol
-}  // namespace volcart
+}  // namespace volcart::protocol

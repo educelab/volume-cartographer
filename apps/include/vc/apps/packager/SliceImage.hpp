@@ -2,9 +2,9 @@
 
 #include <iostream>
 
-#include <boost/algorithm/string.hpp>
-#include <boost/filesystem.hpp>
 #include <opencv2/core.hpp>
+
+#include "vc/core/filesystem.hpp"
 
 namespace volcart
 {
@@ -12,7 +12,7 @@ namespace volcart
 class SliceImage
 {
 public:
-    explicit SliceImage(boost::filesystem::path p) : path{std::move(p)} {}
+    explicit SliceImage(volcart::filesystem::path p) : path{std::move(p)} {}
 
     bool operator==(const SliceImage& b) const;
     bool operator!=(const SliceImage& b) const { return !operator==(b); }
@@ -32,7 +32,7 @@ public:
         min_ = min;
     }
 
-    boost::filesystem::path path;
+    volcart::filesystem::path path;
 
 private:
     int w_{0};

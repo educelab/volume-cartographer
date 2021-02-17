@@ -4,9 +4,7 @@
 
 #include "vc/segmentation/lrps/FittedCurve.hpp"
 
-namespace volcart
-{
-namespace segmentation
+namespace volcart::segmentation
 {
 /**
  * @class EnergyMetrics
@@ -92,5 +90,4 @@ public:
      */
     static double WindowedArcLength(const FittedCurve& curve, int windowSize);
 };
-}  // namespace segmentation
-}  // namespace volcart
+}  // namespace volcart::segmentation

@@ -1,6 +1,4 @@
 project(libvc_texturing VERSION ${VC_VERSION} LANGUAGES CXX)
-set(module "texturing")
-set(target "vc_${module}")
 
 set(srcs
     src/CompositeTexture.cpp
@@ -28,35 +26,36 @@ set(private_deps
 )
 set(defs "")
 
-add_library(${target} ${srcs})
-add_library("${namespace}${module}" ALIAS "${target}")
-target_compile_definitions(${target} PUBLIC ${defs})
-target_include_directories(${target}
+add_library(vc_texturing ${srcs})
+add_library(VC::texturing ALIAS vc_texturing)
+target_compile_definitions(vc_texturing PUBLIC ${defs})
+target_include_directories(vc_texturing
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(${target}
+target_link_libraries(vc_texturing
     PUBLIC ${public_deps}
     PRIVATE ${private_deps}
 )
-set_target_properties(${target} PROPERTIES
+target_compile_features(vc_texturing PUBLIC cxx_std_17)
+set_target_properties(vc_texturing PROPERTIES
     VERSION "${PROJECT_VERSION}"
-    EXPORT_NAME "${module}"
+    EXPORT_NAME texturing
 )
 
 if(VC_INSTALL_LIBS)
 install(
-    TARGETS ${target}
+    TARGETS vc_texturing
     EXPORT ${targets_export_name}
     COMPONENT "Libraries"
     ARCHIVE DESTINATION "lib"
     LIBRARY DESTINATION "lib"
     RUNTIME DESTINATION "bin"
-    INCLUDES DESTINATION "${include_install_dir}/${module}"
+    INCLUDES DESTINATION "${include_install_dir}/texturing"
 )
 install(
-    DIRECTORY "${include_install_dir}/${module}"
+    DIRECTORY "${include_install_dir}/texturing"
     DESTINATION "${include_install_dir}"
     COMPONENT "Libraries"
     FILES_MATCHING REGEX ".*\.(h|hpp)$"
@@ -75,7 +74,7 @@ set(test_srcs
 # Add a test executable for each src
 foreach(src ${test_srcs})
     get_filename_component(filename ${src} NAME_WE)
-    set(testname ${target}_${filename})
+    set(testname vc_texturing_${filename})
     add_executable(${testname} ${src})
     target_link_libraries(${testname}
         VC::texturing

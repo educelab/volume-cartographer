@@ -9,16 +9,18 @@
 
 #include <regex>
 
-#include <boost/algorithm/string/case_conv.hpp>
 #include <opencv2/imgcodecs.hpp>
 
 #include "MainWindow.hpp"
+#include "vc/core/filesystem.hpp"
 #include "vc/core/io/OBJWriter.hpp"
+#include "vc/core/util/String.hpp"
 
 // Volpkg version required by this app
 static constexpr int VOLPKG_SUPPORTED_VERSION = 6;
 
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
+namespace vc = volcart;
 
 MainWindow::MainWindow(GlobalValues* globals)
 {
@@ -255,12 +257,11 @@ void MainWindow::exportTexture()
         outputPath = outputPath.string() + ".png";
 
     // For convenience
-    std::string extension(
-        boost::to_upper_copy<std::string>(outputPath.extension().string()));
+    auto extension = vc::to_upper_copy(outputPath.extension().string());
 
     // Check for approved format
-    std::vector<std::string> approvedExtensions{".PNG", ".JPG", ".JPEG", ".TIF",
-                                                ".TIFF"};
+    std::vector<std::string> approvedExtensions{
+        ".PNG", ".JPG", ".JPEG", ".TIF", ".TIFF"};
     auto it = std::find(
         approvedExtensions.begin(), approvedExtensions.end(), extension);
     if (it == approvedExtensions.end()) {

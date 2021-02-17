@@ -3,7 +3,6 @@
 #pragma once
 
 #include <QCheckBox>
-#include <QCheckBox>
 #include <vector>
 #include <opencv2/core.hpp>
 #include "CBSpline.hpp"

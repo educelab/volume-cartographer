@@ -1,18 +1,15 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <vector>
 
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/filesystem.hpp>
-
+#include "vc/core/filesystem.hpp"
+#include "vc/core/util/String.hpp"
 #include "vc/testing/ParsingHelpers.hpp"
 
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 
-namespace volcart
-{
-namespace testing
+namespace volcart::testing
 {
 
 void ParsingHelpers::ParsePLYFile(
@@ -49,7 +46,7 @@ void ParsingHelpers::ParsePLYFile(
     // loop through file and get the appropriate data into the vectors
     while (!inputMesh.eof()) {
 
-        plyLine = volcart::testing::ParsingHelpers::SplitString(line);
+        plyLine = split(line, '\t', ' ');
 
         // skip header information not pertaining to vertex/face
         if (plyLine[0] == "ply" || plyLine[0] == "format" ||
@@ -80,15 +77,15 @@ void ParsingHelpers::ParsePLYFile(
             line.clear();
             getline(inputMesh, line);
 
-            plyLine = volcart::testing::ParsingHelpers::SplitString(line);
+            plyLine = split(line, '\t', ' ');
             while (plyLine[0] == "property") {
 
-                typeOfPointInformation.push_back(plyLine[plyLine.size() - 1]);
+                typeOfPointInformation.push_back(plyLine.back());
 
                 // get the next line
                 line.clear();
                 getline(inputMesh, line);
-                plyLine = volcart::testing::ParsingHelpers::SplitString(line);
+                plyLine = split(line, '\t', ' ');
             }
 
             // Get the face information
@@ -98,7 +95,7 @@ void ParsingHelpers::ParsePLYFile(
                 line.clear();
                 getline(inputMesh, line);
 
-                plyLine = volcart::testing::ParsingHelpers::SplitString(line);
+                plyLine = split(line, '\t', ' ');
 
                 ///<< Do something with the property for the face information
                 // here >>
@@ -122,7 +119,7 @@ void ParsingHelpers::ParsePLYFile(
             if (isWidth && isHeight) {
                 line.clear();
                 getline(inputMesh, line);
-                plyLine = volcart::testing::ParsingHelpers::SplitString(line);
+                plyLine = split(line, '\t', ' ');
             }
 
             // Read in the vertex information
@@ -159,7 +156,7 @@ void ParsingHelpers::ParsePLYFile(
 
                 line.clear();
                 getline(inputMesh, line);
-                plyLine = volcart::testing::ParsingHelpers::SplitString(line);
+                plyLine = split(line, '\t', ' ');
             }
 
             /*
@@ -192,8 +189,7 @@ void ParsingHelpers::ParsePLYFile(
 
                     line.clear();
                     getline(inputMesh, line);
-                    plyLine =
-                        volcart::testing::ParsingHelpers::SplitString(line);
+                    plyLine = split(line, '\t', ' ');
                 }
             }
         }
@@ -240,19 +236,19 @@ void ParsingHelpers::ParseOBJFile(
     // loop through file and get the appropriate data into the vectors
     while (!inputMesh.eof()) {
 
-        objLine = volcart::testing::ParsingHelpers::SplitString(line);
+        objLine = split(line, '\t', ' ');
+        if (objLine.empty()) {
+            continue;
+        }
 
         // skip comment lines
-        if (objLine[0] == "#" && objLine[1] == "OBJ") {
-            getline(inputMesh, line);
-            continue;
-        } else if (objLine[0] == "#" && objLine[1] == "Number") {
+        if (objLine[0][0] == '#') {
             std::getline(inputMesh, line);
             continue;
         }
 
         //   Vertex
-        else if (objLine[0] == "v" && objLine[1] != "n") {
+        else if (objLine[0] == "v") {
             objVertex.x = std::stod(objLine[1]);
             objVertex.y = std::stod(objLine[2]);
             objVertex.z = std::stod(objLine[3]);
@@ -289,24 +285,4 @@ void ParsingHelpers::ParseOBJFile(
 
     inputMesh.close();
 }
-
-/*
- *   Helper function to parse input lines based on space delimiter.
- *   Pieces are placed in string vector for later usage.
- *   Maybe this can be updated to take a char arg that can reference any
- * character
- *   delimiter necessary for a possible parse.
- */
-
-std::vector<std::string> ParsingHelpers::SplitString(std::string input)
-{
-
-    std::vector<std::string> output;
-    auto nspaces = std::count(std::begin(input), std::end(input), ' ');
-    output.reserve(nspaces);
-    boost::split(
-        output, input, boost::is_any_of("\t "), boost::token_compress_on);
-    return output;
-}
-}  // namespace testing
-}  // namespace volcart
+}  // namespace volcart::testing

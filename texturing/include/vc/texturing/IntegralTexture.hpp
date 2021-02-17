@@ -6,9 +6,7 @@
 
 #include "vc/core/neighborhood/NeighborhoodGenerator.hpp"
 
-namespace volcart
-{
-namespace texturing
+namespace volcart::texturing
 {
 /**
  * @class IntegralTexture
@@ -211,5 +209,4 @@ private:
     NDArray<double> apply_expodiff_weights_(NDArray<double>& n);
 };
 
-}  // namespace texturing
-}  // namespace volcart
+}  // namespace volcart::texturing

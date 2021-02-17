@@ -4,9 +4,7 @@
 
 #include "vc/texturing/TexturingAlgorithm.hpp"
 
-namespace volcart
-{
-namespace texturing
+namespace volcart::texturing
 {
 
 /**
@@ -35,5 +33,4 @@ public:
     Texture compute() override;
     /**@}*/
 };
-}  // namespace texturing
-}  // namespace volcart
+}  // namespace volcart::texturing

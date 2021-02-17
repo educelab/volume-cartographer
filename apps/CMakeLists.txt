@@ -20,7 +20,7 @@ add_executable(vc_mesher src/Mesher.cpp)
 target_link_libraries(vc_mesher
     VC::core
     VC::meshing
-    Boost::filesystem
+    ${VC_FS_LIB}
     Boost::program_options
 )
 
@@ -29,7 +29,7 @@ add_executable(vc_packager src/Packager.cpp src/SliceImage.cpp)
 target_link_libraries(vc_packager
     VC::core
     VC::app_support
-    Boost::filesystem
+    ${VC_FS_LIB}
     Boost::program_options
 )
 target_include_directories(vc_packager PUBLIC
@@ -58,7 +58,7 @@ target_link_libraries(vc_render
     VC::core
     VC::texturing
     VC::meshing
-    Boost::filesystem
+    ${VC_FS_LIB}
     Boost::program_options
     vtkFiltersCore
 )
@@ -73,7 +73,7 @@ target_link_libraries(vc_render_from_ppm
     VC::texturing
     VC::meshing
     VC::app_support
-    Boost::filesystem
+    ${VC_FS_LIB}
     Boost::program_options
 )
 target_include_directories(vc_render_from_ppm PUBLIC
@@ -87,7 +87,7 @@ target_link_libraries(vc_layers
     VC::core
     VC::texturing
     VC::meshing
-    Boost::filesystem
+    ${VC_FS_LIB}
     Boost::program_options
 )
 
@@ -98,7 +98,7 @@ target_link_libraries(vc_generate_ppm
     VC::core
     VC::meshing
     VC::texturing
-    Boost::filesystem
+    ${VC_FS_LIB}
 )
 
 ## Layers from PPM
@@ -107,7 +107,7 @@ target_link_libraries(vc_layers_from_ppm
     VC::app_support
     VC::core
     VC::texturing
-    Boost::filesystem
+    ${VC_FS_LIB}
     Boost::program_options
 )
 
@@ -116,7 +116,7 @@ add_executable(vc_metaedit src/Metadata.cpp)
 target_link_libraries(vc_metaedit
     VC::core
     Boost::program_options
-    Boost::filesystem
+    ${VC_FS_LIB}
 )
 
 ## Slice Projection ##
@@ -125,7 +125,7 @@ target_link_libraries(vc_projection
     VC::app_support
     VC::core
     VC::meshing
-    Boost::filesystem
+    ${VC_FS_LIB}
     Boost::program_options
     vtkCommonCore
     vtkCommonDataModel
@@ -137,7 +137,7 @@ add_executable(vc_volpkg_explorer src/VolPkgExplorer.cpp)
 target_link_libraries(vc_volpkg_explorer
     VC::core
     Boost::program_options
-    Boost::filesystem
+    ${VC_FS_LIB}
 )
 
 ## Volume Server ##
@@ -153,7 +153,7 @@ target_link_libraries(vc_volume_server
     VC::app_support
     VC::core
     Boost::program_options
-    Boost::filesystem
+    ${VC_FS_LIB}
     Qt5::Network
 )
 target_include_directories(vc_volume_server PUBLIC
@@ -173,7 +173,7 @@ target_link_libraries(vc_volume_client
     VC::app_support
     VC::core
     Boost::program_options
-    Boost::filesystem
+    ${VC_FS_LIB}
     Qt5::Network
 )
 target_include_directories(vc_volume_client PUBLIC

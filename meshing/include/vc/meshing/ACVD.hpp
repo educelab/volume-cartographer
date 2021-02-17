@@ -4,9 +4,7 @@
 
 #include "vc/core/types/ITKMesh.hpp"
 
-namespace volcart
-{
-namespace meshing
+namespace volcart::meshing
 {
 /**
  * @brief Mesh resampling using Approximated Centroidal Voronoi Diagrams.
@@ -107,5 +105,4 @@ private:
     /** Quadrics optimization level */
     size_t quadricsOptLevel_{1};
 };
-}  // namespace meshing
-}  // namespace volcart
+}  // namespace volcart::meshing

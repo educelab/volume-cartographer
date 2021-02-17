@@ -1,16 +1,16 @@
-#include <unordered_set>
-
 #include <algorithm>
 #include <cctype>
-#include <boost/filesystem.hpp>
+#include <unordered_set>
+
 #include <boost/program_options.hpp>
 
+#include "vc/core/filesystem.hpp"
 #include "vc/core/io/FileExtensionFilter.hpp"
 #include "vc/core/io/PointSetIO.hpp"
 #include "vc/core/util/HashFunctions.hpp"
 #include "vc/core/util/Logging.hpp"
 
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
 

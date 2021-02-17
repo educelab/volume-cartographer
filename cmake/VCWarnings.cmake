@@ -8,7 +8,7 @@ set(project_warnings
 # Extra warnings we want to enable
 list(APPEND project_warnings
     -Wattributes
-    -Wc++14-compat
+    -Wc++17-compat
     -Wcast-align
     -Wcast-qual
     -Wchar-subscripts
@@ -30,7 +30,6 @@ list(APPEND project_warnings
     -Wunused
     -Wunused-macros
     -Wvla
-    -Wno-narrowing
     -Wno-missing-braces
     -Wno-switch-enum
     -Wno-sign-conversion

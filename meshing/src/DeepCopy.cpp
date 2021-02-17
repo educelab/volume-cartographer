@@ -2,9 +2,7 @@
 
 #include "vc/meshing/DeepCopy.hpp"
 
-namespace volcart
-{
-namespace meshing
+namespace volcart::meshing
 {
 
 void DeepCopy(
@@ -44,5 +42,4 @@ void DeepCopy(
         }
     }
 }
-}  // namespace meshing
-}  // namespace volcart
+}  // namespace volcart::meshing

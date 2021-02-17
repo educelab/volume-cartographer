@@ -10,12 +10,11 @@
 
 #pragma once
 
-#include <boost/filesystem.hpp>
 #include <opencv2/core.hpp>
 
-namespace volcart
-{
-namespace tiffio
+#include "vc/core/filesystem.hpp"
+
+namespace volcart::tiffio
 {
 /**
  * @brief Write a TIFF image to file
@@ -23,6 +22,5 @@ namespace tiffio
  * Supports writing floating point and signed integer TIFFs, in addition to
  * unsigned 8 & 16 bit integer types. Also supports 1-4 channel images.
  */
-void WriteTIFF(const boost::filesystem::path& path, const cv::Mat& img);
-}  // namespace tiffio
-}  // namespace volcart
+void WriteTIFF(const volcart::filesystem::path& path, const cv::Mat& img);
+}  // namespace volcart::tiffio

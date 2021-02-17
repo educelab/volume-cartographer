@@ -1,15 +1,15 @@
 #include <cstring>
 #include <iostream>
 
-#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
 #include <QCoreApplication>
 
 #include "vc/apps/server/VolumeClient.hpp"
+#include "vc/core/filesystem.hpp"
 #include "vc/core/util/Logging.hpp"
 
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
 

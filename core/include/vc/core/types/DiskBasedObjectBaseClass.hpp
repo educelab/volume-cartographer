@@ -2,8 +2,7 @@
 
 /** @file */
 
-#include <boost/filesystem.hpp>
-
+#include "vc/core/filesystem.hpp"
 #include "vc/core/types/Metadata.hpp"
 
 namespace volcart
@@ -39,7 +38,7 @@ public:
     Identifier id() const { return metadata_.get<std::string>("uuid"); }
 
     /** @brief Get the path to the object */
-    boost::filesystem::path path() const { return path_; }
+    volcart::filesystem::path path() const { return path_; }
 
     /** @brief Get the human-readable name for the object */
     std::string name() const { return metadata_.get<std::string>("name"); }
@@ -52,16 +51,16 @@ public:
 
 protected:
     /** Load the object from file */
-    explicit DiskBasedObjectBaseClass(boost::filesystem::path path);
+    explicit DiskBasedObjectBaseClass(volcart::filesystem::path path);
 
     /** Make a new object */
     DiskBasedObjectBaseClass(
-        boost::filesystem::path path, Identifier uuid, std::string name);
+        volcart::filesystem::path path, Identifier uuid, std::string name);
 
     /** Metadata */
     volcart::Metadata metadata_;
 
     /** Location for the object on disk */
-    boost::filesystem::path path_;
+    volcart::filesystem::path path_;
 };
 }  // namespace volcart

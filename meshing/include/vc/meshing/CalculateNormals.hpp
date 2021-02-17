@@ -9,9 +9,7 @@
 #include "vc/core/types/ITKMesh.hpp"
 #include "vc/meshing/DeepCopy.hpp"
 
-namespace volcart
-{
-namespace meshing
+namespace volcart::meshing
 {
 /**
  * @class CalculateNormals
@@ -87,5 +85,4 @@ private:
     /** Storage for summed normals, organized by vertex ID */
     std::vector<cv::Vec3d> vertexNormals_;
 };
-}  // namespace meshing
-}  // namespace volcart
+}  // namespace volcart::meshing

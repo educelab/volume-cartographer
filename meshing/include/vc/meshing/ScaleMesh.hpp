@@ -4,9 +4,7 @@
 
 #include "vc/core/types/ITKMesh.hpp"
 
-namespace volcart
-{
-namespace meshing
+namespace volcart::meshing
 {
 /**
  * @author Seth Parker
@@ -26,5 +24,4 @@ void ScaleMesh(
     const ITKMesh::Pointer& input,
     const ITKMesh::Pointer& output,
     double scaleFactor);
-}  // namespace meshing
-}  // namespace volcart
+}  // namespace volcart::meshing

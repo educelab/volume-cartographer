@@ -5,9 +5,9 @@
 #include <fstream>
 #include <iostream>
 
-#include <boost/filesystem.hpp>
 #include <opencv2/core.hpp>
 
+#include "vc/core/filesystem.hpp"
 #include "vc/core/third_party/json.hpp"
 
 namespace volcart
@@ -33,21 +33,21 @@ public:
     Metadata() = default;
 
     /** @brief Read a metadata file from disk */
-    explicit Metadata(boost::filesystem::path fileLocation);
+    explicit Metadata(volcart::filesystem::path fileLocation);
     /**@}*/
 
     /**@{*/
     /** @brief Get the path where the metadata file will be written */
-    boost::filesystem::path path() const { return path_; }
+    volcart::filesystem::path path() const { return path_; }
 
     /** @brief Set the path where the metadata file will be written */
-    void setPath(const boost::filesystem::path& path) { path_ = path; }
+    void setPath(const volcart::filesystem::path& path) { path_ = path; }
 
     /** @brief Save the metadata file to the stored path */
     void save() { save(path_); }
 
     /** @brief Save the metadata file to a specified path */
-    void save(const boost::filesystem::path& path);
+    void save(const volcart::filesystem::path& path);
     /**@}*/
 
     /**@{*/
@@ -101,7 +101,7 @@ protected:
     /** JSON data storage */
     nlohmann::json json_;
     /** Location where the JSON file will be stored*/
-    boost::filesystem::path path_;
+    volcart::filesystem::path path_;
 };
 }  // namespace volcart
 

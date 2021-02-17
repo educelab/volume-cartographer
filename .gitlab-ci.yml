@@ -57,7 +57,7 @@ test:debian:static:
     needs: []
     image: volcart/vcbuilder-debian:10_v1.static
     variables:
-        EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo"
+        EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_DEVELOPER_WARNINGS=ON"
     tags:
         - docker
 
@@ -67,7 +67,7 @@ test:debian:dynamic:
     needs: []
     image: volcart/vcbuilder-debian:10_v1.dynamic
     variables:
-        EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo"
+        EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_DEVELOPER_WARNINGS=ON"
     tags:
         - docker
 
@@ -77,7 +77,7 @@ test:debian:experimental:
     needs: []
     image: volcart/vcbuilder-debian:10_v1.experimental
     variables:
-        EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DVC_BUILD_EXPERIMENTAL=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo"
+        EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DVC_BUILD_EXPERIMENTAL=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_DEVELOPER_WARNINGS=ON"
     tags:
         - docker
 
@@ -88,7 +88,7 @@ test:macos:static:
     needs: []
     variables:
         Qt5_DIR: "/usr/local/opt/qt5/lib/cmake/Qt5"
-        EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo"
+        EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_DEVELOPER_WARNINGS=ON"
     tags:
         - test
         - osx
@@ -102,7 +102,7 @@ test:macos:dynamic:
     needs: []
     variables:
         Qt5_DIR: "/usr/local/opt/qt5/lib/cmake/Qt5"
-        EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo"
+        EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_DEVELOPER_WARNINGS=ON"
     tags:
         - test
         - osx

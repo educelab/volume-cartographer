@@ -4,14 +4,11 @@
 
 #include <fstream>
 
-#include <boost/filesystem.hpp>
-
+#include "vc/core/filesystem.hpp"
 #include "vc/core/types/ITKMesh.hpp"
 #include "vc/core/types/Texture.hpp"
 
-namespace volcart
-{
-namespace io
+namespace volcart::io
 {
 /**
  * @class PLYWriter
@@ -36,13 +33,14 @@ public:
     PLYWriter() = default;
 
     /** @brief Constructor with output path and input mesh */
-    PLYWriter(boost::filesystem::path outputPath, const ITKMesh::Pointer& mesh)
+    PLYWriter(
+        volcart::filesystem::path outputPath, const ITKMesh::Pointer& mesh)
         : outputPath_{std::move(outputPath)}, mesh_{mesh}
     {
     }
     /** @brief Constructor with output path and textured mesh information */
     PLYWriter(
-        boost::filesystem::path outputPath,
+        volcart::filesystem::path outputPath,
         const ITKMesh::Pointer& mesh,
         volcart::Texture texture)
         : outputPath_{std::move(outputPath)}
@@ -58,10 +56,10 @@ public:
      * write() and validate() will fail if path does not have an expected
      * file extension (.ply/.PLY).
      */
-    void setPath(const boost::filesystem::path& path) { outputPath_ = path; }
+    void setPath(const volcart::filesystem::path& path) { outputPath_ = path; }
 
     /** @brief Return the output path */
-    boost::filesystem::path getPath() const { return outputPath_; }
+    volcart::filesystem::path getPath() const { return outputPath_; }
 
     /** @brief Set the input mesh */
     void setMesh(const ITKMesh::Pointer& mesh) { mesh_ = mesh; }
@@ -71,9 +69,6 @@ public:
 
     /** @brief Set per-vertex color information */
     void setVertexColors(const std::vector<uint16_t>& c);
-
-    /** @brief Validate parameters */
-    bool validate();
     /**@}*/
 
     /**@{*/
@@ -87,7 +82,7 @@ public:
 
 private:
     /** Output file path */
-    boost::filesystem::path outputPath_;
+    volcart::filesystem::path outputPath_;
     /** Output file stream */
     std::ofstream outputMesh_;
     /** Input mesh */
@@ -114,5 +109,4 @@ private:
      */
     int write_faces_();
 };
-}  // namespace io
-}  // namespace volcart
+}  // namespace volcart::io

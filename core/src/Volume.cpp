@@ -5,7 +5,7 @@
 
 #include <opencv2/imgcodecs.hpp>
 
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 
 using namespace volcart;
 
@@ -80,7 +80,10 @@ void Volume::setMax(double m) { metadata_.set("max", m); }
 
 Volume::Bounds Volume::bounds() const
 {
-    return {{0, 0, 0}, {width_, height_, slices_}};
+    return {
+        {0, 0, 0},
+        {static_cast<double>(width_), static_cast<double>(height_),
+         static_cast<double>(slices_)}};
 }
 
 bool Volume::isInBounds(double x, double y, double z) const

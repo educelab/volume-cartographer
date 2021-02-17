@@ -6,7 +6,7 @@
 using namespace volcart;
 using namespace volcart::landmarks;
 
-namespace fs = boost::filesystem;
+namespace fs = volcart::filesystem;
 
 VolumeLandmark::VolumeLandmark(
     const Identifier& uuid, const std::string& name, Type type)

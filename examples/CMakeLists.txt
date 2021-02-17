@@ -92,9 +92,6 @@ if(VC_USE_VCG OR VC_USE_OPTIONAL)
     )
 endif()
 
-add_executable(vc_asantest src/ASANTest.cpp)
-add_sanitizers(vc_asantest)
-
 add_executable(vc_orderedPointSetMesher_example
     src/OrderedPointSetMesherExample.cpp
 )

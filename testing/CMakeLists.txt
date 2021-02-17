@@ -1,6 +1,4 @@
 project(libvc_testing VERSION ${VC_VERSION} LANGUAGES CXX)
-set(module "testing")
-set(target "vc_${module}")
 
 set(srcs
     src/ParsingHelpers.cpp
@@ -8,26 +6,28 @@ set(srcs
 )
 set(defs "")
 
-add_library(${target} ${srcs})
-add_library("${namespace}${module}" ALIAS "${target}")
-target_include_directories(${target}
+add_library(vc_testing ${srcs})
+add_library(VC::testing ALIAS vc_testing)
+target_include_directories(vc_testing
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(${target}
+target_link_libraries(vc_testing
     PUBLIC
         VC::core
+        ${VC_FS_LIB}
     PRIVATE
         gtest
 )
-target_compile_definitions(${target}
+target_compile_definitions(vc_testing
     PUBLIC
         ${defs}
 )
-set_target_properties(${target} PROPERTIES
+target_compile_features(vc_testing PUBLIC cxx_std_17)
+set_target_properties(vc_testing PROPERTIES
     VERSION "${PROJECT_VERSION}"
-    EXPORT_NAME "${module}"
+    EXPORT_NAME testing
 )
 
 # Testing tests
@@ -38,7 +38,7 @@ set(test_srcs
 
 foreach(src ${test_srcs})
     get_filename_component(filename ${src} NAME_WE)
-    set(testname ${target}_${filename})
+    set(testname vc_testing_${filename})
     add_executable(${testname} ${src})
     target_link_libraries(${testname}
         VC::core

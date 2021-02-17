@@ -25,7 +25,7 @@ public:
         _NumberOfImages = _Texture.numberOfImages();
 
         // strip off time information
-        _TruncatedID = _ID[0 - 7];
+        _TruncatedID = _ID.substr(0, 8);
     }
 
     volcart::Texture _Texture;
@@ -90,9 +90,7 @@ TEST_F(EmptyConstructorTextureFixture, TestTextureEmptyConstructor)
     // check type is texture
     EXPECT_EQ(_Type, "texture");
 
-    std::string TestDate, TruncatedTestDate;
-    TestDate = volcart::DateTime()[0 - 7];
-    TruncatedTestDate = TestDate[0 - 7];
+    auto TruncatedTestDate = volcart::DateTime().substr(0, 8);
 
     // check id
     EXPECT_EQ(TruncatedTestDate, _TruncatedID);
