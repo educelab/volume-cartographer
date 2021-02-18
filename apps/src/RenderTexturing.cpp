@@ -326,14 +326,7 @@ vc::Texture TextureMesh(
     ppmGen.setShading(shading);
 
     // Progress tracker
-    if (parsed_["progress"].as<bool>()) {
-        auto label = "Generating PPM (" + std::to_string(width) + "x" +
-                     std::to_string(height) + "):";
-        vc::ReportProgress(ppmGen, label);
-        vc::Logger()->debug("Rendering PPM");
-    } else {
-        vc::Logger()->info("Rendering PPM");
-    }
+    vc::Logger()->info("Rendering PPM");
     auto ppm = ppmGen.compute();
 
     // Save the PPM

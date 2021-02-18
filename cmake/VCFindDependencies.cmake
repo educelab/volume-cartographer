@@ -75,6 +75,9 @@ find_package(spdlog 1.4.2 CONFIG REQUIRED)
 ### OpenABF ###
 include(BuildOpenABF)
 
+### bvh ###
+include(Buildbvh)
+
 ### Boost and indicators (for app use only)
 if(VC_BUILD_APPS OR VC_BUILD_UTILS)
     find_package(Boost 1.58 REQUIRED COMPONENTS system program_options)

@@ -22,7 +22,7 @@ set(private_deps
     vtkCommonCore
     vtkCommonDataModel
     vtkFiltersGeneral
-    OpenABF::OpenABF
+    Eigen3::Eigen
 )
 set(defs "")
 
@@ -32,6 +32,8 @@ target_compile_definitions(vc_texturing PUBLIC ${defs})
 target_include_directories(vc_texturing
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${openabf_SOURCE_DIR}/single_include>
+        $<BUILD_INTERFACE:${bvh_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
 target_link_libraries(vc_texturing
@@ -96,6 +98,9 @@ set(VC_TEXTURING_TEST_RES
     test/res/abf_Plane_LSCMOnly.obj
     test/res/abf_Arch.obj
     test/res/abf_Arch_LSCMOnly.obj
+    test/res/PPMGenerator_100x100.ppm
+    test/res/PPMGenerator_100x100_mask.png
+    test/res/PPMGenerator_100x100_cellmap.tif
 )
 
 # Copy each test resource file

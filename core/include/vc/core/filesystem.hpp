@@ -23,7 +23,7 @@ namespace volcart
 {
 /**
  * @namespace volcart::filesystem
- * @brief Alias for `volcart::filesystem`
+ * @brief Alias for `std::filesystem`
  *
  * If CMake variable `VC_USE_BOOSTFS` is false, then `VC_FS_LIB` is an
  * alias for `std::filesystem`. Otherwise, it is an alias for

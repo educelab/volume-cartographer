@@ -3,6 +3,7 @@
 #include <chrono>
 
 #include "vc/core/shapes/Plane.hpp"
+#include "vc/core/util/Iteration.hpp"
 #include "vc/texturing/PPMGenerator.hpp"
 
 namespace vc = volcart;
@@ -11,6 +12,46 @@ namespace vct = volcart::texturing;
 class PPMGeneratorTest : public testing::TestWithParam<int>
 {
 };
+
+TEST(PPMGeneratorTest, RegressionTest)
+{
+    // Build Plane UVMap
+    vc::shapes::Plane plane(5, 5);
+    auto mesh = plane.itkMesh();
+    vc::UVMap uvMap;
+    std::size_t id{0};
+    for (const auto uv : vc::range2D(5, 5)) {
+        auto u = double(uv.first) / 4.0;
+        auto v = double(uv.second) / 4.0;
+        uvMap.set(id++, {u, v});
+    }
+
+    // Setup PPM Generator
+    vct::PPMGenerator ppmGenerator;
+    ppmGenerator.setDimensions(100, 100);
+    ppmGenerator.setMesh(mesh);
+    ppmGenerator.setUVMap(uvMap);
+
+    // Generate PPM
+    auto ppm = ppmGenerator.compute();
+
+    // Compare against existing PPM
+    auto expected = vc::PerPixelMap::ReadPPM("PPMGenerator_100x100.ppm");
+
+    // Compare mappings
+    for (const auto [y, x] : vc::range2D(100, 100)) {
+        EXPECT_EQ(ppm.hasMapping(y, x), expected.hasMapping(y, x));
+
+        if (not ppm.hasMapping(y, x)) {
+            continue;
+        }
+
+        EXPECT_EQ(ppm(y, x), expected(y, x));
+        EXPECT_EQ(
+            ppm.cellMap().at<int32_t>(y, x),
+            expected.cellMap().at<int32_t>(y, x));
+    }
+}
 
 TEST_P(PPMGeneratorTest, PerformanceTest)
 {

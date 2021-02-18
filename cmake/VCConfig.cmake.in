@@ -41,9 +41,6 @@ find_dependency(TIFF QUIET REQUIRED)
 ### spdlog ###
 find_dependency(spdlog CONFIG QUIET REQUIRED)
 
-### OpenABF ###
-find_dependency(OpenABF QUIET REQUIRED)
-
 ### VCG ###
 if(@VC_USE_VCG@ OR @VC_USE_OPTIONAL@)
 find_dependency(VCG QUIET REQUIRED)

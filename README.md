@@ -208,6 +208,10 @@ under the [GNU General Public License v3.0](LICENSE). This project is free
 software: you can redistribute it and/or modify it under the terms of the GPLv3 
 or (at your option) any later version.
 
+This project incorporates software from many excellent external libraries and 
+projects. Please see [NOTICE](NOTICE) for more information about the licensing 
+terms of these projects.
+
 ## References
 For more information about the concepts of virtual unwrapping, please see the 
 following publications:

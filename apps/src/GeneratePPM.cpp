@@ -2,6 +2,7 @@
 #include "vc/core/filesystem.hpp"
 #include "vc/core/io/OBJReader.hpp"
 #include "vc/core/types/PerPixelMap.hpp"
+#include "vc/core/util/Logging.hpp"
 #include "vc/texturing/AngleBasedFlattening.hpp"
 #include "vc/texturing/PPMGenerator.hpp"
 
@@ -21,13 +22,12 @@ int main(int argc, char* argv[])
     fs::path ppmPath = argv[2];
 
     // Load mesh
-    std::cout << "Reading mesh..." << std::endl;
+    vc::Logger()->info("Loading mesh");
     vc::io::OBJReader reader;
     reader.setPath(meshPath);
     auto mesh = reader.read();
 
     // ABF
-    std::cout << "Computing parameterization..." << std::endl;
     vc::texturing::AngleBasedFlattening abf;
     abf.setMesh(mesh);
     abf.compute();
@@ -38,17 +38,15 @@ int main(int argc, char* argv[])
     auto height = static_cast<size_t>(std::ceil(width / uvMap.ratio().aspect));
 
     // PPM
+    vc::Logger()->info("Generating per-pixel map");
     vc::texturing::PPMGenerator p;
     p.setDimensions(height, width);
     p.setMesh(mesh);
     p.setUVMap(uvMap);
-    auto label = "Generating PPM (" + std::to_string(width) + "x" +
-                 std::to_string(height) + "):";
-    vc::ReportProgress(p, label);
     p.compute();
 
     // Write PPM
-    std::cout << "Writing per-pixel map..." << std::endl;
+    vc::Logger()->info("Writing per-pixel map");
     vc::PerPixelMap::WritePPM(ppmPath, p.getPPM());
 
     return EXIT_SUCCESS;
