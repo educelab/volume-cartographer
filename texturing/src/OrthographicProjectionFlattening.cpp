@@ -1,5 +1,7 @@
 #include "vc/texturing/OrthographicProjectionFlattening.hpp"
 
+#include <array>
+
 #include <vtkOBBTree.h>
 #include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
@@ -29,10 +31,10 @@ ITKMesh::Pointer OrthographicProjectionFlattening::compute()
     cv::Vec3d origin, xAxis, yAxis, zAxis;
 
     // Computes the OBB and returns the 3 axes
-    double size[3];
+    std::array<double, 3> size;
     auto obbTree = vtkSmartPointer<vtkOBBTree>::New();
     obbTree->ComputeOBB(
-        vtkMesh, origin.val, xAxis.val, yAxis.val, zAxis.val, size);
+        vtkMesh, origin.val, xAxis.val, yAxis.val, zAxis.val, size.data());
 
     // Calculate UV positions
     // Largest two BB axes are the projection plane
@@ -40,7 +42,8 @@ ITKMesh::Pointer OrthographicProjectionFlattening::compute()
     auto vLen = cv::norm(yAxis);
     auto uVec = xAxis / uLen;
     auto vVec = yAxis / vLen;
-    ITKPoint oldPt, newPt;
+    ITKPoint oldPt;
+    ITKPoint newPt;
     for (size_t i = 0; i < mesh_->GetNumberOfPoints(); ++i) {
         // Get the original point
         mesh_->GetPoint(i, &oldPt);

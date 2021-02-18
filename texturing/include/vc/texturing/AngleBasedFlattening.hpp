@@ -13,7 +13,15 @@
 namespace volcart::texturing
 {
 /**
- * @class AngleBasedFlattening
+ * @brief Parameterize a mesh using ABF++
+ *
+ * First, uses ABF++ to calculate the optimal, interior angles of the flattened
+ * mesh. Then uses an Angle-based formulation of Least Squares Conformal Maps to
+ * convert this angle-optimized parameterization into a full mesh
+ * parameterization.
+ *
+ * Implementation provided by the
+ * [OpenABF library](https://gitlab.com/educelab/OpenABF).
  *
  * @ingroup UV
  */

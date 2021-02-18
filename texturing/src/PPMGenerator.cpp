@@ -1,6 +1,16 @@
-#include <stdexcept>
+#include <exception>
+
+#include <bvh/bvh.hpp>
+#include <bvh/primitive_intersectors.hpp>
+#include <bvh/ray.hpp>
+#include <bvh/single_ray_traverser.hpp>
+#include <bvh/sweep_sah_builder.hpp>
+#include <bvh/triangle.hpp>
+#include <bvh/vector.hpp>
+#include <opencv2/core.hpp>
 
 #include "vc/core/util/BarycentricCoordinates.hpp"
+#include "vc/core/util/Iteration.hpp"
 #include "vc/meshing/CalculateNormals.hpp"
 #include "vc/meshing/DeepCopy.hpp"
 #include "vc/texturing/PPMGenerator.hpp"
@@ -11,6 +21,20 @@ using namespace texturing;
 namespace vcm = volcart::meshing;
 
 static constexpr uint8_t MASK_TRUE{255};
+
+using Scalar = double;
+using Vector3 = bvh::Vector3<Scalar>;
+using Triangle = bvh::Triangle<Scalar>;
+using Ray = bvh::Ray<Scalar>;
+using Bvh = bvh::Bvh<Scalar>;
+using Intersector = bvh::ClosestPrimitiveIntersector<Bvh, Triangle>;
+using Traverser = bvh::SingleRayTraverser<Bvh>;
+
+static cv::Vec3d GouraudNormal(
+    const cv::Vec3d& nUVW,
+    const cv::Vec3d& nA,
+    const cv::Vec3d& nB,
+    const cv::Vec3d& nC);
 
 PPMGenerator::PPMGenerator(size_t h, size_t w) : width_{w}, height_{h} {}
 
@@ -28,8 +52,6 @@ void PPMGenerator::setDimensions(size_t h, size_t w)
 void PPMGenerator::setShading(PPMGenerator::Shading s) { shading_ = s; }
 
 PerPixelMap PPMGenerator::getPPM() const { return ppm_; }
-
-cv::Mat PPMGenerator::getCellMap() const { return cellMap_; }
 
 size_t PPMGenerator::progressIterations() const { return width_ * height_; }
 
@@ -52,188 +74,127 @@ PerPixelMap PPMGenerator::compute()
         workingMesh_ = inputMesh_;
     }
 
-    // Make sure the storage vectors are clean
-    centroidMesh_ = ITKMesh::New();
-    cellInformation_.clear();
-
-    generate_centroid_mesh_();
-    generate_ppm_();
-
-    return ppm_;
-}
-
-// Generate the centroid mesh and other temporary data structures
-void PPMGenerator::generate_centroid_mesh_()
-{
-    ITKPoint centroid;
-    CellInfo info;
-    for (auto cell = workingMesh_->GetCells()->Begin();
-         cell != workingMesh_->GetCells()->End(); ++cell) {
-        info.reset();
-
-        cv::Vec3d twoD;
-        cv::Vec3d threeD;
-        cv::Vec3d normal;
-        for (auto* point = cell->Value()->PointIdsBegin();
-             point != cell->Value()->PointIdsEnd(); ++point) {
-            auto pointID = *point;
-
-            twoD[0] = uvMap_.get(pointID)[0];
-            twoD[1] = uvMap_.get(pointID)[1];
-            twoD[2] = 0.0;
-            info.pts2D.push_back(twoD);
-
-            threeD[0] = workingMesh_->GetPoint(pointID)[0];
-            threeD[1] = workingMesh_->GetPoint(pointID)[1];
-            threeD[2] = workingMesh_->GetPoint(pointID)[2];
-            info.pts3D.push_back(threeD);
-
-            // Get the vertex normals for this cell
-            ITKPixel n;
-            auto found = workingMesh_->GetPointData(pointID, &n);
-            if (found) {
-                info.normals.emplace_back(n[0], n[1], n[2]);
-            }
-        }
-
-        // Calculate the cell centroid and maximum centroid-vertex distance
-        info.centroid = ((info.pts2D[0] + info.pts2D[1] + info.pts2D[2]) / 3);
-        centroid = info.centroid.val;
-        for (const auto& v : info.pts2D) {
-            kdMaxDist_ = std::max(kdMaxDist_, cv::norm(v - info.centroid));
-        }
-
-        // Get the flat surface normal for this cell
-        if (shading_ == Shading::Flat) {
-            info.normals.clear();
-            auto v1v0 = info.pts3D[1] - info.pts3D[0];
-            auto v2v0 = info.pts3D[2] - info.pts3D[0];
-            info.normals.emplace_back(cv::normalize(v1v0.cross(v2v0)));
-        }
-
-        cellInformation_.push_back(info);
-        centroidMesh_->SetPoint(cell.Index(), centroid);
-    }
-}
-
-void PPMGenerator::generate_ppm_()
-{
     // Setup the output
     ppm_ = PerPixelMap(height_, width_);
-    mask_ = cv::Mat::zeros(height_, width_, CV_8UC1);
-    cellMap_ = cv::Mat(height_, width_, CV_32SC1);
-    cellMap_ = cv::Scalar::all(-1);
+    cv::Mat mask = cv::Mat::zeros(height_, width_, CV_8UC1);
+    cv::Mat cellMap = cv::Mat(height_, width_, CV_32SC1);
+    cellMap = cv::Scalar::all(-1);
 
-    // Setup the search tree
-    kdTree_ = ITKPointsLocator::New();
-    kdTree_->SetPoints(centroidMesh_->GetPoints());
-    kdTree_->Initialize();
+    // Create BVH for mesh
+    std::vector<Triangle> triangles;
+    for (auto cell = workingMesh_->GetCells()->Begin();
+         cell != workingMesh_->GetCells()->End(); ++cell) {
+        // Get the vertex IDs
+        auto a = cell->Value()->GetPointIdsContainer().GetElement(0);
+        auto b = cell->Value()->GetPointIdsContainer().GetElement(1);
+        auto c = cell->Value()->GetPointIdsContainer().GetElement(2);
+
+        auto uvA = uvMap_.get(a);
+        auto uvB = uvMap_.get(b);
+        auto uvC = uvMap_.get(c);
+
+        // Add the face to the BVH tree
+        triangles.emplace_back(
+            Vector3(uvA[0], uvA[1], 0), Vector3(uvB[0], uvB[1], 0),
+            Vector3(uvC[0], uvC[1], 0));
+    }
+    Bvh bvh;
+    bvh::SweepSahBuilder<Bvh> builder(bvh);
+    auto [bboxes, centers] = bvh::compute_bounding_boxes_and_centers(
+        triangles.data(), triangles.size());
+    auto meshBBox =
+        bvh::compute_bounding_boxes_union(bboxes.get(), triangles.size());
+    builder.build(meshBBox, bboxes.get(), centers.get(), triangles.size());
+    Intersector intersector(bvh, triangles.data());
+    Traverser traverser(bvh);
 
     // Iterate over all of the pixels
-    bool hintValid{false};
-    size_t lastCell{0};
     progressStarted();
-    for (size_t y = 0; y < height_; ++y) {
-        for (size_t x = 0; x < width_; ++x) {
-            progressUpdated(y * width_ + x);
-            find_cell_(x, y, hintValid, lastCell);
+    ITKCell::CellAutoPointer cell;
+    for (const auto [y, x] : range2D(height_, width_)) {
+        progressUpdated(y * width_ + x);
+        // This pixel's uv coordinate
+        cv::Vec3d uv{0, 0, 0};
+        uv[0] = static_cast<double>(x) / static_cast<double>(width_ - 1);
+        uv[1] = static_cast<double>(y) / static_cast<double>(height_ - 1);
+
+        // Intersect a ray with the data structure
+        Ray ray(Vector3(uv[0], uv[1], 0), Vector3(uv[0], uv[1], 1.0), 0.0, 1.0);
+        auto hit = traverser.traverse(ray, intersector);
+        if (not hit) {
+            continue;
         }
+
+        // Cell info
+        auto cellId = hit->primitive_index;
+        cell.TakeOwnership(new ITKTriangle);
+        workingMesh_->GetCell(cellId, cell);
+        auto a = cell->GetPointIdsContainer().GetElement(0);
+        auto b = cell->GetPointIdsContainer().GetElement(1);
+        auto c = cell->GetPointIdsContainer().GetElement(2);
+
+        // Get the 2D and 3D pts
+        std::vector<cv::Vec3d> uvPts;
+        std::vector<cv::Vec3d> xyzPts;
+        for (const auto& idx : {a, b, c}) {
+            auto uvPt = uvMap_.get(idx);
+            auto xyzPt = workingMesh_->GetPoint(idx);
+            uvPts.emplace_back(uvPt[0], uvPt[1], 0.0);
+            xyzPts.emplace_back(xyzPt[0], xyzPt[1], xyzPt[2]);
+        }
+
+        // Find the xyz coordinate of the original point
+        auto baryCoord =
+            CartesianToBarycentric(uv, uvPts[0], uvPts[1], uvPts[2]);
+        auto xyz =
+            BarycentricToCartesian(baryCoord, xyzPts[0], xyzPts[1], xyzPts[2]);
+
+        // Get this corresponding normal
+        cv::Vec3d xyzNorm;
+        if (shading_ == Shading::Flat) {
+            auto v1v0 = xyzPts[1] - xyzPts[0];
+            auto v2v0 = xyzPts[2] - xyzPts[0];
+            xyzNorm = cv::normalize(v1v0.cross(v2v0));
+        } else {
+            ITKPixel nA;
+            ITKPixel nB;
+            ITKPixel nC;
+            auto found = workingMesh_->GetPointData(a, &nA);
+            found &= workingMesh_->GetPointData(b, &nB);
+            found &= workingMesh_->GetPointData(c, &nC);
+            if (not found) {
+                throw std::runtime_error(
+                    "Performing smooth shading but missing vertex normal");
+            }
+            xyzNorm = GouraudNormal(
+                baryCoord, {nA[0], nA[1], nA[2]}, {nB[0], nB[1], nB[2]},
+                {nC[0], nC[1], nC[2]});
+        }
+
+        // Assign the cell index to the cell map
+        auto intX = static_cast<int>(x);
+        auto intY = static_cast<int>(y);
+        cellMap.at<int32_t>(intY, intX) = cellId;
+
+        // Assign the intensity value at the UV position
+        mask.at<uint8_t>(intY, intX) = MASK_TRUE;
+
+        // Assign 3D position to the lookup map
+        ppm_(y, x) = cv::Vec6d(
+            xyz(0), xyz(1), xyz(2), xyzNorm(0), xyzNorm(1), xyzNorm(2));
     }
     progressComplete();
 
     // Finish setting up the output
     ppm_.setUVMap(uvMap_);
-    ppm_.setMask(mask_);
-    ppm_.setCellMap(cellMap_);
-}
+    ppm_.setMask(mask);
+    ppm_.setCellMap(cellMap);
 
-void PPMGenerator::find_cell_(
-    size_t x, size_t y, bool& useHint, size_t& cellHint)
-{
-    // This pixel's uv coordinate
-    cv::Vec3d uv{0, 0, 0};
-    uv[0] = static_cast<double>(x) / static_cast<double>(width_ - 1);
-    uv[1] = static_cast<double>(y) / static_cast<double>(height_ - 1);
-
-    // Whether we've found a cell
-    CellInfo info;
-    cv::Vec3d baryCoord{0, 0, 0};
-
-    // Use the last cell as a hint if it's within the distance range
-    // Assumes norm is less expensive than barycentric test
-    bool cellFound{false};
-    if (useHint) {
-        info = cellInformation_[cellHint];
-        if (cv::norm(uv - info.centroid) <= kdMaxDist_) {
-            baryCoord = CartesianToBarycentric(
-                uv, info.pts2D[0], info.pts2D[1], info.pts2D[2]);
-            cellFound = BarycentricPointIsInTriangle(baryCoord);
-        }
-    }
-
-    // If no cell found, use a kd-Tree to find one
-    if (!cellFound) {
-        // Find the nearest cells
-        ITKPointsLocator::NeighborsIdentifierType neighborhood;
-        kdTree_->FindPointsWithinRadius(uv.val, kdMaxDist_, neighborhood);
-
-        // Iterate through the nearest cells
-        for (const auto& cell : neighborhood) {
-            // Skip the cell hint we've already checked
-            if (useHint and cell == cellHint) {
-                continue;
-            }
-
-            // Check if this pixel is in this cell
-            info = cellInformation_[cell];
-            baryCoord = CartesianToBarycentric(
-                uv, info.pts2D[0], info.pts2D[1], info.pts2D[2]);
-            cellFound = BarycentricPointIsInTriangle(baryCoord);
-
-            // Break if we found a matching cell
-            if (cellFound) {
-                useHint = true;
-                cellHint = cell;
-                break;
-            }
-        }
-    }
-
-    // If still no cell found, move to the next pixel
-    if (!cellFound) {
-        return;
-    }
-
-    // Find the xyz coordinate of the original point
-    cv::Vec3d xyz = BarycentricToCartesian(
-        baryCoord, info.pts3D[0], info.pts3D[1], info.pts3D[2]);
-
-    // Get this pixel's normal
-    cv::Vec3d xyzNorm;
-    switch (shading_) {
-        case Shading::Flat:
-            xyzNorm = info.normals.at(0);
-            break;
-        case Shading::Smooth:
-            xyzNorm = GouraudNormal(
-                baryCoord, info.normals.at(0), info.normals.at(1),
-                info.normals.at(2));
-            break;
-    }
-
-    // Assign the cell index to the cell map
-    cellMap_.at<int32_t>(y, x) = cellHint;
-
-    // Assign the intensity value at the UV position
-    mask_.at<uint8_t>(y, x) = MASK_TRUE;
-
-    // Assign 3D position to the lookup map
-    ppm_(y, x) =
-        cv::Vec6d(xyz(0), xyz(1), xyz(2), xyzNorm(0), xyzNorm(1), xyzNorm(2));
+    return ppm_;
 }
 
 // Convert from Barycentric coordinates to a smoothly interpolated normal
-cv::Vec3d PPMGenerator::GouraudNormal(
+cv::Vec3d GouraudNormal(
     const cv::Vec3d& nUVW,
     const cv::Vec3d& nA,
     const cv::Vec3d& nB,
