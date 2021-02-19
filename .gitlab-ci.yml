@@ -180,6 +180,8 @@ pages:
     - export SHA=$(git log -1 --format="%h")
 
 .rules:release: &rules_release
+    - if: '$CI_PROJECT_URL =~ /.*gitlab\.com.*/'
+      when: never
     - if: '$CI_COMMIT_TAG =~ /^v.*$/'
 
 .rules:nightly:collect: &rules_nightly_collect
