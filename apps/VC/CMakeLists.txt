@@ -17,7 +17,7 @@ set(srcs
 
 # Set up .app bundle stuff
 if (APPLE)
-    set(icon vc-logo.icns)
+    set(icon logo.icns)
     set_source_files_properties(${icon} PROPERTIES
         MACOSX_PACKAGE_LOCATION Resources
     )
