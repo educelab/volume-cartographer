@@ -3,6 +3,7 @@
 /** @file */
 
 #include <iterator>
+#include <memory>
 
 #include <indicators/cursor_control.hpp>
 #include <indicators/progress_bar.hpp>
