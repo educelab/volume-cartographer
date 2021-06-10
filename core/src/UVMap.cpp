@@ -1,5 +1,7 @@
 #include "vc/core/types/UVMap.hpp"
 
+#include "vc/core/util/Iteration.hpp"
+
 /** Top-left UV Origin */
 const static cv::Vec2d ORIGIN_TOP_LEFT(0, 0);
 /** Top-right UV Origin */
@@ -14,49 +16,48 @@ constexpr static int MIN_DEBUG_WIDTH = 50;
 
 using namespace volcart;
 
-/** Default UV Map drawing color */
-const cv::Scalar UVMap::DEFAULT_COLOR{0, 255, 0};
+inline cv::Vec2d OriginVector(const UVMap::Origin& o);
 
 void UVMap::set(size_t id, const cv::Vec2d& uv, const Origin& o)
 {
     // transform to be relative to top-left
     cv::Vec2d transformed;
-    cv::absdiff(uv, origin_vector_(o), transformed);
+    cv::absdiff(uv, OriginVector(o), transformed);
     map_[id] = transformed;
 }
 
 void UVMap::set(size_t id, const cv::Vec2d& uv) { set(id, uv, origin_); }
 
-cv::Vec2d UVMap::get(size_t id, const Origin& o)
+cv::Vec2d UVMap::get(size_t id, const Origin& o) const
 {
     auto it = map_.find(id);
     if (it != map_.end()) {
         // transform to be relative to the provided origin
         cv::Vec2d transformed;
-        cv::absdiff(it->second, origin_vector_(o), transformed);
+        cv::absdiff(it->second, OriginVector(o), transformed);
         return transformed;
     } else {
         return NULL_MAPPING;
     }
 }
 
-cv::Vec2d UVMap::get(size_t id) { return get(id, origin_); }
+cv::Vec2d UVMap::get(size_t id) const { return get(id, origin_); }
 
-cv::Vec2d UVMap::origin_vector_(const Origin& o)
+cv::Vec2d OriginVector(const UVMap::Origin& o)
 {
     switch (o) {
-        case Origin::TopLeft:
+        case UVMap::Origin::TopLeft:
             return ORIGIN_TOP_LEFT;
-        case Origin::TopRight:
+        case UVMap::Origin::TopRight:
             return ORIGIN_TOP_RIGHT;
-        case Origin::BottomLeft:
+        case UVMap::Origin::BottomLeft:
             return ORIGIN_BOTTOM_LEFT;
-        case Origin::BottomRight:
+        case UVMap::Origin::BottomRight:
             return ORIGIN_BOTTOM_RIGHT;
     }
 }
 
-cv::Mat UVMap::Plot(const UVMap& uv, const cv::Scalar& color)
+cv::Mat UVMap::Plot(const UVMap& uv, const Color& color)
 {
     auto w = static_cast<int>(std::ceil(uv.ratio_.width));
     if (w < MIN_DEBUG_WIDTH) {
@@ -73,6 +74,41 @@ cv::Mat UVMap::Plot(const UVMap& uv, const cv::Scalar& color)
     return r;
 }
 
+cv::Mat UVMap::Plot(
+    const UVMap& uv,
+    const ITKMesh::Pointer& mesh2D,
+    int width,
+    int height,
+    const Color& color)
+{
+    if (width < 0) {
+        width = std::max(
+            static_cast<int>(std::ceil(uv.ratio_.width)), MIN_DEBUG_WIDTH);
+    }
+
+    if (height < 0) {
+        height = static_cast<int>(std::ceil(width / uv.ratio_.aspect));
+    }
+    cv::Mat r = cv::Mat::zeros(height, width, CV_8UC3);
+
+    auto c = mesh2D->GetCells()->Begin();
+    auto end = mesh2D->GetCells()->End();
+    for (; c != end; ++c) {
+        auto vIds = c.Value()->GetPointIdsContainer();
+        for (const auto& [idx, vID] : enumerate(vIds)) {
+            auto a = uv.get(vID);
+            auto b = (idx + 1 == vIds.size()) ? uv.get(vIds[0])
+                                              : uv.get(vIds[idx + 1]);
+
+            cv::Point2d A{a[0] * (width - 1), a[1] * (height - 1)};
+            cv::Point2d B{b[0] * (width - 1), b[1] * (height - 1)};
+            cv::line(r, A, B, color, 1, cv::LINE_AA);
+        }
+    }
+
+    return r;
+}
+
 void UVMap::Rotate(UVMap& uv, double theta, const cv::Vec2d& center)
 {
     // Setup pts matrix
@@ -81,7 +117,7 @@ void UVMap::Rotate(UVMap& uv, double theta, const cv::Vec2d& center)
     for (const auto& p : uv.map_) {
         // transform so that operation happens relative to stored origin
         cv::Vec2d transformed;
-        cv::absdiff(p.second, uv.origin_vector_(uv.origin_), transformed);
+        cv::absdiff(p.second, OriginVector(uv.origin_), transformed);
 
         // to do, rotate relative to stored origin
         pts.at<double>(row, 0) = transformed[0];
@@ -138,7 +174,7 @@ void UVMap::Rotate(UVMap& uv, double theta, const cv::Vec2d& center)
 
         // transform back to storage origin
         cv::Vec2d transformed;
-        cv::absdiff(newPos, uv.origin_vector_(uv.origin_), transformed);
+        cv::absdiff(newPos, OriginVector(uv.origin_), transformed);
 
         // store
         p.second[0] = transformed[0];

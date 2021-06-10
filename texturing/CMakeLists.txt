@@ -12,6 +12,7 @@ set(srcs
     src/OrthographicProjectionFlattening.cpp
     src/AlignmentMarkerGenerator.cpp
     src/ThicknessTexture.cpp
+    src/FlatteningError.cpp
 )
 set(public_deps
     VC::core
@@ -70,6 +71,7 @@ if(VC_BUILD_TESTS)
 # Set source files
 set(test_srcs
     test/ABFTest.cpp
+    test/FlatteningErrorTest.cpp
     test/PPMGeneratorTest.cpp
 )
 
@@ -80,6 +82,7 @@ foreach(src ${test_srcs})
     add_executable(${testname} ${src})
     target_link_libraries(${testname}
         VC::texturing
+        VC::meshing
         VC::testing
         gtest_main
         gmock_main

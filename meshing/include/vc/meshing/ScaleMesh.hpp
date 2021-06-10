@@ -24,4 +24,12 @@ void ScaleMesh(
     const ITKMesh::Pointer& input,
     const ITKMesh::Pointer& output,
     double scaleFactor);
+
+/**
+ * @brief Scale an ITKMesh by a linear scale factor.
+ *
+ * Uniform scaling of an ITKMesh by a linear scale factor (not an area scale
+ * factor). Initializes a new ITKMesh.
+ */
+ITKMesh::Pointer ScaleMesh(const ITKMesh::Pointer& input, double scaleFactor);
 }  // namespace volcart::meshing

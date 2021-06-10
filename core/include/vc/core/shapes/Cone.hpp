@@ -31,7 +31,7 @@ namespace volcart::shapes
 class Cone : public ShapePrimitive
 {
 public:
-    Cone(int radius = 2, int height = 5, int recursion = 5)
+    Cone(int radius = 2, int height = 5, int recursion = 5, bool closed = true)
     {
         std::vector<cv::Vec3d> circle_list;
         cv::Vec3d c_point;
@@ -45,7 +45,6 @@ public:
         }
 
         int r = 0;
-
         while (r != recursion) {
             std::vector<cv::Vec3d> loop_list;
             loop_list = circle_list;
@@ -71,7 +70,9 @@ public:
         // cone point
         addVertex_(0, 0, 0);
         // mid point of circle
-        addVertex_(0, 0, height);
+        if (closed) {
+            addVertex_(0, 0, height);
+        }
 
         // generate the circle points
         for (auto& point : circle_list) {
@@ -81,17 +82,20 @@ public:
         // generate the cells for faces
         // Our two "center" points are v_id 0 && 1, so start at 2
         int B;
-        for (size_t v_id = 2; v_id < points_.size(); ++v_id) {
+        std::size_t v_id = (closed) ? 2 : 1;
+        for (; v_id < points_.size(); ++v_id) {
 
             // Handle the last point in the circle
             if (v_id == points_.size() - 1) {
-                B = 2;
+                B = (closed) ? 2 : 1;
             } else {
                 B = v_id + 1;
             }
 
-            addCell_(v_id, B, 0);
-            addCell_(v_id, B, 1);
+            addCell_(B, v_id, 0);
+            if (closed) {
+                addCell_(v_id, B, 1);
+            }
         }
 
     }  // Constructor

@@ -52,6 +52,8 @@ set(util_srcs
     src/FormatStrToRegexStr.cpp
     src/BarycentricCoordinates.cpp
     src/ImageConversion.cpp
+    src/ApplyLUT.cpp
+    src/ColorMaps.cpp
 )
 
 set(logging_srcs

@@ -1,39 +1,30 @@
 #include "vc/core/util/MeshMath.hpp"
 
 #include "vc/core/util/Logging.hpp"
+
 namespace volcart::meshmath
 {
 
-double SurfaceArea(const ITKMesh::Pointer& input)
+double SurfaceArea(const ITKMesh::Pointer& mesh)
 {
-    double surfaceArea = 0;
+    double surfaceArea{0};
+    for (auto cell = mesh->GetCells()->Begin(); cell != mesh->GetCells()->End();
+         ++cell) {
 
-    uint64_t vID0 = 0, vID1 = 0, vID2 = 0;
-    double a = 0, b = 0, c = 0, p = 0;
-    for (auto cell = input->GetCells()->Begin();
-         cell != input->GetCells()->End(); ++cell) {
-        vID0 = cell.Value()->GetPointIds()[0];
-        vID1 = cell.Value()->GetPointIds()[1];
-        vID2 = cell.Value()->GetPointIds()[2];
+        // Get vertices
+        auto vID0 = cell->Value()->GetPointIds()[0];
+        auto vID1 = cell->Value()->GetPointIds()[1];
+        auto vID2 = cell->Value()->GetPointIds()[2];
 
         // Get the side lengths
-        a = input->GetPoint(vID0).EuclideanDistanceTo(input->GetPoint(vID1));
-        b = input->GetPoint(vID0).EuclideanDistanceTo(input->GetPoint(vID2));
-        c = input->GetPoint(vID1).EuclideanDistanceTo(input->GetPoint(vID2));
+        auto a = mesh->GetPoint(vID0).EuclideanDistanceTo(mesh->GetPoint(vID1));
+        auto b = mesh->GetPoint(vID0).EuclideanDistanceTo(mesh->GetPoint(vID2));
+        auto c = mesh->GetPoint(vID1).EuclideanDistanceTo(mesh->GetPoint(vID2));
 
-        // Sort the side lengths so that a >= b >= c
-        double na, nb, nc;
-        nc = std::min(a, std::min(b, c));
-        na = std::max(a, std::max(b, c));
-        nb = a + b + c - na - nc;
+        // Get cell surface area
+        auto sa = TriangleArea(a, b, c);
 
-        // Calculate the area
-        p = (na + (nb + nc)) * (nc - (na - nb)) * (nc + (na - nb)) *
-            (na + (nb - nc));
-        double sa = 0.25 * sqrt(p);
-
-        // Can get NaN's when using standard C++ math. Explore something like
-        // GMP
+        // Note: Can get NaN's when using std::math
         if (std::isnan(sa)) {
             Logger()->error(
                 "volcart::meshMath: Warning: NaN surface area for face[{}]. "

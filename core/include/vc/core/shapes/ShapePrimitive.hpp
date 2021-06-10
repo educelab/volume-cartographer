@@ -90,10 +90,10 @@ public:
     bool isOrdered() const { return ordered_; }
 
     /** @brief Return the width of the ordered vertex set */
-    uint32_t orderedWidth() const { return orderedWidth_; }
+    size_t orderedWidth() const { return orderedWidth_; }
 
     /** @brief Return the height of the ordered vertex set */
-    uint32_t orderedHeight() const { return orderedHeight_; }
+    size_t orderedHeight() const { return orderedHeight_; }
     /**@}*/
 
 protected:
@@ -124,11 +124,11 @@ protected:
 
     /**@{*/
     /** Is the generated vertex set ordered? */
-    bool ordered_;
+    bool ordered_{false};
     /** Width of the ordered vertex set */
-    uint32_t orderedWidth_;
+    size_t orderedWidth_{0};
     /** Height of the ordered vertex set */
-    uint32_t orderedHeight_;
+    size_t orderedHeight_{0};
     /**@}*/
 };
 }  // namespace volcart::shapes

@@ -10,7 +10,10 @@
 
 #pragma once
 
+/** @file */
+
 #include <cstddef>
 
+/** @brief Get the available system memory in bytes */
 size_t SystemMemorySize();
 // clang-format on

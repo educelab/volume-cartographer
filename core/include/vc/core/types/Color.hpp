@@ -29,5 +29,7 @@ static const Color RED{0, 0, 255};
 static const Color GREEN{0, 255, 0};
 static const Color BLUE{255, 0, 0};
 static const Color CYAN{255, 255, 0};
+static const Color LIGHT_GRAY{200, 200, 200};
+static const Color DARK_GRAY{68, 68, 68};
 }  // namespace color
 }  // namespace volcart

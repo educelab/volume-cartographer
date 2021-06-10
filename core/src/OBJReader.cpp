@@ -61,7 +61,8 @@ void OBJReader::parse_()
         // Parse the line
         trim(line);
         strs = split(line, ' ');
-        std::for_each(std::begin(strs), std::end(strs), &trim);
+        std::for_each(
+            std::begin(strs), std::end(strs), [](auto& s) { trim(s); });
         if (strs.empty()) {
             continue;
         }
@@ -175,7 +176,8 @@ void OBJReader::parse_mtllib_(const std::vector<std::string>& strs)
     while (std::getline(ifs, line)) {
         trim(line);
         mtlstrs = split(line, ' ');
-        std::for_each(std::begin(mtlstrs), std::end(mtlstrs), &trim);
+        std::for_each(
+            std::begin(mtlstrs), std::end(mtlstrs), [](auto& s) { trim(s); });
         if (mtlstrs.empty()) {
             continue;
         }

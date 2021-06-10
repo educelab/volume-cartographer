@@ -273,7 +273,7 @@ inline auto ReportProgress(
     auto progressBar = NewProgressBar(iters, std::move(label));
     // Set starting text color
     if (useColors) {
-        progressBar->set_option(ForegroundColor{Color::yellow});
+        progressBar->set_option(ForegroundColor{indicators::Color::yellow});
     }
     // Connect to progress updates
     p.progressUpdated.connect([progressBar, iters, showIters](auto p) {
@@ -290,7 +290,7 @@ inline auto ReportProgress(
             progressBar->set_option(PostfixText{post});
         }
         if (useColors) {
-            progressBar->set_option(ForegroundColor{Color::green});
+            progressBar->set_option(ForegroundColor{indicators::Color::green});
         }
         progressBar->tick();
     });

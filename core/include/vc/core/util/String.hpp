@@ -17,6 +17,13 @@ static inline void to_upper(std::string& s)
     f.toupper(s.data(), s.data() + s.size());
 }
 
+/** @brief Convert string characters to upper case (r-value) */
+static inline std::string to_upper(std::string&& s)
+{
+    to_upper(s);
+    return s;
+}
+
 /** @brief Convert string characters to upper case (copy) */
 static inline std::string to_upper_copy(std::string s)
 {
@@ -29,6 +36,13 @@ static inline void to_lower(std::string& s)
 {
     const auto& f = std::use_facet<std::ctype<char>>(std::locale());
     f.tolower(s.data(), s.data() + s.size());
+}
+
+/** @brief Convert string characters to lower case (r-value) */
+static inline std::string to_lower(std::string&& s)
+{
+    to_lower(s);
+    return s;
 }
 
 /** @brief Convert string characters to lower case (copy) */
@@ -49,6 +63,17 @@ static inline void trim_left(std::string& s)
     s.erase(s.begin(), std::find_if_not(s.begin(), s.end(), [&loc](auto ch) {
                 return std::isspace(ch, loc);
             }));
+}
+
+/**
+ * @brief Left trim (r-value)
+ *
+ * https://stackoverflow.com/a/217605
+ */
+static inline std::string trim_left(std::string&& s)
+{
+    trim_left(s);
+    return s;
 }
 
 /**
@@ -79,6 +104,17 @@ static inline void trim_right(std::string& s)
 }
 
 /**
+ * @brief Right trim (r-value)
+ *
+ * https://stackoverflow.com/a/217605
+ */
+static inline std::string trim_right(std::string&& s)
+{
+    trim_right(s);
+    return s;
+}
+
+/**
  * @brief Right trim (copy)
  *
  * https://stackoverflow.com/a/217605
@@ -98,6 +134,17 @@ static inline void trim(std::string& s)
 {
     trim_left(s);
     trim_right(s);
+}
+
+/**
+ * @brief Trim from both ends (r-value)
+ *
+ * https://stackoverflow.com/a/217605
+ */
+static inline std::string trim(std::string&& s)
+{
+    trim(s);
+    return s;
 }
 
 /**

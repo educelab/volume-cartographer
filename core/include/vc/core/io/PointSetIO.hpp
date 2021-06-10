@@ -201,7 +201,8 @@ public:
         while (std::getline(infile, line)) {
             trim(line);
             strs = split(line, ':');
-            std::for_each(std::begin(strs), std::end(strs), &trim);
+            std::for_each(
+                std::begin(strs), std::end(strs), [](auto& s) { trim(s); });
 
             // Comments: look like:
             // # This is a comment
