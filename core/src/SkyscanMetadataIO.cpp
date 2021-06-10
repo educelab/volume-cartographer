@@ -74,7 +74,9 @@ void SkyscanMetadataIO::parse_()
         // Parse the line
         trim(line);
         lineTokens = split(line, '=');
-        std::for_each(std::begin(lineTokens), std::end(lineTokens), &trim);
+        std::for_each(
+            std::begin(lineTokens), std::end(lineTokens),
+            [](auto& s) { trim(s); });
 
         if (std::regex_match(lineTokens[0], scanner)) {
             metadata_.set<std::string>("scanner", lineTokens[1]);

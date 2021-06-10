@@ -15,9 +15,12 @@
 #include "vc/core/types/Color.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/types/VolumetricMask.hpp"
+#include "vc/core/util/ColorMaps.hpp"
 #include "vc/core/util/Logging.hpp"
+#include "vc/meshing/UVMapToITKMesh.hpp"
 #include "vc/texturing/AngleBasedFlattening.hpp"
 #include "vc/texturing/CompositeTexture.hpp"
+#include "vc/texturing/FlatteningError.hpp"
 #include "vc/texturing/IntegralTexture.hpp"
 #include "vc/texturing/IntersectionTexture.hpp"
 #include "vc/texturing/OrthographicProjectionFlattening.hpp"
@@ -28,8 +31,8 @@
 namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
+namespace vcm = volcart::meshing;
 namespace vct = volcart::texturing;
-namespace ind = indicators;
 
 extern po::variables_map parsed_;
 extern vc::VolumePkg::Pointer vpkg_;
@@ -72,8 +75,15 @@ po::options_description GetUVOpts()
                 "  0 = Vertical\n"
                 "  1 = Horizontal\n"
                 "  2 = Both")
-        ("uv-plot", po::value<std::string>(), "Plot the UV map and save "
-            "it to the provided image path.");
+        ("uv-plot", po::value<std::string>(), "Plot the UV points and save "
+            "it to the provided image path.")
+        ("uv-plot-error", po::value<std::string>(), "Plot the UV L-stretch "
+            "error metrics and save them to the provided image path. The "
+            "provided filename will have \'_l2\' and \'lInf\' appended for "
+            "each metric: e.g. providing \'foo.png\' to this argument will "
+            "produce image files \'foo_l2.png\' and \'foo_lInf.png\'")
+        ("uv-plot-error-legend", po::value<bool>()->default_value(true),
+            "If enabled (default), add a legend to the UV error plot images");
     // clang-format on
 
     return opts;
@@ -207,6 +217,7 @@ po::options_description GetPostProcessOpts()
 vc::UVMap FlattenMesh(const vc::ITKMesh::Pointer& mesh, bool resampled)
 {
     vc::UVMap uvMap;
+    vc::ITKMesh::Pointer uvMesh;
     if (parsed_.count("reuse-uv")) {
         if (!resampled) {
             uvMap = parsedUVMap_;
@@ -229,7 +240,7 @@ vc::UVMap FlattenMesh(const vc::ITKMesh::Pointer& mesh, bool resampled)
             vct::AngleBasedFlattening abf(mesh);
             abf.setUseABF(method == FlatteningAlgorithm::ABF);
             try {
-                abf.compute();
+                uvMesh = abf.compute();
             } catch (const std::exception& e) {
                 vc::Logger()->critical(e.what());
                 std::exit(EXIT_FAILURE);
@@ -240,7 +251,7 @@ vc::UVMap FlattenMesh(const vc::ITKMesh::Pointer& mesh, bool resampled)
         else if (method == FlatteningAlgorithm::Orthographic) {
             vct::OrthographicProjectionFlattening ortho;
             ortho.setMesh(mesh);
-            ortho.compute();
+            uvMesh = ortho.compute();
             uvMap = ortho.getUVMap();
         }
     }
@@ -261,11 +272,56 @@ vc::UVMap FlattenMesh(const vc::ITKMesh::Pointer& mesh, bool resampled)
         vc::UVMap::Flip(uvMap, axis);
     }
 
+    // Need a UV mesh if we're plotting the UV map
+    if (not uvMesh and
+        (parsed_.count("uv-plot") > 0 or parsed_.count("uv-plot-error") > 0)) {
+        vcm::UVMapToITKMesh uv2mesh;
+        uv2mesh.setMesh(mesh);
+        uv2mesh.setUVMap(uvMap);
+        uv2mesh.setScaleToUVDimensions(true);
+        uvMesh = uv2mesh.compute();
+    }
+
     // Plot the UV Map
     if (parsed_.count("uv-plot") > 0) {
-        vc::Logger()->info("Saving UV plot");
+        vc::Logger()->info("Saving UV map plot");
         fs::path uvPlotPath = parsed_["uv-plot"].as<std::string>();
-        cv::imwrite(uvPlotPath.string(), vc::UVMap::Plot(uvMap));
+        cv::imwrite(uvPlotPath.string(), vc::UVMap::Plot(uvMap, uvMesh));
+    }
+
+    // Plot the UV error maps
+    if (parsed_.count("uv-plot-error") > 0) {
+        auto errMetrics = vct::LStretch(mesh, uvMesh);
+        // Invert metrics. See note in LStretchMetrics
+        errMetrics = vct::InvertLStretchMetrics(errMetrics);
+        vc::Logger()->info(
+            "Calculated L-stretch flattening error :: Inverted Mesh L2: {:.5g} "
+            "|| Inverted Mesh LInf: {:.5g}",
+            errMetrics.l2, errMetrics.lInf);
+
+        // Generate cell map since we don't have one yet
+        vc::Logger()->info("Generating per-face UV error plots");
+        auto width = static_cast<size_t>(std::ceil(uvMap.ratio().width));
+        auto height = static_cast<size_t>(std::ceil(uvMap.ratio().height));
+        auto cellMap = vct::GenerateCellMap(uvMesh, uvMap, height, width);
+
+        // Generate the error plots
+        auto legend = parsed_["uv-plot-error-legend"].as<bool>();
+        auto errPlots = vct::PlotLStretchError(
+            errMetrics, cellMap, vc::ColorMap::Plasma, legend);
+
+        // Save the plots
+        vc::Logger()->info("Saving UV error plots");
+        fs::path plotBase = parsed_["uv-plot-error"].as<std::string>();
+        auto l2File =
+            plotBase.stem().string() + "_l2" + plotBase.extension().string();
+        auto l2Path = plotBase.parent_path() / l2File;
+        cv::imwrite(l2Path.string(), errPlots[0]);
+
+        auto lInfFile =
+            plotBase.stem().string() + "_lInf" + plotBase.extension().string();
+        auto lInfPath = plotBase.parent_path() / lInfFile;
+        cv::imwrite(lInfPath.string(), errPlots[1]);
     }
 
     return uvMap;

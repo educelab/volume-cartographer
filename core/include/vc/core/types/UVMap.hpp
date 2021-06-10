@@ -8,6 +8,9 @@
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 
+#include "vc/core/types/Color.hpp"
+#include "vc/core/types/ITKMesh.hpp"
+
 namespace volcart
 {
 /** Null/Undefined UV Mapping */
@@ -112,14 +115,14 @@ public:
      *
      * Point is retrieved relative to the provided origin.
      */
-    cv::Vec2d get(size_t id, const Origin& o);
+    cv::Vec2d get(size_t id, const Origin& o) const;
 
     /**
      * @copybrief get()
      *
      * Point is retrieved relative to the origin returned by origin().
      */
-    cv::Vec2d get(size_t id);
+    cv::Vec2d get(size_t id) const;
     /**@}*/
 
     /**@{*/
@@ -139,8 +142,6 @@ public:
     /**@}*/
 
     /**@{*/
-    const static cv::Scalar DEFAULT_COLOR;
-
     /** Flipping axis enumeration */
     enum class FlipAxis { Vertical = 0, Horizontal, Both };
 
@@ -149,8 +150,19 @@ public:
      *
      * For debug purposes only.
      */
+    static cv::Mat Plot(const UVMap& uv, const Color& color = color::GREEN);
+
+    /**
+     * @brief Plot the UV mesh on an image
+     *
+     * For debug purposes only.
+     */
     static cv::Mat Plot(
-        const UVMap& uv, const cv::Scalar& color = DEFAULT_COLOR);
+        const UVMap& uv,
+        const ITKMesh::Pointer& mesh2D,
+        int width = -1,
+        int height = -1,
+        const Color& color = color::LIGHT_GRAY);
 
     /**
      * @brief Rotate a UVMap by a specified angle in radians
@@ -172,7 +184,5 @@ private:
     Origin origin_{Origin::TopLeft};
     /** Aspect ratio */
     Ratio ratio_;
-
-    cv::Vec2d origin_vector_(const Origin& o);
 };
 }  // namespace volcart

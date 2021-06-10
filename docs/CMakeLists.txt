@@ -23,11 +23,15 @@ set(DOX_FILES
 )
 
 set(DOX_DIRS
+    ${PROJECT_SOURCE_DIR}/docs/pages/
     ${PROJECT_SOURCE_DIR}/core/include/
     ${PROJECT_SOURCE_DIR}/meshing/include/
     ${PROJECT_SOURCE_DIR}/segmentation/include/
-    ${PROJECT_SOURCE_DIR}/testing/include/
     ${PROJECT_SOURCE_DIR}/texturing/include/
+)
+
+set(DOXYGEN_EXCLUDE
+    ${PROJECT_SOURCE_DIR}/core/include/vc/core/third_party
 )
 
 set(DOXYGEN_STRIP_FROM_INC_PATH ${DOX_DIRS})

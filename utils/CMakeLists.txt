@@ -154,6 +154,16 @@ target_link_libraries(vc_flatten_mesh
 )
 list(APPEND utils_install_list vc_flatten_mesh)
 
+# vc_color_map
+add_executable(vc_color_map src/ApplyColorMap.cpp)
+target_link_libraries(vc_color_map VC::core Boost::program_options)
+list(APPEND utils_install_list vc_color_map)
+
+# vc_cmap_bar
+# Used to generate example colormap bars for documentation
+add_executable(vc_cmap_bar src/GenerateColorMapBar.cpp)
+target_link_libraries(vc_cmap_bar VC::core Boost::program_options)
+
 # Install targets
 if(VC_INSTALL_UTILS)
 install(

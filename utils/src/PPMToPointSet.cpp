@@ -119,7 +119,8 @@ ROI ParseROI(const std::string& opt)
 
     // Split the opt string
     auto strs = vc::split(opt, 'x', ',', '+');
-    std::for_each(std::begin(strs), std::end(strs), &vc::trim);
+    std::for_each(
+        std::begin(strs), std::end(strs), [](auto& s) { vc::trim(s); });
 
     if (strs.size() != 4) {
         std::cerr << "Cannot parse ROI: " << opt << std::endl;

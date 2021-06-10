@@ -19,6 +19,7 @@ using namespace volcart;
 using namespace texturing;
 
 namespace vcm = volcart::meshing;
+namespace vct = volcart::texturing;
 
 static constexpr uint8_t MASK_TRUE{255};
 
@@ -202,4 +203,66 @@ cv::Vec3d GouraudNormal(
 {
     return cv::normalize(
         (1 - nUVW[0] - nUVW[1]) * nA + nUVW[1] * nB + nUVW[2] * nC);
+}
+
+cv::Mat vct::GenerateCellMap(
+    const ITKMesh::Pointer& mesh,
+    const UVMap& uvMap,
+    std::size_t height,
+    std::size_t width)
+{
+
+    auto cellMap = cv::Mat(height, width, CV_32SC1);
+    cellMap = cv::Scalar::all(-1);
+
+    // Create BVH for mesh
+    std::vector<Triangle> triangles;
+    for (auto cell = mesh->GetCells()->Begin(); cell != mesh->GetCells()->End();
+         ++cell) {
+        // Get the vertex IDs
+        auto a = cell->Value()->GetPointIdsContainer().GetElement(0);
+        auto b = cell->Value()->GetPointIdsContainer().GetElement(1);
+        auto c = cell->Value()->GetPointIdsContainer().GetElement(2);
+
+        auto uvA = uvMap.get(a);
+        auto uvB = uvMap.get(b);
+        auto uvC = uvMap.get(c);
+
+        // Add the face to the BVH tree
+        triangles.emplace_back(
+            Vector3(uvA[0], uvA[1], 0), Vector3(uvB[0], uvB[1], 0),
+            Vector3(uvC[0], uvC[1], 0));
+    }
+    Bvh bvh;
+    bvh::SweepSahBuilder<Bvh> builder(bvh);
+    auto [bboxes, centers] = bvh::compute_bounding_boxes_and_centers(
+        triangles.data(), triangles.size());
+    auto meshBBox =
+        bvh::compute_bounding_boxes_union(bboxes.get(), triangles.size());
+    builder.build(meshBBox, bboxes.get(), centers.get(), triangles.size());
+    Intersector intersector(bvh, triangles.data());
+    Traverser traverser(bvh);
+
+    ITKCell::CellAutoPointer cell;
+    for (const auto [y, x] : range2D(height, width)) {
+        // This pixel's uv coordinate
+        cv::Vec3d uv{0, 0, 0};
+        uv[0] = static_cast<double>(x) / static_cast<double>(width - 1);
+        uv[1] = static_cast<double>(y) / static_cast<double>(height - 1);
+
+        // Intersect a ray with the data structure
+        Ray ray(Vector3(uv[0], uv[1], 0), Vector3(uv[0], uv[1], 1.0), 0.0, 1.0);
+        auto hit = traverser.traverse(ray, intersector);
+        if (not hit) {
+            continue;
+        }
+
+        // Assign the cell index to the cell map
+        auto intX = static_cast<int>(x);
+        auto intY = static_cast<int>(y);
+        cellMap.at<int32_t>(intY, intX) =
+            static_cast<int>(hit->primitive_index);
+    }
+
+    return cellMap;
 }
