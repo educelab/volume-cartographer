@@ -264,7 +264,7 @@ collect:source:nightly:
     extends: .build
     variables:
         Qt5_DIR: "/usr/local/opt/qt5/lib/cmake/Qt5"
-        EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON -DVC_BUILD_EXAMPLES=OFF -DVC_BUILD_TESTS=OFF -DVC_CODESIGN_ID=EduceLab"
+        EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON -DVC_BUILD_EXAMPLES=OFF -DVC_BUILD_TESTS=OFF -DVC_INSTALL_LIBS=OFF -DVC_CODESIGN_ID=EduceLab"
     before_script:
         - export VC_DEPS_PATH="$CI_PROJECT_DIR/vc-deps"
         - export CMAKE_CMD="cmake -GNinja $EXTRA_CMAKE_FLAGS .."
@@ -305,7 +305,7 @@ collect:binaries:macos:nightly:
     rules:
         *rules_nightly_collect
     variables:
-        EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_VERSION_DATESTAMP=ON -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON -DVC_BUILD_EXAMPLES=OFF -DVC_BUILD_TESTS=OFF"
+        EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_VERSION_DATESTAMP=ON -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON -DVC_BUILD_EXAMPLES=OFF -DVC_BUILD_TESTS=OFF -DVC_INSTALL_LIBS=OFF -DVC_CODESIGN_ID=EduceLab"
 
 .upload_final_build:
     variables:
