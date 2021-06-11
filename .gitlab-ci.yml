@@ -240,11 +240,31 @@ collect:source:nightly:
     - mv VC*.dmg ../
     - mv VC*.tar.gz ../
 
+.macos_setup_code_sign: &macos_setup_code_sign
+    - |
+      HAS_KEYCHAIN=$(security list-keychains | grep build.keychain | wc -w | xargs)
+      if [ ${HAS_KEYCHAIN} -eq 0 ]; then
+          echo "Adding build.keychain"
+          security create-keychain -p ${BUILD_KEYCHAIN_PWD} build.keychain
+          security list-keychains -d user -s login.keychain build.keychain
+          security default-keychain -s build.keychain
+      fi
+    - security unlock-keychain -p ${BUILD_KEYCHAIN_PWD} build.keychain
+    - |
+      HAS_CERT=$(security find-identity | grep EduceLab | wc -w | xargs)
+      if [ ${HAS_CERT} -eq 0 ]; then
+          echo "Importing certificate"
+          echo ${MACOS_CERTIFICATE} | base64 --decode > certificate.p12
+          security import certificate.p12 -k build.keychain -P ${MACOS_CERTIFICATE_PWD} -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k ${BUILD_KEYCHAIN_PWD} build.keychain
+          rm certificate.p12
+      fi
+
 .collect:package:macos:
     extends: .build
     variables:
         Qt5_DIR: "/usr/local/opt/qt5/lib/cmake/Qt5"
-        EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON -DVC_BUILD_EXAMPLES=OFF -DVC_BUILD_TESTS=OFF"
+        EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON -DVC_BUILD_EXAMPLES=OFF -DVC_BUILD_TESTS=OFF -DVC_CODESIGN_ID=EduceLab"
     before_script:
         - export VC_DEPS_PATH="$CI_PROJECT_DIR/vc-deps"
         - export CMAKE_CMD="cmake -GNinja $EXTRA_CMAKE_FLAGS .."
@@ -256,6 +276,7 @@ collect:source:nightly:
         - ninja
         - cd ../../
         - export SDKROOT="$CI_PROJECT_DIR/vc-deps/build/osx-sdk-prefix/SDKs/MacOSX${MACOSX_DEPLOYMENT_TARGET}.sdk/"
+        - *macos_setup_code_sign
     script:
         - *build_script
         - *macos_move_package

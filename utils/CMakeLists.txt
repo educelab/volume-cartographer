@@ -172,3 +172,10 @@ install(
     COMPONENT Utilities
 )
 endif()
+
+# Code sign installed targets
+if(VC_CODESIGN_ID)
+    foreach(app ${utils_install_list})
+        codesign_executable(${app} ${VC_CODESIGN_ID})
+    endforeach()
+endif()

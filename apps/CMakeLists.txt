@@ -193,21 +193,32 @@ if (VC_BUILD_EXPERIMENTAL)
     )
 endif()
 
-# Install targets
+# List of installed executables
+set(apps_install_list
+    vc_layers
+    vc_layers_from_ppm
+    vc_mesher
+    vc_packager
+    vc_segment
+    vc_render
+    vc_render_from_ppm
+    vc_projection
+    vc_volpkg_explorer
+    vc_volume_server
+)
+
+# Add to install targets
 if(VC_INSTALL_APPS)
 install(
-    TARGETS
-        vc_layers
-        vc_layers_from_ppm
-        vc_mesher
-        vc_packager
-        vc_segment
-        vc_render
-        vc_render_from_ppm
-        vc_projection
-        vc_volpkg_explorer
-        vc_volume_server
+    TARGETS ${apps_install_list}
     RUNTIME DESTINATION bin
     COMPONENT Programs
 )
+endif()
+
+# Code sign installed targets
+if(VC_CODESIGN_ID)
+    foreach(app ${apps_install_list})
+        codesign_executable(${app} ${VC_CODESIGN_ID})
+    endforeach()
 endif()

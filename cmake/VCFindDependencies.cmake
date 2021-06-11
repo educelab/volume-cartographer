@@ -84,6 +84,8 @@ if(VC_BUILD_APPS OR VC_BUILD_UTILS)
     include(BuildIndicators)
 endif()
 
+### Find codesign
+find_package(CodeSign QUIET)
 
 ############
 # Optional #

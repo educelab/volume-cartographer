@@ -32,7 +32,7 @@ if (APPLE)
         ${copyright}
     )
     set(MACOSX_BUNDLE_INFO_STRING ${info_string})
-    set(MACOSX_BUNDLE_GUI_IDENTIFIER "${target}")
+    set(MACOSX_BUNDLE_GUI_IDENTIFIER "${CodeSign_EXECUTABLE_NS}.${target}")
     set(MACOSX_BUNDLE_LONG_VERSION_STRING
         "${target}-${CMAKE_BUILD_TYPE} Version ${PROJECT_VERSION}")
     set(MACOSX_BUNDLE_BUNDLE_NAME ${target})
@@ -72,4 +72,8 @@ endif()
 
 if (VC_INSTALL_APPS AND (APPLE OR WIN32))
     qt5_deploy_bundle(${target})
+endif()
+
+if(VC_CODESIGN_ID)
+    codesign_bundle(${target} ${VC_CODESIGN_ID})
 endif()

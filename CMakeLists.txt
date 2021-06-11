@@ -56,6 +56,12 @@ if (VC_BUILD_TESTS)
     enable_testing()
 endif()
 
+cmake_dependent_option(VC_CODESIGN_ID "ID of the code signing certificate" "" "APPLE;CodeSign_FOUND;VC_BUILD_APPS;VC_BUILD_UTILS" "")
+if(VC_CODESIGN_ID)
+    message(STATUS "Using code signing identity: ${VC_CODESIGN_ID}")
+    set(CodeSign_EXECUTABLE_NS edu.uky.educelab)
+endif()
+
 ## VC Libraries ##
 option(VC_DEVELOPER_WARNINGS "For developers: Enable extensive compiler warnings" OFF)
 mark_as_advanced(VC_DEVELOPER_WARNINGS)
