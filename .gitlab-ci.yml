@@ -241,16 +241,16 @@ collect:source:nightly:
     - mv VC*.tar.gz ../
 
 .macos_setup_code_sign: &macos_setup_code_sign
+    - export HAS_KEYCHAIN=$(security list-keychains | grep build.keychain | wc -w | xargs)
     - |
-      HAS_KEYCHAIN=$(security list-keychains | grep build.keychain | wc -w | xargs)
       if [ ${HAS_KEYCHAIN} -eq 0 ]; then
           echo "Adding build.keychain"
           security create-keychain -p ${BUILD_KEYCHAIN_PWD} build.keychain
           security list-keychains -d user -s login.keychain build.keychain
       fi
     - security unlock-keychain -p ${BUILD_KEYCHAIN_PWD} build.keychain
+    - export HAS_CERT=$(security find-identity | grep EduceLab | wc -w | xargs)
     - |
-      HAS_CERT=$(security find-identity | grep EduceLab | wc -w | xargs)
       if [ ${HAS_CERT} -eq 0 ]; then
           echo "Importing certificate"
           echo ${MACOS_CERTIFICATE} | base64 --decode > certificate.p12
@@ -294,6 +294,7 @@ collect:binaries:macos:release:
     extends:
         - .collect:package:macos
     stage: collect
+    needs: []
     rules:
         *rules_release
 
@@ -301,6 +302,7 @@ collect:binaries:macos:nightly:
     extends:
         - .collect:package:macos
     stage: collect
+    needs: []
     rules:
         *rules_nightly_collect
     variables:
@@ -334,7 +336,7 @@ deploy:release:
     extends:
         - .upload_final_build
     stage: deploy
-    needs: ["collect:source:release", "collect:binaries:macos:release"]
+    needs: ["test:debian:static", "test:macos:static", "collect:source:release", "collect:binaries:macos:release"]
     rules:
         *rules_release
     variables:
@@ -367,7 +369,7 @@ deploy:nightly:
     extends:
         - .upload_final_build
     stage: deploy
-    needs: ["collect:source:nightly", "collect:binaries:macos:nightly"]
+    needs: ["test:debian:static", "test:macos:static", "collect:source:nightly", "collect:binaries:macos:nightly"]
     rules:
         *rules_nightly_deploy
     variables:
