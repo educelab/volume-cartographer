@@ -247,7 +247,6 @@ collect:source:nightly:
           echo "Adding build.keychain"
           security create-keychain -p ${BUILD_KEYCHAIN_PWD} build.keychain
           security list-keychains -d user -s login.keychain build.keychain
-          security default-keychain -s build.keychain
       fi
     - security unlock-keychain -p ${BUILD_KEYCHAIN_PWD} build.keychain
     - |
