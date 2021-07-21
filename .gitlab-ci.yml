@@ -30,8 +30,10 @@ variables:
     rules:
         - if: '$CI_PROJECT_URL =~ /.*gitlab\.com.*/'
           when: never
-        - if: '$CI_PROJECT_URL !~ /.*gitlab\.com.*/'
-          when: always
+        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+        - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
+          when: never
+        - if: '$CI_COMMIT_BRANCH'
 
 .build_and_test:
     extends: .build
@@ -41,8 +43,10 @@ variables:
     rules:
         - if: '$CI_PROJECT_URL =~ /.*gitlab\.com.*/'
           when: never
-        - if: '$CI_PROJECT_URL !~ /.*gitlab\.com.*/'
-          when: always
+        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+        - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
+          when: never
+        - if: '$CI_COMMIT_BRANCH'
     artifacts:
         name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
         paths:
@@ -55,7 +59,7 @@ test:debian:static:
     extends: .build_and_test
     stage: test
     needs: []
-    image: volcart/vcbuilder-debian:10_v1.static
+    image: volcart/vcbuilder-debian:10_v2.static
     variables:
         EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_DEVELOPER_WARNINGS=ON"
     tags:
@@ -65,7 +69,7 @@ test:debian:dynamic:
     extends: .build_and_test
     stage: test
     needs: []
-    image: volcart/vcbuilder-debian:10_v1.dynamic
+    image: volcart/vcbuilder-debian:10_v2.dynamic
     variables:
         EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_DEVELOPER_WARNINGS=ON"
     tags:
@@ -75,7 +79,7 @@ test:debian:experimental:
     extends: .build_and_test
     stage: test
     needs: []
-    image: volcart/vcbuilder-debian:10_v1.experimental
+    image: volcart/vcbuilder-debian:10_v2.experimental
     variables:
         EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DVC_BUILD_EXPERIMENTAL=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_DEVELOPER_WARNINGS=ON"
     tags:
@@ -125,8 +129,10 @@ lint:clang-format:
     rules:
         - if: '$CI_PROJECT_URL =~ /.*gitlab\.com.*/'
           when: never
-        - if: '$CI_PROJECT_URL !~ /.*gitlab\.com.*/'
-          when: always
+        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+        - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
+          when: never
+        - if: '$CI_COMMIT_BRANCH'
 
 lint:clang-tidy:
     stage: lint
@@ -147,8 +153,10 @@ lint:clang-tidy:
     rules:
         - if: '$CI_PROJECT_URL =~ /.*gitlab\.com.*/'
           when: never
-        - if: '$CI_PROJECT_URL !~ /.*gitlab\.com.*/'
-          when: always
+        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+        - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
+          when: never
+        - if: '$CI_COMMIT_BRANCH'
 
 ### Documentation ###
 pages:
@@ -180,9 +188,7 @@ pages:
     - export SHA=$(git log -1 --format="%h")
 
 .rules:release: &rules_release
-    - if: '$CI_PROJECT_URL =~ /.*gitlab\.com.*/'
-      when: never
-    - if: '$CI_COMMIT_TAG =~ /^v.*$/'
+    - if: '$CI_COMMIT_TAG =~ /^v.*$/ && $CI_PROJECT_URL !~ /.*gitlab\.com.*/'
 
 .rules:nightly:collect: &rules_nightly_collect
     - if: $CI_COMMIT_TAG
