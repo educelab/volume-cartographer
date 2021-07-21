@@ -4,9 +4,9 @@ if (VC_USE_ACVD OR VC_USE_OPTIONAL)
   if(VC_BUILD_ACVD)
     # Declare the project
     FetchContent_Declare(
-            acvd
-            GIT_REPOSITORY https://github.com/csparker247/ACVD.git
-            GIT_TAG v1.1.3
+        acvd
+        GIT_REPOSITORY https://gitlab.com/educelab/acvd.git
+        GIT_TAG v1.1.4
     )
     
     # Populate the project but exclude from all
