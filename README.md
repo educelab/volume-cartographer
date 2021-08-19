@@ -20,7 +20,8 @@ library
 * Eigen3 3.2+
 * spdlog 1.4.2+
 * Boost Program Options 1.58+: Required if building applications or utilities.
-* Qt 5.15+: Required if building applications or utilities.
+* Qt 5.9+: Required if building applications or utilities. 
+    - The `vc_volume_server` app requires Qt 5.15+
 
 **Optional**
 * Boost Filesystem 1.58+

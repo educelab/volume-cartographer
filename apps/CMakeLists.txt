@@ -141,6 +141,7 @@ target_link_libraries(vc_volpkg_explorer
 )
 
 ## Volume Server ##
+if(Qt5_VERSION VERSION_GREATER_EQUAL 5.15)
 add_executable(vc_volume_server
     src/VolumeServerApp.cpp
     src/VolumeServer.cpp
@@ -179,6 +180,8 @@ target_link_libraries(vc_volume_client
 target_include_directories(vc_volume_client PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
+set(extra_apps vc_volume_server)
+endif()
 
 ## Cloth Flattening ##
 if (VC_BUILD_EXPERIMENTAL)
@@ -206,7 +209,7 @@ install(
         vc_render_from_ppm
         vc_projection
         vc_volpkg_explorer
-        vc_volume_server
+        ${extra_apps}
     RUNTIME DESTINATION bin
     COMPONENT Programs
 )

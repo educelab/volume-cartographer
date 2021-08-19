@@ -26,7 +26,7 @@ message(STATUS "Using filesystem library: ${VC_FS_LIB}")
 list(APPEND VC_CUSTOM_MODULES "${CMAKE_MODULE_PATH}/FindFilesystem.cmake")
 
 ### Qt5 ###
-find_package(Qt5 5.15 QUIET REQUIRED COMPONENTS Widgets Gui Core Network)
+find_package(Qt5 5.9 QUIET REQUIRED COMPONENTS Widgets Gui Core Network)
 
 ### ITK ###
 set(VC_ITK_COMPONENTS
