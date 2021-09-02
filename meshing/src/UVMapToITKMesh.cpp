@@ -7,7 +7,7 @@ using namespace volcart::meshing;
 
 void UVMapToITKMesh::setMesh(const ITKMesh::Pointer& m) { inputMesh_ = m; }
 
-void UVMapToITKMesh::setUVMap(UVMap u) { inputUVMap_ = std::move(u); }
+void UVMapToITKMesh::setUVMap(UVMap::Pointer u) { uvMap_ = std::move(u); }
 
 void UVMapToITKMesh::setScaleToUVDimensions(bool b) { scaleMesh_ = b; }
 
@@ -27,12 +27,12 @@ ITKMesh::Pointer UVMapToITKMesh::compute()
     ITKPoint p;
     for (auto pt = inputMesh_->GetPoints()->Begin();
          pt != inputMesh_->GetPoints()->End(); ++pt) {
-        auto uv = inputUVMap_.get(pt.Index());
+        auto uv = uvMap_->get(pt.Index());
 
         // If enabled, do position scaling
         if (scaleMesh_) {
-            uv[0] *= inputUVMap_.ratio().width;
-            uv[1] *= inputUVMap_.ratio().height;
+            uv[0] *= uvMap_->ratio().width;
+            uv[1] *= uvMap_->ratio().height;
         }
 
         // Assign to the point
@@ -47,4 +47,7 @@ ITKMesh::Pointer UVMapToITKMesh::compute()
 
     return outputMesh_;
 }
-ITKMesh::Pointer UVMapToITKMesh::getUVMesh() const { return outputMesh_; }
+auto UVMapToITKMesh::getUVMesh() const -> ITKMesh::Pointer
+{
+    return outputMesh_;
+}

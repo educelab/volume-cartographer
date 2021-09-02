@@ -18,12 +18,12 @@ TEST(PPMGeneratorTest, RegressionTest)
     // Build Plane UVMap
     vc::shapes::Plane plane(5, 5);
     auto mesh = plane.itkMesh();
-    vc::UVMap uvMap;
+    auto uvMap = vc::UVMap::New();
     std::size_t id{0};
     for (const auto uv : vc::range2D(5, 5)) {
         auto u = double(uv.first) / 4.0;
         auto v = double(uv.second) / 4.0;
-        uvMap.set(id++, {u, v});
+        uvMap->set(id++, {u, v});
     }
 
     // Setup PPM Generator
@@ -40,15 +40,15 @@ TEST(PPMGeneratorTest, RegressionTest)
 
     // Compare mappings
     for (const auto [y, x] : vc::range2D(100, 100)) {
-        EXPECT_EQ(ppm.hasMapping(y, x), expected.hasMapping(y, x));
+        EXPECT_EQ(ppm->hasMapping(y, x), expected.hasMapping(y, x));
 
-        if (not ppm.hasMapping(y, x)) {
+        if (not ppm->hasMapping(y, x)) {
             continue;
         }
 
-        EXPECT_EQ(ppm(y, x), expected(y, x));
+        EXPECT_EQ(ppm->getMapping(y, x), expected(y, x));
         EXPECT_EQ(
-            ppm.cellMap().at<int32_t>(y, x),
+            ppm->cellMap().at<int32_t>(y, x),
             expected.cellMap().at<int32_t>(y, x));
     }
 }
@@ -62,13 +62,13 @@ TEST_P(PPMGeneratorTest, PerformanceTest)
     auto mesh = plane.itkMesh();
 
     // Generate UV map
-    vc::UVMap uvMap;
+    auto uvMap = vc::UVMap::New();
     size_t pID = 0;
     for (int y = 0; y < GetParam(); y++) {
         auto v = double(y) / (GetParam() - 1);
         for (int x = 0; x < GetParam(); x++) {
             auto u = double(x) / (GetParam() - 1);
-            uvMap.set(pID++, {u, v});
+            uvMap->set(pID++, {u, v});
         }
     }
 

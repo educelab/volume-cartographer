@@ -9,10 +9,6 @@
 namespace volcart::texturing
 {
 /**
- * @class IntegralTexture
- * @author Seth Parker
- * @date 11/24/2016
- *
  * @brief Generate a Texture by taking the discrete integral (summation) of the
  * neighborhood adjacent to a point
  *
@@ -62,7 +58,7 @@ public:
     using Pointer = std::shared_ptr<IntegralTexture>;
 
     /** Make shared pointer */
-    static Pointer New() { return std::make_shared<IntegralTexture>(); }
+    static auto New() -> Pointer;
 
     /** Default destructor */
     ~IntegralTexture() override = default;
@@ -74,7 +70,7 @@ public:
      *
      * This class supports generators of dimension >= 1
      */
-    void setGenerator(NeighborhoodGenerator::Pointer g) { gen_ = std::move(g); }
+    void setGenerator(NeighborhoodGenerator::Pointer g);
 
     /**
      * @brief When enabled, clamp neighborhood intensities to the value
@@ -82,7 +78,10 @@ public:
      *
      * Note: Clamping is performed prior to integration of the neighborhood
      */
-    void setClampValuesToMax(bool b) { clampToMax_ = b; }
+    void setClampValuesToMax(bool b);
+
+    /** @copydoc setClampValuesToMax(bool) */
+    [[nodiscard]] auto clampValuesToMax() const -> bool;
 
     /**
      * @brief The maximum intensity value allowed in neighborhood prior to
@@ -92,30 +91,39 @@ public:
      *
      * Default: std::numeric_limits<uint16_t>::max()
      */
-    void setClampMax(uint16_t m) { clampMax_ = m; }
+    void setClampMax(uint16_t m);
+
+    /** @copydoc setClampMax(uint16_t) */
+    [[nodiscard]] auto clampMax() const -> uint16_t;
 
     /**
      * @brief Set the weighting method
      *
      * Default: None
      */
-    void setWeightMethod(WeightMethod w) { weight_ = w; }
+    void setWeightMethod(WeightMethod w);
+
+    /** @copydoc setWeightMethod(WeightMethod) */
+    [[nodiscard]] auto weightMethod() const -> WeightMethod;
 
     /**
      * @brief Set the linear weight direction
      *
      * Default: Positive
      */
-    void setLinearWeightDirection(LinearWeightDirection w)
-    {
-        linearWeight_ = w;
-    }
+    void setLinearWeightDirection(LinearWeightDirection w);
+
+    /** @copydoc setLinearWeightDirection(LinearWeightDirection) */
+    [[nodiscard]] auto linearWeightDirection() const -> LinearWeightDirection;
 
     /**
      * @brief Set the weighting exponent used by Exponential Difference
      * weighting
      */
-    void setExponentialDiffExponent(int e) { expoDiffExponent_ = e; }
+    void setExponentialDiffExponent(int e);
+
+    /** @copydoc setExponentialDiffExponent(int) */
+    [[nodiscard]] auto exponentialDiffExponent() const -> int;
 
     /**
      * @brief Set the method used to calculate the Exponential Difference base
@@ -123,13 +131,16 @@ public:
      *
      * Default: Mean
      */
-    void setExponentialDiffBaseMethod(ExpoDiffBaseMethod m)
-    {
-        expoDiffBaseMethod_ = m;
-    }
+    void setExponentialDiffBaseMethod(ExpoDiffBaseMethod m);
+
+    /** @copydoc setExponentialDiffBaseMethod(ExpoDiffBaseMethod) */
+    [[nodiscard]] auto exponentialDiffBaseMethod() const -> ExpoDiffBaseMethod;
 
     /** @brief Set the base value for Exponential Difference weighting */
-    void setExponentialDiffBaseValue(double b) { expoDiffManualBase_ = b; }
+    void setExponentialDiffBaseValue(double b);
+
+    /** @copydoc setExponentialDiffBaseValue(double) */
+    [[nodiscard]] auto exponentialDiffBaseValue() const -> double;
 
     /**
      * @brief When enabled, do not integrate intensity values below the base
@@ -139,12 +150,15 @@ public:
      *
      * Default: True
      */
-    void setExponentialDiffSuppressBelowBase(bool b) { suppressBelowBase_ = b; }
+    void setExponentialDiffSuppressBelowBase(bool b);
+
+    /** @copydoc setExponentialDiffSuppressBelowBase(bool) */
+    [[nodiscard]] auto exponentialDiffSuppressBelowBase() const -> bool;
     /**@}*/
 
     /**@{*/
     /** @brief Compute the Texture */
-    Texture compute() override;
+    auto compute() -> Texture override;
     /**@}*/
 
 private:
@@ -164,7 +178,7 @@ private:
     void setup_weights_();
 
     /** Apply the selected weighting method */
-    NDArray<double> apply_weights_(NDArray<double>& n);
+    auto apply_weights_(NDArray<double>& n) -> NDArray<double>;
 
     /** Linear weighting direction */
     LinearWeightDirection linearWeight_{LinearWeightDirection::Positive};
@@ -176,7 +190,7 @@ private:
     void setup_linear_weights_();
 
     /** Apply the linear weights vector to a neighborhood */
-    NDArray<double> apply_linear_weights_(NDArray<double>& n);
+    auto apply_linear_weights_(NDArray<double>& n) -> NDArray<double>;
 
     /** Exponential diff exponent */
     int expoDiffExponent_{2};
@@ -197,16 +211,16 @@ private:
     void setup_expodiff_weights_();
 
     /** Get the list of intensities on the surface of the mesh */
-    std::vector<uint16_t> expodiff_intersection_pts_();
+    auto expodiff_intersection_pts_() -> std::vector<uint16_t>;
 
     /** Calculate the mean base value */
-    double expodiff_mean_base_();
+    auto expodiff_mean_base_() -> double;
 
     /** Calculate the mode base value */
-    double expodiff_mode_base_();
+    auto expodiff_mode_base_() -> double;
 
     /** Apply the expo diff weights to a neighborhood */
-    NDArray<double> apply_expodiff_weights_(NDArray<double>& n);
+    auto apply_expodiff_weights_(NDArray<double>& n) const -> NDArray<double>;
 };
 
 }  // namespace volcart::texturing

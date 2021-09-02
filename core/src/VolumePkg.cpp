@@ -20,8 +20,8 @@ VolumePkg::VolumePkg(const fs::path& fileLocation, int version)
     , rendDir_{fileLocation / SUBPATH_REND}
 {
     // Lookup the metadata template from our library of versions
-    auto findDict = volcart::VERSION_LIBRARY.find(version);
-    if (findDict == std::end(volcart::VERSION_LIBRARY)) {
+    auto findDict = VERSION_LIBRARY.find(version);
+    if (findDict == std::end(VERSION_LIBRARY)) {
         throw std::runtime_error("No dictionary found for volpkg");
     }
 
@@ -54,7 +54,7 @@ VolumePkg::VolumePkg(const fs::path& fileLocation)
     }
 
     // Loads the metadata
-    config_ = volcart::Metadata(fileLocation / SUBPATH_META);
+    config_ = Metadata(fileLocation / SUBPATH_META);
 
     // Load volumes into volumes_ vector
     for (const auto& entry : fs::directory_iterator(volsDir_)) {
@@ -81,20 +81,20 @@ VolumePkg::VolumePkg(const fs::path& fileLocation)
     }
 }
 
-VolumePkg::Pointer VolumePkg::New(fs::path fileLocation, int version)
+auto VolumePkg::New(fs::path fileLocation, int version) -> VolumePkg::Pointer
 {
     return std::make_shared<VolumePkg>(fileLocation, version);
 }
 
 // Shared pointer volumepkg construction
-VolumePkg::Pointer VolumePkg::New(fs::path fileLocation)
+auto VolumePkg::New(fs::path fileLocation) -> VolumePkg::Pointer
 {
     return std::make_shared<VolumePkg>(fileLocation);
 }
 
 // METADATA RETRIEVAL //
 // Returns Volume Name from JSON config
-std::string VolumePkg::name() const
+auto VolumePkg::name() const -> std::string
 {
     // Gets the Volume name from the configuration file
     auto name = config_.get<std::string>("name");
@@ -105,15 +105,33 @@ std::string VolumePkg::name() const
     return "UnnamedVolume";
 }
 
-int VolumePkg::version() const { return config_.get<int>("version"); }
+auto VolumePkg::version() const -> int { return config_.get<int>("version"); }
 
-double VolumePkg::materialThickness() const
+auto VolumePkg::materialThickness() const -> double
 {
     return config_.get<double>("materialthickness");
 }
 
+auto VolumePkg::metadata() const -> Metadata { return config_; }
+
+void VolumePkg::saveMetadata() { config_.save(); }
+
+void VolumePkg::saveMetadata(const fs::path& filePath)
+{
+    config_.save(filePath);
+}
+
 // VOLUME FUNCTIONS //
-std::vector<Volume::Identifier> VolumePkg::volumeIDs() const
+auto VolumePkg::hasVolumes() -> bool { return !volumes_.empty(); }
+
+auto VolumePkg::hasVolume(const Volume::Identifier& id) const -> bool
+{
+    return volumes_.count(id) > 0;
+}
+
+auto VolumePkg::numberOfVolumes() -> size_t { return volumes_.size(); }
+
+auto VolumePkg::volumeIDs() const -> std::vector<Volume::Identifier>
 {
     std::vector<Volume::Identifier> ids;
     for (const auto& v : volumes_) {
@@ -122,7 +140,7 @@ std::vector<Volume::Identifier> VolumePkg::volumeIDs() const
     return ids;
 }
 
-std::vector<std::string> VolumePkg::volumeNames() const
+auto VolumePkg::volumeNames() const -> std::vector<std::string>
 {
     std::vector<Volume::Identifier> names;
     for (const auto& v : volumes_) {
@@ -131,7 +149,7 @@ std::vector<std::string> VolumePkg::volumeNames() const
     return names;
 }
 
-Volume::Pointer VolumePkg::newVolume(std::string name)
+auto VolumePkg::newVolume(std::string name) -> Volume::Pointer
 {
     // Generate a uuid
     auto uuid = DateTime();
@@ -160,7 +178,7 @@ Volume::Pointer VolumePkg::newVolume(std::string name)
     return r.first->second;
 }
 
-const Volume::Pointer VolumePkg::volume() const
+auto VolumePkg::volume() const -> const Volume::Pointer
 {
     if (volumes_.empty()) {
         throw std::out_of_range("No volumes in VolPkg");
@@ -168,7 +186,7 @@ const Volume::Pointer VolumePkg::volume() const
     return volumes_.begin()->second;
 }
 
-Volume::Pointer VolumePkg::volume()
+auto VolumePkg::volume() -> Volume::Pointer
 {
     if (volumes_.empty()) {
         throw std::out_of_range("No volumes in VolPkg");
@@ -176,30 +194,50 @@ Volume::Pointer VolumePkg::volume()
     return volumes_.begin()->second;
 }
 
-const Volume::Pointer VolumePkg::volume(const Volume::Identifier& id) const
+auto VolumePkg::volume(const Volume::Identifier& id) const
+    -> const Volume::Pointer
 {
     return volumes_.at(id);
 }
 
-Volume::Pointer VolumePkg::volume(const Volume::Identifier& id)
+auto VolumePkg::volume(const Volume::Identifier& id) -> Volume::Pointer
 {
     return volumes_.at(id);
 }
 
 // SEGMENTATION FUNCTIONS //
-std::vector<Segmentation::Identifier> VolumePkg::segmentationIDs() const
+auto VolumePkg::hasSegmentations() -> bool { return !segmentations_.empty(); }
+
+auto VolumePkg::numberOfSegmentations() -> size_t
+{
+    return segmentations_.size();
+}
+
+auto VolumePkg::segmentation(const DiskBasedObjectBaseClass::Identifier& id)
+    const -> const Segmentation::Pointer
+{
+    return segmentations_.at(id);
+}
+
+auto VolumePkg::segmentation(const DiskBasedObjectBaseClass::Identifier& id)
+    -> Segmentation::Pointer
+{
+    return segmentations_.at(id);
+}
+
+auto VolumePkg::segmentationIDs() const -> std::vector<Segmentation::Identifier>
 {
     std::vector<Segmentation::Identifier> ids;
-    for (auto& s : segmentations_) {
+    for (const auto& s : segmentations_) {
         ids.emplace_back(s.first);
     }
     return ids;
 }
 
-std::vector<std::string> VolumePkg::segmentationNames() const
+auto VolumePkg::segmentationNames() const -> std::vector<std::string>
 {
     std::vector<std::string> names;
-    for (auto& s : segmentations_) {
+    for (const auto& s : segmentations_) {
         names.emplace_back(s.second->name());
     }
     return names;
@@ -208,7 +246,7 @@ std::vector<std::string> VolumePkg::segmentationNames() const
 // Make a new folder inside the volume package to house everything for this
 // segmentation and push back the new segmentation into our vector of
 // segmentations_
-Segmentation::Pointer VolumePkg::newSegmentation(std::string name)
+auto VolumePkg::newSegmentation(std::string name) -> Segmentation::Pointer
 {
     // Generate a uuid
     auto uuid = DateTime();
@@ -239,19 +277,32 @@ Segmentation::Pointer VolumePkg::newSegmentation(std::string name)
 }
 
 // RENDER FUNCTIONS //
-std::vector<Render::Identifier> VolumePkg::renderIDs() const
+auto VolumePkg::hasRenders() -> bool { return !renders_.empty(); }
+auto VolumePkg::numberOfRenders() -> size_t { return renders_.size(); }
+auto VolumePkg::render(const DiskBasedObjectBaseClass::Identifier& id) const
+    -> const Render::Pointer
+{
+    return renders_.at(id);
+}
+auto VolumePkg::render(const DiskBasedObjectBaseClass::Identifier& id)
+    -> Render::Pointer
+{
+    return renders_.at(id);
+}
+
+auto VolumePkg::renderIDs() const -> std::vector<Render::Identifier>
 {
     std::vector<Render::Identifier> ids;
-    for (auto& r : renders_) {
+    for (const auto& r : renders_) {
         ids.emplace_back(r.first);
     }
     return ids;
 }
 
-std::vector<std::string> VolumePkg::renderNames() const
+auto VolumePkg::renderNames() const -> std::vector<std::string>
 {
     std::vector<std::string> names;
-    for (auto& r : renders_) {
+    for (const auto& r : renders_) {
         names.emplace_back(r.second->name());
     }
     return names;
@@ -259,7 +310,7 @@ std::vector<std::string> VolumePkg::renderNames() const
 
 // Make a new folder inside the volume package to house everything for this
 // Render and push back the new render into our vector of renders_
-Render::Pointer VolumePkg::newRender(std::string name)
+auto VolumePkg::newRender(std::string name) -> Render::Pointer
 {
     // Generate a uuid
     auto uuid = DateTime();
@@ -288,10 +339,9 @@ Render::Pointer VolumePkg::newRender(std::string name)
     return r.first->second;
 }
 
-volcart::Metadata VolumePkg::InitConfig(
-    const volcart::Dictionary& dict, int version)
+auto VolumePkg::InitConfig(const Dictionary& dict, int version) -> Metadata
 {
-    volcart::Metadata config;
+    Metadata config;
 
     // Populate the config file with keys from the dictionary
     for (const auto& entry : dict) {
@@ -302,13 +352,13 @@ volcart::Metadata VolumePkg::InitConfig(
 
         // Default values
         switch (entry.second) {
-            case volcart::DictionaryEntryType::Int:
+            case DictionaryEntryType::Int:
                 config.set(entry.first, int{});
                 break;
-            case volcart::DictionaryEntryType::Double:
+            case DictionaryEntryType::Double:
                 config.set(entry.first, double{});
                 break;
-            case volcart::DictionaryEntryType::String:
+            case DictionaryEntryType::String:
                 config.set(entry.first, std::string{});
                 break;
         }

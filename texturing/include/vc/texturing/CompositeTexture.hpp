@@ -8,11 +8,7 @@ namespace volcart::texturing
 {
 
 /**
- * @class CompositeTexture
- * @author Seth Parker
- * @date 05/15/2017
- *
- * @brief Generate a Texture using a variety of composite volume filters
+ * @brief Generate a texture image using a variety of composite volume filters
  *
  * This class generates a texture image by filtering the Volume using one of a
  * number of composite measures:
@@ -38,7 +34,18 @@ public:
     ~CompositeTexture() override = default;
 
     /** Filter list */
-    enum class Filter { Minimum, Maximum, Median, Mean, MedianAverage };
+    enum class Filter {
+        /** @brief Select the minimum intensity value */
+        Minimum = 0,
+        /** @brief Select the maximum intensity value */
+        Maximum,
+        /** @brief Select the median intensity value */
+        Median,
+        /** @brief Calculate the mean intensity value */
+        Mean,
+        /** @brief Calculate the mean of the median 70% of values */
+        MedianAverage
+    };
 
     /**@{*/
     /**

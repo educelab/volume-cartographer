@@ -5,10 +5,10 @@
 #include <fstream>
 #include <iostream>
 
+#include <nlohmann/json.hpp>
 #include <opencv2/core.hpp>
 
 #include "vc/core/filesystem.hpp"
-#include "vc/core/third_party/json.hpp"
 
 namespace volcart
 {

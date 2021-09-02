@@ -7,6 +7,10 @@
 
 namespace volcart
 {
+
+/** @brief Convert an OpenCV depth enum value to a human-readable string */
+auto DepthToString(int depth) -> std::string;
+
 /**
  * @brief Convert image to specified depth using max scaling
  *
@@ -17,14 +21,14 @@ namespace volcart
  *
  * @ingroup Util
  */
-cv::Mat QuantizeImage(
-    const cv::Mat& m, int depth = CV_16U, bool scaleMinMax = true);
+auto QuantizeImage(
+    const cv::Mat& m, int depth = CV_16U, bool scaleMinMax = true) -> cv::Mat;
 
 /**
  * @brief Convert image to specified number of channels
  *
  * @ingroup Util
  */
-cv::Mat ColorConvertImage(const cv::Mat& m, int channels = 1);
+auto ColorConvertImage(const cv::Mat& m, int channels = 1) -> cv::Mat;
 
 }  // namespace volcart

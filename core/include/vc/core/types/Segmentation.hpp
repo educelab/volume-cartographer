@@ -35,19 +35,18 @@ public:
     using Pointer = std::shared_ptr<Segmentation>;
 
     /** @brief Load a Segmentation from file */
-    explicit Segmentation(volcart::filesystem::path path);
+    explicit Segmentation(filesystem::path path);
 
     /** @brief Make a new Segmentation in a directory */
-    Segmentation(
-        volcart::filesystem::path path, Identifier uuid, std::string name);
+    Segmentation(filesystem::path path, Identifier uuid, std::string name);
 
     /** @copydoc Segmentation(volcart::filesystem::path path) */
-    static Pointer New(volcart::filesystem::path path);
+    static Pointer New(filesystem::path path);
 
     /** @copydoc Segmentation(volcart::filesystem::path path, Identifier uuid,
      * std::string name) */
     static Pointer New(
-        volcart::filesystem::path path, Identifier uuid, std::string name);
+        filesystem::path path, Identifier uuid, std::string name);
 
     /** @brief Return if this Segmentation has an associated PointSet file */
     bool hasPointSet() const

@@ -78,7 +78,7 @@ vc::ITKMesh::Pointer ResampleMesh(const vc::ITKMesh::Pointer& m)
     auto voxelToMicron = volume_->voxelSize() * volume_->voxelSize();
     auto area = vc::meshmath::SurfaceArea(m) * voxelToMicron * UM_TO_MM;
     auto currentDensityFactor = m->GetNumberOfPoints() / area;
-    double newDensityFactor;
+    double newDensityFactor{50};
     if (parsed_.count("mesh-resample-vcount")) {
         vertCount = parsed_["mesh-resample-vcount"].as<size_t>();
         newDensityFactor = vertCount / area;
@@ -144,8 +144,7 @@ vc::ITKMesh::Pointer ResampleMesh(const vc::ITKMesh::Pointer& m)
     }
 
     // Make sure the normals are up-to-date if we've smoothed
-    if (smooth == SmoothOpt::Both || smooth == SmoothOpt::Before ||
-        smooth == SmoothOpt::After) {
+    if (smooth != SmoothOpt::Off) {
         vcm::CalculateNormals normals;
         normals.setMesh(workingMesh);
         workingMesh = normals.compute();

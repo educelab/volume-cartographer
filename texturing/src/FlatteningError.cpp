@@ -167,6 +167,14 @@ static cv::Mat CreateLegend(
     const cv::Mat& lut,
     const std::string& label = "")
 {
+    // Keep track of the original requested width
+    // Will render at high-res and resample to orig width
+    static constexpr int MIN_WIDTH = 2000;
+    auto origWidth = width;
+    if (width < MIN_WIDTH) {
+        width = MIN_WIDTH;
+    }
+
     // Output image
     int height{160};
     cv::Mat bar = cv::Mat::zeros(height, width, CV_8UC3);
@@ -228,6 +236,13 @@ static cv::Mat CreateLegend(
     y = (height + size.height) / 2;
     cv::putText(
         bar, str, {x, y}, font, scale, color::WHITE, thickness, cv::LINE_AA);
+
+    // Resample to restore original requested width
+    if (origWidth != width) {
+        auto h =
+            static_cast<int>(float(height) * (float(origWidth) / float(width)));
+        cv::resize(bar, bar, {origWidth, h}, 0, 0, cv::INTER_CUBIC);
+    }
 
     return bar;
 }

@@ -4,6 +4,8 @@
 
 #include "vc/core/filesystem.hpp"
 #include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/util/Logging.hpp"
+#include "vc/graph.hpp"
 
 namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
@@ -12,7 +14,7 @@ namespace vc = volcart;
 // Volpkg version required by this app
 static constexpr int VOLPKG_SUPPORTED_VERSION = 6;
 
-int main(int argc, char* argv[])
+auto main(int argc, char* argv[]) -> int
 {
     ///// Parse the command line options /////
     // clang-format off
@@ -30,8 +32,8 @@ int main(int argc, char* argv[])
     po::store(po::command_line_parser(argc, argv).options(all).run(), parsed);
 
     // Show the help message
-    if (parsed.count("help") || argc < 3) {
-        std::cout << all << std::endl;
+    if (parsed.count("help") > 0 || argc < 3) {
+        std::cout << all << "\n";
         return EXIT_SUCCESS;
     }
 
@@ -39,9 +41,12 @@ int main(int argc, char* argv[])
     try {
         po::notify(parsed);
     } catch (po::error& e) {
-        std::cerr << "ERROR: " << e.what() << std::endl;
+        vc::Logger()->error(e.what());
         return EXIT_FAILURE;
     }
+
+    // Register Volume Cartographer Nodes
+    vc::RegisterNodes();
 
     // Get the parsed options
     fs::path volpkgPath = parsed["volpkg"].as<std::string>();
@@ -49,41 +54,49 @@ int main(int argc, char* argv[])
     ///// Load the volume package /////
     vc::VolumePkg vpkg(volpkgPath);
     if (vpkg.version() != VOLPKG_SUPPORTED_VERSION) {
-        std::cerr << "ERROR: Volume package is version " << vpkg.version()
-                  << " but this program requires version "
-                  << VOLPKG_SUPPORTED_VERSION << "." << std::endl;
+        vc::Logger()->error(
+            "Volume package is version {} but this program requires version "
+            "{}.",
+            vpkg.version(), VOLPKG_SUPPORTED_VERSION);
         return EXIT_FAILURE;
     }
 
     ///// VolumePkg /////
-    std::cout << std::endl;
-    std::cout << " --- VolumePkg ---" << std::endl;
-    std::cout << "Name: " << vpkg.name() << std::endl;
-    std::cout << "Material Thickness: " << vpkg.materialThickness() << "um"
-              << std::endl;
-    std::cout << std::endl;
+    std::cout << "\n";
+    std::cout << " --- VolumePkg ---\n";
+    std::cout << "Name: " << vpkg.name() << "\n";
+    std::cout << "Material Thickness: " << vpkg.materialThickness() << "um\n\n";
 
     ///// List the volumes /////
-    std::cout << " --- Volumes ---" << std::endl;
-    auto volIds = vpkg.volumeIDs();
-    for (auto& id : volIds) {
+    std::cout << " --- Volumes ---\n";
+    for (const auto& id : vpkg.volumeIDs()) {
         auto vol = vpkg.volume(id);
         std::cout << "[" << id << "] " << vol->name() << ", ";
         std::cout << vol->sliceWidth() << "x" << vol->sliceHeight() << "x"
                   << vol->numSlices() << ", ";
-        std::cout << vol->voxelSize() << "um/voxel" << std::endl;
+        std::cout << vol->voxelSize() << "um/voxel\n";
     }
-    std::cout << std::endl;
+    std::cout << "\n";
 
     ///// List the segmentations /////
-    std::cout << " --- Segmentations ---" << std::endl;
+    std::cout << " --- Segmentations ---\n";
     for (const auto& s : vpkg.segmentationIDs()) {
         auto seg = vpkg.segmentation(s);
         std::cout << "[" << seg->id() << "] " << seg->name();
         if (seg->hasVolumeID()) {
             std::cout << ", associated volume: " << seg->getVolumeID();
         }
-        std::cout << std::endl;
+        std::cout << "\n";
     }
-    std::cout << std::endl;
+    std::cout << "\n";
+
+    ///// List the renders /////
+    std::cout << " --- Renders ---\n";
+    for (const auto& r : vpkg.renderIDs()) {
+        auto render = vpkg.render(r);
+        std::cout << "[" << render->id() << "] " << render->name();
+        std::cout << ", Number of nodes: " << render->graph()->size();
+        std::cout << "\n";
+    }
+    std::cout << "\n";
 }

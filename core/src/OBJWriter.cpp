@@ -2,20 +2,42 @@
 
 #include <string>
 
-#include <opencv2/imgcodecs.hpp>
-
+#include "vc/core/io/ImageIO.hpp"
 #include "vc/core/types/Exceptions.hpp"
 #include "vc/core/util/Logging.hpp"
 
-namespace fs = volcart::filesystem;
-
 static constexpr int UNSET_VALUE = -1;
 
+using namespace volcart;
 using namespace volcart::io;
+
+namespace fs = volcart::filesystem;
+
+OBJWriter::OBJWriter(fs::path outputPath, ITKMesh::Pointer mesh)
+    : outputPath_{std::move(outputPath)}, mesh_{std::move(mesh)}
+{
+}
+
+OBJWriter::OBJWriter(
+    fs::path outputPath,
+    ITKMesh::Pointer mesh,
+    UVMap::Pointer uvMap,
+    cv::Mat uvImg)
+    : outputPath_{std::move(outputPath)}
+    , mesh_{std::move(mesh)}
+    , uvMap_{std::move(uvMap)}
+    , texture_{std::move(uvImg)}
+{
+}
+
+void OBJWriter::setPath(const filesystem::path& path) { outputPath_ = path; }
+void OBJWriter::setMesh(ITKMesh::Pointer mesh) { mesh_ = std::move(mesh); }
+void OBJWriter::setUVMap(UVMap::Pointer uvMap) { uvMap_ = std::move(uvMap); }
+void OBJWriter::setTexture(cv::Mat uvImg) { texture_ = std::move(uvImg); }
 
 ///// Output Methods /////
 // Write everything (OBJ, MTL, and PNG) to disk
-int OBJWriter::write()
+auto OBJWriter::write() -> int
 {
     if (not mesh_ or mesh_->GetNumberOfPoints() == 0) {
         throw volcart::IOException("Mesh is empty or null");
@@ -25,7 +47,7 @@ int OBJWriter::write()
     write_obj_();
 
     // Write texture stuff if we have a UV coordinate map
-    if (!textCoords_.empty()) {
+    if (uvMap_ and not uvMap_->empty()) {
         write_mtl_();
         write_texture_();
     }
@@ -34,10 +56,12 @@ int OBJWriter::write()
 }
 
 // Write the OBJ file to disk
-int OBJWriter::write_obj_()
+auto OBJWriter::write_obj_() -> int
 {
+    Logger()->debug("Writing OBJ mesh: {}", outputPath_.string());
     outputMesh_.open(outputPath_.string());
     if (!outputMesh_.is_open()) {
+        Logger()->error("Failed to write OBJ mesh");
         return EXIT_FAILURE;
     }
 
@@ -45,7 +69,7 @@ int OBJWriter::write_obj_()
     write_vertices_();
 
     // Only write texture information if we have a UV map
-    if (!textCoords_.empty()) {
+    if (uvMap_ and not uvMap_->empty()) {
         write_texture_coordinates_();
     }
 
@@ -57,12 +81,12 @@ int OBJWriter::write_obj_()
 
 // Write the MTL file to disk
 // See http://paulbourke.net/dataformats/mtl/ for more options
-int OBJWriter::write_mtl_()
+auto OBJWriter::write_mtl_() -> int
 {
     fs::path p = outputPath_;
     p.replace_extension("mtl");
     outputMTL_.open(p.string());
-    if (!outputMTL_.is_open()) {
+    if (not outputMTL_.is_open()) {
         return EXIT_FAILURE;
     }
 
@@ -72,18 +96,17 @@ int OBJWriter::write_mtl_()
     // Ks - Specular light color
     // illum - Illumination mode
     // d - Dissolve. 1.0 == opaque
-    Logger()->info("Writing MTL...");
-    outputMTL_ << "newmtl default" << std::endl;
-    outputMTL_ << "Ka 1.0 1.0 1.0" << std::endl;
-    outputMTL_ << "Kd 1.0 1.0 1.0" << std::endl;
-    outputMTL_ << "Ks 0.0 0.0 0.0" << std::endl;
-    outputMTL_ << "illum 2" << std::endl;
-    outputMTL_ << "d 1.0" << std::endl;
+    Logger()->debug("Writing MTL...");
+    outputMTL_ << "newmtl default\n";
+    outputMTL_ << "Ka 1.0 1.0 1.0\n";
+    outputMTL_ << "Kd 1.0 1.0 1.0\n";
+    outputMTL_ << "Ks 0.0 0.0 0.0\n";
+    outputMTL_ << "illum 2\n";
+    outputMTL_ << "d 1.0\n";
 
     // Path to the texture file, relative to the MTL file
     if (!texture_.empty()) {
-        outputMTL_ << "map_Kd " << outputPath_.stem().string() + ".png"
-                   << std::endl;
+        outputMTL_ << "map_Kd " << outputPath_.stem().string() + ".tif\n";
     }
 
     outputMTL_.close();
@@ -91,42 +114,42 @@ int OBJWriter::write_mtl_()
 }
 
 // Write the PNG texture file to disk
-int OBJWriter::write_texture_()
+auto OBJWriter::write_texture_() -> int
 {
     if (texture_.empty()) {
         return EXIT_FAILURE;
     }
 
-    Logger()->info("Writing texture image...");
+    Logger()->debug("Writing texture image...");
     fs::path p = outputPath_;
-    p.replace_extension("png");
-    cv::imwrite(p.string(), texture_, {cv::IMWRITE_PNG_COMPRESSION, 6});
+    p.replace_extension("tif");
+    WriteImage(p, texture_);
     return EXIT_SUCCESS;
 }
 
 // Write our custom header
-int OBJWriter::write_header_()
+auto OBJWriter::write_header_() -> int
 {
     if (!outputMesh_.is_open()) {
         return EXIT_FAILURE;
     }
 
-    outputMesh_ << "# VolCart OBJ File" << std::endl;
-    outputMesh_ << "# VC OBJ Exporter v1.0" << std::endl;
+    outputMesh_ << "# VolCart OBJ File\n";
+    outputMesh_ << "# VC OBJ Exporter v1.0\n";
     return EXIT_SUCCESS;
 }
 
 // Write the vertex information:
 // Vertex: 'v x y z'
 // Vertex normal: 'vn nx ny nz'
-int OBJWriter::write_vertices_()
+auto OBJWriter::write_vertices_() -> int
 {
     if (!outputMesh_.is_open() || mesh_->GetNumberOfPoints() == 0) {
         return EXIT_FAILURE;
     }
-    Logger()->info("Writing vertices...");
+    Logger()->debug("Writing vertices...");
 
-    outputMesh_ << "# Vertices: " << mesh_->GetNumberOfPoints() << std::endl;
+    outputMesh_ << "# Vertices: " << mesh_->GetNumberOfPoints() << "\n";
 
     // Iterate over all of the points
     uint32_t vIndex = 1;
@@ -138,13 +161,13 @@ int OBJWriter::write_vertices_()
 
         // Write the point position components
         outputMesh_ << "v " << pt.Value()[0] << " " << pt.Value()[1] << " "
-                    << pt.Value()[2] << std::endl;
+                    << pt.Value()[2] << "\n";
 
         // Write the point normal information
         ITKPixel normal;
         if (mesh_->GetPointData(pt.Index(), &normal)) {
             outputMesh_ << "vn " << normal[0] << " " << normal[1] << " "
-                        << normal[2] << std::endl;
+                        << normal[2] << "\n";
             pointLink[2] = vnIndex++;
         }
 
@@ -158,29 +181,29 @@ int OBJWriter::write_vertices_()
 }
 
 // Write the UV coordinates that will be attached to points: 'vt u v'
-int OBJWriter::write_texture_coordinates_()
+auto OBJWriter::write_texture_coordinates_() -> int
 {
-    if (!outputMesh_.is_open() || textCoords_.empty()) {
+    if (not outputMesh_.is_open() or uvMap_->empty()) {
         return EXIT_FAILURE;
     }
-    Logger()->info("Writing texture coordinates...");
+    Logger()->debug("Writing texture coordinates...");
 
     // Ensure coordinates are relative to bottom left
-    auto startingOrigin = textCoords_.origin();
-    textCoords_.setOrigin(UVMap::Origin::BottomLeft);
+    auto startingOrigin = uvMap_->origin();
+    uvMap_->setOrigin(UVMap::Origin::BottomLeft);
 
     // Write mtl path, relative to OBJ
     auto mtlpath = outputPath_.stem();
     mtlpath.replace_extension("mtl");
-    outputMesh_ << "# Texture information" << std::endl;
-    outputMesh_ << "mtllib " << mtlpath.string() << std::endl;
-    outputMesh_ << "usemtl default" << std::endl;
+    outputMesh_ << "# Texture information\n";
+    outputMesh_ << "mtllib " << mtlpath.string() << "\n";
+    outputMesh_ << "usemtl default\n";
 
     // Iterate over all of the saved coordinates in our coordinate map
     uint32_t vtIndex = 1;
-    for (uint32_t pId = 0; pId < textCoords_.size(); ++pId) {
-        cv::Vec2d uv = textCoords_.get(pId);
-        outputMesh_ << "vt " << uv[0] << " " << uv[1] << std::endl;
+    for (uint32_t pId = 0; pId < uvMap_->size(); ++pId) {
+        cv::Vec2d uv = uvMap_->get(pId);
+        outputMesh_ << "vt " << uv[0] << " " << uv[1] << "\n";
 
         // Find this UV map's point in _point_links and set its vt value to our
         // current position in the vt list
@@ -190,19 +213,19 @@ int OBJWriter::write_texture_coordinates_()
     }
 
     // Restore the starting origin
-    textCoords_.setOrigin(startingOrigin);
+    uvMap_->setOrigin(startingOrigin);
     return EXIT_SUCCESS;
 }
 
 // Write the face information: 'f v/vt/vn'
-int OBJWriter::write_faces_()
+auto OBJWriter::write_faces_() -> int
 {
     if (!outputMesh_.is_open() || mesh_->GetNumberOfCells() == 0) {
         return EXIT_FAILURE;
     }
-    Logger()->info("Writing faces...");
+    Logger()->debug("Writing faces...");
 
-    outputMesh_ << "# Faces: " << mesh_->GetNumberOfCells() << std::endl;
+    outputMesh_ << "# Faces: " << mesh_->GetNumberOfCells() << "\n";
 
     // Iterate over the faces of the mesh
     ITKPointInCellIterator point;
@@ -236,7 +259,7 @@ int OBJWriter::write_faces_()
 
             outputMesh_ << " ";
         }
-        outputMesh_ << std::endl;
+        outputMesh_ << "\n";
     }
 
     return EXIT_SUCCESS;

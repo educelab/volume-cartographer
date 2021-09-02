@@ -5,6 +5,8 @@
 using namespace volcart;
 using namespace volcart::texturing;
 
+using Texture = ThicknessTexture::Texture;
+
 void ThicknessTexture::setSamplingInterval(double i) { interval_ = i; }
 
 void ThicknessTexture::setNormalizeOutput(bool b) { normalize_ = b; }
@@ -14,18 +16,18 @@ void ThicknessTexture::setVolumetricMask(const VolumetricMask::Pointer& m)
     mask_ = m;
 }
 
-Texture ThicknessTexture::compute()
+auto ThicknessTexture::compute() -> Texture
 {
     // Setup
-    result_ = Texture();
-    auto height = static_cast<int>(ppm_.height());
-    auto width = static_cast<int>(ppm_.width());
+    result_.clear();
+    auto height = static_cast<int>(ppm_->height());
+    auto width = static_cast<int>(ppm_->width());
 
     // Output image
     cv::Mat image = cv::Mat::zeros(height, width, CV_32FC1);
 
     // Get the mappings
-    auto mappings = ppm_.getMappings();
+    auto mappings = ppm_->getMappings();
 
     // Sort the mappings by Z-value
     std::sort(
@@ -90,8 +92,16 @@ Texture ThicknessTexture::compute()
     }
 
     // Set output
-    result_.addImage(image);
-    result_.setPPM(ppm_);
+    result_.push_back(image);
 
     return result_;
+}
+
+auto ThicknessTexture::samplingInterval() const -> double { return interval_; }
+
+auto ThicknessTexture::normalizeOutput() const -> bool { return normalize_; }
+
+auto ThicknessTexture::volumetricMask() const -> VolumetricMask::Pointer
+{
+    return mask_;
 }

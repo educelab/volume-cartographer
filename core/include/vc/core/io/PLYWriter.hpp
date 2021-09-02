@@ -4,9 +4,11 @@
 
 #include <fstream>
 
+#include <opencv2/core.hpp>
+
 #include "vc/core/filesystem.hpp"
 #include "vc/core/types/ITKMesh.hpp"
-#include "vc/core/types/Texture.hpp"
+#include "vc/core/types/UVMap.hpp"
 
 namespace volcart::io
 {
@@ -33,21 +35,11 @@ public:
     PLYWriter() = default;
 
     /** @brief Constructor with output path and input mesh */
-    PLYWriter(
-        volcart::filesystem::path outputPath, const ITKMesh::Pointer& mesh)
-        : outputPath_{std::move(outputPath)}, mesh_{mesh}
-    {
-    }
+    PLYWriter(filesystem::path outputPath, ITKMesh::Pointer mesh);
+
     /** @brief Constructor with output path and textured mesh information */
     PLYWriter(
-        volcart::filesystem::path outputPath,
-        const ITKMesh::Pointer& mesh,
-        volcart::Texture texture)
-        : outputPath_{std::move(outputPath)}
-        , mesh_{mesh}
-        , texture_{std::move(texture)}
-    {
-    }
+        filesystem::path outputPath, ITKMesh::Pointer mesh, cv::Mat texture);
     /**@}*/
 
     /**@{*/
@@ -56,16 +48,16 @@ public:
      * write() and validate() will fail if path does not have an expected
      * file extension (.ply/.PLY).
      */
-    void setPath(const volcart::filesystem::path& path) { outputPath_ = path; }
-
-    /** @brief Return the output path */
-    volcart::filesystem::path getPath() const { return outputPath_; }
+    void setPath(const filesystem::path& path);
 
     /** @brief Set the input mesh */
-    void setMesh(const ITKMesh::Pointer& mesh) { mesh_ = mesh; }
+    void setMesh(ITKMesh::Pointer mesh);
 
-    /** @brief Set texture information from a volcart::Texture */
-    void setTexture(const volcart::Texture& texture) { texture_ = texture; }
+    /** @brief Set the input UV Map */
+    void setUVMap(UVMap::Pointer uvMap);
+
+    /** @brief Set texture image */
+    void setTexture(cv::Mat texture);
 
     /** @brief Set per-vertex color information */
     void setVertexColors(const std::vector<uint16_t>& c);
@@ -77,36 +69,40 @@ public:
      * If UV Map is not empty, automatically writes per-vertex texture
      * information.
      */
-    int write();
+    auto write() -> int;
     /**@}*/
 
 private:
     /** Output file path */
-    volcart::filesystem::path outputPath_;
+    filesystem::path outputPath_;
     /** Output file stream */
     std::ofstream outputMesh_;
     /** Input mesh */
     ITKMesh::Pointer mesh_;
-    /** Input texture information */
-    volcart::Texture texture_;
+    /** Input UV map */
+    UVMap::Pointer uvMap_;
+    /** Input texture image */
+    cv::Mat texture_;
     /** Vertex colors */
     std::vector<uint16_t> vcolors_;
 
     /** @brief Write the PLY header */
-    int write_header_();
+    auto write_header_() -> int;
 
     /**
      * @brief Write the PLY vertices
      *
-     * Lines are formatted: \n
+     * Lines are formatted:
+     *
      * `x y z nx ny nz`
      */
-    int write_vertices_();
+    auto write_vertices_() -> int;
     /**@brief Write the PLY faces
      *
-     * Lines are formatted: \n
+     * Lines are formatted:
+     *
      * `[n vertices in face] v1 v2 ... vn`
      */
-    int write_faces_();
+    auto write_faces_() -> int;
 };
 }  // namespace volcart::io

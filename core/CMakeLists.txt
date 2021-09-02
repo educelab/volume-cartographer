@@ -7,6 +7,9 @@ set(io_srcs
     src/PLYWriter.cpp
     src/SkyscanMetadataIO.cpp
     src/TIFFIO.cpp
+    src/UVMapIO.cpp
+    src/ImageIO.cpp
+    src/MeshIO.cpp
 )
 
 set(math_srcs
@@ -38,7 +41,6 @@ set(type_srcs
     src/Render.cpp
     src/Reslice.cpp
     src/Segmentation.cpp
-    src/Texture.cpp
     src/UVMap.cpp
     src/Volume.cpp
     src/VolumeMask.cpp
@@ -89,11 +91,12 @@ target_link_libraries(vc_core
         opencv_imgcodecs
         ITKCommon
         ITKMesh
-        ITKQuadEdgeMesh
         vtkCommonDataModel
         vtkCommonCore
         vtkIOLegacy
         spdlog::spdlog
+        nlohmann_json::nlohmann_json
+        smgl::smgl
     PRIVATE
         TIFF::TIFF
 )
@@ -154,7 +157,6 @@ set(test_srcs
     test/LRUCacheTest.cpp
     test/OBJWriterTest.cpp
     test/MetadataTest.cpp
-    test/TextureTest.cpp
     test/UVMapTest.cpp
     test/PLYWriterTest.cpp
     test/PointSetTest.cpp

@@ -105,3 +105,10 @@ ITKMesh::Pointer AngleBasedFlattening::compute()
 
     return output_;
 }
+
+auto AngleBasedFlattening::useABF() const -> bool { return useABF_; }
+
+auto AngleBasedFlattening::abfMaxIterations() const -> std::size_t
+{
+    return maxABFIterations_;
+}

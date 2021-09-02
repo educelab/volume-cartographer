@@ -15,6 +15,7 @@ if(Filesystem_FOUND)
 else()
     option(VC_USE_BOOSTFS "Use Boost as the filesystem library" ON)
 endif()
+
 if(VC_USE_BOOSTFS)
     add_compile_definitions(VC_USE_BOOSTFS)
     find_package(Boost 1.58 REQUIRED COMPONENTS system filesystem)
@@ -53,6 +54,9 @@ include(${VTK_USE_FILE})
 # headers.
 include_directories(SYSTEM ${VTK_INCLUDE_DIRS})
 
+### ACVD ###
+include(BuildACVD)
+
 ### Eigen ###
 find_package(Eigen3 3.3 REQUIRED)
 if(CMAKE_GENERATOR MATCHES "Ninja|.*Makefiles.*" AND "${CMAKE_BUILD_TYPE}" MATCHES "^$|Debug")
@@ -75,8 +79,14 @@ find_package(spdlog 1.4.2 CONFIG REQUIRED)
 ### OpenABF ###
 include(BuildOpenABF)
 
+### Modern JSON ###
+include(BuildJSON)
+
 ### bvh ###
 include(Buildbvh)
+
+### smeagol ###
+include(BuildSmeagol)
 
 ### Boost and indicators (for app use only)
 if(VC_BUILD_APPS OR VC_BUILD_UTILS)
@@ -101,10 +111,10 @@ if(VC_BUILD_TESTS)
 
     FetchContent_GetProperties(googletest)
     if(NOT googletest_POPULATED)
+        set(INSTALL_GTEST OFF CACHE BOOL OFF FORCE)
         FetchContent_Populate(googletest)
         add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR} EXCLUDE_FROM_ALL)
     endif()
-    set(INSTALL_GTEST OFF CACHE BOOL OFF FORCE)
 endif()
 
 # Python bindings
@@ -123,9 +133,6 @@ if(VC_USE_OPTIONAL)
     message(STATUS "All optional third-party libraries enabled. Individual \
 preferences will be ignored.")
 endif()
-
-### ACVD ###
-include(BuildACVD)
 
 ### VCG ###
 option(VC_USE_VCG "Use VCG library" off)

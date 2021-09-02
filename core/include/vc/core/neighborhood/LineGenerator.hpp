@@ -8,7 +8,6 @@ namespace volcart
 {
 
 /**
- * @class LineGenerator
  * @brief Class for generating line-like neighborhoods from a point in a Volume
  *
  * @ingroup Neighborhoods

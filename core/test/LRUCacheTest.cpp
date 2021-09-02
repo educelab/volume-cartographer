@@ -86,10 +86,10 @@ TEST_F(LRUCache_Filled, InsertIntoCacheAndConfirmExistence)
 
     cache.put(cache.capacity(), (cache.capacity() * cache.capacity()));
 
-    EXPECT_TRUE(cache.exists(100));
+    EXPECT_TRUE(cache.contains(100));
     EXPECT_EQ(cache.capacity(), 100);
     EXPECT_EQ(cache.size(), 100);
-    EXPECT_EQ(cache.exists(0), false);
+    EXPECT_EQ(cache.contains(0), false);
     EXPECT_EQ(cache.get(100), 10000);
 }
 
@@ -113,7 +113,7 @@ TEST_F(LRUCache_Empty, CheckCacheWithDifferingCapacityAndSize)
     // also, checking if oddKey exists --> redundant
     for (size_t oddKey = 1; oddKey < cache.capacity(); oddKey += 2) {
         try {
-            EXPECT_EQ(cache.exists(oddKey), false);
+            EXPECT_EQ(cache.contains(oddKey), false);
             EXPECT_ANY_THROW(cache.get(oddKey));
         } catch (std::exception& e) {
             EXPECT_TRUE(true);
@@ -125,7 +125,7 @@ TEST_F(LRUCache_Empty, CheckCacheWithDifferingCapacityAndSize)
 
     for (size_t k = 0; k < cache.capacity() * 2; k += 2) {
         try {
-            EXPECT_EQ(cache.exists(k), false);
+            EXPECT_EQ(cache.contains(k), false);
             EXPECT_ANY_THROW(cache.get(k));
         } catch (std::exception& e) {
             EXPECT_TRUE(true);
@@ -133,8 +133,8 @@ TEST_F(LRUCache_Empty, CheckCacheWithDifferingCapacityAndSize)
     }
 
     // check that keys 100 and 198 still exist
-    EXPECT_TRUE(cache.exists(100));
-    EXPECT_TRUE(cache.exists(198));
+    EXPECT_TRUE(cache.contains(100));
+    EXPECT_TRUE(cache.contains(198));
 }
 
 // checks that cache has initial capacity of 200 and size 0, then fills item
@@ -152,7 +152,7 @@ TEST_F(LRUCache_Empty, TryToInsertMorePairsThanCurrentCapacity)
 
     EXPECT_EQ(cache.capacity(), 200);
     EXPECT_EQ(cache.size(), 200);
-    EXPECT_EQ(cache.exists(0), false);
+    EXPECT_EQ(cache.contains(0), false);
 }
 
 // checks that setting a negative cap cache fails, then checks
@@ -176,5 +176,5 @@ TEST_F(LRUCache_Filled, PurgeTheCache)
     EXPECT_EQ(cache.capacity(), cache.size());
     cache.purge();
     EXPECT_EQ(cache.size(), 0);
-    EXPECT_EQ(cache.exists(1), false);
+    EXPECT_EQ(cache.contains(1), false);
 }

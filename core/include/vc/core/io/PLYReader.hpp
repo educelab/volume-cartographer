@@ -19,8 +19,7 @@ namespace volcart::io
  *
  * @brief Read a PLY file to an ITKMesh
  *
- * Only supports vertices, vertex normals, and faces. Will write a warning to
- * std::cerr if the PLY file doesn't contain faces.
+ * Only supports vertices, vertex normals, and faces.
  *
  * @ingroup IO
  */
@@ -32,28 +31,25 @@ public:
     PLYReader() = default;
 
     /** @brief Constructor with input file path */
-    explicit PLYReader(volcart::filesystem::path path)
-        : inputPath_{std::move(path)}
-    {
-    }
+    explicit PLYReader(filesystem::path path);
     /**@}*/
 
     /**@{*/
     /** @brief Set the input file path */
-    void setPath(const volcart::filesystem::path& path) { inputPath_ = path; }
+    void setPath(filesystem::path path);
 
     /** @brief Get the parsed input as an ITKMesh */
-    ITKMesh::Pointer getMesh() { return outMesh_; }
+    auto getMesh() -> ITKMesh::Pointer;
     /**@}*/
 
     /**@{*/
     /** @brief Parse the input file */
-    ITKMesh::Pointer read();
+    auto read() -> ITKMesh::Pointer;
     /**@}*/
 
 private:
     /** Input file path */
-    volcart::filesystem::path inputPath_;
+    filesystem::path inputPath_;
     /** Input file stream */
     std::ifstream plyFile_;
     /** Output mesh */

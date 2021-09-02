@@ -217,7 +217,7 @@ void SegmentationsViewer::generateTexture()
     switch (globals_->getStatus()) {
         case ThreadStatus::Successful:
             if (loadImage(
-                    globals_->getRendering().getTexture().image(0).clone())) {
+                    globals_->getRendering().getTexture().at(0).clone())) {
                 textureViewer_->loadImageFromGlobals();
             } else {
                 QMessageBox::warning(

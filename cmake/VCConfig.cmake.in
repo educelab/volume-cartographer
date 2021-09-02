@@ -8,6 +8,9 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/Modules/")
 #####################################################################
 # Dependencies: This section should mirror VCFindDependencies.cmake #
 #####################################################################
+### Modern JSON ###
+find_package(nlohmann_json v3.9.1 QUIET REQUIRED)
+
 ### Filesystem ###
 if(@VC_USE_BOOSTFS@)
     find_dependency(Boost @Boost_MAJOR_VERSION@.@Boost_MINOR_VERSION@ QUIET REQUIRED COMPONENTS system filesystem)
@@ -25,9 +28,7 @@ find_dependency(VTK @VTK_VERSION_MAJOR@.@VTK_VERSION_MINOR@ QUIET REQUIRED)
 include(${VTK_USE_FILE})
 
 ### ACVD ###
-if(@VC_USE_ACVD@ OR @VC_USE_OPTIONAL@)
-    find_package(ACVD @ACVD_VERSION@ QUIET REQUIRED)
-endif()
+find_package(ACVD @ACVD_VERSION@ QUIET REQUIRED)
 
 ### Eigen3 ###
 find_dependency(Eigen3 @Eigen3_VERSION_MAJOR@.@Eigen3_VERSION_MINOR@ QUIET REQUIRED)
@@ -40,6 +41,9 @@ find_dependency(TIFF QUIET REQUIRED)
 
 ### spdlog ###
 find_dependency(spdlog CONFIG QUIET REQUIRED)
+
+### smeagol ###
+find_dependency(smeagol @smeagol_VERSION@ CONFIG QUIET REQUIRED)
 
 ### VCG ###
 if(@VC_USE_VCG@ OR @VC_USE_OPTIONAL@)

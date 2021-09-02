@@ -90,7 +90,7 @@ int main(int argc, char* argv[])
         auto mesh = reader.read();
         auto uv = reader.getUVMap();
         auto img = reader.getTextureMat();
-        if (uv.empty() || img.empty()) {
+        if (not uv or uv->empty() or img.empty()) {
             vc::Logger()->warn(
                 "Mesh missing UV map and/or texture image: {}", p);
             continue;

@@ -142,6 +142,8 @@ public:
     // width constraint calculation
     void push_back(const T& val) = delete;
     void push_back(T&& val) = delete;
+    void emplace_back(const T& val) = delete;
+    void emplace_back(T&& val) = delete;
 
     /**
      * @brief Append an OrderedPointSet to the end of the current one

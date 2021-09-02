@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include "vc/core/io/UVMapIO.hpp"
 #include "vc/core/types/UVMap.hpp"
 #include "vc/core/util/Logging.hpp"
 
@@ -127,5 +128,41 @@ TEST_F(CreateUVMapFixture, TransformationTest)
         EXPECT_EQ(ExpectedValues[1], _BaseUVMap.get(pnt_id)[1]);
 
         ++pnt_id;
+    }
+}
+
+TEST(UVMapTest, WriteAndRead)
+{
+    // Construct a UVMap
+    UVMap uvMap;
+
+    // Fill it randomly
+    cv::RNG rng(std::time(nullptr));
+    uvMap.setOrigin(static_cast<UVMap::Origin>(rng.uniform(0, 4)));
+    auto size = static_cast<std::size_t>(rng.uniform(100, 1000));
+    for (size_t i = 0; i < size; i++) {
+        size_t id = rng.uniform(0, size);
+        auto u = rng.uniform(0.0, 1.0);
+        auto v = rng.uniform(0.0, 1.0);
+        uvMap.set(id, {u, v});
+    }
+
+    // Write the UVMap
+    io::WriteUVMap("WriteUVMap.uvm", uvMap);
+
+    // Read the UVMap
+    auto uvMapClone = io::ReadUVMap("WriteUVMap.uvm");
+
+    // Check that the major parts match
+    EXPECT_EQ(uvMapClone.origin(), uvMap.origin());
+    EXPECT_EQ(uvMapClone.size(), uvMap.size());
+    EXPECT_EQ(uvMapClone.ratio().width, uvMap.ratio().width);
+    EXPECT_EQ(uvMapClone.ratio().height, uvMap.ratio().height);
+    EXPECT_EQ(uvMapClone.ratio().aspect, uvMap.ratio().aspect);
+
+    for (const auto& m : uvMapClone.as_map()) {
+        const auto& id = m.first;
+        const auto& uv = m.second;
+        EXPECT_EQ(uv, uvMap.get(id));
     }
 }

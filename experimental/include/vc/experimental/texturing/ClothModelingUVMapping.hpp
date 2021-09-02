@@ -13,24 +13,8 @@
 #include "vc/core/types/ITKMesh.hpp"
 #include "vc/core/types/UVMap.hpp"
 
-namespace volcart
+namespace volcart::experimental::texturing
 {
-namespace experimental
-{
-namespace texturing
-{
-
-/** Forward the constrain motion callback @memberof ClothModelingUVMapping */
-static void constrainMotionCallback(btDynamicsWorld* world, btScalar timeStep);
-
-/** Forward the axis lock callback @memberof ClothModelingUVMapping */
-static void axisLockCallback(btDynamicsWorld* world, btScalar timeStep);
-
-/** Forward the "move to target" callback @memberof ClothModelingUVMapping */
-static void moveTowardTargetCallback(btDynamicsWorld* world, btScalar timeStep);
-
-/** Forward the "do nothing" callback @memberof ClothModelingUVMapping */
-static void emptyPreTickCallback(btDynamicsWorld* world, btScalar timeStep);
 
 /**
  * @class ClothModelingUVMapping
@@ -107,7 +91,7 @@ public:
     ITKMesh::Pointer getMesh();
 
     /** @brief Get the flattened surface as a UV map */
-    volcart::UVMap getUVMap();
+    UVMap::Pointer getUVMap();
     /**@}*/
 
     /**@{*/
@@ -124,7 +108,7 @@ public:
 
     /**@{*/
     /** @brief Compute the parameterization */
-    UVMap compute();
+    UVMap::Pointer compute();
 
     /** @brief Run the unfurl stage */
     void unfurl();
@@ -232,6 +216,4 @@ private:
     /** Bullet physics simulation world */
     btSoftRigidDynamicsWorld* world_;
 };
-}  // namespace texturing
-}  // namespace experimental
-}  // namespace volcart
+}  // namespace volcart::experimental::texturing

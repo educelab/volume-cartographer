@@ -2,55 +2,55 @@
 
 using namespace volcart;
 
-std::string ProjectInfo::Name()
+auto ProjectInfo::Name() -> std::string
 {
     static std::string name{"volume-cartographer"};
     return name;
 }
 
-uint32_t ProjectInfo::VersionMajor()
+auto ProjectInfo::VersionMajor() -> uint32_t
 {
-    static int vMaj{@PROJECT_VERSION_MAJOR@};
+    static uint32_t vMaj{@PROJECT_VERSION_MAJOR@};
     return vMaj;
 }
 
-uint32_t ProjectInfo::VersionMinor()
+auto ProjectInfo::VersionMinor() -> uint32_t
 {
-    static int vMin{@PROJECT_VERSION_MINOR@};
+    static uint32_t vMin{@PROJECT_VERSION_MINOR@};
     return vMin;
 }
 
-uint32_t ProjectInfo::VersionPatch()
+auto ProjectInfo::VersionPatch() -> uint32_t
 {
-    static int vPatch{@PROJECT_VERSION_PATCH@};
+    static uint32_t vPatch{@PROJECT_VERSION_PATCH@};
     return vPatch;
 }
 
-std::string ProjectInfo::VersionString()
+auto ProjectInfo::VersionString() -> std::string
 {
     static std::string version("@PROJECT_VERSION@");
     return version;
 }
 
-std::string ProjectInfo::NameAndVersion()
+auto ProjectInfo::NameAndVersion() -> std::string
 {
     static std::string nameAndVersion{"volume-cartographer @PROJECT_VERSION@"};
     return nameAndVersion;
 }
 
-std::string ProjectInfo::RepositoryURL()
+auto ProjectInfo::RepositoryURL() -> std::string
 {
     static std::string repo("https://github.com/viscenter/volume-cartographer");
     return repo;
 }
 
-std::string ProjectInfo::RepositoryHash()
+auto ProjectInfo::RepositoryHash() -> std::string
 {
     static std::string hash("@GIT_SHA1@");
     return hash;
 }
 
-std::string ProjectInfo::RepositoryShortHash()
+auto ProjectInfo::RepositoryShortHash() -> std::string
 {
     static std::string hashShort("@GIT_SHA1_SHORT@");
     return hashShort;

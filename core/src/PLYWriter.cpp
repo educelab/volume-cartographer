@@ -1,12 +1,24 @@
 #include "vc/core/io/PLYWriter.hpp"
 
+#include "vc/core/types/Exceptions.hpp"
 #include "vc/core/util/Logging.hpp"
 
-namespace fs = volcart::filesystem;
+using namespace volcart;
 using namespace volcart::io;
+namespace fs = volcart::filesystem;
+
+static inline auto PtIntensity(
+    std::size_t idx, const UVMap::Pointer& uvMap, const cv::Mat& image)
+    -> double
+{
+    auto uv = uvMap->get(idx);
+    int u = cvRound(uv[0] * (image.cols - 1));
+    int v = cvRound(uv[1] * (image.rows - 1));
+    return image.at<uint16_t>(v, u);
+}
 
 ///// Output Methods /////
-int PLYWriter::write()
+auto PLYWriter::write() -> int
 {
     if (not mesh_ or mesh_->GetNumberOfPoints() == 0) {
         throw volcart::IOException("Mesh is empty or null");
@@ -19,8 +31,11 @@ int PLYWriter::write()
     }
 
     // Capture the starting origin and set origin to what PLY reader needs
-    auto startingOrigin = texture_.uvMap().origin();
-    texture_.uvMap().setOrigin(UVMap::Origin::TopLeft);
+    UVMap::Origin startingOrigin{UVMap::Origin::TopLeft};
+    if (uvMap_) {
+        startingOrigin = uvMap_->origin();
+        uvMap_->setOrigin(UVMap::Origin::TopLeft);
+    }
 
     write_header_();
     write_vertices_();
@@ -29,13 +44,15 @@ int PLYWriter::write()
     outputMesh_.close();
 
     // Restore the starting origin
-    texture_.uvMap().setOrigin(startingOrigin);
+    if (uvMap_) {
+        uvMap_->setOrigin(startingOrigin);
+    }
 
     return EXIT_SUCCESS;
 }
 
 // Write our custom header
-int PLYWriter::write_header_()
+auto PLYWriter::write_header_() -> int
 {
     if (!outputMesh_.is_open()) {
         return EXIT_FAILURE;
@@ -55,7 +72,7 @@ int PLYWriter::write_header_()
     outputMesh_ << "property float nz" << std::endl;
 
     // Color info for vertices
-    if ((texture_.hasImages() && !texture_.uvMap().empty()) or
+    if ((not texture_.empty() and uvMap_ and not uvMap_->empty()) or
         not vcolors_.empty()) {
         outputMesh_ << "property uchar red" << std::endl;
         outputMesh_ << "property uchar green" << std::endl;
@@ -76,7 +93,7 @@ int PLYWriter::write_header_()
 }
 
 // Write the vertex information: 'x y z nx ny nz'
-int PLYWriter::write_vertices_()
+auto PLYWriter::write_vertices_() -> int
 {
     if (!outputMesh_.is_open() || mesh_->GetNumberOfPoints() == 0) {
         return EXIT_FAILURE;
@@ -97,20 +114,17 @@ int PLYWriter::write_vertices_()
         outputMesh_ << normal[0] << " " << normal[1] << " " << normal[2];
 
         // If the texture has images and a uv map, write texture info
-        if (texture_.hasImages() && !texture_.uvMap().empty()) {
+        if (not texture_.empty() and uvMap_ and not uvMap_->empty()) {
             // Get the intensity for this point from the texture. If it doesn't
             // exist, set to 0.
-            double intensity = texture_.intensity(point.Index());
-            if (intensity != Texture::NO_VALUE) {
-                // map 16bit to 8bit
+            double intensity{0};
+            if (uvMap_->contains(point.Index())) {
+                intensity = PtIntensity(point.Index(), uvMap_, texture_);
                 intensity = cvRound(intensity * 255.0 / 65535.0);
-            } else {
-                intensity = 0;
             }
 
-            auto intIntensity = static_cast<int>(intensity);
-            outputMesh_ << " " << intIntensity << " " << intIntensity << " "
-                        << intIntensity;
+            auto i = static_cast<int>(intensity);
+            outputMesh_ << " " << i << " " << i << " " << i;
         } else if (not vcolors_.empty()) {
             float val = vcolors_.at(point.Index());
             auto i = static_cast<int>(val * 255.F / 65535.F);
@@ -124,7 +138,7 @@ int PLYWriter::write_vertices_()
 }
 
 // Write the face information: 'n#-of-verts v1 v1 ... vn'
-int PLYWriter::write_faces_()
+auto PLYWriter::write_faces_() -> int
 {
     if (!outputMesh_.is_open() || mesh_->GetNumberOfCells() == 0) {
         return EXIT_FAILURE;
@@ -152,3 +166,20 @@ void PLYWriter::setVertexColors(const std::vector<uint16_t>& c)
 {
     vcolors_ = c;
 }
+
+PLYWriter::PLYWriter(fs::path outputPath, ITKMesh::Pointer mesh)
+    : outputPath_{std::move(outputPath)}, mesh_{std::move(mesh)}
+{
+}
+
+PLYWriter::PLYWriter(
+    fs::path outputPath, ITKMesh::Pointer mesh, cv::Mat texture)
+    : outputPath_{std::move(outputPath)}
+    , mesh_{std::move(mesh)}
+    , texture_{std::move(texture)}
+{
+}
+void PLYWriter::setPath(const filesystem::path& path) { outputPath_ = path; }
+void PLYWriter::setMesh(ITKMesh::Pointer mesh) { mesh_ = std::move(mesh); }
+void PLYWriter::setUVMap(UVMap::Pointer uvMap) { uvMap_ = std::move(uvMap); }
+void PLYWriter::setTexture(cv::Mat texture) { texture_ = std::move(texture); }

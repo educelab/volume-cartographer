@@ -1,6 +1,7 @@
 project(libvc_meshing VERSION ${VC_VERSION} LANGUAGES CXX)
 
 set(srcs
+    src/ACVD.cpp
     src/CalculateNormals.cpp
     src/DeepCopy.cpp
     src/ITK2VTK.cpp
@@ -10,16 +11,13 @@ set(srcs
     src/OrderedResampling.cpp
     src/OrderedPointSetMesher.cpp
     src/UVMapToITKMesh.cpp
+    src/LaplacianSmooth.cpp
 )
 set(public_deps "")
 set(private_deps "")
 set(defs "")
 
-# Conditional compilation of ACVD and Bullet stuff
-if (VC_USE_ACVD OR VC_USE_OPTIONAL)
-    list(APPEND srcs src/ACVD.cpp)
-    list(APPEND private_deps ACVD::vtkDiscreteRemeshing)
-endif()
+# Conditional compilation of Bullet
 if(VC_USE_VCG OR VC_USE_OPTIONAL)
     list(APPEND srcs src/QuadricEdgeCollapseDecimation.cpp)
     list(APPEND public_deps vcglib Eigen3::Eigen)
@@ -42,6 +40,7 @@ target_link_libraries(vc_meshing
         ITKTransform
         vtkFiltersGeneral
         vtkFiltersCore
+        ACVD::vtkDiscreteRemeshing
         ${private_deps}
 )
 target_compile_features(vc_meshing PUBLIC cxx_std_17)

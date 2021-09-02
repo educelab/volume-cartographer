@@ -6,11 +6,14 @@ void VolumetricMask::setIn(const Voxel& v) { mask_.insert(v); }
 
 void VolumetricMask::setOut(const Voxel& v) { mask_.erase(v); }
 
-bool VolumetricMask::isIn(const Voxel& v) const { return mask_.count(v) > 0; }
+auto VolumetricMask::isIn(const Voxel& v) const -> bool
+{
+    return mask_.count(v) > 0;
+}
 
-bool VolumetricMask::isOut(const Voxel& v) const { return not isIn(v); }
+auto VolumetricMask::isOut(const Voxel& v) const -> bool { return not isIn(v); }
 
-bool VolumetricMask::isIn(const cv::Vec3d& v) const
+auto VolumetricMask::isIn(const cv::Vec3d& v) const -> bool
 {
     auto x = static_cast<int>(std::floor(v[0]));
     auto y = static_cast<int>(std::floor(v[1]));
@@ -18,38 +21,46 @@ bool VolumetricMask::isIn(const cv::Vec3d& v) const
     return isIn(Voxel{x, y, z});
 }
 
-bool VolumetricMask::isOut(const cv::Vec3d& v) const { return not isIn(v); }
+auto VolumetricMask::isOut(const cv::Vec3d& v) const -> bool
+{
+    return not isIn(v);
+}
 
-VolumetricMask::iterator VolumetricMask::begin() noexcept
+auto VolumetricMask::begin() noexcept -> VolumetricMask::iterator
 {
     return mask_.begin();
 }
 
-VolumetricMask::const_iterator VolumetricMask::begin() const noexcept
+auto VolumetricMask::begin() const noexcept -> VolumetricMask::const_iterator
 {
     return mask_.begin();
 }
 
-VolumetricMask::const_iterator VolumetricMask::cbegin() const noexcept
+auto VolumetricMask::cbegin() const noexcept -> VolumetricMask::const_iterator
 {
     return mask_.cbegin();
 }
 
-VolumetricMask::iterator VolumetricMask::end() noexcept { return mask_.end(); }
-
-VolumetricMask::const_iterator VolumetricMask::end() const noexcept
+auto VolumetricMask::end() noexcept -> VolumetricMask::iterator
 {
     return mask_.end();
 }
 
-VolumetricMask::const_iterator VolumetricMask::cend() const noexcept
+auto VolumetricMask::end() const noexcept -> VolumetricMask::const_iterator
+{
+    return mask_.end();
+}
+
+auto VolumetricMask::cend() const noexcept -> VolumetricMask::const_iterator
 {
     return mask_.end();
 }
 
 void VolumetricMask::clear() { mask_.clear(); }
 
-std::vector<VolumetricMask::Voxel> VolumetricMask::as_vector() const
+auto VolumetricMask::empty() const -> bool { return mask_.empty(); }
+
+auto VolumetricMask::as_vector() const -> std::vector<VolumetricMask::Voxel>
 {
     return {mask_.begin(), mask_.end()};
 }

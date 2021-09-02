@@ -2,6 +2,8 @@
 
 /** @file */
 
+#include <memory>
+
 #include <opencv2/core.hpp>
 
 #include "vc/core/filesystem.hpp"
@@ -70,14 +72,21 @@ public:
         cv::Vec3d normal;
     };
 
+    /** Pointer type */
+    using Pointer = std::shared_ptr<PerPixelMap>;
+
     /**@{*/
     /** @brief Default constructor */
     PerPixelMap() = default;
 
     /** @brief Constructor with width and height parameters */
-    PerPixelMap(size_t height, size_t width) : height_{height}, width_{width}
+    PerPixelMap(size_t height, size_t width);
+
+    /** Static New function for all constructors of T */
+    template <typename... Args>
+    static auto New(Args... args) -> Pointer
     {
-        initialize_map_();
+        return std::make_shared<PerPixelMap>(std::forward<Args>(args)...);
     }
 
     /**
@@ -85,43 +94,39 @@ public:
      *
      * The map is initialized as soon as its width and height have been set.
      */
-    bool initialized() const
-    {
-        return width_ == map_.width() && height_ == map_.height() &&
-               width_ > 0 && height_ > 0;
-    }
+    [[nodiscard]] auto initialized() const -> bool;
     /**@}*/
 
     /**@{*/
     /** @brief Get the mapping for a pixel by x, y coordinate */
-    const cv::Vec6d& operator()(size_t y, size_t x) const { return map_(y, x); }
+    auto operator()(size_t y, size_t x) const -> const cv::Vec6d&;
 
     /** @copydoc operator()() */
-    cv::Vec6d& operator()(size_t y, size_t x) { return map_(y, x); }
+    auto operator()(size_t y, size_t x) -> cv::Vec6d&;
+
+    /** @copydoc operator()() */
+    [[nodiscard]] auto getMapping(std::size_t y, std::size_t x) const
+        -> const cv::Vec6d&;
+
+    /** @copydoc operator()() */
+    auto getMapping(std::size_t y, std::size_t x) -> cv::Vec6d&;
 
     /**
      * @brief Return whether there is a mapping for the pixel at x, y
      *
      * Returns `true` is the pixel mask has not been set or is empty
      */
-    bool hasMapping(size_t y, size_t x) const
-    {
-        if (mask_.empty()) {
-            return true;
-        }
-
-        return mask_.at<uint8_t>(y, x) == 255;
-    }
+    [[nodiscard]] auto hasMapping(size_t y, size_t x) const -> bool;
 
     /** @brief Get the mapping for a pixel as a PixelMap */
-    PixelMap getAsPixelMap(size_t y, size_t x);
+    auto getAsPixelMap(size_t y, size_t x) -> PixelMap;
 
     /**
      * @brief Get all valid pixel mappings as a list of PixelMap
      *
      * Uses hasMapping() to determine which pixels in the PPM are valid.
      */
-    std::vector<PixelMap> getMappings() const;
+    [[nodiscard]] auto getMappings() const -> std::vector<PixelMap>;
     /**@}*/
 
     /**@{*/
@@ -146,32 +151,15 @@ public:
     void setHeight(size_t h);
 
     /** @brief Get the width of the map */
-    size_t width() const { return width_; }
+    [[nodiscard]] auto width() const -> size_t;
 
     /** @brief Get the height of the map */
-    size_t height() const { return height_; }
+    [[nodiscard]] auto height() const -> size_t;
     /**@}*/
 
     /**@{*/
-    /**
-     * @brief Get the UVMap
-     *
-     * Generally the UVMap from which this PPM was generated.
-     */
-    const UVMap& uvMap() const { return uvMap_; }
-
-    /** @copydoc uvMap() const */
-    UVMap& uvMap() { return uvMap_; }
-
-    /**
-     * @brief Set the UVMap
-     *
-     * Useful for keeping a copy of the the UVMap that generated this PPM.
-     */
-    void setUVMap(const UVMap& u) { uvMap_ = u; }
-
     /** @brief Get the pixel mask */
-    const cv::Mat mask() const { return mask_; }
+    [[nodiscard]] auto mask() const -> cv::Mat;
 
     /**
      * @brief Set the pixel mask
@@ -183,7 +171,7 @@ public:
      * mask is an 8bpc, single channel image that indicates which pixels do and
      * do not have mappings. 0 = No mapping, 255 = Has mapping.
      */
-    void setMask(const cv::Mat& m) { mask_ = m.clone(); }
+    void setMask(const cv::Mat& m);
 
     /**
      * @brief Get the cell map image
@@ -192,22 +180,22 @@ public:
      * This is an optional feature, and older PPMs may not make this information
      * available.
      */
-    const cv::Mat cellMap() const { return cellMap_; }
+    [[nodiscard]] auto cellMap() const -> cv::Mat;
 
     /**
      * @brief Set the cell map image
      *
      * @copydetails cellMap()
      */
-    void setCellMap(const cv::Mat& m) { cellMap_ = m.clone(); }
+    void setCellMap(const cv::Mat& m);
     /**@}*/
 
     /**@{*/
     /** @brief Write a PerPixelMap to disk */
-    static void WritePPM(
-        const volcart::filesystem::path& path, const PerPixelMap& map);
+    static void WritePPM(const filesystem::path& path, const PerPixelMap& map);
+
     /** @brief Read a PerPixelMap from disk */
-    static PerPixelMap ReadPPM(const volcart::filesystem::path& path);
+    static auto ReadPPM(const filesystem::path& path) -> PerPixelMap;
     /**@}*/
 
 private:
@@ -223,7 +211,7 @@ private:
     /** Width of the map */
     size_t width_{0};
     /** Map data storage */
-    volcart::OrderedPointSet<cv::Vec6d> map_;
+    OrderedPointSet<cv::Vec6d> map_;
 
     /**
      * Pixel mask
@@ -235,8 +223,5 @@ private:
 
     /** Cell map */
     cv::Mat cellMap_;
-
-    /** UVMap used to generate this map */
-    UVMap uvMap_{};
 };
 }  // namespace volcart

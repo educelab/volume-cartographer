@@ -5,18 +5,20 @@
 using namespace volcart;
 using namespace volcart::texturing;
 
+using Texture = IntersectionTexture::Texture;
+
 Texture IntersectionTexture::compute()
 {
     // Setup
-    result_ = Texture();
-    auto height = static_cast<int>(ppm_.height());
-    auto width = static_cast<int>(ppm_.width());
+    result_.clear();
+    auto height = static_cast<int>(ppm_->height());
+    auto width = static_cast<int>(ppm_->width());
 
     // Output image
     cv::Mat image = cv::Mat::zeros(height, width, CV_16UC1);
 
     // Get the mappings
-    auto mappings = ppm_.getMappings();
+    auto mappings = ppm_->getMappings();
 
     // Sort the mappings by Z-value
     std::sort(
@@ -38,8 +40,7 @@ Texture IntersectionTexture::compute()
     progressComplete();
 
     // Set output
-    result_.addImage(image);
-    result_.setPPM(ppm_);
+    result_.push_back(image);
 
     return result_;
 }

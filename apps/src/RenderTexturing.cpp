@@ -104,8 +104,9 @@ po::options_description GetFilteringOpts()
              "Neighborhood shape:\n"
                  "  0 = Linear\n"
                  "  1 = Cuboid")
-        ("radius,r", po::value<double>(), "Search radius. Defaults to value "
-            "calculated from estimated layer thickness.")
+        ("radius,r", po::value<std::vector<double>>()->multitoken(), "Search "
+            "radius. Defaults to value calculated from estimated layer "
+            "thickness.")
         ("interval,i", po::value<double>()->default_value(1.0),
             "Sampling interval")
         ("direction,d", po::value<int>()->default_value(0),
@@ -214,13 +215,13 @@ po::options_description GetPostProcessOpts()
     return opts;
 }
 
-vc::UVMap FlattenMesh(const vc::ITKMesh::Pointer& mesh, bool resampled)
+vc::UVMap::Pointer FlattenMesh(const vc::ITKMesh::Pointer& mesh, bool resampled)
 {
-    vc::UVMap uvMap;
+    vc::UVMap::Pointer uvMap;
     vc::ITKMesh::Pointer uvMesh;
     if (parsed_.count("reuse-uv")) {
         if (!resampled) {
-            uvMap = parsedUVMap_;
+            uvMap = vc::UVMap::New(parsedUVMap_);
         } else {
             vc::Logger()->warn(
                 "Provided '--reuse-uv' option, but input mesh has been "
@@ -229,10 +230,11 @@ vc::UVMap FlattenMesh(const vc::ITKMesh::Pointer& mesh, bool resampled)
     }
 
     // If we don't have a valid UV map yet, make one
-    if (uvMap.empty()) {
+    if (not uvMap) {
         vc::Logger()->info("Computing parameterization");
         auto method =
             static_cast<FlatteningAlgorithm>(parsed_["uv-algorithm"].as<int>());
+        vc::ITKMesh::Pointer uvMesh;
 
         // ABF and LSCM
         if (method == FlatteningAlgorithm::ABF ||
@@ -246,6 +248,7 @@ vc::UVMap FlattenMesh(const vc::ITKMesh::Pointer& mesh, bool resampled)
                 std::exit(EXIT_FAILURE);
             }
             uvMap = abf.getUVMap();
+            uvMesh = abf.getMesh();
         }
         // Orthographic
         else if (method == FlatteningAlgorithm::Orthographic) {
@@ -253,7 +256,13 @@ vc::UVMap FlattenMesh(const vc::ITKMesh::Pointer& mesh, bool resampled)
             ortho.setMesh(mesh);
             uvMesh = ortho.compute();
             uvMap = ortho.getUVMap();
+            uvMesh = ortho.getMesh();
         }
+
+        // Print L2/LInf mesh error
+        auto metrics = vct::LStretch(mesh, uvMesh);
+        vc::Logger()->info(
+            "L2 Norm: {:.5g}, LInf Norm: {:.5g}", metrics.l2, metrics.lInf);
     }
 
     // Rotate
@@ -261,7 +270,7 @@ vc::UVMap FlattenMesh(const vc::ITKMesh::Pointer& mesh, bool resampled)
         auto theta = parsed_["uv-rotate"].as<double>();
         vc::Logger()->info("Rotating UV map {} degrees", theta);
         theta *= DEG_TO_RAD;
-        vc::UVMap::Rotate(uvMap, theta);
+        vc::UVMap::Rotate(*uvMap, theta);
     }
 
     // Flip
@@ -269,7 +278,7 @@ vc::UVMap FlattenMesh(const vc::ITKMesh::Pointer& mesh, bool resampled)
         auto axis =
             static_cast<vc::UVMap::FlipAxis>(parsed_["uv-flip"].as<int>());
         vc::Logger()->info("Flipping UV map");
-        vc::UVMap::Flip(uvMap, axis);
+        vc::UVMap::Flip(*uvMap, axis);
     }
 
     // Need a UV mesh if we're plotting the UV map
@@ -286,7 +295,7 @@ vc::UVMap FlattenMesh(const vc::ITKMesh::Pointer& mesh, bool resampled)
     if (parsed_.count("uv-plot") > 0) {
         vc::Logger()->info("Saving UV map plot");
         fs::path uvPlotPath = parsed_["uv-plot"].as<std::string>();
-        cv::imwrite(uvPlotPath.string(), vc::UVMap::Plot(uvMap, uvMesh));
+        cv::imwrite(uvPlotPath.string(), vc::UVMap::Plot(*uvMap, uvMesh));
     }
 
     // Plot the UV error maps
@@ -301,8 +310,8 @@ vc::UVMap FlattenMesh(const vc::ITKMesh::Pointer& mesh, bool resampled)
 
         // Generate cell map since we don't have one yet
         vc::Logger()->info("Generating per-face UV error plots");
-        auto width = static_cast<size_t>(std::ceil(uvMap.ratio().width));
-        auto height = static_cast<size_t>(std::ceil(uvMap.ratio().height));
+        auto width = static_cast<size_t>(std::ceil(uvMap->ratio().width));
+        auto height = static_cast<size_t>(std::ceil(uvMap->ratio().height));
         auto cellMap = vct::GenerateCellMap(uvMesh, uvMap, height, width);
 
         // Generate the error plots
@@ -327,15 +336,15 @@ vc::UVMap FlattenMesh(const vc::ITKMesh::Pointer& mesh, bool resampled)
     return uvMap;
 }
 
-vc::Texture TextureMesh(
-    const vc::ITKMesh::Pointer& mesh, const vc::UVMap& uvMap)
+std::vector<cv::Mat> TextureMesh(
+    const vc::ITKMesh::Pointer& mesh, const vc::UVMap::Pointer& uvMap)
 {
     ///// Get some post-vpkg loading command line arguments /////
     // Get the texturing radius. If not specified, default to a radius
     // defined by the estimated thickness of the layer
     cv::Vec3d radius{0, 0, 0};
     if (parsed_.count("radius")) {
-        radius[0] = parsed_["radius"].as<double>();
+        radius[0] = parsed_["radius"].as<std::vector<double>>()[0];
     } else {
         radius[0] = vpkg_->materialThickness() / 2 / volume_->voxelSize();
     }
@@ -373,8 +382,8 @@ vc::Texture TextureMesh(
     auto normalize = parsed_["normalize-output"].as<bool>();
 
     ///// Generate the PPM /////
-    auto width = static_cast<size_t>(std::ceil(uvMap.ratio().width));
-    auto height = static_cast<size_t>(std::ceil(uvMap.ratio().height));
+    auto width = static_cast<size_t>(std::ceil(uvMap->ratio().width));
+    auto height = static_cast<size_t>(std::ceil(uvMap->ratio().height));
     vct::PPMGenerator ppmGen;
     ppmGen.setMesh(mesh);
     ppmGen.setUVMap(uvMap);
@@ -389,7 +398,7 @@ vc::Texture TextureMesh(
     if (parsed_.count("output-ppm")) {
         vc::Logger()->info("Writing PPM");
         fs::path ppmPath = parsed_["output-ppm"].as<std::string>();
-        vc::PerPixelMap::WritePPM(ppmPath, ppm);
+        vc::PerPixelMap::WritePPM(ppmPath, *ppm);
     }
 
     ///// Setup Neighborhood /////
@@ -500,7 +509,7 @@ vc::Texture TextureMesh(
     return texture;
 }
 
-void RenderPostProcess(const vc::Texture& texture)
+void RenderPostProcess(const std::vector<cv::Mat>& texture)
 {
     ///// Scale Markers /////
     if (parsed_.count("scale-marker") > 0) {
@@ -510,7 +519,7 @@ void RenderPostProcess(const vc::Texture& texture)
 
         // Setup scale generator with what we know
         ScaleGenerator scaleGen;
-        scaleGen.setInputImage(texture.image(0));
+        scaleGen.setInputImage(texture.at(0));
         scaleGen.setInputImagePixelSize(volume_->voxelSize());
         scaleGen.setScaleType(type);
         scaleGen.setScaleBarColor(GetScaleColorOpt());

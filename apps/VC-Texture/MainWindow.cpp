@@ -168,16 +168,15 @@ void MainWindow::saveTexture()
     // If A Volume Package is Loaded and there are Segmentations (continue)
     if (globals_->pkgLoaded() && globals_->volPkg()->hasSegmentations()) {
         // Checks to see if there are images
-        if (globals_->getRendering().getTexture().hasImages()) {
+        if (not globals_->getRendering().getTexture().empty()) {
             try {
                 auto path =
                     globals_->getActiveSegmentation()->path() / "textured.obj";
                 volcart::io::OBJWriter writer;
                 writer.setPath(path.string());
                 writer.setMesh(globals_->getRendering().getMesh());
-                writer.setUVMap(globals_->getRendering().getTexture().uvMap());
-                writer.setTexture(
-                    globals_->getRendering().getTexture().image(0));
+                writer.setUVMap(globals_->getRendering().getUVMap());
+                writer.setTexture(globals_->getRendering().getTexture().at(0));
                 writer.write();
                 globals_->setThreadStatus(ThreadStatus::Inactive);
                 QMessageBox::information(
@@ -221,15 +220,15 @@ void MainWindow::exportTexture()
     cv::Mat output;
 
     // Export the new texture first, otherwise the one already saved to disk
-    if (globals_->getRendering().getTexture().hasImages()) {
-        output = globals_->getRendering().getTexture().image(0);
+    if (not globals_->getRendering().getTexture().empty()) {
+        output = globals_->getRendering().getTexture().at(0);
     } else {
         auto path = globals_->getActiveSegmentation()->path() / "textured.png";
         output = cv::imread(path.string(), -1);
     }
 
     // Return if no image to export
-    if (!output.data) {
+    if (output.empty()) {
         QMessageBox::warning(
             this, "Error",
             "No image to export. Please load a different segmentation or "

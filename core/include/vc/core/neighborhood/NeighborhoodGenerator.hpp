@@ -18,17 +18,18 @@ namespace volcart
 using Neighborhood = NDArray<uint16_t>;
 
 /**
- * @brief Neighborhood Directional Filtering Options
- *
- * Bidirectional: Consider data in both the positive and negative normal
- * direction \n
- * Positive: Only consider data in the positive normal direction \n
- * Negative: Only consider data in the negative normal direction \n
+ * @brief Neighborhood directional filtering options
  */
-enum class Direction { Bidirectional, Positive, Negative };
+enum class Direction {
+    /** @brief Only consider data in the negative normal direction */
+    Negative = -1,
+    /** @brief Consider data in both the positive and negative normal */
+    Bidirectional = 0,
+    /** @brief Only consider data in the positive normal direction */
+    Positive = 1
+};
 
 /**
- * @class NeighborhoodGenerator
  * @brief Base class for neighborhood generating classes
  *
  * @ingroup Neighborhoods

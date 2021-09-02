@@ -12,9 +12,7 @@
 
 #include "vc/core/types/ITKMesh.hpp"
 
-namespace volcart
-{
-namespace meshing
+namespace volcart::meshing
 {
 /**
  * @class QuadricEdgeCollapseDecimation
@@ -401,5 +399,4 @@ private:
     vcg::tri::TriEdgeCollapseQuadricParameter collapseParams_;
 
 };  // QuadricEdgeCollapse
-}  // namespace meshing
-}  // namespace volcart
+}  // namespace volcart::meshing

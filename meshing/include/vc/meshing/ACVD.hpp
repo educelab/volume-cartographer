@@ -32,13 +32,17 @@ public:
     /** @brief Isotropy modes */
     enum class Mode { Isotropic, Anisotropic };
 
+    /** Default constructor */
     ACVD() = default;
 
     /** @brief Set the input mesh */
     void setInputMesh(ITKMesh::Pointer input);
 
-    /** @brief Set the isotropy mode */
+    /** @brief Isotropy mode */
     void setMode(Mode m);
+
+    /** @copydoc setMode(Mode) */
+    [[nodiscard]] auto mode() const -> Mode;
 
     /**
      * @brief The number of voronoi clusters to use for remeshing
@@ -50,39 +54,51 @@ public:
      * If set to 0 (default), the number of vertices in the input mesh will
      * be used.
      */
-    void setNumberOfClusters(size_t n);
+    void setNumberOfClusters(std::size_t n);
+
+    /** @copydoc setNumberOfClusters(std::size_t) */
+    [[nodiscard]] auto numberOfClusters() const -> std::size_t;
 
     /**
-     * @brief Set the gradation (curvature) constraint
+     * @brief The gradation (curvature) constraint
      *
      * If set to 0 (default), uniform clustering will be performed. Higher
      * values will produce a clustering which favors regions of high curvature.
      */
     void setGradation(double g);
 
+    /** @copydoc setGradation(double) */
+    [[nodiscard]] auto gradation() const -> double;
+
     /**
-     * @brief Set the subsample threshold
+     * @brief The subsampling threshold
      *
      * Input mesh will be iteratively divided until the subsample ratio is
      * above the subsampling threshold. In practice, higher values produce
      * better results, but require more subdivision.
      */
-    void setSubsampleThreshold(size_t t);
+    void setSubsampleThreshold(std::size_t t);
+
+    /** @copydoc setSubsampleThreshold(std::size_t) */
+    [[nodiscard]] auto subsampleThreshold() const -> std::size_t;
 
     /**
-     * @brief Set the quadrics optimization level
+     * @brief Quadrics optimization level
      *
      * For values greater than 0, refine the resampled vertices to minimize the
      * quadric error between the input and output mesh. Only use if mode is
      * `Mode::Isotropic`. Default value: 1
      */
-    void setQuadricsOptimizationLevel(size_t l);
+    void setQuadricsOptimizationLevel(std::size_t l);
+
+    /** @copydoc setQuadricsOptimizationLevel(std::size_t) */
+    [[nodiscard]] auto quadricsOptimizationLevel() const -> std::size_t;
 
     /** @brief Compute the resampled mesh */
-    ITKMesh::Pointer compute();
+    auto compute() -> ITKMesh::Pointer;
 
     /** @brief Get the output mesh */
-    ITKMesh::Pointer getOutputMesh() const;
+    [[nodiscard]] auto getOutputMesh() const -> ITKMesh::Pointer;
 
 private:
     /** Input mesh */
@@ -97,12 +113,12 @@ private:
     /** Isotropy mode */
     Mode mode_{Mode::Isotropic};
     /** Number of clusters */
-    size_t clusters_{0};
+    std::size_t clusters_{0};
     /** Gradation */
     double gradation_{0};
     /** Subsample Threshold */
-    size_t subsampleThreshold_{10};
+    std::size_t subsampleThreshold_{10};
     /** Quadrics optimization level */
-    size_t quadricsOptLevel_{1};
+    std::size_t quadricsOptLevel_{1};
 };
 }  // namespace volcart::meshing

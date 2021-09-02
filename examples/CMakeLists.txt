@@ -16,14 +16,6 @@ target_link_libraries(vc_volpkg_example VC::core)
 add_executable(vc_uvmap_example src/UVMapExample.cpp)
 target_link_libraries(vc_uvmap_example VC::core)
 
-add_executable(vc_texture_flattened src/TextureFlattened.cpp)
-target_link_libraries(vc_texture_flattened
-    VC::core
-    VC::meshing
-    VC::texturing
-    vtkIOPLY
-)
-
 add_executable(vc_texture_example src/TextureExample.cpp)
 target_link_libraries(vc_texture_example VC::core VC::meshing VC::texturing)
 
@@ -111,3 +103,9 @@ target_link_libraries(vc_scale_marker_generator_example VC::core VC::texturing o
 
 add_executable(vc_signals_example src/SignalsExample.cpp)
 target_link_libraries(vc_signals_example VC::core)
+
+add_executable(vc_render_graphs_example src/RenderGraphsExample.cpp)
+target_link_libraries(vc_render_graphs_example
+    VC::graph
+    smgl::smgl
+)

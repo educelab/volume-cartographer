@@ -133,7 +133,7 @@ public:
     }
 
     /** @brief Check if an item is already in the cache */
-    bool exists(const TKey& k) override
+    bool contains(const TKey& k) override
     {
         return lookup_.find(k) != std::end(lookup_);
     }
