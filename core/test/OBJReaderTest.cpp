@@ -26,7 +26,7 @@ TEST_F(OBJReader, TexturedWithNormals)
     auto img = reader.getTextureMat();
     EXPECT_EQ(mesh->GetNumberOfPoints(), 16);
     EXPECT_EQ(mesh->GetNumberOfCells(), 18);
-    EXPECT_FALSE(uv.empty());
+    EXPECT_FALSE(uv->empty());
     EXPECT_FALSE(img.empty());
 }
 
@@ -40,7 +40,7 @@ TEST_F(OBJReader, Textured)
     auto img = reader.getTextureMat();
     EXPECT_EQ(mesh->GetNumberOfPoints(), 16);
     EXPECT_EQ(mesh->GetNumberOfCells(), 18);
-    EXPECT_FALSE(uv.empty());
+    EXPECT_FALSE(uv->empty());
     EXPECT_FALSE(img.empty());
 }
 
@@ -53,7 +53,7 @@ TEST_F(OBJReader, UntexturedWithNormals)
     auto uv = reader.getUVMap();
     EXPECT_EQ(mesh->GetNumberOfPoints(), 16);
     EXPECT_EQ(mesh->GetNumberOfCells(), 18);
-    EXPECT_TRUE(uv.empty());
+    EXPECT_TRUE(uv->empty());
 }
 
 TEST_F(OBJReader, VariableVertexInfo)
@@ -66,7 +66,7 @@ TEST_F(OBJReader, VariableVertexInfo)
     auto img = reader.getTextureMat();
     EXPECT_EQ(mesh->GetNumberOfPoints(), 16);
     EXPECT_EQ(mesh->GetNumberOfCells(), 18);
-    EXPECT_FALSE(uv.empty());
+    EXPECT_FALSE(uv->empty());
     EXPECT_FALSE(img.empty());
 }
 

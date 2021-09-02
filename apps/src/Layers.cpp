@@ -7,9 +7,11 @@
 
 #include "vc/app_support/GetMemorySize.hpp"
 #include "vc/core/filesystem.hpp"
+#include "vc/core/io/ImageIO.hpp"
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/types/PerPixelMap.hpp"
 #include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/util/Iteration.hpp"
 #include "vc/core/util/Logging.hpp"
 #include "vc/core/util/MeshMath.hpp"
 #include "vc/meshing/ACVD.hpp"
@@ -23,6 +25,8 @@
 namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
+
+using volcart::enumerate;
 
 // Volpkg version required by this app
 static constexpr int VOLPKG_SUPPORTED_VERSION = 6;
@@ -184,9 +188,9 @@ int main(int argc, char* argv[])
     abf.compute();
 
     // Get UV map
-    vc::UVMap uvMap = abf.getUVMap();
-    auto width = static_cast<size_t>(std::ceil(uvMap.ratio().width));
-    auto height = static_cast<size_t>(std::ceil(uvMap.ratio().height));
+    auto uvMap = abf.getUVMap();
+    auto width = static_cast<size_t>(std::ceil(uvMap->ratio().width));
+    auto height = static_cast<size_t>(std::ceil(uvMap->ratio().height));
 
     // Generate the PPM
     std::cout << "Generating PPM..." << std::endl;
@@ -213,9 +217,9 @@ int main(int argc, char* argv[])
 
     // Write the layers
     std::cout << "Writing layers..." << std::endl;
-    for (size_t i = 0; i < texture.numberOfImages(); ++i) {
+    for (const auto [i, image] : enumerate(texture)) {
         auto filepath = outputPath / (std::to_string(i) + ".png");
-        cv::imwrite(filepath.string(), texture.image(i));
+        vc::WriteImage(filepath, image);
     }
 
     return EXIT_SUCCESS;

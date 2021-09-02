@@ -1,11 +1,12 @@
 #pragma once
 
 #include <boost/program_options.hpp>
+#include <opencv2/core.hpp>
 
 #include "vc/core/filesystem.hpp"
 #include "vc/core/types/ITKMesh.hpp"
 #include "vc/core/types/Segmentation.hpp"
-#include "vc/core/types/Texture.hpp"
+#include "vc/core/types/UVMap.hpp"
 
 /** Get IO options */
 boost::program_options::options_description GetIOOpts();
@@ -21,4 +22,5 @@ volcart::ITKMesh::Pointer LoadMeshFile(const volcart::filesystem::path& p);
 void SaveOutput(
     const volcart::filesystem::path& outputPath,
     const volcart::ITKMesh::Pointer& mesh,
-    volcart::Texture texture);
+    const volcart::UVMap::Pointer& uvMap,
+    const std::vector<cv::Mat>& texture);

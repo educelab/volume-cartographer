@@ -140,6 +140,12 @@
  @ingroup Render
 */
 
+///// Graph Groups /////
+/**
+ @defgroup Graph Graph processing
+ @brief Library of graph processing nodes
+*/
+
 ///// Testing Groups /////
 /**
  * @namespace volcart::testing

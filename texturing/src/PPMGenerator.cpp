@@ -1,3 +1,5 @@
+#include "vc/texturing/PPMGenerator.hpp"
+
 #include <exception>
 
 #include <bvh/bvh.hpp>
@@ -13,7 +15,6 @@
 #include "vc/core/util/Iteration.hpp"
 #include "vc/meshing/CalculateNormals.hpp"
 #include "vc/meshing/DeepCopy.hpp"
-#include "vc/texturing/PPMGenerator.hpp"
 
 using namespace volcart;
 using namespace texturing;
@@ -31,17 +32,17 @@ using Bvh = bvh::Bvh<Scalar>;
 using Intersector = bvh::ClosestPrimitiveIntersector<Bvh, Triangle>;
 using Traverser = bvh::SingleRayTraverser<Bvh>;
 
-static cv::Vec3d GouraudNormal(
+static auto GouraudNormal(
     const cv::Vec3d& nUVW,
     const cv::Vec3d& nA,
     const cv::Vec3d& nB,
-    const cv::Vec3d& nC);
+    const cv::Vec3d& nC) -> cv::Vec3d;
 
 PPMGenerator::PPMGenerator(size_t h, size_t w) : width_{w}, height_{h} {}
 
 void PPMGenerator::setMesh(const ITKMesh::Pointer& m) { inputMesh_ = m; }
 
-void PPMGenerator::setUVMap(const UVMap& u) { uvMap_ = u; }
+void PPMGenerator::setUVMap(const UVMap::Pointer& u) { uvMap_ = u; }
 
 // Parameters
 void PPMGenerator::setDimensions(size_t h, size_t w)
@@ -52,16 +53,19 @@ void PPMGenerator::setDimensions(size_t h, size_t w)
 
 void PPMGenerator::setShading(PPMGenerator::Shading s) { shading_ = s; }
 
-PerPixelMap PPMGenerator::getPPM() const { return ppm_; }
+auto PPMGenerator::getPPM() const -> PerPixelMap::Pointer { return ppm_; }
 
-size_t PPMGenerator::progressIterations() const { return width_ * height_; }
+auto PPMGenerator::progressIterations() const -> size_t
+{
+    return width_ * height_;
+}
 
 // Compute
-PerPixelMap PPMGenerator::compute()
+auto PPMGenerator::compute() -> PerPixelMap::Pointer
 {
     if (inputMesh_.IsNull() || inputMesh_->GetNumberOfPoints() == 0 ||
-        inputMesh_->GetNumberOfCells() == 0 || uvMap_.empty() || width_ == 0 ||
-        height_ == 0) {
+        inputMesh_->GetNumberOfCells() == 0 || not uvMap_ || uvMap_->empty() ||
+        width_ == 0 || height_ == 0) {
         const auto* msg = "Invalid input parameters";
         throw std::invalid_argument(msg);
     }
@@ -76,7 +80,7 @@ PerPixelMap PPMGenerator::compute()
     }
 
     // Setup the output
-    ppm_ = PerPixelMap(height_, width_);
+    ppm_ = PerPixelMap::New(height_, width_);
     cv::Mat mask = cv::Mat::zeros(height_, width_, CV_8UC1);
     cv::Mat cellMap = cv::Mat(height_, width_, CV_32SC1);
     cellMap = cv::Scalar::all(-1);
@@ -90,9 +94,9 @@ PerPixelMap PPMGenerator::compute()
         auto b = cell->Value()->GetPointIdsContainer().GetElement(1);
         auto c = cell->Value()->GetPointIdsContainer().GetElement(2);
 
-        auto uvA = uvMap_.get(a);
-        auto uvB = uvMap_.get(b);
-        auto uvC = uvMap_.get(c);
+        auto uvA = uvMap_->get(a);
+        auto uvB = uvMap_->get(b);
+        auto uvC = uvMap_->get(c);
 
         // Add the face to the BVH tree
         triangles.emplace_back(
@@ -138,7 +142,7 @@ PerPixelMap PPMGenerator::compute()
         std::vector<cv::Vec3d> uvPts;
         std::vector<cv::Vec3d> xyzPts;
         for (const auto& idx : {a, b, c}) {
-            auto uvPt = uvMap_.get(idx);
+            auto uvPt = uvMap_->get(idx);
             auto xyzPt = workingMesh_->GetPoint(idx);
             uvPts.emplace_back(uvPt[0], uvPt[1], 0.0);
             xyzPts.emplace_back(xyzPt[0], xyzPt[1], xyzPt[2]);
@@ -181,35 +185,34 @@ PerPixelMap PPMGenerator::compute()
         mask.at<uint8_t>(intY, intX) = MASK_TRUE;
 
         // Assign 3D position to the lookup map
-        ppm_(y, x) = cv::Vec6d(
+        ppm_->getMapping(y, x) = cv::Vec6d(
             xyz(0), xyz(1), xyz(2), xyzNorm(0), xyzNorm(1), xyzNorm(2));
     }
     progressComplete();
 
     // Finish setting up the output
-    ppm_.setUVMap(uvMap_);
-    ppm_.setMask(mask);
-    ppm_.setCellMap(cellMap);
+    ppm_->setMask(mask);
+    ppm_->setCellMap(cellMap);
 
     return ppm_;
 }
 
 // Convert from Barycentric coordinates to a smoothly interpolated normal
-cv::Vec3d GouraudNormal(
+auto GouraudNormal(
     const cv::Vec3d& nUVW,
     const cv::Vec3d& nA,
     const cv::Vec3d& nB,
-    const cv::Vec3d& nC)
+    const cv::Vec3d& nC) -> cv::Vec3d
 {
     return cv::normalize(
         (1 - nUVW[0] - nUVW[1]) * nA + nUVW[1] * nB + nUVW[2] * nC);
 }
 
-cv::Mat vct::GenerateCellMap(
+auto vct::GenerateCellMap(
     const ITKMesh::Pointer& mesh,
-    const UVMap& uvMap,
+    const UVMap::Pointer& uvMap,
     std::size_t height,
-    std::size_t width)
+    std::size_t width) -> cv::Mat
 {
 
     auto cellMap = cv::Mat(height, width, CV_32SC1);
@@ -224,9 +227,9 @@ cv::Mat vct::GenerateCellMap(
         auto b = cell->Value()->GetPointIdsContainer().GetElement(1);
         auto c = cell->Value()->GetPointIdsContainer().GetElement(2);
 
-        auto uvA = uvMap.get(a);
-        auto uvB = uvMap.get(b);
-        auto uvC = uvMap.get(c);
+        auto uvA = uvMap->get(a);
+        auto uvB = uvMap->get(b);
+        auto uvC = uvMap->get(c);
 
         // Add the face to the BVH tree
         triangles.emplace_back(

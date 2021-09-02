@@ -1,9 +1,9 @@
-  # Declare the project
-  FetchContent_Declare(
-      openabf
-      GIT_REPOSITORY https://gitlab.com/educelab/OpenABF.git
-      GIT_TAG 34b717a5
-  )
+# Declare the project
+FetchContent_Declare(
+    openabf
+    GIT_REPOSITORY https://gitlab.com/educelab/OpenABF.git
+    GIT_TAG 63afa9e3
+)
 
 # Populate the project but exclude from all
 FetchContent_GetProperties(openabf)

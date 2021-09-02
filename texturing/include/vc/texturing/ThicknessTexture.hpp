@@ -31,7 +31,7 @@ public:
 
     /** Static New function for all constructors of T */
     template <typename... Args>
-    static Pointer New(Args... args)
+    static auto New(Args... args) -> Pointer
     {
         return std::make_shared<ThicknessTexture>(std::forward<Args>(args)...);
     }
@@ -50,6 +50,9 @@ public:
      */
     void setSamplingInterval(double i);
 
+    /** @copydetails setSamplingInterval(double) */
+    [[nodiscard]] auto samplingInterval() const -> double;
+
     /**
      * @brief Normalize the output image
      *
@@ -58,11 +61,17 @@ public:
      */
     void setNormalizeOutput(bool b);
 
+    /** @copydetails setNormalizeOutput(bool) */
+    [[nodiscard]] auto normalizeOutput() const -> bool;
+
     /** @brief Set the VolumetricMask */
     void setVolumetricMask(const VolumetricMask::Pointer& m);
 
+    /** @brief Get the VolumetricMask */
+    [[nodiscard]] auto volumetricMask() const -> VolumetricMask::Pointer;
+
     /** @brief Compute the result */
-    Texture compute() override;
+    auto compute() -> Texture override;
 
 private:
     /** Volumetric mask */

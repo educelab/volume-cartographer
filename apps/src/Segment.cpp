@@ -250,8 +250,9 @@ int main(int argc, char* argv[])
     size_t startIndex{0};
     if (parsed.count("start-index") == 0) {
         startIndex = maxIndex;
-        std::cout << "No starting index given, defaulting to Highest-Z: "
-                  << startIndex << std::endl;
+        std::cout
+            << "No starting index given. Defaulting to max Z in point set: "
+            << startIndex << std::endl;
     } else {
         startIndex = parsed["start-index"].as<size_t>();
     }
@@ -263,9 +264,13 @@ int main(int argc, char* argv[])
     size_t endIndex{0};
     if (parsed.count("end-index") > 0) {
         endIndex = parsed["end-index"].as<size_t>();
-    } else {
+    } else if (parsed.count("stride") > 0) {
         endIndex = startIndex + parsed["stride"].as<size_t>();
         endIndex = std::min(endIndex, size_t(volume->numSlices() - 1));
+    } else {
+        endIndex = size_t(volume->numSlices() - 1);
+        std::cout << "No end index given. Defaulting to max Z in volume: "
+                  << endIndex << std::endl;
     }
 
     // Sanity check for whether we actually need to run the algorithm
@@ -334,7 +339,7 @@ int main(int argc, char* argv[])
         segmenter.setConsiderPrevious(parsed["consider-previous"].as<bool>());
         segmenter.setVisualize(parsed.count("visualize") > 0);
         segmenter.setDumpVis(parsed.count("dump-vis") > 0);
-        vc::ReportProgress(segmenter, "Segmenting", true, false);
+        vc::ReportProgress(segmenter, "Segmenting");
         mutableCloud = segmenter.compute();
     }
 
@@ -367,7 +372,7 @@ int main(int argc, char* argv[])
         if (parsed.count("save-mask") > 0) {
             segmenter.maskUpdated.connect(WriteMaskPointset);
         }
-        vc::ReportProgress(segmenter, "Segmenting", true, false);
+        vc::ReportProgress(segmenter, "Segmenting");
         auto skeleton = segmenter.compute();
 
         // Regular pointsets aren't fully supported in the main logic yet

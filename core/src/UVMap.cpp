@@ -16,7 +16,7 @@ constexpr static int MIN_DEBUG_WIDTH = 50;
 
 using namespace volcart;
 
-inline cv::Vec2d OriginVector(const UVMap::Origin& o);
+inline auto OriginVector(const UVMap::Origin& o) -> cv::Vec2d;
 
 void UVMap::set(size_t id, const cv::Vec2d& uv, const Origin& o)
 {
@@ -28,7 +28,7 @@ void UVMap::set(size_t id, const cv::Vec2d& uv, const Origin& o)
 
 void UVMap::set(size_t id, const cv::Vec2d& uv) { set(id, uv, origin_); }
 
-cv::Vec2d UVMap::get(size_t id, const Origin& o) const
+auto UVMap::get(size_t id, const Origin& o) const -> cv::Vec2d
 {
     auto it = map_.find(id);
     if (it != map_.end()) {
@@ -41,9 +41,36 @@ cv::Vec2d UVMap::get(size_t id, const Origin& o) const
     }
 }
 
-cv::Vec2d UVMap::get(size_t id) const { return get(id, origin_); }
+auto UVMap::get(size_t id) const -> cv::Vec2d { return get(id, origin_); }
 
-cv::Vec2d OriginVector(const UVMap::Origin& o)
+auto UVMap::contains(std::size_t id) const -> bool
+{
+    return map_.count(id) > 0;
+}
+
+UVMap::UVMap(UVMap::Origin o) : origin_{o} {}
+
+auto UVMap::size() const -> size_t { return map_.size(); }
+
+auto UVMap::empty() const -> bool { return map_.empty(); }
+
+void UVMap::setOrigin(const UVMap::Origin& o) { origin_ = o; }
+
+auto UVMap::origin() const -> UVMap::Origin { return origin_; }
+
+auto UVMap::ratio() const -> UVMap::Ratio { return ratio_; }
+
+void UVMap::ratio(double a) { ratio_.aspect = a; }
+
+void UVMap::ratio(double w, double h)
+{
+    ratio_.width = w;
+    ratio_.height = h;
+    ratio_.aspect = w / h;
+}
+auto UVMap::as_map() const -> std::map<size_t, cv::Vec2d> { return map_; }
+
+auto OriginVector(const UVMap::Origin& o) -> cv::Vec2d
 {
     switch (o) {
         case UVMap::Origin::TopLeft:
@@ -57,7 +84,7 @@ cv::Vec2d OriginVector(const UVMap::Origin& o)
     }
 }
 
-cv::Mat UVMap::Plot(const UVMap& uv, const Color& color)
+auto UVMap::Plot(const UVMap& uv, const Color& color) -> cv::Mat
 {
     auto w = static_cast<int>(std::ceil(uv.ratio_.width));
     if (w < MIN_DEBUG_WIDTH) {
@@ -74,12 +101,12 @@ cv::Mat UVMap::Plot(const UVMap& uv, const Color& color)
     return r;
 }
 
-cv::Mat UVMap::Plot(
+auto UVMap::Plot(
     const UVMap& uv,
     const ITKMesh::Pointer& mesh2D,
     int width,
     int height,
-    const Color& color)
+    const Color& color) -> cv::Mat
 {
     if (width < 0) {
         width = std::max(

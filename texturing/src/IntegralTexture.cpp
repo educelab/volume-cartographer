@@ -9,13 +9,15 @@
 using namespace volcart;
 using namespace volcart::texturing;
 
-Texture IntegralTexture::compute()
+using Texture = IntegralTexture::Texture;
+
+auto IntegralTexture::compute() -> Texture
 {
     // Setup
-    result_ = Texture();
+    result_.clear();
 
-    auto height = static_cast<int>(ppm_.height());
-    auto width = static_cast<int>(ppm_.width());
+    auto height = static_cast<int>(ppm_->height());
+    auto width = static_cast<int>(ppm_->width());
 
     // Setup the weights
     setup_weights_();
@@ -24,7 +26,7 @@ Texture IntegralTexture::compute()
     cv::Mat image = cv::Mat::zeros(height, width, CV_32FC1);
 
     // Get the mappings
-    auto mappings = ppm_.getMappings();
+    auto mappings = ppm_->getMappings();
 
     // Sort the mappings by Z-value
     std::sort(
@@ -66,8 +68,7 @@ Texture IntegralTexture::compute()
     cv::normalize(image, image, 0.0, 1.0, cv::NORM_MINMAX);
 
     // Set output
-    result_.addImage(image);
-    result_.setPPM(ppm_);
+    result_.push_back(image);
 
     return result_;
 }
@@ -85,7 +86,7 @@ void IntegralTexture::setup_weights_()
     }
 }
 
-NDArray<double> IntegralTexture::apply_weights_(NDArray<double>& n)
+auto IntegralTexture::apply_weights_(NDArray<double>& n) -> NDArray<double>
 {
     switch (weight_) {
         case WeightMethod::None:
@@ -121,19 +122,14 @@ void IntegralTexture::setup_linear_weights_()
     }
 
     // Build a weight matrix
-    size_t count = 0;
     for (auto& v : linearWeights_) {
         v = weight;
-
-        count++;
-        if (count == extents[0]) {
-            weight += weightStep;
-            count = 0;
-        }
+        weight += weightStep;
     }
 }
 
-NDArray<double> IntegralTexture::apply_linear_weights_(NDArray<double>& n)
+auto IntegralTexture::apply_linear_weights_(NDArray<double>& n)
+    -> NDArray<double>
 {
     std::vector<double> weighted;
     cv::multiply(n.as_vector(), linearWeights_.as_vector(), weighted);
@@ -157,31 +153,18 @@ void IntegralTexture::setup_expodiff_weights_()
     }
 }
 
-std::vector<uint16_t> IntegralTexture::expodiff_intersection_pts_()
+auto IntegralTexture::expodiff_intersection_pts_() -> std::vector<uint16_t>
 {
     // Get all of the intensity values
     std::vector<uint16_t> values;
-    auto height = ppm_.height();
-    auto width = ppm_.width();
-    for (size_t y = 0; y < height; ++y) {
-        for (size_t x = 0; x < width; ++x) {
-            // Skip this pixel if we have no mapping
-            if (!ppm_.hasMapping(y, x)) {
-                continue;
-            }
-
-            // Find the xyz coordinate of the original point
-            auto pixelInfo = ppm_(y, x);
-            cv::Vec3d xyz{pixelInfo[0], pixelInfo[1], pixelInfo[2]};
-
-            values.emplace_back(vol_->interpolateAt(xyz));
-        }
+    for (const auto& m : ppm_->getMappings()) {
+        values.emplace_back(vol_->interpolateAt(m.pos));
     }
 
     return values;
 }
 
-double IntegralTexture::expodiff_mean_base_()
+auto IntegralTexture::expodiff_mean_base_() -> double
 {
     // Get intersection points
     auto values = expodiff_intersection_pts_();
@@ -191,13 +174,13 @@ double IntegralTexture::expodiff_mean_base_()
     double mean = 0.0;
     for (const auto& v : values) {
         double delta = v - mean;
-        mean += delta / ++n;
+        mean += delta / static_cast<double>(++n);
     }
 
     return mean;
 }
 
-double IntegralTexture::expodiff_mode_base_()
+auto IntegralTexture::expodiff_mode_base_() -> double
 {
     // Get intersection points
     auto values = expodiff_intersection_pts_();
@@ -223,11 +206,13 @@ double IntegralTexture::expodiff_mode_base_()
     return sorter.begin()->first;
 }
 
-NDArray<double> IntegralTexture::apply_expodiff_weights_(NDArray<double>& n)
+auto IntegralTexture::apply_expodiff_weights_(NDArray<double>& n) const
+    -> NDArray<double>
 {
     std::vector<double> vals;
     for (const auto& val : n) {
         if (suppressBelowBase_ && expoDiffBase_ >= val) {
+            vals.emplace_back(0);
             continue;
         }
         double diff = std::abs(val - expoDiffBase_);
@@ -235,4 +220,86 @@ NDArray<double> IntegralTexture::apply_expodiff_weights_(NDArray<double>& n)
     }
 
     return NDArray<double>(n.dims(), n.extents(), vals.begin(), vals.end());
+}
+
+auto IntegralTexture::New() -> IntegralTexture::Pointer
+{
+    return std::make_shared<IntegralTexture>();
+}
+
+void IntegralTexture::setGenerator(NeighborhoodGenerator::Pointer g)
+{
+    gen_ = std::move(g);
+}
+
+void IntegralTexture::setClampValuesToMax(bool b) { clampToMax_ = b; }
+
+auto IntegralTexture::clampValuesToMax() const -> bool { return clampToMax_; }
+
+void IntegralTexture::setClampMax(uint16_t m) { clampMax_ = m; }
+
+auto IntegralTexture::clampMax() const -> uint16_t { return clampMax_; }
+
+void IntegralTexture::setWeightMethod(IntegralTexture::WeightMethod w)
+{
+    weight_ = w;
+}
+
+auto IntegralTexture::weightMethod() const -> IntegralTexture::WeightMethod
+{
+    return weight_;
+}
+
+void IntegralTexture::setLinearWeightDirection(
+    IntegralTexture::LinearWeightDirection w)
+{
+    linearWeight_ = w;
+}
+
+auto IntegralTexture::linearWeightDirection() const
+    -> IntegralTexture::LinearWeightDirection
+{
+    return linearWeight_;
+}
+
+void IntegralTexture::setExponentialDiffExponent(int e)
+{
+    expoDiffExponent_ = e;
+}
+
+auto IntegralTexture::exponentialDiffExponent() const -> int
+{
+    return expoDiffExponent_;
+}
+
+void IntegralTexture::setExponentialDiffBaseMethod(
+    IntegralTexture::ExpoDiffBaseMethod m)
+{
+    expoDiffBaseMethod_ = m;
+}
+
+auto IntegralTexture::exponentialDiffBaseMethod() const
+    -> IntegralTexture::ExpoDiffBaseMethod
+{
+    return expoDiffBaseMethod_;
+}
+
+void IntegralTexture::setExponentialDiffBaseValue(double b)
+{
+    expoDiffManualBase_ = b;
+}
+
+auto IntegralTexture::exponentialDiffBaseValue() const -> double
+{
+    return expoDiffManualBase_;
+}
+
+void IntegralTexture::setExponentialDiffSuppressBelowBase(bool b)
+{
+    suppressBelowBase_ = b;
+}
+
+auto IntegralTexture::exponentialDiffSuppressBelowBase() const -> bool
+{
+    return suppressBelowBase_;
 }

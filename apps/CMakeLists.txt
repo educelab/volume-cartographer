@@ -47,23 +47,13 @@ target_link_libraries(vc_segment
 )
 
 ## Rendering ##
-add_executable(vc_render
-    src/Render.cpp
-    src/RenderIO.cpp
-    src/RenderMeshing.cpp
-    src/RenderTexturing.cpp
-)
+add_executable(vc_render src/Render.cpp)
 target_link_libraries(vc_render
     VC::app_support
     VC::core
-    VC::texturing
-    VC::meshing
+    VC::graph
     ${VC_FS_LIB}
     Boost::program_options
-    vtkFiltersCore
-)
-target_include_directories(vc_render PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
 
 ## Render from PPM
@@ -136,6 +126,7 @@ target_link_libraries(vc_projection
 add_executable(vc_volpkg_explorer src/VolPkgExplorer.cpp)
 target_link_libraries(vc_volpkg_explorer
     VC::core
+    VC::graph
     Boost::program_options
     ${VC_FS_LIB}
 )

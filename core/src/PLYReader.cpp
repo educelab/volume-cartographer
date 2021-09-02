@@ -180,3 +180,9 @@ void PLYReader::create_mesh_()
         faceCount++;
     }
 }
+
+PLYReader::PLYReader(fs::path path) : inputPath_{std::move(path)} {}
+
+void PLYReader::setPath(fs::path path) { inputPath_ = std::move(path); }
+
+auto PLYReader::getMesh() -> ITKMesh::Pointer { return outMesh_; }

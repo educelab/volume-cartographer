@@ -83,7 +83,7 @@ vc::ITKMesh::Pointer LoadMeshFile(const fs::path& p)
         r.read();
         try {
             auto texture = r.getTextureMat();
-            parsedUVMap_ = r.getUVMap();
+            parsedUVMap_ = vc::UVMap(*r.getUVMap());
             parsedUVMap_.ratio(texture.cols, texture.rows);
         } catch (...) {
             // Do nothing if there's no texture image
@@ -108,7 +108,8 @@ vc::ITKMesh::Pointer LoadMeshFile(const fs::path& p)
 void SaveOutput(
     const fs::path& outputPath,
     const vc::ITKMesh::Pointer& mesh,
-    vc::Texture texture)
+    const vc::UVMap::Pointer& uvMap,
+    const std::vector<cv::Mat>& texture)
 {
     // Convert image depth
     auto tgtDepth{CV_16U};
@@ -119,27 +120,26 @@ void SaveOutput(
     } else if (vc::IsFileType(outputPath, {"jpg", "jpeg"})) {
         tgtDepth = CV_8U;
     }
-    auto m = vc::QuantizeImage(texture.image(0), tgtDepth);
-    texture.setImage(0, m);
+    auto m = vc::QuantizeImage(texture.at(0), tgtDepth);
 
     // Write the output
     if (requestTIFF && requestFloat) {
         vc::Logger()->info("Writing to floating-point TIF");
-        vc::tiffio::WriteTIFF(outputPath, texture.image(0));
+        vc::tiffio::WriteTIFF(outputPath, m);
     } else if (vc::IsFileType(outputPath, {"ply"})) {
         vc::Logger()->info("Writing to PLY");
-        vc::io::PLYWriter writer(outputPath.string(), mesh, texture);
+        vc::io::PLYWriter writer(outputPath.string(), mesh, m);
         writer.write();
     } else if (vc::IsFileType(
                    outputPath, {"png", "jpg", "jpeg", "tiff", "tif"})) {
         vc::Logger()->info("Writing to image");
-        cv::imwrite(outputPath.string(), texture.image(0));
+        cv::imwrite(outputPath.string(), texture.at(0));
     } else if (vc::IsFileType(outputPath, {"obj"})) {
         vc::Logger()->info("Writing to OBJ");
         vc::io::OBJWriter writer;
         writer.setMesh(mesh);
-        writer.setUVMap(texture.uvMap());
-        writer.setTexture(texture.image(0));
+        writer.setUVMap(uvMap);
+        writer.setTexture(m);
         writer.setPath(outputPath.string());
         writer.write();
     } else {

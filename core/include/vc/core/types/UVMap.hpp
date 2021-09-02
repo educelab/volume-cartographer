@@ -54,7 +54,7 @@ public:
     using Pointer = std::shared_ptr<UVMap>;
 
     /** Origin corner position enumeration */
-    enum class Origin { TopLeft, TopRight, BottomLeft, BottomRight };
+    enum class Origin { TopLeft = 0, TopRight, BottomLeft, BottomRight };
 
     /** Aspect ratio structure */
     struct Ratio {
@@ -66,33 +66,34 @@ public:
     UVMap() = default;
 
     /** @brief Construct and set origin */
-    explicit UVMap(Origin o) : origin_{o} {}
+    explicit UVMap(Origin o);
 
-    /** @copydoc UVMap() */
-    static Pointer New() { return std::make_shared<UVMap>(); }
-
-    /** @copydoc UVMap(Origin o) */
-    static Pointer New(Origin o) { return std::make_shared<UVMap>(o); }
+    /** Static New function for all constructors of T */
+    template <typename... Args>
+    static auto New(Args... args) -> Pointer
+    {
+        return std::make_shared<UVMap>(std::forward<Args>(args)...);
+    }
     /**@}*/
 
     /**@{*/
     /** @brief Return the number of UV elements */
-    size_t size() const { return map_.size(); }
+    [[nodiscard]] auto size() const -> size_t;
 
     /** @brief Return whether the UVMap is empty */
-    bool empty() const { return map_.empty(); }
+    [[nodiscard]] auto empty() const -> bool;
     /**@}*/
 
     /**@{*/
     /** @brief Set the origin of the UVMap
      *
      * UV values inserted and retrieved after a call to setOrigin() will be
-     * relative to his value.
+     * relative to this value.
      */
-    void setOrigin(const Origin& o) { origin_ = o; }
+    void setOrigin(const Origin& o);
 
     /** @brief Get the current origin of the UVMap */
-    Origin origin() const { return origin_; }
+    [[nodiscard]] auto origin() const -> Origin;
     /**@}*/
 
     /**@{*/
@@ -115,30 +116,31 @@ public:
      *
      * Point is retrieved relative to the provided origin.
      */
-    cv::Vec2d get(size_t id, const Origin& o) const;
+    [[nodiscard]] auto get(size_t id, const Origin& o) const -> cv::Vec2d;
 
     /**
      * @copybrief get()
      *
      * Point is retrieved relative to the origin returned by origin().
      */
-    cv::Vec2d get(size_t id) const;
+    [[nodiscard]] auto get(size_t id) const -> cv::Vec2d;
+
+    /** @brief Check if the vertex index has a UV mapping */
+    [[nodiscard]] auto contains(std::size_t id) const -> bool;
+
+    /** Access to underlying data. For serialization only. */
+    [[nodiscard]] auto as_map() const -> std::map<size_t, cv::Vec2d>;
     /**@}*/
 
     /**@{*/
     /** @brief Get the size information (aspect ratio, width, height) */
-    Ratio ratio() const { return ratio_; }
+    [[nodiscard]] auto ratio() const -> Ratio;
 
     /** @brief Set the aspect ratio */
-    void ratio(double a) { ratio_.aspect = a; }
+    void ratio(double a);
 
     /** @brief Set the aspect ration by width and height parameters */
-    void ratio(double w, double h)
-    {
-        ratio_.width = w;
-        ratio_.height = h;
-        ratio_.aspect = w / h;
-    }
+    void ratio(double w, double h);
     /**@}*/
 
     /**@{*/
@@ -150,25 +152,26 @@ public:
      *
      * For debug purposes only.
      */
-    static cv::Mat Plot(const UVMap& uv, const Color& color = color::GREEN);
+    static auto Plot(const UVMap& uv, const Color& color = color::GREEN)
+        -> cv::Mat;
 
     /**
      * @brief Plot the UV mesh on an image
      *
      * For debug purposes only.
      */
-    static cv::Mat Plot(
+    static auto Plot(
         const UVMap& uv,
         const ITKMesh::Pointer& mesh2D,
         int width = -1,
         int height = -1,
-        const Color& color = color::LIGHT_GRAY);
+        const Color& color = color::LIGHT_GRAY) -> cv::Mat;
 
     /**
-     * @brief Rotate a UVMap by a specified angle in radians
+     * @brief Rotate a UVMap by a specified angle
      *
-     * Rotation is performed in UV space and is counter-clockwise relative to
-     * `center` position
+     * Theta is in radians. Rotation is performed in UV space and is
+     * counter-clockwise relative to the provided `center` position.
      */
     static void Rotate(
         UVMap& uv, double theta, const cv::Vec2d& center = {0.5, 0.5});

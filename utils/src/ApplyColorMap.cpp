@@ -1,4 +1,5 @@
 #include <iostream>
+#include <limits>
 
 #include <boost/program_options.hpp>
 #include <opencv2/core.hpp>
@@ -12,6 +13,20 @@
 using namespace volcart;
 namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
+
+static inline float ValueMax(int cvDepth)
+{
+    switch (cvDepth) {
+        case CV_8U:
+            return std::numeric_limits<uint8_t>::max();
+        case CV_16U:
+            return std::numeric_limits<uint16_t>::max();
+        case CV_32F:
+            return 1.F;
+        default:
+            return 255;
+    }
+}
 
 int main(int argc, char* argv[])
 {
@@ -29,14 +44,20 @@ int main(int argc, char* argv[])
         ("invert", "If specified, invert the LUT mapping.")
         ("bins", po::value<std::size_t>()->default_value(256),
             "Number of bins in the color map LUT.")
+        ("mask", po::value<std::string>(),
+            "Path to an image mask. The color mapper will only consider pixels "
+            "contained in the mask when calculating automatic min/max values")
         ("min", po::value<float>(),
             "Minimum plotted value. Values less than this will be clamped to "
-            "this value during color mapping. Requires that --max is also "
-            "specified. If not specified, the data min and max will be used.")
+            "this value during color mapping. If --max is specified, this "
+            "defaults to 0. If neither --min nor --max are specified, the "
+            "range is automatically calculated from the input image.")
         ("max", po::value<float>(),
             "Maximum plotted value. Values greater than this will be clamped "
-            "to this value during color mapping. Requires that --mins is also "
-            "specified. If not specified, the data min and max will be used.");
+            "to this value during color mapping. If --min is specified, this "
+            "defaults to the maximum value of the pixel type. If neither --min "
+            "nor --max are specified, the range is automatically calculated "
+            "from the input image.");
     po::options_description all("Usage");
     all.add(required);
     // clang-format on
@@ -62,7 +83,7 @@ int main(int argc, char* argv[])
     // Load image
     fs::path inputPath = parsed["input"].as<std::string>();
     Logger()->info("Loading image: {}", inputPath.string());
-    cv::Mat input = cv::imread(inputPath.string(), -1);
+    cv::Mat input = cv::imread(inputPath.string(), cv::IMREAD_UNCHANGED);
 
     // Load color map
     auto cmName = parsed["color-map"].as<std::string>();
@@ -80,14 +101,22 @@ int main(int argc, char* argv[])
     Logger()->info(
         "Applying color map: {} ({} bins, inverted: {})", cmName, bins, invert);
     cv::Mat map;
-    if (parsed.count("min") > 0 and parsed.count("max") > 0) {
-        auto min = parsed["min"].as<float>();
-        auto max = parsed["max"].as<float>();
+    auto haveMin = parsed.count("min") > 0;
+    auto haveMax = parsed.count("max") > 0;
+    if (haveMin or haveMax) {
+        auto min = (haveMin) ? parsed["min"].as<float>() : 0;
+        auto max =
+            (haveMax) ? parsed["max"].as<float>() : ValueMax(input.depth());
         Logger()->info("Mapping range: [{:.5g}, {:.5g}]", min, max);
         map = ApplyLUT(input, lut, min, max, invert);
     } else {
         Logger()->info("Mapping range: Automatic");
-        map = ApplyLUT(input, lut, invert);
+        cv::Mat mask;
+        if (parsed.count("mask") > 0) {
+            mask = cv::imread(
+                parsed["mask"].as<std::string>(), cv::IMREAD_GRAYSCALE);
+        }
+        map = ApplyLUT(input, lut, invert, mask);
     }
 
     // Write image

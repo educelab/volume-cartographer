@@ -34,8 +34,8 @@ int main(int argc, char* argv[])
 
     // Get UV map
     auto uvMap = abf.getUVMap();
-    auto width = static_cast<size_t>(std::ceil(uvMap.ratio().width));
-    auto height = static_cast<size_t>(std::ceil(width / uvMap.ratio().aspect));
+    auto width = static_cast<size_t>(std::ceil(uvMap->ratio().width));
+    auto height = static_cast<size_t>(std::ceil(width / uvMap->ratio().aspect));
 
     // PPM
     vc::Logger()->info("Generating per-pixel map");
@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
 
     // Write PPM
     vc::Logger()->info("Writing per-pixel map");
-    vc::PerPixelMap::WritePPM(ppmPath, p.getPPM());
+    vc::PerPixelMap::WritePPM(ppmPath, *p.getPPM());
 
     return EXIT_SUCCESS;
 }

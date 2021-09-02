@@ -10,10 +10,6 @@
 namespace volcart::meshing
 {
 /**
- * @class OrderedPointSetMesher
- * @author Hannah Hatch
- * @date 8/23/16
- *
  * @brief Generate an ordered mesh from an OrderedPointSet.
  *
  * Create a mesh from an OrderedPointSet, using the ordering information to
@@ -36,23 +32,22 @@ namespace volcart::meshing
 class OrderedPointSetMesher
 {
 public:
+    /** Point set convenience alias */
+    using PointSet = OrderedPointSet<cv::Vec3d>;
+
     /**@{*/
     /** @brief Default Constructor */
     OrderedPointSetMesher() = default;
 
     /** @brief Construct with OrderedPointSet to be converted */
-    explicit OrderedPointSetMesher(OrderedPointSet<cv::Vec3d> points)
-        : input_{std::move(points)}
+    explicit OrderedPointSetMesher(PointSet points) : input_{std::move(points)}
     {
     }
     /**@}*/
 
     /**@{*/
     /** @brief Set the input OrderedPointSet */
-    void setPointSet(const OrderedPointSet<cv::Vec3d>& points)
-    {
-        input_ = points;
-    }
+    void setPointSet(const PointSet& points) { input_ = points; }
 
     /**
      * @brief Set whether to compute a triangulation from point ordering
@@ -76,7 +71,7 @@ public:
     /**@}*/
 
 private:
-    OrderedPointSet<cv::Vec3d> input_;
+    PointSet input_;
     ITKMesh::Pointer output_;
 
     bool generateTriangles_{true};

@@ -7,10 +7,11 @@
 
 // Copyright 2015 (Brent Seales: Volume Cartography Research)
 // University of Kentucky VisCenter
+#include "MyThread.hpp"
 
 #include <cmath>
 
-#include "MyThread.hpp"
+#include <opencv2/core.hpp>
 
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/io/PLYReader.hpp"
@@ -93,10 +94,10 @@ void MyThread::run()
         abf.compute();
 
         // Get uv map
-        volcart::UVMap uvMap = abf.getUVMap();
-        auto width = static_cast<size_t>(std::ceil(uvMap.ratio().width));
+        auto uvMap = abf.getUVMap();
+        auto width = static_cast<size_t>(std::ceil(uvMap->ratio().width));
         auto height = static_cast<size_t>(
-            std::ceil(static_cast<double>(width) / uvMap.ratio().aspect));
+            std::ceil(static_cast<double>(width) / uvMap->ratio().aspect));
 
         volcart::texturing::PPMGenerator ppmGen(height, width);
         ppmGen.setMesh(itkACVD);
@@ -115,7 +116,7 @@ void MyThread::run()
         generator->setSamplingDirection(direction);
 
         // Generate texture image
-        vc::Texture texture;
+        std::vector<cv::Mat> texture;
         if (method == GlobalValues::Method::Intersection) {
             vct::IntersectionTexture textureGen;
             textureGen.setVolume(volume);
@@ -142,6 +143,7 @@ void MyThread::run()
 
         Rendering rendering;
         rendering.setTexture(texture);
+        rendering.setUVMap(uvMap);
         rendering.setMesh(itkACVD);
 
         _globals->setRendering(rendering);

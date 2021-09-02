@@ -7,7 +7,7 @@ namespace volcart::meshing
 {
 
 ///// ITK Mesh -> VTK Polydata /////
-ITK2VTK::ITK2VTK(ITKMesh::Pointer input, vtkSmartPointer<vtkPolyData> output)
+void ITK2VTK(ITKMesh::Pointer input, vtkSmartPointer<vtkPolyData> output)
 {
 
     // points + normals
@@ -53,7 +53,7 @@ ITK2VTK::ITK2VTK(ITKMesh::Pointer input, vtkSmartPointer<vtkPolyData> output)
 }
 
 ///// VTK Polydata -> ITK Mesh /////
-VTK2ITK::VTK2ITK(vtkSmartPointer<vtkPolyData> input, ITKMesh::Pointer output)
+void VTK2ITK(vtkSmartPointer<vtkPolyData> input, ITKMesh::Pointer output)
 {
 
     // points + normals
@@ -84,69 +84,18 @@ VTK2ITK::VTK2ITK(vtkSmartPointer<vtkPolyData> input, ITKMesh::Pointer output)
         output->SetCell(cellId, cell);
     }
 }
-
-///// ITK Mesh -> ITK QuadEdge Mesh /////
-ITK2ITKQE::ITK2ITKQE(ITKMesh::Pointer input, QuadEdgeMesh::Pointer output)
+auto ITK2VTK(ITKMesh::Pointer input) -> vtkSmartPointer<vtkPolyData>
 {
-    // Vertices
-    volcart::QuadPoint p;
-    ITKPixel n;
-    for (auto point = input->GetPoints()->Begin();
-         point != input->GetPoints()->End(); ++point) {
-        // Assign the point
-        p = point->Value();
-        output->SetPoint(point->Index(), p);
-
-        // Assign the normal
-        if (input->GetPointData(point->Index(), &n)) {
-            output->SetPointData(point->Index(), n);
-        }
-    }
-
-    // Faces
-    for (auto cell = input->GetCells()->Begin();
-         cell != input->GetCells()->End(); ++cell) {
-        // Collect the point id's
-        std::vector<QuadPointIdentifier> vIds;
-        for (auto point = cell.Value()->PointIdsBegin();
-             point != cell.Value()->PointIdsEnd(); ++point) {
-            vIds.push_back(*point);
-        }
-
-        // Assign to the mesh
-        output->AddFaceTriangle(vIds[0], vIds[1], vIds[2]);
-    }
+    auto result = vtkSmartPointer<vtkPolyData>::New();
+    ITK2VTK(std::move(input), result);
+    return result;
 }
 
-///// ITK QuadEdge Mesh -> ITK Mesh /////
-ITKQE2ITK::ITKQE2ITK(QuadEdgeMesh::Pointer input, ITKMesh::Pointer output)
+auto VTK2ITK(vtkSmartPointer<vtkPolyData> input) -> ITKMesh::Pointer
 {
-    // Vertices
-    ITKPoint p;
-    ITKPixel n;
-    for (auto point = input->GetPoints()->Begin();
-         point != input->GetPoints()->End(); ++point) {
-        // Assign the point
-        p = point->Value();
-        output->SetPoint(point->Index(), p);
-
-        // Assign the normal
-        if (input->GetPointData(point->Index(), &n)) {
-            output->SetPointData(point->Index(), n);
-        }
-    }
-
-    // Faces
-    ITKCell::CellAutoPointer cell;
-    QuadCellIdentifier id =
-        0;  // QE Meshes use a map so we have to reset their cell ids
-    for (auto cellIt = input->GetCells()->Begin();
-         cellIt != input->GetCells()->End(); ++cellIt, ++id) {
-        cell.TakeOwnership(new ITKTriangle);  // output cell
-        cell->SetPointIds(
-            cellIt->Value()->PointIdsBegin(), cellIt->Value()->PointIdsEnd());
-
-        output->SetCell(id, cell);
-    }
+    auto result = ITKMesh::New();
+    VTK2ITK(std::move(input), result);
+    return result;
 }
+
 }  // namespace volcart::meshing

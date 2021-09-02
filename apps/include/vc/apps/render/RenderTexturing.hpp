@@ -3,7 +3,6 @@
 #include <boost/program_options.hpp>
 
 #include "vc/core/types/ITKMesh.hpp"
-#include "vc/core/types/Texture.hpp"
 #include "vc/core/types/UVMap.hpp"
 
 /** Get the flattening/UV options */
@@ -31,12 +30,12 @@ enum class Shape { Line = 0, Cuboid };
 enum class Method { Composite = 0, Intersection, Integral, Thickness };
 
 /** Perform flattening and UV ops */
-volcart::UVMap FlattenMesh(
+volcart::UVMap::Pointer FlattenMesh(
     const volcart::ITKMesh::Pointer& mesh, bool resampled);
 
 /** Perform texturing ops */
-volcart::Texture TextureMesh(
+std::vector<cv::Mat> TextureMesh(
     const volcart::ITKMesh::Pointer& mesh, const volcart::UVMap& uvMap);
 
 /** Perform any post processing to texture **/
-void RenderPostProcess(const volcart::Texture& texture);
+void RenderPostProcess(const std::vector<cv::Mat>& texture);

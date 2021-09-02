@@ -5,9 +5,11 @@
 
 #include "vc/app_support/GetMemorySize.hpp"
 #include "vc/core/filesystem.hpp"
+#include "vc/core/io/ImageIO.hpp"
 #include "vc/core/neighborhood/LineGenerator.hpp"
 #include "vc/core/types/PerPixelMap.hpp"
 #include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/util/Iteration.hpp"
 #include "vc/core/util/Logging.hpp"
 #include "vc/core/util/MemorySizeStringParser.hpp"
 #include "vc/texturing/LayerTexture.hpp"
@@ -19,7 +21,9 @@ namespace po = boost::program_options;
 // Volpkg version required by this app
 static constexpr int VOLPKG_SUPPORTED_VERSION = 6;
 
-int main(int argc, char* argv[])
+using volcart::enumerate;
+
+auto main(int argc, char* argv[]) -> int
 {
     ///// Parse the command line options /////
     // All command line options
@@ -155,7 +159,7 @@ int main(int argc, char* argv[])
 
     // Read the ppm
     std::cout << "Loading PPM..." << std::endl;
-    auto ppm = vc::PerPixelMap::ReadPPM(inputPPMPath);
+    auto ppm = vc::PerPixelMap::New(vc::PerPixelMap::ReadPPM(inputPPMPath));
 
     // Setup line generator
     auto line = vc::LineGenerator::New();
@@ -174,9 +178,9 @@ int main(int argc, char* argv[])
 
     std::cout << "Writing layers..." << std::endl;
     fs::path filepath;
-    for (size_t i = 0; i < texture.numberOfImages(); ++i) {
+    for (const auto [i, image] : enumerate(texture)) {
         filepath = outputPath / (std::to_string(i) + ".png");
-        cv::imwrite(filepath.string(), texture.image(i));
+        vc::WriteImage(filepath, image);
     }
 
     if (parsed.count("output-ppm") > 0) {
@@ -184,13 +188,13 @@ int main(int argc, char* argv[])
         fs::path outputPPMPath = parsed["output-ppm"].as<std::string>();
 
         // Setup new PPM
-        auto height = ppm.height();
-        auto width = ppm.width();
+        auto height = ppm->height();
+        auto width = ppm->width();
         vc::PerPixelMap newPPM(height, width);
-        newPPM.setMask(ppm.mask());
+        newPPM.setMask(ppm->mask());
 
         // Fill new PPM
-        auto z = static_cast<double>(texture.numberOfImages() - 1) / 2.0;
+        auto z = static_cast<double>(texture.size() - 1) / 2.0;
         auto normal = (parsed.count("negative-normal") > 0) ? -1.0 : 1.0;
         for (size_t y = 0; y < height; y++) {
             for (size_t x = 0; x < width; x++) {

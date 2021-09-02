@@ -1,4 +1,4 @@
-#include "vc/core/io/OBJWriter.hpp"
+#include "vc/core/io/MeshIO.hpp"
 #include "vc/core/neighborhood/LineGenerator.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/meshing/OrderedPointSetMesher.hpp"
@@ -20,12 +20,12 @@ int main(int /*argc*/, char* argv[])
     size_t width = 608 * 2;
     size_t height = 370 * 2;
 
-    vc::UVMap uvMap;
-    uvMap.set(0, cv::Vec2d(0, 0));
-    uvMap.set(1, cv::Vec2d(1, 0));
-    uvMap.set(2, cv::Vec2d(0, 1));
-    uvMap.set(3, cv::Vec2d(1, 1));
-    uvMap.ratio(width, height);
+    auto uvMap = vc::UVMap::New();
+    uvMap->set(0, cv::Vec2d(0, 0));
+    uvMap->set(1, cv::Vec2d(1, 0));
+    uvMap->set(2, cv::Vec2d(0, 1));
+    uvMap->set(3, cv::Vec2d(1, 1));
+    uvMap->ratio(width, height);
 
     vc::texturing::PPMGenerator ppmGen(height, width);
     ppmGen.setMesh(inputMesh);
@@ -42,12 +42,7 @@ int main(int /*argc*/, char* argv[])
     compText.setGenerator(generator);
     compText.compute();
 
-    vc::io::OBJWriter mesh_writer;
-    mesh_writer.setPath("compV2Test.obj");
-    mesh_writer.setMesh(inputMesh);
-    mesh_writer.setTexture(compText.getTexture().image(0));
-    mesh_writer.setUVMap(compText.getTexture().uvMap());
-    mesh_writer.write();
+    vc::WriteMesh("compV2Test.obj", inputMesh, uvMap, compText.getTexture()[0]);
 
     return EXIT_SUCCESS;
 }

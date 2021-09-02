@@ -149,10 +149,10 @@ int main(int argc, char* argv[])
     }
 
     // Convert soft body to itk mesh
-    volcart::UVMap uvMap = clothUV.getUVMap();
+    auto uvMap = clothUV.getUVMap();
 
-    auto width = static_cast<size_t>(std::ceil(uvMap.ratio().width));
-    auto height = static_cast<size_t>(std::ceil(uvMap.ratio().height));
+    auto width = static_cast<size_t>(std::ceil(uvMap->ratio().width));
+    auto height = static_cast<size_t>(std::ceil(uvMap->ratio().height));
 
     volcart::texturing::PPMGenerator ppmGen(height, width);
     ppmGen.setUVMap(uvMap);
@@ -169,16 +169,10 @@ int main(int argc, char* argv[])
     result.compute();
 
     volcart::io::OBJWriter objwriter(
-        "textured.obj", mesh, uvMap, result.getTexture().image(0));
+        "textured.obj", mesh, uvMap, result.getTexture().at(0));
     objwriter.write();
 
-    if (result.getTexture().mask().data) {
-        cv::imwrite("PerPixelMask.png", result.getTexture().mask());
-    }
-
-    if (result.getTexture().ppm().initialized()) {
-        PerPixelMap::WritePPM("PerPixelMapping", result.getTexture().ppm());
-    }
+    PerPixelMap::WritePPM("PerPixelMapping.ppm", *ppmGen.getPPM());
 
     return EXIT_SUCCESS;
 }

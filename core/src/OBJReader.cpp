@@ -3,8 +3,7 @@
 #include <regex>
 #include <string>
 
-#include <opencv2/imgcodecs.hpp>
-
+#include "vc/core/io/ImageIO.hpp"
 #include "vc/core/types/Exceptions.hpp"
 #include "vc/core/util/Logging.hpp"
 #include "vc/core/util/String.hpp"
@@ -18,17 +17,23 @@ namespace fs = volcart::filesystem;
 constexpr static int NOT_PRESENT = -1;
 constexpr static size_t VALID_FACE_SIZE = 3;
 
+void OBJReader::setPath(const filesystem::path& p) { path_ = p; }
+
+auto OBJReader::getMesh() -> ITKMesh::Pointer { return mesh_; }
+
+auto OBJReader::getUVMap() -> UVMap::Pointer { return uvMap_; }
+
+// Get texture image
+auto OBJReader::getTextureMat() -> cv::Mat { return textureMat_; }
+
 // Read the file
-ITKMesh::Pointer OBJReader::read()
+auto OBJReader::read() -> ITKMesh::Pointer
 {
     reset_();
     parse_();
     build_mesh_();
     return mesh_;
 }
-
-// Get texture image
-cv::Mat OBJReader::getTextureMat() { return textureMat_; }
 
 // Prepare all data structures to read a new file
 void OBJReader::reset_()
@@ -231,8 +236,8 @@ OBJReader::RefType OBJReader::classify_vertref_(const std::string& ref)
 void OBJReader::build_mesh_()
 {
     // Reset output structures
-    uvMap_ = UVMap();
-    uvMap_.setOrigin(UVMap::Origin::BottomLeft);
+    uvMap_ = UVMap::New();
+    uvMap_->setOrigin(UVMap::Origin::BottomLeft);
     mesh_ = ITKMesh::New();
 
     // Add the vertices to the mesh
@@ -270,7 +275,7 @@ void OBJReader::build_mesh_()
                     vinfo[1] - 1 >= static_cast<int>(uvs_.size())) {
                     throw IOException("Out-of-range UV reference");
                 }
-                uvMap_.set(vertexID, uvs_[vinfo[1] - 1]);
+                uvMap_->set(vertexID, uvs_[vinfo[1] - 1]);
             }
 
             if (vinfo[2] != NOT_PRESENT) {
@@ -283,13 +288,12 @@ void OBJReader::build_mesh_()
         }
         mesh_->SetCell(cid++, cell);
     }
-    uvMap_.setOrigin(UVMap::Origin::TopLeft);
+    uvMap_->setOrigin(UVMap::Origin::TopLeft);
 
     // Read the image
     if (!texturePath_.empty()) {
         if (fs::exists(texturePath_)) {
-            textureMat_ =
-                cv::imread(texturePath_.string(), cv::IMREAD_UNCHANGED);
+            textureMat_ = ReadImage(texturePath_);
         } else {
             Logger()->warn(
                 "Texture image file not found: {}", texturePath_.string());
@@ -297,7 +301,7 @@ void OBJReader::build_mesh_()
     }
 
     // If we have a UV map and a texture image, set the dimensions on the UVMap
-    if (!uvMap_.empty() && !textureMat_.empty()) {
-        uvMap_.ratio(textureMat_.cols, textureMat_.rows);
+    if (not uvMap_->empty() and not textureMat_.empty()) {
+        uvMap_->ratio(textureMat_.cols, textureMat_.rows);
     }
 }

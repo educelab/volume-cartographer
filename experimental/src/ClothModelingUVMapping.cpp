@@ -1,22 +1,25 @@
+#include "vc/experimental/texturing/ClothModelingUVMapping.hpp"
+
 #include <BulletSoftBody/btDefaultSoftBodySolver.h>
 
 #include "vc/core/util/Logging.hpp"
 #include "vc/experimental/meshing/ITK2Bullet.hpp"
-#include "vc/experimental/texturing/ClothModelingUVMapping.hpp"
 #include "vc/meshing/DeepCopy.hpp"
 
-//// Callbacks ////
-/* Note: Callbacks won't compile if they're not wrapped in the namespace.
- * `using namespace volcart::texturing` doesn't work. I'm assuming this is some
- * terrible Bullet Physics thing. - SP, 08-01-2016 */
+namespace volcart::experimental::texturing
+{
+/** Forward the constrain motion callback @memberof ClothModelingUVMapping */
+static void constrainMotionCallback(btDynamicsWorld* world, btScalar timeStep);
 
-namespace volcart
-{
+/** Forward the axis lock callback @memberof ClothModelingUVMapping */
+static void axisLockCallback(btDynamicsWorld* world, btScalar timeStep);
 
-namespace experimental
-{
-namespace texturing
-{
+/** Forward the "move to target" callback @memberof ClothModelingUVMapping */
+static void moveTowardTargetCallback(btDynamicsWorld* world, btScalar timeStep);
+
+/** Forward the "do nothing" callback @memberof ClothModelingUVMapping */
+static void emptyPreTickCallback(btDynamicsWorld* world, btScalar timeStep);
+
 // Forward pretick callbacks to functions in a stupid Bullet physics way
 static void constrainMotionCallback(btDynamicsWorld* world, btScalar timeStep)
 {
@@ -42,9 +45,7 @@ static void emptyPreTickCallback(btDynamicsWorld* world, btScalar timeStep)
     w->cbEmptyPreTick(timeStep);
 }
 
-}  // namespace texturing
-}  // namespace experimental
-}  // namespace volcart
+}  // namespace volcart::experimental::texturing
 
 namespace vc = volcart;
 namespace vce = volcart::experimental;
@@ -142,7 +143,7 @@ ClothModelingUVMapping::~ClothModelingUVMapping()
 }
 
 // Process this mesh
-vc::UVMap ClothModelingUVMapping::compute()
+vc::UVMap::Pointer ClothModelingUVMapping::compute()
 {
     if (unfurlIterations_ > 0) {
         unfurl_();
@@ -163,7 +164,7 @@ void ClothModelingUVMapping::collide() { collide_(); };
 void ClothModelingUVMapping::expand() { expand_(); };
 
 // Get UV Map created from flattened object
-vc::UVMap ClothModelingUVMapping::getUVMap()
+vc::UVMap::Pointer ClothModelingUVMapping::getUVMap()
 {
     // Get the current XZ bounds of the softbody
     btVector3 min, max;
@@ -179,8 +180,8 @@ vc::UVMap ClothModelingUVMapping::getUVMap()
     double aspectWidth = std::abs(umax - umin) * (1 / meshToWorldScale_);
     double aspectHeight = std::abs(vmax - vmin) * (1 / meshToWorldScale_);
 
-    vc::UVMap uvMap;
-    uvMap.ratio(aspectWidth, aspectHeight);
+    auto uvMap = UVMap::New();
+    uvMap->ratio(aspectWidth, aspectHeight);
 
     // Calculate uv coordinates
     double u, v;
@@ -190,7 +191,7 @@ vc::UVMap ClothModelingUVMapping::getUVMap()
         cv::Vec2d uv(u, v);
 
         // Add the uv coordinates into our map at the point index specified
-        uvMap.set(i, uv);
+        uvMap->set(i, uv);
     }
 
     return uvMap;

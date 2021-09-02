@@ -30,20 +30,20 @@ class OBJReader
 {
 public:
     /** @brief Set the OBJ file path */
-    void setPath(const volcart::filesystem::path& p) { path_ = p; }
+    void setPath(const filesystem::path& p);
 
     /** @brief Read the mesh from file */
-    ITKMesh::Pointer read();
+    auto read() -> ITKMesh::Pointer;
 
     /** @brief Return the parsed mesh */
-    ITKMesh::Pointer getMesh() { return mesh_; }
+    auto getMesh() -> ITKMesh::Pointer;
 
     /**
      * @brief Return parsed UV information
      *
      * If no UV information is read, returns an empty volcart::UVMap.
      * */
-    UVMap getUVMap() { return uvMap_; }
+    auto getUVMap() -> UVMap::Pointer;
 
     /**
      * @brief Return texture image as cv::Mat
@@ -51,7 +51,7 @@ public:
      * If no texture image was read from MTL file or if the file does not
      * exist, throws a volcart::IOException.
      */
-    cv::Mat getTextureMat();
+    auto getTextureMat() -> cv::Mat;
 
 private:
     /**
@@ -94,19 +94,19 @@ private:
     /** Handle parsed mtllib lines */
     void parse_mtllib_(const std::vector<std::string>& strs);
     /** Classify a OBJReader::VertexRefs as an OBJReader::RefType */
-    RefType classify_vertref_(const std::string& ref);
+    auto classify_vertref_(const std::string& ref) -> RefType;
 
     /** Construct a mesh from the parsed information */
     void build_mesh_();
 
     /** Path to the OBJ file */
-    volcart::filesystem::path path_;
+    filesystem::path path_;
     /** Path to the parsed texture image */
-    volcart::filesystem::path texturePath_;
+    filesystem::path texturePath_;
     /** Internal representation of mesh structure */
     ITKMesh::Pointer mesh_;
     /** Internal representation of UV Map */
-    UVMap uvMap_;
+    UVMap::Pointer uvMap_;
     /** Internal representation of texture image */
     cv::Mat textureMat_;
 

@@ -872,12 +872,4 @@ TEST_F(NoNormalsFixture, MeshWithNoNormals)
     // VTK to ITK
     ITKMesh::Pointer itk_Mesh2 = ITKMesh::New();
     volcart::meshing::VTK2ITK(vtk_Mesh, itk_Mesh2);
-
-    // ITK to ITK Quad
-    volcart::QuadEdgeMesh::Pointer itk_Quad = volcart::QuadEdgeMesh::New();
-    volcart::meshing::ITK2ITKQE(itk_Mesh2, itk_Quad);
-
-    // ITK Quad to ITK
-    itk_Mesh2 = ITKMesh::New();
-    volcart::meshing::ITKQE2ITK(itk_Quad, itk_Mesh2);
 }

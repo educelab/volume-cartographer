@@ -8,10 +8,10 @@ using namespace volcart::texturing;
 
 namespace mm = volcart::meshmath;
 
-UVMap FlatteningAlgorithm::getUVMap()
+UVMap::Pointer FlatteningAlgorithm::getUVMap()
 {
     // Setup uvMap
-    volcart::UVMap uvMap;
+    auto uvMap = UVMap::New();
 
     // Get bounds
     auto bb = ITKMesh::BoundingBoxType::New();
@@ -27,7 +27,7 @@ UVMap FlatteningAlgorithm::getUVMap()
     auto scale = sqrt(mm::SurfaceArea(mesh_) / mm::SurfaceArea(output_));
     auto aspectWidth = std::abs(uMax - uMin);
     auto aspectHeight = std::abs(vMax - vMin);
-    uvMap.ratio(aspectWidth * scale, aspectHeight * scale);
+    uvMap->ratio(aspectWidth * scale, aspectHeight * scale);
 
     // Calculate uv coordinates
     cv::Vec2d uv;
@@ -37,7 +37,7 @@ UVMap FlatteningAlgorithm::getUVMap()
         uv[1] = (it->Value()[2] - vMin) / (vMax - vMin);
 
         // Add the uv coordinates into our map at the point index specified
-        uvMap.set(it->Index(), uv);
+        uvMap->set(it->Index(), uv);
     }
 
     return uvMap;

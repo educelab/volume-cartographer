@@ -1,6 +1,7 @@
 # Set Doxygen options
 set(DOXYGEN_DOT_IMAGE_FORMAT svg)
 set(DOXYGEN_EXAMPLE_PATH ${PROJECT_SOURCE_DIR}/examples/src/)
+set(DOXYGEN_EXTRACT_STATIC YES)
 set(DOXYGEN_EXTRACT_PRIVATE YES)
 set(DOXYGEN_GENERATE_HTML YES)
 set(DOXYGEN_GENERATE_LATEX YES)
@@ -28,6 +29,7 @@ set(DOX_DIRS
     ${PROJECT_SOURCE_DIR}/meshing/include/
     ${PROJECT_SOURCE_DIR}/segmentation/include/
     ${PROJECT_SOURCE_DIR}/texturing/include/
+    ${PROJECT_SOURCE_DIR}/graph/include/
 )
 
 set(DOXYGEN_EXCLUDE

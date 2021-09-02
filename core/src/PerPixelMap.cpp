@@ -12,12 +12,12 @@ namespace fs = volcart::filesystem;
 
 using PPM = PerPixelMap;
 
-inline fs::path MaskPath(const fs::path& p)
+inline auto MaskPath(const fs::path& p) -> fs::path
 {
     return p.parent_path() / (p.stem().string() + "_mask.png");
 }
 
-inline fs::path CellMapPath(const fs::path& p)
+inline auto CellMapPath(const fs::path& p) -> fs::path
 {
     return p.parent_path() / (p.stem().string() + "_cellmap.tif");
 }
@@ -43,13 +43,13 @@ void PerPixelMap::setHeight(size_t h)
 }
 
 // Get individual mappings
-PPM::PixelMap PerPixelMap::getAsPixelMap(size_t y, size_t x)
+auto PerPixelMap::getAsPixelMap(size_t y, size_t x) -> PPM::PixelMap
 {
     return {x, y, map_(y, x)};
 }
 
 // Return only valid mappings
-std::vector<PPM::PixelMap> PerPixelMap::getMappings() const
+auto PerPixelMap::getMappings() const -> std::vector<PPM::PixelMap>
 {
     // Output vector
     std::vector<PixelMap> mappings;
@@ -93,7 +93,7 @@ void PerPixelMap::WritePPM(const fs::path& path, const PerPixelMap& map)
     }
 }
 
-PerPixelMap PerPixelMap::ReadPPM(const fs::path& path)
+auto PerPixelMap::ReadPPM(const fs::path& path) -> PerPixelMap
 {
     PerPixelMap ppm;
     ppm.map_ = volcart::PointSetIO<cv::Vec6d>::ReadOrderedPointSet(path);
@@ -113,3 +113,48 @@ PerPixelMap PerPixelMap::ReadPPM(const fs::path& path)
 
     return ppm;
 }
+
+PerPixelMap::PerPixelMap(size_t height, size_t width)
+    : height_{height}, width_{width}
+{
+    initialize_map_();
+}
+auto PerPixelMap::initialized() const -> bool
+{
+    return width_ == map_.width() && height_ == map_.height() && width_ > 0 &&
+           height_ > 0;
+}
+auto PerPixelMap::operator()(size_t y, size_t x) const -> const cv::Vec6d&
+{
+    return map_(y, x);
+}
+auto PerPixelMap::operator()(size_t y, size_t x) -> cv::Vec6d&
+{
+    return map_(y, x);
+}
+
+auto PerPixelMap::getMapping(std::size_t y, std::size_t x) const
+    -> const cv::Vec6d&
+{
+    return map_(y, x);
+}
+
+auto PerPixelMap::getMapping(std::size_t y, std::size_t x) -> cv::Vec6d&
+{
+    return map_(y, x);
+}
+
+auto PerPixelMap::hasMapping(size_t y, size_t x) const -> bool
+{
+    if (mask_.empty()) {
+        return true;
+    }
+
+    return mask_.at<uint8_t>(y, x) == 255;
+}
+auto PerPixelMap::width() const -> size_t { return width_; }
+auto PerPixelMap::height() const -> size_t { return height_; }
+auto PerPixelMap::mask() const -> cv::Mat { return mask_; }
+void PerPixelMap::setMask(const cv::Mat& m) { mask_ = m.clone(); }
+auto PerPixelMap::cellMap() const -> cv::Mat { return cellMap_; }
+void PerPixelMap::setCellMap(const cv::Mat& m) { cellMap_ = m.clone(); }

@@ -1,8 +1,10 @@
 #pragma once
 
+#include <opencv2/core.hpp>
+
 #include "vc/core/types/ITKMesh.hpp"
 #include "vc/core/types/Metadata.hpp"
-#include "vc/core/types/Texture.hpp"
+#include "vc/core/types/UVMap.hpp"
 
 /**
  * @class Rendering
@@ -24,6 +26,7 @@
 class Rendering
 {
 public:
+    using Texture = std::vector<cv::Mat>;
     /**@{*/
     /** @brief Default constructor */
     Rendering();
@@ -39,10 +42,13 @@ public:
 
     /**@{*/
     /** @brief Assign the Texture */
-    void setTexture(volcart::Texture texture) { texture_ = std::move(texture); }
+    void setTexture(const Texture& texture) { texture_ = texture; }
 
     /** @brief Get the Texture */
-    volcart::Texture getTexture() const { return texture_; }
+    Texture getTexture() const { return texture_; }
+
+    void setUVMap(volcart::UVMap::Pointer uv) { uvMap_ = std::move(uv); }
+    volcart::UVMap::Pointer getUVMap() const { return uvMap_; }
     /**@}*/
 
     /**@{*/
@@ -57,7 +63,9 @@ private:
     /** Metadata */
     volcart::Metadata metadata_;
     /** Texture */
-    volcart::Texture texture_;
+    Texture texture_;
     /** ITKMesh */
     volcart::ITKMesh::Pointer mesh_;
+    /** UV Map */
+    volcart::UVMap::Pointer uvMap_;
 };

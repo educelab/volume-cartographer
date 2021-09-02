@@ -20,7 +20,7 @@ public:
     /** @brief Set the input mesh */
     void setMesh(const ITKMesh::Pointer& m);
     /** @brief Set the input UV Map */
-    void setUVMap(UVMap u);
+    void setUVMap(UVMap::Pointer u);
 
     /**
      * @brief If true, scale the output mesh to the width/height stored in the
@@ -29,15 +29,16 @@ public:
     void setScaleToUVDimensions(bool b);
 
     /** @brief Compute the UV mesh */
-    ITKMesh::Pointer compute();
+    auto compute() -> ITKMesh::Pointer;
+
     /** @brief Get the computed UV mesh */
-    ITKMesh::Pointer getUVMesh() const;
+    [[nodiscard]] auto getUVMesh() const -> ITKMesh::Pointer;
 
 private:
     /** Input mesh */
     ITKMesh::Pointer inputMesh_;
     /** UV map */
-    UVMap inputUVMap_;
+    UVMap::Pointer uvMap_;
     /** Do mesh scaling */
     bool scaleMesh_{false};
     /** Output mesh */

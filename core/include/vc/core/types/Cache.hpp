@@ -36,7 +36,7 @@ public:
     virtual void put(const TKey& k, const TValue& v) = 0;
 
     /** @brief Check if an item is already in the cache */
-    virtual bool exists(const TKey& k) = 0;
+    virtual bool contains(const TKey& k) = 0;
 
     /** @brief Clear the cache */
     virtual void purge() = 0;

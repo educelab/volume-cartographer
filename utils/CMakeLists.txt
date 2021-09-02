@@ -7,10 +7,6 @@ list(APPEND utils_install_list vc_area)
 add_executable(vc_invertcloud src/InvertCloud.cpp)
 target_link_libraries(vc_invertcloud VC::core ${VC_FS_LIB})
 
-# vc_mappingExtractor
-add_executable(vc_mappingExtractor src/MappingExtractor.cpp)
-target_link_libraries(vc_mappingExtractor VC::core)
-
 # vc_csv2uv
 add_executable(vc_csv2uv src/CSV2UV.cpp)
 target_link_libraries(vc_csv2uv VC::core VC::meshing vtkIOPLY vtkFiltersCore)
@@ -163,6 +159,11 @@ list(APPEND utils_install_list vc_color_map)
 # Used to generate example colormap bars for documentation
 add_executable(vc_cmap_bar src/GenerateColorMapBar.cpp)
 target_link_libraries(vc_cmap_bar VC::core Boost::program_options)
+
+# vc_visualize_graph
+add_executable(vc_visualize_graph src/VisualizeRenderGraph.cpp)
+target_link_libraries(vc_visualize_graph VC::core VC::graph Boost::program_options smgl::smgl)
+list(APPEND utils_install_list vc_visualize_graph)
 
 # Install targets
 if(VC_INSTALL_UTILS)

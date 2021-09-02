@@ -70,6 +70,7 @@ endif()
 add_subdirectory(meshing)
 add_subdirectory(segmentation)
 add_subdirectory(texturing)
+add_subdirectory(graph)
 
 # Build experimental library last
 if(VC_BUILD_EXPERIMENTAL)

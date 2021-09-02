@@ -43,7 +43,7 @@ public:
 
     /** Make a new shared instance */
     template <typename... Args>
-    static Pointer New(Args... args)
+    static auto New(Args... args) -> Pointer
     {
         return std::make_shared<AngleBasedFlattening>(
             std::forward<Args>(args)...);
@@ -55,20 +55,26 @@ public:
 
     /**@{*/
     /**
-     * @brief Set whether to perform Angle-based flattening computation
+     * @brief Whether to perform Angle-based flattening computation
      *
-     * Setting this value to `false` results in a mesh that is flattened using
-     * only the LSCM algorithm.
+     * If `false`, the mesh is flattened using only the Angle-based LSCM
+     * algorithm.
      */
     void setUseABF(bool a);
 
-    /** @brief Set the max number of ABF minimization iterations */
+    /** @brief Whether Angle-based flattening is performed */
+    [[nodiscard]] auto useABF() const -> bool;
+
+    /** @brief The max number of ABF minimization iterations */
     void setABFMaxIterations(std::size_t i);
+
+    /** @copydoc setABFMaxIterations(std::size_t) */
+    [[nodiscard]] auto abfMaxIterations() const -> std::size_t;
     /**@}*/
 
     /**@{*/
     /** @brief Compute the parameterization */
-    ITKMesh::Pointer compute() override;
+    auto compute() -> ITKMesh::Pointer override;
     /**@}*/
 
 private:

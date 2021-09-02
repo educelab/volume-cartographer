@@ -84,7 +84,7 @@ int main(int argc, char** argv)
 
     // Update the UV map
     auto uvMap = reader.getUVMap();
-    vc::UVMap::Flip(uvMap, axis);
+    vc::UVMap::Flip(*uvMap, axis);
 
     // Load the texture image
     cv::Mat texture;

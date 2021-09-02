@@ -44,7 +44,7 @@ public:
     };
 
     /** @brief Set the input textured meshes */
-    void setInputMeshes(std::vector<volcart::TexturedMesh> m);
+    void setInputMeshes(std::vector<TexturedMesh> m);
 
     /** @brief Set the marker intersection line segments */
     void setLineSegments(std::vector<LineSegment> r);

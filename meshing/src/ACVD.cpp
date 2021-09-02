@@ -58,7 +58,7 @@ void ACVD::compute_isotropic_()
     ITK2VTK(inputMesh_, vtkMesh);
 
     // ACVD's vtkSurface class used for resampling
-    auto mesh = vtkSurface::New();
+    vtkNew<vtkSurface> mesh;
     mesh->CreateFromPolyData(vtkMesh);
     mesh->GetCellData()->Initialize();
     mesh->GetPointData()->Initialize();
@@ -153,7 +153,7 @@ void ACVD::compute_anisotropic_()
     vtkNew<vtkPolyData> vtkMesh;
     ITK2VTK(inputMesh_, vtkMesh);
 
-    auto mesh = vtkSurface::New();
+    vtkNew<vtkSurface> mesh;
     mesh->CreateFromPolyData(vtkMesh);
     mesh->GetCellData()->Initialize();
     mesh->GetPointData()->Initialize();
@@ -189,4 +189,20 @@ void ACVD::compute_anisotropic_()
 
     outputMesh_ = ITKMesh::New();
     VTK2ITK(cleaner->GetOutput(), outputMesh_);
+}
+
+auto ACVD::mode() const -> ACVD::Mode { return mode_; }
+
+auto ACVD::numberOfClusters() const -> std::size_t { return clusters_; }
+
+auto ACVD::gradation() const -> double { return gradation_; }
+
+auto ACVD::subsampleThreshold() const -> std::size_t
+{
+    return subsampleThreshold_;
+}
+
+auto ACVD::quadricsOptimizationLevel() const -> std::size_t
+{
+    return quadricsOptLevel_;
 }

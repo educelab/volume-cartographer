@@ -274,6 +274,15 @@ TFF::PointSet TFF::compute()
         // Calculate the current z-index
         auto zIndex = startSlice + it;
 
+        // Quite early if we ran out of seed points
+        if (seedPoints.empty()) {
+            Logger()->warn(
+                "No seed points remaining. Terminating segmentation on slice "
+                "{}",
+                zIndex);
+            break;
+        }
+
         // Get the current (single) slice image (Of type Mat)
         auto slice = vol_->getSliceDataCopy(zIndex);
 

@@ -38,7 +38,7 @@ public:
 
     /** Static New function for all constructors of T */
     template <typename... Args>
-    static Pointer New(Args... args)
+    static auto New(Args... args) -> Pointer
     {
         return std::make_shared<VolumetricMask>(std::forward<Args>(args)...);
     }
@@ -77,34 +77,37 @@ public:
     }
 
     /** @brief Check whether a Voxel is in the mask */
-    bool isIn(const Voxel& v) const;
+    [[nodiscard]] auto isIn(const Voxel& v) const -> bool;
     /** @brief Check whether a Voxel is not in the mask */
-    bool isOut(const Voxel& v) const;
+    [[nodiscard]] auto isOut(const Voxel& v) const -> bool;
 
     /** @brief Check whether a sub-voxel is in the mask */
-    bool isIn(const cv::Vec3d& v) const;
+    [[nodiscard]] auto isIn(const cv::Vec3d& v) const -> bool;
     /** @brief Check whether a sub-voxel is not in the mask */
-    bool isOut(const cv::Vec3d& v) const;
+    [[nodiscard]] auto isOut(const cv::Vec3d& v) const -> bool;
 
     /** @brief Get a const-iterator to the first element in the mask */
-    iterator begin() noexcept;
+    auto begin() noexcept -> iterator;
     /** @copydoc begin() */
-    const_iterator begin() const noexcept;
+    [[nodiscard]] auto begin() const noexcept -> const_iterator;
     /** @copydoc begin() */
-    const_iterator cbegin() const noexcept;
+    [[nodiscard]] auto cbegin() const noexcept -> const_iterator;
 
     /** @brief Get a const-iterator to one past the last element in the mask */
-    iterator end() noexcept;
+    auto end() noexcept -> iterator;
     /** @copydoc end() */
-    const_iterator end() const noexcept;
+    [[nodiscard]] auto end() const noexcept -> const_iterator;
     /** @copydoc end() */
-    const_iterator cend() const noexcept;
+    [[nodiscard]] auto cend() const noexcept -> const_iterator;
 
     /** @brief Clear the mask of all voxels */
     void clear();
 
+    /** @brief Check if mask is empty */
+    [[nodiscard]] auto empty() const -> bool;
+
     /** @brief Get the list of masked points as a vector */
-    std::vector<Voxel> as_vector() const;
+    [[nodiscard]] auto as_vector() const -> std::vector<Voxel>;
 
 private:
     /** Mask storage container */

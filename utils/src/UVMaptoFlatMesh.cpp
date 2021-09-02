@@ -55,8 +55,8 @@ int main(int argc, char** argv)
     auto mesh = reader.read();
 
     // get UVMap
-    vc::UVMap uvMap = reader.getUVMap();
-    if (uvMap.empty()) {
+    auto uvMap = reader.getUVMap();
+    if (uvMap->empty()) {
         vc::Logger()->error("Input mesh has empty or null UV map.");
         return EXIT_FAILURE;
     }

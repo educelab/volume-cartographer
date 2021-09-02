@@ -168,7 +168,7 @@ int main(int argc, char* argv[])
 
     // Read the ppm
     std::cout << "Loading PPM..." << std::endl;
-    auto ppm = vc::PerPixelMap::ReadPPM(inputPPMPath);
+    auto ppm = vc::PerPixelMap::New(vc::PerPixelMap::ReadPPM(inputPPMPath));
 
     ///// Setup Neighborhood /////
     vc::NeighborhoodGenerator::Pointer generator;
@@ -275,7 +275,7 @@ int main(int argc, char* argv[])
     auto texture = textureGen->compute();
 
     // Write the output
-    SaveOutput(outputPath, nullptr, texture);
+    SaveOutput(outputPath, nullptr, nullptr, texture);
 
     return EXIT_SUCCESS;
 }  // end main

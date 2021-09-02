@@ -2,7 +2,8 @@
 
 namespace vc = volcart;
 
-static inline cv::Mat CreateAlphaChannel(const cv::Size& size, int depth)
+static inline auto CreateAlphaChannel(const cv::Size& size, int depth)
+    -> cv::Mat
 {
     // Create and scale the alpha channel
     cv::Mat alpha = cv::Mat::ones(size, depth);
@@ -27,7 +28,27 @@ static inline cv::Mat CreateAlphaChannel(const cv::Size& size, int depth)
     return alpha;
 }
 
-cv::Mat vc::QuantizeImage(const cv::Mat& m, int depth, bool scaleMinMax)
+auto vc::DepthToString(int depth) -> std::string
+{
+    switch (depth) {
+        case CV_8U:
+            return "8-bit unsigned";
+        case CV_8S:
+            return "8-bit signed";
+        case CV_16U:
+            return "16-bit unsigned";
+        case CV_16S:
+            return "16-bit signed";
+        case CV_32F:
+            return "32-bit float";
+        case CV_64F:
+            return "64-bit float";
+        default:
+            return "Unrecognized";
+    }
+}
+
+auto vc::QuantizeImage(const cv::Mat& m, int depth, bool scaleMinMax) -> cv::Mat
 {
     // Make sure we have work to do
     if (m.depth() == depth) {
@@ -88,7 +109,7 @@ cv::Mat vc::QuantizeImage(const cv::Mat& m, int depth, bool scaleMinMax)
     return output;
 }
 
-cv::Mat vc::ColorConvertImage(const cv::Mat& m, int channels)
+auto vc::ColorConvertImage(const cv::Mat& m, int channels) -> cv::Mat
 {
     // Make sure we have work to do
     if (m.channels() == channels) {

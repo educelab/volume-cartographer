@@ -32,7 +32,7 @@ public:
     ITKMesh::Pointer getMesh() { return output_; }
 
     /** @brief Get the parameterized mesh as a UVMap  */
-    UVMap getUVMap();
+    UVMap::Pointer getUVMap();
     /**@}*/
 
 protected:

@@ -8,7 +8,6 @@ namespace volcart
 {
 
 /**
- * @class CuboidGenerator
  * @brief Class for generating box-like neighborhoods from a point in a Volume
  *
  * @ingroup Neighborhoods
