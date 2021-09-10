@@ -318,7 +318,7 @@ auto main(int argc, char* argv[]) -> int
 
     // Add the project metadata
     // clang-format off
-    smgl::Metadata projectInfo {
+    smgl::Metadata projectInfo{{
         vc::ProjectInfo::Name(), {
             {"version", ProjectInfo::VersionString()},
             {"git-url", ProjectInfo::RepositoryURL()},
@@ -327,7 +327,7 @@ auto main(int argc, char* argv[]) -> int
                 {"path", fs::weakly_canonical(volpkgPath).filename().string()},
                 {"name", vpkg->name()}
             }}
-        }
+        }}
     };
     // clang-format on
     graph->setProjectMetadata(projectInfo);

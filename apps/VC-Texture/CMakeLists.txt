@@ -67,6 +67,8 @@ if (VC_INSTALL_APPS)
     )
 endif()
 
-if (VC_INSTALL_APPS AND (APPLE OR WIN32))
-    qt5_deploy_bundle(${target})
-endif()
+# Disabled due to packaging issue on Apple Silicon
+# See issue #290 for more detail
+#if (VC_INSTALL_APPS AND (APPLE OR WIN32))
+#    qt5_deploy_bundle(${target})
+#endif()
