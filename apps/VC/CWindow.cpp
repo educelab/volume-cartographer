@@ -283,13 +283,13 @@ void CWindow::CreateMenus(void)
 // Create actions
 void CWindow::CreateActions(void)
 {
-    fOpenVolAct = new QAction(tr("&Open volume..."), this);
+    fOpenVolAct = new QAction(tr("&Open volpkg..."), this);
     connect(fOpenVolAct, SIGNAL(triggered()), this, SLOT(Open()));
     fExitAct = new QAction(tr("E&xit..."), this);
     connect(fExitAct, SIGNAL(triggered()), this, SLOT(Close()));
     fAboutAct = new QAction(tr("&About..."), this);
     connect(fAboutAct, SIGNAL(triggered()), this, SLOT(About()));
-    fSavePointCloudAct = new QAction(tr("&Save volume..."), this);
+    fSavePointCloudAct = new QAction(tr("&Save volpkg..."), this);
     connect(
         fSavePointCloudAct, SIGNAL(triggered()), this, SLOT(SavePointCloud()));
 }
