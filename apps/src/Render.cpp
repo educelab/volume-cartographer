@@ -122,7 +122,7 @@ static auto GetUVOpts() -> po::options_description
         ("uv-reuse", "If input-mesh is specified, attempt to use its existing "
             "UV map instead of generating a new one.")
         ("uv-rotate", po::value<double>(), "Rotate the generated UV map by an "
-            "angle in degrees.")
+            "angle in degrees (counterclockwise).")
         ("uv-flip", po::value<int>(),
             "Flip the UV map along an axis. If uv-rotate is specified, flip is "
             "performed after rotation.\n"
