@@ -47,7 +47,7 @@ void CVolumeViewerWithCurve::SetImage(const QImage& nSrc)
     }
 
     fCanvas->setPixmap(QPixmap::fromImage(*fImgQImage));
-    fCanvas->resize(fScaleFactor * fCanvas->pixmap()->size());
+    fCanvas->resize(fScaleFactor * fCanvas->pixmap(Qt::ReturnByValue).size());
 
     fImgMat = QImage2Mat(*fImgQImage);
     fImgMat.copyTo(fImgMatCache);
@@ -106,7 +106,7 @@ void CVolumeViewerWithCurve::UpdateView(void)
     *fImgQImage = Mat2QImage(fImgMat);
 
     fCanvas->setPixmap(QPixmap::fromImage(*fImgQImage));
-    fCanvas->resize(fScaleFactor * fCanvas->pixmap()->size());
+    fCanvas->resize(fScaleFactor * fCanvas->pixmap(Qt::ReturnByValue).size());
 
     CVolumeViewerWithCurve::UpdateButtons();
 
