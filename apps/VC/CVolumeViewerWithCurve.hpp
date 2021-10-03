@@ -58,6 +58,7 @@ protected:
 
 private slots:
     void OnShowCurveStateChanged(int state);
+    void OnHistEqStateChanged(int state);
 
 private:
     void WidgetLoc2ImgLoc(const cv::Vec2f& nWidgetLoc, cv::Vec2f& nImgLoc);
@@ -74,7 +75,9 @@ signals:
 private:
     // for drawing
     QCheckBox* fShowCurveBox;
+    QCheckBox* fHistEqBox;
     bool showCurve;
+    bool histEq;
     CBSpline* fSplineCurveRef;
     std::vector<cv::Vec2f> fControlPoints;
 
