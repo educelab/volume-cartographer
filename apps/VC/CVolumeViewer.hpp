@@ -2,10 +2,10 @@
 // Chao Du 2015 April
 #pragma once
 
+#include <QtWidgets>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
-#include <QtWidgets>
 
 #include "CSimpleNumEditBox.hpp"
 

@@ -37,8 +37,7 @@ CVolumeViewerWithCurve::CVolumeViewerWithCurve(void)
     fHistEqBox->setChecked(false);
     connect(
         fHistEqBox, SIGNAL(stateChanged(int)), this,
-        SLOT(OnHistEqStateChanged(int))
-    );
+        SLOT(OnHistEqStateChanged(int)));
 
     QLabel* HistEqLabel = new QLabel(this);
     HistEqLabel->setText("HistEq");

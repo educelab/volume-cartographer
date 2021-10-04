@@ -727,7 +727,7 @@ void CWindow::OpenSlice(void)
     if (fVpkg != nullptr) {
         aImgMat = currentVolume->getSliceDataCopy(fPathOnSliceIndex);
         aImgMat.convertTo(aImgMat, CV_8UC1, 1.0 / 256.0);
-//        cvtColor(aImgMat, aImgMat, cv::COLOR_GRAY2BGR);
+        //        cvtColor(aImgMat, aImgMat, cv::COLOR_GRAY2BGR);
     } else {
         aImgMat = cv::Mat::zeros(10, 10, CV_8UC1);
     }
