@@ -773,11 +773,15 @@ void CWindow::SetPathPointCloud(void)
 }
 
 // Open volume package
-void CWindow::OpenVolume(void)
+void CWindow::OpenVolume()
 {
+    const QString defaultPathKey("default_path");
+
+    QSettings vcSettings;
+
     QString aVpkgPath = QString("");
     aVpkgPath = QFileDialog::getExistingDirectory(
-        this, tr("Open Directory"), QDir::homePath(),
+        this, tr("Open Directory"), vcSettings.value(defaultPathKey).toString(),
         QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     // Dialog box cancelled
     if (aVpkgPath.length() == 0) {
@@ -797,6 +801,9 @@ void CWindow::OpenVolume(void)
         fVpkg = nullptr;  // Is need for User Experience, clears screen.
         return;
     }
+
+    QDir currentDir;
+    vcSettings.setValue(defaultPathKey, currentDir.absoluteFilePath(aVpkgPath));
 
     // Open volume package
     if (!InitializeVolumePkg(aVpkgPath.toStdString() + "/")) {
