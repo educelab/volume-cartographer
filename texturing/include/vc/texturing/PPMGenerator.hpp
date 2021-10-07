@@ -33,7 +33,7 @@ public:
         Flat = 0,
         /**
          * @brief Each pixel's normal is a linear interpolation of the face's
-         * vertex normals. This is similar to Gouraud shading.
+         * vertex normals. This is similar to Phong shading.
          */
         Smooth
     };

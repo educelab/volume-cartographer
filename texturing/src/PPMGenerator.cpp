@@ -32,7 +32,7 @@ using Bvh = bvh::Bvh<Scalar>;
 using Intersector = bvh::ClosestPrimitiveIntersector<Bvh, Triangle>;
 using Traverser = bvh::SingleRayTraverser<Bvh>;
 
-static auto GouraudNormal(
+static auto PhongNormal(
     const cv::Vec3d& nUVW,
     const cv::Vec3d& nA,
     const cv::Vec3d& nB,
@@ -171,7 +171,7 @@ auto PPMGenerator::compute() -> PerPixelMap::Pointer
                 throw std::runtime_error(
                     "Performing smooth shading but missing vertex normal");
             }
-            xyzNorm = GouraudNormal(
+            xyzNorm = PhongNormal(
                 baryCoord, {nA[0], nA[1], nA[2]}, {nB[0], nB[1], nB[2]},
                 {nC[0], nC[1], nC[2]});
         }
@@ -198,7 +198,7 @@ auto PPMGenerator::compute() -> PerPixelMap::Pointer
 }
 
 // Convert from Barycentric coordinates to a smoothly interpolated normal
-auto GouraudNormal(
+auto PhongNormal(
     const cv::Vec3d& nUVW,
     const cv::Vec3d& nA,
     const cv::Vec3d& nB,
