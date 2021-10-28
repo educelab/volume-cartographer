@@ -11,7 +11,9 @@ using namespace ChaoVis;
 // Constructor
 CVolumeViewerWithCurve::CVolumeViewerWithCurve(void)
     : fShowCurveBox(nullptr)
+    , fHistEqBox(nullptr)
     , showCurve(true)
+    , histEq(false)
     , fSplineCurveRef(nullptr)
     , fIntersectionCurveRef(nullptr)
     , fSelectedPointIndex(-1)
@@ -31,6 +33,17 @@ CVolumeViewerWithCurve::CVolumeViewerWithCurve(void)
     fButtonsLayout->addWidget(fShowCurveBox);
     fButtonsLayout->addWidget(ShowCurveLabel);
 
+    fHistEqBox = new QCheckBox(this);
+    fHistEqBox->setChecked(false);
+    connect(
+        fHistEqBox, SIGNAL(stateChanged(int)), this,
+        SLOT(OnHistEqStateChanged(int)));
+
+    QLabel* HistEqLabel = new QLabel(this);
+    HistEqLabel->setText("HistEq");
+    fButtonsLayout->addWidget(fHistEqBox);
+    fButtonsLayout->addWidget(HistEqLabel);
+
     UpdateButtons();
 }
 
@@ -47,7 +60,7 @@ void CVolumeViewerWithCurve::SetImage(const QImage& nSrc)
     }
 
     fCanvas->setPixmap(QPixmap::fromImage(*fImgQImage));
-    fCanvas->resize(fScaleFactor * fCanvas->pixmap()->size());
+    fCanvas->resize(fScaleFactor * fCanvas->pixmap(Qt::ReturnByValue).size());
 
     fImgMat = QImage2Mat(*fImgQImage);
     fImgMat.copyTo(fImgMatCache);
@@ -87,6 +100,12 @@ void CVolumeViewerWithCurve::UpdateView(void)
 {
     fImgMatCache.copyTo(fImgMat);
 
+    if (histEq) {
+        cv::cvtColor(fImgMat, fImgMat, cv::COLOR_BGR2GRAY);
+        cv::equalizeHist(fImgMat, fImgMat);
+        cv::cvtColor(fImgMat, fImgMat, cv::COLOR_GRAY2BGR);
+    }
+
     if (fViewState == EViewState::ViewStateDraw) {
         if (fSplineCurveRef != nullptr) {
             fSplineCurveRef->DrawOnImage(fImgMat, cv::Scalar(0, 0, 255));
@@ -106,7 +125,7 @@ void CVolumeViewerWithCurve::UpdateView(void)
     *fImgQImage = Mat2QImage(fImgMat);
 
     fCanvas->setPixmap(QPixmap::fromImage(*fImgQImage));
-    fCanvas->resize(fScaleFactor * fCanvas->pixmap()->size());
+    fCanvas->resize(fScaleFactor * fCanvas->pixmap(Qt::ReturnByValue).size());
 
     CVolumeViewerWithCurve::UpdateButtons();
 
@@ -210,6 +229,17 @@ void CVolumeViewerWithCurve::OnShowCurveStateChanged(int state)
         showCurve = true;
     else
         showCurve = false;
+
+    UpdateView();
+}
+
+void CVolumeViewerWithCurve::OnHistEqStateChanged(int state)
+{
+    if (state > 0) {
+        histEq = true;
+    } else {
+        histEq = false;
+    }
 
     UpdateView();
 }

@@ -726,10 +726,11 @@ void CWindow::OpenSlice(void)
     cv::Mat aImgMat;
     if (fVpkg != nullptr) {
         aImgMat = currentVolume->getSliceDataCopy(fPathOnSliceIndex);
-        aImgMat.convertTo(aImgMat, CV_8UC3, 1.0 / 256.0);
-        cvtColor(aImgMat, aImgMat, cv::COLOR_GRAY2BGR);
-    } else
-        aImgMat = cv::Mat::zeros(10, 10, CV_8UC3);
+        aImgMat.convertTo(aImgMat, CV_8UC1, 1.0 / 256.0);
+        //        cvtColor(aImgMat, aImgMat, cv::COLOR_GRAY2BGR);
+    } else {
+        aImgMat = cv::Mat::zeros(10, 10, CV_8UC1);
+    }
 
     QImage aImgQImage;
     aImgQImage = Mat2QImage(aImgMat);
@@ -772,11 +773,15 @@ void CWindow::SetPathPointCloud(void)
 }
 
 // Open volume package
-void CWindow::OpenVolume(void)
+void CWindow::OpenVolume()
 {
+    const QString defaultPathKey("default_path");
+
+    QSettings vcSettings;
+
     QString aVpkgPath = QString("");
     aVpkgPath = QFileDialog::getExistingDirectory(
-        this, tr("Open Directory"), QDir::homePath(),
+        this, tr("Open Directory"), vcSettings.value(defaultPathKey).toString(),
         QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     // Dialog box cancelled
     if (aVpkgPath.length() == 0) {
@@ -796,6 +801,9 @@ void CWindow::OpenVolume(void)
         fVpkg = nullptr;  // Is need for User Experience, clears screen.
         return;
     }
+
+    QDir currentDir;
+    vcSettings.setValue(defaultPathKey, currentDir.absoluteFilePath(aVpkgPath));
 
     // Open volume package
     if (!InitializeVolumePkg(aVpkgPath.toStdString() + "/")) {

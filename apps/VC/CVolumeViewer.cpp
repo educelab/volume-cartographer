@@ -99,7 +99,7 @@ void CVolumeViewer::SetImage(const QImage& nSrc)
     }
 
     fCanvas->setPixmap(QPixmap::fromImage(*fImgQImage));
-    fCanvas->resize(fScaleFactor * fCanvas->pixmap()->size());
+    fCanvas->resize(fScaleFactor * fCanvas->pixmap(Qt::ReturnByValue).size());
 
     UpdateButtons();
     update();
@@ -124,10 +124,10 @@ void CVolumeViewer::paintEvent(QPaintEvent* /*event*/)
 // Scale image
 void CVolumeViewer::ScaleImage(double nFactor)
 {
-    Q_ASSERT(fCanvas->pixmap());
+    Q_ASSERT(!fCanvas->pixmap(Qt::ReturnByValue).isNull());
 
     fScaleFactor *= nFactor;
-    fCanvas->resize(fScaleFactor * fCanvas->pixmap()->size());
+    fCanvas->resize(fScaleFactor * fCanvas->pixmap(Qt::ReturnByValue).size());
 
     AdjustScrollBar(fScrollArea->horizontalScrollBar(), nFactor);
     AdjustScrollBar(fScrollArea->verticalScrollBar(), nFactor);

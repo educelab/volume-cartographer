@@ -7,15 +7,19 @@
 
 using namespace ChaoVis;
 
-int main(int argc, char* argv[])
+auto main(int argc, char* argv[]) -> int
 {
     QApplication app(argc, argv);
+    QApplication::setApplicationName("VC");
+    QApplication::setOrganizationName("EduceLab, University of Kentucky");
+    QApplication::setOrganizationDomain("cs.uky.edu/dri");
+
     qRegisterMetaType<CWindow::Segmenter>("Segmenter");
     qRegisterMetaType<CWindow::Segmenter::PointSet>(
         "CWindow::Segmenter::PointSet");
 
-    QRect rec = QApplication::desktop()->screenGeometry();
+    QRect rec = QGuiApplication::primaryScreen()->geometry();
     CWindow aWin(rec);
     aWin.show();
-    return app.exec();
+    return QApplication::exec();
 }
