@@ -54,18 +54,24 @@ public:
         std::vector<size_t> strides;
 
         if (dims == 2) {
-            extents = {src.rows, src.cols};
+            extents = {
+                static_cast<unsigned long>(src.rows),
+                static_cast<unsigned long>(src.cols)};
             strides = {size * src.cols, size};
         } else if (dims == 3) {
-            extents = {src.rows, src.cols, src.channels()};
+            extents = {
+                static_cast<unsigned long>(src.rows),
+                static_cast<unsigned long>(src.cols),
+                static_cast<unsigned long>(src.channels())};
             strides = {
                 size * src.cols * src.channels(), size * src.channels(), size};
         } else {
             throw std::runtime_error("unsupported number of dims");
         }
 
-        return array(
-                   buffer_info{src.data, size, format, dims, extents, strides})
+        return array(buffer_info{
+                         src.data, static_cast<ssize_t>(size), format, dims,
+                         extents, strides})
             .release();
     }
 };

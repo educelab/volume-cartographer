@@ -95,7 +95,8 @@ void init_Volume(py::module& m)
             std::vector<size_t> strides{
                 size * extents[1] * extents[0], size * extents[0], size};
             return py::array(py::buffer_info{
-                                 buf.data(), size, format, 3, extents, strides})
+                                 buf.data(), static_cast<ssize_t>(size), format,
+                                 3, extents, strides})
                 .release();
         },
         // clang-format off
