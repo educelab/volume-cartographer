@@ -31,5 +31,5 @@ add_custom_command(OUTPUT ${OUTPUT}
 add_custom_target(build_py ALL DEPENDS ${OUTPUT} ${PYBIND_TARGETS})
 
 if(VC_INSTALL_PYTHON_BINDINGS)
-install(CODE "execute_process(COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY} install)")
+install(CODE "execute_process(COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY} install --prefix ${CMAKE_INSTALL_PREFIX})")
 endif()
