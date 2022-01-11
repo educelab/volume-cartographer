@@ -72,27 +72,37 @@ To build and link against in-source `vc-deps` libraries, run the following:
 # Get the source code plus all submodules
 git clone --recursive https://gitlab.com/educelab/volume-cartographer.git
 
+# (macOS only)
+# brew install boost qt@5
+# brew unlink qt
+
 # Build vc-deps
 cd volume-cartographer/vc-deps
-mkdir build && cd build
-cmake ..
-make
+mkdir -p build && cd build
+# (macOS) Add flag: -DVCDEPS_BUILD_BOOST=OFF
+cmake -DCMAKE_BUILD_TYPE=Debug .. 
+make -j
 
 # Return to the volume-cartographer directory
 cd ../..
 
 # Build volume-cartographer
-mkdir build
-cd build
-cmake -DVC_PREBUILT_LIBS=ON ..
-make
+mkdir -p build && cd build
+# (macOS) Add -DQt5_DIR flag from the Qt section below
+cmake -DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON ..
+make -j
 ```
 
 #### Qt
 It might be necessary to point CMake to your Qt installation. For example,
-for Qt5 installed with Homebrew on Mac,
-`-DQt5_DIR=/usr/local/opt/qt/lib/cmake/Qt5` should be added to the `cmake`
-command arguments.
+for Qt5 installed with Homebrew on Mac:
+```
+# macOS (Apple Silicon)
+cmake -DQt5_DIR=/opt/homebrew/opt/qt@5/lib/cmake/Qt5/ ..
+
+# macOS (Intel)
+cmake -DQt5_DIR=/usr/local/opt/qt@5/lib/cmake/Qt5/ ..
+```
 
 ## Installation
 To install the compiled software and libraries to the `CMAKE_INSTALL_PREFIX`,
