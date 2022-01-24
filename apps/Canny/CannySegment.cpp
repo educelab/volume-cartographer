@@ -1,12 +1,16 @@
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "readability-identifier-length"
+#pragma clang diagnostic ignored "-Wunknown-pragmas"
+#pragma ide diagnostic ignored "cppcoreguidelines-avoid-magic-numbers"
 #include <iostream>
-#include <locale>
 #include <vector>
 
+#include <QApplication>
 #include <boost/program_options.hpp>
-#include <opencv2/highgui.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
+#include "CannyViewer.hpp"
 #include "vc/app_support/ProgressIndicator.hpp"
 #include "vc/core/filesystem.hpp"
 #include "vc/core/io/PLYWriter.hpp"
@@ -20,33 +24,10 @@ namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
 
-// using vc::ProgressWrap;
 using vc::range;
 using vc::range2D;
 
-// Canny values
-int blurSlider = 1;
-int gaussianKernel = 3;
-int closingSlider = 4;
-int closingKernel = 9;
-int minVal = 0;
-int maxVal = 255;
-int apertureSlider = 0;
-int aperture = 3;
-int sliceIdx = 0;
-bool contour{false};
-bool bilateral{false};
-
-vc::Volume::Pointer volume;
-
-// Show Canny opts
-std::string outputWindowName = "Canny Output";
-std::string settingsWindowName = "Canny Settings";
-cv::Mat src, dst, mask;
-void ShowCanny();
-void CannyThreshold(int, void*);
-
-int main(int argc, char* argv[])
+auto main(int argc, char* argv[]) -> int
 {
     ///// Parse the command line options /////
     // clang-format off
@@ -92,13 +73,16 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
+    // Canny values
+    vc::CannySettings cannySettings;
+
     // Get options
     fs::path volpkgPath = parsed["volpkg"].as<std::string>();
     fs::path outputPath = parsed["output-file"].as<std::string>();
-    minVal = parsed["threshold-min"].as<int>();
-    maxVal = parsed["threshold-max"].as<int>();
-    contour = parsed.count("use-contour") > 0;
-    bilateral = parsed.count("bilateral") > 0;
+    cannySettings.minThreshold = parsed["threshold-min"].as<int>();
+    cannySettings.maxThreshold = parsed["threshold-max"].as<int>();
+    cannySettings.contour = parsed.count("use-contour") > 0;
+    cannySettings.bilateral = parsed.count("bilateral") > 0;
 
     auto edge = parsed["projection-edge"].as<std::string>();
     std::transform(edge.begin(), edge.end(), edge.begin(), ::toupper);
@@ -113,6 +97,7 @@ int main(int argc, char* argv[])
     auto vpkg = vc::VolumePkg::New(volpkgPath);
 
     ///// Load the Volume /////
+    vc::Volume::Pointer volume;
     try {
         if (parsed.count("volume") != 0) {
             volume = vpkg->volume(parsed["volume"].as<std::string>());
@@ -128,12 +113,19 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
+    cv::Mat mask;
     if (parsed.count("mask") > 0) {
-        mask = cv::imread(parsed["mask"].as<std::string>(), CV_8UC1);
+        cannySettings.mask =
+            cv::imread(parsed["mask"].as<std::string>(), CV_8UC1);
     }
 
     if (parsed.count("visualize") > 0) {
-        ShowCanny();
+        QApplication app(argc, argv);
+        QGuiApplication::setApplicationDisplayName(
+            CannyViewer::tr("Canny Viewer"));
+        CannyViewer viewer(&cannySettings, volume);
+        viewer.show();
+        QApplication::exec();
     }
 
     auto midpoint = parsed.count("calculate-midpoint") > 0;
@@ -145,35 +137,11 @@ int main(int argc, char* argv[])
     cv::Vec3d middle;
     cv::Vec3d last;
     for (const auto& z : ProgressWrap(range(volume->numSlices()), "Slice:")) {
-        // Get the slice and blur it
+        // Get the slice
         auto slice =
             vc::QuantizeImage(volume->getSliceDataCopy(z), CV_8UC1, false);
-        cv::GaussianBlur(slice, slice, {gaussianKernel, gaussianKernel}, 0);
-        if (bilateral) {
-            cv::bilateralFilter(slice.clone(), slice, gaussianKernel, 75, 75);
-        }
 
-        // Run Canny Edge Detect
-        cv::Mat cannySlice;
-        cv::Canny(slice, cannySlice, minVal, maxVal, aperture, true);
-
-        cv::Mat processed;
-        cannySlice.copyTo(processed, mask);
-
-        // Replace canny edges with contour edges
-        if (contour) {
-            // Apply closing to fill holes and gaps.
-            cv::Mat kernel = cv::Mat::ones(closingKernel, closingKernel, CV_8U);
-            cv::morphologyEx(processed, processed, cv::MORPH_CLOSE, kernel);
-
-            std::vector<std::vector<cv::Point2i>> contours;
-            cv::findContours(
-                processed, contours, cv::RETR_EXTERNAL,
-                cv::CHAIN_APPROX_SIMPLE);
-
-            processed = cv::Mat::zeros(slice.size(), CV_8UC1);
-            cv::drawContours(processed, contours, -1, {255});
-        }
+        cv::Mat processed = vc::Canny(slice, cannySettings);
 
         // Keep all edges
         if (edge == "N") {
@@ -264,74 +232,4 @@ int main(int argc, char* argv[])
     writer.write();
 }
 
-void ShowCanny()
-{
-    cv::namedWindow(outputWindowName, cv::WINDOW_NORMAL);
-    cv::namedWindow(settingsWindowName);
-    cv::startWindowThread();
-    cv::createTrackbar(
-        "Blur Size:", settingsWindowName, &blurSlider, 30, CannyThreshold);
-    cv::createTrackbar(
-        "Min Threshold:", settingsWindowName, &minVal, 255, CannyThreshold);
-    cv::createTrackbar(
-        "Max Threshold:", settingsWindowName, &maxVal, 255, CannyThreshold);
-    cv::createTrackbar(
-        "Aperture Size:", settingsWindowName, &apertureSlider, 2,
-        CannyThreshold);
-    cv::createTrackbar(
-        "Slice: ", settingsWindowName, &sliceIdx, volume->numSlices() - 1,
-        CannyThreshold);
-    if (contour) {
-        cv::createTrackbar(
-            "Closing Size: ", settingsWindowName, &closingSlider, 32,
-            CannyThreshold);
-    }
-
-    CannyThreshold(0, nullptr);
-    cv::waitKey(0);
-    cv::destroyAllWindows();
-}
-
-void CannyThreshold(int, void*)
-{
-    auto slice = volume->getSliceDataCopy(sliceIdx);
-    src = vc::QuantizeImage(slice, CV_8U, false);
-
-    gaussianKernel = 2 * blurSlider + 1;
-    aperture = 2 * apertureSlider + 3;
-    cv::Mat canny;
-    cv::GaussianBlur(src, canny, {gaussianKernel, gaussianKernel}, 0);
-    if (bilateral) {
-        src = canny;
-        canny = cv::Mat();
-        cv::bilateralFilter(src, canny, gaussianKernel, 75, 75);
-    }
-
-    // Run Canny Edge Detect
-    cv::Canny(canny, canny, minVal, maxVal, aperture, true);
-
-    // Apply the mask to the canny image
-    dst = cv::Scalar::all(0);
-    canny.copyTo(dst, mask);
-
-    // Draw contours
-    if (contour) {
-        closingKernel = 2 * closingSlider + 1;
-        // Apply closing to fill holes and gaps.
-        cv::Mat kernel = cv::Mat::ones(closingKernel, closingKernel, CV_8U);
-        cv::morphologyEx(dst, dst, cv::MORPH_CLOSE, kernel);
-
-        std::vector<std::vector<cv::Point2i>> contours;
-        cv::findContours(
-            dst, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
-
-        dst = cv::Mat::zeros(src.size(), CV_8UC3);
-        cv::drawContours(dst, contours, -1, {0, 255, 0});
-    }
-
-    src = vc::QuantizeImage(slice, CV_8U);
-    src = vc::ColorConvertImage(src, dst.channels());
-    cv::addWeighted(src, 0.5, dst, 0.5, 0, dst);
-
-    cv::imshow(outputWindowName, dst);
-}
+#pragma clang diagnostic pop

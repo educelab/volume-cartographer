@@ -49,6 +49,7 @@ set(type_srcs
 )
 
 set(util_srcs
+    src/Canny.cpp
     src/MeshMath.cpp
     src/MemorySizeStringParser.cpp
     src/FormatStrToRegexStr.cpp
