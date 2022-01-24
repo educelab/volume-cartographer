@@ -33,11 +33,6 @@ list(APPEND utils_install_list vc_retexture_mesh)
 add_executable(vc_ppm_to_pointset src/PPMToPointSet.cpp)
 target_link_libraries(vc_ppm_to_pointset VC::core ${VC_FS_LIB} Boost::program_options)
 
-# vc_canny_segment
-add_executable(vc_canny_segment src/CannySegment.cpp)
-target_link_libraries(vc_canny_segment VC::app_support VC::core ${VC_FS_LIB} Boost::program_options opencv_core)
-list(APPEND utils_install_list vc_canny_segment)
-
 # vc_uv2mesh
 add_executable(vc_uv2mesh src/UVMaptoFlatMesh.cpp)
 target_link_libraries(vc_uv2mesh

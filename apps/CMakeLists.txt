@@ -5,6 +5,8 @@ if(APPLE OR WIN32)
     find_package(DeployQt5 REQUIRED)
 endif()
 
+add_subdirectory(Canny)
+
 add_subdirectory(VC)
 
 if (VC_USE_ACVD OR VC_USE_OPTIONAL)
