@@ -1,23 +1,26 @@
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunknown-pragmas"
+#pragma ide diagnostic ignored "cppcoreguidelines-avoid-magic-numbers"
 // projection.cpp
 // Seth Parker 10/2015
 // Project the mesh onto a volume in order to check the quality of segmentation
 #include <iomanip>
 #include <iostream>
-#include <limits>
 #include <map>
 
 #include <boost/program_options.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
+#include <QApplication>
 #include <vtkAppendPolyData.h>
-#include <vtkCell.h>
 #include <vtkCleanPolyData.h>
 #include <vtkCutter.h>
 #include <vtkPlane.h>
 #include <vtkSmartPointer.h>
 #include <vtkStripper.h>
 
+#include "ProjectionViewer.hpp"
 #include "vc/app_support/ProgressIndicator.hpp"
 #include "vc/core/filesystem.hpp"
 #include "vc/core/io/OBJReader.hpp"
@@ -26,21 +29,11 @@
 #include "vc/core/util/Logging.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
 
-static const double MAX_8BPC = std::numeric_limits<uint8_t>::max();
-static const double MAX_16BPC = std::numeric_limits<uint16_t>::max();
-
-static const cv::Scalar WHITE{255, 255, 255};
-static const cv::Scalar BLUE{255, 0, 0};
-static const cv::Scalar GREEN{0, 255, 0};
-static const cv::Scalar RED{0, 0, 255};
-
-enum class Color { White = 0, Red, Green, Blue };
-
 namespace po = boost::program_options;
 namespace fs = volcart::filesystem;
 namespace vc = volcart;
 
-int main(int argc, char* argv[])
+auto main(int argc, char* argv[]) -> int
 {
     ///// Parse the command line options /////
     // clang-format off
@@ -58,6 +51,7 @@ int main(int argc, char* argv[])
 
     po::options_description visOptions("Visualization Options");
     visOptions.add_options()
+        ("visualize", "Show projection interactive visualization before running on entire volume")
         ("color,c", po::value<int>()->default_value(0),
          "Color of the intersection line:\n"
              "  0 = White\n"
@@ -76,7 +70,7 @@ int main(int argc, char* argv[])
     po::store(po::command_line_parser(argc, argv).options(all).run(), parsed);
 
     // Show the help message
-    if (parsed.count("help") || argc < 4) {
+    if ((parsed.count("help") > 0) || argc < 4) {
         std::cout << all << std::endl;
         return EXIT_SUCCESS;
     }
@@ -90,27 +84,27 @@ int main(int argc, char* argv[])
     }
 
     // Get options
+    vc::ProjectionSettings projectionSettings;
     auto meshPaths = parsed["input-mesh"].as<std::vector<std::string>>();
     fs::path volpkgPath = parsed["volpkg"].as<std::string>();
     fs::path outputDir = parsed["output-dir"].as<std::string>();
-    auto intersectOnly = parsed.count("intersect-only") > 0;
-    auto thickness = parsed["thickness"].as<int>();
+    projectionSettings.intersectOnly = parsed.count("intersect-only") > 0;
+    projectionSettings.thickness = parsed["thickness"].as<int>();
 
     // Color Option
     auto colorOpt = static_cast<Color>(parsed["color"].as<int>());
-    cv::Scalar color;
     switch (colorOpt) {
         case Color::White:
-            color = WHITE;
+            projectionSettings.color = WHITE;
             break;
         case Color::Red:
-            color = RED;
+            projectionSettings.color = RED;
             break;
         case Color::Green:
-            color = GREEN;
+            projectionSettings.color = GREEN;
             break;
         case Color::Blue:
-            color = BLUE;
+            projectionSettings.color = BLUE;
             break;
     }
 
@@ -120,7 +114,7 @@ int main(int argc, char* argv[])
     // Load the volume
     vc::Volume::Pointer volume;
     try {
-        if (parsed.count("volume")) {
+        if (parsed.count("volume") > 0) {
             volume = volpkg.volume(parsed["volume"].as<std::string>());
         } else {
             volume = volpkg.volume();
@@ -141,8 +135,8 @@ int main(int argc, char* argv[])
     std::cout << "Loading meshes..." << std::endl;
     vc::io::OBJReader reader;
     std::vector<vtkSmartPointer<vtkPolyData>> meshes;
-    for (const auto& p : meshPaths) {
-        reader.setPath(p);
+    for (const auto& meshPath : meshPaths) {
+        reader.setPath(meshPath);
         auto mesh = reader.read();
         auto vtkMesh = vtkSmartPointer<vtkPolyData>::New();
         vc::meshing::ITK2VTK(mesh, vtkMesh);
@@ -154,8 +148,8 @@ int main(int argc, char* argv[])
     if (meshes.size() > 1) {
         // Append all of the meshes into a single polydata
         auto append = vtkSmartPointer<vtkAppendPolyData>::New();
-        for (auto& m : meshes) {
-            append->AddInputData(m);
+        for (auto& mesh : meshes) {
+            append->AddInputData(mesh);
         }
         append->Update();
 
@@ -171,20 +165,20 @@ int main(int argc, char* argv[])
 
     // Setup intersection plane
     vtkSmartPointer<vtkPlane> cutPlane = vtkSmartPointer<vtkPlane>::New();
-    cutPlane->SetOrigin(width / 2, height / 2, 0);
+    cutPlane->SetOrigin(width / 2.0, height / 2.0, 0);
     cutPlane->SetNormal(0, 0, 1);
-    auto z_min = static_cast<int>(std::floor(vtkMesh->GetBounds()[4]));
-    auto z_max = static_cast<int>(std::ceil(vtkMesh->GetBounds()[5]));
+    projectionSettings.zMin = static_cast<int>(std::floor(vtkMesh->GetBounds()[4]));
+    projectionSettings.zMax = static_cast<int>(std::ceil(vtkMesh->GetBounds()[5]));
 
     // Bounds checks
-    if (z_min < 0) {
-        z_min = 0;
+    if (projectionSettings.zMin < 0) {
+        projectionSettings.zMin = 0;
     }
-    if (z_max >= volume->numSlices()) {
-        z_max = volume->numSlices() - 1;
+    if (projectionSettings.zMax >= volume->numSlices()) {
+        projectionSettings.zMax = volume->numSlices() - 1;
     }
-    if (z_min == z_max) {
-        z_max += 1;
+    if (projectionSettings.zMin == projectionSettings.zMax) {
+        projectionSettings.zMax += 1;
     }
 
     // Setup cutting and stripping pipeline
@@ -195,49 +189,63 @@ int main(int argc, char* argv[])
     auto stripper = vtkSmartPointer<vtkStripper>::New();
     stripper->SetInputConnection(cutter->GetOutputPort());
 
-    // Iterate over every z-index in the range between z_min and z_max
+    if (parsed.count("visualize") > 0) {
+        QApplication app(argc, argv);
+        QGuiApplication::setApplicationDisplayName(
+            ProjectionViewer::tr("Projection Viewer"));
+        ProjectionViewer viewer(
+            &projectionSettings, cutPlane, stripper, volume);
+        viewer.show();
+        QApplication::exec();
+    }
+
+    // Iterate over every z-index in the range between zMin and zMax
     // Cut the mesh and draw its corresponding intersection onto a new output
     // image
     cv::Mat outputImg;
     std::vector<cv::Point> contour;
-    for (const auto& it : vc::ProgressWrap(
-             vc::range(z_min, z_max), "vc::projection::Projecting:")) {
+    for (const auto& zIdx : vc::ProgressWrap(
+             vc::range(projectionSettings.zMin, projectionSettings.zMax),
+             "vc::projection::Projecting:")) {
         // Cut the mesh and get the intersection
-        cutPlane->SetOrigin(width / 2, height / 2, it);
+        cutPlane->SetOrigin(width / 2.0, height / 2.0, zIdx);
         stripper->Update();
-        auto intersection = stripper->GetOutput();
+        auto* intersection = stripper->GetOutput();
 
         // Setup the output image
-        if (intersectOnly) {
+        if (projectionSettings.intersectOnly) {
             outputImg = cv::Mat::zeros(height, width, CV_8UC3);
         } else {
-            outputImg = volume->getSliceDataCopy(it);
+            outputImg = volume->getSliceDataCopy(zIdx);
             outputImg.convertTo(outputImg, CV_8U, MAX_8BPC / MAX_16BPC);
             cv::cvtColor(outputImg, outputImg, cv::COLOR_GRAY2BGR);
         }
 
         // Draw the intersections
-        for (auto c_id = 0; c_id < intersection->GetNumberOfCells(); ++c_id) {
-            auto inputCell = intersection->GetCell(c_id);
+        for (auto cId = 0; cId < intersection->GetNumberOfCells(); ++cId) {
+            auto* inputCell = intersection->GetCell(cId);
 
             contour.clear();
-            for (auto p_it = 0; p_it < inputCell->GetNumberOfPoints(); ++p_it) {
-                auto p_id = inputCell->GetPointId(p_it);
+            for (auto pIt = 0; pIt < inputCell->GetNumberOfPoints(); ++pIt) {
+                auto pId = inputCell->GetPointId(pIt);
                 contour.emplace_back(cv::Point(
-                    static_cast<int>(intersection->GetPoint(p_id)[0]),
-                    static_cast<int>(intersection->GetPoint(p_id)[1])));
+                    static_cast<int>(intersection->GetPoint(pId)[0]),
+                    static_cast<int>(intersection->GetPoint(pId)[1])));
             }
 
             cv::polylines(
-                outputImg, contour, false, color, thickness, cv::LINE_AA);
+                outputImg, contour, false, projectionSettings.color,
+                projectionSettings.thickness, cv::LINE_AA);
         }
 
         // Save the output to the provided directory
         std::stringstream filename;
-        filename << std::setw(padding) << std::setfill('0') << it << ".png";
+        filename << std::setw(padding) << std::setfill('0') << zIdx << ".png";
         auto path = outputDir / filename.str();
         cv::imwrite(path.string(), outputImg);
     }
 
     return EXIT_SUCCESS;
 }
+
+#pragma clang diagnostic pop
