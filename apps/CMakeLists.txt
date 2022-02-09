@@ -7,6 +7,8 @@ endif()
 
 add_subdirectory(Canny)
 
+add_subdirectory(Projection)
+
 add_subdirectory(VC)
 
 if (VC_USE_ACVD OR VC_USE_OPTIONAL)
@@ -111,19 +113,6 @@ target_link_libraries(vc_metaedit
     ${VC_FS_LIB}
 )
 
-## Slice Projection ##
-add_executable(vc_projection src/Projection.cpp)
-target_link_libraries(vc_projection
-    VC::app_support
-    VC::core
-    VC::meshing
-    ${VC_FS_LIB}
-    Boost::program_options
-    vtkCommonCore
-    vtkCommonDataModel
-    vtkFiltersGeneral
-)
-
 ## VolPkg Explorer ##
 add_executable(vc_volpkg_explorer src/VolPkgExplorer.cpp)
 target_link_libraries(vc_volpkg_explorer
@@ -200,7 +189,6 @@ install(
         vc_segment
         vc_render
         vc_render_from_ppm
-        vc_projection
         vc_volpkg_explorer
         ${extra_apps}
     RUNTIME DESTINATION bin
