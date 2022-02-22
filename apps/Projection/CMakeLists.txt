@@ -1,8 +1,15 @@
 # Projection app
 set(target vc_projection)
 set(srcs
+    FetchSliceThread.cpp
+    ImageScrollArea.cpp
+    PPMProjectionThread.cpp
+    PPMProjectionViewerWidget.cpp
     Projection.cpp
-    ProjectionViewer.cpp
+    ProjectionSettingsWidget.cpp
+    SliceProjectionThread.cpp
+    ProjectionViewerWindow.cpp
+    SliceProjectionViewerWidget.cpp
 )
 add_executable(${target} MACOSX_BUNDLE WIN32 ${srcs})
 set_target_properties(${target} PROPERTIES
@@ -11,6 +18,7 @@ set_target_properties(${target} PROPERTIES
 target_link_libraries(${target}
     Boost::program_options
     opencv_core
+    opencv_imgproc
     Qt5::Core
     Qt5::Gui
     Qt5::Widgets

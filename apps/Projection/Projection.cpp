@@ -8,11 +8,11 @@
 #include <iostream>
 #include <map>
 
+#include <QApplication>
 #include <boost/program_options.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
-#include <QApplication>
 #include <vtkAppendPolyData.h>
 #include <vtkCleanPolyData.h>
 #include <vtkCutter.h>
@@ -20,7 +20,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkStripper.h>
 
-#include "ProjectionViewer.hpp"
+#include "ProjectionViewerWindow.hpp"
 #include "vc/app_support/ProgressIndicator.hpp"
 #include "vc/core/filesystem.hpp"
 #include "vc/core/io/OBJReader.hpp"
@@ -59,7 +59,9 @@ auto main(int argc, char* argv[]) -> int
              "  2 = Green\n"
              "  3 = Blue\n")
         ("thickness,t", po::value<int>()->default_value(1), "Line thickness")
-        ("intersect-only", "Draws the intersection on a black image");
+        ("intersect-only", "Draws the intersection on a black image")
+        ("visualize-ppm-intersection", po::value<std::string>(), "PPM to show in addition to the slices view")
+        ("ppm-image-overlay", po::value<std::string>(), "Image to overlay in the PPM space when viewing how the slice intersects the PPM. Default: <ppm>_mask.png");
 
     po::options_description all("Usage");
     all.add(required).add(visOptions);
@@ -90,6 +92,20 @@ auto main(int argc, char* argv[]) -> int
     fs::path outputDir = parsed["output-dir"].as<std::string>();
     projectionSettings.intersectOnly = parsed.count("intersect-only") > 0;
     projectionSettings.thickness = parsed["thickness"].as<int>();
+    if (parsed.count("visualize-ppm-intersection") > 0) {
+        projectionSettings.visualizePPMIntersection =
+            parsed["visualize-ppm-intersection"].as<std::string>();
+        if (parsed.count("ppm-image-overlay") > 0) {
+            projectionSettings.ppmImageOverlay =
+                parsed["ppm-image-overlay"].as<std::string>();
+        } else {
+            auto ppmPath = vc::filesystem::path(
+                projectionSettings.visualizePPMIntersection);
+            auto maskPath =
+                ppmPath.parent_path() / (ppmPath.stem().string() + "_mask.png");
+            projectionSettings.ppmImageOverlay = maskPath.string();
+        }
+    }
 
     // Color Option
     auto colorOpt = static_cast<Color>(parsed["color"].as<int>());
@@ -167,8 +183,10 @@ auto main(int argc, char* argv[]) -> int
     vtkSmartPointer<vtkPlane> cutPlane = vtkSmartPointer<vtkPlane>::New();
     cutPlane->SetOrigin(width / 2.0, height / 2.0, 0);
     cutPlane->SetNormal(0, 0, 1);
-    projectionSettings.zMin = static_cast<int>(std::floor(vtkMesh->GetBounds()[4]));
-    projectionSettings.zMax = static_cast<int>(std::ceil(vtkMesh->GetBounds()[5]));
+    projectionSettings.zMin =
+        static_cast<int>(std::floor(vtkMesh->GetBounds()[4]));
+    projectionSettings.zMax =
+        static_cast<int>(std::ceil(vtkMesh->GetBounds()[5]));
 
     // Bounds checks
     if (projectionSettings.zMin < 0) {
@@ -192,8 +210,8 @@ auto main(int argc, char* argv[]) -> int
     if (parsed.count("visualize") > 0) {
         QApplication app(argc, argv);
         QGuiApplication::setApplicationDisplayName(
-            ProjectionViewer::tr("Projection Viewer"));
-        ProjectionViewer viewer(
+            ProjectionViewerWindow::tr("Projection Viewer"));
+        ProjectionViewerWindow viewer(
             &projectionSettings, cutPlane, stripper, volume);
         viewer.show();
         QApplication::exec();

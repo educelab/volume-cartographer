@@ -25,6 +25,8 @@ struct ProjectionSettings {
     bool intersectOnly = false;
     int zMin = 0;
     int zMax = 1;
+    std::string visualizePPMIntersection;
+    std::string ppmImageOverlay;
 };
 
 }  // namespace volcart
