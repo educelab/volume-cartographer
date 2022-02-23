@@ -1,9 +1,9 @@
 #pragma once
 
-#include "ImageScrollArea.hpp"
 #include "PPMProjectionThread.hpp"
+#include "vc/gui_support/ImageScrollArea.hpp"
 
-class PPMProjectionViewerWidget : public ImageScrollArea
+class PPMProjectionViewerWidget : public volcart::gui::ImageScrollArea
 {
     // clang-format off
     Q_OBJECT

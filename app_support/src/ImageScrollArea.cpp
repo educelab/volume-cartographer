@@ -1,10 +1,13 @@
-#include "ImageScrollArea.hpp"
+#include "vc/gui_support/ImageScrollArea.hpp"
 
 #include <QGuiApplication>
 #include <QMouseEvent>
 #include <QScrollBar>
 
-ImageScrollArea::ImageScrollArea() : scaleFactor_(1.0), imageLabel_(new QLabel)
+namespace vcg = volcart::gui;
+
+vcg::ImageScrollArea::ImageScrollArea()
+    : scaleFactor_(1.0), imageLabel_(new QLabel)
 {
     imageLabel_->setBackgroundRole(QPalette::Base);
     imageLabel_->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
@@ -15,7 +18,7 @@ ImageScrollArea::ImageScrollArea() : scaleFactor_(1.0), imageLabel_(new QLabel)
     verticalScrollBar()->installEventFilter(this);
 }
 
-void ImageScrollArea::updatePixmap(const cv::Mat& mat)
+void vcg::ImageScrollArea::updatePixmap(const cv::Mat& mat)
 {
     bool needsSizeUpdate = false;
     if (imageLabel_->pixmap(Qt::ReturnByValue).isNull() or
@@ -39,19 +42,19 @@ void ImageScrollArea::updatePixmap(const cv::Mat& mat)
     }
 }
 
-void ImageScrollArea::mousePressEvent(QMouseEvent* event)
+void vcg::ImageScrollArea::mousePressEvent(QMouseEvent* event)
 {
     this->setCursor(Qt::ClosedHandCursor);
     lastMouseMoveLocation_ = event->pos();
 }
 
-void ImageScrollArea::mouseReleaseEvent(QMouseEvent* /*unused*/)
+void vcg::ImageScrollArea::mouseReleaseEvent(QMouseEvent* /*unused*/)
 {
     dragStarted_ = false;
     this->unsetCursor();
 }
 
-void ImageScrollArea::mouseMoveEvent(QMouseEvent* event)
+void vcg::ImageScrollArea::mouseMoveEvent(QMouseEvent* event)
 {
     if (dragStarted_) {
         QPoint delta = event->pos() - lastMouseMoveLocation_;
@@ -64,7 +67,7 @@ void ImageScrollArea::mouseMoveEvent(QMouseEvent* event)
     lastMouseMoveLocation_ = event->pos();
 }
 
-void ImageScrollArea::wheelEvent(QWheelEvent* event)
+void vcg::ImageScrollArea::wheelEvent(QWheelEvent* event)
 {
     if (static_cast<bool>(
             QGuiApplication::keyboardModifiers() & Qt::ControlModifier)) {
@@ -82,11 +85,11 @@ void ImageScrollArea::wheelEvent(QWheelEvent* event)
     }
 }
 
-void ImageScrollArea::zoom_in_() { scale_image_(1.25); }
+void vcg::ImageScrollArea::zoom_in_() { scale_image_(1.25); }
 
-void ImageScrollArea::zoom_out_() { scale_image_(0.8); }
+void vcg::ImageScrollArea::zoom_out_() { scale_image_(0.8); }
 
-void ImageScrollArea::scale_image_(double factor)
+void vcg::ImageScrollArea::scale_image_(double factor)
 {
     scaleFactor_ *= factor;
     imageLabel_->resize(
@@ -96,7 +99,7 @@ void ImageScrollArea::scale_image_(double factor)
     AdjustScrollBar(verticalScrollBar(), factor);
 }
 
-void ImageScrollArea::AdjustScrollBar(QScrollBar* scrollBar, double factor)
+void vcg::ImageScrollArea::AdjustScrollBar(QScrollBar* scrollBar, double factor)
 {
     scrollBar->setValue(
         int(factor * scrollBar->value() +

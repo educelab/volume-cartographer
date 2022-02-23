@@ -4,6 +4,9 @@
 #include <QScrollArea>
 #include <opencv2/core.hpp>
 
+namespace volcart::gui
+{
+
 class ImageScrollArea : public QScrollArea
 {
     // clang-format off
@@ -34,3 +37,4 @@ private:
     void mouseMoveEvent(QMouseEvent* event) override;
     void wheelEvent(QWheelEvent* event) override;
 };
+}  // namespace volcart::gui

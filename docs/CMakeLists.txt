@@ -40,9 +40,9 @@ set(DOXYGEN_STRIP_FROM_INC_PATH ${DOX_DIRS})
 set(DOXYGEN_STRIP_FROM_PATH ${DOX_DIRS})
 
 if(VC_BUILD_APPS OR VC_BUILD_UTILS)
-    list(APPEND DOX_DIRS ${PROJECT_SOURCE_DIR}/app_support/include/)
-    list(APPEND DOXYGEN_STRIP_FROM_INC_PATH ${PROJECT_SOURCE_DIR}/app_support/include/)
-    list(APPEND DOXYGEN_STRIP_FROM_PATH ${PROJECT_SOURCE_DIR}/app_support/include/)
+    list(APPEND DOX_DIRS ${PROJECT_SOURCE_DIR}/app_support/include_app_support/ ${PROJECT_SOURCE_DIR}/app_support/include_gui_support/)
+    list(APPEND DOXYGEN_STRIP_FROM_INC_PATH ${PROJECT_SOURCE_DIR}/app_support/include_app_support/ ${PROJECT_SOURCE_DIR}/app_support/include_gui_support/)
+    list(APPEND DOXYGEN_STRIP_FROM_PATH ${PROJECT_SOURCE_DIR}/app_support/include_app_support/ ${PROJECT_SOURCE_DIR}/app_support/include_gui_support/)
 endif()
 
 if(VC_BUILD_EXPERIMENTAL)

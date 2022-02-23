@@ -2,7 +2,6 @@
 set(target vc_projection)
 set(srcs
     FetchSliceThread.cpp
-    ImageScrollArea.cpp
     PPMProjectionThread.cpp
     PPMProjectionViewerWidget.cpp
     Projection.cpp
@@ -11,7 +10,7 @@ set(srcs
     ProjectionViewerWindow.cpp
     SliceProjectionViewerWidget.cpp
 )
-add_executable(${target} MACOSX_BUNDLE WIN32 ${srcs})
+add_executable(${target} ${srcs})
 set_target_properties(${target} PROPERTIES
     AUTOMOC on
 )
@@ -23,6 +22,7 @@ target_link_libraries(${target}
     Qt5::Gui
     Qt5::Widgets
     VC::app_support
+    VC::gui_support
     VC::core
     VC::meshing
     ${VC_FS_LIB}
@@ -37,6 +37,7 @@ target_include_directories(${target}
     ${CMAKE_CURRENT_BINARY_DIR}
 )
 
+# NOTE: Linked against system Qt libs
 if (VC_INSTALL_APPS)
     install(TARGETS ${target}
         BUNDLE DESTINATION . COMPONENT Programs
