@@ -8,11 +8,11 @@
 #include <vtkStripper.h>
 
 #include "FetchSliceThread.hpp"
-#include "ImageScrollArea.hpp"
 #include "SliceProjectionThread.hpp"
 #include "vc/core/types/Volume.hpp"
+#include "vc/gui_support/ImageScrollArea.hpp"
 
-class SliceProjectionViewerWidget : public ImageScrollArea
+class SliceProjectionViewerWidget : public volcart::gui::ImageScrollArea
 {
     // clang-format off
     Q_OBJECT
