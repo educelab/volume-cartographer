@@ -24,7 +24,6 @@
 #include <vtkSmartPointer.h>
 #include <vtkStripper.h>
 
-#include "FetchSliceThread.hpp"
 #include "PPMProjectionViewerWidget.hpp"
 #include "Projection.hpp"
 #include "ProjectionSettingsWidget.hpp"

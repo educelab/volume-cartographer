@@ -1,7 +1,6 @@
 # Projection app
 set(target vc_projection)
 set(srcs
-    FetchSliceThread.cpp
     PPMProjectionThread.cpp
     PPMProjectionViewerWidget.cpp
     Projection.cpp

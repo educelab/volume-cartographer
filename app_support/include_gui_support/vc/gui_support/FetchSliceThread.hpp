@@ -6,6 +6,9 @@
 
 #include "vc/core/types/Volume.hpp"
 
+namespace volcart::gui
+{
+
 class FetchSliceThread : public QThread
 {
     // clang-format off
@@ -33,3 +36,4 @@ private:
     volcart::Volume::Pointer volume_;
     int sliceIdx_;
 };
+}  // namespace volcart::gui
