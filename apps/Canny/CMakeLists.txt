@@ -2,7 +2,9 @@
 set(target vc_canny_segment)
 set(srcs
     CannySegment.cpp
-    CannyViewer.cpp
+    CannyThread.cpp
+    CannyViewerWindow.cpp
+    SliceCannyViewerWidget.cpp
 )
 add_executable(${target} ${srcs})
 set_target_properties(${target} PROPERTIES
@@ -11,6 +13,7 @@ set_target_properties(${target} PROPERTIES
 target_link_libraries(${target}
     VC::app_support
     VC::core
+    VC::gui_support
     ${VC_FS_LIB}
     Boost::program_options
     opencv_core

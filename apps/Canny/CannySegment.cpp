@@ -8,9 +8,8 @@
 #include <QApplication>
 #include <boost/program_options.hpp>
 #include <opencv2/imgcodecs.hpp>
-#include <opencv2/imgproc.hpp>
 
-#include "CannyViewer.hpp"
+#include "CannyViewerWindow.hpp"
 #include "vc/app_support/ProgressIndicator.hpp"
 #include "vc/core/filesystem.hpp"
 #include "vc/core/io/PLYWriter.hpp"
@@ -122,8 +121,8 @@ auto main(int argc, char* argv[]) -> int
     if (parsed.count("visualize") > 0) {
         QApplication app(argc, argv);
         QGuiApplication::setApplicationDisplayName(
-            CannyViewer::tr("Canny Viewer"));
-        CannyViewer viewer(&cannySettings, volume);
+            CannyViewerWindow::tr("Canny Viewer"));
+        CannyViewerWindow viewer(&cannySettings, volume);
         viewer.show();
         QApplication::exec();
     }

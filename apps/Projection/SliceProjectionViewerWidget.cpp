@@ -14,7 +14,7 @@ SliceProjectionViewerWidget::SliceProjectionViewerWidget(
 {
     qRegisterMetaType<cv::Mat>("cv::Mat");
     connect(
-        &fetchSliceThread_, &FetchSliceThread::fetchedSlice, this,
+        &fetchSliceThread_, &volcart::gui::FetchSliceThread::fetchedSlice, this,
         &SliceProjectionViewerWidget::update_slice_image_);
     connect(
         &projectionThread_, &SliceProjectionThread::ranProjection, this,
@@ -24,7 +24,8 @@ SliceProjectionViewerWidget::SliceProjectionViewerWidget(
 void SliceProjectionViewerWidget::update_slice_image_(const cv::Mat& mat)
 {
     originalSliceMat_ = mat;
-    ImageScrollArea::updatePixmap(mat);
+    cv::cvtColor(originalSliceMat_, originalSliceMat_, cv::COLOR_GRAY2BGR);
+    ImageScrollArea::updatePixmap(originalSliceMat_);
     emit sliceLoaded();
 }
 

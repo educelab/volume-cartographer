@@ -19,9 +19,15 @@ target_compile_features(app_support PUBLIC cxx_std_17)
 # Qt GUI app support library
 
 # List of headers which need MOC
-set(gui_support_hdrs include_gui_support/vc/gui_support/ImageScrollArea.hpp)
+set(gui_support_hdrs
+    include_gui_support/vc/gui_support/FetchSliceThread.hpp
+    include_gui_support/vc/gui_support/ImageScrollArea.hpp
+)
 # List of source files
-set(gui_support_srcs src/ImageScrollArea.cpp)
+set(gui_support_srcs
+    src/FetchSliceThread.cpp
+    src/ImageScrollArea.cpp
+)
 # AUTOMOC doesn't work on libs so run MOC manually. Adds generated files to srcs
 qt_wrap_cpp(gui_support_srcs ${gui_support_hdrs})
 
@@ -34,6 +40,7 @@ target_link_libraries(gui_support
     PUBLIC
         Qt5::Widgets
         opencv_core
+        VC::core
     PRIVATE
         Qt5::Gui
 )

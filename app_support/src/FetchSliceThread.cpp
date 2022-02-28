@@ -1,14 +1,16 @@
-#include "FetchSliceThread.hpp"
+#include "vc/gui_support/FetchSliceThread.hpp"
 
 #include "vc/core/util/ImageConversion.hpp"
 
-FetchSliceThread::FetchSliceThread(
+namespace vcg = volcart::gui;
+
+vcg::FetchSliceThread::FetchSliceThread(
     volcart::Volume::Pointer volume, QObject* parent)
     : QThread(parent), volume_(std::move(volume))
 {
 }
 
-FetchSliceThread::~FetchSliceThread()
+vcg::FetchSliceThread::~FetchSliceThread()
 {
     mutex_.lock();
     abort_ = true;
@@ -17,7 +19,7 @@ FetchSliceThread::~FetchSliceThread()
     wait();
 }
 
-void FetchSliceThread::fetchSlice(int sliceIdx)
+void vcg::FetchSliceThread::fetchSlice(int sliceIdx)
 {
     QMutexLocker locker(&mutex_);
 
@@ -31,7 +33,7 @@ void FetchSliceThread::fetchSlice(int sliceIdx)
     }
 }
 
-void FetchSliceThread::run()
+void vcg::FetchSliceThread::run()
 {
     forever
     {
@@ -46,7 +48,6 @@ void FetchSliceThread::run()
         if (!restart_) {
             const auto slice = volume_->getSliceDataCopy(sliceIdx);
             auto src = volcart::QuantizeImage(slice, CV_8U, false);
-            cv::cvtColor(src, src, cv::COLOR_GRAY2BGR);
             emit fetchedSlice(src);
         }
 
