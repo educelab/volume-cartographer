@@ -33,6 +33,9 @@ public:
         const volcart::Volume::Pointer& volume,
         QWidget* parent = nullptr);
 
+public slots:
+    void handleSettingsRequest();
+
 private:
     SliceCannyViewerWidget* sliceCannyViewerWidget_;
 
