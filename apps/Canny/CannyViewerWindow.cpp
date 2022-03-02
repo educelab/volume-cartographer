@@ -34,6 +34,10 @@ CannyViewerWindow::CannyViewerWindow(
     , sliderWidget_(new QWidget)
     , sliceCannyViewerWidget_(new SliceCannyViewerWidget(volume))
 {
+    connect(
+        sliceCannyViewerWidget_, &SliceCannyViewerWidget::sliceLoaded, this,
+        &CannyViewerWindow::handleSettingsRequest);
+
     blurSizeSlider_->setMaximum(30);
     blurSizeSlider_->setValue(settings_->blurSize);
     connect(
@@ -112,6 +116,11 @@ CannyViewerWindow::CannyViewerWindow(
     // its own like in Projection app
     handle_slice_change_();
     handle_settings_change_();
+}
+
+void CannyViewerWindow::handleSettingsRequest()
+{
+    sliceCannyViewerWidget_->handleSettingsChange(*settings_);
 }
 
 void CannyViewerWindow::handle_slice_change_()
