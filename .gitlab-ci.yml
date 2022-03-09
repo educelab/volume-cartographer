@@ -130,8 +130,10 @@ lint:clang-format:
 pages:
     stage: docs
     needs: []
-    variables:
-        CMAKE_PREFIX_PATH: "/usr/local/opt/qt6/lib/cmake"
+    image: volcart/vcbuilder-debian:11_v1.static
+    before_script:
+        - apt-get -y update
+        - apt-get install --fix-missing --fix-broken -y doxygen graphviz
     script:
         - mkdir -p build/
         - mkdir -p public/
@@ -143,8 +145,7 @@ pages:
             - public
     allow_failure: true
     tags:
-        - doxy
-        - test
+        - docker
     rules:
         - if: '$CI_COMMIT_BRANCH == "develop"'
 
