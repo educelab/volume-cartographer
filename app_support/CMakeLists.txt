@@ -17,7 +17,6 @@ target_link_libraries(app_support
 target_compile_features(app_support PUBLIC cxx_std_17)
 
 # Qt GUI app support library
-
 # List of headers which need MOC
 set(gui_support_hdrs
     include_gui_support/vc/gui_support/FetchSliceThread.hpp

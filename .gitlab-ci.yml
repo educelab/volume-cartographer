@@ -135,7 +135,7 @@ pages:
     script:
         - mkdir -p build/
         - mkdir -p public/
-        - cmake -S . -B build/ -DVC_BUILD_DOC=ON
+        - cmake -S . -B build/ -DVC_BUILD_DOCS=ON -DVC_BUILD_APPS=OFF -DVC_BUILD_UTILS=OFF
         - cmake --build build/ --target docs
         - mv build/docs/html/ public/docs/
     artifacts:
