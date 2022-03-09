@@ -5,7 +5,6 @@ set(srcs
     src/CalculateNormals.cpp
     src/DeepCopy.cpp
     src/ITK2VTK.cpp
-    src/RayTrace.cpp
     src/ScaleMesh.cpp
     src/SmoothNormals.cpp
     src/OrderedResampling.cpp
@@ -17,7 +16,7 @@ set(public_deps "")
 set(private_deps "")
 set(defs "")
 
-# Conditional compilation of Bullet
+# Conditional compilation of VCG class
 if(VC_USE_VCG OR VC_USE_OPTIONAL)
     list(APPEND srcs src/QuadricEdgeCollapseDecimation.cpp)
     list(APPEND public_deps vcglib Eigen3::Eigen)
@@ -38,9 +37,9 @@ target_link_libraries(vc_meshing
         ${public_deps}
     PRIVATE
         ITKTransform
-        vtkFiltersGeneral
-        vtkFiltersCore
-        ACVD::vtkDiscreteRemeshing
+        VTK::FiltersGeneral
+        VTK::FiltersCore
+        ACVD::DiscreteRemeshing
         ${private_deps}
 )
 target_compile_features(vc_meshing PUBLIC cxx_std_17)
@@ -75,7 +74,6 @@ set(test_srcs
     test/CalculateNormalsTest.cpp
     test/OrderedResamplingTest.cpp
     test/ITK2VTKTest.cpp
-    test/RayTraceTest.cpp
     test/ScaleMeshTest.cpp
     test/SmoothNormalsTest.cpp
     test/OrderedPointSetMesherTest.cpp
@@ -121,13 +119,6 @@ set(ITK_VTK_TEST_RES
     test/res/VTKArchMeshConvertedToITK.obj
     test/res/VTKSphereMeshConvertedToITK.obj
     test/res/VTKConeMeshConvertedToITK.obj
-)
-set(RAYTRACE_EXAMPLE_TEST_RES
-    test/res/SavedPlaneRayTraceData.ply
-    test/res/SavedCubeRayTraceData.ply
-    test/res/SavedArchRayTraceData.ply
-    test/res/SavedConeRayTraceData.ply
-    test/res/SavedSphereRayTraceData.ply
 )
 set(SMOOTH_NORMALS_TEST_RES
     test/res/PlaneWithSmoothedNormals.obj

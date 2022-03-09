@@ -45,20 +45,19 @@ static constexpr double DEFAULT_MAX_DIFFERENCE = 1e-7;
  */
 template <
     typename T,
-    typename =
-        typename std::enable_if<std::is_floating_point<T>::value, T>::type>
-inline bool AlmostEqual(
+    std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+inline auto AlmostEqual(
     const T lhs,
     const T rhs,
     T epsAbs = static_cast<T>(DEFAULT_MAX_DIFFERENCE),
-    T epsRel = std::numeric_limits<T>::epsilon())
+    T epsRel = std::numeric_limits<T>::epsilon()) -> bool
 {
-    T d = std::fabs(lhs - rhs);
+    T d = std::abs(lhs - rhs);
     if (d <= epsAbs) {
         return true;
     }
-    T l = std::fabs(lhs);
-    T r = std::fabs(rhs);
+    T l = std::abs(lhs);
+    T r = std::abs(rhs);
 
     T largest = std::max(r, l);
     return d <= largest * epsRel;

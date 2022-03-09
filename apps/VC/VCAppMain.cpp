@@ -1,7 +1,7 @@
 // main.cpp
 // Chao Du 2014 Dec
 
-#include <QDesktopWidget>
+#include <QScreen>
 #include <qapplication.h>
 #include "CWindow.hpp"
 

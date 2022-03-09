@@ -33,9 +33,6 @@ option(VC_INSTALL_LIBS      "Install VC libraries"        on)
 option(VC_INSTALL_UTILS     "Install VC utility programs" on)
 option(VC_INSTALL_PYTHON_BINDINGS "Install Python bindings." off)
 
-# Extra options
-option(VC_BUILD_EXPERIMENTAL "Build the experimental library" off)
-
 # Some helpful constants to be used in subprojects.
 include(VCConstants)
 
@@ -71,11 +68,6 @@ add_subdirectory(meshing)
 add_subdirectory(segmentation)
 add_subdirectory(texturing)
 add_subdirectory(graph)
-
-# Build experimental library last
-if(VC_BUILD_EXPERIMENTAL)
-    add_subdirectory(experimental)
-endif()
 
 # App support library
 if(VC_BUILD_APPS OR VC_BUILD_UTILS)

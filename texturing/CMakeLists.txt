@@ -20,9 +20,9 @@ set(public_deps
 set(private_deps
     opencv_imgproc
     VC::meshing
-    vtkCommonCore
-    vtkCommonDataModel
-    vtkFiltersGeneral
+    VTK::CommonCore
+    VTK::CommonDataModel
+    VTK::FiltersGeneral
     Eigen3::Eigen
 )
 set(defs "")

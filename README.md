@@ -20,8 +20,7 @@ library
 * Eigen3 3.2+
 * spdlog 1.4.2+
 * Boost Program Options 1.58+: Required if building applications or utilities.
-* Qt 5.9+: Required if building applications or utilities. 
-    - The `vc_volume_server` app requires Qt 5.15+
+* Qt 6.2+: Required if building applications or utilities.
 
 **Optional**
 * Boost Filesystem 1.58+
@@ -73,7 +72,7 @@ To build and link against in-source `vc-deps` libraries, run the following:
 git clone --recursive https://gitlab.com/educelab/volume-cartographer.git
 
 # (macOS only)
-# brew install boost qt@5
+# brew install boost qt
 # brew unlink qt
 
 # Build vc-deps
@@ -88,20 +87,22 @@ cd ../..
 
 # Build volume-cartographer
 mkdir -p build && cd build
-# (macOS) Add -DQt5_DIR flag from the Qt section below
+# (macOS) Add -DCMAKE_PREFIX_PATH flag from the Qt section below
 cmake -DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON ..
 make -j
 ```
 
 #### Qt
-It might be necessary to point CMake to your Qt installation. For example,
-for Qt5 installed with Homebrew on Mac:
+It might be necessary to point CMake to your Qt installation. For example:
 ```
-# macOS (Apple Silicon)
-cmake -DQt5_DIR=/opt/homebrew/opt/qt@5/lib/cmake/Qt5/ ..
+# macOS (Apple Silicon), Qt6 installed via Homebrew
+cmake -DCMAKE_PREFIX_PATH=/opt/homebrew/opt/qt/lib/cmake/ ..
 
-# macOS (Intel)
-cmake -DQt5_DIR=/usr/local/opt/qt@5/lib/cmake/Qt5/ ..
+# macOS (Intel), Qt6 installed via Homebrew
+cmake -DCMAKE_PREFIX_PATH=/usr/local/opt/qt/lib/cmake/ ..
+
+# Ubuntu, Qt6 installed from source
+cmake -DCMAKE_PREFIX_PATH=/usr/local/Qt-6.2.3/lib/cmake/ ..
 ```
 
 ## Installation
@@ -126,7 +127,7 @@ submodule to build the dependencies as universal libraries:
 git clone --recursive https://gitlab.com/educelab/volume-cartographer.git
 
 # Setup macOS SDK version
-export MACOSX_DEPLOYMENT_TARGET="10.13"
+export MACOSX_DEPLOYMENT_TARGET="10.15"
 
 # Build vc-deps
 cd volume-cartographer/vc-deps

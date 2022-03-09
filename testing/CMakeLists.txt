@@ -17,6 +17,7 @@ target_link_libraries(vc_testing
     PUBLIC
         VC::core
         ${VC_FS_LIB}
+        opencv_core
     PRIVATE
         gtest
 )

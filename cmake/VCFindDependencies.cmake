@@ -5,7 +5,7 @@
 # Built using vc-deps
 option(VC_PREBUILT_LIBS "Link against prebuilt dependencies" off)
 if (VC_PREBUILT_LIBS)
-    set(CMAKE_PREFIX_PATH ${PROJECT_SOURCE_DIR}/vc-deps/deps)
+    list(APPEND CMAKE_PREFIX_PATH ${PROJECT_SOURCE_DIR}/vc-deps/deps)
 endif()
 
 ### Filesystem ###
@@ -26,8 +26,8 @@ endif()
 message(STATUS "Using filesystem library: ${VC_FS_LIB}")
 list(APPEND VC_CUSTOM_MODULES "${CMAKE_MODULE_PATH}/FindFilesystem.cmake")
 
-### Qt5 ###
-find_package(Qt5 5.9 QUIET REQUIRED COMPONENTS Widgets Gui Core Network)
+### Qt6 ###
+find_package(Qt6 QUIET REQUIRED COMPONENTS Widgets Gui Core Network)
 
 ### ITK ###
 set(VC_ITK_COMPONENTS
@@ -42,17 +42,7 @@ find_package(ITK 4.10 COMPONENTS ${VC_ITK_COMPONENTS} QUIET REQUIRED)
 include(${ITK_USE_FILE})
 
 ### VTK ###
-# VTK's config only supports minimum version up to the next major release
-find_package(VTK 7 QUIET)
-if(NOT VTK_FOUND)
-    find_package(VTK 8 QUIET REQUIRED)
-endif()
-include(${VTK_USE_FILE})
-
-# VTK does not mark its headers as system headers with -isystem, which makes
-# warnings from those headers show up in builds. This marks them as "system"
-# headers.
-include_directories(SYSTEM ${VTK_INCLUDE_DIRS})
+find_package(VTK 9 QUIET REQUIRED)
 
 ### ACVD ###
 include(BuildACVD)

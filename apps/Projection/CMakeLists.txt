@@ -17,17 +17,17 @@ target_link_libraries(${target}
     Boost::program_options
     opencv_core
     opencv_imgproc
-    Qt5::Core
-    Qt5::Gui
-    Qt5::Widgets
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Widgets
     VC::app_support
     VC::gui_support
     VC::core
     VC::meshing
     ${VC_FS_LIB}
-    vtkCommonCore
-    vtkCommonDataModel
-    vtkFiltersGeneral
+    VTK::CommonCore
+    VTK::CommonDataModel
+    VTK::FiltersGeneral
 )
 target_include_directories(${target}
     PUBLIC

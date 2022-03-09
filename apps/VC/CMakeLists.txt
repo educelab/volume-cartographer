@@ -57,9 +57,9 @@ target_link_libraries(${target}
     VC::meshing
     VC::segmentation
     Boost::program_options
-    Qt5::Core
-    Qt5::Gui
-    Qt5::Widgets
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Widgets
     ${OSXSecurity}
 )
 
@@ -73,5 +73,5 @@ endif()
 # Disabled due to packaging issue on Apple Silicon
 # See issue #290 for more detail
 #if (VC_INSTALL_APPS AND (APPLE OR WIN32))
-#    qt5_deploy_bundle(${target})
+#    qt6_deploy_bundle(${target})
 #endif()

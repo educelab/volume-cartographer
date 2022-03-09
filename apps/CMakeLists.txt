@@ -2,7 +2,7 @@
 # GUI Apps #
 ############
 if(APPLE OR WIN32)
-    find_package(DeployQt5 REQUIRED)
+    find_package(DeployQt6 REQUIRED)
 endif()
 
 add_subdirectory(Canny)
@@ -123,7 +123,6 @@ target_link_libraries(vc_volpkg_explorer
 )
 
 ## Volume Server ##
-if(Qt5_VERSION VERSION_GREATER_EQUAL 5.15)
 add_executable(vc_volume_server
     src/VolumeServerApp.cpp
     src/VolumeServer.cpp
@@ -137,7 +136,7 @@ target_link_libraries(vc_volume_server
     VC::core
     Boost::program_options
     ${VC_FS_LIB}
-    Qt5::Network
+    Qt6::Network
 )
 target_include_directories(vc_volume_server PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -157,26 +156,12 @@ target_link_libraries(vc_volume_client
     VC::core
     Boost::program_options
     ${VC_FS_LIB}
-    Qt5::Network
+    Qt6::Network
 )
 target_include_directories(vc_volume_client PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
 set(extra_apps vc_volume_server)
-endif()
-
-## Cloth Flattening ##
-if (VC_BUILD_EXPERIMENTAL)
-    add_executable(vc_cloth src/Cloth.cpp)
-    target_link_libraries(vc_cloth
-        VC::core
-        VC::experimental
-        VC::meshing
-        VC::texturing
-        Boost::program_options
-        vtkIOPLY
-    )
-endif()
 
 # Install targets
 if(VC_INSTALL_APPS)

@@ -142,8 +142,8 @@ void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* e)
 
     // Get the mouse position in widget coordinates
     cv::Vec2f aWidgetLoc, aImgLoc;
-    aWidgetLoc[0] = e->x();  // horizontal coordinate
-    aWidgetLoc[1] = e->y();  // vertical coordinate
+    aWidgetLoc[0] = e->position().x();  // horizontal coordinate
+    aWidgetLoc[1] = e->position().y();  // vertical coordinate
 
     // Convert to image coordinates and update the last tracked position
     WidgetLoc2ImgLoc(aWidgetLoc, aImgLoc);
@@ -182,8 +182,8 @@ void CVolumeViewerWithCurve::mouseMoveEvent(QMouseEvent* event)
 
     // Get the mouse position in widget coordinates
     cv::Vec2f aWidgetLoc, aImgLoc;
-    aWidgetLoc[0] = event->x();
-    aWidgetLoc[1] = event->y();
+    aWidgetLoc[0] = event->position().x();
+    aWidgetLoc[1] = event->position().y();
 
     // Convert to image coordinates and get delta of change
     WidgetLoc2ImgLoc(aWidgetLoc, aImgLoc);

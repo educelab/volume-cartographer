@@ -73,8 +73,8 @@ void ACVD::compute_isotropic_()
     Logger()->info("ACVD: Performing isotropic mesh resampling...");
     vtkNew<vtkIsotropicDiscreteRemeshing> remesh;
     remesh->SetInput(mesh);
-    remesh->SetNumberOfClusters(clusters);
-    remesh->SetSubsamplingThreshold(subsampleThreshold_);
+    remesh->SetNumberOfClusters(static_cast<int>(clusters));
+    remesh->SetSubsamplingThreshold(static_cast<int>(subsampleThreshold_));
     remesh->GetMetric()->SetGradation(gradation_);
     remesh->Remesh();
 
@@ -83,13 +83,14 @@ void ACVD::compute_isotropic_()
     // Use quadrics error to minimize distance between input and resampled
     if (quadricsOptLevel_ != 0) {
         Logger()->info("ACVD: Computing quadrics optimization...");
-        auto clustering = remesh->GetClustering();
+        vtkIntArray* clustering = remesh->GetClustering();
 
-        int cluster, numMisclassedItems = 0;
+        int cluster = 0;
+        int numMisclassedItems = 0;
 
         std::vector<std::array<double, 9>> clusterQuadrics(
             clusters, std::array<double, 9>{});
-        auto fList = vtkIdList::New();
+        auto* fList = vtkIdList::New();
 
         for (int i = 0; i < remesh->GetNumberOfItems(); i++) {
             cluster = clustering->GetValue(i);
@@ -118,12 +119,13 @@ void ACVD::compute_isotropic_()
                 numMisclassedItems);
         }
 
-        std::array<double, 3> p{};
-        for (size_t i = 0; i < clusters; i++) {
-            remesh->GetOutput()->GetPoint(i, p.data());
+        std::array<double, 3> pt{};
+        for (int idx = 0; idx < clusters; idx++) {
+            remesh->GetOutput()->GetPoint(idx, pt.data());
             vtkQuadricTools::ComputeRepresentativePoint(
-                clusterQuadrics[i].data(), p.data(), quadricsOptLevel_);
-            remesh->GetOutput()->SetPointCoordinates(i, p.data());
+                clusterQuadrics[idx].data(), pt.data(),
+                static_cast<int>(quadricsOptLevel_));
+            remesh->GetOutput()->SetPointCoordinates(idx, pt.data());
         }
 
         mesh->GetPoints()->Modified();
@@ -168,8 +170,8 @@ void ACVD::compute_anisotropic_()
     Logger()->info("ACVD: Performing anisotropic mesh resampling...");
     vtkNew<vtkAnisotropicDiscreteRemeshing> remesh;
     remesh->SetInput(mesh);
-    remesh->SetNumberOfClusters(clusters);
-    remesh->SetSubsamplingThreshold(subsampleThreshold_);
+    remesh->SetNumberOfClusters(static_cast<int>(clusters));
+    remesh->SetSubsamplingThreshold(static_cast<int>(subsampleThreshold_));
     remesh->GetMetric()->SetGradation(gradation_);
     remesh->Remesh();
 

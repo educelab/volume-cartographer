@@ -59,8 +59,9 @@ test:debian:static:
     extends: .build_and_test
     stage: test
     needs: []
-    image: volcart/vcbuilder-debian:10_v2.static
+    image: volcart/vcbuilder-debian:11_v1.static
     variables:
+        CMAKE_PREFIX_PATH: "/usr/local/Qt-6.2.3/"
         EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_DEVELOPER_WARNINGS=ON"
     tags:
         - docker
@@ -69,49 +70,40 @@ test:debian:dynamic:
     extends: .build_and_test
     stage: test
     needs: []
-    image: volcart/vcbuilder-debian:10_v2.dynamic
+    image: volcart/vcbuilder-debian:11_v1.dynamic
     variables:
+        CMAKE_PREFIX_PATH: "/usr/local/Qt-6.2.3/"
         EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_DEVELOPER_WARNINGS=ON"
     tags:
         - docker
 
-test:debian:experimental:
-    extends: .build_and_test
-    stage: test
-    needs: []
-    image: volcart/vcbuilder-debian:10_v2.experimental
-    variables:
-        EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DVC_BUILD_EXPERIMENTAL=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_DEVELOPER_WARNINGS=ON"
-    tags:
-        - docker
-
 ### macOS ###
-test:macos:static:
+.test:macos:static:
     extends: .build_and_test
     stage: test
     needs: []
     variables:
-        Qt5_DIR: "/usr/local/opt/qt5/lib/cmake/Qt5"
+        CMAKE_PREFIX_PATH: "/usr/local/opt/qt6/lib/cmake"
         EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_DEVELOPER_WARNINGS=ON"
     tags:
         - test
         - osx
         - homebrew
-        - qt5
+        - qt6
         - ninja
 
-test:macos:dynamic:
+.test:macos:dynamic:
     extends: .build_and_test
     stage: test
     needs: []
     variables:
-        Qt5_DIR: "/usr/local/opt/qt5/lib/cmake/Qt5"
+        CMAKE_PREFIX_PATH: "/usr/local/opt/qt6/lib/cmake"
         EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_DEVELOPER_WARNINGS=ON"
     tags:
         - test
         - osx
         - homebrew
-        - qt5
+        - qt6
         - ninja
 
 ### Extra Checks and Tests ###
@@ -134,36 +126,12 @@ lint:clang-format:
           when: never
         - if: '$CI_COMMIT_BRANCH'
 
-lint:clang-tidy:
-    stage: lint
-    needs: []
-    before_script:
-        - git fetch --all
-        - mkdir -p build/
-        - cd build/
-        - cmake -DQt5_DIR=/usr/local/opt/qt5/lib/cmake/qt5/ -GNinja -DVC_BUILD_ACVD=ON ..
-        - cd ..
-    script:
-        - echo $CI_BUILD_REF_NAME $CI_BUILD_STAGE
-        - utils/scripts/clang-tidy.py --print-output
-    allow_failure: true
-    tags:
-        - clang-tidy
-        - osx
-    rules:
-        - if: '$CI_PROJECT_URL =~ /.*gitlab\.com.*/'
-          when: never
-        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-        - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
-          when: never
-        - if: '$CI_COMMIT_BRANCH'
-
 ### Documentation ###
 pages:
     stage: docs
     needs: []
     variables:
-        Qt5_DIR: "/usr/local/opt/qt5/lib/cmake/Qt5"
+        CMAKE_PREFIX_PATH: "/usr/local/opt/qt6/lib/cmake"
     script:
         - mkdir -p build/
         - mkdir -p public/
@@ -249,7 +217,7 @@ collect:source:nightly:
 .collect:package:macos:
     extends: .build
     variables:
-        Qt5_DIR: "/usr/local/opt/qt5/lib/cmake/Qt5"
+        CMAKE_PREFIX_PATH: "/usr/local/opt/qt6/lib/cmake"
         EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON -DVC_BUILD_EXAMPLES=OFF -DVC_BUILD_TESTS=OFF"
     before_script:
         - export VC_DEPS_PATH="$CI_PROJECT_DIR/vc-deps"
@@ -274,16 +242,16 @@ collect:source:nightly:
     tags:
         - deploy
         - osx
-        - qt5
+        - qt6
 
-collect:binaries:macos:release:
+.collect:binaries:macos:release:
     extends:
         - .collect:package:macos
     stage: collect
     rules:
         *rules_release
 
-collect:binaries:macos:nightly:
+.collect:binaries:macos:nightly:
     extends:
         - .collect:package:macos
     stage: collect
@@ -316,7 +284,7 @@ collect:binaries:macos:nightly:
     tags:
         - rclone
 
-deploy:release:
+.deploy:release:
     extends:
         - .upload_final_build
     stage: deploy
@@ -331,7 +299,7 @@ deploy:release:
     environment:
         name: production
 
-release:create:
+.release:create:
     stage: release
     image: registry.gitlab.com/gitlab-org/release-cli:edge
     needs: ["deploy:release"]
@@ -349,7 +317,7 @@ release:create:
     tags:
         - docker
 
-deploy:nightly:
+.deploy:nightly:
     extends:
         - .upload_final_build
     stage: deploy
