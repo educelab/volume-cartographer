@@ -1,6 +1,6 @@
 # vc_area
 add_executable(vc_area src/SurfArea.cpp)
-target_link_libraries(vc_area VC::core VC::meshing ${VC_FS_LIB} vtkFiltersCore)
+target_link_libraries(vc_area VC::core VC::meshing ${VC_FS_LIB} VTK::FiltersCore)
 list(APPEND utils_install_list vc_area)
 
 # vc_invertcloud
@@ -9,7 +9,7 @@ target_link_libraries(vc_invertcloud VC::core ${VC_FS_LIB})
 
 # vc_csv2uv
 add_executable(vc_csv2uv src/CSV2UV.cpp)
-target_link_libraries(vc_csv2uv VC::core VC::meshing vtkIOPLY vtkFiltersCore)
+target_link_libraries(vc_csv2uv VC::core VC::meshing VTK::IOPLY VTK::FiltersCore)
 
 # vc_volpkg_upgrade
 add_executable(vc_volpkg_upgrade src/VolpkgUpgrade.cpp)

@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <locale>
+#include <sstream>
 #include <string>
 #include <type_traits>
 
@@ -50,6 +51,18 @@ static inline std::string to_lower_copy(std::string s)
 {
     to_lower(s);
     return s;
+}
+
+/** @brief Convert a string to a bool */
+static inline auto to_bool(const std::string& s) -> bool
+{
+    bool b{false};
+    if (s.size() == 1) {
+        std::stringstream(s) >> b;
+    } else if (s.size() > 1) {
+        std::stringstream(s) >> std::boolalpha >> b;
+    }
+    return b;
 }
 
 /**

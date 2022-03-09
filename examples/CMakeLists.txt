@@ -1,10 +1,9 @@
-if (VC_USE_ACVD OR VC_USE_OPTIONAL)
-    add_executable(vc_acvd_example src/ACVDExample.cpp)
-    target_link_libraries(vc_acvd_example
-        VC::core
-        VC::meshing
-    )
-endif()
+
+add_executable(vc_acvd_example src/ACVDExample.cpp)
+target_link_libraries(vc_acvd_example
+    VC::core
+    VC::meshing
+)
 
 #LANDMARKS TESTING
 add_executable(vc_landmarks_example src/CreateLandmarks.cpp)
@@ -33,9 +32,6 @@ add_executable(vc_bad_clang_tidy src/BadClangTidy.cpp)
 target_link_libraries(vc_bad_clang_tidy vc_testing)
 endif(VC_BUILD_TESTS)
 
-add_executable(vc_raytrace_example src/RayTraceExample.cpp)
-target_link_libraries(vc_raytrace_example VC::core VC::meshing)
-
 add_executable(vc_bad_clang_format src/BadClangFormat2.cpp)
 
 add_executable(vc_itk2vtk_example src/ITK2VTKExample.cpp)
@@ -44,16 +40,6 @@ target_link_libraries(vc_itk2vtk_example
     VC::meshing
     VC::testing
 )
-
-if (VC_BUILD_EXPERIMENTAL)
-    add_executable(vc_cloth_example src/ClothExample.cpp)
-    target_link_libraries(vc_cloth_example
-        VC::core
-        VC::experimental
-        VC::texturing
-        VC::meshing
-    )
-endif()
 
 if (VC_USE_ACVD OR VC_USE_OPTIONAL)
     add_executable(vc_abf_example src/ABFExample.cpp)

@@ -17,9 +17,9 @@ target_link_libraries(${target}
     ${VC_FS_LIB}
     Boost::program_options
     opencv_core
-    Qt5::Core
-    Qt5::Gui
-    Qt5::Widgets
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Widgets
 )
 target_include_directories(${target}
     PUBLIC

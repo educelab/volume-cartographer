@@ -92,9 +92,9 @@ target_link_libraries(vc_core
         opencv_imgcodecs
         ITKCommon
         ITKMesh
-        vtkCommonDataModel
-        vtkCommonCore
-        vtkIOLegacy
+        VTK::CommonDataModel
+        VTK::CommonCore
+        VTK::IOLegacy
         spdlog::spdlog
         nlohmann_json::nlohmann_json
         smgl::smgl

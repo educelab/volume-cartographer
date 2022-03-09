@@ -22,12 +22,10 @@ CSimpleNumEditBox::CSimpleNumEditBox(QWidget* parent)
     QStyleOptionFrame opt;
     opt.initFrom(this);
 
-    setFixedHeight(style()
-                       ->sizeFromContents(
-                           QStyle::CT_LineEdit, &opt,
-                           QSize(w, h).expandedTo(QApplication::globalStrut()),
-                           this)
-                       .height());
+    setFixedHeight(
+        style()
+            ->sizeFromContents(QStyle::CT_LineEdit, &opt, QSize(w, h), this)
+            .height());
 }
 
 // Destructor

@@ -38,10 +38,10 @@ target_include_directories(gui_support PUBLIC
 )
 target_link_libraries(gui_support
     PUBLIC
-        Qt5::Widgets
+        Qt6::Widgets
         opencv_core
         VC::core
     PRIVATE
-        Qt5::Gui
+        Qt6::Gui
 )
 target_compile_features(gui_support PUBLIC cxx_std_17)
