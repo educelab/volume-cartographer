@@ -23,7 +23,7 @@ namespace volcart
  *
  * @ingroup IO
  */
-enum class IOMode { ASCII, BINARY };
+enum class IOMode { ASCII = 0, BINARY };
 
 /**
  * @class PointSetIO

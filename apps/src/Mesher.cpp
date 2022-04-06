@@ -4,10 +4,9 @@
 #include <opencv2/core.hpp>
 
 #include "vc/core/filesystem.hpp"
-#include "vc/core/io/OBJWriter.hpp"
+#include "vc/core/io/MeshIO.hpp"
 #include "vc/core/io/PointSetIO.hpp"
 #include "vc/core/types/OrderedPointSet.hpp"
-#include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/Logging.hpp"
 #include "vc/meshing/OrderedPointSetMesher.hpp"
 
@@ -17,11 +16,10 @@ namespace vc = volcart;
 
 using psio = vc::PointSetIO<cv::Vec3d>;
 
-int main(int argc, char* argv[])
+auto main(int argc, char* argv[]) -> int
 {
     ///// Parse the command line options /////
     // All command line options
-    // clang-format off
     po::options_description all("Usage");
     all.add_options()
         ("help,h", "Show this message")
@@ -29,15 +27,16 @@ int main(int argc, char* argv[])
             "Path to the input Ordered Point Set")
         ("output-mesh,o", po::value<std::string>()->required(),
             "Path for the output mesh")
+        ("mode,m", po::value<int>()->default_value(1),
+            "Reading mode: 0 = ASCII, 1 = Binary")
         ("disable-triangulation", "Disable vertex triangulation");
-    // clang-format on
 
     // parsed will hold the values of all parsed options as a Map
     po::variables_map parsed;
     po::store(po::command_line_parser(argc, argv).options(all).run(), parsed);
 
     // Show the help message
-    if (parsed.count("help") || argc < 2) {
+    if (parsed.count("help") > 0 || argc < 2) {
         std::cout << all << std::endl;
         return EXIT_SUCCESS;
     }
@@ -52,21 +51,19 @@ int main(int argc, char* argv[])
 
     fs::path inputPath = parsed["input-cloud"].as<std::string>();
     fs::path outputPath = parsed["output-mesh"].as<std::string>();
+    auto mode = static_cast<vc::IOMode>(parsed["mode"].as<int>());
 
     // Load the file
-    std::cout << "Loading file..." << std::endl;
-    auto inputCloud = psio::ReadOrderedPointSet(inputPath);
+    vc::Logger()->info("Loading file...");
+    auto inputCloud = psio::ReadOrderedPointSet(inputPath, mode);
 
     // Convert to a mesh
-    std::cout << "Generating mesh..." << std::endl;
+    vc::Logger()->info("Generating mesh...");
     vc::meshing::OrderedPointSetMesher mesher(inputCloud);
     mesher.setComputeTriangulation(parsed.count("disable-triangulation") == 0);
     auto output = mesher.compute();
 
     // Write the mesh
-    std::cout << "Writing OBJ..." << std::endl;
-    vc::io::OBJWriter writer;
-    writer.setPath(outputPath);
-    writer.setMesh(output);
-    writer.write();
+    vc::Logger()->info("Writing mesh...");
+    vc::WriteMesh(outputPath, output);
 }
