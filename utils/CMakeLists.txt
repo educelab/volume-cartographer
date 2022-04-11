@@ -20,9 +20,10 @@ list(APPEND utils_install_list vc_volpkg_upgrade)
 add_executable(vc_flip_mesh src/FlipMesh.cpp)
 target_link_libraries(vc_flip_mesh VC::core ${VC_FS_LIB} Boost::program_options)
 
-# vc_flip_uv
-add_executable(vc_flip_uv src/FlipUV.cpp)
-target_link_libraries(vc_flip_uv VC::core ${VC_FS_LIB} Boost::program_options)
+# vc_transform_uv
+add_executable(vc_transform_uv src/TransformUV.cpp)
+target_link_libraries(vc_transform_uv VC::core ${VC_FS_LIB} Boost::program_options)
+list(APPEND utils_install_list vc_transform_uv)
 
 # vc_retexture_mesh
 add_executable(vc_retexture_mesh src/RetextureMesh.cpp)
