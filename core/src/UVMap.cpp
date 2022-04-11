@@ -1,5 +1,7 @@
 #include "vc/core/types/UVMap.hpp"
 
+#include <opencv2/imgproc.hpp>
+
 #include "vc/core/util/Iteration.hpp"
 
 /** Top-left UV Origin */
@@ -136,43 +138,80 @@ auto UVMap::Plot(
     return r;
 }
 
-void UVMap::Rotate(UVMap& uv, double theta, const cv::Vec2d& center)
+void UVMap::Rotate(UVMap& uv, Rotation rotation)
+{
+    cv::Mat unused;
+    Rotate(uv, rotation, unused);
+}
+
+void UVMap::Rotate(UVMap& uv, Rotation rotation, cv::Mat& texture)
+{
+    // Update the aspect ratio
+    if (rotation == Rotation::CW90 or rotation == Rotation::CCW90) {
+        uv.ratio_ = {uv.ratio_.height, uv.ratio_.width, 1. / uv.ratio_.aspect};
+    }
+
+    // Update each UV coordinate
+    for (auto& m : uv.map_) {
+        if (rotation == Rotation::CW90) {
+            auto u = 1. - m.second[1];
+            auto v = m.second[0];
+            m.second[0] = u;
+            m.second[1] = v;
+        } else if (rotation == Rotation::CW180) {
+            m.second = cv::Vec2d{1, 1} - m.second;
+        } else if (rotation == Rotation::CCW90) {
+            auto u = m.second[1];
+            auto v = 1. - m.second[0];
+            m.second[0] = u;
+            m.second[1] = v;
+        }
+    }
+
+    // Update the texture
+    if (not texture.empty()) {
+        cv::rotate(texture, texture, static_cast<int>(rotation));
+    }
+}
+
+void UVMap::Rotate(
+    UVMap& uv, double theta, cv::Mat& texture, const cv::Vec2d& center)
 {
     // Setup pts matrix
-    cv::Mat pts = cv::Mat::zeros(uv.map_.size(), 3, CV_64F);
+    cv::Mat pts = cv::Mat::ones(uv.map_.size(), 3, CV_64F);
     int row = 0;
     for (const auto& p : uv.map_) {
         // transform so that operation happens relative to stored origin
         cv::Vec2d transformed;
         cv::absdiff(p.second, OriginVector(uv.origin_), transformed);
 
-        // to do, rotate relative to stored origin
+        // Store in matrix of points
         pts.at<double>(row, 0) = transformed[0];
         pts.at<double>(row, 1) = transformed[1];
         row++;
     }
 
-    // Get translation matrix
-    cv::Mat transMat = cv::Mat::eye(3, 3, CV_64F);
-    transMat.at<double>(0, 2) = -center[0];
-    transMat.at<double>(1, 2) = -center[1];
+    // Translate to center of rotation in UV space
+    cv::Mat t1 = cv::Mat::eye(3, 3, CV_64F);
+    t1.at<double>(0, 2) = -center[0];
+    t1.at<double>(1, 2) = -center[1];
 
-    // Get scale matrix
-    cv::Mat scaleMat = cv::Mat::eye(3, 3, CV_64F);
-    scaleMat.at<double>(0, 0) = uv.ratio_.width;
-    scaleMat.at<double>(1, 1) = uv.ratio_.height;
+    // Scale to image space
+    cv::Mat s = cv::Mat::eye(3, 3, CV_64F);
+    s.at<double>(0, 0) = uv.ratio_.width;
+    s.at<double>(1, 1) = uv.ratio_.height;
 
     // Get counter-clockwise rotation matrix
     auto cos = std::cos(theta);
     auto sin = std::sin(theta);
-    cv::Mat rotMat = cv::Mat::eye(3, 3, CV_64F);
-    rotMat.at<double>(0, 0) = cos;
-    rotMat.at<double>(0, 1) = sin;
-    rotMat.at<double>(1, 0) = -sin;
-    rotMat.at<double>(1, 1) = cos;
+    cv::Mat r = cv::Mat::eye(3, 3, CV_64F);
+    r.at<double>(0, 0) = cos;
+    r.at<double>(0, 1) = sin;
+    r.at<double>(1, 0) = -sin;
+    r.at<double>(1, 1) = cos;
 
-    // Composite transform matrix
-    cv::Mat composite = rotMat * scaleMat * transMat;
+    // Composite UV transform matrix
+    cv::Mat composite = r * s * t1;
 
     // Apply the transform to the col-major pts matrix
     pts = composite * pts.t();
@@ -181,8 +220,10 @@ void UVMap::Rotate(UVMap& uv, double theta, const cv::Vec2d& center)
     pts = pts.t();
 
     // Get new min-max u & v
-    double uMin, uMax;
-    double vMin, vMax;
+    double uMin{0};
+    double uMax{0};
+    double vMin{0};
+    double vMax{0};
     cv::minMaxLoc(pts.col(0), &uMin, &uMax);
     cv::minMaxLoc(pts.col(1), &vMin, &vMax);
 
@@ -210,6 +251,34 @@ void UVMap::Rotate(UVMap& uv, double theta, const cv::Vec2d& center)
         // Advance the row counter
         row++;
     }
+
+    // Update texture
+    if (not texture.empty()) {
+        // Translate image center to origin
+        t1.at<double>(0, 2) *= texture.cols;
+        t1.at<double>(1, 2) *= texture.rows;
+
+        // Translate to new center
+        cv::Mat t2 = cv::Mat::eye(3, 3, CV_64F);
+        t2.at<double>(0, 2) = (aspectWidth - (uMin + uMax)) / 2;
+        t2.at<double>(1, 2) = (aspectHeight - (vMin + vMax)) / 2;
+
+        // Image transform matrix
+        cv::Mat tfm = t2 * r * t1;
+
+        // Convert image
+        auto width = std::ceil(aspectWidth);
+        auto height = std::ceil(aspectHeight);
+        cv::Size size{int(width), int(height)};
+        cv::warpAffine(
+            texture, texture, tfm.rowRange(0, 2), size, cv::INTER_CUBIC);
+    }
+}
+
+void UVMap::Rotate(UVMap& uv, double theta, const cv::Vec2d& center)
+{
+    cv::Mat unused;
+    Rotate(uv, theta, unused, center);
 }
 
 void UVMap::Flip(UVMap& uv, FlipAxis axis)

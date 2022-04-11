@@ -144,6 +144,9 @@ public:
     /**@}*/
 
     /**@{*/
+    /** Rotation preset enumeration */
+    enum class Rotation { CW90 = 0, CW180, CCW90 };
+
     /** Flipping axis enumeration */
     enum class FlipAxis { Vertical = 0, Horizontal, Both };
 
@@ -167,6 +170,16 @@ public:
         int height = -1,
         const Color& color = color::LIGHT_GRAY) -> cv::Mat;
 
+    /** @brief Rotate a UVMap by a multiple of 90 degrees */
+    static void Rotate(UVMap& uv, Rotation rotation);
+
+    /**
+     * @copydoc Rotate(UVMap&, Rotation)
+     *
+     * This function is an overload which also rotates the texture image.
+     */
+    static void Rotate(UVMap& uv, Rotation rotation, cv::Mat& texture);
+
     /**
      * @brief Rotate a UVMap by a specified angle
      *
@@ -175,6 +188,17 @@ public:
      */
     static void Rotate(
         UVMap& uv, double theta, const cv::Vec2d& center = {0.5, 0.5});
+
+    /**
+     * @copydoc Rotate(UVMap& uv, double, const cv::Vec2d&)
+     *
+     * This function is an overload which also rotates the texture image.
+     */
+    static void Rotate(
+        UVMap& uv,
+        double theta,
+        cv::Mat& texture,
+        const cv::Vec2d& center = {0.5, 0.5});
 
     /** @brief Flip a UVMap across one or both of its axes */
     static void Flip(UVMap& uv, FlipAxis axis);
