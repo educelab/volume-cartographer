@@ -1,6 +1,8 @@
+#include <boost/program_options.hpp>
+
 #include "vc/app_support/ProgressIndicator.hpp"
 #include "vc/core/filesystem.hpp"
-#include "vc/core/io/OBJReader.hpp"
+#include "vc/core/io/MeshIO.hpp"
 #include "vc/core/types/PerPixelMap.hpp"
 #include "vc/core/util/Logging.hpp"
 #include "vc/texturing/AngleBasedFlattening.hpp"
@@ -8,32 +10,62 @@
 
 namespace vc = volcart;
 namespace fs = volcart::filesystem;
+namespace po = boost::program_options;
 
 int main(int argc, char* argv[])
 {
-    if (argc < 3) {
-        std::cout << "Usage: " << argv[0];
-        std::cout << " mesh.obj output.ppm" << std::endl;
+    // clang-format off
+    po::options_description all("Usage");
+    all.add_options()
+        ("help,h", "Show this message")
+        ("input-mesh,i", po::value<std::string>()->required(),
+            "Path to the input mesh")
+        ("output-ppm,o", po::value<std::string>()->required(),
+            "Path for the output ppm")
+        ("uv-reuse", "If input-mesh is specified, attempt to use its existing "
+            "UV map instead of generating a new one.");
+    // clang-format on
+
+    // parsed will hold the values of all parsed options as a Map
+    po::variables_map parsed;
+    po::store(po::command_line_parser(argc, argv).options(all).run(), parsed);
+
+    // Show the help message
+    if (parsed.count("help") > 0 || argc < 3) {
+        std::cout << all << std::endl;
+        return EXIT_SUCCESS;
+    }
+
+    // Warn of missing options
+    try {
+        po::notify(parsed);
+    } catch (po::error& e) {
+        vc::Logger()->error(e.what());
         return EXIT_FAILURE;
     }
 
     // Get inputs
-    fs::path meshPath = argv[1];
-    fs::path ppmPath = argv[2];
+    fs::path meshPath = parsed["input-mesh"].as<std::string>();
+    fs::path ppmPath = parsed["output-ppm"].as<std::string>();
 
     // Load mesh
     vc::Logger()->info("Loading mesh");
-    vc::io::OBJReader reader;
-    reader.setPath(meshPath);
-    auto mesh = reader.read();
+    auto meshFile = vc::ReadMesh(meshPath);
+    auto mesh = meshFile.mesh;
+    auto uvMap = meshFile.uv;
 
-    // ABF
-    vc::texturing::AngleBasedFlattening abf;
-    abf.setMesh(mesh);
-    abf.compute();
+    // Generate UV map
+    auto genUV = parsed.count("uv-reuse") == 0;
+    if (genUV or not uvMap) {
+        // ABF
+        vc::texturing::AngleBasedFlattening abf;
+        abf.setMesh(mesh);
+        abf.compute();
 
-    // Get UV map
-    auto uvMap = abf.getUVMap();
+        // Get UV map
+        uvMap = abf.getUVMap();
+    }
+
     auto width = static_cast<size_t>(std::ceil(uvMap->ratio().width));
     auto height = static_cast<size_t>(std::ceil(width / uvMap->ratio().aspect));
 
