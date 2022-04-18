@@ -50,6 +50,16 @@ bool vc::BarycentricPointIsInTriangle(const cv::Vec3d& pt)
         (pt[0] + pt[1] < 1.0 || AlmostEqual(pt[0] + pt[1], 1.0)));
 }
 
+auto vc::BarycentricNormalInterpolation(
+    const cv::Vec3d& uvw,
+    const cv::Vec3d& nA,
+    const cv::Vec3d& nB,
+    const cv::Vec3d& nC) -> cv::Vec3d
+{
+    return cv::normalize(
+        (1 - uvw[0] - uvw[1]) * nA + uvw[1] * nB + uvw[2] * nC);
+}
+
 bool vc::CartesianPointIsInTriangle(
     const cv::Vec3d& pt,
     const cv::Vec3d& triA,

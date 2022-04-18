@@ -113,6 +113,18 @@ target_link_libraries(vc_metaedit
     ${VC_FS_LIB}
 )
 
+## Project Mesh ##
+add_executable(vc_project_mesh src/ProjectMesh.cpp)
+target_link_libraries(vc_project_mesh
+    VC::core
+    VC::texturing
+    Boost::program_options
+    ITKIOTransformBase
+    ITKIOTransformHDF5
+    ITKIOTransformInsightLegacy
+    ITKIOTransformMatlab
+)
+
 ## VolPkg Explorer ##
 add_executable(vc_volpkg_explorer src/VolPkgExplorer.cpp)
 target_link_libraries(vc_volpkg_explorer
