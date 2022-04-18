@@ -44,6 +44,15 @@ cv::Vec3d BarycentricToCartesian(
 bool BarycentricPointIsInTriangle(const cv::Vec3d& pt);
 
 /**
+ * @brief Use Barycentric coordinates to smoothly interpolate a normal
+ */
+cv::Vec3d BarycentricNormalInterpolation(
+    const cv::Vec3d& uvw,
+    const cv::Vec3d& nA,
+    const cv::Vec3d& nB,
+    const cv::Vec3d& nC);
+
+/**
  * @brief Check whether a Cartesian coordinate is bounded by the given triangle
  */
 bool CartesianPointIsInTriangle(

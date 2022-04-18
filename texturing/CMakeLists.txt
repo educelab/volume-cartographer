@@ -10,6 +10,7 @@ set(srcs
     src/FlatteningAlgorithm.cpp
     src/ScaleMarkerGenerator.cpp
     src/OrthographicProjectionFlattening.cpp
+    src/ProjectMesh.cpp
     src/AlignmentMarkerGenerator.cpp
     src/ThicknessTexture.cpp
     src/FlatteningError.cpp
