@@ -111,7 +111,7 @@ lint:clang-format:
     allow_failure: true
     tags:
         - clang-format
-        - osx
+        - macos
     rules:
         - if: '$CI_PROJECT_URL =~ /.*gitlab\.com.*/'
           when: never
