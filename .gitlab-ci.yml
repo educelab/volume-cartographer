@@ -110,8 +110,8 @@ lint:clang-format:
         - utils/scripts/clang-format.py --print-output
     allow_failure: true
     tags:
-        - clang-format
         - macos
+        - lint
     rules:
         - if: '$CI_PROJECT_URL =~ /.*gitlab\.com.*/'
           when: never
