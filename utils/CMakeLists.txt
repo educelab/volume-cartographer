@@ -22,7 +22,13 @@ target_link_libraries(vc_flip_mesh VC::core ${VC_FS_LIB} Boost::program_options)
 
 # vc_transform_uv
 add_executable(vc_transform_uv src/TransformUV.cpp)
-target_link_libraries(vc_transform_uv VC::core ${VC_FS_LIB} Boost::program_options)
+target_link_libraries(vc_transform_uv
+    VC::core
+    VC::meshing
+    VC::app_support
+    ${VC_FS_LIB}
+    Boost::program_options
+)
 list(APPEND utils_install_list vc_transform_uv)
 
 # vc_retexture_mesh

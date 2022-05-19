@@ -1,6 +1,7 @@
 #pragma once
 
 #include <optional>
+#include <string>
 
 #include <opencv2/core.hpp>
 
@@ -31,6 +32,11 @@ struct MeshReaderResult {
  */
 auto ReadMesh(const filesystem::path& path) -> MeshReaderResult;
 
+/** @brief General options for WriteMesh */
+struct MeshWriterOpts {
+    std::string imgFmt{"tif"};
+};
+
 /**
  * @brief Write a mesh to a file
  *
@@ -47,5 +53,6 @@ void WriteMesh(
     const filesystem::path& path,
     const ITKMesh::Pointer& mesh,
     const UVMap::Pointer& uv = nullptr,
-    const cv::Mat& texture = cv::Mat());
+    const cv::Mat& texture = cv::Mat(),
+    const MeshWriterOpts& opts = {});
 }  // namespace volcart

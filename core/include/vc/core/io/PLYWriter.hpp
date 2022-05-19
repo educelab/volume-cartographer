@@ -64,7 +64,8 @@ public:
     /**@}*/
 
     /**@{*/
-    /** @brief Write the PLY to disk
+    /**
+     * @brief Write the PLY to disk
      *
      * If UV Map is not empty, automatically writes per-vertex texture
      * information.

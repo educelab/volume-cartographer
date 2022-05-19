@@ -1,4 +1,3 @@
-/** @file CalculateNormals.cpp */
 #include "vc/meshing/CalculateNormals.hpp"
 
 using namespace volcart;
