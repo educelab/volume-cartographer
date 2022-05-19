@@ -60,6 +60,14 @@ public:
 
     /** @brief Set the input texture image */
     void setTexture(cv::Mat uvImg);
+
+    /**
+     * @brief Set the texture image format
+     *
+     * Passed value will be used as the file extension when writing the texture
+     * image. Example values: `tif`, `jpg`, `png`.
+     */
+    void setTextureFormat(std::string fmt);
     /**@}*/
 
     /**@{*/
@@ -73,12 +81,15 @@ public:
 private:
     /** Output file path */
     filesystem::path outputPath_;
+    /** Output texture image file extension */
+    std::string textureFmt_{"tif"};
     /** Output OBJ filestream */
     std::ofstream outputMesh_;
     /** Output MTL filestream */
     std::ofstream outputMTL_;
 
-    /** Keeps track of what info we have about each point in the mesh. Used for
+    /**
+     * Keeps track of what info we have about each point in the mesh. Used for
      * building OBJ faces.
      *
      * [ Point Index, {v, vt, vn} ]

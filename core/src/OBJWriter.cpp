@@ -34,6 +34,10 @@ void OBJWriter::setPath(const filesystem::path& path) { outputPath_ = path; }
 void OBJWriter::setMesh(ITKMesh::Pointer mesh) { mesh_ = std::move(mesh); }
 void OBJWriter::setUVMap(UVMap::Pointer uvMap) { uvMap_ = std::move(uvMap); }
 void OBJWriter::setTexture(cv::Mat uvImg) { texture_ = std::move(uvImg); }
+void OBJWriter::setTextureFormat(std::string fmt)
+{
+    textureFmt_ = std::move(fmt);
+}
 
 ///// Output Methods /////
 // Write everything (OBJ, MTL, and PNG) to disk
@@ -106,7 +110,9 @@ auto OBJWriter::write_mtl_() -> int
 
     // Path to the texture file, relative to the MTL file
     if (!texture_.empty()) {
-        outputMTL_ << "map_Kd " << outputPath_.stem().string() + ".tif\n";
+        auto textureFile = outputPath_;
+        textureFile.replace_extension(textureFmt_);
+        outputMTL_ << "map_Kd " << textureFile.filename().string() << "\n";
     }
 
     outputMTL_.close();
@@ -121,8 +127,8 @@ auto OBJWriter::write_texture_() -> int
     }
 
     Logger()->debug("Writing texture image...");
-    fs::path p = outputPath_;
-    p.replace_extension("tif");
+    auto p = outputPath_;
+    p.replace_extension(textureFmt_);
     WriteImage(p, texture_);
     return EXIT_SUCCESS;
 }

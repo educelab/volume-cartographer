@@ -52,12 +52,13 @@ inline auto AlmostEqual(
     T epsAbs = static_cast<T>(DEFAULT_MAX_DIFFERENCE),
     T epsRel = std::numeric_limits<T>::epsilon()) -> bool
 {
-    T d = std::abs(lhs - rhs);
+    // Note: For some reason, std::abs resolves to integral overload? - SP
+    T d = std::fabs(lhs - rhs);
     if (d <= epsAbs) {
         return true;
     }
-    T l = std::abs(lhs);
-    T r = std::abs(rhs);
+    T l = std::fabs(lhs);
+    T r = std::fabs(rhs);
 
     T largest = std::max(r, l);
     return d <= largest * epsRel;

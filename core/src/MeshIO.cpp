@@ -45,12 +45,14 @@ void volcart::WriteMesh(
     const filesystem::path& path,
     const ITKMesh::Pointer& mesh,
     const UVMap::Pointer& uv,
-    const cv::Mat& texture)
+    const cv::Mat& texture,
+    const MeshWriterOpts& opts)
 {
     if (IsFileType(path, {"obj"})) {
         OBJWriter writer;
         writer.setPath(path);
         writer.setMesh(mesh);
+        writer.setTextureFormat(opts.imgFmt);
         if (uv) {
             writer.setUVMap(uv);
             writer.setTexture(texture);

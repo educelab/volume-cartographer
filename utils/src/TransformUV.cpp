@@ -3,10 +3,12 @@
 #include <boost/program_options.hpp>
 #include <opencv2/core.hpp>
 
+#include "vc/app_support/GeneralOptions.hpp"
 #include "vc/core/filesystem.hpp"
 #include "vc/core/io/MeshIO.hpp"
 #include "vc/core/util/FloatComparison.hpp"
 #include "vc/core/util/Logging.hpp"
+#include "vc/meshing/CalculateNormals.hpp"
 
 namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
@@ -40,11 +42,15 @@ auto main(int argc, char* argv[]) -> int
              "  0 = Vertical\n"
              "  1 = Horizontal\n"
              "  2 = Both")
-        ("disable-image-transform", "If provided, don't transform the texture "
-           "image.");
+        ("disable-image-transform", "By default, transforms applied to the UV "
+           "map are also applied to the texture image. If provided, don't "
+           "transform the texture image.")
+        ("disable-normal-generation", "By default, per-vertex surface normals "
+           "are generated if the mesh doesn't already have normals. If "
+           "provided, this normal generation behavior is disabled.");
 
     po::options_description all("Usage");
-    all.add(required);
+    all.add(required).add(GetMeshIOOpts());
     // clang-format on
 
     // Parse the cmd line
@@ -113,7 +119,7 @@ auto main(int argc, char* argv[]) -> int
                     *uvMap, static_cast<UVMap::Rotation>(rotateCode), texture);
             } else {
                 UVMap::Rotate(*uvMap, static_cast<UVMap::Rotation>(rotateCode));
-            };
+            }
         }
 
         // All other angles
@@ -143,10 +149,25 @@ auto main(int argc, char* argv[]) -> int
         }
     }
 
+    // Compute mesh normals
+    auto mesh = inputMesh.mesh;
+    auto addNormals = parsed.count("disable-normal-generation") == 0;
+    if (addNormals and mesh->GetPointData()->empty()) {
+        Logger()->info("Computing surface normals...");
+        meshing::CalculateNormals normalGen(mesh);
+        mesh = normalGen.compute();
+    }
+
+    // Setup mesh writer opts
+    MeshWriterOpts opts;
+    if (parsed.count("texture-format") > 0) {
+        opts.imgFmt = parsed["texture-format"].as<std::string>();
+    }
+
     // Write the new mesh
     Logger()->info("Writing output mesh...");
     fs::path outputPath = parsed["output-mesh"].as<std::string>();
-    WriteMesh(outputPath, inputMesh.mesh, uvMap, texture);
+    WriteMesh(outputPath, mesh, uvMap, texture, opts);
 
     Logger()->info("Done.");
     return EXIT_SUCCESS;
