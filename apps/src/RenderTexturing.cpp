@@ -111,9 +111,9 @@ po::options_description GetFilteringOpts()
             "Sampling interval")
         ("direction,d", po::value<int>()->default_value(0),
             "Sample Direction:\n"
+                " -1 = Negative\n"
                 "  0 = Omni\n"
-                "  1 = Positive\n"
-                "  2 = Negative")
+                "  1 = Positive")
         ("shading", po::value<int>()->default_value(1),
             "Surface Normal Shading:\n"
                 "  0 = Flat\n"
