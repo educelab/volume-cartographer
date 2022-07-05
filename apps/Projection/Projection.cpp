@@ -23,7 +23,8 @@
 #include "ProjectionViewerWindow.hpp"
 #include "vc/app_support/ProgressIndicator.hpp"
 #include "vc/core/filesystem.hpp"
-#include "vc/core/io/OBJReader.hpp"
+#include "vc/core/io/ImageIO.hpp"
+#include "vc/core/io/MeshIO.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/Iteration.hpp"
 #include "vc/core/util/Logging.hpp"
@@ -32,6 +33,7 @@
 namespace po = boost::program_options;
 namespace fs = volcart::filesystem;
 namespace vc = volcart;
+namespace vcm = volcart::meshing;
 
 auto main(int argc, char* argv[]) -> int
 {
@@ -149,13 +151,10 @@ auto main(int argc, char* argv[]) -> int
 
     // Get meshes
     std::cout << "Loading meshes..." << std::endl;
-    vc::io::OBJReader reader;
     std::vector<vtkSmartPointer<vtkPolyData>> meshes;
     for (const auto& meshPath : meshPaths) {
-        reader.setPath(meshPath);
-        auto mesh = reader.read();
-        auto vtkMesh = vtkSmartPointer<vtkPolyData>::New();
-        vc::meshing::ITK2VTK(mesh, vtkMesh);
+        auto meshFile = vc::ReadMesh(meshPath);
+        auto vtkMesh = vcm::ITK2VTK(meshFile.mesh);
         meshes.push_back(vtkMesh);
     }
 
@@ -260,7 +259,7 @@ auto main(int argc, char* argv[]) -> int
         std::stringstream filename;
         filename << std::setw(padding) << std::setfill('0') << zIdx << ".png";
         auto path = outputDir / filename.str();
-        cv::imwrite(path.string(), outputImg);
+        vc::WriteImage(path, outputImg);
     }
 
     return EXIT_SUCCESS;

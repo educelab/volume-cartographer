@@ -49,9 +49,9 @@ auto main(int argc, char* argv[]) -> int
             "Sampling interval")
         ("direction,d", po::value<int>()->default_value(0),
             "Sample Direction:\n"
+                " -1 = Negative\n"
                 "  0 = Omni\n"
-                "  1 = Positive\n"
-                "  2 = Negative");
+                "  1 = Positive");
 
     po::options_description ppmOptions("PPM Generation Options");
     ppmOptions.add_options()
