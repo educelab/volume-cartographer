@@ -28,8 +28,6 @@ variables:
     script:
         - *build_script
     rules:
-        - if: '$CI_PROJECT_URL =~ /.*gitlab\.com.*/'
-          when: never
         - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
         - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
           when: never
@@ -41,8 +39,6 @@ variables:
         - *build_script
         - *test_script
     rules:
-        - if: '$CI_PROJECT_URL =~ /.*gitlab\.com.*/'
-          when: never
         - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
         - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
           when: never
@@ -52,7 +48,7 @@ variables:
         paths:
             - build/Testing/Temporary/
         when: always
-        expire_in: 4 weeks
+        expire_in: 2 weeks
 
 ### Debian ###
 test:debian:static:
@@ -113,8 +109,6 @@ lint:clang-format:
         - macos
         - lint
     rules:
-        - if: '$CI_PROJECT_URL =~ /.*gitlab\.com.*/'
-          when: never
         - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
         - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
           when: never
@@ -137,6 +131,7 @@ pages:
     artifacts:
         paths:
             - public
+        expire_in: 30 days
     allow_failure: true
     tags:
         - docker
@@ -151,20 +146,16 @@ pages:
     - export SHA=$(git log -1 --format="%h")
 
 .rules:release: &rules_release
-    - if: '$CI_COMMIT_TAG =~ /^v.*$/ && $CI_PROJECT_URL !~ /.*gitlab\.com.*/'
+    - if: '$CI_COMMIT_TAG =~ /^v.*$/'
 
 .rules:nightly:collect: &rules_nightly_collect
     - if: $CI_COMMIT_TAG
-      when: never
-    - if: '$CI_PROJECT_URL =~ /.*gitlab\.com.*/'
       when: never
     - if: '$CI_COMMIT_BRANCH == "develop" && $CI_PIPELINE_SOURCE == "schedule"'
     - if: '$BUILD_NIGHTLY == "true"'
 
 .rules:nightly:deploy: &rules_nightly_deploy
     - if: $CI_COMMIT_TAG
-      when: never
-    - if: '$CI_PROJECT_URL =~ /.*gitlab\.com.*/'
       when: never
     - if: '$CI_COMMIT_BRANCH == "develop" && $CI_PIPELINE_SOURCE == "schedule"'
     - if: '$CI_COMMIT_BRANCH == "develop" && $BUILD_NIGHTLY == "true"'
@@ -254,49 +245,10 @@ collect:binaries:macos:nightly:
     variables:
         EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_VERSION_DATESTAMP=ON -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON -DVC_BUILD_EXAMPLES=OFF -DVC_BUILD_TESTS=OFF"
 
-.upload_final_build:
-    variables:
-        REMOTE: "volume-cartographer"
-    script:
-        - mkdir -p ${BUILD_DIR}
-        - cp VC*.dmg ${BUILD_DIR}
-        - cp VC*.tar.gz ${BUILD_DIR}
-        - rclone -v copy ${BUILD_DIR}/ ${REMOTE}:${REMOTE_DIR}/${BUILD_DIR}/
-        - export DMG_NAME=$(basename ${BUILD_DIR}/VC-*-Darwin-*.dmg)
-        - export DMG_URL=$(rclone link ${REMOTE}:${REMOTE_DIR}/${BUILD_DIR}/${DMG_NAME})
-        - export DMG_ID=$(echo ${DMG_URL} | sed 's/https:\/\/drive.google.com\/open?id=//g')
-        - echo "${DMG_NAME} → ${DMG_URL}"
-        - echo "DMG_ID=${DMG_ID}" >> variables.env
-        - export TAR_NAME=$(basename ${BUILD_DIR}/VC-*-Darwin-*.tar.gz)
-        - export TAR_URL=$(rclone link ${REMOTE}:${REMOTE_DIR}/${BUILD_DIR}/${TAR_NAME})
-        - export TAR_ID=$(echo ${TAR_URL} | sed 's/https:\/\/drive.google.com\/open?id=//g')
-        - echo "${TAR_NAME} → ${TAR_URL}"
-        - echo "TAR_ID=${TAR_ID}" >> variables.env
-    artifacts:
-        reports:
-            dotenv: variables.env
-    tags:
-        - rclone
-
-deploy:release:
-    extends:
-        - .upload_final_build
-    stage: deploy
-    needs: ["collect:source:release", "collect:binaries:macos:release"]
-    rules:
-        *rules_release
-    variables:
-        REMOTE_DIR: "releases"
-    before_script:
-        - *deploy_variables
-        - export BUILD_DIR=v${VERSION}
-    environment:
-        name: production
-
 release:create:
     stage: release
     image: registry.gitlab.com/gitlab-org/release-cli:edge
-    needs: ["deploy:release"]
+    needs: ["collect:source:release", "collect:binaries:macos:release"]
     rules:
         *rules_release
     script:
@@ -306,22 +258,5 @@ release:create:
             --description "Auto-created release $CI_COMMIT_TAG"
             --tag-name "$CI_COMMIT_TAG"
             --ref "$CI_COMMIT_TAG"
-            --assets-link "{\"name\":\"macOS ${MACOSX_DEPLOYMENT_TARGET}+ Installer Package\",\"url\":\"https://drive.google.com/open?id=${DMG_ID}\",\"link_type\":\"package\"}"
-            --assets-link "{\"name\":\"macOS ${MACOSX_DEPLOYMENT_TARGET}+ Installer Tarball\",\"url\":\"https://drive.google.com/open?id=${TAR_ID}\",\"link_type\":\"package\"}"
     tags:
         - docker
-
-deploy:nightly:
-    extends:
-        - .upload_final_build
-    stage: deploy
-    needs: ["collect:source:nightly", "collect:binaries:macos:nightly"]
-    rules:
-        *rules_nightly_deploy
-    variables:
-        REMOTE_DIR: "nightlies"
-    before_script:
-        - *deploy_variables
-        - export BUILD_DIR=${DATETIME}-${VERSHORT}.${SHA}
-    environment:
-        name: development
