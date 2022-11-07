@@ -44,12 +44,7 @@ volcart::ITKMesh::Pointer OrderedPointSetMesher::compute()
             p2 = p1 + input_.width();
             p3 = p2 - 1;
 
-            if (output_->GetPoint(p0)[2] == -1 ||
-                output_->GetPoint(p1)[2] == -1 ||
-                output_->GetPoint(p2)[2] == -1 ||
-                output_->GetPoint(p3)[2] == -1) {
-                continue;
-            }
+
             if (p0 >= output_->GetNumberOfPoints() ||
                 p1 >= output_->GetNumberOfPoints() ||
                 p2 >= output_->GetNumberOfPoints() ||
