@@ -22,7 +22,7 @@ namespace po = boost::program_options;
 namespace vc = volcart;
 namespace vci = volcart::io;
 
-enum class Flip { None, Horizontal, Vertical, ZFlip, Both };
+enum class Flip { None, Horizontal, Vertical, ZFlip, Both, All };
 
 static const vci::ExtensionList ImageExts{"tif", "tiff", "png",
                                           "jpg", "jpeg", "bmp"};
@@ -236,7 +236,7 @@ VolumeInfo GetVolumeInfo(const fs::path& slicePath)
 
     // Flip options
     std::cout << "Flip options: Vertical flip (vf), horizontal flip (hf), "
-                 "both, z-flip (zf), [none] : ";
+                 "both, z-flip (zf), all, [none] : ";
     std::getline(std::cin, input);
 
     if (input == "vf") {
@@ -247,6 +247,8 @@ VolumeInfo GetVolumeInfo(const fs::path& slicePath)
         info.flipOption = Flip::Both;
     } else if (input == "zf") {
         info.flipOption = Flip::ZFlip;
+    } else if (input == "all") {
+        info.flipOption = Flip::All;
     }
 
     return info;
@@ -377,14 +379,15 @@ void AddVolume(vc::VolumePkg::Pointer& volpkg, const VolumeInfo& info)
     }
     volume->saveMetadata();
 
-    if (info.flipOption == Flip::ZFlip) {
+    if (info.flipOption == Flip::ZFlip or info.flipOption == Flip::All) {
         std::reverse(slices.begin(), slices.end());
     }
 
     // Do we need to flip?
     auto needsFlip = info.flipOption == Flip::Horizontal ||
                      info.flipOption == Flip::Vertical ||
-                     info.flipOption == Flip::Both;
+                     info.flipOption == Flip::Both ||
+                     info.flipOption == Flip::All;
 
     // Move the slices into the VolPkg
     using vc::enumerate;
@@ -404,6 +407,7 @@ void AddVolume(vc::VolumePkg::Pointer& volpkg, const VolumeInfo& info)
 
             // Apply flips
             switch (info.flipOption) {
+                case Flip::All:
                 case Flip::Both:
                     cv::flip(tmp, tmp, -1);
                     break;
