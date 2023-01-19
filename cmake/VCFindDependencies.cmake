@@ -77,8 +77,8 @@ include(BuildJSON)
 ### bvh ###
 include(Buildbvh)
 
-### smeagol ###
-include(BuildSmeagol)
+### smgl ###
+include(Buildsmgl)
 
 ### Boost and indicators (for app use only)
 if(VC_BUILD_APPS OR VC_BUILD_UTILS)
