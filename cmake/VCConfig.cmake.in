@@ -42,8 +42,8 @@ find_dependency(TIFF QUIET REQUIRED)
 ### spdlog ###
 find_dependency(spdlog CONFIG QUIET REQUIRED)
 
-### smeagol ###
-find_dependency(smeagol @smeagol_VERSION@ CONFIG QUIET REQUIRED)
+### smgl ###
+find_dependency(smgl @smgl_VERSION@ CONFIG QUIET REQUIRED)
 
 ### VCG ###
 if(@VC_USE_VCG@ OR @VC_USE_OPTIONAL@)
