@@ -39,7 +39,9 @@ auto main(int argc, char* argv[]) -> int
         ("output-dir,o", po::value<std::string>()->required(),
             "Output directory for layer images.")
         ("output-ppm", po::value<std::string>(), "Create and save a new PPM "
-            "that maps to the layer subvolume.");
+            "that maps to the layer subvolume.")
+        ("image-format,f", po::value<std::string>()->default_value("png"),
+            "Image format for layer images. Default: png");
 
     po::options_description filterOptions("Generic Filtering Options");
     filterOptions.add_options()
@@ -101,6 +103,7 @@ auto main(int argc, char* argv[]) -> int
                   << std::endl;
         return EXIT_FAILURE;
     }
+    auto img_format = parsed["image-format"].as<std::string>();
 
     ///// Load the volume package /////
     vc::VolumePkg vpkg(volpkgPath);
@@ -179,7 +182,7 @@ auto main(int argc, char* argv[]) -> int
     std::cout << "Writing layers..." << std::endl;
     fs::path filepath;
     for (const auto [i, image] : enumerate(texture)) {
-        filepath = outputPath / (std::to_string(i) + ".png");
+        filepath = outputPath / (std::to_string(i) + "." + img_format);
         vc::WriteImage(filepath, image);
     }
 

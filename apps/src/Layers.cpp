@@ -51,7 +51,9 @@ int main(int argc, char* argv[])
             "Volume to use for texturing. Default: Segmentation's associated "
             "volume or the first volume in the volume package.")
         ("output-dir,o", po::value<std::string>()->required(),
-            "Output directory for layer images.");
+            "Output directory for layer images.")
+        ("image-format,f", po::value<std::string>()->default_value("png"),
+            "Image format for layer images. Default: png");
 
     po::options_description filterOptions("Generic Filtering Options");
     filterOptions.add_options()
@@ -98,6 +100,7 @@ int main(int argc, char* argv[])
                   << std::endl;
         return EXIT_FAILURE;
     }
+    auto img_format = parsed["image-format"].as<std::string>();
 
     ///// Load the volume package /////
     vc::VolumePkg vpkg(volpkgPath);
@@ -218,7 +221,7 @@ int main(int argc, char* argv[])
     // Write the layers
     std::cout << "Writing layers..." << std::endl;
     for (const auto [i, image] : enumerate(texture)) {
-        auto filepath = outputPath / (std::to_string(i) + ".png");
+        auto filepath = outputPath / (std::to_string(i) + "." + img_format);
         vc::WriteImage(filepath, image);
     }
 
