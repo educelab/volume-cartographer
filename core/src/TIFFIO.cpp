@@ -18,7 +18,8 @@ namespace fs = volcart::filesystem;
 
 // Write a TIFF to a file. This implementation heavily borrows from how OpenCV's
 // TIFFEncoder writes to the TIFF
-void tio::WriteTIFF(const fs::path& path, const cv::Mat& img)
+void tio::WriteTIFF(
+    const fs::path& path, const cv::Mat& img, Compression compression)
 {
     // Safety checks
     if (img.channels() < 1 or img.channels() > 4) {
@@ -98,7 +99,7 @@ void tio::WriteTIFF(const fs::path& path, const cv::Mat& img)
     lt::TIFFSetField(out, TIFFTAG_IMAGELENGTH, height);
     lt::TIFFSetField(out, TIFFTAG_PHOTOMETRIC, photometric);
     lt::TIFFSetField(out, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
-    lt::TIFFSetField(out, TIFFTAG_COMPRESSION, COMPRESSION_LZW);
+    lt::TIFFSetField(out, TIFFTAG_COMPRESSION, compression);
     lt::TIFFSetField(out, TIFFTAG_SAMPLEFORMAT, sampleFormat);
     lt::TIFFSetField(out, TIFFTAG_BITSPERSAMPLE, bitsPerSample);
     lt::TIFFSetField(out, TIFFTAG_SAMPLESPERPIXEL, channels);
