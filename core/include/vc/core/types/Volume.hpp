@@ -120,7 +120,7 @@ public:
      *
      * @warning This will overwrite any existing slice data on disk.
      */
-    void setSliceData(int index, const cv::Mat& slice);
+    void setSliceData(int index, const cv::Mat& slice, bool compress = true);
 
     /** @brief Get the file path of a slice by index */
     volcart::filesystem::path getSlicePath(int index) const;

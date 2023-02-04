@@ -14,6 +14,7 @@
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/FormatStrToRegexStr.hpp"
 #include "vc/core/util/Iteration.hpp"
+#include "vc/core/util/String.hpp"
 
 using PathStringList = std::vector<std::string>;
 
@@ -40,14 +41,15 @@ struct VolumeInfo {
     double voxelsize{0};
     Flip flipOption{Flip::None};
     vc::Metadata meta;
+    bool compress{false};
 };
 
 static bool DoAnalyze{true};
 
-VolumeInfo GetVolumeInfo(const fs::path& slicePath);
+auto GetVolumeInfo(const fs::path& slicePath) -> VolumeInfo;
 void AddVolume(vc::VolumePkg::Pointer& volpkg, const VolumeInfo& info);
 
-int main(int argc, char* argv[])
+auto main(int argc, char* argv[]) -> int
 {
     ///// Parse the command line options /////
     // All command line options
@@ -251,6 +253,12 @@ VolumeInfo GetVolumeInfo(const fs::path& slicePath)
         info.flipOption = Flip::All;
     }
 
+    // Whether to compress
+    std::cout << "Compress slice images? [yN]: ";
+    std::getline(std::cin, input);
+    vc::to_lower(input);
+    info.compress = input == "y";
+
     return info;
 }
 
@@ -396,7 +404,8 @@ void AddVolume(vc::VolumePkg::Pointer& volpkg, const VolumeInfo& info)
         const auto& idx = pair.first;
         auto& slice = pair.second;
         // Convert or flip
-        if (slice.needsConvert() || slice.needsScale() || needsFlip) {
+        if (slice.needsConvert() || slice.needsScale() || needsFlip ||
+            info.compress) {
             // Override slice min/max with volume min/max
             if (slice.needsScale()) {
                 slice.setScale(volMax, volMin);
@@ -424,7 +433,7 @@ void AddVolume(vc::VolumePkg::Pointer& volpkg, const VolumeInfo& info)
             }
 
             // Add to volume
-            volume->setSliceData(idx, tmp);
+            volume->setSliceData(idx, tmp, info.compress);
         }
 
         // Just copy to the volume

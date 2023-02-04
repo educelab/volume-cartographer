@@ -5,7 +5,10 @@
 
 #include <opencv2/imgcodecs.hpp>
 
+#include "vc/core/io/TIFFIO.hpp"
+
 namespace fs = volcart::filesystem;
+namespace tio = volcart::tiffio;
 
 using namespace volcart;
 
@@ -119,10 +122,12 @@ cv::Mat Volume::getSliceDataCopy(int index) const
     return getSliceData(index).clone();
 }
 
-void Volume::setSliceData(int index, const cv::Mat& slice)
+void Volume::setSliceData(int index, const cv::Mat& slice, bool compress)
 {
     auto slicePath = getSlicePath(index);
-    cv::imwrite(slicePath.string(), slice);
+    tio::WriteTIFF(
+        slicePath.string(), slice,
+        (compress) ? tiffio::Compression::LZW : tiffio::Compression::NONE);
 }
 
 uint16_t Volume::intensityAt(int x, int y, int z) const
