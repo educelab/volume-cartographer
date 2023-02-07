@@ -3,6 +3,7 @@
 /** @file */
 
 #include <algorithm>
+#include <iomanip>
 #include <locale>
 #include <sstream>
 #include <string>
@@ -214,6 +215,17 @@ static inline std::vector<std::string> split(
     }
 
     return tokens;
+}
+
+/** @brief Convert an Integer to a padded string */
+template <
+    typename Integer,
+    std::enable_if_t<std::is_integral<Integer>::value, bool> = true>
+auto to_padded_string(Integer val, int padding, char fill = '0') -> std::string
+{
+    std::stringstream stream;
+    stream << std::setw(padding) << std::setfill(fill) << val;
+    return stream.str();
 }
 
 }  // namespace volcart

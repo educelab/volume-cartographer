@@ -11,13 +11,15 @@ using namespace volcart;
 
 namespace vc = volcart;
 namespace fs = volcart::filesystem;
+namespace tio = volcart::tiffio;
 
 auto vc::ReadImage(const fs::path& path) -> cv::Mat
 {
     return cv::imread(path.string(), cv::IMREAD_UNCHANGED);
 }
 
-void vc::WriteImage(const fs::path& path, const cv::Mat& img)
+void vc::WriteImage(
+    const fs::path& path, const cv::Mat& img, WriteImageOpts opts)
 {
     if (img.empty()) {
         vc::Logger()->warn(
@@ -25,13 +27,16 @@ void vc::WriteImage(const fs::path& path, const cv::Mat& img)
         return;
     }
 
-    bool isJPG = IsFileType(path, {"jpg", "jpeg"});
-    bool isPNG = IsFileType(path, {"png"});
-    bool isTIF = IsFileType(path, {"tif", "tiff"});
+    auto isJPG = IsFileType(path, {"jpg", "jpeg"});
+    auto isPNG = IsFileType(path, {"png"});
+    auto isTIF = IsFileType(path, {"tif", "tiff"});
 
     // Use our TIFF writer
     if (isTIF) {
-        tiffio::WriteTIFF(path, img);
+        auto compress = (opts.compression)
+                            ? static_cast<tio::Compression>(*opts.compression)
+                            : tio::Compression::LZW;
+        tio::WriteTIFF(path, img, compress);
     } else {
         cv::Mat output = img.clone();
         if (img.channels() == 4 and isJPG) {
@@ -66,6 +71,17 @@ void vc::WriteImage(const fs::path& path, const cv::Mat& img)
             }
         }
 
-        cv::imwrite(path.string(), output);
+        // imwrite params
+        std::vector<int> params;
+        if (opts.compression) {
+            if (isJPG) {
+                params.push_back(cv::IMWRITE_JPEG_QUALITY);
+            } else if (isPNG) {
+                params.push_back(cv::IMWRITE_PNG_COMPRESSION);
+            }
+            params.push_back(*opts.compression);
+        }
+
+        cv::imwrite(path.string(), output, params);
     }
 }

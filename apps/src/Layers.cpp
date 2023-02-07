@@ -14,6 +14,7 @@
 #include "vc/core/util/Iteration.hpp"
 #include "vc/core/util/Logging.hpp"
 #include "vc/core/util/MeshMath.hpp"
+#include "vc/core/util/String.hpp"
 #include "vc/meshing/ACVD.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
 #include "vc/meshing/OrderedPointSetMesher.hpp"
@@ -37,7 +38,7 @@ static constexpr double UM_TO_MM = 0.001 * 0.001;
 // Min. number of points required to do flattening
 static constexpr size_t CLEANER_MIN_REQ_POINTS = 100;
 
-int main(int argc, char* argv[])
+auto main(int argc, char* argv[]) -> int
 {
     ///// Parse the command line options /////
     // All command line options
@@ -53,7 +54,8 @@ int main(int argc, char* argv[])
         ("output-dir,o", po::value<std::string>()->required(),
             "Output directory for layer images.")
         ("image-format,f", po::value<std::string>()->default_value("png"),
-            "Image format for layer images. Default: png");
+            "Image format for layer images. Default: png")
+        ("compression", po::value<int>(), "Image compression level");
 
     po::options_description filterOptions("Generic Filtering Options");
     filterOptions.add_options()
@@ -100,7 +102,16 @@ int main(int argc, char* argv[])
                   << std::endl;
         return EXIT_FAILURE;
     }
-    auto img_format = parsed["image-format"].as<std::string>();
+    auto imgFmt = vc::to_lower_copy(parsed["image-format"].as<std::string>());
+    vc::WriteImageOpts writeOpts;
+    if (parsed.count("compression") > 0) {
+        writeOpts.compression = parsed["compression"].as<int>();
+    } else {
+        // Default for tiff in this app: No compression
+        if (imgFmt == "tif" or imgFmt == "tiff") {
+            writeOpts.compression = 1;
+        }
+    }
 
     ///// Load the volume package /////
     vc::VolumePkg vpkg(volpkgPath);
@@ -220,9 +231,13 @@ int main(int argc, char* argv[])
 
     // Write the layers
     std::cout << "Writing layers..." << std::endl;
+    const int numChars =
+        static_cast<int>(std::to_string(texture.size()).size());
+    fs::path filepath;
     for (const auto [i, image] : enumerate(texture)) {
-        auto filepath = outputPath / (std::to_string(i) + "." + img_format);
-        vc::WriteImage(filepath, image);
+        auto fileName = vc::to_padded_string(i, numChars) + "." + imgFmt;
+        filepath = outputPath / fileName;
+        vc::WriteImage(filepath, image, writeOpts);
     }
 
     return EXIT_SUCCESS;
