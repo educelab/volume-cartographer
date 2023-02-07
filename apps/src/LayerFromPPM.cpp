@@ -12,6 +12,7 @@
 #include "vc/core/util/Iteration.hpp"
 #include "vc/core/util/Logging.hpp"
 #include "vc/core/util/MemorySizeStringParser.hpp"
+#include "vc/core/util/String.hpp"
 #include "vc/texturing/LayerTexture.hpp"
 
 namespace vc = volcart;
@@ -41,7 +42,8 @@ auto main(int argc, char* argv[]) -> int
         ("output-ppm", po::value<std::string>(), "Create and save a new PPM "
             "that maps to the layer subvolume.")
         ("image-format,f", po::value<std::string>()->default_value("png"),
-            "Image format for layer images. Default: png");
+            "Image format for layer images. Default: png")
+        ("compression", po::value<int>(), "Image compression level");
 
     po::options_description filterOptions("Generic Filtering Options");
     filterOptions.add_options()
@@ -103,7 +105,16 @@ auto main(int argc, char* argv[]) -> int
                   << std::endl;
         return EXIT_FAILURE;
     }
-    auto img_format = parsed["image-format"].as<std::string>();
+    auto imgFmt = vc::to_lower_copy(parsed["image-format"].as<std::string>());
+    vc::WriteImageOpts writeOpts;
+    if (parsed.count("compression") > 0) {
+        writeOpts.compression = parsed["compression"].as<int>();
+    } else {
+        // Default for tiff in this app: No compression
+        if (imgFmt == "tif" or imgFmt == "tiff") {
+            writeOpts.compression = 1;
+        }
+    }
 
     ///// Load the volume package /////
     vc::VolumePkg vpkg(volpkgPath);
@@ -176,14 +187,16 @@ auto main(int argc, char* argv[]) -> int
     s.setVolume(volume);
     s.setPerPixelMap(ppm);
     s.setGenerator(line);
-
     auto texture = s.compute();
 
     std::cout << "Writing layers..." << std::endl;
+    const auto numChars =
+        static_cast<int>(std::to_string(texture.size()).size());
     fs::path filepath;
     for (const auto [i, image] : enumerate(texture)) {
-        filepath = outputPath / (std::to_string(i) + "." + img_format);
-        vc::WriteImage(filepath, image);
+        auto fileName = vc::to_padded_string(i, numChars) + "." + imgFmt;
+        filepath = outputPath / fileName;
+        vc::WriteImage(filepath, image, writeOpts);
     }
 
     if (parsed.count("output-ppm") > 0) {
