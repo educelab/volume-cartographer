@@ -240,6 +240,7 @@ VolumeInfo GetVolumeInfo(const fs::path& slicePath)
     std::cout << "Flip options: Vertical flip (vf), horizontal flip (hf), "
                  "both, z-flip (zf), all, [none] : ";
     std::getline(std::cin, input);
+    vc::trim(input);
 
     if (input == "vf") {
         info.flipOption = Flip::Vertical;
@@ -251,6 +252,8 @@ VolumeInfo GetVolumeInfo(const fs::path& slicePath)
         info.flipOption = Flip::ZFlip;
     } else if (input == "all") {
         info.flipOption = Flip::All;
+    } else if (not input.empty()) {
+        std::cerr << "Ignoring unrecognized flip option: " << input << "\n";
     }
 
     // Whether to compress
