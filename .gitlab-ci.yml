@@ -55,9 +55,9 @@ test:debian:static:
     extends: .build_and_test
     stage: test
     needs: []
-    image: volcart/vcbuilder-debian:11_v1.static
+    image: ghcr.io/educelab/ci-docker:11_v2.static
     variables:
-        CMAKE_PREFIX_PATH: "/usr/local/Qt-6.2.3/"
+        CMAKE_PREFIX_PATH: "/usr/local/Qt-6.4.2/"
         EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_DEVELOPER_WARNINGS=ON"
     tags:
         - docker
@@ -66,9 +66,9 @@ test:debian:dynamic:
     extends: .build_and_test
     stage: test
     needs: []
-    image: volcart/vcbuilder-debian:11_v1.dynamic
+    image: ghcr.io/educelab/ci-docker:11_v2.dynamic
     variables:
-        CMAKE_PREFIX_PATH: "/usr/local/Qt-6.2.3/"
+        CMAKE_PREFIX_PATH: "/usr/local/Qt-6.4.2/"
         EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_DEVELOPER_WARNINGS=ON"
     tags:
         - docker
@@ -79,7 +79,7 @@ test:macos:static:
     stage: test
     needs: []
     variables:
-        CMAKE_PREFIX_PATH: "/usr/local/educelab/vc-deps-1.7-static-debug:/usr/local/Qt/6.3.0/macos/lib/cmake/"
+        CMAKE_PREFIX_PATH: "/usr/local/educelab/vc-deps-1.7-static-debug:/usr/local/Qt/6.4.2/macos/lib/cmake/"
         EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_DEVELOPER_WARNINGS=ON"
     tags:
         - macos
@@ -90,7 +90,7 @@ test:macos:dynamic:
     stage: test
     needs: []
     variables:
-        CMAKE_PREFIX_PATH: "/usr/local/educelab/vc-deps-1.7-dynamic-debug:/usr/local/Qt/6.3.0/macos/lib/cmake/"
+        CMAKE_PREFIX_PATH: "/usr/local/educelab/vc-deps-1.7-dynamic-debug:/usr/local/Qt/6.4.2/macos/lib/cmake/"
         EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_DEVELOPER_WARNINGS=ON"
     tags:
         - macos
@@ -118,7 +118,7 @@ lint:clang-format:
 pages:
     stage: docs
     needs: []
-    image: volcart/vcbuilder-debian:11_v1.static
+    image: ghcr.io/educelab/ci-docker:11_v2.static
     before_script:
         - apt-get -y update
         - apt-get install --fix-missing --fix-broken -y doxygen graphviz
@@ -140,7 +140,7 @@ pages:
 
 ### Collect & Deploy ###
 .deploy_variables: &deploy_variables
-    - export DATETIME=$(date '+%Y%m%d')
+    - export DATETIME=$(date '+%s')
     - export VERSION=$(utils/scripts/version-gen.sh)
     - export VERSHORT=$(utils/scripts/version-gen.sh --short)
     - export SHA=$(git log -1 --format="%h")
@@ -198,13 +198,13 @@ collect:source:nightly:
 .macos_move_package: &macos_move_package
     - ninja package
     - mv VC*.dmg ../
-    - mv VC*.tar.gz ../
 
 .collect:package:macos:
     extends: .build
     variables:
-        CMAKE_PREFIX_PATH: "/usr/local/Qt/6.3.0/macos/lib/cmake/"
+        CMAKE_PREFIX_PATH: "/usr/local/Qt/6.4.2/macos/lib/cmake/"
         EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON -DVC_BUILD_EXAMPLES=OFF -DVC_BUILD_TESTS=OFF"
+        MACOSX_DEPLOYMENT_TARGET: "12.3"
     before_script:
         - export VC_DEPS_PATH="$CI_PROJECT_DIR/vc-deps"
         - export CMAKE_CMD="cmake -GNinja $EXTRA_CMAKE_FLAGS .."
@@ -212,10 +212,9 @@ collect:source:nightly:
         - cd vc-deps/
         - mkdir -p build/
         - cd build/
-        - cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DBUILD_UNIVERSAL_LIBS=ON -DVCDEPS_BUILD_ACVD=OFF ..
+        - cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_MESSAGE=NEVER -DVCDEPS_BUILD_ACVD=OFF ..
         - ninja
         - cd ../../
-        - export SDKROOT="$CI_PROJECT_DIR/vc-deps/build/osx-sdk-prefix/SDKs/MacOSX${MACOSX_DEPLOYMENT_TARGET}.sdk/"
     script:
         - *build_script
         - *macos_move_package
@@ -223,7 +222,6 @@ collect:source:nightly:
         name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
         paths:
             - ./*.dmg
-            - ./*.tar.gz
         expire_in: 1 day
     tags:
         - macos

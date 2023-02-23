@@ -40,7 +40,7 @@ int main(int argc, char** argv)
     std::ifstream file(argv[2]);
     std::string line;
 
-    ITKPixel vertex;
+    ITKPoint vertex;
     uint64_t vId = 0;
 
     while (!file.eof()) {

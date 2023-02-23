@@ -16,6 +16,7 @@ target_link_libraries(app_support
 )
 target_compile_features(app_support PUBLIC cxx_std_17)
 
+if(VC_BUILD_GUI)
 # Qt GUI app support library
 # List of headers which need MOC
 set(gui_support_hdrs
@@ -44,3 +45,4 @@ target_link_libraries(gui_support
         Qt6::Gui
 )
 target_compile_features(gui_support PUBLIC cxx_std_17)
+endif()

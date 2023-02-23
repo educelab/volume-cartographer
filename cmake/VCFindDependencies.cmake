@@ -27,8 +27,9 @@ message(STATUS "Using filesystem library: ${VC_FS_LIB}")
 list(APPEND VC_CUSTOM_MODULES "${CMAKE_MODULE_PATH}/FindFilesystem.cmake")
 
 ### Qt6 ###
-if(VC_BUILD_APPS OR VC_BUILD_UTILS)
-    find_package(Qt6 QUIET REQUIRED COMPONENTS Widgets Gui Core Network)
+if((VC_BUILD_APPS OR VC_BUILD_UTILS) AND VC_BUILD_GUI)
+    find_package(Qt6 6.3 QUIET REQUIRED COMPONENTS Widgets Gui Core Network)
+    qt_standard_project_setup()
 endif()
 
 ### ITK ###
@@ -115,7 +116,7 @@ if(VC_BUILD_PYTHON_BINDINGS)
 endif()
 
 ### OSX Code Signing ###
-if(APPLE AND VC_BUILD_APPS)
+if(APPLE AND VC_BUILD_APPS AND VC_BUILD_GUI)
     find_library(OSXSecurity Security)
 endif()
 
