@@ -6,7 +6,7 @@ set(VC_VERSION 2.23.0)
 
 option(VC_VERSION_DATESTAMP "Append date stamp to version number" off)
 if(VC_VERSION_DATESTAMP)
-string(TIMESTAMP VC_VERSION_TWEAK "%Y%m%d")
+string(TIMESTAMP VC_VERSION_TWEAK "%s")
 set(VC_VERSION ${VC_VERSION}.${VC_VERSION_TWEAK})
 endif()
 
@@ -21,6 +21,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS on)
 
 # Choose what to build
 option(VC_BUILD_APPS     "Compile VC core programs"    on)
+option(VC_BUILD_GUI      "Compile GUI programs"        on)
 option(VC_BUILD_UTILS    "Compile VC utility programs" on)
 option(VC_BUILD_EXAMPLES "Compile VC example programs" on)
 option(VC_BUILD_TESTS    "Compile VC test programs"    on)

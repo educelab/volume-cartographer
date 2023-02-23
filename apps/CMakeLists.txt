@@ -1,10 +1,7 @@
 ############
 # GUI Apps #
 ############
-if(APPLE OR WIN32)
-    find_package(DeployQt6 REQUIRED)
-endif()
-
+if(VC_BUILD_GUI)
 add_subdirectory(Canny)
 
 add_subdirectory(Projection)
@@ -13,6 +10,7 @@ add_subdirectory(VC)
 
 if (VC_USE_ACVD OR VC_USE_OPTIONAL)
     add_subdirectory(VC-Texture)
+endif()
 endif()
 
 #################
@@ -134,6 +132,7 @@ target_link_libraries(vc_volpkg_explorer
     ${VC_FS_LIB}
 )
 
+if(VC_BUILD_GUI)
 ## Volume Server ##
 add_executable(vc_volume_server
     src/VolumeServerApp.cpp
@@ -174,6 +173,7 @@ target_include_directories(vc_volume_client PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
 set(extra_apps vc_volume_server)
+endif()
 
 # Install targets
 if(VC_INSTALL_APPS)
