@@ -1,13 +1,12 @@
-[![Volume Cartographer](docs/images/banner.svg)](https://gitlab.com/educelab/volume-cartographer)
+[![Volume Cartographer](docs/images/banner.svg)](https://github.com/educelab/volume-cartographer)
 
 **Volume Cartographer** is a cross-platform C++ library and toolkit for
 virtually unwrapping volumetric datasets. It was designed to recover text from
 CT scans of ancient, badly damaged manuscripts, but can be applied in many
 volumetric analysis applications.
 
-[[_TOC_]]
-
-## Dependencies
+## Installation
+### Dependencies
 **Required**
 * C++17 compiler
 * CMake 3.11+
@@ -20,7 +19,7 @@ library
 * Eigen3 3.2+
 * spdlog 1.4.2+
 * Boost Program Options 1.58+: Required if building applications or utilities.
-* Qt 6.2+: Required if building applications or utilities.
+* Qt 6.3+: Required if building applications or utilities.
 
 **Optional**
 * Boost Filesystem 1.58+
@@ -34,12 +33,21 @@ bindings.
 * [VCG library](https://github.com/cnr-isti-vclab/vcglib): Required if
 `VC_USE_VCG` is true.
 
-## Compilation  
+#### (macOS) Homebrew packages
+In principle, Homebrew can be used to install all of Volume Cartographer's 
+dependencies. However, at the time of this writing, the `vtk` brew package links 
+against Qt5 while Volume Cartographer links against Qt6. This will lead to 
+linking errors when compiling this library. To use the brew version of VTK, 
+you can disable building the VC GUI apps with the `-DVC_BUILD_GUI=OFF` CMake 
+flag. Otherwise, you must build VTK from source or follow the instructions for 
+[building vc-deps dependencies](#(Optional)-Use-vc-deps-dependencies) below.
+
+### Compilation  
 This project is built and installed using the CMake build system. If you have
 already installed the dependencies listed above, compilation should be as simple
 as:  
 ```shell
-git clone https://gitlab.com/educelab/volume-cartographer.git
+git clone https://github.com/educelab/volume-cartographer.git
 cd volume-cartographer
 mkdir build
 cd build
@@ -55,13 +63,24 @@ cmake -GNinja ..
 ninja
 ```
 
+To install the compiled software and libraries to the `CMAKE_INSTALL_PREFIX`,
+run the `install` target:
+```shell
+make install
+```
+
+To generate an installer package, run the `package` target:
+```shell
+make package
+```
+
 This suite is primarily developed and tested on macOS and Debian. Though it
 should compile on other Unix/Linux systems and Windows, this has not been
-tested. We are accepting Merge Requests to explicitly support these platforms.
+tested. We are accepting contributions to explicitly support other platforms.
 
 #### (Optional) Use vc-deps dependencies
 To assist with installing dependencies, we have created the
-[vc-deps project](https://gitlab.com/educelab/vc-deps). While this project can
+[vc-deps project](https://github.com/educelab/vc-deps). While this project can
 be used on its own to install the dependencies to the system, we also provide
 it as a git submodule within `volume-cartographer`. Note that `vc-deps`
 **does not** install CMake or Qt.  
@@ -69,7 +88,7 @@ it as a git submodule within `volume-cartographer`. Note that `vc-deps`
 To build and link against in-source `vc-deps` libraries, run the following:  
 ```shell
 # Get the source code plus all submodules
-git clone --recursive https://gitlab.com/educelab/volume-cartographer.git
+git clone --recursive https://github.com/educelab/volume-cartographer.git
 
 # (macOS only)
 # brew install boost qt
@@ -92,7 +111,7 @@ cmake -DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON ..
 make -j
 ```
 
-#### Qt
+#### Linking against Qt
 It might be necessary to point CMake to your Qt installation. For example:
 ```
 # macOS (Apple Silicon), Qt6 installed via Homebrew
@@ -102,51 +121,10 @@ cmake -DCMAKE_PREFIX_PATH=/opt/homebrew/opt/qt/lib/cmake/ ..
 cmake -DCMAKE_PREFIX_PATH=/usr/local/opt/qt/lib/cmake/ ..
 
 # Ubuntu, Qt6 installed from source
-cmake -DCMAKE_PREFIX_PATH=/usr/local/Qt-6.2.3/lib/cmake/ ..
+cmake -DCMAKE_PREFIX_PATH=/usr/local/Qt-6.4.2/lib/cmake/ ..
 ```
 
-## Installation
-To install the compiled software and libraries to the `CMAKE_INSTALL_PREFIX`,
-run the `install` target:
-```shell
-make install
-```
-
-## Packaging
-
-To generate an installer package, run the `package` target:
-```shell
-make package
-```
-
-#### (Optional) Build a deployable macOS installer
-To build a deployable macOS installer DMG for macOS 10.13+, use the `vc-deps`
-submodule to build the dependencies as universal libraries:
-```shell
-# Get the source code plus all submodules
-git clone --recursive https://gitlab.com/educelab/volume-cartographer.git
-
-# Setup macOS SDK version
-export MACOSX_DEPLOYMENT_TARGET="10.15"
-
-# Build vc-deps
-cd volume-cartographer/vc-deps
-mkdir build && cd build
-cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_UNIVERSAL_LIBS=ON ..
-make
-cd ../../
-
-# Setup SDKROOT for volume-cartographer
-export SDKROOT=$PWD/vc-deps/build/osx-sdk-prefix/SDKs/MacOSX${MACOSX_DEPLOYMENT_TARGET}.sdk/
-
-# Build volume-cartographer
-mkdir build
-cd build
-cmake -DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON ..
-make && make package
-```
-
-## Testing
+### Unit tests
 Tests are built by default and use the Google Test framework. Tests can be run
 using CTest or by running the `test` target:
 ```shell
@@ -162,6 +140,39 @@ To disable tests, set the `VC_BUILD_TESTS` flag to off:
 cmake -DVC_BUILD_TESTS=OFF ..
 ```
 
+## Docker
+We provide multi-architecture (`amd64` and `arm64`) Docker images in the GitHub
+Container Registry. Simply pull our container and Docker will select the
+appropriate image for your host platform:
+
+```shell
+# Pull the latest image
+docker pull ghcr.io/educelab/volume-cartographer
+
+# Pull a specific version
+docker pull ghcr.io/educelab/volume-cartographer:2.24.0
+```
+
+Tools can be launched directly using `docker run`:
+
+```shell
+$ docker run ghcr.io/educelab/volume-cartographer vc_render --help
+Usage:
+
+General Options:
+  -h [ --help ]                         Show this message
+  --cache-memory-limit arg              Maximum size of the slice cache in 
+                                        bytes. Accepts the suffixes: 
+                                        (K|M|G|T)(B). Default: 50% of the total
+                                        system memory.
+  --log-level arg (=info)               Options: off, critical, error, warn, 
+                                        info, debug
+...
+```
+
+To run the GUI tools, you must additionally set up [X11 forwarding from the
+container](docker/running-gui-tools.md).
+
 ## Documentation
 Visit our full library documentation
 [here](https://educelab.gitlab.io/volume-cartographer/docs/).
@@ -175,7 +186,7 @@ installed with the `install` target if the `VC_INSTALL_DOCS` flag is enabled.
 cmake -DVC_BUILD_DOCS=ON -DVC_INSTALL_DOCS=ON ..
 ```
 
-## Python Bindings (WIP)
+## Python bindings
 We currently maintain limited Python binding support through pybind11. They are
 a work-in-progress and should not be used in production code.  
 

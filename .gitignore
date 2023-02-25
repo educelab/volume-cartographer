@@ -41,9 +41,12 @@ __pycache__
 .ropeproject
 venv/*
 
-#Doxygen
+# Doxygen
 docs/latex/
 docs/html/
 
 # CLion
 cmake-build*/
+
+# VS Code
+.vscode/

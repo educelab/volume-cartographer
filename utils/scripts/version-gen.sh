@@ -1,5 +1,5 @@
 #!/bin/bash
-# should be run from a build folder that is a subdirectory of the source folder
+# should be run from the root of the volume-cartographer directory
 
 versionMajor=`cat CMakeLists.txt | grep -m 1 "set(VC_VERSION " | sed 's/.*VERSION \([0-9]*\).*/\1/'`
 versionMinor=`cat CMakeLists.txt | grep -m 1 "set(VC_VERSION " | sed 's/.*VERSION [0-9]*\.\([0-9]*\).*/\1/'`
