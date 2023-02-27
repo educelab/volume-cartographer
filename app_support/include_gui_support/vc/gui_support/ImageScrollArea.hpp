@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QGestureEvent>
 #include <QLabel>
 #include <QScrollArea>
 #include <opencv2/core.hpp>
@@ -36,5 +37,10 @@ private:
     void mouseReleaseEvent(QMouseEvent* /*unused*/) override;
     void mouseMoveEvent(QMouseEvent* event) override;
     void wheelEvent(QWheelEvent* event) override;
+
+    // For detecting native pinch gestures
+    bool event(QEvent* event) override;
+    bool gestureEvent(QGestureEvent* event);
+    void pinchTriggered(QPinchGesture* pinch);
 };
 }  // namespace volcart::gui
