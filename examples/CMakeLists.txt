@@ -1,4 +1,3 @@
-
 add_executable(vc_acvd_example src/ACVDExample.cpp)
 target_link_libraries(vc_acvd_example
     VC::core
@@ -41,10 +40,8 @@ target_link_libraries(vc_itk2vtk_example
     VC::testing
 )
 
-if (VC_USE_ACVD OR VC_USE_OPTIONAL)
-    add_executable(vc_abf_example src/ABFExample.cpp)
-    target_link_libraries(vc_abf_example VC::core VC::texturing)
-endif()
+add_executable(vc_abf_example src/ABFExample.cpp)
+target_link_libraries(vc_abf_example VC::core VC::texturing)
 
 add_executable(vc_structure_tensor_client src/StructureTensorClient.cpp)
 target_link_libraries(vc_structure_tensor_client VC::core opencv_highgui)
@@ -60,15 +57,6 @@ target_link_libraries(vc_obj_writer_example VC::core)
 
 add_executable(vc_lorem_ipsum_error src/LoremIpsumError.cpp)
 target_link_libraries(vc_lorem_ipsum_error VC::core)
-
-if(VC_USE_VCG OR VC_USE_OPTIONAL)
-    add_executable(vc_quadric_edge_collapse_decimation_example
-        src/QuadricEdgeCollapseDecimationExample.cpp
-    )
-    target_link_libraries(vc_quadric_edge_collapse_decimation_example
-        VC::meshing
-    )
-endif()
 
 add_executable(vc_orderedPointSetMesher_example
     src/OrderedPointSetMesherExample.cpp

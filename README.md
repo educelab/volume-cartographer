@@ -13,13 +13,12 @@ volumetric analysis applications.
 * OpenCV 3+
 * Insight Toolkit (itk) 4.10+
 * Visualization Toolkit (vtk) 7 or 8
-* [ACVD Mesh Simplification](https://github.com/csparker247/ACVD) VTK add-on
-library
+* [ACVD](https://gitlab.com/educelab/acvd) mesh simplification library
 * [libtiff](https://gitlab.com/libtiff/libtiff) 4.0+
 * Eigen3 3.2+
 * spdlog 1.4.2+
 * Boost Program Options 1.58+: Required if building applications or utilities.
-* Qt 6.3+: Required if building applications or utilities.
+* Qt 6.3+: Required if building GUI applications or utilities.
 
 **Optional**
 * Boost Filesystem 1.58+
@@ -30,8 +29,6 @@ library
 documentation.
 * [pybind11](https://github.com/pybind/pybind11): Required to build Python
 bindings.
-* [VCG library](https://github.com/cnr-isti-vclab/vcglib): Required if
-`VC_USE_VCG` is true.
 
 #### (macOS) Homebrew packages
 In principle, Homebrew can be used to install all of Volume Cartographer's 
