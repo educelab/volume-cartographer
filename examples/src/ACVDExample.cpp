@@ -21,8 +21,8 @@ auto main(int argc, char* argv[]) -> int
     }
 
     // Get cmd line params
-    std::string inPath = argv[1];
-    std::string outPath = argv[2];
+    const std::string inPath = argv[1];
+    const std::string outPath = argv[2];
     auto numFaces = std::stoi(argv[3]);
     Mode mode{Mode::Isotropic};
     if (argc >= 5 and vc::to_bool(argv[4])) {
