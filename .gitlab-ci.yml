@@ -58,7 +58,7 @@ test:debian:static:
     image: ghcr.io/educelab/ci-docker:11_v2.static
     variables:
         CMAKE_PREFIX_PATH: "/usr/local/Qt-6.4.2/"
-        EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_DEVELOPER_WARNINGS=ON"
+        EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_BUILD_TESTS=ON"
     tags:
         - docker
 
@@ -69,7 +69,7 @@ test:debian:dynamic:
     image: ghcr.io/educelab/ci-docker:11_v2.dynamic
     variables:
         CMAKE_PREFIX_PATH: "/usr/local/Qt-6.4.2/"
-        EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DBUILD_SHARED_LIBS=ON -DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_DEVELOPER_WARNINGS=ON"
+        EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DBUILD_SHARED_LIBS=ON -DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_BUILD_TESTS=ON"
     tags:
         - docker
 
@@ -80,7 +80,7 @@ test:macos:static:
     needs: []
     variables:
         CMAKE_PREFIX_PATH: "/usr/local/educelab/vc-deps-1.7-static-debug:/usr/local/Qt/6.4.2/macos/lib/cmake/"
-        EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_DEVELOPER_WARNINGS=ON"
+        EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_BUILD_TESTS=ON"
     tags:
         - macos
         - test
@@ -91,12 +91,12 @@ test:macos:dynamic:
     needs: []
     variables:
         CMAKE_PREFIX_PATH: "/usr/local/educelab/vc-deps-1.7-dynamic-debug:/usr/local/Qt/6.4.2/macos/lib/cmake/"
-        EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DBUILD_SHARED_LIBS=ON -DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_DEVELOPER_WARNINGS=ON"
+        EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DBUILD_SHARED_LIBS=ON -DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_BUILD_TESTS=ON"
     tags:
         - macos
         - test
 
-### Extra Checks and Tests ###
+### Extra checks ###
 lint:clang-format:
     stage: lint
     needs: []
@@ -203,7 +203,7 @@ collect:source:nightly:
     extends: .build
     variables:
         CMAKE_PREFIX_PATH: "/usr/local/Qt/6.4.2/macos/lib/cmake/"
-        EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON -DVC_BUILD_TESTS=OFF"
+        EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON"
         MACOSX_DEPLOYMENT_TARGET: "12.3"
     before_script:
         - export VC_DEPS_PATH="$CI_PROJECT_DIR/vc-deps"
@@ -241,7 +241,7 @@ collect:binaries:macos:nightly:
     rules:
         *rules_nightly_collect
     variables:
-        EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_VERSION_DATESTAMP=ON -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON -DVC_BUILD_TESTS=OFF"
+        EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_VERSION_DATESTAMP=ON -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON"
 
 release:create:
     stage: release
