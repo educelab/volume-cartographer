@@ -8,9 +8,46 @@ add_subdirectory(Projection)
 
 add_subdirectory(VC)
 
-if (VC_USE_ACVD OR VC_USE_OPTIONAL)
-    add_subdirectory(VC-Texture)
-endif()
+## Volume Server ##
+add_executable(vc_volume_server
+    src/VolumeServerApp.cpp
+    src/VolumeServer.cpp
+    include/vc/apps/server/VolumeServer.hpp
+    include/vc/apps/server/VolumeProtocol.hpp)
+set_target_properties(vc_volume_server PROPERTIES
+    AUTOMOC on
+)
+target_link_libraries(vc_volume_server
+    VC::app_support
+    VC::core
+    Boost::program_options
+    ${VC_FS_LIB}
+    Qt6::Network
+)
+target_include_directories(vc_volume_server PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+)
+
+## Volume Client ##
+add_executable(vc_volume_client
+    src/VolumeClientApp.cpp
+    src/VolumeClient.cpp
+    include/vc/apps/server/VolumeClient.hpp
+    include/vc/apps/server/VolumeProtocol.hpp)
+set_target_properties(vc_volume_client PROPERTIES
+    AUTOMOC on
+)
+target_link_libraries(vc_volume_client
+    VC::app_support
+    VC::core
+    Boost::program_options
+    ${VC_FS_LIB}
+    Qt6::Network
+)
+target_include_directories(vc_volume_client PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+)
+set(extra_apps vc_volume_server)
 endif()
 
 #################
@@ -131,49 +168,6 @@ target_link_libraries(vc_volpkg_explorer
     Boost::program_options
     ${VC_FS_LIB}
 )
-
-if(VC_BUILD_GUI)
-## Volume Server ##
-add_executable(vc_volume_server
-    src/VolumeServerApp.cpp
-    src/VolumeServer.cpp
-    include/vc/apps/server/VolumeServer.hpp
-    include/vc/apps/server/VolumeProtocol.hpp)
-set_target_properties(vc_volume_server PROPERTIES
-    AUTOMOC on
-)
-target_link_libraries(vc_volume_server
-    VC::app_support
-    VC::core
-    Boost::program_options
-    ${VC_FS_LIB}
-    Qt6::Network
-)
-target_include_directories(vc_volume_server PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-)
-
-## Volume Client ##
-add_executable(vc_volume_client
-    src/VolumeClientApp.cpp
-    src/VolumeClient.cpp
-    include/vc/apps/server/VolumeClient.hpp
-    include/vc/apps/server/VolumeProtocol.hpp)
-set_target_properties(vc_volume_client PROPERTIES
-    AUTOMOC on
-)
-target_link_libraries(vc_volume_client
-    VC::app_support
-    VC::core
-    Boost::program_options
-    ${VC_FS_LIB}
-    Qt6::Network
-)
-target_include_directories(vc_volume_client PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-)
-set(extra_apps vc_volume_server)
-endif()
 
 # Install targets
 if(VC_INSTALL_APPS)

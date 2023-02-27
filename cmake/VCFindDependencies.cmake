@@ -115,27 +115,7 @@ if(VC_BUILD_PYTHON_BINDINGS)
     find_package(pybind11 REQUIRED)
 endif()
 
-### OSX Code Signing ###
+### macOS security framework ###
 if(APPLE AND VC_BUILD_APPS AND VC_BUILD_GUI)
     find_library(OSXSecurity Security)
-endif()
-
-# If this option is set, then use all optional dependencies
-option(VC_USE_OPTIONAL "Enable all optional third-party libs" off)
-if(VC_USE_OPTIONAL)
-    message(STATUS "All optional third-party libraries enabled. Individual \
-preferences will be ignored.")
-endif()
-
-### VCG ###
-option(VC_USE_VCG "Use VCG library" off)
-if(VC_USE_VCG OR VC_USE_OPTIONAL)
-    find_package(VCG QUIET REQUIRED)
-    add_library(vcglib INTERFACE IMPORTED)
-    set_target_properties(vcglib PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${VCG_INCLUDE_DIRS}"
-    )
-
-    # Install a custom Find module
-    list(APPEND VC_CUSTOM_MODULES "${CMAKE_SOURCE_DIR}/cmake/FindVCG.cmake")
 endif()

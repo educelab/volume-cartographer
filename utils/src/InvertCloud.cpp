@@ -16,7 +16,7 @@ namespace vc = volcart;
 int main(int argc, char** argv)
 {
     if (argc < 5) {
-        std::cout << "Usage: vc_invertCloud [volpkg] [volume-id] [input].vcps "
+        std::cout << "Usage: vc_invert_cloud [volpkg] [volume-id] [input].vcps "
                      "[output].vcps"
                   << std::endl;
         std::exit(-1);

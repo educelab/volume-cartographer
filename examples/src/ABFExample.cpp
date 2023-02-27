@@ -1,7 +1,7 @@
 /*
  * Purpose: Run volcart::texturing::abf() and write results to file for each
  * shape. Saved file will be read in by the abfTest.cpp file under
- * v-c/testing/texturing.
+ * vc/testing/texturing.
  */
 
 #include "vc/core/io/OBJWriter.hpp"

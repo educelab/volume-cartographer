@@ -16,13 +16,6 @@ set(public_deps "")
 set(private_deps "")
 set(defs "")
 
-# Conditional compilation of VCG class
-if(VC_USE_VCG OR VC_USE_OPTIONAL)
-    list(APPEND srcs src/QuadricEdgeCollapseDecimation.cpp)
-    list(APPEND public_deps vcglib Eigen3::Eigen)
-    list(APPEND defs VC_USE_VCGLIB)
-endif()
-
 add_library(vc_meshing ${srcs})
 add_library(VC::meshing ALIAS vc_meshing)
 target_compile_definitions(vc_meshing PUBLIC ${defs})
@@ -78,16 +71,6 @@ set(test_srcs
     test/SmoothNormalsTest.cpp
     test/OrderedPointSetMesherTest.cpp
 )
-
-if(VC_USE_VCG OR VC_USE_OPTIONAL)
-    list(APPEND test_srcs test/QuadricEdgeCollapseDecimationTest.cpp)
-    set(QUADRIC_EDGE_COLLAPSE_DECIMATION_TEST_RES
-            test/res/QuadricEdgeCollapse_Plane.obj
-            test/res/QuadricEdgeCollapse_Arch.obj
-            test/res/QuadricEdgeCollapse_Cone.obj
-            test/res/QuadricEdgeCollapse_Cube.obj
-            test/res/QuadricEdgeCollapse_Sphere.obj)
-endif()
 
 # Add a test executable for each src
 foreach(src ${test_srcs})
@@ -149,7 +132,6 @@ set(MESHING_TEST_RES
     ${SMOOTH_NORMALS_TEST_RES}
     ${SCALE_MESH_TEST_RES}
     ${ORDERED_RESAMPLING_TEST_RES}
-    ${QUADRIC_EDGE_COLLAPSE_DECIMATION_TEST_RES}
     ${ORDERED_POINT_SET_MESHER_TEST_RES}
 )
 

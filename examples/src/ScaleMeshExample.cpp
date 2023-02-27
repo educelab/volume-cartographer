@@ -2,7 +2,7 @@
  * Purpose: Run volcart::meshing::ScaleMesh() and write results to file
  *          for each shape.
  *          Saved file wills be read in by the ScaleMeshTest.cpp file under
- *          v-c/testing/meshing.
+ *          vc/testing/meshing.
  */
 
 #include "vc/core/io/OBJWriter.hpp"

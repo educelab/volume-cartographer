@@ -1,7 +1,7 @@
 /*
  * Purpose: Run volcart::OBJWriter() to write Plane itk mesh to file
  *          Saved file will be read in by the OBJWriterTest.cpp file under
- *          v-c/testing/meshing.
+ *          vc/testing/meshing.
  */
 
 #include "vc/core/io/OBJWriter.hpp"

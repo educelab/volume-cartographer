@@ -44,15 +44,6 @@ find_dependency(spdlog CONFIG QUIET REQUIRED)
 
 ### smgl ###
 find_dependency(smgl @smgl_VERSION@ CONFIG QUIET REQUIRED)
-
-### VCG ###
-if(@VC_USE_VCG@ OR @VC_USE_OPTIONAL@)
-find_dependency(VCG QUIET REQUIRED)
-add_library(vcglib INTERFACE IMPORTED)
-set_target_properties(vcglib PROPERTIES
-    INTERFACE_INCLUDE_DIRECTORIES "${VCG_INCLUDE_DIRS}"
-)
-endif()
 #####################################################################
 
 ### Include VC targets ###

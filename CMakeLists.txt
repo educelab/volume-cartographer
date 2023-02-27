@@ -23,12 +23,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS on)
 option(VC_BUILD_APPS     "Compile VC core programs"    on)
 option(VC_BUILD_GUI      "Compile GUI programs"        on)
 option(VC_BUILD_UTILS    "Compile VC utility programs" on)
-option(VC_BUILD_EXAMPLES "Compile VC example programs" on)
-option(VC_BUILD_TESTS    "Compile VC test programs"    on)
+option(VC_BUILD_EXAMPLES "Compile VC example programs" off)
+option(VC_BUILD_TESTS    "Compile VC test programs"    off)
 option(VC_BUILD_PYTHON_BINDINGS "Build Python bindings." off)
 
-# Choose what to install into a CPack package
-# Annoyingly, CMake doesn't let you pick components installed by `make install`
+# Choose what to install
 option(VC_INSTALL_APPS      "Install VC core programs"    on)
 option(VC_INSTALL_LIBS      "Install VC libraries"        on)
 option(VC_INSTALL_UTILS     "Install VC utility programs" on)
