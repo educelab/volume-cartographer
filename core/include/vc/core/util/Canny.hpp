@@ -4,6 +4,9 @@
 
 /** @file */
 
+#include <string>
+#include <vector>
+
 #include <opencv2/core.hpp>
 
 namespace volcart
@@ -17,7 +20,12 @@ struct CannySettings {
     int maxThreshold = 150;
     bool contour = false;
     bool bilateral = false;
+    bool midpoint = false;
+    char projectionFrom = 'L';
+    std::vector<std::string> fromMeshes = {};
     cv::Mat mask;
+    std::size_t zMin = 0;
+    std::size_t zMax = 1;
 };
 
 /**

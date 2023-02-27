@@ -16,6 +16,8 @@ vcg::ImageScrollArea::ImageScrollArea()
     setBackgroundRole(QPalette::Dark);
     setWidget(imageLabel_);
     verticalScrollBar()->installEventFilter(this);
+
+    this->grabGesture(Qt::PinchGesture);
 }
 
 void vcg::ImageScrollArea::updatePixmap(const cv::Mat& mat)
@@ -104,4 +106,30 @@ void vcg::ImageScrollArea::AdjustScrollBar(QScrollBar* scrollBar, double factor)
     scrollBar->setValue(
         int(factor * scrollBar->value() +
             ((factor - 1) * scrollBar->pageStep() / 2)));
+}
+
+void vcg::ImageScrollArea::pinchTriggered(QPinchGesture* pinch)
+{
+    QPinchGesture::ChangeFlags changeFlags = pinch->changeFlags();
+
+    if ((changeFlags & QPinchGesture::ScaleFactorChanged) != 0U) {
+        double scaleFactor = pinch->scaleFactor();
+        scale_image_(scaleFactor);
+    }
+}
+
+auto vcg::ImageScrollArea::gestureEvent(QGestureEvent* event) -> bool
+{
+    if (QGesture* pinch = event->gesture(Qt::PinchGesture)) {
+        pinchTriggered(dynamic_cast<QPinchGesture*>(pinch));
+    }
+    return true;
+}
+
+auto vcg::ImageScrollArea::event(QEvent* event) -> bool
+{
+    if (event->type() == QEvent::Gesture) {
+        return gestureEvent(dynamic_cast<QGestureEvent*>(event));
+    }
+    return QScrollArea::event(event);
 }

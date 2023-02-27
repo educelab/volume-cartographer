@@ -1,10 +1,13 @@
 #pragma once
 
 #include <QCheckBox>
+#include <QComboBox>
+#include <QHBoxLayout>
 #include <QLabel>
 #include <QMainWindow>
 #include <QMutex>
 #include <QPixmap>
+#include <QPushButton>
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QSlider>
@@ -49,6 +52,7 @@ private:
     QLabel* apertureSizeLabel_;
     QLabel* sliceLabel_;
     QLabel* closingSizeLabel_;
+    QLabel* projectionEdgeLabel_;
 
     QSlider* blurSizeSlider_;
     QSlider* minThresholdSlider_;
@@ -58,6 +62,12 @@ private:
     QCheckBox* contourCheckBox_;
     QSlider* closingSizeSlider_;
     QCheckBox* bilateralCheckBox_;
+    QComboBox* projectionEdgeComboBox_;
+    QCheckBox* midpointCheckBox_;
+
+    QHBoxLayout* buttonLayout_;
+    QPushButton* okButton_;
+    QPushButton* cancelButton_;
 
     QVBoxLayout* sliderLayout_;
     QWidget* sliderWidget_;
@@ -66,4 +76,9 @@ private:
 
     void handle_settings_change_();
     void handle_slice_change_();
+
+    void handle_ok_();
+    void handle_cancel_();
+
+    void closeEvent(QCloseEvent* /*event*/) override;
 };

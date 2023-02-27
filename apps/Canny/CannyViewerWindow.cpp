@@ -2,8 +2,10 @@
 #pragma clang diagnostic ignored "-Wunknown-pragmas"
 #pragma ide diagnostic ignored "cppcoreguidelines-avoid-magic-numbers"
 
+#include <QApplication>
 #include <QGuiApplication>
-#include <QScreen>
+#include <QHBoxLayout>
+#include <QMessageBox>
 #include <opencv2/opencv.hpp>
 
 #include "CannyViewerWindow.hpp"
@@ -22,6 +24,7 @@ CannyViewerWindow::CannyViewerWindow(
     , apertureSizeLabel_(new QLabel)
     , sliceLabel_(new QLabel)
     , closingSizeLabel_(new QLabel)
+    , projectionEdgeLabel_(new QLabel("Projection edge:"))
     , blurSizeSlider_(new QSlider(Qt::Horizontal))
     , minThresholdSlider_(new QSlider(Qt::Horizontal))
     , maxThresholdSlider_(new QSlider(Qt::Horizontal))
@@ -30,6 +33,11 @@ CannyViewerWindow::CannyViewerWindow(
     , contourCheckBox_(new QCheckBox("Contour"))
     , closingSizeSlider_(new QSlider(Qt::Horizontal))
     , bilateralCheckBox_(new QCheckBox("Bilateral"))
+    , projectionEdgeComboBox_(new QComboBox)
+    , midpointCheckBox_(new QCheckBox("Midpoint"))
+    , buttonLayout_(new QHBoxLayout)
+    , okButton_(new QPushButton("OK"))
+    , cancelButton_(new QPushButton("Cancel"))
     , sliderLayout_(new QVBoxLayout)
     , sliderWidget_(new QWidget)
     , sliceCannyViewerWidget_(new SliceCannyViewerWidget(volume))
@@ -62,8 +70,9 @@ CannyViewerWindow::CannyViewerWindow(
         apertureSizeSlider_, &QSlider::valueChanged, this,
         &CannyViewerWindow::handle_settings_change_);
 
-    sliceSlider_->setMaximum(numSlices_ - 1);
-    sliceSlider_->setValue(0);
+    sliceSlider_->setMinimum(static_cast<int>(settings_->zMin));
+    sliceSlider_->setMaximum(static_cast<int>(settings_->zMax));
+    sliceSlider_->setValue(static_cast<int>(settings_->zMin));
     connect(
         sliceSlider_, &QSlider::valueChanged, this,
         &CannyViewerWindow::handle_slice_change_);
@@ -86,6 +95,55 @@ CannyViewerWindow::CannyViewerWindow(
         bilateralCheckBox_, &QCheckBox::stateChanged, this,
         &CannyViewerWindow::handle_settings_change_);
 
+    projectionEdgeLabel_->setMinimumWidth(20);
+    projectionEdgeComboBox_->addItem("Left");
+    projectionEdgeComboBox_->addItem("Right");
+    projectionEdgeComboBox_->addItem("Top");
+    projectionEdgeComboBox_->addItem("Bottom");
+    projectionEdgeComboBox_->addItem("Mesh normals");
+    projectionEdgeComboBox_->addItem("Inverted mesh normals");
+    projectionEdgeComboBox_->addItem("None");
+    if (settings_->projectionFrom == 'L') {
+        projectionEdgeComboBox_->setCurrentText("Left");
+    } else if (settings_->projectionFrom == 'R') {
+        projectionEdgeComboBox_->setCurrentText("Right");
+    } else if (settings_->projectionFrom == 'T') {
+        projectionEdgeComboBox_->setCurrentText("Top");
+    } else if (settings_->projectionFrom == 'B') {
+        projectionEdgeComboBox_->setCurrentText("Bottom");
+    } else if (settings_->projectionFrom == 'M') {
+        projectionEdgeComboBox_->setCurrentText("Mesh normals");
+    } else if (settings_->projectionFrom == 'I') {
+        projectionEdgeComboBox_->setCurrentText("Inverted mesh normals");
+    } else if (settings_->projectionFrom == 'N') {
+        projectionEdgeComboBox_->setCurrentText("None");
+    }
+    projectionEdgeComboBox_->setMinimumWidth(20);
+    connect(
+        projectionEdgeComboBox_, &QComboBox::currentTextChanged, this,
+        &CannyViewerWindow::handle_settings_change_);
+
+    midpointCheckBox_->setChecked(settings_->midpoint);
+    midpointCheckBox_->setMinimumWidth(20);
+    connect(
+        midpointCheckBox_, &QCheckBox::stateChanged, this,
+        &CannyViewerWindow::handle_settings_change_);
+
+    okButton_->setMinimumWidth(10);
+    cancelButton_->setMinimumWidth(10);
+    // prevent the OK button from making the parent layout grow
+    okButton_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    cancelButton_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    connect(okButton_, &QPushButton::clicked, this, &CannyViewerWindow::handle_ok_);
+    connect(cancelButton_, &QPushButton::clicked, this, &CannyViewerWindow::handle_cancel_);
+
+    // prevent buttons from growing the parent layout
+    buttonLayout_->setContentsMargins(0, 0, 0, 0);
+    buttonLayout_->setSpacing(0);
+
+    buttonLayout_->addWidget(cancelButton_);
+    buttonLayout_->addWidget(okButton_);
+
     sliderLayout_->addWidget(blurSizeLabel_);
     sliderLayout_->addWidget(blurSizeSlider_);
     sliderLayout_->addWidget(minThresholdLabel_);
@@ -100,7 +158,11 @@ CannyViewerWindow::CannyViewerWindow(
     sliderLayout_->addWidget(closingSizeLabel_);
     sliderLayout_->addWidget(closingSizeSlider_);
     sliderLayout_->addWidget(bilateralCheckBox_);
+    sliderLayout_->addWidget(projectionEdgeLabel_);
+    sliderLayout_->addWidget(projectionEdgeComboBox_);
+    sliderLayout_->addWidget(midpointCheckBox_);
     sliderLayout_->addStretch();
+    sliderLayout_->addLayout(buttonLayout_);
     sliderWidget_->setLayout(sliderLayout_);
 
     splitter_->addWidget(sliceCannyViewerWidget_);
@@ -112,8 +174,6 @@ CannyViewerWindow::CannyViewerWindow(
     const float sizeRatio = 3.0 / 5.0;
     resize(QGuiApplication::primaryScreen()->availableSize() * sizeRatio);
 
-    // TODO not have to call these by having a settings widget that does it on
-    // its own like in Projection app
     handle_slice_change_();
     handle_settings_change_();
 }
@@ -138,6 +198,22 @@ void CannyViewerWindow::handle_settings_change_()
     settings_->apertureSize = apertureSizeSlider_->value();
     settings_->contour = contourCheckBox_->isChecked();
     settings_->bilateral = bilateralCheckBox_->isChecked();
+    if (projectionEdgeComboBox_->currentText() == "Left") {
+        settings_->projectionFrom = 'L';
+    } else if (projectionEdgeComboBox_->currentText() == "Right") {
+        settings_->projectionFrom = 'R';
+    } else if (projectionEdgeComboBox_->currentText() == "Top") {
+        settings_->projectionFrom = 'T';
+    } else if (projectionEdgeComboBox_->currentText() == "Bottom") {
+        settings_->projectionFrom = 'B';
+    } else if (projectionEdgeComboBox_->currentText() == "Mesh normals") {
+        settings_->projectionFrom = 'M';
+    } else if (projectionEdgeComboBox_->currentText() == "Inverted mesh normals") {
+        settings_->projectionFrom = 'I';
+    } else if (projectionEdgeComboBox_->currentText() == "None") {
+        settings_->projectionFrom = 'N';
+    }
+    settings_->midpoint = midpointCheckBox_->isChecked();
 
     blurSizeLabel_->setText(
         "Blur size: " + QString::number(settings_->blurSize));
@@ -154,6 +230,22 @@ void CannyViewerWindow::handle_settings_change_()
     closingSizeSlider_->setVisible(settings_->contour);
 
     sliceCannyViewerWidget_->handleSettingsChange(*settings_);
+}
+
+void CannyViewerWindow::handle_ok_() { QApplication::exit(EXIT_SUCCESS); }
+
+void CannyViewerWindow::handle_cancel_() { QApplication::exit(EXIT_FAILURE); }
+
+void CannyViewerWindow::closeEvent(QCloseEvent*  /*event*/)
+{
+    const auto reply = QMessageBox::question(
+        this, "Close", "Perform Canny edge segmentation?",
+        QMessageBox::No | QMessageBox::Yes, QMessageBox::Yes);
+    if (reply == QMessageBox::Yes) {
+        QApplication::exit(EXIT_SUCCESS);
+    } else {
+        QApplication::exit(EXIT_FAILURE);
+    }
 }
 
 #pragma clang diagnostic pop

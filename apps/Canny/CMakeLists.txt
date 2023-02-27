@@ -14,7 +14,12 @@ target_link_libraries(${target}
     VC::app_support
     VC::core
     VC::gui_support
+    VC::meshing
     ${VC_FS_LIB}
+    VTK::CommonCore
+    VTK::CommonDataModel
+    VTK::FiltersGeneral
+    VTK::FiltersSources
     Boost::program_options
     opencv_core
     Qt6::Core
