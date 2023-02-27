@@ -22,7 +22,30 @@
     {
       "affiliation": "University of Kentucky",
       "name": "Chappell, Jacob"
-    }
+    },
+    {"name": "Athie Teruel, Bruno"},
+    {"name": "Bentley, Nikki"},
+    {"name": "Bertelsman, Ali"},
+    {"name": "Broadbent, John"},
+    {"name": "Chapman, Sydney"},
+    {"name": "Coleman, Abigail"},
+    {"name": "Du, Chao"},
+    {"name": "Gardella, Callie"},
+    {"name": "Graczyk, Nick"},
+    {"name": "Hatch, Hannah"},
+    {"name": "Hogg, Lula"},
+    {"name": "Karlage, Sean"},
+    {"name": "Nguyen, Tam"},
+    {"name": "Pack, James"},
+    {"name": "Pennington, David"},
+    {"name": "Revers, Allison"},
+    {"name": "Roup, Mike"},
+    {"name": "Royal, Michael"},
+    {"name": "Seevers, Kyra"},
+    {"name": "Shankle, Melissa"},
+    {"name": "Syamil, Raiffa"},
+    {"name": "Taber, Ryan"},
+    {"name": "Posma, JP"}
   ],
   "keywords" : [
     "c-plus-plus",
@@ -31,11 +54,6 @@
     "cultural heritage"
   ],
   "related_identifiers": [
-    {
-      "scheme": "url",
-      "identifier": "https://gitlab.com/educelab/volume-cartographer",
-      "relation": "isSupplementTo"
-    },
     {
       "scheme": "url",
       "identifier": "https://github.com/educelab/volume-cartographer",
