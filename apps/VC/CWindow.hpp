@@ -5,6 +5,7 @@
 #include <QMessageBox>
 #include <QObject>
 #include <QRect>
+#include <QSpinBox>
 #include <QThread>
 #include <QTimer>
 #include <QtWidgets>
@@ -42,7 +43,7 @@ public:
     };  // idle
     enum SaveResponse : bool { Cancelled, Continue };
 
-    typedef struct SSegParams_tag {
+    using SSegParams = struct SSegParams_tag {
         int fNumIters;
         double fAlpha;
         double fBeta;
@@ -50,10 +51,10 @@ public:
         double fK1;
         double fK2;
         int fPeakDistanceWeight;
-        int fWindowWidth;
+        int fWindowWidth{5};
         bool fIncludeMiddle;
         int targetIndex;
-    } SSegParams;
+    };
 
     using Segmenter = volcart::segmentation::LocalResliceSegmentation;
 
@@ -64,8 +65,7 @@ public slots:
     void onSegmentationFinished(Segmenter::PointSet ps);
 
 public:
-    CWindow(void);
-    CWindow(QRect windowSize);
+    CWindow();
     ~CWindow(void);
 
 protected:
@@ -83,6 +83,7 @@ private:
     void setWidgetsEnabled(bool state);
 
     bool InitializeVolumePkg(const std::string& nVpkgPath);
+    void setDefaultWindowWidth(volcart::Volume::Pointer volume);
     SaveResponse SaveDialog(void);
 
     void UpdateView(void);
@@ -125,7 +126,7 @@ private slots:
     void OnEdtK1ValChange();
     void OnEdtK2ValChange();
     void OnEdtDistanceWeightChange();
-    void OnEdtWindowWidthChange();
+    void OnEdtWindowWidthChange(int);
     void OnOptIncludeMiddleClicked(bool clicked);
 
     // void OnEdtSampleDistValChange( QString nText );
@@ -146,7 +147,7 @@ private:
     // data model
     EWindowState fWindowState;
 
-    volcart::VolumePkg* fVpkg;
+    volcart::VolumePkg::Pointer fVpkg;
     QString fVpkgPath;
     std::string fVpkgName;
     bool fVpkgChanged;
@@ -192,7 +193,7 @@ private:
     QComboBox* volSelect;
     QPushButton* assignVol;
 
-    QLineEdit* fEdtWindowWidth;
+    QSpinBox* fEdtWindowWidth;
     QLineEdit* fEdtDistanceWeight;
     QLineEdit* fEdtAlpha;
     QLineEdit* fEdtBeta;

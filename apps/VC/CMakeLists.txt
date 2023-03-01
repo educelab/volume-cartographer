@@ -13,6 +13,7 @@ set(srcs
     CBSpline.cpp
     CBezierCurve.cpp
     BlockingDialog.hpp
+    ColorFrame.hpp
 )
 
 set(MACOSX_BUNDLE_ICON logo.icns)

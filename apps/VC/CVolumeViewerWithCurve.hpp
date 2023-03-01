@@ -8,6 +8,8 @@
 #include "CBSpline.hpp"
 #include "CVolumeViewer.hpp"
 #include "CXCurve.hpp"
+#include "ColorFrame.hpp"
+
 namespace ChaoVis
 {
 
@@ -28,8 +30,8 @@ public:
     };  // idle mode
 
 public:
-    CVolumeViewerWithCurve(void);
-    ~CVolumeViewerWithCurve(void);
+    CVolumeViewerWithCurve();
+    ~CVolumeViewerWithCurve() = default;
 
     virtual void SetImage(const QImage& nSrc);
 
@@ -74,6 +76,7 @@ signals:
 
 private:
     // for drawing
+    ColorFrame* colorSelector{nullptr};
     QCheckBox* fShowCurveBox;
     QCheckBox* fHistEqBox;
     bool showCurve;
