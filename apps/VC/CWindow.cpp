@@ -3,11 +3,11 @@
 #include "CWindow.hpp"
 
 #include <QProgressBar>
+#include <QSettings>
 #include <opencv2/imgproc.hpp>
 
 #include "CVolumeViewerWithCurve.hpp"
 #include "UDataManipulateUtils.hpp"
-#include "vc/core/io/PLYWriter.hpp"
 #include "vc/core/types/Exceptions.hpp"
 #include "vc/meshing/OrderedPointSetMesher.hpp"
 
@@ -16,7 +16,7 @@ using namespace ChaoVis;
 using qga = QGuiApplication;
 
 // Constructor
-CWindow::CWindow(void)
+CWindow::CWindow()
     : fWindowState(EWindowState::WindowStateIdle)
     , fVpkg(nullptr)
     , fSegmentationId("")
@@ -56,61 +56,13 @@ CWindow::CWindow(void)
     OpenSlice();
     UpdateView();
 
-    update();
-}
-
-// Constructor with QRect windowSize
-CWindow::CWindow(QRect windowSize)
-    : fWindowState(EWindowState::WindowStateIdle)
-    , fVpkg(nullptr)
-    , fSegmentationId("")
-    , fMinSegIndex(VOLPKG_SLICE_MIN_INDEX)
-    , fMaxSegIndex(VOLPKG_SLICE_MIN_INDEX)
-    , fPathOnSliceIndex(0)
-    , fVolumeViewerWidget(nullptr)
-    , fPathListWidget(nullptr)
-    , fPenTool(nullptr)
-    , fSegTool(nullptr)
-{
-    ui.setupUi(this);
-
-    fVpkgChanged = false;
-
-    int height = windowSize.height();
-    int width = windowSize.width();
-
-    // MIN DIMENSIONS
-    window()->setMinimumHeight(height / 2);
-    window()->setMinimumWidth(width / 2);
-    // MAX DIMENSIONS
-    window()->setMaximumHeight(height);
-    window()->setMaximumWidth(width);
-
-    // default parameters for segmentation method
-    // REVISIT - refactor me
-    fSegParams.fAlpha = 1.0 / 3.0;
-    fSegParams.fBeta = 1.0 / 3.0;
-    fSegParams.fDelta = 1.0 / 3.0;
-    fSegParams.fK1 = 0.5;
-    fSegParams.fK2 = 0.5;
-    fSegParams.fIncludeMiddle = false;
-    fSegParams.fNumIters = 15;
-    fSegParams.fPeakDistanceWeight = 50;
-    fSegParams.fWindowWidth = 5;
-    fSegParams.targetIndex = 5;
-
-    // create UI widgets
-    CreateWidgets();
-
-    // create menu
-    CreateActions();
-    CreateMenus();
-    CreateBackend();
-
-    OpenSlice();
-    UpdateView();
-
-    update();
+    const QSettings settings;
+    if (settings.contains("mainWin/geometry")) {
+        restoreGeometry(settings.value("mainWin/geometry").toByteArray());
+    }
+    if (settings.contains("mainWin/state")) {
+        restoreState(settings.value("mainWin/state").toByteArray());
+    }
 }
 
 // Destructor
@@ -118,7 +70,6 @@ CWindow::~CWindow(void)
 {
     worker_thread_.quit();
     worker_thread_.wait();
-    deleteNULL(fVpkg);
 }
 
 // Handle mouse press event
@@ -183,6 +134,7 @@ void CWindow::CreateWidgets(void)
             }
             currentVolume = newVolume;
             OnLoadAnySlice(0);
+            setDefaultWindowWidth(newVolume);
         });
 
     assignVol = this->findChild<QPushButton*>("assignVol");
@@ -216,7 +168,9 @@ void CWindow::CreateWidgets(void)
     fEdtK1 = this->findChild<QLineEdit*>("edtK1Val");
     fEdtK2 = this->findChild<QLineEdit*>("edtK2Val");
     fEdtDistanceWeight = this->findChild<QLineEdit*>("edtDistanceWeightVal");
-    fEdtWindowWidth = this->findChild<QLineEdit*>("edtWindowWidthVal");
+    fEdtWindowWidth = this->findChild<QSpinBox*>("edtWindowWidthVal");
+    fEdtWindowWidth->setMinimum(3);
+    fEdtWindowWidth->setValue(5);
     fOptIncludeMiddle = this->findChild<QCheckBox*>("includeMiddleOpt");
     connect(
         fEdtAlpha, SIGNAL(editingFinished()), this,
@@ -232,8 +186,8 @@ void CWindow::CreateWidgets(void)
         fEdtDistanceWeight, SIGNAL(editingFinished()), this,
         SLOT(OnEdtDistanceWeightChange()));
     connect(
-        fEdtWindowWidth, SIGNAL(editingFinished()), this,
-        SLOT(OnEdtWindowWidthChange()));
+        fEdtWindowWidth, &QSpinBox::valueChanged, this,
+        &CWindow::OnEdtWindowWidthChange);
     connect(
         fOptIncludeMiddle, SIGNAL(clicked(bool)), this,
         SLOT(OnOptIncludeMiddleClicked(bool)));
@@ -344,6 +298,9 @@ void CWindow::closeEvent(QCloseEvent* closing)
     } else {
         closing->ignore();
     }
+    QSettings settings;
+    settings.setValue("mainWin/geometry", saveGeometry());
+    settings.setValue("mainWin/state", saveState());
 }
 
 void CWindow::setWidgetsEnabled(bool state)
@@ -358,10 +315,10 @@ void CWindow::setWidgetsEnabled(bool state)
 
 bool CWindow::InitializeVolumePkg(const std::string& nVpkgPath)
 {
-    deleteNULL(fVpkg);
+    fVpkg = nullptr;
 
     try {
-        fVpkg = new volcart::VolumePkg(nVpkgPath);
+        fVpkg = vc::VolumePkg::New(nVpkgPath);
     } catch (...) {
         std::cerr << "VC::Error: Volume package failed to initialize."
                   << std::endl;
@@ -378,17 +335,24 @@ bool CWindow::InitializeVolumePkg(const std::string& nVpkgPath)
             "Volume package failed to load. Package might be corrupt.");
         return false;
     }
-
     return true;
+}
+
+void CWindow::setDefaultWindowWidth(vc::Volume::Pointer volume)
+{
+    // Update window width based on selected volume
+    auto winWidth = std::ceil(fVpkg->materialThickness() / volume->voxelSize());
+    fEdtWindowWidth->setValue(static_cast<int>(winWidth));
 }
 
 CWindow::SaveResponse CWindow::SaveDialog(void)
 {
     // Return if nothing has changed
-    if (!fVpkgChanged)
+    if (not fVpkgChanged) {
         return SaveResponse::Continue;
+    }
 
-    QMessageBox::StandardButton response = QMessageBox::question(
+    const auto response = QMessageBox::question(
         this, "Save changes?",
         tr("Changes will be lost! Save volume package before continuing?\n"),
         QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
@@ -399,11 +363,10 @@ CWindow::SaveResponse CWindow::SaveDialog(void)
         case QMessageBox::Discard:
             fVpkgChanged = false;
             return SaveResponse::Continue;
-        case QMessageBox::Cancel:
-            return SaveResponse::Cancelled;
         default:
-            return SaveResponse::Cancelled;  // should never be reached
+            return SaveResponse::Cancelled;
     }
+    return SaveResponse::Cancelled;
 }
 
 // Update the widgets
@@ -431,7 +394,7 @@ void CWindow::UpdateView(void)
     fEdtK2->setText(QString("%1").arg(fSegParams.fK2));
     fEdtDistanceWeight->setText(
         QString("%1").arg(fSegParams.fPeakDistanceWeight));
-    fEdtWindowWidth->setText(QString("%1").arg(fSegParams.fWindowWidth));
+    fEdtWindowWidth->setValue(fSegParams.fWindowWidth);
     fEdtStartIndex->setText(QString("%1").arg(fPathOnSliceIndex));
 
     if (fPathOnSliceIndex + fEndTargetOffset >= currentVolume->numSlices()) {
@@ -520,7 +483,7 @@ void CWindow::SplitCloud(void)
     if (fPathOnSliceIndex > fMinSegIndex) {
         fUpperPart = fMasterCloud.copyRows(0, pathIndex);
     } else {
-        fUpperPart = volcart::OrderedPointSet<cv::Vec3d>(fMasterCloud.width());
+        fUpperPart = vc::OrderedPointSet<cv::Vec3d>(fMasterCloud.width());
     }
 
     // Lower part, the starting path
@@ -558,7 +521,7 @@ void CWindow::DoSegmentation(void)
     }
 
     // 2) do segmentation from the starting slice
-    volcart::segmentation::LocalResliceSegmentation segmenter;
+    vc::segmentation::LocalResliceSegmentation segmenter;
     segmenter.setChain(fStartingPath);
     segmenter.setVolume(currentVolume);
     segmenter.setMaterialThickness(fVpkg->materialThickness());
@@ -650,12 +613,7 @@ bool CWindow::SetUpSegParams(void)
         return false;
     }
 
-    aNewVal = fEdtWindowWidth->text().toInt(&aIsOk);
-    if (aIsOk) {
-        fSegParams.fWindowWidth = aNewVal;
-    } else {
-        return false;
-    }
+    fSegParams.fWindowWidth = fEdtWindowWidth->value();
 
     fSegParams.fIncludeMiddle = fOptIncludeMiddle->isChecked();
 
@@ -829,8 +787,6 @@ void CWindow::OpenVolume()
     for (const auto& id : fVpkg->volumeIDs()) {
         volSelect->addItem(QString::fromStdString(id));
     }
-    fSegParams.fWindowWidth = static_cast<int>(
-        std::ceil(fVpkg->materialThickness() / currentVolume->voxelSize()));
 }
 
 void CWindow::CloseVolume(void)
@@ -1084,17 +1040,9 @@ void CWindow::OnEdtDistanceWeightChange()
     }
 }
 
-void CWindow::OnEdtWindowWidthChange()
+void CWindow::OnEdtWindowWidthChange(int newVal)
 {
-    bool aIsOk;
-    int aNewVal = fEdtWindowWidth->text().toInt(&aIsOk);
-    if (aIsOk) {
-        if (aNewVal < 1) {
-            aNewVal = 1;
-        }
-        fEdtWindowWidth->setText(QString::number(aNewVal));
-        fSegParams.fWindowWidth = aNewVal;
-    }
+    fSegParams.fWindowWidth = newVal;
 }
 
 void CWindow::OnOptIncludeMiddleClicked(bool clicked)

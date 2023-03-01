@@ -2,14 +2,16 @@
 // Chao Du 2015 April
 #include "CVolumeViewerWithCurve.hpp"
 
+#include <QSettings>
 #include <opencv2/imgproc.hpp>
 
+#include "ColorFrame.hpp"
 #include "UDataManipulateUtils.hpp"
 
 using namespace ChaoVis;
 
 // Constructor
-CVolumeViewerWithCurve::CVolumeViewerWithCurve(void)
+CVolumeViewerWithCurve::CVolumeViewerWithCurve()
     : fShowCurveBox(nullptr)
     , fHistEqBox(nullptr)
     , showCurve(true)
@@ -21,6 +23,21 @@ CVolumeViewerWithCurve::CVolumeViewerWithCurve(void)
     , fImpactRange(5)
     , fViewState(EViewState::ViewStateIdle)
 {
+    QSettings settings;
+    colorSelector = new ColorFrame(this);
+    colorSelector->setFixedSize(16, 16);
+    auto color = settings.value("volumeViewer/curveColor", QColor("blue"))
+                     .value<QColor>();
+    colorSelector->setColor(color);
+    fButtonsLayout->addWidget(colorSelector);
+    connect(
+        colorSelector, &ColorFrame::colorChanged, this,
+        &CVolumeViewerWithCurve::UpdateView);
+    connect(colorSelector, &ColorFrame::colorChanged, [](const QColor& c) {
+        QSettings settings;
+        settings.setValue("volumeViewer/curveColor", c);
+    });
+
     // show curve box
     fShowCurveBox = new QCheckBox(this);
     fShowCurveBox->setChecked(true);
@@ -46,9 +63,6 @@ CVolumeViewerWithCurve::CVolumeViewerWithCurve(void)
 
     UpdateButtons();
 }
-
-// Destructor
-CVolumeViewerWithCurve::~CVolumeViewerWithCurve(void) {}
 
 // Set image
 void CVolumeViewerWithCurve::SetImage(const QImage& nSrc)
@@ -107,14 +121,25 @@ void CVolumeViewerWithCurve::UpdateView(void)
     }
 
     if (fViewState == EViewState::ViewStateDraw) {
+        // get secondary color
+        int h{0}, s{0}, v{0};
+        colorSelector->color().getHsv(&h, &s, &v);
+        h += 180;
+        if (h >= 360) {
+            h = h - 360;
+        }
+        auto secondary = QColor::fromHsv(h, 255, 255);
+        int r{0}, g{0}, b{0};
+        secondary.getRgb(&r, &g, &b);
         if (fSplineCurveRef != nullptr) {
-            fSplineCurveRef->DrawOnImage(fImgMat, cv::Scalar(0, 0, 255));
+            fSplineCurveRef->DrawOnImage(fImgMat, cv::Scalar(b, g, r));
         }
 
+        // get primary color
+        colorSelector->color().getRgb(&r, &g, &b);
         for (size_t i = 0; i < fControlPoints.size(); ++i) {
-            cv::circle(
-                fImgMat, cv::Point2f(fControlPoints[i]), 1,
-                cv::Scalar(255, 0, 0));
+            auto p = fControlPoints[i] - cv::Vec2f{0.5, 0.5};
+            cv::circle(fImgMat, cv::Point2f(p), 1, cv::Scalar(b, g, r));
         }
     } else {
         if (fIntersectionCurveRef != nullptr && showCurve) {
@@ -292,13 +317,17 @@ int CVolumeViewerWithCurve::SelectPointOnCurve(
 void CVolumeViewerWithCurve::DrawIntersectionCurve(void)
 {
     if (fIntersectionCurveRef != nullptr) {
+        int r{0};
+        int g{0};
+        int b{0};
+        colorSelector->color().getRgb(&r, &g, &b);
         for (size_t i = 0; i < fIntersectionCurveRef->GetPointsNum(); ++i) {
             cv::circle(
                 fImgMat,
                 cv::Point2d(
                     fIntersectionCurveRef->GetPoint(i)[0],
                     fIntersectionCurveRef->GetPoint(i)[1]),
-                1, cv::Scalar(255, 0, 0));
+                1, cv::Scalar(b, g, r));
         }
     }
 }
