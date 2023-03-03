@@ -144,6 +144,7 @@ pages:
     - export VERSION=$(utils/scripts/version-gen.sh)
     - export VERSHORT=$(utils/scripts/version-gen.sh --short)
     - export SHA=$(git log -1 --format="%h")
+    - export ARCH=$(uname -m)
 
 .rules:release: &rules_release
     - if: '$CI_COMMIT_TAG =~ /^v.*$/'
@@ -164,26 +165,27 @@ pages:
     extends: .build
     variables:
         CMAKE_PREFIX_PATH: "/usr/local/Qt/6.4.2/macos/lib/cmake/"
+        CMAKE_INSTALL_PREFIX: "packaged_install/"
         EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON"
         MACOSX_DEPLOYMENT_TARGET: "12.3"
     before_script:
-        - export VC_DEPS_PATH="$CI_PROJECT_DIR/vc-deps"
-        - export CMAKE_CMD="cmake -GNinja $EXTRA_CMAKE_FLAGS .."
         - git submodule update --init
-        - cd vc-deps/
-        - mkdir -p build/
-        - cd build/
-        - cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_MESSAGE=NEVER -DVCDEPS_BUILD_ACVD=OFF ..
-        - ninja
-        - cd ../../
+        - cmake -S vc-deps/ -B vc-deps/build/ -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_MESSAGE=NEVER -DVCDEPS_BUILD_ACVD=OFF
+        - cmake --build vc-deps/build/
     script:
-        - *build_script
-        - ninja package
-        - mv VC*.dmg ../
+        - cmake -S . -B build/ -GNinja ${EXTRA_CMAKE_FLAGS}
+        - cmake --build build/
+        - cmake --install build/ --prefix ${CMAKE_INSTALL_PREFIX}
+        - *deploy_variables
+        - PKG_NAME="VC-${VERSHORT}-${ARCH}.zip"
+        - ditto -c -k ${CMAKE_INSTALL_PREFIX} ${PKG_NAME}
+        - echo "PACKAGE_NAME=${PKG_NAME}" >> collect.env
     artifacts:
         name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
         paths:
-            - ./*.dmg
+            - ./*.zip
+        reports:
+            dotenv: collect.env
         expire_in: 1 day
     tags:
         - macos
@@ -196,10 +198,13 @@ collect:binaries:macos:release:
     rules:
         *rules_release
     script:
-        - *build_script
-        - ninja package
-        - PKG_STEM="VC-${CI_COMMIT_TAG:1}-Darwin-arm64"
-        - mv VC*.dmg ../${PKG_STEM}.dmg
+        - cmake -S . -B build/ -GNinja ${EXTRA_CMAKE_FLAGS}
+        - cmake --build build/
+        - cmake --install build/ --prefix ${CMAKE_INSTALL_PREFIX}
+        - *deploy_variables
+        - PKG_NAME="VC-${CI_COMMIT_TAG:1}-Darwin-${ARCH}.zip"
+        - ditto -c -k ${CMAKE_INSTALL_PREFIX} ${PKG_NAME}
+        - echo "PACKAGE_NAME=${PKG_NAME}" >> collect.env
 
 collect:binaries:macos:nightly:
     extends:
@@ -241,8 +246,9 @@ release:create:github:
         - apt install gh -y
     script:
         - >
-            gh release create "$CI_COMMIT_TAG" 
-            VC-${CI_COMMIT_TAG:1}-Darwin-arm64.dmg
+            gh release create 
+            "$CI_COMMIT_TAG" 
+            "${PACKAGE_NAME}"
             -R educelab/volume-cartographer
             --verify-tag 
             --title "Version ${CI_COMMIT_TAG:1}"
