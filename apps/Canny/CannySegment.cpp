@@ -221,6 +221,7 @@ auto main(int argc, char* argv[]) -> int
         const QApplication app(argc, argv);
         QGuiApplication::setApplicationDisplayName(QObject::tr("Canny Viewer"));
         CannyViewerWindow viewer(&cannySettings, volume);
+        viewer.setWindowTitle("Canny Segment");
         viewer.show();
         if (QApplication::exec() == EXIT_FAILURE) {
             return EXIT_FAILURE;

@@ -36,24 +36,28 @@ jobs:
 
       - name: Build volume-cartographer
         run: |
+          export CMAKE_INSTALL_PREFIX="packaged_install/"
           cmake -S . -B build/ -GNinja ${EXTRA_CMAKE_FLAGS} -DCMAKE_PREFIX_PATH=${{ github.workspace }}/Qt/${QT_VERSION}/macos/lib/cmake/
           cmake --build build/
+          echo "install_dir=${CMAKE_INSTALL_PREFIX}" >> ${GITHUB_ENV}
 
-      - name: Create packages
+      - name: Create package
         run: |
-          cmake --build build/ --target package
-          mv build/VC*.dmg VC-${GITHUB_REF_NAME:1}-Darwin-x86_64.dmg
+          cmake --install build/ --prefix "${{ env.install_dir }}"
+          ARCH=$(uname -m)
+          PKG_NAME="VC-${GITHUB_REF_NAME:1}-Darwin-${ARCH}.zip"
+          ditto -c -k "${{ env.install_dir }}" ${PKG_NAME}
+          echo "package_name=${PKG_NAME}" >> ${GITHUB_ENV}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v3.1.1
         if: success()
         with:
-          path: VC-${GITHUB_REF_NAME:1}-Darwin-x86_64.dmg
+          path: ${{ env.package_name }}
 
       - name: Upload to release
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
-          mv build/VC*.dmg VC-${GITHUB_REF_NAME:1}-Darwin-x86_64.dmg
-          gh release upload VC-${GITHUB_REF_NAME:1}-Darwin-x86_64.dmg -R $GITHUB_REPOSITORY --clobber
+          gh release upload "${{ env.package_name }}" -R $GITHUB_REPOSITORY --clobber
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

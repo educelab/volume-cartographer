@@ -1,9 +1,7 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunknown-pragmas"
 #pragma ide diagnostic ignored "cppcoreguidelines-avoid-magic-numbers"
-// projection.cpp
-// Seth Parker 10/2015
-// Project the mesh onto a volume in order to check the quality of segmentation
+
 #include <iomanip>
 #include <iostream>
 #include <map>

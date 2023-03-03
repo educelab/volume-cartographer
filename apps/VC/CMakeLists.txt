@@ -26,7 +26,7 @@ endif()
 
 set(copyright "Copyright 2023 EduceLab")
 string(CONCAT info_string
-    ${target}${CMAKE_BUILD_TYPE}
+    ${target}
     " Version ${PROJECT_VERSION}"
     ", "
     ${copyright}

@@ -47,7 +47,6 @@ target_link_libraries(vc_volume_client
 target_include_directories(vc_volume_client PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
-set(extra_apps vc_volume_server)
 endif()
 
 #################
