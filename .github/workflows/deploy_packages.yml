@@ -1,0 +1,67 @@
+name: Deploy packages
+on:
+  workflow_run:
+    workflows: [Unit tests]
+    types: [completed]
+    branches: [develop, migrate-ci]
+#on:
+#  release:
+#    types: [created]
+
+jobs:
+  macos:
+    runs-on: macos-12
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    timeout-minutes: 240
+    env:
+      QT_VERSION: "6.4.2"
+      EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3.3.0
+        with:
+          fetch-depth: 20
+
+      - name: Install Homebrew dependencies
+        run: |
+          brew update
+          brew install ninja python@3.10
+
+      - name: Install Qt6
+        run: |
+          python3.10 -m pip install --upgrade pip setuptools wheel
+          python3.10 -m pip install aqtinstall
+          aqt install-qt -O ${{ github.workspace }}/Qt/ mac desktop ${QT_VERSION}
+
+      - name: Install vc-deps
+        run: |
+          git submodule update --init
+          cmake -S vc-deps/ -B vc-deps/build/ -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_MESSAGE=NEVER -DVCDEPS_BUILD_ACVD=OFF
+          cmake --build vc-deps/build/
+
+      - name: Build volume-cartographer
+        run: |
+          cmake -S . -B build/ -GNinja ${EXTRA_CMAKE_FLAGS} -DCMAKE_PREFIX_PATH=${{ github.workspace }}/Qt/${QT_VERSION}/macos/lib/cmake/
+          cmake --build build/
+
+      - name: Create packages
+        run: |
+          cmake --build build/ --target package
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3.1.1
+        if: success()
+        with:
+          name: "${{ github.job }}"
+          retention-days: 1
+          path: |
+            build/VC*.tar.gz
+            build/VC*.dmg
+
+      - name: Upload to release
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          mv build/VC*.dmg VC-${GITHUB_REF_NAME:1}-Darwin-x86_64.dmg
+          gh release upload VC-${GITHUB_REF_NAME:1}-Darwin-x86_64.dmg -R $GITHUB_REPOSITORY --clobber
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
