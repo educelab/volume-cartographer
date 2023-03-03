@@ -1,12 +1,7 @@
 name: Deploy packages
 on:
-  workflow_run:
-    workflows: [Unit tests]
-    types: [completed]
-    branches: [develop, migrate-ci]
-#on:
-#  release:
-#    types: [created]
+  release:
+    types: [created]
 
 jobs:
   macos:
@@ -47,16 +42,13 @@ jobs:
       - name: Create packages
         run: |
           cmake --build build/ --target package
+          mv build/VC*.dmg VC-${GITHUB_REF_NAME:1}-Darwin-x86_64.dmg
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v3.1.1
         if: success()
         with:
-          name: "${{ github.job }}"
-          retention-days: 1
-          path: |
-            build/VC*.tar.gz
-            build/VC*.dmg
+          path: VC-${GITHUB_REF_NAME:1}-Darwin-x86_64.dmg
 
       - name: Upload to release
         if: startsWith(github.ref, 'refs/tags/v')
