@@ -160,45 +160,6 @@ pages:
     - if: '$CI_COMMIT_BRANCH == "develop" && $CI_PIPELINE_SOURCE == "schedule"'
     - if: '$CI_COMMIT_BRANCH == "develop" && $BUILD_NIGHTLY == "true"'
 
-.collect:source:
-    variables:
-        TARNAME: "source.tar.gz"
-    script:
-        - git archive --format=tar.gz -o ${TARNAME} HEAD
-    artifacts:
-        name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
-        paths:
-            - ./*.tar.gz
-        expire_in: 1 day
-    tags:
-        - source
-
-collect:source:release:
-    extends:
-        - .collect:source
-    stage: collect
-    needs: []
-    rules:
-        *rules_release
-    before_script:
-        - *deploy_variables
-        - export TARNAME="VC-${VERSHORT}-source.tar.gz"
-
-collect:source:nightly:
-    extends:
-        - .collect:source
-    stage: collect
-    needs: []
-    rules:
-        *rules_nightly_collect
-    before_script:
-        - *deploy_variables
-        - export TARNAME="VC-${DATETIME}-${VERSHORT}.${SHA}-source.tar.gz"
-
-.macos_move_package: &macos_move_package
-    - ninja package
-    - mv VC*.dmg ../
-
 .collect:package:macos:
     extends: .build
     variables:
@@ -217,7 +178,8 @@ collect:source:nightly:
         - cd ../../
     script:
         - *build_script
-        - *macos_move_package
+        - ninja package
+        - mv VC*.dmg ../
     artifacts:
         name: "${CI_BUILD_STAGE}_${CI_BUILD_REF_NAME}"
         paths:
@@ -233,6 +195,11 @@ collect:binaries:macos:release:
     stage: collect
     rules:
         *rules_release
+    script:
+        - *build_script
+        - ninja package
+        - PKG_STEM="VC-${CI_COMMIT_TAG:1}-Darwin-arm64"
+        - mv VC*.dmg ../${PKG_STEM}.dmg
 
 collect:binaries:macos:nightly:
     extends:
@@ -243,10 +210,10 @@ collect:binaries:macos:nightly:
     variables:
         EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_VERSION_DATESTAMP=ON -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON"
 
-release:create:
+release:create:gitlab:
     stage: release
     image: registry.gitlab.com/gitlab-org/release-cli:edge
-    needs: ["collect:source:release", "collect:binaries:macos:release"]
+    needs: ["collect:binaries:macos:release"]
     rules:
         *rules_release
     script:
@@ -256,5 +223,31 @@ release:create:
             --description "Auto-created release $CI_COMMIT_TAG"
             --tag-name "$CI_COMMIT_TAG"
             --ref "$CI_COMMIT_TAG"
+    tags:
+        - docker
+
+release:create:github:
+    stage: release
+    image: debian:bullseye
+    needs: ["collect:binaries:macos:release"]
+    rules:
+      *rules_release
+    before_script:
+        - type -p curl >/dev/null || (apt update && apt install curl -y)
+        - >
+            curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+            && chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+            && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+            && apt update \
+            && apt install gh -y
+    script:
+        - >
+            gh release create "$CI_COMMIT_TAG" 
+            VC-${CI_COMMIT_TAG:1}-Darwin-arm64.dmg
+            -R educelab/volume-cartographer
+            --verify-tag 
+            --title "Version ${CI_COMMIT_TAG:1}"
+            --generate-notes
+            --draft
     tags:
         - docker

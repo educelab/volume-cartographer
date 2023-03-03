@@ -3,6 +3,7 @@ if(VC_BUILD_JSON)
     FetchContent_Declare(
         json
         URL https://github.com/nlohmann/json/archive/v3.10.2.tar.gz
+        DOWNLOAD_EXTRACT_TIMESTAMP ON
     )
 
     FetchContent_GetProperties(json)
