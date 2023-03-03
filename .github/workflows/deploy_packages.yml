@@ -1,7 +1,7 @@
 name: Deploy packages
 on:
   release:
-    types: [created]
+    types: [published]
 
 jobs:
   macos:
