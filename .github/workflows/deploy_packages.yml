@@ -57,6 +57,6 @@ jobs:
       - name: Upload to release
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
-          gh release upload "${{ env.package_name }}" -R $GITHUB_REPOSITORY --clobber
+          gh release upload ${{ github.ref_name }} "${{ env.package_name }}" -R ${{ github.repository }} --clobber
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
