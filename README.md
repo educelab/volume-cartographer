@@ -168,7 +168,7 @@ General Options:
 ```
 
 To run the GUI tools, you must additionally set up [X11 forwarding from the
-container](docker/running-gui-tools.md).
+container](docs/pages/running-gui-tools.md).
 
 ## Documentation
 Visit our full library documentation
