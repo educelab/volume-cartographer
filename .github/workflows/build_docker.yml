@@ -17,10 +17,10 @@ jobs:
         with:
           images: ghcr.io/educelab/volume-cartographer
           tags: |
-            type=ref,event=branch
             type=ref,event=pr
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=edge,enable={{is_default_branch}}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -37,7 +37,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v3
         with:
           push: ${{ github.event_name != 'pull_request' }}
           platforms: linux/amd64,linux/arm64
