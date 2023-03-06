@@ -43,6 +43,7 @@ jobs:
       - name: Create package
         run: |
           cmake --install build/ --prefix "${{ env.install_dir }}"
+          python3.10 utils/scripts/macos_codesign_release.py -i "${{ env.install_dir }}"
           ARCH=$(uname -m)
           PKG_NAME="VC-${GITHUB_REF_NAME:1}-Darwin-${ARCH}.zip"
           ditto -c -k "${{ env.install_dir }}" ${PKG_NAME}

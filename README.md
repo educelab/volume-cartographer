@@ -143,8 +143,11 @@ Container Registry. Simply pull our container and Docker will select the
 appropriate image for your host platform:
 
 ```shell
-# Pull the latest image
-docker pull ghcr.io/educelab/volume-cartographer
+# Pull the latest release
+docker pull ghcr.io/educelab/volume-cartographer:latest
+
+# Pull the latest edge version
+docker pull ghcr.io/educelab/volume-cartographer:edge 
 
 # Pull a specific version
 docker pull ghcr.io/educelab/volume-cartographer:2.24.0
