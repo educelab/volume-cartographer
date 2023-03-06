@@ -20,7 +20,7 @@ endif()
 # getting installed
 if(install_components)
 install(
-  FILES "LICENSE"
+  FILES "LICENSE" "NOTICE"
   DESTINATION "${share_install_dir}"
   COMPONENT Resources
 )

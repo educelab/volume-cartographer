@@ -176,6 +176,7 @@ pages:
         - cmake -S . -B build/ -GNinja ${EXTRA_CMAKE_FLAGS}
         - cmake --build build/
         - cmake --install build/ --prefix ${CMAKE_INSTALL_PREFIX}
+        - python3 utils/scripts/macos_codesign_release.py -i ${CMAKE_INSTALL_PREFIX}
         - *deploy_variables
         - PKG_NAME="VC-${VERSHORT}-${ARCH}.zip"
         - ditto -c -k ${CMAKE_INSTALL_PREFIX} ${PKG_NAME}
@@ -201,6 +202,7 @@ collect:binaries:macos:release:
         - cmake -S . -B build/ -GNinja ${EXTRA_CMAKE_FLAGS}
         - cmake --build build/
         - cmake --install build/ --prefix ${CMAKE_INSTALL_PREFIX}
+        - python3 utils/scripts/macos_codesign_release.py -i ${CMAKE_INSTALL_PREFIX}
         - *deploy_variables
         - PKG_NAME="VC-${CI_COMMIT_TAG:1}-Darwin-${ARCH}.zip"
         - ditto -c -k ${CMAKE_INSTALL_PREFIX} ${PKG_NAME}
