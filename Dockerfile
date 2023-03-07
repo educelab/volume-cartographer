@@ -9,7 +9,6 @@ RUN export CMAKE_PREFIX_PATH="/usr/local/Qt-6.4.2/" \
       -B /volume-cartographer/build/ \
       -GNinja  \
       -DCMAKE_BUILD_TYPE=Release  \
-      -DBUILD_SHARED_LIBS=ON \
       -DCMAKE_INSTALL_RPATH=/usr/local/Qt-6.4.2/lib \
       -DVC_BUILD_ACVD=ON  \
     && cmake --build /volume-cartographer/build/ \
