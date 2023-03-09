@@ -1,11 +1,61 @@
 [![Volume Cartographer](docs/images/banner.svg)](https://github.com/educelab/volume-cartographer)
 
-**Volume Cartographer** is a cross-platform C++ library and toolkit for
+**Volume Cartographer** is a toolkit and set of cross-platform C++ libraries for
 virtually unwrapping volumetric datasets. It was designed to recover text from
 CT scans of ancient, badly damaged manuscripts, but can be applied in many
 volumetric analysis applications.
 
-## Installation
+## Install using Homebrew
+We provide pre-built binaries for our tools through our 
+[Homebrew Casks tap](https://github.com/educelab/homebrew-casks):
+
+```shell
+brew install --no-quarantine educelab/casks/volume-cartographer
+```
+
+Our binaries are signed with a generic signature and thus will not natively pass
+macOS's Gatekeeper on Apple Silicon devices. Since many of our tools are run 
+from the command line, which suggest installing using Homebrew's 
+`--no-quarantine` flag.
+
+
+## Install using Docker
+We provide multi-architecture (`amd64` and `arm64`) Docker images in the GitHub
+Container Registry. Simply pull our container and Docker will select the
+appropriate image for your host platform:
+
+```shell
+# Pull the latest release
+docker pull ghcr.io/educelab/volume-cartographer:latest
+
+# Pull the latest edge version
+docker pull ghcr.io/educelab/volume-cartographer:edge 
+
+# Pull a specific version
+docker pull ghcr.io/educelab/volume-cartographer:2.24.0
+```
+
+Tools can be launched directly using `docker run`:
+
+```shell
+$ docker run ghcr.io/educelab/volume-cartographer vc_render --help
+Usage:
+
+General Options:
+  -h [ --help ]                         Show this message
+  --cache-memory-limit arg              Maximum size of the slice cache in 
+                                        bytes. Accepts the suffixes: 
+                                        (K|M|G|T)(B). Default: 50% of the total
+                                        system memory.
+  --log-level arg (=info)               Options: off, critical, error, warn, 
+                                        info, debug
+...
+```
+
+To run the GUI tools, you must additionally set up [X11 forwarding from the
+container](docs/pages/running-gui-tools.md).
+
+## Install from source
 ### Dependencies
 **Required**
 * C++17 compiler
@@ -136,42 +186,6 @@ ctest -V
 # Run tests with the test target
 make test
 ```
-
-## Docker
-We provide multi-architecture (`amd64` and `arm64`) Docker images in the GitHub
-Container Registry. Simply pull our container and Docker will select the
-appropriate image for your host platform:
-
-```shell
-# Pull the latest release
-docker pull ghcr.io/educelab/volume-cartographer:latest
-
-# Pull the latest edge version
-docker pull ghcr.io/educelab/volume-cartographer:edge 
-
-# Pull a specific version
-docker pull ghcr.io/educelab/volume-cartographer:2.24.0
-```
-
-Tools can be launched directly using `docker run`:
-
-```shell
-$ docker run ghcr.io/educelab/volume-cartographer vc_render --help
-Usage:
-
-General Options:
-  -h [ --help ]                         Show this message
-  --cache-memory-limit arg              Maximum size of the slice cache in 
-                                        bytes. Accepts the suffixes: 
-                                        (K|M|G|T)(B). Default: 50% of the total
-                                        system memory.
-  --log-level arg (=info)               Options: off, critical, error, warn, 
-                                        info, debug
-...
-```
-
-To run the GUI tools, you must additionally set up [X11 forwarding from the
-container](docs/pages/running-gui-tools.md).
 
 ## Documentation
 Visit our full library documentation
