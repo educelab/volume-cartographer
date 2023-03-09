@@ -1,10 +1,17 @@
 name: Unit tests
-on: [push, pull_request]
+on:
+  push:
+    branches: ["develop"]
+  pull_request:
+    branches:
+      - "develop"
+
 concurrency:
   group: "${{ github.ref }}"
   cancel-in-progress: true
 jobs:
   debian_static:
+    name: Debian 11 (static libraries)
     runs-on: ubuntu-latest
     container: ghcr.io/educelab/ci-docker:11_v2.static
     if: ${{ github.event_name }} == "merge_request_event" || !(${{ github.ref }} && $CI_OPEN_MERGE_REQUESTS) || ${{ github.ref }}
@@ -27,6 +34,7 @@ jobs:
       run: ctest -V --test-dir build/
 
   debian_dynamic:
+    name: Debian 11 (shared libraries)
     runs-on: ubuntu-latest
     container: ghcr.io/educelab/ci-docker:11_v2.dynamic
     if: ${{ github.event_name }} == "merge_request_event" || !(${{ github.ref }} && $CI_OPEN_MERGE_REQUESTS) || ${{ github.ref }}

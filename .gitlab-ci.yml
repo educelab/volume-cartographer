@@ -233,7 +233,7 @@ release:create:gitlab:
     tags:
         - docker
 
-release:create:github:
+release:upload:github:
     stage: release
     image: debian:bullseye
     needs: ["collect:binaries:macos:release"]
@@ -248,13 +248,10 @@ release:create:github:
         - apt install gh -y
     script:
         - >
-            gh release create 
+            gh release upload
             "$CI_COMMIT_TAG" 
             "${PACKAGE_NAME}"
             -R educelab/volume-cartographer
-            --verify-tag 
-            --title "Version ${CI_COMMIT_TAG:1}"
-            --generate-notes
-            --draft
+            --clobber
     tags:
         - docker

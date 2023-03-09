@@ -4,11 +4,14 @@ on:
     branches: ["develop"]
     tags: ["v*"]
   pull_request:
+    types: [ labeled ]
     branches:
       - "develop"
 
 jobs:
   docker:
+    name: Build Docker image
+    if: ${{ github.event.label.name == 'build-docker-image' }}
     runs-on: ubuntu-latest
     steps:
       - name: Extract Docker metadata
