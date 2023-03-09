@@ -1,10 +1,23 @@
-name: Deploy packages
+name: Deploy release
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - v*
 
 jobs:
+  create_release:
+    name: Create GitHub release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Creating release
+        run: |
+          export TAG="${{ github.ref_name }}"
+          gh release create ${{ github.ref_name }} -R ${{ github.repository }} --verify-tag --title "Version ${TAG:1}" --generate-notes --draft
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   macos:
+    name: Create macOS package (Intel)
+    needs: create_release
     runs-on: macos-12
     timeout-minutes: 240
     env:
