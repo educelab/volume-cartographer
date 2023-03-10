@@ -154,7 +154,7 @@ cmake --build build/
 
 #### Linking against Qt
 It might be necessary to point CMake to your Qt installation. For example:
-```
+```shell
 # macOS (Apple Silicon), Qt6 installed via Homebrew
 cmake -S . -B build/ -DCMAKE_PREFIX_PATH=/opt/homebrew/opt/qt/lib/cmake/
 
