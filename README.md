@@ -13,23 +13,23 @@ We provide pre-built binaries for our tools through our
 brew install --no-quarantine educelab/casks/volume-cartographer
 ```
 
-Our binaries are signed with a generic signature and thus will not natively pass
-macOS's Gatekeeper on Apple Silicon devices. Since many of our tools are run 
-from the command line, which suggest installing using Homebrew's 
+Our binaries are signed with a generic signature and thus do not pass macOS 
+Gatekeeper on Apple Silicon devices without explicit approval. Since many of 
+our tools are run from the command line, we suggest installing with Homebrew's 
 `--no-quarantine` flag.
 
 
 ## Install using Docker
-We provide multi-architecture (`amd64` and `arm64`) Docker images in the GitHub
-Container Registry. Simply pull our container and Docker will select the
-appropriate image for your host platform:
+We provide multi-architecture Docker images in the GitHub Container Registry. 
+Simply pull our container and Docker will select the appropriate image for your 
+host platform:
 
 ```shell
 # Pull the latest release
 docker pull ghcr.io/educelab/volume-cartographer:latest
 
 # Pull the latest edge version
-docker pull ghcr.io/educelab/volume-cartographer:edge 
+docker pull ghcr.io/educelab/volume-cartographer:edge
 
 # Pull a specific version
 docker pull ghcr.io/educelab/volume-cartographer:2.24.0
@@ -52,14 +52,20 @@ General Options:
 ...
 ```
 
-To run the GUI tools, you must additionally set up [X11 forwarding from the
-container](docs/pages/running-gui-tools.md).
+To run the GUI tools, you must additionally set up 
+[X11 forwarding from the container](docs/pages/running-gui-tools.md).
 
 ## Install from source
+### Supported platforms
+This project is primarily developed and tested on macOS and Debian/Ubuntu
+systems. Though it should compile with any C++17 compiler using the Itanium ABI,
+this has not been tested on Windows. We are accepting contributions to
+explicitly support other platforms.
+
 ### Dependencies
 **Required**
-* C++17 compiler
-* CMake 3.11+
+* C++17 compiler which uses the Itanium ABI
+* CMake 3.24+
 * OpenCV 3+
 * Insight Toolkit (itk) 4.10+
 * Visualization Toolkit (vtk) 7 or 8
@@ -80,115 +86,103 @@ documentation.
 * [pybind11](https://github.com/pybind/pybind11): Required to build Python
 bindings.
 
-#### (macOS) Homebrew packages
+#### (macOS) Homebrew-provided dependencies
 In principle, Homebrew can be used to install all of Volume Cartographer's 
-dependencies. However, at the time of this writing, the `vtk` brew package links 
-against Qt5 while Volume Cartographer links against Qt6. This will lead to 
-linking errors when compiling this library. To use the brew version of VTK, 
-you can disable building the VC GUI apps with the `-DVC_BUILD_GUI=OFF` CMake 
-flag. Otherwise, you must build VTK from source or follow the instructions for 
-[building vc-deps dependencies](#(Optional)-Use-vc-deps-dependencies) below.
+dependencies. However at the time of this writing, the `vtk` brew package links 
+against Qt5 while the Volume Cartographer GUIs link against Qt6. This will lead 
+to linking errors when compiling this project. To use the Homebrew version of 
+VTK, you must disable compilation of the VC GUI apps with the 
+`-DVC_BUILD_GUI=OFF` CMake flag. Otherwise, you must build VTK from source or 
+follow the instructions for 
+[building vc-deps dependencies](#(Optional)-Use-vc-deps-dependencies).
 
 ### Compilation  
 This project is built and installed using the CMake build system. If you have
 already installed the dependencies listed above, compilation should be as simple
-as:  
+as:
+
 ```shell
 git clone https://github.com/educelab/volume-cartographer.git
 cd volume-cartographer
-mkdir build
-cd build
-cmake ..
-make
+cmake -S . -B build/ -DCMAKE_BUILD_TYPE=Release
+cmake --build build/
 ```
 
 Many `volume-cartographer` libraries can be built in parallel, and compilation
-times will be improved by running `make -j4`. Alternatively, you can use CMake
-to generate [Ninja](https://ninja-build.org/) build system files:  
+times will be improved by running `cmake --build build/ -j4`. Alternatively, 
+you can use CMake to generate [Ninja](https://ninja-build.org/) build system 
+files:  
 ```shell
-cmake -GNinja ..
-ninja
+cmake -S . -B build/ -GNinja -DCMAKE_BUILD_TYPE=Release
+cmake --build build/  # automatically builds in parallel with Ninja
 ```
 
 To install the compiled software and libraries to the `CMAKE_INSTALL_PREFIX`,
 run the `install` target:
 ```shell
-make install
+cmake --install build/ # --prefix ~/custom/install/prefix/
 ```
-
-To generate an installer package, run the `package` target:
-```shell
-make package
-```
-
-This suite is primarily developed and tested on macOS and Debian. Though it
-should compile on other Unix/Linux systems and Windows, this has not been
-tested. We are accepting contributions to explicitly support other platforms.
 
 #### (Optional) Use vc-deps dependencies
 To assist with installing dependencies, we have created the
 [vc-deps project](https://github.com/educelab/vc-deps). While this project can
-be used on its own to install the dependencies to the system, we also provide
-it as a git submodule within `volume-cartographer`. Note that `vc-deps`
-**does not** install CMake or Qt.  
+be used on its own to install volume-cartographer dependencies to the system, it
+is also available as a git submodule within `volume-cartographer`. Note that 
+`vc-deps` **does not** install CMake or Qt.
 
-To build and link against in-source `vc-deps` libraries, run the following:  
+To build and link against the in-source `vc-deps` libraries, run the following:  
 ```shell
 # Get the source code plus all submodules
 git clone --recursive https://github.com/educelab/volume-cartographer.git
+cd volume-cartographer
+
+# If you already cloned volume-cartographer
+# git submodule update --init
 
 # (macOS only)
 # brew install boost qt
 # brew unlink qt
 
 # Build vc-deps
-cd volume-cartographer/vc-deps
-mkdir -p build && cd build
-# (macOS) Add flag: -DVCDEPS_BUILD_BOOST=OFF
-cmake -DCMAKE_BUILD_TYPE=Debug .. 
-make -j
-
-# Return to the volume-cartographer directory
-cd ../..
+cmake -S vc-deps/ -B vc-deps/build/ -DCMAKE_BUILD_TYPE=Release  # -DVCDEPS_BUILD_BOOST=OFF (if Boost already installed)
+cmake --build vc-deps/build/
 
 # Build volume-cartographer
-mkdir -p build && cd build
-# (macOS) Add -DCMAKE_PREFIX_PATH flag from the Qt section below
-cmake -DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON ..
-make -j
+cmake -S . -B build/ -DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON
+cmake --build build/
 ```
 
 #### Linking against Qt
 It might be necessary to point CMake to your Qt installation. For example:
 ```
 # macOS (Apple Silicon), Qt6 installed via Homebrew
-cmake -DCMAKE_PREFIX_PATH=/opt/homebrew/opt/qt/lib/cmake/ ..
+cmake -S . -B build/ -DCMAKE_PREFIX_PATH=/opt/homebrew/opt/qt/lib/cmake/
 
 # macOS (Intel), Qt6 installed via Homebrew
-cmake -DCMAKE_PREFIX_PATH=/usr/local/opt/qt/lib/cmake/ ..
+cmake -S . -B build/ -DCMAKE_PREFIX_PATH=/usr/local/opt/qt/lib/cmake/
 
 # Ubuntu, Qt6 installed from source
-cmake -DCMAKE_PREFIX_PATH=/usr/local/Qt-6.4.2/lib/cmake/ ..
+cmake -S . -B build/ -DCMAKE_PREFIX_PATH=/usr/local/Qt-6.4.2/lib/cmake/
 ```
 
 ### Unit tests
 This project is instrumented with unit tests using the Google Test framework.
 To enable test compilation, set the `VC_BUILD_TESTS` flag to on:
 ```shell
-cmake -DVC_BUILD_TESTS=ON ..
+cmake -S . -B build/ -DVC_BUILD_TESTS=ON
 ```
 
 Tests can then be run using CTest or by running the `test` target:
 ```shell
-# Print verbose output with ctest
-ctest -V
+# Print summary output with the test target
+cmake --build build/ --target test
 
-# Run tests with the test target
-make test
+# Print verbose output with ctest
+ctest -V --test-dir build/
 ```
 
-## Documentation
-Visit our full library documentation
+## API Documentation
+Visit our API documentation
 [here](https://educelab.gitlab.io/volume-cartographer/docs/).
 
 Library documentation is built using Doxygen and can be enabled/disabled by
@@ -197,7 +191,7 @@ This option is unavailable if Doxygen is not found. Documentation will be
 installed with the `install` target if the `VC_INSTALL_DOCS` flag is enabled.
 
 ```shell
-cmake -DVC_BUILD_DOCS=ON -DVC_INSTALL_DOCS=ON ..
+cmake -S . -B build/ -DVC_BUILD_DOCS=ON -DVC_INSTALL_DOCS=ON
 ```
 
 ## Python bindings
@@ -207,7 +201,7 @@ a work-in-progress and should not be used in production code.
 Bindings can be built and installed by setting the
 `VC_BUILD_PYTHON_BINDINGS` and `VC_INSTALL_PYTHON_BINDINGS` flags:
 ```shell
-cmake -DVC_BUILD_PYTHON_BINDINGS=ON -DVC_INSTALL_PYTHON_BINDINGS=ON ..
+cmake -S . -B build/ -DVC_BUILD_PYTHON_BINDINGS=ON -DVC_INSTALL_PYTHON_BINDINGS=ON
 ```
 
 To use these bindings in Python after installation, import from the
@@ -231,10 +225,10 @@ If using `vc-deps` to build the dependency libraries, set the appropriate CMake
 flags:
 ```shell
 # Build shared libraries (preferred)
-cmake -DBUILD_SHARED_LIBS=ON ..
+cmake -S . -B vc-deps/build/ -DBUILD_SHARED_LIBS=ON
 
 # Build static libraries with PIC
-cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_POSITION_INDEPENDENT_CODE=ON ..
+cmake -S . -B vc-deps/build/ -DBUILD_SHARED_LIBS=OFF -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 ```
 
 ## Contributing
@@ -254,10 +248,28 @@ terms of these projects.
 **Volume Cartographer** and the project logo and banner graphics are trademarks 
 of EduceLab.
 
-## References
-For more information about the concepts of virtual unwrapping, please see the
-following publications:
+## Citation and references
+If you use Volume Cartographer in your research, please cite this repository 
+in your publication using 
+[our Zenodo record](https://doi.org/10.5281/zenodo.4604881). For more 
+information about the concepts of virtual unwrapping, please see the following 
+publications:
 * William Brent Seales et al. “From damage to discovery via virtual unwrapping:
-Reading the scroll from En-Gedi”. In: _Science Advances_ 2.9 (2016).
-doi: 10.1126/sciadv.1601247.
-url: http://advances.sciencemag.org/content/2/9/e1601247.
+  Reading the scroll from En-Gedi”. In: _Science Advances_ 2.9 (2016).
+  doi: 10.1126/sciadv.1601247. [[link]](http://advances.sciencemag.org/content/2/9/e1601247)
+* Clifford Seth Parker, William Brent Seales, and Pnina Shor. “Quantitative
+  Distortion Analysis of Flattening Applied to the Scroll from En-Gedi”. In:
+  Art & Archaeology, 2nd International Conference. 2016. 
+  [[link]](https://arxiv.org/abs/2007.15551)
+* W Brent Seales and Daniel Delattre. “Virtual unrolling of carbonized 
+  Herculaneum scrolls: Research Status (2007–2012)”. In: Cronache Ercolanesi 43 
+  (2013), pp. 191–208.
+* Ryan Baumann, Dorothy Carr Porter, and W Brent Seales. “The use of micro-ct 
+  in the study of archaeological artifacts”. In: 9th International Conference 
+  on NDT of Art. 2008, pp. 1–9. [[link]](https://www.ndt.net/article/art2008/papers/244Seales.pdf)
+* Yun Lin and W Brent Seales. “Opaque document imaging: Building images of 
+  inaccessible texts”. In: Computer Vision, 2005. ICCV 2005. Tenth IEEE 
+  International Conference on. Vol. 1. IEEE. 2005, pp. 662–669.
+* W Brent Seales and Yun Lin. “Digital restoration using volumetric scanning”. 
+  In: Digital Libraries, 2004. Proceedings of the 2004 Joint ACM/IEEE 
+  Conference on. IEEE. 2004, pp. 117–124.
