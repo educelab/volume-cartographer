@@ -5,7 +5,13 @@ virtually unwrapping volumetric datasets. It was designed to recover text from
 CT scans of ancient, badly damaged manuscripts, but can be applied in many
 volumetric analysis applications.
 
-## Install using Homebrew
+## Getting started
+New to Volume Cartographer? A great place to get started with virtual unwrapping 
+is the [excellent tutorial](https://scrollprize.org/tutorial3) put together by 
+[the Vesuvius Challenge](https://scrollprize.org/).
+
+## Installation
+### Using Homebrew
 We provide pre-built binaries for our tools through our 
 [Homebrew Casks tap](https://github.com/educelab/homebrew-casks):
 
@@ -13,13 +19,19 @@ We provide pre-built binaries for our tools through our
 brew install --no-quarantine educelab/casks/volume-cartographer
 ```
 
-Our binaries are signed with a generic signature and thus do not pass macOS 
-Gatekeeper on Apple Silicon devices without explicit approval. Since many of 
-our tools are run from the command line, we suggest installing with Homebrew's 
+Our binaries are signed with a generic signature and thus do not pass macOS
+Gatekeeper on Apple Silicon devices without explicit approval. Since many of
+our tools are run from the command line, we suggest installing with Homebrew's
 `--no-quarantine` flag.
 
+The main `VC.app` GUI will be installed to `/Applications/` and the command line 
+tools should be immediately available in Terminal:
 
-## Install using Docker
+```shell
+vc_render --help
+```
+
+### Using Docker
 We provide multi-architecture Docker images in the GitHub Container Registry. 
 Simply pull our container and Docker will select the appropriate image for your 
 host platform:
@@ -55,14 +67,14 @@ General Options:
 To run the GUI tools, you must additionally set up 
 [X11 forwarding from the container](docs/pages/running-gui-tools.md).
 
-## Install from source
-### Supported platforms
+### From source
+#### Supported platforms
 This project is primarily developed and tested on macOS and Debian/Ubuntu
 systems. Though it should compile with any C++17 compiler using the Itanium ABI,
 this has not been tested on Windows. We are accepting contributions to
 explicitly support other platforms.
 
-### Dependencies
+#### Dependencies
 **Required**
 * C++17 compiler which uses the Itanium ABI
 * CMake 3.24+
@@ -86,7 +98,7 @@ documentation.
 * [pybind11](https://github.com/pybind/pybind11): Required to build Python
 bindings.
 
-#### (macOS) Homebrew-provided dependencies
+##### (macOS) Homebrew-provided dependencies
 In principle, Homebrew can be used to install all of Volume Cartographer's 
 dependencies. However at the time of this writing, the `vtk` brew package links 
 against Qt5 while the Volume Cartographer GUIs link against Qt6. This will lead 
@@ -96,7 +108,7 @@ VTK, you must disable compilation of the VC GUI apps with the
 follow the instructions for 
 [building vc-deps dependencies](#(Optional)-Use-vc-deps-dependencies).
 
-### Compilation  
+#### Compilation  
 This project is built and installed using the CMake build system. If you have
 already installed the dependencies listed above, compilation should be as simple
 as:
@@ -123,7 +135,7 @@ run the `install` target:
 cmake --install build/ # --prefix ~/custom/install/prefix/
 ```
 
-#### (Optional) Use vc-deps dependencies
+##### (Optional) Use vc-deps dependencies
 To assist with installing dependencies, we have created the
 [vc-deps project](https://github.com/educelab/vc-deps). While this project can
 be used on its own to install volume-cartographer dependencies to the system, it
@@ -152,7 +164,7 @@ cmake -S . -B build/ -DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON
 cmake --build build/
 ```
 
-#### Linking against Qt
+##### Linking against Qt
 It might be necessary to point CMake to your Qt installation. For example:
 ```shell
 # macOS (Apple Silicon), Qt6 installed via Homebrew
@@ -165,7 +177,7 @@ cmake -S . -B build/ -DCMAKE_PREFIX_PATH=/usr/local/opt/qt/lib/cmake/
 cmake -S . -B build/ -DCMAKE_PREFIX_PATH=/usr/local/Qt-6.4.2/lib/cmake/
 ```
 
-### Unit tests
+#### Unit tests
 This project is instrumented with unit tests using the Google Test framework.
 To enable test compilation, set the `VC_BUILD_TESTS` flag to on:
 ```shell
