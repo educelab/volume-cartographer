@@ -3,7 +3,7 @@
 [TOC]
 
 Volume Cartographer is integrated with the 
-[Smeagol](https://gitlab.com/educelab/smeagol) graph processing library. All 
+[smgl](https://github.com/educelab/smgl) graph processing library. All 
 nodes can be found in the `VC::graph` library.
 
 ## Initializing the graph processing system
