@@ -5,17 +5,19 @@ Cartographer. Most programs can be run with `--help` for more usage details.
 
 ## VC
 The primary GUI interface for performing segmentation with Volume Cartographer.
-### Installation note
+
+**Installation note:**
 On macOS, this program is compiled into `VC.app` and can be run by 
 double-clicking the app bundle. When installing with Homebrew, `VC.app` is 
 placed in `/Applications/`. On all other platforms, the `VC` executable is 
-installed to the system prefix.
+installed to the system prefix and can be launched from the command line.
 
 ## CannySegment
 A segmentation tool which uses [canny edge detection](https://en.wikipedia.org/wiki/Canny_edge_detector)
 to identify surface points. More details on working with `CannySegment` are 
 available [here](https://github.com/educelab/ink-id/blob/develop/docs/data-processing-workflow.md#exposed-layers).
-### Installation note
+
+**Installation note:**
 This program is primarily a command line tool, but is compiled into 
 `CannySegment.app` on macOS because it contains optional GUI components. It can 
 be launched by running the packaged executable:
@@ -37,7 +39,8 @@ vc_canny_segment
 ## MeshProject
 Visualization tool that draws the intersection of a mesh/meshes on the slices 
 of a volume.
-### Installation note
+
+**Installation note:**
 This program is primarily a command line tool, but is compiled into
 `MeshProject.app` on macOS because it contains optional GUI components. It can
 be launched by running the packaged executable:

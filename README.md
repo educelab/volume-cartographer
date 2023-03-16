@@ -10,8 +10,8 @@ New to Volume Cartographer? A great place to get started with virtual unwrapping
 is the [tutorial](https://scrollprize.org/tutorial3) put together by 
 [the Vesuvius Challenge](https://scrollprize.org/).
 
-See our [application list](docs/pages/apps-list.md) for an overview of our 
-available applications and utilities.
+You can also browse our [application list](docs/pages/apps-list.md) for an 
+overview of our available applications and utilities.
 
 ## Installation
 ### Using Homebrew
