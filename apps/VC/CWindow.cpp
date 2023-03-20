@@ -9,6 +9,7 @@
 #include "CVolumeViewerWithCurve.hpp"
 #include "UDataManipulateUtils.hpp"
 #include "vc/core/types/Exceptions.hpp"
+#include "vc/core/util/Logging.hpp"
 #include "vc/meshing/OrderedPointSetMesher.hpp"
 
 namespace vc = volcart;
@@ -715,14 +716,18 @@ void CWindow::SetPathPointCloud(void)
     std::vector<cv::Vec2f> aSamplePts;
     fSplineCurve.GetSamplePoints(aSamplePts);
 
-    cv::Vec3d point;
+    // remove duplicates
+    auto numPts = aSamplePts.size();
+    auto unique = std::unique(aSamplePts.begin(), aSamplePts.end());
+    aSamplePts.erase(unique, aSamplePts.end());
+    auto uniquePts = aSamplePts.size();
+    vc::Logger()->warn("Removed {} duplicate points", numPts - uniquePts);
+
+    // setup a new master cloud
     fMasterCloud.setWidth(aSamplePts.size());
     std::vector<cv::Vec3d> points;
-    for (size_t i = 0; i < aSamplePts.size(); ++i) {
-        point[0] = aSamplePts[i][0];
-        point[1] = aSamplePts[i][1];
-        point[2] = fPathOnSliceIndex;
-        points.push_back(point);
+    for (const auto& pt : aSamplePts) {
+        points.emplace_back(pt[0], pt[1], fPathOnSliceIndex);
     }
     fMasterCloud.pushRow(points);
 
