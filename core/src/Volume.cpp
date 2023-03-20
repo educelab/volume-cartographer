@@ -185,10 +185,6 @@ Reslice Volume::reslice(
     int width,
     int height) const
 {
-    if (!isInBounds(center)) {
-        throw std::range_error("center not in bounds");
-    }
-
     auto xnorm = cv::normalize(xvec);
     auto ynorm = cv::normalize(yvec);
     auto origin = center - ((width / 2) * xnorm + (height / 2) * ynorm);

@@ -63,6 +63,7 @@ signals:
 
 public slots:
     void onSegmentationFinished(Segmenter::PointSet ps);
+    void onSegmentationFailed(std::string s);
 
 public:
     CWindow();
@@ -112,7 +113,7 @@ private slots:
     void Open(void);
     void Close(void);
     void About(void);
-    void SavePointCloud(void);
+    void SavePointCloud();
 
     void OnNewPathClicked(void);
     void OnPathItemClicked(QListWidgetItem* nItem);
@@ -231,6 +232,7 @@ public:
 signals:
     void segmentationStarted(size_t);
     void segmentationFinished(CWindow::Segmenter::PointSet ps);
+    void segmentationFailed(std::string);
     void progressUpdated(size_t);
 
 public slots:
@@ -240,8 +242,12 @@ public slots:
         segmenter.progressUpdated.connect(
             [=](size_t p) { progressUpdated(p); });
         segmentationStarted(segmenter.progressIterations());
-        auto result = segmenter.compute();
-        segmentationFinished(result);
+        try {
+            auto result = segmenter.compute();
+            segmentationFinished(result);
+        } catch (const std::exception& e) {
+            segmentationFailed(e.what());
+        }
     }
 
 public:

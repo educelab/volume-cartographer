@@ -322,12 +322,9 @@ void CVolumeViewerWithCurve::DrawIntersectionCurve(void)
         int b{0};
         colorSelector->color().getRgb(&r, &g, &b);
         for (size_t i = 0; i < fIntersectionCurveRef->GetPointsNum(); ++i) {
-            cv::circle(
-                fImgMat,
-                cv::Point2d(
-                    fIntersectionCurveRef->GetPoint(i)[0],
-                    fIntersectionCurveRef->GetPoint(i)[1]),
-                1, cv::Scalar(b, g, r));
+            auto p0 = fIntersectionCurveRef->GetPoint(i)[0] - 0.5;
+            auto p1 = fIntersectionCurveRef->GetPoint(i)[1] - 0.5;
+            cv::circle(fImgMat, cv::Point2d(p0, p1), 1, cv::Scalar(b, g, r));
         }
     }
 }
