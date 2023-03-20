@@ -252,7 +252,7 @@ void CWindow::CreateActions(void)
 void CWindow::CreateBackend()
 {
     // Setup backend runner
-    auto worker = new VolPkgBackend();
+    auto* worker = new VolPkgBackend();
     worker->moveToThread(&worker_thread_);
     connect(&worker_thread_, &QThread::finished, worker, &QObject::deleteLater);
     connect(
@@ -261,6 +261,9 @@ void CWindow::CreateBackend()
     connect(
         worker, &VolPkgBackend::segmentationFinished, this,
         &CWindow::onSegmentationFinished);
+    connect(
+        worker, &VolPkgBackend::segmentationFailed, this,
+        &CWindow::onSegmentationFailed);
     connect(worker, &VolPkgBackend::progressUpdated, [=](size_t p) {
         progress_ = p;
     });
@@ -555,6 +558,20 @@ void CWindow::onSegmentationFinished(Segmenter::PointSet ps)
     UpdateView();
 }
 
+void CWindow::onSegmentationFailed(std::string s)
+{
+    vc::Logger()->error("Segmentation failed: {}", s);
+    statusBar->showMessage(tr("Segmentation failed"));
+    QMessageBox::critical(
+        this, tr("VC"), QString::fromStdString("Segmentation failed:\n\n" + s));
+
+    setWidgetsEnabled(true);
+    worker_progress_updater_.stop();
+    worker_progress_.close();
+    CleanupSegmentation();
+    UpdateView();
+}
+
 void CWindow::CleanupSegmentation(void)
 {
     fSegTool->setChecked(false);
@@ -736,11 +753,11 @@ void CWindow::OpenVolume()
 {
     const QString defaultPathKey("default_path");
 
-    QSettings vcSettings;
+    QSettings settings;
 
     QString aVpkgPath = QString("");
     aVpkgPath = QFileDialog::getExistingDirectory(
-        this, tr("Open Directory"), vcSettings.value(defaultPathKey).toString(),
+        this, tr("Open Directory"), settings.value(defaultPathKey).toString(),
         QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     // Dialog box cancelled
     if (aVpkgPath.length() == 0) {
@@ -751,7 +768,7 @@ void CWindow::OpenVolume()
     // Checks the Folder Path for .volpkg extension
     auto const extension = aVpkgPath.toStdString().substr(
         aVpkgPath.toStdString().length() - 7, aVpkgPath.toStdString().length());
-    if (extension == ".volpkg") {
+    if (extension != ".volpkg") {
         QMessageBox::warning(
             this, tr("ERROR"),
             "The selected file is not of the correct type: \".volpkg\"");
@@ -762,7 +779,7 @@ void CWindow::OpenVolume()
     }
 
     QDir currentDir;
-    vcSettings.setValue(defaultPathKey, currentDir.absoluteFilePath(aVpkgPath));
+    settings.setValue(defaultPathKey, currentDir.absoluteFilePath(aVpkgPath));
 
     // Open volume package
     if (!InitializeVolumePkg(aVpkgPath.toStdString() + "/")) {
