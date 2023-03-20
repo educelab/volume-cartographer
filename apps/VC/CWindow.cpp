@@ -320,17 +320,14 @@ bool CWindow::InitializeVolumePkg(const std::string& nVpkgPath)
 
     try {
         fVpkg = vc::VolumePkg::New(nVpkgPath);
-    } catch (...) {
-        std::cerr << "VC::Error: Volume package failed to initialize."
-                  << std::endl;
+    } catch (const std::exception& e) {
+        vc::Logger()->error("Failed to initialize volpkg: {}", e.what());
     }
 
     fVpkgChanged = false;
 
     if (fVpkg == nullptr) {
-        std::cerr
-            << "VC::Error: Cannot open volume package at specified location: "
-            << nVpkgPath << std::endl;
+        vc::Logger()->error("Cannot open .volpkg: {}", nVpkgPath);
         QMessageBox::warning(
             this, "Error",
             "Volume package failed to load. Package might be corrupt.");
@@ -635,8 +632,7 @@ void CWindow::SetUpCurves(void)
 {
     if (fVpkg == nullptr || fMasterCloud.empty()) {
         statusBar->showMessage(tr("Selected point cloud is empty"));
-        std::cerr << "VC::Warning: Point cloud for this segmentation is empty."
-                  << std::endl;
+        vc::Logger()->warn("Segmentation point cloud is empty");
         return;
     }
     fIntersections.clear();
@@ -748,19 +744,19 @@ void CWindow::OpenVolume()
         QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     // Dialog box cancelled
     if (aVpkgPath.length() == 0) {
-        std::cerr << "VC::Message: Open volume package cancelled." << std::endl;
+        vc::Logger()->info("Open .volpkg canceled");
         return;
     }
 
     // Checks the Folder Path for .volpkg extension
-    std::string extension = aVpkgPath.toStdString().substr(
+    auto const extension = aVpkgPath.toStdString().substr(
         aVpkgPath.toStdString().length() - 7, aVpkgPath.toStdString().length());
-    if (extension.compare(".volpkg") != 0) {
+    if (extension == ".volpkg") {
         QMessageBox::warning(
             this, tr("ERROR"),
             "The selected file is not of the correct type: \".volpkg\"");
-        std::cerr << "VC::Error: Selected file: " << aVpkgPath.toStdString()
-                  << " is of the wrong type." << std::endl;
+        vc::Logger()->error(
+            "Selected file is not .volpkg: {}", aVpkgPath.toStdString());
         fVpkg = nullptr;  // Is need for User Experience, clears screen.
         return;
     }
@@ -775,11 +771,11 @@ void CWindow::OpenVolume()
 
     // Check version number
     if (fVpkg->version() != VOLPKG_SUPPORTED_VERSION) {
-        std::string msg = "VC::Error: Volume package is version " +
-                          std::to_string(fVpkg->version()) +
-                          " but this program requires a version " +
-                          std::to_string(VOLPKG_SUPPORTED_VERSION) + ".";
-        std::cerr << msg << std::endl;
+        const auto msg = "Volume package is version " +
+                         std::to_string(fVpkg->version()) +
+                         " but this program requires version " +
+                         std::to_string(VOLPKG_SUPPORTED_VERSION) + ".";
+        vc::Logger()->error(msg);
         QMessageBox::warning(this, tr("ERROR"), QString(msg.c_str()));
         fVpkg = nullptr;
         return;
@@ -846,11 +842,10 @@ void CWindow::About(void)
 }
 
 // Save point cloud to path directory
-void CWindow::SavePointCloud(void)
+void CWindow::SavePointCloud()
 {
     if (fMasterCloud.empty()) {
-        std::cerr << "VC::message: Empty point cloud. Nothing to save."
-                  << std::endl;
+        vc::Logger()->debug("Empty point cloud. Nothing to save.");
         return;
     }
 
@@ -864,8 +859,8 @@ void CWindow::SavePointCloud(void)
         return;
     }
 
-    statusBar->showMessage(tr("Volume saved."), 5000);
-    std::cerr << "VC::message: Volume saved." << std::endl;
+    statusBar->showMessage(tr("Volume Package saved."), 5000);
+    vc::Logger()->info("Volume Package saved");
     fVpkgChanged = false;
 }
 
@@ -873,16 +868,16 @@ void CWindow::SavePointCloud(void)
 void CWindow::OnNewPathClicked(void)
 {
     // Save if we need to
-    if (SaveDialog() == SaveResponse::Cancelled)
+    if (SaveDialog() == SaveResponse::Cancelled) {
         return;
+    }
 
     // Make a new segmentation in the volpkg
     auto seg = fVpkg->newSegmentation();
-    std::string newSegmentationId = seg->id();
+    const auto newSegmentationId = seg->id();
 
     // add new path to path list
-    QListWidgetItem* aNewPath =
-        new QListWidgetItem(QString(newSegmentationId.c_str()));
+    auto* aNewPath = new QListWidgetItem(QString(newSegmentationId.c_str()));
     fPathListWidget->addItem(aNewPath);
 
     // Make sure we stay on the current slice

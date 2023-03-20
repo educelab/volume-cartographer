@@ -112,7 +112,7 @@ private slots:
     void Open(void);
     void Close(void);
     void About(void);
-    void SavePointCloud(void);
+    void SavePointCloud();
 
     void OnNewPathClicked(void);
     void OnPathItemClicked(QListWidgetItem* nItem);
