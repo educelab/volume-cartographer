@@ -1,0 +1,11 @@
+name: Label jobs
+on:
+  pull_request:
+    types: [labeled]
+    branches: ["develop"]
+
+jobs:
+  build_pre_macos_intel:
+    name: Build pre-release macOS (Intel) package
+    if: ${{ github.event.label.name == 'build-packages' }}
+    uses: ./.github/workflows/build_packages.yml
