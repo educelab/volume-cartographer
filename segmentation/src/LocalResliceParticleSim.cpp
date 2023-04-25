@@ -357,7 +357,7 @@ std::vector<Voxel> LocalResliceSegmentation::computeCurve(
 LocalResliceSegmentation::PointSet LocalResliceSegmentation::compute()
 {
     // Max cache size 1000 slices
-    int desired_cache_size = 1000;
+    int desired_cache_size = 200;
     if (vol_->getCacheCapacity() != desired_cache_size) {
         vol_->setCacheCapacity(desired_cache_size);
     }
