@@ -1,0 +1,171 @@
+///// Core Groups & Namespaces /////
+/**
+ * @namespace volcart
+ * @brief %Volume Cartographer library
+ */
+
+/**
+ @defgroup Core Core
+ @brief Library containing fundamental VC data types and operations.
+*/
+
+/**
+ * @namespace volcart::io
+ * @brief IO classes
+ */
+
+/**
+ @defgroup IO IO
+ @brief Read and write commonly used data types.
+ @ingroup Core
+*/
+
+/**
+ * @namespace volcart::landmarks
+ * @brief Volume landmark classes
+ */
+
+/**
+ @defgroup Landmarks Landmarks
+ @brief Landmark classes for labeling volume features
+ @ingroup Core
+*/
+
+/**
+ @defgroup Math Math
+ @brief Mathematical operations
+ @ingroup Core
+*/
+
+/**
+ @defgroup Neighborhoods Neighborhood Generators
+ @brief Generate volumetric neighborhoods
+ @ingroup Core
+*/
+
+/**
+ * @namespace volcart::shapes
+ * @brief Shape and mesh primitives
+ */
+
+/**
+ @defgroup Shapes Shape Generators
+ @brief Generate basic 3D objects for testing mesh operations
+ @ingroup Core
+*/
+
+/**
+ @defgroup Types Types
+ @brief Core types and data structures
+ @ingroup Core
+*/
+
+/**
+ * @namespace volcart::meshmath
+ * @brief Mesh mathematical operations
+ */
+
+/**
+ @defgroup Util Utilities
+ @brief Miscellaneous utility functions
+ @ingroup Core
+*/
+
+/**
+ @defgroup Support App Support
+ @brief Support classes for making applications
+*/
+
+///// Meshing Groups /////
+/**
+ * @namespace volcart::meshing
+ * @brief Mesh generation and modification library
+ */
+
+/**
+ @defgroup Meshing Meshing
+ @brief Library for mesh creation, manipulation, resampling, and conversion.
+*/
+
+///// Segmentation Groups /////
+/**
+ * @namespace volcart::segmentation
+ * @brief %Segmentation algorithms and utilities library
+ */
+
+/**
+ @defgroup Segmentation Segmentation
+ @brief Library for volume segmentation algorithms.
+*/
+
+/**
+ @defgroup lrps Local Reslice Particle Simulation
+ @brief Local Reslice %Particle Simulation (LRPS) segmentation
+ @ingroup Segmentation
+*/
+
+/**
+ @defgroup deriv Derivative Library
+ @brief A small derivative library that handles calculating derivatives up to
+ the second order.
+ @ingroup lrps
+*/
+
+/**
+ @defgroup stps Structure Tensor Particle Simulation
+ @brief Structure Tensor %Particle Simulation (STPS) segmentation
+ @ingroup Segmentation
+*/
+
+///// Rendering Groups /////
+/**
+ * @namespace volcart::texturing
+ * @brief Texturing and parameterization algorithms and utilities library
+ */
+
+/** 
+ @defgroup Render Rendering
+ @brief Library for creating UV maps and textured meshes
+*/
+
+/**
+ @defgroup UV Parameterization
+ @brief Mesh parameterizations/UV maps
+ @ingroup Render
+*/
+
+/**
+ @defgroup Texture Texturing
+ @brief Texture generation
+ @ingroup Render
+*/
+
+///// Graph Groups /////
+/**
+ @defgroup Graph Graph processing
+ @brief Library of graph processing nodes
+*/
+
+///// Testing Groups /////
+/**
+ * @namespace volcart::testing
+ * @brief Project testing utilities library
+ */
+
+///// Experimental /////
+/**
+ * @namespace volcart::experimental
+ * @brief Experimental algorithms and utilities library
+ */
+
+/**
+ * @namespace volcart::experimental::meshing
+ * @brief Experimental meshing algorithms library
+ */
+
+/**
+ * @namespace volcart::experimental::texturing
+ * @brief Experimental texturing algorithms library
+ */
+
+///// Example Groups /////

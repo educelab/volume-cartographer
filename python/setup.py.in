@@ -1,0 +1,23 @@
+from setuptools import setup
+import os
+from glob import glob
+
+libs = glob('${CMAKE_CURRENT_BINARY_DIR}/volcart/*.so')
+
+for idx, l in enumerate(libs):
+    libs[idx] = os.path.basename(l)
+
+setup(
+    name='volcart',
+    version='${PROJECT_VERSION}',
+    author="Digital Restoration Initiative",
+    author_email="c.seth.parker@uky.edu",
+    description="Python bindings for the Volume Cartographer library",
+
+    package_dir={'volcart': '${CMAKE_CURRENT_BINARY_DIR}/volcart'},
+    packages=['volcart'],
+    package_data={'volcart': libs},
+
+    install_requires=['numpy'],
+    zip_safe=False
+)

@@ -1,0 +1,34 @@
+{
+  "segmentation": {
+    "method": "lrps",
+    "start": -1,
+    "stride": 200,
+    "step-size": 1,
+    "num-iters": 15,
+    "alpha": 0.33333333,
+    "k1": 0.5,
+    "k2": 0.5,
+    "beta": 0.33333333,
+    "delta": 0.33333333,
+    "distance-weight": 50,
+    "consider-previous": false,
+    "visualize": false,
+    "dump-vis": false
+  },
+  "render": {
+    "flatten": {
+      "method": "SimpleUV"
+    },
+    "texture": {
+      "method": "NonMaximumSuppresion",
+      "radius": 2,
+      "direction": "Bidirectional",
+      "images": 1
+    },
+    "export": {
+      "method": "OBJWriter",
+      "withTexture": true,
+      "basename": "SimpleUV_NonMax2"
+    }
+  }
+}
