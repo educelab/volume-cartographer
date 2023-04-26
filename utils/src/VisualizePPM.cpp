@@ -99,8 +99,8 @@ int main(int argc, char* argv[])
     cv::Mat norm = cv::Mat::zeros(size, CV_32FC3);
 
     // Fill the outputs
-    for (const auto& m :
-         vc::ProgressWrap(ppm.getMappings(), "Converting mappings")) {
+    vc::Logger()->info("Converting mappings...");
+    for (const auto& m : ppm.getMappings()) {
 
         // Get values
         auto p = m.pos;
@@ -132,7 +132,6 @@ int main(int argc, char* argv[])
             // Skip this pixel if we don't have the
             if (tan == cv::Vec3d{-1, -1, -1} ||
                 bitan == cv::Vec3d{-1, -1, -1}) {
-                std::cout << std::endl;
                 vc::Logger()->warn(
                     "Can't calculate tangent/bitangent for ({},{})", m.x, m.y);
                 n = cv::Vec3d::all(0);
