@@ -1,7 +1,6 @@
 #include <boost/program_options.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include "vc/app_support/ProgressIndicator.hpp"
 #include "vc/core/filesystem.hpp"
 #include "vc/core/io/TIFFIO.hpp"
 #include "vc/core/types/PerPixelMap.hpp"
@@ -12,7 +11,7 @@ namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
 
-int main(int argc, char* argv[])
+auto main(int argc, char* argv[]) -> int
 {
     ///// Parse the command line options /////
     // All command line options
@@ -55,7 +54,7 @@ int main(int argc, char* argv[])
     // Are we normalizing?
     auto normalize = parsed.count("raw") == 0;
     // Project normals to tangent space
-    bool tspace =
+    const bool tspace =
         parsed.count("raw") == 0 && parsed.count("tspace-normals") > 0;
 
     // Load the volume
@@ -67,7 +66,7 @@ int main(int argc, char* argv[])
                 "the option '--volpkg' is required but missing");
             return EXIT_FAILURE;
         }
-        fs::path volpkgPath = parsed["volpkg"].as<std::string>();
+        const fs::path volpkgPath = parsed["volpkg"].as<std::string>();
         auto vpkg = vc::VolumePkg::New(volpkgPath);
         try {
             if (parsed.count("volume") > 0) {
@@ -89,18 +88,18 @@ int main(int argc, char* argv[])
 
     // Get input file
     vc::Logger()->info("Reading PPM");
-    fs::path ppmPath = parsed["ppm"].as<std::string>();
+    const fs::path ppmPath = parsed["ppm"].as<std::string>();
     auto ppm = vc::PerPixelMap::ReadPPM(ppmPath);
 
     // Setup output images
-    cv::Size size{
+    const cv::Size size{
         static_cast<int>(ppm.width()), static_cast<int>(ppm.height())};
     cv::Mat pos = cv::Mat::zeros(size, CV_32FC3);
     cv::Mat norm = cv::Mat::zeros(size, CV_32FC3);
 
     // Fill the outputs
-    for (const auto& m :
-         vc::ProgressWrap(ppm.getMappings(), "Converting mappings")) {
+    vc::Logger()->info("Converting mappings...");
+    for (const auto& m : ppm.getMappings()) {
 
         // Get values
         auto p = m.pos;
@@ -132,7 +131,6 @@ int main(int argc, char* argv[])
             // Skip this pixel if we don't have the
             if (tan == cv::Vec3d{-1, -1, -1} ||
                 bitan == cv::Vec3d{-1, -1, -1}) {
-                std::cout << std::endl;
                 vc::Logger()->warn(
                     "Can't calculate tangent/bitangent for ({},{})", m.x, m.y);
                 n = cv::Vec3d::all(0);
@@ -148,8 +146,8 @@ int main(int argc, char* argv[])
         }
 
         // Assign to output images
-        pos.at<cv::Vec3f>(m.y, m.x) = cv::Vec3f(p);
-        norm.at<cv::Vec3f>(m.y, m.x) = cv::Vec3f(n);
+        pos.at<cv::Vec3f>(m.y, m.x) = cv::Vec3f{p};
+        norm.at<cv::Vec3f>(m.y, m.x) = cv::Vec3f{n};
     }
 
     // Scale and shift the normal map to [0, 1]
