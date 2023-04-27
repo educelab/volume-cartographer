@@ -188,6 +188,7 @@ LocalResliceSegmentation::PointSet LocalResliceSegmentation::compute()
     // cache gets corrupted somewhere. purge it to have clean state. but takes longer to process files. oh well
     // if considerPrevious_ is true, purge cache
     if (considerPrevious_) {
+        std::cout << "[Info]: Purging Slice Cache" << std::endl;
         vol_->cachePurge();
     }
     // reset progress
