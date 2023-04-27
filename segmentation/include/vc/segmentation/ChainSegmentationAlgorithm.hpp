@@ -71,7 +71,7 @@ public:
 
     /**@{*/
     /** @brief Compute the segmentation */
-    virtual PointSet compute() = 0;
+    virtual auto compute() -> PointSet = 0;
 
     /** @brief Get the status of the previous computation */
     auto getStatus() const -> Status { return status_; }
