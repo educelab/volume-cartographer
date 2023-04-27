@@ -6,7 +6,7 @@
 
 #include "vc/core/types/OrderedPointSet.hpp"
 #include "vc/core/types/VolumePkg.hpp"
-#include "vc/segmentation/ChainSegmentationAlgorithmBaseClass.hpp"
+#include "vc/segmentation/ChainSegmentationAlgorithm.hpp"
 #include "vc/segmentation/lrps/Common.hpp"
 #include "vc/segmentation/lrps/FittedCurve.hpp"
 
@@ -30,18 +30,26 @@ namespace volcart::segmentation
  *
  * @ingroup lrps
  */
-class LocalResliceSegmentation : public ChainSegmentationAlgorithmBaseClass
+class LocalResliceSegmentation : public ChainSegmentationAlgorithm
 {
 public:
-    /** @name Constructors */
-    /**@{*/
+    /** Pointer */
+    using Pointer = std::shared_ptr<LocalResliceSegmentation>;
+
     /** @brief Default constructor */
     LocalResliceSegmentation() = default;
+
     /** Default destructor */
     ~LocalResliceSegmentation() override = default;
-    /**@}*/
 
-    /**@{*/
+    /** Make a new shared instance */
+    template <typename... Args>
+    static auto New(Args... args) -> Pointer
+    {
+        return std::make_shared<LocalResliceSegmentation>(
+            std::forward<Args>(args)...);
+    }
+
     /** @brief Set the target z-index */
     void setTargetZIndex(int z) { endIndex_ = z; }
 
@@ -94,23 +102,18 @@ public:
     /** @brief Set whether to consider previous position as candidate position
      */
     void setConsiderPrevious(bool b) { considerPrevious_ = b; }
-    /**@}*/
 
-    /**@{*/
     /** @brief Compute the segmentation */
-    PointSet compute() override;
-    /**@}*/
+    auto compute() -> PointSet override;
 
-    /**@{*/
     /** Debug: Shows intensity maps in GUI window */
     void setVisualize(bool b) { visualize_ = b; }
 
     /** Debug: Dumps reslices and intensity maps to disk */
     void setDumpVis(bool b) { dumpVis_ = b; }
-    /**@}*/
 
     /** @brief Returns the maximum progress value */
-    size_t progressIterations() const override;
+    [[nodiscard]] auto progressIterations() const -> size_t override;
 
 private:
     /**
@@ -118,8 +121,8 @@ private:
      * @param currentCurve Input curve
      * @param index Index of point on curve
      */
-    cv::Vec3d estimate_normal_at_index_(
-        const FittedCurve& currentCurve, int index);
+    auto estimate_normal_at_index_(const FittedCurve& currentCurve, int index)
+        -> cv::Vec3d;
 
     /**
      * @brief Debug: Draw curve on slice image
@@ -128,15 +131,15 @@ private:
      * @param particleIndex Highlight point at particleIndex
      * @param showSpline Draw interpolated curve. Default only draws points
      */
-    cv::Mat draw_particle_on_slice_(
+    [[nodiscard]] auto draw_particle_on_slice_(
         const FittedCurve& curve,
         int sliceIndex,
         int particleIndex = -1,
-        bool showSpline = false) const;
+        bool showSpline = false) const -> cv::Mat;
 
     /** @brief Convert the internal storage array into a final PointSet */
-    PointSet create_final_pointset_(
-        const std::vector<std::vector<Voxel>>& points);
+    auto create_final_pointset_(const std::vector<std::vector<Voxel>>& points)
+        -> PointSet;
 
     /** Default minimum energy gradient */
     constexpr static double DEFAULT_MIN_ENERGY_GRADIENT = 1e-7;

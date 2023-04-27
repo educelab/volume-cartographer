@@ -4,7 +4,7 @@
 
 #include <opencv2/core.hpp>
 
-#include "vc/segmentation/ChainSegmentationAlgorithmBaseClass.hpp"
+#include "vc/segmentation/ChainSegmentationAlgorithm.hpp"
 #include "vc/segmentation/stps/Particle.hpp"
 #include "vc/segmentation/stps/ParticleChain.hpp"
 
@@ -20,7 +20,7 @@ namespace volcart::segmentation
  *
  * @ingroup stps
  */
-class StructureTensorParticleSim : public ChainSegmentationAlgorithmBaseClass
+class StructureTensorParticleSim : public ChainSegmentationAlgorithm
 {
 public:
     /**@{*/

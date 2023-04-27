@@ -10,16 +10,19 @@
 namespace volcart::segmentation
 {
 /**
- * @class ChainSegmentationAlgorithmBaseClass
+ * @class ChainSegmentationAlgorithm
  * @author Seth Parker
  * @brief Base class for segmentation algorithms that propagate a collected
  * chain of points
  */
-class ChainSegmentationAlgorithmBaseClass : public IterationsProgress
+class ChainSegmentationAlgorithm : public IterationsProgress
 {
 public:
+    /** Shared pointer type */
+    using Pointer = std::shared_ptr<ChainSegmentationAlgorithm>;
+
     /** Default destructor for virtual base class */
-    virtual ~ChainSegmentationAlgorithmBaseClass() = default;
+    virtual ~ChainSegmentationAlgorithm() = default;
 
     /** Chain type */
     using Chain = std::vector<cv::Vec3d>;
@@ -71,23 +74,26 @@ public:
     virtual PointSet compute() = 0;
 
     /** @brief Get the status of the previous computation */
-    Status getStatus() const { return status_; }
+    auto getStatus() const -> Status { return status_; }
     /**@}*/
 
     /**@{*/
     /** @brief Get the segmented pointset */
-    const PointSet& getPointSet() const { return result_; }
+    [[nodiscard]] auto getPointSet() const -> const PointSet&
+    {
+        return result_;
+    }
 
     /** @copydoc getPointSet() const */
-    PointSet& getPointSet() { return result_; }
+    auto getPointSet() -> PointSet& { return result_; }
     /**@}*/
 
     /** @brief Returns the maximum progress value */
-    size_t progressIterations() const override { return numSteps_; }
+    auto progressIterations() const -> size_t override { return numSteps_; }
 
 protected:
     /** Default constructor */
-    ChainSegmentationAlgorithmBaseClass() = default;
+    ChainSegmentationAlgorithm() = default;
     /** Volume */
     Volume::Pointer vol_;
     /** Seed chain */
