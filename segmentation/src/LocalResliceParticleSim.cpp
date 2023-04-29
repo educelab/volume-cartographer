@@ -127,7 +127,7 @@ std::vector<Voxel> LocalResliceSegmentation::computeCurve(
                     cv::Point2f neighborPt = roiPt + cv::Point2f(x, y);
                     if (neighborPt.x >= 0 && neighborPt.x < flow.cols && neighborPt.y >= 0 && neighborPt.y < flow.rows) {
                         int neighborIntensity = gray2.at<uchar>(neighborPt);
-                        if (neighborIntensity > 80) {
+                        if (neighborIntensity > black_treshold) {
                             avgFlow += flow.at<cv::Vec2f>(neighborPt);
                             count++;
                         }
