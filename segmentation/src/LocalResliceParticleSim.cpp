@@ -102,6 +102,7 @@ std::vector<Voxel> LocalResliceSegmentation::computeCurve(
     // Initialize the updated curve
     std::vector<Voxel> nextVs;
 
+    int black_treshold = static_cast<int>(alpha_ * 255);
     for (int i = 0; i < int(currentCurve.size()); ++i) {
         // Get the current point
         Voxel pt_ = currentCurve(i);
@@ -146,7 +147,6 @@ std::vector<Voxel> LocalResliceSegmentation::computeCurve(
     }
 
     // Smooth black pixels by moving them onto the line and then back along the normal
-    int black_treshold = 80;
     for (int i = 0; i < int(nextVs.size()); ++i) {
         Voxel curr = nextVs[i];
         int currIntensity = gray2.at<uchar>(cv::Point(curr[0] - x_min, curr[1] - y_min));
