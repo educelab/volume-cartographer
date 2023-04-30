@@ -101,8 +101,7 @@ std::vector<Voxel> LocalResliceSegmentation::computeCurve(
 
     // Initialize the updated curve
     std::vector<Voxel> nextVs;
-
-    int black_treshold = static_cast<int>(alpha_ * 255);
+    int black_treshold_imitate_brighter_pixel_movement = static_cast<int>(beta_ * 255);
     for (int i = 0; i < int(currentCurve.size()); ++i) {
         // Get the current point
         Voxel pt_ = currentCurve(i);
@@ -117,7 +116,7 @@ std::vector<Voxel> LocalResliceSegmentation::computeCurve(
         cv::Vec2f flowVec = flow.at<cv::Vec2f>(roiPt);
 
         // Check if the flow magnitude is more than 6 pixels
-        if (cv::norm(flowVec) > 10) {
+        if (cv::norm(flowVec) > peakDistanceWeight_) {
             // Calculate the average flow around a 5x5 window
             int windowSize = 5;
             cv::Vec2f avgFlow(0, 0);
@@ -127,7 +126,7 @@ std::vector<Voxel> LocalResliceSegmentation::computeCurve(
                     cv::Point2f neighborPt = roiPt + cv::Point2f(x, y);
                     if (neighborPt.x >= 0 && neighborPt.x < flow.cols && neighborPt.y >= 0 && neighborPt.y < flow.rows) {
                         int neighborIntensity = gray2.at<uchar>(neighborPt);
-                        if (neighborIntensity > black_treshold) {
+                        if (neighborIntensity > black_treshold_imitate_brighter_pixel_movement) {
                             avgFlow += flow.at<cv::Vec2f>(neighborPt);
                             count++;
                         }
@@ -147,11 +146,12 @@ std::vector<Voxel> LocalResliceSegmentation::computeCurve(
     }
 
     // Smooth black pixels by moving them onto the line and then back along the normal
+    int black_treshold_detect_outside = static_cast<int>(alpha_ * 255);
     for (int i = 0; i < int(nextVs.size()); ++i) {
         Voxel curr = nextVs[i];
         int currIntensity = gray2.at<uchar>(cv::Point(curr[0] - x_min, curr[1] - y_min));
 
-        if (currIntensity < black_treshold) {
+        if (currIntensity < black_treshold_detect_outside) {
             // Estimate the normal at the current index
             cv::Vec2f normal = estimate_2d_normal_at_index_(currentCurve, i);
 

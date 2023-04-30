@@ -42,7 +42,7 @@ CWindow::CWindow()
     fSegParams.fK2 = 0.5;
     fSegParams.fIncludeMiddle = false;
     fSegParams.fNumIters = 15;
-    fSegParams.fPeakDistanceWeight = 50;
+    fSegParams.fPeakDistanceWeight = 10;
     fSegParams.fWindowWidth = 5;
     fSegParams.targetIndex = 5;
 
