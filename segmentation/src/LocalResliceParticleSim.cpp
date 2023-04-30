@@ -54,6 +54,24 @@ cv::Vec2f estimate_2d_normal_at_index_(const FittedCurve& curve, int index) {
     return normal / cv::norm(normal);
 }
 
+float get_mean_pixel_value(const cv::Mat& integral_img, const cv::Point& pt, int window_size) {
+    int x_min = std::max(pt.x - window_size / 2, 0);
+    int x_max = std::min(pt.x + window_size / 2, integral_img.cols - 2);
+    int y_min = std::max(pt.y - window_size / 2, 0);
+    int y_max = std::min(pt.y + window_size / 2, integral_img.rows - 2);
+
+    int a = integral_img.at<int>(y_min, x_min);
+    int b = integral_img.at<int>(y_min, x_max + 1);
+    int c = integral_img.at<int>(y_max + 1, x_min);
+    int d = integral_img.at<int>(y_max + 1, x_max + 1);
+
+    float sum = static_cast<float>(a + d - b - c);
+    int count = (x_max - x_min + 1) * (y_max - y_min + 1);
+
+    return sum / count;
+}
+
+
 std::vector<Voxel> LocalResliceSegmentation::computeCurve(
     FittedCurve currentCurve,
     Chain& currentVs,
@@ -94,6 +112,9 @@ std::vector<Voxel> LocalResliceSegmentation::computeCurve(
     cv::Mat gray1, gray2;
     cv::normalize(roiSlice1, gray1, 0, 255, cv::NORM_MINMAX, CV_8UC1);
     cv::normalize(roiSlice2, gray2, 0, 255, cv::NORM_MINMAX, CV_8UC1);
+    cv::Mat integral_img;
+    cv::integral(gray2, integral_img, CV_32S);
+
 
     // Compute dense optical flow using Farneback method
     cv::Mat flow;
@@ -147,11 +168,14 @@ std::vector<Voxel> LocalResliceSegmentation::computeCurve(
 
     // Smooth black pixels by moving them onto the line and then back along the normal
     int black_treshold_detect_outside = static_cast<int>(alpha_ * 255);
+    int window_size = 6; // Set the desired window size for averaging with an parameter? - should be fine for now
     for (int i = 0; i < int(nextVs.size()); ++i) {
         Voxel curr = nextVs[i];
-        int currIntensity = gray2.at<uchar>(cv::Point(curr[0] - x_min, curr[1] - y_min));
+        // int currIntensity = gray2.at<uchar>(cv::Point(curr[0] - x_min, curr[1] - y_min));
+        cv::Point pt(curr[0] - x_min, curr[1] - y_min);
+        float mean_intensity = get_mean_pixel_value(integral_img, pt, window_size);
 
-        if (currIntensity < black_treshold_detect_outside) {
+        if (mean_intensity < black_treshold_detect_outside) {
             // Estimate the normal at the current index
             cv::Vec2f normal = estimate_2d_normal_at_index_(currentCurve, i);
 
