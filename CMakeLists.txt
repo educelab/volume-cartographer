@@ -105,10 +105,7 @@ endif()
 include(VCPackageConfig)
 # Install to system directories
 include(VCInstall)
-<<<<<<< HEAD
 
 ## OpenCV for image segmentation
 find_package(OpenCV REQUIRED)
 include_directories( ${OpenCV_INCLUDE_DIRS} )
-=======
->>>>>>> updates-repo/gui-swappable-algorithms
