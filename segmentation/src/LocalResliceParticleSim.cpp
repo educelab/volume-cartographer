@@ -171,11 +171,11 @@ std::vector<Voxel> LocalResliceSegmentation::computeCurve(
     int window_size = 6; // Set the desired window size for averaging with an parameter? - should be fine for now
     for (int i = 0; i < int(nextVs.size()); ++i) {
         Voxel curr = nextVs[i];
-        // int currIntensity = gray2.at<uchar>(cv::Point(curr[0] - x_min, curr[1] - y_min));
+        int currIntensity = gray2.at<uchar>(cv::Point(curr[0] - x_min, curr[1] - y_min));
         cv::Point pt(curr[0] - x_min, curr[1] - y_min);
         float mean_intensity = get_mean_pixel_value(integral_img, pt, window_size);
 
-        if (mean_intensity < black_treshold_detect_outside) {
+        if (mean_intensity < black_treshold_detect_outside || currIntensity < black_treshold_detect_outside) {
             // Estimate the normal at the current index
             cv::Vec2f normal = estimate_2d_normal_at_index_(currentCurve, i);
 
