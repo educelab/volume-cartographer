@@ -17,7 +17,7 @@
 #include "ui_VCMain.h"
 
 #include "vc/core/types/VolumePkg.hpp"
-#include "vc/segmentation/LocalResliceParticleSim.hpp"
+#include "vc/segmentation/ChainSegmentationAlgorithm.hpp"
 
 // Volpkg version required by this app
 static constexpr int VOLPKG_SUPPORTED_VERSION = 6;
@@ -43,6 +43,8 @@ public:
     };  // idle
     enum SaveResponse : bool { Cancelled, Continue };
 
+    // Structure for segmentation parameters
+    // Declare parameters for new algos here and update SetUpSegParams()
     using SSegParams = struct SSegParams_tag {
         int fNumIters;
         double fAlpha;
@@ -56,10 +58,10 @@ public:
         int targetIndex;
     };
 
-    using Segmenter = volcart::segmentation::LocalResliceSegmentation;
+    using Segmenter = volcart::segmentation::ChainSegmentationAlgorithm;
 
 signals:
-    void submitSegmentation(Segmenter s);
+    void submitSegmentation(Segmenter::Pointer s);
 
 public slots:
     void onSegmentationFinished(Segmenter::PointSet ps);
@@ -120,6 +122,8 @@ private slots:
 
     void TogglePenTool(void);
     void ToggleSegmentationTool(void);
+
+    void OnChangeSegAlgo(int index);
 
     void OnEdtAlphaValChange();
     void OnEdtBetaValChange();
@@ -227,31 +231,29 @@ class VolPkgBackend : public QObject
 {
     Q_OBJECT
 public:
+    using Segmenter = volcart::segmentation::ChainSegmentationAlgorithm;
+
     explicit VolPkgBackend(QObject* parent = nullptr) : QObject(parent) {}
 
 signals:
     void segmentationStarted(size_t);
-    void segmentationFinished(CWindow::Segmenter::PointSet ps);
+    void segmentationFinished(Segmenter::PointSet ps);
     void segmentationFailed(std::string);
     void progressUpdated(size_t);
 
 public slots:
-    void startSegmentation(CWindow::Segmenter s)
+    void startSegmentation(Segmenter::Pointer segmenter)
     {
-        segmenter = std::move(s);
-        segmenter.progressUpdated.connect(
+        segmenter->progressUpdated.connect(
             [=](size_t p) { progressUpdated(p); });
-        segmentationStarted(segmenter.progressIterations());
+        segmentationStarted(segmenter->progressIterations());
         try {
-            auto result = segmenter.compute();
+            auto result = segmenter->compute();
             segmentationFinished(result);
         } catch (const std::exception& e) {
             segmentationFailed(e.what());
         }
     }
-
-public:
-    CWindow::Segmenter segmenter;
 };
 
 }  // namespace ChaoVis

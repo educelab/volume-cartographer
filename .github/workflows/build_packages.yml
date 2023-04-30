@@ -1,0 +1,74 @@
+name: Build packages
+
+on:
+  workflow_call:
+    outputs:
+      package_mac_intel:
+        description: "The file name of the macOS Intel package"
+        value: ${{ jobs.build_macos_intel.outputs.package_name }}
+
+jobs:
+  build_macos_intel:
+    name: Create macOS package (Intel)
+    runs-on: macos-12
+    outputs:
+      package_name: ${{ steps.name_pkg.outputs.package_name }}
+    timeout-minutes: 240
+    env:
+      QT_VERSION: "6.4.2"
+      EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3.3.0
+        with:
+          fetch-depth: 20
+
+      - name: Install Homebrew dependencies
+        run: |
+          brew update
+          brew unlink libtiff
+          brew install ninja python@3.10
+
+      - name: Install Qt6
+        run: |
+          python3.10 -m pip install --upgrade pip setuptools wheel
+          python3.10 -m pip install aqtinstall
+          aqt install-qt -O ${{ github.workspace }}/Qt/ mac desktop ${QT_VERSION}
+
+      - name: Install vc-deps
+        run: |
+          git submodule update --init
+          cmake -S vc-deps/ -B vc-deps/build/ -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_MESSAGE=NEVER -DVCDEPS_BUILD_ACVD=OFF
+          cmake --build vc-deps/build/
+
+      - name: Build volume-cartographer
+        run: |
+          export CMAKE_INSTALL_PREFIX="packaged_install/"
+          cmake -S . -B build/ -GNinja ${EXTRA_CMAKE_FLAGS} -DCMAKE_PREFIX_PATH=${{ github.workspace }}/Qt/${QT_VERSION}/macos/lib/cmake/
+          cmake --build build/
+          echo "install_dir=${CMAKE_INSTALL_PREFIX}" >> ${GITHUB_ENV}
+
+      - name: Generate package name
+        id: name_pkg
+        run: |
+          ARCH=$(uname -m)
+          if [[ ${{ github.ref }} =~ ^refs/tags/v* ]]; then
+            PKG_NAME="VC-${GITHUB_REF_NAME:1}-Darwin-${ARCH}.zip"
+          else
+            PKG_NAME="VC-${GITHUB_REF_NAME}-Darwin-${ARCH}.zip"
+          fi  
+          echo "package_name=${PKG_NAME}" >> ${GITHUB_ENV}
+          echo "package_name=${PKG_NAME}" >> ${GITHUB_OUTPUT} 
+
+      - name: Create package
+        run: |
+          cmake --install build/ --prefix "${{ env.install_dir }}"
+          python3.10 utils/scripts/macos_codesign_release.py -i "${{ env.install_dir }}"
+          ditto -c -k "${{ env.install_dir }}" ${{ env.package_name }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3.1.1
+        if: success()
+        with:
+          name: package-macos-intel
+          path: ${{ env.package_name }}

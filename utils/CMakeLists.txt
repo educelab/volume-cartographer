@@ -126,6 +126,7 @@ target_link_libraries(vc_visualize_ppm
     ${VC_FS_LIB}
     Boost::program_options
 )
+list(APPEND utils_install_list vc_visualize_ppm)
 
 # vc_image_stats
 add_executable(vc_image_stats src/ImageStatistics.cpp)

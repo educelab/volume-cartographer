@@ -1,0 +1,39 @@
+name: Deploy release
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  create_release:
+    name: Create GitHub release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Creating release
+        run: |
+          export TAG="${{ github.ref_name }}"
+          gh release create ${{ github.ref_name }} -R ${{ github.repository }} --verify-tag --title "Version ${TAG:1}" --generate-notes --draft
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  macos:
+    name: Create macOS package (Intel)
+    needs: create_release
+    uses: ./.github/workflows/build_packages.yml
+
+  upload_packages:
+    name: Upload to release
+    runs-on: ubuntu-latest
+    needs: macos
+    steps:
+      - name: Download macOS (Intel) package
+        uses: actions/download-artifact@v3
+        with:
+          name: package-macos-intel
+
+      - name: Upload packages
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          gh release upload ${{ github.ref_name }} "${{ needs.macos.outputs.package_mac_intel }}" -R ${{ github.repository }} --clobber
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
