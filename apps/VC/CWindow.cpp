@@ -8,6 +8,7 @@
 
 #include "CVolumeViewerWithCurve.hpp"
 #include "UDataManipulateUtils.hpp"
+#include "vc/core/types/Color.hpp"
 #include "vc/core/types/Exceptions.hpp"
 #include "vc/core/util/Logging.hpp"
 #include "vc/meshing/OrderedPointSetMesher.hpp"
@@ -128,8 +129,10 @@ void CWindow::CreateWidgets(void)
     volSelect = this->findChild<QComboBox*>("volSelect");
     connect(
         volSelect, &QComboBox::currentTextChanged, [this](const QString& text) {
-            auto newVolume = fVpkg->volume(text.toStdString());
-            if (newVolume == nullptr) {
+            vc::Volume::Pointer newVolume;
+            try {
+                newVolume = fVpkg->volume(text.toStdString());
+            } catch (const std::out_of_range& e) {
                 QMessageBox::warning(this, "Error", "Could not load volume.");
                 return;
             }
@@ -140,8 +143,9 @@ void CWindow::CreateWidgets(void)
 
     assignVol = this->findChild<QPushButton*>("assignVol");
     connect(assignVol, &QPushButton::clicked, [this](bool) {
-        if (fSegmentation == nullptr || fSegmentation->hasVolumeID())
+        if (fSegmentation == nullptr || fSegmentation->hasVolumeID()) {
             return;
+        }
         fSegmentation->setVolumeID(currentVolume->id());
         UpdateView();
     });
@@ -699,13 +703,30 @@ void CWindow::OpenSlice(void)
     if (fVpkg != nullptr) {
         aImgMat = currentVolume->getSliceDataCopy(fPathOnSliceIndex);
         aImgMat.convertTo(aImgMat, CV_8UC1, 1.0 / 256.0);
-        //        cvtColor(aImgMat, aImgMat, cv::COLOR_GRAY2BGR);
     } else {
         aImgMat = cv::Mat::zeros(10, 10, CV_8UC1);
     }
 
-    QImage aImgQImage;
-    aImgQImage = Mat2QImage(aImgMat);
+    if (aImgMat.empty()) {
+        auto h = currentVolume->sliceHeight();
+        auto w = currentVolume->sliceWidth();
+        aImgMat = cv::Mat::zeros(h, w, CV_8UC3);
+        aImgMat = vc::color::RED;
+        const std::string msg{"FILE IS MISSING"};
+        const auto font = cv::FONT_HERSHEY_SIMPLEX;
+        // TODO: Fix font scale
+        auto scale = std::min(w, h) / 50.;
+        auto thickness = std::max(1, static_cast<int>(scale / 25));
+        int baseline{0};
+        auto ts = cv::getTextSize(msg, font, scale, thickness, &baseline);
+        baseline += thickness;
+        cv::Point to{(w - ts.width) / 2, ts.height + (h - ts.height) / 2};
+        cv::putText(
+            aImgMat, msg, to, font, scale, vc::color::WHITE, thickness,
+            baseline);
+    }
+
+    auto aImgQImage = Mat2QImage(aImgMat);
     fVolumeViewerWidget->SetImage(aImgQImage);
     fVolumeViewerWidget->SetImageIndex(fPathOnSliceIndex);
 }
@@ -801,10 +822,15 @@ void CWindow::OpenVolume()
     fVpkgPath = aVpkgPath;
     fPathOnSliceIndex = 0;
     currentVolume = fVpkg->volume();
-    volSelect->clear();
-    for (const auto& id : fVpkg->volumeIDs()) {
-        volSelect->addItem(QString::fromStdString(id));
+    {
+        const QSignalBlocker blocker{volSelect};
+        volSelect->clear();
     }
+    QStringList volIds;
+    for (const auto& id : fVpkg->volumeIDs()) {
+        volIds.append(QString::fromStdString(id));
+    }
+    volSelect->addItems(volIds);
 }
 
 void CWindow::CloseVolume(void)
