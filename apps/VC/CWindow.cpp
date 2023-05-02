@@ -10,12 +10,65 @@
 #include "UDataManipulateUtils.hpp"
 #include "vc/core/types/Color.hpp"
 #include "vc/core/types/Exceptions.hpp"
+#include "vc/core/util/Iteration.hpp"
 #include "vc/core/util/Logging.hpp"
 #include "vc/meshing/OrderedPointSetMesher.hpp"
 
 namespace vc = volcart;
 using namespace ChaoVis;
 using qga = QGuiApplication;
+
+struct PutTextParams {
+    int font{cv::FONT_HERSHEY_SIMPLEX};
+    double scale{1};
+    int thickness{1};
+    int baseline{0};
+    cv::Size size;
+};
+
+auto CalculateOptimalTextParams(
+    const std::string& str,
+    int width,
+    int height,
+    int maxIters = 1000,
+    double bufferTB = 0.2,
+    double bufferLR = 0.15) -> PutTextParams
+{
+
+    // results
+    PutTextParams p;
+
+    // calculate the width and height minus the buffer
+    auto maxW = width - static_cast<int>(std::ceil(2 * bufferLR * width));
+    auto maxH = height - static_cast<int>(std::ceil(2 * bufferTB * height));
+    auto minDim = std::min(maxW, maxH);
+    auto dIdx = (minDim == maxH) ? 0 : 1;
+
+    // calculate optimal thickness
+    const auto x = static_cast<double>(minDim);
+    auto t = 9.944e-11 * std::pow(x, 3) + -2.35505e-6 * std::pow(x, 2) +
+             1.13691e-2 * x + 0.886545;
+    p.thickness = std::min(1, std::max(static_cast<int>(t), 50));
+
+    // iteratively find the correct scale
+    for (const auto i : vc::range(maxIters)) {
+        p.size =
+            cv::getTextSize(str, p.font, p.scale, p.thickness, &p.baseline);
+        if (p.size.width >= maxW or p.size.height >= maxH) {
+            p.scale *= 0.95;
+        } else {
+            // get the size dim corresponding to our min dim
+            auto minSize = (dIdx == 0) ? p.size.height : p.size.width;
+            // scale up if we're great than 10% from our target width
+            if (minSize < 0.9 * minDim) {
+                p.scale *= 1.11;
+            } else {
+                break;
+            }
+        }
+    }
+    return p;
+}
 
 // Constructor
 CWindow::CWindow()
@@ -712,18 +765,14 @@ void CWindow::OpenSlice(void)
         auto w = currentVolume->sliceWidth();
         aImgMat = cv::Mat::zeros(h, w, CV_8UC3);
         aImgMat = vc::color::RED;
-        const std::string msg{"FILE IS MISSING"};
-        const auto font = cv::FONT_HERSHEY_SIMPLEX;
-        // TODO: Fix font scale
-        auto scale = std::min(w, h) / 50.;
-        auto thickness = std::max(1, static_cast<int>(scale / 25));
-        int baseline{0};
-        auto ts = cv::getTextSize(msg, font, scale, thickness, &baseline);
-        baseline += thickness;
-        cv::Point to{(w - ts.width) / 2, ts.height + (h - ts.height) / 2};
+        const std::string msg{"FILE MISSING"};
+        auto params = CalculateOptimalTextParams(msg, w, h);
+        auto originX = (w - params.size.width) / 2;
+        auto originY = params.size.height + (h - params.size.height) / 2;
+        cv::Point origin{originX, originY};
         cv::putText(
-            aImgMat, msg, to, font, scale, vc::color::WHITE, thickness,
-            baseline);
+            aImgMat, msg, origin, params.font, params.scale, vc::color::WHITE,
+            params.thickness, params.baseline);
     }
 
     auto aImgQImage = Mat2QImage(aImgMat);
