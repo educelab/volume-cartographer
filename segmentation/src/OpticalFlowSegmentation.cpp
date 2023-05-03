@@ -14,7 +14,7 @@
 
 #include "vc/core/filesystem.hpp"
 #include "vc/core/math/StructureTensor.hpp"
-#include "vc/segmentation/LocalResliceParticleSim.hpp"
+#include "vc/segmentation/OpticalFlowSegmentation.hpp"
 #include "vc/segmentation/lrps/Common.hpp"
 #include "vc/segmentation/lrps/Derivative.hpp"
 #include "vc/segmentation/lrps/EnergyMetrics.hpp"
@@ -26,7 +26,7 @@ namespace fs = volcart::filesystem;
 using std::begin;
 using std::end;
 
-size_t LocalResliceSegmentation::progressIterations() const
+size_t OpticalFlowSegmentationClass::progressIterations() const
 {
     auto minZPoint = std::min_element(
         startingChain_.begin(), startingChain_.end(),
@@ -35,19 +35,52 @@ size_t LocalResliceSegmentation::progressIterations() const
     return static_cast<size_t>((endIndex_ - startIndex) / stepSize_);
 }
 
-std::ostream& operator<<(std::ostream& os, const Voxel& voxel) {
+
+static std::ostream& operator<<(std::ostream& os, const Voxel& voxel) {
     os << "(" << voxel[0] << ", " << voxel[1] << ", " << voxel[2] << ")";
     return os;
 }
 
-std::vector<Voxel> LocalResliceSegmentation::computeCurve(
+cv::Vec2f OpticalFlowSegmentationClass::estimate_2d_normal_at_index_(const FittedCurve& curve, int index) {
+    int prevIndex = (index - 1 + curve.size()) % curve.size();
+    int nextIndex = (index + 1) % curve.size();
+
+    cv::Vec2f prevPoint(curve(prevIndex)[0], curve(prevIndex)[1]);
+    cv::Vec2f currPoint(curve(index)[0], curve(index)[1]);
+    cv::Vec2f nextPoint(curve(nextIndex)[0], curve(nextIndex)[1]);
+
+    cv::Vec2f tangent = nextPoint - prevPoint;
+    cv::Vec2f normal(-tangent[1], tangent[0]);
+
+    return normal / cv::norm(normal);
+}
+
+float OpticalFlowSegmentationClass::get_mean_pixel_value(const cv::Mat& integral_img, const cv::Point& pt, int window_size) {
+    int x_min = std::max(pt.x - window_size / 2, 0);
+    int x_max = std::min(pt.x + window_size / 2, integral_img.cols - 2);
+    int y_min = std::max(pt.y - window_size / 2, 0);
+    int y_max = std::min(pt.y + window_size / 2, integral_img.rows - 2);
+
+    int a = integral_img.at<int>(y_min, x_min);
+    int b = integral_img.at<int>(y_min, x_max + 1);
+    int c = integral_img.at<int>(y_max + 1, x_min);
+    int d = integral_img.at<int>(y_max + 1, x_max + 1);
+
+    float sum = static_cast<float>(a + d - b - c);
+    int count = (x_max - x_min + 1) * (y_max - y_min + 1);
+
+    return sum / count;
+}
+
+
+std::vector<Voxel> OpticalFlowSegmentationClass::computeCurve(
     FittedCurve currentCurve,
     Chain& currentVs,
     int zIndex) 
 {
     // Extract 2D image slices at zIndex and zIndex+1
-    cv::Mat slice1 = vol_->getSliceData(zIndex);
-    cv::Mat slice2 = vol_->getSliceData(zIndex+1);
+    cv::Mat slice1 = vol_->getSliceDataCopy(zIndex);
+    cv::Mat slice2 = vol_->getSliceDataCopy(zIndex+1);
 
     // Calculate the bounding box of the curve to define the region of interest
     int x_min = std::numeric_limits<int>::max();
@@ -80,6 +113,9 @@ std::vector<Voxel> LocalResliceSegmentation::computeCurve(
     cv::Mat gray1, gray2;
     cv::normalize(roiSlice1, gray1, 0, 255, cv::NORM_MINMAX, CV_8UC1);
     cv::normalize(roiSlice2, gray2, 0, 255, cv::NORM_MINMAX, CV_8UC1);
+    cv::Mat integral_img;
+    cv::integral(gray2, integral_img, CV_32S);
+
 
     // Compute dense optical flow using Farneback method
     cv::Mat flow;
@@ -87,7 +123,7 @@ std::vector<Voxel> LocalResliceSegmentation::computeCurve(
 
     // Initialize the updated curve
     std::vector<Voxel> nextVs;
-
+    int black_treshold_imitate_brighter_pixel_movement = optical_flow_pixel_threshold_;
     for (int i = 0; i < int(currentCurve.size()); ++i) {
         // Get the current point
         Voxel pt_ = currentCurve(i);
@@ -96,245 +132,91 @@ std::vector<Voxel> LocalResliceSegmentation::computeCurve(
         // Convert pt to ROI coordinates
         cv::Point2f roiPt = pt - cv::Point2f(x_min, y_min);
         // Estimate normal
-        const cv::Vec3d normal = estimate_normal_at_index_(currentCurve, i);
+        // const cv::Vec3d normal = estimate_normal_at_index_(currentCurve, i);
 
         // Get the optical flow vector at the current point
         cv::Vec2f flowVec = flow.at<cv::Vec2f>(roiPt);
 
-        // Project flow vector onto the normal direction
-        float flowMagnitude = flowVec.dot(cv::Vec2f(normal[0], normal[1]));
+        // Check if the flow magnitude is more than 6 pixels
+        if (cv::norm(flowVec) > optical_flow_displacement_threshold_) {
+            // Calculate the average flow around a 5x5 window
+            int windowSize = 5;
+            cv::Vec2f avgFlow(0, 0);
+            int count = 0;
+            for (int x = -windowSize / 2; x <= windowSize / 2; ++x) {
+                for (int y = -windowSize / 2; y <= windowSize / 2; ++y) {
+                    cv::Point2f neighborPt = roiPt + cv::Point2f(x, y);
+                    if (neighborPt.x >= 0 && neighborPt.x < flow.cols && neighborPt.y >= 0 && neighborPt.y < flow.rows) {
+                        int neighborIntensity = gray2.at<uchar>(neighborPt);
+                        if (neighborIntensity > black_treshold_imitate_brighter_pixel_movement) {
+                            avgFlow += flow.at<cv::Vec2f>(neighborPt);
+                            count++;
+                        }
+                    }
+                }
+            }
+            if (count > 0) {
+                flowVec = avgFlow / count;
+            }
+        }
 
-        // Move the point along the normal direction with respect to the optical flow vector
-        cv::Point2f updatedPt = cv::Vec2f(pt_[0], pt_[1]) + flowMagnitude * cv::Vec2f(normal[0], normal[1]);
+        // Move the point along with respect to the optical flow vector
+        cv::Point2f updatedPt = cv::Vec2f(pt_[0], pt_[1]) + flowVec;
 
         // Add the updated point to the updated curve
         nextVs.push_back(Voxel(updatedPt.x, updatedPt.y, zIndex + 1));
     }
 
-    /////////////////////////////////////////////////////////
-    // 3. Clamp points that jumped too far back to a good (interpolated)
-    // position. Do this by looking for places where the square of the
-    // second derivative is large, and move them back. Tentatively, I'm only
-    // going to move back points whose D2^2 evaluates to > 10.
-    //
-    // Currently, linear interpolation between the previous/next point is
-    // used. This could be upgraded to some kind of other fit, possibly
-    // cubic interpolation. The end points are linearly extrapolated from
-    // their two closest neighbors.
+    // Smooth black pixels by moving them onto the line and then back along the normal
+    int black_treshold_detect_outside = outside_threshold_;
+    int window_size = 6; // Set the desired window size for averaging with an parameter? - should be fine for now
+    for (int i = 0; i < int(nextVs.size()); ++i) {
+        Voxel curr = nextVs[i];
+        int currIntensity = gray2.at<uchar>(cv::Point(curr[0] - x_min, curr[1] - y_min));
+        cv::Point pt(curr[0] - x_min, curr[1] - y_min);
+        float mean_intensity = get_mean_pixel_value(integral_img, pt, window_size);
 
-    // Take initial second derivative
-    auto secondDeriv = D2(nextVs);
-    std::vector<double> normDeriv2(secondDeriv.size());
-    std::transform(
-        begin(secondDeriv) + 1, end(secondDeriv) - 1, begin(normDeriv2),
-        [](auto d) { return cv::norm(d) * cv::norm(d); });
+        if (mean_intensity < black_treshold_detect_outside || currIntensity < black_treshold_detect_outside) {
+            // Estimate the normal at the current index
+            cv::Vec2f normal = estimate_2d_normal_at_index_(currentCurve, i);
 
-    // Don't resettle points at the beginning or end of the chain
-    auto maxVal =
-        std::max_element(begin(normDeriv2) + 1, end(normDeriv2) - 1);
-    int settlingIters = 0;
+            // Get the previous and next points
+            Voxel prev = nextVs[(i - 1 + nextVs.size()) % nextVs.size()];
+            Voxel next = nextVs[(i + 1) % nextVs.size()];
 
-    // Iterate until we move all out-of-place points back into place
-    while (*maxVal > 10.0 && settlingIters++ < 100) {
-        Voxel newPoint;
-        int i = maxVal - begin(normDeriv2);
-        Voxel diff = 0.5 * nextVs[size_t(i) + 1] - 0.5 * nextVs[i - 1];
-        newPoint = nextVs[i - 1] + diff;
-        nextVs[i] = newPoint;
+            // Calculate the direction vector between prev and next points
+            cv::Vec2f direction(next[0] - prev[0], next[1] - prev[1]);
+            direction /= cv::norm(direction);
 
-        // Re-evaluate second derivative of new curve
-        secondDeriv = D2(nextVs);
-        std::transform(
-            begin(secondDeriv), end(secondDeriv), begin(normDeriv2),
-            [](auto d) { return cv::norm(d) * cv::norm(d); });
+            // Project the current point onto the line between prev and next points
+            cv::Vec2f prevToCurr(curr[0] - prev[0], curr[1] - prev[1]);
+            float projectionLength = prevToCurr.dot(direction);
+            cv::Vec2f projection(prev[0] + projectionLength * direction[0], prev[1] + projectionLength * direction[1]);
 
-        // Don't resettle points at the beginning or end of the chain
-        maxVal =
-            std::max_element(begin(normDeriv2) + 1, end(normDeriv2) - 1);
+            // Move the point 2 more pixels back along the normal
+            // cv::Vec2f updatedPt(projection[0] - 2 * normal[0], projection[1] - 2 * normal[1]);
+            nextVs[i] = Voxel(projection[0], projection[1], zIndex + 1);
+        }
     }
 
     // Return the updated vector of Voxel points
     return nextVs;
 }
 
-// std::vector<Voxel> LocalResliceSegmentation::computeCurve(
-//     FittedCurve currentCurve,
-//     Chain& currentVs,
-//     int zIndex) {
-
-//     /////////////////////////////////////////////////////////
-//     // 1. Generate all candidate positions for all particles
-//     std::vector<std::deque<Voxel>> nextPositions;
-//     nextPositions.reserve(currentCurve.size());
-//     // XXX DEBUG
-//     std::vector<IntensityMap> maps;
-//     std::vector<Reslice> reslices;
-//     maps.reserve(currentCurve.size());
-//     reslices.reserve(currentCurve.size());
-//     // XXX DEBUG
-//     for (int i = 0; i < int(currentCurve.size()); ++i) {
-//         // Estimate normal and reslice along it
-//         const cv::Vec3d normal = estimate_normal_at_index_(currentCurve, i);
-//         const auto reslice = vol_->reslice(
-//             currentCurve(i), normal, {0, 0, 1}, resliceSize_, resliceSize_);
-//         reslices.push_back(reslice);
-//         auto resliceIntensities = reslice.sliceData();
-
-//         // Make the intensity map `stepSize_` layers down from current
-//         // position and find the maxima
-//         const cv::Point2i center{
-//             resliceIntensities.cols / 2, resliceIntensities.rows / 2};
-//         const int nextLayerIndex = center.y + static_cast<int>(stepSize_);
-//         IntensityMap map(
-//             resliceIntensities, static_cast<int>(stepSize_),
-//             peakDistanceWeight_, considerPrevious_);
-//         const auto allMaxima = map.sortedMaxima();
-//         maps.push_back(map);
-
-//         // Handle case where there's no maxima - go straight down
-//         if (allMaxima.empty()) {
-//             nextPositions.emplace_back(
-//                 std::deque<Voxel>{reslice.sliceToVoxelCoord<int>(
-//                     {center.x, nextLayerIndex})});
-//             continue;
-//         }
-
-//         // Convert maxima to voxel positions
-//         std::deque<Voxel> maximaQueue;
-//         for (auto&& maxima : allMaxima) {
-//             maximaQueue.emplace_back(reslice.sliceToVoxelCoord<double>(
-//                 {maxima.first, nextLayerIndex}));
-//         }
-//         nextPositions.push_back(maximaQueue);
-//     }
-
-//     /////////////////////////////////////////////////////////
-//     // 2. Construct initial guess using top maxima for each next position
-//     std::vector<Voxel> nextVs;
-//     nextVs.reserve(currentVs.size());
-//     for (int i = 0; i < int(nextPositions.size()); ++i) {
-//         nextVs.push_back(nextPositions[i].front());
-//         maps[i].setChosenMaximaIndex(0);
-//     }
-//     FittedCurve nextCurve(nextVs, zIndex + 1);
-
-//     // Calculate energy of the current curve
-//     double minEnergy = std::numeric_limits<double>::max();
-
-//     // Derivative of energy measure - keeps the previous three measurements
-//     // and will evaluate the central difference (when there's enough
-//     // measurements)
-//     std::deque<double> dEnergy;
-//     dEnergy.push_back(minEnergy);
-
-//     /////////////////////////////////////////////////////////
-//     // 3. Optimize
-//     std::vector<int> indices(currentVs.size());
-//     std::iota(begin(indices), end(indices), 0);
-
-//     // - Go until either some hard limit or change in energy is minimal
-//     int n = 0;
-
-//     iters_start:
-//     while (n++ < numIters_) {
-
-//         // Break if our energy gradient is leveling off
-//         dEnergy.push_back(minEnergy);
-//         if (dEnergy.size() > 3) {
-//             dEnergy.pop_front();
-//         }
-//         if (dEnergy.size() == 3 &&
-//             0.5 * (dEnergy[0] - dEnergy[2]) < DEFAULT_MIN_ENERGY_GRADIENT) {
-//             break;
-//         }
-
-//         // - Sort paired index-Voxel in increasing local internal energy
-//         auto pairs = Zip(indices, SquareDiff(currentVs, nextVs));
-//         std::sort(begin(pairs), end(pairs), [](auto p1, auto p2) {
-//             return p1.second < p2.second;
-//         });
-
-//         // - Go through the sorted list in reverse order, optimizing each
-//         // particle. If we find an optimum, then start over with the new
-//         // optimal positions. Do this until convergence or we hit a cap on
-//         // number of iterations.
-//         while (!pairs.empty()) {
-//             int maxDiffIdx;
-//             double _;
-//             std::tie(maxDiffIdx, _) = pairs.back();
-//             pairs.pop_back();
-
-//             // Go through each combination for the maximal difference
-//             // particle, iterate until you find a new optimum or don't find
-//             // anything.
-//             while (!nextPositions[maxDiffIdx].empty()) {
-//                 std::vector<Voxel> combVs(begin(nextVs), end(nextVs));
-//                 combVs[maxDiffIdx] = nextPositions[maxDiffIdx].front();
-//                 nextPositions[maxDiffIdx].pop_front();
-//                 FittedCurve combCurve(combVs, zIndex + 1);
-
-//                 // Found a new optimum?
-//                 double newE = EnergyMetrics::TotalEnergy(
-//                     combCurve, alpha_, k1_, k2_, beta_, delta_);
-//                 if (newE < minEnergy) {
-//                     minEnergy = newE;
-//                     maps[maxDiffIdx].incrementMaximaIndex();
-//                     nextVs = combVs;
-//                     nextCurve = combCurve;
-//                 }
-//             }
-//             goto iters_start;
-//         }
-//     }
-
-//     /////////////////////////////////////////////////////////
-//     // 3. Clamp points that jumped too far back to a good (interpolated)
-//     // position. Do this by looking for places where the square of the
-//     // second derivative is large, and move them back. Tentatively, I'm only
-//     // going to move back points whose D2^2 evaluates to > 10.
-//     //
-//     // Currently, linear interpolation between the previous/next point is
-//     // used. This could be upgraded to some kind of other fit, possibly
-//     // cubic interpolation. The end points are linearly extrapolated from
-//     // their two closest neighbors.
-
-//     // Take initial second derivative
-//     auto secondDeriv = D2(nextVs);
-//     std::vector<double> normDeriv2(secondDeriv.size());
-//     std::transform(
-//         begin(secondDeriv) + 1, end(secondDeriv) - 1, begin(normDeriv2),
-//         [](auto d) { return cv::norm(d) * cv::norm(d); });
-
-//     // Don't resettle points at the beginning or end of the chain
-//     auto maxVal =
-//         std::max_element(begin(normDeriv2) + 1, end(normDeriv2) - 1);
-//     int settlingIters = 0;
-
-//     // Iterate until we move all out-of-place points back into place
-//     while (*maxVal > 10.0 && settlingIters++ < 100) {
-//         Voxel newPoint;
-//         int i = maxVal - begin(normDeriv2);
-//         Voxel diff = 0.5 * nextVs[size_t(i) + 1] - 0.5 * nextVs[i - 1];
-//         newPoint = nextVs[i - 1] + diff;
-//         nextVs[i] = newPoint;
-
-//         // Re-evaluate second derivative of new curve
-//         secondDeriv = D2(nextVs);
-//         std::transform(
-//             begin(secondDeriv), end(secondDeriv), begin(normDeriv2),
-//             [](auto d) { return cv::norm(d) * cv::norm(d); });
-
-//         // Don't resettle points at the beginning or end of the chain
-//         maxVal =
-//             std::max_element(begin(normDeriv2) + 1, end(normDeriv2) - 1);
-//     }
-
-//     // Return the updated vector of Voxel points
-//     return nextVs;
-// }
-
-LocalResliceSegmentation::PointSet LocalResliceSegmentation::compute()
+OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
 {
+    std::cout << "[Info]: Starting Optical Flow Segmentation" << std::endl;
+    // Max cache size 1000 slices
+    // int desired_cache_size = 200;
+    // if (vol_->getCacheCapacity() != desired_cache_size) {
+    //     vol_->setCacheCapacity(desired_cache_size);
+    // }
+    // cache gets corrupted somewhere. purge it to have clean state. but takes longer to process files. oh well
+    // if purge_cache_ is true, purge cache
+    if (purge_cache_) {
+        std::cout << "[Info]: Purging Slice Cache" << std::endl;
+        vol_->cachePurge();
+    }
     // reset progress
     progressStarted();
 
@@ -377,27 +259,9 @@ LocalResliceSegmentation::PointSet LocalResliceSegmentation::compute()
     points.push_back(currentVs);
 
     // std::cout << "Maximum slices size in Cache: " << vol_->getCacheCapacity() << std::endl;
-    auto radius = static_cast<int>(std::ceil(materialThickness_ / vol_->voxelSize()) * 0.5) + 10;
-    // std::cout << "Need to load at least: " << radius << "slices above" << std::endl;
-    auto sliceing_width = resliceSize_ + 10;
-    // std::cout << "Sliceing width: " << sliceing_width << std::endl;
-    auto preload_nr = std::max(radius, sliceing_width);
-    // std::cout << "Preload: " << preload_nr << "slices" << std::endl;
     // Iterate over z-slices
     size_t iteration{0};
     for (int zIndex = startIndex; zIndex <= endIndex_; zIndex += stepSize_) {
-        // preload the next few slices
-        for(int u = 0; u <= preload_nr; u++) {
-            // skip already loaded slices
-            if(zIndex != startIndex && u < preload_nr - zIndex + stepSize_) {
-                continue;
-            }
-            else if (zIndex == startIndex && zIndex - u >= 0) {
-                vol_->getSliceData(zIndex - u);
-            }
-            vol_->getSliceData(zIndex + u);
-        }
-        
         // std::cout << "Start Z Slice " << zIndex << std::endl;
         // Update progress
         progressUpdated(iteration++);
@@ -533,7 +397,7 @@ LocalResliceSegmentation::PointSet LocalResliceSegmentation::compute()
     return create_final_pointset_(points);
 }
 
-cv::Vec3d LocalResliceSegmentation::estimate_normal_at_index_(
+cv::Vec3d OpticalFlowSegmentationClass::estimate_normal_at_index_(
     const FittedCurve& currentCurve, int index)
 {
     auto currentVoxel = currentCurve(index);
@@ -559,8 +423,8 @@ cv::Vec3d LocalResliceSegmentation::estimate_normal_at_index_(
     return normal;
 }
 
-LocalResliceSegmentation::PointSet
-LocalResliceSegmentation::create_final_pointset_(
+OpticalFlowSegmentationClass::PointSet
+OpticalFlowSegmentationClass::create_final_pointset_(
     const std::vector<std::vector<Voxel>>& points)
 {
     auto rows = points.size();
@@ -580,7 +444,7 @@ LocalResliceSegmentation::create_final_pointset_(
     return result_;
 }
 
-cv::Mat LocalResliceSegmentation::draw_particle_on_slice_(
+cv::Mat OpticalFlowSegmentationClass::draw_particle_on_slice_(
     const FittedCurve& curve,
     int sliceIndex,
     int particleIndex,

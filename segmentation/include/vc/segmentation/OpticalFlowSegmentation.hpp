@@ -13,7 +13,7 @@
 namespace volcart::segmentation
 {
 /**
- * @class LocalResliceSegmentation
+ * @class OpticalFlowSegmentationClass
  * @brief Local Reslice %Particle Simulation (LRPS) segmentation
  *
  * This algorithm propagates a chain of points forward through a volume from
@@ -30,23 +30,23 @@ namespace volcart::segmentation
  *
  * @ingroup lrps
  */
-class LocalResliceSegmentation : public ChainSegmentationAlgorithm
+class OpticalFlowSegmentationClass : public ChainSegmentationAlgorithm
 {
 public:
     /** Pointer */
-    using Pointer = std::shared_ptr<LocalResliceSegmentation>;
+    using Pointer = std::shared_ptr<OpticalFlowSegmentationClass>;
 
     /** @brief Default constructor */
-    LocalResliceSegmentation() = default;
+    OpticalFlowSegmentationClass() = default;
 
     /** Default destructor */
-    ~LocalResliceSegmentation() override = default;
+    ~OpticalFlowSegmentationClass() override = default;
 
     /** Make a new shared instance */
     template <typename... Args>
     static auto New(Args... args) -> Pointer
     {
-        return std::make_shared<LocalResliceSegmentation>(
+        return std::make_shared<OpticalFlowSegmentationClass>(
             std::forward<Args>(args)...);
     }
 
@@ -60,31 +60,13 @@ public:
      * @brief Set the weight for the Active Contour metric
      * @see double ActiveContourInternal()
      */
-    void setAlpha(double a) { alpha_ = a; }
-
-    /**
-     * @brief Set the stretch weight factor
-     * @see double ActiveContourInternal()
-     */
-    void setK1(double k) { k1_ = k; }
-
-    /**
-     * @brief Set the curvature weight factor
-     * @see double ActiveContourInternal()
-     */
-    void setK2(double k) { k2_ = k; }
+    void setOutsideThreshold(int outside) { outside_threshold_ = outside; }
 
     /**
      * @brief Set the weight for the Absolute Curvature Sum metric
      * @see double AbsCurvatureSum()
      */
-    void setBeta(double b) { beta_ = b; }
-
-    /**
-     * @brief Set the weight for the Arc Length metric
-     * @see double WindowedArcLength()
-     */
-    void setDelta(double d) { delta_ = d; }
+    void setOFThreshold(int of_thr) { optical_flow_pixel_threshold_ = of_thr; }
 
     /**
      * @brief Set the estimated thickness of the substrate (in um)
@@ -93,19 +75,25 @@ public:
      */
     void setMaterialThickness(double m) { materialThickness_ = m; }
 
-    /** @brief Set the reslice window size */
-    void setResliceSize(int s) { resliceSize_ = s; }
-
     /** @brief Set the distance weight factor for candidate positions */
-    void setDistanceWeightFactor(int f) { peakDistanceWeight_ = f; }
+    void setOFDispThreshold(int of_disp_thrs) { optical_flow_displacement_threshold_ = of_disp_thrs; }
 
     /** @brief Set whether to consider previous position as candidate position
      */
-    void setConsiderPrevious(bool b) { considerPrevious_ = b; }
+    void setPurgeCache(bool purge_c) { purge_cache_ = purge_c; }
+    /**@}*/
 
+    /**@{*/
+    /** @brief Compute the segmentation 1 Line */
+    std::vector<Voxel> computeCurve(FittedCurve currentCurve, Chain& currentVs, int zIndex);
+    /**@}*/
+
+    /**@{*/
     /** @brief Compute the segmentation */
-    auto compute() -> PointSet override;
+    PointSet compute() override;
+    /**@}*/
 
+    /**@{*/
     /** Debug: Shows intensity maps in GUI window */
     void setVisualize(bool b) { visualize_ = b; }
 
@@ -123,6 +111,23 @@ private:
      */
     auto estimate_normal_at_index_(const FittedCurve& currentCurve, int index)
         -> cv::Vec3d;
+
+    /**
+     * @brief Estimate the 2D normal to the curve at point index in the z plane
+     * @param curve Input curve
+     * @param index Index of point on curve
+     */
+    auto estimate_2d_normal_at_index_(const volcart::segmentation::FittedCurve& curve, int index)
+        -> cv::Vec2f;
+
+    /**
+     * @brief Calculate the mean pixel value in a window around a point
+     * @param integral_img Intergral image of slice
+     * @param pt Point around which to calculate mean
+     * @param window_size Size of window
+     */
+    auto get_mean_pixel_value(const cv::Mat& integral_img, const cv::Point& pt, int window_size)
+        -> float;
 
     /**
      * @brief Debug: Draw curve on slice image
@@ -147,19 +152,13 @@ private:
     /** Target z-index */
     int endIndex_{0};
     /** Active Contour weight parameter */
-    double alpha_{1.0 / 3.0};
-    /** Active Contour stretch parameter */
-    double k1_{0.5};
-    /** Active Contour curvature parameter */
-    double k2_{0.5};
+    int outside_threshold_{80};
     /** Abs. Curvature Sum weight parameter */
-    double beta_{1.0 / 3.0};
-    /** Arc Length weight parameter */
-    double delta_{1.0 / 3.0};
+    int optical_flow_pixel_threshold_{80};
     /** Distance weight factor for candidate positions */
-    int peakDistanceWeight_{50};
+    int optical_flow_displacement_threshold_{10};
     /** Reconsider previous position flag */
-    bool considerPrevious_{false};
+    bool purge_cache_{true};
     /** Dump visualization to disk flag */
     bool dumpVis_{false};
     /** Show visualization in GUI flag */
@@ -168,7 +167,5 @@ private:
     int numIters_{15};
     /** Estimated material thickness in um */
     double materialThickness_{100};
-    /** Window size for reslice */
-    int resliceSize_{32};
 };
 }  // namespace volcart::segmentation

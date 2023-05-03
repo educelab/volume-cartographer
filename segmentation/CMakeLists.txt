@@ -8,6 +8,7 @@ set(srcs
     src/FloodFill.cpp
     src/IntensityMap.cpp
     src/LocalResliceParticleSim.cpp
+    src/OpticalFlowSegmentation.cpp
     src/Particle.cpp
     src/ParticleChain.cpp
     src/StructureTensorParticleSim.cpp

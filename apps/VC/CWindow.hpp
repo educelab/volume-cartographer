@@ -56,6 +56,10 @@ public:
         int fWindowWidth{5};
         bool fIncludeMiddle;
         int targetIndex;
+        bool purge_cache;
+        int outside_threshold;
+        int optical_flow_pixel_threshold;
+        int optical_flow_displacement_threshold;
     };
 
     using Segmenter = volcart::segmentation::ChainSegmentationAlgorithm;
