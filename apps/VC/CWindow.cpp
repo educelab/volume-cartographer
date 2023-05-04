@@ -49,6 +49,8 @@ CWindow::CWindow()
     fSegParams.fWindowWidth = 5;
     fSegParams.targetIndex = 5;
     fSegParams.purge_cache = true;
+    fSegParams.cache_slices = -1;
+    fSegParams.smoothen_by_brightness = 180;
     fSegParams.outside_threshold = 80;
     fSegParams.optical_flow_pixel_threshold = 80;
     fSegParams.optical_flow_displacement_threshold = 10;
@@ -189,24 +191,38 @@ void CWindow::CreateWidgets(void)
     auto* edtOpticalFlowDisplacementThreshold = new QSpinBox();
     edtOpticalFlowDisplacementThreshold->setMinimum(0);
     edtOpticalFlowDisplacementThreshold->setValue(10);
+    auto* edtSmoothenPixelThreshold = new QSpinBox();
+    edtSmoothenPixelThreshold->setMinimum(0);
+    edtSmoothenPixelThreshold->setMaximum(256);
+    edtSmoothenPixelThreshold->setValue(180);
     auto* chkPurgeCache = new QCheckBox("Purge Cache");
     chkPurgeCache->setChecked(true);
+    auto* edtCacheSize = new QSpinBox();
+    edtCacheSize->setMinimum(-1);
+    edtCacheSize->setMaximum(20000);
+    edtCacheSize->setValue(-1);
 
     connect(edtOutsideThreshold, &QSpinBox::valueChanged, [=](int v){fSegParams.outside_threshold = v;});
     connect(edtOpticalFlowPixelThreshold, &QSpinBox::valueChanged, [=](int v){fSegParams.optical_flow_pixel_threshold = v;});
     connect(edtOpticalFlowDisplacementThreshold, &QSpinBox::valueChanged, [=](int v){fSegParams.optical_flow_displacement_threshold = v;});
+    connect(edtSmoothenPixelThreshold, &QSpinBox::valueChanged, [=](int v){fSegParams.smoothen_by_brightness = v;});
     connect(chkPurgeCache, &QCheckBox::toggled, [=](bool checked){fSegParams.purge_cache = checked;});
+    connect(edtCacheSize, &QSpinBox::valueChanged, [=](int v){fSegParams.cache_slices = v;});
 
     auto* opticalFlowParamsContainer = new QWidget();
     auto* opticalFlowParamsLayout = new QVBoxLayout(opticalFlowParamsContainer);
 
-    opticalFlowParamsLayout->addWidget(new QLabel("Outside Pixel Threshold"));
-    opticalFlowParamsLayout->addWidget(edtOutsideThreshold);
-    opticalFlowParamsLayout->addWidget(new QLabel("Optical Flow Pixel Threshold"));
-    opticalFlowParamsLayout->addWidget(edtOpticalFlowPixelThreshold);
     opticalFlowParamsLayout->addWidget(new QLabel("Optical Flow Displacement Threshold"));
     opticalFlowParamsLayout->addWidget(edtOpticalFlowDisplacementThreshold);
+    opticalFlowParamsLayout->addWidget(new QLabel("Optical Flow Dark Pixel Threshold"));
+    opticalFlowParamsLayout->addWidget(edtOpticalFlowPixelThreshold);
+    opticalFlowParamsLayout->addWidget(new QLabel("Smoothen Curve at Dark Points"));
+    opticalFlowParamsLayout->addWidget(edtOutsideThreshold);
+    opticalFlowParamsLayout->addWidget(new QLabel("Smoothen Curve at Bright Points"));
+    opticalFlowParamsLayout->addWidget(edtSmoothenPixelThreshold);
     opticalFlowParamsLayout->addWidget(chkPurgeCache);
+    opticalFlowParamsLayout->addWidget(new QLabel("Maximum Cache Size"));
+    opticalFlowParamsLayout->addWidget(edtCacheSize);
 
     this->ui.segParamsStack->addWidget(opticalFlowParamsContainer);
 
@@ -599,7 +615,9 @@ void CWindow::DoSegmentation(void)
         ofsc->setOutsideThreshold(fSegParams.outside_threshold);
         ofsc->setOFThreshold(fSegParams.optical_flow_pixel_threshold);
         ofsc->setOFDispThreshold(fSegParams.optical_flow_displacement_threshold);
+        ofsc->setLineSmoothenByBrightness(fSegParams.smoothen_by_brightness);
         ofsc->setPurgeCache(fSegParams.purge_cache);
+        ofsc->setCacheSlices(fSegParams.cache_slices);
         segmenter = ofsc;
     }
     // ADD OTHER SEGMENTER SETUP HERE. MATCH THE IDX TO THE IDX IN THE

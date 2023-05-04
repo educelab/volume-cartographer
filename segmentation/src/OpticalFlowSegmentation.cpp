@@ -35,12 +35,13 @@ size_t OpticalFlowSegmentationClass::progressIterations() const
     return static_cast<size_t>((endIndex_ - startIndex) / stepSize_);
 }
 
-
+// print curve points with the help of this function
 static std::ostream& operator<<(std::ostream& os, const Voxel& voxel) {
     os << "(" << voxel[0] << ", " << voxel[1] << ", " << voxel[2] << ")";
     return os;
 }
 
+// estimting the 2D normal to the curve in the z plane
 cv::Vec2f OpticalFlowSegmentationClass::estimate_2d_normal_at_index_(const FittedCurve& curve, int index) {
     int prevIndex = (index - 1 + curve.size()) % curve.size();
     int nextIndex = (index + 1) % curve.size();
@@ -55,6 +56,7 @@ cv::Vec2f OpticalFlowSegmentationClass::estimate_2d_normal_at_index_(const Fitte
     return normal / cv::norm(normal);
 }
 
+// fast method to get mean pixel value of window_size by using an integral image
 float OpticalFlowSegmentationClass::get_mean_pixel_value(const cv::Mat& integral_img, const cv::Point& pt, int window_size) {
     int x_min = std::max(pt.x - window_size / 2, 0);
     int x_max = std::min(pt.x + window_size / 2, integral_img.cols - 2);
@@ -72,7 +74,7 @@ float OpticalFlowSegmentationClass::get_mean_pixel_value(const cv::Mat& integral
     return sum / count;
 }
 
-
+// Multithreaded computation of splitted curve segment
 std::vector<Voxel> OpticalFlowSegmentationClass::computeCurve(
     FittedCurve currentCurve,
     Chain& currentVs,
@@ -131,13 +133,12 @@ std::vector<Voxel> OpticalFlowSegmentationClass::computeCurve(
         cv::Point2f pt(pt_[0], pt_[1]);
         // Convert pt to ROI coordinates
         cv::Point2f roiPt = pt - cv::Point2f(x_min, y_min);
-        // Estimate normal
-        // const cv::Vec3d normal = estimate_normal_at_index_(currentCurve, i);
+
 
         // Get the optical flow vector at the current point
         cv::Vec2f flowVec = flow.at<cv::Vec2f>(roiPt);
 
-        // Check if the flow magnitude is more than 6 pixels
+        // Check if the flow magnitude is more than optical_flow_displacement_threshold_ pixels
         if (cv::norm(flowVec) > optical_flow_displacement_threshold_) {
             // Calculate the average flow around a 5x5 window
             int windowSize = 5;
@@ -167,16 +168,17 @@ std::vector<Voxel> OpticalFlowSegmentationClass::computeCurve(
         nextVs.push_back(Voxel(updatedPt.x, updatedPt.y, zIndex + 1));
     }
 
-    // Smooth black pixels by moving them onto the line and then back along the normal
+    // Smooth black pixels by moving them closer to the edge
+    // Smooth very bright pixels by moving them closer to the edge
     int black_treshold_detect_outside = outside_threshold_;
-    int window_size = 6; // Set the desired window size for averaging with an parameter? - should be fine for now
+    int window_size = 6; // Set the desired window size for averaging with an parameter? - should be fine for now. TODO: for adding different scroll resolution support
     for (int i = 0; i < int(nextVs.size()); ++i) {
         Voxel curr = nextVs[i];
         int currIntensity = gray2.at<uchar>(cv::Point(curr[0] - x_min, curr[1] - y_min));
         cv::Point pt(curr[0] - x_min, curr[1] - y_min);
         float mean_intensity = get_mean_pixel_value(integral_img, pt, window_size);
 
-        if (mean_intensity < black_treshold_detect_outside || currIntensity < black_treshold_detect_outside) {
+        if (mean_intensity < black_treshold_detect_outside || currIntensity < black_treshold_detect_outside || currIntensity > smoothen_by_brightness_) {
             // Estimate the normal at the current index
             cv::Vec2f normal = estimate_2d_normal_at_index_(currentCurve, i);
 
@@ -193,8 +195,6 @@ std::vector<Voxel> OpticalFlowSegmentationClass::computeCurve(
             float projectionLength = prevToCurr.dot(direction);
             cv::Vec2f projection(prev[0] + projectionLength * direction[0], prev[1] + projectionLength * direction[1]);
 
-            // Move the point 2 more pixels back along the normal
-            // cv::Vec2f updatedPt(projection[0] - 2 * normal[0], projection[1] - 2 * normal[1]);
             nextVs[i] = Voxel(projection[0], projection[1], zIndex + 1);
         }
     }
@@ -205,19 +205,18 @@ std::vector<Voxel> OpticalFlowSegmentationClass::computeCurve(
 
 OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
 {
-    std::cout << "[Info]: Starting Optical Flow Segmentation" << std::endl;
-    // Max cache size 1000 slices
-    // int desired_cache_size = 200;
-    // if (vol_->getCacheCapacity() != desired_cache_size) {
-    //     vol_->setCacheCapacity(desired_cache_size);
-    // }
-    // cache gets corrupted somewhere. purge it to have clean state. but takes longer to process files. oh well
+    // Max cache size
+    if (nr_cache_slices_ >= 0 && vol_->getCacheCapacity() != nr_cache_slices_) {
+        std::cout << "[Info]: Setting Cache Size to" << nr_cache_slices_ << " Slices" << std::endl;
+        vol_->setCacheCapacity(nr_cache_slices_);
+    }
+    // Cache gets corrupted somewhere(one case: if estimate_normal_at_index_ from local reslice particle sim is used in multithreading mode). purge it to have clean state. might take longer to process files.
     // if purge_cache_ is true, purge cache
     if (purge_cache_) {
         std::cout << "[Info]: Purging Slice Cache" << std::endl;
         vol_->cachePurge();
     }
-    // reset progress
+    // Reset progress
     progressStarted();
 
     // Duplicate the starting chain
@@ -258,11 +257,9 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
         (endIndex_ - startIndex + 1) / static_cast<uint64_t>(stepSize_));
     points.push_back(currentVs);
 
-    // std::cout << "Maximum slices size in Cache: " << vol_->getCacheCapacity() << std::endl;
     // Iterate over z-slices
     size_t iteration{0};
     for (int zIndex = startIndex; zIndex <= endIndex_; zIndex += stepSize_) {
-        // std::cout << "Start Z Slice " << zIndex << std::endl;
         // Update progress
         progressUpdated(iteration++);
 
@@ -276,7 +273,6 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
         // 0. Resample current positions so they are evenly spaced
         FittedCurve currentCurve(currentVs, zIndex);
         currentVs = currentCurve.evenlySpacePoints();
-        // std::cout << "Initial curve size: " << currentVs.size() << std::endl;
 
         // Dump entire curve for easy viewing
         if (dumpVis_) {
@@ -312,7 +308,6 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
             int end_idx_padded = (i == num_threads - 1) ? total_points : (end_idx + 2);
             std::vector<Voxel> subsegment(currentVs.begin() + start_idx_padded, currentVs.begin() + end_idx_padded);
             subsegment_vectors[i] = subsegment;
-            // std::cout << "Subsegment " << i << " size: " << subsegment.size() << std::endl;
             start_idx = end_idx;
         }
 
@@ -331,10 +326,8 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
         // Join threads and stitch curve segments together
         for (auto& thread : threads)
         {
-            // std::cout << "Join Thread " << std::endl;
             thread.join();
         }
-        // std::cout << "joined all threads" << std::endl;
         std::vector<Voxel> stitched_curve;
         stitched_curve.reserve(currentVs.size());
 
@@ -350,22 +343,16 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
             stitched_curve.insert(stitched_curve.end(), subsegment_points[i].begin(), subsegment_points[i].end());
         }
         
-        // std::cout << "Stitched curve size: " << stitched_curve.size() << std::endl;
-        // std::cout << "stitched curve together" << std::endl;
         // Generate nextVs by evenly spacing points in the stitched curve
         FittedCurve stitchedFittedCurve(stitched_curve, zIndex);
         std::vector<Voxel> nextVs = stitchedFittedCurve.evenlySpacePoints();
-        // std::cout << "evenly spaced curve" << std::endl;
-        // std::cout << "Next curve size: " << nextVs.size() << std::endl;
-        // Computation of the next set of points
-        // std::vector<Voxel> nextVs = computeCurve(currentCurve, currentVs, zIndex);
 
         // Check if any points in nextVs are outside volume boundaries. If so,
         // stop iterating and dump the resulting pointcloud.
         if (std::any_of(begin(nextVs), end(nextVs), [this](auto v) {
                 return !bb_.isInBounds(v) || !vol_->isInBounds(v);
             })) {
-            // std::cout << "Returned early due to out-of-bounds points" << std::endl;
+            std::cout << "Returned early due to out-of-bounds points" << std::endl;
             status_ = Status::ReturnedEarly;
             return create_final_pointset_(points);
         }
@@ -393,7 +380,6 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
     progressComplete();
 
     // 6. Output final mesh
-    // std::cout << "compute() end" << std::endl;
     return create_final_pointset_(points);
 }
 

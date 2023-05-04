@@ -14,21 +14,16 @@ namespace volcart::segmentation
 {
 /**
  * @class OpticalFlowSegmentationClass
- * @brief Local Reslice %Particle Simulation (LRPS) segmentation
+ * @brief Multithreaded Optical Flow Segmentation
  *
  * This algorithm propagates a chain of points forward through a volume from
  * a starting z-index to an ending z-index. Each point is assumed to start
- * within a "channel" of maximum intensity, that is, the bright voxels of a
- * page layer. As the chain propagates forward, each point produces a reslice
- * image that is locally orthogonal to the layer. Using this view, the algorithm
- * finds the weighted set of maxima local to the point. These are assumed to be
- * layer voxels on the current or a nearby layer. Using the sorted maxima for
- * each point, the algorithm then selects the propagated positions for all
- * points in the chain that minimize the energy loss of the chain curvature.
- *
+ * within a page layer. 
  * The ending index is inclusive.
  *
- * @ingroup lrps
+ * Warning: This Algorithm is not deterministic and yields slightly different results each run.
+ *
+ * @ingroup ofsc
  */
 class OpticalFlowSegmentationClass : public ChainSegmentationAlgorithm
 {
@@ -57,14 +52,12 @@ public:
     void setOptimizationIterations(int n) { numIters_ = n; }
 
     /**
-     * @brief Set the weight for the Active Contour metric
-     * @see double ActiveContourInternal()
+     * @brief Set the threshold of what pixel brightness is considered inside a sheet (higher as threshold) and outside (lower as threshold)
      */
     void setOutsideThreshold(int outside) { outside_threshold_ = outside; }
 
     /**
-     * @brief Set the weight for the Absolute Curvature Sum metric
-     * @see double AbsCurvatureSum()
+     * @brief Set the threshold of what pixel brightness is considered while calculating optical flow, darker pixels OF is interpolated from brighter ones in the area
      */
     void setOFThreshold(int of_thr) { optical_flow_pixel_threshold_ = of_thr; }
 
@@ -75,13 +68,21 @@ public:
      */
     void setMaterialThickness(double m) { materialThickness_ = m; }
 
-    /** @brief Set the distance weight factor for candidate positions */
+    /** @brief Set the maximum single pixel optical flow displacement before interpolating a pixel region */
     void setOFDispThreshold(int of_disp_thrs) { optical_flow_displacement_threshold_ = of_disp_thrs; }
 
-    /** @brief Set whether to consider previous position as candidate position
+    /** @brief Set whether to purge cache
      */
     void setPurgeCache(bool purge_c) { purge_cache_ = purge_c; }
     /**@}*/
+
+    /** @brief Set how many slices should be cached
+     */
+    void setCacheSlices(int cache_slices) { nr_cache_slices_ = cache_slices; }
+
+    /** @brief Set how many slices should be cached
+     */
+    void setLineSmoothenByBrightness(int brightness) { smoothen_by_brightness_ = brightness; }
 
     /**@{*/
     /** @brief Compute the segmentation 1 Line */
@@ -151,13 +152,13 @@ private:
 
     /** Target z-index */
     int endIndex_{0};
-    /** Active Contour weight parameter */
+    /** Darker pixels are considered outside the sheet */
     int outside_threshold_{80};
-    /** Abs. Curvature Sum weight parameter */
+    /** Disregarding pixel that are darker during optical flow computation */
     int optical_flow_pixel_threshold_{80};
-    /** Distance weight factor for candidate positions */
+    /** Threshold of how many pixel optical flow can displace a point, if higher, recompute optical flow with region's average flow */
     int optical_flow_displacement_threshold_{10};
-    /** Reconsider previous position flag */
+    /** Purging Cache flag */
     bool purge_cache_{true};
     /** Dump visualization to disk flag */
     bool dumpVis_{false};
@@ -167,5 +168,10 @@ private:
     int numIters_{15};
     /** Estimated material thickness in um */
     double materialThickness_{100};
+    /** Number of slices to cache */
+    int nr_cache_slices_{-1};
+    /** Number of slices to cache */
+    int smoothen_by_brightness_{180};
+    
 };
 }  // namespace volcart::segmentation
