@@ -13,8 +13,10 @@
 #include "vc/core/util/Iteration.hpp"
 #include "vc/core/util/Logging.hpp"
 #include "vc/meshing/OrderedPointSetMesher.hpp"
+#include "vc/segmentation/LocalResliceParticleSim.hpp"
 
 namespace vc = volcart;
+namespace vcs = volcart::segmentation;
 using namespace ChaoVis;
 using qga = QGuiApplication;
 
@@ -216,10 +218,17 @@ void CWindow::CreateWidgets(void)
         SLOT(OnPathItemClicked(QListWidgetItem*)));
 
     // segmentation methods
-    QComboBox* aSegMethodsComboBox =
-        this->findChild<QComboBox*>("cmbSegMethods");
+    auto* aSegMethodsComboBox = this->findChild<QComboBox*>("cmbSegMethods");
     aSegMethodsComboBox->addItem(tr("Local Reslice Particle Simulation"));
+    connect(
+        aSegMethodsComboBox, SIGNAL(currentIndexChanged(int)), this,
+        SLOT(OnChangeSegAlgo(int)));
 
+    // ADD NEW SEGMENTATION ALGORITHM NAMES HERE
+    // aSegMethodsComboBox->addItem(tr("My custom algorithm"));
+
+    // LRPS segmentation parameters
+    // all of these are contained in the this->ui.lrpsParams
     fEdtAlpha = this->findChild<QLineEdit*>("edtAlphaVal");
     fEdtBeta = this->findChild<QLineEdit*>("edtBetaVal");
     fEdtDelta = this->findChild<QLineEdit*>("edtDeltaVal");
@@ -258,6 +267,9 @@ void CWindow::CreateWidgets(void)
     connect(
         fEdtEndIndex, SIGNAL(editingFinished()), this,
         SLOT(OnEdtEndingSliceValChange()));
+
+    // INSERT OTHER SEGMENTATION PARAMETER WIDGETS HERE
+    // this->ui.segParamsStack->addWidget(new QLabel("Parameter widgets here"));
 
     // start segmentation button
     QPushButton* aBtnStartSeg = this->findChild<QPushButton*>("btnStartSeg");
@@ -570,29 +582,39 @@ void CWindow::DoSegmentation(void)
 {
     statusBar->clearMessage();
 
-    // REVISIT - do we need to get the latest value from the widgets since we
-    // constantly get the values?
-    if (!SetUpSegParams()) {
+    // Make sure our seg params structure has the current values
+    if (not SetUpSegParams()) {
         QMessageBox::information(
             this, tr("Info"), tr("Invalid parameter for segmentation"));
         return;
     }
 
-    // 2) do segmentation from the starting slice
-    vc::segmentation::LocalResliceSegmentation segmenter;
-    segmenter.setChain(fStartingPath);
-    segmenter.setVolume(currentVolume);
-    segmenter.setMaterialThickness(fVpkg->materialThickness());
-    segmenter.setTargetZIndex(fSegParams.targetIndex);
-    segmenter.setOptimizationIterations(fSegParams.fNumIters);
-    segmenter.setResliceSize(fSegParams.fWindowWidth);
-    segmenter.setAlpha(fSegParams.fAlpha);
-    segmenter.setK1(fSegParams.fK1);
-    segmenter.setK2(fSegParams.fK2);
-    segmenter.setBeta(fSegParams.fBeta);
-    segmenter.setDelta(fSegParams.fDelta);
-    segmenter.setDistanceWeightFactor(fSegParams.fPeakDistanceWeight);
-    segmenter.setConsiderPrevious(fSegParams.fIncludeMiddle);
+    // Setup LRPS
+    auto segIdx = this->ui.cmbSegMethods->currentIndex();
+    Segmenter::Pointer segmenter;
+    if (segIdx == 0) {
+        auto lrps = vcs::LocalResliceSegmentation::New();
+        lrps->setMaterialThickness(fVpkg->materialThickness());
+        lrps->setTargetZIndex(fSegParams.targetIndex);
+        lrps->setOptimizationIterations(fSegParams.fNumIters);
+        lrps->setResliceSize(fSegParams.fWindowWidth);
+        lrps->setAlpha(fSegParams.fAlpha);
+        lrps->setK1(fSegParams.fK1);
+        lrps->setK2(fSegParams.fK2);
+        lrps->setBeta(fSegParams.fBeta);
+        lrps->setDelta(fSegParams.fDelta);
+        lrps->setDistanceWeightFactor(fSegParams.fPeakDistanceWeight);
+        lrps->setConsiderPrevious(fSegParams.fIncludeMiddle);
+        segmenter = lrps;
+    }
+    // ADD OTHER SEGMENTER SETUP HERE. MATCH THE IDX TO THE IDX IN THE
+    // DROPDOWN LIST
+
+    // set common parameters
+    segmenter->setChain(fStartingPath);
+    segmenter->setVolume(currentVolume);
+
+    // setup
     submitSegmentation(segmenter);
     setWidgetsEnabled(false);
     worker_progress_.show();
@@ -1034,6 +1056,11 @@ void CWindow::ToggleSegmentationTool(void)
         CleanupSegmentation();
     }
     UpdateView();
+}
+
+void CWindow::OnChangeSegAlgo(int index)
+{
+    this->ui.segParamsStack->setCurrentIndex(index);
 }
 
 // Handle gravity value change
