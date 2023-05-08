@@ -8,6 +8,7 @@ set(srcs
     src/FloodFill.cpp
     src/IntensityMap.cpp
     src/LocalResliceParticleSim.cpp
+    src/OpticalFlowSegmentation.cpp
     src/Particle.cpp
     src/ParticleChain.cpp
     src/StructureTensorParticleSim.cpp
@@ -19,6 +20,8 @@ set(deps
     opencv_highgui
     Eigen3::Eigen
 )
+## OpenCV for image segmentation
+find_package(OpenCV REQUIRED)
 
 add_library(vc_segmentation ${srcs})
 add_library(VC::segmentation ALIAS "vc_segmentation")
@@ -33,6 +36,7 @@ target_compile_options(vc_segmentation
 )
 target_link_libraries(vc_segmentation
     PUBLIC
+        ${OpenCV_LIBS}
         ${deps}
     PRIVATE
         ${VC_FS_LIB}

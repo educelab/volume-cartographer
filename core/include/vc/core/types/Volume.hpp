@@ -1,5 +1,5 @@
 #pragma once
-
+#include <shared_mutex>
 /** @file */
 
 #include "vc/core/filesystem.hpp"
@@ -222,5 +222,7 @@ protected:
     cv::Mat load_slice_(int index) const;
     /** Load slice from cache */
     cv::Mat cache_slice_(int index) const;
+    /** Shared mutex for thread-safe access */
+    mutable std::shared_mutex cache_mutex_;
 };
 }  // namespace volcart
