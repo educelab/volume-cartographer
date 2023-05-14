@@ -202,28 +202,19 @@ Reslice Volume::reslice(
 
 cv::Mat Volume::load_slice_(int index) const
 {
-    std::cout << "Requested to load slice " << index << std::endl;
     auto slicePath = getSlicePath(index);
     return cv::imread(slicePath.string(), -1);
 }
 
 cv::Mat Volume::cache_slice_(int index) const
 {
-    {
-        std::shared_lock<std::shared_mutex> lock(cache_mutex_);
-        if (cache_->contains(index)) {
-            return cache_->get(index);
-        }
+    std::unique_lock<std::shared_mutex> lock(cache_mutex_);
+    if (cache_->contains(index)) {
+        return cache_->get(index);
     }
-    {
-        std::unique_lock<std::shared_mutex> lock(cache_mutex_);
-        if (cache_->contains(index)) {
-            return cache_->get(index);
-        }
-        else {
-            auto slice = load_slice_(index);
-            cache_->put(index, slice);
-            return slice;
-        }
+    else {
+        auto slice = load_slice_(index);
+        cache_->put(index, slice);
+        return slice;
     }
 }

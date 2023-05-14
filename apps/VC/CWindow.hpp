@@ -57,12 +57,10 @@ public:
         bool fIncludeMiddle;
         int targetIndex;
         // Optical Flow Segmentation Parameters
-        bool purge_cache;
-        int cache_slices;
-        int smoothen_by_brightness;
-        int outside_threshold;
-        int optical_flow_pixel_threshold;
-        int optical_flow_displacement_threshold;
+        int smoothenByBrightness;
+        int outsideThreshold;
+        int opticalFlowPixelThreshold;
+        int opticalFlowDisplacementThreshold;
     };
 
     using Segmenter = volcart::segmentation::ChainSegmentationAlgorithm;

@@ -1,4 +1,7 @@
 // Author: Julian Schilliger. May 08, 2023
+/* 
+This algorithm is designed for segmenting a 3D scanned scroll papyrus sheet using optical flow. It propagates a chain of points forward through a volume from a starting z-index to an ending z-index. Each point is assumed to start within a page layer. The ending index is inclusive. Please note that this algorithm is not deterministic and yields slightly different results on each run.
+*/
 #include <deque>
 #include <iomanip>
 #include <limits>
@@ -126,7 +129,6 @@ std::vector<Voxel> OpticalFlowSegmentationClass::computeCurve(
 
     // Initialize the updated curve
     std::vector<Voxel> nextVs;
-    int black_treshold_imitate_brighter_pixel_movement = optical_flow_pixel_threshold_;
     for (int i = 0; i < int(currentCurve.size()); ++i) {
         // Get the current point
         Voxel pt_ = currentCurve(i);
@@ -139,8 +141,8 @@ std::vector<Voxel> OpticalFlowSegmentationClass::computeCurve(
         // Get the optical flow vector at the current point
         cv::Vec2f flowVec = flow.at<cv::Vec2f>(roiPt);
 
-        // Check if the flow magnitude is more than optical_flow_displacement_threshold_ pixels
-        if (cv::norm(flowVec) > optical_flow_displacement_threshold_) {
+        // Check if the flow magnitude is more than opticalFlowDisplacementThreshold_ pixels
+        if (cv::norm(flowVec) > opticalFlowDisplacementThreshold_) {
             // Calculate the average flow around a 5x5 window
             int windowSize = 5;
             cv::Vec2f avgFlow(0, 0);
@@ -150,7 +152,7 @@ std::vector<Voxel> OpticalFlowSegmentationClass::computeCurve(
                     cv::Point2f neighborPt = roiPt + cv::Point2f(x, y);
                     if (neighborPt.x >= 0 && neighborPt.x < flow.cols && neighborPt.y >= 0 && neighborPt.y < flow.rows) {
                         int neighborIntensity = gray2.at<uchar>(neighborPt);
-                        if (neighborIntensity > black_treshold_imitate_brighter_pixel_movement) {
+                        if (neighborIntensity > opticalFlowPixelThreshold_) {
                             avgFlow += flow.at<cv::Vec2f>(neighborPt);
                             count++;
                         }
@@ -171,7 +173,6 @@ std::vector<Voxel> OpticalFlowSegmentationClass::computeCurve(
 
     // Smooth black pixels by moving them closer to the edge
     // Smooth very bright pixels by moving them closer to the edge
-    int black_treshold_detect_outside = outside_threshold_;
     int window_size = 6; // Set the desired window size for averaging with an parameter? - should be fine for now. TODO: for adding different scroll resolution support
     for (int i = 0; i < int(nextVs.size()); ++i) {
         Voxel curr = nextVs[i];
@@ -179,7 +180,7 @@ std::vector<Voxel> OpticalFlowSegmentationClass::computeCurve(
         cv::Point pt(curr[0] - x_min, curr[1] - y_min);
         float mean_intensity = get_mean_pixel_value(integral_img, pt, window_size);
 
-        if (mean_intensity < black_treshold_detect_outside || currIntensity < black_treshold_detect_outside || currIntensity > smoothen_by_brightness_) {
+        if (mean_intensity < outsideThreshold_ || currIntensity < outsideThreshold_ || currIntensity > smoothenByBrightness_) {
             // Estimate the normal at the current index
             cv::Vec2f normal = estimate_2d_normal_at_index_(currentCurve, i);
 
@@ -206,17 +207,6 @@ std::vector<Voxel> OpticalFlowSegmentationClass::computeCurve(
 
 OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
 {
-    // Max cache size
-    if (nr_cache_slices_ >= 0 && vol_->getCacheCapacity() != nr_cache_slices_) {
-        std::cout << "[Info]: Setting Cache Size to" << nr_cache_slices_ << " Slices" << std::endl;
-        vol_->setCacheCapacity(nr_cache_slices_);
-    }
-    // Cache gets corrupted somewhere(one case: if estimate_normal_at_index_ from local reslice particle sim is used in multithreading mode). purge it to have clean state. might take longer to process files.
-    // if purge_cache_ is true, purge cache
-    if (purge_cache_) {
-        std::cout << "[Info]: Purging Slice Cache" << std::endl;
-        vol_->cachePurge();
-    }
     // Reset progress
     progressStarted();
 
@@ -382,32 +372,6 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
 
     // 6. Output final mesh
     return create_final_pointset_(points);
-}
-
-cv::Vec3d OpticalFlowSegmentationClass::estimate_normal_at_index_(
-    const FittedCurve& currentCurve, int index)
-{
-    auto currentVoxel = currentCurve(index);
-    auto radius = static_cast<int>(
-        std::ceil(materialThickness_ / vol_->voxelSize()) * 0.5);
-    auto eigenPairs = ComputeSubvoxelEigenPairs(vol_, currentVoxel, radius);
-    double exp0 = std::log10(eigenPairs[0].first);
-    double exp1 = std::log10(eigenPairs[1].first);
-    cv::Vec3d normal;
-    if (std::abs(exp0 - exp1) > 2.0) {
-        normal = eigenPairs[0].second;
-    } else {
-        auto tan3d = D1At(currentCurve.points(), index, 3);
-        normal = tan3d.cross(cv::Vec3d{0, 0, 1});
-    }
-
-    // Normalize the normal vector
-    double norm = cv::norm(normal);
-    if (norm > 0) {
-        normal /= norm;
-    }
-
-    return normal;
 }
 
 OpticalFlowSegmentationClass::PointSet

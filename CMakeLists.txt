@@ -105,7 +105,3 @@ endif()
 include(VCPackageConfig)
 # Install to system directories
 include(VCInstall)
-
-## OpenCV for image segmentation
-find_package(OpenCV REQUIRED)
-include_directories( ${OpenCV_INCLUDE_DIRS} )

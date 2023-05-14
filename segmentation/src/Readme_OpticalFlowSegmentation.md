@@ -12,7 +12,7 @@ Below is a list of parameters that can be adjusted for the Optical Flow Segmenta
 
 3. **Smoothen Curve at Dark Points** (`outside_threshold`): This parameter sets the threshold of what pixel brightness is considered too deep inside a sheet (higher than the threshold) and then tries to smoothen those points back towards the edge of the sheet. Range: 0-255.
 
-4. **Smoothen Curve at Bright Points** (`smoothen_by_brightness`):  This parameter sets the threshold for what pixel brightness is considered as beeing outside the sheet. Pixels considered outside the sheet are  smoothened in an attempt to get them tracking the sheet again. Range: 0-256. Smoothen curve at pixels above this threshold..
+4. **Smoothen Curve at Bright Points** (`smoothen_by_brightness`):  This parameter sets the threshold for what pixel brightness is considered as beeing outside the sheet. Pixels considered outside the sheet are  smoothened in an attempt to get them tracking the sheet again. Range: 0-256. Smoothen curve at pixels above this threshold.
 
 5. **Purge Cache** (`purge_cache`): This flag enables or disables cache purging. Set to `true` to enable cache purging, and `false` to disable.
 

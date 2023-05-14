@@ -20,8 +20,6 @@ set(deps
     opencv_highgui
     Eigen3::Eigen
 )
-## OpenCV for image segmentation
-find_package(OpenCV REQUIRED)
 
 add_library(vc_segmentation ${srcs})
 add_library(VC::segmentation ALIAS "vc_segmentation")
