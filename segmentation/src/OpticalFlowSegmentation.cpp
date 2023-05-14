@@ -173,7 +173,7 @@ std::vector<Voxel> OpticalFlowSegmentationClass::computeCurve(
 
     // Smooth black pixels by moving them closer to the edge
     // Smooth very bright pixels by moving them closer to the edge
-    int window_size = 6; // Set the desired window size for averaging with an parameter? - should be fine for now. TODO: for adding different scroll resolution support
+    auto window_size = static_cast<int>(std::ceil(materialThickness_ / vol_->voxelSize()) * 0.25); // Set the desired window size for averaging
     for (int i = 0; i < int(nextVs.size()); ++i) {
         Voxel curr = nextVs[i];
         int currIntensity = gray2.at<uchar>(cv::Point(curr[0] - x_min, curr[1] - y_min));
@@ -343,7 +343,6 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
         if (std::any_of(begin(nextVs), end(nextVs), [this](auto v) {
                 return !bb_.isInBounds(v) || !vol_->isInBounds(v);
             })) {
-            std::cout << "Returned early due to out-of-bounds points" << std::endl;
             status_ = Status::ReturnedEarly;
             return create_final_pointset_(points);
         }

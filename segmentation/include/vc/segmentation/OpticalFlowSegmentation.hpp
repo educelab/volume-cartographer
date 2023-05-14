@@ -76,6 +76,13 @@ public:
     PointSet compute() override;
     /**@}*/
 
+    /**
+     * @brief Set the estimated thickness of the substrate (in um)
+     *
+     * Used to generate the radius of the structure tensor calculation
+     */
+    void setMaterialThickness(double m) { materialThickness_ = m; }
+
     /**@{*/
     /** Debug: Shows intensity maps in GUI window */
     void setVisualize(bool b) { visualize_ = b; }
@@ -129,12 +136,14 @@ private:
     int opticalFlowPixelThreshold_{80};
     /** Threshold of how many pixel optical flow can displace a point, if higher, recompute optical flow with region's average flow. This parameter sets the maximum single pixel optical flow displacement before interpolating a pixel region. Range minimum: 0. Higher values allow more displacement before interpolation, while lower values trigger interpolation more frequently. */
     int opticalFlowDisplacementThreshold_{10};
+    /** This parameter sets the threshold for what pixel brightness is considered as beeing outside the sheet. Pixels considered outside the sheet are  smoothened in an attempt to get them tracking the sheet again. Range: 0-256. Smoothen curve at pixels above this threshold. */
+    int smoothenByBrightness_{180};
+    /** Estimated material thickness in um */
+    double materialThickness_{100};
     /** Dump visualization to disk flag */
     bool dumpVis_{false};
     /** Show visualization in GUI flag */
     bool visualize_{false};
-    /** This parameter sets the threshold for what pixel brightness is considered as beeing outside the sheet. Pixels considered outside the sheet are  smoothened in an attempt to get them tracking the sheet again. Range: 0-256. Smoothen curve at pixels above this threshold. */
-    int smoothenByBrightness_{180};
     
 };
 }  // namespace volcart::segmentation

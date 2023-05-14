@@ -657,6 +657,7 @@ void CWindow::DoSegmentation(void)
     // Setup OFSC
     if (segIdx == 1) {
         auto ofsc = vcs::OpticalFlowSegmentationClass::New();
+        ofsc->setMaterialThickness(fVpkg->materialThickness());
         ofsc->setTargetZIndex(fSegParams.targetIndex);
         ofsc->setOutsideThreshold(fSegParams.outsideThreshold);
         ofsc->setOFThreshold(fSegParams.opticalFlowPixelThreshold);
