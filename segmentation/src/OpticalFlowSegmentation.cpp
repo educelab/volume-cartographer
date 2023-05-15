@@ -1,14 +1,8 @@
-// Author: Julian Schilliger. May 08, 2023
-/* 
-This algorithm is designed for segmenting a 3D scanned scroll papyrus sheet using optical flow. It propagates a chain of points forward through a volume from a starting z-index to an ending z-index. Each point is assumed to start within a page layer. The ending index is inclusive. Please note that this algorithm is not deterministic and yields slightly different results on each run.
-*/
-#include <deque>
+#include <algorithm>
 #include <iomanip>
 #include <limits>
-#include <list>
-#include <tuple>
-#include <algorithm>
 #include <thread>
+#include <tuple>
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/core.hpp>
@@ -18,19 +12,48 @@ This algorithm is designed for segmenting a 3D scanned scroll papyrus sheet usin
 
 #include "vc/core/filesystem.hpp"
 #include "vc/core/math/StructureTensor.hpp"
+#include "vc/core/types/Color.hpp"
 #include "vc/segmentation/OpticalFlowSegmentation.hpp"
-#include "vc/segmentation/lrps/Common.hpp"
 #include "vc/segmentation/lrps/Derivative.hpp"
-#include "vc/segmentation/lrps/EnergyMetrics.hpp"
 #include "vc/segmentation/lrps/FittedCurve.hpp"
-#include "vc/segmentation/lrps/IntensityMap.hpp"
 
 using namespace volcart::segmentation;
 namespace fs = volcart::filesystem;
-using std::begin;
-using std::end;
 
-size_t OpticalFlowSegmentationClass::progressIterations() const
+using PointSet = OpticalFlowSegmentationClass::PointSet;
+
+void OpticalFlowSegmentationClass::setTargetZIndex(int z) { endIndex_ = z; }
+
+void OpticalFlowSegmentationClass::setOutsideThreshold(int outside)
+{
+    outsideThreshold_ = outside;
+}
+
+void OpticalFlowSegmentationClass::setOFThreshold(int ofThr)
+{
+    opticalFlowPixelThreshold_ = ofThr;
+}
+
+void OpticalFlowSegmentationClass::setOFDispThreshold(int ofDispThrs)
+{
+    opticalFlowDisplacementThreshold_ = ofDispThrs;
+}
+
+void OpticalFlowSegmentationClass::setLineSmoothenByBrightness(int brightness)
+{
+    smoothenByBrightness_ = brightness;
+}
+
+void OpticalFlowSegmentationClass::setMaterialThickness(double m)
+{
+    materialThickness_ = m;
+}
+
+void OpticalFlowSegmentationClass::setVisualize(bool b) { visualize_ = b; }
+
+void OpticalFlowSegmentationClass::setDumpVis(bool b) { dumpVis_ = b; }
+
+auto OpticalFlowSegmentationClass::progressIterations() const -> size_t
 {
     auto minZPoint = std::min_element(
         startingChain_.begin(), startingChain_.end(),
@@ -40,13 +63,16 @@ size_t OpticalFlowSegmentationClass::progressIterations() const
 }
 
 // print curve points with the help of this function
-static std::ostream& operator<<(std::ostream& os, const Voxel& voxel) {
+static auto operator<<(std::ostream& os, const Voxel& voxel) -> std::ostream&
+{
     os << "(" << voxel[0] << ", " << voxel[1] << ", " << voxel[2] << ")";
     return os;
 }
 
 // estimting the 2D normal to the curve in the z plane
-cv::Vec2f OpticalFlowSegmentationClass::estimate_2d_normal_at_index_(const FittedCurve& curve, int index) {
+auto OpticalFlowSegmentationClass::estimate_2d_normal_at_index_(
+    const FittedCurve& curve, int index) -> cv::Vec2f
+{
     int prevIndex = (index - 1 + curve.size()) % curve.size();
     int nextIndex = (index + 1) % curve.size();
 
@@ -61,16 +87,18 @@ cv::Vec2f OpticalFlowSegmentationClass::estimate_2d_normal_at_index_(const Fitte
 }
 
 // fast method to get mean pixel value of window_size by using an integral image
-float OpticalFlowSegmentationClass::get_mean_pixel_value(const cv::Mat& integral_img, const cv::Point& pt, int window_size) {
-    int x_min = std::max(pt.x - window_size / 2, 0);
-    int x_max = std::min(pt.x + window_size / 2, integral_img.cols - 2);
-    int y_min = std::max(pt.y - window_size / 2, 0);
-    int y_max = std::min(pt.y + window_size / 2, integral_img.rows - 2);
+auto OpticalFlowSegmentationClass::get_mean_pixel_value_(
+    const cv::Mat& integralImg, const cv::Point& pt, int windowSize) -> float
+{
+    int x_min = std::max(pt.x - windowSize / 2, 0);
+    int x_max = std::min(pt.x + windowSize / 2, integralImg.cols - 2);
+    int y_min = std::max(pt.y - windowSize / 2, 0);
+    int y_max = std::min(pt.y + windowSize / 2, integralImg.rows - 2);
 
-    int a = integral_img.at<int>(y_min, x_min);
-    int b = integral_img.at<int>(y_min, x_max + 1);
-    int c = integral_img.at<int>(y_max + 1, x_min);
-    int d = integral_img.at<int>(y_max + 1, x_max + 1);
+    int a = integralImg.at<int>(y_min, x_min);
+    int b = integralImg.at<int>(y_min, x_max + 1);
+    int c = integralImg.at<int>(y_max + 1, x_min);
+    int d = integralImg.at<int>(y_max + 1, x_max + 1);
 
     float sum = static_cast<float>(a + d - b - c);
     int count = (x_max - x_min + 1) * (y_max - y_min + 1);
@@ -78,11 +106,9 @@ float OpticalFlowSegmentationClass::get_mean_pixel_value(const cv::Mat& integral
     return sum / count;
 }
 
-// Multithreaded computation of splitted curve segment
-std::vector<Voxel> OpticalFlowSegmentationClass::computeCurve(
-    FittedCurve currentCurve,
-    Chain& currentVs,
-    int zIndex) 
+// Multithreaded computation of split curve segment
+auto OpticalFlowSegmentationClass::compute_curve_(
+    const FittedCurve& currentCurve, int zIndex) -> std::vector<Voxel>
 {
     // Extract 2D image slices at zIndex and zIndex+1
     cv::Mat slice1 = vol_->getSliceDataCopy(zIndex);
@@ -178,7 +204,8 @@ std::vector<Voxel> OpticalFlowSegmentationClass::computeCurve(
         Voxel curr = nextVs[i];
         int currIntensity = gray2.at<uchar>(cv::Point(curr[0] - x_min, curr[1] - y_min));
         cv::Point pt(curr[0] - x_min, curr[1] - y_min);
-        float mean_intensity = get_mean_pixel_value(integral_img, pt, window_size);
+        float mean_intensity =
+            get_mean_pixel_value_(integral_img, pt, window_size);
 
         if (mean_intensity < outsideThreshold_ || currIntensity < outsideThreshold_ || currIntensity > smoothenByBrightness_) {
             // Estimate the normal at the current index
@@ -205,7 +232,7 @@ std::vector<Voxel> OpticalFlowSegmentationClass::computeCurve(
     return nextVs;
 }
 
-OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
+auto OpticalFlowSegmentationClass::compute() -> PointSet
 {
     // Reset progress
     progressStarted();
@@ -305,13 +332,14 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
         for (int i = 0; i < num_threads; ++i)
         {
 
-            threads[i] = std::thread([&, i]()
-            {
-                Chain subsegment_chain(subsegment_vectors[i]);
-                FittedCurve subsegmentCurve(subsegment_chain, zIndex);
-                std::vector<Voxel> subsegmentNextVs = computeCurve(subsegmentCurve, subsegment_chain, zIndex);
-                subsegment_points[i] = subsegmentNextVs;
-            });
+            threads[i] = std::thread(
+                [this, &subsegment_vectors, &zIndex, &subsegment_points, i]() {
+                    Chain subsegment_chain(subsegment_vectors[i]);
+                    const FittedCurve subsegmentCurve(subsegment_chain, zIndex);
+                    const std::vector<Voxel> subsegmentNextVs =
+                        compute_curve_(subsegmentCurve, zIndex);
+                    subsegment_points[i] = subsegmentNextVs;
+                });
         }
 
         // Join threads and stitch curve segments together
@@ -352,7 +380,7 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
         if (visualize_) {
             // Since points can change due to 2nd deriv optimization after main
             // optimization, refit a curve and draw that
-            FittedCurve newChain(nextVs, zIndex + 1);
+            const FittedCurve newChain(nextVs, zIndex + 1);
             auto chain = draw_particle_on_slice_(newChain, zIndex + 1);
             cv::namedWindow("Next curve", cv::WINDOW_NORMAL);
             cv::imshow("Next curve", chain);
@@ -373,9 +401,8 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
     return create_final_pointset_(points);
 }
 
-OpticalFlowSegmentationClass::PointSet
-OpticalFlowSegmentationClass::create_final_pointset_(
-    const std::vector<std::vector<Voxel>>& points)
+auto OpticalFlowSegmentationClass::create_final_pointset_(
+    const std::vector<std::vector<Voxel>>& points) -> PointSet
 {
     auto rows = points.size();
     auto cols = points[0].size();
@@ -394,11 +421,11 @@ OpticalFlowSegmentationClass::create_final_pointset_(
     return result_;
 }
 
-cv::Mat OpticalFlowSegmentationClass::draw_particle_on_slice_(
+auto OpticalFlowSegmentationClass::draw_particle_on_slice_(
     const FittedCurve& curve,
     int sliceIndex,
     int particleIndex,
-    bool showSpline) const
+    bool showSpline) const -> cv::Mat
 {
     auto pkgSlice = vol_->getSliceDataCopy(sliceIndex);
     pkgSlice.convertTo(
@@ -415,12 +442,12 @@ cv::Mat OpticalFlowSegmentationClass::draw_particle_on_slice_(
             contour.emplace_back(curve.eval(sum));
             sum += 1.0 / (n - 1);
         }
-        cv::polylines(pkgSlice, contour, false, BGR_BLUE, 1, cv::LINE_AA);
+        cv::polylines(pkgSlice, contour, false, color::BLUE, 1, cv::LINE_AA);
     } else {
         // Draw circles on the pkgSlice window for each point
         for (size_t i = 0; i < curve.size(); ++i) {
             cv::Point real{int(curve(i)(0)), int(curve(i)(1))};
-            cv::circle(pkgSlice, real, 2, BGR_GREEN, -1);
+            cv::circle(pkgSlice, real, 2, color::GREEN, -1);
         }
     }
 
@@ -429,7 +456,7 @@ cv::Mat OpticalFlowSegmentationClass::draw_particle_on_slice_(
         const Voxel particle = curve(particleIndex);
         cv::circle(
             pkgSlice, {int(particle(0)), int(particle(1))},
-            (showSpline ? 2 : 1), BGR_RED, -1);
+            (showSpline ? 2 : 1), color::RED, -1);
     }
 
     return pkgSlice;
