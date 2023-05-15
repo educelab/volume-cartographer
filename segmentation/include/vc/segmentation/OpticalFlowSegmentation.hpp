@@ -2,6 +2,8 @@
 
 /** @file */
 
+#include <optional>
+
 #include "vc/core/types/OrderedPointSet.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/segmentation/ChainSegmentationAlgorithm.hpp"
@@ -81,6 +83,12 @@ public:
      */
     void setMaterialThickness(double m);
 
+    /** @brief Set the maximum number of threads */
+    void setMaxThreads(std::uint32_t t);
+
+    /** @brief Clear the maximum number of threads */
+    void resetMaxThreads();
+
     /** Debug: Shows intensity maps in GUI window */
     void setVisualize(bool b);
 
@@ -151,6 +159,8 @@ private:
     std::uint8_t smoothByBrightness_{180};
     /** Estimated material thickness in um */
     double materialThickness_{100};
+    /** Maximum number of threads */
+    std::optional<std::uint32_t> maxThreads_;
     /** Dump visualization to disk flag */
     bool dumpVis_{false};
     /** Show visualization in GUI flag */

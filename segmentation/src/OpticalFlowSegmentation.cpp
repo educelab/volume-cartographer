@@ -6,14 +6,15 @@
 
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
-#include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/video/tracking.hpp>
 
 #include "vc/core/filesystem.hpp"
+#include "vc/core/io/ImageIO.hpp"
 #include "vc/core/math/StructureTensor.hpp"
 #include "vc/core/types/Color.hpp"
 #include "vc/core/util/Iteration.hpp"
+#include "vc/core/util/String.hpp"
 #include "vc/segmentation/OpticalFlowSegmentation.hpp"
 #include "vc/segmentation/lrps/Derivative.hpp"
 #include "vc/segmentation/lrps/FittedCurve.hpp"
@@ -99,6 +100,13 @@ void OpticalFlowSegmentationClass::setMaterialThickness(double m)
 {
     materialThickness_ = m;
 }
+
+void OpticalFlowSegmentationClass::setMaxThreads(std::uint32_t t)
+{
+    maxThreads_ = t;
+}
+
+void OpticalFlowSegmentationClass::resetMaxThreads() { maxThreads_.reset(); }
 
 void OpticalFlowSegmentationClass::setVisualize(bool b) { visualize_ = b; }
 
@@ -266,7 +274,7 @@ auto OpticalFlowSegmentationClass::compute() -> PointSet
     }
 
     const fs::path outputDir("debugvis");
-    const fs::path wholeChainDir(outputDir / "whole_chain");
+    const auto wholeChainDir = outputDir / "whole_chain";
     if (dumpVis_) {
         fs::create_directory(outputDir);
         fs::create_directory(wholeChainDir);
@@ -275,7 +283,7 @@ auto OpticalFlowSegmentationClass::compute() -> PointSet
     // Calculate the starting index
     auto minZPoint = std::min_element(
         begin(currentVs), end(currentVs),
-        [](auto a, auto b) { return a[2] < b[2]; });
+        [](const auto& a, const auto& b) { return a[2] < b[2]; });
     auto startIndex = static_cast<int>(std::floor((*minZPoint)[2]));
 
     if (endIndex_ <= startIndex) {
@@ -285,20 +293,20 @@ auto OpticalFlowSegmentationClass::compute() -> PointSet
     // Collection to hold all positions
     std::vector<std::vector<Voxel>> points;
     points.reserve(
-        (endIndex_ - startIndex + 1) / static_cast<uint64_t>(stepSize_));
+        (endIndex_ - startIndex + 1) / static_cast<std::size_t>(stepSize_));
     points.push_back(currentVs);
 
     // Iterate over z-slices
-    size_t iteration{0};
-    for (int zIndex = startIndex; zIndex <= endIndex_; zIndex += stepSize_) {
+    std::size_t iteration{0};
+    auto stepSize = static_cast<int>(stepSize_);
+    const int padding = vol_->numSlices();
+    for (int zIndex = startIndex; zIndex <= endIndex_; zIndex += stepSize) {
         // Update progress
         progressUpdated(iteration++);
 
         // Directory to dump vis
-        std::stringstream ss;
-        ss << std::setw(std::to_string(endIndex_).size()) << std::setfill('0')
-           << zIndex;
-        const fs::path zIdxDir = outputDir / ss.str();
+        auto zStr = to_padded_string(zIndex, padding);
+        const fs::path zIdxDir = outputDir / zStr;
 
         //////////////////////////////////////////////////////////
         // 0. Resample current positions so they are evenly spaced
@@ -307,81 +315,90 @@ auto OpticalFlowSegmentationClass::compute() -> PointSet
 
         // Dump entire curve for easy viewing
         if (dumpVis_) {
-            ss.str(std::string());
-            ss << std::setw(std::to_string(endIndex_).size())
-                << std::setfill('0') << zIndex << "_chain.png";
-            const auto wholeChainPath = wholeChainDir / ss.str();
-            cv::imwrite(
-                wholeChainPath.string(),
+            const auto wholeChainPath = wholeChainDir / (zStr + "_chain.png");
+            WriteImage(
+                wholeChainPath,
                 draw_particle_on_slice_(currentCurve, zIndex, -1, true));
         }
 
-        // Split the curve into subsegments
-        // Calculate num_threads and segment_length
-        const int min_points_per_thread = 15;
-        int total_points = currentVs.size();
-        int num_threads = std::max(1, std::min(static_cast<int>(std::floor(((float)total_points) / (float)min_points_per_thread)), static_cast<int>(std::thread::hardware_concurrency()) - 1));
-        int base_segment_length = static_cast<int>(std::floor(((float)total_points) / (float)num_threads));
-        int num_threads_with_extra_point = total_points % num_threads;
-        
-        std::vector<std::vector<Voxel>> subsegment_points(num_threads);
-
-        // Parallel computation of curve segments
-        std::vector<std::thread> threads(num_threads);
-        std::vector<std::vector<Voxel>> subsegment_vectors(num_threads);
-        int start_idx = 0;
-        for (int i = 0; i < num_threads; ++i)
-        {
-            int segment_length = base_segment_length + (i < num_threads_with_extra_point ? 1 : 0);
-            int end_idx = start_idx + segment_length;
-            // Change start_idx and end_idx to include overlap
-            int start_idx_padded = (i == 0) ? 0 : (start_idx - 2);
-            int end_idx_padded = (i == num_threads - 1) ? total_points : (end_idx + 2);
-            std::vector<Voxel> subsegment(currentVs.begin() + start_idx_padded, currentVs.begin() + end_idx_padded);
-            subsegment_vectors[i] = subsegment;
-            start_idx = end_idx;
+        // Set up the maximum number of threads
+        auto maxThreads = std::thread::hardware_concurrency() - 1;
+        if (maxThreads_.has_value()) {
+            maxThreads = std::min(maxThreads, maxThreads_.value());
         }
 
-        for (int i = 0; i < num_threads; ++i)
-        {
+        // Calculate the num threads we're going to use
+        const std::uint32_t minPointsPerThread{15};
+        const auto numPts = currentVs.size();
+        const auto ptsPerThread = static_cast<std::uint32_t>(std::floor(
+            static_cast<float>(numPts) /
+            static_cast<float>(minPointsPerThread)));
+        const auto numThreads =
+            std::max(1U, std::min(ptsPerThread, maxThreads));
+        const auto baseSegmentLength = static_cast<std::uint32_t>(std::floor(
+            static_cast<float>(numPts) / static_cast<float>(numThreads)));
+        const auto numThreadsWithExtraPoint = numPts % numThreads;
 
-            threads[i] = std::thread(
-                [this, &subsegment_vectors, &zIndex, &subsegment_points, i]() {
-                    Chain subsegment_chain(subsegment_vectors[i]);
-                    const FittedCurve subsegmentCurve(subsegment_chain, zIndex);
-                    const std::vector<Voxel> subsegmentNextVs =
-                        compute_curve_(subsegmentCurve, zIndex);
-                    subsegment_points[i] = subsegmentNextVs;
+        // Parallel computation of curve segments
+        std::vector<std::vector<Voxel>> subsegmentVectors;
+        std::size_t startIdx{0};
+        for (const auto& i : range(numThreads)) {
+            auto segmentLength =
+                baseSegmentLength + (i < numThreadsWithExtraPoint ? 1 : 0);
+            auto endIdx = startIdx + segmentLength;
+
+            // Change start_idx and end_idx to include overlap
+            auto startIdxPadded =
+                static_cast<std::int64_t>((i == 0) ? 0 : (startIdx - 2));
+            auto endIdxPadded = static_cast<std::int64_t>(
+                (i == numThreads - 1) ? numPts : (endIdx + 2));
+
+            // Copy from currentVs to our vector
+            auto startIt = std::next(currentVs.begin(), startIdxPadded);
+            auto endIt = std::next(currentVs.begin(), endIdxPadded);
+            subsegmentVectors.emplace_back(startIt, endIt);
+            startIdx = endIdx;
+        }
+
+        // Initialize the threads
+        std::vector<std::thread> threads;
+        std::vector<std::vector<Voxel>> subsegmentPoints(numThreads);
+        for (const auto& i : range(numThreads)) {
+            threads.emplace_back(
+                [this, &subsegmentVectors, &zIndex, &subsegmentPoints, i]() {
+                    const Chain subsegmentChain(subsegmentVectors[i]);
+                    const FittedCurve curve(subsegmentChain, zIndex);
+                    subsegmentPoints[i] = compute_curve_(curve, zIndex);
                 });
         }
 
         // Join threads and stitch curve segments together
-        for (auto& thread : threads)
-        {
+        for (auto& thread : threads) {
             thread.join();
         }
-        std::vector<Voxel> stitched_curve;
-        stitched_curve.reserve(currentVs.size());
 
         // Stitch curve segments together, discarding overlapping points
-        for (int i = 0; i < num_threads; ++i)
-        {
+        std::vector<Voxel> stitched;
+        stitched.reserve(currentVs.size());
+        for (auto [i, segment] : enumerate(subsegmentPoints)) {
+            auto startIt = segment.begin();
+            auto endIt = segment.end();
             if (i > 0) {
-                subsegment_points[i].erase(subsegment_points[i].begin(), subsegment_points[i].begin() + 2);
+                startIt = std::next(segment.begin(), 2);
             }
-            if (i < num_threads - 1) {
-                subsegment_points[i].erase(subsegment_points[i].end() - 2, subsegment_points[i].end());
+            if (i < numThreads - 1) {
+                endIt = std::next(segment.end(), -2);
             }
-            stitched_curve.insert(stitched_curve.end(), subsegment_points[i].begin(), subsegment_points[i].end());
+            stitched.insert(stitched.end(), startIt, endIt);
         }
-        
+
         // Generate nextVs by evenly spacing points in the stitched curve
-        FittedCurve stitchedFittedCurve(stitched_curve, zIndex);
-        std::vector<Voxel> nextVs = stitchedFittedCurve.evenlySpacePoints();
+        FittedCurve stitchedFittedCurve(stitched, zIndex);
+        auto nextVs = stitchedFittedCurve.evenlySpacePoints();
 
         // Check if any points in nextVs are outside volume boundaries. If so,
-        // stop iterating and dump the resulting pointcloud.
-        if (std::any_of(begin(nextVs), end(nextVs), [this](auto v) {
+        // stop iterating and dump the resulting point cloud.
+        if (std::any_of(begin(nextVs), end(nextVs), [this](const auto& v) {
                 return !bb_.isInBounds(v) || !vol_->isInBounds(v);
             })) {
             status_ = Status::ReturnedEarly;
