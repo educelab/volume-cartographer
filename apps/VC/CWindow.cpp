@@ -662,7 +662,7 @@ void CWindow::DoSegmentation(void)
         ofsc->setOutsideThreshold(fSegParams.outsideThreshold);
         ofsc->setOFThreshold(fSegParams.opticalFlowPixelThreshold);
         ofsc->setOFDispThreshold(fSegParams.opticalFlowDisplacementThreshold);
-        ofsc->setLineSmoothenByBrightness(fSegParams.smoothenByBrightness);
+        ofsc->setSmoothBrightnessThreshold(fSegParams.smoothenByBrightness);
         segmenter = ofsc;
     }
     // ADD OTHER SEGMENTER SETUP HERE. MATCH THE IDX TO THE IDX IN THE

@@ -51,23 +51,28 @@ public:
      * @brief Set the threshold of what pixel brightness is considered inside a
      * sheet (higher as threshold) and outside (lower as threshold)
      */
-    void setOutsideThreshold(int outside);
+    void setOutsideThreshold(std::uint8_t outside);
 
     /**
      * @brief Set the threshold of what pixel brightness is considered while
      * calculating optical flow, darker pixels OF is interpolated from brighter
      * ones in the area
      */
-    void setOFThreshold(int ofThr);
+    void setOFThreshold(std::uint8_t ofThr);
 
     /**
      * @brief Set the maximum single pixel optical flow displacement before
      * interpolating a pixel region
      */
-    void setOFDispThreshold(int ofDispThrs);
+    void setOFDispThreshold(std::uint32_t ofDispThrs);
 
-    /** @brief Set how many slices should be cached */
-    void setLineSmoothenByBrightness(int brightness);
+    /**
+     * @brief Set the threshold for what pixel brightness is considered as
+     * being outside the sheet. Pixels above this threshold are considered
+     * outside the sheet and are smoothed in an attempt to get them tracking
+     * the sheet again.
+     */
+    void setSmoothBrightnessThreshold(std::uint8_t brightness);
 
     /**
      * @brief Set the estimated thickness of the substrate (in um)
@@ -89,24 +94,6 @@ public:
     [[nodiscard]] auto progressIterations() const -> size_t override;
 
 private:
-    /**
-     * @brief Estimate the 2D normal to the curve at point index in the z plane
-     * @param curve Input curve
-     * @param index Index of point on curve
-     */
-    auto estimate_2d_normal_at_index_(const FittedCurve& curve, int index)
-        -> cv::Vec2f;
-
-    /**
-     * @brief Calculate the mean pixel value in a window around a point
-     * @param integralImg Intergral image of slice
-     * @param pt Point around which to calculate mean
-     * @param windowSize Size of window
-     */
-    auto get_mean_pixel_value_(
-        const cv::Mat& integralImg, const cv::Point& pt, int windowSize)
-        -> float;
-
     /** @brief Compute the segmentation 1 Line */
     auto compute_curve_(const FittedCurve& currentCurve, int zIndex)
         -> std::vector<Voxel>;
@@ -136,7 +123,7 @@ private:
      * (higher than the threshold) and then tries to smoothen those points back
      * towards the edge of the sheet. Range: 0-255.
      */
-    int outsideThreshold_{80};
+    std::uint8_t outsideThreshold_{80};
     /**
      * Disregarding pixel that are darker during optical flow computation. This
      * parameter sets the threshold for what pixel brightness is considered
@@ -145,7 +132,7 @@ private:
      * disregard more dark pixels during computation, while lower values
      * include more dark pixels.
      */
-    int opticalFlowPixelThreshold_{80};
+    std::uint8_t opticalFlowPixelThreshold_{80};
     /**
      * Threshold of how many pixel optical flow can displace a point, if
      * higher, recompute optical flow with region's average flow. This
@@ -154,14 +141,14 @@ private:
      * displacement before interpolation, while lower values trigger
      * interpolation more frequently.
      */
-    int opticalFlowDisplacementThreshold_{10};
+    std::uint32_t opticalFlowDisplacementThreshold_{10};
     /**
      * This parameter sets the threshold for what pixel brightness is considered
      * as being outside the sheet. Pixels considered outside the sheet are
      * smoothed in an attempt to get them tracking the sheet again.
-     * Range: 0-256. Smoothen curve at pixels above this threshold.
+     * Range: 0-255. Smooth curve at pixels above this threshold.
      */
-    int smoothenByBrightness_{180};
+    std::uint8_t smoothByBrightness_{180};
     /** Estimated material thickness in um */
     double materialThickness_{100};
     /** Dump visualization to disk flag */

@@ -15,11 +15,6 @@ set(srcs
     src/ThinnedFloodFillSegmentation.cpp
     src/ComputeVolumetricMask.cpp
 )
-set(deps
-    VC::core
-    opencv_highgui
-    Eigen3::Eigen
-)
 
 add_library(vc_segmentation ${srcs})
 add_library(VC::segmentation ALIAS "vc_segmentation")
@@ -34,9 +29,11 @@ target_compile_options(vc_segmentation
 )
 target_link_libraries(vc_segmentation
     PUBLIC
-        ${OpenCV_LIBS}
-        ${deps}
+        VC::core
+        Eigen3::Eigen
     PRIVATE
+        opencv_highgui
+        opencv_video
         ${VC_FS_LIB}
 )
 target_compile_features(vc_segmentation PUBLIC cxx_std_17)

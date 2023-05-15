@@ -4,15 +4,16 @@
 #include <thread>
 #include <tuple>
 
-#include <opencv2/opencv.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
+#include <opencv2/video/tracking.hpp>
 
 #include "vc/core/filesystem.hpp"
 #include "vc/core/math/StructureTensor.hpp"
 #include "vc/core/types/Color.hpp"
+#include "vc/core/util/Iteration.hpp"
 #include "vc/segmentation/OpticalFlowSegmentation.hpp"
 #include "vc/segmentation/lrps/Derivative.hpp"
 #include "vc/segmentation/lrps/FittedCurve.hpp"
@@ -22,26 +23,76 @@ namespace fs = volcart::filesystem;
 
 using PointSet = OpticalFlowSegmentationClass::PointSet;
 
+// estimating the 2D normal to the curve in the z plane
+namespace
+{
+auto Estimate2DNormalAtIndex(const FittedCurve& curve, std::size_t index)
+    -> cv::Vec2f
+{
+    auto prevIndex = (index - 1 + curve.size()) % curve.size();
+    auto nextIndex = (index + 1) % curve.size();
+
+    const auto p = curve(static_cast<int>(prevIndex));
+    const auto i = curve(static_cast<int>(index));
+    const auto n = curve(static_cast<int>(nextIndex));
+
+    const cv::Vec2f prevPt(static_cast<float>(p[0]), static_cast<float>(p[1]));
+    const cv::Vec2f currPt(static_cast<float>(i[0]), static_cast<float>(i[1]));
+    const cv::Vec2f nextPt(static_cast<float>(n[0]), static_cast<float>(n[1]));
+
+    const auto tangent = nextPt - prevPt;
+    const cv::Vec2f normal(-tangent[1], tangent[0]);
+
+    return normal / cv::norm(normal);
+}
+
+// fast method to get mean pixel value of window size by using an integral image
+auto GetMeanPixelValue(
+    const cv::Mat& integralImg, const cv::Point& pt, int windowSize) -> float
+{
+    const int xMin = std::max(pt.x - windowSize / 2, 0);
+    const int xMax = std::min(pt.x + windowSize / 2, integralImg.cols - 2);
+    const int yMin = std::max(pt.y - windowSize / 2, 0);
+    const int yMax = std::min(pt.y + windowSize / 2, integralImg.rows - 2);
+
+    auto a = integralImg.at<std::int32_t>(yMin, xMin);
+    auto b = integralImg.at<std::int32_t>(yMin, xMax + 1);
+    auto c = integralImg.at<std::int32_t>(yMax + 1, xMin);
+    auto d = integralImg.at<std::int32_t>(yMax + 1, xMax + 1);
+
+    auto sum = static_cast<float>(a + d - b - c);
+    const auto cnt = static_cast<float>((xMax - xMin + 1) * (yMax - yMin + 1));
+
+    return sum / cnt;
+}
+
+auto IsInBounds(const cv::Point2f& p, const cv::Mat& img)
+{
+    return p.x >= 0 and p.x < img.cols and p.y >= 0 and p.y < img.rows;
+}
+}  // namespace
+
 void OpticalFlowSegmentationClass::setTargetZIndex(int z) { endIndex_ = z; }
 
-void OpticalFlowSegmentationClass::setOutsideThreshold(int outside)
+void OpticalFlowSegmentationClass::setOutsideThreshold(std::uint8_t outside)
 {
     outsideThreshold_ = outside;
 }
 
-void OpticalFlowSegmentationClass::setOFThreshold(int ofThr)
+void OpticalFlowSegmentationClass::setOFThreshold(std::uint8_t ofThr)
 {
     opticalFlowPixelThreshold_ = ofThr;
 }
 
-void OpticalFlowSegmentationClass::setOFDispThreshold(int ofDispThrs)
+void OpticalFlowSegmentationClass::setOFDispThreshold(std::uint32_t ofDispThrs)
 {
     opticalFlowDisplacementThreshold_ = ofDispThrs;
 }
 
-void OpticalFlowSegmentationClass::setLineSmoothenByBrightness(int brightness)
+void OpticalFlowSegmentationClass::setSmoothBrightnessThreshold(
+    std::uint8_t brightness)
 {
-    smoothenByBrightness_ = brightness;
+    smoothByBrightness_ = brightness;
 }
 
 void OpticalFlowSegmentationClass::setMaterialThickness(double m)
@@ -57,53 +108,9 @@ auto OpticalFlowSegmentationClass::progressIterations() const -> size_t
 {
     auto minZPoint = std::min_element(
         startingChain_.begin(), startingChain_.end(),
-        [](auto a, auto b) { return a[2] < b[2]; });
+        [](const auto& a, const auto& b) { return a[2] < b[2]; });
     auto startIndex = static_cast<int>(std::floor((*minZPoint)[2]));
     return static_cast<size_t>((endIndex_ - startIndex) / stepSize_);
-}
-
-// print curve points with the help of this function
-static auto operator<<(std::ostream& os, const Voxel& voxel) -> std::ostream&
-{
-    os << "(" << voxel[0] << ", " << voxel[1] << ", " << voxel[2] << ")";
-    return os;
-}
-
-// estimting the 2D normal to the curve in the z plane
-auto OpticalFlowSegmentationClass::estimate_2d_normal_at_index_(
-    const FittedCurve& curve, int index) -> cv::Vec2f
-{
-    int prevIndex = (index - 1 + curve.size()) % curve.size();
-    int nextIndex = (index + 1) % curve.size();
-
-    cv::Vec2f prevPoint(curve(prevIndex)[0], curve(prevIndex)[1]);
-    cv::Vec2f currPoint(curve(index)[0], curve(index)[1]);
-    cv::Vec2f nextPoint(curve(nextIndex)[0], curve(nextIndex)[1]);
-
-    cv::Vec2f tangent = nextPoint - prevPoint;
-    cv::Vec2f normal(-tangent[1], tangent[0]);
-
-    return normal / cv::norm(normal);
-}
-
-// fast method to get mean pixel value of window_size by using an integral image
-auto OpticalFlowSegmentationClass::get_mean_pixel_value_(
-    const cv::Mat& integralImg, const cv::Point& pt, int windowSize) -> float
-{
-    int x_min = std::max(pt.x - windowSize / 2, 0);
-    int x_max = std::min(pt.x + windowSize / 2, integralImg.cols - 2);
-    int y_min = std::max(pt.y - windowSize / 2, 0);
-    int y_max = std::min(pt.y + windowSize / 2, integralImg.rows - 2);
-
-    int a = integralImg.at<int>(y_min, x_min);
-    int b = integralImg.at<int>(y_min, x_max + 1);
-    int c = integralImg.at<int>(y_max + 1, x_min);
-    int d = integralImg.at<int>(y_max + 1, x_max + 1);
-
-    float sum = static_cast<float>(a + d - b - c);
-    int count = (x_max - x_min + 1) * (y_max - y_min + 1);
-
-    return sum / count;
 }
 
 // Multithreaded computation of split curve segment
@@ -111,120 +118,126 @@ auto OpticalFlowSegmentationClass::compute_curve_(
     const FittedCurve& currentCurve, int zIndex) -> std::vector<Voxel>
 {
     // Extract 2D image slices at zIndex and zIndex+1
-    cv::Mat slice1 = vol_->getSliceDataCopy(zIndex);
-    cv::Mat slice2 = vol_->getSliceDataCopy(zIndex+1);
+    const auto slice1 = vol_->getSliceDataCopy(zIndex);
+    const auto slice2 = vol_->getSliceDataCopy(zIndex + 1);
 
     // Calculate the bounding box of the curve to define the region of interest
-    int x_min = std::numeric_limits<int>::max();
-    int y_min = std::numeric_limits<int>::max();
-    int x_max = std::numeric_limits<int>::min();
-    int y_max = std::numeric_limits<int>::min();
-
-    for (int i = 0; i < int(currentCurve.size()); ++i) {
-        // Get the current point
-        Voxel pt_ = currentCurve(i);
-        x_min = std::min(x_min, static_cast<int>(pt_[0]));
-        y_min = std::min(y_min, static_cast<int>(pt_[1]));
-        x_max = std::max(x_max, static_cast<int>(pt_[0]));
-        y_max = std::max(y_max, static_cast<int>(pt_[1]));
+    int xMin = std::numeric_limits<int>::max();
+    int yMin = std::numeric_limits<int>::max();
+    int xMax = std::numeric_limits<int>::min();
+    int yMax = std::numeric_limits<int>::min();
+    for (int i = 0; i < currentCurve.size(); ++i) {
+        auto point = currentCurve(i);
+        xMin = std::min(xMin, static_cast<int>(point[0]));
+        yMin = std::min(yMin, static_cast<int>(point[1]));
+        xMax = std::max(xMax, static_cast<int>(point[0]));
+        yMax = std::max(yMax, static_cast<int>(point[1]));
     }
 
     // Add a margin to the bounding box to avoid edge effects
-    int margin = 15;
-    x_min = std::max(0, x_min - margin);
-    y_min = std::max(0, y_min - margin);
-    x_max = std::min(slice1.cols - 1, x_max + margin);
-    y_max = std::min(slice1.rows - 1, y_max + margin);
+    const int margin = 15;
+    xMin = std::max(0, xMin - margin);
+    yMin = std::max(0, yMin - margin);
+    xMax = std::min(slice1.cols - 1, xMax + margin);
+    yMax = std::min(slice1.rows - 1, yMax + margin);
 
     // Extract the region of interest
-    cv::Rect roi(x_min, y_min, x_max - x_min + 1, y_max - y_min + 1);
-    cv::Mat roiSlice1 = slice1(roi);
-    cv::Mat roiSlice2 = slice2(roi);
+    const cv::Rect roi(xMin, yMin, xMax - xMin + 1, yMax - yMin + 1);
+    const cv::Mat roiSlice1 = slice1(roi);
+    const cv::Mat roiSlice2 = slice2(roi);
 
     // Convert to grayscale and normalize the slices
-    cv::Mat gray1, gray2;
+    cv::Mat gray1;
+    cv::Mat gray2;
     cv::normalize(roiSlice1, gray1, 0, 255, cv::NORM_MINMAX, CV_8UC1);
     cv::normalize(roiSlice2, gray2, 0, 255, cv::NORM_MINMAX, CV_8UC1);
-    cv::Mat integral_img;
-    cv::integral(gray2, integral_img, CV_32S);
-
+    cv::Mat integralImg;
+    cv::integral(gray2, integralImg, CV_32S);
 
     // Compute dense optical flow using Farneback method
     cv::Mat flow;
     cv::calcOpticalFlowFarneback(gray1, gray2, flow, 0.5, 3, 15, 3, 7, 1.2, 0);
 
-    // Initialize the updated curve
+    // Calculate the average flow around a 5x5 window
+    int windowSize = 5;
+    const cv::Point2f minPt(static_cast<float>(xMin), static_cast<float>(yMin));
     std::vector<Voxel> nextVs;
-    for (int i = 0; i < int(currentCurve.size()); ++i) {
+    for (int i = 0; i < currentCurve.size(); ++i) {
         // Get the current point
-        Voxel pt_ = currentCurve(i);
-        // pt as a cv::Point2f
-        cv::Point2f pt(pt_[0], pt_[1]);
-        // Convert pt to ROI coordinates
-        cv::Point2f roiPt = pt - cv::Point2f(x_min, y_min);
+        auto cp = currentCurve(i);
+        const cv::Point2f pt(cp[0], cp[1]);
 
+        // Convert pt to ROI coordinates
+        const auto roiPt = pt - minPt;
 
         // Get the optical flow vector at the current point
-        cv::Vec2f flowVec = flow.at<cv::Vec2f>(roiPt);
+        auto flowVec = flow.at<cv::Vec2f>(roiPt);
 
         // Check if the flow magnitude is more than opticalFlowDisplacementThreshold_ pixels
         if (cv::norm(flowVec) > opticalFlowDisplacementThreshold_) {
-            // Calculate the average flow around a 5x5 window
-            int windowSize = 5;
             cv::Vec2f avgFlow(0, 0);
             int count = 0;
-            for (int x = -windowSize / 2; x <= windowSize / 2; ++x) {
-                for (int y = -windowSize / 2; y <= windowSize / 2; ++y) {
-                    cv::Point2f neighborPt = roiPt + cv::Point2f(x, y);
-                    if (neighborPt.x >= 0 && neighborPt.x < flow.cols && neighborPt.y >= 0 && neighborPt.y < flow.rows) {
-                        int neighborIntensity = gray2.at<uchar>(neighborPt);
-                        if (neighborIntensity > opticalFlowPixelThreshold_) {
-                            avgFlow += flow.at<cv::Vec2f>(neighborPt);
-                            count++;
-                        }
+            const auto bXY = -windowSize / 2;
+            const auto eXY = 1 + windowSize / 2;
+            for (const auto [x, y] : range2D(bXY, eXY, bXY, eXY)) {
+                const cv::Point2f xyPt{
+                    static_cast<float>(x), static_cast<float>(y)};
+                const auto neighborPt = roiPt + xyPt;
+                if (::IsInBounds(neighborPt, flow)) {
+                    auto neighborIntensity = gray2.at<std::uint8_t>(neighborPt);
+                    if (neighborIntensity > opticalFlowPixelThreshold_) {
+                        avgFlow += flow.at<cv::Vec2f>(neighborPt);
+                        count++;
                     }
                 }
             }
+            // Update the flow vec with the mean vec
             if (count > 0) {
                 flowVec = avgFlow / count;
             }
         }
 
         // Move the point along with respect to the optical flow vector
-        cv::Point2f updatedPt = cv::Vec2f(pt_[0], pt_[1]) + flowVec;
+        auto updatedPt = pt + cv::Point2f(flowVec);
 
         // Add the updated point to the updated curve
-        nextVs.push_back(Voxel(updatedPt.x, updatedPt.y, zIndex + 1));
+        nextVs.emplace_back(updatedPt.x, updatedPt.y, zIndex + 1);
     }
 
     // Smooth black pixels by moving them closer to the edge
     // Smooth very bright pixels by moving them closer to the edge
-    auto window_size = static_cast<int>(std::ceil(materialThickness_ / vol_->voxelSize()) * 0.25); // Set the desired window size for averaging
-    for (int i = 0; i < int(nextVs.size()); ++i) {
-        Voxel curr = nextVs[i];
-        int currIntensity = gray2.at<uchar>(cv::Point(curr[0] - x_min, curr[1] - y_min));
-        cv::Point pt(curr[0] - x_min, curr[1] - y_min);
-        float mean_intensity =
-            get_mean_pixel_value_(integral_img, pt, window_size);
+    windowSize = static_cast<int>(
+        std::ceil(materialThickness_ / vol_->voxelSize()) * 0.25);
+    for (int i = 0; i < nextVs.size(); ++i) {
+        auto curr = nextVs[i];
+        const cv::Point pt(
+            static_cast<int>(curr[0]) - xMin, static_cast<int>(curr[1]) - yMin);
+        auto currIntensity = gray2.at<std::uint8_t>(pt);
+        auto meanIntensity = ::GetMeanPixelValue(integralImg, pt, windowSize);
 
-        if (mean_intensity < outsideThreshold_ || currIntensity < outsideThreshold_ || currIntensity > smoothenByBrightness_) {
+        if (meanIntensity < static_cast<float>(outsideThreshold_) ||
+            currIntensity < outsideThreshold_ ||
+            currIntensity > smoothByBrightness_) {
+
             // Estimate the normal at the current index
-            cv::Vec2f normal = estimate_2d_normal_at_index_(currentCurve, i);
+            const auto normal = ::Estimate2DNormalAtIndex(currentCurve, i);
 
             // Get the previous and next points
-            Voxel prev = nextVs[(i - 1 + nextVs.size()) % nextVs.size()];
-            Voxel next = nextVs[(i + 1) % nextVs.size()];
+            auto prev = nextVs[(i - 1 + nextVs.size()) % nextVs.size()];
+            auto next = nextVs[(i + 1) % nextVs.size()];
 
             // Calculate the direction vector between prev and next points
-            cv::Vec2f direction(next[0] - prev[0], next[1] - prev[1]);
+            cv::Vec2d direction(next[0] - prev[0], next[1] - prev[1]);
             direction /= cv::norm(direction);
 
             // Project the current point onto the line between prev and next points
-            cv::Vec2f prevToCurr(curr[0] - prev[0], curr[1] - prev[1]);
-            float projectionLength = prevToCurr.dot(direction);
-            cv::Vec2f projection(prev[0] + projectionLength * direction[0], prev[1] + projectionLength * direction[1]);
+            const cv::Vec2d prevToCurr(curr[0] - prev[0], curr[1] - prev[1]);
+            auto projLen = prevToCurr.dot(direction);
+            const cv::Vec2d proj(
+                prev[0] + projLen * direction[0],
+                prev[1] + projLen * direction[1]);
 
-            nextVs[i] = Voxel(projection[0], projection[1], zIndex + 1);
+            nextVs[i] = Voxel(proj[0], proj[1], zIndex + 1);
         }
     }
 
