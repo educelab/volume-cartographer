@@ -22,7 +22,7 @@
 using namespace volcart::segmentation;
 namespace fs = volcart::filesystem;
 
-using PointSet = OpticalFlowSegmentationClass::PointSet;
+using PointSet = OpticalFlowSegmentation::PointSet;
 
 // estimating the 2D normal to the curve in the z plane
 namespace
@@ -73,46 +73,46 @@ auto IsInBounds(const cv::Point2f& p, const cv::Mat& img)
 }
 }  // namespace
 
-void OpticalFlowSegmentationClass::setTargetZIndex(int z) { endIndex_ = z; }
+void OpticalFlowSegmentation::setTargetZIndex(int z) { endIndex_ = z; }
 
-void OpticalFlowSegmentationClass::setOutsideThreshold(std::uint8_t outside)
+void OpticalFlowSegmentation::setOutsideThreshold(std::uint8_t outside)
 {
     outsideThreshold_ = outside;
 }
 
-void OpticalFlowSegmentationClass::setOFThreshold(std::uint8_t ofThr)
+void OpticalFlowSegmentation::setOFThreshold(std::uint8_t ofThr)
 {
     opticalFlowPixelThreshold_ = ofThr;
 }
 
-void OpticalFlowSegmentationClass::setOFDispThreshold(std::uint32_t ofDispThrs)
+void OpticalFlowSegmentation::setOFDispThreshold(std::uint32_t ofDispThrs)
 {
     opticalFlowDisplacementThreshold_ = ofDispThrs;
 }
 
-void OpticalFlowSegmentationClass::setSmoothBrightnessThreshold(
+void OpticalFlowSegmentation::setSmoothBrightnessThreshold(
     std::uint8_t brightness)
 {
     smoothByBrightness_ = brightness;
 }
 
-void OpticalFlowSegmentationClass::setMaterialThickness(double m)
+void OpticalFlowSegmentation::setMaterialThickness(double m)
 {
     materialThickness_ = m;
 }
 
-void OpticalFlowSegmentationClass::setMaxThreads(std::uint32_t t)
+void OpticalFlowSegmentation::setMaxThreads(std::uint32_t t)
 {
     maxThreads_ = t;
 }
 
-void OpticalFlowSegmentationClass::resetMaxThreads() { maxThreads_.reset(); }
+void OpticalFlowSegmentation::resetMaxThreads() { maxThreads_.reset(); }
 
-void OpticalFlowSegmentationClass::setVisualize(bool b) { visualize_ = b; }
+void OpticalFlowSegmentation::setVisualize(bool b) { visualize_ = b; }
 
-void OpticalFlowSegmentationClass::setDumpVis(bool b) { dumpVis_ = b; }
+void OpticalFlowSegmentation::setDumpVis(bool b) { dumpVis_ = b; }
 
-auto OpticalFlowSegmentationClass::progressIterations() const -> size_t
+auto OpticalFlowSegmentation::progressIterations() const -> size_t
 {
     auto minZPoint = std::min_element(
         startingChain_.begin(), startingChain_.end(),
@@ -122,7 +122,7 @@ auto OpticalFlowSegmentationClass::progressIterations() const -> size_t
 }
 
 // Multithreaded computation of split curve segment
-auto OpticalFlowSegmentationClass::compute_curve_(
+auto OpticalFlowSegmentation::compute_curve_(
     const FittedCurve& currentCurve, int zIndex) -> std::vector<Voxel>
 {
     // Extract 2D image slices at zIndex and zIndex+1
@@ -253,7 +253,7 @@ auto OpticalFlowSegmentationClass::compute_curve_(
     return nextVs;
 }
 
-auto OpticalFlowSegmentationClass::compute() -> PointSet
+auto OpticalFlowSegmentation::compute() -> PointSet
 {
     // Reset progress
     progressStarted();
@@ -431,7 +431,7 @@ auto OpticalFlowSegmentationClass::compute() -> PointSet
     return create_final_pointset_(points);
 }
 
-auto OpticalFlowSegmentationClass::create_final_pointset_(
+auto OpticalFlowSegmentation::create_final_pointset_(
     const std::vector<std::vector<Voxel>>& points) -> PointSet
 {
     auto rows = points.size();
@@ -451,7 +451,7 @@ auto OpticalFlowSegmentationClass::create_final_pointset_(
     return result_;
 }
 
-auto OpticalFlowSegmentationClass::draw_particle_on_slice_(
+auto OpticalFlowSegmentation::draw_particle_on_slice_(
     const FittedCurve& curve,
     int sliceIndex,
     int particleIndex,

@@ -26,23 +26,23 @@ namespace volcart::segmentation
  *
  * @ingroup Segmentation
  */
-class OpticalFlowSegmentationClass : public ChainSegmentationAlgorithm
+class OpticalFlowSegmentation : public ChainSegmentationAlgorithm
 {
 public:
     /** Pointer */
-    using Pointer = std::shared_ptr<OpticalFlowSegmentationClass>;
+    using Pointer = std::shared_ptr<OpticalFlowSegmentation>;
 
     /** @brief Default constructor */
-    OpticalFlowSegmentationClass() = default;
+    OpticalFlowSegmentation() = default;
 
     /** Default destructor */
-    ~OpticalFlowSegmentationClass() override = default;
+    ~OpticalFlowSegmentation() override = default;
 
     /** Make a new shared instance */
     template <typename... Args>
     static auto New(Args... args) -> Pointer
     {
-        return std::make_shared<OpticalFlowSegmentationClass>(
+        return std::make_shared<OpticalFlowSegmentation>(
             std::forward<Args>(args)...);
     }
 
