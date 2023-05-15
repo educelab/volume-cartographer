@@ -8,16 +8,12 @@ set(srcs
     src/FloodFill.cpp
     src/IntensityMap.cpp
     src/LocalResliceParticleSim.cpp
+    src/OpticalFlowSegmentation.cpp
     src/Particle.cpp
     src/ParticleChain.cpp
     src/StructureTensorParticleSim.cpp
     src/ThinnedFloodFillSegmentation.cpp
     src/ComputeVolumetricMask.cpp
-)
-set(deps
-    VC::core
-    opencv_highgui
-    Eigen3::Eigen
 )
 
 add_library(vc_segmentation ${srcs})
@@ -33,8 +29,11 @@ target_compile_options(vc_segmentation
 )
 target_link_libraries(vc_segmentation
     PUBLIC
-        ${deps}
+        VC::core
+        Eigen3::Eigen
     PRIVATE
+        opencv_highgui
+        opencv_video
         ${VC_FS_LIB}
 )
 target_compile_features(vc_segmentation PUBLIC cxx_std_17)

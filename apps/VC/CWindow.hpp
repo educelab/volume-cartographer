@@ -56,6 +56,11 @@ public:
         int fWindowWidth{5};
         bool fIncludeMiddle;
         int targetIndex;
+        // Optical Flow Segmentation Parameters
+        std::uint8_t ofsSmoothBrightnessThreshold{180};
+        std::uint8_t ofsOutsideThreshold{80};
+        std::uint8_t ofsPixelThreshold{80};
+        std::uint32_t ofsDisplacementThreshold{10};
     };
 
     using Segmenter = volcart::segmentation::ChainSegmentationAlgorithm;

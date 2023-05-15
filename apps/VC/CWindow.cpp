@@ -14,6 +14,7 @@
 #include "vc/core/util/Logging.hpp"
 #include "vc/meshing/OrderedPointSetMesher.hpp"
 #include "vc/segmentation/LocalResliceParticleSim.hpp"
+#include "vc/segmentation/OpticalFlowSegmentation.hpp"
 
 namespace vc = volcart;
 namespace vcs = volcart::segmentation;
@@ -101,6 +102,10 @@ CWindow::CWindow()
     fSegParams.fPeakDistanceWeight = 50;
     fSegParams.fWindowWidth = 5;
     fSegParams.targetIndex = 5;
+    fSegParams.ofsSmoothBrightnessThreshold = 180;
+    fSegParams.ofsOutsideThreshold = 80;
+    fSegParams.ofsPixelThreshold = 80;
+    fSegParams.ofsDisplacementThreshold = 10;
 
     // create UI widgets
     CreateWidgets();
@@ -220,15 +225,65 @@ void CWindow::CreateWidgets(void)
     // segmentation methods
     auto* aSegMethodsComboBox = this->findChild<QComboBox*>("cmbSegMethods");
     aSegMethodsComboBox->addItem(tr("Local Reslice Particle Simulation"));
+    aSegMethodsComboBox->addItem(tr("Optical Flow Segmentation"));
     connect(
         aSegMethodsComboBox, SIGNAL(currentIndexChanged(int)), this,
         SLOT(OnChangeSegAlgo(int)));
 
+
     // ADD NEW SEGMENTATION ALGORITHM NAMES HERE
     // aSegMethodsComboBox->addItem(tr("My custom algorithm"));
 
+    // Optical Flow Segmentation Parameters
+    auto* edtOutsideThreshold = new QSpinBox();
+    edtOutsideThreshold->setMinimum(0);
+    edtOutsideThreshold->setMaximum(255);
+    edtOutsideThreshold->setValue(80);
+    auto* edtOpticalFlowPixelThreshold = new QSpinBox();
+    edtOpticalFlowPixelThreshold->setMinimum(0);
+    edtOpticalFlowPixelThreshold->setMaximum(255);
+    edtOpticalFlowPixelThreshold->setValue(80);
+    auto* edtOpticalFlowDisplacementThreshold = new QSpinBox();
+    edtOpticalFlowDisplacementThreshold->setMinimum(0);
+    edtOpticalFlowDisplacementThreshold->setValue(10);
+    auto* edtSmoothenPixelThreshold = new QSpinBox();
+    edtSmoothenPixelThreshold->setMinimum(0);
+    edtSmoothenPixelThreshold->setMaximum(256);
+    edtSmoothenPixelThreshold->setValue(180);
+
+    connect(edtOutsideThreshold, &QSpinBox::valueChanged, [&](int v) {
+        fSegParams.ofsOutsideThreshold = static_cast<std::uint8_t>(v);
+    });
+    connect(edtOpticalFlowPixelThreshold, &QSpinBox::valueChanged, [&](int v) {
+        fSegParams.ofsPixelThreshold = static_cast<std::uint8_t>(v);
+    });
+    connect(
+        edtOpticalFlowDisplacementThreshold, &QSpinBox::valueChanged,
+        [&](int v) {
+            fSegParams.ofsDisplacementThreshold = static_cast<std::uint32_t>(v);
+        });
+    connect(edtSmoothenPixelThreshold, &QSpinBox::valueChanged, [&](int v) {
+        fSegParams.ofsSmoothBrightnessThreshold = static_cast<std::uint8_t>(v);
+    });
+
+    auto* opticalFlowParamsContainer = new QWidget();
+    auto* opticalFlowParamsLayout = new QVBoxLayout(opticalFlowParamsContainer);
+
+    opticalFlowParamsLayout->addWidget(new QLabel("Optical Flow Displacement Threshold"));
+    opticalFlowParamsLayout->addWidget(edtOpticalFlowDisplacementThreshold);
+    opticalFlowParamsLayout->addWidget(new QLabel("Optical Flow Dark Pixel Threshold"));
+    opticalFlowParamsLayout->addWidget(edtOpticalFlowPixelThreshold);
+    opticalFlowParamsLayout->addWidget(
+        new QLabel("Smooth Curve at Dark Points"));
+    opticalFlowParamsLayout->addWidget(edtOutsideThreshold);
+    opticalFlowParamsLayout->addWidget(
+        new QLabel("Smooth Curve at Bright Points"));
+    opticalFlowParamsLayout->addWidget(edtSmoothenPixelThreshold);
+
+    this->ui.segParamsStack->addWidget(opticalFlowParamsContainer);
+
     // LRPS segmentation parameters
-    // all of these are contained in the this->ui.lrpsParams
+    // all of these are contained in this->ui.lrpsParams
     fEdtAlpha = this->findChild<QLineEdit*>("edtAlphaVal");
     fEdtBeta = this->findChild<QLineEdit*>("edtBetaVal");
     fEdtDelta = this->findChild<QLineEdit*>("edtDeltaVal");
@@ -267,6 +322,10 @@ void CWindow::CreateWidgets(void)
     connect(
         fEdtEndIndex, SIGNAL(editingFinished()), this,
         SLOT(OnEdtEndingSliceValChange()));
+    
+
+    // INSERT OTHER SEGMENTATION PARAMETER WIDGETS HERE
+    // this->ui.segParamsStack->addWidget(new QLabel("Parameter widgets here"));
 
     // INSERT OTHER SEGMENTATION PARAMETER WIDGETS HERE
     // this->ui.segParamsStack->addWidget(new QLabel("Parameter widgets here"));
@@ -284,7 +343,7 @@ void CWindow::CreateWidgets(void)
     fLabImpactRange = this->findChild<QLabel*>("labImpactRange");
     fLabImpactRange->setText(QString::number(fEdtImpactRng->value()));
 
-    // Setup the status bar
+    // Set up the status bar
     statusBar = this->findChild<QStatusBar*>("statusBar");
 }
 
@@ -606,6 +665,18 @@ void CWindow::DoSegmentation(void)
         lrps->setDistanceWeightFactor(fSegParams.fPeakDistanceWeight);
         lrps->setConsiderPrevious(fSegParams.fIncludeMiddle);
         segmenter = lrps;
+    }
+    // Setup OFSC
+    else if (segIdx == 1) {
+        auto ofs = vcs::OpticalFlowSegmentation::New();
+        ofs->setMaterialThickness(fVpkg->materialThickness());
+        ofs->setTargetZIndex(fSegParams.targetIndex);
+        ofs->setOutsideThreshold(fSegParams.ofsOutsideThreshold);
+        ofs->setOFThreshold(fSegParams.ofsPixelThreshold);
+        ofs->setOFDispThreshold(fSegParams.ofsDisplacementThreshold);
+        ofs->setSmoothBrightnessThreshold(
+            fSegParams.ofsSmoothBrightnessThreshold);
+        segmenter = ofs;
     }
     // ADD OTHER SEGMENTER SETUP HERE. MATCH THE IDX TO THE IDX IN THE
     // DROPDOWN LIST

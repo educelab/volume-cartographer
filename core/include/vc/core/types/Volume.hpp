@@ -2,6 +2,8 @@
 
 /** @file */
 
+#include <mutex>
+
 #include "vc/core/filesystem.hpp"
 #include "vc/core/types/BoundingBox.hpp"
 #include "vc/core/types/Cache.hpp"
@@ -217,6 +219,8 @@ protected:
     bool cacheSlices_{true};
     /** Slice cache */
     mutable SliceCache::Pointer cache_{DefaultCache::New(DEFAULT_CAPACITY)};
+    /** Cache mutex for thread-safe access */
+    mutable std::mutex cacheMutex_;
 
     /** Load slice from disk */
     cv::Mat load_slice_(int index) const;
