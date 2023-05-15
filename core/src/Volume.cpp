@@ -208,13 +208,12 @@ cv::Mat Volume::load_slice_(int index) const
 
 cv::Mat Volume::cache_slice_(int index) const
 {
-    std::unique_lock<std::shared_mutex> lock(cache_mutex_);
+    const std::lock_guard<std::mutex> lock(cacheMutex_);
     if (cache_->contains(index)) {
         return cache_->get(index);
     }
-    else {
-        auto slice = load_slice_(index);
-        cache_->put(index, slice);
-        return slice;
-    }
+
+    auto slice = load_slice_(index);
+    cache_->put(index, slice);
+    return slice;
 }

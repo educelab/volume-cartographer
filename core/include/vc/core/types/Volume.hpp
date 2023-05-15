@@ -1,6 +1,8 @@
 #pragma once
-#include <shared_mutex>
+
 /** @file */
+
+#include <mutex>
 
 #include "vc/core/filesystem.hpp"
 #include "vc/core/types/BoundingBox.hpp"
@@ -217,12 +219,12 @@ protected:
     bool cacheSlices_{true};
     /** Slice cache */
     mutable SliceCache::Pointer cache_{DefaultCache::New(DEFAULT_CAPACITY)};
+    /** Cache mutex for thread-safe access */
+    mutable std::mutex cacheMutex_;
 
     /** Load slice from disk */
     cv::Mat load_slice_(int index) const;
     /** Load slice from cache */
     cv::Mat cache_slice_(int index) const;
-    /** Shared mutex for thread-safe access */
-    mutable std::shared_mutex cache_mutex_;
 };
 }  // namespace volcart
