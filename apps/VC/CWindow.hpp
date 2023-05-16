@@ -5,6 +5,7 @@
 #include <QMessageBox>
 #include <QObject>
 #include <QRect>
+#include <QShortcut>
 #include <QSpinBox>
 #include <QThread>
 #include <QTimer>
@@ -217,6 +218,14 @@ private:
 
     QSlider* fEdtImpactRange;
     QLabel* fLabImpactRange;
+
+    // keyboard shortcuts
+    QShortcut* slicePrev;
+    QShortcut* sliceNext;
+    QShortcut* sliceZoomIn;
+    QShortcut* sliceZoomOut;
+    QShortcut* impactUp;
+    QShortcut* impactDwn;
 
     Ui_VCMainWindow ui;
 

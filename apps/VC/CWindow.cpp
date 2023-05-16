@@ -2,6 +2,7 @@
 // Chao Du 2014 Dec
 #include "CWindow.hpp"
 
+#include <QKeySequence>
 #include <QProgressBar>
 #include <QSettings>
 #include <opencv2/imgproc.hpp>
@@ -345,6 +346,39 @@ void CWindow::CreateWidgets(void)
 
     // Set up the status bar
     statusBar = this->findChild<QStatusBar*>("statusBar");
+
+    // setup shortcuts
+    slicePrev = new QShortcut(QKeySequence(tr("Left")), this);
+    sliceNext = new QShortcut(QKeySequence(tr("Right")), this);
+    sliceZoomIn = new QShortcut(QKeySequence::ZoomIn, this);
+    sliceZoomOut = new QShortcut(QKeySequence::ZoomOut, this);
+    impactDwn = new QShortcut(QKeySequence(tr("[")), this);
+    impactUp = new QShortcut(QKeySequence(tr("]")), this);
+
+    connect(
+        slicePrev, &QShortcut::activated, fVolumeViewerWidget,
+        &CVolumeViewerWithCurve::OnPrevClicked);
+    connect(
+        sliceNext, &QShortcut::activated, fVolumeViewerWidget,
+        &CVolumeViewerWithCurve::OnNextClicked);
+    connect(
+        sliceZoomIn, &QShortcut::activated, fVolumeViewerWidget,
+        &CVolumeViewerWithCurve::OnZoomInClicked);
+    connect(
+        sliceZoomOut, &QShortcut::activated, fVolumeViewerWidget,
+        &CVolumeViewerWithCurve::OnZoomOutClicked);
+    connect(impactUp, &QShortcut::activated, [this]() {
+        if (ui.sldImpactRange->isEnabled()) {
+            ui.sldImpactRange->triggerAction(
+                QSlider::SliderAction::SliderSingleStepAdd);
+        }
+    });
+    connect(impactDwn, &QShortcut::activated, [this]() {
+        if (ui.sldImpactRange->isEnabled()) {
+            ui.sldImpactRange->triggerAction(
+                QSlider::SliderAction::SliderSingleStepSub);
+        }
+    });
 }
 
 // Create menus
@@ -368,13 +402,18 @@ void CWindow::CreateActions(void)
 {
     fOpenVolAct = new QAction(tr("&Open volpkg..."), this);
     connect(fOpenVolAct, SIGNAL(triggered()), this, SLOT(Open()));
+    fOpenVolAct->setShortcut(QKeySequence::Open);
+
     fExitAct = new QAction(tr("E&xit..."), this);
     connect(fExitAct, SIGNAL(triggered()), this, SLOT(Close()));
+
     fAboutAct = new QAction(tr("&About..."), this);
     connect(fAboutAct, SIGNAL(triggered()), this, SLOT(About()));
+
     fSavePointCloudAct = new QAction(tr("&Save volpkg..."), this);
     connect(
         fSavePointCloudAct, SIGNAL(triggered()), this, SLOT(SavePointCloud()));
+    fSavePointCloudAct->setShortcut(QKeySequence::Save);
 }
 
 void CWindow::CreateBackend()

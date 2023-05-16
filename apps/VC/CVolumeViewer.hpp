@@ -34,7 +34,7 @@ protected:
     void mouseMoveEvent(QMouseEvent* event);
     void paintEvent(QPaintEvent* event);
 
-private slots:
+public slots:
     void OnZoomInClicked(void);
     void OnZoomOutClicked(void);
     void OnResetClicked(void);
