@@ -136,10 +136,20 @@ void CVolumeViewer::ScaleImage(double nFactor)
 }
 
 // Handle zoom in click
-void CVolumeViewer::OnZoomInClicked(void) { ScaleImage(1.25); }
+void CVolumeViewer::OnZoomInClicked(void)
+{
+    if (fZoomInBtn->isEnabled()) {
+        ScaleImage(1.25);
+    }
+}
 
 // Handle zoom out click
-void CVolumeViewer::OnZoomOutClicked(void) { ScaleImage(0.8); }
+void CVolumeViewer::OnZoomOutClicked(void)
+{
+    if (fZoomOutBtn->isEnabled()) {
+        ScaleImage(0.8);
+    }
+}
 
 // Handle reset click
 void CVolumeViewer::OnResetClicked(void)
@@ -154,14 +164,18 @@ void CVolumeViewer::OnResetClicked(void)
 void CVolumeViewer::OnNextClicked(void)
 {
     // send signal to controller (MVC) in order to update the content
-    SendSignalOnNextClicked();
+    if (fNextBtn->isEnabled()) {
+        SendSignalOnNextClicked();
+    }
 }
 
 // Handle previous image click
 void CVolumeViewer::OnPrevClicked(void)
 {
     // send signal to controller (MVC ) in order to update the content
-    SendSignalOnPrevClicked();
+    if (fPrevBtn->isEnabled()) {
+        SendSignalOnPrevClicked();
+    }
 }
 
 // Handle image index change
