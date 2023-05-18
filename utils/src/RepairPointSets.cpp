@@ -1,6 +1,3 @@
-#include <algorithm>
-#include <numeric>
-
 #include <boost/program_options.hpp>
 
 #include "vc/core/filesystem.hpp"
@@ -28,7 +25,8 @@ auto main(int argc, char* argv[]) -> int
         ("help,h", "Show this message")
         ("input,i", po::value<std::string>()->required(),
              "Path to the input PointSet")
-        ("output,o", po::value<std::string>(), "Path to the output PointSet");
+        ("output,o", po::value<std::string>(), "Path to the output PointSet")
+        ("verbose,v", "Print verbose information");
     // clang-format on
 
     // parsed will hold the values of all parsed options as a Map
@@ -48,13 +46,12 @@ auto main(int argc, char* argv[]) -> int
         vc::Logger()->error(e.what());
         return EXIT_FAILURE;
     }
+    // Logging
+    auto verbose = args.count("verbose") > 0;
 
     // Load the pointset
     const fs::path inputPath = args["input"].as<std::string>();
     auto cloud = psio::ReadOrderedPointSet(inputPath);
-
-    // Test for dry run
-    auto dryRun = args.count("output") == 0;
 
     // Report the point set properties
     auto cols = cloud.width();
@@ -62,75 +59,48 @@ auto main(int argc, char* argv[]) -> int
     auto startZ = static_cast<std::size_t>(cloud[0][2]);
     auto endZ = static_cast<std::size_t>(cloud.getRow(rows - 1)[0][2]);
     vc::Logger()->info(
-        "Pointset loaded :: Shape: ({}, {}), Z-Range: [{}, {}]", rows, cols,
+        "Original pointset :: Shape: ({}, {}), Z-Range: [{}, {}]", rows, cols,
         startZ, endZ);
 
-    // Scan the pointset
-    std::vector<std::size_t> mappings(rows);
-    for (const auto rIdx : range(rows)) {
-        auto row = cloud.getRow(rIdx);
-        auto zIdx = static_cast<std::size_t>(row[0][2]);
-
-        mappings[rIdx] = zIdx;
-        //        std::cout << "[" << rIdx << "] " << zIdx << "\n";
-    }
-
-    // Report errors and remap rows
-    auto origMappings = mappings;
+    // Remap all the rows
+    int repaired{0};
+    vc::Logger()->info("Repairing pointset...");
     for (const auto row : range(rows)) {
-        // z-values
-        const auto rZ = mappings[row];
+        // get the z-values
+        auto newZ = row + startZ;
+        auto oldZ = static_cast<std::size_t>(cloud(row, 0)[2]);
 
-        // Check if the next row is a duplicate
-        auto duplicate = (row < rows - 1) ? mappings[row + 1] == rZ : false;
-
-        if (not duplicate) {
-            continue;
-        }
-
-        // Check where there's a gap in the sequence
-        auto gapPrev = (row > 0) ? mappings[row - 1] != rZ - 1 : true;
-
-        auto r = row;
-        if (gapPrev) {
-            mappings[row] = rZ - 1;
-            if (row == 0) {
-                startZ -= 1;
+        // if the z-values don't match...
+        if (oldZ != newZ) {
+            // report this row if verbose
+            if (verbose) {
+                std::cout << "  [" << row << "] ";
+                std::cout << oldZ << " -> " << newZ;
+                std::cout << "\n";
             }
-        }
-
-        else {
-            // TODO: Handle end of sequence
-            mappings[row + 1] = rZ + 1;
-            r = row + 1;
-        }
-
-        std::cout << "[" << r << "] " << rZ << "->" << mappings[r] << "\n";
-    }
-
-    // Print new mappings
-    for (const auto row : range(rows)) {
-        const auto expected = row + startZ;
-        const auto actual = mappings[row];
-
-        if (actual != expected) {
-            std::cout << "[" << row << "] " << actual << " != " << expected;
-            std::cout << "\n";
+            // update the row
+            for (const auto col : range(cols)) {
+                cloud(row, col)[2] = static_cast<double>(newZ);
+            }
+            // track num repairs
+            repaired++;
         }
     }
+    vc::Logger()->info("Repaired {} rows", repaired);
+
+    // Report the new point set properties
+    cols = cloud.width();
+    rows = cloud.height();
+    startZ = static_cast<std::size_t>(cloud[0][2]);
+    endZ = static_cast<std::size_t>(cloud.getRow(rows - 1)[0][2]);
+    vc::Logger()->info(
+        "New pointset :: Shape: ({}, {}), Z-Range: [{}, {}]", rows, cols,
+        startZ, endZ);
 
     // (optional) Save the new point cloud
-    if (not dryRun) {
-        PointSet outCloud(cols);
-        for (const auto r : range(rows)) {
-            auto row = cloud.getRow(r);
-            auto z = static_cast<double>(mappings[r]);
-            std::for_each(row.begin(), row.end(), [z](auto& v) { v[2] = z; });
-            outCloud.pushRow(row);
-        }
-
+    if (args.count("output") > 0) {
         vc::Logger()->info("Writing pointset...");
         const fs::path outputPath = args["output"].as<std::string>();
-        psio::WriteOrderedPointSet(outputPath, outCloud);
+        psio::WriteOrderedPointSet(outputPath, cloud);
     }
 }
