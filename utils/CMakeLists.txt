@@ -164,6 +164,11 @@ add_executable(vc_visualize_graph src/VisualizeRenderGraph.cpp)
 target_link_libraries(vc_visualize_graph VC::core VC::graph Boost::program_options smgl::smgl)
 list(APPEND utils_install_list vc_visualize_graph)
 
+# vc_fix_pointset_duplicates
+add_executable(vc_fix_pointset_duplicates src/FixPointSetDuplicates.cpp)
+target_link_libraries(vc_fix_pointset_duplicates VC::core Boost::program_options)
+list(APPEND utils_install_list vc_fix_pointset_duplicates)
+
 # Install targets
 if(VC_INSTALL_UTILS)
 install(
