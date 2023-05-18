@@ -165,9 +165,9 @@ target_link_libraries(vc_visualize_graph VC::core VC::graph Boost::program_optio
 list(APPEND utils_install_list vc_visualize_graph)
 
 # vc_fix_pointset_duplicates
-add_executable(vc_fix_pointset_duplicates src/FixPointSetDuplicates.cpp)
-target_link_libraries(vc_fix_pointset_duplicates VC::core Boost::program_options)
-list(APPEND utils_install_list vc_fix_pointset_duplicates)
+add_executable(vc_repair_pointsets src/RepairPointSets.cpp)
+target_link_libraries(vc_repair_pointsets VC::core Boost::program_options)
+list(APPEND utils_install_list vc_repair_pointsets)
 
 # Install targets
 if(VC_INSTALL_UTILS)
