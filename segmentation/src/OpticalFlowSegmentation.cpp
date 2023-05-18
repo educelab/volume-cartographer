@@ -300,7 +300,7 @@ auto OpticalFlowSegmentation::compute() -> PointSet
     std::size_t iteration{0};
     auto stepSize = static_cast<int>(stepSize_);
     const int padding = vol_->numSlices();
-    for (int zIndex = startIndex; zIndex <= endIndex_; zIndex += stepSize) {
+    for (int zIndex = startIndex; zIndex < endIndex_; zIndex += stepSize) {
         // Update progress
         progressUpdated(iteration++);
 
@@ -393,7 +393,7 @@ auto OpticalFlowSegmentation::compute() -> PointSet
         }
 
         // Generate nextVs by evenly spacing points in the stitched curve
-        FittedCurve stitchedFittedCurve(stitched, zIndex);
+        FittedCurve stitchedFittedCurve(stitched, zIndex + 1);
         auto nextVs = stitchedFittedCurve.evenlySpacePoints();
 
         // Check if any points in nextVs are outside volume boundaries. If so,

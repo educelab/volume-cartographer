@@ -76,8 +76,9 @@ LocalResliceSegmentation::PointSet LocalResliceSegmentation::compute()
     points.push_back(currentVs);
 
     // Iterate over z-slices
+    auto stepSize = static_cast<int>(stepSize_);
     size_t iteration{0};
-    for (int zIndex = startIndex; zIndex <= endIndex_; zIndex += stepSize_) {
+    for (int zIndex = startIndex; zIndex < endIndex_; zIndex += stepSize) {
         // Update progress
         progressUpdated(iteration++);
 
@@ -115,7 +116,7 @@ LocalResliceSegmentation::PointSet LocalResliceSegmentation::compute()
         // XXX DEBUG
         for (int i = 0; i < int(currentCurve.size()); ++i) {
             // Estimate normal and reslice along it
-            const cv::Vec3d normal = estimate_normal_at_index_(currentCurve, i);
+            const auto normal = estimate_normal_at_index_(currentCurve, i);
             const auto reslice = vol_->reslice(
                 currentCurve(i), normal, {0, 0, 1}, resliceSize_, resliceSize_);
             reslices.push_back(reslice);
