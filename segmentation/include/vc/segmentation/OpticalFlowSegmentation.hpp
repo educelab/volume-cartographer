@@ -102,7 +102,10 @@ public:
     [[nodiscard]] auto progressIterations() const -> size_t override;
 
 private:
-    /** @brief Compute the segmentation 1 Line */
+    /**
+     * @brief Compute the curve for z + 1 given a curve on z using the optical
+     * flow between the two slices
+     */
     auto compute_curve_(const FittedCurve& currentCurve, int zIndex)
         -> std::vector<Voxel>;
 

@@ -103,8 +103,7 @@ void PointSetToMesh(const fs::path& inputPath, const fs::path& outputPath)
             [](const auto& l, const auto& r) { return l[2] < r[2]; });
 
         // Get color info
-        for (const auto& pt :
-             vc::ProgressWrap(inputCloud, "Getting point intensities")) {
+        for (const auto& pt : inputCloud) {
             intensities.emplace_back(volume->interpolateAt(pt));
         }
     }
@@ -112,8 +111,7 @@ void PointSetToMesh(const fs::path& inputPath, const fs::path& outputPath)
     // Convert to ITKMesh
     vc::ITKPoint tmpPt;
     auto mesh = vc::ITKMesh::New();
-    for (const auto it :
-         vc::ProgressWrap(enumerate(inputCloud), "Converting points")) {
+    for (const auto it : enumerate(inputCloud)) {
         tmpPt[0] = it.second[0];
         tmpPt[1] = it.second[1];
         tmpPt[2] = it.second[2];
