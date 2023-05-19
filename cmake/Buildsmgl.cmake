@@ -1,7 +1,7 @@
 FetchContent_Declare(
     smgl
     GIT_REPOSITORY https://gitlab.com/educelab/smgl.git
-    GIT_TAG 437979c3
+    GIT_TAG 61425333
     CMAKE_CACHE_ARGS
         -DSMGL_BUILD_JSON:BOOL=ON
         -DSMGL_USE_BOOSTFS:BOOL=ON
