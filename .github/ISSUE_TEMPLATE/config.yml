@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Volume Cartographer Discussions
+    url: https://github.com/educelab/volume-cartographer/discussions
+    about: Please ask and answer Volume Cartographer-related questions here.
+  - name: EduceLab OSC Discussions
+    url: https://github.com/orgs/educelab/discussions
+    about: Please ask and answer EduceLab OSC questions here.

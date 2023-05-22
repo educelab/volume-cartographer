@@ -169,6 +169,11 @@ add_executable(vc_repair_pointsets src/RepairPointSets.cpp)
 target_link_libraries(vc_repair_pointsets VC::core Boost::program_options)
 list(APPEND utils_install_list vc_repair_pointsets)
 
+# vc_fix_pointset_duplicates
+add_executable(vc_version src/ReportVersion.cpp)
+target_link_libraries(vc_version VC::core)
+list(APPEND utils_install_list vc_version)
+
 # Install targets
 if(VC_INSTALL_UTILS)
 install(
