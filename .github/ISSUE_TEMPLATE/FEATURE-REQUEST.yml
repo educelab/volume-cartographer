@@ -1,6 +1,6 @@
 name: Feature request
 description: Submit a feature request.
-title: "[Feature]: "
+title: "[Feature] "
 labels: ["enhancement", "triage"]
 body:
   - type: markdown
