@@ -1,0 +1,51 @@
+name: Feature request
+description: Submit a feature request.
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this feature request!
+  - type: textarea
+    id: what-problem
+    attributes:
+      label: What problem is your feature request solving?
+      description: Alternatively, what use case does this feature enable?
+      placeholder: It's very inconvenient when...
+    validations:
+      required: true
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: What is your feature request?
+      description: Describe your proposed solution.
+      placeholder: We should add support for...
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What alternative solutions have you considered?
+      description: What are the pros and cons of the alternatives?
+      placeholder: Another solution would be...
+    validations:
+      required: false
+  - type: textarea
+    id: extras
+    attributes:
+      label: Is there anything else we should know that wasn't included already?
+  - type: checkboxes
+    id: pull-request
+    attributes:
+      label: Are you proposing to work on this feature yourself?
+      options:
+        - label: I am willing to submit a pull request for this feature
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this Feature Request, you agree to follow our [Code of Conduct](https://github.com/educelab/open-source-consortium/blob/main/CODE_OF_CONDUCT.md)
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true
