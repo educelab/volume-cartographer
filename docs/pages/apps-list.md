@@ -190,6 +190,43 @@ purposes.
 We occasionally upgrade the Volume Package (`.volpkg`) file format to support 
 new features. This tool upgrades existing volume packages to the new format.
 
+## vc_repair_pointsets
+A [bug](https://github.com/educelab/volume-cartographer/issues/24) in certain
+versions of VC resulted in ordered `.vcps` files where the z-values of points 
+were off by a few slices. This utility repairs these files by assigning new 
+z-indices to all points relative to the z-index of the first row:
+
+| row | old z | new z |
+|-----|-------|-------|
+| 0   | 400   | 400   |
+| 1   | 400   | 401   |
+| 2   | 401   | 402   |
+| ... | ...   | ...   |
+| 9   | 408   | 409   |
+| 10  | 410   | 410   |
+| 11  | 410   | 411   |
+
+The utility can be run from the command line:
+```shell
+# See what will be modified
+vc_repair_pointsets -i pointset.vcps --verbose
+
+# Repair the pointset and save the result to a new file
+vc_repair_pointsets -i pointset.vcps -o repaired.vcps
+
+# Backup and repair the pointset
+cp pointset.vcps pointset.vcps.orig
+vc_repair_pointsets -i pointset.vcps -o pointset.vcps
+```
+
+## vc_visualize_ppm
+This file generates visualizations of the positions and normals saved in PPM 
+files. Files are saved as 32-bit, RGB TIFs:
+```shell
+# Generate surface_maps_normal.tif and surface_maps_pos.tif
+vc_visualize_ppm --volpkg my-project.volpkg --ppm surface.ppm -o surface_maps_
+```
+
 ## Other utilities
 These are extra utilities available in the Volume Cartographer build directory 
 when building from source. They are largely developer tools.
@@ -207,7 +244,6 @@ vc_ppm_to_pointset
 vc_project_mesh
 vc_seg_to_pointmask
 vc_uv2mesh
-vc_visualize_ppm
 vc_volume_bump
 vc_volume_client
 vc_volume_server
