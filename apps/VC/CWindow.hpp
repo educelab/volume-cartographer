@@ -168,6 +168,8 @@ private slots:
     void OnLoadAnySlice(int nSliceIndex);
     void OnLoadNextSlice(void);
     void OnLoadPrevSlice(void);
+    void OnLoadNextSliceShift(int shift);
+    void OnLoadPrevSliceShift(int shift);
 
     void OnPathChanged(void);
 
@@ -246,6 +248,12 @@ private:
     QShortcut* sliceZoomOut;
     QShortcut* impactUp;
     QShortcut* impactDwn;
+    QShortcut* next1;
+    QShortcut* prev1;
+    QShortcut* next10;
+    QShortcut* prev10;
+    QShortcut* next100;
+    QShortcut* prev100;
 
     Ui_VCMainWindow ui;
 

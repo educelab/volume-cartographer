@@ -389,8 +389,15 @@ void CWindow::CreateWidgets(void)
     sliceNext = new QShortcut(QKeySequence(tr("Right")), this);
     sliceZoomIn = new QShortcut(QKeySequence::ZoomIn, this);
     sliceZoomOut = new QShortcut(QKeySequence::ZoomOut, this);
-    impactDwn = new QShortcut(QKeySequence(tr("[")), this);
-    impactUp = new QShortcut(QKeySequence(tr("]")), this);
+    impactDwn = new QShortcut(QKeySequence(tr("A")), this);
+    impactUp = new QShortcut(QKeySequence(tr("D")), this);
+    prev1 = new QShortcut(QKeySequence(tr("1")), this);
+    next1 = new QShortcut(QKeySequence(tr("2")), this);
+    prev10 = new QShortcut(QKeySequence(tr("3")), this);
+    next10 = new QShortcut(QKeySequence(tr("4")), this);
+    prev100 = new QShortcut(QKeySequence(tr("5")), this);
+    next100 = new QShortcut(QKeySequence(tr("6")), this);
+
 
     connect(
         slicePrev, &QShortcut::activated, fVolumeViewerWidget,
@@ -415,6 +422,30 @@ void CWindow::CreateWidgets(void)
             ui.sldImpactRange->triggerAction(
                 QSlider::SliderAction::SliderSingleStepSub);
         }
+    });
+    connect(next1, &QShortcut::activated, [this]() {
+        int shift = 1;
+        OnLoadNextSliceShift(shift);
+    });
+    connect(prev1, &QShortcut::activated, [this]() {
+        int shift = 1;
+        OnLoadPrevSliceShift(shift);
+    });
+    connect(next10, &QShortcut::activated, [this]() {
+        int shift = 10;
+        OnLoadNextSliceShift(shift);
+    });
+    connect(prev10, &QShortcut::activated, [this]() {
+        int shift = 10;
+        OnLoadPrevSliceShift(shift);
+    });
+    connect(next100, &QShortcut::activated, [this]() {
+        int shift = 100;
+        OnLoadNextSliceShift(shift);
+    });
+    connect(prev100, &QShortcut::activated, [this]() {
+        int shift = 100;
+        OnLoadPrevSliceShift(shift);
     });
 }
 
@@ -1526,6 +1557,11 @@ void CWindow::OnLoadAnySlice(int nSliceIndex)
 void CWindow::OnLoadNextSlice(void)
 {
     int shift = (qga::keyboardModifiers() == Qt::ShiftModifier) ? 10 : 1;
+    OnLoadNextSliceShift(shift);
+}
+
+void CWindow::OnLoadNextSliceShift(int shift)
+{
     if (fPathOnSliceIndex + shift >= currentVolume->numSlices()) {
         shift = currentVolume->numSlices() - fPathOnSliceIndex - 1;
     }
@@ -1544,6 +1580,11 @@ void CWindow::OnLoadNextSlice(void)
 void CWindow::OnLoadPrevSlice(void)
 {
     int shift = (qga::keyboardModifiers() == Qt::ShiftModifier) ? 10 : 1;
+    OnLoadPrevSliceShift(shift);
+}
+
+void CWindow::OnLoadPrevSliceShift(int shift)
+{
     if (fPathOnSliceIndex - shift < 0) {
         shift = fPathOnSliceIndex;
     }

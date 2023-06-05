@@ -43,6 +43,8 @@ CVolumeViewer::CVolumeViewer(QWidget* parent)
     fScrollArea = new QScrollArea;
     fScrollArea->setBackgroundRole(QPalette::Dark);
     fScrollArea->setWidget(fCanvas);
+    // Install the event filter
+    fScrollArea->viewport()->installEventFilter(this);
 
     fButtonsLayout = new QHBoxLayout;
     fButtonsLayout->addWidget(fZoomInBtn);
@@ -103,6 +105,25 @@ void CVolumeViewer::SetImage(const QImage& nSrc)
 
     UpdateButtons();
     update();
+}
+
+bool CVolumeViewer::eventFilter(QObject* watched, QEvent* event)
+{
+    if (watched == fScrollArea->viewport() && event->type() == QEvent::Wheel) {
+        QWheelEvent* wheelEvent = static_cast<QWheelEvent*>(event);
+        if(QApplication::keyboardModifiers() == Qt::ShiftModifier) {
+            int numDegrees = wheelEvent->angleDelta().y() / 8;
+
+            if (numDegrees > 0) {
+                OnZoomInClicked();
+            } else if (numDegrees < 0) {
+                OnZoomOutClicked();
+            }
+            event->accept();
+            return true;
+        }
+    }
+    return QWidget::eventFilter(watched, event);
 }
 
 // Handle mouse press event

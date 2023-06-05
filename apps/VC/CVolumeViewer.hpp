@@ -30,6 +30,7 @@ public:
     }
 
 protected:
+    bool eventFilter(QObject* watched, QEvent* event);
     void mousePressEvent(QMouseEvent* event);
     void mouseMoveEvent(QMouseEvent* event);
     void paintEvent(QPaintEvent* event);

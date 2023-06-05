@@ -163,9 +163,7 @@ void CVolumeViewerWithCurve::UpdateView(void)
 
 void CVolumeViewerWithCurve::handleMouseHold()
 {
-    // The logic you had in the mousePressEvent function
     if (fIntersectionCurveRef != nullptr) {
-        // Assuming you have stored the last pressed button in a member variable.
         if (lastPressedButton & Qt::BackButton || lastPressedButton & Qt::ForwardButton) {
             auto p2 = GetScrollPosition() / fScaleFactor  + scrollPositionModifier;
             int closest_point =
