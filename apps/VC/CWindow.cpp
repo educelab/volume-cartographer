@@ -391,6 +391,8 @@ void CWindow::CreateWidgets(void)
     sliceZoomOut = new QShortcut(QKeySequence::ZoomOut, this);
     impactDwn = new QShortcut(QKeySequence(tr("A")), this);
     impactUp = new QShortcut(QKeySequence(tr("D")), this);
+    impactDwn_old = new QShortcut(QKeySequence(tr("A")), this);
+    impactUp_old = new QShortcut(QKeySequence(tr("D")), this);
     prev1 = new QShortcut(QKeySequence(tr("1")), this);
     next1 = new QShortcut(QKeySequence(tr("2")), this);
     prev10 = new QShortcut(QKeySequence(tr("3")), this);
@@ -418,6 +420,18 @@ void CWindow::CreateWidgets(void)
         }
     });
     connect(impactDwn, &QShortcut::activated, [this]() {
+        if (ui.sldImpactRange->isEnabled()) {
+            ui.sldImpactRange->triggerAction(
+                QSlider::SliderAction::SliderSingleStepSub);
+        }
+    });
+    connect(impactUp_old, &QShortcut::activated, [this]() {
+        if (ui.sldImpactRange->isEnabled()) {
+            ui.sldImpactRange->triggerAction(
+                QSlider::SliderAction::SliderSingleStepAdd);
+        }
+    });
+    connect(impactDwn_old, &QShortcut::activated, [this]() {
         if (ui.sldImpactRange->isEnabled()) {
             ui.sldImpactRange->triggerAction(
                 QSlider::SliderAction::SliderSingleStepSub);

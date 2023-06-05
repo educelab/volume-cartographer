@@ -248,6 +248,8 @@ private:
     QShortcut* sliceZoomOut;
     QShortcut* impactUp;
     QShortcut* impactDwn;
+    QShortcut* impactUp_old;
+    QShortcut* impactDwn_old;
     QShortcut* next1;
     QShortcut* prev1;
     QShortcut* next10;
