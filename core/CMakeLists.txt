@@ -87,7 +87,6 @@ target_link_libraries(vc_core
         ${VC_FS_LIB}
         Eigen3::Eigen
         opencv_core
-        opencv_highgui
         opencv_imgproc
         opencv_imgcodecs
         ITKCommon

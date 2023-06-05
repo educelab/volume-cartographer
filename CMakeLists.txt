@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
 include(FetchContent)
 include(CMakeDependentOption)
 
-set(VC_VERSION 2.24.1)
+set(VC_VERSION 2.25.0)
 
 option(VC_VERSION_DATESTAMP "Append date stamp to version number" off)
 if(VC_VERSION_DATESTAMP)
@@ -106,12 +106,5 @@ include(VCPackageConfig)
 # Install to system directories
 include(VCInstall)
 
-## OpenCV for image segmentation
-find_package(OpenCV REQUIRED)
-include_directories( ${OpenCV_INCLUDE_DIRS} )
-
-## OpenMP for parallel for loop
-find_package(OpenMP)
-
-# Look for the SDL2 package for aAudio
+# Look for the SDL2 package for Audio
 find_package(SDL2 REQUIRED)

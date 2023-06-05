@@ -2,13 +2,16 @@
 // Chao Du 2014 Dec
 #include "CWindow.hpp"
 
+#include <QKeySequence>
 #include <QProgressBar>
 #include <QSettings>
 #include <opencv2/imgproc.hpp>
 
 #include "CVolumeViewerWithCurve.hpp"
 #include "UDataManipulateUtils.hpp"
+#include "vc/core/types/Color.hpp"
 #include "vc/core/types/Exceptions.hpp"
+#include "vc/core/util/Iteration.hpp"
 #include "vc/core/util/Logging.hpp"
 #include "vc/meshing/OrderedPointSetMesher.hpp"
 #include "vc/segmentation/LocalResliceParticleSim.hpp"
@@ -18,6 +21,58 @@ namespace vc = volcart;
 namespace vcs = volcart::segmentation;
 using namespace ChaoVis;
 using qga = QGuiApplication;
+
+struct PutTextParams {
+    int font{cv::FONT_HERSHEY_SIMPLEX};
+    double scale{1};
+    int thickness{1};
+    int baseline{0};
+    cv::Size size;
+};
+
+auto CalculateOptimalTextParams(
+    const std::string& str,
+    int width,
+    int height,
+    int maxIters = 1000,
+    double bufferTB = 0.2,
+    double bufferLR = 0.15) -> PutTextParams
+{
+
+    // results
+    PutTextParams p;
+
+    // calculate the width and height minus the buffer
+    auto maxW = width - static_cast<int>(std::ceil(2 * bufferLR * width));
+    auto maxH = height - static_cast<int>(std::ceil(2 * bufferTB * height));
+    auto minDim = std::min(maxW, maxH);
+    auto dIdx = (minDim == maxH) ? 0 : 1;
+
+    // calculate optimal thickness
+    const auto x = static_cast<double>(minDim);
+    auto t = 9.944e-11 * std::pow(x, 3) + -2.35505e-6 * std::pow(x, 2) +
+             1.13691e-2 * x + 0.886545;
+    p.thickness = std::min(1, std::max(static_cast<int>(t), 50));
+
+    // iteratively find the correct scale
+    for (const auto i : vc::range(maxIters)) {
+        p.size =
+            cv::getTextSize(str, p.font, p.scale, p.thickness, &p.baseline);
+        if (p.size.width >= maxW or p.size.height >= maxH) {
+            p.scale *= 0.95;
+        } else {
+            // get the size dim corresponding to our min dim
+            auto minSize = (dIdx == 0) ? p.size.height : p.size.width;
+            // scale up if we're great than 10% from our target width
+            if (minSize < 0.9 * minDim) {
+                p.scale *= 1.11;
+            } else {
+                break;
+            }
+        }
+    }
+    return p;
+}
 
 // Constructor
 CWindow::CWindow()
@@ -146,8 +201,10 @@ void CWindow::CreateWidgets(void)
     volSelect = this->findChild<QComboBox*>("volSelect");
     connect(
         volSelect, &QComboBox::currentTextChanged, [this](const QString& text) {
-            auto newVolume = fVpkg->volume(text.toStdString());
-            if (newVolume == nullptr) {
+            vc::Volume::Pointer newVolume;
+            try {
+                newVolume = fVpkg->volume(text.toStdString());
+            } catch (const std::out_of_range& e) {
                 QMessageBox::warning(this, "Error", "Could not load volume.");
                 return;
             }
@@ -158,8 +215,9 @@ void CWindow::CreateWidgets(void)
 
     assignVol = this->findChild<QPushButton*>("assignVol");
     connect(assignVol, &QPushButton::clicked, [this](bool) {
-        if (fSegmentation == nullptr || fSegmentation->hasVolumeID())
+        if (fSegmentation == nullptr || fSegmentation->hasVolumeID()) {
             return;
+        }
         fSegmentation->setVolumeID(currentVolume->id());
         UpdateView();
     });
@@ -266,7 +324,7 @@ void CWindow::CreateWidgets(void)
     this->ui.segParamsStack->addWidget(opticalFlowParamsContainer);
 
     // LRPS segmentation parameters
-    // all of these are contained in the this->ui.lrpsParams
+    // all of these are contained in this->ui.lrpsParams
     fEdtAlpha = this->findChild<QLineEdit*>("edtAlphaVal");
     fEdtBeta = this->findChild<QLineEdit*>("edtBetaVal");
     fEdtDelta = this->findChild<QLineEdit*>("edtDeltaVal");
@@ -323,8 +381,41 @@ void CWindow::CreateWidgets(void)
     fLabImpactRange = this->findChild<QLabel*>("labImpactRange");
     fLabImpactRange->setText(QString::number(fEdtImpactRng->value()));
 
-    // Setup the status bar
+    // Set up the status bar
     statusBar = this->findChild<QStatusBar*>("statusBar");
+
+    // setup shortcuts
+    slicePrev = new QShortcut(QKeySequence(tr("Left")), this);
+    sliceNext = new QShortcut(QKeySequence(tr("Right")), this);
+    sliceZoomIn = new QShortcut(QKeySequence::ZoomIn, this);
+    sliceZoomOut = new QShortcut(QKeySequence::ZoomOut, this);
+    impactDwn = new QShortcut(QKeySequence(tr("[")), this);
+    impactUp = new QShortcut(QKeySequence(tr("]")), this);
+
+    connect(
+        slicePrev, &QShortcut::activated, fVolumeViewerWidget,
+        &CVolumeViewerWithCurve::OnPrevClicked);
+    connect(
+        sliceNext, &QShortcut::activated, fVolumeViewerWidget,
+        &CVolumeViewerWithCurve::OnNextClicked);
+    connect(
+        sliceZoomIn, &QShortcut::activated, fVolumeViewerWidget,
+        &CVolumeViewerWithCurve::OnZoomInClicked);
+    connect(
+        sliceZoomOut, &QShortcut::activated, fVolumeViewerWidget,
+        &CVolumeViewerWithCurve::OnZoomOutClicked);
+    connect(impactUp, &QShortcut::activated, [this]() {
+        if (ui.sldImpactRange->isEnabled()) {
+            ui.sldImpactRange->triggerAction(
+                QSlider::SliderAction::SliderSingleStepAdd);
+        }
+    });
+    connect(impactDwn, &QShortcut::activated, [this]() {
+        if (ui.sldImpactRange->isEnabled()) {
+            ui.sldImpactRange->triggerAction(
+                QSlider::SliderAction::SliderSingleStepSub);
+        }
+    });
 }
 
 // Create menus
@@ -348,13 +439,18 @@ void CWindow::CreateActions(void)
 {
     fOpenVolAct = new QAction(tr("&Open volpkg..."), this);
     connect(fOpenVolAct, SIGNAL(triggered()), this, SLOT(Open()));
+    fOpenVolAct->setShortcut(QKeySequence::Open);
+
     fExitAct = new QAction(tr("E&xit..."), this);
     connect(fExitAct, SIGNAL(triggered()), this, SLOT(Close()));
+
     fAboutAct = new QAction(tr("&About..."), this);
     connect(fAboutAct, SIGNAL(triggered()), this, SLOT(About()));
+
     fSavePointCloudAct = new QAction(tr("&Save volpkg..."), this);
     connect(
         fSavePointCloudAct, SIGNAL(triggered()), this, SLOT(SavePointCloud()));
+    fSavePointCloudAct->setShortcut(QKeySequence::Save);
 }
 
 void CWindow::CreateBackend()
@@ -977,8 +1073,22 @@ void CWindow::OpenSlice(void)
         aImgMat = cv::Mat::zeros(10, 10, CV_8UC1);
     }
 
-    QImage aImgQImage;
-    aImgQImage = Mat2QImage(aImgMat);
+    if (aImgMat.empty()) {
+        auto h = currentVolume->sliceHeight();
+        auto w = currentVolume->sliceWidth();
+        aImgMat = cv::Mat::zeros(h, w, CV_8UC3);
+        aImgMat = vc::color::RED;
+        const std::string msg{"FILE MISSING"};
+        auto params = CalculateOptimalTextParams(msg, w, h);
+        auto originX = (w - params.size.width) / 2;
+        auto originY = params.size.height + (h - params.size.height) / 2;
+        cv::Point origin{originX, originY};
+        cv::putText(
+            aImgMat, msg, origin, params.font, params.scale, vc::color::WHITE,
+            params.thickness, params.baseline);
+    }
+
+    auto aImgQImage = Mat2QImage(aImgMat);
     fVolumeViewerWidget->SetImage(aImgQImage);
     fVolumeViewerWidget->SetImageIndex(fPathOnSliceIndex);
 }
@@ -1074,10 +1184,15 @@ void CWindow::OpenVolume()
     fVpkgPath = aVpkgPath;
     fPathOnSliceIndex = 0;
     currentVolume = fVpkg->volume();
-    volSelect->clear();
-    for (const auto& id : fVpkg->volumeIDs()) {
-        volSelect->addItem(QString::fromStdString(id));
+    {
+        const QSignalBlocker blocker{volSelect};
+        volSelect->clear();
     }
+    QStringList volIds;
+    for (const auto& id : fVpkg->volumeIDs()) {
+        volIds.append(QString::fromStdString(id));
+    }
+    volSelect->addItems(volIds);
 }
 
 void CWindow::CloseVolume(void)
