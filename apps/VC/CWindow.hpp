@@ -19,6 +19,12 @@
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/segmentation/ChainSegmentationAlgorithm.hpp"
 
+#include <thread>
+#include <condition_variable>
+#include <atomic>
+#include <SDL2/SDL.h>
+#include <cmath>
+
 // Volpkg version required by this app
 static constexpr int VOLPKG_SUPPORTED_VERSION = 6;
 static constexpr int VOLPKG_SLICE_MIN_INDEX = 0;
@@ -63,6 +69,11 @@ public:
         int outside_threshold;
         int optical_flow_pixel_threshold;
         int optical_flow_displacement_threshold;
+        bool enable_edge;
+        int edge_jump_distance;
+        int edge_bounce_distance;
+        int backwards_smoothnes_interpolation_window;
+        int backwards_length;
     };
 
     using Segmenter = volcart::segmentation::ChainSegmentationAlgorithm;
@@ -107,6 +118,8 @@ private:
     void SetUpCurves(void);
     void SetCurrentCurve(int nCurrentSliceIndex);
 
+    void prefetchSlices(void);
+    void startPrefetching(int index);
     void OpenSlice(void);
 
     void InitPathList(void);
@@ -117,6 +130,8 @@ private:
     void CloseVolume(void);
 
     void ResetPointCloud(void);
+    static void audio_callback(void *user_data, Uint8 *raw_buffer, int bytes);
+    void playPing();
 
 private slots:
     void Open(void);
@@ -167,6 +182,9 @@ private:
     std::string fSegmentationId;
     volcart::Segmentation::Pointer fSegmentation;
     volcart::Volume::Pointer currentVolume;
+
+    static const int AMPLITUDE = 28000;
+    static const int FREQUENCY = 44100;
 
     int fMinSegIndex;
     int fMaxSegIndex;
@@ -232,6 +250,13 @@ private:
     size_t progress_{0};
     QLabel* progressLabel_;
     QProgressBar* progressBar_;
+
+    // Prefetching worker
+    std::thread prefetchWorker;
+    std::condition_variable cv;
+    std::mutex cv_m;
+    std::atomic<bool> stopPrefetching;
+    std::atomic<int> prefetchSliceIndex;
 };  // class CWindow
 
 class VolPkgBackend : public QObject

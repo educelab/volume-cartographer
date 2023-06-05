@@ -8,6 +8,8 @@
 #include "ColorFrame.hpp"
 #include "UDataManipulateUtils.hpp"
 
+#include <QCoreApplication> // To use QCoreApplication::sendEvent()
+
 using namespace ChaoVis;
 
 // Constructor
@@ -20,9 +22,11 @@ CVolumeViewerWithCurve::CVolumeViewerWithCurve()
     , fIntersectionCurveRef(nullptr)
     , fSelectedPointIndex(-1)
     , fVertexIsChanged(false)
-    , fImpactRange(5)
+    , fImpactRange(10)
     , fViewState(EViewState::ViewStateIdle)
 {
+    timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), this, SLOT(handleMouseHold()));
     QSettings settings;
     colorSelector = new ColorFrame(this);
     colorSelector->setFixedSize(16, 16);
@@ -157,11 +161,72 @@ void CVolumeViewerWithCurve::UpdateView(void)
     update();  // repaint the widget
 }
 
+void CVolumeViewerWithCurve::handleMouseHold()
+{
+    // The logic you had in the mousePressEvent function
+    if (fIntersectionCurveRef != nullptr) {
+        // Assuming you have stored the last pressed button in a member variable.
+        if (lastPressedButton & Qt::BackButton || lastPressedButton & Qt::ForwardButton) {
+            auto p2 = GetScrollPosition() / fScaleFactor  + scrollPositionModifier;
+            int closest_point =
+                SelectPointOnCurve(fIntersectionCurveRef, p2, true);
+            if (closest_point == -1) {
+                return;
+            }
+            int numCurvePoints = fIntersectionCurveRef->GetPointsNum();
+            int pointDifference = static_cast<int>(20.0 / fScaleFactor);
+            // std::cout << "pointDifference: " << pointDifference << " closest_point: " << closest_point << std::endl;
+            if (lastPressedButton & Qt::BackButton) {
+                closest_point -= pointDifference;
+            }
+            else if (lastPressedButton & Qt::ForwardButton) {
+                closest_point += pointDifference;
+            }
+            closest_point = std::max(0, std::min(numCurvePoints - 1, closest_point));
+            // std::cout << "closest_point: " << closest_point << std::endl;
+            auto p1 = fIntersectionCurveRef->GetPoint(closest_point);
+            auto v = cv::Vec2f(p1[0] - p2[0], p1[1] - p2[1]);
+            auto v2 = v * 0.1;
+            if (0 < std::sqrt(v2[0]*v2[0] + v2[1]*v2[1]) && std::sqrt(v2[0]*v2[0] + v2[1]*v2[1]) < (10.0 / fScaleFactor)) {
+                v2 *= (10.0 / fScaleFactor) / std::sqrt(v2[0]*v2[0] + v2[1]*v2[1]);
+                // check that the v2 is not overshooting p1
+                if (std::abs(v2[0]) > std::abs(v[0])) {
+                    v2[0] = v[0];
+                }
+                if (std::abs(v2[1]) > std::abs(v[1])) {
+                    v2[1] = v[1];
+                }
+            }
+            scrollPositionModifier = p2 + v2 - CleanScrollPosition((p2 + v2) * fScaleFactor) / fScaleFactor;
+            // std::cout << "v2: " << v2 << " v: " << v << " p2: " << p2 << " p1: " << p1[0] << " " << p1[1] << std::endl;
+            v2 += p2;
+            // std::cout << "v2: " << v2 << " scrollPositionModifier: " << scrollPositionModifier << std::endl;
+            ScrollToCenter(v2 * fScaleFactor);
+        }
+    }
+}
+
 // Handle mouse press event
 void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* e)
 {
+    // Check if back or forward button was pressed
+    if (e->buttons() & Qt::BackButton || e->buttons() & Qt::ForwardButton) {
+        lastPressedButton = e->button();
+        scrollPositionModifier = cv::Vec2f(0.0, 0.0);
+        timer->start(25); // start timer, will trigger handleMouseHold() every 20 ms
+        return;
+    }
     // Instantly return if we're not editing or drawing
     if (fViewState == ViewStateIdle) {
+        return;
+    }
+
+    if (lastPressedButton & Qt::NoButton) {
+        return;
+    }
+
+    // Return if not left or right click
+    if ( !(e->buttons() & Qt::RightButton) && !(e->buttons() & Qt::LeftButton) && !fIsMousePressed) {
         return;
     }
 
@@ -170,9 +235,10 @@ void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* e)
     aWidgetLoc[0] = e->position().x();  // horizontal coordinate
     aWidgetLoc[1] = e->position().y();  // vertical coordinate
 
-    // Convert to image coordinates and update the last tracked position
+    // Convert to image coordinates
     WidgetLoc2ImgLoc(aWidgetLoc, aImgLoc);
 
+    // Update the last tracked position
     fLastPos.setX(aImgLoc[0]);
     fLastPos.setY(aImgLoc[1]);
 
@@ -184,12 +250,34 @@ void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* e)
             fControlPoints.push_back(aImgLoc);
             UpdateSplineCurve();
         }
-    } else if (fViewState == EViewState::ViewStateEdit) {
+    } else if (fViewState == EViewState::ViewStateEdit && ((e->buttons() & Qt::RightButton) || (e->buttons() & Qt::LeftButton) || fIsMousePressed)) {
+        fIsMousePressed = true;
         // If we have points, select the one that was clicked
         if (fIntersectionCurveRef != nullptr) {
+            bool rightClick = e->buttons() & Qt::RightButton;
             fSelectedPointIndex =
-                SelectPointOnCurve(fIntersectionCurveRef, aImgLoc);
+                SelectPointOnCurve(fIntersectionCurveRef, aImgLoc, rightClick);
             fIntersectionCurveRef->setLastState();
+
+            // Set fLastPos to the position of the selected point
+            if (fSelectedPointIndex >= 0) {
+                fLastPos.setX(fIntersectionCurveRef->GetPoint(fSelectedPointIndex)[0]);
+                fLastPos.setY(fIntersectionCurveRef->GetPoint(fSelectedPointIndex)[1]);
+
+            // Trigger mouseMoveEvent
+            QMouseEvent moveEvent(
+                QEvent::MouseMove,
+                e->position(),
+                e->scenePosition(),
+                e->globalPosition(),
+                e->button(),
+                e->buttons(),
+                e->modifiers(),
+                e->source()
+            );
+            QCoreApplication::sendEvent(this, &moveEvent);
+            }
+            return;
         }
     }
 
@@ -201,7 +289,7 @@ void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* e)
 void CVolumeViewerWithCurve::mouseMoveEvent(QMouseEvent* event)
 {
     // Instantly return if we're not editing
-    if (fViewState != ViewStateEdit) {
+    if (fViewState != ViewStateEdit || !fIsMousePressed) {
         return;
     }
 
@@ -228,10 +316,17 @@ void CVolumeViewerWithCurve::mouseMoveEvent(QMouseEvent* event)
 }
 
 // Handle mouse release event
-void CVolumeViewerWithCurve::mouseReleaseEvent(QMouseEvent* /*event*/)
+void CVolumeViewerWithCurve::mouseReleaseEvent(QMouseEvent* e)
 {
-    if (fViewState != ViewStateEdit) {
+    if (((lastPressedButton & Qt::BackButton) && !(e->buttons() & Qt::BackButton)) || ((lastPressedButton & Qt::ForwardButton) && !(e->buttons() & Qt::ForwardButton))) {
+        timer->stop();
+        lastPressedButton = Qt::NoButton;  // unset the last pressed button
+    }
+    if (fViewState != ViewStateEdit || !fIsMousePressed) {
         return;
+    }
+    if (!(e->buttons() & Qt::RightButton) && !(e->button() & Qt::LeftButton)) {
+        fIsMousePressed = false;
     }
 
     if (fIntersectionCurveRef != nullptr && fVertexIsChanged) {
@@ -299,18 +394,31 @@ void CVolumeViewerWithCurve::WidgetLoc2ImgLoc(
 
 // Select point on curve
 int CVolumeViewerWithCurve::SelectPointOnCurve(
-    const CXCurve* nCurve, const cv::Vec2f& nPt)
+    const CXCurve* nCurve, const cv::Vec2f& nPt, bool rightClick)
 {
     const double DIST_THRESHOLD = 1.5 * fScaleFactor;
 
+    int closestPointIndex = -1;
+    double minDistance = std::numeric_limits<double>::max();
+
+    bool shiftKeyPressed = QGuiApplication::queryKeyboardModifiers().testFlag(Qt::ShiftModifier);
+
     for (size_t i = 0; i < nCurve->GetPointsNum(); ++i) {
-        if (Norm<double>(Vec2<double>(
-                nCurve->GetPoint(i)[0] - nPt[0],
-                nCurve->GetPoint(i)[1] - nPt[1])) < DIST_THRESHOLD) {
-            return i;
+        double currentDistance = Norm<double>(Vec2<double>(
+            nCurve->GetPoint(i)[0] - nPt[0],
+            nCurve->GetPoint(i)[1] - nPt[1]));
+
+        if (currentDistance < minDistance) {
+            minDistance = currentDistance;
+            closestPointIndex = i;
         }
     }
-    return -1;  // To-Do: Change this -1 to a constant
+
+    if (rightClick || shiftKeyPressed || minDistance < DIST_THRESHOLD) {
+        return closestPointIndex;
+    } else {
+        return -1; // To-Do: Change this -1 to a constant
+    }
 }
 
 // Draw intersection curve on the slice

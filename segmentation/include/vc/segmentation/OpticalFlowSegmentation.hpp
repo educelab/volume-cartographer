@@ -1,4 +1,5 @@
 #pragma once
+#include <shared_mutex>
 
 /** @file */
 
@@ -61,6 +62,21 @@ public:
      */
     void setOFThreshold(int of_thr) { optical_flow_pixel_threshold_ = of_thr; }
 
+    /** @brief Set whether to enable edge detection
+     */
+    void setEnableEdge(bool enable_edge) { enable_edge_ = enable_edge; }
+    /**@}*/
+
+    /**
+     * @brief Set the threshold of what pixel brightness is considered while calculating optical flow, darker pixels OF is interpolated from brighter ones in the area
+     */
+    void setEdgeJumpDistance(int jump_dist) { edge_jump_distance_ = jump_dist; }
+
+    /**
+     * @brief Set the threshold of what pixel brightness is considered while calculating optical flow, darker pixels OF is interpolated from brighter ones in the area
+     */
+    void setEdgeBounceDistance(int bounce_dist) { edge_bounce_distance_ = bounce_dist; }
+
     /**
      * @brief Set the estimated thickness of the substrate (in um)
      *
@@ -84,9 +100,25 @@ public:
      */
     void setLineSmoothenByBrightness(int brightness) { smoothen_by_brightness_ = brightness; }
 
+    /** @brief Set how many slices should be cached
+     */
+    void setBackwardsInterpolationWindow(int window) { backwards_smoothnes_interpolation_window_ = window; }
+
+    /** @brief Set how many slices should be cached
+     */
+    void setBackwardsLength(int len) { backwards_length_ = len; }
+
+    /** @brief Set the already computed masterCloud OrderedPointSet
+     */
+    void setOrderedPointSet(volcart::OrderedPointSet<cv::Vec3d> masterCloud) { masterCloud_ = masterCloud; }
+
+    /** @brief Interpolate the points behind the possibly adjusted new starting line with the already computed masterCloud OrderedPointSet to get a smooth final surface 
+     */
+    std::vector<std::vector<Voxel>> interpolatePoints(std::vector<std::vector<Voxel>> points, int window_size, bool backwards);
+
     /**@{*/
     /** @brief Compute the segmentation 1 Line */
-    std::vector<Voxel> computeCurve(FittedCurve currentCurve, Chain& currentVs, int zIndex);
+    std::vector<Voxel> computeCurve(FittedCurve currentCurve, Chain& currentVs, int zIndex, bool backwards=false);
     /**@}*/
 
     /**@{*/
@@ -131,6 +163,15 @@ private:
         -> float;
 
     /**
+     * @brief Calculate the mean pixel value in a window around a point
+     * @param integral_img Intergral image of slice
+     * @param pt Point around which to calculate mean
+     * @param window_size Size of window
+     */
+    auto compute_moving_average(const std::vector<Voxel>& points, int index, int window_size)
+        -> Voxel;
+
+    /**
      * @brief Debug: Draw curve on slice image
      * @param curve Input curve
      * @param sliceIndex %Slice on which to draw
@@ -140,6 +181,19 @@ private:
     [[nodiscard]] auto draw_particle_on_slice_(
         const FittedCurve& curve,
         int sliceIndex,
+        int particleIndex = -1,
+        bool showSpline = false) const -> cv::Mat;
+
+    /**
+     * @brief Debug: Draw curve on slice image
+     * @param curve Input curve
+     * @param pkgSlice Image to draw on
+     * @param particleIndex Highlight point at particleIndex
+     * @param showSpline Draw interpolated curve. Default only draws points
+     */
+    [[nodiscard]] auto draw_particle_on_image_(
+        const FittedCurve& curve,
+        cv::Mat pkgSlice,
         int particleIndex = -1,
         bool showSpline = false) const -> cv::Mat;
 
@@ -153,13 +207,13 @@ private:
     /** Target z-index */
     int endIndex_{0};
     /** Darker pixels are considered outside the sheet */
-    int outside_threshold_{80};
+    int outside_threshold_{60};
     /** Disregarding pixel that are darker during optical flow computation */
     int optical_flow_pixel_threshold_{80};
     /** Threshold of how many pixel optical flow can displace a point, if higher, recompute optical flow with region's average flow */
     int optical_flow_displacement_threshold_{10};
     /** Purging Cache flag */
-    bool purge_cache_{true};
+    bool purge_cache_{false};
     /** Dump visualization to disk flag */
     bool dumpVis_{false};
     /** Show visualization in GUI flag */
@@ -169,9 +223,17 @@ private:
     /** Estimated material thickness in um */
     double materialThickness_{100};
     /** Number of slices to cache */
-    int nr_cache_slices_{-1};
+    int nr_cache_slices_{1000};
     /** Number of slices to cache */
     int smoothen_by_brightness_{180};
+    bool enable_edge_{true};
+    int edge_jump_distance_{6};
+    int edge_bounce_distance_{3};
+    bool interpolate_master_cloud{true};
+    int backwards_smoothnes_interpolation_window_{5};
+    int backwards_length_{25};
+    volcart::OrderedPointSet<cv::Vec3d> masterCloud_;
+    mutable std::shared_mutex display_mutex_;
     
 };
 }  // namespace volcart::segmentation

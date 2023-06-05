@@ -113,6 +113,12 @@ public:
     /** @copydoc getSliceData(int) const */
     cv::Mat getSliceDataCopy(int index) const;
 
+    /** @brief Get slice by index and cut out a rect to return */
+    cv::Mat getSliceDataRect(int index, cv::Rect rect) const;
+
+    /** @brief Copy a slice by index and cut out a rect to return */
+    cv::Mat getSliceDataRectCopy(int index, cv::Rect rect) const;
+
     /**
      * @brief Set a slice by index number
      *
@@ -200,7 +206,7 @@ public:
     size_t getCacheSize() const { return cache_->size(); }
 
     /** @brief Purge the slice cache */
-    void cachePurge() { cache_->purge(); }
+    void cachePurge() const;
     /**@}*/
 
 protected:

@@ -1,4 +1,5 @@
 #pragma once
+#include <shared_mutex>
 
 /** @file */
 
@@ -62,7 +63,9 @@ public:
     explicit LRUCache(size_t capacity) : BaseClass(capacity) {}
 
     /** @overload LRUCache() */
-    static Pointer New() { return std::make_shared<LRUCache<TKey, TValue>>(); }
+    static Pointer New() {
+        return std::make_shared<LRUCache<TKey, TValue>>();
+    }
 
     /** @overload LRUCache(size_t) */
     static Pointer New(size_t capacity)
@@ -75,6 +78,7 @@ public:
     /** @brief Set the maximum number of elements in the cache */
     void setCapacity(size_t capacity) override
     {
+        std::unique_lock<std::shared_mutex> lock(cache_mutex_);
         if (capacity <= 0) {
             throw std::invalid_argument(
                 "Cannot create cache with capacity <= 0");
@@ -92,16 +96,23 @@ public:
     }
 
     /** @brief Get the maximum number of elements in the cache */
-    size_t capacity() const override { return capacity_; }
+    size_t capacity() const override { 
+        std::shared_lock<std::shared_mutex> lock(cache_mutex_);
+        return capacity_; 
+    }
 
     /** @brief Get the current number of elements in the cache */
-    size_t size() const override { return lookup_.size(); }
+    size_t size() const override { 
+        std::shared_lock<std::shared_mutex> lock(cache_mutex_);
+        return lookup_.size(); 
+    }
     /**@}*/
 
     /**@{*/
     /** @brief Get an item from the cache by key */
     TValue get(const TKey& k) override
     {
+        std::unique_lock<std::shared_mutex> lock(cache_mutex_);
         auto lookupIter = lookup_.find(k);
         if (lookupIter == std::end(lookup_)) {
             throw std::invalid_argument("Key not in cache");
@@ -114,6 +125,7 @@ public:
     /** @brief Put an item into the cache */
     void put(const TKey& k, const TValue& v) override
     {
+        std::unique_lock<std::shared_mutex> lock(cache_mutex_);
         // If already in cache, need to refresh it
         auto lookupIter = lookup_.find(k);
         if (lookupIter != std::end(lookup_)) {
@@ -135,12 +147,14 @@ public:
     /** @brief Check if an item is already in the cache */
     bool contains(const TKey& k) override
     {
+        std::shared_lock<std::shared_mutex> lock(cache_mutex_);
         return lookup_.find(k) != std::end(lookup_);
     }
 
     /** @brief Clear the cache */
     void purge() override
     {
+        std::unique_lock<std::shared_mutex> lock(cache_mutex_);
         lookup_.clear();
         items_.clear();
     }
@@ -151,5 +165,7 @@ private:
     std::list<TPair> items_;
     /** Cache usage information */
     std::unordered_map<TKey, TListIterator> lookup_;
+    /** Shared mutex for thread-safe access */
+    mutable std::shared_mutex cache_mutex_;
 };
 }  // namespace volcart

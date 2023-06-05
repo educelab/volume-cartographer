@@ -31,9 +31,12 @@ CWindow::CWindow()
     , fPathListWidget(nullptr)
     , fPenTool(nullptr)
     , fSegTool(nullptr)
+    , stopPrefetching(false)
+    ,  prefetchSliceIndex(-1)
 {
-    ui.setupUi(this);
 
+    ui.setupUi(this);
+    SDL_Init(SDL_INIT_AUDIO);
     fVpkgChanged = false;
 
     // default parameters for segmentation method
@@ -48,12 +51,17 @@ CWindow::CWindow()
     fSegParams.fPeakDistanceWeight = 50;
     fSegParams.fWindowWidth = 5;
     fSegParams.targetIndex = 5;
-    fSegParams.purge_cache = true;
-    fSegParams.cache_slices = -1;
+    fSegParams.purge_cache = false;
+    fSegParams.cache_slices = 1000;
     fSegParams.smoothen_by_brightness = 180;
-    fSegParams.outside_threshold = 80;
+    fSegParams.outside_threshold = 60;
     fSegParams.optical_flow_pixel_threshold = 80;
     fSegParams.optical_flow_displacement_threshold = 10;
+    fSegParams.enable_edge = true;
+    fSegParams.edge_jump_distance = 6;
+    fSegParams.edge_bounce_distance = 3;
+    fSegParams.backwards_smoothnes_interpolation_window = 5;
+    fSegParams.backwards_length = 25;
 
     // create UI widgets
     CreateWidgets();
@@ -80,6 +88,7 @@ CWindow::~CWindow(void)
 {
     worker_thread_.quit();
     worker_thread_.wait();
+    SDL_Quit();
 }
 
 // Handle mouse press event
@@ -183,7 +192,7 @@ void CWindow::CreateWidgets(void)
     auto* edtOutsideThreshold = new QSpinBox();
     edtOutsideThreshold->setMinimum(0);
     edtOutsideThreshold->setMaximum(255);
-    edtOutsideThreshold->setValue(80);
+    edtOutsideThreshold->setValue(60);
     auto* edtOpticalFlowPixelThreshold = new QSpinBox();
     edtOpticalFlowPixelThreshold->setMinimum(0);
     edtOpticalFlowPixelThreshold->setMaximum(255);
@@ -195,17 +204,37 @@ void CWindow::CreateWidgets(void)
     edtSmoothenPixelThreshold->setMinimum(0);
     edtSmoothenPixelThreshold->setMaximum(256);
     edtSmoothenPixelThreshold->setValue(180);
+    auto* chkEnableEdgeDetection = new QCheckBox("Enable Edge Detection");
+    chkEnableEdgeDetection->setChecked(true);
+    auto* edtEdgeJumpDistance = new QSpinBox();
+    edtEdgeJumpDistance->setMinimum(0);
+    edtEdgeJumpDistance->setValue(6);
+    auto* edtEdgeBounceDistance = new QSpinBox();
+    edtEdgeBounceDistance->setMinimum(0);
+    edtEdgeBounceDistance->setValue(3);
+    auto* edtBackwardsLength = new QSpinBox();
+    edtBackwardsLength->setMinimum(0);
+    edtSmoothenPixelThreshold->setMaximum(1000);
+    edtBackwardsLength->setValue(25);
+    auto* edtBackwardsInterpolationWindow = new QSpinBox();
+    edtBackwardsInterpolationWindow->setMinimum(0);
+    edtBackwardsInterpolationWindow->setValue(5);
     auto* chkPurgeCache = new QCheckBox("Purge Cache");
-    chkPurgeCache->setChecked(true);
+    chkPurgeCache->setChecked(false);
     auto* edtCacheSize = new QSpinBox();
     edtCacheSize->setMinimum(-1);
     edtCacheSize->setMaximum(20000);
-    edtCacheSize->setValue(-1);
+    edtCacheSize->setValue(1000);
 
     connect(edtOutsideThreshold, &QSpinBox::valueChanged, [=](int v){fSegParams.outside_threshold = v;});
     connect(edtOpticalFlowPixelThreshold, &QSpinBox::valueChanged, [=](int v){fSegParams.optical_flow_pixel_threshold = v;});
     connect(edtOpticalFlowDisplacementThreshold, &QSpinBox::valueChanged, [=](int v){fSegParams.optical_flow_displacement_threshold = v;});
     connect(edtSmoothenPixelThreshold, &QSpinBox::valueChanged, [=](int v){fSegParams.smoothen_by_brightness = v;});
+    connect(chkEnableEdgeDetection, &QCheckBox::toggled, [=](bool checked){fSegParams.enable_edge = checked;});
+    connect(edtEdgeJumpDistance, &QSpinBox::valueChanged, [=](int v){fSegParams.edge_jump_distance = v;});
+    connect(edtEdgeBounceDistance, &QSpinBox::valueChanged, [=](int v){fSegParams.edge_bounce_distance = v;});
+    connect(edtBackwardsLength, &QSpinBox::valueChanged, [=](int v){fSegParams.backwards_length = v;});
+    connect(edtBackwardsInterpolationWindow, &QSpinBox::valueChanged, [=](int v){fSegParams.backwards_smoothnes_interpolation_window = v;});
     connect(chkPurgeCache, &QCheckBox::toggled, [=](bool checked){fSegParams.purge_cache = checked;});
     connect(edtCacheSize, &QSpinBox::valueChanged, [=](int v){fSegParams.cache_slices = v;});
 
@@ -220,6 +249,16 @@ void CWindow::CreateWidgets(void)
     opticalFlowParamsLayout->addWidget(edtOutsideThreshold);
     opticalFlowParamsLayout->addWidget(new QLabel("Smoothen Curve at Bright Points"));
     opticalFlowParamsLayout->addWidget(edtSmoothenPixelThreshold);
+    opticalFlowParamsLayout->addWidget(new QLabel("Enable Edge Detection"));
+    opticalFlowParamsLayout->addWidget(chkEnableEdgeDetection);
+    opticalFlowParamsLayout->addWidget(new QLabel("Edge Max Jump Distance"));
+    opticalFlowParamsLayout->addWidget(edtEdgeJumpDistance);
+    opticalFlowParamsLayout->addWidget(new QLabel("Edge Bounce Distance"));
+    opticalFlowParamsLayout->addWidget(edtEdgeBounceDistance);
+    opticalFlowParamsLayout->addWidget(new QLabel("Backwards Length"));
+    opticalFlowParamsLayout->addWidget(edtBackwardsLength);
+    opticalFlowParamsLayout->addWidget(new QLabel("Backwards Interpolation Window"));
+    opticalFlowParamsLayout->addWidget(edtBackwardsInterpolationWindow);
     opticalFlowParamsLayout->addWidget(chkPurgeCache);
     opticalFlowParamsLayout->addWidget(new QLabel("Maximum Cache Size"));
     opticalFlowParamsLayout->addWidget(edtCacheSize);
@@ -469,7 +508,11 @@ void CWindow::UpdateView(void)
 
     if (fPathOnSliceIndex + fEndTargetOffset >= currentVolume->numSlices()) {
         fEdtEndIndex->setText(QString::number(currentVolume->numSlices() - 1));
-    } else {
+    } 
+    else if (fPathOnSliceIndex + fEndTargetOffset < 0) {
+        fEdtEndIndex->setText(QString::number(0));
+    }    
+    else {
         fEdtEndIndex->setText(
             QString::number(fPathOnSliceIndex + fEndTargetOffset));
     }
@@ -616,8 +659,14 @@ void CWindow::DoSegmentation(void)
         ofsc->setOFThreshold(fSegParams.optical_flow_pixel_threshold);
         ofsc->setOFDispThreshold(fSegParams.optical_flow_displacement_threshold);
         ofsc->setLineSmoothenByBrightness(fSegParams.smoothen_by_brightness);
+        ofsc->setEdgeJumpDistance(fSegParams.edge_jump_distance);
+        ofsc->setEdgeBounceDistance(fSegParams.edge_bounce_distance);
+        ofsc->setEnableEdge(fSegParams.enable_edge);
         ofsc->setPurgeCache(fSegParams.purge_cache);
         ofsc->setCacheSlices(fSegParams.cache_slices);
+        ofsc->setOrderedPointSet(fMasterCloud);
+        ofsc->setBackwardsInterpolationWindow(fSegParams.backwards_smoothnes_interpolation_window);
+        ofsc->setBackwardsLength(fSegParams.backwards_length);
         segmenter = ofsc;
     }
     // ADD OTHER SEGMENTER SETUP HERE. MATCH THE IDX TO THE IDX IN THE
@@ -634,20 +683,90 @@ void CWindow::DoSegmentation(void)
     worker_progress_updater_.start();
 }
 
+void CWindow::audio_callback(void *user_data, Uint8 *raw_buffer, int bytes) {
+        Sint16 *buffer = reinterpret_cast<Sint16*>(raw_buffer);
+        int length = bytes / 2; // 2 bytes per sample for AUDIO_S16SYS
+        int &sample_nr = *reinterpret_cast<int*>(user_data);
+
+        for(int i = 0; i < length; i++, sample_nr++)
+        {
+            double time = static_cast<double>(sample_nr) / FREQUENCY;
+            // This will give us a sine wave at 440 Hz
+            buffer[i] = static_cast<Sint16>(AMPLITUDE * std::sin(2.0f * 3.14159f * 440.0f * time));
+        }
+    }
+
+void CWindow::playPing() {
+    SDL_AudioSpec desiredSpec;
+
+    desiredSpec.freq = FREQUENCY;
+    desiredSpec.format = AUDIO_S16SYS;
+    desiredSpec.channels = 0;
+    desiredSpec.samples = 2048;
+    desiredSpec.callback = audio_callback;
+
+    int sample_nr = 0;
+
+    desiredSpec.userdata = &sample_nr;
+
+    SDL_AudioSpec obtainedSpec;
+
+    // you might want to look for errors here
+    SDL_OpenAudio(&desiredSpec, &obtainedSpec);
+
+    // start play audio
+    SDL_PauseAudio(0);
+
+    // play for 1000 milliseconds (1.0 second)
+    SDL_Delay(1000);
+
+    // Stop audio playback
+    SDL_PauseAudio(1);
+
+    SDL_CloseAudio();
+}
+
 void CWindow::onSegmentationFinished(Segmenter::PointSet ps)
 {
     setWidgetsEnabled(true);
     worker_progress_updater_.stop();
     worker_progress_.close();
     // 3) concatenate the two parts to form the complete point cloud
+    // find starting location in fMasterCloud
+    int i;
+    for (i= 0; i < fMasterCloud.height(); i++) {
+        auto masterRowI = fMasterCloud.getRow(i);
+        if (ps[0][2] <= masterRowI[fUpperPart.width()-1][2]){
+            break;
+        }
+    }
+
+    // remove the duplicated point and ps in their stead. if i at the end, no duplicated point, just append
+    fUpperPart = fMasterCloud.copyRows(0, i);
     fUpperPart.append(ps);
+
+    // check if remaining rows already exist in fMasterCloud behind ps
+    for(; i < fMasterCloud.height(); i++) {
+        auto masterRowI = fMasterCloud.getRow(i);
+        if (ps[ps.size() - 1][2] < masterRowI[fUpperPart.width()-1][2]) {
+            break;
+        }
+    }
+    // add the remaining rows
+    if (i < fMasterCloud.height()) {
+        fUpperPart.append(fMasterCloud.copyRows(i, fMasterCloud.height()));
+    }
+
     fMasterCloud = fUpperPart;
 
     statusBar->showMessage(tr("Segmentation complete"));
     fVpkgChanged = true;
 
+    // set display to target layer
+    fPathOnSliceIndex = fSegParams.targetIndex;
     CleanupSegmentation();
     UpdateView();
+    playPing();
 }
 
 void CWindow::onSegmentationFailed(std::string s)
@@ -726,7 +845,7 @@ bool CWindow::SetUpSegParams(void)
 
     // ending slice index
     aNewVal = fEdtEndIndex->text().toInt(&aIsOk);
-    if (aIsOk && aNewVal >= fPathOnSliceIndex &&
+    if (aIsOk &&
         aNewVal < currentVolume->numSlices()) {
         fSegParams.targetIndex = aNewVal;
     } else {
@@ -784,14 +903,76 @@ void CWindow::SetCurrentCurve(int nCurrentSliceIndex)
     }
 }
 
+void CWindow::prefetchSlices(void) {
+  while (true) {
+    std::unique_lock<std::mutex> lk(cv_m);
+    cv.wait(lk, [this]{return prefetchSliceIndex != -1;});
+
+    if (stopPrefetching.load()) {
+      break;
+    }
+
+    int prefetchWindow = 100;
+    int currentSliceIndex = prefetchSliceIndex.load();
+    int start = std::max(0, currentSliceIndex - prefetchWindow);
+    int end = std::min(currentVolume->numSlices(), currentSliceIndex + prefetchWindow);
+
+    int n = 5;  // Number Fetching Threads
+    // fetching from index outwards
+    for (int offset = 0; offset <= prefetchWindow; offset = offset + n) {
+        std::vector<std::thread> threads;
+
+        for (int i = 0; i <= n; i++) {
+            // Fetch the slice data on the right side
+            // Fetch the slice data on the right side
+            if (currentSliceIndex + offset + i <= end) {
+                threads.emplace_back(&volcart::Volume::getSliceData, currentVolume, currentSliceIndex + offset + i);
+            }
+            // Fetch the slice data on the left side
+            if (currentSliceIndex - offset - i >= start) {
+                threads.emplace_back(&volcart::Volume::getSliceData, currentVolume, currentSliceIndex - offset - i);
+            }
+        }
+
+        for (auto& t : threads) {
+            t.join();
+        }
+
+        // Check if prefetching was stopped or slice index changed
+        if (stopPrefetching.load() || prefetchSliceIndex.load() != currentSliceIndex) {
+            break;
+        }
+    }
+
+    prefetchSliceIndex = -1;
+  }
+}
+
+// Function to start prefetching around a certain slice
+void CWindow::startPrefetching(int index) {
+  prefetchSliceIndex = index;
+  cv.notify_one();
+}
+
 // Open slice
 void CWindow::OpenSlice(void)
 {
     cv::Mat aImgMat;
     if (fVpkg != nullptr) {
+        // Stop prefetching
+        prefetchSliceIndex = -1;
+        cv.notify_one();
+
         aImgMat = currentVolume->getSliceDataCopy(fPathOnSliceIndex);
         aImgMat.convertTo(aImgMat, CV_8UC1, 1.0 / 256.0);
         //        cvtColor(aImgMat, aImgMat, cv::COLOR_GRAY2BGR);
+
+        // If the prefetching worker is not yet running, start it
+        if (!prefetchWorker.joinable()) {
+            prefetchWorker = std::thread(&CWindow::prefetchSlices, this);
+        }
+        // Start prefetching around the current slice
+        startPrefetching(fPathOnSliceIndex);
     } else {
         aImgMat = cv::Mat::zeros(10, 10, CV_8UC1);
     }
@@ -1192,7 +1373,7 @@ void CWindow::OnEdtEndingSliceValChange()
     // ending slice index
     bool aIsOk = false;
     int aNewVal = fEdtEndIndex->displayText().toInt(&aIsOk);
-    if (aIsOk && aNewVal > fPathOnSliceIndex &&
+    if (aIsOk &&
         aNewVal < currentVolume->numSlices()) {
         fEndTargetOffset = aNewVal - fPathOnSliceIndex;
     } else {

@@ -68,4 +68,9 @@ inline double CosineImpactFunc(
     return (nStartVal * 0.5 * (cos(M_PI * nCurrentPos / nRange) + 1.0));
 }
 
+inline double QuadraticImpactFunc(double nStartVal, double nCurrentPos, double nRange) {
+    double x = nCurrentPos / nRange;
+    return nStartVal * (1.0 - x * x);
+}
+
 }  // namespace ChaoVis

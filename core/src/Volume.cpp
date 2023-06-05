@@ -122,6 +122,20 @@ cv::Mat Volume::getSliceDataCopy(int index) const
     return getSliceData(index).clone();
 }
 
+cv::Mat Volume::getSliceDataRect(int index, cv::Rect rect) const
+{
+    auto whole_img = getSliceData(index);
+    std::shared_lock<std::shared_mutex> lock(cache_mutex_);
+    return whole_img(rect);
+}
+
+cv::Mat Volume::getSliceDataRectCopy(int index, cv::Rect rect) const
+{
+    auto whole_img = getSliceData(index);
+    std::shared_lock<std::shared_mutex> lock(cache_mutex_);
+    return whole_img(rect).clone();
+}
+
 void Volume::setSliceData(int index, const cv::Mat& slice, bool compress)
 {
     auto slicePath = getSlicePath(index);
@@ -216,14 +230,18 @@ cv::Mat Volume::cache_slice_(int index) const
         }
     }
     {
+        auto slice = load_slice_(index);
         std::unique_lock<std::shared_mutex> lock(cache_mutex_);
-        if (cache_->contains(index)) {
-            return cache_->get(index);
-        }
-        else {
-            auto slice = load_slice_(index);
+        if (!cache_->contains(index)) {
             cache_->put(index, slice);
-            return slice;
         }
+        return slice;
     }
 }
+
+void Volume::cachePurge() const 
+{
+    std::unique_lock<std::shared_mutex> lock(cache_mutex_);
+    cache_->purge();
+}
+

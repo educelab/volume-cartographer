@@ -109,3 +109,9 @@ include(VCInstall)
 ## OpenCV for image segmentation
 find_package(OpenCV REQUIRED)
 include_directories( ${OpenCV_INCLUDE_DIRS} )
+
+## OpenMP for parallel for loop
+find_package(OpenMP)
+
+# Look for the SDL2 package for aAudio
+find_package(SDL2 REQUIRED)
