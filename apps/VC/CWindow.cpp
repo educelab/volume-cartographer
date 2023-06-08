@@ -86,6 +86,7 @@ CWindow::CWindow()
     , fPathListWidget(nullptr)
     , fPenTool(nullptr)
     , fSegTool(nullptr)
+    , quitPrefetching(false)
     , stopPrefetching(false)
     ,  prefetchSliceIndex(-1)
 {
@@ -142,6 +143,8 @@ CWindow::CWindow()
 // Destructor
 CWindow::~CWindow(void)
 {
+    stopPrefetching.store(true);
+    cv.notify_one();  // Wake up the thread if it's waitings
     worker_thread_.quit();
     worker_thread_.wait();
     SDL_Quit();

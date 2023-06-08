@@ -655,7 +655,7 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
         backwards_endIndex = vol_->numSlices() - 1;
     }
     // std::cout << "Backwards Window and Length: " << backwards_smoothnes_interpolation_w << " " << backwards_length << std::endl;
-    std::cout << "Backwards End Index: " << backwards_endIndex << std::endl;
+    // std::cout << "Backwards End Index: " << backwards_endIndex << std::endl;
 
     // Generate an overlap to interpolate and smooth point locations in z direction
 
