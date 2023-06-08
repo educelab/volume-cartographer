@@ -107,11 +107,12 @@ CWindow::CWindow()
     fSegParams.fWindowWidth = 5;
     fSegParams.targetIndex = 5;
     fSegParams.purge_cache = false;
-    fSegParams.cache_slices = 1000;
+    fSegParams.cache_slices = 300;
     fSegParams.smoothen_by_brightness = 180;
     fSegParams.outside_threshold = 60;
     fSegParams.optical_flow_pixel_threshold = 80;
     fSegParams.optical_flow_displacement_threshold = 10;
+    fSegParams.enable_smoothen_outlier = true;
     fSegParams.enable_edge = true;
     fSegParams.edge_jump_distance = 6;
     fSegParams.edge_bounce_distance = 3;
@@ -262,6 +263,8 @@ void CWindow::CreateWidgets(void)
     edtSmoothenPixelThreshold->setMinimum(0);
     edtSmoothenPixelThreshold->setMaximum(256);
     edtSmoothenPixelThreshold->setValue(180);
+    auto* chkEnableSmoothenOutlier = new QCheckBox("Smoothen Outlier Points");
+    chkEnableSmoothenOutlier->setChecked(true);
     auto* chkEnableEdgeDetection = new QCheckBox("Enable Edge Detection");
     chkEnableEdgeDetection->setChecked(true);
     auto* edtEdgeJumpDistance = new QSpinBox();
@@ -282,12 +285,13 @@ void CWindow::CreateWidgets(void)
     auto* edtCacheSize = new QSpinBox();
     edtCacheSize->setMinimum(-1);
     edtCacheSize->setMaximum(20000);
-    edtCacheSize->setValue(1000);
+    edtCacheSize->setValue(300);
 
     connect(edtOutsideThreshold, &QSpinBox::valueChanged, [=](int v){fSegParams.outside_threshold = v;});
     connect(edtOpticalFlowPixelThreshold, &QSpinBox::valueChanged, [=](int v){fSegParams.optical_flow_pixel_threshold = v;});
     connect(edtOpticalFlowDisplacementThreshold, &QSpinBox::valueChanged, [=](int v){fSegParams.optical_flow_displacement_threshold = v;});
     connect(edtSmoothenPixelThreshold, &QSpinBox::valueChanged, [=](int v){fSegParams.smoothen_by_brightness = v;});
+    connect(chkEnableSmoothenOutlier, &QCheckBox::toggled, [=](bool checked){fSegParams.enable_smoothen_outlier = checked;});
     connect(chkEnableEdgeDetection, &QCheckBox::toggled, [=](bool checked){fSegParams.enable_edge = checked;});
     connect(edtEdgeJumpDistance, &QSpinBox::valueChanged, [=](int v){fSegParams.edge_jump_distance = v;});
     connect(edtEdgeBounceDistance, &QSpinBox::valueChanged, [=](int v){fSegParams.edge_bounce_distance = v;});
@@ -307,7 +311,7 @@ void CWindow::CreateWidgets(void)
     opticalFlowParamsLayout->addWidget(edtOutsideThreshold);
     opticalFlowParamsLayout->addWidget(new QLabel("Smoothen Curve at Bright Points"));
     opticalFlowParamsLayout->addWidget(edtSmoothenPixelThreshold);
-    opticalFlowParamsLayout->addWidget(new QLabel("Enable Edge Detection"));
+    opticalFlowParamsLayout->addWidget(chkEnableSmoothenOutlier);
     opticalFlowParamsLayout->addWidget(chkEnableEdgeDetection);
     opticalFlowParamsLayout->addWidget(new QLabel("Edge Max Jump Distance"));
     opticalFlowParamsLayout->addWidget(edtEdgeJumpDistance);
@@ -802,6 +806,7 @@ void CWindow::DoSegmentation(void)
         ofsc->setLineSmoothenByBrightness(fSegParams.smoothen_by_brightness);
         ofsc->setEdgeJumpDistance(fSegParams.edge_jump_distance);
         ofsc->setEdgeBounceDistance(fSegParams.edge_bounce_distance);
+        ofsc->setEnableSmoothenOutlier(fSegParams.enable_smoothen_outlier);
         ofsc->setEnableEdge(fSegParams.enable_edge);
         ofsc->setPurgeCache(fSegParams.purge_cache);
         ofsc->setCacheSlices(fSegParams.cache_slices);
@@ -1056,7 +1061,7 @@ void CWindow::prefetchSlices(void) {
     int prefetchWindow = 100;
     int currentSliceIndex = prefetchSliceIndex.load();
     int start = std::max(0, currentSliceIndex - prefetchWindow);
-    int end = std::min(currentVolume->numSlices(), currentSliceIndex + prefetchWindow);
+    int end = std::min(currentVolume->numSlices()-1, currentSliceIndex + prefetchWindow);
 
     int n = 5;  // Number Fetching Threads
     // fetching from index outwards

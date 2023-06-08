@@ -22,7 +22,7 @@ CVolumeViewerWithCurve::CVolumeViewerWithCurve()
     , fIntersectionCurveRef(nullptr)
     , fSelectedPointIndex(-1)
     , fVertexIsChanged(false)
-    , fImpactRange(10)
+    , fImpactRange(8)
     , fViewState(EViewState::ViewStateIdle)
 {
     timer = new QTimer(this);
@@ -172,7 +172,8 @@ void CVolumeViewerWithCurve::handleMouseHold()
                 return;
             }
             int numCurvePoints = fIntersectionCurveRef->GetPointsNum();
-            int pointDifference = static_cast<int>(20.0 / fScaleFactor);
+            double speed = 50.0;
+            int pointDifference = static_cast<int>(speed / fScaleFactor);
             // std::cout << "pointDifference: " << pointDifference << " closest_point: " << closest_point << std::endl;
             if (lastPressedButton & Qt::BackButton) {
                 closest_point -= pointDifference;

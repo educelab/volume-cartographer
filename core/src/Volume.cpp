@@ -23,12 +23,17 @@ Volume::Volume(fs::path path) : DiskBasedObjectBaseClass(std::move(path))
     height_ = metadata_.get<int>("height");
     slices_ = metadata_.get<int>("slices");
     numSliceCharacters_ = std::to_string(slices_).size();
+
+    std::vector<std::mutex> init_mutexes(slices_);
+
+    slice_mutexes_.swap(init_mutexes);
 }
 
 // Setup a Volume from a folder of slices
 Volume::Volume(fs::path path, std::string uuid, std::string name)
     : DiskBasedObjectBaseClass(
-          std::move(path), std::move(uuid), std::move(name))
+          std::move(path), std::move(uuid), std::move(name)),
+          slice_mutexes_(slices_)
 {
     metadata_.set("type", "vol");
     metadata_.set("width", width_);
@@ -221,23 +226,91 @@ cv::Mat Volume::load_slice_(int index) const
     return cv::imread(slicePath.string(), -1);
 }
 
+// cv::Mat Volume::cache_slice_(int index) const
+// {
+//     {
+//         std::shared_lock<std::shared_mutex> lock(cache_mutex_);
+//         if (cache_->contains(index)) {
+//             return cache_->get(index);
+//         }
+//     }
+//     {
+//         auto slice = load_slice_(index);
+//         std::unique_lock<std::shared_mutex> lock(cache_mutex_);
+//         if (!cache_->contains(index)) {
+//             cache_->put(index, slice);
+//         }
+//         return slice;
+//     }
+//     // {
+//     //     std::shared_lock<std::shared_mutex> lock(cache_mutex_);
+//     //     if (cache_->contains(index)) {
+//     //         return cache_->get(index);
+//     //     }
+//     // }
+//     // {
+//     //     std::unique_lock<std::shared_mutex> lock(cache_mutex_);
+//     //     auto slice = load_slice_(index);
+//     //     if (!cache_->contains(index)) {
+//     //         cache_->put(index, slice);
+//     //     }
+//     //     return slice;
+//     // }
+//     // {
+//     //     std::shared_lock<std::shared_mutex> lock(cache_mutex_);
+//     //     if (cache_->contains(index)) {
+//     //         return cache_->get(index);
+//     //     }
+//     // }
+//     // {
+//     //     std::unique_lock<std::shared_mutex> lock(cache_mutex_);
+//     //     if (cache_->contains(index)) {
+//     //         return cache_->get(index);
+//     //     }
+//     //     else {
+//     //         auto slice = load_slice_(index);
+//     //         cache_->put(index, slice);
+//     //         return slice;
+//     //     }
+//     // }
+// }
+
 cv::Mat Volume::cache_slice_(int index) const
 {
+    // Check if the slice is in the cache.
     {
         std::shared_lock<std::shared_mutex> lock(cache_mutex_);
         if (cache_->contains(index)) {
             return cache_->get(index);
         }
     }
+
+    cv::Mat slice;
+
     {
-        auto slice = load_slice_(index);
-        std::unique_lock<std::shared_mutex> lock(cache_mutex_);
-        if (!cache_->contains(index)) {
+        // Get the lock for this slice.
+        auto& mutex = slice_mutexes_[index];
+
+        // If the slice is not in the cache, get exclusive access to this slice's mutex.
+        std::unique_lock<std::mutex> lock(mutex);
+        // Check again to ensure the slice has not been added to the cache while waiting for the lock.
+        {
+            std::shared_lock<std::shared_mutex> lock(cache_mutex_);
+            if (cache_->contains(index)) {
+                return cache_->get(index);
+            }
+        }
+        // Load the slice and add it to the cache.
+        {
+            std::unique_lock<std::shared_mutex> lock(cache_mutex_);
+            slice = load_slice_(index);
             cache_->put(index, slice);
         }
-        return slice;
     }
+
+    return slice;
 }
+
 
 void Volume::cachePurge() const 
 {

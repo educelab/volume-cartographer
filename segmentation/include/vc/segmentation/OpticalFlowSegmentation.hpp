@@ -62,6 +62,12 @@ public:
      */
     void setOFThreshold(int of_thr) { optical_flow_pixel_threshold_ = of_thr; }
 
+    
+    /** @brief Set whether to enable outlier points smoothening
+     */
+    void setEnableSmoothenOutlier(bool enable_smoothen_outlier) { enable_smoothen_outlier_ = enable_smoothen_outlier; }
+    /**@}*/
+
     /** @brief Set whether to enable edge detection
      */
     void setEnableEdge(bool enable_edge) { enable_edge_ = enable_edge; }
@@ -223,9 +229,10 @@ private:
     /** Estimated material thickness in um */
     double materialThickness_{100};
     /** Number of slices to cache */
-    int nr_cache_slices_{1000};
+    int nr_cache_slices_{300};
     /** Number of slices to cache */
     int smoothen_by_brightness_{180};
+    bool enable_smoothen_outlier_{true};
     bool enable_edge_{true};
     int edge_jump_distance_{6};
     int edge_bounce_distance_{3};

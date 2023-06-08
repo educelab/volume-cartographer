@@ -227,6 +227,7 @@ protected:
     mutable SliceCache::Pointer cache_{DefaultCache::New(DEFAULT_CAPACITY)};
     /** Cache mutex for thread-safe access */
     mutable std::mutex cacheMutex_;
+    mutable std::vector<std::mutex> slice_mutexes_;
 
     /** Load slice from disk */
     cv::Mat load_slice_(int index) const;

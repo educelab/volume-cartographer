@@ -70,6 +70,7 @@ public:
         int outside_threshold;
         int optical_flow_pixel_threshold;
         int optical_flow_displacement_threshold;
+        bool enable_smoothen_outlier;
         bool enable_edge;
         int edge_jump_distance;
         int edge_bounce_distance;

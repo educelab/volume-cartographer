@@ -80,10 +80,10 @@ float OpticalFlowSegmentationClass::get_mean_pixel_value(const cv::Mat& integral
     int y_min = std::max(pt.y - window_size / 2, 0);
     int y_max = std::min(pt.y + window_size / 2, integral_img.rows - 2);
 
-    int a = integral_img.at<uchar>(y_min, x_min);
-    int b = integral_img.at<uchar>(y_min, x_max + 1);
-    int c = integral_img.at<uchar>(y_max + 1, x_min);
-    int d = integral_img.at<uchar>(y_max + 1, x_max + 1);
+    int a = integral_img.at<int>(y_min, x_min);
+    int b = integral_img.at<int>(y_min, x_max + 1);
+    int c = integral_img.at<int>(y_max + 1, x_min);
+    int d = integral_img.at<int>(y_max + 1, x_max + 1);
 
     float sum = static_cast<float>(a + d - b - c);
     int count = (x_max - x_min + 1) * (y_max - y_min + 1);
@@ -111,12 +111,24 @@ Voxel OpticalFlowSegmentationClass::compute_moving_average(const std::vector<Vox
 std::vector<std::vector<Voxel>> OpticalFlowSegmentationClass::interpolatePoints(std::vector<std::vector<Voxel>> points, int window_size, bool backwards) {
     // std::cout << "Interpolating points..." << std::endl;
     // Find starting index of points[0][2] in masterCloud_
-    int i;
-    for (i= 0; i < masterCloud_.height(); i++) {
+    if (points.size() == 0) {
+        return points;
+    }
+    int i=0;
+    // Previous segmentation is totally contained in new segmentation, cannot be used for interpolation and is discarded. CASE FOREWARDS
+    if (!backwards && (points[0][0][2] < masterCloud_.getRow(i)[masterCloud_.width()-1][2])){
+        return points;
+    }
+    for (; i < masterCloud_.height(); i++) {
         auto masterRowI = masterCloud_.getRow(i);
-        if (points[0][0][2] <= masterRowI[masterCloud_.width()-1][2]){
+        // Found corresponding indexx in master cloud
+        if (points[0][0][2] == masterRowI[masterCloud_.width()-1][2]){
             break;
         }
+    }
+    // Previous segmentation is totally contained in new segmentation, cannot be used for interpolation and is discarded. CASE BACKWARDS
+    if (i == masterCloud_.height()) {
+        return points;
     }
     // std::cout << "Starting index of points[0][0][2] in masterCloud_: " << i << std::endl;
     // if (i == masterCloud_.height() || masterCloud_.getRow(i)[masterCloud_.width()-1][2] != points[0][0][2]) {
@@ -130,17 +142,17 @@ std::vector<std::vector<Voxel>> OpticalFlowSegmentationClass::interpolatePoints(
         int pointsIndex = u;
         float interpolate_point = ((float)u) / (2.0 * (float)window_size);
         float interpolate_mastercloud = 1 - interpolate_point;
+        // Check indxs in range
+        if (!(masterRowIndex >= 0 && masterRowIndex < masterCloud_.height() && pointsIndex >= 0 && pointsIndex < points.size())) {
+            std::cout << "Error: masterRowIndex: " << masterRowIndex << ", pointsIndex: " << pointsIndex << std::endl;
+            std::cout << "masterCloud_.height(): " << masterCloud_.height() << ", points.size(): " << points.size() << std::endl;
+            continue;
+        }
         // std::cout << "interpolate_point: " << interpolate_point << ", interpolate_mastercloud: " << interpolate_mastercloud << std::endl;
         for (int j = 0; j < masterCloud_.width(); j++) {
-            if (masterRowIndex >= 0 && masterRowIndex < masterCloud_.height() && pointsIndex >= 0 && pointsIndex < points.size()) {
                 // std::cout << "masterRowIndex: " << masterCloud_.getRow(masterRowIndex)[j][2] << ", pointsIndex: " << points[pointsIndex][j][2] << std::endl;
                 points[pointsIndex][j] = Voxel(interpolate_point * points[pointsIndex][j][0] + interpolate_mastercloud * masterCloud_.getRow(masterRowIndex)[j][0], interpolate_point * points[pointsIndex][j][1] + interpolate_mastercloud * masterCloud_.getRow(masterRowIndex)[j][1], interpolate_point * points[pointsIndex][j][2] + interpolate_mastercloud * masterCloud_.getRow(masterRowIndex)[j][2]);
                 // points[pointsIndex][j] = interpolate_point * points[pointsIndex][j] + interpolate_mastercloud * masterCloud_.getRow(masterRowIndex)[j];
-            }
-            else {
-                std::cout << "Error: masterRowIndex: " << masterRowIndex << ", pointsIndex: " << pointsIndex << std::endl;
-                std::cout << "masterCloud_.height(): " << masterCloud_.height() << ", points.size(): " << points.size() << std::endl;
-            }
         }
         // evenly space interpolated curve
         FittedCurve evenlyInterpolationCurve(points[pointsIndex],  points[pointsIndex][0][2]);
@@ -474,51 +486,56 @@ std::vector<Voxel> OpticalFlowSegmentationClass::computeCurve(
     }
 
     // Parameters for filtering
-    float distance_threshold = 10.0f;  // Adjust this threshold based on your specific requirements
-    int interpolation_window = 3;  // Size of the window for interpolation
-
-    // Interpolate the points if they are considered outliers
+    std::vector<Voxel> smoothedVs;
     std::vector<Voxel> interpolatedVs = nextVs;
-    for (int i = 1; i < int(nextVs.size()-1); ++i) {
-        Voxel curr = nextVs[i];
-        Voxel prev = nextVs[(i - 1 + nextVs.size()) % nextVs.size()];
-        Voxel next = nextVs[(i + 1) % nextVs.size()];
+    if (enable_smoothen_outlier_) {
+        float distance_threshold = 10.0f;  // Adjust this threshold based on your specific requirements
+        int interpolation_window = 3;  // Size of the window for interpolation
 
-        float left_distance = cv::norm(cv::Vec2f(curr[0] - prev[0], curr[1] - prev[1]));
-        float right_distance = cv::norm(cv::Vec2f(curr[0] - next[0], curr[1] - next[1]));
-        float mean_distance = (left_distance + right_distance) / 2.0f;
+        // Interpolate the points if they are considered outliers
+        for (int i = 1; i < int(nextVs.size()-1); ++i) {
+            Voxel curr = nextVs[i];
+            Voxel prev = nextVs[(i - 1 + nextVs.size()) % nextVs.size()];
+            Voxel next = nextVs[(i + 1) % nextVs.size()];
 
-        if (mean_distance >= distance_threshold) {
-            // Check if the point is an edge case
-            bool is_edge_case = (i - interpolation_window / 2 < 0) || (i + interpolation_window / 2 >= int(nextVs.size()));
+            float left_distance = cv::norm(cv::Vec2f(curr[0] - prev[0], curr[1] - prev[1]));
+            float right_distance = cv::norm(cv::Vec2f(curr[0] - next[0], curr[1] - next[1]));
+            float mean_distance = (left_distance + right_distance) / 2.0f;
 
-            if (is_edge_case) {
-                // Update the point along its normal
-                cv::Vec2f normal = estimate_2d_normal_at_index_(currentCurve, i);
-                Voxel averaged_point = compute_moving_average(nextVs, i, interpolation_window);
-                cv::Vec2f averaged_point_2d(averaged_point[0], averaged_point[1]);
+            if (mean_distance >= distance_threshold) {
+                // Check if the point is an edge case
+                bool is_edge_case = (i - interpolation_window / 2 < 0) || (i + interpolation_window / 2 >= int(nextVs.size()));
 
-                float projectionLength = (averaged_point_2d - cv::Vec2f(curr[0], curr[1])).dot(normal);
-                cv::Vec2f projected_point = cv::Vec2f(curr[0], curr[1]) + projectionLength * normal;
+                if (is_edge_case) {
+                    // Update the point along its normal
+                    cv::Vec2f normal = estimate_2d_normal_at_index_(currentCurve, i);
+                    Voxel averaged_point = compute_moving_average(nextVs, i, interpolation_window);
+                    cv::Vec2f averaged_point_2d(averaged_point[0], averaged_point[1]);
 
-                interpolatedVs[i] = Voxel(projected_point[0], projected_point[1], curr[2]);
-            } else {
-                // Compute the moving average of the current point
-                interpolatedVs[i] = compute_moving_average(nextVs, i, interpolation_window);
+                    float projectionLength = (averaged_point_2d - cv::Vec2f(curr[0], curr[1])).dot(normal);
+                    cv::Vec2f projected_point = cv::Vec2f(curr[0], curr[1]) + projectionLength * normal;
+
+                    interpolatedVs[i] = Voxel(projected_point[0], projected_point[1], curr[2]);
+                } else {
+                    // Compute the moving average of the current point
+                    interpolatedVs[i] = compute_moving_average(nextVs, i, interpolation_window);
+                }
+            }
+        }
+
+        // Apply a moving average filter to smoothen the remaining updated points
+        for (int i = 0; i < int(interpolatedVs.size()); ++i) {
+            if (i == 0 || i == int(interpolatedVs.size()) - 1 || !updated_indices[i]) {
+                smoothedVs.push_back(interpolatedVs[i]);
+                continue;
+            }
+            else {
+                smoothedVs.push_back(compute_moving_average(interpolatedVs, i, interpolation_window));
             }
         }
     }
-
-    // Apply a moving average filter to smoothen the remaining updated points
-    std::vector<Voxel> smoothedVs;
-    for (int i = 0; i < int(interpolatedVs.size()); ++i) {
-        if (i == 0 || i == int(interpolatedVs.size()) - 1 || !updated_indices[i]) {
-            smoothedVs.push_back(interpolatedVs[i]);
-            continue;
-        }
-        else {
-            smoothedVs.push_back(compute_moving_average(interpolatedVs, i, interpolation_window));
-        }
+    else {
+        smoothedVs = nextVs;
     }
 
     // Display the edges_filtered image 
@@ -631,7 +648,14 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
     int backwards_smoothnes_interpolation_w = backwards_smoothnes_interpolation_window_;
     int backwards_length = backwards_length_ + backwards_smoothnes_interpolation_w;
     int backwards_endIndex = startIndex + (backwards ? backwards_length : -backwards_length);
+    if (backwards_endIndex < 0) {
+        backwards_endIndex = 0;
+    }
+    if (vol_->numSlices() <= backwards_endIndex) {
+        backwards_endIndex = vol_->numSlices() - 1;
+    }
     // std::cout << "Backwards Window and Length: " << backwards_smoothnes_interpolation_w << " " << backwards_length << std::endl;
+    std::cout << "Backwards End Index: " << backwards_endIndex << std::endl;
 
     // Generate an overlap to interpolate and smooth point locations in z direction
 
