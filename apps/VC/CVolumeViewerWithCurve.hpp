@@ -31,7 +31,7 @@ public:
 
 public:
     CVolumeViewerWithCurve();
-    ~CVolumeViewerWithCurve() = default;
+    ~CVolumeViewerWithCurve();
 
     virtual void SetImage(const QImage& nSrc);
 

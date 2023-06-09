@@ -235,5 +235,6 @@ protected:
     cv::Mat cache_slice_(int index) const;
     /** Shared mutex for thread-safe access */
     mutable std::shared_mutex cache_mutex_;
+    mutable std::shared_mutex print_mutex_;
 };
 }  // namespace volcart

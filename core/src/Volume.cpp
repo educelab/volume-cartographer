@@ -221,59 +221,13 @@ Reslice Volume::reslice(
 
 cv::Mat Volume::load_slice_(int index) const
 {
-    std::cout << "Requested to load slice " << index << std::endl;
+    {
+        std::unique_lock<std::shared_mutex> lock(print_mutex_);
+        std::cout << "Requested to load slice " << index << std::endl;
+    }
     auto slicePath = getSlicePath(index);
     return cv::imread(slicePath.string(), -1);
 }
-
-// cv::Mat Volume::cache_slice_(int index) const
-// {
-//     {
-//         std::shared_lock<std::shared_mutex> lock(cache_mutex_);
-//         if (cache_->contains(index)) {
-//             return cache_->get(index);
-//         }
-//     }
-//     {
-//         auto slice = load_slice_(index);
-//         std::unique_lock<std::shared_mutex> lock(cache_mutex_);
-//         if (!cache_->contains(index)) {
-//             cache_->put(index, slice);
-//         }
-//         return slice;
-//     }
-//     // {
-//     //     std::shared_lock<std::shared_mutex> lock(cache_mutex_);
-//     //     if (cache_->contains(index)) {
-//     //         return cache_->get(index);
-//     //     }
-//     // }
-//     // {
-//     //     std::unique_lock<std::shared_mutex> lock(cache_mutex_);
-//     //     auto slice = load_slice_(index);
-//     //     if (!cache_->contains(index)) {
-//     //         cache_->put(index, slice);
-//     //     }
-//     //     return slice;
-//     // }
-//     // {
-//     //     std::shared_lock<std::shared_mutex> lock(cache_mutex_);
-//     //     if (cache_->contains(index)) {
-//     //         return cache_->get(index);
-//     //     }
-//     // }
-//     // {
-//     //     std::unique_lock<std::shared_mutex> lock(cache_mutex_);
-//     //     if (cache_->contains(index)) {
-//     //         return cache_->get(index);
-//     //     }
-//     //     else {
-//     //         auto slice = load_slice_(index);
-//     //         cache_->put(index, slice);
-//     //         return slice;
-//     //     }
-//     // }
-// }
 
 cv::Mat Volume::cache_slice_(int index) const
 {
@@ -300,8 +254,8 @@ cv::Mat Volume::cache_slice_(int index) const
         }
         // Load the slice and add it to the cache.
         {
-            std::unique_lock<std::shared_mutex> lock(cache_mutex_);
             auto slice = load_slice_(index);
+            std::unique_lock<std::shared_mutex> lock(cache_mutex_);
             cache_->put(index, slice);
             return slice;
         }

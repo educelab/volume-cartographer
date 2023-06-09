@@ -123,7 +123,7 @@ bool CVolumeViewer::eventFilter(QObject* watched, QEvent* event)
             return true;
         }
     }
-    return QWidget::eventFilter(watched, event);
+    return false;
 }
 
 // Handle mouse press event

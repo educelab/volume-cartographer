@@ -68,6 +68,16 @@ CVolumeViewerWithCurve::CVolumeViewerWithCurve()
     UpdateButtons();
 }
 
+// Destructor
+CVolumeViewerWithCurve::~CVolumeViewerWithCurve()
+{
+    if (fImgQImage != nullptr) {
+        delete fImgQImage;
+    }
+    timer->stop();
+    delete timer;
+}
+
 // Set image
 void CVolumeViewerWithCurve::SetImage(const QImage& nSrc)
 {
