@@ -285,8 +285,6 @@ cv::Mat Volume::cache_slice_(int index) const
         }
     }
 
-    cv::Mat slice;
-
     {
         // Get the lock for this slice.
         auto& mutex = slice_mutexes_[index];
@@ -303,12 +301,12 @@ cv::Mat Volume::cache_slice_(int index) const
         // Load the slice and add it to the cache.
         {
             std::unique_lock<std::shared_mutex> lock(cache_mutex_);
-            slice = load_slice_(index);
+            auto slice = load_slice_(index);
             cache_->put(index, slice);
+            return slice;
         }
     }
 
-    return slice;
 }
 
 
