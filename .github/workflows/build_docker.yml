@@ -2,7 +2,7 @@ name: Build Docker image
 on:
   push:
     branches: ["develop"]
-    tags: ["v*"]
+    tags: "vc-richi:alpha"
 
 concurrency: docker
 
