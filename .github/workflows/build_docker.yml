@@ -15,7 +15,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: ghcr.io/educelab/volume-cartographer
+          images: ghcr.io/schillij95/volume-cartographer
           tags: |
             type=ref,event=pr
             type=semver,pattern={{version}}

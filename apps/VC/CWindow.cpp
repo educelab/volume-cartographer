@@ -86,7 +86,6 @@ CWindow::CWindow()
     , fPathListWidget(nullptr)
     , fPenTool(nullptr)
     , fSegTool(nullptr)
-    , quitPrefetching(false)
     , stopPrefetching(false)
     ,  prefetchSliceIndex(-1)
 {

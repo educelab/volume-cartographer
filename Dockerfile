@@ -1,6 +1,9 @@
 FROM ghcr.io/educelab/ci-docker:11_v2.dynamic
 MAINTAINER Seth Parker <c.seth.parker@uky.edu>
 
+RUN apt-get update
+RUN apt-get install -y libsdl2-dev
+
 # Install volcart
 COPY ./ /volume-cartographer/
 RUN export CMAKE_PREFIX_PATH="/usr/local/Qt-6.4.2/" \

@@ -275,7 +275,6 @@ private:
     std::thread prefetchWorker;
     std::condition_variable cv;
     std::mutex cv_m;
-    std::atomic<bool> quitPrefetching;
     std::atomic<bool> stopPrefetching;
     std::atomic<int> prefetchSliceIndex;
 };  // class CWindow
