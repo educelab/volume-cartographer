@@ -91,6 +91,7 @@ CWindow::CWindow()
 {
 
     ui.setupUi(this);
+    ui.splitter->setSizes(QList<int>() << 300 << 100);
     SDL_Init(SDL_INIT_AUDIO);
     fVpkgChanged = false;
 
