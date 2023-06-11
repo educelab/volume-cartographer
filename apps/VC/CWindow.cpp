@@ -1115,13 +1115,6 @@ void CWindow::OpenSlice(void)
         aImgMat = currentVolume->getSliceDataCopy(fPathOnSliceIndex);
         aImgMat.convertTo(aImgMat, CV_8UC1, 1.0 / 256.0);
         //        cvtColor(aImgMat, aImgMat, cv::COLOR_GRAY2BGR);
-
-        // If the prefetching worker is not yet running, start it
-        if (!prefetchWorker.joinable()) {
-            prefetchWorker = std::thread(&CWindow::prefetchSlices, this);
-        }
-        // Start prefetching around the current slice
-        startPrefetching(fPathOnSliceIndex);
     } else {
         aImgMat = cv::Mat::zeros(10, 10, CV_8UC1);
     }
@@ -1389,6 +1382,13 @@ void CWindow::TogglePenTool(void)
 void CWindow::ToggleSegmentationTool(void)
 {
     if (fSegTool->isChecked()) {
+        // If the prefetching worker is not yet running, start it
+        if (!prefetchWorker.joinable()) {
+            prefetchWorker = std::thread(&CWindow::prefetchSlices, this);
+        }
+        // Start prefetching around the current slice
+        startPrefetching(fPathOnSliceIndex);
+
         fWindowState = EWindowState::WindowStateSegmentation;
         fUpperPart.reset();
         fStartingPath.clear();
