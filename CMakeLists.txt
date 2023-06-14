@@ -105,3 +105,6 @@ endif()
 include(VCPackageConfig)
 # Install to system directories
 include(VCInstall)
+
+# Look for the SDL2 package for Audio
+find_package(SDL2 REQUIRED)

@@ -115,6 +115,12 @@ public:
     /** @copydoc getSliceData(int) const */
     cv::Mat getSliceDataCopy(int index) const;
 
+    /** @brief Get slice by index and cut out a rect to return */
+    cv::Mat getSliceDataRect(int index, cv::Rect rect) const;
+
+    /** @brief Copy a slice by index and cut out a rect to return */
+    cv::Mat getSliceDataRectCopy(int index, cv::Rect rect) const;
+
     /**
      * @brief Set a slice by index number
      *
@@ -202,7 +208,7 @@ public:
     size_t getCacheSize() const { return cache_->size(); }
 
     /** @brief Purge the slice cache */
-    void cachePurge() { cache_->purge(); }
+    void cachePurge() const;
     /**@}*/
 
 protected:
@@ -221,10 +227,14 @@ protected:
     mutable SliceCache::Pointer cache_{DefaultCache::New(DEFAULT_CAPACITY)};
     /** Cache mutex for thread-safe access */
     mutable std::mutex cacheMutex_;
+    mutable std::vector<std::mutex> slice_mutexes_;
 
     /** Load slice from disk */
     cv::Mat load_slice_(int index) const;
     /** Load slice from cache */
     cv::Mat cache_slice_(int index) const;
+    /** Shared mutex for thread-safe access */
+    mutable std::shared_mutex cache_mutex_;
+    mutable std::shared_mutex print_mutex_;
 };
 }  // namespace volcart

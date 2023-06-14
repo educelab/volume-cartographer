@@ -30,6 +30,7 @@ public:
     }
 
 protected:
+    bool eventFilter(QObject* watched, QEvent* event);
     void mousePressEvent(QMouseEvent* event);
     void mouseMoveEvent(QMouseEvent* event);
     void paintEvent(QPaintEvent* event);
@@ -51,6 +52,9 @@ protected:
     void ScaleImage(double nFactor);
     virtual void UpdateButtons(void);
     void AdjustScrollBar(QScrollBar* nScrollBar, double nFactor);
+    void ScrollToCenter(cv::Vec2f pos);
+    cv::Vec2f GetScrollPosition() const;
+    cv::Vec2f CleanScrollPosition(cv::Vec2f pos) const;
 
 protected:
     // widget components

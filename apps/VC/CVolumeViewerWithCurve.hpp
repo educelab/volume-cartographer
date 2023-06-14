@@ -31,7 +31,7 @@ public:
 
 public:
     CVolumeViewerWithCurve();
-    ~CVolumeViewerWithCurve() = default;
+    ~CVolumeViewerWithCurve();
 
     virtual void SetImage(const QImage& nSrc);
 
@@ -54,18 +54,19 @@ public:
 protected:
     void mousePressEvent(QMouseEvent* e);
     void mouseMoveEvent(QMouseEvent* event);
-    void mouseReleaseEvent(QMouseEvent* event);
+    void mouseReleaseEvent(QMouseEvent* e);
     void paintEvent(QPaintEvent* event);
     void UpdateButtons(void);
 
 private slots:
     void OnShowCurveStateChanged(int state);
     void OnHistEqStateChanged(int state);
+    void handleMouseHold();
 
 private:
     void WidgetLoc2ImgLoc(const cv::Vec2f& nWidgetLoc, cv::Vec2f& nImgLoc);
 
-    int SelectPointOnCurve(const CXCurve* nCurve, const cv::Vec2f& nPt);
+    int SelectPointOnCurve(const CXCurve* nCurve, const cv::Vec2f& nPt, bool rightClick);
 
     void DrawIntersectionCurve(void);
 
@@ -75,6 +76,11 @@ signals:
     void SendSignalPathChanged(void);
 
 private:
+    // for interaction
+    QTimer *timer;
+    Qt::MouseButton lastPressedButton;
+    cv::Vec2f scrollPositionModifier{cv::Vec2f(0.0, 0.0)};
+
     // for drawing
     ColorFrame* colorSelector{nullptr};
     QCheckBox* fShowCurveBox;
@@ -88,6 +94,7 @@ private:
     CXCurve* fIntersectionCurveRef;
     int fSelectedPointIndex;
     bool fVertexIsChanged;
+    bool fIsMousePressed{false};
 
     QPointF fLastPos;  // last mouse position on the image
     int fImpactRange;  // how many points a control point movement can affect

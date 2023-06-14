@@ -55,6 +55,9 @@ target_include_directories(${target}
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
 )
+find_package(OpenMP)
+find_package(SDL2 REQUIRED)
+include_directories(${SDL2_INCLUDE_DIRS})
 target_link_libraries(${target}
     VC::core
     VC::meshing
@@ -63,6 +66,8 @@ target_link_libraries(${target}
     Qt6::Gui
     Qt6::Widgets
     ${OSXSecurity}
+    OpenMP::OpenMP_CXX
+    ${SDL2_LIBRARIES}
 )
 
 if (${VC_INSTALL_APPS})

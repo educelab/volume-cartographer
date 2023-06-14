@@ -36,6 +36,12 @@ public:
         double (*ImpactFunc)(double, double, double),
         int nImpactRange = 0);
 
+    void SetPointByDifferenceMt(
+        int nIndex,
+        const Vec2<double>& nDiff,
+        double (*ImpactFunc)(double, double, double),
+        int nImpactRange = 0);
+
     int Get3DIndex(int nIndex) const { return f3DPointsIndex[nIndex]; }
     void Set3DIndex(int nIndex, int n3DIndex)
     {
