@@ -10,6 +10,11 @@
 #include "CXCurve.hpp"
 #include "ColorFrame.hpp"
 
+#include <QList>
+#include <QGraphicsEllipseItem>
+#include <QGraphicsView>
+#include <QGraphicsScene>
+
 namespace ChaoVis
 {
 
@@ -43,7 +48,7 @@ public:
     void SetIntersectionCurve(CXCurve& nCurve);
     void SetImpactRange(int nImpactRange);
 
-    void UpdateView(void);
+    void UpdateView();
     void SetShowCurve(bool b) { showCurve = b; }
 
     void SetViewState(EViewState nViewState) { fViewState = nViewState; }
@@ -52,6 +57,7 @@ public:
     void setButtonsEnabled(bool state);
 
 protected:
+    bool eventFilter(QObject* watched, QEvent* event);
     void mousePressEvent(QMouseEvent* e);
     void mouseMoveEvent(QMouseEvent* event);
     void mouseReleaseEvent(QMouseEvent* e);
@@ -68,7 +74,8 @@ private:
 
     int SelectPointOnCurve(const CXCurve* nCurve, const cv::Vec2f& nPt, bool rightClick);
 
-    void DrawIntersectionCurve(void);
+    void DrawIntersectionCurve(QGraphicsScene* scene);
+    void DrawControlPoints(QGraphicsScene* scene);
 
 private slots:
 
@@ -104,6 +111,10 @@ private:
     cv::Mat fImgMatCache;
 
     EViewState fViewState;
+
+    // Global or class-level storage for ellipse items
+    QList<QGraphicsEllipseItem*> ellipseItems;
+    QList<QGraphicsEllipseItem*> controlPointItems;
 
 };  // class CVolumeViewerWithCurve
 

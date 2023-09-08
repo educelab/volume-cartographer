@@ -93,6 +93,7 @@ public:
 
 protected:
     void mousePressEvent(QMouseEvent* nEvent);
+    void mouseReleaseEvent(QMouseEvent* nEvent);
     void keyPressEvent(QKeyEvent* event);
 
 private:

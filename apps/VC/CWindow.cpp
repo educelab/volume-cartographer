@@ -153,6 +153,8 @@ CWindow::~CWindow(void)
 // Handle mouse press event
 void CWindow::mousePressEvent(QMouseEvent* /*nEvent*/) {}
 
+void CWindow::mouseReleaseEvent(QMouseEvent* /*nEvent*/) {}
+
 // Handle key press event
 void CWindow::keyPressEvent(QKeyEvent* event)
 {
