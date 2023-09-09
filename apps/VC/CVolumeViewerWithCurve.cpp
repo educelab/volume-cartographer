@@ -222,6 +222,7 @@ void CVolumeViewerWithCurve::handleMouseHold()
 // Handle mouse press event
 void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* e)
 {
+    qDebug() << "mousePressEvent" << e->pos();
     // Check if back or forward button was pressed
     if (e->buttons() & Qt::BackButton || e->buttons() & Qt::ForwardButton) {
         lastPressedButton = e->button();
@@ -279,6 +280,9 @@ void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* e)
             if (fSelectedPointIndex >= 0) {
                 fLastPos.setX(fIntersectionCurveRef->GetPoint(fSelectedPointIndex)[0]);
                 fLastPos.setY(fIntersectionCurveRef->GetPoint(fSelectedPointIndex)[1]);
+                // Mouse move event to update the line
+                mouseMoveEvent(e);
+                // qDebug() << "mousePressEvent: selected point index: " << fSelectedPointIndex;
             }
             return;
         }
@@ -310,7 +314,8 @@ void CVolumeViewerWithCurve::mouseMoveEvent(QMouseEvent* event)
     qDebug() << "mouseMoveEvent" << event->pos() << " translated: " << aImgLoc[0] << " " << aImgLoc[1];
 
     // Update the curve if  we have change and have a selected point
-    if ((aDelta[0] != 0 || aDelta[1] != 0) && (fSelectedPointIndex != -1)) {
+    // if ((aDelta[0] != 0 || aDelta[1] != 0) && (fSelectedPointIndex != -1)) {
+    if (fSelectedPointIndex != -1) {
         fIntersectionCurveRef->SetPointByDifference(
             fSelectedPointIndex, aDelta, CosineImpactFunc, fImpactRange);
         fVertexIsChanged = true;
