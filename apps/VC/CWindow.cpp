@@ -398,6 +398,7 @@ void CWindow::CreateWidgets(void)
     sliceNext = new QShortcut(QKeySequence(tr("Right")), this);
     sliceZoomIn = new QShortcut(QKeySequence::ZoomIn, this);
     sliceZoomOut = new QShortcut(QKeySequence::ZoomOut, this);
+    displayCurves = new QShortcut(QKeySequence(tr(" ")), this);
     impactDwn = new QShortcut(QKeySequence(tr("A")), this);
     impactUp = new QShortcut(QKeySequence(tr("D")), this);
     impactDwn_old = new QShortcut(QKeySequence(tr("[")), this);
@@ -422,6 +423,9 @@ void CWindow::CreateWidgets(void)
     connect(
         sliceZoomOut, &QShortcut::activated, fVolumeViewerWidget,
         &CVolumeViewerWithCurve::OnZoomOutClicked);
+    connect(
+        displayCurves, &QShortcut::activated, fVolumeViewerWidget,
+        &CVolumeViewerWithCurve::toggleShowCurveBox);
     connect(impactUp, &QShortcut::activated, [this]() {
         if (ui.sldImpactRange->isEnabled()) {
             ui.sldImpactRange->triggerAction(
@@ -1586,6 +1590,9 @@ void CWindow::OnLoadNextSlice(void)
 
 void CWindow::OnLoadNextSliceShift(int shift)
 {
+    if (currentVolume == nullptr) {
+        return;
+    }
     if (fPathOnSliceIndex + shift >= currentVolume->numSlices()) {
         shift = currentVolume->numSlices() - fPathOnSliceIndex - 1;
     }

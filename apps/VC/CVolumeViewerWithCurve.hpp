@@ -50,6 +50,7 @@ public:
 
     void UpdateView();
     void SetShowCurve(bool b) { showCurve = b; }
+    void toggleShowCurveBox();
 
     void SetViewState(EViewState nViewState) { fViewState = nViewState; }
     EViewState GetViewState(void) { return fViewState; }

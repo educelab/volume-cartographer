@@ -168,7 +168,10 @@ void CVolumeViewerWithCurve::UpdateView()
         }
     }
 
-    CVolumeViewerWithCurve::UpdateButtons();
+    // If we have an image, draw it
+    if (fImgQImage != nullptr) {
+        CVolumeViewerWithCurve::UpdateButtons();
+    }
 
     update();  // Repaint the widget
 
@@ -386,6 +389,13 @@ bool CVolumeViewerWithCurve::eventFilter(QObject* watched, QEvent* event)
 
 // Handle paint event
 void CVolumeViewerWithCurve::paintEvent(QPaintEvent* /*event*/) {}
+
+void CVolumeViewerWithCurve::toggleShowCurveBox()
+{
+    bool currentState = fShowCurveBox->isChecked();
+    fShowCurveBox->setChecked(!currentState);
+    UpdateView();
+}
 
 // Handle setting the draw state for the curve
 void CVolumeViewerWithCurve::OnShowCurveStateChanged(int state)
