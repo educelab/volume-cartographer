@@ -50,3 +50,6 @@ cmake-build*/
 
 # VS Code
 .vscode/
+
+# personal
+*.txt

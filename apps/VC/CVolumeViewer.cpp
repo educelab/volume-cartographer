@@ -10,12 +10,14 @@ CVolumeViewer::CVolumeViewer(QWidget* parent)
     : QWidget(parent)
     , fCanvas(nullptr)
     , fScrollArea(nullptr)
+    , fGraphicsView(nullptr)
     , fZoomInBtn(nullptr)
     , fZoomOutBtn(nullptr)
     , fResetBtn(nullptr)
     , fNextBtn(nullptr)
     , fPrevBtn(nullptr)
     , fImgQImage(nullptr)
+    , fBaseImageItem(nullptr)
     , fScaleFactor(1.0)
     , fImageIndex(0)
 {
@@ -33,18 +35,33 @@ CVolumeViewer::CVolumeViewer(QWidget* parent)
         fImageIndexEdit, SIGNAL(SendSignalOnTextChanged()), this,
         SLOT(OnImageIndexEditTextChanged()));
 
-    // create image label
-    fCanvas = new QLabel;
-    fCanvas->setBackgroundRole(QPalette::Base);
-    fCanvas->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-    fCanvas->setScaledContents(true);
+    fBaseImageItem = new QGraphicsPixmapItem();
 
-    // create scroll area
-    fScrollArea = new QScrollArea;
-    fScrollArea->setBackgroundRole(QPalette::Dark);
-    fScrollArea->setWidget(fCanvas);
-    // Install the event filter
-    fScrollArea->viewport()->installEventFilter(this);
+    // Create graphics view
+    fGraphicsView = new QGraphicsView(this);
+    fGraphicsView->setRenderHint(QPainter::Antialiasing);
+    
+    // Create graphics scene
+    fScene = new QGraphicsScene(this);
+
+    // Set the scene
+    fGraphicsView->setScene(fScene);
+
+    // fImgQImage = new QImage();
+
+    // // create image label
+    // fCanvas = new QLabel;
+    // fCanvas->setBackgroundRole(QPalette::Base);
+    // fCanvas->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+    // fCanvas->setScaledContents(true);
+
+    // // create scroll area
+    // fScrollArea = new QScrollArea;
+    // fScrollArea->setBackgroundRole(QPalette::Dark);
+    // fScrollArea->setWidget(fGraphicsView);
+    // // Install the event filter
+    // fScrollArea->viewport()->installEventFilter(this);
+    fGraphicsView->viewport()->installEventFilter(this);
 
     fButtonsLayout = new QHBoxLayout;
     fButtonsLayout->addWidget(fZoomInBtn);
@@ -61,7 +78,7 @@ CVolumeViewer::CVolumeViewer(QWidget* parent)
     connect(fPrevBtn, SIGNAL(clicked()), this, SLOT(OnPrevClicked()));
 
     QVBoxLayout* aWidgetLayout = new QVBoxLayout;
-    aWidgetLayout->addWidget(fScrollArea);
+    aWidgetLayout->addWidget(fGraphicsView);
     aWidgetLayout->addLayout(fButtonsLayout);
 
     setLayout(aWidgetLayout);
@@ -72,7 +89,9 @@ CVolumeViewer::CVolumeViewer(QWidget* parent)
 // Destructor
 CVolumeViewer::~CVolumeViewer(void)
 {
-    deleteNULL(fCanvas);
+    // deleteNULL(fCanvas);
+    deleteNULL(fGraphicsView);
+    deleteNULL(fScene);
     deleteNULL(fScrollArea);
     deleteNULL(fZoomInBtn);
     deleteNULL(fZoomOutBtn);
@@ -91,7 +110,22 @@ void CVolumeViewer::setButtonsEnabled(bool state)
     fImageIndexEdit->setEnabled(state);
 }
 
-// Set image
+// // Set image
+// void CVolumeViewer::SetImage(const QImage& nSrc)
+// {
+//     if (fImgQImage == nullptr) {
+//         fImgQImage = new QImage(nSrc);
+//     } else {
+//         *fImgQImage = nSrc;
+//     }
+
+//     fCanvas->setPixmap(QPixmap::fromImage(*fImgQImage));
+//     fCanvas->resize(fScaleFactor * fCanvas->pixmap(Qt::ReturnByValue).size());
+
+//     UpdateButtons();
+//     update();
+// }
+
 void CVolumeViewer::SetImage(const QImage& nSrc)
 {
     if (fImgQImage == nullptr) {
@@ -100,16 +134,32 @@ void CVolumeViewer::SetImage(const QImage& nSrc)
         *fImgQImage = nSrc;
     }
 
-    fCanvas->setPixmap(QPixmap::fromImage(*fImgQImage));
-    fCanvas->resize(fScaleFactor * fCanvas->pixmap(Qt::ReturnByValue).size());
+    // Create a QPixmap from the QImage
+    QPixmap pixmap = QPixmap::fromImage(*fImgQImage);
+
+    // Add the QPixmap to the scene as a QGraphicsPixmapItem
+    if(fBaseImageItem) {
+        // If the item already exists, remove it from the scene
+        fScene->removeItem(fBaseImageItem);
+        delete fBaseImageItem; // Delete the old item
+    }
+    fBaseImageItem = fScene->addPixmap(pixmap);
+
+    // Optionally, set the scene size to match the image size
+    // fScene->setSceneRect(pixmap.rect());
+
+    // Apply scaling if necessary
+    // fBaseImageItem->setScale(fScaleFactor);  // Be cautious about scaling a QGraphicsPixmapItem
 
     UpdateButtons();
     update();
 }
 
+
+
 bool CVolumeViewer::eventFilter(QObject* watched, QEvent* event)
 {
-    if (watched == fScrollArea->viewport() && event->type() == QEvent::Wheel) {
+    if ((watched == fGraphicsView || watched == fGraphicsView->viewport()) && event->type() == QEvent::Wheel) {
         QWheelEvent* wheelEvent = static_cast<QWheelEvent*>(event);
         if(QApplication::keyboardModifiers() == Qt::ShiftModifier) {
             int numDegrees = wheelEvent->angleDelta().y() / 8;
@@ -119,22 +169,12 @@ bool CVolumeViewer::eventFilter(QObject* watched, QEvent* event)
             } else if (numDegrees < 0) {
                 OnZoomOutClicked();
             }
-            event->accept();
+            // event->accept();
             return true;
         }
     }
-    return false;
+    return QWidget::eventFilter(watched, event);
 }
-
-// Handle mouse press event
-void CVolumeViewer::mousePressEvent(QMouseEvent* /*event*/)
-{
-    QMessageBox::information(
-        this, tr("info"), tr("mouse pressed inside the volume viewer"));
-}
-
-// Handle mouse move event
-void CVolumeViewer::mouseMoveEvent(QMouseEvent* /*event*/) {}
 
 // Handle paint event
 void CVolumeViewer::paintEvent(QPaintEvent* /*event*/)
@@ -142,16 +182,27 @@ void CVolumeViewer::paintEvent(QPaintEvent* /*event*/)
     // REVISIT - FILL ME HERE
 }
 
-// Scale image
+// // Scale image
+// void CVolumeViewer::ScaleImage(double nFactor)
+// {
+//     Q_ASSERT(!fCanvas->pixmap(Qt::ReturnByValue).isNull());
+
+//     fScaleFactor *= nFactor;
+//     fCanvas->resize(fScaleFactor * fCanvas->pixmap(Qt::ReturnByValue).size());
+
+//     AdjustScrollBar(fScrollArea->horizontalScrollBar(), nFactor);
+//     AdjustScrollBar(fScrollArea->verticalScrollBar(), nFactor);
+
+//     UpdateButtons();
+// }
+
 void CVolumeViewer::ScaleImage(double nFactor)
 {
-    Q_ASSERT(!fCanvas->pixmap(Qt::ReturnByValue).isNull());
-
     fScaleFactor *= nFactor;
-    fCanvas->resize(fScaleFactor * fCanvas->pixmap(Qt::ReturnByValue).size());
+    fGraphicsView->scale(nFactor, nFactor);
 
-    AdjustScrollBar(fScrollArea->horizontalScrollBar(), nFactor);
-    AdjustScrollBar(fScrollArea->verticalScrollBar(), nFactor);
+    //AdjustScrollBar(fGraphicsView->horizontalScrollBar(), nFactor);
+    //AdjustScrollBar(fGraphicsView->verticalScrollBar(), nFactor);
 
     UpdateButtons();
 }
@@ -172,10 +223,18 @@ void CVolumeViewer::OnZoomOutClicked(void)
     }
 }
 
-// Handle reset click
+// // Handle reset click
+// void CVolumeViewer::OnResetClicked(void)
+// {
+//     fCanvas->adjustSize();
+//     fScaleFactor = 1.0;
+
+//     UpdateButtons();
+// }
+
 void CVolumeViewer::OnResetClicked(void)
 {
-    fCanvas->adjustSize();
+    fGraphicsView->resetTransform();
     fScaleFactor = 1.0;
 
     UpdateButtons();
@@ -227,56 +286,112 @@ void CVolumeViewer::AdjustScrollBar(QScrollBar* nScrollBar, double nFactor)
             ((nFactor - 1) * nScrollBar->pageStep() / 2)));
 }
 
+// cv::Vec2f CVolumeViewer::CleanScrollPosition(cv::Vec2f pos) const
+// {
+//     int x = pos[0];
+//     int y = pos[1];
+
+//     // Get the size of the scroll area viewport
+//     int viewportWidth = fScrollArea->viewport()->width();
+//     int viewportHeight = fScrollArea->viewport()->height();
+
+//     // Calculate the position of the scroll bars
+//     int horizontalPos = x - viewportWidth / 2;
+//     int verticalPos = y - viewportHeight / 2;
+
+//     // Check and respect horizontal boundaries
+//     if(horizontalPos < fScrollArea->horizontalScrollBar()->minimum())
+//         horizontalPos = fScrollArea->horizontalScrollBar()->minimum();
+//     else if(horizontalPos > fScrollArea->horizontalScrollBar()->maximum())
+//         horizontalPos = fScrollArea->horizontalScrollBar()->maximum();
+
+//     // Check and respect vertical boundaries
+//     if(verticalPos < fScrollArea->verticalScrollBar()->minimum())
+//         verticalPos = fScrollArea->verticalScrollBar()->minimum();
+//     else if(verticalPos > fScrollArea->verticalScrollBar()->maximum())
+//         verticalPos = fScrollArea->verticalScrollBar()->maximum();
+
+//     return cv::Vec2f(horizontalPos + viewportWidth / 2, verticalPos + viewportHeight / 2);
+// }
+
 cv::Vec2f CVolumeViewer::CleanScrollPosition(cv::Vec2f pos) const
 {
     int x = pos[0];
     int y = pos[1];
 
-    // Get the size of the scroll area viewport
-    int viewportWidth = fScrollArea->viewport()->width();
-    int viewportHeight = fScrollArea->viewport()->height();
+    // Get the size of the QGraphicsView viewport
+    int viewportWidth = fGraphicsView->viewport()->width();
+    int viewportHeight = fGraphicsView->viewport()->height();
 
     // Calculate the position of the scroll bars
     int horizontalPos = x - viewportWidth / 2;
     int verticalPos = y - viewportHeight / 2;
 
     // Check and respect horizontal boundaries
-    if(horizontalPos < fScrollArea->horizontalScrollBar()->minimum())
-        horizontalPos = fScrollArea->horizontalScrollBar()->minimum();
-    else if(horizontalPos > fScrollArea->horizontalScrollBar()->maximum())
-        horizontalPos = fScrollArea->horizontalScrollBar()->maximum();
+    if(horizontalPos < fGraphicsView->horizontalScrollBar()->minimum())
+        horizontalPos = fGraphicsView->horizontalScrollBar()->minimum();
+    else if(horizontalPos > fGraphicsView->horizontalScrollBar()->maximum())
+        horizontalPos = fGraphicsView->horizontalScrollBar()->maximum();
 
     // Check and respect vertical boundaries
-    if(verticalPos < fScrollArea->verticalScrollBar()->minimum())
-        verticalPos = fScrollArea->verticalScrollBar()->minimum();
-    else if(verticalPos > fScrollArea->verticalScrollBar()->maximum())
-        verticalPos = fScrollArea->verticalScrollBar()->maximum();
+    if(verticalPos < fGraphicsView->verticalScrollBar()->minimum())
+        verticalPos = fGraphicsView->verticalScrollBar()->minimum();
+    else if(verticalPos > fGraphicsView->verticalScrollBar()->maximum())
+        verticalPos = fGraphicsView->verticalScrollBar()->maximum();
 
     return cv::Vec2f(horizontalPos + viewportWidth / 2, verticalPos + viewportHeight / 2);
 }
+
+// void CVolumeViewer::ScrollToCenter(cv::Vec2f pos)
+// {    
+//     pos = CleanScrollPosition(pos);
+
+//     // Get the size of the scroll area viewport
+//     int viewportWidth = fScrollArea->viewport()->width();
+//     int viewportHeight = fScrollArea->viewport()->height();
+
+//     // Calculate the position of the scroll bars
+//     int horizontalPos = pos[0] - viewportWidth / 2;
+//     int verticalPos = pos[1] - viewportHeight / 2;
+
+//     // Set the scroll bar positions
+//     fScrollArea->horizontalScrollBar()->setValue(horizontalPos);
+//     fScrollArea->verticalScrollBar()->setValue(verticalPos);
+// }
 
 void CVolumeViewer::ScrollToCenter(cv::Vec2f pos)
 {    
     pos = CleanScrollPosition(pos);
 
-    // Get the size of the scroll area viewport
-    int viewportWidth = fScrollArea->viewport()->width();
-    int viewportHeight = fScrollArea->viewport()->height();
+    // Get the size of the QGraphicsView viewport
+    int viewportWidth = fGraphicsView->viewport()->width();
+    int viewportHeight = fGraphicsView->viewport()->height();
 
     // Calculate the position of the scroll bars
     int horizontalPos = pos[0] - viewportWidth / 2;
     int verticalPos = pos[1] - viewportHeight / 2;
 
     // Set the scroll bar positions
-    fScrollArea->horizontalScrollBar()->setValue(horizontalPos);
-    fScrollArea->verticalScrollBar()->setValue(verticalPos);
+    fGraphicsView->horizontalScrollBar()->setValue(horizontalPos);
+    fGraphicsView->verticalScrollBar()->setValue(verticalPos);
 }
+
+
+// cv::Vec2f CVolumeViewer::GetScrollPosition() const
+// {
+//     // Get the positions of the scroll bars
+//     float horizontalPos = static_cast<float>(fScrollArea->horizontalScrollBar()->value() + fScrollArea->viewport()->width() / 2);
+//     float verticalPos = static_cast<float>(fScrollArea->verticalScrollBar()->value() + fScrollArea->viewport()->height() / 2);
+
+//     // Return as cv::Vec2f
+//     return cv::Vec2f(horizontalPos, verticalPos);
+// }
 
 cv::Vec2f CVolumeViewer::GetScrollPosition() const
 {
     // Get the positions of the scroll bars
-    float horizontalPos = static_cast<float>(fScrollArea->horizontalScrollBar()->value() + fScrollArea->viewport()->width() / 2);
-    float verticalPos = static_cast<float>(fScrollArea->verticalScrollBar()->value() + fScrollArea->viewport()->height() / 2);
+    float horizontalPos = static_cast<float>(fGraphicsView->horizontalScrollBar()->value() + fGraphicsView->viewport()->width() / 2);
+    float verticalPos = static_cast<float>(fGraphicsView->verticalScrollBar()->value() + fGraphicsView->viewport()->height() / 2);
 
     // Return as cv::Vec2f
     return cv::Vec2f(horizontalPos, verticalPos);

@@ -9,6 +9,10 @@
 
 #include "CSimpleNumEditBox.hpp"
 
+#include <QGraphicsView>
+#include <QGraphicsScene>
+#include <QDebug>
+
 namespace ChaoVis
 {
 
@@ -31,8 +35,6 @@ public:
 
 protected:
     bool eventFilter(QObject* watched, QEvent* event);
-    void mousePressEvent(QMouseEvent* event);
-    void mouseMoveEvent(QMouseEvent* event);
     void paintEvent(QPaintEvent* event);
 
 public slots:
@@ -58,6 +60,9 @@ protected:
 
 protected:
     // widget components
+    QGraphicsView* fGraphicsView;
+    QGraphicsScene* fScene;
+
     QLabel* fCanvas;
     QScrollArea* fScrollArea;
     QPushButton* fZoomInBtn;
@@ -72,6 +77,10 @@ protected:
     QImage* fImgQImage;
     double fScaleFactor;
     int fImageIndex;
+
+    QGraphicsPixmapItem* fBaseImageItem;
+
+
 
 };  // class CVolumeViewer
 

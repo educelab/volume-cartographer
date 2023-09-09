@@ -66,6 +66,8 @@ CVolumeViewerWithCurve::CVolumeViewerWithCurve()
     fButtonsLayout->addWidget(HistEqLabel);
 
     UpdateButtons();
+
+    this->installEventFilter(this);
 }
 
 // Destructor
@@ -76,9 +78,10 @@ CVolumeViewerWithCurve::~CVolumeViewerWithCurve()
     }
     timer->stop();
     delete timer;
+    delete fImgQImage;
 }
 
-// Set image
+
 void CVolumeViewerWithCurve::SetImage(const QImage& nSrc)
 {
     if (fImgQImage == nullptr) {
@@ -87,14 +90,21 @@ void CVolumeViewerWithCurve::SetImage(const QImage& nSrc)
         *fImgQImage = nSrc;
     }
 
-    fCanvas->setPixmap(QPixmap::fromImage(*fImgQImage));
-    fCanvas->resize(fScaleFactor * fCanvas->pixmap(Qt::ReturnByValue).size());
+    // Create a QPixmap from the QImage
+    QPixmap pixmap = QPixmap::fromImage(*fImgQImage);
 
-    fImgMat = QImage2Mat(*fImgQImage);
-    fImgMat.copyTo(fImgMatCache);
+    // Add the QPixmap to the scene as a QGraphicsPixmapItem
+    if(fBaseImageItem) {
+        // If the item already exists, remove it from the scene
+        fScene->removeItem(fBaseImageItem);
+        delete fBaseImageItem; // Delete the old item
+    }
+    fBaseImageItem = fScene->addPixmap(pixmap);
 
-    UpdateView();
+    UpdateButtons();
+    update();
 }
+
 
 // Set the curve, we only hold a pointer to the original one so the data can be
 // synchronized
@@ -123,19 +133,21 @@ void CVolumeViewerWithCurve::UpdateSplineCurve(void)
     }
 }
 
-// Update the view
-void CVolumeViewerWithCurve::UpdateView(void)
+void CVolumeViewerWithCurve::UpdateView()
 {
-    fImgMatCache.copyTo(fImgMat);
-
-    if (histEq) {
-        cv::cvtColor(fImgMat, fImgMat, cv::COLOR_BGR2GRAY);
-        cv::equalizeHist(fImgMat, fImgMat);
-        cv::cvtColor(fImgMat, fImgMat, cv::COLOR_GRAY2BGR);
+    // Remove all existing ellipses and lines
+    QList<QGraphicsItem*> allItems = fScene->items();
+    for(QGraphicsItem *item : allItems)
+    {
+        if(dynamic_cast<QGraphicsEllipseItem*>(item) || dynamic_cast<QGraphicsLineItem*>(item))
+        {
+            fScene->removeItem(item);
+            delete item;
+        }
     }
 
     if (fViewState == EViewState::ViewStateDraw) {
-        // get secondary color
+        // Get secondary color
         int h{0}, s{0}, v{0};
         colorSelector->color().getHsv(&h, &s, &v);
         h += 180;
@@ -143,36 +155,31 @@ void CVolumeViewerWithCurve::UpdateView(void)
             h = h - 360;
         }
         auto secondary = QColor::fromHsv(h, 255, 255);
-        int r{0}, g{0}, b{0};
-        secondary.getRgb(&r, &g, &b);
+        
         if (fSplineCurveRef != nullptr) {
-            fSplineCurveRef->DrawOnImage(fImgMat, cv::Scalar(b, g, r));
+            // Assuming DrawOnImage now works on QImage or QGraphicsScene
+           fSplineCurveRef->DrawOnImage(fScene, secondary);
+           qDebug() << "UpdateView: spline curve drawn";
         }
-
-        // get primary color
-        colorSelector->color().getRgb(&r, &g, &b);
-        for (size_t i = 0; i < fControlPoints.size(); ++i) {
-            auto p = fControlPoints[i] - cv::Vec2f{0.5, 0.5};
-            cv::circle(fImgMat, cv::Point2f(p), 1, cv::Scalar(b, g, r));
-        }
+        DrawControlPoints(fScene);
     } else {
         if (fIntersectionCurveRef != nullptr && showCurve) {
-            DrawIntersectionCurve();
+           DrawIntersectionCurve(fScene);
         }
     }
 
-    *fImgQImage = Mat2QImage(fImgMat);
+    // If we have an image, draw it
+    if (fImgQImage != nullptr) {
+        CVolumeViewerWithCurve::UpdateButtons();
+    }
 
-    fCanvas->setPixmap(QPixmap::fromImage(*fImgQImage));
-    fCanvas->resize(fScaleFactor * fCanvas->pixmap(Qt::ReturnByValue).size());
+    update();  // Repaint the widget
 
-    CVolumeViewerWithCurve::UpdateButtons();
-
-    update();  // repaint the widget
 }
 
 void CVolumeViewerWithCurve::handleMouseHold()
 {
+    qDebug() << "handleMouseHold";
     if (fIntersectionCurveRef != nullptr) {
         if (lastPressedButton & Qt::BackButton || lastPressedButton & Qt::ForwardButton) {
             auto p2 = GetScrollPosition() / fScaleFactor  + scrollPositionModifier;
@@ -218,6 +225,7 @@ void CVolumeViewerWithCurve::handleMouseHold()
 // Handle mouse press event
 void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* e)
 {
+    qDebug() << "mousePressEvent" << e->pos();
     // Check if back or forward button was pressed
     if (e->buttons() & Qt::BackButton || e->buttons() & Qt::ForwardButton) {
         lastPressedButton = e->button();
@@ -239,13 +247,16 @@ void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* e)
         return;
     }
 
+
     // Get the mouse position in widget coordinates
-    cv::Vec2f aWidgetLoc, aImgLoc;
-    aWidgetLoc[0] = e->position().x();  // horizontal coordinate
-    aWidgetLoc[1] = e->position().y();  // vertical coordinate
+    cv::Vec2f aWidgetLoc, aImgLoc, res;
+    // widgets are wrong selected like wtf. why is mouse release and mouse click not in the same widget ending
+    aWidgetLoc[0] = e->pos().x();  // horizontal coordinate
+    aWidgetLoc[1] = e->pos().y();  // vertical coordinate
 
     // Convert to image coordinates
     WidgetLoc2ImgLoc(aWidgetLoc, aImgLoc);
+    qDebug() << "mousePressEvent" << e->pos() << " translated: " << aImgLoc[0] << " " << aImgLoc[1];
 
     // Update the last tracked position
     fLastPos.setX(aImgLoc[0]);
@@ -272,26 +283,16 @@ void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* e)
             if (fSelectedPointIndex >= 0) {
                 fLastPos.setX(fIntersectionCurveRef->GetPoint(fSelectedPointIndex)[0]);
                 fLastPos.setY(fIntersectionCurveRef->GetPoint(fSelectedPointIndex)[1]);
-
-            // Trigger mouseMoveEvent
-            QMouseEvent moveEvent(
-                QEvent::MouseMove,
-                e->position(),
-                e->scenePosition(),
-                e->globalPosition(),
-                e->button(),
-                e->buttons(),
-                e->modifiers(),
-                e->source()
-            );
-            QCoreApplication::sendEvent(this, &moveEvent);
+                // Mouse move event to update the line
+                mouseMoveEvent(e);
+                // qDebug() << "mousePressEvent: selected point index: " << fSelectedPointIndex;
             }
             return;
         }
     }
 
     UpdateView();
-    e->accept();
+    // e->accept();
 }
 
 // Handle mouse move event, currently only when we're editing
@@ -304,8 +305,8 @@ void CVolumeViewerWithCurve::mouseMoveEvent(QMouseEvent* event)
 
     // Get the mouse position in widget coordinates
     cv::Vec2f aWidgetLoc, aImgLoc;
-    aWidgetLoc[0] = event->position().x();
-    aWidgetLoc[1] = event->position().y();
+    aWidgetLoc[0] = event->pos().x();
+    aWidgetLoc[1] = event->pos().y();
 
     // Convert to image coordinates and get delta of change
     WidgetLoc2ImgLoc(aWidgetLoc, aImgLoc);
@@ -313,8 +314,11 @@ void CVolumeViewerWithCurve::mouseMoveEvent(QMouseEvent* event)
     aDelta[0] = aImgLoc[0] - fLastPos.x();
     aDelta[1] = aImgLoc[1] - fLastPos.y();
 
+    qDebug() << "mouseMoveEvent" << event->pos() << " translated: " << aImgLoc[0] << " " << aImgLoc[1];
+
     // Update the curve if  we have change and have a selected point
-    if ((aDelta[0] != 0 || aDelta[1] != 0) && (fSelectedPointIndex != -1)) {
+    // if ((aDelta[0] != 0 || aDelta[1] != 0) && (fSelectedPointIndex != -1)) {
+    if (fSelectedPointIndex != -1) {
         fIntersectionCurveRef->SetPointByDifference(
             fSelectedPointIndex, aDelta, CosineImpactFunc, fImpactRange);
         fVertexIsChanged = true;
@@ -348,8 +352,50 @@ void CVolumeViewerWithCurve::mouseReleaseEvent(QMouseEvent* e)
     }
 }
 
+// capture mouse release
+bool CVolumeViewerWithCurve::eventFilter(QObject* watched, QEvent* event) 
+{
+    // check for mouse release generic
+    if (event->type() == QEvent::MouseButtonRelease) {
+        QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
+        mouseReleaseEvent(mouseEvent);
+        event->accept();
+        return true;
+    }
+
+    if (event->type() == QEvent::MouseMove) {
+        QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
+        
+        // Transform the global coordinates to local coordinates
+        QPointF localPoint = this->mapFromGlobal(mouseEvent->globalPosition());
+        
+        // Create a new QMouseEvent with local coordinates
+        QMouseEvent localMouseEvent(QEvent::MouseMove,
+                                    localPoint,
+                                    mouseEvent->button(),
+                                    mouseEvent->buttons(),
+                                    mouseEvent->modifiers());
+        
+        // Manually call your mouseMoveEvent function
+        mouseMoveEvent(&localMouseEvent);
+        
+        event->accept();
+        return true;
+    }
+
+    // also call parent class implementation
+    return CVolumeViewer::eventFilter(watched, event);
+}
+
 // Handle paint event
 void CVolumeViewerWithCurve::paintEvent(QPaintEvent* /*event*/) {}
+
+void CVolumeViewerWithCurve::toggleShowCurveBox()
+{
+    bool currentState = fShowCurveBox->isChecked();
+    fShowCurveBox->setChecked(!currentState);
+    UpdateView();
+}
 
 // Handle setting the draw state for the curve
 void CVolumeViewerWithCurve::OnShowCurveStateChanged(int state)
@@ -373,33 +419,23 @@ void CVolumeViewerWithCurve::OnHistEqStateChanged(int state)
     UpdateView();
 }
 
-// Convert widget location to image location
 void CVolumeViewerWithCurve::WidgetLoc2ImgLoc(
     const cv::Vec2f& nWidgetLoc, cv::Vec2f& nImgLoc)
 {
-    float x = nWidgetLoc[0];  // horizontal coordinate
-    float y = nWidgetLoc[1];  // vertical coordinate
-
-    // the image position within its parent, the scroll area
-    QPoint aP = fCanvas->pos();
-    QWidget* aCurWidget = static_cast<QWidget*>(fCanvas->parent());
-
-    // the widget loc from the event is relative to this widget, so stop here
-    while (aCurWidget != this) {
-        aP = aCurWidget->mapToParent(aP);
-        aCurWidget = static_cast<QWidget*>(aCurWidget->parent());
-    }
-
-    x -= aP.x();
-    y -= aP.y();
-
-    // take image scale factor into account
-    x /= fScaleFactor;
-    y /= fScaleFactor;
-
-    nImgLoc[0] = x;
-    nImgLoc[1] = y;
+    // Step 1: Convert widget coordinates to scene coordinates
+    QPointF widgetPoint(nWidgetLoc[0] - (fGraphicsView->pos()).x() - 2, nWidgetLoc[1] - (fGraphicsView->pos()).y() - 2);
+    //widgetPoint = widgetPoint - fGraphicsView->pos();
+        
+    QPointF scenePoint = fGraphicsView->mapToScene(widgetPoint.toPoint());
+  
+    // Step 2: Convert scene coordinates to item coordinates
+    QPointF itemPoint = fBaseImageItem->mapFromScene(scenePoint);
+  
+    nImgLoc[0] = static_cast<float>(itemPoint.x());
+    nImgLoc[1] = static_cast<float>(itemPoint.y());
+    qDebug() << "WidgetLoc2ImgLoc: " << nImgLoc[0] << " " << nImgLoc[1];
 }
+
 
 // Select point on curve
 int CVolumeViewerWithCurve::SelectPointOnCurve(
@@ -431,20 +467,47 @@ int CVolumeViewerWithCurve::SelectPointOnCurve(
 }
 
 // Draw intersection curve on the slice
-void CVolumeViewerWithCurve::DrawIntersectionCurve(void)
-{
+void CVolumeViewerWithCurve::DrawIntersectionCurve(QGraphicsScene* scene) {
     if (fIntersectionCurveRef != nullptr) {
-        int r{0};
-        int g{0};
-        int b{0};
+        int r{0}, g{0}, b{0};
         colorSelector->color().getRgb(&r, &g, &b);
-        for (size_t i = 0; i < fIntersectionCurveRef->GetPointsNum(); ++i) {
+        if (!scene || fIntersectionCurveRef->GetPointsNum()==0 || !colorSelector) {
+            std::cout << "DrawIntersectionCurve: early exit" << std::endl;
+            std::cout << "scene is empty: " << (scene == nullptr) << " fIntersectionCurveRef is empty, nr points: " << fIntersectionCurveRef->GetPointsNum() << " colorSelector is false: " << colorSelector << std::endl;
+            return;  // Early exit if either object is null or the list is empty
+        }
+
+        int pointsNum = fIntersectionCurveRef->GetPointsNum();
+
+        for (int i = 0; i < pointsNum; ++i) {
+            // Create and store new ellipse if the number of points increased
             auto p0 = fIntersectionCurveRef->GetPoint(i)[0] - 0.5;
             auto p1 = fIntersectionCurveRef->GetPoint(i)[1] - 0.5;
-            cv::circle(fImgMat, cv::Point2d(p0, p1), 1, cv::Scalar(b, g, r));
+            QGraphicsEllipseItem* newEllipse = scene->addEllipse(p0, p1, 2, 2, QPen(QColor(r, g, b)), QBrush(QColor(r, g, b)));
+            newEllipse->setVisible(true);
         }
     }
 }
+
+void CVolumeViewerWithCurve::DrawControlPoints(QGraphicsScene* scene) {
+    int r{0}, g{0}, b{0};
+    colorSelector->color().getRgb(&r, &g, &b);
+    if (!scene || fControlPoints.empty() || !colorSelector) {
+        std::cout << "DrawControlPoints: early exit" << std::endl;
+        return;  // Early exit if either object is null or the list is empty
+    }
+
+    int pointsNum = fControlPoints.size();
+
+    for (int i = 0; i < pointsNum; ++i) {
+        // Create and store new ellipse if the number of points increased
+        auto p0 = fControlPoints[i][0] - 0.5;
+        auto p1 = fControlPoints[i][1] - 0.5;
+        QGraphicsEllipseItem* newEllipse = scene->addEllipse(p0, p1, 2, 2, QPen(QColor(r, g, b)), QBrush(QColor(r, g, b)));
+    }
+}
+
+
 
 // Update the status of the buttons
 void CVolumeViewerWithCurve::UpdateButtons(void)
