@@ -5,18 +5,18 @@ RUN apt-get update
 RUN apt-get install -y libsdl2-dev
 
 # Install volcart
-COPY ./ /volume-cartographer/
+COPY ./ /volume-cartographer-papyrus/
 RUN export CMAKE_PREFIX_PATH="/usr/local/Qt-6.4.2/" \
     && cmake  \
-      -S /volume-cartographer/ \
-      -B /volume-cartographer/build/ \
+      -S /volume-cartographer-papyrus/ \
+      -B /volume-cartographer-papyrus/build/ \
       -GNinja  \
       -DCMAKE_BUILD_TYPE=Release  \
       -DCMAKE_INSTALL_RPATH=/usr/local/Qt-6.4.2/lib \
       -DVC_BUILD_ACVD=ON  \
-    && cmake --build /volume-cartographer/build/ \
-    && cmake --install /volume-cartographer/build/ \
-    && rm -rf /volume-cartographer/
+    && cmake --build /volume-cartographer-papyrus/build/ \
+    && cmake --install /volume-cartographer-papyrus/build/ \
+    && rm -rf /volume-cartographer-papyrus/
 
 # Start an interactive shell
 CMD ["/bin/bash"]
