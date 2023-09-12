@@ -13,6 +13,7 @@ RUN export CMAKE_PREFIX_PATH="/usr/local/Qt-6.4.2/" \
       -GNinja  \
       -DCMAKE_BUILD_TYPE=Release  \
       -DCMAKE_INSTALL_RPATH=/usr/local/Qt-6.4.2/lib \
+      -DSDL2_DIR=/usr/lib/x86_64-linux-gnu/ \
       -DVC_BUILD_ACVD=ON  \
     && cmake --build /volume-cartographer-papyrus/build/ \
     && cmake --install /volume-cartographer-papyrus/build/ \
