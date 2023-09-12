@@ -134,7 +134,23 @@
             </widget>
            </item>
            <item>
-            <widget class="QListWidget" name="lstPaths"/>
+            <widget class="QTreeWidget" name="treeWidgetPaths">
+            <column>
+                <property name="text">
+                <string>Segment ID</string>
+                </property>
+            </column>
+            <column>
+                <property name="text">
+                <string>Display</string>
+                </property>
+            </column>
+            <column>
+                <property name="text">
+                <string>Compute</string>
+                </property>
+            </column>
+            </widget>
            </item>
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_3">

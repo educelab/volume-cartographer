@@ -235,10 +235,12 @@ void CWindow::CreateWidgets(void)
     connect(fSegTool, SIGNAL(clicked()), this, SLOT(ToggleSegmentationTool()));
 
     // list of paths
-    fPathListWidget = this->findChild<QListWidget*>("lstPaths");
-    connect(
-        fPathListWidget, SIGNAL(itemClicked(QListWidgetItem*)), this,
-        SLOT(OnPathItemClicked(QListWidgetItem*)));
+    fPathListWidget = this->findChild<QTreeWidget*>("treeWidgetPaths");
+    // connect(
+    //     fPathListWidget, SIGNAL(itemClicked(QListWidgetItem*)), this,
+    //     SLOT(OnPathItemClicked(QListWidgetItem*)));
+
+    connect(fPathListWidget, SIGNAL(itemClicked(QTreeWidgetItem*, int)), this, SLOT(OnPathItemClicked(QTreeWidgetItem*, int)));
 
     // segmentation methods
     auto* aSegMethodsComboBox = this->findChild<QComboBox*>("cmbSegMethods");
@@ -705,6 +707,17 @@ void CWindow::UpdateView(void)
     update();
 }
 
+// Reset point cloud
+void CWindow::ResetPointCloud(void)
+{
+    fMasterCloud.reset();
+    fUpperPart.reset();
+    fStartingPath.clear();
+    fIntersections.clear();
+    CXCurve emptyCurve;
+    fIntersectionCurve = emptyCurve;
+}
+
 // Activate a specific segmentation by ID
 void CWindow::ChangePathItem(std::string segID)
 {
@@ -738,6 +751,14 @@ void CWindow::ChangePathItem(std::string segID)
     SetCurrentCurve(fPathOnSliceIndex);
 
     UpdateView();
+}
+
+// Deactivate a specific segmentation by ID
+void CWindow::RemovePathItem(std::string segID)
+{
+    statusBar->clearMessage();
+
+    
 }
 
 // Split fMasterCloud into fUpperCloud and fLowerCloud
@@ -1152,7 +1173,10 @@ void CWindow::InitPathList(void)
     if (fVpkg != nullptr) {
         // show the existing paths
         for (auto& s : fVpkg->segmentationIDs()) {
-            fPathListWidget->addItem(new QListWidgetItem(QString(s.c_str())));
+            QTreeWidgetItem *item = new QTreeWidgetItem(fPathListWidget);
+            item->setText(0, QString(s.c_str()));
+            item->setCheckState(1, Qt::Unchecked);
+            item->setCheckState(2, Qt::Unchecked);
         }
     }
 }
@@ -1262,17 +1286,6 @@ void CWindow::CloseVolume(void)
     UpdateView();
 }
 
-// Reset point cloud
-void CWindow::ResetPointCloud(void)
-{
-    fMasterCloud.reset();
-    fUpperPart.reset();
-    fStartingPath.clear();
-    fIntersections.clear();
-    CXCurve emptyCurve;
-    fIntersectionCurve = emptyCurve;
-}
-
 // Handle open request
 void CWindow::Open(void)
 {
@@ -1333,30 +1346,67 @@ void CWindow::OnNewPathClicked(void)
     auto seg = fVpkg->newSegmentation();
     const auto newSegmentationId = seg->id();
 
-    // add new path to path list
-    auto* aNewPath = new QListWidgetItem(QString(newSegmentationId.c_str()));
-    fPathListWidget->addItem(aNewPath);
+    // Add a new path to the tree widget
+    QTreeWidgetItem *newItem = new QTreeWidgetItem(fPathListWidget);
+    newItem->setText(0, QString(newSegmentationId.c_str()));
+    newItem->setCheckState(1, Qt::Unchecked);
+    newItem->setCheckState(2, Qt::Unchecked);
 
     // Make sure we stay on the current slice
     fMinSegIndex = fPathOnSliceIndex;
 
     // Activate the new item
-    fPathListWidget->setCurrentItem(aNewPath);
+    fPathListWidget->setCurrentItem(newItem);
+    newItem->setCheckState(1, Qt::Checked); // Creating new curve
     ChangePathItem(newSegmentationId);
 }
 
 // Handle path item click event
-void CWindow::OnPathItemClicked(QListWidgetItem* nItem)
+void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
 {
-    if (SaveDialog() == SaveResponse::Cancelled) {
-        // Update the list to show the previous selection
-        QListWidgetItem* previous = fPathListWidget->findItems(
-            QString(fSegmentationId.c_str()), Qt::MatchExactly)[0];
-        fPathListWidget->setCurrentItem(previous);
-        return;
+    qDebug() << "Item clicked: " << item->text(0) << " Column: " << column;
+    // If the first checkbox (in column 1) is clicked
+    if (column == 1)
+    {
+        if (item->checkState(column) == Qt::Checked)
+        {
+            if (SaveDialog() == SaveResponse::Cancelled)
+            {
+                // Update the list to show the previous selection
+                QList<QTreeWidgetItem*> previousItems = fPathListWidget->findItems(
+                    QString(fSegmentationId.c_str()), Qt::MatchExactly, 0);
+                
+                if (!previousItems.isEmpty())
+                {
+                    fPathListWidget->setCurrentItem(previousItems[0]);
+                }
+                
+                // Uncheck the checkbox
+                item->setCheckState(column, Qt::Unchecked);
+                
+                return;
+            }
+            
+            ChangePathItem(item->text(0).toStdString());
+        }
+        else
+        {
+            // Handle uncheck action if needed
+            qDebug() << "Checkbox 1 Unchecked for entry: " << item->text(0);
+        }
     }
-
-    ChangePathItem(nItem->text().toStdString());
+    // If the second checkbox (in column 2) is clicked
+    else if (column == 2)
+    {
+        if (item->checkState(column) == Qt::Checked)
+        {
+            qDebug() << "Checkbox 2 Checked for entry: " << item->text(0);
+        }
+        else
+        {
+            qDebug() << "Checkbox 2 Unchecked for entry: " << item->text(0);
+        }
+    }
 }
 
 // Toggle the status of the pen tool

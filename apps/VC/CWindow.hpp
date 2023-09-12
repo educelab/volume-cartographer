@@ -143,7 +143,7 @@ private slots:
     void SavePointCloud();
 
     void OnNewPathClicked(void);
-    void OnPathItemClicked(QListWidgetItem* nItem);
+    void OnPathItemClicked(QTreeWidgetItem* item, int column);
 
     void TogglePenTool(void);
     void ToggleSegmentationTool(void);
@@ -222,7 +222,7 @@ private:
     QAction* fAboutAct;
 
     CVolumeViewerWithCurve* fVolumeViewerWidget;
-    QListWidget* fPathListWidget;
+    QTreeWidget* fPathListWidget;
     QPushButton* fPenTool;  // REVISIT - change me to QToolButton
     QPushButton* fSegTool;
     QComboBox* volSelect;
