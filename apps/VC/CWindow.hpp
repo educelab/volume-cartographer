@@ -112,6 +112,7 @@ private:
 
     void UpdateView(void);
     void ChangePathItem(std::string segID);
+    void RemovePathItem(std::string segID);
 
     void SplitCloud(void);
     void DoSegmentation(void);
