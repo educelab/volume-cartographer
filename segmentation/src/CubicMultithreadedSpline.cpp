@@ -199,24 +199,6 @@ void CubicMultithreadedSpline::windowed_spline_with_buffer_multithreaded(const V
     d_total = Eigen::Map<VectorXd>(d_vec.data(), d_vec.size());
 }
 
-double CubicMultithreadedSpline::evaluate_spline(const double x_eval, 
-                                const Eigen::VectorXd& x, 
-                                const Eigen::VectorXd& a, 
-                                const Eigen::VectorXd& b, 
-                                const Eigen::VectorXd& c, 
-                                const Eigen::VectorXd& d) {
-    double y_eval;
-    
-    for(int i = 0; i < x.size() - 1; ++i) {
-            if(x_eval >= x(i) && x_eval <= x(i + 1)) {
-                double dx = x_eval - x(i);
-                y_eval = a(i) + b(i)*dx + c(i)*pow(dx, 2) + d(i)*pow(dx, 3);
-            }
-    }
-    
-    return y_eval;
-}
-
 double CubicMultithreadedSpline::integrand2D(double t, void *params) {
     double *coeffs = (double *)params;
     double b_x = coeffs[0], c_x = coeffs[1], d_x = coeffs[2];
@@ -310,25 +292,6 @@ std::pair<double, double> CubicMultithreadedSpline::evaluate_spline_at_t_2D(
     // Compute the y position at range_xy_t
     double y_t = a_y[segment_idx] + b_y[segment_idx]*d_range_xy + c_y[segment_idx]*pow(d_range_xy, 2) + d_y[segment_idx]*pow(d_range_xy, 3);
 
-    
-    return {x_t, y_t};
-}
-
-std::pair<double, double> CubicMultithreadedSpline::evaluate_double_spline(double t, 
-                                                    int nr_points, 
-                                                    const Eigen::VectorXd& a_x, 
-                                                    const Eigen::VectorXd& b_x, 
-                                                    const Eigen::VectorXd& c_x, 
-                                                    const Eigen::VectorXd& d_x, 
-                                                    const Eigen::VectorXd& a_y, 
-                                                    const Eigen::VectorXd& b_y, 
-                                                    const Eigen::VectorXd& c_y, 
-                                                    const Eigen::VectorXd& d_y) {
-    Eigen::VectorXd length_xy = Eigen::VectorXd::LinSpaced(nr_points, 0, nr_points - 1);
-    double query_position = t * length_xy[length_xy.size() - 1];
-    
-    double x_t = evaluate_spline(query_position, length_xy, a_x, b_x, c_x, d_x);
-    double y_t = evaluate_spline(query_position, length_xy, a_y, b_y, c_y, d_y);
     
     return {x_t, y_t};
 }

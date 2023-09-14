@@ -77,24 +77,6 @@ private:
                                                 int buffer_size = 10,
                                                 int num_threads = -1);
 
-    double evaluate_spline(const double x_eval, 
-                                    const Eigen::VectorXd& x, 
-                                    const Eigen::VectorXd& a, 
-                                    const Eigen::VectorXd& b, 
-                                    const Eigen::VectorXd& c, 
-                                    const Eigen::VectorXd& d);
-
-    std::pair<double, double> evaluate_double_spline(double t, 
-                                                        int nr_points, 
-                                                        const Eigen::VectorXd& a_x, 
-                                                        const Eigen::VectorXd& b_x, 
-                                                        const Eigen::VectorXd& c_x, 
-                                                        const Eigen::VectorXd& d_x, 
-                                                        const Eigen::VectorXd& a_y, 
-                                                        const Eigen::VectorXd& b_y, 
-                                                        const Eigen::VectorXd& c_y, 
-                                                        const Eigen::VectorXd& d_y);
-
 static double integrand2D(double t, void *params);
 
 double spline_length_2D(double b_x, double c_x, double d_x, double b_y, double c_y, double d_y, double t0, double t_sub0, double t_sub1);

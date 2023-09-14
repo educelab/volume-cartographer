@@ -757,12 +757,10 @@ void CWindow::ChangePathItem(std::string segID)
     UpdateView();
 }
 
-// Deactivate a specific segmentation by ID
+// Deactivate a specific segmentation by ID. TODO: finish implementation?
 void CWindow::RemovePathItem(std::string segID)
 {
     statusBar->clearMessage();
-
-    
 }
 
 // Split fMasterCloud into fUpperCloud and fLowerCloud
@@ -1370,7 +1368,7 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
 {
     qDebug() << "Item clicked: " << item->text(0) << " Column: " << column;
     // If the first checkbox (in column 1) is clicked
-    if (column == 1)
+    if (column == 1) // Display
     {
         if (item->checkState(column) == Qt::Checked)
         {
@@ -1395,20 +1393,18 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
         }
         else
         {
-            // Handle uncheck action if needed
-            qDebug() << "Checkbox 1 Unchecked for entry: " << item->text(0);
+            // Also Uncheck the second checkbox (Compute). Never Compute without displaying the Curve.
+            item->setCheckState(2, Qt::Unchecked);
         }
     }
     // If the second checkbox (in column 2) is clicked
-    else if (column == 2)
+    else if (column == 2) // Copmute
     {
         if (item->checkState(column) == Qt::Checked)
         {
-            qDebug() << "Checkbox 2 Checked for entry: " << item->text(0);
-        }
-        else
-        {
-            qDebug() << "Checkbox 2 Unchecked for entry: " << item->text(0);
+            // Only compute if the first checkbox (Display) is checked, so check it too
+            // Check the first checkbox
+            item->setCheckState(1, Qt::Checked);
         }
     }
 }

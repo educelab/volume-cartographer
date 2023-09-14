@@ -716,8 +716,6 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
                 draw_particle_on_slice_(currentCurve, zIndex, -1, true));
         }
 
-        std::cout << "Dumped Vis optionally" << std::endl;
-
         // Split the curve into subsegments
         // Calculate num_threads and segment_length
         const int min_points_per_thread = 15;
@@ -731,7 +729,7 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
         int base_segment_length = static_cast<int>(std::floor(((float)total_points) / (float)num_threads));
         int num_threads_with_extra_point = total_points % num_threads;
 
-        std::cout << "Total points: " << total_points << " Num threads: " << num_threads << " Points per thread: " << points_per_thread << " Num concurrent threads: " << num_concurrent_threads << " Base segment length: " << base_segment_length << " Num threads with extra point: " << num_threads_with_extra_point;
+        // std::cout << "Total points: " << total_points << " Num threads: " << num_threads << " Points per thread: " << points_per_thread << " Num concurrent threads: " << num_concurrent_threads << " Base segment length: " << base_segment_length << " Num threads with extra point: " << num_threads_with_extra_point;
         
         std::vector<std::vector<Voxel>> subsegment_points(num_threads);
         // Parallel computation of curve segments
