@@ -5,7 +5,7 @@
 #include <cassert>
 #include <vector>
 #include "vc/segmentation/lrps/Common.hpp"
-#include "vc/segmentation/lrps/Spline.hpp"
+#include "vc/segmentation/lrps/CubicMultithreadedSpline.hpp"
 
 namespace volcart::segmentation
 {
@@ -26,7 +26,7 @@ private:
     /** List of sampled points */
     std::vector<Voxel> points_;
     /** Spline representation of curve */
-    CubicSpline<double> spline_;
+    CubicMultithreadedSpline spline_;
 
 public:
     /** @name Constructors */
@@ -54,7 +54,9 @@ public:
     const decltype(spline_)& spline() const { return spline_; }
 
     /** @brief Resample the curve at a given t-value in [0.0, 1.0] */
-    Pixel eval(double t) const { return spline_(t); }
+    Pixel eval(double t) const { 
+        return spline_(t); 
+        }
 
     /** @brief Evenly resample the curve with the same number of points as the
      * input set */

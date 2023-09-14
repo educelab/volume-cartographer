@@ -250,6 +250,7 @@ private:
     QShortcut* sliceZoomIn;
     QShortcut* sliceZoomOut;
     QShortcut* displayCurves;
+    QShortcut* displayCurves_C;
     QShortcut* impactUp;
     QShortcut* impactDwn;
     QShortcut* impactUp_old;

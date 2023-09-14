@@ -4,19 +4,16 @@
 
 #include "vc/segmentation/lrps/Derivative.hpp"
 #include "vc/segmentation/lrps/FittedCurve.hpp"
+#include "vc/segmentation/lrps/CubicMultithreadedSpline.hpp"
 
 using namespace volcart::segmentation;
 
 std::vector<double> GenerateTVals(size_t count);
 
-FittedCurve::FittedCurve(const std::vector<Voxel>& vs, int zIndex)
-    : npoints_(vs.size()), zIndex_(zIndex), ts_(GenerateTVals(npoints_))
+FittedCurve::FittedCurve(const std::vector<Voxel>& vs, int zIndex) :
+    npoints_(vs.size()), zIndex_(zIndex), ts_(GenerateTVals(npoints_)),
+    spline_(CubicMultithreadedSpline(vs))
 {
-    std::vector<double> xs, ys;
-    std::tie(xs, ys) = Unzip(vs);
-
-    spline_ = CubicSpline<double>(xs, ys);
-
     // Calculate new voxel positions from the spline
     points_.reserve(vs.size());
     for (const auto t : ts_) {

@@ -1,3 +1,5 @@
+// Author: Julian Shilliger, contribution to Volume Cartographer as part of the 2023 "Vesuvius Challenge", MIT License
+
 #include <deque>
 #include <iomanip>
 #include <limits>
@@ -655,15 +657,11 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
         backwards_endIndex = vol_->numSlices() - 1;
     }
     // std::cout << "Backwards Window and Length: " << backwards_smoothnes_interpolation_w << " " << backwards_length << std::endl;
-    std::cout << "Backwards End Index: " << backwards_endIndex << std::endl;
-
     // Generate an overlap to interpolate and smooth point locations in z direction
 
     // Update the user-defined boundary
     bb_.setUpperBoundByIndex(2, (backwards ? backwards_endIndex: endIndex_) + 1);
     bb_.setLowerBoundByIndex(2, (backwards ? endIndex_ : backwards_endIndex) - 1);
-
-    std::cout << "Bounds set" << std::endl;
 
     // Check that incoming points are all within bounds
     if (std::any_of(begin(currentVs), end(currentVs), [this](auto v) {
@@ -674,8 +672,6 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
         return create_final_pointset_({currentVs});
     }
 
-    std::cout << "Bounds checked" << std::endl;
-
     const fs::path outputDir("debugvis");
     const fs::path wholeChainDir(outputDir / "whole_chain");
     if (dumpVis_) {
@@ -683,14 +679,10 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
         fs::create_directory(wholeChainDir);
     }
 
-    std::cout << "Files set" << std::endl;
-
     // Collection to hold all positions
     std::vector<std::vector<Voxel>> points;
     points.reserve(
         (std::abs(endIndex_ - startIndex) + 1 + backwards_length + 1) / static_cast<uint64_t>(stepSize_));
-
-    std::cout << "Points reserved" << std::endl;
 
     // Iterate over z-slices
     size_t iteration{0};
@@ -706,16 +698,12 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
            << zIndex;
         const fs::path zIdxDir = outputDir / ss.str();
 
-        std::cout << "Stringstream for Dumpvis" << std::endl;
         std::cout << "Length curve points " << currentVs.size() << std::endl;
 
         //////////////////////////////////////////////////////////
         // 0. Resample current positions so they are evenly spaced
         FittedCurve currentCurve(currentVs, zIndex);
-        std::cout << "Current Curve instantiated" << std::endl;
         currentVs = currentCurve.evenlySpacePoints();
-
-        std::cout << "Evenly Spaced" << std::endl;
 
         // Dump entire curve for easy viewing
         if (dumpVis_) {
@@ -751,14 +739,12 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
         int start_idx = 0;
         for (int job = 0; job < num_threads; job += num_concurrent_threads)
         {
-            std::cout << "Job: " << job << std::endl;
             int num_threads_to_dispatch = std::min(num_concurrent_threads, num_threads - job);
             std::vector<std::thread> threads(num_threads_to_dispatch);
             
             std::vector<std::vector<Voxel>> subsegment_vectors(num_threads_to_dispatch);
             for (int i = job; i < job+num_threads_to_dispatch; ++i)
             {
-                std::cout << "Thread: " << i << std::endl;
                 int segment_length = base_segment_length + (i < num_threads_with_extra_point ? 1 : 0);
                 int end_idx = start_idx + segment_length;
                 // Change start_idx and end_idx to include overlap
@@ -771,7 +757,6 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
 
             for (int i = job; i < job+num_threads_to_dispatch; ++i)
             {
-                std::cout << "Creating thread: " << i << std::endl;
                 threads[i-job] = std::thread([&, i, job]()
                 {
                     Chain subsegment_chain(subsegment_vectors[i-job]);
@@ -885,22 +870,18 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
         int base_segment_length = static_cast<int>(std::floor(((float)total_points) / (float)num_threads));
         int num_threads_with_extra_point = total_points % num_threads;
         
-        std::cout << "Total points: " << total_points << " Num threads: " << num_threads << " Points per thread: " << points_per_thread << " Num concurrent threads: " << num_concurrent_threads << " Base segment length: " << base_segment_length << " Num threads with extra point: " << num_threads_with_extra_point;
-
         std::vector<std::vector<Voxel>> subsegment_points(num_threads);
 
         int start_idx = 0;
         // Parallel computation of curve segments
         for (int job = 0; job < num_threads; job += num_concurrent_threads)
         {
-            std::cout << "Job: " << job << std::endl;
             int num_threads_to_dispatch = std::min(num_concurrent_threads, num_threads - job);
             std::vector<std::thread> threads(num_threads_to_dispatch);
             
             std::vector<std::vector<Voxel>> subsegment_vectors(num_threads_to_dispatch);
             for (int i = job; i < job+num_threads_to_dispatch; ++i)
             {
-                std::cout << "Thread: " << i << std::endl;
                 int segment_length = base_segment_length + (i < num_threads_with_extra_point ? 1 : 0);
                 int end_idx = start_idx + segment_length;
                 // Change start_idx and end_idx to include overlap
@@ -913,7 +894,6 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
 
             for (int i = job; i < job+num_threads_to_dispatch; ++i)
             {
-                std::cout << "Creating thread: " << i << std::endl;
                 threads[i-job] = std::thread([&, i, job]()
                 {
                     Chain subsegment_chain(subsegment_vectors[i-job]);

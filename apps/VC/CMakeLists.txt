@@ -58,6 +58,8 @@ target_include_directories(${target}
 find_package(OpenMP)
 find_package(SDL2 REQUIRED)
 include_directories(${SDL2_INCLUDE_DIRS})
+find_package(GSL REQUIRED)
+include_directories(${GSL_INCLUDE_DIRS})
 target_link_libraries(${target}
     VC::core
     VC::meshing
@@ -68,6 +70,7 @@ target_link_libraries(${target}
     ${OSXSecurity}
     OpenMP::OpenMP_CXX
     ${SDL2_LIBRARIES}
+    ${GSL_LIBRARIES}
 )
 
 if (${VC_INSTALL_APPS})

@@ -108,3 +108,6 @@ include(VCInstall)
 
 # Look for the SDL2 package for Audio
 find_package(SDL2 REQUIRED)
+
+# Look for the GNU Scientific Library (GSL) package for interpolation related functionalities
+find_package(GSL REQUIRED)

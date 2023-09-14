@@ -401,6 +401,7 @@ void CWindow::CreateWidgets(void)
     sliceZoomIn = new QShortcut(QKeySequence::ZoomIn, this);
     sliceZoomOut = new QShortcut(QKeySequence::ZoomOut, this);
     displayCurves = new QShortcut(QKeySequence(tr(" ")), this);
+    displayCurves_C = new QShortcut(QKeySequence(tr("C")), this); // For NoMachine Segmenters
     impactDwn = new QShortcut(QKeySequence(tr("A")), this);
     impactUp = new QShortcut(QKeySequence(tr("D")), this);
     impactDwn_old = new QShortcut(QKeySequence(tr("[")), this);
@@ -427,6 +428,9 @@ void CWindow::CreateWidgets(void)
         &CVolumeViewerWithCurve::OnZoomOutClicked);
     connect(
         displayCurves, &QShortcut::activated, fVolumeViewerWidget,
+        &CVolumeViewerWithCurve::toggleShowCurveBox);
+    connect(
+        displayCurves_C, &QShortcut::activated, fVolumeViewerWidget,
         &CVolumeViewerWithCurve::toggleShowCurveBox);
     connect(impactUp, &QShortcut::activated, [this]() {
         if (ui.sldImpactRange->isEnabled()) {

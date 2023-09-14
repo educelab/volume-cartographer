@@ -1,3 +1,5 @@
+// Author: Julian Shilliger, contribution to Volume Cartographer as part of the 2023 "Vesuvius Challenge", MIT License
+
 #pragma once
 #include <shared_mutex>
 

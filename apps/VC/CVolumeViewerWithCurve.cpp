@@ -159,7 +159,6 @@ void CVolumeViewerWithCurve::UpdateView()
         if (fSplineCurveRef != nullptr) {
             // Assuming DrawOnImage now works on QImage or QGraphicsScene
            fSplineCurveRef->DrawOnImage(fScene, secondary);
-           qDebug() << "UpdateView: spline curve drawn";
         }
         DrawControlPoints(fScene);
     } else {
@@ -179,7 +178,6 @@ void CVolumeViewerWithCurve::UpdateView()
 
 void CVolumeViewerWithCurve::handleMouseHold()
 {
-    qDebug() << "handleMouseHold";
     if (fIntersectionCurveRef != nullptr) {
         if (lastPressedButton & Qt::BackButton || lastPressedButton & Qt::ForwardButton) {
             auto p2 = GetScrollPosition() / fScaleFactor  + scrollPositionModifier;
@@ -225,7 +223,6 @@ void CVolumeViewerWithCurve::handleMouseHold()
 // Handle mouse press event
 void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* e)
 {
-    qDebug() << "mousePressEvent" << e->pos();
     // Check if back or forward button was pressed
     if (e->buttons() & Qt::BackButton || e->buttons() & Qt::ForwardButton) {
         lastPressedButton = e->button();
@@ -256,7 +253,6 @@ void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* e)
 
     // Convert to image coordinates
     WidgetLoc2ImgLoc(aWidgetLoc, aImgLoc);
-    qDebug() << "mousePressEvent" << e->pos() << " translated: " << aImgLoc[0] << " " << aImgLoc[1];
 
     // Update the last tracked position
     fLastPos.setX(aImgLoc[0]);
@@ -314,10 +310,7 @@ void CVolumeViewerWithCurve::mouseMoveEvent(QMouseEvent* event)
     aDelta[0] = aImgLoc[0] - fLastPos.x();
     aDelta[1] = aImgLoc[1] - fLastPos.y();
 
-    qDebug() << "mouseMoveEvent" << event->pos() << " translated: " << aImgLoc[0] << " " << aImgLoc[1];
-
-    // Update the curve if  we have change and have a selected point
-    // if ((aDelta[0] != 0 || aDelta[1] != 0) && (fSelectedPointIndex != -1)) {
+    // Update the curve if  we have a selected point
     if (fSelectedPointIndex != -1) {
         fIntersectionCurveRef->SetPointByDifference(
             fSelectedPointIndex, aDelta, CosineImpactFunc, fImpactRange);
@@ -433,7 +426,6 @@ void CVolumeViewerWithCurve::WidgetLoc2ImgLoc(
   
     nImgLoc[0] = static_cast<float>(itemPoint.x());
     nImgLoc[1] = static_cast<float>(itemPoint.y());
-    qDebug() << "WidgetLoc2ImgLoc: " << nImgLoc[0] << " " << nImgLoc[1];
 }
 
 
@@ -472,8 +464,6 @@ void CVolumeViewerWithCurve::DrawIntersectionCurve(QGraphicsScene* scene) {
         int r{0}, g{0}, b{0};
         colorSelector->color().getRgb(&r, &g, &b);
         if (!scene || fIntersectionCurveRef->GetPointsNum()==0 || !colorSelector) {
-            std::cout << "DrawIntersectionCurve: early exit" << std::endl;
-            std::cout << "scene is empty: " << (scene == nullptr) << " fIntersectionCurveRef is empty, nr points: " << fIntersectionCurveRef->GetPointsNum() << " colorSelector is false: " << colorSelector << std::endl;
             return;  // Early exit if either object is null or the list is empty
         }
 
@@ -493,7 +483,6 @@ void CVolumeViewerWithCurve::DrawControlPoints(QGraphicsScene* scene) {
     int r{0}, g{0}, b{0};
     colorSelector->color().getRgb(&r, &g, &b);
     if (!scene || fControlPoints.empty() || !colorSelector) {
-        std::cout << "DrawControlPoints: early exit" << std::endl;
         return;  // Early exit if either object is null or the list is empty
     }
 
