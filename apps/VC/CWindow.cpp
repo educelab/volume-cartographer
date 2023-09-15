@@ -1375,6 +1375,7 @@ void CWindow::OnNewPathClicked(void)
     fPathListWidget->setCurrentItem(newItem);
     newItem->setCheckState(1, Qt::Checked); // Creating new curve
     ChangePathItem(newSegmentationId);
+    fSegStructMap[newSegmentationId].display = true;
 }
 
 // Handle path item click event
@@ -1415,7 +1416,7 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
         }
     }
     // If the second checkbox (in column 2) is clicked
-    else if (column == 2) // Copmute
+    else if (column == 2) // Compute
     {
         if (item->checkState(column) == Qt::Checked)
         {
