@@ -13,7 +13,7 @@
 using namespace ChaoVis;
 
 // Constructor
-CVolumeViewerWithCurve::CVolumeViewerWithCurve()
+CVolumeViewerWithCurve::CVolumeViewerWithCurve(std::unordered_map<std::string, SegmentationStruct>& nSegStructMapRef)
     : fShowCurveBox(nullptr)
     , fHistEqBox(nullptr)
     , showCurve(true)
@@ -24,6 +24,7 @@ CVolumeViewerWithCurve::CVolumeViewerWithCurve()
     , fVertexIsChanged(false)
     , fImpactRange(8)
     , fViewState(EViewState::ViewStateIdle)
+    , fSegStructMapRef(nSegStructMapRef)
 {
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(handleMouseHold()));
@@ -105,7 +106,6 @@ void CVolumeViewerWithCurve::SetImage(const QImage& nSrc)
     update();
 }
 
-
 // Set the curve, we only hold a pointer to the original one so the data can be
 // synchronized
 void CVolumeViewerWithCurve::SetSplineCurve(CBSpline& nCurve)
@@ -161,10 +161,11 @@ void CVolumeViewerWithCurve::UpdateView()
            fSplineCurveRef->DrawOnImage(fScene, secondary);
         }
         DrawControlPoints(fScene);
-    } else {
-        if (fIntersectionCurveRef != nullptr && showCurve) {
-           DrawIntersectionCurve(fScene);
-        }
+    }
+    
+    if (showCurve) {
+        qDebug() << "showCurve";
+        DrawIntersectionCurve(fScene);
     }
 
     // If we have an image, draw it
@@ -178,45 +179,47 @@ void CVolumeViewerWithCurve::UpdateView()
 
 void CVolumeViewerWithCurve::handleMouseHold()
 {
-    if (fIntersectionCurveRef != nullptr) {
-        if (lastPressedButton & Qt::BackButton || lastPressedButton & Qt::ForwardButton) {
-            auto p2 = GetScrollPosition() / fScaleFactor  + scrollPositionModifier;
-            int closest_point =
-                SelectPointOnCurve(fIntersectionCurveRef, p2, true);
-            if (closest_point == -1) {
-                return;
-            }
-            int numCurvePoints = fIntersectionCurveRef->GetPointsNum();
-            double speed = 50.0;
-            int pointDifference = static_cast<int>(speed / fScaleFactor);
-            // std::cout << "pointDifference: " << pointDifference << " closest_point: " << closest_point << std::endl;
-            if (lastPressedButton & Qt::BackButton) {
-                closest_point -= pointDifference;
-            }
-            else if (lastPressedButton & Qt::ForwardButton) {
-                closest_point += pointDifference;
-            }
-            closest_point = std::max(0, std::min(numCurvePoints - 1, closest_point));
-            // std::cout << "closest_point: " << closest_point << std::endl;
-            auto p1 = fIntersectionCurveRef->GetPoint(closest_point);
-            auto v = cv::Vec2f(p1[0] - p2[0], p1[1] - p2[1]);
-            auto v2 = v * 0.1;
-            if (0 < std::sqrt(v2[0]*v2[0] + v2[1]*v2[1]) && std::sqrt(v2[0]*v2[0] + v2[1]*v2[1]) < (10.0 / fScaleFactor)) {
-                v2 *= (10.0 / fScaleFactor) / std::sqrt(v2[0]*v2[0] + v2[1]*v2[1]);
-                // check that the v2 is not overshooting p1
-                if (std::abs(v2[0]) > std::abs(v[0])) {
-                    v2[0] = v[0];
-                }
-                if (std::abs(v2[1]) > std::abs(v[1])) {
-                    v2[1] = v[1];
-                }
-            }
-            scrollPositionModifier = p2 + v2 - CleanScrollPosition((p2 + v2) * fScaleFactor) / fScaleFactor;
-            // std::cout << "v2: " << v2 << " v: " << v << " p2: " << p2 << " p1: " << p1[0] << " " << p1[1] << std::endl;
-            v2 += p2;
-            // std::cout << "v2: " << v2 << " scrollPositionModifier: " << scrollPositionModifier << std::endl;
-            ScrollToCenter(v2 * fScaleFactor);
+    if (lastPressedButton & Qt::BackButton || lastPressedButton & Qt::ForwardButton) {
+        auto p2 = GetScrollPosition() / fScaleFactor  + scrollPositionModifier;
+
+        auto res = SelectPointOnCurves(p2, false, true);
+        fSelectedPointIndex = res.first;
+        fSelectedSegID = res.second;
+        
+        if (fSelectedPointIndex == -1) {
+            return;
         }
+        // fIntersectionCurveRef from the fSelectedSegID
+        int numCurvePoints = fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPointsNum();
+        double speed = 50.0;
+        int pointDifference = static_cast<int>(speed / fScaleFactor);
+        // qDebug() << "pointDifference: " << pointDifference << " fSelectedPointIndex: " << fSelectedPointIndex;
+        if (lastPressedButton & Qt::BackButton) {
+            fSelectedPointIndex -= pointDifference;
+        }
+        else if (lastPressedButton & Qt::ForwardButton) {
+            fSelectedPointIndex += pointDifference;
+        }
+        fSelectedPointIndex = std::max(0, std::min(numCurvePoints - 1, fSelectedPointIndex));
+        // qDebug() << "fSelectedPointIndex: " << fSelectedPointIndex;
+        auto p1 = fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPoint(fSelectedPointIndex);
+        auto v = cv::Vec2f(p1[0] - p2[0], p1[1] - p2[1]);
+        auto v2 = v * 0.1;
+        if (0 < std::sqrt(v2[0]*v2[0] + v2[1]*v2[1]) && std::sqrt(v2[0]*v2[0] + v2[1]*v2[1]) < (10.0 / fScaleFactor)) {
+            v2 *= (10.0 / fScaleFactor) / std::sqrt(v2[0]*v2[0] + v2[1]*v2[1]);
+            // check that the v2 is not overshooting p1
+            if (std::abs(v2[0]) > std::abs(v[0])) {
+                v2[0] = v[0];
+            }
+            if (std::abs(v2[1]) > std::abs(v[1])) {
+                v2[1] = v[1];
+            }
+        }
+        scrollPositionModifier = p2 + v2 - CleanScrollPosition((p2 + v2) * fScaleFactor) / fScaleFactor;
+        // qDebug() << "v2: " << v2 << " v: " << v << " p2: " << p2 << " p1: " << p1[0] << " " << p1[1];
+        v2 += p2;
+        // qDebug() << "v2: " << v2 << " scrollPositionModifier: " << scrollPositionModifier;
+        ScrollToCenter(v2 * fScaleFactor);
     }
 }
 
@@ -269,21 +272,21 @@ void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* e)
     } else if (fViewState == EViewState::ViewStateEdit && ((e->buttons() & Qt::RightButton) || (e->buttons() & Qt::LeftButton) || fIsMousePressed)) {
         fIsMousePressed = true;
         // If we have points, select the one that was clicked
-        if (fIntersectionCurveRef != nullptr) {
-            bool rightClick = e->buttons() & Qt::RightButton;
-            fSelectedPointIndex =
-                SelectPointOnCurve(fIntersectionCurveRef, aImgLoc, rightClick);
-            fIntersectionCurveRef->setLastState();
+        bool rightClick = e->buttons() & Qt::RightButton;
+        auto res = SelectPointOnCurves(aImgLoc, rightClick);
+        fSelectedPointIndex = res.first;
+        fSelectedSegID = res.second;
 
-            // Set fLastPos to the position of the selected point
-            if (fSelectedPointIndex >= 0) {
-                fLastPos.setX(fIntersectionCurveRef->GetPoint(fSelectedPointIndex)[0]);
-                fLastPos.setY(fIntersectionCurveRef->GetPoint(fSelectedPointIndex)[1]);
-                // Mouse move event to update the line
-                mouseMoveEvent(e);
-                // qDebug() << "mousePressEvent: selected point index: " << fSelectedPointIndex;
-            }
-            return;
+        // Set the curve to the one that was clicked
+        fSegStructMapRef[fSelectedSegID].fIntersectionCurve.setLastState();
+
+        // Set fLastPos to the position of the selected point
+        if (fSelectedPointIndex >= 0) {
+            fLastPos.setX(fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPoint(fSelectedPointIndex)[0]);
+            fLastPos.setY(fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPoint(fSelectedPointIndex)[1]);
+            // Mouse move event to update the line
+            mouseMoveEvent(e);
+            // qDebug() << "mousePressEvent: selected point index: " << fSelectedPointIndex;
         }
     }
 
@@ -312,7 +315,7 @@ void CVolumeViewerWithCurve::mouseMoveEvent(QMouseEvent* event)
 
     // Update the curve if  we have a selected point
     if (fSelectedPointIndex != -1) {
-        fIntersectionCurveRef->SetPointByDifference(
+        fSegStructMapRef[fSelectedSegID].fIntersectionCurve.SetPointByDifference(
             fSelectedPointIndex, aDelta, CosineImpactFunc, fImpactRange);
         fVertexIsChanged = true;
     }
@@ -428,51 +431,62 @@ void CVolumeViewerWithCurve::WidgetLoc2ImgLoc(
     nImgLoc[1] = static_cast<float>(itemPoint.y());
 }
 
-
-// Select point on curve
-int CVolumeViewerWithCurve::SelectPointOnCurve(
-    const CXCurve* nCurve, const cv::Vec2f& nPt, bool rightClick)
+// Select point on curves
+std::pair<int, std::string> CVolumeViewerWithCurve::SelectPointOnCurves(
+    const cv::Vec2f& nPt, bool rightClick, bool selectGlobally)
 {
     const double DIST_THRESHOLD = 1.5 * fScaleFactor;
-
-    int closestPointIndex = -1;
-    double minDistance = std::numeric_limits<double>::max();
-
     bool shiftKeyPressed = QGuiApplication::queryKeyboardModifiers().testFlag(Qt::ShiftModifier);
 
-    for (size_t i = 0; i < nCurve->GetPointsNum(); ++i) {
-        double currentDistance = Norm<double>(Vec2<double>(
-            nCurve->GetPoint(i)[0] - nPt[0],
-            nCurve->GetPoint(i)[1] - nPt[1]));
+    double minDistance = std::numeric_limits<double>::max();
+    std::string best_id = "";
+    int closestPointIndex = -1;
 
-        if (currentDistance < minDistance) {
-            minDistance = currentDistance;
-            closestPointIndex = i;
+    for (auto& seg : fSegStructMapRef) {
+        auto& segStruct = seg.second;
+        if (!segStruct.display || segStruct.fIntersectionCurve.GetPointsNum()==0) {
+            continue;
+        }
+        for (size_t i = 0; i < segStruct.fIntersectionCurve.GetPointsNum(); ++i) {
+            double currentDistance = Norm<double>(Vec2<double>(
+                segStruct.fIntersectionCurve.GetPoint(i)[0] - nPt[0],
+                segStruct.fIntersectionCurve.GetPoint(i)[1] - nPt[1]));
+
+            if (currentDistance < minDistance) {
+                minDistance = currentDistance;
+                closestPointIndex = i;
+                best_id = seg.first;
+            }
         }
     }
-
-    if (rightClick || shiftKeyPressed || minDistance < DIST_THRESHOLD) {
-        return closestPointIndex;
+    qDebug() << "minDistance: " << minDistance << " closestPointIndex: " << closestPointIndex << " best_id: " << best_id.c_str();
+    if (selectGlobally || ((rightClick || shiftKeyPressed) && minDistance < 100.0*DIST_THRESHOLD) || minDistance < DIST_THRESHOLD) {
+        qDebug() << "returning closestPointIndex: " << closestPointIndex << " best_id: " << best_id.c_str();
+        return std::make_pair(closestPointIndex, best_id);
     } else {
-        return -1; // To-Do: Change this -1 to a constant
+        qDebug() << "returning -1";
+        return std::make_pair(-1, "");
     }
 }
 
 // Draw intersection curve on the slice
 void CVolumeViewerWithCurve::DrawIntersectionCurve(QGraphicsScene* scene) {
-    if (fIntersectionCurveRef != nullptr) {
+    for (auto& seg : fSegStructMapRef) {
+        auto& segStruct = seg.second;
         int r{0}, g{0}, b{0};
         colorSelector->color().getRgb(&r, &g, &b);
-        if (!scene || fIntersectionCurveRef->GetPointsNum()==0 || !colorSelector) {
-            return;  // Early exit if either object is null or the list is empty
+        if (!scene || !segStruct.display || segStruct.fIntersectionCurve.GetPointsNum()==0 || !colorSelector) {
+            qDebug() << "DrawIntersectionCurve: early exit. Scene " << scene << " segStruct.display " << segStruct.display << " segStruct.fIntersectionCurve.GetPointsNum() " << segStruct.fIntersectionCurve.GetPointsNum() << " colorSelector " << colorSelector;
+            qDebug() << "segStruct id " << segStruct.fSegmentationId.c_str();
+            continue;  // Early continue if either object is null or the list is empty
         }
-
-        int pointsNum = fIntersectionCurveRef->GetPointsNum();
+        qDebug() << "Drawing segStruct id " << segStruct.fSegmentationId.c_str() << " with num points " << segStruct.fIntersectionCurve.GetPointsNum();
+        int pointsNum = segStruct.fIntersectionCurve.GetPointsNum();
 
         for (int i = 0; i < pointsNum; ++i) {
-            // Create and store new ellipse if the number of points increased
-            auto p0 = fIntersectionCurveRef->GetPoint(i)[0] - 0.5;
-            auto p1 = fIntersectionCurveRef->GetPoint(i)[1] - 0.5;
+            // Create new ellipse points
+            auto p0 = segStruct.fIntersectionCurve.GetPoint(i)[0] - 0.5;
+            auto p1 = segStruct.fIntersectionCurve.GetPoint(i)[1] - 0.5;
             QGraphicsEllipseItem* newEllipse = scene->addEllipse(p0, p1, 2, 2, QPen(QColor(r, g, b)), QBrush(QColor(r, g, b)));
             newEllipse->setVisible(true);
         }
@@ -489,7 +503,7 @@ void CVolumeViewerWithCurve::DrawControlPoints(QGraphicsScene* scene) {
     int pointsNum = fControlPoints.size();
 
     for (int i = 0; i < pointsNum; ++i) {
-        // Create and store new ellipse if the number of points increased
+        // Create new ellipse points
         auto p0 = fControlPoints[i][0] - 0.5;
         auto p1 = fControlPoints[i][1] - 0.5;
         QGraphicsEllipseItem* newEllipse = scene->addEllipse(p0, p1, 2, 2, QPen(QColor(r, g, b)), QBrush(QColor(r, g, b)));

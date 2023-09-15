@@ -16,6 +16,7 @@
 #include "CXCurve.hpp"
 #include "MathUtils.hpp"
 #include "ui_VCMain.h"
+#include "SegmentationStruct.hpp"
 
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/segmentation/ChainSegmentationAlgorithm.hpp"
@@ -25,6 +26,9 @@
 #include <atomic>
 #include <SDL2/SDL.h>
 #include <cmath>
+#include <queue>
+#include <unordered_map>
+
 
 // Volpkg version required by this app
 static constexpr int VOLPKG_SUPPORTED_VERSION = 6;
@@ -130,6 +134,9 @@ private:
 
     void SetPathPointCloud(void);
 
+    void queueSegmentation(std::string segmentationId, Segmenter::Pointer s);
+    void executeNextSegmentation();
+
     void OpenVolume(void);
     void CloseVolume(void);
 
@@ -192,6 +199,8 @@ private:
     static const int AMPLITUDE = 28000;
     static const int FREQUENCY = 44100;
 
+    SegmentationStruct fSegStruct;
+    std::unordered_map<std::string, SegmentationStruct> fSegStructMap;
     int fMinSegIndex;
     int fMaxSegIndex;
     int fPathOnSliceIndex;
@@ -208,6 +217,8 @@ private:
     //    ... }
 
     SSegParams fSegParams;
+    std::queue<std::pair<std::string, Segmenter::Pointer>> segmentationQueue;
+    std::string submittedSegmentationId;
 
     volcart::OrderedPointSet<cv::Vec3d> fMasterCloud;
     volcart::OrderedPointSet<cv::Vec3d> fUpperPart;

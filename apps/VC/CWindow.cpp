@@ -88,6 +88,7 @@ CWindow::CWindow()
     , fSegTool(nullptr)
     , stopPrefetching(false)
     ,  prefetchSliceIndex(-1)
+    , fSegStruct()
 {
 
     ui.setupUi(this);
@@ -173,7 +174,7 @@ void CWindow::CreateWidgets(void)
     QWidget* aTabSegment = this->findChild<QWidget*>("tabSegment");
     assert(aTabSegment != nullptr);
 
-    fVolumeViewerWidget = new CVolumeViewerWithCurve();
+    fVolumeViewerWidget = new CVolumeViewerWithCurve(fSegStructMap);
 
     QVBoxLayout* aWidgetLayout = new QVBoxLayout;
     aWidgetLayout->addWidget(fVolumeViewerWidget);
@@ -182,7 +183,7 @@ void CWindow::CreateWidgets(void)
 
     // pass the reference of the curve to the widget
     fVolumeViewerWidget->SetSplineCurve(fSplineCurve);
-    fVolumeViewerWidget->SetIntersectionCurve(fIntersectionCurve);
+    fVolumeViewerWidget->SetIntersectionCurve(fSegStructMap[fSegmentationId].fIntersectionCurve);
 
     connect(
         fVolumeViewerWidget, SIGNAL(SendSignalOnNextClicked()), this,
@@ -204,6 +205,7 @@ void CWindow::CreateWidgets(void)
     aBtnRemovePath->setEnabled(false);
     connect(aBtnNewPath, SIGNAL(clicked()), this, SLOT(OnNewPathClicked()));
 
+    // TODO CHANGE VOLUME LOADING; FIRST CHECK FOR OTHER VOLUMES IN THE STRUCTS
     volSelect = this->findChild<QComboBox*>("volSelect");
     connect(
         volSelect, &QComboBox::currentTextChanged, [this](const QString& text) {
@@ -221,10 +223,10 @@ void CWindow::CreateWidgets(void)
 
     assignVol = this->findChild<QPushButton*>("assignVol");
     connect(assignVol, &QPushButton::clicked, [this](bool) {
-        if (fSegmentation == nullptr || fSegmentation->hasVolumeID()) {
+        if (fSegStructMap[fSegmentationId].fSegmentation == nullptr || fSegStructMap[fSegmentationId].fSegmentation->hasVolumeID()) {
             return;
         }
-        fSegmentation->setVolumeID(currentVolume->id());
+        fSegStructMap[fSegmentationId].fSegmentation->setVolumeID(currentVolume->id());
         UpdateView();
     });
 
@@ -249,7 +251,6 @@ void CWindow::CreateWidgets(void)
     connect(
         aSegMethodsComboBox, SIGNAL(currentIndexChanged(int)), this,
         SLOT(OnChangeSegAlgo(int)));
-
 
     // ADD NEW SEGMENTATION ALGORITHM NAMES HERE
     // aSegMethodsComboBox->addItem(tr("My custom algorithm"));
@@ -333,6 +334,9 @@ void CWindow::CreateWidgets(void)
     opticalFlowParamsLayout->addWidget(edtCacheSize);
 
     this->ui.segParamsStack->addWidget(opticalFlowParamsContainer);
+    // set the default segmentation method as Optical Flow Segmentation
+    aSegMethodsComboBox->setCurrentIndex(1);
+    OnChangeSegAlgo(1);
 
     // LRPS segmentation parameters
     // all of these are contained in this->ui.lrpsParams
@@ -677,8 +681,21 @@ void CWindow::UpdateView(void)
             QString::number(fPathOnSliceIndex + fEndTargetOffset));
     }
 
-    fSegTool->setEnabled(fIntersectionCurve.GetPointsNum() > 0);
-    fPenTool->setEnabled(!fSegmentationId.empty() && fMasterCloud.empty());
+    // Logic to enable/disable segmentation and pen tools. TODO add logic to check propper segmentations
+    bool availableSegments = false;
+    bool availableNewSegments = false;
+    for (auto& seg : fSegStructMap) {
+        auto& segStruct = seg.second;
+        if (!segStruct.display && !segStruct.compute) {
+            continue;
+        }
+        // segments with already existing line
+        availableSegments = availableSegments || segStruct.fIntersectionCurve.GetPointsNum() > 0;
+        // completely empty segments, for drawing curve
+        availableNewSegments = availableNewSegments || (!segStruct.fSegmentationId.empty() && segStruct.fMasterCloud.empty());
+    }
+    fSegTool->setEnabled(!availableNewSegments && availableSegments);
+    fPenTool->setEnabled(availableNewSegments);
 
     volSelect->setEnabled(can_change_volume_());
     assignVol->setEnabled(can_change_volume_());
@@ -714,47 +731,41 @@ void CWindow::UpdateView(void)
 // Reset point cloud
 void CWindow::ResetPointCloud(void)
 {
-    fMasterCloud.reset();
-    fUpperPart.reset();
-    fStartingPath.clear();
-    fIntersections.clear();
-    CXCurve emptyCurve;
-    fIntersectionCurve = emptyCurve;
+    for (auto& seg : fSegStructMap) {
+        auto& segStruct = seg.second;
+        segStruct.ResetPointCloud();
+    }
 }
 
 // Activate a specific segmentation by ID
 void CWindow::ChangePathItem(std::string segID)
 {
     statusBar->clearMessage();
-
-    // Close the current segmentation
-    ResetPointCloud();
-
-    // Activate requested segmentation
     fSegmentationId = segID;
-    fSegmentation = fVpkg->segmentation(fSegmentationId);
 
-    // load proper point cloud
-    if (fSegmentation->hasPointSet()) {
-        fMasterCloud = fSegmentation->getPointSet();
-    } else {
-        fMasterCloud.reset();
+    // write new Segment to fSegStructMap
+    fSegStructMap[fSegmentationId] = SegmentationStruct(fVpkg, segID, fPathOnSliceIndex);
+
+    if (fSegStructMap[fSegmentationId].currentVolume != nullptr && fSegStructMap[fSegmentationId].fSegmentation->hasVolumeID()) {
+        currentVolume = fSegStructMap[fSegmentationId].currentVolume;
     }
 
-    if (fSegmentation->hasVolumeID()) {
-        currentVolume = fVpkg->volume(fSegmentation->getVolumeID());
-        volSelect->setCurrentText(
-            QString::fromStdString(fSegmentation->getVolumeID()));
+    // Only change slices if no other segmentations are being displayed
+    bool setPathIndex = true;
+    for (auto& seg : fSegStructMap) {
+        auto& segStruct = seg.second;
+        if (segStruct.display || segStruct.compute) {
+            setPathIndex = false;
+            break;
+        }
+    }
+    if (setPathIndex) {
+        fPathOnSliceIndex = fSegStructMap[fSegmentationId].fPathOnSliceIndex;
     }
 
-    SetUpCurves();
-
-    // Move us to the lowest slice index for the cloud
-    fPathOnSliceIndex = fMinSegIndex;
-    OpenSlice();
+    OpenSlice(); // TODO WHEN SWITCHING TO fSegStructMap: Handle display and slice still here
     SetCurrentCurve(fPathOnSliceIndex);
-
-    UpdateView();
+    UpdateView(); // TODO WHEN SWITCHING TO fSegStructMap: Handle display and slice still here
 }
 
 // Deactivate a specific segmentation by ID. TODO: finish implementation?
@@ -766,34 +777,10 @@ void CWindow::RemovePathItem(std::string segID)
 // Split fMasterCloud into fUpperCloud and fLowerCloud
 void CWindow::SplitCloud(void)
 {
-    // Convert volume z-index to PointSet index
-    auto pathIndex = fPathOnSliceIndex - fMinSegIndex;
-
-    // Upper, "immutable" part
-    if (fPathOnSliceIndex > fMinSegIndex) {
-        fUpperPart = fMasterCloud.copyRows(0, pathIndex);
-    } else {
-        fUpperPart = vc::OrderedPointSet<cv::Vec3d>(fMasterCloud.width());
-    }
-
-    // Lower part, the starting path
-    fStartingPath = fMasterCloud.getRow(pathIndex);
-
-    // Remove silly -1 points if they exist
-    fStartingPath.erase(
-        std::remove_if(
-            std::begin(fStartingPath), std::end(fStartingPath),
-            [](auto e) { return e[2] == -1; }),
-        std::end(fStartingPath));
-
-    // Make sure the sizes match now
-    if (fStartingPath.size() != fMasterCloud.width()) {
-        QMessageBox::information(
-            this, tr("Error"),
-            tr("Starting chain length has null points. Try segmenting from an "
-               "earlier slice."));
-        CleanupSegmentation();
-        return;
+    for (auto& seg : fSegStructMap) {
+        auto& segStruct = seg.second;
+        segStruct.SetPathOnSliceIndex(fPathOnSliceIndex);
+        segStruct.SplitCloud();
     }
 }
 
@@ -809,56 +796,93 @@ void CWindow::DoSegmentation(void)
         return;
     }
 
+
     // Setup LRPS
     auto segIdx = this->ui.cmbSegMethods->currentIndex();
-    Segmenter::Pointer segmenter;
-    if (segIdx == 0) {
-        auto lrps = vcs::LocalResliceSegmentation::New();
-        lrps->setMaterialThickness(fVpkg->materialThickness());
-        lrps->setTargetZIndex(fSegParams.targetIndex);
-        lrps->setOptimizationIterations(fSegParams.fNumIters);
-        lrps->setResliceSize(fSegParams.fWindowWidth);
-        lrps->setAlpha(fSegParams.fAlpha);
-        lrps->setK1(fSegParams.fK1);
-        lrps->setK2(fSegParams.fK2);
-        lrps->setBeta(fSegParams.fBeta);
-        lrps->setDelta(fSegParams.fDelta);
-        lrps->setDistanceWeightFactor(fSegParams.fPeakDistanceWeight);
-        lrps->setConsiderPrevious(fSegParams.fIncludeMiddle);
-        segmenter = lrps;
-    }
-    if (segIdx == 1) {
-        auto ofsc = vcs::OpticalFlowSegmentationClass::New();
-        ofsc->setMaterialThickness(fVpkg->materialThickness());
-        ofsc->setTargetZIndex(fSegParams.targetIndex);
-        ofsc->setOptimizationIterations(fSegParams.fNumIters);
-        ofsc->setOutsideThreshold(fSegParams.outside_threshold);
-        ofsc->setOFThreshold(fSegParams.optical_flow_pixel_threshold);
-        ofsc->setOFDispThreshold(fSegParams.optical_flow_displacement_threshold);
-        ofsc->setLineSmoothenByBrightness(fSegParams.smoothen_by_brightness);
-        ofsc->setEdgeJumpDistance(fSegParams.edge_jump_distance);
-        ofsc->setEdgeBounceDistance(fSegParams.edge_bounce_distance);
-        ofsc->setEnableSmoothenOutlier(fSegParams.enable_smoothen_outlier);
-        ofsc->setEnableEdge(fSegParams.enable_edge);
-        ofsc->setPurgeCache(fSegParams.purge_cache);
-        ofsc->setCacheSlices(fSegParams.cache_slices);
-        ofsc->setOrderedPointSet(fMasterCloud);
-        ofsc->setBackwardsInterpolationWindow(fSegParams.backwards_smoothnes_interpolation_window);
-        ofsc->setBackwardsLength(fSegParams.backwards_length);
-        segmenter = ofsc;
-    }
-    // ADD OTHER SEGMENTER SETUP HERE. MATCH THE IDX TO THE IDX IN THE
-    // DROPDOWN LIST
 
-    // set common parameters
-    segmenter->setChain(fStartingPath);
-    segmenter->setVolume(currentVolume);
+    for (auto& seg : fSegStructMap) {
+        auto& segStruct = seg.second;
+        auto& segID = seg.first;
 
-    // setup
-    submitSegmentation(segmenter);
-    setWidgetsEnabled(false);
-    worker_progress_.show();
-    worker_progress_updater_.start();
+        // if the segmentation is not being computed, skip it
+        if (!segStruct.display || !segStruct.compute) {
+            continue;
+        }
+
+        Segmenter::Pointer segmenter;
+        if (segIdx == 0) {
+            auto lrps = vcs::LocalResliceSegmentation::New();
+            lrps->setMaterialThickness(fVpkg->materialThickness());
+            lrps->setTargetZIndex(fSegParams.targetIndex);
+            lrps->setOptimizationIterations(fSegParams.fNumIters);
+            lrps->setResliceSize(fSegParams.fWindowWidth);
+            lrps->setAlpha(fSegParams.fAlpha);
+            lrps->setK1(fSegParams.fK1);
+            lrps->setK2(fSegParams.fK2);
+            lrps->setBeta(fSegParams.fBeta);
+            lrps->setDelta(fSegParams.fDelta);
+            lrps->setDistanceWeightFactor(fSegParams.fPeakDistanceWeight);
+            lrps->setConsiderPrevious(fSegParams.fIncludeMiddle);
+            segmenter = lrps;
+        }
+        if (segIdx == 1) {
+            auto ofsc = vcs::OpticalFlowSegmentationClass::New();
+            ofsc->setMaterialThickness(fVpkg->materialThickness());
+            ofsc->setTargetZIndex(fSegParams.targetIndex);
+            ofsc->setOptimizationIterations(fSegParams.fNumIters);
+            ofsc->setOutsideThreshold(fSegParams.outside_threshold);
+            ofsc->setOFThreshold(fSegParams.optical_flow_pixel_threshold);
+            ofsc->setOFDispThreshold(fSegParams.optical_flow_displacement_threshold);
+            ofsc->setLineSmoothenByBrightness(fSegParams.smoothen_by_brightness);
+            ofsc->setEdgeJumpDistance(fSegParams.edge_jump_distance);
+            ofsc->setEdgeBounceDistance(fSegParams.edge_bounce_distance);
+            ofsc->setEnableSmoothenOutlier(fSegParams.enable_smoothen_outlier);
+            ofsc->setEnableEdge(fSegParams.enable_edge);
+            ofsc->setPurgeCache(fSegParams.purge_cache);
+            ofsc->setCacheSlices(fSegParams.cache_slices);
+            ofsc->setOrderedPointSet(fSegStructMap[segID].fMasterCloud);
+            ofsc->setBackwardsInterpolationWindow(fSegParams.backwards_smoothnes_interpolation_window);
+            ofsc->setBackwardsLength(fSegParams.backwards_length);
+            segmenter = ofsc;
+        }
+        // ADD OTHER SEGMENTER SETUP HERE. MATCH THE IDX TO THE IDX IN THE
+        // DROPDOWN LIST
+
+        // set common parameters
+        segmenter->setChain(fSegStructMap[segID].fStartingPath);
+        segmenter->setVolume(currentVolume);
+        // Que Segmentation for execution
+        queueSegmentation(segID, segmenter);
+    }
+
+    // Start
+    executeNextSegmentation();
+}
+
+void CWindow::queueSegmentation(std::string segmentationId, Segmenter::Pointer s)
+{
+    segmentationQueue.push(std::make_pair(segmentationId, s));
+}
+
+void CWindow::executeNextSegmentation()
+{
+    if (!segmentationQueue.empty()) {
+        auto[segmentId, nextSegmenter]  = segmentationQueue.front();
+        submittedSegmentationId = segmentId;
+        segmentationQueue.pop();
+        submitSegmentation(nextSegmenter);
+        setWidgetsEnabled(false);
+        worker_progress_.show();
+        worker_progress_updater_.start();
+    }
+    else {
+        setWidgetsEnabled(true);
+        // set display to target layer
+        fPathOnSliceIndex = fSegParams.targetIndex;
+        CleanupSegmentation();
+        UpdateView();
+        playPing();
+    }
 }
 
 void CWindow::audio_callback(void *user_data, Uint8 *raw_buffer, int bytes) {
@@ -906,45 +930,41 @@ void CWindow::playPing() {
 
 void CWindow::onSegmentationFinished(Segmenter::PointSet ps)
 {
-    setWidgetsEnabled(true);
     worker_progress_updater_.stop();
     worker_progress_.close();
     // 3) concatenate the two parts to form the complete point cloud
     // find starting location in fMasterCloud
     int i;
-    for (i= 0; i < fMasterCloud.height(); i++) {
-        auto masterRowI = fMasterCloud.getRow(i);
-        if (ps[0][2] <= masterRowI[fUpperPart.width()-1][2]){
+    for (i= 0; i < fSegStructMap[submittedSegmentationId].fMasterCloud.height(); i++) {
+        auto masterRowI = fSegStructMap[submittedSegmentationId].fMasterCloud.getRow(i);
+        if (ps[0][2] <= masterRowI[fSegStructMap[submittedSegmentationId].fUpperPart.width()-1][2]){
             break;
         }
     }
 
     // remove the duplicated point and ps in their stead. if i at the end, no duplicated point, just append
-    fUpperPart = fMasterCloud.copyRows(0, i);
-    fUpperPart.append(ps);
+    fSegStructMap[submittedSegmentationId].fUpperPart = fSegStructMap[submittedSegmentationId].fMasterCloud.copyRows(0, i);
+    fSegStructMap[submittedSegmentationId].fUpperPart.append(ps);
 
     // check if remaining rows already exist in fMasterCloud behind ps
-    for(; i < fMasterCloud.height(); i++) {
-        auto masterRowI = fMasterCloud.getRow(i);
-        if (ps[ps.size() - 1][2] < masterRowI[fUpperPart.width()-1][2]) {
+    for(; i < fSegStructMap[submittedSegmentationId].fMasterCloud.height(); i++) {
+        auto masterRowI = fSegStructMap[submittedSegmentationId].fMasterCloud.getRow(i);
+        if (ps[ps.size() - 1][2] < masterRowI[fSegStructMap[submittedSegmentationId].fUpperPart.width()-1][2]) {
             break;
         }
     }
     // add the remaining rows
-    if (i < fMasterCloud.height()) {
-        fUpperPart.append(fMasterCloud.copyRows(i, fMasterCloud.height()));
+    if (i < fSegStructMap[submittedSegmentationId].fMasterCloud.height()) {
+        fSegStructMap[submittedSegmentationId].fUpperPart.append(fSegStructMap[submittedSegmentationId].fMasterCloud.copyRows(i, fSegStructMap[submittedSegmentationId].fMasterCloud.height()));
     }
 
-    fMasterCloud = fUpperPart;
+    fSegStructMap[submittedSegmentationId].fMasterCloud = fSegStructMap[submittedSegmentationId].fUpperPart;
 
     statusBar->showMessage(tr("Segmentation complete"));
     fVpkgChanged = true;
-
-    // set display to target layer
-    fPathOnSliceIndex = fSegParams.targetIndex;
-    CleanupSegmentation();
-    UpdateView();
-    playPing();
+    
+    // Execute the next segmentation
+    executeNextSegmentation();
 }
 
 void CWindow::onSegmentationFailed(std::string s)
@@ -954,11 +974,14 @@ void CWindow::onSegmentationFailed(std::string s)
     QMessageBox::critical(
         this, tr("VC"), QString::fromStdString("Segmentation failed:\n\n" + s));
 
-    setWidgetsEnabled(true);
-    worker_progress_updater_.stop();
-    worker_progress_.close();
-    CleanupSegmentation();
-    UpdateView();
+    // Execute the next segmentation
+    executeNextSegmentation();
+
+    // setWidgetsEnabled(true);
+    // worker_progress_updater_.stop();
+    // worker_progress_.close();
+    // CleanupSegmentation();
+    // UpdateView();
 }
 
 void CWindow::CleanupSegmentation(void)
@@ -1036,48 +1059,24 @@ bool CWindow::SetUpSegParams(void)
 // Get the curves for all the slices
 void CWindow::SetUpCurves(void)
 {
-    if (fVpkg == nullptr || fMasterCloud.empty()) {
-        statusBar->showMessage(tr("Selected point cloud is empty"));
-        vc::Logger()->warn("Segmentation point cloud is empty");
-        return;
-    }
-    fIntersections.clear();
-    int minIndex, maxIndex;
-    if (fMasterCloud.empty()) {
-        minIndex = maxIndex = fPathOnSliceIndex;
-    } else {
-        minIndex = static_cast<int>(floor(fMasterCloud[0][2]));
-        maxIndex = static_cast<int>(floor(fMasterCloud.max()[2]));
-    }
-
-    fMinSegIndex = minIndex;
-    fMaxSegIndex = maxIndex;
-
-    // assign rows of particles to the curves
-    for (size_t i = 0; i < fMasterCloud.height(); ++i) {
-        CXCurve aCurve;
-        for (size_t j = 0; j < fMasterCloud.width(); ++j) {
-            int pointIndex = j + (i * fMasterCloud.width());
-            aCurve.SetSliceIndex(
-                static_cast<int>(floor(fMasterCloud[pointIndex][2])));
-            aCurve.InsertPoint(Vec2<double>(
-                fMasterCloud[pointIndex][0], fMasterCloud[pointIndex][1]));
-        }
-        fIntersections.push_back(aCurve);
+    // if (fVpkg == nullptr || fSegStructMap[fSegmentationId].fMasterCloud.empty()) {
+    //     statusBar->showMessage(tr("Selected point cloud is empty"));
+    //     vc::Logger()->warn("Segmentation point cloud is empty");
+    //     return;
+    // }
+    for (auto& seg : fSegStructMap) {
+        auto& segStruct = seg.second;
+        segStruct.SetUpCurves();
     }
 }
 
 // Set the current curve
 void CWindow::SetCurrentCurve(int nCurrentSliceIndex)
 {
-    int curveIndex = nCurrentSliceIndex - fMinSegIndex;
-    if (curveIndex >= 0 &&
-        curveIndex < static_cast<int>(fIntersections.size()) &&
-        fIntersections.size() != 0) {
-        fIntersectionCurve = fIntersections[curveIndex];
-    } else {
-        CXCurve emptyCurve;
-        fIntersectionCurve = emptyCurve;
+    qDebug() << "SetCurrentCurve: " << nCurrentSliceIndex;
+    for (auto& seg : fSegStructMap) {
+        auto& segStruct = seg.second;
+        segStruct.SetCurrentCurve(nCurrentSliceIndex);
     }
 }
 
@@ -1198,15 +1197,15 @@ void CWindow::SetPathPointCloud(void)
     vc::Logger()->warn("Removed {} duplicate points", numPts - uniquePts);
 
     // setup a new master cloud
-    fMasterCloud.setWidth(aSamplePts.size());
+    fSegStructMap[fSegmentationId].fMasterCloud.setWidth(aSamplePts.size());
     std::vector<cv::Vec3d> points;
     for (const auto& pt : aSamplePts) {
         points.emplace_back(pt[0], pt[1], fPathOnSliceIndex);
     }
-    fMasterCloud.pushRow(points);
+    fSegStructMap[fSegmentationId].fMasterCloud.pushRow(points);
 
-    fMinSegIndex = static_cast<int>(floor(fMasterCloud[0][2]));
-    fMaxSegIndex = fMinSegIndex;
+    fSegStructMap[fSegmentationId].fMinSegIndex = static_cast<int>(floor(fSegStructMap[fSegmentationId].fMasterCloud[0][2]));
+    fSegStructMap[fSegmentationId].fMaxSegIndex = fSegStructMap[fSegmentationId].fMinSegIndex;
 }
 
 // Open volume package
@@ -1316,23 +1315,32 @@ void CWindow::About(void)
 // Save point cloud to path directory
 void CWindow::SavePointCloud()
 {
-    if (fMasterCloud.empty()) {
-        vc::Logger()->debug("Empty point cloud. Nothing to save.");
-        return;
+    int count = 0;
+    int total = 0;
+    for (auto& seg : fSegStructMap) {
+        total++;
+        auto& segStruct = seg.second;
+        if (segStruct.fMasterCloud.empty() || segStruct.fSegmentationId.empty()) {
+            qDebug() << "Empty cloud or segmentation ID to save for id " << segStruct.fSegmentationId.c_str();
+            continue;
+        }
+        // Try to save cloud to volpkg
+        try {
+            segStruct.fSegmentation->setPointSet(segStruct.fMasterCloud);
+            segStruct.fSegmentation->setVolumeID(currentVolume->id());
+        } catch (std::exception& e) {
+            QMessageBox::warning(
+                this, "Error", "Failed to write cloud to volume package.");
+            qDebug() << "Exception in save for id " << segStruct.fSegmentationId.c_str();
+            continue;
+        }
+        count++;
     }
 
-    // Try to save cloud to volpkg
-    try {
-        fSegmentation->setPointSet(fMasterCloud);
-        fSegmentation->setVolumeID(currentVolume->id());
-    } catch (std::exception& e) {
-        QMessageBox::warning(
-            this, "Error", "Failed to write cloud to volume package.");
-        return;
-    }
-
-    statusBar->showMessage(tr("Volume Package saved."), 5000);
-    vc::Logger()->info("Volume Package saved");
+    std::string saveMessage = "Saved " + std::to_string(count) + " Volume Package(s) of " + std::to_string(total) + ".";
+    const char* saveMessageChar = saveMessage.c_str();
+    statusBar->showMessage(tr(saveMessageChar), 5000);
+    vc::Logger()->info(saveMessageChar);
     fVpkgChanged = false;
 }
 
@@ -1354,9 +1362,6 @@ void CWindow::OnNewPathClicked(void)
     newItem->setCheckState(1, Qt::Unchecked);
     newItem->setCheckState(2, Qt::Unchecked);
 
-    // Make sure we stay on the current slice
-    fMinSegIndex = fPathOnSliceIndex;
-
     // Activate the new item
     fPathListWidget->setCurrentItem(newItem);
     newItem->setCheckState(1, Qt::Checked); // Creating new curve
@@ -1366,6 +1371,7 @@ void CWindow::OnNewPathClicked(void)
 // Handle path item click event
 void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
 {
+    std::string aSegID = item->text(0).toStdString();
     qDebug() << "Item clicked: " << item->text(0) << " Column: " << column;
     // If the first checkbox (in column 1) is clicked
     if (column == 1) // Display
@@ -1385,16 +1391,18 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
                 
                 // Uncheck the checkbox
                 item->setCheckState(column, Qt::Unchecked);
-                
-                return;
             }
-            
-            ChangePathItem(item->text(0).toStdString());
+            qDebug() << "Display " << aSegID.c_str();
+            ChangePathItem(aSegID);
+            qDebug() << "Display " << aSegID.c_str() << " set display true.";
+            fSegStructMap[aSegID].display = true;
         }
         else
         {
             // Also Uncheck the second checkbox (Compute). Never Compute without displaying the Curve.
             item->setCheckState(2, Qt::Unchecked);
+            fSegStructMap[aSegID].display = false;
+            fSegStructMap[aSegID].compute = false;
         }
     }
     // If the second checkbox (in column 2) is clicked
@@ -1405,8 +1413,66 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
             // Only compute if the first checkbox (Display) is checked, so check it too
             // Check the first checkbox
             item->setCheckState(1, Qt::Checked);
+            fSegStructMap[aSegID].display = true;
+            fSegStructMap[aSegID].compute = true;
+        }
+        else {
+            fSegStructMap[aSegID].compute = false;
         }
     }
+
+    if (fSegStructMap[aSegID].display || fSegStructMap[aSegID].compute) {
+        // Disable all other new and empty Segmentations if new Segmentation created
+        if (!fSegStructMap[aSegID].fSegmentationId.empty() && fSegStructMap[aSegID].fMasterCloud.empty()) {
+            qDebug() << "Disable all other new and empty Segmentations";
+            for(auto& seg : fSegStructMap) {
+                if (seg.second.fSegmentationId != aSegID && !seg.second.fSegmentationId.empty() && seg.second.fMasterCloud.empty()) {
+                    seg.second.display = false;
+                    seg.second.compute = false;
+                    // uncheck the checkbox
+                    QList<QTreeWidgetItem*> previousItems = fPathListWidget->findItems(
+                        QString(seg.first.c_str()), Qt::MatchExactly, 0);
+                    if (!previousItems.isEmpty())
+                    {
+                        previousItems[0]->setCheckState(1, Qt::Unchecked);
+                        previousItems[0]->setCheckState(2, Qt::Unchecked);
+                    }
+                }
+            }
+        }
+
+        // Disable all empty Segmentations if Segmentation with point cloud is enabled
+        if (!fSegStructMap[aSegID].fSegmentationId.empty() && !fSegStructMap[aSegID].fMasterCloud.empty()) {
+            qDebug() << "Disable all pen Segmentations";
+            for(auto& seg : fSegStructMap) {
+                if (!seg.second.fSegmentationId.empty() && seg.second.fSegmentationId != aSegID && seg.second.fMasterCloud.empty()) {
+                    qDebug() << "Disable " << seg.first.c_str() << " id " << seg.second.fSegmentationId.c_str() << " with current id segment clicked: " << aSegID.c_str();
+                    seg.second.display = false;
+                    seg.second.compute = false;
+                    // uncheck the checkbox
+                    QList<QTreeWidgetItem*> previousItems = fPathListWidget->findItems(
+                        QString(seg.first.c_str()), Qt::MatchExactly, 0);
+                    if (!previousItems.isEmpty())
+                    {
+                        previousItems[0]->setCheckState(1, Qt::Unchecked);
+                        previousItems[0]->setCheckState(2, Qt::Unchecked);
+                    }
+                }
+            }
+        }
+    }
+
+    // Delete completely disabled Segmentations from fSegStructMap
+    auto it = fSegStructMap.begin();
+    while (it != fSegStructMap.end()) {
+        if (!it->second.display && !it->second.compute) {
+            it = fSegStructMap.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
+    UpdateView();
 }
 
 // Toggle the status of the pen tool
@@ -1685,21 +1751,31 @@ void CWindow::OnLoadPrevSliceShift(int shift)
 void CWindow::OnPathChanged(void)
 {
     if (fWindowState == EWindowState::WindowStateSegmentation) {
-        // update current slice
-        fStartingPath.clear();
-        cv::Vec3d tempPt;
-        for (size_t i = 0; i < fIntersectionCurve.GetPointsNum(); ++i) {
-            tempPt[0] = fIntersectionCurve.GetPoint(i)[0];
-            tempPt[1] = fIntersectionCurve.GetPoint(i)[1];
-            tempPt[2] = fPathOnSliceIndex;
-            fStartingPath.push_back(tempPt);
+        for (auto& seg : fSegStructMap) {
+            auto& segStruct = seg.second;
+            // update current slice
+            segStruct.fStartingPath.clear();
+            cv::Vec3d tempPt;
+            for (size_t i = 0; i < segStruct.fIntersectionCurve.GetPointsNum(); ++i) {
+                tempPt[0] = segStruct.fIntersectionCurve.GetPoint(i)[0];
+                tempPt[1] = segStruct.fIntersectionCurve.GetPoint(i)[1];
+                tempPt[2] = fPathOnSliceIndex;
+                segStruct.fStartingPath.push_back(tempPt);
+            }
         }
     }
 }
 
 bool CWindow::can_change_volume_()
 {
-    return fVpkg != nullptr && fVpkg->numberOfVolumes() > 1 &&
-           (fSegmentation == nullptr || !fSegmentation->hasPointSet() ||
-            !fSegmentation->hasVolumeID());
+    // return fVpkg != nullptr && fVpkg->numberOfVolumes() > 1 &&
+    //        (fSegStructMap[fSegmentationId].fSegmentation == nullptr || !fSegStructMap[fSegmentationId].fSegmentation->hasPointSet() ||
+    //         !fSegStructMap[fSegmentationId].fSegmentation->hasVolumeID());
+
+    bool canChange = fVpkg != nullptr && fVpkg->numberOfVolumes() > 1;
+    for (auto& seg : fSegStructMap) {
+            auto& segStruct = seg.second;
+            canChange = canChange && (segStruct.fSegmentation == nullptr || !segStruct.fSegmentation->hasPointSet() || !segStruct.fSegmentation->hasVolumeID());
+    }
+    return canChange;
 }

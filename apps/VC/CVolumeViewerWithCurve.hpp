@@ -9,6 +9,7 @@
 #include "CVolumeViewer.hpp"
 #include "CXCurve.hpp"
 #include "ColorFrame.hpp"
+#include "SegmentationStruct.hpp"
 
 #include <QList>
 #include <QGraphicsEllipseItem>
@@ -35,7 +36,7 @@ public:
     };  // idle mode
 
 public:
-    CVolumeViewerWithCurve();
+    CVolumeViewerWithCurve(std::unordered_map<std::string, SegmentationStruct>& nSegStructMapRef);
     ~CVolumeViewerWithCurve();
 
     virtual void SetImage(const QImage& nSrc);
@@ -73,7 +74,7 @@ private slots:
 private:
     void WidgetLoc2ImgLoc(const cv::Vec2f& nWidgetLoc, cv::Vec2f& nImgLoc);
 
-    int SelectPointOnCurve(const CXCurve* nCurve, const cv::Vec2f& nPt, bool rightClick);
+    std::pair<int, std::string> SelectPointOnCurves(const cv::Vec2f& nPt, bool rightClick, bool selectGlobally=false);
 
     void DrawIntersectionCurve(QGraphicsScene* scene);
     void DrawControlPoints(QGraphicsScene* scene);
@@ -95,12 +96,14 @@ private:
     QCheckBox* fHistEqBox;
     bool showCurve;
     bool histEq;
+    std::unordered_map<std::string, SegmentationStruct>& fSegStructMapRef;
     CBSpline* fSplineCurveRef;
     std::vector<cv::Vec2f> fControlPoints;
 
     // for editing
     CXCurve* fIntersectionCurveRef;
     int fSelectedPointIndex;
+    std::string fSelectedSegID;
 
     bool fVertexIsChanged;
     bool fIsMousePressed{false};
