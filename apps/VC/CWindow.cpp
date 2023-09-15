@@ -799,7 +799,8 @@ void CWindow::DoSegmentation(void)
 
     // Setup LRPS
     auto segIdx = this->ui.cmbSegMethods->currentIndex();
-
+    // Reminder to activate the segments for computation
+    bool segmentedSomething = false;
     for (auto& seg : fSegStructMap) {
         auto& segStruct = seg.second;
         auto& segID = seg.first;
@@ -808,6 +809,8 @@ void CWindow::DoSegmentation(void)
         if (!segStruct.display || !segStruct.compute) {
             continue;
         }
+
+        segmentedSomething = true;
 
         Segmenter::Pointer segmenter;
         if (segIdx == 0) {
@@ -853,6 +856,12 @@ void CWindow::DoSegmentation(void)
         segmenter->setVolume(currentVolume);
         // Que Segmentation for execution
         queueSegmentation(segID, segmenter);
+    }
+
+    if (!segmentedSomething) {
+        QMessageBox::warning(
+            this, "Warning", "No Segments for computation specified! Please activate segments for computation in the segment manager.");
+        segmentationQueue = std::queue<std::pair<std::string, Segmenter::Pointer>>();
     }
 
     // Start
