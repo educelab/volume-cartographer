@@ -1425,6 +1425,7 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
             // Also Uncheck the second checkbox (Compute). Never Compute without displaying the Curve.
             item->setCheckState(2, Qt::Unchecked);
             fSegStructMap[aSegID].display = false;
+            qDebug() << "Compute " << aSegID.c_str() << " set compute false.";
             fSegStructMap[aSegID].compute = false;
         }
     }
@@ -1444,6 +1445,7 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
             }
         }
         else {
+            qDebug() << "Compute " << aSegID.c_str() << " set compute false.";
             fSegStructMap[aSegID].compute = false;
         }
     }
@@ -1456,6 +1458,7 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
                 if (!seg.second.fSegmentationId.empty() && seg.first != aSegID && seg.second.fMasterCloud.empty()) {
                     seg.second.display = false;
                     seg.second.compute = false;
+                    qDebug() << "Compute " << seg.first.c_str() << " set compute false. while clicked on " << aSegID.c_str();
                     // uncheck the checkbox
                     QList<QTreeWidgetItem*> previousItems = fPathListWidget->findItems(
                         QString(seg.first.c_str()), Qt::MatchExactly, 0);
@@ -1475,6 +1478,7 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
                 if (!seg.second.fSegmentationId.empty() && seg.first != aSegID && seg.second.fMasterCloud.empty()) {
                     // qDebug() << "Disable " << seg.first.c_str() << " id " << seg.second.fSegmentationId.c_str() << " with current id segment clicked: " << aSegID.c_str();
                     seg.second.display = false;
+                    qDebug() << "Compute " << seg.first.c_str() << " set compute false. while clicked on " << aSegID.c_str();
                     seg.second.compute = false;
                     // uncheck the checkbox
                     QList<QTreeWidgetItem*> previousItems = fPathListWidget->findItems(
