@@ -763,9 +763,9 @@ void CWindow::ChangePathItem(std::string segID)
         fPathOnSliceIndex = fSegStructMap[fSegmentationId].fPathOnSliceIndex;
     }
 
-    OpenSlice(); // TODO WHEN SWITCHING TO fSegStructMap: Handle display and slice still here
+    OpenSlice();
     SetCurrentCurve(fPathOnSliceIndex);
-    UpdateView(); // TODO WHEN SWITCHING TO fSegStructMap: Handle display and slice still here
+    UpdateView();
 }
 
 // Deactivate a specific segmentation by ID. TODO: finish implementation?
@@ -796,6 +796,8 @@ void CWindow::DoSegmentation(void)
         return;
     }
 
+    SplitCloud();
+
 
     // Setup LRPS
     auto segIdx = this->ui.cmbSegMethods->currentIndex();
@@ -805,8 +807,16 @@ void CWindow::DoSegmentation(void)
         auto& segStruct = seg.second;
         auto& segID = seg.first;
 
+        qDebug() << "Segment " << segID.c_str() << " display: " << segStruct.display << " compute: " << segStruct.compute;
+
         // if the segmentation is not being computed, skip it
         if (!segStruct.display || !segStruct.compute) {
+            continue;
+        }
+
+        // if the segment is not on the starting index, skip it
+        if (segStruct.fStartingPath.empty()) {
+            qDebug() << "Segment " << segID.c_str() << " has no starting path!";
             continue;
         }
 
@@ -860,7 +870,7 @@ void CWindow::DoSegmentation(void)
 
     if (!segmentedSomething) {
         QMessageBox::warning(
-            this, "Warning", "No Segments for computation specified! Please activate segments for computation in the segment manager.");
+            this, "Warning", "No Segments for computation found! Please activate segments for computation in the segment manager and make sure to be on a slice containing at least one curve.");
         segmentationQueue = std::queue<std::pair<std::string, Segmenter::Pointer>>();
     }
 
@@ -1082,7 +1092,7 @@ void CWindow::SetUpCurves(void)
 // Set the current curve
 void CWindow::SetCurrentCurve(int nCurrentSliceIndex)
 {
-    qDebug() << "SetCurrentCurve: " << nCurrentSliceIndex;
+    // qDebug() << "SetCurrentCurve: " << nCurrentSliceIndex;
     for (auto& seg : fSegStructMap) {
         auto& segStruct = seg.second;
         segStruct.SetCurrentCurve(nCurrentSliceIndex);
@@ -1373,16 +1383,19 @@ void CWindow::OnNewPathClicked(void)
 
     // Activate the new item
     fPathListWidget->setCurrentItem(newItem);
-    newItem->setCheckState(1, Qt::Checked); // Creating new curve
-    ChangePathItem(newSegmentationId);
+    ChangePathItem(newSegmentationId); // Creating new curve
+    newItem->setCheckState(1, Qt::Checked); 
+    newItem->setCheckState(2, Qt::Checked); 
     fSegStructMap[newSegmentationId].display = true;
+    fSegStructMap[newSegmentationId].compute = true;
+    UpdateView();
 }
 
 // Handle path item click event
 void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
 {
     std::string aSegID = item->text(0).toStdString();
-    qDebug() << "Item clicked: " << item->text(0) << " Column: " << column;
+    // qDebug() << "Item clicked: " << item->text(0) << " Column: " << column;
     // If the first checkbox (in column 1) is clicked
     if (column == 1) // Display
     {
@@ -1402,9 +1415,9 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
                 // Uncheck the checkbox
                 item->setCheckState(column, Qt::Unchecked);
             }
-            qDebug() << "Display " << aSegID.c_str();
+            // qDebug() << "Display " << aSegID.c_str();
             ChangePathItem(aSegID);
-            qDebug() << "Display " << aSegID.c_str() << " set display true.";
+            // qDebug() << "Display " << aSegID.c_str() << " set display true.";
             fSegStructMap[aSegID].display = true;
         }
         else
@@ -1422,9 +1435,13 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
         {
             // Only compute if the first checkbox (Display) is checked, so check it too
             // Check the first checkbox
-            item->setCheckState(1, Qt::Checked);
-            fSegStructMap[aSegID].display = true;
-            fSegStructMap[aSegID].compute = true;
+            if (item->checkState(1) != Qt::Checked)
+            {
+                item->setCheckState(1, Qt::Checked);
+                ChangePathItem(aSegID);
+                fSegStructMap[aSegID].display = true;
+                fSegStructMap[aSegID].compute = true;
+            }
         }
         else {
             fSegStructMap[aSegID].compute = false;
@@ -1434,9 +1451,9 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
     if (fSegStructMap[aSegID].display || fSegStructMap[aSegID].compute) {
         // Disable all other new and empty Segmentations if new Segmentation created
         if (!fSegStructMap[aSegID].fSegmentationId.empty() && fSegStructMap[aSegID].fMasterCloud.empty()) {
-            qDebug() << "Disable all other new and empty Segmentations";
+            // qDebug() << "Disable all other new and empty Segmentations";
             for(auto& seg : fSegStructMap) {
-                if (seg.second.fSegmentationId != aSegID && !seg.second.fSegmentationId.empty() && seg.second.fMasterCloud.empty()) {
+                if (!seg.second.fSegmentationId.empty() && seg.first != aSegID && seg.second.fMasterCloud.empty()) {
                     seg.second.display = false;
                     seg.second.compute = false;
                     // uncheck the checkbox
@@ -1453,10 +1470,10 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
 
         // Disable all empty Segmentations if Segmentation with point cloud is enabled
         if (!fSegStructMap[aSegID].fSegmentationId.empty() && !fSegStructMap[aSegID].fMasterCloud.empty()) {
-            qDebug() << "Disable all pen Segmentations";
+            // qDebug() << "Disable all pen Segmentations";
             for(auto& seg : fSegStructMap) {
-                if (!seg.second.fSegmentationId.empty() && seg.second.fSegmentationId != aSegID && seg.second.fMasterCloud.empty()) {
-                    qDebug() << "Disable " << seg.first.c_str() << " id " << seg.second.fSegmentationId.c_str() << " with current id segment clicked: " << aSegID.c_str();
+                if (!seg.second.fSegmentationId.empty() && seg.first != aSegID && seg.second.fMasterCloud.empty()) {
+                    // qDebug() << "Disable " << seg.first.c_str() << " id " << seg.second.fSegmentationId.c_str() << " with current id segment clicked: " << aSegID.c_str();
                     seg.second.display = false;
                     seg.second.compute = false;
                     // uncheck the checkbox

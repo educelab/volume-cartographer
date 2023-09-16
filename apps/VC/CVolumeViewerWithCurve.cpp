@@ -164,7 +164,7 @@ void CVolumeViewerWithCurve::UpdateView()
     }
     
     if (showCurve) {
-        qDebug() << "showCurve";
+        // qDebug() << "showCurve";
         DrawIntersectionCurve(fScene);
     }
 
@@ -459,12 +459,12 @@ std::pair<int, std::string> CVolumeViewerWithCurve::SelectPointOnCurves(
             }
         }
     }
-    qDebug() << "minDistance: " << minDistance << " closestPointIndex: " << closestPointIndex << " best_id: " << best_id.c_str();
+    // qDebug() << "minDistance: " << minDistance << " closestPointIndex: " << closestPointIndex << " best_id: " << best_id.c_str();
     if (selectGlobally || ((rightClick || shiftKeyPressed) && minDistance < 100.0*DIST_THRESHOLD) || minDistance < DIST_THRESHOLD) {
-        qDebug() << "returning closestPointIndex: " << closestPointIndex << " best_id: " << best_id.c_str();
+        // qDebug() << "returning closestPointIndex: " << closestPointIndex << " best_id: " << best_id.c_str();
         return std::make_pair(closestPointIndex, best_id);
     } else {
-        qDebug() << "returning -1";
+        // qDebug() << "returning -1";
         return std::make_pair(-1, "");
     }
 }
@@ -476,11 +476,11 @@ void CVolumeViewerWithCurve::DrawIntersectionCurve(QGraphicsScene* scene) {
         int r{0}, g{0}, b{0};
         colorSelector->color().getRgb(&r, &g, &b);
         if (!scene || !segStruct.display || segStruct.fIntersectionCurve.GetPointsNum()==0 || !colorSelector) {
-            qDebug() << "DrawIntersectionCurve: early exit. Scene " << scene << " segStruct.display " << segStruct.display << " segStruct.fIntersectionCurve.GetPointsNum() " << segStruct.fIntersectionCurve.GetPointsNum() << " colorSelector " << colorSelector;
-            qDebug() << "segStruct id " << segStruct.fSegmentationId.c_str();
+            // qDebug() << "DrawIntersectionCurve: early exit. Scene " << scene << " segStruct.display " << segStruct.display << " segStruct.fIntersectionCurve.GetPointsNum() " << segStruct.fIntersectionCurve.GetPointsNum() << " colorSelector " << colorSelector;
+            // qDebug() << "segStruct id " << segStruct.fSegmentationId.c_str();
             continue;  // Early continue if either object is null or the list is empty
         }
-        qDebug() << "Drawing segStruct id " << segStruct.fSegmentationId.c_str() << " with num points " << segStruct.fIntersectionCurve.GetPointsNum();
+        // qDebug() << "Drawing segStruct id " << segStruct.fSegmentationId.c_str() << " with num points " << segStruct.fIntersectionCurve.GetPointsNum();
         int pointsNum = segStruct.fIntersectionCurve.GetPointsNum();
 
         for (int i = 0; i < pointsNum; ++i) {

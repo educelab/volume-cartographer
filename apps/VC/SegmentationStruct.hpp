@@ -139,7 +139,7 @@ struct SegmentationStruct {
         // Convert volume z-index to PointSet index
         auto pathIndex = fPathOnSliceIndex - fMinSegIndex;
 
-        if(fPathOnSliceIndex < fMinSegIndex || fPathOnSliceIndex > fMaxSegIndex) {
+        if(fMasterCloud.empty() || fPathOnSliceIndex < fMinSegIndex || fPathOnSliceIndex > fMaxSegIndex) {
             fStartingPath = std::vector<cv::Vec3d>();
             return;
         }
@@ -215,10 +215,10 @@ struct SegmentationStruct {
         if (curveIndex >= 0 &&
             curveIndex < static_cast<int>(fIntersections.size()) &&
             fIntersections.size() != 0) {
-            qDebug() << "CURVE index in range nCurrentSliceIndex " << nCurrentSliceIndex << " curveIndex: " << curveIndex << " fMinSegIndex: " << fMinSegIndex << " fMaxSegIndex: " << fMaxSegIndex << " id " << fSegmentationId.c_str();
+            // qDebug() << "CURVE index in range nCurrentSliceIndex " << nCurrentSliceIndex << " curveIndex: " << curveIndex << " fMinSegIndex: " << fMinSegIndex << " fMaxSegIndex: " << fMaxSegIndex << " id " << fSegmentationId.c_str();
             fIntersectionCurve = fIntersections[curveIndex];
         } else {
-            qDebug() << "Curve index out of range nCurrentSliceIndex " << nCurrentSliceIndex << " curveIndex: " << curveIndex << " fMinSegIndex: " << fMinSegIndex << " fMaxSegIndex: " << fMaxSegIndex << " id " << fSegmentationId.c_str();
+            // qDebug() << "Curve index out of range nCurrentSliceIndex " << nCurrentSliceIndex << " curveIndex: " << curveIndex << " fMinSegIndex: " << fMinSegIndex << " fMaxSegIndex: " << fMaxSegIndex << " id " << fSegmentationId.c_str();
             CXCurve emptyCurve;
             fIntersectionCurve = emptyCurve;
         }
