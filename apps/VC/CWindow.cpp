@@ -236,6 +236,12 @@ void CWindow::CreateWidgets(void)
     connect(fPenTool, SIGNAL(clicked()), this, SLOT(TogglePenTool()));
     connect(fSegTool, SIGNAL(clicked()), this, SLOT(ToggleSegmentationTool()));
 
+    fchkDisplayAll = this->findChild<QCheckBox*>("chkDisplayAll");
+    fchkComputeAll = this->findChild<QCheckBox*>("chkComputeAll");
+    connect(fchkDisplayAll, &QCheckBox::toggled, this, &CWindow::toggleDisplayAll);
+    connect(fchkComputeAll, &QCheckBox::toggled, this, &CWindow::toggleComputeAll);
+
+
     // list of paths
     fPathListWidget = this->findChild<QTreeWidget*>("treeWidgetPaths");
     // connect(
@@ -1396,6 +1402,66 @@ void CWindow::OnNewPathClicked(void)
     fSegStructMap[newSegmentationId].display = true;
     fSegStructMap[newSegmentationId].compute = true;
     UpdateView();
+}
+
+void CWindow::toggleDisplayAll(bool checked)
+{
+    // Iterate through all the items in the QTreeWidget and update their state.
+    QTreeWidgetItemIterator it(fPathListWidget);
+    while (*it) {
+        QTreeWidgetItem* item = *it;
+        if (checked) {
+            // If the button/checkbox for "Display All" is checked, set all items to "Checked" state.
+            std::string aSegID = item->text(0).toStdString();
+            if (item->checkState(1) != Qt::Checked) {
+                // Only call ChangePathItem if the state is actually changing.
+                ChangePathItem(aSegID);
+            }
+            item->setCheckState(1, Qt::Checked);
+            fSegStructMap[aSegID].display = true;
+        } else {
+            fchkComputeAll->setChecked(false); 
+            // If the button/checkbox for "Display All" is unchecked, set all items to "Unchecked" state.
+            item->setCheckState(1, Qt::Unchecked);
+            item->setCheckState(2, Qt::Unchecked);
+            std::string aSegID = item->text(0).toStdString();
+            fSegStructMap[aSegID].display = false;
+            fSegStructMap[aSegID].compute = false;
+        }
+        ++it;
+    }
+    UpdateView(); // Assuming this function updates the display.
+}
+
+void CWindow::toggleComputeAll(bool checked)
+{
+    // Iterate through all the items in the QTreeWidget and update their state.
+    QTreeWidgetItemIterator it(fPathListWidget);
+    while (*it) {
+        QTreeWidgetItem* item = *it;
+        if (checked) {
+            std::string aSegID = item->text(0).toStdString();
+            if (item->checkState(1) != Qt::Checked) {
+                // Only call ChangePathItem if the state is actually changing.
+                ChangePathItem(aSegID);
+            }
+            fchkDisplayAll->setChecked(true);
+            // If the button/checkbox for "Compute All" is checked, set all items to "Checked" state.
+            item->setCheckState(1, Qt::Checked);
+            item->setCheckState(2, Qt::Checked);
+            fSegStructMap[aSegID].compute = true;
+            // Also check "Display" because we can't compute without displaying.
+            item->setCheckState(1, Qt::Checked);
+            fSegStructMap[aSegID].display = true;
+        } else {
+            // If the button/checkbox for "Compute All" is unchecked, set all items to "Unchecked" state.
+            item->setCheckState(2, Qt::Unchecked);
+            std::string aSegID = item->text(0).toStdString();
+            fSegStructMap[aSegID].compute = false;
+        }
+        ++it;
+    }
+    UpdateView(); // Assuming this function updates the display.
 }
 
 // Handle path item click event

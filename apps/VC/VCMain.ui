@@ -134,6 +134,26 @@
             </widget>
            </item>
            <item>
+            <widget class="QWidget" name="widgetCheckBoxes">
+                <layout class="QHBoxLayout" name="horizontalLayout_2">
+                    <item>
+                        <widget class="QCheckBox" name="chkDisplayAll">
+                            <property name="text">
+                                <string>Display All</string>
+                            </property>
+                        </widget>
+                    </item>
+                    <item>
+                        <widget class="QCheckBox" name="chkComputeAll">
+                            <property name="text">
+                                <string>Compute All</string>
+                            </property>
+                        </widget>
+                    </item>
+                </layout>
+            </widget>
+        </item>
+           <item>
             <widget class="QTreeWidget" name="treeWidgetPaths">
             <column>
                 <property name="text">

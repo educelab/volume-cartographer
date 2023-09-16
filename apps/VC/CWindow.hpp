@@ -183,6 +183,9 @@ private slots:
 
     void OnPathChanged(void);
 
+    void toggleDisplayAll(bool checked);
+    void toggleComputeAll(bool checked);
+
 private:
     // data model
     EWindowState fWindowState;
@@ -234,6 +237,8 @@ private:
     QAction* fAboutAct;
 
     CVolumeViewerWithCurve* fVolumeViewerWidget;
+    QCheckBox* fchkDisplayAll;
+    QCheckBox* fchkComputeAll;
     QTreeWidget* fPathListWidget;
     QPushButton* fPenTool;  // REVISIT - change me to QToolButton
     QPushButton* fSegTool;
