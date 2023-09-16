@@ -1440,9 +1440,10 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
             {
                 item->setCheckState(1, Qt::Checked);
                 ChangePathItem(aSegID);
-                fSegStructMap[aSegID].display = true;
-                fSegStructMap[aSegID].compute = true;
             }
+            fSegStructMap[aSegID].display = true;
+            fSegStructMap[aSegID].compute = true;
+            qDebug() << "Compute " << aSegID.c_str() << " set compute true.";
         }
         else {
             qDebug() << "Compute " << aSegID.c_str() << " set compute false.";
