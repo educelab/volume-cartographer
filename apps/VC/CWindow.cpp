@@ -759,7 +759,7 @@ void CWindow::ChangePathItem(std::string segID)
             break;
         }
     }
-    if (setPathIndex) {
+    if (setPathIndex && !fSegStructMap[fSegmentationId].fMasterCloud.empty()) {
         fPathOnSliceIndex = fSegStructMap[fSegmentationId].fPathOnSliceIndex;
     }
 
@@ -899,6 +899,7 @@ void CWindow::executeNextSegmentation()
         // set display to target layer
         fPathOnSliceIndex = fSegParams.targetIndex;
         CleanupSegmentation();
+        SetUpCurves();
         UpdateView();
         playPing();
     }
@@ -978,6 +979,12 @@ void CWindow::onSegmentationFinished(Segmenter::PointSet ps)
     }
 
     fSegStructMap[submittedSegmentationId].fMasterCloud = fSegStructMap[submittedSegmentationId].fUpperPart;
+
+    qDebug() << "Segmentation finished: " << submittedSegmentationId.c_str();
+    for (int u = 0; u < fSegStructMap[submittedSegmentationId].fMasterCloud.height(); u++) {
+        auto masterRowI = fSegStructMap[submittedSegmentationId].fMasterCloud.getRow(u);
+        qDebug() << "Row " << u << " has " << masterRowI.size() << " points. With z: " << masterRowI[fSegStructMap[submittedSegmentationId].fUpperPart.width()-1][2];
+    }
 
     statusBar->showMessage(tr("Segmentation complete"));
     fVpkgChanged = true;
