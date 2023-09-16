@@ -31,10 +31,19 @@ CVolumeViewerWithCurve::CVolumeViewerWithCurve(std::unordered_map<std::string, S
     QSettings settings;
     colorSelector = new ColorFrame(this);
     colorSelector->setFixedSize(16, 16);
-    auto color = settings.value("volumeViewer/curveColor", QColor("blue"))
+    auto color = settings.value("volumeViewer/curveColor", QColor("green"))
                      .value<QColor>();
     colorSelector->setColor(color);
     fButtonsLayout->addWidget(colorSelector);
+    connect(
+        colorSelector, &ColorFrame::colorChanged, this,
+        &CVolumeViewerWithCurve::UpdateView);
+    colorSelectorCompute = new ColorFrame(this);
+    colorSelectorCompute->setFixedSize(16, 16);
+    auto colorCompute = settings.value("volumeViewer/computeColor", QColor("blue"))
+                     .value<QColor>();
+    colorSelectorCompute->setColor(colorCompute);
+    fButtonsLayout->addWidget(colorSelectorCompute);
     connect(
         colorSelector, &ColorFrame::colorChanged, this,
         &CVolumeViewerWithCurve::UpdateView);
@@ -474,7 +483,12 @@ void CVolumeViewerWithCurve::DrawIntersectionCurve(QGraphicsScene* scene) {
     for (auto& seg : fSegStructMapRef) {
         auto& segStruct = seg.second;
         int r{0}, g{0}, b{0};
-        colorSelector->color().getRgb(&r, &g, &b);
+        if (segStruct.compute) {
+            colorSelectorCompute->color().getRgb(&r, &g, &b);
+        }
+        else {
+            colorSelector->color().getRgb(&r, &g, &b);
+        }
         if (!scene || !segStruct.display || segStruct.fIntersectionCurve.GetPointsNum()==0 || !colorSelector) {
             // qDebug() << "DrawIntersectionCurve: early exit. Scene " << scene << " segStruct.display " << segStruct.display << " segStruct.fIntersectionCurve.GetPointsNum() " << segStruct.fIntersectionCurve.GetPointsNum() << " colorSelector " << colorSelector;
             // qDebug() << "segStruct id " << segStruct.fSegmentationId.c_str();

@@ -140,8 +140,6 @@ struct SegmentationStruct {
         auto pathIndex = fPathOnSliceIndex - fMinSegIndex;
 
         if(fMasterCloud.empty() || fPathOnSliceIndex < fMinSegIndex || fPathOnSliceIndex > fMaxSegIndex) {
-            qDebug() << "SplitCloud: fMasterCloud.empty() " << fMasterCloud.empty() << " fPathOnSliceIndex < fMinSegIndex " << (fPathOnSliceIndex < fMinSegIndex) << " fPathOnSliceIndex > fMaxSegIndex " << (fPathOnSliceIndex > fMaxSegIndex) << " , " << fPathOnSliceIndex << " > " << fMaxSegIndex << " id " << fSegmentationId.c_str();
-            qDebug() << fMinSegIndex << " " << fMaxSegIndex;
             fStartingPath = std::vector<cv::Vec3d>();
             return;
         }
@@ -179,7 +177,6 @@ struct SegmentationStruct {
     // Get the curves for all the slices
     inline void SetUpCurves(void)
     {
-        qDebug() << "SetUpCurves";
         if (fVpkg == nullptr || fMasterCloud.empty()) {
             return;
         }
@@ -189,9 +186,8 @@ struct SegmentationStruct {
             minIndex = maxIndex = fPathOnSliceIndex;
         } else {
             minIndex = static_cast<int>(floor(fMasterCloud[0][2]));
-            maxIndex = static_cast<int>(ceil(fMasterCloud.max()[2]));
-            // maxIndex = std::min(maxIndex, fPathOnSliceIndex + 5);
-        }
+            maxIndex = static_cast<int>(fMasterCloud.getRow(fMasterCloud.height()-1)[fMasterCloud.width()-1][2]);            
+        }   
 
         fMinSegIndex = minIndex;
         fMaxSegIndex = maxIndex;
@@ -218,10 +214,8 @@ struct SegmentationStruct {
         if (curveIndex >= 0 &&
             curveIndex < static_cast<int>(fIntersections.size()) &&
             fIntersections.size() != 0) {
-            // qDebug() << "CURVE index in range nCurrentSliceIndex " << nCurrentSliceIndex << " curveIndex: " << curveIndex << " fMinSegIndex: " << fMinSegIndex << " fMaxSegIndex: " << fMaxSegIndex << " id " << fSegmentationId.c_str();
             fIntersectionCurve = fIntersections[curveIndex];
         } else {
-            // qDebug() << "Curve index out of range nCurrentSliceIndex " << nCurrentSliceIndex << " curveIndex: " << curveIndex << " fMinSegIndex: " << fMinSegIndex << " fMaxSegIndex: " << fMaxSegIndex << " id " << fSegmentationId.c_str();
             CXCurve emptyCurve;
             fIntersectionCurve = emptyCurve;
         }

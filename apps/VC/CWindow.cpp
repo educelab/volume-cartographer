@@ -807,7 +807,7 @@ void CWindow::DoSegmentation(void)
         auto& segStruct = seg.second;
         auto& segID = seg.first;
 
-        qDebug() << "Segment " << segID.c_str() << " display: " << segStruct.display << " compute: " << segStruct.compute;
+        // qDebug() << "Segment " << segID.c_str() << " display: " << segStruct.display << " compute: " << segStruct.compute;
 
         // if the segmentation is not being computed, skip it
         if (!segStruct.display || !segStruct.compute) {
@@ -816,7 +816,7 @@ void CWindow::DoSegmentation(void)
 
         // if the segment is not on the starting index, skip it
         if (segStruct.fStartingPath.empty()) {
-            qDebug() << "Segment " << segID.c_str() << " has no starting path!";
+            // qDebug() << "Segment " << segID.c_str() << " has no starting path!";
             continue;
         }
 
@@ -1432,7 +1432,7 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
             // Also Uncheck the second checkbox (Compute). Never Compute without displaying the Curve.
             item->setCheckState(2, Qt::Unchecked);
             fSegStructMap[aSegID].display = false;
-            qDebug() << "Compute " << aSegID.c_str() << " set compute false.";
+            // qDebug() << "Compute " << aSegID.c_str() << " set compute false.";
             fSegStructMap[aSegID].compute = false;
         }
     }
@@ -1450,10 +1450,10 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
             }
             fSegStructMap[aSegID].display = true;
             fSegStructMap[aSegID].compute = true;
-            qDebug() << "Compute " << aSegID.c_str() << " set compute true.";
+            // qDebug() << "Compute " << aSegID.c_str() << " set compute true.";
         }
         else {
-            qDebug() << "Compute " << aSegID.c_str() << " set compute false.";
+            // qDebug() << "Compute " << aSegID.c_str() << " set compute false.";
             fSegStructMap[aSegID].compute = false;
         }
     }
@@ -1466,7 +1466,7 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
                 if (!seg.second.fSegmentationId.empty() && seg.first != aSegID && seg.second.fMasterCloud.empty()) {
                     seg.second.display = false;
                     seg.second.compute = false;
-                    qDebug() << "Compute " << seg.first.c_str() << " set compute false. while clicked on " << aSegID.c_str();
+                    // qDebug() << "Compute " << seg.first.c_str() << " set compute false. while clicked on " << aSegID.c_str();
                     // uncheck the checkbox
                     QList<QTreeWidgetItem*> previousItems = fPathListWidget->findItems(
                         QString(seg.first.c_str()), Qt::MatchExactly, 0);
@@ -1486,7 +1486,7 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
                 if (!seg.second.fSegmentationId.empty() && seg.first != aSegID && seg.second.fMasterCloud.empty()) {
                     // qDebug() << "Disable " << seg.first.c_str() << " id " << seg.second.fSegmentationId.c_str() << " with current id segment clicked: " << aSegID.c_str();
                     seg.second.display = false;
-                    qDebug() << "Compute " << seg.first.c_str() << " set compute false. while clicked on " << aSegID.c_str();
+                    // qDebug() << "Compute " << seg.first.c_str() << " set compute false. while clicked on " << aSegID.c_str();
                     seg.second.compute = false;
                     // uncheck the checkbox
                     QList<QTreeWidgetItem*> previousItems = fPathListWidget->findItems(
