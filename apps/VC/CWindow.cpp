@@ -416,7 +416,7 @@ void CWindow::CreateWidgets(void)
     impactUp = new QShortcut(QKeySequence(tr("D")), this);
     impactDwn_old = new QShortcut(QKeySequence(tr("[")), this);
     impactUp_old = new QShortcut(QKeySequence(tr("]")), this);
-    segmentationToolShortcut = new QShortcut(QKeySequence(tr("S")), this);
+    segmentationToolShortcut = new QShortcut(QKeySequence(tr("O")), this);
     penToolShortcut = new QShortcut(QKeySequence(tr("P")), this);
     prev1 = new QShortcut(QKeySequence(tr("1")), this);
     next1 = new QShortcut(QKeySequence(tr("2")), this);
@@ -1352,7 +1352,7 @@ void CWindow::Keybindings(void)
         "1,2: Slice down/up by 1 \n"
         "3,4: Slice down/up by 10 \n"
         "5,6: Slice down/up by 100 \n"
-        "S: Segmentation Tool \n"
+        "O: Segmentation Tool \n"
         "P: Pen Tool \n"
         "Space: Toggle Curve Visibility \n"
         "C: Alternate Toggle Curve Visibility \n"
@@ -1570,7 +1570,7 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
         for(auto& seg : fSegStructMap) {
             seg.second.highlighted = false;
         }
-        
+
         // Check if aSegID is in fSegStructMap
         if (fSegStructMap.find(aSegID) != fSegStructMap.end()) {
             fSegStructMap[aSegID].highlighted = true;
