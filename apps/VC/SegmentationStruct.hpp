@@ -220,6 +220,20 @@ struct SegmentationStruct {
             fIntersectionCurve = emptyCurve;
         }
     }
+
+    // Handle path change event
+    void OnPathChanged(void)
+    {
+        // update current slice
+        fStartingPath.clear();
+        cv::Vec3d tempPt;
+        for (size_t i = 0; i < fIntersectionCurve.GetPointsNum(); ++i) {
+            tempPt[0] = fIntersectionCurve.GetPoint(i)[0];
+            tempPt[1] = fIntersectionCurve.GetPoint(i)[1];
+            tempPt[2] = fPathOnSliceIndex;
+            fStartingPath.push_back(tempPt);
+        }
+    }
 };
 
 }  // namespace ChaoVis

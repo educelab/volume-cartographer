@@ -280,7 +280,7 @@ void CWindow::CreateWidgets(void)
     auto* chkEnableSmoothenOutlier = new QCheckBox("Smoothen Outlier Points");
     chkEnableSmoothenOutlier->setChecked(true);
     auto* chkEnableEdgeDetection = new QCheckBox("Enable Edge Detection");
-    chkEnableEdgeDetection->setChecked(true);
+    chkEnableEdgeDetection->setChecked(false);
     auto* edtEdgeJumpDistance = new QSpinBox();
     edtEdgeJumpDistance->setMinimum(0);
     edtEdgeJumpDistance->setValue(6);
@@ -416,6 +416,8 @@ void CWindow::CreateWidgets(void)
     impactUp = new QShortcut(QKeySequence(tr("D")), this);
     impactDwn_old = new QShortcut(QKeySequence(tr("[")), this);
     impactUp_old = new QShortcut(QKeySequence(tr("]")), this);
+    segmentationToolShortcut = new QShortcut(QKeySequence(tr("S")), this);
+    penToolShortcut = new QShortcut(QKeySequence(tr("P")), this);
     prev1 = new QShortcut(QKeySequence(tr("1")), this);
     next1 = new QShortcut(QKeySequence(tr("2")), this);
     prev10 = new QShortcut(QKeySequence(tr("3")), this);
@@ -460,6 +462,8 @@ void CWindow::CreateWidgets(void)
                 QSlider::SliderAction::SliderSingleStepAdd);
         }
     });
+    connect(segmentationToolShortcut, &QShortcut::activated, this, &CWindow::ActivateSegmentationTool);
+    connect(penToolShortcut, &QShortcut::activated, this, &CWindow::ActivatePenTool);
     connect(impactDwn_old, &QShortcut::activated, [this]() {
         if (ui.sldImpactRange->isEnabled()) {
             ui.sldImpactRange->triggerAction(
@@ -802,9 +806,6 @@ void CWindow::DoSegmentation(void)
         return;
     }
 
-    SplitCloud();
-
-
     // Setup LRPS
     auto segIdx = this->ui.cmbSegMethods->currentIndex();
     // Reminder to activate the segments for computation
@@ -986,11 +987,11 @@ void CWindow::onSegmentationFinished(Segmenter::PointSet ps)
 
     fSegStructMap[submittedSegmentationId].fMasterCloud = fSegStructMap[submittedSegmentationId].fUpperPart;
 
-    qDebug() << "Segmentation finished: " << submittedSegmentationId.c_str();
-    for (int u = 0; u < fSegStructMap[submittedSegmentationId].fMasterCloud.height(); u++) {
-        auto masterRowI = fSegStructMap[submittedSegmentationId].fMasterCloud.getRow(u);
-        qDebug() << "Row " << u << " has " << masterRowI.size() << " points. With z: " << masterRowI[fSegStructMap[submittedSegmentationId].fUpperPart.width()-1][2];
-    }
+    // qDebug() << "Segmentation finished: " << submittedSegmentationId.c_str();
+    // for (int u = 0; u < fSegStructMap[submittedSegmentationId].fMasterCloud.height(); u++) {
+    //     auto masterRowI = fSegStructMap[submittedSegmentationId].fMasterCloud.getRow(u);
+    //     qDebug() << "Row " << u << " has " << masterRowI.size() << " points. With z: " << masterRowI[fSegStructMap[submittedSegmentationId].fUpperPart.width()-1][2];
+    // }
 
     statusBar->showMessage(tr("Segmentation complete"));
     fVpkgChanged = true;
@@ -1580,6 +1581,34 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
     UpdateView();
 }
 
+// Logic to activate pen tool
+void CWindow::ActivatePenTool() {
+    // Pen tool available
+    if (fPenTool->isEnabled()) {
+        qDebug() << "Pen tool available";
+        fPenTool->setChecked(!fPenTool->isChecked());
+        qDebug() << "Pen tool checked: " << fPenTool->isChecked();
+        TogglePenTool();
+    }
+    else {
+        qDebug() << "Pen tool not available";
+    }
+}
+
+// Logic to activate/deactivate segmentation tool
+void CWindow::ActivateSegmentationTool() {
+    // Segmentation tool available
+    if (fSegTool->isEnabled()) {
+        qDebug() << "Segmentation tool available";
+        fSegTool->setChecked(!fSegTool->isChecked());
+        qDebug() << "Segmentation tool checked: " << fSegTool->isChecked();
+        ToggleSegmentationTool();
+    }
+    else {
+        qDebug() << "Segmentation tool not available";
+    }
+}
+
 // Toggle the status of the pen tool
 void CWindow::TogglePenTool(void)
 {
@@ -1857,16 +1886,8 @@ void CWindow::OnPathChanged(void)
 {
     if (fWindowState == EWindowState::WindowStateSegmentation) {
         for (auto& seg : fSegStructMap) {
-            auto& segStruct = seg.second;
-            // update current slice
-            segStruct.fStartingPath.clear();
-            cv::Vec3d tempPt;
-            for (size_t i = 0; i < segStruct.fIntersectionCurve.GetPointsNum(); ++i) {
-                tempPt[0] = segStruct.fIntersectionCurve.GetPoint(i)[0];
-                tempPt[1] = segStruct.fIntersectionCurve.GetPoint(i)[1];
-                tempPt[2] = fPathOnSliceIndex;
-                segStruct.fStartingPath.push_back(tempPt);
-            }
+            // update current segStruct
+            seg.second.OnPathChanged();
         }
     }
 }

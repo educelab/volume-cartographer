@@ -153,6 +153,8 @@ private slots:
     void OnNewPathClicked(void);
     void OnPathItemClicked(QTreeWidgetItem* item, int column);
 
+    void ActivatePenTool();
+    void ActivateSegmentationTool();
     void TogglePenTool(void);
     void ToggleSegmentationTool(void);
 
@@ -271,6 +273,8 @@ private:
     QShortcut* impactDwn;
     QShortcut* impactUp_old;
     QShortcut* impactDwn_old;
+    QShortcut* segmentationToolShortcut;
+    QShortcut* penToolShortcut;
     QShortcut* next1;
     QShortcut* prev1;
     QShortcut* next10;
