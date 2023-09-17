@@ -235,7 +235,7 @@ private:
     /** Number of slices to cache */
     int smoothen_by_brightness_{180};
     bool enable_smoothen_outlier_{true};
-    bool enable_edge_{true};
+    bool enable_edge_{false};
     int edge_jump_distance_{6};
     int edge_bounce_distance_{3};
     bool interpolate_master_cloud{true};

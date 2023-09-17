@@ -115,7 +115,7 @@ CWindow::CWindow()
     fSegParams.optical_flow_pixel_threshold = 80;
     fSegParams.optical_flow_displacement_threshold = 10;
     fSegParams.enable_smoothen_outlier = true;
-    fSegParams.enable_edge = true;
+    fSegParams.enable_edge = false;
     fSegParams.edge_jump_distance = 6;
     fSegParams.edge_bounce_distance = 3;
     fSegParams.backwards_smoothnes_interpolation_window = 5;
@@ -416,7 +416,7 @@ void CWindow::CreateWidgets(void)
     impactUp = new QShortcut(QKeySequence(tr("D")), this);
     impactDwn_old = new QShortcut(QKeySequence(tr("[")), this);
     impactUp_old = new QShortcut(QKeySequence(tr("]")), this);
-    segmentationToolShortcut = new QShortcut(QKeySequence(tr("O")), this);
+    segmentationToolShortcut = new QShortcut(QKeySequence(tr("T")), this);
     penToolShortcut = new QShortcut(QKeySequence(tr("P")), this);
     prev1 = new QShortcut(QKeySequence(tr("1")), this);
     next1 = new QShortcut(QKeySequence(tr("2")), this);
@@ -1352,7 +1352,7 @@ void CWindow::Keybindings(void)
         "1,2: Slice down/up by 1 \n"
         "3,4: Slice down/up by 10 \n"
         "5,6: Slice down/up by 100 \n"
-        "O: Segmentation Tool \n"
+        "T: Segmentation Tool \n"
         "P: Pen Tool \n"
         "Space: Toggle Curve Visibility \n"
         "C: Alternate Toggle Curve Visibility \n"
@@ -1574,6 +1574,14 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
         // Check if aSegID is in fSegStructMap
         if (fSegStructMap.find(aSegID) != fSegStructMap.end()) {
             fSegStructMap[aSegID].highlighted = true;
+
+        }
+
+        // Go to starting position if Shift is pressed
+        if (qga::keyboardModifiers() == Qt::ShiftModifier) {
+            fPathOnSliceIndex = fSegStructMap[aSegID].fMinSegIndex;
+            OpenSlice();
+            SetCurrentCurve(fPathOnSliceIndex);
         }
     }
     else if (column == 1) // Display
