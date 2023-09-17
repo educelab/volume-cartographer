@@ -147,6 +147,7 @@ private:
 private slots:
     void Open(void);
     void Close(void);
+    void Keybindings(void);
     void About(void);
     void SavePointCloud();
 
@@ -185,6 +186,7 @@ private slots:
 
     void OnPathChanged(void);
 
+    void UpdateSegmentCheckboxes(std::string aSegID);
     void toggleDisplayAll(bool checked);
     void toggleComputeAll(bool checked);
 
@@ -236,6 +238,7 @@ private:
     QAction* fOpenVolAct;
     QAction* fSavePointCloudAct;
     QAction* fExitAct;
+    QAction* fKeybinds;
     QAction* fAboutAct;
 
     CVolumeViewerWithCurve* fVolumeViewerWidget;

@@ -506,6 +506,7 @@ void CWindow::CreateMenus(void)
     fFileMenu->addAction(fExitAct);
 
     fHelpMenu = new QMenu(tr("&Help"), this);
+    fHelpMenu->addAction(fKeybinds);
     fHelpMenu->addAction(fAboutAct);
 
     menuBar()->addMenu(fFileMenu);
@@ -521,6 +522,9 @@ void CWindow::CreateActions(void)
 
     fExitAct = new QAction(tr("E&xit..."), this);
     connect(fExitAct, SIGNAL(triggered()), this, SLOT(Close()));
+
+    fKeybinds = new QAction(tr("&Keybinds"), this);
+    connect(fKeybinds, SIGNAL(triggered()), this, SLOT(Keybindings()));
 
     fAboutAct = new QAction(tr("&About..."), this);
     connect(fAboutAct, SIGNAL(triggered()), this, SLOT(About()));
@@ -1337,6 +1341,31 @@ void CWindow::Open(void)
 void CWindow::Close(void) { close(); }
 
 // Pop up about dialog
+void CWindow::Keybindings(void)
+{
+    // REVISIT - FILL ME HERE
+    QMessageBox::information(
+        this, tr("Keybindings for Volume Cartographer"),
+        tr("A,D: Impact Range down/up by 1 \n"
+        "[, ]: Alternative Impact Range down/up by 1 \n"
+        "Arrow Left/Right: Slice down/up by 1 \n"
+        "1,2: Slice down/up by 1 \n"
+        "3,4: Slice down/up by 10 \n"
+        "5,6: Slice down/up by 100 \n"
+        "S: Segmentation Tool \n"
+        "P: Pen Tool \n"
+        "Space: Toggle Curve Visibility \n"
+        "C: Alternate Toggle Curve Visibility \n"
+        "Shift + Mouse Wheel: Zoom in/out \n"
+        "Mouse Wheel: Scroll up/down \n"
+        "Alt + Mouse Wheel: Scroll left/right \n"
+        "Mouse Left Click: Draw Curve in Pen mode. Adjust Point in Segmentation mode \n"
+        "Mouse Right Click: Snap Closest Point to Cursor \n"
+        "Shift + Mouse Left Click: Alternative Snap Closest Point to Cursor \n"
+        "Mouse Back/Forward Button: Follow Curve View"));
+}
+
+// Pop up about dialog
 void CWindow::About(void)
 {
     // REVISIT - FILL ME HERE
@@ -1405,15 +1434,76 @@ void CWindow::OnNewPathClicked(void)
     UpdateView();
 }
 
+void CWindow::UpdateSegmentCheckboxes(std::string aSegID) {
+    if (aSegID.empty()) {
+        // qDebug() << "UpdateSegmentCheckboxes: aSegID is empty";
+        return;
+    }
+    if (fSegStructMap[aSegID].display || fSegStructMap[aSegID].compute) {
+        // Disable all other new and empty Segmentations if new Segmentation created
+        if (!fSegStructMap[aSegID].fSegmentationId.empty() && fSegStructMap[aSegID].fMasterCloud.empty()) {
+            // qDebug() << "Disable all other new and empty Segmentations";
+            for(auto& seg : fSegStructMap) {
+                if (!seg.second.fSegmentationId.empty() && seg.first != aSegID && seg.second.fMasterCloud.empty()) {
+                    seg.second.display = false;
+                    seg.second.compute = false;
+                    // qDebug() << "Compute " << seg.first.c_str() << " set compute false. while clicked on " << aSegID.c_str();
+                    // uncheck the checkbox
+                    QList<QTreeWidgetItem*> previousItems = fPathListWidget->findItems(
+                        QString(seg.first.c_str()), Qt::MatchExactly, 0);
+                    if (!previousItems.isEmpty())
+                    {
+                        previousItems[0]->setCheckState(1, Qt::Unchecked);
+                        previousItems[0]->setCheckState(2, Qt::Unchecked);
+                    }
+                }
+            }
+        }
+
+        // Disable all empty Segmentations if Segmentation with point cloud is enabled
+        if (!fSegStructMap[aSegID].fSegmentationId.empty() && !fSegStructMap[aSegID].fMasterCloud.empty()) {
+            // qDebug() << "Disable all pen Segmentations";
+            for(auto& seg : fSegStructMap) {
+                if (!seg.second.fSegmentationId.empty() && seg.first != aSegID && seg.second.fMasterCloud.empty()) {
+                    // qDebug() << "Disable " << seg.first.c_str() << " id " << seg.second.fSegmentationId.c_str() << " with current id segment clicked: " << aSegID.c_str();
+                    seg.second.display = false;
+                    // qDebug() << "Compute " << seg.first.c_str() << " set compute false. while clicked on " << aSegID.c_str();
+                    seg.second.compute = false;
+                    // uncheck the checkbox
+                    QList<QTreeWidgetItem*> previousItems = fPathListWidget->findItems(
+                        QString(seg.first.c_str()), Qt::MatchExactly, 0);
+                    if (!previousItems.isEmpty())
+                    {
+                        previousItems[0]->setCheckState(1, Qt::Unchecked);
+                        previousItems[0]->setCheckState(2, Qt::Unchecked);
+                    }
+                }
+            }
+        }
+    }
+
+    // Delete completely disabled Segmentations from fSegStructMap
+    auto it = fSegStructMap.begin();
+    while (it != fSegStructMap.end()) {
+        if (!it->second.display && !it->second.compute) {
+            it = fSegStructMap.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
 void CWindow::toggleDisplayAll(bool checked)
 {
+    std::string lastID;
     // Iterate through all the items in the QTreeWidget and update their state.
     QTreeWidgetItemIterator it(fPathListWidget);
     while (*it) {
         QTreeWidgetItem* item = *it;
+        std::string aSegID = item->text(0).toStdString();
+        lastID = aSegID;
         if (checked) {
             // If the button/checkbox for "Display All" is checked, set all items to "Checked" state.
-            std::string aSegID = item->text(0).toStdString();
             if (item->checkState(1) != Qt::Checked) {
                 // Only call ChangePathItem if the state is actually changing.
                 ChangePathItem(aSegID);
@@ -1431,17 +1521,20 @@ void CWindow::toggleDisplayAll(bool checked)
         }
         ++it;
     }
+    UpdateSegmentCheckboxes(lastID);
     UpdateView(); // Assuming this function updates the display.
 }
 
 void CWindow::toggleComputeAll(bool checked)
 {
+    std::string lastID;
     // Iterate through all the items in the QTreeWidget and update their state.
     QTreeWidgetItemIterator it(fPathListWidget);
     while (*it) {
         QTreeWidgetItem* item = *it;
+        std::string aSegID = item->text(0).toStdString();
+        lastID = aSegID;
         if (checked) {
-            std::string aSegID = item->text(0).toStdString();
             if (item->checkState(1) != Qt::Checked) {
                 // Only call ChangePathItem if the state is actually changing.
                 ChangePathItem(aSegID);
@@ -1462,6 +1555,7 @@ void CWindow::toggleComputeAll(bool checked)
         }
         ++it;
     }
+    UpdateSegmentCheckboxes(lastID);
     UpdateView(); // Assuming this function updates the display.
 }
 
@@ -1525,58 +1619,7 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
         }
     }
 
-    if (fSegStructMap[aSegID].display || fSegStructMap[aSegID].compute) {
-        // Disable all other new and empty Segmentations if new Segmentation created
-        if (!fSegStructMap[aSegID].fSegmentationId.empty() && fSegStructMap[aSegID].fMasterCloud.empty()) {
-            // qDebug() << "Disable all other new and empty Segmentations";
-            for(auto& seg : fSegStructMap) {
-                if (!seg.second.fSegmentationId.empty() && seg.first != aSegID && seg.second.fMasterCloud.empty()) {
-                    seg.second.display = false;
-                    seg.second.compute = false;
-                    // qDebug() << "Compute " << seg.first.c_str() << " set compute false. while clicked on " << aSegID.c_str();
-                    // uncheck the checkbox
-                    QList<QTreeWidgetItem*> previousItems = fPathListWidget->findItems(
-                        QString(seg.first.c_str()), Qt::MatchExactly, 0);
-                    if (!previousItems.isEmpty())
-                    {
-                        previousItems[0]->setCheckState(1, Qt::Unchecked);
-                        previousItems[0]->setCheckState(2, Qt::Unchecked);
-                    }
-                }
-            }
-        }
-
-        // Disable all empty Segmentations if Segmentation with point cloud is enabled
-        if (!fSegStructMap[aSegID].fSegmentationId.empty() && !fSegStructMap[aSegID].fMasterCloud.empty()) {
-            // qDebug() << "Disable all pen Segmentations";
-            for(auto& seg : fSegStructMap) {
-                if (!seg.second.fSegmentationId.empty() && seg.first != aSegID && seg.second.fMasterCloud.empty()) {
-                    // qDebug() << "Disable " << seg.first.c_str() << " id " << seg.second.fSegmentationId.c_str() << " with current id segment clicked: " << aSegID.c_str();
-                    seg.second.display = false;
-                    // qDebug() << "Compute " << seg.first.c_str() << " set compute false. while clicked on " << aSegID.c_str();
-                    seg.second.compute = false;
-                    // uncheck the checkbox
-                    QList<QTreeWidgetItem*> previousItems = fPathListWidget->findItems(
-                        QString(seg.first.c_str()), Qt::MatchExactly, 0);
-                    if (!previousItems.isEmpty())
-                    {
-                        previousItems[0]->setCheckState(1, Qt::Unchecked);
-                        previousItems[0]->setCheckState(2, Qt::Unchecked);
-                    }
-                }
-            }
-        }
-    }
-
-    // Delete completely disabled Segmentations from fSegStructMap
-    auto it = fSegStructMap.begin();
-    while (it != fSegStructMap.end()) {
-        if (!it->second.display && !it->second.compute) {
-            it = fSegStructMap.erase(it);
-        } else {
-            ++it;
-        }
-    }
+    UpdateSegmentCheckboxes(aSegID);
 
     UpdateView();
 }
@@ -1585,13 +1628,8 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
 void CWindow::ActivatePenTool() {
     // Pen tool available
     if (fPenTool->isEnabled()) {
-        qDebug() << "Pen tool available";
         fPenTool->setChecked(!fPenTool->isChecked());
-        qDebug() << "Pen tool checked: " << fPenTool->isChecked();
         TogglePenTool();
-    }
-    else {
-        qDebug() << "Pen tool not available";
     }
 }
 
@@ -1599,13 +1637,8 @@ void CWindow::ActivatePenTool() {
 void CWindow::ActivateSegmentationTool() {
     // Segmentation tool available
     if (fSegTool->isEnabled()) {
-        qDebug() << "Segmentation tool available";
         fSegTool->setChecked(!fSegTool->isChecked());
-        qDebug() << "Segmentation tool checked: " << fSegTool->isChecked();
         ToggleSegmentationTool();
-    }
-    else {
-        qDebug() << "Segmentation tool not available";
     }
 }
 
