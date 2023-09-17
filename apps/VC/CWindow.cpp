@@ -1363,7 +1363,7 @@ void CWindow::Keybindings(void)
         "Mouse Right Click: Snap Closest Point to Cursor \n"
         "Shift + Mouse Left Click: Alternative Snap Closest Point to Cursor \n"
         "Mouse Back/Forward Button: Follow Curve View \n"
-        "Highlighting Segment ID: Shift/Alt Modifier to jump to Segment start/end."));
+        "Highlighting Segment ID: Shift/(Alt as well as Ctrl) Modifier to jump to Segment start/end."));
 }
 
 // Pop up about dialog
@@ -1584,8 +1584,8 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
             OpenSlice();
             SetCurrentCurve(fPathOnSliceIndex);
         }
-        // Go to ending position if Alt is pressed
-        else if (qga::keyboardModifiers() == Qt::AltModifier) {
+        // Go to ending position if Alt or Ctrl is pressed
+        else if (qga::keyboardModifiers() == Qt::AltModifier || qga::keyboardModifiers() == Qt::ControlModifier) {
             fPathOnSliceIndex = fSegStructMap[aSegID].fMaxSegIndex;
             OpenSlice();
             SetCurrentCurve(fPathOnSliceIndex);
