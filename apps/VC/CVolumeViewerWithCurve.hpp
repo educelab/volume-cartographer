@@ -93,6 +93,7 @@ private:
     // for drawing
     ColorFrame* colorSelector{nullptr};
     ColorFrame* colorSelectorCompute{nullptr};
+    ColorFrame* colorSelectorHighlight{nullptr};
     QCheckBox* fShowCurveBox;
     QCheckBox* fHistEqBox;
     bool showCurve;

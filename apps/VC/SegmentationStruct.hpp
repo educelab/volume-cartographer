@@ -45,6 +45,7 @@ struct SegmentationStruct {
     int fPathOnSliceIndex = 0;
     bool display = false;
     bool compute = false;
+    bool highlighted = false;
 
     // Constructor
     SegmentationStruct() { // Default

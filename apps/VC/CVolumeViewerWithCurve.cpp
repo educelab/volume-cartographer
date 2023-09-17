@@ -38,6 +38,10 @@ CVolumeViewerWithCurve::CVolumeViewerWithCurve(std::unordered_map<std::string, S
     connect(
         colorSelector, &ColorFrame::colorChanged, this,
         &CVolumeViewerWithCurve::UpdateView);
+    connect(colorSelector, &ColorFrame::colorChanged, [](const QColor& c) {
+        QSettings settings;
+        settings.setValue("volumeViewer/curveColor", c);
+    });
     colorSelectorCompute = new ColorFrame(this);
     colorSelectorCompute->setFixedSize(16, 16);
     auto colorCompute = settings.value("volumeViewer/computeColor", QColor("blue"))
@@ -45,9 +49,22 @@ CVolumeViewerWithCurve::CVolumeViewerWithCurve(std::unordered_map<std::string, S
     colorSelectorCompute->setColor(colorCompute);
     fButtonsLayout->addWidget(colorSelectorCompute);
     connect(
-        colorSelector, &ColorFrame::colorChanged, this,
+        colorSelectorCompute, &ColorFrame::colorChanged, this,
         &CVolumeViewerWithCurve::UpdateView);
-    connect(colorSelector, &ColorFrame::colorChanged, [](const QColor& c) {
+    connect(colorSelectorCompute, &ColorFrame::colorChanged, [](const QColor& c) {
+        QSettings settings;
+        settings.setValue("volumeViewer/curveColor", c);
+    });
+    colorSelectorHighlight = new ColorFrame(this);
+    colorSelectorHighlight->setFixedSize(16, 16);
+    auto colorHighlight = settings.value("volumeViewer/computeHighlight", QColor("red"))
+                     .value<QColor>();
+    colorSelectorHighlight->setColor(colorHighlight);
+    fButtonsLayout->addWidget(colorSelectorHighlight);
+    connect(
+        colorSelectorHighlight, &ColorFrame::colorChanged, this,
+        &CVolumeViewerWithCurve::UpdateView);
+    connect(colorSelectorHighlight, &ColorFrame::colorChanged, [](const QColor& c) {
         QSettings settings;
         settings.setValue("volumeViewer/curveColor", c);
     });
@@ -483,8 +500,17 @@ void CVolumeViewerWithCurve::DrawIntersectionCurve(QGraphicsScene* scene) {
     for (auto& seg : fSegStructMapRef) {
         auto& segStruct = seg.second;
         int r{0}, g{0}, b{0};
-        if (segStruct.compute) {
+        if (segStruct.highlighted && segStruct.compute) {
+            colorSelectorHighlight->color().getRgb(&r, &g, &b);
+        }
+        else if (segStruct.compute) {
             colorSelectorCompute->color().getRgb(&r, &g, &b);
+        }
+        else if (segStruct.display && segStruct.highlighted) {
+            // Mix the colors to show Highlight and Display without Compute
+            r = (colorSelectorHighlight->color().red() + colorSelector->color().red()) / 2;
+            g = (colorSelectorHighlight->color().green() + colorSelector->color().green()) / 2;
+            b = (colorSelectorHighlight->color().blue() + colorSelector->color().blue()) / 2;
         }
         else {
             colorSelector->color().getRgb(&r, &g, &b);

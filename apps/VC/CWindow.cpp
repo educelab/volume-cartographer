@@ -1565,7 +1565,18 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
     std::string aSegID = item->text(0).toStdString();
     // qDebug() << "Item clicked: " << item->text(0) << " Column: " << column;
     // If the first checkbox (in column 1) is clicked
-    if (column == 1) // Display
+    if (column == 0) // Highlight the curve
+    {
+        for(auto& seg : fSegStructMap) {
+            seg.second.highlighted = false;
+        }
+        
+        // Check if aSegID is in fSegStructMap
+        if (fSegStructMap.find(aSegID) != fSegStructMap.end()) {
+            fSegStructMap[aSegID].highlighted = true;
+        }
+    }
+    else if (column == 1) // Display
     {
         if (item->checkState(column) == Qt::Checked)
         {
