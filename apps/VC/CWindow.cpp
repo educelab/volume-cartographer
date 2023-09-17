@@ -1362,7 +1362,8 @@ void CWindow::Keybindings(void)
         "Mouse Left Click: Draw Curve in Pen mode. Adjust Point in Segmentation mode \n"
         "Mouse Right Click: Snap Closest Point to Cursor \n"
         "Shift + Mouse Left Click: Alternative Snap Closest Point to Cursor \n"
-        "Mouse Back/Forward Button: Follow Curve View"));
+        "Mouse Back/Forward Button: Follow Curve View \n"
+        "Highlighting Segment ID: Shift Modifier to jump to Segment start."));
 }
 
 // Pop up about dialog
