@@ -53,7 +53,7 @@ CVolumeViewerWithCurve::CVolumeViewerWithCurve(std::unordered_map<std::string, S
         &CVolumeViewerWithCurve::UpdateView);
     connect(colorSelectorCompute, &ColorFrame::colorChanged, [](const QColor& c) {
         QSettings settings;
-        settings.setValue("volumeViewer/curveColor", c);
+        settings.setValue("volumeViewer/computeColor", c);
     });
     colorSelectorHighlight = new ColorFrame(this);
     colorSelectorHighlight->setFixedSize(16, 16);
@@ -66,7 +66,7 @@ CVolumeViewerWithCurve::CVolumeViewerWithCurve(std::unordered_map<std::string, S
         &CVolumeViewerWithCurve::UpdateView);
     connect(colorSelectorHighlight, &ColorFrame::colorChanged, [](const QColor& c) {
         QSettings settings;
-        settings.setValue("volumeViewer/curveColor", c);
+        settings.setValue("volumeViewer/computeHighlight", c);
     });
 
     // show curve box
