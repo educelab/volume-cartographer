@@ -1347,6 +1347,8 @@ void CWindow::Keybindings(void)
     QMessageBox::information(
         this, tr("Keybindings for Volume Cartographer"),
         tr("A,D: Impact Range down/up by 1 \n"
+        "Ctrl+O: Open Volume Package \n"
+        "Ctrl+S: Save Volume Package \n"
         "[, ]: Alternative Impact Range down/up by 1 \n"
         "Arrow Left/Right: Slice down/up by 1 \n"
         "1,2: Slice down/up by 1 \n"

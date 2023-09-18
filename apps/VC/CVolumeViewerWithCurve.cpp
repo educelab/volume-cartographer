@@ -470,7 +470,7 @@ std::pair<int, std::string> CVolumeViewerWithCurve::SelectPointOnCurves(
 
     for (auto& seg : fSegStructMapRef) {
         auto& segStruct = seg.second;
-        if (!segStruct.display || segStruct.fIntersectionCurve.GetPointsNum()==0) {
+        if ((!segStruct.compute && !selectGlobally) || !segStruct.display || segStruct.fIntersectionCurve.GetPointsNum()==0) {
             continue;
         }
         for (size_t i = 0; i < segStruct.fIntersectionCurve.GetPointsNum(); ++i) {
