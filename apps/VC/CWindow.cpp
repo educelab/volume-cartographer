@@ -1908,7 +1908,10 @@ void CWindow::OnLoadNextSliceShift(int shift)
         shift = currentVolume->numSlices() - fPathOnSliceIndex - 1;
     }
 
-    if (shift != 0) {
+    if (!fVolumeViewerWidget->fNextBtn->isEnabled()) {
+        statusBar->showMessage(
+            tr("Changing Slices is deactivated during Segmentation and Drawing!"), 10000);
+    } else if (shift != 0) {
         fPathOnSliceIndex += shift;
         OpenSlice();
         SetCurrentCurve(fPathOnSliceIndex);
@@ -1931,7 +1934,10 @@ void CWindow::OnLoadPrevSliceShift(int shift)
         shift = fPathOnSliceIndex;
     }
 
-    if (shift != 0) {
+    if (!fVolumeViewerWidget->fPrevBtn->isEnabled()) {
+        statusBar->showMessage(
+            tr("Changing Slices is deactivated during Segmentation and Drawing!"), 10000);
+    } else if (shift != 0) {
         fPathOnSliceIndex -= shift;
         OpenSlice();
         SetCurrentCurve(fPathOnSliceIndex);

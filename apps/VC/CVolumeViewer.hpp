@@ -22,6 +22,8 @@ class CVolumeViewer : public QWidget
     Q_OBJECT
 
 public:
+    QPushButton* fNextBtn;
+    QPushButton* fPrevBtn;
     CVolumeViewer(QWidget* parent = 0);
     ~CVolumeViewer(void);
     virtual void setButtonsEnabled(bool state);
@@ -68,8 +70,6 @@ protected:
     QPushButton* fZoomInBtn;
     QPushButton* fZoomOutBtn;
     QPushButton* fResetBtn;
-    QPushButton* fNextBtn;
-    QPushButton* fPrevBtn;
     CSimpleNumEditBox* fImageIndexEdit;
     QHBoxLayout* fButtonsLayout;
 
