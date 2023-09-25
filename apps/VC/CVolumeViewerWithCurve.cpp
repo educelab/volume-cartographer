@@ -473,6 +473,10 @@ std::pair<int, std::string> CVolumeViewerWithCurve::SelectPointOnCurves(
         if ((!segStruct.compute && !selectGlobally) || !segStruct.display || segStruct.fIntersectionCurve.GetPointsNum()==0) {
             continue;
         }
+        // Only select points on curve that is Selected (blue background on ID display)
+        if (selectGlobally && !segStruct.highlighted) {
+            continue;
+        }
         for (size_t i = 0; i < segStruct.fIntersectionCurve.GetPointsNum(); ++i) {
             double currentDistance = Norm<double>(Vec2<double>(
                 segStruct.fIntersectionCurve.GetPoint(i)[0] - nPt[0],

@@ -424,6 +424,8 @@ void CWindow::CreateWidgets(void)
     next10 = new QShortcut(QKeySequence(tr("4")), this);
     prev100 = new QShortcut(QKeySequence(tr("5")), this);
     next100 = new QShortcut(QKeySequence(tr("6")), this);
+    prevSelectedId = new QShortcut(QKeySequence(tr("Q")), this);
+    nextSelectedId = new QShortcut(QKeySequence(tr("E")), this);
 
 
     connect(
@@ -494,6 +496,9 @@ void CWindow::CreateWidgets(void)
         int shift = 100;
         OnLoadPrevSliceShift(shift);
     });
+    connect(prevSelectedId, &QShortcut::activated, this, &CWindow::PreviousSelectedId);
+    connect(nextSelectedId, &QShortcut::activated, this, &CWindow::NextSelectedId);
+
 }
 
 // Create menus
@@ -1364,7 +1369,9 @@ void CWindow::Keybindings(void)
         "Mouse Left Click: Draw Curve in Pen mode. Adjust Point in Segmentation mode \n"
         "Mouse Right Click: Snap Closest Point to Cursor \n"
         "Shift + Mouse Left Click: Alternative Snap Closest Point to Cursor \n"
-        "Mouse Back/Forward Button: Follow Curve View \n"
+        "Q: Highlight Previous Curve that is selected for Computation \n"
+        "E: Highlight Next Curve that is selected for Computation \n"
+        "Mouse Back/Forward Button: Follow Highlighted Curve View \n"
         "Highlighting Segment ID: Shift/(Alt as well as Ctrl) Modifier to jump to Segment start/end."));
 }
 
@@ -1647,7 +1654,104 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
         }
     }
 
+    // Check if any other Segmentation has highlighted set to true
+    bool anyHighlighted = false;
+    for(auto& seg : fSegStructMap) {
+        if (seg.second.highlighted) {
+            anyHighlighted = true;
+            break;
+        }
+    }
+
+    // If no Segmentation has highlighted set to true, and current segment was checked, set highlight to true
+    if (!anyHighlighted && item->checkState(1) == Qt::Checked) {
+        fSegStructMap[aSegID].highlighted = true;
+        // Set column 0 to selected (highlighted, since it is not a checkmark)
+        item->setSelected(true);
+    }
+
     UpdateSegmentCheckboxes(aSegID);
+
+    UpdateView();
+}
+
+// Logic to switch the selected Id
+void CWindow::PreviousSelectedId() {
+    // seg that is currently highlighted
+    std::string currentId;
+    for(auto& seg : fSegStructMap) {
+        if (seg.second.highlighted) {
+            currentId = seg.first;
+        }
+        seg.second.highlighted = false;
+    }
+    // Find the previous seg that is active (compute or display)
+    std::string previousId;
+    for(auto& seg : fSegStructMap) {
+        if (seg.first == currentId) {
+            break;
+        }
+        if (seg.second.compute) {
+            previousId = seg.first;
+        }
+    }
+    // If no previous seg found, start from the end
+    if (previousId.empty()) {
+        for(auto& seg : fSegStructMap) {
+            if (seg.second.compute) {
+                previousId = seg.first;
+            }
+        }
+    }
+    // If still no previous seg found, return
+    if (previousId.empty()) {
+        return;
+    }
+
+    // Set the previous seg to highlighted
+    fSegStructMap[previousId].highlighted = true;
+
+    UpdateView();
+}
+
+// Logic to switch the selected Id
+void CWindow::NextSelectedId() {
+    // seg that is currently highlighted
+    std::string currentId;
+    for(auto& seg : fSegStructMap) {
+        if (seg.second.highlighted) {
+            currentId = seg.first;
+        }
+        seg.second.highlighted = false;
+    }
+    // Find the next seg that is active (compute or display)
+    std::string nextId;
+    bool found = false;
+    for(auto& seg : fSegStructMap) {
+        if (found && seg.second.compute) {
+            nextId = seg.first;
+            break;
+        }
+        if (seg.first == currentId) {
+            found = true;
+        }
+    }
+    // If no next seg found, start from the beginning
+    if (nextId.empty()) {
+        for(auto& seg : fSegStructMap) {
+            if (seg.second.compute) {
+                nextId = seg.first;
+                break;
+            }
+        }
+    }
+    // If still no next seg found, return
+    if (nextId.empty()) {
+        return;
+    }
+
+    // Set the next seg to highlighted
+    fSegStructMap[nextId].highlighted = true;
 
     UpdateView();
 }
