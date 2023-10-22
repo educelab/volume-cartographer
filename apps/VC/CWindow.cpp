@@ -1382,7 +1382,9 @@ void CWindow::Keybindings(void)
     // REVISIT - FILL ME HERE
     QMessageBox::information(
         this, tr("Keybindings for Volume Cartographer"),
-        tr("Ctrl+O: Open Volume Package \n"
+        tr("Keyboard: \n"
+        "------------------- \n"
+        "Ctrl+O: Open Volume Package \n"
         "Ctrl+S: Save Volume Package \n"
         "A,D: Impact Range down/up by 1 \n"        
         "[, ]: Alternative Impact Range down/up by 1 \n"
@@ -1395,7 +1397,12 @@ void CWindow::Keybindings(void)
         "T: Segmentation Tool \n"
         "P: Pen Tool \n"
         "Space: Toggle Curve Visibility \n"
-        "C: Alternate Toggle Curve Visibility \n"        
+        "C: Alternate Toggle Curve Visibility \n"
+        "Q: Highlight Previous Curve that is selected for Computation \n"
+        "E: Highlight Next Curve that is selected for Computation \n" 
+        "\n"   
+        "Mouse: \n"
+        "------------------- \n"    
         "Mouse Wheel: Scroll up/down \n"
         "Mouse Wheel + Alt: Scroll left/right \n"
         "Mouse Wheel + Ctrl: Zoom in/out \n"
@@ -1403,8 +1410,7 @@ void CWindow::Keybindings(void)
         "Mouse Left Click: Draw Curve in Pen mode. Adjust Point in Segmentation mode \n"
         "Mouse Right Click: Snap Closest Point to Cursor \n"
         "Shift + Mouse Left Click: Alternative Snap Closest Point to Cursor \n"
-        "Q: Highlight Previous Curve that is selected for Computation \n"
-        "E: Highlight Next Curve that is selected for Computation \n"
+        "Mouse Right Drag: Pan slice image\n"
         "Mouse Back/Forward Button: Follow Highlighted Curve View \n"
         "Highlighting Segment ID: Shift/(Alt as well as Ctrl) Modifier to jump to Segment start/end."));
 }

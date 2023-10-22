@@ -139,6 +139,7 @@ bool CVolumeViewer::eventFilter(QObject* watched, QEvent* event)
             } else if (numDegrees < 0) {
                 OnZoomOutClicked();
             }
+            CenterOn(fGraphicsView->mapToScene(wheelEvent->position().toPoint()));
             return true;
         } else if(QApplication::keyboardModifiers() == Qt::ShiftModifier) {
             int numDegrees = wheelEvent->angleDelta().y() / 8;
@@ -170,11 +171,16 @@ void CVolumeViewer::ScaleImage(double nFactor)
     UpdateButtons();
 }
 
+void CVolumeViewer::CenterOn(const QPointF& point)
+{
+    fGraphicsView->centerOn(point);
+}
+
 // Handle zoom in click
 void CVolumeViewer::OnZoomInClicked(void)
 {
     if (fZoomInBtn->isEnabled()) {
-        ScaleImage(1.25);
+        ScaleImage(1.15);
     }
 }
 
@@ -182,7 +188,7 @@ void CVolumeViewer::OnZoomInClicked(void)
 void CVolumeViewer::OnZoomOutClicked(void)
 {
     if (fZoomOutBtn->isEnabled()) {
-        ScaleImage(0.8);
+        ScaleImage(0.85);
     }
 }
 

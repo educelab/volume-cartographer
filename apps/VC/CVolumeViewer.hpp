@@ -54,6 +54,7 @@ signals:
 
 protected:
     void ScaleImage(double nFactor);
+    void CenterOn(const QPointF& point);
     virtual void UpdateButtons(void);
     void AdjustScrollBar(QScrollBar* nScrollBar, double nFactor);
     void ScrollToCenter(cv::Vec2f pos);
