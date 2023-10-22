@@ -20,8 +20,7 @@ namespace ChaoVis
 {
 
 // REVISIT - NOTE - since there are two modes, edit and draw, for the
-// application,
-//           we need to add corresponding modes to the widget, too.
+// application, we need to add corresponding modes to the widget, too.
 
 class CVolumeViewerWithCurve : public CVolumeViewer
 {
@@ -32,8 +31,8 @@ public:
     enum EViewState {
         ViewStateEdit,  // edit mode
         ViewStateDraw,  // draw mode
-        ViewStateIdle
-    };  // idle mode
+        ViewStateIdle   // idle mode
+    };  
 
 public:
     CVolumeViewerWithCurve(std::unordered_map<std::string, SegmentationStruct>& nSegStructMapRef);

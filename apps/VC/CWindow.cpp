@@ -186,11 +186,11 @@ void CWindow::CreateWidgets(void)
     fVolumeViewerWidget->SetIntersectionCurve(fSegStructMap[fSegmentationId].fIntersectionCurve);
 
     connect(
-        fVolumeViewerWidget, SIGNAL(SendSignalOnNextClicked(bool)), this,
-        SLOT(OnLoadNextSlice(bool)));
+        fVolumeViewerWidget, SIGNAL(SendSignalOnNextSliceShift(int)), this,
+        SLOT(OnLoadNextSliceShift(int)));
     connect(
-        fVolumeViewerWidget, SIGNAL(SendSignalOnPrevClicked(bool)), this,
-        SLOT(OnLoadPrevSlice(bool)));
+        fVolumeViewerWidget, SIGNAL(SendSignalOnPrevSliceShift(int)), this,
+        SLOT(OnLoadPrevSliceShift(int)));
     connect(
         fVolumeViewerWidget, SIGNAL(SendSignalOnLoadAnyImage(int)), this,
         SLOT(OnLoadAnySlice(int)));
@@ -432,10 +432,14 @@ void CWindow::CreateWidgets(void)
     penToolShortcut = new QShortcut(QKeySequence(tr("P")), this);
     prev1 = new QShortcut(QKeySequence(tr("1")), this);
     next1 = new QShortcut(QKeySequence(tr("2")), this);
-    prev10 = new QShortcut(QKeySequence(tr("3")), this);
-    next10 = new QShortcut(QKeySequence(tr("4")), this);
-    prev100 = new QShortcut(QKeySequence(tr("5")), this);
-    next100 = new QShortcut(QKeySequence(tr("6")), this);
+    prev2 = new QShortcut(QKeySequence(tr("3")), this);
+    next2 = new QShortcut(QKeySequence(tr("4")), this);
+    prev5 = new QShortcut(QKeySequence(tr("5")), this);
+    next5 = new QShortcut(QKeySequence(tr("6")), this);
+    prev10 = new QShortcut(QKeySequence(tr("7")), this);
+    next10 = new QShortcut(QKeySequence(tr("8")), this);
+    prev100 = new QShortcut(QKeySequence(tr("9")), this);
+    next100 = new QShortcut(QKeySequence(tr("0")), this);
     prevSelectedId = new QShortcut(QKeySequence(tr("Q")), this);
     nextSelectedId = new QShortcut(QKeySequence(tr("E")), this);
 
@@ -490,6 +494,22 @@ void CWindow::CreateWidgets(void)
     });
     connect(prev1, &QShortcut::activated, [this]() {
         int shift = 1;
+        OnLoadPrevSliceShift(shift);
+    });
+    connect(next2, &QShortcut::activated, [this]() {
+        int shift = 2;
+        OnLoadNextSliceShift(shift);
+    });
+    connect(prev2, &QShortcut::activated, [this]() {
+        int shift = 2;
+        OnLoadPrevSliceShift(shift);
+    });
+    connect(next5, &QShortcut::activated, [this]() {
+        int shift = 5;
+        OnLoadNextSliceShift(shift);
+    });
+    connect(prev5, &QShortcut::activated, [this]() {
+        int shift = 5;
         OnLoadPrevSliceShift(shift);
     });
     connect(next10, &QShortcut::activated, [this]() {
@@ -712,7 +732,7 @@ void CWindow::UpdateView(void)
         fEdtEndIndex->setValue(fPathOnSliceIndex + fEndTargetOffset);
     }
 
-    // Logic to enable/disable segmentation and pen tools. TODO add logic to check propper segmentations
+    // Logic to enable/disable segmentation and pen tools. TODO add logic to check proper segmentations
     bool availableSegments = false;
     bool availableNewSegments = false;
     for (auto& seg : fSegStructMap) {
@@ -1368,8 +1388,10 @@ void CWindow::Keybindings(void)
         "[, ]: Alternative Impact Range down/up by 1 \n"
         "Arrow Left/Right: Slice down/up by 1 \n"
         "1,2: Slice down/up by 1 \n"
-        "3,4: Slice down/up by 10 \n"
-        "5,6: Slice down/up by 100 \n"
+        "3,4: Slice down/up by 2 \n"
+        "5,6: Slice down/up by 5 \n"
+        "7,8: Slice down/up by 10 \n"
+        "9,0: Slice down/up by 100 \n"
         "T: Segmentation Tool \n"
         "P: Pen Tool \n"
         "Space: Toggle Curve Visibility \n"
@@ -2005,12 +2027,6 @@ void CWindow::OnLoadAnySlice(int nSliceIndex)
             tr("ERROR: Selected slice is out of range of the volume!"), 10000);
 }
 
-// Handle loading the next slice
-void CWindow::OnLoadNextSlice(bool jump)
-{
-    OnLoadNextSliceShift(jump ? 10 : 1);
-}
-
 void CWindow::OnLoadNextSliceShift(int shift)
 {
     if (currentVolume == nullptr) {
@@ -2031,12 +2047,6 @@ void CWindow::OnLoadNextSliceShift(int shift)
     } else {
         statusBar->showMessage(tr("Already at the end of the volume!"), 10000);
     }
-}
-
-// Handle loading the previous slice
-void CWindow::OnLoadPrevSlice(bool jump)
-{
-    OnLoadPrevSliceShift(jump ? 10 : 1);
 }
 
 void CWindow::OnLoadPrevSliceShift(int shift)

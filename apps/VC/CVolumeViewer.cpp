@@ -144,9 +144,11 @@ bool CVolumeViewer::eventFilter(QObject* watched, QEvent* event)
             int numDegrees = wheelEvent->angleDelta().y() / 8;
 
             if (numDegrees > 0) {
-                OnNextClicked();
+                SendSignalOnNextSliceShift(numDegrees > 30 ? 10 : 1);                
+                //OnNextClicked();
             } else if (numDegrees < 0) {
-                OnPrevClicked();
+                SendSignalOnPrevSliceShift(numDegrees < -30 ? 10 : 1);                
+                //OnPrevClicked();
             }
             return true;
         }
@@ -197,9 +199,11 @@ void CVolumeViewer::OnNextClicked(void)
 {
     // send signal to controller (MVC) in order to update the content
     if (fNextBtn->isEnabled()) {
-        // If the signal sender is the button, check for the Shift modifier in order to jump some slices.
-        // For all other sources, such as the mouse wheel this jump should not happen.
-        SendSignalOnNextClicked(sender() == fNextBtn && qga::keyboardModifiers() == Qt::ShiftModifier ? true : false);
+        // If the signal sender is the button, we check for Shift modifier for bigger jumps
+        if(sender() == fNextBtn)
+            SendSignalOnNextSliceShift(qga::keyboardModifiers() == Qt::ShiftModifier ? 10 : 1);
+        else
+            SendSignalOnNextSliceShift(1);
     }
 }
 
@@ -208,9 +212,11 @@ void CVolumeViewer::OnPrevClicked(void)
 {
     // send signal to controller (MVC) in order to update the content
     if (fPrevBtn->isEnabled()) {
-        // If the signal sender is the button, check for the Shift modifier in order to jump some slices.
-        // For all other sources, such as the mouse wheel this jump should not happen.
-        SendSignalOnPrevClicked(sender() == fPrevBtn && qga::keyboardModifiers() == Qt::ShiftModifier ? true : false);
+        // If the signal sender is the button, we check for Shift modifier for bigger jumps
+        if(sender() == fPrevBtn)
+            SendSignalOnPrevSliceShift(qga::keyboardModifiers() == Qt::ShiftModifier ? 10 : 1);
+        else
+            SendSignalOnPrevSliceShift(1);
     }
 }
 

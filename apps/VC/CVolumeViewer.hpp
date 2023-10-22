@@ -48,8 +48,8 @@ public slots:
     void OnImageIndexEditTextChanged(int nImageIndex);
 
 signals:
-    void SendSignalOnNextClicked(bool jump);
-    void SendSignalOnPrevClicked(bool jump);
+    void SendSignalOnNextSliceShift(int shift);
+    void SendSignalOnPrevSliceShift(int shift);
     void SendSignalOnLoadAnyImage(int nImageIndex);
 
 protected:

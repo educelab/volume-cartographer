@@ -182,8 +182,6 @@ private slots:
     void OnEdtImpactRange(int nImpactRange);
 
     void OnLoadAnySlice(int nSliceIndex);
-    void OnLoadNextSlice(bool jump);
-    void OnLoadPrevSlice(bool jump);
     void OnLoadNextSliceShift(int shift);
     void OnLoadPrevSliceShift(int shift);
 
@@ -283,6 +281,10 @@ private:
     QShortcut* penToolShortcut;
     QShortcut* next1;
     QShortcut* prev1;
+    QShortcut* next2;
+    QShortcut* prev2;
+    QShortcut* next5;
+    QShortcut* prev5;
     QShortcut* next10;
     QShortcut* prev10;
     QShortcut* next100;

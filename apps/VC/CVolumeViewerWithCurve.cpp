@@ -199,7 +199,6 @@ void CVolumeViewerWithCurve::UpdateView()
     }
 
     update();  // Repaint the widget
-
 }
 
 void CVolumeViewerWithCurve::handleMouseHold()
@@ -552,8 +551,6 @@ void CVolumeViewerWithCurve::DrawControlPoints(QGraphicsScene* scene) {
         QGraphicsEllipseItem* newEllipse = scene->addEllipse(p0, p1, 2, 2, QPen(QColor(r, g, b)), QBrush(QColor(r, g, b)));
     }
 }
-
-
 
 // Update the status of the buttons
 void CVolumeViewerWithCurve::UpdateButtons(void)
