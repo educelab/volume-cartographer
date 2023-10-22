@@ -182,8 +182,8 @@ private slots:
     void OnEdtImpactRange(int nImpactRange);
 
     void OnLoadAnySlice(int nSliceIndex);
-    void OnLoadNextSlice(void);
-    void OnLoadPrevSlice(void);
+    void OnLoadNextSlice(bool jump);
+    void OnLoadPrevSlice(bool jump);
     void OnLoadNextSliceShift(int shift);
     void OnLoadPrevSliceShift(int shift);
 

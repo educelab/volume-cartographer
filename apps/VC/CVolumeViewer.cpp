@@ -4,6 +4,7 @@
 #include "HBase.hpp"
 
 using namespace ChaoVis;
+using qga = QGuiApplication;
 
 // Constructor
 CVolumeViewer::CVolumeViewer(QWidget* parent)
@@ -123,9 +124,9 @@ void CVolumeViewer::SetImage(const QImage& nSrc)
 
 bool CVolumeViewer::eventFilter(QObject* watched, QEvent* event)
 {
-    if ((watched == fGraphicsView || watched == fGraphicsView->viewport()) && event->type() == QEvent::Wheel) {
+    if ((watched == fGraphicsView || (fGraphicsView && watched == fGraphicsView->viewport())) && event->type() == QEvent::Wheel) {
         QWheelEvent* wheelEvent = static_cast<QWheelEvent*>(event);
-        if(QApplication::keyboardModifiers() == Qt::ShiftModifier) {
+        if(QApplication::keyboardModifiers() == Qt::ControlModifier) {
             int numDegrees = wheelEvent->angleDelta().y() / 8;
 
             if (numDegrees > 0) {
@@ -133,7 +134,15 @@ bool CVolumeViewer::eventFilter(QObject* watched, QEvent* event)
             } else if (numDegrees < 0) {
                 OnZoomOutClicked();
             }
-            // event->accept();
+            return true;
+        } else if(QApplication::keyboardModifiers() == Qt::ShiftModifier) {
+            int numDegrees = wheelEvent->angleDelta().y() / 8;
+
+            if (numDegrees > 0) {
+                OnNextClicked();
+            } else if (numDegrees < 0) {
+                OnPrevClicked();
+            }
             return true;
         }
     }
@@ -183,16 +192,20 @@ void CVolumeViewer::OnNextClicked(void)
 {
     // send signal to controller (MVC) in order to update the content
     if (fNextBtn->isEnabled()) {
-        SendSignalOnNextClicked();
+        // If the signal sender is the button, check for the Shift modifier in order to jump some slices.
+        // For all other sources, such as the mouse wheel this jump should not happen.
+        SendSignalOnNextClicked(sender() == fNextBtn && qga::keyboardModifiers() == Qt::ShiftModifier ? true : false);
     }
 }
 
 // Handle previous image click
 void CVolumeViewer::OnPrevClicked(void)
 {
-    // send signal to controller (MVC ) in order to update the content
+    // send signal to controller (MVC) in order to update the content
     if (fPrevBtn->isEnabled()) {
-        SendSignalOnPrevClicked();
+        // If the signal sender is the button, check for the Shift modifier in order to jump some slices.
+        // For all other sources, such as the mouse wheel this jump should not happen.
+        SendSignalOnPrevClicked(sender() == fPrevBtn && qga::keyboardModifiers() == Qt::ShiftModifier ? true : false);
     }
 }
 

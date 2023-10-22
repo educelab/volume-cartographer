@@ -87,7 +87,7 @@ CWindow::CWindow()
     , fPenTool(nullptr)
     , fSegTool(nullptr)
     , stopPrefetching(false)
-    ,  prefetchSliceIndex(-1)
+    , prefetchSliceIndex(-1)
     , fSegStruct()
 {
 
@@ -186,11 +186,11 @@ void CWindow::CreateWidgets(void)
     fVolumeViewerWidget->SetIntersectionCurve(fSegStructMap[fSegmentationId].fIntersectionCurve);
 
     connect(
-        fVolumeViewerWidget, SIGNAL(SendSignalOnNextClicked()), this,
-        SLOT(OnLoadNextSlice()));
+        fVolumeViewerWidget, SIGNAL(SendSignalOnNextClicked(bool)), this,
+        SLOT(OnLoadNextSlice(bool)));
     connect(
-        fVolumeViewerWidget, SIGNAL(SendSignalOnPrevClicked()), this,
-        SLOT(OnLoadPrevSlice()));
+        fVolumeViewerWidget, SIGNAL(SendSignalOnPrevClicked(bool)), this,
+        SLOT(OnLoadPrevSlice(bool)));
     connect(
         fVolumeViewerWidget, SIGNAL(SendSignalOnLoadAnyImage(int)), this,
         SLOT(OnLoadAnySlice(int)));
@@ -208,10 +208,10 @@ void CWindow::CreateWidgets(void)
     // TODO CHANGE VOLUME LOADING; FIRST CHECK FOR OTHER VOLUMES IN THE STRUCTS
     volSelect = this->findChild<QComboBox*>("volSelect");
     connect(
-        volSelect, &QComboBox::currentTextChanged, [this](const QString& text) {
+        volSelect, &QComboBox::currentIndexChanged, [this](const int& index) {
             vc::Volume::Pointer newVolume;
             try {
-                newVolume = fVpkg->volume(text.toStdString());
+                newVolume = fVpkg->volume(volSelect->currentData().toString().toStdString());
             } catch (const std::out_of_range& e) {
                 QMessageBox::warning(this, "Error", "Could not load volume.");
                 return;
@@ -235,6 +235,8 @@ void CWindow::CreateWidgets(void)
     fSegTool = this->findChild<QPushButton*>("btnSegTool");
     connect(fPenTool, SIGNAL(clicked()), this, SLOT(TogglePenTool()));
     connect(fSegTool, SIGNAL(clicked()), this, SLOT(ToggleSegmentationTool()));
+    fPenTool->setStyleSheet(QString("QPushButton:checked { background-color: %1; }").arg(QPalette::Accent));
+    fSegTool->setStyleSheet(QString("QPushButton:checked { background-color: %1; }").arg(QPalette::Accent));
 
     fchkDisplayAll = this->findChild<QCheckBox*>("chkDisplayAll");
     fchkComputeAll = this->findChild<QCheckBox*>("chkComputeAll");
@@ -244,6 +246,7 @@ void CWindow::CreateWidgets(void)
 
     // list of paths
     fPathListWidget = this->findChild<QTreeWidget*>("treeWidgetPaths");
+    fPathListWidget->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
     // connect(
     //     fPathListWidget, SIGNAL(itemClicked(QListWidgetItem*)), this,
     //     SLOT(OnPathItemClicked(QListWidgetItem*)));
@@ -516,6 +519,7 @@ void CWindow::CreateMenus(void)
 
     menuBar()->addMenu(fFileMenu);
     menuBar()->addMenu(fHelpMenu);
+    menuBar()->setNativeMenuBar(false);
 }
 
 // Create actions
@@ -1309,9 +1313,8 @@ void CWindow::OpenVolume()
     }
     QStringList volIds;
     for (const auto& id : fVpkg->volumeIDs()) {
-        volIds.append(QString::fromStdString(id));
+        volSelect->addItem(QString("%1 (%2)").arg(QString::fromStdString(id)).arg(QString::fromStdString(fVpkg->volume(id)->name())), QVariant(QString::fromStdString(id)));
     }
-    volSelect->addItems(volIds);
 }
 
 void CWindow::CloseVolume(void)
@@ -1997,10 +2000,9 @@ void CWindow::OnLoadAnySlice(int nSliceIndex)
 }
 
 // Handle loading the next slice
-void CWindow::OnLoadNextSlice(void)
+void CWindow::OnLoadNextSlice(bool jump)
 {
-    int shift = (qga::keyboardModifiers() == Qt::ShiftModifier) ? 10 : 1;
-    OnLoadNextSliceShift(shift);
+    OnLoadNextSliceShift(jump ? 10 : 1);
 }
 
 void CWindow::OnLoadNextSliceShift(int shift)
@@ -2026,10 +2028,9 @@ void CWindow::OnLoadNextSliceShift(int shift)
 }
 
 // Handle loading the previous slice
-void CWindow::OnLoadPrevSlice(void)
+void CWindow::OnLoadPrevSlice(bool jump)
 {
-    int shift = (qga::keyboardModifiers() == Qt::ShiftModifier) ? 10 : 1;
-    OnLoadPrevSliceShift(shift);
+    OnLoadPrevSliceShift(jump ? 10 : 1);
 }
 
 void CWindow::OnLoadPrevSliceShift(int shift)

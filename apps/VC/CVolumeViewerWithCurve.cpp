@@ -105,7 +105,6 @@ CVolumeViewerWithCurve::~CVolumeViewerWithCurve()
     }
     timer->stop();
     delete timer;
-    delete fImgQImage;
 }
 
 
