@@ -30,11 +30,12 @@ CVolumeViewer::CVolumeViewer(QWidget* parent)
     fPrevBtn = new QPushButton(tr("Previous Slice"), this);
 
     // text edit
-    fImageIndexEdit = new CSimpleNumEditBox(this);
+    fImageIndexEdit = new QSpinBox(this);
+    fImageIndexEdit->setMinimum(0);
     fImageIndexEdit->setEnabled(true);
     connect(
-        fImageIndexEdit, SIGNAL(SendSignalOnTextChanged()), this,
-        SLOT(OnImageIndexEditTextChanged()));
+        fImageIndexEdit, SIGNAL(valueChanged(int)), this,
+        SLOT(OnImageIndexEditTextChanged(int)));
 
     fBaseImageItem = new QGraphicsPixmapItem();
 
@@ -57,6 +58,8 @@ CVolumeViewer::CVolumeViewer(QWidget* parent)
     fButtonsLayout->addWidget(fPrevBtn);
     fButtonsLayout->addWidget(fNextBtn);
     fButtonsLayout->addWidget(fImageIndexEdit);
+    // Add some space between the slice spin box and the curve tools (color, checkboxes, ...)
+    fButtonsLayout->addSpacerItem(new QSpacerItem(1, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
 
     connect(fZoomInBtn, SIGNAL(clicked()), this, SLOT(OnZoomInClicked()));
     connect(fZoomOutBtn, SIGNAL(clicked()), this, SLOT(OnZoomOutClicked()));
@@ -76,7 +79,6 @@ CVolumeViewer::CVolumeViewer(QWidget* parent)
 // Destructor
 CVolumeViewer::~CVolumeViewer(void)
 {
-    // deleteNULL(fCanvas);
     deleteNULL(fGraphicsView);
     deleteNULL(fScene);
     deleteNULL(fScrollArea);
@@ -120,7 +122,10 @@ void CVolumeViewer::SetImage(const QImage& nSrc)
     update();
 }
 
-
+void CVolumeViewer::setNumSlices(int num)
+{
+    fImageIndexEdit->setMaximum(num);
+}
 
 bool CVolumeViewer::eventFilter(QObject* watched, QEvent* event)
 {
@@ -210,10 +215,10 @@ void CVolumeViewer::OnPrevClicked(void)
 }
 
 // Handle image index change
-void CVolumeViewer::OnImageIndexEditTextChanged(void)
+void CVolumeViewer::OnImageIndexEditTextChanged(int index)
 {
     // send signal to controller in order to update the content
-    SendSignalOnLoadAnyImage(fImageIndexEdit->GetImageIndex());
+    SendSignalOnLoadAnyImage(index);
 }
 
 // Update the status of the buttons
@@ -225,8 +230,6 @@ void CVolumeViewer::UpdateButtons(void)
         fImgQImage != nullptr && fabs(fScaleFactor - 1.0) > 1e-6);
     fNextBtn->setEnabled(fImgQImage != nullptr);
     fPrevBtn->setEnabled(fImgQImage != nullptr);
-    // fImageIndexEdit->setEnabled( false );
-    fImageIndexEdit->SetImageIndex(fImageIndex);
 }
 
 // Adjust scroll bar of scroll area

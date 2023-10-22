@@ -219,6 +219,8 @@ void CWindow::CreateWidgets(void)
             currentVolume = newVolume;
             OnLoadAnySlice(0);
             setDefaultWindowWidth(newVolume);
+            fVolumeViewerWidget->setNumSlices(currentVolume->numSlices());
+            fEdtEndIndex->setMaximum(currentVolume->numSlices());
         });
 
     assignVol = this->findChild<QPushButton*>("assignVol");
@@ -235,8 +237,14 @@ void CWindow::CreateWidgets(void)
     fSegTool = this->findChild<QPushButton*>("btnSegTool");
     connect(fPenTool, SIGNAL(clicked()), this, SLOT(TogglePenTool()));
     connect(fSegTool, SIGNAL(clicked()), this, SLOT(ToggleSegmentationTool()));
-    fPenTool->setStyleSheet(QString("QPushButton:checked { background-color: %1; }").arg(QPalette::Accent));
-    fSegTool->setStyleSheet(QString("QPushButton:checked { background-color: %1; }").arg(QPalette::Accent));
+    fPenTool->setStyleSheet(QString("QPushButton:checked { background-color: rgb(%1, %2, %3); }")
+        .arg(QGuiApplication::palette().color(QPalette::Highlight).red())
+        .arg(QGuiApplication::palette().color(QPalette::Highlight).green())
+        .arg(QGuiApplication::palette().color(QPalette::Highlight).blue()));
+    fSegTool->setStyleSheet(QString("QPushButton:checked { background-color: rgb(%1, %2, %3); }")
+        .arg(QGuiApplication::palette().color(QPalette::Highlight).red())
+        .arg(QGuiApplication::palette().color(QPalette::Highlight).green())
+        .arg(QGuiApplication::palette().color(QPalette::Highlight).blue()));
 
     fchkDisplayAll = this->findChild<QCheckBox*>("chkDisplayAll");
     fchkComputeAll = this->findChild<QCheckBox*>("chkComputeAll");
@@ -379,11 +387,12 @@ void CWindow::CreateWidgets(void)
         fOptIncludeMiddle, SIGNAL(clicked(bool)), this,
         SLOT(OnOptIncludeMiddleClicked(bool)));
 
-    fEdtStartIndex = this->findChild<QLineEdit*>("edtStartingSliceVal");
-    fEdtEndIndex = this->findChild<QLineEdit*>("edtEndingSliceVal");
+    fEdtStartIndex = this->findChild<QSpinBox*>("spinStartingSliceVal");
+    fEdtStartIndex->setMinimum(0);
+    fEdtEndIndex = this->findChild<QSpinBox*>("spinEndingSliceVal");
     connect(
-        fEdtStartIndex, SIGNAL(textEdited(QString)), this,
-        SLOT(OnEdtStartingSliceValChange(QString)));
+        fEdtStartIndex, SIGNAL(valueChanged(int)), this,
+        SLOT(OnEdtStartingSliceValChange(int)));
     connect(
         fEdtEndIndex, SIGNAL(editingFinished()), this,
         SLOT(OnEdtEndingSliceValChange()));
@@ -691,17 +700,16 @@ void CWindow::UpdateView(void)
     fEdtDistanceWeight->setText(
         QString("%1").arg(fSegParams.fPeakDistanceWeight));
     fEdtWindowWidth->setValue(fSegParams.fWindowWidth);
-    fEdtStartIndex->setText(QString("%1").arg(fPathOnSliceIndex));
+    fEdtStartIndex->setValue(fPathOnSliceIndex);
 
     if (fPathOnSliceIndex + fEndTargetOffset >= currentVolume->numSlices()) {
-        fEdtEndIndex->setText(QString::number(currentVolume->numSlices() - 1));
+        fEdtEndIndex->setValue(currentVolume->numSlices() - 1);
     } 
     else if (fPathOnSliceIndex + fEndTargetOffset < 0) {
-        fEdtEndIndex->setText(QString::number(0));
+        fEdtEndIndex->setValue(0);
     }    
     else {
-        fEdtEndIndex->setText(
-            QString::number(fPathOnSliceIndex + fEndTargetOffset));
+        fEdtEndIndex->setValue(fPathOnSliceIndex + fEndTargetOffset);
     }
 
     // Logic to enable/disable segmentation and pen tools. TODO add logic to check propper segmentations
@@ -1354,9 +1362,9 @@ void CWindow::Keybindings(void)
     // REVISIT - FILL ME HERE
     QMessageBox::information(
         this, tr("Keybindings for Volume Cartographer"),
-        tr("A,D: Impact Range down/up by 1 \n"
-        "Ctrl+O: Open Volume Package \n"
+        tr("Ctrl+O: Open Volume Package \n"
         "Ctrl+S: Save Volume Package \n"
+        "A,D: Impact Range down/up by 1 \n"        
         "[, ]: Alternative Impact Range down/up by 1 \n"
         "Arrow Left/Right: Slice down/up by 1 \n"
         "1,2: Slice down/up by 1 \n"
@@ -1365,10 +1373,11 @@ void CWindow::Keybindings(void)
         "T: Segmentation Tool \n"
         "P: Pen Tool \n"
         "Space: Toggle Curve Visibility \n"
-        "C: Alternate Toggle Curve Visibility \n"
-        "Shift + Mouse Wheel: Zoom in/out \n"
+        "C: Alternate Toggle Curve Visibility \n"        
         "Mouse Wheel: Scroll up/down \n"
-        "Alt + Mouse Wheel: Scroll left/right \n"
+        "Mouse Wheel + Alt: Scroll left/right \n"
+        "Mouse Wheel + Ctrl: Zoom in/out \n"
+        "Mouse Wheel + Shift: Next/previous slice \n"
         "Mouse Left Click: Draw Curve in Pen mode. Adjust Point in Segmentation mode \n"
         "Mouse Right Click: Snap Closest Point to Cursor \n"
         "Shift + Mouse Left Click: Alternative Snap Closest Point to Cursor \n"
@@ -1952,7 +1961,7 @@ void CWindow::OnEdtSampleDistValChange( QString nText )
 */
 
 // Handle starting slice value change
-void CWindow::OnEdtStartingSliceValChange(QString /*nText*/)
+void CWindow::OnEdtStartingSliceValChange(int index)
 {
     // REVISIT - FILL ME HERE
     // REVISIT - should be equivalent to "set current slice", the same as
@@ -1963,16 +1972,13 @@ void CWindow::OnEdtStartingSliceValChange(QString /*nText*/)
 void CWindow::OnEdtEndingSliceValChange()
 {
     // ending slice index
-    bool aIsOk = false;
-    int aNewVal = fEdtEndIndex->displayText().toInt(&aIsOk);
-    if (aIsOk &&
-        aNewVal < currentVolume->numSlices()) {
+    int aNewVal = fEdtEndIndex->value();
+    if (aNewVal < currentVolume->numSlices()) {
         fEndTargetOffset = aNewVal - fPathOnSliceIndex;
     } else {
         statusBar->showMessage(
             tr("ERROR: Selected slice is out of range of the volume!"), 10000);
-        fEdtEndIndex->setText(
-            QString::number(fPathOnSliceIndex + fEndTargetOffset));
+        fEdtEndIndex->setValue(fPathOnSliceIndex + fEndTargetOffset);
     }
 }
 

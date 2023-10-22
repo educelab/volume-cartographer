@@ -174,7 +174,7 @@ private slots:
     void OnOptIncludeMiddleClicked(bool clicked);
 
     // void OnEdtSampleDistValChange( QString nText );
-    void OnEdtStartingSliceValChange(QString nText);
+    void OnEdtStartingSliceValChange(int index);
     void OnEdtEndingSliceValChange();
 
     void OnBtnStartSegClicked(void);
@@ -262,8 +262,8 @@ private:
     QLineEdit* fEdtK2;
     QCheckBox* fOptIncludeMiddle;
 
-    QLineEdit* fEdtStartIndex;
-    QLineEdit* fEdtEndIndex;
+    QSpinBox* fEdtStartIndex;
+    QSpinBox* fEdtEndIndex;
 
     QSlider* fEdtImpactRange;
     QLabel* fLabImpactRange;

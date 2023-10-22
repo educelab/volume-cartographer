@@ -26,13 +26,13 @@
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
-   <layout class="QHBoxLayout" name="horizontalLayout">
+   <layout class="QVBoxLayout" name="verticalLayout_10">
     <item>
      <widget class="QSplitter" name="splitter">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -100,7 +100,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
          <widget class="QGroupBox" name="grpVolManager">
@@ -134,42 +134,40 @@
             </widget>
            </item>
            <item>
-            <widget class="QWidget" name="widgetCheckBoxes">
-                <layout class="QHBoxLayout" name="horizontalLayout_2">
-                    <item>
-                        <widget class="QCheckBox" name="chkDisplayAll">
-                            <property name="text">
-                                <string>Display All</string>
-                            </property>
-                        </widget>
-                    </item>
-                    <item>
-                        <widget class="QCheckBox" name="chkComputeAll">
-                            <property name="text">
-                                <string>Compute All</string>
-                            </property>
-                        </widget>
-                    </item>
-                </layout>
-            </widget>
-        </item>
+            <layout class="QHBoxLayout" name="horizontalLayout_2">
+             <item>
+              <widget class="QCheckBox" name="chkDisplayAll">
+               <property name="text">
+                <string>Display All</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="chkComputeAll">
+               <property name="text">
+                <string>Compute All</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
            <item>
             <widget class="QTreeWidget" name="treeWidgetPaths">
-            <column>
-                <property name="text">
-                <string>Segment ID</string>
-                </property>
-            </column>
-            <column>
-                <property name="text">
-                <string>Display</string>
-                </property>
-            </column>
-            <column>
-                <property name="text">
-                <string>Compute</string>
-                </property>
-            </column>
+             <column>
+              <property name="text">
+               <string>Segment ID</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Display</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Compute</string>
+              </property>
+             </column>
             </widget>
            </item>
            <item>
@@ -227,152 +225,202 @@
           <property name="title">
            <string>Segmentation</string>
           </property>
+          <property name="flat">
+           <bool>false</bool>
+          </property>
+          <property name="checkable">
+           <bool>false</bool>
+          </property>
           <layout class="QVBoxLayout" name="verticalLayout_4">
            <item>
-            <widget class="QLabel" name="segMethodLabel">
-             <property name="text">
-              <string>Method</string>
+            <widget class="QScrollArea" name="scrollArea">
+             <property name="frameShape">
+              <enum>QFrame::Panel</enum>
              </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QComboBox" name="cmbSegMethods"/>
-           </item>
-           <item>
-            <widget class="QStackedWidget" name="segParamsStack">
-             <widget class="QWidget" name="lrpsParams">
-              <layout class="QHBoxLayout" name="lrpsParamsLayout">
+             <property name="frameShadow">
+              <enum>QFrame::Plain</enum>
+             </property>
+             <property name="lineWidth">
+              <number>0</number>
+             </property>
+             <property name="widgetResizable">
+              <bool>true</bool>
+             </property>
+             <widget class="QWidget" name="scrollAreaWidgetContents">
+              <property name="geometry">
+               <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>436</width>
+                <height>361</height>
+               </rect>
+              </property>
+              <property name="layoutDirection">
+               <enum>Qt::LeftToRight</enum>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_12">
                <item>
-                <layout class="QVBoxLayout" name="verticalLayout_6">
-                 <item>
-                  <widget class="QLabel" name="label_6">
-                   <property name="text">
-                    <string>Distance Weight</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLineEdit" name="edtDistanceWeightVal"/>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="label_3">
-                   <property name="text">
-                    <string>Alpha</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLineEdit" name="edtAlphaVal"/>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="label_4">
-                   <property name="text">
-                    <string>Delta</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLineEdit" name="edtDeltaVal"/>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="label_11">
-                   <property name="text">
-                    <string>K2</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLineEdit" name="edtK2Val"/>
-                 </item>
-                </layout>
+                <widget class="QLabel" name="segMethodLabel">
+                 <property name="text">
+                  <string>Method</string>
+                 </property>
+                </widget>
                </item>
                <item>
-                <layout class="QVBoxLayout" name="verticalLayout_5">
+                <widget class="QComboBox" name="cmbSegMethods"/>
+               </item>
+               <item>
+                <widget class="QStackedWidget" name="segParamsStack">
+                 <widget class="QWidget" name="lrpsParams">
+                  <layout class="QHBoxLayout" name="lrpsParamsLayout">
+                   <item>
+                    <layout class="QVBoxLayout" name="verticalLayout_6">
+                     <item>
+                      <widget class="QLabel" name="label_6">
+                       <property name="text">
+                        <string>Distance Weight</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLineEdit" name="edtDistanceWeightVal"/>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="label_3">
+                       <property name="text">
+                        <string>Alpha</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLineEdit" name="edtAlphaVal"/>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="label_4">
+                       <property name="text">
+                        <string>Delta</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLineEdit" name="edtDeltaVal"/>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="label_11">
+                       <property name="text">
+                        <string>K2</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLineEdit" name="edtK2Val"/>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QVBoxLayout" name="verticalLayout_5">
+                     <item>
+                      <widget class="QLabel" name="label_7">
+                       <property name="text">
+                        <string>Maxima Window Width</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QSpinBox" name="edtWindowWidthVal"/>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="label_2">
+                       <property name="text">
+                        <string>Beta</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLineEdit" name="edtBetaVal"/>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="label_10">
+                       <property name="text">
+                        <string>K1</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLineEdit" name="edtK1Val"/>
+                     </item>
+                     <item>
+                      <widget class="QCheckBox" name="includeMiddleOpt">
+                       <property name="text">
+                        <string>Consider Previous</string>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                  </layout>
+                 </widget>
+                </widget>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="startEndLayout">
                  <item>
-                  <widget class="QLabel" name="label_7">
-                   <property name="text">
-                    <string>Maxima Window Width</string>
-                   </property>
-                  </widget>
+                  <layout class="QVBoxLayout" name="verticalLayout_9">
+                   <item>
+                    <widget class="QLabel" name="label_8">
+                     <property name="text">
+                      <string>Starting Slice</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QSpinBox" name="spinStartingSliceVal"/>
+                   </item>
+                  </layout>
                  </item>
                  <item>
-                  <widget class="QSpinBox" name="edtWindowWidthVal"/>
+                  <layout class="QVBoxLayout" name="verticalLayout_8">
+                   <item>
+                    <widget class="QLabel" name="label_9">
+                     <property name="text">
+                      <string>Ending Slice</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QSpinBox" name="spinEndingSliceVal"/>
+                   </item>
+                  </layout>
                  </item>
                  <item>
-                  <widget class="QLabel" name="label_2">
-                   <property name="text">
-                    <string>Beta</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLineEdit" name="edtBetaVal"/>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="label_10">
-                   <property name="text">
-                    <string>K1</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLineEdit" name="edtK1Val"/>
-                 </item>
-                 <item>
-                  <widget class="QCheckBox" name="includeMiddleOpt">
-                   <property name="text">
-                    <string>Consider Previous</string>
-                   </property>
-                  </widget>
+                  <layout class="QVBoxLayout" name="verticalLayout_7">
+                   <item>
+                    <spacer name="verticalSpacer">
+                     <property name="orientation">
+                      <enum>Qt::Vertical</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>20</width>
+                       <height>40</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="btnStartSeg">
+                     <property name="text">
+                      <string>Start</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
                  </item>
                 </layout>
                </item>
               </layout>
              </widget>
             </widget>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="startEndLayout">
-             <item>
-              <layout class="QVBoxLayout" name="verticalLayout_9">
-               <item>
-                <widget class="QLabel" name="label_8">
-                 <property name="text">
-                  <string>Starting Slice</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLineEdit" name="edtStartingSliceVal"/>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QVBoxLayout" name="verticalLayout_8">
-               <item>
-                <widget class="QLabel" name="label_9">
-                 <property name="text">
-                  <string>Ending Slice</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLineEdit" name="edtEndingSliceVal"/>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QVBoxLayout" name="verticalLayout_7">
-               <item>
-                <widget class="QPushButton" name="btnStartSeg">
-                 <property name="text">
-                  <string>Start</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-            </layout>
            </item>
           </layout>
          </widget>

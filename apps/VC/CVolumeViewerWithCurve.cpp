@@ -567,7 +567,6 @@ void CVolumeViewerWithCurve::UpdateButtons(void)
     fPrevBtn->setEnabled(
         fImgQImage != nullptr && fViewState == EViewState::ViewStateIdle);
     fImageIndexEdit->setEnabled(fViewState == EViewState::ViewStateIdle);
-    fImageIndexEdit->SetImageIndex(fImageIndex);
 }
 
 // Disable stuff

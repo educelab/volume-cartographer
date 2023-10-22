@@ -7,8 +7,6 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
 
-#include "CSimpleNumEditBox.hpp"
-
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QDebug>
@@ -32,8 +30,10 @@ public:
     void SetImageIndex(int nImageIndex)
     {
         fImageIndex = nImageIndex;
+        fImageIndexEdit->setValue(nImageIndex);
         UpdateButtons();
     }
+    void setNumSlices(int num);
 
 protected:
     bool eventFilter(QObject* watched, QEvent* event);
@@ -45,7 +45,7 @@ public slots:
     void OnResetClicked(void);
     void OnNextClicked(void);
     void OnPrevClicked(void);
-    void OnImageIndexEditTextChanged(void);
+    void OnImageIndexEditTextChanged(int nImageIndex);
 
 signals:
     void SendSignalOnNextClicked(bool jump);
@@ -70,7 +70,7 @@ protected:
     QPushButton* fZoomInBtn;
     QPushButton* fZoomOutBtn;
     QPushButton* fResetBtn;
-    CSimpleNumEditBox* fImageIndexEdit;
+    QSpinBox* fImageIndexEdit;
     QHBoxLayout* fButtonsLayout;
 
     // data
@@ -79,9 +79,6 @@ protected:
     int fImageIndex;
 
     QGraphicsPixmapItem* fBaseImageItem;
-
-
-
 };  // class CVolumeViewer
 
 }  // namespace ChaoVis
