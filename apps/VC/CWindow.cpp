@@ -1432,7 +1432,8 @@ void CWindow::About(void)
     // REVISIT - FILL ME HERE
     QMessageBox::information(
         this, tr("About Volume Cartographer"),
-        tr("Vis Center, University of Kentucky"));
+        tr("Vis Center, University of Kentucky\n\n"
+        "Fork: https://github.com/spacegaier/volume-cartographer"));
 }
 
 // Save point cloud to path directory
