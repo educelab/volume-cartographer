@@ -36,9 +36,10 @@ struct SegmentationStruct {
     volcart::Segmentation::Pointer fSegmentation;
     volcart::Volume::Pointer currentVolume = nullptr;
     std::vector<CXCurve> fIntersections;
-    CXCurve fIntersectionCurve;
-    int fMaxSegIndex = 0;
-    int fMinSegIndex = 0;
+    std::map<int, CXCurve> fIntersectionsChanged; // manually changed curves that were not saved yet into the master cloud (key = slice index)
+    CXCurve fIntersectionCurve; // current active/shown curve
+    int fMaxSegIndex = 0; // index on which the segment ends
+    int fMinSegIndex = 0; // index on which the segment starts
     volcart::OrderedPointSet<cv::Vec3d> fMasterCloud;
     volcart::OrderedPointSet<cv::Vec3d> fUpperPart;
     std::vector<cv::Vec3d> fStartingPath;
@@ -82,6 +83,7 @@ struct SegmentationStruct {
         fSegmentation = nullptr;
         currentVolume = nullptr;
         fIntersections.clear();
+        fIntersectionsChanged.clear();
         fMaxSegIndex = 0;
         fMinSegIndex = 0;
         fMasterCloud.clear();
@@ -115,7 +117,6 @@ struct SegmentationStruct {
         }
 
         SetUpCurves();
-        SetPathOnSliceIndex(fMinSegIndex);
 
         SetCurrentCurve(fPathOnSliceIndex);
     }
@@ -131,6 +132,7 @@ struct SegmentationStruct {
         fUpperPart.reset();
         fStartingPath.clear();
         fIntersections.clear();
+        fIntersectionsChanged.clear();
         CXCurve emptyCurve;
         fIntersectionCurve = emptyCurve;
     }
@@ -210,16 +212,93 @@ struct SegmentationStruct {
     // Set the current curve
     inline void SetCurrentCurve(int nCurrentSliceIndex)
     {
-        fPathOnSliceIndex = nCurrentSliceIndex;
+        SetPathOnSliceIndex(nCurrentSliceIndex);
         int curveIndex = nCurrentSliceIndex - fMinSegIndex;
         if (curveIndex >= 0 &&
             curveIndex < static_cast<int>(fIntersections.size()) &&
             fIntersections.size() != 0) {
-            fIntersectionCurve = fIntersections[curveIndex];
+
+            // If we have a buffered changed curve, use that one.
+            // Note: The map of changed intersections uses the slice nubmer as key,
+            // where as the intersections vector needs to be accessed by the curveIndex (offset)
+            auto it = fIntersectionsChanged.find(fPathOnSliceIndex);
+            if(it != fIntersectionsChanged.end())
+                fIntersectionCurve = it->second;
+            else
+                fIntersectionCurve = fIntersections[curveIndex];
         } else {
             CXCurve emptyCurve;
             fIntersectionCurve = emptyCurve;
         }
+    }
+
+    inline void ForgetChangedCurves(int nSliceIndexStart, int nSliceIndexEnd)
+    {
+        // for(auto it = fIntersectionsChanged.begin(); it != fIntersectionsChanged.end();) {
+        //     if (it->first >= nSliceIndexStart && it->first <= nSliceIndexEnd) {
+        //         it = fIntersectionsChanged.erase(it);
+        //     } else {
+        //         ++it;
+        //     }
+        // }
+
+        fIntersectionsChanged.clear();
+    }
+
+    inline void MergePointSetIntoPointCloud(const volcart::Segmentation::PointSet ps)
+    {
+        int i;
+        for (i= 0; i < fMasterCloud.height(); i++) {
+            auto masterRowI = fMasterCloud.getRow(i);
+            if (ps[0][2] <= masterRowI[fUpperPart.width()-1][2]){
+                // We found the entry where the 3rd vector component (= index 2 = which means the slice index)
+                // of the new point set matches the value in the existing row of our point cloud 
+                // => starting point for merge
+                break;
+            }
+        }
+
+        // Copy everything below the index for merge start that we just determined (copyRows will not return back the
+        // the row of "i", so no duplicates with our to-be merged point set). If i reached the end of our point cloud
+        // above, then there are no duplicates and will simply continue with the append below.
+        fUpperPart = fMasterCloud.copyRows(0, i);
+        fUpperPart.append(ps);
+
+        // Check if remaining rows already exist in fMasterCloud behind the new point set
+        for(; i < fMasterCloud.height(); i++) {
+            auto masterRowI = fMasterCloud.getRow(i);
+            if (ps[ps.size() - 1][2] < masterRowI[fUpperPart.width()-1][2]) {
+                break;
+            }
+        }
+
+        // Add the remaining rows (if there are any left)
+        if (i < fMasterCloud.height()) {
+            fUpperPart.append(fMasterCloud.copyRows(i, fMasterCloud.height()));
+        }
+
+        fMasterCloud = fUpperPart;
+    }
+
+    inline void MergeChangedCurveIntoPointCloud(int nSliceIndex)
+    {
+        // Check if we have a buffered changed curve for this index. If not exit.
+        auto it = fIntersectionsChanged.find(nSliceIndex);
+        if(it == fIntersectionsChanged.end())
+            return;
+
+        volcart::Segmentation::PointSet ps(fMasterCloud.width());
+        cv::Vec3d tempPt;
+        std::vector<cv::Vec3d> row;
+        for (size_t i = 0; i < it->second.GetPointsNum(); ++i) {
+            tempPt[0] = it->second.GetPoint(i)[0];
+            tempPt[1] = it->second.GetPoint(i)[1];
+            tempPt[2] = it->second.GetSliceIndex();
+            row.push_back(tempPt);
+        }
+        ps.pushRow(row);
+        
+        MergePointSetIntoPointCloud(ps);
     }
 
     // Handle path change event
@@ -234,6 +313,10 @@ struct SegmentationStruct {
             tempPt[2] = fPathOnSliceIndex;
             fStartingPath.push_back(tempPt);
         }
+
+        // Buffer the changed path, so that if we change the displayed slice we do not loose 
+        // the manual changes that were made to the points of the path
+        fIntersectionsChanged[fPathOnSliceIndex] = fIntersectionCurve;
     }
 };
 

@@ -219,8 +219,6 @@ private:
 
     SegmentationStruct fSegStruct;
     std::unordered_map<std::string, SegmentationStruct> fSegStructMap;
-    int fMinSegIndex;
-    int fMaxSegIndex;
     int fPathOnSliceIndex;
     int fEndTargetOffset{5};
 
@@ -230,9 +228,6 @@ private:
     SSegParams fSegParams;
     std::queue<std::pair<std::string, Segmenter::Pointer>> segmentationQueue;
     std::string submittedSegmentationId;
-
-    volcart::OrderedPointSet<cv::Vec3d> fMasterCloud;
-    volcart::OrderedPointSet<cv::Vec3d> fUpperPart;
 
     // window components
     QMenu* fFileMenu;

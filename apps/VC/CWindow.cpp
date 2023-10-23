@@ -81,8 +81,6 @@ CWindow::CWindow()
     : fWindowState(EWindowState::WindowStateIdle)
     , fVpkg(nullptr)
     , fSegmentationId("")
-    , fMinSegIndex(VOLPKG_SLICE_MIN_INDEX)
-    , fMaxSegIndex(VOLPKG_SLICE_MIN_INDEX)
     , fPathOnSliceIndex(0)
     , fVolumeViewerWidget(nullptr)
     , fPathListWidget(nullptr)
@@ -978,6 +976,14 @@ void CWindow::DoSegmentation(void)
 
         segmentedSomething = true;
 
+        // If the segmentation starting curve was manually changed, we now need to merge it into the point cloud 
+        // that is going to get used for the segmentation since otherwise the manual changes would
+        // be lost and the original curve would be used as starting pooint for the segmentation.
+        seg.second.MergeChangedCurveIntoPointCloud(fEdtStartIndex->value());
+        
+        seg.second.ForgetChangedCurves(segIdx + 1, fEdtEndIndex->value());
+
+
         Segmenter::Pointer segmenter;
         if (segIdx == 0) {
             auto lrps = vcs::LocalResliceSegmentation::New();
@@ -1030,8 +1036,8 @@ void CWindow::DoSegmentation(void)
         segmentationQueue = std::queue<std::pair<std::string, Segmenter::Pointer>>();
     }
 
-    // Start
     executeNextSegmentation();
+    // Start
 }
 
 void CWindow::queueSegmentation(std::string segmentationId, Segmenter::Pointer s)
@@ -1110,34 +1116,8 @@ void CWindow::onSegmentationFinished(Segmenter::PointSet ps)
     worker_progress_.close();
     // 3) concatenate the two parts to form the complete point cloud
     // find starting location in fMasterCloud
-    int i;
-    for (i= 0; i < fSegStructMap[submittedSegmentationId].fMasterCloud.height(); i++) {
-        auto masterRowI = fSegStructMap[submittedSegmentationId].fMasterCloud.getRow(i);
-        if (ps[0][2] <= masterRowI[fSegStructMap[submittedSegmentationId].fUpperPart.width()-1][2]){
-            // We found the entry where the Z value (3rd vector component = index 2) of the new
-            // point set matches the one we just checked in our existing one => starting point for 
-            // point set concatenation
-            break;
-        }
-    }
 
-    // remove the duplicated point and ps in their stead. if i at the end, no duplicated point, just append
-    fSegStructMap[submittedSegmentationId].fUpperPart = fSegStructMap[submittedSegmentationId].fMasterCloud.copyRows(0, i);
-    fSegStructMap[submittedSegmentationId].fUpperPart.append(ps);
-
-    // check if remaining rows already exist in fMasterCloud behind ps
-    for(; i < fSegStructMap[submittedSegmentationId].fMasterCloud.height(); i++) {
-        auto masterRowI = fSegStructMap[submittedSegmentationId].fMasterCloud.getRow(i);
-        if (ps[ps.size() - 1][2] < masterRowI[fSegStructMap[submittedSegmentationId].fUpperPart.width()-1][2]) {
-            break;
-        }
-    }
-    // add the remaining rows
-    if (i < fSegStructMap[submittedSegmentationId].fMasterCloud.height()) {
-        fSegStructMap[submittedSegmentationId].fUpperPart.append(fSegStructMap[submittedSegmentationId].fMasterCloud.copyRows(i, fSegStructMap[submittedSegmentationId].fMasterCloud.height()));
-    }
-
-    fSegStructMap[submittedSegmentationId].fMasterCloud = fSegStructMap[submittedSegmentationId].fUpperPart;
+    fSegStructMap[submittedSegmentationId].MergePointSetIntoPointCloud(ps);
 
     // qDebug() << "Segmentation finished: " << submittedSegmentationId.c_str();
     // for (int u = 0; u < fSegStructMap[submittedSegmentationId].fMasterCloud.height(); u++) {
@@ -1568,11 +1548,12 @@ void CWindow::SavePointCloud()
     for (auto& seg : fSegStructMap) {
         total++;
         auto& segStruct = seg.second;
+
         if (segStruct.fMasterCloud.empty() || segStruct.fSegmentationId.empty()) {
             qDebug() << "Empty cloud or segmentation ID to save for ID " << segStruct.fSegmentationId.c_str();
             continue;
         }
-        // Try to save cloud to volpkg
+        // Try to save point cloud to volpkg
         try {
             segStruct.fSegmentation->setPointSet(segStruct.fMasterCloud);
             segStruct.fSegmentation->setVolumeID(currentVolume->id());
@@ -1804,7 +1785,6 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
         // Check if aSegID is in fSegStructMap
         if (fSegStructMap.find(aSegID) != fSegStructMap.end()) {
             fSegStructMap[aSegID].highlighted = true;
-
         }
 
         // Go to starting position if Shift is pressed
@@ -2045,7 +2025,6 @@ void CWindow::ToggleSegmentationTool(void)
         startPrefetching(fPathOnSliceIndex);
 
         fWindowState = EWindowState::WindowStateSegmentation;
-        fUpperPart.reset();
         SplitCloud();
 
         // turn off edit tool
@@ -2237,7 +2216,7 @@ void CWindow::OnLoadNextSliceShift(int shift)
 
     if (!fVolumeViewerWidget->fNextBtn->isEnabled()) {
         statusBar->showMessage(
-            tr("Changing Slices is deactivated during Segmentation and Drawing!"), 10000);
+            tr("Changing Slices is deactivated during Drawing!"), 10000);
     } else if (shift != 0) {
         fPathOnSliceIndex += shift;
         OpenSlice();
@@ -2256,7 +2235,7 @@ void CWindow::OnLoadPrevSliceShift(int shift)
 
     if (!fVolumeViewerWidget->fPrevBtn->isEnabled()) {
         statusBar->showMessage(
-            tr("Changing Slices is deactivated during Segmentation and Drawing!"), 10000);
+            tr("Changing Slices is deactivated during Drawing!"), 10000);
     } else if (shift != 0) {
         fPathOnSliceIndex -= shift;
         OpenSlice();
