@@ -312,6 +312,11 @@ void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* event)
 // Handle mouse move event, currently only when we're editing
 void CVolumeViewerWithCurve::mouseMoveEvent(QMouseEvent* event)
 {
+    // If we have an active last pressed button from the backwards/forwards move feature,
+    // we cannot do any panning at the same time, nor do we want to move any paths.
+    if(lastPressedButton)
+        return;
+
     // We potentially want to start panning, and now check if the mouse actually moved to distinguish
     // from a regular right click which would have a different meaning in some tool modes
     if (wantsPanning && rightPressed){
