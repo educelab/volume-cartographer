@@ -255,7 +255,6 @@ void CWindow::CreateWidgets(void)
 
     // list of paths
     fPathListWidget = this->findChild<QTreeWidget*>("treeWidgetPaths");
-    fPathListWidget->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
     // connect(
     //     fPathListWidget, SIGNAL(itemClicked(QListWidgetItem*)), this,
     //     SLOT(OnPathItemClicked(QListWidgetItem*)));
@@ -289,9 +288,9 @@ void CWindow::CreateWidgets(void)
     edtSmoothenPixelThreshold->setMinimum(0);
     edtSmoothenPixelThreshold->setMaximum(256);
     edtSmoothenPixelThreshold->setValue(180);
-    auto* chkEnableSmoothenOutlier = new QCheckBox("Smoothen Outlier Points");
+    auto* chkEnableSmoothenOutlier = new QCheckBox(tr("Smoothen Outlier Points"));
     chkEnableSmoothenOutlier->setChecked(true);
-    auto* chkEnableEdgeDetection = new QCheckBox("Enable Edge Detection");
+    auto* chkEnableEdgeDetection = new QCheckBox(tr("Enable Edge Detection"));
     chkEnableEdgeDetection->setChecked(false);
     auto* edtEdgeJumpDistance = new QSpinBox();
     edtEdgeJumpDistance->setMinimum(0);
@@ -306,7 +305,7 @@ void CWindow::CreateWidgets(void)
     auto* edtBackwardsInterpolationWindow = new QSpinBox();
     edtBackwardsInterpolationWindow->setMinimum(0);
     edtBackwardsInterpolationWindow->setValue(5);
-    auto* chkPurgeCache = new QCheckBox("Purge Cache");
+    auto* chkPurgeCache = new QCheckBox(tr("Purge Cache"));
     chkPurgeCache->setChecked(false);
     auto* edtCacheSize = new QSpinBox();
     edtCacheSize->setMinimum(-1);
@@ -329,26 +328,26 @@ void CWindow::CreateWidgets(void)
     auto* opticalFlowParamsContainer = new QWidget();
     auto* opticalFlowParamsLayout = new QVBoxLayout(opticalFlowParamsContainer);
 
-    opticalFlowParamsLayout->addWidget(new QLabel("Optical Flow Displacement Threshold"));
+    opticalFlowParamsLayout->addWidget(new QLabel(tr("Optical Flow Displacement Threshold")));
     opticalFlowParamsLayout->addWidget(edtOpticalFlowDisplacementThreshold);
-    opticalFlowParamsLayout->addWidget(new QLabel("Optical Flow Dark Pixel Threshold"));
+    opticalFlowParamsLayout->addWidget(new QLabel(tr("Optical Flow Dark Pixel Threshold")));
     opticalFlowParamsLayout->addWidget(edtOpticalFlowPixelThreshold);
-    opticalFlowParamsLayout->addWidget(new QLabel("Smoothen Curve at Dark Points"));
+    opticalFlowParamsLayout->addWidget(new QLabel(tr("Smoothen Curve at Dark Points")));
     opticalFlowParamsLayout->addWidget(edtOutsideThreshold);
-    opticalFlowParamsLayout->addWidget(new QLabel("Smoothen Curve at Bright Points"));
+    opticalFlowParamsLayout->addWidget(new QLabel(tr("Smoothen Curve at Bright Points")));
     opticalFlowParamsLayout->addWidget(edtSmoothenPixelThreshold);
     opticalFlowParamsLayout->addWidget(chkEnableSmoothenOutlier);
     opticalFlowParamsLayout->addWidget(chkEnableEdgeDetection);
-    opticalFlowParamsLayout->addWidget(new QLabel("Edge Max Jump Distance"));
+    opticalFlowParamsLayout->addWidget(new QLabel(tr("Edge Max Jump Distance")));
     opticalFlowParamsLayout->addWidget(edtEdgeJumpDistance);
-    opticalFlowParamsLayout->addWidget(new QLabel("Edge Bounce Distance"));
+    opticalFlowParamsLayout->addWidget(new QLabel(tr("Edge Bounce Distance")));
     opticalFlowParamsLayout->addWidget(edtEdgeBounceDistance);
-    opticalFlowParamsLayout->addWidget(new QLabel("Backwards Length"));
+    opticalFlowParamsLayout->addWidget(new QLabel(tr("Backwards Length")));
     opticalFlowParamsLayout->addWidget(edtBackwardsLength);
-    opticalFlowParamsLayout->addWidget(new QLabel("Backwards Interpolation Window"));
+    opticalFlowParamsLayout->addWidget(new QLabel(tr("Backwards Interpolation Window")));
     opticalFlowParamsLayout->addWidget(edtBackwardsInterpolationWindow);
     opticalFlowParamsLayout->addWidget(chkPurgeCache);
-    opticalFlowParamsLayout->addWidget(new QLabel("Maximum Cache Size"));
+    opticalFlowParamsLayout->addWidget(new QLabel(tr("Maximum Cache Size")));
     opticalFlowParamsLayout->addWidget(edtCacheSize);
 
     this->ui.segParamsStack->addWidget(opticalFlowParamsContainer);
@@ -1260,6 +1259,11 @@ void CWindow::InitPathList(void)
             item->setCheckState(2, Qt::Unchecked);
         }
     }
+
+    // A bit hacky, but using QHeaderView::ResizeToContents did result in weird scrollbars
+    fPathListWidget->resizeColumnToContents(0);
+    fPathListWidget->resizeColumnToContents(1);
+    fPathListWidget->resizeColumnToContents(2); 
 }
 
 // Update the Master cloud with the path we drew
@@ -1376,7 +1380,7 @@ void CWindow::Open(void)
     OpenVolume();
     OpenSlice();
     InitPathList();
-    UpdateView();  // update the panel when volume package is loaded
+    UpdateView();  // update the panel when volume package is loaded     
 }
 
 // Close application
