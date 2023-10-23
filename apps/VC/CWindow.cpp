@@ -1840,7 +1840,7 @@ void CWindow::NextSelectedId() {
 
 // Show go to slice dialog and execute the jump
 void CWindow::ShowGoToSliceDlg() {
-    if (currentVolume == nullptr) {
+    if (currentVolume == nullptr || !fVolumeViewerWidget->fNextBtn->isEnabled()) {
         return;
     }
     

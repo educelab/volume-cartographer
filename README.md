@@ -13,6 +13,8 @@ This fork contains the following changes compared to upstream currently:
 - Adjusted mouse wheel usage:
   * Mouse wheel + Ctrl = Zoom in/out (as in most image apps); was previously Mouse wheel + Shift in VC
   * Mouse wheel + Shift = Next/previous slice (test-wise for big mouse wheel movements 10 slices; might need to be made user-configurable for different mouse models)
+- Added Ctrl + G to easily jump to a given slice (opens an input popup to type in the slice index) => no more need to manually click into the spinner below the viewer
+- Added the feature to remove a segment/path from the volpkg
 - Center image slice on mouse cursor during mouse wheel zooming
 - Use spin boxes for slice numbers (they allow proper min/max value handling and mouse wheel can be used to change the numeric value)
 - Added volume name into dropdown
