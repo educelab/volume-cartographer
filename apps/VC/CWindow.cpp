@@ -1419,8 +1419,7 @@ void CWindow::Keybindings(void)
         "Mouse Wheel + Ctrl: Zoom in/out \n"
         "Mouse Wheel + Shift: Next/previous slice \n"
         "Mouse Left Click: Draw Curve in Pen mode. Adjust Point in Segmentation mode \n"
-        "Mouse Right Click: Snap Closest Point to Cursor \n"
-        "Shift + Mouse Left Click: Alternative Snap Closest Point to Cursor \n"
+        "Shift + Mouse Left Click: Snap Closest Point to Cursor \n"
         "Mouse Right Drag: Pan slice image\n"
         "Mouse Back/Forward Button: Follow Highlighted Curve View \n"
         "Highlighting Segment ID: Shift/(Alt as well as Ctrl) Modifier to jump to Segment start/end."));
