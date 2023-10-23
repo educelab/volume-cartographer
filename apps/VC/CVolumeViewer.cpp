@@ -140,7 +140,10 @@ bool CVolumeViewer::eventFilter(QObject* watched, QEvent* event)
             } else if (numDegrees < 0) {
                 OnZoomOutClicked();
             }
-            CenterOn(fGraphicsView->mapToScene(wheelEvent->position().toPoint()));
+            
+            // Removed for now. Should be made user configurable, since some do not like it.
+            // CenterOn(fGraphicsView->mapToScene(wheelEvent->position().toPoint()));
+            
             return true;
         } else if(QApplication::keyboardModifiers() == Qt::ShiftModifier) {
             int numDegrees = wheelEvent->angleDelta().y() / 8;

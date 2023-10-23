@@ -1258,12 +1258,12 @@ void CWindow::InitPathList(void)
             item->setCheckState(1, Qt::Unchecked);
             item->setCheckState(2, Qt::Unchecked);
         }
-    }
 
-    // A bit hacky, but using QHeaderView::ResizeToContents did result in weird scrollbars
-    fPathListWidget->resizeColumnToContents(0);
-    fPathListWidget->resizeColumnToContents(1);
-    fPathListWidget->resizeColumnToContents(2); 
+        // A bit hacky, but using QHeaderView::ResizeToContents did result in weird scrollbars
+        fPathListWidget->resizeColumnToContents(0);
+        fPathListWidget->resizeColumnToContents(1);
+        fPathListWidget->resizeColumnToContents(2); 
+    }
 }
 
 // Update the Master cloud with the path we drew
@@ -1501,6 +1501,11 @@ void CWindow::OnNewPathClicked(void)
     fSegStructMap[newSegmentationId].display = true;
     fSegStructMap[newSegmentationId].compute = true;
     UpdateView();
+
+    // A bit hacky, but using QHeaderView::ResizeToContents did result in weird scrollbars
+    fPathListWidget->resizeColumnToContents(0);
+    fPathListWidget->resizeColumnToContents(1);
+    fPathListWidget->resizeColumnToContents(2); 
 }
 
 // Remove existing path
