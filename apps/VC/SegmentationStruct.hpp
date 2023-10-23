@@ -232,16 +232,8 @@ struct SegmentationStruct {
         }
     }
 
-    inline void ForgetChangedCurves(int nSliceIndexStart, int nSliceIndexEnd)
+    inline void ForgetChangedCurves()
     {
-        // for(auto it = fIntersectionsChanged.begin(); it != fIntersectionsChanged.end();) {
-        //     if (it->first >= nSliceIndexStart && it->first <= nSliceIndexEnd) {
-        //         it = fIntersectionsChanged.erase(it);
-        //     } else {
-        //         ++it;
-        //     }
-        // }
-
         fIntersectionsChanged.clear();
     }
 

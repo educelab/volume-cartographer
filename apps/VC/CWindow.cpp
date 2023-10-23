@@ -444,8 +444,8 @@ void CWindow::CreateWidgets(void)
     segmentationToolShortcut = new QShortcut(QKeySequence(Qt::Key_T), this);
     penToolShortcut = new QShortcut(QKeySequence(Qt::Key_P), this);
     prev1 = new QShortcut(QKeySequence(Qt::Key_1), this);
-    next1 = new QShortcut(QKeySequence(Qt::Key_1), this);
-    prev2 = new QShortcut(QKeySequence(Qt::Key_1), this);
+    next1 = new QShortcut(QKeySequence(Qt::Key_2), this);
+    prev2 = new QShortcut(QKeySequence(Qt::Key_3), this);
     next2 = new QShortcut(QKeySequence(Qt::Key_4), this);
     prev5 = new QShortcut(QKeySequence(Qt::Key_5), this);
     next5 = new QShortcut(QKeySequence(Qt::Key_6), this);
@@ -826,8 +826,9 @@ void CWindow::UpdateView(void)
     fEdtDistanceWeight->setText(
         QString("%1").arg(fSegParams.fPeakDistanceWeight));
     fEdtWindowWidth->setValue(fSegParams.fWindowWidth);
-    fEdtStartIndex->setValue(fPathOnSliceIndex);
 
+    // Set / calculate start and end index
+    fEdtStartIndex->setValue(fPathOnSliceIndex);
     if (fPathOnSliceIndex + fEndTargetOffset >= currentVolume->numSlices()) {
         fEdtEndIndex->setValue(currentVolume->numSlices() - 1);
     } 
@@ -978,10 +979,10 @@ void CWindow::DoSegmentation(void)
 
         // If the segmentation starting curve was manually changed, we now need to merge it into the point cloud 
         // that is going to get used for the segmentation since otherwise the manual changes would
-        // be lost and the original curve would be used as starting pooint for the segmentation.
+        // be lost and the original curve would be used as starting point for the segmentation.
         seg.second.MergeChangedCurveIntoPointCloud(fEdtStartIndex->value());
-        
-        seg.second.ForgetChangedCurves(segIdx + 1, fEdtEndIndex->value());
+        // Now we can forget all other changed curves
+        seg.second.ForgetChangedCurves();
 
 
         Segmenter::Pointer segmenter;
@@ -1151,6 +1152,10 @@ void CWindow::onSegmentationFailed(std::string s)
 
 void CWindow::CleanupSegmentation(void)
 {
+    for (auto& seg : fSegStructMap) {
+        seg.second.ForgetChangedCurves();
+    }
+
     fSegTool->setChecked(false);
     fWindowState = EWindowState::WindowStateIdle;
     SetUpCurves();
@@ -1516,8 +1521,8 @@ void CWindow::Keybindings(void)
         "Mouse Wheel + Alt: Scroll left/right \n"
         "Mouse Wheel + Ctrl: Zoom in/out \n"
         "Mouse Wheel + Shift: Next/previous slice \n"
-        "Mouse Left Click: Draw Curve in Pen mode. Adjust Point in Segmentation mode \n"
-        "Shift + Mouse Left Click: Snap Closest Point to Cursor \n"
+        "Mouse Left Click: Add Points to Curve in Pen Tool. Snap Closest Point to Cursor in Segmentation Tool. \n"
+        "Mouse Left Drag: Drag Point / Curve after Mouse Left Click \n"
         "Mouse Right Drag: Pan slice image\n"
         "Mouse Back/Forward Button: Follow Highlighted Curve View \n"
         "Highlighting Segment ID: Shift/(Alt as well as Ctrl) Modifier to jump to Segment start/end."));
@@ -1993,8 +1998,9 @@ void CWindow::TogglePenTool(void)
 {
     if (fPenTool->isChecked()) {
         fWindowState = EWindowState::WindowStateDrawPath;
+        fSliceIndexToolStart = fPathOnSliceIndex;
 
-        // turn off edit tool
+        // turn off segmentation tool
         fSegTool->setChecked(false);
     } else {
         fWindowState = EWindowState::WindowStateIdle;
@@ -2008,6 +2014,7 @@ void CWindow::TogglePenTool(void)
         }
         fSplineCurve.Clear();
         fVolumeViewerWidget->ResetSplineCurve();
+        fSliceIndexToolStart = 0;
     }
 
     UpdateView();
@@ -2023,14 +2030,16 @@ void CWindow::ToggleSegmentationTool(void)
         }
         // Start prefetching around the current slice
         startPrefetching(fPathOnSliceIndex);
+        fSliceIndexToolStart = fPathOnSliceIndex;
 
         fWindowState = EWindowState::WindowStateSegmentation;
         SplitCloud();
 
-        // turn off edit tool
+        // turn off pen tool
         fPenTool->setChecked(false);
     } else {
         CleanupSegmentation();
+        fSliceIndexToolStart = 0;
     }
     UpdateView();
 }

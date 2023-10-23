@@ -219,7 +219,8 @@ private:
 
     SegmentationStruct fSegStruct;
     std::unordered_map<std::string, SegmentationStruct> fSegStructMap;
-    int fPathOnSliceIndex;
+    int fPathOnSliceIndex; // currently visible slice
+    int fSliceIndexToolStart{0}; // slice for which the currently active tool was started / toggled
     int fEndTargetOffset{5};
 
     // for drawing mode

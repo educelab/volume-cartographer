@@ -92,6 +92,9 @@ CVolumeViewerWithCurve::CVolumeViewerWithCurve(std::unordered_map<std::string, S
     fButtonsLayout->addWidget(fHistEqBox);
     fButtonsLayout->addWidget(HistEqLabel);
 
+    QSettings settingsJump("VC.ini", QSettings::IniFormat);
+    fwdBackMsJump = settingsJump.value("viewer/fwd_back_step_ms", 25).toInt();
+
     UpdateButtons();
 
     this->installEventFilter(this);
@@ -254,7 +257,7 @@ void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* event)
     if (event->buttons() & Qt::BackButton || event->buttons() & Qt::ForwardButton) {
         lastPressedButton = event->button();
         scrollPositionModifier = cv::Vec2f(0.0, 0.0);
-        timer->start(25); // start timer, will trigger handleMouseHold() every 25 ms
+        timer->start(fwdBackMsJump); // start timer with millisec delay value from settings
         return;
     }
 
@@ -263,63 +266,60 @@ void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* event)
     }
 
     // Return if not left or right click
-    if ( !(event->buttons() & Qt::RightButton) && !(event->buttons() & Qt::LeftButton) && !fIsMousePressed) {
+    if (!(event->buttons() & Qt::RightButton) && !(event->buttons() & Qt::LeftButton) && !fIsMousePressed) {
         return;
     }
 
-    // Get the mouse position in widget coordinates
-    cv::Vec2f aWidgetLoc, aImgLoc, res;
-    // For some reason the mouse position in the relase event are different and slightly off.
-    // So we need to use the values from the press event here.
-    aWidgetLoc[0] = event->pos().x();
-    aWidgetLoc[1] = event->pos().y();
+    if((event->buttons() & Qt::LeftButton) || fIsMousePressed) {
+        // Get the mouse position in widget coordinates
+        cv::Vec2f aWidgetLoc, aImgLoc, res;
+        // For some reason the mouse position in the relase event are different and slightly off.
+        // So we need to use the values from the press event here.
+        aWidgetLoc[0] = event->position().x();
+        aWidgetLoc[1] = event->position().y();
 
-    // Convert to image coordinates
-    WidgetLoc2ImgLoc(aWidgetLoc, aImgLoc);
+        // Convert to image coordinates
+        WidgetLoc2ImgLoc(aWidgetLoc, aImgLoc);
 
-    // Update the last tracked position
-    fLastPos.setX(aImgLoc[0]);
-    fLastPos.setY(aImgLoc[1]);
+        // Update the last tracked position
+        fLastPos.setX(aImgLoc[0]);
+        fLastPos.setY(aImgLoc[1]);
 
-    // Handle draw and edit
-    if (fViewState == EViewState::ViewStateDraw) {
-        // If left click, add control points to the curve
-        if (event->buttons() & Qt::LeftButton) {  // add points
-
+        // Handle draw and edit
+        if (fViewState == EViewState::ViewStateDraw && (event->buttons() & Qt::LeftButton)) {
+            // With left click, add control points to the curve
             fControlPoints.push_back(aImgLoc);
             UpdateSplineCurve();
             UpdateView();
-        }
-    } else if (fViewState == EViewState::ViewStateEdit && ((event->buttons() & Qt::LeftButton) || fIsMousePressed)) {
-        fIsMousePressed = true;        
+                
+        } else if (fViewState == EViewState::ViewStateEdit && ((event->buttons() & Qt::LeftButton) || fIsMousePressed)) {
+            fIsMousePressed = true;        
 
-        // If we have points, select the one that was clicked. The right click parameters is statically set to false,
-        // since the method itself will check for the Shift modifier which is the new keybinding for "snap to cursor".
-        auto res = SelectPointOnCurves(aImgLoc, false);
-        fSelectedPointIndex = res.first;
-        fSelectedSegID = res.second;
+            // If we have points, select the one that was clicked.
+            auto res = SelectPointOnCurves(aImgLoc, true);
+            fSelectedPointIndex = res.first;
+            fSelectedSegID = res.second;
 
-        // Set the curve to the one that was clicked
-        fSegStructMapRef[fSelectedSegID].fIntersectionCurve.setLastState();
+            // Set the curve to the one that was clicked
+            fSegStructMapRef[fSelectedSegID].fIntersectionCurve.setLastState();
 
-        // Set fLastPos to the position of the selected point
-        if (fSelectedPointIndex >= 0) {
-            setCursor(Qt::PointingHandCursor);
+            // Set fLastPos to the position of the selected point
+            if (fSelectedPointIndex >= 0) {
+                setCursor(Qt::PointingHandCursor);
 
-            fLastPos.setX(fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPoint(fSelectedPointIndex)[0]);
-            fLastPos.setY(fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPoint(fSelectedPointIndex)[1]);
-            
-            // Mouse move event to update the line
-            if(QApplication::keyboardModifiers() == Qt::ShiftModifier)
+                fLastPos.setX(fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPoint(fSelectedPointIndex)[0]);
+                fLastPos.setY(fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPoint(fSelectedPointIndex)[1]);
+                
+                // Mouse move event to update the line
                 mouseMoveEvent(event);
 
-            // qDebug() << "mousePressEvent: selected point index: " << fSelectedPointIndex;
+                // qDebug() << "mousePressEvent: selected point index: " << fSelectedPointIndex;
+            }
         }
-    }
-
-    // Attempt to start the panning. We only consider us in panning mode, if in the mouse move event
-    // we actually detect movement.
-    if (event->buttons() & Qt::RightButton) {
+    } else if (event->buttons() & Qt::RightButton) {
+        // Attempt to start the panning. We only consider us in panning mode, if in the mouse move event
+        // we actually detect movement.
+        
         rightPressed = true;
         wantsPanning = true;
         isPanning = false;
@@ -345,8 +345,8 @@ void CVolumeViewerWithCurve::mouseMoveEvent(QMouseEvent* event)
     if (fSelectedPointIndex != -1) {
         // Get the mouse position in widget coordinates
         cv::Vec2f aWidgetLoc, aImgLoc;
-        aWidgetLoc[0] = event->pos().x();
-        aWidgetLoc[1] = event->pos().y();
+        aWidgetLoc[0] = event->position().x();
+        aWidgetLoc[1] = event->position().y();
 
         // Convert to image coordinates and get delta of change
         WidgetLoc2ImgLoc(aWidgetLoc, aImgLoc);
@@ -388,7 +388,7 @@ void CVolumeViewerWithCurve::mouseReleaseEvent(QMouseEvent* event)
         return;
     }
 
-    if (!(event->buttons() & Qt::RightButton) && !(event->button() & Qt::LeftButton)) {
+    if (!(event->buttons() & Qt::RightButton) && !(event->buttons() & Qt::LeftButton)) {
         fIsMousePressed = false;
     }
 
@@ -500,10 +500,9 @@ void CVolumeViewerWithCurve::WidgetLoc2ImgLoc(
 
 // Select point on curves
 std::pair<int, std::string> CVolumeViewerWithCurve::SelectPointOnCurves(
-    const cv::Vec2f& nPt, bool rightClick, bool selectGlobally)
+    const cv::Vec2f& nPt, bool snapMode, bool selectGlobally)
 {
     const double DIST_THRESHOLD = 1.5 * fScaleFactor;
-    bool shiftKeyPressed = QGuiApplication::queryKeyboardModifiers().testFlag(Qt::ShiftModifier);
 
     double minDistance = std::numeric_limits<double>::max();
     std::string best_id = "";
@@ -531,7 +530,7 @@ std::pair<int, std::string> CVolumeViewerWithCurve::SelectPointOnCurves(
         }
     }
     // qDebug() << "minDistance: " << minDistance << " closestPointIndex: " << closestPointIndex << " best_id: " << best_id.c_str();
-    if (selectGlobally || ((rightClick || shiftKeyPressed) && minDistance < 100.0*DIST_THRESHOLD) || minDistance < DIST_THRESHOLD) {
+    if (selectGlobally || (snapMode && minDistance < 100.0*DIST_THRESHOLD) || minDistance < DIST_THRESHOLD) {
         // qDebug() << "returning closestPointIndex: " << closestPointIndex << " best_id: " << best_id.c_str();
         return std::make_pair(closestPointIndex, best_id);
     } else {

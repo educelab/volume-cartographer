@@ -153,11 +153,9 @@ bool CVolumeViewer::eventFilter(QObject* watched, QEvent* event)
             int numDegrees = wheelEvent->angleDelta().y() / 8;
 
             if (numDegrees > 0) {
-                SendSignalOnNextSliceShift(numDegrees > 30 ? 10 : 1);                
-                //OnNextClicked();
+                SendSignalOnNextSliceShift(numDegrees > 30 ? 10 : 1);
             } else if (numDegrees < 0) {
-                SendSignalOnPrevSliceShift(numDegrees < -30 ? 10 : 1);                
-                //OnPrevClicked();
+                SendSignalOnPrevSliceShift(numDegrees < -30 ? 10 : 1);
             }
             return true;
         }
