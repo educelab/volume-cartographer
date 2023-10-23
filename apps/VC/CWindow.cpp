@@ -1506,6 +1506,10 @@ void CWindow::OnNewPathClicked(void)
 // Remove existing path
 void CWindow::OnRemovePathClicked(void)
 {
+    // If there is no current item, we cannot remove it
+    if(!fPathListWidget->currentItem())
+        return;
+
     auto id = fPathListWidget->currentItem()->text(0);
 
     if(!id.isEmpty()) {
