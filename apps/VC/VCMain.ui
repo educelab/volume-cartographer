@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>790</width>
-    <height>820</height>
+    <height>841</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -29,11 +29,17 @@
    <layout class="QVBoxLayout" name="verticalLayout_10">
     <item>
      <widget class="QSplitter" name="splitter">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
       <widget class="QWidget" name="layoutWidget_1">
-       <layout class="QVBoxLayout" name="verticalLayout">
+       <layout class="QVBoxLayout" name="vLayoutViewer">
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_1">
           <item>
@@ -101,7 +107,7 @@
        </layout>
       </widget>
       <widget class="QWidget" name="layoutWidget_2">
-       <layout class="QVBoxLayout" name="verticalLayout_2">
+       <layout class="QVBoxLayout" name="vLayoutMenu">
         <item>
          <widget class="QGroupBox" name="grpVolManager">
           <property name="minimumSize">
@@ -153,6 +159,15 @@
            </item>
            <item>
             <widget class="QTreeWidget" name="treeWidgetPaths">
+             <property name="indentation">
+              <number>0</number>
+             </property>
+             <attribute name="headerMinimumSectionSize">
+              <number>50</number>
+             </attribute>
+             <attribute name="headerStretchLastSection">
+              <bool>true</bool>
+             </attribute>
              <column>
               <property name="text">
                <string>Segment ID</string>
@@ -270,8 +285,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>459</width>
-                <height>161</height>
+                <width>440</width>
+                <height>160</height>
                </rect>
               </property>
               <property name="layoutDirection">
@@ -465,7 +480,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QGroupBox" name="groupBox_4">
+         <widget class="QGroupBox" name="grpEditing">
           <property name="title">
            <string>Editing</string>
           </property>

@@ -202,8 +202,8 @@ void CWindow::CreateWidgets(void)
     QPushButton* aBtnNewPath = this->findChild<QPushButton*>("btnNewPath");
     QPushButton* aBtnRemovePath =
         this->findChild<QPushButton*>("btnRemovePath");
-    aBtnRemovePath->setEnabled(false);
     connect(aBtnNewPath, SIGNAL(clicked()), this, SLOT(OnNewPathClicked()));
+    connect(aBtnRemovePath, SIGNAL(clicked()), this, SLOT(OnRemovePathClicked()));
 
     // TODO CHANGE VOLUME LOADING; FIRST CHECK FOR OTHER VOLUMES IN THE STRUCTS
     volSelect = this->findChild<QComboBox*>("volSelect");
@@ -220,6 +220,7 @@ void CWindow::CreateWidgets(void)
             OnLoadAnySlice(0);
             setDefaultWindowWidth(newVolume);
             fVolumeViewerWidget->setNumSlices(currentVolume->numSlices());
+            fEdtStartIndex->setMaximum(currentVolume->numSlices());
             fEdtEndIndex->setMaximum(currentVolume->numSlices());
         });
 
@@ -418,30 +419,31 @@ void CWindow::CreateWidgets(void)
     statusBar = this->findChild<QStatusBar*>("statusBar");
 
     // setup shortcuts
-    slicePrev = new QShortcut(QKeySequence(tr("Left")), this);
-    sliceNext = new QShortcut(QKeySequence(tr("Right")), this);
+    slicePrev = new QShortcut(QKeySequence(Qt::Key_Left), this);
+    sliceNext = new QShortcut(QKeySequence(Qt::Key_Right), this);
     sliceZoomIn = new QShortcut(QKeySequence::ZoomIn, this);
     sliceZoomOut = new QShortcut(QKeySequence::ZoomOut, this);
-    displayCurves = new QShortcut(QKeySequence(tr(" ")), this);
-    displayCurves_C = new QShortcut(QKeySequence(tr("C")), this); // For NoMachine Segmenters
-    impactDwn = new QShortcut(QKeySequence(tr("A")), this);
-    impactUp = new QShortcut(QKeySequence(tr("D")), this);
+    displayCurves = new QShortcut(QKeySequence(Qt::Key_Space), this);
+    displayCurves_C = new QShortcut(QKeySequence(Qt::Key_C), this); // For NoMachine Segmenters
+    impactDwn = new QShortcut(QKeySequence(Qt::Key_A), this);
+    impactUp = new QShortcut(QKeySequence(Qt::Key_D), this);
     impactDwn_old = new QShortcut(QKeySequence(tr("[")), this);
     impactUp_old = new QShortcut(QKeySequence(tr("]")), this);
-    segmentationToolShortcut = new QShortcut(QKeySequence(tr("T")), this);
-    penToolShortcut = new QShortcut(QKeySequence(tr("P")), this);
-    prev1 = new QShortcut(QKeySequence(tr("1")), this);
-    next1 = new QShortcut(QKeySequence(tr("2")), this);
-    prev2 = new QShortcut(QKeySequence(tr("3")), this);
-    next2 = new QShortcut(QKeySequence(tr("4")), this);
-    prev5 = new QShortcut(QKeySequence(tr("5")), this);
-    next5 = new QShortcut(QKeySequence(tr("6")), this);
-    prev10 = new QShortcut(QKeySequence(tr("7")), this);
-    next10 = new QShortcut(QKeySequence(tr("8")), this);
-    prev100 = new QShortcut(QKeySequence(tr("9")), this);
-    next100 = new QShortcut(QKeySequence(tr("0")), this);
-    prevSelectedId = new QShortcut(QKeySequence(tr("Q")), this);
-    nextSelectedId = new QShortcut(QKeySequence(tr("E")), this);
+    segmentationToolShortcut = new QShortcut(QKeySequence(Qt::Key_T), this);
+    penToolShortcut = new QShortcut(QKeySequence(Qt::Key_P), this);
+    prev1 = new QShortcut(QKeySequence(Qt::Key_1), this);
+    next1 = new QShortcut(QKeySequence(Qt::Key_1), this);
+    prev2 = new QShortcut(QKeySequence(Qt::Key_1), this);
+    next2 = new QShortcut(QKeySequence(Qt::Key_4), this);
+    prev5 = new QShortcut(QKeySequence(Qt::Key_5), this);
+    next5 = new QShortcut(QKeySequence(Qt::Key_6), this);
+    prev10 = new QShortcut(QKeySequence(Qt::Key_7), this);
+    next10 = new QShortcut(QKeySequence(Qt::Key_8), this);
+    prev100 = new QShortcut(QKeySequence(Qt::Key_9), this);
+    next100 = new QShortcut(QKeySequence(Qt::Key_0), this);
+    prevSelectedId = new QShortcut(QKeySequence(Qt::Key_Q), this);
+    nextSelectedId = new QShortcut(QKeySequence(Qt::Key_E), this);
+    goToSlice = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_G), this);
 
 
     connect(
@@ -530,6 +532,7 @@ void CWindow::CreateWidgets(void)
     });
     connect(prevSelectedId, &QShortcut::activated, this, &CWindow::PreviousSelectedId);
     connect(nextSelectedId, &QShortcut::activated, this, &CWindow::NextSelectedId);
+    connect(goToSlice, &QShortcut::activated, this, &CWindow::ShowGoToSliceDlg);
 
 }
 
@@ -637,7 +640,7 @@ void CWindow::setWidgetsEnabled(bool state)
     this->findChild<QGroupBox*>("grpSeg")->setEnabled(state);
     this->findChild<QPushButton*>("btnSegTool")->setEnabled(state);
     this->findChild<QPushButton*>("btnPenTool")->setEnabled(state);
-    this->findChild<QGroupBox*>("groupBox_4")->setEnabled(state);
+    this->findChild<QGroupBox*>("grpEditing")->setEnabled(state);
     fVolumeViewerWidget->setButtonsEnabled(state);
 }
 
@@ -1006,6 +1009,9 @@ void CWindow::onSegmentationFinished(Segmenter::PointSet ps)
     for (i= 0; i < fSegStructMap[submittedSegmentationId].fMasterCloud.height(); i++) {
         auto masterRowI = fSegStructMap[submittedSegmentationId].fMasterCloud.getRow(i);
         if (ps[0][2] <= masterRowI[fSegStructMap[submittedSegmentationId].fUpperPart.width()-1][2]){
+            // We found the entry where the Z value (3rd vector component = index 2) of the new
+            // point set matches the one we just checked in our existing one => starting point for 
+            // point set concatenation
             break;
         }
     }
@@ -1259,7 +1265,7 @@ void CWindow::InitPathList(void)
 // Update the Master cloud with the path we drew
 void CWindow::SetPathPointCloud(void)
 {
-    // calculate the path and save that to aMasterCloud
+    // calculate the path and save that to a MasterCloud
     std::vector<cv::Vec2f> aSamplePts;
     fSplineCurve.GetSamplePoints(aSamplePts);
 
@@ -1394,6 +1400,7 @@ void CWindow::Keybindings(void)
         "5,6: Slice down/up by 5 \n"
         "7,8: Slice down/up by 10 \n"
         "9,0: Slice down/up by 100 \n"
+        "Ctrl+G: Go to slice (opens dialog to insert slice index) \n"
         "T: Segmentation Tool \n"
         "P: Pen Tool \n"
         "Space: Toggle Curve Visibility \n"
@@ -1433,7 +1440,7 @@ void CWindow::SavePointCloud()
         total++;
         auto& segStruct = seg.second;
         if (segStruct.fMasterCloud.empty() || segStruct.fSegmentationId.empty()) {
-            qDebug() << "Empty cloud or segmentation ID to save for id " << segStruct.fSegmentationId.c_str();
+            qDebug() << "Empty cloud or segmentation ID to save for ID " << segStruct.fSegmentationId.c_str();
             continue;
         }
         // Try to save cloud to volpkg
@@ -1443,7 +1450,7 @@ void CWindow::SavePointCloud()
         } catch (std::exception& e) {
             QMessageBox::warning(
                 this, "Error", "Failed to write cloud to volume package.");
-            qDebug() << "Exception in save for id " << segStruct.fSegmentationId.c_str();
+            qDebug() << "Exception in save for ID " << segStruct.fSegmentationId.c_str();
             continue;
         }
         count++;
@@ -1465,8 +1472,16 @@ void CWindow::OnNewPathClicked(void)
     }
 
     // Make a new segmentation in the volpkg
-    auto seg = fVpkg->newSegmentation();
-    const auto newSegmentationId = seg->id();
+    volcart::DiskBasedObjectBaseClass::Identifier newSegmentationId;
+    try {
+        auto seg = fVpkg->newSegmentation();
+        newSegmentationId = seg->id();
+    } catch(std::exception) {
+        // Could e.g. happen if the user clicks too quickly in succession on the "New" button as the timestamp 
+        // is the segment UUID, which would not be unique if there are two clicks within one second.
+        QMessageBox::warning(this, tr("Error"), tr("An error occurred during segment creation. Please try again"));
+        return;
+    }
 
     // Add a new path to the tree widget
     QTreeWidgetItem *newItem = new QTreeWidgetItem(fPathListWidget);
@@ -1482,6 +1497,33 @@ void CWindow::OnNewPathClicked(void)
     fSegStructMap[newSegmentationId].display = true;
     fSegStructMap[newSegmentationId].compute = true;
     UpdateView();
+}
+
+// Remove existing path
+void CWindow::OnRemovePathClicked(void)
+{
+    auto id = fPathListWidget->currentItem()->text(0);
+
+    if(!id.isEmpty()) {
+
+        // Ask for user confirmation
+        auto button = QMessageBox::critical(this, tr("Are you sure?"), tr("Warning: This will irrevocably delete the segment.\n\nThis action cannot be undone!\n\nContinue?"), QMessageBox::Yes | QMessageBox::No);
+        
+        if(button == QMessageBox::Yes) {
+
+            try {
+                if(fVpkg->removeSegmentation(id.toStdString())) {
+                    fSegStructMap[id.toStdString()].ResetPointCloud();
+                    delete fPathListWidget->currentItem();
+                }
+            } catch(std::exception) {
+                QMessageBox::warning(this, tr("Error"), tr("An error occurred during segment removal."));
+                return;
+            }
+
+            UpdateView();
+        }
+    }
 }
 
 void CWindow::UpdateSegmentCheckboxes(std::string aSegID) {
@@ -1796,6 +1838,20 @@ void CWindow::NextSelectedId() {
     UpdateView();
 }
 
+// Show go to slice dialog and execute the jump
+void CWindow::ShowGoToSliceDlg() {
+    if (currentVolume == nullptr) {
+        return;
+    }
+    
+    bool status;
+    const int sliceIndex = QInputDialog::getInt(this, tr("Go to slice"), tr("Slice Index"), 0, 0, currentVolume->numSlices(), 1, &status);
+    
+    if(status) {
+        OnLoadAnySlice(sliceIndex);
+    }
+}
+
 // Logic to activate pen tool
 void CWindow::ActivatePenTool() {
     // Pen tool available
@@ -1852,7 +1908,6 @@ void CWindow::ToggleSegmentationTool(void)
 
         fWindowState = EWindowState::WindowStateSegmentation;
         fUpperPart.reset();
-        fStartingPath.clear();
         SplitCloud();
 
         // turn off edit tool

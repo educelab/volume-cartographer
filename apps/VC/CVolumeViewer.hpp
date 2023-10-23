@@ -45,7 +45,7 @@ public slots:
     void OnResetClicked(void);
     void OnNextClicked(void);
     void OnPrevClicked(void);
-    void OnImageIndexEditTextChanged(int nImageIndex);
+    void OnImageIndexEditTextChanged(void);
 
 signals:
     void SendSignalOnNextSliceShift(int shift);

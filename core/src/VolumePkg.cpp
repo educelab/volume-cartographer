@@ -159,7 +159,7 @@ auto VolumePkg::newVolume(std::string name) -> Volume::Pointer
         name = uuid;
     }
 
-    // Make the volume directory
+    // Construct the volume directory path
     auto volDir = volsDir_ / uuid;
     if (!fs::exists(volDir)) {
         fs::create_directory(volDir);
@@ -170,7 +170,7 @@ auto VolumePkg::newVolume(std::string name) -> Volume::Pointer
     // Make the volume
     auto r = volumes_.emplace(uuid, Volume::New(volDir, uuid, name));
     if (!r.second) {
-        auto msg = "Volume already exists with id " + uuid;
+        auto msg = "Volume already exists with ID " + uuid;
         throw std::runtime_error(msg);
     }
 
@@ -256,7 +256,7 @@ auto VolumePkg::newSegmentation(std::string name) -> Segmentation::Pointer
         name = uuid;
     }
 
-    // Make the volume directory
+    // Construct the volume directory path
     auto segDir = segsDir_ / uuid;
     if (!fs::exists(segDir)) {
         fs::create_directory(segDir);
@@ -268,12 +268,26 @@ auto VolumePkg::newSegmentation(std::string name) -> Segmentation::Pointer
     auto r =
         segmentations_.emplace(uuid, Segmentation::New(segDir, uuid, name));
     if (!r.second) {
-        auto msg = "Segmentation already exists with id " + uuid;
+        auto msg = "Segmentation already exists with ID " + uuid;
         throw std::runtime_error(msg);
     }
 
     // Return the Segmentation Pointer
     return r.first->second;
+}
+
+auto VolumePkg::removeSegmentation(const Segmentation::Identifier& id) -> bool
+{
+    if(id.size() == 0)
+        return false;
+
+    // Construct the volume directory path
+    auto segDir = segsDir_ / id;
+    if (!fs::exists(segDir)) {
+        throw std::runtime_error("Segmentation directory does not exist for ID " + id);
+    } else {
+        return fs::remove_all(segDir);
+    }
 }
 
 // RENDER FUNCTIONS //
@@ -320,7 +334,7 @@ auto VolumePkg::newRender(std::string name) -> Render::Pointer
         name = uuid;
     }
 
-    // Make the volume directory
+    // Construct the volume directory path
     auto renDir = rendDir_ / uuid;
     if (!fs::exists(renDir)) {
         fs::create_directory(renDir);
@@ -331,7 +345,7 @@ auto VolumePkg::newRender(std::string name) -> Render::Pointer
     // Make the Render
     auto r = renders_.emplace(uuid, Render::New(renDir, uuid, name));
     if (!r.second) {
-        auto msg = "Render already exists with id " + uuid;
+        auto msg = "Render already exists with ID " + uuid;
         throw std::runtime_error(msg);
     }
 

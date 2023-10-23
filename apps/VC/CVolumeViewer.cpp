@@ -29,13 +29,14 @@ CVolumeViewer::CVolumeViewer(QWidget* parent)
     fNextBtn = new QPushButton(tr("Next Slice"), this);
     fPrevBtn = new QPushButton(tr("Previous Slice"), this);
 
-    // text edit
+    // slice index edit
     fImageIndexEdit = new QSpinBox(this);
     fImageIndexEdit->setMinimum(0);
     fImageIndexEdit->setEnabled(true);
+    fImageIndexEdit->setMinimumWidth(100);
     connect(
-        fImageIndexEdit, SIGNAL(valueChanged(int)), this,
-        SLOT(OnImageIndexEditTextChanged(int)));
+        fImageIndexEdit, SIGNAL(editingFinished()), this,
+        SLOT(OnImageIndexEditTextChanged()));
 
     fBaseImageItem = new QGraphicsPixmapItem();
 
@@ -227,10 +228,10 @@ void CVolumeViewer::OnPrevClicked(void)
 }
 
 // Handle image index change
-void CVolumeViewer::OnImageIndexEditTextChanged(int index)
+void CVolumeViewer::OnImageIndexEditTextChanged(void)
 {
     // send signal to controller in order to update the content
-    SendSignalOnLoadAnyImage(index);
+    SendSignalOnLoadAnyImage(fImageIndexEdit->value());
 }
 
 // Update the status of the buttons

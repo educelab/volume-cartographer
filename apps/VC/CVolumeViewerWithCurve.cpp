@@ -290,17 +290,14 @@ void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* event)
         if (fSelectedPointIndex >= 0) {
             fLastPos.setX(fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPoint(fSelectedPointIndex)[0]);
             fLastPos.setY(fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPoint(fSelectedPointIndex)[1]);
-            // Mouse move event to update the line
-            //mouseMoveEvent(event);
             // qDebug() << "mousePressEvent: selected point index: " << fSelectedPointIndex;
         }
 
-        // Return now, to prevent the right click panning from tacking effect as well
         return;
     }
 
     // If we reached this point in the event handler, then nothing in relation to the points/paths
-    // happened (e.g. no selection and moving of poinnts), so we can start panning.
+    // happened (e.g. no selection and moving of points), so we can start panning.
     if (event->buttons() & Qt::RightButton) {
         rightPressed = true;
         wantsPanning = true;
@@ -315,7 +312,7 @@ void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* event)
 // Handle mouse move event, currently only when we're editing
 void CVolumeViewerWithCurve::mouseMoveEvent(QMouseEvent* event)
 {
-    // We potentially want to start panning, and now check if the mouse actually moved to dinstiguish
+    // We potentially want to start panning, and now check if the mouse actually moved to distinguish
     // from a regular right click which would have a different meaning in some tool modes
     if (wantsPanning && rightPressed){
         if(event->position().x() != panStartX || event->position().y() - panStartY)
@@ -328,7 +325,7 @@ void CVolumeViewerWithCurve::mouseMoveEvent(QMouseEvent* event)
             panStartY = event->position().y();
             event->accept();
 
-            // If we are panning, tha means we did not have a selected point (as right clicks cannot do that),
+            // If we are panning, that means we did not have a selected point (as right clicks cannot do that),
             // so we can leave here.
             return;
         } else {
@@ -606,9 +603,7 @@ void CVolumeViewerWithCurve::DrawControlPoints(QGraphicsScene* scene) {
         return;  // Early exit if either object is null or the list is empty
     }
 
-    int pointsNum = fControlPoints.size();
-
-    for (int i = 0; i < pointsNum; ++i) {
+    for (int i = 0; i < fControlPoints.size(); ++i) {
         // Create new ellipse points
         auto p0 = fControlPoints[i][0] - 0.5;
         auto p1 = fControlPoints[i][1] - 0.5;

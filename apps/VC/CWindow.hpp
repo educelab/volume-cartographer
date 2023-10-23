@@ -152,10 +152,12 @@ private slots:
     void SavePointCloud();
 
     void OnNewPathClicked(void);
+    void OnRemovePathClicked(void);
     void OnPathItemClicked(QTreeWidgetItem* item, int column);
 
     void PreviousSelectedId();
     void NextSelectedId();
+    void ShowGoToSliceDlg();
 
     void ActivatePenTool();
     void ActivateSegmentationTool();
@@ -216,13 +218,6 @@ private:
 
     // for drawing mode
     CBSpline fSplineCurve;  // the curve at current slice
-    // for editing mode
-    CXCurve fIntersectionCurve;
-    std::vector<CXCurve> fIntersections;  // curves of all the slices
-    //    std::vector< CXCurve > fCurvesLower; // neighboring curves, { -1, -2,
-    //    ... }
-    //    std::vector< CXCurve > fCurvesUpper; // neighboring curves, { +1, +2,
-    //    ... }
 
     SSegParams fSegParams;
     std::queue<std::pair<std::string, Segmenter::Pointer>> segmentationQueue;
@@ -230,7 +225,6 @@ private:
 
     volcart::OrderedPointSet<cv::Vec3d> fMasterCloud;
     volcart::OrderedPointSet<cv::Vec3d> fUpperPart;
-    std::vector<cv::Vec3d> fStartingPath;
 
     // window components
     QMenu* fFileMenu;
@@ -291,6 +285,7 @@ private:
     QShortcut* prev100;
     QShortcut* prevSelectedId;
     QShortcut* nextSelectedId;
+    QShortcut* goToSlice;
 
     Ui_VCMainWindow ui;
 
