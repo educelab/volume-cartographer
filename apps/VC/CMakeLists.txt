@@ -2,7 +2,6 @@
 set(target VC)
 
 set(srcs
-    CSimpleNumEditBox.cpp
     VCAppMain.cpp
     CMesh.cpp
     CWindow.cpp

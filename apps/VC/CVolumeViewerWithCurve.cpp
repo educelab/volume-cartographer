@@ -453,6 +453,7 @@ bool CVolumeViewerWithCurve::eventFilter(QObject* watched, QEvent* event)
         // Create a new QMouseEvent with local coordinates
         QMouseEvent localMouseEvent(QEvent::MouseMove,
                                     localPoint,
+                                    mouseEvent->globalPosition(),
                                     mouseEvent->button(),
                                     mouseEvent->buttons(),
                                     mouseEvent->modifiers());
