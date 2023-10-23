@@ -68,6 +68,9 @@ CVolumeViewer::CVolumeViewer(QWidget* parent)
     connect(fNextBtn, SIGNAL(clicked()), this, SLOT(OnNextClicked()));
     connect(fPrevBtn, SIGNAL(clicked()), this, SLOT(OnPrevClicked()));
 
+    QSettings settings("VC.ini", QSettings::IniFormat);
+    fCenterOnZoomEnabled = settings.value("viewer/center_on_zoom", false).toInt() != 0;
+
     QVBoxLayout* aWidgetLayout = new QVBoxLayout;
     aWidgetLayout->addWidget(fGraphicsView);
     aWidgetLayout->addLayout(fButtonsLayout);
@@ -141,8 +144,9 @@ bool CVolumeViewer::eventFilter(QObject* watched, QEvent* event)
                 OnZoomOutClicked();
             }
             
-            // Removed for now. Should be made user configurable, since some do not like it.
-            // CenterOn(fGraphicsView->mapToScene(wheelEvent->position().toPoint()));
+            if(fCenterOnZoomEnabled) {
+                CenterOn(fGraphicsView->mapToScene(wheelEvent->position().toPoint()));
+            }
             
             return true;
         } else if(QApplication::keyboardModifiers() == Qt::ShiftModifier) {

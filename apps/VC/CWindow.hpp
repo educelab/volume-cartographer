@@ -29,6 +29,7 @@
 #include <queue>
 #include <unordered_map>
 
+#define MAX_RECENT_VOLPKG 10
 
 // Volpkg version required by this app
 static constexpr int VOLPKG_SUPPORTED_VERSION = 6;
@@ -104,7 +105,11 @@ private:
     void CreateWidgets(void);
     void CreateMenus(void);
     void CreateActions(void);
-    void CreateBackend();
+    void CreateBackend(void);
+
+    void UpdateRecentVolpkgActions(void);
+    void UpdateRecentVolpkgList(const QString& path);
+    void RemoveEntryFromRecentVolpkg(const QString& path);
 
     void closeEvent(QCloseEvent* closing);
 
@@ -137,7 +142,7 @@ private:
     void queueSegmentation(std::string segmentationId, Segmenter::Pointer s);
     void executeNextSegmentation();
 
-    void OpenVolume(void);
+    void OpenVolume(const QString& path);
     void CloseVolume(void);
 
     void ResetPointCloud(void);
@@ -146,10 +151,13 @@ private:
 
 private slots:
     void Open(void);
+    void Open(const QString& path);
+    void OpenRecent();
     void Close(void);
     void Keybindings(void);
     void About(void);
     void SavePointCloud();
+    void ShowSettings();
 
     void OnNewPathClicked(void);
     void OnRemovePathClicked(void);
@@ -229,9 +237,12 @@ private:
     // window components
     QMenu* fFileMenu;
     QMenu* fHelpMenu;
+    QMenu* fRecentVolpkgMenu{};
 
     QAction* fOpenVolAct;
+    QAction* fOpenRecentVolpkg[MAX_RECENT_VOLPKG]{};
     QAction* fSavePointCloudAct;
+    QAction* fSettingsAct;
     QAction* fExitAct;
     QAction* fKeybinds;
     QAction* fAboutAct;

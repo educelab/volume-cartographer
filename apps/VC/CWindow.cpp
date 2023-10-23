@@ -9,6 +9,8 @@
 
 #include "CVolumeViewerWithCurve.hpp"
 #include "UDataManipulateUtils.hpp"
+#include "SettingsDialog.hpp"
+
 #include "vc/core/types/Color.hpp"
 #include "vc/core/types/Exceptions.hpp"
 #include "vc/core/util/Iteration.hpp"
@@ -127,17 +129,30 @@ CWindow::CWindow()
     // create menu
     CreateActions();
     CreateMenus();
+    UpdateRecentVolpkgActions();
     CreateBackend();
 
     OpenSlice();
     UpdateView();
 
-    const QSettings settings;
-    if (settings.contains("mainWin/geometry")) {
-        restoreGeometry(settings.value("mainWin/geometry").toByteArray());
+    // Restore geometry / sizes
+    QSettings geometry;
+    if (geometry.contains("mainWin/geometry")) {
+        restoreGeometry(geometry.value("mainWin/geometry").toByteArray());
     }
-    if (settings.contains("mainWin/state")) {
-        restoreState(settings.value("mainWin/state").toByteArray());
+    if (geometry.contains("mainWin/state")) {
+        restoreState(geometry.value("mainWin/state").toByteArray());
+    }
+
+    // If enabled, auto open the last used volpkg
+    QSettings settings("VC.ini", QSettings::IniFormat);
+    if (settings.value("volpkg/auto_open", false).toInt() != 0) {
+        
+        QStringList files = settings.value("volpkg/recent").toStringList();
+
+        if(files.size() > 0 && !files.at(0).isEmpty()) {
+            Open(files[0]);
+        }
     }
 }
 
@@ -538,9 +553,21 @@ void CWindow::CreateWidgets(void)
 // Create menus
 void CWindow::CreateMenus(void)
 {
+    // "Recent Volpkg" menu
+    fRecentVolpkgMenu = new QMenu(tr("Open &recent volpkg"), this);
+    fRecentVolpkgMenu->setEnabled(false);
+    for (auto& action : fOpenRecentVolpkg)
+    {
+        fRecentVolpkgMenu->addAction(action);
+    }
+
     fFileMenu = new QMenu(tr("&File"), this);
     fFileMenu->addAction(fOpenVolAct);
+    fFileMenu->addMenu(fRecentVolpkgMenu);
+    fFileMenu->addSeparator();
     fFileMenu->addAction(fSavePointCloudAct);
+    fFileMenu->addSeparator();
+    fFileMenu->addAction(fSettingsAct);
     fFileMenu->addSeparator();
     fFileMenu->addAction(fExitAct);
 
@@ -560,6 +587,21 @@ void CWindow::CreateActions(void)
     connect(fOpenVolAct, SIGNAL(triggered()), this, SLOT(Open()));
     fOpenVolAct->setShortcut(QKeySequence::Open);
 
+    for(auto& action : fOpenRecentVolpkg)
+    {
+        action = new QAction(this);
+        action->setVisible(false);
+        connect(action, &QAction::triggered, this, &CWindow::OpenRecent);
+    }
+
+    fSavePointCloudAct = new QAction(tr("&Save volpkg..."), this);
+    connect(
+        fSavePointCloudAct, SIGNAL(triggered()), this, SLOT(SavePointCloud()));
+    fSavePointCloudAct->setShortcut(QKeySequence::Save);
+
+    fSettingsAct = new QAction(tr("Settings"), this);
+    connect(fSettingsAct, SIGNAL(triggered()), this, SLOT(ShowSettings()));
+
     fExitAct = new QAction(tr("E&xit..."), this);
     connect(fExitAct, SIGNAL(triggered()), this, SLOT(Close()));
 
@@ -567,12 +609,7 @@ void CWindow::CreateActions(void)
     connect(fKeybinds, SIGNAL(triggered()), this, SLOT(Keybindings()));
 
     fAboutAct = new QAction(tr("&About..."), this);
-    connect(fAboutAct, SIGNAL(triggered()), this, SLOT(About()));
-
-    fSavePointCloudAct = new QAction(tr("&Save volpkg..."), this);
-    connect(
-        fSavePointCloudAct, SIGNAL(triggered()), this, SLOT(SavePointCloud()));
-    fSavePointCloudAct->setShortcut(QKeySequence::Save);
+    connect(fAboutAct, SIGNAL(triggered()), this, SLOT(About()));    
 }
 
 void CWindow::CreateBackend()
@@ -618,6 +655,75 @@ void CWindow::CreateBackend()
         }
         progressBar_->setValue(progress_);
     });
+}
+
+void CWindow::UpdateRecentVolpkgActions()
+{
+    QSettings settings("VC.ini", QSettings::IniFormat);
+    QStringList files = settings.value("volpkg/recent").toStringList();
+    if(files.isEmpty()) {
+        return;
+    }
+
+    // The automatic conversion to string list from the settings, (always?) adds an 
+    // empty entry at the end. Remove it if present.
+    if(files.last().isEmpty()) {
+        files.removeLast();
+    }
+
+    const int numRecentFiles = qMin(files.size(), static_cast<int>(MAX_RECENT_VOLPKG));
+
+    for(int i = 0; i < numRecentFiles; ++i) {
+        // Replace "&" with "&&" since otherwise they will be hidden and interpreted
+        // as mnemonics
+        QString fileName = QFileInfo(files[i]).fileName();
+        fileName.replace("&", "&&");
+        QString path = QFileInfo(files[i]).canonicalPath();
+
+        if(path == "."){
+            path = tr("Directory not available!");
+        } else {
+            path.replace("&", "&&");
+        }
+
+        QString text = tr("&%1 | %2 (%3)").arg(i + 1).arg(fileName).arg(path);
+        fOpenRecentVolpkg[i]->setText(text);
+        fOpenRecentVolpkg[i]->setData(files[i]);
+        fOpenRecentVolpkg[i]->setVisible(true);
+    }
+
+    for(int j = numRecentFiles; j < MAX_RECENT_VOLPKG; ++j) {
+        fOpenRecentVolpkg[j]->setVisible(false);
+    }
+
+    fRecentVolpkgMenu->setEnabled(numRecentFiles > 0);
+}
+
+void CWindow::UpdateRecentVolpkgList(const QString& path)
+{
+    QSettings settings("VC.ini", QSettings::IniFormat);
+    QStringList files = settings.value("volpkg/recent").toStringList();
+    const QString pathCanonical = QFileInfo(path).absoluteFilePath();
+    files.removeAll(pathCanonical);
+    files.prepend(pathCanonical);
+
+    while(files.size() > MAX_RECENT_VOLPKG) {
+        files.removeLast();
+    }
+
+    settings.setValue("volpkg/recent", files);
+
+    UpdateRecentVolpkgActions();
+}
+
+void CWindow::RemoveEntryFromRecentVolpkg(const QString& path)
+{
+    QSettings settings("VC.ini", QSettings::IniFormat);
+    QStringList files = settings.value("volpkg/recent").toStringList();
+    files.removeAll(path);
+    settings.setValue("volpkg/recent", files);
+
+    UpdateRecentVolpkgActions();
 }
 
 // Asks User to Save Data Prior to VC.app Exit
@@ -1293,23 +1399,23 @@ void CWindow::SetPathPointCloud(void)
 }
 
 // Open volume package
-void CWindow::OpenVolume()
-{
-    const QString defaultPathKey("default_path");
+void CWindow::OpenVolume(const QString& path)
+{   
+    QString aVpkgPath = path;
+    if(aVpkgPath.isEmpty()) {
+        QSettings settings("VC.ini", QSettings::IniFormat);
 
-    QSettings settings;
-
-    QString aVpkgPath = QString("");
-    aVpkgPath = QFileDialog::getExistingDirectory(
-        this, tr("Open Directory"), settings.value(defaultPathKey).toString(),
-        QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-    // Dialog box cancelled
-    if (aVpkgPath.length() == 0) {
-        vc::Logger()->info("Open .volpkg canceled");
-        return;
+        aVpkgPath = QFileDialog::getExistingDirectory(
+            this, tr("Open Directory"), settings.value("volpkg/default_path").toString(),
+            QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks | QFileDialog::ReadOnly | QFileDialog::DontUseNativeDialog);
+        // Dialog box cancelled
+        if (aVpkgPath.length() == 0) {
+            vc::Logger()->info("Open .volpkg canceled");
+            return;
+        }
     }
 
-    // Checks the Folder Path for .volpkg extension
+    // Checks the folder path for .volpkg extension
     auto const extension = aVpkgPath.toStdString().substr(
         aVpkgPath.toStdString().length() - 7, aVpkgPath.toStdString().length());
     if (extension != ".volpkg") {
@@ -1321,9 +1427,6 @@ void CWindow::OpenVolume()
         fVpkg = nullptr;  // Is need for User Experience, clears screen.
         return;
     }
-
-    QDir currentDir;
-    settings.setValue(defaultPathKey, currentDir.absoluteFilePath(aVpkgPath));
 
     // Open volume package
     if (!InitializeVolumePkg(aVpkgPath.toStdString() + "/")) {
@@ -1353,6 +1456,8 @@ void CWindow::OpenVolume()
     for (const auto& id : fVpkg->volumeIDs()) {
         volSelect->addItem(QString("%1 (%2)").arg(QString::fromStdString(id)).arg(QString::fromStdString(fVpkg->volume(id)->name())), QVariant(QString::fromStdString(id)));
     }
+
+    UpdateRecentVolpkgList(aVpkgPath);
 }
 
 void CWindow::CloseVolume(void)
@@ -1373,14 +1478,27 @@ void CWindow::CloseVolume(void)
 // Handle open request
 void CWindow::Open(void)
 {
+    Open(QString());
+}
+
+// Handle open request
+void CWindow::Open(const QString& path)
+{
     if (SaveDialog() == SaveResponse::Cancelled)
         return;
 
     CloseVolume();
-    OpenVolume();
+    OpenVolume(path);
     OpenSlice();
     InitPathList();
     UpdateView();  // update the panel when volume package is loaded     
+}
+
+void CWindow::OpenRecent()
+{
+    auto action = qobject_cast<QAction*>(sender());
+    if(action)
+        Open(action->data().toString());
 }
 
 // Close application
@@ -1433,6 +1551,13 @@ void CWindow::About(void)
         this, tr("About Volume Cartographer"),
         tr("Vis Center, University of Kentucky\n\n"
         "Fork: https://github.com/spacegaier/volume-cartographer"));
+}
+
+void CWindow::ShowSettings()
+{
+    auto pDlg = new SettingsDialog(this);
+    pDlg->exec();
+    delete pDlg;
 }
 
 // Save point cloud to path directory

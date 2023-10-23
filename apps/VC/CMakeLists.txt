@@ -13,6 +13,7 @@ set(srcs
     CBezierCurve.cpp
     BlockingDialog.hpp
     ColorFrame.hpp
+    SettingsDialog.cpp
 )
 
 set(MACOSX_BUNDLE_ICON logo.icns)

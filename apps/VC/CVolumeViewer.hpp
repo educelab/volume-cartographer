@@ -79,6 +79,8 @@ protected:
     double fScaleFactor;
     int fImageIndex;
 
+    bool fCenterOnZoomEnabled;
+
     QGraphicsPixmapItem* fBaseImageItem;
 };  // class CVolumeViewer
 
