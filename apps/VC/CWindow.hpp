@@ -161,6 +161,7 @@ private slots:
     void About(void);
     void SavePointCloud();
     void ShowSettings();
+    void PrintDebugInfo();
 
     void OnNewPathClicked(void);
     void OnRemovePathClicked(void);
@@ -245,6 +246,7 @@ private:
     QAction* fExitAct;
     QAction* fKeybinds;
     QAction* fAboutAct;
+    QAction* fPrintDebugInfo;
 
     CVolumeViewerWithCurve* fVolumeViewerWidget;
     QCheckBox* fchkDisplayAll;

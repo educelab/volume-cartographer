@@ -554,6 +554,14 @@ void CWindow::CreateMenus(void)
 
     fHelpMenu = new QMenu(tr("&Help"), this);
     fHelpMenu->addAction(fKeybinds);
+    fFileMenu->addSeparator();
+
+    QSettings settingsJump("VC.ini", QSettings::IniFormat);
+    if(settingsJump.value("general/debug", 0).toInt() == 1) {
+        fHelpMenu->addAction(fPrintDebugInfo);
+        fFileMenu->addSeparator();
+    }
+
     fHelpMenu->addAction(fAboutAct);
 
     menuBar()->addMenu(fFileMenu);
@@ -589,7 +597,10 @@ void CWindow::CreateActions(void)
     connect(fKeybinds, SIGNAL(triggered()), this, SLOT(Keybindings()));
 
     fAboutAct = new QAction(tr("&About..."), this);
-    connect(fAboutAct, SIGNAL(triggered()), this, SLOT(About()));    
+    connect(fAboutAct, SIGNAL(triggered()), this, SLOT(About()));  
+
+    fPrintDebugInfo = new QAction  (tr("Debug info"), this);
+    connect(fPrintDebugInfo, SIGNAL(triggered()), this, SLOT(PrintDebugInfo()));
 }
 
 void CWindow::CreateBackend()
@@ -1531,6 +1542,12 @@ void CWindow::ShowSettings()
     auto pDlg = new SettingsDialog(this);
     pDlg->exec();
     delete pDlg;
+}
+
+void CWindow::PrintDebugInfo()
+{
+    // Add whatever should be printed via std::count via the action in the help menu.
+    // Note: The menu entry is only visible with the matching INI entry.
 }
 
 // Save point cloud to path directory

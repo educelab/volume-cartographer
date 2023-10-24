@@ -87,7 +87,7 @@ signals:
 private:
     // for interaction
     QTimer *timer;
-    Qt::MouseButton lastPressedButton;
+    Qt::MouseButton lastPressedButton{Qt::NoButton};
     cv::Vec2f scrollPositionModifier{cv::Vec2f(0.0, 0.0)};
 
     // for drawing
