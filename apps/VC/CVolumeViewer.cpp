@@ -10,18 +10,27 @@ using qga = QGuiApplication;
 CVolumeViewerView::CVolumeViewerView(QWidget* parent)
 : QGraphicsView(parent)
 {
+    // rangeImpactText = new QGraphicsTextItem(QString("0, 0"), 0);
+    // QFont f;
+    // f.setPointSize(25);
+    // rangeImpactText->setFont(f);
 }
 
 void CVolumeViewerView::keyPressEvent(QKeyEvent* event)
 {
-    if(event->key() == Qt::Key_S)
+    if(event->key() == Qt::Key_W)
         rangeKeyPressed = true;
 }
 
 void CVolumeViewerView::keyReleaseEvent(QKeyEvent* event)
 {
-    if(event->key() == Qt::Key_S)
+    if(event->key() == Qt::Key_W)
         rangeKeyPressed = false;
+}
+
+void CVolumeViewerView::showCurrentImpactRange(int range)
+{
+    //rangeImpactText->setPlainText("Range: " + QString::number(range));
 }
 
 // Constructor

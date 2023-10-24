@@ -151,6 +151,7 @@ void CVolumeViewerWithCurve::SetIntersectionCurve(CXCurve& nCurve)
 void CVolumeViewerWithCurve::SetImpactRange(int nImpactRange)
 {
     fImpactRange = nImpactRange;
+    fGraphicsView->showCurrentImpactRange(nImpactRange);
 }
 
 // Update the B-spline curve

@@ -16,7 +16,7 @@ This fork contains the following changes compared to upstream currently:
 - Adjusted mouse wheel usage:
   * Mouse Wheel + Ctrl = Zoom in/out (as in most image apps); was previously Mouse Wheel + Shift in VC
   * Mouse Wheel + Shift = Next/previous slice (test-wise for big mouse wheel movements 10 slices; might need to be made user-configurable for different mouse models)
-  * Mouse Wheel + S Key Hold = Adjust impact range
+  * Mouse Wheel + W Key Hold = Adjust impact range
 - Added Ctrl + G to easily jump to a given slice (opens an input popup to type in the slice index) => no more need to manually click into the spinner below the viewer
 - Added settings dialog (using an INI file `VC.ini`) to make some features configurable
 - Added a "Recent volpkg" list and menu option to easily reopen one of the last 10 volume packages

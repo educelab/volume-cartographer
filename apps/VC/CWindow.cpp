@@ -1508,7 +1508,7 @@ void CWindow::Keybindings(void)
         "Mouse Wheel + Alt: Scroll left/right \n"
         "Mouse Wheel + Ctrl: Zoom in/out \n"
         "Mouse Wheel + Shift: Next/previous slice \n"
-        "Mouse Wheel + S Key Hold: Change impact range \n"
+        "Mouse Wheel + W Key Hold: Change impact range \n"
         "Mouse Left Click: Add Points to Curve in Pen Tool. Snap Closest Point to Cursor in Segmentation Tool. \n"
         "Mouse Left Drag: Drag Point / Curve after Mouse Left Click \n"
         "Mouse Right Drag: Pan slice image\n"

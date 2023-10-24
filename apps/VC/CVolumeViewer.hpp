@@ -27,8 +27,13 @@ class CVolumeViewerView : public QGraphicsView
 
         bool isRangeKeyPressed() { return rangeKeyPressed; }
 
+    public slots:
+        void showCurrentImpactRange(int range);
+
     protected:
         bool rangeKeyPressed{false};
+
+        QGraphicsTextItem* rangeImpactText;
 };
 
 class CVolumeViewer : public QWidget
