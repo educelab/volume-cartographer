@@ -295,6 +295,11 @@ void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* event)
         } else if (fViewState == EViewState::ViewStateEdit && ((event->buttons() & Qt::LeftButton) || fIsMousePressed)) {
             fIsMousePressed = true;        
 
+            if(fImageIndex != sliceIndexToolStart) {
+                SendSignalStatusMessageAvailable(tr("Tool was started for slice %1. No other slices can be edited right now.").arg(QString::number(sliceIndexToolStart)), 3000);
+                return;
+            }
+            
             // If we have points, select the one that was clicked.
             auto res = SelectPointOnCurves(aImgLoc, true);
             fSelectedPointIndex = res.first;

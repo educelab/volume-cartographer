@@ -51,6 +51,7 @@ signals:
     void SendSignalOnNextSliceShift(int shift);
     void SendSignalOnPrevSliceShift(int shift);
     void SendSignalOnLoadAnyImage(int nImageIndex);
+    void SendSignalStatusMessageAvailable(QString text, int timeout);
 
 protected:
     void ScaleImage(double nFactor);

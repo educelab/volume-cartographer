@@ -188,6 +188,7 @@ void CWindow::CreateWidgets(void)
     assert(aTabSegment != nullptr);
 
     fVolumeViewerWidget = new CVolumeViewerWithCurve(fSegStructMap);
+    connect(fVolumeViewerWidget, &CVolumeViewerWithCurve::SendSignalStatusMessageAvailable, this, &CWindow::onShowStatusMessage);
 
     QVBoxLayout* aWidgetLayout = new QVBoxLayout;
     aWidgetLayout->addWidget(fVolumeViewerWidget);
@@ -828,15 +829,15 @@ void CWindow::UpdateView(void)
     fEdtWindowWidth->setValue(fSegParams.fWindowWidth);
 
     // Set / calculate start and end index
-    fEdtStartIndex->setValue(fPathOnSliceIndex);
-    if (fPathOnSliceIndex + fEndTargetOffset >= currentVolume->numSlices()) {
+    fEdtStartIndex->setValue(fSliceIndexToolStart);
+    if (fSliceIndexToolStart + fEndTargetOffset >= currentVolume->numSlices()) {
         fEdtEndIndex->setValue(currentVolume->numSlices() - 1);
     } 
-    else if (fPathOnSliceIndex + fEndTargetOffset < 0) {
+    else if (fSliceIndexToolStart + fEndTargetOffset < 0) {
         fEdtEndIndex->setValue(0);
-    }    
+    }
     else {
-        fEdtEndIndex->setValue(fPathOnSliceIndex + fEndTargetOffset);
+        fEdtEndIndex->setValue(fSliceIndexToolStart + fEndTargetOffset);
     }
 
     // Logic to enable/disable segmentation and pen tools. TODO add logic to check proper segmentations
@@ -1148,6 +1149,11 @@ void CWindow::onSegmentationFailed(std::string s)
     // worker_progress_.close();
     // CleanupSegmentation();
     // UpdateView();
+}
+
+void CWindow::onShowStatusMessage(QString text, int timeout)
+{
+    statusBar->showMessage(text, timeout);
 }
 
 void CWindow::CleanupSegmentation(void)
@@ -1631,7 +1637,7 @@ void CWindow::OnRemovePathClicked(void)
     if(!id.isEmpty()) {
 
         // Ask for user confirmation
-        auto button = QMessageBox::critical(this, tr("Are you sure?"), tr("Warning: This will irrevocably delete the segment.\n\nThis action cannot be undone!\n\nContinue?"), QMessageBox::Yes | QMessageBox::No);
+        auto button = QMessageBox::critical(this, tr("Are you sure?"), tr("Warning: This will irrevocably delete the segment %1.\n\nThis action cannot be undone!\n\nContinue?").arg(id), QMessageBox::Yes | QMessageBox::No);
         
         if(button == QMessageBox::Yes) {
 
@@ -1999,6 +2005,7 @@ void CWindow::TogglePenTool(void)
     if (fPenTool->isChecked()) {
         fWindowState = EWindowState::WindowStateDrawPath;
         fSliceIndexToolStart = fPathOnSliceIndex;
+        fVolumeViewerWidget->SetSliceIndexToolStart(fSliceIndexToolStart);
 
         // turn off segmentation tool
         fSegTool->setChecked(false);
@@ -2015,6 +2022,7 @@ void CWindow::TogglePenTool(void)
         fSplineCurve.Clear();
         fVolumeViewerWidget->ResetSplineCurve();
         fSliceIndexToolStart = 0;
+        fVolumeViewerWidget->SetSliceIndexToolStart(0);
     }
 
     UpdateView();
@@ -2031,6 +2039,7 @@ void CWindow::ToggleSegmentationTool(void)
         // Start prefetching around the current slice
         startPrefetching(fPathOnSliceIndex);
         fSliceIndexToolStart = fPathOnSliceIndex;
+        fVolumeViewerWidget->SetSliceIndexToolStart(fSliceIndexToolStart);
 
         fWindowState = EWindowState::WindowStateSegmentation;
         SplitCloud();
@@ -2040,6 +2049,7 @@ void CWindow::ToggleSegmentationTool(void)
     } else {
         CleanupSegmentation();
         fSliceIndexToolStart = 0;
+        fVolumeViewerWidget->SetSliceIndexToolStart(0);
     }
     UpdateView();
 }
@@ -2225,7 +2235,7 @@ void CWindow::OnLoadNextSliceShift(int shift)
 
     if (!fVolumeViewerWidget->fNextBtn->isEnabled()) {
         statusBar->showMessage(
-            tr("Changing Slices is deactivated during Drawing!"), 10000);
+            tr("Changing Slices is deactivated in the Pen Tool!"), 10000);
     } else if (shift != 0) {
         fPathOnSliceIndex += shift;
         OpenSlice();
@@ -2244,7 +2254,7 @@ void CWindow::OnLoadPrevSliceShift(int shift)
 
     if (!fVolumeViewerWidget->fPrevBtn->isEnabled()) {
         statusBar->showMessage(
-            tr("Changing Slices is deactivated during Drawing!"), 10000);
+            tr("Changing Slices is deactivated in the Pen Tool!"), 10000);
     } else if (shift != 0) {
         fPathOnSliceIndex -= shift;
         OpenSlice();

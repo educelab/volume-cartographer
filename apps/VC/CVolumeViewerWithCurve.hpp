@@ -47,6 +47,7 @@ public:
     // for editing mode
     void SetIntersectionCurve(CXCurve& nCurve);
     void SetImpactRange(int nImpactRange);
+    void SetSliceIndexToolStart(int index) { sliceIndexToolStart = index; }
 
     void UpdateView();
     void SetShowCurve(bool b) { showCurve = b; }
@@ -106,6 +107,7 @@ private:
     CXCurve* fIntersectionCurveRef;
     int fSelectedPointIndex;
     std::string fSelectedSegID;
+    int sliceIndexToolStart;
 
     bool fVertexIsChanged;
     bool fIsMousePressed{false};
