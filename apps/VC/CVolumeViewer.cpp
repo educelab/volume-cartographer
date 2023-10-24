@@ -14,13 +14,13 @@ CVolumeViewerView::CVolumeViewerView(QWidget* parent)
 
 void CVolumeViewerView::keyPressEvent(QKeyEvent* event)
 {
-    if(event->key() == Qt::Key_R)
+    if(event->key() == Qt::Key_S)
         rangeKeyPressed = true;
 }
 
 void CVolumeViewerView::keyReleaseEvent(QKeyEvent* event)
 {
-    if(event->key() == Qt::Key_R)
+    if(event->key() == Qt::Key_S)
         rangeKeyPressed = false;
 }
 
