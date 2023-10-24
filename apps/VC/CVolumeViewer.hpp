@@ -14,6 +14,23 @@
 namespace ChaoVis
 {
 
+class CVolumeViewerView : public QGraphicsView
+{
+
+    Q_OBJECT
+
+    public:
+        CVolumeViewerView(QWidget* parent = nullptr);
+
+        void keyPressEvent(QKeyEvent* event) override;
+        void keyReleaseEvent(QKeyEvent* event) override;
+
+        bool isRangeKeyPressed() { return rangeKeyPressed; }
+
+    protected:
+        bool rangeKeyPressed{false};
+};
+
 class CVolumeViewer : public QWidget
 {
 
@@ -52,6 +69,8 @@ signals:
     void SendSignalOnPrevSliceShift(int shift);
     void SendSignalOnLoadAnyImage(int nImageIndex);
     void SendSignalStatusMessageAvailable(QString text, int timeout);
+    void SendSignalImpactRangeUp(void);
+    void SendSignalImpactRangeDown(void);
 
 protected:
     void ScaleImage(double nFactor);
@@ -64,7 +83,7 @@ protected:
 
 protected:
     // widget components
-    QGraphicsView* fGraphicsView;
+    CVolumeViewerView* fGraphicsView;
     QGraphicsScene* fScene;
 
     QLabel* fCanvas;

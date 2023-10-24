@@ -92,6 +92,8 @@ public slots:
     void onSegmentationFinished(Segmenter::PointSet ps);
     void onSegmentationFailed(std::string s);
     void onShowStatusMessage(QString text, int timeout);
+    void onImpactRangeUp(void);
+    void onImpactRangeDown(void);
 
 public:
     CWindow();

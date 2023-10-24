@@ -7,6 +7,24 @@ using namespace ChaoVis;
 using qga = QGuiApplication;
 
 // Constructor
+CVolumeViewerView::CVolumeViewerView(QWidget* parent)
+: QGraphicsView(parent)
+{
+}
+
+void CVolumeViewerView::keyPressEvent(QKeyEvent* event)
+{
+    if(event->key() == Qt::Key_R)
+        rangeKeyPressed = true;
+}
+
+void CVolumeViewerView::keyReleaseEvent(QKeyEvent* event)
+{
+    if(event->key() == Qt::Key_R)
+        rangeKeyPressed = false;
+}
+
+// Constructor
 CVolumeViewer::CVolumeViewer(QWidget* parent)
     : QWidget(parent)
     , fCanvas(nullptr)
@@ -41,8 +59,9 @@ CVolumeViewer::CVolumeViewer(QWidget* parent)
     fBaseImageItem = new QGraphicsPixmapItem();
 
     // Create graphics view
-    fGraphicsView = new QGraphicsView(this);
+    fGraphicsView = new CVolumeViewerView(this);
     fGraphicsView->setRenderHint(QPainter::Antialiasing);
+    setFocusProxy(fGraphicsView);
     
     // Create graphics scene
     fScene = new QGraphicsScene(this);
@@ -133,9 +152,24 @@ void CVolumeViewer::setNumSlices(int num)
 
 bool CVolumeViewer::eventFilter(QObject* watched, QEvent* event)
 {
-    if ((watched == fGraphicsView || (fGraphicsView && watched == fGraphicsView->viewport())) && event->type() == QEvent::Wheel) {
+    if (watched == fGraphicsView || (fGraphicsView && watched == fGraphicsView->viewport()) && event->type() == QEvent::Wheel) {
+        
+        // Wheel events
         QWheelEvent* wheelEvent = static_cast<QWheelEvent*>(event);
-        if(QApplication::keyboardModifiers() == Qt::ControlModifier) {
+        
+        // "R" key pressed => Change impact range
+        if(fGraphicsView->isRangeKeyPressed()) {
+            int numDegrees = wheelEvent->angleDelta().y() / 8;
+
+            if (numDegrees > 0) {
+                SendSignalImpactRangeUp();
+            } else if (numDegrees < 0) {
+                SendSignalImpactRangeDown();
+            }
+
+            return true;
+        // Ctrl = Zoom in/out
+        } else if(QApplication::keyboardModifiers() == Qt::ControlModifier) {
             int numDegrees = wheelEvent->angleDelta().y() / 8;
 
             if (numDegrees > 0) {
@@ -149,6 +183,7 @@ bool CVolumeViewer::eventFilter(QObject* watched, QEvent* event)
             }
             
             return true;
+        // Shift = Scan through slices
         } else if(QApplication::keyboardModifiers() == Qt::ShiftModifier) {
             int numDegrees = wheelEvent->angleDelta().y() / 8;
 

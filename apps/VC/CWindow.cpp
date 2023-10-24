@@ -189,6 +189,8 @@ void CWindow::CreateWidgets(void)
 
     fVolumeViewerWidget = new CVolumeViewerWithCurve(fSegStructMap);
     connect(fVolumeViewerWidget, &CVolumeViewerWithCurve::SendSignalStatusMessageAvailable, this, &CWindow::onShowStatusMessage);
+    connect(fVolumeViewerWidget, &CVolumeViewerWithCurve::SendSignalImpactRangeUp, this, &CWindow::onImpactRangeUp);
+    connect(fVolumeViewerWidget, &CVolumeViewerWithCurve::SendSignalImpactRangeDown, this, &CWindow::onImpactRangeDown);
 
     QVBoxLayout* aWidgetLayout = new QVBoxLayout;
     aWidgetLayout->addWidget(fVolumeViewerWidget);
@@ -477,32 +479,12 @@ void CWindow::CreateWidgets(void)
     connect(
         displayCurves_C, &QShortcut::activated, fVolumeViewerWidget,
         &CVolumeViewerWithCurve::toggleShowCurveBox);
-    connect(impactUp, &QShortcut::activated, [this]() {
-        if (ui.sldImpactRange->isEnabled()) {
-            ui.sldImpactRange->triggerAction(
-                QSlider::SliderAction::SliderSingleStepAdd);
-        }
-    });
-    connect(impactDwn, &QShortcut::activated, [this]() {
-        if (ui.sldImpactRange->isEnabled()) {
-            ui.sldImpactRange->triggerAction(
-                QSlider::SliderAction::SliderSingleStepSub);
-        }
-    });
-    connect(impactUp_old, &QShortcut::activated, [this]() {
-        if (ui.sldImpactRange->isEnabled()) {
-            ui.sldImpactRange->triggerAction(
-                QSlider::SliderAction::SliderSingleStepAdd);
-        }
-    });
+    connect(impactUp, &QShortcut::activated, this, &CWindow::onImpactRangeUp);
+    connect(impactDwn, &QShortcut::activated, this, &CWindow::onImpactRangeDown);
+    connect(impactUp_old, &QShortcut::activated, this, &CWindow::onImpactRangeUp);
+    connect(impactDwn_old, &QShortcut::activated, this, &CWindow::onImpactRangeDown);
     connect(segmentationToolShortcut, &QShortcut::activated, this, &CWindow::ActivateSegmentationTool);
-    connect(penToolShortcut, &QShortcut::activated, this, &CWindow::ActivatePenTool);
-    connect(impactDwn_old, &QShortcut::activated, [this]() {
-        if (ui.sldImpactRange->isEnabled()) {
-            ui.sldImpactRange->triggerAction(
-                QSlider::SliderAction::SliderSingleStepSub);
-        }
-    });
+    connect(penToolShortcut, &QShortcut::activated, this, &CWindow::ActivatePenTool);    
     connect(next1, &QShortcut::activated, [this]() {
         int shift = 1;
         OnLoadNextSliceShift(shift);
@@ -576,7 +558,6 @@ void CWindow::CreateMenus(void)
 
     menuBar()->addMenu(fFileMenu);
     menuBar()->addMenu(fHelpMenu);
-    menuBar()->setNativeMenuBar(false);
 }
 
 // Create actions
@@ -1527,6 +1508,7 @@ void CWindow::Keybindings(void)
         "Mouse Wheel + Alt: Scroll left/right \n"
         "Mouse Wheel + Ctrl: Zoom in/out \n"
         "Mouse Wheel + Shift: Next/previous slice \n"
+        "Mouse Wheel + R Key Hold: Change impact range \n"
         "Mouse Left Click: Add Points to Curve in Pen Tool. Snap Closest Point to Cursor in Segmentation Tool. \n"
         "Mouse Left Drag: Drag Point / Curve after Mouse Left Click \n"
         "Mouse Right Drag: Pan slice image\n"
@@ -2009,6 +1991,7 @@ void CWindow::TogglePenTool(void)
 
         // turn off segmentation tool
         fSegTool->setChecked(false);
+        fVolumeViewerWidget->setFocus();
     } else {
         fWindowState = EWindowState::WindowStateIdle;
 
@@ -2046,6 +2029,7 @@ void CWindow::ToggleSegmentationTool(void)
 
         // turn off pen tool
         fPenTool->setChecked(false);
+        fVolumeViewerWidget->setFocus();
     } else {
         CleanupSegmentation();
         fSliceIndexToolStart = 0;
@@ -2204,11 +2188,29 @@ void CWindow::OnEdtEndingSliceValChange()
 // Handle start segmentation
 void CWindow::OnBtnStartSegClicked(void) { DoSegmentation(); }
 
-// Handle start segmentation
+// Handle changes to impact range
 void CWindow::OnEdtImpactRange(int nImpactRange)
 {
     fVolumeViewerWidget->SetImpactRange(nImpactRange);
     fLabImpactRange->setText(QString::number(nImpactRange));
+}
+
+// Handle request to step impact range up
+void CWindow::onImpactRangeUp(void)
+{
+    // Trigger an uptick in the slider
+    if (ui.sldImpactRange->isEnabled()) {
+        ui.sldImpactRange->triggerAction(QSlider::SliderAction::SliderSingleStepAdd);
+    }
+}
+
+// Handle request to step impact range down
+void CWindow::onImpactRangeDown(void)
+{
+    // Trigger an uptick in the slider
+    if (ui.sldImpactRange->isEnabled()) {
+        ui.sldImpactRange->triggerAction(QSlider::SliderAction::SliderSingleStepSub);
+    }
 }
 
 // Handle loading any slice
