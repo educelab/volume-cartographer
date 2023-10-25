@@ -6,6 +6,7 @@
 #include <list>
 #include <memory>
 #include <unordered_map>
+#include <mutex>
 
 #include "vc/core/types/Cache.hpp"
 
