@@ -31,6 +31,9 @@ public:
     /** Point set type */
     using PointSet = OrderedPointSet<cv::Vec3d>;
 
+    /** Annotation set type */
+    using AnnotationSet = OrderedPointSet<cv::Vec2i>;
+
     /** Shared pointer type */
     using Pointer = std::shared_ptr<Segmentation>;
 
@@ -68,6 +71,32 @@ public:
      * PointSet data is never cached in memory and is always loaded from disk.
      */
     PointSet getPointSet() const;
+
+    /** @brief Return if this Segmentation has an associated AnnotationSet file */
+    bool hasAnnotations() const
+    {
+        try {
+            return !metadata_.get<std::string>("vcano").empty();
+        } catch(std::runtime_error) {
+            // catch since annotations are optional and do not have to exist neither as file nor metadata key
+            return false;
+        }
+    }
+
+    /**
+     * @brief Save AnnotationSet to the Segmentation file
+     *
+     * @warning This will overwrite the AnnotationSet file associated with this
+     * Segmentation.
+     */
+    void setAnnotationSet(const AnnotationSet& as);
+
+    /**
+     * @brief Load the associated AnnotationSet from the Segmentation file
+     *
+     * AnnotationSet data is never cached in memory and is always loaded from disk.
+     */
+    AnnotationSet getAnnotationSet() const;
 
     /** @brief Return whether this Segmentation is associated with a Volume */
     bool hasVolumeID() const

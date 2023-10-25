@@ -16,7 +16,6 @@ namespace ChaoVis
 
 class CVolumeViewerView : public QGraphicsView
 {
-
     Q_OBJECT
 
     public:
@@ -47,7 +46,6 @@ class CVolumeViewerView : public QGraphicsView
 
 class CVolumeViewer : public QWidget
 {
-
     Q_OBJECT
 
 public:

@@ -23,6 +23,7 @@ Segmentation::Segmentation(fs::path path, Identifier uuid, std::string name)
 {
     metadata_.set("type", "seg");
     metadata_.set("vcps", std::string{});
+    metadata_.set("vcano", std::string{});
     metadata_.set("volume", Volume::Identifier{});
     metadata_.save();
 }
@@ -65,4 +66,31 @@ Segmentation::PointSet Segmentation::getPointSet() const
     // Load the pointset
     auto filepath = path_ / metadata_.get<std::string>("vcps");
     return PointSetIO<cv::Vec3d>::ReadOrderedPointSet(filepath);
+}
+
+// Save the AnnotationSet to disk
+void Segmentation::setAnnotationSet(const AnnotationSet& ps)
+{
+    // Set a name into the metadata if we haven't set one already
+    if (metadata_.get<std::string>("vcano").empty()) {
+        metadata_.set("vcano", "pointset.vcano");
+        metadata_.save();
+    }
+
+    // Write the annotation set to the segmentation file
+    auto filepath = path_ / metadata_.get<std::string>("vcano");
+    PointSetIO<cv::Vec2i>::WriteOrderedPointSet(filepath, ps);
+}
+
+// Load the AnnotationSet from disk
+Segmentation::AnnotationSet Segmentation::getAnnotationSet() const
+{
+    // Check if there's an associated annotation set file
+    if (metadata_.get<std::string>("vcano").empty()) {
+        return Segmentation::AnnotationSet();
+    }
+
+    // Load the annotation set
+    auto filepath = path_ / metadata_.get<std::string>("vcano");
+    return PointSetIO<cv::Vec2i>::ReadOrderedPointSet(filepath);
 }

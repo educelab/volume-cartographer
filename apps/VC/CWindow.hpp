@@ -135,12 +135,14 @@ private:
 
     void SetUpCurves(void);
     void SetCurrentCurve(int nCurrentSliceIndex);
+    void SetUpAnnotations(void);
 
     void prefetchSlices(void);
     void startPrefetching(int index);
     void OpenSlice(void);
 
     void InitPathList(void);
+    void UpdateAnnotationList(void);
 
     void SetPathPointCloud(void);
 
@@ -210,6 +212,8 @@ private slots:
     void toggleDisplayAll(bool checked);
     void toggleComputeAll(bool checked);
 
+    void addNewAnnotationsItem(int sliceIndex, bool anchor, bool manual);
+
 private:
     // data model
     EWindowState fWindowState;
@@ -226,7 +230,6 @@ private:
     static const int AMPLITUDE = 28000;
     static const int FREQUENCY = 44100;
 
-    SegmentationStruct fSegStruct;
     std::unordered_map<std::string, SegmentationStruct> fSegStructMap;
     int fPathOnSliceIndex; // currently visible slice
     int fSliceIndexToolStart{0}; // slice for which the currently active tool was started / toggled
@@ -259,6 +262,7 @@ private:
     QCheckBox* fchkDisplayAll;
     QCheckBox* fchkComputeAll;
     QTreeWidget* fPathListWidget;
+    QTreeWidget* fAnnotationListWidget;
     QPushButton* fPenTool;  // REVISIT - change me to QToolButton
     QPushButton* fSegTool;
     QComboBox* volSelect;

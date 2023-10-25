@@ -84,15 +84,16 @@ CWindow::CWindow()
     , fPathOnSliceIndex(0)
     , fVolumeViewerWidget(nullptr)
     , fPathListWidget(nullptr)
+    , fAnnotationListWidget(nullptr)
     , fPenTool(nullptr)
     , fSegTool(nullptr)
     , stopPrefetching(false)
     , prefetchSliceIndex(-1)
-    , fSegStruct()
 {
 
     ui.setupUi(this);
-    ui.splitter->setSizes(QList<int>() << 300 << 100);
+    ui.splitterLeft->setSizes(QList<int>() << 100 << 300);
+    ui.splitterRight->setSizes(QList<int>() << 300 << 100);
     SDL_Init(SDL_INIT_AUDIO);
     fVpkgChanged = false;
 
@@ -288,14 +289,13 @@ void CWindow::CreateWidgets(void)
     connect(fchkDisplayAll, &QCheckBox::toggled, this, &CWindow::toggleDisplayAll);
     connect(fchkComputeAll, &QCheckBox::toggled, this, &CWindow::toggleComputeAll);
 
-
     // list of paths
     fPathListWidget = this->findChild<QTreeWidget*>("treeWidgetPaths");
-    // connect(
-    //     fPathListWidget, SIGNAL(itemClicked(QListWidgetItem*)), this,
-    //     SLOT(OnPathItemClicked(QListWidgetItem*)));
-
     connect(fPathListWidget, SIGNAL(itemClicked(QTreeWidgetItem*, int)), this, SLOT(OnPathItemClicked(QTreeWidgetItem*, int)));
+
+    // list of annotations
+    fAnnotationListWidget = this->findChild<QTreeWidget*>("treeWidgetAnnotations");
+    //connect(fAnnotationListWidget, SIGNAL(itemClicked(QTreeWidgetItem*, int)), this, SLOT(OnAnnotationItemClicked(QTreeWidgetItem*, int)));
 
     // segmentation methods
     auto* aSegMethodsComboBox = this->findChild<QComboBox*>("cmbSegMethods");
@@ -903,6 +903,7 @@ void CWindow::UpdateView(void)
     fEdtStartIndex->setEnabled(false);
 
     fVolumeViewerWidget->UpdateView();
+    UpdateAnnotationList();
 
     update();
 }
@@ -944,6 +945,7 @@ void CWindow::ChangePathItem(std::string segID)
 
     OpenSlice();
     SetCurrentCurve(fPathOnSliceIndex);
+    UpdateAnnotationList();
     UpdateView();
 }
 
@@ -1005,6 +1007,9 @@ void CWindow::DoSegmentation(void)
         // Now we can forget all other changed curves
         seg.second.ForgetChangedCurves();
 
+        // This curve is now considered an anchor as it was used as the starting point for a segmentation run.
+        // Update the annotations accordingly.
+        seg.second.SetSliceAsAnchor(fEdtStartIndex->value(), true);
 
         Segmenter::Pointer segmenter;
         if (segIdx == 0) {
@@ -1084,6 +1089,7 @@ void CWindow::executeNextSegmentation()
         fPathOnSliceIndex = fSegParams.targetIndex;
         CleanupSegmentation();
         SetUpCurves();
+        SetUpAnnotations();
         UpdateView();
         playPing();
     }
@@ -1136,8 +1142,8 @@ void CWindow::onSegmentationFinished(Segmenter::PointSet ps)
 {
     worker_progress_updater_.stop();
     worker_progress_.close();
+
     // 3) concatenate the two parts to form the complete point cloud
-    // find starting location in fMasterCloud
 
     fSegStructMap[submittedSegmentationId].MergePointSetIntoPointCloud(ps);
 
@@ -1185,6 +1191,7 @@ void CWindow::CleanupSegmentation(void)
     fSegTool->setChecked(false);
     fWindowState = EWindowState::WindowStateIdle;
     SetUpCurves();
+    SetUpAnnotations();
     OpenSlice();
     SetCurrentCurve(fPathOnSliceIndex);
 }
@@ -1263,6 +1270,15 @@ void CWindow::SetUpCurves(void)
     for (auto& seg : fSegStructMap) {
         auto& segStruct = seg.second;
         segStruct.SetUpCurves();
+    }
+}
+
+// Get the annotations for all the slices
+void CWindow::SetUpAnnotations(void)
+{
+    for (auto& seg : fSegStructMap) {
+        auto& segStruct = seg.second;
+        segStruct.SetUpAnnotations();
     }
 }
 
@@ -1383,6 +1399,41 @@ void CWindow::InitPathList(void)
     }
 }
 
+// Update annotation list
+void CWindow::UpdateAnnotationList(void)
+{
+    // Note: This method does not handle removal of existing entries.
+
+    // PA check condition
+    if (fVpkg != nullptr && !fSegmentationId.empty() && fSegStructMap[fSegmentationId].fSegmentation && fSegStructMap[fSegmentationId].fSegmentation->hasAnnotations()) {
+        
+        // show the existing annotations
+        for (auto& a : fSegStructMap[fSegmentationId].fAnnotations) {
+
+            // Check if at least one of the flags is true
+            if(a.second.anchor || a.second.manual) {
+                // Anchor or manually changed => add to list if not already in there
+                if(fAnnotationListWidget->findItems(QString::number(a.first), Qt::MatchExactly, 0).size() == 0) {                    
+                    QTreeWidgetItem *item = new QTreeWidgetItem(fAnnotationListWidget);
+                    item->setText(0, QString::number(a.first));
+                    item->setCheckState(1, a.second.anchor ? Qt::Checked : Qt::Unchecked);
+                    item->setCheckState(2, a.second.manual ? Qt::Checked : Qt::Unchecked);
+                    item->setDisabled(true);
+                }
+            }
+        }
+
+        // A bit hacky, but using QHeaderView::ResizeToContents did result in weird scrollbars
+        fAnnotationListWidget->resizeColumnToContents(0);
+        fAnnotationListWidget->resizeColumnToContents(1);
+        fAnnotationListWidget->resizeColumnToContents(2); 
+
+        fAnnotationListWidget->sortByColumn(0, Qt::AscendingOrder);
+    } else {
+        fAnnotationListWidget->clear();
+    }
+}
+
 // Update the Master cloud with the path we drew
 void CWindow::SetPathPointCloud(void)
 {
@@ -1395,18 +1446,33 @@ void CWindow::SetPathPointCloud(void)
     auto unique = std::unique(aSamplePts.begin(), aSamplePts.end());
     aSamplePts.erase(unique, aSamplePts.end());
     auto uniquePts = aSamplePts.size();
-    vc::Logger()->warn("Removed {} duplicate points", numPts - uniquePts);
+
+    if(numPts - uniquePts > 0) {
+        vc::Logger()->warn("Removed {} duplicate points", numPts - uniquePts);
+    }
+
+    // No points (perhaps curve too small = below sampling min size)
+    if(uniquePts == 0) {
+        vc::Logger()->warn("No points could be extracted from curve.");
+        return;
+    }
 
     // setup a new master cloud
     fSegStructMap[fSegmentationId].fMasterCloud.setWidth(aSamplePts.size());
+    fSegStructMap[fSegmentationId].fAnnotationCloud.setWidth(aSamplePts.size());
     std::vector<cv::Vec3d> points;
+    std::vector<cv::Vec2i> annotations;
     for (const auto& pt : aSamplePts) {
         points.emplace_back(pt[0], pt[1], fPathOnSliceIndex);
+        annotations.emplace_back(1, 1);
     }
     fSegStructMap[fSegmentationId].fMasterCloud.pushRow(points);
 
     fSegStructMap[fSegmentationId].fMinSegIndex = static_cast<int>(floor(fSegStructMap[fSegmentationId].fMasterCloud[0][2]));
     fSegStructMap[fSegmentationId].fMaxSegIndex = fSegStructMap[fSegmentationId].fMinSegIndex;
+
+    // Also create matching annotations.
+    fSegStructMap[fSegmentationId].fAnnotationCloud.pushRow(annotations);
 }
 
 // Open volume package
@@ -1593,9 +1659,10 @@ void CWindow::SavePointCloud()
             qDebug() << "Empty cloud or segmentation ID to save for ID " << segStruct.fSegmentationId.c_str();
             continue;
         }
-        // Try to save point cloud to volpkg
+        // Try to save point cloud and its annotations to volpkg
         try {
             segStruct.fSegmentation->setPointSet(segStruct.fMasterCloud);
+            segStruct.fSegmentation->setAnnotationSet(segStruct.fAnnotationCloud);
             segStruct.fSegmentation->setVolumeID(currentVolume->id());
         } catch (std::exception& e) {
             QMessageBox::warning(
@@ -1912,10 +1979,11 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
 
     UpdateSegmentCheckboxes(aSegID);
 
+    fAnnotationListWidget->clear();
     UpdateView();
 }
 
-// Logic to switch the selected Id
+// Logic to switch the selected ID
 void CWindow::PreviousSelectedId() {
     // seg that is currently highlighted
     std::string currentId;
@@ -1954,7 +2022,7 @@ void CWindow::PreviousSelectedId() {
     UpdateView();
 }
 
-// Logic to switch the selected Id
+// Logic to switch the selected ID
 void CWindow::NextSelectedId() {
     // seg that is currently highlighted
     std::string currentId;
@@ -1994,6 +2062,18 @@ void CWindow::NextSelectedId() {
     fSegStructMap[nextId].highlighted = true;
 
     UpdateView();
+}
+
+void CWindow::addNewAnnotationsItem(int sliceIndex, bool anchor, bool manual)
+{
+    // Add a new annotation to the tree widget
+    QTreeWidgetItem *newItem = new QTreeWidgetItem(fAnnotationListWidget);
+    newItem->setText(0, QString::number(sliceIndex));
+    newItem->setCheckState(1, anchor ? Qt::Checked : Qt::Unchecked);
+    newItem->setCheckState(2, manual ? Qt::Checked : Qt::Unchecked);
+
+    // Activate the new item
+    fAnnotationListWidget->setCurrentItem(newItem);
 }
 
 // Show go to slice dialog and execute the jump
@@ -2071,8 +2151,11 @@ void CWindow::TogglePenTool(void)
             SetPathPointCloud();  // finished drawing, set up path
             SavePointCloud();
             SetUpCurves();
+            SetUpAnnotations();
             OpenSlice();
             SetCurrentCurve(fPathOnSliceIndex);
+
+            addNewAnnotationsItem(fPathOnSliceIndex, true, true);
         }
         fSplineCurve.Clear();
         fVolumeViewerWidget->ResetSplineCurve();

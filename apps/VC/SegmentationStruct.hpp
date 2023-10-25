@@ -30,6 +30,11 @@
 namespace ChaoVis
 {
 
+struct AnnotationStruct {
+    bool anchor{false};
+    bool manual{false}; // at least one point was manually changed on that slice this annotation belongs to
+};
+
 struct SegmentationStruct {
     volcart::VolumePkg::Pointer fVpkg;
     std::string fSegmentationId;
@@ -42,7 +47,9 @@ struct SegmentationStruct {
     int fMinSegIndex = 0; // index on which the segment starts
     volcart::OrderedPointSet<cv::Vec3d> fMasterCloud;
     volcart::OrderedPointSet<cv::Vec3d> fUpperPart;
+    volcart::OrderedPointSet<cv::Vec2i> fAnnotationCloud;
     std::vector<cv::Vec3d> fStartingPath;
+    std::map<int, AnnotationStruct> fAnnotations; // parsed annotations
     int fPathOnSliceIndex = 0;
     bool display = false;
     bool compute = false;
@@ -58,6 +65,7 @@ struct SegmentationStruct {
                        int minSegIndex,
                        volcart::OrderedPointSet<cv::Vec3d> masterCloud,
                        volcart::OrderedPointSet<cv::Vec3d> upperPart,
+                       volcart::OrderedPointSet<cv::Vec2i> annotations,
                        std::vector<cv::Vec3d> startingPath,
                        int pathOnSliceIndex, bool display, bool compute)
         : fVpkg(vpkg),
@@ -70,6 +78,7 @@ struct SegmentationStruct {
           fMinSegIndex(minSegIndex),
           fMasterCloud(masterCloud),
           fUpperPart(upperPart),
+          fAnnotationCloud(annotations),
           fStartingPath(startingPath),
           fPathOnSliceIndex(pathOnSliceIndex),
           display(display),
@@ -99,7 +108,7 @@ struct SegmentationStruct {
         fSegmentationId = segID;
         SetPathOnSliceIndex(pathOnSliceIndex);
 
-        // reset pointcloud
+        // reset point cloud
         ResetPointCloud();
 
         // Activate requested segmentation
@@ -112,11 +121,20 @@ struct SegmentationStruct {
             fMasterCloud.reset();
         }
 
+        // load annotations
+        if (fSegmentation->hasAnnotations()) {
+            fAnnotationCloud = fSegmentation->getAnnotationSet();
+        } else {
+            // If it does not exist, create one now the same sice as the point master cloud
+            CreateInitialAnnotationSet(fMasterCloud.height(), fMasterCloud.width());
+        }
+
         if (fSegmentation->hasVolumeID()) {
             currentVolume = fVpkg->volume(fSegmentation->getVolumeID());
         }
 
         SetUpCurves();
+        SetUpAnnotations();
 
         SetCurrentCurve(fPathOnSliceIndex);
     }
@@ -135,6 +153,8 @@ struct SegmentationStruct {
         fIntersectionsChanged.clear();
         CXCurve emptyCurve;
         fIntersectionCurve = emptyCurve;
+        fAnnotationCloud.reset();
+        fAnnotations.clear();
     }
 
     inline void SplitCloud(void)
@@ -174,6 +194,7 @@ struct SegmentationStruct {
     inline void CleanupSegmentation(void)
     {
         SetUpCurves();
+        SetUpAnnotations();
         SetCurrentCurve(fPathOnSliceIndex);
     }
 
@@ -185,12 +206,8 @@ struct SegmentationStruct {
         }
         fIntersections.clear();
         int minIndex, maxIndex;
-        if (fMasterCloud.empty()) {
-            minIndex = maxIndex = fPathOnSliceIndex;
-        } else {
-            minIndex = static_cast<int>(floor(fMasterCloud[0][2]));
-            maxIndex = static_cast<int>(fMasterCloud.getRow(fMasterCloud.height()-1)[fMasterCloud.width()-1][2]);            
-        }   
+        minIndex = static_cast<int>(floor(fMasterCloud[0][2]));
+        maxIndex = static_cast<int>(fMasterCloud.getRow(fMasterCloud.height()-1)[fMasterCloud.width()-1][2]);      
 
         fMinSegIndex = minIndex;
         fMaxSegIndex = maxIndex;
@@ -206,6 +223,32 @@ struct SegmentationStruct {
                     fMasterCloud[pointIndex][0], fMasterCloud[pointIndex][1]));
             }
             fIntersections.push_back(aCurve);
+        }
+    }
+
+    // Get the annotations for all the slices
+    inline void SetUpAnnotations(void)
+    {
+        if (fVpkg == nullptr || fMasterCloud.empty() || fAnnotationCloud.empty()) {
+            return;
+        }
+        
+        fAnnotations.clear();
+        for (size_t i = 0; i < fAnnotationCloud.height(); ++i) {
+            AnnotationStruct sliceAno;
+            int pointIndex;
+
+            for (size_t j = 0; j < fAnnotationCloud.width(); ++j) {
+                pointIndex = j + (i * fAnnotationCloud.width());
+                
+                if(fAnnotationCloud[pointIndex][0] == 1)
+                    sliceAno.anchor = true;
+                
+                if(fAnnotationCloud[pointIndex][1] == 1)
+                    sliceAno.manual = true;
+            }
+
+            fAnnotations[fMasterCloud[pointIndex][2]] = sliceAno;
         }
     }
 
@@ -238,13 +281,28 @@ struct SegmentationStruct {
     }
 
     inline void MergePointSetIntoPointCloud(const volcart::Segmentation::PointSet ps)
-    {
+    {        
+        // Ensure that everything matches
+        if(fMasterCloud.width() != ps.width() || fMasterCloud.width() != fAnnotationCloud.width()) {
+            std::cout << "Error: Width mismatch during cloud merging" << std::endl;
+            return;
+        }
+
+        // Determine starting min and max Z value (= slice) from the master point cloud
+        auto minZ = fMasterCloud[0][2];
+        auto maxZ = fMasterCloud[fMasterCloud.size() - 1][2];
+
+        // Determine new min and max Z values based on input point set
+        auto minZPS = ps[0][2];
+        auto maxZPS = ps[ps.size() - 1][2];
+
+        // Handle point cloud logic
         int i;
         for (i= 0; i < fMasterCloud.height(); i++) {
             auto masterRowI = fMasterCloud.getRow(i);
             if (ps[0][2] <= masterRowI[fUpperPart.width()-1][2]){
                 // We found the entry where the 3rd vector component (= index 2 = which means the slice index)
-                // of the new point set matches the value in the existing row of our point cloud 
+                // of the new point set matches the value in the existing row of our master point cloud 
                 // => starting point for merge
                 break;
             }
@@ -264,12 +322,52 @@ struct SegmentationStruct {
             }
         }
 
-        // Add the remaining rows (if there are any left)
+        // Add the remaining rows (if there are any left; potentially all are left if the input
+        // points all have lower slice index values than our existing master cloud contained so far)
         if (i < fMasterCloud.height()) {
             fUpperPart.append(fMasterCloud.copyRows(i, fMasterCloud.height()));
         }
 
         fMasterCloud = fUpperPart;
+
+        // Handle annotation cloud logic
+        volcart::OrderedPointSet<cv::Vec2i> fUpperAnnotations(fAnnotationCloud.width());
+        const AnnotationStruct defaultAnnotation;
+
+        if (minZPS < minZ) {
+            // New anntotaaion points required at the start to match the new size of the master point cloud
+            volcart::Segmentation::AnnotationSet as(fAnnotationCloud.width());
+            std::vector<cv::Vec2i> annotations;
+
+            for (int ia = 0; ia < (minZ - minZPS); ia++) {
+                annotations.clear();
+                for (int ja = 0; ja < ps.width(); ja++) {
+                    // We have no annotation info for the new points, so just create initial rows and entries
+                    annotations.emplace_back(defaultAnnotation.anchor, defaultAnnotation.manual);
+                }
+                as.pushRow(annotations);
+            }
+            fUpperAnnotations.append(as);
+        }
+
+        fUpperAnnotations.append(fAnnotationCloud.copyRows(minZ, maxZ + 1));
+
+        if(maxZPS > maxZ) {
+            volcart::Segmentation::AnnotationSet as(fAnnotationCloud.width());
+            std::vector<cv::Vec2i> annotations;
+            
+            for (int ia = 0; ia < (maxZPS - maxZ); ia++) {
+                annotations.clear();
+                for (int ja = 0; ja < ps.width(); ja++) {
+                    // We have no annotation info for the new points, so just create initial rows and entries
+                    annotations.emplace_back(defaultAnnotation.anchor, defaultAnnotation.manual);
+                }
+                as.pushRow(annotations);
+            }
+            fUpperAnnotations.append(as);
+        }
+
+        fAnnotationCloud = fUpperAnnotations;
     }
 
     inline void MergeChangedCurveIntoPointCloud(int nSliceIndex)
@@ -291,6 +389,52 @@ struct SegmentationStruct {
         ps.pushRow(row);
         
         MergePointSetIntoPointCloud(ps);
+    }
+
+    inline void CreateInitialAnnotationSet(int height, int width)
+    {
+        fAnnotationCloud.reset();
+        fAnnotationCloud = volcart::OrderedPointSet<cv::Vec2i>(width);
+        const AnnotationStruct defaultAnnotation;
+
+        std::vector<cv::Vec2i> annotations;
+
+        for (int i = 0; i < height; i++) {
+            annotations.clear();
+            for (int j = 0; j < width; j++) {
+                // We have no annotation info, so just create initial rows and entries
+                annotations.emplace_back(defaultAnnotation.anchor, defaultAnnotation.manual);
+            }
+            fAnnotationCloud.pushRow(annotations);
+        }
+    }
+
+    inline void SetSliceAsAnchor(int nSliceIndex, bool anchor)
+    {
+        // Calculate index via master point cloud
+        int pointIndex;
+        for (int i= 0; i < fMasterCloud.height(); i++) {
+            auto masterRowI = fMasterCloud.getRow(i);
+            if (nSliceIndex <= masterRowI[0][2]){
+                pointIndex = i * fMasterCloud.width();
+                break;
+            }
+        }
+
+        for(int i = pointIndex; i < (pointIndex + fAnnotationCloud.width()); i++) {
+            fAnnotationCloud[i][0] = anchor;
+        }
+
+        auto it = fAnnotations.find(nSliceIndex);
+        if(it != fAnnotations.end()) {
+            // Update existing entry
+            it->second.anchor = anchor;
+        } else {
+            // Create new entry
+            AnnotationStruct ano;
+            ano.anchor = anchor;
+            fAnnotations[nSliceIndex] = ano;
+        }
     }
 
     // Handle path change event
